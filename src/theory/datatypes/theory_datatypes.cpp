@@ -60,7 +60,7 @@ TheoryDatatypes::TheoryDatatypes(Context* c, UserContext* u, OutputChannel& out,
   d_equalityEngine.addFunctionKind(kind::APPLY_SELECTOR_TOTAL);
   d_equalityEngine.addFunctionKind(kind::DT_SIZE);
   d_equalityEngine.addFunctionKind(kind::APPLY_TESTER);
-  d_equalityEngine.addFunctionKind(kind::APPLY_UF);
+  //d_equalityEngine.addFunctionKind(kind::APPLY_UF);
 
   d_true = NodeManager::currentNM()->mkConst( true );
   d_dtfCounter = 0;
@@ -1073,6 +1073,36 @@ EqualityStatus TheoryDatatypes::getEqualityStatus(TNode a, TNode b){
 
 void TheoryDatatypes::computeCareGraph(){
   Trace("dt-cg") << "Compute graph for dt..." << std::endl;
+  /*
+  Trace("dt-cg") << "Look at shared terms..." << std::endl;
+  for (unsigned i = 0; i < d_sharedTerms.size(); ++ i) {
+    TNode a = d_sharedTerms[i];
+    if( a.getKind()!=APPLY_CONSTRUCTOR && a.getKind()!=APPLY_SELECTOR_TOTAL ){
+      TypeNode aType = a.getType();
+      for (unsigned j = i + 1; j < d_sharedTerms.size(); ++ j) {
+        TNode b = d_sharedTerms[j];
+        if( b.getKind()!=APPLY_CONSTRUCTOR && b.getKind()!=APPLY_SELECTOR_TOTAL ){
+          if (b.getType() != aType) {
+            // We don't care about the terms of different types
+            continue;
+          }
+          switch (d_valuation.getEqualityStatus(a, b)) {
+          case EQUALITY_TRUE_AND_PROPAGATED:
+          case EQUALITY_FALSE_AND_PROPAGATED:
+            // If we know about it, we should have propagated it, so we can skip
+            break;
+          default:
+            // Let's split on it
+            addCarePair(a, b);
+            break;
+          }
+        }
+      }
+    }
+  }
+  */
+
+  Trace("dt-cg") << "Look at theory terms..." << std::endl;
   vector< pair<TNode, TNode> > currentPairs;
   for( unsigned r=0; r<2; r++ ){
     unsigned functionTerms = r==0 ? d_consTerms.size() : d_selTerms.size();
@@ -1096,7 +1126,7 @@ void TheoryDatatypes::computeCareGraph(){
               Trace("dt-cg") << "Arg #" << k << " is " << x << " " << y << std::endl;
               if( d_equalityEngine.isTriggerTerm(x, THEORY_DATATYPES) && d_equalityEngine.isTriggerTerm(y, THEORY_DATATYPES) ){
                 EqualityStatus eqStatus = d_valuation.getEqualityStatus(x, y);
-                if( eqStatus==EQUALITY_FALSE_AND_PROPAGATED || eqStatus==EQUALITY_FALSE || eqStatus==EQUALITY_UNKNOWN ){
+                if( eqStatus==EQUALITY_FALSE_AND_PROPAGATED || eqStatus==EQUALITY_FALSE || eqStatus==EQUALITY_FALSE_IN_MODEL ){
                   somePairIsDisequal = true;
                   break;
                 }else{
@@ -1174,11 +1204,26 @@ void TheoryDatatypes::collectModelInfo( TheoryModel* m, bool fullModel ){
     //for all equivalence classes that are datatypes
     if( DatatypesRewriter::isTermDatatype( eqc ) ){
       EqcInfo* ei = getOrMakeEqcInfo( eqc );
-      if( !ei->d_constructor.get().isNull() ){
-        cons.push_back( ei->d_constructor.get() );
-        eqc_cons[ eqc ] = ei->d_constructor.get();
+      if( ei && !ei->d_constructor.get().isNull() ){
+        Node c = ei->d_constructor.get();
+        cons.push_back( c );
+        eqc_cons[ eqc ] = c;
       }else{
-        nodes.push_back( eqc );
+        //if eqc contains a symbol known to datatypes (a selector), then we must assign 
+        bool containsTSym = false;
+        eq::EqClassIterator eqc_i = eq::EqClassIterator( eqc, &d_equalityEngine );
+        while( !eqc_i.isFinished() ){
+          Node n = *eqc_i;
+          Trace("dt-cmi-debug") << n << " has kind " << n.getKind() << ", isVar = " << n.isVar() << std::endl;
+          if( n.isVar() || n.getKind()==APPLY_SELECTOR_TOTAL ){
+            containsTSym = true;
+            break;
+          }
+          ++eqc_i;
+        }
+        if( containsTSym ){
+          nodes.push_back( eqc );
+        }
       }
     }
     ++eqccs_i;
@@ -1199,6 +1244,7 @@ void TheoryDatatypes::collectModelInfo( TheoryModel* m, bool fullModel ){
         Trace("dt-cmi") << "   Type : " << eqc.getType() << std::endl;
         TypeNode tn = eqc.getType();
         //if it is infinite, make sure it is fresh
+        //  this ensures that the term that this is an argument of is distinct.
         if( eqc.getType().getCardinality().isInfinite() ){
           std::map< TypeNode, int >::iterator it = typ_enum_map.find( tn );
           int teIndex;
@@ -1753,7 +1799,7 @@ bool TheoryDatatypes::mustSpecifyAssignment(){
 }
 
 bool TheoryDatatypes::mustCommunicateFact( Node n, Node exp ){
-  //the datatypes decision procedure makes 5 "internal" inferences apart from the equality engine :
+  //the datatypes decision procedure makes "internal" inferences apart from the equality engine :
   //  (1) Unification : C( t1...tn ) = C( s1...sn ) => ti = si
   //  (2) Label : ~is_C1( t ) ... ~is_C{i-1}( t ) ~is_C{i+1}( t ) ... ~is_Cn( t ) => is_Ci( t )
   //  (3) Instantiate : is_C( t ) => t = C( sel_1( t ) ... sel_n( t ) )
@@ -1764,12 +1810,20 @@ bool TheoryDatatypes::mustCommunicateFact( Node n, Node exp ){
   Trace("dt-lemma-debug") << "Compute for " << exp << " => " << n << std::endl;
   bool addLemma = false;
   if( n.getKind()==EQUAL || n.getKind()==IFF ){
-    TypeNode tn = n[0].getType();
-    if( !tn.isDatatype() ){
-      addLemma = true;
-    }else{
-      const Datatype& dt = ((DatatypeType)(tn).toType()).getDatatype();
-      addLemma = dt.involvesExternalType();
+    for( unsigned i=0; i<2; i++ ){
+      if( n[i].getKind()!=APPLY_SELECTOR_TOTAL && n[i].getKind()!=APPLY_CONSTRUCTOR ){
+        addLemma = true;
+      }
+    }
+    
+    if( !addLemma ){
+      TypeNode tn = n[0].getType();
+      if( !DatatypesRewriter::isTypeDatatype( tn ) ){
+        addLemma = true;
+      }else{
+        const Datatype& dt = ((DatatypeType)(tn).toType()).getDatatype();
+        addLemma = dt.involvesExternalType();
+      }
     }
     //for( int j=0; j<(int)n[1].getNumChildren(); j++ ){
     //  if( !DatatypesRewriter::isTermDatatype( n[1][j] ) ){

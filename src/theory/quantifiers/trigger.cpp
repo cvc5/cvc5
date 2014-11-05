@@ -385,6 +385,30 @@ bool Trigger::collectPatTerms2( QuantifiersEngine* qe, Node f, Node n, std::map<
   }
 }
 
+bool Trigger::isLocalTheoryExt2( Node n, std::vector< Node >& var_found, std::vector< Node >& patTerms ) {
+  if( !n.getType().isBoolean() && n.getKind()==APPLY_UF ){
+    bool hasVar = false;
+    for( unsigned i=0; i<n.getNumChildren(); i++ ){
+      if( n[i].getKind()==APPLY_UF ){
+        return false;
+      }else if( n[i].getKind()==INST_CONSTANT ){
+        hasVar = true;
+        //if( std::find( var_found.begin(), var_found.end(), n[i]
+      }
+    }
+    if( hasVar ){
+      patTerms.push_back( n );
+    }
+  }else{
+    for( unsigned i=0; i<n.getNumChildren(); i++ ){
+      if( !isLocalTheoryExt2( n, var_found, patTerms ) ){
+        return false;
+      } 
+    }
+  }
+  return true;
+}
+
 bool Trigger::isBooleanTermTrigger( Node n ) {
   if( n.getKind()==ITE ){
     //check for boolean term converted to ITE
@@ -412,6 +436,11 @@ bool Trigger::isPureTheoryTrigger( Node n ) {
     }
     return true;
   }
+}
+
+bool Trigger::isLocalTheoryExt( Node n, std::vector< Node >& patTerms ) {
+  std::vector< Node > var_found;
+  return isLocalTheoryExt2( n, var_found, patTerms );
 }
 
 void Trigger::collectPatTerms( QuantifiersEngine* qe, Node f, Node n, std::vector< Node >& patTerms, int tstrt, std::vector< Node >& exclude, bool filterInst ){

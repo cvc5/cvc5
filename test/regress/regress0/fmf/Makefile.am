@@ -40,6 +40,7 @@ EXTRA_DIST = $(TESTS)
 
 # disabled for now :
 #  bug0909.smt2
+#  lst-no-self-rev-exp.smt2
 
 #if CVC4_BUILD_PROFILE_COMPETITION
 #else
