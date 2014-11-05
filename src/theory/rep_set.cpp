@@ -28,6 +28,15 @@ void RepSet::clear(){
   d_tmap.clear();
 }
 
+bool RepSet::hasRep( TypeNode tn, Node n ) {
+  std::map< TypeNode, std::vector< Node > >::iterator it = d_type_reps.find( tn );
+  if( it==d_type_reps.end() ){
+    return false;
+  }else{
+    return std::find( it->second.begin(), it->second.end(), n )!=it->second.end();
+  }
+}
+
 int RepSet::getNumRepresentatives( TypeNode tn ) const{
   std::map< TypeNode, std::vector< Node > >::const_iterator it = d_type_reps.find( tn );
   if( it!=d_type_reps.end() ){

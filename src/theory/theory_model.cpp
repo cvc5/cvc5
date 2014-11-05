@@ -169,9 +169,11 @@ Node TheoryModel::getModelValue(TNode n, bool hasBoundVars) const
     if (n.getNumChildren() > 0 &&
         n.getKind() != kind::BITVECTOR_ACKERMANIZE_UDIV &&
         n.getKind() != kind::BITVECTOR_ACKERMANIZE_UREM) {
+      Debug("model-getvalue-debug") << "Get model value children " << n << std::endl;
       std::vector<Node> children;
       if (n.getKind() == APPLY_UF) {
         Node op = getModelValue(n.getOperator(), hasBoundVars);
+        Debug("model-getvalue-debug") << "  operator : " << op << std::endl;
         children.push_back(op);
       }
       else if (n.getMetaKind() == kind::metakind::PARAMETERIZED) {
@@ -180,6 +182,7 @@ Node TheoryModel::getModelValue(TNode n, bool hasBoundVars) const
       //evaluate the children
       for (unsigned i = 0; i < n.getNumChildren(); ++i) {
         ret = getModelValue(n[i], hasBoundVars);
+        Debug("model-getvalue-debug") << "  " << n << "[" << i << "] is " << ret << std::endl;
         children.push_back(ret);
       }
       ret = Rewriter::rewrite(NodeManager::currentNM()->mkNode(n.getKind(), children));

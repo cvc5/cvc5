@@ -677,18 +677,24 @@ Node FirstOrderModelFmc::getFunctionValue(Node op, const char* argPrefix ) {
   Node curr;
   for( int i=(d_models[op]->d_cond.size()-1); i>=0; i--) {
     Node v = d_models[op]->d_value[i];
+    Trace("fmc-model-func") << "Value is : " << v << std::endl;
     if( !hasTerm( v ) ){
       //can happen when the model basis term does not exist in ground assignment
       TypeNode tn = v.getType();
-      if( d_rep_set.d_type_reps.find( tn )!=d_rep_set.d_type_reps.end() && !d_rep_set.d_type_reps[ tn ].empty() ){
-        //see full_model_check.cpp line 366
-        v = d_rep_set.d_type_reps[tn][ d_rep_set.d_type_reps[tn].size()-1 ];
-      }else{
-        Assert( false );
+      //check if it is a constant introduced as a representative not existing in the model's equality engine
+      if( !d_rep_set.hasRep( tn, v ) ){
+        if( d_rep_set.d_type_reps.find( tn )!=d_rep_set.d_type_reps.end() && !d_rep_set.d_type_reps[ tn ].empty() ){
+          //see full_model_check.cpp line 366
+          v = d_rep_set.d_type_reps[tn][ d_rep_set.d_type_reps[tn].size()-1 ];
+        }else{
+          Assert( false );
+        }
+        Trace("fmc-model-func") << "No term, assign " << v << std::endl;
       }
     }
     v = getRepresentative( v );
     if( curr.isNull() ){
+      Trace("fmc-model-func") << "base : " << v << std::endl;
       curr = v;
     }else{
       //make the condition
@@ -711,6 +717,8 @@ Node FirstOrderModelFmc::getFunctionValue(Node op, const char* argPrefix ) {
       }
       Assert( !children.empty() );
       Node cc = children.size()==1 ? children[0] : NodeManager::currentNM()->mkNode( AND, children );
+
+      Trace("fmc-model-func") << "condition : " << cc << ", value : " << v << std::endl;
       curr = NodeManager::currentNM()->mkNode( ITE, cc, v, curr );
     }
   }

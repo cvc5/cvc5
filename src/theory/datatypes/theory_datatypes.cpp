@@ -170,9 +170,9 @@ void TheoryDatatypes::check(Effort e) {
         TypeNode tn = n.getType();
         if( DatatypesRewriter::isTypeDatatype( tn ) ){
           Trace("datatypes-debug") << "Process equivalence class " << n << std::endl;
-          EqcInfo* eqc = getOrMakeEqcInfo( n, true );
+          EqcInfo* eqc = getOrMakeEqcInfo( n );
           //if there are more than 1 possible constructors for eqc
-          if( eqc->d_constructor.get().isNull() && !hasLabel( eqc, n ) ) {
+          if( !hasLabel( eqc, n ) ){
             Trace("datatypes-debug") << "No constructor..." << std::endl;
             const Datatype& dt = ((DatatypeType)(tn).toType()).getDatatype();
 
@@ -191,7 +191,7 @@ void TheoryDatatypes::check(Effort e) {
                 if( consIndex==-1 ){
                   consIndex = j;
                 }
-                if( !dt[ j ].isFinite() && !eqc->d_selectors ) {
+                if( !dt[ j ].isFinite() && ( !eqc || !eqc->d_selectors ) ) {
                   needSplit = false;
                 }
               }
@@ -832,7 +832,7 @@ d_inst( c, false ), d_constructor( c, Node::null() ), d_selectors( c, false ){
 }
 
 bool TheoryDatatypes::hasLabel( EqcInfo* eqc, Node n ){
-  return !eqc->d_constructor.get().isNull() || !getLabel( n ).isNull();
+  return ( eqc && !eqc->d_constructor.get().isNull() ) || !getLabel( n ).isNull();
 }
 
 Node TheoryDatatypes::getLabel( Node n ) {
@@ -847,7 +847,7 @@ Node TheoryDatatypes::getLabel( Node n ) {
 }
 
 int TheoryDatatypes::getLabelIndex( EqcInfo* eqc, Node n ){
-  if( !eqc->d_constructor.get().isNull() ){
+  if( eqc && !eqc->d_constructor.get().isNull() ){
     return Datatype::indexOf( eqc->d_constructor.get().getOperator().toExpr() );
   }else{
     return Datatype::indexOf( getLabel( n ).getOperator().toExpr() );
@@ -1118,7 +1118,7 @@ void TheoryDatatypes::computeCareGraph(){
             TNode x = f1[k];
             TNode y = f2[k];
             Assert(d_equalityEngine.hasTerm(x));
-            Assert(d_equalityEngine.hasTerm(y));            
+            Assert(d_equalityEngine.hasTerm(y));
             if( areDisequal(x, y) ){
               somePairIsDisequal = true;
               break;
@@ -1209,7 +1209,7 @@ void TheoryDatatypes::collectModelInfo( TheoryModel* m, bool fullModel ){
         cons.push_back( c );
         eqc_cons[ eqc ] = c;
       }else{
-        //if eqc contains a symbol known to datatypes (a selector), then we must assign 
+        //if eqc contains a symbol known to datatypes (a selector), then we must assign
         bool containsTSym = false;
         eq::EqClassIterator eqc_i = eq::EqClassIterator( eqc, &d_equalityEngine );
         while( !eqc_i.isFinished() ){
@@ -1815,7 +1815,7 @@ bool TheoryDatatypes::mustCommunicateFact( Node n, Node exp ){
         addLemma = true;
       }
     }
-    
+
     if( !addLemma ){
       TypeNode tn = n[0].getType();
       if( !DatatypesRewriter::isTypeDatatype( tn ) ){
@@ -1907,7 +1907,9 @@ void TheoryDatatypes::printModelDebug( const char* c ){
       //add terms to model
       eq::EqClassIterator eqc_i = eq::EqClassIterator( eqc, &d_equalityEngine );
       while( !eqc_i.isFinished() ){
-        Trace( c ) << (*eqc_i) << " ";
+        if( (*eqc_i)!=eqc ){
+          Trace( c ) << (*eqc_i) << " ";
+        }
         ++eqc_i;
       }
       Trace( c ) << "}" << std::endl;
