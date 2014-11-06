@@ -1279,7 +1279,7 @@ void TheoryDatatypes::collectModelInfo( TheoryModel* m, bool fullModel ){
           for( unsigned i=0; i<pcons.size(); i++ ){
             //must try the infinite ones first
             if( pcons[i] && (r==1)==dt[ i ].isFinite() ){
-              neqc = getInstantiateCons( eqc, dt, i, false );
+              neqc = DatatypesRewriter::getInstCons( eqc, dt, i );
               for( unsigned j=0; j<neqc.getNumChildren(); j++ ){
                 //if( sels[i].find( j )==sels[i].end() && DatatypesRewriter::isTermDatatype( neqc[j] ) ){
                 if( !d_equalityEngine.hasTerm( neqc[j] ) && DatatypesRewriter::isTermDatatype( neqc[j] ) ){
@@ -1420,7 +1420,7 @@ void TheoryDatatypes::processNewTerm( Node n ){
   }
 }
 
-Node TheoryDatatypes::getInstantiateCons( Node n, const Datatype& dt, int index, bool isActive ){
+Node TheoryDatatypes::getInstantiateCons( Node n, const Datatype& dt, int index ){
   std::map< int, Node >::iterator it = d_inst_map[n].find( index );
   if( it!=d_inst_map[n].end() ){
     return it->second;
@@ -1435,14 +1435,9 @@ Node TheoryDatatypes::getInstantiateCons( Node n, const Datatype& dt, int index,
       d_out->lemma( eq );
     }
     Node n_ic = DatatypesRewriter::getInstCons( k, dt, index );
-    if( isActive ){
-      for( unsigned i = 0; i<n_ic.getNumChildren(); i++ ){
-        Assert( n_ic[i]==Rewriter::rewrite( n_ic[i] ) );
-        //processNewTerm( n_ic[i] );
-      }
-      collectTerms( n_ic );
-    }
+    //Assert( n_ic==Rewriter::rewrite( n_ic ) );
     n_ic = Rewriter::rewrite( n_ic );
+    collectTerms( n_ic );
     Debug("dt-enum") << "Made instantiate cons " << n_ic << std::endl;
     d_inst_map[n][index] = n_ic;
     return n_ic;
@@ -1467,7 +1462,7 @@ void TheoryDatatypes::instantiate( EqcInfo* eqc, Node n ){
     //if( eqc->d_selectors || dt[ index ].isFinite() ){ // || mustSpecifyAssignment()
     //instantiate this equivalence class
     eqc->d_inst = true;
-    Node tt_cons = getInstantiateCons( tt, dt, index, true );
+    Node tt_cons = getInstantiateCons( tt, dt, index );
     Node eq;
     if( tt!=tt_cons ){
       eq = tt.eqNode( tt_cons );
