@@ -123,12 +123,14 @@ private:
     //all selectors whose argument is this eqc
     context::CDO< bool > d_selectors;
   };
-  /** does eqc of n have a label? */
+  /** does eqc of n have a label (do we know its constructor)? */
   bool hasLabel( EqcInfo* eqc, Node n );
   /** get the label associated to n */
   Node getLabel( Node n );
   /** get the index of the label associated to n */
   int getLabelIndex( EqcInfo* eqc, Node n );
+  /** does eqc of n have any testers? */
+  bool hasTester( Node n );
   /** get the possible constructors for n */
   void getPossibleCons( EqcInfo* eqc, Node n, std::vector< bool >& cons );
 private:
