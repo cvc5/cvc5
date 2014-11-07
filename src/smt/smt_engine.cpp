@@ -3417,6 +3417,7 @@ Result SmtEngine::assertFormula(const Expr& ex) throw(TypeCheckingException, Log
 Node SmtEngine::postprocess(TNode node, TypeNode expectedType) const {
   ModelPostprocessor mpost;
   NodeVisitor<ModelPostprocessor> visitor;
+  Debug("boolean-terms") << "postproc: visit " << node << endl;
   Node value = visitor.run(mpost, node);
   Debug("boolean-terms") << "postproc: got " << value << " expect type " << expectedType << endl;
   Node realValue = mpost.rewriteAs(value, expectedType);
