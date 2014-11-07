@@ -681,7 +681,10 @@ void TheoryEngineModelBuilder::buildModel(Model* m, bool fullModel)
         continue;
       }
       TypeNode t = TypeSet::getType(it);
-      TypeNode tb = t.getBaseType();
+      if(t.isTuple() || t.isRecord()) {
+        t = NodeManager::currentNM()->getDatatypeForTupleRecord(t);
+      }
+      TypeNode tb = t.getBaseType();      
       if (!assignOne) {
         set<Node>* repSet = typeRepSet.getSet(tb);
         if (repSet != NULL && !repSet->empty()) {

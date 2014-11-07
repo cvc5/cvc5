@@ -55,6 +55,8 @@ public:
   virtual bool needsCheck( Theory::Effort e ) { return e>=Theory::EFFORT_LAST_CALL; }
   /* whether this module needs a model built */
   virtual bool needsModel( Theory::Effort e ) { return false; }
+  /* whether this module needs a model built */
+  virtual bool needsFullModel( Theory::Effort e ) { return false; }
   /* reset at a round */
   virtual void reset_round( Theory::Effort e ){}
   /* Call during quantifier engine's check */

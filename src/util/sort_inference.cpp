@@ -23,6 +23,7 @@
 #include "theory/uf/options.h"
 #include "smt/options.h"
 #include "theory/rewriter.h"
+#include "theory/quantifiers/options.h"
 
 using namespace CVC4;
 using namespace std;
@@ -333,7 +334,7 @@ int SortInference::process( Node n, std::map< Node, Node >& var_bound ){
   for( size_t i=0; i<n.getNumChildren(); i++ ){
     bool processChild = true;
     if( n.getKind()==kind::FORALL || n.getKind()==kind::EXISTS ){
-      processChild = i==1;
+      processChild = options::userPatternsQuant()==theory::quantifiers::USER_PAT_MODE_IGNORE ? i==1 : i>=1;
     }
     if( processChild ){
       children.push_back( n[i] );
@@ -531,7 +532,7 @@ Node SortInference::simplify( Node n, std::map< Node, Node >& var_bound ){
   for( size_t i=0; i<n.getNumChildren(); i++ ){
     bool processChild = true;
     if( n.getKind()==kind::FORALL || n.getKind()==kind::EXISTS ){
-      processChild = i>=1;
+      processChild = options::userPatternsQuant()==theory::quantifiers::USER_PAT_MODE_IGNORE ? i==1 : i>=1;
     }
     if( processChild ){
       children.push_back( simplify( n[i], var_bound ) );

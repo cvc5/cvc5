@@ -99,6 +99,7 @@ public:
 public:
   bool needsCheck( Theory::Effort e );
   bool needsModel( Theory::Effort e );
+  bool needsFullModel( Theory::Effort e );
   /* Call during quantifier engine's check */
   void check( Theory::Effort e, unsigned quant_e );
   /* Called for new quantifiers */

@@ -88,6 +88,9 @@ bool CegInstantiation::needsCheck( Theory::Effort e ) {
 bool CegInstantiation::needsModel( Theory::Effort e ) {
   return true;
 }
+bool CegInstantiation::needsFullModel( Theory::Effort e ) {
+  return false;
+}
 
 void CegInstantiation::check( Theory::Effort e, unsigned quant_e ) {
   if( quant_e==QuantifiersEngine::QEFFORT_MODEL ){

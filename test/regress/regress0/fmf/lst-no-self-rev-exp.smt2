@@ -1,4 +1,4 @@
-; COMMAND-LINE: --finite-model-find --uf-ss-fair
+; COMMAND-LINE: --finite-model-find --dt-rewrite-error-sel
 ; EXPECT: sat
 (set-logic ALL_SUPPORTED)
 (declare-datatypes () ((Nat (succ (pred Nat)) (zero)) (Lst (cons (hd Nat) (tl Lst)) (nil))))
@@ -8,6 +8,10 @@
  
 (declare-sort I_app 0)
 (declare-sort I_rev 0)
+
+(declare-fun a () I_app)
+(declare-fun b () I_app)
+(assert (not (= a b)))
 
 (declare-fun app_0_3 (I_app) Lst)
 (declare-fun app_1_4 (I_app) Lst)

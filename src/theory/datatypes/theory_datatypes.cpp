@@ -1183,8 +1183,10 @@ void TheoryDatatypes::collectModelInfo( TheoryModel* m, bool fullModel ){
         Node c = ei->d_constructor.get();
         cons.push_back( c );
         eqc_cons[ eqc ] = c;
+        m->assertRepresentative( c );
       }else{
         //if eqc contains a symbol known to datatypes (a selector), then we must assign
+#if 0
         bool shouldConsider = false;
         eq::EqClassIterator eqc_i = eq::EqClassIterator( eqc, &d_equalityEngine );
         while( !eqc_i.isFinished() ){
@@ -1196,9 +1198,10 @@ void TheoryDatatypes::collectModelInfo( TheoryModel* m, bool fullModel ){
           }
           ++eqc_i;
         }
-/*
+#else
+        //should assign constructors to EQC if they have a selector or a tester
         bool shouldConsider = ( ei && ei->d_selectors ) || hasTester( eqc );
-        */
+#endif
         if( shouldConsider ){
           nodes.push_back( eqc );
         }
@@ -1217,6 +1220,8 @@ void TheoryDatatypes::collectModelInfo( TheoryModel* m, bool fullModel ){
     bool addCons = false;
     const Datatype& dt = ((DatatypeType)(eqc.getType()).toType()).getDatatype();
     if( !d_equalityEngine.hasTerm( eqc ) ){
+      Assert( false );
+      /*
       if( !dt.isCodatatype() ){
         Trace("dt-cmi") << "NOTICE : Datatypes: need to assign constructor for " << eqc << std::endl;
         Trace("dt-cmi") << "   Type : " << eqc.getType() << std::endl;
@@ -1263,6 +1268,7 @@ void TheoryDatatypes::collectModelInfo( TheoryModel* m, bool fullModel ){
           neqc = *te;
         }
       }
+      */
     }else{
       Trace("dt-cmi") << "NOTICE : Datatypes: no constructor in equivalence class " << eqc << std::endl;
       Trace("dt-cmi") << "   Type : " << eqc.getType() << std::endl;
@@ -1280,12 +1286,12 @@ void TheoryDatatypes::collectModelInfo( TheoryModel* m, bool fullModel ){
             //must try the infinite ones first
             if( pcons[i] && (r==1)==dt[ i ].isFinite() ){
               neqc = DatatypesRewriter::getInstCons( eqc, dt, i );
-              for( unsigned j=0; j<neqc.getNumChildren(); j++ ){
-                //if( sels[i].find( j )==sels[i].end() && DatatypesRewriter::isTermDatatype( neqc[j] ) ){
-                if( !d_equalityEngine.hasTerm( neqc[j] ) && DatatypesRewriter::isTermDatatype( neqc[j] ) ){
-                  nodes.push_back( neqc[j] );
-                }
-              }
+              //for( unsigned j=0; j<neqc.getNumChildren(); j++ ){
+              //  //if( sels[i].find( j )==sels[i].end() && DatatypesRewriter::isTermDatatype( neqc[j] ) ){
+              //  if( !d_equalityEngine.hasTerm( neqc[j] ) && DatatypesRewriter::isTermDatatype( neqc[j] ) ){
+              //    nodes.push_back( neqc[j] );
+              //  }
+              //}
               break;
             }
           }
@@ -1297,6 +1303,7 @@ void TheoryDatatypes::collectModelInfo( TheoryModel* m, bool fullModel ){
       Trace("dt-cmi") << "Assign : " << neqc << std::endl;
       m->assertEquality( eqc, neqc, true );
       eqc_cons[ eqc ] = neqc;
+      m->assertRepresentative( neqc );
     }
     //m->assertRepresentative( neqc );
     if( addCons ){
