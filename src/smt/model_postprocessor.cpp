@@ -235,6 +235,43 @@ void ModelPostprocessor::visit(TNode current, TNode parent) {
     Debug("boolean-terms") << "model-post: " << current << endl
                            << "- returning " << n << endl;
     d_nodes[current] = n;
+  } else if(current.getKind() == kind::LAMBDA) {
+    // rewrite based on children
+    bool self = true;
+    for(size_t i = 0; i < current.getNumChildren(); ++i) {
+      Assert(d_nodes.find(current[i]) != d_nodes.end());
+      if(!d_nodes[current[i]].isNull()) {
+        self = false;
+        break;
+      }
+    }
+    if(self) {
+      Debug("tuprec") << "returning self for kind " << current.getKind() << endl;
+      // rewrite to self
+      d_nodes[current] = Node::null();
+    } else {
+      // rewrite based on children
+      NodeBuilder<> nb(current.getKind());
+      if(current.getMetaKind() == kind::metakind::PARAMETERIZED) {
+        TNode op = current.getOperator();
+        Node realOp;
+        if(op.getAttribute(BooleanTermAttr(), realOp)) {
+          nb << realOp;
+        } else {
+          nb << op;
+        }
+      }
+      for(size_t i = 0; i < current.getNumChildren(); ++i) {
+        Assert(d_nodes.find(current[i]) != d_nodes.end());
+        TNode rw = d_nodes[current[i]];
+        if(rw.isNull()) {
+          rw = current[i];
+        }
+        nb << rw;
+      }
+      d_nodes[current] = nb;
+      Debug("tuprec") << "rewrote children for kind " << current.getKind() << " got " << d_nodes[current] << endl;
+    }
   } else {
     Debug("tuprec") << "returning self for kind " << current.getKind() << endl;
     // rewrite to self

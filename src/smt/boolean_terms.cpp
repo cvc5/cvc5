@@ -282,11 +282,13 @@ const Datatype& BooleanTermConverter::convertDatatype(const Datatype& dt) throw(
         const Datatype& newD = newDtt.getDatatype();
         for(c = dt.begin(); c != dt.end(); ++c) {
           Debug("boolean-terms") << "constructor " << (*c).getConstructor() << ":" << (*c).getConstructor().getType() << " made into " << newD[(*c).getName() + "'"].getConstructor() << ":" << newD[(*c).getName() + "'"].getConstructor().getType() << endl;
-          Node::fromExpr(newD[(*c).getName() + "'"].getConstructor()).setAttribute(BooleanTermAttr(), Node::fromExpr((*c).getConstructor()));// other attr?
+          const DatatypeConstructor *newC;
+          Node::fromExpr((*(newC = &newD[(*c).getName() + "'"])).getConstructor()).setAttribute(BooleanTermAttr(), Node::fromExpr((*c).getConstructor()));// other attr?
           Debug("boolean-terms") << "mapped " << newD[(*c).getName() + "'"].getConstructor() << " to " << (*c).getConstructor() << endl;
           d_varCache[Node::fromExpr((*c).getConstructor())] = Node::fromExpr(newD[(*c).getName() + "'"].getConstructor());
           d_varCache[Node::fromExpr((*c).getTester())] = Node::fromExpr(newD[(*c).getName() + "'"].getTester());
           for(DatatypeConstructor::const_iterator a = (*c).begin(); a != (*c).end(); ++a) {
+            Node::fromExpr((*newC)[(*a).getName() + "'"].getSelector()).setAttribute(BooleanTermAttr(), Node::fromExpr((*a).getSelector()));// other attr?
             d_varCache[Node::fromExpr((*a).getSelector())] = Node::fromExpr(newD[(*c).getName() + "'"].getSelector((*a).getName() + "'"));
           }
         }
