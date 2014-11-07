@@ -36,10 +36,7 @@ public:
   /** Get the solver ids that are available */
   static void getSolverIds(std::vector<std::string>& solvers);
 
-};
+};/* class SatSolverFactory */
 
-}
-}
-
-
-
+}/* CVC4::prop namespace */
+}/* CVC4 namespace */

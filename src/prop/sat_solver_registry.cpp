@@ -52,8 +52,9 @@ SatSolverRegistry* SatSolverRegistry::getInstance() {
 
 SatSolverRegistry::~SatSolverRegistry() {
   registry_type::const_iterator it = d_solvers.begin();
-  registry_type::const_iterator it_end = d_solvers.begin();
+  registry_type::const_iterator it_end = d_solvers.end();
   for (; it != it_end; ++ it) {
     delete it->second;
   }
+  d_solvers.clear();
 }

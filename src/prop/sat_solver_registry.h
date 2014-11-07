@@ -111,6 +111,5 @@ public:
 template<typename Solver>
 const size_t SatSolverConstructor<Solver>::s_solverId = SatSolverRegistry::getInstance()->registerSolver<SatSolverConstructor>(typeid(Solver).name());
 
-}
-}
-
+}/* CVC4::prop namespace */
+}/* CVC4 namespace */

@@ -46,5 +46,5 @@ void SatSolverFactory::getSolverIds(std::vector<std::string>& solvers) {
   SatSolverRegistry::getSolverIds(solvers);
 }
 
-} /* namespace CVC4::prop */
-} /* namespace CVC4 */
+} /* CVC4::prop namespace */
+} /* CVC4 namespace */
