@@ -27,6 +27,15 @@ Node ModelPostprocessor::rewriteAs(TNode n, TypeNode asType) {
     // good to go, we have the right type
     return n;
   }
+  if(n.getKind() == kind::LAMBDA) {
+    Assert(asType.isFunction());
+    Node rhs = rewriteAs(n[1], asType[1]);
+    Node out = NodeManager::currentNM()->mkNode(kind::LAMBDA, n[0], rhs);
+    Debug("boolean-terms") << "rewrote " << n << " as " << out << std::endl;
+    Debug("boolean-terms") << "need type " << asType << endl;
+    Assert(out.getType() == asType);
+    return out;
+  }
   if(!n.isConst()) {
     // we don't handle non-const right now
     return n;
@@ -236,8 +245,32 @@ void ModelPostprocessor::visit(TNode current, TNode parent) {
                            << "- returning " << n << endl;
     d_nodes[current] = n;
   } else {
-    Debug("tuprec") << "returning self for kind " << current.getKind() << endl;
-    // rewrite to self
-    d_nodes[current] = Node::null();
+    // rewrite based on children
+    bool self = true;
+    for(size_t i = 0; i < current.getNumChildren(); ++i) {
+      Assert(d_nodes.find(current[i]) != d_nodes.end());
+      if(!d_nodes[current[i]].isNull()) {
+        self = false;
+        break;
+      }
+    }
+    if(self) {
+      Debug("tuprec") << "returning self for kind " << current.getKind() << endl;
+      // rewrite to self
+      d_nodes[current] = Node::null();
+    } else {
+      // rewrite based on children
+      NodeBuilder<> nb(current.getKind());
+      for(size_t i = 0; i < current.getNumChildren(); ++i) {
+        Assert(d_nodes.find(current[i]) != d_nodes.end());
+        TNode rw = d_nodes[current[i]];
+        if(rw.isNull()) {
+          rw = current[i];
+        }
+        nb << rw;
+      }
+      d_nodes[current] = nb;
+      Debug("tuprec") << "rewrote children for kind " << current.getKind() << " got " << d_nodes[current] << endl;
+    }
   }
 }/* ModelPostprocessor::visit() */
