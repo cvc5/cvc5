@@ -27,6 +27,15 @@ Node ModelPostprocessor::rewriteAs(TNode n, TypeNode asType) {
     // good to go, we have the right type
     return n;
   }
+  if(n.getKind() == kind::LAMBDA) {
+    Assert(asType.isFunction());
+    Node rhs = rewriteAs(n[1], asType[1]);
+    Node out = NodeManager::currentNM()->mkNode(kind::LAMBDA, n[0], rhs);
+    Debug("boolean-terms") << "rewrote " << n << " as " << out << std::endl;
+    Debug("boolean-terms") << "need type " << asType << endl;
+    // Assert(out.getType() == asType);
+    return out;
+  }
   if(!n.isConst()) {
     // we don't handle non-const right now
     return n;

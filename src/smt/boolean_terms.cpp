@@ -132,6 +132,38 @@ Node BooleanTermConverter::rewriteAs(TNode in, TypeNode as) throw() {
   if(as.isBoolean() && in.getType().isBitVector() && in.getType().getBitVectorSize() == 1) {
     return NodeManager::currentNM()->mkNode(kind::EQUAL, NodeManager::currentNM()->mkConst(BitVector(1u, 1u)), in);
   }
+  if(in.getType().isRecord()) {
+    Assert(as.isRecord());
+    const Record& inRec = in.getType().getConst<Record>();
+    const Record& asRec = as.getConst<Record>();
+    Assert(inRec.getNumFields() == asRec.getNumFields());
+    NodeBuilder<> nb(kind::RECORD);
+    nb << NodeManager::currentNM()->mkConst(asRec);
+    for(size_t i = 0; i < asRec.getNumFields(); ++i) {
+      Assert(inRec[i].first == asRec[i].first);
+      Node arg = NodeManager::currentNM()->mkNode(NodeManager::currentNM()->mkConst(RecordSelect(inRec[i].first)), in);
+      if(inRec[i].second != asRec[i].second) {
+        arg = rewriteAs(arg, TypeNode::fromType(asRec[i].second));
+      }
+      nb << arg;
+    }
+    Node out = nb;
+    return out;
+  }
+  if(in.getType().isTuple()) {
+    Assert(as.isTuple());
+    Assert(in.getType().getNumChildren() == as.getNumChildren());
+    NodeBuilder<> nb(kind::TUPLE);
+    for(size_t i = 0; i < as.getNumChildren(); ++i) {
+      Node arg = NodeManager::currentNM()->mkNode(NodeManager::currentNM()->mkConst(TupleSelect(i)), in);
+      if(in.getType()[i] != as[i]) {
+        arg = rewriteAs(arg, as[i]);
+      }
+      nb << arg;
+    }
+    Node out = nb;
+    return out;
+  }
   if(in.getType().isDatatype()) {
     if(as.isBoolean() && in.getType().hasAttribute(BooleanTermAttr())) {
       return NodeManager::currentNM()->mkNode(kind::EQUAL, d_ttDt, in);
