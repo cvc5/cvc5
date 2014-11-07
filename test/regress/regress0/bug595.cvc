@@ -1,0 +1,7 @@
+% EXPECT: sat
+
+f : INT -> [# i:INT, b:INT #];
+a : INT;
+ASSERT f(a) /= (# i := 0, b := 0 #);
+
+CHECKSAT;
