@@ -3,7 +3,7 @@ Regressions
 
 To insert a new regression, add the file to Subversion, for example:
 
-  svn add regress/regress0/testMyFunctionality.cvc
+  git add regress/regress0/testMyFunctionality.cvc
 
 Also add it to the relevant Makefile.am, here, in regress/regress0/Makefile.am.
 

@@ -50,13 +50,36 @@ bool PreRegisterVisitor::alreadyVisited(TNode current, TNode parent) {
   d_theories = Theory::setInsert(parentTheoryId, d_theories);
 
   // Should we use the theory of the type
-  bool useType = current != parent && currentTheoryId != parentTheoryId;
+  bool useType = false;
+  TheoryId typeTheoryId = THEORY_LAST;
 
+  if (current != parent) {
+    if (currentTheoryId != parentTheoryId) {
+      // If enclosed by different theories it's shared -- in read(a, f(a)) f(a) should be shared with integers
+      TypeNode type = current.getType();
+      useType = true;
+      typeTheoryId = Theory::theoryOf(type);
+    } else {
+      TypeNode type = current.getType();
+      typeTheoryId = Theory::theoryOf(type);
+      if (typeTheoryId != currentTheoryId) {
+        if (options::finiteModelFind() && type.isSort()) {
+          // We're looking for finite models
+          useType = true;
+        } else {
+          Cardinality card = type.getCardinality();
+          if (card.isFinite()) {
+            useType = true;
+          }
+        }
+      }
+    }
+  }
+  
   // Get the theories that have already visited this node
   TNodeToTheorySetMap::iterator find = d_visited.find(current);
   if (find == d_visited.end()) {
     if (useType) {
-      TheoryId typeTheoryId = Theory::theoryOf(current.getType());
       d_theories = Theory::setInsert(typeTheoryId, d_theories);
     }
     return false;
@@ -93,8 +116,32 @@ void PreRegisterVisitor::visit(TNode current, TNode parent) {
   TheoryId parentTheoryId  = Theory::theoryOf(parent);
 
   // Should we use the theory of the type
-  bool useType = current != parent && currentTheoryId != parentTheoryId;
+  bool useType = false;
+  TheoryId typeTheoryId = THEORY_LAST;
 
+  if (current != parent) {
+    if (currentTheoryId != parentTheoryId) {
+      // If enclosed by different theories it's shared -- in read(a, f(a)) f(a) should be shared with integers
+      TypeNode type = current.getType();
+      useType = true;
+      typeTheoryId = Theory::theoryOf(type);
+    } else {
+      TypeNode type = current.getType();
+      typeTheoryId = Theory::theoryOf(type);
+      if (typeTheoryId != currentTheoryId) {
+        if (options::finiteModelFind() && type.isSort()) {
+          // We're looking for finite models
+          useType = true;
+        } else {
+          Cardinality card = type.getCardinality();
+          if (card.isFinite()) {
+            useType = true;
+          }
+        }
+      }
+    }
+  }
+  
   Theory::Set visitedTheories = d_visited[current];
   Debug("register::internal") << "PreRegisterVisitor::visit(" << current << "," << parent << "): previously registered with " << Theory::setToString(visitedTheories) << std::endl;
   if (!Theory::setContains(currentTheoryId, visitedTheories)) {
@@ -112,7 +159,6 @@ void PreRegisterVisitor::visit(TNode current, TNode parent) {
     Debug("register::internal") << "PreRegisterVisitor::visit(" << current << "," << parent << "): adding " << parentTheoryId << std::endl;
   }
   if (useType) {
-    TheoryId typeTheoryId  = Theory::theoryOf(current.getType());
     if (!Theory::setContains(typeTheoryId, visitedTheories)) {
       visitedTheories = Theory::setInsert(typeTheoryId, visitedTheories);
       d_visited[current] = visitedTheories;
@@ -165,6 +211,28 @@ bool SharedTermsVisitor::alreadyVisited(TNode current, TNode parent) const {
   bool useType = false;
   TheoryId typeTheoryId = THEORY_LAST;
 
+  if (current != parent) {
+    if (currentTheoryId != parentTheoryId) {
+      // If enclosed by different theories it's shared -- in read(a, f(a)) f(a) should be shared with integers
+      TypeNode type = current.getType();
+      useType = true;
+      typeTheoryId = Theory::theoryOf(type);
+    } else {
+      TypeNode type = current.getType();
+      typeTheoryId = Theory::theoryOf(type);
+      if (typeTheoryId != currentTheoryId) {
+        if (options::finiteModelFind() && type.isSort()) {
+          // We're looking for finite models
+          useType = true;
+        } else {
+          Cardinality card = type.getCardinality();
+          if (card.isFinite()) {
+            useType = true;
+          }
+        }
+      }
+    }
+  }
   if (current != parent) {
     if (currentTheoryId != parentTheoryId) {
       // If enclosed by different theories it's shared -- in read(a, f(a)) f(a) should be shared with integers

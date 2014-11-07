@@ -167,6 +167,7 @@ BUG_TESTS = \
 	bug585.cvc \
 	bug586.cvc \
 	bug590.smt2 \
+	bug593.smt2 \
 	bug595.cvc \
 	bug596.cvc \
 	bug596b.cvc
