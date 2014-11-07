@@ -36,6 +36,7 @@ InstMatchGenerator::InstMatchGenerator( Node pat ){
   Assert( quantifiers::TermDb::hasInstConstAttr(pat) );
   d_pattern = pat;
   d_match_pattern = pat;
+  d_match_pattern_type = pat.getType();
   d_next = NULL;
   d_matchPolicy = MATCH_GEN_DEFAULT;
 }
@@ -92,6 +93,7 @@ void InstMatchGenerator::initialize( QuantifiersEngine* qe, std::vector< InstMat
         }
       }
     }
+    d_match_pattern_type = d_match_pattern.getType();
     Trace("inst-match-gen") << "Pattern is " << d_pattern << ", match pattern is " << d_match_pattern << std::endl;
     d_match_pattern_op = qe->getTermDatabase()->getOperator( d_match_pattern );
 
@@ -315,7 +317,7 @@ bool InstMatchGenerator::getNextMatch( Node f, InstMatch& m, QuantifiersEngine* 
     t = d_cg->getNextCandidate();
     Trace("matching-debug2") << "Matching candidate : " << t << std::endl;
     //if t not null, try to fit it into match m
-    if( !t.isNull() && t.getType().isSubtypeOf( d_match_pattern.getType() ) ){
+    if( !t.isNull() && t.getType().isSubtypeOf( d_match_pattern_type ) ){
       success = getMatch( f, t, m, qe );
     }
   }while( !success && !t.isNull() );
@@ -675,6 +677,7 @@ InstMatchGeneratorSimple::InstMatchGeneratorSimple( Node f, Node pat ) : d_f( f 
     if( d_match_pattern[i].getKind()==INST_CONSTANT ){
       d_var_num[i] = d_match_pattern[i].getAttribute(InstVarNumAttribute());
     }
+    d_match_pattern_arg_types.push_back( d_match_pattern[i].getType() );
   }
 }
 
@@ -713,7 +716,7 @@ void InstMatchGeneratorSimple::addInstantiations( InstMatch& m, QuantifiersEngin
         Node t = it->first;
         Node prev = m.get( v );
         //using representatives, just check if equal
-        if( ( prev.isNull() || prev==t ) && t.getType().isSubtypeOf( d_match_pattern[argIndex].getType() ) ){
+        if( ( prev.isNull() || prev==t ) && t.getType().isSubtypeOf( d_match_pattern_arg_types[argIndex] ) ){
           m.setValue( v, t);
           addInstantiations( m, qe, addedLemmas, argIndex+1, &(it->second) );
           m.setValue( v, prev);

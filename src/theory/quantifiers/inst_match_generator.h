@@ -96,6 +96,8 @@ public:
   Node d_pattern;
   /** match pattern */
   Node d_match_pattern;
+  /** match pattern type */
+  TypeNode d_match_pattern_type;
   /** match pattern op */
   Node d_match_pattern_op;
 public:
@@ -204,6 +206,8 @@ private:
   Node d_f;
   /** match term */
   Node d_match_pattern;
+  /** match pattern arg types */
+  std::vector< TypeNode > d_match_pattern_arg_types;
   /** operator */
   Node d_op;
   /** to indicies */

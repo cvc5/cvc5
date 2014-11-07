@@ -524,6 +524,7 @@ bool QuantifiersEngine::addInstantiation( Node f, std::vector< Node >& vars, std
     for( int i=0; i<(int)terms.size(); i++ ){
       Trace("inst") << "   " << terms[i];
       Trace("inst") << std::endl;
+      Assert( terms[i].getType().isSubtypeOf( f[0][i].getType() ) );
     }
     if( options::cbqi() ){
       for( int i=0; i<(int)terms.size(); i++ ){

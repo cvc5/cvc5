@@ -1358,7 +1358,11 @@ void SmtEngine::setDefaults() {
       options::finiteModelFind.set( true );
     }
   }
-
+  if( options::finiteModelFind() ){
+    if( !options::quantConflictFind.wasSetByUser() ){
+      options::quantConflictFind.set( false );
+    }
+  }
   //until bugs 371,431 are fixed
   if( ! options::minisatUseElim.wasSetByUser()){
     if( d_logic.isQuantified() || options::produceModels() || options::produceAssignments() || options::checkModels() ){
