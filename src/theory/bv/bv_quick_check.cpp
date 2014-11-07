@@ -25,10 +25,10 @@ using namespace CVC4::theory::bv;
 using namespace CVC4::prop;
 
 BVQuickCheck::BVQuickCheck(const std::string& name, theory::bv::TheoryBV* bv)
-  : d_ctx(new context::Context())
-  , d_bitblaster(new TLazyBitblaster(d_ctx, bv, name, true))
+  : d_ctx()
+  , d_bitblaster(new TLazyBitblaster(&d_ctx, bv, name, true))
   , d_conflict()
-  , d_inConflict(d_ctx, false)
+  , d_inConflict(&d_ctx, false)
 {}
 
 
@@ -100,11 +100,11 @@ bool BVQuickCheck::addAssertion(TNode assertion) {
 
 
 void BVQuickCheck::push() {
-  d_ctx->push();
+  d_ctx.push();
 }
 
 void BVQuickCheck::pop() {
-  d_ctx->pop();
+  d_ctx.pop();
 }
 
 BVQuickCheck::vars_iterator BVQuickCheck::beginVars() {
@@ -130,8 +130,8 @@ void BVQuickCheck::clearSolver() {
 }
 
 void BVQuickCheck::popToZero() {
-  while (d_ctx->getLevel() > 0) {
-    d_ctx->pop();
+  while (d_ctx.getLevel() > 0) {
+    d_ctx.pop();
   }
 }
 
@@ -140,8 +140,8 @@ void BVQuickCheck::collectModelInfo(theory::TheoryModel* model, bool fullModel) 
 }
 
 BVQuickCheck::~BVQuickCheck() {
+  clearSolver();
   delete d_bitblaster;
-  delete d_ctx;
 }
 
 QuickXPlain::QuickXPlain(const std::string& name, BVQuickCheck* solver, unsigned long budget)

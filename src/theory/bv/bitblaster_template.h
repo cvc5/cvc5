@@ -143,8 +143,9 @@ class TLazyBitblaster :  public TBitblaster<Node> {
   prop::NullRegistrar* d_nullRegistrar;
   context::Context* d_nullContext;
   // sat solver used for bitblasting and associated CnfStream
-  prop::BVSatSolverInterface*        d_satSolver;
-  prop::CnfStream*                   d_cnfStream;
+  prop::BVSatSolverInterface*         d_satSolver;
+  prop::BVSatSolverInterface::Notify* d_satSolverNotify;
+  prop::CnfStream*                    d_cnfStream;
 
   AssertionList* d_assertedAtoms; /**< context dependent list storing the atoms
                                      currently asserted by the DPLL SAT solver. */

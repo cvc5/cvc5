@@ -39,7 +39,7 @@ class TLazyBitblaster;
 class TheoryBV;
 
 class BVQuickCheck {
-  context::Context* d_ctx;
+  context::Context d_ctx;
   TLazyBitblaster* d_bitblaster;
   Node d_conflict;
   context::CDO<bool> d_inConflict;

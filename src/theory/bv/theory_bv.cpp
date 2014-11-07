@@ -95,6 +95,7 @@ TheoryBV::~TheoryBV() {
   for (unsigned i = 0; i < d_subtheories.size(); ++i) {
     delete d_subtheories[i];
   }
+  delete d_abstractionModule;
 }
 
 void TheoryBV::setMasterEqualityEngine(eq::EqualityEngine* eq) {
