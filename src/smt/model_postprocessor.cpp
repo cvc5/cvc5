@@ -33,7 +33,7 @@ Node ModelPostprocessor::rewriteAs(TNode n, TypeNode asType) {
     Node out = NodeManager::currentNM()->mkNode(kind::LAMBDA, n[0], rhs);
     Debug("boolean-terms") << "rewrote " << n << " as " << out << std::endl;
     Debug("boolean-terms") << "need type " << asType << endl;
-    Assert(out.getType() == asType);
+    // Assert(out.getType() == asType);
     return out;
   }
   if(!n.isConst()) {
