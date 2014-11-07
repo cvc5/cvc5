@@ -21,7 +21,6 @@
 #pragma once
 
 #include "prop/sat_solver.h"
-#include "prop/sat_solver_registry.h"
 #include "prop/bvminisat/simp/SimpSolver.h"
 #include "context/cdo.h"
 

@@ -19,7 +19,6 @@
 #pragma once
 
 #include "prop/sat_solver.h"
-#include "prop/sat_solver_registry.h"
 #include "prop/minisat/simp/SimpSolver.h"
 
 namespace CVC4 {

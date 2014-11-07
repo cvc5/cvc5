@@ -100,9 +100,6 @@ libcvc4_la_SOURCES = \
 	prop/sat_solver_types.h \
 	prop/sat_solver_factory.h \
 	prop/sat_solver_factory.cpp \
-	prop/sat_solver_registry.h \
-	prop/sat_solver_registry.cpp \
-	prop/options_handlers.h \
 	smt/smt_engine.cpp \
 	smt/smt_engine_check_proof.cpp \
 	smt/smt_engine.h \

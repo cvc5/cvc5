@@ -31,11 +31,6 @@ public:
   static BVSatSolverInterface* createMinisat(context::Context* mainSatContext, const std::string& name = "");
   static DPLLSatSolverInterface* createDPLLMinisat();
 
-  static SatSolver* create(const char* id);
-
-  /** Get the solver ids that are available */
-  static void getSolverIds(std::vector<std::string>& solvers);
-
 };/* class SatSolverFactory */
 
 }/* CVC4::prop namespace */
