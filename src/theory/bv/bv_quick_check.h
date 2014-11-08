@@ -127,10 +127,10 @@ class QuickXPlain {
   unsigned d_numCalled; // number of times called
   double d_minRatioSum; // sum of minimization ratio for computing average min ratio  
   unsigned d_numConflicts; // number of conflicts (including when minimization not applied)
-  unsigned d_period; // after how many conflicts to try minimizing again
+  // unsigned d_period; // after how many conflicts to try minimizing again
 
-  double d_thresh; // if minimization ratio is less, increase period
-  double d_hardThresh; // decrease period if minimization ratio is greater than this
+  // double d_thresh; // if minimization ratio is less, increase period
+  // double d_hardThresh; // decrease period if minimization ratio is greater than this
   
   
   Statistics d_statistics;
