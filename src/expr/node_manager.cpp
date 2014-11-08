@@ -202,10 +202,21 @@ void NodeManager::reclaimZombies() {
                  NodeValueReferenceCountNonZero());
   d_zombies.clear();
 
+#ifdef _LIBCPP_VERSION
+  NodeValue* last = NULL;
+#endif
   for(vector<NodeValue*>::iterator i = zombies.begin();
       i != zombies.end();
       ++i) {
     NodeValue* nv = *i;
+#ifdef _LIBCPP_VERSION
+    // Work around an apparent bug in libc++'s hash_set<> which can
+    // (very occasionally) have an element repeated.
+    if(nv == last) {
+      continue;
+    }
+    last = nv;
+#endif
 
     // collect ONLY IF still zero
     if(nv->d_rc == 0) {
