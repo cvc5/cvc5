@@ -47,7 +47,8 @@ TESTS =	\
 	constarr3.smt2 \
 	constarr.cvc \
 	constarr2.cvc \
-	constarr3.cvc
+	constarr3.cvc \
+	parsing_ringer.cvc
 
 EXTRA_DIST = $(TESTS)
 
@@ -60,8 +61,6 @@ EXTRA_DIST = $(TESTS)
 # and make sure to distribute it
 #EXTRA_DIST += \
 #	error.cvc
-# disabled for now (problem is related to records in model):
-#   parsing_ringer.cvc
 
 # synonyms for "check"
 .PHONY: regress regress0 test

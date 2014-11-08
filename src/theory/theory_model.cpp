@@ -372,6 +372,7 @@ void TheoryModel::assertEqualityEngine(const eq::EqualityEngine* ee, set<Node>* 
 void TheoryModel::assertRepresentative(TNode n )
 {
   Trace("model-builder-reps") << "Assert rep : " << n << std::endl;
+  Trace("model-builder-reps") << "Rep eqc is : " << getRepresentative( n ) << std::endl;
   d_reps[ n ] = n;
 }
 
@@ -684,7 +685,7 @@ void TheoryEngineModelBuilder::buildModel(Model* m, bool fullModel)
       if(t.isTuple() || t.isRecord()) {
         t = NodeManager::currentNM()->getDatatypeForTupleRecord(t);
       }
-      TypeNode tb = t.getBaseType();      
+      TypeNode tb = t.getBaseType();
       if (!assignOne) {
         set<Node>* repSet = typeRepSet.getSet(tb);
         if (repSet != NULL && !repSet->empty()) {

@@ -49,7 +49,7 @@ TheoryDatatypes::TheoryDatatypes(Context* c, UserContext* u, OutputChannel& out,
   d_equalityEngine(d_notify, c, "theory::datatypes::TheoryDatatypes"),
   d_labels( c ),
   d_selector_apps( c ),
-  d_consEqc( c ),
+  //d_consEqc( c ),
   d_conflict( c, false ),
   d_collectTermsCache( c ),
   d_consTerms( c ),
@@ -649,7 +649,7 @@ void TheoryDatatypes::eqNotifyNewClass(TNode t){
       }
     }
 */
-    d_consEqc[t] = true;
+    //d_consEqc[t] = true;
   }
 }
 
@@ -749,9 +749,9 @@ void TheoryDatatypes::merge( Node t1, Node t2 ){
             if( d_conflict ){
               return;
             }
-            d_consEqc[t1] = true;
+            //d_consEqc[t1] = true;
           }
-          d_consEqc[t2] = false;
+          //d_consEqc[t2] = false;
         }
       }else{
         Debug("datatypes-debug") << "No eqc info for " << t1 << ", must create" << std::endl;
@@ -1119,6 +1119,7 @@ void TheoryDatatypes::computeCareGraph(){
       TNode f1 = r==0 ? d_consTerms[i] : d_selTerms[i];
       for( unsigned j=i+1; j<functionTerms; j++ ){
         TNode f2 = r==0 ? d_consTerms[j] : d_selTerms[j];
+        Trace("dt-cg-debug") << "dt-cg: " << f1 << " and " << f2 << " " << (f1.getOperator()==f2.getOperator()) << " " << areEqual( f1, f2 ) << std::endl;
         if( f1.getOperator()==f2.getOperator() && !areEqual( f1, f2 ) ){
           Trace("dt-cg") << "Check " << f1 << " and " << f2 << std::endl;
           bool somePairIsDisequal = false;
@@ -1183,6 +1184,7 @@ void TheoryDatatypes::collectModelInfo( TheoryModel* m, bool fullModel ){
         Node c = ei->d_constructor.get();
         cons.push_back( c );
         eqc_cons[ eqc ] = c;
+        Trace("dt-cmi") << "Datatypes : assert representative " << c << " for " << eqc << std::endl;
         m->assertRepresentative( c );
       }else{
         //if eqc contains a symbol known to datatypes (a selector), then we must assign
@@ -1303,6 +1305,7 @@ void TheoryDatatypes::collectModelInfo( TheoryModel* m, bool fullModel ){
       Trace("dt-cmi") << "Assign : " << neqc << std::endl;
       m->assertEquality( eqc, neqc, true );
       eqc_cons[ eqc ] = neqc;
+      Trace("dt-cmi") << "Datatypes : assert representative " << neqc << " for " << eqc << std::endl;
       m->assertRepresentative( neqc );
     }
     //m->assertRepresentative( neqc );
@@ -1369,6 +1372,7 @@ void TheoryDatatypes::collectTerms( Node n ) {
       collectTerms( n[i] );
     }
     if( n.getKind() == APPLY_CONSTRUCTOR ){
+      Debug("datatypes") << "  Found constructor " << n << endl;
       d_consTerms.push_back( n );
     }else if( n.getKind() == APPLY_SELECTOR_TOTAL || n.getKind() == DT_SIZE ){
       d_selTerms.push_back( n );
@@ -1758,7 +1762,7 @@ bool TheoryDatatypes::mustCommunicateFact( Node n, Node exp ){
   if( n.getKind()==EQUAL || n.getKind()==IFF ){
     /*
     for( unsigned i=0; i<2; i++ ){
-      if( n[i].getKind()!=APPLY_SELECTOR_TOTAL && n[i].getKind()!=APPLY_CONSTRUCTOR ){
+      if( !n[i].isVar() && n[i].getKind()!=APPLY_SELECTOR_TOTAL && n[i].getKind()!=APPLY_CONSTRUCTOR ){
         addLemma = true;
       }
     }
@@ -1783,14 +1787,14 @@ bool TheoryDatatypes::mustCommunicateFact( Node n, Node exp ){
   }
   if( addLemma ){
     //check if we have already added this lemma
-    if( std::find( d_inst_lemmas[ n[0] ].begin(), d_inst_lemmas[ n[0] ].end(), n[1] )==d_inst_lemmas[ n[0] ].end() ){
-      d_inst_lemmas[ n[0] ].push_back( n[1] );
-      Trace("dt-lemma-debug") << "Communicate " << n << std::endl;
-      return true;
-    }else{
-      Trace("dt-lemma-debug") << "Already communicated " << n << std::endl;
-      return false;
-    }
+    //if( std::find( d_inst_lemmas[ n[0] ].begin(), d_inst_lemmas[ n[0] ].end(), n[1] )==d_inst_lemmas[ n[0] ].end() ){
+    //  d_inst_lemmas[ n[0] ].push_back( n[1] );
+    Trace("dt-lemma-debug") << "Communicate " << n << std::endl;
+    return true;
+    //}else{
+    //  Trace("dt-lemma-debug") << "Already communicated " << n << std::endl;
+    //  return false;
+    //}
   }
   //else if( exp.getKind()==APPLY_TESTER ){
     //if( n.getKind()==EQUAL && !DatatypesRewriter::isTermDatatype( n[0] ) ){
