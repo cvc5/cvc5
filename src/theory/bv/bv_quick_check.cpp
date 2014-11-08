@@ -150,9 +150,9 @@ QuickXPlain::QuickXPlain(const std::string& name, BVQuickCheck* solver, unsigned
   , d_numCalled(0)
   , d_minRatioSum(0)
   , d_numConflicts(0)
-  , d_period(20)
-  , d_thresh(0.7)
-  , d_hardThresh(0.9)
+  // , d_period(20)
+  // , d_thresh(0.7)
+  // , d_hardThresh(0.9)
   , d_statistics(name)
 {}
 QuickXPlain::~QuickXPlain() {}
