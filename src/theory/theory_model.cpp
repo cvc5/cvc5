@@ -552,7 +552,7 @@ void TheoryEngineModelBuilder::buildModel(Model* m, bool fullModel)
     else if (!rep.isNull()) {
       assertedReps[eqc] = rep;
       typeRepSet.add(eqct.getBaseType(), eqc);
-      allTypes.insert(eqct);
+      allTypes.insert(eqct.getBaseType());
     }
     else {
       typeNoRepSet.add(eqct, eqc);
@@ -642,7 +642,7 @@ void TheoryEngineModelBuilder::buildModel(Model* m, bool fullModel)
             Trace("model-builder") << "    Normalizing rep (" << rep << "), normalized to (" << normalized << ")" << endl;
             if (normalized.isConst()) {
               changed = true;
-              typeConstSet.add(t.getBaseType(), normalized);
+              typeConstSet.add(tb, normalized);
               constantReps[*i] = normalized;
               assertedReps.erase(*i);
               i2 = i;
