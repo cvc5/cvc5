@@ -363,6 +363,7 @@ void TheoryDatatypes::preRegisterTerm(TNode n) {
     } else {
       // Function applications/predicates
       d_equalityEngine.addTerm(n);
+      //d_equalityEngine.addTriggerTerm(n, THEORY_DATATYPES);
     }
     break;
   }
@@ -1082,36 +1083,6 @@ EqualityStatus TheoryDatatypes::getEqualityStatus(TNode a, TNode b){
 
 void TheoryDatatypes::computeCareGraph(){
   Trace("dt-cg") << "Compute graph for dt..." << std::endl;
-  /*
-  Trace("dt-cg") << "Look at shared terms..." << std::endl;
-  for (unsigned i = 0; i < d_sharedTerms.size(); ++ i) {
-    TNode a = d_sharedTerms[i];
-    if( a.getKind()!=APPLY_CONSTRUCTOR && a.getKind()!=APPLY_SELECTOR_TOTAL ){
-      TypeNode aType = a.getType();
-      for (unsigned j = i + 1; j < d_sharedTerms.size(); ++ j) {
-        TNode b = d_sharedTerms[j];
-        if( b.getKind()!=APPLY_CONSTRUCTOR && b.getKind()!=APPLY_SELECTOR_TOTAL ){
-          if (b.getType() != aType) {
-            // We don't care about the terms of different types
-            continue;
-          }
-          switch (d_valuation.getEqualityStatus(a, b)) {
-          case EQUALITY_TRUE_AND_PROPAGATED:
-          case EQUALITY_FALSE_AND_PROPAGATED:
-            // If we know about it, we should have propagated it, so we can skip
-            break;
-          default:
-            // Let's split on it
-            addCarePair(a, b);
-            break;
-          }
-        }
-      }
-    }
-  }
-  */
-
-  Trace("dt-cg") << "Look at theory terms..." << std::endl;
   vector< pair<TNode, TNode> > currentPairs;
   for( unsigned r=0; r<2; r++ ){
     unsigned functionTerms = r==0 ? d_consTerms.size() : d_selTerms.size();
@@ -1135,14 +1106,14 @@ void TheoryDatatypes::computeCareGraph(){
             }else if( !d_equalityEngine.areEqual( x, y ) ){
               Trace("dt-cg") << "Arg #" << k << " is " << x << " " << y << std::endl;
               if( d_equalityEngine.isTriggerTerm(x, THEORY_DATATYPES) && d_equalityEngine.isTriggerTerm(y, THEORY_DATATYPES) ){
-                EqualityStatus eqStatus = d_valuation.getEqualityStatus(x, y);
+                TNode x_shared = d_equalityEngine.getTriggerTermRepresentative(x, THEORY_DATATYPES);
+                TNode y_shared = d_equalityEngine.getTriggerTermRepresentative(y, THEORY_DATATYPES);
+                Trace("dt-cg") << "Arg #" << k << " shared term is " << x_shared << " " << y_shared << std::endl;
+                EqualityStatus eqStatus = d_valuation.getEqualityStatus(x_shared, y_shared);
                 if( eqStatus==EQUALITY_FALSE_AND_PROPAGATED || eqStatus==EQUALITY_FALSE || eqStatus==EQUALITY_FALSE_IN_MODEL ){
                   somePairIsDisequal = true;
                   break;
                 }else{
-                  TNode x_shared = d_equalityEngine.getTriggerTermRepresentative(x, THEORY_DATATYPES);
-                  TNode y_shared = d_equalityEngine.getTriggerTermRepresentative(y, THEORY_DATATYPES);
-                  Trace("dt-cg") << "Arg #" << k << " shared term is " << x_shared << " " << y_shared << std::endl;
                   currentPairs.push_back(make_pair(x_shared, y_shared));
                 }
               }
@@ -1378,11 +1349,11 @@ void TheoryDatatypes::collectTerms( Node n ) {
       d_selTerms.push_back( n );
       //we must also record which selectors exist
       Debug("datatypes") << "  Found selector " << n << endl;
-      if (n.getType().isBoolean()) {
-        d_equalityEngine.addTriggerPredicate( n );
-      }else{
-        d_equalityEngine.addTerm( n );
-      }
+      //if (n.getType().isBoolean()) {
+      //  d_equalityEngine.addTriggerPredicate( n );
+      //}else{
+      //  d_equalityEngine.addTerm( n );
+      //}
       Node rep = getRepresentative( n[0] );
       //record it in the selectors
       EqcInfo* eqc = getOrMakeEqcInfo( rep, true );
