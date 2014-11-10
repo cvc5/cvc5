@@ -3247,8 +3247,8 @@ Node TheoryStrings::getNextDecisionRequest() {
     if( in_var_lsum.isNull() && !d_input_vars.empty() ){
       Trace("strings-fmf-debug") << "Input variables: ";
       std::vector< Node > ll;
-      for(NodeSet::const_iterator itr = d_input_vars.begin();
-        itr != d_input_vars.end(); ++itr) {
+      for(NodeSet::key_iterator itr = d_input_vars.key_begin();
+        itr != d_input_vars.key_end(); ++itr) {
         Trace("strings-fmf-debug") << " " << (*itr) ;
         ll.push_back( NodeManager::currentNM()->mkNode( kind::STRING_LENGTH, *itr ) );
       }
