@@ -100,6 +100,10 @@ private:
   /** Equality engine */
   eq::EqualityEngine d_equalityEngine;
 
+  /** True and false constant nodes */
+  Node d_trueNode;
+  Node d_falseNode;
+
   context::CDO<bool> d_conflict;
   Node d_conflictNode;
 
