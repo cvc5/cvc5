@@ -170,16 +170,6 @@ public:
   TNode evaluateTerm( TNode n );
   /** is entailed (incomplete check) */
   bool isEntailed( TNode n, std::map< TNode, TNode >& subs, bool subsRep, bool pol );
-public:
-  /** parent structure (for efficient E-matching):
-      n -> op -> index -> L
-      map from node "n" to a list of nodes "L", where each node n' in L
-        has operator "op", and n'["index"] = n.
-      for example, d_parents[n][f][1] = { f( t1, n ), f( t2, n ), ... }
-  */
-  /* Todo replace int by size_t */
-  std::hash_map< Node, std::hash_map< Node, std::hash_map< int, std::vector< Node >  >, NodeHashFunction  > , NodeHashFunction > d_parents;
-  const std::vector<Node> & getParents(TNode n, TNode f, int arg);
 
 //for model basis
 private:

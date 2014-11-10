@@ -92,19 +92,10 @@ void TheoryEngine::finishInit() {
 
 void TheoryEngine::eqNotifyNewClass(TNode t){
   d_quantEngine->addTermToDatabase( t );
-  if( d_logicInfo.isQuantified() && options::quantConflictFind() ){
-    d_quantEngine->getConflictFind()->newEqClass( t );
-  }
 }
 
 void TheoryEngine::eqNotifyPreMerge(TNode t1, TNode t2){
-  //TODO: add notification to efficient E-matching
-  if( d_logicInfo.isQuantified() ){
-    //d_quantEngine->getEfficientEMatcher()->merge( t1, t2 );
-    if( options::quantConflictFind() ){
-      d_quantEngine->getConflictFind()->merge( t1, t2 );
-    }
-  }
+
 }
 
 void TheoryEngine::eqNotifyPostMerge(TNode t1, TNode t2){

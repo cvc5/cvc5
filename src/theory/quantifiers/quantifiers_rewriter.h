@@ -40,6 +40,7 @@ private:
   static Node mkForAll( std::vector< Node >& args, Node body, Node ipl );
   static void computeArgs( std::vector< Node >& args, std::map< Node, bool >& activeMap, Node n );
   static void computeArgVec( std::vector< Node >& args, std::vector< Node >& activeArgs, Node n );
+  static void computeArgVec2( std::vector< Node >& args, std::vector< Node >& activeArgs, Node n, Node ipl );
   static bool hasArg( std::vector< Node >& args, Node n );
   static void setNestedQuantifiers( Node n, Node q );
   static void setNestedQuantifiers2( Node n, Node q, std::vector< Node >& processed );

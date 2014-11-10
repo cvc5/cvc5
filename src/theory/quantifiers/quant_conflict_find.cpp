@@ -1886,8 +1886,7 @@ Node QuantConflictFind::evaluateTerm( Node n ) {
 
 /** new node */
 void QuantConflictFind::newEqClass( Node n ) {
-  //Trace("qcf-proc-debug") << "QCF : newEqClass : " << n << std::endl;
-  //Trace("qcf-proc2-debug") << "QCF : finished newEqClass : " << n << std::endl;
+
 }
 
 /** merge */

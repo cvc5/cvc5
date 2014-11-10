@@ -329,6 +329,7 @@ void TermDb::reset( Theory::Effort effort ){
      if( !it->second.empty() ){
        for( unsigned i=0; i<it->second.size(); i++ ){
          Node n = it->second[i];
+         //Assert( d_quantEngine->getEqualityQuery()->hasTerm( n ) );
          computeModelBasisArgAttribute( n );
          if( !n.getAttribute(NoMatchAttribute()) ){
            computeArgReps( n );
@@ -792,24 +793,6 @@ Node TermDb::getFreeVariableForInstConstant( Node n ){
     }
   }
   return d_free_vars[tn];
-}
-
-const std::vector<Node> & TermDb::getParents(TNode n, TNode f, int arg){
-  std::hash_map< Node, std::hash_map< Node, std::hash_map< int, std::vector< Node > >,NodeHashFunction  >,NodeHashFunction  >::const_iterator
-    rn = d_parents.find( n );
-  if( rn !=d_parents.end() ){
-    std::hash_map< Node, std::hash_map< int, std::vector< Node > > , NodeHashFunction  > ::const_iterator
-      rf = rn->second.find(f);
-    if( rf != rn->second.end() ){
-      std::hash_map< int, std::vector< Node > > ::const_iterator
-        ra = rf->second.find(arg);
-      if( ra != rf->second.end() ){
-        return ra->second;
-      }
-    }
-  }
-  static std::vector<Node> empty;
-  return empty;
 }
 
 void TermDb::computeVarContains( Node n ) {

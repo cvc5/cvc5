@@ -105,6 +105,7 @@ void QuantifiersRewriter::computeArgs( std::vector< Node >& args, std::map< Node
 }
 
 void QuantifiersRewriter::computeArgVec( std::vector< Node >& args, std::vector< Node >& activeArgs, Node n ) {
+  Assert( activeArgs.empty() );
   std::map< Node, bool > activeMap;
   computeArgs( args, activeMap, n );
   for( unsigned i=0; i<args.size(); i++ ){
@@ -114,6 +115,17 @@ void QuantifiersRewriter::computeArgVec( std::vector< Node >& args, std::vector<
   }
 }
 
+void QuantifiersRewriter::computeArgVec2( std::vector< Node >& args, std::vector< Node >& activeArgs, Node n, Node ipl ) {
+  Assert( activeArgs.empty() );
+  std::map< Node, bool > activeMap;
+  computeArgs( args, activeMap, n );
+  computeArgs( args, activeMap, ipl );
+  for( unsigned i=0; i<args.size(); i++ ){
+    if( activeMap[args[i]] ){
+      activeArgs.push_back( args[i] );
+    }
+  }
+}
 
 bool QuantifiersRewriter::hasArg( std::vector< Node >& args, Node n ){
   if( std::find( args.begin(), args.end(), n )!=args.end() ){
@@ -728,7 +740,7 @@ Node QuantifiersRewriter::computeSplit( Node f, Node body, std::vector< Node >& 
 
 Node QuantifiersRewriter::mkForAll( std::vector< Node >& args, Node body, Node ipl ){
   std::vector< Node > activeArgs;
-  computeArgVec( args, activeArgs, body );
+  computeArgVec2( args, activeArgs, body, ipl );
   if( activeArgs.empty() ){
     return body;
   }else{
