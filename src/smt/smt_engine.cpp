@@ -3760,8 +3760,8 @@ CVC4::SExpr SmtEngine::getAssignment() throw(ModalException) {
   vector<SExpr> sexprs;
   TypeNode boolType = d_nodeManager->booleanType();
   TheoryModel* m = d_theoryEngine->getModel();
-  for(AssignmentSet::const_iterator i = d_assignments->begin(),
-        iend = d_assignments->end();
+  for(AssignmentSet::key_iterator i = d_assignments->key_begin(),
+        iend = d_assignments->key_end();
       i != iend;
       ++i) {
     Assert((*i).getType() == boolType);
