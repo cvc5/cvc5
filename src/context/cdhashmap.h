@@ -591,4 +591,4 @@ public:
 }/* CVC4::context namespace */
 }/* CVC4 namespace */
 
-#endif /* __CVC4__CONTEXT__CDHashMAP_H */
+#endif /* __CVC4__CONTEXT__CDHASHMAP_H */
