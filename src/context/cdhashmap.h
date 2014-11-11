@@ -168,7 +168,9 @@ class CDOhash_map : public ContextObj {
   /** ensure copy ctor is only called by us */
   CDOhash_map(const CDOhash_map& other) :
     ContextObj(other),
-    d_key(other.d_key),
+    // don't need to save the key---and if we do we can get
+    // refcounts for Node keys messed up and leak memory
+    d_key(),
     d_data(other.d_data),
     d_map(other.d_map),
     d_prev(NULL),
