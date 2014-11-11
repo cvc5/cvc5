@@ -140,6 +140,8 @@ public:
   std::map< Node, int > d_op_nonred_count;
   /** map from APPLY_UF operators to ground terms for that operator */
   std::map< Node, std::vector< Node > > d_op_map;
+  /** has map */
+  std::map< Node, bool > d_has_map;
   /** map from APPLY_UF functions to trie */
   std::map< Node, TermArgTrie > d_func_map_trie;
   std::map< Node, TermArgTrie > d_func_map_eqc_trie;
@@ -170,7 +172,9 @@ public:
   TNode evaluateTerm( TNode n );
   /** is entailed (incomplete check) */
   bool isEntailed( TNode n, std::map< TNode, TNode >& subs, bool subsRep, bool pol );
-
+  /** has term */
+  bool hasTermCurrent( Node n );
+  
 //for model basis
 private:
   //map from types to model basis terms

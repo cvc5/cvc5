@@ -124,7 +124,6 @@ void TermDb::addTerm( Node n, std::set< Node >& added, bool withinQuant ){
     if( inst::Trigger::isAtomicTrigger( n ) ){
       if( !TermDb::hasInstConstAttr(n) ){
         Trace("term-db") << "register term in db " << n << std::endl;
-        //std::cout << "register trigger term " << n << std::endl;
         Node op = getOperator( n );
         /*
         int occ = d_op_ccount[op];
@@ -174,10 +173,12 @@ void TermDb::computeUfEqcTerms( TNode f ) {
     eq::EqualityEngine * ee = d_quantEngine->getTheoryEngine()->getMasterEqualityEngine();
     for( unsigned i=0; i<d_op_map[f].size(); i++ ){
       TNode n = d_op_map[f][i];
-      if( !n.getAttribute(NoMatchAttribute()) ){
-        computeArgReps( n );
-        TNode r = ee->hasTerm( n ) ? ee->getRepresentative( n ) : n;
-        d_func_map_eqc_trie[f].d_data[r].addTerm( n, d_arg_reps[n] );
+      if( hasTermCurrent( n ) ){
+        if( !n.getAttribute(NoMatchAttribute()) ){
+          computeArgReps( n );
+          TNode r = ee->hasTerm( n ) ? ee->getRepresentative( n ) : n;
+          d_func_map_eqc_trie[f].d_data[r].addTerm( n, d_arg_reps[n] );
+        }
       }
     }
   }
@@ -315,52 +316,77 @@ bool TermDb::isEntailed( TNode n, std::map< TNode, TNode >& subs, bool subsRep, 
   return false;
 }
 
+bool TermDb::hasTermCurrent( Node n ) { 
+  //return d_quantEngine->getMasterEqualityEngine()->hasTerm( n );
+  //return d_has_map.find( n )!=d_has_map.end(); 
+  return true;
+}
+
 void TermDb::reset( Theory::Effort effort ){
-   int nonCongruentCount = 0;
-   int congruentCount = 0;
-   int alreadyCongruentCount = 0;
-   d_op_nonred_count.clear();
-   d_arg_reps.clear();
-   d_func_map_trie.clear();
-   d_func_map_eqc_trie.clear();
-   //rebuild d_func/pred_map_trie for each operation, this will calculate all congruent terms
-   for( std::map< Node, std::vector< Node > >::iterator it = d_op_map.begin(); it != d_op_map.end(); ++it ){
-     d_op_nonred_count[ it->first ] = 0;
-     if( !it->second.empty() ){
-       for( unsigned i=0; i<it->second.size(); i++ ){
-         Node n = it->second[i];
-         //Assert( d_quantEngine->getEqualityQuery()->hasTerm( n ) );
-         computeModelBasisArgAttribute( n );
-         if( !n.getAttribute(NoMatchAttribute()) ){
-           computeArgReps( n );
-           if( !d_func_map_trie[ it->first ].addTerm( n, d_arg_reps[n] ) ){
-             NoMatchAttribute nma;
-             n.setAttribute(nma,true);
-             Debug("term-db-cong") << n << " is redundant." << std::endl;
-             congruentCount++;
-           }else{
-             nonCongruentCount++;
-             d_op_nonred_count[ it->first ]++;
-           }
-         }else{
-           congruentCount++;
-           alreadyCongruentCount++;
-         }
-       }
-     }
-   }
-   Debug("term-db-cong") << "TermDb: Reset" << std::endl;
-   Debug("term-db-cong") << "Congruent/Non-Congruent = ";
-   Debug("term-db-cong") << congruentCount << "(" << alreadyCongruentCount << ") / " << nonCongruentCount << std::endl;
-   if( Debug.isOn("term-db") ){
-      Debug("term-db") << "functions : " << std::endl;
-      for( std::map< Node, std::vector< Node > >::iterator it = d_op_map.begin(); it != d_op_map.end(); ++it ){
-        if( it->second.size()>0 ){
-          Debug("term-db") << "- " << it->first << std::endl;
-          d_func_map_trie[ it->first ].debugPrint("term-db", it->second[0]);
+  int nonCongruentCount = 0;
+  int congruentCount = 0;
+  int alreadyCongruentCount = 0;
+  int nonRelevantCount = 0;
+  d_op_nonred_count.clear();
+  d_arg_reps.clear();
+  d_func_map_trie.clear();
+  d_func_map_eqc_trie.clear();
+  /*
+  //compute has map
+  d_has_map.clear();
+  eq::EqualityEngine* ee = d_quantEngine->getMasterEqualityEngine();
+  eq::EqClassesIterator eqcs_i = eq::EqClassesIterator( ee );
+  while( !eqcs_i.isFinished() ){
+    TNode r = (*eqcs_i);
+    eq::EqClassIterator eqc_i = eq::EqClassIterator( r, ee );
+    while( !eqc_i.isFinished() ){
+      d_has_map[(*eqc_i)] = true;
+      ++eqc_i;
+    }
+    ++eqcs_i;
+  }
+  */
+  //rebuild d_func/pred_map_trie for each operation, this will calculate all congruent terms
+  for( std::map< Node, std::vector< Node > >::iterator it = d_op_map.begin(); it != d_op_map.end(); ++it ){
+    d_op_nonred_count[ it->first ] = 0;
+    if( !it->second.empty() ){
+      for( unsigned i=0; i<it->second.size(); i++ ){
+        Node n = it->second[i];
+        computeModelBasisArgAttribute( n );
+        if( hasTermCurrent( n ) ){
+          if( !n.getAttribute(NoMatchAttribute()) ){
+            computeArgReps( n );
+            if( !d_func_map_trie[ it->first ].addTerm( n, d_arg_reps[n] ) ){
+              NoMatchAttribute nma;
+              n.setAttribute(nma,true);
+              Trace("term-db-stats-debug") << n << " is redundant." << std::endl;
+              congruentCount++;
+            }else{
+              nonCongruentCount++;
+              d_op_nonred_count[ it->first ]++;
+            }
+          }else{
+            congruentCount++;
+            alreadyCongruentCount++;
+          }
+        }else{
+          nonRelevantCount++;
         }
       }
-   }
+    }
+  }
+  Trace("term-db-stats") << "TermDb: Reset" << std::endl;
+  Trace("term-db-stats") << "Congruent/Non-Congruent/Non-Relevant = ";
+  Trace("term-db-stats") << congruentCount << "(" << alreadyCongruentCount << ") / " << nonCongruentCount << " / " << nonRelevantCount << std::endl;
+  if( Debug.isOn("term-db") ){
+    Debug("term-db") << "functions : " << std::endl;
+    for( std::map< Node, std::vector< Node > >::iterator it = d_op_map.begin(); it != d_op_map.end(); ++it ){
+      if( it->second.size()>0 ){
+        Debug("term-db") << "- " << it->first << std::endl;
+        d_func_map_trie[ it->first ].debugPrint("term-db", it->second[0]);
+      }
+    }
+  }
 }
 
 TermArgTrie * TermDb::getTermArgTrie( Node f ) {

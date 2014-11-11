@@ -101,10 +101,11 @@ Node CandidateGeneratorQE::getNextCandidate(){
     //get next candidate term in the uf term database
     while( d_term_iter<d_term_iter_limit ){
       Node n = d_qe->getTermDatabase()->d_op_map[d_op][d_term_iter];
-      //Assert( d_qe->getEqualityQuery()->hasTerm( n ) );
       d_term_iter++;
       if( isLegalCandidate( n ) ){
-        return n;
+        if( d_qe->getTermDatabase()->hasTermCurrent( n ) ){
+          return n;
+        }
       }
     }
   }else if( d_mode==cand_term_eqc ){
