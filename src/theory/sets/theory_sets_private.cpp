@@ -1114,7 +1114,7 @@ void TheorySetsPrivate::propagate(Theory::Effort effort) {
   }
 
   const CDNodeSet& terms = (d_termInfoManager->d_terms);
-  for(typeof(terms.begin()) it = terms.begin(); it != terms.end(); ++it) {
+  for(typeof(terms.key_begin()) it = terms.key_begin(); it != terms.key_end(); ++it) {
     Node node = (*it);
     Kind k = node.getKind();
     if(k == kind::UNION && node[0].getKind() == kind::SINGLETON ) {
