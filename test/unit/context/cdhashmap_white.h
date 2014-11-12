@@ -1,5 +1,5 @@
 /*********************                                                        */
-/*! \file cdmap_white.h
+/*! \file cdhashmap_white.h
  ** \verbatim
  ** Original author: Morgan Deters
  ** Major contributors: none
@@ -9,9 +9,9 @@
  ** See the file COPYING in the top-level source directory for licensing
  ** information.\endverbatim
  **
- ** \brief White box testing of CVC4::context::CDMap<>.
+ ** \brief White box testing of CVC4::context::CDHashMap<>.
  **
- ** White box testing of CVC4::context::CDMap<>.
+ ** White box testing of CVC4::context::CDHashMap<>.
  **/
 
 #include <cxxtest/TestSuite.h>
@@ -23,7 +23,7 @@ using namespace std;
 using namespace CVC4;
 using namespace CVC4::context;
 
-class CDMapWhite : public CxxTest::TestSuite {
+class CDHashMapWhite : public CxxTest::TestSuite {
 
   Context* d_context;
 

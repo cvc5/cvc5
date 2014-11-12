@@ -1,5 +1,5 @@
 /*********************                                                        */
-/*! \file cdmap_black.h
+/*! \file cdhashmap_black.h
  ** \verbatim
  ** Original author: Morgan Deters
  ** Major contributors: none
@@ -9,9 +9,9 @@
  ** See the file COPYING in the top-level source directory for licensing
  ** information.\endverbatim
  **
- ** \brief Black box testing of CVC4::context::CDMap<>.
+ ** \brief Black box testing of CVC4::context::CDHashMap<>.
  **
- ** Black box testing of CVC4::context::CDMap<>.
+ ** Black box testing of CVC4::context::CDHashMap<>.
  **/
 
 #include <cxxtest/TestSuite.h>
@@ -23,7 +23,7 @@ using namespace std;
 using namespace CVC4;
 using namespace CVC4::context;
 
-class CDMapBlack : public CxxTest::TestSuite {
+class CDHashMapBlack : public CxxTest::TestSuite {
 
   Context* d_context;
 
@@ -1060,5 +1060,14 @@ public:
     CDHashMap<int, int*, int_hasher> map(d_context);
     int* a = (int*)d_context->getCMM()->newData(sizeof(int));
     map.insertDataFromContextMemory(1, a);
+  }
+
+  struct NonDefaultConstructible {
+    NonDefaultConstructible(int) {}
+  };
+
+  void testNonDefaultConstructibleData() {
+    CDHashMap<int, NonDefaultConstructible> map(d_context);
+    map.insert(1, 2);
   }
 };
