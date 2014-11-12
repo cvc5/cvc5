@@ -22,10 +22,19 @@
 #include "theory/bv/bv_subtheory.h"
 #include "theory/bv/bv_inequality_graph.h"
 #include "context/cdhashset.h"
+#include "expr/attribute.h"
 
 namespace CVC4 {
 namespace theory {
 namespace bv {
+
+/** Cache for InequalitySolver::isInequalityOnly() */
+struct IneqOnlyAttributeId {};
+typedef expr::Attribute<IneqOnlyAttributeId, bool> IneqOnlyAttribute;
+
+/** Whether the above has been computed yet or not for an expr */
+struct IneqOnlyComputedAttributeId {};
+typedef expr::Attribute<IneqOnlyComputedAttributeId, bool> IneqOnlyComputedAttribute;
 
 class InequalitySolver: public SubtheorySolver {
   struct Statistics {
@@ -38,7 +47,6 @@ class InequalitySolver: public SubtheorySolver {
   InequalityGraph d_inequalityGraph;
   context::CDHashMap<Node, TNode, NodeHashFunction> d_explanations;
   context::CDO<bool> d_isComplete;
-  __gnu_cxx::hash_map<TNode, bool, TNodeHashFunction> d_ineqOnlyCache;
   typedef __gnu_cxx::hash_set<TNode, TNodeHashFunction> TNodeSet;
   TNodeSet d_ineqTerms;
   bool isInequalityOnly(TNode node);
@@ -51,7 +59,6 @@ public:
       d_inequalityGraph(c),
       d_explanations(c),
       d_isComplete(c, true),
-      d_ineqOnlyCache(),
       d_ineqTerms(),
       d_statistics()
   {}

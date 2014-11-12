@@ -137,12 +137,12 @@ void InequalitySolver::assertFact(TNode fact) {
 }
 
 bool InequalitySolver::isInequalityOnly(TNode node) {
-  if (d_ineqOnlyCache.find(node) != d_ineqOnlyCache.end()) {
-    return d_ineqOnlyCache[node];
-  }
-
   if (node.getKind() == kind::NOT) {
     node = node[0];
+  }
+
+  if (node.getAttribute(IneqOnlyComputedAttribute())) {
+    return node.getAttribute(IneqOnlyAttribute());
   }
 
   if (node.getKind() != kind::EQUAL &&
@@ -152,13 +152,15 @@ bool InequalitySolver::isInequalityOnly(TNode node) {
       node.getKind() != kind::SELECT &&
       node.getKind() != kind::STORE &&
       node.getMetaKind() != kind::metakind::VARIABLE) {
+    // not worth caching
     return false;
   }
   bool res = true;
-  for (unsigned i = 0; i < node.getNumChildren(); ++i) {
+  for (unsigned i = 0; res && i < node.getNumChildren(); ++i) {
     res = res && isInequalityOnly(node[i]);
   }
-  d_ineqOnlyCache[node] = res;
+  node.setAttribute(IneqOnlyComputedAttribute(), true);
+  node.setAttribute(IneqOnlyAttribute(), res);
   return res;
 }
 
