@@ -458,8 +458,8 @@ bool QuantInfo::isTConstraintSpurious( QuantConflictFind * p, std::vector< Node 
     //check constraints
     for( std::map< Node, bool >::iterator it = d_tconstraints.begin(); it != d_tconstraints.end(); ++it ){
       //apply substitution to the tconstraint
-      Node cons = it->first.substitute( p->getQuantifiersEngine()->getTermDatabase()->d_vars[d_q].begin(),
-                                        p->getQuantifiersEngine()->getTermDatabase()->d_vars[d_q].end(),
+      Node cons = it->first.substitute( p->getTermDatabase()->d_vars[d_q].begin(),
+                                        p->getTermDatabase()->d_vars[d_q].end(),
                                         terms.begin(), terms.end() );
       cons = it->second ? cons : cons.negate();
       if( !entailmentTest( p, cons, p->d_effort==QuantConflictFind::effort_conflict ) ){
@@ -1300,7 +1300,7 @@ bool MatchGen::getNextMatch( QuantConflictFind * p, QuantInfo * qi ) {
       if( d_type==typ_var && p->d_effort==QuantConflictFind::effort_mc && !d_matched_basis ){
         d_matched_basis = true;
         Node f = getOperator( d_n );
-        TNode mbo = p->getQuantifiersEngine()->getTermDatabase()->getModelBasisOpTerm( f );
+        TNode mbo = p->getTermDatabase()->getModelBasisOpTerm( f );
         if( qi->setMatch( p, d_qni_var_num[0], mbo ) ){
           success = true;
           d_qni_bound[0] = d_qni_var_num[0];
@@ -1662,7 +1662,7 @@ bool MatchGen::isHandledUfTerm( TNode n ) {
 
 Node MatchGen::getOperator( QuantConflictFind * p, Node n ) {
   if( isHandledUfTerm( n ) ){
-    return p->getQuantifiersEngine()->getTermDatabase()->getOperator( n );
+    return p->getTermDatabase()->getOperator( n );
   }else{
     return Node::null();
   }
@@ -2087,26 +2087,28 @@ void QuantConflictFind::computeRelevantEqr() {
     while( !eqcs_i.isFinished() ){
       //nEqc++;
       Node r = (*eqcs_i);
-      TypeNode rtn = r.getType();
-      if( options::qcfMode()==QCF_MC ){
-        std::map< TypeNode, std::vector< TNode > >::iterator itt = d_eqcs.find( rtn );
-        if( itt==d_eqcs.end() ){
-          Node mb = getQuantifiersEngine()->getTermDatabase()->getModelBasisTerm( rtn );
-          if( !getEqualityEngine()->hasTerm( mb ) ){
-            Trace("qcf-warn") << "WARNING: Model basis term does not exist!" << std::endl;
-            Assert( false );
+      if( getTermDatabase()->hasTermCurrent( r ) ){
+        TypeNode rtn = r.getType();
+        if( options::qcfMode()==QCF_MC ){
+          std::map< TypeNode, std::vector< TNode > >::iterator itt = d_eqcs.find( rtn );
+          if( itt==d_eqcs.end() ){
+            Node mb = getTermDatabase()->getModelBasisTerm( rtn );
+            if( !getEqualityEngine()->hasTerm( mb ) ){
+              Trace("qcf-warn") << "WARNING: Model basis term does not exist!" << std::endl;
+              Assert( false );
+            }
+            Node mbr = getRepresentative( mb );
+            if( mbr!=r ){
+              d_eqcs[rtn].push_back( mbr );
+            }
+            d_eqcs[rtn].push_back( r );
+            d_model_basis[rtn] = mb;
+          }else{
+            itt->second.push_back( r );
           }
-          Node mbr = getRepresentative( mb );
-          if( mbr!=r ){
-            d_eqcs[rtn].push_back( mbr );
-          }
-          d_eqcs[rtn].push_back( r );
-          d_model_basis[rtn] = mb;
         }else{
-          itt->second.push_back( r );
+          d_eqcs[rtn].push_back( r );
         }
-      }else{
-        d_eqcs[rtn].push_back( r );
       }
       ++eqcs_i;
     }

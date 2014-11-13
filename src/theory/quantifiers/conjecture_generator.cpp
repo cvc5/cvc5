@@ -416,8 +416,10 @@ void ConjectureGenerator::check( Theory::Effort e, unsigned quant_e ) {
         eq::EqClassIterator ieqc_i = eq::EqClassIterator( r, ee );
         while( !ieqc_i.isFinished() ){
           TNode n = (*ieqc_i);
-          if( isHandledTerm( n ) ){
-            d_op_arg_index[r].addTerm( this, n );
+          if( getTermDatabase()->hasTermCurrent( n ) ){
+            if( isHandledTerm( n ) ){
+              d_op_arg_index[r].addTerm( this, n );
+            }
           }
           ++ieqc_i;
         }
@@ -472,7 +474,7 @@ void ConjectureGenerator::check( Theory::Effort e, unsigned quant_e ) {
           eq::EqClassIterator eqc_i = eq::EqClassIterator( r, ee );
           while( !eqc_i.isFinished() ){
             TNode n = (*eqc_i);
-            if( !n.getAttribute(NoMatchAttribute()) && ( n.getKind()!=EQUAL || isFalse ) ){
+            if( getTermDatabase()->hasTermCurrent( n ) && !n.getAttribute(NoMatchAttribute()) && ( n.getKind()!=EQUAL || isFalse ) ){
               if( firstTime ){
                 Trace("sg-gen-eqc") << "e" << d_em[r] << " : { " << std::endl;
                 firstTime = false;

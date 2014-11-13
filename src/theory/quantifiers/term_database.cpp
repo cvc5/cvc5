@@ -322,6 +322,21 @@ bool TermDb::hasTermCurrent( Node n ) {
   return true;
 }
 
+void TermDb::setHasTerm( Node n ) {
+  if( inst::Trigger::isAtomicTrigger( n ) ){
+    if( d_has_map.find( n )==d_has_map.end() ){
+      d_has_map[n] = true;
+      for( unsigned i=0; i<n.getNumChildren(); i++ ){
+        setHasTerm( n[i] );
+      }
+    }
+  }else{
+    for( unsigned i=0; i<n.getNumChildren(); i++ ){
+      setHasTerm( n[i] );
+    }
+  }
+}
+
 void TermDb::reset( Theory::Effort effort ){
   int nonCongruentCount = 0;
   int congruentCount = 0;
@@ -331,21 +346,45 @@ void TermDb::reset( Theory::Effort effort ){
   d_arg_reps.clear();
   d_func_map_trie.clear();
   d_func_map_eqc_trie.clear();
-  /*
+
   //compute has map
+  /*
   d_has_map.clear();
   eq::EqualityEngine* ee = d_quantEngine->getMasterEqualityEngine();
   eq::EqClassesIterator eqcs_i = eq::EqClassesIterator( ee );
   while( !eqcs_i.isFinished() ){
     TNode r = (*eqcs_i);
+    bool addedFirst = false;
+    Node first;
     eq::EqClassIterator eqc_i = eq::EqClassIterator( r, ee );
     while( !eqc_i.isFinished() ){
-      d_has_map[(*eqc_i)] = true;
+      TNode n = (*eqc_i);
+      if( first.isNull() ){
+        first = n;
+      }else{
+        if( !addedFirst ){
+          addedFirst = true;
+          setHasTerm( first );
+        }
+        setHasTerm( n );
+      }
       ++eqc_i;
     }
     ++eqcs_i;
   }
+  for (TheoryId theoryId = THEORY_FIRST; theoryId < THEORY_LAST; ++theoryId) {
+    Theory* theory = d_quantEngine->getTheoryEngine()->d_theoryTable[theoryId];
+    if (theory && d_quantEngine->getTheoryEngine()->d_logicInfo.isTheoryEnabled(theoryId)) {
+      context::CDList<Assertion>::const_iterator it = theory->facts_begin(), it_end = theory->facts_end();
+      for (unsigned i = 0; it != it_end; ++ it, ++i) {
+        Trace("ajr-temp") << "Set has term " << (*it).assertion << std::endl;
+        setHasTerm( (*it).assertion );
+      }
+    }
+  }
   */
+  
+  
   //rebuild d_func/pred_map_trie for each operation, this will calculate all congruent terms
   for( std::map< Node, std::vector< Node > >::iterator it = d_op_map.begin(); it != d_op_map.end(); ++it ){
     d_op_nonred_count[ it->first ] = 0;
@@ -370,6 +409,7 @@ void TermDb::reset( Theory::Effort effort ){
             alreadyCongruentCount++;
           }
         }else{
+          Trace("term-db-stats-debug") << n << " is not relevant." << std::endl;
           nonRelevantCount++;
         }
       }
@@ -377,7 +417,7 @@ void TermDb::reset( Theory::Effort effort ){
   }
   Trace("term-db-stats") << "TermDb: Reset" << std::endl;
   Trace("term-db-stats") << "Congruent/Non-Congruent/Non-Relevant = ";
-  Trace("term-db-stats") << congruentCount << "(" << alreadyCongruentCount << ") / " << nonCongruentCount << " / " << nonRelevantCount << std::endl;
+  Trace("term-db-stats") << nonCongruentCount << " / " << congruentCount << " (" << alreadyCongruentCount << ") / " << nonRelevantCount << std::endl;
   if( Debug.isOn("term-db") ){
     Debug("term-db") << "functions : " << std::endl;
     for( std::map< Node, std::vector< Node > >::iterator it = d_op_map.begin(); it != d_op_map.end(); ++it ){

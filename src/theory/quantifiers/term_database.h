@@ -128,6 +128,8 @@ private:
   std::map< Node, std::map< TypeNode, Node > > d_par_op_map;
   /** count number of ground terms per operator (user-context dependent) */
   NodeIntMap d_op_ccount;
+  /** set has term */
+  void setHasTerm( Node n );
 public:
   TermDb( context::Context* c, context::UserContext* u, QuantifiersEngine* qe );
   ~TermDb(){}
