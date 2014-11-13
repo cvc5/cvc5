@@ -263,6 +263,7 @@ ReasonId InequalityGraph::registerReason(TNode reason) {
   if (d_reasonToIdMap.find(reason) != d_reasonToIdMap.end()) {
     return d_reasonToIdMap[reason]; 
   }
+  d_reasonSet.insert(reason);
   ReasonId id = d_reasonNodes.size();
   d_reasonNodes.push_back(reason);
   d_reasonToIdMap[reason] = id;
