@@ -85,14 +85,8 @@ std::ostream& operator<<(std::ostream& out, theory::quantifiers::MbqiMode mode) 
   case theory::quantifiers::MBQI_NONE:
     out << "MBQI_NONE";
     break;
-  case theory::quantifiers::MBQI_INST_GEN:
-    out << "MBQI_INST_GEN";
-    break;
   case theory::quantifiers::MBQI_FMC:
     out << "MBQI_FMC";
-    break;
-  case theory::quantifiers::MBQI_INTERVAL:
-    out << "MBQI_INTERVAL";
     break;
   case theory::quantifiers::MBQI_ABS:
     out << "MBQI_ABS";

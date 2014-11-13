@@ -264,14 +264,10 @@ inline MbqiMode stringToMbqiMode(std::string option, std::string optarg, SmtEngi
     return MBQI_GEN_EVAL;
   } else if(optarg == "none") {
     return MBQI_NONE;
-  } else if(optarg == "instgen") {
-    return MBQI_INST_GEN;
   } else if(optarg == "default" || optarg ==  "fmc") {
     return MBQI_FMC;
   } else if(optarg == "fmc-interval") {
     return MBQI_FMC_INTERVAL;
-  } else if(optarg == "interval") {
-    return MBQI_INTERVAL;
   } else if(optarg == "abs") {
     return MBQI_ABS;
   } else if(optarg == "trust") {

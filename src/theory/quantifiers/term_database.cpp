@@ -416,7 +416,7 @@ void TermDb::reset( Theory::Effort effort ){
     }
   }
   Trace("term-db-stats") << "TermDb: Reset" << std::endl;
-  Trace("term-db-stats") << "Congruent/Non-Congruent/Non-Relevant = ";
+  Trace("term-db-stats") << "Non-Congruent/Congruent/Non-Relevant = ";
   Trace("term-db-stats") << nonCongruentCount << " / " << congruentCount << " (" << alreadyCongruentCount << ") / " << nonRelevantCount << std::endl;
   if( Debug.isOn("term-db") ){
     Debug("term-db") << "functions : " << std::endl;

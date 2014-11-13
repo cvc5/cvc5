@@ -1305,10 +1305,6 @@ void SmtEngine::setDefaults() {
       options::mbqiMode.set( quantifiers::MBQI_NONE );
     }
   }
-  if( options::mbqiMode()==quantifiers::MBQI_INTERVAL ){
-    //must do pre-skolemization
-    options::preSkolemQuant.set( true );
-  }
   if( options::ufssSymBreak() ){
     options::sortInference.set( true );
   }

@@ -191,50 +191,6 @@ public:
 
 }/* CVC4::theory::quantifiers::fmcheck namespace */
 
-
-class QIntDef;
-class QuantVarOrder;
-class FirstOrderModelQInt : public FirstOrderModel
-{
-  friend class QIntervalBuilder;
-private:
-  /** uf op to some representation */
-  std::map<Node, QIntDef * > d_models;
-  /** representatives to ids */
-  std::map< Node, int > d_rep_id;
-  std::map< TypeNode, Node > d_min;
-  std::map< TypeNode, Node > d_max;
-  /** quantifiers to information regarding variable ordering */
-  std::map<Node, QuantVarOrder * > d_var_order;
-  /** get current model value */
-  Node getCurrentUfModelValue( Node n, std::vector< Node > & args, bool partial );
-  void processInitializeModelForTerm(Node n);
-public:
-  FirstOrderModelQInt(QuantifiersEngine * qe, context::Context* c, std::string name);
-  FirstOrderModelQInt * asFirstOrderModelQInt() { return this; }
-  void processInitialize( bool ispre );
-  Node getFunctionValue(Node op, const char* argPrefix );
-
-  Node getUsedRepresentative( Node n );
-  int getRepId( Node n ) { return d_rep_id.find( n )==d_rep_id.end() ? -1 : d_rep_id[n]; }
-  bool isLessThan( Node v1, Node v2 );
-  Node getMin( Node v1, Node v2 );
-  Node getMax( Node v1, Node v2 );
-  Node getMinimum( TypeNode tn ) { return getNext( tn, Node::null() ); }
-  Node getMaximum( TypeNode tn );
-  bool isMinimum( Node n ) { return n==getMinimum( n.getType() ); }
-  bool isMaximum( Node n ) { return n==getMaximum( n.getType() ); }
-  Node getNext( TypeNode tn, Node v );
-  Node getPrev( TypeNode tn, Node v );
-  bool doMeet( Node l1, Node u1, Node l2, Node u2, Node& lr, Node& ur );
-  QuantVarOrder * getVarOrder( Node q ) { return d_var_order[q]; }
-
-  void processInitializeQuantifier( Node q ) ;
-  unsigned getOrderedNumVars( Node q );
-  TypeNode getOrderedVarType( Node q, int i );
-  int getOrderedVarNumToVarNum( Node q, int i );
-};/* class FirstOrderModelQInt */
-
 class AbsDef;
 
 class FirstOrderModelAbs : public FirstOrderModel

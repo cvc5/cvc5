@@ -22,7 +22,6 @@
 #include "theory/quantifiers/term_database.h"
 #include "theory/quantifiers/quantifiers_attributes.h"
 #include "theory/quantifiers/full_model_check.h"
-#include "theory/quantifiers/qinterval_builder.h"
 #include "theory/quantifiers/ambqi_builder.h"
 
 using namespace std;

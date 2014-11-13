@@ -34,7 +34,6 @@
 #include "theory/uf/options.h"
 #include "theory/uf/theory_uf.h"
 #include "theory/quantifiers/full_model_check.h"
-#include "theory/quantifiers/qinterval_builder.h"
 #include "theory/quantifiers/ambqi_builder.h"
 
 using namespace std;
@@ -91,8 +90,6 @@ d_lemmas_produced_c(u){
       options::mbqiMode()==quantifiers::MBQI_FMC_INTERVAL || options::fmfBoundInt() ||
       options::mbqiMode()==quantifiers::MBQI_TRUST ){
     d_model = new quantifiers::fmcheck::FirstOrderModelFmc( this, c, "FirstOrderModelFmc" );
-  }else if( options::mbqiMode()==quantifiers::MBQI_INTERVAL ){
-    d_model = new quantifiers::FirstOrderModelQInt( this, c, "FirstOrderModelQInt" );
   }else if( options::mbqiMode()==quantifiers::MBQI_ABS ){
     d_model = new quantifiers::FirstOrderModelAbs( this, c, "FirstOrderModelAbs" );
   }else{
@@ -163,15 +160,9 @@ d_lemmas_produced_c(u){
         options::mbqiMode()==quantifiers::MBQI_TRUST || options::fmfBoundInt() ){
       Trace("quant-engine-debug") << "...make fmc builder." << std::endl;
       d_builder = new quantifiers::fmcheck::FullModelChecker( c, this );
-    }else if( options::mbqiMode()==quantifiers::MBQI_INTERVAL ){
-      Trace("quant-engine-debug") << "...make interval builder." << std::endl;
-      d_builder = new quantifiers::QIntervalBuilder( c, this );
     }else if( options::mbqiMode()==quantifiers::MBQI_ABS ){
       Trace("quant-engine-debug") << "...make abs mbqi builder." << std::endl;
       d_builder = new quantifiers::AbsMbqiBuilder( c, this );
-    }else if( options::mbqiMode()==quantifiers::MBQI_INST_GEN ){
-      Trace("quant-engine-debug") << "...make inst-gen builder." << std::endl;
-      d_builder = new quantifiers::QModelBuilderInstGen( c, this );
     }else{
       Trace("quant-engine-debug") << "...make default model builder." << std::endl;
       d_builder = new quantifiers::QModelBuilderDefault( c, this );
@@ -676,6 +667,7 @@ Node QuantifiersEngine::getInstantiation( Node f, std::vector< Node >& terms ) {
   return getInstantiation( f, d_term_db->d_inst_constants[f], terms );
 }
 
+/*
 bool QuantifiersEngine::existsInstantiation( Node f, InstMatch& m, bool modEq, bool modInst ){
   if( options::incrementalSolving() ){
     if( d_c_inst_match_trie.find( f )!=d_c_inst_match_trie.end() ){
@@ -696,6 +688,7 @@ bool QuantifiersEngine::existsInstantiation( Node f, InstMatch& m, bool modEq, b
   }
   return false;
 }
+*/
 
 bool QuantifiersEngine::addLemma( Node lem, bool doCache ){
   if( doCache ){

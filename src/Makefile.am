@@ -295,8 +295,6 @@ libcvc4_la_SOURCES = \
 	theory/quantifiers/model_builder.cpp \
 	theory/quantifiers/quantifiers_attributes.h \
 	theory/quantifiers/quantifiers_attributes.cpp \
-	theory/quantifiers/inst_gen.h \
-	theory/quantifiers/inst_gen.cpp \
 	theory/quantifiers/quant_util.h \
 	theory/quantifiers/quant_util.cpp \
 	theory/quantifiers/inst_match_generator.h \
@@ -319,8 +317,6 @@ libcvc4_la_SOURCES = \
 	theory/quantifiers/relevant_domain.cpp \
 	theory/quantifiers/symmetry_breaking.h \
 	theory/quantifiers/symmetry_breaking.cpp \
-	theory/quantifiers/qinterval_builder.h \
-	theory/quantifiers/qinterval_builder.cpp \
 	theory/quantifiers/ambqi_builder.h \
 	theory/quantifiers/ambqi_builder.cpp \
 	theory/quantifiers/quant_conflict_find.h \
