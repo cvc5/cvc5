@@ -3,15 +3,14 @@ and contributors (see the file AUTHORS) and their institutional
 affiliations.  All rights reserved.
 
 The source code of CVC4 is open and available to students, researchers,
-software companies, and everyone else to study, to modify, and to
-redistribute original or modified versions; distribution is under the
-terms of the modified BSD license (reproduced below).  However, CVC4
-can be configured (however, by default it is not) to link against some
-GPLed libraries, and therefore the use of these builds may be restricted
-in non-GPL-compatible projects.  See below for a discussion of CLN, GLPK,
-and Readline (the three GPLed optional library dependences for CVC4),
-and how to ensure you have a build that doesn't link against GPLed
-libraries.
+software companies, and everyone else to study, to modify, and to redistribute
+original or modified versions; distribution is under the terms of the modified
+BSD license (reproduced below).  Please note that CVC4 can be configured
+(however, by default it is not) to link against some GPLed libraries, and
+therefore the use of these builds may be restricted in non-GPL-compatible
+projects.  See below for a discussion of CLN, GLPK, and Readline (the three
+GPLed optional library dependences for CVC4), and how to ensure you have a
+build that doesn't link against GPLed libraries.
 
 Redistribution and use in source and binary forms, with or without
 modification, are permitted provided that the following conditions are
@@ -40,7 +39,7 @@ THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
 (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
--- Morgan Deters <mdeters@cs.nyu.edu>  Wed, 02 Jul 2014 14:44:39 -0400
+-- Morgan Deters <mdeters@cs.nyu.edu>  Thu, 13 Nov 2014
 
 CVC4 incorporates MiniSat code, excluded from the above copyright.
 See src/sat/minisat.  Its copyright:
