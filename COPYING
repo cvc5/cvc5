@@ -1,15 +1,32 @@
-CVC4 is copyright (C) 2009, 2010, 2011, 2012, 2013, 2014 New York University
-and The University of Iowa.  All rights reserved.
+CVC4 is copyright (C) 2009, 2010, 2011, 2012, 2013, 2014 by its authors
+and contributors (see the file AUTHORS) and their institutional
+affiliations.  All rights reserved.
 
 The source code of CVC4 is open and available to students, researchers,
 software companies, and everyone else to study, to modify, and to
 redistribute original or modified versions; distribution is under the
-terms of the modified BSD license.  However, CVC4 can be configured (and
-is, by default) to link against some GPLed libraries, and therefore the
-use of these builds may be restricted in non-GPL-compatible projects.
-See below for a discussion of CLN, GLPK, and Readline (the three GPLed
-optional library dependences for CVC4), and how to ensure you have a
-build that doesn't link against GPLed libraries.
+terms of the modified BSD license (reproduced below).  However, CVC4
+can be configured (however, by default it is not) to link against some
+GPLed libraries, and therefore the use of these builds may be restricted
+in non-GPL-compatible projects.  See below for a discussion of CLN, GLPK,
+and Readline (the three GPLed optional library dependences for CVC4),
+and how to ensure you have a build that doesn't link against GPLed
+libraries.
+
+Redistribution and use in source and binary forms, with or without
+modification, are permitted provided that the following conditions are
+met:
+
+1. Redistributions of source code must retain the above copyright
+   notice, this list of conditions and the following disclaimer.
+
+2. Redistributions in binary form must reproduce the above copyright
+   notice, this list of conditions and the following disclaimer in the
+   documentation and/or other materials provided with the distribution.
+
+3. Neither the name of the copyright holder nor the names of its
+   contributors may be used to endorse or promote products derived from
+   this software without specific prior written permission.
 
 THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT OWNERS AND CONTRIBUTORS
 ''AS IS'' AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
