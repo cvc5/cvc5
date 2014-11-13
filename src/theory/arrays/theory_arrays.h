@@ -123,8 +123,6 @@ class TheoryArrays : public Theory {
   IntStat d_numSetModelValSplits;
   /** conflicts in setModelVal */
   IntStat d_numSetModelValConflicts;
-  /** time spent in check() */
-  TimerStat d_checkTimer;
 
   public:
 

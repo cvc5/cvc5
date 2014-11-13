@@ -47,8 +47,6 @@ private:
   /** number of restarts */
   int d_numRestarts;
 
-  KEEP_STATISTIC(TimerStat, d_theoryTime, "theory::quantifiers::theoryTime");
-
   eq::EqualityEngine* d_masterEqualityEngine;
 
 public:

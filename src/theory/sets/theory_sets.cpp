@@ -42,6 +42,7 @@ void TheorySets::check(Effort e) {
   if (done() && !fullEffort(e)) {
     return;
   }
+  TimerStat::CodeTimer checkTimer(d_checkTime);
   d_internal->check(e);
 }
 

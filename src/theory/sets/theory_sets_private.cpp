@@ -42,8 +42,6 @@ const char* element_of_str = " \u2208 ";
 
 void TheorySetsPrivate::check(Theory::Effort level) {
 
-  CodeTimer checkCodeTimer(d_statistics.d_checkTime);
-
   while(!d_external.done() && !d_conflict) {
     // Get all the assertions
     Assertion assertion = d_external.get();
@@ -916,12 +914,10 @@ Node mkAnd(const std::vector<TNode>& conjunctions) {
 
 
 TheorySetsPrivate::Statistics::Statistics() :
-  d_checkTime("theory::sets::time")
-  , d_getModelValueTime("theory::sets::getModelValueTime")
+    d_getModelValueTime("theory::sets::getModelValueTime")
   , d_memberLemmas("theory::sets::lemmas::member", 0)
   , d_disequalityLemmas("theory::sets::lemmas::disequality", 0)
 {
-  StatisticsRegistry::registerStat(&d_checkTime);
   StatisticsRegistry::registerStat(&d_getModelValueTime);
   StatisticsRegistry::registerStat(&d_memberLemmas);
   StatisticsRegistry::registerStat(&d_disequalityLemmas);
@@ -929,7 +925,6 @@ TheorySetsPrivate::Statistics::Statistics() :
 
 
 TheorySetsPrivate::Statistics::~Statistics() {
-  StatisticsRegistry::unregisterStat(&d_checkTime);
   StatisticsRegistry::unregisterStat(&d_getModelValueTime);
   StatisticsRegistry::unregisterStat(&d_memberLemmas);
   StatisticsRegistry::unregisterStat(&d_disequalityLemmas);

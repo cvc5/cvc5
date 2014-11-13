@@ -116,7 +116,7 @@ void TheoryQuantifiers::check(Effort e) {
     return;
   }
 
-  CodeTimer codeTimer(d_theoryTime);
+  TimerStat::CodeTimer checkTimer(d_checkTime);
 
   Trace("quantifiers-check") << "quantifiers::check(" << e << ")" << std::endl;
   while(!done()) {
@@ -148,7 +148,6 @@ void TheoryQuantifiers::check(Effort e) {
 }
 
 void TheoryQuantifiers::propagate(Effort level){
-  //CodeTimer codeTimer(d_theoryTime);
   //getQuantifiersEngine()->propagate( level );
 }
 

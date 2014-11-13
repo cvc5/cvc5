@@ -3346,6 +3346,7 @@ bool TheoryArithPrivate::hasFreshArithLiteral(Node n) const{
 
 void TheoryArithPrivate::check(Theory::Effort effortLevel){
   Assert(d_currentPropagationList.empty());
+  TimerStat::CodeTimer checkTimer(d_containing.d_checkTime);
   //cout << "TheoryArithPrivate::check " << effortLevel << std::endl;
   Debug("effortlevel") << "TheoryArithPrivate::check " << effortLevel << std::endl;
   Debug("arith") << "TheoryArithPrivate::check begun " << effortLevel << std::endl;

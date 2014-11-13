@@ -20,6 +20,8 @@ void Theory$camel::check(Effort level) {
     return;
   }
 
+  TimerStat::CodeTimer checkTimer(d_checkTime);
+
   while(!done()) {
     // Get all the assertions
     Assertion assertion = get();

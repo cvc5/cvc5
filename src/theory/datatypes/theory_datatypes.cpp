@@ -124,6 +124,8 @@ void TheoryDatatypes::check(Effort e) {
     return;
   }
 
+  TimerStat::CodeTimer checkTimer(d_checkTime);
+
   Trace("datatypes-debug") << "Check effort " << e << std::endl;
   while(!done() && !d_conflict) {
     // Get all the assertions

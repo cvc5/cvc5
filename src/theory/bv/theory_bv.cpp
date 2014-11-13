@@ -365,6 +365,7 @@ void TheoryBV::check(Effort e)
   if (done() && !fullEffort(e)) {
     return;
   }
+  TimerStat::CodeTimer checkTimer(d_checkTime);
   Debug("bitvector") << "TheoryBV::check(" << e << ")" << std::endl;
   TimerStat::CodeTimer codeTimer(d_statistics.d_solveTimer);
   // we may be getting new assertions so the model cache may not be sound

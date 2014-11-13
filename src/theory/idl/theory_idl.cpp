@@ -49,10 +49,11 @@ Node TheoryIdl::ppRewrite(TNode atom) {
 }
 
 void TheoryIdl::check(Effort level) {
-  //// Not needed for now, as no code outside while() loop below.
-  // if (done() && !fullEffort(e)) {
-  //   return;
-  // }
+  if (done() && !fullEffort(level)) {
+    return;
+  }
+
+  TimerStat::CodeTimer checkTimer(d_checkTime);
 
   while(!done()) {
 

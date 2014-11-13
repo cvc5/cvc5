@@ -197,7 +197,11 @@ private:
    */
   QuantifiersEngine* d_quantEngine;
 
+protected:
+
   // === STATISTICS ===
+  /** time spent in check calls */
+  TimerStat d_checkTime;
   /** time spent in theory combination */
   TimerStat d_computeCareGraphTime;
 
@@ -206,8 +210,6 @@ private:
     ss << "theory<" << id << ">::" << statName;
     return ss.str();
   }
-
-protected:
 
   /**
    * The only method to add suff to the care graph.
@@ -255,12 +257,14 @@ protected:
   , d_sharedTermsIndex(satContext, 0)
   , d_careGraph(NULL)
   , d_quantEngine(NULL)
+  , d_checkTime(statName(id, "checkTime"))
   , d_computeCareGraphTime(statName(id, "computeCareGraphTime"))
   , d_sharedTerms(satContext)
   , d_out(&out)
   , d_valuation(valuation)
   , d_proofEnabled(false)
   {
+    StatisticsRegistry::registerStat(&d_checkTime);
     StatisticsRegistry::registerStat(&d_computeCareGraphTime);
   }
 

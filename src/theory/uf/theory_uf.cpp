@@ -93,6 +93,8 @@ void TheoryUF::check(Effort level) {
     return;
   }
 
+  TimerStat::CodeTimer checkTimer(d_checkTime);
+
   while (!done() && !d_conflict)
   {
     // Get all the assertions

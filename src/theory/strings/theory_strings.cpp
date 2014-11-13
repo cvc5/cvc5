@@ -558,6 +558,8 @@ void TheoryStrings::check(Effort e) {
     return;
   }
 
+  TimerStat::CodeTimer checkTimer(d_checkTime);
+
   bool polarity;
   TNode atom;
 
