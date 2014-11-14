@@ -321,6 +321,16 @@ private:
   /** check */
   void checkCombinedCardinality();
 private:
+  /** relevant eqc */
+  NodeBoolMap d_rel_eqc;
+  /** ensure eqc */
+  void ensureEqc( SortModel* c, Node a );
+  /** ensure eqc for all subterms of n */
+  void ensureEqcRec( Node n );
+public:
+  /** has eqc */
+  bool hasEqc( Node a );
+private:
   /** disequality propagator */
   DisequalityPropagator* d_deq_prop;
   /** symmetry breaking techniques */

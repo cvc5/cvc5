@@ -88,18 +88,12 @@ default \n\
 none \n\
 + Disable model-based quantifier instantiation.\n\
 \n\
-instgen \n\
-+ Use instantiation algorithm that mimics Inst-Gen calculus. \n\
-\n\
 gen-ev \n\
 + Use model-based quantifier instantiation algorithm from CADE 24 finite\n\
   model finding paper based on generalizing evaluations.\n\
 \n\
 fmc-interval \n\
 + Same as default, but with intervals for models of integer functions.\n\
-\n\
-interval \n\
-+ Use algorithm that abstracts domain elements as intervals. \n\
 \n\
 abs \n\
 + Use abstract MBQI algorithm (uses disjoint sets). \n\

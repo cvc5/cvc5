@@ -763,6 +763,7 @@ bool StrongSolverTheoryUF::SortModel::minimize( OutputChannel* out, TheoryModel*
           if( validRegionIndex!=-1 ){
             combineRegions( validRegionIndex, i );
             if( addSplit( d_regions[validRegionIndex], out )!=0 ){
+              Trace("uf-ss-debug") << "Minimize model : combined regions, found split. " << std::endl;
               return false;
             }
           }else{
@@ -770,9 +771,12 @@ bool StrongSolverTheoryUF::SortModel::minimize( OutputChannel* out, TheoryModel*
           }
         }
       }
+      Assert( validRegionIndex!=-1 );
       if( addSplit( d_regions[validRegionIndex], out )!=0 ){
+        Trace("uf-ss-debug") << "Minimize model : found split. " << std::endl;
         return false;
       }
+      Trace("uf-ss-debug") << "Minimize success. " << std::endl;
     }
   }
   return true;
@@ -1480,7 +1484,7 @@ Node StrongSolverTheoryUF::SortModel::getCardinalityLiteral( int c ) {
 
 StrongSolverTheoryUF::StrongSolverTheoryUF(context::Context* c, context::UserContext* u, OutputChannel& out, TheoryUF* th) :
 d_out( &out ), d_th( th ), d_conflict( c, false ), d_rep_model(), d_aloc_com_card( u, 0 ), d_com_card_assertions( c ),
-d_card_assertions_eqv_lemma( u )
+d_card_assertions_eqv_lemma( u ), d_rel_eqc( c )
 {
   if( options::ufssDiseqPropagation() ){
     d_deq_prop = new DisequalityPropagator( th->getQuantifiersEngine(), this );
@@ -1508,26 +1512,58 @@ OutputChannel& StrongSolverTheoryUF::getOutputChannel() {
   return d_th->getOutputChannel();
 }
 
-/** new node */
-void StrongSolverTheoryUF::newEqClass( Node n ){
-  SortModel* c = getSortModel( n );
-  if( c ){
-    Trace("uf-ss-solver") << "StrongSolverTheoryUF: New eq class " << n << " : " << n.getType() << std::endl;
-    c->newEqClass( n );
+/** ensure eqc */
+void StrongSolverTheoryUF::ensureEqc( SortModel* c, Node a ) {
+  if( !hasEqc( a ) ){
+    d_rel_eqc[a] = true;
+    Trace("uf-ss-solver") << "StrongSolverTheoryUF: New eq class " << a << " : " << a.getType() << std::endl;
+    c->newEqClass( a );
     if( options::ufssSymBreak() ){
-      d_sym_break->newEqClass( n );
+      d_sym_break->newEqClass( a );
     }
     Trace("uf-ss-solver") << "StrongSolverTheoryUF: Done New eq class." << std::endl;
   }
 }
 
+void StrongSolverTheoryUF::ensureEqcRec( Node n ) {
+  if( !hasEqc( n ) ){
+    SortModel* c = getSortModel( n );
+    if( c ){
+      ensureEqc( c, n );
+    }
+    for( unsigned i=0; i<n.getNumChildren(); i++ ){
+      ensureEqcRec( n[i] );
+    }
+  }
+}
+
+/** has eqc */
+bool StrongSolverTheoryUF::hasEqc( Node a ) {
+  return d_rel_eqc.find( a )!=d_rel_eqc.end() && d_rel_eqc[a];
+}
+
+/** new node */
+void StrongSolverTheoryUF::newEqClass( Node n ){
+  SortModel* c = getSortModel( n );
+  if( c ){
+    //do nothing
+  }
+}
+
 /** merge */
 void StrongSolverTheoryUF::merge( Node a, Node b ){
+  //TODO: ensure they are relevant
   SortModel* c = getSortModel( a );
   if( c ){
-    Trace("uf-ss-solver") << "StrongSolverTheoryUF: Merge " << a << " " << b << " : " << a.getType() << std::endl;
-    c->merge( a, b );
-    Trace("uf-ss-solver") << "StrongSolverTheoryUF: Done Merge." << std::endl;
+    ensureEqc( c, a );
+    if( hasEqc( b ) ){
+      Trace("uf-ss-solver") << "StrongSolverTheoryUF: Merge " << a << " " << b << " : " << a.getType() << std::endl;
+      c->merge( a, b );
+      Trace("uf-ss-solver") << "StrongSolverTheoryUF: Done Merge." << std::endl;
+    }else{
+      //c->assignEqClass( b, a );
+      d_rel_eqc[b] = true;
+    }
   }else{
     if( options::ufssDiseqPropagation() ){
       d_deq_prop->merge(a, b);
@@ -1539,6 +1575,8 @@ void StrongSolverTheoryUF::merge( Node a, Node b ){
 void StrongSolverTheoryUF::assertDisequal( Node a, Node b, Node reason ){
   SortModel* c = getSortModel( a );
   if( c ){
+    ensureEqc( c, a );
+    ensureEqc( c, b );
     Trace("uf-ss-solver") << "StrongSolverTheoryUF: Assert disequal " << a << " " << b << " : " << a.getType() << std::endl;
     //Assert( d_th->d_equalityEngine.getRepresentative( a )==a );
     //Assert( d_th->d_equalityEngine.getRepresentative( b )==b );
@@ -1554,6 +1592,7 @@ void StrongSolverTheoryUF::assertDisequal( Node a, Node b, Node reason ){
 /** assert a node */
 void StrongSolverTheoryUF::assertNode( Node n, bool isDecision ){
   Trace("uf-ss") << "Assert " << n << " " << isDecision << std::endl;
+  ensureEqcRec( n );
   bool polarity = n.getKind() != kind::NOT;
   TNode lit = polarity ? n : n[0];
   if( lit.getKind()==CARDINALITY_CONSTRAINT ){

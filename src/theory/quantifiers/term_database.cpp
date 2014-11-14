@@ -356,6 +356,7 @@ void TermDb::reset( Theory::Effort effort ){
     TNode r = (*eqcs_i);
     bool addedFirst = false;
     Node first;
+    //TODO: ignoring singleton eqc isn't enough, need to ensure eqc are relevant
     eq::EqClassIterator eqc_i = eq::EqClassIterator( r, ee );
     while( !eqc_i.isFinished() ){
       TNode n = (*eqc_i);
