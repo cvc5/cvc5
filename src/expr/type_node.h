@@ -463,6 +463,9 @@ public:
   /** Is this the String type? */
   bool isString() const;
 
+  /** Is this the Rounding Mode type? */
+  bool isRoundingMode() const;
+
   /** Is this an array type? */
   bool isArray() const;
 
@@ -560,6 +563,13 @@ public:
   /** Is this a regexp type */
   bool isRegExp() const;
 
+  /** Is this a floating-point type */
+  bool isFloatingPoint() const;
+
+  /** Is this a floating-point type of with <code>exp</code> exponent bits
+      and <code>sig</code> significand bits */
+  bool isFloatingPoint(unsigned exp, unsigned sig) const;
+
   /** Is this a bit-vector type */
   bool isBitVector() const;
 
@@ -589,6 +599,12 @@ public:
 
   /** Get the Datatype specification from a datatype type */
   const Datatype& getDatatype() const;
+
+  /** Get the exponent size of this floating-point type */
+  unsigned getFloatingPointExponentSize() const;
+
+  /** Get the significand size of this floating-point type */
+  unsigned getFloatingPointSignificandSize() const;
 
   /** Get the size of this bit-vector type */
   unsigned getBitVectorSize() const;
@@ -852,6 +868,11 @@ inline bool TypeNode::isString() const {
 inline bool TypeNode::isRegExp() const {
   return getKind() == kind::TYPE_CONSTANT &&
     getConst<TypeConstant>() == REGEXP_TYPE;
+ }
+
+inline bool TypeNode::isRoundingMode() const {
+  return getKind() == kind::TYPE_CONSTANT &&
+    getConst<TypeConstant>() == ROUNDINGMODE_TYPE;
 }
 
 inline bool TypeNode::isArray() const {
@@ -939,6 +960,12 @@ inline bool TypeNode::isSubrange() const {
     ( isPredicateSubtype() && getSubtypeParentType().isSubrange() );
 }
 
+/** Is this a floating-point type */
+inline bool TypeNode::isFloatingPoint() const {
+  return getKind() == kind::FLOATINGPOINT_TYPE ||
+    ( isPredicateSubtype() && getSubtypeParentType().isFloatingPoint() );
+}
+
 /** Is this a bit-vector type */
 inline bool TypeNode::isBitVector() const {
   return getKind() == kind::BITVECTOR_TYPE ||
@@ -973,6 +1000,16 @@ inline bool TypeNode::isTester() const {
   return getKind() == kind::TESTER_TYPE;
 }
 
+/** Is this a floating-point type of with <code>exp</code> exponent bits
+    and <code>sig</code> significand bits */
+inline bool TypeNode::isFloatingPoint(unsigned exp, unsigned sig) const {
+  return
+    ( getKind() == kind::FLOATINGPOINT_TYPE && 
+      getConst<FloatingPointSize>().exponent() == exp &&
+      getConst<FloatingPointSize>().significand() == sig ) ||
+    ( isPredicateSubtype() && getSubtypeParentType().isFloatingPoint(exp,sig) );
+}
+
 /** Is this a bit-vector type of size <code>size</code> */
 inline bool TypeNode::isBitVector(unsigned size) const {
   return
@@ -988,6 +1025,18 @@ inline const Datatype& TypeNode::getDatatype() const {
   } else {
     return NodeManager::currentNM()->getDatatypeForTupleRecord(*this).getConst<Datatype>();
   }
+}
+
+/** Get the exponent size of this floating-point type */
+inline unsigned TypeNode::getFloatingPointExponentSize() const {
+  Assert(isFloatingPoint());
+  return getConst<FloatingPointSize>().exponent();
+}
+
+/** Get the significand size of this floating-point type */
+inline unsigned TypeNode::getFloatingPointSignificandSize() const {
+ Assert(isFloatingPoint());
+ return getConst<FloatingPointSize>().significand();
 }
 
 /** Get the size of this bit-vector type */

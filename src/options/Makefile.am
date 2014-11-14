@@ -40,7 +40,9 @@ OPTIONS_FILES_SRCS = \
 	../theory/idl/options.cpp \
 	../theory/idl/options.h \
 	../theory/sets/options.cpp \
-	../theory/sets/options.h
+	../theory/sets/options.h \
+	../theory/fp/options.cpp \
+	../theory/fp/options.h
 
 OPTIONS_FILES = \
 	$(patsubst %.cpp,%,$(filter %.cpp,$(OPTIONS_FILES_SRCS)))
@@ -101,7 +103,9 @@ nodist_liboptions_la_SOURCES = \
 	../theory/idl/options.cpp \
 	../theory/idl/options.h \
 	../theory/sets/options.cpp \
-	../theory/sets/options.h
+	../theory/sets/options.h \
+	../theory/fp/options.cpp \
+	../theory/fp/options.h
 
 BUILT_SOURCES = \
 	exprs-builts \

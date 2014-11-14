@@ -112,10 +112,13 @@ namespace CVC4 {
 #include "util/output.h"
 #include "util/rational.h"
 #include "util/hash.h"
+#include "util/floatingpoint.h"
 #include <vector>
 #include <set>
 #include <string>
 #include <sstream>
+// \todo Review the need for this header
+#include "math.h"
 
 using namespace CVC4;
 using namespace CVC4::parser;
@@ -949,7 +952,7 @@ term[CVC4::Expr& expr, CVC4::Expr& expr2]
   std::string name;
   std::vector<Expr> args;
   std::vector< std::pair<std::string, Type> > sortedVarNames;
-  Expr f, f2;
+  Expr f, f2, f3, f4;
   std::string attr;
   Expr attexpr;
   std::vector<Expr> patexprs;
@@ -1243,13 +1246,30 @@ term[CVC4::Expr& expr, CVC4::Expr& expr2]
       // valid GMP rational string
       expr = MK_CONST( AntlrInput::tokenToRational($DECIMAL_LITERAL) ); }
 
-  | LPAREN_TOK INDEX_TOK bvLit=SIMPLE_SYMBOL size=INTEGER_LITERAL RPAREN_TOK
-    { if(AntlrInput::tokenText($bvLit).find("bv") == 0) {
-        expr = MK_CONST( AntlrInput::tokenToBitvector($bvLit, $size) );
-      } else {
-        PARSER_STATE->parseError("Unexpected symbol `" + AntlrInput::tokenText($bvLit) + "'");
+  | LPAREN_TOK INDEX_TOK 
+    ( bvLit=SIMPLE_SYMBOL size=INTEGER_LITERAL 
+      { if(AntlrInput::tokenText($bvLit).find("bv") == 0) {
+           expr = MK_CONST( AntlrInput::tokenToBitvector($bvLit, $size) );
+        } else {
+           PARSER_STATE->parseError("Unexpected symbol `" + AntlrInput::tokenText($bvLit) + "'");
+        }
       }
-    }
+    | FP_PINF_TOK eb=INTEGER_LITERAL sb=INTEGER_LITERAL
+      { expr = MK_CONST(FloatingPoint(AntlrInput::tokenToUnsigned($eb),
+                                      AntlrInput::tokenToUnsigned($sb),
+                                      +INFINITY)); }
+    | FP_NINF_TOK eb=INTEGER_LITERAL sb=INTEGER_LITERAL
+      { expr = MK_CONST(FloatingPoint(AntlrInput::tokenToUnsigned($eb),
+                                      AntlrInput::tokenToUnsigned($sb),
+                                     -INFINITY)); }
+    | FP_NAN_TOK eb=INTEGER_LITERAL sb=INTEGER_LITERAL
+      { expr = MK_CONST(FloatingPoint(AntlrInput::tokenToUnsigned($eb),
+                                      AntlrInput::tokenToUnsigned($sb),
+                                      NAN)); }
+    // NOTE: Theory parametric constants go here
+
+    )
+    RPAREN_TOK
 
   | HEX_LITERAL
     { assert( AntlrInput::tokenText($HEX_LITERAL).find("#x") == 0 );
@@ -1263,6 +1283,16 @@ term[CVC4::Expr& expr, CVC4::Expr& expr2]
 
   | str[s,false]
     { expr = MK_CONST( ::CVC4::String(s) ); }
+  | FP_RNE_TOK      { expr = MK_CONST(roundNearestTiesToEven); }
+  | FP_RNA_TOK      { expr = MK_CONST(roundNearestTiesToAway); }
+  | FP_RTP_TOK      { expr = MK_CONST(roundTowardPositive); }
+  | FP_RTN_TOK      { expr = MK_CONST(roundTowardNegative); }
+  | FP_RTZ_TOK      { expr = MK_CONST(roundTowardZero); }
+  | FP_RNE_FULL_TOK { expr = MK_CONST(roundNearestTiesToEven); }
+  | FP_RNA_FULL_TOK { expr = MK_CONST(roundNearestTiesToAway); }
+  | FP_RTP_FULL_TOK { expr = MK_CONST(roundTowardPositive); }
+  | FP_RTN_FULL_TOK { expr = MK_CONST(roundTowardNegative); }
+  | FP_RTZ_FULL_TOK { expr = MK_CONST(roundTowardZero); }
 
   | RENOSTR_TOK
     { std::vector< Expr > nvec; expr = MK_EXPR( CVC4::kind::REGEXP_EMPTY, nvec ); }
@@ -1427,8 +1457,50 @@ indexedFunctionName[CVC4::Expr& op]
         if(PARSER_STATE->strictModeEnabled()) {
           PARSER_STATE->parseError("bv2nat and int2bv are not part of SMT-LIB, and aren't available in SMT-LIB strict compliance mode");
         } }
+    | FP_PINF_TOK eb=INTEGER_LITERAL sb=INTEGER_LITERAL
+      { op = MK_CONST(FloatingPoint(AntlrInput::tokenToUnsigned($eb),
+                                    AntlrInput::tokenToUnsigned($sb),
+                                    +INFINITY)); }
+    | FP_NINF_TOK eb=INTEGER_LITERAL sb=INTEGER_LITERAL
+      { op = MK_CONST(FloatingPoint(AntlrInput::tokenToUnsigned($eb),
+                                    AntlrInput::tokenToUnsigned($sb),
+                                    -INFINITY)); }
+    | FP_NAN_TOK eb=INTEGER_LITERAL sb=INTEGER_LITERAL
+      { op = MK_CONST(FloatingPoint(AntlrInput::tokenToUnsigned($eb),
+                                    AntlrInput::tokenToUnsigned($sb),
+                                    NAN)); }
+    | FP_PZERO_TOK eb=INTEGER_LITERAL sb=INTEGER_LITERAL
+      { op = MK_CONST(FloatingPoint(AntlrInput::tokenToUnsigned($eb),
+                                    AntlrInput::tokenToUnsigned($sb),
+                                    +0.0)); }
+    | FP_NZERO_TOK eb=INTEGER_LITERAL sb=INTEGER_LITERAL
+      { op = MK_CONST(FloatingPoint(AntlrInput::tokenToUnsigned($eb),
+                                    AntlrInput::tokenToUnsigned($sb),
+                                    -0.0)); }
+    | FP_TO_FP_TOK eb=INTEGER_LITERAL sb=INTEGER_LITERAL
+      { op = MK_CONST(FloatingPointToFPGeneric(AntlrInput::tokenToUnsigned($eb),
+                                               AntlrInput::tokenToUnsigned($sb))); }
+    | FP_TO_FPBV_TOK eb=INTEGER_LITERAL sb=INTEGER_LITERAL
+      { op = MK_CONST(FloatingPointToFPIEEEBitVector(AntlrInput::tokenToUnsigned($eb),
+                                                     AntlrInput::tokenToUnsigned($sb))); }
+    | FP_TO_FPFP_TOK eb=INTEGER_LITERAL sb=INTEGER_LITERAL
+      { op = MK_CONST(FloatingPointToFPFloatingPoint(AntlrInput::tokenToUnsigned($eb),
+                                                     AntlrInput::tokenToUnsigned($sb))); }
+    | FP_TO_FPR_TOK eb=INTEGER_LITERAL sb=INTEGER_LITERAL
+      { op = MK_CONST(FloatingPointToFPReal(AntlrInput::tokenToUnsigned($eb),
+                                            AntlrInput::tokenToUnsigned($sb))); }
+    | FP_TO_FPS_TOK eb=INTEGER_LITERAL sb=INTEGER_LITERAL
+      { op = MK_CONST(FloatingPointToFPSignedBitVector(AntlrInput::tokenToUnsigned($eb),
+                                                       AntlrInput::tokenToUnsigned($sb))); }
+    | FP_TO_FPU_TOK eb=INTEGER_LITERAL sb=INTEGER_LITERAL
+      { op = MK_CONST(FloatingPointToFPUnsignedBitVector(AntlrInput::tokenToUnsigned($eb),
+                                                         AntlrInput::tokenToUnsigned($sb))); }
+    | FP_TO_UBV_TOK m=INTEGER_LITERAL
+      { op = MK_CONST(FloatingPointToUBV(AntlrInput::tokenToUnsigned($m))); }
+    | FP_TO_SBV_TOK m=INTEGER_LITERAL
+      { op = MK_CONST(FloatingPointToSBV(AntlrInput::tokenToUnsigned($m))); }
     | badIndexedFunctionName
-   )
+        )
     RPAREN_TOK
   ;
 
@@ -1621,6 +1693,32 @@ builtinOp[CVC4::Kind& kind]
   
   | FMFCARD_TOK    { $kind = CVC4::kind::CARDINALITY_CONSTRAINT; }
 
+  | FP_TOK        { $kind = CVC4::kind::FLOATINGPOINT_FP; }
+  | FP_EQ_TOK     { $kind = CVC4::kind::FLOATINGPOINT_EQ; }
+  | FP_ABS_TOK    { $kind = CVC4::kind::FLOATINGPOINT_ABS; }
+  | FP_NEG_TOK    { $kind = CVC4::kind::FLOATINGPOINT_NEG; }
+  | FP_PLUS_TOK   { $kind = CVC4::kind::FLOATINGPOINT_PLUS; }
+  | FP_SUB_TOK    { $kind = CVC4::kind::FLOATINGPOINT_SUB; }
+  | FP_MUL_TOK    { $kind = CVC4::kind::FLOATINGPOINT_MULT; }
+  | FP_DIV_TOK    { $kind = CVC4::kind::FLOATINGPOINT_DIV; }
+  | FP_FMA_TOK    { $kind = CVC4::kind::FLOATINGPOINT_FMA; }
+  | FP_SQRT_TOK   { $kind = CVC4::kind::FLOATINGPOINT_SQRT; }
+  | FP_REM_TOK    { $kind = CVC4::kind::FLOATINGPOINT_REM; }
+  | FP_RTI_TOK    { $kind = CVC4::kind::FLOATINGPOINT_RTI; }
+  | FP_MIN_TOK    { $kind = CVC4::kind::FLOATINGPOINT_MIN; }
+  | FP_MAX_TOK    { $kind = CVC4::kind::FLOATINGPOINT_MAX; }
+  | FP_LEQ_TOK    { $kind = CVC4::kind::FLOATINGPOINT_LEQ; }
+  | FP_LT_TOK     { $kind = CVC4::kind::FLOATINGPOINT_LT; }
+  | FP_GEQ_TOK    { $kind = CVC4::kind::FLOATINGPOINT_GEQ; }
+  | FP_GT_TOK     { $kind = CVC4::kind::FLOATINGPOINT_GT; }
+  | FP_ISN_TOK    { $kind = CVC4::kind::FLOATINGPOINT_ISN; }
+  | FP_ISSN_TOK   { $kind = CVC4::kind::FLOATINGPOINT_ISSN; }
+  | FP_ISZ_TOK    { $kind = CVC4::kind::FLOATINGPOINT_ISZ; }
+  | FP_ISINF_TOK  { $kind = CVC4::kind::FLOATINGPOINT_ISINF; }
+  | FP_ISNAN_TOK  { $kind = CVC4::kind::FLOATINGPOINT_ISNAN; }
+  | FP_ISNEG_TOK  { $kind = CVC4::kind::FLOATINGPOINT_ISNEG; }
+  | FP_ISPOS_TOK  { $kind = CVC4::kind::FLOATINGPOINT_ISPOS; }
+  | FP_TO_REAL_TOK {$kind = CVC4::kind::FLOATINGPOINT_TO_REAL; }
   // NOTE: Theory operators go here
   ;
 
@@ -1704,6 +1802,17 @@ sortSymbol[CVC4::Type& t, CVC4::parser::DeclarationCheck check]
           PARSER_STATE->parseError("Illegal bitvector size: 0");
         }
         t = EXPR_MANAGER->mkBitVectorType(numerals.front());
+      } else if ( name == "FloatingPoint" ) {
+        if( numerals.size() != 2 ) {
+          PARSER_STATE->parseError("Illegal floating-point type.");
+        }
+        if(!validExponentSize(numerals[0])) {
+          PARSER_STATE->parseError("Illegal floating-point exponent size");
+        }
+        if(!validSignificandSize(numerals[1])) {
+          PARSER_STATE->parseError("Illegal floating-point significand size");
+        }
+        t = EXPR_MANAGER->mkFloatingPointType(numerals[0],numerals[1]);
       } else {
         std::stringstream ss;
         ss << "unknown indexed symbol `" << name << "'";
@@ -2030,6 +2139,56 @@ EMPTYSET_TOK: { PARSER_STATE->isTheoryEnabled(Smt2::THEORY_SETS) }? 'emptyset';
 // Other set theory operators are not
 // tokenized and handled directly when
 // processing a term
+
+FP_TOK : 'fp';
+FP_PINF_TOK : '+oo';
+FP_NINF_TOK : '-oo';
+FP_PZERO_TOK : '+zero';
+FP_NZERO_TOK : '-zero';
+FP_NAN_TOK : 'NaN';
+FP_EQ_TOK : 'fp.eq';
+FP_ABS_TOK : 'fp.abs';
+FP_NEG_TOK : 'fp.neg';
+FP_PLUS_TOK : 'fp.add';
+FP_SUB_TOK : 'fp.sub';
+FP_MUL_TOK : 'fp.mul';
+FP_DIV_TOK : 'fp.div';
+FP_FMA_TOK : 'fp.fma';
+FP_SQRT_TOK : 'fp.sqrt';
+FP_REM_TOK : 'fp.rem';
+FP_RTI_TOK : 'fp.roundToIntegral';
+FP_MIN_TOK : 'fp.min';
+FP_MAX_TOK : 'fp.max';
+FP_LEQ_TOK : 'fp.leq';
+FP_LT_TOK : 'fp.lt';
+FP_GEQ_TOK : 'fp.geq';
+FP_GT_TOK : 'fp.gt';
+FP_ISN_TOK : 'fp.isNormal';
+FP_ISSN_TOK : 'fp.isSubnormal';
+FP_ISZ_TOK : 'fp.isZero';
+FP_ISINF_TOK : 'fp.isInfinite';
+FP_ISNAN_TOK : 'fp.isNaN';
+FP_ISNEG_TOK : 'fp.isNegative';
+FP_ISPOS_TOK : 'fp.isPositive';
+FP_TO_FP_TOK : 'to_fp';
+FP_TO_FPBV_TOK : 'to_fp_bv';
+FP_TO_FPFP_TOK : 'to_fp_fp';
+FP_TO_FPR_TOK : 'to_fp_real';
+FP_TO_FPS_TOK : 'to_fp_signed';
+FP_TO_FPU_TOK : 'to_fp_unsigned';
+FP_TO_UBV_TOK : 'fp.to_ubv';
+FP_TO_SBV_TOK : 'fp.to_sbv';
+FP_TO_REAL_TOK : 'fp.to_real';
+FP_RNE_TOK : 'RNE';
+FP_RNA_TOK : 'RNA';
+FP_RTP_TOK : 'RTP';
+FP_RTN_TOK : 'RTN';
+FP_RTZ_TOK : 'RTZ';
+FP_RNE_FULL_TOK : 'roundNearestTiesToEven';
+FP_RNA_FULL_TOK : 'roundNearestTiesToAway';
+FP_RTP_FULL_TOK : 'roundTowardPositive';
+FP_RTN_FULL_TOK : 'roundTowardNegative';
+FP_RTZ_FULL_TOK : 'roundTowardZero';
 
 /**
  * A sequence of printable ASCII characters (except backslash) that starts
