@@ -188,6 +188,16 @@ none \n\
 + Do not enforce fairness. \n\
 \n\
 ";
+static const std::string termDbModeHelp = "\
+Modes for term database, supported by --term-db-mode:\n\
+\n\
+all  \n\
++ Consider all terms in the system.\n\
+\n\
+relevant \n\
++ Consider only terms connected to current assertions. \n\
+\n\
+";
 
 inline InstWhenMode stringToInstWhenMode(std::string option, std::string optarg, SmtEngine* smt) throw(OptionException) {
   if(optarg == "pre-full") {
@@ -377,6 +387,20 @@ inline CegqiFairMode stringToCegqiFairMode(std::string option, std::string optar
   } else {
     throw OptionException(std::string("unknown option for --cegqi-fair: `") +
                           optarg + "'.  Try --cegqi-fair help.");
+  }
+}
+
+inline TermDbMode stringToTermDbMode(std::string option, std::string optarg, SmtEngine* smt) throw(OptionException) {
+  if(optarg == "all" ) {
+    return TERM_DB_ALL;
+  } else if(optarg == "relevant") {
+    return TERM_DB_RELEVANT;
+  } else if(optarg ==  "help") {
+    puts(termDbModeHelp.c_str());
+    exit(1);
+  } else {
+    throw OptionException(std::string("unknown option for --term-db-mode: `") +
+                          optarg + "'.  Try --term-db-mode help.");
   }
 }
 

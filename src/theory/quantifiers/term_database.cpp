@@ -316,10 +316,16 @@ bool TermDb::isEntailed( TNode n, std::map< TNode, TNode >& subs, bool subsRep, 
   return false;
 }
 
-bool TermDb::hasTermCurrent( Node n ) { 
+bool TermDb::hasTermCurrent( Node n ) {
   //return d_quantEngine->getMasterEqualityEngine()->hasTerm( n );
-  //return d_has_map.find( n )!=d_has_map.end(); 
-  return true;
+  if( options::termDbMode()==TERM_DB_ALL ){
+    return true;
+  }else if( options::termDbMode()==TERM_DB_RELEVANT ){
+    return d_has_map.find( n )!=d_has_map.end();
+  }else{
+    Assert( false );
+    return false;
+  }
 }
 
 void TermDb::setHasTerm( Node n ) {
@@ -348,44 +354,44 @@ void TermDb::reset( Theory::Effort effort ){
   d_func_map_eqc_trie.clear();
 
   //compute has map
-  /*
-  d_has_map.clear();
-  eq::EqualityEngine* ee = d_quantEngine->getMasterEqualityEngine();
-  eq::EqClassesIterator eqcs_i = eq::EqClassesIterator( ee );
-  while( !eqcs_i.isFinished() ){
-    TNode r = (*eqcs_i);
-    bool addedFirst = false;
-    Node first;
-    //TODO: ignoring singleton eqc isn't enough, need to ensure eqc are relevant
-    eq::EqClassIterator eqc_i = eq::EqClassIterator( r, ee );
-    while( !eqc_i.isFinished() ){
-      TNode n = (*eqc_i);
-      if( first.isNull() ){
-        first = n;
-      }else{
-        if( !addedFirst ){
-          addedFirst = true;
-          setHasTerm( first );
+  if( options::termDbMode()==TERM_DB_RELEVANT ){
+    d_has_map.clear();
+    eq::EqualityEngine* ee = d_quantEngine->getMasterEqualityEngine();
+    eq::EqClassesIterator eqcs_i = eq::EqClassesIterator( ee );
+    while( !eqcs_i.isFinished() ){
+      TNode r = (*eqcs_i);
+      bool addedFirst = false;
+      Node first;
+      //TODO: ignoring singleton eqc isn't enough, need to ensure eqc are relevant
+      eq::EqClassIterator eqc_i = eq::EqClassIterator( r, ee );
+      while( !eqc_i.isFinished() ){
+        TNode n = (*eqc_i);
+        if( first.isNull() ){
+          first = n;
+        }else{
+          if( !addedFirst ){
+            addedFirst = true;
+            setHasTerm( first );
+          }
+          setHasTerm( n );
         }
-        setHasTerm( n );
+        ++eqc_i;
       }
-      ++eqc_i;
+      ++eqcs_i;
     }
-    ++eqcs_i;
-  }
-  for (TheoryId theoryId = THEORY_FIRST; theoryId < THEORY_LAST; ++theoryId) {
-    Theory* theory = d_quantEngine->getTheoryEngine()->d_theoryTable[theoryId];
-    if (theory && d_quantEngine->getTheoryEngine()->d_logicInfo.isTheoryEnabled(theoryId)) {
-      context::CDList<Assertion>::const_iterator it = theory->facts_begin(), it_end = theory->facts_end();
-      for (unsigned i = 0; it != it_end; ++ it, ++i) {
-        Trace("ajr-temp") << "Set has term " << (*it).assertion << std::endl;
-        setHasTerm( (*it).assertion );
+    for (TheoryId theoryId = THEORY_FIRST; theoryId < THEORY_LAST; ++theoryId) {
+      Theory* theory = d_quantEngine->getTheoryEngine()->d_theoryTable[theoryId];
+      if (theory && d_quantEngine->getTheoryEngine()->d_logicInfo.isTheoryEnabled(theoryId)) {
+        context::CDList<Assertion>::const_iterator it = theory->facts_begin(), it_end = theory->facts_end();
+        for (unsigned i = 0; it != it_end; ++ it, ++i) {
+          Trace("ajr-temp") << "Set has term " << (*it).assertion << std::endl;
+          setHasTerm( (*it).assertion );
+        }
       }
     }
   }
-  */
-  
-  
+
+
   //rebuild d_func/pred_map_trie for each operation, this will calculate all congruent terms
   for( std::map< Node, std::vector< Node > >::iterator it = d_op_map.begin(); it != d_op_map.end(); ++it ){
     d_op_nonred_count[ it->first ] = 0;

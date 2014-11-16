@@ -29,6 +29,8 @@ option varElimQuant /--disable-var-elim-quant bool :default true
 option dtVarExpandQuant --dt-var-exp-quant bool :default true
  expand datatype variables bound to one constructor in quantifiers
 
+option iteCondVarSplitQuant --ite-cond-var-split-quant bool :default true
+ split variables occurring as conditions of ITE in quantifiers
 option simpleIteLiftQuant /--disable-ite-lift-quant bool :default true
  disable simple ite lifting for quantified formulas
 
@@ -57,6 +59,8 @@ option macrosQuant --macros-quant bool :default false
 option foPropQuant --fo-prop-quant bool :default false
  perform first-order propagation on quantifiers
 
+option termDbMode --term-db-mode CVC4::theory::quantifiers::TermDbMode :default CVC4::theory::quantifiers::TERM_DB_ALL :read-write :include "theory/quantifiers/modes.h" :handler  CVC4::theory::quantifiers::stringToTermDbMode :handler-include "theory/quantifiers/options_handlers.h"
+ which ground terms to consider for instantiation
 # Whether to use smart triggers
 option smartTriggers /--disable-smart-triggers bool :default true
  disable smart triggers

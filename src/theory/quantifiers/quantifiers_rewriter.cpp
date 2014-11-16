@@ -131,8 +131,21 @@ bool QuantifiersRewriter::hasArg( std::vector< Node >& args, Node n ){
   if( std::find( args.begin(), args.end(), n )!=args.end() ){
     return true;
   }else{
-    for( int i=0; i<(int)n.getNumChildren(); i++ ){
+    for( unsigned i=0; i<n.getNumChildren(); i++ ){
       if( hasArg( args, n[i] ) ){
+        return true;
+      }
+    }
+    return false;
+  }
+}
+
+bool QuantifiersRewriter::hasArg1( Node a, Node n ) {
+  if( n==a ){
+    return true;
+  }else{
+    for( unsigned i=0; i<n.getNumChildren(); i++ ){
+      if( hasArg1( a, n[i] ) ){
         return true;
       }
     }
@@ -335,42 +348,87 @@ Node QuantifiersRewriter::computeNNF( Node body ){
   }
 }
 
-Node QuantifiersRewriter::computeSimpleIteLift( Node body ) {
-  if( body.getKind()==EQUAL ){
-    for( size_t i=0; i<2; i++ ){
-      if( body[i].getKind()==ITE ){
-        Node no = i==0 ? body[1] : body[0];
-        bool doRewrite = false;
-        std::vector< Node > children;
-        children.push_back( body[i][0] );
-        for( size_t j=1; j<=2; j++ ){
-          //check if it rewrites to a constant
-          Node nn = NodeManager::currentNM()->mkNode( EQUAL, no, body[i][j] );
-          nn = Rewriter::rewrite( nn );
-          children.push_back( nn );
-          if( nn.isConst() ){
-            doRewrite = true;
+Node QuantifiersRewriter::computeProcessIte( Node body, bool hasPol, bool pol ) {
+  if( body.getType().isBoolean() ){
+    if( body.getKind()==EQUAL && options::simpleIteLiftQuant() ){
+      for( size_t i=0; i<2; i++ ){
+        if( body[i].getKind()==ITE ){
+          Node no = i==0 ? body[1] : body[0];
+          bool doRewrite = false;
+          std::vector< Node > children;
+          children.push_back( body[i][0] );
+          for( size_t j=1; j<=2; j++ ){
+            //check if it rewrites to a constant
+            Node nn = NodeManager::currentNM()->mkNode( EQUAL, no, body[i][j] );
+            nn = Rewriter::rewrite( nn );
+            children.push_back( nn );
+            if( nn.isConst() ){
+              doRewrite = true;
+            }
+          }
+          if( doRewrite ){
+            return NodeManager::currentNM()->mkNode( ITE, children );
           }
         }
-        if( doRewrite ){
-          return NodeManager::currentNM()->mkNode( ITE, children );
+      }
+    }else if( body.getKind()==ITE && hasPol && options::iteCondVarSplitQuant() ){
+      for( unsigned r=0; r<2; r++ ){
+        //check if there is a variable elimination
+        Node b = r==0 ? body[0] : body[0].negate();
+        QuantPhaseReq qpr( b );
+        std::vector< Node > vars;
+        std::vector< Node > subs;
+        Trace("ite-var-split-quant") << "phase req " << body[0] << " #: " << qpr.d_phase_reqs.size() << std::endl;
+        for( std::map< Node, bool >::iterator it = qpr.d_phase_reqs.begin(); it != qpr.d_phase_reqs.end(); ++it ){
+          Trace("ite-var-split-quant") << "phase req " << it->first << " -> " << it->second << std::endl;
+          if( it->second ){
+            if( it->first.getKind()==EQUAL ){
+              for( unsigned i=0; i<2; i++ ){
+                if( it->first[i].getKind()==BOUND_VARIABLE ){
+                  unsigned j = i==0 ? 1 : 0;
+                  if( !hasArg1( it->first[i], it->first[j] ) ){
+                    vars.push_back( it->first[i] );
+                    subs.push_back( it->first[j] );
+                    break;
+                  }
+                }
+              }
+            }
+          }
+        }
+        if( !vars.empty() ){
+          //bool cpol = (r==1);
+          Node pos = NodeManager::currentNM()->mkNode( OR, body[0].negate(), body[1] );
+          //pos = pos.substitute( vars.begin(), vars.end(), subs.begin(), subs.end() );
+          //pos = Rewriter::rewrite( pos );
+          Node neg = NodeManager::currentNM()->mkNode( OR, body[0], body[2] );
+          //Trace("ite-var-split-quant") << "Split ITE " << body << " into : " << std::endl;
+          //Trace("ite-var-split-quant") << "   " << pos << std::endl;
+          //Trace("ite-var-split-quant") << "   " << neg << std::endl;
+          return NodeManager::currentNM()->mkNode( AND, pos, neg );
         }
       }
     }
-  }else if( body.getKind()!=APPLY_UF && body.getType()==NodeManager::currentNM()->booleanType() ){
-    bool changed = false;
-    std::vector< Node > children;
-    for( size_t i=0; i<body.getNumChildren(); i++ ){
-      Node nn = computeSimpleIteLift( body[i] );
-      children.push_back( nn );
-      changed = changed || nn!=body[i];
-    }
-    if( changed ){
-      return NodeManager::currentNM()->mkNode( body.getKind(), children );
+    if( body.getKind()!=EQUAL && body.getKind()!=APPLY_UF ){
+      bool changed = false;
+      std::vector< Node > children;
+      for( size_t i=0; i<body.getNumChildren(); i++ ){
+        bool newHasPol;
+        bool newPol;
+        QuantPhaseReq::getPolarity( body, i, hasPol, pol, newHasPol, newPol );
+        Node nn = computeProcessIte( body[i], newHasPol, newPol );
+        children.push_back( nn );
+        changed = changed || nn!=body[i];
+      }
+      if( changed ){
+        return NodeManager::currentNM()->mkNode( body.getKind(), children );
+      }
     }
   }
   return body;
 }
+
+
 
 Node QuantifiersRewriter::computeVarElimination( Node body, std::vector< Node >& args, Node& ipl ){
   Trace("var-elim-quant-debug") << "Compute var elimination for " << body << std::endl;
@@ -385,9 +443,7 @@ Node QuantifiersRewriter::computeVarElimination( Node body, std::vector< Node >&
           int j = i==0 ? 1 : 0;
           std::vector< Node >::iterator ita = std::find( args.begin(), args.end(), it->first[i] );
           if( ita!=args.end() ){
-            std::vector< Node > temp;
-            temp.push_back( it->first[i] );
-            if( !hasArg( temp, it->first[j] ) ){
+            if( !hasArg1( it->first[i], it->first[j] ) ){
               vars.push_back( it->first[i] );
               subs.push_back( it->first[j] );
               args.erase( ita );
@@ -607,18 +663,22 @@ Node QuantifiersRewriter::computePrenex( Node body, std::vector< Node >& args, b
     }else{
       return body;
     }
-  }else if( body.getKind()==ITE || body.getKind()==XOR || body.getKind()==IFF ){
-    return body;
   }else{
     Assert( body.getKind()!=EXISTS );
     bool childrenChanged = false;
     std::vector< Node > newChildren;
     for( int i=0; i<(int)body.getNumChildren(); i++ ){
-      bool newPol = body.getKind()==NOT  ? !pol : pol;
-      Node n = computePrenex( body[i], args, newPol );
-      newChildren.push_back( n );
-      if( n!=body[i] ){
-        childrenChanged = true;
+      bool newHasPol;
+      bool newPol;
+      QuantPhaseReq::getPolarity( body, i, true, pol, newHasPol, newPol );
+      if( newHasPol ){
+        Node n = computePrenex( body[i], args, newPol );
+        newChildren.push_back( n );
+        if( n!=body[i] ){
+          childrenChanged = true;
+        }
+      }else{
+        newChildren.push_back( body[i] );
       }
     }
     if( childrenChanged ){
@@ -959,8 +1019,8 @@ bool QuantifiersRewriter::doOperation( Node f, bool isNested, int computeOption 
     return options::aggressiveMiniscopeQuant();
   }else if( computeOption==COMPUTE_NNF ){
     return options::nnfQuant();
-  }else if( computeOption==COMPUTE_SIMPLE_ITE_LIFT ){
-    return options::simpleIteLiftQuant();
+  }else if( computeOption==COMPUTE_PROCESS_ITE ){
+    return options::iteCondVarSplitQuant() || options::simpleIteLiftQuant();
   }else if( computeOption==COMPUTE_PRENEX ){
     return options::prenexQuant()!=PRENEX_NONE && !options::aggressiveMiniscopeQuant();
   }else if( computeOption==COMPUTE_VAR_ELIMINATION ){
@@ -997,8 +1057,8 @@ Node QuantifiersRewriter::computeOperation( Node f, bool isNested, int computeOp
       return computeAggressiveMiniscoping( args, n, isNested );
     }else if( computeOption==COMPUTE_NNF ){
       n = computeNNF( n );
-    }else if( computeOption==COMPUTE_SIMPLE_ITE_LIFT ){
-      n = computeSimpleIteLift( n );
+    }else if( computeOption==COMPUTE_PROCESS_ITE ){
+      n = computeProcessIte( n, true, true );
     }else if( computeOption==COMPUTE_PRENEX ){
       n = computePrenex( n, args, true );
     }else if( computeOption==COMPUTE_VAR_ELIMINATION ){

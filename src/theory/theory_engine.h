@@ -83,6 +83,10 @@ namespace theory {
     class EqualityEngine;
   }/* CVC4::theory::eq namespace */
 
+  namespace quantifiers {
+    class TermDb;
+  }
+
   class EntailmentCheckParameters;
   class EntailmentCheckSideEffects;
 }/* CVC4::theory namespace */
@@ -101,6 +105,7 @@ class TheoryEngine {
 
   /** Shared terms database can use the internals notify the theories */
   friend class SharedTermsDatabase;
+  friend class theory::quantifiers::TermDb;
 
   /** Associated PropEngine engine */
   prop::PropEngine* d_propEngine;

@@ -132,6 +132,13 @@ typedef enum {
   CEGQI_FAIR_NONE,
 } CegqiFairMode;
 
+typedef enum {
+  /** consider all terms in master equality engine */
+  TERM_DB_ALL,
+  /** consider only relevant terms */
+  TERM_DB_RELEVANT,
+} TermDbMode;
+
 
 }/* CVC4::theory::quantifiers namespace */
 }/* CVC4::theory namespace */

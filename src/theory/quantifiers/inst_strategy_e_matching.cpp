@@ -173,7 +173,7 @@ int InstStrategyAutoGenTriggers::process( Node f, Theory::Effort effort, int e )
       if( gen ){
         generateTriggers( f, effort, e, status );
         if( d_auto_gen_trigger[f].empty() && f.getNumChildren()==2 ){
-          Trace("no-trigger") << "Could not find trigger for " << f << std::endl;
+          Trace("trigger-warn") << "Could not find trigger for " << f << std::endl;
         }
       }
 

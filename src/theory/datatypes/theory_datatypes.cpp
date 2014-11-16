@@ -1110,6 +1110,7 @@ void TheoryDatatypes::computeCareGraph(){
                 TNode y_shared = d_equalityEngine.getTriggerTermRepresentative(y, THEORY_DATATYPES);
                 Trace("dt-cg") << "Arg #" << k << " shared term is " << x_shared << " " << y_shared << std::endl;
                 EqualityStatus eqStatus = d_valuation.getEqualityStatus(x_shared, y_shared);
+                Trace("dt-cg") << "...eq status is " << eqStatus << std::endl;
                 if( eqStatus==EQUALITY_FALSE_AND_PROPAGATED || eqStatus==EQUALITY_FALSE || eqStatus==EQUALITY_FALSE_IN_MODEL ){
                   somePairIsDisequal = true;
                   break;
