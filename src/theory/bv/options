@@ -45,6 +45,9 @@ option bitvectorToBool --bv-to-bool bool :default false :read-write
 option bitvectorDivByZeroConst --bv-div-zero-const bool :default false
  always return -1 on division by zero
 
+expert-option bvExtractArithRewrite --bv-extract-arith bool :default false :read-write
+ enable rewrite pushing extract [i:0] over arithmetic operations (can blow up)
+ 
 expert-option bvAbstraction --bv-abstraction bool :default false :read-write
  mcm benchmark abstraction 
 
