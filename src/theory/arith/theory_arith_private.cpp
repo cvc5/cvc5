@@ -3346,6 +3346,11 @@ bool TheoryArithPrivate::hasFreshArithLiteral(Node n) const{
 
 void TheoryArithPrivate::check(Theory::Effort effortLevel){
   Assert(d_currentPropagationList.empty());
+
+  if(done() && !Theory::fullEffort(effortLevel) && ( d_qflraStatus == Result::SAT) ){
+    return;
+  }
+
   TimerStat::CodeTimer checkTimer(d_containing.d_checkTime);
   //cout << "TheoryArithPrivate::check " << effortLevel << std::endl;
   Debug("effortlevel") << "TheoryArithPrivate::check " << effortLevel << std::endl;
