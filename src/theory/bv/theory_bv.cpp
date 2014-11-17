@@ -107,6 +107,10 @@ void TheoryBV::setMasterEqualityEngine(eq::EqualityEngine* eq) {
   }
 }
 
+void TheoryBV::spendResource() throw(UnsafeInterruptException) {
+  getOutputChannel().spendResource();
+}
+
 TheoryBV::Statistics::Statistics():
   d_avgConflictSize("theory::bv::AvgBVConflictSize"),
   d_solveSubstitutions("theory::bv::NumberOfSolveSubstitutions", 0),
@@ -362,6 +366,7 @@ void TheoryBV::check(Effort e)
     return;
   }
   Debug("bitvector") << "TheoryBV::check(" << e << ")" << std::endl;
+  TimerStat::CodeTimer codeTimer(d_statistics.d_solveTimer);
   // we may be getting new assertions so the model cache may not be sound
   d_invalidateModelCache.set(true); 
   // if we are using the eager solver

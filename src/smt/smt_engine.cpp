@@ -51,6 +51,7 @@
 #include "main/options.h"
 #include "util/unsat_core.h"
 #include "util/proof.h"
+#include "util/resource_manager.h"
 #include "proof/proof.h"
 #include "proof/proof_manager.h"
 #include "util/boolean_simplification.h"
@@ -297,6 +298,10 @@ struct SmtEngineStatistics {
  */
 class SmtEnginePrivate : public NodeManagerListener {
   SmtEngine& d_smt;
+  /**
+   * Manager for limiting time and abstract resource usage.
+   */
+  ResourceManager* d_resourceManager;
 
   /** Learned literals */
   vector<Node> d_nonClausalLearnedLiterals;
@@ -435,12 +440,13 @@ private:
    *
    * Returns false if the formula simplifies to "false"
    */
-  bool simplifyAssertions() throw(TypeCheckingException, LogicException);
+  bool simplifyAssertions() throw(TypeCheckingException, LogicException, UnsafeInterruptException);
 
 public:
 
   SmtEnginePrivate(SmtEngine& smt) :
     d_smt(smt),
+    d_resourceManager(NULL),
     d_nonClausalLearnedLiterals(),
     d_realAssertionsEnd(0),
     d_booleanTermConverter(NULL),
@@ -460,6 +466,7 @@ public:
   {
     d_smt.d_nodeManager->subscribeEvents(this);
     d_true = NodeManager::currentNM()->mkConst(true);
+    d_resourceManager = NodeManager::currentResourceManager();
   }
 
   ~SmtEnginePrivate() {
@@ -472,6 +479,11 @@ public:
       d_booleanTermConverter = NULL;
     }
     d_smt.d_nodeManager->unsubscribeEvents(this);
+  }
+
+  ResourceManager* getResourceManager() { return d_resourceManager; }
+  void spendResource() throw(UnsafeInterruptException) {
+    d_resourceManager->spendResource();
   }
 
   void nmNotifyNewSort(TypeNode tn, uint32_t flags) {
@@ -562,7 +574,7 @@ public:
    * Expand definitions in n.
    */
   Node expandDefinitions(TNode n, hash_map<Node, Node, NodeHashFunction>& cache, bool expandOnly = false)
-    throw(TypeCheckingException, LogicException);
+    throw(TypeCheckingException, LogicException, UnsafeInterruptException);
 
   /**
    * Rewrite Boolean terms in a Node.
@@ -685,12 +697,6 @@ SmtEngine::SmtEngine(ExprManager* em) throw() :
   d_queryMade(false),
   d_needPostsolve(false),
   d_earlyTheoryPP(true),
-  d_timeBudgetCumulative(0),
-  d_timeBudgetPerCall(0),
-  d_resourceBudgetCumulative(0),
-  d_resourceBudgetPerCall(0),
-  d_cumulativeTimeUsed(0),
-  d_cumulativeResourceUsed(0),
   d_status(),
   d_private(NULL),
   d_smtAttributes(NULL),
@@ -763,19 +769,6 @@ void SmtEngine::finishInit() {
     delete d_dumpCommands[i];
   }
   d_dumpCommands.clear();
-
-  if(options::perCallResourceLimit() != 0) {
-    setResourceLimit(options::perCallResourceLimit(), false);
-  }
-  if(options::cumulativeResourceLimit() != 0) {
-    setResourceLimit(options::cumulativeResourceLimit(), true);
-  }
-  if(options::perCallMillisecondLimit() != 0) {
-    setTimeLimit(options::perCallMillisecondLimit(), false);
-  }
-  if(options::cumulativeMillisecondLimit() != 0) {
-    setTimeLimit(options::cumulativeMillisecondLimit(), true);
-  }
 
   PROOF( ProofManager::currentPM()->setLogic(d_logic.getLogicString()); );
 }
@@ -1058,7 +1051,7 @@ void SmtEngine::setDefaults() {
   }
 
   // If in arrays, set the UF handler to arrays
-  if(d_logic.isTheoryEnabled(THEORY_ARRAY) && ( !d_logic.isQuantified() || 
+  if(d_logic.isTheoryEnabled(THEORY_ARRAY) && ( !d_logic.isQuantified() ||
      (d_logic.isQuantified() && !d_logic.isTheoryEnabled(THEORY_UF)))) {
     Theory::setUninterpretedSortOwner(THEORY_ARRAY);
   } else {
@@ -1639,7 +1632,7 @@ void SmtEngine::defineFunction(Expr func,
 }
 
 Node SmtEnginePrivate::expandDefinitions(TNode n, hash_map<Node, Node, NodeHashFunction>& cache, bool expandOnly)
-  throw(TypeCheckingException, LogicException) {
+  throw(TypeCheckingException, LogicException, UnsafeInterruptException) {
 
   stack< triple<Node, Node, bool> > worklist;
   stack<Node> result;
@@ -1649,6 +1642,7 @@ Node SmtEnginePrivate::expandDefinitions(TNode n, hash_map<Node, Node, NodeHashF
   // or upward pass).
 
   do {
+    spendResource();
     n = worklist.top().first;                      // n is the input / original
     Node node = worklist.top().second;             // node is the output / result
     bool childrenPushed = worklist.top().third;
@@ -1785,7 +1779,7 @@ Node SmtEnginePrivate::expandDefinitions(TNode n, hash_map<Node, Node, NodeHashF
 
 void SmtEnginePrivate::removeITEs() {
   d_smt.finalOptionsAreSet();
-
+  spendResource();
   Trace("simplify") << "SmtEnginePrivate::removeITEs()" << endl;
 
   // Remove all of the ITE occurrences and normalize
@@ -1797,6 +1791,7 @@ void SmtEnginePrivate::removeITEs() {
 
 void SmtEnginePrivate::staticLearning() {
   d_smt.finalOptionsAreSet();
+  spendResource();
 
   TimerStat::CodeTimer staticLearningTimer(d_smt.d_stats->d_staticLearningTime);
 
@@ -1829,6 +1824,7 @@ static void dumpAssertions(const char* key, const AssertionPipeline& assertionLi
 
 // returns false if it learns a conflict
 bool SmtEnginePrivate::nonClausalSimplify() {
+  spendResource();
   d_smt.finalOptionsAreSet();
 
   if(options::unsatCores()) {
@@ -2157,6 +2153,7 @@ void SmtEnginePrivate::bvAbstraction() {
 
 void SmtEnginePrivate::bvToBool() {
   Trace("bv-to-bool") << "SmtEnginePrivate::bvToBool()" << endl;
+  spendResource();
   std::vector<Node> new_assertions;
   d_smt.d_theoryEngine->ppBvToBool(d_assertions.ref(), new_assertions);
   for (unsigned i = 0; i < d_assertions.size(); ++ i) {
@@ -2167,10 +2164,13 @@ void SmtEnginePrivate::bvToBool() {
 bool SmtEnginePrivate::simpITE() {
   TimerStat::CodeTimer simpITETimer(d_smt.d_stats->d_simpITETime);
 
+  spendResource();
+
   Trace("simplify") << "SmtEnginePrivate::simpITE()" << endl;
 
   unsigned numAssertionOnEntry = d_assertions.size();
   for (unsigned i = 0; i < d_assertions.size(); ++i) {
+    spendResource();
     Node result = d_smt.d_theoryEngine->ppSimpITE(d_assertions[i]);
     d_assertions.replace(i, result);
     if(result.isConst() && !result.getConst<bool>()){
@@ -2217,6 +2217,7 @@ void SmtEnginePrivate::compressBeforeRealAssertions(size_t before){
 
 void SmtEnginePrivate::unconstrainedSimp() {
   TimerStat::CodeTimer unconstrainedSimpTimer(d_smt.d_stats->d_unconstrainedSimpTime);
+  spendResource();
   Trace("simplify") << "SmtEnginePrivate::unconstrainedSimp()" << endl;
   d_smt.d_theoryEngine->ppUnconstrainedSimp(d_assertions.ref());
 }
@@ -2664,7 +2665,8 @@ void SmtEnginePrivate::doMiplibTrick() {
 
 // returns false if simplification led to "false"
 bool SmtEnginePrivate::simplifyAssertions()
-  throw(TypeCheckingException, LogicException) {
+  throw(TypeCheckingException, LogicException, UnsafeInterruptException) {
+  spendResource();
   Assert(d_smt.d_pendingPops == 0);
   try {
     ScopeCounter depth(d_simplifyAssertionsDepth);
@@ -2791,6 +2793,18 @@ Result SmtEngine::check() {
 
   Trace("smt") << "SmtEngine::check()" << endl;
 
+  ResourceManager* resourceManager = d_private->getResourceManager();
+
+  resourceManager->beginCall();
+
+  // Only way we can be out of resource is if cumulative budget is on
+  if (resourceManager->cumulativeLimitOn() &&
+      resourceManager->out()) {
+    Result::UnknownExplanation why = resourceManager->outOfResources() ?
+                             Result::RESOURCEOUT : Result::TIMEOUT;
+    return Result(Result::VALIDITY_UNKNOWN, why, d_filename);
+  }
+
   // Make sure the prop layer has all of the assertions
   Trace("smt") << "SmtEngine::check(): processing assertions" << endl;
   d_private->processAssertions();
@@ -2810,41 +2824,16 @@ Result SmtEngine::check() {
     }
   }
 
-  unsigned long millis = 0;
-  if(d_timeBudgetCumulative != 0) {
-    millis = getTimeRemaining();
-    if(millis == 0) {
-      return Result(Result::VALIDITY_UNKNOWN, Result::TIMEOUT, d_filename);
-    }
-  }
-  if(d_timeBudgetPerCall != 0 && (millis == 0 || d_timeBudgetPerCall < millis)) {
-    millis = d_timeBudgetPerCall;
-  }
-
-  unsigned long resource = 0;
-  if(d_resourceBudgetCumulative != 0) {
-    resource = getResourceRemaining();
-    if(resource == 0) {
-      return Result(Result::VALIDITY_UNKNOWN, Result::RESOURCEOUT, d_filename);
-    }
-  }
-  if(d_resourceBudgetPerCall != 0 && (resource == 0 || d_resourceBudgetPerCall < resource)) {
-    resource = d_resourceBudgetPerCall;
-  }
-
   TimerStat::CodeTimer solveTimer(d_stats->d_solveTime);
 
   Chat() << "solving..." << endl;
   Trace("smt") << "SmtEngine::check(): running check" << endl;
-  Result result = d_propEngine->checkSat(millis, resource);
+  Result result = d_propEngine->checkSat();
 
-  // PropEngine::checkSat() returns the actual amount used in these
-  // variables.
-  d_cumulativeTimeUsed += millis;
-  d_cumulativeResourceUsed += resource;
+  resourceManager->endCall();
+  Trace("limit") << "SmtEngine::check(): cumulative millis " << resourceManager->getTimeUsage()
+                 << ", resources " << resourceManager->getResourceUsage() << endl;
 
-  Trace("limit") << "SmtEngine::check(): cumulative millis " << d_cumulativeTimeUsed
-                 << ", conflicts " << d_cumulativeResourceUsed << endl;
 
   return Result(result, d_filename);
 }
@@ -2917,6 +2906,9 @@ bool SmtEnginePrivate::checkForBadSkolems(TNode n, TNode skolem, hash_map<Node, 
 
 Node SmtEnginePrivate::rewriteBooleanTerms(TNode n) {
   TimerStat::CodeTimer codeTimer(d_smt.d_stats->d_rewriteBooleanTermsTime);
+
+  spendResource();
+
   if(d_booleanTermConverter == NULL) {
     // This needs to be initialized _after_ the whole SMT framework is in place, subscribed
     // to ExprManager notifications, etc.  Otherwise we might miss the "BooleanTerm" datatype
@@ -2950,7 +2942,7 @@ Node SmtEnginePrivate::rewriteBooleanTerms(TNode n) {
 
 void SmtEnginePrivate::processAssertions() {
   TimerStat::CodeTimer paTimer(d_smt.d_stats->d_processAssertionsTime);
-
+  spendResource();
   Assert(d_smt.d_fullyInited);
   Assert(d_smt.d_pendingPops == 0);
 
@@ -3069,6 +3061,7 @@ void SmtEnginePrivate::processAssertions() {
                         << "applying substitutions" << endl;
       for (unsigned i = 0; i < d_assertions.size(); ++ i) {
         Trace("simplify") << "applying to " << d_assertions[i] << endl;
+         spendResource();
         d_assertions.replace(i, Rewriter::rewrite(d_topLevelSubstitutions.apply(d_assertions[i])));
         Trace("simplify") << "  got " << d_assertions[i] << endl;
       }
@@ -3085,6 +3078,7 @@ void SmtEnginePrivate::processAssertions() {
     Chat() << "...doing bvToBool..." << endl;
     bvToBool();
     dumpAssertions("post-bv-to-bool", d_assertions);
+    Trace("smt") << "POST bvToBool" << endl;
   }
 
   if( d_smt.d_logic.isTheoryEnabled(THEORY_STRINGS) ) {
@@ -3189,7 +3183,6 @@ void SmtEnginePrivate::processAssertions() {
   }
   dumpAssertions("post-static-learning", d_assertions);
 
-  Trace("smt") << "POST bvToBool" << endl;
   Debug("smt") << " d_assertions     : " << d_assertions.size() << endl;
 
 
@@ -3332,14 +3325,14 @@ void SmtEnginePrivate::processAssertions() {
   // introducing new ones
 
   dumpAssertions("post-everything", d_assertions);
-  
+
   //set instantiation level of everything to zero
   if( options::instLevelInputOnly() && options::instMaxLevel()!=-1 ){
     for( unsigned i=0; i < d_assertions.size(); i++ ) {
       theory::QuantifiersEngine::setInstantiationLevelAttr( d_assertions[i], 0 );
     }
   }
-  
+
   // Push the formula to SAT
   {
     Chat() << "converting to CNF..." << endl;
@@ -3384,86 +3377,93 @@ void SmtEngine::ensureBoolean(const Expr& e) throw(TypeCheckingException) {
 }
 
 Result SmtEngine::checkSat(const Expr& ex, bool inUnsatCore) throw(TypeCheckingException, ModalException, LogicException) {
-  Assert(ex.isNull() || ex.getExprManager() == d_exprManager);
-  SmtScope smts(this);
-  finalOptionsAreSet();
-  doPendingPops();
+  try {
+    Assert(ex.isNull() || ex.getExprManager() == d_exprManager);
+    SmtScope smts(this);
+    finalOptionsAreSet();
+    doPendingPops();
 
-  Trace("smt") << "SmtEngine::checkSat(" << ex << ")" << endl;
+    Trace("smt") << "SmtEngine::checkSat(" << ex << ")" << endl;
 
-  if(d_queryMade && !options::incrementalSolving()) {
-    throw ModalException("Cannot make multiple queries unless "
-                         "incremental solving is enabled "
-                         "(try --incremental)");
-  }
-
-  Expr e;
-  if(!ex.isNull()) {
-    // Substitute out any abstract values in ex.
-    e = d_private->substituteAbstractValues(Node::fromExpr(ex)).toExpr();
-    // Ensure expr is type-checked at this point.
-    ensureBoolean(e);
-    // Give it to proof manager
-    PROOF( ProofManager::currentPM()->addAssertion(e, inUnsatCore); );
-  }
-
-  // check to see if a postsolve() is pending
-  if(d_needPostsolve) {
-    d_theoryEngine->postsolve();
-    d_needPostsolve = false;
-  }
-
-  // Push the context
-  internalPush();
-
-  // Note that a query has been made
-  d_queryMade = true;
-
-  // Add the formula
-  if(!e.isNull()) {
-    d_problemExtended = true;
-    if(d_assertionList != NULL) {
-      d_assertionList->push_back(e);
+    if(d_queryMade && !options::incrementalSolving()) {
+      throw ModalException("Cannot make multiple queries unless "
+                           "incremental solving is enabled "
+                           "(try --incremental)");
     }
-    d_private->addFormula(e.getNode());
-  }
 
-  // Run the check
-  Result r = check().asSatisfiabilityResult();
-  d_needPostsolve = true;
-
-  // Dump the query if requested
-  if(Dump.isOn("benchmark")) {
-    // the expr already got dumped out if assertion-dumping is on
-    Dump("benchmark") << CheckSatCommand();
-  }
-
-  // Pop the context
-  internalPop();
-
-  // Remember the status
-  d_status = r;
-
-  d_problemExtended = false;
-
-  Trace("smt") << "SmtEngine::checkSat(" << e << ") => " << r << endl;
-
-  // Check that SAT results generate a model correctly.
-  if(options::checkModels()) {
-    if(r.asSatisfiabilityResult().isSat() == Result::SAT ||
-       (r.isUnknown() && r.whyUnknown() == Result::INCOMPLETE) ){
-      checkModel(/* hard failure iff */ ! r.isUnknown());
+    Expr e;
+    if(!ex.isNull()) {
+      // Substitute out any abstract values in ex.
+      e = d_private->substituteAbstractValues(Node::fromExpr(ex)).toExpr();
+      // Ensure expr is type-checked at this point.
+      ensureBoolean(e);
+      // Give it to proof manager
+      PROOF( ProofManager::currentPM()->addAssertion(e, inUnsatCore); );
     }
-  }
-  // Check that UNSAT results generate a proof correctly.
-  if(options::checkProofs()) {
-    if(r.asSatisfiabilityResult().isSat() == Result::UNSAT) {
-      TimerStat::CodeTimer checkProofTimer(d_stats->d_checkProofTime);
-      checkProof();
-    }
-  }
 
-  return r;
+    // check to see if a postsolve() is pending
+    if(d_needPostsolve) {
+      d_theoryEngine->postsolve();
+      d_needPostsolve = false;
+    }
+
+    // Push the context
+    internalPush();
+
+    // Note that a query has been made
+    d_queryMade = true;
+
+    // Add the formula
+    if(!e.isNull()) {
+      d_problemExtended = true;
+      if(d_assertionList != NULL) {
+        d_assertionList->push_back(e);
+      }
+      d_private->addFormula(e.getNode());
+    }
+
+    Result r(Result::SAT_UNKNOWN, Result::UNKNOWN_REASON);
+    r = check().asSatisfiabilityResult();
+    d_needPostsolve = true;
+
+    // Dump the query if requested
+    if(Dump.isOn("benchmark")) {
+      // the expr already got dumped out if assertion-dumping is on
+      Dump("benchmark") << CheckSatCommand();
+    }
+
+    // Pop the context
+    internalPop();
+
+    // Remember the status
+    d_status = r;
+
+    d_problemExtended = false;
+
+    Trace("smt") << "SmtEngine::checkSat(" << e << ") => " << r << endl;
+
+    // Check that SAT results generate a model correctly.
+    if(options::checkModels()) {
+      if(r.asSatisfiabilityResult().isSat() == Result::SAT ||
+         (r.isUnknown() && r.whyUnknown() == Result::INCOMPLETE) ){
+        checkModel(/* hard failure iff */ ! r.isUnknown());
+      }
+    }
+    // Check that UNSAT results generate a proof correctly.
+    if(options::checkProofs()) {
+      if(r.asSatisfiabilityResult().isSat() == Result::UNSAT) {
+        TimerStat::CodeTimer checkProofTimer(d_stats->d_checkProofTime);
+        checkProof();
+      }
+    }
+
+    return r;
+  } catch (UnsafeInterruptException& e) {
+    AlwaysAssert(d_private->getResourceManager()->out());
+    Result::UnknownExplanation why = d_private->getResourceManager()->outOfResources() ?
+      Result::RESOURCEOUT : Result::TIMEOUT;
+    return Result(Result::SAT_UNKNOWN, why, d_filename);
+  }
 }/* SmtEngine::checkSat() */
 
 Result SmtEngine::query(const Expr& ex, bool inUnsatCore) throw(TypeCheckingException, ModalException, LogicException) {
@@ -3474,6 +3474,7 @@ Result SmtEngine::query(const Expr& ex, bool inUnsatCore) throw(TypeCheckingExce
   doPendingPops();
   Trace("smt") << "SMT query(" << ex << ")" << endl;
 
+  try {
   if(d_queryMade && !options::incrementalSolving()) {
     throw ModalException("Cannot make multiple queries unless "
                          "incremental solving is enabled "
@@ -3507,7 +3508,8 @@ Result SmtEngine::query(const Expr& ex, bool inUnsatCore) throw(TypeCheckingExce
   d_private->addFormula(e.getNode().notNode());
 
   // Run the check
-  Result r = check().asValidityResult();
+  Result r(Result::SAT_UNKNOWN, Result::UNKNOWN_REASON);
+  r = check().asValidityResult();
   d_needPostsolve = true;
 
   // Dump the query if requested
@@ -3542,9 +3544,15 @@ Result SmtEngine::query(const Expr& ex, bool inUnsatCore) throw(TypeCheckingExce
   }
 
   return r;
+  } catch (UnsafeInterruptException& e) {
+    AlwaysAssert(d_private->getResourceManager()->out());
+    Result::UnknownExplanation why = d_private->getResourceManager()->outOfResources() ?
+      Result::RESOURCEOUT : Result::TIMEOUT;
+    return Result(Result::VALIDITY_UNKNOWN, why, d_filename);
+  }
 }/* SmtEngine::query() */
 
-Result SmtEngine::assertFormula(const Expr& ex, bool inUnsatCore) throw(TypeCheckingException, LogicException) {
+Result SmtEngine::assertFormula(const Expr& ex, bool inUnsatCore) throw(TypeCheckingException, LogicException, UnsafeInterruptException) {
   Assert(ex.getExprManager() == d_exprManager);
   SmtScope smts(this);
   finalOptionsAreSet();
@@ -3575,7 +3583,7 @@ Node SmtEngine::postprocess(TNode node, TypeNode expectedType) const {
   return realValue;
 }
 
-Expr SmtEngine::simplify(const Expr& ex) throw(TypeCheckingException, LogicException) {
+Expr SmtEngine::simplify(const Expr& ex) throw(TypeCheckingException, LogicException, UnsafeInterruptException) {
   Assert(ex.getExprManager() == d_exprManager);
   SmtScope smts(this);
   finalOptionsAreSet();
@@ -3598,7 +3606,9 @@ Expr SmtEngine::simplify(const Expr& ex) throw(TypeCheckingException, LogicExcep
   return n.toExpr();
 }
 
-Expr SmtEngine::expandDefinitions(const Expr& ex) throw(TypeCheckingException, LogicException) {
+Expr SmtEngine::expandDefinitions(const Expr& ex) throw(TypeCheckingException, LogicException, UnsafeInterruptException) {
+  d_private->spendResource();
+
   Assert(ex.getExprManager() == d_exprManager);
   SmtScope smts(this);
   finalOptionsAreSet();
@@ -3621,7 +3631,7 @@ Expr SmtEngine::expandDefinitions(const Expr& ex) throw(TypeCheckingException, L
   return n.toExpr();
 }
 
-Expr SmtEngine::getValue(const Expr& ex) const throw(ModalException, TypeCheckingException, LogicException) {
+Expr SmtEngine::getValue(const Expr& ex) const throw(ModalException, TypeCheckingException, LogicException, UnsafeInterruptException) {
   Assert(ex.getExprManager() == d_exprManager);
   SmtScope smts(this);
 
@@ -3727,7 +3737,7 @@ bool SmtEngine::addToAssignment(const Expr& ex) throw() {
   return true;
 }
 
-CVC4::SExpr SmtEngine::getAssignment() throw(ModalException) {
+CVC4::SExpr SmtEngine::getAssignment() throw(ModalException, UnsafeInterruptException) {
   Trace("smt") << "SMT getAssignment()" << endl;
   SmtScope smts(this);
   finalOptionsAreSet();
@@ -3826,7 +3836,7 @@ void SmtEngine::addToModelCommandAndDump(const Command& c, uint32_t flags, bool 
   }
 }
 
-Model* SmtEngine::getModel() throw(ModalException) {
+Model* SmtEngine::getModel() throw(ModalException, UnsafeInterruptException) {
   Trace("smt") << "SMT getModel()" << endl;
   SmtScope smts(this);
 
@@ -4034,7 +4044,7 @@ void SmtEngine::checkModel(bool hardFailure) {
   Notice() << "SmtEngine::checkModel(): all assertions checked out OK !" << endl;
 }
 
-UnsatCore SmtEngine::getUnsatCore() throw(ModalException) {
+UnsatCore SmtEngine::getUnsatCore() throw(ModalException, UnsafeInterruptException) {
   Trace("smt") << "SMT getUnsatCore()" << endl;
   SmtScope smts(this);
   finalOptionsAreSet();
@@ -4058,7 +4068,7 @@ UnsatCore SmtEngine::getUnsatCore() throw(ModalException) {
 #endif /* CVC4_PROOF */
 }
 
-Proof* SmtEngine::getProof() throw(ModalException) {
+Proof* SmtEngine::getProof() throw(ModalException, UnsafeInterruptException) {
   Trace("smt") << "SMT getProof()" << endl;
   SmtScope smts(this);
   finalOptionsAreSet();
@@ -4111,7 +4121,7 @@ vector<Expr> SmtEngine::getAssertions() throw(ModalException) {
   return vector<Expr>(d_assertionList->begin(), d_assertionList->end());
 }
 
-void SmtEngine::push() throw(ModalException, LogicException) {
+void SmtEngine::push() throw(ModalException, LogicException, UnsafeInterruptException) {
   SmtScope smts(this);
   finalOptionsAreSet();
   doPendingPops();
@@ -4141,7 +4151,7 @@ void SmtEngine::push() throw(ModalException, LogicException) {
                        << d_userContext->getLevel() << endl;
 }
 
-void SmtEngine::pop() throw(ModalException) {
+void SmtEngine::pop() throw(ModalException, UnsafeInterruptException) {
   SmtScope smts(this);
   finalOptionsAreSet();
   Trace("smt") << "SMT pop()" << endl;
@@ -4263,49 +4273,26 @@ void SmtEngine::interrupt() throw(ModalException) {
 }
 
 void SmtEngine::setResourceLimit(unsigned long units, bool cumulative) {
-  if(cumulative) {
-    Trace("limit") << "SmtEngine: setting cumulative resource limit to " << units << endl;
-    d_resourceBudgetCumulative = (units == 0) ? 0 : (d_cumulativeResourceUsed + units);
-  } else {
-    Trace("limit") << "SmtEngine: setting per-call resource limit to " << units << endl;
-    d_resourceBudgetPerCall = units;
-  }
+  d_private->getResourceManager()->setResourceLimit(units, cumulative);
 }
-
-void SmtEngine::setTimeLimit(unsigned long millis, bool cumulative) {
-  if(cumulative) {
-    Trace("limit") << "SmtEngine: setting cumulative time limit to " << millis << " ms" << endl;
-    d_timeBudgetCumulative = (millis == 0) ? 0 : (d_cumulativeTimeUsed + millis);
-  } else {
-    Trace("limit") << "SmtEngine: setting per-call time limit to " << millis << " ms" << endl;
-    d_timeBudgetPerCall = millis;
-  }
+void SmtEngine::setTimeLimit(unsigned long milis, bool cumulative) {
+  d_private->getResourceManager()->setTimeLimit(milis, cumulative);
 }
 
 unsigned long SmtEngine::getResourceUsage() const {
-  return d_cumulativeResourceUsed;
+  return d_private->getResourceManager()->getResourceUsage();
 }
 
 unsigned long SmtEngine::getTimeUsage() const {
-  return d_cumulativeTimeUsed;
+  return d_private->getResourceManager()->getTimeUsage();
 }
 
 unsigned long SmtEngine::getResourceRemaining() const throw(ModalException) {
-  if(d_resourceBudgetCumulative == 0) {
-    throw ModalException("No cumulative resource limit is currently set");
-  }
-
-  return d_resourceBudgetCumulative <= d_cumulativeResourceUsed ? 0 :
-    d_resourceBudgetCumulative - d_cumulativeResourceUsed;
+  return d_private->getResourceManager()->getResourceRemaining();
 }
 
 unsigned long SmtEngine::getTimeRemaining() const throw(ModalException) {
-  if(d_timeBudgetCumulative == 0) {
-    throw ModalException("No cumulative time limit is currently set");
-  }
-
-  return d_timeBudgetCumulative <= d_cumulativeTimeUsed ? 0 :
-    d_timeBudgetCumulative - d_cumulativeTimeUsed;
+  return d_private->getResourceManager()->getTimeRemaining();
 }
 
 Statistics SmtEngine::getStatistics() const throw() {

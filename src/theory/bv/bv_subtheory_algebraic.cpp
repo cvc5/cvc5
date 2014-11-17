@@ -557,6 +557,7 @@ bool AlgebraicSolver::isSubstitutableIn(TNode node, TNode in) {
 void AlgebraicSolver::processAssertions(std::vector<WorklistElement>& worklist, SubstitutionEx& subst) {
   bool changed = true;
   while(changed) {
+    // d_bv->spendResource();
     changed = false;
     for (unsigned i = 0; i < worklist.size(); ++i) {
       // apply current substitutions

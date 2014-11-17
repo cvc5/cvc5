@@ -172,7 +172,7 @@ InteractiveShell::~InteractiveShell() {
 #endif /* HAVE_LIBREADLINE */
 }
 
-Command* InteractiveShell::readCommand() {
+Command* InteractiveShell::readCommand() throw (UnsafeInterruptException) {
   char* lineBuf = NULL;
   string line = "";
 

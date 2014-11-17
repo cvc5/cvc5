@@ -99,7 +99,10 @@ libutil_la_SOURCES = \
 	didyoumean.h \
 	didyoumean.cpp \
 	unsat_core.h \
-	unsat_core.cpp
+	unsat_core.cpp \
+	resource_manager.h \
+	resource_manager.cpp \
+	unsafe_interrupt_exception.h
 
 libstatistics_la_SOURCES = \
 	statistics_registry.h \
@@ -158,6 +161,7 @@ EXTRA_DIST = \
 	uninterpreted_constant.i \
 	chain.i \
 	regexp.i \
+	resource_manager.i \
 	proof.i \
 	unsat_core.i
 

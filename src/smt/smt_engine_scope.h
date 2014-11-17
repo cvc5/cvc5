@@ -38,6 +38,9 @@ inline SmtEngine* currentSmtEngine() {
   Assert(s_smtEngine_current != NULL);
   return s_smtEngine_current;
 }
+inline bool smtEngineInScope() {
+  return s_smtEngine_current != NULL;
+}
 
 inline ProofManager* currentProofManager() {
 #ifdef CVC4_PROOF

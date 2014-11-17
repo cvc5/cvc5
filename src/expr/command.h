@@ -168,6 +168,13 @@ public:
   CommandStatus& clone() const { return const_cast<CommandSuccess&>(*this); }
 };/* class CommandSuccess */
 
+class CVC4_PUBLIC CommandInterrupted : public CommandStatus {
+  static const CommandInterrupted* s_instance;
+public:
+  static const CommandInterrupted* instance() throw() { return s_instance; }
+  CommandStatus& clone() const { return const_cast<CommandInterrupted&>(*this); }
+};/* class CommandInterrupted */
+
 class CVC4_PUBLIC CommandUnsupported : public CommandStatus {
 public:
   CommandStatus& clone() const { return *new CommandUnsupported(*this); }
@@ -239,6 +246,11 @@ public:
    * CommandSuccess or CommandUnsupported).
    */
   bool fail() const throw();
+
+  /**
+   * The command was ran but was interrupted due to resource limiting.
+   */
+  bool interrupted() const throw();
 
   /** Get the command status (it's NULL if we haven't run yet). */
   const CommandStatus* getCommandStatus() const throw() { return d_commandStatus; }

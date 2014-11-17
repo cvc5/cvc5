@@ -39,6 +39,7 @@
 #include "util/statistics_registry.h"
 #include "util/cvc4_assert.h"
 #include "util/sort_inference.h"
+#include "util/unsafe_interrupt_exception.h"
 #include "theory/quantifiers/quant_conflict_find.h"
 #include "theory/uf/equality_engine.h"
 #include "theory/bv/bv_to_bool.h"
@@ -46,6 +47,8 @@
 
 namespace CVC4 {
 
+class ResourceManager;
+  
 /**
  * A pair of a theory and a node. This is used to mark the flow of
  * propagations between theories.
@@ -279,42 +282,42 @@ class TheoryEngine {
     {
     }
 
-    void safePoint() throw(theory::Interrupted, AssertionException) {
+      void safePoint() throw(theory::Interrupted, UnsafeInterruptException, AssertionException) {
       spendResource();
       if (d_engine->d_interrupted) {
         throw theory::Interrupted();
       }
     }
 
-    void conflict(TNode conflictNode) throw(AssertionException) {
+    void conflict(TNode conflictNode) throw(AssertionException, UnsafeInterruptException) {
       Trace("theory::conflict") << "EngineOutputChannel<" << d_theory << ">::conflict(" << conflictNode << ")" << std::endl;
       ++ d_statistics.conflicts;
       d_engine->d_outputChannelUsed = true;
       d_engine->conflict(conflictNode, d_theory);
     }
 
-    bool propagate(TNode literal) throw(AssertionException) {
+    bool propagate(TNode literal) throw(AssertionException, UnsafeInterruptException) {
       Trace("theory::propagate") << "EngineOutputChannel<" << d_theory << ">::propagate(" << literal << ")" << std::endl;
       ++ d_statistics.propagations;
       d_engine->d_outputChannelUsed = true;
       return d_engine->propagate(literal, d_theory);
     }
 
-    theory::LemmaStatus lemma(TNode lemma, bool removable = false, bool preprocess = false) throw(TypeCheckingExceptionPrivate, AssertionException) {
+    theory::LemmaStatus lemma(TNode lemma, bool removable = false, bool preprocess = false) throw(TypeCheckingExceptionPrivate, AssertionException, UnsafeInterruptException) {
       Trace("theory::lemma") << "EngineOutputChannel<" << d_theory << ">::lemma(" << lemma << ")" << std::endl;
       ++ d_statistics.lemmas;
       d_engine->d_outputChannelUsed = true;
       return d_engine->lemma(lemma, false, removable, preprocess, theory::THEORY_LAST);
     }
 
-    theory::LemmaStatus splitLemma(TNode lemma, bool removable = false) throw(TypeCheckingExceptionPrivate, AssertionException) {
+    theory::LemmaStatus splitLemma(TNode lemma, bool removable = false) throw(TypeCheckingExceptionPrivate, AssertionException, UnsafeInterruptException) {
       Trace("theory::lemma") << "EngineOutputChannel<" << d_theory << ">::lemma(" << lemma << ")" << std::endl;
       ++ d_statistics.lemmas;
       d_engine->d_outputChannelUsed = true;
       return d_engine->lemma(lemma, false, removable, false, d_theory);
     }
 
-    void demandRestart() throw(TypeCheckingExceptionPrivate, AssertionException) {
+    void demandRestart() throw(TypeCheckingExceptionPrivate, AssertionException, UnsafeInterruptException) {
       NodeManager* curr = NodeManager::currentNM();
       Node restartVar =  curr->mkSkolem("restartVar",
                                         curr->booleanType(),
@@ -325,7 +328,7 @@ class TheoryEngine {
     }
 
     void requirePhase(TNode n, bool phase)
-      throw(theory::Interrupted, AssertionException) {
+      throw(theory::Interrupted, AssertionException, UnsafeInterruptException) {
       Debug("theory") << "EngineOutputChannel::requirePhase("
                       << n << ", " << phase << ")" << std::endl;
       ++ d_statistics.requirePhase;
@@ -333,18 +336,18 @@ class TheoryEngine {
     }
 
     bool flipDecision()
-      throw(theory::Interrupted, AssertionException) {
+      throw(theory::Interrupted, AssertionException, UnsafeInterruptException) {
       Debug("theory") << "EngineOutputChannel::flipDecision()" << std::endl;
       ++ d_statistics.flipDecision;
       return d_engine->d_propEngine->flipDecision();
     }
 
-    void setIncomplete() throw(AssertionException) {
+    void setIncomplete() throw(AssertionException, UnsafeInterruptException) {
       Trace("theory") << "TheoryEngine::setIncomplete()" << std::endl;
       d_engine->setIncomplete(d_theory);
     }
 
-    void spendResource() throw() {
+    void spendResource() throw(UnsafeInterruptException) {
       d_engine->spendResource();
     }
 
@@ -387,12 +390,6 @@ class TheoryEngine {
     d_incomplete = true;
   }
 
-  /**
-   * "Spend" a resource during a search or preprocessing.
-   */
-  void spendResource() throw() {
-    d_propEngine->spendResource();
-  }
 
   /**
    * Mapping of propagations from recievers to senders.
@@ -477,6 +474,7 @@ class TheoryEngine {
 
   /** Whether we were just interrupted (or not) */
   bool d_interrupted;
+  ResourceManager* d_resourceManager;
 
 public:
 
@@ -487,6 +485,10 @@ public:
   ~TheoryEngine();
 
   void interrupt() throw(ModalException);
+  /**
+   * "Spend" a resource during a search or preprocessing.
+   */
+  void spendResource();
 
   /**
    * Adds a theory. Only one theory per TheoryId can be present, so if

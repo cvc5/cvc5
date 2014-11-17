@@ -905,7 +905,8 @@ void CvcPrinter::toStream(std::ostream& out, const CommandStatus* s) const throw
 
   if(tryToStream<CommandSuccess>(out, s, d_cvc3Mode) ||
      tryToStream<CommandFailure>(out, s, d_cvc3Mode) ||
-     tryToStream<CommandUnsupported>(out, s, d_cvc3Mode)) {
+     tryToStream<CommandUnsupported>(out, s, d_cvc3Mode) ||
+     tryToStream<CommandInterrupted>(out, s, d_cvc3Mode)) {
     return;
   }
 
@@ -1265,6 +1266,10 @@ static void toStream(std::ostream& out, const CommandSuccess* s, bool cvc3Mode) 
 
 static void toStream(std::ostream& out, const CommandUnsupported* s, bool cvc3Mode) throw() {
   out << "UNSUPPORTED" << endl;
+}
+
+static void toStream(std::ostream& out, const CommandInterrupted* s, bool cvc3Mode) throw() {
+  out << "INTERRUPTED" << endl;
 }
 
 static void toStream(std::ostream& out, const CommandFailure* s, bool cvc3Mode) throw() {

@@ -42,6 +42,7 @@
 namespace CVC4 {
 
 class StatisticsRegistry;
+class ResourceManager;
 
 namespace expr {
   namespace attr {
@@ -101,6 +102,7 @@ class NodeManager {
 
   Options* d_options;
   StatisticsRegistry* d_statisticsRegistry;
+  ResourceManager* d_resourceManager;
 
   NodeValuePool d_nodeValuePool;
 
@@ -317,6 +319,8 @@ public:
 
   /** The node manager in the current public-facing CVC4 library context */
   static NodeManager* currentNM() { return s_current; }
+  /** The resource manager associated with the current node manager */
+  static ResourceManager* currentResourceManager() { return s_current->d_resourceManager; }
 
   /** Get this node manager's options (const version) */
   const Options& getOptions() const {
@@ -327,6 +331,9 @@ public:
   Options& getOptions() {
     return *d_options;
   }
+
+  /** Get this node manager's resource manager */
+  ResourceManager* getResourceManager() throw() { return d_resourceManager; }
 
   /** Get this node manager's statistics registry */
   StatisticsRegistry* getStatisticsRegistry() const throw() {

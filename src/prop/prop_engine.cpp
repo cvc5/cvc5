@@ -32,6 +32,7 @@
 #include "main/options.h"
 #include "util/output.h"
 #include "util/result.h"
+#include "util/resource_manager.h"
 #include "expr/expr.h"
 #include "expr/command.h"
 
@@ -74,8 +75,8 @@ PropEngine::PropEngine(TheoryEngine* te, DecisionEngine *de, Context* satContext
   d_satSolver(NULL),
   d_registrar(NULL),
   d_cnfStream(NULL),
-  d_satTimer(*this),
-  d_interrupted(false) {
+  d_interrupted(false),
+  d_resourceManager(NodeManager::currentResourceManager()) {
 
   Debug("prop") << "Constructing the PropEngine" << endl;
 
@@ -159,7 +160,7 @@ void PropEngine::printSatisfyingAssignment(){
   }
 }
 
-Result PropEngine::checkSat(unsigned long& millis, unsigned long& resource) {
+Result PropEngine::checkSat() {
   Assert(!d_inCheckSat, "Sat solver in solve()!");
   Debug("prop") << "PropEngine::checkSat()" << endl;
 
@@ -171,25 +172,23 @@ Result PropEngine::checkSat(unsigned long& millis, unsigned long& resource) {
   d_theoryEngine->presolve();
 
   if(options::preprocessOnly()) {
-    millis = resource = 0;
     return Result(Result::SAT_UNKNOWN, Result::REQUIRES_FULL_CHECK);
   }
-
-  // Set the timer
-  d_satTimer.set(millis);
 
   // Reset the interrupted flag
   d_interrupted = false;
 
   // Check the problem
-  SatValue result = d_satSolver->solve(resource);
-
-  millis = d_satTimer.elapsed();
+  SatValue result = d_satSolver->solve();
 
   if( result == SAT_VALUE_UNKNOWN ) {
-    Result::UnknownExplanation why =
-      d_satTimer.expired() ? Result::TIMEOUT :
-        (d_interrupted ? Result::INTERRUPTED : Result::RESOURCEOUT);
+
+    Result::UnknownExplanation why = Result::INTERRUPTED;
+    if (d_resourceManager->outOfTime())
+      why = Result::TIMEOUT;
+    if (d_resourceManager->outOfResources())
+      why = Result::RESOURCEOUT;
+
     return Result(Result::SAT_UNKNOWN, why);
   }
 
@@ -279,16 +278,11 @@ void PropEngine::interrupt() throw(ModalException) {
 
   d_interrupted = true;
   d_satSolver->interrupt();
-  d_theoryEngine->interrupt();
   Debug("prop") << "interrupt()" << endl;
 }
 
-void PropEngine::spendResource() throw() {
-  if(d_satSolver->spendResource()) {
-    d_satSolver->interrupt();
-    d_theoryEngine->interrupt();
-  }
-  checkTime();
+void PropEngine::spendResource() throw (UnsafeInterruptException) {
+  d_resourceManager->spendResource();
 }
 
 bool PropEngine::properExplanation(TNode node, TNode expl) const {

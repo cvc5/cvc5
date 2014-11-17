@@ -103,6 +103,7 @@ void EagerBitblaster::bbTerm(TNode node, Bits& bits) {
     return;
   }
 
+  d_bv->spendResource();
   Debug("bitvector-bitblast") << "Bitblasting node " << node <<"\n";
 
   d_termBBStrategies[node.getKind()] (node, bits, this);

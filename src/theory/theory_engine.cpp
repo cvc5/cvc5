@@ -26,6 +26,7 @@
 #include "expr/node_builder.h"
 #include "options/options.h"
 #include "util/lemma_output_channel.h"
+#include "util/resource_manager.h"
 
 #include "theory/theory.h"
 #include "theory/theory_engine.h"
@@ -142,6 +143,7 @@ TheoryEngine::TheoryEngine(context::Context* context,
   d_true(),
   d_false(),
   d_interrupted(false),
+  d_resourceManager(NodeManager::currentResourceManager()),
   d_inPreregister(false),
   d_factsAsserted(context, false),
   d_preRegistrationVisitor(this, context),
@@ -334,8 +336,7 @@ void TheoryEngine::dumpAssertions(const char* tag) {
  * @param effort the effort level to use
  */
 void TheoryEngine::check(Theory::Effort effort) {
-
-  d_propEngine->checkTime();
+  // spendResource();
 
   // Reset the interrupt flag
   d_interrupted = false;
@@ -846,6 +847,7 @@ struct preprocess_stack_element {
 Node TheoryEngine::preprocess(TNode assertion) {
 
   Trace("theory::preprocess") << "TheoryEngine::preprocess(" << assertion << ")" << endl;
+  // spendResource();
 
   // Do a topological sort of the subexpressions and substitute them
   vector<preprocess_stack_element> toVisit;
@@ -1082,7 +1084,7 @@ void TheoryEngine::assertFact(TNode literal)
 {
   Trace("theory") << "TheoryEngine::assertFact(" << literal << ")" << endl;
 
-  d_propEngine->checkTime();
+  // spendResource();
 
   // If we're in conflict, nothing to do
   if (d_inConflict) {
@@ -1145,7 +1147,7 @@ bool TheoryEngine::propagate(TNode literal, theory::TheoryId theory) {
 
   Debug("theory::propagate") << "TheoryEngine::propagate(" << literal << ", " << theory << ")" << endl;
 
-  d_propEngine->checkTime();
+  // spendResource();
 
   if(Dump.isOn("t-propagations")) {
     Dump("t-propagations") << CommentCommand("negation of theory propagation: expect valid")
@@ -1368,7 +1370,7 @@ void TheoryEngine::ensureLemmaAtoms(const std::vector<TNode>& atoms, theory::The
 
 theory::LemmaStatus TheoryEngine::lemma(TNode node, bool negated, bool removable, bool preprocess, theory::TheoryId atomsTo) {
   // For resource-limiting (also does a time check).
-  spendResource();
+  // spendResource();
 
   // Do we need to check atoms
   if (atomsTo != theory::THEORY_LAST) {
@@ -1553,7 +1555,7 @@ bool TheoryEngine::donePPSimpITE(std::vector<Node>& assertions){
         Chat() << "..ite simplifier did quite a bit of work.. " << nm->poolSize() << endl;
         Chat() << "....node manager contains " << nm->poolSize() << " nodes before cleanup" << endl;
         d_iteUtilities->clear();
-        Rewriter::garbageCollect();
+        Rewriter::clearCaches();
         d_iteRemover.garbageCollect();
         nm->reclaimZombiesUntil(options::zombieHuntThreshold());
         Chat() << "....node manager contains " << nm->poolSize() << " nodes after cleanup" << endl;
@@ -1741,4 +1743,8 @@ std::pair<bool, Node> TheoryEngine::entailmentCheck(theory::TheoryOfMode mode, T
   Assert(seffects == NULL || tid == seffects->getTheoryId());
 
   return th->entailmentCheck(lit, params, seffects);
+}
+
+void TheoryEngine::spendResource() {
+  d_resourceManager->spendResource();
 }

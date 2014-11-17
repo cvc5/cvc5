@@ -45,6 +45,7 @@ class Options;
 class IntStat;
 struct ExprManagerMapCollection;
 class StatisticsRegistry;
+class ResourceManager;
 
 namespace expr {
   namespace pickle {
@@ -120,8 +121,11 @@ public:
    */
   ~ExprManager() throw();
 
-  /** Get this node manager's options */
+  /** Get this expr manager's options */
   const Options& getOptions() const;
+
+  /** Get this expr manager's resource manager */
+  ResourceManager* getResourceManager() throw();
 
   /** Get the type for booleans */
   BooleanType booleanType() const;

@@ -26,9 +26,12 @@
 #include "parser/parser_exception.h"
 #include "expr/command.h"
 #include "expr/expr.h"
+#include "expr/node.h"
 #include "expr/kind.h"
 #include "expr/type.h"
 #include "util/output.h"
+#include "util/resource_manager.h"
+#include "options/options.h"
 
 using namespace std;
 using namespace CVC4::kind;
@@ -38,6 +41,7 @@ namespace parser {
 
 Parser::Parser(ExprManager* exprManager, Input* input, bool strictMode, bool parseOnly) :
   d_exprManager(exprManager),
+  d_resourceManager(d_exprManager->getResourceManager()),
   d_input(input),
   d_symtabAllocated(),
   d_symtab(&d_symtabAllocated),
@@ -460,7 +464,7 @@ void Parser::preemptCommand(Command* cmd) {
   d_commandQueue.push_back(cmd);
 }
 
-Command* Parser::nextCommand() throw(ParserException) {
+Command* Parser::nextCommand() throw(ParserException, UnsafeInterruptException) {
   Debug("parser") << "nextCommand()" << std::endl;
   Command* cmd = NULL;
   if(!d_commandQueue.empty()) {
@@ -483,11 +487,19 @@ Command* Parser::nextCommand() throw(ParserException) {
     }
   }
   Debug("parser") << "nextCommand() => " << cmd << std::endl;
+  if (cmd != NULL &&
+      dynamic_cast<SetOptionCommand*>(cmd) == NULL &&
+      dynamic_cast<QuitCommand*>(cmd) == NULL) {
+    // don't count set-option commands as to not get stuck in an infinite
+    // loop of resourcing out
+    d_resourceManager->spendResource();
+  }
   return cmd;
 }
 
-Expr Parser::nextExpression() throw(ParserException) {
+Expr Parser::nextExpression() throw(ParserException, UnsafeInterruptException) {
   Debug("parser") << "nextExpression()" << std::endl;
+  d_resourceManager->spendResource();
   Expr result;
   if(!done()) {
     try {

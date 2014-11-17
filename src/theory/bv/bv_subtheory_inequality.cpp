@@ -29,6 +29,7 @@ using namespace CVC4::theory::bv::utils;
 bool InequalitySolver::check(Theory::Effort e) {
   Debug("bv-subtheory-inequality") << "InequalitySolveR::check("<< e <<")\n";
   ++(d_statistics.d_numCallstoCheck);
+  d_bv->spendResource();
 
   bool ok = true;
   while (!done() && ok) {

@@ -35,6 +35,7 @@
 #include "util/result.h"
 #include "util/sexpr.h"
 #include "util/hash.h"
+#include "util/unsafe_interrupt_exception.h"
 #include "util/statistics.h"
 #include "theory/logic_info.h"
 
@@ -233,19 +234,6 @@ class CVC4_PUBLIC SmtEngine {
    */
   bool d_earlyTheoryPP;
 
-  /** A user-imposed cumulative time budget, in milliseconds.  0 = no limit. */
-  unsigned long d_timeBudgetCumulative;
-  /** A user-imposed per-call time budget, in milliseconds.  0 = no limit. */
-  unsigned long d_timeBudgetPerCall;
-  /** A user-imposed cumulative resource budget.  0 = no limit. */
-  unsigned long d_resourceBudgetCumulative;
-  /** A user-imposed per-call resource budget.  0 = no limit. */
-  unsigned long d_resourceBudgetPerCall;
-
-  /** The number of milliseconds used by this SmtEngine since its inception. */
-  unsigned long d_cumulativeTimeUsed;
-  /** The amount of resource used by this SmtEngine since its inception. */
-  unsigned long d_cumulativeResourceUsed;
 
   /**
    * Most recent result of last checkSat/query or (set-info :status).
@@ -383,7 +371,7 @@ class CVC4_PUBLIC SmtEngine {
    * or INVALID query).  Only permitted if CVC4 was built with model
    * support and produce-models is on.
    */
-  Model* getModel() throw(ModalException);
+  Model* getModel() throw(ModalException, UnsafeInterruptException);
 
   // disallow copy/assignment
   SmtEngine(const SmtEngine&) CVC4_UNDEFINED;
@@ -463,7 +451,7 @@ public:
    * takes a Boolean flag to determine whether to include this asserted
    * formula in an unsat core (if one is later requested).
    */
-  Result assertFormula(const Expr& e, bool inUnsatCore = true) throw(TypeCheckingException, LogicException);
+  Result assertFormula(const Expr& e, bool inUnsatCore = true) throw(TypeCheckingException, LogicException, UnsafeInterruptException);
 
   /**
    * Check validity of an expression with respect to the current set
@@ -487,20 +475,20 @@ public:
    * @todo (design) is this meant to give an equivalent or an
    * equisatisfiable formula?
    */
-  Expr simplify(const Expr& e) throw(TypeCheckingException, LogicException);
+  Expr simplify(const Expr& e) throw(TypeCheckingException, LogicException, UnsafeInterruptException);
 
   /**
    * Expand the definitions in a term or formula.  No other
    * simplification or normalization is done.
    */
-  Expr expandDefinitions(const Expr& e) throw(TypeCheckingException, LogicException);
+  Expr expandDefinitions(const Expr& e) throw(TypeCheckingException, LogicException, UnsafeInterruptException);
 
   /**
    * Get the assigned value of an expr (only if immediately preceded
    * by a SAT or INVALID query).  Only permitted if the SmtEngine is
    * set to operate interactively and produce-models is on.
    */
-  Expr getValue(const Expr& e) const throw(ModalException, TypeCheckingException, LogicException);
+  Expr getValue(const Expr& e) const throw(ModalException, TypeCheckingException, LogicException, UnsafeInterruptException);
 
   /**
    * Add a function to the set of expressions whose value is to be
@@ -518,14 +506,14 @@ public:
    * INVALID query).  Only permitted if the SmtEngine is set to
    * operate interactively and produce-assignments is on.
    */
-  CVC4::SExpr getAssignment() throw(ModalException);
+  CVC4::SExpr getAssignment() throw(ModalException, UnsafeInterruptException);
 
   /**
    * Get the last proof (only if immediately preceded by an UNSAT
    * or VALID query).  Only permitted if CVC4 was built with proof
    * support and produce-proofs is on.
    */
-  Proof* getProof() throw(ModalException);
+  Proof* getProof() throw(ModalException, UnsafeInterruptException);
 
   /**
    * Print all instantiations made by the quantifiers module.
@@ -537,7 +525,7 @@ public:
    * UNSAT or VALID query).  Only permitted if CVC4 was built with
    * unsat-core support and produce-unsat-cores is on.
    */
-  UnsatCore getUnsatCore() throw(ModalException);
+  UnsatCore getUnsatCore() throw(ModalException, UnsafeInterruptException);
 
   /**
    * Get the current set of assertions.  Only permitted if the
@@ -548,12 +536,12 @@ public:
   /**
    * Push a user-level context.
    */
-  void push() throw(ModalException, LogicException);
+  void push() throw(ModalException, LogicException, UnsafeInterruptException);
 
   /**
    * Pop a user-level context.  Throws an exception if nothing to pop.
    */
-  void pop() throw(ModalException);
+  void pop() throw(ModalException, UnsafeInterruptException);
 
   /**
    * Completely reset the state of the solver, as though destroyed and

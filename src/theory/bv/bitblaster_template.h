@@ -28,6 +28,7 @@
 #include "prop/sat_solver.h"
 #include "theory/valuation.h"
 #include "theory/theory_registrar.h"
+#include "util/resource_manager.h"
 
 class Abc_Obj_t_;
 typedef Abc_Obj_t_ Abc_Obj_t;
@@ -134,6 +135,7 @@ class TLazyBitblaster :  public TBitblaster<Node> {
     {}
     bool notify(prop::SatLiteral lit);
     void notify(prop::SatClause& clause);
+    void spendResource();
     void safePoint();
   };
   
@@ -228,7 +230,8 @@ private:
     Statistics(const std::string& name);
     ~Statistics();
   };
-  std::string d_name; 
+  std::string d_name;
+public:
   Statistics d_statistics;
 };
 
@@ -237,6 +240,9 @@ public:
   MinisatEmptyNotify() {}
   bool notify(prop::SatLiteral lit) { return true; }
   void notify(prop::SatClause& clause) { }
+  void spendResource() {
+    NodeManager::currentResourceManager()->spendResource();
+  }
   void safePoint() {}
 };
 

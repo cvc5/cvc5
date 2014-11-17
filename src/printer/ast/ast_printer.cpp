@@ -179,7 +179,8 @@ void AstPrinter::toStream(std::ostream& out, const CommandStatus* s) const throw
 
   if(tryToStream<CommandSuccess>(out, s) ||
      tryToStream<CommandFailure>(out, s) ||
-     tryToStream<CommandUnsupported>(out, s)) {
+     tryToStream<CommandUnsupported>(out, s) ||
+     tryToStream<CommandInterrupted>(out, s)) {
     return;
   }
 
@@ -371,6 +372,10 @@ static void toStream(std::ostream& out, const CommandSuccess* s) throw() {
   if(Command::printsuccess::getPrintSuccess(out)) {
     out << "OK" << endl;
   }
+}
+
+static void toStream(std::ostream& out, const CommandInterrupted* s) throw() {
+  out << "INTERRUPTED" << endl;
 }
 
 static void toStream(std::ostream& out, const CommandUnsupported* s) throw() {

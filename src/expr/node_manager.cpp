@@ -22,7 +22,9 @@
 #include "expr/attribute.h"
 #include "util/cvc4_assert.h"
 #include "options/options.h"
+#include "smt/options.h"
 #include "util/statistics_registry.h"
+#include "util/resource_manager.h"
 #include "util/tls.h"
 
 #include "expr/type_checker.h"
@@ -83,6 +85,7 @@ struct NVReclaim {
 NodeManager::NodeManager(ExprManager* exprManager) :
   d_options(new Options()),
   d_statisticsRegistry(new StatisticsRegistry()),
+  d_resourceManager(new ResourceManager()),
   next_id(0),
   d_attrManager(new expr::attr::AttributeManager()),
   d_exprManager(exprManager),
@@ -97,6 +100,7 @@ NodeManager::NodeManager(ExprManager* exprManager,
                          const Options& options) :
   d_options(new Options(options)),
   d_statisticsRegistry(new StatisticsRegistry()),
+  d_resourceManager(new ResourceManager()),
   next_id(0),
   d_attrManager(new expr::attr::AttributeManager()),
   d_exprManager(exprManager),
@@ -116,6 +120,22 @@ void NodeManager::init() {
     if(hasOperator(k)) {
       d_operators[i] = mkConst(Kind(k));
     }
+  }
+  d_resourceManager->setHardLimit((*d_options)[options::hardLimit]);
+  if((*d_options)[options::perCallResourceLimit] != 0) {
+    d_resourceManager->setResourceLimit((*d_options)[options::perCallResourceLimit], false);
+  }
+  if((*d_options)[options::cumulativeResourceLimit] != 0) {
+    d_resourceManager->setResourceLimit((*d_options)[options::cumulativeResourceLimit], true);
+  }
+  if((*d_options)[options::perCallMillisecondLimit] != 0) {
+    d_resourceManager->setTimeLimit((*d_options)[options::perCallMillisecondLimit], false);
+  }
+  if((*d_options)[options::cumulativeMillisecondLimit] != 0) {
+    d_resourceManager->setTimeLimit((*d_options)[options::cumulativeMillisecondLimit], true);
+  }
+  if((*d_options)[options::cpuTime]) {
+    d_resourceManager->useCPUTime(true);
   }
 }
 
@@ -162,6 +182,8 @@ NodeManager::~NodeManager() {
   // defensive coding, in case destruction-order issues pop up (they often do)
   delete d_statisticsRegistry;
   d_statisticsRegistry = NULL;
+  delete d_resourceManager;
+  d_resourceManager = NULL;
   delete d_attrManager;
   d_attrManager = NULL;
   delete d_options;

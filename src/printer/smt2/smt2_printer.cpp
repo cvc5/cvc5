@@ -794,7 +794,8 @@ void Smt2Printer::toStream(std::ostream& out, const CommandStatus* s) const thro
 
   if(tryToStream<CommandSuccess>(out, s, d_variant) ||
      tryToStream<CommandFailure>(out, s, d_variant) ||
-     tryToStream<CommandUnsupported>(out, s, d_variant)) {
+     tryToStream<CommandUnsupported>(out, s, d_variant) ||
+     tryToStream<CommandInterrupted>(out, s, d_variant)) {
     return;
   }
 
@@ -1206,6 +1207,10 @@ static void toStream(std::ostream& out, const CommandSuccess* s, Variant v) thro
   if(Command::printsuccess::getPrintSuccess(out)) {
     out << "success" << endl;
   }
+}
+
+static void toStream(std::ostream& out, const CommandInterrupted* s, Variant v) throw() {
+  out << "interrupted" << endl;
 }
 
 static void toStream(std::ostream& out, const CommandUnsupported* s, Variant v) throw() {

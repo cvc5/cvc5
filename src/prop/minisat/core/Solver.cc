@@ -1593,7 +1593,7 @@ CRef Solver::updateLemmas() {
   Debug("minisat::lemmas") << "Solver::updateLemmas() begin" << std::endl;
 
   // Avoid adding lemmas indefinitely without resource-out
-  spendResource();
+  proxy->spendResource();
 
   CRef conflict = CRef_Undef;
 
@@ -1709,4 +1709,16 @@ CRef Solver::updateLemmas() {
   Debug("minisat::lemmas") << "Solver::updateLemmas() end" << std::endl;
 
   return conflict;
+}
+
+inline bool Solver::withinBudget() const {
+  Assert (proxy);
+  // spendResource sets async_interrupt or throws UnsafeInterruptException
+  // depending on whether hard-limit is enabled
+  proxy->spendResource();
+
+  bool within_budget =  !asynch_interrupt &&
+    (conflict_budget    < 0 || conflicts < (uint64_t)conflict_budget) &&
+    (propagation_budget < 0 || propagations < (uint64_t)propagation_budget);
+  return within_budget;
 }

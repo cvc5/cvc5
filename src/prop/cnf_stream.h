@@ -74,6 +74,12 @@ protected:
    */
   const bool d_fullLitToNodeMap;
 
+  /**
+   * Counter for resource limiting that is used to spend a resource
+   * every ResourceManager::resourceCounter calls to convertAndAssert.
+   */
+  unsigned long d_convertAndAssertCounter;
+
   /** The "registrar" for pre-registration of terms */
   Registrar* d_registrar;
 

@@ -130,6 +130,10 @@ const Options& ExprManager::getOptions() const {
   return d_nodeManager->getOptions();
 }
 
+ResourceManager* ExprManager::getResourceManager() throw() {
+  return d_nodeManager->getResourceManager();
+}
+
 BooleanType ExprManager::booleanType() const {
   NodeManagerScope nms(d_nodeManager);
   return BooleanType(Type(d_nodeManager, new TypeNode(d_nodeManager->booleanType())));

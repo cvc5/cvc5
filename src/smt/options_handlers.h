@@ -21,6 +21,7 @@
 
 #include "cvc4autoconfig.h"
 #include "util/dump.h"
+#include "util/resource_manager.h"
 #include "smt/modal_exception.h"
 #include "smt/smt_engine.h"
 #include "lib/strtok_r.h"
@@ -450,6 +451,63 @@ inline void statsEnabledBuild(std::string option, bool value, SmtEngine* smt) th
     throw OptionException(ss.str());
   }
 #endif /* CVC4_STATISTICS_ON */
+}
+
+inline unsigned long tlimitHandler(std::string option, std::string optarg, SmtEngine* smt) throw(OptionException) {
+  unsigned long ms;
+  std::istringstream convert(optarg);
+  if (!(convert >> ms))
+    throw OptionException("option `"+option+"` requires a number as an argument");
+
+  // make sure the resource is set if the option is updated
+  // if the smt engine is null the resource will be set in the
+  if (smt != NULL) {
+    ResourceManager* rm = NodeManager::fromExprManager(smt->getExprManager())->getResourceManager();
+    rm->setTimeLimit(ms, true);
+  }
+  return ms;
+}
+
+inline unsigned long tlimitPerHandler(std::string option, std::string optarg, SmtEngine* smt) throw(OptionException) {
+  unsigned long ms;
+
+  std::istringstream convert(optarg);
+  if (!(convert >> ms))
+    throw OptionException("option `"+option+"` requires a number as an argument");
+
+  if (smt != NULL) {
+    ResourceManager* rm = NodeManager::fromExprManager(smt->getExprManager())->getResourceManager();
+    rm->setTimeLimit(ms, false);
+  }
+  return ms;
+}
+
+inline unsigned long rlimitHandler(std::string option, std::string optarg, SmtEngine* smt) throw(OptionException) {
+  unsigned long ms;
+
+  std::istringstream convert(optarg);
+  if (!(convert >> ms))
+    throw OptionException("option `"+option+"` requires a number as an argument");
+
+  if (smt != NULL) {
+    ResourceManager* rm = NodeManager::fromExprManager(smt->getExprManager())->getResourceManager();
+    rm->setResourceLimit(ms, true);
+  }
+  return ms;
+}
+
+inline unsigned long rlimitPerHandler(std::string option, std::string optarg, SmtEngine* smt) throw(OptionException) {
+  unsigned long ms;
+
+  std::istringstream convert(optarg);
+  if (!(convert >> ms))
+    throw OptionException("option `"+option+"` requires a number as an argument");
+
+  if (smt != NULL) {
+    ResourceManager* rm = NodeManager::fromExprManager(smt->getExprManager())->getResourceManager();
+    rm->setResourceLimit(ms, false);
+  }
+  return ms;
 }
 
 }/* CVC4::smt namespace */

@@ -85,7 +85,7 @@ void Rewriter::shutdown() {
 ${rewrite_shutdown}
 }
 
-void Rewriter::garbageCollect() {
+void Rewriter::clearCachesInternal() {
   typedef CVC4::expr::attr::AttributeUniqueId AttributeUniqueId;
   std::vector<AttributeUniqueId> preids;
   ${pre_rewrite_attribute_ids}

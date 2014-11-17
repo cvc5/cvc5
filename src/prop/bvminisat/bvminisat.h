@@ -46,8 +46,11 @@ private:
       d_notify->notify(satClause);
     }
 
+    void spendResource() {
+      d_notify->spendResource();
+    }
     void safePoint() {
-      d_notify->safePoint(); 
+      d_notify->safePoint();
     }
   };
 
@@ -85,8 +88,6 @@ public:
   SatVariable falseVar() { return d_minisat->falseVar(); }
 
   void markUnremovable(SatLiteral lit);
-
-  bool spendResource();
 
   void interrupt();
   

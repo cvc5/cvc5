@@ -87,14 +87,18 @@ option - regular-output-channel argument :handler CVC4::smt::setRegularOutputCha
 option - diagnostic-output-channel argument :handler CVC4::smt::setDiagnosticOutputChannel :handler-include "smt/options_handlers.h"
  set the diagnostic output channel of the solver
 
-common-option cumulativeMillisecondLimit tlimit --tlimit=MS "unsigned long"
+common-option cumulativeMillisecondLimit tlimit --tlimit=MS "unsigned long" :handler CVC4::smt::tlimitHandler :handler-include "smt/options_handlers.h"
  enable time limiting (give milliseconds)
-common-option perCallMillisecondLimit  tlimit-per --tlimit-per=MS "unsigned long"
+common-option perCallMillisecondLimit  tlimit-per --tlimit-per=MS "unsigned long" :handler CVC4::smt::tlimitPerHandler :handler-include "smt/options_handlers.h"
  enable time limiting per query (give milliseconds)
-common-option cumulativeResourceLimit rlimit --rlimit=N "unsigned long"
+common-option cumulativeResourceLimit rlimit --rlimit=N "unsigned long" :handler CVC4::smt::rlimitHandler :handler-include "smt/options_handlers.h"
  enable resource limiting (currently, roughly the number of SAT conflicts)
-common-option perCallResourceLimit reproducible-resource-limit --rlimit-per=N "unsigned long"
+common-option perCallResourceLimit reproducible-resource-limit --rlimit-per=N "unsigned long" :handler CVC4::smt::rlimitPerHandler :handler-include "smt/options_handlers.h"
  enable resource limiting per query
+common-option hardLimit hard-limit --hard-limit bool :default false
+ the resource limit is hard potentially leaving the smtEngine in an unsafe state (should be destroyed and rebuild after resourcing out)
+common-option cpuTime cpu-time --cpu-time bool :default false
+ measures CPU time if set to true and wall time if false (default false)
 
 expert-option rewriteApplyToConst rewrite-apply-to-const --rewrite-apply-to-const bool :default false
  eliminate function applications, rewriting e.g. f(5) to a new symbol f_5

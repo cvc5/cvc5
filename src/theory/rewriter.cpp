@@ -18,11 +18,15 @@
 #include "theory/theory.h"
 #include "theory/rewriter.h"
 #include "theory/rewriter_tables.h"
+#include "smt/smt_engine_scope.h"
+#include "util/resource_manager.h"
 
 using namespace std;
 
 namespace CVC4 {
 namespace theory {
+
+unsigned long Rewriter::d_iterationCount = 0;
 
 static TheoryId theoryOf(TNode node) {
   return Theory::theoryOf(THEORY_OF_TYPE_BASED, node);
@@ -76,7 +80,7 @@ struct RewriteStackElement {
   }
 };
 
-Node Rewriter::rewrite(TNode node) {
+Node Rewriter::rewrite(TNode node) throw (UnsafeInterruptException){
   return rewriteTo(theoryOf(node), node);
 }
 
@@ -102,8 +106,19 @@ Node Rewriter::rewriteTo(theory::TheoryId theoryId, Node node) {
   vector<RewriteStackElement> rewriteStack;
   rewriteStack.push_back(RewriteStackElement(node, theoryId));
 
+  ResourceManager* rm = NULL;
+  bool hasSmtEngine = smt::smtEngineInScope();
+  if (hasSmtEngine) {
+    rm = NodeManager::currentResourceManager();
+  }
   // Rewrite until the stack is empty
   for (;;){
+
+    if (hasSmtEngine &&
+		d_iterationCount % ResourceManager::getFrequencyCount() == 0) {
+      rm->spendResource();
+      d_iterationCount = 0;
+    }
 
     // Get the top of the recursion stack
     RewriteStackElement& rewriteStackTop = rewriteStack.back();
@@ -139,7 +154,7 @@ Node Rewriter::rewriteTo(theory::TheoryId theoryId, Node node) {
         rewriteStackTop.theoryId = theoryOf(cached);
       }
     }
-    
+
     rewriteStackTop.original =rewriteStackTop.node;
     // Now it's time to rewrite the children, check if this has already been done
     Node cached = Rewriter::getPostRewriteCache((TheoryId) rewriteStackTop.theoryId, rewriteStackTop.node);
@@ -232,6 +247,16 @@ Node Rewriter::rewriteTo(theory::TheoryId theoryId, Node node) {
   Unreachable();
   return Node::null();
 }/* Rewriter::rewriteTo() */
+
+void Rewriter::clearCaches() {
+#ifdef CVC4_ASSERTIONS
+  if(s_rewriteStack != NULL) {
+    delete s_rewriteStack;
+    s_rewriteStack = NULL;
+  }
+#endif
+  Rewriter::clearCachesInternal();
+}
 
 }/* CVC4::theory namespace */
 }/* CVC4 namespace */

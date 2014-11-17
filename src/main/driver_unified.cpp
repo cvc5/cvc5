@@ -298,8 +298,21 @@ int runCvc4(int argc, char* argv[], Options& opts) {
         // have the replay parser use the declarations input interactively
         replayParser->useDeclarationsFrom(shell.getParser());
       }
-      while((cmd = shell.readCommand())) {
+
+      while(true) {
+        try {
+          cmd = shell.readCommand();
+        } catch(UnsafeInterruptException& e) {
+          *opts[options::out] << CommandInterrupted();
+          break;
+        }
+        if (cmd == NULL)
+          break;
         status = pExecutor->doCommand(cmd) && status;
+        if (cmd->interrupted()) {
+          delete cmd;
+          break;
+        }
         delete cmd;
       }
     } else if(opts[options::tearDownIncremental]) {
@@ -332,15 +345,34 @@ int runCvc4(int argc, char* argv[], Options& opts) {
         replayParser->useDeclarationsFrom(parser);
       }
       bool needReset = false;
-      while((status || opts[options::continuedExecution]) && (cmd = parser->nextCommand())) {
+      // true if one of the commands was interrupted
+      bool interrupted = false;
+      while (status || opts[options::continuedExecution]) {
+        if (interrupted) {
+          *opts[options::out] << CommandInterrupted();
+          break;
+        }
+
+        try {
+          cmd = parser->nextCommand();
+          if (cmd == NULL) break;
+        } catch (UnsafeInterruptException& e) {
+          interrupted = true;
+          continue;
+        }
+
         if(dynamic_cast<PushCommand*>(cmd) != NULL) {
           if(needReset) {
             pExecutor->reset();
-            for(size_t i = 0; i < allCommands.size(); ++i) {
-              for(size_t j = 0; j < allCommands[i].size(); ++j) {
+            for(size_t i = 0; i < allCommands.size() && !interrupted; ++i) {
+              if (interrupted) break;
+              for(size_t j = 0; j < allCommands[i].size() && !interrupted; ++j) {
                 Command* cmd = allCommands[i][j]->clone();
                 cmd->setMuted(true);
                 pExecutor->doCommand(cmd);
+                if(cmd->interrupted()) {
+                  interrupted = true;
+                }
                 delete cmd;
               }
             }
@@ -351,29 +383,44 @@ int runCvc4(int argc, char* argv[], Options& opts) {
         } else if(dynamic_cast<PopCommand*>(cmd) != NULL) {
           allCommands.pop_back(); // fixme leaks cmds here
           pExecutor->reset();
-          for(size_t i = 0; i < allCommands.size(); ++i) {
-            for(size_t j = 0; j < allCommands[i].size(); ++j) {
+          for(size_t i = 0; i < allCommands.size() && !interrupted; ++i) {
+            for(size_t j = 0; j < allCommands[i].size() && !interrupted; ++j) {
               Command* cmd = allCommands[i][j]->clone();
               cmd->setMuted(true);
               pExecutor->doCommand(cmd);
+              if(cmd->interrupted()) {
+                interrupted = true;
+              }
               delete cmd;
             }
           }
+          if (interrupted) continue;
           *opts[options::out] << CommandSuccess();
         } else if(dynamic_cast<CheckSatCommand*>(cmd) != NULL ||
                   dynamic_cast<QueryCommand*>(cmd) != NULL) {
           if(needReset) {
             pExecutor->reset();
-            for(size_t i = 0; i < allCommands.size(); ++i) {
-              for(size_t j = 0; j < allCommands[i].size(); ++j) {
+            for(size_t i = 0; i < allCommands.size() && !interrupted; ++i) {
+              for(size_t j = 0; j < allCommands[i].size() && !interrupted; ++j) {
                 Command* cmd = allCommands[i][j]->clone();
                 cmd->setMuted(true);
                 pExecutor->doCommand(cmd);
+                if(cmd->interrupted()) {
+                  interrupted = true;
+                }
                 delete cmd;
               }
             }
           }
+          if (interrupted) {
+            continue;
+          }
+
           status = pExecutor->doCommand(cmd);
+          if(cmd->interrupted()) {
+            interrupted = true;
+            continue;
+          }
           needReset = true;
         } else if(dynamic_cast<ResetCommand*>(cmd) != NULL) {
           pExecutor->doCommand(cmd);
@@ -396,6 +443,11 @@ int runCvc4(int argc, char* argv[], Options& opts) {
             allCommands.back().push_back(copy);
           }
           status = pExecutor->doCommand(cmd);
+          if(cmd->interrupted()) {
+            interrupted = true;
+            continue;
+          }
+
           if(dynamic_cast<QuitCommand*>(cmd) != NULL) {
             delete cmd;
             break;
@@ -428,8 +480,27 @@ int runCvc4(int argc, char* argv[], Options& opts) {
         // have the replay parser use the file's declarations
         replayParser->useDeclarationsFrom(parser);
       }
-      while((status || opts[options::continuedExecution]) && (cmd = parser->nextCommand())) {
+      bool interrupted = false;
+      while(status || opts[options::continuedExecution]) {
+        if (interrupted) {
+          *opts[options::out] << CommandInterrupted();
+          pExecutor->reset();
+          break;
+        }
+        try {
+          cmd = parser->nextCommand();
+          if (cmd == NULL) break;
+        } catch (UnsafeInterruptException& e) {
+          interrupted = true;
+          continue;
+        }
+
         status = pExecutor->doCommand(cmd);
+        if (cmd->interrupted() && status == 0) {
+          interrupted = true;
+          break;
+        }
+
         if(dynamic_cast<QuitCommand*>(cmd) != NULL) {
           delete cmd;
           break;

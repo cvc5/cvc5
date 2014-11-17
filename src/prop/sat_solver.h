@@ -62,12 +62,6 @@ public:
   /** Check the satisfiability of the added clauses */
   virtual SatValue solve(long unsigned int&) = 0;
 
-  /**
-   * Instruct the solver that it should bump its consumed resource count.
-   * Returns true if resources are exhausted.
-   */
-  virtual bool spendResource() = 0;
-
   /** Interrupt the solver */
   virtual void interrupt() = 0;
 
@@ -102,6 +96,7 @@ public:
      * Notify about a learnt clause.
      */
     virtual void notify(SatClause& clause) = 0;
+    virtual void spendResource() = 0;
     virtual void safePoint() = 0;
     
   };/* class BVSatSolverInterface::Notify */
