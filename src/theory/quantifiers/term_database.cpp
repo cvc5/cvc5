@@ -847,21 +847,29 @@ Node TermDb::getEnumerateTerm( TypeNode tn, unsigned index ) {
 
 
 Node TermDb::getFreeVariableForInstConstant( Node n ){
-  TypeNode tn = n.getType();
+  return getFreeVariableForType( n.getType() );
+}
+
+Node TermDb::getFreeVariableForType( TypeNode tn ) {
   if( d_free_vars.find( tn )==d_free_vars.end() ){
-	for( unsigned i=0; i<d_type_map[ tn ].size(); i++ ){
-	  if( !quantifiers::TermDb::hasInstConstAttr(d_type_map[ tn ][ i ]) ){
-	    d_free_vars[tn] = d_type_map[ tn ][ i ];
-	  }
-	}
-	if( d_free_vars.find( tn )==d_free_vars.end() ){
+    for( unsigned i=0; i<d_type_map[ tn ].size(); i++ ){
+      if( !quantifiers::TermDb::hasInstConstAttr(d_type_map[ tn ][ i ]) ){
+        d_free_vars[tn] = d_type_map[ tn ][ i ];
+      }
+    }
+    if( d_free_vars.find( tn )==d_free_vars.end() ){
       //if integer or real, make zero
       if( tn.isInteger() || tn.isReal() ){
         Rational z(0);
         d_free_vars[tn] = NodeManager::currentNM()->mkConst( z );
       }else{
-	    d_free_vars[tn] = NodeManager::currentNM()->mkSkolem( "freevar", tn, "is a free variable created by termdb" );
-	    Trace("mkVar") << "FreeVar:: Make variable " << d_free_vars[tn] << " : " << tn << std::endl;
+        Node n = NodeManager::currentNM()->mkSkolem( "freevar", tn, "is a free variable created by termdb" );
+        d_free_vars[tn] = n;
+        Trace("mkVar") << "FreeVar:: Make variable " << n << " : " << tn << std::endl;
+        //must set instantiation level attribute to 0 if we are using instantiation max level
+        if( options::instMaxLevel()!=-1 ){
+          QuantifiersEngine::setInstantiationLevelAttr( n, 0 );
+        }
       }
     }
   }

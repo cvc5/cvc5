@@ -160,6 +160,8 @@ private:
   //BoolMap d_consEqc;
   /** Are we in conflict */
   context::CDO<bool> d_conflict;
+  /** Added lemma ? */
+  bool d_addedLemma;
   /** The conflict node */
   Node d_conflictNode;
   /** cache for which terms we have called collectTerms(...) on */

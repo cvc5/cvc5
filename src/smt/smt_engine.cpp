@@ -1268,25 +1268,22 @@ void SmtEngine::setDefaults() {
     options::decisionMode.set(decMode);
     options::decisionStopOnly.set(stoponly);
   }
-
-  //for finite model finding
-  if( ! options::instWhenMode.wasSetByUser()){
-    //instantiate only on last call
-    if( options::fmfInstEngine() ){
-      Trace("smt") << "setting inst when mode to LAST_CALL" << endl;
-      options::instWhenMode.set( quantifiers::INST_WHEN_LAST_CALL );
+  //local theory extensions 
+  if( options::localTheoryExt() ){
+    //no E-matching?
+    if( !options::instMaxLevel.wasSetByUser() ){
+      options::instMaxLevel.set( 0 );
     }
   }
   if( d_logic.hasCardinalityConstraints() ){
     //must have finite model finding on
     options::finiteModelFind.set( true );
   }
-  if( options::recurseCbqi() ){
-    options::cbqi.set( true );
-  }
   if(options::fmfBoundIntLazy.wasSetByUser() && options::fmfBoundIntLazy()) {
     options::fmfBoundInt.set( true );
   }
+  //now have determined whether fmfBoundInt is on/off
+  //apply fmfBoundInt options
   if( options::fmfBoundInt() ){
     //must have finite model finding on
     options::finiteModelFind.set( true );
@@ -1300,6 +1297,35 @@ void SmtEngine::setDefaults() {
   }
   if( options::ufssSymBreak() ){
     options::sortInference.set( true );
+  }
+  if( options::fmfFunWellDefined() ){
+    if( !options::finiteModelFind.wasSetByUser() ){
+      options::finiteModelFind.set( true );
+    }
+  }
+  
+  //now, have determined whether finite model find is on/off
+  //apply finite model finding options
+  if( options::finiteModelFind() ){
+    if( !options::eMatching.wasSetByUser() ){
+      options::eMatching.set( options::fmfInstEngine() );
+    }
+    if( !options::quantConflictFind.wasSetByUser() ){
+      options::quantConflictFind.set( false );
+    }
+    //for finite model finding
+    if( ! options::instWhenMode.wasSetByUser()){
+      //instantiate only on last call
+      if( options::eMatching() ){
+        Trace("smt") << "setting inst when mode to LAST_CALL" << endl;
+        options::instWhenMode.set( quantifiers::INST_WHEN_LAST_CALL );
+      }
+    }
+  }
+  
+  //implied options...
+  if( options::recurseCbqi() ){
+    options::cbqi.set( true );
   }
   if( options::qcfMode.wasSetByUser() || options::qcfTConstraint() ){
     options::quantConflictFind.set( true );
@@ -1342,16 +1368,7 @@ void SmtEngine::setDefaults() {
       options::conjectureGen.set( false );
     }
   }
-  if( options::fmfFunWellDefined() ){
-    if( !options::finiteModelFind.wasSetByUser() ){
-      options::finiteModelFind.set( true );
-    }
-  }
-  if( options::finiteModelFind() ){
-    if( !options::quantConflictFind.wasSetByUser() ){
-      options::quantConflictFind.set( false );
-    }
-  }
+
   //until bugs 371,431 are fixed
   if( ! options::minisatUseElim.wasSetByUser()){
     if( d_logic.isQuantified() || options::produceModels() || options::produceAssignments() || options::checkModels() ){

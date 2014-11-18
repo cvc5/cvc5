@@ -150,6 +150,8 @@ private:
   // quantifier/index for the variable we are matching
   Node d_f;
   unsigned d_index;
+  //first time
+  bool d_firstTime;
 public:
   CandidateGeneratorQEAll( QuantifiersEngine* qe, Node mpat );
   ~CandidateGeneratorQEAll(){}

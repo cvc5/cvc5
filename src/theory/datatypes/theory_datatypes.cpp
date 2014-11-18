@@ -123,6 +123,7 @@ void TheoryDatatypes::check(Effort e) {
   if (done() && !fullEffort(e)) {
     return;
   }
+  d_addedLemma = false;
 
   TimerStat::CodeTimer checkTimer(d_checkTime);
 
@@ -150,14 +151,15 @@ void TheoryDatatypes::check(Effort e) {
     flushPendingFacts();
   }
 
-  if( e == EFFORT_FULL && !d_conflict && !d_valuation.needCheck() ) {
+  if( e == EFFORT_FULL && !d_conflict && !d_addedLemma && !d_valuation.needCheck() ) {
     //check for cycles
+    Assert( d_pending.empty() && d_pending_merge.empty() );
     bool addedFact;
     do {
       checkCycles();
       addedFact = !d_pending.empty() || !d_pending_merge.empty();
       flushPendingFacts();
-      if( d_conflict ){
+      if( d_conflict || d_addedLemma ){
         return;
       }
     }while( addedFact );
@@ -305,6 +307,7 @@ void TheoryDatatypes::flushPendingFacts(){
         }
         Trace("dt-lemma") << "Datatypes lemma : " << lem << std::endl;
         d_out->lemma( lem );
+        d_addedLemma = true;
       }else{
         assertFact( fact, exp );
       }
@@ -1506,6 +1509,7 @@ void TheoryDatatypes::checkCycles() {
   }
   //process codatatypes
   if( cdt_eqc.size()>1 && options::cdtBisimilar() ){
+    printModelDebug("dt-cdt-debug");
     Trace("dt-cdt-debug") << "Process " << cdt_eqc.size() << " co-datatypes" << std::endl;
     std::vector< std::vector< Node > > part_out;
     std::vector< TNode > exp;

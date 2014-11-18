@@ -184,7 +184,7 @@ private:
   void calculateMatches( QuantifiersEngine* qe );
 public:
   /** constructors */
-  InstMatchGeneratorMulti( Node f, std::vector< Node >& pats, QuantifiersEngine* qe, int matchOption = 0 );
+  InstMatchGeneratorMulti( Node f, std::vector< Node >& pats, QuantifiersEngine* qe );
   /** destructor */
   ~InstMatchGeneratorMulti(){}
   /** reset instantiation round (call this whenever equivalence classes have changed) */

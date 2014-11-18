@@ -95,8 +95,6 @@ private:
   static Node getIsUsableTrigger( Node n, Node f, bool pol = true, bool hasPol = false );
   /** collect all APPLY_UF pattern terms for f in n */
   static bool collectPatTerms2( QuantifiersEngine* qe, Node f, Node n, std::map< Node, bool >& patMap, int tstrt, std::vector< Node >& exclude, bool pol, bool hasPol );
-  /** is local theory extensions term */
-  static bool isLocalTheoryExt2( Node n, std::vector< Node >& var_found, std::vector< Node >& patTerms );
 public:
   //different strategies for choosing trigger terms
   enum {
@@ -113,7 +111,7 @@ public:
   static bool isSimpleTrigger( Node n );
   static bool isBooleanTermTrigger( Node n );
   static bool isPureTheoryTrigger( Node n );
-  static bool isLocalTheoryExt( Node n, std::vector< Node >& patTerms );
+  static bool isLocalTheoryExt( Node n, std::vector< Node >& vars, std::vector< Node >& patTerms );
   /** return data structure for producing matches for this trigger. */
   static InstMatchGenerator* getInstMatchGenerator( Node n );
   static Node getInversionVariable( Node n );

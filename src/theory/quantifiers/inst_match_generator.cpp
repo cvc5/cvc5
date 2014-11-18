@@ -456,7 +456,7 @@ bool VarMatchGeneratorTermSubs::getNextMatch( Node f, InstMatch& m, QuantifiersE
 }
 
 /** constructors */
-InstMatchGeneratorMulti::InstMatchGeneratorMulti( Node f, std::vector< Node >& pats, QuantifiersEngine* qe, int matchOption ) :
+InstMatchGeneratorMulti::InstMatchGeneratorMulti( Node f, std::vector< Node >& pats, QuantifiersEngine* qe ) :
 d_f( f ){
   Debug("smart-multi-trigger") << "Making smart multi-trigger for " << f << std::endl;
   std::map< Node, std::vector< Node > > var_contains;

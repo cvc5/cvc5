@@ -192,19 +192,29 @@ void CandidateGeneratorQEAll::resetInstantiationRound() {
 
 void CandidateGeneratorQEAll::reset( Node eqc ) {
   d_eq = eq::EqClassesIterator( d_qe->getEqualityQuery()->getEngine() );
+  d_firstTime = true;
 }
 
 Node CandidateGeneratorQEAll::getNextCandidate() {
   while( !d_eq.isFinished() ){
     Node n = (*d_eq);
-    if( options::instMaxLevel()!=-1 ){
-      n = d_qe->getEqualityQuery()->getInternalRepresentative( n, d_f, d_index );
-    }
     ++d_eq;
-    if( n.getType().isSubtypeOf( d_match_pattern.getType() ) ){
-      //an equivalence class with the same type as the pattern, return it
-      return n;
+    if( n.getType().isSubtypeOf( d_match_pattern_type ) ){
+      if( d_qe->getTermDatabase()->hasTermCurrent( n ) ){
+        if( options::instMaxLevel()!=-1 ){
+          n = d_qe->getEqualityQuery()->getInternalRepresentative( n, d_f, d_index );
+        }
+        d_firstTime = false;
+        //an equivalence class with the same type as the pattern, return it
+        return n;
+      }
     }
+  }
+  if( d_firstTime ){
+    Assert( d_qe->getTermDatabase()->d_type_map[d_match_pattern_type].empty() );
+    //must return something
+    d_firstTime = false;
+    return d_qe->getTermDatabase()->getFreeVariableForType( d_match_pattern_type );
   }
   return Node::null();
 }

@@ -28,6 +28,14 @@ using namespace CVC4::theory;
 using namespace CVC4::theory::inst;
 using namespace CVC4::theory::quantifiers;
 
+//priority levels :
+//1 : user patterns (when user-pat!={resort,ignore}), auto-gen patterns (for non-user pattern quantifiers)
+//2 : user patterns (when user-pat=resort ), auto gen patterns (for user pattern quantifiers, when user-pat=use)
+//3 : local theory extensions
+//4 :
+//5 : full saturate quantifiers
+
+
 //#define MULTI_TRIGGER_FULL_EFFORT_HALF
 #define MULTI_MULTI_TRIGGERS
 
@@ -220,15 +228,16 @@ void InstStrategyAutoGenTriggers::generateTriggers( Node f, Theory::Effort effor
     d_patTerms[0][f].clear();
     d_patTerms[1][f].clear();
     std::vector< Node > patTermsF;
+    //well-defined function: can assume LHS is only trigger
+    Node bd = d_quantEngine->getTermDatabase()->getInstConstantBody( f );
     if( d_quantEngine->getTermDatabase()->isQAttrFunDef( f ) && options::quantFunWellDefined() ){
-      Node bd = d_quantEngine->getTermDatabase()->getInstConstantBody( f );
       Assert( bd.getKind()==EQUAL || bd.getKind()==IFF );
       Assert( bd[0].getKind()==APPLY_UF );
       patTermsF.push_back( bd[0] );
     }else{
-      Trigger::collectPatTerms( d_quantEngine, f, d_quantEngine->getTermDatabase()->getInstConstantBody( f ), patTermsF, d_tr_strategy, d_user_no_gen[f], true );
+      Trigger::collectPatTerms( d_quantEngine, f, bd, patTermsF, d_tr_strategy, d_user_no_gen[f], true );
     }
-    Trace("auto-gen-trigger") << "Collected pat terms for " << d_quantEngine->getTermDatabase()->getInstConstantBody( f ) << ", no-patterns : " << d_user_no_gen[f].size() << std::endl;
+    Trace("auto-gen-trigger") << "Collected pat terms for " << bd << ", no-patterns : " << d_user_no_gen[f].size() << std::endl;
     Trace("auto-gen-trigger") << "   ";
     for( int i=0; i<(int)patTermsF.size(); i++ ){
       Trace("auto-gen-trigger") << patTermsF[i] << " ";
@@ -321,8 +330,7 @@ void InstStrategyAutoGenTriggers::generateTriggers( Node f, Theory::Effort effor
         d_made_multi_trigger[f] = true;
       }
       //will possibly want to get an old trigger
-      tr = Trigger::mkTrigger( d_quantEngine, f, patTerms, matchOption, false, Trigger::TR_GET_OLD,
-                               options::smartTriggers() );
+      tr = Trigger::mkTrigger( d_quantEngine, f, patTerms, matchOption, false, Trigger::TR_GET_OLD, options::smartTriggers() );
     }
     if( tr ){
       if( tr->isMultiTrigger() ){
@@ -356,8 +364,7 @@ void InstStrategyAutoGenTriggers::generateTriggers( Node f, Theory::Effort effor
             if( !options::relevantTriggers() ||
                 d_quantEngine->getQuantifierRelevance()->getNumQuantifiersForSymbol( patTerms[index].getOperator() )<=nqfs_curr ){
               d_single_trigger_gen[ patTerms[index] ] = true;
-              Trigger* tr2 = Trigger::mkTrigger( d_quantEngine, f, patTerms[index], matchOption, false, Trigger::TR_RETURN_NULL,
-                                                 options::smartTriggers() );
+              Trigger* tr2 = Trigger::mkTrigger( d_quantEngine, f, patTerms[index], matchOption, false, Trigger::TR_RETURN_NULL, options::smartTriggers() );
               if( tr2 ){
                 //Notice() << "Add additional trigger " << patTerms[index] << std::endl;
                 tr2->resetInstantiationRound();
@@ -404,7 +411,75 @@ void InstStrategyAutoGenTriggers::addUserNoPattern( Node f, Node pat ) {
   }
 }
 
+
+void InstStrategyLocalTheoryExt::processResetInstantiationRound( Theory::Effort effort ){
+  //reset triggers
+  for( std::map< Node, Trigger* >::iterator it = d_lte_trigger.begin(); it != d_lte_trigger.end(); ++it ){
+    it->second->resetInstantiationRound();
+    it->second->reset( Node::null() );
+  }
+}
+
+int InstStrategyLocalTheoryExt::process( Node f, Theory::Effort effort, int e ) {
+  if( e<3 ){
+    return STATUS_UNFINISHED;
+  }else if( e==3 ){
+    if( isLocalTheoryExt( f ) ){
+      std::map< Node, Trigger* >::iterator it = d_lte_trigger.find( f );
+      if( it!=d_lte_trigger.end() ){
+        Trigger * tr = it->second;
+        //process the trigger
+        Trace("process-trigger") << "  LTE process ";
+        tr->debugPrint("process-trigger");
+        Trace("process-trigger") << "..." << std::endl;
+        InstMatch baseMatch( f );
+        int numInst = tr->addInstantiations( baseMatch );
+        Trace("process-trigger") << "  Done, numInst = " << numInst << "." << std::endl;
+        d_quantEngine->getInstantiationEngine()->d_statistics.d_instantiations_lte += numInst;
+      }
+    }
+  }
+  return STATUS_UNKNOWN;
+}
+
+bool InstStrategyLocalTheoryExt::isLocalTheoryExt( Node f ) {
+  std::map< Node, bool >::iterator itq = d_quant.find( f );
+  if( itq==d_quant.end() ){
+    //generate triggers
+    Node bd = d_quantEngine->getTermDatabase()->getInstConstantBody( f );
+    std::vector< Node > vars;
+    std::vector< Node > patTerms;
+    bool ret = Trigger::isLocalTheoryExt( bd, vars, patTerms );
+    if( ret ){
+      d_quant[f] = ret;
+      //add all variables to trigger that don't already occur
+      for( unsigned i=0; i<f[0].getNumChildren(); i++ ){
+        Node x = d_quantEngine->getTermDatabase()->getInstantiationConstant( f, i );
+        if( std::find( vars.begin(), vars.end(), x )==vars.end() ){
+          patTerms.push_back( x );
+        }
+      }
+      Trace("local-t-ext") << "Local theory extensions trigger for " << f << " : " << std::endl;
+      for( unsigned i=0; i<patTerms.size(); i++ ){
+        Trace("local-t-ext") << "  " << patTerms[i] << std::endl;
+      }
+      Trace("local-t-ext") << std::endl;
+      int matchOption = 0;
+      Trigger * tr = Trigger::mkTrigger( d_quantEngine, f, patTerms, matchOption, true, Trigger::TR_GET_OLD, options::smartTriggers() );
+      d_lte_trigger[f] = tr;
+    }else{
+      Trace("local-t-ext") << "No local theory extensions trigger for " << f << "." << std::endl;
+      Trace("local-t-ext-warn") << "WARNING: not local theory extensions : " << f << std::endl;
+    }
+    d_quant[f] = ret;
+    return ret;
+  }else{
+    return itq->second;
+  }
+}
+
 void InstStrategyFreeVariable::processResetInstantiationRound( Theory::Effort effort ){
+  
 }
 
 int InstStrategyFreeVariable::process( Node f, Theory::Effort effort, int e ){
@@ -503,6 +578,6 @@ int InstStrategyFreeVariable::process( Node f, Theory::Effort effort, int e ){
         }
       }
     }
-    return STATUS_UNKNOWN;
   }
+  return STATUS_UNKNOWN;
 }

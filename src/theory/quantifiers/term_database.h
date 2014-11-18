@@ -279,6 +279,8 @@ public:
 public:
   /** get free variable for instantiation constant */
   Node getFreeVariableForInstConstant( Node n );
+  /** get free variable for type */
+  Node getFreeVariableForType( TypeNode tn );
 
 //for triggers
 private:
