@@ -59,11 +59,6 @@ SatLiteral MinisatSatSolver::toSatLiteral(Minisat::Lit lit) {
                     Minisat::sign(lit));
 }
 
-SatValue MinisatSatSolver::toSatLiteralValue(bool res) {
-  if(res) return SAT_VALUE_TRUE;
-  else return SAT_VALUE_FALSE;
-}
-
 SatValue MinisatSatSolver::toSatLiteralValue(Minisat::lbool res) {
   if(res == (Minisat::lbool((uint8_t)0))) return SAT_VALUE_TRUE;
   if(res == (Minisat::lbool((uint8_t)2))) return SAT_VALUE_UNKNOWN;

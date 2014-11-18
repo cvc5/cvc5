@@ -182,11 +182,6 @@ SatLiteral BVMinisatSatSolver::toSatLiteral(BVMinisat::Lit lit) {
                     BVMinisat::sign(lit));
 }
 
-SatValue BVMinisatSatSolver::toSatLiteralValue(bool res) {
-  if(res) return SAT_VALUE_TRUE;
-  else return SAT_VALUE_FALSE;
-}
-
 SatValue BVMinisatSatSolver::toSatLiteralValue(BVMinisat::lbool res) {
   if(res == (BVMinisat::lbool((uint8_t)0))) return SAT_VALUE_TRUE;
   if(res == (BVMinisat::lbool((uint8_t)2))) return SAT_VALUE_UNKNOWN;

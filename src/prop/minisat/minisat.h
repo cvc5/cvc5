@@ -42,7 +42,6 @@ public:
   static SatVariable     toSatVariable(Minisat::Var var);
   static Minisat::Lit    toMinisatLit(SatLiteral lit);
   static SatLiteral      toSatLiteral(Minisat::Lit lit);
-  static SatValue        toSatLiteralValue(bool res);
   static SatValue        toSatLiteralValue(Minisat::lbool res);
   static Minisat::lbool  toMinisatlbool(SatValue val);
   //(Commented because not in use) static bool            tobool(SatValue val);

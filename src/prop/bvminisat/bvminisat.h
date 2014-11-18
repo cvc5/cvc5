@@ -108,7 +108,6 @@ public:
   static SatVariable     toSatVariable(BVMinisat::Var var);
   static BVMinisat::Lit    toMinisatLit(SatLiteral lit);
   static SatLiteral      toSatLiteral(BVMinisat::Lit lit);
-  static SatValue toSatLiteralValue(bool res);
   static SatValue toSatLiteralValue(BVMinisat::lbool res);
 
   static void  toMinisatClause(SatClause& clause, BVMinisat::vec<BVMinisat::Lit>& minisat_clause);

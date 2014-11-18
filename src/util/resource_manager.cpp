@@ -184,10 +184,10 @@ void ResourceManager::spendResource() throw (UnsafeInterruptException) {
       Trace("limit") << "ResourceManager::spendResource: elapsed time" << d_cumulativeTimer.elapsed() << std::endl;
     }
 
-    if (smt::smtEngineInScope()) {
-      theory::Rewriter::clearCaches();
-    }
     if (d_isHardLimit) {
+      if (smt::smtEngineInScope()) {
+	theory::Rewriter::clearCaches();
+      }
       throw UnsafeInterruptException();
     }
 
