@@ -103,7 +103,7 @@ public:
   vars_iterator beginVars(); 
   vars_iterator endVars(); 
 
-  Node getVarValue(TNode var); 
+  Node getVarValue(TNode var, bool fullModel); 
 
 };
 

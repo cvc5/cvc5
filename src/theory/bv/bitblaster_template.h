@@ -447,8 +447,10 @@ Node TBitblaster<T>::getTermModel(TNode node, bool fullModel) {
     // if it is a leaf may ask for fullModel
     value = getModelFromSatSolver(node, fullModel); 
     Debug("bv-equality-status")<< "TLazyBitblaster::getTermModel from VarValue" << node <<" => " << value <<"\n";
-    Assert (!value.isNull()); 
-    d_modelCache[node] = value;
+    Assert ((fullModel && !value.isNull() && value.isConst()) || !fullModel); 
+    if (!value.isNull()) {
+      d_modelCache[node] = value;
+    }
     return value;
   }
   Assert (node.getType().isBitVector());

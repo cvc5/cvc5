@@ -491,8 +491,9 @@ void TLazyBitblaster::clearSolver() {
   d_explanations = new(true) ExplanationMap(d_ctx);
   d_bbAtoms.clear();
   d_variables.clear();
-  d_termCache.clear(); 
+  d_termCache.clear();
   
+  invalidateModelCache();  
   // recreate sat solver
   d_satSolver = prop::SatSolverFactory::createMinisat(d_ctx);
   d_cnfStream = new prop::TseitinCnfStream(d_satSolver,

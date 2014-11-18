@@ -695,17 +695,22 @@ void AlgebraicSolver::collectModelInfo(TheoryModel* model, bool fullModel) {
   Debug("bitvector-model") << "Model:\n";
   for (BVQuickCheck::vars_iterator it = d_quickSolver->beginVars(); it != d_quickSolver->endVars(); ++it) {
     TNode var = *it;
-    Node value = d_quickSolver->getVarValue(var);
-    Debug("bitvector-model") << "   " << var << " => " << value << "\n";
-    Assert (value.getKind() == kind::CONST_BITVECTOR); 
-    d_modelMap->addSubstitution(var, value); 
+    Node value = d_quickSolver->getVarValue(var, true);
+    Assert (!value.isNull() || !fullModel);
+
+    // may be a shared term that did not appear in the current assertions
+    if (!value.isNull()) {
+      Debug("bitvector-model") << "   " << var << " => " << value << "\n";
+      Assert (value.getKind() == kind::CONST_BITVECTOR); 
+      d_modelMap->addSubstitution(var, value);
+    }
   }
 
   Debug("bitvector-model") << "Final Model:\n";
   for (unsigned i = 0; i < variables.size(); ++i) {
     TNode current = values[i];
     TNode subst = Rewriter::rewrite(d_modelMap->apply(current));
-    Debug("bitvector-model") << "   " << variables[i] << " => " << subst << "\n"; 
+    Debug("bitvector-model") << "AlgebraicSolver:   " << variables[i] << " => " << subst << "\n"; 
     // Doesn't have to be constant as it may be irrelevant
     // Assert (subst.getKind() == kind::CONST_BITVECTOR); 
     model->assertEquality(variables[i], subst, true);
