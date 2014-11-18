@@ -44,7 +44,8 @@ TESTS =	\
 	ARI176e1.smt2 \
         bi-artm-s.smt2 \
 	simp-typ-test.smt2 \
-	macros-int-real.smt2
+	macros-int-real.smt2 \
+	stream-x2014-09-18-unsat.smt2
 
 # regression can be solved with --finite-model-find --fmf-inst-engine
 # set3.smt2

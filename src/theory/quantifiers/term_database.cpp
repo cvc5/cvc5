@@ -398,9 +398,11 @@ void TermDb::reset( Theory::Effort effort ){
     if( !it->second.empty() ){
       for( unsigned i=0; i<it->second.size(); i++ ){
         Node n = it->second[i];
-        computeModelBasisArgAttribute( n );
         if( hasTermCurrent( n ) ){
           if( !n.getAttribute(NoMatchAttribute()) ){
+            if( options::finiteModelFind() ){
+              computeModelBasisArgAttribute( n );
+            }
             computeArgReps( n );
             if( !d_func_map_trie[ it->first ].addTerm( n, d_arg_reps[n] ) ){
               NoMatchAttribute nma;

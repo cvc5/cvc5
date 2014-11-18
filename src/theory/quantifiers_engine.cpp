@@ -295,13 +295,15 @@ void QuantifiersEngine::check( Theory::Effort e ){
       return;
     }
 
+    Trace("quant-engine-debug2") << "Reset term db..." << std::endl;
     d_term_db->reset( e );
     d_eq_query->reset();
     if( d_rel_dom ){
       d_rel_dom->reset();
     }
     d_model->reset_round();
-    for( int i=0; i<(int)d_modules.size(); i++ ){
+    for( unsigned i=0; i<d_modules.size(); i++ ){
+      Trace("quant-engine-debug2") << "Reset " << d_modules[i]->identify().c_str() << std::endl;
       d_modules[i]->reset_round( e );
     }
     Trace("quant-engine-debug") << "Done resetting all modules." << std::endl;
@@ -333,7 +335,7 @@ void QuantifiersEngine::check( Theory::Effort e ){
       }
       if( success ){
         //check each module
-        for( int i=0; i<(int)qm.size(); i++ ){
+        for( unsigned i=0; i<qm.size(); i++ ){
           Trace("quant-engine-debug") << "Check " << qm[i]->identify().c_str() << " at effort " << quant_e << "..." << std::endl;
           qm[i]->check( e, quant_e );
         }
