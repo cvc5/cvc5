@@ -26,7 +26,8 @@ namespace sets {
 class NormalForm {
 public:
 
-  static Node elementsToSet(std::set<TNode> elements, TypeNode setType)
+  template<bool ref_count>
+  static Node elementsToSet(std::set<NodeTemplate<ref_count> > elements, TypeNode setType)
   {
     NodeManager* nm = NodeManager::currentNM();
 
@@ -41,6 +42,63 @@ public:
       }
       return cur;
     }
+  }
+
+  static bool checkNormalConstant(TNode n) {
+    Debug("sets-checknormal") << "[sets-checknormal] checkNormal " << n << " :" << std::endl;
+    if(n.getKind() == kind::EMPTYSET) {
+      return true;
+    } else if(n.getKind() == kind::SINGLETON) {
+      return n[0].isConst();
+    } else if(n.getKind() == kind::UNION) {
+
+      // assuming (union ... (union {SmallestNodeID} {BiggerNodeId}) ... {BiggestNodeId})
+
+      // store BiggestNodeId in prvs
+      if(n[1].getKind() != kind::SINGLETON) return false;
+      if( !n[1][0].isConst() ) return false;
+      Debug("sets-checknormal") << "[sets-checknormal]              frst element = " << n[1][0] << " " << n[1][0].getId() << std::endl;
+      TNode prvs = n[1][0];
+      n = n[0];
+
+      // check intermediate nodes
+      while(n.getKind() == kind::UNION) {
+	if(n[1].getKind() != kind::SINGLETON) return false;
+	if( !n[1].isConst() ) return false;
+	Debug("sets-checknormal") << "[sets-checknormal]              element = " << n[1][0] << " " << n[1][0].getId() << std::endl;
+	if( n[1][0] >= prvs ) return false;
+	TNode prvs = n[1][0];
+	n = n[0];
+      }
+
+      // check SmallestNodeID is smallest
+      if(n.getKind() != kind::SINGLETON) return false;
+      if( !n[0].isConst() ) return false;
+      Debug("sets-checknormal") << "[sets-checknormal]              lst element = " << n[0] << " " << n[0].getId() << std::endl;
+      if( n[0] >= prvs ) return false;
+
+      // we made it
+      return true;
+
+    } else {
+      return false;
+    }
+  }
+
+  static std::set<Node> getElementsFromNormalConstant(TNode n) {
+    Assert(n.isConst());
+    std::set<Node> ret;
+    if(n.getKind() == kind::EMPTYSET) {
+      return ret;
+    }
+    while(n.getKind() == kind::UNION) {
+      Assert(n[1].getKind() == kind::SINGLETON);
+      ret.insert(ret.begin(), n[1][0]);
+      n = n[0];
+    }
+    Assert(n.getKind() == kind::SINGLETON);
+    ret.insert(n[0]);
+    return ret;
   }
 
 };

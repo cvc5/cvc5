@@ -19,6 +19,8 @@
 #ifndef __CVC4__THEORY__SETS__THEORY_SETS_TYPE_RULES_H
 #define __CVC4__THEORY__SETS__THEORY_SETS_TYPE_RULES_H
 
+#include "theory/sets/normal_form.h"
+
 namespace CVC4 {
 namespace theory {
 namespace sets {
@@ -67,7 +69,11 @@ struct SetsBinaryOperatorTypeRule {
     Assert(n.getKind() == kind::UNION ||
            n.getKind() == kind::INTERSECTION ||
            n.getKind() == kind::SETMINUS);
-    return n[0].isConst() && n[1].isConst();
+    if(n.getKind() == kind::UNION) {
+      return NormalForm::checkNormalConstant(n);
+    } else {
+      return false;
+    }
   }
 };/* struct SetUnionTypeRule */
 
@@ -154,7 +160,7 @@ struct InsertTypeRule {
 
   inline static bool computeIsConst(NodeManager* nodeManager, TNode n) {
     Assert(n.getKind() == kind::INSERT);
-    return n[0].isConst() && n[1].isConst();
+    return false;
   }
 };/* struct InsertTypeRule */
 
@@ -162,7 +168,8 @@ struct InsertTypeRule {
 struct SetsProperties {
   inline static Cardinality computeCardinality(TypeNode type) {
     Assert(type.getKind() == kind::SET_TYPE);
-    Cardinality elementCard = type[0].getCardinality();
+    Cardinality elementCard = 2;
+    elementCard ^= type[0].getCardinality();
     return elementCard;
   }
 

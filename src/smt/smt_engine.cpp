@@ -1029,7 +1029,10 @@ void SmtEngine::setDefaults() {
 
   // Set the options for the theoryOf
   if(!options::theoryOfMode.wasSetByUser()) {
-    if(d_logic.isSharingEnabled() && !d_logic.isTheoryEnabled(THEORY_BV) && !d_logic.isTheoryEnabled(THEORY_STRINGS)) {
+    if(d_logic.isSharingEnabled() &&
+       !d_logic.isTheoryEnabled(THEORY_BV) &&
+       !d_logic.isTheoryEnabled(THEORY_STRINGS) &&
+       !d_logic.isTheoryEnabled(THEORY_SETS) ) {
       Trace("smt") << "setting theoryof-mode to term-based" << endl;
       options::theoryOfMode.set(THEORY_OF_TERM_BASED);
     }
@@ -1057,7 +1060,10 @@ void SmtEngine::setDefaults() {
   } else {
     Theory::setUninterpretedSortOwner(THEORY_UF);
   }
+
   // Turn on ite simplification for QF_LIA and QF_AUFBV
+  // WARNING: These checks match much more than just QF_AUFBV and
+  // QF_LIA logics. --K [2014/10/15]
   if(! options::doITESimp.wasSetByUser()) {
     bool qf_aufbv = !d_logic.isQuantified() &&
       d_logic.isTheoryEnabled(THEORY_ARRAY) &&

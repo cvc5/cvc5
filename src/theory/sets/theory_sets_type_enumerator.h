@@ -97,6 +97,7 @@ public:
     Node n = NormalForm::elementsToSet(std::set<TNode>(elements.begin(), elements.end()),
                                        getType());
 
+    Assert(n.isConst());
     Assert(n == Rewriter::rewrite(n));
 
     return n;
