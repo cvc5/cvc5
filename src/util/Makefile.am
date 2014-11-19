@@ -162,6 +162,7 @@ EXTRA_DIST = \
 	chain.i \
 	regexp.i \
 	resource_manager.i \
+	unsafe_interrupt_exception.i \
 	proof.i \
 	unsat_core.i
 
