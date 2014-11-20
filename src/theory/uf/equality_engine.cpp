@@ -308,22 +308,6 @@ void EqualityEngine::addTermInternal(TNode t, bool isOperator) {
     // We set this here as this only applies to actual terms, not the
     // intermediate application terms
     d_isBoolean[result] = true;
-  } else if (d_isConstant[result]) {
-    // Non-Boolean constants are trigger terms for all tags
-    EqualityNodeId tId = getNodeId(t);
-    // Setup the new set 
-    Theory::Set newSetTags = 0;
-    EqualityNodeId newSetTriggers[THEORY_LAST];
-    unsigned newSetTriggersSize = THEORY_LAST;
-    for (TheoryId currentTheory = THEORY_FIRST; currentTheory != THEORY_LAST; ++ currentTheory) {
-      newSetTags = Theory::setInsert(currentTheory, newSetTags);
-      newSetTriggers[currentTheory] = tId;
-    }
-    // Add it to the list for backtracking
-    d_triggerTermSetUpdates.push_back(TriggerSetUpdate(tId, null_set_id));
-    d_triggerTermSetUpdatesSize = d_triggerTermSetUpdatesSize + 1;
-    // Mark the the new set as a trigger
-    d_nodeIndividualTrigger[tId] = newTriggerTermSet(newSetTags, newSetTriggers, newSetTriggersSize);
   }
 
   // If this is not an internal node, add it to the master

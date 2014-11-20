@@ -2,8 +2,8 @@
 /*! \file theory_strings.cpp
  ** \verbatim
  ** Original author: Tianyi Liang
- ** Major contributors: none
- ** Minor contributors (to current version): Andrew Reynolds, Martin Brain <>, Morgan Deters
+ ** Major contributors: Andrew Reynolds
+ ** Minor contributors (to current version): Martin Brain <>, Morgan Deters
  ** This file is part of the CVC4 project.
  ** Copyright (c) 2009-2014  New York University and The University of Iowa
  ** See the file COPYING in the top-level source directory for licensing
@@ -45,7 +45,6 @@ TheoryStrings::TheoryStrings(context::Context* c, context::UserContext* u, Outpu
   d_loop_antec(u),
   d_length_intro_vars(u),
   d_registed_terms_cache(u),
-  d_length_nodes(u),
   d_length_inst(u),
   d_str_pos_ctn(c),
   d_str_neg_ctn(c),
@@ -156,11 +155,11 @@ Node TheoryStrings::getLengthTerm( Node t ) {
 
 Node TheoryStrings::getLength( Node t ) {
   Node retNode;
-  if(t.isConst()) {
-    retNode = NodeManager::currentNM()->mkNode( kind::STRING_LENGTH, t );
-  } else {
+  //if(t.isConst()) {
+  //  retNode = NodeManager::currentNM()->mkNode( kind::STRING_LENGTH, t );
+  //} else {
     retNode = NodeManager::currentNM()->mkNode( kind::STRING_LENGTH, getLengthTerm( t ) );
-  }
+  //}
   return Rewriter::rewrite( retNode );
 }
 
@@ -217,7 +216,9 @@ void TheoryStrings::explain(TNode literal, std::vector<TNode>& assumptions){
   unsigned ps = assumptions.size();
   std::vector< TNode > tassumptions;
   if (atom.getKind() == kind::EQUAL || atom.getKind() == kind::IFF) {
-    d_equalityEngine.explainEquality(atom[0], atom[1], polarity, tassumptions);
+    if( atom[0]!=atom[1] ){
+      d_equalityEngine.explainEquality(atom[0], atom[1], polarity, tassumptions);
+    }
   } else {
     d_equalityEngine.explainPredicate(atom, polarity, tassumptions);
   }
@@ -607,6 +608,7 @@ void TheoryStrings::check(Effort e) {
 
   bool addedLemma = false;
   if( e == EFFORT_FULL && !d_conflict && !d_valuation.needCheck() ) {
+    Trace("strings-check") << "Theory of strings full effort check " << std::endl;
     //addedLemma = checkSimple();
     //Trace("strings-process") << "Done simple checking, addedLemma = " << addedLemma << ", d_conflict = " << d_conflict << std::endl;
     //if( !addedLemma ) {
@@ -629,6 +631,7 @@ void TheoryStrings::check(Effort e) {
         }
       }
     //}
+    Trace("strings-check") << "Theory of strings done full effort check " << addedLemma << " " << d_conflict << std::endl;
   }
   if(!d_conflict && !d_terms_cache.empty()) {
     appendTermLemma();
@@ -707,6 +710,7 @@ void TheoryStrings::eqNotifyPreMerge(TNode t1, TNode t2){
         e1->d_normalized_length.set( e2->d_normalized_length );
       }
     }
+    /*
     if( hasTerm( d_zero ) ){
       Node leqc;
       if( areEqual(d_zero, t1) ){
@@ -735,6 +739,7 @@ void TheoryStrings::eqNotifyPreMerge(TNode t1, TNode t2){
         }
       }
     }
+    */
 }
 
 /** called when two equivalance classes have merged */
@@ -755,7 +760,7 @@ void TheoryStrings::assertPendingFact(Node fact, Node exp) {
   Trace("strings-pending") << "Assert pending fact : " << fact << " from " << exp << std::endl;
   bool polarity = fact.getKind() != kind::NOT;
   TNode atom = polarity ? fact : fact[0];
-  Assert(atom.getKind() != kind::OR, "Infer error: a split."); 
+  Assert(atom.getKind() != kind::OR, "Infer error: a split.");
   if (atom.getKind() == kind::EQUAL) {
     for( unsigned j=0; j<2; j++ ) {
       if( !d_equalityEngine.hasTerm( atom[j] ) ) {
@@ -1209,7 +1214,9 @@ bool TheoryStrings::processNEqc(std::vector< std::vector< Node > > &normal_forms
         std::vector< Node > curr_exp;
         curr_exp.insert(curr_exp.end(), normal_forms_exp[i].begin(), normal_forms_exp[i].end() );
         curr_exp.insert(curr_exp.end(), normal_forms_exp[j].begin(), normal_forms_exp[j].end() );
-        curr_exp.push_back( NodeManager::currentNM()->mkNode( kind::EQUAL, normal_form_src[i], normal_form_src[j] ) );
+        if( normal_form_src[i]!=normal_form_src[j] ){
+          curr_exp.push_back( normal_form_src[i].eqNode( normal_form_src[j] ) );
+        }
 
         //process the reverse direction first (check for easy conflicts and inferences)
         if( processReverseNEq( normal_forms, normal_form_src, curr_exp, i, j ) ){
@@ -1423,7 +1430,7 @@ bool TheoryStrings::processSimpleNEq( std::vector< std::vector< Node > > &normal
       if(areEqual(normal_forms[i][index_i], normal_forms[j][index_j])) {
         Trace("strings-solve-debug") << "Simple Case 1 : strings are equal" << std::endl;
         //terms are equal, continue
-        if( normal_forms[i][index_i]!=normal_forms[j][index_j] ) {
+        if( normal_forms[i][index_i]!=normal_forms[j][index_j] ){
           Node eq = normal_forms[i][index_i].eqNode(normal_forms[j][index_j]);
           Trace("strings-solve-debug") << "Add to explanation : " << eq << std::endl;
           curr_exp.push_back(eq);
@@ -1579,7 +1586,7 @@ bool TheoryStrings::normalizeEquivalenceClass( Node eqc, std::vector< Node > & v
         nf.insert( nf.end(), normal_forms[0].begin(), normal_forms[0].end() );
         nf_exp.insert( nf_exp.end(), normal_forms_exp[0].begin(), normal_forms_exp[0].end() );
         if( eqc!=normal_form_src[0] ){
-          nf_exp.push_back( NodeManager::currentNM()->mkNode( kind::EQUAL, eqc, normal_form_src[0] ) );
+          nf_exp.push_back( eqc.eqNode( normal_form_src[0] ) );
         }
         Trace("strings-solve-debug2") << "just take the first normal form ... done" << std::endl;
       }
@@ -1844,38 +1851,32 @@ bool TheoryStrings::registerTerm( Node n ) {
       }
       if( n.getKind()!=kind::STRING_CONCAT && n.getKind()!=kind::CONST_STRING ) {
         if( d_length_intro_vars.find(n)==d_length_intro_vars.end() ) {
-          Node n_len = NodeManager::currentNM()->mkNode( kind::STRING_LENGTH, n);
-          Node n_len_eq_z = n_len.eqNode( d_zero );
-          n_len_eq_z = Rewriter::rewrite( n_len_eq_z );
-          Node n_len_geq_zero = NodeManager::currentNM()->mkNode( kind::OR, n_len_eq_z,
-                      NodeManager::currentNM()->mkNode( kind::GT, n_len, d_zero) );
-          Trace("strings-lemma") << "Strings::Lemma LENGTH >= 0 : " << n_len_geq_zero << std::endl;
+          sendLengthLemma( n );
           ++(d_statistics.d_splits);
-          d_out->lemma(n_len_geq_zero);
-          d_out->requirePhase( n_len_eq_z, true );
-          d_length_intro_vars.insert(n);
         }
       } else {
-        if( d_length_nodes.find(n)==d_length_nodes.end() ) {
-          Node sk = mkSkolemS("lsym", 2);
-          Node eq = Rewriter::rewrite( sk.eqNode(n) );
-          Trace("strings-lemma") << "Strings::Lemma LENGTH Term : " << eq << std::endl;
-          d_out->lemma(eq);
-          Node skl = NodeManager::currentNM()->mkNode( kind::STRING_LENGTH, sk );
-          Node lsum;
-          if( n.getKind() == kind::STRING_CONCAT ) {
-            std::vector<Node> node_vec;
-            for( unsigned i=0; i<n.getNumChildren(); i++ ) {
-              Node lni = NodeManager::currentNM()->mkNode( kind::STRING_LENGTH, n[i] );
-              node_vec.push_back(lni);
-            }
-            lsum = NodeManager::currentNM()->mkNode( kind::PLUS, node_vec );
-          } else if( n.getKind() == kind::CONST_STRING ) {
-            lsum = NodeManager::currentNM()->mkConst( ::CVC4::Rational( n.getConst<String>().size() ) );
+        Node sk = mkSkolemS("lsym", 2);
+        Node eq = Rewriter::rewrite( sk.eqNode(n) );
+        Trace("strings-lemma") << "Strings::Lemma LENGTH Term : " << eq << std::endl;
+        d_out->lemma(eq);
+        Node skl = NodeManager::currentNM()->mkNode( kind::STRING_LENGTH, sk );
+        Node lsum;
+        if( n.getKind() == kind::STRING_CONCAT ) {
+          std::vector<Node> node_vec;
+          for( unsigned i=0; i<n.getNumChildren(); i++ ) {
+            Node lni = NodeManager::currentNM()->mkNode( kind::STRING_LENGTH, n[i] );
+            node_vec.push_back(lni);
           }
-          Node ceq = Rewriter::rewrite( skl.eqNode( lsum ) );
-          Trace("strings-lemma") << "Strings::Lemma LENGTH : " << ceq << std::endl;
-          d_out->lemma(ceq);
+          lsum = NodeManager::currentNM()->mkNode( kind::PLUS, node_vec );
+        } else if( n.getKind() == kind::CONST_STRING ) {
+          lsum = NodeManager::currentNM()->mkConst( ::CVC4::Rational( n.getConst<String>().size() ) );
+        }
+        Node ceq = Rewriter::rewrite( skl.eqNode( lsum ) );
+        Trace("strings-lemma") << "Strings::Lemma LENGTH : " << ceq << std::endl;
+        d_out->lemma(ceq);
+        //also add this to the equality engine
+        if( n.getKind() == kind::CONST_STRING ) {
+          d_equalityEngine.assertEquality( ceq, true, d_true );
         }
       }
       d_registed_terms_cache.insert(n);
@@ -1926,6 +1927,20 @@ void TheoryStrings::sendSplit( Node a, Node b, const char * c, bool preq ) {
   ++(d_statistics.d_splits);
 }
 
+
+void TheoryStrings::sendLengthLemma( Node n ){
+  Node n_len = NodeManager::currentNM()->mkNode( kind::STRING_LENGTH, n);
+  //Node n_len_eq_z = n_len.eqNode( d_zero );
+  //registerTerm( d_emptyString );
+  Node n_len_eq_z = n.eqNode( d_emptyString );
+  n_len_eq_z = Rewriter::rewrite( n_len_eq_z );
+  Node n_len_geq_zero = NodeManager::currentNM()->mkNode( kind::OR, n_len_eq_z,
+              NodeManager::currentNM()->mkNode( kind::GT, n_len, d_zero) );
+  Trace("strings-lemma") << "Strings::Lemma LENGTH >= 0 : " << n_len_geq_zero << std::endl;
+  d_out->lemma(n_len_geq_zero);
+  d_out->requirePhase( n_len_eq_z, true );
+}
+
 Node TheoryStrings::mkConcat( Node n1, Node n2 ) {
   Node ret = Rewriter::rewrite( NodeManager::currentNM()->mkNode( kind::STRING_CONCAT, n1, n2 ) );
   collectTerm(ret);
@@ -1948,17 +1963,11 @@ Node TheoryStrings::mkConcat( const std::vector< Node >& c ) {
 //isLenSplit: 0-yes, 1-no, 2-ignore
 Node TheoryStrings::mkSkolemS( const char *c, int isLenSplit ) {
   Node n = NodeManager::currentNM()->mkSkolem( c, NodeManager::currentNM()->stringType(), "string sko" );
+  d_length_intro_vars.insert(n);
   ++(d_statistics.d_new_skolems);
   if(isLenSplit == 0) {
-    Node n_len = NodeManager::currentNM()->mkNode( kind::STRING_LENGTH, n);
-    Node n_len_eq_z = n_len.eqNode( d_zero );
-    n_len_eq_z = Rewriter::rewrite( n_len_eq_z );
-    Node n_len_geq_zero = NodeManager::currentNM()->mkNode( kind::OR, n_len_eq_z,
-                NodeManager::currentNM()->mkNode( kind::GT, n_len, d_zero) );
-    Trace("strings-lemma") << "Strings::Lemma LENGTH >= 0 : " << n_len_geq_zero << std::endl;
+    sendLengthLemma( n );
     ++(d_statistics.d_splits);
-    d_out->lemma(n_len_geq_zero);
-    d_out->requirePhase( n_len_eq_z, true );
   } else if(isLenSplit == 1) {
     d_equalityEngine.assertEquality(n.eqNode(d_emptyString), false, d_true);
     Node len_n_gt_z = NodeManager::currentNM()->mkNode(kind::GT,
@@ -1966,7 +1975,6 @@ Node TheoryStrings::mkSkolemS( const char *c, int isLenSplit ) {
     Trace("strings-lemma") << "Strings::Lemma SK-NON-ZERO : " << len_n_gt_z << std::endl;
     d_out->lemma(len_n_gt_z);
   }
-  d_length_intro_vars.insert(n);
   return n;
 }
 
@@ -1975,6 +1983,7 @@ void TheoryStrings::collectTerm( Node n ) {
     d_terms_cache.push_back(n);
   }
 }
+
 
 void TheoryStrings::appendTermLemma() {
 	for(std::vector< Node >::const_iterator it=d_terms_cache.begin();
@@ -2057,10 +2066,9 @@ void TheoryStrings::getConcatVec( Node n, std::vector< Node >& c ) {
     c.push_back( n );
   }
 }
-
+/*
 bool TheoryStrings::checkSimple() {
   bool addedLemma = false;
-
   eq::EqClassesIterator eqcs_i = eq::EqClassesIterator( &d_equalityEngine );
   while( !eqcs_i.isFinished() ) {
     Node eqc = (*eqcs_i);
@@ -2115,6 +2123,7 @@ bool TheoryStrings::checkSimple() {
   }
   return addedLemma;
 }
+  */
 
 bool TheoryStrings::checkNormalForms() {
   Trace("strings-process") << "Normalize equivalence classes...." << std::endl;
@@ -2228,6 +2237,7 @@ bool TheoryStrings::checkNormalForms() {
   } while ( !d_conflict && d_lemma_cache.empty() && addedFact );
 
   //process disequalities between equivalence classes
+  Trace("strings-process") << "Check disequalities..." << std::endl;
   checkDeqNF();
 
   Trace("strings-solve") << "Finished check normal forms, #lemmas = " << d_lemma_cache.size() << ", conflict = " << d_conflict << std::endl;
@@ -2909,7 +2919,7 @@ bool TheoryStrings::checkPosContains() {
         if(d_pos_ctn_cached.find(atom) == d_pos_ctn_cached.end()) {
           Node sk1 = mkSkolemS( "sc1" );
           Node sk2 = mkSkolemS( "sc2" );
-          Node eq = Rewriter::rewrite( x.eqNode(  mkConcat( sk1, s, sk2 ) ) );
+          Node eq = Rewriter::rewrite( x.eqNode( mkConcat( sk1, s, sk2 ) ) );
           sendLemma( atom, eq, "POS-INC" );
           addedLemma = true;
           d_pos_ctn_cached.insert( atom );

@@ -247,6 +247,10 @@ bool QuantifiersEngine::hasOwnership( Node q, QuantifiersModule * m ) {
 
 void QuantifiersEngine::check( Theory::Effort e ){
   CodeTimer codeTimer(d_time);
+  if( !getMasterEqualityEngine()->consistent() ){
+    Trace("quant-engine-debug") << "Master equality engine not consistent, return." << std::endl;
+    return;
+  }
   bool needsCheck = false;
   bool needsModel = false;
   bool needsFullModel = false;
@@ -280,10 +284,6 @@ void QuantifiersEngine::check( Theory::Effort e ){
     Trace("quant-engine-ee") << "Equality engine : " << std::endl;
     debugPrintEqualityEngine( "quant-engine-ee" );
 
-    if( !getMasterEqualityEngine()->consistent() ){
-      Trace("quant-engine") << "Master equality engine not consistent, return." << std::endl;
-      return;
-    }
     Trace("quant-engine-debug") << "Resetting all modules..." << std::endl;
     //reset relevant information
     d_conflict = false;

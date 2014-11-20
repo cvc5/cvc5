@@ -2,7 +2,7 @@
 /*! \file theory_strings.h
  ** \verbatim
  ** Original author: Tianyi Liang
- ** Major contributors: none
+ ** Major contributors: Andrew Reynolds
  ** Minor contributors (to current version): Martin Brain <>, Morgan Deters
  ** This file is part of the CVC4 project.
  ** Copyright (c) 2009-2014  New York University and The University of Iowa
@@ -209,7 +209,6 @@ private:
   std::map< Node, EqcInfo* > d_eqc_info;
   EqcInfo * getOrMakeEqcInfo( Node eqc, bool doMake = true );
   //maintain which concat terms have the length lemma instantiated
-  NodeSet d_length_nodes;
   NodeNodeMap d_length_inst;
 private:
   void mergeCstVec(std::vector< Node > &vec_strings);
@@ -240,7 +239,7 @@ private:
   //bool unrollStar( Node atom );
   Node mkRegExpAntec(Node atom, Node ant);
 
-  bool checkSimple();
+  //bool checkSimple();
   bool checkNormalForms();
   void checkDeqNF();
   bool checkLengthsEqc();
@@ -284,6 +283,7 @@ protected:
   void sendLemma( Node ant, Node conc, const char * c );
   void sendInfer( Node eq_exp, Node eq, const char * c );
   void sendSplit( Node a, Node b, const char * c, bool preq = true );
+  void sendLengthLemma( Node n );
   /** mkConcat **/
   inline Node mkConcat( Node n1, Node n2 );
   inline Node mkConcat( Node n1, Node n2, Node n3 );
