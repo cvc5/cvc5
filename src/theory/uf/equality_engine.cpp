@@ -311,17 +311,19 @@ void EqualityEngine::addTermInternal(TNode t, bool isOperator) {
   } else if (d_isConstant[result]) {
     // Non-Boolean constants are trigger terms for all tags
     EqualityNodeId tId = getNodeId(t);
-    d_newSetTags = 0;
-    d_newSetTriggersSize = THEORY_LAST;
+    // Setup the new set 
+    Theory::Set newSetTags = 0;
+    EqualityNodeId newSetTriggers[THEORY_LAST];
+    unsigned newSetTriggersSize = THEORY_LAST;
     for (TheoryId currentTheory = THEORY_FIRST; currentTheory != THEORY_LAST; ++ currentTheory) {
-      d_newSetTags = Theory::setInsert(currentTheory, d_newSetTags);
-      d_newSetTriggers[currentTheory] = tId;
+      newSetTags = Theory::setInsert(currentTheory, newSetTags);
+      newSetTriggers[currentTheory] = tId;
     }
     // Add it to the list for backtracking
     d_triggerTermSetUpdates.push_back(TriggerSetUpdate(tId, null_set_id));
     d_triggerTermSetUpdatesSize = d_triggerTermSetUpdatesSize + 1;
     // Mark the the new set as a trigger
-    d_nodeIndividualTrigger[tId] = newTriggerTermSet();
+    d_nodeIndividualTrigger[tId] = newTriggerTermSet(newSetTags, newSetTriggers, newSetTriggersSize);
   }
 
   // If this is not an internal node, add it to the master
@@ -662,8 +664,9 @@ bool EqualityEngine::merge(EqualityNode& class1, EqualityNode& class2, std::vect
       TriggerTermSet& class2triggers = getTriggerTermSet(class2triggerRef);
 
       // Initialize the merged set
-      d_newSetTags = Theory::setUnion(class1triggers.tags, class2triggers.tags);
-      d_newSetTriggersSize = 0;
+      Theory::Set newSetTags = Theory::setUnion(class1triggers.tags, class2triggers.tags);
+      EqualityNodeId newSetTriggers[THEORY_LAST];
+      unsigned newSetTriggersSize = 0;
 
       int i1 = 0;
       int i2 = 0;
@@ -678,15 +681,15 @@ bool EqualityEngine::merge(EqualityNode& class1, EqualityNode& class2, std::vect
       {
         if (tag1 < tag2) {
           // copy tag1
-          d_newSetTriggers[d_newSetTriggersSize++] = class1triggers.triggers[i1++];
+          newSetTriggers[newSetTriggersSize++] = class1triggers.triggers[i1++];
           tag1 = Theory::setPop(tags1);
         } else if (tag1 > tag2) {
           // copy tag2
-          d_newSetTriggers[d_newSetTriggersSize++] = class2triggers.triggers[i2++];
+          newSetTriggers[newSetTriggersSize++] = class2triggers.triggers[i2++];
           tag2 = Theory::setPop(tags2);
         } else {
           // copy tag1
-          EqualityNodeId tag1id = d_newSetTriggers[d_newSetTriggersSize++] = class1triggers.triggers[i1++];
+          EqualityNodeId tag1id = newSetTriggers[newSetTriggersSize++] = class1triggers.triggers[i1++];
           // since they are both tagged notify of merge
           if (d_performNotify) {
             EqualityNodeId tag2id = class2triggers.triggers[i2++];
@@ -706,7 +709,7 @@ bool EqualityEngine::merge(EqualityNode& class1, EqualityNode& class2, std::vect
         d_triggerTermSetUpdates.push_back(TriggerSetUpdate(class1Id, class1triggerRef));
         d_triggerTermSetUpdatesSize = d_triggerTermSetUpdatesSize + 1;
         // Mark the the new set as a trigger
-        d_nodeIndividualTrigger[class1Id] = newTriggerTermSet();
+        d_nodeIndividualTrigger[class1Id] = newTriggerTermSet(newSetTags, newSetTriggers, newSetTriggersSize);
       }
     }
   }
@@ -1580,36 +1583,41 @@ void EqualityEngine::addTriggerTerm(TNode t, TheoryId tag)
     Theory::Set tags = Theory::setInsert(tag);
     getDisequalities(!d_isConstant[classId], classId, tags, disequalitiesToNotify);
 
+    // Trigger data
+    Theory::Set newSetTags;
+    EqualityNodeId newSetTriggers[THEORY_LAST];
+    unsigned newSetTriggersSize;
+
     // Setup the data for the new set
     if (triggerSetRef != null_set_id) {
       // Get the existing set
       TriggerTermSet& triggerSet = getTriggerTermSet(triggerSetRef);
       // Initialize the new set for copy/insert
-      d_newSetTags = Theory::setInsert(tag, triggerSet.tags);
-      d_newSetTriggersSize = 0;
+      newSetTags = Theory::setInsert(tag, triggerSet.tags);
+      newSetTriggersSize = 0;
       // Copy into to new one, and insert the new tag/id
       unsigned i = 0;
-      Theory::Set tags = d_newSetTags;
+      Theory::Set tags = newSetTags;
       TheoryId current;
       while ((current = Theory::setPop(tags)) != THEORY_LAST) {
         // Remove from the tags
         tags = Theory::setRemove(current, tags);
         // Insert the id into the triggers
-        d_newSetTriggers[d_newSetTriggersSize++] =
+        newSetTriggers[newSetTriggersSize++] =
           current == tag ? eqNodeId : triggerSet.triggers[i++];
       }
     } else {
       // Setup a singleton
-      d_newSetTags = Theory::setInsert(tag);
-      d_newSetTriggers[0] = eqNodeId;
-      d_newSetTriggersSize = 1;
+      newSetTags = Theory::setInsert(tag);
+      newSetTriggers[0] = eqNodeId;
+      newSetTriggersSize = 1;
     }
 
     // Add it to the list for backtracking
     d_triggerTermSetUpdates.push_back(TriggerSetUpdate(classId, triggerSetRef));
     d_triggerTermSetUpdatesSize = d_triggerTermSetUpdatesSize + 1;
     // Mark the the new set as a trigger
-    d_nodeIndividualTrigger[classId] = triggerSetRef = newTriggerTermSet();
+    d_nodeIndividualTrigger[classId] = triggerSetRef = newTriggerTermSet(newSetTags, newSetTriggers, newSetTriggersSize);
 
     // Propagate trigger term disequalities we remembered
     Debug("equality::trigger") << d_name << "::eq::addTriggerTerm(" << t << ", " << tag << "): propagating " << disequalitiesToNotify.size() << " disequalities " << std::endl;
@@ -1682,9 +1690,9 @@ void EqualityEngine::getUseListTerms(TNode t, std::set<TNode>& output) {
   }
 }
 
-EqualityEngine::TriggerTermSetRef EqualityEngine::newTriggerTermSet() {
+EqualityEngine::TriggerTermSetRef EqualityEngine::newTriggerTermSet(Theory::Set newSetTags, EqualityNodeId* newSetTriggers, unsigned newSetTriggersSize) {
   // Size of the required set
-  size_t size = sizeof(TriggerTermSet) + d_newSetTriggersSize*sizeof(EqualityNodeId);
+  size_t size = sizeof(TriggerTermSet) + newSetTriggersSize*sizeof(EqualityNodeId);
   // Align the size
   size = (size + 7) & ~((size_t)7);
   // Reallocate if necessary
@@ -1698,9 +1706,9 @@ EqualityEngine::TriggerTermSetRef EqualityEngine::newTriggerTermSet() {
   d_triggerDatabaseSize = d_triggerDatabaseSize + size;
   // Copy the information
   TriggerTermSet& newSet = getTriggerTermSet(newTriggerSetRef);
-  newSet.tags = d_newSetTags;
-  for (unsigned i = 0; i < d_newSetTriggersSize; ++i) {
-    newSet.triggers[i] = d_newSetTriggers[i];
+  newSet.tags = newSetTags;
+  for (unsigned i = 0; i < newSetTriggersSize; ++i) {
+    newSet.triggers[i] = newSetTriggers[i];
   }
   // Return the new reference
   return newTriggerSetRef;

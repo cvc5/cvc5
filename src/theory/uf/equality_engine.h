@@ -554,15 +554,6 @@ private:
     }
   };/* struct EqualityEngine::TriggerTermSet */
 
-  /** Internal tags for creating a new set */
-  Theory::Set d_newSetTags;
-
-  /** Internal triggers for creating a new set */
-  EqualityNodeId d_newSetTriggers[THEORY_LAST];
-
-  /** Size of the internal triggers array */
-  unsigned d_newSetTriggersSize;
-
   /** The information about trigger terms is stored in this easily maintained memory. */
   char* d_triggerDatabase;
 
@@ -576,7 +567,7 @@ private:
   static const TriggerTermSetRef null_set_id = (TriggerTermSetRef)(-1);
 
   /** Create new trigger term set based on the internally set information */
-  TriggerTermSetRef newTriggerTermSet();
+  TriggerTermSetRef newTriggerTermSet(Theory::Set newSetTags, EqualityNodeId* newSetTriggers, unsigned newSetTriggersSize);
 
   /** Get the trigger set give a reference */
   TriggerTermSet& getTriggerTermSet(TriggerTermSetRef ref) {
