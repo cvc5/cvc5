@@ -238,18 +238,18 @@ options::OptionsHolder::OptionsHolder() : ${all_modules_defaults}
 {
 }
 
-#line 234 "${template}"
+#line 241 "${template}"
 
 static const std::string mostCommonOptionsDescription = "\
 Most commonly-used CVC4 options:${common_documentation}";
 
-#line 239 "${template}"
+#line 246 "${template}"
 
 static const std::string optionsDescription = mostCommonOptionsDescription + "\n\
 \n\
 Additional CVC4 options:${remaining_documentation}";
 
-#line 245 "${template}"
+#line 252 "${template}"
 
 static const std::string optionsFootnote = "\n\
 [*] Each of these options has a --no-OPTIONNAME variant, which reverses the\n\
@@ -326,7 +326,7 @@ static struct option cmdlineOptions[] = {${all_modules_long_options}
   { NULL, no_argument, NULL, '\0' }
 };/* cmdlineOptions */
 
-#line 322 "${template}"
+#line 329 "${template}"
 
 static void preemptGetopt(int& argc, char**& argv, const char* opt) {
   const size_t maxoptlen = 128;
@@ -519,7 +519,7 @@ std::vector<std::string> Options::parseOptions(int argc, char* main_argv[]) thro
     switch(c) {
 ${all_modules_option_handlers}
 
-#line 515 "${template}"
+#line 522 "${template}"
 
     case ':':
       // This can be a long or short option, and the way to get at the
@@ -588,7 +588,7 @@ std::string Options::suggestCommandLineOptions(const std::string& optionName) th
 
 static const char* smtOptions[] = {
   ${all_modules_smt_options},
-#line 584 "${template}"
+#line 591 "${template}"
   NULL
 };/* smtOptions[] */
 
@@ -610,7 +610,7 @@ SExpr Options::getOptions() const throw() {
 
   ${all_modules_get_options}
 
-#line 606 "${template}"
+#line 613 "${template}"
 
   return SExpr(opts);
 }
