@@ -84,6 +84,12 @@ struct QuantifierInstPatternTypeRule {
   inline static TypeNode computeType(NodeManager* nodeManager, TNode n, bool check)
     throw(TypeCheckingExceptionPrivate) {
     Assert(n.getKind() == kind::INST_PATTERN );
+    if( check ){
+      TypeNode tn = n[0].getType(check);
+      if( tn.isFunction() ){
+        throw TypeCheckingExceptionPrivate(n[0], "Pattern must be a list of fully-applied terms.");
+      }
+    }
     return nodeManager->instPatternType();
   }
 };/* struct QuantifierInstPatternTypeRule */
