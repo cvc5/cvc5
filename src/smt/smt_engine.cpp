@@ -1319,12 +1319,19 @@ void SmtEngine::setDefaults() {
     if( !options::quantConflictFind.wasSetByUser() ){
       options::quantConflictFind.set( false );
     }
-    //for finite model finding
     if( ! options::instWhenMode.wasSetByUser()){
       //instantiate only on last call
       if( options::eMatching() ){
         Trace("smt") << "setting inst when mode to LAST_CALL" << endl;
         options::instWhenMode.set( quantifiers::INST_WHEN_LAST_CALL );
+      }
+    }
+    if( options::mbqiMode()==quantifiers::MBQI_ABS ){
+      if( !options::preSkolemQuant.wasSetByUser() ){
+        options::preSkolemQuant.set( true );
+      }
+      if( !options::fmfOneInstPerRound.wasSetByUser() ){
+        options::fmfOneInstPerRound.set( true );
       }
     }
   }

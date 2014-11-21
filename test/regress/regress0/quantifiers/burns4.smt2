@@ -1,3 +1,5 @@
+; COMMAND-LINE: --full-saturate-quant
+; EXPECT: unsat
 (set-logic AUFLIA)
 (set-info :source | Burns mutual exclusion protocol. This is a benchmark of the haRVey theorem prover. It was translated to SMT-LIB by Leonardo  de Moura |)
 (set-info :smt-lib-version 2.0)
