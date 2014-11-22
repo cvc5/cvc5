@@ -172,10 +172,10 @@ unsigned long ResourceManager::getTimeRemaining() const {
 
 void ResourceManager::spendResource() throw (UnsafeInterruptException) {
   ++d_spendResourceCalls;
+  ++d_cumulativeResourceUsed;
   if (!d_on) return;
 
   Debug("limit") << "ResourceManager::spendResource()" << std::endl;
-  ++d_cumulativeResourceUsed;
   ++d_thisCallResourceUsed;
   if(out()) {
     Trace("limit") << "ResourceManager::spendResource: interrupt!" << std::endl;
