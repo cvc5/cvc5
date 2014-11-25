@@ -472,9 +472,9 @@ Node QuantifiersEngine::getNextDecisionRequest(){
   return Node::null();
 }
 
-void QuantifiersEngine::addTermToDatabase( Node n, bool withinQuant ){
+void QuantifiersEngine::addTermToDatabase( Node n, bool withinQuant, bool withinInstClosure ){
   std::set< Node > added;
-  getTermDatabase()->addTerm( n, added, withinQuant );
+  getTermDatabase()->addTerm( n, added, withinQuant, withinInstClosure );
   //maybe have triggered instantiations if we are doing eager instantiation
   if( options::eagerInstQuant() ){
     flushLemmas();

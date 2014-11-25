@@ -248,7 +248,7 @@ void CegInstantiation::checkCegConjecture( CegConjecture * conj ) {
       for( unsigned i=0; i<conj->d_candidates.size(); i++ ){
         Node t = getModelTerm( conj->d_candidates[i] );
         model_terms.push_back( t );
-        Trace("cegqi-engine") << t << " ";
+        Trace("cegqi-engine") << conj->d_candidates[i] << " -> " << t << " ";
       }
       Trace("cegqi-engine") << std::endl;
       d_quantEngine->addInstantiation( q, model_terms, false );
@@ -279,7 +279,7 @@ bool CegInstantiation::getModelValues( std::vector< Node >& n, std::vector< Node
   for( unsigned i=0; i<n.size(); i++ ){
     Node nv = getModelValue( n[i] );
     v.push_back( nv );
-    Trace("cegqi-engine") << nv << " ";
+    Trace("cegqi-engine") << n[i] << " -> " << nv << " ";
     if( nv.isNull() ){
       success = false;
     }

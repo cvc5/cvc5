@@ -111,13 +111,17 @@ Node TermDb::getOperator( Node n ) {
   }
 }
 
-void TermDb::addTerm( Node n, std::set< Node >& added, bool withinQuant ){
+void TermDb::addTerm( Node n, std::set< Node >& added, bool withinQuant, bool withinInstClosure ){
   //don't add terms in quantifier bodies
   if( withinQuant && !options::registerQuantBodyTerms() ){
     return;
   }
+  bool rec = false;
   if( d_processed.find( n )==d_processed.end() ){
     d_processed.insert(n);
+    if( withinInstClosure ){
+      d_iclosure_processed.insert( n );
+    }
     d_type_map[ n.getType() ].push_back( n );
     //if this is an atomic trigger, consider adding it
     //Call the children?
@@ -137,9 +141,8 @@ void TermDb::addTerm( Node n, std::set< Node >& added, bool withinQuant ){
         d_op_map[op].push_back( n );
         added.insert( n );
 
-        for( size_t i=0; i<n.getNumChildren(); i++ ){
-          addTerm( n[i], added, withinQuant );
-          if( options::eagerInstQuant() ){
+        if( options::eagerInstQuant() ){
+          for( size_t i=0; i<n.getNumChildren(); i++ ){
             if( !n.hasAttribute(InstLevelAttribute()) && n.getAttribute(InstLevelAttribute())==0 ){
               int addedLemmas = 0;
               for( size_t i=0; i<d_op_triggers[op].size(); i++ ){
@@ -149,10 +152,15 @@ void TermDb::addTerm( Node n, std::set< Node >& added, bool withinQuant ){
           }
         }
       }
-    }else{
-      for( int i=0; i<(int)n.getNumChildren(); i++ ){
-        addTerm( n[i], added, withinQuant );
-      }
+    }
+    rec = true;
+  }else if( withinInstClosure && d_iclosure_processed.find( n )==d_iclosure_processed.end() ){
+    d_iclosure_processed.insert( n );
+    rec = true;
+  }
+  if( rec ){
+    for( size_t i=0; i<n.getNumChildren(); i++ ){
+      addTerm( n[i], added, withinQuant, withinInstClosure );
     }
   }
 }
@@ -317,30 +325,65 @@ bool TermDb::isEntailed( TNode n, std::map< TNode, TNode >& subs, bool subsRep, 
 }
 
 bool TermDb::hasTermCurrent( Node n ) {
-  //return d_quantEngine->getMasterEqualityEngine()->hasTerm( n );
-  if( options::termDbMode()==TERM_DB_ALL ){
-    return true;
-  }else if( options::termDbMode()==TERM_DB_RELEVANT ){
-    return d_has_map.find( n )!=d_has_map.end();
-  }else{
-    Assert( false );
+  if( options::termDbInstClosure() && d_iclosure_processed.find( n )==d_iclosure_processed.end() ){
     return false;
+  }else{
+    //return d_quantEngine->getMasterEqualityEngine()->hasTerm( n ); //some assertions are not sent to EE
+    if( options::termDbMode()==TERM_DB_ALL ){
+      return true;
+    }else if( options::termDbMode()==TERM_DB_RELEVANT ){
+      return d_has_map.find( n )!=d_has_map.end();
+    }else{
+      Assert( false );
+      return false;
+    }
+  }
+}
+
+Node TermDb::getHasTermEqc( Node r ) {
+  if( hasTermCurrent( r ) ){
+    return r;
+  }else{
+    if( options::termDbInstClosure()  ){
+      std::map< Node, Node >::iterator it = d_has_eqc.find( r );
+      if( it==d_has_eqc.end() ){
+        Node h;
+        eq::EqualityEngine* ee = d_quantEngine->getMasterEqualityEngine();
+        eq::EqClassIterator eqc_i = eq::EqClassIterator( r, ee );
+        while( h.isNull() && !eqc_i.isFinished() ){
+          TNode n = (*eqc_i);
+          ++eqc_i;
+          if( hasTermCurrent( n ) ){
+            h = n;
+          }
+        }
+        d_has_eqc[r] = h;
+        return h;
+      }else{
+        return it->second;
+      }
+    }else{
+      //if not using inst closure, then either all are relevant, or it is a singleton irrelevant eqc
+      return Node::null();
+    }
   }
 }
 
 void TermDb::setHasTerm( Node n ) {
-  if( inst::Trigger::isAtomicTrigger( n ) ){
-    if( d_has_map.find( n )==d_has_map.end() ){
-      d_has_map[n] = true;
-      for( unsigned i=0; i<n.getNumChildren(); i++ ){
-        setHasTerm( n[i] );
-      }
+  //if( inst::Trigger::isAtomicTrigger( n ) ){
+  if( d_has_map.find( n )==d_has_map.end() ){
+    d_has_map[n] = true;
+    for( unsigned i=0; i<n.getNumChildren(); i++ ){
+      setHasTerm( n[i] );
     }
+  }
+    /*
   }else{
     for( unsigned i=0; i<n.getNumChildren(); i++ ){
       setHasTerm( n[i] );
     }
   }
+  */
 }
 
 void TermDb::reset( Theory::Effort effort ){
@@ -356,6 +399,7 @@ void TermDb::reset( Theory::Effort effort ){
   //compute has map
   if( options::termDbMode()==TERM_DB_RELEVANT ){
     d_has_map.clear();
+    d_has_eqc.clear();
     eq::EqualityEngine* ee = d_quantEngine->getMasterEqualityEngine();
     eq::EqClassesIterator eqcs_i = eq::EqClassesIterator( ee );
     while( !eqcs_i.isFinished() ){

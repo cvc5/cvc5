@@ -196,5 +196,7 @@ option ceGuidedInstFair --cegqi-fair=MODE CVC4::theory::quantifiers::CegqiFairMo
 
 option localTheoryExt --local-t-ext bool :default false
   do instantiation based on local theory extensions
+option termDbInstClosure --term-db-inst-closure bool :default false
+  only consider inst closure terms for E-matching
  
 endmodule
