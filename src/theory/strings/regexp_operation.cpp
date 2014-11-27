@@ -1653,8 +1653,115 @@ void RegExpOpr::splitRegExp(Node r, std::vector< PairNodes > &pset) {
   }
 }
 
+void RegExpOpr::flattenRegExp(Node r, std::vector< std::pair< CVC4::String, unsigned > > &fvec) {
+  Assert(false);
+  Assert(checkConstRegExp(r));
+  switch( r.getKind() ) {
+      case kind::REGEXP_EMPTY: {
+        //TODO
+        break;
+      }
+      case kind::REGEXP_SIGMA: {
+        CVC4::String s("a");
+        std::pair< CVC4::String, unsigned > tmp(s, 0);
+        //TODO
+        break;
+      }
+      case kind::STRING_TO_REGEXP: {
+        Assert(r[0].isConst());
+        CVC4::String s = r[0].getConst< CVC4::String >();
+        std::pair< CVC4::String, unsigned > tmp(s, 0);
+        //TODO
+        break;
+      }
+      case kind::REGEXP_CONCAT: {
+        for(unsigned i=0; i<r.getNumChildren(); i++) {
+          //TODO
+        }
+        break;
+      }
+      case kind::REGEXP_UNION: {
+        for(unsigned i=0; i<r.getNumChildren(); ++i) {
+          //TODO
+        }
+        break;
+      }
+      case kind::REGEXP_INTER: {
+        //TODO
+        break;
+      }
+      case kind::REGEXP_STAR: {
+        //TODO
+        break;
+      }
+      default: {
+        Unreachable();
+      }
+  }
+}
+
+void RegExpOpr::disjunctRegExp(Node r, std::vector<Node> &vec_or) {
+  switch(r.getKind()) {
+      case kind::REGEXP_EMPTY: {
+        vec_or.push_back(r);
+        break;
+      }
+      case kind::REGEXP_SIGMA: {
+        vec_or.push_back(r);
+        break;
+      }
+      case kind::STRING_TO_REGEXP: {
+        vec_or.push_back(r);
+        break;
+      }
+      case kind::REGEXP_CONCAT: {
+        disjunctRegExp(r[0], vec_or);
+        for(unsigned i=1; i<r.getNumChildren(); i++) {
+          std::vector<Node> vec_con;
+          disjunctRegExp(r[i], vec_con);
+          std::vector<Node> vec_or2;
+          for(unsigned k1=0; k1<vec_or.size(); k1++) {
+            for(unsigned k2=0; k2<vec_con.size(); k2++) {
+              Node tmp = Rewriter::rewrite( NodeManager::currentNM()->mkNode(kind::REGEXP_CONCAT, vec_or[k1], vec_con[k2]) );
+              if(std::find(vec_or2.begin(), vec_or2.end(), tmp) == vec_or2.end()) {
+                vec_or2.push_back( tmp );
+              }
+            }
+          }
+          vec_or = vec_or2;
+        }
+        break;
+      }
+      case kind::REGEXP_UNION: {
+        for(unsigned i=0; i<r.getNumChildren(); ++i) {
+          std::vector<Node> vec_or2;
+          disjunctRegExp(r[i], vec_or2);
+          vec_or.insert(vec_or.end(), vec_or2.begin(), vec_or2.end());
+        }
+        break;
+      }
+      case kind::REGEXP_INTER: {
+        Assert(checkConstRegExp(r));
+        Node rtmp = r[0];
+        bool spflag = false;
+        for(unsigned i=1; i<r.getNumChildren(); ++i) {
+          rtmp = intersect(rtmp, r[i], spflag);
+        }
+        disjunctRegExp(rtmp, vec_or);
+        break;
+      }
+      case kind::REGEXP_STAR: {
+        vec_or.push_back(r);
+        break;
+      }
+      default: {
+        Unreachable();
+      }
+  }
+}
+
 //printing
-std::string RegExpOpr::niceChar( Node r ) {
+std::string RegExpOpr::niceChar(Node r) {
   if(r.isConst()) {
     std::string s = r.getConst<CVC4::String>().toString() ;
     return s == "" ? "{E}" : ( s == " " ? "{ }" : s.size()>1? "("+s+")" : s );
