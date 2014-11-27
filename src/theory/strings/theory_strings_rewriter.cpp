@@ -163,29 +163,88 @@ Node TheoryStringsRewriter::prerewriteOrRegExp(TNode node) {
   Trace("strings-prerewrite") << "Strings::prerewriteOrRegExp start " << node << std::endl;
   Node retNode = node;
   std::vector<Node> node_vec;
-  bool flag = false;
-  //bool allflag = false;
+  bool allflag = false;
   for(unsigned i=0; i<node.getNumChildren(); ++i) {
     if(node[i].getKind() == kind::REGEXP_UNION) {
       Node tmpNode = prerewriteOrRegExp( node[i] );
       if(tmpNode.getKind() == kind::REGEXP_UNION) {
         for(unsigned int j=0; j<tmpNode.getNumChildren(); ++j) {
-          node_vec.push_back( tmpNode[j] );
+          if(std::find(node_vec.begin(), node_vec.end(), tmpNode[j]) == node_vec.end()) {
+            node_vec.push_back( tmpNode[j] );
+          }
         }
+      } else if(tmpNode.getKind() == kind::REGEXP_EMPTY) {
+        //nothing
+      } else if(tmpNode.getKind() == kind::REGEXP_STAR && tmpNode[0].getKind() == kind::REGEXP_SIGMA) {
+        allflag = true;
+        retNode = tmpNode;
+        break;
       } else {
-        node_vec.push_back( tmpNode );
+        if(std::find(node_vec.begin(), node_vec.end(), tmpNode) == node_vec.end()) {
+          node_vec.push_back( tmpNode );
+        }
       }
-      flag = true;
     } else if(node[i].getKind() == kind::REGEXP_EMPTY) {
-      flag = true;
+      //nothing
+    } else if(node[i].getKind() == kind::REGEXP_STAR && node[i][0].getKind() == kind::REGEXP_SIGMA) {
+      allflag = true;
+      retNode = node[i];
+      break;
     } else {
       node_vec.push_back( node[i] );
     }
   }
-  if(flag) {
+  if(!allflag) {
     std::vector< Node > nvec;
     retNode = node_vec.size() == 0 ? NodeManager::currentNM()->mkNode( kind::REGEXP_EMPTY, nvec ) :
           node_vec.size() == 1 ? node_vec[0] : NodeManager::currentNM()->mkNode(kind::REGEXP_UNION, node_vec);
+  }
+  Trace("strings-prerewrite") << "Strings::prerewriteOrRegExp end " << retNode << std::endl;
+  return retNode;
+}
+
+Node TheoryStringsRewriter::prerewriteAndRegExp(TNode node) {
+  Assert( node.getKind() == kind::REGEXP_INTER );
+  Trace("strings-prerewrite") << "Strings::prerewriteOrRegExp start " << node << std::endl;
+  Node retNode = node;
+  std::vector<Node> node_vec;
+  bool emptyflag = false;
+  //Node allNode = Node::null();
+  for(unsigned i=0; i<node.getNumChildren(); ++i) {
+    if(node[i].getKind() == kind::REGEXP_INTER) {
+      Node tmpNode = prerewriteAndRegExp( node[i] );
+      if(tmpNode.getKind() == kind::REGEXP_INTER) {
+        for(unsigned int j=0; j<tmpNode.getNumChildren(); ++j) {
+          if(std::find(node_vec.begin(), node_vec.end(), tmpNode[j]) == node_vec.end()) {
+            node_vec.push_back( tmpNode[j] );
+          }
+        }
+      } else if(tmpNode.getKind() == kind::REGEXP_EMPTY) {
+        emptyflag = true;
+        retNode = tmpNode;
+        break;
+      } else if(tmpNode.getKind() == kind::REGEXP_STAR && tmpNode[0].getKind() == kind::REGEXP_SIGMA) {
+        //allNode = tmpNode;
+      } else {
+        if(std::find(node_vec.begin(), node_vec.end(), tmpNode) == node_vec.end()) {
+          node_vec.push_back( tmpNode );
+        }
+      }
+    } else if(node[i].getKind() == kind::REGEXP_EMPTY) {
+      emptyflag = true;
+      retNode = node[i];
+      break;
+    } else if(node[i].getKind() == kind::REGEXP_STAR && node[i][0].getKind() == kind::REGEXP_SIGMA) {
+      //allNode = node[i];
+    } else {
+      node_vec.push_back( node[i] );
+    }
+  }
+  if(!emptyflag) {
+    std::vector< Node > nvec;
+    retNode = node_vec.size() == 0 ? 
+          NodeManager::currentNM()->mkNode(kind::REGEXP_STAR, NodeManager::currentNM()->mkNode(kind::REGEXP_SIGMA, nvec)) :
+          node_vec.size() == 1 ? node_vec[0] : NodeManager::currentNM()->mkNode(kind::REGEXP_INTER, node_vec);
   }
   Trace("strings-prerewrite") << "Strings::prerewriteOrRegExp end " << retNode << std::endl;
   return retNode;
@@ -618,6 +677,8 @@ RewriteResponse TheoryStringsRewriter::preRewrite(TNode node) {
     retNode = prerewriteConcatRegExp(node);
   } else if(node.getKind() == kind::REGEXP_UNION) {
     retNode = prerewriteOrRegExp(node);
+  }else if(node.getKind() == kind::REGEXP_INTER) {
+    retNode = prerewriteAndRegExp(node);
   } else if(node.getKind() == kind::REGEXP_STAR) {
     if(node[0].getKind() == kind::REGEXP_STAR) {
       retNode = node[0];

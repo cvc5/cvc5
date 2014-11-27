@@ -1484,11 +1484,75 @@ Node RegExpOpr::intersectInternal2( Node r1, Node r2, std::map< PairNodes, Node 
   Trace("regexp-intersect") << "End of INTERSECT( " << mkString(r1) << ", " << mkString(r2) << " ) = " << mkString(rNode) << std::endl;
   return rNode;
 }
+
+Node RegExpOpr::removeIntersection(Node r) {
+  Assert( checkConstRegExp(r) );
+  std::map < Node, Node >::const_iterator itr = d_rm_inter_cache.find(r);
+  Node retNode;
+  if(itr != d_rm_inter_cache.end()) {
+    retNode = itr->second;
+  } else {
+    switch(r.getKind()) {
+      case kind::REGEXP_EMPTY: {
+        retNode = r;
+        break;
+      }
+      case kind::REGEXP_SIGMA: {
+        retNode = r;
+        break;
+      }
+      case kind::STRING_TO_REGEXP: {
+        retNode = r;
+        break;
+      }
+      case kind::REGEXP_CONCAT: {
+        std::vector< Node > vec_nodes;
+        for(unsigned i=0; i<r.getNumChildren(); i++) {
+          Node tmpNode = removeIntersection( r[i] );
+          vec_nodes.push_back( tmpNode );
+        }
+        retNode = Rewriter::rewrite( NodeManager::currentNM()->mkNode(kind::REGEXP_CONCAT, vec_nodes) );
+        break;
+      }
+      case kind::REGEXP_UNION: {
+        std::vector< Node > vec_nodes;
+        for(unsigned i=0; i<r.getNumChildren(); i++) {
+          Node tmpNode = removeIntersection( r[i] );
+          vec_nodes.push_back( tmpNode );
+        }
+        retNode = Rewriter::rewrite( NodeManager::currentNM()->mkNode(kind::REGEXP_UNION, vec_nodes) );
+        break;
+      }
+      case kind::REGEXP_INTER: {
+        retNode = removeIntersection( r[0] );
+        for(unsigned i=1; i<r.getNumChildren(); i++) {
+          bool spflag = false;
+          Node tmpNode = removeIntersection( r[i] );
+          retNode = intersect( retNode, tmpNode, spflag );
+        }
+        break;
+      }
+      case kind::REGEXP_STAR: {
+        retNode = removeIntersection( r[0] );
+        retNode = Rewriter::rewrite( NodeManager::currentNM()->mkNode(kind::REGEXP_STAR, retNode) );
+        break;
+      }
+      default: {
+        Unreachable();
+      }
+    }
+    d_rm_inter_cache[r] = retNode;
+  }
+  Trace("regexp-intersect") << "Remove INTERSECTION( " << mkString(r) << " ) = " << mkString(retNode) << std::endl;
+  return retNode;
+}
+
 Node RegExpOpr::intersect(Node r1, Node r2, bool &spflag) {
-  //std::map< unsigned, std::set< PairNodes > > cache;
-  std::map< PairNodes, Node > cache;
   if(checkConstRegExp(r1) && checkConstRegExp(r2)) {
-    return intersectInternal2(r1, r2, cache, spflag, 1);
+    Node rr1 = removeIntersection(r1);
+    Node rr2 = removeIntersection(r2);
+    std::map< PairNodes, Node > cache;
+    return intersectInternal2(rr1, rr2, cache, spflag, 1);
   } else {
     spflag = true;
     return Node::null();
@@ -1775,12 +1839,12 @@ std::string RegExpOpr::niceChar(Node r) {
 std::string RegExpOpr::mkString( Node r ) {
   std::string retStr;
   if(r.isNull()) {
-    retStr = "Empty";
+    retStr = "Phi";
   } else {
     int k = r.getKind();
     switch( k ) {
       case kind::REGEXP_EMPTY: {
-        retStr += "Empty";
+        retStr += "Phi";
         break;
       }
       case kind::REGEXP_SIGMA: {

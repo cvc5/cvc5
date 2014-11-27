@@ -37,6 +37,7 @@ TESTS =	\
   model001.smt2 \
   substr001.smt2 \
   regexp001.smt2 \
+  regexp003.smt2 \
   leadingzero001.smt2 \
   loop001.smt2 \
   loop002.smt2 \
