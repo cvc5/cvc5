@@ -100,7 +100,7 @@ Node TheoryStringsRewriter::prerewriteConcatRegExp( TNode node ) {
         if(!preNode.isNull()) {
           if(tmpNode[0].getKind() == kind::STRING_TO_REGEXP) {
             preNode = rewriteConcatString(
-            NodeManager::currentNM()->mkNode( kind::STRING_CONCAT, preNode, tmpNode[0][0] ) );
+              NodeManager::currentNM()->mkNode( kind::STRING_CONCAT, preNode, tmpNode[0][0] ) );
             node_vec.push_back( NodeManager::currentNM()->mkNode( kind::STRING_TO_REGEXP, preNode ) );
             preNode = Node::null();
           } else {
@@ -143,7 +143,10 @@ Node TheoryStringsRewriter::prerewriteConcatRegExp( TNode node ) {
     retNode = NodeManager::currentNM()->mkNode( kind::REGEXP_EMPTY, nvec );
   } else {
     if(!preNode.isNull()) {
-      node_vec.push_back( NodeManager::currentNM()->mkNode( kind::STRING_TO_REGEXP, preNode ) );
+      bool bflag = (preNode.getKind() == kind::CONST_STRING && preNode.getConst<String>().isEmptyString() );
+      if(node_vec.empty() || !bflag ) {
+        node_vec.push_back( NodeManager::currentNM()->mkNode( kind::STRING_TO_REGEXP, preNode ) );
+      }
     }
     if(node_vec.size() > 1) {
       retNode = NodeManager::currentNM()->mkNode(kind::REGEXP_CONCAT, node_vec);
@@ -161,6 +164,7 @@ Node TheoryStringsRewriter::prerewriteOrRegExp(TNode node) {
   Node retNode = node;
   std::vector<Node> node_vec;
   bool flag = false;
+  //bool allflag = false;
   for(unsigned i=0; i<node.getNumChildren(); ++i) {
     if(node[i].getKind() == kind::REGEXP_UNION) {
       Node tmpNode = prerewriteOrRegExp( node[i] );
@@ -616,6 +620,8 @@ RewriteResponse TheoryStringsRewriter::preRewrite(TNode node) {
     retNode = prerewriteOrRegExp(node);
   } else if(node.getKind() == kind::REGEXP_STAR) {
     if(node[0].getKind() == kind::REGEXP_STAR) {
+      retNode = node[0];
+    } else if(node[0].getKind() == kind::STRING_TO_REGEXP && node[0][0].getKind() == kind::CONST_STRING && node[0][0].getConst<String>().isEmptyString()) {
       retNode = node[0];
     }
   } else if(node.getKind() == kind::REGEXP_PLUS) {

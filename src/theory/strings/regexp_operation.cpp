@@ -1157,9 +1157,10 @@ void RegExpOpr::getCharSet( Node r, std::set<unsigned> &pcset, SetNodes &pvset )
       }
       case kind::REGEXP_INTER: {
         //TODO: Overapproximation for now
-        for(unsigned i=0; i<r.getNumChildren(); i++) {
-          getCharSet(r[i], cset, vset);
-        }
+        //for(unsigned i=0; i<r.getNumChildren(); i++) {
+          //getCharSet(r[i], cset, vset);
+        //}
+        getCharSet(r[0], cset, vset);
         break;
       }
       case kind::REGEXP_STAR: {
@@ -1414,7 +1415,7 @@ Node RegExpOpr::intersectInternal2( Node r1, Node r2, std::map< PairNodes, Node 
         rNode = d_emptyRegexp;
       }
     } else if(r1 == r2) {
-      rNode = convert1(cnt, r1);
+      rNode = r1; //convert1(cnt, r1);
     } else {
       PairNodes p(r1, r2);
       std::map< PairNodes, Node >::const_iterator itrcache = cache.find(p);
@@ -1459,7 +1460,6 @@ Node RegExpOpr::intersectInternal2( Node r1, Node r2, std::map< PairNodes, Node 
             PairNodes p(r1, r2);
             cache2[ p ] = NodeManager::currentNM()->mkNode(kind::REGEXP_RV, NodeManager::currentNM()->mkConst(CVC4::Rational(cnt)));
             Node rt = intersectInternal2(r1l, r2l, cache2, spflag, cnt+1);
-            rt = convert1(cnt, rt);
             if(spflag) {
               //TODO:
               return Node::null();
@@ -1470,6 +1470,8 @@ Node RegExpOpr::intersectInternal2( Node r1, Node r2, std::map< PairNodes, Node 
           }
           rNode = vec_nodes.size()==0 ? d_emptyRegexp : vec_nodes.size()==1 ? vec_nodes[0] :
               NodeManager::currentNM()->mkNode(kind::REGEXP_UNION, vec_nodes);
+          rNode = Rewriter::rewrite( rNode );
+          rNode = convert1(cnt, rNode);
           rNode = Rewriter::rewrite( rNode );
         } else {
           //TODO: non-empty var set
