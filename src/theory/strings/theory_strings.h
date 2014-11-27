@@ -246,7 +246,18 @@ private:
   bool checkLengthsEqc();
   bool checkCardinality();
   bool checkInductiveEquations();
+  //check membership constraints
+  Node normalizeRegexp(Node r);
+  bool normalizePosMemberships(std::map< Node, std::vector< Node > > &memb_with_exps);
+  bool applyRConsume( CVC4::String &s, Node &r);
+  Node applyRSplit(Node s1, Node s2, Node r);
+  bool applyRLen(std::map< Node, std::vector< Node > > &XinR_with_exps);
+  bool checkMembershipsWithoutLength(
+    std::map< Node, std::vector< Node > > &memb_with_exps,
+    std::map< Node, std::vector< Node > > &XinR_with_exps);
   bool checkMemberships();
+  //temp
+  bool checkMemberships2();
   bool checkPDerivative(Node x, Node r, Node atom, bool &addedLemma,
     std::vector< Node > &processed, std::vector< Node > &cprocessed,
     std::vector< Node > &nf_exp);
@@ -325,10 +336,17 @@ private:
   NodeList d_regexp_memberships;
   NodeSet d_regexp_ucached;
   NodeSet d_regexp_ccached;
+  // stored assertions
+  NodeListMap d_pos_memberships;
+  NodeListMap d_neg_memberships;
+  // semi normal forms for symbolic expression
+  std::map< Node, Node > d_nf_regexps;
+  std::map< Node, std::vector< Node > > d_nf_regexps_exp;
   // intersection
-  NodeListMap d_str_re_map;
   NodeNodeMap d_inter_cache;
   NodeIntMap d_inter_index;
+  // processed memberships
+  NodeSet d_processed_memberships;
   // antecedant for why regexp membership must be true
   NodeNodeMap d_regexp_ant;
   // membership length

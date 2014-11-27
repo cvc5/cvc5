@@ -96,6 +96,8 @@ public:
   Node intersect(Node r1, Node r2, bool &spflag);
   Node complement(Node r, int &ret);
   void splitRegExp(Node r, std::vector< PairNodes > &pset);
+  void flattenRegExp(Node r, std::vector< std::pair< CVC4::String, unsigned > > &fvec);
+  void disjunctRegExp(Node r, std::vector<Node> &vec_or);
 
   std::string mkString( Node r );
 };
