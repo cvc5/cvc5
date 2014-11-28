@@ -84,8 +84,6 @@ private:
   typedef context::CDHashMap< Node, bool, NodeHashFunction > BoolMap;
   /** whether the instantiation engine should set incomplete if it cannot answer SAT */
   bool d_setIncomplete;
-  /** inst round counter */
-  int d_ierCounter;
   /** whether each quantifier is active */
   std::map< Node, bool > d_quant_active;
   /** whether we have added cbqi lemma */

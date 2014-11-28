@@ -169,6 +169,9 @@ private:
   std::map< Node, int > d_total_inst_debug;
   std::map< Node, int > d_temp_inst_debug;
   int d_total_inst_count_debug;
+  /** inst round counters */
+  int d_ierCounter;
+  int d_ierCounter_lc;
 private:
   KEEP_STATISTIC(TimerStat, d_time, "theory::QuantifiersEngine::time");
 public:
@@ -273,6 +276,8 @@ public:
   bool hasAddedLemma() { return !d_lemmas_waiting.empty() || d_hasAddedLemma; }
   /** get number of waiting lemmas */
   int getNumLemmasWaiting() { return (int)d_lemmas_waiting.size(); }
+  /** get needs check */
+  bool getInstWhenNeedsCheck( Theory::Effort e );
   /** set instantiation level attr */
   static void setInstantiationLevelAttr( Node n, uint64_t level );
   /** is term eligble for instantiation? */

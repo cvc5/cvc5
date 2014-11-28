@@ -171,8 +171,9 @@ d_lemmas_produced_c(u){
     d_builder = NULL;
   }
 
-  //options
   d_total_inst_count_debug = 0;
+  d_ierCounter = 0;
+  d_ierCounter_lc = 0;
 }
 
 QuantifiersEngine::~QuantifiersEngine(){
@@ -250,6 +251,11 @@ void QuantifiersEngine::check( Theory::Effort e ){
   if( !getMasterEqualityEngine()->consistent() ){
     Trace("quant-engine-debug") << "Master equality engine not consistent, return." << std::endl;
     return;
+  }
+  if( e==Theory::EFFORT_FULL ){
+    d_ierCounter++;
+  }else if( e==Theory::EFFORT_LAST_CALL ){
+    d_ierCounter_lc++;
   }
   bool needsCheck = false;
   bool needsModel = false;
@@ -823,6 +829,30 @@ bool QuantifiersEngine::addSplitEquality( Node n1, Node n2, bool reqPhase, bool 
   Kind knd = n1.getType()==NodeManager::currentNM()->booleanType() ? IFF : EQUAL;
   Node fm = NodeManager::currentNM()->mkNode( knd, n1, n2 );
   return addSplit( fm );
+}
+
+bool QuantifiersEngine::getInstWhenNeedsCheck( Theory::Effort e ) {
+  //determine if we should perform check, based on instWhenMode
+  bool performCheck = false;
+  if( options::instWhenMode()==quantifiers::INST_WHEN_FULL ){
+    performCheck = ( e >= Theory::EFFORT_FULL );
+  }else if( options::instWhenMode()==quantifiers::INST_WHEN_FULL_DELAY ){
+    performCheck = ( e >= Theory::EFFORT_FULL ) && !getTheoryEngine()->needCheck();
+  }else if( options::instWhenMode()==quantifiers::INST_WHEN_FULL_LAST_CALL ){
+    performCheck = ( ( e==Theory::EFFORT_FULL  && d_ierCounter%2==0 ) || e==Theory::EFFORT_LAST_CALL );
+  }else if( options::instWhenMode()==quantifiers::INST_WHEN_LAST_CALL ){
+    performCheck = ( e >= Theory::EFFORT_LAST_CALL );
+  }else{
+    performCheck = true;
+  }
+  if( e==Theory::EFFORT_LAST_CALL ){
+    //with bounded integers, skip every other last call,
+    // since matching loops may occur with infinite quantification
+    if( d_ierCounter_lc%2==0 && options::fmfBoundInt() ){
+      performCheck = false;
+    }
+  }
+  return performCheck;
 }
 
 void QuantifiersEngine::flushLemmas(){

@@ -31,7 +31,7 @@ using namespace CVC4::theory::quantifiers;
 using namespace CVC4::theory::inst;
 
 InstantiationEngine::InstantiationEngine( QuantifiersEngine* qe, bool setIncomplete ) :
-QuantifiersModule( qe ), d_isup(NULL), d_i_ag(NULL), d_i_lte(NULL), d_i_fs(NULL), d_i_splx(NULL), d_setIncomplete( setIncomplete ), d_ierCounter( 0 ){
+QuantifiersModule( qe ), d_isup(NULL), d_i_ag(NULL), d_i_lte(NULL), d_i_fs(NULL), d_i_splx(NULL), d_setIncomplete( setIncomplete ){
 
 }
 
@@ -178,37 +178,11 @@ bool InstantiationEngine::doInstantiationRound( Theory::Effort effort ){
 }
 
 bool InstantiationEngine::needsCheck( Theory::Effort e ){
-  if( e==Theory::EFFORT_FULL ){
-    d_ierCounter++;
-  }
-  //determine if we should perform check, based on instWhenMode
-  bool performCheck = false;
-  if( options::instWhenMode()==INST_WHEN_FULL ){
-    performCheck = ( e >= Theory::EFFORT_FULL );
-  }else if( options::instWhenMode()==INST_WHEN_FULL_DELAY ){
-    performCheck = ( e >= Theory::EFFORT_FULL ) && !d_quantEngine->getTheoryEngine()->needCheck();
-  }else if( options::instWhenMode()==INST_WHEN_FULL_LAST_CALL ){
-    performCheck = ( ( e==Theory::EFFORT_FULL  && d_ierCounter%2==0 ) || e==Theory::EFFORT_LAST_CALL );
-  }else if( options::instWhenMode()==INST_WHEN_LAST_CALL ){
-    performCheck = ( e >= Theory::EFFORT_LAST_CALL );
-  }else{
-    performCheck = true;
-  }
-  static int ierCounter2 = 0;
-  if( e==Theory::EFFORT_LAST_CALL ){
-    ierCounter2++;
-    //with bounded integers, skip every other last call,
-    // since matching loops may occur with infinite quantification
-    if( ierCounter2%2==0 && options::fmfBoundInt() ){
-      performCheck = false;
-    }
-  }
-  return performCheck;
+  return d_quantEngine->getInstWhenNeedsCheck( e );
 }
 
 void InstantiationEngine::check( Theory::Effort e, unsigned quant_e ){
   if( quant_e==QuantifiersEngine::QEFFORT_STANDARD ){
-    Debug("inst-engine") << "IE: Check " << e << " " << d_ierCounter << std::endl;
     double clSet = 0;
     if( Trace.isOn("inst-engine") ){
       clSet = double(clock())/double(CLOCKS_PER_SEC);
