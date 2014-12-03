@@ -209,6 +209,8 @@ struct SmtEngineStatistics {
 
   /** Has something simplified to false? */
   IntStat d_simplifiedToFalse;
+  /** Number of resource units spent. */
+  ReferenceStat<uint64_t> d_resourceUnitsUsed;
 
   SmtEngineStatistics() :
     d_definitionExpansionTime("smt::SmtEngine::definitionExpansionTime"),
@@ -231,7 +233,8 @@ struct SmtEngineStatistics {
     d_solveTime("smt::SmtEngine::solveTime"),
     d_pushPopTime("smt::SmtEngine::pushPopTime"),
     d_processAssertionsTime("smt::SmtEngine::processAssertionsTime"),
-    d_simplifiedToFalse("smt::SmtEngine::simplifiedToFalse", 0)
+    d_simplifiedToFalse("smt::SmtEngine::simplifiedToFalse", 0),
+    d_resourceUnitsUsed("smt::SmtEngine::resourceUnitsUsed")
  {
 
     StatisticsRegistry::registerStat(&d_definitionExpansionTime);
@@ -255,6 +258,7 @@ struct SmtEngineStatistics {
     StatisticsRegistry::registerStat(&d_pushPopTime);
     StatisticsRegistry::registerStat(&d_processAssertionsTime);
     StatisticsRegistry::registerStat(&d_simplifiedToFalse);
+    StatisticsRegistry::registerStat(&d_resourceUnitsUsed);
   }
 
   ~SmtEngineStatistics() {
@@ -279,6 +283,7 @@ struct SmtEngineStatistics {
     StatisticsRegistry::unregisterStat(&d_pushPopTime);
     StatisticsRegistry::unregisterStat(&d_processAssertionsTime);
     StatisticsRegistry::unregisterStat(&d_simplifiedToFalse);
+    StatisticsRegistry::unregisterStat(&d_resourceUnitsUsed);
   }
 };/* struct SmtEngineStatistics */
 
@@ -708,7 +713,7 @@ SmtEngine::SmtEngine(ExprManager* em) throw() :
   d_private = new smt::SmtEnginePrivate(*this);
   d_statisticsRegistry = new StatisticsRegistry();
   d_stats = new SmtEngineStatistics();
-
+  d_stats->d_resourceUnitsUsed.setData(d_private->getResourceManager()->d_cumulativeResourceUsed);
   // We have mutual dependency here, so we add the prop engine to the theory
   // engine later (it is non-essential there)
   d_theoryEngine = new TheoryEngine(d_context, d_userContext, d_private->d_iteRemover, const_cast<const LogicInfo&>(d_logic));
@@ -1319,12 +1324,19 @@ void SmtEngine::setDefaults() {
     if( !options::quantConflictFind.wasSetByUser() ){
       options::quantConflictFind.set( false );
     }
-    //for finite model finding
     if( ! options::instWhenMode.wasSetByUser()){
       //instantiate only on last call
       if( options::eMatching() ){
         Trace("smt") << "setting inst when mode to LAST_CALL" << endl;
         options::instWhenMode.set( quantifiers::INST_WHEN_LAST_CALL );
+      }
+    }
+    if( options::mbqiMode()==quantifiers::MBQI_ABS ){
+      if( !options::preSkolemQuant.wasSetByUser() ){
+        options::preSkolemQuant.set( true );
+      }
+      if( !options::fmfOneInstPerRound.wasSetByUser() ){
+        options::fmfOneInstPerRound.set( true );
       }
     }
   }

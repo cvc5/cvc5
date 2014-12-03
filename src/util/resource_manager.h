@@ -150,7 +150,7 @@ public:
   void endCall();
 
   static unsigned long getFrequencyCount() { return s_resourceCount; }
-
+  friend class SmtEngine;
 };/* class ResourceManager */
 
 }/* CVC4 namespace */

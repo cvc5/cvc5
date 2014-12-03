@@ -530,12 +530,11 @@ int InstStrategyFreeVariable::process( Node f, Theory::Effort effort, int e ){
                   //skip inst constant nodes
                   while( nv<maxs[index] && nv<=max_i &&
                          r==1 && quantifiers::TermDb::hasInstConstAttr( d_quantEngine->getTermDatabase()->d_type_map[f[0][index].getType()][nv] ) ){
-                    childIndex[index]++;
-                    nv = childIndex[index]+1;
+                    nv++;
                   }
                 }
                 if( nv<maxs[index] && nv<=max_i ){
-                  childIndex[index]++;
+                  childIndex[index] = nv;
                   index++;
                 }else{
                   childIndex.pop_back();
@@ -545,8 +544,11 @@ int InstStrategyFreeVariable::process( Node f, Theory::Effort effort, int e ){
             }
             success = index>=0;
             if( success ){
-              Trace("inst-alg-rd") << "Try instantiation..." << std::endl;
-              index--;
+              Trace("inst-alg-rd") << "Try instantiation { ";
+              for( unsigned j=0; j<childIndex.size(); j++ ){
+                Trace("inst-alg-rd") << childIndex[j] << " ";
+              }
+              Trace("inst-alg-rd") << "}" << std::endl;
               //try instantiation
               std::vector< Node > terms;
               for( unsigned i=0; i<f[0].getNumChildren(); i++ ){
@@ -560,6 +562,8 @@ int InstStrategyFreeVariable::process( Node f, Theory::Effort effort, int e ){
                 Trace("inst-alg-rd") << "Success!" << std::endl;
                 ++(d_quantEngine->getInstantiationEngine()->d_statistics.d_instantiations_guess);
                 return STATUS_UNKNOWN;
+              }else{
+                index--;
               }
             }
           }while( success );

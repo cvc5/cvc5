@@ -309,11 +309,19 @@ Node QuantifiersRewriter::computeNNF( Node body ){
     }else{
       std::vector< Node > children;
       Kind k = body[0].getKind();
+      
       if( body[0].getKind()==OR || body[0].getKind()==AND ){
-        for( int i=0; i<(int)body[0].getNumChildren(); i++ ){
-          children.push_back( computeNNF( body[0][i].notNode() ) );
-        }
         k = body[0].getKind()==AND ? OR : AND;
+        for( int i=0; i<(int)body[0].getNumChildren(); i++ ){
+          Node nc = computeNNF( body[0][i].notNode() );
+          if( nc.getKind()==k ){
+            for( unsigned j=0; j<nc.getNumChildren(); j++ ){
+              children.push_back( nc[j] );
+            }
+          }else{
+            children.push_back( nc );
+          }
+        }
       }else if( body[0].getKind()==IFF ){
         for( int i=0; i<2; i++ ){
           Node nn = i==0 ? body[0][i] : body[0][i].notNode();
@@ -335,10 +343,18 @@ Node QuantifiersRewriter::computeNNF( Node body ){
   }else{
     std::vector< Node > children;
     bool childrenChanged = false;
+    bool isAssoc = body.getKind()==AND || body.getKind()==OR;
     for( int i=0; i<(int)body.getNumChildren(); i++ ){
       Node nc = computeNNF( body[i] );
-      children.push_back( nc );
-      childrenChanged = childrenChanged || nc!=body[i];
+      if( isAssoc && nc.getKind()==body.getKind() ){
+        for( unsigned j=0; j<nc.getNumChildren(); j++ ){
+          children.push_back( nc[j] );
+        }
+        childrenChanged = true;
+      }else{
+        children.push_back( nc );
+        childrenChanged = childrenChanged || nc!=body[i];
+      }
     }
     if( childrenChanged ){
       return NodeManager::currentNM()->mkNode( body.getKind(), children );

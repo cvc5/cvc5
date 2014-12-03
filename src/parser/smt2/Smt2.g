@@ -1620,6 +1620,8 @@ builtinOp[CVC4::Kind& kind]
   | DTSIZE_TOK     { $kind = CVC4::kind::DT_SIZE; }
   
   | FMFCARD_TOK    { $kind = CVC4::kind::CARDINALITY_CONSTRAINT; }
+  
+  | INST_CLOSURE_TOK  { $kind = CVC4::kind::INST_CLOSURE; }
 
   // NOTE: Theory operators go here
   ;
@@ -2025,6 +2027,8 @@ REALLCHAR_TOK : 're.allchar';
 DTSIZE_TOK : 'dt.size';
 
 FMFCARD_TOK : 'fmf.card';
+
+INST_CLOSURE_TOK : 'inst-closure';
 
 EMPTYSET_TOK: { PARSER_STATE->isTheoryEnabled(Smt2::THEORY_SETS) }? 'emptyset';
 // Other set theory operators are not

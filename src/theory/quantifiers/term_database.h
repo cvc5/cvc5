@@ -123,6 +123,8 @@ private:
   QuantifiersEngine* d_quantEngine;
   /** terms processed */
   std::hash_set< Node, NodeHashFunction > d_processed;
+  /** terms processed */
+  std::hash_set< Node, NodeHashFunction > d_iclosure_processed;
 private:
   /** select op map */
   std::map< Node, std::map< TypeNode, Node > > d_par_op_map;
@@ -144,6 +146,8 @@ public:
   std::map< Node, std::vector< Node > > d_op_map;
   /** has map */
   std::map< Node, bool > d_has_map;
+  /** map from reps to a term in eqc in d_has_map */
+  std::map< Node, Node > d_has_eqc;
   /** map from APPLY_UF functions to trie */
   std::map< Node, TermArgTrie > d_func_map_trie;
   std::map< Node, TermArgTrie > d_func_map_eqc_trie;
@@ -152,7 +156,7 @@ public:
   /** map from type nodes to terms of that type */
   std::map< TypeNode, std::vector< Node > > d_type_map;
   /** add a term to the database */
-  void addTerm( Node n, std::set< Node >& added, bool withinQuant = false );
+  void addTerm( Node n, std::set< Node >& added, bool withinQuant = false, bool withinInstClosure = false );
   /** reset (calculate which terms are active) */
   void reset( Theory::Effort effort );
   /** get operator*/
@@ -176,6 +180,8 @@ public:
   bool isEntailed( TNode n, std::map< TNode, TNode >& subs, bool subsRep, bool pol );
   /** has term */
   bool hasTermCurrent( Node n );
+  /** get has term eqc */
+  Node getHasTermEqc( Node r );
   
 //for model basis
 private:

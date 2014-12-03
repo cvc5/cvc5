@@ -197,16 +197,17 @@ void CandidateGeneratorQEAll::reset( Node eqc ) {
 
 Node CandidateGeneratorQEAll::getNextCandidate() {
   while( !d_eq.isFinished() ){
-    Node n = (*d_eq);
+    TNode n = (*d_eq);
     ++d_eq;
     if( n.getType().isSubtypeOf( d_match_pattern_type ) ){
-      if( d_qe->getTermDatabase()->hasTermCurrent( n ) ){
+      TNode nh = d_qe->getTermDatabase()->getHasTermEqc( n );
+      if( !nh.isNull() ){
         if( options::instMaxLevel()!=-1 ){
-          n = d_qe->getEqualityQuery()->getInternalRepresentative( n, d_f, d_index );
+          nh = d_qe->getEqualityQuery()->getInternalRepresentative( nh, d_f, d_index );
         }
         d_firstTime = false;
         //an equivalence class with the same type as the pattern, return it
-        return n;
+        return nh;
       }
     }
   }

@@ -37,10 +37,12 @@ public:
   static Node rewriteConcatString(TNode node);
   static Node prerewriteConcatRegExp(TNode node);
   static Node prerewriteOrRegExp(TNode node);
+  static Node prerewriteAndRegExp(TNode node);
   static Node rewriteMembership(TNode node);
 
   static RewriteResponse postRewrite(TNode node);
 
+  static bool hasEpsilonNode(TNode node);
   static RewriteResponse preRewrite(TNode node);
 
   static inline void init() {}

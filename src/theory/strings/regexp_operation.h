@@ -64,6 +64,7 @@ private:
   std::map< Node, std::pair< std::set<unsigned>, std::set<Node> > > d_cset_cache;
   std::map< Node, std::pair< std::set<unsigned>, std::set<Node> > > d_fset_cache;
   std::map< PairNodes, Node > d_inter_cache;
+  std::map< Node, Node > d_rm_inter_cache;
   std::map< Node, std::vector< PairNodes > > d_split_cache;
   //bool checkStarPlus( Node t );
   void simplifyPRegExp( Node s, Node r, std::vector< Node > &new_nodes );
@@ -79,6 +80,7 @@ private:
   Node convert1(unsigned cnt, Node n);
   void convert2(unsigned cnt, Node n, Node &r1, Node &r2);
   Node intersectInternal2( Node r1, Node r2, std::map< PairNodes, Node > cache, bool &spflag, unsigned cnt );
+  Node removeIntersection(Node r);
   void firstChars( Node r, std::set<unsigned> &pcset, SetNodes &pvset );
 
   //TODO: for intersection
@@ -96,6 +98,8 @@ public:
   Node intersect(Node r1, Node r2, bool &spflag);
   Node complement(Node r, int &ret);
   void splitRegExp(Node r, std::vector< PairNodes > &pset);
+  void flattenRegExp(Node r, std::vector< std::pair< CVC4::String, unsigned > > &fvec);
+  void disjunctRegExp(Node r, std::vector<Node> &vec_or);
 
   std::string mkString( Node r );
 };

@@ -29,16 +29,16 @@ namespace quantifiers {
 static const std::string instWhenHelp = "\
 Modes currently supported by the --inst-when option:\n\
 \n\
-full (default)\n\
+full-last-call (default)\n\
++ Alternate running instantiation rounds at full effort and last\n\
+  call.  In other words, interleave instantiation and theory combination.\n\
+\n\
+full\n\
 + Run instantiation round at full effort, before theory combination.\n\
 \n\
 full-delay \n\
 + Run instantiation round at full effort, before theory combination, after\n\
   all other theories have finished.\n\
-\n\
-full-last-call\n\
-+ Alternate running instantiation rounds at full effort and last\n\
-  call.  In other words, interleave instantiation and theory combination.\n\
 \n\
 last-call\n\
 + Run instantiation at last call effort, after theory combination and\n\
