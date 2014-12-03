@@ -170,7 +170,9 @@ Node TheoryStringsRewriter::prerewriteOrRegExp(TNode node) {
       if(tmpNode.getKind() == kind::REGEXP_UNION) {
         for(unsigned int j=0; j<tmpNode.getNumChildren(); ++j) {
           if(std::find(node_vec.begin(), node_vec.end(), tmpNode[j]) == node_vec.end()) {
-            node_vec.push_back( tmpNode[j] );
+            if(std::find(node_vec.begin(), node_vec.end(), tmpNode[j]) == node_vec.end()) {
+              node_vec.push_back( tmpNode[j] );
+            }
           }
         }
       } else if(tmpNode.getKind() == kind::REGEXP_EMPTY) {
@@ -191,7 +193,9 @@ Node TheoryStringsRewriter::prerewriteOrRegExp(TNode node) {
       retNode = node[i];
       break;
     } else {
-      node_vec.push_back( node[i] );
+      if(std::find(node_vec.begin(), node_vec.end(), node[i]) == node_vec.end()) {
+        node_vec.push_back( node[i] );
+      }
     }
   }
   if(!allflag) {
@@ -237,7 +241,9 @@ Node TheoryStringsRewriter::prerewriteAndRegExp(TNode node) {
     } else if(node[i].getKind() == kind::REGEXP_STAR && node[i][0].getKind() == kind::REGEXP_SIGMA) {
       //allNode = node[i];
     } else {
-      node_vec.push_back( node[i] );
+      if(std::find(node_vec.begin(), node_vec.end(), node[i]) == node_vec.end()) {
+        node_vec.push_back( node[i] );
+      }
     }
   }
   if(!emptyflag) {
@@ -666,6 +672,15 @@ RewriteResponse TheoryStringsRewriter::postRewrite(TNode node) {
   return RewriteResponse(orig==retNode ? REWRITE_DONE : REWRITE_AGAIN_FULL, retNode);
 }
 
+bool TheoryStringsRewriter::hasEpsilonNode(TNode node) {
+  for(unsigned int i=0; i<node.getNumChildren(); i++) {
+    if(node[i].getKind() == kind::STRING_TO_REGEXP && node[i][0].getKind() == kind::CONST_STRING && node[i][0].getConst<String>().isEmptyString()) {
+      return true;
+    }
+  }
+  return false;
+}
+
 RewriteResponse TheoryStringsRewriter::preRewrite(TNode node) {
   Node retNode = node;
   Node orig = retNode;
@@ -684,6 +699,29 @@ RewriteResponse TheoryStringsRewriter::preRewrite(TNode node) {
       retNode = node[0];
     } else if(node[0].getKind() == kind::STRING_TO_REGEXP && node[0][0].getKind() == kind::CONST_STRING && node[0][0].getConst<String>().isEmptyString()) {
       retNode = node[0];
+    } else if(node[0].getKind() == kind::REGEXP_EMPTY) {
+      retNode = NodeManager::currentNM()->mkNode( kind::STRING_TO_REGEXP,
+        NodeManager::currentNM()->mkConst( ::CVC4::String("") ) );
+    } else if(node[0].getKind() == kind::REGEXP_UNION) {
+      Node tmpNode = prerewriteOrRegExp(node[0]);
+      if(tmpNode.getKind() == kind::REGEXP_UNION) {
+        if(hasEpsilonNode(node[0])) {
+          std::vector< Node > node_vec;
+          for(unsigned int i=0; i<node[0].getNumChildren(); i++) {
+            if(node[0][i].getKind() == kind::STRING_TO_REGEXP && node[0][i][0].getKind() == kind::CONST_STRING && node[0][i][0].getConst<String>().isEmptyString()) {
+              //return true;
+            } else {
+              node_vec.push_back(node[0][i]);
+            }
+          }
+          retNode = node_vec.size()==1 ? node_vec[0] : NodeManager::currentNM()->mkNode(kind::REGEXP_UNION, node_vec);
+          retNode = NodeManager::currentNM()->mkNode(kind::REGEXP_STAR, retNode);
+        }
+      } else if(tmpNode.getKind() == kind::STRING_TO_REGEXP && tmpNode[0].getKind() == kind::CONST_STRING && tmpNode[0].getConst<String>().isEmptyString()) {
+        retNode = tmpNode;
+      } else {
+        retNode = NodeManager::currentNM()->mkNode(kind::REGEXP_STAR, tmpNode);
+      }
     }
   } else if(node.getKind() == kind::REGEXP_PLUS) {
     retNode = NodeManager::currentNM()->mkNode( kind::REGEXP_CONCAT, node[0],

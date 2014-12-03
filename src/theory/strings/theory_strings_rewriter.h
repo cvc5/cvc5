@@ -42,6 +42,7 @@ public:
 
   static RewriteResponse postRewrite(TNode node);
 
+  static bool hasEpsilonNode(TNode node);
   static RewriteResponse preRewrite(TNode node);
 
   static inline void init() {}
