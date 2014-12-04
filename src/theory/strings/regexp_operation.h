@@ -65,6 +65,7 @@ private:
   std::map< Node, std::pair< std::set<unsigned>, std::set<Node> > > d_fset_cache;
   std::map< PairNodes, Node > d_inter_cache;
   std::map< Node, Node > d_rm_inter_cache;
+  std::map< Node, bool > d_norv_cache;
   std::map< Node, std::vector< PairNodes > > d_split_cache;
   //bool checkStarPlus( Node t );
   void simplifyPRegExp( Node s, Node r, std::vector< Node > &new_nodes );
@@ -75,11 +76,11 @@ private:
   bool isPairNodesInSet(std::set< PairNodes > &s, Node n1, Node n2);
 
   void getCharSet( Node r, std::set<unsigned> &pcset, SetNodes &pvset );
-  Node intersectInternal( Node r1, Node r2, std::map< unsigned, std::set< PairNodes > > cache, bool &spflag );
   bool containC2(unsigned cnt, Node n);
   Node convert1(unsigned cnt, Node n);
   void convert2(unsigned cnt, Node n, Node &r1, Node &r2);
-  Node intersectInternal2( Node r1, Node r2, std::map< PairNodes, Node > cache, bool &spflag, unsigned cnt );
+  bool testNoRV(Node r);
+  Node intersectInternal( Node r1, Node r2, std::map< PairNodes, Node > cache, unsigned cnt );
   Node removeIntersection(Node r);
   void firstChars( Node r, std::set<unsigned> &pcset, SetNodes &pvset );
 
