@@ -1,5 +1,12 @@
 %{
 #include "util/unsat_core.h"
+
+#ifdef SWIGJAVA
+
+#include "bindings/java_iterator_adapter.h"
+#include "bindings/java_stream_adapters.h"
+
+#endif /* SWIGJAVA */
 %}
 
 #ifdef SWIGJAVA
@@ -49,3 +56,12 @@
 #endif /* SWIGJAVA */
 
 %include "util/unsat_core.h"
+
+#ifdef SWIGJAVA
+
+%include "bindings/java_iterator_adapter.h"
+%include "bindings/java_stream_adapters.h"
+
+%template(JavaIteratorAdapter_UnsatCore) CVC4::JavaIteratorAdapter<CVC4::UnsatCore>;
+
+#endif /* SWIGJAVA */

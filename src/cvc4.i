@@ -323,6 +323,7 @@ std::set<JavaInputStreamAdapter*> CVC4::JavaInputStreamAdapter::s_adapters;
 %include "util/uninterpreted_constant.i"
 %include "util/proof.i"
 %include "util/resource_manager.i"
+%include "util/unsat_core.i"
 
 %include "expr/kind.i"
 %include "expr/expr.i"
