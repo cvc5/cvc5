@@ -297,6 +297,7 @@ std::set<JavaInputStreamAdapter*> CVC4::JavaInputStreamAdapter::s_adapters;
 %include "util/unsafe_interrupt_exception.i"
 %include "util/integer.i"
 %include "util/rational.i"
+//%include "util/floatingpoint.i"
 %include "util/language.i"
 %include "util/cardinality.i"
 %include "util/bool.i"

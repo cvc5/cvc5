@@ -42,6 +42,7 @@ namespace smt2 {
 static string smtKindString(Kind k) throw();
 
 static void printBvParameterizedOp(std::ostream& out, TNode n) throw();
+static void printFpParameterizedOp(std::ostream& out, TNode n) throw();
 
 void Smt2Printer::toStream(std::ostream& out, TNode n,
                            int toDepth, bool types, size_t dag) const throw() {
@@ -140,6 +141,7 @@ void Smt2Printer::toStream(std::ostream& out, TNode n,
       case REAL_TYPE: out << "Real"; break;
       case INTEGER_TYPE: out << "Int"; break;
       case STRING_TYPE: out << "String"; break;
+      case ROUNDINGMODE_TYPE: out << "RoundingMode"; break;
       default:
         // fall back on whatever operator<< does on underlying type; we
         // might luck out and be SMT-LIB v2 compliant
@@ -148,6 +150,12 @@ void Smt2Printer::toStream(std::ostream& out, TNode n,
       break;
     case kind::BITVECTOR_TYPE:
       out << "(_ BitVec " << n.getConst<BitVectorSize>().size << ")";
+      break;
+    case kind::FLOATINGPOINT_TYPE:
+      out << "(_ FloatingPoint "
+	  << n.getConst<FloatingPointSize>().exponent() << " "
+	  << n.getConst<FloatingPointSize>().significand()
+	  << ")";
       break;
     case kind::CONST_BITVECTOR: {
       const BitVector& bv = n.getConst<BitVector>();
@@ -163,6 +171,20 @@ void Smt2Printer::toStream(std::ostream& out, TNode n,
       // }
       break;
     }
+    case kind::CONST_FLOATINGPOINT:
+      out << n.getConst<FloatingPoint>().getLiteral();
+      break;
+    case kind::CONST_ROUNDINGMODE:
+      switch (n.getConst<RoundingMode>()) {
+      case roundNearestTiesToEven : out << "roundNearestTiesToEven"; break;
+      case roundNearestTiesToAway : out << "roundNearestTiesToAway"; break;
+      case roundTowardPositive : out << "roundTowardPositive"; break;
+      case roundTowardNegative : out << "roundTowardNegative"; break;
+      case roundTowardZero : out << "roundTowardZero"; break;
+      default :
+	Unreachable("Invalid value of rounding mode constant (%d)",n.getConst<RoundingMode>());
+      }
+      break;
     case kind::CONST_BOOLEAN:
       // the default would print "1" or "0" for bool, that's not correct
       // for our purposes
@@ -448,7 +470,49 @@ void Smt2Printer::toStream(std::ostream& out, TNode n,
   case kind::SET_TYPE:
   case kind::SINGLETON: out << smtKindString(k) << " "; break;
 
-   // datatypes
+    // fp theory
+  case kind::FLOATINGPOINT_FP:
+  case kind::FLOATINGPOINT_EQ:
+  case kind::FLOATINGPOINT_ABS:
+  case kind::FLOATINGPOINT_NEG:
+  case kind::FLOATINGPOINT_PLUS:
+  case kind::FLOATINGPOINT_SUB:
+  case kind::FLOATINGPOINT_MULT:
+  case kind::FLOATINGPOINT_DIV:
+  case kind::FLOATINGPOINT_FMA:
+  case kind::FLOATINGPOINT_SQRT:
+  case kind::FLOATINGPOINT_REM:
+  case kind::FLOATINGPOINT_RTI:
+  case kind::FLOATINGPOINT_MIN:
+  case kind::FLOATINGPOINT_MAX:
+  case kind::FLOATINGPOINT_LEQ:
+  case kind::FLOATINGPOINT_LT:
+  case kind::FLOATINGPOINT_GEQ:
+  case kind::FLOATINGPOINT_GT:
+  case kind::FLOATINGPOINT_ISN:
+  case kind::FLOATINGPOINT_ISSN:
+  case kind::FLOATINGPOINT_ISZ:
+  case kind::FLOATINGPOINT_ISINF:
+  case kind::FLOATINGPOINT_ISNAN:
+  case kind::FLOATINGPOINT_ISNEG:
+  case kind::FLOATINGPOINT_ISPOS:
+  case kind::FLOATINGPOINT_TO_REAL:
+    out << smtKindString(k) << ' '; break;
+
+  case kind::FLOATINGPOINT_TO_FP_IEEE_BITVECTOR:
+  case kind::FLOATINGPOINT_TO_FP_FLOATINGPOINT:
+  case kind::FLOATINGPOINT_TO_FP_REAL:
+  case kind::FLOATINGPOINT_TO_FP_SIGNED_BITVECTOR:
+  case kind::FLOATINGPOINT_TO_FP_UNSIGNED_BITVECTOR:
+  case kind::FLOATINGPOINT_TO_FP_GENERIC:
+  case kind::FLOATINGPOINT_TO_UBV:
+  case kind::FLOATINGPOINT_TO_SBV:
+    printFpParameterizedOp(out, n);
+    out << ' ';
+    stillNeedToPrintParams = false;
+    break;
+
+    // datatypes
   case kind::APPLY_TYPE_ASCRIPTION: {
       TypeNode t = TypeNode::fromType(n.getOperator().getConst<AscriptionType>().getType());
       if(t.getKind() == kind::TYPE_CONSTANT &&
@@ -657,6 +721,46 @@ static string smtKindString(Kind k) throw() {
   case kind::SET_TYPE: return "Set";
   case kind::SINGLETON: return "singleton";
   case kind::INSERT: return "insert";
+
+    // fp theory
+  case kind::FLOATINGPOINT_FP: return "fp";
+  case kind::FLOATINGPOINT_EQ: return "fp.eq";
+  case kind::FLOATINGPOINT_ABS: return "fp.abs";
+  case kind::FLOATINGPOINT_NEG: return "fp.neg";
+  case kind::FLOATINGPOINT_PLUS: return "fp.add";
+  case kind::FLOATINGPOINT_SUB: return "fp.sub";
+  case kind::FLOATINGPOINT_MULT: return "fp.mul";
+  case kind::FLOATINGPOINT_DIV: return "fp.div";
+  case kind::FLOATINGPOINT_FMA: return "fp.fma";
+  case kind::FLOATINGPOINT_SQRT: return "fp.sqrt";
+  case kind::FLOATINGPOINT_REM: return "fp.rem";
+  case kind::FLOATINGPOINT_RTI: return "fp.roundToIntegral";
+  case kind::FLOATINGPOINT_MIN: return "fp.min";
+  case kind::FLOATINGPOINT_MAX: return "fp.max";
+
+  case kind::FLOATINGPOINT_LEQ: return "fp.leq";
+  case kind::FLOATINGPOINT_LT: return "fp.lt";
+  case kind::FLOATINGPOINT_GEQ: return "fp.geq";
+  case kind::FLOATINGPOINT_GT: return "fp.gt";
+
+  case kind::FLOATINGPOINT_ISN: return "fp.isNormal";
+  case kind::FLOATINGPOINT_ISSN: return "fp.isSubnormal";
+  case kind::FLOATINGPOINT_ISZ: return "fp.isZero";  
+  case kind::FLOATINGPOINT_ISINF: return "fp.isInfinite";
+  case kind::FLOATINGPOINT_ISNAN: return "fp.isNaN";
+  case kind::FLOATINGPOINT_ISNEG: return "fp.isNegative";
+  case kind::FLOATINGPOINT_ISPOS: return "fp.isPositive";
+
+  case kind::FLOATINGPOINT_TO_FP_IEEE_BITVECTOR: return "to_fp";
+  case kind::FLOATINGPOINT_TO_FP_FLOATINGPOINT: return "to_fp";
+  case kind::FLOATINGPOINT_TO_FP_REAL: return "to_fp";
+  case kind::FLOATINGPOINT_TO_FP_SIGNED_BITVECTOR: return "to_fp";
+  case kind::FLOATINGPOINT_TO_FP_UNSIGNED_BITVECTOR: return "to_fp_unsigned";
+  case kind::FLOATINGPOINT_TO_FP_GENERIC: return "to_fp_unsigned";
+  case kind::FLOATINGPOINT_TO_UBV: return "fp.to_ubv";
+  case kind::FLOATINGPOINT_TO_SBV: return "fp.to_sbv";
+  case kind::FLOATINGPOINT_TO_REAL: return "fp.to_real";
+
   default:
     ; /* fall through */
   }
@@ -702,6 +806,58 @@ static void printBvParameterizedOp(std::ostream& out, TNode n) throw() {
   }
   out << ")";
 }
+
+static void printFpParameterizedOp(std::ostream& out, TNode n) throw() {
+  out << "(_ ";
+  switch(n.getKind()) {
+  case kind::FLOATINGPOINT_TO_FP_IEEE_BITVECTOR:
+    //out << "to_fp_bv "
+    out << "to_fp "
+        << n.getOperator().getConst<FloatingPointToFPIEEEBitVector>().t.exponent() << ' '
+        << n.getOperator().getConst<FloatingPointToFPIEEEBitVector>().t.significand();
+    break;
+  case kind::FLOATINGPOINT_TO_FP_FLOATINGPOINT:
+    //out << "to_fp_fp "
+    out << "to_fp "
+        << n.getOperator().getConst<FloatingPointToFPFloatingPoint>().t.exponent() << ' '
+        << n.getOperator().getConst<FloatingPointToFPFloatingPoint>().t.significand();
+    break;
+  case kind::FLOATINGPOINT_TO_FP_REAL:
+    //out << "to_fp_real "
+    out << "to_fp "
+        << n.getOperator().getConst<FloatingPointToFPReal>().t.exponent() << ' '
+        << n.getOperator().getConst<FloatingPointToFPReal>().t.significand();
+    break;
+  case kind::FLOATINGPOINT_TO_FP_SIGNED_BITVECTOR:
+    //out << "to_fp_signed "
+    out << "to_fp "
+        << n.getOperator().getConst<FloatingPointToFPSignedBitVector>().t.exponent() << ' '
+        << n.getOperator().getConst<FloatingPointToFPSignedBitVector>().t.significand();
+    break;
+  case kind::FLOATINGPOINT_TO_FP_UNSIGNED_BITVECTOR:
+    out << "to_fp_unsigned "
+        << n.getOperator().getConst<FloatingPointToFPUnsignedBitVector>().t.exponent() << ' '
+        << n.getOperator().getConst<FloatingPointToFPUnsignedBitVector>().t.significand();
+    break;
+  case kind::FLOATINGPOINT_TO_FP_GENERIC:
+    out << "to_fp "
+        << n.getOperator().getConst<FloatingPointToFPGeneric>().t.exponent() << ' '
+        << n.getOperator().getConst<FloatingPointToFPGeneric>().t.significand();
+    break;
+  case kind::FLOATINGPOINT_TO_UBV:
+    out << "fp.to_ubv "
+        << n.getOperator().getConst<FloatingPointToUBV>().bvs.size;
+    break;
+  case kind::FLOATINGPOINT_TO_SBV:
+    out << "fp.to_sbv "
+        << n.getOperator().getConst<FloatingPointToSBV>().bvs.size;
+    break;
+  default:
+    out << n.getKind();
+  }
+  out << ")";
+}
+
 
 template <class T>
 static bool tryToStream(std::ostream& out, const Command* c) throw();

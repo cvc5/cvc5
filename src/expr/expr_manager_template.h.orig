@@ -139,9 +139,6 @@ public:
   /** Get the type for integers */
   IntegerType integerType() const;
 
-  /** Get the type for rounding modes */
-  RoundingModeType roundingModeType() const;
-
   /**
    * Make a unary expression of a given kind (NOT, BVNOT, ...).
    * @param kind the kind of expression
@@ -363,9 +360,6 @@ public:
    * have any number of elements.
    */
   SExprType mkSExprType(const std::vector<Type>& types);
-
-  /** Make a type representing a floating-point type with the given parameters. */
-  FloatingPointType mkFloatingPointType(unsigned exp, unsigned sig) const;
 
   /** Make a type representing a bit-vector of the given size. */
   BitVectorType mkBitVectorType(unsigned size) const;

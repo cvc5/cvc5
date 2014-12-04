@@ -100,6 +100,8 @@ libutil_la_SOURCES = \
 	didyoumean.cpp \
 	unsat_core.h \
 	unsat_core.cpp \
+	floatingpoint.h \
+	floatingpoint.cpp \
 	resource_manager.h \
 	resource_manager.cpp \
 	unsafe_interrupt_exception.h
@@ -164,7 +166,8 @@ EXTRA_DIST = \
 	resource_manager.i \
 	unsafe_interrupt_exception.i \
 	proof.i \
-	unsat_core.i
+	unsat_core.i \
+	floatingpoint.i
 
 DISTCLEANFILES = \
 	integer.h.tmp \
