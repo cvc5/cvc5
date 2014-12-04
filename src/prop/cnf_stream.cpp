@@ -51,6 +51,7 @@ CnfStream::CnfStream(SatSolver *satSolver, Registrar* registrar, context::Contex
   d_nodeToLiteralMap(context),
   d_literalToNodeMap(context),
   d_fullLitToNodeMap(fullLitToNodeMap),
+  d_convertAndAssertCounter(0),
   d_registrar(registrar),
   d_assertionTable(context),
   d_removable(false) {
