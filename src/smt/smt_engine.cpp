@@ -1714,11 +1714,13 @@ Node SmtEnginePrivate::expandDefinitions(TNode n, hash_map<Node, Node, NodeHashF
       }
 
       // otherwise expand it
-      if (k == kind::APPLY) {
+      if (k == kind::APPLY && n.getOperator().getKind() != kind::LAMBDA) {
         // application of a user-defined symbol
         TNode func = n.getOperator();
-        SmtEngine::DefinedFunctionMap::const_iterator i =
-          d_smt.d_definedFunctions->find(func);
+        SmtEngine::DefinedFunctionMap::const_iterator i = d_smt.d_definedFunctions->find(func);
+        if(i == d_smt.d_definedFunctions->end()) {
+          throw TypeCheckingException(n.toExpr(), string("Undefined function: `") + func.toString() + "'");
+        }
         DefinedFunction def = (*i).second;
         vector<Node> formals = def.getFormals();
 
@@ -1727,9 +1729,6 @@ Node SmtEnginePrivate::expandDefinitions(TNode n, hash_map<Node, Node, NodeHashF
           Debug("expand") << " func: " << func << endl;
           string name = func.getAttribute(expr::VarNameAttr());
           Debug("expand") << "     : \"" << name << "\"" << endl;
-        }
-        if(i == d_smt.d_definedFunctions->end()) {
-          throw TypeCheckingException(n.toExpr(), string("Undefined function: `") + func.toString() + "'");
         }
         if(Debug.isOn("expand")) {
           Debug("expand") << " defn: " << def.getFunction() << endl
