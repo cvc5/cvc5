@@ -748,18 +748,26 @@ RewriteResponse TheoryStringsRewriter::preRewrite(TNode node) {
     if(r.getKind() == kind::REGEXP_STAR) {
       retNode = r;
     } else {
+      TNode n1 = Rewriter::rewrite( node[1] );
+      if(!n1.isConst()) {
+        throw LogicException("re.loop contains non-constant integer (1).");
+      }
       CVC4::Rational RMAXINT(LONG_MAX);
-      Assert(node[1].getConst<Rational>() <= RMAXINT, "Exceeded LONG_MAX in string REGEXP_LOOP (1)");
-      unsigned l = node[1].getConst<Rational>().getNumerator().toUnsignedInt();
+      Assert(n1.getConst<Rational>() <= RMAXINT, "Exceeded LONG_MAX in string REGEXP_LOOP (1)");
+      unsigned l = n1.getConst<Rational>().getNumerator().toUnsignedInt();
       std::vector< Node > vec_nodes;
       for(unsigned i=0; i<l; i++) {
         vec_nodes.push_back(r);
       }
       if(node.getNumChildren() == 3) {
+        TNode n2 = Rewriter::rewrite( node[2] );
+        if(!n2.isConst()) {
+          throw LogicException("re.loop contains non-constant integer (2).");
+        }
         Node n = vec_nodes.size()==0 ? NodeManager::currentNM()->mkNode(kind::STRING_TO_REGEXP, NodeManager::currentNM()->mkConst(CVC4::String("")))
           : vec_nodes.size()==1 ? r : prerewriteConcatRegExp(NodeManager::currentNM()->mkNode(kind::REGEXP_CONCAT, vec_nodes));
-        Assert(node[2].getConst<Rational>() <= RMAXINT, "Exceeded LONG_MAX in string REGEXP_LOOP (2)");
-        unsigned u = node[2].getConst<Rational>().getNumerator().toUnsignedInt();
+        Assert(n2.getConst<Rational>() <= RMAXINT, "Exceeded LONG_MAX in string REGEXP_LOOP (2)");
+        unsigned u = n2.getConst<Rational>().getNumerator().toUnsignedInt();
         if(u <= l) {
           retNode = n;
         } else {

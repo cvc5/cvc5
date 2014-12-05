@@ -23,6 +23,9 @@ option stringOpt1 strings-opt1 --strings-opt1 bool :default true
 option stringOpt2 strings-opt2 --strings-opt2 bool :default false
  internal option2 for strings: constant regexp splitting
 
+option stringIgnNegMembership strings-inm --strings-inm bool :default false
+ internal for strings: ignore negative membership constraints (fragment checking is needed, left to users for now)
+
 expert-option stringCharCardinality strings-alphabet-card --strings-alphabet-card=N int16_t :default 256 :predicate CVC4::smt::beforeSearch :predicate-include "smt/smt_engine.h"
  the cardinality of the characters used by the theory of strings, default 256
 

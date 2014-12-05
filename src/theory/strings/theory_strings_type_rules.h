@@ -388,18 +388,18 @@ public:
       if (!t.isInteger()) {
         throw TypeCheckingExceptionPrivate(n, "expecting an integer term in regexp loop 2");
       }
-      if(!(*it).isConst()) {
-        throw TypeCheckingExceptionPrivate(n, "expecting an const integer term in regexp loop 2");
-      }
+      //if(!(*it).isConst()) {
+        //throw TypeCheckingExceptionPrivate(n, "expecting an const integer term in regexp loop 2");
+      //}
       ++it;
       if(it != it_end) {
         t = (*it).getType(check);
         if (!t.isInteger()) {
           throw TypeCheckingExceptionPrivate(n, "expecting an integer term in regexp loop 3");
         }
-        if(!(*it).isConst()) {
-          throw TypeCheckingExceptionPrivate(n, "expecting an const integer term in regexp loop 3");
-        }
+        //if(!(*it).isConst()) {
+          //throw TypeCheckingExceptionPrivate(n, "expecting an const integer term in regexp loop 3");
+        //}
         //if(++it != it_end) {
         //  throw TypeCheckingExceptionPrivate(n, "too many regexp");
         //}

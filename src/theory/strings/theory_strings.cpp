@@ -589,7 +589,9 @@ void TheoryStrings::check(Effort e) {
     //must record string in regular expressions
     if ( atom.getKind() == kind::STRING_IN_REGEXP ) {
       addMembership(assertion);
-      d_equalityEngine.assertPredicate(atom, polarity, fact);
+      //if(polarity || !options::stringIgnNegMembership()) {
+        d_equalityEngine.assertPredicate(atom, polarity, fact);
+      //}
     } else if (atom.getKind() == kind::STRING_STRCTN) {
       if(polarity) {
         d_str_pos_ctn.push_back( atom );
@@ -3460,7 +3462,7 @@ void TheoryStrings::addMembership(Node assertion) {
       }
     }
     lst->push_back( r );
-  } else {
+  } else if(!options::stringIgnNegMembership()) {
     /*if(options::stringEIT() && d_regexp_opr.checkConstRegExp(r)) {
       int rt;
       Node r2 = d_regexp_opr.complement(r, rt);
@@ -3483,7 +3485,10 @@ void TheoryStrings::addMembership(Node assertion) {
     }
     lst->push_back( r );
   }
-  d_regexp_memberships.push_back( assertion );
+  // old
+  if(polarity || !options::stringIgnNegMembership()) {
+    d_regexp_memberships.push_back( assertion );
+  }
 }
 
 Node TheoryStrings::getNormalString(Node x, std::vector<Node> &nf_exp) {
