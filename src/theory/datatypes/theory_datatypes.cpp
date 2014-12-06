@@ -1096,7 +1096,7 @@ void TheoryDatatypes::computeCareGraph(){
       for( unsigned j=i+1; j<functionTerms; j++ ){
         TNode f2 = r==0 ? d_consTerms[j] : d_selTerms[j];
         Trace("dt-cg-debug") << "dt-cg: " << f1 << " and " << f2 << " " << (f1.getOperator()==f2.getOperator()) << " " << areEqual( f1, f2 ) << std::endl;
-        if( f1.getOperator()==f2.getOperator() && !areEqual( f1, f2 ) ){
+        if( f1.getOperator()==f2.getOperator() && ( f1.getKind()!=DT_SIZE || f1[0].getType()==f2[0].getType() ) && !areEqual( f1, f2 ) ){
           Trace("dt-cg") << "Check " << f1 << " and " << f2 << std::endl;
           bool somePairIsDisequal = false;
           currentPairs.clear();
