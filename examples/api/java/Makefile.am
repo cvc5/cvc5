@@ -9,7 +9,8 @@ noinst_DATA += \
 	HelloWorld.class \
 	LinearArith.class \
 	Datatypes.class \
-	PipedInput.class
+	PipedInput.class \
+	Strings.class
 endif
 
 %.class: %.java
@@ -23,7 +24,8 @@ EXTRA_DIST = \
 	HelloWorld.java \
 	LinearArith.java \
 	Datatypes.java \
-	PipedInput.java
+	PipedInput.java \
+	Strings.java
 
 # for installation
 examplesdir = $(docdir)/$(subdir)
