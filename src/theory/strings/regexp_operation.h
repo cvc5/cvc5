@@ -39,7 +39,7 @@ class RegExpOpr {
   typedef std::pair< Node, Node > PairNodes;
 
 private:
-  unsigned d_card;
+  const char d_lastchar;
   Node d_emptyString;
   Node d_true;
   Node d_false;
@@ -61,8 +61,8 @@ private:
   std::map< PairNodeStr, std::pair< Node, int > > d_deriv_cache;
   std::map< Node, std::pair< Node, int > > d_compl_cache;
   std::map< Node, bool > d_cstre_cache;
-  std::map< Node, std::pair< std::set<unsigned>, std::set<Node> > > d_cset_cache;
-  std::map< Node, std::pair< std::set<unsigned>, std::set<Node> > > d_fset_cache;
+  std::map< Node, std::pair< std::set<char>, std::set<Node> > > d_cset_cache;
+  std::map< Node, std::pair< std::set<char>, std::set<Node> > > d_fset_cache;
   std::map< PairNodes, Node > d_inter_cache;
   std::map< Node, Node > d_rm_inter_cache;
   std::map< Node, bool > d_norv_cache;
@@ -75,17 +75,27 @@ private:
   Node mkAllExceptOne( char c );
   bool isPairNodesInSet(std::set< PairNodes > &s, Node n1, Node n2);
 
-  void getCharSet( Node r, std::set<unsigned> &pcset, SetNodes &pvset );
+  void getCharSet( Node r, std::set<char> &pcset, SetNodes &pvset );
   bool containC2(unsigned cnt, Node n);
   Node convert1(unsigned cnt, Node n);
   void convert2(unsigned cnt, Node n, Node &r1, Node &r2);
   bool testNoRV(Node r);
   Node intersectInternal( Node r1, Node r2, std::map< PairNodes, Node > cache, unsigned cnt );
   Node removeIntersection(Node r);
-  void firstChars( Node r, std::set<unsigned> &pcset, SetNodes &pvset );
+  void firstChars( Node r, std::set<char> &pcset, SetNodes &pvset );
 
   //TODO: for intersection
   bool follow( Node r, CVC4::String c, std::vector< char > &vec_chars );
+
+  /*class CState {
+  public:
+    Node r1;
+    Node r2;
+    unsigned cnt;
+    Node head;
+    CState(Node rr1, Node rr2, Node rcnt, Node rhead)
+      : r1(rr1), r2(rr2), cnt(rcnt), head(rhead) {}
+  };*/
 
 public:
   RegExpOpr();

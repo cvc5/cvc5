@@ -472,12 +472,15 @@ void TheoryStrings::preRegisterTerm(TNode n) {
 void TheoryStrings::preRegisterTerm(TNode n) {
   if( d_registed_terms_cache.find(n) == d_registed_terms_cache.end() ) {
     switch( n.getKind() ) {
-      case kind::EQUAL:
+      case kind::EQUAL: {
         d_equalityEngine.addTriggerEquality(n);
         break;
-      case kind::STRING_IN_REGEXP:
+      }
+      case kind::STRING_IN_REGEXP: {
+        d_out->requirePhase(n, true);
         d_equalityEngine.addTriggerPredicate(n);
         break;
+      }
       //case kind::STRING_SUBSTR_TOTAL:
       default: {
         if( n.getType().isString() ) {

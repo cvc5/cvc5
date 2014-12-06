@@ -116,7 +116,7 @@ public:
     if(d_str.size() != y.d_str.size()) return d_str.size() < y.d_str.size();
     else {
       for(unsigned int i=0; i<d_str.size(); ++i)
-        if(d_str[i] != y.d_str[i]) return d_str[i] < y.d_str[i];
+        if(d_str[i] != y.d_str[i]) return convertUnsignedIntToChar(d_str[i]) < convertUnsignedIntToChar(y.d_str[i]);
 
       return false;
     }
@@ -126,7 +126,7 @@ public:
     if(d_str.size() != y.d_str.size()) return d_str.size() > y.d_str.size();
     else {
       for(unsigned int i=0; i<d_str.size(); ++i)
-        if(d_str[i] != y.d_str[i]) return d_str[i] > y.d_str[i];
+        if(d_str[i] != y.d_str[i]) return convertUnsignedIntToChar(d_str[i]) > convertUnsignedIntToChar(y.d_str[i]);
 
       return false;
     }
@@ -136,7 +136,7 @@ public:
     if(d_str.size() != y.d_str.size()) return d_str.size() < y.d_str.size();
     else {
       for(unsigned int i=0; i<d_str.size(); ++i)
-        if(d_str[i] != y.d_str[i]) return d_str[i] < y.d_str[i];
+        if(d_str[i] != y.d_str[i]) return convertUnsignedIntToChar(d_str[i]) < convertUnsignedIntToChar(y.d_str[i]);
 
       return true;
     }
@@ -146,7 +146,7 @@ public:
     if(d_str.size() != y.d_str.size()) return d_str.size() > y.d_str.size();
     else {
       for(unsigned int i=0; i<d_str.size(); ++i)
-        if(d_str[i] != y.d_str[i]) return d_str[i] > y.d_str[i];
+        if(d_str[i] != y.d_str[i]) return convertUnsignedIntToChar(d_str[i]) > convertUnsignedIntToChar(y.d_str[i]);
 
       return true;
     }
@@ -188,10 +188,10 @@ public:
     return ( d_str.size() == 0 );
   }
 
-  unsigned int operator[] (const std::size_t i) const {
+  /*char operator[] (const std::size_t i) const {
     assert( i < d_str.size() );
-    return d_str[i];
-  }
+    return convertUnsignedIntToChar(d_str[i]);
+  }*/
   /*
    * Convenience functions
    */
@@ -203,6 +203,11 @@ public:
 
   char getFirstChar() const {
     return convertUnsignedIntToChar( d_str[0] );
+  }
+
+  char getLastChar() const {
+    assert(d_str.size() != 0);
+    return convertUnsignedIntToChar( d_str[d_str.size() - 1] );
   }
 
   bool isRepeated() const {
@@ -307,7 +312,12 @@ public:
      return -1;
    }
   }
-  void getCharSet(std::set<unsigned int> &cset) const;
+
+  void getCharSet(std::set<char> &cset) const;
+
+  std::vector<unsigned int> getVec() const {
+    return d_str;
+  }
 };/* class String */
 
 namespace strings {

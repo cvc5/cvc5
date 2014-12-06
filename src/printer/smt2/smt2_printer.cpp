@@ -215,7 +215,7 @@ void Smt2Printer::toStream(std::ostream& out, TNode n,
     }
 
     case kind::CONST_STRING: {
-      const String& s = n.getConst<String>();
+      const std::vector<unsigned int>& s = n.getConst<String>().getVec();
       out << '"';
       for(size_t i = 0; i < s.size(); ++i) {
         char c = String::convertUnsignedIntToChar(s[i]);

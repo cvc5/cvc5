@@ -12,7 +12,8 @@ noinst_PROGRAMS = \
 	datatypes \
 	helloworld \
 	linear_arith \
-	sets
+	sets \
+	strings
 
 noinst_DATA =
 
@@ -51,6 +52,11 @@ linear_arith_LDADD = \
 sets_SOURCES = \
 	sets.cpp
 sets_LDADD = \
+	@builddir@/../../src/libcvc4.la
+
+strings_SOURCES = \
+	strings.cpp
+strings_LDADD = \
 	@builddir@/../../src/libcvc4.la
 
 # for installation

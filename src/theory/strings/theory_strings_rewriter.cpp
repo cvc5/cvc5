@@ -358,6 +358,16 @@ bool TheoryStringsRewriter::testConstStringInRegExp( CVC4::String &s, unsigned i
         return false;
       }
     }
+    case kind::REGEXP_RANGE: {
+      if(s.size() == index_start + 1) {
+        char a = r[0].getConst<String>().getFirstChar();
+        char b = r[1].getConst<String>().getFirstChar();
+        char c = s.getLastChar();
+        return (a <= c && c <= b);
+      } else {
+        return false;
+      }
+    }
     default: {
       Trace("strings-error") << "Unsupported term: " << r << " in testConstStringInRegExp." << std::endl;
       Assert( false, "Unsupported Term" );
