@@ -32,7 +32,8 @@ enum RewriteTag {
   IndentityOpRewrite,
   TransitivityRewrite, // (rw t1 t2) (rw t2 t3) => (rw t1 t3)
 
-
+  // General rewrites
+  EqReflexivity,
   // Bit-vector rewrites
   BvXorZero,
   BvXorOne,
@@ -91,6 +92,7 @@ public:
   RewriteTag tag() { return d_tag;}
   unsigned id() { return d_id;}
   virtual void printLFSC(std::ostream& os, std::ostream& paren) = 0;
+  virtual ~RewriteProof() {}
 };
 
 
@@ -112,7 +114,7 @@ protected:
 
 public:
   RewriterProof();
-  ~RewriterProof();
+  virtual ~RewriterProof();
   void finalizeRewrite(Expr from, Expr to);
   void pushRewriteRule(Expr from, Expr to, RewriteTag tag);
   virtual void printRewrittenAssertios(std::ostream& os, std::ostream& paren) = 0;

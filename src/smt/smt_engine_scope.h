@@ -23,6 +23,7 @@
 #include "expr/node_manager.h"
 #include "util/output.h"
 #include "proof/proof.h"
+#include "proof/proof_manager.h"
 
 #pragma once
 
@@ -33,6 +34,7 @@ class ProofManager;
 namespace smt {
 
 extern CVC4_THREADLOCAL(SmtEngine*) s_smtEngine_current;
+extern CVC4_THREADLOCAL(ProofManager*) s_proofManager_current;
 
 inline SmtEngine* currentSmtEngine() {
   Assert(s_smtEngine_current != NULL);
@@ -41,8 +43,12 @@ inline SmtEngine* currentSmtEngine() {
 
 inline ProofManager* currentProofManager() {
   Assert(PROOF_ON());
-  Assert(s_smtEngine_current != NULL);
-  return s_smtEngine_current->d_proofManager;
+  // FIXME: this will not work if multiple SmtEngines exist
+  if (s_proofManager_current == NULL) {
+    s_proofManager_current = new ProofManager();
+  }
+
+  return s_proofManager_current;
 }
 
 class SmtScope : public NodeManagerScope {

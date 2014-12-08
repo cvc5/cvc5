@@ -55,7 +55,7 @@ class SmtEngine;
 class DecisionEngine;
 class TheoryEngine;
 
-class ProofManager;
+//class ProofManager;
 
 class Model;
 class LogicRequest;
@@ -85,7 +85,7 @@ namespace smt {
   class BooleanTermConverter;
 
   void beforeSearch(std::string, bool, SmtEngine*) throw(ModalException);
-  ProofManager* currentProofManager();
+//ProofManager* currentProofManager();
 
   struct CommandCleanup;
   typedef context::CDList<Command*, CommandCleanup> CommandList;
@@ -139,7 +139,7 @@ class CVC4_PUBLIC SmtEngine {
   /** The propositional engine */
   prop::PropEngine* d_propEngine;
   /** The proof manager */
-  ProofManager* d_proofManager;
+  //  ProofManager* d_proofManager;
   /** An index of our defined functions */
   DefinedFunctionMap* d_definedFunctions;
 
@@ -336,7 +336,7 @@ class CVC4_PUBLIC SmtEngine {
   friend class ::CVC4::smt::BooleanTermConverter;
   friend ::CVC4::StatisticsRegistry* ::CVC4::stats::getStatisticsRegistry(SmtEngine*);
   friend void ::CVC4::smt::beforeSearch(std::string, bool, SmtEngine*) throw(ModalException);
-  friend ProofManager* ::CVC4::smt::currentProofManager();
+  //  friend ProofManager* ::CVC4::smt::currentProofManager();
   friend class ::CVC4::LogicRequest;
   // to access d_modelCommands
   friend class ::CVC4::Model;

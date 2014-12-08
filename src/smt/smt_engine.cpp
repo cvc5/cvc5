@@ -635,7 +635,7 @@ SmtEngine::SmtEngine(ExprManager* em) throw() :
   d_decisionEngine(NULL),
   d_theoryEngine(NULL),
   d_propEngine(NULL),
-  d_proofManager(NULL),
+  //  d_proofManager(NULL),
   d_definedFunctions(NULL),
   d_assertionList(NULL),
   d_assignments(NULL),
@@ -665,7 +665,7 @@ SmtEngine::SmtEngine(ExprManager* em) throw() :
   d_statisticsRegistry = new StatisticsRegistry();
   d_stats = new SmtEngineStatistics();
 
-  PROOF( d_proofManager = new ProofManager(); );
+  //  PROOF( d_proofManager = new ProofManager(); );
 
   // We have mutual dependency here, so we add the prop engine to the theory
   // engine later (it is non-essential there)

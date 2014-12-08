@@ -330,8 +330,8 @@ Node RewriteRule<XnorEliminate>::apply(TNode node) {
   Node xorNode = utils::mkNode(kind::BITVECTOR_XOR, a, b);
   Node result = utils::mkNode(kind::BITVECTOR_NOT, xorNode);
     PROOF(
-        Expr from = Node::toExpr(node);
-        Expr to = Node::toExpr(result);
+        Expr from = node.toExpr();
+        Expr to = result.toExpr();
         ProofManager::currentPM()->getRewriterProof()->pushRewriteRule(from, to, BvXnorEliminate);
 	);
   return result;

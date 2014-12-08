@@ -89,6 +89,15 @@
 ;; 	(! x (term (BitVec n)) 
 ;;               	   (term BitVec))))
 
+(declare concatt
+	 (! n mpz
+	 (! m mpz
+	 (! m' mpz
+	 (! t1 (term (BitVec n))
+	 (! t2 (term (BitVec m))
+	 (! s (^ (mp_add n m) m')
+	    (term (BitVec m')))))))))
+
 ;; (declare repeat bvopp)
 ;; (declare zero_extend bvopp)
 ;; (declare sign_extend bvopp)
@@ -515,52 +524,52 @@
 
 	
 ;; (bvxnor a b) => (bvnot (bvxor a b))
-(declare bvxnor_elim
-	 (! n mpz
-	 (! a (term (BitVec n))
-	 (! b (term (BitVec n))
-	 (! a' (term (BitVec n))
-	 (! b' (term (BitVec n))
-	 (! rwa (rw_term _ a a')
-	 (! rwb (rw_term _ b b')
-	 (rw_term n (bvxnor _ a b)
-	 	  (bvnot _ (bvxor _ a' b')))))))))))
+;; (declare bvxnor_elim
+;; 	 (! n mpz
+;; 	 (! a (term (BitVec n))
+;; 	 (! b (term (BitVec n))
+;; 	 (! a' (term (BitVec n))
+;; 	 (! b' (term (BitVec n))
+;; 	 (! rwa (rw_term _ a a')
+;; 	 (! rwb (rw_term _ b b')
+;; 	 (rw_term n (bvxnor _ a b)
+;; 	 	  (bvnot _ (bvxor _ a' b')))))))))))
 
 
 
-;; (bvxor a 0) => a
-(declare bvxor_zero
-	 (! n mpz
-	 (! zero_bits bv
-	 (! sc (^ (mk_zero n)  zero_bits)
-	 (! a (term (BitVec n))
-	 (! b (term (BitVec n))
-	 (! a' (term (BitVec n))
-	 (! rwa (rw_term _  a a')
-	 (! rwb (rw_term _ b (a_bv _ zero_bits))
-	 (rw_term _  (bvxor _ a b)
-	 	  a'))))))))))
+;; ;; (bvxor a 0) => a
+;; (declare bvxor_zero
+;; 	 (! n mpz
+;; 	 (! zero_bits bv
+;; 	 (! sc (^ (mk_zero n)  zero_bits)
+;; 	 (! a (term (BitVec n))
+;; 	 (! b (term (BitVec n))
+;; 	 (! a' (term (BitVec n))
+;; 	 (! rwa (rw_term _  a a')
+;; 	 (! rwb (rw_term _ b (a_bv _ zero_bits))
+;; 	 (rw_term _  (bvxor _ a b)
+;; 	 	  a'))))))))))
 		  
-;; (bvxor a 11) => (bvnot a)
-(declare bvxor_one
-	 (! n mpz
-	 (! one_bits bv
-	 (! sc (^ (mk_ones n)  one_bits)
-	 (! a (term (BitVec n))
-	 (! b (term (BitVec n))
-	 (! a' (term (BitVec n))
-	 (! rwa (rw_term _  a a')
-	 (! rwb (rw_term _  b (a_bv _ one_bits))
-	 (rw_term _ (bvxor _ a b)
-	 	  (bvnot _ a')))))))))))
+;; ;; (bvxor a 11) => (bvnot a)
+;; (declare bvxor_one
+;; 	 (! n mpz
+;; 	 (! one_bits bv
+;; 	 (! sc (^ (mk_ones n)  one_bits)
+;; 	 (! a (term (BitVec n))
+;; 	 (! b (term (BitVec n))
+;; 	 (! a' (term (BitVec n))
+;; 	 (! rwa (rw_term _  a a')
+;; 	 (! rwb (rw_term _  b (a_bv _ one_bits))
+;; 	 (rw_term _ (bvxor _ a b)
+;; 	 	  (bvnot _ a')))))))))))
 
 		  
-;; (bvnot (bvnot a)) => a
-(declare bvnot_idemp
-	 (! n mpz
-	 (! a (term (BitVec n))
-	 (! a' (term (BitVec n))
-	 (! rwa (rw_term _  a a')
-	 (rw_term _ (bvnot _ (bvnot _ a))
-	 	  a'))))))
+;; ;; (bvnot (bvnot a)) => a
+;; (declare bvnot_idemp
+;; 	 (! n mpz
+;; 	 (! a (term (BitVec n))
+;; 	 (! a' (term (BitVec n))
+;; 	 (! rwa (rw_term _  a a')
+;; 	 (rw_term _ (bvnot _ (bvnot _ a))
+;; 	 	  a'))))))
 

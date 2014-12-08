@@ -39,6 +39,8 @@ RewriterProof::~RewriterProof() {
 }
 
 void RewriterProof::finalizeRewrite(Expr from, Expr to) {
+  //FIXME!!!!!
+  return;
   Debug("proof-rewrite") << "RewriterProof::finalizeRewriteProof: " << from <<" => " << to<<"\n"; 
   Assert (from != to);
   if (d_rewriteStack.empty()) {
@@ -52,7 +54,7 @@ void RewriterProof::finalizeRewrite(Expr from, Expr to) {
       if (hasRewrite(from[i], to[i]))
           continue;
 
-      Assert (from[i] == to[i]);
+      Assert (from[i] == to[i]); // FIXME: use mkProof<IdentityRewrite> template that stores the proof
       RewriteProof* pf = new IdentityRewriteProof(from[i]);
     }
     RewriteProof* pf = new IdentityOpRewriteProof(from, to);
@@ -77,6 +79,9 @@ void RewriterProof::finalizeRewrite(Expr from, Expr to) {
 }
 
 void RewriterProof::pushRewriteRule(Expr from, Expr to, RewriteTag tag) {
+  //FIXME!!!!
+  return;
+
   Debug("proof-rewrite") << "RewriterProof::pushRewriteRule " << tag <<"\n";
   Debug("proof-rewrite") << "      " << from <<" => " << to<<"\n"; 
   RewriteProof* pf = NULL;
@@ -84,6 +89,7 @@ void RewriterProof::pushRewriteRule(Expr from, Expr to, RewriteTag tag) {
   case BvXnorEliminate:
   case BvXorZero:
   case BvXorOne:
+  case EqReflexivity:
     // FIXME will this always be identity?
     // if yes can change the "leaf" rewrites
     pf = new BvRewriteOp2Proof(tag, new IdentityRewriteProof(from[0]),
@@ -243,7 +249,7 @@ void IdentityOpRewriteProof::printLFSC(std::ostream& os, std::ostream& paren) {
 
 
 BvRewriteOp2Proof::BvRewriteOp2Proof(RewriteTag tag, RewriteProof* p1, RewriteProof* p2)
-  : RewriteProof(BvXorOne)
+  : RewriteProof(tag)
   , pf1(p1)
   , pf2(p2)
 {
@@ -263,6 +269,9 @@ BvRewriteOp2Proof::BvRewriteOp2Proof(RewriteTag tag, RewriteProof* p1, RewritePr
     d_from = utils::mkExpr(kind::BITVECTOR_XNOR, pf1->from(), pf2->from());
     d_to = utils::mkExpr(kind::BITVECTOR_NOT, utils::mkExpr(kind::BITVECTOR_XOR, pf1->to(), pf2->to()));
     break;
+  case EqReflexivity:
+    d_from = utils::mkExpr(kind::EQUAL, pf1->from(), pf2->from());
+    d_to = utils::mkExpr(kind::EQUAL, pf2->to(), pf1->to());
   default:
     Unreachable("Unknown rewrite tag", tag);
   }

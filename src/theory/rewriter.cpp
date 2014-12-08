@@ -127,8 +127,8 @@ Node Rewriter::rewriteTo(theory::TheoryId theoryId, Node node) {
           RewriteResponse response = Rewriter::callPreRewrite((TheoryId) rewriteStackTop.theoryId, rewriteStackTop.node);
           PROOF(
                 if(rewriteStackTop.node != response.node) {
-                  Expr from = Node::toExpr(rewriteStackTop.node);
-                  Expr to = Node::toExpr(response.node);
+                  Expr from = rewriteStackTop.node.toExpr();
+                  Expr to = response.node.toExpr();
                   ProofManager::currentPM()->getRewriterProof()->finalizeRewrite(from, to);
                 }
                 );
@@ -189,9 +189,9 @@ Node Rewriter::rewriteTo(theory::TheoryId theoryId, Node node) {
         Node rewritten = rewriteStackTop.builder;
         PROOF(
               if (rewritten != rewriteStackTop.node) {
-                  Expr from = Node::toExpr(rewriteStackTop.node);
-                  Expr to = Node::toExpr(rewritten);
-                  ProofManager::currentPM()->getRewriterProof()->finalizeRewrite(from, to);
+                Expr from = rewriteStackTop.node.toExpr();
+                Expr to = rewritten.toExpr();
+                ProofManager::currentPM()->getRewriterProof()->finalizeRewrite(from, to);
               }
               );
         rewriteStackTop.node = rewritten;
@@ -206,8 +206,8 @@ Node Rewriter::rewriteTo(theory::TheoryId theoryId, Node node) {
         TheoryId newTheoryId = theoryOf(response.node);
         PROOF(
               if (rewriteStackTop.node != response.node) {
-                Expr from = Node::toExpr(rewriteStackTop.node);
-                Expr to = Node::toExpr(response.node);
+                Expr from = rewriteStackTop.node.toExpr();
+                Expr to = response.node.toExpr();
                 ProofManager::currentPM()->getRewriterProof()->finalizeRewrite(from, to);
               }
               );
@@ -223,8 +223,8 @@ Node Rewriter::rewriteTo(theory::TheoryId theoryId, Node node) {
           Node rewritten = rewriteTo(newTheoryId, response.node);
           PROOF (
                  if (rewriteStackTop.node != rewritten) {
-                   Expr from = Node::toExpr(rewriteStackTop.node);
-                   Expr to = Node::toExpr(rewritten);
+                   Expr from = rewriteStackTop.node.toExpr();
+                   Expr to = rewritten.toExpr();
                    ProofManager::currentPM()->getRewriterProof()->finalizeRewrite(from, to);
                  }
                  );

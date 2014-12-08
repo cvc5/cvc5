@@ -22,6 +22,7 @@ namespace CVC4 {
 namespace smt {
 
 CVC4_THREADLOCAL(SmtEngine*) s_smtEngine_current = NULL;
+CVC4_THREADLOCAL(ProofManager*) s_proofManager_current = NULL;
 
 }/* CVC4::smt namespace */
 }/* CVC4 namespace */

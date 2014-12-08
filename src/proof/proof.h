@@ -20,11 +20,11 @@
 #define __CVC4__PROOF__PROOF_H
 
 #include "smt/options.h"
-
+// FIXME: better option checking
 #ifdef CVC4_PROOF
-#  define PROOF(x) if(CVC4::options::proof()) { x; }
-#  define NULLPROOF(x) (CVC4::options::proof()) ? x : NULL
-#  define PROOF_ON() CVC4::options::proof()
+#  define PROOF(x) /*if(CVC4::options::proof())*/ { x; }
+#  define NULLPROOF(x) /*(CVC4::options::proof()) ?*/ x /*: NULL*/
+#  define PROOF_ON() true /*CVC4::options::proof()*/
 #else /* CVC4_PROOF */
 #  define PROOF(x)
 #  define NULLPROOF(x) NULL
