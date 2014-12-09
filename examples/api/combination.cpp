@@ -95,7 +95,7 @@ int main() {
        << "the assumptions are satisfiable: "
        << smt.checkSat(em.mkConst(true)) << "."<< endl;
 
-  cout << "Finally, after a SAT call, we recursively call smt.getValue(...) on"
+  cout << "Finally, after a SAT call, we recursively call smt.getValue(...) on "
        << "all of the assumptions to see what the satisfying model looks like."
        << endl;
   prefixPrintGetValue(smt, assumptions);
