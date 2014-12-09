@@ -453,7 +453,9 @@ struct RecordTypeRule {
           throw TypeCheckingExceptionPrivate(n, "record description has different length than record literal");
         }
         if(!(*child_it).getType(check).isComparableTo(TypeNode::fromType((*i).second))) {
-          throw TypeCheckingExceptionPrivate(n, "record description types differ from record literal types");
+          std::stringstream ss;
+          ss << "record description types differ from record literal types\nDescription type: " << (*child_it).getType() << "\nLiteral type: " << (*i).second;
+          throw TypeCheckingExceptionPrivate(n, ss.str());
         }
       }
       if(i != rec.end()) {
