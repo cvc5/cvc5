@@ -1479,26 +1479,28 @@ void TheoryDatatypes::checkCycles() {
     if( DatatypesRewriter::isTypeDatatype( tn ) ) {
       const Datatype& dt = ((DatatypeType)(tn).toType()).getDatatype();
       if( !dt.isCodatatype() ){
-        //do cycle checks
-        std::map< TNode, bool > visited;
-        std::vector< TNode > expl;
-        Node cn = searchForCycle( eqc, eqc, visited, expl );
-        //if we discovered a different cycle while searching this one
-        if( !cn.isNull() && cn!=eqc ){
-          visited.clear();
-          expl.clear();
-          Node prev = cn;
-          cn = searchForCycle( cn, cn, visited, expl );
-          Assert( prev==cn );
-        }
+        if( options::dtCyclic() ){
+          //do cycle checks
+          std::map< TNode, bool > visited;
+          std::vector< TNode > expl;
+          Node cn = searchForCycle( eqc, eqc, visited, expl );
+          //if we discovered a different cycle while searching this one
+          if( !cn.isNull() && cn!=eqc ){
+            visited.clear();
+            expl.clear();
+            Node prev = cn;
+            cn = searchForCycle( cn, cn, visited, expl );
+            Assert( prev==cn );
+          }
 
-        if( !cn.isNull() ) {
-          Assert( expl.size()>0 );
-          d_conflictNode = mkAnd( expl );
-          Trace("dt-conflict") << "CONFLICT: Cycle conflict : " << d_conflictNode << std::endl;
-          d_out->conflict( d_conflictNode );
-          d_conflict = true;
-          return;
+          if( !cn.isNull() ) {
+            Assert( expl.size()>0 );
+            d_conflictNode = mkAnd( expl );
+            Trace("dt-conflict") << "CONFLICT: Cycle conflict : " << d_conflictNode << std::endl;
+            d_out->conflict( d_conflictNode );
+            d_conflict = true;
+            return;
+          }
         }
       }else{
         //indexing

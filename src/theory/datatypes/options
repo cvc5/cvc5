@@ -17,5 +17,7 @@ option dtBinarySplit --dt-binary-split bool :default false
  do binary splits for datatype constructor types
 option cdtBisimilar --cdt-bisimilar bool :default true
  do bisimilarity check for co-datatypes
+option dtCyclic --dt-cyclic bool :default true
+ do cyclicity check for datatypes
  
 endmodule
