@@ -652,6 +652,7 @@ bool RegExpOpr::guessLength( Node r, int &co ) {
 }
 
 void RegExpOpr::firstChars( Node r, std::set<char> &pcset, SetNodes &pvset ) {
+  Trace("regexp-fset") << "Start FSET(" << mkString(r) << ")" << std::endl;
   std::map< Node, std::pair< std::set<char>, SetNodes > >::const_iterator itr = d_fset_cache.find(r);
   if(itr != d_fset_cache.end()) {
     pcset.insert((itr->second).first.begin(), (itr->second).first.end());
@@ -709,9 +710,10 @@ void RegExpOpr::firstChars( Node r, std::set<char> &pcset, SetNodes &pvset ) {
       }
       case kind::REGEXP_INTER: {
         //TODO: Overapproximation for now
-        for(unsigned i=0; i<r.getNumChildren(); i++) {
-          firstChars(r[i], cset, vset);
-        }
+        //for(unsigned i=0; i<r.getNumChildren(); i++) {
+        // firstChars(r[i], cset, vset);
+        //}
+        firstChars(r[0], cset, vset);
         break;
       }
       case kind::REGEXP_STAR: {
@@ -719,7 +721,7 @@ void RegExpOpr::firstChars( Node r, std::set<char> &pcset, SetNodes &pvset ) {
         break;
       }
       default: {
-        //Trace("regexp-error") << "Unsupported term: " << r << " in firstChars." << std::endl;
+        Trace("regexp-error") << "Unsupported term: " << r << " in firstChars." << std::endl;
         Unreachable();
       }
     }
@@ -727,18 +729,18 @@ void RegExpOpr::firstChars( Node r, std::set<char> &pcset, SetNodes &pvset ) {
     pvset.insert(vset.begin(), vset.end());
     std::pair< std::set<char>, SetNodes > p(cset, vset);
     d_fset_cache[r] = p;
+  }
 
-    if(Trace.isOn("regexp-fset")) {
-      Trace("regexp-fset") << "FSET(" << mkString(r) << ") = {";
-      for(std::set<char>::const_iterator itr = cset.begin();
-        itr != cset.end(); itr++) {
-          if(itr != cset.begin()) {
-            Trace("regexp-fset") << ",";
-          }
-          Trace("regexp-fset") << (*itr);
+  if(Trace.isOn("regexp-fset")) {
+    Trace("regexp-fset") << "END FSET(" << mkString(r) << ") = {";
+    for(std::set<char>::const_iterator itr = pcset.begin();
+      itr != pcset.end(); itr++) {
+        if(itr != pcset.begin()) {
+          Trace("regexp-fset") << ",";
         }
-      Trace("regexp-fset") << "}" << std::endl;
-    }
+        Trace("regexp-fset") << (*itr);
+      }
+    Trace("regexp-fset") << "}" << std::endl;
   }
 }
 
@@ -1354,9 +1356,12 @@ Node RegExpOpr::intersectInternal( Node r1, Node r2, std::map< PairNodes, Node >
   if(itr != d_inter_cache.end()) {
     rNode = itr->second;
   } else {
+    Trace("regexp-int-debug") << " ... not in cache" << std::endl;
     if(r1 == d_emptyRegexp || r2 == d_emptyRegexp) {
+      Trace("regexp-int-debug") << " ... one is empty set" << std::endl;
       rNode = d_emptyRegexp;
     } else if(r1 == d_emptySingleton || r2 == d_emptySingleton) {
+      Trace("regexp-int-debug") << " ... one is empty singleton" << std::endl;
       Node exp;
       int r = delta((r1 == d_emptySingleton ? r2 : r1), exp);
       if(r == 0) {
@@ -1368,23 +1373,29 @@ Node RegExpOpr::intersectInternal( Node r1, Node r2, std::map< PairNodes, Node >
         rNode = d_emptyRegexp;
       }
     } else if(r1 == r2) {
+      Trace("regexp-int-debug") << " ... equal" << std::endl;
       rNode = r1; //convert1(cnt, r1);
     } else {
+      Trace("regexp-int-debug") << " ... normal checking" << std::endl;
       std::map< PairNodes, Node >::const_iterator itrcache = cache.find(p);
       if(itrcache != cache.end()) {
         rNode = itrcache->second;
       } else {
+        Trace("regexp-int-debug") << " ... normal without cache" << std::endl;
         std::vector< char > cset;
         std::set< char > cset1, cset2;
         std::set< Node > vset1, vset2;
         firstChars(r1, cset1, vset1);
         firstChars(r2, cset2, vset2);
-        std::set_intersection(cset1.begin(), cset1.end(), cset2.begin(), cset1.end(),
+        Trace("regexp-int-debug") << " ... got fset" << std::endl;
+        std::set_intersection(cset1.begin(), cset1.end(), cset2.begin(), cset2.end(),
              std::inserter(cset, cset.begin()));
         std::vector< Node > vec_nodes;
         Node delta_exp;
+        Trace("regexp-int-debug") << " ... try delta" << std::endl;
         int flag = delta(r1, delta_exp);
         int flag2 = delta(r2, delta_exp);
+        Trace("regexp-int-debug") << " ... delta1=" << flag << ", delta2=" << flag2 << std::endl;
         if(flag != 2 && flag2 != 2) {
           if(flag == 1 && flag2 == 1) {
             vec_nodes.push_back(d_emptySingleton);
@@ -1443,6 +1454,7 @@ Node RegExpOpr::intersectInternal( Node r1, Node r2, std::map< PairNodes, Node >
         rNode = Rewriter::rewrite( rNode );
       }
     }
+    Trace("regexp-int-debug") << "  ... try testing no RV of " << mkString(rNode) << std::endl;
     if(testNoRV(rNode)) {
       d_inter_cache[p] = rNode;
     }
