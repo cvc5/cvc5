@@ -9,6 +9,8 @@
 #endif /* SWIGJAVA */
 %}
 
+%ignore CVC4::operator<<(std::ostream&, const UnsatCore&);
+
 #ifdef SWIGJAVA
 
 // Instead of UnsatCore::begin() and end(), create an
