@@ -1417,11 +1417,11 @@ bool StrongSolverTheoryUF::SortModel::debugModel( TheoryModel* m ){
     }
   }
   int nReps = m->d_rep_set.d_type_reps.find( d_type )==m->d_rep_set.d_type_reps.end() ? 0 : (int)m->d_rep_set.d_type_reps[d_type].size();
-  if( nReps!=d_maxNegCard ){
+  if( nReps!=(d_maxNegCard+1) ){
     Trace("uf-ss-warn") << "WARNING : Model does not have same # representatives as cardinality for " << d_type << "." << std::endl;
     Trace("uf-ss-warn") << "   Max neg cardinality : " << d_maxNegCard << std::endl;
     Trace("uf-ss-warn") << "   # Reps : " << nReps << std::endl;
-    if( d_maxNegCard>nReps ){
+    if( d_maxNegCard>=nReps ){
       /*
       for( unsigned i=0; i<d_fresh_aloc_reps.size(); i++ ){
         if( add>0 && !m->d_equalityEngine->hasTerm( d_fresh_aloc_reps[i] ) ){

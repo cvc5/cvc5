@@ -213,6 +213,8 @@ tokens {
   STOINTEGER_TOK = 'TO_INTEGER';
   STOSTRING_TOK = 'TO_STRING';
   STORE_TOK = 'TO_RE';
+  
+  FMF_CARD_TOK = 'HAS_CARD';
 
   // these are parsed by special NUMBER_OR_RANGEOP rule, below
   DECIMAL_LITERAL;
@@ -291,7 +293,8 @@ int getOperatorPrecedence(int type) {
   case LT_TOK:
   case GEQ_TOK:
   case GT_TOK:
-  case MEMBER_TOK: return 25;
+  case MEMBER_TOK: 
+  case FMF_CARD_TOK: return 25;
   case EQUAL_TOK:
   case DISEQUAL_TOK: return 26;
   case NOT_TOK: return 27;
@@ -331,6 +334,7 @@ Kind getOperatorKind(int type, bool& negate) {
   case LT_TOK: return kind::LT;
   case LEQ_TOK: return kind::LEQ;
   case MEMBER_TOK: return kind::MEMBER;
+  case FMF_CARD_TOK: return kind::CARDINALITY_CONSTRAINT;
 
     // arithmeticBinop
   case PLUS_TOK: return kind::PLUS;
@@ -1455,6 +1459,7 @@ comparisonBinop[unsigned& op]
   | LT_TOK
   | LEQ_TOK
   | MEMBER_TOK
+  | FMF_CARD_TOK
   ;
 
 arithmeticBinop[unsigned& op]
