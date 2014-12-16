@@ -2707,6 +2707,8 @@ bool SmtEnginePrivate::simplifyAssertions()
 
     Trace("simplify") << "SmtEnginePrivate::simplify()" << endl;
 
+    dumpAssertions("pre-nonclausal", d_assertions);
+
     if(options::simplificationMode() != SIMPLIFICATION_MODE_NONE) {
       // Perform non-clausal simplification
       Chat() << "...performing nonclausal simplification..." << endl;
