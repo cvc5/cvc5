@@ -19,6 +19,7 @@
 #include "theory/quantifiers/candidate_generator.h"
 #include "theory/quantifiers_engine.h"
 #include "theory/quantifiers/options.h"
+#include "util/datatype.h"
 
 using namespace std;
 using namespace CVC4;
@@ -92,6 +93,8 @@ void InstMatchGenerator::initialize( QuantifiersEngine* qe, std::vector< InstMat
           }
         }
       }
+    }else if( d_match_pattern.getKind()==APPLY_SELECTOR_TOTAL && d_match_pattern[0].getKind()==INST_CONSTANT && options::purifyDtTriggers() ){
+      d_match_pattern = d_match_pattern[0];
     }
     d_match_pattern_type = d_match_pattern.getType();
     Trace("inst-match-gen") << "Pattern is " << d_pattern << ", match pattern is " << d_match_pattern << std::endl;
@@ -121,7 +124,17 @@ void InstMatchGenerator::initialize( QuantifiersEngine* qe, std::vector< InstMat
 
     //create candidate generator
     if( d_match_pattern.getKind()==INST_CONSTANT ){
-      d_cg = new CandidateGeneratorQEAll( qe, d_match_pattern );
+      if( d_pattern.getKind()==APPLY_SELECTOR_TOTAL ){
+        Expr selectorExpr = qe->getTermDatabase()->getOperator( d_pattern ).toExpr();
+        size_t selectorIndex = Datatype::cindexOf(selectorExpr);
+        const Datatype& dt = Datatype::datatypeOf(selectorExpr);
+        const DatatypeConstructor& c = dt[selectorIndex];
+        Node cOp = Node::fromExpr(c.getConstructor());
+        Trace("inst-match-gen") << "Purify dt trigger " << d_pattern << ", will match terms of op " << cOp << std::endl;
+        d_cg = new inst::CandidateGeneratorQE( qe, cOp );
+      }else{
+        d_cg = new CandidateGeneratorQEAll( qe, d_match_pattern );
+      }
     }else if( d_match_pattern.getKind()==EQUAL || d_match_pattern.getKind()==IFF ){
       //we will be producing candidates via literal matching heuristics
       if( d_pattern.getKind()!=NOT ){

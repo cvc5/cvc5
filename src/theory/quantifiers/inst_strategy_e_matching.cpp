@@ -249,7 +249,7 @@ void InstStrategyAutoGenTriggers::generateTriggers( Node f, Theory::Effort effor
     std::map< Node, std::vector< Node > > varContains;
     d_quantEngine->getTermDatabase()->getVarContains( f, patTermsF, varContains );
     for( std::map< Node, std::vector< Node > >::iterator it = varContains.begin(); it != varContains.end(); ++it ){
-      if( it->second.size()==f[0].getNumChildren() && !Trigger::isPureTheoryTrigger( it->first ) ){
+      if( it->second.size()==f[0].getNumChildren() && ( options::pureThTriggers() || !Trigger::isPureTheoryTrigger( it->first ) ) ){
         d_patTerms[0][f].push_back( it->first );
         d_is_single_trigger[ it->first ] = true;
       }else{
@@ -479,7 +479,7 @@ bool InstStrategyLocalTheoryExt::isLocalTheoryExt( Node f ) {
 }
 
 void InstStrategyFreeVariable::processResetInstantiationRound( Theory::Effort effort ){
-  
+
 }
 
 int InstStrategyFreeVariable::process( Node f, Theory::Effort effort, int e ){

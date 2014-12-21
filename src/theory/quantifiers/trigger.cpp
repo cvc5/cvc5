@@ -318,6 +318,9 @@ bool Trigger::isSimpleTrigger( Node n ){
         return false;
       }
     }
+    if( options::purifyDtTriggers() && n.getKind()==APPLY_SELECTOR_TOTAL ){
+      return false;
+    }
     return true;
   }else{
     return false;
@@ -442,7 +445,7 @@ bool Trigger::isLocalTheoryExt( Node n, std::vector< Node >& vars, std::vector< 
     for( unsigned i=0; i<n.getNumChildren(); i++ ){
       if( !isLocalTheoryExt( n[i], vars, patTerms ) ){
         return false;
-      } 
+      }
     }
   }
   return true;
