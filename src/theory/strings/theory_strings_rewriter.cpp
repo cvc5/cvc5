@@ -395,6 +395,20 @@ Node TheoryStringsRewriter::rewriteMembership(TNode node) {
     retNode = one.eqNode(NodeManager::currentNM()->mkNode(kind::STRING_LENGTH, x));
   } else if(node[1].getKind() == kind::REGEXP_STAR && node[1][0].getKind() == kind::REGEXP_SIGMA) {
     retNode = NodeManager::currentNM()->mkConst( true );
+  } else if(node[1].getKind() == kind::REGEXP_CONCAT) {
+    //opt
+    bool flag = true;
+    for(unsigned i=0; i<node[1].getNumChildren(); i++) {
+      if(node[1][i].getKind() != kind::REGEXP_SIGMA) {
+        flag = false;
+        break;
+      }
+    }
+    if(flag) {
+      Node num = NodeManager::currentNM()->mkConst( ::CVC4::Rational( node[1].getNumChildren() ) );
+      retNode = num.eqNode(NodeManager::currentNM()->mkNode(kind::STRING_LENGTH, x));
+    }
+    //
   } else if(node[1].getKind() == kind::STRING_TO_REGEXP) {
     retNode = x.eqNode(node[1][0]);
   } else if(x != node[0]) {
@@ -702,7 +716,7 @@ RewriteResponse TheoryStringsRewriter::preRewrite(TNode node) {
     retNode = prerewriteConcatRegExp(node);
   } else if(node.getKind() == kind::REGEXP_UNION) {
     retNode = prerewriteOrRegExp(node);
-  }else if(node.getKind() == kind::REGEXP_INTER) {
+  } else if(node.getKind() == kind::REGEXP_INTER) {
     retNode = prerewriteAndRegExp(node);
   } else if(node.getKind() == kind::REGEXP_STAR) {
     if(node[0].getKind() == kind::REGEXP_STAR) {
