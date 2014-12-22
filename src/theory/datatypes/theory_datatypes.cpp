@@ -802,28 +802,6 @@ void TheoryDatatypes::merge( Node t1, Node t2 ){
         }
       }
     }
-    //add this to the transitive closure module
-    Node oldRep = trep2;
-    Node newRep = trep1;
-    if( trep1.getKind()!=APPLY_CONSTRUCTOR && trep2.getKind()==APPLY_CONSTRUCTOR ){
-      oldRep = trep1;
-      newRep = trep2;
-    }
-    /*
-    bool result = d_cycle_check.addEdgeNode( oldRep, newRep );
-    //d_hasSeenCycle.set( d_hasSeenCycle.get() || result );
-    Debug("datatypes-cycles") << "DtCyc: Equal " << oldRep << " -> " << newRep << " " << result << " " << d_hasSeenCycle.get() << endl;
-    if( result ){
-      checkCycles();
-      if( d_conflict ){
-        Debug("datatypes-cycles-find") << "Cycle found." << std::endl;
-        return;
-      }else{
-        Debug("datatypes-cycles-find") << "WARNING : no cycle found." << std::endl;
-        d_cycle_check.debugPrint();
-      }
-    }
-    */
   }
 }
 

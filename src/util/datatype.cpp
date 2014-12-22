@@ -228,6 +228,7 @@ Expr Datatype::mkGroundTerm( Type t ) const throw(IllegalArgumentException) {
 
   // we're using some internals, so we have to set up this library context
   ExprManagerScope ems(d_self);
+  Debug("datatypes") << "dt mkGroundTerm " << t << std::endl;
 
   TypeNode self = TypeNode::fromType(d_self);
 

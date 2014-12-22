@@ -143,20 +143,22 @@ public:
         if( in.getType().isSort() ){
           TypeEnumerator te(in.getType());
           gt = *te;
-        }else{
+        }else if( dt.isWellFounded() || in[0].isConst() ){
           gt = in.getType().mkGroundTerm();
         }
-        TypeNode gtt = gt.getType();
-        //Assert( gtt.isDatatype() || gtt.isParametricDatatype() );
-        if( gtt.isDatatype() && !gtt.isInstantiatedDatatype() ){
-          gt = NodeManager::currentNM()->mkNode(kind::APPLY_TYPE_ASCRIPTION,
-                                                NodeManager::currentNM()->mkConst(AscriptionType(in.getType().toType())), gt);
+        if( !gt.isNull() ){
+          TypeNode gtt = gt.getType();
+          //Assert( gtt.isDatatype() || gtt.isParametricDatatype() );
+          if( gtt.isDatatype() && !gtt.isInstantiatedDatatype() ){
+            gt = NodeManager::currentNM()->mkNode(kind::APPLY_TYPE_ASCRIPTION,
+                                                  NodeManager::currentNM()->mkConst(AscriptionType(in.getType().toType())), gt);
+          }
+          Trace("datatypes-rewrite") << "DatatypesRewriter::postRewrite: "
+                                     << "Rewrite trivial selector " << in
+                                     << " to distinguished ground term "
+                                     << in.getType().mkGroundTerm() << std::endl;
+          return RewriteResponse(REWRITE_DONE,gt );
         }
-        Trace("datatypes-rewrite") << "DatatypesRewriter::postRewrite: "
-                                   << "Rewrite trivial selector " << in
-                                   << " to distinguished ground term "
-                                   << in.getType().mkGroundTerm() << std::endl;
-        return RewriteResponse(REWRITE_DONE,gt );
       }
     }
     if(in.getKind() == kind::DT_SIZE && in[0].getKind()==kind::APPLY_CONSTRUCTOR ){
