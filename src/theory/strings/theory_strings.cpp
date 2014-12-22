@@ -479,6 +479,8 @@ void TheoryStrings::preRegisterTerm(TNode n) {
       case kind::STRING_IN_REGEXP: {
         d_out->requirePhase(n, true);
         d_equalityEngine.addTriggerPredicate(n);
+        d_equalityEngine.addTerm(n[0]);
+        d_equalityEngine.addTerm(n[1]);
         break;
       }
       //case kind::STRING_SUBSTR_TOTAL:

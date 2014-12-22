@@ -198,9 +198,13 @@ Node TheoryModel::getModelValue(TNode n, bool hasBoundVars) const
     }
 
     if (!d_equalityEngine->hasTerm(n)) {
-      // Unknown term - return first enumerated value for this type
-      TypeEnumerator te(n.getType());
-      ret = *te;
+      if(n.getType().isRegExp()) { 
+        ret = Rewriter::rewrite(ret);
+      } else {
+        // Unknown term - return first enumerated value for this type
+        TypeEnumerator te(n.getType());
+        ret = *te;
+      }
       d_modelCache[n] = ret;
       return ret;
     }
