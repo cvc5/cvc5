@@ -79,7 +79,7 @@ EqualityEngine::~EqualityEngine() throw(AssertionException) {
 }
 
 
-EqualityEngine::EqualityEngine(context::Context* context, std::string name)
+EqualityEngine::EqualityEngine(context::Context* context, std::string name, bool constantsAreTriggers)
 : ContextNotifyObj(context)
 , d_masterEqualityEngine(0)
 , d_context(context)
@@ -93,6 +93,7 @@ EqualityEngine::EqualityEngine(context::Context* context, std::string name)
 , d_subtermEvaluatesSize(context, 0)
 , d_stats(name)
 , d_inPropagate(false)
+, d_constantsAreTriggers(constantsAreTriggers)
 , d_triggerDatabaseSize(context, 0)
 , d_triggerTermSetUpdatesSize(context, 0)
 , d_deducedDisequalitiesSize(context, 0)
@@ -103,7 +104,7 @@ EqualityEngine::EqualityEngine(context::Context* context, std::string name)
   init();
 }
 
-EqualityEngine::EqualityEngine(EqualityEngineNotify& notify, context::Context* context, std::string name)
+EqualityEngine::EqualityEngine(EqualityEngineNotify& notify, context::Context* context, std::string name, bool constantsAreTriggers)
 : ContextNotifyObj(context)
 , d_masterEqualityEngine(0)
 , d_context(context)
@@ -117,6 +118,7 @@ EqualityEngine::EqualityEngine(EqualityEngineNotify& notify, context::Context* c
 , d_subtermEvaluatesSize(context, 0)
 , d_stats(name)
 , d_inPropagate(false)
+, d_constantsAreTriggers(constantsAreTriggers)
 , d_triggerDatabaseSize(context, 0)
 , d_triggerTermSetUpdatesSize(context, 0)
 , d_deducedDisequalitiesSize(context, 0)
@@ -308,7 +310,7 @@ void EqualityEngine::addTermInternal(TNode t, bool isOperator) {
     // We set this here as this only applies to actual terms, not the
     // intermediate application terms
     d_isBoolean[result] = true;
-  } else if (d_isConstant[result]) {
+  } else if (d_constantsAreTriggers && d_isConstant[result]) {
     // Non-Boolean constants are trigger terms for all tags
     EqualityNodeId tId = getNodeId(t);
     // Setup the new set 

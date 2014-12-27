@@ -81,7 +81,7 @@ void OpArgIndex::getGroundTerms( ConjectureGenerator * s, std::vector< TNode >& 
 
 ConjectureGenerator::ConjectureGenerator( QuantifiersEngine * qe, context::Context* c ) : QuantifiersModule( qe ),
 d_notify( *this ),
-d_uequalityEngine(d_notify, c, "ConjectureGenerator::ee"),
+d_uequalityEngine(d_notify, c, "ConjectureGenerator::ee", false),
 d_ee_conjectures( c ){
   d_fullEffortCount = 0;
   d_uequalityEngine.addFunctionKind( kind::APPLY_UF );

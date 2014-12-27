@@ -165,12 +165,12 @@ public:
   /**
    * Initialize the equality engine, given the notification class.
    */
-  EqualityEngine(EqualityEngineNotify& notify, context::Context* context, std::string name);
+  EqualityEngine(EqualityEngineNotify& notify, context::Context* context, std::string name, bool constantsAreTriggers);
 
   /**
    * Initialize the equality engine with no notification class.
    */
-  EqualityEngine(context::Context* context, std::string name);
+  EqualityEngine(context::Context* context, std::string name, bool constantsAreTriggers);
 
   /**
    * Just a destructor.
@@ -553,6 +553,9 @@ private:
       return triggers[Theory::setIndex(tag, tags)];
     }
   };/* struct EqualityEngine::TriggerTermSet */
+
+  /** Are the constants triggers */
+  bool d_constantsAreTriggers;
 
   /** The information about trigger terms is stored in this easily maintained memory. */
   char* d_triggerDatabase;

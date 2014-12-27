@@ -34,7 +34,7 @@ TheoryModel::TheoryModel(context::Context* c, std::string name, bool enableFuncM
   d_false = NodeManager::currentNM()->mkConst( false );
 
   d_eeContext = new context::Context();
-  d_equalityEngine = new eq::EqualityEngine(d_eeContext, name);
+  d_equalityEngine = new eq::EqualityEngine(d_eeContext, name, false);
 
   // The kinds we are treating as function application in congruence
   d_equalityEngine->addFunctionKind(kind::APPLY_UF);
