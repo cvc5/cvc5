@@ -1279,7 +1279,7 @@ void SmtEngine::setDefaults() {
     options::decisionMode.set(decMode);
     options::decisionStopOnly.set(stoponly);
   }
-  //local theory extensions 
+  //local theory extensions
   if( options::localTheoryExt() ){
     //no E-matching?
     if( !options::instMaxLevel.wasSetByUser() ){
@@ -1305,6 +1305,9 @@ void SmtEngine::setDefaults() {
       //if bounded integers are set, use no MBQI by default
       options::mbqiMode.set( quantifiers::MBQI_NONE );
     }
+    if( ! options::prenexQuant.wasSetByUser() ){
+      options::prenexQuant.set( quantifiers::PRENEX_NONE );
+    }
   }
   if( options::ufssSymBreak() ){
     options::sortInference.set( true );
@@ -1314,7 +1317,7 @@ void SmtEngine::setDefaults() {
       options::finiteModelFind.set( true );
     }
   }
-  
+
   //now, have determined whether finite model find is on/off
   //apply finite model finding options
   if( options::finiteModelFind() ){
@@ -1340,7 +1343,7 @@ void SmtEngine::setDefaults() {
       }
     }
   }
-  
+
   //implied options...
   if( options::recurseCbqi() ){
     options::cbqi.set( true );

@@ -139,24 +139,32 @@ public:
         return RewriteResponse(REWRITE_DONE, in[0][selectorIndex]);
       }else{
         //typically should not be called
+        TypeNode tn = in.getType();
         Node gt;
-        if( in.getType().isSort() ){
-          TypeEnumerator te(in.getType());
+        if( tn.isSort() ){
+          TypeEnumerator te(tn);
           gt = *te;
-        }else if( dt.isWellFounded() || in[0].isConst() ){
-          gt = in.getType().mkGroundTerm();
+        }else{
+          //check whether well-founded
+          bool isWellFounded = true;
+          if( isTypeDatatype( tn ) ){
+            const Datatype& dta = ((DatatypeType)(tn).toType()).getDatatype();
+            isWellFounded = dta.isWellFounded();
+          }
+          if( isWellFounded || in[0].isConst() ){
+            gt = tn.mkGroundTerm();
+          }
         }
         if( !gt.isNull() ){
-          TypeNode gtt = gt.getType();
           //Assert( gtt.isDatatype() || gtt.isParametricDatatype() );
-          if( gtt.isDatatype() && !gtt.isInstantiatedDatatype() ){
+          if( tn.isDatatype() && !tn.isInstantiatedDatatype() ){
             gt = NodeManager::currentNM()->mkNode(kind::APPLY_TYPE_ASCRIPTION,
-                                                  NodeManager::currentNM()->mkConst(AscriptionType(in.getType().toType())), gt);
+                                                  NodeManager::currentNM()->mkConst(AscriptionType(tn.toType())), gt);
           }
           Trace("datatypes-rewrite") << "DatatypesRewriter::postRewrite: "
                                      << "Rewrite trivial selector " << in
                                      << " to distinguished ground term "
-                                     << in.getType().mkGroundTerm() << std::endl;
+                                     << gt << std::endl;
           return RewriteResponse(REWRITE_DONE,gt );
         }
       }
