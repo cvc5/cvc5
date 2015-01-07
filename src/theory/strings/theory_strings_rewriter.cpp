@@ -654,7 +654,7 @@ bool TheoryStringsRewriter::testConstStringInRegExp( CVC4::String &s, unsigned i
       if( s.size() != index_start ) {
         std::vector<int> vec_k( r.getNumChildren(), -1 );
         int start = 0;
-        int left = (int) s.size();
+        int left = (int) s.size() - index_start;
         int i=0;
         while( i<(int) r.getNumChildren() ) {
           bool flag = true;
@@ -665,7 +665,7 @@ bool TheoryStringsRewriter::testConstStringInRegExp( CVC4::String &s, unsigned i
           } else if( i == -1 ) {
             return false;
           } else {
-            for(vec_k[i] = vec_k[i] + 1; vec_k[i] <= left; ++vec_k[i]) {
+            for(vec_k[i] = vec_k[i] + 1; vec_k[i] <= left - start; ++vec_k[i]) {
               CVC4::String t = s.substr(index_start + start, vec_k[i]);
               if( testConstStringInRegExp( t, 0, r[i] ) ) {
                 start += vec_k[i]; left -= vec_k[i]; flag = false;
@@ -739,7 +739,6 @@ bool TheoryStringsRewriter::testConstStringInRegExp( CVC4::String &s, unsigned i
     }
     default: {
       Trace("strings-error") << "Unsupported term: " << r << " in testConstStringInRegExp." << std::endl;
-      //Assert( false, "Unsupported Term" );
       Unreachable();
       return false;
     }

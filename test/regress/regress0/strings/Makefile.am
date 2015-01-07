@@ -21,6 +21,7 @@ MAKEFLAGS = -k
 TESTS =	\
   at001.smt2 \
   bug001.smt2 \
+  bug002.smt2 \
   cardinality.smt2 \
   escchar.smt2 \
   escchar_25.smt2 \
