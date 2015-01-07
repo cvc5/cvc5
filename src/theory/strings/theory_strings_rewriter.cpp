@@ -665,7 +665,7 @@ bool TheoryStringsRewriter::testConstStringInRegExp( CVC4::String &s, unsigned i
           } else if( i == -1 ) {
             return false;
           } else {
-            for(vec_k[i] = vec_k[i] + 1; vec_k[i] <= left - start; ++vec_k[i]) {
+            for(vec_k[i] = vec_k[i] + 1; vec_k[i] <= left; ++vec_k[i]) {
               CVC4::String t = s.substr(index_start + start, vec_k[i]);
               if( testConstStringInRegExp( t, 0, r[i] ) ) {
                 start += vec_k[i]; left -= vec_k[i]; flag = false;
