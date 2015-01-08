@@ -349,7 +349,7 @@ public:
       throw (TypeCheckingExceptionPrivate, AssertionException) {
     if( check ) {
       TNode::iterator it = n.begin();
-      char ch[2];
+      unsigned char ch[2];
 
       for(int i=0; i<2; ++i) {
         TypeNode t = (*it).getType(check);

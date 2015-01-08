@@ -60,14 +60,14 @@ void String::toInternal(const std::string &s) {
                 num = num * 8 + (int)s[i+1] - (int)'0';
                 if(flag && i+2 < s.size() && isdigit(s[i+2]) && s[i+2] < '8') {
                   num = num * 8 + (int)s[i+2] - (int)'0';
-                  d_str.push_back( convertCharToUnsignedInt((char)num) );
+                  d_str.push_back( convertCharToUnsignedInt((unsigned char)num) );
                   i += 3;
                 } else {
-                  d_str.push_back( convertCharToUnsignedInt((char)num) );
+                  d_str.push_back( convertCharToUnsignedInt((unsigned char)num) );
                   i += 2;
                 }
               } else {
-                d_str.push_back( convertCharToUnsignedInt((char)num) );
+                d_str.push_back( convertCharToUnsignedInt((unsigned char)num) );
                 i++;
               }
             } else if((unsigned)s[i] > 127) {
@@ -91,7 +91,7 @@ void String::toInternal(const std::string &s) {
   }
 }
 
-void String::getCharSet(std::set<char> &cset) const {
+void String::getCharSet(std::set<unsigned char> &cset) const {
   for(std::vector<unsigned int>::const_iterator itr = d_str.begin();
     itr != d_str.end(); itr++) {
       cset.insert( convertUnsignedIntToChar(*itr) );
@@ -113,7 +113,7 @@ std::size_t String::overlap(String &y) const {
 std::string String::toString() const {
   std::string str;
   for(unsigned int i=0; i<d_str.size(); ++i) {
-    char c = convertUnsignedIntToChar( d_str[i] );
+    unsigned char c = convertUnsignedIntToChar( d_str[i] );
       if(isprint( c )) {
       if(c == '\\') {
         str += "\\\\";

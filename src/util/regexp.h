@@ -33,35 +33,36 @@ namespace CVC4 {
 
 class CVC4_PUBLIC String {
 public:
-  static unsigned int convertCharToUnsignedInt( char c ) {
-    int i = (int)c;
-    i = i-65;
-    return (unsigned int)(i<0 ? i+256 : i);
+  static unsigned convertCharToUnsignedInt( unsigned char c ) {
+    unsigned i = c;
+    i = i + 191;
+    return (i>=256 ? i-256 : i);
   }
-  static char convertUnsignedIntToChar( unsigned int i ){
-    int ii = i+65;
-    return (char)(ii>=256 ? ii-256 : ii);
+  static unsigned char convertUnsignedIntToChar( unsigned i ){
+    unsigned ii = i+65;
+    return (unsigned char)(ii>=256 ? ii-256 : ii);
   }
-  static bool isPrintable( unsigned int i ){
-    char c = convertUnsignedIntToChar( i );
-    return isprint( (int)c );
+  static bool isPrintable( unsigned i ){
+    unsigned char c = convertUnsignedIntToChar( i );
+    return (c>=' ' && c<='~');//isprint( (int)c );
   }
 
 private:
-  std::vector<unsigned int> d_str;
+  std::vector<unsigned> d_str;
 
-  bool isVecSame(const std::vector<unsigned int> &a, const std::vector<unsigned int> &b) const {
+  bool isVecSame(const std::vector<unsigned> &a, const std::vector<unsigned> &b) const {
     if(a.size() != b.size()) return false;
     else {
-      for(unsigned int i=0; i<a.size(); ++i)
-        if(a[i] != b[i]) return false;
-      return true;
+      return std::equal(a.begin(), a.end(), b.begin());
+      //for(unsigned int i=0; i<a.size(); ++i)
+        //if(a[i] != b[i]) return false;
+      //return true;
     }
   }
 
   //guarded
-  char hexToDec(char c) {
-    if(isdigit(c)) {
+  unsigned char hexToDec(unsigned char c) {
+    if(c>='0' && c<='9') {
       return c - '0';
     } else if (c >= 'a' && c <= 'f') {
       return c - 'a' + 10;
@@ -85,11 +86,11 @@ public:
     toInternal(stmp);
   }
 
-  String(const char c) {
+  String(const unsigned char c) {
     d_str.push_back( convertCharToUnsignedInt(c) );
   }
 
-  String(const std::vector<unsigned int> &s) : d_str(s) { }
+  String(const std::vector<unsigned> &s) : d_str(s) { }
 
   ~String() {}
 
@@ -197,15 +198,15 @@ public:
    */
   std::string toString() const;
 
-  unsigned size() const {
+  std::size_t size() const {
     return d_str.size();
   }
 
-  char getFirstChar() const {
+  unsigned char getFirstChar() const {
     return convertUnsignedIntToChar( d_str[0] );
   }
 
-  char getLastChar() const {
+  unsigned char getLastChar() const {
     assert(d_str.size() != 0);
     return convertUnsignedIntToChar( d_str[d_str.size() - 1] );
   }
@@ -239,7 +240,7 @@ public:
     if(y.d_str.size() == 0) return start;
     if(d_str.size() == 0) return std::string::npos;
     std::size_t ret = std::string::npos;
-    for(std::size_t i = start; i <= d_str.size() - y.d_str.size(); i++) {
+    /*for(std::size_t i = start; i <= d_str.size() - y.d_str.size(); i++) {
       if(d_str[i] == y.d_str[0]) {
         std::size_t j=0;
         for(; j<y.d_str.size(); j++) {
@@ -250,6 +251,10 @@ public:
           break;
         }
       }
+    }*/
+    std::vector<unsigned>::const_iterator itr = std::search(d_str.begin(), d_str.end(), y.d_str.begin(), y.d_str.end());
+    if(itr != d_str.end()) {
+      ret = itr - d_str.begin();
     }
     return ret;
   }
@@ -293,7 +298,7 @@ public:
   bool isNumber() const {
    if(d_str.size() == 0) return false;
    for(unsigned int i=0; i<d_str.size(); ++i) {
-     char c = convertUnsignedIntToChar( d_str[i] );
+     unsigned char c = convertUnsignedIntToChar( d_str[i] );
      if(c<'0' || c>'9') {
        return false;
      }
@@ -304,7 +309,7 @@ public:
    if(isNumber()) {
      int ret=0;
      for(unsigned int i=0; i<d_str.size(); ++i) {
-       char c = convertUnsignedIntToChar( d_str[i] );
+       unsigned char c = convertUnsignedIntToChar( d_str[i] );
        ret = ret * 10 + (int)c - (int)'0';
      }
      return ret;
@@ -313,9 +318,9 @@ public:
    }
   }
 
-  void getCharSet(std::set<char> &cset) const;
+  void getCharSet(std::set<unsigned char> &cset) const;
 
-  std::vector<unsigned int> getVec() const {
+  std::vector<unsigned> getVec() const {
     return d_str;
   }
 };/* class String */

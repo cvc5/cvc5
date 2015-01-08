@@ -729,9 +729,9 @@ bool TheoryStringsRewriter::testConstStringInRegExp( CVC4::String &s, unsigned i
     }
     case kind::REGEXP_RANGE: {
       if(s.size() == index_start + 1) {
-        char a = r[0].getConst<String>().getFirstChar();
-        char b = r[1].getConst<String>().getFirstChar();
-        char c = s.getLastChar();
+        unsigned char a = r[0].getConst<String>().getFirstChar();
+        unsigned char b = r[1].getConst<String>().getFirstChar();
+        unsigned char c = s.getLastChar();
         return (a <= c && c <= b);
       } else {
         return false;
@@ -1130,8 +1130,8 @@ RewriteResponse TheoryStringsRewriter::preRewrite(TNode node) {
           node[0]);
   } else if(node.getKind() == kind::REGEXP_RANGE) {
     std::vector< Node > vec_nodes;
-    char c = node[0].getConst<String>().getFirstChar();
-    char end = node[1].getConst<String>().getFirstChar();
+    unsigned char c = node[0].getConst<String>().getFirstChar();
+    unsigned char end = node[1].getConst<String>().getFirstChar();
     for(; c<=end; ++c) {
       Node n = NodeManager::currentNM()->mkNode( kind::STRING_TO_REGEXP, NodeManager::currentNM()->mkConst( ::CVC4::String( c ) ) );
       vec_nodes.push_back( n );
