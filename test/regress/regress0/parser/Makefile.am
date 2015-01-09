@@ -20,8 +20,9 @@ MAKEFLAGS = -k
 # put it below in "TESTS +="
 TESTS =	\
 	declarefun-emptyset-uf.smt2 \
-	strings20.smt2 \
-	strings25.smt2
+	strings20.smt2
+
+#	strings25.smt2
 
 EXTRA_DIST = $(TESTS)
 
