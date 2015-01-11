@@ -117,9 +117,11 @@ std::string String::toString() const {
       if(isprint( c )) {
       if(c == '\\') {
         str += "\\\\";
-      } else if(c == '\"') {
-        str += "\\\"";
-      } else {
+      } 
+      //else if(c == '\"') {
+      //  str += "\\\"";
+      //} 
+      else {
         str += c;
       }
     } else {

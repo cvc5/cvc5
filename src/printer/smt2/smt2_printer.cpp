@@ -223,13 +223,13 @@ void Smt2Printer::toStream(std::ostream& out, TNode n,
         char c = s[i];
         if(c == '"') {
           if(d_variant == z3str_variant || d_variant == smt2_0_variant) {
-            out << c; //out << "\\\"";
+            out << "\\\"";
           } else {
             out << "\"\"";
           }
-        } /*else if(c == '\\' && (d_variant == z3str_variant || d_variant == smt2_0_variant)) {
+        } else if(c == '\\' && (d_variant == z3str_variant || d_variant == smt2_0_variant)) {
           out << "\\\\";
-        }*/ else {
+        } else {
           out << c;
         }
       }
