@@ -23,7 +23,7 @@
 using namespace CVC4;
 using namespace std;
 
-void Timer::set(unsigned long millis, bool wallTime) {
+void Timer::set(uint64_t millis, bool wallTime) {
   d_ms = millis;
   Trace("limit") << "Timer::set(" << d_ms << ")" << std::endl;
   // keep track of when it was set, even if it's disabled (i.e. == 0)
@@ -47,7 +47,7 @@ void Timer::set(unsigned long millis, bool wallTime) {
 }
 
 /** Return the milliseconds elapsed since last set(). */
-unsigned long Timer::elapsedWall() const {
+uint64_t Timer::elapsedWall() const {
   Assert (d_wall_time);
   timeval tv;
   gettimeofday(&tv, NULL);
@@ -58,14 +58,14 @@ unsigned long Timer::elapsedWall() const {
   return tv.tv_sec * 1000 + tv.tv_usec / 1000;
 }
 
-unsigned long Timer::elapsedCPU() const {
+uint64_t Timer::elapsedCPU() const {
   Assert (!d_wall_time);
   clock_t elapsed = ((double)clock())/(CLOCKS_PER_SEC *0.001)- d_cpu_start_time;
   Trace("limit") << "Timer::elapsedCPUTime(): elapsed time is " << elapsed << " ms" <<std::endl;
   return elapsed;
 }
 
-unsigned long Timer::elapsed() const {
+uint64_t Timer::elapsed() const {
   if (d_wall_time)
     return elapsedWall();
   return elapsedCPU();
@@ -99,7 +99,7 @@ bool Timer::expired() const {
   return false;
 }
 
-const unsigned long ResourceManager::s_resourceCount = 1000;
+const uint64_t ResourceManager::s_resourceCount = 1000;
 
 ResourceManager::ResourceManager()
   : d_cumulativeTimer()
@@ -120,7 +120,7 @@ ResourceManager::ResourceManager()
 {}
 
 
-void ResourceManager::setResourceLimit(unsigned long units, bool cumulative) {
+void ResourceManager::setResourceLimit(uint64_t units, bool cumulative) {
   d_on = true;
   if(cumulative) {
     Trace("limit") << "ResourceManager: setting cumulative resource limit to " << units << endl;
@@ -132,7 +132,7 @@ void ResourceManager::setResourceLimit(unsigned long units, bool cumulative) {
   }
 }
 
-void ResourceManager::setTimeLimit(unsigned long millis, bool cumulative) {
+void ResourceManager::setTimeLimit(uint64_t millis, bool cumulative) {
   d_on = true;
   if(cumulative) {
     Trace("limit") << "ResourceManager: setting cumulative time limit to " << millis << " ms" << endl;
@@ -146,25 +146,25 @@ void ResourceManager::setTimeLimit(unsigned long millis, bool cumulative) {
 
 }
 
-unsigned long ResourceManager::getResourceUsage() const {
+uint64_t ResourceManager::getResourceUsage() const {
   return d_cumulativeResourceUsed;
 }
 
-unsigned long ResourceManager::getTimeUsage() const {
+uint64_t ResourceManager::getTimeUsage() const {
   if (d_timeBudgetCumulative) {
     return d_cumulativeTimer.elapsed();
   }
   return d_cumulativeTimeUsed;
 }
 
-unsigned long ResourceManager::getResourceRemaining() const {
+uint64_t ResourceManager::getResourceRemaining() const {
   if (d_thisCallResourceBudget <= d_thisCallResourceUsed)
     return 0;
   return d_thisCallResourceBudget - d_thisCallResourceUsed;
 }
 
-unsigned long ResourceManager::getTimeRemaining() const {
-  unsigned long time_passed = d_cumulativeTimer.elapsed();
+uint64_t ResourceManager::getTimeRemaining() const {
+  uint64_t time_passed = d_cumulativeTimer.elapsed();
   if (time_passed >= d_thisCallTimeBudget)
     return 0;
   return d_thisCallTimeBudget - time_passed;
@@ -239,7 +239,7 @@ void ResourceManager::beginCall() {
 }
 
 void ResourceManager::endCall() {
-  unsigned long usedInCall = d_perCallTimer.elapsed();
+  uint64_t usedInCall = d_perCallTimer.elapsed();
   d_perCallTimer.set(0);
   d_cumulativeTimeUsed += usedInCall;
 }

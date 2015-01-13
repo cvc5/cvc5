@@ -303,6 +303,7 @@ struct SmtEngineStatistics {
  */
 class SmtEnginePrivate : public NodeManagerListener {
   SmtEngine& d_smt;
+
   /**
    * Manager for limiting time and abstract resource usage.
    */

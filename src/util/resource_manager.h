@@ -33,7 +33,7 @@ namespace CVC4 {
  */
 class CVC4_PUBLIC Timer {
 
-  unsigned long d_ms;
+  uint64_t d_ms;
   timeval d_wall_limit;
   clock_t d_cpu_start_time;
   clock_t d_cpu_limit;
@@ -41,9 +41,9 @@ class CVC4_PUBLIC Timer {
   bool d_wall_time;
 
   /** Return the milliseconds elapsed since last set() cpu time. */
-  unsigned long elapsedCPU() const;
+  uint64_t elapsedCPU() const;
   /** Return the milliseconds elapsed since last set() wall time. */
-  unsigned long elapsedWall() const;
+  uint64_t elapsedWall() const;
 
 public:
 
@@ -61,10 +61,10 @@ public:
   }
 
   /** Set a millisecond timer (0==off). */
-  void set(unsigned long millis, bool wall_time = true);
+  void set(uint64_t millis, bool wall_time = true);
   /** Return the milliseconds elapsed since last set() wall/cpu time
    depending on d_wall_time*/
-  unsigned long elapsed() const;
+  uint64_t elapsed() const;
   bool expired() const;
 
 };/* class Timer */
@@ -76,36 +76,36 @@ class CVC4_PUBLIC ResourceManager {
   Timer d_perCallTimer;
 
   /** A user-imposed cumulative time budget, in milliseconds. 0 = no limit. */
-  unsigned long d_timeBudgetCumulative;
+  uint64_t d_timeBudgetCumulative;
   /** A user-imposed per-call time budget, in milliseconds. 0 = no limit. */
-  unsigned long d_timeBudgetPerCall;
+  uint64_t d_timeBudgetPerCall;
   /** A user-imposed cumulative resource budget. 0 = no limit. */
-  unsigned long d_resourceBudgetCumulative;
+  uint64_t d_resourceBudgetCumulative;
   /** A user-imposed per-call resource budget. 0 = no limit. */
-  unsigned long d_resourceBudgetPerCall;
+  uint64_t d_resourceBudgetPerCall;
 
   /** The number of milliseconds used. */
-  unsigned long d_cumulativeTimeUsed;
+  uint64_t d_cumulativeTimeUsed;
   /** The amount of resource used. */
-  unsigned long d_cumulativeResourceUsed;
+  uint64_t d_cumulativeResourceUsed;
 
   /** The ammount of resource used during this call. */
-  unsigned long d_thisCallResourceUsed;
+  uint64_t d_thisCallResourceUsed;
 
   /**
    * The ammount of resource budget for this call (min between per call
    * budget and left-over cumulative budget.
    */
-  unsigned long d_thisCallTimeBudget;
-  unsigned long d_thisCallResourceBudget;
+  uint64_t d_thisCallTimeBudget;
+  uint64_t d_thisCallResourceBudget;
 
   bool d_isHardLimit;
   bool d_on;
   bool d_cpuTime;
-  unsigned long d_spendResourceCalls;
+  uint64_t d_spendResourceCalls;
 
   /** Counter indicating how often to check resource manager in loops */
-  static const unsigned long s_resourceCount;
+  static const uint64_t s_resourceCount;
 
 public:
 
@@ -119,20 +119,20 @@ public:
   bool outOfTime() const;
   bool out() const { return d_on && (outOfResources() || outOfTime()); }
 
-  unsigned long getResourceUsage() const;
-  unsigned long getTimeUsage() const;
-  unsigned long getResourceRemaining() const;
-  unsigned long getTimeRemaining() const;
+  uint64_t getResourceUsage() const;
+  uint64_t getTimeUsage() const;
+  uint64_t getResourceRemaining() const;
+  uint64_t getTimeRemaining() const;
 
-  unsigned long getResourceBudgetForThisCall() {
+  uint64_t getResourceBudgetForThisCall() {
     return d_thisCallResourceBudget;
   }
 
   void spendResource() throw(UnsafeInterruptException);
 
   void setHardLimit(bool value);
-  void setResourceLimit(unsigned long units, bool cumulative = false);
-  void setTimeLimit(unsigned long millis, bool cumulative = false);
+  void setResourceLimit(uint64_t units, bool cumulative = false);
+  void setTimeLimit(uint64_t millis, bool cumulative = false);
   void useCPUTime(bool cpu);
 
   void enable(bool on);
@@ -149,7 +149,7 @@ public:
    */
   void endCall();
 
-  static unsigned long getFrequencyCount() { return s_resourceCount; }
+  static uint64_t getFrequencyCount() { return s_resourceCount; }
   friend class SmtEngine;
 };/* class ResourceManager */
 
