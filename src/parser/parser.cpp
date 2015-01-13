@@ -26,7 +26,6 @@
 #include "parser/parser_exception.h"
 #include "expr/command.h"
 #include "expr/expr.h"
-#include "expr/node.h"
 #include "expr/kind.h"
 #include "expr/type.h"
 #include "util/output.h"
