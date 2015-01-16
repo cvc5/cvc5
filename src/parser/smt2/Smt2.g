@@ -638,54 +638,7 @@ sygusCommand returns [CVC4::Command* cmd = NULL]
         Expr eval = evals[dtt];
         Debug("parser-sygus") << "Sygus : process grammar : " << dt << std::endl;
         for(size_t j = 0; j < dt.getNumConstructors(); ++j) {
-          const DatatypeConstructor& ctor = dt[j];
-          Debug("parser-sygus") << "Sygus : process constructor " << j << " : " << dt[j] << std::endl;
-          std::vector<Expr> bvs, extraArgs;
-          for(size_t k = 0; k < ctor.getNumArgs(); ++k) {
-            std::string vname = "v_" + ctor[k].getName();
-            Expr bv = EXPR_MANAGER->mkBoundVar(vname, SelectorType(ctor[k].getType()).getRangeType());
-            bvs.push_back(bv);
-            extraArgs.push_back(bv);
-          }
-          bvs.insert(bvs.end(), terms[0].begin(), terms[0].end());
-          Expr bvl = MK_EXPR(kind::BOUND_VAR_LIST, bvs);
-          Debug("parser-sygus") << "...made bv list." << std::endl;
-          std::vector<Expr> patv;
-          patv.push_back(eval);
-          std::vector<Expr> applyv;
-          applyv.push_back(ctor.getConstructor());
-          applyv.insert(applyv.end(), extraArgs.begin(), extraArgs.end());
-          for(size_t k = 0; k < applyv.size(); ++k) {
-          }
-          Expr cpatv = MK_EXPR(kind::APPLY_CONSTRUCTOR, applyv);
-          Debug("parser-sygus") << "...made eval ctor apply " << cpatv << std::endl;
-          patv.push_back(cpatv);
-          patv.insert(patv.end(), terms[0].begin(), terms[0].end());
-          Expr evalApply = MK_EXPR(kind::APPLY_UF, patv);
-          Debug("parser-sygus") << "...made eval apply " << evalApply << std::endl;
-          std::vector<Expr> builtApply;
-          for(size_t k = 0; k < extraArgs.size(); ++k) {
-            patv.clear();
-            patv.push_back(evals[DatatypeType(extraArgs[k].getType())]);
-            patv.push_back(extraArgs[k]);
-            patv.insert(patv.end(), terms[0].begin(), terms[0].end());
-            builtApply.push_back(MK_EXPR(kind::APPLY_UF, patv));
-          }
-          for(size_t k = 0; k < builtApply.size(); ++k) {
-          }
-          Expr builtTerm;
-          //if( ops[i][j].getKind() == kind::BUILTIN ){
-          if( !builtApply.empty() ){
-            builtTerm = MK_EXPR(ops[i][j], builtApply);
-          }else{
-            builtTerm = ops[i][j];
-          }
-          Debug("parser-sygus") << "...made built term " << builtTerm << std::endl;
-          Expr assertion = MK_EXPR(evalApply.getType().isBoolean() ? kind::IFF : kind::EQUAL, evalApply, builtTerm);
-          Expr pattern = MK_EXPR(kind::INST_PATTERN, evalApply);
-          pattern = MK_EXPR(kind::INST_PATTERN_LIST, pattern);
-          assertion = MK_EXPR(kind::FORALL, bvl, assertion, pattern);
-          Debug("parser-sygus") << "Add assertion " << assertion << std::endl;
+          Expr assertion = PARSER_STATE->getSygusAssertion( datatypeTypes, ops, evals, terms, eval, dt, i, j );
           seq->addCommand(new AssertCommand(assertion));
         }
       }
@@ -746,7 +699,7 @@ sygusGTerm[CVC4::Datatype& dt, std::vector<CVC4::Expr>& ops]
     ( builtinOp[k]
       { ops.push_back(EXPR_MANAGER->operatorOf(k));
         name = kind::kindToString(k);
-        Debug("parser-sygus") << "Sygus : grammar builtin symbol : " << name << std::endl;
+        Debug("parser-sygus") << "Sygus grammar : builtin op : " << name << std::endl;
       }
     | symbol[name,CHECK_NONE,SYM_VARIABLE]
       { // what is this sygus term trying to accomplish here, if the
@@ -754,7 +707,7 @@ sygusGTerm[CVC4::Datatype& dt, std::vector<CVC4::Expr>& ops]
         // fail, but we need an operator to continue here..
         Expr bv = PARSER_STATE->getVariable(name);
         ops.push_back(bv);
-        Debug("parser-sygus") << "Sygus : grammar symbol : " << name << std::endl;
+        Debug("parser-sygus") << "Sygus grammar : op : " << name << std::endl;
       }
     )
     { name = dt.getName() + "_" + name;
@@ -771,7 +724,8 @@ sygusGTerm[CVC4::Datatype& dt, std::vector<CVC4::Expr>& ops]
     { dt.addConstructor(*ctor);
       delete ctor; }
   | INTEGER_LITERAL
-    { ops.push_back(MK_CONST(Rational(AntlrInput::tokenText($INTEGER_LITERAL))));
+    { Debug("parser-sygus") << "Sygus grammar : integer literal " << AntlrInput::tokenText($INTEGER_LITERAL) << std::endl;
+      ops.push_back(MK_CONST(Rational(AntlrInput::tokenText($INTEGER_LITERAL))));
       name = dt.getName() + "_" + AntlrInput::tokenText($INTEGER_LITERAL);
       std::string testerId("is-");
       testerId.append(name);
@@ -781,7 +735,8 @@ sygusGTerm[CVC4::Datatype& dt, std::vector<CVC4::Expr>& ops]
       dt.addConstructor(c);
     }
   | HEX_LITERAL
-    { assert( AntlrInput::tokenText($HEX_LITERAL).find("#x") == 0 );
+    { Debug("parser-sygus") << "Sygus grammar : integer literal " << AntlrInput::tokenText($HEX_LITERAL) << std::endl;
+      assert( AntlrInput::tokenText($HEX_LITERAL).find("#x") == 0 );
       std::string hexString = AntlrInput::tokenTextSubstr($HEX_LITERAL, 2);
       ops.push_back(MK_CONST( BitVector(hexString, 16) ));
       name = dt.getName() + "_" + AntlrInput::tokenText($HEX_LITERAL);
@@ -793,7 +748,8 @@ sygusGTerm[CVC4::Datatype& dt, std::vector<CVC4::Expr>& ops]
       dt.addConstructor(c);
     }
   | BINARY_LITERAL
-    { assert( AntlrInput::tokenText($BINARY_LITERAL).find("#b") == 0 );
+    { Debug("parser-sygus") << "Sygus grammar : integer literal " << AntlrInput::tokenText($BINARY_LITERAL) << std::endl;
+      assert( AntlrInput::tokenText($BINARY_LITERAL).find("#b") == 0 );
       std::string binString = AntlrInput::tokenTextSubstr($BINARY_LITERAL, 2);
       ops.push_back(MK_CONST( BitVector(binString, 2) ));
       name = dt.getName() + "_" + AntlrInput::tokenText($BINARY_LITERAL);
@@ -804,16 +760,29 @@ sygusGTerm[CVC4::Datatype& dt, std::vector<CVC4::Expr>& ops]
       CVC4::DatatypeConstructor c(name, testerId);
       dt.addConstructor(c);
     }
-  | symbol[name,CHECK_DECLARED,SYM_VARIABLE]
-    { Expr bv = PARSER_STATE->getVariable(name);
-      ops.push_back(bv);
-      name = dt.getName() + "_" + name;
-      std::string testerId("is-");
-      testerId.append(name);
-      PARSER_STATE->checkDeclaration(name, CHECK_UNDECLARED, SYM_VARIABLE);
-      PARSER_STATE->checkDeclaration(testerId, CHECK_UNDECLARED, SYM_VARIABLE);
-      CVC4::DatatypeConstructor c(name, testerId);
-      dt.addConstructor(c);
+  | symbol[name,CHECK_NONE,SYM_VARIABLE]
+    { if( name[0] == '-' ){  //hack for unary minus
+        Debug("parser-sygus") << "Sygus grammar : unary minus integer literal " << name << std::endl;
+        ops.push_back(MK_CONST(Rational(name)));
+        name = dt.getName() + "_" + name;
+        std::string testerId("is-");
+        testerId.append(name);
+        PARSER_STATE->checkDeclaration(name, CHECK_UNDECLARED, SYM_VARIABLE);
+        PARSER_STATE->checkDeclaration(testerId, CHECK_UNDECLARED, SYM_VARIABLE);
+        CVC4::DatatypeConstructor c(name, testerId);
+        dt.addConstructor(c);
+      }else{
+        Debug("parser-sygus") << "Sygus grammar : symbol " << name << std::endl;
+        Expr bv = PARSER_STATE->getVariable(name);
+        ops.push_back(bv);
+        name = dt.getName() + "_" + name;
+        std::string testerId("is-");
+        testerId.append(name);
+        PARSER_STATE->checkDeclaration(name, CHECK_UNDECLARED, SYM_VARIABLE);
+        PARSER_STATE->checkDeclaration(testerId, CHECK_UNDECLARED, SYM_VARIABLE);
+        CVC4::DatatypeConstructor c(name, testerId);
+        dt.addConstructor(c);
+      }
     }
   ;
 

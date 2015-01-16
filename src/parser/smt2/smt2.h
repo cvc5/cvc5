@@ -182,65 +182,13 @@ public:
     d_sygusFuns.push_back(std::make_pair(fun, eval));
   }
 
-  void defineSygusFuns() {
-    // only define each one once
-    while(d_nextSygusFun < d_sygusFuns.size()) {
-      std::pair<std::string, Expr> p = d_sygusFuns[d_nextSygusFun];
-      std::string fun = p.first;
-      Debug("parser-sygus") << "Sygus : define fun " << fun << std::endl;
-      Expr eval = p.second;
-      FunctionType evalType = eval.getType();
-      std::vector<Type> argTypes = evalType.getArgTypes();
-      Type rangeType = evalType.getRangeType();
-      Debug("parser-sygus") << "...eval type : " << evalType << ", #args=" << argTypes.size() << std::endl;
-
-      // first make the function type
-      std::vector<Expr> sygusVars;
-      std::vector<Type> funType;
-      for(size_t j = 1; j < argTypes.size(); ++j) {
-        funType.push_back(argTypes[j]);
-        std::stringstream ss;
-        ss << fun << "_v_" << j;
-        sygusVars.push_back(getExprManager()->mkBoundVar(ss.str(), argTypes[j]));
-      }
-      Type funt = getExprManager()->mkFunctionType(funType, rangeType);
-      Debug("parser-sygus") << "...eval function type : " << funt << std::endl;
-
-      // copy the bound vars
-      /*
-      std::vector<Expr> sygusVars;
-      //std::vector<Type> types;
-      for(size_t i = 0; i < d_sygusVars.size(); ++i) {
-        std::stringstream ss;
-        ss << d_sygusVars[i];
-        Type type = d_sygusVars[i].getType();
-        sygusVars.push_back(getExprManager()->mkBoundVar(ss.str(), type));
-        //types.push_back(type);
-      }
-      Debug("parser-sygus") << "...made vars, #vars=" << sygusVars.size() << std::endl;
-      */
-
-      //Type t = getExprManager()->mkFunctionType(types, rangeType);
-      //Debug("parser-sygus") << "...function type : " << t << std::endl;
-      
-      Expr lambda = mkFunction(fun, funt, ExprManager::VAR_FLAG_DEFINED);
-      Debug("parser-sygus") << "...made function : " << lambda << std::endl;
-      std::vector<Expr> applyv;
-      Expr funbv = getExprManager()->mkBoundVar(std::string("f") + fun, argTypes[0]);
-      d_sygusFunSymbols.push_back(funbv);
-      applyv.push_back(eval);
-      applyv.push_back(funbv);
-      for(size_t i = 0; i < sygusVars.size(); ++i) {
-        applyv.push_back(sygusVars[i]);
-      }
-      Expr apply = getExprManager()->mkExpr(kind::APPLY_UF, applyv);
-      Debug("parser-sygus") << "...made apply " << apply << std::endl;
-      Command* cmd = new DefineFunctionCommand(fun, lambda, sygusVars, apply);
-      preemptCommand(cmd);
-
-      ++d_nextSygusFun;
-    }
-  }
+  void defineSygusFuns();
+  
+  // i is index in datatypes/ops
+  // j is index is datatype
+  Expr getSygusAssertion( std::vector<DatatypeType>& datatypeTypes, std::vector< std::vector<Expr> >& ops, 
+                          std::map<DatatypeType, Expr>& evals, std::vector<Expr>& terms, 
+                          Expr eval, const Datatype& dt, size_t i, size_t j );
 
   void addSygusConstraint(Expr constraint) {
     d_sygusConstraints.push_back(constraint);

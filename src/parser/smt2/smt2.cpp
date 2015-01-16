@@ -462,5 +462,182 @@ void Smt2::includeFile(const std::string& filename) {
   }
 }
 
+
+
+ void Smt2::defineSygusFuns() {
+  // only define each one once
+  while(d_nextSygusFun < d_sygusFuns.size()) {
+    std::pair<std::string, Expr> p = d_sygusFuns[d_nextSygusFun];
+    std::string fun = p.first;
+    Debug("parser-sygus") << "Sygus : define fun " << fun << std::endl;
+    Expr eval = p.second;
+    FunctionType evalType = eval.getType();
+    std::vector<Type> argTypes = evalType.getArgTypes();
+    Type rangeType = evalType.getRangeType();
+    Debug("parser-sygus") << "...eval type : " << evalType << ", #args=" << argTypes.size() << std::endl;
+
+    // first make the function type
+    std::vector<Expr> sygusVars;
+    std::vector<Type> funType;
+    for(size_t j = 1; j < argTypes.size(); ++j) {
+      funType.push_back(argTypes[j]);
+      std::stringstream ss;
+      ss << fun << "_v_" << j;
+      sygusVars.push_back(getExprManager()->mkBoundVar(ss.str(), argTypes[j]));
+    }
+    Type funt = getExprManager()->mkFunctionType(funType, rangeType);
+    Debug("parser-sygus") << "...eval function type : " << funt << std::endl;
+
+    // copy the bound vars
+    /*
+    std::vector<Expr> sygusVars;
+    //std::vector<Type> types;
+    for(size_t i = 0; i < d_sygusVars.size(); ++i) {
+      std::stringstream ss;
+      ss << d_sygusVars[i];
+      Type type = d_sygusVars[i].getType();
+      sygusVars.push_back(getExprManager()->mkBoundVar(ss.str(), type));
+      //types.push_back(type);
+    }
+    Debug("parser-sygus") << "...made vars, #vars=" << sygusVars.size() << std::endl;
+    */
+
+    //Type t = getExprManager()->mkFunctionType(types, rangeType);
+    //Debug("parser-sygus") << "...function type : " << t << std::endl;
+    
+    Expr lambda = mkFunction(fun, funt, ExprManager::VAR_FLAG_DEFINED);
+    Debug("parser-sygus") << "...made function : " << lambda << std::endl;
+    std::vector<Expr> applyv;
+    Expr funbv = getExprManager()->mkBoundVar(std::string("f") + fun, argTypes[0]);
+    d_sygusFunSymbols.push_back(funbv);
+    applyv.push_back(eval);
+    applyv.push_back(funbv);
+    for(size_t i = 0; i < sygusVars.size(); ++i) {
+      applyv.push_back(sygusVars[i]);
+    }
+    Expr apply = getExprManager()->mkExpr(kind::APPLY_UF, applyv);
+    Debug("parser-sygus") << "...made apply " << apply << std::endl;
+    Command* cmd = new DefineFunctionCommand(fun, lambda, sygusVars, apply);
+    preemptCommand(cmd);
+
+    ++d_nextSygusFun;
+  }
+}
+
+// i is index in datatypes/ops
+// j is index is datatype
+Expr Smt2::getSygusAssertion( std::vector<DatatypeType>& datatypeTypes, std::vector< std::vector<Expr> >& ops, 
+                              std::map<DatatypeType, Expr>& evals, std::vector<Expr>& terms, 
+                              Expr eval, const Datatype& dt, size_t i, size_t j ) {
+  const DatatypeConstructor& ctor = dt[j];
+  Debug("parser-sygus") << "Sygus : process constructor " << j << " : " << dt[j] << std::endl;
+  std::vector<Expr> bvs, extraArgs;
+  for(size_t k = 0; k < ctor.getNumArgs(); ++k) {
+    std::string vname = "v_" + ctor[k].getName();
+    Expr bv = getExprManager()->mkBoundVar(vname, SelectorType(ctor[k].getType()).getRangeType());
+    bvs.push_back(bv);
+    extraArgs.push_back(bv);
+  }
+  bvs.insert(bvs.end(), terms[0].begin(), terms[0].end());
+  Expr bvl = getExprManager()->mkExpr(kind::BOUND_VAR_LIST, bvs);
+  Debug("parser-sygus") << "...made bv list " << bvl << std::endl;
+  std::vector<Expr> patv;
+  patv.push_back(eval);
+  std::vector<Expr> applyv;
+  applyv.push_back(ctor.getConstructor());
+  applyv.insert(applyv.end(), extraArgs.begin(), extraArgs.end());
+  for(size_t k = 0; k < applyv.size(); ++k) {
+  }
+  Expr cpatv = getExprManager()->mkExpr(kind::APPLY_CONSTRUCTOR, applyv);
+  Debug("parser-sygus") << "...made eval ctor apply " << cpatv << std::endl;
+  patv.push_back(cpatv);
+  patv.insert(patv.end(), terms[0].begin(), terms[0].end());
+  Expr evalApply = getExprManager()->mkExpr(kind::APPLY_UF, patv);
+  Debug("parser-sygus") << "...made eval apply " << evalApply << std::endl;
+  std::vector<Expr> builtApply;
+  for(size_t k = 0; k < extraArgs.size(); ++k) {
+    std::vector<Expr> patvb;
+    patvb.push_back(evals[DatatypeType(extraArgs[k].getType())]);
+    patvb.push_back(extraArgs[k]);
+    patvb.insert(patvb.end(), terms[0].begin(), terms[0].end());
+    builtApply.push_back(getExprManager()->mkExpr(kind::APPLY_UF, patvb));
+  }
+  for(size_t k = 0; k < builtApply.size(); ++k) {
+  }
+  Expr builtTerm;
+  //if( ops[i][j].getKind() == kind::BUILTIN ){
+  if( !builtApply.empty() ){
+    builtTerm = getExprManager()->mkExpr(ops[i][j], builtApply);
+  }else{
+    builtTerm = ops[i][j];
+  }
+  Debug("parser-sygus") << "...made built term " << builtTerm << std::endl;
+  Expr assertion = getExprManager()->mkExpr(evalApply.getType().isBoolean() ? kind::IFF : kind::EQUAL, evalApply, builtTerm);
+  Expr pattern = getExprManager()->mkExpr(kind::INST_PATTERN, evalApply);
+  pattern = getExprManager()->mkExpr(kind::INST_PATTERN_LIST, pattern);
+  assertion = getExprManager()->mkExpr(kind::FORALL, bvl, assertion, pattern);
+  Debug("parser-sygus") << "...made assertion " << assertion << std::endl;
+  
+  //linearize multiplication if possible
+  if( builtTerm.getKind()==kind::MULT ){
+    for(size_t k = 0; k < ctor.getNumArgs(); ++k) {
+      Type at = SelectorType(ctor[k].getType()).getRangeType();
+      if( at.isDatatype() ){
+        DatatypeType atd = (DatatypeType)SelectorType(ctor[k].getType()).getRangeType();
+        Debug("parser-sygus") << "Argument " << k << " " << atd << std::endl;
+        std::vector<DatatypeType>::iterator itd = std::find( datatypeTypes.begin(), datatypeTypes.end(), atd );
+        if( itd!=datatypeTypes.end() ){
+          Debug("parser-sygus2") << "Exists in datatypeTypes." << std::endl;
+          unsigned index = itd-datatypeTypes.begin();
+          Debug("parser-sygus2") << "index = " << index << std::endl;
+          bool isConst = true;
+          for( unsigned cc = 0; cc < ops[index].size(); cc++ ){
+            Debug("parser-sygus2") << "ops[" << cc << "]=" << ops[index][cc] << std::endl;
+            if( ops[index][cc].getKind() != kind::CONST_RATIONAL ){
+              isConst = false;
+              break;
+            }
+          }
+          if( isConst ){
+            Debug("parser-sygus") << "Linearize multiplication " << ctor << " based on argument " << k << std::endl;
+            const Datatype & atdd = atd.getDatatype();
+            std::vector<Expr> assertions;
+            std::vector<Expr> nbvs;
+            for( unsigned a=0; a<bvl.getNumChildren(); a++ ){
+              if( a!=k ){
+                nbvs.push_back( bvl[a] );
+              }
+            }
+            Expr nbvl = getExprManager()->mkExpr( kind::BOUND_VAR_LIST, nbvs );
+            for( unsigned cc = 0; cc < ops[index].size(); cc++ ){
+              //Make new assertion based on partially instantiating existing
+              applyv[k+1] = getExprManager()->mkExpr(kind::APPLY_CONSTRUCTOR, atdd[cc].getConstructor());
+              Debug("parser-sygus") << "applyv " << applyv[k+1] << std::endl;
+              cpatv = getExprManager()->mkExpr(kind::APPLY_CONSTRUCTOR, applyv);
+              Debug("parser-sygus") << "cpatv " << cpatv << std::endl;
+              patv[1] = cpatv;
+              evalApply = getExprManager()->mkExpr(kind::APPLY_UF, patv);
+              Debug("parser-sygus") << "evalApply " << evalApply << std::endl;
+              builtApply[k] = ops[index][cc];
+              Debug("parser-sygus") << "builtApply " << builtApply[k] << std::endl;
+              builtTerm = getExprManager()->mkExpr(ops[i][j], builtApply);
+              Debug("parser-sygus") << "builtTerm " << builtTerm << std::endl;
+              Expr eassertion = getExprManager()->mkExpr(evalApply.getType().isBoolean() ? kind::IFF : kind::EQUAL, evalApply, builtTerm);
+              Expr epattern = getExprManager()->mkExpr(kind::INST_PATTERN, evalApply);
+              epattern = getExprManager()->mkExpr(kind::INST_PATTERN_LIST, epattern);
+              eassertion = getExprManager()->mkExpr(kind::FORALL, nbvl, eassertion, epattern);
+              assertions.push_back( eassertion );
+            }
+            assertion = assertions.size()==1 ? assertions[0] : getExprManager()->mkExpr( kind::AND, assertions );
+            Debug("parser-sygus") << "...(linearized) assertion is: " << assertion << std::endl;
+          }
+        }
+      }
+    }
+  }
+  return assertion;
+}
+
+
 }/* CVC4::parser namespace */
 }/* CVC4 namespace */
