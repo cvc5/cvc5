@@ -56,6 +56,8 @@ private:
     Node d_measure_term;
     /** measure sum size */
     int d_measure_term_size;
+    /** refine count */
+    unsigned d_refine_count;
     /** assign */
     void assign( Node q );
     /** is assigned */
@@ -69,6 +71,8 @@ private:
     context::CDO< int > d_curr_lit;
     /** allocate literal */
     Node getLiteral( QuantifiersEngine * qe, int i );
+    /** is ground */
+    bool isGround() { return d_inner_vars.empty(); }
   };
   /** the quantified formula stating the synthesis conjecture */
   CegConjecture * d_conj;

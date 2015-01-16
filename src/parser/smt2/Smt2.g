@@ -636,8 +636,10 @@ sygusCommand returns [CVC4::Command* cmd = NULL]
         DatatypeType dtt = datatypeTypes[i];
         const Datatype& dt = dtt.getDatatype();
         Expr eval = evals[dtt];
+        Debug("parser-sygus") << "Sygus : process grammar : " << dt << std::endl;
         for(size_t j = 0; j < dt.getNumConstructors(); ++j) {
           const DatatypeConstructor& ctor = dt[j];
+          Debug("parser-sygus") << "Sygus : process constructor " << j << " : " << dt[j] << std::endl;
           std::vector<Expr> bvs, extraArgs;
           for(size_t k = 0; k < ctor.getNumArgs(); ++k) {
             std::string vname = "v_" + ctor[k].getName();
@@ -647,6 +649,7 @@ sygusCommand returns [CVC4::Command* cmd = NULL]
           }
           bvs.insert(bvs.end(), terms[0].begin(), terms[0].end());
           Expr bvl = MK_EXPR(kind::BOUND_VAR_LIST, bvs);
+          Debug("parser-sygus") << "...made bv list." << std::endl;
           std::vector<Expr> patv;
           patv.push_back(eval);
           std::vector<Expr> applyv;
@@ -654,9 +657,12 @@ sygusCommand returns [CVC4::Command* cmd = NULL]
           applyv.insert(applyv.end(), extraArgs.begin(), extraArgs.end());
           for(size_t k = 0; k < applyv.size(); ++k) {
           }
-          patv.push_back(MK_EXPR(kind::APPLY_CONSTRUCTOR, applyv));
+          Expr cpatv = MK_EXPR(kind::APPLY_CONSTRUCTOR, applyv);
+          Debug("parser-sygus") << "...made eval ctor apply " << cpatv << std::endl;
+          patv.push_back(cpatv);
           patv.insert(patv.end(), terms[0].begin(), terms[0].end());
           Expr evalApply = MK_EXPR(kind::APPLY_UF, patv);
+          Debug("parser-sygus") << "...made eval apply " << evalApply << std::endl;
           std::vector<Expr> builtApply;
           for(size_t k = 0; k < extraArgs.size(); ++k) {
             patv.clear();
@@ -667,11 +673,19 @@ sygusCommand returns [CVC4::Command* cmd = NULL]
           }
           for(size_t k = 0; k < builtApply.size(); ++k) {
           }
-          Expr builtTerm = ops[i][j].getKind() == kind::BUILTIN ? MK_EXPR(ops[i][j], builtApply) : ops[i][j];
+          Expr builtTerm;
+          //if( ops[i][j].getKind() == kind::BUILTIN ){
+          if( !builtApply.empty() ){
+            builtTerm = MK_EXPR(ops[i][j], builtApply);
+          }else{
+            builtTerm = ops[i][j];
+          }
+          Debug("parser-sygus") << "...made built term " << builtTerm << std::endl;
           Expr assertion = MK_EXPR(evalApply.getType().isBoolean() ? kind::IFF : kind::EQUAL, evalApply, builtTerm);
           Expr pattern = MK_EXPR(kind::INST_PATTERN, evalApply);
           pattern = MK_EXPR(kind::INST_PATTERN_LIST, pattern);
           assertion = MK_EXPR(kind::FORALL, bvl, assertion, pattern);
+          Debug("parser-sygus") << "Add assertion " << assertion << std::endl;
           seq->addCommand(new AssertCommand(assertion));
         }
       }
@@ -679,9 +693,13 @@ sygusCommand returns [CVC4::Command* cmd = NULL]
     }
   | /* constraint */
     CONSTRAINT_TOK { PARSER_STATE->checkThatLogicIsSet(); }
-    { PARSER_STATE->defineSygusFuns(); }
+    { Debug("parser-sygus") << "Sygus : define sygus funs..." << std::endl;
+      PARSER_STATE->defineSygusFuns(); 
+      Debug("parser-sygus") << "Sygus : read constraint..." << std::endl;
+    }
     term[expr, expr2]
-    { PARSER_STATE->addSygusConstraint(expr);
+    { Debug("parser-sygus") << "...read constraint " << expr << std::endl;
+      PARSER_STATE->addSygusConstraint(expr);
       $cmd = new EmptyCommand();
     }
   | /* check-synth */
@@ -689,9 +707,15 @@ sygusCommand returns [CVC4::Command* cmd = NULL]
     { Expr sygusVar = EXPR_MANAGER->mkVar("sygus", EXPR_MANAGER->booleanType());
       Expr sygusAttr = EXPR_MANAGER->mkExpr(kind::INST_PATTERN_LIST, EXPR_MANAGER->mkExpr(kind::INST_ATTRIBUTE, sygusVar));
       std::vector<Expr> bodyv;
+      Debug("parser-sygus") << "Sygus : Constructing sygus constraint..." << std::endl;
       Expr body = EXPR_MANAGER->mkExpr(kind::NOT, PARSER_STATE->getSygusConstraints());
-      body = EXPR_MANAGER->mkExpr(kind::EXISTS, EXPR_MANAGER->mkExpr(kind::BOUND_VAR_LIST, PARSER_STATE->getSygusVars()), body);
+      Debug("parser-sygus") << "...constructed sygus constraint " << body << std::endl;      
+      if( !PARSER_STATE->getSygusVars().empty() ){
+        body = EXPR_MANAGER->mkExpr(kind::EXISTS, EXPR_MANAGER->mkExpr(kind::BOUND_VAR_LIST, PARSER_STATE->getSygusVars()), body);
+        Debug("parser-sygus") << "...constructed exists " << body << std::endl;   
+      }
       body = EXPR_MANAGER->mkExpr(kind::FORALL, EXPR_MANAGER->mkExpr(kind::BOUND_VAR_LIST, PARSER_STATE->getSygusFunSymbols()), body, sygusAttr);
+      Debug("parser-sygus") << "...constructed forall " << body << std::endl;   
       Command* c = new SetUserAttributeCommand("sygus", sygusVar);
       c->setMuted(true);
       PARSER_STATE->preemptCommand(c);
@@ -722,13 +746,15 @@ sygusGTerm[CVC4::Datatype& dt, std::vector<CVC4::Expr>& ops]
     ( builtinOp[k]
       { ops.push_back(EXPR_MANAGER->operatorOf(k));
         name = kind::kindToString(k);
+        Debug("parser-sygus") << "Sygus : grammar builtin symbol : " << name << std::endl;
       }
-    | symbol[name,CHECK_UNDECLARED,SYM_VARIABLE]
+    | symbol[name,CHECK_NONE,SYM_VARIABLE]
       { // what is this sygus term trying to accomplish here, if the
         // symbol isn't yet declared?!  probably the following line will
         // fail, but we need an operator to continue here..
         Expr bv = PARSER_STATE->getVariable(name);
         ops.push_back(bv);
+        Debug("parser-sygus") << "Sygus : grammar symbol : " << name << std::endl;
       }
     )
     { name = dt.getName() + "_" + name;

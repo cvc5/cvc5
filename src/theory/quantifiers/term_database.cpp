@@ -1158,9 +1158,10 @@ void TermDb::computeAttributes( Node q ) {
           d_fun_defs[f] = true;
         }
         if( avar.getAttribute(SygusAttribute()) ){
-          //should be nested existential
-          Assert( q[1].getKind()==NOT );
-          Assert( q[1][0].getKind()==FORALL );
+          //not necessarily nested existential
+          //Assert( q[1].getKind()==NOT );
+          //Assert( q[1][0].getKind()==FORALL );
+          
           Trace("quant-attr") << "Attribute : sygus : " << q << std::endl;
           d_qattr_sygus[q] = true;
           if( d_quantEngine->getCegInstantiation()==NULL ){

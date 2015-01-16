@@ -28,7 +28,7 @@ using namespace std;
 namespace CVC4 {
 
 CegInstantiation::CegConjecture::CegConjecture( context::Context* c ) : d_active( c, false ), d_infeasible( c, false ), d_curr_lit( c, 0 ){
-
+  d_refine_count = 0;
 }
 
 void CegInstantiation::CegConjecture::assign( Node q ) {
@@ -113,10 +113,10 @@ void CegInstantiation::registerQuantifier( Node q ) {
       d_conj->d_base_inst = Rewriter::rewrite( d_quantEngine->getInstantiation( q, d_conj->d_candidates ) );
       Trace("cegqi") << "Base instantiation is : " << d_conj->d_base_inst << std::endl;
       if( getTermDatabase()->isQAttrSygus( q ) ){
-        Assert( d_conj->d_base_inst.getKind()==NOT );
-        Assert( d_conj->d_base_inst[0].getKind()==FORALL );
-        for( unsigned j=0; j<d_conj->d_base_inst[0][0].getNumChildren(); j++ ){
-          d_conj->d_inner_vars.push_back( d_conj->d_base_inst[0][0][j] );
+        if( d_conj->d_base_inst.getKind()==NOT && d_conj->d_base_inst[0].getKind()==FORALL ){
+          for( unsigned j=0; j<d_conj->d_base_inst[0][0].getNumChildren(); j++ ){
+            d_conj->d_inner_vars.push_back( d_conj->d_base_inst[0][0][j] );
+          }
         }
         d_conj->d_syntax_guided = true;
       }else if( getTermDatabase()->isQAttrSynthesis( q ) ){
@@ -230,14 +230,18 @@ void CegInstantiation::checkCegConjecture( CegConjecture * conj ) {
           //must get a counterexample to the value of the current candidate
           Node inst = conj->d_base_inst.substitute( conj->d_candidates.begin(), conj->d_candidates.end(), model_values.begin(), model_values.end() );
           inst = Rewriter::rewrite( inst );
-          //body should be an existential
-          Assert( inst.getKind()==NOT );
-          Assert( inst[0].getKind()==FORALL );
-          //immediately skolemize
-          Node inst_sk = getTermDatabase()->getSkolemizedBody( inst[0] ).negate();
+          //if body is existential, immediately skolemize
+          Node inst_sk;
+          if( inst.getKind()==NOT && inst[0].getKind()==FORALL ){
+            inst_sk = getTermDatabase()->getSkolemizedBody( inst[0] ).negate();
+          }else{
+            inst_sk = inst;
+          }
           Trace("cegqi-lemma") << "Counterexample lemma : " << inst_sk << std::endl;
           d_quantEngine->addLemma( NodeManager::currentNM()->mkNode( OR, q.negate(), inst_sk ) );
-          conj->d_ce_sk.push_back( inst[0] );
+          if( !conj->isGround() || conj->d_refine_count==0 ){
+            conj->d_ce_sk.push_back( inst[0] );
+          }
           Trace("cegqi-engine") << "  ...find counterexample." << std::endl;
         }
       }
@@ -261,12 +265,18 @@ void CegInstantiation::checkCegConjecture( CegConjecture * conj ) {
       std::vector< Node > model_values;
       if( getModelValues( getTermDatabase()->d_skolem_constants[ce_q], model_values ) ){
         //candidate refinement : the next candidate must satisfy the counterexample found for the current model of the candidate
-        Node inst_ce_refine = conj->d_base_inst[0][1].substitute( conj->d_inner_vars.begin(), conj->d_inner_vars.end(),
-                                                                  model_values.begin(), model_values.end() );
+        Node inst_ce_refine;
+        if( !conj->d_inner_vars.empty() ){
+          inst_ce_refine = conj->d_base_inst[0][1].substitute( conj->d_inner_vars.begin(), conj->d_inner_vars.end(),
+                                                               model_values.begin(), model_values.end() );
+        }else{
+          inst_ce_refine = conj->d_base_inst.negate();
+        }
         Node lem = NodeManager::currentNM()->mkNode( OR, conj->d_guard.negate(), inst_ce_refine );
         Trace("cegqi-lemma") << "Candidate refinement lemma : " << lem << std::endl;
         Trace("cegqi-engine") << "  ...refine candidate." << std::endl;
         d_quantEngine->addLemma( lem );
+        conj->d_refine_count++;
       }
     }
     conj->d_ce_sk.clear();
