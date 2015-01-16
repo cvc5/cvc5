@@ -396,11 +396,11 @@ void TermDb::reset( Theory::Effort effort ){
   d_func_map_trie.clear();
   d_func_map_eqc_trie.clear();
 
+  eq::EqualityEngine* ee = d_quantEngine->getMasterEqualityEngine(); 
   //compute has map
   if( options::termDbMode()==TERM_DB_RELEVANT ){
     d_has_map.clear();
     d_has_eqc.clear();
-    eq::EqualityEngine* ee = d_quantEngine->getMasterEqualityEngine();
     eq::EqClassesIterator eqcs_i = eq::EqClassesIterator( ee );
     while( !eqcs_i.isFinished() ){
       TNode r = (*eqcs_i);
@@ -428,7 +428,6 @@ void TermDb::reset( Theory::Effort effort ){
       if (theory && d_quantEngine->getTheoryEngine()->d_logicInfo.isTheoryEnabled(theoryId)) {
         context::CDList<Assertion>::const_iterator it = theory->facts_begin(), it_end = theory->facts_end();
         for (unsigned i = 0; it != it_end; ++ it, ++i) {
-          Trace("ajr-temp") << "Set has term " << (*it).assertion << std::endl;
           setHasTerm( (*it).assertion );
         }
       }
@@ -439,32 +438,40 @@ void TermDb::reset( Theory::Effort effort ){
   //rebuild d_func/pred_map_trie for each operation, this will calculate all congruent terms
   for( std::map< Node, std::vector< Node > >::iterator it = d_op_map.begin(); it != d_op_map.end(); ++it ){
     d_op_nonred_count[ it->first ] = 0;
-    if( !it->second.empty() ){
-      for( unsigned i=0; i<it->second.size(); i++ ){
-        Node n = it->second[i];
-        if( hasTermCurrent( n ) ){
-          if( !n.getAttribute(NoMatchAttribute()) ){
-            if( options::finiteModelFind() ){
-              computeModelBasisArgAttribute( n );
+    Trace("term-db-debug") << "Adding terms for operator " << it->first << std::endl;
+    for( unsigned i=0; i<it->second.size(); i++ ){
+      Node n = it->second[i];
+      if( hasTermCurrent( n ) && ee->hasTerm( n ) ){
+        if( !n.getAttribute(NoMatchAttribute()) ){
+          if( options::finiteModelFind() ){
+            computeModelBasisArgAttribute( n );
+          }
+          computeArgReps( n );
+          
+          if( Trace.isOn("term-db-debug") ){
+            Trace("term-db-debug") << "Adding term " << n << " with arg reps : ";
+            for( unsigned i=0; i<d_arg_reps[n].size(); i++ ){
+              Trace("term-db-debug") << d_arg_reps[n] << " ";
             }
-            computeArgReps( n );
-            if( !d_func_map_trie[ it->first ].addTerm( n, d_arg_reps[n] ) ){
-              NoMatchAttribute nma;
-              n.setAttribute(nma,true);
-              Trace("term-db-stats-debug") << n << " is redundant." << std::endl;
-              congruentCount++;
-            }else{
-              nonCongruentCount++;
-              d_op_nonred_count[ it->first ]++;
-            }
-          }else{
+            Trace("term-db-debug") << std::endl;
+          }
+          
+          if( !d_func_map_trie[ it->first ].addTerm( n, d_arg_reps[n] ) ){
+            NoMatchAttribute nma;
+            n.setAttribute(nma,true);
+            Trace("term-db-debug") << n << " is redundant." << std::endl;
             congruentCount++;
-            alreadyCongruentCount++;
+          }else{
+            nonCongruentCount++;
+            d_op_nonred_count[ it->first ]++;
           }
         }else{
-          Trace("term-db-stats-debug") << n << " is not relevant." << std::endl;
-          nonRelevantCount++;
+          congruentCount++;
+          alreadyCongruentCount++;
         }
+      }else{
+        Trace("term-db-debug") << n << " is not relevant." << std::endl;
+        nonRelevantCount++;
       }
     }
   }

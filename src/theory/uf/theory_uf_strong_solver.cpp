@@ -1539,7 +1539,8 @@ void StrongSolverTheoryUF::ensureEqcRec( Node n ) {
 
 /** has eqc */
 bool StrongSolverTheoryUF::hasEqc( Node a ) {
-  return d_rel_eqc.find( a )!=d_rel_eqc.end() && d_rel_eqc[a];
+  NodeBoolMap::iterator it = d_rel_eqc.find( a );
+  return it!=d_rel_eqc.end() && (*it).second;
 }
 
 /** new node */

@@ -640,7 +640,8 @@ sygusCommand returns [CVC4::Command* cmd = NULL]
           const DatatypeConstructor& ctor = dt[j];
           std::vector<Expr> bvs, extraArgs;
           for(size_t k = 0; k < ctor.getNumArgs(); ++k) {
-            Expr bv = EXPR_MANAGER->mkBoundVar(ctor[k].getName(), SelectorType(ctor[k].getType()).getRangeType());
+            std::string vname = "v_" + ctor[k].getName();
+            Expr bv = EXPR_MANAGER->mkBoundVar(vname, SelectorType(ctor[k].getType()).getRangeType());
             bvs.push_back(bv);
             extraArgs.push_back(bv);
           }
@@ -757,11 +758,25 @@ sygusGTerm[CVC4::Datatype& dt, std::vector<CVC4::Expr>& ops]
     { assert( AntlrInput::tokenText($HEX_LITERAL).find("#x") == 0 );
       std::string hexString = AntlrInput::tokenTextSubstr($HEX_LITERAL, 2);
       ops.push_back(MK_CONST( BitVector(hexString, 16) ));
+      name = dt.getName() + "_" + AntlrInput::tokenText($HEX_LITERAL);
+      std::string testerId("is-");
+      testerId.append(name);
+      PARSER_STATE->checkDeclaration(name, CHECK_UNDECLARED, SYM_VARIABLE);
+      PARSER_STATE->checkDeclaration(testerId, CHECK_UNDECLARED, SYM_VARIABLE);
+      CVC4::DatatypeConstructor c(name, testerId);
+      dt.addConstructor(c);
     }
   | BINARY_LITERAL
     { assert( AntlrInput::tokenText($BINARY_LITERAL).find("#b") == 0 );
       std::string binString = AntlrInput::tokenTextSubstr($BINARY_LITERAL, 2);
       ops.push_back(MK_CONST( BitVector(binString, 2) ));
+      name = dt.getName() + "_" + AntlrInput::tokenText($BINARY_LITERAL);
+      std::string testerId("is-");
+      testerId.append(name);
+      PARSER_STATE->checkDeclaration(name, CHECK_UNDECLARED, SYM_VARIABLE);
+      PARSER_STATE->checkDeclaration(testerId, CHECK_UNDECLARED, SYM_VARIABLE);
+      CVC4::DatatypeConstructor c(name, testerId);
+      dt.addConstructor(c);
     }
   | symbol[name,CHECK_DECLARED,SYM_VARIABLE]
     { Expr bv = PARSER_STATE->getVariable(name);

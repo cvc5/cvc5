@@ -89,7 +89,7 @@ bool CegInstantiation::needsModel( Theory::Effort e ) {
   return true;
 }
 bool CegInstantiation::needsFullModel( Theory::Effort e ) {
-  return false;
+  return true;
 }
 
 void CegInstantiation::check( Theory::Effort e, unsigned quant_e ) {
@@ -234,9 +234,9 @@ void CegInstantiation::checkCegConjecture( CegConjecture * conj ) {
           Assert( inst.getKind()==NOT );
           Assert( inst[0].getKind()==FORALL );
           //immediately skolemize
-          Node inst_sk = getTermDatabase()->getSkolemizedBody( inst[0] );
+          Node inst_sk = getTermDatabase()->getSkolemizedBody( inst[0] ).negate();
           Trace("cegqi-lemma") << "Counterexample lemma : " << inst_sk << std::endl;
-          d_quantEngine->addLemma( NodeManager::currentNM()->mkNode( OR, q.negate(), inst_sk.negate() ) );
+          d_quantEngine->addLemma( NodeManager::currentNM()->mkNode( OR, q.negate(), inst_sk ) );
           conj->d_ce_sk.push_back( inst[0] );
           Trace("cegqi-engine") << "  ...find counterexample." << std::endl;
         }
