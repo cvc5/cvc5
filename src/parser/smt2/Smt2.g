@@ -593,17 +593,20 @@ sygusCommand returns [CVC4::Command* cmd = NULL]
     ( LPAREN_TOK
       symbol[name,CHECK_NONE,SYM_VARIABLE] { PARSER_STATE->pushScope(true); }
       sortSymbol[t,CHECK_DECLARED]
-      { sorts.push_back(t);
-        datatypes.push_back(Datatype(name));
+      { std::stringstream ss;
+        ss << fun << "_" << name;
+        std::string dname = ss.str();
+        sorts.push_back(t);
+        datatypes.push_back(Datatype(dname));
         ops.push_back(std::vector<Expr>());
-        if(!PARSER_STATE->isUnresolvedType(name)) {
+        if(!PARSER_STATE->isUnresolvedType(dname)) {
           // if not unresolved, must be undeclared
-          PARSER_STATE->checkDeclaration(name, CHECK_UNDECLARED, SYM_SORT);
+          PARSER_STATE->checkDeclaration(dname, CHECK_UNDECLARED, SYM_SORT);
         }
       }
       // Note the official spec for NTDef is missing the ( parens )
       // but they are necessary to parse SyGuS examples
-      LPAREN_TOK sygusGTerm[datatypes.back(), ops.back()]+ RPAREN_TOK
+      LPAREN_TOK sygusGTerm[fun, datatypes.back(), ops.back()]+ RPAREN_TOK
       RPAREN_TOK
       { PARSER_STATE->popScope(); }
     )+
@@ -687,19 +690,21 @@ sygusCommand returns [CVC4::Command* cmd = NULL]
   ;
 
 // SyGuS grammar term
-sygusGTerm[CVC4::Datatype& dt, std::vector<CVC4::Expr>& ops]
+// fun is the name of the synth-fun this grammar term is for
+sygusGTerm[std::string& fun, CVC4::Datatype& dt, std::vector<CVC4::Expr>& ops]
 @declarations {
   std::string name;
   Kind k;
   Type t;
   CVC4::DatatypeConstructor* ctor = NULL;
   unsigned count = 0;
+  std::string sname;
 }
   : LPAREN_TOK
     ( builtinOp[k]
       { ops.push_back(EXPR_MANAGER->operatorOf(k));
         name = kind::kindToString(k);
-        Debug("parser-sygus") << "Sygus grammar : builtin op : " << name << std::endl;
+        Debug("parser-sygus") << "Sygus grammar " << fun << " : builtin op : " << name << std::endl;
       }
     | symbol[name,CHECK_NONE,SYM_VARIABLE]
       { // what is this sygus term trying to accomplish here, if the
@@ -707,7 +712,7 @@ sygusGTerm[CVC4::Datatype& dt, std::vector<CVC4::Expr>& ops]
         // fail, but we need an operator to continue here..
         Expr bv = PARSER_STATE->getVariable(name);
         ops.push_back(bv);
-        Debug("parser-sygus") << "Sygus grammar : op : " << name << std::endl;
+        Debug("parser-sygus") << "Sygus grammar " << fun << " : op : " << name << std::endl;
       }
     )
     { name = dt.getName() + "_" + name;
@@ -716,15 +721,24 @@ sygusGTerm[CVC4::Datatype& dt, std::vector<CVC4::Expr>& ops]
       PARSER_STATE->checkDeclaration(testerId, CHECK_UNDECLARED, SYM_VARIABLE);
       ctor = new CVC4::DatatypeConstructor(name, testerId);
     }
-    ( sortSymbol[t,CHECK_NONE]
-      { std::stringstream cname;
-        cname << name << "_" << ++count;
+    ( //sortSymbol[t,CHECK_NONE]
+      symbol[sname,CHECK_NONE,SYM_VARIABLE]
+      { std::stringstream ss;
+        ss << fun << "_" << sname;
+        sname = ss.str();
+        if( PARSER_STATE->isDeclared(sname, SYM_SORT) ) {
+	  t = PARSER_STATE->getSort(sname);
+        } else {
+	  t = PARSER_STATE->mkUnresolvedType(sname);
+        }
+        std::stringstream cname;
+        cname << fun << "_" << name << "_" << ++count;
         ctor->addArg(cname.str(), t);
       } )+ RPAREN_TOK
     { dt.addConstructor(*ctor);
       delete ctor; }
   | INTEGER_LITERAL
-    { Debug("parser-sygus") << "Sygus grammar : integer literal " << AntlrInput::tokenText($INTEGER_LITERAL) << std::endl;
+    { Debug("parser-sygus") << "Sygus grammar " << fun << " : integer literal " << AntlrInput::tokenText($INTEGER_LITERAL) << std::endl;
       ops.push_back(MK_CONST(Rational(AntlrInput::tokenText($INTEGER_LITERAL))));
       name = dt.getName() + "_" + AntlrInput::tokenText($INTEGER_LITERAL);
       std::string testerId("is-");
@@ -735,7 +749,7 @@ sygusGTerm[CVC4::Datatype& dt, std::vector<CVC4::Expr>& ops]
       dt.addConstructor(c);
     }
   | HEX_LITERAL
-    { Debug("parser-sygus") << "Sygus grammar : integer literal " << AntlrInput::tokenText($HEX_LITERAL) << std::endl;
+    { Debug("parser-sygus") << "Sygus grammar " << fun << " : hex literal " << AntlrInput::tokenText($HEX_LITERAL) << std::endl;
       assert( AntlrInput::tokenText($HEX_LITERAL).find("#x") == 0 );
       std::string hexString = AntlrInput::tokenTextSubstr($HEX_LITERAL, 2);
       ops.push_back(MK_CONST( BitVector(hexString, 16) ));
@@ -748,7 +762,7 @@ sygusGTerm[CVC4::Datatype& dt, std::vector<CVC4::Expr>& ops]
       dt.addConstructor(c);
     }
   | BINARY_LITERAL
-    { Debug("parser-sygus") << "Sygus grammar : integer literal " << AntlrInput::tokenText($BINARY_LITERAL) << std::endl;
+    { Debug("parser-sygus") << "Sygus grammar " << fun << " : binary literal " << AntlrInput::tokenText($BINARY_LITERAL) << std::endl;
       assert( AntlrInput::tokenText($BINARY_LITERAL).find("#b") == 0 );
       std::string binString = AntlrInput::tokenTextSubstr($BINARY_LITERAL, 2);
       ops.push_back(MK_CONST( BitVector(binString, 2) ));
@@ -762,7 +776,7 @@ sygusGTerm[CVC4::Datatype& dt, std::vector<CVC4::Expr>& ops]
     }
   | symbol[name,CHECK_NONE,SYM_VARIABLE]
     { if( name[0] == '-' ){  //hack for unary minus
-        Debug("parser-sygus") << "Sygus grammar : unary minus integer literal " << name << std::endl;
+        Debug("parser-sygus") << "Sygus grammar " << fun << " : unary minus integer literal " << name << std::endl;
         ops.push_back(MK_CONST(Rational(name)));
         name = dt.getName() + "_" + name;
         std::string testerId("is-");
@@ -772,7 +786,7 @@ sygusGTerm[CVC4::Datatype& dt, std::vector<CVC4::Expr>& ops]
         CVC4::DatatypeConstructor c(name, testerId);
         dt.addConstructor(c);
       }else{
-        Debug("parser-sygus") << "Sygus grammar : symbol " << name << std::endl;
+        Debug("parser-sygus") << "Sygus grammar " << fun << " : symbol " << name << std::endl;
         Expr bv = PARSER_STATE->getVariable(name);
         ops.push_back(bv);
         name = dt.getName() + "_" + name;
