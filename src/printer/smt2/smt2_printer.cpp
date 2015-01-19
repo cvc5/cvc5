@@ -44,6 +44,8 @@ static string smtKindString(Kind k) throw();
 static void printBvParameterizedOp(std::ostream& out, TNode n) throw();
 static void printFpParameterizedOp(std::ostream& out, TNode n) throw();
 
+static void toStreamRational(std::ostream& out, const Rational& r, bool decimal) throw();
+  
 void Smt2Printer::toStream(std::ostream& out, TNode n,
                            int toDepth, bool types, size_t dag) const throw() {
   if(dag != 0) {
@@ -197,20 +199,22 @@ void Smt2Printer::toStream(std::ostream& out, TNode n,
       out << smtKindString(n.getConst<Chain>().getOperator());
       break;
     case kind::CONST_RATIONAL: {
-      Rational r = n.getConst<Rational>();
-      if(r < 0) {
-        if(r.isIntegral()) {
-          out << "(- " << -r << ')';
-        } else {
-          out << "(- (/ " << (-r).getNumerator() << ' ' << (-r).getDenominator() << "))";
-        }
-      } else {
-        if(r.isIntegral()) {
-          out << r;
-        } else {
-          out << "(/ " << r.getNumerator() << ' ' << r.getDenominator() << ')';
-        }
-      }
+      const Rational& r = n.getConst<Rational>();
+      toStreamRational(out, r, false);
+      // Rational r = n.getConst<Rational>();
+      // if(r < 0) {
+      //   if(r.isIntegral()) {
+      //     out << "(- " << -r << ')';
+      //   } else {
+      //     out << "(- (/ " << (-r).getNumerator() << ' ' << (-r).getDenominator() << "))";
+      //   }
+      // } else {
+      //   if(r.isIntegral()) {
+      //     out << r;
+      //   } else {
+      //     out << "(/ " << r.getNumerator() << ' ' << r.getDenominator() << ')';
+      //   }
+      // }
       break;
     }
 
@@ -522,8 +526,14 @@ void Smt2Printer::toStream(std::ostream& out, TNode n,
          n[0].getType().isInteger()) {
         // Special case, in model output integer constants that should be
         // Real-sorted are wrapped in a type ascription.  Handle that here.
-        toStream(out, n[0], -1, false);
-        out << ".0";
+
+	// Note: This is Tim making a guess about Morgan's Code.
+	Assert(n[0].getKind() == kind::CONST_RATIONAL);	
+	toStreamRational(out, n[0].getConst<Rational>(), true);
+
+        //toStream(out, n[0], -1, false);
+        //out << ".0";
+	
         return;
       }
       out << "(as ";
@@ -1043,7 +1053,9 @@ void Smt2Printer::toStream(std::ostream& out, const Model& m, const Command* c) 
       out << "(define-fun " << n << " () "
           << n.getType() << " ";
       if(val.getType().isInteger() && n.getType().isReal() && !n.getType().isInteger()) {
-        out << val << ".0";
+	//toStreamReal(out, val, true);
+	toStreamRational(out, val.getConst<Rational>(), true);
+	//out << val << ".0";	
       } else {
         out << val;
       }
@@ -1195,6 +1207,61 @@ static void toStream(std::ostream& out, const DefineFunctionCommand* c) throw() 
   }
   out << ") " << type << " " << formula << ")";
 }
+
+static void toStreamRational(std::ostream& out, const Rational& r, bool decimal) throw() {
+  bool neg = r.sgn() < 0;
+  
+  // TODO:
+  // We are currently printing (- (/ 5 3))
+  // instead of (/ (- 5) 3) which is what is in the SMT-LIB value in the theory definition.
+  // Before switching, I'll keep to what was there and send an email.
+
+  // Tim: Apologies for the ifs on one line but in this case they are cleaner.
+  
+  if (neg) { out << "(- "; }
+  
+  if(r.isIntegral()) {
+    if (neg) {
+      out << (-r);
+    }else {
+      out << r;
+    }
+    if (decimal) { out << ".0"; }
+  }else{
+    out << "(/ ";
+    if(neg) {
+      Rational abs_r = (-r);
+      out << abs_r.getNumerator();
+      if(decimal) { out << ".0"; }
+      out << ' ' << abs_r.getDenominator();
+      if(decimal) { out << ".0"; }
+    }else{
+      out << r.getNumerator();
+      if(decimal) { out << ".0"; }
+      out << ' ' << r.getDenominator();
+      if(decimal) { out << ".0"; }
+    }
+    out << ')';
+  }
+
+  if (neg) { out << ')';}
+
+  // if(r < 0) {
+  //   Rational abs_r = -r;
+  //   if(r.isIntegral()) {
+  //     out << "(- " << abs_r << ')';
+  //   } else {
+  //     out << "(- (/ " << (-r).getNumerator() << ' ' << (-r).getDenominator() << "))";
+  //   }
+  // } else {
+  //   if(r.isIntegral()) {
+  //         out << r;
+  //       } else {
+  //         out << "(/ " << r.getNumerator() << ' ' << r.getDenominator() << ')';
+  //       }
+  //     }
+}
+
 
 static void toStream(std::ostream& out, const DeclareTypeCommand* c) throw() {
   out << "(declare-sort " << c->getSymbol() << " " << c->getArity() << ")";

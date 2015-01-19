@@ -61,6 +61,9 @@ SMT2_TESTS = \
 	simplification_bug4.smt2 \
 	parallel-let.smt2 \
 	get-value-incremental.smt2 \
+	get-value-reals.smt2 \
+	get-value-ints.smt2 \
+	get-value-reals-ints.smt2 \
 	hung13sdk_output1.smt2 \
 	hung10_itesdk_output2.smt2 \
 	hung10_itesdk_output1.smt2 \
