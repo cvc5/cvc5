@@ -1,4 +1,5 @@
 ; EXPECT: unsat
+; COMMAND-LINE: --cegqi
 (set-logic LIA)
 
 (synth-fun max ((x Int) (y Int)) Int

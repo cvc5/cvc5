@@ -18,7 +18,12 @@ MAKEFLAGS = -k
 # These are run for all build profiles.
 # If a test shouldn't be run in e.g. competition mode,
 # put it below in "TESTS +="
-TESTS =
+TESTS = hd-01-d1-prog.sy \
+        icfp_28_10.sy \
+        commutative.sy \
+        constant.sy \
+        multi-fun-polynomial2.sy \
+        unbdd_inv_gen_winf1.sy
 
 # sygus tests currently taking too long for make regress
 EXTRA_DIST = $(TESTS) \

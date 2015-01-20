@@ -238,11 +238,16 @@ void TheoryDatatypes::check(Effort e) {
                 }else{
                   Trace("dt-split") << "*************Split for constructors on " << n <<  endl;
                   std::vector< Node > children;
-                  for( unsigned i=0; i<dt.getNumConstructors(); i++ ){
-                    Node test = DatatypesRewriter::mkTester( n, i, dt );
-                    children.push_back( test );
+                  if( dt.isSygus() && options::sygusNormalForm() ){
+                    getSygusSplits( n, dt, children );
+                  }else{
+                    for( unsigned i=0; i<dt.getNumConstructors(); i++ ){
+                      Node test = DatatypesRewriter::mkTester( n, i, dt );
+                      children.push_back( test );
+                    }
                   }
-                  Node lemma = NodeManager::currentNM()->mkNode( kind::OR, children );
+                  Assert( !children.empty() );
+                  Node lemma = children.size()==1 ? children[0] : NodeManager::currentNM()->mkNode( kind::OR, children );
                   d_out->lemma( lemma );
                 }
                 return;
@@ -294,10 +299,10 @@ void TheoryDatatypes::flushPendingFacts(){
       Node exp = d_pending_exp[ fact ];
       //check to see if we have to communicate it to the rest of the system
       if( mustCommunicateFact( fact, exp ) ){
-        Trace("dt-lemma-debug") << "Assert fact " << fact << " " << exp << std::endl;
+        Trace("dt-lemma-debug") << "Assert fact " << fact << " with explanation " << exp << std::endl;
         Node lem = fact;
         if( exp.isNull() || exp==d_true ){
-          lem = fact;
+          Trace("dt-lemma-debug") << "Trivial explanation." << std::endl;
         }else{
           Trace("dt-lemma-debug") << "Get explanation..." << std::endl;
           Node ee_exp = explain( exp );
@@ -394,12 +399,7 @@ Node TheoryDatatypes::expandDefinition(LogicRequest &logicRequest, Node n) {
       if( tst==d_true ){
         n_ret = sel;
       }else{
-        if( d_exp_def_skolem.find( selector )==d_exp_def_skolem.end() ){
-          std::stringstream ss;
-          ss << selector << "_uf";
-          d_exp_def_skolem[ selector ] = NodeManager::currentNM()->mkSkolem( ss.str().c_str(),
-                                            NodeManager::currentNM()->mkFunctionType( n[0].getType(), n.getType() ) );
-        }
+        mkExpDefSkolem( selector, n[0].getType(), n.getType() );
         Node sk = NodeManager::currentNM()->mkNode( kind::APPLY_UF, d_exp_def_skolem[ selector ], n[0]  );
         if( tst==NodeManager::currentNM()->mkConst( false ) ){
           n_ret = sk;
@@ -694,7 +694,7 @@ void TheoryDatatypes::merge( Node t1, Node t2 ){
         if( !cons1.isNull() && !cons2.isNull() ){
           Debug("datatypes-debug") << "Constructors : " << cons1 << " " << cons2 << std::endl;
           Node unifEq = cons1.eqNode( cons2 );
-#if 0
+          /*
           std::vector< Node > exp;
           std::vector< std::pair< TNode, TNode > > deq_cand;
           bool conf = checkClashModEq( cons1, cons2, exp, deq_cand );
@@ -711,11 +711,10 @@ void TheoryDatatypes::merge( Node t1, Node t2 ){
           if( conf ){
             exp.push_back( unifEq );
             d_conflictNode = explain( exp );
-#else
+         */
           std::vector< Node > rew;
           if( DatatypesRewriter::checkClash( cons1, cons2, rew ) ){
             d_conflictNode = explain( unifEq );
-#endif
             Trace("dt-conflict") << "CONFLICT: Clash conflict : " << d_conflictNode << std::endl;
             d_out->conflict( d_conflictNode );
             d_conflict = true;
@@ -861,6 +860,15 @@ void TheoryDatatypes::getPossibleCons( EqcInfo* eqc, Node n, std::vector< bool >
         pcons[ Datatype::indexOf( (*i)[0].getOperator().toExpr() ) ] = false;
       }
     }
+  }
+}
+
+void TheoryDatatypes::mkExpDefSkolem( Node sel, TypeNode dt, TypeNode rt ) {
+  if( d_exp_def_skolem.find( sel )==d_exp_def_skolem.end() ){
+    std::stringstream ss;
+    ss << sel << "_uf";
+    d_exp_def_skolem[ sel ] = NodeManager::currentNM()->mkSkolem( ss.str().c_str(),
+                                  NodeManager::currentNM()->mkFunctionType( dt, rt ) );
   }
 }
 
@@ -1032,8 +1040,15 @@ void TheoryDatatypes::addConstructor( Node c, EqcInfo* eqc, Node n ){
 }
 
 void TheoryDatatypes::collapseSelector( Node s, Node c ) {
+  Assert( c.getKind()==APPLY_CONSTRUCTOR );
+  Trace("dt-collapse-sel") << "collapse selector : " << s << " " << c << std::endl;
   Node r;
   if( s.getKind()==kind::APPLY_SELECTOR_TOTAL ){
+    //Trace("dt-collapse-sel") << "Indices : " << Datatype::indexOf(c.getOperator().toExpr()) << " " << Datatype::cindexOf(s.getOperator().toExpr()) << std::endl;
+    //if( Datatype::indexOf(c.getOperator().toExpr())!=Datatype::cindexOf(s.getOperator().toExpr()) ){
+    //  mkExpDefSkolem( s.getOperator(), s[0].getType(), s.getType() );
+    //  r = NodeManager::currentNM()->mkNode( kind::APPLY_UF, d_exp_def_skolem[s.getOperator().toExpr()], s[0] );
+    //}else{
     r = NodeManager::currentNM()->mkNode( kind::APPLY_SELECTOR_TOTAL, s.getOperator(), c );
   }else if( s.getKind()==kind::DT_SIZE ){
     r = NodeManager::currentNM()->mkNode( kind::DT_SIZE, c );
@@ -1899,5 +1914,41 @@ bool TheoryDatatypes::checkClashModEq( TNode n1, TNode n2, std::vector< Node >& 
     }
   }
   return false;
+}
+
+void TheoryDatatypes::getSygusSplits( Node n, const Datatype& dt, std::vector< Node >& splits ) {
+  Assert( dt.isSygus() );
+  Trace("sygus-split") << "Get sygus splits " << n << std::endl;
+  if( n.getKind()==APPLY_SELECTOR_TOTAL ){
+    Node op = n.getOperator();
+    std::map< Node, std::vector< bool > >::iterator it = d_sygus_splits.find( op );
+    if( it==d_sygus_splits.end() ){
+      Expr selectorExpr = op.toExpr();
+      int csIndex = Datatype::cindexOf(selectorExpr);
+      int sIndex = Datatype::indexOf(selectorExpr);
+      Trace("sygus-split") << "  Constructor, selector index : " << csIndex << " " << sIndex << std::endl;
+      for( unsigned i=0; i<dt.getNumConstructors(); i++ ){
+        Expr sop = dt[i].getSygusOp();
+        Kind sk = NodeManager::operatorToKind( Node::fromExpr( sop ) );
+        Trace("sygus-split") << "  Operator #" << i << " : " << sop << ", kind = " << sk << std::endl;
+        bool addSplit = true;
+        //TODO
+        
+        d_sygus_splits[op].push_back( addSplit );
+      }
+    }
+    for( unsigned i=0; i<dt.getNumConstructors(); i++ ){
+      if( d_sygus_splits[op][i] ){
+        Node test = DatatypesRewriter::mkTester( n, i, dt );
+        splits.push_back( test );
+      }
+    }
+    Assert( !splits.empty() );
+  }else{
+    for( unsigned i=0; i<dt.getNumConstructors(); i++ ){
+      Node test = DatatypesRewriter::mkTester( n, i, dt );
+      splits.push_back( test );
+    }
+  }
 }
 

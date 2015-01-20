@@ -600,6 +600,7 @@ sygusCommand returns [CVC4::Command* cmd = NULL]
         std::string dname = ss.str();
         sorts.push_back(t);
         datatypes.push_back(Datatype(dname));
+        datatypes.back().setSygusType( t );
         ops.push_back(std::vector<Expr>());
         cnames.push_back(std::vector<std::string>());
         cargs.push_back(std::vector<std::vector<CVC4::Type> >());

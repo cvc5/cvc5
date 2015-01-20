@@ -534,7 +534,7 @@ void Smt2::mkSygusDatatype( CVC4::Datatype& dt, std::vector<CVC4::Expr>& ops,
     testerId.append(name);
     checkDeclaration(name, CHECK_UNDECLARED, SYM_VARIABLE);
     checkDeclaration(testerId, CHECK_UNDECLARED, SYM_VARIABLE);
-    CVC4::DatatypeConstructor c(name, testerId);
+    CVC4::DatatypeConstructor c(name, testerId, ops[i] );
     for( unsigned j=0; j<cargs[i].size(); j++ ){
       std::stringstream sname;
       sname << name << "_" << j;

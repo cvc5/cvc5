@@ -140,6 +140,14 @@ void Datatype::addConstructor(const DatatypeConstructor& c) {
   d_constructors.push_back(c);
 }
 
+
+void Datatype::setSygusType( Type st ){
+  CheckArgument(!d_resolved, this,
+                "cannot set sygus type to a finalized Datatype");
+  d_sygus_type = st;
+}
+
+
 Cardinality Datatype::getCardinality() const throw(IllegalArgumentException) {
   CheckArgument(isResolved(), this, "this datatype is not yet resolved");
 
@@ -543,6 +551,15 @@ DatatypeConstructor::DatatypeConstructor(std::string name, std::string tester) :
   CheckArgument(!tester.empty(), tester, "cannot construct a datatype constructor without a tester");
 }
 
+DatatypeConstructor::DatatypeConstructor(std::string name, std::string tester, Expr sygus_op) :
+  d_name(name + '\0' + tester),
+  d_tester(),
+  d_args(),
+  d_sygus_op(sygus_op) {
+  CheckArgument(name != "", name, "cannot construct a datatype constructor without a name");
+  CheckArgument(!tester.empty(), tester, "cannot construct a datatype constructor without a tester");
+}
+
 void DatatypeConstructor::addArg(std::string selectorName, Type selectorType) {
   // We don't want to introduce a new data member, because eventually
   // we're going to be a constant stuffed inside a node.  So we stow
@@ -609,6 +626,11 @@ Type DatatypeConstructor::getSpecializedConstructorType(Type returnType) const {
 Expr DatatypeConstructor::getTester() const {
   CheckArgument(isResolved(), this, "this datatype constructor is not yet resolved");
   return d_tester;
+}
+
+Expr DatatypeConstructor::getSygusOp() const {
+  CheckArgument(isResolved(), this, "this datatype constructor is not yet resolved");
+  return d_sygus_op;
 }
 
 Cardinality DatatypeConstructor::getCardinality() const throw(IllegalArgumentException) {

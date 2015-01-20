@@ -133,6 +133,8 @@ private:
   bool hasTester( Node n );
   /** get the possible constructors for n */
   void getPossibleCons( EqcInfo* eqc, Node n, std::vector< bool >& cons );
+  /** mkExpDefSkolem */
+  void mkExpDefSkolem( Node sel, TypeNode dt, TypeNode rt );
 private:
   /** The notify class */
   NotifyClass d_notify;
@@ -178,6 +180,8 @@ private:
   unsigned d_dtfCounter;
   /** expand definition skolem functions */
   std::map< Node, Node > d_exp_def_skolem;
+  /** sygus splits */
+  std::map< Node, std::vector< bool > > d_sygus_splits;
 private:
   /** assert fact */
   void assertFact( Node fact, Node exp );
@@ -276,6 +280,8 @@ private:
   bool mustCommunicateFact( Node n, Node exp );
   /** check clash mod eq */
   bool checkClashModEq( TNode n1, TNode n2, std::vector< Node >& exp, std::vector< std::pair< TNode, TNode > >& deq_cand );
+  /** get sygus splits */
+  void getSygusSplits( Node n, const Datatype& dt, std::vector< Node >& splits );
 private:
   //equality queries
   bool hasTerm( TNode a );

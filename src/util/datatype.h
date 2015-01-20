@@ -185,6 +185,8 @@ private:
   Expr d_constructor;
   Expr d_tester;
   std::vector<DatatypeConstructorArg> d_args;
+  /** the operator associated with this constructor (for sygus) */
+  Expr d_sygus_op;
 
   void resolve(ExprManager* em, DatatypeType self,
                const std::map<std::string, DatatypeType>& resolutions,
@@ -223,6 +225,7 @@ public:
    * constructor and tester aren't created until resolution time.
    */
   DatatypeConstructor(std::string name, std::string tester);
+  DatatypeConstructor(std::string name, std::string tester, Expr sygus_op);
 
   /**
    * Add an argument (i.e., a data field) of the given name and type
@@ -268,6 +271,9 @@ public:
    * Datatype must be resolved.
    */
   Expr getTester() const;
+  
+  /** get sygus op */
+  Expr getSygusOp() const;
 
   /**
    * Get the tester name for this Datatype constructor.
@@ -453,6 +459,7 @@ private:
   bool d_resolved;
   Type d_self;
   bool d_involvesExt;
+  Type d_sygus_type;
 
   // "mutable" because computing the cardinality can be expensive,
   // and so it's computed just once, on demand---this is the cache
@@ -510,6 +517,9 @@ public:
    */
   void addConstructor(const DatatypeConstructor& c);
 
+  /** set the sygus type of this datatype */
+  void setSygusType( Type st );
+  
   /** Get the name of this Datatype. */
   inline std::string getName() const throw();
 
@@ -530,6 +540,9 @@ public:
 
   /** is this a co-datatype? */
   inline bool isCodatatype() const;
+  
+  /** is this a sygus datatype? */
+  inline bool isSygus() const;
 
   /**
    * Return the cardinality of this datatype (the sum of the
@@ -718,6 +731,10 @@ inline std::vector<Type> Datatype::getParameters() const {
 
 inline bool Datatype::isCodatatype() const {
   return d_isCo;
+}
+
+inline bool Datatype::isSygus() const {
+  return !d_sygus_type.isNull();
 }
 
 inline bool Datatype::operator!=(const Datatype& other) const throw() {

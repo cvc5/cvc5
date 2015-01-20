@@ -200,6 +200,8 @@ option sygusMinGrammar --sygus-min-grammar bool :default false
   minimize sygus grammars
 option sygusDecompose --sygus-decompose bool :default false
   decompose single invocation synthesis conjectures
+option sygusNormalForm --sygus-normal-form bool :default true
+  only search for sygus builtin terms that are in normal form
  
 
 option localTheoryExt --local-t-ext bool :default false
