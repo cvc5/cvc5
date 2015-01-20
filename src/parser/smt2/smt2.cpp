@@ -504,7 +504,7 @@ void Smt2::includeFile(const std::string& filename) {
 
     //Type t = getExprManager()->mkFunctionType(types, rangeType);
     //Debug("parser-sygus") << "...function type : " << t << std::endl;
-    
+
     Expr lambda = mkFunction(fun, funt, ExprManager::VAR_FLAG_DEFINED);
     Debug("parser-sygus") << "...made function : " << lambda << std::endl;
     std::vector<Expr> applyv;
@@ -524,10 +524,30 @@ void Smt2::includeFile(const std::string& filename) {
   }
 }
 
+void Smt2::mkSygusDatatype( CVC4::Datatype& dt, std::vector<CVC4::Expr>& ops,
+                            std::vector<std::string>& cnames, std::vector< std::vector< CVC4::Type > >& cargs ) {
+  //minimize grammar goes here
+
+  for( unsigned i=0; i<cnames.size(); i++ ){
+    std::string name = dt.getName() + "_" + cnames[i];
+    std::string testerId("is-");
+    testerId.append(name);
+    checkDeclaration(name, CHECK_UNDECLARED, SYM_VARIABLE);
+    checkDeclaration(testerId, CHECK_UNDECLARED, SYM_VARIABLE);
+    CVC4::DatatypeConstructor c(name, testerId);
+    for( unsigned j=0; j<cargs[i].size(); j++ ){
+      std::stringstream sname;
+      sname << name << "_" << j;
+      c.addArg(sname.str(), cargs[i][j]);
+    }
+    dt.addConstructor(c);
+  }
+}
+
 // i is index in datatypes/ops
 // j is index is datatype
-Expr Smt2::getSygusAssertion( std::vector<DatatypeType>& datatypeTypes, std::vector< std::vector<Expr> >& ops, 
-                              std::map<DatatypeType, Expr>& evals, std::vector<Expr>& terms, 
+Expr Smt2::getSygusAssertion( std::vector<DatatypeType>& datatypeTypes, std::vector< std::vector<Expr> >& ops,
+                              std::map<DatatypeType, Expr>& evals, std::vector<Expr>& terms,
                               Expr eval, const Datatype& dt, size_t i, size_t j ) {
   const DatatypeConstructor& ctor = dt[j];
   Debug("parser-sygus") << "Sygus : process constructor " << j << " : " << dt[j] << std::endl;
@@ -567,7 +587,11 @@ Expr Smt2::getSygusAssertion( std::vector<DatatypeType>& datatypeTypes, std::vec
   Expr builtTerm;
   //if( ops[i][j].getKind() == kind::BUILTIN ){
   if( !builtApply.empty() ){
-    builtTerm = getExprManager()->mkExpr(ops[i][j], builtApply);
+    if( ops[i][j].getKind() != kind::BUILTIN ){
+      builtTerm = getExprManager()->mkExpr(kind::APPLY, ops[i][j], builtApply);
+    }else{
+      builtTerm = getExprManager()->mkExpr(ops[i][j], builtApply);
+    }
   }else{
     builtTerm = ops[i][j];
   }
@@ -577,7 +601,7 @@ Expr Smt2::getSygusAssertion( std::vector<DatatypeType>& datatypeTypes, std::vec
   pattern = getExprManager()->mkExpr(kind::INST_PATTERN_LIST, pattern);
   assertion = getExprManager()->mkExpr(kind::FORALL, bvl, assertion, pattern);
   Debug("parser-sygus") << "...made assertion " << assertion << std::endl;
-  
+
   //linearize multiplication if possible
   if( builtTerm.getKind()==kind::MULT ){
     for(size_t k = 0; k < ctor.getNumArgs(); ++k) {

@@ -29,6 +29,9 @@ class CegInstantiation : public QuantifiersModule
 {
   typedef context::CDHashMap<Node, bool, NodeHashFunction> NodeBoolMap;
 private:
+  /** collect disjuncts */
+  static void collectDisjuncts( Node n, std::vector< Node >& ex );
+  /** a synthesis conjecture */
   class CegConjecture {
   public:
     CegConjecture( context::Context* c );
@@ -42,6 +45,8 @@ private:
     Node d_guard;
     /** base instantiation */
     Node d_base_inst;
+    /** expand base inst to disjuncts */
+    std::vector< Node > d_base_disj;
     /** guard split */
     Node d_guard_split;
     /** is syntax-guided */
@@ -49,7 +54,8 @@ private:
     /** list of constants for quantified formula */
     std::vector< Node > d_candidates;
     /** list of variables on inner quantification */
-    std::vector< Node > d_inner_vars;
+    std::vector< Node > d_inner_vars;    
+    std::vector< std::vector< Node > > d_inner_vars_disj;
     /** initialize guard */
     void initializeGuard( QuantifiersEngine * qe );
     /** measure term */
@@ -63,7 +69,7 @@ private:
     /** is assigned */
     bool isAssigned() { return !d_quant.isNull(); }
     /** current extential quantifeirs whose couterexamples we must refine */
-    std::vector< Node > d_ce_sk;
+    std::vector< std::vector< Node > > d_ce_sk;
   public:  //for fairness
     /** the cardinality literals */
     std::map< int, Node > d_lits;

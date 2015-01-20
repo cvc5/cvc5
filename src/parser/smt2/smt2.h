@@ -183,11 +183,14 @@ public:
   }
 
   void defineSygusFuns();
-  
+
+  void mkSygusDatatype( CVC4::Datatype& dt, std::vector<CVC4::Expr>& ops,
+                        std::vector<std::string>& cnames, std::vector< std::vector< CVC4::Type > >& cargs );
+
   // i is index in datatypes/ops
   // j is index is datatype
-  Expr getSygusAssertion( std::vector<DatatypeType>& datatypeTypes, std::vector< std::vector<Expr> >& ops, 
-                          std::map<DatatypeType, Expr>& evals, std::vector<Expr>& terms, 
+  Expr getSygusAssertion( std::vector<DatatypeType>& datatypeTypes, std::vector< std::vector<Expr> >& ops,
+                          std::map<DatatypeType, Expr>& evals, std::vector<Expr>& terms,
                           Expr eval, const Datatype& dt, size_t i, size_t j );
 
   void addSygusConstraint(Expr constraint) {
