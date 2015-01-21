@@ -526,8 +526,6 @@ void Smt2::includeFile(const std::string& filename) {
 
 void Smt2::mkSygusDatatype( CVC4::Datatype& dt, std::vector<CVC4::Expr>& ops,
                             std::vector<std::string>& cnames, std::vector< std::vector< CVC4::Type > >& cargs ) {
-  //minimize grammar goes here
-
   for( unsigned i=0; i<cnames.size(); i++ ){
     std::string name = dt.getName() + "_" + cnames[i];
     std::string testerId("is-");

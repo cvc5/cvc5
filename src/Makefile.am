@@ -235,6 +235,8 @@ libcvc4_la_SOURCES = \
 	theory/datatypes/theory_datatypes.h \
 	theory/datatypes/datatypes_rewriter.h \
 	theory/datatypes/theory_datatypes.cpp \
+	theory/datatypes/datatypes_sygus.h \
+	theory/datatypes/datatypes_sygus.cpp \
 	theory/sets/expr_patterns.h \
 	theory/sets/normal_form.h \
 	theory/sets/options_handlers.h \

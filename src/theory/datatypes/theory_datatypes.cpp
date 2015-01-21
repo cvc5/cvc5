@@ -28,6 +28,7 @@
 #include "theory/quantifiers/options.h"
 #include "theory/datatypes/options.h"
 #include "theory/type_enumerator.h"
+#include "theory/datatypes/datatypes_sygus.h"
 
 #include <map>
 
@@ -64,6 +65,12 @@ TheoryDatatypes::TheoryDatatypes(Context* c, UserContext* u, OutputChannel& out,
 
   d_true = NodeManager::currentNM()->mkConst( true );
   d_dtfCounter = 0;
+  
+  if( options::sygusNormalForm() ){
+    d_sygus_split = new SygusSplit;
+  }else{
+    d_sygus_split = NULL;
+  }
 }
 
 TheoryDatatypes::~TheoryDatatypes() {
@@ -238,8 +245,8 @@ void TheoryDatatypes::check(Effort e) {
                 }else{
                   Trace("dt-split") << "*************Split for constructors on " << n <<  endl;
                   std::vector< Node > children;
-                  if( dt.isSygus() && options::sygusNormalForm() ){
-                    getSygusSplits( n, dt, children );
+                  if( dt.isSygus() && d_sygus_split ){
+                    d_sygus_split->getSygusSplits( n, dt, children );
                   }else{
                     for( unsigned i=0; i<dt.getNumConstructors(); i++ ){
                       Node test = DatatypesRewriter::mkTester( n, i, dt );
@@ -248,6 +255,7 @@ void TheoryDatatypes::check(Effort e) {
                   }
                   Assert( !children.empty() );
                   Node lemma = children.size()==1 ? children[0] : NodeManager::currentNM()->mkNode( kind::OR, children );
+                  Trace("dt-split-debug") << "Split lemma is : " << lemma << std::endl;
                   d_out->lemma( lemma );
                 }
                 return;
@@ -1915,40 +1923,3 @@ bool TheoryDatatypes::checkClashModEq( TNode n1, TNode n2, std::vector< Node >& 
   }
   return false;
 }
-
-void TheoryDatatypes::getSygusSplits( Node n, const Datatype& dt, std::vector< Node >& splits ) {
-  Assert( dt.isSygus() );
-  Trace("sygus-split") << "Get sygus splits " << n << std::endl;
-  if( n.getKind()==APPLY_SELECTOR_TOTAL ){
-    Node op = n.getOperator();
-    std::map< Node, std::vector< bool > >::iterator it = d_sygus_splits.find( op );
-    if( it==d_sygus_splits.end() ){
-      Expr selectorExpr = op.toExpr();
-      int csIndex = Datatype::cindexOf(selectorExpr);
-      int sIndex = Datatype::indexOf(selectorExpr);
-      Trace("sygus-split") << "  Constructor, selector index : " << csIndex << " " << sIndex << std::endl;
-      for( unsigned i=0; i<dt.getNumConstructors(); i++ ){
-        Expr sop = dt[i].getSygusOp();
-        Kind sk = NodeManager::operatorToKind( Node::fromExpr( sop ) );
-        Trace("sygus-split") << "  Operator #" << i << " : " << sop << ", kind = " << sk << std::endl;
-        bool addSplit = true;
-        //TODO
-        
-        d_sygus_splits[op].push_back( addSplit );
-      }
-    }
-    for( unsigned i=0; i<dt.getNumConstructors(); i++ ){
-      if( d_sygus_splits[op][i] ){
-        Node test = DatatypesRewriter::mkTester( n, i, dt );
-        splits.push_back( test );
-      }
-    }
-    Assert( !splits.empty() );
-  }else{
-    for( unsigned i=0; i<dt.getNumConstructors(); i++ ){
-      Node test = DatatypesRewriter::mkTester( n, i, dt );
-      splits.push_back( test );
-    }
-  }
-}
-

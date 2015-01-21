@@ -632,6 +632,9 @@ public:
    * This Datatype must be resolved.
    */
   Expr getConstructor(std::string name) const;
+  
+  /** get sygus type */
+  Type getSygusType() const;
 
   /**
    * Get whether this datatype involves an external type.  If so,

@@ -196,8 +196,6 @@ option ceGuidedInst --cegqi bool :default false :read-write
   counterexample-guided quantifier instantiation
 option ceGuidedInstFair --cegqi-fair=MODE CVC4::theory::quantifiers::CegqiFairMode :default CVC4::theory::quantifiers::CEGQI_FAIR_DT_SIZE :include "theory/quantifiers/modes.h" :handler CVC4::theory::quantifiers::stringToCegqiFairMode :handler-include "theory/quantifiers/options_handlers.h"
   if and how to apply fairness for cegqi
-option sygusMinGrammar --sygus-min-grammar bool :default false
-  minimize sygus grammars
 option sygusDecompose --sygus-decompose bool :default false
   decompose single invocation synthesis conjectures
 option sygusNormalForm --sygus-normal-form bool :default true

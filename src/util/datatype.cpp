@@ -424,6 +424,10 @@ Expr Datatype::getConstructor(std::string name) const {
   return (*this)[name].getConstructor();
 }
 
+Type Datatype::getSygusType() const {
+  return d_sygus_type;
+}
+
 bool Datatype::involvesExternalType() const{
   return d_involvesExt;
 }
