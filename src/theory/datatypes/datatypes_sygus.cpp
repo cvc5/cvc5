@@ -27,31 +27,161 @@ using namespace CVC4::context;
 using namespace CVC4::theory;
 using namespace CVC4::theory::datatypes;
 
+bool SygusSplit::isRegistered( TypeNode tn ) {
+  return d_register.find( tn )!=d_register.end();
+}
+
+int SygusSplit::getKindArg( TypeNode tn, Kind k ) {
+  Assert( isRegistered( tn ) );
+  std::map< TypeNode, std::map< Kind, int > >::iterator itt = d_kinds.find( tn );
+  if( itt!=d_kinds.end() ){
+    std::map< Kind, int >::iterator it = itt->second.find( k );
+    if( it!=itt->second.end() ){
+      return it->second;
+    }
+  }
+  return -1;
+}
+
+int SygusSplit::getConstArg( TypeNode tn, Node n ){
+  Assert( isRegistered( tn ) );
+  std::map< TypeNode, std::map< Node, int > >::iterator itt = d_consts.find( tn );
+  if( itt!=d_consts.end() ){
+    std::map< Node, int >::iterator it = itt->second.find( n );
+    if( it!=itt->second.end() ){
+      return it->second;
+    }
+  }
+  return -1;
+}
+
+bool SygusSplit::hasKind( TypeNode tn, Kind k ) { 
+  return getKindArg( tn, k )!=-1;
+}
+bool SygusSplit::hasConst( TypeNode tn, Node n ) { 
+  return getConstArg( tn, n )!=-1;
+}
+
+bool SygusSplit::isKindArg( TypeNode tn, int i ) {
+  Assert( isRegistered( tn ) );
+  std::map< TypeNode, std::map< int, Kind > >::iterator itt = d_arg_kind.find( tn );
+  if( itt!=d_arg_kind.end() ){
+    return itt->second.find( i )!=itt->second.end(); 
+  }else{
+    return false;
+  }
+}
+
+bool SygusSplit::isConstArg( TypeNode tn, int i ) {
+  Assert( isRegistered( tn ) );
+  std::map< TypeNode, std::map< int, Node > >::iterator itt = d_arg_const.find( tn );
+  if( itt!=d_arg_const.end() ){
+    return itt->second.find( i )!=itt->second.end(); 
+  }else{
+    return false;
+  }
+}
+
 void SygusSplit::getSygusSplits( Node n, const Datatype& dt, std::vector< Node >& splits ) {
   Assert( dt.isSygus() );
   Trace("sygus-split") << "Get sygus splits " << n << std::endl;
-  TypeNode typ, ptyp;
-  std::map< int, Kind > arg_kind, parg_kind;
-  std::map< Kind, int > kinds, pkinds;
-  std::map< int, Node > arg_const, parg_const;
-  std::map< Node, int > consts, pconsts;
 
   //get the kinds for child datatype
-  Trace("sygus-split") << "Operations for child : " << std::endl;
-  getSygusKinds( dt, arg_kind, kinds, arg_const, consts );
-  typ = TypeNode::fromType(dt.getSygusType());
-
-  //compute the redundant operators
   TypeNode tnn = n.getType();
-  if( d_sygus_nred.find( tnn )==d_sygus_nred.end() ){
+  registerSygusType( tnn, dt );
+
+  //get parent information, if possible
+  int csIndex = -1;
+  int sIndex = -1;
+  if( n.getKind()==APPLY_SELECTOR_TOTAL ){
+    Node op = n.getOperator();
+    Expr selectorExpr = op.toExpr();
+    const Datatype& pdt = Datatype::datatypeOf(selectorExpr);
+    Assert( pdt.isSygus() );
+    csIndex = Datatype::cindexOf(selectorExpr);
+    sIndex = Datatype::indexOf(selectorExpr);
+    TypeNode tnnp = n[0].getType();
+    //register the constructors that are redundant children of argument sIndex of constructor index csIndex of dt
+    registerSygusTypeConstructorArg( tnn, dt, tnnp, pdt, csIndex, sIndex );
+    
+    
+    //relationships between arguments
+    /*
+    if( isKindArg( tnnp, csIndex ) ){
+      Kind parentKind = d_arg_kind[tnnp][csIndex];
+      if( isComm( parentKind ) ){
+        //if commutative, normalize based on term ordering (the constructor index of left arg must be less than or equal to the right arg)
+        Trace("sygus-split-debug") << "Commutative operator : " << parentKind << std::endl;
+        if( pdt[csIndex].getNumArgs()==2 ){
+          TypeNode tn1 = TypeNode::fromType( ((SelectorType)pdt[csIndex][0].getType()).getRangeType() );
+          TypeNode tn2 = TypeNode::fromType( ((SelectorType)pdt[csIndex][1].getType()).getRangeType() );
+          if( tn1==tn2 ){
+            if( sIndex==1 ){
+              registerSygusTypeConstructorArg( tnn, dt, tnnp, pdt, csIndex, 0 );
+            }
+            for( unsigned i=1; i<pdt.getNumConstructors(); i++ ){
+              if( d_sygus_pc_nred[tnn][csIndex][i] ){
+                std::vector< Node > lem_c;
+                for( unsigned j=0; j<i; j++ ){
+                  if( d_sygus_pc_nred[tnn][csIndex][j] ){
+                    lem_c.push_back( 
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+    */
+  }
+
+  for( unsigned i=0; i<dt.getNumConstructors(); i++ ){
+    bool addSplit = d_sygus_nred[tnn][i];
+    if( addSplit ){
+      if( csIndex!=-1 ){
+        addSplit = d_sygus_pc_nred[tnn][csIndex][sIndex][i];
+      }
+      if( addSplit ){
+        Node test = DatatypesRewriter::mkTester( n, i, dt );
+        splits.push_back( test );
+      }
+    }
+  }
+  Assert( !splits.empty() );
+}
+
+void SygusSplit::registerSygusType( TypeNode tn, const Datatype& dt ) {
+  if( d_register.find( tn )==d_register.end() ){
+    Trace("sygus-split") << "Register sygus type " << dt.getName() << "..." << std::endl;
+    d_register[tn] = true;
+    for( unsigned i=0; i<dt.getNumConstructors(); i++ ){
+      Expr sop = dt[i].getSygusOp();
+      Assert( !sop.isNull() );
+      Trace("sygus-split") << "  Operator #" << i << " : " << sop;
+      if( sop.getKind() == kind::BUILTIN ){
+        Kind sk = NodeManager::operatorToKind( Node::fromExpr( sop ) );
+        Trace("sygus-split") << ", kind = " << sk;
+        d_kinds[tn][sk] = i;
+        d_arg_kind[tn][i] = sk;
+      }else if( sop.isConst() ){
+        Node n = Node::fromExpr( sop );
+        Trace("sygus-split") << ", constant";
+        d_consts[tn][n] = i;
+        d_arg_const[tn][i] = n;
+      }
+      Trace("sygus-split") << std::endl;
+    }
+    
+    //compute the redundant operators
     for( unsigned i=0; i<dt.getNumConstructors(); i++ ){
       bool nred = true;
-      std::map< int, Kind >::iterator it = arg_kind.find( i );
-      if( it!=arg_kind.end() ){
+      std::map< int, Kind >::iterator it = d_arg_kind[tn].find( i );
+      if( it!=d_arg_kind[tn].end() ){
         Kind dk;
         if( isAntisymmetric( it->second, dk ) ){
-          std::map< Kind, int >::iterator ita = kinds.find( dk );
-          if( ita!=kinds.end() ){
+          std::map< Kind, int >::iterator ita = d_kinds[tn].find( dk );
+          if( ita!=d_kinds[tn].end() ){
             Trace("sygus-split-debug") << "Possible redundant operator : " << it->second << " with " << dk << std::endl;
             //check for type mismatches
             bool success = true;
@@ -67,94 +197,59 @@ void SygusSplit::getSygusSplits( Node n, const Datatype& dt, std::vector< Node >
               }
             }
             if( success ){
-              Trace("sygus-split") << "* Sygus norm " << dt.getName() << " : do not consider any " << arg_kind[i] << " terms." << std::endl;
+              Trace("sygus-split") << "* Sygus norm " << dt.getName() << " : do not consider any " << d_arg_kind[tn][i] << " terms." << std::endl;
               nred = false;
             }
           }
         }
       }
-      d_sygus_nred[tnn].push_back( nred );
+      d_sygus_nred[tn].push_back( nred );
     }
   }
-
-
-  //get parent information, if possible
-  Node op;
-  int csIndex;
-  int sIndex;
-  if( n.getKind()==APPLY_SELECTOR_TOTAL ){
-    op = n.getOperator();
-    Expr selectorExpr = op.toExpr();
-    const Datatype& pdt = Datatype::datatypeOf(selectorExpr);
-    Assert( pdt.isSygus() );
-    csIndex = Datatype::cindexOf(selectorExpr);
-    sIndex = Datatype::indexOf(selectorExpr);
-
-    std::map< int, std::vector< bool > >::iterator it = d_sygus_pc_nred[op].find( sIndex );
-    if( it==d_sygus_pc_nred[op].end() ){
-      Trace("sygus-split") << "  Constructor, selector index : " << csIndex << " " << sIndex << std::endl;
-
-      Trace("sygus-split") << "Operations for parent : " << std::endl;
-      getSygusKinds( pdt, parg_kind, pkinds, parg_const, pconsts );
-      ptyp = TypeNode::fromType(pdt.getSygusType());
-      bool parentKind = parg_kind.find( csIndex )!=parg_kind.end();
-      for( unsigned i=0; i<dt.getNumConstructors(); i++ ){
-        bool addSplit = d_sygus_nred[tnn][i];
-        if( addSplit && parentKind ){
-          if( arg_kind.find( i )!=arg_kind.end() ){
-            addSplit = considerSygusSplitKind( dt, pdt, arg_kind[i], parg_kind[csIndex], sIndex, kinds, pkinds, consts, pconsts );
-            if( !addSplit ){
-              Trace("sygus-nf") << "* Sygus norm " << pdt.getName() << " : do not consider " << dt.getName() << "::" << arg_kind[i];
-              Trace("sygus-nf") << " as argument " << sIndex << " of " << arg_kind[csIndex] << "." << std::endl;
-            }
-          }else if( arg_const.find( i )!=arg_const.end() ){
-            addSplit = considerSygusSplitConst( dt, pdt, arg_const[i], parg_kind[csIndex], sIndex, kinds, pkinds, consts, pconsts );
-          }
-        }
-        d_sygus_pc_nred[op][sIndex].push_back( addSplit );
-      }
-    }
-  }
-
-  for( unsigned i=0; i<dt.getNumConstructors(); i++ ){
-    bool addSplit = d_sygus_nred[tnn][i];
-    if( addSplit ){
-      if( !op.isNull() ){
-        addSplit = d_sygus_pc_nred[op][sIndex][i];
-      }
-      if( addSplit ){
-        Node test = DatatypesRewriter::mkTester( n, i, dt );
-        splits.push_back( test );
-      }
-    }
-  }
-  Assert( !splits.empty() );
 }
 
-void SygusSplit::getSygusKinds( const Datatype& dt, std::map< int, Kind >& arg_kind, std::map< Kind, int >& kinds,
-                                                    std::map< int, Node >& arg_const, std::map< Node, int >& consts ) {
-  for( unsigned i=0; i<dt.getNumConstructors(); i++ ){
-    Expr sop = dt[i].getSygusOp();
-    Assert( !sop.isNull() );
-    Trace("sygus-split") << "  Operator #" << i << " : " << sop;
-    if( sop.getKind() == kind::BUILTIN ){
-      Kind sk = NodeManager::operatorToKind( Node::fromExpr( sop ) );
-      Trace("sygus-split") << ", kind = " << sk;
-      kinds[sk] = i;
-      arg_kind[i] = sk;
-    }else if( sop.isConst() ){
-      Node n = Node::fromExpr( sop );
-      Trace("sygus-split") << ", constant";
-      consts[n] = i;
-      arg_const[i] = n;
+void SygusSplit::registerSygusTypeConstructorArg( TypeNode tnn, const Datatype& dt, TypeNode tnnp, const Datatype& pdt, int csIndex, int sIndex ) {
+  std::map< int, std::vector< bool > >::iterator it = d_sygus_pc_nred[tnn][csIndex].find( sIndex );
+  if( it==d_sygus_pc_nred[tnn][csIndex].end() ){
+    registerSygusType( tnnp, pdt );
+    Trace("sygus-split") << "Register type constructor arg " << dt.getName() << " " << csIndex << " " << sIndex << std::endl;
+    //get parent kind
+    bool hasParentKind = false;
+    Kind parentKind;
+    if( isKindArg( tnnp, csIndex ) ){
+      hasParentKind = true;
+      parentKind = d_arg_kind[tnnp][csIndex];
     }
-    Trace("sygus-split") << std::endl;
+    for( unsigned i=0; i<dt.getNumConstructors(); i++ ){
+      bool addSplit = d_sygus_nred[tnn][i];
+      if( addSplit && hasParentKind ){
+        if( d_arg_kind.find( tnn )!=d_arg_kind.end() && d_arg_kind[tnn].find( i )!=d_arg_kind[tnn].end() ){
+          addSplit = considerSygusSplitKind( dt, pdt, tnn, tnnp, d_arg_kind[tnn][i], parentKind, sIndex );
+          if( !addSplit ){
+            Trace("sygus-nf") << "* Sygus norm " << pdt.getName() << " : do not consider " << dt.getName() << "::" << d_arg_kind[tnn][i];
+            Trace("sygus-nf") << " as argument " << sIndex << " of " << parentKind << "." << std::endl;
+          }
+        }else if( d_arg_const.find( tnn )!=d_arg_const.end() && d_arg_const[tnn].find( i )!=d_arg_const[tnn].end() ){
+          addSplit = considerSygusSplitConst( dt, pdt, tnn, tnnp, d_arg_const[tnn][i], parentKind, sIndex );
+          if( !addSplit ){
+            Trace("sygus-nf") << "* Sygus norm " << pdt.getName() << " : do not consider constant " << dt.getName() << "::" << d_arg_const[tnn][i];
+            Trace("sygus-nf") << " as argument " << sIndex << " of " << parentKind << "." << std::endl;
+          }
+        }
+      }
+      d_sygus_pc_nred[tnn][csIndex][sIndex].push_back( addSplit );
+    }
   }
 }
 
 bool SygusSplit::isAssoc( Kind k ) {
   return k==PLUS || k==MULT || k==AND || k==OR || k==XOR || k==IFF ||
          k==BITVECTOR_PLUS || k==BITVECTOR_MULT || k==BITVECTOR_AND || k==BITVECTOR_OR || k==BITVECTOR_XOR || k==BITVECTOR_CONCAT;
+}
+
+bool SygusSplit::isComm( Kind k ) {
+  return k==PLUS || k==MULT || k==AND || k==OR || k==XOR || k==IFF ||
+         k==BITVECTOR_PLUS || k==BITVECTOR_MULT || k==BITVECTOR_AND || k==BITVECTOR_OR || k==BITVECTOR_XOR;
 }
 
 bool SygusSplit::isAntisymmetric( Kind k, Kind& dk ) {
@@ -257,28 +352,16 @@ Node SygusSplit::getTypeMaxValue( TypeNode tn ) {
     return it->second;
   }
 }
-bool SygusSplit::considerSygusSplitKind( const Datatype& dt, const Datatype& pdt, Kind k, Kind parent, int arg,
-                                         std::map< Kind, int >& kinds, std::map< Kind, int >& pkinds,
-                                         std::map< Node, int >& consts, std::map< Node, int >& pconsts ) {
-  Assert( kinds.find( k )!=kinds.end() );
-  Assert( pkinds.find( parent )!=pkinds.end() );
+bool SygusSplit::considerSygusSplitKind( const Datatype& dt, const Datatype& pdt, TypeNode tn, TypeNode tnp, Kind k, Kind parent, int arg ) {
+  Assert( hasKind( tn, k ) );
+  Assert( hasKind( tnp, parent ) );
   Trace("sygus-split") << "Consider sygus split kind " << k << ", parent = " << parent << ", arg = " << arg << "?" << std::endl;
+  int c = getKindArg( tnp, parent );
   if( k==parent ){
     //check for associativity
     if( isAssoc( k ) ){
       //if the operator is associative, then a repeated occurrence should only occur in the leftmost argument position
-      int firstArg = -1;
-      int c = pkinds[k];
-      for( unsigned i=0; i<pdt[c].getNumArgs(); i++ ){
-        TypeNode tni = TypeNode::fromType( ((SelectorType)pdt[c][i].getType()).getRangeType() );
-        if( datatypes::DatatypesRewriter::isTypeDatatype( tni ) ){
-          const Datatype& adt = ((DatatypeType)(tni).toType()).getDatatype();
-          if( adt==dt ){
-            firstArg = i;
-            break;
-          }
-        }
-      }
+      int firstArg = getFirstArgOccurrence( pdt[c], dt );
       Assert( firstArg!=-1 );
       Trace("sygus-split-debug") << "Associative, with first arg = " << firstArg << std::endl;
       return arg==firstArg;
@@ -301,9 +384,50 @@ bool SygusSplit::considerSygusSplitKind( const Datatype& dt, const Datatype& pdt
   return true;
 }
 
-bool SygusSplit::considerSygusSplitConst( const Datatype& dt, const Datatype& pdt, Node c, Kind parent, int arg,
-                                               std::map< Kind, int >& kinds, std::map< Kind, int >& pkinds,
-                                               std::map< Node, int >& consts, std::map< Node, int >& pconsts ) {
+bool SygusSplit::considerSygusSplitConst( const Datatype& dt, const Datatype& pdt, TypeNode tn, TypeNode tnp, Node c, Kind parent, int arg ) {
+  Assert( hasConst( tn, c ) );
+  Assert( hasKind( tnp, parent ) );
+  int pc = getKindArg( tnp, parent );
   Trace("sygus-split") << "Consider sygus split const " << c << ", parent = " << parent << ", arg = " << arg << "?" << std::endl;
+  if( isIdempotentArg( c, parent, arg ) ){
+    Trace("sygus-split-debug") << "  " << c << " is idempotent arg " << arg << " of " << parent << "..." << std::endl;
+    if( pdt[pc].getNumArgs()==2 ){
+      int oarg = arg==0 ? 1 : 0;
+      TypeNode otn = TypeNode::fromType( ((SelectorType)pdt[pc][oarg].getType()).getRangeType() );
+      if( otn==tnp ){
+        return false;
+      }
+    }
+  }else if( isSingularArg( c, parent, arg ) ){
+    Trace("sygus-split-debug") << "  " << c << " is singular arg " << arg << " of " << parent << "..." << std::endl;
+    if( hasConst( tnp, c ) ){
+      return false;
+    }
+  }
+  //single argument rewrite
+  if( pdt[pc].getNumArgs()==1 ){
+    Node cr = NodeManager::currentNM()->mkNode( parent, c );
+    cr = Rewriter::rewrite( cr );
+    Trace("sygus-split-debug") << "  " << parent << " applied to " << c << " rewrites to " << cr << std::endl;
+    if( hasConst( tnp, cr ) ){
+      return false;
+    }
+  }
+  
   return true;
 }
+
+int SygusSplit::getFirstArgOccurrence( const DatatypeConstructor& c, const Datatype& dt ) {
+  for( unsigned i=0; i<c.getNumArgs(); i++ ){
+    TypeNode tni = TypeNode::fromType( ((SelectorType)c[i].getType()).getRangeType() );
+    if( datatypes::DatatypesRewriter::isTypeDatatype( tni ) ){
+      const Datatype& adt = ((DatatypeType)(tni).toType()).getDatatype();
+      if( adt==dt ){
+        return i;
+      }
+    }
+  }
+  return -1;
+}
+
+

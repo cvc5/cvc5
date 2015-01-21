@@ -31,21 +31,36 @@ class SygusSplit
 {
 private:
   std::map< TypeNode, std::vector< bool > > d_sygus_nred;
-  std::map< Node, std::map< int, std::vector< bool > > > d_sygus_pc_nred;
+  std::map< TypeNode, std::map< int, std::map< int, std::vector< bool > > > > d_sygus_pc_nred;
+  //information for builtin types
   std::map< TypeNode, std::map< int, Node > > d_type_value;
   std::map< TypeNode, Node > d_type_max_value;
+  //information for sygus types
+  std::map< TypeNode, bool > d_register;
+  std::map< TypeNode, std::map< int, Kind > > d_arg_kind;
+  std::map< TypeNode, std::map< Kind, int > > d_kinds;
+  std::map< TypeNode, std::map< int, Node > > d_arg_const;
+  std::map< TypeNode, std::map< Node, int > > d_consts;
 private:
+  bool isRegistered( TypeNode tn );
+  int getKindArg( TypeNode tn, Kind k );
+  int getConstArg( TypeNode tn, Node n );
+  bool hasKind( TypeNode tn, Kind k );
+  bool hasConst( TypeNode tn, Node n );
+  bool isKindArg( TypeNode tn, int i );
+  bool isConstArg( TypeNode tn, int i );
+private:
+  /** register sygus type */
+  void registerSygusType( TypeNode tn, const Datatype& dt );
+  /** register sygus operator */
+  void registerSygusTypeConstructorArg( TypeNode tnn, const Datatype& dt, TypeNode tnnp, const Datatype& pdt, int csIndex, int sIndex );
   /** consider sygus split */
-  bool considerSygusSplitKind( const Datatype& dt, const Datatype& pdt, Kind k, Kind parent, int arg,
-                               std::map< Kind, int >& kinds, std::map< Kind, int >& pkinds,
-                               std::map< Node, int >& consts, std::map< Node, int >& pconsts );
-  bool considerSygusSplitConst( const Datatype& dt, const Datatype& pdt, Node c, Kind parent, int arg,
-                                std::map< Kind, int >& kinds, std::map< Kind, int >& pkinds,
-                                std::map< Node, int >& consts, std::map< Node, int >& pconsts );
-  /** get sygus kinds */
-  void getSygusKinds( const Datatype& dt, std::map< int, Kind >& arg_kind, std::map< Kind, int >& kinds, std::map< int, Node >& arg_const, std::map< Node, int >& consts );
+  bool considerSygusSplitKind( const Datatype& dt, const Datatype& pdt, TypeNode tn, TypeNode tnp, Kind k, Kind parent, int arg );
+  bool considerSygusSplitConst( const Datatype& dt, const Datatype& pdt, TypeNode tn, TypeNode tnp, Node c, Kind parent, int arg );
   /** is assoc */
   bool isAssoc( Kind k );
+  /** is comm */
+  bool isComm( Kind k );
   /** isAntisymmetric */
   bool isAntisymmetric( Kind k, Kind& dk );
   /** is idempotent arg */
@@ -56,6 +71,8 @@ private:
   Node getTypeValue( TypeNode tn, int val );
   /** get value */
   Node getTypeMaxValue( TypeNode tn );
+  /** get first occurrence */
+  int getFirstArgOccurrence( const DatatypeConstructor& c, const Datatype& dt );
 public:
   /** get sygus splits */
   void getSygusSplits( Node n, const Datatype& dt, std::vector< Node >& splits );

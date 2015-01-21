@@ -288,35 +288,6 @@ private:
 public:
   /** get equality engine */
   eq::EqualityEngine* getEqualityEngine() { return &d_equalityEngine; }
-
-
-private:
-  /** sygus splits */
-  std::map< TypeNode, std::vector< bool > > d_sygus_nred;
-  std::map< Node, std::map< int, std::vector< bool > > > d_sygus_pc_nred;
-  std::map< TypeNode, std::map< int, Node > > d_type_value;
-private:
-  /** get sygus splits */
-  void getSygusSplits( Node n, const Datatype& dt, std::vector< Node >& splits );
-  /** consider sygus split */
-  bool considerSygusSplitKind( const Datatype& dt, const Datatype& pdt, Kind k, Kind parent, int arg,
-                               std::map< Kind, int >& kinds, std::map< Kind, int >& pkinds,
-                               std::map< Node, int >& consts, std::map< Node, int >& pconsts );
-  bool considerSygusSplitConst( const Datatype& dt, const Datatype& pdt, Node c, Kind parent, int arg,
-                                std::map< Kind, int >& kinds, std::map< Kind, int >& pkinds,
-                                std::map< Node, int >& consts, std::map< Node, int >& pconsts );
-  /** get sygus kinds */
-  void getSygusKinds( const Datatype& dt, std::map< int, Kind >& arg_kind, std::map< Kind, int >& kinds, std::map< int, Node >& arg_const, std::map< Node, int >& consts );
-  /** is assoc */
-  bool isAssoc( Kind k );
-  /** isAntisymmetric */
-  bool isAntisymmetric( Kind k, Kind& dk );
-  /** is idempotent arg */
-  bool isIdempotentArg( Node n, Kind ik, int arg );
-  /** is singular arg */
-  bool isSingularArg( Node n, Kind ik, int arg );
-  /** get value */
-  Node getTypeValue( TypeNode tn, int val, bool maxVal = false );
 };/* class TheoryDatatypes */
 
 }/* CVC4::theory::datatypes namespace */
