@@ -42,12 +42,15 @@ private:
   std::map< TypeNode, std::map< Kind, int > > d_kinds;
   std::map< TypeNode, std::map< int, Node > > d_arg_const;
   std::map< TypeNode, std::map< Node, int > > d_consts;
+  std::map< TypeNode, std::map< Node, int > > d_ops;
 private:
   bool isRegistered( TypeNode tn );
   int getKindArg( TypeNode tn, Kind k );
   int getConstArg( TypeNode tn, Node n );
+  int getOpArg( TypeNode tn, Node n );
   bool hasKind( TypeNode tn, Kind k );
   bool hasConst( TypeNode tn, Node n );
+  bool hasOp( TypeNode tn, Node n );
   bool isKindArg( TypeNode tn, int i );
   bool isConstArg( TypeNode tn, int i );
 private:
@@ -74,6 +77,10 @@ private:
   Node getTypeMaxValue( TypeNode tn );
   /** get first occurrence */
   int getFirstArgOccurrence( const DatatypeConstructor& c, const Datatype& dt );
+  /** is arg datatype */
+  bool isArgDatatype( const DatatypeConstructor& c, int i, const Datatype& dt );
+  /** get arg type */
+  TypeNode getArgType( const DatatypeConstructor& c, int i );
 public:
   /** get sygus splits */
   void getSygusSplits( Node n, const Datatype& dt, std::vector< Node >& splits, std::vector< Node >& lemmas );

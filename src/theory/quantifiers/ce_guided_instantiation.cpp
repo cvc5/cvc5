@@ -216,12 +216,12 @@ Node CegInstantiation::getNextDecisionRequest() {
 
 void CegInstantiation::checkCegConjecture( CegConjecture * conj ) {
   Node q = conj->d_quant;
-  Trace("cegqi-engine") << "Synthesis conjecture : " << q << std::endl;
-  Trace("cegqi-engine") << "  * Candidate program/output symbol : ";
+  Trace("cegqi-engine-debug") << "Synthesis conjecture : " << q << std::endl;
+  Trace("cegqi-engine-debug") << "  * Candidate program/output symbol : ";
   for( unsigned i=0; i<conj->d_candidates.size(); i++ ){
-    Trace("cegqi-engine") << conj->d_candidates[i] << " ";
+    Trace("cegqi-engine-debug") << conj->d_candidates[i] << " ";
   }
-  Trace("cegqi-engine") << std::endl;
+  Trace("cegqi-engine-debug") << std::endl;
   if( options::ceGuidedInstFair()!=CEGQI_FAIR_NONE ){
     Trace("cegqi-engine") << "  * Current term size : " << conj->d_curr_lit.get() << std::endl;
   }
