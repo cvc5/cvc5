@@ -36,7 +36,7 @@ void CegInstantiation::collectDisjuncts( Node n, std::vector< Node >& d ) {
     d.push_back( n );
   }
 }
-  
+
 CegInstantiation::CegConjecture::CegConjecture( context::Context* c ) : d_active( c, false ), d_infeasible( c, false ), d_curr_lit( c, 0 ){
   d_refine_count = 0;
 }
@@ -72,6 +72,7 @@ Node CegInstantiation::CegConjecture::getLiteral( QuantifiersEngine * qe, int i 
   }else{
     std::map< int, Node >::iterator it = d_lits.find( i );
     if( it==d_lits.end() ){
+      Trace("cegqi-engine") << "******* CEGQI : allocate size literal " << i << std::endl;
       Node lit = NodeManager::currentNM()->mkNode( LEQ, d_measure_term, NodeManager::currentNM()->mkConst( Rational( i ) ) );
       lit = Rewriter::rewrite( lit );
       d_lits[i] = lit;

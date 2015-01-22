@@ -200,7 +200,8 @@ option sygusDecompose --sygus-decompose bool :default false
   decompose single invocation synthesis conjectures
 option sygusNormalForm --sygus-normal-form bool :default true
   only search for sygus builtin terms that are in normal form
- 
+option sygusNormalFormArg --sygus-nf-arg bool :default true
+  account for relationship between arguments of operations in sygus normal form
 
 option localTheoryExt --local-t-ext bool :default false
   do instantiation based on local theory extensions

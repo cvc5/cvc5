@@ -816,7 +816,13 @@ Node BooleanTermConverter::rewriteBooleanTermsRec(TNode top, theory::TheoryId pa
             }
             Node boundVarList = nm->mkNode(kind::BOUND_VAR_LIST, boundVars);
             Node body = rewriteBooleanTermsRec(top[1], theory::THEORY_BOOL, quantBoolVars);
-            Node quant = nm->mkNode(top.getKind(), boundVarList, body);
+            Node quant;
+            if( top.getNumChildren()==3 ){
+              Node ipl = rewriteBooleanTermsRec(top[2], theory::THEORY_BOOL, quantBoolVars);
+              quant = nm->mkNode(top.getKind(), boundVarList, body, ipl );
+            }else{
+              quant = nm->mkNode(top.getKind(), boundVarList, body);
+            }
             Debug("bt") << "rewrote quantifier to -> " << quant << endl;
             d_termCache[make_pair(top, theory::THEORY_BOOL)] = quant;
             d_termCache[make_pair(top, theory::THEORY_BUILTIN)] = quant.iteNode(d_tt, d_ff);
@@ -847,16 +853,16 @@ Node BooleanTermConverter::rewriteBooleanTermsRec(TNode top, theory::TheoryId pa
                     k != kind::RECORD_SELECT &&
                     k != kind::RECORD_UPDATE &&
                     k != kind::DIVISIBLE &&
-		    // Theory parametric functions go here
-		    k != kind::FLOATINGPOINT_TO_FP_IEEE_BITVECTOR &&
-		    k != kind::FLOATINGPOINT_TO_FP_FLOATINGPOINT &&
-		    k != kind::FLOATINGPOINT_TO_FP_REAL &&
-		    k != kind::FLOATINGPOINT_TO_FP_SIGNED_BITVECTOR &&
-		    k != kind::FLOATINGPOINT_TO_FP_UNSIGNED_BITVECTOR &&
-		    k != kind::FLOATINGPOINT_TO_UBV &&
-		    k != kind::FLOATINGPOINT_TO_SBV &&
-		    k != kind::FLOATINGPOINT_TO_REAL
-		    ) {
+        // Theory parametric functions go here
+        k != kind::FLOATINGPOINT_TO_FP_IEEE_BITVECTOR &&
+        k != kind::FLOATINGPOINT_TO_FP_FLOATINGPOINT &&
+        k != kind::FLOATINGPOINT_TO_FP_REAL &&
+        k != kind::FLOATINGPOINT_TO_FP_SIGNED_BITVECTOR &&
+        k != kind::FLOATINGPOINT_TO_FP_UNSIGNED_BITVECTOR &&
+        k != kind::FLOATINGPOINT_TO_UBV &&
+        k != kind::FLOATINGPOINT_TO_SBV &&
+        k != kind::FLOATINGPOINT_TO_REAL
+        ) {
             Debug("bt") << "rewriting: " << top.getOperator() << endl;
             result.top() << rewriteBooleanTermsRec(top.getOperator(), theory::THEORY_BUILTIN, quantBoolVars);
             Debug("bt") << "got: " << result.top().getOperator() << endl;

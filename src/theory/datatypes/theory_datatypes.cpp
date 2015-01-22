@@ -246,7 +246,12 @@ void TheoryDatatypes::check(Effort e) {
                   Trace("dt-split") << "*************Split for constructors on " << n <<  endl;
                   std::vector< Node > children;
                   if( dt.isSygus() && d_sygus_split ){
-                    d_sygus_split->getSygusSplits( n, dt, children );
+                    std::vector< Node > lemmas;
+                    d_sygus_split->getSygusSplits( n, dt, children, lemmas );
+                    for( unsigned i=0; i<lemmas.size(); i++ ){
+                      Trace("dt-lemma-sygus") << "Dt sygus lemma : " << lemmas[i] << std::endl;
+                      d_out->lemma( lemmas[i] );
+                    }
                   }else{
                     for( unsigned i=0; i<dt.getNumConstructors(); i++ ){
                       Node test = DatatypesRewriter::mkTester( n, i, dt );

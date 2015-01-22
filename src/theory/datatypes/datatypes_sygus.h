@@ -30,6 +30,7 @@ namespace datatypes {
 class SygusSplit
 {
 private:
+  std::map< Node, std::vector< Node > > d_splits;
   std::map< TypeNode, std::vector< bool > > d_sygus_nred;
   std::map< TypeNode, std::map< int, std::map< int, std::vector< bool > > > > d_sygus_pc_nred;
   //information for builtin types
@@ -75,7 +76,7 @@ private:
   int getFirstArgOccurrence( const DatatypeConstructor& c, const Datatype& dt );
 public:
   /** get sygus splits */
-  void getSygusSplits( Node n, const Datatype& dt, std::vector< Node >& splits );
+  void getSygusSplits( Node n, const Datatype& dt, std::vector< Node >& splits, std::vector< Node >& lemmas );
 };
   
   

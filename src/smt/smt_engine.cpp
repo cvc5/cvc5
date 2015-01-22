@@ -1344,6 +1344,13 @@ void SmtEngine::setDefaults() {
       }
     }
   }
+  
+  //apply counterexample guided instantiation options
+  if( options::ceGuidedInst() ){
+    if( !options::quantConflictFind.wasSetByUser() ){
+      options::quantConflictFind.set( false );
+    }
+  }
 
   //implied options...
   if( options::recurseCbqi() ){
