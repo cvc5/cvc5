@@ -153,6 +153,11 @@ d_lemmas_produced_c(u){
   }else{
     d_ceg_inst = NULL;
   }
+  if( options::ltePartialInst() ){
+    d_lte_part_inst = new QuantLtePartialInst( this, c );
+  }else{
+    d_lte_part_inst = NULL;
+  }
   
   if( needsBuilder ){
     Trace("quant-engine-debug") << "Initialize model engine, mbqi : " << options::mbqiMode() << " " << options::fmfBoundInt() << std::endl;
@@ -191,6 +196,7 @@ QuantifiersEngine::~QuantifiersEngine(){
   delete d_eq_query;
   delete d_sg_gen;
   delete d_ceg_inst;
+  delete d_lte_part_inst;
   for(std::map< Node, QuantPhaseReq* >::iterator i = d_phase_reqs.begin(); i != d_phase_reqs.end(); ++i) {
     delete (*i).second;
   }
@@ -254,10 +260,14 @@ void QuantifiersEngine::check( Theory::Effort e ){
   }
   if( e==Theory::EFFORT_FULL ){
     d_ierCounter++;
+    //process partial instantiations for LTE
+    if( d_lte_part_inst ){
+      d_lte_part_inst->getInstantiations( d_lemmas_waiting );
+    }
   }else if( e==Theory::EFFORT_LAST_CALL ){
     d_ierCounter_lc++;
   }
-  bool needsCheck = false;
+  bool needsCheck = !d_lemmas_waiting.empty();
   bool needsModel = false;
   bool needsFullModel = false;
   std::vector< QuantifiersModule* > qm;
@@ -285,6 +295,9 @@ void QuantifiersEngine::check( Theory::Effort e ){
     }
     Trace("quant-engine-debug") << std::endl;
     Trace("quant-engine-debug") << "  # quantified formulas = " << d_model->getNumAssertedQuantifiers() << std::endl;
+    if( !d_lemmas_waiting.empty() ){
+      Trace("quant-engine-debug") << "  lemmas waiting = " << d_lemmas_waiting.size() << std::endl;
+    }
     Trace("quant-engine-debug") << "  Theory engine finished : " << !d_te->needCheck() << std::endl;
 
     Trace("quant-engine-ee") << "Equality engine : " << std::endl;
@@ -295,7 +308,7 @@ void QuantifiersEngine::check( Theory::Effort e ){
     d_conflict = false;
     d_hasAddedLemma = false;
 
-    //flush previous lemmas (for instance, if was interupted)
+    //flush previous lemmas (for instance, if was interupted), or other lemmas to process
     flushLemmas();
     if( d_hasAddedLemma ){
       return;
@@ -450,6 +463,12 @@ void QuantifiersEngine::assertQuantifier( Node f, bool pol ){
   }
   //assert to modules TODO : handle !pol
   if( pol ){
+    if( d_lte_part_inst && !f.getAttribute(LtePartialInstAttribute()) ){
+      Trace("lte-partial-inst") << "LTE: Partially instantiate " << f << "?" << std::endl;
+      if( d_lte_part_inst->addQuantifier( f ) ){
+        return;
+      }
+    }
     //register the quantifier
     registerQuantifier( f );
     //assert it to each module
@@ -478,9 +497,9 @@ Node QuantifiersEngine::getNextDecisionRequest(){
   return Node::null();
 }
 
-void QuantifiersEngine::addTermToDatabase( Node n, bool withinQuant, bool withinInstClosure ){
+void QuantifiersEngine::addTermToDatabase( Node n, bool withinQuant ){
   std::set< Node > added;
-  getTermDatabase()->addTerm( n, added, withinQuant, withinInstClosure );
+  getTermDatabase()->addTerm( n, added, withinQuant );
   //maybe have triggered instantiations if we are doing eager instantiation
   if( options::eagerInstQuant() ){
     flushLemmas();

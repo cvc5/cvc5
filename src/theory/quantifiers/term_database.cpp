@@ -111,7 +111,7 @@ Node TermDb::getOperator( Node n ) {
   }
 }
 
-void TermDb::addTerm( Node n, std::set< Node >& added, bool withinQuant, bool withinInstClosure ){
+void TermDb::addTerm( Node n, std::set< Node >& added, bool withinQuant ){
   //don't add terms in quantifier bodies
   if( withinQuant && !options::registerQuantBodyTerms() ){
     return;
@@ -119,9 +119,6 @@ void TermDb::addTerm( Node n, std::set< Node >& added, bool withinQuant, bool wi
   bool rec = false;
   if( d_processed.find( n )==d_processed.end() ){
     d_processed.insert(n);
-    if( withinInstClosure ){
-      d_iclosure_processed.insert( n );
-    }
     d_type_map[ n.getType() ].push_back( n );
     //if this is an atomic trigger, consider adding it
     //Call the children?
@@ -154,13 +151,10 @@ void TermDb::addTerm( Node n, std::set< Node >& added, bool withinQuant, bool wi
       }
     }
     rec = true;
-  }else if( withinInstClosure && d_iclosure_processed.find( n )==d_iclosure_processed.end() ){
-    d_iclosure_processed.insert( n );
-    rec = true;
   }
   if( rec ){
     for( size_t i=0; i<n.getNumChildren(); i++ ){
-      addTerm( n[i], added, withinQuant, withinInstClosure );
+      addTerm( n[i], added, withinQuant );
     }
   }
 }
@@ -325,18 +319,14 @@ bool TermDb::isEntailed( TNode n, std::map< TNode, TNode >& subs, bool subsRep, 
 }
 
 bool TermDb::hasTermCurrent( Node n ) {
-  if( options::termDbInstClosure() && d_iclosure_processed.find( n )==d_iclosure_processed.end() ){
-    return false;
+  //return d_quantEngine->getMasterEqualityEngine()->hasTerm( n ); //some assertions are not sent to EE
+  if( options::termDbMode()==TERM_DB_ALL ){
+    return true;
+  }else if( options::termDbMode()==TERM_DB_RELEVANT ){
+    return d_has_map.find( n )!=d_has_map.end();
   }else{
-    //return d_quantEngine->getMasterEqualityEngine()->hasTerm( n ); //some assertions are not sent to EE
-    if( options::termDbMode()==TERM_DB_ALL ){
-      return true;
-    }else if( options::termDbMode()==TERM_DB_RELEVANT ){
-      return d_has_map.find( n )!=d_has_map.end();
-    }else{
-      Assert( false );
-      return false;
-    }
+    Assert( false );
+    return false;
   }
 }
 
@@ -344,6 +334,7 @@ Node TermDb::getHasTermEqc( Node r ) {
   if( hasTermCurrent( r ) ){
     return r;
   }else{
+    /*
     if( options::termDbInstClosure()  ){
       std::map< Node, Node >::iterator it = d_has_eqc.find( r );
       if( it==d_has_eqc.end() ){
@@ -362,10 +353,10 @@ Node TermDb::getHasTermEqc( Node r ) {
       }else{
         return it->second;
       }
-    }else{
-      //if not using inst closure, then either all are relevant, or it is a singleton irrelevant eqc
-      return Node::null();
     }
+    */
+    //if not using inst closure, then either all are relevant, or it is a singleton irrelevant eqc
+    return Node::null();
   }
 }
 

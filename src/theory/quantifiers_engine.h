@@ -134,6 +134,8 @@ private:
   quantifiers::ConjectureGenerator * d_sg_gen;
   /** ceg instantiation */
   quantifiers::CegInstantiation * d_ceg_inst;
+  /** lte partial instantiation */
+  QuantLtePartialInst * d_lte_part_inst;
 public: //effort levels
   enum {
     QEFFORT_CONFLICT,
@@ -295,7 +297,7 @@ public:
   /** get trigger database */
   inst::TriggerTrie* getTriggerDatabase() { return d_tr_trie; }
   /** add term to database */
-  void addTermToDatabase( Node n, bool withinQuant = false, bool withinInstClosure = false );
+  void addTermToDatabase( Node n, bool withinQuant = false );
   /** get the master equality engine */
   eq::EqualityEngine* getMasterEqualityEngine() ;
   /** debug print equality engine */

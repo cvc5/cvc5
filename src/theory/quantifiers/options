@@ -205,7 +205,7 @@ option sygusNormalFormArg --sygus-nf-arg bool :default true
 
 option localTheoryExt --local-t-ext bool :default false
   do instantiation based on local theory extensions
-option termDbInstClosure --term-db-inst-closure bool :default false
-  only consider inst closure terms for E-matching
+option ltePartialInst --lte-partial-inst bool :default false
+  partially instantiate local theory quantifiers
  
 endmodule
