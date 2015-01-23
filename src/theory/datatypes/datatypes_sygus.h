@@ -33,6 +33,7 @@ private:
   std::map< Node, std::vector< Node > > d_splits;
   std::map< TypeNode, std::vector< bool > > d_sygus_nred;
   std::map< TypeNode, std::map< int, std::map< int, std::vector< bool > > > > d_sygus_pc_nred;
+  std::map< TypeNode, std::map< int, std::map< int, std::vector< int > > > > d_sygus_pc_arg_pos;
   //information for builtin types
   std::map< TypeNode, std::map< int, Node > > d_type_value;
   std::map< TypeNode, Node > d_type_max_value;
