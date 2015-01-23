@@ -128,6 +128,8 @@ typedef enum {
   CEGQI_FAIR_UF_DT_SIZE,
   /** enforce fairness by datatypes size */
   CEGQI_FAIR_DT_SIZE,
+  /** enforce fairness by datatypes height bound */
+  CEGQI_FAIR_DT_HEIGHT_PRED,
   /** do not use fair strategy for CEGQI */
   CEGQI_FAIR_NONE,
 } CegqiFairMode;

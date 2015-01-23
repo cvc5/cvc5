@@ -198,7 +198,7 @@ option ceGuidedInstFair --cegqi-fair=MODE CVC4::theory::quantifiers::CegqiFairMo
   if and how to apply fairness for cegqi
 option sygusDecompose --sygus-decompose bool :default false
   decompose single invocation synthesis conjectures
-option sygusNormalForm --sygus-normal-form bool :default true
+option sygusNormalForm --sygus-nf bool :default true
   only search for sygus builtin terms that are in normal form
 option sygusNormalFormArg --sygus-nf-arg bool :default true
   account for relationship between arguments of operations in sygus normal form

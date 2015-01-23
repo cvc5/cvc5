@@ -136,7 +136,11 @@ void SygusSplit::getSygusSplits( Node n, const Datatype& dt, std::vector< Node >
           }
         }
       }
-
+      
+      // we are splitting on a term that may later have no semantics : guard this case
+      Node ptest = DatatypesRewriter::mkTester( n[0], csIndex, pdt ).negate();
+      Trace("sygus-split-debug") << "Parent guard : " << ptest << std::endl;
+      d_splits[n].push_back( ptest );
     }
 
     for( unsigned i=0; i<dt.getNumConstructors(); i++ ){
@@ -272,6 +276,7 @@ void SygusSplit::registerSygusType( TypeNode tn, const Datatype& dt ) {
             }
           }
         }
+        //NAND,NOR
       }
       d_sygus_nred[tn].push_back( nred );
     }
@@ -447,24 +452,28 @@ bool SygusSplit::considerSygusSplitKind( const Datatype& dt, const Datatype& pdt
     Kind nk = UNDEFINED_KIND;
     Kind reqk = UNDEFINED_KIND;
     std::map< int, Kind > reqk_arg; //TODO
-    if( k==AND ) { 
-      nk = OR;reqk = NOT;
-    }else if( k==OR ){ 
-      nk = AND;reqk = NOT;
-    }else if( k==IFF ) { 
-      nk = XOR;
-    }else if( k==XOR ) { 
-      nk = IFF;
-    }else if( k==BITVECTOR_AND ) { 
-      nk = BITVECTOR_OR;reqk = BITVECTOR_NOT;
-    }else if( k==BITVECTOR_OR ){ 
-      nk = BITVECTOR_AND;reqk = BITVECTOR_NOT;
-    }else if( k==BITVECTOR_XNOR ) { 
-      nk = BITVECTOR_XOR;
-    }else if( k==BITVECTOR_XOR ) { 
-      nk = BITVECTOR_XNOR;
+    if( parent==NOT ){
+      if( k==AND ) { 
+        nk = OR;reqk = NOT;
+      }else if( k==OR ){ 
+        nk = AND;reqk = NOT;
+      }else if( k==IFF ) { 
+        nk = XOR;
+      }else if( k==XOR ) { 
+        nk = IFF;
+      }
     }
-    //NAND,NOR
+    if( parent==BITVECTOR_NOT ){
+      if( k==BITVECTOR_AND ) { 
+        nk = BITVECTOR_OR;reqk = BITVECTOR_NOT;
+      }else if( k==BITVECTOR_OR ){ 
+        nk = BITVECTOR_AND;reqk = BITVECTOR_NOT;
+      }else if( k==BITVECTOR_XNOR ) { 
+        nk = BITVECTOR_XOR;
+      }else if( k==BITVECTOR_XOR ) { 
+        nk = BITVECTOR_XNOR;
+      }
+    }
     if( nk!=UNDEFINED_KIND ){
       Trace("sygus-split-debug") << "Push " << parent << " over " << k << " to " << nk;
       if( reqk!=UNDEFINED_KIND ){

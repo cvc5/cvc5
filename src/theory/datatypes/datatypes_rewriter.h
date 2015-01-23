@@ -169,22 +169,46 @@ public:
         }
       }
     }
-    if(in.getKind() == kind::DT_SIZE && in[0].getKind()==kind::APPLY_CONSTRUCTOR ){
-      std::vector< Node > children;
-      for( unsigned i=0; i<in[0].getNumChildren(); i++ ){
-        if( in[0][i].getType().isDatatype() ){
-          children.push_back( NodeManager::currentNM()->mkNode( kind::DT_SIZE, in[0][i] ) );
+    if(in.getKind() == kind::DT_SIZE ){
+      if( in[0].getKind()==kind::APPLY_CONSTRUCTOR ){
+        std::vector< Node > children;
+        for( unsigned i=0; i<in[0].getNumChildren(); i++ ){
+          if( in[0][i].getType().isDatatype() ){
+            children.push_back( NodeManager::currentNM()->mkNode( kind::DT_SIZE, in[0][i] ) );
+          }
         }
+        Node res;
+        if( !children.empty() ){
+          children.push_back( NodeManager::currentNM()->mkConst( Rational(1) ) );
+          res = children.size()==1 ? children[0] : NodeManager::currentNM()->mkNode( kind::PLUS, children );
+        }else{
+          res = NodeManager::currentNM()->mkConst( Rational(0) );
+        }
+        Trace("datatypes-rewrite") << "DatatypesRewriter::postRewrite: rewrite size " << in << " to " << res << std::endl;
+        return RewriteResponse(REWRITE_AGAIN_FULL, res );
       }
-      Node res;
-      if( !children.empty() ){
-        children.push_back( NodeManager::currentNM()->mkConst( Rational(1) ) );
-        res = children.size()==1 ? children[0] : NodeManager::currentNM()->mkNode( kind::PLUS, children );
-      }else{
-        res = NodeManager::currentNM()->mkConst( Rational(0) );
+    }else if(in.getKind() == kind::DT_HEIGHT_BOUND ){
+      if( in[0].getKind()==kind::APPLY_CONSTRUCTOR ){
+        std::vector< Node > children;
+        Node res;
+        Rational r = in[1].getConst<Rational>();
+        Rational rmo = Rational( r-Rational(1) );
+        for( unsigned i=0; i<in[0].getNumChildren(); i++ ){
+          if( in[0][i].getType().isDatatype() ){
+            if( r.isZero() ){
+              res = NodeManager::currentNM()->mkConst(false);
+              break;
+            }else{
+              children.push_back( NodeManager::currentNM()->mkNode( kind::DT_HEIGHT_BOUND, in[0][i], NodeManager::currentNM()->mkConst(rmo) ) );
+            }
+          }
+        }
+        if( res.isNull() ){
+          res = children.size()==0 ? NodeManager::currentNM()->mkConst(true) : ( children.size()==1 ? children[0] : NodeManager::currentNM()->mkNode( kind::AND, children ) );
+        }
+        Trace("datatypes-rewrite") << "DatatypesRewriter::postRewrite: rewrite height " << in << " to " << res << std::endl;
+        return RewriteResponse(REWRITE_AGAIN_FULL, res );
       }
-      Trace("datatypes-rewrite") << "DatatypesRewriter::postRewrite: rewrite " << in << " to " << res << std::endl;
-      return RewriteResponse(REWRITE_AGAIN_FULL, res );
     }
     if(in.getKind() == kind::TUPLE_SELECT &&
        in[0].getKind() == kind::TUPLE) {

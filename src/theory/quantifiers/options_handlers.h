@@ -184,6 +184,9 @@ uf-dt-size \n\
 default | dt-size \n\
 + Default, enforce fairness using size theory operator.\n\
 \n\
+dt-height-bound \n\
++ Enforce fairness by height bound predicate.\n\
+\n\
 none \n\
 + Do not enforce fairness. \n\
 \n\
@@ -379,6 +382,8 @@ inline CegqiFairMode stringToCegqiFairMode(std::string option, std::string optar
     return CEGQI_FAIR_UF_DT_SIZE;
   } else if(optarg == "default" || optarg == "dt-size") {
     return CEGQI_FAIR_DT_SIZE;
+  } else if(optarg == "dt-height-bound" ){
+    return CEGQI_FAIR_DT_HEIGHT_PRED;
   } else if(optarg == "none") {
     return CEGQI_FAIR_NONE;
   } else if(optarg ==  "help") {

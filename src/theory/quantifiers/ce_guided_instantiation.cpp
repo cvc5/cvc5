@@ -73,7 +73,8 @@ Node CegInstantiation::CegConjecture::getLiteral( QuantifiersEngine * qe, int i 
     std::map< int, Node >::iterator it = d_lits.find( i );
     if( it==d_lits.end() ){
       Trace("cegqi-engine") << "******* CEGQI : allocate size literal " << i << std::endl;
-      Node lit = NodeManager::currentNM()->mkNode( LEQ, d_measure_term, NodeManager::currentNM()->mkConst( Rational( i ) ) );
+      Node c = NodeManager::currentNM()->mkConst( Rational( i ) );
+      Node lit = NodeManager::currentNM()->mkNode( LEQ, d_measure_term, c );
       lit = Rewriter::rewrite( lit );
       d_lits[i] = lit;
 
@@ -81,6 +82,17 @@ Node CegInstantiation::CegConjecture::getLiteral( QuantifiersEngine * qe, int i 
       Trace("cegqi-lemma") << "Fairness split : " << lem << std::endl;
       qe->getOutputChannel().lemma( lem );
       qe->getOutputChannel().requirePhase( lit, true );
+      
+      if( options::ceGuidedInstFair()==CEGQI_FAIR_DT_HEIGHT_PRED ){
+        //implies height bounds on each candidate variable
+        std::vector< Node > lem_c;
+        for( unsigned j=0; j<d_candidates.size(); j++ ){
+          lem_c.push_back( NodeManager::currentNM()->mkNode( DT_HEIGHT_BOUND, d_candidates[j], c ) );
+        }
+        Node hlem = NodeManager::currentNM()->mkNode( OR, lit.negate(), lem_c.size()==1 ? lem_c[0] : NodeManager::currentNM()->mkNode( AND, lem_c ) );
+        Trace("cegqi-lemma") << "Fairness expansion (dt-height-pred) : " << hlem << std::endl;
+        qe->getOutputChannel().lemma( hlem );
+      }
       return lit;
     }else{
       return it->second;
@@ -158,6 +170,9 @@ void CegInstantiation::registerQuantifier( Node q ) {
             if( it!=d_uf_measure.end() ){
               mc.push_back( NodeManager::currentNM()->mkNode( APPLY_UF, it->second, d_conj->d_candidates[j] ) );
             }
+          }else if( options::ceGuidedInstFair()==CEGQI_FAIR_DT_HEIGHT_PRED ){
+            //measure term is a fresh constant 
+            mc.push_back( NodeManager::currentNM()->mkSkolem( "K", NodeManager::currentNM()->integerType() ) );
           }
         }
         if( !mc.empty() ){

@@ -60,6 +60,7 @@ TheoryDatatypes::TheoryDatatypes(Context* c, UserContext* u, OutputChannel& out,
   d_equalityEngine.addFunctionKind(kind::APPLY_CONSTRUCTOR);
   d_equalityEngine.addFunctionKind(kind::APPLY_SELECTOR_TOTAL);
   d_equalityEngine.addFunctionKind(kind::DT_SIZE);
+  d_equalityEngine.addFunctionKind(kind::DT_HEIGHT_BOUND);
   d_equalityEngine.addFunctionKind(kind::APPLY_TESTER);
   //d_equalityEngine.addFunctionKind(kind::APPLY_UF);
 
@@ -134,7 +135,7 @@ void TheoryDatatypes::check(Effort e) {
 
   TimerStat::CodeTimer checkTimer(d_checkTime);
 
-  Trace("datatypes-debug") << "Check effort " << e << std::endl;
+  Trace("datatypes-check") << "Check effort " << e << std::endl;
   while(!done() && !d_conflict) {
     // Get all the assertions
     Assertion assertion = get();
@@ -994,7 +995,7 @@ void TheoryDatatypes::addTester( Node t, EqcInfo* eqc, Node n ){
 }
 
 void TheoryDatatypes::addSelector( Node s, EqcInfo* eqc, Node n, bool assertFacts ) {
-  Debug("datatypes-debug") << "Add selector : " << s << " to eqc(" << n << ")" << std::endl;
+  Trace("dt-collapse-sel") << "Add selector : " << s << " to eqc(" << n << ")" << std::endl;
   //check to see if it is redundant
   NodeListMap::iterator sel_i = d_selector_apps.find( n );
   Assert( sel_i != d_selector_apps.end() );
@@ -1002,7 +1003,8 @@ void TheoryDatatypes::addSelector( Node s, EqcInfo* eqc, Node n, bool assertFact
     NodeList* sel = (*sel_i).second;
     for( NodeList::const_iterator j = sel->begin(); j != sel->end(); ++j ){
       Node ss = *j;
-      if( s.getOperator()==ss.getOperator() ){
+      if( s.getOperator()==ss.getOperator() && ( s.getKind()!=DT_HEIGHT_BOUND || s[1]==ss[1] ) ){
+        Trace("dt-collapse-sel") << "...redundant." << std::endl;
         return;
       }
     }
@@ -1056,21 +1058,33 @@ void TheoryDatatypes::collapseSelector( Node s, Node c ) {
   Assert( c.getKind()==APPLY_CONSTRUCTOR );
   Trace("dt-collapse-sel") << "collapse selector : " << s << " " << c << std::endl;
   Node r;
+  bool wrong = false;
   if( s.getKind()==kind::APPLY_SELECTOR_TOTAL ){
     //Trace("dt-collapse-sel") << "Indices : " << Datatype::indexOf(c.getOperator().toExpr()) << " " << Datatype::cindexOf(s.getOperator().toExpr()) << std::endl;
+    wrong = Datatype::indexOf(c.getOperator().toExpr())!=Datatype::cindexOf(s.getOperator().toExpr());
+    //if( wrong ){
+    //  return;
+    //}
     //if( Datatype::indexOf(c.getOperator().toExpr())!=Datatype::cindexOf(s.getOperator().toExpr()) ){
     //  mkExpDefSkolem( s.getOperator(), s[0].getType(), s.getType() );
     //  r = NodeManager::currentNM()->mkNode( kind::APPLY_UF, d_exp_def_skolem[s.getOperator().toExpr()], s[0] );
     //}else{
     r = NodeManager::currentNM()->mkNode( kind::APPLY_SELECTOR_TOTAL, s.getOperator(), c );
-  }else if( s.getKind()==kind::DT_SIZE ){
-    r = NodeManager::currentNM()->mkNode( kind::DT_SIZE, c );
+  }else if( s.getKind()==DT_SIZE ){
+    r = NodeManager::currentNM()->mkNode( DT_SIZE, c );
+  }else if( s.getKind()==DT_HEIGHT_BOUND ){
+    r = NodeManager::currentNM()->mkNode( DT_HEIGHT_BOUND, c, s[1] );
+    if( r==d_true ){
+      return;
+    }
   }
   Node rr = Rewriter::rewrite( r );
   if( s!=rr ){
     Node eq_exp = c.eqNode( s[0] );
     Node eq = rr.getType().isBoolean() ? s.iffNode( rr ) : s.eqNode( rr );
-    Trace("datatypes-infer") << "DtInfer : collapse sel : " << eq << " by " << eq_exp << std::endl;
+    Trace("datatypes-infer") << "DtInfer : collapse sel";
+    Trace("datatypes-infer") << ( wrong ? " wrong" : "");
+    Trace("datatypes-infer") << " : " << eq << " by " << eq_exp << std::endl;
 
     d_pending.push_back( eq );
     d_pending_exp[ eq ] = eq_exp;
@@ -1102,7 +1116,9 @@ void TheoryDatatypes::computeCareGraph(){
       for( unsigned j=i+1; j<functionTerms; j++ ){
         TNode f2 = r==0 ? d_consTerms[j] : d_selTerms[j];
         Trace("dt-cg-debug") << "dt-cg: " << f1 << " and " << f2 << " " << (f1.getOperator()==f2.getOperator()) << " " << areEqual( f1, f2 ) << std::endl;
-        if( f1.getOperator()==f2.getOperator() && ( f1.getKind()!=DT_SIZE || f1[0].getType()==f2[0].getType() ) && !areEqual( f1, f2 ) ){
+        if( f1.getOperator()==f2.getOperator() && 
+            ( ( f1.getKind()!=DT_SIZE && f1.getKind()!=DT_HEIGHT_BOUND ) || f1[0].getType()==f2[0].getType() ) && 
+            !areEqual( f1, f2 ) ){
           Trace("dt-cg") << "Check " << f1 << " and " << f2 << std::endl;
           bool somePairIsDisequal = false;
           currentPairs.clear();
@@ -1357,10 +1373,10 @@ void TheoryDatatypes::collectTerms( Node n ) {
     if( n.getKind() == APPLY_CONSTRUCTOR ){
       Debug("datatypes") << "  Found constructor " << n << endl;
       d_consTerms.push_back( n );
-    }else if( n.getKind() == APPLY_SELECTOR_TOTAL || n.getKind() == DT_SIZE ){
+    }else if( n.getKind() == APPLY_SELECTOR_TOTAL || n.getKind() == DT_SIZE || n.getKind() == DT_HEIGHT_BOUND ){
       d_selTerms.push_back( n );
       //we must also record which selectors exist
-      Debug("datatypes") << "  Found selector " << n << endl;
+      Trace("dt-collapse-sel") << "  Found selector " << n << endl;
       //if (n.getType().isBoolean()) {
       //  d_equalityEngine.addTriggerPredicate( n );
       //}else{
@@ -1396,6 +1412,27 @@ void TheoryDatatypes::collectTerms( Node n ) {
         d_pending.push_back( conc );
         d_pending_exp[ conc ] = d_true;
         d_infer.push_back( conc );
+      }else if( n.getKind() == DT_HEIGHT_BOUND ){
+        if( n[1].getConst<Rational>().isZero() ){
+          std::vector< Node > children;
+          const Datatype& dt = ((DatatypeType)(n[0].getType()).toType()).getDatatype();
+          for( unsigned i=0; i<dt.getNumConstructors(); i++ ){
+            if( DatatypesRewriter::isNullaryConstructor( dt[i] ) ){
+              Node test = DatatypesRewriter::mkTester( n[0], i, dt );
+              children.push_back( test );
+            }
+          }
+          Node lem;
+          if( children.empty() ){
+            lem = n.negate();
+          }else{
+            lem = NodeManager::currentNM()->mkNode( IFF, n, children.size()==1 ? children[0] : NodeManager::currentNM()->mkNode( OR, children ) );
+          }
+          Trace("datatypes-infer") << "DtInfer : zero height : " << lem << std::endl;
+          d_pending.push_back( lem );
+          d_pending_exp[ lem ] = d_true;
+          d_infer.push_back( lem );
+        }
       }
     }
   }
