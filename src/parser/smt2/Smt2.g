@@ -2002,6 +2002,8 @@ builtinOp[CVC4::Kind& kind]
   
   | FMFCARD_TOK    { $kind = CVC4::kind::CARDINALITY_CONSTRAINT; }
   
+  | INST_CLOSURE_TOK { $kind = CVC4::kind::INST_CLOSURE; }
+  
   | FP_TOK        { $kind = CVC4::kind::FLOATINGPOINT_FP; }
   | FP_EQ_TOK     { $kind = CVC4::kind::FLOATINGPOINT_EQ; }
   | FP_ABS_TOK    { $kind = CVC4::kind::FLOATINGPOINT_ABS; }
@@ -2469,6 +2471,8 @@ REALLCHAR_TOK : 're.allchar';
 DTSIZE_TOK : 'dt.size';
 
 FMFCARD_TOK : 'fmf.card';
+
+INST_CLOSURE_TOK : 'inst-closure';
 
 EMPTYSET_TOK: { PARSER_STATE->isTheoryEnabled(Smt2::THEORY_SETS) }? 'emptyset';
 // Other set theory operators are not

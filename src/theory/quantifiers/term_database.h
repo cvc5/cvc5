@@ -127,6 +127,8 @@ private:
   QuantifiersEngine* d_quantEngine;
   /** terms processed */
   std::hash_set< Node, NodeHashFunction > d_processed;
+  /** terms processed */
+  std::hash_set< Node, NodeHashFunction > d_iclosure_processed;
 private:
   /** select op map */
   std::map< Node, std::map< TypeNode, Node > > d_par_op_map;
@@ -158,7 +160,7 @@ public:
   /** map from type nodes to terms of that type */
   std::map< TypeNode, std::vector< Node > > d_type_map;
   /** add a term to the database */
-  void addTerm( Node n, std::set< Node >& added, bool withinQuant = false );
+  void addTerm( Node n, std::set< Node >& added, bool withinQuant = false, bool withinInstClosure = false );
   /** reset (calculate which terms are active) */
   void reset( Theory::Effort effort );
   /** get operator*/

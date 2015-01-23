@@ -111,7 +111,7 @@ Node TermDb::getOperator( Node n ) {
   }
 }
 
-void TermDb::addTerm( Node n, std::set< Node >& added, bool withinQuant ){
+void TermDb::addTerm( Node n, std::set< Node >& added, bool withinQuant, bool withinInstClosure ){
   //don't add terms in quantifier bodies
   if( withinQuant && !options::registerQuantBodyTerms() ){
     return;
@@ -152,9 +152,13 @@ void TermDb::addTerm( Node n, std::set< Node >& added, bool withinQuant ){
     }
     rec = true;
   }
+  if( withinInstClosure && d_iclosure_processed.find( n )==d_iclosure_processed.end() ){
+    d_iclosure_processed.insert( n );
+    rec = true;
+  }
   if( rec ){
     for( size_t i=0; i<n.getNumChildren(); i++ ){
-      addTerm( n[i], added, withinQuant );
+      addTerm( n[i], added, withinQuant, withinInstClosure );
     }
   }
 }
@@ -432,7 +436,8 @@ void TermDb::reset( Theory::Effort effort ){
     Trace("term-db-debug") << "Adding terms for operator " << it->first << std::endl;
     for( unsigned i=0; i<it->second.size(); i++ ){
       Node n = it->second[i];
-      if( hasTermCurrent( n ) && ee->hasTerm( n ) ){
+      //to be added to term index, term must be relevant, and either exist in EE or be an inst closure term
+      if( hasTermCurrent( n ) && ( ee->hasTerm( n ) || d_iclosure_processed.find( n )!=d_iclosure_processed.end() ) ){
         if( !n.getAttribute(NoMatchAttribute()) ){
           if( options::finiteModelFind() ){
             computeModelBasisArgAttribute( n );

@@ -129,12 +129,22 @@ void TheoryQuantifiers::check(Effort e) {
     case kind::FORALL:
       assertUniversal( assertion );
       break;
+    case kind::INST_CLOSURE:
+      getQuantifiersEngine()->addTermToDatabase( assertion[0], false, true );
+      break;
+    case kind::EQUAL:
+      //do nothing
+      break;
     case kind::NOT:
       {
         switch( assertion[0].getKind()) {
         case kind::FORALL:
           assertExistential( assertion );
           break;
+        case kind::EQUAL:
+          //do nothing
+          break;
+        case kind::INST_CLOSURE:
         default:
           Unhandled(assertion[0].getKind());
           break;

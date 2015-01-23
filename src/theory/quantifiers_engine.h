@@ -297,7 +297,7 @@ public:
   /** get trigger database */
   inst::TriggerTrie* getTriggerDatabase() { return d_tr_trie; }
   /** add term to database */
-  void addTermToDatabase( Node n, bool withinQuant = false );
+  void addTermToDatabase( Node n, bool withinQuant = false, bool withinInstClosure = false );
   /** get the master equality engine */
   eq::EqualityEngine* getMasterEqualityEngine() ;
   /** debug print equality engine */

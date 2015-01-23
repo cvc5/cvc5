@@ -125,6 +125,21 @@ struct QuantifierInstPatternListTypeRule {
   }
 };/* struct QuantifierInstPatternListTypeRule */
 
+struct QuantifierInstClosureTypeRule {
+  inline static TypeNode computeType(NodeManager* nodeManager, TNode n, bool check)
+    throw(TypeCheckingExceptionPrivate) {
+    Assert(n.getKind() == kind::INST_CLOSURE );
+    if( check ){
+      TypeNode tn = n[0].getType(check);
+      if( tn.isBoolean() ){
+        throw TypeCheckingExceptionPrivate(n, "argument of inst-closure must be non-boolean");
+      }
+    }
+    return nodeManager->booleanType();
+  }
+};/* struct QuantifierInstClosureTypeRule */
+
+
 class RewriteRuleTypeRule {
 public:
 
