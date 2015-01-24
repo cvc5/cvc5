@@ -131,6 +131,9 @@ void TheoryQuantifiers::check(Effort e) {
       break;
     case kind::INST_CLOSURE:
       getQuantifiersEngine()->addTermToDatabase( assertion[0], false, true );
+      if( !options::lteRestrictInstClosure() ){
+        getQuantifiersEngine()->getMasterEqualityEngine()->addTerm( assertion[0] );
+      }
       break;
     case kind::EQUAL:
       //do nothing

@@ -33,7 +33,7 @@ typedef expr::Attribute< AxiomAttributeId, bool > AxiomAttribute;
 /** Attribute true for quantifiers that are conjecture */
 struct ConjectureAttributeId {};
 typedef expr::Attribute< ConjectureAttributeId, bool > ConjectureAttribute;
-  
+
 /** Attribute true for function definition quantifiers */
 struct FunDefAttributeId {};
 typedef expr::Attribute< FunDefAttributeId, bool > FunDefAttribute;
@@ -183,10 +183,11 @@ public:
   /** is entailed (incomplete check) */
   bool isEntailed( TNode n, std::map< TNode, TNode >& subs, bool subsRep, bool pol );
   /** has term */
-  bool hasTermCurrent( Node n );
+  bool hasTermCurrent( Node n, bool useMode = true );
   /** get has term eqc */
   Node getHasTermEqc( Node r );
-  
+  /** is inst closure */
+  bool isInstClosure( Node r );
 //for model basis
 private:
   //map from types to model basis terms
@@ -252,8 +253,8 @@ public:
 public:
   //get bound variables in n
   static void getBoundVars( Node n, std::vector< Node >& bvs);
-  
-  
+
+
 //for skolem
 private:
   /** map from universal quantifiers to their skolemized body */
@@ -268,9 +269,9 @@ public:
   Node getSkolemizedBody( Node f);
   /** is induction variable */
   static bool isInductionTerm( Node n );
-  
+
 //for ground term enumeration
-private:  
+private:
   /** ground terms enumerated for types */
   std::map< TypeNode, std::vector< Node > > d_enum_terms;
   //type enumerators
@@ -278,8 +279,8 @@ private:
   std::vector< TypeEnumerator > d_typ_enum;
 public:
   //get nth term for type
-  Node getEnumerateTerm( TypeNode tn, unsigned index );  
-  
+  Node getEnumerateTerm( TypeNode tn, unsigned index );
+
 //miscellaneous
 public:
   /** map from universal quantifiers to the list of variables */
@@ -353,7 +354,7 @@ public:
   int getQAttrQuantInstLevel( Node q );
   /** get rewrite rule priority */
   int getQAttrRewriteRulePriority( Node q );
-  
+
 };/* class TermDb */
 
 }/* CVC4::theory::quantifiers namespace */

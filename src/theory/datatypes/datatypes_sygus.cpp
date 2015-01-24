@@ -110,6 +110,7 @@ void SygusSplit::getSygusSplits( Node n, const Datatype& dt, std::vector< Node >
     Node arg1;
     Kind parentKind = UNDEFINED_KIND;
     TypeNode tnnp;
+    Node ptest;
     if( n.getKind()==APPLY_SELECTOR_TOTAL ){
       Node op = n.getOperator();
       Expr selectorExpr = op.toExpr();
@@ -133,13 +134,13 @@ void SygusSplit::getSygusSplits( Node n, const Datatype& dt, std::vector< Node >
           }
         }
       }
-      
-      // we are splitting on a term that may later have no semantics : guard this case
-      Node ptest = DatatypesRewriter::mkTester( n[0], csIndex, pdt ).negate();
-      Trace("sygus-split-debug") << "Parent guard : " << ptest << std::endl;
-      d_splits[n].push_back( ptest );
-    }
 
+      // we are splitting on a term that may later have no semantics : guard this case
+      ptest = DatatypesRewriter::mkTester( n[0], csIndex, pdt );
+      Trace("sygus-split-debug") << "Parent guard : " << ptest << std::endl;
+    }
+    std::vector< Node > ptest_c;
+    bool narrow = false;
     for( unsigned i=0; i<dt.getNumConstructors(); i++ ){
       Trace("sygus-split-debug2") << "Add split " << n << " : constructor " << i << " : ";
       Assert( d_sygus_nred.find( tnn )!=d_sygus_nred.end() );
@@ -151,7 +152,7 @@ void SygusSplit::getSygusSplits( Node n, const Datatype& dt, std::vector< Node >
         }
         if( addSplit ){
           Node test = DatatypesRewriter::mkTester( n, i, dt );
-          
+
           //check if we can strengthen the first argument
           if( !arg1.isNull() ){
             std::map< int, std::vector< int > >::iterator it = d_sygus_pc_arg_pos[tnn][csIndex].find( i );
@@ -164,24 +165,48 @@ void SygusSplit::getSygusSplits( Node n, const Datatype& dt, std::vector< Node >
               Node argStr = lem_c.size()==1 ? lem_c[0] : NodeManager::currentNM()->mkNode( OR, lem_c );
               Trace("sygus-str") << "...strengthen corresponding first argument of " << test << " : " << argStr << std::endl;
               test = NodeManager::currentNM()->mkNode( AND, test, argStr );
+              narrow = true;
             }
+          }
+          //add fairness constraint
+          if( options::ceGuidedInstFair()==quantifiers::CEGQI_FAIR_DT_SIZE ){
+            Node szl = NodeManager::currentNM()->mkNode( DT_SIZE, n );
+            Node szr = NodeManager::currentNM()->mkNode( DT_SIZE, DatatypesRewriter::getInstCons( n, dt, i ) );
+            szr = Rewriter::rewrite( szr );
+            test = NodeManager::currentNM()->mkNode( AND, test, szl.eqNode( szr ) );
           }
           d_splits[n].push_back( test );
           Trace("sygus-split-debug2") << "SUCCESS" << std::endl;
           Trace("sygus-split") << "Disjunct #" << d_splits[n].size() << " : " << test << std::endl;
         }else{
           Trace("sygus-split-debug2") << "redundant argument" << std::endl;
+          narrow = true;
         }
       }else{
         Trace("sygus-split-debug2") << "redundant operator" << std::endl;
+        narrow = true;
+      }
+      if( !ptest.isNull() ){
+        ptest_c.push_back( DatatypesRewriter::mkTester( n, i, dt ) );
       }
     }
-    
     if( d_splits[n].empty() ){
       //possible
-      
+      exit( 3 );
+
       Assert( false );
     }
+    if( narrow && !ptest.isNull() ){
+      Node split = d_splits[n].size()==1 ? d_splits[n][0] : NodeManager::currentNM()->mkNode( OR, d_splits[n] );
+      d_splits[n].clear();
+      split = NodeManager::currentNM()->mkNode( AND, ptest, split );
+      d_splits[n].push_back( split );
+      if( !ptest_c.empty() ){
+        ptest = NodeManager::currentNM()->mkNode( AND, ptest.negate(), NodeManager::currentNM()->mkNode( OR, ptest_c ) );
+      }
+      d_splits[n].push_back( ptest );
+    }
+
   }
   //copy to splits
   splits.insert( splits.end(), d_splits[n].begin(), d_splits[n].end() );
@@ -213,33 +238,35 @@ void SygusSplit::registerSygusType( TypeNode tn, const Datatype& dt ) {
     //compute the redundant operators
     for( unsigned i=0; i<dt.getNumConstructors(); i++ ){
       bool nred = true;
-      std::map< int, Kind >::iterator it = d_arg_kind[tn].find( i );
-      if( it!=d_arg_kind[tn].end() ){
-        Kind dk;
-        if( isAntisymmetric( it->second, dk ) ){
-          std::map< Kind, int >::iterator ita = d_kinds[tn].find( dk );
-          if( ita!=d_kinds[tn].end() ){
-            Trace("sygus-split-debug") << "Possible redundant operator : " << it->second << " with " << dk << std::endl;
-            //check for type mismatches
-            bool success = true;
-            unsigned j = ita->second;
-            for( unsigned k=0; k<2; k++ ){
-              unsigned ko = k==0 ? 1 : 0;
-              TypeNode tni = TypeNode::fromType( ((SelectorType)dt[i][k].getType()).getRangeType() );
-              TypeNode tnj = TypeNode::fromType( ((SelectorType)dt[j][ko].getType()).getRangeType() );
-              if( tni!=tnj ){
-                Trace("sygus-split-debug") << "Argument types " << tni << " and " << tnj << " are not equal." << std::endl;
-                success = false;
-                break;
+      if( options::sygusNormalForm() ){
+        std::map< int, Kind >::iterator it = d_arg_kind[tn].find( i );
+        if( it!=d_arg_kind[tn].end() ){
+          Kind dk;
+          if( isAntisymmetric( it->second, dk ) ){
+            std::map< Kind, int >::iterator ita = d_kinds[tn].find( dk );
+            if( ita!=d_kinds[tn].end() ){
+              Trace("sygus-split-debug") << "Possible redundant operator : " << it->second << " with " << dk << std::endl;
+              //check for type mismatches
+              bool success = true;
+              unsigned j = ita->second;
+              for( unsigned k=0; k<2; k++ ){
+                unsigned ko = k==0 ? 1 : 0;
+                TypeNode tni = TypeNode::fromType( ((SelectorType)dt[i][k].getType()).getRangeType() );
+                TypeNode tnj = TypeNode::fromType( ((SelectorType)dt[j][ko].getType()).getRangeType() );
+                if( tni!=tnj ){
+                  Trace("sygus-split-debug") << "Argument types " << tni << " and " << tnj << " are not equal." << std::endl;
+                  success = false;
+                  break;
+                }
+              }
+              if( success ){
+                Trace("sygus-nf") << "* Sygus norm " << dt.getName() << " : do not consider any " << d_arg_kind[tn][i] << " terms." << std::endl;
+                nred = false;
               }
             }
-            if( success ){
-              Trace("sygus-nf") << "* Sygus norm " << dt.getName() << " : do not consider any " << d_arg_kind[tn][i] << " terms." << std::endl;
-              nred = false;
-            }
           }
+          //NAND,NOR
         }
-        //NAND,NOR
       }
       d_sygus_nred[tn].push_back( nred );
     }
@@ -251,85 +278,92 @@ void SygusSplit::registerSygusTypeConstructorArg( TypeNode tnn, const Datatype& 
   if( it==d_sygus_pc_nred[tnn][csIndex].end() ){
     registerSygusType( tnnp, pdt );
     Trace("sygus-split") << "Register type constructor arg " << dt.getName() << " " << csIndex << " " << sIndex << std::endl;
-    //get parent kind
-    bool hasParentKind = false;
-    Kind parentKind;
-    if( isKindArg( tnnp, csIndex ) ){
-      hasParentKind = true;
-      parentKind = d_arg_kind[tnnp][csIndex];
-    }
-    for( unsigned i=0; i<dt.getNumConstructors(); i++ ){
-      bool addSplit = d_sygus_nred[tnn][i];
-      if( addSplit && hasParentKind ){
-        if( d_arg_kind.find( tnn )!=d_arg_kind.end() && d_arg_kind[tnn].find( i )!=d_arg_kind[tnn].end() ){
-          addSplit = considerSygusSplitKind( dt, pdt, tnn, tnnp, d_arg_kind[tnn][i], parentKind, sIndex );
-          if( !addSplit ){
-            Trace("sygus-nf") << "* Sygus norm " << pdt.getName() << " : do not consider " << dt.getName() << "::" << d_arg_kind[tnn][i];
-            Trace("sygus-nf") << " as argument " << sIndex << " of " << parentKind << "." << std::endl;
-          }
-        }else if( d_arg_const.find( tnn )!=d_arg_const.end() && d_arg_const[tnn].find( i )!=d_arg_const[tnn].end() ){
-          addSplit = considerSygusSplitConst( dt, pdt, tnn, tnnp, d_arg_const[tnn][i], parentKind, sIndex );
-          if( !addSplit ){
-            Trace("sygus-nf") << "* Sygus norm " << pdt.getName() << " : do not consider constant " << dt.getName() << "::" << d_arg_const[tnn][i];
-            Trace("sygus-nf") << " as argument " << sIndex << " of " << parentKind << "." << std::endl;
+    if( !options::sygusNormalForm() ){
+      for( unsigned i=0; i<dt.getNumConstructors(); i++ ){
+        d_sygus_pc_nred[tnn][csIndex][sIndex].push_back( true );
+      }
+    }else{
+      // calculate which constructors we should consider based on normal form for terms
+      //get parent kind
+      bool hasParentKind = false;
+      Kind parentKind;
+      if( isKindArg( tnnp, csIndex ) ){
+        hasParentKind = true;
+        parentKind = d_arg_kind[tnnp][csIndex];
+      }
+      for( unsigned i=0; i<dt.getNumConstructors(); i++ ){
+        bool addSplit = d_sygus_nred[tnn][i];
+        if( addSplit && hasParentKind ){
+          if( d_arg_kind.find( tnn )!=d_arg_kind.end() && d_arg_kind[tnn].find( i )!=d_arg_kind[tnn].end() ){
+            addSplit = considerSygusSplitKind( dt, pdt, tnn, tnnp, d_arg_kind[tnn][i], parentKind, sIndex );
+            if( !addSplit ){
+              Trace("sygus-nf") << "* Sygus norm " << pdt.getName() << " : do not consider " << dt.getName() << "::" << d_arg_kind[tnn][i];
+              Trace("sygus-nf") << " as argument " << sIndex << " of " << parentKind << "." << std::endl;
+            }
+          }else if( d_arg_const.find( tnn )!=d_arg_const.end() && d_arg_const[tnn].find( i )!=d_arg_const[tnn].end() ){
+            addSplit = considerSygusSplitConst( dt, pdt, tnn, tnnp, d_arg_const[tnn][i], parentKind, sIndex );
+            if( !addSplit ){
+              Trace("sygus-nf") << "* Sygus norm " << pdt.getName() << " : do not consider constant " << dt.getName() << "::" << d_arg_const[tnn][i];
+              Trace("sygus-nf") << " as argument " << sIndex << " of " << parentKind << "." << std::endl;
+            }
           }
         }
+        d_sygus_pc_nred[tnn][csIndex][sIndex].push_back( addSplit );
       }
-      d_sygus_pc_nred[tnn][csIndex][sIndex].push_back( addSplit );
-    }
-    //also compute argument relationships
-    if( options::sygusNormalFormArg() ){
-      if( isKindArg( tnnp, csIndex ) && pdt[csIndex].getNumArgs()==2 ){
-        int osIndex = sIndex==0 ? 1 : 0;
-        if( isArgDatatype( pdt[csIndex], osIndex, dt ) ){
-          registerSygusTypeConstructorArg( tnn, dt, tnnp, pdt, csIndex, osIndex );
-          if( sIndex==0 ){
-            Assert( d_sygus_pc_nred[tnn][csIndex].find( sIndex )!=d_sygus_pc_nred[tnn][csIndex].end() );
-            Assert( d_sygus_pc_nred[tnn][csIndex].find( osIndex )!=d_sygus_pc_nred[tnn][csIndex].end() );
-            
-            Kind parentKind = d_arg_kind[tnnp][csIndex];
-            bool isPComm = isComm( parentKind );
-            for( unsigned i=0; i<dt.getNumConstructors(); i++ ){
-              if( d_sygus_pc_nred[tnn][csIndex][osIndex][i] ){
-                //arguments that can be removed
-                std::map< int, bool > rem_arg;
-                if( isComm( parentKind ) ){
-                  for( unsigned j=0; j<dt.getNumConstructors(); j++ ){
-                    if( d_sygus_pc_nred[tnn][csIndex][sIndex][j] ){
-                      if( isPComm && j>i ){
-                        //based on commutativity 
-                        // use term ordering : constructor index of first argument is not greater than constructor index of second argument
-                        rem_arg[j] = true;
-                      }else{
-                        if( parentKind!=UNDEFINED_KIND && dt[i].getNumArgs()==0 && dt[j].getNumArgs()==0 ){
-                          Node nr = NodeManager::currentNM()->mkNode( parentKind, dt[j].getSygusOp(), dt[i].getSygusOp() );
-                          Node nrr = Rewriter::rewrite( nr );
-                          Trace("sygus-split-debug") << "  Test constant args : " << nr << " rewrites to " << nrr << std::endl;
-                          //based on rewriting
-                          // if rewriting the two arguments gives an operator that is in the parent syntax, remove the redundancy
-                          if( hasOp( tnnp, nrr ) ){
-                            Trace("sygus-nf") << "* Sygus norm : simplify based on rewrite " << nr << " -> " << nrr << std::endl;
-                            rem_arg[j] = true;
-                          }                                                          
+      //also compute argument relationships
+      if( options::sygusNormalFormArg() ){
+        if( isKindArg( tnnp, csIndex ) && pdt[csIndex].getNumArgs()==2 ){
+          int osIndex = sIndex==0 ? 1 : 0;
+          if( isArgDatatype( pdt[csIndex], osIndex, dt ) ){
+            registerSygusTypeConstructorArg( tnn, dt, tnnp, pdt, csIndex, osIndex );
+            if( sIndex==0 ){
+              Assert( d_sygus_pc_nred[tnn][csIndex].find( sIndex )!=d_sygus_pc_nred[tnn][csIndex].end() );
+              Assert( d_sygus_pc_nred[tnn][csIndex].find( osIndex )!=d_sygus_pc_nred[tnn][csIndex].end() );
+
+              Kind parentKind = d_arg_kind[tnnp][csIndex];
+              bool isPComm = isComm( parentKind );
+              for( unsigned i=0; i<dt.getNumConstructors(); i++ ){
+                if( d_sygus_pc_nred[tnn][csIndex][osIndex][i] ){
+                  //arguments that can be removed
+                  std::map< int, bool > rem_arg;
+                  if( isComm( parentKind ) ){
+                    for( unsigned j=0; j<dt.getNumConstructors(); j++ ){
+                      if( d_sygus_pc_nred[tnn][csIndex][sIndex][j] ){
+                        if( isPComm && j>i ){
+                          //based on commutativity
+                          // use term ordering : constructor index of first argument is not greater than constructor index of second argument
+                          rem_arg[j] = true;
+                        }else{
+                          if( parentKind!=UNDEFINED_KIND && dt[i].getNumArgs()==0 && dt[j].getNumArgs()==0 ){
+                            Node nr = NodeManager::currentNM()->mkNode( parentKind, dt[j].getSygusOp(), dt[i].getSygusOp() );
+                            Node nrr = Rewriter::rewrite( nr );
+                            Trace("sygus-split-debug") << "  Test constant args : " << nr << " rewrites to " << nrr << std::endl;
+                            //based on rewriting
+                            // if rewriting the two arguments gives an operator that is in the parent syntax, remove the redundancy
+                            if( hasOp( tnnp, nrr ) ){
+                              Trace("sygus-nf") << "* Sygus norm : simplify based on rewrite " << nr << " -> " << nrr << std::endl;
+                              rem_arg[j] = true;
+                            }
+                          }
                         }
                       }
                     }
                   }
-                }
-                if( !rem_arg.empty() ){
-                  d_sygus_pc_arg_pos[tnn][csIndex][i].clear();
-                  Trace("sygus-split-debug") << "Possibilities for first argument of " << parentKind << ", when second argument is " << dt[i].getName() << " : " << std::endl;
-                  for( unsigned j=0; j<dt.getNumConstructors(); j++ ){
-                    if( d_sygus_pc_nred[tnn][csIndex][sIndex][j] && rem_arg.find( j )==rem_arg.end() ){
-                      d_sygus_pc_arg_pos[tnn][csIndex][i].push_back( j );
-                      Trace("sygus-split-debug") << "  " << dt[j].getName() << std::endl;
+                  if( !rem_arg.empty() ){
+                    d_sygus_pc_arg_pos[tnn][csIndex][i].clear();
+                    Trace("sygus-split-debug") << "Possibilities for first argument of " << parentKind << ", when second argument is " << dt[i].getName() << " : " << std::endl;
+                    for( unsigned j=0; j<dt.getNumConstructors(); j++ ){
+                      if( d_sygus_pc_nred[tnn][csIndex][sIndex][j] && rem_arg.find( j )==rem_arg.end() ){
+                        d_sygus_pc_arg_pos[tnn][csIndex][i].push_back( j );
+                        Trace("sygus-split-debug") << "  " << dt[j].getName() << std::endl;
+                      }
                     }
-                  }
-                  //if there are no possibilities for first argument, then this child is redundant
-                  if( d_sygus_pc_arg_pos[tnn][csIndex][i].empty() ){
-                    Trace("sygus-nf") << "* Sygus norm " << pdt.getName() << " : do not consider constant " << dt.getName() << "::" << dt[i].getName();
-                    Trace("sygus-nf") << " as argument " << osIndex << " of " << parentKind << " (based on arguments)." << std::endl;
-                    d_sygus_pc_nred[tnn][csIndex][osIndex][i] = false;
+                    //if there are no possibilities for first argument, then this child is redundant
+                    if( d_sygus_pc_arg_pos[tnn][csIndex][i].empty() ){
+                      Trace("sygus-nf") << "* Sygus norm " << pdt.getName() << " : do not consider constant " << dt.getName() << "::" << dt[i].getName();
+                      Trace("sygus-nf") << " as argument " << osIndex << " of " << parentKind << " (based on arguments)." << std::endl;
+                      d_sygus_pc_nred[tnn][csIndex][osIndex][i] = false;
+                    }
                   }
                 }
               }
@@ -477,24 +511,24 @@ bool SygusSplit::considerSygusSplitKind( const Datatype& dt, const Datatype& pdt
     Kind reqk = UNDEFINED_KIND;
     std::map< int, Kind > reqk_arg; //TODO
     if( parent==NOT ){
-      if( k==AND ) { 
+      if( k==AND ) {
         nk = OR;reqk = NOT;
-      }else if( k==OR ){ 
+      }else if( k==OR ){
         nk = AND;reqk = NOT;
-      }else if( k==IFF ) { 
+      }else if( k==IFF ) {
         nk = XOR;
-      }else if( k==XOR ) { 
+      }else if( k==XOR ) {
         nk = IFF;
       }
     }
     if( parent==BITVECTOR_NOT ){
-      if( k==BITVECTOR_AND ) { 
+      if( k==BITVECTOR_AND ) {
         nk = BITVECTOR_OR;reqk = BITVECTOR_NOT;
-      }else if( k==BITVECTOR_OR ){ 
+      }else if( k==BITVECTOR_OR ){
         nk = BITVECTOR_AND;reqk = BITVECTOR_NOT;
-      }else if( k==BITVECTOR_XNOR ) { 
+      }else if( k==BITVECTOR_XNOR ) {
         nk = BITVECTOR_XOR;
-      }else if( k==BITVECTOR_XOR ) { 
+      }else if( k==BITVECTOR_XOR ) {
         nk = BITVECTOR_XNOR;
       }
     }

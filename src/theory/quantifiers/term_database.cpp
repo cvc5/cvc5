@@ -322,15 +322,19 @@ bool TermDb::isEntailed( TNode n, std::map< TNode, TNode >& subs, bool subsRep, 
   return false;
 }
 
-bool TermDb::hasTermCurrent( Node n ) {
-  //return d_quantEngine->getMasterEqualityEngine()->hasTerm( n ); //some assertions are not sent to EE
-  if( options::termDbMode()==TERM_DB_ALL ){
-    return true;
-  }else if( options::termDbMode()==TERM_DB_RELEVANT ){
+bool TermDb::hasTermCurrent( Node n, bool useMode ) {
+  if( !useMode ){
     return d_has_map.find( n )!=d_has_map.end();
   }else{
-    Assert( false );
-    return false;
+    //return d_quantEngine->getMasterEqualityEngine()->hasTerm( n ); //some assertions are not sent to EE
+    if( options::termDbMode()==TERM_DB_ALL ){
+      return true;
+    }else if( options::termDbMode()==TERM_DB_RELEVANT ){
+      return d_has_map.find( n )!=d_has_map.end();
+    }else{
+      Assert( false );
+      return false;
+    }
   }
 }
 
@@ -364,7 +368,12 @@ Node TermDb::getHasTermEqc( Node r ) {
   }
 }
 
+bool TermDb::isInstClosure( Node r ) {
+  return d_iclosure_processed.find( r )!=d_iclosure_processed.end();
+}
+
 void TermDb::setHasTerm( Node n ) {
+  Trace("term-db-debug2") << "hasTerm : " << n  << std::endl;
   //if( inst::Trigger::isAtomicTrigger( n ) ){
   if( d_has_map.find( n )==d_has_map.end() ){
     d_has_map[n] = true;
@@ -391,9 +400,9 @@ void TermDb::reset( Theory::Effort effort ){
   d_func_map_trie.clear();
   d_func_map_eqc_trie.clear();
 
-  eq::EqualityEngine* ee = d_quantEngine->getMasterEqualityEngine(); 
+  eq::EqualityEngine* ee = d_quantEngine->getMasterEqualityEngine();
   //compute has map
-  if( options::termDbMode()==TERM_DB_RELEVANT ){
+  if( options::termDbMode()==TERM_DB_RELEVANT || options::lteRestrictInstClosure() ){
     d_has_map.clear();
     d_has_eqc.clear();
     eq::EqClassesIterator eqcs_i = eq::EqClassesIterator( ee );
@@ -423,7 +432,9 @@ void TermDb::reset( Theory::Effort effort ){
       if (theory && d_quantEngine->getTheoryEngine()->d_logicInfo.isTheoryEnabled(theoryId)) {
         context::CDList<Assertion>::const_iterator it = theory->facts_begin(), it_end = theory->facts_end();
         for (unsigned i = 0; it != it_end; ++ it, ++i) {
-          setHasTerm( (*it).assertion );
+          if( (*it).assertion.getKind()!=INST_CLOSURE ){
+            setHasTerm( (*it).assertion );
+          }
         }
       }
     }
@@ -443,7 +454,7 @@ void TermDb::reset( Theory::Effort effort ){
             computeModelBasisArgAttribute( n );
           }
           computeArgReps( n );
-          
+
           if( Trace.isOn("term-db-debug") ){
             Trace("term-db-debug") << "Adding term " << n << " with arg reps : ";
             for( unsigned i=0; i<d_arg_reps[n].size(); i++ ){
@@ -451,7 +462,7 @@ void TermDb::reset( Theory::Effort effort ){
             }
             Trace("term-db-debug") << std::endl;
           }
-          
+
           if( !d_func_map_trie[ it->first ].addTerm( n, d_arg_reps[n] ) ){
             NoMatchAttribute nma;
             n.setAttribute(nma,true);
@@ -1157,7 +1168,7 @@ void TermDb::computeAttributes( Node q ) {
           //not necessarily nested existential
           //Assert( q[1].getKind()==NOT );
           //Assert( q[1][0].getKind()==FORALL );
-          
+
           Trace("quant-attr") << "Attribute : sygus : " << q << std::endl;
           d_qattr_sygus[q] = true;
           if( d_quantEngine->getCegInstantiation()==NULL ){

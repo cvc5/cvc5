@@ -66,8 +66,8 @@ TheoryDatatypes::TheoryDatatypes(Context* c, UserContext* u, OutputChannel& out,
 
   d_true = NodeManager::currentNM()->mkConst( true );
   d_dtfCounter = 0;
-  
-  if( options::sygusNormalForm() ){
+
+  if( options::ceGuidedInst() ){
     d_sygus_split = new SygusSplit;
   }else{
     d_sygus_split = NULL;
@@ -360,6 +360,9 @@ void TheoryDatatypes::assertFact( Node fact, Node exp ){
   doPendingMerges();
   //add to tester if applicable
   if( atom.getKind()==kind::APPLY_TESTER ){
+    if( polarity ){
+      Trace("dt-tester") << "Assert tester : " << atom << std::endl;
+    }
     Node rep = getRepresentative( atom[0] );
     EqcInfo* eqc = getOrMakeEqcInfo( rep, true );
     addTester( fact, eqc, rep );
@@ -1070,26 +1073,30 @@ void TheoryDatatypes::collapseSelector( Node s, Node c ) {
     //  r = NodeManager::currentNM()->mkNode( kind::APPLY_UF, d_exp_def_skolem[s.getOperator().toExpr()], s[0] );
     //}else{
     r = NodeManager::currentNM()->mkNode( kind::APPLY_SELECTOR_TOTAL, s.getOperator(), c );
-  }else if( s.getKind()==DT_SIZE ){
-    r = NodeManager::currentNM()->mkNode( DT_SIZE, c );
-  }else if( s.getKind()==DT_HEIGHT_BOUND ){
-    r = NodeManager::currentNM()->mkNode( DT_HEIGHT_BOUND, c, s[1] );
-    if( r==d_true ){
-      return;
+  }else{
+    if( s.getKind()==DT_SIZE ){
+      r = NodeManager::currentNM()->mkNode( DT_SIZE, c );
+    }else if( s.getKind()==DT_HEIGHT_BOUND ){
+      r = NodeManager::currentNM()->mkNode( DT_HEIGHT_BOUND, c, s[1] );
+      if( r==d_true ){
+        return;
+      }
     }
   }
-  Node rr = Rewriter::rewrite( r );
-  if( s!=rr ){
-    Node eq_exp = c.eqNode( s[0] );
-    Node eq = rr.getType().isBoolean() ? s.iffNode( rr ) : s.eqNode( rr );
-    Trace("datatypes-infer") << "DtInfer : collapse sel";
-    Trace("datatypes-infer") << ( wrong ? " wrong" : "");
-    Trace("datatypes-infer") << " : " << eq << " by " << eq_exp << std::endl;
+  if( !r.isNull() ){
+    Node rr = Rewriter::rewrite( r );
+    if( s!=rr ){
+      Node eq_exp = c.eqNode( s[0] );
+      Node eq = rr.getType().isBoolean() ? s.iffNode( rr ) : s.eqNode( rr );
+      Trace("datatypes-infer") << "DtInfer : collapse sel";
+      Trace("datatypes-infer") << ( wrong ? " wrong" : "");
+      Trace("datatypes-infer") << " : " << eq << " by " << eq_exp << std::endl;
 
-    d_pending.push_back( eq );
-    d_pending_exp[ eq ] = eq_exp;
-    d_infer.push_back( eq );
-    d_infer_exp.push_back( eq_exp );
+      d_pending.push_back( eq );
+      d_pending_exp[ eq ] = eq_exp;
+      d_infer.push_back( eq );
+      d_infer_exp.push_back( eq_exp );
+    }
   }
 }
 
@@ -1116,8 +1123,8 @@ void TheoryDatatypes::computeCareGraph(){
       for( unsigned j=i+1; j<functionTerms; j++ ){
         TNode f2 = r==0 ? d_consTerms[j] : d_selTerms[j];
         Trace("dt-cg-debug") << "dt-cg: " << f1 << " and " << f2 << " " << (f1.getOperator()==f2.getOperator()) << " " << areEqual( f1, f2 ) << std::endl;
-        if( f1.getOperator()==f2.getOperator() && 
-            ( ( f1.getKind()!=DT_SIZE && f1.getKind()!=DT_HEIGHT_BOUND ) || f1[0].getType()==f2[0].getType() ) && 
+        if( f1.getOperator()==f2.getOperator() &&
+            ( ( f1.getKind()!=DT_SIZE && f1.getKind()!=DT_HEIGHT_BOUND ) || f1[0].getType()==f2[0].getType() ) &&
             !areEqual( f1, f2 ) ){
           Trace("dt-cg") << "Check " << f1 << " and " << f2 << std::endl;
           bool somePairIsDisequal = false;
@@ -1377,11 +1384,6 @@ void TheoryDatatypes::collectTerms( Node n ) {
       d_selTerms.push_back( n );
       //we must also record which selectors exist
       Trace("dt-collapse-sel") << "  Found selector " << n << endl;
-      //if (n.getType().isBoolean()) {
-      //  d_equalityEngine.addTriggerPredicate( n );
-      //}else{
-      //  d_equalityEngine.addTerm( n );
-      //}
       Node rep = getRepresentative( n[0] );
       //record it in the selectors
       EqcInfo* eqc = getOrMakeEqcInfo( rep, true );
@@ -1395,7 +1397,7 @@ void TheoryDatatypes::collectTerms( Node n ) {
         d_pending.push_back( conc );
         d_pending_exp[ conc ] = d_true;
         d_infer.push_back( conc );
-
+/*
         //add size = 0 lemma
         Node nn = n.eqNode( NodeManager::currentNM()->mkConst( Rational(0) ) );
         std::vector< Node > children;
@@ -1412,7 +1414,10 @@ void TheoryDatatypes::collectTerms( Node n ) {
         d_pending.push_back( conc );
         d_pending_exp[ conc ] = d_true;
         d_infer.push_back( conc );
-      }else if( n.getKind() == DT_HEIGHT_BOUND ){
+*/
+      }
+
+      if( n.getKind() == DT_HEIGHT_BOUND ){
         if( n[1].getConst<Rational>().isZero() ){
           std::vector< Node > children;
           const Datatype& dt = ((DatatypeType)(n[0].getType()).toType()).getDatatype();

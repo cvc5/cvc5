@@ -207,5 +207,7 @@ option localTheoryExt --local-t-ext bool :default false
   do instantiation based on local theory extensions
 option ltePartialInst --lte-partial-inst bool :default false
   partially instantiate local theory quantifiers
+option lteRestrictInstClosure --lte-restrict-inst-closure bool :default false
+  treat arguments of inst closure as restricted terms for instantiation
  
 endmodule

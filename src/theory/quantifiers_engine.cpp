@@ -80,9 +80,9 @@ d_lemmas_produced_c(u){
   //d_rr_tr_trie = new rrinst::TriggerTrie;
   //d_eem = new EfficientEMatcher( this );
   d_hasAddedLemma = false;
-  
+
   bool needsBuilder = false;
-  
+
   Trace("quant-engine-debug") << "Initialize model, mbqi : " << options::mbqiMode() << std::endl;
 
   //the model object
@@ -158,7 +158,7 @@ d_lemmas_produced_c(u){
   }else{
     d_lte_part_inst = NULL;
   }
-  
+
   if( needsBuilder ){
     Trace("quant-engine-debug") << "Initialize model engine, mbqi : " << options::mbqiMode() << " " << options::fmfBoundInt() << std::endl;
     if( options::mbqiMode()==quantifiers::MBQI_FMC || options::mbqiMode()==quantifiers::MBQI_FMC_INTERVAL ||
@@ -604,19 +604,33 @@ void QuantifiersEngine::setInstantiationLevelAttr( Node n, uint64_t level ){
 }
 
 bool QuantifiersEngine::isTermEligibleForInstantiation( Node n, Node f, bool print ) {
-  if( n.hasAttribute(InstLevelAttribute()) ){
-    int fml = d_term_db->getQAttrQuantInstLevel( f );
-    unsigned ml = fml>=0 ? fml : options::instMaxLevel();
-
-    if( n.getAttribute(InstLevelAttribute())>ml ){
-      Trace("inst-add-debug") << "Term " << n << " has instantiation level " << n.getAttribute(InstLevelAttribute());
-      Trace("inst-add-debug") << ", which is more than maximum allowed level " << ml << " for this quantified formula." << std::endl;
+  if( options::lteRestrictInstClosure() ){
+    //has to be both in inst closure and in ground assertions
+    if( !d_term_db->isInstClosure( n ) ){
+      Trace("inst-add-debug") << "Term " << n << " is not an inst-closure term." << std::endl;
       return false;
     }
-  }else{
-    if( options::instLevelInputOnly() ){
-      Trace("inst-add-debug") << "Term " << n << " does not have an instantiation level." << std::endl;
+    // hack : since theories preregister terms not in assertions, we are using hasTermCurrent to approximate this
+    if( !d_term_db->hasTermCurrent( n, false ) ){
+      Trace("inst-add-debug") << "Term " << n << " is not in a ground assertion." << std::endl;
       return false;
+    }
+  }
+  if( options::instMaxLevel()!=-1 ){
+    if( n.hasAttribute(InstLevelAttribute()) ){
+      int fml = d_term_db->getQAttrQuantInstLevel( f );
+      unsigned ml = fml>=0 ? fml : options::instMaxLevel();
+
+      if( n.getAttribute(InstLevelAttribute())>ml ){
+        Trace("inst-add-debug") << "Term " << n << " has instantiation level " << n.getAttribute(InstLevelAttribute());
+        Trace("inst-add-debug") << ", which is more than maximum allowed level " << ml << " for this quantified formula." << std::endl;
+        return false;
+      }
+    }else{
+      if( options::instLevelInputOnly() ){
+        Trace("inst-add-debug") << "Term " << n << " does not have an instantiation level." << std::endl;
+        return false;
+      }
     }
   }
   return true;
@@ -775,7 +789,7 @@ bool QuantifiersEngine::addInstantiation( Node f, std::vector< Node >& terms, bo
   Trace("inst-add-debug") << std::endl;
 
   //check based on instantiation level
-  if( options::instMaxLevel()!=-1 ){
+  if( options::instMaxLevel()!=-1 || options::lteRestrictInstClosure() ){
     for( unsigned i=0; i<terms.size(); i++ ){
       if( !isTermEligibleForInstantiation( terms[i], f, true ) ){
         return false;
@@ -1247,7 +1261,9 @@ int getDepth( Node n ){
 //smaller the score, the better
 int EqualityQueryQuantifiersEngine::getRepScore( Node n, Node f, int index ){
   int s;
-  if( options::instMaxLevel()!=-1 ){
+  if( options::lteRestrictInstClosure() && ( !d_qe->getTermDatabase()->isInstClosure( n ) || !d_qe->getTermDatabase()->hasTermCurrent( n, false ) ) ){
+    return -1;
+  }else if( options::instMaxLevel()!=-1 ){
     //score prefer lowest instantiation level
     if( n.hasAttribute(InstLevelAttribute()) ){
       s = n.getAttribute(InstLevelAttribute());
