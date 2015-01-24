@@ -151,7 +151,7 @@ public:
   /** has map */
   std::map< Node, bool > d_has_map;
   /** map from reps to a term in eqc in d_has_map */
-  std::map< Node, Node > d_has_eqc;
+  std::map< Node, Node > d_term_elig_eqc;
   /** map from APPLY_UF functions to trie */
   std::map< Node, TermArgTrie > d_func_map_trie;
   std::map< Node, TermArgTrie > d_func_map_eqc_trie;
@@ -184,8 +184,10 @@ public:
   bool isEntailed( TNode n, std::map< TNode, TNode >& subs, bool subsRep, bool pol );
   /** has term */
   bool hasTermCurrent( Node n, bool useMode = true );
+  /** is term eligble for instantiation? */
+  bool isTermEligibleForInstantiation( TNode n, TNode f, bool print = false );
   /** get has term eqc */
-  Node getHasTermEqc( Node r );
+  Node getEligibleTermInEqc( TNode r );
   /** is inst closure */
   bool isInstClosure( Node r );
 //for model basis

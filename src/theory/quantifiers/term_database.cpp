@@ -338,33 +338,60 @@ bool TermDb::hasTermCurrent( Node n, bool useMode ) {
   }
 }
 
-Node TermDb::getHasTermEqc( Node r ) {
-  if( hasTermCurrent( r ) ){
-    return r;
-  }else{
-    /*
-    if( options::termDbInstClosure()  ){
-      std::map< Node, Node >::iterator it = d_has_eqc.find( r );
-      if( it==d_has_eqc.end() ){
-        Node h;
-        eq::EqualityEngine* ee = d_quantEngine->getMasterEqualityEngine();
-        eq::EqClassIterator eqc_i = eq::EqClassIterator( r, ee );
-        while( h.isNull() && !eqc_i.isFinished() ){
-          TNode n = (*eqc_i);
-          ++eqc_i;
-          if( hasTermCurrent( n ) ){
-            h = n;
-          }
-        }
-        d_has_eqc[r] = h;
-        return h;
-      }else{
-        return it->second;
+bool TermDb::isTermEligibleForInstantiation( TNode n, TNode f, bool print ) {
+  if( options::lteRestrictInstClosure() ){
+    //has to be both in inst closure and in ground assertions
+    if( !isInstClosure( n ) ){
+      Trace("inst-add-debug") << "Term " << n << " is not an inst-closure term." << std::endl;
+      return false;
+    }
+    // hack : since theories preregister terms not in assertions, we are using hasTermCurrent to approximate this
+    if( !hasTermCurrent( n, false ) ){
+      Trace("inst-add-debug") << "Term " << n << " is not in a ground assertion." << std::endl;
+      return false;
+    }
+  }
+  if( options::instMaxLevel()!=-1 ){
+    if( n.hasAttribute(InstLevelAttribute()) ){
+      int fml = f.isNull() ? -1 : getQAttrQuantInstLevel( f );
+      unsigned ml = fml>=0 ? fml : options::instMaxLevel();
+
+      if( n.getAttribute(InstLevelAttribute())>ml ){
+        Trace("inst-add-debug") << "Term " << n << " has instantiation level " << n.getAttribute(InstLevelAttribute());
+        Trace("inst-add-debug") << ", which is more than maximum allowed level " << ml << " for this quantified formula." << std::endl;
+        return false;
+      }
+    }else{
+      if( options::instLevelInputOnly() ){
+        Trace("inst-add-debug") << "Term " << n << " does not have an instantiation level." << std::endl;
+        return false;
       }
     }
-    */
-    //if not using inst closure, then either all are relevant, or it is a singleton irrelevant eqc
-    return Node::null();
+  }
+  return true;
+}
+
+Node TermDb::getEligibleTermInEqc( TNode r ) {
+  if( isTermEligibleForInstantiation( r, TNode::null() ) ){
+    return r;
+  }else{
+    std::map< Node, Node >::iterator it = d_term_elig_eqc.find( r );
+    if( it==d_term_elig_eqc.end() ){
+      Node h;
+      eq::EqualityEngine* ee = d_quantEngine->getMasterEqualityEngine();
+      eq::EqClassIterator eqc_i = eq::EqClassIterator( r, ee );
+      while( h.isNull() && !eqc_i.isFinished() ){
+        TNode n = (*eqc_i);
+        ++eqc_i;
+        if( hasTermCurrent( n ) ){
+          h = n;
+        }
+      }
+      d_term_elig_eqc[r] = h;
+      return h;
+    }else{
+      return it->second;
+    }
   }
 }
 
@@ -404,7 +431,7 @@ void TermDb::reset( Theory::Effort effort ){
   //compute has map
   if( options::termDbMode()==TERM_DB_RELEVANT || options::lteRestrictInstClosure() ){
     d_has_map.clear();
-    d_has_eqc.clear();
+    d_term_elig_eqc.clear();
     eq::EqClassesIterator eqcs_i = eq::EqClassesIterator( ee );
     while( !eqcs_i.isFinished() ){
       TNode r = (*eqcs_i);

@@ -257,8 +257,8 @@ void QuantPhaseReq::getPolarity( Node n, int child, bool hasPol, bool pol, bool&
 }
 
 
-QuantLtePartialInst::QuantLtePartialInst( QuantifiersEngine * qe, context::Context* c ) : d_qe( qe ), d_lte_asserts( c ){
-  
+QuantLtePartialInst::QuantLtePartialInst( QuantifiersEngine * qe, context::Context* c ) : d_wasInvoked( false ), d_qe( qe ), d_lte_asserts( c ){
+
 }
 
 /** add quantifier */
@@ -278,7 +278,7 @@ bool QuantLtePartialInst::addQuantifier( Node q ) {
       vars[q[0][i]] = true;
     }
     getEligibleInstVars( q[1], vars );
-    
+
     //TODO : instantiate only if we would force ground instances?
     bool doInst = true;
     for( unsigned i=0; i<q[0].getNumChildren(); i++ ){
@@ -290,7 +290,7 @@ bool QuantLtePartialInst::addQuantifier( Node q ) {
       }
     }
     Trace("lte-partial-inst") << "LTE: ...will " << ( doInst ? "" : "not ") << "instantiate " << q << std::endl;
-    d_do_inst[q] = doInst;    
+    d_do_inst[q] = doInst;
     if( doInst ){
       d_lte_asserts.push_back( q );
     }
@@ -354,11 +354,12 @@ void QuantLtePartialInst::getInstantiations( std::vector< Node >& lemmas ) {
       getPartialInstantiations( conj, q, bvl, d_vars[q], terms, types, 0 );
       Assert( !conj.empty() );
       lemmas.push_back( NodeManager::currentNM()->mkNode( OR, q.negate(), conj.size()==1 ? conj[0] : NodeManager::currentNM()->mkNode( AND, conj ) ) );
+      d_wasInvoked = true;
     }
   }
 }
 
-void QuantLtePartialInst::getPartialInstantiations( std::vector< Node >& conj, Node q, Node bvl, 
+void QuantLtePartialInst::getPartialInstantiations( std::vector< Node >& conj, Node q, Node bvl,
                                                     std::vector< Node >& vars, std::vector< Node >& terms, std::vector< TypeNode >& types, unsigned index ){
   if( index==vars.size() ){
     Node body = q[1].substitute( vars.begin(), vars.end(), terms.begin(), terms.end() );

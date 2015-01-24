@@ -200,7 +200,7 @@ Node CandidateGeneratorQEAll::getNextCandidate() {
     TNode n = (*d_eq);
     ++d_eq;
     if( n.getType().isSubtypeOf( d_match_pattern_type ) ){
-      TNode nh = d_qe->getTermDatabase()->getHasTermEqc( n );
+      TNode nh = d_qe->getTermDatabase()->getEligibleTermInEqc( n );
       if( !nh.isNull() ){
         if( options::instMaxLevel()!=-1 ){
           nh = d_qe->getEqualityQuery()->getInternalRepresentative( nh, d_f, d_index );

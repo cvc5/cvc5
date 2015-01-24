@@ -28,7 +28,7 @@ namespace CVC4 {
 namespace theory {
 
 class QuantifiersEngine;
-  
+
 class QuantArith
 {
 public:
@@ -112,6 +112,9 @@ public:
 
 class QuantLtePartialInst {
 private:
+  // was this module invoked
+  bool d_wasInvoked;
+  //representatives per type
   std::map< TypeNode, std::vector< Node > > d_reps;
   // should we instantiate quantifier
   std::map< Node, bool > d_do_inst;
@@ -125,7 +128,7 @@ private:
   /** reset */
   void reset();
   /** get instantiations */
-  void getPartialInstantiations( std::vector< Node >& conj, Node q, Node bvl, 
+  void getPartialInstantiations( std::vector< Node >& conj, Node q, Node bvl,
                                  std::vector< Node >& vars, std::vector< Node >& inst, std::vector< TypeNode >& types, unsigned index );
   /** get eligible inst variables */
   void getEligibleInstVars( Node n, std::map< Node, bool >& vars );
@@ -135,6 +138,8 @@ public:
   bool addQuantifier( Node q );
   /** get instantiations */
   void getInstantiations( std::vector< Node >& lemmas );
+  /** was invoked */
+  bool wasInvoked() { return d_wasInvoked; }
 };
 
 

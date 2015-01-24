@@ -282,8 +282,6 @@ public:
   bool getInstWhenNeedsCheck( Theory::Effort e );
   /** set instantiation level attr */
   static void setInstantiationLevelAttr( Node n, uint64_t level );
-  /** is term eligble for instantiation? */
-  bool isTermEligibleForInstantiation( Node n, Node f, bool print = false );
 public:
   /** get number of quantifiers */
   int getNumQuantifiers() { return (int)d_quants.size(); }

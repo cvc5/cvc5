@@ -286,7 +286,6 @@ void QuantifiersEngine::check( Theory::Effort e ){
       }
     }
   }
-  bool defaultBuildModel = false;
   if( needsCheck ){
     Trace("quant-engine") << "Quantifiers Engine check, level = " << e << std::endl;
     Trace("quant-engine-debug") << "  modules to check : ";
@@ -371,19 +370,8 @@ void QuantifiersEngine::check( Theory::Effort e ){
       }
     }
     Trace("quant-engine-debug") << "Done check modules that needed check." << std::endl;
-
-    //build the model if not done so already
-    //  this happens if no quantifiers are currently asserted and no model-building module is enabled
-    if( e==Theory::EFFORT_LAST_CALL && !d_hasAddedLemma ){
-      if( options::produceModels() && !d_model->isModelSet() ){
-        defaultBuildModel = true;
-      }
-      if( Trace.isOn("inst-per-quant") ){
-        for( std::map< Node, int >::iterator it = d_total_inst_debug.begin(); it != d_total_inst_debug.end(); ++it ){
-          Trace("inst-per-quant") << " * " << it->second << " for " << it->first << std::endl;
-        }
-      }
-    }else{
+    if( d_hasAddedLemma ){
+      //debug information
       if( Trace.isOn("inst-per-quant-round") ){
         for( std::map< Node, int >::iterator it = d_temp_inst_debug.begin(); it != d_temp_inst_debug.end(); ++it ){
           Trace("inst-per-quant-round") << " * " << it->second << " for " << it->first << std::endl;
@@ -392,16 +380,29 @@ void QuantifiersEngine::check( Theory::Effort e ){
       }
     }
     Trace("quant-engine") << "Finished quantifiers engine check." << std::endl;
-  }else{
-    if( e==Theory::EFFORT_LAST_CALL && options::produceModels() ){
-      defaultBuildModel = true;
-    }
   }
-
-  if( defaultBuildModel ){
-    Trace("quant-engine-debug") << "Build the model..." << std::endl;
-    d_te->getModelBuilder()->buildModel( d_model, true );
-    Trace("quant-engine-debug") << "Done building the model." << std::endl;
+  //SAT case
+  if( e==Theory::EFFORT_LAST_CALL && !d_hasAddedLemma ){
+    if( options::produceModels() && !d_model->isModelSet() ){
+      //use default model builder when no module built the model
+      Trace("quant-engine-debug") << "Build the model..." << std::endl;
+      d_te->getModelBuilder()->buildModel( d_model, true );
+      Trace("quant-engine-debug") << "Done building the model." << std::endl;
+    }
+    //check other sources of incompleteness
+    bool setInc = false;
+    if( d_lte_part_inst && d_lte_part_inst->wasInvoked() ){
+      setInc = true;
+    }
+    if( setInc ){
+      getOutputChannel().setIncomplete();
+    }
+    //output debug stats
+    if( Trace.isOn("inst-per-quant") ){
+      for( std::map< Node, int >::iterator it = d_total_inst_debug.begin(); it != d_total_inst_debug.end(); ++it ){
+        Trace("inst-per-quant") << " * " << it->second << " for " << it->first << std::endl;
+      }
+    }
   }
 }
 
@@ -603,40 +604,6 @@ void QuantifiersEngine::setInstantiationLevelAttr( Node n, uint64_t level ){
   }
 }
 
-bool QuantifiersEngine::isTermEligibleForInstantiation( Node n, Node f, bool print ) {
-  if( options::lteRestrictInstClosure() ){
-    //has to be both in inst closure and in ground assertions
-    if( !d_term_db->isInstClosure( n ) ){
-      Trace("inst-add-debug") << "Term " << n << " is not an inst-closure term." << std::endl;
-      return false;
-    }
-    // hack : since theories preregister terms not in assertions, we are using hasTermCurrent to approximate this
-    if( !d_term_db->hasTermCurrent( n, false ) ){
-      Trace("inst-add-debug") << "Term " << n << " is not in a ground assertion." << std::endl;
-      return false;
-    }
-  }
-  if( options::instMaxLevel()!=-1 ){
-    if( n.hasAttribute(InstLevelAttribute()) ){
-      int fml = d_term_db->getQAttrQuantInstLevel( f );
-      unsigned ml = fml>=0 ? fml : options::instMaxLevel();
-
-      if( n.getAttribute(InstLevelAttribute())>ml ){
-        Trace("inst-add-debug") << "Term " << n << " has instantiation level " << n.getAttribute(InstLevelAttribute());
-        Trace("inst-add-debug") << ", which is more than maximum allowed level " << ml << " for this quantified formula." << std::endl;
-        return false;
-      }
-    }else{
-      if( options::instLevelInputOnly() ){
-        Trace("inst-add-debug") << "Term " << n << " does not have an instantiation level." << std::endl;
-        return false;
-      }
-    }
-  }
-  return true;
-}
-
-
 Node QuantifiersEngine::getSubstitute( Node n, std::vector< Node >& terms ){
   if( n.getKind()==INST_CONSTANT ){
     Debug("check-inst") << "Substitute inst constant : " << n << std::endl;
@@ -791,7 +758,7 @@ bool QuantifiersEngine::addInstantiation( Node f, std::vector< Node >& terms, bo
   //check based on instantiation level
   if( options::instMaxLevel()!=-1 || options::lteRestrictInstClosure() ){
     for( unsigned i=0; i<terms.size(); i++ ){
-      if( !isTermEligibleForInstantiation( terms[i], f, true ) ){
+      if( !d_term_db->isTermEligibleForInstantiation( terms[i], f, true ) ){
         return false;
       }
     }
