@@ -37,6 +37,8 @@ option dumpProofs --dump-proofs bool :default false :link --proof
  output proofs after every UNSAT/VALID response
 option dumpInstantiations --dump-instantiations bool :default false
  output instantiations of quantified formulas after every UNSAT/VALID response
+option dumpSynth --dump-synth bool :default false
+ output solution for synthesis conjectures after every UNSAT/VALID response
 option unsatCores produce-unsat-cores --produce-unsat-cores bool :predicate CVC4::smt::proofEnabledBuild CVC4::smt::beforeSearch :predicate-include "smt/options_handlers.h"
  turn on unsat core generation
 option dumpUnsatCores --dump-unsat-cores bool :default false :link --produce-unsat-cores :link-smt produce-unsat-cores :predicate CVC4::smt::beforeSearch :predicate-include "smt/options_handlers.h"

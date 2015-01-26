@@ -18,6 +18,8 @@
 #include "theory/quantifiers/options.h"
 #include "theory/quantifiers/term_database.h"
 #include "theory/quantifiers/first_order_model.h"
+#include "theory/datatypes/datatypes_rewriter.h"
+#include "util/datatype.h"
 
 using namespace CVC4;
 using namespace CVC4::kind;
@@ -246,7 +248,7 @@ void CegInstantiation::checkCegConjecture( CegConjecture * conj ) {
     if( getTermDatabase()->isQAttrSygus( q ) ){
 
       std::vector< Node > model_values;
-      if( getModelValues( conj->d_candidates, model_values ) ){
+      if( getModelValues( conj, conj->d_candidates, model_values ) ){
         //check if we must apply fairness lemmas
         std::vector< Node > lems;
         if( options::ceGuidedInstFair()==CEGQI_FAIR_UF_DT_SIZE ){
@@ -300,15 +302,10 @@ void CegInstantiation::checkCegConjecture( CegConjecture * conj ) {
       }
 
     }else if( getTermDatabase()->isQAttrSynthesis( q ) ){
-      Trace("cegqi-engine") << "  * Value is : ";
       std::vector< Node > model_terms;
-      for( unsigned i=0; i<conj->d_candidates.size(); i++ ){
-        Node t = getModelTerm( conj->d_candidates[i] );
-        model_terms.push_back( t );
-        Trace("cegqi-engine") << conj->d_candidates[i] << " -> " << t << " ";
+      if( getModelValues( conj, conj->d_candidates, model_terms ) ){
+        d_quantEngine->addInstantiation( q, model_terms, false );
       }
-      Trace("cegqi-engine") << std::endl;
-      d_quantEngine->addInstantiation( q, model_terms, false );
     }
   }else{
     Trace("cegqi-engine") << "  *** Refine candidate phase..." << std::endl;
@@ -323,7 +320,7 @@ void CegInstantiation::checkCegConjecture( CegConjecture * conj ) {
           Assert( !conj->d_inner_vars_disj[k].empty() );
           Assert( conj->d_inner_vars_disj[k].size()==getTermDatabase()->d_skolem_constants[ce_q].size() );
           std::vector< Node > model_values;
-          if( getModelValues( getTermDatabase()->d_skolem_constants[ce_q], model_values ) ){
+          if( getModelValues( NULL, getTermDatabase()->d_skolem_constants[ce_q], model_values ) ){
             //candidate refinement : the next candidate must satisfy the counterexample found for the current model of the candidate
             Node inst_ce_refine = conj->d_base_disj[k][0][1].substitute( conj->d_inner_vars_disj[k].begin(), conj->d_inner_vars_disj[k].end(),
                                                                          model_values.begin(), model_values.end() );
@@ -355,7 +352,7 @@ void CegInstantiation::checkCegConjecture( CegConjecture * conj ) {
   }
 }
 
-bool CegInstantiation::getModelValues( std::vector< Node >& n, std::vector< Node >& v ) {
+bool CegInstantiation::getModelValues( CegConjecture * conj, std::vector< Node >& n, std::vector< Node >& v ) {
   bool success = true;
   Trace("cegqi-engine") << "  * Value is : ";
   for( unsigned i=0; i<n.size(); i++ ){
@@ -364,6 +361,9 @@ bool CegInstantiation::getModelValues( std::vector< Node >& n, std::vector< Node
     Trace("cegqi-engine") << n[i] << " -> " << nv << " ";
     if( nv.isNull() ){
       success = false;
+    }
+    if( conj ){
+      conj->d_candidate_inst[i].push_back( nv );
     }
   }
   Trace("cegqi-engine") << std::endl;
@@ -447,6 +447,55 @@ void CegInstantiation::getMeasureLemmas( Node n, Node v, std::vector< Node >& le
     }
 
   }
+}
+
+void CegInstantiation::printSynthSolution( std::ostream& out ) {
+  if( d_conj ){
+    out << "Solution:" << std::endl;
+    for( unsigned i=0; i<d_conj->d_candidates.size(); i++ ){
+      std::stringstream ss;
+      ss << d_conj->d_quant[0][i];
+      std::string f(ss.str());
+      f.erase(f.begin());
+      out << "(define-fun f ";
+      TypeNode tn = d_conj->d_quant[0][i].getType();
+      Assert( datatypes::DatatypesRewriter::isTypeDatatype( tn ) );
+      const Datatype& dt = ((DatatypeType)(tn).toType()).getDatatype();
+      Assert( dt.isSygus() );
+      out << dt.getSygusVarList() << " ";
+      out << dt.getSygusType() << " ";
+      if( d_conj->d_candidate_inst[i].empty() ){
+        out << "?";
+      }else{
+        printSygusTerm( out, d_conj->d_candidate_inst[i].back() );
+      }
+      out << ")" << std::endl;
+    }
+  }
+}
+
+void CegInstantiation::printSygusTerm( std::ostream& out, Node n ) {
+  if( n.getKind()==APPLY_CONSTRUCTOR ){
+    TypeNode tn = n.getType();
+    const Datatype& dt = ((DatatypeType)(tn).toType()).getDatatype();
+    if( dt.isSygus() ){
+      int cIndex = Datatype::indexOf( n.getOperator().toExpr() );
+      Assert( !dt[cIndex].getSygusOp().isNull() );
+      if( n.getNumChildren()>0 ){
+        out << "(";
+      }
+      out << dt[cIndex].getSygusOp();
+      if( n.getNumChildren()>0 ){
+        for( unsigned i=0; i<n.getNumChildren(); i++ ){
+          out << " ";
+          printSygusTerm( out, n[i] );
+        }
+        out << ")";
+      }
+      return;
+    }
+  }
+  out << n << std::endl;
 }
 
 }

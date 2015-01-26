@@ -141,10 +141,11 @@ void Datatype::addConstructor(const DatatypeConstructor& c) {
 }
 
 
-void Datatype::setSygusType( Type st ){
+void Datatype::setSygus( Type st, Expr bvl ){
   CheckArgument(!d_resolved, this,
                 "cannot set sygus type to a finalized Datatype");
   d_sygus_type = st;
+  d_sygus_bvl = bvl;
 }
 
 
@@ -426,6 +427,10 @@ Expr Datatype::getConstructor(std::string name) const {
 
 Type Datatype::getSygusType() const {
   return d_sygus_type;
+}
+
+Expr Datatype::getSygusVarList() const {
+  return d_sygus_bvl;
 }
 
 bool Datatype::involvesExternalType() const{

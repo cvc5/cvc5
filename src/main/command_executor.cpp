@@ -139,6 +139,9 @@ bool CommandExecutor::doCommandSingleton(Command* cmd)
           res.asSatisfiabilityResult() == Result::UNSAT ) ) {
       g = new GetInstantiationsCommand();
     }
+    if( d_options[options::dumpSynth] && res.asSatisfiabilityResult() == Result::UNSAT ){
+      g = new GetSynthSolutionCommand();
+    }
     if( d_options[options::dumpUnsatCores] && res.asSatisfiabilityResult() == Result::UNSAT ) {
       g = new GetUnsatCoreCommand();
     }

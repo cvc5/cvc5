@@ -303,6 +303,8 @@ public:
 public:
   /** print instantiations */
   void printInstantiations( std::ostream& out );
+  /** print solution for synthesis conjectures */
+  void printSynthSolution( std::ostream& out );
   /** statistics class */
   class Statistics {
   public:

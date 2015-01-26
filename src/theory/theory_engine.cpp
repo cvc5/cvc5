@@ -1224,6 +1224,14 @@ void TheoryEngine::printInstantiations( std::ostream& out ) {
   }
 }
 
+void TheoryEngine::printSynthSolution( std::ostream& out ) {
+  if( d_quantEngine ){
+    d_quantEngine->printSynthSolution( out );
+  }else{
+    out << "Internal error : synth solution not available when quantifiers are not present." << std::endl;
+  }
+}
+
 static Node mkExplanation(const std::vector<NodeTheoryPair>& explanation) {
 
   std::set<TNode> all;

@@ -24,18 +24,9 @@
 #include "context/cdchunk_list.h"
 
 namespace CVC4 {
-namespace theory {
+namespace theory { 
 namespace datatypes {
-
-//class SygusVarTrie
-//{
-//public:
-//  // datatype, constructor, argument
-//  std::map< Node, std::map< int, SygusVarTrie > > d_children;
-//  std::map< TypeNode, Node > d_var;
-//};
-
-
+  
 class SygusSplit
 {
 private:

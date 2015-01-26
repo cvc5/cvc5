@@ -439,17 +439,6 @@ void SygusSplit::registerSygusTypeConstructorArg( TypeNode tnn, const Datatype& 
                           if( isGenericRedundant( tnnp, g ) ){
                             rem = true;
                           }
-                          /*
-                          Node nr = NodeManager::currentNM()->mkNode( parentKind, dt[j].getSygusOp(), dto[i].getSygusOp() );
-                          Node nrr = Rewriter::rewrite( nr );
-                          Trace("sygus-split-debug") << "  Test constant args : " << nr << " rewrites to " << nrr << std::endl;
-                          //based on rewriting
-                          // if rewriting the two arguments gives an operator that is in the parent syntax, remove the redundancy
-                          if( hasOp( tnnp, nrr ) ){
-                            Trace("sygus-nf") << "* Sygus norm : simplify based on rewrite " << nr << " -> " << nrr << std::endl;
-                            rem = true;
-                          }
-                          */
                         }
                       }
                       if( rem ){
@@ -598,6 +587,8 @@ Node SygusSplit::getTypeMaxValue( TypeNode tn ) {
     return it->second;
   }
 }
+
+//this function gets all easy redundant cases, before consulting rewriters
 bool SygusSplit::considerSygusSplitKind( const Datatype& dt, const Datatype& pdt, TypeNode tn, TypeNode tnp, Kind k, Kind parent, int arg ) {
   Assert( hasKind( tn, k ) );
   Assert( hasKind( tnp, parent ) );
@@ -648,7 +639,6 @@ bool SygusSplit::considerSygusSplitKind( const Datatype& dt, const Datatype& pdt
     if( parent==UMINUS ){
       if( k==PLUS ){
         nk = PLUS;reqk = UMINUS;
-      }else if( k==MINUS ){
       }
     }
     if( parent==BITVECTOR_NEG ){
@@ -712,15 +702,10 @@ bool SygusSplit::considerSygusSplitKind( const Datatype& dt, const Datatype& pdt
       }
     }
   }
-
-  /*
-  if( parent==MINUS ){
-
-  }
-  */
   return true;
 }
 
+//this function gets all easy redundant cases, before consulting rewriters
 bool SygusSplit::considerSygusSplitConst( const Datatype& dt, const Datatype& pdt, TypeNode tn, TypeNode tnp, Node c, Kind parent, int arg ) {
   Assert( hasConst( tn, c ) );
   Assert( hasKind( tnp, parent ) );
@@ -741,16 +726,6 @@ bool SygusSplit::considerSygusSplitConst( const Datatype& dt, const Datatype& pd
       return false;
     }
   }
-  //single argument rewrite
-  if( pdt[pc].getNumArgs()==1 ){
-    Node cr = NodeManager::currentNM()->mkNode( parent, c );
-    cr = Rewriter::rewrite( cr );
-    Trace("sygus-split-debug") << "  " << parent << " applied to " << c << " rewrites to " << cr << std::endl;
-    if( hasConst( tnp, cr ) ){
-      return false;
-    }
-  }
-
   return true;
 }
 

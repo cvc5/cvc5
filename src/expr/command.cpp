@@ -1187,6 +1187,44 @@ std::string GetInstantiationsCommand::getCommandName() const throw() {
   return "get-instantiations";
 }
 
+/* class GetSynthSolutionCommand */
+
+GetSynthSolutionCommand::GetSynthSolutionCommand() throw() {
+}
+
+void GetSynthSolutionCommand::invoke(SmtEngine* smtEngine) throw() {
+  try {
+    d_smtEngine = smtEngine;
+    d_commandStatus = CommandSuccess::instance();
+  } catch(exception& e) {
+    d_commandStatus = new CommandFailure(e.what());
+  }
+}
+
+void GetSynthSolutionCommand::printResult(std::ostream& out, uint32_t verbosity) const throw() {
+  if(! ok()) {
+    this->Command::printResult(out, verbosity);
+  } else {
+    d_smtEngine->printSynthSolution(out);
+  }
+}
+
+Command* GetSynthSolutionCommand::exportTo(ExprManager* exprManager, ExprManagerMapCollection& variableMap) {
+  GetSynthSolutionCommand* c = new GetSynthSolutionCommand();
+  c->d_smtEngine = d_smtEngine;
+  return c;
+}
+
+Command* GetSynthSolutionCommand::clone() const {
+  GetSynthSolutionCommand* c = new GetSynthSolutionCommand();
+  c->d_smtEngine = d_smtEngine;
+  return c;
+}
+
+std::string GetSynthSolutionCommand::getCommandName() const throw() {
+  return "get-instantiations";
+}
+
 /* class GetUnsatCoreCommand */
 
 GetUnsatCoreCommand::GetUnsatCoreCommand() throw() {

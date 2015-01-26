@@ -56,6 +56,8 @@ private:
     /** list of variables on inner quantification */
     std::vector< Node > d_inner_vars;    
     std::vector< std::vector< Node > > d_inner_vars_disj;
+    /** list of terms we have instantiated candidates with */
+    std::map< int, std::vector< Node > > d_candidate_inst;
     /** initialize guard */
     void initializeGuard( QuantifiersEngine * qe );
     /** measure term */
@@ -99,11 +101,14 @@ private:
   /** check conjecture */
   void checkCegConjecture( CegConjecture * conj );
   /** get model values */
-  bool getModelValues( std::vector< Node >& n, std::vector< Node >& v );
+  bool getModelValues( CegConjecture * conj, std::vector< Node >& n, std::vector< Node >& v );
   /** get model value */
   Node getModelValue( Node n );
   /** get model term */
   Node getModelTerm( Node n );
+private:
+  /** print sygus term */
+  void printSygusTerm( std::ostream& out, Node n );
 public:
   CegInstantiation( QuantifiersEngine * qe, context::Context* c );
 public:
@@ -118,6 +123,8 @@ public:
   Node getNextDecisionRequest();
   /** Identify this module (for debugging, dynamic configuration, etc..) */
   std::string identify() const { return "CegInstantiation"; }
+  /** print solution for synthesis conjectures */
+  void printSynthSolution( std::ostream& out );  
 };
 
 }

@@ -521,6 +521,11 @@ public:
   void printInstantiations( std::ostream& out );
 
   /**
+   * Print solution for synthesis conjectures found by ce_guided_instantiation module
+   */
+  void printSynthSolution( std::ostream& out );
+  
+  /**
    * Get an unsatisfiable core (only if immediately preceded by an
    * UNSAT or VALID query).  Only permitted if CVC4 was built with
    * unsat-core support and produce-unsat-cores is on.

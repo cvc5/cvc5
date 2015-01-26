@@ -378,6 +378,9 @@ bool CommandExecutorPortfolio::doCommandSingleton(Command* cmd)
                  d_result.asSatisfiabilityResult() == Result::UNSAT ) ) {
         Command* gi = new GetInstantiationsCommand();
         status = doCommandSingleton(gi);
+      } else if( d_options[options::dumpSynth] && d_result.asSatisfiabilityResult() == Result::UNSAT ){
+        Command* gi = new GetSynthSolutionCommand();
+        status = doCommandSingleton(gi);
       } else if( d_options[options::dumpUnsatCores] &&
                  d_result.asSatisfiabilityResult() == Result::UNSAT ) {
         Command* guc = new GetUnsatCoreCommand();

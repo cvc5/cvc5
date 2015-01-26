@@ -4155,6 +4155,13 @@ void SmtEngine::printInstantiations( std::ostream& out ) {
   }
 }
 
+void SmtEngine::printSynthSolution( std::ostream& out ) {
+  SmtScope smts(this);
+  if( d_theoryEngine ){
+    d_theoryEngine->printSynthSolution( out );
+  }
+}
+
 vector<Expr> SmtEngine::getAssertions() throw(ModalException) {
   SmtScope smts(this);
   finalOptionsAreSet();

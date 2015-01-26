@@ -610,6 +610,19 @@ public:
   std::string getCommandName() const throw();
 };/* class GetInstantiationsCommand */
 
+class CVC4_PUBLIC GetSynthSolutionCommand : public Command {
+protected:
+  SmtEngine* d_smtEngine;
+public:
+  GetSynthSolutionCommand() throw();
+  ~GetSynthSolutionCommand() throw() {}
+  void invoke(SmtEngine* smtEngine) throw();
+  void printResult(std::ostream& out, uint32_t verbosity = 2) const throw();
+  Command* exportTo(ExprManager* exprManager, ExprManagerMapCollection& variableMap);
+  Command* clone() const;
+  std::string getCommandName() const throw();
+};/* class GetSynthSolutionCommand */
+
 class CVC4_PUBLIC GetUnsatCoreCommand : public Command {
 protected:
   UnsatCore d_result;

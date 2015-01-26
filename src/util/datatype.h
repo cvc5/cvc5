@@ -459,7 +459,9 @@ private:
   bool d_resolved;
   Type d_self;
   bool d_involvesExt;
+  /** information for sygus */
   Type d_sygus_type;
+  Expr d_sygus_bvl;  
 
   // "mutable" because computing the cardinality can be expensive,
   // and so it's computed just once, on demand---this is the cache
@@ -517,8 +519,11 @@ public:
    */
   void addConstructor(const DatatypeConstructor& c);
 
-  /** set the sygus type of this datatype */
-  void setSygusType( Type st );
+  /** set the sygus information of this datatype
+   *    st : the builtin type for this grammar
+   *    bvl : the list of arguments for the synth-fun
+   */
+  void setSygus( Type st, Expr bvl );
   
   /** Get the name of this Datatype. */
   inline std::string getName() const throw();
@@ -635,6 +640,8 @@ public:
   
   /** get sygus type */
   Type getSygusType() const;
+  /** get sygus var list */
+  Expr getSygusVarList() const;
 
   /**
    * Get whether this datatype involves an external type.  If so,

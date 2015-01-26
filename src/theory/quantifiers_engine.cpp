@@ -924,6 +924,14 @@ void QuantifiersEngine::printInstantiations( std::ostream& out ) {
   }
 }
 
+void QuantifiersEngine::printSynthSolution( std::ostream& out ) {
+  if( d_ceg_inst ){
+    d_ceg_inst->printSynthSolution( out );
+  }else{
+    out << "Internal error : module for synth solution not found." << std::endl;
+  }
+}
+  
 QuantifiersEngine::Statistics::Statistics():
   d_num_quant("QuantifiersEngine::Num_Quantifiers", 0),
   d_instantiation_rounds("QuantifiersEngine::Rounds_Instantiation_Full", 0),
