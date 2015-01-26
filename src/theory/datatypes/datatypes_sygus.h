@@ -26,7 +26,16 @@
 namespace CVC4 {
 namespace theory {
 namespace datatypes {
-  
+
+//class SygusVarTrie
+//{
+//public:
+//  // datatype, constructor, argument
+//  std::map< Node, std::map< int, SygusVarTrie > > d_children;
+//  std::map< TypeNode, Node > d_var;
+//};
+
+
 class SygusSplit
 {
 private:
@@ -38,12 +47,18 @@ private:
   std::map< TypeNode, std::map< int, Node > > d_type_value;
   std::map< TypeNode, Node > d_type_max_value;
   //information for sygus types
-  std::map< TypeNode, bool > d_register;
+  std::map< TypeNode, TypeNode > d_register;  //stores sygus type
   std::map< TypeNode, std::map< int, Kind > > d_arg_kind;
   std::map< TypeNode, std::map< Kind, int > > d_kinds;
   std::map< TypeNode, std::map< int, Node > > d_arg_const;
   std::map< TypeNode, std::map< Node, int > > d_consts;
   std::map< TypeNode, std::map< Node, int > > d_ops;
+  //
+  std::map< TypeNode, std::vector< Node > > d_fv;
+  std::map< Node, TypeNode > d_fv_stype;
+  // type to (rewritten) to original
+  std::map< TypeNode, std::map< Node, Node > > d_gen_terms;
+  std::map< TypeNode, std::map< Node, bool > > d_gen_redundant;
 private:
   bool isRegistered( TypeNode tn );
   int getKindArg( TypeNode tn, Kind k );
@@ -55,8 +70,11 @@ private:
   bool isKindArg( TypeNode tn, int i );
   bool isConstArg( TypeNode tn, int i );
 private:
+  Node getVar( TypeNode tn, int i );
+  Node getVarInc( TypeNode tn, std::map< TypeNode, int >& var_count );
+private:
   /** register sygus type */
-  void registerSygusType( TypeNode tn, const Datatype& dt );
+  void registerSygusType( TypeNode tn );
   /** register sygus operator */
   void registerSygusTypeConstructorArg( TypeNode tnn, const Datatype& dt, TypeNode tnnp, const Datatype& pdt, int csIndex, int sIndex );
   /** consider sygus split */
@@ -82,12 +100,18 @@ private:
   bool isArgDatatype( const DatatypeConstructor& c, int i, const Datatype& dt );
   /** get arg type */
   TypeNode getArgType( const DatatypeConstructor& c, int i );
+private:
+  Node getGeneric( Node n, std::vector< int >& csIndices, std::vector< int >& sIndices, TypeNode& tng );
+  Node getGeneric2( const Datatype& dt, std::map< TypeNode, int >& var_count, std::vector< int >& csIndices, std::vector< int >& sIndices, unsigned index );
+  Node mkGeneric( const Datatype& dt, int c, std::map< TypeNode, int >& var_count, std::map< int, Node >& pre );
+  bool isGenericRedundant( TypeNode tn, Node g );
+  Node getSygusNormalized( Node n, std::map< TypeNode, int >& var_count, std::map< Node, Node >& subs );
 public:
   /** get sygus splits */
   void getSygusSplits( Node n, const Datatype& dt, std::vector< Node >& splits, std::vector< Node >& lemmas );
 };
-  
-  
+
+
 }
 }
 }
