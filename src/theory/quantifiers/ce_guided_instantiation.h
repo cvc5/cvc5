@@ -107,6 +107,18 @@ private:
   /** get model term */
   Node getModelTerm( Node n );
 private:
+  std::map< Node, Node > d_single_inv;
+  //map from programs to variables in single invocation property
+  std::map< Node, std::map< Node, Node > > d_single_inv_map;
+  //map from programs to evaluator term representing the above variable
+  std::map< Node, std::map< Node, Node > > d_single_inv_app_map;
+private:
+  void analyzeSygusConjecture( Node q );
+  bool analyzeSygusConjunct( Node n, Node p, std::map< Node, std::vector< Node > >& children,
+                             std::map< Node, std::map< Node, std::vector< Node > > >& prog_invoke, 
+                             std::vector< Node >& progs, std::map< Node, std::map< Node, bool > >& contains, bool pol );
+  bool analyzeSygusTerm( Node n, std::map< Node, std::vector< Node > >& prog_invoke, std::map< Node, bool >& contains );
+private:
   /** print sygus term */
   void printSygusTerm( std::ostream& out, Node n );
 public:

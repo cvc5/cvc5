@@ -151,6 +151,7 @@ void CegInstantiation::registerQuantifier( Node q ) {
             }
           }
         }
+        analyzeSygusConjecture( q );
         d_conj->d_syntax_guided = true;
       }else if( getTermDatabase()->isQAttrSynthesis( q ) ){
         d_conj->d_syntax_guided = false;
@@ -496,6 +497,222 @@ void CegInstantiation::printSygusTerm( std::ostream& out, Node n ) {
     }
   }
   out << n << std::endl;
+}
+
+void CegInstantiation::analyzeSygusConjecture( Node q ) {
+  // conj -> conj*
+  std::map< Node, std::vector< Node > > children;
+  // conj X prog -> inv*
+  std::map< Node, std::map< Node, std::vector< Node > > > prog_invoke;
+  std::vector< Node > progs;
+  std::map< Node, std::map< Node, bool > > contains;
+  for( unsigned i=0; i<q[0].getNumChildren(); i++ ){
+    progs.push_back( q[0][i] );
+  }
+  //collect information about conjunctions
+  if( analyzeSygusConjunct( Node::null(), q[1], children, prog_invoke, progs, contains, true ) ){
+    //try to phrase as single invocation property
+    bool singleInvocation = true;
+    Trace("cegqi-analyze") << "...success." << std::endl;
+    std::map< Node, std::vector< Node > > invocations;
+    std::map< Node, std::map< int, std::vector< Node > > > single_invoke_args;
+    std::map< Node, std::map< int, std::map< Node, std::vector< Node > > > > single_invoke_args_from;
+    for( std::map< Node, std::vector< Node > >::iterator it = children.begin(); it != children.end(); ++it ){
+      for( unsigned j=0; j<it->second.size(); j++ ){
+        Node conj = it->second[j];
+        Trace("cegqi-analyze-debug") << "Process child " << conj << " from " << it->first << std::endl;
+        std::map< Node, std::map< Node, std::vector< Node > > >::iterator itp = prog_invoke.find( conj );
+        if( itp!=prog_invoke.end() ){
+          for( std::map< Node, std::vector< Node > >::iterator it2 = itp->second.begin(); it2 != itp->second.end(); ++it2 ){
+            if( it2->second.size()>1 ){
+              singleInvocation = false;
+              break;
+            }else if( it2->second.size()==1 ){
+              Node prog = it2->first;
+              Node inv = it2->second[0];
+              Assert( inv[0]==prog );
+              invocations[prog].push_back( inv );
+              for( unsigned k=1; k<inv.getNumChildren(); k++ ){
+                Node arg = inv[k];
+                Trace("cegqi-analyze-debug") << "process : " << arg << " occurs in position " << k-1 << " in invocation " << inv << " of " << prog << " in " << conj << std::endl;
+                single_invoke_args_from[prog][k-1][arg].push_back( conj );
+                if( std::find( single_invoke_args[prog][k-1].begin(), single_invoke_args[prog][k-1].end(), arg )==single_invoke_args[prog][k-1].end() ){
+                  single_invoke_args[prog][k-1].push_back( arg );
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+    if( singleInvocation ){
+      Trace("cegqi-analyze") << "Property is single invocation with : " << std::endl;
+      std::vector< Node > new_vars;
+      std::map< Node, std::vector< Node > > new_assumptions;
+      for( std::map< Node, std::vector< Node > >::iterator it = invocations.begin(); it != invocations.end(); ++it ){
+        Assert( !it->second.empty() );
+        Node prog = it->first;
+        Node inv = it->second[0];
+        std::vector< Node > invc;
+        invc.push_back( inv.getOperator() );
+        invc.push_back( prog );
+        d_single_inv_map[q][prog] = NodeManager::currentNM()->mkSkolem( "F", inv.getType(), "single invocation function variable" );
+        Trace("cegqi-analyze-debug2") << "Make variable " << d_single_inv_map[q][prog] << " for " << prog << std::endl;
+        for( unsigned k=1; k<inv.getNumChildren(); k++ ){
+          Assert( !single_invoke_args[prog][k-1].empty() );
+          if( single_invoke_args[prog][k-1].size()==1 ){
+            invc.push_back( single_invoke_args[prog][k-1][0] );
+          }else{
+            //introduce fresh variable, assign all
+            Node v = NodeManager::currentNM()->mkSkolem( "a", single_invoke_args[prog][k-1][0].getType(), "single invocation arg" );
+            new_vars.push_back( v );
+            invc.push_back( v );
+
+            for( unsigned i=0; i<single_invoke_args[prog][k-1].size(); i++ ){
+              Node arg = single_invoke_args[prog][k-1][i];
+              Node asum = NodeManager::currentNM()->mkNode( arg.getType().isBoolean() ? IFF : EQUAL, v, arg ).negate();
+              Trace("cegqi-analyze-debug") << "  ..." << arg << " occurs in ";
+              Trace("cegqi-analyze-debug") << single_invoke_args_from[prog][k-1][arg].size() << " invocations at position " << (k-1) << " of " << prog << "." << std::endl;
+              for( unsigned j=0; j<single_invoke_args_from[prog][k-1][arg].size(); j++ ){
+                Node conj = single_invoke_args_from[prog][k-1][arg][j];
+                Trace("cegqi-analyze-debug") << "  ..." << arg << " occurs in invocation " << inv << " of " << prog << " in " << conj << std::endl;
+                Trace("cegqi-analyze-debug") << "  ...add assumption " << asum << " to " << conj << std::endl;
+                if( std::find( new_assumptions[conj].begin(), new_assumptions[conj].end(), asum )==new_assumptions[conj].end() ){
+                  new_assumptions[conj].push_back( asum );
+                }
+              }
+            }
+          }
+        }
+        Node sinv = NodeManager::currentNM()->mkNode( APPLY_UF, invc );
+        Trace("cegqi-analyze") << "  " << prog << " -> " << sinv << std::endl;
+        d_single_inv_app_map[q][prog] = sinv;
+      }
+      //construct the single invocation version of the property
+      Trace("cegqi-analyze") << "Single invocation formula is : " << std::endl;
+      std::vector< Node > si_conj;
+      for( std::map< Node, std::vector< Node > >::iterator it = children.begin(); it != children.end(); ++it ){
+        std::vector< Node > tmp;
+        for( unsigned i=0; i<it->second.size(); i++ ){
+          Node c = it->second[i];
+          std::vector< Node > disj;
+          //insert new assumptions
+          disj.insert( disj.end(), new_assumptions[c].begin(), new_assumptions[c].end() );
+          //get replaced version
+          Node cr;
+          std::map< Node, std::map< Node, std::vector< Node > > >::iterator itp = prog_invoke.find( c );
+          if( itp!=prog_invoke.end() ){
+            std::vector< Node > terms;
+            std::vector< Node > subs;        
+            for( std::map< Node, std::vector< Node > >::iterator it2 = itp->second.begin(); it2 != itp->second.end(); ++it2 ){
+              if( !it2->second.empty() ){
+                Node prog = it2->first;
+                Node inv = it2->second[0];
+                Assert( it2->second.size()==1 );
+                terms.push_back( inv );
+                subs.push_back( d_single_inv_map[q][prog] );
+                Trace("cegqi-analyze-debug2") << "subs : " << inv << " -> var for " << prog << " : " << d_single_inv_map[q][prog] << std::endl;
+              }
+            }
+            cr = c.substitute( terms.begin(), terms.end(), subs.begin(), subs.end() );
+          }else{
+            cr = c;
+          }
+          if( cr.getKind()==OR ){
+            for( unsigned j=0; j<cr.getNumChildren(); j++ ){
+              disj.push_back( cr[j] );
+            }
+          }else{
+            disj.push_back( cr );
+          }
+          Node curr = disj.size()==1 ? disj[0] : NodeManager::currentNM()->mkNode( OR, disj );
+          Trace("cegqi-analyze-debug") << "    " << curr;
+          if( it->first.isNull() ){
+            si_conj.push_back( curr.negate() );
+          }else{
+            tmp.push_back( curr );
+            Trace("cegqi-analyze-debug") << " under " << it->first;
+          }
+          Trace("cegqi-analyze-debug") << std::endl;
+        }
+        if( !it->first.isNull() ){
+          Assert( !tmp.empty() );
+          Node bd = tmp.size()==1 ? tmp[0] : NodeManager::currentNM()->mkNode( AND, tmp );
+          Node curr = NodeManager::currentNM()->mkNode( FORALL, it->first, bd ).negate();
+          si_conj.push_back( curr );
+          Trace("cegqi-analyze-debug") << "    -> " << curr << std::endl;
+        }
+      }
+      Node si = si_conj.size()==1 ? si_conj[0] : NodeManager::currentNM()->mkNode( OR, si_conj );
+      Trace("cegqi-analyze") << "  " << si << std::endl;
+      d_single_inv[q] = si;
+    }else{
+      Trace("cegqi-analyze") << "Property is not single invocation." << std::endl;
+    }
+  }
+}
+  
+bool CegInstantiation::analyzeSygusConjunct( Node p, Node n, std::map< Node, std::vector< Node > >& children,
+                                             std::map< Node, std::map< Node, std::vector< Node > > >& prog_invoke, 
+                                             std::vector< Node >& progs, std::map< Node, std::map< Node, bool > >& contains, bool pol ) {
+  if( ( pol && n.getKind()==OR ) || ( !pol && n.getKind()==AND ) ){
+    for( unsigned i=0; i<n.getNumChildren(); i++ ){
+      if( !analyzeSygusConjunct( p, n[i], children, prog_invoke, progs, contains, pol ) ){
+        return false;
+      }
+    }
+  }else if( pol && n.getKind()==NOT && n[0].getKind()==FORALL ){
+    if( !p.isNull() ){
+      //do not allow nested quantifiers
+      return false;
+    }
+    analyzeSygusConjunct( n[0][0], n[0][1], children, prog_invoke, progs, contains, false );
+  }else{
+    if( pol ){
+      n = n.negate();
+    }
+    Trace("cegqi-analyze") << "Sygus conjunct : " << n << std::endl;
+    children[p].push_back( n );
+    for( unsigned i=0; i<progs.size(); i++ ){
+      prog_invoke[n][progs[i]].clear();
+    }
+    bool success = analyzeSygusTerm( n, prog_invoke[n], contains[n] );
+    for( unsigned i=0; i<progs.size(); i++ ){
+      std::map< Node, std::vector< Node > >::iterator it = prog_invoke[n].find( progs[i] );
+      Trace("cegqi-analyze") << "  Program " << progs[i] << " is invoked " << it->second.size() << " times " << std::endl;
+      for( unsigned j=0; j<it->second.size(); j++ ){
+        Trace("cegqi-analyze") << "    " << it->second[j] << std::endl;
+      }
+    }
+    return success;
+  }
+  return true;
+}
+
+bool CegInstantiation::analyzeSygusTerm( Node n, std::map< Node, std::vector< Node > >& prog_invoke, std::map< Node, bool >& contains ) {
+  if( n.getNumChildren()>0 ){
+    if( n.getKind()==FORALL ){
+      //do not allow nested quantifiers
+      return false;
+    }
+    //look at first argument in evaluator
+    Node p = n[0];
+    std::map< Node, std::vector< Node > >::iterator it = prog_invoke.find( p );
+    if( it!=prog_invoke.end() ){
+      if( std::find( it->second.begin(), it->second.end(), n )==it->second.end() ){
+        it->second.push_back( n );
+      }
+    }
+    for( unsigned i=0; i<n.getNumChildren(); i++ ){
+      if( !analyzeSygusTerm( n[i], prog_invoke, contains ) ){
+        return false;
+      }
+    }
+  }else{
+    //record this conjunct contains n
+    contains[n] = true;    
+  }
+  return true;
 }
 
 }
