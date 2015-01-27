@@ -589,7 +589,7 @@ void CegInstantiation::analyzeSygusConjecture( Node q ) {
         d_single_inv_app_map[q][prog] = sinv;
       }
       //construct the single invocation version of the property
-      Trace("cegqi-analyze") << "Single invocation formula is : " << std::endl;
+      Trace("cegqi-analyze") << "Single invocation formula conjuncts are : " << std::endl;
       std::vector< Node > si_conj;
       for( std::map< Node, std::vector< Node > >::iterator it = children.begin(); it != children.end(); ++it ){
         std::vector< Node > tmp;
@@ -626,14 +626,14 @@ void CegInstantiation::analyzeSygusConjecture( Node q ) {
             disj.push_back( cr );
           }
           Node curr = disj.size()==1 ? disj[0] : NodeManager::currentNM()->mkNode( OR, disj );
-          Trace("cegqi-analyze-debug") << "    " << curr;
+          Trace("cegqi-analyze") << "    " << curr;
           if( it->first.isNull() ){
             si_conj.push_back( curr.negate() );
           }else{
             tmp.push_back( curr );
             Trace("cegqi-analyze-debug") << " under " << it->first;
           }
-          Trace("cegqi-analyze-debug") << std::endl;
+          Trace("cegqi-analyze") << std::endl;
         }
         if( !it->first.isNull() ){
           Assert( !tmp.empty() );
@@ -644,7 +644,7 @@ void CegInstantiation::analyzeSygusConjecture( Node q ) {
         }
       }
       Node si = si_conj.size()==1 ? si_conj[0] : NodeManager::currentNM()->mkNode( OR, si_conj );
-      Trace("cegqi-analyze") << "  " << si << std::endl;
+      Trace("cegqi-analyze-debug") << "...formula is : " << si << std::endl;
       d_single_inv[q] = si;
     }else{
       Trace("cegqi-analyze") << "Property is not single invocation." << std::endl;

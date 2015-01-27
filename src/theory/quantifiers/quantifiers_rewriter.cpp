@@ -153,31 +153,9 @@ bool QuantifiersRewriter::hasArg1( Node a, Node n ) {
   }
 }
 
-void QuantifiersRewriter::setNestedQuantifiers( Node n, Node q ){
-  std::vector< Node > processed;
-  setNestedQuantifiers2( n, q, processed );
-}
-
-void QuantifiersRewriter::setNestedQuantifiers2( Node n, Node q, std::vector< Node >& processed ) {
-  if( std::find( processed.begin(), processed.end(), n )==processed.end() ){
-    processed.push_back( n );
-    if( n.getKind()==FORALL || n.getKind()==EXISTS ){
-      Trace("quantifiers-rewrite-debug") << "Set nested quant attribute " << n << std::endl;
-      NestedQuantAttribute nqai;
-      n[0].setAttribute(nqai,q);
-    }
-    for( int i=0; i<(int)n.getNumChildren(); i++ ){
-      setNestedQuantifiers2( n[i], q, processed );
-    }
-  }
-}
-
 RewriteResponse QuantifiersRewriter::preRewrite(TNode in) {
   if( in.getKind()==kind::EXISTS || in.getKind()==kind::FORALL ){
-    Trace("quantifiers-rewrite-debug") << "pre-rewriting " << in << " " << in[0].hasAttribute(NestedQuantAttribute()) << std::endl;
-    if( !in.hasAttribute(NestedQuantAttribute()) ){
-      setNestedQuantifiers( in[ 1 ], in );
-    }
+    Trace("quantifiers-rewrite-debug") << "pre-rewriting " << in << std::endl;
     std::vector< Node > args;
     for( int i=0; i<(int)in[0].getNumChildren(); i++ ){
       args.push_back( in[0][i] );
@@ -211,7 +189,6 @@ RewriteResponse QuantifiersRewriter::preRewrite(TNode in) {
       }
       Node n = NodeManager::currentNM()->mkNode( in.getKind(), children );
       if( in!=n ){
-        setAttributes( in, n );
         Trace("quantifiers-pre-rewrite") << "*** pre-rewrite " << in << std::endl;
         Trace("quantifiers-pre-rewrite") << " to " << std::endl;
         Trace("quantifiers-pre-rewrite") << n << std::endl;
@@ -224,7 +201,7 @@ RewriteResponse QuantifiersRewriter::preRewrite(TNode in) {
 
 RewriteResponse QuantifiersRewriter::postRewrite(TNode in) {
   Trace("quantifiers-rewrite-debug") << "post-rewriting " << in << std::endl;
-  Trace("quantifiers-rewrite-debug") << "Attributes : " << in[0].hasAttribute(NestedQuantAttribute())  << std::endl;
+  Trace("quantifiers-rewrite-debug") << "Attributes : " << std::endl;
   if( !options::quantRewriteRules() || !TermDb::isRewriteRule( in ) ){
     RewriteStatus status = REWRITE_DONE;
     Node ret = in;
@@ -250,8 +227,9 @@ RewriteResponse QuantifiersRewriter::postRewrite(TNode in) {
       ret = ret.negate();
       status = REWRITE_AGAIN_FULL;
     }else{
-      bool isNested = in[0].hasAttribute(NestedQuantAttribute());
       for( int op=0; op<COMPUTE_LAST; op++ ){
+        //TODO : compute isNested (necessary?)
+        bool isNested = false;
         if( doOperation( in, isNested, op ) ){
           ret = computeOperation( in, isNested, op );
           if( ret!=in ){
@@ -263,11 +241,9 @@ RewriteResponse QuantifiersRewriter::postRewrite(TNode in) {
     }
     //print if changed
     if( in!=ret ){
-      setAttributes( in, ret );
       Trace("quantifiers-rewrite") << "*** rewrite " << in << std::endl;
       Trace("quantifiers-rewrite") << " to " << std::endl;
       Trace("quantifiers-rewrite") << ret << std::endl;
-      //Trace("quantifiers-rewrite-debug") << "Attributes : " << ret[0].hasAttribute(NestedQuantAttribute()) << std::endl;
     }
     return RewriteResponse( status, ret );
   }
@@ -537,14 +513,6 @@ Node QuantifiersRewriter::computeClause( Node n ){
       }
     }
     return t.constructNode();
-  }
-}
-
-void QuantifiersRewriter::setAttributes( Node in, Node n ) {
-  if( n.getKind()==FORALL && in.getKind()==FORALL ){
-    if( in[0].hasAttribute(NestedQuantAttribute()) ){
-      setNestedQuantifiers( n[0], in[0].getAttribute(NestedQuantAttribute()) );
-    }
   }
 }
 
@@ -830,7 +798,7 @@ Node QuantifiersRewriter::mkForAll( std::vector< Node >& args, Node body, Node i
   }
 }
 
-Node QuantifiersRewriter::computeMiniscoping( Node f, std::vector< Node >& args, Node body, Node ipl, bool isNested ){
+Node QuantifiersRewriter::computeMiniscoping( Node f, std::vector< Node >& args, Node body, Node ipl ){
   //Notice() << "rewrite quant " << body << std::endl;
   if( body.getKind()==FORALL ){
     //combine arguments
@@ -840,7 +808,7 @@ Node QuantifiersRewriter::computeMiniscoping( Node f, std::vector< Node >& args,
     }
     newArgs.insert( newArgs.end(), args.begin(), args.end() );
     return mkForAll( newArgs, body[ 1 ], ipl );
-  }else if( !isNested ){
+  }else{
     if( body.getKind()==NOT ){
       //push not downwards
       if( body[0].getKind()==NOT ){
@@ -903,108 +871,106 @@ Node QuantifiersRewriter::computeMiniscoping( Node f, std::vector< Node >& args,
   //}
 }
 
-Node QuantifiersRewriter::computeAggressiveMiniscoping( std::vector< Node >& args, Node body, bool isNested ){
-  if( !isNested ){
-    std::map< Node, std::vector< Node > > varLits;
-    std::map< Node, std::vector< Node > > litVars;
-    if( body.getKind()==OR ){
-      Trace("ag-miniscope") << "compute aggressive miniscoping on " << body << std::endl;
+Node QuantifiersRewriter::computeAggressiveMiniscoping( std::vector< Node >& args, Node body ){
+  std::map< Node, std::vector< Node > > varLits;
+  std::map< Node, std::vector< Node > > litVars;
+  if( body.getKind()==OR ){
+    Trace("ag-miniscope") << "compute aggressive miniscoping on " << body << std::endl;
+    for( size_t i=0; i<body.getNumChildren(); i++ ){
+      std::vector< Node > activeArgs;
+      computeArgVec( args, activeArgs, body[i] );
+      for (unsigned j=0; j<activeArgs.size(); j++ ){
+        varLits[activeArgs[j]].push_back( body[i] );
+      }
+      litVars[body[i]].insert( litVars[body[i]].begin(), activeArgs.begin(), activeArgs.end() );
+    }
+    //find the variable in the least number of literals
+    Node bestVar;
+    for( std::map< Node, std::vector< Node > >::iterator it = varLits.begin(); it != varLits.end(); ++it ){
+      if( bestVar.isNull() || varLits[bestVar].size()>it->second.size() ){
+        bestVar = it->first;
+      }
+    }
+    Trace("ag-miniscope-debug") << "Best variable " << bestVar << " occurs in " << varLits[bestVar].size() << "/ " << body.getNumChildren() << " literals." << std::endl;
+    if( !bestVar.isNull() && varLits[bestVar].size()<body.getNumChildren() ){
+      //we can miniscope
+      Trace("ag-miniscope") << "Miniscope on " << bestVar << std::endl;
+      //make the bodies
+      std::vector< Node > qlit1;
+      qlit1.insert( qlit1.begin(), varLits[bestVar].begin(), varLits[bestVar].end() );
+      std::vector< Node > qlitt;
+      //for all literals not containing bestVar
       for( size_t i=0; i<body.getNumChildren(); i++ ){
-        std::vector< Node > activeArgs;
-        computeArgVec( args, activeArgs, body[i] );
-        for (unsigned j=0; j<activeArgs.size(); j++ ){
-          varLits[activeArgs[j]].push_back( body[i] );
-        }
-        litVars[body[i]].insert( litVars[body[i]].begin(), activeArgs.begin(), activeArgs.end() );
-      }
-      //find the variable in the least number of literals
-      Node bestVar;
-      for( std::map< Node, std::vector< Node > >::iterator it = varLits.begin(); it != varLits.end(); ++it ){
-        if( bestVar.isNull() || varLits[bestVar].size()>it->second.size() ){
-          bestVar = it->first;
+        if( std::find( qlit1.begin(), qlit1.end(), body[i] )==qlit1.end() ){
+          qlitt.push_back( body[i] );
         }
       }
-      Trace("ag-miniscope-debug") << "Best variable " << bestVar << " occurs in " << varLits[bestVar].size() << "/ " << body.getNumChildren() << " literals." << std::endl;
-      if( !bestVar.isNull() && varLits[bestVar].size()<body.getNumChildren() ){
-        //we can miniscope
-        Trace("ag-miniscope") << "Miniscope on " << bestVar << std::endl;
-        //make the bodies
-        std::vector< Node > qlit1;
-        qlit1.insert( qlit1.begin(), varLits[bestVar].begin(), varLits[bestVar].end() );
-        std::vector< Node > qlitt;
-        //for all literals not containing bestVar
-        for( size_t i=0; i<body.getNumChildren(); i++ ){
-          if( std::find( qlit1.begin(), qlit1.end(), body[i] )==qlit1.end() ){
-            qlitt.push_back( body[i] );
+      //make the variable lists
+      std::vector< Node > qvl1;
+      std::vector< Node > qvl2;
+      std::vector< Node > qvsh;
+      for( unsigned i=0; i<args.size(); i++ ){
+        bool found1 = false;
+        bool found2 = false;
+        for( size_t j=0; j<varLits[args[i]].size(); j++ ){
+          if( !found1 && std::find( qlit1.begin(), qlit1.end(), varLits[args[i]][j] )!=qlit1.end() ){
+            found1 = true;
+          }else if( !found2 && std::find( qlitt.begin(), qlitt.end(), varLits[args[i]][j] )!=qlitt.end() ){
+            found2 = true;
+          }
+          if( found1 && found2 ){
+            break;
           }
         }
-        //make the variable lists
-        std::vector< Node > qvl1;
-        std::vector< Node > qvl2;
-        std::vector< Node > qvsh;
-        for( unsigned i=0; i<args.size(); i++ ){
-          bool found1 = false;
-          bool found2 = false;
-          for( size_t j=0; j<varLits[args[i]].size(); j++ ){
-            if( !found1 && std::find( qlit1.begin(), qlit1.end(), varLits[args[i]][j] )!=qlit1.end() ){
-              found1 = true;
-            }else if( !found2 && std::find( qlitt.begin(), qlitt.end(), varLits[args[i]][j] )!=qlitt.end() ){
-              found2 = true;
-            }
-            if( found1 && found2 ){
-              break;
-            }
-          }
-          if( found1 ){
-            if( found2 ){
-              qvsh.push_back( args[i] );
-            }else{
-              qvl1.push_back( args[i] );
-            }
+        if( found1 ){
+          if( found2 ){
+            qvsh.push_back( args[i] );
           }else{
-            Assert(found2);
-            qvl2.push_back( args[i] );
+            qvl1.push_back( args[i] );
           }
+        }else{
+          Assert(found2);
+          qvl2.push_back( args[i] );
         }
-        Assert( !qvl1.empty() );
-        Assert( !qvl2.empty() || !qvsh.empty() );
-        //check for literals that only contain shared variables
-        std::vector< Node > qlitsh;
-        std::vector< Node > qlit2;
-        for( size_t i=0; i<qlitt.size(); i++ ){
-          bool hasVar2 = false;
-          for( size_t j=0; j<litVars[qlitt[i]].size(); j++ ){
-            if( std::find( qvl2.begin(), qvl2.end(), litVars[qlitt[i]][j] )!=qvl2.end() ){
-              hasVar2 = true;
-              break;
-            }
-          }
-          if( hasVar2 ){
-            qlit2.push_back( qlitt[i] );
-          }else{
-            qlitsh.push_back( qlitt[i] );
-          }
-        }
-        varLits.clear();
-        litVars.clear();
-        Trace("ag-miniscope-debug") << "Split into literals : " << qlit1.size() << " / " << qlit2.size() << " / " << qlitsh.size();
-        Trace("ag-miniscope-debug") << ", variables : " << qvl1.size() << " / " << qvl2.size() << " / " << qvsh.size() << std::endl;
-        Node n1 = qlit1.size()==1 ? qlit1[0] : NodeManager::currentNM()->mkNode( OR, qlit1 );
-        n1 = computeAggressiveMiniscoping( qvl1, n1 );
-        qlitsh.push_back( n1 );
-        if( !qlit2.empty() ){
-          Node n2 = qlit2.size()==1 ? qlit2[0] : NodeManager::currentNM()->mkNode( OR, qlit2 );
-          n2 = computeAggressiveMiniscoping( qvl2, n2 );
-          qlitsh.push_back( n2 );
-        }
-        Node n = NodeManager::currentNM()->mkNode( OR, qlitsh );
-        if( !qvsh.empty() ){
-          Node bvl = NodeManager::currentNM()->mkNode(kind::BOUND_VAR_LIST, qvsh);
-          n = NodeManager::currentNM()->mkNode( FORALL, bvl, n );
-        }
-        Trace("ag-miniscope") << "Return " << n << " for " << body << std::endl;
-        return n;
       }
+      Assert( !qvl1.empty() );
+      Assert( !qvl2.empty() || !qvsh.empty() );
+      //check for literals that only contain shared variables
+      std::vector< Node > qlitsh;
+      std::vector< Node > qlit2;
+      for( size_t i=0; i<qlitt.size(); i++ ){
+        bool hasVar2 = false;
+        for( size_t j=0; j<litVars[qlitt[i]].size(); j++ ){
+          if( std::find( qvl2.begin(), qvl2.end(), litVars[qlitt[i]][j] )!=qvl2.end() ){
+            hasVar2 = true;
+            break;
+          }
+        }
+        if( hasVar2 ){
+          qlit2.push_back( qlitt[i] );
+        }else{
+          qlitsh.push_back( qlitt[i] );
+        }
+      }
+      varLits.clear();
+      litVars.clear();
+      Trace("ag-miniscope-debug") << "Split into literals : " << qlit1.size() << " / " << qlit2.size() << " / " << qlitsh.size();
+      Trace("ag-miniscope-debug") << ", variables : " << qvl1.size() << " / " << qvl2.size() << " / " << qvsh.size() << std::endl;
+      Node n1 = qlit1.size()==1 ? qlit1[0] : NodeManager::currentNM()->mkNode( OR, qlit1 );
+      n1 = computeAggressiveMiniscoping( qvl1, n1 );
+      qlitsh.push_back( n1 );
+      if( !qlit2.empty() ){
+        Node n2 = qlit2.size()==1 ? qlit2[0] : NodeManager::currentNM()->mkNode( OR, qlit2 );
+        n2 = computeAggressiveMiniscoping( qvl2, n2 );
+        qlitsh.push_back( n2 );
+      }
+      Node n = NodeManager::currentNM()->mkNode( OR, qlitsh );
+      if( !qvsh.empty() ){
+        Node bvl = NodeManager::currentNM()->mkNode(kind::BOUND_VAR_LIST, qvsh);
+        n = NodeManager::currentNM()->mkNode( FORALL, bvl, n );
+      }
+      Trace("ag-miniscope") << "Return " << n << " for " << body << std::endl;
+      return n;
     }
   }
   return mkForAll( args, body, Node::null() );
@@ -1068,9 +1034,9 @@ Node QuantifiersRewriter::computeOperation( Node f, bool isNested, int computeOp
       n = computeElimSymbols( n );
     }else if( computeOption==COMPUTE_MINISCOPING ){
       //return directly
-      return computeMiniscoping( f, args, n, ipl, isNested );
+      return computeMiniscoping( f, args, n, ipl );
     }else if( computeOption==COMPUTE_AGGRESSIVE_MINISCOPING ){
-      return computeAggressiveMiniscoping( args, n, isNested );
+      return computeAggressiveMiniscoping( args, n );
     }else if( computeOption==COMPUTE_NNF ){
       n = computeNNF( n );
     }else if( computeOption==COMPUTE_PROCESS_ITE ){

@@ -26,10 +26,6 @@ namespace CVC4 {
 namespace theory {
 namespace quantifiers {
 
-// attribute for "contains instantiation constants from"
-struct NestedQuantAttributeId {};
-typedef expr::Attribute<NestedQuantAttributeId, Node> NestedQuantAttribute;
-
 class QuantifiersRewriter {
 public:
   static bool isClause( Node n );
@@ -43,14 +39,11 @@ private:
   static void computeArgVec2( std::vector< Node >& args, std::vector< Node >& activeArgs, Node n, Node ipl );
   static bool hasArg( std::vector< Node >& args, Node n );
   static bool hasArg1( Node a, Node n );
-  static void setNestedQuantifiers( Node n, Node q );
-  static void setNestedQuantifiers2( Node n, Node q, std::vector< Node >& processed );
   static Node computeClause( Node n );
-  static void setAttributes( Node in, Node n );
 private:
   static Node computeElimSymbols( Node body );
-  static Node computeMiniscoping( Node f, std::vector< Node >& args, Node body, Node ipl, bool isNested = false );
-  static Node computeAggressiveMiniscoping( std::vector< Node >& args, Node body, bool isNested = false );
+  static Node computeMiniscoping( Node f, std::vector< Node >& args, Node body, Node ipl );
+  static Node computeAggressiveMiniscoping( std::vector< Node >& args, Node body );
   static Node computeNNF( Node body );
   static Node computeProcessIte( Node body, bool hasPol, bool pol );
   static Node computeVarElimination( Node body, std::vector< Node >& args, Node& ipl );
