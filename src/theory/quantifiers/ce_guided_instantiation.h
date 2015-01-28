@@ -67,11 +67,27 @@ private:
     /** refine count */
     unsigned d_refine_count;
     /** assign */
-    void assign( Node q );
+    void assign( QuantifiersEngine * qe, Node q );
     /** is assigned */
     bool isAssigned() { return !d_quant.isNull(); }
     /** current extential quantifeirs whose couterexamples we must refine */
     std::vector< std::vector< Node > > d_ce_sk;
+  private: //for single invocation
+    void analyzeSygusConjecture();
+    bool analyzeSygusConjunct( Node n, Node p, std::map< Node, std::vector< Node > >& children,
+                              std::map< Node, std::map< Node, std::vector< Node > > >& prog_invoke, 
+                              std::vector< Node >& progs, std::map< Node, std::map< Node, bool > >& contains, bool pol );
+    bool analyzeSygusTerm( Node n, std::map< Node, std::vector< Node > >& prog_invoke, std::map< Node, bool >& contains );
+  public:
+    Node d_single_inv;
+    //map from programs to variables in single invocation property
+    std::map< Node, Node > d_single_inv_map;
+    //map from programs to evaluator term representing the above variable
+    std::map< Node, Node > d_single_inv_app_map;
+    //list of skolems for each argument of programs
+    std::vector< Node > d_single_inv_arg_sk;
+    //list of skolems for each program
+    std::vector< Node > d_single_inv_sk;
   public:  //for fairness
     /** the cardinality literals */
     std::map< int, Node > d_lits;
@@ -106,18 +122,6 @@ private:
   Node getModelValue( Node n );
   /** get model term */
   Node getModelTerm( Node n );
-private:
-  std::map< Node, Node > d_single_inv;
-  //map from programs to variables in single invocation property
-  std::map< Node, std::map< Node, Node > > d_single_inv_map;
-  //map from programs to evaluator term representing the above variable
-  std::map< Node, std::map< Node, Node > > d_single_inv_app_map;
-private:
-  void analyzeSygusConjecture( Node q );
-  bool analyzeSygusConjunct( Node n, Node p, std::map< Node, std::vector< Node > >& children,
-                             std::map< Node, std::map< Node, std::vector< Node > > >& prog_invoke, 
-                             std::vector< Node >& progs, std::map< Node, std::map< Node, bool > >& contains, bool pol );
-  bool analyzeSygusTerm( Node n, std::map< Node, std::vector< Node > >& prog_invoke, std::map< Node, bool >& contains );
 private:
   /** print sygus term */
   void printSygusTerm( std::ostream& out, Node n );

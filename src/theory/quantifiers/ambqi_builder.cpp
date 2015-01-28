@@ -441,7 +441,7 @@ void AbsDef::construct_compose( FirstOrderModelAbs * m, TNode q, TNode n, AbsDef
       }
       Assert( vchildren.empty() );
       if( incomplete ){
-        Trace("ajr-temp") << "Construct incomplete entry." << std::endl;
+        Trace("ambqi-check-debug2") << "Construct incomplete entry." << std::endl;
 
         //if a child is unknown, we must return unknown
         construct_entry( entry, entry_def, val_unk );
