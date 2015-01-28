@@ -180,7 +180,7 @@ public:
          bool allocatedInCMM = false) :
     ContextObj(allocatedInCMM, context),
     d_key(key),
-    d_data(),
+    d_data(data),
     d_map(NULL),
     d_noTrash(allocatedInCMM) {
 
@@ -343,7 +343,7 @@ public:
     Element* obj;
     if(i == d_map.end()) {// create new object
       obj = new(true) Element(d_context, this, k, Data());
-      d_map[k] = obj;
+      d_map.insert(std::make_pair(k, obj));
     } else {
       obj = (*i).second;
     }
@@ -355,12 +355,27 @@ public:
 
     if(i == d_map.end()) {// create new object
       Element* obj = new(true) Element(d_context, this, k, d);
-      d_map[k] = obj;
+      d_map.insert(std::make_pair(k, obj));
       return true;
     } else {
       (*i).second->set(d);
       return false;
     }
+  }
+
+  // Use this for pointer data d allocated in context memory at this
+  // level.  THIS IS HIGHLY EXPERIMENTAL.  It seems to work if ALL
+  // your data objects are allocated from context memory.
+  void insertDataFromContextMemory(const Key& k, const Data& d) {
+    emptyTrash();
+
+    AlwaysAssert(d_map.find(k) == d_map.end());
+
+    Element* obj = new(d_context->getCMM()) Element(d_context, this, k, d,
+                                                    false /* atLevelZero */,
+                                                    true /* allocatedInCMM */);
+
+    d_map.insert(std::make_pair(k, obj));
   }
 
   /**
@@ -392,7 +407,7 @@ public:
 
     Element* obj = new(true) Element(d_context, this, k, d,
                                      true /* atLevelZero */);
-    d_map[k] = obj;
+    d_map.insert(std::make_pair(k, obj));
   }
 
   // FIXME: no erase(), too much hassle to implement efficiently...
