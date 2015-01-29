@@ -787,7 +787,7 @@ void SygusSymBreak::ProgSearch::addTester( Node tst ) {
   }
 }
 
-void SygusSymBreak::ProgSearch::assignTester( Node tst, int depth ) {
+bool SygusSymBreak::ProgSearch::assignTester( Node tst, int depth ) {
   Trace("sygus-sym-break-debug") << "SymBreak : Assign tester : " << tst << ", depth = " << depth << " of " << d_anchor << std::endl;
   int tindex = Datatype::indexOf( tst.getOperator().toExpr() );
   TypeNode tn = tst[0].getType();
@@ -817,52 +817,98 @@ void SygusSymBreak::ProgSearch::assignTester( Node tst, int depth ) {
     Assert( d_watched_count[depth]>0 );
     d_watched_count[depth] = d_watched_count[depth] - 1;
   }
-  processProgramDepth( depth );
-  //assign preexisting testers
-  for( unsigned i=0; i<tst_waiting.size(); i++ ){
-    assignTester( tst_waiting[i], depth+1 );
+  //determine if any subprograms on the current path are redundant
+  if( processSubprograms( tst[0], depth, depth ) ){
+    if( processProgramDepth( depth ) ){
+      //assign preexisting testers
+      for( unsigned i=0; i<tst_waiting.size(); i++ ){
+        if( !assignTester( tst_waiting[i], depth+1 ) ){
+          return false;
+        }
+      }
+      return true;
+    }
   }
+  return false;
+}
+
+bool SygusSymBreak::ProgSearch::processProgramDepth( int depth ){
+  if( depth==d_prog_depth.get() && ( depth==0 || ( d_watched_count.find( depth )!=d_watched_count.end() && d_watched_count[depth]==0 ) ) ){
+    d_prog_depth = d_prog_depth + 1;
+    if( depth>0 ){
+      Trace("sygus-sym-break-debug") << "Program is set for depth " << depth << std::endl;
+      std::map< TypeNode, int > var_count;
+      std::vector< Node > testers;
+      //now have entire information about candidate program at given depth
+      Node prog = getCandidateProgramAtDepth( depth, d_anchor, 0, var_count, testers );
+      if( !prog.isNull() ){
+        if( !d_parent->processCurrentProgram( d_anchor, d_anchor_type, depth, prog, testers ) ){
+          return false;
+        }
+      }else{
+        Assert( false );
+      }
+    }
+    return processProgramDepth( depth+1 );
+  }else{
+    return true;
+  }
+}
+
+bool SygusSymBreak::ProgSearch::processSubprograms( Node n, int depth, int odepth ) {
+  Trace("sygus-sym-break-debug") << "Processing subprograms on path " << n << ", which has depth " << depth << std::endl;
+  depth--;
+  if( depth>0 ){
+    Assert( n.getKind()==APPLY_SELECTOR_TOTAL );
+    std::map< TypeNode, int > var_count;
+    std::vector< Node > testers;
+    //now have entire information about candidate program at given depth
+    Node prog = getCandidateProgramAtDepth( odepth-depth, n[0], 0, var_count, testers );
+    if( !prog.isNull() ){
+      if( !d_parent->processCurrentProgram( n[0], n[0].getType(), odepth-depth, prog, testers ) ){
+        return false;
+      }
+      //also try higher levels
+      return processSubprograms( n[0], depth, odepth );
+    }else{
+      Trace("sygus-sym-break-debug") << "...program incomplete." << std::endl;
+    }
+  }
+  return true;
 }
 
 Node SygusSymBreak::ProgSearch::getCandidateProgramAtDepth( int depth, Node prog, int curr_depth, std::map< TypeNode, int >& var_count, std::vector< Node >& testers ) {
   Assert( depth>=curr_depth );
   Trace("sygus-sym-break-debug") << "Reconstructing program for " << prog << " at depth " << curr_depth << "/" << depth << std::endl;
   NodeMap::const_iterator it = d_testers.find( prog );
-  Assert( it!=d_testers.end() );
-  Node tst = (*it).second;
-  testers.push_back( tst );
-  Assert( tst[0]==prog );
-  int tindex = Datatype::indexOf( tst.getOperator().toExpr() );
-  TypeNode tn = prog.getType();
-  Assert( DatatypesRewriter::isTypeDatatype( tn ) );
-  const Datatype& dt = ((DatatypeType)(tn).toType()).getDatatype();
-  std::map< int, Node > pre;
-  if( curr_depth<depth ){
-    for( unsigned i=0; i<dt[tindex].getNumArgs(); i++ ){
-      Node sel = NodeManager::currentNM()->mkNode( kind::APPLY_SELECTOR_TOTAL, Node::fromExpr( dt[tindex][i].getSelector() ), prog );
-      pre[i] = getCandidateProgramAtDepth( depth, sel, curr_depth+1, var_count, testers );
+  if( it!=d_testers.end() ){
+    Node tst = (*it).second;
+    testers.push_back( tst );
+    Assert( tst[0]==prog );
+    int tindex = Datatype::indexOf( tst.getOperator().toExpr() );
+    TypeNode tn = prog.getType();
+    Assert( DatatypesRewriter::isTypeDatatype( tn ) );
+    const Datatype& dt = ((DatatypeType)(tn).toType()).getDatatype();
+    std::map< int, Node > pre;
+    if( curr_depth<depth ){
+      for( unsigned i=0; i<dt[tindex].getNumArgs(); i++ ){
+        Node sel = NodeManager::currentNM()->mkNode( kind::APPLY_SELECTOR_TOTAL, Node::fromExpr( dt[tindex][i].getSelector() ), prog );
+        pre[i] = getCandidateProgramAtDepth( depth, sel, curr_depth+1, var_count, testers );
+        if( pre[i].isNull() ){
+          return Node::null();
+        }
+      }
     }
-  }
-  return d_parent->d_util->mkGeneric( dt, tindex, var_count, pre );
-}
-
-void SygusSymBreak::ProgSearch::processProgramDepth( int depth ){
-  if( depth==d_prog_depth.get() && ( depth==0 || ( d_watched_count.find( depth )!=d_watched_count.end() && d_watched_count[depth]==0 ) ) ){
-    d_prog_depth = d_prog_depth + 1;
-    if( depth>0 ){
-      Trace("sygus-sym-break-debug") << "Program is set for depth=" << depth << std::endl;
-      std::map< TypeNode, int > var_count;
-      std::vector< Node > testers;
-      //now have entire information about candidate program at given depth
-      Node prog = getCandidateProgramAtDepth( depth, d_anchor, 0, var_count, testers );
-      d_parent->processCurrentProgram( d_anchor, d_anchor_type, depth, prog, testers );
-    }
-    processProgramDepth( depth+1 );
+    return d_parent->d_util->mkGeneric( dt, tindex, var_count, pre );
+  }else{
+    Trace("sygus-sym-break-debug") << "...failure." << std::endl;
+    return Node::null();
   }
 }
 
-void SygusSymBreak::processCurrentProgram( Node a, TypeNode at, int depth, Node prog, std::vector< Node >& testers ) {
-  if( d_normalized[at].find( prog )==d_normalized[at].end() ){
+bool SygusSymBreak::processCurrentProgram( Node a, TypeNode at, int depth, Node prog, std::vector< Node >& testers ) {
+  std::map< Node, Node >::iterator it = d_normalized[at].find( prog );
+  if( it==d_normalized[at].end() ){
     Trace("sygus-sym-break") << "Currently considering program : " << prog << " at depth " << depth << " for " << a << std::endl;
     Node progr = Rewriter::rewrite( prog );
     std::map< TypeNode, int > var_count;
@@ -873,15 +919,23 @@ void SygusSymBreak::processCurrentProgram( Node a, TypeNode at, int depth, Node 
     std::map< Node, Node >::iterator it = d_normalized_to_orig[at].find( progr );
     if( it==d_normalized_to_orig[at].end() ){
       d_normalized_to_orig[at][progr] = prog;
+      d_redundant[at][prog] = false;
     }else{
+      d_redundant[at][prog] = true;
       Assert( !testers.empty() );
       Trace("sygus-nf") << "* Sygus sym break : " << prog << " and " << it->second << " both rewrite to " << progr << std::endl;
-      d_util->d_conflictNode = testers.size()==1 ? testers[0] : NodeManager::currentNM()->mkNode( AND, testers );
-      Trace("sygus-sym-break2") << "Conflict : " << d_util->d_conflictNode << std::endl;
-      d_util->d_conflict = true;
-
-      // TODO : generalize conflict
     }
+  }
+  Assert( d_redundant[at].find( prog )!=d_redundant[at].end() );
+  if( d_redundant[at][prog] ){
+    d_util->d_conflictNode = testers.size()==1 ? testers[0] : NodeManager::currentNM()->mkNode( AND, testers );
+    Trace("sygus-sym-break2") << "Conflict : " << d_util->d_conflictNode << std::endl;
+    d_util->d_conflict = true;
+    d_redundant[at][prog] = true;
+    // TODO : generalize conflict
+    return false;
+  }else{
+    return true;
   }
 }
 

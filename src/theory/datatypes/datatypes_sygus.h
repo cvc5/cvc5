@@ -120,8 +120,9 @@ private:
   private:
     SygusSymBreak * d_parent;
     Node getCandidateProgramAtDepth( int depth, Node prog, int curr_depth, std::map< TypeNode, int >& var_count, std::vector< Node >& testers );
-    void processProgramDepth( int depth );
-    void assignTester( Node tst, int depth );
+    bool processProgramDepth( int depth );
+    bool processSubprograms( Node n, int depth, int odepth );
+    bool assignTester( Node tst, int depth );
   public:
     ProgSearch( SygusSymBreak * p, Node a, context::Context* c ) : 
       d_parent( p ), d_anchor( a ), d_testers( c ), d_watched_terms( c ), d_watched_count( c ), d_prog_depth( c, 0 ) {
@@ -138,8 +139,9 @@ private:
   std::map< Node, ProgSearch * > d_prog_search;
   std::map< TypeNode, std::map< Node, Node > > d_normalized;
   std::map< TypeNode, std::map< Node, Node > > d_normalized_to_orig;
+  std::map< TypeNode, std::map< Node, bool > > d_redundant;
   Node getAnchor( Node n );
-  void processCurrentProgram( Node a, TypeNode at, int depth, Node prog, std::vector< Node >& testers );
+  bool processCurrentProgram( Node a, TypeNode at, int depth, Node prog, std::vector< Node >& testers );
 public:
   SygusSymBreak( SygusUtil * util, context::Context* c );
   /** add tester */
