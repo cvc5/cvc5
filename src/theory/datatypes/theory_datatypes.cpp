@@ -338,12 +338,14 @@ void TheoryDatatypes::flushPendingFacts(){
 }
 
 void TheoryDatatypes::doPendingMerges(){
-  //do all pending merges
-  int i=0;
-  while( i<(int)d_pending_merge.size() ){
-    Assert( d_pending_merge[i].getKind()==EQUAL || d_pending_merge[i].getKind()==IFF );
-    merge( d_pending_merge[i][0], d_pending_merge[i][1] );
-    i++;
+  if( !d_conflict ){
+    //do all pending merges
+    int i=0;
+    while( i<(int)d_pending_merge.size() ){
+      Assert( d_pending_merge[i].getKind()==EQUAL || d_pending_merge[i].getKind()==IFF );
+      merge( d_pending_merge[i][0], d_pending_merge[i][1] );
+      i++;
+    }
   }
   d_pending_merge.clear();
 }
@@ -360,15 +362,22 @@ void TheoryDatatypes::assertFact( Node fact, Node exp ){
   doPendingMerges();
   //add to tester if applicable
   if( atom.getKind()==kind::APPLY_TESTER ){
-    if( polarity ){
-      Trace("dt-tester") << "Assert tester : " << atom << std::endl;
-      if( d_sygus_util ){
-        d_sygus_util->getSymBreak()->addTester( atom );
-      }
-    }
     Node rep = getRepresentative( atom[0] );
     EqcInfo* eqc = getOrMakeEqcInfo( rep, true );
     addTester( fact, eqc, rep );
+    if( !d_conflict && polarity ){
+      Trace("dt-tester") << "Assert tester : " << atom << std::endl;
+      if( d_sygus_util ){
+        d_sygus_util->getSymBreak()->addTester( atom );
+        if( d_sygus_util->d_conflict ){
+          d_conflict = true;
+          d_conflictNode = d_sygus_util->d_conflictNode;
+          Trace("dt-conflict") << "CONFLICT: sygus symmetry breaking conflict : " << d_conflictNode << std::endl;
+          d_out->conflict( d_conflictNode );
+          return;
+        }
+      }
+    }
   }
   doPendingMerges();
 }

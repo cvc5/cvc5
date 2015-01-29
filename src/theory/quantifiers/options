@@ -196,12 +196,14 @@ option ceGuidedInst --cegqi bool :default false :read-write
   counterexample-guided quantifier instantiation
 option ceGuidedInstFair --cegqi-fair=MODE CVC4::theory::quantifiers::CegqiFairMode :default CVC4::theory::quantifiers::CEGQI_FAIR_DT_SIZE :include "theory/quantifiers/modes.h" :handler CVC4::theory::quantifiers::stringToCegqiFairMode :handler-include "theory/quantifiers/options_handlers.h"
   if and how to apply fairness for cegqi
-option sygusDecompose --sygus-decompose bool :default false
-  decompose single invocation synthesis conjectures
+option sygusSingleInv --sygus-single-inv bool :default false
+  process single invocation synthesis conjectures
 option sygusNormalForm --sygus-nf bool :default true
   only search for sygus builtin terms that are in normal form
 option sygusNormalFormArg --sygus-nf-arg bool :default true
   account for relationship between arguments of operations in sygus normal form
+option sygusNormalFormGlobal --sygus-nf-global bool :default true
+  narrow sygus search space based on global state of current candidate program
 
 option localTheoryExt --local-t-ext bool :default false
   do instantiation based on local theory extensions

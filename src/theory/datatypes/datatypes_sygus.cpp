@@ -20,6 +20,7 @@
 #include "expr/node_manager.h"
 #include "theory/bv/theory_bv_utils.h"
 #include "util/bitvector.h"
+#include "smt/smt_engine_scope.h"
 
 #include "theory/quantifiers/options.h"
 
@@ -739,31 +740,55 @@ bool SygusSplit::isGenericRedundant( TypeNode tn, Node g ) {
 
 
 SygusSymBreak::SygusSymBreak( SygusUtil * util, context::Context* c ) :
-d_util( util ), d_testers( c ), d_watched_terms( c ), d_watched_count( c ), d_anchor( c ), d_prog_depth( c, 0 ), d_conflict( c ) {
-
+d_util( util ), d_context( c ) {
 
 }
 
 void SygusSymBreak::addTester( Node tst ) {
+  if( options::sygusNormalFormGlobal() ){
+    Node a = getAnchor( tst[0] );
+    Trace("sygus-sym-break-debug") << "Add tester " << tst << " for " << a << std::endl;
+    std::map< Node, ProgSearch * >::iterator it = d_prog_search.find( a );
+    ProgSearch * ps;
+    if( it==d_prog_search.end() ){
+      ps = new ProgSearch( this, a, d_context );
+      d_prog_search[a] = ps;
+    }else{
+      ps = it->second;
+    }
+    ps->addTester( tst );
+  }
+}
+
+Node SygusSymBreak::getAnchor( Node n ) {
+  if( n.getKind()==APPLY_SELECTOR_TOTAL ){
+    return getAnchor( n[0] );
+  }else{
+    return n;
+  }
+}
+
+void SygusSymBreak::ProgSearch::addTester( Node tst ) {
   NodeMap::const_iterator it = d_testers.find( tst[0] );
   if( it==d_testers.end() ){
     d_testers[tst[0]] = tst;
-    if( d_anchor.get().isNull() ){
-      if( tst[0].getKind()!=APPLY_SELECTOR_TOTAL ){
-        d_anchor = tst[0];
-        assignTester( tst, 0 );
-      }
+    if( tst[0]==d_anchor ){
+      assignTester( tst, 0 );
     }else{
       IntMap::const_iterator it = d_watched_terms.find( tst[0] );
       if( it!=d_watched_terms.end() ){
         assignTester( tst, (*it).second );
+      }else{
+        Trace("sygus-sym-break-debug2") << "...add to wait list " << tst << " for " << d_anchor << std::endl;
       }
     }
+  }else{
+    Trace("sygus-sym-break-debug2") << "...already seen " << tst << " for " << d_anchor << std::endl;
   }
 }
 
-void SygusSymBreak::assignTester( Node tst, int depth ) {
-  Trace("sygus-sym-break-debug") << "SymBreak : Assign tester : " << tst << ", depth = " << depth << std::endl;
+void SygusSymBreak::ProgSearch::assignTester( Node tst, int depth ) {
+  Trace("sygus-sym-break-debug") << "SymBreak : Assign tester : " << tst << ", depth = " << depth << " of " << d_anchor << std::endl;
   int tindex = Datatype::indexOf( tst.getOperator().toExpr() );
   TypeNode tn = tst[0].getType();
   Assert( DatatypesRewriter::isTypeDatatype( tn ) );
@@ -786,7 +811,7 @@ void SygusSymBreak::assignTester( Node tst, int depth ) {
   }else{
     d_watched_count[depth+1] = d_watched_count[depth+1] + dt[tindex].getNumArgs();
   }
-  Trace("sygus-sym-break-debug") << "...watched count now " << d_watched_count[depth+1].get() << " for " << (depth+1) << std::endl;
+  Trace("sygus-sym-break-debug") << "...watched count now " << d_watched_count[depth+1].get() << " for " << (depth+1) << " of " << d_anchor << std::endl;
   //now decrement watch count and process
   if( depth>0 ){
     Assert( d_watched_count[depth]>0 );
@@ -799,7 +824,7 @@ void SygusSymBreak::assignTester( Node tst, int depth ) {
   }
 }
 
-Node SygusSymBreak::getCandidateProgramAtDepth( int depth, Node prog, int curr_depth, std::map< TypeNode, int >& var_count, std::vector< Node >& testers ) {
+Node SygusSymBreak::ProgSearch::getCandidateProgramAtDepth( int depth, Node prog, int curr_depth, std::map< TypeNode, int >& var_count, std::vector< Node >& testers ) {
   Assert( depth>=curr_depth );
   Trace("sygus-sym-break-debug") << "Reconstructing program for " << prog << " at depth " << curr_depth << "/" << depth << std::endl;
   NodeMap::const_iterator it = d_testers.find( prog );
@@ -818,10 +843,10 @@ Node SygusSymBreak::getCandidateProgramAtDepth( int depth, Node prog, int curr_d
       pre[i] = getCandidateProgramAtDepth( depth, sel, curr_depth+1, var_count, testers );
     }
   }
-  return d_util->mkGeneric( dt, tindex, var_count, pre );
+  return d_parent->d_util->mkGeneric( dt, tindex, var_count, pre );
 }
 
-void SygusSymBreak::processProgramDepth( int depth ){
+void SygusSymBreak::ProgSearch::processProgramDepth( int depth ){
   if( depth==d_prog_depth.get() && ( depth==0 || ( d_watched_count.find( depth )!=d_watched_count.end() && d_watched_count[depth]==0 ) ) ){
     d_prog_depth = d_prog_depth + 1;
     if( depth>0 ){
@@ -829,32 +854,38 @@ void SygusSymBreak::processProgramDepth( int depth ){
       std::map< TypeNode, int > var_count;
       std::vector< Node > testers;
       //now have entire information about candidate program at given depth
-      Node prog = getCandidateProgramAtDepth( depth, d_anchor.get(), 0, var_count, testers );
-      if( d_normalized.find( prog )==d_normalized.end() ){
-        Trace("sygus-sym-break") << "Currently considering program : " << prog << " at depth " << depth << std::endl;
-        Node progr = Rewriter::rewrite( prog );
-        std::map< TypeNode, int > var_count;
-        std::map< Node, Node > subs;
-        progr = d_util->getSygusNormalized( progr, var_count, subs );
-        Trace("sygus-sym-break2") << "...rewrites to " << progr << std::endl;
-        d_normalized[prog] = progr;
-        std::map< Node, Node >::iterator it = d_normalized_to_orig.find( progr );
-        if( it==d_normalized_to_orig.end() ){
-          d_normalized_to_orig[progr] = prog;
-        }else{
-          Assert( !testers.empty() );
-          Trace("sygus-nf") << "* Sygus sym break : " << prog << " and " << it->second << " both rewrite to " << progr << std::endl;
-          Node conflict = testers.size()==1 ? testers[0] : NodeManager::currentNM()->mkNode( AND, testers );
-          Trace("sygus-sym-break2") << "Conflict : " << conflict << std::endl;
-        }
-      }
+      Node prog = getCandidateProgramAtDepth( depth, d_anchor, 0, var_count, testers );
+      d_parent->processCurrentProgram( d_anchor, d_anchor_type, depth, prog, testers );
     }
     processProgramDepth( depth+1 );
   }
 }
 
+void SygusSymBreak::processCurrentProgram( Node a, TypeNode at, int depth, Node prog, std::vector< Node >& testers ) {
+  if( d_normalized[at].find( prog )==d_normalized[at].end() ){
+    Trace("sygus-sym-break") << "Currently considering program : " << prog << " at depth " << depth << " for " << a << std::endl;
+    Node progr = Rewriter::rewrite( prog );
+    std::map< TypeNode, int > var_count;
+    std::map< Node, Node > subs;
+    progr = d_util->getSygusNormalized( progr, var_count, subs );
+    Trace("sygus-sym-break2") << "...rewrites to " << progr << std::endl;
+    d_normalized[at][prog] = progr;
+    std::map< Node, Node >::iterator it = d_normalized_to_orig[at].find( progr );
+    if( it==d_normalized_to_orig[at].end() ){
+      d_normalized_to_orig[at][progr] = prog;
+    }else{
+      Assert( !testers.empty() );
+      Trace("sygus-nf") << "* Sygus sym break : " << prog << " and " << it->second << " both rewrite to " << progr << std::endl;
+      d_util->d_conflictNode = testers.size()==1 ? testers[0] : NodeManager::currentNM()->mkNode( AND, testers );
+      Trace("sygus-sym-break2") << "Conflict : " << d_util->d_conflictNode << std::endl;
+      d_util->d_conflict = true;
 
-SygusUtil::SygusUtil( Context* c ) {
+      // TODO : generalize conflict
+    }
+  }
+}
+
+SygusUtil::SygusUtil( Context* c ) : d_conflict( c, false ) {
   d_split = new SygusSplit( this );
   d_sym_break = new SygusSymBreak( this, c );
 }
@@ -913,19 +944,17 @@ Node SygusUtil::mkGeneric( const Datatype& dt, int c, std::map< TypeNode, int >&
     Assert( !a.isNull() );
     children.push_back( a );
   }
-  if( Trace.isOn("sygus-split-debug3") ){
-    Trace("sygus-split-debug3") << "mkGeneric " << dt[c].getName() << ", op = " << op << " with arguments : " << std::endl;
-    for( unsigned i=0; i<children.size(); i++ ){
-      Trace("sygus-split-debug3") << "  " << children[i] << std::endl;
-    }
-  }
   if( op.getKind()==BUILTIN ){
     return NodeManager::currentNM()->mkNode( op, children );
   }else{
     if( children.size()==1 ){
       return children[0];
     }else{
-      return NodeManager::currentNM()->mkNode( APPLY, children );
+      Node n = NodeManager::currentNM()->mkNode( APPLY, children );
+      //must expand definitions
+      Node ne = Node::fromExpr( smt::currentSmtEngine()->expandDefinitions( n.toExpr() ) );
+      Trace("sygus-util-debug") << "Expanded definitions in " << n << " to " << ne << std::endl;
+      return ne;
     }
   }
 }

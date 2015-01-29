@@ -110,22 +110,36 @@ public:
 
 class SygusSymBreak
 {
-  typedef context::CDHashMap< Node, Node, NodeHashFunction > NodeMap;
-  typedef context::CDHashMap< Node, int, NodeHashFunction > IntMap;
-  typedef context::CDHashMap< int, int > IntIntMap;
 private:
   SygusUtil * d_util;
-  NodeMap d_testers;
-  IntMap d_watched_terms;
-  IntIntMap d_watched_count;
-  context::CDO<Node> d_anchor;
-  context::CDO<int> d_prog_depth;
-  std::map< Node, Node > d_normalized;
-  std::map< Node, Node > d_normalized_to_orig;
-  void assignTester( Node tst, int depth );
-  Node getCandidateProgramAtDepth( int depth, Node prog, int curr_depth, std::map< TypeNode, int >& var_count, std::vector< Node >& testers );
-  void processProgramDepth( int depth );
-  context::CDO<Node> d_conflict;
+  context::Context* d_context;
+  class ProgSearch {
+    typedef context::CDHashMap< Node, Node, NodeHashFunction > NodeMap;
+    typedef context::CDHashMap< Node, int, NodeHashFunction > IntMap;
+    typedef context::CDHashMap< int, int > IntIntMap;
+  private:
+    SygusSymBreak * d_parent;
+    Node getCandidateProgramAtDepth( int depth, Node prog, int curr_depth, std::map< TypeNode, int >& var_count, std::vector< Node >& testers );
+    void processProgramDepth( int depth );
+    void assignTester( Node tst, int depth );
+  public:
+    ProgSearch( SygusSymBreak * p, Node a, context::Context* c ) : 
+      d_parent( p ), d_anchor( a ), d_testers( c ), d_watched_terms( c ), d_watched_count( c ), d_prog_depth( c, 0 ) {
+      d_anchor_type = d_anchor.getType();
+    }
+    Node d_anchor;
+    NodeMap d_testers;
+    IntMap d_watched_terms;
+    IntIntMap d_watched_count;
+    TypeNode d_anchor_type;
+    context::CDO<int> d_prog_depth;
+    void addTester( Node tst );
+  };
+  std::map< Node, ProgSearch * > d_prog_search;
+  std::map< TypeNode, std::map< Node, Node > > d_normalized;
+  std::map< TypeNode, std::map< Node, Node > > d_normalized_to_orig;
+  Node getAnchor( Node n );
+  void processCurrentProgram( Node a, TypeNode at, int depth, Node prog, std::vector< Node >& testers );
 public:
   SygusSymBreak( SygusUtil * util, context::Context* c );
   /** add tester */
@@ -150,6 +164,8 @@ public:
   SygusUtil( context::Context* c );
   SygusSplit * getSplit() { return d_split; }
   SygusSymBreak * getSymBreak() { return d_sym_break; }
+  context::CDO<bool> d_conflict;
+  Node d_conflictNode;
 };
 
 
