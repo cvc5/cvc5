@@ -22,7 +22,6 @@
 #include "theory/theory.h"
 #include "util/datatype.h"
 #include "util/hash.h"
-#include "util/trans_closure.h"
 #include "theory/uf/equality_engine.h"
 
 #include <ext/hash_set>
@@ -34,7 +33,7 @@ namespace CVC4 {
 namespace theory {
 namespace datatypes {
 
-class SygusSplit;
+class SygusUtil;
 
 class TheoryDatatypes : public Theory {
 private:
@@ -179,8 +178,8 @@ private:
   unsigned d_dtfCounter;
   /** expand definition skolem functions */
   std::map< Node, Node > d_exp_def_skolem;
-  /** sygus split utility */
-  SygusSplit * d_sygus_split;
+  /** sygus utility */
+  SygusUtil * d_sygus_util;
 private:
   /** assert fact */
   void assertFact( Node fact, Node exp );

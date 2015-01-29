@@ -14,6 +14,8 @@
  ** Theory of datatypes.
  **/
 
+#include "cvc4_private.h"
+
 #ifndef __CVC4__THEORY__DATATYPES__DATATYPES_SYGUS_H
 #define __CVC4__THEORY__DATATYPES__DATATYPES_SYGUS_H
 
@@ -21,15 +23,21 @@
 #include "util/datatype.h"
 #include <iostream>
 #include <map>
+#include "context/context.h"
 #include "context/cdchunk_list.h"
+#include "context/cdhashmap.h"
+#include "context/cdo.h"
 
 namespace CVC4 {
-namespace theory { 
+namespace theory {
 namespace datatypes {
-  
+
+class SygusUtil;
+
 class SygusSplit
 {
 private:
+  SygusUtil * d_util;
   std::map< Node, std::vector< Node > > d_splits;
   std::map< TypeNode, std::vector< bool > > d_sygus_nred;
   std::map< TypeNode, std::map< int, std::map< int, std::vector< bool > > > > d_sygus_pc_nred;
@@ -44,9 +52,6 @@ private:
   std::map< TypeNode, std::map< int, Node > > d_arg_const;
   std::map< TypeNode, std::map< Node, int > > d_consts;
   std::map< TypeNode, std::map< Node, int > > d_ops;
-  //
-  std::map< TypeNode, std::vector< Node > > d_fv;
-  std::map< Node, TypeNode > d_fv_stype;
   // type to (rewritten) to original
   std::map< TypeNode, std::map< Node, Node > > d_gen_terms;
   std::map< TypeNode, std::map< Node, bool > > d_gen_redundant;
@@ -92,14 +97,59 @@ private:
   /** get arg type */
   TypeNode getArgType( const DatatypeConstructor& c, int i );
 private:
-  Node getGeneric( Node n, std::vector< int >& csIndices, std::vector< int >& sIndices, TypeNode& tng );
-  Node getGeneric2( const Datatype& dt, std::map< TypeNode, int >& var_count, std::vector< int >& csIndices, std::vector< int >& sIndices, unsigned index );
-  Node mkGeneric( const Datatype& dt, int c, std::map< TypeNode, int >& var_count, std::map< int, Node >& pre );
+  // generic cache
   bool isGenericRedundant( TypeNode tn, Node g );
-  Node getSygusNormalized( Node n, std::map< TypeNode, int >& var_count, std::map< Node, Node >& subs );
 public:
+  SygusSplit( SygusUtil * util ) : d_util( util ) {}
   /** get sygus splits */
   void getSygusSplits( Node n, const Datatype& dt, std::vector< Node >& splits, std::vector< Node >& lemmas );
+};
+
+
+
+
+class SygusSymBreak
+{
+  typedef context::CDHashMap< Node, Node, NodeHashFunction > NodeMap;
+  typedef context::CDHashMap< Node, int, NodeHashFunction > IntMap;
+  typedef context::CDHashMap< int, int > IntIntMap;
+private:
+  SygusUtil * d_util;
+  NodeMap d_testers;
+  IntMap d_watched_terms;
+  IntIntMap d_watched_count;
+  context::CDO<Node> d_anchor;
+  context::CDO<int> d_prog_depth;
+  std::map< Node, Node > d_normalized;
+  std::map< Node, Node > d_normalized_to_orig;
+  void assignTester( Node tst, int depth );
+  Node getCandidateProgramAtDepth( int depth, Node prog, int curr_depth, std::map< TypeNode, int >& var_count, std::vector< Node >& testers );
+  void processProgramDepth( int depth );
+  context::CDO<Node> d_conflict;
+public:
+  SygusSymBreak( SygusUtil * util, context::Context* c );
+  /** add tester */
+  void addTester( Node tst );
+};
+
+class SygusUtil
+{
+  friend class SygusSplit;
+  friend class SygusSymBreak;
+private:
+  std::map< TypeNode, std::vector< Node > > d_fv;
+  std::map< Node, TypeNode > d_fv_stype;
+  SygusSplit * d_split;
+  SygusSymBreak * d_sym_break;
+private:
+  Node getVar( TypeNode tn, int i );
+  Node getVarInc( TypeNode tn, std::map< TypeNode, int >& var_count );
+  Node mkGeneric( const Datatype& dt, int c, std::map< TypeNode, int >& var_count, std::map< int, Node >& pre );
+  Node getSygusNormalized( Node n, std::map< TypeNode, int >& var_count, std::map< Node, Node >& subs );
+public:
+  SygusUtil( context::Context* c );
+  SygusSplit * getSplit() { return d_split; }
+  SygusSymBreak * getSymBreak() { return d_sym_break; }
 };
 
 

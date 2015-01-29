@@ -68,9 +68,9 @@ TheoryDatatypes::TheoryDatatypes(Context* c, UserContext* u, OutputChannel& out,
   d_dtfCounter = 0;
 
   if( options::ceGuidedInst() ){
-    d_sygus_split = new SygusSplit;
+    d_sygus_util = new SygusUtil( c );
   }else{
-    d_sygus_split = NULL;
+    d_sygus_util = NULL;
   }
 }
 
@@ -246,9 +246,9 @@ void TheoryDatatypes::check(Effort e) {
                 }else{
                   Trace("dt-split") << "*************Split for constructors on " << n <<  endl;
                   std::vector< Node > children;
-                  if( dt.isSygus() && d_sygus_split ){
+                  if( dt.isSygus() && d_sygus_util ){
                     std::vector< Node > lemmas;
-                    d_sygus_split->getSygusSplits( n, dt, children, lemmas );
+                    d_sygus_util->getSplit()->getSygusSplits( n, dt, children, lemmas );
                     for( unsigned i=0; i<lemmas.size(); i++ ){
                       Trace("dt-lemma-sygus") << "Dt sygus lemma : " << lemmas[i] << std::endl;
                       d_out->lemma( lemmas[i] );
@@ -362,6 +362,9 @@ void TheoryDatatypes::assertFact( Node fact, Node exp ){
   if( atom.getKind()==kind::APPLY_TESTER ){
     if( polarity ){
       Trace("dt-tester") << "Assert tester : " << atom << std::endl;
+      if( d_sygus_util ){
+        d_sygus_util->getSymBreak()->addTester( atom );
+      }
     }
     Node rep = getRepresentative( atom[0] );
     EqcInfo* eqc = getOrMakeEqcInfo( rep, true );
