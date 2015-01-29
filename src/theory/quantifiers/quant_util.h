@@ -110,38 +110,6 @@ public:
   virtual void setLiberal( bool l ) = 0;
 };/* class EqualityQuery */
 
-class QuantLtePartialInst {
-private:
-  // was this module invoked
-  bool d_wasInvoked;
-  //representatives per type
-  std::map< TypeNode, std::vector< Node > > d_reps;
-  // should we instantiate quantifier
-  std::map< Node, bool > d_do_inst;
-  // have we instantiated quantifier
-  std::map< Node, bool > d_inst;
-  std::map< Node, std::vector< Node > > d_vars;
-  /** pointer to quant engine */
-  QuantifiersEngine * d_qe;
-  /** list of relevant quantifiers asserted in the current context */
-  context::CDList<Node> d_lte_asserts;
-  /** reset */
-  void reset();
-  /** get instantiations */
-  void getPartialInstantiations( std::vector< Node >& conj, Node q, Node bvl,
-                                 std::vector< Node >& vars, std::vector< Node >& inst, std::vector< TypeNode >& types, unsigned index );
-  /** get eligible inst variables */
-  void getEligibleInstVars( Node n, std::map< Node, bool >& vars );
-public:
-  QuantLtePartialInst( QuantifiersEngine * qe, context::Context* c );
-  /** add quantifier */
-  bool addQuantifier( Node q );
-  /** get instantiations */
-  void getInstantiations( std::vector< Node >& lemmas );
-  /** was invoked */
-  bool wasInvoked() { return d_wasInvoked; }
-};
-
 
 }
 }

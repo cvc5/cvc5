@@ -36,14 +36,21 @@ d_qe( qe ), d_axiom_asserted( c, false ), d_forall_asserts( c ), d_isModelSet( c
 
 }
 
-void FirstOrderModel::assertQuantifier( Node n ){
-  if( n.getKind()==FORALL ){
-    d_forall_asserts.push_back( n );
-    if( n.getAttribute(AxiomAttribute()) ){
-      d_axiom_asserted = true;
+void FirstOrderModel::assertQuantifier( Node n, bool reduced ){
+  if( !reduced ){
+    if( n.getKind()==FORALL ){
+      d_forall_asserts.push_back( n );
+      if( n.getAttribute(AxiomAttribute()) ){
+        d_axiom_asserted = true;
+      }
+    }else if( n.getKind()==NOT ){
+      Assert( n[0].getKind()==FORALL );
     }
-  }else if( n.getKind()==NOT ){
-    Assert( n[0].getKind()==FORALL );
+  }else{
+    Assert( n.getKind()==FORALL );
+    Assert( d_forall_to_reduce.find( n )==d_forall_to_reduce.end() );
+    d_forall_to_reduce[n] = true;
+    Trace("quant") << "Mark to reduce : " << n << std::endl;
   }
 }
 
@@ -110,6 +117,18 @@ Node FirstOrderModel::getSomeDomainElement(TypeNode tn){
     exit(0);
   }
   return d_rep_set.d_type_reps[tn][0];
+}
+
+/** needs check */
+bool FirstOrderModel::checkNeeded() {
+  return d_forall_asserts.size()>0 || !d_forall_to_reduce.empty();
+}
+
+/** mark reduced */
+void FirstOrderModel::markQuantifierReduced( Node q ) {
+  Assert( d_forall_to_reduce.find( q )!=d_forall_to_reduce.end() );
+  d_forall_to_reduce.erase( q );
+  Trace("quant") << "Mark reduced : " << q << std::endl;
 }
 
 void FirstOrderModel::reset_round() {

@@ -64,11 +64,11 @@ void InstantiationEngine::finishInit(){
     d_instStrategies.push_back( d_i_ag );
   }
   
-  //local theory extensions
-  if( options::localTheoryExt() ){
-    d_i_lte = new InstStrategyLocalTheoryExt( d_quantEngine );
-    d_instStrategies.push_back( d_i_lte );
-  }
+  //local theory extensions TODO?
+  //if( options::localTheoryExt() ){
+  //  d_i_lte = new InstStrategyLocalTheoryExt( d_quantEngine );
+  //  d_instStrategies.push_back( d_i_lte );
+  //}
   
   //full saturation : instantiate from relevant domain, then arbitrary terms
   if( options::fullSaturateQuant() ){

@@ -19,6 +19,7 @@
 #include "theory/theory_engine.h"
 #include "theory/quantifiers/options.h"
 #include "theory/quantifiers/term_database.h"
+#include "theory/quantifiers/first_order_model.h"
 
 using namespace std;
 using namespace CVC4;
@@ -255,9 +256,9 @@ void InstStrategySimplex::debugPrint( const char* c ){
     //}
   }
   Debug(c) << std::endl;
-
-  for( int q=0; q<d_quantEngine->getNumQuantifiers(); q++ ){
-    Node f = d_quantEngine->getQuantifier( q );
+  
+  for( int i=0; i<(int)d_quantEngine->getModel()->getNumAssertedQuantifiers(); i++ ){
+    Node f = d_quantEngine->getModel()->getAssertedQuantifier( i );
     Debug(c) << f << std::endl;
     Debug(c) << "   Inst constants: ";
     for( int i=0; i<(int)d_quantEngine->getTermDatabase()->getNumInstantiationConstants( f ); i++ ){
