@@ -139,6 +139,7 @@ void CegInstantiation::CegConjecture::analyzeSygusConjecture() {
         invc.push_back( prog );
         Node pv = NodeManager::currentNM()->mkBoundVar( "F", inv.getType() );
         d_single_inv_map[prog] = pv;
+        d_single_inv_map_to_prog[pv] = prog;
         pbvs.push_back( pv );
         Trace("cegqi-analyze-debug2") << "Make variable " << pv << " for " << prog << std::endl;
         for( unsigned k=1; k<inv.getNumChildren(); k++ ){
@@ -176,9 +177,9 @@ void CegInstantiation::CegConjecture::analyzeSygusConjecture() {
       //std::vector< Node > si_conj;
       Assert( !pbvs.empty() );
       Node pbvl = NodeManager::currentNM()->mkNode( BOUND_VAR_LIST, pbvs );
-      Node si;
       for( std::map< Node, std::vector< Node > >::iterator it = children.begin(); it != children.end(); ++it ){
-        Assert( si.isNull() );
+        //should hold since we prevent miniscoping
+        Assert( d_single_inv.isNull() );
         std::vector< Node > tmp;
         for( unsigned i=0; i<it->second.size(); i++ ){
           Node c = it->second[i];
@@ -237,14 +238,53 @@ void CegInstantiation::CegConjecture::analyzeSygusConjecture() {
           
           Trace("cegqi-analyze-debug") << "    -> " << bd << std::endl;
         }
-        si = NodeManager::currentNM()->mkNode( FORALL, pbvl, bd );
+        d_single_inv = NodeManager::currentNM()->mkNode( FORALL, pbvl, bd );
+        //equality resolution
+        for( unsigned j=0; j<tmp.size(); j++ ){
+          Node conj = tmp[j];
+          std::map< Node, std::vector< Node > > case_vals;
+          bool exh = processSingleInvLiteral( conj, false, case_vals );
+          Trace("cegqi-analyze-er") << "Conjunct " << conj << " gives equality restrictions, exh = " << exh << " : " << std::endl;
+          for( std::map< Node, std::vector< Node > >::iterator it = case_vals.begin(); it != case_vals.end(); ++it ){
+            Trace("cegqi-analyze-er") << "  " << it->first << " -> ";
+            for( unsigned k=0; k<it->second.size(); k++ ){
+              Trace("cegqi-analyze-er") << it->second[k] << " ";
+            }
+            Trace("cegqi-analyze-er") << std::endl;
+          }
+
+        }
       }
-      Trace("cegqi-analyze-debug") << "...formula is : " << si << std::endl;
-      d_single_inv = si;
+      Trace("cegqi-analyze-debug") << "...formula is : " << d_single_inv << std::endl;
     }else{
       Trace("cegqi-analyze") << "Property is not single invocation." << std::endl;
     }
   }
+}
+
+bool CegInstantiation::CegConjecture::processSingleInvLiteral( Node lit, bool pol, std::map< Node, std::vector< Node > >& case_vals ) {
+  if( lit.getKind()==NOT ){
+    return processSingleInvLiteral( lit[0], !pol, case_vals );
+  }else if( ( lit.getKind()==OR && pol ) || ( lit.getKind()==AND && !pol ) ){
+    bool exh = true;
+    for( unsigned k=0; k<lit.getNumChildren(); k++ ){
+      exh = exh && processSingleInvLiteral( lit[k], pol, case_vals );
+    }
+    return exh;
+  }else if( lit.getKind()==IFF || lit.getKind()==EQUAL ){
+    if( pol ){
+      for( unsigned r=0; r<2; r++ ){
+        std::map< Node, Node >::iterator it = d_single_inv_map_to_prog.find( lit[0] );
+        if( it!=d_single_inv_map_to_prog.end() ){
+          if( r==1 || d_single_inv_map_to_prog.find( lit[1] )==d_single_inv_map_to_prog.end() ){
+            case_vals[it->second].push_back( lit[ r==0 ? 1 : 0 ] );
+            return true;
+          }
+        }
+      }
+    }
+  }
+  return false;
 }
   
 bool CegInstantiation::CegConjecture::analyzeSygusConjunct( Node p, Node n, std::map< Node, std::vector< Node > >& children,
@@ -615,7 +655,13 @@ bool CegInstantiation::getModelValues( CegConjecture * conj, std::vector< Node >
   for( unsigned i=0; i<n.size(); i++ ){
     Node nv = getModelValue( n[i] );
     v.push_back( nv );
-    Trace("cegqi-engine") << n[i] << " -> " << nv << " ";
+    if( Trace.isOn("cegqi-engine") ){
+      TypeNode tn = nv.getType();
+      Trace("cegqi-engine") << n[i] << " -> ";
+      std::stringstream ss;
+      printSygusTerm( ss, nv );
+      Trace("cegqi-engine") << ss.str() << " ";
+    }
     if( nv.isNull() ){
       success = false;
     }
@@ -752,7 +798,7 @@ void CegInstantiation::printSygusTerm( std::ostream& out, Node n ) {
       return;
     }
   }
-  out << n << std::endl;
+  out << n;
 }
 
 }

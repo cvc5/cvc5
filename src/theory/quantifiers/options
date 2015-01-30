@@ -204,6 +204,8 @@ option sygusNormalFormArg --sygus-nf-arg bool :default true
   account for relationship between arguments of operations in sygus normal form
 option sygusNormalFormGlobal --sygus-nf-global bool :default true
   narrow sygus search space based on global state of current candidate program
+option sygusNormalFormGlobalGen --sygus-nf-global-gen bool :default true
+  generalize conflict lemmas for global search space narrowing
 
 option localTheoryExt --local-t-ext bool :default false
   do instantiation based on local theory extensions

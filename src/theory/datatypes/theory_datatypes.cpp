@@ -368,10 +368,13 @@ void TheoryDatatypes::assertFact( Node fact, Node exp ){
     if( !d_conflict && polarity ){
       Trace("dt-tester") << "Assert tester : " << atom << std::endl;
       if( d_sygus_util ){
+        Assert( !d_sygus_util->d_conflict );
         d_sygus_util->getSymBreak()->addTester( atom );
         if( d_sygus_util->d_conflict ){
           d_conflict = true;
-          d_conflictNode = d_sygus_util->d_conflictNode;
+          std::vector< TNode > assumptions;
+          explain( d_sygus_util->d_conflictNode, assumptions );
+          d_conflictNode = mkAnd( assumptions );
           Trace("dt-conflict") << "CONFLICT: sygus symmetry breaking conflict : " << d_conflictNode << std::endl;
           d_out->conflict( d_conflictNode );
           return;
@@ -599,8 +602,17 @@ bool TheoryDatatypes::propagate(TNode literal){
 
 void TheoryDatatypes::addAssumptions( std::vector<TNode>& assumptions, std::vector<TNode>& tassumptions ) {
   for( unsigned i=0; i<tassumptions.size(); i++ ){
-    if( std::find( assumptions.begin(), assumptions.end(), tassumptions[i] )==assumptions.end() ){
-      assumptions.push_back( tassumptions[i] );
+    //flatten AND
+    if( tassumptions[i].getKind()==AND ){
+      for( unsigned j=0; j<tassumptions[i].getNumChildren(); j++ ){
+        if( std::find( assumptions.begin(), assumptions.end(), tassumptions[i][j] )==assumptions.end() ){
+          assumptions.push_back( tassumptions[i][j] );
+        }
+      }
+    }else{
+      if( std::find( assumptions.begin(), assumptions.end(), tassumptions[i] )==assumptions.end() ){
+        assumptions.push_back( tassumptions[i] );
+      }
     }
   }
 }

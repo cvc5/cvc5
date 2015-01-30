@@ -78,10 +78,12 @@ private:
                               std::map< Node, std::map< Node, std::vector< Node > > >& prog_invoke, 
                               std::vector< Node >& progs, std::map< Node, std::map< Node, bool > >& contains, bool pol );
     bool analyzeSygusTerm( Node n, std::map< Node, std::vector< Node > >& prog_invoke, std::map< Node, bool >& contains );
+    bool processSingleInvLiteral( Node lit, bool pol, std::map< Node, std::vector< Node > >& case_vals );
   public:
     Node d_single_inv;
     //map from programs to variables in single invocation property
     std::map< Node, Node > d_single_inv_map;
+    std::map< Node, Node > d_single_inv_map_to_prog;
     //map from programs to evaluator term representing the above variable
     std::map< Node, Node > d_single_inv_app_map;
     //list of skolems for each argument of programs
