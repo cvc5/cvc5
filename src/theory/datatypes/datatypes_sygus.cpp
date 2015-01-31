@@ -293,7 +293,7 @@ void SygusSplit::registerSygusTypeConstructorArg( TypeNode tnn, const Datatype& 
                   if( d_sygus_pc_nred[tnn][csIndex][sIndex][j] ){
                     Trace("sygus-split-debug") << "Check redundancy of " << dt[j].getSygusOp() << " and " << dto[i].getSygusOp() << " under " << parentKind << std::endl;
                     bool rem = false;
-                    if( isPComm && j>i && tnn==tnno ){
+                    if( isPComm && j>i && tnn==tnno && d_sygus_pc_nred[tnno][csIndex][osIndex][j] ){
                       //based on commutativity
                       // use term ordering : constructor index of first argument is not greater than constructor index of second argument
                       rem = true;
@@ -500,9 +500,10 @@ bool SygusSplit::considerSygusSplitConst( const Datatype& dt, const Datatype& pd
         Trace("sygus-split-debug") << "...at argument " << ok_arg << std::endl;
         //other operator be the same type
         if( isTypeMatch( pdt[ok_arg], pdt[arg] ) ){
-          Node co = d_util->getTypeValueOffset( c.getType(), c, offset );
-          Trace("sygus-split-debug") << c << " with offset " << offset << " is " << co << std::endl;
-          if( !co.isNull() ){
+          int status;
+          Node co = d_util->getTypeValueOffset( c.getType(), c, offset, status );
+          Trace("sygus-split-debug") << c << " with offset " << offset << " is " << co << ", status=" << status << std::endl;
+          if( status==0 && !co.isNull() ){
             if( d_util->hasConst( tn, co ) ){
               Trace("sygus-split-debug") << "arg " << arg << " " << c << " in " << parent << " can be treated as " << co << " in " << ok << "..." << std::endl;
               return false;
@@ -1191,21 +1192,25 @@ Node SygusUtil::getTypeMaxValue( TypeNode tn ) {
   }
 }
 
-Node SygusUtil::getTypeValueOffset( TypeNode tn, Node val, int offset ) {
+Node SygusUtil::getTypeValueOffset( TypeNode tn, Node val, int offset, int& status ) {
   std::map< int, Node >::iterator it = d_type_value_offset[tn][val].find( offset );
   if( it==d_type_value_offset[tn][val].end() ){
     Node val_o;
     Node offset_val = getTypeValue( tn, offset );
+    status = -1;
     if( !offset_val.isNull() ){
       if( tn.isInteger() || tn.isReal() ){
         val_o = Rewriter::rewrite( NodeManager::currentNM()->mkNode( PLUS, val, offset_val ) );
+        status = 0;
       }else if( tn.isBitVector() ){
         val_o = Rewriter::rewrite( NodeManager::currentNM()->mkNode( BITVECTOR_PLUS, val, offset_val ) );
       }
     }
     d_type_value_offset[tn][val][offset] = val_o;
+    d_type_value_offset_status[tn][val][offset] = status;
     return val_o;
   }else{
+    status = d_type_value_offset_status[tn][val][offset];
     return it->second;
   }
 }

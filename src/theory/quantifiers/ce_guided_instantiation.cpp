@@ -67,8 +67,10 @@ void CegInstantiation::CegConjecture::assign( QuantifiersEngine * qe, Node q ) {
         }
       }
     }
-    analyzeSygusConjecture();
     d_syntax_guided = true;
+    if( options::sygusSingleInv() ){
+      analyzeSygusConjecture();
+    }
   }else if( qe->getTermDatabase()->isQAttrSynthesis( q ) ){
     d_syntax_guided = false;
   }else{
@@ -263,7 +265,6 @@ void CegInstantiation::CegConjecture::analyzeSygusConjecture() {
 }
 
 bool CegInstantiation::CegConjecture::processSingleInvLiteral( Node lit, bool pol, std::map< Node, std::vector< Node > >& case_vals ) {
-  Trace("ajr-temp") << "Process single inv lit " << lit << " " << pol << std::endl;
   if( lit.getKind()==NOT ){
     return processSingleInvLiteral( lit[0], !pol, case_vals );
   }else if( ( lit.getKind()==OR && pol ) || ( lit.getKind()==AND && !pol ) ){
@@ -276,7 +277,6 @@ bool CegInstantiation::CegConjecture::processSingleInvLiteral( Node lit, bool po
   }else if( lit.getKind()==IFF || lit.getKind()==EQUAL ){
     if( pol ){
       for( unsigned r=0; r<2; r++ ){
-        Trace("ajr-temp") << "Check literal " << lit[r] << " at " << r << std::endl;
         std::map< Node, Node >::iterator it = d_single_inv_map_to_prog.find( lit[r] );
         if( it!=d_single_inv_map_to_prog.end() ){
           if( r==1 || d_single_inv_map_to_prog.find( lit[1] )==d_single_inv_map_to_prog.end() ){
@@ -379,13 +379,11 @@ void CegInstantiation::CegConjecture::initializeGuard( QuantifiersEngine * qe ){
       Node inst = d_single_inv[1].substitute( vars.begin(), vars.end(), d_single_inv_sk.begin(), d_single_inv_sk.end() );
       Node lem = NodeManager::currentNM()->mkNode( OR, d_guard.negate(), inst.negate() );
       Trace("cegqi") << "Add single invocation lemma : " << lem << std::endl;
-      /*  inactive for now (until figure out how to use it)
       qe->getOutputChannel().lemma( lem );
       if( Trace.isOn("cegqi-debug") ){
         lem = Rewriter::rewrite( lem );
         Trace("cegqi-debug") << "...rewritten : " << lem << std::endl;
       }
-      */
     }
   }
 }

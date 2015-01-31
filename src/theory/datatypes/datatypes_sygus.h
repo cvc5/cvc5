@@ -154,6 +154,7 @@ private:
   std::map< TypeNode, std::map< int, Node > > d_type_value;
   std::map< TypeNode, Node > d_type_max_value;
   std::map< TypeNode, std::map< Node, std::map< int, Node > > > d_type_value_offset;
+  std::map< TypeNode, std::map< Node, std::map< int, int > > > d_type_value_offset_status;
   /** is assoc */
   bool isAssoc( Kind k );
   /** is comm */
@@ -169,7 +170,7 @@ private:
   /** get value */
   Node getTypeValue( TypeNode tn, int val );
   /** get value */
-  Node getTypeValueOffset( TypeNode tn, Node val, int offset );
+  Node getTypeValueOffset( TypeNode tn, Node val, int offset, int& status );
   /** get value */
   Node getTypeMaxValue( TypeNode tn );
 private:
