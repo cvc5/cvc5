@@ -56,11 +56,13 @@ void SygusSplit::getSygusSplits( Node n, const Datatype& dt, std::vector< Node >
       //register the constructors that are redundant children of argument sIndex of constructor index csIndex of dt
       registerSygusTypeConstructorArg( tnn, dt, tnnp, pdt, csIndex, sIndex );
 
-      if( options::sygusNormalFormArg() && sIndex==1 && pdt[csIndex].getNumArgs()==2 ){
-        arg1 = NodeManager::currentNM()->mkNode( APPLY_SELECTOR_TOTAL, Node::fromExpr( pdt[csIndex][0].getSelector() ), n[0] );
-        tn1 = arg1.getType();
-        if( !DatatypesRewriter::isTypeDatatype( tn1 ) ){
-          arg1 = Node::null();
+      if( options::sygusNormalFormArg() ){
+        if( sIndex==1 && pdt[csIndex].getNumArgs()==2 ){
+          arg1 = NodeManager::currentNM()->mkNode( APPLY_SELECTOR_TOTAL, Node::fromExpr( pdt[csIndex][0].getSelector() ), n[0] );
+          tn1 = arg1.getType();
+          if( !DatatypesRewriter::isTypeDatatype( tn1 ) ){
+            arg1 = Node::null();
+          }
         }
       }
       // we are splitting on a term that may later have no semantics : guard this case
@@ -97,6 +99,21 @@ void SygusSplit::getSygusSplits( Node n, const Datatype& dt, std::vector< Node >
               Trace("sygus-str") << "...strengthen corresponding first argument of " << test << " : " << argStr << std::endl;
               test_c.push_back( argStr );
               narrow = true;
+            }
+          }
+          //other constraints on arguments
+          Kind curr = d_util->getArgKind( tnn, i );
+          if( curr!=UNDEFINED_KIND ){
+            //ITE children must be distinct when properly typed
+            if( curr==ITE ){
+              if( getArgType( dt[i], 1 )==tnn && getArgType( dt[i], 2 )==tnn ){
+                Node arg_ite1 = NodeManager::currentNM()->mkNode( APPLY_SELECTOR_TOTAL, Node::fromExpr( dt[i][1].getSelector() ), n );
+                Node arg_ite2 = NodeManager::currentNM()->mkNode( APPLY_SELECTOR_TOTAL, Node::fromExpr( dt[i][2].getSelector() ), n );
+                Node deq = arg_ite1.eqNode( arg_ite2 ).negate();
+                Trace("sygus-str") << "...ite strengthen " << deq << std::endl;
+                test_c.push_back( deq );
+                narrow = true;
+              }
             }
           }
           //add fairness constraint
@@ -218,16 +235,11 @@ void SygusSplit::registerSygusTypeConstructorArg( TypeNode tnn, const Datatype& 
     }else{
       // calculate which constructors we should consider based on normal form for terms
       //get parent kind
-      bool hasParentKind = false;
-      Kind parentKind;
-      if( d_util->isKindArg( tnnp, csIndex ) ){
-        hasParentKind = true;
-        parentKind = d_util->d_arg_kind[tnnp][csIndex];
-      }
+      Kind parentKind = d_util->getArgKind( tnnp, csIndex );
       for( unsigned i=0; i<dt.getNumConstructors(); i++ ){
         Assert( d_sygus_nred.find( tnn )!=d_sygus_nred.end() );
         bool addSplit = d_sygus_nred[tnn][i];
-        if( addSplit && hasParentKind ){
+        if( addSplit && parentKind!=UNDEFINED_KIND ){
           if( d_util->d_arg_kind.find( tnn )!=d_util->d_arg_kind.end() && d_util->d_arg_kind[tnn].find( i )!=d_util->d_arg_kind[tnn].end() ){
             addSplit = considerSygusSplitKind( dt, pdt, tnn, tnnp, d_util->d_arg_kind[tnn][i], parentKind, sIndex );
             if( !addSplit ){
@@ -257,7 +269,7 @@ void SygusSplit::registerSygusTypeConstructorArg( TypeNode tnn, const Datatype& 
         d_sygus_pc_nred[tnn][csIndex][sIndex].push_back( addSplit );
       }
       //compute argument relationships for 2-arg constructors
-      if( d_util->isKindArg( tnnp, csIndex ) && pdt[csIndex].getNumArgs()==2 ){
+      if( parentKind!=UNDEFINED_KIND && pdt[csIndex].getNumArgs()==2 ){
         int osIndex = sIndex==0 ? 1 : 0;
         TypeNode tnno = getArgType( pdt[csIndex], osIndex );
         if( DatatypesRewriter::isTypeDatatype( tnno ) ){
@@ -268,7 +280,6 @@ void SygusSplit::registerSygusTypeConstructorArg( TypeNode tnn, const Datatype& 
             Assert( d_sygus_pc_nred[tnn][csIndex].find( sIndex )!=d_sygus_pc_nred[tnn][csIndex].end() );
             Assert( d_sygus_pc_nred[tnno][csIndex].find( osIndex )!=d_sygus_pc_nred[tnno][csIndex].end() );
 
-            Kind parentKind = d_util->d_arg_kind[tnnp][csIndex];
             bool isPComm = d_util->isComm( parentKind );
             std::map< int, bool > larg_consider;
             for( unsigned i=0; i<dto.getNumConstructors(); i++ ){
@@ -479,6 +490,32 @@ bool SygusSplit::considerSygusSplitConst( const Datatype& dt, const Datatype& pd
       return false;
     }
   }
+  if( pdt[pc].getNumArgs()==2 ){
+    Kind ok;
+    int offset;
+    if( d_util->hasOffsetArg( parent, arg, offset, ok ) ){
+      Trace("sygus-split-debug") << parent << " has offset arg " << ok << " " << offset << std::endl;
+      int ok_arg = d_util->getKindArg( tnp, ok );
+      if( ok_arg!=-1 ){
+        Trace("sygus-split-debug") << "...at argument " << ok_arg << std::endl;
+        //other operator be the same type
+        if( isTypeMatch( pdt[ok_arg], pdt[arg] ) ){
+          Node co = d_util->getTypeValueOffset( c.getType(), c, offset );
+          Trace("sygus-split-debug") << c << " with offset " << offset << " is " << co << std::endl;
+          if( !co.isNull() ){
+            if( d_util->hasConst( tn, co ) ){
+              Trace("sygus-split-debug") << "arg " << arg << " " << c << " in " << parent << " can be treated as " << co << " in " << ok << "..." << std::endl;
+              return false;
+            }else{
+              Trace("sygus-split-debug") << "Type does not have constant." << std::endl;
+            }
+          }
+        }else{
+          Trace("sygus-split-debug") << "Type mismatch." << std::endl;
+        }
+      }
+    }
+  }
   return true;
 }
 
@@ -505,6 +542,19 @@ bool SygusSplit::isArgDatatype( const DatatypeConstructor& c, int i, const Datat
 TypeNode SygusSplit::getArgType( const DatatypeConstructor& c, int i ) {
   Assert( i>=0 && i<(int)c.getNumArgs() );
   return TypeNode::fromType( ((SelectorType)c[i].getType()).getRangeType() );
+}
+
+bool SygusSplit::isTypeMatch( const DatatypeConstructor& c1, const DatatypeConstructor& c2 ){
+  if( c1.getNumArgs()!=c2.getNumArgs() ){
+    return false;
+  }else{
+    for( unsigned i=0; i<c1.getNumArgs(); i++ ){
+      if( getArgType( c1, i )!=getArgType( c2, i ) ){
+        return false;
+      }
+    }
+    return true;
+  }
 }
 
 bool SygusSplit::isGenericRedundant( TypeNode tn, Node g ) {
@@ -707,6 +757,7 @@ Node SygusSymBreak::ProgSearch::getCandidateProgramAtDepth( int depth, Node prog
 bool SygusSymBreak::processCurrentProgram( Node a, TypeNode at, int depth, Node prog,
                                            std::vector< Node >& testers, std::map< Node, std::vector< Node > >& testers_u ) {
   Assert( a.getType()==at );
+  //Assert( !d_util->d_conflict );
   std::map< Node, bool >::iterator it = d_redundant[at].find( prog );
   bool red;
   if( it==d_redundant[at].end() ){
@@ -799,14 +850,14 @@ bool SygusSymBreak::processCurrentProgram( Node a, TypeNode at, int depth, Node 
             for( unsigned i=0; i<testers.size(); i++ ){
               bool rl = std::find( rlv_testers.begin(), rlv_testers.end(), testers[i] )!=rlv_testers.end();
               Trace("sygus-nf-gen-debug") << "* " << testers[i] << " -> " << rl << std::endl;
-              d_conflict_gen[at][prog].push_back( rl );
+              d_lemma_gen[at][prog].push_back( rl );
             }
           }
         }
       }
       if( !conflict_gen_set ){
         for( unsigned i=0; i<testers.size(); i++ ){
-          d_conflict_gen[at][prog].push_back( true );
+          d_lemma_gen[at][prog].push_back( true );
         }
       }
     }
@@ -814,16 +865,21 @@ bool SygusSymBreak::processCurrentProgram( Node a, TypeNode at, int depth, Node 
     red = it->second;
   }
   if( red ){
-    Assert( d_conflict_gen[at][prog].size()==testers.size() );
-    std::vector< Node > gtesters;
-    for( unsigned i=0; i<testers.size(); i++ ){
-      if( d_conflict_gen[at][prog][i] ){
-        gtesters.push_back( testers[i] );
+    if( std::find( d_lemmas_reported[at][prog].begin(), d_lemmas_reported[at][prog].end(), a )==d_lemmas_reported[at][prog].end() ){
+      d_lemmas_reported[at][prog].push_back( a );
+      Assert( d_lemma_gen[at][prog].size()==testers.size() );
+      std::vector< Node > gtesters;
+      for( unsigned i=0; i<testers.size(); i++ ){
+        if( d_lemma_gen[at][prog][i] ){
+          gtesters.push_back( testers[i].negate() );
+        }
       }
+      Node lem = gtesters.size()==1 ? gtesters[0] : NodeManager::currentNM()->mkNode( OR, gtesters );
+      d_util->d_lemmas.push_back( lem );
+      Trace("sygus-sym-break2") << "Sym break lemma : " << lem << std::endl;
+    }else{
+      Trace("sygus-sym-break2") << "repeated lemma for " << prog << " from " << a << std::endl;
     }
-    d_util->d_conflictNode = gtesters.size()==1 ? gtesters[0] : NodeManager::currentNM()->mkNode( AND, gtesters );
-    Trace("sygus-sym-break2") << "Conflict : " << d_util->d_conflictNode << std::endl;
-    d_util->d_conflict = true;
     return false;
   }else{
     return true;
@@ -862,7 +918,7 @@ void SygusSymBreak::collectTesters( Node tst, std::map< Node, std::vector< Node 
   }
 }
 
-SygusUtil::SygusUtil( Context* c ) : d_conflict( c, false ) {
+SygusUtil::SygusUtil( Context* c ) {
   d_split = new SygusSplit( this );
   d_sym_break = new SygusSymBreak( this, c );
 }
@@ -1075,6 +1131,26 @@ bool SygusUtil::isSingularArg( Node n, Kind ik, int arg ) {
   return false;
 }
 
+bool SygusUtil::hasOffsetArg( Kind ik, int arg, int& offset, Kind& ok ) {
+  if( ik==LT ){
+    Assert( arg==0 || arg==1 );
+    offset = arg==0 ? 1 : -1;
+    ok = LEQ;
+    return true;
+  }else if( ik==BITVECTOR_ULT ){
+    Assert( arg==0 || arg==1 );
+    offset = arg==0 ? 1 : -1;
+    ok = BITVECTOR_ULE;
+    return true;
+  }else if( ik==BITVECTOR_SLT ){
+    Assert( arg==0 || arg==1 );
+    offset = arg==0 ? 1 : -1;
+    ok = BITVECTOR_SLE;
+    return true;
+  }
+  return false;
+}
+
 
 Node SygusUtil::getTypeValue( TypeNode tn, int val ) {
   std::map< int, Node >::iterator it = d_type_value[tn].find( val );
@@ -1110,6 +1186,25 @@ Node SygusUtil::getTypeMaxValue( TypeNode tn ) {
     }
     d_type_max_value[tn] = n;
     return n;
+  }else{
+    return it->second;
+  }
+}
+
+Node SygusUtil::getTypeValueOffset( TypeNode tn, Node val, int offset ) {
+  std::map< int, Node >::iterator it = d_type_value_offset[tn][val].find( offset );
+  if( it==d_type_value_offset[tn][val].end() ){
+    Node val_o;
+    Node offset_val = getTypeValue( tn, offset );
+    if( !offset_val.isNull() ){
+      if( tn.isInteger() || tn.isReal() ){
+        val_o = Rewriter::rewrite( NodeManager::currentNM()->mkNode( PLUS, val, offset_val ) );
+      }else if( tn.isBitVector() ){
+        val_o = Rewriter::rewrite( NodeManager::currentNM()->mkNode( BITVECTOR_PLUS, val, offset_val ) );
+      }
+    }
+    d_type_value_offset[tn][val][offset] = val_o;
+    return val_o;
   }else{
     return it->second;
   }
@@ -1196,14 +1291,20 @@ bool SygusUtil::hasOp( TypeNode tn, Node n ) {
   return getOpArg( tn, n )!=-1;
 }
 
-bool SygusUtil::isKindArg( TypeNode tn, int i ) {
+Kind SygusUtil::getArgKind( TypeNode tn, int i ) {
   Assert( isRegistered( tn ) );
   std::map< TypeNode, std::map< int, Kind > >::iterator itt = d_arg_kind.find( tn );
   if( itt!=d_arg_kind.end() ){
-    return itt->second.find( i )!=itt->second.end();
-  }else{
-    return false;
+    std::map< int, Kind >::iterator itk = itt->second.find( i );
+    if( itk!=itt->second.end() ){
+      return itk->second;
+    }
   }
+  return UNDEFINED_KIND;
+}
+
+bool SygusUtil::isKindArg( TypeNode tn, int i ) {
+  return getArgKind( tn, i )!=UNDEFINED_KIND;
 }
 
 bool SygusUtil::isConstArg( TypeNode tn, int i ) {

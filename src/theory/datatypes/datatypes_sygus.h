@@ -47,19 +47,6 @@ private:
   std::map< TypeNode, std::map< Node, Node > > d_gen_terms;
   std::map< TypeNode, std::map< Node, bool > > d_gen_redundant;
 private:
-  bool isRegistered( TypeNode tn );
-  int getKindArg( TypeNode tn, Kind k );
-  int getConstArg( TypeNode tn, Node n );
-  int getOpArg( TypeNode tn, Node n );
-  bool hasKind( TypeNode tn, Kind k );
-  bool hasConst( TypeNode tn, Node n );
-  bool hasOp( TypeNode tn, Node n );
-  bool isKindArg( TypeNode tn, int i );
-  bool isConstArg( TypeNode tn, int i );
-private:
-  Node getVar( TypeNode tn, int i );
-  Node getVarInc( TypeNode tn, std::map< TypeNode, int >& var_count );
-private:
   /** register sygus type */
   void registerSygusType( TypeNode tn );
   /** register sygus operator */
@@ -73,6 +60,8 @@ private:
   bool isArgDatatype( const DatatypeConstructor& c, int i, const Datatype& dt );
   /** get arg type */
   TypeNode getArgType( const DatatypeConstructor& c, int i );
+  /** is type match */
+  bool isTypeMatch( const DatatypeConstructor& c1, const DatatypeConstructor& c2 );
 private:
   // generic cache
   bool isGenericRedundant( TypeNode tn, Node g );
@@ -117,7 +106,8 @@ private:
   std::map< Node, ProgSearch * > d_prog_search;
   std::map< TypeNode, std::map< Node, Node > > d_normalized_to_orig;
   std::map< TypeNode, std::map< Node, bool > > d_redundant;
-  std::map< TypeNode, std::map< Node, std::vector< bool > > > d_conflict_gen;
+  std::map< TypeNode, std::map< Node, std::vector< Node > > > d_lemmas_reported;
+  std::map< TypeNode, std::map< Node, std::vector< bool > > > d_lemma_gen;
   Node getAnchor( Node n );
   bool processCurrentProgram( Node a, TypeNode at, int depth, Node prog,
                               std::vector< Node >& testers, std::map< Node, std::vector< Node > >& testers_u );
@@ -155,6 +145,7 @@ private:
   bool hasKind( TypeNode tn, Kind k );
   bool hasConst( TypeNode tn, Node n );
   bool hasOp( TypeNode tn, Node n );
+  Kind getArgKind( TypeNode tn, int i );
   bool isKindArg( TypeNode tn, int i );
   bool isConstArg( TypeNode tn, int i );
   void registerSygusType( TypeNode tn );
@@ -162,6 +153,7 @@ private:
   //information for builtin types
   std::map< TypeNode, std::map< int, Node > > d_type_value;
   std::map< TypeNode, Node > d_type_max_value;
+  std::map< TypeNode, std::map< Node, std::map< int, Node > > > d_type_value_offset;
   /** is assoc */
   bool isAssoc( Kind k );
   /** is comm */
@@ -172,8 +164,12 @@ private:
   bool isIdempotentArg( Node n, Kind ik, int arg );
   /** is singular arg */
   bool isSingularArg( Node n, Kind ik, int arg );
+  /** get offset arg */
+  bool hasOffsetArg( Kind ik, int arg, int& offset, Kind& ok );
   /** get value */
   Node getTypeValue( TypeNode tn, int val );
+  /** get value */
+  Node getTypeValueOffset( TypeNode tn, Node val, int offset );
   /** get value */
   Node getTypeMaxValue( TypeNode tn );
 private:
@@ -187,8 +183,9 @@ public:
   SygusUtil( context::Context* c );
   SygusSplit * getSplit() { return d_split; }
   SygusSymBreak * getSymBreak() { return d_sym_break; }
-  context::CDO<bool> d_conflict;
-  Node d_conflictNode;
+  //context::CDO<bool> d_conflict;
+  //Node d_conflictNode;
+  std::vector< Node > d_lemmas;
 };
 
 

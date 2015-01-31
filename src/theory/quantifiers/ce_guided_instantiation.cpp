@@ -191,7 +191,7 @@ void CegInstantiation::CegConjecture::analyzeSygusConjecture() {
           std::map< Node, std::map< Node, std::vector< Node > > >::iterator itp = prog_invoke.find( c );
           if( itp!=prog_invoke.end() ){
             std::vector< Node > terms;
-            std::vector< Node > subs;        
+            std::vector< Node > subs;
             for( std::map< Node, std::vector< Node > >::iterator it2 = itp->second.begin(); it2 != itp->second.end(); ++it2 ){
               if( !it2->second.empty() ){
                 Node prog = it2->first;
@@ -235,7 +235,7 @@ void CegInstantiation::CegConjecture::analyzeSygusConjecture() {
             d_single_inv_arg_sk.push_back( v );
           }
           bd = bd.substitute( vars.begin(), vars.end(), d_single_inv_arg_sk.begin(), d_single_inv_arg_sk.end() );
-          
+
           Trace("cegqi-analyze-debug") << "    -> " << bd << std::endl;
         }
         d_single_inv = NodeManager::currentNM()->mkNode( FORALL, pbvl, bd );
@@ -263,18 +263,21 @@ void CegInstantiation::CegConjecture::analyzeSygusConjecture() {
 }
 
 bool CegInstantiation::CegConjecture::processSingleInvLiteral( Node lit, bool pol, std::map< Node, std::vector< Node > >& case_vals ) {
+  Trace("ajr-temp") << "Process single inv lit " << lit << " " << pol << std::endl;
   if( lit.getKind()==NOT ){
     return processSingleInvLiteral( lit[0], !pol, case_vals );
   }else if( ( lit.getKind()==OR && pol ) || ( lit.getKind()==AND && !pol ) ){
     bool exh = true;
     for( unsigned k=0; k<lit.getNumChildren(); k++ ){
-      exh = exh && processSingleInvLiteral( lit[k], pol, case_vals );
+      bool curr = processSingleInvLiteral( lit[k], pol, case_vals );
+      exh = exh && curr;
     }
     return exh;
   }else if( lit.getKind()==IFF || lit.getKind()==EQUAL ){
     if( pol ){
       for( unsigned r=0; r<2; r++ ){
-        std::map< Node, Node >::iterator it = d_single_inv_map_to_prog.find( lit[0] );
+        Trace("ajr-temp") << "Check literal " << lit[r] << " at " << r << std::endl;
+        std::map< Node, Node >::iterator it = d_single_inv_map_to_prog.find( lit[r] );
         if( it!=d_single_inv_map_to_prog.end() ){
           if( r==1 || d_single_inv_map_to_prog.find( lit[1] )==d_single_inv_map_to_prog.end() ){
             case_vals[it->second].push_back( lit[ r==0 ? 1 : 0 ] );
@@ -286,9 +289,9 @@ bool CegInstantiation::CegConjecture::processSingleInvLiteral( Node lit, bool po
   }
   return false;
 }
-  
+
 bool CegInstantiation::CegConjecture::analyzeSygusConjunct( Node p, Node n, std::map< Node, std::vector< Node > >& children,
-                                                            std::map< Node, std::map< Node, std::vector< Node > > >& prog_invoke, 
+                                                            std::map< Node, std::map< Node, std::vector< Node > > >& prog_invoke,
                                                             std::vector< Node >& progs, std::map< Node, std::map< Node, bool > >& contains, bool pol ) {
   if( ( pol && n.getKind()==OR ) || ( !pol && n.getKind()==AND ) ){
     for( unsigned i=0; i<n.getNumChildren(); i++ ){
@@ -345,7 +348,7 @@ bool CegInstantiation::CegConjecture::analyzeSygusTerm( Node n, std::map< Node, 
     }
   }else{
     //record this conjunct contains n
-    contains[n] = true;    
+    contains[n] = true;
   }
   return true;
 }
@@ -403,7 +406,7 @@ Node CegInstantiation::CegConjecture::getLiteral( QuantifiersEngine * qe, int i 
       Trace("cegqi-lemma") << "Fairness split : " << lem << std::endl;
       qe->getOutputChannel().lemma( lem );
       qe->getOutputChannel().requirePhase( lit, true );
-      
+
       if( options::ceGuidedInstFair()==CEGQI_FAIR_DT_HEIGHT_PRED ){
         //implies height bounds on each candidate variable
         std::vector< Node > lem_c;
@@ -470,7 +473,7 @@ void CegInstantiation::registerQuantifier( Node q ) {
               mc.push_back( NodeManager::currentNM()->mkNode( APPLY_UF, it->second, d_conj->d_candidates[j] ) );
             }
           }else if( options::ceGuidedInstFair()==CEGQI_FAIR_DT_HEIGHT_PRED ){
-            //measure term is a fresh constant 
+            //measure term is a fresh constant
             mc.push_back( NodeManager::currentNM()->mkSkolem( "K", NodeManager::currentNM()->integerType() ) );
           }
         }

@@ -368,17 +368,26 @@ void TheoryDatatypes::assertFact( Node fact, Node exp ){
     if( !d_conflict && polarity ){
       Trace("dt-tester") << "Assert tester : " << atom << std::endl;
       if( d_sygus_util ){
-        Assert( !d_sygus_util->d_conflict );
+        //Assert( !d_sygus_util->d_conflict );
         d_sygus_util->getSymBreak()->addTester( atom );
+        for( unsigned i=0; i<d_sygus_util->d_lemmas.size(); i++ ){
+          Trace("dt-lemma-sygus") << "Sygus symmetry breaking lemma : " << d_sygus_util->d_lemmas[i] << std::endl;
+          d_out->lemma( d_sygus_util->d_lemmas[i] );
+        }
+        d_sygus_util->d_lemmas.clear();
+        /*
         if( d_sygus_util->d_conflict ){
-          d_conflict = true;
-          std::vector< TNode > assumptions;
-          explain( d_sygus_util->d_conflictNode, assumptions );
-          d_conflictNode = mkAnd( assumptions );
-          Trace("dt-conflict") << "CONFLICT: sygus symmetry breaking conflict : " << d_conflictNode << std::endl;
-          d_out->conflict( d_conflictNode );
+          //d_conflict = true;
+          if( !d_sygus_util->d_conflictNode.isNull() ){
+            std::vector< TNode > assumptions;
+            explain( d_sygus_util->d_conflictNode, assumptions );
+            d_conflictNode = mkAnd( assumptions );
+            Trace("dt-conflict") << "CONFLICT: sygus symmetry breaking conflict : " << d_conflictNode << std::endl;
+            d_out->conflict( d_conflictNode );
+          }
           return;
         }
+        */
       }
     }
   }
