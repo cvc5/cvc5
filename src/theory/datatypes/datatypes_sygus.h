@@ -107,12 +107,23 @@ private:
   std::map< TypeNode, std::map< Node, Node > > d_normalized_to_orig;
   std::map< TypeNode, std::map< Node, bool > > d_redundant;
   std::map< TypeNode, std::map< Node, std::vector< Node > > > d_lemmas_reported;
-  std::map< TypeNode, std::map< Node, std::vector< bool > > > d_lemma_gen;
+  //which testers to include in the lemma
+  std::map< TypeNode, std::map< Node, std::vector< bool > > > d_lemma_inc_tst;
+  //additional equalities to include in the lemma
+  std::map< TypeNode, std::map< Node, std::vector< std::pair< int, int > > > > d_lemma_inc_eq;
+  //other equalities
+  std::map< TypeNode, Node > d_anchor_var;
+  std::map< TypeNode, std::map< Node, std::vector< Node > > > d_lemma_inc_eq_gr[2];
+private:
   Node getAnchor( Node n );
   bool processCurrentProgram( Node a, TypeNode at, int depth, Node prog,
-                              std::vector< Node >& testers, std::map< Node, std::vector< Node > >& testers_u );
-  bool processConstantArg( TypeNode tnp, const Datatype & pdt, int pc, Kind k, int i, Node arg, std::map< int, bool >& rlv );
-  void collectTesters( Node tst, std::map< Node, std::vector< Node > >& testers_u, std::vector< Node >& testers );
+                              std::vector< Node >& testers, std::map< Node, std::vector< Node > >& testers_u,
+                              std::map< TypeNode, int >& var_count );
+  bool processConstantArg( TypeNode tnp, const Datatype & pdt, int pc, Kind k, int i, Node arg, std::map< unsigned, bool >& rlv );
+  void collectTesters( Node tst, std::map< Node, std::vector< Node > >& testers_u, std::vector< Node >& testers, std::map< Node, bool >& irrlv_tst );
+  void collectSubterms( Node n, Node tst_curr, std::map< Node, std::vector< Node > >& testers_u, std::map< Node, std::vector< Node > >& nodes );
+  bool isSeparation( Node rep_prog, Node tst_curr, std::map< Node, std::vector< Node > >& testers_u, std::vector< Node >& rlv_testers );
+  Node getSeparationTemplate( TypeNode tn, Node rep_prog, Node anc_var, int& status );
 public:
   SygusSymBreak( SygusUtil * util, context::Context* c );
   /** add tester */
@@ -126,6 +137,11 @@ class SygusUtil
 private:
   std::map< TypeNode, std::vector< Node > > d_fv;
   std::map< Node, TypeNode > d_fv_stype;
+private:
+  TNode getVar( TypeNode tn, int i );
+  TNode getVarInc( TypeNode tn, std::map< TypeNode, int >& var_count );
+  bool isVar( Node n ) { return d_fv_stype.find( n )!=d_fv_stype.end(); }
+private:
   SygusSplit * d_split;
   SygusSymBreak * d_sym_break;
   std::map< TypeNode, std::map< Node, Node > > d_normalized;
@@ -137,6 +153,7 @@ private:
   std::map< TypeNode, std::map< int, Node > > d_arg_const;
   std::map< TypeNode, std::map< Node, int > > d_consts;
   std::map< TypeNode, std::map< Node, int > > d_ops;
+  std::map< TypeNode, std::map< int, Node > > d_arg_ops;
 private:
   bool isRegistered( TypeNode tn );
   int getKindArg( TypeNode tn, Kind k );
@@ -145,6 +162,7 @@ private:
   bool hasKind( TypeNode tn, Kind k );
   bool hasConst( TypeNode tn, Node n );
   bool hasOp( TypeNode tn, Node n );
+  Node getArgOp( TypeNode tn, int i );
   Kind getArgKind( TypeNode tn, int i );
   bool isKindArg( TypeNode tn, int i );
   bool isConstArg( TypeNode tn, int i );
@@ -174,8 +192,6 @@ private:
   /** get value */
   Node getTypeMaxValue( TypeNode tn );
 private:
-  Node getVar( TypeNode tn, int i );
-  Node getVarInc( TypeNode tn, std::map< TypeNode, int >& var_count );
   TypeNode getSygusType( Node v );
   Node mkGeneric( const Datatype& dt, int c, std::map< TypeNode, int >& var_count, std::map< int, Node >& pre );
   Node getSygusNormalized( Node n, std::map< TypeNode, int >& var_count, std::map< Node, Node >& subs );

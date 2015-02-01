@@ -610,19 +610,21 @@ bool TheoryDatatypes::propagate(TNode literal){
 }
 
 void TheoryDatatypes::addAssumptions( std::vector<TNode>& assumptions, std::vector<TNode>& tassumptions ) {
+  std::vector<TNode> ntassumptions;
   for( unsigned i=0; i<tassumptions.size(); i++ ){
     //flatten AND
     if( tassumptions[i].getKind()==AND ){
       for( unsigned j=0; j<tassumptions[i].getNumChildren(); j++ ){
-        if( std::find( assumptions.begin(), assumptions.end(), tassumptions[i][j] )==assumptions.end() ){
-          assumptions.push_back( tassumptions[i][j] );
-        }
+        explain( tassumptions[i][j], ntassumptions );
       }
     }else{
       if( std::find( assumptions.begin(), assumptions.end(), tassumptions[i] )==assumptions.end() ){
         assumptions.push_back( tassumptions[i] );
       }
     }
+  }
+  if( !ntassumptions.empty() ){
+    addAssumptions( assumptions, ntassumptions );
   }
 }
 
