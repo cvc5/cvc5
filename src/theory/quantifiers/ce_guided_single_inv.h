@@ -29,18 +29,20 @@ class CegConjecture;
 
 class CegConjectureSingleInv
 {
-private: 
+private:
   CegConjecture * d_parent;
   bool analyzeSygusConjunct( Node n, Node p, std::map< Node, std::vector< Node > >& children,
-                            std::map< Node, std::map< Node, std::vector< Node > > >& prog_invoke, 
+                            std::map< Node, std::map< Node, std::vector< Node > > >& prog_invoke,
                             std::vector< Node >& progs, std::map< Node, std::map< Node, bool > >& contains, bool pol );
   bool analyzeSygusTerm( Node n, std::map< Node, std::vector< Node > >& prog_invoke, std::map< Node, bool >& contains );
   bool processSingleInvLiteral( Node lit, bool pol, std::map< Node, std::vector< Node > >& case_vals );
-  
+
   Node constructSolution( unsigned i, unsigned index );
   int classifyTerm( Node n, std::map< Node, int >& subs_from_model );
   void collectProgVars( Node n, std::vector< Node >& vars );
   Node applyProgVarSubstitution( Node n, std::map< Node, int >& subs_from_model, std::vector< Node >& subs );
+
+  bool debugSolution( Node sol );
 public:
   CegConjectureSingleInv( Node q, CegConjecture * p );
   // original conjecture
@@ -65,7 +67,7 @@ public:
 public:
   //get the single invocation lemma
   Node getSingleInvLemma( Node guard );
-  //initialize 
+  //initialize
   void initialize();
   //check
   void check( QuantifiersEngine * qe, std::vector< Node >& lems );
