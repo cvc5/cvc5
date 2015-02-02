@@ -106,6 +106,7 @@ private:
   std::map< Node, ProgSearch * > d_prog_search;
   std::map< TypeNode, std::map< Node, Node > > d_normalized_to_orig;
   std::map< TypeNode, std::map< Node, bool > > d_redundant;
+  std::map< TypeNode, std::map< Node, int > > d_normalized_to_term_size;
   std::map< TypeNode, std::map< Node, std::vector< Node > > > d_lemmas_reported;
   //which testers to include in the lemma
   std::map< TypeNode, std::map< Node, std::vector< bool > > > d_lemma_inc_tst;
@@ -196,6 +197,7 @@ private:
   Node mkGeneric( const Datatype& dt, int c, std::map< TypeNode, int >& var_count, std::map< int, Node >& pre );
   Node getSygusNormalized( Node n, std::map< TypeNode, int >& var_count, std::map< Node, Node >& subs );
   Node getNormalized( TypeNode t, Node prog, bool do_pre_norm = false );
+  int getTermSize( Node n );
 public:
   SygusUtil( context::Context* c );
   SygusSplit * getSplit() { return d_split; }

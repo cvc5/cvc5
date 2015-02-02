@@ -110,9 +110,27 @@ void SygusSplit::getSygusSplits( Node n, const Datatype& dt, std::vector< Node >
                 Node arg_ite1 = NodeManager::currentNM()->mkNode( APPLY_SELECTOR_TOTAL, Node::fromExpr( dt[i][1].getSelector() ), n );
                 Node arg_ite2 = NodeManager::currentNM()->mkNode( APPLY_SELECTOR_TOTAL, Node::fromExpr( dt[i][2].getSelector() ), n );
                 Node deq = arg_ite1.eqNode( arg_ite2 ).negate();
-                Trace("sygus-str") << "...ite strengthen " << deq << std::endl;
+                Trace("sygus-str") << "...ite strengthen arguments " << deq << std::endl;
                 test_c.push_back( deq );
                 narrow = true;
+              }
+              //condition must be distinct from all parent ITE's
+              Node curr = n;
+              Node arg_itec = NodeManager::currentNM()->mkNode( APPLY_SELECTOR_TOTAL, Node::fromExpr( dt[i][0].getSelector() ), n );
+              while( curr.getKind()==APPLY_SELECTOR_TOTAL ){
+                if( curr[0].getType()==tnn ){
+                  int sIndexCurr = Datatype::indexOf( curr.getOperator().toExpr() );
+                  int csIndexCurr = Datatype::cindexOf( curr.getOperator().toExpr() );
+                  if( sIndexCurr!=0 && csIndexCurr==(int)i ){
+                    Trace("sygus-ite") << "Parent ITE " << curr << " of " << n << std::endl;
+                    Node arg_itecp = NodeManager::currentNM()->mkNode( APPLY_SELECTOR_TOTAL, Node::fromExpr( dt[i][0].getSelector() ), curr[0] );
+                    Node deq = arg_itec.eqNode( arg_itecp ).negate();
+                    Trace("sygus-str") << "...ite strengthen condition " << deq << std::endl;
+                    test_c.push_back( deq );
+                    narrow = true;
+                  }
+                }
+                curr = curr[0];
               }
             }
           }
@@ -308,7 +326,6 @@ void SygusSplit::registerSygusTypeConstructorArg( TypeNode tnn, const Datatype& 
                       Trace("sygus-nf") << " : do not consider " << dto[i].getSygusOp() << " as second arg." << std::endl;
                     }else{
                       if( parentKind!=UNDEFINED_KIND ){
-                        //&& dto[i].getNumArgs()==0 && dt[j].getNumArgs()==0 ){
                         std::map< TypeNode, int > var_count;
                         std::map< int, Node > pre;
                         Node g1 = d_util->mkGeneric( dt, j, var_count, pre );
@@ -767,6 +784,7 @@ bool SygusSymBreak::processCurrentProgram( Node a, TypeNode at, int depth, Node 
     Node progr = d_util->getNormalized( at, prog );
     Node rep_prog;
     std::map< Node, Node >::iterator itnp = d_normalized_to_orig[at].find( progr );
+    int tsize = d_util->getTermSize( prog );
     if( itnp==d_normalized_to_orig[at].end() ){
       d_normalized_to_orig[at][progr] = prog;
       if( progr.getKind()==SKOLEM && d_util->getSygusType( progr )==at ){
@@ -778,13 +796,24 @@ bool SygusSymBreak::processCurrentProgram( Node a, TypeNode at, int depth, Node 
         red = false;
       }
     }else{
-      Assert( prog!=itnp->second );
-      d_redundant[at][prog] = true;
-      red = true;
       rep_prog = itnp->second;
-      Trace("sygus-nf") << "* Sygus sym break : " << prog << " and " << rep_prog << " both rewrite to " << progr << std::endl;
+      if( tsize<d_normalized_to_term_size[at][progr] ){
+        d_normalized_to_orig[at][progr] = prog;
+        Trace("sygus-nf-debug") << "Program is redundant, but has smaller size than " << rep_prog << std::endl;
+        d_redundant[at].erase( rep_prog );
+        d_redundant[at][prog] = false;
+        red = false;
+      }else{
+        Assert( prog!=itnp->second );
+        d_redundant[at][prog] = true;
+        red = true;
+        Trace("sygus-nf") << "* Sygus sym break : " << prog << " and " << rep_prog << " both rewrite to " << progr << std::endl;
+        Trace("sygus-nf-debug") << "  sizes : " << tsize << " " << d_normalized_to_term_size[at][progr] << std::endl;
+      }
     }
-    if( red ){
+    if( !red ){
+      d_normalized_to_term_size[at][progr] = tsize;
+    }else{
       Assert( !testers.empty() );
       bool conflict_gen_set = false;
       if( options::sygusNormalFormGlobalGen() ){
@@ -833,11 +862,11 @@ bool SygusSymBreak::processCurrentProgram( Node a, TypeNode at, int depth, Node 
             Trace("sygus-nf-gen") << "- child " << i << " normalizes to " << nc << std::endl;
           }
           if( testers_u[a].size()>1 ){
+            bool finished = false;
             const Datatype & pdt = ((DatatypeType)(at).toType()).getDatatype();
             int pc = Datatype::indexOf( testers[0].getOperator().toExpr() );
             // [1] determine a minimal subset of the arguments that the rewriting depended on
             //quick checks based on constants
-            bool singleArg = false;
             for( unsigned i=0; i<nchildren.size(); i++ ){
               Node arg = nchildren[i];
               if( arg.isConst() ){
@@ -851,14 +880,14 @@ bool SygusSymBreak::processCurrentProgram( Node a, TypeNode at, int depth, Node 
                       }
                     }
                     narrow = true;
-                    singleArg = true;
+                    finished = true;
                     break;
                   }
                 }
               }
             }
 
-            if( !singleArg ){
+            if( !finished ){
               // [2] check replacing each argument with a fresh variable gives the same result
               Node progc = prog;
               if( options::sygusNormalFormGlobalArg() ){
@@ -896,43 +925,54 @@ bool SygusSymBreak::processCurrentProgram( Node a, TypeNode at, int depth, Node 
                 for( std::map< Node, std::vector< Node > >::iterator it = nodes.begin(); it != nodes.end(); ++it ){
                   if( it->second.size()>1 ){
                     Trace("sygus-nf-gen-debug") << it->first << " occurs " << it->second.size() << " times, at : " << std::endl;
+                    bool success = true;
+                    TypeNode tn;
                     for( unsigned j=0; j<it->second.size(); j++ ){
                       Trace("sygus-nf-gen-debug") << "  " << it->second[j] << " ";
+                      TypeNode tnc = it->second[j][0].getType();
+                      if( !tn.isNull() && tn!=tnc ){
+                        success = false;
+                      }
+                      tn = tnc;
                     }
                     Trace("sygus-nf-gen-debug") << std::endl;
-                    Node prev = progc;
-                    //try a substitution on all terms of this form simultaneously to see if the content of this subterm is irrelevant
-                    TypeNode tn = it->second[0][0].getType();
-                    TNode st = it->first;
-                    //we may already have substituted within this subterm
-                    if( !curr_subs.empty() ){
-                      st = st.substitute( curr_vars.begin(), curr_vars.end(), curr_subs.begin(), curr_subs.end() );
-                      Trace("sygus-nf-gen-debug") << "...substituted : " << st << std::endl;
-                    }
-                    TNode nv = d_util->getVarInc( tn, var_count );
-                    progc = progc.substitute( st, nv );
-                    Node progcr = Rewriter::rewrite( progc );
-                    Trace("sygus-nf-gen-debug") << "Var replace content " << st << " : " << progc << " -> " << progcr << std::endl;
-                    if( progcr==progr ){
-                      narrow = true;
-                      Trace("sygus-nf") << "  - content " << st << " is not relevant." << std::endl;
-                      int t_prev = -1;
-                      for( unsigned i=0; i<it->second.size(); i++ ){
-                        irrlv_tst[it->second[i]] = true;
-                        Trace("sygus-nf-gen-debug") << "By content, " << it->second[i] << " is irrelevant." << std::endl;
-                        int t_curr = std::find( testers.begin(), testers.end(), it->second[i] )-testers.begin();
-                        Assert( testers[t_curr]==it->second[i] );
-                        if( t_prev!=-1 ){
-                          d_lemma_inc_eq[at][prog].push_back( std::pair< int, int >( t_prev, t_curr ) );
-                          Trace("sygus-nf-gen-debug") << "Which requires " << testers[t_prev][0] << " = " << testers[t_curr][0] << std::endl;
-                        }
-                        t_prev = t_curr;
+                    if( success ){
+                      Node prev = progc;
+                      //try a substitution on all terms of this form simultaneously to see if the content of this subterm is irrelevant
+                      TypeNode tn = it->second[0][0].getType();
+                      TNode st = it->first;
+                      //we may already have substituted within this subterm
+                      if( !curr_subs.empty() ){
+                        st = st.substitute( curr_vars.begin(), curr_vars.end(), curr_subs.begin(), curr_subs.end() );
+                        Trace("sygus-nf-gen-debug") << "...substituted : " << st << std::endl;
                       }
-                      curr_vars.push_back( st );
-                      curr_subs.push_back( nv );
+                      TNode nv = d_util->getVarInc( tn, var_count );
+                      progc = progc.substitute( st, nv );
+                      Node progcr = Rewriter::rewrite( progc );
+                      Trace("sygus-nf-gen-debug") << "Var replace content " << st << " : " << progc << " -> " << progcr << std::endl;
+                      if( progcr==progr ){
+                        narrow = true;
+                        Trace("sygus-nf") << "  - content " << st << " is not relevant." << std::endl;
+                        int t_prev = -1;
+                        for( unsigned i=0; i<it->second.size(); i++ ){
+                          irrlv_tst[it->second[i]] = true;
+                          Trace("sygus-nf-gen-debug") << "By content, " << it->second[i] << " is irrelevant." << std::endl;
+                          int t_curr = std::find( testers.begin(), testers.end(), it->second[i] )-testers.begin();
+                          Assert( testers[t_curr]==it->second[i] );
+                          if( t_prev!=-1 ){
+                            d_lemma_inc_eq[at][prog].push_back( std::pair< int, int >( t_prev, t_curr ) );
+                            Trace("sygus-nf-gen-debug") << "Which requires " << testers[t_prev][0] << " = " << testers[t_curr][0] << std::endl;
+                          }
+                          t_prev = t_curr;
+                        }
+                        curr_vars.push_back( st );
+                        curr_subs.push_back( nv );
+                      }else{
+                        var_count[tn]--;
+                        progc = prev;
+                      }
                     }else{
-                      var_count[tn]--;
-                      progc = prev;
+                      Trace("sygus-nf-gen-debug") << "...content is from multiple grammars, abort." << std::endl;
                     }
                   }
                 }
@@ -1269,6 +1309,18 @@ Node SygusUtil::getNormalized( TypeNode t, Node prog, bool do_pre_norm ) {
   }
 }
 
+int SygusUtil::getTermSize( Node n ){
+  if( isVar( n ) ){
+    return 0;
+  }else{
+    int sum = 0;
+    for( unsigned i=0; i<n.getNumChildren(); i++ ){
+      sum += getTermSize( n[i] );
+    }
+    return 1+sum;
+  }
+
+}
 
 bool SygusUtil::isAssoc( Kind k ) {
   return k==PLUS || k==MULT || k==AND || k==OR || k==XOR || k==IFF ||
