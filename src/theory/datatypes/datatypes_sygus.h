@@ -45,6 +45,7 @@ private:
   std::map< TypeNode, TypeNode > d_register;  //stores sygus type
   // type to (rewritten) to original
   std::map< TypeNode, std::map< Node, Node > > d_gen_terms;
+  std::map< TypeNode, std::map< Node, Node > > d_gen_terms_inactive;
   std::map< TypeNode, std::map< Node, bool > > d_gen_redundant;
 private:
   /** register sygus type */
@@ -64,7 +65,7 @@ private:
   bool isTypeMatch( const DatatypeConstructor& c1, const DatatypeConstructor& c2 );
 private:
   // generic cache
-  bool isGenericRedundant( TypeNode tn, Node g );
+  bool isGenericRedundant( TypeNode tn, Node g, bool active = true );
 public:
   SygusSplit( SygusUtil * util ) : d_util( util ) {}
   /** get sygus splits */

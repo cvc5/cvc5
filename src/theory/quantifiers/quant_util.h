@@ -38,6 +38,7 @@ public:
   static bool isolate( Node v, std::map< Node, Node >& msum, Node & veq, Kind k );
   static Node negate( Node t );
   static Node offset( Node t, int i );
+  static void debugPrintMonomialSum( std::map< Node, Node >& msum, const char * c );
 };
 
 

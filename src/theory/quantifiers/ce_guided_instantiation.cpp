@@ -29,21 +29,12 @@ using namespace std;
 
 namespace CVC4 {
 
-void CegInstantiation::collectDisjuncts( Node n, std::vector< Node >& d ) {
-  if( n.getKind()==OR ){
-    for( unsigned i=0; i<n.getNumChildren(); i++ ){
-      collectDisjuncts( n[i], d );
-    }
-  }else{
-    d.push_back( n );
-  }
-}
-
-CegInstantiation::CegConjecture::CegConjecture( context::Context* c ) : d_active( c, false ), d_infeasible( c, false ), d_curr_lit( c, 0 ){
+CegConjecture::CegConjecture( context::Context* c ) : d_active( c, false ), d_infeasible( c, false ), d_curr_lit( c, 0 ){
   d_refine_count = 0;
+  d_ceg_si = NULL;
 }
 
-void CegInstantiation::CegConjecture::assign( QuantifiersEngine * qe, Node q ) {
+void CegConjecture::assign( QuantifiersEngine * qe, Node q ) {
   Assert( d_quant.isNull() );
   Assert( q.getKind()==FORALL );
   d_quant = q;
@@ -68,8 +59,9 @@ void CegInstantiation::CegConjecture::assign( QuantifiersEngine * qe, Node q ) {
       }
     }
     d_syntax_guided = true;
-    if( options::sygusSingleInv() ){
-      analyzeSygusConjecture();
+    if( options::cegqiSingleInv() ){
+      d_ceg_si = new CegConjectureSingleInv( q, this );
+      d_ceg_si->initialize();
     }
   }else if( qe->getTermDatabase()->isQAttrSynthesis( q ) ){
     d_syntax_guided = false;
@@ -78,282 +70,7 @@ void CegInstantiation::CegConjecture::assign( QuantifiersEngine * qe, Node q ) {
   }
 }
 
-
-
-void CegInstantiation::CegConjecture::analyzeSygusConjecture() {
-  Node q = d_quant;
-  // conj -> conj*
-  std::map< Node, std::vector< Node > > children;
-  // conj X prog -> inv*
-  std::map< Node, std::map< Node, std::vector< Node > > > prog_invoke;
-  std::vector< Node > progs;
-  std::map< Node, std::map< Node, bool > > contains;
-  for( unsigned i=0; i<q[0].getNumChildren(); i++ ){
-    progs.push_back( q[0][i] );
-  }
-  //collect information about conjunctions
-  if( analyzeSygusConjunct( Node::null(), q[1], children, prog_invoke, progs, contains, true ) ){
-    //try to phrase as single invocation property
-    bool singleInvocation = true;
-    Trace("cegqi-analyze") << "...success." << std::endl;
-    std::map< Node, std::vector< Node > > invocations;
-    std::map< Node, std::map< int, std::vector< Node > > > single_invoke_args;
-    std::map< Node, std::map< int, std::map< Node, std::vector< Node > > > > single_invoke_args_from;
-    for( std::map< Node, std::vector< Node > >::iterator it = children.begin(); it != children.end(); ++it ){
-      for( unsigned j=0; j<it->second.size(); j++ ){
-        Node conj = it->second[j];
-        Trace("cegqi-analyze-debug") << "Process child " << conj << " from " << it->first << std::endl;
-        std::map< Node, std::map< Node, std::vector< Node > > >::iterator itp = prog_invoke.find( conj );
-        if( itp!=prog_invoke.end() ){
-          for( std::map< Node, std::vector< Node > >::iterator it2 = itp->second.begin(); it2 != itp->second.end(); ++it2 ){
-            if( it2->second.size()>1 ){
-              singleInvocation = false;
-              break;
-            }else if( it2->second.size()==1 ){
-              Node prog = it2->first;
-              Node inv = it2->second[0];
-              Assert( inv[0]==prog );
-              invocations[prog].push_back( inv );
-              for( unsigned k=1; k<inv.getNumChildren(); k++ ){
-                Node arg = inv[k];
-                Trace("cegqi-analyze-debug") << "process : " << arg << " occurs in position " << k-1 << " in invocation " << inv << " of " << prog << " in " << conj << std::endl;
-                single_invoke_args_from[prog][k-1][arg].push_back( conj );
-                if( std::find( single_invoke_args[prog][k-1].begin(), single_invoke_args[prog][k-1].end(), arg )==single_invoke_args[prog][k-1].end() ){
-                  single_invoke_args[prog][k-1].push_back( arg );
-                }
-              }
-            }
-          }
-        }
-      }
-    }
-    if( singleInvocation ){
-      Trace("cegqi-analyze") << "Property is single invocation with : " << std::endl;
-      std::vector< Node > pbvs;
-      std::vector< Node > new_vars;
-      std::map< Node, std::vector< Node > > new_assumptions;
-      for( std::map< Node, std::vector< Node > >::iterator it = invocations.begin(); it != invocations.end(); ++it ){
-        Assert( !it->second.empty() );
-        Node prog = it->first;
-        Node inv = it->second[0];
-        std::vector< Node > invc;
-        invc.push_back( inv.getOperator() );
-        invc.push_back( prog );
-        Node pv = NodeManager::currentNM()->mkBoundVar( "F", inv.getType() );
-        d_single_inv_map[prog] = pv;
-        d_single_inv_map_to_prog[pv] = prog;
-        pbvs.push_back( pv );
-        Trace("cegqi-analyze-debug2") << "Make variable " << pv << " for " << prog << std::endl;
-        for( unsigned k=1; k<inv.getNumChildren(); k++ ){
-          Assert( !single_invoke_args[prog][k-1].empty() );
-          if( single_invoke_args[prog][k-1].size()==1 ){
-            invc.push_back( single_invoke_args[prog][k-1][0] );
-          }else{
-            //introduce fresh variable, assign all
-            Node v = NodeManager::currentNM()->mkSkolem( "a", single_invoke_args[prog][k-1][0].getType(), "single invocation arg" );
-            new_vars.push_back( v );
-            invc.push_back( v );
-
-            for( unsigned i=0; i<single_invoke_args[prog][k-1].size(); i++ ){
-              Node arg = single_invoke_args[prog][k-1][i];
-              Node asum = NodeManager::currentNM()->mkNode( arg.getType().isBoolean() ? IFF : EQUAL, v, arg ).negate();
-              Trace("cegqi-analyze-debug") << "  ..." << arg << " occurs in ";
-              Trace("cegqi-analyze-debug") << single_invoke_args_from[prog][k-1][arg].size() << " invocations at position " << (k-1) << " of " << prog << "." << std::endl;
-              for( unsigned j=0; j<single_invoke_args_from[prog][k-1][arg].size(); j++ ){
-                Node conj = single_invoke_args_from[prog][k-1][arg][j];
-                Trace("cegqi-analyze-debug") << "  ..." << arg << " occurs in invocation " << inv << " of " << prog << " in " << conj << std::endl;
-                Trace("cegqi-analyze-debug") << "  ...add assumption " << asum << " to " << conj << std::endl;
-                if( std::find( new_assumptions[conj].begin(), new_assumptions[conj].end(), asum )==new_assumptions[conj].end() ){
-                  new_assumptions[conj].push_back( asum );
-                }
-              }
-            }
-          }
-        }
-        Node sinv = NodeManager::currentNM()->mkNode( APPLY_UF, invc );
-        Trace("cegqi-analyze") << "  " << prog << " -> " << sinv << std::endl;
-        d_single_inv_app_map[prog] = sinv;
-      }
-      //construct the single invocation version of the property
-      Trace("cegqi-analyze") << "Single invocation formula conjuncts are : " << std::endl;
-      //std::vector< Node > si_conj;
-      Assert( !pbvs.empty() );
-      Node pbvl = NodeManager::currentNM()->mkNode( BOUND_VAR_LIST, pbvs );
-      for( std::map< Node, std::vector< Node > >::iterator it = children.begin(); it != children.end(); ++it ){
-        //should hold since we prevent miniscoping
-        Assert( d_single_inv.isNull() );
-        std::vector< Node > tmp;
-        for( unsigned i=0; i<it->second.size(); i++ ){
-          Node c = it->second[i];
-          std::vector< Node > disj;
-          //insert new assumptions
-          disj.insert( disj.end(), new_assumptions[c].begin(), new_assumptions[c].end() );
-          //get replaced version
-          Node cr;
-          std::map< Node, std::map< Node, std::vector< Node > > >::iterator itp = prog_invoke.find( c );
-          if( itp!=prog_invoke.end() ){
-            std::vector< Node > terms;
-            std::vector< Node > subs;
-            for( std::map< Node, std::vector< Node > >::iterator it2 = itp->second.begin(); it2 != itp->second.end(); ++it2 ){
-              if( !it2->second.empty() ){
-                Node prog = it2->first;
-                Node inv = it2->second[0];
-                Assert( it2->second.size()==1 );
-                terms.push_back( inv );
-                subs.push_back( d_single_inv_map[prog] );
-                Trace("cegqi-analyze-debug2") << "subs : " << inv << " -> var for " << prog << " : " << d_single_inv_map[prog] << std::endl;
-              }
-            }
-            cr = c.substitute( terms.begin(), terms.end(), subs.begin(), subs.end() );
-          }else{
-            cr = c;
-          }
-          if( cr.getKind()==OR ){
-            for( unsigned j=0; j<cr.getNumChildren(); j++ ){
-              disj.push_back( cr[j] );
-            }
-          }else{
-            disj.push_back( cr );
-          }
-          Node curr = disj.size()==1 ? disj[0] : NodeManager::currentNM()->mkNode( OR, disj );
-          Trace("cegqi-analyze") << "    " << curr;
-          tmp.push_back( curr.negate() );
-          if( !it->first.isNull() ){
-            Trace("cegqi-analyze-debug") << " under " << it->first;
-          }
-          Trace("cegqi-analyze") << std::endl;
-        }
-        Assert( !tmp.empty() );
-        Node bd = tmp.size()==1 ? tmp[0] : NodeManager::currentNM()->mkNode( OR, tmp );
-        if( !it->first.isNull() ){
-          // apply substitution for skolem variables
-          std::vector< Node > vars;
-          d_single_inv_arg_sk.clear();
-          for( unsigned j=0; j<it->first.getNumChildren(); j++ ){
-            std::stringstream ss;
-            ss << "k_" << it->first[j];
-            Node v = NodeManager::currentNM()->mkSkolem( ss.str(), it->first[j].getType(), "single invocation skolem" );
-            vars.push_back( it->first[j] );
-            d_single_inv_arg_sk.push_back( v );
-          }
-          bd = bd.substitute( vars.begin(), vars.end(), d_single_inv_arg_sk.begin(), d_single_inv_arg_sk.end() );
-
-          Trace("cegqi-analyze-debug") << "    -> " << bd << std::endl;
-        }
-        d_single_inv = NodeManager::currentNM()->mkNode( FORALL, pbvl, bd );
-        //equality resolution
-        for( unsigned j=0; j<tmp.size(); j++ ){
-          Node conj = tmp[j];
-          std::map< Node, std::vector< Node > > case_vals;
-          bool exh = processSingleInvLiteral( conj, false, case_vals );
-          Trace("cegqi-analyze-er") << "Conjunct " << conj << " gives equality restrictions, exh = " << exh << " : " << std::endl;
-          for( std::map< Node, std::vector< Node > >::iterator it = case_vals.begin(); it != case_vals.end(); ++it ){
-            Trace("cegqi-analyze-er") << "  " << it->first << " -> ";
-            for( unsigned k=0; k<it->second.size(); k++ ){
-              Trace("cegqi-analyze-er") << it->second[k] << " ";
-            }
-            Trace("cegqi-analyze-er") << std::endl;
-          }
-
-        }
-      }
-      Trace("cegqi-analyze-debug") << "...formula is : " << d_single_inv << std::endl;
-    }else{
-      Trace("cegqi-analyze") << "Property is not single invocation." << std::endl;
-    }
-  }
-}
-
-bool CegInstantiation::CegConjecture::processSingleInvLiteral( Node lit, bool pol, std::map< Node, std::vector< Node > >& case_vals ) {
-  if( lit.getKind()==NOT ){
-    return processSingleInvLiteral( lit[0], !pol, case_vals );
-  }else if( ( lit.getKind()==OR && pol ) || ( lit.getKind()==AND && !pol ) ){
-    bool exh = true;
-    for( unsigned k=0; k<lit.getNumChildren(); k++ ){
-      bool curr = processSingleInvLiteral( lit[k], pol, case_vals );
-      exh = exh && curr;
-    }
-    return exh;
-  }else if( lit.getKind()==IFF || lit.getKind()==EQUAL ){
-    if( pol ){
-      for( unsigned r=0; r<2; r++ ){
-        std::map< Node, Node >::iterator it = d_single_inv_map_to_prog.find( lit[r] );
-        if( it!=d_single_inv_map_to_prog.end() ){
-          if( r==1 || d_single_inv_map_to_prog.find( lit[1] )==d_single_inv_map_to_prog.end() ){
-            case_vals[it->second].push_back( lit[ r==0 ? 1 : 0 ] );
-            return true;
-          }
-        }
-      }
-    }
-  }
-  return false;
-}
-
-bool CegInstantiation::CegConjecture::analyzeSygusConjunct( Node p, Node n, std::map< Node, std::vector< Node > >& children,
-                                                            std::map< Node, std::map< Node, std::vector< Node > > >& prog_invoke,
-                                                            std::vector< Node >& progs, std::map< Node, std::map< Node, bool > >& contains, bool pol ) {
-  if( ( pol && n.getKind()==OR ) || ( !pol && n.getKind()==AND ) ){
-    for( unsigned i=0; i<n.getNumChildren(); i++ ){
-      if( !analyzeSygusConjunct( p, n[i], children, prog_invoke, progs, contains, pol ) ){
-        return false;
-      }
-    }
-  }else if( pol && n.getKind()==NOT && n[0].getKind()==FORALL ){
-    if( !p.isNull() ){
-      //do not allow nested quantifiers
-      return false;
-    }
-    analyzeSygusConjunct( n[0][0], n[0][1], children, prog_invoke, progs, contains, false );
-  }else{
-    if( pol ){
-      n = n.negate();
-    }
-    Trace("cegqi-analyze") << "Sygus conjunct : " << n << std::endl;
-    children[p].push_back( n );
-    for( unsigned i=0; i<progs.size(); i++ ){
-      prog_invoke[n][progs[i]].clear();
-    }
-    bool success = analyzeSygusTerm( n, prog_invoke[n], contains[n] );
-    for( unsigned i=0; i<progs.size(); i++ ){
-      std::map< Node, std::vector< Node > >::iterator it = prog_invoke[n].find( progs[i] );
-      Trace("cegqi-analyze") << "  Program " << progs[i] << " is invoked " << it->second.size() << " times " << std::endl;
-      for( unsigned j=0; j<it->second.size(); j++ ){
-        Trace("cegqi-analyze") << "    " << it->second[j] << std::endl;
-      }
-    }
-    return success;
-  }
-  return true;
-}
-
-bool CegInstantiation::CegConjecture::analyzeSygusTerm( Node n, std::map< Node, std::vector< Node > >& prog_invoke, std::map< Node, bool >& contains ) {
-  if( n.getNumChildren()>0 ){
-    if( n.getKind()==FORALL ){
-      //do not allow nested quantifiers
-      return false;
-    }
-    //look at first argument in evaluator
-    Node p = n[0];
-    std::map< Node, std::vector< Node > >::iterator it = prog_invoke.find( p );
-    if( it!=prog_invoke.end() ){
-      if( std::find( it->second.begin(), it->second.end(), n )==it->second.end() ){
-        it->second.push_back( n );
-      }
-    }
-    for( unsigned i=0; i<n.getNumChildren(); i++ ){
-      if( !analyzeSygusTerm( n[i], prog_invoke, contains ) ){
-        return false;
-      }
-    }
-  }else{
-    //record this conjunct contains n
-    contains[n] = true;
-  }
-  return true;
-}
-
-void CegInstantiation::CegConjecture::initializeGuard( QuantifiersEngine * qe ){
+void CegConjecture::initializeGuard( QuantifiersEngine * qe ){
   if( d_guard.isNull() ){
     d_guard = Rewriter::rewrite( NodeManager::currentNM()->mkSkolem( "G", NodeManager::currentNM()->booleanType() ) );
     //specify guard behavior
@@ -365,30 +82,21 @@ void CegInstantiation::CegConjecture::initializeGuard( QuantifiersEngine * qe ){
       Node lem = NodeManager::currentNM()->mkNode( OR, d_guard.negate(), d_base_inst.negate() );
       Trace("cegqi") << "Add candidate lemma : " << lem << std::endl;
       qe->getOutputChannel().lemma( lem );
-    }else if( !d_single_inv.isNull() ){
-      Assert( d_single_inv.getKind()==FORALL );
-      std::vector< Node > vars;
-      d_single_inv_sk.clear();
-      for( unsigned i=0; i<d_single_inv[0].getNumChildren(); i++ ){
-        std::stringstream ss;
-        ss << "k_" << d_single_inv[0][i];
-        Node k = NodeManager::currentNM()->mkSkolem( ss.str(), d_single_inv[0][i].getType(), "single invocation function skolem" );
-        vars.push_back( d_single_inv[0][i] );
-        d_single_inv_sk.push_back( k );
-      }
-      Node inst = d_single_inv[1].substitute( vars.begin(), vars.end(), d_single_inv_sk.begin(), d_single_inv_sk.end() );
-      Node lem = NodeManager::currentNM()->mkNode( OR, d_guard.negate(), inst.negate() );
-      Trace("cegqi") << "Add single invocation lemma : " << lem << std::endl;
-      qe->getOutputChannel().lemma( lem );
-      if( Trace.isOn("cegqi-debug") ){
-        lem = Rewriter::rewrite( lem );
-        Trace("cegqi-debug") << "...rewritten : " << lem << std::endl;
+    }else if( d_ceg_si ){
+      Node lem = d_ceg_si->getSingleInvLemma( d_guard );
+      if( !lem.isNull() ){
+        Trace("cegqi") << "Add single invocation lemma : " << lem << std::endl;
+        qe->getOutputChannel().lemma( lem );
+        if( Trace.isOn("cegqi-debug") ){
+          lem = Rewriter::rewrite( lem );
+          Trace("cegqi-debug") << "...rewritten : " << lem << std::endl;
+        }
       }
     }
   }
 }
 
-Node CegInstantiation::CegConjecture::getLiteral( QuantifiersEngine * qe, int i ) {
+Node CegConjecture::getLiteral( QuantifiersEngine * qe, int i ) {
   if( d_measure_term.isNull() ){
     return Node::null();
   }else{
@@ -424,6 +132,7 @@ Node CegInstantiation::CegConjecture::getLiteral( QuantifiersEngine * qe, int i 
 
 CegInstantiation::CegInstantiation( QuantifiersEngine * qe, context::Context* c ) : QuantifiersModule( qe ){
   d_conj = new CegConjecture( d_quantEngine->getSatContext() );
+  d_last_inst_si = false;
 }
 
 bool CegInstantiation::needsCheck( Theory::Effort e ) {
@@ -544,59 +253,72 @@ void CegInstantiation::checkCegConjecture( CegConjecture * conj ) {
   if( conj->d_ce_sk.empty() ){
     Trace("cegqi-engine") << "  *** Check candidate phase..." << std::endl;
     if( getTermDatabase()->isQAttrSygus( q ) ){
-
+      if( conj->d_ceg_si ){
+        std::vector< Node > lems;
+        conj->d_ceg_si->check( d_quantEngine, lems );
+        if( !lems.empty() ){
+          d_last_inst_si = true;
+          for( unsigned j=0; j<lems.size(); j++ ){
+            Trace("cegqi-lemma") << "Single invocation lemma : " << lems[j] << std::endl;
+            d_quantEngine->addLemma( lems[j] );
+          }
+          Trace("cegqi-engine") << "  ...try single invocation." << std::endl;
+          return;
+        }
+      }
       std::vector< Node > model_values;
       if( getModelValues( conj, conj->d_candidates, model_values ) ){
         //check if we must apply fairness lemmas
-        std::vector< Node > lems;
         if( options::ceGuidedInstFair()==CEGQI_FAIR_UF_DT_SIZE ){
+          std::vector< Node > lems;
           for( unsigned j=0; j<conj->d_candidates.size(); j++ ){
             getMeasureLemmas( conj->d_candidates[j], model_values[j], lems );
           }
+          if( !lems.empty() ){
+            for( unsigned j=0; j<lems.size(); j++ ){
+              Trace("cegqi-lemma") << "Measure lemma : " << lems[j] << std::endl;
+              d_quantEngine->addLemma( lems[j] );
+            }
+            Trace("cegqi-engine") << "  ...refine size." << std::endl;
+            return;
+          }
         }
-        if( !lems.empty() ){
-          for( unsigned j=0; j<lems.size(); j++ ){
-            Trace("cegqi-lemma") << "Measure lemma : " << lems[j] << std::endl;
-            d_quantEngine->addLemma( lems[j] );
-          }
-          Trace("cegqi-engine") << "  ...refine size." << std::endl;
-        }else{
-          //must get a counterexample to the value of the current candidate
-          Node inst = conj->d_base_inst.substitute( conj->d_candidates.begin(), conj->d_candidates.end(), model_values.begin(), model_values.end() );
-          //check whether we will run CEGIS on inner skolem variables
-          bool sk_refine = ( !conj->isGround() || conj->d_refine_count==0 );
-          if( sk_refine ){
-            conj->d_ce_sk.push_back( std::vector< Node >() );
-          }
-          std::vector< Node > ic;
-          ic.push_back( q.negate() );
-          std::vector< Node > d;
-          collectDisjuncts( inst, d );
-          Assert( d.size()==conj->d_base_disj.size() );
-          //immediately skolemize inner existentials
-          for( unsigned i=0; i<d.size(); i++ ){
-            Node dr = Rewriter::rewrite( d[i] );
-            if( dr.getKind()==NOT && dr[0].getKind()==FORALL ){
-              ic.push_back( getTermDatabase()->getSkolemizedBody( dr[0] ).negate() );
-              if( sk_refine ){
-                conj->d_ce_sk.back().push_back( dr[0] );
-              }
-            }else{
-              ic.push_back( dr );
-              if( sk_refine ){
-                conj->d_ce_sk.back().push_back( Node::null() );
-              }
-              if( !conj->d_inner_vars_disj[i].empty() ){
-                Trace("cegqi-debug") << "*** quantified disjunct : " << d[i] << " simplifies to " << dr << std::endl;
-              }
+        //must get a counterexample to the value of the current candidate
+        Node inst = conj->d_base_inst.substitute( conj->d_candidates.begin(), conj->d_candidates.end(), model_values.begin(), model_values.end() );
+        //check whether we will run CEGIS on inner skolem variables
+        bool sk_refine = ( !conj->isGround() || conj->d_refine_count==0 );
+        if( sk_refine ){
+          conj->d_ce_sk.push_back( std::vector< Node >() );
+        }
+        std::vector< Node > ic;
+        ic.push_back( q.negate() );
+        std::vector< Node > d;
+        collectDisjuncts( inst, d );
+        Assert( d.size()==conj->d_base_disj.size() );
+        //immediately skolemize inner existentials
+        for( unsigned i=0; i<d.size(); i++ ){
+          Node dr = Rewriter::rewrite( d[i] );
+          if( dr.getKind()==NOT && dr[0].getKind()==FORALL ){
+            ic.push_back( getTermDatabase()->getSkolemizedBody( dr[0] ).negate() );
+            if( sk_refine ){
+              conj->d_ce_sk.back().push_back( dr[0] );
+            }
+          }else{
+            ic.push_back( dr );
+            if( sk_refine ){
+              conj->d_ce_sk.back().push_back( Node::null() );
+            }
+            if( !conj->d_inner_vars_disj[i].empty() ){
+              Trace("cegqi-debug") << "*** quantified disjunct : " << d[i] << " simplifies to " << dr << std::endl;
             }
           }
-          Node lem = NodeManager::currentNM()->mkNode( OR, ic );
-          lem = Rewriter::rewrite( lem );
-          Trace("cegqi-lemma") << "Counterexample lemma : " << lem << std::endl;
-          d_quantEngine->addLemma( lem );
-          Trace("cegqi-engine") << "  ...find counterexample." << std::endl;
         }
+        Node lem = NodeManager::currentNM()->mkNode( OR, ic );
+        lem = Rewriter::rewrite( lem );
+        d_last_inst_si = false;
+        Trace("cegqi-lemma") << "Counterexample lemma : " << lem << std::endl;
+        d_quantEngine->addLemma( lem );
+        Trace("cegqi-engine") << "  ...find counterexample." << std::endl;
       }
 
     }else if( getTermDatabase()->isQAttrSynthesis( q ) ){
@@ -768,10 +490,16 @@ void CegInstantiation::printSynthSolution( std::ostream& out ) {
       Assert( dt.isSygus() );
       out << dt.getSygusVarList() << " ";
       out << dt.getSygusType() << " ";
-      if( d_conj->d_candidate_inst[i].empty() ){
-        out << "?";
+      if( d_last_inst_si ){
+        Assert( d_conj->d_ceg_si );
+        Node sol = d_conj->d_ceg_si->getSolution( i, Node::fromExpr( dt.getSygusVarList() ) );
+        out << sol;
       }else{
-        printSygusTerm( out, d_conj->d_candidate_inst[i].back() );
+        if( d_conj->d_candidate_inst[i].empty() ){
+          out << "?";
+        }else{
+          printSygusTerm( out, d_conj->d_candidate_inst[i].back() );
+        }
       }
       out << ")" << std::endl;
     }
@@ -800,6 +528,16 @@ void CegInstantiation::printSygusTerm( std::ostream& out, Node n ) {
     }
   }
   out << n;
+}
+
+void CegInstantiation::collectDisjuncts( Node n, std::vector< Node >& d ) {
+  if( n.getKind()==OR ){
+    for( unsigned i=0; i<n.getNumChildren(); i++ ){
+      collectDisjuncts( n[i], d );
+    }
+  }else{
+    d.push_back( n );
+  }
 }
 
 }

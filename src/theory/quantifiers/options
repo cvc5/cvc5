@@ -196,8 +196,13 @@ option ceGuidedInst --cegqi bool :default false :read-write
   counterexample-guided quantifier instantiation
 option ceGuidedInstFair --cegqi-fair=MODE CVC4::theory::quantifiers::CegqiFairMode :default CVC4::theory::quantifiers::CEGQI_FAIR_DT_SIZE :include "theory/quantifiers/modes.h" :handler CVC4::theory::quantifiers::stringToCegqiFairMode :handler-include "theory/quantifiers/options_handlers.h"
   if and how to apply fairness for cegqi
-option sygusSingleInv --sygus-single-inv bool :default false
+option cegqiSingleInv --cegqi-si bool :default false
   process single invocation synthesis conjectures
+option cegqiSingleInvReconstruct --cegqi-si-reconstruct bool :default true
+  reconstruct solutions for single invocation conjectures in original grammar
+option cegqiSingleInvAbort --cegqi-si-abort bool :default false
+  abort if our synthesis conjecture is not single invocation
+  
 option sygusNormalForm --sygus-nf bool :default true
   only search for sygus builtin terms that are in normal form
 option sygusNormalFormArg --sygus-nf-arg bool :default true

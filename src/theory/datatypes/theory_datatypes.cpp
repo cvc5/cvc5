@@ -984,7 +984,8 @@ void TheoryDatatypes::addTester( Node t, EqcInfo* eqc, Node n ){
       }else{
         //check if we have reached the maximum number of testers
         // in this case, add the positive tester
-        if( lbl->size()==dt.getNumConstructors()-1 ){
+        //this should not be done for sygus, since cases may be limited
+        if( lbl->size()==dt.getNumConstructors()-1 && !dt.isSygus() ){
           std::vector< bool > pcons;
           getPossibleCons( eqc, n, pcons );
           int testerIndex = -1;

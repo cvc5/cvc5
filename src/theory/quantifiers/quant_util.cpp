@@ -92,7 +92,7 @@ bool QuantArith::isolate( Node v, std::map< Node, Node >& msum, Node & veq, Kind
         if( r.isOne() ){
           veq = negate(veq);
         }else{
-          //TODO
+          //TODO : lcd computation
           return false;
         }
       }
@@ -116,6 +116,23 @@ Node QuantArith::offset( Node t, int i ) {
   Node tt = NodeManager::currentNM()->mkNode( PLUS, NodeManager::currentNM()->mkConst( Rational(i) ), t );
   tt = Rewriter::rewrite( tt );
   return tt;
+}
+
+void QuantArith::debugPrintMonomialSum( std::map< Node, Node >& msum, const char * c ) {
+  for(std::map< Node, Node >::iterator it = msum.begin(); it != msum.end(); ++it ){
+    Trace(c) << "  ";
+    if( !it->second.isNull() ){
+      Trace(c) << it->second;
+      if( !it->first.isNull() ){
+        Trace(c) << " * ";
+      }
+    }
+    if( !it->first.isNull() ){
+      Trace(c) << it->first;
+    }
+    Trace(c) << std::endl;
+  }
+  Trace(c) << std::endl;
 }
 
 

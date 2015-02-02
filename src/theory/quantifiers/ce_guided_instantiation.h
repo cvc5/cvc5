@@ -14,94 +14,81 @@
 
 #include "cvc4_private.h"
 
-#ifndef CE_GUIDED_INSTANTIATION_H
-#define CE_GUIDED_INSTANTIATION_H
+#ifndef __CVC4__THEORY__QUANTIFIERS__CE_GUIDED_INSTANTIATION_H
+#define __CVC4__THEORY__QUANTIFIERS__CE_GUIDED_INSTANTIATION_H
 
 #include "context/cdhashmap.h"
 #include "context/cdchunk_list.h"
 #include "theory/quantifiers_engine.h"
+#include "theory/quantifiers/ce_guided_single_inv.h"
 
 namespace CVC4 {
 namespace theory {
 namespace quantifiers {
 
+/** a synthesis conjecture */
+class CegConjecture {
+public:
+  CegConjecture( context::Context* c );
+  /** is conjecture active */
+  context::CDO< bool > d_active;
+  /** is conjecture infeasible */
+  context::CDO< bool > d_infeasible;
+  /** quantified formula */
+  Node d_quant;
+  /** guard */
+  Node d_guard;
+  /** base instantiation */
+  Node d_base_inst;
+  /** expand base inst to disjuncts */
+  std::vector< Node > d_base_disj;
+  /** guard split */
+  Node d_guard_split;
+  /** is syntax-guided */
+  bool d_syntax_guided;
+  /** list of constants for quantified formula */
+  std::vector< Node > d_candidates;
+  /** list of variables on inner quantification */
+  std::vector< Node > d_inner_vars;    
+  std::vector< std::vector< Node > > d_inner_vars_disj;
+  /** list of terms we have instantiated candidates with */
+  std::map< int, std::vector< Node > > d_candidate_inst;
+  /** initialize guard */
+  void initializeGuard( QuantifiersEngine * qe );
+  /** measure term */
+  Node d_measure_term;
+  /** measure sum size */
+  int d_measure_term_size;
+  /** refine count */
+  unsigned d_refine_count;
+  /** assign */
+  void assign( QuantifiersEngine * qe, Node q );
+  /** is assigned */
+  bool isAssigned() { return !d_quant.isNull(); }
+  /** current extential quantifeirs whose couterexamples we must refine */
+  std::vector< std::vector< Node > > d_ce_sk;
+  /** single invocation utility */
+  CegConjectureSingleInv * d_ceg_si;
+public:  //for fairness
+  /** the cardinality literals */
+  std::map< int, Node > d_lits;
+  /** current cardinality */
+  context::CDO< int > d_curr_lit;
+  /** allocate literal */
+  Node getLiteral( QuantifiersEngine * qe, int i );
+  /** is ground */
+  bool isGround() { return d_inner_vars.empty(); }
+};
+  
+  
 class CegInstantiation : public QuantifiersModule
 {
   typedef context::CDHashMap<Node, bool, NodeHashFunction> NodeBoolMap;
 private:
-  /** collect disjuncts */
-  static void collectDisjuncts( Node n, std::vector< Node >& ex );
-  /** a synthesis conjecture */
-  class CegConjecture {
-  public:
-    CegConjecture( context::Context* c );
-    /** is conjecture active */
-    context::CDO< bool > d_active;
-    /** is conjecture infeasible */
-    context::CDO< bool > d_infeasible;
-    /** quantified formula */
-    Node d_quant;
-    /** guard */
-    Node d_guard;
-    /** base instantiation */
-    Node d_base_inst;
-    /** expand base inst to disjuncts */
-    std::vector< Node > d_base_disj;
-    /** guard split */
-    Node d_guard_split;
-    /** is syntax-guided */
-    bool d_syntax_guided;
-    /** list of constants for quantified formula */
-    std::vector< Node > d_candidates;
-    /** list of variables on inner quantification */
-    std::vector< Node > d_inner_vars;    
-    std::vector< std::vector< Node > > d_inner_vars_disj;
-    /** list of terms we have instantiated candidates with */
-    std::map< int, std::vector< Node > > d_candidate_inst;
-    /** initialize guard */
-    void initializeGuard( QuantifiersEngine * qe );
-    /** measure term */
-    Node d_measure_term;
-    /** measure sum size */
-    int d_measure_term_size;
-    /** refine count */
-    unsigned d_refine_count;
-    /** assign */
-    void assign( QuantifiersEngine * qe, Node q );
-    /** is assigned */
-    bool isAssigned() { return !d_quant.isNull(); }
-    /** current extential quantifeirs whose couterexamples we must refine */
-    std::vector< std::vector< Node > > d_ce_sk;
-  private: //for single invocation
-    void analyzeSygusConjecture();
-    bool analyzeSygusConjunct( Node n, Node p, std::map< Node, std::vector< Node > >& children,
-                              std::map< Node, std::map< Node, std::vector< Node > > >& prog_invoke, 
-                              std::vector< Node >& progs, std::map< Node, std::map< Node, bool > >& contains, bool pol );
-    bool analyzeSygusTerm( Node n, std::map< Node, std::vector< Node > >& prog_invoke, std::map< Node, bool >& contains );
-    bool processSingleInvLiteral( Node lit, bool pol, std::map< Node, std::vector< Node > >& case_vals );
-  public:
-    Node d_single_inv;
-    //map from programs to variables in single invocation property
-    std::map< Node, Node > d_single_inv_map;
-    std::map< Node, Node > d_single_inv_map_to_prog;
-    //map from programs to evaluator term representing the above variable
-    std::map< Node, Node > d_single_inv_app_map;
-    //list of skolems for each argument of programs
-    std::vector< Node > d_single_inv_arg_sk;
-    //list of skolems for each program
-    std::vector< Node > d_single_inv_sk;
-  public:  //for fairness
-    /** the cardinality literals */
-    std::map< int, Node > d_lits;
-    /** current cardinality */
-    context::CDO< int > d_curr_lit;
-    /** allocate literal */
-    Node getLiteral( QuantifiersEngine * qe, int i );
-    /** is ground */
-    bool isGround() { return d_inner_vars.empty(); }
-  };
   /** the quantified formula stating the synthesis conjecture */
   CegConjecture * d_conj;
+  /** last instantiation by single invocation module? */
+  bool d_last_inst_si;
 private: //for enforcing fairness
   /** measure functions */
   std::map< TypeNode, Node > d_uf_measure;
@@ -143,6 +130,8 @@ public:
   std::string identify() const { return "CegInstantiation"; }
   /** print solution for synthesis conjectures */
   void printSynthSolution( std::ostream& out );  
+  /** collect disjuncts */
+  static void collectDisjuncts( Node n, std::vector< Node >& ex );
 };
 
 }

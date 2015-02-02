@@ -1346,6 +1346,9 @@ void SmtEngine::setDefaults() {
   }
   
   //apply counterexample guided instantiation options
+  if( options::cegqiSingleInv() ){
+    options::ceGuidedInst.set( true );
+  }
   if( options::ceGuidedInst() ){
     if( !options::quantConflictFind.wasSetByUser() ){
       options::quantConflictFind.set( false );

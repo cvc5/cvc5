@@ -52,7 +52,7 @@ void SygusSplit::getSygusSplits( Node n, const Datatype& dt, std::vector< Node >
       Assert( pdt.isSygus() );
       csIndex = Datatype::cindexOf(selectorExpr);
       sIndex = Datatype::indexOf(selectorExpr);
-      TypeNode tnnp = n[0].getType();
+      tnnp = n[0].getType();
       //register the constructors that are redundant children of argument sIndex of constructor index csIndex of dt
       registerSygusTypeConstructorArg( tnn, dt, tnnp, pdt, csIndex, sIndex );
 
@@ -88,17 +88,33 @@ void SygusSplit::getSygusSplits( Node n, const Datatype& dt, std::vector< Node >
           //check if we can strengthen the first argument
           if( !arg1.isNull() ){
             const Datatype& dt1 = ((DatatypeType)(tn1).toType()).getDatatype();
+            Kind k = d_util->getArgKind( tnnp, csIndex );
+            //size comparison for arguments (if necessary)
+            Node sz_leq;
+            if( tn1==tnn && d_util->isComm( k ) ){
+              sz_leq = NodeManager::currentNM()->mkNode( LEQ, NodeManager::currentNM()->mkNode( DT_SIZE, n ), NodeManager::currentNM()->mkNode( DT_SIZE, arg1 ) );
+            }
             std::map< int, std::vector< int > >::iterator it = d_sygus_pc_arg_pos[tnn][csIndex].find( i );
             if( it!=d_sygus_pc_arg_pos[tnn][csIndex].end() ){
               Assert( !it->second.empty() );
               std::vector< Node > lem_c;
               for( unsigned j=0; j<it->second.size(); j++ ){
-                lem_c.push_back( DatatypesRewriter::mkTester( arg1, it->second[j], dt1 ) );
+                Node tt = DatatypesRewriter::mkTester( arg1, it->second[j], dt1 );
+                //if commutative operator, and children have same constructor type, then first arg is larger than second arg
+                if( it->second[j]==(int)i && !sz_leq.isNull() ){
+                  tt = NodeManager::currentNM()->mkNode( AND, tt, sz_leq );
+                }
+                lem_c.push_back( tt );
               }
               Node argStr = lem_c.size()==1 ? lem_c[0] : NodeManager::currentNM()->mkNode( OR, lem_c );
               Trace("sygus-str") << "...strengthen corresponding first argument of " << test << " : " << argStr << std::endl;
               test_c.push_back( argStr );
               narrow = true;
+            }else{
+              if( !sz_leq.isNull() ){
+                test_c.push_back( NodeManager::currentNM()->mkNode( OR, DatatypesRewriter::mkTester( arg1, i, dt1 ).negate(), sz_leq ) );
+                narrow = true;
+              }
             }
           }
           //other constraints on arguments
@@ -282,6 +298,18 @@ void SygusSplit::registerSygusTypeConstructorArg( TypeNode tnn, const Datatype& 
               Node g = d_util->mkGeneric( pdt, csIndex, var_count, pre );
               addSplit = !isGenericRedundant( tnnp, g );
             }
+            /*
+            else{
+              Trace("sygus-nf-temp") << "Check " << dt[i].getName() << " as argument " << sIndex << " under " << parentKind << std::endl;
+              std::map< int, Node > prec;
+              std::map< TypeNode, int > var_count;
+              Node gc = d_util->mkGeneric( dt, i, var_count, prec );
+              std::map< int, Node > pre;
+              pre[sIndex] = gc;
+              Node g = d_util->mkGeneric( pdt, csIndex, var_count, pre );
+              bool tmp = !isGenericRedundant( tnnp, g, false );
+            }
+            */
           }
         }
         d_sygus_pc_nred[tnn][csIndex][sIndex].push_back( addSplit );
@@ -394,7 +422,6 @@ bool SygusSplit::considerSygusSplitKind( const Datatype& dt, const Datatype& pdt
     }
     Kind nk = UNDEFINED_KIND;
     Kind reqk = UNDEFINED_KIND;  //required kind for all children
-    std::map< int, Kind > reqk_arg; //TODO
     if( parent==NOT ){
       if( k==AND ) {
         nk = OR;reqk = NOT;
@@ -436,52 +463,51 @@ bool SygusSplit::considerSygusSplitKind( const Datatype& dt, const Datatype& pdt
       int pcr = d_util->getKindArg( tnp, nk );
       if( pcr!=-1 ){
         Assert( pcr<(int)pdt.getNumConstructors() );
-        //must have same number of arguments
-        if( pdt[pcr].getNumArgs()==dt[c].getNumArgs() ){
-          bool success = true;
-          std::map< int, TypeNode > childTypes;
-          for( unsigned i=0; i<pdt[pcr].getNumArgs(); i++ ){
-            TypeNode tna = getArgType( pdt[pcr], i );
-            Assert( datatypes::DatatypesRewriter::isTypeDatatype( tna ) );
-            if( reqk!=UNDEFINED_KIND ){
-              //child must have a NOT
-              int nindex = d_util->getKindArg( tna, reqk );
-              if( nindex!=-1 ){
-                const Datatype& adt = ((DatatypeType)(tn).toType()).getDatatype();
-                childTypes[i] = getArgType( adt[nindex], 0 );
-              }else{
-                Trace("sygus-split-debug") << "...argument " << i << " does not have " << reqk << "." << std::endl;
-                success = false;
-                break;
-              }
-            }else{
-              childTypes[i] = tna;
-            }
-          }
-          if( success ){
-            //children types of reduced operator must match types of original
+        if( reqk!=UNDEFINED_KIND ){
+          //must have same number of arguments
+          if( pdt[pcr].getNumArgs()==dt[c].getNumArgs() ){
+            bool success = true;
+            std::map< int, TypeNode > childTypes;
             for( unsigned i=0; i<pdt[pcr].getNumArgs(); i++ ){
-              if( getArgType( dt[c], i )!=childTypes[i] ){
-                Trace("sygus-split-debug") << "...arg " << i << " type mismatch." << std::endl;
-                success = false;
-                break;
+              TypeNode tna = getArgType( pdt[pcr], i );
+              Assert( datatypes::DatatypesRewriter::isTypeDatatype( tna ) );
+              if( reqk!=UNDEFINED_KIND ){
+                //child must have a NOT
+                int nindex = d_util->getKindArg( tna, reqk );
+                if( nindex!=-1 ){
+                  const Datatype& adt = ((DatatypeType)(tn).toType()).getDatatype();
+                  if( getArgType( dt[c], i )!=getArgType( adt[nindex], 0 ) ){
+                    Trace("sygus-split-debug") << "...arg " << i << " type mismatch." << std::endl;
+                    success = false;
+                    break;
+                  }
+                }else{
+                  Trace("sygus-split-debug") << "...argument " << i << " does not have " << reqk << "." << std::endl;
+                  success = false;
+                  break;
+                }
+              }else{
+                childTypes[i] = tna;
               }
-            }
-            if( !success ){
-              //check based on commutativity TODO
             }
             if( success ){
               Trace("sygus-split-debug") << "...success" << std::endl;
               return false;
             }
+          }else{
+            Trace("sygus-split-debug") << "...#arg mismatch." << std::endl;
           }
         }else{
-          Trace("sygus-split-debug") << "...#arg mismatch." << std::endl;
+          return !isTypeMatch( pdt[pcr], dt[c] );
         }
       }else{
         Trace("sygus-split-debug") << "...operator not available." << std::endl;
       }
     }
+  }
+  if( parent==MINUS || parent==BITVECTOR_SUB ){
+    
+    
   }
   return true;
 }
@@ -575,25 +601,37 @@ bool SygusSplit::isTypeMatch( const DatatypeConstructor& c1, const DatatypeConst
   }
 }
 
-bool SygusSplit::isGenericRedundant( TypeNode tn, Node g ) {
+bool SygusSplit::isGenericRedundant( TypeNode tn, Node g, bool active ) {
   //everything added to this cache should be mutually exclusive cases
   std::map< Node, bool >::iterator it = d_gen_redundant[tn].find( g );
   if( it==d_gen_redundant[tn].end() ){
     Trace("sygus-gnf") << "Register generic for " << tn << " : " << g << std::endl;
     Node gr = d_util->getNormalized( tn, g, false );
     Trace("sygus-gnf-debug") << "Generic " << g << " rewrites to " << gr << std::endl;
-    std::map< Node, Node >::iterator itg = d_gen_terms[tn].find( gr );
-    bool red = true;
-    if( itg==d_gen_terms[tn].end() ){
-      red = false;
-      d_gen_terms[tn][gr] = g;
-      Trace("sygus-gnf-debug") << "...not redundant." << std::endl;
+    if( active ){
+      std::map< Node, Node >::iterator itg = d_gen_terms[tn].find( gr );
+      bool red = true;
+      if( itg==d_gen_terms[tn].end() ){
+        red = false;
+        d_gen_terms[tn][gr] = g;
+        d_gen_terms_inactive[tn][gr] = g;
+        Trace("sygus-gnf-debug") << "...not redundant." << std::endl;
+      }else{
+        Trace("sygus-gnf-debug") << "...redundant." << std::endl;
+        Trace("sygus-nf") << "* Sygus normal form : simplify since " << g << " and " << itg->second << " both rewrite to " << gr << std::endl;
+      }
+      d_gen_redundant[tn][g] = red;
+      return red;
     }else{
-      Trace("sygus-gnf-debug") << "...redundant." << std::endl;
-      Trace("sygus-nf") << "* Sygus normal form : simplify since " << g << " and " << itg->second << " both rewrite to " << gr << std::endl;
+      std::map< Node, Node >::iterator itg = d_gen_terms_inactive[tn].find( gr );
+      if( itg==d_gen_terms_inactive[tn].end() ){
+        Trace("sygus-nf-temp") << "..." << g << " rewrites to " << gr << std::endl;
+        d_gen_terms_inactive[tn][gr] = g;
+      }else{
+        Trace("sygus-nf-temp") << "* Note " << g << " and " << itg->second << " both rewrite to " << gr << std::endl;
+      }
+      return false;
     }
-    d_gen_redundant[tn][g] = red;
-    return red;
   }else{
     return it->second;
   }
@@ -1064,10 +1102,10 @@ bool SygusSymBreak::processCurrentProgram( Node a, TypeNode at, int depth, Node 
     }else{
       Trace("sygus-sym-break2") << "repeated lemma for " << prog << " from " << a << std::endl;
     }
-    return false;
-  }else{
-    return true;
+    //for now, continue adding lemmas (since we are not forcing conflicts)
+    //return false;
   }
+  return true;
 }
 
 bool SygusSymBreak::isSeparation( Node rep_prog, Node tst_curr, std::map< Node, std::vector< Node > >& testers_u, std::vector< Node >& rlv_testers ) {
