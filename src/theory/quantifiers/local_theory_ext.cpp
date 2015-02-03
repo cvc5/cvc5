@@ -45,11 +45,11 @@ bool LtePartialInst::addQuantifier( Node q ) {
     //check if this quantified formula is eligible for partial instantiation
     std::map< Node, bool > vars;
     for( unsigned i=0; i<q[0].getNumChildren(); i++ ){
-      vars[q[0][i]] = true;
+      vars[q[0][i]] = false;
     }
     getEligibleInstVars( q[1], vars );
 
-    //TODO : instantiate only if we would force ground instances?
+    //instantiate only if we would force ground instances
     std::map< Node, int > var_order;
     bool doInst = true;
     for( unsigned i=0; i<q[0].getNumChildren(); i++ ){
@@ -110,10 +110,10 @@ bool LtePartialInst::addVariableToPatternList( Node v, std::vector< int >& pat_v
 }
 
 void LtePartialInst::getEligibleInstVars( Node n, std::map< Node, bool >& vars ) {
-  if( n.getKind()!=APPLY_UF || n.getType().isBoolean() ){
+  if( n.getKind()==APPLY_UF && !n.getType().isBoolean() ){
     for( unsigned i=0; i<n.getNumChildren(); i++ ){
       if( vars.find( n[i] )!=vars.end() ){
-        vars[n[i]] = false;
+        vars[n[i]] = true;
       }
     }
   }

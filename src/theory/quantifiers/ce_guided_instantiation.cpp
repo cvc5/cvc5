@@ -483,25 +483,35 @@ void CegInstantiation::printSynthSolution( std::ostream& out ) {
       ss << d_conj->d_quant[0][i];
       std::string f(ss.str());
       f.erase(f.begin());
-      out << "(define-fun f ";
       TypeNode tn = d_conj->d_quant[0][i].getType();
       Assert( datatypes::DatatypesRewriter::isTypeDatatype( tn ) );
       const Datatype& dt = ((DatatypeType)(tn).toType()).getDatatype();
       Assert( dt.isSygus() );
-      out << dt.getSygusVarList() << " ";
-      out << dt.getSygusType() << " ";
+      //get the solution
+      Node sol;
       if( d_last_inst_si ){
         Assert( d_conj->d_ceg_si );
-        Node sol = d_conj->d_ceg_si->getSolution( i, Node::fromExpr( dt.getSygusVarList() ) );
-        out << sol;
+        sol = d_conj->d_ceg_si->getSolution( i, Node::fromExpr( dt.getSygusVarList() ) );
       }else{
-        if( d_conj->d_candidate_inst[i].empty() ){
-          out << "?";
-        }else{
-          printSygusTerm( out, d_conj->d_candidate_inst[i].back() );
+        if( !d_conj->d_candidate_inst[i].empty() ){
+          sol = d_conj->d_candidate_inst[i].back();
         }
       }
-      out << ")" << std::endl;
+      if( !Trace.isOn("cegqi-stats") ){
+        out << "(define-fun " << f << " ";
+        out << dt.getSygusVarList() << " ";
+        out << dt.getSygusType() << " ";
+        if( d_last_inst_si ){
+          out << sol;
+        }else{
+          if( sol.isNull() ){
+            out << "?";
+          }else{
+            printSygusTerm( out, sol );
+          }
+        }
+        out << ")" << std::endl;
+      }
     }
   }
 }

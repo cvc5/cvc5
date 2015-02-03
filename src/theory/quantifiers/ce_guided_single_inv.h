@@ -36,6 +36,8 @@ private:
                             std::vector< Node >& progs, std::map< Node, std::map< Node, bool > >& contains, bool pol );
   bool analyzeSygusTerm( Node n, std::map< Node, std::vector< Node > >& prog_invoke, std::map< Node, bool >& contains );
   bool processSingleInvLiteral( Node lit, bool pol, std::map< Node, std::vector< Node > >& case_vals );
+  bool doVariableElimination( Node v, std::vector< Node >& conjuncts );
+  bool getVariableEliminationTerm( bool pol, bool active, Node v, Node n, TNode& s, int& status );
 
   Node constructSolution( unsigned i, unsigned index );
   int classifyTerm( Node n, std::map< Node, int >& subs_from_model );
@@ -43,6 +45,7 @@ private:
   Node applyProgVarSubstitution( Node n, std::map< Node, int >& subs_from_model, std::vector< Node >& subs );
 
   bool debugSolution( Node sol );
+  void debugTermSize( Node sol, int& t_size, int& num_ite );
 public:
   CegConjectureSingleInv( Node q, CegConjecture * p );
   // original conjecture
@@ -64,6 +67,9 @@ public:
   //lemmas produced
   std::vector< Node > d_lemmas_produced;
   std::vector< std::vector< Node > > d_inst;
+  // solution
+  Node d_orig_solution;
+  Node d_solution;
 public:
   //get the single invocation lemma
   Node getSingleInvLemma( Node guard );

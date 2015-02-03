@@ -162,7 +162,7 @@ void CegConjectureSingleInv::initialize() {
       for( std::map< Node, std::vector< Node > >::iterator it = children.begin(); it != children.end(); ++it ){
         //should hold since we prevent miniscoping
         Assert( d_single_inv.isNull() );
-        std::vector< Node > tmp;
+        std::vector< Node > conjuncts;
         for( unsigned i=0; i<it->second.size(); i++ ){
           Node c = it->second[i];
           std::vector< Node > disj;
@@ -197,16 +197,15 @@ void CegConjectureSingleInv::initialize() {
           }
           Node curr = disj.size()==1 ? disj[0] : NodeManager::currentNM()->mkNode( OR, disj );
           Trace("cegqi-si") << "    " << curr;
-          tmp.push_back( curr.negate() );
+          conjuncts.push_back( curr.negate() );
           if( !it->first.isNull() ){
             Trace("cegqi-si-debug") << " under " << it->first;
           }
           Trace("cegqi-si") << std::endl;
         }
-        Assert( !tmp.empty() );
-        Node bd = tmp.size()==1 ? tmp[0] : NodeManager::currentNM()->mkNode( OR, tmp );
+        Assert( !conjuncts.empty() );
+        //make the skolems for the existential
         if( !it->first.isNull() ){
-          // apply substitution for skolem variables
           std::vector< Node > vars;
           std::vector< Node > sks;
           for( unsigned j=0; j<it->first.getNumChildren(); j++ ){
@@ -216,15 +215,18 @@ void CegConjectureSingleInv::initialize() {
             vars.push_back( it->first[j] );
             sks.push_back( v );
           }
-          bd = bd.substitute( vars.begin(), vars.end(), sks.begin(), sks.end() );
+          //substitute conjunctions
+          for( unsigned i=0; i<conjuncts.size(); i++ ){
+            conjuncts[i] = conjuncts[i].substitute( vars.begin(), vars.end(), sks.begin(), sks.end() );
+          }
           d_single_inv_arg_sk.insert( d_single_inv_arg_sk.end(), sks.begin(), sks.end() );
+          //substitute single invocation applications
           for( std::map< Node, Node >::iterator itam = d_single_inv_app_map.begin(); itam != d_single_inv_app_map.end(); ++itam ){
             Node n = itam->second;
             d_single_inv_app_map[itam->first] = n.substitute( vars.begin(), vars.end(), sks.begin(), sks.end() );
           }
-
-          Trace("cegqi-si-debug") << "    -> " << bd << std::endl;
         }
+        //ensure that this is a ground property
         for( std::map< Node, Node >::iterator itam = d_single_inv_app_map.begin(); itam != d_single_inv_app_map.end(); ++itam ){
           Node n = itam->second;
           //check if all variables are arguments of this
@@ -232,22 +234,31 @@ void CegConjectureSingleInv::initialize() {
           for( unsigned i=1; i<n.getNumChildren(); i++ ){
             n_args.push_back( n[i] );
           }
-          for( unsigned i=0; i<d_single_inv_arg_sk.size(); i++ ){
+          for( int i=0; i<(int)d_single_inv_arg_sk.size(); i++ ){
             if( std::find( n_args.begin(), n_args.end(), d_single_inv_arg_sk[i] )==n_args.end() ){
-              Trace("cegqi-si") << "...property is not ground: program invocation " << n << " does not contain all variables." << std::endl;
-              singleInvocation = false;
-              //exit( 57 );
+              Trace("cegqi-si") << "...property is not ground: program invocation " << n << " does not contain variable " << d_single_inv_arg_sk[i] << "." << std::endl;
+              //try to do variable elimination on d_single_inv_arg_sk[i]
+              if( doVariableElimination( d_single_inv_arg_sk[i], conjuncts ) ){
+                Trace("cegqi-si") << "...did variable elimination on " << d_single_inv_arg_sk[i] << std::endl;
+                d_single_inv_arg_sk.erase( d_single_inv_arg_sk.begin() + i, d_single_inv_arg_sk.begin() + i + 1 );
+                i--;
+              }else{
+                singleInvocation = false;
+                //exit( 57 );
+              }
               break;
             }
           }
         }
+        
         if( singleInvocation ){
+          Node bd = conjuncts.size()==1 ? conjuncts[0] : NodeManager::currentNM()->mkNode( OR, conjuncts );
           d_single_inv = NodeManager::currentNM()->mkNode( FORALL, pbvl, bd );
           Trace("cegqi-si-debug") << "...formula is : " << d_single_inv << std::endl;
           /*
           //equality resolution
-          for( unsigned j=0; j<tmp.size(); j++ ){
-            Node conj = tmp[j];
+          for( unsigned j=0; j<conjuncts.size(); j++ ){
+            Node conj = conjuncts[j];
             std::map< Node, std::vector< Node > > case_vals;
             bool exh = processSingleInvLiteral( conj, false, case_vals );
             Trace("cegqi-si-er") << "Conjunct " << conj << " gives equality restrictions, exh = " << exh << " : " << std::endl;
@@ -270,6 +281,63 @@ void CegConjectureSingleInv::initialize() {
       }
     }
   }
+}
+
+bool CegConjectureSingleInv::doVariableElimination( Node v, std::vector< Node >& conjuncts ) {
+  //all conjuncts containing v must contain a literal v != s for some s
+  // if so, do DER on all such conjuncts
+  TNode s;
+  for( unsigned i=0; i<conjuncts.size(); i++ ){
+    int status = 0;
+    if( getVariableEliminationTerm( true, true, v, conjuncts[i], s, status ) ){
+      Trace("cegqi-si-debug") << "Substitute " << s << " for " << v << " in " << conjuncts[i] << std::endl;
+      Assert( !s.isNull() );
+      conjuncts[i] = conjuncts[i].substitute( v, s );
+    }else{
+      if( status==1 ){
+        Trace("cegqi-si-debug") << "Conjunct " << conjuncts[i] << " contains " << v << " but not in disequality." << std::endl;
+        return false;
+      }else{
+        Trace("cegqi-si-debug") << "Conjunct does not contain " << v << "." << std::endl;
+      }
+    }
+  }
+  return true;  
+}
+
+bool CegConjectureSingleInv::getVariableEliminationTerm( bool pol, bool hasPol, Node v, Node n, TNode& s, int& status ) {
+  if( hasPol ){
+    if( n.getKind()==NOT ){
+      return getVariableEliminationTerm( !pol, true, v, n[0], s, status );
+    }else if( pol && n.getKind()==EQUAL ){
+      for( unsigned r=0; r<2; r++ ){
+        if( n[r]==v ){
+          status = 1;
+          Node ss = n[r==0 ? 1 : 0];
+          if( s.isNull() ){
+            s = ss;
+          }
+          return ss==s;
+        }
+      }
+      //did not match, now see if it contains v
+    }else if( ( n.getKind()==OR && !pol ) || ( n.getKind()==AND && pol ) ){
+      for( unsigned i=0; i<n.getNumChildren(); i++ ){
+        if( getVariableEliminationTerm( pol, true, v, n[i], s, status ) ){
+          return true;
+        }
+      }
+      return false;
+    }
+  }
+  if( n==v ){
+    status = 1;
+  }else{
+    for( unsigned i=0; i<n.getNumChildren(); i++ ){
+      getVariableEliminationTerm( pol, false, v, n[i], s, status );
+    }
+  }
+  return false;
 }
 
 bool CegConjectureSingleInv::processSingleInvLiteral( Node lit, bool pol, std::map< Node, std::vector< Node > >& case_vals ) {
@@ -525,7 +593,9 @@ Node CegConjectureSingleInv::applyProgVarSubstitution( Node n, std::map< Node, i
         subs_from_model.erase( vars[i] );
       }
     }
-    return n.substitute( vars.begin(), vars.end(), ssubs.begin(), ssubs.end() );
+    n = n.substitute( vars.begin(), vars.end(), ssubs.begin(), ssubs.end() );
+    n = Rewriter::rewrite( n );
+    return n;
   }else{
     return n;
   }
@@ -604,17 +674,28 @@ Node CegConjectureSingleInv::getSolution( unsigned i, Node varList ){
     vars.push_back( prog_app[i] );
     subs.push_back( varList[i-1] );
   }
-  s = s.substitute( vars.begin(), vars.end(), subs.begin(), subs.end() );
+  d_orig_solution = s.substitute( vars.begin(), vars.end(), subs.begin(), subs.end() );
+  d_solution = Rewriter::rewrite( d_orig_solution );
   if( Trace.isOn("cegqi-si-warn") ){
     //debug solution
-    if( !debugSolution( s ) ){
-      Trace("cegqi-si-warn") << "WARNING : solution " << s << " contains free constants." << std::endl;
+    if( !debugSolution( d_solution ) ){
+      Trace("cegqi-si-warn") << "WARNING : solution " << d_solution << " contains free constants." << std::endl;
       //exit( 47 );
     }else{
       //exit( 49 );
     }
   }
-  return s;
+  if( Trace.isOn("cegqi-stats") ){
+    int t_size = 0;
+    int num_ite = 0;
+    debugTermSize( d_orig_solution, t_size, num_ite );
+    Trace("cegqi-stats") << "size " << t_size << " #ite " << num_ite << std::endl;
+    t_size = 0;
+    num_ite = 0;
+    debugTermSize( d_solution, t_size, num_ite );
+    Trace("cegqi-stats") << "simplified size " << t_size << " #ite " << num_ite << std::endl;
+  }
+  return d_solution;
 }
 
 bool CegConjectureSingleInv::debugSolution( Node sol ) {
@@ -629,6 +710,16 @@ bool CegConjectureSingleInv::debugSolution( Node sol ) {
     return true;
   }
 
+}
+
+void CegConjectureSingleInv::debugTermSize( Node sol, int& t_size, int& num_ite ) {
+  t_size++;
+  if( sol.getKind()==ITE ){
+    num_ite++;
+  }
+  for( unsigned i=0; i<sol.getNumChildren(); i++ ){
+    debugTermSize( sol[i], t_size, num_ite );
+  }
 }
 
 }
