@@ -135,6 +135,33 @@ void QuantArith::debugPrintMonomialSum( std::map< Node, Node >& msum, const char
   Trace(c) << std::endl;
 }
 
+bool QuantArith::solveEqualityFor( Node lit, Node v, Node & veq ) {
+  Assert( lit.getKind()==EQUAL || lit.getKind()==IFF );
+  //first look directly at sides
+  TypeNode tn = lit[0].getType();
+  for( unsigned r=0; r<2; r++ ){
+    if( lit[r]==v ){
+      Node olitr = lit[r==0 ? 1 : 0];
+      veq = tn.isBoolean() ? lit[r].iffNode( olitr ) : lit[r].eqNode( olitr );
+      return true;
+    }
+  }
+  if( tn.isInteger() || tn.isReal() ){
+    std::map< Node, Node > msum;
+    if( QuantArith::getMonomialSumLit( lit, msum ) ){
+      if( QuantArith::isolate( v, msum, veq, EQUAL ) ){
+        if( veq[0]!=v ){
+          Assert( veq[1]==v );
+          veq = v.eqNode( veq[0] );
+        }
+        return true;
+      }
+    }
+  }
+  return false;
+}
+
+
 
 void QuantRelevance::registerQuantifier( Node f ){
   //compute symbols in f

@@ -1122,6 +1122,20 @@ void TermDb::filterInstances( std::vector< Node >& nodes ){
   nodes.insert( nodes.begin(), temp.begin(), temp.end() );
 }
 
+bool TermDb::containsTerm( Node n, Node t ) {
+  if( n==t ){
+    return true;
+  }else{
+    for( unsigned i=0; i<n.getNumChildren(); i++ ){
+      if( containsTerm( n[i], t ) ){
+        return true;
+      }
+    }
+    return false;
+  }
+}
+
+
 void TermDb::registerTrigger( theory::inst::Trigger* tr, Node op ){
   if( std::find( d_op_triggers[op].begin(), d_op_triggers[op].end(), tr )==d_op_triggers[op].end() ){
     d_op_triggers[op].push_back( tr );

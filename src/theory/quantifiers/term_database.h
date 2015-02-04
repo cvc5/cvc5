@@ -320,6 +320,8 @@ public:
   int isInstanceOf( Node n1, Node n2 );
   /** filter all nodes that have instances */
   void filterInstances( std::vector< Node >& nodes );
+  /** simple check for contains term */
+  bool containsTerm( Node n, Node t );
 
 private:
   std::map< Node, bool > d_fun_defs;

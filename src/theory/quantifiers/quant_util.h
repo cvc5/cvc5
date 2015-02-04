@@ -39,6 +39,7 @@ public:
   static Node negate( Node t );
   static Node offset( Node t, int i );
   static void debugPrintMonomialSum( std::map< Node, Node >& msum, const char * c );
+  static bool solveEqualityFor( Node lit, Node v, Node & veq );
 };
 
 
