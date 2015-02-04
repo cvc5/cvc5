@@ -93,12 +93,13 @@ private:
   bool getAssignEquality( QuantifiersEngine * qe, Node eq, std::vector< Node >& vars, std::vector< Node >& new_vars, std::vector< Node >& new_subs, std::vector< Node >& args );
 //solution reconstruction
 private:
-  std::map< Node, std::vector< TypeNode > > d_rcons_processed;
+  std::map< Node, std::map< TypeNode, std::map< Node, std::vector< TypeNode > > > > d_rcons_processed;
   std::map< Node, std::map< TypeNode, Node > > d_reconstructed;
   std::map< Node, std::map< TypeNode, bool > > d_reconstructed_op;
   std::map< Node, std::map< TypeNode, std::map< Node, std::map< TypeNode, bool > > > > d_rcons_graph[2];
   std::map< TypeNode, std::map< Node, bool > > d_rcons_to_process;
   // term t with sygus type st
+  Node getSolutionTemplate( TermDbSygus * tds, Node n, TypeNode stn, Node parent, int arg );
   void collectReconstructNodes( TermDbSygus * tds, Node t, TypeNode stn, Node parent, TypeNode pstn, bool ignoreBoolean );
   // set reconstructed 
   void setReconstructed( Node t, TypeNode stn );
