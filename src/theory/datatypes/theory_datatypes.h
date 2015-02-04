@@ -23,6 +23,7 @@
 #include "util/datatype.h"
 #include "util/hash.h"
 #include "theory/uf/equality_engine.h"
+#include "theory/datatypes/datatypes_sygus.h"
 
 #include <ext/hash_set>
 #include <iostream>
@@ -32,8 +33,6 @@
 namespace CVC4 {
 namespace theory {
 namespace datatypes {
-
-class SygusUtil;
 
 class TheoryDatatypes : public Theory {
 private:
@@ -178,8 +177,9 @@ private:
   unsigned d_dtfCounter;
   /** expand definition skolem functions */
   std::map< Node, Node > d_exp_def_skolem;
-  /** sygus utility */
-  SygusUtil * d_sygus_util;
+  /** sygus utilities */
+  SygusSplit * d_sygus_split;
+  SygusSymBreak * d_sygus_sym_break;
 private:
   /** assert fact */
   void assertFact( Node fact, Node exp );
@@ -228,6 +228,7 @@ public:
 
   void check(Effort e);
   void preRegisterTerm(TNode n);
+  void finishInit();
   Node expandDefinition(LogicRequest &logicRequest, Node n);
   Node ppRewrite(TNode n);
   void presolve();

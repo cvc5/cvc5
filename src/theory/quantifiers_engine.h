@@ -39,6 +39,7 @@ class QuantifiersEngine;
 
 namespace quantifiers {
   class TermDb;
+  class TermDbSygus;
 }
 
 class QuantifiersModule {
@@ -290,6 +291,8 @@ public:
   quantifiers::FirstOrderModel* getModel() { return d_model; }
   /** get term database */
   quantifiers::TermDb* getTermDatabase() { return d_term_db; }
+  /** get term database sygus */
+  quantifiers::TermDbSygus* getTermDatabaseSygus();
   /** get trigger database */
   inst::TriggerTrie* getTriggerDatabase() { return d_tr_trie; }
   /** add term to database */

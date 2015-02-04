@@ -25,10 +25,12 @@
 #include "theory/theory_model.h"
 #include "smt/options.h"
 #include "smt/boolean_terms.h"
-#include "theory/quantifiers/options.h"
 #include "theory/datatypes/options.h"
 #include "theory/type_enumerator.h"
-#include "theory/datatypes/datatypes_sygus.h"
+
+#include "theory/quantifiers/options.h"
+#include "theory/quantifiers_engine.h"
+
 
 #include <map>
 
@@ -67,11 +69,8 @@ TheoryDatatypes::TheoryDatatypes(Context* c, UserContext* u, OutputChannel& out,
   d_true = NodeManager::currentNM()->mkConst( true );
   d_dtfCounter = 0;
 
-  if( options::ceGuidedInst() ){
-    d_sygus_util = new SygusUtil( c );
-  }else{
-    d_sygus_util = NULL;
-  }
+  d_sygus_split = NULL;
+  d_sygus_sym_break = NULL;
 }
 
 TheoryDatatypes::~TheoryDatatypes() {
@@ -246,9 +245,9 @@ void TheoryDatatypes::check(Effort e) {
                 }else{
                   Trace("dt-split") << "*************Split for constructors on " << n <<  endl;
                   std::vector< Node > children;
-                  if( dt.isSygus() && d_sygus_util ){
+                  if( dt.isSygus() && d_sygus_split ){
                     std::vector< Node > lemmas;
-                    d_sygus_util->getSplit()->getSygusSplits( n, dt, children, lemmas );
+                    d_sygus_split->getSygusSplits( n, dt, children, lemmas );
                     for( unsigned i=0; i<lemmas.size(); i++ ){
                       Trace("dt-lemma-sygus") << "Dt sygus lemma : " << lemmas[i] << std::endl;
                       d_out->lemma( lemmas[i] );
@@ -367,14 +366,14 @@ void TheoryDatatypes::assertFact( Node fact, Node exp ){
     addTester( fact, eqc, rep );
     if( !d_conflict && polarity ){
       Trace("dt-tester") << "Assert tester : " << atom << std::endl;
-      if( d_sygus_util ){
+      if( d_sygus_sym_break ){
         //Assert( !d_sygus_util->d_conflict );
-        d_sygus_util->getSymBreak()->addTester( atom );
-        for( unsigned i=0; i<d_sygus_util->d_lemmas.size(); i++ ){
-          Trace("dt-lemma-sygus") << "Sygus symmetry breaking lemma : " << d_sygus_util->d_lemmas[i] << std::endl;
-          d_out->lemma( d_sygus_util->d_lemmas[i] );
+        d_sygus_sym_break->addTester( atom );
+        for( unsigned i=0; i<d_sygus_sym_break->d_lemmas.size(); i++ ){
+          Trace("dt-lemma-sygus") << "Sygus symmetry breaking lemma : " << d_sygus_sym_break->d_lemmas[i] << std::endl;
+          d_out->lemma( d_sygus_sym_break->d_lemmas[i] );
         }
-        d_sygus_util->d_lemmas.clear();
+        d_sygus_sym_break->d_lemmas.clear();
         /*
         if( d_sygus_util->d_conflict ){
           //d_conflict = true;
@@ -419,6 +418,15 @@ void TheoryDatatypes::preRegisterTerm(TNode n) {
     break;
   }
   flushPendingFacts();
+}
+
+void TheoryDatatypes::finishInit() {
+  if( getQuantifiersEngine() && options::ceGuidedInst() ){
+    quantifiers::TermDbSygus * tds = getQuantifiersEngine()->getTermDatabaseSygus();
+    Assert( tds!=NULL );
+    d_sygus_split = new SygusSplit( tds );
+    d_sygus_sym_break = new SygusSymBreak( tds, getSatContext() );
+  }
 }
 
 Node TheoryDatatypes::expandDefinition(LogicRequest &logicRequest, Node n) {

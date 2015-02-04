@@ -516,6 +516,10 @@ Node QuantifiersEngine::getNextDecisionRequest(){
   return Node::null();
 }
 
+quantifiers::TermDbSygus* QuantifiersEngine::getTermDatabaseSygus() {
+  return getTermDatabase()->getTermDatabaseSygus();
+}
+
 void QuantifiersEngine::addTermToDatabase( Node n, bool withinQuant, bool withinInstClosure ){
   std::set< Node > added;
   getTermDatabase()->addTerm( n, added, withinQuant, withinInstClosure );

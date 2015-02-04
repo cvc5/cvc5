@@ -493,7 +493,7 @@ void CegInstantiation::printSynthSolution( std::ostream& out ) {
       Node sol;
       if( d_last_inst_si ){
         Assert( d_conj->d_ceg_si );
-        sol = d_conj->d_ceg_si->getSolution( d_quantEngine, i, Node::fromExpr( dt.getSygusVarList() ) );
+        sol = d_conj->d_ceg_si->getSolution( d_quantEngine, tn, i, Node::fromExpr( dt.getSygusVarList() ) );
       }else{
         if( !d_conj->d_candidate_inst[i].empty() ){
           sol = d_conj->d_candidate_inst[i].back();

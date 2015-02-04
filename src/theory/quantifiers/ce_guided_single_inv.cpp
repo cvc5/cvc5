@@ -679,7 +679,7 @@ Node CegConjectureSingleInv::constructSolution( unsigned i, unsigned index ) {
   }
 }
 
-Node CegConjectureSingleInv::getSolution( QuantifiersEngine * qe, unsigned i, Node varList ){
+Node CegConjectureSingleInv::getSolution( QuantifiersEngine * qe, TypeNode stn, unsigned i, Node varList ){
   Assert( !d_lemmas_produced.empty() );
   Node s = constructSolution( i, 0 );
   //TODO : not in grammar
@@ -707,8 +707,44 @@ Node CegConjectureSingleInv::getSolution( QuantifiersEngine * qe, unsigned i, No
   s = simplifySolution( qe, s, sassign, svars, ssubs, subs, 0 );
   Trace("cegqi-si-debug-sol") << "Solution (post-simplification): " << s << std::endl;
   s = Rewriter::rewrite( s );
-  Trace("cegqi-si-debug-sol") << "Solution (pre-rewrite): " << s << std::endl;
+  Trace("cegqi-si-debug-sol") << "Solution (post-rewrite): " << s << std::endl;
   d_solution = s;
+  if( options::cegqiSingleInvReconstruct() ){
+    collectReconstructNodes( qe->getTermDatabaseSygus(), d_solution, stn, Node::null(), TypeNode::null(), false );
+    std::vector< TypeNode > rcons_tn;
+    for( std::map< TypeNode, std::map< Node, bool > >::iterator it = d_rcons_to_process.begin(); it != d_rcons_to_process.end(); ++it ){
+      TypeNode tn = it->first;
+      Assert( datatypes::DatatypesRewriter::isTypeDatatype(tn) );
+      const Datatype& dt = ((DatatypeType)(tn).toType()).getDatatype();
+      Trace("cegqi-si-rcons") << it->second.size() << " terms to reconstruct of type " << dt.getName() << " : " << std::endl;
+      for( std::map< Node, bool >::iterator it2 = it->second.begin(); it2 != it->second.end(); ++it2 ){
+        Trace("cegqi-si-rcons") << "  " << it2->first << std::endl;
+      }
+      Assert( !it->second.empty() );
+      rcons_tn.push_back( it->first );
+    }
+    /*
+    bool success;
+    unsigned index = 0;
+    do {
+      success = true;
+      std::vector< TypeNode > to_erase;
+      for( std::map< TypeNode, std::map< Node, bool > >::iterator it = d_rcons_to_process.begin(); it != d_rcons_to_process.end(); ++it ){
+        if( it->second.empty() ){
+          to_erase.push_back( it->first );
+        }else{
+          Node n = qe->getTermDatabase()->getEnumerateType( it->first, index );
+          
+          success = false;
+        }
+      }
+      for( unsigned i=0; i<to_erase.size(); i++ ){
+        d_rcons_to_process.erase( to_erase[i] );
+      }
+      index++;
+    }while( !success );
+    */
+  }
   if( Trace.isOn("cegqi-si-debug-sol") ){
     //debug solution
     if( !debugSolution( d_solution ) ){
@@ -1074,6 +1110,94 @@ Node CegConjectureSingleInv::simplifySolution( QuantifiersEngine * qe, Node sol,
     return sol;
   }
 }
+
+
+void CegConjectureSingleInv::collectReconstructNodes( TermDbSygus * tds, Node t, TypeNode stn, Node parent, TypeNode pstn, bool ignoreBoolean ) {
+  if( ignoreBoolean && t.getType().isBoolean() ){
+    if( t.getKind()==OR || t.getKind()==AND || t.getKind()==IFF || t.getKind()==ITE ){
+      for( unsigned i=0; i<t.getNumChildren(); i++ ){
+        collectReconstructNodes( tds, t[i], stn, parent, pstn, ignoreBoolean );
+      }
+      return;
+    }
+  }
+  if( std::find( d_rcons_processed[t].begin(), d_rcons_processed[t].end(), stn )==d_rcons_processed[t].end() ){
+    TypeNode tn = t.getType();
+    d_rcons_processed[t].push_back( stn );
+    Assert( datatypes::DatatypesRewriter::isTypeDatatype( stn ) );
+    const Datatype& dt = ((DatatypeType)(stn).toType()).getDatatype();
+    Assert( dt.isSygus() );
+    Trace("cegqi-si-rcons-debug") << "Check reconstruct " << t << " type " << tn << ", sygus type " << dt.getName() << std::endl;
+    tds->registerSygusType( stn );
+    int arg = tds->getKindArg( stn, t.getKind() );
+    bool processed = false;
+    if( arg!=-1 ){
+      if( t.getNumChildren()==dt[arg].getNumArgs() ){
+        Trace("cegqi-si-rcons-debug") << "  Type has kind " << t.getKind() << ", recurse." << std::endl;
+        for( unsigned i=0; i<t.getNumChildren(); i++ ){
+          bool ignB = ( i==0 && t.getKind()==ITE );
+          TypeNode stnc = tds->getArgType( dt[arg], i );
+          collectReconstructNodes( tds, t[i], stnc, t, stn, ignB );
+        }
+        d_reconstructed[t][stn] = Node::fromExpr( dt[arg].getSygusOp() );
+        processed = true;
+      }else{
+        Trace("cegqi-si-rcons-debug") << "  Type has kind " << t.getKind() << ", but argument mismatch, with parent " << parent << std::endl;
+      }
+    }
+    int carg = tds->getConstArg( stn, t );
+    if( carg==-1 ){
+      Trace("cegqi-si-rcons") << "...Reconstruction needed for " << t << " sygus type " << dt.getName() << " with parent " << parent << std::endl;
+    }else{
+      d_reconstructed[t][stn] = Node::fromExpr( dt[carg].getSygusOp() );
+      processed = true;
+      Trace("cegqi-si-rcons-debug") << "  Type has constant." << std::endl;
+    }
+    //add to parent if necessary
+    if( !parent.isNull() && ( !processed || !d_rcons_graph[0][t][stn].empty() ) ){
+      Assert( !pstn.isNull() );
+      d_rcons_graph[0][parent][pstn][t][stn] = true;
+      d_rcons_to_process[pstn][parent] = true;
+      d_rcons_graph[1][t][stn][parent][pstn] = true;
+      d_rcons_to_process[stn][t] = true;
+    }
+  }
+}
+
+void CegConjectureSingleInv::setReconstructed( Node t, TypeNode stn ) {
+  if( Trace.isOn("cegqi-si-rcons-debug") ){
+    const Datatype& dt = ((DatatypeType)(stn).toType()).getDatatype();
+    Trace("cegqi-si-rcons-debug") << "set rcons : " << t << " in syntax " << dt.getName() << std::endl;
+  }
+  // clear all children, d_rcons_parents
+  std::vector< Node > to_set;
+  std::vector< TypeNode > to_set_tn;
+  for( unsigned r=0; r<2; r++){
+    unsigned ro = r==0 ? 1 : 0;
+    for( std::map< Node, std::map< TypeNode, bool > >::iterator it = d_rcons_graph[r][t][stn].begin(); it != d_rcons_graph[r][t][stn].end(); ++it ){
+      TypeNode stnc;
+      for( std::map< TypeNode, bool >::iterator it2 = it->second.begin(); it2 != it->second.end(); ++it2 ){
+        stnc = it2->first;
+        d_rcons_graph[ro][it->first][stnc][t].erase( it2->first );
+        if( d_rcons_graph[ro][it->first][stnc][t].empty() ){
+          d_rcons_graph[ro][it->first][stnc].erase( t );
+        }
+      }
+      if( d_rcons_graph[ro][it->first][stnc].empty() ){
+        to_set.push_back( it->first );
+        to_set_tn.push_back( stnc );
+      }
+    }
+  }
+  for( unsigned r=0; r<2; r++){
+    d_rcons_graph[r].erase( t );
+  }
+  d_rcons_to_process[stn].erase( t );
+  for( unsigned i=0; i<to_set.size(); i++ ){
+    setReconstructed( to_set[i], to_set_tn[i] );
+  }
+}
+
 
 
 }

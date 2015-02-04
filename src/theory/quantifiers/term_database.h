@@ -93,10 +93,6 @@ class QuantifiersEngine;
 namespace inst{
   class Trigger;
 }
-namespace rrinst{
-  class Trigger;
-}
-
 
 namespace quantifiers {
 
@@ -116,10 +112,11 @@ namespace fmcheck {
   class FullModelChecker;
 }
 
+class TermDbSygus;
+
 class TermDb {
   friend class ::CVC4::theory::QuantifiersEngine;
   friend class ::CVC4::theory::inst::Trigger;
-  friend class ::CVC4::theory::rrinst::Trigger;
   friend class ::CVC4::theory::quantifiers::fmcheck::FullModelChecker;
   typedef context::CDHashMap<Node, int, NodeHashFunction> NodeIntMap;
 private:
@@ -323,6 +320,12 @@ public:
   /** simple check for contains term */
   bool containsTerm( Node n, Node t );
 
+//for sygus
+private:
+  TermDbSygus * d_sygus_tdb;
+public:
+  TermDbSygus * getTermDatabaseSygus() { return d_sygus_tdb; }
+  
 private:
   std::map< Node, bool > d_fun_defs;
 public: //general queries concerning quantified formulas wrt modules
@@ -360,6 +363,72 @@ public:
   int getQAttrRewriteRulePriority( Node q );
 
 };/* class TermDb */
+
+class TermDbSygus {
+private:
+  std::map< TypeNode, std::vector< Node > > d_fv;
+  std::map< Node, TypeNode > d_fv_stype;
+public:
+  TNode getVar( TypeNode tn, int i );
+  TNode getVarInc( TypeNode tn, std::map< TypeNode, int >& var_count );
+  bool isVar( Node n ) { return d_fv_stype.find( n )!=d_fv_stype.end(); }
+private:
+  //information for sygus types
+  std::map< TypeNode, TypeNode > d_register;  //stores sygus type
+  std::map< TypeNode, std::map< int, Kind > > d_arg_kind;
+  std::map< TypeNode, std::map< Kind, int > > d_kinds;
+  std::map< TypeNode, std::map< int, Node > > d_arg_const;
+  std::map< TypeNode, std::map< Node, int > > d_consts;
+  std::map< TypeNode, std::map< Node, int > > d_ops;
+  std::map< TypeNode, std::map< int, Node > > d_arg_ops;
+  //information for builtin types
+  std::map< TypeNode, std::map< int, Node > > d_type_value;
+  std::map< TypeNode, Node > d_type_max_value;
+  std::map< TypeNode, std::map< Node, std::map< int, Node > > > d_type_value_offset;
+  std::map< TypeNode, std::map< Node, std::map< int, int > > > d_type_value_offset_status;
+  //normalized map
+  std::map< TypeNode, std::map< Node, Node > > d_normalized;
+public:
+  TermDbSygus(){}
+  bool isRegistered( TypeNode tn );
+  int getKindArg( TypeNode tn, Kind k );
+  int getConstArg( TypeNode tn, Node n );
+  int getOpArg( TypeNode tn, Node n );
+  bool hasKind( TypeNode tn, Kind k );
+  bool hasConst( TypeNode tn, Node n );
+  bool hasOp( TypeNode tn, Node n );
+  Node getArgConst( TypeNode tn, int i );
+  Node getArgOp( TypeNode tn, int i );
+  Kind getArgKind( TypeNode tn, int i );
+  bool isKindArg( TypeNode tn, int i );
+  bool isConstArg( TypeNode tn, int i );
+  void registerSygusType( TypeNode tn );
+  /** get arg type */
+  TypeNode getArgType( const DatatypeConstructor& c, int i );
+  /** is assoc */
+  bool isAssoc( Kind k );
+  /** is comm */
+  bool isComm( Kind k );
+  /** isAntisymmetric */
+  bool isAntisymmetric( Kind k, Kind& dk );
+  /** is idempotent arg */
+  bool isIdempotentArg( Node n, Kind ik, int arg );
+  /** is singular arg */
+  bool isSingularArg( Node n, Kind ik, int arg );
+  /** get offset arg */
+  bool hasOffsetArg( Kind ik, int arg, int& offset, Kind& ok );
+  /** get value */
+  Node getTypeValue( TypeNode tn, int val );
+  /** get value */
+  Node getTypeValueOffset( TypeNode tn, Node val, int offset, int& status );
+  /** get value */
+  Node getTypeMaxValue( TypeNode tn );
+  TypeNode getSygusType( Node v );
+  Node mkGeneric( const Datatype& dt, int c, std::map< TypeNode, int >& var_count, std::map< int, Node >& pre );
+  Node getSygusNormalized( Node n, std::map< TypeNode, int >& var_count, std::map< Node, Node >& subs );
+  Node getNormalized( TypeNode t, Node prog, bool do_pre_norm = false );
+  int getTermSize( Node n );
+};
 
 }/* CVC4::theory::quantifiers namespace */
 }/* CVC4::theory namespace */

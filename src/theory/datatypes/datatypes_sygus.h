@@ -30,14 +30,17 @@
 
 namespace CVC4 {
 namespace theory {
+  
+namespace quantifiers {
+  class TermDbSygus;
+}
+  
 namespace datatypes {
-
-class SygusUtil;
 
 class SygusSplit
 {
 private:
-  SygusUtil * d_util;
+  quantifiers::TermDbSygus * d_tds;
   std::map< Node, std::vector< Node > > d_splits;
   std::map< TypeNode, std::vector< bool > > d_sygus_nred;
   std::map< TypeNode, std::map< int, std::map< int, std::vector< bool > > > > d_sygus_pc_nred;
@@ -59,15 +62,13 @@ private:
   int getFirstArgOccurrence( const DatatypeConstructor& c, const Datatype& dt );
   /** is arg datatype */
   bool isArgDatatype( const DatatypeConstructor& c, int i, const Datatype& dt );
-  /** get arg type */
-  TypeNode getArgType( const DatatypeConstructor& c, int i );
   /** is type match */
   bool isTypeMatch( const DatatypeConstructor& c1, const DatatypeConstructor& c2 );
 private:
   // generic cache
   bool isGenericRedundant( TypeNode tn, Node g, bool active = true );
 public:
-  SygusSplit( SygusUtil * util ) : d_util( util ) {}
+  SygusSplit( quantifiers::TermDbSygus * tds ) : d_tds( tds ){}
   /** get sygus splits */
   void getSygusSplits( Node n, const Datatype& dt, std::vector< Node >& splits, std::vector< Node >& lemmas );
 };
@@ -78,7 +79,7 @@ public:
 class SygusSymBreak
 {
 private:
-  SygusUtil * d_util;
+  quantifiers::TermDbSygus * d_tds;
   context::Context* d_context;
   class ProgSearch {
     typedef context::CDHashMap< Node, Node, NodeHashFunction > NodeMap;
@@ -127,87 +128,12 @@ private:
   bool isSeparation( Node rep_prog, Node tst_curr, std::map< Node, std::vector< Node > >& testers_u, std::vector< Node >& rlv_testers );
   Node getSeparationTemplate( TypeNode tn, Node rep_prog, Node anc_var, int& status );
 public:
-  SygusSymBreak( SygusUtil * util, context::Context* c );
+  SygusSymBreak( quantifiers::TermDbSygus * tds, context::Context* c );
   /** add tester */
   void addTester( Node tst );
-};
-
-class SygusUtil
-{
-  friend class SygusSplit;
-  friend class SygusSymBreak;
-private:
-  std::map< TypeNode, std::vector< Node > > d_fv;
-  std::map< Node, TypeNode > d_fv_stype;
-private:
-  TNode getVar( TypeNode tn, int i );
-  TNode getVarInc( TypeNode tn, std::map< TypeNode, int >& var_count );
-  bool isVar( Node n ) { return d_fv_stype.find( n )!=d_fv_stype.end(); }
-private:
-  SygusSplit * d_split;
-  SygusSymBreak * d_sym_break;
-  std::map< TypeNode, std::map< Node, Node > > d_normalized;
-private:
-  //information for sygus types
-  std::map< TypeNode, TypeNode > d_register;  //stores sygus type
-  std::map< TypeNode, std::map< int, Kind > > d_arg_kind;
-  std::map< TypeNode, std::map< Kind, int > > d_kinds;
-  std::map< TypeNode, std::map< int, Node > > d_arg_const;
-  std::map< TypeNode, std::map< Node, int > > d_consts;
-  std::map< TypeNode, std::map< Node, int > > d_ops;
-  std::map< TypeNode, std::map< int, Node > > d_arg_ops;
-private:
-  bool isRegistered( TypeNode tn );
-  int getKindArg( TypeNode tn, Kind k );
-  int getConstArg( TypeNode tn, Node n );
-  int getOpArg( TypeNode tn, Node n );
-  bool hasKind( TypeNode tn, Kind k );
-  bool hasConst( TypeNode tn, Node n );
-  bool hasOp( TypeNode tn, Node n );
-  Node getArgOp( TypeNode tn, int i );
-  Kind getArgKind( TypeNode tn, int i );
-  bool isKindArg( TypeNode tn, int i );
-  bool isConstArg( TypeNode tn, int i );
-  void registerSygusType( TypeNode tn );
-private:
-  //information for builtin types
-  std::map< TypeNode, std::map< int, Node > > d_type_value;
-  std::map< TypeNode, Node > d_type_max_value;
-  std::map< TypeNode, std::map< Node, std::map< int, Node > > > d_type_value_offset;
-  std::map< TypeNode, std::map< Node, std::map< int, int > > > d_type_value_offset_status;
-  /** is assoc */
-  bool isAssoc( Kind k );
-  /** is comm */
-  bool isComm( Kind k );
-  /** isAntisymmetric */
-  bool isAntisymmetric( Kind k, Kind& dk );
-  /** is idempotent arg */
-  bool isIdempotentArg( Node n, Kind ik, int arg );
-  /** is singular arg */
-  bool isSingularArg( Node n, Kind ik, int arg );
-  /** get offset arg */
-  bool hasOffsetArg( Kind ik, int arg, int& offset, Kind& ok );
-  /** get value */
-  Node getTypeValue( TypeNode tn, int val );
-  /** get value */
-  Node getTypeValueOffset( TypeNode tn, Node val, int offset, int& status );
-  /** get value */
-  Node getTypeMaxValue( TypeNode tn );
-private:
-  TypeNode getSygusType( Node v );
-  Node mkGeneric( const Datatype& dt, int c, std::map< TypeNode, int >& var_count, std::map< int, Node >& pre );
-  Node getSygusNormalized( Node n, std::map< TypeNode, int >& var_count, std::map< Node, Node >& subs );
-  Node getNormalized( TypeNode t, Node prog, bool do_pre_norm = false );
-  int getTermSize( Node n );
-public:
-  SygusUtil( context::Context* c );
-  SygusSplit * getSplit() { return d_split; }
-  SygusSymBreak * getSymBreak() { return d_sym_break; }
-  //context::CDO<bool> d_conflict;
-  //Node d_conflictNode;
+  /** lemmas we have generated */
   std::vector< Node > d_lemmas;
 };
-
 
 }
 }
