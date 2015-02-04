@@ -1400,6 +1400,26 @@ Node TermDbSygus::mkGeneric( const Datatype& dt, int c, std::map< TypeNode, int 
   }
 }
 
+Node TermDbSygus::sygusToBuiltin( Node n, TypeNode tn ) {
+  std::map< Node, Node >::iterator it = d_sygus_to_builtin[tn].find( n );
+  if( it==d_sygus_to_builtin[tn].end() ){
+    Assert( n.getKind()==APPLY_CONSTRUCTOR );
+    const Datatype& dt = ((DatatypeType)(tn).toType()).getDatatype();
+    unsigned i = Datatype::indexOf( n.getOperator().toExpr() );
+    Assert( n.getNumChildren()==dt[i].getNumArgs() );
+    std::map< TypeNode, int > var_count;
+    std::map< int, Node > pre;
+    for( unsigned j=0; j<n.getNumChildren(); j++ ){
+      pre[j] = sygusToBuiltin( n[j], getArgType( dt[i], j ) );
+    }
+    Node ret = mkGeneric( dt, i, var_count, pre );
+    d_sygus_to_builtin[tn][n] = ret;
+    return ret;
+  }else{
+    return it->second;
+  }
+}
+
 Node TermDbSygus::getSygusNormalized( Node n, std::map< TypeNode, int >& var_count, std::map< Node, Node >& subs ) {
   return n;
   if( n.getKind()==SKOLEM ){
@@ -1436,7 +1456,7 @@ Node TermDbSygus::getSygusNormalized( Node n, std::map< TypeNode, int >& var_cou
   }
 }
 
-Node TermDbSygus::getNormalized( TypeNode t, Node prog, bool do_pre_norm ) {
+Node TermDbSygus::getNormalized( TypeNode t, Node prog, bool do_pre_norm, bool do_post_norm ) {
   if( do_pre_norm ){
     std::map< TypeNode, int > var_count;
     std::map< Node, Node > subs;
@@ -1446,9 +1466,11 @@ Node TermDbSygus::getNormalized( TypeNode t, Node prog, bool do_pre_norm ) {
   if( itn==d_normalized[t].end() ){
     Node progr = Node::fromExpr( smt::currentSmtEngine()->expandDefinitions( prog.toExpr() ) );
     progr = Rewriter::rewrite( progr );
-    std::map< TypeNode, int > var_count;
-    std::map< Node, Node > subs;
-    progr = getSygusNormalized( progr, var_count, subs );
+    if( do_post_norm ){
+      std::map< TypeNode, int > var_count;
+      std::map< Node, Node > subs;
+      progr = getSygusNormalized( progr, var_count, subs );
+    }
     Trace("sygus-sym-break2") << "...rewrites to " << progr << std::endl;
     d_normalized[t][prog] = progr;
     return progr;

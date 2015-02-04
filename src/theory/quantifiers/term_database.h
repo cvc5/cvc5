@@ -388,6 +388,7 @@ private:
   std::map< TypeNode, std::map< Node, std::map< int, int > > > d_type_value_offset_status;
   //normalized map
   std::map< TypeNode, std::map< Node, Node > > d_normalized;
+  std::map< TypeNode, std::map< Node, Node > > d_sygus_to_builtin;
 public:
   TermDbSygus(){}
   bool isRegistered( TypeNode tn );
@@ -425,8 +426,9 @@ public:
   Node getTypeMaxValue( TypeNode tn );
   TypeNode getSygusType( Node v );
   Node mkGeneric( const Datatype& dt, int c, std::map< TypeNode, int >& var_count, std::map< int, Node >& pre );
+  Node sygusToBuiltin( Node n, TypeNode tn );
   Node getSygusNormalized( Node n, std::map< TypeNode, int >& var_count, std::map< Node, Node >& subs );
-  Node getNormalized( TypeNode t, Node prog, bool do_pre_norm = false );
+  Node getNormalized( TypeNode t, Node prog, bool do_pre_norm = false, bool do_post_norm = true );
   int getTermSize( Node n );
 };
 

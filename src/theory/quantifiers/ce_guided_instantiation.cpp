@@ -477,7 +477,7 @@ void CegInstantiation::getMeasureLemmas( Node n, Node v, std::vector< Node >& le
 
 void CegInstantiation::printSynthSolution( std::ostream& out ) {
   if( d_conj ){
-    if( !Trace.isOn("cegqi-stats") ){
+    if( !(Trace.isOn("cegqi-stats")) ){
       out << "Solution:" << std::endl;
     }
     for( unsigned i=0; i<d_conj->d_candidates.size(); i++ ){
@@ -491,19 +491,21 @@ void CegInstantiation::printSynthSolution( std::ostream& out ) {
       Assert( dt.isSygus() );
       //get the solution
       Node sol;
+      int status;
       if( d_last_inst_si ){
         Assert( d_conj->d_ceg_si );
-        sol = d_conj->d_ceg_si->getSolution( d_quantEngine, tn, i, Node::fromExpr( dt.getSygusVarList() ) );
+        sol = d_conj->d_ceg_si->getSolution( d_quantEngine, i, tn, status );
       }else{
         if( !d_conj->d_candidate_inst[i].empty() ){
           sol = d_conj->d_candidate_inst[i].back();
+          status = 1;
         }
       }
-      if( !Trace.isOn("cegqi-stats") ){
+      if( !(Trace.isOn("cegqi-stats")) ){
         out << "(define-fun " << f << " ";
         out << dt.getSygusVarList() << " ";
         out << dt.getSygusType() << " ";
-        if( d_last_inst_si ){
+        if( status==0 ){
           out << sol;
         }else{
           if( sol.isNull() ){

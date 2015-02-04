@@ -76,7 +76,7 @@ public:
   //check
   void check( QuantifiersEngine * qe, std::vector< Node >& lems );
   //get solution
-  Node getSolution( QuantifiersEngine * qe, TypeNode stn, unsigned i, Node varList );
+  Node getSolution( QuantifiersEngine * qe, unsigned i, TypeNode stn, int& reconstructed );
   
   
 //solution simplification
@@ -85,6 +85,7 @@ private:
   void debugTermSize( Node sol, int& t_size, int& num_ite );
   Node pullITEs( Node n );
   bool pullITECondition( Node root, Node n, std::vector< Node >& conj, Node& t, Node& rem, int depth );
+  Node flattenITEs( Node n, bool rec = true );
   Node simplifySolution( QuantifiersEngine * qe, Node sol, std::map< Node, bool >& assign,
                          std::vector< Node >& vars, std::vector< Node >& subs, std::vector< Node >& args, int status );
   bool getAssign( QuantifiersEngine * qe, bool pol, Node n, std::map< Node, bool >& assign, std::vector< Node >& new_assign,
@@ -94,12 +95,15 @@ private:
 private:
   std::map< Node, std::vector< TypeNode > > d_rcons_processed;
   std::map< Node, std::map< TypeNode, Node > > d_reconstructed;
+  std::map< Node, std::map< TypeNode, bool > > d_reconstructed_op;
   std::map< Node, std::map< TypeNode, std::map< Node, std::map< TypeNode, bool > > > > d_rcons_graph[2];
   std::map< TypeNode, std::map< Node, bool > > d_rcons_to_process;
   // term t with sygus type st
   void collectReconstructNodes( TermDbSygus * tds, Node t, TypeNode stn, Node parent, TypeNode pstn, bool ignoreBoolean );
   // set reconstructed 
   void setReconstructed( Node t, TypeNode stn );
+  // get solution
+  Node getReconstructedSolution( TypeNode stn, Node t );
 };
 
 }
