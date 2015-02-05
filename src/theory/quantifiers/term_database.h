@@ -368,10 +368,14 @@ class TermDbSygus {
 private:
   std::map< TypeNode, std::vector< Node > > d_fv;
   std::map< Node, TypeNode > d_fv_stype;
+  std::map< Node, int > d_fv_num;
 public:
   TNode getVar( TypeNode tn, int i );
   TNode getVarInc( TypeNode tn, std::map< TypeNode, int >& var_count );
   bool isVar( Node n ) { return d_fv_stype.find( n )!=d_fv_stype.end(); }
+  int getVarNum( Node n ) { return d_fv_num[n]; }
+  bool getMatch( Node p, Node n, std::map< int, Node >& s );
+  bool getMatch2( Node p, Node n, std::map< int, Node >& s, std::vector< int >& new_s );
 private:
   //information for sygus types
   std::map< TypeNode, TypeNode > d_register;  //stores sygus type
@@ -389,6 +393,8 @@ private:
   //normalized map
   std::map< TypeNode, std::map< Node, Node > > d_normalized;
   std::map< TypeNode, std::map< Node, Node > > d_sygus_to_builtin;
+  std::map< TypeNode, std::map< Node, Node > > d_builtin_const_to_sygus;
+  std::map< TypeNode, std::map< int, Node > > d_generic_base;
 public:
   TermDbSygus(){}
   bool isRegistered( TypeNode tn );
@@ -426,7 +432,9 @@ public:
   Node getTypeMaxValue( TypeNode tn );
   TypeNode getSygusType( Node v );
   Node mkGeneric( const Datatype& dt, int c, std::map< TypeNode, int >& var_count, std::map< int, Node >& pre );
+  Node getGenericBase( TypeNode tn, int c );
   Node sygusToBuiltin( Node n, TypeNode tn );
+  Node builtinToSygusConst( Node c, TypeNode tn );
   Node getSygusNormalized( Node n, std::map< TypeNode, int >& var_count, std::map< Node, Node >& subs );
   Node getNormalized( TypeNode t, Node prog, bool do_pre_norm = false, bool do_post_norm = true );
   int getTermSize( Node n );

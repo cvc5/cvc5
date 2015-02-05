@@ -1339,6 +1339,7 @@ TNode TermDbSygus::getVar( TypeNode tn, int i ) {
     Assert( !vtn.isNull() );
     Node v = NodeManager::currentNM()->mkSkolem( ss.str(), vtn, "for sygus normal form testing" );
     d_fv_stype[v] = tn;
+    d_fv_num[v] = i;
     d_fv[tn].push_back( v );
   }
   return d_fv[tn][i];
@@ -1359,6 +1360,48 @@ TNode TermDbSygus::getVarInc( TypeNode tn, std::map< TypeNode, int >& var_count 
 TypeNode TermDbSygus::getSygusType( Node v ) {
   Assert( d_fv_stype.find( v )!=d_fv_stype.end() );
   return d_fv_stype[v];
+}
+
+bool TermDbSygus::getMatch( Node p, Node n, std::map< int, Node >& s ) { 
+  std::vector< int > new_s;
+  return getMatch2( p, n, s, new_s );
+}
+
+bool TermDbSygus::getMatch2( Node p, Node n, std::map< int, Node >& s, std::vector< int >& new_s ) {
+  std::map< Node, int >::iterator it = d_fv_num.find( p );
+  if( it!=d_fv_num.end() ){
+    Node prev = s[it->second];
+    s[it->second] = n;
+    if( prev.isNull() ){
+      new_s.push_back( it->second );
+    }
+    return prev.isNull() || prev==n;
+  }else if( n.getNumChildren()==0 ){
+    return p==n;
+  }else if( n.getKind()==p.getKind() && n.getNumChildren()==p.getNumChildren() ){
+    //try both ways?
+    unsigned rmax = isComm( n.getKind() ) && n.getNumChildren()==2 ? 2 : 1;
+    std::vector< int > new_tmp;
+    for( unsigned r=0; r<rmax; r++ ){
+      bool success = true;
+      for( unsigned i=0; i<n.getNumChildren(); i++ ){
+        int io = r==0 ? i : ( i==0 ? 1 : 0 );
+        if( !getMatch2( p[i], n[io], s, new_tmp ) ){
+          success = false;
+          for( unsigned j=0; j<new_tmp.size(); j++ ){
+            s.erase( new_tmp[j] );
+          }
+          new_tmp.clear();
+          break;
+        }
+      }
+      if( success ){
+        new_s.insert( new_s.end(), new_tmp.begin(), new_tmp.end() );
+        return true; 
+      }
+    }
+  }
+  return false;
 }
 
 Node TermDbSygus::mkGeneric( const Datatype& dt, int c, std::map< TypeNode, int >& var_count, std::map< int, Node >& pre ) {
@@ -1400,6 +1443,24 @@ Node TermDbSygus::mkGeneric( const Datatype& dt, int c, std::map< TypeNode, int 
   }
 }
 
+Node TermDbSygus::getGenericBase( TypeNode tn, int c ) {
+  std::map< int, Node >::iterator it = d_generic_base[tn].find( c );
+  if( it==d_generic_base[tn].end() ){
+    Assert( datatypes::DatatypesRewriter::isTypeDatatype( tn ) );
+    const Datatype& dt = ((DatatypeType)(tn).toType()).getDatatype();
+    Assert( dt.isSygus() );
+    registerSygusType( tn );
+    std::map< TypeNode, int > var_count;
+    std::map< int, Node > pre;
+    Node g = mkGeneric( dt, c, var_count, pre );
+    Node gr = Rewriter::rewrite( g );
+    d_generic_base[tn][c] = gr;
+    return gr;
+  }else{
+    return it->second;
+  }
+}
+
 Node TermDbSygus::sygusToBuiltin( Node n, TypeNode tn ) {
   std::map< Node, Node >::iterator it = d_sygus_to_builtin[tn].find( n );
   if( it==d_sygus_to_builtin[tn].end() ){
@@ -1415,6 +1476,27 @@ Node TermDbSygus::sygusToBuiltin( Node n, TypeNode tn ) {
     Node ret = mkGeneric( dt, i, var_count, pre );
     d_sygus_to_builtin[tn][n] = ret;
     return ret;
+  }else{
+    return it->second;
+  }
+}
+
+Node TermDbSygus::builtinToSygusConst( Node c, TypeNode tn ) {
+  std::map< Node, Node >::iterator it = d_builtin_const_to_sygus[tn].find( c );
+  if( it==d_builtin_const_to_sygus[tn].end() ){
+    Assert( c.isConst() );
+    Assert( datatypes::DatatypesRewriter::isTypeDatatype( tn ) );
+    const Datatype& dt = ((DatatypeType)(tn).toType()).getDatatype();
+    Assert( dt.isSygus() );
+    Node sc;
+    int carg = getOpArg( tn, c );
+    if( carg!=-1 ){
+      sc = Node::fromExpr( dt[carg].getSygusOp() );
+    }else{
+      //TODO
+    }
+    d_builtin_const_to_sygus[tn][c] = sc;
+    return sc;
   }else{
     return it->second;
   }

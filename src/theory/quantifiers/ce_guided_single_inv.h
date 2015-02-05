@@ -68,6 +68,8 @@ public:
   // solution
   Node d_orig_solution;
   Node d_solution;
+  Node d_templ_solution;
+  Node d_sygus_solution;
 public:
   //get the single invocation lemma
   Node getSingleInvLemma( Node guard );
@@ -93,18 +95,21 @@ private:
   bool getAssignEquality( QuantifiersEngine * qe, Node eq, std::vector< Node >& vars, std::vector< Node >& new_vars, std::vector< Node >& new_subs, std::vector< Node >& args );
 //solution reconstruction
 private:
-  std::map< Node, std::map< TypeNode, std::map< Node, std::vector< TypeNode > > > > d_rcons_processed;
+  std::map< Node, std::map< TypeNode, Node > > d_rcons_processed;
+  std::map< Node, std::map< TypeNode, int > > d_rcons_processed_status;
   std::map< Node, std::map< TypeNode, Node > > d_reconstructed;
   std::map< Node, std::map< TypeNode, bool > > d_reconstructed_op;
   std::map< Node, std::map< TypeNode, std::map< Node, std::map< TypeNode, bool > > > > d_rcons_graph[2];
   std::map< TypeNode, std::map< Node, bool > > d_rcons_to_process;
-  // term t with sygus type st
-  Node getSolutionTemplate( TermDbSygus * tds, Node n, TypeNode stn, Node parent, int arg );
-  void collectReconstructNodes( TermDbSygus * tds, Node t, TypeNode stn, Node parent, TypeNode pstn, bool ignoreBoolean );
+  std::map< Node, Node > d_rewrite_to_rcons;
+  std::map< Node, Node > d_rcons_to_rewrite;
+  // term t with sygus type st, returns inducted templated form of t
+  Node collectReconstructNodes( TermDbSygus * tds, Node t, TypeNode stn, int& status );
   // set reconstructed 
-  void setReconstructed( Node t, TypeNode stn );
+  void setNeedsReconstruction( Node t, TypeNode stn, Node parent, TypeNode pstn );
+  void setReconstructed( Node tr, TypeNode stn );
   // get solution
-  Node getReconstructedSolution( TypeNode stn, Node t );
+  Node getReconstructedSolution( TermDbSygus * tds, TypeNode stn, Node t );
 };
 
 }
