@@ -852,11 +852,11 @@ Node TheoryEngineModelBuilder::normalize(TheoryModel* m, TNode r, std::map< Node
           itMap = constantReps.find(m->d_equalityEngine->getRepresentative(ri));
           if (itMap != constantReps.end()) {
             ri = (*itMap).second;
-	    recurse = false;
+	          recurse = false;
           }
           else if (!evalOnly) {
-	    recurse = false;
-	  }
+            recurse = false;
+          }
         }
         if (recurse) {
           ri = normalize(m, ri, constantReps, evalOnly);
@@ -870,7 +870,7 @@ Node TheoryEngineModelBuilder::normalize(TheoryModel* m, TNode r, std::map< Node
     retNode = NodeManager::currentNM()->mkNode( r.getKind(), children );
     if (childrenConst) {
       retNode = Rewriter::rewrite(retNode);
-      Assert(retNode.getKind() == kind::APPLY_UF || retNode.isConst());
+      Assert(retNode.getKind()==kind::APPLY_UF || retNode.getKind()==kind::REGEXP_RANGE || retNode.isConst());
     }
   }
   d_normalizedCache[r] = retNode;

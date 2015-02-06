@@ -87,6 +87,7 @@ TheoryStrings::TheoryStrings(context::Context* c, context::UserContext* u, Outpu
   d_true = NodeManager::currentNM()->mkConst( true );
   d_false = NodeManager::currentNM()->mkConst( false );
 
+  d_card_size = 128;
   //d_opt_regexp_gcd = true;
 }
 
@@ -255,6 +256,10 @@ Node TheoryStrings::explain( TNode literal ){
 void TheoryStrings::presolve() {
   Debug("strings-presolve") << "TheoryStrings::Presolving : get fmf options " << (options::stringFMF() ? "true" : "false") << std::endl;
   d_opt_fmf = options::stringFMF();
+
+  if(!options::stdASCII()) {
+    d_card_size = 256;
+  }
 }
 
 
@@ -2332,8 +2337,8 @@ bool TheoryStrings::checkLengthsEqc() {
 }
 
 bool TheoryStrings::checkCardinality() {
-  int cardinality = options::stringCharCardinality();
-  Trace("strings-solve-debug2") << "get cardinality: " << cardinality << endl;
+  //int cardinality = options::stringCharCardinality();
+  //Trace("strings-solve-debug2") << "get cardinality: " << cardinality << endl;
 
   std::vector< Node > eqcs;
   getEquivalenceClasses( eqcs );
@@ -2347,9 +2352,9 @@ bool TheoryStrings::checkCardinality() {
     Trace("strings-card") << "Number of strings with length equal to " << lr << " is " << cols[i].size() << std::endl;
     if( cols[i].size() > 1 ) {
       // size > c^k
-      double k = 1.0 + std::log((double) cols[i].size() - 1) / log((double) cardinality);
+      double k = 1.0 + std::log((double) cols[i].size() - 1) / log((double) d_card_size);
       unsigned int int_k = (unsigned int) k;
-      //double c_k = pow ( (double)cardinality, (double)lr );
+      //double c_k = pow ( (double)d_card_size, (double)lr );
 
       bool allDisequal = true;
       for( std::vector< Node >::iterator itr1 = cols[i].begin();
@@ -2905,7 +2910,7 @@ bool TheoryStrings::checkMemberships() {
     }
   //}
 
-  Trace("regexp-debug") << "... No Intersec Conflict in Memberships " << std::endl;
+  Trace("regexp-debug") << "... No Intersec Conflict in Memberships, addedLemma: " << addedLemma << std::endl;
   if(!addedLemma) {
     for( unsigned i=0; i<d_regexp_memberships.size(); i++ ) {
       //check regular expression membership
@@ -3002,7 +3007,20 @@ bool TheoryStrings::checkMemberships() {
             Trace("strings-regexp") << "Unroll/simplify membership of atomic term " << xr << std::endl;
             //if so, do simple unrolling
             std::vector< Node > nvec;
-            d_regexp_opr.simplify(atom, nvec, polarity);
+
+            /*if(xr.isConst()) {
+              Node tmp = Rewriter::rewrite( NodeManager::currentNM()->mkNode(kind::STRING_IN_REGEXP, xr, r) );
+              if(tmp==d_true || tmp==d_false) {
+                if(!polarity) {
+                  tmp = tmp==d_true? d_false : d_true;
+                }
+                nvec.push_back( tmp );
+              }
+            }*/
+            
+            if(nvec.empty()) {
+              d_regexp_opr.simplify(atom, nvec, polarity);
+            }
             Node antec = assertion;
             if(d_regexp_ant.find(assertion) != d_regexp_ant.end()) {
               antec = d_regexp_ant[assertion];
