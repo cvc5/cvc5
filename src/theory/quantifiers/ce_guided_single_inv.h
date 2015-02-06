@@ -30,6 +30,7 @@ class CegConjecture;
 class CegConjectureSingleInv
 {
 private:
+  QuantifiersEngine * d_qe;
   CegConjecture * d_parent;
   bool analyzeSygusConjunct( Node n, Node p, std::map< Node, std::vector< Node > >& children,
                             std::map< Node, std::map< Node, std::vector< Node > > >& prog_invoke,
@@ -45,7 +46,7 @@ private:
   Node applyProgVarSubstitution( Node n, std::map< Node, int >& subs_from_model, std::vector< Node >& subs );
 
 public:
-  CegConjectureSingleInv( Node q, CegConjecture * p );
+  CegConjectureSingleInv( QuantifiersEngine * qe, Node q, CegConjecture * p );
   // original conjecture
   Node d_quant;
   // single invocation version of quant
@@ -66,6 +67,7 @@ public:
   std::vector< Node > d_lemmas_produced;
   std::vector< std::vector< Node > > d_inst;
   // solution
+  std::vector< Node > d_varlist;
   Node d_orig_solution;
   Node d_solution;
   Node d_templ_solution;
@@ -76,11 +78,11 @@ public:
   //initialize
   void initialize();
   //check
-  void check( QuantifiersEngine * qe, std::vector< Node >& lems );
+  void check( std::vector< Node >& lems );
   //get solution
-  Node getSolution( QuantifiersEngine * qe, unsigned i, TypeNode stn, int& reconstructed );
-  
-  
+  Node getSolution( unsigned i, TypeNode stn, int& reconstructed );
+
+
 //solution simplification
 private:
   bool debugSolution( Node sol );
@@ -88,11 +90,11 @@ private:
   Node pullITEs( Node n );
   bool pullITECondition( Node root, Node n, std::vector< Node >& conj, Node& t, Node& rem, int depth );
   Node flattenITEs( Node n, bool rec = true );
-  Node simplifySolution( QuantifiersEngine * qe, Node sol, std::map< Node, bool >& assign,
+  Node simplifySolution( Node sol, std::map< Node, bool >& assign,
                          std::vector< Node >& vars, std::vector< Node >& subs, std::vector< Node >& args, int status );
-  bool getAssign( QuantifiersEngine * qe, bool pol, Node n, std::map< Node, bool >& assign, std::vector< Node >& new_assign,
+  bool getAssign( bool pol, Node n, std::map< Node, bool >& assign, std::vector< Node >& new_assign,
                   std::vector< Node >& vars, std::vector< Node >& new_vars, std::vector< Node >& new_subs, std::vector< Node >& args );
-  bool getAssignEquality( QuantifiersEngine * qe, Node eq, std::vector< Node >& vars, std::vector< Node >& new_vars, std::vector< Node >& new_subs, std::vector< Node >& args );
+  bool getAssignEquality( Node eq, std::vector< Node >& vars, std::vector< Node >& new_vars, std::vector< Node >& new_subs, std::vector< Node >& args );
 //solution reconstruction
 private:
   std::map< Node, std::map< TypeNode, Node > > d_rcons_processed;
@@ -105,7 +107,7 @@ private:
   std::map< Node, Node > d_rcons_to_rewrite;
   // term t with sygus type st, returns inducted templated form of t
   Node collectReconstructNodes( TermDbSygus * tds, Node t, TypeNode stn, int& status );
-  // set reconstructed 
+  // set reconstructed
   void setNeedsReconstruction( Node t, TypeNode stn, Node parent, TypeNode pstn );
   void setReconstructed( Node tr, TypeNode stn );
   // get solution

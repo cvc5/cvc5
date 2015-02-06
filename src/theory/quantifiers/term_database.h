@@ -325,7 +325,7 @@ private:
   TermDbSygus * d_sygus_tdb;
 public:
   TermDbSygus * getTermDatabaseSygus() { return d_sygus_tdb; }
-  
+
 private:
   std::map< Node, bool > d_fun_defs;
 public: //general queries concerning quantified formulas wrt modules
@@ -438,6 +438,10 @@ public:
   Node getSygusNormalized( Node n, std::map< TypeNode, int >& var_count, std::map< Node, Node >& subs );
   Node getNormalized( TypeNode t, Node prog, bool do_pre_norm = false, bool do_post_norm = true );
   int getTermSize( Node n );
+  /** given a term, construct an equivalent smaller one that respects syntax */
+  Node minimizeBuiltinTerm( Node n );
+  /** given a term, expand it into more basic components */
+  Node expandBuiltinTerm( Node n );
 };
 
 }/* CVC4::theory::quantifiers namespace */

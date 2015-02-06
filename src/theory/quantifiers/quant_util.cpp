@@ -23,7 +23,15 @@ using namespace CVC4::kind;
 using namespace CVC4::context;
 using namespace CVC4::theory;
 
-
+bool QuantArith::getMonomial( Node n, Node& c, Node& v ){
+  if( n.getKind()==MULT && n.getNumChildren()==2 && n[0].isConst() ){
+    c = n[0];
+    v = n[1];
+    return true;
+  }else{
+    return false;
+  }
+}
 bool QuantArith::getMonomial( Node n, std::map< Node, Node >& msum ) {
   if ( n.getKind()==MULT ){
     if( n.getNumChildren()==2 && msum.find(n[1])==msum.end() && n[0].isConst() ){

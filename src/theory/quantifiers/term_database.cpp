@@ -1362,7 +1362,7 @@ TypeNode TermDbSygus::getSygusType( Node v ) {
   return d_fv_stype[v];
 }
 
-bool TermDbSygus::getMatch( Node p, Node n, std::map< int, Node >& s ) { 
+bool TermDbSygus::getMatch( Node p, Node n, std::map< int, Node >& s ) {
   std::vector< int > new_s;
   return getMatch2( p, n, s, new_s );
 }
@@ -1397,7 +1397,7 @@ bool TermDbSygus::getMatch2( Node p, Node n, std::map< int, Node >& s, std::vect
       }
       if( success ){
         new_s.insert( new_s.end(), new_tmp.begin(), new_tmp.end() );
-        return true; 
+        return true;
       }
     }
   }
@@ -1865,4 +1865,55 @@ bool TermDbSygus::isConstArg( TypeNode tn, int i ) {
 TypeNode TermDbSygus::getArgType( const DatatypeConstructor& c, int i ) {
   Assert( i>=0 && i<(int)c.getNumArgs() );
   return TypeNode::fromType( ((SelectorType)c[i].getType()).getRangeType() );
+}
+
+Node TermDbSygus::minimizeBuiltinTerm( Node n ) {
+  if( ( n.getKind()==EQUAL || n.getKind()==LEQ ) && ( n[0].getType().isInteger() || n[0].getType().isReal() ) ){
+    bool changed = false;
+    std::vector< Node > mon[2];
+    for( unsigned r=0; r<2; r++ ){
+      unsigned ro = r==0 ? 1 : 0;
+      Node c;
+      Node nc;
+      if( n[r].getKind()==PLUS ){
+        for( unsigned i=0; i<n[r].getNumChildren(); i++ ){
+          if( QuantArith::getMonomial( n[r][i], c, nc ) && c.getConst<Rational>().isNegativeOne() ){
+            mon[ro].push_back( nc );
+            changed = true;
+          }else{
+            mon[r].push_back( n[r][i] );
+          }
+        }
+      }else{
+        if( QuantArith::getMonomial( n[r], c, nc ) && c.getConst<Rational>().isNegativeOne() ){
+          mon[ro].push_back( nc );
+          changed = true;
+        }else{
+          mon[r].push_back( n[r] );
+        }
+      }
+    }
+    if( changed ){
+      Node nn[2];
+      for( unsigned r=0; r<2; r++ ){
+        nn[r] = mon[r].size()==0 ? NodeManager::currentNM()->mkConst( Rational(0) ) : ( mon[r].size()==1 ? mon[r][0] : NodeManager::currentNM()->mkNode( PLUS, mon[r] ) );
+      }
+      return NodeManager::currentNM()->mkNode( n.getKind(), nn[0], nn[1] );
+    }
+  }
+  return n;
+}
+
+Node TermDbSygus::expandBuiltinTerm( Node t ){
+  if( t.getKind()==EQUAL && ( t[0].getType().isInteger() || t[0].getType().isReal() ) ){
+    return NodeManager::currentNM()->mkNode( AND, NodeManager::currentNM()->mkNode( LEQ, t[0], t[1] ),
+                                                  NodeManager::currentNM()->mkNode( LEQ, t[1], t[0] ) );
+  }else if( t.getKind()==ITE ){
+    return NodeManager::currentNM()->mkNode( OR, NodeManager::currentNM()->mkNode( AND, t[0], t[1] ),
+                                                  NodeManager::currentNM()->mkNode( AND, t[0].negate(), t[2] ) );
+  }else if( t.getKind()==IFF ){
+    return NodeManager::currentNM()->mkNode( OR, NodeManager::currentNM()->mkNode( AND, t[0], t[1] ),
+                                                  NodeManager::currentNM()->mkNode( AND, t[0].negate(), t[1].negate() ) );
+  }
+  return Node::null();
 }

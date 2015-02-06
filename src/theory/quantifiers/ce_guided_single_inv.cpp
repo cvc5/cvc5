@@ -22,6 +22,7 @@
 #include "theory/datatypes/datatypes_rewriter.h"
 #include "util/datatype.h"
 #include "theory/quantifiers/quant_util.h"
+#include "theory/quantifiers/trigger.h"
 
 using namespace CVC4;
 using namespace CVC4::kind;
@@ -44,7 +45,7 @@ Node simpleNegate( Node n ){
 }
 
 
-CegConjectureSingleInv::CegConjectureSingleInv( Node q, CegConjecture * p ) : d_parent( p ), d_quant( q ){
+CegConjectureSingleInv::CegConjectureSingleInv( QuantifiersEngine * d_qe, Node q, CegConjecture * p ) : d_qe( d_qe ), d_parent( p ), d_quant( q ){
 
 }
 
@@ -271,6 +272,19 @@ void CegConjectureSingleInv::initialize() {
           Node bd = conjuncts.size()==1 ? conjuncts[0] : NodeManager::currentNM()->mkNode( OR, conjuncts );
           d_single_inv = NodeManager::currentNM()->mkNode( FORALL, pbvl, bd );
           Trace("cegqi-si-debug") << "...formula is : " << d_single_inv << std::endl;
+          if( options::eMatching.wasSetByUser() ){
+            Node bd = d_qe->getTermDatabase()->getInstConstantBody( d_single_inv );
+            std::vector< Node > patTerms;
+            std::vector< Node > exclude;
+            inst::Trigger::collectPatTerms( d_qe, d_single_inv, bd, patTerms, inst::Trigger::TS_ALL, exclude );
+            if( !patTerms.empty() ){
+              Trace("cegqi-si-em") << "Triggers : " << std::endl;
+              for( unsigned i=0; i<patTerms.size(); i++ ){
+                Trace("cegqi-si-em") << "   " << patTerms[i] << std::endl;
+              }
+            }
+          }
+
           /*
           //equality resolution
           for( unsigned j=0; j<conjuncts.size(); j++ ){
@@ -447,9 +461,9 @@ bool CegConjectureSingleInv::analyzeSygusTerm( Node n, std::map< Node, std::vect
 }
 
 
-void CegConjectureSingleInv::check( QuantifiersEngine * qe, std::vector< Node >& lems ) {
+void CegConjectureSingleInv::check( std::vector< Node >& lems ) {
   if( !d_single_inv.isNull() ) {
-    eq::EqualityEngine* ee = qe->getMasterEqualityEngine();
+    eq::EqualityEngine* ee = d_qe->getMasterEqualityEngine();
     Trace("cegqi-engine") << "  * single invocation: " << std::endl;
     std::vector< Node > subs;
     std::map< Node, int > subs_from_model;
@@ -500,7 +514,7 @@ void CegConjectureSingleInv::check( QuantifiersEngine * qe, std::vector< Node >&
       }
       if( slv.isNull() ){
         //get model value
-        Node mv = qe->getModel()->getValue( pv );
+        Node mv = d_qe->getModel()->getValue( pv );
         subs.push_back( mv );
         subs_from_model[pv] = i;
         if( Trace.isOn("cegqi-engine") || Trace.isOn("cegqi-engine-debug") ){
@@ -682,7 +696,7 @@ Node CegConjectureSingleInv::constructSolution( unsigned i, unsigned index ) {
   }
 }
 
-Node CegConjectureSingleInv::getSolution( QuantifiersEngine * qe, unsigned i, TypeNode stn, int& reconstructed ){
+Node CegConjectureSingleInv::getSolution( unsigned i, TypeNode stn, int& reconstructed ){
   Assert( !d_lemmas_produced.empty() );
   Node s = constructSolution( i, 0 );
   const Datatype& dt = ((DatatypeType)(stn).toType()).getDatatype();
@@ -702,6 +716,7 @@ Node CegConjectureSingleInv::getSolution( QuantifiersEngine * qe, unsigned i, Ty
       vars.push_back( prog_app[i] );
     }
     subs.push_back( varList[i-1] );
+    d_varlist.push_back( varList[i-1] );
   }
   s = s.substitute( vars.begin(), vars.end(), subs.begin(), subs.end() );
   d_orig_solution = s;
@@ -715,7 +730,7 @@ Node CegConjectureSingleInv::getSolution( QuantifiersEngine * qe, unsigned i, Ty
   std::vector< Node > svars;
   std::vector< Node > ssubs;
   Trace("cegqi-si-debug-sol") << "Solution (pre-simplification): " << s << std::endl;
-  s = simplifySolution( qe, s, sassign, svars, ssubs, subs, 0 );
+  s = simplifySolution( s, sassign, svars, ssubs, subs, 0 );
   Trace("cegqi-si-debug-sol") << "Solution (post-simplification): " << s << std::endl;
   s = Rewriter::rewrite( s );
   Trace("cegqi-si-debug-sol") << "Solution (post-rewrite): " << s << std::endl;
@@ -723,7 +738,7 @@ Node CegConjectureSingleInv::getSolution( QuantifiersEngine * qe, unsigned i, Ty
   reconstructed = 0;
   if( options::cegqiSingleInvReconstruct() && !stn.isNull() ){
     int status;
-    d_templ_solution = collectReconstructNodes( qe->getTermDatabaseSygus(), d_solution, stn, status );
+    d_templ_solution = collectReconstructNodes( d_qe->getTermDatabaseSygus(), d_solution, stn, status );
     if( status==1 ){
       setNeedsReconstruction( d_templ_solution, stn, Node::null(), TypeNode::null() );
     }
@@ -752,13 +767,13 @@ Node CegConjectureSingleInv::getSolution( QuantifiersEngine * qe, unsigned i, Ty
         if( it->second.empty() ){
           to_erase.push_back( stn );
         }else{
-          Node ns = qe->getTermDatabase()->getEnumerateTerm( stn, index );
+          Node ns = d_qe->getTermDatabase()->getEnumerateTerm( stn, index );
           if( ns.isNull() ){
             to_erase.push_back( stn );
             incomplete.push_back( stn );
           }else{
-            Node nb = qe->getTermDatabaseSygus()->sygusToBuiltin( ns, stn );
-            Node nr = Rewriter::rewrite( nb );//qe->getTermDatabaseSygus()->getNormalized( stn, nb, false, false );
+            Node nb = d_qe->getTermDatabaseSygus()->sygusToBuiltin( ns, stn );
+            Node nr = Rewriter::rewrite( nb );//d_qe->getTermDatabaseSygus()->getNormalized( stn, nb, false, false );
             Trace("cegqi-si-rcons-debug2") << "  - try " << ns << " -> " << nr << " for " << stn << " " << nr.getKind() << std::endl;
             if( it->second.find( nr )!=it->second.end() ){
               Trace("cegqi-si-rcons") << "...reconstructed " << ns << " for term " << nr << std::endl;
@@ -777,7 +792,7 @@ Node CegConjectureSingleInv::getSolution( QuantifiersEngine * qe, unsigned i, Ty
                 Trace("cegqi-si-rcons") << " as " << itk->second.size() << " waiting terms." << std::endl;
                 Assert( !itk->second.empty() );
                 for( std::map< Node, bool >::iterator itkn = itk->second.begin(); itkn != itk->second.end(); ++itkn ){
-                  
+
                 }
               }
               */
@@ -798,7 +813,7 @@ Node CegConjectureSingleInv::getSolution( QuantifiersEngine * qe, unsigned i, Ty
         if( incomplete.empty() ){
           reconstructed = 1;
           Trace("cegqi-si-debug-sol") << "Reconstructing sygus solution..." << std::endl;
-          d_sygus_solution = getReconstructedSolution( qe->getTermDatabaseSygus(), stn, d_templ_solution );
+          d_sygus_solution = getReconstructedSolution( d_qe->getTermDatabaseSygus(), stn, d_templ_solution );
           Trace("cegqi-si-debug-sol") << "Sygus solution is : " << d_sygus_solution << std::endl;
         }
       }
@@ -1032,33 +1047,34 @@ Node CegConjectureSingleInv::flattenITEs( Node n, bool rec ) {
 // assign is from literals to booleans
 // union_find is from args to values
 
-bool CegConjectureSingleInv::getAssign( QuantifiersEngine * qe, bool pol, Node n, std::map< Node, bool >& assign, std::vector< Node >& new_assign, std::vector< Node >& vars,
+bool CegConjectureSingleInv::getAssign( bool pol, Node n, std::map< Node, bool >& assign, std::vector< Node >& new_assign, std::vector< Node >& vars,
                                         std::vector< Node >& new_vars, std::vector< Node >& new_subs, std::vector< Node >& args ) {
   std::map< Node, bool >::iterator ita = assign.find( n );
   if( ita!=assign.end() ){
     Trace("csi-simp-debug") << "---already assigned, lookup " << pol << " " << ita->second << std::endl;
     return pol==ita->second;
+  }else if( n.isConst() ){
+    return pol==(n==d_qe->getTermDatabase()->d_true);
   }else{
     Trace("csi-simp-debug") << "---assign " << n << " " << pol << std::endl;
     assign[n] = pol;
     new_assign.push_back( n );
     if( ( pol && n.getKind()==AND ) || ( !pol && n.getKind()==OR ) ){
       for( unsigned i=0; i<n.getNumChildren(); i++ ){
-        if( !getAssign( qe, pol, n[i], assign, new_assign, vars, new_vars, new_subs, args ) ){
+        if( !getAssign( pol, n[i], assign, new_assign, vars, new_vars, new_subs, args ) ){
           return false;
         }
       }
     }else if( n.getKind()==NOT ){
-      return getAssign( qe, !pol, n[0], assign, new_assign, vars, new_vars, new_subs, args );
+      return getAssign( !pol, n[0], assign, new_assign, vars, new_vars, new_subs, args );
     }else if( pol && ( n.getKind()==IFF || n.getKind()==EQUAL ) ){
-      getAssignEquality( qe, n, vars, new_vars, new_subs, args );
+      getAssignEquality( n, vars, new_vars, new_subs, args );
     }
   }
   return true;
 }
 
-bool CegConjectureSingleInv::getAssignEquality( QuantifiersEngine * qe, Node eq,
-                                                std::vector< Node >& vars, std::vector< Node >& new_vars, std::vector< Node >& new_subs, std::vector< Node >& args ) {
+bool CegConjectureSingleInv::getAssignEquality( Node eq, std::vector< Node >& vars, std::vector< Node >& new_vars, std::vector< Node >& new_subs, std::vector< Node >& args ) {
   Assert( eq.getKind()==IFF || eq.getKind()==EQUAL );
   //try to find valid argument
   for( unsigned r=0; r<2; r++ ){
@@ -1066,7 +1082,7 @@ bool CegConjectureSingleInv::getAssignEquality( QuantifiersEngine * qe, Node eq,
       Assert( std::find( vars.begin(), vars.end(), eq[r] )==vars.end() );
       if( std::find( new_vars.begin(), new_vars.end(), eq[r] )==new_vars.end() ){
         Node eqro = eq[r==0 ? 1 : 0 ];
-        if( !qe->getTermDatabase()->containsTerm( eqro, eq[r] ) ){
+        if( !d_qe->getTermDatabase()->containsTerm( eqro, eq[r] ) ){
           Trace("csi-simp-debug") << "---equality " << eq[r] << " = " << eqro << std::endl;
           new_vars.push_back( eq[r] );
           new_subs.push_back( eqro );
@@ -1087,7 +1103,7 @@ bool CegConjectureSingleInv::getAssignEquality( QuantifiersEngine * qe, Node eq,
   return false;
 }
 
-Node CegConjectureSingleInv::simplifySolution( QuantifiersEngine * qe, Node sol, std::map< Node, bool >& assign,
+Node CegConjectureSingleInv::simplifySolution( Node sol, std::map< Node, bool >& assign,
                                                std::vector< Node >& vars, std::vector< Node >& subs, std::vector< Node >& args, int status ) {
   Assert( vars.size()==subs.size() );
   std::map< Node, bool >::iterator ita = assign.find( sol );
@@ -1101,7 +1117,7 @@ Node CegConjectureSingleInv::simplifySolution( QuantifiersEngine * qe, Node sol,
         std::vector< Node > new_assign;
         std::vector< Node > new_vars;
         std::vector< Node > new_subs;
-        if( getAssign( qe, r==1, sol[0], assign, new_assign, vars, new_vars, new_subs, args ) ){
+        if( getAssign( r==1, sol[0], assign, new_assign, vars, new_vars, new_subs, args ) ){
           Trace("csi-simp") << "- branch " << r << " led to " << new_assign.size() << " assignments, " << new_vars.size() << " equalities." << std::endl;
           unsigned prev_size = vars.size();
           Node nc = sol[r];
@@ -1110,7 +1126,7 @@ Node CegConjectureSingleInv::simplifySolution( QuantifiersEngine * qe, Node sol,
             vars.insert( vars.end(), new_vars.begin(), new_vars.end() );
             subs.insert( subs.end(), new_subs.begin(), new_subs.end() );
           }
-          nc = simplifySolution( qe, nc, assign, vars, subs, args, 0 );
+          nc = simplifySolution( nc, assign, vars, subs, args, 0 );
           children.push_back( nc );
           //clean up substitution
           if( !new_vars.empty() ){
@@ -1129,7 +1145,7 @@ Node CegConjectureSingleInv::simplifySolution( QuantifiersEngine * qe, Node sol,
         return children[0];
       }else{
         Assert( children.size()==2 );
-        Node ncond = simplifySolution( qe, sol[0], assign, vars, subs, args, 0 );
+        Node ncond = simplifySolution( sol[0], assign, vars, subs, args, 0 );
         return NodeManager::currentNM()->mkNode( ITE, ncond, children[0], children[1] );
       }
     }else if( sol.getKind()==OR || sol.getKind()==AND ){
@@ -1140,7 +1156,7 @@ Node CegConjectureSingleInv::simplifySolution( QuantifiersEngine * qe, Node sol,
       std::vector< Node > children;
       std::vector< Node > new_vars;
       std::vector< Node > new_subs;
-      Node bc = sol.getKind()==OR ? qe->getTermDatabase()->d_true : qe->getTermDatabase()->d_false;
+      Node bc = sol.getKind()==OR ? d_qe->getTermDatabase()->d_true : d_qe->getTermDatabase()->d_false;
       for( unsigned i=0; i<sol.getNumChildren(); i++ ){
         bool do_exc = false;
         Node c = sol[i];
@@ -1161,7 +1177,7 @@ Node CegConjectureSingleInv::simplifySolution( QuantifiersEngine * qe, Node sol,
             if( status==0 && ( atom.getKind()==IFF || atom.getKind()==EQUAL ) ){
               if( pol==( sol.getKind()==AND ) ){
                 Trace("csi-simp") << "  ...equality." << std::endl;
-                if( getAssignEquality( qe, atom, vars, new_vars, new_subs, args ) ){
+                if( getAssignEquality( atom, vars, new_vars, new_subs, args ) ){
                   children.push_back( sol[i] );
                   do_exc = true;
                 }
@@ -1193,7 +1209,7 @@ Node CegConjectureSingleInv::simplifySolution( QuantifiersEngine * qe, Node sol,
           unsigned prev_size = vars.size();
           vars.insert( vars.end(), new_vars.begin(), new_vars.end() );
           subs.insert( subs.end(), new_subs.begin(), new_subs.end() );
-          ret = simplifySolution( qe, ret, assign, vars, subs, args, 1 );
+          ret = simplifySolution( ret, assign, vars, subs, args, 1 );
           //clean up substitution
           if( !vars.empty() ){
             vars.resize( prev_size );
@@ -1211,7 +1227,7 @@ Node CegConjectureSingleInv::simplifySolution( QuantifiersEngine * qe, Node sol,
       }else{
         //recurse on children
         for( unsigned i=0; i<inc.size(); i++ ){
-          Node retc = simplifySolution( qe, inc[i], assign, vars, subs, args, 0 );
+          Node retc = simplifySolution( inc[i], assign, vars, subs, args, 0 );
           if( retc.isConst() ){
             if( retc==bc ){
               return bc;
@@ -1231,13 +1247,13 @@ Node CegConjectureSingleInv::simplifySolution( QuantifiersEngine * qe, Node sol,
           if( pol!=( sol.getKind()==AND ) ){
             std::vector< Node > tmp_vars;
             std::vector< Node > tmp_subs;
-            if( getAssignEquality( qe, atom, vars, tmp_vars, tmp_subs, args ) ){
+            if( getAssignEquality( atom, vars, tmp_vars, tmp_subs, args ) ){
               Trace("csi-simp-debug") << "Check if " << children[i] << " is redundant in " << sol << std::endl;
               for( unsigned j=0; j<children.size(); j++ ){
                 if( j!=i && ( j>i || std::find( final_children.begin(), final_children.end(), children[j] )!=final_children.end() ) ){
                   Node sj = children[j].substitute( tmp_vars.begin(), tmp_vars.end(), tmp_subs.begin(), tmp_subs.end() );
                   sj = Rewriter::rewrite( sj );
-                  if( sj==qe->getTermDatabase()->d_true ){
+                  if( sj==d_qe->getTermDatabase()->d_true ){
                     Trace("csi-simp") << "--- " << children[i].negate() << " is implied by " << children[j].negate() << std::endl;
                     red = true;
                     break;
@@ -1251,8 +1267,8 @@ Node CegConjectureSingleInv::simplifySolution( QuantifiersEngine * qe, Node sol,
           final_children.push_back( children[i] );
         }
       }
-      
-      return final_children.size()==0 ? NodeManager::currentNM()->mkConst( sol.getKind()==AND ) : 
+
+      return final_children.size()==0 ? NodeManager::currentNM()->mkConst( sol.getKind()==AND ) :
              ( final_children.size()==1 ? final_children[0] : NodeManager::currentNM()->mkNode( sol.getKind(), final_children ) );
     }else{
       //generic simplification
@@ -1262,7 +1278,7 @@ Node CegConjectureSingleInv::simplifySolution( QuantifiersEngine * qe, Node sol,
       }
       bool childChanged = false;
       for( unsigned i=0; i<sol.getNumChildren(); i++ ){
-        Node nc = simplifySolution( qe, sol[i], assign, vars, subs, args, 0 );
+        Node nc = simplifySolution( sol[i], assign, vars, subs, args, 0 );
         childChanged = childChanged || nc!=sol[i];
         children.push_back( nc );
       }
@@ -1274,24 +1290,15 @@ Node CegConjectureSingleInv::simplifySolution( QuantifiersEngine * qe, Node sol,
   }
 }
 
+//TODO : accumulate assignment to literals as we traverse ITE
 Node CegConjectureSingleInv::collectReconstructNodes( TermDbSygus * tds, Node t, TypeNode stn, int& status ) {
-  /*
-  if( ignoreBoolean && t.getType().isBoolean() ){
-    if( t.getKind()==OR || t.getKind()==AND || t.getKind()==IFF || t.getKind()==ITE || t.getKind()==NOT ){ //FIXME
-      for( unsigned i=0; i<t.getNumChildren(); i++ ){
-        collectReconstructNodes( tds, t[i], stn, parent, pstn, ignoreBoolean );
-      }
-      return;
-    }
-  }
-  */
   std::map< TypeNode, Node >::iterator it = d_rcons_processed[t].find( stn );
   if( it==d_rcons_processed[t].end() ){
     TypeNode tn = t.getType();
     Assert( datatypes::DatatypesRewriter::isTypeDatatype( stn ) );
     const Datatype& dt = ((DatatypeType)(stn).toType()).getDatatype();
     Assert( dt.isSygus() );
-    Trace("cegqi-si-rcons-debug") << "Check reconstruct " << t << " type " << tn << ", sygus type " << dt.getName() << std::endl;
+    Trace("cegqi-si-rcons-debug") << "Check reconstruct " << t << " type " << tn << ", sygus type " << dt.getName() << ", kind " << t.getKind() << std::endl;
     tds->registerSygusType( stn );
     Node ret;
     std::vector< Node > children;
@@ -1308,57 +1315,91 @@ Node CegConjectureSingleInv::collectReconstructNodes( TermDbSygus * tds, Node t,
     int karg = tds->getKindArg( stn, tk );
     //preprocessing to fit syntax
     Node orig_t = t;
-    if( karg==-1 && t.getNumChildren()>0 ){
-      Node new_t;
-      Kind dk;
-      if( tds->isAntisymmetric( tk, dk ) ){
-        if( tds->hasKind( stn, dk ) ){
-          new_t = NodeManager::currentNM()->mkNode( dk, t[1], t[0] );
+    if( t.getNumChildren()>0 ){
+      // first, do standard minimizations
+      t = tds->minimizeBuiltinTerm( t );
+      bool success = true;
+      while( karg==-1 && success ){
+        success = false;
+        Node new_t;
+        Kind dk;
+        if( tds->isAntisymmetric( tk, dk ) ){
+          if( tds->hasKind( stn, dk ) ){
+            new_t = NodeManager::currentNM()->mkNode( dk, t[1], t[0] );
+          }
         }
-      }
-      if( new_t.isNull() ){
-        for( unsigned i=0; i<dt.getNumConstructors(); i++ ){
-          Node g = tds->getGenericBase( stn, i );
-          if( g.getKind()==t.getKind() ){
-            Trace("cegqi-si-rcons-debug") << "Possible match ? " << g << " " << t << " for " << dt[i].getName() << std::endl;
-            std::map< int, Node > sigma;
-            if( tds->getMatch( g, t, sigma ) ){
-              //we found an exact match
-              bool success = true;
-              for( unsigned j=0; j<dt[i].getNumArgs(); j++ ){
-                if( sigma[j].isNull() ){
-                  success = false;
+        if( new_t.isNull() ){
+          for( unsigned i=0; i<dt.getNumConstructors(); i++ ){
+            Node g = tds->getGenericBase( stn, i );
+            if( g.getKind()==t.getKind() ){
+              Trace("cegqi-si-rcons-debug") << "Possible match ? " << g << " " << t << " for " << dt[i].getName() << std::endl;
+              std::map< int, Node > sigma;
+              if( tds->getMatch( g, t, sigma ) ){
+                //we found an exact match
+                bool msuccess = true;
+                for( unsigned j=0; j<dt[i].getNumArgs(); j++ ){
+                  if( sigma[j].isNull() ){
+                    msuccess = false;
+                    break;
+                  }
+                }
+                if( msuccess ){
+                  std::map< TypeNode, int > var_count;
+                  new_t = tds->mkGeneric( dt, i, var_count, sigma );
+                  Trace("cegqi-si-rcons-debug") << "Rewrote to : " << new_t << std::endl;
                   break;
                 }
               }
-              if( success ){
-                std::map< TypeNode, int > var_count;
-                new_t = tds->mkGeneric( dt, i, var_count, sigma );
-                Trace("cegqi-si-rcons-debug") << "Rewrote to : " << new_t << std::endl;
-                break;
-              }
+            }
+          }
+          //expand things that have compact representations (these will not be found by enumeration if they aren't already in the syntax)
+          if( new_t.isNull() ){
+            if( t.getKind()==EQUAL && ( t[0].getType().isInteger() || t[0].getType().isReal() ) ){
+              new_t = NodeManager::currentNM()->mkNode( AND, NodeManager::currentNM()->mkNode( LEQ, t[0], t[1] ),
+                                                            NodeManager::currentNM()->mkNode( LEQ, t[1], t[0] ) );
+            }else if( t.getKind()==ITE ){
+              new_t = NodeManager::currentNM()->mkNode( OR, NodeManager::currentNM()->mkNode( AND, t[0], t[1] ),
+                                                            NodeManager::currentNM()->mkNode( AND, t[0].negate(), t[2] ) );
+            }else if( t.getKind()==IFF ){
+              new_t = NodeManager::currentNM()->mkNode( OR, NodeManager::currentNM()->mkNode( AND, t[0], t[1] ),
+                                                            NodeManager::currentNM()->mkNode( AND, t[0].negate(), t[1].negate() ) );
+            }else if( ( t.getKind()==OR || t.getKind()==AND ) && tds->hasKind( stn, NOT ) ){
+              new_t = simpleNegate( t ).negate();
             }
           }
         }
+        if( !new_t.isNull() ){
+          t = new_t;
+          karg = tds->getKindArg( stn, t.getKind() );
+          success = true;
+          Trace("cegqi-si-rcons-debug") << "Try rewriting to " << new_t << ", now karg=" << karg << std::endl;
+        }
       }
-      if( !new_t.isNull() ){
-        t = new_t;
-      }
-    }else{
+    }
+    if( karg!=-1 ){
       //flatten ITEs if necessary
       if( t.getKind()==ITE ){
         TypeNode cstn = tds->getArgType( dt[karg], 0 );
         tds->registerSygusType( cstn );
-        if( !tds->hasKind( cstn, t[0].getKind() ) ){
+        Node prev_t;
+        while( !tds->hasKind( cstn, t[0].getKind() ) && t!=prev_t ){
+          prev_t = t;
+          Node exp_c = tds->expandBuiltinTerm( t[0] );
+          if( !exp_c.isNull() ){
+            t = NodeManager::currentNM()->mkNode( ITE, exp_c, t[1], t[2] );
+            Trace("cegqi-si-rcons-debug") << "Pre expand to " << t << std::endl;
+          }
           t = flattenITEs( t, false );
+          if( t!=prev_t ){
+            Trace("cegqi-si-rcons-debug") << "Flatten ITE to " << t << std::endl;
+            std::map< Node, bool > sassign;
+            std::vector< Node > svars;
+            std::vector< Node > ssubs;
+            t = simplifySolution( t, sassign, svars, ssubs, d_varlist, 0 );
+          }
           Assert( t.getKind()==ITE );
         }
       }
-    }
-    if( t!=orig_t ){
-      karg = tds->getKindArg( stn, t.getKind() );
-    }
-    if( karg!=-1 ){
       if( t.getNumChildren()==dt[karg].getNumArgs() ){
         Trace("cegqi-si-rcons-debug") << "  Type has kind " << t.getKind() << ", recurse." << std::endl;
         for( unsigned i=0; i<t.getNumChildren(); i++ ){
@@ -1426,7 +1467,6 @@ Node CegConjectureSingleInv::collectReconstructNodes( TermDbSygus * tds, Node t,
       if( !childChanged ){
         ret = t;
       }else{
-        Trace("cegqi-si-rcons-debug") << "Make return node " << t.getKind() << " with " << children.size() << " children." << std::endl;
         ret = NodeManager::currentNM()->mkNode( t.getKind(), children );
       }
     }

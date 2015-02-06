@@ -709,6 +709,9 @@ sygusGTerm[std::string& fun, std::vector<CVC4::Expr>& ops, std::vector<std::stri
   : LPAREN_TOK
     ( builtinOp[k]
       { Debug("parser-sygus") << "Sygus grammar " << fun << " : builtin op : " << name << std::endl;
+        if( k==CVC4::kind::BITVECTOR_UDIV ){
+          k = CVC4::kind::BITVECTOR_UDIV_TOTAL;
+        }
         ops.push_back(EXPR_MANAGER->operatorOf(k));
         name = kind::kindToString(k);
       }

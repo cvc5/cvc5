@@ -60,7 +60,7 @@ void CegConjecture::assign( QuantifiersEngine * qe, Node q ) {
     }
     d_syntax_guided = true;
     if( options::cegqiSingleInv() ){
-      d_ceg_si = new CegConjectureSingleInv( q, this );
+      d_ceg_si = new CegConjectureSingleInv( qe, q, this );
       d_ceg_si->initialize();
     }
   }else if( qe->getTermDatabase()->isQAttrSynthesis( q ) ){
@@ -255,7 +255,7 @@ void CegInstantiation::checkCegConjecture( CegConjecture * conj ) {
     if( getTermDatabase()->isQAttrSygus( q ) ){
       if( conj->d_ceg_si ){
         std::vector< Node > lems;
-        conj->d_ceg_si->check( d_quantEngine, lems );
+        conj->d_ceg_si->check( lems );
         if( !lems.empty() ){
           d_last_inst_si = true;
           for( unsigned j=0; j<lems.size(); j++ ){
@@ -494,7 +494,7 @@ void CegInstantiation::printSynthSolution( std::ostream& out ) {
       int status;
       if( d_last_inst_si ){
         Assert( d_conj->d_ceg_si );
-        sol = d_conj->d_ceg_si->getSolution( d_quantEngine, i, tn, status );
+        sol = d_conj->d_ceg_si->getSolution( i, tn, status );
       }else{
         if( !d_conj->d_candidate_inst[i].empty() ){
           sol = d_conj->d_candidate_inst[i].back();
