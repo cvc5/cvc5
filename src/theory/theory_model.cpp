@@ -852,7 +852,7 @@ Node TheoryEngineModelBuilder::normalize(TheoryModel* m, TNode r, std::map< Node
           itMap = constantReps.find(m->d_equalityEngine->getRepresentative(ri));
           if (itMap != constantReps.end()) {
             ri = (*itMap).second;
-	          recurse = false;
+            recurse = false;
           }
           else if (!evalOnly) {
             recurse = false;
