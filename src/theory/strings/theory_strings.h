@@ -128,6 +128,7 @@ private:
   Node d_zero;
   Node d_one;
   CVC4::Rational RMAXINT;
+  unsigned d_card_size;
   // Options
   bool d_opt_fmf;
   bool d_opt_regexp_gcd;

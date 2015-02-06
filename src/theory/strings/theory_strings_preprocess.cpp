@@ -43,6 +43,14 @@ void StringsPreprocess::processRegExp( Node s, Node r, std::vector< Node > &ret 
       ret.push_back( eq );
       break;
     }
+    case kind::REGEXP_RANGE: {
+      Node one = NodeManager::currentNM()->mkConst( ::CVC4::Rational(1) );
+      Node eq = one.eqNode(NodeManager::currentNM()->mkNode(kind::STRING_LENGTH, s));
+      ret.push_back( eq );
+      eq = NodeManager::currentNM()->mkNode( kind::STRING_IN_REGEXP, s, r );
+      ret.push_back( eq );
+      break;
+    }
     case kind::STRING_TO_REGEXP: {
       Node eq = s.eqNode( r[0] );
       ret.push_back( eq );
@@ -93,6 +101,11 @@ void StringsPreprocess::processRegExp( Node s, Node r, std::vector< Node > &ret 
         Node eq = NodeManager::currentNM()->mkNode( kind::STRING_IN_REGEXP, s, r );
         ret.push_back( eq );
       }
+      break;
+    }
+    case kind::REGEXP_LOOP: {
+      Node eq = NodeManager::currentNM()->mkNode( kind::STRING_IN_REGEXP, s, r );
+      ret.push_back( eq );
       break;
     }
     default: {

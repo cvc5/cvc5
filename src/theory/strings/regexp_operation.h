@@ -39,7 +39,7 @@ class RegExpOpr {
   typedef std::pair< Node, Node > PairNodes;
 
 private:
-  const unsigned char d_lastchar;
+  unsigned char d_lastchar;
   Node d_emptyString;
   Node d_true;
   Node d_false;
