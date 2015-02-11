@@ -317,8 +317,13 @@ public:
   int isInstanceOf( Node n1, Node n2 );
   /** filter all nodes that have instances */
   void filterInstances( std::vector< Node >& nodes );
+
+//general utilities
+public:
   /** simple check for contains term */
-  bool containsTerm( Node n, Node t );
+  static bool containsTerm( Node n, Node t );
+  /** simple negate */
+  static Node simpleNegate( Node n );
 
 //for sygus
 private:
@@ -374,8 +379,14 @@ public:
   TNode getVarInc( TypeNode tn, std::map< TypeNode, int >& var_count );
   bool isVar( Node n ) { return d_fv_stype.find( n )!=d_fv_stype.end(); }
   int getVarNum( Node n ) { return d_fv_num[n]; }
+private:
+  std::map< TypeNode, std::map< int, Node > > d_generic_base;
+  std::map< TypeNode, std::vector< Node > > d_generic_templ;
+  Node getGenericBase( TypeNode tn, const Datatype& dt, int c );
   bool getMatch( Node p, Node n, std::map< int, Node >& s );
   bool getMatch2( Node p, Node n, std::map< int, Node >& s, std::vector< int >& new_s );
+public:
+  bool getMatch( Node n, TypeNode st, int& index_found, std::vector< Node >& args, int index_exc = -1, int index_start = 0 );
 private:
   //information for sygus types
   std::map< TypeNode, TypeNode > d_register;  //stores sygus type
@@ -394,7 +405,6 @@ private:
   std::map< TypeNode, std::map< Node, Node > > d_normalized;
   std::map< TypeNode, std::map< Node, Node > > d_sygus_to_builtin;
   std::map< TypeNode, std::map< Node, Node > > d_builtin_const_to_sygus;
-  std::map< TypeNode, std::map< int, Node > > d_generic_base;
 public:
   TermDbSygus(){}
   bool isRegistered( TypeNode tn );
@@ -432,7 +442,6 @@ public:
   Node getTypeMaxValue( TypeNode tn );
   TypeNode getSygusType( Node v );
   Node mkGeneric( const Datatype& dt, int c, std::map< TypeNode, int >& var_count, std::map< int, Node >& pre );
-  Node getGenericBase( TypeNode tn, int c );
   Node sygusToBuiltin( Node n, TypeNode tn );
   Node builtinToSygusConst( Node c, TypeNode tn );
   Node getSygusNormalized( Node n, std::map< TypeNode, int >& var_count, std::map< Node, Node >& subs );

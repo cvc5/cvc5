@@ -20,6 +20,7 @@
 #include "context/cdhashmap.h"
 #include "context/cdchunk_list.h"
 #include "theory/quantifiers_engine.h"
+#include "theory/quantifiers/ce_guided_single_inv_sol.h"
 
 namespace CVC4 {
 namespace theory {
@@ -32,6 +33,7 @@ class CegConjectureSingleInv
 private:
   QuantifiersEngine * d_qe;
   CegConjecture * d_parent;
+  CegConjectureSingleInvSol * d_sol;
   bool analyzeSygusConjunct( Node n, Node p, std::map< Node, std::vector< Node > >& children,
                             std::map< Node, std::map< Node, std::vector< Node > > >& prog_invoke,
                             std::vector< Node >& progs, std::map< Node, std::map< Node, bool > >& contains, bool pol );
@@ -44,7 +46,6 @@ private:
   int classifyTerm( Node n, std::map< Node, int >& subs_from_model );
   void collectProgVars( Node n, std::vector< Node >& vars );
   Node applyProgVarSubstitution( Node n, std::map< Node, int >& subs_from_model, std::vector< Node >& subs );
-
 public:
   CegConjectureSingleInv( QuantifiersEngine * qe, Node q, CegConjecture * p );
   // original conjecture
@@ -67,10 +68,9 @@ public:
   std::vector< Node > d_lemmas_produced;
   std::vector< std::vector< Node > > d_inst;
   // solution
-  std::vector< Node > d_varlist;
+  std::vector< Node > d_varList;
   Node d_orig_solution;
   Node d_solution;
-  Node d_templ_solution;
   Node d_sygus_solution;
 public:
   //get the single invocation lemma
@@ -80,38 +80,7 @@ public:
   //check
   void check( std::vector< Node >& lems );
   //get solution
-  Node getSolution( unsigned i, TypeNode stn, int& reconstructed );
-
-
-//solution simplification
-private:
-  bool debugSolution( Node sol );
-  void debugTermSize( Node sol, int& t_size, int& num_ite );
-  Node pullITEs( Node n );
-  bool pullITECondition( Node root, Node n, std::vector< Node >& conj, Node& t, Node& rem, int depth );
-  Node flattenITEs( Node n, bool rec = true );
-  Node simplifySolution( Node sol, std::map< Node, bool >& assign,
-                         std::vector< Node >& vars, std::vector< Node >& subs, std::vector< Node >& args, int status );
-  bool getAssign( bool pol, Node n, std::map< Node, bool >& assign, std::vector< Node >& new_assign,
-                  std::vector< Node >& vars, std::vector< Node >& new_vars, std::vector< Node >& new_subs, std::vector< Node >& args );
-  bool getAssignEquality( Node eq, std::vector< Node >& vars, std::vector< Node >& new_vars, std::vector< Node >& new_subs, std::vector< Node >& args );
-//solution reconstruction
-private:
-  std::map< Node, std::map< TypeNode, Node > > d_rcons_processed;
-  std::map< Node, std::map< TypeNode, int > > d_rcons_processed_status;
-  std::map< Node, std::map< TypeNode, Node > > d_reconstructed;
-  std::map< Node, std::map< TypeNode, bool > > d_reconstructed_op;
-  std::map< Node, std::map< TypeNode, std::map< Node, std::map< TypeNode, bool > > > > d_rcons_graph[2];
-  std::map< TypeNode, std::map< Node, bool > > d_rcons_to_process;
-  std::map< Node, Node > d_rewrite_to_rcons;
-  std::map< Node, Node > d_rcons_to_rewrite;
-  // term t with sygus type st, returns inducted templated form of t
-  Node collectReconstructNodes( TermDbSygus * tds, Node t, TypeNode stn, int& status );
-  // set reconstructed
-  void setNeedsReconstruction( Node t, TypeNode stn, Node parent, TypeNode pstn );
-  void setReconstructed( Node tr, TypeNode stn );
-  // get solution
-  Node getReconstructedSolution( TermDbSygus * tds, TypeNode stn, Node t );
+  Node getSolution( unsigned sol_index, TypeNode stn, int& reconstructed );
 };
 
 }

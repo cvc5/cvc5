@@ -1145,6 +1145,18 @@ bool TermDb::containsTerm( Node n, Node t ) {
   }
 }
 
+Node TermDb::simpleNegate( Node n ){
+  if( n.getKind()==OR || n.getKind()==AND ){
+    std::vector< Node > children;
+    for( unsigned i=0; i<n.getNumChildren(); i++ ){
+      children.push_back( simpleNegate( n[i] ) );
+    }
+    return NodeManager::currentNM()->mkNode( n.getKind()==OR ? AND : OR, children );
+  }else{
+    return n.negate();
+  }
+}
+
 
 void TermDb::registerTrigger( theory::inst::Trigger* tr, Node op ){
   if( std::find( d_op_triggers[op].begin(), d_op_triggers[op].end(), tr )==d_op_triggers[op].end() ){
@@ -1404,6 +1416,85 @@ bool TermDbSygus::getMatch2( Node p, Node n, std::map< int, Node >& s, std::vect
   return false;
 }
 
+bool TermDbSygus::getMatch( Node t, TypeNode st, int& index_found, std::vector< Node >& args, int index_exc, int index_start ) {
+  Assert( datatypes::DatatypesRewriter::isTypeDatatype( st ) );
+  const Datatype& dt = ((DatatypeType)(st).toType()).getDatatype();
+  Assert( dt.isSygus() );
+  std::map< Kind, std::vector< Node > > kgens;
+  std::vector< Node > gens;
+  for( unsigned i=index_start; i<dt.getNumConstructors(); i++ ){
+    if( (int)i!=index_exc ){
+      Node g = getGenericBase( st, dt, i );
+      gens.push_back( g );
+      kgens[g.getKind()].push_back( g );
+      Trace("sygus-db-debug") << "Check generic base : " << g << " from " << dt[i].getName() << std::endl;
+      if( g.getKind()==t.getKind() ){
+        Trace("sygus-db-debug") << "Possible match ? " << g << " " << t << " for " << dt[i].getName() << std::endl;
+        std::map< int, Node > sigma;
+        if( getMatch( g, t, sigma ) ){
+          //we found an exact match
+          bool msuccess = true;
+          for( unsigned j=0; j<dt[i].getNumArgs(); j++ ){
+            if( sigma[j].isNull() ){
+              msuccess = false;
+              break;
+            }else{
+              args.push_back( sigma[j] );
+            }
+          }
+          if( msuccess ){
+            index_found = i;
+            return true;
+          }
+          //we found an exact match
+          //std::map< TypeNode, int > var_count;
+          //Node new_t = mkGeneric( dt, i, var_count, args );
+          //Trace("sygus-db-debug") << "Rewrote to : " << new_t << std::endl;
+          //return new_t;
+        }
+      }
+    }
+  }
+  /*
+  //otherwise, try to modulate based on kinds
+  for( std::map< Kind, std::vector< Node > >::iterator it = kgens.begin(); it != kgens.end(); ++it ){
+    if( it->second.size()>1 ){
+      for( unsigned i=0; i<it->second.size(); i++ ){
+        for( unsigned j=0; j<it->second.size(); j++ ){
+          if( i!=j ){
+            std::map< int, Node > sigma;
+            if( getMatch( it->second[i], it->second[j], sigma ) ){
+              if( sigma.size()==1 ){
+                //Node mod_pat = sigma.begin().second;
+                //Trace("cegqi-si-rcons-debug") << "Modulated pattern " << mod_pat << " from " << it->second[i] << " and " << it->second[j] << std::endl;
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+  */
+  return false;
+}
+
+Node TermDbSygus::getGenericBase( TypeNode tn, const Datatype& dt, int c ) {
+  std::map< int, Node >::iterator it = d_generic_base[tn].find( c );
+  if( it==d_generic_base[tn].end() ){
+    registerSygusType( tn );
+    std::map< TypeNode, int > var_count;
+    std::map< int, Node > pre;
+    Node g = mkGeneric( dt, c, var_count, pre );
+    Node gr = Rewriter::rewrite( g );
+    gr = Node::fromExpr( smt::currentSmtEngine()->expandDefinitions( gr.toExpr() ) );
+    Trace("sygus-db") << "Sygus DB : Generic base " << dt[c].getName() << " : " << gr << std::endl;
+    d_generic_base[tn][c] = gr;
+    return gr;
+  }else{
+    return it->second;
+  }
+}
+
 Node TermDbSygus::mkGeneric( const Datatype& dt, int c, std::map< TypeNode, int >& var_count, std::map< int, Node >& pre ) {
   Assert( c>=0 && c<(int)dt.getNumConstructors() );
   Assert( dt.isSygus() );
@@ -1443,24 +1534,6 @@ Node TermDbSygus::mkGeneric( const Datatype& dt, int c, std::map< TypeNode, int 
   }
 }
 
-Node TermDbSygus::getGenericBase( TypeNode tn, int c ) {
-  std::map< int, Node >::iterator it = d_generic_base[tn].find( c );
-  if( it==d_generic_base[tn].end() ){
-    Assert( datatypes::DatatypesRewriter::isTypeDatatype( tn ) );
-    const Datatype& dt = ((DatatypeType)(tn).toType()).getDatatype();
-    Assert( dt.isSygus() );
-    registerSygusType( tn );
-    std::map< TypeNode, int > var_count;
-    std::map< int, Node > pre;
-    Node g = mkGeneric( dt, c, var_count, pre );
-    Node gr = Rewriter::rewrite( g );
-    d_generic_base[tn][c] = gr;
-    return gr;
-  }else{
-    return it->second;
-  }
-}
-
 Node TermDbSygus::sygusToBuiltin( Node n, TypeNode tn ) {
   std::map< Node, Node >::iterator it = d_sygus_to_builtin[tn].find( n );
   if( it==d_sygus_to_builtin[tn].end() ){
@@ -1474,6 +1547,7 @@ Node TermDbSygus::sygusToBuiltin( Node n, TypeNode tn ) {
       pre[j] = sygusToBuiltin( n[j], getArgType( dt[i], j ) );
     }
     Node ret = mkGeneric( dt, i, var_count, pre );
+    ret = Node::fromExpr( smt::currentSmtEngine()->expandDefinitions( ret.toExpr() ) );
     d_sygus_to_builtin[tn][n] = ret;
     return ret;
   }else{
@@ -1571,7 +1645,6 @@ int TermDbSygus::getTermSize( Node n ){
     }
     return 1+sum;
   }
-
 }
 
 bool TermDbSygus::isAssoc( Kind k ) {
@@ -1868,7 +1941,8 @@ TypeNode TermDbSygus::getArgType( const DatatypeConstructor& c, int i ) {
 }
 
 Node TermDbSygus::minimizeBuiltinTerm( Node n ) {
-  if( ( n.getKind()==EQUAL || n.getKind()==LEQ ) && ( n[0].getType().isInteger() || n[0].getType().isReal() ) ){
+  if( ( n.getKind()==EQUAL || n.getKind()==LEQ || n.getKind()==LT || n.getKind()==GEQ || n.getKind()==GT ) && 
+      ( n[0].getType().isInteger() || n[0].getType().isReal() ) ){
     bool changed = false;
     std::vector< Node > mon[2];
     for( unsigned r=0; r<2; r++ ){
@@ -1908,12 +1982,12 @@ Node TermDbSygus::expandBuiltinTerm( Node t ){
   if( t.getKind()==EQUAL && ( t[0].getType().isInteger() || t[0].getType().isReal() ) ){
     return NodeManager::currentNM()->mkNode( AND, NodeManager::currentNM()->mkNode( LEQ, t[0], t[1] ),
                                                   NodeManager::currentNM()->mkNode( LEQ, t[1], t[0] ) );
-  }else if( t.getKind()==ITE ){
+  }else if( t.getKind()==ITE && t.getType().isBoolean() ){
     return NodeManager::currentNM()->mkNode( OR, NodeManager::currentNM()->mkNode( AND, t[0], t[1] ),
-                                                  NodeManager::currentNM()->mkNode( AND, t[0].negate(), t[2] ) );
+                                                 NodeManager::currentNM()->mkNode( AND, t[0].negate(), t[2] ) );
   }else if( t.getKind()==IFF ){
     return NodeManager::currentNM()->mkNode( OR, NodeManager::currentNM()->mkNode( AND, t[0], t[1] ),
-                                                  NodeManager::currentNM()->mkNode( AND, t[0].negate(), t[1].negate() ) );
+                                                 NodeManager::currentNM()->mkNode( AND, t[0].negate(), t[1].negate() ) );
   }
   return Node::null();
 }
