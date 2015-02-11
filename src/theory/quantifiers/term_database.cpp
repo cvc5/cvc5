@@ -1568,6 +1568,8 @@ Node TermDbSygus::builtinToSygusConst( Node c, TypeNode tn ) {
       sc = Node::fromExpr( dt[carg].getSygusOp() );
     }else{
       //TODO
+      
+      
     }
     d_builtin_const_to_sygus[tn][c] = sc;
     return sc;

@@ -43,9 +43,12 @@ private:
   bool getVariableEliminationTerm( bool pol, bool active, Node v, Node n, TNode& s, int& status );
 
   Node constructSolution( unsigned i, unsigned index );
-  int classifyTerm( Node n, std::map< Node, int >& subs_from_model );
+  bool classifyTerm( Node n, std::map< Node, int >& subs_from_model, std::vector< int >& vars );
   void collectProgVars( Node n, std::vector< Node >& vars );
   Node applyProgVarSubstitution( Node n, std::map< Node, int >& subs_from_model, std::vector< Node >& subs );
+  //equalities processed
+  std::map< Node, std::map< Node, std::map< int, bool > > > d_eq_processed;
+  bool solveEquality( Node lhs, Node rhs, int v, std::map< Node, int >& subs_from_model, std::vector< Node >& subs );
 public:
   CegConjectureSingleInv( QuantifiersEngine * qe, Node q, CegConjecture * p );
   // original conjecture

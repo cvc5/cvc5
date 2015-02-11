@@ -271,23 +271,6 @@ void CegConjectureSingleInv::initialize() {
               }
             }
           }
-
-          /*
-          //equality resolution
-          for( unsigned j=0; j<conjuncts.size(); j++ ){
-            Node conj = conjuncts[j];
-            std::map< Node, std::vector< Node > > case_vals;
-            bool exh = processSingleInvLiteral( conj, false, case_vals );
-            Trace("cegqi-si-er") << "Conjunct " << conj << " gives equality restrictions, exh = " << exh << " : " << std::endl;
-            for( std::map< Node, std::vector< Node > >::iterator it = case_vals.begin(); it != case_vals.end(); ++it ){
-              Trace("cegqi-si-er") << "  " << it->first << " -> ";
-              for( unsigned k=0; k<it->second.size(); k++ ){
-                Trace("cegqi-si-er") << it->second[k] << " ";
-              }
-              Trace("cegqi-si-er") << std::endl;
-            }
-          }
-          */
         }
       }
     }
@@ -353,32 +336,6 @@ bool CegConjectureSingleInv::getVariableEliminationTerm( bool pol, bool hasPol, 
   }else{
     for( unsigned i=0; i<n.getNumChildren(); i++ ){
       getVariableEliminationTerm( pol, false, v, n[i], s, status );
-    }
-  }
-  return false;
-}
-
-bool CegConjectureSingleInv::processSingleInvLiteral( Node lit, bool pol, std::map< Node, std::vector< Node > >& case_vals ) {
-  if( lit.getKind()==NOT ){
-    return processSingleInvLiteral( lit[0], !pol, case_vals );
-  }else if( ( lit.getKind()==OR && pol ) || ( lit.getKind()==AND && !pol ) ){
-    bool exh = true;
-    for( unsigned k=0; k<lit.getNumChildren(); k++ ){
-      bool curr = processSingleInvLiteral( lit[k], pol, case_vals );
-      exh = exh && curr;
-    }
-    return exh;
-  }else if( lit.getKind()==IFF || lit.getKind()==EQUAL ){
-    if( pol ){
-      for( unsigned r=0; r<2; r++ ){
-        std::map< Node, Node >::iterator it = d_single_inv_map_to_prog.find( lit[r] );
-        if( it!=d_single_inv_map_to_prog.end() ){
-          if( r==1 || d_single_inv_map_to_prog.find( lit[1] )==d_single_inv_map_to_prog.end() ){
-            case_vals[it->second].push_back( lit[ r==0 ? 1 : 0 ] );
-            return true;
-          }
-        }
-      }
     }
   }
   return false;
@@ -521,72 +478,91 @@ void CegConjectureSingleInv::check( std::vector< Node >& lems ) {
       Trace("cegqi-engine-debug") << subs[index] << std::endl;
     }
     //try to improve substitutions : look for terms that contain terms in question
-    if( !subs_from_model.empty() ){
-      eq::EqClassesIterator eqcs_i = eq::EqClassesIterator( ee );
-      while( !eqcs_i.isFinished() ){
-        Node r = *eqcs_i;
-        int res = -1;
-        Node slv_n;
-        Node const_n;
-        eq::EqClassIterator eqc_i = eq::EqClassIterator( r, ee );
-        while( !eqc_i.isFinished() ){
-          Node n = *eqc_i;
-          if( slv_n.isNull() || const_n.isNull() ){
-            std::vector< Node > vars;
-            int curr_res = classifyTerm( n, subs_from_model );
-            Trace("cegqi-si-debug2") << "Term : " << n << " classify : " << curr_res << std::endl;
-            if( curr_res!=-2 ){
-              if( curr_res!=-1 && slv_n.isNull() ){
-                res = curr_res;
-                slv_n = n;
-              }else if( const_n.isNull() ){
-                const_n = n;
+    bool success;
+    do{
+      success = false;
+      if( !subs_from_model.empty() ){
+        std::map< int, std::vector< Node > > cls_terms;
+        std::map< Node, std::vector< int > > vars;
+        std::map< Node, std::map< int, std::vector< Node > > > node_eqc;
+        std::map< Node, Node > node_rep;
+        int vn_max = -1;
+        eq::EqClassesIterator eqcs_i = eq::EqClassesIterator( ee );
+        while( !eqcs_i.isFinished() ){
+          Node r = *eqcs_i;
+          TypeNode rtn = r.getType();
+          if( rtn.isInteger() || rtn.isReal() ){
+            eq::EqClassIterator eqc_i = eq::EqClassIterator( r, ee );
+            while( !eqc_i.isFinished() ){
+              Node n = *eqc_i;
+              if( classifyTerm( n, subs_from_model, vars[n] ) ){
+                Trace("cegqi-si-debug") << "Term " << n << " in eqc " << r << " with " << vars[n].size() << " unset variables." << std::endl;
+                int vs = (int)vars[n].size();
+                cls_terms[vs].push_back( n );
+                node_eqc[r][vs].push_back( n );
+                node_rep[n] = r;
+                vn_max = vs>vn_max ? vs : vn_max;
               }
-              //TODO : fairness
-              if( !slv_n.isNull() && !const_n.isNull() ){
-              }
+              ++eqc_i;
             }
           }
-          ++eqc_i;
+          ++eqcs_i;
         }
-        if( !slv_n.isNull() && !const_n.isNull() ){
-          if( slv_n.getType().isInteger() || slv_n.getType().isReal() ){
-            Trace("cegqi-si-debug") << "Can possibly set " << d_single_inv_sk[res] << " based on " << slv_n << " = " << const_n << std::endl;
-            subs_from_model.erase( d_single_inv_sk[res] );
-            Node prev_subs_res = subs[res];
-            subs[res] = d_single_inv_sk[res];
-            Node eq = slv_n.eqNode( const_n );
-            bool success = false;
-            std::map< Node, Node > msum;
-            if( QuantArith::getMonomialSumLit( eq, msum ) ){
-              Trace("cegqi-si-debug") << "As monomial sum : " << std::endl;
-              QuantArith::debugPrintMonomialSum( msum, "cegqi-si");
-              Node veq;
-              if( QuantArith::isolate( d_single_inv_sk[res], msum, veq, EQUAL ) ){
-                Trace("cegqi-si-debug") << "Isolated for " << d_single_inv_sk[res] << " : " << veq << std::endl;
-                Node sol;
-                for( unsigned r=0; r<2; r++ ){
-                  if( veq[r]==d_single_inv_sk[res] ){
-                    sol = veq[ r==0 ? 1 : 0 ];
+        // will try processed, then unprocessed
+        for( unsigned p=0; p<2; p++ ){
+          Trace("cegqi-si-debug") << "Try " << ( p==0 ? "un" : "" ) << "processed equalities..." << std::endl;
+          //prefer smallest # variables first on LHS
+          for( int vn = 1; vn<=vn_max; vn++ ){
+            Trace("cegqi-si-debug") << "  Having " << vn << " variables on LHS..." << std::endl;
+            for( unsigned i=0; i<cls_terms[vn].size(); i++ ){
+              Node lhs = cls_terms[vn][i];
+              Node r = node_rep[lhs];
+              //prefer smallest # variables on RHS
+              for( int vnc = 0; vnc<=vn_max; vnc++ ){
+                Trace("cegqi-si-debug") << "    Having " << vnc << " variables on RHS..." << std::endl;
+                for( unsigned j=0; j<node_eqc[r][vnc].size(); j++ ){
+                  Node rhs = node_eqc[r][vnc][j];
+                  if( lhs!=rhs ){
+                    Trace("cegqi-si-debug") << "      try " << lhs << " " << rhs << std::endl;
+                    //for each variable in LHS
+                    for( unsigned k=0; k<vars[lhs].size(); k++ ){
+                      int v = vars[lhs][k];
+                      Trace("cegqi-si-debug") << "        variable " << v << std::endl;
+                      Assert( vars[lhs].size()==vn );
+                      //check if already processed
+                      bool proc = d_eq_processed[lhs][rhs].find( v )!=d_eq_processed[lhs][rhs].end();
+                      if( proc==(p==1) ){
+                        if( solveEquality( lhs, rhs, v, subs_from_model, subs ) ){
+                          Trace("cegqi-si-debug") << "Success, set " << lhs << " " << rhs << " " << v << std::endl;
+                          d_eq_processed[lhs][rhs][v] = true;
+                          success = true;
+                          break;
+                        }
+                      }
+                    }
+                    if( success ){ break; }
                   }
                 }
-                if( !sol.isNull() ){
-                  sol = applyProgVarSubstitution( sol, subs_from_model, subs );
-                  Trace("cegqi-si-debug") << "Substituted solution is : " << sol << std::endl;
-                  subs[res] = sol;
-                  Trace("cegqi-engine") << "  ...by arithmetic, " << d_single_inv_sk[res] << " -> " << sol << std::endl;
-                  success = true;
-                }
+                if( success ){ break; }
               }
+              if( success ){ break; }
             }
-            if( !success ){
-              subs[res] = prev_subs_res;
-            }
+            if( success ){ break; }
           }
+          if( success ){ break; }
         }
-        ++eqcs_i;
+      }
+    }while( !subs_from_model.empty() && success );
+    
+    if( Trace.isOn("cegqi-si-warn") ){
+      if( !subs_from_model.empty() ){
+        Trace("cegqi-si-warn") << "Warning : could not find values for : " << std::endl;
+        for( std::map< Node, int >::iterator it = subs_from_model.begin(); it != subs_from_model.end(); ++it ){
+          Trace("cegqi-si-warn") << "  " << it->first << std::endl;
+        }
       }
     }
+    
     Node lem = d_single_inv[1].substitute( d_single_inv_var.begin(), d_single_inv_var.end(), subs.begin(), subs.end() );
     lem = Rewriter::rewrite( lem );
     Trace("cegqi-si") << "Single invocation lemma : " << lem << std::endl;
@@ -597,6 +573,38 @@ void CegConjectureSingleInv::check( std::vector< Node >& lems ) {
       d_inst.back().insert( d_inst.back().end(), subs.begin(), subs.end() );
     }
   }
+}
+
+bool CegConjectureSingleInv::solveEquality( Node lhs, Node rhs, int v, std::map< Node, int >& subs_from_model, std::vector< Node >& subs ) {
+  Trace("cegqi-si-debug") << "Can possibly set " << d_single_inv_sk[v] << " based on " << lhs << " = " << rhs << std::endl;
+  subs_from_model.erase( d_single_inv_sk[v] );
+  Node prev_subs_v = subs[v];
+  subs[v] = d_single_inv_sk[v];
+  Node eq = lhs.eqNode( rhs );
+  std::map< Node, Node > msum;
+  if( QuantArith::getMonomialSumLit( eq, msum ) ){
+    Trace("cegqi-si-debug") << "As monomial sum : " << std::endl;
+    QuantArith::debugPrintMonomialSum( msum, "cegqi-si");
+    Node veq;
+    if( QuantArith::isolate( d_single_inv_sk[v], msum, veq, EQUAL ) ){
+      Trace("cegqi-si-debug") << "Isolated for " << d_single_inv_sk[v] << " : " << veq << std::endl;
+      Node sol;
+      for( unsigned r=0; r<2; r++ ){
+        if( veq[r]==d_single_inv_sk[v] ){
+          sol = veq[ r==0 ? 1 : 0 ];
+        }
+      }
+      if( !sol.isNull() ){
+        sol = applyProgVarSubstitution( sol, subs_from_model, subs );
+        Trace("cegqi-si-debug") << "Substituted solution is : " << sol << std::endl;
+        subs[v] = sol;
+        Trace("cegqi-engine") << "  ...by arithmetic, " << d_single_inv_sk[v] << " -> " << sol << std::endl;
+        return true;
+      }
+    }
+  }
+  subs[v] = prev_subs_v;
+  return false;
 }
 
 Node CegConjectureSingleInv::applyProgVarSubstitution( Node n, std::map< Node, int >& subs_from_model, std::vector< Node >& subs ) {
@@ -622,35 +630,34 @@ Node CegConjectureSingleInv::applyProgVarSubstitution( Node n, std::map< Node, i
   }
 }
 
-int CegConjectureSingleInv::classifyTerm( Node n, std::map< Node, int >& subs_from_model ) {
+bool CegConjectureSingleInv::classifyTerm( Node n, std::map< Node, int >& subs_from_model, std::vector< int >& vars ) {
   if( n.getKind()==SKOLEM ){
     std::map< Node, int >::iterator it = subs_from_model.find( n );
     if( it!=subs_from_model.end() ){
-      return it->second;
+      if( std::find( vars.begin(), vars.end(), it->second )==vars.end() ){
+        vars.push_back( it->second );
+      }
+      return true;
     }else{
       // if it is symbolic argument, we are also fine
       if( std::find( d_single_inv_arg_sk.begin(), d_single_inv_arg_sk.end(), n )!=d_single_inv_arg_sk.end() ){
-        return -1;
+        return true;
       }else{
         //if it is another program, we are also fine
         if( std::find( d_single_inv_sk.begin(), d_single_inv_sk.end(), n )!=d_single_inv_sk.end() ){
-          return -1;
+          return true;
         }else{
-          return -2;
+          return false;
         }
       }
     }
   }else{
-    int curr_res = -1;
     for( unsigned i=0; i<n.getNumChildren(); i++ ){
-      int res = classifyTerm( n[i], subs_from_model );
-      if( res==-2 ){
-        return res;
-      }else if( res!=-1 ){
-        curr_res = res;
+      if( !classifyTerm( n[i], subs_from_model, vars ) ){
+        return false;
       }
     }
-    return curr_res;
+    return true;
   }
 }
 
