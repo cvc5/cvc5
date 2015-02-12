@@ -309,7 +309,9 @@ if test $cvc4_use_cln != 0; then
   PKG_CHECK_MODULES([CLN], [cln >= 1.2.2],
     [AC_LANG_PUSH([C++])
      save_LIBS="$LIBS"
+     save_CXXFLAGS="$CXXFLAGS"
      LIBS="$CLN_LIBS $LIBS"
+     CXXFLAGS="$CLN_CFLAGS $CXXFLAGS"
      AC_LINK_IFELSE([AC_LANG_PROGRAM([[#include <cln/cln.h>]], [[cln::cl_F pi = "3.1415926";]])], [
        cvc4_use_cln=1
      ], [
@@ -323,6 +325,7 @@ if test $cvc4_use_cln != 0; then
          cvc4_use_gmp=1
        fi
      ])
+     CXXFLAGS="$save_CXXFLAGS"
      LIBS="$save_LIBS"
      AC_LANG_POP([C++])
     ],
@@ -426,12 +429,13 @@ as_me=configure
 
 # Unpack standard build types. Any particular options can be overriden with
 # --enable/disable-X options
+# Tim: This needs to keep CVC4CPPFLAGS, CVC4CXXFLAGS, etc. set by earlier checks
 case "$with_build" in
   production) # highly optimized, no assertions, no tracing, dumping
-    CVC4CPPFLAGS=
-    CVC4CXXFLAGS=
-    CVC4CFLAGS=
-    CVC4LDFLAGS=
+    CVC4CPPFLAGS="${CVC4CPPFLAGS:+$CVC4CPPFLAGS }"
+    CVC4CXXFLAGS="${CVC4CXXFLAGS:+$CVC4CXXFLAGS }"
+    CVC4CFLAGS="${CVC4CFLAGS:+$CVC4CFLAGS }"
+    CVC4LDFLAGS="${CVC4LDFLAGS:+$CVC4LDFLAGS }"
     FLAG_VISIBILITY_HIDDEN='-fvisibility=hidden'
     if test -z "${OPTLEVEL+set}"            ; then OPTLEVEL=3                       ; fi
     if test -z "${enable_optimized+set}"    ; then enable_optimized=yes             ; fi
@@ -445,10 +449,10 @@ case "$with_build" in
     if test -z "${enable_muzzle+set}"       ; then enable_muzzle=no                 ; fi
     ;;
   debug) # unoptimized, debug symbols, assertions, tracing, dumping
-    CVC4CPPFLAGS='-DCVC4_DEBUG'
-    CVC4CXXFLAGS='-fno-inline'
-    CVC4CFLAGS='-fno-inline'
-    CVC4LDFLAGS=
+    CVC4CPPFLAGS="${CVC4CPPFLAGS:+$CVC4CPPFLAGS }-DCVC4_DEBUG"
+    CVC4CXXFLAGS="${CVC4CXXFLAGS:+$CVC4CXXFLAGS }-fno-inline"
+    CVC4CFLAGS="${CVC4CFLAGS:+$CVC4CFLAGS }-fno-inline"
+    CVC4LDFLAGS="${CVC4LDFLAGS:+$CVC4LDFLAGS }"
     FLAG_VISIBILITY_HIDDEN=
     if test -z "${enable_optimized+set}"    ; then enable_optimized=no              ; fi
     if test -z "${enable_debug_symbols+set}"; then enable_debug_symbols=yes         ; fi
@@ -461,10 +465,10 @@ case "$with_build" in
     if test -z "${enable_muzzle+set}"       ; then enable_muzzle=no                 ; fi
     ;;
   default) # moderately optimized, assertions, tracing, dumping
-    CVC4CPPFLAGS=
-    CVC4CXXFLAGS=
-    CVC4CFLAGS=
-    CVC4LDFLAGS=
+    CVC4CPPFLAGS="${CVC4CPPFLAGS:+$CVC4CPPFLAGS }"
+    CVC4CXXFLAGS="${CVC4CXXFLAGS:+$CVC4CXXFLAGS }"
+    CVC4CFLAGS="${CVC4CFLAGS:+$CVC4CFLAGS }"
+    CVC4LDFLAGS="${CVC4LDFLAGS:+$CVC4LDFLAGS }"
     FLAG_VISIBILITY_HIDDEN='-fvisibility=hidden'
     if test -z "${OPTLEVEL+set}"            ; then OPTLEVEL=2                       ; fi
     if test -z "${enable_optimized+set}"    ; then enable_optimized=yes             ; fi
@@ -478,10 +482,10 @@ case "$with_build" in
     if test -z "${enable_muzzle+set}"       ; then enable_muzzle=no                 ; fi
     ;;
   competition) # maximally optimized, no assertions, no tracing, no dumping, muzzled
-    CVC4CPPFLAGS='-DCVC4_COMPETITION_MODE'
-    CVC4CXXFLAGS='-funroll-all-loops -fexpensive-optimizations -fno-enforce-eh-specs'
-    CVC4CFLAGS='-funroll-all-loops -fexpensive-optimizations -fno-enforce-eh-specs'
-    CVC4LDFLAGS=
+    CVC4CPPFLAGS="${CVC4CPPFLAGS:+$CVC4CPPFLAGS }-DCVC4_COMPETITION_MODE"
+    CVC4CXXFLAGS="${CVC4CXXFLAGS:+$CVC4CXXFLAGS }-funroll-all-loops -fexpensive-optimizations -fno-enforce-eh-specs"
+    CVC4CFLAGS="${CVC4CFLAGS:+$CVC4CFLAGS }-funroll-all-loops -fexpensive-optimizations -fno-enforce-eh-specs"
+    CVC4LDFLAGS="${CVC4LDFLAGS:+$CVC4LDFLAGS }"
     FLAG_VISIBILITY_HIDDEN='-fvisibility=hidden'
     if test -z "${OPTLEVEL+set}"            ; then OPTLEVEL=9                       ; fi
     if test -z "${enable_optimized+set}"    ; then enable_optimized=yes             ; fi
