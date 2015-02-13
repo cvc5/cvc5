@@ -25,7 +25,6 @@
 #include "expr/node_manager.h"
 #include "expr/node.h"
 #include "expr/attribute.h"
-#include "util/recursion_breaker.h"
 #include "util/matcher.h"
 #include "util/cvc4_assert.h"
 
@@ -38,20 +37,14 @@ namespace expr {
     struct DatatypeIndexTag {};
     struct DatatypeConsIndexTag {};
     struct DatatypeFiniteTag {};
-    struct DatatypeWellFoundedTag {};
     struct DatatypeFiniteComputedTag {};
-    struct DatatypeWellFoundedComputedTag {};
-    struct DatatypeGroundTermTag {};
   }/* CVC4::expr::attr namespace */
 }/* CVC4::expr namespace */
 
 typedef expr::Attribute<expr::attr::DatatypeIndexTag, uint64_t> DatatypeIndexAttr;
 typedef expr::Attribute<expr::attr::DatatypeConsIndexTag, uint64_t> DatatypeConsIndexAttr;
 typedef expr::Attribute<expr::attr::DatatypeFiniteTag, bool> DatatypeFiniteAttr;
-typedef expr::Attribute<expr::attr::DatatypeWellFoundedTag, bool> DatatypeWellFoundedAttr;
 typedef expr::Attribute<expr::attr::DatatypeFiniteComputedTag, bool> DatatypeFiniteComputedAttr;
-typedef expr::Attribute<expr::attr::DatatypeWellFoundedComputedTag, bool> DatatypeWellFoundedComputedAttr;
-typedef expr::Attribute<expr::attr::DatatypeGroundTermTag, Node> DatatypeGroundTermAttr;
 
 const Datatype& Datatype::datatypeOf(Expr item) {
   ExprManagerScope ems(item);
@@ -312,30 +305,30 @@ Expr Datatype::mkGroundTerm( Type t ) const throw(IllegalArgumentException) {
   CheckArgument(isResolved(), this, "this datatype is not yet resolved");
   ExprManagerScope ems(d_self);
 
-  TypeNode self = TypeNode::fromType(d_self);
 
   // is this already in the cache ?
-  Expr groundTerm = self.getAttribute(DatatypeGroundTermAttr()).toExpr();
-  if(!groundTerm.isNull()) {
-    Debug("datatypes") << "\nin cache: " << d_self << " => " << groundTerm << std::endl;
+  std::map< Type, Expr >::iterator it = d_ground_term.find( t );
+  if( it != d_ground_term.end() ){
+    Debug("datatypes") << "\nin cache: " << d_self << " => " << it->second << std::endl;
+    return it->second;
   } else {
     std::vector< Type > processing;
-    groundTerm = computeGroundTerm( t, processing );
-    if(!groundTerm.isNull() && !isParametric() ) {
+    Expr groundTerm = computeGroundTerm( t, processing );
+    if(!groundTerm.isNull() ) {
       // we found a ground-term-constructing constructor!
-      self.setAttribute(DatatypeGroundTermAttr(), groundTerm);
       Debug("datatypes") << "constructed: " << getName() << " => " << groundTerm << std::endl;
     }
-  }
-  if( groundTerm.isNull() ){
-    if( !d_isCo ){
-      // if we get all the way here, we aren't well-founded
-      CheckArgument(false, *this, "datatype is not well-founded, cannot construct a ground term!");
+    d_ground_term[t] = groundTerm;
+    if( groundTerm.isNull() ){
+      if( !d_isCo ){
+        // if we get all the way here, we aren't well-founded
+        CheckArgument(false, *this, "datatype is not well-founded, cannot construct a ground term!");
+      }else{
+        return groundTerm;
+      }
     }else{
       return groundTerm;
     }
-  }else{
-    return groundTerm;
   }
 }
 
@@ -751,69 +744,6 @@ bool DatatypeConstructor::isFinite() const throw(IllegalArgumentException) {
   self.setAttribute(DatatypeFiniteComputedAttr(), true);
   self.setAttribute(DatatypeFiniteAttr(), true);
   return true;
-}
-
-bool DatatypeConstructor::isWellFounded() const throw(IllegalArgumentException) {
-  CheckArgument(isResolved(), this, "this datatype constructor is not yet resolved");
-
-  // we're using some internals, so we have to set up this library context
-  ExprManagerScope ems(d_constructor);
-  std::vector< Type > processing;
-  return computeWellFounded( processing );
-}
-
-Expr DatatypeConstructor::mkGroundTerm( Type t ) const throw(IllegalArgumentException) {
-  CheckArgument(isResolved(), this, "this datatype constructor is not yet resolved");
-
-  // we're using some internals, so we have to set up this library context
-  ExprManagerScope ems(d_constructor);
-
-  TNode self = Node::fromExpr(d_constructor);
-
-  // is this already in the cache ?
-  Expr groundTerm = self.getAttribute(DatatypeGroundTermAttr()).toExpr();
-  if(!groundTerm.isNull()) {
-    return groundTerm;
-  }
-
-  RecursionBreaker<const DatatypeConstructor*, DatatypeHashFunction> breaker(__PRETTY_FUNCTION__, this);
-  if(breaker.isRecursion()) {
-    // Recursive path, we should skip and go to the next constructor;
-    // see lengthy comments in Datatype::mkGroundTerm().
-    return Expr();
-  }
-
-  std::vector<Expr> groundTerms;
-  groundTerms.push_back(getConstructor());
-
-  // for each selector, get a ground term
-  CheckArgument( t.isDatatype(), t );
-  std::vector< Type > instTypes;
-  std::vector< Type > paramTypes;
-  if( DatatypeType(t).isParametric() ){
-    paramTypes = DatatypeType(t).getDatatype().getParameters();
-    instTypes = DatatypeType(t).getParamTypes();
-  }
-  for(const_iterator i = begin(), i_end = end(); i != i_end; ++i) {
-    Type selType = SelectorType((*i).getSelector().getType()).getRangeType();
-    if( DatatypeType(t).isParametric() ){
-      selType = selType.substitute( paramTypes, instTypes );
-    }
-    groundTerms.push_back(selType.mkGroundTerm());
-  }
-
-  groundTerm = getConstructor().getExprManager()->mkExpr(kind::APPLY_CONSTRUCTOR, groundTerms);
-  if( groundTerm.getType()!=t ){
-    Assert( Datatype::datatypeOf( d_constructor ).isParametric() );
-    //type is ambiguous, must apply type ascription
-    Debug("datatypes-gt") << "ambiguous type for " << groundTerm << ", ascribe to " << t << std::endl;
-    groundTerms[0] = getConstructor().getExprManager()->mkExpr(kind::APPLY_TYPE_ASCRIPTION,
-                       getConstructor().getExprManager()->mkConst(AscriptionType(getSpecializedConstructorType(t))),
-                       groundTerms[0]);
-    groundTerm = getConstructor().getExprManager()->mkExpr(kind::APPLY_CONSTRUCTOR, groundTerms);
-  }
-  self.setAttribute(DatatypeGroundTermAttr(), groundTerm);
-  return groundTerm;
 }
 
 Expr DatatypeConstructor::computeGroundTerm( Type t, std::vector< Type >& processing ) const throw(IllegalArgumentException) {

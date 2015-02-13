@@ -264,49 +264,6 @@ struct ConstructorProperties {
     }
     return c;
   }
-
-  inline static bool isWellFounded(TypeNode type) {
-    // Constructors aren't exactly functions, they're like
-    // parameterized ground terms.  So the wellfoundedness is more
-    // like that of a tuple than that of a function.
-    AssertArgument(type.isConstructor(), type);
-    for(unsigned i = 0, i_end = type.getNumChildren(); i < i_end - 1; ++i) {
-      if(!type[i].isWellFounded()) {
-        return false;
-      }
-    }
-    return true;
-  }
-
-  inline static Node mkGroundTerm(TypeNode type) {
-    AssertArgument(type.isConstructor(), type);
-
-    // is this already in the cache ?
-    Node groundTerm = type.getAttribute(GroundTermAttr());
-    if(!groundTerm.isNull()) {
-      return groundTerm;
-    }
-
-    // This is a bit tricky; Constructors have a unique index within
-    // their datatype, but Constructor *types* do not; multiple
-    // Constructors within the same Datatype could share the same
-    // type.  So we scan through the datatype to find one that
-    // matches.
-    //const Datatype& dt = type[type.getNumChildren() - 1].getConst<Datatype>();
-    const Datatype& dt = DatatypeType(type[type.getNumChildren() - 1].toType()).getDatatype();
-    for(Datatype::const_iterator i = dt.begin(),
-          i_end = dt.end();
-        i != i_end;
-        ++i) {
-      if(TypeNode::fromType((*i).getConstructor().getType()) == type) {
-        groundTerm = Node::fromExpr((*i).mkGroundTerm( type.toType() ));
-        type.setAttribute(GroundTermAttr(), groundTerm);
-        return groundTerm;
-      }
-    }
-
-    InternalError("couldn't find a matching constructor?!");
-  }
 };/* struct ConstructorProperties */
 
 struct TupleTypeRule {

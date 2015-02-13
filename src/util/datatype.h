@@ -320,20 +320,6 @@ public:
   bool isFinite() const throw(IllegalArgumentException);
 
   /**
-   * Return true iff this constructor is well-founded (there exist
-   * ground terms).  The constructor must be resolved or an
-   * exception is thrown.
-   */
-  bool isWellFounded() const throw(IllegalArgumentException);
-
-  /**
-   * Construct and return a ground term of this constructor.  The
-   * constructor must be both resolved and well-founded, or else an
-   * exception is thrown.
-   */
-  Expr mkGroundTerm( Type t ) const throw(IllegalArgumentException);
-
-  /**
    * Returns true iff this Datatype constructor has already been
    * resolved.
    */
@@ -483,7 +469,7 @@ private:
   // is this well-founded
   mutable int d_well_founded;
   // ground term for this datatype
-  mutable Expr d_ground_term;
+  mutable std::map< Type, Expr > d_ground_term;
 
   /**
    * Datatypes refer to themselves, recursively, and we have a
