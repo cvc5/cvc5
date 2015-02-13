@@ -228,8 +228,8 @@ public:
     //tryGoodInput("a : [0..0]; b : [-5..5]; c : [-1..1]; d : [ _ .._];"); // subranges
     tryGoodInput("a : [ _..1]; b : [_.. 0]; c :[_..-1];");
     tryGoodInput("DATATYPE list = nil | cons(car:INT,cdr:list) END; DATATYPE cons = null END;");
-    tryGoodInput("DATATYPE tree = node(data:list), list = cons(car:tree,cdr:list) END;");
-    tryGoodInput("DATATYPE tree = node(data:[list,list,ARRAY tree OF list]), list = cons(car:ARRAY list OF tree,cdr:BITVECTOR(32)) END;");
+    tryGoodInput("DATATYPE tree = node(data:list), list = cons(car:tree,cdr:list) | nil END;");
+    //tryGoodInput("DATATYPE tree = node(data:[list,list,ARRAY tree OF list]), list = cons(car:ARRAY list OF tree,cdr:BITVECTOR(32)) END;");
     tryGoodInput("DATATYPE trex = Foo | Bar END; DATATYPE tree = node(data:[list,list,ARRAY trex OF list]), list = cons(car:ARRAY list OF tree,cdr:BITVECTOR(32)) END;");
   }
 

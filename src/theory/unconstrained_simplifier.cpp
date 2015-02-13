@@ -3,7 +3,7 @@
  ** \verbatim
  ** Original author: Clark Barrett
  ** Major contributors: none
- ** Minor contributors (to current version): Kshitij Bansal, Morgan Deters, Tim King, Liana Hadarean, Peter Collingbourne
+ ** Minor contributors (to current version): Kshitij Bansal, Morgan Deters, Tim King, Liana Hadarean, Peter Collingbourne, Andrew Reynolds
  ** This file is part of the CVC4 project.
  ** Copyright (c) 2009-2014  New York University and The University of Iowa
  ** See the file COPYING in the top-level source directory for licensing
@@ -194,6 +194,14 @@ void UnconstrainedSimplifier::processUnconstrained()
           if (parent[0].getType() != parent[1].getType()) {
             TNode other = (parent[0] == current) ? parent[1] : parent[0];
             if (current.getType().isSubtypeOf(other.getType())) {
+              break;
+            }
+          }
+          if( parent[0].getType().isDatatype() ){
+            TypeNode tn = parent[0].getType();
+            const Datatype& dt = ((DatatypeType)(tn).toType()).getDatatype();
+            if( dt.isRecursiveSingleton() ){
+              //domain size may be 1
               break;
             }
           }

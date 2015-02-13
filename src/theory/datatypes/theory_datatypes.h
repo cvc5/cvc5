@@ -181,6 +181,11 @@ private:
   SygusSplit * d_sygus_split;
   SygusSymBreak * d_sygus_sym_break;
 private:
+  /** singleton lemmas (for degenerate co-datatype case) */
+  std::map< TypeNode, Node > d_singleton_lemma[2];
+  /** Cache for singleton equalities processed */
+  BoolMap d_singleton_eq;
+private:
   /** assert fact */
   void assertFact( Node fact, Node exp );
   /** flush pending facts */
@@ -262,6 +267,8 @@ private:
                           std::map< Node, std::map< Node, int > >& dni, int dniLvl, bool mkExp );
   /** build model */
   Node getCodatatypesValue( Node n, std::map< Node, Node >& eqc_cons, std::map< Node, Node >& eqc_mu, std::map< Node, Node >& vmap, std::vector< Node >& fv );
+  /** get singleton lemma */
+  Node getSingletonLemma( TypeNode tn, bool pol );
   /** collect terms */
   void collectTerms( Node n );
   /** get instantiate cons */

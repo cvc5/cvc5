@@ -151,25 +151,100 @@ void Datatype::setSygus( Type st, Expr bvl ){
 
 Cardinality Datatype::getCardinality() const throw(IllegalArgumentException) {
   CheckArgument(isResolved(), this, "this datatype is not yet resolved");
+  std::vector< Type > processing;
+  computeCardinality( processing );
+  return d_card;
+}
 
-  // already computed?
-  if(!d_card.isUnknown()) {
-    return d_card;
+Cardinality Datatype::computeCardinality( std::vector< Type >& processing ) const throw(IllegalArgumentException){
+  CheckArgument(isResolved(), this, "this datatype is not yet resolved");
+  if( std::find( processing.begin(), processing.end(), d_self )!=processing.end() ){
+    d_card = Cardinality::INTEGERS;
+  }else{
+    processing.push_back( d_self );
+    Cardinality c = 0;
+    for(const_iterator i = begin(), i_end = end(); i != i_end; ++i) {
+      c += (*i).computeCardinality( processing );
+    }
+    d_card = c;
+    processing.pop_back();
   }
+  return d_card;
+}
 
-  RecursionBreaker<const Datatype*, DatatypeHashFunction> breaker(__PRETTY_FUNCTION__, this);
-
-  if(breaker.isRecursion()) {
-    return d_card = Cardinality::INTEGERS;
+bool Datatype::isRecursiveSingleton() const throw(IllegalArgumentException) {
+  CheckArgument(isResolved(), this, "this datatype is not yet resolved");
+  if( d_card_rec_singleton==0 ){
+    Assert( d_card_u_assume.empty() );
+    std::vector< Type > processing;
+    if( computeCardinalityRecSingleton( processing, d_card_u_assume ) ){
+      d_card_rec_singleton = 1;
+    }else{
+      d_card_rec_singleton = -1;
+    }
+    if( d_card_rec_singleton==1 ){
+      Trace("dt-card") << "Datatype " << getName() << " is recursive singleton, dependent upon " << d_card_u_assume.size() << " uninterpreted sorts: " << std::endl;
+      for( unsigned i=0; i<d_card_u_assume.size(); i++ ){
+        Trace("dt-card") << "  " << d_card_u_assume [i] << std::endl;
+      }
+      Trace("dt-card") << std::endl;
+    }
   }
+  return d_card_rec_singleton==1;
+}
 
-  Cardinality c = 0;
-  for(const_iterator i = begin(), i_end = end(); i != i_end; ++i) {
-    // We can't just add to d_card here, since this function is reentrant
-    c += (*i).getCardinality();
+unsigned Datatype::getNumRecursiveSingletonArgTypes() const throw(IllegalArgumentException) {
+  return d_card_u_assume.size();
+}
+Type Datatype::getRecursiveSingletonArgType( unsigned i ) const throw(IllegalArgumentException) {
+  return d_card_u_assume[i];
+}
+
+bool Datatype::computeCardinalityRecSingleton( std::vector< Type >& processing, std::vector< Type >& u_assume ) const throw(IllegalArgumentException){
+  if( std::find( processing.begin(), processing.end(), d_self )!=processing.end() ){
+    return true;
+  }else{
+    if( d_card_rec_singleton==0 ){
+      //if not yet computed
+      if( d_constructors.size()==1 ){
+        bool success = false;
+        processing.push_back( d_self );
+        for(unsigned i = 0; i<d_constructors[0].getNumArgs(); i++ ) {
+          Type t = ((SelectorType)d_constructors[0][i].getType()).getRangeType();
+          //if it is an uninterpreted sort, then we depend on it having cardinality one
+          if( t.isSort() ){
+            if( std::find( u_assume.begin(), u_assume.end(), t )==u_assume.end() ){
+              u_assume.push_back( t );
+            }
+          //if it is a datatype, recurse
+          }else if( t.isDatatype() ){
+            const Datatype & dt = ((DatatypeType)t).getDatatype();
+            if( !dt.computeCardinalityRecSingleton( processing, u_assume ) ){
+              return false;
+            }else{
+              success = true;
+            }
+          //if it is a builtin type, it must have cardinality one
+          }else if( !t.getCardinality().isOne() ){
+            return false;
+          }
+        }
+        processing.pop_back();
+        return success;
+      }else{
+        return false;
+      }
+    }else if( d_card_rec_singleton==-1 ){
+      return false;
+    }else{
+      for( unsigned i=0; i<d_card_u_assume.size(); i++ ){
+        if( std::find( u_assume.begin(), u_assume.end(), d_card_u_assume[i] )==u_assume.end() ){
+          u_assume.push_back( d_card_u_assume[i] );
+        }
+      }
+      return true;
+    }
   }
-
-  return d_card = c;
 }
 
 bool Datatype::isFinite() const throw(IllegalArgumentException) {
@@ -200,44 +275,42 @@ bool Datatype::isFinite() const throw(IllegalArgumentException) {
 
 bool Datatype::isWellFounded() const throw(IllegalArgumentException) {
   CheckArgument(isResolved(), this, "this datatype is not yet resolved");
-
-  // we're using some internals, so we have to set up this library context
-  ExprManagerScope ems(d_self);
-
-  TypeNode self = TypeNode::fromType(d_self);
-
-  // is this already in the cache ?
-  if(self.getAttribute(DatatypeWellFoundedComputedAttr())) {
-    return self.getAttribute(DatatypeWellFoundedAttr());
-  }
-
-  RecursionBreaker<const Datatype*, DatatypeHashFunction> breaker(__PRETTY_FUNCTION__, this);
-  if(breaker.isRecursion()) {
-    // This *path* is cyclic, so may not be well-founded.  The
-    // datatype itself might still be well-founded, though (we'll find
-    // the well-foundedness along another path).
-    return false;
-  }
-
-  for(const_iterator i = begin(), i_end = end(); i != i_end; ++i) {
-    if((*i).isWellFounded()) {
-      self.setAttribute(DatatypeWellFoundedComputedAttr(), true);
-      self.setAttribute(DatatypeWellFoundedAttr(), true);
-      return true;
+  if( d_well_founded==0 ){
+    // we're using some internals, so we have to set up this library context
+    ExprManagerScope ems(d_self);
+    std::vector< Type > processing;
+    if( computeWellFounded( processing ) ){
+      d_well_founded = 1;
+    }else{
+      d_well_founded = -1;
     }
   }
+  return d_well_founded==1;
+}
 
-  self.setAttribute(DatatypeWellFoundedComputedAttr(), true);
-  self.setAttribute(DatatypeWellFoundedAttr(), false);
-  return false;
+bool Datatype::computeWellFounded( std::vector< Type >& processing ) const throw(IllegalArgumentException) {
+  CheckArgument(isResolved(), this, "this datatype is not yet resolved");
+  if( std::find( processing.begin(), processing.end(), d_self )!=processing.end() ){
+    return d_isCo;
+  }else{
+    processing.push_back( d_self );
+    for(const_iterator i = begin(), i_end = end(); i != i_end; ++i) {
+      if( (*i).computeWellFounded( processing ) ){
+        processing.pop_back();
+        return true;
+      }else{
+        Trace("dt-wf") << "Constructor " << (*i).getName() << " is not well-founded." << std::endl;
+      }
+    }
+    processing.pop_back();
+    Trace("dt-wf") << "Datatype " << getName() << " is not well-founded." << std::endl;
+    return false;
+  }
 }
 
 Expr Datatype::mkGroundTerm( Type t ) const throw(IllegalArgumentException) {
   CheckArgument(isResolved(), this, "this datatype is not yet resolved");
-
-  // we're using some internals, so we have to set up this library context
   ExprManagerScope ems(d_self);
-  Debug("datatypes") << "dt mkGroundTerm " << t << std::endl;
 
   TypeNode self = TypeNode::fromType(d_self);
 
@@ -246,78 +319,49 @@ Expr Datatype::mkGroundTerm( Type t ) const throw(IllegalArgumentException) {
   if(!groundTerm.isNull()) {
     Debug("datatypes") << "\nin cache: " << d_self << " => " << groundTerm << std::endl;
   } else {
-    Debug("datatypes") << "\nNOT in cache: " << d_self << std::endl;
-    // look for a nullary ctor and use that
-    for(const_iterator i = begin(), i_end = end(); i != i_end; ++i) {
-      // prefer the nullary constructor
-      if( groundTerm.isNull() && (*i).getNumArgs() == 0) {
-        groundTerm = d_constructors[indexOf((*i).getConstructor())].mkGroundTerm( t );
-        //groundTerm = (*i).getConstructor().getExprManager()->mkExpr(kind::APPLY_CONSTRUCTOR, (*i).getConstructor());
-        self.setAttribute(DatatypeGroundTermAttr(), groundTerm);
-        Debug("datatypes-gt") << "constructed nullary: " << getName() << " => " << groundTerm << std::endl;
-      }
-    }
-    // No ctors are nullary, but we can't just use the first ctor
-    // because that might recurse!  In fact, since this datatype is
-    // well-founded by assumption, we know that at least one constructor
-    // doesn't contain a self-reference.  We search for that one and use
-    // it to construct the ground term, as that is often a simpler
-    // ground term (e.g. in a tree datatype, something like "(leaf 0)"
-    // is simpler than "(node (leaf 0) (leaf 0))".
-    //
-    // Of course this check doesn't always work, if the self-reference
-    // is through other Datatypes (or other non-Datatype types), but it
-    // does simplify a common case.  It requires a bit of extra work,
-    // but since we cache the results of these, it only happens once,
-    // ever, per Datatype.
-    //
-    // If the datatype is not actually well-founded, something below
-    // will throw an exception.
-    for(const_iterator i = begin(), i_end = end();
-        i != i_end;
-        ++i) {
-      if( groundTerm.isNull() ){
-        DatatypeConstructor::const_iterator j = (*i).begin(), j_end = (*i).end();
-        for(; j != j_end; ++j) {
-          SelectorType stype((*j).getSelector().getType());
-          if(stype.getDomain() == stype.getRangeType()) {
-            Debug("datatypes") << "self-reference, skip " << getName() << "::" << (*i).getName() << std::endl;
-            // the constructor contains a direct self-reference
-            break;
-          }
-        }
-
-        if(j == j_end && (*i).isWellFounded()) {
-          groundTerm = (*i).mkGroundTerm( t );
-          // DatatypeConstructor::mkGroundTerm() doesn't ever return null when
-          // called from the outside.  But in recursive invocations, it
-          // can: say you have dt = a(one:dt) | b(two:INT), and you ask
-          // the "a" constructor for a ground term.  It asks "dt" for a
-          // ground term, which in turn asks the "a" constructor for a
-          // ground term!  Thus, even though "a" is a well-founded
-          // constructor, it cannot construct a ground-term by itself.  We
-          // have to skip past it, and we do that with a
-          // RecursionBreaker<> in DatatypeConstructor::mkGroundTerm().  In the
-          // case of recursion, it returns null.
-          if(!groundTerm.isNull()) {
-            // we found a ground-term-constructing constructor!
-            self.setAttribute(DatatypeGroundTermAttr(), groundTerm);
-            Debug("datatypes") << "constructed: " << getName() << " => " << groundTerm << std::endl;
-          }
-        }
-      }
+    std::vector< Type > processing;
+    groundTerm = computeGroundTerm( t, processing );
+    if(!groundTerm.isNull() && !isParametric() ) {
+      // we found a ground-term-constructing constructor!
+      self.setAttribute(DatatypeGroundTermAttr(), groundTerm);
+      Debug("datatypes") << "constructed: " << getName() << " => " << groundTerm << std::endl;
     }
   }
   if( groundTerm.isNull() ){
     if( !d_isCo ){
       // if we get all the way here, we aren't well-founded
-      CheckArgument(false, *this, "this datatype is not well-founded, cannot construct a ground term!");
+      CheckArgument(false, *this, "datatype is not well-founded, cannot construct a ground term!");
     }else{
       return groundTerm;
     }
   }else{
     return groundTerm;
   }
+}
+
+Expr Datatype::computeGroundTerm( Type t, std::vector< Type >& processing ) const throw(IllegalArgumentException) {
+  if( std::find( processing.begin(), processing.end(), d_self )==processing.end() ){
+    processing.push_back( d_self );
+    for( unsigned r=0; r<2; r++ ){
+      for(const_iterator i = begin(), i_end = end(); i != i_end; ++i) {
+        //do nullary constructors first
+        if( ((*i).getNumArgs()==0)==(r==0)){
+          Debug("datatypes") << "Try constructing for " << (*i).getName() << ", processing = " << processing.size() << std::endl;
+          Expr e = (*i).computeGroundTerm( t, processing );
+          if( !e.isNull() ){
+            processing.pop_back();
+            return e;
+          }else{
+            Debug("datatypes") << "...failed." << std::endl;
+          }
+        }
+      }
+    }
+    processing.pop_back();
+  }else{
+    Debug("datatypes") << "...already processing " << t << std::endl;
+  }
+  return Expr();
 }
 
 DatatypeType Datatype::getDatatypeType() const throw(IllegalArgumentException) {
@@ -654,6 +698,35 @@ Cardinality DatatypeConstructor::getCardinality() const throw(IllegalArgumentExc
   return c;
 }
 
+/** compute the cardinality of this datatype */
+Cardinality DatatypeConstructor::computeCardinality( std::vector< Type >& processing ) const throw(IllegalArgumentException){
+  Cardinality c = 1;
+  for(const_iterator i = begin(), i_end = end(); i != i_end; ++i) {
+    Type t = SelectorType((*i).getSelector().getType()).getRangeType();
+    if( t.isDatatype() ){
+      const Datatype& dt = ((DatatypeType)t).getDatatype();
+      c *= dt.computeCardinality( processing );
+    }else{
+      c *= t.getCardinality();
+    }
+  }
+  return c;
+}
+
+bool DatatypeConstructor::computeWellFounded( std::vector< Type >& processing ) const throw(IllegalArgumentException){
+  for(const_iterator i = begin(), i_end = end(); i != i_end; ++i) {
+    Type t = SelectorType((*i).getSelector().getType()).getRangeType();
+    if( t.isDatatype() ){
+      const Datatype& dt = ((DatatypeType)t).getDatatype();
+      if( !dt.computeWellFounded( processing ) ){
+        return false;
+      }
+    }
+  }
+  return true;
+}
+
+
 bool DatatypeConstructor::isFinite() const throw(IllegalArgumentException) {
   CheckArgument(isResolved(), this, "this datatype constructor is not yet resolved");
 
@@ -685,43 +758,8 @@ bool DatatypeConstructor::isWellFounded() const throw(IllegalArgumentException) 
 
   // we're using some internals, so we have to set up this library context
   ExprManagerScope ems(d_constructor);
-
-  TNode self = Node::fromExpr(d_constructor);
-
-  // is this already in the cache ?
-  if(self.getAttribute(DatatypeWellFoundedComputedAttr())) {
-    return self.getAttribute(DatatypeWellFoundedAttr());
-  }
-
-  RecursionBreaker<const DatatypeConstructor*, DatatypeHashFunction> breaker(__PRETTY_FUNCTION__, this);
-  if(breaker.isRecursion()) {
-    // This *path* is cyclic, sso may not be well-founded.  The
-    // constructor itself might still be well-founded, though (we'll
-    // find the well-foundedness along another path).
-    return false;
-  }
-
-  for(const_iterator i = begin(), i_end = end(); i != i_end; ++i) {
-    if(! SelectorType((*i).getSelector().getType()).getRangeType().isWellFounded()) {
-      /* FIXME - we can't cache a negative result here, because a
-         Datatype might tell us it's not well founded along this
-         *path*, due to recursion, when it really is well-founded.
-         This should be fixed by creating private functions to do the
-         recursion here, and leaving the (public-facing)
-         isWellFounded() call as the base of that recursion.  Then we
-         can distinguish the cases.
-      */
-      /*
-      self.setAttribute(DatatypeWellFoundedComputedAttr(), true);
-      self.setAttribute(DatatypeWellFoundedAttr(), false);
-      */
-      return false;
-    }
-  }
-
-  self.setAttribute(DatatypeWellFoundedComputedAttr(), true);
-  self.setAttribute(DatatypeWellFoundedAttr(), true);
-  return true;
+  std::vector< Type > processing;
+  return computeWellFounded( processing );
 }
 
 Expr DatatypeConstructor::mkGroundTerm( Type t ) const throw(IllegalArgumentException) {
@@ -777,6 +815,55 @@ Expr DatatypeConstructor::mkGroundTerm( Type t ) const throw(IllegalArgumentExce
   self.setAttribute(DatatypeGroundTermAttr(), groundTerm);
   return groundTerm;
 }
+
+Expr DatatypeConstructor::computeGroundTerm( Type t, std::vector< Type >& processing ) const throw(IllegalArgumentException) {
+// we're using some internals, so we have to set up this library context
+  ExprManagerScope ems(d_constructor);
+
+  std::vector<Expr> groundTerms;
+  groundTerms.push_back(getConstructor());
+
+  // for each selector, get a ground term
+  std::vector< Type > instTypes;
+  std::vector< Type > paramTypes;
+  if( DatatypeType(t).isParametric() ){
+    paramTypes = DatatypeType(t).getDatatype().getParameters();
+    instTypes = DatatypeType(t).getParamTypes();
+  }
+  for(const_iterator i = begin(), i_end = end(); i != i_end; ++i) {
+    Type selType = SelectorType((*i).getSelector().getType()).getRangeType();
+    if( DatatypeType(t).isParametric() ){
+      selType = selType.substitute( paramTypes, instTypes );
+    }
+    Expr arg;
+    if( selType.isDatatype() ){
+      const Datatype & dt = DatatypeType(selType).getDatatype();
+      arg = dt.computeGroundTerm( selType, processing );
+    }else{
+      arg = selType.mkGroundTerm();
+    }
+    if( arg.isNull() ){
+      Debug("datatypes") << "...unable to construct arg of " << (*i).getName() << std::endl;
+      return Expr();
+    }else{
+      Debug("datatypes") << "...constructed arg " << arg.getType() << std::endl;
+      groundTerms.push_back(arg);
+    }
+  }
+
+  Expr groundTerm = getConstructor().getExprManager()->mkExpr(kind::APPLY_CONSTRUCTOR, groundTerms);
+  if( groundTerm.getType()!=t ){
+    Assert( Datatype::datatypeOf( d_constructor ).isParametric() );
+    //type is ambiguous, must apply type ascription
+    Debug("datatypes-gt") << "ambiguous type for " << groundTerm << ", ascribe to " << t << std::endl;
+    groundTerms[0] = getConstructor().getExprManager()->mkExpr(kind::APPLY_TYPE_ASCRIPTION,
+                       getConstructor().getExprManager()->mkConst(AscriptionType(getSpecializedConstructorType(t))),
+                       groundTerms[0]);
+    groundTerm = getConstructor().getExprManager()->mkExpr(kind::APPLY_CONSTRUCTOR, groundTerms);
+  }
+  return groundTerm;
+}
+
 
 const DatatypeConstructorArg& DatatypeConstructor::operator[](size_t index) const {
   CheckArgument(index < getNumArgs(), index, "index out of bounds");

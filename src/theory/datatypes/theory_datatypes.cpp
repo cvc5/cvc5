@@ -56,7 +56,8 @@ TheoryDatatypes::TheoryDatatypes(Context* c, UserContext* u, OutputChannel& out,
   d_conflict( c, false ),
   d_collectTermsCache( c ),
   d_consTerms( c ),
-  d_selTerms( c ){
+  d_selTerms( c ),
+  d_singleton_eq( u ){
 
   // The kinds we are treating as function application in congruence
   d_equalityEngine.addFunctionKind(kind::APPLY_CONSTRUCTOR);
@@ -175,6 +176,7 @@ void TheoryDatatypes::check(Effort e) {
     Debug("datatypes-split") << "Check for splits " << e << endl;
     addedFact = false;
     do {
+      std::map< TypeNode, Node > rec_singletons;
       eq::EqClassesIterator eqcs_i = eq::EqClassesIterator( &d_equalityEngine );
       while( !eqcs_i.isFinished() ){
         Node n = (*eqcs_i);
@@ -186,89 +188,128 @@ void TheoryDatatypes::check(Effort e) {
           if( !hasLabel( eqc, n ) ){
             Trace("datatypes-debug") << "No constructor..." << std::endl;
             const Datatype& dt = ((DatatypeType)(tn).toType()).getDatatype();
-
-            std::vector< bool > pcons;
-            getPossibleCons( eqc, n, pcons );
-            //std::cout << "pcons " << n << " = ";
-            //for( int i=0; i<(int)pcons.size(); i++ ){ //std::cout << pcons[i] << " "; }
-            //std::cout << std::endl;
-            //check if we do not need to resolve the constructor type for this equivalence class.
-            // this is if there are no selectors for this equivalence class, its possible values are infinite,
-            //  and we are not producing a model, then do not split.
-            int consIndex = -1;
-            bool needSplit = true;
-            for( unsigned int j=0; j<pcons.size(); j++ ) {
-              if( pcons[j] ) {
-                if( consIndex==-1 ){
-                  consIndex = j;
-                }
-                if( !dt[ j ].isFinite() && ( !eqc || !eqc->d_selectors ) ) {
-                  needSplit = false;
-                }
-              }
-            }
-            //d_dtfCounter++;
-            if( !needSplit && options::dtForceAssignment() && d_dtfCounter%2==0 ){
-              //for the sake of termination, we must choose the constructor of a ground term
-              //NEED GUARENTEE: groundTerm should not contain any subterms of the same type
-              // TODO: this is probably not good enough, actually need fair enumeration strategy
-              if( !n.getType().isRecord() ){ //FIXME
-                Node groundTerm = n.getType().mkGroundTerm();
-                if( groundTerm.getOperator().getType().isConstructor() ){ //FIXME
-                  int index = Datatype::indexOf( groundTerm.getOperator().toExpr() );
-                  if( pcons[index] ){
-                    consIndex = index;
+            bool continueProc = true;
+            if( dt.isRecursiveSingleton() ){
+              //handle recursive singleton case
+              std::map< TypeNode, Node >::iterator itrs = rec_singletons.find( tn );
+              if( itrs!=rec_singletons.end() ){
+                Node eq = n.eqNode( itrs->second );
+                if( d_singleton_eq.find( eq )==d_singleton_eq.end() ){
+                  d_singleton_eq[eq] = true;
+                  // get assumptions
+                  bool success = true;
+                  std::vector< Node > assumptions;
+                  //if there is at least one uninterpreted sort occurring within the datatype and the logic is not quantified, add lemmas ensuring cardinality is more than one,
+                  //  do not infer the equality if at least one sort was processed.
+                  //otherwise, if the logic is quantified, under the assumption that all uninterpreted sorts have cardinality one,
+                  //  infer the equality.
+                  for( unsigned i=0; i<dt.getNumRecursiveSingletonArgTypes(); i++ ){
+                    TypeNode tn = TypeNode::fromType( dt.getRecursiveSingletonArgType( i ) );
+                    if( getQuantifiersEngine() ){
+                      // under the assumption that the cardinality of this type is one
+                      Node a = getSingletonLemma( tn, true );
+                      assumptions.push_back( a.negate() );
+                    }else{
+                      success = false;
+                      // assert that the cardinality of this type is more than one
+                      getSingletonLemma( tn, false );
+                    }
                   }
-                  needSplit = true;
+                  if( success ){
+                    Node eq = n.eqNode( itrs->second );
+                    assumptions.push_back( eq );
+                    Node lemma = assumptions.size()==1 ? assumptions[0] : NodeManager::currentNM()->mkNode( OR, assumptions );
+                    Trace("dt-singleton") << "*************Singleton equality lemma " << lemma << std::endl;
+                    d_out->lemma( lemma );
+                  }
                 }
-              }
-            }
-
-            if( needSplit && consIndex!=-1 ) {
-              //if only one constructor, then this term must be this constructor
-              if( dt.getNumConstructors()==1 ){
-                Node t = DatatypesRewriter::mkTester( n, 0, dt );
-                d_pending.push_back( t );
-                d_pending_exp[ t ] = d_true;
-                Trace("datatypes-infer") << "DtInfer : 1-cons : " << t << std::endl;
-                d_infer.push_back( t );
               }else{
-                if( options::dtBinarySplit() ){
-                  Node test = DatatypesRewriter::mkTester( n, consIndex, dt );
-                  Trace("dt-split") << "*************Split for possible constructor " << dt[consIndex] << " for " << n << endl;
-                  test = Rewriter::rewrite( test );
-                  NodeBuilder<> nb(kind::OR);
-                  nb << test << test.notNode();
-                  Node lemma = nb;
-                  d_out->lemma( lemma );
-                  d_out->requirePhase( test, true );
-                }else{
-                  Trace("dt-split") << "*************Split for constructors on " << n <<  endl;
-                  std::vector< Node > children;
-                  if( dt.isSygus() && d_sygus_split ){
-                    std::vector< Node > lemmas;
-                    d_sygus_split->getSygusSplits( n, dt, children, lemmas );
-                    for( unsigned i=0; i<lemmas.size(); i++ ){
-                      Trace("dt-lemma-sygus") << "Dt sygus lemma : " << lemmas[i] << std::endl;
-                      d_out->lemma( lemmas[i] );
-                    }
-                  }else{
-                    for( unsigned i=0; i<dt.getNumConstructors(); i++ ){
-                      Node test = DatatypesRewriter::mkTester( n, i, dt );
-                      children.push_back( test );
-                    }
-                  }
-                  Assert( !children.empty() );
-                  Node lemma = children.size()==1 ? children[0] : NodeManager::currentNM()->mkNode( kind::OR, children );
-                  Trace("dt-split-debug") << "Split lemma is : " << lemma << std::endl;
-                  d_out->lemma( lemma );
-                }
-                return;
+                rec_singletons[tn] = n;
               }
-            }else{
-              Trace("dt-split-debug") << "Do not split constructor for " << n << " : " << n.getType() << " " << dt.getNumConstructors() << std::endl;
+              //do splitting for quantified logics (incomplete anyways)
+              continueProc = ( getQuantifiersEngine()!=NULL );
             }
+            if( continueProc ){
+              //all other cases
+              std::vector< bool > pcons;
+              getPossibleCons( eqc, n, pcons );
+              //check if we do not need to resolve the constructor type for this equivalence class.
+              // this is if there are no selectors for this equivalence class, its possible values are infinite,
+              //  and we are not producing a model, then do not split.
+              int consIndex = -1;
+              bool needSplit = true;
+              for( unsigned int j=0; j<pcons.size(); j++ ) {
+                if( pcons[j] ) {
+                  if( consIndex==-1 ){
+                    consIndex = j;
+                  }
+                  if( !dt[ j ].isFinite() && ( !eqc || !eqc->d_selectors ) ) {
+                    needSplit = false;
+                  }
+                }
+              }
+              //d_dtfCounter++;
+              if( !needSplit && options::dtForceAssignment() && d_dtfCounter%2==0 ){
+                //for the sake of termination, we must choose the constructor of a ground term
+                //NEED GUARENTEE: groundTerm should not contain any subterms of the same type
+                // TODO: this is probably not good enough, actually need fair enumeration strategy
+                if( !n.getType().isRecord() ){ //FIXME
+                  Node groundTerm = n.getType().mkGroundTerm();
+                  if( groundTerm.getOperator().getType().isConstructor() ){ //FIXME
+                    int index = Datatype::indexOf( groundTerm.getOperator().toExpr() );
+                    if( pcons[index] ){
+                      consIndex = index;
+                    }
+                    needSplit = true;
+                  }
+                }
+              }
 
+              if( needSplit && consIndex!=-1 ) {
+                //if only one constructor, then this term must be this constructor
+                if( dt.getNumConstructors()==1 ){
+                  Node t = DatatypesRewriter::mkTester( n, 0, dt );
+                  d_pending.push_back( t );
+                  d_pending_exp[ t ] = d_true;
+                  Trace("datatypes-infer") << "DtInfer : 1-cons : " << t << std::endl;
+                  d_infer.push_back( t );
+                }else{
+                  if( options::dtBinarySplit() ){
+                    Node test = DatatypesRewriter::mkTester( n, consIndex, dt );
+                    Trace("dt-split") << "*************Split for possible constructor " << dt[consIndex] << " for " << n << endl;
+                    test = Rewriter::rewrite( test );
+                    NodeBuilder<> nb(kind::OR);
+                    nb << test << test.notNode();
+                    Node lemma = nb;
+                    d_out->lemma( lemma );
+                    d_out->requirePhase( test, true );
+                  }else{
+                    Trace("dt-split") << "*************Split for constructors on " << n <<  endl;
+                    std::vector< Node > children;
+                    if( dt.isSygus() && d_sygus_split ){
+                      std::vector< Node > lemmas;
+                      d_sygus_split->getSygusSplits( n, dt, children, lemmas );
+                      for( unsigned i=0; i<lemmas.size(); i++ ){
+                        Trace("dt-lemma-sygus") << "Dt sygus lemma : " << lemmas[i] << std::endl;
+                        d_out->lemma( lemmas[i] );
+                      }
+                    }else{
+                      for( unsigned i=0; i<dt.getNumConstructors(); i++ ){
+                        Node test = DatatypesRewriter::mkTester( n, i, dt );
+                        children.push_back( test );
+                      }
+                    }
+                    Assert( !children.empty() );
+                    Node lemma = children.size()==1 ? children[0] : NodeManager::currentNM()->mkNode( kind::OR, children );
+                    Trace("dt-split-debug") << "Split lemma is : " << lemma << std::endl;
+                    d_out->lemma( lemma );
+                  }
+                  return;
+                }
+              }else{
+                Trace("dt-split-debug") << "Do not split constructor for " << n << " : " << n.getType() << " " << dt.getNumConstructors() << std::endl;
+              }
+            }
           }else{
             Trace("datatypes-debug") << "Has constructor " << eqc->d_constructor.get() << std::endl;
           }
@@ -1413,6 +1454,30 @@ Node TheoryDatatypes::getCodatatypesValue( Node n, std::map< Node, Node >& eqc_c
   }else{
     return n;
   }
+}
+
+Node TheoryDatatypes::getSingletonLemma( TypeNode tn, bool pol ) {
+  int index = pol ? 0 : 1;
+  std::map< TypeNode, Node >::iterator it = d_singleton_lemma[index].find( tn );
+  if( it==d_singleton_lemma[index].end() ){
+    Node a;
+    if( pol ){
+      Node v1 = NodeManager::currentNM()->mkBoundVar( tn );
+      Node v2 = NodeManager::currentNM()->mkBoundVar( tn );
+      a = NodeManager::currentNM()->mkNode( FORALL, NodeManager::currentNM()->mkNode( BOUND_VAR_LIST, v1, v2 ), v1.eqNode( v2 ) );
+    }else{
+      Node v1 = NodeManager::currentNM()->mkSkolem( "k1", tn );
+      Node v2 = NodeManager::currentNM()->mkSkolem( "k2", tn );
+      a = v1.eqNode( v2 ).negate();
+      //send out immediately as lemma
+      d_out->lemma( a );
+      Trace("dt-singleton") << "******** assert " << a << " to avoid singleton cardinality for type " << tn << std::endl;
+    }
+    d_singleton_lemma[index][tn] = a;
+    return a;
+  }else{
+    return it->second;
+  } 
 }
 
 void TheoryDatatypes::collectTerms( Node n ) {

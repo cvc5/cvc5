@@ -528,7 +528,7 @@ void CegConjectureSingleInv::check( std::vector< Node >& lems ) {
                     for( unsigned k=0; k<vars[lhs].size(); k++ ){
                       int v = vars[lhs][k];
                       Trace("cegqi-si-debug") << "        variable " << v << std::endl;
-                      Assert( vars[lhs].size()==vn );
+                      Assert( (int)vars[lhs].size()==vn );
                       //check if already processed
                       bool proc = d_eq_processed[lhs][rhs].find( v )!=d_eq_processed[lhs][rhs].end();
                       if( proc==(p==1) ){

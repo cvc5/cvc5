@@ -362,7 +362,15 @@ Parser::mkMutualDatatypeTypes(const std::vector<Datatype>& datatypes) {
     // complained of a bad substitution if anything is left unresolved.
     // Clear out the set.
     d_unresolved.clear();
-
+    
+    //throw exception if any datatype is not well-founded
+    for(unsigned i = 0; i < datatypes.size(); ++i) {
+      const Datatype& dt = types[i].getDatatype();
+      if( !dt.isCodatatype() && !dt.isWellFounded() ){
+        throw ParserException(dt.getName() + " is not well-founded");
+      }
+    }
+    
     return types;
   } catch(IllegalArgumentException& ie) {
     throw ParserException(ie.getMessage());

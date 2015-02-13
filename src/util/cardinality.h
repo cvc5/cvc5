@@ -156,6 +156,10 @@ public:
   bool isFinite() const throw() {
     return d_card > 0;
   }
+  /** Returns true iff this cardinality is one */
+  bool isOne() const throw() {
+    return d_card == 1;
+  }
 
   /**
    * Returns true iff this cardinality is finite and large (i.e.,
