@@ -23,6 +23,7 @@
 #include "theory/theory_engine.h"
 #include "theory/quantifiers/term_database.h"
 #include "expr/node_manager_attributes.h"
+#include "util/datatype.h"
 
 using namespace CVC4;
 using namespace std;
@@ -48,6 +49,7 @@ Node substituteAll(TNode n,
   }
 
   // otherwise compute
+  /** Bound variable */
   if(n.getKind() == kind::BOUND_VARIABLE){
     TypeNode ty = n.getType().substitute(ty_subst);
     Node n2 = n;
@@ -62,6 +64,18 @@ Node substituteAll(TNode n,
     };
     subst[n] = n2;
     return n2;
+    /** As for algebraic datatype */
+  } else if (n.getKind() == kind::ASCRIPTION_TYPE) {
+    TypeNode ty = TypeNode::fromType(n.getConst<AscriptionType>().getType());
+    TypeNode ty2 = ty.substitute(ty_subst);
+    Node n2 = n;
+    if (ty != ty2){
+      n2 = NodeManager::currentNM()->mkConst(AscriptionType(ty2.toType()));
+    };
+    subst[n] = n2;
+    return n2;
+    /** After this point we should be able to take the type of the node */
+    /** polymorphic function */
   } else if (n.getType().isFunction() &&
              NodeManager::currentNM()->isPolymorphicFunctionInstance(n)){
     TypeNode sig = n.getType().substitute(ty_subst);
@@ -73,7 +87,9 @@ Node substituteAll(TNode n,
     Trace("para-substitute") << "PolymorphicFunction " << n << " becomes " << n2 << std::endl;
     subst[n] = n2;
     return n2;
-  } else if ( n.getNumChildren() == 0 ){
+  } else if ( n.getNumChildren() == 0 &&
+              n.getMetaKind() != kind::metakind::PARAMETERIZED
+              ){
     subst[n] = n;
     Trace("para-substitute") << "Constant " << n << " stays as " << n << std::endl;
     return n;
