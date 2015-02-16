@@ -316,9 +316,9 @@ Expr Datatype::mkGroundTerm( Type t ) const throw(IllegalArgumentException) {
     Expr groundTerm = computeGroundTerm( t, processing );
     if(!groundTerm.isNull() ) {
       // we found a ground-term-constructing constructor!
+      d_ground_term[t] = groundTerm;
       Debug("datatypes") << "constructed: " << getName() << " => " << groundTerm << std::endl;
     }
-    d_ground_term[t] = groundTerm;
     if( groundTerm.isNull() ){
       if( !d_isCo ){
         // if we get all the way here, we aren't well-founded
