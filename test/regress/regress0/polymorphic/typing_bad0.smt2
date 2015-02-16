@@ -20,7 +20,7 @@
 ; EXPECT-ERROR:   (assert (forall ((x I1)(y I2)) (= x (get (mk y)))))
 ; EXPECT-ERROR:                                                ^
 ; EXPECT-ERROR: 
-; EXPECT-ERROR: Equation: (= x (get (mk y)))
+; EXPECT-ERROR: Equation: (= x (get_3 (mk_2 y)))
 ; EXPECT-ERROR: Type 1: I1
 ; EXPECT-ERROR: Type 2: I2
 ; EXPECT-ERROR: ")
