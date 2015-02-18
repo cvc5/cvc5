@@ -1313,7 +1313,8 @@ void NodeBuilder<nchild_thresh>::internalCopy(const NodeBuilder<N>& nb) {
   }
 
   Assert(nb.d_nvMaxChildren <= d_nvMaxChildren);
-  Assert(nb.d_nv->nv_end() - nb.d_nv->nv_begin() <= d_nvMaxChildren, "realloced:%s, d_nvMax:%u, size:%u, nc:%u", realloced ? "true" : "false", d_nvMaxChildren, nb.d_nv->nv_end() - nb.d_nv->nv_begin(), nb.d_nv->getNumChildren());
+  Assert(nb.d_nv->nv_end() >= nb.d_nv->nv_begin());
+  Assert((size_t)(nb.d_nv->nv_end() - nb.d_nv->nv_begin()) <= d_nvMaxChildren, "realloced:%s, d_nvMax:%u, size:%u, nc:%u", realloced ? "true" : "false", d_nvMaxChildren, nb.d_nv->nv_end() - nb.d_nv->nv_begin(), nb.d_nv->getNumChildren());
   std::copy(nb.d_nv->nv_begin(),
             nb.d_nv->nv_end(),
             d_nv->nv_begin());
