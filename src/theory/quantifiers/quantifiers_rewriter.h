@@ -79,8 +79,6 @@ public:
   static Node rewriteRewriteRule( Node r );
   static bool containsQuantifiers(Node n);
   static Node preSkolemizeQuantifiers(Node n, bool polarity, std::vector< TypeNode >& fvTypes, std::vector<TNode>& fvs);
-private:
-  static bool isDtStrInductionQuantifier( Node q );
 };/* class QuantifiersRewriter */
 
 }/* CVC4::theory::quantifiers namespace */

@@ -417,12 +417,6 @@ void TheoryEngine::check(Theory::Effort effort) {
       if(d_logicInfo.isQuantified()) {
         // quantifiers engine must pass effort last call check
         d_quantEngine->check(Theory::EFFORT_LAST_CALL);
-        // if we have given up, then possibly flip decision
-        if(options::flipDecision()) {
-          if(d_incomplete && !d_inConflict && !needCheck()) {
-            ((theory::quantifiers::TheoryQuantifiers*) d_theoryTable[THEORY_QUANTIFIERS])->flipDecision();
-          }
-        }
         // if returning incomplete or SAT, we have ensured that the model in the quantifiers engine has been built
       } else if(options::produceModels()) {
         // must build model at this point

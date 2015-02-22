@@ -58,13 +58,11 @@ public:
   void preRegisterTerm(TNode n);
   void presolve();
   void check(Effort e);
-  void propagate(Effort level);
   Node getNextDecisionRequest();
   Node getValue(TNode n);
   void collectModelInfo( TheoryModel* m, bool fullModel );
   void shutdown() { }
   std::string identify() const { return std::string("TheoryQuantifiers"); }
-  bool flipDecision();
   void setUserAttribute(const std::string& attr, Node n, std::vector<Node> node_values, std::string str_value);
   eq::EqualityEngine* getMasterEqualityEngine() { return d_masterEqualityEngine; }
   bool ppDontRewriteSubterm(TNode atom) { return atom.getKind() == kind::FORALL || atom.getKind() == kind::EXISTS; }

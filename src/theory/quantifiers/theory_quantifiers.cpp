@@ -163,10 +163,6 @@ void TheoryQuantifiers::check(Effort e) {
   getQuantifiersEngine()->check( e );
 }
 
-void TheoryQuantifiers::propagate(Effort level){
-  //getQuantifiersEngine()->propagate( level );
-}
-
 Node TheoryQuantifiers::getNextDecisionRequest(){
   return getQuantifiersEngine()->getNextDecisionRequest();
 }
@@ -183,22 +179,6 @@ void TheoryQuantifiers::assertExistential( Node n ){
   if( !options::cbqi() || options::recurseCbqi() || !TermDb::hasInstConstAttr(n[0]) ){
     getQuantifiersEngine()->assertQuantifier( n[0], false );
   }
-}
-
-bool TheoryQuantifiers::flipDecision(){
-  //Debug("quantifiers-flip") << "No instantiation given, flip decision, level = " << d_valuation.getDecisionLevel() << std::endl;
-  //for( int i=1; i<=(int)d_valuation.getDecisionLevel(); i++ ){
-  //  Debug("quantifiers-flip") << "   " << d_valuation.getDecision( i ) << std::endl;
-  //}
-  //if( d_valuation.getDecisionLevel()>0 ){
-  //  double r = double(rand())/double(RAND_MAX);
-  //  unsigned decisionLevel = (unsigned)(r*d_valuation.getDecisionLevel());
-  //  d_out->flipDecision( decisionLevel );
-  //  return true;
-  //}else{
-  //  return false;
-  //}
-  return false;
 }
 
 void TheoryQuantifiers::setUserAttribute(const std::string& attr, Node n, std::vector<Node> node_values, std::string str_value){

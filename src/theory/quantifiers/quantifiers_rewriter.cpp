@@ -1271,8 +1271,3 @@ Node QuantifiersRewriter::preSkolemizeQuantifiers( Node n, bool polarity, std::v
   }
   return n;
 }
-
-bool QuantifiersRewriter::isDtStrInductionQuantifier( Node q ){
-  Assert( q.getKind()==FORALL );
-  return q[0].getNumChildren()==1 && datatypes::DatatypesRewriter::isTermDatatype( q[0][0] );
-}

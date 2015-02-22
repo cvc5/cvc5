@@ -334,8 +334,8 @@ void TheoryDatatypes::check(Effort e) {
     }while( !d_conflict && addedFact );
     Trace("datatypes-debug") << "Finished. " << d_conflict << std::endl;
     if( !d_conflict ){
-      Trace("dt-model-test") << std::endl;
-      printModelDebug("dt-model-test");
+      Trace("dt-model-debug") << std::endl;
+      printModelDebug("dt-model-debug");
     }
   }
 

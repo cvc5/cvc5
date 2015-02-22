@@ -46,36 +46,30 @@ InstantiationEngine::~InstantiationEngine() {
 void InstantiationEngine::finishInit(){
   if( options::eMatching() ){
     //these are the instantiation strategies for E-matching
-    
+
     //user-provided patterns
     if( options::userPatternsQuant()!=USER_PAT_MODE_IGNORE ){
       d_isup = new InstStrategyUserPatterns( d_quantEngine );
       d_instStrategies.push_back( d_isup );
     }
-    
+
     //auto-generated patterns
-    int tstrt = Trigger::TS_ALL;
-    if( options::triggerSelMode()==TRIGGER_SEL_MIN ){
-      tstrt = Trigger::TS_MIN_TRIGGER;
-    }else if( options::triggerSelMode()==TRIGGER_SEL_MAX ){
-      tstrt = Trigger::TS_MAX_TRIGGER;
-    }
-    d_i_ag = new InstStrategyAutoGenTriggers( d_quantEngine, tstrt, 3 );
+    d_i_ag = new InstStrategyAutoGenTriggers( d_quantEngine );
     d_instStrategies.push_back( d_i_ag );
   }
-  
+
   //local theory extensions TODO?
   //if( options::localTheoryExt() ){
   //  d_i_lte = new InstStrategyLocalTheoryExt( d_quantEngine );
   //  d_instStrategies.push_back( d_i_lte );
   //}
-  
+
   //full saturation : instantiate from relevant domain, then arbitrary terms
   if( options::fullSaturateQuant() ){
     d_i_fs = new InstStrategyFreeVariable( d_quantEngine );
     d_instStrategies.push_back( d_i_fs );
   }
-  
+
   //counterexample-based quantifier instantiation
   if( options::cbqi() ){
     d_i_splx = new InstStrategySimplex( (arith::TheoryArith*)d_quantEngine->getTheoryEngine()->theoryOf( THEORY_ARITH ), d_quantEngine );
@@ -117,11 +111,7 @@ bool InstantiationEngine::doInstantiationRound( Theory::Effort effort ){
     }
   }
   //if not, proceed to instantiation round
-  Debug("inst-engine") << "IE: Instantiation Round." << std::endl;
-  Debug("inst-engine-ctrl") << "IE: Instantiation Round." << std::endl;
-  //reset the quantifiers engine
-  Debug("inst-engine-ctrl") << "Reset IE" << std::endl;
-  //reset the instantiators
+  //reset the instantiation strategies
   for( size_t i=0; i<d_instStrategies.size(); ++i ){
     InstStrategy* is = d_instStrategies[i];
     is->processResetInstantiationRound( effort );
@@ -146,13 +136,11 @@ bool InstantiationEngine::doInstantiationRound( Theory::Effort effort ){
           //check each instantiation strategy
           for( size_t i=0; i<d_instStrategies.size(); ++i ){
             InstStrategy* is = d_instStrategies[i];
-            if( is->shouldProcess( f ) ){
-              Debug("inst-engine-debug") << "Do " << is->identify() << " " << e_use << std::endl;
-              int quantStatus = is->process( f, effort, e_use );
-              Debug("inst-engine-debug") << " -> status is " << quantStatus << std::endl;
-              if( quantStatus==InstStrategy::STATUS_UNFINISHED ){
-                finished = false;
-              }
+            Debug("inst-engine-debug") << "Do " << is->identify() << " " << e_use << std::endl;
+            int quantStatus = is->process( f, effort, e_use );
+            Debug("inst-engine-debug") << " -> status is " << quantStatus << std::endl;
+            if( quantStatus==InstStrategy::STATUS_UNFINISHED ){
+              finished = false;
             }
           }
         }
@@ -164,14 +152,10 @@ bool InstantiationEngine::doInstantiationRound( Theory::Effort effort ){
     }
     e++;
   }
-  Debug("inst-engine") << "All instantiators finished, # added lemmas = ";
-  Debug("inst-engine") << (int)d_quantEngine->d_lemmas_waiting.size() << std::endl;
   //Notice() << "All instantiators finished, # added lemmas = " << (int)d_lemmas_waiting.size() << std::endl;
   if( !d_quantEngine->hasAddedLemma() ){
-    Debug("inst-engine-ctrl") << "---Fail." << std::endl;
     return false;
   }else{
-    Debug("inst-engine-ctrl") << "---Done. " << (int)(d_quantEngine->d_lemmas_waiting.size()-lastWaiting) << std::endl;
     Trace("inst-engine") << "Added lemmas = " << (int)(d_quantEngine->d_lemmas_waiting.size()-lastWaiting)  << std::endl;
     return true;
   }
@@ -433,7 +417,6 @@ void InstantiationEngine::addUserNoPattern( Node f, Node pat ){
 InstantiationEngine::Statistics::Statistics():
   d_instantiations_user_patterns("InstantiationEngine::Instantiations_User_Patterns", 0),
   d_instantiations_auto_gen("InstantiationEngine::Instantiations_Auto_Gen", 0),
-  d_instantiations_auto_gen_min("InstantiationEngine::Instantiations_Auto_Gen_Min", 0),
   d_instantiations_guess("InstantiationEngine::Instantiations_Guess", 0),
   d_instantiations_cbqi_arith("InstantiationEngine::Instantiations_Cbqi_Arith", 0),
   d_instantiations_cbqi_arith_minus("InstantiationEngine::Instantiations_Cbqi_Arith_Minus", 0),
@@ -443,7 +426,6 @@ InstantiationEngine::Statistics::Statistics():
 {
   StatisticsRegistry::registerStat(&d_instantiations_user_patterns);
   StatisticsRegistry::registerStat(&d_instantiations_auto_gen);
-  StatisticsRegistry::registerStat(&d_instantiations_auto_gen_min);
   StatisticsRegistry::registerStat(&d_instantiations_guess);
   StatisticsRegistry::registerStat(&d_instantiations_cbqi_arith);
   StatisticsRegistry::registerStat(&d_instantiations_cbqi_arith_minus);
@@ -455,7 +437,6 @@ InstantiationEngine::Statistics::Statistics():
 InstantiationEngine::Statistics::~Statistics(){
   StatisticsRegistry::unregisterStat(&d_instantiations_user_patterns);
   StatisticsRegistry::unregisterStat(&d_instantiations_auto_gen);
-  StatisticsRegistry::unregisterStat(&d_instantiations_auto_gen_min);
   StatisticsRegistry::unregisterStat(&d_instantiations_guess);
   StatisticsRegistry::unregisterStat(&d_instantiations_cbqi_arith);
   StatisticsRegistry::unregisterStat(&d_instantiations_cbqi_arith_minus);

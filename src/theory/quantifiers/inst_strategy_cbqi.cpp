@@ -38,11 +38,6 @@ InstStrategySimplex::InstStrategySimplex( TheoryArith* th, QuantifiersEngine* ie
   d_zero = NodeManager::currentNM()->mkConst( Rational(0) );
 }
 
-bool InstStrategySimplex::calculateShouldProcess( Node f ){
-  //DO_THIS
-  return false;
-}
-
 void getInstantiationConstants( Node n, std::vector< Node >& ics ){
   if( n.getKind()==INST_CONSTANT ){
     if( std::find( ics.begin(), ics.end(), n )==ics.end() ){
@@ -58,6 +53,7 @@ void getInstantiationConstants( Node n, std::vector< Node >& ics ){
 
 void InstStrategySimplex::processResetInstantiationRound( Theory::Effort effort ){
   Debug("quant-arith") << "Setting up simplex for instantiator... " << std::endl;
+  d_quantActive.clear();
   d_instRows.clear();
   d_tableaux_term.clear();
   d_tableaux.clear();
@@ -133,85 +129,87 @@ int InstStrategySimplex::process( Node f, Theory::Effort effort, int e ){
   if( e<2 ){
     return STATUS_UNFINISHED;
   }else if( e==2 ){
-    //the point instantiation
-    InstMatch m_point( f );
-    bool m_point_valid = true;
-    int lem = 0;
-    //scan over all instantiation rows
-    for( int i=0; i<d_quantEngine->getTermDatabase()->getNumInstantiationConstants( f ); i++ ){
-      Node ic = d_quantEngine->getTermDatabase()->getInstantiationConstant( f, i );
-      Debug("quant-arith-simplex") << "InstStrategySimplex check " << ic << ", rows = " << d_instRows[ic].size() << std::endl;
-      for( int j=0; j<(int)d_instRows[ic].size(); j++ ){
-        ArithVar x = d_instRows[ic][j];
-        if( !d_ceTableaux[ic][x].empty() ){
-          if( Debug.isOn("quant-arith-simplex") ){
-            Debug("quant-arith-simplex") << "--- Check row " << ic << " " << x << std::endl;
-            Debug("quant-arith-simplex") << "  ";
-            for( std::map< Node, Node >::iterator it = d_ceTableaux[ic][x].begin(); it != d_ceTableaux[ic][x].end(); ++it ){
-              if( it!=d_ceTableaux[ic][x].begin() ){ Debug("quant-arith-simplex") << " + "; }
-              Debug("quant-arith-simplex") << it->first << " * " << it->second;
-            }
-            Debug("quant-arith-simplex") << " = ";
-            Node v = getTableauxValue( x, false );
-            Debug("quant-arith-simplex") << v << std::endl;
-            Debug("quant-arith-simplex") << "  term : " << d_tableaux_term[ic][x] << std::endl;
-            Debug("quant-arith-simplex") << "  ce-term : ";
-            for( std::map< Node, Node >::iterator it = d_tableaux_ce_term[ic][x].begin(); it != d_tableaux_ce_term[ic][x].end(); it++ ){
-              if( it!=d_tableaux_ce_term[ic][x].begin() ){ Debug("quant-arith-simplex") << " + "; }
-              Debug("quant-arith-simplex") << it->first << " * " << it->second;
-            }
-            Debug("quant-arith-simplex") << std::endl;
-          }
-          //instantiation row will be A*e + B*t = beta,
-          // where e is a vector of terms , and t is vector of ground terms.
-          // Say one term in A*e is coeff*e_i, where e_i is an instantiation constant
-          // We will construct the term ( beta - B*t)/coeff to use for e_i.
-          InstMatch m( f );
-          for( unsigned k=0; k<f[0].getNumChildren(); k++ ){
-            if( f[0][k].getType().isInteger() ){
-              m.setValue( k, d_zero );
-            }
-          }
-          //By default, choose the first instantiation constant to be e_i.
-          Node var = d_ceTableaux[ic][x].begin()->first;
-          //if it is integer, we need to find variable with coefficent +/- 1
-          if( var.getType().isInteger() ){
-            std::map< Node, Node >::iterator it = d_ceTableaux[ic][x].begin();
-            while( !var.isNull() && !d_ceTableaux[ic][x][var].isNull() && d_ceTableaux[ic][x][var]!=d_negOne ){
-              ++it;
-              if( it==d_ceTableaux[ic][x].end() ){
-                var = Node::null();
-              }else{
-                var = it->first;
+    if( d_quantActive.find( f )!=d_quantActive.end() ){
+      //the point instantiation
+      InstMatch m_point( f );
+      bool m_point_valid = true;
+      int lem = 0;
+      //scan over all instantiation rows
+      for( int i=0; i<d_quantEngine->getTermDatabase()->getNumInstantiationConstants( f ); i++ ){
+        Node ic = d_quantEngine->getTermDatabase()->getInstantiationConstant( f, i );
+        Debug("quant-arith-simplex") << "InstStrategySimplex check " << ic << ", rows = " << d_instRows[ic].size() << std::endl;
+        for( int j=0; j<(int)d_instRows[ic].size(); j++ ){
+          ArithVar x = d_instRows[ic][j];
+          if( !d_ceTableaux[ic][x].empty() ){
+            if( Debug.isOn("quant-arith-simplex") ){
+              Debug("quant-arith-simplex") << "--- Check row " << ic << " " << x << std::endl;
+              Debug("quant-arith-simplex") << "  ";
+              for( std::map< Node, Node >::iterator it = d_ceTableaux[ic][x].begin(); it != d_ceTableaux[ic][x].end(); ++it ){
+                if( it!=d_ceTableaux[ic][x].begin() ){ Debug("quant-arith-simplex") << " + "; }
+                Debug("quant-arith-simplex") << it->first << " * " << it->second;
               }
-            }
-            //Otherwise, try one that divides all ground term coefficients?
-            //  Might be futile, if rewrite ensures gcd of coeffs is 1.
-          }
-          if( !var.isNull() ){
-            //add to point instantiation if applicable
-            if( d_tableaux_ce_term[ic][x].empty() && d_tableaux_term[ic][x]==d_zero ){
-              Debug("quant-arith-simplex") << "*** Row contributes to point instantiation." << std::endl;
+              Debug("quant-arith-simplex") << " = ";
               Node v = getTableauxValue( x, false );
-              if( !var.getType().isInteger() || v.getType().isInteger() ){
-                m_point.setValue( i, v );
-              }else{
-                m_point_valid = false;
+              Debug("quant-arith-simplex") << v << std::endl;
+              Debug("quant-arith-simplex") << "  term : " << d_tableaux_term[ic][x] << std::endl;
+              Debug("quant-arith-simplex") << "  ce-term : ";
+              for( std::map< Node, Node >::iterator it = d_tableaux_ce_term[ic][x].begin(); it != d_tableaux_ce_term[ic][x].end(); it++ ){
+                if( it!=d_tableaux_ce_term[ic][x].begin() ){ Debug("quant-arith-simplex") << " + "; }
+                Debug("quant-arith-simplex") << it->first << " * " << it->second;
+              }
+              Debug("quant-arith-simplex") << std::endl;
+            }
+            //instantiation row will be A*e + B*t = beta,
+            // where e is a vector of terms , and t is vector of ground terms.
+            // Say one term in A*e is coeff*e_i, where e_i is an instantiation constant
+            // We will construct the term ( beta - B*t)/coeff to use for e_i.
+            InstMatch m( f );
+            for( unsigned k=0; k<f[0].getNumChildren(); k++ ){
+              if( f[0][k].getType().isInteger() ){
+                m.setValue( k, d_zero );
               }
             }
-            Debug("quant-arith-simplex") << "Instantiate with var " << var << std::endl;
-            if( doInstantiation( f, ic, d_tableaux_term[ic][x], x, m, var ) ){
-              lem++;
+            //By default, choose the first instantiation constant to be e_i.
+            Node var = d_ceTableaux[ic][x].begin()->first;
+            //if it is integer, we need to find variable with coefficent +/- 1
+            if( var.getType().isInteger() ){
+              std::map< Node, Node >::iterator it = d_ceTableaux[ic][x].begin();
+              while( !var.isNull() && !d_ceTableaux[ic][x][var].isNull() && d_ceTableaux[ic][x][var]!=d_negOne ){
+                ++it;
+                if( it==d_ceTableaux[ic][x].end() ){
+                  var = Node::null();
+                }else{
+                  var = it->first;
+                }
+              }
+              //Otherwise, try one that divides all ground term coefficients?
+              //  Might be futile, if rewrite ensures gcd of coeffs is 1.
             }
-          }else{
-            Debug("quant-arith-simplex") << "Could not find var." << std::endl;
+            if( !var.isNull() ){
+              //add to point instantiation if applicable
+              if( d_tableaux_ce_term[ic][x].empty() && d_tableaux_term[ic][x]==d_zero ){
+                Debug("quant-arith-simplex") << "*** Row contributes to point instantiation." << std::endl;
+                Node v = getTableauxValue( x, false );
+                if( !var.getType().isInteger() || v.getType().isInteger() ){
+                  m_point.setValue( i, v );
+                }else{
+                  m_point_valid = false;
+                }
+              }
+              Debug("quant-arith-simplex") << "Instantiate with var " << var << std::endl;
+              if( doInstantiation( f, ic, d_tableaux_term[ic][x], x, m, var ) ){
+                lem++;
+              }
+            }else{
+              Debug("quant-arith-simplex") << "Could not find var." << std::endl;
+            }
           }
         }
       }
-    }
-    if( lem==0 && m_point_valid ){
-      if( d_quantEngine->addInstantiation( f, m_point ) ){
-        Debug("quant-arith-simplex") << "...added point instantiation." << std::endl;
+      if( lem==0 && m_point_valid ){
+        if( d_quantEngine->addInstantiation( f, m_point ) ){
+          Debug("quant-arith-simplex") << "...added point instantiation." << std::endl;
+        }
       }
     }
   }

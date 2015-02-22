@@ -5,25 +5,21 @@
 
 module QUANTIFIERS "theory/quantifiers/options.h" Quantifiers
 
-option eMatching --e-matching bool :read-write :default true
- whether to do heuristic E-matching
+#### rewriter options
 
 # Whether to mini-scope quantifiers.
 # For example, forall x. ( P( x ) ^ Q( x ) ) will be rewritten to
 # ( forall x. P( x ) ) ^ ( forall x. Q( x ) )
 option miniscopeQuant --miniscope-quant bool :default true :read-write
  disable miniscope quantifiers
-
 # Whether to mini-scope quantifiers based on formulas with no free variables.
 # For example, forall x. ( P( x ) V Q ) will be rewritten to
 # ( forall x. P( x ) ) V Q
 option miniscopeQuantFreeVar --miniscope-quant-fv bool :default true :read-write
  disable miniscope quantifiers for ground subformulas
-
 # Whether to prenex (nested universal) quantifiers
 option prenexQuant --prenex-quant=MODE CVC4::theory::quantifiers::PrenexQuantMode :default CVC4::theory::quantifiers::PRENEX_NO_USER_PAT :include "theory/quantifiers/modes.h" :read-write :handler CVC4::theory::quantifiers::stringToPrenexQuantMode :handler-include "theory/quantifiers/options_handlers.h"
  disable prenexing of quantified formulas
-
 # Whether to variable-eliminate quantifiers.
 # For example, forall x y. ( P( x, y ) V x != c ) will be rewritten to
 #   forall y. P( c, y )
@@ -31,22 +27,18 @@ option varElimQuant --var-elim-quant bool :default true
  disable simple variable elimination for quantified formulas
 option dtVarExpandQuant --dt-var-exp-quant bool :default true
  expand datatype variables bound to one constructor in quantifiers
-
 option iteCondVarSplitQuant --ite-cond-var-split-quant bool :default true
  split variables occurring as conditions of ITE in quantifiers
 option simpleIteLiftQuant --ite-lift-quant bool :default true
  disable simple ite lifting for quantified formulas
-
 # Whether to CNF quantifier bodies
 option cnfQuant --cnf-quant bool :default false
  apply CNF conversion to quantified formulas
 # Whether to NNF quantifier bodies
 option nnfQuant --nnf-quant bool :default true
  apply NNF conversion to quantified formulas
-
 option clauseSplit --clause-split bool :default false
  apply clause splitting to quantified formulas
-
 # Whether to pre-skolemize quantifier bodies.
 # For example, forall x. ( P( x ) => (exists y. f( y ) = x) ) will be rewritten to
 #   forall x. P( x ) => f( S( x ) ) = x
@@ -62,8 +54,17 @@ option macrosQuant --macros-quant bool :default false
 option foPropQuant --fo-prop-quant bool :default false
  perform first-order propagation on quantifiers
 
+#### E-matching options
+ 
+option eMatching --e-matching bool :read-write :default true
+ whether to do heuristic E-matching
+ 
 option termDbMode --term-db-mode CVC4::theory::quantifiers::TermDbMode :default CVC4::theory::quantifiers::TERM_DB_ALL :read-write :include "theory/quantifiers/modes.h" :handler  CVC4::theory::quantifiers::stringToTermDbMode :handler-include "theory/quantifiers/options_handlers.h"
  which ground terms to consider for instantiation
+# Whether to consider terms in the bodies of quantifiers for matching
+option registerQuantBodyTerms --register-quant-body-terms bool :default false
+ consider ground terms within bodies of quantified formulas for matching
+ 
 # Whether to use smart triggers
 option smartTriggers --smart-triggers bool :default true
  disable smart triggers
@@ -78,32 +79,30 @@ option purifyDtTriggers --purify-dt-triggers bool :default false :read-write
  purify dt triggers, match all constructors of correct form instead of selectors
 option pureThTriggers --pure-th-triggers bool :default false :read-write
  use pure theory terms as single triggers
-option multiTriggerWhenSingle --multi-trigger-when-single bool :default true
- never select multi-triggers when single triggers exist
+option multiTriggerWhenSingle --multi-trigger-when-single bool :default false
+ select multi triggers when single triggers exist
+option multiTriggerPriority --multi-trigger-priority bool :default false
+ only try multi triggers if single triggers give no instantiations
 option triggerSelMode --trigger-sel CVC4::theory::quantifiers::TriggerSelMode :default CVC4::theory::quantifiers::TRIGGER_SEL_DEFAULT :read-write :include "theory/quantifiers/modes.h" :handler  CVC4::theory::quantifiers::stringToTriggerSelMode :handler-include "theory/quantifiers/options_handlers.h"
  selection mode for triggers
-
-option quantFunWellDefined --quant-fun-wd bool :default false
- assume that function defined by quantifiers are well defined
-option fmfFunWellDefined --fmf-fun bool :default false
- find models for finite runs of defined functions, assumes functions are well-defined
+option userPatternsQuant --user-pat=MODE CVC4::theory::quantifiers::UserPatMode :default CVC4::theory::quantifiers::USER_PAT_MODE_TRUST :include "theory/quantifiers/modes.h" :handler CVC4::theory::quantifiers::stringToUserPatMode :handler-include "theory/quantifiers/options_handlers.h"
+ policy for handling user-provided patterns for quantifier instantiation
  
-# Whether to consider terms in the bodies of quantifiers for matching
-option registerQuantBodyTerms --register-quant-body-terms bool :default false
- consider ground terms within bodies of quantified formulas for matching
-
 option instWhenMode --inst-when=MODE CVC4::theory::quantifiers::InstWhenMode :default CVC4::theory::quantifiers::INST_WHEN_FULL_LAST_CALL :read-write :include "theory/quantifiers/modes.h" :handler CVC4::theory::quantifiers::stringToInstWhenMode :handler-include "theory/quantifiers/options_handlers.h" :predicate CVC4::theory::quantifiers::checkInstWhenMode :predicate-include "theory/quantifiers/options_handlers.h"
  when to apply instantiation
+ 
+ 
 option instMaxLevel --inst-max-level=N int :read-write :default -1
  maximum inst level of terms used to instantiate quantified formulas with (-1 == no limit, default)
 option instLevelInputOnly --inst-level-input-only bool :default true
  only input terms are assigned instantiation level zero
-
+option internalReps --quant-internal-reps bool :default true
+ instantiate with representatives chosen by quantifiers engine
+ 
+option incrementTriggers --increment-triggers bool :default true
+ generate additional triggers as needed during search
 option eagerInstQuant --eager-inst-quant bool :default false
  apply quantifier instantiation eagerly
-
-option instNoEntail --inst-no-entail bool :read-write :default false
- do not consider instances of quantified formulas that are currently entailed
 
 option fullSaturateQuant --full-saturate-quant bool :default false
  when all other quantifier instantiation strategies fail, instantiate with ground terms from relevant domain, then arbitrary ground terms before answering unknown
@@ -111,24 +110,20 @@ option fullSaturateQuant --full-saturate-quant bool :default false
 option literalMatchMode --literal-matching=MODE CVC4::theory::quantifiers::LiteralMatchMode :default CVC4::theory::quantifiers::LITERAL_MATCH_NONE :include "theory/quantifiers/modes.h" :handler CVC4::theory::quantifiers::stringToLiteralMatchMode :handler-include "theory/quantifiers/options_handlers.h" :predicate CVC4::theory::quantifiers::checkLiteralMatchMode :predicate-include "theory/quantifiers/options_handlers.h"
  choose literal matching mode
 
-option cbqi --enable-cbqi bool :read-write :default false
- turns on counterexample-based quantifier instantiation
+option axiomInstMode --axiom-inst=MODE CVC4::theory::quantifiers::AxiomInstMode :default CVC4::theory::quantifiers::AXIOM_INST_MODE_DEFAULT :include "theory/quantifiers/modes.h" :handler CVC4::theory::quantifiers::stringToAxiomInstMode :handler-include "theory/quantifiers/options_handlers.h"
+ policy for instantiating axioms
 
-option recurseCbqi --cbqi-recurse bool :default false
- turns on recursive counterexample-based quantifier instantiation
-
-option userPatternsQuant --user-pat=MODE CVC4::theory::quantifiers::UserPatMode :default CVC4::theory::quantifiers::USER_PAT_MODE_TRUST :include "theory/quantifiers/modes.h" :handler CVC4::theory::quantifiers::stringToUserPatMode :handler-include "theory/quantifiers/options_handlers.h"
- policy for handling user-provided patterns for quantifier instantiation
-
-option flipDecision --flip-decision/ bool :default false
- turns on flip decision heuristic
-
-option internalReps --quant-internal-reps bool :default true
- disables instantiating with representatives chosen by quantifiers engine
-
+ 
+### finite model finding options
+ 
 option finiteModelFind finite-model-find --finite-model-find bool :default false :read-write
  use finite model finding heuristic for quantifier instantiation
 
+option quantFunWellDefined --quant-fun-wd bool :default false
+ assume that function defined by quantifiers are well defined
+option fmfFunWellDefined --fmf-fun bool :default false
+ find models for finite runs of defined functions, assumes functions are well-defined
+ 
 option mbqiMode --mbqi=MODE CVC4::theory::quantifiers::MbqiMode :read-write :default CVC4::theory::quantifiers::MBQI_FMC :include "theory/quantifiers/modes.h" :handler CVC4::theory::quantifiers::stringToMbqiMode :handler-include "theory/quantifiers/options_handlers.h" :predicate CVC4::theory::quantifiers::checkMbqiMode :predicate-include "theory/quantifiers/options_handlers.h"
  choose mode for model-based quantifier instantiation
 option fmfOneInstPerRound --mbqi-one-inst-per-round bool :read-write :default false
@@ -150,10 +145,9 @@ option fmfBoundInt fmf-bound-int --fmf-bound-int bool :default false :read-write
  finite model finding on bounded integer quantification
 option fmfBoundIntLazy --fmf-bound-int-lazy bool :default false :read-write
  enforce bounds for bounded integer quantification lazily via use of proxy variables
-
-option axiomInstMode --axiom-inst=MODE CVC4::theory::quantifiers::AxiomInstMode :default CVC4::theory::quantifiers::AXIOM_INST_MODE_DEFAULT :include "theory/quantifiers/modes.h" :handler CVC4::theory::quantifiers::stringToAxiomInstMode :handler-include "theory/quantifiers/options_handlers.h"
- policy for instantiating axioms
-
+ 
+### conflict-based instantiation options 
+ 
 option quantConflictFind --quant-cf bool :read-write :default true
  enable conflict find mechanism for quantifiers
 option qcfMode --quant-cf-mode=MODE CVC4::theory::quantifiers::QcfMode :default CVC4::theory::quantifiers::QCF_PROP_EQ :include "theory/quantifiers/modes.h" :handler CVC4::theory::quantifiers::stringToQcfMode :handler-include "theory/quantifiers/options_handlers.h"
@@ -163,11 +157,18 @@ option qcfWhenMode --quant-cf-when=MODE CVC4::theory::quantifiers::QcfWhenMode :
 option qcfTConstraint --qcf-tconstraint bool :read-write :default false
  enable entailment checks for t-constraints in qcf algorithm
 
+option instNoEntail --inst-no-entail bool :read-write :default true
+ do not consider instances of quantified formulas that are currently entailed
+ 
+### rewrite rules options 
+ 
 option quantRewriteRules --rewrite-rules bool :default true
  use rewrite rules module
 option rrOneInstPerRound --rr-one-inst-per-round bool :default false
  add one instance of rewrite rule per round
-
+ 
+### induction options 
+ 
 option quantInduction --quant-ind bool :default false
  use all available techniques for inductive reasoning
 option dtStcInduction --dt-stc-ind bool :read-write :default false
@@ -191,7 +192,9 @@ option conjectureGenGtEnum --conjecture-gen-gt-enum=N int :default 0
  number of ground terms to generate for model filtering
 option conjectureUeeIntro --conjecture-gen-uee-intro bool :default false
  more aggressive merging for universal equality engine, introduces terms
- 
+  
+### synthesis options 
+
 option ceGuidedInst --cegqi bool :default false :read-write
   counterexample-guided quantifier instantiation
 option ceGuidedInstFair --cegqi-fair=MODE CVC4::theory::quantifiers::CegqiFairMode :default CVC4::theory::quantifiers::CEGQI_FAIR_DT_SIZE :include "theory/quantifiers/modes.h" :handler CVC4::theory::quantifiers::stringToCegqiFairMode :handler-include "theory/quantifiers/options_handlers.h"
@@ -215,6 +218,14 @@ option sygusNormalFormGlobalArg --sygus-nf-sym-arg bool :default true
   generalize based on arguments in global search space narrowing
 option sygusNormalFormGlobalContent --sygus-nf-sym-content bool :default true
   generalize based on content in global search space narrowing
+  
+# older implementation
+option cbqi --enable-cbqi bool :read-write :default false
+ turns on counterexample-based quantifier instantiation
+option recurseCbqi --cbqi-recurse bool :default false
+ turns on recursive counterexample-based quantifier instantiation
+ 
+### local theory extensions options 
 
 option localTheoryExt --local-t-ext bool :default false
   do instantiation based on local theory extensions

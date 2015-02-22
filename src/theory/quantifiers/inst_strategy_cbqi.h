@@ -38,12 +38,11 @@ namespace quantifiers {
 
 
 class InstStrategySimplex : public InstStrategy{
-protected:
-  /** calculate if we should process this quantifier */
-  bool calculateShouldProcess( Node f );
 private:
   /** reference to theory arithmetic */
   arith::TheoryArith* d_th;
+  /** quantifiers we should process */
+  std::map< Node, bool > d_quantActive;
   /** delta */
   std::map< TypeNode, Node > d_deltas;
   /** for each quantifier, simplex rows */
