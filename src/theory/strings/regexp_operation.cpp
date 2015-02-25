@@ -2082,7 +2082,8 @@ std::string RegExpOpr::mkString( Node r ) {
         break;
       }
       case kind::STRING_TO_REGEXP: {
-        retStr += niceChar( r[0] );
+        std::string tmp( niceChar( r[0] ) );
+        retStr += tmp.size()==1? tmp : "(" + tmp + ")";
         break;
       }
       case kind::REGEXP_CONCAT: {
