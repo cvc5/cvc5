@@ -1131,11 +1131,13 @@ void RegExpOpr::simplifyPRegExp( Node s, Node r, std::vector< Node > &new_nodes 
         conc = s.eqNode( r[0] );
         if(r[0] != r[1]) {
           unsigned char a = r[0].getConst<String>().getFirstChar();
+          unsigned char b = r[1].getConst<String>().getFirstChar();
           a += 1;
-          Node tmp = NodeManager::currentNM()->mkNode(kind::STRING_IN_REGEXP, s,
+          Node tmp = a!=b? NodeManager::currentNM()->mkNode(kind::STRING_IN_REGEXP, s,
             NodeManager::currentNM()->mkNode(kind::REGEXP_RANGE,
               NodeManager::currentNM()->mkConst( CVC4::String(a) ),
-              r[1]));
+              r[1])) :
+            s.eqNode(r[1]);
           conc = NodeManager::currentNM()->mkNode(kind::OR, conc, tmp);
         }
         /*
