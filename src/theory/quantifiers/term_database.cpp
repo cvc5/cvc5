@@ -1957,7 +1957,9 @@ Node TermDbSygus::minimizeBuiltinTerm( Node n ) {
             mon[ro].push_back( nc );
             changed = true;
           }else{
-            mon[r].push_back( n[r][i] );
+            if( !n[r][i].isConst() || !n[r][i].getConst<Rational>().isZero() ){
+              mon[r].push_back( n[r][i] );
+            }
           }
         }
       }else{
@@ -1965,7 +1967,9 @@ Node TermDbSygus::minimizeBuiltinTerm( Node n ) {
           mon[ro].push_back( nc );
           changed = true;
         }else{
-          mon[r].push_back( n[r] );
+          if( !n[r].isConst() || !n[r].getConst<Rational>().isZero() ){
+            mon[r].push_back( n[r] );
+          }
         }
       }
     }

@@ -23,11 +23,15 @@ TESTS = hd-01-d1-prog.sy \
         commutative.sy \
         constant.sy \
         multi-fun-polynomial2.sy \
-        unbdd_inv_gen_winf1.sy
+        unbdd_inv_gen_winf1.sy \
+	max.sy \
+	array_sum_2_5.sy \
+	parity-AIG-d0.sy \
+	twolets1.sy \
+	array_search_2.sy
 
 # sygus tests currently taking too long for make regress
 EXTRA_DIST = $(TESTS) \
-	max.sl \
 	max.smt2 \
 	sygus-uf.sl
 

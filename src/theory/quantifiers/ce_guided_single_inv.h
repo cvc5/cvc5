@@ -43,14 +43,8 @@ private:
   bool getVariableEliminationTerm( bool pol, bool active, Node v, Node n, TNode& s, int& status );
 
   Node constructSolution( unsigned i, unsigned index );
-  bool classifyTerm( Node n, std::map< Node, int >& subs_from_model, std::vector< int >& vars );
-  void collectProgVars( Node n, std::vector< Node >& vars );
-  Node applyProgVarSubstitution( Node n, std::map< Node, int >& subs_from_model, std::vector< Node >& subs );
-  //equalities processed
-  std::map< Node, std::map< Node, std::map< int, bool > > > d_eq_processed;
-  bool solveEquality( Node lhs, Node rhs, int v, std::map< Node, int >& subs_from_model, std::vector< Node >& subs );
 public:
-  CegConjectureSingleInv( QuantifiersEngine * qe, Node q, CegConjecture * p );
+  CegConjectureSingleInv( CegConjecture * p );
   // original conjecture
   Node d_quant;
   // single invocation version of quant
@@ -70,16 +64,29 @@ public:
   //lemmas produced
   std::vector< Node > d_lemmas_produced;
   std::vector< std::vector< Node > > d_inst;
+  inst::InstMatchTrie d_inst_match_trie;
+  inst::CDInstMatchTrie * d_c_inst_match_trie;
   // solution
   std::vector< Node > d_varList;
   Node d_orig_solution;
   Node d_solution;
   Node d_sygus_solution;
+  //program variable contains cache
+  std::map< Node, std::map< Node, bool > > d_prog_var;
+  std::map< Node, bool > d_inelig;
+  
+  void computeProgVars( Node n );
+  bool addInstantiation( std::vector< Node >& subs, std::vector< Node >& vars, 
+                         std::vector< Node >& coeff, std::vector< Node >& has_coeff, unsigned i, std::vector< Node >& lems );
+  bool addInstantiationInc( Node n, Node pv, Node pv_coeff, std::vector< Node >& subs, std::vector< Node >& vars, 
+                            std::vector< Node >& coeff, std::vector< Node >& has_coeff, unsigned i, std::vector< Node >& lems );
+  Node applySubstitution( Node n, std::vector< Node >& subs, std::vector< Node >& vars, 
+                          std::vector< Node >& coeff, std::vector< Node >& has_coeff, Node& pv_coeff, bool try_coeff = true );
 public:
   //get the single invocation lemma
   Node getSingleInvLemma( Node guard );
   //initialize
-  void initialize();
+  void initialize( QuantifiersEngine * qe, Node q );
   //check
   void check( std::vector< Node >& lems );
   //get solution

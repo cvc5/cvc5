@@ -31,7 +31,7 @@ namespace CVC4 {
 
 CegConjecture::CegConjecture( context::Context* c ) : d_active( c, false ), d_infeasible( c, false ), d_curr_lit( c, 0 ){
   d_refine_count = 0;
-  d_ceg_si = NULL;
+  d_ceg_si = new CegConjectureSingleInv( this );
 }
 
 void CegConjecture::assign( QuantifiersEngine * qe, Node q ) {
@@ -60,8 +60,7 @@ void CegConjecture::assign( QuantifiersEngine * qe, Node q ) {
     }
     d_syntax_guided = true;
     if( options::cegqiSingleInv() ){
-      d_ceg_si = new CegConjectureSingleInv( qe, q, this );
-      d_ceg_si->initialize();
+      d_ceg_si->initialize( qe, q );
     }
   }else if( qe->getTermDatabase()->isQAttrSynthesis( q ) ){
     d_syntax_guided = false;
@@ -131,7 +130,7 @@ Node CegConjecture::getLiteral( QuantifiersEngine * qe, int i ) {
 }
 
 CegInstantiation::CegInstantiation( QuantifiersEngine * qe, context::Context* c ) : QuantifiersModule( qe ){
-  d_conj = new CegConjecture( d_quantEngine->getSatContext() );
+  d_conj = new CegConjecture( qe->getSatContext() );
   d_last_inst_si = false;
 }
 
