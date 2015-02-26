@@ -145,6 +145,16 @@ NodeManager::~NodeManager() {
 
   NodeManagerScope nms(this);
 
+  // Empty all the information about polymorphic types.
+  // It is done early before all cleaning, instead of during
+  // the default destructors which run after all this code.
+  d_polymorphicFunction.clear();
+  d_instanceFunction.clear();
+  d_functionMonomorphization.clear();
+  d_parameterVariables.clear();
+  d_schemaVariables.clear();
+  d_polymorphicConstantArg = Node::null();
+
   {
     ScopedBool dontGC(d_inReclaimZombies);
     // hopefully by this point all SmtEngines have been deleted
@@ -934,6 +944,7 @@ Node NodeManager::getPolymorphicConstantArg(){
 
 bool NodeManager::safeToReclaimZombies() const{
   // FIXME multithreading
+  Assert(d_attrManager != NULL, "Attribute manager NULL in NodeManager");
   return !d_inReclaimZombies && !d_attrManager->inGarbageCollection();
 }
 
