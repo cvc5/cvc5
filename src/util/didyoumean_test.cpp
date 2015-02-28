@@ -17,7 +17,6 @@
 
 // Compile: g++ didyoumean_test.cpp didyoumean.cpp
 // For debug compile with -DDIDYOUMEAN_DEBUG or -DDIDYOUMEAN_DEBUG1 or both
-//
 
 #include "didyoumean.h"
 #include <iostream>
