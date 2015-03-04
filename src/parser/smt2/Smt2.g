@@ -2047,35 +2047,35 @@ builtinOp[CVC4::Kind& kind]
   | SELECT_TOK   { $kind = CVC4::kind::SELECT; }
   | STORE_TOK    { $kind = CVC4::kind::STORE; }
 
-  | CONCAT_TOK   { $kind = CVC4::kind::BITVECTOR_CONCAT; }
-  | BVNOT_TOK   { $kind = CVC4::kind::BITVECTOR_NOT; }
-  | BVAND_TOK   { $kind = CVC4::kind::BITVECTOR_AND; }
-  | BVOR_TOK   { $kind = CVC4::kind::BITVECTOR_OR; }
-  | BVNEG_TOK   { $kind = CVC4::kind::BITVECTOR_NEG; }
-  | BVADD_TOK   { $kind = CVC4::kind::BITVECTOR_PLUS; }
-  | BVMUL_TOK   { $kind = CVC4::kind::BITVECTOR_MULT; }
-  | BVUDIV_TOK   { $kind = CVC4::kind::BITVECTOR_UDIV; }
-  | BVUREM_TOK   { $kind = CVC4::kind::BITVECTOR_UREM; }
-  | BVSHL_TOK     { $kind = CVC4::kind::BITVECTOR_SHL; }
-  | BVLSHR_TOK     { $kind = CVC4::kind::BITVECTOR_LSHR; }
-  | BVULT_TOK     { $kind = CVC4::kind::BITVECTOR_ULT; }
-  | BVNAND_TOK     { $kind = CVC4::kind::BITVECTOR_NAND; }
-  | BVNOR_TOK     { $kind = CVC4::kind::BITVECTOR_NOR; }
-  | BVXOR_TOK     { $kind = CVC4::kind::BITVECTOR_XOR; }
-  | BVXNOR_TOK     { $kind = CVC4::kind::BITVECTOR_XNOR; }
-  | BVCOMP_TOK     { $kind = CVC4::kind::BITVECTOR_COMP; }
-  | BVSUB_TOK     { $kind = CVC4::kind::BITVECTOR_SUB; }
-  | BVSDIV_TOK     { $kind = CVC4::kind::BITVECTOR_SDIV; }
-  | BVSREM_TOK     { $kind = CVC4::kind::BITVECTOR_SREM; }
-  | BVSMOD_TOK     { $kind = CVC4::kind::BITVECTOR_SMOD; }
-  | BVASHR_TOK     { $kind = CVC4::kind::BITVECTOR_ASHR; }
-  | BVULE_TOK     { $kind = CVC4::kind::BITVECTOR_ULE; }
-  | BVUGT_TOK     { $kind = CVC4::kind::BITVECTOR_UGT; }
-  | BVUGE_TOK     { $kind = CVC4::kind::BITVECTOR_UGE; }
-  | BVSLT_TOK     { $kind = CVC4::kind::BITVECTOR_SLT; }
-  | BVSLE_TOK     { $kind = CVC4::kind::BITVECTOR_SLE; }
-  | BVSGT_TOK     { $kind = CVC4::kind::BITVECTOR_SGT; }
-  | BVSGE_TOK     { $kind = CVC4::kind::BITVECTOR_SGE; }
+  // | CONCAT_TOK   { $kind = CVC4::kind::BITVECTOR_CONCAT; }
+  // | BVNOT_TOK   { $kind = CVC4::kind::BITVECTOR_NOT; }
+  // | BVAND_TOK   { $kind = CVC4::kind::BITVECTOR_AND; }
+  // | BVOR_TOK   { $kind = CVC4::kind::BITVECTOR_OR; }
+  // | BVNEG_TOK   { $kind = CVC4::kind::BITVECTOR_NEG; }
+  // | BVADD_TOK   { $kind = CVC4::kind::BITVECTOR_PLUS; }
+  // | BVMUL_TOK   { $kind = CVC4::kind::BITVECTOR_MULT; }
+  // | BVUDIV_TOK   { $kind = CVC4::kind::BITVECTOR_UDIV; }
+  // | BVUREM_TOK   { $kind = CVC4::kind::BITVECTOR_UREM; }
+  // | BVSHL_TOK     { $kind = CVC4::kind::BITVECTOR_SHL; }
+  // | BVLSHR_TOK     { $kind = CVC4::kind::BITVECTOR_LSHR; }
+  // | BVULT_TOK     { $kind = CVC4::kind::BITVECTOR_ULT; }
+  // | BVNAND_TOK     { $kind = CVC4::kind::BITVECTOR_NAND; }
+  // | BVNOR_TOK     { $kind = CVC4::kind::BITVECTOR_NOR; }
+  // | BVXOR_TOK     { $kind = CVC4::kind::BITVECTOR_XOR; }
+  // | BVXNOR_TOK     { $kind = CVC4::kind::BITVECTOR_XNOR; }
+  // | BVCOMP_TOK     { $kind = CVC4::kind::BITVECTOR_COMP; }
+  // | BVSUB_TOK     { $kind = CVC4::kind::BITVECTOR_SUB; }
+  // | BVSDIV_TOK     { $kind = CVC4::kind::BITVECTOR_SDIV; }
+  // | BVSREM_TOK     { $kind = CVC4::kind::BITVECTOR_SREM; }
+  // | BVSMOD_TOK     { $kind = CVC4::kind::BITVECTOR_SMOD; }
+  // | BVASHR_TOK     { $kind = CVC4::kind::BITVECTOR_ASHR; }
+  // | BVULE_TOK     { $kind = CVC4::kind::BITVECTOR_ULE; }
+  // | BVUGT_TOK     { $kind = CVC4::kind::BITVECTOR_UGT; }
+  // | BVUGE_TOK     { $kind = CVC4::kind::BITVECTOR_UGE; }
+  // | BVSLT_TOK     { $kind = CVC4::kind::BITVECTOR_SLT; }
+  // | BVSLE_TOK     { $kind = CVC4::kind::BITVECTOR_SLE; }
+  // | BVSGT_TOK     { $kind = CVC4::kind::BITVECTOR_SGT; }
+  // | BVSGE_TOK     { $kind = CVC4::kind::BITVECTOR_SGE; }
 
   | BV2NAT_TOK     { $kind = CVC4::kind::BITVECTOR_TO_NAT;
                      if(PARSER_STATE->strictModeEnabled()) {
@@ -2518,35 +2518,36 @@ ABS_TOK : 'abs';
 
 DIVISIBLE_TOK : 'divisible';
 
-CONCAT_TOK : 'concat';
-BVNOT_TOK : 'bvnot';
-BVAND_TOK : 'bvand';
-BVOR_TOK : 'bvor';
-BVNEG_TOK : 'bvneg';
-BVADD_TOK : 'bvadd';
-BVMUL_TOK : 'bvmul';
-BVUDIV_TOK : 'bvudiv';
-BVUREM_TOK : 'bvurem';
-BVSHL_TOK : 'bvshl';
-BVLSHR_TOK : 'bvlshr';
-BVULT_TOK : 'bvult';
-BVNAND_TOK : 'bvnand';
-BVNOR_TOK : 'bvnor';
-BVXOR_TOK : 'bvxor';
-BVXNOR_TOK : 'bvxnor';
-BVCOMP_TOK : 'bvcomp';
-BVSUB_TOK : 'bvsub';
-BVSDIV_TOK : 'bvsdiv';
-BVSREM_TOK : 'bvsrem';
-BVSMOD_TOK : 'bvsmod';
-BVASHR_TOK : 'bvashr';
-BVULE_TOK : 'bvule';
-BVUGT_TOK : 'bvugt';
-BVUGE_TOK : 'bvuge';
-BVSLT_TOK : 'bvslt';
-BVSLE_TOK : 'bvsle';
-BVSGT_TOK : 'bvsgt';
-BVSGE_TOK : 'bvsge';
+// CONCAT_TOK : 'concat';
+// BVNOT_TOK : 'bvnot';
+// BVAND_TOK : 'bvand';
+// BVOR_TOK : 'bvor';
+// BVNEG_TOK : 'bvneg';
+// BVADD_TOK : 'bvadd';
+// BVMUL_TOK : 'bvmul';
+// BVUDIV_TOK : 'bvudiv';
+// BVUREM_TOK : 'bvurem';
+// BVSHL_TOK : 'bvshl';
+// BVLSHR_TOK : 'bvlshr';
+// BVULT_TOK : 'bvult';
+// BVNAND_TOK : 'bvnand';
+// BVNOR_TOK : 'bvnor';
+// BVXOR_TOK : 'bvxor';
+// BVXNOR_TOK : 'bvxnor';
+// BVCOMP_TOK : 'bvcomp';
+// BVSUB_TOK : 'bvsub';
+// BVSDIV_TOK : 'bvsdiv';
+// BVSREM_TOK : 'bvsrem';
+// BVSMOD_TOK : 'bvsmod';
+// BVASHR_TOK : 'bvashr';
+// BVULE_TOK : 'bvule';
+// BVUGT_TOK : 'bvugt';
+// BVUGE_TOK : 'bvuge';
+// BVSLT_TOK : 'bvslt';
+// BVSLE_TOK : 'bvsle';
+// BVSGT_TOK : 'bvsgt';
+// BVSGE_TOK : 'bvsge';
+
 BV2NAT_TOK : 'bv2nat';
 INT2BV_TOK : 'int2bv';
 
