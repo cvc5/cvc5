@@ -183,7 +183,7 @@ void BoundedIntegers::processLiteral( Node f, Node lit, bool pol,
       for( std::map< Node, Node >::iterator it = msum.begin(); it != msum.end(); ++it ){
         if ( !it->first.isNull() && it->first.getKind()==BOUND_VARIABLE && !isBound( f, it->first ) ){
           Node veq;
-          if( QuantArith::isolate( it->first, msum, veq, GEQ ) ){
+          if( QuantArith::isolate( it->first, msum, veq, GEQ )!=0 ){
             Node n1 = veq[0];
             Node n2 = veq[1];
             if(pol){

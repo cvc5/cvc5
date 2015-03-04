@@ -1353,6 +1353,9 @@ void SmtEngine::setDefaults() {
     if( !options::quantConflictFind.wasSetByUser() ){
       options::quantConflictFind.set( false );
     }
+    if( !options::instNoEntail.wasSetByUser() ){
+      options::instNoEntail.set( false );
+    }
     //do not allow partial functions
     if( !options::bitvectorDivByZeroConst.wasSetByUser() ){
       options::bitvectorDivByZeroConst.set( true );

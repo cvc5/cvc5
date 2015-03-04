@@ -1416,7 +1416,7 @@ void TheoryDatatypes::collectModelInfo( TheoryModel* m, bool fullModel ){
       std::vector< Node > fv;
       Node v = getCodatatypesValue( it->first, eqc_cons, eqc_mu, vmap, fv );
       Trace("dt-cmi-cdt") << "  EQC(" << it->first << "), constructor is " << it->second << ", value is " << v << ", const = " << v.isConst() << std::endl;
-      m->assertEquality( eqc, v, true );
+      //m->assertEquality( eqc, v, true );
     }
   }
 }

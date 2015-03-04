@@ -264,7 +264,7 @@ Node Trigger::getIsUsableTrigger( Node n, Node f, bool pol, bool hasPol ) {
           for( std::map< Node, Node >::iterator it = m.begin(); it!=m.end(); ++it ){
             if( !it->first.isNull() && it->first.getKind()==INST_CONSTANT ){
               Node veq;
-              if( QuantArith::isolate( it->first, m, veq, n.getKind() ) ){
+              if( QuantArith::isolate( it->first, m, veq, n.getKind() )!=0 ){
                 int vti = veq[0]==it->first ? 1 : 0;
                 if( isUsableTrigger(veq[vti], f) && !nodeContainsVar( veq[vti], veq[vti==0 ? 1 : 0]) ){
                   rtr = veq;

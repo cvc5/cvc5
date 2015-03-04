@@ -34,6 +34,7 @@ private:
   QuantifiersEngine * d_qe;
   CegConjecture * d_parent;
   CegConjectureSingleInvSol * d_sol;
+  //for recognizing when conjecture is single invocation
   bool analyzeSygusConjunct( Node n, Node p, std::map< Node, std::vector< Node > >& children,
                             std::map< Node, std::map< Node, std::vector< Node > > >& prog_invoke,
                             std::vector< Node >& progs, std::map< Node, std::map< Node, bool > >& contains, bool pol );
@@ -41,14 +42,9 @@ private:
   bool processSingleInvLiteral( Node lit, bool pol, std::map< Node, std::vector< Node > >& case_vals );
   bool doVariableElimination( Node v, std::vector< Node >& conjuncts );
   bool getVariableEliminationTerm( bool pol, bool active, Node v, Node n, TNode& s, int& status );
-
+  //constructing solution
   Node constructSolution( unsigned i, unsigned index );
-public:
-  CegConjectureSingleInv( CegConjecture * p );
-  // original conjecture
-  Node d_quant;
-  // single invocation version of quant
-  Node d_single_inv;
+private:
   //map from programs to variables in single invocation property
   std::map< Node, Node > d_single_inv_map;
   std::map< Node, Node > d_single_inv_map_to_prog;
@@ -74,14 +70,27 @@ public:
   //program variable contains cache
   std::map< Node, std::map< Node, bool > > d_prog_var;
   std::map< Node, bool > d_inelig;
-  
+private:
+  //for adding instantiations during check
   void computeProgVars( Node n );
   bool addInstantiation( std::vector< Node >& subs, std::vector< Node >& vars, 
-                         std::vector< Node >& coeff, std::vector< Node >& has_coeff, unsigned i, std::vector< Node >& lems );
-  bool addInstantiationInc( Node n, Node pv, Node pv_coeff, std::vector< Node >& subs, std::vector< Node >& vars, 
-                            std::vector< Node >& coeff, std::vector< Node >& has_coeff, unsigned i, std::vector< Node >& lems );
+                         std::vector< Node >& coeff, std::vector< Node >& has_coeff, std::vector< int >& subs_typ,
+                         unsigned i, std::vector< Node >& lems );
+  bool addInstantiationInc( Node n, Node pv, Node pv_coeff, int styp, std::vector< Node >& subs, std::vector< Node >& vars, 
+                            std::vector< Node >& coeff, std::vector< Node >& has_coeff, std::vector< int >& subs_typ,
+                            unsigned i, std::vector< Node >& lems );
+  bool addInstantiationCoeff( std::vector< Node >& subs, std::vector< Node >& vars, 
+                              std::vector< Node >& coeff, std::vector< Node >& has_coeff, std::vector< int >& subs_typ,
+                              unsigned j, std::vector< Node >& lems );
+  bool addInstantiation( std::vector< Node >& subs, std::vector< Node >& vars, std::vector< Node >& lems );
   Node applySubstitution( Node n, std::vector< Node >& subs, std::vector< Node >& vars, 
-                          std::vector< Node >& coeff, std::vector< Node >& has_coeff, Node& pv_coeff, bool try_coeff = true );
+                          std::vector< Node >& coeff, std::vector< Node >& has_coeff, Node& pv_coeff, bool try_coeff = true );  
+public:
+  CegConjectureSingleInv( CegConjecture * p );
+  // original conjecture
+  Node d_quant;
+  // single invocation version of quant
+  Node d_single_inv;
 public:
   //get the single invocation lemma
   Node getSingleInvLemma( Node guard );
