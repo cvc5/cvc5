@@ -71,6 +71,7 @@ private:
   std::map< Node, std::map< Node, bool > > d_prog_var;
   std::map< Node, bool > d_inelig;
 private:
+  Node d_n_delta;
   //for adding instantiations during check
   void computeProgVars( Node n );
   bool addInstantiation( std::vector< Node >& subs, std::vector< Node >& vars, 
@@ -82,9 +83,9 @@ private:
   bool addInstantiationCoeff( std::vector< Node >& subs, std::vector< Node >& vars, 
                               std::vector< Node >& coeff, std::vector< Node >& has_coeff, std::vector< int >& subs_typ,
                               unsigned j, std::vector< Node >& lems );
-  bool addInstantiation( std::vector< Node >& subs, std::vector< Node >& vars, std::vector< Node >& lems );
+  bool addInstantiation( std::vector< Node >& subs, std::vector< Node >& vars, std::vector< int >& subs_typ, std::vector< Node >& lems );
   Node applySubstitution( Node n, std::vector< Node >& subs, std::vector< Node >& vars, 
-                          std::vector< Node >& coeff, std::vector< Node >& has_coeff, Node& pv_coeff, bool try_coeff = true );  
+                          std::vector< Node >& coeff, std::vector< Node >& has_coeff, Node& pv_coeff, bool try_coeff = true ); 
 public:
   CegConjectureSingleInv( CegConjecture * p );
   // original conjecture

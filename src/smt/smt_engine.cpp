@@ -1367,6 +1367,10 @@ void SmtEngine::setDefaults() {
     if( !options::miniscopeQuantFreeVar.wasSetByUser() ){
       options::miniscopeQuantFreeVar.set( false );
     }
+    //rewrite divk
+    if( !options::rewriteDivk.wasSetByUser()) {
+      options::rewriteDivk.set( true );
+    }
   }
 
   //implied options...

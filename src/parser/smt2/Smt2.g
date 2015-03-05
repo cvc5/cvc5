@@ -622,6 +622,9 @@ sygusCommand returns [CVC4::Command* cmd = NULL]
       std::vector<DatatypeType> datatypeTypes = PARSER_STATE->mkMutualDatatypeTypes(datatypes);
       seq->addCommand(new DatatypeDeclarationCommand(datatypeTypes));
       std::map<DatatypeType, Expr> evals;
+      if( sorts[0]!=range ){
+        PARSER_STATE->parseError(std::string("Bad return type in grammar for SyGuS function ") + fun);
+      }
       // make all the evals first, since they are mutually referential
       for(size_t i = 0; i < datatypeTypes.size(); ++i) {
         DatatypeType dtt = datatypeTypes[i];

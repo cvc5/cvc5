@@ -306,6 +306,10 @@ void Smt2::setLogic(std::string name) {
       name = "UFLRA";
     } else if(name == "LIA") {
       name = "UFLIA";
+    } else if(name == "LRA") {
+      name = "UFLRA";
+    } else if(name == "LIRA") {
+      name = "UFLIRA";
     } else if(name == "BV") {
       name = "UFBV";
     } else {
