@@ -188,7 +188,6 @@ void LFSCTheoryProof::printTerm(Expr term, std::ostream& os) {
 }
 
 void LFSCTheoryProof::printAssertions(std::ostream& os, std::ostream& paren) {
-  unsigned counter = 0;
   ProofManager::assertions_iterator it = ProofManager::currentPM()->begin_assertions();
   ProofManager::assertions_iterator end = ProofManager::currentPM()->end_assertions();
 
@@ -200,10 +199,12 @@ void LFSCTheoryProof::printAssertions(std::ostream& os, std::ostream& paren) {
 
   it = ProofManager::currentPM()->begin_assertions();
   for (; it != end; ++it) {
-    os << "(% A" << counter++ << " (th_holds ";
+    os << "(% A" << ProofManager::currentPM()->getAssertionCounter() << " (th_holds ";
     printTerm(*it,  os);
     os << ")\n";
     paren << ")";
+    //store map between assertion and counter
+    ProofManager::currentPM()->setAssertion( *it );
   }
 }
 

@@ -377,6 +377,7 @@ ClauseId SatProof::registerClause(::Minisat::CRef clause, ClauseKind kind, uint6
     }
   }
   Debug("proof:sat:detailed") << "registerClause CRef:" << clause << " id:" << d_clauseId[clause] << " " << kind << " " << int32_t((proof_id >> 32) & 0xffffffff) << "\n";
+  ProofManager::currentPM()->setRegisteredClauseId( d_clauseId[clause] );
   return d_clauseId[clause];
 }
 
@@ -397,6 +398,7 @@ ClauseId SatProof::registerUnitClause(::Minisat::Lit lit, ClauseKind kind, uint6
     }
   }
   Debug("proof:sat:detailed") << "registerUnitClause " << d_unitId[toInt(lit)] << " " << kind << "\n";
+  ProofManager::currentPM()->setRegisteredClauseId( d_unitId[toInt(lit)] );
   return d_unitId[toInt(lit)];
 }
 

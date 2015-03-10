@@ -3,7 +3,7 @@
  ** \verbatim
  ** Original author: Liana Hadarean
  ** Major contributors: Morgan Deters
- ** Minor contributors (to current version): none
+ ** Minor contributors (to current version): Andrew Reynolds
  ** This file is part of the CVC4 project.
  ** Copyright (c) 2009-2014  New York University and The University of Iowa
  ** See the file COPYING in the top-level source directory for licensing
@@ -85,12 +85,14 @@ enum ProofRule {
   RULE_TRUST,       /* trust without evidence (escape hatch until proofs are fully supported) */
   RULE_INVALID,     /* assert-fail if this is ever needed in proof; use e.g. for split lemmas */
   RULE_CONFLICT,    /* re-construct as a conflict */
+  RULE_TSEITIN,     /* Tseitin CNF transformation */
 
   RULE_ARRAYS_EXT,  /* arrays, extensional */
   RULE_ARRAYS_ROW,  /* arrays, read-over-write */
 };/* enum ProofRules */
 
 class ProofManager {
+
   SatProof*    d_satProof;
   CnfProof*    d_cnfProof;
   TheoryProof* d_theoryProof;
@@ -114,6 +116,14 @@ class ProofManager {
   // trace dependences back to unsat core
   void traceDeps(TNode n);
 
+  Node d_registering_assertion;
+  ProofRule d_registering_rule;
+  std::map< ClauseId, Expr > d_clause_id_to_assertion;
+  std::map< ClauseId, ProofRule > d_clause_id_to_rule;
+  std::map< Expr, Expr > d_cnf_dep;
+  //LFSC number for assertions
+  unsigned d_assertion_counter;
+  std::map< Expr, unsigned > d_assertion_to_id;
 protected:
   LogicInfo d_logic;
 
@@ -138,6 +148,10 @@ public:
   typedef OrderedIdToClause::const_iterator ordered_clause_iterator;
   typedef ExprSet::const_iterator assertions_iterator;
   typedef VarSet::const_iterator var_iterator;
+
+
+  __gnu_cxx::hash_map< Node, std::vector<Node>, NodeHashFunction >::const_iterator begin_deps() const { return d_deps.begin(); }
+  __gnu_cxx::hash_map< Node, std::vector<Node>, NodeHashFunction >::const_iterator end_deps() const { return d_deps.end(); }
 
   clause_iterator begin_input_clauses() const { return d_inputClauses.begin(); }
   clause_iterator end_input_clauses() const { return d_inputClauses.end(); }
@@ -179,6 +193,21 @@ public:
   void setLogic(const LogicInfo& logic);
   const std::string getLogic() const { return d_logic.getLogicString(); }
 
+  
+  void setCnfDep( Expr child, Expr parent );
+  Expr getFormulaForClauseId( ClauseId id );
+  ProofRule getProofRuleForClauseId( ClauseId id );
+  unsigned getAssertionCounter() { return d_assertion_counter; }
+  void setAssertion( Expr e );
+  bool isInputAssertion( Expr e, std::ostream& out );
+
+public:  // AJR : FIXME this is hacky
+  //currently, to map between ClauseId and Expr, requires:
+  // (1) CnfStream::assertClause(...) to call setRegisteringFormula,
+  // (2) SatProof::registerClause(...)/registerUnitClause(...) to call setRegisteredClauseId.
+  //this is under the assumption that the first call at (2) is invoked for the clause corresponding to the Expr at (1).
+  void setRegisteringFormula( Node n, ProofRule proof_id );
+  void setRegisteredClauseId( ClauseId id );
 };/* class ProofManager */
 
 class LFSCProof : public Proof {

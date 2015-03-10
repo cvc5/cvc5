@@ -135,6 +135,12 @@
   (! u2 (th_holds (or f1 f2))
     (th_holds f1))))))
 
+(declare not_or_elim
+  (! f1 formula
+  (! f2 formula
+  (! u2 (th_holds (not (or f1 f2)))
+    (th_holds (and (not f1) (not f2)))))))
+    
 ;; and elimination
 
 (declare and_elim_1
@@ -149,20 +155,12 @@
   (! u (th_holds (and f1 f2))
     (th_holds f2)))))
 
-;; not impl elimination
-
-(declare not_impl_elim_1
+(declare not_and_elim
   (! f1 formula
   (! f2 formula
-  (! u (th_holds (not (impl f1 f2)))
-    (th_holds f1)))))
-
-(declare not_impl_elim_2
-  (! f1 formula
-  (! f2 formula
-  (! u (th_holds (not (impl f1 f2)))
-    (th_holds (not f2))))))
-
+  (! u2 (th_holds (not (and f1 f2)))
+    (th_holds (or (not f1) (not f2)))))))
+    
 ;; impl elimination
 
 (declare impl_intro (! f1 formula
@@ -174,37 +172,54 @@
 (declare impl_elim
   (! f1 formula
   (! f2 formula
-  (! u1 (th_holds f1)
   (! u2 (th_holds (impl f1 f2))
-    (th_holds f2))))))
+    (th_holds (or (not f1) f2))))))
 
+(declare not_impl_elim
+  (! f1 formula
+  (! f2 formula
+  (! u (th_holds (not (impl f1 f2)))
+    (th_holds (and f1 (not f2)))))))
+    
 ;; iff elimination
 
 (declare iff_elim_1
   (! f1 formula
   (! f2 formula
   (! u1 (th_holds (iff f1 f2))
-    (th_holds (impl f1 f2))))))
+    (th_holds (or (not f1) f2))))))
 
 (declare iff_elim_2
   (! f1 formula
   (! f2 formula
   (! u1 (th_holds (iff f1 f2))
-    (th_holds (impl f2 f1))))))
+    (th_holds (or f1 (not f2)))))))
 
-(declare not_iff_elim_1
+(declare not_iff_elim
   (! f1 formula
   (! f2 formula
-  (! u1 (th_holds (not f1))
   (! u2 (th_holds (not (iff f1 f2)))
-    (th_holds f2))))))
+    (th_holds (iff f1 (not f2)))))))
 
-(declare not_iff_elim_2
+; xor elimination
+
+(declare xor_elim_1
   (! f1 formula
   (! f2 formula
-  (! u1 (th_holds f1)
-  (! u2 (th_holds (not (iff f1 f2)))
-    (th_holds (not f2)))))))
+  (! u1 (th_holds (xor f1 f2))
+    (th_holds (or (not f1) (not f2)))))))
+
+(declare xor_elim_2
+  (! f1 formula
+  (! f2 formula
+  (! u1 (th_holds (xor f1 f2))
+    (th_holds (or f1 f2))))))
+
+(declare not_xor_elim
+  (! f1 formula
+  (! f2 formula
+  (! u2 (th_holds (not (xor f1 f2)))
+    (th_holds (iff f1 f2))))))
 
 ;; ite elimination
 
@@ -212,65 +227,43 @@
   (! a formula
   (! b formula
   (! c formula
-  (! u1 (th_holds a)
   (! u2 (th_holds (ifte a b c))
-    (th_holds b)))))))
+    (th_holds (or (not a) b)))))))
 
 (declare ite_elim_2
   (! a formula
   (! b formula
   (! c formula
-  (! u1 (th_holds (not a))
   (! u2 (th_holds (ifte a b c))
-    (th_holds c)))))))
+    (th_holds (or a c)))))))
 
 (declare ite_elim_3
   (! a formula
   (! b formula
   (! c formula
-  (! u1 (th_holds (not b))
   (! u2 (th_holds (ifte a b c))
-    (th_holds c)))))))
-
-(declare ite_elim_2n
-  (! a formula
-  (! b formula
-  (! c formula
-  (! u1 (th_holds a)
-  (! u2 (th_holds (ifte (not a) b c))
-    (th_holds c)))))))
+    (th_holds (or b c)))))))
 
 (declare not_ite_elim_1
   (! a formula
   (! b formula
   (! c formula
-  (! u1 (th_holds a)
   (! u2 (th_holds (not (ifte a b c)))
-    (th_holds (not b))))))))
+    (th_holds (or (not a) (not b))))))))
 
 (declare not_ite_elim_2
   (! a formula
   (! b formula
   (! c formula
-  (! u1 (th_holds (not a))
   (! u2 (th_holds (not (ifte a b c)))
-    (th_holds (not c))))))))
+    (th_holds (or a (not c))))))))
 
 (declare not_ite_elim_3
   (! a formula
   (! b formula
   (! c formula
-  (! u1 (th_holds b)
   (! u2 (th_holds (not (ifte a b c)))
-    (th_holds (not c))))))))
-
-(declare not_ite_elim_2n
-  (! a formula
-  (! b formula
-  (! c formula
-  (! u1 (th_holds a)
-  (! u2 (th_holds (not (ifte (not a) b c)))
-    (th_holds (not c))))))))
+    (th_holds (or (not b) (not c))))))))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;

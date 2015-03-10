@@ -3,7 +3,7 @@
  ** \verbatim
  ** Original author: Liana Hadarean
  ** Major contributors: Morgan Deters
- ** Minor contributors (to current version): none
+ ** Minor contributors (to current version): Andrew Reynolds
  ** This file is part of the CVC4 project.
  ** Copyright (c) 2009-2014  New York University and The University of Iowa
  ** See the file COPYING in the top-level source directory for licensing
@@ -47,7 +47,8 @@ ProofManager::ProofManager(ProofFormat format):
   d_theoryProof(NULL),
   d_fullProof(NULL),
   d_format(format),
-  d_deps()
+  d_deps(),
+  d_assertion_counter(1)
 {
 }
 
@@ -155,7 +156,9 @@ void ProofManager::traceDeps(TNode n) {
     std::vector<Node> deps = (*d_deps.find(n)).second;
     for(std::vector<Node>::const_iterator i = deps.begin(); i != deps.end(); ++i) {
       Debug("cores") << " + tracing deps: " << n << " -deps-on- " << *i << std::endl;
-      traceDeps(*i);
+      if( !(*i).isNull() ){
+        traceDeps(*i);
+      }
     }
   }
 }
@@ -203,7 +206,7 @@ void ProofManager::addAssertion(Expr formula, bool inUnsatCore) {
 void ProofManager::addDependence(TNode n, TNode dep) {
   if(dep != n) {
     Debug("cores") << "dep: " << n << " : " << dep << std::endl;
-    if(d_deps.find(dep) == d_deps.end()) {
+    if( !dep.isNull() && d_deps.find(dep) == d_deps.end()) {
       Debug("cores") << "WHERE DID " << dep << " come from ??" << std::endl;
     }
     //Assert(d_deps.find(dep) != d_deps.end());
@@ -217,6 +220,116 @@ void ProofManager::setLogic(const LogicInfo& logic) {
 
 void ProofManager::printProof(std::ostream& os, TNode n) {
   // no proofs here yet
+}
+
+void ProofManager::setCnfDep( Expr child, Expr parent ) {
+  Debug("cores") << "CNF dep : " << child << " : " << parent << std::endl;
+  d_cnf_dep[child] = parent;
+}
+
+Expr ProofManager::getFormulaForClauseId( ClauseId id ) {
+  std::map< ClauseId, Expr >::const_iterator it = d_clause_id_to_assertion.find( id );
+  if( it!=d_clause_id_to_assertion.end() ){
+    return it->second;
+  }else{
+    Node ret;
+    return ret.toExpr();
+  }
+}
+
+ProofRule ProofManager::getProofRuleForClauseId( ClauseId id ) {
+  std::map< ClauseId, ProofRule >::const_iterator it = d_clause_id_to_rule.find( id );
+  if( it!=d_clause_id_to_rule.end() ){
+    return it->second;
+  }else{
+    return RULE_INVALID;
+  }
+}
+
+void ProofManager::setAssertion( Expr e ) {
+  d_assertion_to_id[e] = d_assertion_counter;
+  d_assertion_counter++;
+}
+
+// if this function returns true, writes to out a proof of e based on input assertions
+bool ProofManager::isInputAssertion( Expr e, std::ostream& out ) {
+  std::map< Expr, unsigned >::iterator itp = d_assertion_to_id.find( e );
+  if( itp==d_assertion_to_id.end() ){
+    //check if deduced by CNF
+    std::map< Expr, Expr >::iterator itd = d_cnf_dep.find( e );
+    if( itd!=d_cnf_dep.end() ){
+      Expr parent = itd->second;
+      //check if parent is an input assertion
+      std::stringstream out_parent;
+      if( isInputAssertion( parent, out_parent ) ){
+        if( parent.getKind()==kind::AND || ( parent.getKind()==kind::NOT && ( parent[0].getKind()==kind::IMPLIES || parent[0].getKind()==kind::OR ) ) ){
+          Expr parent_base = parent.getKind()==kind::NOT ? parent[0] : parent;
+          Expr e_base = e.getKind()==kind::NOT ? e[0] : e;
+          bool e_pol = e.getKind()!=kind::NOT;
+          for( unsigned i=0; i<parent_base.getNumChildren(); i++ ){
+            Expr child_base = parent_base[i].getKind()==kind::NOT ? parent_base[i][0] : parent_base[i];
+            bool child_pol = parent_base[i].getKind()!=kind::NOT;
+            if( parent_base.getKind()==kind::IMPLIES && i==0 ){
+              child_pol = !child_pol;
+            }
+            if( e_base==child_base && (e_pol==child_pol)==(parent_base.getKind()==kind::AND) ){
+              bool elimNn = ( ( parent_base.getKind()==kind::OR || ( parent_base.getKind()==kind::IMPLIES && i==1 ) ) && e_pol );
+              if( elimNn ){
+                out << "(not_not_elim _ ";
+              }
+              std::stringstream out_paren;
+              if( i+1<parent_base.getNumChildren() ){
+                out << "(and_elim_1 _ _ ";
+                if( parent_base.getKind()==kind::OR || parent_base.getKind()==kind::IMPLIES  ){
+                  out << "(not_" << ( parent_base.getKind()==kind::OR ? "or" : "impl" ) << "_elim _ _ ";
+                  out_paren << ")";
+                }
+                out_paren << ")";
+              }
+              for( unsigned j=0; j<i; j++ ){
+                out << "(and_elim_2 _ _ ";
+                if( parent_base.getKind()==kind::OR || parent_base.getKind()==kind::IMPLIES ){
+                  out << "(not_" << ( parent_base.getKind()==kind::OR ? "or" : "impl" ) << "_elim _ _ ";
+                  out_paren << ")";
+                }
+                out_paren << ")";
+              }
+              out << out_parent.str();
+              out << out_paren.str();
+              if( elimNn ){
+                out << ")";
+              }
+              return true;
+            }
+          }
+        }else{
+          Trace("cnf-pf-debug") << "; isInputAssertion : parent of " << e << " is not correct type (" << parent << ")" << std::endl;
+        }
+      }else{
+        Trace("cnf-pf-debug") << "; isInputAssertion : parent of " << e << " is not input" << std::endl;
+      }
+    }else{
+      Trace("cnf-pf-debug") << "; isInputAssertion : " << e << " has no parent" << std::endl;
+    }
+    return false;
+  }else{
+    out << "A" << itp->second;
+    return true;
+  }
+}
+
+void ProofManager::setRegisteringFormula( Node n, ProofRule proof_id ) {
+  d_registering_assertion = n;
+  d_registering_rule = proof_id;
+}
+
+void ProofManager::setRegisteredClauseId( ClauseId id ) {
+  Trace("cnf-pf-debug") << "set register clause id " << id << " " << d_registering_assertion << std::endl;
+  if( !d_registering_assertion.isNull() ){
+     d_clause_id_to_assertion[id] = d_registering_assertion.toExpr();
+     d_clause_id_to_rule[id] = d_registering_rule;
+     setRegisteringFormula( Node::null(), RULE_INVALID );
+  }
 }
 
 LFSCProof::LFSCProof(SmtEngine* smtEngine, LFSCSatProof* sat, LFSCCnfProof* cnf, LFSCTheoryProof* theory)

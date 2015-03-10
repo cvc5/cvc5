@@ -23,6 +23,7 @@
 ; inference rules :
 
 (declare trust (th_holds false))	; temporary
+(declare trust_f (! f formula (th_holds f)))  ; temporary
 
 (declare refl
   (! s sort

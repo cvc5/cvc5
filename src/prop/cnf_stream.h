@@ -3,7 +3,7 @@
  ** \verbatim
  ** Original author: Tim King
  ** Major contributors: Morgan Deters, Dejan Jovanovic
- ** Minor contributors (to current version): Clark Barrett, Liana Hadarean, Christopher L. Conway
+ ** Minor contributors (to current version): Clark Barrett, Liana Hadarean, Christopher L. Conway, Andrew Reynolds
  ** This file is part of the CVC4 project.
  ** Copyright (c) 2009-2014  New York University and The University of Iowa
  ** See the file COPYING in the top-level source directory for licensing
@@ -133,14 +133,14 @@ protected:
    * @param node the node giving rise to this clause
    * @param clause the clause to assert
    */
-  void assertClause(TNode node, SatClause& clause);
+  void assertClause(TNode node, SatClause& clause, ProofRule proof_id);
 
   /**
    * Asserts the unit clause to the sat solver.
    * @param node the node giving rise to this clause
    * @param a the unit literal of the clause
    */
-  void assertClause(TNode node, SatLiteral a);
+  void assertClause(TNode node, SatLiteral a, ProofRule proof_id);
 
   /**
    * Asserts the binary clause to the sat solver.
@@ -148,7 +148,7 @@ protected:
    * @param a the first literal in the clause
    * @param b the second literal in the clause
    */
-  void assertClause(TNode node, SatLiteral a, SatLiteral b);
+  void assertClause(TNode node, SatLiteral a, SatLiteral b, ProofRule proof_id);
 
   /**
    * Asserts the ternary clause to the sat solver.
@@ -157,7 +157,7 @@ protected:
    * @param b the second literal in the clause
    * @param c the thirs literal in the clause
    */
-  void assertClause(TNode node, SatLiteral a, SatLiteral b, SatLiteral c);
+  void assertClause(TNode node, SatLiteral a, SatLiteral b, SatLiteral c, ProofRule proof_id);
 
   /**
    * Acquires a new variable from the SAT solver to represent the node
@@ -298,7 +298,7 @@ private:
   /**
    * Same as above, except that removable is remembered.
    */
-  void convertAndAssert(TNode node, bool negated);
+  void convertAndAssert(TNode node, bool negated, ProofRule proof_id);
 
   // Each of these formulas handles takes care of a Node of each Kind.
   //
@@ -318,12 +318,12 @@ private:
   SatLiteral handleAnd(TNode node);
   SatLiteral handleOr(TNode node);
 
-  void convertAndAssertAnd(TNode node, bool negated);
-  void convertAndAssertOr(TNode node, bool negated);
-  void convertAndAssertXor(TNode node, bool negated);
-  void convertAndAssertIff(TNode node, bool negated);
-  void convertAndAssertImplies(TNode node, bool negated);
-  void convertAndAssertIte(TNode node, bool negated);
+  void convertAndAssertAnd(TNode node, bool negated, ProofRule proof_id);
+  void convertAndAssertOr(TNode node, bool negated, ProofRule proof_id);
+  void convertAndAssertXor(TNode node, bool negated, ProofRule proof_id);
+  void convertAndAssertIff(TNode node, bool negated, ProofRule proof_id);
+  void convertAndAssertImplies(TNode node, bool negated, ProofRule proof_id);
+  void convertAndAssertIte(TNode node, bool negated, ProofRule proof_id);
 
   /**
    * Transforms the node into CNF recursively.
