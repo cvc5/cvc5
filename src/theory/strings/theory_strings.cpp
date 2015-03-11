@@ -158,11 +158,11 @@ Node TheoryStrings::getLengthTerm( Node t ) {
 
 Node TheoryStrings::getLength( Node t ) {
   Node retNode;
-  //if(t.isConst()) {
-  //  retNode = NodeManager::currentNM()->mkNode( kind::STRING_LENGTH, t );
-  //} else {
+  if(t.isConst()) {
+    retNode = NodeManager::currentNM()->mkNode( kind::STRING_LENGTH, t );
+  } else {
     retNode = NodeManager::currentNM()->mkNode( kind::STRING_LENGTH, getLengthTerm( t ) );
-  //}
+  }
   return Rewriter::rewrite( retNode );
 }
 
@@ -778,7 +778,7 @@ void TheoryStrings::assertPendingFact(Node fact, Node exp) {
     for( unsigned j=0; j<2; j++ ) {
       if( !d_equalityEngine.hasTerm( atom[j] ) ) {
         //TODO: check!!!
-		registerTerm( atom[j] );
+    registerTerm( atom[j] );
         d_equalityEngine.addTerm( atom[j] );
       }
     }
@@ -1943,11 +1943,11 @@ void TheoryStrings::sendSplit( Node a, Node b, const char * c, bool preq ) {
 
 void TheoryStrings::sendLengthLemma( Node n ){
   Node n_len = NodeManager::currentNM()->mkNode( kind::STRING_LENGTH, n);
-  //Node n_len_eq_z = n_len.eqNode( d_zero );
+  Node n_len_eq_z = n_len.eqNode( d_zero );
   //registerTerm( d_emptyString );
-  Node n_len_eq_z = n.eqNode( d_emptyString );
+  Node n_len_eq_z_2 = n.eqNode( d_emptyString );
   n_len_eq_z = Rewriter::rewrite( n_len_eq_z );
-  Node n_len_geq_zero = NodeManager::currentNM()->mkNode( kind::OR, n_len_eq_z,
+  Node n_len_geq_zero = NodeManager::currentNM()->mkNode( kind::OR, NodeManager::currentNM()->mkNode( kind::AND, n_len_eq_z, n_len_eq_z_2 ),
               NodeManager::currentNM()->mkNode( kind::GT, n_len, d_zero) );
   Trace("strings-lemma") << "Strings::Lemma LENGTH >= 0 : " << n_len_geq_zero << std::endl;
   d_out->lemma(n_len_geq_zero);
@@ -1992,14 +1992,14 @@ Node TheoryStrings::mkSkolemS( const char *c, int isLenSplit ) {
 }
 
 void TheoryStrings::collectTerm( Node n ) {
-	if(d_registed_terms_cache.find(n) == d_registed_terms_cache.end()) {
+  if(d_registed_terms_cache.find(n) == d_registed_terms_cache.end()) {
     d_terms_cache.push_back(n);
   }
 }
 
 
 void TheoryStrings::appendTermLemma() {
-	for(std::vector< Node >::const_iterator it=d_terms_cache.begin();
+  for(std::vector< Node >::const_iterator it=d_terms_cache.begin();
       it!=d_terms_cache.begin();it++) {
         registerTerm(*it);
   }
@@ -2552,7 +2552,7 @@ Node TheoryStrings::normalizeRegexp(Node r) {
           }
         }
         case kind::REGEXP_CONCAT:
-        case kind::REGEXP_UNION: 
+        case kind::REGEXP_UNION:
         case kind::REGEXP_INTER: {
           bool flag = false;
           std::vector< Node > vec_nodes;
@@ -3017,7 +3017,7 @@ bool TheoryStrings::checkMemberships() {
                 nvec.push_back( tmp );
               }
             }*/
-            
+
             if(nvec.empty()) {
               d_regexp_opr.simplify(atom, nvec, polarity);
             }
