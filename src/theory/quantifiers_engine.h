@@ -315,8 +315,6 @@ public:
     IntStat d_instantiations;
     IntStat d_inst_duplicate;
     IntStat d_inst_duplicate_eq;
-    IntStat d_lit_phase_req;
-    IntStat d_lit_phase_nreq;
     IntStat d_triggers;
     IntStat d_simple_triggers;
     IntStat d_multi_triggers;

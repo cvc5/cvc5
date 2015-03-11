@@ -261,6 +261,7 @@ void CegInstantiation::checkCegConjecture( CegConjecture * conj ) {
             Trace("cegqi-lemma") << "Single invocation lemma : " << lems[j] << std::endl;
             d_quantEngine->addLemma( lems[j] );
           }
+          d_statistics.d_cegqi_si_lemmas += lems.size();
           Trace("cegqi-engine") << "  ...try single invocation." << std::endl;
           return;
         }
@@ -317,6 +318,7 @@ void CegInstantiation::checkCegConjecture( CegConjecture * conj ) {
         d_last_inst_si = false;
         Trace("cegqi-lemma") << "Counterexample lemma : " << lem << std::endl;
         d_quantEngine->addLemma( lem );
+        ++(d_statistics.d_cegqi_lemmas_ce);
         Trace("cegqi-engine") << "  ...find counterexample." << std::endl;
       }
 
@@ -364,6 +366,7 @@ void CegInstantiation::checkCegConjecture( CegConjecture * conj ) {
         Trace("cegqi-lemma") << "Candidate refinement lemma : " << lem << std::endl;
         Trace("cegqi-engine") << "  ...refine candidate." << std::endl;
         d_quantEngine->addLemma( lem );
+        ++(d_statistics.d_cegqi_lemmas_refine);
         conj->d_refine_count++;
       }
     }
@@ -552,5 +555,22 @@ void CegInstantiation::collectDisjuncts( Node n, std::vector< Node >& d ) {
     d.push_back( n );
   }
 }
+
+CegInstantiation::Statistics::Statistics():
+  d_cegqi_lemmas_ce("CegInstantiation::cegqi_lemmas_ce", 0),
+  d_cegqi_lemmas_refine("CegInstantiation::cegqi_lemmas_refine", 0),
+  d_cegqi_si_lemmas("CegInstantiation::cegqi_lemmas_si", 0)
+{
+  StatisticsRegistry::registerStat(&d_cegqi_lemmas_ce);
+  StatisticsRegistry::registerStat(&d_cegqi_lemmas_refine);
+  StatisticsRegistry::registerStat(&d_cegqi_si_lemmas);
+}
+
+CegInstantiation::Statistics::~Statistics(){
+  StatisticsRegistry::unregisterStat(&d_cegqi_lemmas_ce);
+  StatisticsRegistry::unregisterStat(&d_cegqi_lemmas_refine);
+  StatisticsRegistry::unregisterStat(&d_cegqi_si_lemmas);
+}
+
 
 }

@@ -74,12 +74,13 @@ private:
   Node d_n_delta;
   //for adding instantiations during check
   void computeProgVars( Node n );
+  // effort=0 : do not use model value, 1: use model value, 2: one must use model value
   bool addInstantiation( std::vector< Node >& subs, std::vector< Node >& vars, 
                          std::vector< Node >& coeff, std::vector< Node >& has_coeff, std::vector< int >& subs_typ,
-                         unsigned i, std::vector< Node >& lems );
+                         unsigned i, std::vector< Node >& lems, unsigned effort );
   bool addInstantiationInc( Node n, Node pv, Node pv_coeff, int styp, std::vector< Node >& subs, std::vector< Node >& vars, 
                             std::vector< Node >& coeff, std::vector< Node >& has_coeff, std::vector< int >& subs_typ,
-                            unsigned i, std::vector< Node >& lems );
+                            unsigned i, std::vector< Node >& lems, unsigned effort );
   bool addInstantiationCoeff( std::vector< Node >& subs, std::vector< Node >& vars, 
                               std::vector< Node >& coeff, std::vector< Node >& has_coeff, std::vector< int >& subs_typ,
                               unsigned j, std::vector< Node >& lems );

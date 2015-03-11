@@ -132,6 +132,16 @@ public:
   void printSynthSolution( std::ostream& out );  
   /** collect disjuncts */
   static void collectDisjuncts( Node n, std::vector< Node >& ex );
+public:
+  class Statistics {
+  public:
+    IntStat d_cegqi_lemmas_ce;
+    IntStat d_cegqi_lemmas_refine;
+    IntStat d_cegqi_si_lemmas;
+    Statistics();
+    ~Statistics();
+  };/* class CegInstantiation::Statistics */  
+  Statistics d_statistics;
 };
 
 }

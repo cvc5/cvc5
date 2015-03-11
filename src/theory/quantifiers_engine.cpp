@@ -909,15 +909,7 @@ void QuantifiersEngine::getPhaseReqTerms( Node f, std::vector< Node >& nodes ){
       //  Node req = qe->getPhaseReqEquality( f, trNodes[i] );
       //  trNodes[i] = NodeManager::currentNM()->mkNode( EQUAL, trNodes[i], req );
       //}
-      if( nodeChanged ){
-        Debug("literal-matching") << "  Make " << prev << " -> " << nodes[i] << std::endl;
-        ++(d_statistics.d_lit_phase_req);
-      }else{
-        ++(d_statistics.d_lit_phase_nreq);
-      }
     }
-  }else{
-    d_statistics.d_lit_phase_nreq += (int)nodes.size();
   }
 }
 
@@ -961,8 +953,6 @@ QuantifiersEngine::Statistics::Statistics():
   d_instantiations("QuantifiersEngine::Instantiations_Total", 0),
   d_inst_duplicate("QuantifiersEngine::Duplicate_Inst", 0),
   d_inst_duplicate_eq("QuantifiersEngine::Duplicate_Inst_Eq", 0),
-  d_lit_phase_req("QuantifiersEngine::lit_phase_req", 0),
-  d_lit_phase_nreq("QuantifiersEngine::lit_phase_nreq", 0),
   d_triggers("QuantifiersEngine::Triggers", 0),
   d_simple_triggers("QuantifiersEngine::Triggers_Simple", 0),
   d_multi_triggers("QuantifiersEngine::Triggers_Multi", 0),
@@ -974,8 +964,6 @@ QuantifiersEngine::Statistics::Statistics():
   StatisticsRegistry::registerStat(&d_instantiations);
   StatisticsRegistry::registerStat(&d_inst_duplicate);
   StatisticsRegistry::registerStat(&d_inst_duplicate_eq);
-  StatisticsRegistry::registerStat(&d_lit_phase_req);
-  StatisticsRegistry::registerStat(&d_lit_phase_nreq);
   StatisticsRegistry::registerStat(&d_triggers);
   StatisticsRegistry::registerStat(&d_simple_triggers);
   StatisticsRegistry::registerStat(&d_multi_triggers);
@@ -989,8 +977,6 @@ QuantifiersEngine::Statistics::~Statistics(){
   StatisticsRegistry::unregisterStat(&d_instantiations);
   StatisticsRegistry::unregisterStat(&d_inst_duplicate);
   StatisticsRegistry::unregisterStat(&d_inst_duplicate_eq);
-  StatisticsRegistry::unregisterStat(&d_lit_phase_req);
-  StatisticsRegistry::unregisterStat(&d_lit_phase_nreq);
   StatisticsRegistry::unregisterStat(&d_triggers);
   StatisticsRegistry::unregisterStat(&d_simple_triggers);
   StatisticsRegistry::unregisterStat(&d_multi_triggers);
