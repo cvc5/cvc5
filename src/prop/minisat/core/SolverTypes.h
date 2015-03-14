@@ -340,7 +340,7 @@ class OccLists
     OccLists(const Deleted& d) : deleted(d) {}
     
     void  init      (const Idx& idx){ occs.growTo(toInt(idx)+1); dirty.growTo(toInt(idx)+1, 0); }
-    void  resizeTo  (const Idx& idx){ int shrinkSize = occs.size() - (toInt(idx) + 1); occs.shrink(shrinkSize); }
+    void  resizeTo  (const Idx& idx);
     // Vec&  operator[](const Idx& idx){ return occs[toInt(idx)]; }
     Vec&  operator[](const Idx& idx){ return occs[toInt(idx)]; }
     Vec&  lookup    (const Idx& idx){ if (dirty[toInt(idx)]) clean(idx); return occs[toInt(idx)]; }
@@ -372,6 +372,19 @@ void OccLists<Idx,Vec,Deleted>::cleanAll()
     dirties.clear();
 }
 
+template<class Idx, class Vec, class Deleted>
+void OccLists<Idx,Vec,Deleted>::resizeTo(const Idx& idx)
+{
+    int shrinkSize = occs.size() - (toInt(idx) + 1);
+    occs.shrink(shrinkSize);
+    dirty.shrink(shrinkSize);
+    // Remove out-of-bound indices from dirties
+    int  i, j;
+    for (i = j = 0; i < dirties.size(); i++)
+        if (toInt(dirties[i]) < occs.size())
+            dirties[j++] = dirties[i];
+    dirties.shrink(i - j);
+}
 
 template<class Idx, class Vec, class Deleted>
 void OccLists<Idx,Vec,Deleted>::clean(const Idx& idx)
