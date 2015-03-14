@@ -465,7 +465,7 @@ bool AlgebraicSolver::solve(TNode fact, TNode reason, SubstitutionEx& subst) {
   if (right.getKind() == kind::BITVECTOR_XOR &&
       left.getKind() == kind::BITVECTOR_XOR) {
     TNode var = left[0];
-    if (!var.getMetaKind() == kind::metakind::VARIABLE)
+    if (var.getMetaKind() != kind::metakind::VARIABLE)
       return false; 
 
     // simplify xor with same variable on both sides
