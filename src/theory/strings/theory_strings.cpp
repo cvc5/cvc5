@@ -1947,11 +1947,13 @@ void TheoryStrings::sendLengthLemma( Node n ){
   //registerTerm( d_emptyString );
   Node n_len_eq_z_2 = n.eqNode( d_emptyString );
   n_len_eq_z = Rewriter::rewrite( n_len_eq_z );
+  n_len_eq_z_2 = Rewriter::rewrite( n_len_eq_z_2 );
   Node n_len_geq_zero = NodeManager::currentNM()->mkNode( kind::OR, NodeManager::currentNM()->mkNode( kind::AND, n_len_eq_z, n_len_eq_z_2 ),
               NodeManager::currentNM()->mkNode( kind::GT, n_len, d_zero) );
   Trace("strings-lemma") << "Strings::Lemma LENGTH >= 0 : " << n_len_geq_zero << std::endl;
   d_out->lemma(n_len_geq_zero);
   d_out->requirePhase( n_len_eq_z, true );
+  d_out->requirePhase( n_len_eq_z_2, true );
 }
 
 Node TheoryStrings::mkConcat( Node n1, Node n2 ) {
