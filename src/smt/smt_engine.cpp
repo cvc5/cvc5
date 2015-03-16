@@ -864,6 +864,9 @@ SmtEngine::~SmtEngine() throw() {
     delete d_decisionEngine;
     d_decisionEngine = NULL;
 
+    PROOF(delete d_proofManager;);
+    PROOF(d_proofManager = NULL;);
+    
     delete d_stats;
     d_stats = NULL;
     delete d_statisticsRegistry;

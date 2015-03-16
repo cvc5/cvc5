@@ -167,6 +167,7 @@ SatProof::SatProof(Minisat::Solver* solver, bool checkRes) :
     d_idClause(),
     d_clauseId(),
     d_idUnit(),
+    d_unitId(),
     d_deleted(),
     d_inputClauses(),
     d_lemmaClauses(),
@@ -185,6 +186,9 @@ SatProof::SatProof(Minisat::Solver* solver, bool checkRes) :
   {
     d_proxy = new ProofProxy(this);
   }
+SatProof::~SatProof() {
+  delete d_proxy;
+}
 
 /**
  * Returns true if the resolution chain corresponding to id
@@ -365,15 +369,15 @@ ClauseId SatProof::registerClause(::Minisat::CRef clause, ClauseKind kind, uint6
   ClauseIdMap::iterator it = d_clauseId.find(clause);
   if (it == d_clauseId.end()) {
     ClauseId newId = ProofManager::currentPM()->nextId();
-    d_clauseId[clause] = newId;
-    d_idClause[newId] = clause;
+    d_clauseId.insert(ClauseIdMap::value_type(clause, newId)); 
+    d_idClause.insert(IdCRefMap::value_type(newId, clause));
     if (kind == INPUT) {
       Assert(d_inputClauses.find(newId) == d_inputClauses.end());
-      d_inputClauses[newId] = proof_id;
+      d_inputClauses.insert(IdProofRuleMap::value_type(newId, proof_id));
     }
     if (kind == THEORY_LEMMA) {
       Assert(d_lemmaClauses.find(newId) == d_lemmaClauses.end());
-      d_lemmaClauses[newId] = proof_id;
+      d_lemmaClauses.insert(IdProofRuleMap::value_type(newId, proof_id));
     }
   }
   Debug("proof:sat:detailed") << "registerClause CRef:" << clause << " id:" << d_clauseId[clause] << " " << kind << " " << int32_t((proof_id >> 32) & 0xffffffff) << "\n";
@@ -386,15 +390,16 @@ ClauseId SatProof::registerUnitClause(::Minisat::Lit lit, ClauseKind kind, uint6
   UnitIdMap::iterator it = d_unitId.find(toInt(lit));
   if (it == d_unitId.end()) {
     ClauseId newId = ProofManager::currentPM()->nextId();
-    d_unitId[toInt(lit)] = newId;
-    d_idUnit[newId] = lit;
+    d_unitId.insert(UnitIdMap::value_type(toInt(lit), newId));
+    d_idUnit.insert(IdUnitMap::value_type(newId, lit));
+
     if (kind == INPUT) {
       Assert(d_inputClauses.find(newId) == d_inputClauses.end());
-      d_inputClauses[newId] = proof_id;
+      d_inputClauses.insert(IdProofRuleMap::value_type(newId, proof_id));
     }
     if (kind == THEORY_LEMMA) {
       Assert(d_lemmaClauses.find(newId) == d_lemmaClauses.end());
-      d_lemmaClauses[newId] = proof_id;
+      d_lemmaClauses.insert(IdProofRuleMap::value_type(newId, proof_id));
     }
   }
   Debug("proof:sat:detailed") << "registerUnitClause " << d_unitId[toInt(lit)] << " " << kind << "\n";

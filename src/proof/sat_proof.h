@@ -139,7 +139,7 @@ protected:
   bool d_storedUnitConflict;
 public:
   SatProof(::Minisat::Solver* solver, bool checkRes = false);
-  virtual ~SatProof() {}
+  virtual ~SatProof();
 protected:
   void print(ClauseId id);
   void printRes(ClauseId id);
