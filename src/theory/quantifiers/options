@@ -220,8 +220,10 @@ option sygusNormalFormGlobalContent --sygus-nf-sym-content bool :default true
   generalize based on content in global search space narrowing
   
 # older implementation
-option cbqi --enable-cbqi bool :read-write :default false
+option cbqi --cbqi bool :read-write :default false
  turns on counterexample-based quantifier instantiation
+option cbqi2 --cbqi2 bool :read-write :default false
+ turns on new implementation of counterexample-based quantifier instantiation
 option recurseCbqi --cbqi-recurse bool :default false
  turns on recursive counterexample-based quantifier instantiation
  

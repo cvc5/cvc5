@@ -29,6 +29,7 @@ class InstStrategyAutoGenTriggers;
 class InstStrategyLocalTheoryExt;
 class InstStrategyFreeVariable;
 class InstStrategySimplex;
+class InstStrategyCegqi;
 
 /** instantiation strategy class */
 class InstStrategy {
@@ -68,6 +69,8 @@ private:
   InstStrategyFreeVariable * d_i_fs;
   /** simplex (cbqi) */
   InstStrategySimplex * d_i_splx;
+  /** generic cegqi */
+  InstStrategyCegqi * d_i_cegqi;
 private:
   typedef context::CDHashMap< Node, bool, NodeHashFunction > BoolMap;
   /** whether the instantiation engine should set incomplete if it cannot answer SAT */

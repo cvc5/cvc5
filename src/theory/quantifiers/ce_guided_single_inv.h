@@ -28,12 +28,68 @@ namespace quantifiers {
 
 class CegConjecture;
 
+class CegqiOutput
+{
+public:
+  virtual bool addInstantiation( std::vector< Node >& subs, std::vector< int >& subs_typ ) = 0;
+  virtual bool isEligibleForInstantiation( Node n ) = 0;
+};
+
+class CegInstantiator
+{
+private:
+  QuantifiersEngine * d_qe;
+  CegqiOutput * d_out;
+  //program variable contains cache
+  std::map< Node, std::map< Node, bool > > d_prog_var;
+  std::map< Node, bool > d_inelig;
+private:
+  Node d_n_delta;
+  //for adding instantiations during check
+  void computeProgVars( Node n );
+  // effort=0 : do not use model value, 1: use model value, 2: one must use model value
+  bool addInstantiation( std::vector< Node >& subs, std::vector< Node >& vars, 
+                         std::vector< Node >& coeff, std::vector< Node >& has_coeff, std::vector< int >& subs_typ,
+                         unsigned i, unsigned effort );
+  bool addInstantiationInc( Node n, Node pv, Node pv_coeff, int styp, std::vector< Node >& subs, std::vector< Node >& vars, 
+                            std::vector< Node >& coeff, std::vector< Node >& has_coeff, std::vector< int >& subs_typ,
+                            unsigned i, unsigned effort );
+  bool addInstantiationCoeff( std::vector< Node >& subs, std::vector< Node >& vars, 
+                              std::vector< Node >& coeff, std::vector< Node >& has_coeff, std::vector< int >& subs_typ,
+                              unsigned j );
+  bool addInstantiation( std::vector< Node >& subs, std::vector< Node >& vars, std::vector< int >& subs_typ );
+  Node applySubstitution( Node n, std::vector< Node >& subs, std::vector< Node >& vars, 
+                          std::vector< Node >& coeff, std::vector< Node >& has_coeff, Node& pv_coeff, bool try_coeff = true ); 
+public:
+  CegInstantiator( QuantifiersEngine * qe, CegqiOutput * out );
+  //the CE variables
+  std::vector< Node > d_vars;
+  void check();
+};
+
+
+class CegConjectureSingleInv;
+
+class CegqiOutputSingleInv : public CegqiOutput
+{
+public:
+  CegqiOutputSingleInv( CegConjectureSingleInv * out ) : d_out( out ){}
+  CegConjectureSingleInv * d_out;
+  bool addInstantiation( std::vector< Node >& subs, std::vector< int >& subs_typ );
+  bool isEligibleForInstantiation( Node n );
+};
+
+
+
 class CegConjectureSingleInv
 {
+  friend class CegqiOutputSingleInv;
 private:
   QuantifiersEngine * d_qe;
   CegConjecture * d_parent;
   CegConjectureSingleInvSol * d_sol;
+  //the instantiator
+  CegInstantiator * d_cinst;
   //for recognizing when conjecture is single invocation
   bool analyzeSygusConjunct( Node n, Node p, std::map< Node, std::vector< Node > >& children,
                             std::map< Node, std::map< Node, std::vector< Node > > >& prog_invoke,
@@ -67,26 +123,12 @@ private:
   Node d_orig_solution;
   Node d_solution;
   Node d_sygus_solution;
-  //program variable contains cache
-  std::map< Node, std::map< Node, bool > > d_prog_var;
-  std::map< Node, bool > d_inelig;
 private:
-  Node d_n_delta;
-  //for adding instantiations during check
-  void computeProgVars( Node n );
-  // effort=0 : do not use model value, 1: use model value, 2: one must use model value
-  bool addInstantiation( std::vector< Node >& subs, std::vector< Node >& vars, 
-                         std::vector< Node >& coeff, std::vector< Node >& has_coeff, std::vector< int >& subs_typ,
-                         unsigned i, std::vector< Node >& lems, unsigned effort );
-  bool addInstantiationInc( Node n, Node pv, Node pv_coeff, int styp, std::vector< Node >& subs, std::vector< Node >& vars, 
-                            std::vector< Node >& coeff, std::vector< Node >& has_coeff, std::vector< int >& subs_typ,
-                            unsigned i, std::vector< Node >& lems, unsigned effort );
-  bool addInstantiationCoeff( std::vector< Node >& subs, std::vector< Node >& vars, 
-                              std::vector< Node >& coeff, std::vector< Node >& has_coeff, std::vector< int >& subs_typ,
-                              unsigned j, std::vector< Node >& lems );
-  bool addInstantiation( std::vector< Node >& subs, std::vector< Node >& vars, std::vector< int >& subs_typ, std::vector< Node >& lems );
-  Node applySubstitution( Node n, std::vector< Node >& subs, std::vector< Node >& vars, 
-                          std::vector< Node >& coeff, std::vector< Node >& has_coeff, Node& pv_coeff, bool try_coeff = true ); 
+  std::vector< Node > d_curr_lemmas;
+  //add instantiation
+  bool addInstantiation( std::vector< Node >& subs, std::vector< int >& subs_typ );
+  //is eligible for instantiation
+  bool isEligibleForInstantiation( Node n );
 public:
   CegConjectureSingleInv( CegConjecture * p );
   // original conjecture

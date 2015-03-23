@@ -31,7 +31,7 @@ using namespace CVC4::theory::quantifiers;
 using namespace CVC4::theory::inst;
 
 InstantiationEngine::InstantiationEngine( QuantifiersEngine* qe, bool setIncomplete ) :
-QuantifiersModule( qe ), d_isup(NULL), d_i_ag(NULL), d_i_lte(NULL), d_i_fs(NULL), d_i_splx(NULL), d_setIncomplete( setIncomplete ){
+QuantifiersModule( qe ), d_isup(NULL), d_i_ag(NULL), d_i_lte(NULL), d_i_fs(NULL), d_i_splx(NULL), d_i_cegqi( NULL ), d_setIncomplete( setIncomplete ){
 
 }
 
@@ -41,6 +41,7 @@ InstantiationEngine::~InstantiationEngine() {
   delete d_i_lte;
   delete d_i_fs;
   delete d_i_splx;
+  delete d_i_cegqi;
 }
 
 void InstantiationEngine::finishInit(){
@@ -72,8 +73,14 @@ void InstantiationEngine::finishInit(){
 
   //counterexample-based quantifier instantiation
   if( options::cbqi() ){
-    d_i_splx = new InstStrategySimplex( (arith::TheoryArith*)d_quantEngine->getTheoryEngine()->theoryOf( THEORY_ARITH ), d_quantEngine );
-    d_instStrategies.push_back( d_i_splx );
+    if( !options::cbqi2() || options::cbqi.wasSetByUser() ){
+      d_i_splx = new InstStrategySimplex( (arith::TheoryArith*)d_quantEngine->getTheoryEngine()->theoryOf( THEORY_ARITH ), d_quantEngine );
+      d_instStrategies.push_back( d_i_splx );
+    }
+    if( options::cbqi2() ){
+      d_i_cegqi = new InstStrategyCegqi( d_quantEngine );
+      d_instStrategies.push_back( d_i_cegqi );
+    }
   }
 }
 

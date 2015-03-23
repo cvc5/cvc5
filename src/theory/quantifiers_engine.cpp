@@ -899,11 +899,9 @@ void QuantifiersEngine::getPhaseReqTerms( Node f, std::vector< Node >& nodes ){
     // doing literal-based matching (consider polarity of literals)
     for( int i=0; i<(int)nodes.size(); i++ ){
       Node prev = nodes[i];
-      bool nodeChanged = false;
       if( d_phase_reqs[f]->isPhaseReq( nodes[i] ) ){
         bool preq = d_phase_reqs[f]->getPhaseReq( nodes[i] );
         nodes[i] = NodeManager::currentNM()->mkNode( IFF, nodes[i], NodeManager::currentNM()->mkConst<bool>(preq) );
-        nodeChanged = true;
       }
       //else if( qe->isPhaseReqEquality( f, trNodes[i] ) ){
       //  Node req = qe->getPhaseReqEquality( f, trNodes[i] );

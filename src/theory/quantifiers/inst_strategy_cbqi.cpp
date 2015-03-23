@@ -346,3 +346,67 @@ Node InstStrategySimplex::getTableauxValue( ArithVar v, bool minus_delta ){
   Rational qmodel = drv.substituteDelta( minus_delta ? -delta : delta );
   return mkRationalNode(qmodel);
 }
+
+
+
+bool CegqiOutputInstStrategy::addInstantiation( std::vector< Node >& subs, std::vector< int >& subs_typ ) {
+  return d_out->addInstantiation( subs, subs_typ );
+}
+
+bool CegqiOutputInstStrategy::isEligibleForInstantiation( Node n ) {
+  return d_out->isEligibleForInstantiation( n );
+}
+
+
+InstStrategyCegqi::InstStrategyCegqi( QuantifiersEngine * qe ) : InstStrategy( qe ) {
+  d_out = new CegqiOutputInstStrategy( this );
+}
+
+void InstStrategyCegqi::processResetInstantiationRound( Theory::Effort effort ) {
+  
+}
+
+int InstStrategyCegqi::process( Node f, Theory::Effort effort, int e ) {
+  if( e<2 ){
+    return STATUS_UNFINISHED;
+  }else if( e==2 ){
+    CegInstantiator * cinst;
+    std::map< Node, CegInstantiator * >::iterator it = d_cinst.find( f );
+    if( it==d_cinst.end() ){
+      cinst = new CegInstantiator( d_quantEngine, d_out );
+      for( int i=0; i<d_quantEngine->getTermDatabase()->getNumInstantiationConstants( f ); i++ ){
+        cinst->d_vars.push_back( d_quantEngine->getTermDatabase()->getInstantiationConstant( f, i ) );
+      }
+      d_cinst[f] = cinst;
+    }else{
+      cinst = it->second;
+    }
+    d_curr_quant = f;
+    cinst->check();
+    d_curr_quant = Node::null();
+    
+    return STATUS_UNKNOWN;
+  }
+}
+
+bool InstStrategyCegqi::addInstantiation( std::vector< Node >& subs, std::vector< int >& subs_typ ) {
+  Assert( !d_curr_quant.isNull() );
+  return d_quantEngine->addInstantiation( d_curr_quant, subs, false );
+}
+
+bool InstStrategyCegqi::isEligibleForInstantiation( Node n ) {
+  return true;
+} 
+
+
+
+
+
+
+
+
+
+
+
+
+

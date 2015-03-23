@@ -1377,7 +1377,7 @@ void SmtEngine::setDefaults() {
   }
 
   //implied options...
-  if( options::recurseCbqi() ){
+  if( options::recurseCbqi() || options::cbqi2() ){
     options::cbqi.set( true );
   }
   if( options::qcfMode.wasSetByUser() || options::qcfTConstraint() ){
