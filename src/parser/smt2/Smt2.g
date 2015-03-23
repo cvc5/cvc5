@@ -829,10 +829,17 @@ setOptionInternal[CVC4::Command*& cmd]
 smt25Command[CVC4::Command*& cmd]
 @declarations {
   std::string name;
+  std::string fname;
   Expr expr, expr2;
   std::vector<std::pair<std::string, Type> > sortedVarNames;
   SExpr sexpr;
   Type t;
+  Expr func_app;
+  std::vector<Expr> bvs;
+  std::vector< std::vector<std::pair<std::string, Type> > > sortedVarNamesList;
+  std::vector<Expr> funcs;
+  std::vector<Expr> func_defs;
+  Expr aexpr;
 }
     /* meta-info */
   : META_INFO_TOK metaInfoInternal[cmd]
@@ -871,17 +878,14 @@ smt25Command[CVC4::Command*& cmd]
     { cmd = new ResetAssertionsCommand();
       PARSER_STATE->resetAssertions();
     }
-
-  | /* recursive function definition */
-    DEFINE_FUN_REC_TOK { PARSER_STATE->checkThatLogicIsSet(); } LPAREN_TOK
-    { PARSER_STATE->pushScope(true); }
-    ( LPAREN_TOK symbol[name,CHECK_UNDECLARED,SYM_VARIABLE]
-      { PARSER_STATE->checkUserSymbol(name); }
+  | DEFINE_FUN_REC_TOK { 
+      PARSER_STATE->checkThatLogicIsSet();
+      cmd = new CommandSequence();}
+      symbol[fname,CHECK_UNDECLARED,SYM_VARIABLE]
+      { PARSER_STATE->checkUserSymbol(fname); }
       LPAREN_TOK sortedVarList[sortedVarNames] RPAREN_TOK
-      sortSymbol[t,CHECK_DECLARED]
-      { /* add variables to parser state before parsing term */
-        Debug("parser") << "define fun rec: '" << name << "'" << std::endl;
-          if( sortedVarNames.size() > 0 ) {
+      sortSymbol[t,CHECK_DECLARED] {
+        if( sortedVarNames.size() > 0 ) {
           std::vector<CVC4::Type> sorts;
           sorts.reserve(sortedVarNames.size());
           for(std::vector<std::pair<std::string, CVC4::Type> >::const_iterator i =
@@ -892,19 +896,118 @@ smt25Command[CVC4::Command*& cmd]
           }
           t = EXPR_MANAGER->mkFunctionType(sorts, t);
         }
-        PARSER_STATE->mkFunction(name, t, ExprManager::VAR_FLAG_DEFINED);
+        Expr func = PARSER_STATE->mkVar(fname, t, ExprManager::VAR_FLAG_DEFINED);
+        std::vector< Expr > f_app;
+        f_app.push_back( func );
         PARSER_STATE->pushScope(true);
         for(std::vector<std::pair<std::string, CVC4::Type> >::const_iterator i =
               sortedVarNames.begin(), iend = sortedVarNames.end();
             i != iend;
             ++i) {
-          PARSER_STATE->mkBoundVar((*i).first, (*i).second);
+          Expr v = PARSER_STATE->mkBoundVar((*i).first, (*i).second);
+          bvs.push_back( v );
+          f_app.push_back( v );
         }
+        func_app = MK_EXPR( kind::APPLY_UF, f_app );
       }
       term[expr, expr2]
-      { PARSER_STATE->popScope(); }
-      RPAREN_TOK )+ RPAREN_TOK
-      { PARSER_STATE->popScope(); }
+      { PARSER_STATE->popScope(); 
+        std::string attr_name("fun-def");
+        Type t = EXPR_MANAGER->booleanType();
+        Expr avar = PARSER_STATE->mkVar(attr_name, t);
+        aexpr = MK_EXPR(kind::INST_ATTRIBUTE, avar);
+        aexpr = MK_EXPR(kind::INST_PATTERN_LIST, aexpr );
+        //set the attribute to denote this is a function definition
+        static_cast<CommandSequence*>($cmd)->addCommand( new SetUserAttributeCommand( attr_name, avar ) );
+        //assert it
+        Expr as = EXPR_MANAGER->mkExpr(kind::FORALL, EXPR_MANAGER->mkExpr(kind::BOUND_VAR_LIST, bvs), MK_EXPR( func_app.getType().isBoolean() ? kind::IFF : kind::EQUAL, func_app, expr ), aexpr);
+        static_cast<CommandSequence*>($cmd)->addCommand( new AssertCommand(as, false) );
+      }
+  | DEFINE_FUNS_REC_TOK {
+      PARSER_STATE->checkThatLogicIsSet();
+      cmd = new CommandSequence();}
+    LPAREN_TOK
+    ( LPAREN_TOK
+      symbol[fname,CHECK_UNDECLARED,SYM_VARIABLE]
+      { PARSER_STATE->checkUserSymbol(fname); }
+      LPAREN_TOK sortedVarList[sortedVarNames] RPAREN_TOK
+      sortSymbol[t,CHECK_DECLARED] {
+        sortedVarNamesList.push_back( sortedVarNames );
+        if( sortedVarNamesList[0].size() > 0 ) {
+          std::vector<CVC4::Type> sorts;
+          for(std::vector<std::pair<std::string, CVC4::Type> >::const_iterator i =
+                sortedVarNames.begin(), iend = sortedVarNames.end();
+              i != iend;
+              ++i) {
+            sorts.push_back((*i).second);
+          }
+          t = EXPR_MANAGER->mkFunctionType(sorts, t);
+        }
+        sortedVarNames.clear();
+        Expr func = PARSER_STATE->mkVar(fname, t, ExprManager::VAR_FLAG_DEFINED);
+        funcs.push_back( func );
+      }
+      RPAREN_TOK
+      )+
+    RPAREN_TOK
+    LPAREN_TOK
+    { 
+      std::string attr_name("fun-def");
+      Type t = EXPR_MANAGER->booleanType();
+      Expr avar = PARSER_STATE->mkVar(attr_name, t);
+      aexpr = MK_EXPR(kind::INST_ATTRIBUTE, avar);
+      aexpr = MK_EXPR(kind::INST_PATTERN_LIST, aexpr );
+      //set the attribute to denote these are function definitions
+      static_cast<CommandSequence*>($cmd)->addCommand( new SetUserAttributeCommand( attr_name, avar ) );
+    
+      //set up the first scope 
+      if( sortedVarNamesList.empty() ){
+        PARSER_STATE->parseError(std::string("Must define at least one function in define-funs-rec"));
+      }
+      std::vector< Expr > f_app;
+      f_app.push_back( funcs[0] );
+      PARSER_STATE->pushScope(true);
+      bvs.clear();
+      for(std::vector<std::pair<std::string, CVC4::Type> >::const_iterator i = sortedVarNamesList[0].begin(), 
+          iend = sortedVarNamesList[0].end(); i != iend; ++i) {
+        Expr v = PARSER_STATE->mkBoundVar((*i).first, (*i).second);
+        bvs.push_back( v );
+        f_app.push_back( v );
+      }
+      func_app = MK_EXPR( kind::APPLY_UF, f_app );
+    }
+    (
+    term[expr,expr2]
+    { 
+      func_defs.push_back( expr );
+      //assert it
+      Expr as = EXPR_MANAGER->mkExpr(kind::FORALL, EXPR_MANAGER->mkExpr(kind::BOUND_VAR_LIST, bvs), MK_EXPR( func_app.getType().isBoolean() ? kind::IFF : kind::EQUAL, func_app, expr ), aexpr);
+      static_cast<CommandSequence*>($cmd)->addCommand( new AssertCommand(as, false) );
+      //set up the next scope 
+      PARSER_STATE->popScope();
+      if( func_defs.size()<funcs.size() ){
+        unsigned j = func_defs.size();
+        std::vector< Expr > f_app;
+        f_app.push_back( funcs[j] );
+        PARSER_STATE->pushScope(true);
+        bvs.clear();
+        for(std::vector<std::pair<std::string, CVC4::Type> >::const_iterator i = sortedVarNamesList[j].begin(), 
+            iend = sortedVarNamesList[j].end(); i != iend; ++i) {
+          Expr v = PARSER_STATE->mkBoundVar((*i).first, (*i).second);
+          bvs.push_back( v );
+          f_app.push_back( v );
+        }
+        func_app = MK_EXPR( kind::APPLY_UF, f_app );
+      }
+    }
+    )+
+    RPAREN_TOK
+    {
+      if( funcs.size()!=func_defs.size() ){
+        PARSER_STATE->parseError(std::string("Number of functions defined does not match number listed in define-funs-rec"));
+      }
+    }
+      
 
   // CHECK_SAT_ASSUMING still being discussed
   // GET_UNSAT_ASSUMPTIONS
@@ -1225,7 +1328,7 @@ simpleSymbolicExprNoKeyword[CVC4::SExpr& sexpr]
 //	}
   | symbol[s,CHECK_NONE,SYM_SORT]
     { sexpr = SExpr(SExpr::Keyword(s)); }
-  | tok=(ASSERT_TOK | CHECKSAT_TOK | DECLARE_FUN_TOK | DECLARE_SORT_TOK | DEFINE_FUN_TOK | DEFINE_FUN_REC_TOK | DEFINE_SORT_TOK | GET_VALUE_TOK | GET_ASSIGNMENT_TOK | GET_ASSERTIONS_TOK | GET_PROOF_TOK | GET_UNSAT_CORE_TOK | EXIT_TOK | RESET_TOK | RESET_ASSERTIONS_TOK | SET_LOGIC_TOK | SET_INFO_TOK | GET_INFO_TOK | SET_OPTION_TOK | GET_OPTION_TOK | PUSH_TOK | POP_TOK | DECLARE_DATATYPES_TOK | GET_MODEL_TOK | ECHO_TOK | REWRITE_RULE_TOK | REDUCTION_RULE_TOK | PROPAGATION_RULE_TOK | SIMPLIFY_TOK)
+  | tok=(ASSERT_TOK | CHECKSAT_TOK | DECLARE_FUN_TOK | DECLARE_SORT_TOK | DEFINE_FUN_TOK | DEFINE_FUN_REC_TOK | DEFINE_FUNS_REC_TOK | DEFINE_SORT_TOK | GET_VALUE_TOK | GET_ASSIGNMENT_TOK | GET_ASSERTIONS_TOK | GET_PROOF_TOK | GET_UNSAT_CORE_TOK | EXIT_TOK | RESET_TOK | RESET_ASSERTIONS_TOK | SET_LOGIC_TOK | SET_INFO_TOK | GET_INFO_TOK | SET_OPTION_TOK | GET_OPTION_TOK | PUSH_TOK | POP_TOK | DECLARE_DATATYPES_TOK | GET_MODEL_TOK | ECHO_TOK | REWRITE_RULE_TOK | REDUCTION_RULE_TOK | PROPAGATION_RULE_TOK | SIMPLIFY_TOK)
     { sexpr = SExpr(SExpr::Keyword(AntlrInput::tokenText($tok))); }
   | builtinOp[k]
     { std::stringstream ss;
@@ -2322,6 +2425,7 @@ DECLARE_FUN_TOK : 'declare-fun';
 DECLARE_SORT_TOK : 'declare-sort';
 DEFINE_FUN_TOK : 'define-fun';
 DEFINE_FUN_REC_TOK : 'define-fun-rec';
+DEFINE_FUNS_REC_TOK : 'define-funs-rec';
 DEFINE_SORT_TOK : 'define-sort';
 GET_VALUE_TOK : 'get-value';
 GET_ASSIGNMENT_TOK : 'get-assignment';
