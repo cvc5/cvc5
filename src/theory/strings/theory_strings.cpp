@@ -37,7 +37,7 @@ TheoryStrings::TheoryStrings(context::Context* c, context::UserContext* u, Outpu
   : Theory(THEORY_STRINGS, c, u, out, valuation, logicInfo),
   RMAXINT(LONG_MAX),
   d_notify( *this ),
-  d_equalityEngine(d_notify, c, "theory::strings::TheoryStrings", false),
+  d_equalityEngine(d_notify, c, "theory::strings::TheoryStrings", true),
   d_conflict(c, false),
   d_infer(c),
   d_infer_exp(c),
