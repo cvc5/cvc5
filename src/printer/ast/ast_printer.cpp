@@ -140,6 +140,8 @@ void AstPrinter::toStream(std::ostream& out, const Command* c,
      tryToStream<PopCommand>(out, c) ||
      tryToStream<CheckSatCommand>(out, c) ||
      tryToStream<QueryCommand>(out, c) ||
+     tryToStream<ResetCommand>(out, c) ||
+     tryToStream<ResetAssertionsCommand>(out, c) ||
      tryToStream<QuitCommand>(out, c) ||
      tryToStream<DeclarationSequence>(out, c) ||
      tryToStream<CommandSequence>(out, c) ||
@@ -177,7 +179,8 @@ void AstPrinter::toStream(std::ostream& out, const CommandStatus* s) const throw
 
   if(tryToStream<CommandSuccess>(out, s) ||
      tryToStream<CommandFailure>(out, s) ||
-     tryToStream<CommandUnsupported>(out, s)) {
+     tryToStream<CommandUnsupported>(out, s) ||
+     tryToStream<CommandInterrupted>(out, s)) {
     return;
   }
 
@@ -222,6 +225,14 @@ static void toStream(std::ostream& out, const CheckSatCommand* c) throw() {
 
 static void toStream(std::ostream& out, const QueryCommand* c) throw() {
   out << "Query(" << c->getExpr() << ')';
+}
+
+static void toStream(std::ostream& out, const ResetCommand* c) throw() {
+  out << "Reset()";
+}
+
+static void toStream(std::ostream& out, const ResetAssertionsCommand* c) throw() {
+  out << "ResetAssertions()";
 }
 
 static void toStream(std::ostream& out, const QuitCommand* c) throw() {
@@ -361,6 +372,10 @@ static void toStream(std::ostream& out, const CommandSuccess* s) throw() {
   if(Command::printsuccess::getPrintSuccess(out)) {
     out << "OK" << endl;
   }
+}
+
+static void toStream(std::ostream& out, const CommandInterrupted* s) throw() {
+  out << "INTERRUPTED" << endl;
 }
 
 static void toStream(std::ostream& out, const CommandUnsupported* s) throw() {

@@ -218,41 +218,27 @@ std::cout<<"here\n";
     Node cons = Node::fromExpr(DatatypeType(listColorsType.toType()).getDatatype().getConstructor("cons"));
     Node nil = d_nm->mkNode(APPLY_CONSTRUCTOR, DatatypeType(listColorsType.toType()).getDatatype().getConstructor("nil"));
     Node red = d_nm->mkNode(APPLY_CONSTRUCTOR, DatatypeType(colorsType.toType()).getDatatype().getConstructor("red"));
+    Node orange = d_nm->mkNode(APPLY_CONSTRUCTOR, DatatypeType(colorsType.toType()).getDatatype().getConstructor("orange"));
+    Node yellow = d_nm->mkNode(APPLY_CONSTRUCTOR, DatatypeType(colorsType.toType()).getDatatype().getConstructor("yellow"));
     TS_ASSERT_EQUALS(*te, nil);
     TS_ASSERT_EQUALS(*++te, d_nm->mkNode(APPLY_CONSTRUCTOR, cons, red, nil));
     TS_ASSERT( ! te.isFinished() );
     TS_ASSERT_EQUALS(*++te, d_nm->mkNode(APPLY_CONSTRUCTOR, cons, red,
                             d_nm->mkNode(APPLY_CONSTRUCTOR, cons, red, nil)));
     TS_ASSERT( ! te.isFinished() );
+    TS_ASSERT_EQUALS(*++te, d_nm->mkNode(APPLY_CONSTRUCTOR, cons, orange, nil));
+    TS_ASSERT( ! te.isFinished() );
     TS_ASSERT_EQUALS(*++te, d_nm->mkNode(APPLY_CONSTRUCTOR, cons, red,
                             d_nm->mkNode(APPLY_CONSTRUCTOR, cons, red,
                             d_nm->mkNode(APPLY_CONSTRUCTOR, cons, red, nil))));
     TS_ASSERT( ! te.isFinished() );
-    TS_ASSERT_EQUALS(*++te, d_nm->mkNode(APPLY_CONSTRUCTOR, cons, red,
-                            d_nm->mkNode(APPLY_CONSTRUCTOR, cons, red,
-                            d_nm->mkNode(APPLY_CONSTRUCTOR, cons, red,
-                            d_nm->mkNode(APPLY_CONSTRUCTOR, cons, red, nil)))));
+    TS_ASSERT_EQUALS(*++te, d_nm->mkNode(APPLY_CONSTRUCTOR, cons, orange,
+                            d_nm->mkNode(APPLY_CONSTRUCTOR, cons, red, nil)));
+    TS_ASSERT( ! te.isFinished() );
+    TS_ASSERT_EQUALS(*++te, d_nm->mkNode(APPLY_CONSTRUCTOR, cons, yellow, nil));
     TS_ASSERT( ! te.isFinished() );
     TS_ASSERT_EQUALS(*++te, d_nm->mkNode(APPLY_CONSTRUCTOR, cons, red,
-                            d_nm->mkNode(APPLY_CONSTRUCTOR, cons, red,
-                            d_nm->mkNode(APPLY_CONSTRUCTOR, cons, red,
-                            d_nm->mkNode(APPLY_CONSTRUCTOR, cons, red,
-                            d_nm->mkNode(APPLY_CONSTRUCTOR, cons, red, nil))))));
-    TS_ASSERT( ! te.isFinished() );
-    TS_ASSERT_EQUALS(*++te, d_nm->mkNode(APPLY_CONSTRUCTOR, cons, red,
-                            d_nm->mkNode(APPLY_CONSTRUCTOR, cons, red,
-                            d_nm->mkNode(APPLY_CONSTRUCTOR, cons, red,
-                            d_nm->mkNode(APPLY_CONSTRUCTOR, cons, red,
-                            d_nm->mkNode(APPLY_CONSTRUCTOR, cons, red,
-                            d_nm->mkNode(APPLY_CONSTRUCTOR, cons, red, nil)))))));
-    TS_ASSERT( ! te.isFinished() );
-    TS_ASSERT_EQUALS(*++te, d_nm->mkNode(APPLY_CONSTRUCTOR, cons, red,
-                            d_nm->mkNode(APPLY_CONSTRUCTOR, cons, red,
-                            d_nm->mkNode(APPLY_CONSTRUCTOR, cons, red,
-                            d_nm->mkNode(APPLY_CONSTRUCTOR, cons, red,
-                            d_nm->mkNode(APPLY_CONSTRUCTOR, cons, red,
-                            d_nm->mkNode(APPLY_CONSTRUCTOR, cons, red,
-                            d_nm->mkNode(APPLY_CONSTRUCTOR, cons, red, nil))))))));
+                            d_nm->mkNode(APPLY_CONSTRUCTOR, cons, orange, nil)));
     TS_ASSERT( ! te.isFinished() );
   }
 

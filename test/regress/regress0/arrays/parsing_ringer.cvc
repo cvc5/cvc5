@@ -1,0 +1,94 @@
+% Test for presentiation language parsing, some edge cases with cascading
+% store terms.  Intended to put this part of the parser "through the ringer,"
+% hence the name.
+
+% COMMAND-LINE: --incremental
+% EXPECT: sat
+% EXPECT: sat
+% EXPECT: sat
+% EXPECT: sat
+% EXPECT: sat
+% EXPECT: sat
+% EXPECT: sat
+% EXPECT: sat
+% EXPECT: unsat
+% EXPECT: unsat
+% EXPECT: sat
+
+PUSH;
+
+x, y : ARRAY INT OF ARRAY INT OF ARRAY INT OF INT;
+
+% multidimensional arrays
+ASSERT x[0][0][0] = 0; %% select
+ASSERT y = x WITH [0][0][1] := 1; %% partial store
+
+CHECKSAT;
+
+% mixed stores: records of arrays of tuples, oh my
+z : [# x:ARRAY INT OF [# x:INT #], y:[ARRAY INT OF INT, ARRAY INT OF INT] #];
+
+arr1 : ARRAY INT OF [# x:INT #];
+arr2 : [ ARRAY INT OF INT, ARRAY INT OF INT ];
+
+ASSERT arr1[0].x = 0;
+ASSERT arr2.0[0] = 1;
+ASSERT arr2.1[0] = 5;
+
+ASSERT z.y.1[1] /= 1;
+ASSERT (# x:=arr1, y:=arr2 #) = z;
+
+CHECKSAT;
+
+ASSERT z.x[0].x /= z.y.0[5];
+
+CHECKSAT;
+
+ASSERT z.y.0[1] = z.x[5].x;
+
+CHECKSAT;
+
+ASSERT z.y.0[5] = z.x[-2].x;
+
+CHECKSAT;
+
+POP;
+
+a : ARRAY INT OF ARRAY INT OF INT;
+b : ARRAY INT OF INT;
+
+% ambiguity in presentation language, comma needs to bind to innermost WITH
+% causes type error if the [2]:=2 at the end is attached to the wrong WITH
+ASSERT a = a WITH [0]:=b WITH [1]:=1,[2]:=2;
+
+CHECKSAT;
+
+RESET;
+
+% more mixed stores, this time with constant arrays
+z : [# x:ARRAY INT OF [# x:INT #], y:[ARRAY INT OF INT, ARRAY INT OF INT] #];
+
+ASSERT z.y.1[1] /= 1;
+ASSERT (# x:=ARRAY(INT OF [# x:INT #]):(# x:=0 #), y:=(ARRAY(INT OF INT):1, ARRAY(INT OF INT):5) #) = z;
+
+CHECKSAT;
+
+ASSERT z.x[0].x /= z.y.0[5];
+
+CHECKSAT;
+
+ASSERT z.y.0[1] = z.x[5].x;
+
+CHECKSAT;
+
+ASSERT z.y.0[5] = z.x[-2].x;
+
+CHECKSAT;
+
+RESET;
+
+a : ARRAY INT OF INT;
+
+ASSERT a = a WITH [0]:=0, [1]:=1;
+
+CHECKSAT;

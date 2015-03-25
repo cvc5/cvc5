@@ -103,6 +103,7 @@ private:
 
   Statistics d_statistics;
 
+  void spendResource() throw(UnsafeInterruptException);
 
   /**
    * Return the uninterpreted function symbol corresponding to division-by-zero
@@ -218,6 +219,7 @@ private:
   friend class CoreSolver;
   friend class InequalitySolver;
   friend class AlgebraicSolver;
+  friend class EagerBitblastSolver;
 };/* class TheoryBV */
 
 }/* CVC4::theory::bv namespace */

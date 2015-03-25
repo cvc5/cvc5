@@ -29,8 +29,8 @@ option ufssSimpleCliques --uf-ss-simple-cliques bool :default true
  always use simple clique lemmas for uf strong solver
 option ufssDiseqPropagation --uf-ss-deq-prop bool :default false
  eagerly propagate disequalities for uf strong solver
-option ufssMinimalModel /--disable-uf-ss-min-model bool :default true
- disable finding a minimal model in uf strong solver
+option ufssMode --uf-ss=MODE CVC4::theory::uf::UfssMode :default CVC4::theory::uf::UF_SS_FULL :include "theory/uf/options_handlers.h" :handler CVC4::theory::uf::stringToUfssMode :handler-include "theory/uf/options_handlers.h"
+ mode of operation for uf strong solver.
 option ufssCliqueSplits --uf-ss-clique-splits bool :default false
  use cliques instead of splitting on demand to shrink model
 

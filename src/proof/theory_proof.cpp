@@ -211,8 +211,8 @@ void LFSCTheoryProofEngine::printDeclarations(std::ostream& os, std::ostream& pa
 void LFSCTheoryProofEngine::printTheoryLemmas(std::ostream& os, std::ostream& paren) {
   os << " ;; Theory Lemmas \n";
   ProofManager* pm = ProofManager::currentPM();
-  ProofManager::clause_iterator it = pm->begin_lemmas();
-  ProofManager::clause_iterator end = pm->end_lemmas();
+  ProofManager::ordered_clause_iterator it = pm->begin_lemmas();
+  ProofManager::ordered_clause_iterator end = pm->end_lemmas();
 
   // BitVector theory is special case: must know all
   // conflicts needed ahead of time for resolution

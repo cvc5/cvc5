@@ -181,6 +181,20 @@ void ArrayInfo::setModelRep(const TNode a, const TNode b) {
   
 }
 
+void ArrayInfo::setConstArr(const TNode a, const TNode constArr) {
+  Assert(a.getType().isArray());
+  Info* temp_info;
+  CNodeInfoMap::iterator it = info_map.find(a);
+  if(it == info_map.end()) {
+    temp_info = new Info(ct, bck);
+    temp_info->constArr = constArr;
+    info_map[a] = temp_info;
+  } else {
+    (*it).second->constArr = constArr;
+  }
+  
+}
+
 /**
  * Returns the information associated with TNode a
  */
@@ -220,6 +234,16 @@ const TNode ArrayInfo::getModelRep(const TNode a) const
 
   if(it!= info_map.end()) {
     return (*it).second->modelRep;
+  }
+  return TNode();
+}
+
+const TNode ArrayInfo::getConstArr(const TNode a) const
+{
+  CNodeInfoMap::const_iterator it = info_map.find(a);
+
+  if(it!= info_map.end()) {
+    return (*it).second->constArr;
   }
   return TNode();
 }

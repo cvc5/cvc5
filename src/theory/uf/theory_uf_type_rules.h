@@ -91,8 +91,8 @@ public:
       if( n[0].getKind()!=kind::CONST_RATIONAL ){
         throw TypeCheckingExceptionPrivate(n, "combined cardinality constraint must be a constant");
       }
-      if( n[0].getConst<Rational>().getNumerator().sgn()!=1 ){
-        throw TypeCheckingExceptionPrivate(n, "combined cardinality constraint must be positive");
+      if( n[0].getConst<Rational>().getNumerator().sgn()==-1 ){
+        throw TypeCheckingExceptionPrivate(n, "combined cardinality constraint must be non-negative");
       }
     }
     return nodeManager->booleanType();

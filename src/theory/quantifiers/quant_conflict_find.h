@@ -118,6 +118,7 @@ public:
   QuantInfo() : d_mg( NULL ) {}
   ~QuantInfo() { delete d_mg; }
   std::vector< TNode > d_vars;
+  std::vector< TypeNode > d_var_types;
   std::map< TNode, int > d_var_num;
   std::vector< int > d_tsym_vars;
   std::map< TNode, bool > d_inMatchConstraint;
@@ -164,7 +165,6 @@ class QuantConflictFind : public QuantifiersModule
   typedef context::CDChunkList<Node> NodeList;
   typedef context::CDHashMap<Node, bool, NodeHashFunction> NodeBoolMap;
 private:
-  context::Context* d_c;
   context::CDO< bool > d_conflict;
   std::vector< Node > d_quant_order;
   std::map< Kind, Node > d_zero;
@@ -187,11 +187,6 @@ private:
   NodeList d_qassert;
   std::map< Node, QuantInfo > d_qinfo;
 private:  //for equivalence classes
-  eq::EqualityEngine * getEqualityEngine();
-  bool areDisequal( Node n1, Node n2 );
-  bool areEqual( Node n1, Node n2 );
-  Node getRepresentative( Node n );
-  TermDb* getTermDatabase();
   // type -> list(eqc)
   std::map< TypeNode, std::vector< TNode > > d_eqcs;
   std::map< TypeNode, Node > d_model_basis;

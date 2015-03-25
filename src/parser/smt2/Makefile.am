@@ -33,6 +33,8 @@ libparsersmt2_la_SOURCES = \
 	smt2.cpp \
 	smt2_input.h \
 	smt2_input.cpp \
+	sygus_input.h \
+	sygus_input.cpp \
 	$(ANTLR_STUFF)
 
 BUILT_SOURCES = \

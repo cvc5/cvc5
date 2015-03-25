@@ -35,14 +35,16 @@ using namespace CVC4::theory::quantifiers;
 
 TheoryQuantifiers::TheoryQuantifiers(Context* c, context::UserContext* u, OutputChannel& out, Valuation valuation, const LogicInfo& logicInfo) :
   Theory(THEORY_QUANTIFIERS, c, u, out, valuation, logicInfo),
-  d_numRestarts(0),
   d_masterEqualityEngine(0)
 {
   d_numInstantiations = 0;
   d_baseDecLevel = -1;
   out.handleUserAttribute( "axiom", this );
   out.handleUserAttribute( "conjecture", this );
-  out.handleUserAttribute( "inst-level", this );
+  out.handleUserAttribute( "fun-def", this );
+  out.handleUserAttribute( "sygus", this );
+  out.handleUserAttribute( "synthesis", this );
+  out.handleUserAttribute( "quant-inst-max-level", this );
   out.handleUserAttribute( "rr-priority", this );
 }
 
@@ -94,6 +96,10 @@ Node TheoryQuantifiers::getValue(TNode n) {
   }
 }
 
+void TheoryQuantifiers::computeCareGraph() {
+  //do nothing
+}
+
 void TheoryQuantifiers::collectModelInfo(TheoryModel* m, bool fullModel) {
   if(fullModel) {
     for(assertions_iterator i = facts_begin(); i != facts_end(); ++i) {
@@ -109,7 +115,11 @@ void TheoryQuantifiers::collectModelInfo(TheoryModel* m, bool fullModel) {
 }
 
 void TheoryQuantifiers::check(Effort e) {
-  CodeTimer codeTimer(d_theoryTime);
+  if (done() && !fullEffort(e)) {
+    return;
+  }
+
+  TimerStat::CodeTimer checkTimer(d_checkTime);
 
   Trace("quantifiers-check") << "quantifiers::check(" << e << ")" << std::endl;
   while(!done()) {
@@ -119,12 +129,25 @@ void TheoryQuantifiers::check(Effort e) {
     case kind::FORALL:
       assertUniversal( assertion );
       break;
+    case kind::INST_CLOSURE:
+      getQuantifiersEngine()->addTermToDatabase( assertion[0], false, true );
+      if( !options::lteRestrictInstClosure() ){
+        getQuantifiersEngine()->getMasterEqualityEngine()->addTerm( assertion[0] );
+      }
+      break;
+    case kind::EQUAL:
+      //do nothing
+      break;
     case kind::NOT:
       {
         switch( assertion[0].getKind()) {
         case kind::FORALL:
           assertExistential( assertion );
           break;
+        case kind::EQUAL:
+          //do nothing
+          break;
+        case kind::INST_CLOSURE:
         default:
           Unhandled(assertion[0].getKind());
           break;
@@ -141,7 +164,6 @@ void TheoryQuantifiers::check(Effort e) {
 }
 
 void TheoryQuantifiers::propagate(Effort level){
-  //CodeTimer codeTimer(d_theoryTime);
   //getQuantifiersEngine()->propagate( level );
 }
 
@@ -176,23 +198,7 @@ bool TheoryQuantifiers::flipDecision(){
   //}else{
   //  return false;
   //}
-
-  if( !d_out->flipDecision() ){
-    return restart();
-  }
-  return true;
-}
-
-bool TheoryQuantifiers::restart(){
-  static const int restartLimit = 0;
-  if( d_numRestarts==restartLimit ){
-    Debug("quantifiers-flip") << "No more restarts." << std::endl;
-    return false;
-  }else{
-    d_numRestarts++;
-    Debug("quantifiers-flip") << "Do restart." << std::endl;
-    return true;
-  }
+  return false;
 }
 
 void TheoryQuantifiers::setUserAttribute(const std::string& attr, Node n, std::vector<Node> node_values, std::string str_value){

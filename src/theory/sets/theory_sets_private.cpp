@@ -42,8 +42,6 @@ const char* element_of_str = " \u2208 ";
 
 void TheorySetsPrivate::check(Theory::Effort level) {
 
-  CodeTimer checkCodeTimer(d_statistics.d_checkTime);
-
   while(!d_external.done() && !d_conflict) {
     // Get all the assertions
     Assertion assertion = d_external.get();
@@ -414,35 +412,196 @@ void TheorySetsPrivate::learnLiteral(TNode atom, bool polarity, Node reason) {
 
 void TheorySetsPrivate::addSharedTerm(TNode n) {
   Debug("sets") << "[sets] ThoerySetsPrivate::addSharedTerm( " << n << ")" << std::endl;
+  d_termInfoManager->addTerm(n);
   d_equalityEngine.addTriggerTerm(n, THEORY_SETS);
 }
 
+void TheorySetsPrivate::dumpAssertionsHumanified() const
+{
+    std::string tag = "sets-assertions";
+
+    if(Trace.isOn(tag)) { /* condition can't be !Trace.isOn, that's why this empty block */ }
+    else { return; }
+
+    context::CDList<Assertion>::const_iterator it = d_external.facts_begin(), it_end = d_external.facts_end();
+
+    std::map<TNode, std::set<TNode> > equalities;
+    std::set< pair<TNode, TNode> > disequalities;
+    std::map<TNode, std::pair<std::set<TNode>, std::set<TNode> > > members;
+    static std::map<TNode, int> numbering;
+    static int number = 0;
+
+    for (unsigned i = 0; it != it_end; ++ it, ++i) {
+      TNode ass = (*it).assertion;
+      // Trace("sets-care-dump") << AssertCommand(ass.toExpr()) << endl;
+      bool polarity = ass.getKind() != kind::NOT;
+      ass = polarity ? ass : ass[0];
+      Assert( ass.getNumChildren() == 2);
+      TNode left = d_equalityEngine.getRepresentative(ass[0]);
+      TNode right = d_equalityEngine.getRepresentative(ass[1]);
+      if(numbering[left] == 0) numbering[left] = ++number;
+      if(numbering[right] == 0) numbering[right] = ++number;
+      equalities[left].insert(ass[0]);
+      equalities[right].insert(ass[1]);
+      if(ass.getKind() == kind::EQUAL) {
+        if(polarity) {
+          Assert(left == right);
+        } else {
+          if(left > right) std::swap(left, right);
+          disequalities.insert(make_pair(left, right));
+        }
+      } else if(ass.getKind() == kind::MEMBER) {
+        (polarity ? members[right].first : members[right].second).insert(left);
+      }
+    }
+#define FORIT(it, container) for(typeof((container).begin()) it=(container).begin(); (it) != (container).end(); ++(it))
+    FORIT(kt, equalities) {
+      Trace(tag) << " Eq class of t" << numbering[(*kt).first] << ": " << std::endl;
+      FORIT(jt, (*kt).second) {
+        TNode S = (*jt);
+        if( S.getKind() != kind::UNION && S.getKind() != kind::INTERSECTION && S.getKind() != kind::SETMINUS) {
+          Trace(tag) << "    " << *jt << ((*jt).getType().isSet() ? "\n": " ");
+        } else {
+          Trace(tag) << "    ";
+          if(S[0].isConst() || numbering.find(d_equalityEngine.getRepresentative(S[0])) == numbering.end()) {
+            Trace(tag) << S[0];
+          } else {
+            Trace(tag) << "t" << numbering[d_equalityEngine.getRepresentative(S[0])];
+          }
+          Trace(tag) << " " << (S.getKind() == kind::UNION ? "|" : (S.getKind() == kind::INTERSECTION ? "&" : "-")) << " ";
+          if(S[1].isConst() || numbering.find(d_equalityEngine.getRepresentative(S[1])) == numbering.end()) {
+            Trace(tag) << S[1];
+          } else {
+            Trace(tag) << "t" << numbering[d_equalityEngine.getRepresentative(S[1])];
+          }
+          Trace(tag) << std::endl;
+        }
+      }
+      Trace(tag) << std::endl;
+    }
+    FORIT(kt, disequalities) Trace(tag) << "NOT(t"<<numbering[(*kt).first]<<" = t" <<numbering[(*kt).second] <<")"<< std::endl;
+    FORIT(kt, members) {
+      if( (*kt).second.first.size() > 0) {
+        Trace(tag) << "IN t" << numbering[(*kt).first] << ": ";
+        FORIT(jt, (*kt).second.first) {
+          TNode x = (*jt);
+          if(x.isConst() || numbering.find(d_equalityEngine.getRepresentative(x)) == numbering.end()) {
+            Trace(tag) << x << ", ";
+          } else {
+            Trace(tag) << "t" << numbering[d_equalityEngine.getRepresentative(x)] << ", ";
+          }
+        }
+        Trace(tag) << std::endl;
+      }
+      if( (*kt).second.second.size() > 0) {
+        Trace(tag) << "NOT IN t" << numbering[(*kt).first] << ": ";
+        FORIT(jt, (*kt).second.second) {
+          TNode x = (*jt);
+          if(x.isConst() || numbering.find(d_equalityEngine.getRepresentative(x)) == numbering.end()) {
+            Trace(tag) << x << ", ";
+          } else {
+            Trace(tag) << "t" << numbering[d_equalityEngine.getRepresentative(x)] << ", ";
+          }
+        }
+        Trace(tag) << std::endl;
+      }
+    }
+    Trace(tag) << std::endl;
+#undef FORIT
+}
 
 void TheorySetsPrivate::computeCareGraph() {
   Debug("sharing") << "Theory::computeCareGraph<" << d_external.identify() << ">()" << endl;
-  for (unsigned i = 0; i < d_external.d_sharedTerms.size(); ++ i) {
+
+  if(Trace.isOn("sets-assertions")) {
+    // dump our understanding of assertions
+    dumpAssertionsHumanified();
+  }
+
+  CVC4_UNUSED unsigned edgesAddedCnt = 0;
+
+  unsigned i_st = 0;
+  if(options::setsCare1()) { i_st = d_ccg_i; }
+  for (unsigned i = i_st; i < d_external.d_sharedTerms.size(); ++ i) {
     TNode a = d_external.d_sharedTerms[i];
     TypeNode aType = a.getType();
-    for (unsigned j = i + 1; j < d_external.d_sharedTerms.size(); ++ j) {
+
+    unsigned j_st = i + 1;
+    if(options::setsCare1()) { if(i == d_ccg_i) j_st = d_ccg_j + 1; }
+
+    for (unsigned j = j_st; j < d_external.d_sharedTerms.size(); ++ j) {
       TNode b = d_external.d_sharedTerms[j];
       if (b.getType() != aType) {
         // We don't care about the terms of different types
         continue;
       }
+
       switch (d_external.d_valuation.getEqualityStatus(a, b)) {
       case EQUALITY_TRUE_AND_PROPAGATED:
+        // If we know about it, we should have propagated it, so we can skip
+        Trace("sets-care") << "[sets-care] Know: " << EQUAL(a, b) << std::endl;
+        break;
       case EQUALITY_FALSE_AND_PROPAGATED:
         // If we know about it, we should have propagated it, so we can skip
+        Trace("sets-care") << "[sets-care] Know: " << NOT(EQUAL(a, b)) << std::endl;
         break;
-      default:
+      case EQUALITY_FALSE:
+      case EQUALITY_TRUE:
+        Assert(false, "ERROR: Equality status true/false but not propagated (sets care graph computation).");
+        break;
+      case EQUALITY_TRUE_IN_MODEL:
+        d_external.addCarePair(a, b);
+        if(Trace.isOn("sharing")) {
+          ++edgesAddedCnt;
+        }
+	if(Debug.isOn("sets-care")) {
+	  Debug("sets-care") << "[sets-care] Requesting split between" << a << " and "
+			     << b << "." << std::endl << "[sets-care] "
+			     << "  Both current have value "
+			     << d_external.d_valuation.getModelValue(a) << std::endl;
+	}
+      case EQUALITY_FALSE_IN_MODEL:
+        if(Trace.isOn("sets-care-performance-test")) {
+          // TODO: delete these lines, only for performance testing for now
+          d_external.addCarePair(a, b);
+        }
+        break;
+      case EQUALITY_UNKNOWN:
         // Let's split on it
         d_external.addCarePair(a, b);
+        if(options::setsCare1()) {
+          d_ccg_i = i;
+          d_ccg_j = j;
+          return;
+        }
         break;
+      default:
+	Unreachable();
       }
     }
   }
+  Trace("sharing") << "TheorySetsPrivate::computeCareGraph(): size = " << edgesAddedCnt << std::endl;
 }
 
+EqualityStatus TheorySetsPrivate::getEqualityStatus(TNode a, TNode b) {
+  Assert(d_equalityEngine.hasTerm(a) && d_equalityEngine.hasTerm(b));
+  if (d_equalityEngine.areEqual(a, b)) {
+    // The terms are implied to be equal
+    return EQUALITY_TRUE;
+  }
+  if (d_equalityEngine.areDisequal(a, b, false)) {
+    // The terms are implied to be dis-equal
+    return EQUALITY_FALSE;
+  }
+  if( d_external.d_valuation.getModelValue(a) == d_external.d_valuation.getModelValue(b) ) {
+    // Ther term are true in current model
+    return EQUALITY_TRUE_IN_MODEL;
+  }
+  return EQUALITY_FALSE_IN_MODEL;
+  // }
+  // //TODO: can we be more precise sometimes?
+  // return EQUALITY_UNKNOWN;
+}
 
 /******************** Model generation ********************/
 /******************** Model generation ********************/
@@ -455,33 +614,38 @@ const TheorySetsPrivate::Elements& TheorySetsPrivate::getElements
   if( !alreadyCalculated ) {
 
     Kind k = setterm.getKind();
-    unsigned numChildren = setterm.getNumChildren();
     Elements cur;
-    if(numChildren == 2) {
+
+    switch(k) {
+    case kind::UNION: {
       const Elements& left = getElements(setterm[0], settermElementsMap);
       const Elements& right = getElements(setterm[1], settermElementsMap);
-      switch(k) {
-      case kind::UNION:
-        if(left.size() >= right.size()) {
-          cur = left; cur.insert(right.begin(), right.end());
-        } else {
-          cur = right; cur.insert(left.begin(), left.end());
-        }
-        break;
-      case kind::INTERSECTION:
-        std::set_intersection(left.begin(), left.end(), right.begin(), right.end(),
-                              std::inserter(cur, cur.begin()) );
-        break;
-      case kind::SETMINUS:
-        std::set_difference(left.begin(), left.end(), right.begin(), right.end(),
-                            std::inserter(cur, cur.begin()) );
-        break;
-      default:
-        Unhandled();
+      if(left.size() >= right.size()) {
+        cur = left; cur.insert(right.begin(), right.end());
+      } else {
+        cur = right; cur.insert(left.begin(), left.end());
       }
-    } else {
-      Assert(k == kind::VARIABLE || k == kind::APPLY_UF || k == kind::SKOLEM,
-             (std::string("Expect variable or UF got ") + kindToString(k)).c_str() );
+      break;
+    }
+    case kind::INTERSECTION: {
+      const Elements& left = getElements(setterm[0], settermElementsMap);
+      const Elements& right = getElements(setterm[1], settermElementsMap);
+      std::set_intersection(left.begin(), left.end(), right.begin(), right.end(),
+                            std::inserter(cur, cur.begin()) );
+      break;
+    }
+    case kind::SETMINUS: {
+      const Elements& left = getElements(setterm[0], settermElementsMap);
+      const Elements& right = getElements(setterm[1], settermElementsMap);
+      std::set_difference(left.begin(), left.end(), right.begin(), right.end(),
+                          std::inserter(cur, cur.begin()) );
+      break;
+    }
+    default:
+      Assert(theory::kindToTheoryId(k) != theory::THEORY_SETS,
+             (std::string("Kind belonging to set theory not explicitly handled: ") + kindToString(k)).c_str());
+      // Assert(k == kind::VARIABLE || k == kind::APPLY_UF || k == kind::SKOLEM,
+      //        (std::string("Expect variable or UF got ") + kindToString(k)).c_str() );
       /* assign emptyset, which is default */
     }
 
@@ -508,7 +672,7 @@ bool TheorySetsPrivate::checkModel(const SettermElementsMap& settermElementsMap,
   BOOST_FOREACH(TNode element, saved) { Debug("sets-model") << element << ", "; }
   Debug("sets-model") << " }" << std::endl;
 
-  if(S.getNumChildren() == 2) {
+  if(theory::kindToTheoryId(S.getKind()) == THEORY_SETS && S.getNumChildren() == 2) {
 
     Elements cur;
 
@@ -568,9 +732,24 @@ Node TheorySetsPrivate::elementsToShape(Elements elements, TypeNode setType) con
   NodeManager* nm = NodeManager::currentNM();
 
   if(elements.size() == 0) {
-    return nm->mkConst(EmptySet(nm->toType(setType)));
+    return nm->mkConst<EmptySet>(EmptySet(nm->toType(setType)));
   } else {
     Elements::iterator it = elements.begin();
+    Node cur = SINGLETON(*it);
+    while( ++it != elements.end() ) {
+      cur = nm->mkNode(kind::UNION, cur, SINGLETON(*it));
+    }
+    return cur;
+  }
+}
+Node TheorySetsPrivate::elementsToShape(set<Node> elements, TypeNode setType) const
+{
+  NodeManager* nm = NodeManager::currentNM();
+
+  if(elements.size() == 0) {
+    return nm->mkConst<EmptySet>(EmptySet(nm->toType(setType)));
+  } else {
+    typeof(elements.begin()) it = elements.begin();
     Node cur = SINGLETON(*it);
     while( ++it != elements.end() ) {
       cur = nm->mkNode(kind::UNION, cur, SINGLETON(*it));
@@ -586,18 +765,20 @@ void TheorySetsPrivate::collectModelInfo(TheoryModel* m, bool fullModel)
 
   set<Node> terms;
 
+  if(Trace.isOn("sets-assertions")) {
+    dumpAssertionsHumanified();
+  }
+
   // Compute terms appearing assertions and shared terms
   d_external.computeRelevantTerms(terms);
 
   // Compute for each setterm elements that it contains
   SettermElementsMap settermElementsMap;
-  TNode true_atom = NodeManager::currentNM()->mkConst<bool>(true);
-  TNode false_atom = NodeManager::currentNM()->mkConst<bool>(false);
-  for(eq::EqClassIterator it_eqclasses(true_atom, &d_equalityEngine);
+  for(eq::EqClassIterator it_eqclasses(d_trueNode, &d_equalityEngine);
       ! it_eqclasses.isFinished() ; ++it_eqclasses) {
     TNode n = (*it_eqclasses);
     if(n.getKind() == kind::MEMBER) {
-      Assert(d_equalityEngine.areEqual(n, true_atom));
+      Assert(d_equalityEngine.areEqual(n, d_trueNode));
       TNode x = d_equalityEngine.getRepresentative(n[0]);
       TNode S = d_equalityEngine.getRepresentative(n[1]);
       settermElementsMap[S].insert(x);
@@ -614,7 +795,7 @@ void TheorySetsPrivate::collectModelInfo(TheoryModel* m, bool fullModel)
   }
 
   if(Debug.isOn("sets-model-details")) {
-    for(eq::EqClassIterator it_eqclasses(false_atom, &d_equalityEngine);
+    for(eq::EqClassIterator it_eqclasses(d_trueNode, &d_equalityEngine);
         ! it_eqclasses.isFinished() ; ++it_eqclasses) {
       TNode n = (*it_eqclasses);
       vector<TNode> explanation;
@@ -675,8 +856,8 @@ void TheorySetsPrivate::collectModelInfo(TheoryModel* m, bool fullModel)
       checkPassed &= checkModel(settermElementsMap, term);
     }
   }
-  if(Debug.isOn("sets-checkmodel-ignore")) {
-    Debug("sets-checkmodel-ignore") << "[sets-checkmodel-ignore] checkPassed value was " << checkPassed << std::endl;
+  if(Trace.isOn("sets-checkmodel-ignore")) {
+    Trace("sets-checkmodel-ignore") << "[sets-checkmodel-ignore] checkPassed value was " << checkPassed << std::endl;
   } else {
     Assert( checkPassed,
             "THEORY_SETS check-model failed. Run with -d sets-model for details." );
@@ -684,6 +865,11 @@ void TheorySetsPrivate::collectModelInfo(TheoryModel* m, bool fullModel)
 #endif
 }
 
+Node TheorySetsPrivate::getModelValue(TNode n)
+{
+  CodeTimer codeTimer(d_statistics.d_getModelValueTime);
+  return d_termInfoManager->getModelValue(n);
+}
 
 /********************** Helper functions ***************************/
 /********************** Helper functions ***************************/
@@ -730,14 +916,20 @@ Node mkAnd(const std::vector<TNode>& conjunctions) {
 
 
 TheorySetsPrivate::Statistics::Statistics() :
-  d_checkTime("theory::sets::time") {
-
-  StatisticsRegistry::registerStat(&d_checkTime);
+    d_getModelValueTime("theory::sets::getModelValueTime")
+  , d_memberLemmas("theory::sets::lemmas::member", 0)
+  , d_disequalityLemmas("theory::sets::lemmas::disequality", 0)
+{
+  StatisticsRegistry::registerStat(&d_getModelValueTime);
+  StatisticsRegistry::registerStat(&d_memberLemmas);
+  StatisticsRegistry::registerStat(&d_disequalityLemmas);
 }
 
 
 TheorySetsPrivate::Statistics::~Statistics() {
-  StatisticsRegistry::unregisterStat(&d_checkTime);
+  StatisticsRegistry::unregisterStat(&d_getModelValueTime);
+  StatisticsRegistry::unregisterStat(&d_memberLemmas);
+  StatisticsRegistry::unregisterStat(&d_disequalityLemmas);
 }
 
 
@@ -747,7 +939,7 @@ bool TheorySetsPrivate::present(TNode atom) {
 
 
 bool TheorySetsPrivate::holds(TNode atom, bool polarity) {
-  Node polarity_atom = NodeManager::currentNM()->mkConst<bool>(polarity);
+  TNode polarity_atom = polarity ? d_trueNode : d_falseNode;
 
   Node atomModEq = NodeManager::currentNM()->mkNode
     (atom.getKind(), d_equalityEngine.getRepresentative(atom[0]),
@@ -803,19 +995,44 @@ void TheorySetsPrivate::finishPropagation()
 
 void TheorySetsPrivate::addToPending(Node n) {
   Debug("sets-pending") << "[sets-pending] addToPending " << n << std::endl;
-  if(d_pendingEverInserted.find(n) == d_pendingEverInserted.end()) {
-    if(n.getKind() == kind::MEMBER) {
-      Debug("sets-pending") << "[sets-pending] \u2514 added to member queue"
-                            << std::endl;
-      d_pending.push(n);
-    } else {
-      Debug("sets-pending") << "[sets-pending] \u2514 added to equality queue"
-                            << std::endl;
-      Assert(n.getKind() == kind::EQUAL);
-      d_pendingDisequal.push(n);
+
+  if(d_pendingEverInserted.find(n) != d_pendingEverInserted.end()) {
+    Debug("sets-pending") << "[sets-pending] \u2514 skipping " << n
+			  << " as lemma already generated." << std::endl;
+    return;
+  }
+
+  if(n.getKind() == kind::MEMBER) {
+
+    Node nRewritten = theory::Rewriter::rewrite(n);
+
+    if(nRewritten.isConst()) {
+      Debug("sets-pending") << "[sets-pending] \u2514 skipping " << n
+			    << " as we can learn one of the sides." << std::endl;
+      Assert(nRewritten == d_trueNode || nRewritten == d_falseNode);
+
+      bool polarity = (nRewritten == d_trueNode);
+      learnLiteral(n, polarity, d_trueNode);
+      return;
     }
-    d_external.d_out->lemma(getLemma());
+
+    Debug("sets-pending") << "[sets-pending] \u2514 added to member queue"
+			  << std::endl;
+    ++d_statistics.d_memberLemmas;
+    d_pending.push(n);
+    d_external.d_out->splitLemma(getLemma());
     Assert(isComplete());
+
+  } else {
+
+    Debug("sets-pending") << "[sets-pending] \u2514 added to equality queue"
+			  << std::endl;
+    Assert(n.getKind() == kind::EQUAL);
+    ++d_statistics.d_disequalityLemmas;
+    d_pendingDisequal.push(n);
+    d_external.d_out->splitLemma(getLemma());
+    Assert(isComplete());
+
   }
 }
 
@@ -850,13 +1067,15 @@ Node TheorySetsPrivate::getLemma() {
     d_pendingEverInserted.insert(n);
 
     Assert(n.getKind() == kind::EQUAL && n[0].getType().isSet());
-    Node x = NodeManager::currentNM()->mkSkolem("sde_", n[0].getType().getSetElementType() );
+    TypeNode elementType = n[0].getType().getSetElementType();
+    Node x = NodeManager::currentNM()->mkSkolem("sde_",  elementType);
     Node l1 = MEMBER(x, n[0]), l2 = MEMBER(x, n[1]);
 
     lemma = OR(n, AND(l1, NOT(l2)), AND(NOT(l1), l2));
   }
 
-  Debug("sets-lemma") << "[sets-lemma] Generating for " << n << ", lemma: " << lemma << std::endl;
+  Debug("sets-lemma") << "[sets-lemma] Generating for " << n
+                      << ", lemma: " << lemma << std::endl;
 
   return  lemma;
 }
@@ -867,7 +1086,9 @@ TheorySetsPrivate::TheorySetsPrivate(TheorySets& external,
                                      context::UserContext* u):
   d_external(external),
   d_notify(*this),
-  d_equalityEngine(d_notify, c, "theory::sets::TheorySetsPrivate"),
+  d_equalityEngine(d_notify, c, "theory::sets::TheorySetsPrivate", false),
+  d_trueNode(NodeManager::currentNM()->mkConst<bool>(true)),
+  d_falseNode(NodeManager::currentNM()->mkConst<bool>(false)),
   d_conflict(c),
   d_termInfoManager(NULL),
   d_propagationQueue(c),
@@ -876,6 +1097,9 @@ TheorySetsPrivate::TheorySetsPrivate(TheorySets& external,
   d_pending(c),
   d_pendingDisequal(c),
   d_pendingEverInserted(u),
+  d_modelCache(c),
+  d_ccg_i(c),
+  d_ccg_j(c),
   d_scrutinize(NULL)
 {
   d_termInfoManager = new TermInfoManager(*this, c, &d_equalityEngine);
@@ -900,8 +1124,44 @@ TheorySetsPrivate::~TheorySetsPrivate()
     Assert(d_scrutinize != NULL);
     delete d_scrutinize;
   }
-}
+}/* TheorySetsPrivate::~TheorySetsPrivate() */
 
+void TheorySetsPrivate::propagate(Theory::Effort effort) {
+  if(effort != Theory::EFFORT_FULL || !options::setsPropFull()) {
+    return;
+  }
+
+  // build a model
+  Trace("sets-prop-full") << "[sets-prop-full] propagate(FULL_EFFORT)" << std::endl;
+  if(Trace.isOn("sets-assertions")) {
+    dumpAssertionsHumanified();
+  }
+
+  const CDNodeSet& terms = (d_termInfoManager->d_terms);
+  for(typeof(terms.key_begin()) it = terms.key_begin(); it != terms.key_end(); ++it) {
+    Node node = (*it);
+    Kind k = node.getKind();
+    if(k == kind::UNION && node[0].getKind() == kind::SINGLETON ) {
+
+      if(holds(MEMBER(node[0][0], node[1]))) {
+        Trace("sets-prop-full") << "[sets-prop-full] " << MEMBER(node[0][0], node[1])
+                                << " => " << EQUAL(node[1], node) << std::endl;
+        learnLiteral(EQUAL(node[1], node), MEMBER(node[0][0], node[1]));
+      }
+
+    } else if(k == kind::UNION && node[1].getKind() == kind::SINGLETON ) {
+
+      if(holds(MEMBER(node[1][0], node[0]))) {
+        Trace("sets-prop-full") << "[sets-prop-full] " << MEMBER(node[1][0], node[0])
+                                << " => " << EQUAL(node[0], node) << std::endl;
+        learnLiteral(EQUAL(node[0], node), MEMBER(node[1][0], node[0]));
+      }
+
+    }
+  }
+
+  finishPropagation();
+}
 
 bool TheorySetsPrivate::propagate(TNode literal) {
   Debug("sets-prop") << " propagate(" << literal  << ")" << std::endl;
@@ -919,12 +1179,13 @@ bool TheorySetsPrivate::propagate(TNode literal) {
   }
 
   return ok;
-}/* TheorySetsPropagate::propagate(TNode) */
+}/* TheorySetsPrivate::propagate(TNode) */
 
 
 void TheorySetsPrivate::setMasterEqualityEngine(eq::EqualityEngine* eq) {
   d_equalityEngine.setMasterEqualityEngine(eq);
 }
+
 
 void TheorySetsPrivate::conflict(TNode a, TNode b)
 {
@@ -964,6 +1225,7 @@ Node TheorySetsPrivate::explain(TNode literal)
   return mkAnd(assumptions);
 }
 
+
 void TheorySetsPrivate::preRegisterTerm(TNode node)
 {
   Debug("sets") << "TheorySetsPrivate::preRegisterTerm(" << node << ")"
@@ -981,12 +1243,10 @@ void TheorySetsPrivate::preRegisterTerm(TNode node)
   default:
     d_termInfoManager->addTerm(node);
     d_equalityEngine.addTriggerTerm(node, THEORY_SETS);
-    // d_equalityEngine.addTerm(node);
   }
+
   if(node.getKind() == kind::SINGLETON) {
-    Node true_node = NodeManager::currentNM()->mkConst<bool>(true);
-    learnLiteral(MEMBER(node[0], node), true, true_node);
-    //intentional fallthrough
+    learnLiteral(MEMBER(node[0], node), true, d_trueNode);
   }
 }
 
@@ -1106,6 +1366,8 @@ void TheorySetsPrivate::TermInfoManager::notifyMembership(TNode fact) {
 
   d_info[S]->addToElementList(x, polarity);
   d_info[x]->addToSetList(S, polarity);
+
+  d_theory.d_modelCache.clear();
 }
 
 const CDTNodeList* TheorySetsPrivate::TermInfoManager::getParents(TNode x) {
@@ -1121,25 +1383,40 @@ const CDTNodeList* TheorySetsPrivate::TermInfoManager::getNonMembers(TNode S) {
 }
 
 void TheorySetsPrivate::TermInfoManager::addTerm(TNode n) {
-  unsigned numChild = n.getNumChildren();
+  if(d_terms.contains(n)) {
+    return;
+  }
+  d_terms.insert(n);
 
-  if(!d_terms.contains(n)) {
-    d_terms.insert(n);
-    d_info[n] = new TheorySetsTermInfo(d_context);
+  if(d_info.find(n) == d_info.end()) {
+    d_info.insert(make_pair(n, new TheorySetsTermInfo(d_context)));
   }
 
   if(n.getKind() == kind::UNION ||
      n.getKind() == kind::INTERSECTION ||
      n.getKind() == kind::SETMINUS) {
 
+    unsigned numChild = n.getNumChildren();
+
     for(unsigned i = 0; i < numChild; ++i) {
+      Assert(d_terms.contains(n[i]));
       if(d_terms.contains(n[i])) {
         Debug("sets-parent") << "Adding " << n << " to parent list of "
                              << n[i] << std::endl;
         d_info[n[i]]->parents->push_back(n);
+
+        typeof(d_info.begin()) ita = d_info.find(d_eqEngine->getRepresentative(n[i]));
+        Assert(ita != d_info.end());
+        CDTNodeList* l = (*ita).second->elementsNotInThisSet;
+        for(typeof(l->begin()) it = l->begin(); it != l->end(); ++it) {
+          d_theory.d_settermPropagationQueue.push_back( std::make_pair( (*it), n ) );
+        }
+        l = (*ita).second->elementsInThisSet;
+        for(typeof(l->begin()) it = l->begin(); it != l->end(); ++it) {
+          d_theory.d_settermPropagationQueue.push_back( std::make_pair( (*it), n ) );
+        }
       }
     }
-
   }
 }
 
@@ -1259,8 +1536,38 @@ void TheorySetsPrivate::TermInfoManager::mergeTerms(TNode a, TNode b) {
               (*itb).second->setsContainingThisElement );
   mergeLists( (*ita).second->setsNotContainingThisElement,
               (*itb).second->setsNotContainingThisElement );
+
+  d_theory.d_modelCache.clear();
 }
 
+Node TheorySetsPrivate::TermInfoManager::getModelValue(TNode n)
+{
+  if(d_terms.find(n) == d_terms.end()) {
+    return Node();
+  }
+  Assert(n.getType().isSet());
+  set<Node> elements, elements_const;
+  Node S = d_eqEngine->getRepresentative(n);
+  typeof(d_theory.d_modelCache.begin()) it = d_theory.d_modelCache.find(S);
+  if(it != d_theory.d_modelCache.end()) {
+    return (*it).second;
+  }
+  const CDTNodeList* l = getMembers(S);
+  for(typeof(l->begin()) it = l->begin(); it != l->end(); ++it) {
+    TNode n = *it;
+    elements.insert(d_eqEngine->getRepresentative(n));
+  }
+  BOOST_FOREACH(TNode e, elements) {
+    if(e.isConst()) {
+      elements_const.insert(e);
+    } else {
+      elements_const.insert(d_theory.d_external.d_valuation.getModelValue(e));
+    }
+  }
+  Node v = d_theory.elementsToShape(elements_const, n.getType());
+  d_theory.d_modelCache[n] = v;
+  return v;
+}
 
 }/* CVC4::theory::sets namespace */
 }/* CVC4::theory namespace */

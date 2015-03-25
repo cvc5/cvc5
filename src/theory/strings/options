@@ -11,6 +11,9 @@ option stringExp strings-exp --strings-exp bool :default false :read-write
 option stringLB strings-lb --strings-lb=N unsigned :default 0 :predicate less_equal(2) :predicate-include "smt/smt_engine.h"
  the strategy of LB rule application: 0-lazy, 1-eager, 2-no
 
+option stdASCII strings-std-ascii --strings-std-ascii bool :default true :predicate less_equal(2) :predicate-include "smt/smt_engine.h"
+ the alphabet contains only characters from the standard ASCII or the extended one
+
 option stringFMF strings-fmf --strings-fmf bool :default false :read-write
  the finite model finding used by the theory of strings
 
@@ -23,7 +26,10 @@ option stringOpt1 strings-opt1 --strings-opt1 bool :default true
 option stringOpt2 strings-opt2 --strings-opt2 bool :default false
  internal option2 for strings: constant regexp splitting
 
-expert-option stringCharCardinality strings-alphabet-card --strings-alphabet-card=N int16_t :default 256 :predicate CVC4::smt::beforeSearch :predicate-include "smt/smt_engine.h"
- the cardinality of the characters used by the theory of strings, default 256
+option stringIgnNegMembership strings-inm --strings-inm bool :default false
+ internal for strings: ignore negative membership constraints (fragment checking is needed, left to users for now)
+
+#expert-option stringCharCardinality strings-alphabet-card --strings-alphabet-card=N int16_t :default 128 :read-write
+# the cardinality of the characters used by the theory of strings, default 128 (for standard ASCII) or 256 (for extended ASCII)
 
 endmodule

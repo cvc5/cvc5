@@ -56,13 +56,13 @@ class SimpSolver : public Solver {
 
     // Solving:
     //
-    bool    solve       (const vec<Lit>& assumps, bool do_simp = true, bool turn_off_simp = false);
-    lbool   solveLimited(const vec<Lit>& assumps, bool do_simp = true, bool turn_off_simp = false);
-    lbool   solveLimited(bool do_simp = true, bool turn_off_simp = false);
-    bool    solve       (                     bool do_simp = true, bool turn_off_simp = false);
-    bool    solve       (Lit p       ,        bool do_simp = true, bool turn_off_simp = false);       
-    bool    solve       (Lit p, Lit q,        bool do_simp = true, bool turn_off_simp = false);
-    bool    solve       (Lit p, Lit q, Lit r, bool do_simp = true, bool turn_off_simp = false);
+    lbool    solve       (const vec<Lit>& assumps, bool do_simp = true, bool turn_off_simp = false);
+    lbool    solveLimited(const vec<Lit>& assumps, bool do_simp = true, bool turn_off_simp = false);
+    lbool    solveLimited(bool do_simp = true, bool turn_off_simp = false);
+    lbool    solve       (                     bool do_simp = true, bool turn_off_simp = false);
+    lbool    solve       (Lit p       ,        bool do_simp = true, bool turn_off_simp = false);       
+    lbool    solve       (Lit p, Lit q,        bool do_simp = true, bool turn_off_simp = false);
+    lbool    solve       (Lit p, Lit q, Lit r, bool do_simp = true, bool turn_off_simp = false);
     bool    eliminate   (bool turn_off_elim = false);  // Perform variable elimination based simplification. 
 
     // Memory managment:
@@ -184,13 +184,31 @@ inline bool SimpSolver::addClause    (Lit p, Lit q)          { add_tmp.clear(); 
 inline bool SimpSolver::addClause    (Lit p, Lit q, Lit r)   { add_tmp.clear(); add_tmp.push(p); add_tmp.push(q); add_tmp.push(r); return addClause_(add_tmp); }
 inline void SimpSolver::setFrozen    (Var v, bool b) { frozen[v] = (char)b; if (use_simplification && !b) { updateElimHeap(v); } }
 
-inline bool SimpSolver::solve        (                     bool do_simp, bool turn_off_simp)  { budgetOff(); return solve_(do_simp, turn_off_simp) == l_True; }
-inline bool SimpSolver::solve        (Lit p       ,        bool do_simp, bool turn_off_simp)  { budgetOff(); assumptions.push(p); return solve_(do_simp, turn_off_simp) == l_True; }
-inline bool SimpSolver::solve        (Lit p, Lit q,        bool do_simp, bool turn_off_simp)  { budgetOff(); assumptions.push(p); assumptions.push(q); return solve_(do_simp, turn_off_simp) == l_True; }
-inline bool SimpSolver::solve        (Lit p, Lit q, Lit r, bool do_simp, bool turn_off_simp)  { budgetOff(); assumptions.push(p); assumptions.push(q); assumptions.push(r); return solve_(do_simp, turn_off_simp) == l_True; }
-inline bool SimpSolver::solve        (const vec<Lit>& assumps, bool do_simp, bool turn_off_simp){
+inline lbool SimpSolver::solve        (                     bool do_simp, bool turn_off_simp)  {
+  budgetOff();
+  return solve_(do_simp, turn_off_simp);
+ }
+inline lbool SimpSolver::solve        (Lit p       ,        bool do_simp, bool turn_off_simp)  {
+  budgetOff();
+  assumptions.push(p);
+  return solve_(do_simp, turn_off_simp);
+ }
+inline lbool SimpSolver::solve        (Lit p, Lit q,        bool do_simp, bool turn_off_simp)  {
+  budgetOff();
+  assumptions.push(p);
+  assumptions.push(q);
+  return solve_(do_simp, turn_off_simp);
+ }
+inline lbool SimpSolver::solve        (Lit p, Lit q, Lit r, bool do_simp, bool turn_off_simp)  {
+  budgetOff();
+  assumptions.push(p);
+  assumptions.push(q);
+  assumptions.push(r);
+  return solve_(do_simp, turn_off_simp);
+ }
+inline lbool SimpSolver::solve        (const vec<Lit>& assumps, bool do_simp, bool turn_off_simp){
   budgetOff(); assumps.copyTo(assumptions);
-  return solve_(do_simp, turn_off_simp) == l_True;
+  return solve_(do_simp, turn_off_simp);
 }
 
 inline lbool SimpSolver::solveLimited (const vec<Lit>& assumps, bool do_simp, bool turn_off_simp){ 

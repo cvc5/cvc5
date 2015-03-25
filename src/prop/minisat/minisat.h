@@ -19,7 +19,6 @@
 #pragma once
 
 #include "prop/sat_solver.h"
-#include "prop/sat_solver_registry.h"
 #include "prop/minisat/simp/SimpSolver.h"
 
 namespace CVC4 {
@@ -43,7 +42,6 @@ public:
   static SatVariable     toSatVariable(Minisat::Var var);
   static Minisat::Lit    toMinisatLit(SatLiteral lit);
   static SatLiteral      toSatLiteral(Minisat::Lit lit);
-  static SatValue        toSatLiteralValue(bool res);
   static SatValue        toSatLiteralValue(Minisat::lbool res);
   static Minisat::lbool  toMinisatlbool(SatValue val);
   //(Commented because not in use) static bool            tobool(SatValue val);
@@ -52,7 +50,7 @@ public:
   static void  toSatClause    (const Minisat::Clause& clause, SatClause& sat_clause);
   void initialize(context::Context* context, TheoryProxy* theoryProxy);
 
-  void addClause(SatClause& clause, bool removable);
+  void addClause(SatClause& clause, bool removable, uint64_t proof_id);
 
   SatVariable newVar(bool isTheoryAtom, bool preRegister, bool canErase);
   SatVariable trueVar() { return d_minisat->trueVar(); }
@@ -61,7 +59,6 @@ public:
   SatValue solve();
   SatValue solve(long unsigned int&);
 
-  void spendResource();
   void interrupt();
 
   SatValue value(SatLiteral l);

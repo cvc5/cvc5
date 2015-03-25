@@ -29,9 +29,6 @@ class ModelEngine : public QuantifiersModule
 {
   friend class RepSetIterator;
 private:
-  /** builder class */
-  QModelBuilder* d_builder;
-private:
   //options
   bool optOneQuantPerRound();
 private:
@@ -49,10 +46,9 @@ private:
 public:
   ModelEngine( context::Context* c, QuantifiersEngine* qe );
   virtual ~ModelEngine();
-  //get the builder
-  QModelBuilder* getModelBuilder() { return d_builder; }
 public:
   bool needsCheck( Theory::Effort e );
+  bool needsModel( Theory::Effort e );
   void check( Theory::Effort e, unsigned quant_e );
   void registerQuantifier( Node f );
   void assertNode( Node f );

@@ -34,21 +34,24 @@ class ProofManager;
 namespace smt {
 
 extern CVC4_THREADLOCAL(SmtEngine*) s_smtEngine_current;
-extern CVC4_THREADLOCAL(ProofManager*) s_proofManager_current;
 
 inline SmtEngine* currentSmtEngine() {
   Assert(s_smtEngine_current != NULL);
   return s_smtEngine_current;
 }
+inline bool smtEngineInScope() {
+  return s_smtEngine_current != NULL;
+}
 
 inline ProofManager* currentProofManager() {
-  Assert(PROOF_ON());
-  // FIXME: this will not work if multiple SmtEngines exist
-  if (s_proofManager_current == NULL) {
-    s_proofManager_current = new ProofManager();
-  }
-
-  return s_proofManager_current;
+#ifdef CVC4_PROOF
+  Assert(options::proof() || options::unsatCores());
+  Assert(s_smtEngine_current != NULL);
+  return s_smtEngine_current->d_proofManager;
+#else /* CVC4_PROOF */
+  InternalError("proofs/unsat cores are not on, but ProofManager requested");
+  return NULL;
+#endif /* CVC4_PROOF */
 }
 
 class SmtScope : public NodeManagerScope {

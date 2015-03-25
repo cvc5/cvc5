@@ -39,6 +39,10 @@ void TheorySets::addSharedTerm(TNode n) {
 }
 
 void TheorySets::check(Effort e) {
+  if (done() && !fullEffort(e)) {
+    return;
+  }
+  TimerStat::CodeTimer checkTimer(d_checkTime);
   d_internal->check(e);
 }
 
@@ -52,6 +56,14 @@ void TheorySets::computeCareGraph() {
 
 Node TheorySets::explain(TNode node) {
   return d_internal->explain(node);
+}
+
+EqualityStatus TheorySets::getEqualityStatus(TNode a, TNode b) {
+  return d_internal->getEqualityStatus(a, b);
+}
+
+Node TheorySets::getModelValue(TNode node) {
+  return d_internal->getModelValue(node);
 }
 
 void TheorySets::preRegisterTerm(TNode node) {

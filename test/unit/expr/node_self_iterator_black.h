@@ -16,14 +16,12 @@
 
 #include <cxxtest/TestSuite.h>
 
-#include "context/context.h"
 #include "expr/node.h"
 #include "expr/node_self_iterator.h"
 #include "expr/node_builder.h"
 #include "expr/convenience_node_builders.h"
 
 using namespace CVC4;
-using namespace CVC4::context;
 using namespace CVC4::kind;
 using namespace CVC4::expr;
 using namespace std;
@@ -31,7 +29,6 @@ using namespace std;
 class NodeSelfIteratorBlack : public CxxTest::TestSuite {
 private:
 
-  Context* d_ctxt;
   NodeManager* d_nodeManager;
   NodeManagerScope* d_scope;
   TypeNode* d_booleanType;
@@ -40,8 +37,7 @@ private:
 public:
 
   void setUp() {
-    d_ctxt = new Context;
-    d_nodeManager = new NodeManager(d_ctxt, NULL);
+    d_nodeManager = new NodeManager(NULL);
     d_scope = new NodeManagerScope(d_nodeManager);
     d_booleanType = new TypeNode(d_nodeManager->booleanType());
     d_realType = new TypeNode(d_nodeManager->realType());
@@ -51,7 +47,6 @@ public:
     delete d_booleanType;
     delete d_scope;
     delete d_nodeManager;
-    delete d_ctxt;
   }
 
   void testSelfIteration() {

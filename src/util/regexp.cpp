@@ -60,14 +60,14 @@ void String::toInternal(const std::string &s) {
                 num = num * 8 + (int)s[i+1] - (int)'0';
                 if(flag && i+2 < s.size() && isdigit(s[i+2]) && s[i+2] < '8') {
                   num = num * 8 + (int)s[i+2] - (int)'0';
-                  d_str.push_back( convertCharToUnsignedInt((char)num) );
+                  d_str.push_back( convertCharToUnsignedInt((unsigned char)num) );
                   i += 3;
                 } else {
-                  d_str.push_back( convertCharToUnsignedInt((char)num) );
+                  d_str.push_back( convertCharToUnsignedInt((unsigned char)num) );
                   i += 2;
                 }
               } else {
-                d_str.push_back( convertCharToUnsignedInt((char)num) );
+                d_str.push_back( convertCharToUnsignedInt((unsigned char)num) );
                 i++;
               }
             } else if((unsigned)s[i] > 127) {
@@ -91,10 +91,10 @@ void String::toInternal(const std::string &s) {
   }
 }
 
-void String::getCharSet(std::set<unsigned int> &cset) const {
+void String::getCharSet(std::set<unsigned char> &cset) const {
   for(std::vector<unsigned int>::const_iterator itr = d_str.begin();
     itr != d_str.end(); itr++) {
-      cset.insert( *itr );
+      cset.insert( convertUnsignedIntToChar(*itr) );
     }
 }
 
@@ -113,34 +113,36 @@ std::size_t String::overlap(String &y) const {
 std::string String::toString() const {
   std::string str;
   for(unsigned int i=0; i<d_str.size(); ++i) {
-    char c = convertUnsignedIntToChar( d_str[i] );
-    if(isprint( c )) {
-    if(c == '\\') {
-      str += "\\\\";
-    } else if(c == '\"') {
-      str += "\\\"";
-    } else {
-      str += c;
-    }
+    unsigned char c = convertUnsignedIntToChar( d_str[i] );
+      if(isprint( c )) {
+      if(c == '\\') {
+        str += "\\\\";
+      } 
+      //else if(c == '\"') {
+      //  str += "\\\"";
+      //} 
+      else {
+        str += c;
+      }
     } else {
       std::string s;
       switch(c) {
-      case '\a': s = "\\a"; break;
-      case '\b': s = "\\b"; break;
-      case '\t': s = "\\t"; break;
-      case '\r': s = "\\r"; break;
-      case '\v': s = "\\v"; break;
-      case '\f': s = "\\f"; break;
-      case '\n': s = "\\n"; break;
-      case '\e': s = "\\e"; break;
-      default  : {
-        std::stringstream ss;
-        ss << std::setfill ('0') << std::setw(2) << std::hex << ((int)c);
-        std::string t = ss.str();
-        t = t.substr(t.size()-2, 2);
-        s = "\\x" + t;
-        //std::string s2 = static_cast<std::ostringstream*>( &(std::ostringstream() << (int)c) )->str();
-      }
+        case '\a': s = "\\a"; break;
+        case '\b': s = "\\b"; break;
+        case '\t': s = "\\t"; break;
+        case '\r': s = "\\r"; break;
+        case '\v': s = "\\v"; break;
+        case '\f': s = "\\f"; break;
+        case '\n': s = "\\n"; break;
+        case '\e': s = "\\e"; break;
+        default  : {
+          std::stringstream ss;
+          ss << std::setfill ('0') << std::setw(2) << std::hex << ((int)c);
+          std::string t = ss.str();
+          t = t.substr(t.size()-2, 2);
+          s = "\\x" + t;
+          //std::string s2 = static_cast<std::ostringstream*>( &(std::ostringstream() << (int)c) )->str();
+        }
       }
       str += s;
     }

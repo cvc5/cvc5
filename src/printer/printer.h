@@ -19,6 +19,9 @@
 #ifndef __CVC4__PRINTER__PRINTER_H
 #define __CVC4__PRINTER__PRINTER_H
 
+#include <map>
+#include <string>
+
 #include "util/language.h"
 #include "util/sexpr.h"
 #include "util/model.h"
@@ -102,6 +105,12 @@ public:
 
   /** Write a Model out to a stream with this Printer. */
   virtual void toStream(std::ostream& out, const Model& m) const throw();
+
+  /** Write an UnsatCore out to a stream with this Printer. */
+  virtual void toStream(std::ostream& out, const UnsatCore& core) const throw();
+
+  /** Write an UnsatCore out to a stream with this Printer. */
+  virtual void toStream(std::ostream& out, const UnsatCore& core, const std::map<Expr, std::string>& names) const throw();
 
 };/* class Printer */
 

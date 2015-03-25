@@ -34,13 +34,15 @@
 #include "expr/command.h"
 #include "util/configuration.h"
 #include "options/options.h"
+#include "theory/quantifiers/options.h"
 #include "main/command_executor.h"
-# ifdef PORTFOLIO_BUILD
-#    include "main/command_executor_portfolio.h"
-# endif
+
+#ifdef PORTFOLIO_BUILD
+#  include "main/command_executor_portfolio.h"
+#endif
+
 #include "main/options.h"
 #include "smt/options.h"
-#include "theory/uf/options.h"
 #include "util/output.h"
 #include "util/result.h"
 #include "util/statistics_registry.h"
@@ -186,7 +188,7 @@ int runCvc4(int argc, char* argv[], Options& opts) {
     } else {
       unsigned len = strlen(filename);
       if(len >= 5 && !strcmp(".smt2", filename + len - 5)) {
-        opts.set(options::inputLanguage, language::input::LANG_SMTLIB_V2);
+        opts.set(options::inputLanguage, language::input::LANG_SMTLIB_V2_0);
       } else if(len >= 4 && !strcmp(".smt", filename + len - 4)) {
         opts.set(options::inputLanguage, language::input::LANG_SMTLIB_V1);
       } else if(len >= 5 && !strcmp(".smt1", filename + len - 5)) {
@@ -197,12 +199,23 @@ int runCvc4(int argc, char* argv[], Options& opts) {
       } else if(( len >= 4 && !strcmp(".cvc", filename + len - 4) )
                 || ( len >= 5 && !strcmp(".cvc4", filename + len - 5) )) {
         opts.set(options::inputLanguage, language::input::LANG_CVC4);
+      } else if((len >= 3 && !strcmp(".sy", filename + len - 3))
+                || (len >= 3 && !strcmp(".sl", filename + len - 3))) {
+        opts.set(options::inputLanguage, language::input::LANG_SYGUS);
+        //since there is no sygus output language, set this to SMT lib 2
+        opts.set(options::outputLanguage, language::output::LANG_SMTLIB_V2_0);
       }
     }
   }
 
   if(opts[options::outputLanguage] == language::output::LANG_AUTO) {
     opts.set(options::outputLanguage, language::toOutputLanguage(opts[options::inputLanguage]));
+  }
+
+  // if doing sygus, turn on CEGQI by default
+  if(opts[options::inputLanguage] == language::input::LANG_SYGUS &&
+     !opts.wasSetByUser(options::ceGuidedInst)) {
+    opts.set(options::ceGuidedInst, true);
   }
 
   // Determine which messages to show based on smtcomp_mode and verbosity
@@ -268,15 +281,8 @@ int runCvc4(int argc, char* argv[], Options& opts) {
     Command* cmd;
     bool status = true;
     if(opts[options::interactive] && inputFromStdin) {
-      if(opts[options::tearDownIncremental] && opts[options::incrementalSolving]) {
-        if(opts.wasSetByUser(options::incrementalSolving)) {
-          throw OptionException("--tear-down-incremental incompatible with --incremental");
-        }
-
-        cmd = new SetOptionCommand("incremental", false);
-        cmd->setMuted(true);
-        pExecutor->doCommand(cmd);
-        delete cmd;
+      if(opts[options::tearDownIncremental]) {
+        throw OptionException("--tear-down-incremental doesn't work in interactive mode");
       }
 #ifndef PORTFOLIO_BUILD
       if(!opts.wasSetByUser(options::incrementalSolving)) {
@@ -304,8 +310,21 @@ int runCvc4(int argc, char* argv[], Options& opts) {
         // have the replay parser use the declarations input interactively
         replayParser->useDeclarationsFrom(shell.getParser());
       }
-      while((cmd = shell.readCommand())) {
+
+      while(true) {
+        try {
+          cmd = shell.readCommand();
+        } catch(UnsafeInterruptException& e) {
+          *opts[options::out] << CommandInterrupted();
+          break;
+        }
+        if (cmd == NULL)
+          break;
         status = pExecutor->doCommand(cmd) && status;
+        if (cmd->interrupted()) {
+          delete cmd;
+          break;
+        }
         delete cmd;
       }
     } else if(opts[options::tearDownIncremental]) {
@@ -338,15 +357,34 @@ int runCvc4(int argc, char* argv[], Options& opts) {
         replayParser->useDeclarationsFrom(parser);
       }
       bool needReset = false;
-      while((status || opts[options::continuedExecution]) && (cmd = parser->nextCommand())) {
+      // true if one of the commands was interrupted
+      bool interrupted = false;
+      while (status || opts[options::continuedExecution]) {
+        if (interrupted) {
+          *opts[options::out] << CommandInterrupted();
+          break;
+        }
+
+        try {
+          cmd = parser->nextCommand();
+          if (cmd == NULL) break;
+        } catch (UnsafeInterruptException& e) {
+          interrupted = true;
+          continue;
+        }
+
         if(dynamic_cast<PushCommand*>(cmd) != NULL) {
           if(needReset) {
             pExecutor->reset();
-            for(size_t i = 0; i < allCommands.size(); ++i) {
-              for(size_t j = 0; j < allCommands[i].size(); ++j) {
+            for(size_t i = 0; i < allCommands.size() && !interrupted; ++i) {
+              if (interrupted) break;
+              for(size_t j = 0; j < allCommands[i].size() && !interrupted; ++j) {
                 Command* cmd = allCommands[i][j]->clone();
                 cmd->setMuted(true);
                 pExecutor->doCommand(cmd);
+                if(cmd->interrupted()) {
+                  interrupted = true;
+                }
                 delete cmd;
               }
             }
@@ -357,34 +395,71 @@ int runCvc4(int argc, char* argv[], Options& opts) {
         } else if(dynamic_cast<PopCommand*>(cmd) != NULL) {
           allCommands.pop_back(); // fixme leaks cmds here
           pExecutor->reset();
-          for(size_t i = 0; i < allCommands.size(); ++i) {
-            for(size_t j = 0; j < allCommands[i].size(); ++j) {
+          for(size_t i = 0; i < allCommands.size() && !interrupted; ++i) {
+            for(size_t j = 0; j < allCommands[i].size() && !interrupted; ++j) {
               Command* cmd = allCommands[i][j]->clone();
               cmd->setMuted(true);
               pExecutor->doCommand(cmd);
+              if(cmd->interrupted()) {
+                interrupted = true;
+              }
               delete cmd;
             }
           }
+          if (interrupted) continue;
           *opts[options::out] << CommandSuccess();
         } else if(dynamic_cast<CheckSatCommand*>(cmd) != NULL ||
                   dynamic_cast<QueryCommand*>(cmd) != NULL) {
           if(needReset) {
             pExecutor->reset();
-            for(size_t i = 0; i < allCommands.size(); ++i) {
-              for(size_t j = 0; j < allCommands[i].size(); ++j) {
+            for(size_t i = 0; i < allCommands.size() && !interrupted; ++i) {
+              for(size_t j = 0; j < allCommands[i].size() && !interrupted; ++j) {
                 Command* cmd = allCommands[i][j]->clone();
                 cmd->setMuted(true);
                 pExecutor->doCommand(cmd);
+                if(cmd->interrupted()) {
+                  interrupted = true;
+                }
                 delete cmd;
               }
             }
           }
+          if (interrupted) {
+            continue;
+          }
+
           status = pExecutor->doCommand(cmd);
+          if(cmd->interrupted()) {
+            interrupted = true;
+            continue;
+          }
           needReset = true;
+        } else if(dynamic_cast<ResetCommand*>(cmd) != NULL) {
+          pExecutor->doCommand(cmd);
+          allCommands.clear();
+          allCommands.push_back(vector<Command*>());
         } else {
-          Command* copy = cmd->clone();
-          allCommands.back().push_back(copy);
+          // We shouldn't copy certain commands, because they can cause
+          // an error on replay since there's no associated sat/unsat check
+          // preceding them.
+          if(dynamic_cast<GetUnsatCoreCommand*>(cmd) == NULL &&
+             dynamic_cast<GetProofCommand*>(cmd) == NULL &&
+             dynamic_cast<GetValueCommand*>(cmd) == NULL &&
+             dynamic_cast<GetModelCommand*>(cmd) == NULL &&
+             dynamic_cast<GetAssignmentCommand*>(cmd) == NULL &&
+             dynamic_cast<GetInstantiationsCommand*>(cmd) == NULL &&
+             dynamic_cast<GetAssertionsCommand*>(cmd) == NULL &&
+             dynamic_cast<GetInfoCommand*>(cmd) == NULL &&
+             dynamic_cast<GetOptionCommand*>(cmd) == NULL) {
+            Command* copy = cmd->clone();
+            allCommands.back().push_back(copy);
+          }
           status = pExecutor->doCommand(cmd);
+          if(cmd->interrupted()) {
+            interrupted = true;
+            continue;
+          }
+
           if(dynamic_cast<QuitCommand*>(cmd) != NULL) {
             delete cmd;
             break;
@@ -417,8 +492,27 @@ int runCvc4(int argc, char* argv[], Options& opts) {
         // have the replay parser use the file's declarations
         replayParser->useDeclarationsFrom(parser);
       }
-      while((status || opts[options::continuedExecution]) && (cmd = parser->nextCommand())) {
+      bool interrupted = false;
+      while(status || opts[options::continuedExecution]) {
+        if (interrupted) {
+          *opts[options::out] << CommandInterrupted();
+          pExecutor->reset();
+          break;
+        }
+        try {
+          cmd = parser->nextCommand();
+          if (cmd == NULL) break;
+        } catch (UnsafeInterruptException& e) {
+          interrupted = true;
+          continue;
+        }
+
         status = pExecutor->doCommand(cmd);
+        if (cmd->interrupted() && status == 0) {
+          interrupted = true;
+          break;
+        }
+
         if(dynamic_cast<QuitCommand*>(cmd) != NULL) {
           delete cmd;
           break;

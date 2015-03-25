@@ -81,29 +81,6 @@ public:
 };
 
 
-class InstStrategyDatatypesValue : public InstStrategy
-{
-protected:
-  /** calculate if we should process this quantifier */
-  bool calculateShouldProcess( Node f );
-private:
-  /** reference to theory datatypes */
-  datatypes::TheoryDatatypes* d_th;
-  /** get value function */
-  Node getValueFor( Node n );
-public:
-  //constructor
-  InstStrategyDatatypesValue( datatypes::TheoryDatatypes* th, QuantifiersEngine* qe );
-  ~InstStrategyDatatypesValue(){}
-  /** reset instantiation */
-  void processResetInstantiationRound( Theory::Effort effort );
-  /** process method, returns a status */
-  int process( Node f, Theory::Effort effort, int e );
-  /** identify */
-  std::string identify() const { return std::string("InstStrategyDatatypesValue"); }
-
-};/* class InstStrategy */
-
 }
 }
 }

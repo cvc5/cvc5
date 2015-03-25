@@ -433,7 +433,9 @@ void TSatProof<Solver>::printRes(ResChain<Solver>* res) {
 
 /// registration methods
 template <class Solver> 
-ClauseId TSatProof<Solver>::registerClause(typename Solver::TCRef clause, ClauseKind kind) {
+  ClauseId TSatProof<Solver>::registerClause(typename Solver::TCRef clause,
+					     ClauseKind kind,
+					     uint64_t proof_id) {
   Assert(clause != Solver::TCRef_Undef);
   typename ClauseIdMap::iterator it = d_clauseId.find(clause);
   if (it == d_clauseId.end()) {
@@ -442,18 +444,20 @@ ClauseId TSatProof<Solver>::registerClause(typename Solver::TCRef clause, Clause
     d_idClause[newId] = clause;
     if (kind == INPUT) {
       Assert(d_inputClauses.find(newId) == d_inputClauses.end());
-      d_inputClauses.insert(newId);
+      d_inputClauses[newId] = proof_id;
     }
     if (kind == THEORY_LEMMA) {
       Assert(d_lemmaClauses.find(newId) == d_lemmaClauses.end());
-      d_lemmaClauses.insert(newId);
+      d_lemmaClauses[newId] = proof_id;
     }
   }
-  Debug("proof:sat:detailed") <<"registerClause CRef:" << clause <<" id:" << d_clauseId[clause] << " " << kind << "\n";
+  Debug("proof:sat:detailed") <<"registerClause CRef:" << clause <<" id:" << d_clauseId[clause] << " " << kind << " " << int32_t((proof_id >> 32) & 0xffffffff) << "\n";
   return d_clauseId[clause];
 }
 template <class Solver> 
-ClauseId TSatProof<Solver>::registerUnitClause(typename Solver::TLit lit, ClauseKind kind) {
+ClauseId TSatProof<Solver>::registerUnitClause(typename Solver::TLit lit,
+					       ClauseKind kind,
+					       uint64_t proof_id) {
   typename UnitIdMap::iterator it = d_unitId.find(toInt(lit));
   if (it == d_unitId.end()) {
     ClauseId newId = d_idCounter++;
@@ -461,11 +465,11 @@ ClauseId TSatProof<Solver>::registerUnitClause(typename Solver::TLit lit, Clause
     d_idUnit[newId] = lit;
     if (kind == INPUT) {
       Assert(d_inputClauses.find(newId) == d_inputClauses.end());
-      d_inputClauses.insert(newId);
+      d_inputClauses[newId] = proof_id;
     }
     if (kind == THEORY_LEMMA) {
       Assert(d_lemmaClauses.find(newId) == d_lemmaClauses.end());
-      d_lemmaClauses.insert(newId);
+      d_lemmaClauses[newId] = proof_id;
     }
   }
   Debug("proof:sat:detailed") <<"registerUnitClause " << d_unitId[toInt(lit)] << " " << kind <<"\n";
@@ -547,12 +551,13 @@ void TSatProof<Solver>::removeRedundantFromRes(ResChain<Solver>* res, ClauseId i
       Assert(isUnit(~lit));
       reason_id = getUnitId(~lit);
     } else {
-      reason_id = registerClause(reason_ref);
+      reason_id = registerClause(reason_ref, LEARNT, uint64_t(-1));
     }
     res->addStep(lit, reason_id, !sign(lit));
   }
   removed->clear();
 }
+ 
 template <class Solver> 
 void TSatProof<Solver>::registerResolution(ClauseId id, ResChain<Solver>* res) {
   Assert(res != NULL);
@@ -589,7 +594,7 @@ void TSatProof<Solver>::startResChain(typename Solver::TLit start) {
 template <class Solver> 
 void TSatProof<Solver>::addResolutionStep(typename Solver::TLit lit,
                                           typename Solver::TCRef clause, bool sign) {
-  ClauseId id = registerClause(clause);
+  ClauseId id = registerClause(clause, LEARNT, uint64_t(-1));
   ResChain<Solver>* res = d_resStack.back();
   res->addStep(lit, id, sign);
 }
@@ -606,7 +611,7 @@ void TSatProof<Solver>::endResChain(ClauseId id) {
 template <class Solver> 
 void TSatProof<Solver>::endResChain(typename Solver::TCRef clause) {
   Assert(d_resStack.size() > 0);
-  ClauseId id = registerClause(clause);
+  ClauseId id = registerClause(clause, LEARNT, uint64_t(-1));
   ResChain<Solver>* res = d_resStack.back();
   registerResolution(id, res);
   d_resStack.pop_back();
@@ -615,7 +620,7 @@ void TSatProof<Solver>::endResChain(typename Solver::TCRef clause) {
 template <class Solver> 
 void TSatProof<Solver>::endResChain(typename Solver::TLit lit) {
   Assert(d_resStack.size() > 0);
-  ClauseId id = registerUnitClause(lit);
+  ClauseId id = registerUnitClause(lit, LEARNT, uint64_t(-1));
   ResChain<Solver>* res = d_resStack.back();
   registerResolution(id, res);
   d_resStack.pop_back();
@@ -658,7 +663,7 @@ ClauseId TSatProof<Solver>::resolveUnit(typename Solver::TLit lit) {
   typename Solver::TCRef reason_ref = d_solver->reason(var(lit));
   Assert(reason_ref != Solver::TCRef_Undef);
 
-  ClauseId reason_id = registerClause(reason_ref);
+  ClauseId reason_id = registerClause(reason_ref, LEARNT, uint64_t(-1));
 
   ResChain<Solver>* res = new ResChain<Solver>(reason_id);
   // Here, the call to resolveUnit() can reallocate memory in the
@@ -673,7 +678,7 @@ ClauseId TSatProof<Solver>::resolveUnit(typename Solver::TLit lit) {
       res->addStep(l, res_id, !sign(l));
     }
   }
-  ClauseId unit_id = registerUnitClause(lit);
+  ClauseId unit_id = registerUnitClause(lit, LEARNT, uint64_t(-1));
   registerResolution(unit_id, res);
   return unit_id;
 }
@@ -683,9 +688,11 @@ void TSatProof<Solver>::toStream(std::ostream& out) {
   Unimplemented("native proof printing not supported yet");
 }
 template <class Solver> 
-void TSatProof<Solver>::storeUnitConflict(typename Solver::TLit conflict_lit, ClauseKind kind) {
+void TSatProof<Solver>::storeUnitConflict(typename Solver::TLit conflict_lit,
+					  ClauseKind kind, uint64_t proof_id) {
+  Debug("cores") << "STORE UNIT CONFLICT" << std::endl;
   Assert(!d_storedUnitConflict);
-  d_unitConflictId = registerUnitClause(conflict_lit, kind);
+  d_unitConflictId = registerUnitClause(conflict_lit, kind, proof_id);
   d_storedUnitConflict = true;
   Debug("proof:sat:detailed") <<"storeUnitConflict " << d_unitConflictId << "\n";
 }
@@ -708,7 +715,7 @@ void TSatProof<Solver>::finalizeProof(typename Solver::TCRef conflict_ref) {
     return;
   } else {
     Assert(!d_storedUnitConflict);
-    conflict_id = registerClause(conflict_ref); //FIXME
+    conflict_id = registerClause(conflict_ref, LEARNT, uint64_t(-1)); //FIXME
   }
 
   if(Debug.isOn("proof:sat")) {

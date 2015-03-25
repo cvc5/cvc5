@@ -103,7 +103,9 @@ Node CandidateGeneratorQE::getNextCandidate(){
       Node n = d_qe->getTermDatabase()->d_op_map[d_op][d_term_iter];
       d_term_iter++;
       if( isLegalCandidate( n ) ){
-        return n;
+        if( d_qe->getTermDatabase()->hasTermCurrent( n ) ){
+          return n;
+        }
       }
     }
   }else if( d_mode==cand_term_eqc ){
@@ -125,41 +127,6 @@ Node CandidateGeneratorQE::getNextCandidate(){
   }
   return Node::null();
 }
-
-//CandidateGeneratorQEDisequal::CandidateGeneratorQEDisequal( QuantifiersEngine* qe, Node eqc ) :
-//  d_qe( qe ), d_eq_class( eqc ){
-//  d_eci = NULL;
-//}
-//void CandidateGeneratorQEDisequal::resetInstantiationRound(){
-//
-//}
-////we will iterate over all terms that are disequal from eqc
-//void CandidateGeneratorQEDisequal::reset( Node eqc ){
-//  //Assert( !eqc.isNull() );
-//  ////begin iterating over equivalence classes that are disequal from eqc
-//  //d_eci = d_ith->getEquivalenceClassInfo( eqc );
-//  //if( d_eci ){
-//  //  d_eqci_iter = d_eci->d_disequal.begin();
-//  //}
-//}
-//Node CandidateGeneratorQEDisequal::getNextCandidate(){
-//  //if( d_eci ){
-//  //  while( d_eqci_iter != d_eci->d_disequal.end() ){
-//  //    if( (*d_eqci_iter).second ){
-//  //      //we have an equivalence class that is disequal from eqc
-//  //      d_cg->reset( (*d_eqci_iter).first );
-//  //      Node n = d_cg->getNextCandidate();
-//  //      //if there is a candidate in this equivalence class, return it
-//  //      if( !n.isNull() ){
-//  //        return n;
-//  //      }
-//  //    }
-//  //    ++d_eqci_iter;
-//  //  }
-//  //}
-//  return Node::null();
-//}
-
 
 CandidateGeneratorQELitEq::CandidateGeneratorQELitEq( QuantifiersEngine* qe, Node mpat ) :
   d_match_pattern( mpat ), d_qe( qe ){
@@ -213,7 +180,10 @@ Node CandidateGeneratorQELitDeq::getNextCandidate(){
 
 CandidateGeneratorQEAll::CandidateGeneratorQEAll( QuantifiersEngine* qe, Node mpat ) :
   d_match_pattern( mpat ), d_qe( qe ){
-
+  d_match_pattern_type = mpat.getType();
+  Assert( mpat.getKind()==INST_CONSTANT );
+  d_f = quantifiers::TermDb::getInstConstAttr( mpat );
+  d_index = mpat.getAttribute(InstVarNumAttribute());
 }
 
 void CandidateGeneratorQEAll::resetInstantiationRound() {
@@ -222,16 +192,30 @@ void CandidateGeneratorQEAll::resetInstantiationRound() {
 
 void CandidateGeneratorQEAll::reset( Node eqc ) {
   d_eq = eq::EqClassesIterator( d_qe->getEqualityQuery()->getEngine() );
+  d_firstTime = true;
 }
 
 Node CandidateGeneratorQEAll::getNextCandidate() {
   while( !d_eq.isFinished() ){
-    Node n = (*d_eq);
+    TNode n = (*d_eq);
     ++d_eq;
-    if( n.getType().isSubtypeOf( d_match_pattern.getType() ) ){
-      //an equivalence class with the same type as the pattern, return it
-      return n;
+    if( n.getType().isSubtypeOf( d_match_pattern_type ) ){
+      TNode nh = d_qe->getTermDatabase()->getEligibleTermInEqc( n );
+      if( !nh.isNull() ){
+        if( options::instMaxLevel()!=-1 ){
+          nh = d_qe->getEqualityQuery()->getInternalRepresentative( nh, d_f, d_index );
+        }
+        d_firstTime = false;
+        //an equivalence class with the same type as the pattern, return it
+        return nh;
+      }
     }
+  }
+  if( d_firstTime ){
+    Assert( d_qe->getTermDatabase()->d_type_map[d_match_pattern_type].empty() );
+    //must return something
+    d_firstTime = false;
+    return d_qe->getTermDatabase()->getFreeVariableForType( d_match_pattern_type );
   }
   return Node::null();
 }

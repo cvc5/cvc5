@@ -15,6 +15,7 @@
 #include "theory/quantifiers/quant_util.h"
 #include "theory/quantifiers/inst_match.h"
 #include "theory/quantifiers/term_database.h"
+#include "theory/quantifiers_engine.h"
 
 using namespace std;
 using namespace CVC4;
@@ -22,7 +23,15 @@ using namespace CVC4::kind;
 using namespace CVC4::context;
 using namespace CVC4::theory;
 
-
+bool QuantArith::getMonomial( Node n, Node& c, Node& v ){
+  if( n.getKind()==MULT && n.getNumChildren()==2 && n[0].isConst() ){
+    c = n[0];
+    v = n[1];
+    return true;
+  }else{
+    return false;
+  }
+}
 bool QuantArith::getMonomial( Node n, std::map< Node, Node >& msum ) {
   if ( n.getKind()==MULT ){
     if( n.getNumChildren()==2 && msum.find(n[1])==msum.end() && n[0].isConst() ){
@@ -91,7 +100,7 @@ bool QuantArith::isolate( Node v, std::map< Node, Node >& msum, Node & veq, Kind
         if( r.isOne() ){
           veq = negate(veq);
         }else{
-          //TODO
+          //TODO : lcd computation
           return false;
         }
       }
@@ -116,6 +125,50 @@ Node QuantArith::offset( Node t, int i ) {
   tt = Rewriter::rewrite( tt );
   return tt;
 }
+
+void QuantArith::debugPrintMonomialSum( std::map< Node, Node >& msum, const char * c ) {
+  for(std::map< Node, Node >::iterator it = msum.begin(); it != msum.end(); ++it ){
+    Trace(c) << "  ";
+    if( !it->second.isNull() ){
+      Trace(c) << it->second;
+      if( !it->first.isNull() ){
+        Trace(c) << " * ";
+      }
+    }
+    if( !it->first.isNull() ){
+      Trace(c) << it->first;
+    }
+    Trace(c) << std::endl;
+  }
+  Trace(c) << std::endl;
+}
+
+bool QuantArith::solveEqualityFor( Node lit, Node v, Node & veq ) {
+  Assert( lit.getKind()==EQUAL || lit.getKind()==IFF );
+  //first look directly at sides
+  TypeNode tn = lit[0].getType();
+  for( unsigned r=0; r<2; r++ ){
+    if( lit[r]==v ){
+      Node olitr = lit[r==0 ? 1 : 0];
+      veq = tn.isBoolean() ? lit[r].iffNode( olitr ) : lit[r].eqNode( olitr );
+      return true;
+    }
+  }
+  if( tn.isInteger() || tn.isReal() ){
+    std::map< Node, Node > msum;
+    if( QuantArith::getMonomialSumLit( lit, msum ) ){
+      if( QuantArith::isolate( v, msum, veq, EQUAL ) ){
+        if( veq[0]!=v ){
+          Assert( veq[1]==v );
+          veq = v.eqNode( veq[0] );
+        }
+        return true;
+      }
+    }
+  }
+  return false;
+}
+
 
 
 void QuantRelevance::registerQuantifier( Node f ){
@@ -241,6 +294,7 @@ void QuantPhaseReq::computePhaseReqs( Node n, bool polarity, std::map< Node, int
 }
 
 void QuantPhaseReq::getPolarity( Node n, int child, bool hasPol, bool pol, bool& newHasPol, bool& newPol ) {
+  Assert( n.getKind()!=IMPLIES && n.getKind()!=XOR );
   newHasPol = hasPol;
   newPol = pol;
   if( n.getKind()==NOT ){

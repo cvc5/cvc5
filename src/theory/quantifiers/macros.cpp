@@ -24,7 +24,6 @@ using namespace std;
 using namespace CVC4::theory;
 using namespace CVC4::theory::quantifiers;
 using namespace CVC4::kind;
-using namespace CVC4::context;
 
 
 bool QuantifierMacros::simplify( std::vector< Node >& assertions, bool doRewrite ){
@@ -98,8 +97,12 @@ bool QuantifierMacros::isMacroLiteral( Node n, bool pol ){
 
 bool QuantifierMacros::isBoundVarApplyUf( Node n ) {
   Assert( n.getKind()==APPLY_UF );
+  TypeNode tn = n.getOperator().getType();
   for( unsigned i=0; i<n.getNumChildren(); i++ ){
     if( n[i].getKind()!=BOUND_VARIABLE ){
+      return false;
+    }
+    if( n[i].getType()!=tn[i] ){
       return false;
     }
     for( unsigned j=0; j<i; j++ ){

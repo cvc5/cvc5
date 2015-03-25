@@ -144,7 +144,7 @@ private:
       }
     }
 
-    // Get the current assignement
+    // Get the current assignment
     AssignmentStatus state = d_state[n];
 
     if(state != UNASSIGNED) {

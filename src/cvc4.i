@@ -153,6 +153,7 @@ std::set<JavaInputStreamAdapter*> CVC4::JavaInputStreamAdapter::s_adapters;
 %typemap(throws) CVC4::ScopeException = CVC4::Exception;
 %typemap(throws) CVC4::IllegalArgumentException = CVC4::Exception;
 %typemap(throws) CVC4::AssertionException = CVC4::Exception;
+%typemap(throws) CVC4::UnsafeInterruptException = CVC4::Exception;
 %typemap(throws) CVC4::parser::InputStreamException = CVC4::Exception;
 %typemap(throws) CVC4::parser::ParserException = CVC4::Exception;
 
@@ -293,8 +294,10 @@ std::set<JavaInputStreamAdapter*> CVC4::JavaInputStreamAdapter::s_adapters;
 #endif /* SWIGJAVA */
 
 %include "util/exception.i"
+%include "util/unsafe_interrupt_exception.i"
 %include "util/integer.i"
 %include "util/rational.i"
+//%include "util/floatingpoint.i"
 %include "util/language.i"
 %include "util/cardinality.i"
 %include "util/bool.i"
@@ -319,6 +322,8 @@ std::set<JavaInputStreamAdapter*> CVC4::JavaInputStreamAdapter::s_adapters;
 %include "util/regexp.i"
 %include "util/uninterpreted_constant.i"
 %include "util/proof.i"
+%include "util/resource_manager.i"
+%include "util/unsat_core.i"
 
 %include "expr/kind.i"
 %include "expr/expr.i"

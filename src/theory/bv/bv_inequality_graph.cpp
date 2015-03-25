@@ -146,7 +146,7 @@ bool InequalityGraph::processQueue(BFSQueue& queue, TermId start) {
         if (start_reason != UndefinedReasonId) {
           conflict.push_back(start_reason);
         }
-        computeExplanation(start, current, conflict);
+        computeExplanation(UndefinedTermId, current, conflict);
         Debug("bv-inequality") << "InequalityGraph::addInequality conflict: cycle \n"; 
         setConflict(conflict); 
         return false; 
@@ -263,6 +263,7 @@ ReasonId InequalityGraph::registerReason(TNode reason) {
   if (d_reasonToIdMap.find(reason) != d_reasonToIdMap.end()) {
     return d_reasonToIdMap[reason]; 
   }
+  d_reasonSet.insert(reason);
   ReasonId id = d_reasonNodes.size();
   d_reasonNodes.push_back(reason);
   d_reasonToIdMap[reason] = id;

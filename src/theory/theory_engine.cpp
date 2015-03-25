@@ -26,6 +26,7 @@
 #include "expr/node_builder.h"
 #include "options/options.h"
 #include "util/lemma_output_channel.h"
+#include "util/resource_manager.h"
 
 #include "theory/theory.h"
 #include "theory/theory_engine.h"
@@ -33,6 +34,8 @@
 #include "theory/theory_traits.h"
 
 #include "smt/logic_exception.h"
+
+#include "proof/proof_manager.h"
 
 #include "util/node_visitor.h"
 #include "util/ite_removal.h"
@@ -63,13 +66,15 @@ using namespace CVC4;
 using namespace CVC4::theory;
 
 void TheoryEngine::finishInit() {
+  PROOF (ProofManager::initTheoryProofEngine(); );
+
   // initialize the quantifiers engine
   d_quantEngine = new QuantifiersEngine(d_context, d_userContext, this);
 
   if (d_logicInfo.isQuantified()) {
     d_quantEngine->finishInit();
     Assert(d_masterEqualityEngine == 0);
-    d_masterEqualityEngine = new eq::EqualityEngine(d_masterEENotify,getSatContext(), "theory::master");
+    d_masterEqualityEngine = new eq::EqualityEngine(d_masterEENotify,getSatContext(), "theory::master", false);
 
     for(TheoryId theoryId = theory::THEORY_FIRST; theoryId != theory::THEORY_LAST; ++ theoryId) {
       if (d_theoryTable[theoryId]) {
@@ -88,19 +93,10 @@ void TheoryEngine::finishInit() {
 
 void TheoryEngine::eqNotifyNewClass(TNode t){
   d_quantEngine->addTermToDatabase( t );
-  if( d_logicInfo.isQuantified() && options::quantConflictFind() ){
-    d_quantEngine->getConflictFind()->newEqClass( t );
-  }
 }
 
 void TheoryEngine::eqNotifyPreMerge(TNode t1, TNode t2){
-  //TODO: add notification to efficient E-matching
-  if( d_logicInfo.isQuantified() ){
-    //d_quantEngine->getEfficientEMatcher()->merge( t1, t2 );
-    if( options::quantConflictFind() ){
-      d_quantEngine->getConflictFind()->merge( t1, t2 );
-    }
-  }
+
 }
 
 void TheoryEngine::eqNotifyPostMerge(TNode t1, TNode t2){
@@ -147,13 +143,14 @@ TheoryEngine::TheoryEngine(context::Context* context,
   d_true(),
   d_false(),
   d_interrupted(false),
+  d_resourceManager(NodeManager::currentResourceManager()),
   d_inPreregister(false),
   d_factsAsserted(context, false),
   d_preRegistrationVisitor(this, context),
   d_sharedTermsVisitor(d_sharedTerms),
   d_unconstrainedSimp(new UnconstrainedSimplifier(context, logicInfo)),
   d_bvToBoolPreprocessor(),
-  d_arithSubstitutionsAdded("zzz::arith::substitutions", 0)
+  d_arithSubstitutionsAdded("theory::arith::zzz::arith::substitutions", 0)
 {
   for(TheoryId theoryId = theory::THEORY_FIRST; theoryId != theory::THEORY_LAST; ++ theoryId) {
     d_theoryTable[theoryId] = NULL;
@@ -341,8 +338,7 @@ void TheoryEngine::dumpAssertions(const char* tag) {
  * @param effort the effort level to use
  */
 void TheoryEngine::check(Theory::Effort effort) {
-
-  d_propEngine->checkTime();
+  // spendResource();
 
   // Reset the interrupt flag
   d_interrupted = false;
@@ -385,6 +381,13 @@ void TheoryEngine::check(Theory::Effort effort) {
         printAssertions("theory::assertions");
       }
 
+      if(Theory::fullEffort(effort)) {
+        Trace("theory::assertions::fulleffort") << endl;
+        if (Trace.isOn("theory::assertions::fulleffort")) {
+          printAssertions("theory::assertions::fulleffort");
+        }
+      }
+        
       // Note that we've discharged all the facts
       d_factsAsserted = false;
 
@@ -403,7 +406,7 @@ void TheoryEngine::check(Theory::Effort effort) {
       propagate(effort);
 
       // We do combination if all has been processed and we are in fullcheck
-      if (Theory::fullEffort(effort) && d_logicInfo.isSharingEnabled() && !d_factsAsserted && !d_lemmasAdded) {
+      if (Theory::fullEffort(effort) && d_logicInfo.isSharingEnabled() && !d_factsAsserted && !d_lemmasAdded && !d_inConflict) {
         // Do the combination
         Debug("theory") << "TheoryEngine::check(" << effort << "): running combination" << endl;
         combineTheories();
@@ -451,7 +454,7 @@ void TheoryEngine::check(Theory::Effort effort) {
 
 void TheoryEngine::combineTheories() {
 
-  Debug("sharing") << "TheoryEngine::combineTheories()" << endl;
+  Trace("combineTheories") << "TheoryEngine::combineTheories()" << endl;
 
   TimerStat::CodeTimer combineTheoriesTimer(d_combineTheoriesTime);
 
@@ -469,25 +472,48 @@ void TheoryEngine::combineTheories() {
   // Call on each parametric theory to give us its care graph
   CVC4_FOR_EACH_THEORY;
 
-  Debug("sharing") << "TheoryEngine::combineTheories(): care graph size = " << careGraph.size() << endl;
+  Trace("combineTheories") << "TheoryEngine::combineTheories(): care graph size = " << careGraph.size() << endl;
 
   // Now add splitters for the ones we are interested in
   CareGraph::const_iterator care_it = careGraph.begin();
   CareGraph::const_iterator care_it_end = careGraph.end();
+
   for (; care_it != care_it_end; ++ care_it) {
     const CarePair& carePair = *care_it;
 
-    Debug("sharing") << "TheoryEngine::combineTheories(): checking " << carePair.a << " = " << carePair.b << " from " << carePair.theory << endl;
+    Debug("combineTheories") << "TheoryEngine::combineTheories(): checking " << carePair.a << " = " << carePair.b << " from " << carePair.theory << endl;
 
     Assert(d_sharedTerms.isShared(carePair.a) || carePair.a.isConst());
     Assert(d_sharedTerms.isShared(carePair.b) || carePair.b.isConst());
 
     // The equality in question (order for no repetition)
     Node equality = carePair.a.eqNode(carePair.b);
+    // EqualityStatus es = getEqualityStatus(carePair.a, carePair.b);
+    // Debug("combineTheories") << "TheoryEngine::combineTheories(): " <<
+    //   (es == EQUALITY_TRUE_AND_PROPAGATED ? "EQUALITY_TRUE_AND_PROPAGATED" :
+    //   es == EQUALITY_FALSE_AND_PROPAGATED ? "EQUALITY_FALSE_AND_PROPAGATED" :
+    //   es == EQUALITY_TRUE ? "EQUALITY_TRUE" :
+    //   es == EQUALITY_FALSE ? "EQUALITY_FALSE" :
+    //   es == EQUALITY_TRUE_IN_MODEL ? "EQUALITY_TRUE_IN_MODEL" :
+    //   es == EQUALITY_FALSE_IN_MODEL ? "EQUALITY_FALSE_IN_MODEL" :
+    //   es == EQUALITY_UNKNOWN ? "EQUALITY_UNKNOWN" :
+    //    "Unexpected case") << endl;
 
     // We need to split on it
-    Debug("sharing") << "TheoryEngine::combineTheories(): requesting a split " << endl;
+    Debug("combineTheories") << "TheoryEngine::combineTheories(): requesting a split " << endl;
     lemma(equality.orNode(equality.notNode()), false, false, false, carePair.theory);
+    // This code is supposed to force preference to follow what the theory models already have
+    // but it doesn't seem to make a big difference - need to explore more -Clark
+    // if (true) {
+    //   if (es == EQUALITY_TRUE || es == EQUALITY_TRUE_IN_MODEL) {
+    Node e = ensureLiteral(equality);
+    d_propEngine->requirePhase(e, true);
+    //   }
+    //   else if (es == EQUALITY_FALSE_IN_MODEL) {
+    //     Node e = ensureLiteral(equality);
+    //     d_propEngine->requirePhase(e, false);
+    //   }
+    // }
   }
 }
 
@@ -830,6 +856,7 @@ struct preprocess_stack_element {
 Node TheoryEngine::preprocess(TNode assertion) {
 
   Trace("theory::preprocess") << "TheoryEngine::preprocess(" << assertion << ")" << endl;
+  // spendResource();
 
   // Do a topological sort of the subexpressions and substitute them
   vector<preprocess_stack_element> toVisit;
@@ -1066,7 +1093,7 @@ void TheoryEngine::assertFact(TNode literal)
 {
   Trace("theory") << "TheoryEngine::assertFact(" << literal << ")" << endl;
 
-  d_propEngine->checkTime();
+  // spendResource();
 
   // If we're in conflict, nothing to do
   if (d_inConflict) {
@@ -1129,7 +1156,7 @@ bool TheoryEngine::propagate(TNode literal, theory::TheoryId theory) {
 
   Debug("theory::propagate") << "TheoryEngine::propagate(" << literal << ", " << theory << ")" << endl;
 
-  d_propEngine->checkTime();
+  // spendResource();
 
   if(Dump.isOn("t-propagations")) {
     Dump("t-propagations") << CommentCommand("negation of theory propagation: expect valid")
@@ -1176,13 +1203,34 @@ theory::EqualityStatus TheoryEngine::getEqualityStatus(TNode a, TNode b) {
 }
 
 Node TheoryEngine::getModelValue(TNode var) {
+  if (var.isConst()) return var;  // FIXME: HACK!!!
   Assert(d_sharedTerms.isShared(var));
   return theoryOf(Theory::theoryOf(var.getType()))->getModelValue(var);
 }
 
+
+Node TheoryEngine::ensureLiteral(TNode n) {
+  Debug("ensureLiteral") << "rewriting: " << n << std::endl;
+  Node rewritten = Rewriter::rewrite(n);
+  Debug("ensureLiteral") << "      got: " << rewritten << std::endl;
+  Node preprocessed = preprocess(rewritten);
+  Debug("ensureLiteral") << "preprocessed: " << preprocessed << std::endl;
+  d_propEngine->ensureLiteral(preprocessed);
+  return preprocessed;
+}
+
+
 void TheoryEngine::printInstantiations( std::ostream& out ) {
   if( d_quantEngine ){
     d_quantEngine->printInstantiations( out );
+  }
+}
+
+void TheoryEngine::printSynthSolution( std::ostream& out ) {
+  if( d_quantEngine ){
+    d_quantEngine->printSynthSolution( out );
+  }else{
+    out << "Internal error : synth solution not available when quantifiers are not present." << std::endl;
   }
 }
 
@@ -1339,6 +1387,8 @@ void TheoryEngine::ensureLemmaAtoms(const std::vector<TNode>& atoms, theory::The
 }
 
 theory::LemmaStatus TheoryEngine::lemma(TNode node, bool negated, bool removable, bool preprocess, theory::TheoryId atomsTo) {
+  // For resource-limiting (also does a time check).
+  // spendResource();
 
   // Do we need to check atoms
   if (atomsTo != theory::THEORY_LAST) {
@@ -1385,23 +1435,17 @@ theory::LemmaStatus TheoryEngine::lemma(TNode node, bool negated, bool removable
   }
 
   // assert to prop engine
-  d_propEngine->assertLemma(additionalLemmas[0], negated, removable);
+  d_propEngine->assertLemma(additionalLemmas[0], negated, removable, RULE_INVALID, node);
   for (unsigned i = 1; i < additionalLemmas.size(); ++ i) {
     additionalLemmas[i] = theory::Rewriter::rewrite(additionalLemmas[i]);
-    d_propEngine->assertLemma(additionalLemmas[i], false, removable);
+    d_propEngine->assertLemma(additionalLemmas[i], false, removable, RULE_INVALID, node);
   }
 
   // WARNING: Below this point don't assume additionalLemmas[0] to be not negated.
-  // WARNING: Below this point don't assume additionalLemmas[0] to be not negated.
   if(negated) {
-    // Can't we just get rid of passing around this 'negated' stuff?
-    // Is it that hard for the propEngine to figure that out itself?
-    // (I like the use of triple negation <evil laugh>.) --K
     additionalLemmas[0] = additionalLemmas[0].notNode();
     negated = false;
   }
-  // WARNING: Below this point don't assume additionalLemmas[0] to be not negated.
-  // WARNING: Below this point don't assume additionalLemmas[0] to be not negated.
 
   // assert to decision engine
   if(!removable) {
@@ -1529,7 +1573,7 @@ bool TheoryEngine::donePPSimpITE(std::vector<Node>& assertions){
         Chat() << "..ite simplifier did quite a bit of work.. " << nm->poolSize() << endl;
         Chat() << "....node manager contains " << nm->poolSize() << " nodes before cleanup" << endl;
         d_iteUtilities->clear();
-        Rewriter::garbageCollect();
+        Rewriter::clearCaches();
         d_iteRemover.garbageCollect();
         nm->reclaimZombiesUntil(options::zombieHuntThreshold());
         Chat() << "....node manager contains " << nm->poolSize() << " nodes after cleanup" << endl;
@@ -1717,4 +1761,8 @@ std::pair<bool, Node> TheoryEngine::entailmentCheck(theory::TheoryOfMode mode, T
   Assert(seffects == NULL || tid == seffects->getTheoryId());
 
   return th->entailmentCheck(lit, params, seffects);
+}
+
+void TheoryEngine::spendResource() {
+  d_resourceManager->spendResource();
 }

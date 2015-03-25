@@ -30,6 +30,7 @@
 #include "expr/symbol_table.h"
 #include "expr/kind.h"
 #include "expr/expr_stream.h"
+#include "util/unsafe_interrupt_exception.h"
 
 namespace CVC4 {
 
@@ -39,6 +40,7 @@ class ExprManager;
 class Command;
 class FunctionType;
 class Type;
+class ResourceManager;
 
 namespace parser {
 
@@ -108,6 +110,8 @@ class CVC4_PUBLIC Parser {
 
   /** The expression manager */
   ExprManager *d_exprManager;
+  /** The resource manager associated with this expr manager */
+  ResourceManager *d_resourceManager;
 
   /** The input that we're parsing. */
   Input *d_input;
@@ -132,6 +136,12 @@ class CVC4_PUBLIC Parser {
    * lambda.
    */
   size_t d_assertionLevel;
+
+  /**
+   * Whether we're in global declarations mode (all definitions and
+   * declarations are global).
+   */
+  bool d_globalDeclarations;
 
   /**
    * Maintains a list of reserved symbols at the assertion level that might
@@ -498,10 +508,10 @@ public:
   bool isPredicate(const std::string& name);
 
   /** Parse and return the next command. */
-  Command* nextCommand() throw(ParserException);
+  Command* nextCommand() throw(ParserException, UnsafeInterruptException);
 
   /** Parse and return the next expression. */
-  Expr nextExpression() throw(ParserException);
+  Expr nextExpression() throw(ParserException, UnsafeInterruptException);
 
   /** Issue a warning to the user. */
   inline void warning(const std::string& msg) {
@@ -559,6 +569,14 @@ public:
       d_assertionLevel = scopeLevel();
       d_reservedSymbols.clear();
     }
+  }
+
+  virtual void reset() {
+    d_symtab->reset();
+  }
+
+  void setGlobalDeclarations(bool flag) {
+    d_globalDeclarations = flag;
   }
 
   /**

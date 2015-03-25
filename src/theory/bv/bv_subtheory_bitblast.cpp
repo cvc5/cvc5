@@ -106,8 +106,11 @@ void BitblastSolver::bitblastQueue() {
       // don't bit-blast lemma atoms
       continue;
     }
-    Debug("bitblast-queue") << "Bitblasting atom " << atom <<"\n"; 
-    d_bitblaster->bbAtom(atom);
+    Debug("bitblast-queue") << "Bitblasting atom " << atom <<"\n";
+    {
+      TimerStat::CodeTimer codeTimer(d_bitblaster->d_statistics.d_bitblastTimer);
+      d_bitblaster->bbAtom(atom);
+    }
   }
 }
 
@@ -152,6 +155,7 @@ bool BitblastSolver::check(Theory::Effort e) {
 
   // We need to ensure we are fully propagated, so propagate now
   if (d_useSatPropagation) {
+    d_bv->spendResource();
     bool ok = d_bitblaster->propagate();
     if (!ok) {
       std::vector<TNode> conflictAtoms;
@@ -222,7 +226,11 @@ void BitblastSolver::collectModelInfo(TheoryModel* m, bool fullModel) {
 
 Node BitblastSolver::getModelValue(TNode node)
 {
-  Node val = d_bitblaster->getTermModel(node, false);
+  if (d_bv->d_invalidateModelCache.get()) {
+    d_bitblaster->invalidateModelCache(); 
+  }
+  d_bv->d_invalidateModelCache.set(false); 
+  Node val = d_bitblaster->getTermModel(node, true);
   return val;
 }
 

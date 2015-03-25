@@ -96,7 +96,7 @@ submission-main:
 	./autogen.sh
 	mkdir -p builds-smtcomp/main
 	( cd builds-smtcomp/main; \
-	  ../../configure competition --disable-shared --enable-static-binary --with-cln --with-glpk --with-abc --without-readline --enable-gpl; \
+	  ../../configure competition --disable-thread-support --disable-shared --enable-static-binary --with-cln --with-glpk --with-abc --without-readline --enable-gpl; \
 	  $(MAKE) V=1; \
 	  strip src/main/cvc4; \
 	  $(MAKE) check )
@@ -130,7 +130,7 @@ submission-application:
 	./autogen.sh
 	mkdir -p builds-smtcomp/application
 	( cd builds-smtcomp/application; \
-	  ../../configure competition --disable-shared --enable-static-binary --with-cln --without-glpk --with-abc --without-readline --enable-gpl CXXFLAGS=-DCVC4_SMTCOMP_APPLICATION_TRACK CFLAGS=-DCVC4_SMTCOMP_APPLICATION_TRACK; \
+	  ../../configure competition --disable-thread-support --disable-shared --enable-static-binary --with-cln --without-glpk --with-abc --without-readline --enable-gpl CXXFLAGS=-DCVC4_SMTCOMP_APPLICATION_TRACK CFLAGS=-DCVC4_SMTCOMP_APPLICATION_TRACK; \
 	  $(MAKE) V=1; \
 	  strip src/main/cvc4; \
 	  $(MAKE) check )

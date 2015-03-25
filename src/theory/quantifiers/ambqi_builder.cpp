@@ -441,7 +441,7 @@ void AbsDef::construct_compose( FirstOrderModelAbs * m, TNode q, TNode n, AbsDef
       }
       Assert( vchildren.empty() );
       if( incomplete ){
-        Trace("ajr-temp") << "Construct incomplete entry." << std::endl;
+        Trace("ambqi-check-debug2") << "Construct incomplete entry." << std::endl;
 
         //if a child is unknown, we must return unknown
         construct_entry( entry, entry_def, val_unk );
@@ -740,7 +740,7 @@ void AbsMbqiBuilder::processBuildModel(TheoryModel* m, bool fullModel) {
     //debug the model
     debugModel( fm );
   }else{
-    fm->initialize( d_considerAxioms );
+    fm->initialize();
     //process representatives
     fm->d_rep_id.clear();
     fm->d_domain.clear();

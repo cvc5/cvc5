@@ -35,6 +35,7 @@
 #include "util/sexpr.h"
 #include "util/datatype.h"
 #include "util/proof.h"
+#include "util/unsat_core.h"
 
 namespace CVC4 {
 
@@ -167,6 +168,13 @@ public:
   CommandStatus& clone() const { return const_cast<CommandSuccess&>(*this); }
 };/* class CommandSuccess */
 
+class CVC4_PUBLIC CommandInterrupted : public CommandStatus {
+  static const CommandInterrupted* s_instance;
+public:
+  static const CommandInterrupted* instance() throw() { return s_instance; }
+  CommandStatus& clone() const { return const_cast<CommandInterrupted&>(*this); }
+};/* class CommandInterrupted */
+
 class CVC4_PUBLIC CommandUnsupported : public CommandStatus {
 public:
   CommandStatus& clone() const { return *new CommandUnsupported(*this); }
@@ -239,6 +247,11 @@ public:
    */
   bool fail() const throw();
 
+  /**
+   * The command was ran but was interrupted due to resource limiting.
+   */
+  bool interrupted() const throw();
+
   /** Get the command status (it's NULL if we haven't run yet). */
   const CommandStatus* getCommandStatus() const throw() { return d_commandStatus; }
 
@@ -309,8 +322,9 @@ public:
 class CVC4_PUBLIC AssertCommand : public Command {
 protected:
   Expr d_expr;
+  bool d_inUnsatCore;
 public:
-  AssertCommand(const Expr& e) throw();
+  AssertCommand(const Expr& e, bool inUnsatCore = true) throw();
   ~AssertCommand() throw() {}
   Expr getExpr() const throw();
   void invoke(SmtEngine* smtEngine) throw();
@@ -452,14 +466,14 @@ public:
   std::string getCommandName() const throw();
 };/* class SetUserAttributeCommand */
 
-
 class CVC4_PUBLIC CheckSatCommand : public Command {
 protected:
   Expr d_expr;
   Result d_result;
+  bool d_inUnsatCore;
 public:
   CheckSatCommand() throw();
-  CheckSatCommand(const Expr& expr) throw();
+  CheckSatCommand(const Expr& expr, bool inUnsatCore = true) throw();
   ~CheckSatCommand() throw() {}
   Expr getExpr() const throw();
   void invoke(SmtEngine* smtEngine) throw();
@@ -474,8 +488,9 @@ class CVC4_PUBLIC QueryCommand : public Command {
 protected:
   Expr d_expr;
   Result d_result;
+  bool d_inUnsatCore;
 public:
-  QueryCommand(const Expr& e) throw();
+  QueryCommand(const Expr& e, bool inUnsatCore = true) throw();
   ~QueryCommand() throw() {}
   Expr getExpr() const throw();
   void invoke(SmtEngine* smtEngine) throw();
@@ -595,14 +610,30 @@ public:
   std::string getCommandName() const throw();
 };/* class GetInstantiationsCommand */
 
+class CVC4_PUBLIC GetSynthSolutionCommand : public Command {
+protected:
+  SmtEngine* d_smtEngine;
+public:
+  GetSynthSolutionCommand() throw();
+  ~GetSynthSolutionCommand() throw() {}
+  void invoke(SmtEngine* smtEngine) throw();
+  void printResult(std::ostream& out, uint32_t verbosity = 2) const throw();
+  Command* exportTo(ExprManager* exprManager, ExprManagerMapCollection& variableMap);
+  Command* clone() const;
+  std::string getCommandName() const throw();
+};/* class GetSynthSolutionCommand */
+
 class CVC4_PUBLIC GetUnsatCoreCommand : public Command {
 protected:
-  //UnsatCore* d_result;
+  UnsatCore d_result;
+  std::map<Expr, std::string> d_names;
 public:
   GetUnsatCoreCommand() throw();
+  GetUnsatCoreCommand(const std::map<Expr, std::string>& names) throw();
   ~GetUnsatCoreCommand() throw() {}
   void invoke(SmtEngine* smtEngine) throw();
   void printResult(std::ostream& out, uint32_t verbosity = 2) const throw();
+  const UnsatCore& getUnsatCore() const throw();
   Command* exportTo(ExprManager* exprManager, ExprManagerMapCollection& variableMap);
   Command* clone() const;
   std::string getCommandName() const throw();
@@ -791,10 +822,29 @@ public:
   std::string getCommandName() const throw();
 };/* class PropagateRuleCommand */
 
+class CVC4_PUBLIC ResetCommand : public Command {
+public:
+  ResetCommand() throw() {}
+  ~ResetCommand() throw() {}
+  void invoke(SmtEngine* smtEngine) throw();
+  Command* exportTo(ExprManager* exprManager, ExprManagerMapCollection& variableMap);
+  Command* clone() const;
+  std::string getCommandName() const throw();
+};/* class ResetCommand */
+
+class CVC4_PUBLIC ResetAssertionsCommand : public Command {
+public:
+  ResetAssertionsCommand() throw() {}
+  ~ResetAssertionsCommand() throw() {}
+  void invoke(SmtEngine* smtEngine) throw();
+  Command* exportTo(ExprManager* exprManager, ExprManagerMapCollection& variableMap);
+  Command* clone() const;
+  std::string getCommandName() const throw();
+};/* class ResetAssertionsCommand */
 
 class CVC4_PUBLIC QuitCommand : public Command {
 public:
-  QuitCommand() throw();
+  QuitCommand() throw() {}
   ~QuitCommand() throw() {}
   void invoke(SmtEngine* smtEngine) throw();
   Command* exportTo(ExprManager* exprManager, ExprManagerMapCollection& variableMap);

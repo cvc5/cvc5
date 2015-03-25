@@ -47,7 +47,7 @@ public:
                     context::UserContext* u);
 
   ~TheorySetsPrivate();
-  
+
   void setMasterEqualityEngine(eq::EqualityEngine* eq);
 
   void addSharedTerm(TNode);
@@ -60,16 +60,22 @@ public:
 
   Node explain(TNode);
 
+  EqualityStatus getEqualityStatus(TNode a, TNode b);
+
+  Node getModelValue(TNode);
+
   void preRegisterTerm(TNode node);
 
-  void propagate(Theory::Effort) { /* we don't depend on this call */ }
+  void propagate(Theory::Effort);
 
 private:
   TheorySets& d_external;
 
   class Statistics {
   public:
-    TimerStat d_checkTime;
+    TimerStat d_getModelValueTime;
+    IntStat d_memberLemmas;
+    IntStat d_disequalityLemmas;
 
     Statistics();
     ~Statistics();
@@ -94,6 +100,10 @@ private:
   /** Equality engine */
   eq::EqualityEngine d_equalityEngine;
 
+  /** True and false constant nodes */
+  Node d_trueNode;
+  Node d_falseNode;
+
   context::CDO<bool> d_conflict;
   Node d_conflictNode;
 
@@ -107,8 +117,9 @@ private:
     TheorySetsPrivate& d_theory;
     context::Context* d_context;
     eq::EqualityEngine* d_eqEngine;
-
+  public:
     CDNodeSet d_terms;
+  private:
     std::hash_map<TNode, TheorySetsTermInfo*, TNodeHashFunction> d_info;
 
     void mergeLists(CDTNodeList* la, const CDTNodeList* lb) const;
@@ -123,6 +134,7 @@ private:
     void notifyMembership(TNode fact);
     const CDTNodeList* getParents(TNode x);
     const CDTNodeList* getMembers(TNode S);
+    Node getModelValue(TNode n);
     const CDTNodeList* getNonMembers(TNode S);
     void addTerm(TNode n);
     void mergeTerms(TNode a, TNode b);
@@ -174,11 +186,19 @@ private:
   typedef std::hash_map<TNode, Elements, TNodeHashFunction> SettermElementsMap;
   const Elements& getElements(TNode setterm, SettermElementsMap& settermElementsMap) const;
   Node elementsToShape(Elements elements, TypeNode setType) const;
+  Node elementsToShape(std::set<Node> elements, TypeNode setType) const;
   bool checkModel(const SettermElementsMap& settermElementsMap, TNode S) const;
+
+  context::CDHashMap <Node, Node, NodeHashFunction> d_modelCache;
+
+
+  // sharing related
+  context::CDO<unsigned>  d_ccg_i, d_ccg_j;
 
   // more debugging stuff
   friend class TheorySetsScrutinize;
   TheorySetsScrutinize* d_scrutinize;
+  void dumpAssertionsHumanified() const;  /** do some formatting to make them more readable */
 };/* class TheorySetsPrivate */
 
 

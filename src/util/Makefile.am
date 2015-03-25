@@ -97,7 +97,14 @@ libutil_la_SOURCES = \
 	regexp.cpp \
 	bin_heap.h \
 	didyoumean.h \
-	didyoumean.cpp
+	didyoumean.cpp \
+	unsat_core.h \
+	unsat_core.cpp \
+	floatingpoint.h \
+	floatingpoint.cpp \
+	resource_manager.h \
+	resource_manager.cpp \
+	unsafe_interrupt_exception.h
 
 libstatistics_la_SOURCES = \
 	statistics_registry.h \
@@ -156,7 +163,11 @@ EXTRA_DIST = \
 	uninterpreted_constant.i \
 	chain.i \
 	regexp.i \
-	proof.i
+	resource_manager.i \
+	unsafe_interrupt_exception.i \
+	proof.i \
+	unsat_core.i \
+	floatingpoint.i
 
 DISTCLEANFILES = \
 	integer.h.tmp \

@@ -88,6 +88,7 @@ protected:
   typedef std::hash_map < ClauseId, typename Solver::TLit>   IdUnitMap;
   typedef std::hash_map < int, ClauseId>            UnitIdMap; 
   typedef std::hash_map < ClauseId, ResChain<Solver>* >      IdResMap;
+  typedef std::hash_map < ClauseId, uint64_t >      IdProofRuleMap;
   typedef std::hash_set < ClauseId >                IdHashSet;
   typedef std::vector   < ResChain<Solver>* >       ResStack;
   typedef std::hash_map <ClauseId, prop::SatClause* >     IdToSatClause;
@@ -98,6 +99,8 @@ protected:
   
   typename Solver::Solver*    d_solver;
   CnfProof* d_cnfProof; 
+  static ClauseId d_idCounter;
+  
   // clauses
   IdCRefMap           d_idClause;
   ClauseIdMap         d_clauseId;
@@ -105,8 +108,13 @@ protected:
   UnitIdMap           d_unitId;
   IdHashSet           d_deleted;
   IdToSatClause       d_deletedTheoryLemmas;
-  IdHashSet           d_inputClauses;
-  IdHashSet           d_lemmaClauses;
+
+public:
+  IdProofRuleMap      d_inputClauses;
+  IdProofRuleMap      d_lemmaClauses;
+protected:
+  /* IdHashSet           d_inputClauses; */
+  /* IdHashSet           d_lemmaClauses; */
   VarSet              d_assumptions; // assumption literals for bv solver
   IdHashSet           d_assumptionConflicts; // assumption conflicts not actually added to SAT solver
   IdToConflicts       d_assumptionConflictsDebug;
@@ -116,7 +124,6 @@ protected:
   ResStack            d_resStack;
   bool                d_checkRes;
 
-  static ClauseId     d_idCounter;
   const ClauseId      d_emptyClauseId;
   const ClauseId      d_nullId;
   // proxy class to break circular dependencies
@@ -141,6 +148,7 @@ protected:
   void printRes(ResChain<Solver>* res);
 
   bool isInputClause(ClauseId id);
+  bool isTheoryConflict(ClauseId id);
   bool isLemmaClause(ClauseId id);
   bool isAssumptionConflict(ClauseId id);
   bool isUnit(ClauseId id);
@@ -214,12 +222,16 @@ public:
   void finalizeProof(typename Solver::TCRef conflict);
 
   /// clause registration methods
-  ClauseId registerClause(const typename Solver::TCRef clause, ClauseKind kind = LEARNT);
-  ClauseId registerUnitClause(const typename Solver::TLit lit, ClauseKind kind = LEARNT);
+
+  ClauseId registerClause(const typename Solver::TCRef clause,
+			  ClauseKind kind, uint64_t proof_id);
+  ClauseId registerUnitClause(const typename Solver::TLit lit,
+			      ClauseKind kind, uint64_t proof_id);
   void registerAssumption(const typename Solver::TVar var);
   ClauseId registerAssumptionConflict(const typename Solver::TLitVec& confl);
   
-  void storeUnitConflict(typename Solver::TLit lit, ClauseKind kind = LEARNT);
+  void storeUnitConflict(typename Solver::TLit lit,
+			  ClauseKind kind, uint64_t proof_id);
 
   /**
    * Marks the deleted clauses as deleted. Note we may still use them in the final
@@ -253,6 +265,7 @@ public:
 protected:
   IdSet              d_seenLearnt;
   IdHashSet          d_seenInput;
+  IdHashSet          d_seenTheoryConflicts;
   IdHashSet          d_seenLemmas;
 
   std::string varName(typename Solver::TLit lit);

@@ -22,6 +22,7 @@
 #include <vector>
 #include <set>
 #include <algorithm>
+#include <climits>
 #include "util/hash.h"
 #include "util/regexp.h"
 #include "theory/theory.h"
@@ -38,7 +39,7 @@ class RegExpOpr {
   typedef std::pair< Node, Node > PairNodes;
 
 private:
-  unsigned d_card;
+  unsigned char d_lastchar;
   Node d_emptyString;
   Node d_true;
   Node d_false;
@@ -46,9 +47,10 @@ private:
   Node d_emptyRegexp;
   Node d_zero;
   Node d_one;
+  CVC4::Rational RMAXINT;
 
-  char d_char_start;
-  char d_char_end;
+  unsigned char d_char_start;
+  unsigned char d_char_end;
   Node d_sigma;
   Node d_sigma_star;
 
@@ -59,28 +61,41 @@ private:
   std::map< PairNodeStr, std::pair< Node, int > > d_deriv_cache;
   std::map< Node, std::pair< Node, int > > d_compl_cache;
   std::map< Node, bool > d_cstre_cache;
-  std::map< Node, std::pair< std::set<unsigned>, std::set<Node> > > d_cset_cache;
-  std::map< Node, std::pair< std::set<unsigned>, std::set<Node> > > d_fset_cache;
+  std::map< Node, std::pair< std::set<unsigned char>, std::set<Node> > > d_cset_cache;
+  std::map< Node, std::pair< std::set<unsigned char>, std::set<Node> > > d_fset_cache;
   std::map< PairNodes, Node > d_inter_cache;
+  std::map< Node, Node > d_rm_inter_cache;
+  std::map< Node, bool > d_norv_cache;
   std::map< Node, std::vector< PairNodes > > d_split_cache;
   //bool checkStarPlus( Node t );
   void simplifyPRegExp( Node s, Node r, std::vector< Node > &new_nodes );
   void simplifyNRegExp( Node s, Node r, std::vector< Node > &new_nodes );
   std::string niceChar( Node r );
   int gcd ( int a, int b );
-  Node mkAllExceptOne( char c );
+  Node mkAllExceptOne( unsigned char c );
   bool isPairNodesInSet(std::set< PairNodes > &s, Node n1, Node n2);
 
-  void getCharSet( Node r, std::set<unsigned> &pcset, SetNodes &pvset );
-  Node intersectInternal( Node r1, Node r2, std::map< unsigned, std::set< PairNodes > > cache, bool &spflag );
+  void getCharSet( Node r, std::set<unsigned char> &pcset, SetNodes &pvset );
   bool containC2(unsigned cnt, Node n);
   Node convert1(unsigned cnt, Node n);
   void convert2(unsigned cnt, Node n, Node &r1, Node &r2);
-  Node intersectInternal2( Node r1, Node r2, std::map< PairNodes, Node > cache, bool &spflag, unsigned cnt );
-  void firstChars( Node r, std::set<unsigned> &pcset, SetNodes &pvset );
+  bool testNoRV(Node r);
+  Node intersectInternal( Node r1, Node r2, std::map< PairNodes, Node > cache, unsigned cnt );
+  Node removeIntersection(Node r);
+  void firstChars( Node r, std::set<unsigned char> &pcset, SetNodes &pvset );
 
   //TODO: for intersection
-  bool follow( Node r, CVC4::String c, std::vector< char > &vec_chars );
+  bool follow( Node r, CVC4::String c, std::vector< unsigned char > &vec_chars );
+
+  /*class CState {
+  public:
+    Node r1;
+    Node r2;
+    unsigned cnt;
+    Node head;
+    CState(Node rr1, Node rr2, Node rcnt, Node rhead)
+      : r1(rr1), r2(rr2), cnt(rcnt), head(rhead) {}
+  };*/
 
 public:
   RegExpOpr();
@@ -94,6 +109,8 @@ public:
   Node intersect(Node r1, Node r2, bool &spflag);
   Node complement(Node r, int &ret);
   void splitRegExp(Node r, std::vector< PairNodes > &pset);
+  void flattenRegExp(Node r, std::vector< std::pair< CVC4::String, unsigned > > &fvec);
+  void disjunctRegExp(Node r, std::vector<Node> &vec_or);
 
   std::string mkString( Node r );
 };

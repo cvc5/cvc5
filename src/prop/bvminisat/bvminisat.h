@@ -5,7 +5,7 @@
  ** Major contributors:
  ** Minor contributors (to current version):
  ** This file is part of the CVC4 prototype.
- ** Copyright (c) 2009, 2010, 2011  The Analysis of Computer Systems Group (ACSys)
+ ** Copyright (c) 2009-2014  The Analysis of Computer Systems Group (ACSys)
  ** Courant Institute of Mathematical Sciences
  ** New York University
  ** See the file COPYING in the top-level source directory for licensing
@@ -21,7 +21,6 @@
 #pragma once
 
 #include "prop/sat_solver.h"
-#include "prop/sat_solver_registry.h"
 #include "prop/bvminisat/simp/SimpSolver.h"
 #include "context/cdo.h"
 
@@ -49,8 +48,11 @@ private:
       d_notify->notify(satClause);
     }
 
+    void spendResource() {
+      d_notify->spendResource();
+    }
     void safePoint() {
-      d_notify->safePoint(); 
+      d_notify->safePoint();
     }
   };
 
@@ -78,7 +80,7 @@ public:
 
   void setNotify(Notify* notify);
 
-  void addClause(SatClause& clause, bool removable);
+  void addClause(SatClause& clause, bool removable, uint64_t proof_id);
 
   SatValue propagate();
 
@@ -88,8 +90,6 @@ public:
   SatVariable falseVar() { return d_minisat->falseVar(); }
 
   void markUnremovable(SatLiteral lit);
-
-  void spendResource();
 
   void interrupt();
   
@@ -110,7 +110,6 @@ public:
   static SatVariable     toSatVariable(BVMinisat::Var var);
   static BVMinisat::Lit    toMinisatLit(SatLiteral lit);
   static SatLiteral      toSatLiteral(BVMinisat::Lit lit);
-  static SatValue toSatLiteralValue(bool res);
   static SatValue toSatLiteralValue(BVMinisat::lbool res);
 
   static void  toMinisatClause(SatClause& clause, BVMinisat::vec<BVMinisat::Lit>& minisat_clause);

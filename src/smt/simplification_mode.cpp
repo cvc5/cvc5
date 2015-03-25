@@ -21,9 +21,6 @@ namespace CVC4 {
 
 std::ostream& operator<<(std::ostream& out, SimplificationMode mode) {
   switch(mode) {
-  case SIMPLIFICATION_MODE_INCREMENTAL:
-    out << "SIMPLIFICATION_MODE_INCREMENTAL";
-    break;
   case SIMPLIFICATION_MODE_BATCH:
     out << "SIMPLIFICATION_MODE_BATCH";
     break;

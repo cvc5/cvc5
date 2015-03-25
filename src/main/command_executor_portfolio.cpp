@@ -11,7 +11,7 @@
  **
  ** \brief An additional layer between commands and invoking them.
  **
- ** The portfolio executer branches check-sat queries to several
+ ** The portfolio executor branches check-sat queries to several
  ** threads.
  **/
 
@@ -29,6 +29,7 @@
 #include "main/portfolio.h"
 #include "options/options.h"
 #include "smt/options.h"
+#include "printer/options.h"
 
 #include "cvc4autoconfig.h"
 
@@ -62,7 +63,7 @@ CommandExecutorPortfolio::CommandExecutorPortfolio
   d_stats.registerStat_(&d_statLastWinner);
   d_stats.registerStat_(&d_statWaitTime);
 
-  /* Duplication, Individualisation */
+  /* Duplication, individualization */
   d_exprMgrs.push_back(&d_exprMgr);
   for(unsigned i = 1; i < d_numThreads; ++i) {
     d_exprMgrs.push_back(new ExprManager(d_threadOptions[i]));
@@ -201,6 +202,7 @@ bool CommandExecutorPortfolio::doCommandSingleton(Command* cmd)
             dynamic_cast<GetAssignmentCommand*>(cmd) != NULL ||
             dynamic_cast<GetModelCommand*>(cmd) != NULL ||
             dynamic_cast<GetProofCommand*>(cmd) != NULL ||
+            dynamic_cast<GetInstantiationsCommand*>(cmd) != NULL ||
             dynamic_cast<GetUnsatCoreCommand*>(cmd) != NULL ||
             dynamic_cast<GetAssertionsCommand*>(cmd) != NULL ||
             dynamic_cast<GetInfoCommand*>(cmd) != NULL ||
@@ -357,7 +359,7 @@ bool CommandExecutorPortfolio::doCommandSingleton(Command* cmd)
 
     bool status = portfolioReturn.second;
 
-    // dump the model/proof if option is set
+    // dump the model/proof/unsat core if option is set
     if(status) {
       if( d_options[options::produceModels] &&
           d_options[options::dumpModels] &&
@@ -371,9 +373,18 @@ bool CommandExecutorPortfolio::doCommandSingleton(Command* cmd)
         Command* gp = new GetProofCommand();
         status = doCommandSingleton(gp);
       } else if( d_options[options::dumpInstantiations] &&
-                 d_result.asSatisfiabilityResult() == Result::UNSAT ) {
+                 ( ( d_options[options::instFormatMode]!=INST_FORMAT_MODE_SZS && 
+                   ( d_result.asSatisfiabilityResult() == Result::SAT || (d_result.isUnknown() && d_result.whyUnknown() == Result::INCOMPLETE) ) ) || 
+                 d_result.asSatisfiabilityResult() == Result::UNSAT ) ) {
         Command* gi = new GetInstantiationsCommand();
         status = doCommandSingleton(gi);
+      } else if( d_options[options::dumpSynth] && d_result.asSatisfiabilityResult() == Result::UNSAT ){
+        Command* gi = new GetSynthSolutionCommand();
+        status = doCommandSingleton(gi);
+      } else if( d_options[options::dumpUnsatCores] &&
+                 d_result.asSatisfiabilityResult() == Result::UNSAT ) {
+        Command* guc = new GetUnsatCoreCommand();
+        status = doCommandSingleton(guc);
       }
     }
 

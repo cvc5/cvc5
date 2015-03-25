@@ -23,6 +23,7 @@ MAKEFLAGS = -k
 TESTS =	\
 	tuple.cvc \
 	tuple-model.cvc \
+	tuple-record-bug.cvc \
 	rec1.cvc \
 	rec2.cvc \
 	rec4.cvc \
@@ -58,7 +59,9 @@ TESTS =	\
 	bug286.cvc \
 	bug438.cvc \
 	bug438b.cvc \
-	wrong-sel-simp.cvc
+	wrong-sel-simp.cvc \
+	tenum-bug.smt2 \
+	cdt-non-canon-stream.smt2
 
 FAILING_TESTS = \
 	datatype-dump.cvc

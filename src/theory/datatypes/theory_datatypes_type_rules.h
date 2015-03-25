@@ -209,6 +209,49 @@ struct DatatypeAscriptionTypeRule {
   }
 };/* struct DatatypeAscriptionTypeRule */
 
+/* For co-datatypes */
+class DatatypeMuTypeRule {
+private:
+  //a Mu-expression is constant iff its body is composed of constructors applied to constant expr and bound variables only
+  inline static bool computeIsConstNode(TNode n, std::vector< TNode >& fv ){
+    if( n.getKind()==kind::MU ){
+      fv.push_back( n[0] );
+      bool ret = computeIsConstNode( n[1], fv );
+      fv.pop_back();
+      return ret;
+    }else if( n.isConst() || std::find( fv.begin(), fv.end(), n )!=fv.end() ){
+      return true;
+    }else if( n.getKind()==kind::APPLY_CONSTRUCTOR ){
+      for( unsigned i=0; i<n.getNumChildren(); i++ ){
+        if( !computeIsConstNode( n[i], fv ) ){
+          return false;
+        }
+      }
+      return true; 
+    }else{
+      return false;
+    }
+  }
+public:
+  inline static TypeNode computeType(NodeManager* nodeManager, TNode n, bool check) {
+    if( n[0].getKind()!=kind::BOUND_VARIABLE  ) {
+      std::stringstream ss;
+      ss << "expected a bound var for MU expression, got `"
+         << n[0] << "'";
+      throw TypeCheckingExceptionPrivate(n, ss.str());
+    }
+    return n[1].getType(check);
+  }
+  inline static bool computeIsConst(NodeManager* nodeManager, TNode n)
+    throw(AssertionException) {
+    Assert(n.getKind() == kind::MU);
+    NodeManagerScope nms(nodeManager);
+    std::vector< TNode > fv;
+    return computeIsConstNode( n, fv );
+  }
+};
+
+
 struct ConstructorProperties {
   inline static Cardinality computeCardinality(TypeNode type) {
     // Constructors aren't exactly functions, they're like
@@ -410,7 +453,9 @@ struct RecordTypeRule {
           throw TypeCheckingExceptionPrivate(n, "record description has different length than record literal");
         }
         if(!(*child_it).getType(check).isComparableTo(TypeNode::fromType((*i).second))) {
-          throw TypeCheckingExceptionPrivate(n, "record description types differ from record literal types");
+          std::stringstream ss;
+          ss << "record description types differ from record literal types\nDescription type: " << (*child_it).getType() << "\nLiteral type: " << (*i).second;
+          throw TypeCheckingExceptionPrivate(n, ss.str());
         }
       }
       if(i != rec.end()) {
@@ -507,6 +552,41 @@ struct RecordProperties {
     return true;
   }
 };/* struct RecordProperties */
+
+class DtSizeTypeRule {
+public:
+  inline static TypeNode computeType(NodeManager* nodeManager, TNode n, bool check)
+    throw (TypeCheckingExceptionPrivate, AssertionException) {
+    if( check ) {
+      TypeNode t = n[0].getType(check);
+      if (!t.isDatatype()) {
+        throw TypeCheckingExceptionPrivate(n, "expecting datatype size term to have datatype argument.");
+      }
+    }
+    return nodeManager->integerType();
+  }
+};/* class DtSizeTypeRule */
+
+class DtHeightBoundTypeRule {
+public:
+  inline static TypeNode computeType(NodeManager* nodeManager, TNode n, bool check)
+    throw (TypeCheckingExceptionPrivate, AssertionException) {
+    if( check ) {
+      TypeNode t = n[0].getType(check);
+      if (!t.isDatatype()) {
+        throw TypeCheckingExceptionPrivate(n, "expecting datatype height bound term to have datatype argument.");
+      }
+      if( n[1].getKind()!=kind::CONST_RATIONAL ){
+        throw TypeCheckingExceptionPrivate(n, "datatype height bound must be a constant");
+      }
+      if( n[1].getConst<Rational>().getNumerator().sgn()==-1 ){
+        throw TypeCheckingExceptionPrivate(n, "datatype height bound must be non-negative");
+      }
+    }
+    return nodeManager->integerType();
+  }
+};/* class DtHeightBoundTypeRule */
+
 
 }/* CVC4::theory::datatypes namespace */
 }/* CVC4::theory namespace */

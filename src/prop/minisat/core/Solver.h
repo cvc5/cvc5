@@ -42,7 +42,6 @@ template <class Solvar> class TSatProof;
 namespace prop {
   class TheoryProxy;
 }/* CVC4::prop namespace */
-
 }/* CVC4 namespace */
 
 namespace Minisat {
@@ -95,6 +94,9 @@ protected:
 
   /** Is the lemma removable */
   vec<bool> lemmas_removable;
+
+  /** Proof IDs for lemmas */
+  vec<uint64_t> lemmas_proof_id;
 
   /** Do a another check if FULL_EFFORT was the last one */
   bool recheck;
@@ -165,23 +167,25 @@ public:
     void          push                     ();
     void          pop                      ();
 
-    bool    addClause (const vec<Lit>& ps, bool removable);                     // Add a clause to the solver.
+    // CVC4 adds the "proof_id" here to refer to the input assertion/lemma
+    // that produced this clause
+    bool    addClause (const vec<Lit>& ps, bool removable, uint64_t proof_id);  // Add a clause to the solver.
     bool    addEmptyClause(bool removable);                                     // Add the empty clause, making the solver contradictory.
-    bool    addClause (Lit p, bool removable);                                  // Add a unit clause to the solver.
-    bool    addClause (Lit p, Lit q, bool removable);                           // Add a binary clause to the solver.
-    bool    addClause (Lit p, Lit q, Lit r, bool removable);                    // Add a ternary clause to the solver.
-    bool    addClause_(      vec<Lit>& ps, bool removable);                     // Add a clause to the solver without making superflous internal copy. Will
+    bool    addClause (Lit p, bool removable, uint64_t proof_id);               // Add a unit clause to the solver.
+    bool    addClause (Lit p, Lit q, bool removable, uint64_t proof_id);        // Add a binary clause to the solver.
+    bool    addClause (Lit p, Lit q, Lit r, bool removable, uint64_t proof_id); // Add a ternary clause to the solver.
+    bool    addClause_(      vec<Lit>& ps, bool removable, uint64_t proof_id);  // Add a clause to the solver without making superflous internal copy. Will
                                                                                  // change the passed vector 'ps'.
 
     // Solving:
     //
     bool    simplify     ();                        // Removes already satisfied clauses.
-    bool    solve        (const vec<Lit>& assumps); // Search for a model that respects a given set of assumptions.
+    lbool    solve        (const vec<Lit>& assumps); // Search for a model that respects a given set of assumptions.
     lbool   solveLimited (const vec<Lit>& assumps); // Search for a model that respects a given set of assumptions (With resource constraints).
-    bool    solve        ();                        // Search without assumptions.
-    bool    solve        (Lit p);                   // Search for a model that respects a single assumption.
-    bool    solve        (Lit p, Lit q);            // Search for a model that respects two assumptions.
-    bool    solve        (Lit p, Lit q, Lit r);     // Search for a model that respects three assumptions.
+    lbool    solve        ();                        // Search without assumptions.
+    lbool    solve        (Lit p);                   // Search for a model that respects a single assumption.
+    lbool    solve        (Lit p, Lit q);            // Search for a model that respects two assumptions.
+    lbool    solve        (Lit p, Lit q, Lit r);     // Search for a model that respects three assumptions.
     bool    okay         () const;                  // FALSE means solver is in a conflicting state
 
     void    toDimacs     (); 
@@ -226,7 +230,6 @@ public:
     void    budgetOff();
     void    interrupt();          // Trigger a (potentially asynchronous) interruption of the solver.
     void    clearInterrupt();     // Clear interrupt indicator flag.
-    void    spendResource();
 
     // Memory managment:
     //
@@ -430,7 +433,9 @@ protected:
     int      intro_level      (Var x) const; // User level at which this variable was created
     int      trail_index      (Var x) const; // Index in the trail
     double   progressEstimate ()      const; // DELETE THIS ?? IT'S NOT VERY USEFUL ...
+public:
     bool     withinBudget     ()      const;
+protected:
 
     // Static helpers:
     //
@@ -500,11 +505,15 @@ inline void Solver::checkGarbage(double gf){
 
 // NOTE: enqueue does not set the ok flag! (only public methods do)
 inline bool     Solver::enqueue         (Lit p, CRef from)      { return value(p) != l_Undef ? value(p) != l_False : (uncheckedEnqueue(p, from), true); }
-inline bool     Solver::addClause       (const vec<Lit>& ps, bool removable)    { ps.copyTo(add_tmp); return addClause_(add_tmp, removable); }
-inline bool     Solver::addEmptyClause  (bool removable)                        { add_tmp.clear(); return addClause_(add_tmp, removable); }
-inline bool     Solver::addClause       (Lit p, bool removable)                 { add_tmp.clear(); add_tmp.push(p); return addClause_(add_tmp, removable); }
-inline bool     Solver::addClause       (Lit p, Lit q, bool removable)          { add_tmp.clear(); add_tmp.push(p); add_tmp.push(q); return addClause_(add_tmp, removable); }
-inline bool     Solver::addClause       (Lit p, Lit q, Lit r, bool removable)   { add_tmp.clear(); add_tmp.push(p); add_tmp.push(q); add_tmp.push(r); return addClause_(add_tmp, removable); }
+inline bool     Solver::addClause       (const vec<Lit>& ps, bool removable, uint64_t proof_id)
+                                                                { ps.copyTo(add_tmp); return addClause_(add_tmp, removable, proof_id); }
+inline bool     Solver::addEmptyClause  (bool removable)        { add_tmp.clear(); return addClause_(add_tmp, removable, uint64_t(-1)); }
+inline bool     Solver::addClause       (Lit p, bool removable, uint64_t proof_id)
+                                                                { add_tmp.clear(); add_tmp.push(p); return addClause_(add_tmp, removable, proof_id); }
+inline bool     Solver::addClause       (Lit p, Lit q, bool removable, uint64_t proof_id)
+                                                                { add_tmp.clear(); add_tmp.push(p); add_tmp.push(q); return addClause_(add_tmp, removable, proof_id); }
+inline bool     Solver::addClause       (Lit p, Lit q, Lit r, bool removable, uint64_t proof_id)
+                                                                { add_tmp.clear(); add_tmp.push(p); add_tmp.push(q); add_tmp.push(r); return addClause_(add_tmp, removable, proof_id); }
 inline bool     Solver::locked          (const Clause& c) const { return value(c[0]) == l_True && isPropagatedBy(var(c[0]), c); }
 inline void     Solver::newDecisionLevel()                      { trail_lim.push(trail.size()); flipped.push(false); context->push(); if(Dump.isOn("state")) { Dump("state") << CVC4::PushCommand(); } }
 
@@ -536,20 +545,12 @@ inline void     Solver::setPropBudget(int64_t x){ propagation_budget = propagati
 inline void     Solver::interrupt(){ asynch_interrupt = true; }
 inline void     Solver::clearInterrupt(){ asynch_interrupt = false; }
 inline void     Solver::budgetOff(){ conflict_budget = propagation_budget = -1; }
-inline bool     Solver::withinBudget() const {
-    return !asynch_interrupt &&
-           (conflict_budget    < 0 || conflicts + resources_consumed < (uint64_t)conflict_budget) &&
-           (propagation_budget < 0 || propagations < (uint64_t)propagation_budget); }
-inline void     Solver::spendResource() { ++resources_consumed; }
 
-// FIXME: after the introduction of asynchronous interrruptions the solve-versions that return a
-// pure bool do not give a safe interface. Either interrupts must be possible to turn off here, or
-// all calls to solve must return an 'lbool'. I'm not yet sure which I prefer.
-inline bool     Solver::solve         ()                    { budgetOff(); assumptions.clear(); return solve_() == l_True; }
-inline bool     Solver::solve         (Lit p)               { budgetOff(); assumptions.clear(); assumptions.push(p); return solve_() == l_True; }
-inline bool     Solver::solve         (Lit p, Lit q)        { budgetOff(); assumptions.clear(); assumptions.push(p); assumptions.push(q); return solve_() == l_True; }
-inline bool     Solver::solve         (Lit p, Lit q, Lit r) { budgetOff(); assumptions.clear(); assumptions.push(p); assumptions.push(q); assumptions.push(r); return solve_() == l_True; }
-inline bool     Solver::solve         (const vec<Lit>& assumps){ budgetOff(); assumps.copyTo(assumptions); return solve_() == l_True; }
+inline lbool     Solver::solve         ()                    { budgetOff(); assumptions.clear(); return solve_(); }
+inline lbool     Solver::solve         (Lit p)               { budgetOff(); assumptions.clear(); assumptions.push(p); return solve_(); }
+inline lbool     Solver::solve         (Lit p, Lit q)        { budgetOff(); assumptions.clear(); assumptions.push(p); assumptions.push(q); return solve_(); }
+inline lbool     Solver::solve         (Lit p, Lit q, Lit r) { budgetOff(); assumptions.clear(); assumptions.push(p); assumptions.push(q); assumptions.push(r); return solve_(); }
+inline lbool     Solver::solve         (const vec<Lit>& assumps){ budgetOff(); assumps.copyTo(assumptions); return solve_(); }
 inline lbool    Solver::solveLimited  (const vec<Lit>& assumps){ assumps.copyTo(assumptions); return solve_(); }
 inline bool     Solver::okay          ()      const   { return ok; }
 

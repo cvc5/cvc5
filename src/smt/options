@@ -25,7 +25,7 @@ option expandDefinitions expand-definitions bool :default false
  always expand symbol definitions in output
 common-option produceModels produce-models -m --produce-models bool :default false :predicate CVC4::smt::beforeSearch :predicate-include "smt/smt_engine.h"
  support the get-value and get-model commands
-option checkModels check-models --check-models bool :link --produce-models --interactive :link-smt produce-models :link-smt interactive-mode :predicate CVC4::smt::beforeSearch :predicate-include "smt/options_handlers.h"
+option checkModels check-models --check-models bool :link --produce-models --produce-assertions :link-smt produce-models :link-smt produce-assertions :predicate CVC4::smt::beforeSearch :predicate-include "smt/options_handlers.h"
  after SAT/INVALID/UNKNOWN, check that the generated model satisfies user assertions
 option dumpModels --dump-models bool :default false :link --produce-models
  output models after every SAT/INVALID/UNKNOWN response
@@ -37,16 +37,20 @@ option dumpProofs --dump-proofs bool :default false :link --proof
  output proofs after every UNSAT/VALID response
 option dumpInstantiations --dump-instantiations bool :default false
  output instantiations of quantified formulas after every UNSAT/VALID response
-# this is just a placeholder for later; it doesn't show up in command-line options listings
-undocumented-option unsatCores produce-unsat-cores --produce-unsat-cores bool :predicate CVC4::smt::unsatCoresEnabledBuild CVC4::smt::beforeSearch :predicate-include "smt/options_handlers.h"
- turn on unsat core generation (NOT YET SUPPORTED)
+option dumpSynth --dump-synth bool :default false
+ output solution for synthesis conjectures after every UNSAT/VALID response
+option unsatCores produce-unsat-cores --produce-unsat-cores bool :predicate CVC4::smt::proofEnabledBuild CVC4::smt::beforeSearch :predicate-include "smt/options_handlers.h"
+ turn on unsat core generation
+option dumpUnsatCores --dump-unsat-cores bool :default false :link --produce-unsat-cores :link-smt produce-unsat-cores :predicate CVC4::smt::beforeSearch :predicate-include "smt/options_handlers.h"
+ output unsat cores after every UNSAT/VALID response
+
 option produceAssignments produce-assignments --produce-assignments bool :default false :predicate CVC4::smt::beforeSearch :predicate-include "smt/options_handlers.h"
  support the get-assignment command
 
-# This could go in src/main/options, but by SMT-LIBv2 spec, "interactive"
-# is a mode in which the assertion list must be kept.  So it belongs here.
-common-option interactive interactive-mode --interactive bool :predicate CVC4::smt::beforeSearch :predicate-include "smt/options_handlers.h" :read-write
- force interactive mode
+undocumented-option interactiveMode interactive-mode bool :predicate CVC4::smt::beforeSearch CVC4::smt::setProduceAssertions :predicate-include "smt/options_handlers.h" :read-write
+ deprecated name for produce-assertions
+common-option produceAssertions produce-assertions --produce-assertions bool :predicate CVC4::smt::beforeSearch CVC4::smt::setProduceAssertions :predicate-include "smt/options_handlers.h" :read-write
+ keep an assertions list (enables get-assertions command)
 
 option doITESimp --ite-simp bool :read-write
  turn on ite simplification (Kim (and Somenzi) et al., SAT 2009)
@@ -85,14 +89,18 @@ option - regular-output-channel argument :handler CVC4::smt::setRegularOutputCha
 option - diagnostic-output-channel argument :handler CVC4::smt::setDiagnosticOutputChannel :handler-include "smt/options_handlers.h"
  set the diagnostic output channel of the solver
 
-common-option cumulativeMillisecondLimit tlimit --tlimit=MS "unsigned long"
+common-option cumulativeMillisecondLimit tlimit --tlimit=MS "unsigned long" :handler CVC4::smt::tlimitHandler :handler-include "smt/options_handlers.h"
  enable time limiting (give milliseconds)
-common-option perCallMillisecondLimit  tlimit-per --tlimit-per=MS "unsigned long"
+common-option perCallMillisecondLimit  tlimit-per --tlimit-per=MS "unsigned long" :handler CVC4::smt::tlimitPerHandler :handler-include "smt/options_handlers.h"
  enable time limiting per query (give milliseconds)
-common-option cumulativeResourceLimit rlimit --rlimit=N "unsigned long"
+common-option cumulativeResourceLimit rlimit --rlimit=N "unsigned long" :handler CVC4::smt::rlimitHandler :handler-include "smt/options_handlers.h"
  enable resource limiting (currently, roughly the number of SAT conflicts)
-common-option perCallResourceLimit rlimit-per --rlimit-per=N "unsigned long"
+common-option perCallResourceLimit reproducible-resource-limit --rlimit-per=N "unsigned long" :handler CVC4::smt::rlimitPerHandler :handler-include "smt/options_handlers.h"
  enable resource limiting per query
+common-option hardLimit hard-limit --hard-limit bool :default false
+ the resource limit is hard potentially leaving the smtEngine in an unsafe state (should be destroyed and rebuild after resourcing out)
+common-option cpuTime cpu-time --cpu-time bool :default false
+ measures CPU time if set to true and wall time if false (default false)
 
 expert-option rewriteApplyToConst rewrite-apply-to-const --rewrite-apply-to-const bool :default false
  eliminate function applications, rewriting e.g. f(5) to a new symbol f_5

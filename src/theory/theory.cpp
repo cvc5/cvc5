@@ -46,6 +46,7 @@ std::ostream& operator<<(std::ostream& os, Theory::Effort level){
 }/* ostream& operator<<(ostream&, Theory::Effort) */
 
 Theory::~Theory() {
+  StatisticsRegistry::unregisterStat(&d_checkTime);
   StatisticsRegistry::unregisterStat(&d_computeCareGraphTime);
 }
 

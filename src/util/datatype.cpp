@@ -140,6 +140,15 @@ void Datatype::addConstructor(const DatatypeConstructor& c) {
   d_constructors.push_back(c);
 }
 
+
+void Datatype::setSygus( Type st, Expr bvl ){
+  CheckArgument(!d_resolved, this,
+                "cannot set sygus type to a finalized Datatype");
+  d_sygus_type = st;
+  d_sygus_bvl = bvl;
+}
+
+
 Cardinality Datatype::getCardinality() const throw(IllegalArgumentException) {
   CheckArgument(isResolved(), this, "this datatype is not yet resolved");
 
@@ -228,6 +237,7 @@ Expr Datatype::mkGroundTerm( Type t ) const throw(IllegalArgumentException) {
 
   // we're using some internals, so we have to set up this library context
   ExprManagerScope ems(d_self);
+  Debug("datatypes") << "dt mkGroundTerm " << t << std::endl;
 
   TypeNode self = TypeNode::fromType(d_self);
 
@@ -299,8 +309,12 @@ Expr Datatype::mkGroundTerm( Type t ) const throw(IllegalArgumentException) {
     }
   }
   if( groundTerm.isNull() ){
-    // if we get all the way here, we aren't well-founded
-    CheckArgument(false, *this, "this datatype is not well-founded, cannot construct a ground term!");
+    if( !d_isCo ){
+      // if we get all the way here, we aren't well-founded
+      CheckArgument(false, *this, "this datatype is not well-founded, cannot construct a ground term!");
+    }else{
+      return groundTerm;
+    }
   }else{
     return groundTerm;
   }
@@ -409,6 +423,14 @@ const DatatypeConstructor& Datatype::operator[](std::string name) const {
 
 Expr Datatype::getConstructor(std::string name) const {
   return (*this)[name].getConstructor();
+}
+
+Type Datatype::getSygusType() const {
+  return d_sygus_type;
+}
+
+Expr Datatype::getSygusVarList() const {
+  return d_sygus_bvl;
 }
 
 bool Datatype::involvesExternalType() const{
@@ -538,6 +560,15 @@ DatatypeConstructor::DatatypeConstructor(std::string name, std::string tester) :
   CheckArgument(!tester.empty(), tester, "cannot construct a datatype constructor without a tester");
 }
 
+DatatypeConstructor::DatatypeConstructor(std::string name, std::string tester, Expr sygus_op) :
+  d_name(name + '\0' + tester),
+  d_tester(),
+  d_args(),
+  d_sygus_op(sygus_op) {
+  CheckArgument(name != "", name, "cannot construct a datatype constructor without a name");
+  CheckArgument(!tester.empty(), tester, "cannot construct a datatype constructor without a tester");
+}
+
 void DatatypeConstructor::addArg(std::string selectorName, Type selectorType) {
   // We don't want to introduce a new data member, because eventually
   // we're going to be a constant stuffed inside a node.  So we stow
@@ -604,6 +635,11 @@ Type DatatypeConstructor::getSpecializedConstructorType(Type returnType) const {
 Expr DatatypeConstructor::getTester() const {
   CheckArgument(isResolved(), this, "this datatype constructor is not yet resolved");
   return d_tester;
+}
+
+Expr DatatypeConstructor::getSygusOp() const {
+  CheckArgument(isResolved(), this, "this datatype constructor is not yet resolved");
+  return d_sygus_op;
 }
 
 Cardinality DatatypeConstructor::getCardinality() const throw(IllegalArgumentException) {

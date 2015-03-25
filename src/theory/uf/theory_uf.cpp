@@ -36,7 +36,7 @@ TheoryUF::TheoryUF(context::Context* c, context::UserContext* u, OutputChannel& 
   /* The strong theory solver can be notified by EqualityEngine::init(),
    * so make sure it's initialized first. */
   d_thss(NULL),
-  d_equalityEngine(d_notify, c, "theory::uf::TheoryUF"),
+  d_equalityEngine(d_notify, c, "theory::uf::TheoryUF", false),
   d_conflict(c, false),
   d_literalsToPropagate(c),
   d_literalsToPropagateIndex(c, 0),
@@ -64,7 +64,7 @@ void TheoryUF::setMasterEqualityEngine(eq::EqualityEngine* eq) {
 
 void TheoryUF::finishInit() {
   // initialize the strong solver
-  if (options::finiteModelFind()) {
+  if (options::finiteModelFind() && options::ufssMode()!=UF_SS_NONE) {
     d_thss = new StrongSolverTheoryUF(getSatContext(), getUserContext(), *d_out, this);
   }
 }
@@ -92,6 +92,12 @@ static Node mkAnd(const std::vector<TNode>& conjunctions) {
 }/* mkAnd() */
 
 void TheoryUF::check(Effort level) {
+  if (done() && !fullEffort(level)) {
+    return;
+  }
+
+  TimerStat::CodeTimer checkTimer(d_checkTime);
+
   while (!done() && !d_conflict)
   {
     // Get all the assertions

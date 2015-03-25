@@ -37,6 +37,8 @@ public:
   void clear();
   /** has type */
   bool hasType( TypeNode tn ) const { return d_type_reps.find( tn )!=d_type_reps.end(); }
+  /** has rep */
+  bool hasRep( TypeNode tn, Node n );
   /** get cardinality for type */
   int getNumRepresentatives( TypeNode tn ) const;
   /** add representative for type */

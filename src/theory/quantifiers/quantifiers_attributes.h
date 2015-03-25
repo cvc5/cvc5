@@ -26,14 +26,6 @@ namespace CVC4 {
 namespace theory {
 namespace quantifiers {
 
-/** Attribute true for quantifiers that are axioms */
-struct AxiomAttributeId {};
-typedef expr::Attribute< AxiomAttributeId, bool > AxiomAttribute;
-
-/** Attribute true for quantifiers that are conjecture */
-struct ConjectureAttributeId {};
-typedef expr::Attribute< ConjectureAttributeId, bool > ConjectureAttribute;
-
 /** Attribute priority for rewrite rules */
 //struct RrPriorityAttributeId {};
 //typedef expr::Attribute< RrPriorityAttributeId, uint64_t > RrPriorityAttribute;

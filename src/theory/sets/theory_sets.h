@@ -58,6 +58,10 @@ public:
 
   Node explain(TNode);
 
+  EqualityStatus getEqualityStatus(TNode a, TNode b);
+
+  Node getModelValue(TNode);
+
   std::string identify() const { return "THEORY_SETS"; }
 
   void preRegisterTerm(TNode node);

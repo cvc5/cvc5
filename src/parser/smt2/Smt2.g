@@ -112,10 +112,13 @@ namespace CVC4 {
 #include "util/output.h"
 #include "util/rational.h"
 #include "util/hash.h"
+#include "util/floatingpoint.h"
 #include <vector>
 #include <set>
 #include <string>
 #include <sstream>
+// \todo Review the need for this header
+#include "math.h"
 
 using namespace CVC4;
 using namespace CVC4::parser;
@@ -133,7 +136,7 @@ using namespace CVC4::parser;
 #define MK_CONST EXPR_MANAGER->mkConst
 #define UNSUPPORTED PARSER_STATE->unimplementedFeature
 
-static bool isClosed(Expr e, std::set<Expr>& free, std::hash_set<Expr, ExprHashFunction>& closedCache) {
+static bool isClosed(const Expr& e, std::set<Expr>& free, std::hash_set<Expr, ExprHashFunction>& closedCache) {
   if(closedCache.find(e) != closedCache.end()) {
     return true;
   }
@@ -163,7 +166,7 @@ static bool isClosed(Expr e, std::set<Expr>& free, std::hash_set<Expr, ExprHashF
   }
 }
 
-static inline bool isClosed(Expr e, std::set<Expr>& free) {
+static inline bool isClosed(const Expr& e, std::set<Expr>& free) {
   std::hash_set<Expr, ExprHashFunction> cache;
   return isClosed(e, free, cache);
 }
@@ -212,6 +215,18 @@ parseCommand returns [CVC4::Command* cmd = NULL]
   ;
 
 /**
+ * Parses a SyGuS command
+ * @return the parsed SyGuS command, or NULL if we've reached the end of the input
+ */
+parseSygus returns [CVC4::Command* cmd = NULL]
+@declarations {
+  std::string name;
+}
+  : LPAREN_TOK c=sygusCommand RPAREN_TOK { $cmd = c; }
+  | EOF { $cmd = 0; }
+  ;
+
+/**
  * Parse the internal portion of the command, ignoring the surrounding
  * parentheses.
  */
@@ -224,7 +239,6 @@ command returns [CVC4::Command* cmd = NULL]
   std::vector<Expr> terms;
   std::vector<Type> sorts;
   std::vector<std::pair<std::string, Type> > sortedVarNames;
-  SExpr sexpr;
 }
   : /* set the logic */
     SET_LOGIC_TOK symbol[name,CHECK_NONE,SYM_SORT]
@@ -234,20 +248,13 @@ command returns [CVC4::Command* cmd = NULL]
       }
       PARSER_STATE->setLogic(name);
       $cmd = new SetBenchmarkLogicCommand(name); }
-  | SET_INFO_TOK KEYWORD symbolicExpr[sexpr]
-    { name = AntlrInput::tokenText($KEYWORD);
-      if(name == ":cvc4-logic" || name == ":cvc4_logic") {
-        PARSER_STATE->setLogic(sexpr.getValue());
-      }
-      PARSER_STATE->setInfo(name.c_str() + 1, sexpr);
-      cmd = new SetInfoCommand(name.c_str() + 1, sexpr); }
+  | /* set-info */
+    SET_INFO_TOK metaInfoInternal[cmd]
   | /* get-info */
     GET_INFO_TOK KEYWORD
     { cmd = new GetInfoCommand(AntlrInput::tokenText($KEYWORD).c_str() + 1); }
   | /* set-option */
-    SET_OPTION_TOK keyword[name] symbolicExpr[sexpr]
-    { PARSER_STATE->setOption(name.c_str() + 1, sexpr);
-      cmd = new SetOptionCommand(name.c_str() + 1, sexpr); }
+    SET_OPTION_TOK setOptionInternal[cmd]
   | /* get-option */
     GET_OPTION_TOK KEYWORD
     { cmd = new GetOptionCommand(AntlrInput::tokenText($KEYWORD).c_str() + 1); }
@@ -344,28 +351,6 @@ command returns [CVC4::Command* cmd = NULL]
       Expr func = PARSER_STATE->mkFunction(name, t, ExprManager::VAR_FLAG_DEFINED);
       $cmd = new DefineFunctionCommand(name, func, terms, expr);
     }
-  | DEFINE_CONST_TOK { PARSER_STATE->checkThatLogicIsSet(); }
-    symbol[name,CHECK_UNDECLARED,SYM_VARIABLE]
-    { PARSER_STATE->checkUserSymbol(name); }
-    sortSymbol[t,CHECK_DECLARED]
-    { /* add variables to parser state before parsing term */
-      Debug("parser") << "define const: '" << name << "'" << std::endl;
-      PARSER_STATE->pushScope(true);
-      for(std::vector<std::pair<std::string, CVC4::Type> >::const_iterator i =
-            sortedVarNames.begin(), iend = sortedVarNames.end();
-          i != iend;
-          ++i) {
-        terms.push_back(PARSER_STATE->mkBoundVar((*i).first, (*i).second));
-      }
-    }
-    term[expr, expr2]
-    { PARSER_STATE->popScope();
-      // declare the name down here (while parsing term, signature
-      // must not be extended with the name itself; no recursion
-      // permitted)
-      Expr func = PARSER_STATE->mkFunction(name, t, ExprManager::VAR_FLAG_DEFINED);
-      $cmd = new DefineFunctionCommand(name, func, terms, expr);
-    }
   | /* value query */
     GET_VALUE_TOK { PARSER_STATE->checkThatLogicIsSet(); }
     ( LPAREN_TOK termList[terms,expr] RPAREN_TOK
@@ -377,8 +362,14 @@ command returns [CVC4::Command* cmd = NULL]
     { cmd = new GetAssignmentCommand(); }
   | /* assertion */
     ASSERT_TOK { PARSER_STATE->checkThatLogicIsSet(); }
+    { PARSER_STATE->clearLastNamedTerm(); }
     term[expr, expr2]
-    { cmd = new AssertCommand(expr); }
+    { bool inUnsatCore = PARSER_STATE->lastNamedTerm().first == expr;
+      cmd = new AssertCommand(expr, inUnsatCore);
+      if(inUnsatCore) {
+        PARSER_STATE->registerUnsatCoreName(PARSER_STATE->lastNamedTerm());
+      }
+    }
   | /* check-sat */
     CHECKSAT_TOK { PARSER_STATE->checkThatLogicIsSet(); }
     ( term[expr, expr2]
@@ -396,7 +387,7 @@ command returns [CVC4::Command* cmd = NULL]
     { cmd = new GetProofCommand(); }
   | /* get-unsat-core */
     GET_UNSAT_CORE_TOK { PARSER_STATE->checkThatLogicIsSet(); }
-    { cmd = new GetUnsatCoreCommand(); }
+    { cmd = new GetUnsatCoreCommand(PARSER_STATE->getUnsatCoreNames()); }
   | /* push */
     PUSH_TOK { PARSER_STATE->checkThatLogicIsSet(); }
     ( k=INTEGER_LITERAL
@@ -405,11 +396,13 @@ command returns [CVC4::Command* cmd = NULL]
           cmd = new EmptyCommand();
         } else if(n == 1) {
           PARSER_STATE->pushScope();
+          PARSER_STATE->pushUnsatCoreNameScope();
           cmd = new PushCommand();
         } else {
           CommandSequence* seq = new CommandSequence();
           do {
             PARSER_STATE->pushScope();
+            PARSER_STATE->pushUnsatCoreNameScope();
             Command* c = new PushCommand();
             c->setMuted(n > 1);
             seq->addCommand(c);
@@ -420,6 +413,8 @@ command returns [CVC4::Command* cmd = NULL]
     | { if(PARSER_STATE->strictModeEnabled()) {
           PARSER_STATE->parseError("Strict compliance mode demands an integer to be provided to PUSH.  Maybe you want (push 1)?");
         } else {
+          PARSER_STATE->pushScope();
+          PARSER_STATE->pushUnsatCoreNameScope();
           cmd = new PushCommand();
         }
       } )
@@ -432,11 +427,13 @@ command returns [CVC4::Command* cmd = NULL]
         if(n == 0) {
           cmd = new EmptyCommand();
         } else if(n == 1) {
+          PARSER_STATE->popUnsatCoreNameScope();
           PARSER_STATE->popScope();
           cmd = new PopCommand();
         } else {
           CommandSequence* seq = new CommandSequence();
           do {
+            PARSER_STATE->popUnsatCoreNameScope();
             PARSER_STATE->popScope();
             Command* c = new PopCommand();
             c->setMuted(n > 1);
@@ -448,11 +445,22 @@ command returns [CVC4::Command* cmd = NULL]
     | { if(PARSER_STATE->strictModeEnabled()) {
           PARSER_STATE->parseError("Strict compliance mode demands an integer to be provided to POP.  Maybe you want (pop 1)?");
         } else {
+          PARSER_STATE->popUnsatCoreNameScope();
+          PARSER_STATE->popScope();
           cmd = new PopCommand();
         }
       } )
+
+    /* exit */
   | EXIT_TOK
     { cmd = new QuitCommand(); }
+
+    /* New SMT-LIB 2.5 command set */
+  | smt25Command[cmd]
+    { if(PARSER_STATE->v2_0() && PARSER_STATE->strictModeEnabled()) {
+        PARSER_STATE->parseError("SMT-LIB 2.5 commands are not permitted while operating in strict compliance mode and in SMT-LIB 2.0 mode.");
+      }
+    }
 
     /* CVC4-extended SMT-LIB commands */
   | extendedCommand[cmd]
@@ -472,12 +480,438 @@ command returns [CVC4::Command* cmd = NULL]
     }
   ;
 
+sygusCommand returns [CVC4::Command* cmd = NULL]
+@declarations {
+  std::string name, fun;
+  std::vector<std::string> names;
+  Expr expr, expr2;
+  Type t, range;
+  std::vector<Expr> terms;
+  std::vector<Type> sorts;
+  std::vector<std::pair<std::string, Type> > sortedVarNames;
+  SExpr sexpr;
+  CommandSequence* seq;
+  std::vector<CVC4::Datatype> datatypes;
+  std::vector< std::vector<Expr> > ops;
+  std::vector< std::vector< std::string > > cnames;
+  std::vector< std::vector< std::vector< CVC4::Type > > > cargs;
+}
+  : /* set the logic */
+    SET_LOGIC_TOK symbol[name,CHECK_NONE,SYM_SORT]
+    { PARSER_STATE->setLogic(name);
+      $cmd = new SetBenchmarkLogicCommand("ALL_SUPPORTED"); }
+  | /* set-options */
+    SET_OPTIONS_TOK LPAREN_TOK { seq = new CommandSequence(); }
+    ( LPAREN_TOK symbol[name,CHECK_NONE,SYM_VARIABLE] symbolicExpr[sexpr] RPAREN_TOK
+      { PARSER_STATE->setOption(name.c_str(), sexpr);
+        seq->addCommand(new SetOptionCommand(name.c_str() + 1, sexpr));
+      }
+    )+ RPAREN_TOK
+    { $cmd = seq; }
+  | /* sort definition */
+    DEFINE_SORT_TOK { PARSER_STATE->checkThatLogicIsSet(); }
+    symbol[name,CHECK_UNDECLARED,SYM_SORT]
+    { PARSER_STATE->checkUserSymbol(name); }
+    LPAREN_TOK symbolList[names,CHECK_NONE,SYM_SORT] RPAREN_TOK
+    { PARSER_STATE->pushScope(true);
+      for(std::vector<std::string>::const_iterator i = names.begin(),
+            iend = names.end();
+          i != iend;
+          ++i) {
+        sorts.push_back(PARSER_STATE->mkSort(*i));
+      }
+    }
+    sortSymbol[t,CHECK_DECLARED]
+    { PARSER_STATE->popScope();
+      // Do NOT call mkSort, since that creates a new sort!
+      // This name is not its own distinct sort, it's an alias.
+      PARSER_STATE->defineParameterizedType(name, sorts, t);
+      $cmd = new DefineTypeCommand(name, sorts, t);
+    }
+  | /* declare-var */
+    DECLARE_VAR_TOK { PARSER_STATE->checkThatLogicIsSet(); }
+    symbol[name,CHECK_UNDECLARED,SYM_VARIABLE]
+    { PARSER_STATE->checkUserSymbol(name); }
+    sortSymbol[t,CHECK_DECLARED]
+    { PARSER_STATE->mkSygusVar(name, t);
+      $cmd = new EmptyCommand(); }
+  | /* declare-fun */
+    (DECLARE_FUN_TOK)=>
+    DECLARE_FUN_TOK { PARSER_STATE->checkThatLogicIsSet(); }
+    { PARSER_STATE->parseError("declare-fun not yet supported in SyGuS input"); }
+  | /* function definition */
+    DEFINE_FUN_TOK { PARSER_STATE->checkThatLogicIsSet(); }
+    symbol[name,CHECK_UNDECLARED,SYM_VARIABLE]
+    { PARSER_STATE->checkUserSymbol(name); }
+    LPAREN_TOK sortedVarList[sortedVarNames] RPAREN_TOK
+    sortSymbol[t,CHECK_DECLARED]
+    { /* add variables to parser state before parsing term */
+      Debug("parser") << "define fun: '" << name << "'" << std::endl;
+      if( sortedVarNames.size() > 0 ) {
+        std::vector<CVC4::Type> sorts;
+        sorts.reserve(sortedVarNames.size());
+        for(std::vector<std::pair<std::string, CVC4::Type> >::const_iterator i =
+              sortedVarNames.begin(), iend = sortedVarNames.end();
+            i != iend;
+            ++i) {
+          sorts.push_back((*i).second);
+        }
+        t = EXPR_MANAGER->mkFunctionType(sorts, t);
+      }
+      PARSER_STATE->pushScope(true);
+      for(std::vector<std::pair<std::string, CVC4::Type> >::const_iterator i =
+            sortedVarNames.begin(), iend = sortedVarNames.end();
+          i != iend;
+          ++i) {
+        terms.push_back(PARSER_STATE->mkBoundVar((*i).first, (*i).second));
+      }
+    }
+    term[expr, expr2]
+    { PARSER_STATE->popScope();
+      // declare the name down here (while parsing term, signature
+      // must not be extended with the name itself; no recursion
+      // permitted)
+      Expr func = PARSER_STATE->mkFunction(name, t, ExprManager::VAR_FLAG_DEFINED);
+      $cmd = new DefineFunctionCommand(name, func, terms, expr);
+    }
+  | /* synth-fun */
+    SYNTH_FUN_TOK { PARSER_STATE->checkThatLogicIsSet(); }
+    symbol[fun,CHECK_UNDECLARED,SYM_VARIABLE]
+    LPAREN_TOK sortedVarList[sortedVarNames] RPAREN_TOK
+    { seq = new CommandSequence();
+      PARSER_STATE->pushScope(true);
+      for(std::vector<std::pair<std::string, CVC4::Type> >::const_iterator i =
+            sortedVarNames.begin(), iend = sortedVarNames.end();
+          i != iend;
+          ++i) {
+        terms.push_back(PARSER_STATE->mkBoundVar((*i).first, (*i).second));
+      }
+      Expr bvl = MK_EXPR(kind::BOUND_VAR_LIST, terms);
+      terms.clear();
+      terms.push_back(bvl);
+    }
+    sortSymbol[range,CHECK_DECLARED]
+    LPAREN_TOK
+    ( LPAREN_TOK
+      symbol[name,CHECK_NONE,SYM_VARIABLE] { PARSER_STATE->pushScope(true); }
+      sortSymbol[t,CHECK_DECLARED]
+      { std::stringstream ss;
+        ss << fun << "_" << name;
+        std::string dname = ss.str();
+        sorts.push_back(t);
+        datatypes.push_back(Datatype(dname));
+        datatypes.back().setSygus( t, terms[0] );
+        ops.push_back(std::vector<Expr>());
+        cnames.push_back(std::vector<std::string>());
+        cargs.push_back(std::vector<std::vector<CVC4::Type> >());
+        if(!PARSER_STATE->isUnresolvedType(dname)) {
+          // if not unresolved, must be undeclared
+          PARSER_STATE->checkDeclaration(dname, CHECK_UNDECLARED, SYM_SORT);
+        }
+      }
+      // Note the official spec for NTDef is missing the ( parens )
+      // but they are necessary to parse SyGuS examples
+      LPAREN_TOK sygusGTerm[fun, ops.back(), cnames.back(), cargs.back()]+ RPAREN_TOK
+      RPAREN_TOK
+      { PARSER_STATE->mkSygusDatatype( datatypes.back(), ops.back(), cnames.back(), cargs.back() );
+        PARSER_STATE->popScope(); }
+    )+
+    RPAREN_TOK
+    { PARSER_STATE->popScope();
+      seq = new CommandSequence();
+      std::vector<DatatypeType> datatypeTypes = PARSER_STATE->mkMutualDatatypeTypes(datatypes);
+      seq->addCommand(new DatatypeDeclarationCommand(datatypeTypes));
+      std::map<DatatypeType, Expr> evals;
+      // make all the evals first, since they are mutually referential
+      for(size_t i = 0; i < datatypeTypes.size(); ++i) {
+        DatatypeType dtt = datatypeTypes[i];
+        const Datatype& dt = dtt.getDatatype();
+        name = "eval_" + dt.getName();
+        PARSER_STATE->checkDeclaration(name, CHECK_UNDECLARED, SYM_VARIABLE);
+        std::vector<Type> evalType;
+        evalType.push_back(dtt);
+        for(size_t j = 0; j < terms[0].getNumChildren(); ++j) {
+          evalType.push_back(terms[0][j].getType());
+        }
+        evalType.push_back(sorts[i]);
+        Expr eval = PARSER_STATE->mkVar(name, EXPR_MANAGER->mkFunctionType(evalType));
+        evals.insert(std::make_pair(dtt, eval));
+        if(i == 0) {
+          PARSER_STATE->addSygusFun(fun, eval);
+        }
+      }
+      // now go through and settle everything
+      for(size_t i = 0; i < datatypeTypes.size(); ++i) {
+        DatatypeType dtt = datatypeTypes[i];
+        const Datatype& dt = dtt.getDatatype();
+        Expr eval = evals[dtt];
+        Debug("parser-sygus") << "Sygus : process grammar : " << dt << std::endl;
+        for(size_t j = 0; j < dt.getNumConstructors(); ++j) {
+          Expr assertion = PARSER_STATE->getSygusAssertion( datatypeTypes, ops, evals, terms, eval, dt, i, j );
+          seq->addCommand(new AssertCommand(assertion));
+        }
+      }
+      $cmd = seq;
+    }
+  | /* constraint */
+    CONSTRAINT_TOK { PARSER_STATE->checkThatLogicIsSet(); }
+    { Debug("parser-sygus") << "Sygus : define sygus funs..." << std::endl;
+      PARSER_STATE->defineSygusFuns(); 
+      Debug("parser-sygus") << "Sygus : read constraint..." << std::endl;
+    }
+    term[expr, expr2]
+    { Debug("parser-sygus") << "...read constraint " << expr << std::endl;
+      PARSER_STATE->addSygusConstraint(expr);
+      $cmd = new EmptyCommand();
+    }
+  | /* check-synth */
+    CHECK_SYNTH_TOK { PARSER_STATE->checkThatLogicIsSet(); }
+    { Expr sygusVar = EXPR_MANAGER->mkVar("sygus", EXPR_MANAGER->booleanType());
+      Expr sygusAttr = EXPR_MANAGER->mkExpr(kind::INST_PATTERN_LIST, EXPR_MANAGER->mkExpr(kind::INST_ATTRIBUTE, sygusVar));
+      std::vector<Expr> bodyv;
+      Debug("parser-sygus") << "Sygus : Constructing sygus constraint..." << std::endl;
+      Expr body = EXPR_MANAGER->mkExpr(kind::NOT, PARSER_STATE->getSygusConstraints());
+      Debug("parser-sygus") << "...constructed sygus constraint " << body << std::endl;      
+      if( !PARSER_STATE->getSygusVars().empty() ){
+        body = EXPR_MANAGER->mkExpr(kind::EXISTS, EXPR_MANAGER->mkExpr(kind::BOUND_VAR_LIST, PARSER_STATE->getSygusVars()), body);
+        Debug("parser-sygus") << "...constructed exists " << body << std::endl;   
+      }
+      body = EXPR_MANAGER->mkExpr(kind::FORALL, EXPR_MANAGER->mkExpr(kind::BOUND_VAR_LIST, PARSER_STATE->getSygusFunSymbols()), body, sygusAttr);
+      Debug("parser-sygus") << "...constructed forall " << body << std::endl;   
+      Command* c = new SetUserAttributeCommand("sygus", sygusVar);
+      c->setMuted(true);
+      PARSER_STATE->preemptCommand(c);
+      c = new AssertCommand(body);
+      PARSER_STATE->preemptCommand(c);
+      $cmd = new CheckSatCommand();
+    }
+
+    /* error handling */
+  | (~(CHECK_SYNTH_TOK))=> token=.
+    { std::string id = AntlrInput::tokenText($token);
+      std::stringstream ss;
+      ss << "Not a recognized SyGuS command: `" << id << "'";
+      PARSER_STATE->parseError(ss.str());
+    }
+  ;
+
+// SyGuS grammar term
+// fun is the name of the synth-fun this grammar term is for
+sygusGTerm[std::string& fun, std::vector<CVC4::Expr>& ops, std::vector<std::string>& cnames, std::vector< std::vector< CVC4::Type > >& cargs]
+@declarations {
+  std::string name;
+  Kind k;
+  Type t;
+  CVC4::DatatypeConstructor* ctor = NULL;
+  unsigned count = 0;
+  std::string sname;
+}
+  : LPAREN_TOK
+    ( builtinOp[k]
+      { Debug("parser-sygus") << "Sygus grammar " << fun << " : builtin op : " << name << std::endl;
+        if( k==CVC4::kind::BITVECTOR_UDIV ){
+          k = CVC4::kind::BITVECTOR_UDIV_TOTAL;
+        }
+        ops.push_back(EXPR_MANAGER->operatorOf(k));
+        name = kind::kindToString(k);
+      }
+    | symbol[name,CHECK_NONE,SYM_VARIABLE]
+      { // what is this sygus term trying to accomplish here, if the
+        // symbol isn't yet declared?!  probably the following line will
+        // fail, but we need an operator to continue here..
+        Debug("parser-sygus") << "Sygus grammar " << fun;
+        Debug("parser-sygus") << " : op (declare=" <<  PARSER_STATE->isDeclared(name) << ", define=" << PARSER_STATE->isDefinedFunction(name) << ") : " << name << std::endl;
+        if( !PARSER_STATE->isDefinedFunction(name) ){
+          PARSER_STATE->parseError(std::string("Functions in sygus grammars must be defined."));
+        }
+        ops.push_back( PARSER_STATE->getVariable(name) );
+      }
+    )
+    { cnames.push_back( name );
+      cargs.push_back( std::vector< CVC4::Type >() );
+    }
+    ( //sortSymbol[t,CHECK_NONE]
+      symbol[sname,CHECK_NONE,SYM_VARIABLE]
+      { std::stringstream ss;
+        ss << fun << "_" << sname;
+        sname = ss.str();
+        if( PARSER_STATE->isDeclared(sname, SYM_SORT) ) {
+          t = PARSER_STATE->getSort(sname);
+        } else {
+          t = PARSER_STATE->mkUnresolvedType(sname);
+        }
+        cargs.back().push_back(t);
+      } )+ RPAREN_TOK
+  | INTEGER_LITERAL
+    { Debug("parser-sygus") << "Sygus grammar " << fun << " : integer literal " << AntlrInput::tokenText($INTEGER_LITERAL) << std::endl;
+      ops.push_back(MK_CONST(Rational(AntlrInput::tokenText($INTEGER_LITERAL))));
+      cnames.push_back( AntlrInput::tokenText($INTEGER_LITERAL) );
+      cargs.push_back( std::vector< CVC4::Type >() );
+    }
+  | HEX_LITERAL
+    { Debug("parser-sygus") << "Sygus grammar " << fun << " : hex literal " << AntlrInput::tokenText($HEX_LITERAL) << std::endl;
+      assert( AntlrInput::tokenText($HEX_LITERAL).find("#x") == 0 );
+      std::string hexString = AntlrInput::tokenTextSubstr($HEX_LITERAL, 2);
+      ops.push_back(MK_CONST( BitVector(hexString, 16) ));
+      cnames.push_back( AntlrInput::tokenText($HEX_LITERAL) );
+      cargs.push_back( std::vector< CVC4::Type >() );
+    }
+  | BINARY_LITERAL
+    { Debug("parser-sygus") << "Sygus grammar " << fun << " : binary literal " << AntlrInput::tokenText($BINARY_LITERAL) << std::endl;
+      assert( AntlrInput::tokenText($BINARY_LITERAL).find("#b") == 0 );
+      std::string binString = AntlrInput::tokenTextSubstr($BINARY_LITERAL, 2);
+      ops.push_back(MK_CONST( BitVector(binString, 2) ));
+      cnames.push_back( AntlrInput::tokenText($BINARY_LITERAL) );
+      cargs.push_back( std::vector< CVC4::Type >() );
+    }
+  | symbol[name,CHECK_NONE,SYM_VARIABLE]
+    { if( name[0] == '-' ){  //hack for unary minus
+        Debug("parser-sygus") << "Sygus grammar " << fun << " : unary minus integer literal " << name << std::endl;
+        ops.push_back(MK_CONST(Rational(name)));
+        cnames.push_back( name );
+        cargs.push_back( std::vector< CVC4::Type >() );
+      }else{
+        Debug("parser-sygus") << "Sygus grammar " << fun << " : symbol " << name << std::endl;
+        Expr bv = PARSER_STATE->getVariable(name);
+        ops.push_back(bv);
+        cnames.push_back( name );
+        cargs.push_back( std::vector< CVC4::Type >() );
+      }
+    }
+  ;
+
+// Separate this into its own rule (can be invoked by set-info or meta-info)
+metaInfoInternal[CVC4::Command*& cmd]
+@declarations {
+  std::string name;
+  SExpr sexpr;
+}
+  : KEYWORD symbolicExpr[sexpr]
+    { name = AntlrInput::tokenText($KEYWORD);
+      if(name == ":cvc4-logic" || name == ":cvc4_logic") {
+        PARSER_STATE->setLogic(sexpr.getValue());
+      } else if(name == ":smt-lib-version") {
+        // if we don't recognize the revision name, just keep the current mode
+        if( (sexpr.isRational() && sexpr.getRationalValue() == Rational(2)) ||
+            sexpr.getValue() == "2" ||
+            sexpr.getValue() == "2.0" ) {
+          PARSER_STATE->setLanguage(language::input::LANG_SMTLIB_V2_0);
+        } else if( (sexpr.isRational() && sexpr.getRationalValue() == Rational(5, 2)) ||
+                   sexpr.getValue() == "2.5" ) {
+          PARSER_STATE->setLanguage(language::input::LANG_SMTLIB_V2_5);
+        }
+      }
+      PARSER_STATE->setInfo(name.c_str() + 1, sexpr);
+      cmd = new SetInfoCommand(name.c_str() + 1, sexpr);
+    }
+  ;
+
+setOptionInternal[CVC4::Command*& cmd]
+@init {
+  std::string name;
+  SExpr sexpr;
+}
+  : keyword[name] symbolicExpr[sexpr]
+    { PARSER_STATE->setOption(name.c_str() + 1, sexpr);
+      cmd = new SetOptionCommand(name.c_str() + 1, sexpr);
+      // Ugly that this changes the state of the parser; but
+      // global-declarations affects parsing, so we can't hold off
+      // on this until some SmtEngine eventually (if ever) executes it.
+      if(name == ":global-declarations") {
+        PARSER_STATE->setGlobalDeclarations(sexpr.getValue() == "true");
+      }
+    }
+  ;
+
+smt25Command[CVC4::Command*& cmd]
+@declarations {
+  std::string name;
+  Expr expr, expr2;
+  std::vector<std::pair<std::string, Type> > sortedVarNames;
+  SExpr sexpr;
+  Type t;
+}
+    /* meta-info */
+  : META_INFO_TOK metaInfoInternal[cmd]
+
+    /* declare-const */
+  | DECLARE_CONST_TOK { PARSER_STATE->checkThatLogicIsSet(); }
+    symbol[name,CHECK_UNDECLARED,SYM_VARIABLE]
+    { PARSER_STATE->checkUserSymbol(name); }
+    sortSymbol[t,CHECK_DECLARED]
+    { Expr c = PARSER_STATE->mkVar(name, t);
+      $cmd = new DeclareFunctionCommand(name, c, t); }
+
+    /* get model */
+  | GET_MODEL_TOK { PARSER_STATE->checkThatLogicIsSet(); }
+    { cmd = new GetModelCommand(); }
+
+    /* echo */
+  | ECHO_TOK
+    ( simpleSymbolicExpr[sexpr]
+      { std::stringstream ss;
+        ss << sexpr;
+        cmd = new EchoCommand(ss.str());
+      }
+    | { cmd = new EchoCommand(); }
+    )
+
+    /* reset: reset everything, returning solver to initial state.
+     * Logic and options must be set again. */
+  | RESET_TOK
+    { cmd = new ResetCommand();
+      PARSER_STATE->reset();
+    }
+    /* reset-assertions: reset assertions, assertion stack, declarations,
+     * etc., but the logic and options remain as they were. */
+  | RESET_ASSERTIONS_TOK
+    { cmd = new ResetAssertionsCommand();
+      PARSER_STATE->resetAssertions();
+    }
+
+  | /* recursive function definition */
+    DEFINE_FUN_REC_TOK { PARSER_STATE->checkThatLogicIsSet(); } LPAREN_TOK
+    { PARSER_STATE->pushScope(true); }
+    ( LPAREN_TOK symbol[name,CHECK_UNDECLARED,SYM_VARIABLE]
+      { PARSER_STATE->checkUserSymbol(name); }
+      LPAREN_TOK sortedVarList[sortedVarNames] RPAREN_TOK
+      sortSymbol[t,CHECK_DECLARED]
+      { /* add variables to parser state before parsing term */
+        Debug("parser") << "define fun rec: '" << name << "'" << std::endl;
+          if( sortedVarNames.size() > 0 ) {
+          std::vector<CVC4::Type> sorts;
+          sorts.reserve(sortedVarNames.size());
+          for(std::vector<std::pair<std::string, CVC4::Type> >::const_iterator i =
+                sortedVarNames.begin(), iend = sortedVarNames.end();
+              i != iend;
+              ++i) {
+            sorts.push_back((*i).second);
+          }
+          t = EXPR_MANAGER->mkFunctionType(sorts, t);
+        }
+        PARSER_STATE->mkFunction(name, t, ExprManager::VAR_FLAG_DEFINED);
+        PARSER_STATE->pushScope(true);
+        for(std::vector<std::pair<std::string, CVC4::Type> >::const_iterator i =
+              sortedVarNames.begin(), iend = sortedVarNames.end();
+            i != iend;
+            ++i) {
+          PARSER_STATE->mkBoundVar((*i).first, (*i).second);
+        }
+      }
+      term[expr, expr2]
+      { PARSER_STATE->popScope(); }
+      RPAREN_TOK )+ RPAREN_TOK
+      { PARSER_STATE->popScope(); }
+
+  // CHECK_SAT_ASSUMING still being discussed
+  // GET_UNSAT_ASSUMPTIONS
+  ;
+
 extendedCommand[CVC4::Command*& cmd]
 @declarations {
   std::vector<CVC4::Datatype> dts;
-  Type t;
   Expr e, e2;
-  SExpr sexpr;
+  Type t;
   std::string name;
   std::vector<std::string> names;
   std::vector<Expr> terms;
@@ -488,28 +922,10 @@ extendedCommand[CVC4::Command*& cmd]
      * --smtlib2 compliance mode. */
   : DECLARE_DATATYPES_TOK datatypesDefCommand[false, cmd]
   | DECLARE_CODATATYPES_TOK datatypesDefCommand[true, cmd]
-  | /* get model */
-    GET_MODEL_TOK { PARSER_STATE->checkThatLogicIsSet(); }
-    { cmd = new GetModelCommand(); }
-  | ECHO_TOK
-    ( simpleSymbolicExpr[sexpr]
-      { std::stringstream ss;
-        ss << sexpr;
-        cmd = new EchoCommand(ss.str());
-      }
-    | { cmd = new EchoCommand(); }
-    )
   | rewriterulesCommand[cmd]
 
     /* Support some of Z3's extended SMT-LIB commands */
 
-  | DECLARE_CONST_TOK { PARSER_STATE->checkThatLogicIsSet(); }
-    symbol[name,CHECK_UNDECLARED,SYM_VARIABLE]
-    { PARSER_STATE->checkUserSymbol(name); }
-    sortSymbol[t,CHECK_DECLARED]
-    { Expr c = PARSER_STATE->mkVar(name, t);
-      $cmd = new DeclareFunctionCommand(name, c, t); }
-      
   | DECLARE_SORTS_TOK { PARSER_STATE->checkThatLogicIsSet(); }
     { if(!PARSER_STATE->isTheoryEnabled(Smt2::THEORY_UF) &&
          !PARSER_STATE->isTheoryEnabled(Smt2::THEORY_ARRAYS) &&
@@ -610,6 +1026,28 @@ extendedCommand[CVC4::Command*& cmd]
         $cmd = new DefineFunctionCommand(name, func, terms, e);
       }
     )
+  | DEFINE_CONST_TOK { PARSER_STATE->checkThatLogicIsSet(); }
+    symbol[name,CHECK_UNDECLARED,SYM_VARIABLE]
+    { PARSER_STATE->checkUserSymbol(name); }
+    sortSymbol[t,CHECK_DECLARED]
+    { /* add variables to parser state before parsing term */
+      Debug("parser") << "define const: '" << name << "'" << std::endl;
+      PARSER_STATE->pushScope(true);
+      for(std::vector<std::pair<std::string, CVC4::Type> >::const_iterator i =
+            sortedVarNames.begin(), iend = sortedVarNames.end();
+          i != iend;
+          ++i) {
+        terms.push_back(PARSER_STATE->mkBoundVar((*i).first, (*i).second));
+      }
+    }
+    term[e, e2]
+    { PARSER_STATE->popScope();
+      // declare the name down here (while parsing term, signature
+      // must not be extended with the name itself; no recursion
+      // permitted)
+      Expr func = PARSER_STATE->mkFunction(name, t, ExprManager::VAR_FLAG_DEFINED);
+      $cmd = new DefineFunctionCommand(name, func, terms, e);
+    }
 
   | SIMPLIFY_TOK { PARSER_STATE->checkThatLogicIsSet(); }
     term[e,e2]
@@ -623,7 +1061,7 @@ datatypesDefCommand[bool isCo, CVC4::Command*& cmd]
   std::string name;
   std::vector<Type> sorts;
 }
-  : { PARSER_STATE->checkThatLogicIsSet(); 
+  : { PARSER_STATE->checkThatLogicIsSet();
     /* open a scope to keep the UnresolvedTypes contained */
     PARSER_STATE->pushScope(true); }
   LPAREN_TOK /* parametric sorts */
@@ -633,7 +1071,7 @@ datatypesDefCommand[bool isCo, CVC4::Command*& cmd]
   RPAREN_TOK
   LPAREN_TOK ( LPAREN_TOK datatypeDef[isCo, dts, sorts] RPAREN_TOK )+ RPAREN_TOK
   { PARSER_STATE->popScope();
-  cmd = new DatatypeDeclarationCommand(PARSER_STATE->mkMutualDatatypeTypes(dts)); }
+    cmd = new DatatypeDeclarationCommand(PARSER_STATE->mkMutualDatatypeTypes(dts)); }
   ;
 
 rewriterulesCommand[CVC4::Command*& cmd]
@@ -684,7 +1122,7 @@ rewriterulesCommand[CVC4::Command*& cmd]
       };
       args.push_back(expr);
       expr = MK_EXPR(CVC4::kind::REWRITE_RULE, args);
-      cmd = new AssertCommand(expr); }
+      cmd = new AssertCommand(expr, false); }
     /* propagation rule */
   | rewritePropaKind[kind]
     LPAREN_TOK sortedVarList[sortedVarNames] RPAREN_TOK
@@ -735,12 +1173,11 @@ rewriterulesCommand[CVC4::Command*& cmd]
       };
       args.push_back(expr);
       expr = MK_EXPR(CVC4::kind::REWRITE_RULE, args);
-      cmd = new AssertCommand(expr); }
+      cmd = new AssertCommand(expr, false); }
   ;
 
 rewritePropaKind[CVC4::Kind& kind]
-  :
-  REDUCTION_RULE_TOK    { $kind = CVC4::kind::RR_REDUCTION; }
+  : REDUCTION_RULE_TOK    { $kind = CVC4::kind::RR_REDUCTION; }
   | PROPAGATION_RULE_TOK  { $kind = CVC4::kind::RR_DEDUCTION; }
   ;
 
@@ -785,11 +1222,11 @@ simpleSymbolicExprNoKeyword[CVC4::SExpr& sexpr]
 //	}
   | symbol[s,CHECK_NONE,SYM_SORT]
     { sexpr = SExpr(SExpr::Keyword(s)); }
-  | tok=(ASSERT_TOK | CHECKSAT_TOK | DECLARE_FUN_TOK | DECLARE_SORT_TOK | DEFINE_FUN_TOK | DEFINE_SORT_TOK | GET_VALUE_TOK | GET_ASSIGNMENT_TOK | GET_ASSERTIONS_TOK | GET_PROOF_TOK | GET_UNSAT_CORE_TOK | EXIT_TOK | SET_LOGIC_TOK | SET_INFO_TOK | GET_INFO_TOK | SET_OPTION_TOK | GET_OPTION_TOK | PUSH_TOK | POP_TOK | DECLARE_DATATYPES_TOK | GET_MODEL_TOK | ECHO_TOK | REWRITE_RULE_TOK | REDUCTION_RULE_TOK | PROPAGATION_RULE_TOK | SIMPLIFY_TOK)
+  | tok=(ASSERT_TOK | CHECKSAT_TOK | DECLARE_FUN_TOK | DECLARE_SORT_TOK | DEFINE_FUN_TOK | DEFINE_FUN_REC_TOK | DEFINE_SORT_TOK | GET_VALUE_TOK | GET_ASSIGNMENT_TOK | GET_ASSERTIONS_TOK | GET_PROOF_TOK | GET_UNSAT_CORE_TOK | EXIT_TOK | RESET_TOK | RESET_ASSERTIONS_TOK | SET_LOGIC_TOK | SET_INFO_TOK | GET_INFO_TOK | SET_OPTION_TOK | GET_OPTION_TOK | PUSH_TOK | POP_TOK | DECLARE_DATATYPES_TOK | GET_MODEL_TOK | ECHO_TOK | REWRITE_RULE_TOK | REDUCTION_RULE_TOK | PROPAGATION_RULE_TOK | SIMPLIFY_TOK)
     { sexpr = SExpr(SExpr::Keyword(AntlrInput::tokenText($tok))); }
   | builtinOp[k]
     { std::stringstream ss;
-      ss << Expr::setlanguage(CVC4::language::output::LANG_SMTLIB_V2) << EXPR_MANAGER->mkConst(k);
+      ss << Expr::setlanguage(CVC4::language::output::LANG_SMTLIB_V2_5) << EXPR_MANAGER->mkConst(k);
       sexpr = SExpr(ss.str());
     }
   ;
@@ -826,9 +1263,8 @@ term[CVC4::Expr& expr, CVC4::Expr& expr2]
   Expr op;
   std::string name;
   std::vector<Expr> args;
-  SExpr sexpr;
   std::vector< std::pair<std::string, Type> > sortedVarNames;
-  Expr f, f2;
+  Expr f, f2, f3, f4;
   std::string attr;
   Expr attexpr;
   std::vector<Expr> patexprs;
@@ -985,11 +1421,40 @@ term[CVC4::Expr& expr, CVC4::Expr& expr2]
       }
       expr = MK_EXPR(kind, args); }
 
-  | /* An indexed function application */
-    LPAREN_TOK indexedFunctionName[op] termList[args,expr] RPAREN_TOK
-    { expr = MK_EXPR(op, args);
-      PARSER_STATE->checkOperator(expr.getKind(), args.size());
-    }
+  | LPAREN_TOK
+    ( /* An indexed function application */
+      indexedFunctionName[op] termList[args,expr] RPAREN_TOK
+      { expr = MK_EXPR(op, args);
+        PARSER_STATE->checkOperator(expr.getKind(), args.size());
+      }
+    | /* Array constant (in Z3 syntax) */
+      LPAREN_TOK AS_TOK CONST_TOK sortSymbol[type, CHECK_DECLARED]
+      RPAREN_TOK term[f, f2] RPAREN_TOK
+      {
+        if(!type.isArray()) {
+          std::stringstream ss;
+          ss << "expected array constant term, but cast is not of array type" << std::endl
+             << "cast type: " << type;
+          PARSER_STATE->parseError(ss.str());
+        }
+        if(!f.isConst()) {
+          std::stringstream ss;
+          ss << "expected constant term inside array constant, but found "
+             << "nonconstant term:" << std::endl
+             << "the term: " << f;
+          PARSER_STATE->parseError(ss.str());
+        }
+        if(!ArrayType(type).getConstituentType().isComparableTo(f.getType())) {
+          std::stringstream ss;
+          ss << "type mismatch inside array constant term:" << std::endl
+             << "array type:          " << type << std::endl
+             << "expected const type: " << ArrayType(type).getConstituentType() << std::endl
+             << "computed const type: " << f.getType();
+          PARSER_STATE->parseError(ss.str());
+        }
+        expr = MK_CONST( ::CVC4::ArrayStoreAll(type, f) );
+      }
+    )
   | /* a let binding */
     LPAREN_TOK LET_TOK LPAREN_TOK
     { PARSER_STATE->pushScope(true); }
@@ -1035,8 +1500,8 @@ term[CVC4::Expr& expr, CVC4::Expr& expr2]
 
     /* attributed expressions */
   | LPAREN_TOK ATTRIBUTE_TOK term[expr, f2]
-    ( attribute[expr, attexpr,attr]
-      { if( attr == ":pattern" && ! attexpr.isNull()) {
+    ( attribute[expr, attexpr, attr]
+      { if( ! attexpr.isNull()) {
           patexprs.push_back( attexpr );
         }
       }
@@ -1070,11 +1535,17 @@ term[CVC4::Expr& expr, CVC4::Expr& expr2]
       } else if(! patexprs.empty()) {
         if( !f2.isNull() && f2.getKind()==kind::INST_PATTERN_LIST ){
           for( size_t i=0; i<f2.getNumChildren(); i++ ){
-            patexprs.push_back( f2[i] );
+            if( f2[i].getKind()==kind::INST_PATTERN ){
+              patexprs.push_back( f2[i] );
+            }else{
+              std::stringstream ss;
+              ss << "warning: rewrite rules do not support " << f2[i] << " within instantiation pattern list";
+              PARSER_STATE->warning(ss.str());
+            }
           }
         }
         expr2 = MK_EXPR(kind::INST_PATTERN_LIST, patexprs);
-      }else{
+      } else {
         expr2 = f2;
       }
     }
@@ -1087,13 +1558,30 @@ term[CVC4::Expr& expr, CVC4::Expr& expr2]
       // valid GMP rational string
       expr = MK_CONST( AntlrInput::tokenToRational($DECIMAL_LITERAL) ); }
 
-  | LPAREN_TOK INDEX_TOK bvLit=SIMPLE_SYMBOL size=INTEGER_LITERAL RPAREN_TOK
-    { if(AntlrInput::tokenText($bvLit).find("bv") == 0) {
-        expr = MK_CONST( AntlrInput::tokenToBitvector($bvLit, $size) );
-      } else {
-        PARSER_STATE->parseError("Unexpected symbol `" + AntlrInput::tokenText($bvLit) + "'");
+  | LPAREN_TOK INDEX_TOK 
+    ( bvLit=SIMPLE_SYMBOL size=INTEGER_LITERAL 
+      { if(AntlrInput::tokenText($bvLit).find("bv") == 0) {
+           expr = MK_CONST( AntlrInput::tokenToBitvector($bvLit, $size) );
+        } else {
+           PARSER_STATE->parseError("Unexpected symbol `" + AntlrInput::tokenText($bvLit) + "'");
+        }
       }
-    }
+    | FP_PINF_TOK eb=INTEGER_LITERAL sb=INTEGER_LITERAL
+      { expr = MK_CONST(FloatingPoint(AntlrInput::tokenToUnsigned($eb),
+                                      AntlrInput::tokenToUnsigned($sb),
+                                      +INFINITY)); }
+    | FP_NINF_TOK eb=INTEGER_LITERAL sb=INTEGER_LITERAL
+      { expr = MK_CONST(FloatingPoint(AntlrInput::tokenToUnsigned($eb),
+                                      AntlrInput::tokenToUnsigned($sb),
+                                     -INFINITY)); }
+    | FP_NAN_TOK eb=INTEGER_LITERAL sb=INTEGER_LITERAL
+      { expr = MK_CONST(FloatingPoint(AntlrInput::tokenToUnsigned($eb),
+                                      AntlrInput::tokenToUnsigned($sb),
+                                      NAN)); }
+    // NOTE: Theory parametric constants go here
+
+    )
+    RPAREN_TOK
 
   | HEX_LITERAL
     { assert( AntlrInput::tokenText($HEX_LITERAL).find("#x") == 0 );
@@ -1107,6 +1595,16 @@ term[CVC4::Expr& expr, CVC4::Expr& expr2]
 
   | str[s,false]
     { expr = MK_CONST( ::CVC4::String(s) ); }
+  | FP_RNE_TOK      { expr = MK_CONST(roundNearestTiesToEven); }
+  | FP_RNA_TOK      { expr = MK_CONST(roundNearestTiesToAway); }
+  | FP_RTP_TOK      { expr = MK_CONST(roundTowardPositive); }
+  | FP_RTN_TOK      { expr = MK_CONST(roundTowardNegative); }
+  | FP_RTZ_TOK      { expr = MK_CONST(roundTowardZero); }
+  | FP_RNE_FULL_TOK { expr = MK_CONST(roundNearestTiesToEven); }
+  | FP_RNA_FULL_TOK { expr = MK_CONST(roundNearestTiesToAway); }
+  | FP_RTP_FULL_TOK { expr = MK_CONST(roundTowardPositive); }
+  | FP_RTN_FULL_TOK { expr = MK_CONST(roundTowardNegative); }
+  | FP_RTZ_FULL_TOK { expr = MK_CONST(roundTowardZero); }
 
   | RENOSTR_TOK
     { std::vector< Expr > nvec; expr = MK_EXPR( CVC4::kind::REGEXP_EMPTY, nvec ); }
@@ -1142,17 +1640,49 @@ attribute[CVC4::Expr& expr,CVC4::Expr& retExpr, std::string& attr]
         PARSER_STATE->warning(ss.str());
       }
       // do nothing
-    } else if(attr == ":axiom" || attr == ":conjecture") {
+    } else if(attr==":axiom" || attr==":conjecture" || attr==":fun-def" || attr==":sygus" || attr==":synthesis") {
       if(hasValue) {
         std::stringstream ss;
         ss << "warning: Attribute " << attr << " does not take a value (ignoring)";
         PARSER_STATE->warning(ss.str());
       }
-      std::string attr_name = attr;
-      attr_name.erase( attr_name.begin() );
-      Command* c = new SetUserAttributeCommand( attr_name, expr );
-      c->setMuted(true);
-      PARSER_STATE->preemptCommand(c);
+      bool success = true;
+      if( attr==":fun-def" ){
+        if( ( expr.getKind()!=kind::EQUAL && expr.getKind()!=kind::IFF ) || expr[0].getKind()!=kind::APPLY_UF ){
+          success = false;
+        }else{
+          FunctionType t = (FunctionType)expr[0].getOperator().getType();
+          for( unsigned i=0; i<expr[0].getNumChildren(); i++ ){
+            if( expr[0][i].getKind()!=kind::BOUND_VARIABLE || expr[0][i].getType()!=t.getArgTypes()[i] ){
+              success = false;
+              break;
+            }else{
+              for( unsigned j=0; j<i; j++ ){
+                if( expr[0][j]==expr[0][i] ){
+                  success = false;
+                  break;
+                }
+              }
+            }
+          }
+        }
+        if( !success ){
+          std::stringstream ss;
+          ss << "warning: Function definition should be an equality whose LHS is an uninterpreted function applied to unique variables.";
+          PARSER_STATE->warning(ss.str());
+        }
+      }
+      if( success ){
+        std::string attr_name = attr;
+        attr_name.erase( attr_name.begin() );
+        //will set the attribute on auxiliary var (preserves attribute on formula through rewriting)
+        Type t = EXPR_MANAGER->booleanType();
+        Expr avar = PARSER_STATE->mkVar(attr_name, t);
+        retExpr = MK_EXPR(kind::INST_ATTRIBUTE, avar);
+        Command* c = new SetUserAttributeCommand( attr_name, avar );
+        c->setMuted(true);
+        PARSER_STATE->preemptCommand(c);
+      }
     } else {
       PARSER_STATE->attributeNotSupported(attr);
     }
@@ -1162,28 +1692,22 @@ attribute[CVC4::Expr& expr,CVC4::Expr& retExpr, std::string& attr]
       attr = std::string(":pattern");
       retExpr = MK_EXPR(kind::INST_PATTERN, patexprs);
     }
-  | ATTRIBUTE_NO_PATTERN_TOK LPAREN_TOK term[patexpr, e2]+ RPAREN_TOK
+  | ATTRIBUTE_NO_PATTERN_TOK term[patexpr, e2]
     {
       attr = std::string(":no-pattern");
-      PARSER_STATE->attributeNotSupported(attr);
+      retExpr = MK_EXPR(kind::INST_NO_PATTERN, patexpr);
     }
-  | ATTRIBUTE_INST_LEVEL INTEGER_LITERAL
+  | tok=( ATTRIBUTE_INST_LEVEL | ATTRIBUTE_RR_PRIORITY ) INTEGER_LITERAL
     {
       Expr n = MK_CONST( AntlrInput::tokenToInteger($INTEGER_LITERAL) );
       std::vector<Expr> values;
       values.push_back( n );
-      std::string attr_name("inst-level");
-      Command* c = new SetUserAttributeCommand( attr_name, expr, values );
-      c->setMuted(true);
-      PARSER_STATE->preemptCommand(c);
-    }
-  | ATTRIBUTE_RR_PRIORITY_LEVEL INTEGER_LITERAL
-    {
-      Expr n = MK_CONST( AntlrInput::tokenToInteger($INTEGER_LITERAL) );
-      std::vector<Expr> values;
-      values.push_back( n );
-      std::string attr_name("rr-priority");
-      Command* c = new SetUserAttributeCommand( attr_name, expr, values );
+      std::string attr_name(AntlrInput::tokenText($tok));
+      attr_name.erase( attr_name.begin() );
+      Type t = EXPR_MANAGER->booleanType();
+      Expr avar = PARSER_STATE->mkVar(attr_name, t);
+      retExpr = MK_EXPR(kind::INST_ATTRIBUTE, avar);
+      Command* c = new SetUserAttributeCommand( attr_name, avar, values );
       c->setMuted(true);
       PARSER_STATE->preemptCommand(c);
     }
@@ -1210,6 +1734,8 @@ attribute[CVC4::Expr& expr,CVC4::Expr& retExpr, std::string& attr]
       PARSER_STATE->reserveSymbolAtAssertionLevel(name);
       // define it
       Expr func = PARSER_STATE->mkFunction(name, expr.getType());
+      // remember the last term to have been given a :named attribute
+      PARSER_STATE->setLastNamedTerm(expr, name);
       // bind name to expr with define-fun
       Command* c =
         new DefineNamedFunctionCommand(name, func, std::vector<Expr>(), expr);
@@ -1243,8 +1769,50 @@ indexedFunctionName[CVC4::Expr& op]
         if(PARSER_STATE->strictModeEnabled()) {
           PARSER_STATE->parseError("bv2nat and int2bv are not part of SMT-LIB, and aren't available in SMT-LIB strict compliance mode");
         } }
+    | FP_PINF_TOK eb=INTEGER_LITERAL sb=INTEGER_LITERAL
+      { op = MK_CONST(FloatingPoint(AntlrInput::tokenToUnsigned($eb),
+                                    AntlrInput::tokenToUnsigned($sb),
+                                    +INFINITY)); }
+    | FP_NINF_TOK eb=INTEGER_LITERAL sb=INTEGER_LITERAL
+      { op = MK_CONST(FloatingPoint(AntlrInput::tokenToUnsigned($eb),
+                                    AntlrInput::tokenToUnsigned($sb),
+                                    -INFINITY)); }
+    | FP_NAN_TOK eb=INTEGER_LITERAL sb=INTEGER_LITERAL
+      { op = MK_CONST(FloatingPoint(AntlrInput::tokenToUnsigned($eb),
+                                    AntlrInput::tokenToUnsigned($sb),
+                                    NAN)); }
+    | FP_PZERO_TOK eb=INTEGER_LITERAL sb=INTEGER_LITERAL
+      { op = MK_CONST(FloatingPoint(AntlrInput::tokenToUnsigned($eb),
+                                    AntlrInput::tokenToUnsigned($sb),
+                                    +0.0)); }
+    | FP_NZERO_TOK eb=INTEGER_LITERAL sb=INTEGER_LITERAL
+      { op = MK_CONST(FloatingPoint(AntlrInput::tokenToUnsigned($eb),
+                                    AntlrInput::tokenToUnsigned($sb),
+                                    -0.0)); }
+    | FP_TO_FP_TOK eb=INTEGER_LITERAL sb=INTEGER_LITERAL
+      { op = MK_CONST(FloatingPointToFPGeneric(AntlrInput::tokenToUnsigned($eb),
+                                               AntlrInput::tokenToUnsigned($sb))); }
+    | FP_TO_FPBV_TOK eb=INTEGER_LITERAL sb=INTEGER_LITERAL
+      { op = MK_CONST(FloatingPointToFPIEEEBitVector(AntlrInput::tokenToUnsigned($eb),
+                                                     AntlrInput::tokenToUnsigned($sb))); }
+    | FP_TO_FPFP_TOK eb=INTEGER_LITERAL sb=INTEGER_LITERAL
+      { op = MK_CONST(FloatingPointToFPFloatingPoint(AntlrInput::tokenToUnsigned($eb),
+                                                     AntlrInput::tokenToUnsigned($sb))); }
+    | FP_TO_FPR_TOK eb=INTEGER_LITERAL sb=INTEGER_LITERAL
+      { op = MK_CONST(FloatingPointToFPReal(AntlrInput::tokenToUnsigned($eb),
+                                            AntlrInput::tokenToUnsigned($sb))); }
+    | FP_TO_FPS_TOK eb=INTEGER_LITERAL sb=INTEGER_LITERAL
+      { op = MK_CONST(FloatingPointToFPSignedBitVector(AntlrInput::tokenToUnsigned($eb),
+                                                       AntlrInput::tokenToUnsigned($sb))); }
+    | FP_TO_FPU_TOK eb=INTEGER_LITERAL sb=INTEGER_LITERAL
+      { op = MK_CONST(FloatingPointToFPUnsignedBitVector(AntlrInput::tokenToUnsigned($eb),
+                                                         AntlrInput::tokenToUnsigned($sb))); }
+    | FP_TO_UBV_TOK m=INTEGER_LITERAL
+      { op = MK_CONST(FloatingPointToUBV(AntlrInput::tokenToUnsigned($m))); }
+    | FP_TO_SBV_TOK m=INTEGER_LITERAL
+      { op = MK_CONST(FloatingPointToSBV(AntlrInput::tokenToUnsigned($m))); }
     | badIndexedFunctionName
-   )
+    )
     RPAREN_TOK
   ;
 
@@ -1279,15 +1847,15 @@ termList[std::vector<CVC4::Expr>& formulas, CVC4::Expr& expr]
  * Matches a string, and strips off the quotes.
  */
 str[std::string& s, bool fsmtlib]
-  : STRING_LITERAL
-    { s = AntlrInput::tokenText($STRING_LITERAL);
+  : STRING_LITERAL_2_0
+    { s = AntlrInput::tokenText($STRING_LITERAL_2_0);
       /* strip off the quotes */
       s = s.substr(1, s.size() - 2);
-	  for(size_t i=0; i<s.size(); i++) {
-		if((unsigned)s[i] > 127) {
-			PARSER_STATE->parseError("Extended characters are not part of SMT-LIB, and they must be encoded as esacped sequences");
-		}
-	  }
+      for(size_t i=0; i<s.size(); i++) {
+        if((unsigned)s[i] > 127 && !isprint(s[i])) {
+          PARSER_STATE->parseError("Extended/unprintable characters are not part of SMT-LIB, and they must be encoded as escape sequences");
+        }
+      }
       if(fsmtlib) {
         /* handle SMT-LIB standard escapes '\\' and '\"' */
         char* p_orig = strdup(s.c_str());
@@ -1310,6 +1878,29 @@ str[std::string& s, bool fsmtlib]
         s = p_orig;
         free(p_orig);
       }
+    }
+  | STRING_LITERAL_2_5
+    { s = AntlrInput::tokenText($STRING_LITERAL_2_5);
+      /* strip off the quotes */
+      s = s.substr(1, s.size() - 2);
+      for(size_t i=0; i<s.size(); i++) {
+        if((unsigned)s[i] > 127 && !isprint(s[i])) {
+          PARSER_STATE->parseError("Extended/unprintable characters are not part of SMT-LIB, and they must be encoded as escape sequences");
+        }
+      }
+      // In the 2.5 version, always handle escapes (regardless of fsmtlib flag).
+      char* p_orig = strdup(s.c_str());
+      char *p = p_orig, *q = p_orig;
+      while(*q != '\0') {
+        if(*q == '"') {
+          ++q;
+          assert(*q == '"');
+        }
+        *p++ = *q++;
+      }
+      *p = '\0';
+      s = p_orig;
+      free(p_orig);
     }
   ;
 
@@ -1410,8 +2001,38 @@ builtinOp[CVC4::Kind& kind]
   | RERANGE_TOK    { $kind = CVC4::kind::REGEXP_RANGE; }
   | RELOOP_TOK    { $kind = CVC4::kind::REGEXP_LOOP; }
   
+  | DTSIZE_TOK     { $kind = CVC4::kind::DT_SIZE; }
+  
   | FMFCARD_TOK    { $kind = CVC4::kind::CARDINALITY_CONSTRAINT; }
-
+  
+  | INST_CLOSURE_TOK { $kind = CVC4::kind::INST_CLOSURE; }
+  
+  | FP_TOK        { $kind = CVC4::kind::FLOATINGPOINT_FP; }
+  | FP_EQ_TOK     { $kind = CVC4::kind::FLOATINGPOINT_EQ; }
+  | FP_ABS_TOK    { $kind = CVC4::kind::FLOATINGPOINT_ABS; }
+  | FP_NEG_TOK    { $kind = CVC4::kind::FLOATINGPOINT_NEG; }
+  | FP_PLUS_TOK   { $kind = CVC4::kind::FLOATINGPOINT_PLUS; }
+  | FP_SUB_TOK    { $kind = CVC4::kind::FLOATINGPOINT_SUB; }
+  | FP_MUL_TOK    { $kind = CVC4::kind::FLOATINGPOINT_MULT; }
+  | FP_DIV_TOK    { $kind = CVC4::kind::FLOATINGPOINT_DIV; }
+  | FP_FMA_TOK    { $kind = CVC4::kind::FLOATINGPOINT_FMA; }
+  | FP_SQRT_TOK   { $kind = CVC4::kind::FLOATINGPOINT_SQRT; }
+  | FP_REM_TOK    { $kind = CVC4::kind::FLOATINGPOINT_REM; }
+  | FP_RTI_TOK    { $kind = CVC4::kind::FLOATINGPOINT_RTI; }
+  | FP_MIN_TOK    { $kind = CVC4::kind::FLOATINGPOINT_MIN; }
+  | FP_MAX_TOK    { $kind = CVC4::kind::FLOATINGPOINT_MAX; }
+  | FP_LEQ_TOK    { $kind = CVC4::kind::FLOATINGPOINT_LEQ; }
+  | FP_LT_TOK     { $kind = CVC4::kind::FLOATINGPOINT_LT; }
+  | FP_GEQ_TOK    { $kind = CVC4::kind::FLOATINGPOINT_GEQ; }
+  | FP_GT_TOK     { $kind = CVC4::kind::FLOATINGPOINT_GT; }
+  | FP_ISN_TOK    { $kind = CVC4::kind::FLOATINGPOINT_ISN; }
+  | FP_ISSN_TOK   { $kind = CVC4::kind::FLOATINGPOINT_ISSN; }
+  | FP_ISZ_TOK    { $kind = CVC4::kind::FLOATINGPOINT_ISZ; }
+  | FP_ISINF_TOK  { $kind = CVC4::kind::FLOATINGPOINT_ISINF; }
+  | FP_ISNAN_TOK  { $kind = CVC4::kind::FLOATINGPOINT_ISNAN; }
+  | FP_ISNEG_TOK  { $kind = CVC4::kind::FLOATINGPOINT_ISNEG; }
+  | FP_ISPOS_TOK  { $kind = CVC4::kind::FLOATINGPOINT_ISPOS; }
+  | FP_TO_REAL_TOK {$kind = CVC4::kind::FLOATINGPOINT_TO_REAL; }
   // NOTE: Theory operators go here
   ;
 
@@ -1476,6 +2097,7 @@ sortSymbol[CVC4::Type& t, CVC4::parser::DeclarationCheck check]
   std::string name;
   std::vector<CVC4::Type> args;
   std::vector<uint64_t> numerals;
+  bool indexed;
 }
   : sortName[name,CHECK_NONE]
     {
@@ -1485,54 +2107,77 @@ sortSymbol[CVC4::Type& t, CVC4::parser::DeclarationCheck check]
         t = PARSER_STATE->mkUnresolvedType(name);
       }
     }
-  | LPAREN_TOK INDEX_TOK symbol[name,CHECK_NONE,SYM_SORT] nonemptyNumeralList[numerals] RPAREN_TOK
-    {
-      if( name == "BitVec" ) {
-        if( numerals.size() != 1 ) {
-          PARSER_STATE->parseError("Illegal bitvector type.");
+  | LPAREN_TOK (INDEX_TOK {indexed = true;} | {indexed = false;})
+    symbol[name,CHECK_NONE,SYM_SORT]
+    ( nonemptyNumeralList[numerals]
+      { // allow sygus inputs to elide the `_'
+        if( !indexed && !PARSER_STATE->sygus() ) {
+          std::stringstream ss;
+          ss << "SMT-LIB requires use of an indexed sort here, e.g. (_ " << name << " ...)";
+          PARSER_STATE->parseError(ss.str());
         }
-        if(numerals.front() == 0) {
-          PARSER_STATE->parseError("Illegal bitvector size: 0");
-        }
-        t = EXPR_MANAGER->mkBitVectorType(numerals.front());
-      } else {
-        std::stringstream ss;
-        ss << "unknown indexed symbol `" << name << "'";
-        PARSER_STATE->parseError(ss.str());
-      }
-    }
-  | LPAREN_TOK symbol[name,CHECK_NONE,SYM_SORT] sortList[args] RPAREN_TOK
-    {
-      if(args.empty()) {
-        PARSER_STATE->parseError("Extra parentheses around sort name not permitted in SMT-LIB");
-      } else if(name == "Array" &&
-         PARSER_STATE->isTheoryEnabled(Smt2::THEORY_ARRAYS) ) {
-        if(args.size() != 2) {
-          PARSER_STATE->parseError("Illegal array type.");
-        }
-        t = EXPR_MANAGER->mkArrayType( args[0], args[1] );
-      } else if(name == "Set" &&
-                PARSER_STATE->isTheoryEnabled(Smt2::THEORY_SETS) ) {
-        if(args.size() != 1) {
-          PARSER_STATE->parseError("Illegal set type.");
-        }
-        t = EXPR_MANAGER->mkSetType( args[0] );
-      } else if(check == CHECK_DECLARED ||
-                PARSER_STATE->isDeclared(name, SYM_SORT)) {
-        t = PARSER_STATE->getSort(name, args);
-      } else {
-        // make unresolved type
-        if(args.empty()) {
-          t = PARSER_STATE->mkUnresolvedType(name);
-          Debug("parser-param") << "param: make unres type " << name << std::endl;
+        if( name == "BitVec" ) {
+          if( numerals.size() != 1 ) {
+            PARSER_STATE->parseError("Illegal bitvector type.");
+          }
+          if(numerals.front() == 0) {
+            PARSER_STATE->parseError("Illegal bitvector size: 0");
+          }
+          t = EXPR_MANAGER->mkBitVectorType(numerals.front());
+        } else if ( name == "FloatingPoint" ) {
+          if( numerals.size() != 2 ) {
+            PARSER_STATE->parseError("Illegal floating-point type.");
+          }
+          if(!validExponentSize(numerals[0])) {
+            PARSER_STATE->parseError("Illegal floating-point exponent size");
+          }
+          if(!validSignificandSize(numerals[1])) {
+            PARSER_STATE->parseError("Illegal floating-point significand size");
+          }
+          t = EXPR_MANAGER->mkFloatingPointType(numerals[0],numerals[1]);
         } else {
-          t = PARSER_STATE->mkUnresolvedTypeConstructor(name,args);
-          t = SortConstructorType(t).instantiate( args );
-          Debug("parser-param") << "param: make unres param type " << name << " " << args.size() << " "
-                                << PARSER_STATE->getArity( name ) << std::endl;
+          std::stringstream ss;
+          ss << "unknown indexed sort symbol `" << name << "'";
+          PARSER_STATE->parseError(ss.str());
         }
       }
-    }
+    | sortList[args]
+      { if( indexed ) {
+          std::stringstream ss;
+          ss << "Unexpected use of indexing operator `_' before `" << name << "', try leaving it out";
+          PARSER_STATE->parseError(ss.str());
+        }
+        if(args.empty()) {
+          PARSER_STATE->parseError("Extra parentheses around sort name not permitted in SMT-LIB");
+        } else if(name == "Array" &&
+           PARSER_STATE->isTheoryEnabled(Smt2::THEORY_ARRAYS) ) {
+          if(args.size() != 2) {
+            PARSER_STATE->parseError("Illegal array type.");
+          }
+          t = EXPR_MANAGER->mkArrayType( args[0], args[1] );
+        } else if(name == "Set" &&
+                  PARSER_STATE->isTheoryEnabled(Smt2::THEORY_SETS) ) {
+          if(args.size() != 1) {
+            PARSER_STATE->parseError("Illegal set type.");
+          }
+          t = EXPR_MANAGER->mkSetType( args[0] );
+        } else if(check == CHECK_DECLARED ||
+                  PARSER_STATE->isDeclared(name, SYM_SORT)) {
+          t = PARSER_STATE->getSort(name, args);
+        } else {
+          // make unresolved type
+          if(args.empty()) {
+            t = PARSER_STATE->mkUnresolvedType(name);
+            Debug("parser-param") << "param: make unres type " << name << std::endl;
+          } else {
+            t = PARSER_STATE->mkUnresolvedTypeConstructor(name,args);
+            t = SortConstructorType(t).instantiate( args );
+            Debug("parser-param") << "param: make unres param type " << name << " " << args.size() << " "
+                                  << PARSER_STATE->getArity( name ) << std::endl;
+          }
+        }
+      }
+    ) RPAREN_TOK
   ;
 
 /**
@@ -1564,10 +2209,16 @@ symbol[std::string& id,
         PARSER_STATE->checkDeclaration(id, check, type);
       }
     }
-  | 'repeat'
-    { id = "repeat";
-      PARSER_STATE->checkDeclaration(id, check, type);
-    }
+  | ( 'repeat' { id = "repeat"; }
+    /* these are keywords in SyGuS but we don't want to inhibit their
+     * use as symbols in SMT-LIB */
+    | SET_OPTIONS_TOK { id = "set-options"; }
+    | DECLARE_VAR_TOK { id = "declare-var"; }
+    | SYNTH_FUN_TOK { id = "synth-fun"; }
+    | CONSTRAINT_TOK { id = "constraint"; }
+    | CHECK_SYNTH_TOK { id = "check-synth"; }
+    )
+    { PARSER_STATE->checkDeclaration(id, check, type); }
   | QUOTED_SYMBOL
     { id = AntlrInput::tokenText($QUOTED_SYMBOL);
       /* strip off the quotes */
@@ -1634,11 +2285,11 @@ constructorDef[CVC4::Datatype& type]
   std::string id;
   CVC4::DatatypeConstructor* ctor = NULL;
 }
-  : symbol[id,CHECK_UNDECLARED,SYM_SORT]
+  : symbol[id,CHECK_UNDECLARED,SYM_VARIABLE]
     { // make the tester
       std::string testerId("is-");
       testerId.append(id);
-      PARSER_STATE->checkDeclaration(testerId, CHECK_UNDECLARED, SYM_SORT);
+      PARSER_STATE->checkDeclaration(testerId, CHECK_UNDECLARED, SYM_VARIABLE);
       ctor = new CVC4::DatatypeConstructor(id, testerId);
     }
     ( LPAREN_TOK selector[*ctor] RPAREN_TOK )*
@@ -1667,6 +2318,7 @@ CHECKSAT_TOK : 'check-sat';
 DECLARE_FUN_TOK : 'declare-fun';
 DECLARE_SORT_TOK : 'declare-sort';
 DEFINE_FUN_TOK : 'define-fun';
+DEFINE_FUN_REC_TOK : 'define-fun-rec';
 DEFINE_SORT_TOK : 'define-sort';
 GET_VALUE_TOK : 'get-value';
 GET_ASSIGNMENT_TOK : 'get-assignment';
@@ -1674,6 +2326,8 @@ GET_ASSERTIONS_TOK : 'get-assertions';
 GET_PROOF_TOK : 'get-proof';
 GET_UNSAT_CORE_TOK : 'get-unsat-core';
 EXIT_TOK : 'exit';
+RESET_TOK : { PARSER_STATE->v2_5() }? 'reset';
+RESET_ASSERTIONS_TOK : 'reset-assertions';
 ITE_TOK : 'ite';
 LET_TOK : 'let';
 ATTRIBUTE_TOK : '!';
@@ -1682,12 +2336,14 @@ RPAREN_TOK : ')';
 INDEX_TOK : '_';
 SET_LOGIC_TOK : 'set-logic';
 SET_INFO_TOK : 'set-info';
+META_INFO_TOK : 'meta-info';
 GET_INFO_TOK : 'get-info';
 SET_OPTION_TOK : 'set-option';
 GET_OPTION_TOK : 'get-option';
 PUSH_TOK : 'push';
 POP_TOK : 'pop';
 AS_TOK : 'as';
+CONST_TOK : 'const';
 
 // extended commands
 DECLARE_DATATYPES_TOK : 'declare-datatypes';
@@ -1706,11 +2362,18 @@ DEFINE_CONST_TOK : 'define-const';
 SIMPLIFY_TOK : 'simplify';
 INCLUDE_TOK : 'include';
 
+// SyGuS commands
+SYNTH_FUN_TOK : 'synth-fun';
+CHECK_SYNTH_TOK : 'check-synth';
+DECLARE_VAR_TOK : 'declare-var';
+CONSTRAINT_TOK : 'constraint';
+SET_OPTIONS_TOK : 'set-options';
+
 // attributes
 ATTRIBUTE_PATTERN_TOK : ':pattern';
 ATTRIBUTE_NO_PATTERN_TOK : ':no-pattern';
 ATTRIBUTE_NAMED_TOK : ':named';
-ATTRIBUTE_INST_LEVEL : ':inst-level';
+ATTRIBUTE_INST_LEVEL : ':quant-inst-max-level';
 ATTRIBUTE_RR_PRIORITY : ':rr-priority';
 
 // operators (NOTE: theory symbols go here)
@@ -1733,7 +2396,7 @@ NOT_TOK           : 'not';
 OR_TOK            : 'or';
 // PERCENT_TOK       : '%';
 PLUS_TOK          : '+';
-POUND_TOK         : '#';
+//POUND_TOK         : '#';
 SELECT_TOK        : 'select';
 STAR_TOK          : '*';
 STORE_TOK         : 'store';
@@ -1808,12 +2471,66 @@ RELOOP_TOK : 're.loop';
 RENOSTR_TOK : 're.nostr';
 REALLCHAR_TOK : 're.allchar';
 
+DTSIZE_TOK : 'dt.size';
+
 FMFCARD_TOK : 'fmf.card';
+
+INST_CLOSURE_TOK : 'inst-closure';
 
 EMPTYSET_TOK: { PARSER_STATE->isTheoryEnabled(Smt2::THEORY_SETS) }? 'emptyset';
 // Other set theory operators are not
 // tokenized and handled directly when
 // processing a term
+
+FP_TOK : 'fp';
+FP_PINF_TOK : '+oo';
+FP_NINF_TOK : '-oo';
+FP_PZERO_TOK : '+zero';
+FP_NZERO_TOK : '-zero';
+FP_NAN_TOK : 'NaN';
+FP_EQ_TOK : 'fp.eq';
+FP_ABS_TOK : 'fp.abs';
+FP_NEG_TOK : 'fp.neg';
+FP_PLUS_TOK : 'fp.add';
+FP_SUB_TOK : 'fp.sub';
+FP_MUL_TOK : 'fp.mul';
+FP_DIV_TOK : 'fp.div';
+FP_FMA_TOK : 'fp.fma';
+FP_SQRT_TOK : 'fp.sqrt';
+FP_REM_TOK : 'fp.rem';
+FP_RTI_TOK : 'fp.roundToIntegral';
+FP_MIN_TOK : 'fp.min';
+FP_MAX_TOK : 'fp.max';
+FP_LEQ_TOK : 'fp.leq';
+FP_LT_TOK : 'fp.lt';
+FP_GEQ_TOK : 'fp.geq';
+FP_GT_TOK : 'fp.gt';
+FP_ISN_TOK : 'fp.isNormal';
+FP_ISSN_TOK : 'fp.isSubnormal';
+FP_ISZ_TOK : 'fp.isZero';
+FP_ISINF_TOK : 'fp.isInfinite';
+FP_ISNAN_TOK : 'fp.isNaN';
+FP_ISNEG_TOK : 'fp.isNegative';
+FP_ISPOS_TOK : 'fp.isPositive';
+FP_TO_FP_TOK : 'to_fp';
+FP_TO_FPBV_TOK : 'to_fp_bv';
+FP_TO_FPFP_TOK : 'to_fp_fp';
+FP_TO_FPR_TOK : 'to_fp_real';
+FP_TO_FPS_TOK : 'to_fp_signed';
+FP_TO_FPU_TOK : 'to_fp_unsigned';
+FP_TO_UBV_TOK : 'fp.to_ubv';
+FP_TO_SBV_TOK : 'fp.to_sbv';
+FP_TO_REAL_TOK : 'fp.to_real';
+FP_RNE_TOK : 'RNE';
+FP_RNA_TOK : 'RNA';
+FP_RTP_TOK : 'RTP';
+FP_RTN_TOK : 'RTN';
+FP_RTZ_TOK : 'RTZ';
+FP_RNE_FULL_TOK : 'roundNearestTiesToEven';
+FP_RNA_FULL_TOK : 'roundNearestTiesToAway';
+FP_RTP_FULL_TOK : 'roundTowardPositive';
+FP_RTN_FULL_TOK : 'roundTowardNegative';
+FP_RTZ_FULL_TOK : 'roundTowardZero';
 
 /**
  * A sequence of printable ASCII characters (except backslash) that starts
@@ -1906,14 +2623,28 @@ BINARY_LITERAL
   ;
 
 /**
- * Matches a double quoted string literal.  Escaping is supported, and
- * escape character '\' has to be escaped.
+ * Matches a double-quoted string literal from SMT-LIB 2.0.
+ * Escaping is supported, and * escape character '\' has to be escaped.
  *
  * You shouldn't generally use this in parser rules, as the quotes
  * will be part of the token text.  Use the str[] parser rule instead.
  */
-STRING_LITERAL
-  : '"' ('\\' . | ~('\\' | '"'))* '"'
+STRING_LITERAL_2_0
+  : { PARSER_STATE->v2_0() }?=>
+    '"' ('\\' . | ~('\\' | '"'))* '"'
+  ;
+
+/**
+ * Matches a double-quoted string literal from SMT-LIB 2.5.
+ * You escape a double-quote inside the string with "", e.g.,
+ * "This is a string literal with "" a single, embedded double quote."
+ *
+ * You shouldn't generally use this in parser rules, as the quotes
+ * will be part of the token text.  Use the str[] parser rule instead.
+ */
+STRING_LITERAL_2_5
+  : { PARSER_STATE->v2_5() }?=>
+    '"' (~('"') | '""')* '"'
   ;
 
 /**

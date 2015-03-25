@@ -19,6 +19,7 @@
 #include <string>
 
 #include "util/language.h"
+#include "util/unsafe_interrupt_exception.h"
 #include "options/options.h"
 
 namespace CVC4 {
@@ -56,7 +57,7 @@ public:
    * Read a command from the interactive shell. This will read as
    * many lines as necessary to parse a well-formed command.
    */
-  Command* readCommand();
+  Command* readCommand() throw (UnsafeInterruptException);
 
   /**
    * Return the internal parser being used.

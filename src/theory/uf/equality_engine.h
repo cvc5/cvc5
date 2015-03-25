@@ -165,12 +165,12 @@ public:
   /**
    * Initialize the equality engine, given the notification class.
    */
-  EqualityEngine(EqualityEngineNotify& notify, context::Context* context, std::string name);
+  EqualityEngine(EqualityEngineNotify& notify, context::Context* context, std::string name, bool constantsAreTriggers);
 
   /**
    * Initialize the equality engine with no notification class.
    */
-  EqualityEngine(context::Context* context, std::string name);
+  EqualityEngine(context::Context* context, std::string name, bool constantsAreTriggers);
 
   /**
    * Just a destructor.
@@ -554,14 +554,8 @@ private:
     }
   };/* struct EqualityEngine::TriggerTermSet */
 
-  /** Internal tags for creating a new set */
-  Theory::Set d_newSetTags;
-
-  /** Internal triggers for creating a new set */
-  EqualityNodeId d_newSetTriggers[THEORY_LAST];
-
-  /** Size of the internal triggers array */
-  unsigned d_newSetTriggersSize;
+  /** Are the constants triggers */
+  bool d_constantsAreTriggers;
 
   /** The information about trigger terms is stored in this easily maintained memory. */
   char* d_triggerDatabase;
@@ -576,7 +570,7 @@ private:
   static const TriggerTermSetRef null_set_id = (TriggerTermSetRef)(-1);
 
   /** Create new trigger term set based on the internally set information */
-  TriggerTermSetRef newTriggerTermSet();
+  TriggerTermSetRef newTriggerTermSet(Theory::Set newSetTags, EqualityNodeId* newSetTriggers, unsigned newSetTriggersSize);
 
   /** Get the trigger set give a reference */
   TriggerTermSet& getTriggerTermSet(TriggerTermSetRef ref) {

@@ -64,11 +64,12 @@ public:
   context::CDO<bool> isNonLinear;
   context::CDO<bool> rIntro1Applied;
   context::CDO<TNode> modelRep;
+  context::CDO<TNode> constArr;
   CTNodeList* indices;
   CTNodeList* stores;
   CTNodeList* in_stores;
 
-  Info(context::Context* c, Backtracker<TNode>* bck) : isNonLinear(c, false), rIntro1Applied(c, false), modelRep(c,TNode()) {
+  Info(context::Context* c, Backtracker<TNode>* bck) : isNonLinear(c, false), rIntro1Applied(c, false), modelRep(c,TNode()), constArr(c,TNode()) {
     indices = new(true)CTNodeList(c);
     stores = new(true)CTNodeList(c);
     in_stores = new(true)CTNodeList(c);
@@ -210,6 +211,7 @@ public:
   void setRIntro1Applied(const TNode a);
   void setModelRep(const TNode a, const TNode rep);
 
+  void setConstArr(const TNode a, const TNode constArr);
   /**
    * Returns the information associated with TNode a
    */
@@ -221,6 +223,8 @@ public:
   const bool rIntro1Applied(const TNode a) const;
 
   const TNode getModelRep(const TNode a) const;
+
+  const TNode getConstArr(const TNode a) const;
 
   const CTNodeList* getIndices(const TNode a) const;
 

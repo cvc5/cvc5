@@ -15,6 +15,7 @@
  **/
 
 #include "cvc4_private.h"
+#include "theory/strings/options.h"
 
 #ifndef __CVC4__THEORY__STRINGS__THEORY_STRINGS_TYPE_RULES_H
 #define __CVC4__THEORY__STRINGS__THEORY_STRINGS_TYPE_RULES_H
@@ -349,7 +350,7 @@ public:
       throw (TypeCheckingExceptionPrivate, AssertionException) {
     if( check ) {
       TNode::iterator it = n.begin();
-      char ch[2];
+      unsigned char ch[2];
 
       for(int i=0; i<2; ++i) {
         TypeNode t = (*it).getType(check);
@@ -367,6 +368,9 @@ public:
       }
       if(ch[0] > ch[1]) {
         throw TypeCheckingExceptionPrivate(n, "expecting the first constant is less or equal to the second one in regexp range");
+      }
+      if(options::stdASCII() && ch[1] > '\x7f') {
+        throw TypeCheckingExceptionPrivate(n, "expecting standard ASCII characters in regexp range, or please set the option strings-std-ascii to be false");
       }
     }
     return nodeManager->regexpType();
@@ -388,18 +392,18 @@ public:
       if (!t.isInteger()) {
         throw TypeCheckingExceptionPrivate(n, "expecting an integer term in regexp loop 2");
       }
-      if(!(*it).isConst()) {
-        throw TypeCheckingExceptionPrivate(n, "expecting an const integer term in regexp loop 2");
-      }
+      //if(!(*it).isConst()) {
+        //throw TypeCheckingExceptionPrivate(n, "expecting an const integer term in regexp loop 2");
+      //}
       ++it;
       if(it != it_end) {
         t = (*it).getType(check);
         if (!t.isInteger()) {
           throw TypeCheckingExceptionPrivate(n, "expecting an integer term in regexp loop 3");
         }
-        if(!(*it).isConst()) {
-          throw TypeCheckingExceptionPrivate(n, "expecting an const integer term in regexp loop 3");
-        }
+        //if(!(*it).isConst()) {
+          //throw TypeCheckingExceptionPrivate(n, "expecting an const integer term in regexp loop 3");
+        //}
         //if(++it != it_end) {
         //  throw TypeCheckingExceptionPrivate(n, "too many regexp");
         //}

@@ -49,14 +49,14 @@ void DecisionEngine::init()
   d_engineState = 1;
 
   Trace("decision-init") << "DecisionEngine::init()" << std::endl;
-  Trace("decision-init") << " * options->decisionMode: " 
+  Trace("decision-init") << " * options->decisionMode: "
                          << options::decisionMode() << std:: endl;
   Trace("decision-init") << " * options->decisionStopOnly: "
                          << options::decisionStopOnly() << std::endl;
 
   if(options::decisionMode() == decision::DECISION_STRATEGY_INTERNAL) { }
   if(options::decisionMode() == decision::DECISION_STRATEGY_JUSTIFICATION) {
-    ITEDecisionStrategy* ds = 
+    ITEDecisionStrategy* ds =
       new decision::JustificationHeuristic(this, d_userContext, d_satContext);
     enableStrategy(ds);
     d_needIteSkolemMap.push_back(ds);
@@ -107,7 +107,7 @@ void DecisionEngine::addAssertions(const vector<Node> &assertions)
   // d_result = SAT_VALUE_UNKNOWN;
   // d_assertions.reserve(assertions.size());
   // for(unsigned i = 0; i < assertions.size(); ++i)
-  //   d_assertions.push_back(assertions[i]); 
+  //   d_assertions.push_back(assertions[i]);
 }
 
 void DecisionEngine::addAssertions(const vector<Node> &assertions,
@@ -116,11 +116,11 @@ void DecisionEngine::addAssertions(const vector<Node> &assertions,
 {
   // new assertions, reset whatever result we knew
   d_result = SAT_VALUE_UNKNOWN;
-  
+
   // d_assertions.reserve(assertions.size());
   for(unsigned i = 0; i < assertions.size(); ++i)
     d_assertions.push_back(assertions[i]);
-  
+
   for(unsigned i = 0; i < d_needIteSkolemMap.size(); ++i)
     d_needIteSkolemMap[i]->
       addAssertions(assertions, assertionsEnd, iteSkolemMap);

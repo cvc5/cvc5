@@ -16,6 +16,7 @@
  **/
 
 #include "theory/theory.h"
+#include "theory/bv/options.h"
 #include "theory/bv/theory_bv_rewriter.h"
 #include "theory/bv/theory_bv_rewrite_rules.h"
 #include "theory/bv/theory_bv_rewrite_rules_core.h"
@@ -178,10 +179,12 @@ RewriteResponse TheoryBVRewriter::RewriteExtract(TNode node, bool prerewrite) {
     return RewriteResponse(REWRITE_AGAIN_FULL, resultNode); 
   }
 
-  // if (RewriteRule<ExtractArith>::applies(node)) {
-  //   resultNode = RewriteRule<ExtractArith>::run<false>(node);
-  //   return RewriteResponse(REWRITE_AGAIN_FULL, resultNode); 
-  // }
+  if (options::bvExtractArithRewrite()) {
+    if (RewriteRule<ExtractArith>::applies(node)) {
+      resultNode = RewriteRule<ExtractArith>::run<false>(node);
+      return RewriteResponse(REWRITE_AGAIN_FULL, resultNode); 
+    }
+  }
 
   
   resultNode = LinearRewriteStrategy
@@ -214,7 +217,7 @@ RewriteResponse TheoryBVRewriter::RewriteConcat(TNode node, bool prerewrite) {
 RewriteResponse TheoryBVRewriter::RewriteAnd(TNode node, bool prerewrite) {
   Node resultNode = node;
   resultNode = LinearRewriteStrategy
-    < RewriteRule<FlattenAssocCommut>,
+    < RewriteRule<FlattenAssocCommutNoDuplicates>,
       RewriteRule<AndSimplify>
       >::apply(node);
 
@@ -233,10 +236,10 @@ RewriteResponse TheoryBVRewriter::RewriteAnd(TNode node, bool prerewrite) {
 
 RewriteResponse TheoryBVRewriter::RewriteOr(TNode node, bool prerewrite){
   Node resultNode = node;
-  // resultNode = LinearRewriteStrategy
-  //   < RewriteRule<FlattenAssocCommut>,
-  //     RewriteRule<OrSimplify>
-  //     >::apply(node);
+  resultNode = LinearRewriteStrategy
+    < RewriteRule<FlattenAssocCommutNoDuplicates>,
+      RewriteRule<OrSimplify>
+      >::apply(node);
 
   if (!prerewrite) {
     resultNode = LinearRewriteStrategy

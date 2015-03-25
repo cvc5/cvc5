@@ -35,7 +35,6 @@
 #include "expr/kind.h"
 #include "expr/metakind.h"
 #include "expr/node_value.h"
-#include "context/context.h"
 #include "util/subrange_bound.h"
 #include "util/tls.h"
 #include "options/options.h"
@@ -43,6 +42,7 @@
 namespace CVC4 {
 
 class StatisticsRegistry;
+class ResourceManager;
 
 namespace expr {
   namespace attr {
@@ -66,6 +66,11 @@ public:
   virtual void nmNotifyNewDatatypes(const std::vector<DatatypeType>& datatypes) { }
   virtual void nmNotifyNewVar(TNode n, uint32_t flags) { }
   virtual void nmNotifyNewSkolem(TNode n, const std::string& comment, uint32_t flags) { }
+  /**
+   * Notify a listener of a Node that's being GCed.  If this function stores a reference
+   * to the Node somewhere, very bad things will happen.
+   */
+  virtual void nmNotifyDeleteNode(TNode n) { }
 };/* class NodeManagerListener */
 
 class NodeManager {
@@ -97,6 +102,7 @@ class NodeManager {
 
   Options* d_options;
   StatisticsRegistry* d_statisticsRegistry;
+  ResourceManager* d_resourceManager;
 
   NodeValuePool d_nodeValuePool;
 
@@ -307,12 +313,14 @@ class NodeManager {
 
 public:
 
-  explicit NodeManager(context::Context* ctxt, ExprManager* exprManager);
-  explicit NodeManager(context::Context* ctxt, ExprManager* exprManager, const Options& options);
+  explicit NodeManager(ExprManager* exprManager);
+  explicit NodeManager(ExprManager* exprManager, const Options& options);
   ~NodeManager();
 
   /** The node manager in the current public-facing CVC4 library context */
   static NodeManager* currentNM() { return s_current; }
+  /** The resource manager associated with the current node manager */
+  static ResourceManager* currentResourceManager() { return s_current->d_resourceManager; }
 
   /** Get this node manager's options (const version) */
   const Options& getOptions() const {
@@ -323,6 +331,9 @@ public:
   Options& getOptions() {
     return *d_options;
   }
+
+  /** Get this node manager's resource manager */
+  ResourceManager* getResourceManager() throw() { return d_resourceManager; }
 
   /** Get this node manager's statistics registry */
   StatisticsRegistry* getStatisticsRegistry() const throw() {
@@ -674,6 +685,9 @@ public:
   /** Get the (singleton) type for RegExp. */
   inline TypeNode regexpType();
 
+  /** Get the (singleton) type for rounding modes. */
+  inline TypeNode roundingModeType();
+
   /** Get the bound var list type. */
   inline TypeNode boundVarListType();
 
@@ -752,6 +766,11 @@ public:
    * @returns the symbolic expression type (types[0], ..., types[n])
    */
   inline TypeNode mkSExprType(const std::vector<TypeNode>& types);
+
+  /** Make the type of floating-point with <code>exp</code> bit exponent and
+      <code>sig</code> bit significand */
+  inline TypeNode mkFloatingPointType(unsigned exp, unsigned sig);  
+  inline TypeNode mkFloatingPointType(FloatingPointSize fs);
 
   /** Make the type of bitvectors of size <code>size</code> */
   inline TypeNode mkBitVectorType(unsigned size);
@@ -969,6 +988,11 @@ inline TypeNode NodeManager::regexpType() {
   return TypeNode(mkTypeConst<TypeConstant>(REGEXP_TYPE));
 }
 
+/** Get the (singleton) type for rounding modes. */
+inline TypeNode NodeManager::roundingModeType() {
+  return TypeNode(mkTypeConst<TypeConstant>(ROUNDINGMODE_TYPE));
+}
+
 /** Get the bound var list type. */
 inline TypeNode NodeManager::boundVarListType() {
   return TypeNode(mkTypeConst<TypeConstant>(BOUND_VAR_LIST_TYPE));
@@ -1053,6 +1077,14 @@ inline TypeNode NodeManager::mkSExprType(const std::vector<TypeNode>& types) {
 
 inline TypeNode NodeManager::mkBitVectorType(unsigned size) {
   return TypeNode(mkTypeConst<BitVectorSize>(BitVectorSize(size)));
+}
+
+inline TypeNode NodeManager::mkFloatingPointType(unsigned exp, unsigned sig) {
+  return TypeNode(mkTypeConst<FloatingPointSize>(FloatingPointSize(exp,sig)));
+}
+
+inline TypeNode NodeManager::mkFloatingPointType(FloatingPointSize fs) {
+  return TypeNode(mkTypeConst<FloatingPointSize>(fs));
 }
 
 inline TypeNode NodeManager::mkArrayType(TypeNode indexType,

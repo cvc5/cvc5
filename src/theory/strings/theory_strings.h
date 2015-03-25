@@ -2,7 +2,7 @@
 /*! \file theory_strings.h
  ** \verbatim
  ** Original author: Tianyi Liang
- ** Major contributors: none
+ ** Major contributors: Andrew Reynolds
  ** Minor contributors (to current version): Martin Brain <>, Morgan Deters
  ** This file is part of the CVC4 project.
  ** Copyright (c) 2009-2014  New York University and The University of Iowa
@@ -26,6 +26,8 @@
 
 #include "context/cdchunk_list.h"
 #include "context/cdhashset.h"
+
+#include <climits>
 
 namespace CVC4 {
 namespace theory {
@@ -125,6 +127,8 @@ private:
   Node d_false;
   Node d_zero;
   Node d_one;
+  CVC4::Rational RMAXINT;
+  unsigned d_card_size;
   // Options
   bool d_opt_fmf;
   bool d_opt_regexp_gcd;
@@ -206,7 +210,6 @@ private:
   std::map< Node, EqcInfo* > d_eqc_info;
   EqcInfo * getOrMakeEqcInfo( Node eqc, bool doMake = true );
   //maintain which concat terms have the length lemma instantiated
-  NodeSet d_length_nodes;
   NodeNodeMap d_length_inst;
 private:
   void mergeCstVec(std::vector< Node > &vec_strings);
@@ -237,13 +240,24 @@ private:
   //bool unrollStar( Node atom );
   Node mkRegExpAntec(Node atom, Node ant);
 
-  bool checkSimple();
+  //bool checkSimple();
   bool checkNormalForms();
   void checkDeqNF();
   bool checkLengthsEqc();
   bool checkCardinality();
   bool checkInductiveEquations();
+  //check membership constraints
+  Node normalizeRegexp(Node r);
+  bool normalizePosMemberships(std::map< Node, std::vector< Node > > &memb_with_exps);
+  bool applyRConsume( CVC4::String &s, Node &r);
+  Node applyRSplit(Node s1, Node s2, Node r);
+  bool applyRLen(std::map< Node, std::vector< Node > > &XinR_with_exps);
+  bool checkMembershipsWithoutLength(
+    std::map< Node, std::vector< Node > > &memb_with_exps,
+    std::map< Node, std::vector< Node > > &XinR_with_exps);
   bool checkMemberships();
+  //temp
+  bool checkMemberships2();
   bool checkPDerivative(Node x, Node r, Node atom, bool &addedLemma,
     std::vector< Node > &processed, std::vector< Node > &cprocessed,
     std::vector< Node > &nf_exp);
@@ -281,6 +295,7 @@ protected:
   void sendLemma( Node ant, Node conc, const char * c );
   void sendInfer( Node eq_exp, Node eq, const char * c );
   void sendSplit( Node a, Node b, const char * c, bool preq = true );
+  void sendLengthLemma( Node n );
   /** mkConcat **/
   inline Node mkConcat( Node n1, Node n2 );
   inline Node mkConcat( Node n1, Node n2, Node n3 );
@@ -322,10 +337,17 @@ private:
   NodeList d_regexp_memberships;
   NodeSet d_regexp_ucached;
   NodeSet d_regexp_ccached;
+  // stored assertions
+  NodeListMap d_pos_memberships;
+  NodeListMap d_neg_memberships;
+  // semi normal forms for symbolic expression
+  std::map< Node, Node > d_nf_regexps;
+  std::map< Node, std::vector< Node > > d_nf_regexps_exp;
   // intersection
-  NodeListMap d_str_re_map;
   NodeNodeMap d_inter_cache;
   NodeIntMap d_inter_index;
+  // processed memberships
+  NodeSet d_processed_memberships;
   // antecedant for why regexp membership must be true
   NodeNodeMap d_regexp_ant;
   // membership length

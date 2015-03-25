@@ -25,12 +25,14 @@
 #include "decision/options.h"
 #include "theory/theory_engine.h"
 #include "theory/theory_registrar.h"
+#include "proof/proof_manager.h"
 #include "util/cvc4_assert.h"
 #include "options/options.h"
 #include "smt/options.h"
 #include "main/options.h"
 #include "util/output.h"
 #include "util/result.h"
+#include "util/resource_manager.h"
 #include "expr/expr.h"
 #include "expr/command.h"
 
@@ -73,19 +75,19 @@ PropEngine::PropEngine(TheoryEngine* te, DecisionEngine *de, Context* satContext
   d_satSolver(NULL),
   d_registrar(NULL),
   d_cnfStream(NULL),
-  d_satTimer(*this),
-  d_interrupted(false) {
+  d_interrupted(false),
+  d_resourceManager(NodeManager::currentResourceManager()) {
 
   Debug("prop") << "Constructing the PropEngine" << endl;
 
-  d_satSolver = SatSolverFactory::createDPLLMinisat(); 
+  d_satSolver = SatSolverFactory::createDPLLMinisat();
 
   d_registrar = new theory::TheoryRegistrar(d_theoryEngine);
   d_cnfStream = new CVC4::prop::TseitinCnfStream
     (d_satSolver, d_registrar,
      userContext,
-     // fullLitToNode Map = 
-     options::threads() > 1 || 
+     // fullLitToNode Map =
+     options::threads() > 1 ||
      options::decisionMode() == decision::DECISION_STRATEGY_RELEVANCY
      );
 
@@ -94,7 +96,7 @@ PropEngine::PropEngine(TheoryEngine* te, DecisionEngine *de, Context* satContext
 
   d_decisionEngine->setSatSolver(d_satSolver);
   d_decisionEngine->setCnfStream(d_cnfStream);
-  PROOF (ProofManager::currentPM()->initCnfProof(d_cnfStream); ); 
+  PROOF (ProofManager::currentPM()->initCnfProof(d_cnfStream); );
 }
 
 PropEngine::~PropEngine() {
@@ -109,15 +111,15 @@ void PropEngine::assertFormula(TNode node) {
   Assert(!d_inCheckSat, "Sat solver in solve()!");
   Debug("prop") << "assertFormula(" << node << ")" << endl;
   // Assert as non-removable
-  d_cnfStream->convertAndAssert(node, false, false);
+  d_cnfStream->convertAndAssert(node, false, false, RULE_GIVEN);
 }
 
-void PropEngine::assertLemma(TNode node, bool negated, bool removable) {
+void PropEngine::assertLemma(TNode node, bool negated, bool removable, ProofRule rule, TNode from) {
   //Assert(d_inCheckSat, "Sat solver should be in solve()!");
   Debug("prop::lemmas") << "assertLemma(" << node << ")" << endl;
 
-  // Assert as removable
-  d_cnfStream->convertAndAssert(node, removable, negated);
+  // Assert as (possibly) removable
+  d_cnfStream->convertAndAssert(node, removable, negated, rule, from);
 }
 
 void PropEngine::requirePhase(TNode n, bool phase) {
@@ -158,7 +160,7 @@ void PropEngine::printSatisfyingAssignment(){
   }
 }
 
-Result PropEngine::checkSat(unsigned long& millis, unsigned long& resource) {
+Result PropEngine::checkSat() {
   Assert(!d_inCheckSat, "Sat solver in solve()!");
   Debug("prop") << "PropEngine::checkSat()" << endl;
 
@@ -170,25 +172,23 @@ Result PropEngine::checkSat(unsigned long& millis, unsigned long& resource) {
   d_theoryEngine->presolve();
 
   if(options::preprocessOnly()) {
-    millis = resource = 0;
     return Result(Result::SAT_UNKNOWN, Result::REQUIRES_FULL_CHECK);
   }
-
-  // Set the timer
-  d_satTimer.set(millis);
 
   // Reset the interrupted flag
   d_interrupted = false;
 
   // Check the problem
-  SatValue result = d_satSolver->solve(resource);
-
-  millis = d_satTimer.elapsed();
+  SatValue result = d_satSolver->solve();
 
   if( result == SAT_VALUE_UNKNOWN ) {
-    Result::UnknownExplanation why =
-      d_satTimer.expired() ? Result::TIMEOUT :
-        (d_interrupted ? Result::INTERRUPTED : Result::RESOURCEOUT);
+
+    Result::UnknownExplanation why = Result::INTERRUPTED;
+    if (d_resourceManager->outOfTime())
+      why = Result::TIMEOUT;
+    if (d_resourceManager->outOfResources())
+      why = Result::RESOURCEOUT;
+
     return Result(Result::SAT_UNKNOWN, why);
   }
 
@@ -278,13 +278,11 @@ void PropEngine::interrupt() throw(ModalException) {
 
   d_interrupted = true;
   d_satSolver->interrupt();
-  d_theoryEngine->interrupt(); 
   Debug("prop") << "interrupt()" << endl;
 }
 
-void PropEngine::spendResource() throw() {
-  // TODO implement me
-  checkTime();
+void PropEngine::spendResource() throw (UnsafeInterruptException) {
+  d_resourceManager->spendResource();
 }
 
 bool PropEngine::properExplanation(TNode node, TNode expl) const {

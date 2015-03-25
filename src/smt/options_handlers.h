@@ -21,6 +21,7 @@
 
 #include "cvc4autoconfig.h"
 #include "util/dump.h"
+#include "util/resource_manager.h"
 #include "smt/modal_exception.h"
 #include "smt/smt_engine.h"
 #include "lib/strtok_r.h"
@@ -153,10 +154,6 @@ batch (default) \n\
   (MiniSat) propagation for all of them only after reaching a querying command\n\
   (CHECKSAT or QUERY or predicate SUBTYPE declaration)\n\
 \n\
-incremental\n\
-+ run nonclausal simplification and clausal propagation at each ASSERT\n\
-  (and at CHECKSAT/QUERY/SUBTYPE)\n\
-\n\
 none\n\
 + do not perform nonclausal simplification\n\
 ";
@@ -283,8 +280,6 @@ inline LogicInfo stringToLogicInfo(std::string option, std::string optarg, SmtEn
 inline SimplificationMode stringToSimplificationMode(std::string option, std::string optarg, SmtEngine* smt) throw(OptionException) {
   if(optarg == "batch") {
     return SIMPLIFICATION_MODE_BATCH;
-  } else if(optarg == "incremental") {
-    return SIMPLIFICATION_MODE_INCREMENTAL;
   } else if(optarg == "none") {
     return SIMPLIFICATION_MODE_NONE;
   } else if(optarg == "help") {
@@ -305,6 +300,11 @@ inline void beforeSearch(std::string option, bool value, SmtEngine* smt) throw(M
   }
 }
 
+inline void setProduceAssertions(std::string option, bool value, SmtEngine* smt) throw() {
+  options::produceAssertions.set(value);
+  options::interactiveMode.set(value);
+}
+
 // ensure we are a proof-enabled build of CVC4
 inline void proofEnabledBuild(std::string option, bool value, SmtEngine* smt) throw(OptionException) {
 #ifndef CVC4_PROOF
@@ -314,12 +314,6 @@ inline void proofEnabledBuild(std::string option, bool value, SmtEngine* smt) th
     throw OptionException(ss.str());
   }
 #endif /* CVC4_PROOF */
-}
-
-inline void unsatCoresEnabledBuild(std::string option, bool value, SmtEngine* smt) throw(OptionException) {
-  if(value) {
-    throw UnrecognizedOptionException("CVC4 does not yet have support for unsatisfiable cores");
-  }
 }
 
 // This macro is used for setting :regular-output-channel and :diagnostic-output-channel
@@ -457,6 +451,63 @@ inline void statsEnabledBuild(std::string option, bool value, SmtEngine* smt) th
     throw OptionException(ss.str());
   }
 #endif /* CVC4_STATISTICS_ON */
+}
+
+inline unsigned long tlimitHandler(std::string option, std::string optarg, SmtEngine* smt) throw(OptionException) {
+  unsigned long ms;
+  std::istringstream convert(optarg);
+  if (!(convert >> ms))
+    throw OptionException("option `"+option+"` requires a number as an argument");
+
+  // make sure the resource is set if the option is updated
+  // if the smt engine is null the resource will be set in the
+  if (smt != NULL) {
+    ResourceManager* rm = NodeManager::fromExprManager(smt->getExprManager())->getResourceManager();
+    rm->setTimeLimit(ms, true);
+  }
+  return ms;
+}
+
+inline unsigned long tlimitPerHandler(std::string option, std::string optarg, SmtEngine* smt) throw(OptionException) {
+  unsigned long ms;
+
+  std::istringstream convert(optarg);
+  if (!(convert >> ms))
+    throw OptionException("option `"+option+"` requires a number as an argument");
+
+  if (smt != NULL) {
+    ResourceManager* rm = NodeManager::fromExprManager(smt->getExprManager())->getResourceManager();
+    rm->setTimeLimit(ms, false);
+  }
+  return ms;
+}
+
+inline unsigned long rlimitHandler(std::string option, std::string optarg, SmtEngine* smt) throw(OptionException) {
+  unsigned long ms;
+
+  std::istringstream convert(optarg);
+  if (!(convert >> ms))
+    throw OptionException("option `"+option+"` requires a number as an argument");
+
+  if (smt != NULL) {
+    ResourceManager* rm = NodeManager::fromExprManager(smt->getExprManager())->getResourceManager();
+    rm->setResourceLimit(ms, true);
+  }
+  return ms;
+}
+
+inline unsigned long rlimitPerHandler(std::string option, std::string optarg, SmtEngine* smt) throw(OptionException) {
+  unsigned long ms;
+
+  std::istringstream convert(optarg);
+  if (!(convert >> ms))
+    throw OptionException("option `"+option+"` requires a number as an argument");
+
+  if (smt != NULL) {
+    ResourceManager* rm = NodeManager::fromExprManager(smt->getExprManager())->getResourceManager();
+    rm->setResourceLimit(ms, false);
+  }
+  return ms;
 }
 
 }/* CVC4::smt namespace */

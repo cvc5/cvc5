@@ -902,6 +902,11 @@ fi
 if test -z "$CXXTESTGEN"; then
   AC_PATH_PROG(CXXTESTGEN, cxxtestgen, [], [$CXXTEST:$PATH])
 fi
+# The latest version of cxxtest distributed from the git repository places
+# cxxtest under <cxxtest-root>/bin/cxxtest
+if test -z "$CXXTESTGEN"; then
+  AC_PATH_PROG(CXXTESTGEN, cxxtestgen, [], [$CXXTEST/bin:$PATH])
+fi
 if test "$enable_unit_testing" = "no"; then
   AC_MSG_NOTICE([unit tests disabled by user request.])
   CXXTESTGEN=

@@ -198,6 +198,9 @@ public:
   /** Get the current level of this symbol table. */
   size_t getLevel() const throw();
 
+  /** Reset everything. */
+  void reset();
+
 };/* class SymbolTable */
 
 }/* CVC4 namespace */

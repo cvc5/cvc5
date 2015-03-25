@@ -9,7 +9,7 @@ GLPK_LIBS=
 GLPK_LDFLAGS=
 if test "$with_glpk" = no; then
   AC_MSG_RESULT([no, glpk disabled by user])
-elif test "$with_glpk" = yes; then
+elif test -n "$with_glpk"; then
   AC_MSG_RESULT([yes, glpk requested by user])
 
   # Get the location of all the GLPK stuff

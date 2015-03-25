@@ -52,6 +52,7 @@ public:
   Node d_true;
   Node d_false;
   context::CDO<bool> d_modelBuilt;
+  mutable std::hash_map<Node, Node, NodeHashFunction> d_modelCache;
 
 protected:
   /** reset the model */

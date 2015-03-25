@@ -67,6 +67,7 @@ bool EagerBitblastSolver::isInitialized() {
 }
 
 void EagerBitblastSolver::assertFormula(TNode formula) {
+  d_bv->spendResource();
   Assert (isInitialized());
   Debug("bitvector-eager") << "EagerBitblastSolver::assertFormula "<< formula <<"\n"; 
   d_assertionSet.insert(formula);

@@ -24,6 +24,7 @@
 #include "util/statistics_registry.h"
 #include "context/cdlist.h"
 #include "prop/sat_solver_types.h"
+#include "expr/node.h"
 
 namespace CVC4 {
 namespace prop {
@@ -38,7 +39,7 @@ public:
   virtual ~SatSolver() { }
 
   /** Assert a clause in the solver. */
-  virtual void addClause(SatClause& clause, bool removable) = 0;
+  virtual void addClause(SatClause& clause, bool removable, uint64_t proof_id) = 0;
 
   /**
    * Create a new boolean variable in the solver.
@@ -60,9 +61,6 @@ public:
 
   /** Check the satisfiability of the added clauses */
   virtual SatValue solve(long unsigned int&) = 0;
-
-  /** Instruct the solver that it should bump its consumed resource count. */
-  virtual void spendResource() = 0;
 
   /** Interrupt the solver */
   virtual void interrupt() = 0;
@@ -98,6 +96,7 @@ public:
      * Notify about a learnt clause.
      */
     virtual void notify(SatClause& clause) = 0;
+    virtual void spendResource() = 0;
     virtual void safePoint() = 0;
     
   };/* class BVSatSolverInterface::Notify */

@@ -35,20 +35,13 @@
 #
 
 my $excluded_directories = '^(minisat|bvminisat|CVS|generated)$';
-my $excluded_paths = '^(src/parser/antlr_input_imports.cpp|src/bindings/compat/.*)$';
+my $excluded_paths = '^(src/parser/antlr_input_imports.cpp|src/bindings/compat/.*|src/util/channel.h)$';
 
 # Years of copyright for the template.  E.g., the string
 # "1985, 1987, 1992, 1997, 2008" or "2006-2009" or whatever.
 my $years = '2009-2014';
 
 my $standard_template = <<EOF;
- ** This file is part of the CVC4 project.
- ** Copyright (c) $years  New York University and The University of Iowa
- ** See the file COPYING in the top-level source directory for licensing
- ** information.\\endverbatim
-EOF
-
-my $public_template = <<EOF;
  ** This file is part of the CVC4 project.
  ** Copyright (c) $years  New York University and The University of Iowa
  ** See the file COPYING in the top-level source directory for licensing
@@ -164,16 +157,24 @@ sub handleFile {
     print $OUT " ** Original author: $author\n";
     print $OUT " ** Major contributors: $major_contributors\n";
     print $OUT " ** Minor contributors (to current version): $minor_contributors\n";
-    print $OUT $standard_template;
-    print $OUT " **\n";
+    my $comment_stub = "";
     while(my $line = <$IN>) {
+      if($line =~ /\b[Cc]opyright\b/ && $line !~ /\bNew York University and The University of Iowa\b/) {
+        # someone else holds this copyright
+        print $OUT $line;
+      }
       last if $line =~ /^ \*\*\s*$/;
       if($line =~ /\*\//) {
-        print $OUT " ** [[ Add lengthier description here ]]\n";
-        print $OUT " ** \\todo document this file\n";
-        print $OUT $line;
+        $comment_stub = " ** [[ Add lengthier description here ]]\n\
+ ** \\todo document this file\n\
+$line";
         last;
       }
+    }
+    print $OUT $standard_template;
+    print $OUT " **\n";
+    if($comment_stub) {
+      print $OUT $comment_stub;
     }
   } else {
     my $line = $_;

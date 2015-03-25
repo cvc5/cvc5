@@ -17,7 +17,6 @@
 #include "expr/node_manager.h"
 #include "expr/expr_manager.h"
 #include "expr/variable_type_map.h"
-#include "context/context.h"
 #include "options/options.h"
 #include "util/statistics_registry.h"
 
@@ -29,7 +28,7 @@ ${includes}
 // compiler directs the user to the template file instead of the
 // generated one.  We don't want the user to modify the generated one,
 // since it'll get overwritten on a later build.
-#line 33 "${template}"
+#line 32 "${template}"
 
 #ifdef CVC4_STATISTICS_ON
   #define INC_STAT(kind) \
@@ -64,14 +63,12 @@ ${includes}
 #endif
 
 using namespace std;
-using namespace CVC4::context;
 using namespace CVC4::kind;
 
 namespace CVC4 {
 
 ExprManager::ExprManager() :
-  d_ctxt(new Context()),
-  d_nodeManager(new NodeManager(d_ctxt, this)) {
+  d_nodeManager(new NodeManager(this)) {
 #ifdef CVC4_STATISTICS_ON
   for (unsigned i = 0; i < kind::LAST_KIND; ++ i) {
     d_exprStatistics[i] = NULL;
@@ -83,8 +80,7 @@ ExprManager::ExprManager() :
 }
 
 ExprManager::ExprManager(const Options& options) :
-  d_ctxt(new Context()),
-  d_nodeManager(new NodeManager(d_ctxt, this, options)) {
+  d_nodeManager(new NodeManager(this, options)) {
 #ifdef CVC4_STATISTICS_ON
   for (unsigned i = 0; i < LAST_TYPE; ++ i) {
     d_exprStatisticsVars[i] = NULL;
@@ -105,18 +101,20 @@ ExprManager::~ExprManager() throw() {
       if (d_exprStatistics[i] != NULL) {
         d_nodeManager->getStatisticsRegistry()->unregisterStat_(d_exprStatistics[i]);
         delete d_exprStatistics[i];
+        d_exprStatistics[i] = NULL;
       }
     }
     for (unsigned i = 0; i < LAST_TYPE; ++ i) {
       if (d_exprStatisticsVars[i] != NULL) {
         d_nodeManager->getStatisticsRegistry()->unregisterStat_(d_exprStatisticsVars[i]);
         delete d_exprStatisticsVars[i];
+        d_exprStatisticsVars[i] = NULL;
       }
     }
 #endif
 
     delete d_nodeManager;
-    delete d_ctxt;
+    d_nodeManager = NULL;
 
   } catch(Exception& e) {
     Warning() << "CVC4 threw an exception during cleanup." << std::endl
@@ -130,6 +128,10 @@ StatisticsRegistry* ExprManager::getStatisticsRegistry() throw() {
 
 const Options& ExprManager::getOptions() const {
   return d_nodeManager->getOptions();
+}
+
+ResourceManager* ExprManager::getResourceManager() throw() {
+  return d_nodeManager->getResourceManager();
 }
 
 BooleanType ExprManager::booleanType() const {
@@ -151,6 +153,12 @@ IntegerType ExprManager::integerType() const {
   NodeManagerScope nms(d_nodeManager);
   return IntegerType(Type(d_nodeManager, new TypeNode(d_nodeManager->integerType())));
 }
+
+RoundingModeType ExprManager::roundingModeType() const {
+  NodeManagerScope nms(d_nodeManager);
+  return RoundingModeType(Type(d_nodeManager, new TypeNode(d_nodeManager->roundingModeType())));
+}
+
 
 Expr ExprManager::mkExpr(Kind kind, Expr child1) {
   const kind::MetaKind mk = kind::metaKindOf(kind);
@@ -571,6 +579,11 @@ SExprType ExprManager::mkSExprType(const std::vector<Type>& types) {
   return SExprType(Type(d_nodeManager, new TypeNode(d_nodeManager->mkSExprType(typeNodes))));
 }
 
+FloatingPointType ExprManager::mkFloatingPointType(unsigned exp, unsigned sig) const {
+  NodeManagerScope nms(d_nodeManager);
+  return FloatingPointType(Type(d_nodeManager, new TypeNode(d_nodeManager->mkFloatingPointType(exp,sig))));
+}
+
 BitVectorType ExprManager::mkBitVectorType(unsigned size) const {
   NodeManagerScope nms(d_nodeManager);
   return BitVectorType(Type(d_nodeManager, new TypeNode(d_nodeManager->mkBitVectorType(size))));
@@ -956,10 +969,6 @@ unsigned ExprManager::maxArity(Kind kind) {
 
 NodeManager* ExprManager::getNodeManager() const {
   return d_nodeManager;
-}
-
-Context* ExprManager::getContext() const {
-  return d_ctxt;
 }
 
 Statistics ExprManager::getStatistics() const throw() {

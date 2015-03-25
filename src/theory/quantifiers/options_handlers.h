@@ -29,16 +29,16 @@ namespace quantifiers {
 static const std::string instWhenHelp = "\
 Modes currently supported by the --inst-when option:\n\
 \n\
-full (default)\n\
+full-last-call (default)\n\
++ Alternate running instantiation rounds at full effort and last\n\
+  call.  In other words, interleave instantiation and theory combination.\n\
+\n\
+full\n\
 + Run instantiation round at full effort, before theory combination.\n\
 \n\
 full-delay \n\
 + Run instantiation round at full effort, before theory combination, after\n\
   all other theories have finished.\n\
-\n\
-full-last-call\n\
-+ Alternate running instantiation rounds at full effort and last\n\
-  call.  In other words, interleave instantiation and theory combination.\n\
 \n\
 last-call\n\
 + Run instantiation at last call effort, after theory combination and\n\
@@ -88,18 +88,12 @@ default \n\
 none \n\
 + Disable model-based quantifier instantiation.\n\
 \n\
-instgen \n\
-+ Use instantiation algorithm that mimics Inst-Gen calculus. \n\
-\n\
 gen-ev \n\
 + Use model-based quantifier instantiation algorithm from CADE 24 finite\n\
   model finding paper based on generalizing evaluations.\n\
 \n\
 fmc-interval \n\
 + Same as default, but with intervals for models of integer functions.\n\
-\n\
-interval \n\
-+ Use algorithm that abstracts domain elements as intervals. \n\
 \n\
 abs \n\
 + Use abstract MBQI algorithm (uses disjoint sets). \n\
@@ -141,12 +135,15 @@ mc \n\
 static const std::string userPatModeHelp = "\
 User pattern modes currently supported by the --user-pat option:\n\
 \n\
-default \n\
-+ Default, use both user-provided and auto-generated patterns when patterns\n\
-  are provided for a quantified formula.\n\
-\n\
 trust \n\
 + When provided, use only user-provided patterns for a quantified formula.\n\
+\n\
+use \n\
++ Use both user-provided and auto-generated patterns when patterns\n\
+  are provided for a quantified formula.\n\
+\n\
+resort \n\
++ Use user-provided patterns only after auto-generated patterns saturate.\n\
 \n\
 ignore \n\
 + Ignore user-provided patterns. \n\
@@ -165,6 +162,46 @@ max \n\
 + Consider only maximal subterms that meet criteria for triggers. \n\
 \n\
 ";
+static const std::string prenexQuantModeHelp = "\
+Prenex quantifiers modes currently supported by the --prenex-quant option:\n\
+\n\
+default \n\
++ Default, prenex all nested quantifiers except those with user patterns.\n\
+\n\
+all \n\
++ Prenex all nested quantifiers.\n\
+\n\
+none \n\
++ Do no prenex nested quantifiers. \n\
+\n\
+";
+static const std::string cegqiFairModeHelp = "\
+Modes for enforcing fairness for counterexample guided quantifier instantion, supported by --cegqi-fair:\n\
+\n\
+uf-dt-size \n\
++ Enforce fairness using an uninterpreted function for datatypes size.\n\
+\n\
+default | dt-size \n\
++ Default, enforce fairness using size theory operator.\n\
+\n\
+dt-height-bound \n\
++ Enforce fairness by height bound predicate.\n\
+\n\
+none \n\
++ Do not enforce fairness. \n\
+\n\
+";
+static const std::string termDbModeHelp = "\
+Modes for term database, supported by --term-db-mode:\n\
+\n\
+all  \n\
++ Consider all terms in the system.\n\
+\n\
+relevant \n\
++ Consider only terms connected to current assertions. \n\
+\n\
+";
+
 inline InstWhenMode stringToInstWhenMode(std::string option, std::string optarg, SmtEngine* smt) throw(OptionException) {
   if(optarg == "pre-full") {
     return INST_WHEN_PRE_FULL;
@@ -234,14 +271,10 @@ inline MbqiMode stringToMbqiMode(std::string option, std::string optarg, SmtEngi
     return MBQI_GEN_EVAL;
   } else if(optarg == "none") {
     return MBQI_NONE;
-  } else if(optarg == "instgen") {
-    return MBQI_INST_GEN;
   } else if(optarg == "default" || optarg ==  "fmc") {
     return MBQI_FMC;
   } else if(optarg == "fmc-interval") {
     return MBQI_FMC_INTERVAL;
-  } else if(optarg == "interval") {
-    return MBQI_INTERVAL;
   } else if(optarg == "abs") {
     return MBQI_ABS;
   } else if(optarg == "trust") {
@@ -295,10 +328,12 @@ inline QcfMode stringToQcfMode(std::string option, std::string optarg, SmtEngine
 }
 
 inline UserPatMode stringToUserPatMode(std::string option, std::string optarg, SmtEngine* smt) throw(OptionException) {
-  if(optarg ==  "default") {
-    return USER_PAT_MODE_DEFAULT;
-  } else if(optarg == "trust") {
+  if(optarg == "use") {
+    return USER_PAT_MODE_USE;
+  } else if(optarg ==  "default" || optarg == "trust") {
     return USER_PAT_MODE_TRUST;
+  } else if(optarg == "resort") {
+    return USER_PAT_MODE_RESORT;
   } else if(optarg == "ignore") {
     return USER_PAT_MODE_IGNORE;
   } else if(optarg ==  "help") {
@@ -309,6 +344,7 @@ inline UserPatMode stringToUserPatMode(std::string option, std::string optarg, S
                           optarg + "'.  Try --user-pat help.");
   }
 }
+
 inline TriggerSelMode stringToTriggerSelMode(std::string option, std::string optarg, SmtEngine* smt) throw(OptionException) {
   if(optarg ==  "default" || optarg == "all" ) {
     return TRIGGER_SEL_DEFAULT;
@@ -324,6 +360,55 @@ inline TriggerSelMode stringToTriggerSelMode(std::string option, std::string opt
                           optarg + "'.  Try --trigger-sel help.");
   }
 }
+
+inline PrenexQuantMode stringToPrenexQuantMode(std::string option, std::string optarg, SmtEngine* smt) throw(OptionException) {
+  if(optarg ==  "default" ) {
+    return PRENEX_NO_USER_PAT;
+  } else if(optarg == "all") {
+    return PRENEX_ALL;
+  } else if(optarg == "none") {
+    return PRENEX_NONE;
+  } else if(optarg ==  "help") {
+    puts(prenexQuantModeHelp.c_str());
+    exit(1);
+  } else {
+    throw OptionException(std::string("unknown option for --prenex-quant: `") +
+                          optarg + "'.  Try --prenex-quant help.");
+  }
+}
+
+inline CegqiFairMode stringToCegqiFairMode(std::string option, std::string optarg, SmtEngine* smt) throw(OptionException) {
+  if(optarg == "uf-dt-size" ) {
+    return CEGQI_FAIR_UF_DT_SIZE;
+  } else if(optarg == "default" || optarg == "dt-size") {
+    return CEGQI_FAIR_DT_SIZE;
+  } else if(optarg == "dt-height-bound" ){
+    return CEGQI_FAIR_DT_HEIGHT_PRED;
+  } else if(optarg == "none") {
+    return CEGQI_FAIR_NONE;
+  } else if(optarg ==  "help") {
+    puts(cegqiFairModeHelp.c_str());
+    exit(1);
+  } else {
+    throw OptionException(std::string("unknown option for --cegqi-fair: `") +
+                          optarg + "'.  Try --cegqi-fair help.");
+  }
+}
+
+inline TermDbMode stringToTermDbMode(std::string option, std::string optarg, SmtEngine* smt) throw(OptionException) {
+  if(optarg == "all" ) {
+    return TERM_DB_ALL;
+  } else if(optarg == "relevant") {
+    return TERM_DB_RELEVANT;
+  } else if(optarg ==  "help") {
+    puts(termDbModeHelp.c_str());
+    exit(1);
+  } else {
+    throw OptionException(std::string("unknown option for --term-db-mode: `") +
+                          optarg + "'.  Try --term-db-mode help.");
+  }
+}
+
 }/* CVC4::theory::quantifiers namespace */
 }/* CVC4::theory namespace */
 }/* CVC4 namespace */

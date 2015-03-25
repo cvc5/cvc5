@@ -16,6 +16,11 @@ Theory$camel::Theory$camel(context::Context* c,
 }/* Theory$camel::Theory$camel() */
 
 void Theory$camel::check(Effort level) {
+  if (done() && !fullEffort(level)) {
+    return;
+  }
+
+  TimerStat::CodeTimer checkTimer(d_checkTime);
 
   while(!done()) {
     // Get all the assertions

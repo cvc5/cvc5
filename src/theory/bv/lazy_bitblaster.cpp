@@ -60,11 +60,11 @@ TLazyBitblaster::TLazyBitblaster(context::Context* c, bv::TheoryBV* bv, const st
            ProofManager::currentPM()->getBitVectorProof()->initCnfProof(d_cnfStream);
          }
          ); 
-  prop::BVSatSolverInterface::Notify* notify = d_emptyNotify ?
+  d_satSolverNotify = d_emptyNotify ?
     (prop::BVSatSolverInterface::Notify*) new MinisatEmptyNotify() :
     (prop::BVSatSolverInterface::Notify*) new MinisatNotify(d_cnfStream, bv, this);
 
-  d_satSolver->setNotify(notify);
+  d_satSolver->setNotify(d_satSolverNotify);
 }
 
 void TLazyBitblaster::setAbstraction(AbstractionModule* abs) {
@@ -76,6 +76,9 @@ TLazyBitblaster::~TLazyBitblaster() {
   delete d_nullRegistrar;
   delete d_nullContext;
   delete d_satSolver;
+  delete d_satSolverNotify;
+  d_assertedAtoms->deleteSelf();
+  d_explanations->deleteSelf();
 }
 
 
@@ -123,7 +126,7 @@ void TLazyBitblaster::bbAtom(TNode node) {
     Assert (!atom_bb.isNull()); 
     Node atom_definition = utils::mkNode(kind::IFF, node, atom_bb);
     storeBBAtom(node, atom_bb);
-    d_cnfStream->convertAndAssert(atom_definition, false, false); 
+    d_cnfStream->convertAndAssert(atom_definition, false, false, RULE_INVALID, TNode::null());
     return; 
   }
 
@@ -139,7 +142,7 @@ void TLazyBitblaster::bbAtom(TNode node) {
   // asserting that the atom is true iff the definition holds
   Node atom_definition = utils::mkNode(kind::IFF, node, atom_bb);
   storeBBAtom(node, atom_bb);
-  d_cnfStream->convertAndAssert(atom_definition, false, false);
+  d_cnfStream->convertAndAssert(atom_definition, false, false, RULE_INVALID, TNode::null());
 }
 
 void TLazyBitblaster::storeBBAtom(TNode atom, Node atom_bb) {
@@ -180,6 +183,7 @@ void TLazyBitblaster::bbTerm(TNode node, Bits& bits) {
     return;
   }
 
+  d_bv->spendResource();
   Debug("bitvector-bitblast") << "Bitblasting node " << node <<"\n";
   ++d_statistics.d_numTerms;
 
@@ -365,6 +369,10 @@ void TLazyBitblaster::MinisatNotify::notify(prop::SatClause& clause) {
   }
 }
 
+void TLazyBitblaster::MinisatNotify::spendResource() {
+  d_bv->spendResource();
+}
+
 void TLazyBitblaster::MinisatNotify::safePoint() {
   d_bv->d_out->safePoint();
 }
@@ -488,6 +496,7 @@ void TLazyBitblaster::collectModelInfo(TheoryModel* m, bool fullModel) {
 void TLazyBitblaster::clearSolver() {
   Assert (d_ctx->getLevel() == 0); 
   delete d_satSolver;
+  delete d_satSolverNotify;
   delete d_cnfStream;
   d_assertedAtoms->deleteSelf();
   d_assertedAtoms = new(true) context::CDList<prop::SatLiteral>(d_ctx);
@@ -495,16 +504,17 @@ void TLazyBitblaster::clearSolver() {
   d_explanations = new(true) ExplanationMap(d_ctx);
   d_bbAtoms.clear();
   d_variables.clear();
-  d_termCache.clear(); 
+  d_termCache.clear();
   
+  invalidateModelCache();  
   // recreate sat solver
   d_satSolver = prop::SatSolverFactory::createMinisat(d_ctx);
   d_cnfStream = new prop::TseitinCnfStream(d_satSolver,
-                                           new prop::NullRegistrar(),
-                                           new context::Context());
+                                           d_nullRegistrar,
+                                           d_nullContext);
 
-  prop::BVSatSolverInterface::Notify* notify = d_emptyNotify ?
+  d_satSolverNotify = d_emptyNotify ?
     (prop::BVSatSolverInterface::Notify*) new MinisatEmptyNotify() :
     (prop::BVSatSolverInterface::Notify*) new MinisatNotify(d_cnfStream, d_bv, this);
-  d_satSolver->setNotify(notify);
+  d_satSolver->setNotify(d_satSolverNotify);
 }

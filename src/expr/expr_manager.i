@@ -52,6 +52,18 @@
 %template(mkConst) CVC4::ExprManager::mkConst<CVC4::BitVectorSignExtend>;
 %template(mkConst) CVC4::ExprManager::mkConst<CVC4::BitVectorZeroExtend>;
 %template(mkConst) CVC4::ExprManager::mkConst<CVC4::BitVectorRotateRight>;
+%template(mkConst) CVC4::ExprManager::mkConst<CVC4::IntToBitVector>;
+//%template(mkConst) CVC4::ExprManager::mkConst<CVC4::FloatingPoint>;
+//%template(mkConst) CVC4::ExprManager::mkConst<CVC4::RoundingMode>;
+//%template(mkConst) CVC4::ExprManager::mkConst<CVC4::FloatingPointSize>;
+//%template(mkConst) CVC4::ExprManager::mkConst<CVC4::FloatingPointToFPIEEEBitVector>;
+//%template(mkConst) CVC4::ExprManager::mkConst<CVC4::FloatingPointToFPFloatingPoint>;
+//%template(mkConst) CVC4::ExprManager::mkConst<CVC4::FloatingPointToFPReal>;
+//%template(mkConst) CVC4::ExprManager::mkConst<CVC4::FloatingPointToFPSignedBitVector>;
+//%template(mkConst) CVC4::ExprManager::mkConst<CVC4::FloatingPointToFPUnsignedBitVector>;
+//%template(mkConst) CVC4::ExprManager::mkConst<CVC4::FloatingPointToFPGeneric>;
+//%template(mkConst) CVC4::ExprManager::mkConst<CVC4::FloatingPointToUBV>;
+//%template(mkConst) CVC4::ExprManager::mkConst<CVC4::FloatingPointToSBV>;
 %template(mkConst) CVC4::ExprManager::mkConst<CVC4::UninterpretedConstant>;
 %template(mkConst) CVC4::ExprManager::mkConst<CVC4::kind::Kind_t>;
 %template(mkConst) CVC4::ExprManager::mkConst<CVC4::Datatype>;
@@ -63,6 +75,7 @@
 %template(mkConst) CVC4::ExprManager::mkConst<CVC4::Rational>;
 %template(mkConst) CVC4::ExprManager::mkConst<CVC4::BitVector>;
 %template(mkConst) CVC4::ExprManager::mkConst<CVC4::Predicate>;
+%template(mkConst) CVC4::ExprManager::mkConst<CVC4::EmptySet>;
 %template(mkConst) CVC4::ExprManager::mkConst<CVC4::String>;
 %template(mkConst) CVC4::ExprManager::mkConst<CVC4::RegExp>;
 %template(mkConst) CVC4::ExprManager::mkConst<bool>;

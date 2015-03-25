@@ -29,7 +29,7 @@ SharedTermsDatabase::SharedTermsDatabase(TheoryEngine* theoryEngine, context::Co
 , d_alreadyNotifiedMap(context)
 , d_registeredEqualities(context)
 , d_EENotify(*this)
-, d_equalityEngine(d_EENotify, context, "SharedTermsDatabase")
+, d_equalityEngine(d_EENotify, context, "SharedTermsDatabase", true)
 , d_theoryEngine(theoryEngine)
 , d_inConflict(context, false)
 {

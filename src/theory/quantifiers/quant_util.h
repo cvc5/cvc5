@@ -27,16 +27,20 @@
 namespace CVC4 {
 namespace theory {
 
+class QuantifiersEngine;
 
 class QuantArith
 {
 public:
+  static bool getMonomial( Node n, Node& c, Node& v );
   static bool getMonomial( Node n, std::map< Node, Node >& msum );
   static bool getMonomialSum( Node n, std::map< Node, Node >& msum );
   static bool getMonomialSumLit( Node lit, std::map< Node, Node >& msum );
   static bool isolate( Node v, std::map< Node, Node >& msum, Node & veq, Kind k );
   static Node negate( Node t );
   static Node offset( Node t, int i );
+  static void debugPrintMonomialSum( std::map< Node, Node >& msum, const char * c );
+  static bool solveEqualityFor( Node lit, Node v, Node & veq );
 };
 
 
@@ -108,6 +112,7 @@ public:
 
   virtual void setLiberal( bool l ) = 0;
 };/* class EqualityQuery */
+
 
 }
 }

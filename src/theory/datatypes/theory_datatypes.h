@@ -22,8 +22,8 @@
 #include "theory/theory.h"
 #include "util/datatype.h"
 #include "util/hash.h"
-#include "util/trans_closure.h"
 #include "theory/uf/equality_engine.h"
+#include "theory/datatypes/datatypes_sygus.h"
 
 #include <ext/hash_set>
 #include <iostream>
@@ -34,10 +34,7 @@ namespace CVC4 {
 namespace theory {
 namespace datatypes {
 
-class EqualityQueryTheory;
-
 class TheoryDatatypes : public Theory {
-  friend class EqualityQueryTheory;
 private:
   typedef context::CDChunkList<Node> NodeList;
   typedef context::CDHashMap<Node, NodeList*, NodeHashFunction> NodeListMap;
@@ -123,14 +120,18 @@ private:
     //all selectors whose argument is this eqc
     context::CDO< bool > d_selectors;
   };
-  /** does eqc of n have a label? */
+  /** does eqc of n have a label (do we know its constructor)? */
   bool hasLabel( EqcInfo* eqc, Node n );
   /** get the label associated to n */
   Node getLabel( Node n );
   /** get the index of the label associated to n */
   int getLabelIndex( EqcInfo* eqc, Node n );
+  /** does eqc of n have any testers? */
+  bool hasTester( Node n );
   /** get the possible constructors for n */
   void getPossibleCons( EqcInfo* eqc, Node n, std::vector< bool >& cons );
+  /** mkExpDefSkolem */
+  void mkExpDefSkolem( Node sel, TypeNode dt, TypeNode rt );
 private:
   /** The notify class */
   NotifyClass d_notify;
@@ -138,12 +139,10 @@ private:
   eq::EqualityEngine d_equalityEngine;
   /** information necessary for equivalence classes */
   std::map< Node, EqcInfo* > d_eqc_info;
-  /** selector applications */
-  //BoolMap d_selector_apps;
   /** map from nodes to their instantiated equivalent for each constructor type */
   std::map< Node, std::map< int, Node > > d_inst_map;
   /** which instantiation lemmas we have sent */
-  std::map< Node, std::vector< Node > > d_inst_lemmas;
+  //std::map< Node, std::vector< Node > > d_inst_lemmas;
   /** labels for each equivalence class
    * for each eqc n, d_labels[n] is testers that hold for this equivalence class, either:
    * a list of equations of the form
@@ -157,9 +156,11 @@ private:
   /** selector apps for eqch equivalence class */
   NodeListMap d_selector_apps;
   /** constructor terms */
-  BoolMap d_consEqc;
+  //BoolMap d_consEqc;
   /** Are we in conflict */
   context::CDO<bool> d_conflict;
+  /** Added lemma ? */
+  bool d_addedLemma;
   /** The conflict node */
   Node d_conflictNode;
   /** cache for which terms we have called collectTerms(...) on */
@@ -168,12 +169,17 @@ private:
   std::vector< Node > d_pending;
   std::map< Node, Node > d_pending_exp;
   std::vector< Node > d_pending_merge;
-  /** expand definition skolem functions */
-  std::map< Node, Node > d_exp_def_skolem;
   /** All the constructor terms that the theory has seen */
   context::CDList<TNode> d_consTerms;
   /** All the selector terms that the theory has seen */
   context::CDList<TNode> d_selTerms;
+  /** counter for forcing assignments (ensures fairness) */
+  unsigned d_dtfCounter;
+  /** expand definition skolem functions */
+  std::map< Node, Node > d_exp_def_skolem;
+  /** sygus utilities */
+  SygusSplit * d_sygus_split;
+  SygusSymBreak * d_sygus_sym_break;
 private:
   /** assert fact */
   void assertFact( Node fact, Node exp );
@@ -222,6 +228,7 @@ public:
 
   void check(Effort e);
   void preRegisterTerm(TNode n);
+  void finishInit();
   Node expandDefinition(LogicRequest &logicRequest, Node n);
   Node ppRewrite(TNode n);
   void presolve();
@@ -254,11 +261,11 @@ private:
                           std::map< Node, Node >& cn,
                           std::map< Node, std::map< Node, int > >& dni, int dniLvl, bool mkExp );
   /** build model */
-  Node getCodatatypesValue( Node n, std::map< Node, Node >& eqc_cons, std::map< Node, Node >& eqc_mu, std::map< Node, Node >& vmap );
+  Node getCodatatypesValue( Node n, std::map< Node, Node >& eqc_cons, std::map< Node, Node >& eqc_mu, std::map< Node, Node >& vmap, std::vector< Node >& fv );
   /** collect terms */
   void collectTerms( Node n );
   /** get instantiate cons */
-  Node getInstantiateCons( Node n, const Datatype& dt, int index, bool mkVar, bool isActive );
+  Node getInstantiateCons( Node n, const Datatype& dt, int index );
   /** process new term that was created internally */
   void processNewTerm( Node n );
   /** check instantiate */

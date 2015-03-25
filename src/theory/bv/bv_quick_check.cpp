@@ -25,10 +25,10 @@ using namespace CVC4::theory::bv;
 using namespace CVC4::prop;
 
 BVQuickCheck::BVQuickCheck(const std::string& name, theory::bv::TheoryBV* bv)
-  : d_ctx(new context::Context())
-  , d_bitblaster(new TLazyBitblaster(d_ctx, bv, name, true))
+  : d_ctx()
+  , d_bitblaster(new TLazyBitblaster(&d_ctx, bv, name, true))
   , d_conflict()
-  , d_inConflict(d_ctx, false)
+  , d_inConflict(&d_ctx, false)
 {}
 
 
@@ -100,11 +100,11 @@ bool BVQuickCheck::addAssertion(TNode assertion) {
 
 
 void BVQuickCheck::push() {
-  d_ctx->push();
+  d_ctx.push();
 }
 
 void BVQuickCheck::pop() {
-  d_ctx->pop();
+  d_ctx.pop();
 }
 
 BVQuickCheck::vars_iterator BVQuickCheck::beginVars() {
@@ -114,8 +114,8 @@ BVQuickCheck::vars_iterator BVQuickCheck::endVars() {
   return d_bitblaster->endVars(); 
 }
 
-Node BVQuickCheck::getVarValue(TNode var) {
-  return d_bitblaster->getTermModel(var, true); 
+Node BVQuickCheck::getVarValue(TNode var, bool fullModel) {
+  return d_bitblaster->getTermModel(var, fullModel); 
 }
 
 
@@ -130,8 +130,8 @@ void BVQuickCheck::clearSolver() {
 }
 
 void BVQuickCheck::popToZero() {
-  while (d_ctx->getLevel() > 0) {
-    d_ctx->pop();
+  while (d_ctx.getLevel() > 0) {
+    d_ctx.pop();
   }
 }
 
@@ -140,6 +140,7 @@ void BVQuickCheck::collectModelInfo(theory::TheoryModel* model, bool fullModel) 
 }
 
 BVQuickCheck::~BVQuickCheck() {
+  clearSolver();
   delete d_bitblaster;
 }
 
@@ -149,9 +150,9 @@ QuickXPlain::QuickXPlain(const std::string& name, BVQuickCheck* solver, unsigned
   , d_numCalled(0)
   , d_minRatioSum(0)
   , d_numConflicts(0)
-  , d_period(20)
-  , d_thresh(0.7)
-  , d_hardThresh(0.9)
+  // , d_period(20)
+  // , d_thresh(0.7)
+  // , d_hardThresh(0.9)
   , d_statistics(name)
 {}
 QuickXPlain::~QuickXPlain() {}

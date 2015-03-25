@@ -69,6 +69,8 @@ public:
   Options(const Options& options);
   ~Options();
 
+  Options& operator=(const Options& options);
+
   /**
    * Set the value of the given option.  Use of this default
    * implementation causes a compile-time error; write-able

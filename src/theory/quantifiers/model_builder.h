@@ -44,8 +44,6 @@ public:
   virtual bool optUseModel();
   //whether to construct model at fullModel = true
   virtual bool optBuildAtFullModel() { return false; }
-  //consider axioms
-  bool d_considerAxioms;
   /** number of lemmas generated while building model */
   //is the exhaustive instantiation incomplete?
   bool d_incomplete_check;
@@ -199,58 +197,6 @@ public:
   bool optReconsiderFuncConstants() { return true; }
   //has inst gen
   bool hasInstGen( Node f ) { return !d_quant_selection_lit[f].isNull(); }
-};
-
-class QModelBuilderInstGen : public QModelBuilderIG
-{
-private:    ///information for (new) InstGen
-  //map from quantifiers to their selection formulas
-  std::map< Node, Node > d_quant_selection_formula;
-  //map of terms that are selected
-  std::map< Node, bool > d_term_selected;
-  //a collection of (complete) InstMatch structures produced for each root quantifier
-  std::map< Node, inst::InstMatchTrie > d_sub_quant_inst_trie;
-  //for each quantifier, a collection of InstMatch structures, representing the children
-  std::map< Node, inst::InstMatchTrie > d_child_sub_quant_inst_trie;
-  //children quantifiers for each quantifier, each is an instance
-  std::map< Node, std::vector< Node > > d_sub_quants;
-  //instances of each partial instantiation with respect to the root
-  std::map< Node, InstMatch > d_sub_quant_inst;
-  //*root* parent of each partial instantiation
-  std::map< Node, Node > d_sub_quant_parent;
-protected:
-  //reset
-  void reset( FirstOrderModel* fm );
-  //initialize quantifiers, return number of lemmas produced, fp is the parent of quantifier f
-  int initializeQuantifier( Node f, Node fp );
-  //analyze quantifier
-  void analyzeQuantifier( FirstOrderModel* fm, Node f );
-  //do InstGen techniques for quantifier, return number of lemmas produced
-  int doInstGen( FirstOrderModel* fm, Node f );
-  //theory-specific build models
-  void constructModelUf( FirstOrderModel* fm, Node op );
-private:
-  //get selection formula for quantifier body
-  Node getSelectionFormula( Node fn, Node n, bool polarity, int useOption );
-  //get a heuristic score for a selection formula
-  int getSelectionFormulaScore( Node fn );
-  //set selected terms in term
-  void setSelectedTerms( Node s );
-  //is usable selection literal
-  bool isUsableSelectionLiteral( Node n, int useOption );
-  //get parent quantifier match
-  void getParentQuantifierMatch( InstMatch& mp, Node fp, InstMatch& m, Node f );
-  //get parent quantifier
-  Node getParentQuantifier( Node f ) { return d_sub_quant_parent.find( f )==d_sub_quant_parent.end() ? f : d_sub_quant_parent[f]; }
-public:
-  QModelBuilderInstGen( context::Context* c, QuantifiersEngine* qe ) : QModelBuilderIG( c, qe ){}
-  ~QModelBuilderInstGen(){}
-  // is term selected
-  bool isTermSelected( Node n ) { return d_term_selected.find( n )!=d_term_selected.end(); }
-  /** exist instantiation ? */
-  bool existsInstantiation( Node f, InstMatch& m, bool modEq = true, bool modInst = false );
-  //has inst gen
-  bool hasInstGen( Node f ) { return !d_quant_selection_formula[f].isNull(); }
 };
 
 }/* CVC4::theory::quantifiers namespace */

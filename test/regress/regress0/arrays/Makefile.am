@@ -39,11 +39,18 @@ TESTS =	\
 	incorrect11.smt \
 	swap_t1_np_nf_ai_00005_007.cvc.smt \
 	x2.smt \
-	x3.smt
-
-EXTRA_DIST = $(TESTS) \
+	x3.smt \
 	bug272.smt \
-	bug272.minimized.smt
+	bug272.minimized.smt \
+	constarr.smt2 \
+	constarr2.smt2 \
+	constarr3.smt2 \
+	constarr.cvc \
+	constarr2.cvc \
+	constarr3.cvc \
+	parsing_ringer.cvc
+
+EXTRA_DIST = $(TESTS)
 
 #if CVC4_BUILD_PROFILE_COMPETITION
 #else

@@ -53,21 +53,21 @@ public:
 
   TheoryBVWhite() {}
 
-
   void setUp() {
     d_em = new ExprManager();
     d_nm = NodeManager::fromExprManager(d_em);
     d_smt = new SmtEngine(d_em);
     d_scope = new SmtScope(d_smt);
     d_smt->setOption("bitblast", SExpr("eager"));
-    d_bb = new EagerBitblaster(NULL);
-    
-  }
-  void tearDown() {
-    // delete d_bb;
-    delete d_em;
+    d_bb = new EagerBitblaster(dynamic_cast<TheoryBV*>(d_smt->d_theoryEngine->d_theoryTable[THEORY_BV]));
   }
 
+  void tearDown() {
+    delete d_bb;
+    delete d_scope;
+    delete d_smt;
+    delete d_em;
+  }
  
   void testBitblasterCore() {
     Node x = d_nm->mkVar("x", d_nm->mkBitVectorType(16));
@@ -84,5 +84,4 @@ public:
     bool res = d_bb->solve(); 
     TS_ASSERT (res == false);
   }
-
-};
+};/* class TheoryBVWhite */

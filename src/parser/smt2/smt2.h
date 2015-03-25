@@ -23,8 +23,12 @@
 #include "parser/smt1/smt1.h"
 #include "theory/logic_info.h"
 #include "util/abstract_value.h"
+#include "parser/smt2/smt2_input.h"
 
+#include <string>
 #include <sstream>
+#include <utility>
+#include <stack>
 
 namespace CVC4 {
 
@@ -47,13 +51,20 @@ public:
     THEORY_QUANTIFIERS,
     THEORY_SETS,
     THEORY_STRINGS,
-    THEORY_UF
+    THEORY_UF,
+    THEORY_FP
   };
 
 private:
   bool d_logicSet;
   LogicInfo d_logic;
   std::hash_map<std::string, Kind, StringHashFunction> operatorKindMap;
+  std::pair<Expr, std::string> d_lastNamedTerm;
+  // this is a user-context stack
+  std::stack< std::map<Expr, std::string> > d_unsatCoreNames;
+  std::vector<Expr> d_sygusVars, d_sygusConstraints, d_sygusFunSymbols;
+  std::vector< std::pair<std::string, Expr> > d_sygusFuns;
+  size_t d_nextSygusFun;
 
 protected:
   Smt2(ExprManager* exprManager, Input* input, bool strictMode = false, bool parseOnly = false);
@@ -76,18 +87,36 @@ public:
 
   bool logicIsSet();
 
+  void reset();
+
+  void resetAssertions();
+
   /**
    * Sets the logic for the current benchmark. Declares any logic and
    * theory symbols.
    *
    * @param name the name of the logic (e.g., QF_UF, AUFLIA)
    */
-  void setLogic(const std::string& name);
+  void setLogic(std::string name);
 
   /**
    * Get the logic.
    */
   const LogicInfo& getLogic() const { return d_logic; }
+
+  bool v2_0() const {
+    return getInput()->getLanguage() == language::input::LANG_SMTLIB_V2_0;
+  }
+  bool v2_5() const {
+    return getInput()->getLanguage() == language::input::LANG_SMTLIB_V2_5;
+  }
+  bool sygus() const {
+    return getInput()->getLanguage() == language::input::LANG_SYGUS;
+  }
+
+  void setLanguage(InputLanguage lang) {
+    ((Smt2Input*) getInput())->setLanguage(lang);
+  }
 
   void setInfo(const std::string& flag, const SExpr& sexpr);
 
@@ -105,6 +134,34 @@ public:
 
   void includeFile(const std::string& filename);
 
+  void setLastNamedTerm(Expr e, std::string name) {
+    d_lastNamedTerm = std::make_pair(e, name);
+  }
+
+  void clearLastNamedTerm() {
+    d_lastNamedTerm = std::make_pair(Expr(), "");
+  }
+
+  std::pair<Expr, std::string> lastNamedTerm() {
+    return d_lastNamedTerm;
+  }
+
+  void pushUnsatCoreNameScope() {
+    d_unsatCoreNames.push(d_unsatCoreNames.top());
+  }
+
+  void popUnsatCoreNameScope() {
+    d_unsatCoreNames.pop();
+  }
+
+  void registerUnsatCoreName(std::pair<Expr, std::string> name) {
+    d_unsatCoreNames.top().insert(name);
+  }
+
+  std::map<Expr, std::string> getUnsatCoreNames() {
+    return d_unsatCoreNames.top();
+  }
+
   bool isAbstractValue(const std::string& name) {
     return name.length() >= 2 && name[0] == '@' && name[1] != '0' &&
       name.find_first_not_of("0123456789", 1) == std::string::npos;
@@ -113,6 +170,47 @@ public:
   Expr mkAbstractValue(const std::string& name) {
     assert(isAbstractValue(name));
     return getExprManager()->mkConst(AbstractValue(Integer(name.substr(1))));
+  }
+
+  Expr mkSygusVar(const std::string& name, const Type& type) {
+    Expr e = mkBoundVar(name, type);
+    d_sygusVars.push_back(e);
+    return e;
+  }
+
+  void addSygusFun(const std::string& fun, Expr eval) {
+    d_sygusFuns.push_back(std::make_pair(fun, eval));
+  }
+
+  void defineSygusFuns();
+
+  void mkSygusDatatype( CVC4::Datatype& dt, std::vector<CVC4::Expr>& ops,
+                        std::vector<std::string>& cnames, std::vector< std::vector< CVC4::Type > >& cargs );
+
+  // i is index in datatypes/ops
+  // j is index is datatype
+  Expr getSygusAssertion( std::vector<DatatypeType>& datatypeTypes, std::vector< std::vector<Expr> >& ops,
+                          std::map<DatatypeType, Expr>& evals, std::vector<Expr>& terms,
+                          Expr eval, const Datatype& dt, size_t i, size_t j );
+
+  void addSygusConstraint(Expr constraint) {
+    d_sygusConstraints.push_back(constraint);
+  }
+
+  Expr getSygusConstraints() {
+    switch(d_sygusConstraints.size()) {
+    case 0: return getExprManager()->mkConst(bool(true));
+    case 1: return d_sygusConstraints[0];
+    default: return getExprManager()->mkExpr(kind::AND, d_sygusConstraints);
+    }
+  }
+
+  const std::vector<Expr>& getSygusVars() {
+    return d_sygusVars;
+  }
+
+  const std::vector<Expr>& getSygusFunSymbols() {
+    return d_sygusFunSymbols;
   }
 
   /**
@@ -168,6 +266,8 @@ private:
   void addBitvectorOperators();
 
   void addStringOperators();
+
+  void addFloatingPointOperators();
 
 };/* class Smt2 */
 

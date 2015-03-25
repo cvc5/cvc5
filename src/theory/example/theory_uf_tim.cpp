@@ -271,6 +271,11 @@ Node TheoryUFTim::constructConflict(TNode diseq) {
 }
 
 void TheoryUFTim::check(Effort level) {
+  if (done() && !fullEffort(level)) {
+    return;
+  }
+
+  TimerStat::CodeTimer checkTimer(d_checkTime);
 
   Debug("uf") << "uf: begin check(" << level << ")" << std::endl;
 

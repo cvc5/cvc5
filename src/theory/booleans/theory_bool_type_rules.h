@@ -42,10 +42,10 @@ public:
     }
     return booleanType;
   }
-};
+};/* class BooleanTypeRule */
 
 class IteTypeRule {
-  public:
+public:
   inline static TypeNode computeType(NodeManager* nodeManager, TNode n, bool check)
       throw (TypeCheckingExceptionPrivate, AssertionException) {
     TypeNode thenType = n[1].getType(check);
@@ -57,15 +57,21 @@ class IteTypeRule {
         throw TypeCheckingExceptionPrivate(n, "condition of ITE is not Boolean");
       }
       if (iteType.isNull()) {
-        throw TypeCheckingExceptionPrivate(n, "both branches of the ITE must be a subtype of a common type.");
+        std::stringstream ss;
+        ss << "Both branches of the ITE must be a subtype of a common type." << std::endl
+           << "then branch: " << n[1] << std::endl
+           << "its type   : " << thenType << std::endl
+           << "else branch: " << n[2] << std::endl
+           << "its type   : " << elseType << std::endl;
+        throw TypeCheckingExceptionPrivate(n, ss.str());
       }
     }
     return iteType;
   }
-};
+};/* class IteTypeRule */
 
-}/* namespace CVC4::theory::boolean */
-}/* namespace CVC4::theory */
-}/* namespace CVC4 */
+}/* CVC4::theory::boolean namespace */
+}/* CVC4::theory namespace */
+}/* CVC4 namespace */
 
 #endif /* __CVC4__THEORY_BOOL_TYPE_RULES_H */

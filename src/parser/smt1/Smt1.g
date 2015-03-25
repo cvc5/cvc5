@@ -205,13 +205,13 @@ benchAttribute returns [CVC4::Command* smt_command = NULL]
       { ((CommandSequence*) smt_command)->addCommand(c); }
     )+ RPAREN_TOK
   | EXTRAPREDS_TOK LPAREN_TOK
-    ( { smt_command = new CommandSequence(); }
-      predicateDeclaration[c]
+    { smt_command = new CommandSequence(); }
+    ( predicateDeclaration[c]
       { ((CommandSequence*) smt_command)->addCommand(c); }
     )+ RPAREN_TOK
   | EXTRASORTS_TOK LPAREN_TOK
-    ( { smt_command = new CommandSequence(); }
-      sortDeclaration[c]
+    { smt_command = new CommandSequence(); }
+    ( sortDeclaration[c]
       { ((CommandSequence*) smt_command)->addCommand(c); }
     )+ RPAREN_TOK
   | NOTES_TOK STRING_LITERAL

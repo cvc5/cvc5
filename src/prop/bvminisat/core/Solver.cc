@@ -171,8 +171,8 @@ Solver::Solver(CVC4::context::Context* c) :
   // Assert the constants
   uncheckedEnqueue(mkLit(varTrue, false));
   uncheckedEnqueue(mkLit(varFalse, true));
-  PROOF( ProofManager::getBitVectorProof()->getSatProof()->registerUnitClause(mkLit(varTrue, false), INPUT); )
-  PROOF( ProofManager::getBitVectorProof()->getSatProof()->registerUnitClause(mkLit(varFalse, true), INPUT); )
+  PROOF( ProofManager::getBitVectorProof()->getSatProof()->registerUnitClause(mkLit(varTrue, false), INPUT, uint64_t(-1)); )
+  PROOF( ProofManager::getBitVectorProof()->getSatProof()->registerUnitClause(mkLit(varFalse, true), INPUT, uint64_t(-1)); )
 }
 
 
@@ -233,7 +233,7 @@ bool Solver::addClause_(vec<Lit>& ps)
     if (ps.size() == 0)
         return ok = false;
     else if (ps.size() == 1){
-        PROOF( ProofManager::getBitVectorProof()->getSatProof()->registerUnitClause(ps[0], INPUT););
+        PROOF( ProofManager::getBitVectorProof()->getSatProof()->registerUnitClause(ps[0], INPUT, uint64_t(-1)););
         uncheckedEnqueue(ps[0]);
 
         return ok = (propagate() == CRef_Undef);
@@ -241,7 +241,7 @@ bool Solver::addClause_(vec<Lit>& ps)
         CRef cr = ca.alloc(ps, false);
         clauses.push(cr);
         attachClause(cr);
-        PROOF( ProofManager::getBitVectorProof()->getSatProof()->registerClause(cr, INPUT););
+        PROOF( ProofManager::getBitVectorProof()->getSatProof()->registerClause(cr, INPUT, uint64_t(-1)););
      }
     return ok; 
 }

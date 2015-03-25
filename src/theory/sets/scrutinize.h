@@ -35,11 +35,11 @@ public:
   }
   void postCheckInvariants() const {
     Debug("sets-scrutinize") << "[sets-scrutinize] postCheckInvariants()" << std::endl;
-    
+
     // assume not in conflict, and complete:
     // - try building model
     // - check it
-    
+
     TheorySetsPrivate::SettermElementsMap settermElementsMap;
     TNode true_atom = NodeManager::currentNM()->mkConst<bool>(true);
     std::set<Node> terms;

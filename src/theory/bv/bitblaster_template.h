@@ -28,6 +28,7 @@
 #include "prop/sat_solver.h"
 #include "theory/valuation.h"
 #include "theory/theory_registrar.h"
+#include "util/resource_manager.h"
 
 class Abc_Obj_t_;
 typedef Abc_Obj_t_ Abc_Obj_t;
@@ -134,6 +135,7 @@ class TLazyBitblaster :  public TBitblaster<Node> {
     {}
     bool notify(prop::SatLiteral lit);
     void notify(prop::SatClause& clause);
+    void spendResource();
     void safePoint();
   };
   
@@ -143,8 +145,9 @@ class TLazyBitblaster :  public TBitblaster<Node> {
   prop::NullRegistrar* d_nullRegistrar;
   context::Context* d_nullContext;
   // sat solver used for bitblasting and associated CnfStream
-  prop::BVSatSolverInterface*        d_satSolver;
-  prop::CnfStream*                   d_cnfStream;
+  prop::BVSatSolverInterface*         d_satSolver;
+  prop::BVSatSolverInterface::Notify* d_satSolverNotify;
+  prop::CnfStream*                    d_cnfStream;
 
   AssertionList* d_assertedAtoms; /**< context dependent list storing the atoms
                                      currently asserted by the DPLL SAT solver. */
@@ -227,7 +230,8 @@ private:
     Statistics(const std::string& name);
     ~Statistics();
   };
-  std::string d_name; 
+  std::string d_name;
+public:
   Statistics d_statistics;
 };
 
@@ -236,6 +240,9 @@ public:
   MinisatEmptyNotify() {}
   bool notify(prop::SatLiteral lit) { return true; }
   void notify(prop::SatClause& clause) { }
+  void spendResource() {
+    NodeManager::currentResourceManager()->spendResource();
+  }
   void safePoint() {}
 };
 
@@ -440,8 +447,10 @@ Node TBitblaster<T>::getTermModel(TNode node, bool fullModel) {
     // if it is a leaf may ask for fullModel
     value = getModelFromSatSolver(node, fullModel); 
     Debug("bv-equality-status")<< "TLazyBitblaster::getTermModel from VarValue" << node <<" => " << value <<"\n";
-    Assert (!value.isNull()); 
-    d_modelCache[node] = value;
+    Assert ((fullModel && !value.isNull() && value.isConst()) || !fullModel); 
+    if (!value.isNull()) {
+      d_modelCache[node] = value;
+    }
     return value;
   }
   Assert (node.getType().isBitVector());

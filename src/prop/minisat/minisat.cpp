@@ -60,11 +60,6 @@ SatLiteral MinisatSatSolver::toSatLiteral(Minisat::Lit lit) {
                     Minisat::sign(lit));
 }
 
-SatValue MinisatSatSolver::toSatLiteralValue(bool res) {
-  if(res) return SAT_VALUE_TRUE;
-  else return SAT_VALUE_FALSE;
-}
-
 SatValue MinisatSatSolver::toSatLiteralValue(Minisat::lbool res) {
   if(res == (Minisat::lbool((uint8_t)0))) return SAT_VALUE_TRUE;
   if(res == (Minisat::lbool((uint8_t)2))) return SAT_VALUE_UNKNOWN;
@@ -142,10 +137,10 @@ void MinisatSatSolver::setupOptions() {
   d_minisat->restart_inc = options::satRestartInc();
 }
 
-void MinisatSatSolver::addClause(SatClause& clause, bool removable) {
+void MinisatSatSolver::addClause(SatClause& clause, bool removable, uint64_t proof_id) {
   Minisat::vec<Minisat::Lit> minisat_clause;
   toMinisatClause(clause, minisat_clause);
-  d_minisat->addClause(minisat_clause, removable);
+  d_minisat->addClause(minisat_clause, removable, proof_id);
 }
 
 SatVariable MinisatSatSolver::newVar(bool isTheoryAtom, bool preRegister, bool canErase) {
@@ -175,9 +170,6 @@ SatValue MinisatSatSolver::solve() {
   return toSatLiteralValue(d_minisat->solve());
 }
 
-void MinisatSatSolver::spendResource() {
-  d_minisat->spendResource();
-}
 
 void MinisatSatSolver::interrupt() {
   d_minisat->interrupt();
@@ -221,7 +213,7 @@ void MinisatSatSolver::push() {
   d_minisat->push();
 }
 
-void MinisatSatSolver::pop(){
+void MinisatSatSolver::pop() {
   d_minisat->pop();
 }
 

@@ -84,10 +84,31 @@ struct QuantifierInstPatternTypeRule {
   inline static TypeNode computeType(NodeManager* nodeManager, TNode n, bool check)
     throw(TypeCheckingExceptionPrivate) {
     Assert(n.getKind() == kind::INST_PATTERN );
+    if( check ){
+      TypeNode tn = n[0].getType(check);
+      if( tn.isFunction() ){
+        throw TypeCheckingExceptionPrivate(n[0], "Pattern must be a list of fully-applied terms.");
+      }
+    }
     return nodeManager->instPatternType();
   }
 };/* struct QuantifierInstPatternTypeRule */
 
+struct QuantifierInstNoPatternTypeRule {
+  inline static TypeNode computeType(NodeManager* nodeManager, TNode n, bool check)
+    throw(TypeCheckingExceptionPrivate) {
+    Assert(n.getKind() == kind::INST_NO_PATTERN );
+    return nodeManager->instPatternType();
+  }
+};/* struct QuantifierInstNoPatternTypeRule */
+
+struct QuantifierInstAttributeTypeRule {
+  inline static TypeNode computeType(NodeManager* nodeManager, TNode n, bool check)
+    throw(TypeCheckingExceptionPrivate) {
+    Assert(n.getKind() == kind::INST_ATTRIBUTE );
+    return nodeManager->instPatternType();
+  }
+};/* struct QuantifierInstAttributeTypeRule */
 
 struct QuantifierInstPatternListTypeRule {
   inline static TypeNode computeType(NodeManager* nodeManager, TNode n, bool check)
@@ -95,7 +116,7 @@ struct QuantifierInstPatternListTypeRule {
     Assert(n.getKind() == kind::INST_PATTERN_LIST );
     if( check ){
       for( int i=0; i<(int)n.getNumChildren(); i++ ){
-        if( n[i].getKind()!=kind::INST_PATTERN ){
+        if( n[i].getKind()!=kind::INST_PATTERN && n[i].getKind()!=kind::INST_NO_PATTERN && n[i].getKind()!=kind::INST_ATTRIBUTE ){
           throw TypeCheckingExceptionPrivate(n, "argument of inst pattern list is not inst pattern");
         }
       }
@@ -103,6 +124,20 @@ struct QuantifierInstPatternListTypeRule {
     return nodeManager->instPatternListType();
   }
 };/* struct QuantifierInstPatternListTypeRule */
+
+struct QuantifierInstClosureTypeRule {
+  inline static TypeNode computeType(NodeManager* nodeManager, TNode n, bool check)
+    throw(TypeCheckingExceptionPrivate) {
+    Assert(n.getKind() == kind::INST_CLOSURE );
+    if( check ){
+      TypeNode tn = n[0].getType(check);
+      if( tn.isBoolean() ){
+        throw TypeCheckingExceptionPrivate(n, "argument of inst-closure must be non-boolean");
+      }
+    }
+    return nodeManager->booleanType();
+  }
+};/* struct QuantifierInstClosureTypeRule */
 
 
 class RewriteRuleTypeRule {
@@ -140,7 +175,6 @@ public:
     return nodeManager->booleanType();
   }
 };/* class RewriteRuleTypeRule */
-
 
 class RRRewriteTypeRule {
 public:

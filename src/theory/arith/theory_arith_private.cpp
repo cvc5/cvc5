@@ -335,7 +335,7 @@ TheoryArithPrivate::Statistics::Statistics()
   , d_unsatPivots("theory::arith::pivots::unsat")
   , d_unknownPivots("theory::arith::pivots::unkown")
   , d_solveIntModelsAttempts("theory::arith::z::solveInt::models::attempts", 0)
-  , d_solveIntModelsSuccessful("zzz::solveInt::models::successful", 0)
+  , d_solveIntModelsSuccessful("theory::arith::zzz::solveInt::models::successful", 0)
   , d_mipTimer("theory::arith::z::approx::mip::timer")
   , d_lpTimer("theory::arith::z::approx::lp::timer")
   , d_mipProofsAttempted("theory::arith::z::mip::proofs::attempted", 0)
@@ -3346,6 +3346,12 @@ bool TheoryArithPrivate::hasFreshArithLiteral(Node n) const{
 
 void TheoryArithPrivate::check(Theory::Effort effortLevel){
   Assert(d_currentPropagationList.empty());
+
+  if(done() && !Theory::fullEffort(effortLevel) && ( d_qflraStatus == Result::SAT) ){
+    return;
+  }
+
+  TimerStat::CodeTimer checkTimer(d_containing.d_checkTime);
   //cout << "TheoryArithPrivate::check " << effortLevel << std::endl;
   Debug("effortlevel") << "TheoryArithPrivate::check " << effortLevel << std::endl;
   Debug("arith") << "TheoryArithPrivate::check begun " << effortLevel << std::endl;

@@ -1,0 +1,2 @@
+% EXPECT: unknown
+% EXPECT: ((charlst2 ((as const (Array Int String)) "")))

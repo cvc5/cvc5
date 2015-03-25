@@ -22,6 +22,7 @@
 
 #include "main/options.h"
 #include "smt/options.h"
+#include "printer/options.h"
 
 #ifndef __WIN32__
 #  include <sys/resource.h>
@@ -45,7 +46,6 @@ void setNoLimitCPU() {
   }
 #endif /* ! __WIN32__ */
 }
-
 
 void printStatsIncremental(std::ostream& out, const std::string& prvsStatsString, const std::string& curStatsString);
 
@@ -119,24 +119,34 @@ bool CommandExecutor::doCommandSingleton(Command* cmd)
     d_lastStatistics = ossCurStats.str();
   }
 
-  // dump the model/proof if option is set
+  // dump the model/proof/unsat core if option is set
   if(status) {
-    Command * g = NULL;
+    Command* g = NULL;
     if( d_options[options::produceModels] &&
         d_options[options::dumpModels] &&
         ( res.asSatisfiabilityResult() == Result::SAT ||
           (res.isUnknown() && res.whyUnknown() == Result::INCOMPLETE) ) ) {
       g = new GetModelCommand();
-    } else if( d_options[options::proof] &&
-               d_options[options::dumpProofs] &&
-               res.asSatisfiabilityResult() == Result::UNSAT ) {
+    }
+    if( d_options[options::proof] &&
+        d_options[options::dumpProofs] &&
+        res.asSatisfiabilityResult() == Result::UNSAT ) {
       g = new GetProofCommand();
-    } else if( d_options[options::dumpInstantiations] &&
-               res.asSatisfiabilityResult() == Result::UNSAT ) {
+    }
+    if( d_options[options::dumpInstantiations] &&
+        ( ( d_options[options::instFormatMode] != INST_FORMAT_MODE_SZS &&
+            ( res.asSatisfiabilityResult() == Result::SAT || (res.isUnknown() && res.whyUnknown() == Result::INCOMPLETE) ) ) ||
+          res.asSatisfiabilityResult() == Result::UNSAT ) ) {
       g = new GetInstantiationsCommand();
     }
-    if( g ){
-      //set no time limit during dumping if applicable
+    if( d_options[options::dumpSynth] && res.asSatisfiabilityResult() == Result::UNSAT ){
+      g = new GetSynthSolutionCommand();
+    }
+    if( d_options[options::dumpUnsatCores] && res.asSatisfiabilityResult() == Result::UNSAT ) {
+      g = new GetUnsatCoreCommand();
+    }
+    if(g != NULL) {
+      // set no time limit during dumping if applicable
       if( d_options[options::forceNoLimitCpuWhileDump] ){
         setNoLimitCPU();
       }
@@ -162,12 +172,12 @@ bool smtEngineInvoke(SmtEngine* smt, Command* cmd, std::ostream *out)
 
 void printStatsIncremental(std::ostream& out, const std::string& prvsStatsString, const std::string& curStatsString) {
   if(prvsStatsString == "") {
-      out << curStatsString;
-      return;
+    out << curStatsString;
+    return;
   }
 
   // read each line
-  // if a number, subtract and add that to parantheses
+  // if a number, subtract and add that to parentheses
   std::istringstream issPrvs(prvsStatsString);
   std::istringstream issCur(curStatsString);
 

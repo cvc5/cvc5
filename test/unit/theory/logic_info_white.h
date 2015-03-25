@@ -512,13 +512,13 @@ public:
     info.arithOnlyLinear();
     info.disableIntegers();
     info.lock();
-    TS_ASSERT_EQUALS( info.getLogicString(), "AUFBVDTLRA" );
+    TS_ASSERT_EQUALS( info.getLogicString(), "AUFBVFPDTLRA" );
 
     info = info.getUnlockedCopy();
     TS_ASSERT( !info.isLocked() );
     info.disableQuantifiers();
     info.lock();
-    TS_ASSERT_EQUALS( info.getLogicString(), "QF_AUFBVDTLRA" );
+    TS_ASSERT_EQUALS( info.getLogicString(), "QF_AUFBVFPDTLRA" );
 
     info = info.getUnlockedCopy();
     TS_ASSERT( !info.isLocked() );
@@ -527,12 +527,13 @@ public:
     info.enableIntegers();
     info.disableReals();
     info.lock();
-    TS_ASSERT_EQUALS( info.getLogicString(), "QF_AUFLIA" );
+    TS_ASSERT_EQUALS( info.getLogicString(), "QF_AUFFPLIA" );
 
     info = info.getUnlockedCopy();
     TS_ASSERT( !info.isLocked() );
     info.disableTheory(THEORY_ARITH);
     info.disableTheory(THEORY_UF);
+    info.disableTheory(THEORY_FP);
     info.lock();
     TS_ASSERT_EQUALS( info.getLogicString(), "QF_AX" );
     TS_ASSERT( info.isPure( THEORY_ARRAY ) );

@@ -62,14 +62,10 @@ typedef enum {
   MBQI_GEN_EVAL,
   /** no mbqi */
   MBQI_NONE,
-  /** implementation that mimics inst-gen */
-  MBQI_INST_GEN,
   /** default, mbqi from Section 5.4.2 of AJR thesis */
   MBQI_FMC,
   /** mbqi with integer intervals */
   MBQI_FMC_INTERVAL,
-  /** mbqi with interval abstraction of uninterpreted sorts */
-  MBQI_INTERVAL,
   /** abstract mbqi algorithm */
   MBQI_ABS,
   /** mbqi trust (produce no instantiations) */
@@ -99,10 +95,12 @@ typedef enum {
 } QcfMode;
 
 typedef enum {
-  /** default, use but do not trust */
-  USER_PAT_MODE_DEFAULT,
-  /** if patterns are supplied for a quantifier, use only those */
+  /** use but do not trust */
+  USER_PAT_MODE_USE,
+  /** default, if patterns are supplied for a quantifier, use only those */
   USER_PAT_MODE_TRUST,
+  /** resort to user patterns only when necessary */
+  USER_PAT_MODE_RESORT,
   /** ignore user patterns */
   USER_PAT_MODE_IGNORE,
 } UserPatMode;
@@ -115,6 +113,34 @@ typedef enum {
   /** only consider maximal terms for triggers */
   TRIGGER_SEL_MAX,
 } TriggerSelMode;
+
+typedef enum {
+  /** default : prenex quantifiers without user patterns */
+  PRENEX_NO_USER_PAT,
+  /** prenex all */
+  PRENEX_ALL,
+  /** prenex none */
+  PRENEX_NONE,
+} PrenexQuantMode;
+
+typedef enum {
+  /** enforce fairness by UF corresponding to datatypes size */
+  CEGQI_FAIR_UF_DT_SIZE,
+  /** enforce fairness by datatypes size */
+  CEGQI_FAIR_DT_SIZE,
+  /** enforce fairness by datatypes height bound */
+  CEGQI_FAIR_DT_HEIGHT_PRED,
+  /** do not use fair strategy for CEGQI */
+  CEGQI_FAIR_NONE,
+} CegqiFairMode;
+
+typedef enum {
+  /** consider all terms in master equality engine */
+  TERM_DB_ALL,
+  /** consider only relevant terms */
+  TERM_DB_RELEVANT,
+} TermDbMode;
+
 
 }/* CVC4::theory::quantifiers namespace */
 }/* CVC4::theory namespace */

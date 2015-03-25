@@ -20,7 +20,7 @@ AM_CPPFLAGS = \
 AM_CXXFLAGS = -Wall -Wno-unknown-pragmas -Wno-parentheses $(FLAG_VISIBILITY_HIDDEN)
 
 SUBDIRS = lib options expr util prop/minisat prop/bvminisat . parser compat bindings main
-THEORIES = builtin booleans uf arith bv arrays datatypes sets strings quantifiers idl
+THEORIES = builtin booleans uf arith bv fp arrays datatypes sets strings quantifiers idl
 
 lib_LTLIBRARIES = libcvc4.la
 
@@ -108,9 +108,6 @@ libcvc4_la_SOURCES = \
 	prop/sat_solver_types.h \
 	prop/sat_solver_factory.h \
 	prop/sat_solver_factory.cpp \
-	prop/sat_solver_registry.h \
-	prop/sat_solver_registry.cpp \
-	prop/options_handlers.h \
 	smt/smt_engine.cpp \
 	smt/smt_engine_check_proof.cpp \
 	smt/smt_engine.h \
@@ -246,7 +243,10 @@ libcvc4_la_SOURCES = \
 	theory/datatypes/theory_datatypes.h \
 	theory/datatypes/datatypes_rewriter.h \
 	theory/datatypes/theory_datatypes.cpp \
+	theory/datatypes/datatypes_sygus.h \
+	theory/datatypes/datatypes_sygus.cpp \
 	theory/sets/expr_patterns.h \
+	theory/sets/normal_form.h \
 	theory/sets/options_handlers.h \
 	theory/sets/scrutinize.h \
 	theory/sets/term_info.h \
@@ -305,8 +305,6 @@ libcvc4_la_SOURCES = \
 	theory/quantifiers/model_builder.cpp \
 	theory/quantifiers/quantifiers_attributes.h \
 	theory/quantifiers/quantifiers_attributes.cpp \
-	theory/quantifiers/inst_gen.h \
-	theory/quantifiers/inst_gen.cpp \
 	theory/quantifiers/quant_util.h \
 	theory/quantifiers/quant_util.cpp \
 	theory/quantifiers/inst_match_generator.h \
@@ -329,14 +327,22 @@ libcvc4_la_SOURCES = \
 	theory/quantifiers/relevant_domain.cpp \
 	theory/quantifiers/symmetry_breaking.h \
 	theory/quantifiers/symmetry_breaking.cpp \
-	theory/quantifiers/qinterval_builder.h \
-	theory/quantifiers/qinterval_builder.cpp \
 	theory/quantifiers/ambqi_builder.h \
 	theory/quantifiers/ambqi_builder.cpp \
 	theory/quantifiers/quant_conflict_find.h \
 	theory/quantifiers/quant_conflict_find.cpp \
 	theory/quantifiers/conjecture_generator.h \
 	theory/quantifiers/conjecture_generator.cpp \
+	theory/quantifiers/ce_guided_instantiation.h \
+	theory/quantifiers/ce_guided_instantiation.cpp \
+	theory/quantifiers/ce_guided_single_inv.h \
+	theory/quantifiers/ce_guided_single_inv.cpp \
+	theory/quantifiers/ce_guided_single_inv_sol.h \
+	theory/quantifiers/ce_guided_single_inv_sol.cpp \
+	theory/quantifiers/local_theory_ext.h \
+	theory/quantifiers/local_theory_ext.cpp \
+	theory/quantifiers/fun_def_process.h \
+	theory/quantifiers/fun_def_process.cpp \
 	theory/quantifiers/options_handlers.h \
 	theory/arith/theory_arith_type_rules.h \
 	theory/arith/type_enumerator.h \
@@ -417,7 +423,12 @@ libcvc4_la_SOURCES = \
 	theory/booleans/circuit_propagator.cpp \
 	theory/booleans/boolean_term_conversion_mode.h \
 	theory/booleans/boolean_term_conversion_mode.cpp \
-	theory/booleans/options_handlers.h
+	theory/booleans/options_handlers.h \
+	theory/fp/theory_fp.h \
+	theory/fp/theory_fp.cpp \
+	theory/fp/theory_fp_rewriter.h \
+	theory/fp/theory_fp_rewriter.cpp \
+	theory/fp/theory_fp_type_rules.h
 
 nodist_libcvc4_la_SOURCES = \
 	smt/smt_options.cpp \
@@ -501,7 +512,9 @@ EXTRA_DIST = \
 	theory/example/ecdata.h \
 	theory/example/ecdata.cpp \
 	theory/example/theory_uf_tim.h \
-	theory/example/theory_uf_tim.cpp
+	theory/example/theory_uf_tim.cpp \
+	theory/fp/kinds \
+	theory/fp/options_handlers.h
 
 svn_versioninfo.cpp: svninfo
 	$(AM_V_GEN)( \

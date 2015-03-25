@@ -152,6 +152,9 @@ void CvcPrinter::toStream(std::ostream& out, TNode n, int depth, bool types, boo
       case BOOLEAN_TYPE:
         out << "BOOLEAN";
         break;
+      case STRING_TYPE:
+        out << "STRING";
+        break;
       default:
         out << tc;
         break;
@@ -162,15 +165,20 @@ void CvcPrinter::toStream(std::ostream& out, TNode n, int depth, bool types, boo
       out << n.getConst<Datatype>().getName();
       break;
 
-    case kind::EMPTYSET: {
+    case kind::EMPTYSET:
       out << "{} :: " << n.getConst<EmptySet>().getType();
-      return;
+      break;
+
+    case kind::STORE_ALL: {
+      const ArrayStoreAll& asa = n.getConst<ArrayStoreAll>();
+      out << "ARRAY(" << asa.getType().getIndexType() << " OF "
+          << asa.getType().getConstituentType() << ") : " << asa.getExpr();
       break;
     }
 
     default:
-      // fall back on whatever operator<< does on underlying type; we
-      // might luck out and print something reasonable
+      // Fall back to whatever operator<< does on underlying type; we
+      // might luck out and print something reasonable.
       kind::metakind::NodeValueConstPrinter::toStream(out, n);
     }
 
@@ -851,6 +859,8 @@ void CvcPrinter::toStream(std::ostream& out, const Command* c,
      tryToStream<PopCommand>(out, c, d_cvc3Mode) ||
      tryToStream<CheckSatCommand>(out, c, d_cvc3Mode) ||
      tryToStream<QueryCommand>(out, c, d_cvc3Mode) ||
+     tryToStream<ResetCommand>(out, c, d_cvc3Mode) ||
+     tryToStream<ResetAssertionsCommand>(out, c, d_cvc3Mode) ||
      tryToStream<QuitCommand>(out, c, d_cvc3Mode) ||
      tryToStream<DeclarationSequence>(out, c, d_cvc3Mode) ||
      tryToStream<CommandSequence>(out, c, d_cvc3Mode) ||
@@ -865,6 +875,7 @@ void CvcPrinter::toStream(std::ostream& out, const Command* c,
      tryToStream<GetAssignmentCommand>(out, c, d_cvc3Mode) ||
      tryToStream<GetAssertionsCommand>(out, c, d_cvc3Mode) ||
      tryToStream<GetProofCommand>(out, c, d_cvc3Mode) ||
+     tryToStream<GetUnsatCoreCommand>(out, c, d_cvc3Mode) ||
      tryToStream<SetBenchmarkStatusCommand>(out, c, d_cvc3Mode) ||
      tryToStream<SetBenchmarkLogicCommand>(out, c, d_cvc3Mode) ||
      tryToStream<SetInfoCommand>(out, c, d_cvc3Mode) ||
@@ -894,7 +905,8 @@ void CvcPrinter::toStream(std::ostream& out, const CommandStatus* s) const throw
 
   if(tryToStream<CommandSuccess>(out, s, d_cvc3Mode) ||
      tryToStream<CommandFailure>(out, s, d_cvc3Mode) ||
-     tryToStream<CommandUnsupported>(out, s, d_cvc3Mode)) {
+     tryToStream<CommandUnsupported>(out, s, d_cvc3Mode) ||
+     tryToStream<CommandInterrupted>(out, s, d_cvc3Mode)) {
     return;
   }
 
@@ -1037,6 +1049,14 @@ static void toStream(std::ostream& out, const QueryCommand* c, bool cvc3Mode) th
   }
 }
 
+static void toStream(std::ostream& out, const ResetCommand* c, bool cvc3Mode) throw() {
+  out << "RESET;";
+}
+
+static void toStream(std::ostream& out, const ResetAssertionsCommand* c, bool cvc3Mode) throw() {
+  out << "RESET ASSERTIONS;";
+}
+
 static void toStream(std::ostream& out, const QuitCommand* c, bool cvc3Mode) throw() {
   //out << "EXIT;";
 }
@@ -1134,6 +1154,10 @@ static void toStream(std::ostream& out, const GetAssertionsCommand* c, bool cvc3
 
 static void toStream(std::ostream& out, const GetProofCommand* c, bool cvc3Mode) throw() {
   out << "DUMP_PROOF;";
+}
+
+static void toStream(std::ostream& out, const GetUnsatCoreCommand* c, bool cvc3Mode) throw() {
+  out << "DUMP_UNSAT_CORE;";
 }
 
 static void toStream(std::ostream& out, const SetBenchmarkStatusCommand* c, bool cvc3Mode) throw() {
@@ -1242,6 +1266,10 @@ static void toStream(std::ostream& out, const CommandSuccess* s, bool cvc3Mode) 
 
 static void toStream(std::ostream& out, const CommandUnsupported* s, bool cvc3Mode) throw() {
   out << "UNSUPPORTED" << endl;
+}
+
+static void toStream(std::ostream& out, const CommandInterrupted* s, bool cvc3Mode) throw() {
+  out << "INTERRUPTED" << endl;
 }
 
 static void toStream(std::ostream& out, const CommandFailure* s, bool cvc3Mode) throw() {

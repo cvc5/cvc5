@@ -16,8 +16,8 @@
 
 #include "cvc4_private.h"
 
-#ifndef __CVC4__CONTEXT__CDSET_H
-#define __CVC4__CONTEXT__CDSET_H
+#ifndef __CVC4__CONTEXT__CDHASHSET_H
+#define __CVC4__CONTEXT__CDHASHSET_H
 
 #include "context/context.h"
 #include "context/cdinsert_hashmap.h"
@@ -157,4 +157,4 @@ public:
 }/* CVC4::context namespace */
 }/* CVC4 namespace */
 
-#endif /* __CVC4__CONTEXT__CDSET_H */
+#endif /* __CVC4__CONTEXT__CDHASHSET_H */

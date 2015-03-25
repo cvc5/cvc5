@@ -23,13 +23,13 @@
 #include "expr/node.h"
 #include "theory/output_channel.h"
 #include "theory/interrupted.h"
+#include "util/unsafe_interrupt_exception.h"
 
 #include <vector>
 #include <utility>
 #include <iostream>
 
 namespace CVC4 {
-
 namespace theory {
 
 /**
@@ -72,42 +72,44 @@ public:
   void safePoint()  throw(Interrupted, AssertionException) {}
 
   void conflict(TNode n)
-    throw(AssertionException) {
+    throw(AssertionException, UnsafeInterruptException) {
     push(CONFLICT, n);
   }
 
   bool propagate(TNode n)
-    throw(AssertionException) {
+    throw(AssertionException, UnsafeInterruptException) {
     push(PROPAGATE, n);
     return true;
   }
 
   void propagateAsDecision(TNode n)
-    throw(AssertionException) {
+    throw(AssertionException, UnsafeInterruptException) {
     push(PROPAGATE_AS_DECISION, n);
   }
 
-  LemmaStatus lemma(TNode n, bool removable, bool preprocess) throw(AssertionException) {
+  LemmaStatus lemma(TNode n, bool removable, bool preprocess) throw(AssertionException, UnsafeInterruptException) {
     push(LEMMA, n);
     return LemmaStatus(Node::null(), 0);
   }
 
-  void requirePhase(TNode, bool) throw(Interrupted, AssertionException) {
+  void requirePhase(TNode, bool) throw(Interrupted, AssertionException, UnsafeInterruptException) {
   }
 
-  bool flipDecision() throw(Interrupted, AssertionException) {
+  bool flipDecision() throw(Interrupted, AssertionException, UnsafeInterruptException) {
     return true;
   }
 
-  void setIncomplete() throw(AssertionException) {}
+  void setIncomplete() throw(AssertionException, UnsafeInterruptException) {
+  }
 
-  void handleUserAttribute( const char* attr, theory::Theory* t ){}
+  void handleUserAttribute( const char* attr, theory::Theory* t ) {
+  }
 
   void clear() {
     d_callHistory.clear();
   }
 
-  LemmaStatus splitLemma(TNode n, bool removable = false) throw(TypeCheckingExceptionPrivate, AssertionException){
+  LemmaStatus splitLemma(TNode n, bool removable = false) throw(TypeCheckingExceptionPrivate, AssertionException, UnsafeInterruptException) {
     push(LEMMA, n);
     return LemmaStatus(Node::null(), 0);
   }
@@ -125,7 +127,7 @@ public:
     return d_callHistory.size();
   }
 
-  void printIth(std::ostream& os, int i){
+  void printIth(std::ostream& os, int i) {
     os << "[TestOutputChannel " << i;
     os << " " << getIthCallType(i);
     os << " " << getIthNode(i) << "]";

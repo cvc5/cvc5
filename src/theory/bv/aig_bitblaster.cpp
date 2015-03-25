@@ -402,7 +402,7 @@ void AigBitblaster::assertToSatSolver(Cnf_Dat_t* pCnf) {
       prop::SatLiteral lit(sat_variables[index-1], int_lit < 0); 
       clause.push_back(lit); 
     }
-    d_satSolver->addClause(clause, false); 
+    d_satSolver->addClause(clause, false, RULE_INVALID);
   }
 }
 

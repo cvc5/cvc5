@@ -23,6 +23,7 @@
 #include "theory/uf/options.h"
 #include "smt/options.h"
 #include "theory/rewriter.h"
+#include "theory/quantifiers/options.h"
 
 using namespace CVC4;
 using namespace std;
@@ -170,7 +171,9 @@ bool SortInference::simplify( std::vector< Node >& assertions ){
     for( unsigned i=0; i<assertions.size(); i++ ){
       Node prev = assertions[i];
       std::map< Node, Node > var_bound;
+      Trace("sort-inference-debug") << "Rewrite " << assertions[i] << std::endl;
       assertions[i] = simplify( assertions[i], var_bound );
+      Trace("sort-inference-debug") << "Done." << std::endl;
       if( prev!=assertions[i] ){
         assertions[i] = theory::Rewriter::rewrite( assertions[i] );
         rewritten = true;
@@ -333,7 +336,7 @@ int SortInference::process( Node n, std::map< Node, Node >& var_bound ){
   for( size_t i=0; i<n.getNumChildren(); i++ ){
     bool processChild = true;
     if( n.getKind()==kind::FORALL || n.getKind()==kind::EXISTS ){
-      processChild = i==1;
+      processChild = options::userPatternsQuant()==theory::quantifiers::USER_PAT_MODE_IGNORE ? i==1 : i>=1;
     }
     if( processChild ){
       children.push_back( n[i] );
@@ -511,6 +514,7 @@ Node SortInference::getNewSymbol( Node old, TypeNode tn ){
 }
 
 Node SortInference::simplify( Node n, std::map< Node, Node >& var_bound ){
+  Trace("sort-inference-debug2") << "Simplify " << n << std::endl;
   std::vector< Node > children;
   if( n.getKind()==kind::FORALL || n.getKind()==kind::EXISTS ){
     //recreate based on types of variables
@@ -518,6 +522,7 @@ Node SortInference::simplify( Node n, std::map< Node, Node >& var_bound ){
     for( size_t i=0; i<n[0].getNumChildren(); i++ ){
       TypeNode tn = getOrCreateTypeForId( d_var_types[n][ n[0][i] ], n[0][i].getType() );
       Node v = getNewSymbol( n[0][i], tn );
+      Trace("sort-inference-debug2") << "Map variable " << n[0][i] << " to " << v << std::endl;
       new_children.push_back( v );
       var_bound[ n[0][i] ] = v;
     }
@@ -528,13 +533,17 @@ Node SortInference::simplify( Node n, std::map< Node, Node >& var_bound ){
   if( n.getMetaKind() == kind::metakind::PARAMETERIZED ){
     children.push_back( n.getOperator() );
   }
+  bool childChanged = false;
   for( size_t i=0; i<n.getNumChildren(); i++ ){
     bool processChild = true;
     if( n.getKind()==kind::FORALL || n.getKind()==kind::EXISTS ){
-      processChild = i>=1;
+      processChild = options::userPatternsQuant()==theory::quantifiers::USER_PAT_MODE_IGNORE ? i==1 : i>=1;
     }
     if( processChild ){
-      children.push_back( simplify( n[i], var_bound ) );
+      Node nc = simplify( n[i], var_bound );
+      Trace("sort-inference-debug2") << "Simplify " << i << " " << n[i] << " returned " << nc << std::endl;
+      children.push_back( nc );
+      childChanged = childChanged || nc!=n[i];
     }
   }
 
@@ -542,6 +551,7 @@ Node SortInference::simplify( Node n, std::map< Node, Node >& var_bound ){
   if( n.getKind()==kind::FORALL || n.getKind()==kind::EXISTS ){
     //erase from variable bound
     for( size_t i=0; i<n[0].getNumChildren(); i++ ){
+      Trace("sort-inference-debug2") << "Remove bound for " << n[0][i] << std::endl;
       var_bound.erase( n[0][i] );
     }
     return NodeManager::currentNM()->mkNode( n.getKind(), children );
@@ -595,7 +605,7 @@ Node SortInference::simplify( Node n, std::map< Node, Node >& var_bound ){
         if( n[i].isConst() ){
           children[i+1] = getNewSymbol( n[i], tna );
         }else{
-          Trace("sort-inference-warn") << "Sort inference created bad child: " << n[i] << " " << tn << " " << tna << std::endl;
+          Trace("sort-inference-warn") << "Sort inference created bad child: " << n << " " << n[i] << " " << tn << " " << tna << std::endl;
           Assert( false );
         }
       }
@@ -615,7 +625,11 @@ Node SortInference::simplify( Node n, std::map< Node, Node >& var_bound ){
       //just return n, we will fix at higher scope
       return n;
     }else{
-      return NodeManager::currentNM()->mkNode( n.getKind(), children );
+      if( childChanged ){
+        return NodeManager::currentNM()->mkNode( n.getKind(), children );
+      }else{
+        return n;
+      }
     }
   }
 

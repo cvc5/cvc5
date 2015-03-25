@@ -29,6 +29,7 @@
 #include "expr/kind.h"
 #include "expr/type.h"
 #include "util/output.h"
+#include "util/resource_manager.h"
 #include "options/options.h"
 
 using namespace std;
@@ -39,10 +40,12 @@ namespace parser {
 
 Parser::Parser(ExprManager* exprManager, Input* input, bool strictMode, bool parseOnly) :
   d_exprManager(exprManager),
+  d_resourceManager(d_exprManager->getResourceManager()),
   d_input(input),
   d_symtabAllocated(),
   d_symtab(&d_symtabAllocated),
   d_assertionLevel(0),
+  d_globalDeclarations(false),
   d_anonymousFunctionCount(0),
   d_done(false),
   d_checksEnabled(true),
@@ -142,6 +145,9 @@ bool Parser::isPredicate(const std::string& name) {
 
 Expr
 Parser::mkVar(const std::string& name, const Type& type, uint32_t flags) {
+  if(d_globalDeclarations) {
+    flags |= ExprManager::VAR_FLAG_GLOBAL;
+  }
   Debug("parser") << "mkVar(" << name << ", " << type << ")" << std::endl;
   Expr expr = d_exprManager->mkVar(name, type, flags);
   defineVar(name, expr, flags & ExprManager::VAR_FLAG_GLOBAL);
@@ -158,6 +164,9 @@ Parser::mkBoundVar(const std::string& name, const Type& type) {
 
 Expr
 Parser::mkFunction(const std::string& name, const Type& type, uint32_t flags) {
+  if(d_globalDeclarations) {
+    flags |= ExprManager::VAR_FLAG_GLOBAL;
+  }
   Debug("parser") << "mkVar(" << name << ", " << type << ")" << std::endl;
   Expr expr = d_exprManager->mkVar(name, type, flags);
   defineFunction(name, expr, flags & ExprManager::VAR_FLAG_GLOBAL);
@@ -166,6 +175,9 @@ Parser::mkFunction(const std::string& name, const Type& type, uint32_t flags) {
 
 Expr
 Parser::mkAnonymousFunction(const std::string& prefix, const Type& type, uint32_t flags) {
+  if(d_globalDeclarations) {
+    flags |= ExprManager::VAR_FLAG_GLOBAL;
+  }
   stringstream name;
   name << prefix << "_anon_" << ++d_anonymousFunctionCount;
   return d_exprManager->mkVar(name.str(), type, flags);
@@ -173,6 +185,9 @@ Parser::mkAnonymousFunction(const std::string& prefix, const Type& type, uint32_
 
 std::vector<Expr>
 Parser::mkVars(const std::vector<std::string> names, const Type& type, uint32_t flags) {
+  if(d_globalDeclarations) {
+    flags |= ExprManager::VAR_FLAG_GLOBAL;
+  }
   std::vector<Expr> vars;
   for(unsigned i = 0; i < names.size(); ++i) {
     vars.push_back(mkVar(names[i], type, flags));
@@ -234,6 +249,9 @@ Parser::defineParameterizedType(const std::string& name,
 
 SortType
 Parser::mkSort(const std::string& name, uint32_t flags) {
+  if(d_globalDeclarations) {
+    flags |= ExprManager::VAR_FLAG_GLOBAL;
+  }
   Debug("parser") << "newSort(" << name << ")" << std::endl;
   Type type = d_exprManager->mkSort(name, flags);
   defineType(name, type);
@@ -445,7 +463,7 @@ void Parser::preemptCommand(Command* cmd) {
   d_commandQueue.push_back(cmd);
 }
 
-Command* Parser::nextCommand() throw(ParserException) {
+Command* Parser::nextCommand() throw(ParserException, UnsafeInterruptException) {
   Debug("parser") << "nextCommand()" << std::endl;
   Command* cmd = NULL;
   if(!d_commandQueue.empty()) {
@@ -468,11 +486,19 @@ Command* Parser::nextCommand() throw(ParserException) {
     }
   }
   Debug("parser") << "nextCommand() => " << cmd << std::endl;
+  if (cmd != NULL &&
+      dynamic_cast<SetOptionCommand*>(cmd) == NULL &&
+      dynamic_cast<QuitCommand*>(cmd) == NULL) {
+    // don't count set-option commands as to not get stuck in an infinite
+    // loop of resourcing out
+    d_resourceManager->spendResource();
+  }
   return cmd;
 }
 
-Expr Parser::nextExpression() throw(ParserException) {
+Expr Parser::nextExpression() throw(ParserException, UnsafeInterruptException) {
   Debug("parser") << "nextExpression()" << std::endl;
+  d_resourceManager->spendResource();
   Expr result;
   if(!done()) {
     try {

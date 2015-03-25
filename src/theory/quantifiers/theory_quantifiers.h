@@ -44,19 +44,15 @@ private:
   /** number of instantiations */
   int d_numInstantiations;
   int d_baseDecLevel;
-  /** number of restarts */
-  int d_numRestarts;
-
-  KEEP_STATISTIC(TimerStat, d_theoryTime, "theory::quantifiers::theoryTime");
 
   eq::EqualityEngine* d_masterEqualityEngine;
-
+private:
+  void computeCareGraph();  
 public:
   TheoryQuantifiers(context::Context* c, context::UserContext* u, OutputChannel& out, Valuation valuation, const LogicInfo& logicInfo);
   ~TheoryQuantifiers();
 
   void setMasterEqualityEngine(eq::EqualityEngine* eq);
-
   void addSharedTerm(TNode t);
   void notifyEq(TNode lhs, TNode rhs);
   void preRegisterTerm(TNode n);
@@ -75,7 +71,6 @@ public:
 private:
   void assertUniversal( Node n );
   void assertExistential( Node n );
-  bool restart();
 };/* class TheoryQuantifiers */
 
 }/* CVC4::theory::quantifiers namespace */

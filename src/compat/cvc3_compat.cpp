@@ -2468,7 +2468,12 @@ Context* ValidityChecker::getCurrentContext() {
 }
 
 void ValidityChecker::reset() {
-  Unimplemented("This CVC3 compatibility function not yet implemented (sorry!)");
+  // reset everything, forget everything
+  d_smt->reset();
+  delete d_parserContext;
+  d_parserContext = CVC4::parser::ParserBuilder(d_em, "<internal>").withInputLanguage(CVC4::language::input::LANG_CVC4).withStringInput("").build();
+  s_typeToExpr.clear();
+  s_exprToType.clear();
 }
 
 void ValidityChecker::logAnnotation(const Expr& annot) {

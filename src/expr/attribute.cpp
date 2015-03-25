@@ -17,6 +17,7 @@
 #include "expr/attribute.h"
 #include "expr/node_value.h"
 #include "util/output.h"
+#include "smt/smt_engine.h"
 
 #include <utility>
 
@@ -26,18 +27,30 @@ namespace CVC4 {
 namespace expr {
 namespace attr {
 
-AttributeManager::AttributeManager(context::Context* ctxt) :
+SmtAttributes::SmtAttributes(context::Context* ctxt) :
   d_cdbools(ctxt),
   d_cdints(ctxt),
   d_cdtnodes(ctxt),
   d_cdnodes(ctxt),
   d_cdstrings(ctxt),
-  d_cdptrs(ctxt),
+  d_cdptrs(ctxt) {
+}
+
+AttributeManager::AttributeManager() :
   d_inGarbageCollection(false)
 {}
 
 bool AttributeManager::inGarbageCollection() const {
   return d_inGarbageCollection;
+}
+
+SmtAttributes& AttributeManager::getSmtAttributes(SmtEngine* smt) {
+  Assert(smt != NULL);
+  return *smt->d_smtAttributes;
+}
+
+const SmtAttributes& AttributeManager::getSmtAttributes(SmtEngine* smt) const {
+  return *smt->d_smtAttributes;
 }
 
 void AttributeManager::debugHook(int debugFlag) {
@@ -57,6 +70,10 @@ void AttributeManager::deleteAllAttributes(NodeValue* nv) {
   deleteFromTable(d_types, nv);
   deleteFromTable(d_strings, nv);
   deleteFromTable(d_ptrs, nv);
+}
+
+void SmtAttributes::deleteAllAttributes(TNode n) {
+  NodeValue* nv = n.d_nv;
 
   d_cdbools.erase(nv);
   deleteFromTable(d_cdints, nv);
@@ -74,32 +91,25 @@ void AttributeManager::deleteAllAttributes() {
   deleteAllFromTable(d_types);
   deleteAllFromTable(d_strings);
   deleteAllFromTable(d_ptrs);
-
-  d_cdbools.clear();
-  d_cdints.clear();
-  d_cdtnodes.clear();
-  d_cdnodes.clear();
-  d_cdstrings.clear();
-  d_cdptrs.clear();
 }
 
-void AttributeManager::deleteAttributes(const AttrIdVec& atids){
+void AttributeManager::deleteAttributes(const AttrIdVec& atids) {
   typedef std::map<uint64_t, std::vector< uint64_t> > AttrToVecMap;
   AttrToVecMap perTableIds;
 
-  for(AttrIdVec::const_iterator it = atids.begin(), it_end = atids.end(); it != it_end; ++it){
+  for(AttrIdVec::const_iterator it = atids.begin(), it_end = atids.end(); it != it_end; ++it) {
     const AttributeUniqueId& pair = *(*it);
     std::vector< uint64_t>& inTable = perTableIds[pair.getTableId()];
     inTable.push_back(pair.getWithinTypeId());
   }
   AttrToVecMap::iterator it = perTableIds.begin(), it_end = perTableIds.end();
-  for(; it != it_end; ++it){
+  for(; it != it_end; ++it) {
     Assert(((*it).first) <= LastAttrTable);
     AttrTableId tableId = (AttrTableId) ((*it).first);
     std::vector< uint64_t>& ids = (*it).second;
     std::sort(ids.begin(), ids.end());
 
-    switch(tableId){
+    switch(tableId) {
     case AttrTableBool:
       Unimplemented("delete attributes is unimplemented for bools");
       break;
@@ -130,6 +140,7 @@ void AttributeManager::deleteAttributes(const AttrIdVec& atids){
     case AttrTableCDPointer:
       Unimplemented("CDAttributes cannot be deleted. Contact Tim/Morgan if this behavior is desired.");
       break;
+
     case LastAttrTable:
     default:
       Unreachable();

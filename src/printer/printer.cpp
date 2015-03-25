@@ -40,7 +40,10 @@ Printer* Printer::makePrinter(OutputLanguage lang) throw() {
   case LANG_SMTLIB_V1: // TODO the printer
     return new printer::smt1::Smt1Printer();
 
-  case LANG_SMTLIB_V2:
+  case LANG_SMTLIB_V2_0:
+    return new printer::smt2::Smt2Printer(printer::smt2::smt2_0_variant);
+
+  case LANG_SMTLIB_V2_5:
     return new printer::smt2::Smt2Printer();
 
   case LANG_TPTP:
@@ -152,5 +155,18 @@ void Printer::toStream(std::ostream& out, const Model& m) const throw() {
     toStream(out, m, m.getCommand(i));
   }
 }/* Printer::toStream(Model) */
+
+void Printer::toStream(std::ostream& out, const UnsatCore& core) const throw() {
+  std::map<Expr, std::string> names;
+  toStream(out, core, names);
+}/* Printer::toStream(UnsatCore) */
+
+void Printer::toStream(std::ostream& out, const UnsatCore& core, const std::map<Expr, std::string>& names) const throw() {
+  for(UnsatCore::iterator i = core.begin(); i != core.end(); ++i) {
+    AssertCommand cmd(*i);
+    toStream(out, &cmd, -1, false, -1);
+    out << std::endl;
+  }
+}/* Printer::toStream(UnsatCore, std::map<Expr, std::string>) */
 
 }/* CVC4 namespace */

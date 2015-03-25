@@ -132,6 +132,38 @@ Node BooleanTermConverter::rewriteAs(TNode in, TypeNode as) throw() {
   if(as.isBoolean() && in.getType().isBitVector() && in.getType().getBitVectorSize() == 1) {
     return NodeManager::currentNM()->mkNode(kind::EQUAL, NodeManager::currentNM()->mkConst(BitVector(1u, 1u)), in);
   }
+  if(in.getType().isRecord()) {
+    Assert(as.isRecord());
+    const Record& inRec = in.getType().getConst<Record>();
+    const Record& asRec = as.getConst<Record>();
+    Assert(inRec.getNumFields() == asRec.getNumFields());
+    NodeBuilder<> nb(kind::RECORD);
+    nb << NodeManager::currentNM()->mkConst(asRec);
+    for(size_t i = 0; i < asRec.getNumFields(); ++i) {
+      Assert(inRec[i].first == asRec[i].first);
+      Node arg = NodeManager::currentNM()->mkNode(NodeManager::currentNM()->mkConst(RecordSelect(inRec[i].first)), in);
+      if(inRec[i].second != asRec[i].second) {
+        arg = rewriteAs(arg, TypeNode::fromType(asRec[i].second));
+      }
+      nb << arg;
+    }
+    Node out = nb;
+    return out;
+  }
+  if(in.getType().isTuple()) {
+    Assert(as.isTuple());
+    Assert(in.getType().getNumChildren() == as.getNumChildren());
+    NodeBuilder<> nb(kind::TUPLE);
+    for(size_t i = 0; i < as.getNumChildren(); ++i) {
+      Node arg = NodeManager::currentNM()->mkNode(NodeManager::currentNM()->mkConst(TupleSelect(i)), in);
+      if(in.getType()[i] != as[i]) {
+        arg = rewriteAs(arg, as[i]);
+      }
+      nb << arg;
+    }
+    Node out = nb;
+    return out;
+  }
   if(in.getType().isDatatype()) {
     if(as.isBoolean() && in.getType().hasAttribute(BooleanTermAttr())) {
       return NodeManager::currentNM()->mkNode(kind::EQUAL, d_ttDt, in);
@@ -282,11 +314,13 @@ const Datatype& BooleanTermConverter::convertDatatype(const Datatype& dt) throw(
         const Datatype& newD = newDtt.getDatatype();
         for(c = dt.begin(); c != dt.end(); ++c) {
           Debug("boolean-terms") << "constructor " << (*c).getConstructor() << ":" << (*c).getConstructor().getType() << " made into " << newD[(*c).getName() + "'"].getConstructor() << ":" << newD[(*c).getName() + "'"].getConstructor().getType() << endl;
-          Node::fromExpr(newD[(*c).getName() + "'"].getConstructor()).setAttribute(BooleanTermAttr(), Node::fromExpr((*c).getConstructor()));// other attr?
+          const DatatypeConstructor *newC;
+          Node::fromExpr((*(newC = &newD[(*c).getName() + "'"])).getConstructor()).setAttribute(BooleanTermAttr(), Node::fromExpr((*c).getConstructor()));// other attr?
           Debug("boolean-terms") << "mapped " << newD[(*c).getName() + "'"].getConstructor() << " to " << (*c).getConstructor() << endl;
           d_varCache[Node::fromExpr((*c).getConstructor())] = Node::fromExpr(newD[(*c).getName() + "'"].getConstructor());
           d_varCache[Node::fromExpr((*c).getTester())] = Node::fromExpr(newD[(*c).getName() + "'"].getTester());
           for(DatatypeConstructor::const_iterator a = (*c).begin(); a != (*c).end(); ++a) {
+            Node::fromExpr((*newC)[(*a).getName() + "'"].getSelector()).setAttribute(BooleanTermAttr(), Node::fromExpr((*a).getSelector()));// other attr?
             d_varCache[Node::fromExpr((*a).getSelector())] = Node::fromExpr(newD[(*c).getName() + "'"].getSelector((*a).getName() + "'"));
           }
         }
@@ -724,6 +758,7 @@ Node BooleanTermConverter::rewriteBooleanTermsRec(TNode top, theory::TheoryId pa
         goto next_worklist;
       }
       switch(k) {
+      case kind::INST_ATTRIBUTE:
       case kind::BOUND_VAR_LIST:
         result.top() << top;
         worklist.pop();
@@ -781,7 +816,13 @@ Node BooleanTermConverter::rewriteBooleanTermsRec(TNode top, theory::TheoryId pa
             }
             Node boundVarList = nm->mkNode(kind::BOUND_VAR_LIST, boundVars);
             Node body = rewriteBooleanTermsRec(top[1], theory::THEORY_BOOL, quantBoolVars);
-            Node quant = nm->mkNode(top.getKind(), boundVarList, body);
+            Node quant;
+            if( top.getNumChildren()==3 ){
+              Node ipl = rewriteBooleanTermsRec(top[2], theory::THEORY_BOOL, quantBoolVars);
+              quant = nm->mkNode(top.getKind(), boundVarList, body, ipl );
+            }else{
+              quant = nm->mkNode(top.getKind(), boundVarList, body);
+            }
             Debug("bt") << "rewrote quantifier to -> " << quant << endl;
             d_termCache[make_pair(top, theory::THEORY_BOOL)] = quant;
             d_termCache[make_pair(top, theory::THEORY_BUILTIN)] = quant.iteNode(d_tt, d_ff);
@@ -811,7 +852,17 @@ Node BooleanTermConverter::rewriteBooleanTermsRec(TNode top, theory::TheoryId pa
                     k != kind::TUPLE_UPDATE &&
                     k != kind::RECORD_SELECT &&
                     k != kind::RECORD_UPDATE &&
-                    k != kind::DIVISIBLE) {
+                    k != kind::DIVISIBLE &&
+        // Theory parametric functions go here
+        k != kind::FLOATINGPOINT_TO_FP_IEEE_BITVECTOR &&
+        k != kind::FLOATINGPOINT_TO_FP_FLOATINGPOINT &&
+        k != kind::FLOATINGPOINT_TO_FP_REAL &&
+        k != kind::FLOATINGPOINT_TO_FP_SIGNED_BITVECTOR &&
+        k != kind::FLOATINGPOINT_TO_FP_UNSIGNED_BITVECTOR &&
+        k != kind::FLOATINGPOINT_TO_UBV &&
+        k != kind::FLOATINGPOINT_TO_SBV &&
+        k != kind::FLOATINGPOINT_TO_REAL
+        ) {
             Debug("bt") << "rewriting: " << top.getOperator() << endl;
             result.top() << rewriteBooleanTermsRec(top.getOperator(), theory::THEORY_BUILTIN, quantBoolVars);
             Debug("bt") << "got: " << result.top().getOperator() << endl;

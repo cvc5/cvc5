@@ -103,7 +103,7 @@ TNode TheoryProxy::getNode(SatLiteral lit) {
 }
 
 void TheoryProxy::notifyRestart() {
-  d_propEngine->checkTime();
+  d_propEngine->spendResource();
   d_theoryEngine->notifyRestart();
 
   static uint32_t lemmaCount = 0;
@@ -122,7 +122,7 @@ void TheoryProxy::notifyRestart() {
           if(lemmaCount % 1 == 0) {
             Debug("shared") << "=) " << asNode << std::endl;
           }
-          d_propEngine->assertLemma(d_theoryEngine->preprocess(asNode), false, true);
+          d_propEngine->assertLemma(d_theoryEngine->preprocess(asNode), false, true, RULE_INVALID);
         } else {
           Debug("shared") << "=(" << asNode << std::endl;
         }
@@ -179,8 +179,8 @@ void TheoryProxy::logDecision(SatLiteral lit) {
 #endif /* CVC4_REPLAY */
 }
 
-void TheoryProxy::checkTime() {
-  d_propEngine->checkTime();
+void TheoryProxy::spendResource() {
+  d_theoryEngine->spendResource();
 }
 
 bool TheoryProxy::isDecisionRelevant(SatVariable var) {

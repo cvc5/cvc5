@@ -57,6 +57,7 @@ public:
    */
   virtual void notify(vec<Lit>& learnt) = 0;
 
+  virtual void spendResource() = 0;
   virtual void safePoint() = 0;
 };
 
@@ -113,12 +114,12 @@ public:
     // Solving:
     //
     bool    simplify     ();                        // Removes already satisfied clauses.
-    bool    solve        (const vec<Lit>& assumps); // Search for a model that respects a given set of assumptions.
+    lbool    solve        (const vec<Lit>& assumps); // Search for a model that respects a given set of assumptions.
     lbool   solveLimited (const vec<Lit>& assumps); // Search for a model that respects a given set of assumptions (With resource constraints).
-    bool    solve        ();                        // Search without assumptions.
-    bool    solve        (Lit p);                   // Search for a model that respects a single assumption.
-    bool    solve        (Lit p, Lit q);            // Search for a model that respects two assumptions.
-    bool    solve        (Lit p, Lit q, Lit r);     // Search for a model that respects three assumptions.
+    lbool    solve        ();                        // Search without assumptions.
+    lbool    solve        (Lit p);                   // Search for a model that respects a single assumption.
+    lbool    solve        (Lit p, Lit q);            // Search for a model that respects two assumptions.
+    lbool    solve        (Lit p, Lit q, Lit r);     // Search for a model that respects three assumptions.
     bool    okay         () const;                  // FALSE means solver is in a conflicting state
     lbool   assertAssumption(Lit p, bool propagate);  // Assert a new assumption, start BCP if propagate = true
     lbool   propagateAssumptions();                   // Do BCP over asserted assumptions
@@ -423,20 +424,19 @@ inline void     Solver::interrupt(){ asynch_interrupt = true; }
 inline void     Solver::clearInterrupt(){ asynch_interrupt = false; }
 inline void     Solver::budgetOff(){ conflict_budget = propagation_budget = -1; }
 inline bool     Solver::withinBudget() const {
-    Assert (notify); 
-    notify->safePoint(); 
+    Assert (notify);
+    notify->spendResource();
+    notify->safePoint();
+
     return !asynch_interrupt &&
            (conflict_budget    < 0 || conflicts < (uint64_t)conflict_budget) &&
            (propagation_budget < 0 || propagations < (uint64_t)propagation_budget); }
 
-// FIXME: after the introduction of asynchronous interrruptions the solve-versions that return a
-// pure bool do not give a safe interface. Either interrupts must be possible to turn off here, or
-// all calls to solve must return an 'lbool'. I'm not yet sure which I prefer.
-inline bool     Solver::solve         ()                    { budgetOff(); return solve_() == l_True; }
-inline bool     Solver::solve         (Lit p)               { budgetOff(); assumptions.push(p); return solve_() == l_True; }
-inline bool     Solver::solve         (Lit p, Lit q)        { budgetOff(); assumptions.push(p); assumptions.push(q); return solve_() == l_True; }
-inline bool     Solver::solve         (Lit p, Lit q, Lit r) { budgetOff(); assumptions.push(p); assumptions.push(q); assumptions.push(r); return solve_() == l_True; }
-inline bool     Solver::solve         (const vec<Lit>& assumps){ budgetOff(); assumps.copyTo(assumptions); return solve_() == l_True; }
+inline lbool     Solver::solve         ()                    { budgetOff(); return solve_(); }
+inline lbool     Solver::solve         (Lit p)               { budgetOff(); assumptions.push(p); return solve_(); }
+inline lbool     Solver::solve         (Lit p, Lit q)        { budgetOff(); assumptions.push(p); assumptions.push(q); return solve_(); }
+inline lbool     Solver::solve         (Lit p, Lit q, Lit r) { budgetOff(); assumptions.push(p); assumptions.push(q); assumptions.push(r); return solve_(); }
+inline lbool     Solver::solve         (const vec<Lit>& assumps){ budgetOff(); assumps.copyTo(assumptions); return solve_(); }
 inline lbool    Solver::solveLimited  (const vec<Lit>& assumps){ assumps.copyTo(assumptions); return solve_(); }
 inline bool     Solver::okay          ()      const   { return ok; }
 

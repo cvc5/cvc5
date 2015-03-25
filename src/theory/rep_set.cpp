@@ -28,6 +28,15 @@ void RepSet::clear(){
   d_tmap.clear();
 }
 
+bool RepSet::hasRep( TypeNode tn, Node n ) {
+  std::map< TypeNode, std::vector< Node > >::iterator it = d_type_reps.find( tn );
+  if( it==d_type_reps.end() ){
+    return false;
+  }else{
+    return std::find( it->second.begin(), it->second.end(), n )!=it->second.end();
+  }
+}
+
 int RepSet::getNumRepresentatives( TypeNode tn ) const{
   std::map< TypeNode, std::vector< Node > >::const_iterator it = d_type_reps.find( tn );
   if( it!=d_type_reps.end() ){
@@ -38,9 +47,9 @@ int RepSet::getNumRepresentatives( TypeNode tn ) const{
 }
 
 void RepSet::add( TypeNode tn, Node n ){
-  Assert( n.getType()==tn );
-  d_tmap[ n ] = (int)d_type_reps[tn].size();
   Trace("rsi-debug") << "Add rep #" << d_type_reps[tn].size() << " for " << tn << " : " << n << std::endl;
+  Assert( n.getType().isSubtypeOf( tn ) );
+  d_tmap[ n ] = (int)d_type_reps[tn].size();
   d_type_reps[tn].push_back( n );
 }
 

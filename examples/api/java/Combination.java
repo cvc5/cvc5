@@ -92,7 +92,7 @@ public class Combination {
     System.out.println("the assumptions are satisfiable: " +
                        smt.checkSat(em.mkConst(true)) + ".");
 
-    System.out.println("Finally, after a SAT call, we recursively call smt.getValue(...) on" +
+    System.out.println("Finally, after a SAT call, we recursively call smt.getValue(...) on " +
                        "all of the assumptions to see what the satisfying model looks like.");
     prefixPrintGetValue(smt, assumptions, 0);
   }
