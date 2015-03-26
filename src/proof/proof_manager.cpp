@@ -106,12 +106,15 @@ CnfProof* ProofManager::getCnfProof() {
   return currentPM()->d_cnfProof;
 }
 RewriterProof* ProofManager::getRewriterProof() {
-  Assert (currentPM()->d_rewriterProof);
+  if (currentPM()->d_rewriterProof == NULL) {
+    Assert (currentPM()->d_format == LFSC);
+    currentPM()->d_rewriterProof = new LFSCRewriterProof();
+  }
   return currentPM()->d_rewriterProof;
 }
 
 TheoryProofEngine* ProofManager::getTheoryProofEngine() {
-  Assert (currentPM()->d_theoryProof);
+  Assert (currentPM()->d_theoryProof != NULL);
   return currentPM()->d_theoryProof;
 }
 
@@ -144,14 +147,6 @@ void ProofManager::initCnfProof(prop::CnfStream* cnfStream) {
   Assert(pm-> d_satProof != NULL);
   pm->d_satProof->setCnfProof(cnf); 
 }
-
-void ProofManager::initRewriterProof() {
-  ProofManager* pm = currentPM();
-  Assert (pm->d_rewriterProof == NULL);
-  Assert (pm->d_format == LFSC);
-  pm->d_rewriterProof = new LFSCRewriterProof();
-}
-
 
 void ProofManager::initTheoryProofEngine() {
   Assert (currentPM()->d_theoryProof == NULL);
@@ -302,9 +297,9 @@ void LFSCProof::toStream(std::ostream& out) {
   std::ostringstream paren;
   out << "(check\n";
   out << " ;; Declarations\n";
-  if (d_theoryProof == NULL) {
-    d_theoryProof = new LFSCTheoryProofEngine();
-  }
+  // if (d_theoryProof == NULL) {
+  //   d_theoryProof = new LFSCTheoryProofEngine();
+  // }
   // declare the theory atoms
 
   CnfProof::atom_iterator begin = d_cnfProof->begin_atoms();

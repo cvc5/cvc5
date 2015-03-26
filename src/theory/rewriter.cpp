@@ -42,7 +42,6 @@ class RewriterInitializer {
   static RewriterInitializer s_rewriterInitializer;
   RewriterInitializer() {
     Rewriter::init();
-    PROOF(ProofManager::currentPM()->initRewriterProof(); ); 
   }
   ~RewriterInitializer() { Rewriter::shutdown(); }
 };/* class RewriterInitializer */

@@ -151,7 +151,6 @@ public:
   static void         initSatProof(Minisat::Solver* solver);
   static void         initCnfProof(CVC4::prop::CnfStream* cnfStream);
   static void         initTheoryProofEngine();
-  static void         initRewriterProof();
   // getting various proofs
   static Proof*         getProof(SmtEngine* smt);
   static CoreSatProof*  getSatProof();

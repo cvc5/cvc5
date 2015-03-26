@@ -717,6 +717,9 @@ SmtEngine::SmtEngine(ExprManager* em) throw() :
 
   d_stats->d_resourceUnitsUsed.setData(d_private->getResourceManager()->d_cumulativeResourceUsed);
 
+  Assert(d_proofManager == NULL);
+  PROOF( d_proofManager = new ProofManager(); );
+  
   // We have mutual dependency here, so we add the prop engine to the theory
   // engine later (it is non-essential there)
   d_theoryEngine = new TheoryEngine(d_context, d_userContext, d_private->d_iteRemover, const_cast<const LogicInfo&>(d_logic));
@@ -738,9 +741,6 @@ SmtEngine::SmtEngine(ExprManager* em) throw() :
 void SmtEngine::finishInit() {
   // ensure that our heuristics are properly set up
   setDefaults();
-
-  Assert(d_proofManager == NULL);
-  PROOF( d_proofManager = new ProofManager(); );
 
   d_decisionEngine = new DecisionEngine(d_context, d_userContext);
   d_decisionEngine->init();   // enable appropriate strategies

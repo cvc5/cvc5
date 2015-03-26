@@ -66,8 +66,6 @@ using namespace CVC4;
 using namespace CVC4::theory;
 
 void TheoryEngine::finishInit() {
-  PROOF (ProofManager::initTheoryProofEngine(); );
-
   // initialize the quantifiers engine
   d_quantEngine = new QuantifiersEngine(d_context, d_userContext, this);
 
