@@ -34,7 +34,7 @@ ArithCongruenceManager::ArithCongruenceManager(context::Context* c, ConstraintDa
     d_constraintDatabase(cd),
     d_setupLiteral(setup),
     d_avariables(avars),
-    d_ee(d_notify, c, "theory::arith::ArithCongruenceManager", false)
+    d_ee(d_notify, c, "theory::arith::ArithCongruenceManager", true)
 {}
 
 ArithCongruenceManager::Statistics::Statistics():
