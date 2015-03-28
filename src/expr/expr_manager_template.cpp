@@ -19,6 +19,7 @@
 #include "expr/variable_type_map.h"
 #include "options/options.h"
 #include "util/statistics_registry.h"
+#include "expr/node_manager_attributes.h"
 
 #include <map>
 
@@ -28,7 +29,7 @@ ${includes}
 // compiler directs the user to the template file instead of the
 // generated one.  We don't want the user to modify the generated one,
 // since it'll get overwritten on a later build.
-#line 32 "${template}"
+#line 33 "${template}"
 
 #ifdef CVC4_STATISTICS_ON
   #define INC_STAT(kind) \
@@ -1114,7 +1115,13 @@ TypeNode exportTypeInternal(TypeNode n, NodeManager* from, NodeManager* to, Expr
     children << exportTypeInternal(*i, from, to, vmap);
   }
   TypeNode out = children.constructTypeNode();// FIXME thread safety
+  // Copy constructor type name
+  string name;
+  if(from->getAttribute(n,expr::VarNameAttr(), name)){
+    to->setAttribute(out,expr::VarNameAttr(), name);
+  };
   to_t = to->toType(out);
+  Debug("export") << "+ mapped `" << from_t << "' to `" << to_t << "'" << std::endl;
   return out;
 }/* exportTypeInternal() */
 

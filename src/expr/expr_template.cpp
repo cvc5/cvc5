@@ -127,7 +127,7 @@ private:
 public:
   ExportPrivate(ExprManager* from, ExprManager* to, ExprManagerMapCollection& vmap, uint32_t flags) : from(from), to(to), vmap(vmap), flags(flags) {}
   Node exportInternal(TNode n) {
-
+    Debug("export") << "node: " << n << " " << n.getId() << std::endl;
     if(n.isNull()) return Node::null();
     if(theory::kindToTheoryId(n.getKind()) == theory::THEORY_DATATYPES) {
       throw ExportUnsupportedException
@@ -151,7 +151,7 @@ public:
         // to_e is a ref, so this inserts from_e -> to_e
         std::string name;
         Type type = from->exportType(from_e.getType(), to, vmap);
-        if(Node::fromExpr(from_e).getAttribute(VarNameAttr(), name)) {
+        if(NodeManager::fromExprManager(from)->getAttribute(Node::fromExpr(from_e),VarNameAttr(), name)) {
           // temporarily set the node manager to NULL; this gets around
           // a check that mkVar isn't called internally
 
@@ -207,8 +207,8 @@ public:
         children.push_back(exportInternal(*i));
       }
       if(Debug.isOn("export")) {
-        ExprManagerScope ems(*to);
         Debug("export") << "children for export from " << n << std::endl;
+        ExprManagerScope ems(*to);
         for(std::vector<Node>::iterator i = children.begin(), i_end = children.end(); i != i_end; ++i) {
           Debug("export") << "  child: " << *i << std::endl;
         }

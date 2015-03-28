@@ -906,7 +906,7 @@ std::vector<std::pair<TypeNode,TNode> > NodeManager::getPolymorphicTypeVars(size
   }
   while(nb > 0){
     TypeNode ty = mkSort("cvc4_tyvar");
-    Node n = mkBoundVar(ty);
+    Node n = mkBoundVar("cvc4_bvvar",ty);
     d_parameterVariables[ty] = n;
     res.push_back( std::make_pair(ty,n) );
     --nb;
