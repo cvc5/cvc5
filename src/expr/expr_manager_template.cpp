@@ -1102,27 +1102,50 @@ TypeNode exportTypeInternal(TypeNode n, NodeManager* from, NodeManager* to, Expr
   if(! to_t.isNull()) {
     Debug("export") << "+ mapped `" << from_t << "' to `" << to_t << "'" << std::endl;
     return *Type::getTypeNode(to_t);
-  }
-  NodeBuilder<> children(to, n.getKind());
-  if(n.getKind() == kind::SORT_TYPE) {
-    Debug("export") << "type: operator: " << n.getOperator() << std::endl;
-    // make a new sort tag in target node manager
-    Node sortTag = NodeBuilder<0>(to, kind::SORT_TAG);
-    children << sortTag;
-  }
-  for(TypeNode::iterator i = n.begin(), i_end = n.end(); i != i_end; ++i) {
-    Debug("export") << "type: child: " << *i << std::endl;
-    children << exportTypeInternal(*i, from, to, vmap);
-  }
-  TypeNode out = children.constructTypeNode();// FIXME thread safety
-  // Copy constructor type name
-  string name;
-  if(from->getAttribute(n,expr::VarNameAttr(), name)){
-    to->setAttribute(out,expr::VarNameAttr(), name);
   };
-  to_t = to->toType(out);
+
+  if(from->isPolymorphicTypeVar(n)){
+    //create the exported type and associated boundvariable
+    TypeNode to_ty = to->mkSort("cvc4_tyvar");
+    Node to_bv = to->mkBoundVar("cvc4_bvvar",to_ty);
+    to->d_parameterVariables[to_ty] = to_bv;
+
+    to_t = to->toType(to_ty);
+  } else if(from->isPolymorphicTypeVarSchema(n)){
+    TypeNode to_ty = to->mkSort("cvc4_schema");
+    to->d_schemaVariables.insert(to_ty);
+
+    to_t = to->toType(to_ty);
+  } else {
+    NodeBuilder<> children(to, n.getKind());
+    if(n.getKind() == kind::SORT_TYPE) {
+      // export the operator
+      Expr from_op = from->toExpr(n.getOperator());
+      Expr& to_op = vmap.d_typeMap[from_op];
+      if( to_op.isNull() ) {
+        // make a new sort tag in target node manager
+        Node sortTag = NodeBuilder<0>(to, kind::SORT_TAG);
+        Debug("export") << "type: operator: " << n.getOperator() << "->" << sortTag << std::endl;
+        to_op = to->toExpr(sortTag);
+        vmap.d_typeMap[to_op] = from_op;
+      }
+      children << Node::fromExpr(to_op);
+    }
+    for(TypeNode::iterator i = n.begin(), i_end = n.end(); i != i_end; ++i) {
+      Debug("export") << "type: child: " << *i << std::endl;
+      children << exportTypeInternal(*i, from, to, vmap);
+    }
+    TypeNode out = children.constructTypeNode();// FIXME thread safety
+    // Copy constructor type name
+    string name;
+    if(from->getAttribute(n,expr::VarNameAttr(), name)){
+      to->setAttribute(out,expr::VarNameAttr(), name);
+    };
+    to_t = to->toType(out);
+  };
+
   Debug("export") << "+ mapped `" << from_t << "' to `" << to_t << "'" << std::endl;
-  return out;
+  return TypeNode::fromType(to_t);
 }/* exportTypeInternal() */
 
 }/* CVC4::expr namespace */

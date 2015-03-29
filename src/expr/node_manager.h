@@ -85,6 +85,10 @@ class NodeManager {
 
   // friend so it can access NodeManager's d_listeners and notify clients
   friend std::vector<DatatypeType> ExprManager::mkMutualDatatypeTypes(const std::vector<Datatype>&, const std::set<Type>&);
+  friend class expr::ExportPrivate;
+
+  // friend so it can add types variable used for polymorphism
+  friend TypeNode expr::exportTypeInternal(TypeNode n, NodeManager* from, NodeManager* to, ExprManagerMapCollection& vmap);
 
   /** Predicate for use with STL algorithms */
   struct NodeValueReferenceCountNonZero {
@@ -921,6 +925,12 @@ public:
    * or null if the function is not a monomorphised function
    */
   TNode getPolymorphicFunction(TNode n);
+
+  /**
+   * Returns the original polymorphic function
+   * or null if the function is not a polymorphic instance
+   */
+  TNode getPolymorphicFunctionFromPolymorphicInstance(TNode n);
 
   /**
    * Returns the instanciation of a polymorphic function with the given signature

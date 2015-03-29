@@ -699,16 +699,15 @@ Node NodeManager::mkAbstractValue(const TypeNode& type) {
 void NodeManager::newPolymorphicFunction(TNode n){
   Assert ( n.getType(false).isFunction() );
   Assert ( !isPolymorphicFunctionInstance(n) );
+  Assert ( !isPolymorphicFunction(n) );
   d_polymorphicFunction[n] = n;
 }
 
 bool NodeManager::isPolymorphicFunction(TNode n){
-  Assert ( n.getType(false).isFunction() );
   return d_polymorphicFunction.find(n) != d_polymorphicFunction.end();
 }
 
 bool NodeManager::isPolymorphicFunctionInstance(TNode n){
-  Assert ( n.getType(false).isFunction() );
   return d_instanceFunction.find(n) != d_instanceFunction.end();
 }
 
@@ -716,6 +715,16 @@ TNode NodeManager::getPolymorphicFunction(TNode n){
   std::hash_map<Node, Node, NodeHashFunction>::const_iterator i = d_instanceFunction.find(n);
   Assert ( n.getType(false).isFunction() );
   if (i != d_instanceFunction.end()) {
+    return (*i).second;
+  } else {
+    return TNode::null();
+  }
+}
+
+TNode NodeManager::getPolymorphicFunctionFromPolymorphicInstance(TNode n){
+  std::hash_map<Node, Node, NodeHashFunction>::const_iterator i = d_polymorphicFunction.find(n);
+  Assert ( n.getType(false).isFunction() );
+  if (i != d_polymorphicFunction.end()) {
     return (*i).second;
   } else {
     return TNode::null();
@@ -773,10 +782,16 @@ bool NodeManager::matchPolymorphicType(TypeNode t1,
     return true;
   } else if (t1.getNumChildren() > 0 && t1.getNumChildren() == t2.getNumChildren()) {
     /* arity n */
-    if(t1.getMetaKind() != t2.getMetaKind()) return false;
+    if(t1.getMetaKind() != t2.getMetaKind()){
+      Debug("export") << "Metakind different" << std::endl;
+      return false;
+    }
 
     if(t1.getMetaKind() == kind::metakind::PARAMETERIZED &&
-       t1.getOperator() != t2.getOperator()) return false;
+       t1.getOperator() != t2.getOperator()){
+      Debug("export") << "Operator different " << t1.getOperator() << " " << t2.getOperator() << std::endl;
+      return false;
+    }
 
     for(size_t i = 0, len = t1.getNumChildren(); i < len; ++i) {
       if(!(matchPolymorphicType(t1[i],t2[i],subst))) {
@@ -806,7 +821,6 @@ TNode NodeManager::instanciatePolymorphicFunction(TNode n,
   }
 
   n = d_polymorphicFunction[n];
-
   std::hash_map<TypeNode, Node, TypeNodeHashFunction>& h = d_functionMonomorphization[n];
   std::hash_map<TypeNode, Node, TypeNodeHashFunction>::const_iterator i = h.find(ty);
 
@@ -905,6 +919,7 @@ std::vector<std::pair<TypeNode,TNode> > NodeManager::getPolymorphicTypeVars(size
     --nb;
   }
   while(nb > 0){
+    // NB: exportTypeInternal could also create such varaible in portfolio
     TypeNode ty = mkSort("cvc4_tyvar");
     Node n = mkBoundVar("cvc4_bvvar",ty);
     d_parameterVariables[ty] = n;
@@ -924,8 +939,8 @@ std::vector< TypeNode > NodeManager::getPolymorphicTypeVarsSchema(size_t nb){
     --nb;
   }
   while(nb > 0){
+    // NB: exportTypeInternal could also create such varaible in portfolio
     TypeNode ty = mkSort("cvc4_schema");
-    Node n = mkBoundVar(ty);
     d_schemaVariables.insert(ty);
     res.push_back( ty );
     --nb;
