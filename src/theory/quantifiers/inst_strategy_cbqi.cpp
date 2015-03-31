@@ -386,6 +386,9 @@ int InstStrategyCegqi::process( Node f, Theory::Effort effort, int e ) {
     d_curr_quant = Node::null();
     
     return STATUS_UNKNOWN;
+  }else{
+    // To fix warning
+    Unreachable();
   }
 }
 
