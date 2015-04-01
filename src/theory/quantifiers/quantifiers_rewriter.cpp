@@ -285,7 +285,7 @@ Node QuantifiersRewriter::computeNNF( Node body ){
     }else{
       std::vector< Node > children;
       Kind k = body[0].getKind();
-      
+
       if( body[0].getKind()==OR || body[0].getKind()==AND ){
         k = body[0].getKind()==AND ? OR : AND;
         for( int i=0; i<(int)body[0].getNumChildren(); i++ ){
@@ -1210,7 +1210,7 @@ Node QuantifiersRewriter::preSkolemizeQuantifiers( Node n, bool polarity, std::v
     return nn.negate();
   }else if( n.getKind()==kind::FORALL ){
     if( polarity ){
-      if( options::preSkolemQuant() ){
+      if( options::preSkolemQuant() && ( options::preSkolemQuantNested() || fvs.empty() ) ){
         vector< Node > children;
         children.push_back( n[0] );
         //add children to current scope
@@ -1245,20 +1245,22 @@ Node QuantifiersRewriter::preSkolemizeQuantifiers( Node n, bool polarity, std::v
     if( containsQuantifiers( n ) ){
       if( n.getType().isBoolean() ){
         if( n.getKind()==kind::ITE || n.getKind()==kind::IFF || n.getKind()==kind::XOR || n.getKind()==kind::IMPLIES ){
-          Node nn;
-          //must remove structure
-          if( n.getKind()==kind::ITE ){
-            nn = NodeManager::currentNM()->mkNode( kind::AND,
-                   NodeManager::currentNM()->mkNode( kind::OR, n[0].notNode(), n[1] ),
-                   NodeManager::currentNM()->mkNode( kind::OR, n[0], n[2] ) );
-          }else if( n.getKind()==kind::IFF || n.getKind()==kind::XOR ){
-            nn = NodeManager::currentNM()->mkNode( kind::AND,
-                   NodeManager::currentNM()->mkNode( kind::OR, n[0].notNode(), n.getKind()==kind::XOR ? n[1].notNode() : n[1] ),
-                   NodeManager::currentNM()->mkNode( kind::OR, n[0], n.getKind()==kind::XOR ? n[1] : n[1].notNode() ) );
-          }else if( n.getKind()==kind::IMPLIES ){
-            nn = NodeManager::currentNM()->mkNode( kind::OR, n[0].notNode(), n[1] );
+          if( options::preSkolemQuantAgg() ){
+            Node nn;
+            //must remove structure
+            if( n.getKind()==kind::ITE ){
+              nn = NodeManager::currentNM()->mkNode( kind::AND,
+                    NodeManager::currentNM()->mkNode( kind::OR, n[0].notNode(), n[1] ),
+                    NodeManager::currentNM()->mkNode( kind::OR, n[0], n[2] ) );
+            }else if( n.getKind()==kind::IFF || n.getKind()==kind::XOR ){
+              nn = NodeManager::currentNM()->mkNode( kind::AND,
+                    NodeManager::currentNM()->mkNode( kind::OR, n[0].notNode(), n.getKind()==kind::XOR ? n[1].notNode() : n[1] ),
+                    NodeManager::currentNM()->mkNode( kind::OR, n[0], n.getKind()==kind::XOR ? n[1] : n[1].notNode() ) );
+            }else if( n.getKind()==kind::IMPLIES ){
+              nn = NodeManager::currentNM()->mkNode( kind::OR, n[0].notNode(), n[1] );
+            }
+            return preSkolemizeQuantifiers( nn, polarity, fvTypes, fvs );
           }
-          return preSkolemizeQuantifiers( nn, polarity, fvTypes, fvs );
         }else if( n.getKind()==kind::AND || n.getKind()==kind::OR ){
           vector< Node > children;
           for( int i=0; i<(int)n.getNumChildren(); i++ ){

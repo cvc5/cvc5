@@ -31,11 +31,13 @@ using namespace CVC4::theory::quantifiers;
 using namespace std;
 
 namespace CVC4 {
-  
+
 CegInstantiator::CegInstantiator( QuantifiersEngine * qe, CegqiOutput * out ) : d_qe( qe ), d_out( out ){
-  
-}  
-  
+  d_zero = NodeManager::currentNM()->mkConst( Rational( 0 ) );
+  d_one = NodeManager::currentNM()->mkConst( Rational( 1 ) );
+  d_true = NodeManager::currentNM()->mkConst( true );
+}
+
 void CegInstantiator::computeProgVars( Node n ){
   if( d_prog_var.find( n )==d_prog_var.end() ){
     d_prog_var[n].clear();
@@ -51,14 +53,20 @@ void CegInstantiator::computeProgVars( Node n ){
         d_inelig[n] = true;
         return;
       }
+      if( d_has_delta.find( n[i] )!=d_has_delta.end() ){
+        d_has_delta[n] = true;
+      }
       for( std::map< Node, bool >::iterator it = d_prog_var[n[i]].begin(); it != d_prog_var[n[i]].end(); ++it ){
         d_prog_var[n][it->first] = true;
       }
     }
+    if( n==d_n_delta ){
+      d_has_delta[n] = true;
+    }
   }
 }
 
-bool CegInstantiator::addInstantiation( std::vector< Node >& subs, std::vector< Node >& vars, 
+bool CegInstantiator::addInstantiation( std::vector< Node >& subs, std::vector< Node >& vars,
                                         std::vector< Node >& coeff, std::vector< Node >& has_coeff, std::vector< int >& subs_typ,
                                         unsigned i, unsigned effort ){
   if( i==d_vars.size() ){
@@ -69,7 +77,7 @@ bool CegInstantiator::addInstantiation( std::vector< Node >& subs, std::vector< 
     //Node v = d_single_inv_map_to_prog[d_single_inv[0][i]];
     Node pv = d_vars[i];
     TypeNode pvtn = pv.getType();
-    
+
     if( (i+1)<d_vars.size() || effort!=2 ){
       //[1] easy case : pv is in the equivalence class as another term not containing pv
       if( ee->hasTerm( pv ) ){
@@ -78,7 +86,7 @@ bool CegInstantiator::addInstantiation( std::vector< Node >& subs, std::vector< 
         while( !eqc_i.isFinished() ){
           Node n = *eqc_i;
           if( n!=pv ){
-            Trace("cegqi-si-inst-debug") << i << "...try based on equal term " << n << std::endl;
+            Trace("cegqi-si-inst-debug") << "[1] " << i << "...try based on equal term " << n << std::endl;
             //compute d_subs_fv, which program variables are contained in n
             computeProgVars( n );
             //must be an eligible term
@@ -97,6 +105,12 @@ bool CegInstantiator::addInstantiation( std::vector< Node >& subs, std::vector< 
                 ns = n;
                 proc = true;
               }
+              if( d_has_delta.find( ns )!=d_has_delta.end() ){
+                //also must set delta to zero
+                ns = ns.substitute( (TNode)d_n_delta, (TNode)d_zero );
+                ns = Rewriter::rewrite( ns );
+                computeProgVars( ns );
+              }
               if( proc ){
                 //try the substitution
                 subs_proc[0][ns][pv_coeff] = true;
@@ -109,7 +123,7 @@ bool CegInstantiator::addInstantiation( std::vector< Node >& subs, std::vector< 
           ++eqc_i;
         }
       }
-      
+
       //[2] : we can solve an equality for pv
       ///iterate over equivalence classes to find cases where we can solve for the variable
       if( pvtn.isInteger() || pvtn.isReal() ){
@@ -142,7 +156,7 @@ bool CegInstantiator::addInstantiation( std::vector< Node >& subs, std::vector< 
                   for( unsigned j=0; j<lhs.size(); j++ ){
                     //if this term or the another has pv in it, try to solve for it
                     if( hasVar || lhs_v[j] ){
-                      Trace("cegqi-si-inst-debug") << i << "...try based on equality " << lhs[j] << " " << ns << std::endl;
+                      Trace("cegqi-si-inst-debug") << "[2] " << i << "...try based on equality " << lhs[j] << " " << ns << std::endl;
                       Node eq_lhs = lhs[j];
                       Node eq_rhs = ns;
                       //make the same coefficient
@@ -163,6 +177,9 @@ bool CegInstantiator::addInstantiation( std::vector< Node >& subs, std::vector< 
                       Trace("cegqi-si-inst-debug") << "...equality is " << eq << std::endl;
                       std::map< Node, Node > msum;
                       if( QuantArith::getMonomialSumLit( eq, msum ) ){
+                        if( !d_n_delta.isNull() ){
+                          msum.erase( d_n_delta );
+                        }
                         if( Trace.isOn("cegqi-si-inst-debug") ){
                           Trace("cegqi-si-inst-debug") << "...got monomial sum: " << std::endl;
                           QuantArith::debugPrintMonomialSum( msum, "cegqi-si-inst-debug" );
@@ -199,7 +216,7 @@ bool CegInstantiator::addInstantiation( std::vector< Node >& subs, std::vector< 
           ++eqcs_i;
         }
       }
-      
+
       //[3] directly look at assertions
       TheoryId tid = Theory::theoryOf( pv );
       Theory* theory = d_qe->getTheoryEngine()->theoryOf( tid );
@@ -211,34 +228,42 @@ bool CegInstantiator::addInstantiation( std::vector< Node >& subs, std::vector< 
           bool pol = lit.getKind()!=NOT;
           if( tid==THEORY_ARITH ){
             if( atom.getKind()==GEQ || ( atom.getKind()==EQUAL && !pol ) ){
-              Assert( atom[1].isConst() );
-              computeProgVars( atom[0] );
+              Assert( atom.getKind()!=GEQ || atom[1].isConst() );
+              Node atom_lhs;
+              Node atom_rhs;
+              if( atom.getKind()==GEQ ){
+                atom_lhs = atom[0];
+                atom_rhs = atom[1];
+              }else{
+                atom_lhs = NodeManager::currentNM()->mkNode( MINUS, atom[0], atom[1] );
+                atom_lhs = Rewriter::rewrite( atom_lhs );
+                atom_rhs = d_zero;
+              }
+
+              computeProgVars( atom_lhs );
               //must be an eligible term
-              if( d_inelig.find( atom[0] )==d_inelig.end() ){
+              if( d_inelig.find( atom_lhs )==d_inelig.end() ){
                 //apply substitution to LHS of atom
-                Node atom_lhs;
-                Node atom_rhs;
-                if( !d_prog_var[atom[0]].empty() ){
+                if( !d_prog_var[atom_lhs].empty() ){
                   Node atom_lhs_coeff;
-                  atom_lhs = applySubstitution( atom[0], subs, vars, coeff, has_coeff, atom_lhs_coeff );
+                  atom_lhs = applySubstitution( atom_lhs, subs, vars, coeff, has_coeff, atom_lhs_coeff );
                   if( !atom_lhs.isNull() ){
                     computeProgVars( atom_lhs );
-                    atom_rhs = atom[1];
                     if( !atom_lhs_coeff.isNull() ){
                       atom_rhs = Rewriter::rewrite( NodeManager::currentNM()->mkNode( MULT, atom_lhs_coeff, atom_rhs ) );
                     }
                   }
-                }else{
-                  atom_lhs = atom[0];
-                  atom_rhs = atom[1];
                 }
                 //if it contains pv
                 if( !atom_lhs.isNull() && d_prog_var[atom_lhs].find( pv )!=d_prog_var[atom_lhs].end() ){
                   Node satom = NodeManager::currentNM()->mkNode( atom.getKind(), atom_lhs, atom_rhs );
-                  Trace("cegqi-si-inst-debug") << "From assertion : " << atom << ", pol = " << pol << std::endl;
-                  Trace("cegqi-si-inst-debug") << "   substituted : " << satom << ", pol = " << pol << std::endl;
+                  Trace("cegqi-si-inst-debug") << "[3] From assertion : " << atom << ", pol = " << pol << std::endl;
+                  Trace("cegqi-si-inst-debug") << "       substituted : " << satom << ", pol = " << pol << std::endl;
                   std::map< Node, Node > msum;
                   if( QuantArith::getMonomialSumLit( satom, msum ) ){
+                    if( !d_n_delta.isNull() ){
+                      msum.erase( d_n_delta );
+                    }
                     if( Trace.isOn("cegqi-si-inst-debug") ){
                       Trace("cegqi-si-inst-debug") << "...got monomial sum: " << std::endl;
                       QuantArith::debugPrintMonomialSum( msum, "cegqi-si-inst-debug" );
@@ -295,6 +320,8 @@ bool CegInstantiator::addInstantiation( std::vector< Node >& subs, std::vector< 
                           if( addInstantiationInc( uval, pv, veq_c, uires, subs, vars, coeff, has_coeff, subs_typ, i, effort ) ){
                             return true;
                           }
+                        }else{
+                          Trace("cegqi-si-inst-debug") << "...already processed." << std::endl;
                         }
                       }
                     }
@@ -306,12 +333,12 @@ bool CegInstantiator::addInstantiation( std::vector< Node >& subs, std::vector< 
         }
       }
     }
-    
-    //[4] resort to using value in model     
+
+    //[4] resort to using value in model
     if( effort>0 ){
       Node mv = d_qe->getModel()->getValue( pv );
       Node pv_coeff_m;
-      Trace("cegqi-si-inst-debug") << i << "...try model value " << mv << std::endl;
+      Trace("cegqi-si-inst-debug") << i << "[4] ...try model value " << mv << std::endl;
       return addInstantiationInc( mv, pv, pv_coeff_m, 9, subs, vars, coeff, has_coeff, subs_typ, i, 1 );
     }else{
       return false;
@@ -320,9 +347,9 @@ bool CegInstantiator::addInstantiation( std::vector< Node >& subs, std::vector< 
 }
 
 
-bool CegInstantiator::addInstantiationInc( Node n, Node pv, Node pv_coeff, int styp, std::vector< Node >& subs, std::vector< Node >& vars, 
+bool CegInstantiator::addInstantiationInc( Node n, Node pv, Node pv_coeff, int styp, std::vector< Node >& subs, std::vector< Node >& vars,
                                            std::vector< Node >& coeff, std::vector< Node >& has_coeff, std::vector< int >& subs_typ,
-                                           unsigned i, unsigned effort ) {         
+                                           unsigned i, unsigned effort ) {
   //must ensure variables have been computed for n
   computeProgVars( n );
   //substitute into previous substitutions, when applicable
@@ -336,7 +363,7 @@ bool CegInstantiator::addInstantiationInc( Node n, Node pv, Node pv_coeff, int s
     a_coeff.push_back( pv_coeff );
     a_has_coeff.push_back( pv );
   }
-  
+
   bool success = true;
   std::map< int, Node > prev_subs;
   std::map< int, Node > prev_coeff;
@@ -413,7 +440,7 @@ bool CegInstantiator::addInstantiationInc( Node n, Node pv, Node pv_coeff, int s
   }
 }
 
-bool CegInstantiator::addInstantiationCoeff( std::vector< Node >& subs, std::vector< Node >& vars, 
+bool CegInstantiator::addInstantiationCoeff( std::vector< Node >& subs, std::vector< Node >& vars,
                                              std::vector< Node >& coeff, std::vector< Node >& has_coeff, std::vector< int >& subs_typ, unsigned j ) {
   if( j==has_coeff.size() ){
     return addInstantiation( subs, vars, subs_typ );
@@ -446,13 +473,12 @@ bool CegInstantiator::addInstantiationCoeff( std::vector< Node >& subs, std::vec
           if( !veq_c.isNull() ){
             subs[index] = NodeManager::currentNM()->mkNode( INTS_DIVISION, veq[1], veq_c );
             if( subs_typ[index]>=1 && subs_typ[index]<=2 ){
-              subs[index] = NodeManager::currentNM()->mkNode( PLUS, subs[index], 
-                NodeManager::currentNM()->mkNode( ITE, 
-                  NodeManager::currentNM()->mkNode( EQUAL, 
-                    NodeManager::currentNM()->mkNode( INTS_MODULUS, veq[1], veq_c ), 
-                    NodeManager::currentNM()->mkConst( Rational( 0 ) ) ),
-                  NodeManager::currentNM()->mkConst( Rational( 0 ) ),
-                  NodeManager::currentNM()->mkConst( Rational( 1 ) ) )
+              subs[index] = NodeManager::currentNM()->mkNode( PLUS, subs[index],
+                NodeManager::currentNM()->mkNode( ITE,
+                  NodeManager::currentNM()->mkNode( EQUAL,
+                    NodeManager::currentNM()->mkNode( INTS_MODULUS, veq[1], veq_c ),
+                    d_zero ),
+                  d_zero, d_one )
               );
             }
           }
@@ -463,10 +489,10 @@ bool CegInstantiator::addInstantiationCoeff( std::vector< Node >& subs, std::vec
             //equalities are both upper and lower bounds
             /*
             if( subs_typ[index]==0 && !veq_c.isNull() ){
-              subs[index] = NodeManager::currentNM()->mkNode( PLUS, subs[index], 
-                NodeManager::currentNM()->mkNode( ITE, 
-                  NodeManager::currentNM()->mkNode( EQUAL, 
-                    NodeManager::currentNM()->mkNode( INTS_MODULUS, veq[1], veq_c ), 
+              subs[index] = NodeManager::currentNM()->mkNode( PLUS, subs[index],
+                NodeManager::currentNM()->mkNode( ITE,
+                  NodeManager::currentNM()->mkNode( EQUAL,
+                    NodeManager::currentNM()->mkNode( INTS_MODULUS, veq[1], veq_c ),
                     NodeManager::currentNM()->mkConst( Rational( 0 ) ) ),
                   NodeManager::currentNM()->mkConst( Rational( 0 ) ),
                   NodeManager::currentNM()->mkConst( Rational( 1 ) ) )
@@ -503,7 +529,7 @@ bool CegInstantiator::addInstantiation( std::vector< Node >& subs, std::vector< 
       prev[i] = subs[i];
       if( d_n_delta.isNull() ){
         d_n_delta = NodeManager::currentNM()->mkSkolem( "delta", vars[i].getType(), "delta for cegqi" );
-        Node delta_lem = NodeManager::currentNM()->mkNode( GT, d_n_delta, NodeManager::currentNM()->mkConst( Rational( 0 ) ) );
+        Node delta_lem = NodeManager::currentNM()->mkNode( GT, d_n_delta, d_zero );
         d_qe->getOutputChannel().lemma( delta_lem );
       }
       subs[i] = NodeManager::currentNM()->mkNode( subs_typ[i]==2 ? PLUS : MINUS, subs[i], d_n_delta );
@@ -521,7 +547,7 @@ bool CegInstantiator::addInstantiation( std::vector< Node >& subs, std::vector< 
 }
 
 
-Node CegInstantiator::applySubstitution( Node n, std::vector< Node >& subs, std::vector< Node >& vars, 
+Node CegInstantiator::applySubstitution( Node n, std::vector< Node >& subs, std::vector< Node >& vars,
                                                 std::vector< Node >& coeff, std::vector< Node >& has_coeff, Node& pv_coeff, bool try_coeff ) {
   Assert( d_prog_var.find( n )!=d_prog_var.end() );
   Assert( n==Rewriter::rewrite( n ) );
@@ -603,7 +629,77 @@ Node CegInstantiator::applySubstitution( Node n, std::vector< Node >& subs, std:
   }
 }
 
+//check if delta has a lower bound L
+// if so, add lemma L>0 => L>d
+void CegInstantiator::getDeltaLemmas( std::vector< Node >& lems ) {
+  if( !d_n_delta.isNull() ){
+    Theory* theory = d_qe->getTheoryEngine()->theoryOf( THEORY_ARITH );
+    if( theory && d_qe->getTheoryEngine()->isTheoryEnabled( THEORY_ARITH ) ){
+      context::CDList<Assertion>::const_iterator it = theory->facts_begin(), it_end = theory->facts_end();
+      for (unsigned j = 0; it != it_end; ++ it, ++j) {
+        Node lit = (*it).assertion;
+        Node atom = lit.getKind()==NOT ? lit[0] : lit;
+        bool pol = lit.getKind()!=NOT;
+        if( atom.getKind()==GEQ || ( pol && atom.getKind()==EQUAL ) ){
+          Assert( atom.getKind()!=GEQ || atom[1].isConst() );
+          Node atom_lhs;
+          Node atom_rhs;
+          if( atom.getKind()==GEQ ){
+            atom_lhs = atom[0];
+            atom_rhs = atom[1];
+          }else{
+            atom_lhs = NodeManager::currentNM()->mkNode( MINUS, atom[0], atom[1] );
+            atom_lhs = Rewriter::rewrite( atom_lhs );
+            atom_rhs = d_zero;
+          }
+          computeProgVars( atom_lhs );
+          //must be an eligible term with delta
+          if( d_inelig.find( atom_lhs )==d_inelig.end() && d_has_delta.find( atom_lhs )!=d_has_delta.end() ){
+            Node satom = NodeManager::currentNM()->mkNode( atom.getKind(), atom_lhs, atom_rhs );
+            Trace("cegqi-delta") << "Delta assertion : " << atom << ", pol = " << pol << std::endl;
+            std::map< Node, Node > msum;
+            if( QuantArith::getMonomialSumLit( satom, msum ) ){
+              Node vatom;
+              //isolate delta in the inequality
+              int ires = QuantArith::isolate( d_n_delta, msum, vatom, atom.getKind(), true );
+              if( ((ires==1)==pol) || ( ires!=0 && lit.getKind()==EQUAL ) ){
+                Node val = vatom[ ires==1 ? 1 : 0 ];
+                Node pvm = vatom[ ires==1 ? 0 : 1 ];
+                //get monomial
+                if( pvm!=d_n_delta ){
+                  Node veq_c;
+                  Node veq_v;
+                  if( QuantArith::getMonomial( pvm, veq_c, veq_v ) ){
+                    Assert( veq_v==d_n_delta );
+                    val = NodeManager::currentNM()->mkNode( MULT, val, NodeManager::currentNM()->mkConst( Rational(1) / veq_c.getConst<Rational>() ) );
+                    val = Rewriter::rewrite( val );
+                  }else{
+                    val = Node::null();
+                  }
+                }
+                if( !val.isNull()  ){
+                  Node lem1 = NodeManager::currentNM()->mkNode( GT, val, d_zero );
+                  lem1 = Rewriter::rewrite( lem1 );
+                  if( !lem1.isConst() || lem1==d_true ){
+                    Node lem2 = NodeManager::currentNM()->mkNode( GT, val, d_n_delta );
+                    Node lem = lem1==d_true ? lem2 : NodeManager::currentNM()->mkNode( OR, lem1.negate(), lem2 );
+                    lems.push_back( lem );
+                    Trace("cegqi-delta") << "...lemma : " << lem << std::endl;
+                  }
+                }
+              }else{
+                Trace("cegqi-delta") << "...wrong polarity." << std::endl;
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}
+
 void CegInstantiator::check() {
+
   for( unsigned r=0; r<2; r++ ){
     std::vector< Node > subs;
     std::vector< Node > vars;
@@ -617,18 +713,21 @@ void CegInstantiator::check() {
   }
   Trace("cegqi-engine") << "  WARNING : unable to find CEGQI single invocation instantiation." << std::endl;
 }
-  
-  
+
+
 bool CegqiOutputSingleInv::addInstantiation( std::vector< Node >& subs, std::vector< int >& subs_typ ) {
   return d_out->addInstantiation( subs, subs_typ );
 }
-  
+
 bool CegqiOutputSingleInv::isEligibleForInstantiation( Node n ) {
   return d_out->isEligibleForInstantiation( n );
-}  
-  
-  
-  
+}
+
+bool CegqiOutputSingleInv::addLemma( Node n ) {
+  return d_out->addLemma( n );
+}
+
+
 CegConjectureSingleInv::CegConjectureSingleInv( CegConjecture * p ) : d_parent( p ){
   d_sol = NULL;
   d_c_inst_match_trie = NULL;
@@ -651,12 +750,12 @@ Node CegConjectureSingleInv::getSingleInvLemma( Node guard ) {
     Node inst = d_single_inv[1].substitute( d_single_inv_var.begin(), d_single_inv_var.end(), d_single_inv_sk.begin(), d_single_inv_sk.end() );
     inst = TermDb::simpleNegate( inst );
     Trace("cegqi-si") << "Single invocation initial lemma : " << inst << std::endl;
-    
+
     //initialize the instantiator for this
     CegqiOutputSingleInv * cosi = new CegqiOutputSingleInv( this );
     d_cinst = new CegInstantiator( d_qe, cosi );
     d_cinst->d_vars.insert( d_cinst->d_vars.end(), d_single_inv_sk.begin(), d_single_inv_sk.end() );
-    
+
     return NodeManager::currentNM()->mkNode( OR, guard.negate(), inst );
   }else{
     return Node::null();
@@ -1056,14 +1155,24 @@ bool CegConjectureSingleInv::isEligibleForInstantiation( Node n ) {
   return n.getKind()!=SKOLEM || std::find( d_single_inv_arg_sk.begin(), d_single_inv_arg_sk.end(), n )!=d_single_inv_arg_sk.end();
 }
 
+bool CegConjectureSingleInv::addLemma( Node n ) {
+  d_curr_lemmas.push_back( n );
+  return true;
+}
+
 void CegConjectureSingleInv::check( std::vector< Node >& lems ) {
   if( !d_single_inv.isNull() ) {
     Assert( d_cinst!=NULL );
     d_curr_lemmas.clear();
-    //call check for instantiator
-    d_cinst->check();
-    //add lemmas
-    lems.insert( lems.end(), d_curr_lemmas.begin(), d_curr_lemmas.end() );
+    //check if there are delta lemmas
+    d_cinst->getDeltaLemmas( d_curr_lemmas );
+    //if not, do ce-guided instantiation
+    if( d_curr_lemmas.empty() ){
+      //call check for instantiator
+      d_cinst->check();
+      //add lemmas
+      lems.insert( lems.end(), d_curr_lemmas.begin(), d_curr_lemmas.end() );
+    }
   }
 }
 

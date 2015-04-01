@@ -143,9 +143,9 @@ bool InstantiationEngine::doInstantiationRound( Theory::Effort effort ){
           //check each instantiation strategy
           for( size_t i=0; i<d_instStrategies.size(); ++i ){
             InstStrategy* is = d_instStrategies[i];
-            Debug("inst-engine-debug") << "Do " << is->identify() << " " << e_use << std::endl;
+            Trace("inst-engine-debug") << "Do " << is->identify() << " " << e_use << std::endl;
             int quantStatus = is->process( f, effort, e_use );
-            Debug("inst-engine-debug") << " -> status is " << quantStatus << std::endl;
+            Trace("inst-engine-debug") << " -> status is " << quantStatus << std::endl;
             if( quantStatus==InstStrategy::STATUS_UNFINISHED ){
               finished = false;
             }
@@ -185,11 +185,14 @@ void InstantiationEngine::check( Theory::Effort e, unsigned quant_e ){
                           << d_quantEngine->getModel()->getNumAssertedQuantifiers() << std::endl;
     for( int i=0; i<(int)d_quantEngine->getModel()->getNumAssertedQuantifiers(); i++ ){
       Node n = d_quantEngine->getModel()->getAssertedQuantifier( i );
+      Debug("quantifiers") << "Process " << n << "..." << std::endl;
       //it is not active if it corresponds to a rewrite rule: we will process in rewrite engine
       if( !d_quantEngine->hasOwnership( n, this ) ){
         d_quant_active[n] = false;
+        Debug("quantifiers") << "  Quantifier has owner." << std::endl;
       }else if( !d_quantEngine->getModel()->isQuantifierActive( n ) ){
         d_quant_active[n] = false;
+        Debug("quantifiers") << "  Quantifier is not active (from model)." << std::endl;
       //it is not active if we have found the skolemized negation is unsat
       }else if( options::cbqi() && hasAddedCbqiLemma( n ) ){
         Node cel = d_quantEngine->getTermDatabase()->getCounterexampleLiteral( n );

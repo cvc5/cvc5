@@ -92,13 +92,16 @@ public:
   InstStrategyCegqi * d_out;
   bool addInstantiation( std::vector< Node >& subs, std::vector< int >& subs_typ );
   bool isEligibleForInstantiation( Node n );
+  bool addLemma( Node lem );
 };
 
 class InstStrategyCegqi : public InstStrategy {
 private:
   CegqiOutputInstStrategy * d_out;
   std::map< Node, CegInstantiator * > d_cinst;
+  Node d_n_delta;
   Node d_curr_quant;
+  bool d_check_delta_lemma;
   /** process functions */
   void processResetInstantiationRound( Theory::Effort effort );
   int process( Node f, Theory::Effort effort, int e );
@@ -108,6 +111,7 @@ public:
   
   bool addInstantiation( std::vector< Node >& subs, std::vector< int >& subs_typ );
   bool isEligibleForInstantiation( Node n );  
+  bool addLemma( Node lem );
   /** identify */
   std::string identify() const { return std::string("Cegqi"); }
 };

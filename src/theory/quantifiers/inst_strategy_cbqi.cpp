@@ -357,13 +357,17 @@ bool CegqiOutputInstStrategy::isEligibleForInstantiation( Node n ) {
   return d_out->isEligibleForInstantiation( n );
 }
 
+bool CegqiOutputInstStrategy::addLemma( Node lem ) {
+  return d_out->addLemma( lem );
+}
+
 
 InstStrategyCegqi::InstStrategyCegqi( QuantifiersEngine * qe ) : InstStrategy( qe ) {
   d_out = new CegqiOutputInstStrategy( this );
 }
 
 void InstStrategyCegqi::processResetInstantiationRound( Theory::Effort effort ) {
-  
+  d_check_delta_lemma = true;
 }
 
 int InstStrategyCegqi::process( Node f, Theory::Effort effort, int e ) {
@@ -374,6 +378,12 @@ int InstStrategyCegqi::process( Node f, Theory::Effort effort, int e ) {
     std::map< Node, CegInstantiator * >::iterator it = d_cinst.find( f );
     if( it==d_cinst.end() ){
       cinst = new CegInstantiator( d_quantEngine, d_out );
+      if( d_n_delta.isNull() ){
+        d_n_delta = NodeManager::currentNM()->mkSkolem( "delta", NodeManager::currentNM()->realType(), "delta for cegqi inst strategy" );
+        Node delta_lem = NodeManager::currentNM()->mkNode( GT, d_n_delta, NodeManager::currentNM()->mkConst( Rational( 0 ) ) );
+        d_quantEngine->getOutputChannel().lemma( delta_lem );
+      }
+      cinst->d_n_delta = d_n_delta;
       for( int i=0; i<d_quantEngine->getTermDatabase()->getNumInstantiationConstants( f ); i++ ){
         cinst->d_vars.push_back( d_quantEngine->getTermDatabase()->getInstantiationConstant( f, i ) );
       }
@@ -381,24 +391,59 @@ int InstStrategyCegqi::process( Node f, Theory::Effort effort, int e ) {
     }else{
       cinst = it->second;
     }
+    if( d_check_delta_lemma ){
+      Trace("inst-alg") << "-> Get delta lemmas for cegqi..." << std::endl; 
+      d_check_delta_lemma = false;
+      std::vector< Node > dlemmas;
+      cinst->getDeltaLemmas( dlemmas );
+      Trace("inst-alg") << "...got " << dlemmas.size() << " delta lemmas." << std::endl; 
+      if( !dlemmas.empty() ){
+        bool addedLemma = false;
+        for( unsigned i=0; i<dlemmas.size(); i++ ){
+          if( addLemma( dlemmas[i] ) ){
+            addedLemma = true;
+          }
+        }
+        if( addedLemma ){
+          return STATUS_UNKNOWN;
+        }
+      }
+    }
+    Trace("inst-alg") << "-> Run cegqi for " << f << std::endl;
     d_curr_quant = f;
     cinst->check();
     d_curr_quant = Node::null();
-    
-    return STATUS_UNKNOWN;
-  }else{
-    // To fix warning
-    Unreachable();
   }
+  return STATUS_UNKNOWN;
 }
 
 bool InstStrategyCegqi::addInstantiation( std::vector< Node >& subs, std::vector< int >& subs_typ ) {
   Assert( !d_curr_quant.isNull() );
+  /*
+  std::stringstream siss;
+  if( Trace.isOn("inst-cegqi") || Trace.isOn("inst-cegqi-debug") ){
+    for( unsigned j=0; j<d_single_inv_sk.size(); j++ ){
+      Node v = d_single_inv_map_to_prog[d_single_inv[0][j]];
+      siss << "    * " << v;
+      siss << " (" << d_single_inv_sk[j] << ")";
+      siss << " -> " << ( subs_typ[j]==9 ? "M:" : "") << subs[j] << std::endl;
+    }
+  }  
+  */
   return d_quantEngine->addInstantiation( d_curr_quant, subs, false );
 }
 
+bool InstStrategyCegqi::addLemma( Node lem ) {
+  return d_quantEngine->addLemma( lem );
+}
+
 bool InstStrategyCegqi::isEligibleForInstantiation( Node n ) {
-  return true;
+  if( n.getKind()==INST_CONSTANT ){
+    //only legal if current quantified formula contains n
+    return TermDb::containsTerm( d_curr_quant, n );
+  }else{
+    return true;
+  }
 } 
 
 

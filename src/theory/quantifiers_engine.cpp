@@ -417,7 +417,7 @@ bool QuantifiersEngine::registerQuantifier( Node f ){
     Trace("quant") << " : " << f << std::endl;
     ++(d_statistics.d_num_quant);
     Assert( f.getKind()==FORALL );
-    
+
     //check whether we should apply a reduction
     bool reduced = false;
     if( d_lte_part_inst && !f.getAttribute(LtePartialInstAttribute()) ){
@@ -567,7 +567,7 @@ bool QuantifiersEngine::addInstantiation( Node f, std::vector< Node >& vars, std
       Trace("inst") << std::endl;
       Assert( terms[i].getType().isSubtypeOf( f[0][i].getType() ) );
     }
-    if( options::cbqi() ){
+    if( options::cbqi() && !options::cbqi2() ){
       for( int i=0; i<(int)terms.size(); i++ ){
         if( quantifiers::TermDb::hasInstConstAttr(terms[i]) ){
           Debug("inst")<< "***& Bad Instantiate " << f << " with " << std::endl;
@@ -589,7 +589,6 @@ bool QuantifiersEngine::addInstantiation( Node f, std::vector< Node >& vars, std
       }
       setInstantiationLevelAttr( body, f[1], maxInstLevel+1 );
     }
-    Trace("inst-debug") << "*** Lemma is " << lem << std::endl;
     ++(d_statistics.d_instantiations);
     return true;
   }else{
@@ -673,13 +672,17 @@ Node QuantifiersEngine::getInstantiation( Node f, std::vector< Node >& vars, std
     Trace("partial-inst") << "Partial instantiation : " << f << std::endl;
     Trace("partial-inst") << "                      : " << body << std::endl;
   }else{
-    //do optimized version
-    Node icb = d_term_db->getInstConstantBody( f );
-    body = getSubstitute( icb, terms );
-    if( Debug.isOn("check-inst") ){
-      Node body2 = f[ 1 ].substitute( vars.begin(), vars.end(), terms.begin(), terms.end() );
-      if( body!=body2 ){
-        Debug("check-inst") << "Substitution is wrong : " << body << " " << body2 << std::endl;
+    if( options::cbqi() ){
+      body = f[ 1 ].substitute( vars.begin(), vars.end(), terms.begin(), terms.end() );
+    }else{
+      //do optimized version
+      Node icb = d_term_db->getInstConstantBody( f );
+      body = getSubstitute( icb, terms );
+      if( Debug.isOn("check-inst") ){
+        Node body2 = f[ 1 ].substitute( vars.begin(), vars.end(), terms.begin(), terms.end() );
+        if( body!=body2 ){
+          Debug("check-inst") << "Substitution is wrong : " << body << " " << body2 << std::endl;
+        }
       }
     }
   }
@@ -722,16 +725,16 @@ bool QuantifiersEngine::existsInstantiation( Node f, InstMatch& m, bool modEq, b
 
 bool QuantifiersEngine::addLemma( Node lem, bool doCache ){
   if( doCache ){
-    Debug("inst-engine-debug") << "Adding lemma : " << lem << std::endl;
     lem = Rewriter::rewrite(lem);
+    Trace("inst-add-debug2") << "Adding lemma : " << lem << std::endl;
     if( d_lemmas_produced_c.find( lem )==d_lemmas_produced_c.end() ){
       //d_curr_out->lemma( lem, false, true );
       d_lemmas_produced_c[ lem ] = true;
       d_lemmas_waiting.push_back( lem );
-      Debug("inst-engine-debug") << "Added lemma : " << lem << std::endl;
+      Trace("inst-add-debug2") << "Added lemma : " << lem << std::endl;
       return true;
     }else{
-      Debug("inst-engine-debug") << "Duplicate." << std::endl;
+      Trace("inst-add-debug2") << "Duplicate." << std::endl;
       return false;
     }
   }else{
@@ -943,7 +946,7 @@ void QuantifiersEngine::printSynthSolution( std::ostream& out ) {
     out << "Internal error : module for synth solution not found." << std::endl;
   }
 }
-  
+
 QuantifiersEngine::Statistics::Statistics():
   d_num_quant("QuantifiersEngine::Num_Quantifiers", 0),
   d_instantiation_rounds("QuantifiersEngine::Rounds_Instantiation_Full", 0),

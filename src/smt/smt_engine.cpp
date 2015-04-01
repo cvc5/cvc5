@@ -866,7 +866,7 @@ SmtEngine::~SmtEngine() throw() {
 
     PROOF(delete d_proofManager;);
     PROOF(d_proofManager = NULL;);
-    
+
     delete d_stats;
     d_stats = NULL;
     delete d_statisticsRegistry;
@@ -1342,12 +1342,15 @@ void SmtEngine::setDefaults() {
       if( !options::preSkolemQuant.wasSetByUser() ){
         options::preSkolemQuant.set( true );
       }
+      if( !options::preSkolemQuantNested.wasSetByUser() ){
+        options::preSkolemQuantNested.set( true );
+      }
       if( !options::fmfOneInstPerRound.wasSetByUser() ){
         options::fmfOneInstPerRound.set( true );
       }
     }
   }
-  
+
   //apply counterexample guided instantiation options
   if( options::cegqiSingleInv() ){
     options::ceGuidedInst.set( true );
@@ -1376,10 +1379,17 @@ void SmtEngine::setDefaults() {
     }
   }
 
-  //implied options...
+  //cbqi options
   if( options::recurseCbqi() || options::cbqi2() ){
     options::cbqi.set( true );
   }
+  if( options::cbqi() ){
+    if( !options::quantConflictFind.wasSetByUser() ){
+      options::quantConflictFind.set( false );
+    }
+  }
+
+  //implied options...
   if( options::qcfMode.wasSetByUser() || options::qcfTConstraint() ){
     options::quantConflictFind.set( true );
   }
@@ -3430,10 +3440,10 @@ void SmtEnginePrivate::addFormula(TNode n, bool inUnsatCore, bool inInput)
 
   Trace("smt") << "SmtEnginePrivate::addFormula(" << n << "), inUnsatCore = " << inUnsatCore << ", inInput = " << inInput << endl;
   // Give it to proof manager
-  PROOF( 
+  PROOF(
     if( inInput ){
       // n is an input assertion
-      ProofManager::currentPM()->addAssertion(n.toExpr(), inUnsatCore); 
+      ProofManager::currentPM()->addAssertion(n.toExpr(), inUnsatCore);
     }else{
       // n is the result of an unknown preprocessing step, add it to dependency map to null
       ProofManager::currentPM()->addDependence(n, Node::null());
@@ -3634,7 +3644,7 @@ Result SmtEngine::assertFormula(const Expr& ex, bool inUnsatCore) throw(TypeChec
   SmtScope smts(this);
   finalOptionsAreSet();
   doPendingPops();
-  
+
   Trace("smt") << "SmtEngine::assertFormula(" << ex << ")" << endl;
 
   // Substitute out any abstract values in ex
