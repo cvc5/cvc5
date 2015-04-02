@@ -1,4 +1,3 @@
-/*********************                                                        */
 /*! \file congruence_manager.cpp
  ** \verbatim
  ** Original author: Tim King

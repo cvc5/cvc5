@@ -1086,7 +1086,7 @@ TheorySetsPrivate::TheorySetsPrivate(TheorySets& external,
                                      context::UserContext* u):
   d_external(external),
   d_notify(*this),
-  d_equalityEngine(d_notify, c, "theory::sets::TheorySetsPrivate", false),
+  d_equalityEngine(d_notify, c, "theory::sets::TheorySetsPrivate", true),
   d_trueNode(NodeManager::currentNM()->mkConst<bool>(true)),
   d_falseNode(NodeManager::currentNM()->mkConst<bool>(false)),
   d_conflict(c),
