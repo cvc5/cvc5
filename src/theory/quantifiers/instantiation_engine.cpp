@@ -328,7 +328,7 @@ bool InstantiationEngine::hasNonArithmeticVariable( Node f ){
 }
 
 bool InstantiationEngine::doCbqi( Node f ){
-  if( options::cbqi.wasSetByUser() ){
+  if( options::cbqi.wasSetByUser() || options::cbqi2.wasSetByUser() ){
     return options::cbqi();
   }else if( options::cbqi() ){
     //if quantifier has a non-arithmetic variable, then do not use cbqi

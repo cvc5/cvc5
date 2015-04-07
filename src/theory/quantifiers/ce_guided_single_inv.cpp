@@ -218,16 +218,21 @@ bool CegInstantiator::addInstantiation( std::vector< Node >& subs, std::vector< 
       }
 
       //[3] directly look at assertions
-      TheoryId tid = Theory::theoryOf( pv );
-      Theory* theory = d_qe->getTheoryEngine()->theoryOf( tid );
-      if (theory && d_qe->getTheoryEngine()->isTheoryEnabled(tid)) {
-        context::CDList<Assertion>::const_iterator it = theory->facts_begin(), it_end = theory->facts_end();
-        for (unsigned j = 0; it != it_end; ++ it, ++j) {
-          Node lit = (*it).assertion;
-          Node atom = lit.getKind()==NOT ? lit[0] : lit;
-          bool pol = lit.getKind()!=NOT;
-          if( tid==THEORY_ARITH ){
-            if( atom.getKind()==GEQ || ( atom.getKind()==EQUAL && !pol ) ){
+      unsigned rmax = Theory::theoryOf( pv )==Theory::theoryOf( pv.getType() ) ? 1 : 2;
+      for( unsigned r=0; r<rmax; r++ ){
+        TheoryId tid = r==0 ? Theory::theoryOf( pv ) : Theory::theoryOf( pv.getType() );
+        Theory* theory = d_qe->getTheoryEngine()->theoryOf( tid );
+        Trace("cegqi-si-inst-debug2") << "Theory of " << pv << " (r=" << r << ") is " << tid << std::endl;
+        if (theory && d_qe->getTheoryEngine()->isTheoryEnabled(tid)) {
+          Trace("cegqi-si-inst-debug2") << "Look at assertions of " << tid << std::endl;
+          context::CDList<Assertion>::const_iterator it = theory->facts_begin(), it_end = theory->facts_end();
+          for (unsigned j = 0; it != it_end; ++ it, ++j) {
+            Node lit = (*it).assertion;
+            Trace("cegqi-si-inst-debug2") << "  look at " << lit << std::endl;
+            Node atom = lit.getKind()==NOT ? lit[0] : lit;
+            bool pol = lit.getKind()!=NOT;
+            //arithmetic inequalities and disequalities
+            if( atom.getKind()==GEQ || ( atom.getKind()==EQUAL && !pol && ( atom[0].getType().isInteger() || atom[0].getType().isReal() ) ) ){
               Assert( atom.getKind()!=GEQ || atom[1].isConst() );
               Node atom_lhs;
               Node atom_rhs;
@@ -1165,9 +1170,9 @@ void CegConjectureSingleInv::check( std::vector< Node >& lems ) {
     Assert( d_cinst!=NULL );
     d_curr_lemmas.clear();
     //check if there are delta lemmas
-    d_cinst->getDeltaLemmas( d_curr_lemmas );
+    d_cinst->getDeltaLemmas( lems );
     //if not, do ce-guided instantiation
-    if( d_curr_lemmas.empty() ){
+    if( lems.empty() ){
       //call check for instantiator
       d_cinst->check();
       //add lemmas
