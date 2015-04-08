@@ -913,12 +913,10 @@ smt25Command[CVC4::Command*& cmd]
       term[expr, expr2]
       { PARSER_STATE->popScope(); 
         std::string attr_name("fun-def");
-        Type t = EXPR_MANAGER->booleanType();
-        Expr avar = PARSER_STATE->mkVar(attr_name, t);
-        aexpr = MK_EXPR(kind::INST_ATTRIBUTE, avar);
-        aexpr = MK_EXPR(kind::INST_PATTERN_LIST, aexpr );
+        aexpr = MK_EXPR(kind::INST_ATTRIBUTE, func_app);
+        aexpr = MK_EXPR(kind::INST_PATTERN_LIST, aexpr);
         //set the attribute to denote this is a function definition
-        static_cast<CommandSequence*>($cmd)->addCommand( new SetUserAttributeCommand( attr_name, avar ) );
+        static_cast<CommandSequence*>($cmd)->addCommand( new SetUserAttributeCommand( attr_name, func_app ) );
         //assert it
         Expr as = EXPR_MANAGER->mkExpr(kind::FORALL, EXPR_MANAGER->mkExpr(kind::BOUND_VAR_LIST, bvs), MK_EXPR( func_app.getType().isBoolean() ? kind::IFF : kind::EQUAL, func_app, expr ), aexpr);
         static_cast<CommandSequence*>($cmd)->addCommand( new AssertCommand(as, false) );
@@ -952,14 +950,6 @@ smt25Command[CVC4::Command*& cmd]
     RPAREN_TOK
     LPAREN_TOK
     { 
-      std::string attr_name("fun-def");
-      Type t = EXPR_MANAGER->booleanType();
-      Expr avar = PARSER_STATE->mkVar(attr_name, t);
-      aexpr = MK_EXPR(kind::INST_ATTRIBUTE, avar);
-      aexpr = MK_EXPR(kind::INST_PATTERN_LIST, aexpr );
-      //set the attribute to denote these are function definitions
-      static_cast<CommandSequence*>($cmd)->addCommand( new SetUserAttributeCommand( attr_name, avar ) );
-    
       //set up the first scope 
       if( sortedVarNamesList.empty() ){
         PARSER_STATE->parseError(std::string("Must define at least one function in define-funs-rec"));
@@ -980,6 +970,12 @@ smt25Command[CVC4::Command*& cmd]
     term[expr,expr2]
     { 
       func_defs.push_back( expr );
+      
+      std::string attr_name("fun-def");
+      aexpr = MK_EXPR(kind::INST_ATTRIBUTE, func_app);
+      aexpr = MK_EXPR(kind::INST_PATTERN_LIST, aexpr );
+      //set the attribute to denote these are function definitions
+      static_cast<CommandSequence*>($cmd)->addCommand( new SetUserAttributeCommand( attr_name, func_app ) );
       //assert it
       Expr as = EXPR_MANAGER->mkExpr(kind::FORALL, EXPR_MANAGER->mkExpr(kind::BOUND_VAR_LIST, bvs), MK_EXPR( func_app.getType().isBoolean() ? kind::IFF : kind::EQUAL, func_app, expr ), aexpr);
       static_cast<CommandSequence*>($cmd)->addCommand( new AssertCommand(as, false) );
@@ -1752,7 +1748,10 @@ attribute[CVC4::Expr& expr,CVC4::Expr& retExpr, std::string& attr]
         ss << "warning: Attribute " << attr << " does not take a value (ignoring)";
         PARSER_STATE->warning(ss.str());
       }
+      Expr avar;
       bool success = true;
+      std::string attr_name = attr;
+      attr_name.erase( attr_name.begin() );
       if( attr==":fun-def" ){
         if( ( expr.getKind()!=kind::EQUAL && expr.getKind()!=kind::IFF ) || expr[0].getKind()!=kind::APPLY_UF ){
           success = false;
@@ -1776,14 +1775,15 @@ attribute[CVC4::Expr& expr,CVC4::Expr& retExpr, std::string& attr]
           std::stringstream ss;
           ss << "warning: Function definition should be an equality whose LHS is an uninterpreted function applied to unique variables.";
           PARSER_STATE->warning(ss.str());
+        }else{
+          avar = expr[0];
         }
+      }else{
+        Type t = EXPR_MANAGER->booleanType();
+        avar = PARSER_STATE->mkVar(attr_name, t);
       }
       if( success ){
-        std::string attr_name = attr;
-        attr_name.erase( attr_name.begin() );
         //will set the attribute on auxiliary var (preserves attribute on formula through rewriting)
-        Type t = EXPR_MANAGER->booleanType();
-        Expr avar = PARSER_STATE->mkVar(attr_name, t);
         retExpr = MK_EXPR(kind::INST_ATTRIBUTE, avar);
         Command* c = new SetUserAttributeCommand( attr_name, avar );
         c->setMuted(true);

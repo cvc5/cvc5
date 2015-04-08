@@ -32,66 +32,71 @@ void FunDefFmf::simplify( std::vector< Node >& assertions, bool doRewrite ) {
   std::vector< int > fd_assertions;
   //first pass : find defined functions, transform quantifiers
   for( unsigned i=0; i<assertions.size(); i++ ){
-    if( assertions[i].getKind()==FORALL ){
-      if( quantifiers::TermDb::isFunDef( assertions[i] ) ){
-        Assert( assertions[i][1].getKind()==EQUAL || assertions[i][1].getKind()==IFF );
-        Node n = assertions[i][1][0];
-        Assert( n.getKind()==APPLY_UF );
-        Node f = n.getOperator();
+    Node n = TermDb::getFunDefHead( assertions[i] );
+    if( !n.isNull() ){
+      Assert( n.getKind()==APPLY_UF );
+      Node f = n.getOperator();
 
-        //check if already defined, if so, throw error
-        if( d_sorts.find( f )!=d_sorts.end() ){
-          Message() << "Cannot define function " << f << " more than once." << std::endl;
-          exit( 0 );
-        }
-
-        //create a sort S that represents the inputs of the function
-        std::stringstream ss;
-        ss << "I_" << f;
-        TypeNode iType = NodeManager::currentNM()->mkSort( ss.str() );
-        d_sorts[f] = iType;
-
-        //create functions f1...fn mapping from this sort to concrete elements
-        for( unsigned j=0; j<n.getNumChildren(); j++ ){
-          TypeNode typ = NodeManager::currentNM()->mkFunctionType( iType, n[j].getType() );
-          std::stringstream ss;
-          ss << f << "_arg_" << j;
-          d_input_arg_inj[f].push_back( NodeManager::currentNM()->mkSkolem( ss.str(), typ, "op created during fun def fmf" ) );
-        }
-
-        //construct new quantifier forall S. F[f1(S)/x1....fn(S)/xn]
-        std::vector< Node > children;
-        Node bv = NodeManager::currentNM()->mkBoundVar("?i", iType );
-        Node bvl = NodeManager::currentNM()->mkNode( kind::BOUND_VAR_LIST, bv );
-        std::vector< Node > subs;
-        std::vector< Node > vars;
-        for( unsigned j=0; j<n.getNumChildren(); j++ ){
-          vars.push_back( n[j] );
-          subs.push_back( NodeManager::currentNM()->mkNode( APPLY_UF, d_input_arg_inj[f][j], bv ) );
-        }
-        Node bd = assertions[i][1].substitute( vars.begin(), vars.end(), subs.begin(), subs.end() );
-
-        Trace("fmf-fun-def") << "FMF fun def: rewrite " << assertions[i] << std::endl;
-        Trace("fmf-fun-def") << "  to " << std::endl;
-        assertions[i] = NodeManager::currentNM()->mkNode( FORALL, bvl, bd );
-        Trace("fmf-fun-def") << "  " << assertions[i] << std::endl;
-        fd_assertions.push_back( i );
+      //check if already defined, if so, throw error
+      if( d_sorts.find( f )!=d_sorts.end() ){
+        Message() << "Cannot define function " << f << " more than once." << std::endl;
+        exit( 0 );
       }
+      
+      Node bd = TermDb::getFunDefBody( assertions[i] );
+      Assert( !bd.isNull() );
+      bd = NodeManager::currentNM()->mkNode( n.getType().isBoolean() ? IFF : EQUAL, n, bd );
+
+      //create a sort S that represents the inputs of the function
+      std::stringstream ss;
+      ss << "I_" << f;
+      TypeNode iType = NodeManager::currentNM()->mkSort( ss.str() );
+      d_sorts[f] = iType;
+
+      //create functions f1...fn mapping from this sort to concrete elements
+      for( unsigned j=0; j<n.getNumChildren(); j++ ){
+        TypeNode typ = NodeManager::currentNM()->mkFunctionType( iType, n[j].getType() );
+        std::stringstream ss;
+        ss << f << "_arg_" << j;
+        d_input_arg_inj[f].push_back( NodeManager::currentNM()->mkSkolem( ss.str(), typ, "op created during fun def fmf" ) );
+      }
+
+      //construct new quantifier forall S. F[f1(S)/x1....fn(S)/xn]
+      std::vector< Node > children;
+      Node bv = NodeManager::currentNM()->mkBoundVar("?i", iType );
+      Node bvl = NodeManager::currentNM()->mkNode( kind::BOUND_VAR_LIST, bv );
+      std::vector< Node > subs;
+      std::vector< Node > vars;
+      for( unsigned j=0; j<n.getNumChildren(); j++ ){
+        vars.push_back( n[j] );
+        subs.push_back( NodeManager::currentNM()->mkNode( APPLY_UF, d_input_arg_inj[f][j], bv ) );
+      }
+      bd = bd.substitute( vars.begin(), vars.end(), subs.begin(), subs.end() );
+
+      Trace("fmf-fun-def") << "FMF fun def: rewrite " << assertions[i] << std::endl;
+      Trace("fmf-fun-def") << "  to " << std::endl;
+      assertions[i] = NodeManager::currentNM()->mkNode( FORALL, bvl, bd );
+      assertions[i] = Rewriter::rewrite( assertions[i] );
+      Trace("fmf-fun-def") << "  " << assertions[i] << std::endl;
+      fd_assertions.push_back( i );
     }
   }
   //second pass : rewrite assertions
   for( unsigned i=0; i<assertions.size(); i++ ){
     int is_fd = std::find( fd_assertions.begin(), fd_assertions.end(), i )!=fd_assertions.end() ? 1 : 0;
-    std::vector< Node > constraints;
-    Trace("fmf-fun-def-rewrite") << "Rewriting " << assertions[i] << ", is_fd = " << is_fd << std::endl;
-    Node n = simplify( assertions[i], true, true, constraints, is_fd );
-    Assert( constraints.empty() );
-    if( n!=assertions[i] ){
-      n = Rewriter::rewrite( n );
-      Trace("fmf-fun-def-rewrite") << "FMF fun def : rewrite " << assertions[i] << std::endl;
-      Trace("fmf-fun-def-rewrite") << "  to " << std::endl;
-      Trace("fmf-fun-def-rewrite") << "  " << n << std::endl;
-      assertions[i] = n;
+    //constant boolean function definitions do not add domain constraints
+    if( is_fd==0 || ( is_fd==1 && ( assertions[i][1].getKind()==EQUAL || assertions[i][1].getKind()==IFF ) ) ){
+      std::vector< Node > constraints;
+      Trace("fmf-fun-def-rewrite") << "Rewriting " << assertions[i] << ", is_fd = " << is_fd << std::endl;
+      Node n = simplify( assertions[i], true, true, constraints, is_fd );
+      Assert( constraints.empty() );
+      if( n!=assertions[i] ){
+        n = Rewriter::rewrite( n );
+        Trace("fmf-fun-def-rewrite") << "FMF fun def : rewrite " << assertions[i] << std::endl;
+        Trace("fmf-fun-def-rewrite") << "  to " << std::endl;
+        Trace("fmf-fun-def-rewrite") << "  " << n << std::endl;
+        assertions[i] = n;
+      }
     }
   }
 }
