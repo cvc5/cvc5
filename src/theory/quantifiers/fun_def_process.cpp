@@ -20,6 +20,7 @@
 #include "theory/rewriter.h"
 #include "theory/quantifiers/term_database.h"
 #include "theory/quantifiers/quant_util.h"
+#include "proof/proof_manager.h"
 
 using namespace CVC4;
 using namespace std;
@@ -75,8 +76,10 @@ void FunDefFmf::simplify( std::vector< Node >& assertions, bool doRewrite ) {
 
       Trace("fmf-fun-def") << "FMF fun def: rewrite " << assertions[i] << std::endl;
       Trace("fmf-fun-def") << "  to " << std::endl;
-      assertions[i] = NodeManager::currentNM()->mkNode( FORALL, bvl, bd );
-      assertions[i] = Rewriter::rewrite( assertions[i] );
+      Node new_q = NodeManager::currentNM()->mkNode( FORALL, bvl, bd );
+      new_q = Rewriter::rewrite( new_q );
+      PROOF( ProofManager::currentPM()->addDependence(new_q, assertions[i]); );
+      assertions[i] = new_q;
       Trace("fmf-fun-def") << "  " << assertions[i] << std::endl;
       fd_assertions.push_back( i );
     }
@@ -95,6 +98,7 @@ void FunDefFmf::simplify( std::vector< Node >& assertions, bool doRewrite ) {
         Trace("fmf-fun-def-rewrite") << "FMF fun def : rewrite " << assertions[i] << std::endl;
         Trace("fmf-fun-def-rewrite") << "  to " << std::endl;
         Trace("fmf-fun-def-rewrite") << "  " << n << std::endl;
+        PROOF( ProofManager::currentPM()->addDependence(n, assertions[i]); );
         assertions[i] = n;
       }
     }

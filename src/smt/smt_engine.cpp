@@ -3165,15 +3165,10 @@ void SmtEnginePrivate::processAssertions() {
   if( d_smt.d_logic.isTheoryEnabled(THEORY_STRINGS) ) {
     dumpAssertions("pre-strings-pp", d_assertions);
     CVC4::theory::strings::StringsPreprocess sp;
-    std::vector<Node> newNodes;
-    newNodes.push_back(d_assertions[d_realAssertionsEnd - 1]);
-    sp.simplify( d_assertions.ref(), newNodes );
-    if(newNodes.size() > 1) {
-      d_assertions[d_realAssertionsEnd - 1] = NodeManager::currentNM()->mkNode(kind::AND, newNodes);
-    }
-    for (unsigned i = 0; i < d_assertions.size(); ++ i) {
-      d_assertions[i] = Rewriter::rewrite( d_assertions[i] );
-    }
+    sp.simplify( d_assertions.ref() );
+    //for (unsigned i = 0; i < d_assertions.size(); ++ i) {
+    //  d_assertions.replace( i, Rewriter::rewrite( d_assertions[i] ) );
+    //}
     dumpAssertions("post-strings-pp", d_assertions);
   }
   if( d_smt.d_logic.isQuantified() ){
@@ -3182,7 +3177,7 @@ void SmtEnginePrivate::processAssertions() {
       if( d_assertions[i].getKind() == kind::REWRITE_RULE ){
         Node prev = d_assertions[i];
         Trace("quantifiers-rewrite-debug") << "Rewrite rewrite rule " << prev << "..." << std::endl;
-        d_assertions[i] = Rewriter::rewrite( quantifiers::QuantifiersRewriter::rewriteRewriteRule( d_assertions[i] ) );
+        d_assertions.replace(i, Rewriter::rewrite( quantifiers::QuantifiersRewriter::rewriteRewriteRule( d_assertions[i] ) ) );
         Trace("quantifiers-rewrite") << "*** rr-rewrite " << prev << endl;
         Trace("quantifiers-rewrite") << "   ...got " << d_assertions[i] << endl;
       }
@@ -3234,10 +3229,6 @@ void SmtEnginePrivate::processAssertions() {
       d_smt.setPrintFuncInModel( it->second.toExpr(), true );
     }
   }
-
-  //if( options::quantConflictFind() ){
-  //  d_smt.d_theoryEngine->getQuantConflictFind()->registerAssertions( d_assertions );
-  //}
 
   if( options::pbRewrites() ){
     d_pbsProcessor.learn(d_assertions.ref());

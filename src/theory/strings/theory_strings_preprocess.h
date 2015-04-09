@@ -3,7 +3,7 @@
  ** \verbatim
  ** Original author: Tianyi Liang
  ** Major contributors: Morgan Deters
- ** Minor contributors (to current version): none
+ ** Minor contributors (to current version): Andrew Reynolds
  ** This file is part of the CVC4 project.
  ** Copyright (c) 2009-2014  New York University and The University of Iowa
  ** See the file COPYING in the top-level source directory for licensing
@@ -40,7 +40,6 @@ private:
   Node simplify( Node t, std::vector< Node > &new_nodes );
   Node decompose( Node t, std::vector< Node > &new_nodes );
 public:
-  void simplify(std::vector< Node > &vec_node, std::vector< Node > &new_nodes);
   void simplify(std::vector< Node > &vec_node);
   StringsPreprocess();
 };

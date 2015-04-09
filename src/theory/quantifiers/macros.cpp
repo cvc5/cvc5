@@ -18,6 +18,7 @@
 
 #include "theory/quantifiers/macros.h"
 #include "theory/rewriter.h"
+#include "proof/proof_manager.h"
 
 using namespace CVC4;
 using namespace std;
@@ -36,11 +37,12 @@ bool QuantifierMacros::simplify( std::vector< Node >& assertions, bool doRewrite
   if( doRewrite && !d_macro_defs.empty() ){
     //now, rewrite based on macro definitions
     for( size_t i=0; i<assertions.size(); i++ ){
-      Node prev = assertions[i];
-      assertions[i] = simplify( assertions[i] );
-      if( prev!=assertions[i] ){
-        assertions[i] = Rewriter::rewrite( assertions[i] );
-        Trace("macros-rewrite") << "Rewrite " << prev << " to " << assertions[i] << std::endl;
+      Node curr = simplify( assertions[i] );
+      if( curr!=assertions[i] ){
+        curr = Rewriter::rewrite( curr );
+        Trace("macros-rewrite") << "Rewrite " << assertions[i] << " to " << curr << std::endl;
+        PROOF( ProofManager::currentPM()->addDependence(curr, assertions[i]); );
+        assertions[i] = curr;
         retVal = true;
       }
     }

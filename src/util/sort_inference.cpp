@@ -24,6 +24,7 @@
 #include "smt/options.h"
 #include "theory/rewriter.h"
 #include "theory/quantifiers/options.h"
+#include "proof/proof_manager.h"
 
 using namespace CVC4;
 using namespace std;
@@ -172,13 +173,15 @@ bool SortInference::simplify( std::vector< Node >& assertions ){
       Node prev = assertions[i];
       std::map< Node, Node > var_bound;
       Trace("sort-inference-debug") << "Rewrite " << assertions[i] << std::endl;
-      assertions[i] = simplify( assertions[i], var_bound );
+      Node curr = simplify( assertions[i], var_bound );
       Trace("sort-inference-debug") << "Done." << std::endl;
-      if( prev!=assertions[i] ){
-        assertions[i] = theory::Rewriter::rewrite( assertions[i] );
+      if( curr!=assertions[i] ){
+        curr = theory::Rewriter::rewrite( curr );
         rewritten = true;
-        Trace("sort-inference-rewrite") << prev << std::endl;
-        Trace("sort-inference-rewrite") << " --> " << assertions[i] << std::endl;
+        Trace("sort-inference-rewrite") << assertions << std::endl;
+        Trace("sort-inference-rewrite") << " --> " << curr << std::endl;
+        PROOF( ProofManager::currentPM()->addDependence(curr, assertions[i]); );
+        assertions[i] = curr;
       }
     }
     //now, ensure constants are distinct

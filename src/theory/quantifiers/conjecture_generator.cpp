@@ -1159,6 +1159,8 @@ void ConjectureGenerator::getEnumerateUfTerm( Node n, unsigned num, std::vector<
             vec[i] = 0;
           }
           vec_sum = -1;
+        }else{
+          return;
         }
       }
     }
