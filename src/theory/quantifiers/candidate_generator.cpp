@@ -202,12 +202,18 @@ Node CandidateGeneratorQEAll::getNextCandidate() {
     if( n.getType().isSubtypeOf( d_match_pattern_type ) ){
       TNode nh = d_qe->getTermDatabase()->getEligibleTermInEqc( n );
       if( !nh.isNull() ){
-        if( options::instMaxLevel()!=-1 ){
+        if( options::instMaxLevel()!=-1 || options::lteRestrictInstClosure() ){
           nh = d_qe->getEqualityQuery()->getInternalRepresentative( nh, d_f, d_index );
+          //don't consider this if already the instantiation is ineligible
+          if( !d_qe->getTermDatabase()->isTermEligibleForInstantiation( nh, d_f, false ) ){
+            nh = Node::null();
+          }
         }
-        d_firstTime = false;
-        //an equivalence class with the same type as the pattern, return it
-        return nh;
+        if( !nh.isNull() ){
+          d_firstTime = false;
+          //an equivalence class with the same type as the pattern, return it
+          return nh;
+        }
       }
     }
   }

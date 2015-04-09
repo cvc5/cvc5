@@ -140,6 +140,7 @@ bool InstantiationEngine::doInstantiationRound( Theory::Effort effort ){
         //int e_use = d_quantEngine->getRelevance( f )==-1 ? e - 1 : e;
         int e_use = e;
         if( e_use>=0 ){
+          Trace("inst-engine-debug") << "inst-engine : " << f << std::endl;
           //check each instantiation strategy
           for( size_t i=0; i<d_instStrategies.size(); ++i ){
             InstStrategy* is = d_instStrategies[i];

@@ -991,8 +991,14 @@ eq::EqualityEngine* QuantifiersEngine::getMasterEqualityEngine(){
 void QuantifiersEngine::debugPrintEqualityEngine( const char * c ) {
   eq::EqualityEngine* ee = getMasterEqualityEngine();
   eq::EqClassesIterator eqcs_i = eq::EqClassesIterator( ee );
+  std::map< TypeNode, int > typ_num;
   while( !eqcs_i.isFinished() ){
     TNode r = (*eqcs_i);
+    TypeNode tr = r.getType();
+    if( typ_num.find( tr )==typ_num.end() ){
+      typ_num[tr] = 0;
+    }
+    typ_num[tr]++;
     bool firstTime = true;
     Trace(c) << "  " << r;
     Trace(c) << " : { ";
@@ -1013,6 +1019,9 @@ void QuantifiersEngine::debugPrintEqualityEngine( const char * c ) {
     ++eqcs_i;
   }
   Trace(c) << std::endl;
+  for( std::map< TypeNode, int >::iterator it = typ_num.begin(); it != typ_num.end(); ++it ){
+    Trace(c) << "# eqc for " << it->first << " : " << it->second << std::endl;    
+  }
 }
 
 void EqualityQueryQuantifiersEngine::reset(){
