@@ -3119,6 +3119,9 @@ void SmtEnginePrivate::processAssertions() {
   if(options::unconstrainedSimp()) {
     dumpAssertions("pre-unconstrained-simp", d_assertions);
     Chat() << "...doing unconstrained simplification..." << endl;
+    for (unsigned i = 0; i < d_assertions.size(); ++ i) {
+      d_assertions.replace(i, Rewriter::rewrite(d_assertions[i]));
+    }
     unconstrainedSimp();
     dumpAssertions("post-unconstrained-simp", d_assertions);
   }
