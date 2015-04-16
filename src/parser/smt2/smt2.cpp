@@ -168,9 +168,9 @@ void Smt2::addTheory(Theory theory) {
   case THEORY_INTS:
     defineType("Int", getExprManager()->integerType());
     addArithmeticOperators();
-    Parser::addOperator(kind::INTS_DIVISION);
-    Parser::addOperator(kind::INTS_MODULUS);
-    Parser::addOperator(kind::ABS);
+    addOperator(kind::INTS_DIVISION, "div");
+    addOperator(kind::INTS_MODULUS, "mod");
+    addOperator(kind::ABS, "abs");
     Parser::addOperator(kind::DIVISIBLE);
     break;
 
