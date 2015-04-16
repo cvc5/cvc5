@@ -2047,36 +2047,6 @@ builtinOp[CVC4::Kind& kind]
   | SELECT_TOK   { $kind = CVC4::kind::SELECT; }
   | STORE_TOK    { $kind = CVC4::kind::STORE; }
 
-  // | CONCAT_TOK   { $kind = CVC4::kind::BITVECTOR_CONCAT; }
-  // | BVNOT_TOK   { $kind = CVC4::kind::BITVECTOR_NOT; }
-  // | BVAND_TOK   { $kind = CVC4::kind::BITVECTOR_AND; }
-  // | BVOR_TOK   { $kind = CVC4::kind::BITVECTOR_OR; }
-  // | BVNEG_TOK   { $kind = CVC4::kind::BITVECTOR_NEG; }
-  // | BVADD_TOK   { $kind = CVC4::kind::BITVECTOR_PLUS; }
-  // | BVMUL_TOK   { $kind = CVC4::kind::BITVECTOR_MULT; }
-  // | BVUDIV_TOK   { $kind = CVC4::kind::BITVECTOR_UDIV; }
-  // | BVUREM_TOK   { $kind = CVC4::kind::BITVECTOR_UREM; }
-  // | BVSHL_TOK     { $kind = CVC4::kind::BITVECTOR_SHL; }
-  // | BVLSHR_TOK     { $kind = CVC4::kind::BITVECTOR_LSHR; }
-  // | BVULT_TOK     { $kind = CVC4::kind::BITVECTOR_ULT; }
-  // | BVNAND_TOK     { $kind = CVC4::kind::BITVECTOR_NAND; }
-  // | BVNOR_TOK     { $kind = CVC4::kind::BITVECTOR_NOR; }
-  // | BVXOR_TOK     { $kind = CVC4::kind::BITVECTOR_XOR; }
-  // | BVXNOR_TOK     { $kind = CVC4::kind::BITVECTOR_XNOR; }
-  // | BVCOMP_TOK     { $kind = CVC4::kind::BITVECTOR_COMP; }
-  // | BVSUB_TOK     { $kind = CVC4::kind::BITVECTOR_SUB; }
-  // | BVSDIV_TOK     { $kind = CVC4::kind::BITVECTOR_SDIV; }
-  // | BVSREM_TOK     { $kind = CVC4::kind::BITVECTOR_SREM; }
-  // | BVSMOD_TOK     { $kind = CVC4::kind::BITVECTOR_SMOD; }
-  // | BVASHR_TOK     { $kind = CVC4::kind::BITVECTOR_ASHR; }
-  // | BVULE_TOK     { $kind = CVC4::kind::BITVECTOR_ULE; }
-  // | BVUGT_TOK     { $kind = CVC4::kind::BITVECTOR_UGT; }
-  // | BVUGE_TOK     { $kind = CVC4::kind::BITVECTOR_UGE; }
-  // | BVSLT_TOK     { $kind = CVC4::kind::BITVECTOR_SLT; }
-  // | BVSLE_TOK     { $kind = CVC4::kind::BITVECTOR_SLE; }
-  // | BVSGT_TOK     { $kind = CVC4::kind::BITVECTOR_SGT; }
-  // | BVSGE_TOK     { $kind = CVC4::kind::BITVECTOR_SGE; }
-
   | BV2NAT_TOK     { $kind = CVC4::kind::BITVECTOR_TO_NAT;
                      if(PARSER_STATE->strictModeEnabled()) {
                        PARSER_STATE->parseError("bv2nat and int2bv are not part of SMT-LIB, and aren't available in SMT-LIB strict compliance mode");
