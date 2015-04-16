@@ -135,8 +135,8 @@ void Smt2::addFloatingPointOperators() {
 void Smt2::addTheory(Theory theory) {
   switch(theory) {
   case THEORY_ARRAYS:
-    Parser::addOperator(kind::SELECT);
-    Parser::addOperator(kind::STORE);
+    addOperator(kind::SELECT, "select");
+    addOperator(kind::STORE, "store");
     break;
 
   case THEORY_BITVECTORS:

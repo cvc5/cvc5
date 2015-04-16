@@ -2044,9 +2044,6 @@ builtinOp[CVC4::Kind& kind]
   | TO_INT_TOK   { $kind = CVC4::kind::TO_INTEGER; }
   | TO_REAL_TOK  { $kind = CVC4::kind::TO_REAL; }
 
-  | SELECT_TOK   { $kind = CVC4::kind::SELECT; }
-  | STORE_TOK    { $kind = CVC4::kind::STORE; }
-
   | BV2NAT_TOK     { $kind = CVC4::kind::BITVECTOR_TO_NAT;
                      if(PARSER_STATE->strictModeEnabled()) {
                        PARSER_STATE->parseError("bv2nat and int2bv are not part of SMT-LIB, and aren't available in SMT-LIB strict compliance mode");
@@ -2474,9 +2471,7 @@ OR_TOK            : 'or';
 // PERCENT_TOK       : '%';
 PLUS_TOK          : '+';
 //POUND_TOK         : '#';
-SELECT_TOK        : 'select';
 STAR_TOK          : '*';
-STORE_TOK         : 'store';
 // TILDE_TOK         : '~';
 TO_INT_TOK        : 'to_int';
 TO_REAL_TOK       : 'to_real';
