@@ -2543,12 +2543,13 @@ EMPTYSET_TOK: { PARSER_STATE->isTheoryEnabled(Smt2::THEORY_SETS) }? 'emptyset';
 // tokenized and handled directly when
 // processing a term
 
-FP_TOK : 'fp';
 FP_PINF_TOK : '+oo';
 FP_NINF_TOK : '-oo';
 FP_PZERO_TOK : '+zero';
 FP_NZERO_TOK : '-zero';
 FP_NAN_TOK : 'NaN';
+
+FP_TOK : 'fp';
 FP_EQ_TOK : 'fp.eq';
 FP_ABS_TOK : 'fp.abs';
 FP_NEG_TOK : 'fp.neg';
@@ -2573,6 +2574,8 @@ FP_ISINF_TOK : 'fp.isInfinite';
 FP_ISNAN_TOK : 'fp.isNaN';
 FP_ISNEG_TOK : 'fp.isNegative';
 FP_ISPOS_TOK : 'fp.isPositive';
+FP_TO_REAL_TOK : 'fp.to_real';
+
 FP_TO_FP_TOK : 'to_fp';
 FP_TO_FPBV_TOK : 'to_fp_bv';
 FP_TO_FPFP_TOK : 'to_fp_fp';
@@ -2581,7 +2584,6 @@ FP_TO_FPS_TOK : 'to_fp_signed';
 FP_TO_FPU_TOK : 'to_fp_unsigned';
 FP_TO_UBV_TOK : 'fp.to_ubv';
 FP_TO_SBV_TOK : 'fp.to_sbv';
-FP_TO_REAL_TOK : 'fp.to_real';
 FP_RNE_TOK : 'RNE';
 FP_RNA_TOK : 'RNA';
 FP_RTP_TOK : 'RTP';
