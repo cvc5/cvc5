@@ -2042,6 +2042,7 @@ builtinOp[CVC4::Kind& kind]
                      if(PARSER_STATE->strictModeEnabled()) {
                        PARSER_STATE->parseError("bv2nat and int2bv are not part of SMT-LIB, and aren't available in SMT-LIB strict compliance mode");
                      } }
+
   | STRCON_TOK     { $kind = CVC4::kind::STRING_CONCAT; }
   | STRLEN_TOK     { $kind = CVC4::kind::STRING_LENGTH; }
   | STRSUB_TOK     { $kind = CVC4::kind::STRING_SUBSTR; }
@@ -2444,36 +2445,6 @@ XOR_TOK           : 'xor';
 
 
 DIVISIBLE_TOK : 'divisible';
-
-// CONCAT_TOK : 'concat';
-// BVNOT_TOK : 'bvnot';
-// BVAND_TOK : 'bvand';
-// BVOR_TOK : 'bvor';
-// BVNEG_TOK : 'bvneg';
-// BVADD_TOK : 'bvadd';
-// BVMUL_TOK : 'bvmul';
-// BVUDIV_TOK : 'bvudiv';
-// BVUREM_TOK : 'bvurem';
-// BVSHL_TOK : 'bvshl';
-// BVLSHR_TOK : 'bvlshr';
-// BVULT_TOK : 'bvult';
-// BVNAND_TOK : 'bvnand';
-// BVNOR_TOK : 'bvnor';
-// BVXOR_TOK : 'bvxor';
-// BVXNOR_TOK : 'bvxnor';
-// BVCOMP_TOK : 'bvcomp';
-// BVSUB_TOK : 'bvsub';
-// BVSDIV_TOK : 'bvsdiv';
-// BVSREM_TOK : 'bvsrem';
-// BVSMOD_TOK : 'bvsmod';
-// BVASHR_TOK : 'bvashr';
-// BVULE_TOK : 'bvule';
-// BVUGT_TOK : 'bvugt';
-// BVUGE_TOK : 'bvuge';
-// BVSLT_TOK : 'bvslt';
-// BVSLE_TOK : 'bvsle';
-// BVSGT_TOK : 'bvsgt';
-// BVSGE_TOK : 'bvsge';
 
 BV2NAT_TOK : 'bv2nat';
 INT2BV_TOK : 'int2bv';
