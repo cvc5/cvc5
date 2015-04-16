@@ -161,9 +161,9 @@ void Smt2::addTheory(Theory theory) {
   case THEORY_REALS_INTS:
     defineType("Real", getExprManager()->realType());
     Parser::addOperator(kind::DIVISION);
-    Parser::addOperator(kind::TO_INTEGER);
-    Parser::addOperator(kind::IS_INTEGER);
-    Parser::addOperator(kind::TO_REAL);
+    addOperator(kind::TO_INTEGER, "to_int");
+    addOperator(kind::IS_INTEGER, "is_int");
+    addOperator(kind::TO_REAL, "to_real");
     // falling through on purpose, to add Ints part of Reals_Ints
   case THEORY_INTS:
     defineType("Int", getExprManager()->integerType());

@@ -2040,9 +2040,6 @@ builtinOp[CVC4::Kind& kind]
   | INTS_DIV_TOK      { $kind = CVC4::kind::INTS_DIVISION; }
   | INTS_MOD_TOK      { $kind = CVC4::kind::INTS_MODULUS; }
   | ABS_TOK      { $kind = CVC4::kind::ABS; }
-  | IS_INT_TOK   { $kind = CVC4::kind::IS_INTEGER; }
-  | TO_INT_TOK   { $kind = CVC4::kind::TO_INTEGER; }
-  | TO_REAL_TOK  { $kind = CVC4::kind::TO_REAL; }
 
   | BV2NAT_TOK     { $kind = CVC4::kind::BITVECTOR_TO_NAT;
                      if(PARSER_STATE->strictModeEnabled()) {
@@ -2462,7 +2459,6 @@ FORALL_TOK        : 'forall';
 GREATER_THAN_TOK  : '>';
 GREATER_THAN_EQUAL_TOK  : '>=';
 IMPLIES_TOK       : '=>';
-IS_INT_TOK        : 'is_int';
 LESS_THAN_TOK     : '<';
 LESS_THAN_EQUAL_TOK     : '<=';
 MINUS_TOK         : '-';
@@ -2473,9 +2469,8 @@ PLUS_TOK          : '+';
 //POUND_TOK         : '#';
 STAR_TOK          : '*';
 // TILDE_TOK         : '~';
-TO_INT_TOK        : 'to_int';
-TO_REAL_TOK       : 'to_real';
 XOR_TOK           : 'xor';
+
 
 INTS_DIV_TOK : 'div';
 INTS_MOD_TOK : 'mod';
