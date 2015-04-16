@@ -586,7 +586,10 @@ sygusCommand returns [CVC4::Command* cmd = NULL]
           ++i) {
         terms.push_back(PARSER_STATE->mkBoundVar((*i).first, (*i).second));
       }
-      Expr bvl = MK_EXPR(kind::BOUND_VAR_LIST, terms);
+      Expr bvl;
+      if( !terms.empty() ){
+        bvl = MK_EXPR(kind::BOUND_VAR_LIST, terms);
+      }
       terms.clear();
       terms.push_back(bvl);
     }
@@ -633,8 +636,10 @@ sygusCommand returns [CVC4::Command* cmd = NULL]
         PARSER_STATE->checkDeclaration(name, CHECK_UNDECLARED, SYM_VARIABLE);
         std::vector<Type> evalType;
         evalType.push_back(dtt);
-        for(size_t j = 0; j < terms[0].getNumChildren(); ++j) {
-          evalType.push_back(terms[0][j].getType());
+        if( !terms[0].isNull() ){
+          for(size_t j = 0; j < terms[0].getNumChildren(); ++j) {
+            evalType.push_back(terms[0][j].getType());
+          }
         }
         evalType.push_back(sorts[i]);
         Expr eval = PARSER_STATE->mkVar(name, EXPR_MANAGER->mkFunctionType(evalType));

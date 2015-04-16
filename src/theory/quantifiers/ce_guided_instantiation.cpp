@@ -505,7 +505,11 @@ void CegInstantiation::printSynthSolution( std::ostream& out ) {
       }
       if( !(Trace.isOn("cegqi-stats")) ){
         out << "(define-fun " << f << " ";
-        out << dt.getSygusVarList() << " ";
+        if( dt.getSygusVarList().isNull() ){
+          out << "() ";
+        }else{
+          out << dt.getSygusVarList() << " ";
+        }
         out << dt.getSygusType() << " ";
         if( status==0 ){
           out << sol;
