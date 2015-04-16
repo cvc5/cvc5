@@ -240,20 +240,24 @@ void InstStrategyAutoGenTriggers::generateTriggers( Node f, Theory::Effort effor
     d_patTerms[1][f].clear();
     std::vector< Node > patTermsF;
     //well-defined function: can assume LHS is only trigger
-    Node bd = d_quantEngine->getTermDatabase()->getInstConstantBody( f );
-    if( d_quantEngine->getTermDatabase()->isQAttrFunDef( f ) && options::quantFunWellDefined() ){
-      Assert( bd.getKind()==EQUAL || bd.getKind()==IFF );
-      Assert( bd[0].getKind()==APPLY_UF );
-      patTermsF.push_back( bd[0] );
-    }else{
+    if( options::quantFunWellDefined() ){
+      Node hd = TermDb::getFunDefHead( f );
+      if( !hd.isNull() ){
+        hd = d_quantEngine->getTermDatabase()->getInstConstantNode( hd, f );
+        patTermsF.push_back( hd );
+      }
+    }
+    //otherwise, use algorithm for collecting pattern terms
+    if( patTermsF.empty() ){
+      Node bd = d_quantEngine->getTermDatabase()->getInstConstantBody( f );
       Trigger::collectPatTerms( d_quantEngine, f, bd, patTermsF, d_tr_strategy, d_user_no_gen[f], true );
+      Trace("auto-gen-trigger") << "Collected pat terms for " << bd << ", no-patterns : " << d_user_no_gen[f].size() << std::endl;
+      Trace("auto-gen-trigger") << "   ";
+      for( int i=0; i<(int)patTermsF.size(); i++ ){
+        Trace("auto-gen-trigger") << patTermsF[i] << " ";
+      }
+      Trace("auto-gen-trigger") << std::endl;
     }
-    Trace("auto-gen-trigger") << "Collected pat terms for " << bd << ", no-patterns : " << d_user_no_gen[f].size() << std::endl;
-    Trace("auto-gen-trigger") << "   ";
-    for( int i=0; i<(int)patTermsF.size(); i++ ){
-      Trace("auto-gen-trigger") << patTermsF[i] << " ";
-    }
-    Trace("auto-gen-trigger") << std::endl;
     //extend to literal matching (if applicable)
     d_quantEngine->getPhaseReqTerms( f, patTermsF );
     //sort into single/multi triggers
