@@ -98,29 +98,33 @@ void Smt2::addStringOperators() {
 }
 
 void Smt2::addFloatingPointOperators() {
-  Parser::addOperator(kind::FLOATINGPOINT_FP);
-  Parser::addOperator(kind::FLOATINGPOINT_EQ);
-  Parser::addOperator(kind::FLOATINGPOINT_ABS);
-  Parser::addOperator(kind::FLOATINGPOINT_NEG);
-  Parser::addOperator(kind::FLOATINGPOINT_PLUS);
-  Parser::addOperator(kind::FLOATINGPOINT_SUB);
-  Parser::addOperator(kind::FLOATINGPOINT_MULT);
-  Parser::addOperator(kind::FLOATINGPOINT_DIV);
-  Parser::addOperator(kind::FLOATINGPOINT_FMA);
-  Parser::addOperator(kind::FLOATINGPOINT_SQRT);
-  Parser::addOperator(kind::FLOATINGPOINT_REM);
-  Parser::addOperator(kind::FLOATINGPOINT_RTI);
-  Parser::addOperator(kind::FLOATINGPOINT_MIN);
-  Parser::addOperator(kind::FLOATINGPOINT_MAX);
-  Parser::addOperator(kind::FLOATINGPOINT_LEQ);
-  Parser::addOperator(kind::FLOATINGPOINT_LT);
-  Parser::addOperator(kind::FLOATINGPOINT_GEQ);
-  Parser::addOperator(kind::FLOATINGPOINT_GT);
-  Parser::addOperator(kind::FLOATINGPOINT_ISN);
-  Parser::addOperator(kind::FLOATINGPOINT_ISSN);
-  Parser::addOperator(kind::FLOATINGPOINT_ISZ);
-  Parser::addOperator(kind::FLOATINGPOINT_ISINF);
-  Parser::addOperator(kind::FLOATINGPOINT_ISNAN);
+  addOperator(kind::FLOATINGPOINT_FP, "fp");
+  addOperator(kind::FLOATINGPOINT_EQ, "fp.eq");
+  addOperator(kind::FLOATINGPOINT_ABS, "fp.abs");
+  addOperator(kind::FLOATINGPOINT_NEG, "fp.neg");
+  addOperator(kind::FLOATINGPOINT_PLUS, "fp.add");
+  addOperator(kind::FLOATINGPOINT_SUB, "fp.sub");
+  addOperator(kind::FLOATINGPOINT_MULT, "fp.mul");
+  addOperator(kind::FLOATINGPOINT_DIV, "fp.div");
+  addOperator(kind::FLOATINGPOINT_FMA, "fp.fma");
+  addOperator(kind::FLOATINGPOINT_SQRT, "fp.sqrt");
+  addOperator(kind::FLOATINGPOINT_REM, "fp.rem");
+  addOperator(kind::FLOATINGPOINT_RTI, "fp.roundToIntegral");
+  addOperator(kind::FLOATINGPOINT_MIN, "fp.min");
+  addOperator(kind::FLOATINGPOINT_MAX, "fp.max");
+  addOperator(kind::FLOATINGPOINT_LEQ, "fp.leq");
+  addOperator(kind::FLOATINGPOINT_LT, "fp.lt");
+  addOperator(kind::FLOATINGPOINT_GEQ, "fp.geq");
+  addOperator(kind::FLOATINGPOINT_GT, "fp.gt");
+  addOperator(kind::FLOATINGPOINT_ISN, "fp.isNormal");
+  addOperator(kind::FLOATINGPOINT_ISSN, "fp.isSubnormal");
+  addOperator(kind::FLOATINGPOINT_ISZ, "fp.isZero");
+  addOperator(kind::FLOATINGPOINT_ISINF, "fp.isInfinite");
+  addOperator(kind::FLOATINGPOINT_ISNAN, "fp.isNaN");
+  addOperator(kind::FLOATINGPOINT_ISNEG, "fp.isNegative");
+  addOperator(kind::FLOATINGPOINT_ISPOS, "fp.isPositive");
+  addOperator(kind::FLOATINGPOINT_TO_REAL, "fp.to_real");
+
   Parser::addOperator(kind::FLOATINGPOINT_TO_FP_IEEE_BITVECTOR);
   Parser::addOperator(kind::FLOATINGPOINT_TO_FP_FLOATINGPOINT);
   Parser::addOperator(kind::FLOATINGPOINT_TO_FP_REAL);
@@ -128,7 +132,6 @@ void Smt2::addFloatingPointOperators() {
   Parser::addOperator(kind::FLOATINGPOINT_TO_FP_UNSIGNED_BITVECTOR);
   Parser::addOperator(kind::FLOATINGPOINT_TO_UBV);
   Parser::addOperator(kind::FLOATINGPOINT_TO_SBV);
-  Parser::addOperator(kind::FLOATINGPOINT_TO_REAL);
 }
 
 

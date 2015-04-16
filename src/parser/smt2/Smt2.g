@@ -2074,32 +2074,6 @@ builtinOp[CVC4::Kind& kind]
   
   | INST_CLOSURE_TOK { $kind = CVC4::kind::INST_CLOSURE; }
   
-  | FP_TOK        { $kind = CVC4::kind::FLOATINGPOINT_FP; }
-  | FP_EQ_TOK     { $kind = CVC4::kind::FLOATINGPOINT_EQ; }
-  | FP_ABS_TOK    { $kind = CVC4::kind::FLOATINGPOINT_ABS; }
-  | FP_NEG_TOK    { $kind = CVC4::kind::FLOATINGPOINT_NEG; }
-  | FP_PLUS_TOK   { $kind = CVC4::kind::FLOATINGPOINT_PLUS; }
-  | FP_SUB_TOK    { $kind = CVC4::kind::FLOATINGPOINT_SUB; }
-  | FP_MUL_TOK    { $kind = CVC4::kind::FLOATINGPOINT_MULT; }
-  | FP_DIV_TOK    { $kind = CVC4::kind::FLOATINGPOINT_DIV; }
-  | FP_FMA_TOK    { $kind = CVC4::kind::FLOATINGPOINT_FMA; }
-  | FP_SQRT_TOK   { $kind = CVC4::kind::FLOATINGPOINT_SQRT; }
-  | FP_REM_TOK    { $kind = CVC4::kind::FLOATINGPOINT_REM; }
-  | FP_RTI_TOK    { $kind = CVC4::kind::FLOATINGPOINT_RTI; }
-  | FP_MIN_TOK    { $kind = CVC4::kind::FLOATINGPOINT_MIN; }
-  | FP_MAX_TOK    { $kind = CVC4::kind::FLOATINGPOINT_MAX; }
-  | FP_LEQ_TOK    { $kind = CVC4::kind::FLOATINGPOINT_LEQ; }
-  | FP_LT_TOK     { $kind = CVC4::kind::FLOATINGPOINT_LT; }
-  | FP_GEQ_TOK    { $kind = CVC4::kind::FLOATINGPOINT_GEQ; }
-  | FP_GT_TOK     { $kind = CVC4::kind::FLOATINGPOINT_GT; }
-  | FP_ISN_TOK    { $kind = CVC4::kind::FLOATINGPOINT_ISN; }
-  | FP_ISSN_TOK   { $kind = CVC4::kind::FLOATINGPOINT_ISSN; }
-  | FP_ISZ_TOK    { $kind = CVC4::kind::FLOATINGPOINT_ISZ; }
-  | FP_ISINF_TOK  { $kind = CVC4::kind::FLOATINGPOINT_ISINF; }
-  | FP_ISNAN_TOK  { $kind = CVC4::kind::FLOATINGPOINT_ISNAN; }
-  | FP_ISNEG_TOK  { $kind = CVC4::kind::FLOATINGPOINT_ISNEG; }
-  | FP_ISPOS_TOK  { $kind = CVC4::kind::FLOATINGPOINT_ISPOS; }
-  | FP_TO_REAL_TOK {$kind = CVC4::kind::FLOATINGPOINT_TO_REAL; }
   // NOTE: Theory operators go here
   ;
 
@@ -2548,33 +2522,6 @@ FP_NINF_TOK : '-oo';
 FP_PZERO_TOK : '+zero';
 FP_NZERO_TOK : '-zero';
 FP_NAN_TOK : 'NaN';
-
-FP_TOK : 'fp';
-FP_EQ_TOK : 'fp.eq';
-FP_ABS_TOK : 'fp.abs';
-FP_NEG_TOK : 'fp.neg';
-FP_PLUS_TOK : 'fp.add';
-FP_SUB_TOK : 'fp.sub';
-FP_MUL_TOK : 'fp.mul';
-FP_DIV_TOK : 'fp.div';
-FP_FMA_TOK : 'fp.fma';
-FP_SQRT_TOK : 'fp.sqrt';
-FP_REM_TOK : 'fp.rem';
-FP_RTI_TOK : 'fp.roundToIntegral';
-FP_MIN_TOK : 'fp.min';
-FP_MAX_TOK : 'fp.max';
-FP_LEQ_TOK : 'fp.leq';
-FP_LT_TOK : 'fp.lt';
-FP_GEQ_TOK : 'fp.geq';
-FP_GT_TOK : 'fp.gt';
-FP_ISN_TOK : 'fp.isNormal';
-FP_ISSN_TOK : 'fp.isSubnormal';
-FP_ISZ_TOK : 'fp.isZero';
-FP_ISINF_TOK : 'fp.isInfinite';
-FP_ISNAN_TOK : 'fp.isNaN';
-FP_ISNEG_TOK : 'fp.isNegative';
-FP_ISPOS_TOK : 'fp.isPositive';
-FP_TO_REAL_TOK : 'fp.to_real';
 
 FP_TO_FP_TOK : 'to_fp';
 FP_TO_FPBV_TOK : 'to_fp_bv';
