@@ -2043,32 +2043,6 @@ builtinOp[CVC4::Kind& kind]
                        PARSER_STATE->parseError("bv2nat and int2bv are not part of SMT-LIB, and aren't available in SMT-LIB strict compliance mode");
                      } }
 
-  | STRCON_TOK     { $kind = CVC4::kind::STRING_CONCAT; }
-  | STRLEN_TOK     { $kind = CVC4::kind::STRING_LENGTH; }
-  | STRSUB_TOK     { $kind = CVC4::kind::STRING_SUBSTR; }
-  | STRCTN_TOK     { $kind = CVC4::kind::STRING_STRCTN; }
-  | STRCAT_TOK     { $kind = CVC4::kind::STRING_CHARAT; }
-  | STRIDOF_TOK    { $kind = CVC4::kind::STRING_STRIDOF; }
-  | STRREPL_TOK    { $kind = CVC4::kind::STRING_STRREPL; }
-  | STRPREF_TOK    { $kind = CVC4::kind::STRING_PREFIX; }
-  | STRSUFF_TOK    { $kind = CVC4::kind::STRING_SUFFIX; }
-  | STRITOS_TOK    { $kind = CVC4::kind::STRING_ITOS; }
-  | STRSTOI_TOK    { $kind = CVC4::kind::STRING_STOI; }
-  | STRU16TOS_TOK    { $kind = CVC4::kind::STRING_U16TOS; }
-  | STRSTOU16_TOK    { $kind = CVC4::kind::STRING_STOU16; }
-  | STRU32TOS_TOK    { $kind = CVC4::kind::STRING_U32TOS; }
-  | STRSTOU32_TOK    { $kind = CVC4::kind::STRING_STOU32; }
-  | STRINRE_TOK    { $kind = CVC4::kind::STRING_IN_REGEXP; }
-  | STRTORE_TOK    { $kind = CVC4::kind::STRING_TO_REGEXP; }
-  | RECON_TOK      { $kind = CVC4::kind::REGEXP_CONCAT; }
-  | REUNION_TOK    { $kind = CVC4::kind::REGEXP_UNION; }
-  | REINTER_TOK    { $kind = CVC4::kind::REGEXP_INTER; }
-  | RESTAR_TOK     { $kind = CVC4::kind::REGEXP_STAR; }
-  | REPLUS_TOK     { $kind = CVC4::kind::REGEXP_PLUS; }
-  | REOPT_TOK      { $kind = CVC4::kind::REGEXP_OPT; }
-  | RERANGE_TOK    { $kind = CVC4::kind::REGEXP_RANGE; }
-  | RELOOP_TOK    { $kind = CVC4::kind::REGEXP_LOOP; }
-  
   | DTSIZE_TOK     { $kind = CVC4::kind::DT_SIZE; }
   
   | FMFCARD_TOK    { $kind = CVC4::kind::CARDINALITY_CONSTRAINT; }
@@ -2449,31 +2423,6 @@ DIVISIBLE_TOK : 'divisible';
 BV2NAT_TOK : 'bv2nat';
 INT2BV_TOK : 'int2bv';
 
-STRCON_TOK : 'str.++';
-STRLEN_TOK : 'str.len';
-STRSUB_TOK : 'str.substr' ;
-STRCTN_TOK : 'str.contains' ;
-STRCAT_TOK : 'str.at' ;
-STRIDOF_TOK : 'str.indexof' ;
-STRREPL_TOK : 'str.replace' ;
-STRPREF_TOK : 'str.prefixof' ;
-STRSUFF_TOK : 'str.suffixof' ;
-STRITOS_TOK : 'int.to.str' ;
-STRSTOI_TOK : 'str.to.int' ;
-STRU16TOS_TOK : 'u16.to.str' ;
-STRSTOU16_TOK : 'str.to.u16' ;
-STRU32TOS_TOK : 'u32.to.str' ;
-STRSTOU32_TOK : 'str.to.u32' ;
-STRINRE_TOK : 'str.in.re';
-STRTORE_TOK : 'str.to.re';
-RECON_TOK : 're.++';
-REUNION_TOK : 're.union';
-REINTER_TOK : 're.inter';
-RESTAR_TOK : 're.*';
-REPLUS_TOK : 're.+';
-REOPT_TOK : 're.opt';
-RERANGE_TOK : 're.range';
-RELOOP_TOK : 're.loop';
 RENOSTR_TOK : 're.nostr';
 REALLCHAR_TOK : 're.allchar';
 

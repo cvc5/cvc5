@@ -93,8 +93,31 @@ void Smt2::addBitvectorOperators() {
 }
 
 void Smt2::addStringOperators() {
-  Parser::addOperator(kind::STRING_CONCAT);
-  Parser::addOperator(kind::STRING_LENGTH);
+  addOperator(kind::STRING_CONCAT, "str.++");
+  addOperator(kind::STRING_LENGTH, "str.len");
+  addOperator(kind::STRING_SUBSTR, "str.substr" );
+  addOperator(kind::STRING_STRCTN, "str.contains" );
+  addOperator(kind::STRING_CHARAT, "str.at" );
+  addOperator(kind::STRING_STRIDOF, "str.indexof" );
+  addOperator(kind::STRING_STRREPL, "str.replace" );
+  addOperator(kind::STRING_PREFIX, "str.prefixof" );
+  addOperator(kind::STRING_SUFFIX, "str.suffixof" );
+  addOperator(kind::STRING_ITOS, "int.to.str" );
+  addOperator(kind::STRING_STOI, "str.to.int" );
+  addOperator(kind::STRING_U16TOS, "u16.to.str" );
+  addOperator(kind::STRING_STOU16, "str.to.u16" );
+  addOperator(kind::STRING_U32TOS, "u32.to.str" );
+  addOperator(kind::STRING_STOU32, "str.to.u32" );
+  addOperator(kind::STRING_IN_REGEXP, "str.in.re");
+  addOperator(kind::STRING_TO_REGEXP, "str.to.re");
+  addOperator(kind::REGEXP_CONCAT, "re.++");
+  addOperator(kind::REGEXP_UNION, "re.union");
+  addOperator(kind::REGEXP_INTER, "re.inter");
+  addOperator(kind::REGEXP_STAR, "re.*");
+  addOperator(kind::REGEXP_PLUS, "re.+");
+  addOperator(kind::REGEXP_OPT, "re.opt");
+  addOperator(kind::REGEXP_RANGE, "re.range");
+  addOperator(kind::REGEXP_LOOP, "re.loop");
 }
 
 void Smt2::addFloatingPointOperators() {
