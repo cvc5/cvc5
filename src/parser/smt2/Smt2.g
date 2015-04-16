@@ -2044,12 +2044,15 @@ builtinOp[CVC4::Kind& kind]
                      } }
 
   | DTSIZE_TOK     { $kind = CVC4::kind::DT_SIZE; }
-  
   | FMFCARD_TOK    { $kind = CVC4::kind::CARDINALITY_CONSTRAINT; }
-  
   | INST_CLOSURE_TOK { $kind = CVC4::kind::INST_CLOSURE; }
   
-  // NOTE: Theory operators go here
+  // NOTE: Theory operators no longer go here, add to smt2.cpp. Only
+  // special cases may go here. When this comment was written (2015
+  // Apr), the special cases were: core theory operators, arith
+  // operators which start with symbols like * / + >= etc, quantifier
+  // theory operators, and operators which depended on parser's state
+  // to accept or reject.
   ;
 
 quantOp[CVC4::Kind& kind]
