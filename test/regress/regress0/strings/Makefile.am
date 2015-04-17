@@ -33,6 +33,7 @@ TESTS =	\
   str007.smt2 \
   fmf002.smt2 \
   type001.smt2 \
+  type003.smt2 \
   model001.smt2 \
   substr001.smt2 \
   regexp001.smt2 \
@@ -45,6 +46,7 @@ TESTS =	\
   loop004.smt2 \
   loop005.smt2 \
   loop006.smt2 \
+  loop007.smt2 \
   loop008.smt2 \
   loop009.smt2 \
   reloop.smt2 
@@ -55,8 +57,6 @@ FAILING_TESTS =
 EXTRA_DIST = $(TESTS) \
   artemis-0512-nonterm.smt2 \
   fmf001.smt2 \
-  type003.smt2 \
-  loop007.smt2 \
   type002.smt2
 
 #   slow after changes on Nov 20 : artemis-0512-nonterm.smt2

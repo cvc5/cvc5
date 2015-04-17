@@ -2283,7 +2283,7 @@ void TheoryStrings::checkDeqNF() {
         for( unsigned k=(j+1); k<cols[i].size(); k++ ){
           Assert( !d_conflict );
           if( !areDisequal( cols[i][j], cols[i][k] ) ){
-            sendSplit( cols[i][j], cols[i][k], "D-NORM", false );
+            sendSplit( cols[i][j], cols[i][k], "D-NORM", true );
             return;
           }else{
             Trace("strings-solve") << "- Compare ";
