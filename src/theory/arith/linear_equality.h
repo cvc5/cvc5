@@ -199,6 +199,7 @@ public:
 
   typedef bool (LinearEqualityModule::*UpdatePreferenceFunction)(const UpdateInfo&, const UpdateInfo&) const;
 
+  
 private:
   /**
    * Manages information about the assignment and upper and lower bounds on the
@@ -217,6 +218,8 @@ private:
   Maybe<DeltaRational> d_upperBoundDifference;
   Maybe<DeltaRational> d_lowerBoundDifference;
 
+  Rational d_one;
+  Rational d_negOne;
 public:
 
   /**
@@ -417,10 +420,20 @@ public:
   void propagateBasicFromRow(ConstraintP c);
 
   /**
+   * Let v be the variable for the constraint c.
    * Exports either the explanation of an upperbound or a lower bound
-   * of the basic variable basic, using the non-basic variables in the row.
+   * of v using the other variables in the row.
+   *
+   * If farkas != RationalVectorPSentinel, this function additionally
+   * stores the farkas coefficients of the constraints stored in into.
+   * Position 0 is the coefficient of v.
+   * Position i > 0, corresponds to the order of the other constraints.
    */
-  void propagateRow(ConstraintCPVec& into, RowIndex ridx, bool rowUp, ConstraintP c);
+  void propagateRow(ConstraintCPVec& into
+                    , RowIndex ridx
+                    , bool rowUp
+                    , ConstraintP c
+                    , RationalVectorP farkas);
 
   /**
    * Computes the value of a basic variable using the assignments
@@ -598,20 +611,22 @@ private:
 public:
   /**
    * Constructs a minimally weak conflict for the basic variable basicVar.
+   *
+   * Returns a constraint that is now in conflict.
    */
-  void minimallyWeakConflict(bool aboveUpper, ArithVar basicVar, RaiseConflict& rc) const;
+  ConstraintCP minimallyWeakConflict(bool aboveUpper, ArithVar basicVar, FarkasConflictBuilder& rc) const;
 
   /**
-   * Given a non-basic variable that is know to have a conflict on it,
+   * Given a basic variable that is know to have a conflict on it,
    * construct and return a conflict.
    * Follows section 4.2 in the CAV06 paper.
    */
-  inline void generateConflictAboveUpperBound(ArithVar conflictVar, RaiseConflict& rc) const {
-    minimallyWeakConflict(true, conflictVar, rc);
+  inline ConstraintCP generateConflictAboveUpperBound(ArithVar conflictVar, FarkasConflictBuilder& rc) const {
+    return minimallyWeakConflict(true, conflictVar, rc);
   }
 
-  inline void generateConflictBelowLowerBound(ArithVar conflictVar, RaiseConflict& rc) const {
-    minimallyWeakConflict(false, conflictVar, rc);
+  inline ConstraintCP generateConflictBelowLowerBound(ArithVar conflictVar, FarkasConflictBuilder& rc) const {
+    return minimallyWeakConflict(false, conflictVar, rc);
   }
 
   /**

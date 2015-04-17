@@ -119,8 +119,6 @@ private:
 
   BoundInfoMap d_rowTracking;
 
-  ConstraintCPVec d_conflictBuffer;
-
   /**
    * The constraint database associated with the theory.
    * This must be declared before ArithPartialModel.
@@ -327,21 +325,27 @@ private:
 
 
   /** This is only used by simplex at the moment. */
-  context::CDList<ConstraintCPVec> d_conflicts;
+  context::CDList<ConstraintCP> d_conflicts;
+
+  /** This is only used by simplex at the moment. */
   context::CDO<Node> d_blackBoxConflict;
 public:
-  inline void raiseConflict(const ConstraintCPVec& cv){
-    d_conflicts.push_back(cv);
-  }
 
-  void raiseConflict(ConstraintCP a, ConstraintCP b);
-  void raiseConflict(ConstraintCP a, ConstraintCP b, ConstraintCP c);
+  /**
+   * This adds the constraint a to the queue of conflicts in d_conflicts.
+   * Both a and ~a must have a proof.
+   */
+  void raiseConflict(ConstraintCP a);
 
-  inline void blackBoxConflict(Node bb){
-    if(d_blackBoxConflict.get().isNull()){
-      d_blackBoxConflict = bb;
-    }
-  }
+  // inline void raiseConflict(const ConstraintCPVec& cv){
+  //   d_conflicts.push_back(cv);
+  // }
+  
+  // void raiseConflict(ConstraintCP a, ConstraintCP b);
+  // void raiseConflict(ConstraintCP a, ConstraintCP b, ConstraintCP c);
+
+  /** This is a conflict that is magically known to hold. */
+  void raiseBlackBoxConflict(Node bb);
 
 private:
 
@@ -356,7 +360,7 @@ private:
 
   /**
    * Outputs the contents of d_conflicts onto d_out.
-   * Must be inConflict().
+   * The conditions of anyConflict() must hold.
    */
   void outputConflicts();
 
@@ -717,8 +721,10 @@ private:
   std::pair<ConstraintP, ArithVar> replayGetConstraint(const DenseMap<Rational>& lhs, Kind k, const Rational& rhs, bool branch);
 
   void replayAssert(ConstraintP c);
-  //ConstConstraintVec toExplanation(Node n) const;
 
+  static ConstraintCP vectorToIntHoleConflict(const ConstraintCPVec& conflict);
+  static void intHoleConflictToVector(ConstraintCP conflicting, ConstraintCPVec& conflict);
+  
   // Returns true if the node contains a literal
   // that is an arithmetic literal and is not a sat literal
   // No caching is done so this should likely only
@@ -729,6 +735,8 @@ private:
   bool getDioCuttingResource();
 
   uint32_t d_solveIntMaybeHelp, d_solveIntAttempts;
+
+  RationalVector d_farkasBuffer;
 
   /** These fields are designed to be accessible to TheoryArith methods. */
   class Statistics {

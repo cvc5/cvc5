@@ -171,7 +171,7 @@ private:
   WitnessImprovement soiRound();
   WitnessImprovement SOIConflict();
   std::vector< ArithVarVec > greedyConflictSubsets();
-  void generateSOIConflict(const ArithVarVec& subset);
+  bool generateSOIConflict(const ArithVarVec& subset);
 
   // WitnessImprovement focusUsingSignDisagreements(ArithVar basic);
   // WitnessImprovement focusDownToLastHalf();

@@ -95,14 +95,12 @@ void Tableau::rowPivot(ArithVar basicOld, ArithVar basicNew, CoefficientChangeCa
   cb.multiplyRow(rid, -a_rs_sgn);
 }
 
-
-
 void Tableau::addRow(ArithVar basic,
                      const std::vector<Rational>& coefficients,
                      const std::vector<ArithVar>& variables)
 {
   Assert(basic < getNumColumns());
-
+  Assert(debugIsASet(variables));
   Assert(coefficients.size() == variables.size() );
   Assert(!isBasic(basic));
 

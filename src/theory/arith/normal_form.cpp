@@ -211,6 +211,16 @@ Monomial Monomial::mkMonomial(const Constant& c, const VarList& vl) {
     return Monomial(c, vl);
   }
 }
+
+Monomial Monomial::mkMonomial(const VarList& vl) {
+  // acts like Monomial::mkMonomial( 1, vl)
+  if( vl.empty() ) {
+    return Monomial::mkOne();
+  } else if(true){
+    return Monomial(vl);
+  }
+}
+
 Monomial Monomial::parseMonomial(Node n) {
   if(n.getKind() == kind::CONST_RATIONAL) {
     return Monomial(Constant(n));
@@ -340,6 +350,17 @@ Polynomial Polynomial::operator+(const Polynomial& vl) const {
   return result;
 }
 
+Polynomial Polynomial::exactDivide(const Integer& z) const {
+  Assert(isIntegral());
+  if(z.isOne()){
+    return (*this);
+  }else {
+    Constant invz = Constant::mkConstant(Rational(1,z));
+    Polynomial prod = (*this) * Monomial::mkMonomial(invz);
+    Assert(prod.isIntegral());
+    return prod;
+  }
+}
 
 Polynomial Polynomial::sumPolynomials(const std::vector<Polynomial>& ps){
   if(ps.empty()){
@@ -368,11 +389,7 @@ Polynomial Polynomial::sumPolynomials(const std::vector<Polynomial>& ps){
         Constant c = Constant::mkConstant((*ci).second);
         Node n = (*ci).first;
         VarList vl = VarList::parseVarList(n);
-        if(vl.empty()){
-          monos.push_back(Monomial(c));
-        }else{
-          monos.push_back(Monomial(c, vl));
-        }
+        monos.push_back(Monomial::mkMonomial(c, vl));
       }
     }
     Monomial::sort(monos);
@@ -1085,7 +1102,7 @@ Node Comparison::mkRatEquality(const Polynomial& p){
   Constant coeffInv = -(minimalVList.getConstant().inverse());
 
   Polynomial newRight = (p - minimalVList) * coeffInv;
-  Polynomial newLeft(minimalVList.getVarList());
+  Polynomial newLeft(Monomial::mkMonomial(minimalVList.getVarList()));
 
   return toNode(kind::EQUAL, newLeft, newRight);
 }
@@ -1191,7 +1208,7 @@ Node Comparison::mkIntEquality(const Polynomial& p){
     Monomial m = varPartMult.selectAbsMinimum();
     bool mIsPositive =  m.getConstant().isPositive();
 
-    Polynomial noM = (varPartMult + (- m)) + Polynomial(constMult);
+    Polynomial noM = (varPartMult + (- m)) + Polynomial::mkPolynomial(constMult);
 
     // m + noM = 0
     Polynomial newRight = mIsPositive ? -noM : noM;
