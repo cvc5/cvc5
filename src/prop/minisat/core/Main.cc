@@ -29,7 +29,7 @@ OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWA
 #include "prop/minisat/core/Dimacs.h"
 #include "prop/minisat/core/Solver.h"
 
-using namespace Minisat;
+using namespace CVC4::Minisat;
 
 //=================================================================================================
 

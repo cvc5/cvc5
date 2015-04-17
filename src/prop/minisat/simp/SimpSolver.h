@@ -33,6 +33,7 @@ namespace prop {
 }
 }
 
+namespace CVC4 {
 namespace Minisat {
 
 //=================================================================================================
@@ -234,6 +235,7 @@ inline lbool SimpSolver::solveLimited (const vec<Lit>& assumps, bool do_simp, bo
     assumps.copyTo(assumptions); return solve_(do_simp, turn_off_simp); }
 
 //=================================================================================================
+}
 }
 
 #endif
