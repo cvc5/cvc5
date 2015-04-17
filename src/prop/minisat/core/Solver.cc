@@ -482,6 +482,7 @@ Lit Solver::pickBranchLit()
     Lit nextLit;
 
 #ifdef CVC4_REPLAY
+
     nextLit = MinisatSatSolver::toMinisatLit(proxy->getNextReplayDecision());
 
     if (nextLit != lit_Undef) {
@@ -512,7 +513,12 @@ Lit Solver::pickBranchLit()
     if(nextLit != lit_Undef) {
       Assert(value(var(nextLit)) == l_Undef, "literal to decide already has value");
       decisions++;
-      return nextLit;
+      Var next = var(nextLit);
+      if(polarity[next] & 0x2) {
+        return mkLit(next, polarity[next] & 0x1);
+      } else {
+        return nextLit;
+      }
     }
 
     Var next = var_Undef;
