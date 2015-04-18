@@ -2186,7 +2186,7 @@ polymorphicAssert[std::vector<std::string>& pars, CVC4::Expr& expr, CVC4::Expr& 
   std::vector< Expr > args;
 }
   :
-  | LPAREN_TOK PAR_TOK
+    LPAREN_TOK PAR_TOK
     {
       if(PARSER_STATE->strictModeEnabled()) {
         PARSER_STATE->parseError("Polymorphic functions are not permitted while operating in strict compliance mode.");
