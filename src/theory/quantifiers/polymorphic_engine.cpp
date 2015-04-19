@@ -289,3 +289,4 @@ void PolymorphicEngine::registerQuantifier( Node q ){
 
 void PolymorphicEngine::assertNode( Node n ){};
 
+void PolymorphicEngine::newTerm(Node n){}

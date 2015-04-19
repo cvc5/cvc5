@@ -61,6 +61,9 @@ public:
   void registerQuantifier( Node q );
   void assertNode( Node n );
   std::string identify() const { return "PolymorphicEngine"; }
+
+  void newTerm(Node n);
+
 };
 
 }

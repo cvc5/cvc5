@@ -131,6 +131,7 @@ void TermDb::addTerm( Node n, std::set< Node >& added, bool withinQuant, bool wi
   if( d_processed.find( n )==d_processed.end() ){
     d_processed.insert(n);
     d_type_map[ n.getType() ].push_back( n );
+    d_quantEngine->getPolymorphicEngine()->newTerm(n);
     //if this is an atomic trigger, consider adding it
     //Call the children?
     if( inst::Trigger::isAtomicTrigger( n ) ){
