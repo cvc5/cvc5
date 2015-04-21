@@ -226,6 +226,7 @@ inline std::ostream& operator<<(std::ostream& os, const BoundsInfo& inf){
 }
 class BoundUpdateCallback {
 public:
+  virtual ~BoundUpdateCallback() {}
   virtual void operator()(ArithVar v, const BoundsInfo&  up) = 0;
 };
 

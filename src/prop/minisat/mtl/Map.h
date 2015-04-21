@@ -29,16 +29,17 @@ namespace Minisat {
 // Default hash/equals functions
 //
 
+static inline uint32_t hash(uint32_t x){ return x; }
+static inline uint32_t hash(uint64_t x){ return (uint32_t)x; }
+static inline uint32_t hash(int32_t x) { return (uint32_t)x; }
+static inline uint32_t hash(int64_t x) { return (uint32_t)x; }
+
 template<class K> struct Hash  { uint32_t operator()(const K& k)               const { return hash(k);  } };
 template<class K> struct Equal { bool     operator()(const K& k1, const K& k2) const { return k1 == k2; } };
 
 template<class K> struct DeepHash  { uint32_t operator()(const K* k)               const { return hash(*k);  } };
 template<class K> struct DeepEqual { bool     operator()(const K* k1, const K* k2) const { return *k1 == *k2; } };
 
-static inline uint32_t hash(uint32_t x){ return x; }
-static inline uint32_t hash(uint64_t x){ return (uint32_t)x; }
-static inline uint32_t hash(int32_t x) { return (uint32_t)x; }
-static inline uint32_t hash(int64_t x) { return (uint32_t)x; }
 
 
 //=================================================================================================

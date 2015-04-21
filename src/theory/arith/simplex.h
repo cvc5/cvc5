@@ -135,7 +135,7 @@ protected:
 
 public:
   SimplexDecisionProcedure(LinearEqualityModule& linEq, ErrorSet& errors, RaiseConflict conflictChannel, TempVarMalloc tvmalloc);
-  ~SimplexDecisionProcedure();
+  virtual ~SimplexDecisionProcedure();
 
   /**
    * Tries to update the assignments of variables such that all of the
@@ -217,4 +217,3 @@ protected:
 }/* CVC4::theory::arith namespace */
 }/* CVC4::theory namespace */
 }/* CVC4 namespace */
-

@@ -107,7 +107,7 @@ private:
 public:
 
   /** Default constructor, makes a null expression. */
-  TypeNode() : d_nv(&expr::NodeValue::s_null) { }
+  TypeNode() : d_nv(&expr::NodeValue::null()) { }
 
   /** Copy constructor */
   TypeNode(const TypeNode& node);
@@ -404,7 +404,7 @@ public:
    * @return true if null
    */
   bool isNull() const {
-    return d_nv == &expr::NodeValue::s_null;
+    return d_nv == &expr::NodeValue::null();
   }
 
   /**

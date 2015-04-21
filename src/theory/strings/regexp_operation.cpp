@@ -1386,8 +1386,8 @@ void RegExpOpr::getCharSet( Node r, std::set<unsigned char> &pcset, SetNodes &pv
 bool RegExpOpr::isPairNodesInSet(std::set< PairNodes > &s, Node n1, Node n2) {
   for(std::set< PairNodes >::const_iterator itr = s.begin();
       itr != s.end(); ++itr) {
-    if(itr->first == n1 && itr->second == n2 ||
-       itr->first == n2 && itr->second == n1) {
+    if((itr->first == n1 && itr->second == n2) ||
+       (itr->first == n2 && itr->second == n1)) {
       return true;
     }
   }

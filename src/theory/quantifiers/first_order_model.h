@@ -76,7 +76,7 @@ public: //for Theory Quantifiers:
   virtual void processInitializeQuantifier( Node q ) {}
 public:
   FirstOrderModel(QuantifiersEngine * qe, context::Context* c, std::string name );
-  virtual ~FirstOrderModel() {}
+  virtual ~FirstOrderModel() throw() {}
   virtual FirstOrderModelIG * asFirstOrderModelIG() { return NULL; }
   virtual fmcheck::FirstOrderModelFmc * asFirstOrderModelFmc() { return NULL; }
   virtual FirstOrderModelQInt * asFirstOrderModelQInt() { return NULL; }
@@ -181,7 +181,7 @@ private:
   void processInitializeModelForTerm(Node n);
 public:
   FirstOrderModelFmc(QuantifiersEngine * qe, context::Context* c, std::string name);
-  virtual ~FirstOrderModelFmc();
+  virtual ~FirstOrderModelFmc() throw();
   FirstOrderModelFmc * asFirstOrderModelFmc() { return this; }
   // initialize the model
   void processInitialize( bool ispre );

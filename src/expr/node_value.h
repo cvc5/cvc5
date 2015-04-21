@@ -74,9 +74,6 @@ namespace expr {
  */
 class NodeValue {
 
-  /** A convenient null-valued expression value */
-  static NodeValue s_null;
-
   static const unsigned NBITS_REFCOUNT = __CVC4__EXPR__NODE_VALUE__NBITS__REFCOUNT;
   static const unsigned NBITS_KIND = __CVC4__EXPR__NODE_VALUE__NBITS__KIND;
   static const unsigned NBITS_ID = __CVC4__EXPR__NODE_VALUE__NBITS__ID;
@@ -278,8 +275,9 @@ public:
     return (d == kindMask) ? kind::UNDEFINED_KIND : Kind(d);
   }
 
-  static inline const NodeValue& null() {
-    return s_null;
+  static inline NodeValue& null() {
+    static NodeValue* s_null = new NodeValue(0);
+    return *s_null;
   }
 
   /**

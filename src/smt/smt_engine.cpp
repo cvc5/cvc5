@@ -474,7 +474,7 @@ public:
     d_resourceManager = NodeManager::currentResourceManager();
   }
 
-  ~SmtEnginePrivate() {
+  ~SmtEnginePrivate() throw() {
     if(d_propagatorNeedsFinish) {
       d_propagator.finish();
       d_propagatorNeedsFinish = false;

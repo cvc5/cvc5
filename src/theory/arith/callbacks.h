@@ -36,6 +36,7 @@ namespace arith {
  */
 class ArithVarCallBack {
 public:
+  virtual ~ArithVarCallBack() {}
   virtual void operator()(ArithVar x) = 0;
 };
 
@@ -45,22 +46,26 @@ public:
  */
 class ArithVarMalloc {
 public:
+  virtual ~ArithVarMalloc() {}
   virtual ArithVar request() = 0;
   virtual void release(ArithVar v) = 0;
 };
 
 class TNodeCallBack {
 public:
+  virtual ~TNodeCallBack() {}
   virtual void operator()(TNode n) = 0;
 };
 
 class NodeCallBack {
 public:
+  virtual ~NodeCallBack() {}
   virtual void operator()(Node n) = 0;
 };
 
 class RationalCallBack {
 public:
+  virtual ~RationalCallBack() {}
   virtual Rational operator()() const = 0;
 };
 

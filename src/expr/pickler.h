@@ -74,7 +74,7 @@ protected:
 
 public:
   Pickler(ExprManager* em);
-  ~Pickler();
+  virtual ~Pickler();
 
   /**
    * Constructs a new Pickle of the node n.

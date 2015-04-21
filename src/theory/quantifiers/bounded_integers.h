@@ -110,6 +110,7 @@ private:
   void addLiteralFromRange( Node lit, Node r );
 public:
   BoundedIntegers( context::Context* c, QuantifiersEngine* qe );
+  ~BoundedIntegers() throw() {}
 
   bool needsCheck( Theory::Effort e );
   void check( Theory::Effort e, unsigned quant_e );

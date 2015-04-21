@@ -962,8 +962,8 @@ void TheoryEngine::assertToTheory(TNode assertion, TNode originalAssertion, theo
   Trace("theory::assertToTheory") << "TheoryEngine::assertToTheory(" << assertion << ", " << toTheoryId << ", " << fromTheoryId << ")" << endl;
 
   Assert(toTheoryId != fromTheoryId);
-  if(! d_logicInfo.isTheoryEnabled(toTheoryId) &&
-     toTheoryId != THEORY_SAT_SOLVER) {
+  if(toTheoryId != THEORY_SAT_SOLVER &&
+     ! d_logicInfo.isTheoryEnabled(toTheoryId)) {
     stringstream ss;
     ss << "The logic was specified as " << d_logicInfo.getLogicString()
        << ", which doesn't include " << toTheoryId

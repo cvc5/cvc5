@@ -133,7 +133,7 @@ private:
   Node getSomeDomainElement( FirstOrderModelFmc * fm, TypeNode tn );
 public:
   FullModelChecker( context::Context* c, QuantifiersEngine* qe );
-  ~FullModelChecker(){}
+  ~FullModelChecker() throw() {}
 
   bool optBuildAtFullModel();
 

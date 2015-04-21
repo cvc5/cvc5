@@ -159,7 +159,8 @@ public:
   }
 
   void dropNonZeroes(){
-    std::remove_if(d_vec.begin(), d_vec.end(), &Border::nonZero);
+    d_vec.erase(std::remove_if(d_vec.begin(), d_vec.end(), &Border::nonZero),
+                d_vec.end());
   }
 
   const Border& top() const {

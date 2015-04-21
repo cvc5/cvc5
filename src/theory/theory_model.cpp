@@ -46,7 +46,7 @@ TheoryModel::TheoryModel(context::Context* c, std::string name, bool enableFuncM
   d_eeContext->push();
 }
 
-TheoryModel::~TheoryModel() {
+TheoryModel::~TheoryModel() throw() {
   d_eeContext->pop();
   delete d_equalityEngine;
   delete d_eeContext;

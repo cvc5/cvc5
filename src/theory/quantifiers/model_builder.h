@@ -35,7 +35,7 @@ protected:
   QuantifiersEngine* d_qe;
 public:
   QModelBuilder( context::Context* c, QuantifiersEngine* qe );
-  virtual ~QModelBuilder(){}
+  virtual ~QModelBuilder() throw() {}
   // is quantifier active?
   virtual bool isQuantifierActive( Node f );
   //do exhaustive instantiation

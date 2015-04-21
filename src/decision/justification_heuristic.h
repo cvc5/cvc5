@@ -114,7 +114,7 @@ public:
                          context::UserContext *uc,
                          context::Context *c);
 
-  ~JustificationHeuristic();
+  ~JustificationHeuristic() throw();
 
   prop::SatLiteral getNext(bool &stopSearch);
 

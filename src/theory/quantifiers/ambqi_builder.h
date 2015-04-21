@@ -89,6 +89,7 @@ private:
   bool doCheck( FirstOrderModelAbs * m, TNode q, AbsDef & ad, TNode n );
 public:
   AbsMbqiBuilder( context::Context* c, QuantifiersEngine* qe );
+  ~AbsMbqiBuilder() throw() {}
   //process build model
   void processBuildModel(TheoryModel* m, bool fullModel);
   //do exhaustive instantiation

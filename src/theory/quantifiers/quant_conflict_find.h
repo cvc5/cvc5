@@ -203,6 +203,7 @@ public:
   bool areMatchDisequal( TNode n1, TNode n2 );
 public:
   QuantConflictFind( QuantifiersEngine * qe, context::Context* c );
+  ~QuantConflictFind() throw() {}
   /** register quantifier */
   void registerQuantifier( Node q );
 public:

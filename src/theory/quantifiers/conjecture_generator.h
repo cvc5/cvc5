@@ -406,6 +406,7 @@ private:  //information about ground equivalence classes
   unsigned flushWaitingConjectures( unsigned& addedLemmas, int ldepth, int rdepth );
 public:
   ConjectureGenerator( QuantifiersEngine * qe, context::Context* c );
+  ~ConjectureGenerator() throw() {}
   /* needs check */
   bool needsCheck( Theory::Effort e );
   /* reset at a round */

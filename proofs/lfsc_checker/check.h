@@ -80,7 +80,7 @@ inline char our_getc() {
 #endif
     colnum = 1;
     break;
-  case EOF:
+  case char(EOF):
     break;
   default:
     colnum++;
@@ -95,7 +95,7 @@ inline char non_ws() {
   while(isspace(c = our_getc()));
   if (c == ';') {
     // comment to end of line
-    while((c = our_getc()) != '\n' && c != EOF);
+    while((c = our_getc()) != '\n' && c != char(EOF));
     return non_ws();
   }
   return c;
@@ -115,7 +115,7 @@ extern char idbuf[];
 inline const char *prefix_id() {
   int i = 0;
   char c = idbuf[i++] = non_ws();
-  while (!isspace(c) && c != '(' && c != ')' && c != EOF) {
+  while (!isspace(c) && c != '(' && c != ')' && c != char(EOF)) {
     if (i == IDBUF_LEN)
       report_error("Identifier is too long");
     

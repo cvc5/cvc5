@@ -261,7 +261,7 @@ public:
                   std::hash_map<TNode, TNode, TNodeHashFunction>& cache) const;
 
   /** Default constructor, makes a null expression. */
-  NodeTemplate() : d_nv(&expr::NodeValue::s_null) { }
+  NodeTemplate() : d_nv(&expr::NodeValue::null()) { }
 
   /**
    * Conversion between nodes that are reference-counted and those that are
@@ -322,7 +322,7 @@ public:
    */
   bool isNull() const {
     assertTNodeNotExpired();
-    return d_nv == &expr::NodeValue::s_null;
+    return d_nv == &expr::NodeValue::null();
   }
 
   /**
@@ -1026,7 +1026,7 @@ setAttribute(const AttrKind&, const typename AttrKind::value_type& value) {
 }
 
 template <bool ref_count>
-NodeTemplate<ref_count> NodeTemplate<ref_count>::s_null(&expr::NodeValue::s_null);
+NodeTemplate<ref_count> NodeTemplate<ref_count>::s_null(&expr::NodeValue::null());
 
 // FIXME: escape from type system convenient but is there a better
 // way?  Nodes conceptually don't change their expr values but of
@@ -1039,7 +1039,7 @@ NodeTemplate<ref_count>::NodeTemplate(const expr::NodeValue* ev) :
   if(ref_count) {
     d_nv->inc();
   } else {
-    Assert(d_nv->d_rc > 0 || d_nv == &expr::NodeValue::s_null,
+    Assert(d_nv->d_rc > 0 || d_nv == &expr::NodeValue::null(),
            "TNode constructed from NodeValue with rc == 0");
   }
 }

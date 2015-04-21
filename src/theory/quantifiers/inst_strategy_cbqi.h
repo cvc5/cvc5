@@ -75,7 +75,7 @@ private:
   int process( Node f, Theory::Effort effort, int e );
 public:
   InstStrategySimplex( arith::TheoryArith* th, QuantifiersEngine* ie );
-  ~InstStrategySimplex(){}
+  ~InstStrategySimplex() throw() {}
   /** identify */
   std::string identify() const { return std::string("Simplex"); }
 };
@@ -107,7 +107,7 @@ private:
   int process( Node f, Theory::Effort effort, int e );
 public:
   InstStrategyCegqi( QuantifiersEngine * qe );
-  ~InstStrategyCegqi(){}
+  ~InstStrategyCegqi() throw() {}
   
   bool addInstantiation( std::vector< Node >& subs, std::vector< int >& subs_typ );
   bool isEligibleForInstantiation( Node n );  

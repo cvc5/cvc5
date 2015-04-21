@@ -175,6 +175,7 @@ inline std::ostream& operator <<(std::ostream& out, Minisat::lbool val) {
 namespace CVC4 {
 class ProofProxyAbstract {
 public:
+  virtual ~ProofProxyAbstract() {}
   virtual void updateCRef(Minisat::CRef oldref, Minisat::CRef newref) = 0; 
 };
 }

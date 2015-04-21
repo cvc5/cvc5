@@ -112,7 +112,7 @@ NodeManager::NodeManager(ExprManager* exprManager,
 }
 
 void NodeManager::init() {
-  poolInsert( &expr::NodeValue::s_null );
+  poolInsert( &expr::NodeValue::null() );
 
   for(unsigned i = 0; i < unsigned(kind::LAST_KIND); ++i) {
     Kind k = Kind(i);
@@ -163,7 +163,7 @@ NodeManager::~NodeManager() {
     reclaimZombies();
   }
 
-  poolRemove( &expr::NodeValue::s_null );
+  poolRemove( &expr::NodeValue::null() );
 
   if(Debug.isOn("gc:leaks")) {
     Debug("gc:leaks") << "still in pool:" << endl;
