@@ -63,7 +63,9 @@ TESTS =	\
 	tenum-bug.smt2 \
 	cdt-non-canon-stream.smt2 \
 	stream-singleton.smt2 \
-	is_test.smt2
+	is_test.smt2 \
+	manos-model.smt2 \
+	bug625.smt2
 
 FAILING_TESTS = \
 	datatype-dump.cvc

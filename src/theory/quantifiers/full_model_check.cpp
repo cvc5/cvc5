@@ -903,6 +903,7 @@ void FullModelChecker::doCheck(FirstOrderModelFmc * fm, Node f, Def & d, Node n 
       Trace("fmc-debug") << "Do uninterpreted compose " << n << std::endl;
       //uninterpreted compose
       doUninterpretedCompose( fm, f, d, n.getOperator(), children );
+      /*
     } else if( n.getKind()==SELECT ){
       Trace("fmc-debug") << "Do select compose " << n << std::endl;
       std::vector< Def > children2;
@@ -911,6 +912,7 @@ void FullModelChecker::doCheck(FirstOrderModelFmc * fm, Node f, Def & d, Node n 
       mkCondDefaultVec(fm, f, cond);
       std::vector< Node > val;
       doUninterpretedCompose(fm, f, d, children[0], children2, 0, cond, val );
+      */
     } else {
       if( !var_ch.empty() ){
         if( n.getKind()==EQUAL ){
