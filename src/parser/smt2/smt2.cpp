@@ -50,35 +50,36 @@ void Smt2::addArithmeticOperators() {
 }
 
 void Smt2::addBitvectorOperators() {
-  Parser::addOperator(kind::BITVECTOR_CONCAT);
-  Parser::addOperator(kind::BITVECTOR_AND);
-  Parser::addOperator(kind::BITVECTOR_OR);
-  Parser::addOperator(kind::BITVECTOR_XOR);
-  Parser::addOperator(kind::BITVECTOR_NOT);
-  Parser::addOperator(kind::BITVECTOR_NAND);
-  Parser::addOperator(kind::BITVECTOR_NOR);
-  Parser::addOperator(kind::BITVECTOR_XNOR);
-  Parser::addOperator(kind::BITVECTOR_COMP);
-  Parser::addOperator(kind::BITVECTOR_MULT);
-  Parser::addOperator(kind::BITVECTOR_PLUS);
-  Parser::addOperator(kind::BITVECTOR_SUB);
-  Parser::addOperator(kind::BITVECTOR_NEG);
-  Parser::addOperator(kind::BITVECTOR_UDIV);
-  Parser::addOperator(kind::BITVECTOR_UREM);
-  Parser::addOperator(kind::BITVECTOR_SDIV);
-  Parser::addOperator(kind::BITVECTOR_SREM);
-  Parser::addOperator(kind::BITVECTOR_SMOD);
-  Parser::addOperator(kind::BITVECTOR_SHL);
-  Parser::addOperator(kind::BITVECTOR_LSHR);
-  Parser::addOperator(kind::BITVECTOR_ASHR);
-  Parser::addOperator(kind::BITVECTOR_ULT);
-  Parser::addOperator(kind::BITVECTOR_ULE);
-  Parser::addOperator(kind::BITVECTOR_UGT);
-  Parser::addOperator(kind::BITVECTOR_UGE);
-  Parser::addOperator(kind::BITVECTOR_SLT);
-  Parser::addOperator(kind::BITVECTOR_SLE);
-  Parser::addOperator(kind::BITVECTOR_SGT);
-  Parser::addOperator(kind::BITVECTOR_SGE);
+  addOperator(kind::BITVECTOR_CONCAT, "concat");
+  addOperator(kind::BITVECTOR_NOT, "bvnot");
+  addOperator(kind::BITVECTOR_AND, "bvand");
+  addOperator(kind::BITVECTOR_OR, "bvor");
+  addOperator(kind::BITVECTOR_NEG, "bvneg");
+  addOperator(kind::BITVECTOR_PLUS, "bvadd");
+  addOperator(kind::BITVECTOR_MULT, "bvmul");
+  addOperator(kind::BITVECTOR_UDIV, "bvudiv");
+  addOperator(kind::BITVECTOR_UREM, "bvurem");
+  addOperator(kind::BITVECTOR_SHL, "bvshl");
+  addOperator(kind::BITVECTOR_LSHR, "bvlshr");
+  addOperator(kind::BITVECTOR_ULT, "bvult");
+  addOperator(kind::BITVECTOR_NAND, "bvnand");
+  addOperator(kind::BITVECTOR_NOR, "bvnor");
+  addOperator(kind::BITVECTOR_XOR, "bvxor");
+  addOperator(kind::BITVECTOR_XNOR, "bvxnor");
+  addOperator(kind::BITVECTOR_COMP, "bvcomp");
+  addOperator(kind::BITVECTOR_SUB, "bvsub");
+  addOperator(kind::BITVECTOR_SDIV, "bvsdiv");
+  addOperator(kind::BITVECTOR_SREM, "bvsrem");
+  addOperator(kind::BITVECTOR_SMOD, "bvsmod");
+  addOperator(kind::BITVECTOR_ASHR, "bvashr");
+  addOperator(kind::BITVECTOR_ULE, "bvule");
+  addOperator(kind::BITVECTOR_UGT, "bvugt");
+  addOperator(kind::BITVECTOR_UGE, "bvuge");
+  addOperator(kind::BITVECTOR_SLT, "bvslt");
+  addOperator(kind::BITVECTOR_SLE, "bvsle");
+  addOperator(kind::BITVECTOR_SGT, "bvsgt");
+  addOperator(kind::BITVECTOR_SGE, "bvsge");
+
   Parser::addOperator(kind::BITVECTOR_BITOF);
   Parser::addOperator(kind::BITVECTOR_EXTRACT);
   Parser::addOperator(kind::BITVECTOR_REPEAT);
@@ -92,34 +93,61 @@ void Smt2::addBitvectorOperators() {
 }
 
 void Smt2::addStringOperators() {
-  Parser::addOperator(kind::STRING_CONCAT);
-  Parser::addOperator(kind::STRING_LENGTH);
+  addOperator(kind::STRING_CONCAT, "str.++");
+  addOperator(kind::STRING_LENGTH, "str.len");
+  addOperator(kind::STRING_SUBSTR, "str.substr" );
+  addOperator(kind::STRING_STRCTN, "str.contains" );
+  addOperator(kind::STRING_CHARAT, "str.at" );
+  addOperator(kind::STRING_STRIDOF, "str.indexof" );
+  addOperator(kind::STRING_STRREPL, "str.replace" );
+  addOperator(kind::STRING_PREFIX, "str.prefixof" );
+  addOperator(kind::STRING_SUFFIX, "str.suffixof" );
+  addOperator(kind::STRING_ITOS, "int.to.str" );
+  addOperator(kind::STRING_STOI, "str.to.int" );
+  addOperator(kind::STRING_U16TOS, "u16.to.str" );
+  addOperator(kind::STRING_STOU16, "str.to.u16" );
+  addOperator(kind::STRING_U32TOS, "u32.to.str" );
+  addOperator(kind::STRING_STOU32, "str.to.u32" );
+  addOperator(kind::STRING_IN_REGEXP, "str.in.re");
+  addOperator(kind::STRING_TO_REGEXP, "str.to.re");
+  addOperator(kind::REGEXP_CONCAT, "re.++");
+  addOperator(kind::REGEXP_UNION, "re.union");
+  addOperator(kind::REGEXP_INTER, "re.inter");
+  addOperator(kind::REGEXP_STAR, "re.*");
+  addOperator(kind::REGEXP_PLUS, "re.+");
+  addOperator(kind::REGEXP_OPT, "re.opt");
+  addOperator(kind::REGEXP_RANGE, "re.range");
+  addOperator(kind::REGEXP_LOOP, "re.loop");
 }
 
 void Smt2::addFloatingPointOperators() {
-  Parser::addOperator(kind::FLOATINGPOINT_FP);
-  Parser::addOperator(kind::FLOATINGPOINT_EQ);
-  Parser::addOperator(kind::FLOATINGPOINT_ABS);
-  Parser::addOperator(kind::FLOATINGPOINT_NEG);
-  Parser::addOperator(kind::FLOATINGPOINT_PLUS);
-  Parser::addOperator(kind::FLOATINGPOINT_SUB);
-  Parser::addOperator(kind::FLOATINGPOINT_MULT);
-  Parser::addOperator(kind::FLOATINGPOINT_DIV);
-  Parser::addOperator(kind::FLOATINGPOINT_FMA);
-  Parser::addOperator(kind::FLOATINGPOINT_SQRT);
-  Parser::addOperator(kind::FLOATINGPOINT_REM);
-  Parser::addOperator(kind::FLOATINGPOINT_RTI);
-  Parser::addOperator(kind::FLOATINGPOINT_MIN);
-  Parser::addOperator(kind::FLOATINGPOINT_MAX);
-  Parser::addOperator(kind::FLOATINGPOINT_LEQ);
-  Parser::addOperator(kind::FLOATINGPOINT_LT);
-  Parser::addOperator(kind::FLOATINGPOINT_GEQ);
-  Parser::addOperator(kind::FLOATINGPOINT_GT);
-  Parser::addOperator(kind::FLOATINGPOINT_ISN);
-  Parser::addOperator(kind::FLOATINGPOINT_ISSN);
-  Parser::addOperator(kind::FLOATINGPOINT_ISZ);
-  Parser::addOperator(kind::FLOATINGPOINT_ISINF);
-  Parser::addOperator(kind::FLOATINGPOINT_ISNAN);
+  addOperator(kind::FLOATINGPOINT_FP, "fp");
+  addOperator(kind::FLOATINGPOINT_EQ, "fp.eq");
+  addOperator(kind::FLOATINGPOINT_ABS, "fp.abs");
+  addOperator(kind::FLOATINGPOINT_NEG, "fp.neg");
+  addOperator(kind::FLOATINGPOINT_PLUS, "fp.add");
+  addOperator(kind::FLOATINGPOINT_SUB, "fp.sub");
+  addOperator(kind::FLOATINGPOINT_MULT, "fp.mul");
+  addOperator(kind::FLOATINGPOINT_DIV, "fp.div");
+  addOperator(kind::FLOATINGPOINT_FMA, "fp.fma");
+  addOperator(kind::FLOATINGPOINT_SQRT, "fp.sqrt");
+  addOperator(kind::FLOATINGPOINT_REM, "fp.rem");
+  addOperator(kind::FLOATINGPOINT_RTI, "fp.roundToIntegral");
+  addOperator(kind::FLOATINGPOINT_MIN, "fp.min");
+  addOperator(kind::FLOATINGPOINT_MAX, "fp.max");
+  addOperator(kind::FLOATINGPOINT_LEQ, "fp.leq");
+  addOperator(kind::FLOATINGPOINT_LT, "fp.lt");
+  addOperator(kind::FLOATINGPOINT_GEQ, "fp.geq");
+  addOperator(kind::FLOATINGPOINT_GT, "fp.gt");
+  addOperator(kind::FLOATINGPOINT_ISN, "fp.isNormal");
+  addOperator(kind::FLOATINGPOINT_ISSN, "fp.isSubnormal");
+  addOperator(kind::FLOATINGPOINT_ISZ, "fp.isZero");
+  addOperator(kind::FLOATINGPOINT_ISINF, "fp.isInfinite");
+  addOperator(kind::FLOATINGPOINT_ISNAN, "fp.isNaN");
+  addOperator(kind::FLOATINGPOINT_ISNEG, "fp.isNegative");
+  addOperator(kind::FLOATINGPOINT_ISPOS, "fp.isPositive");
+  addOperator(kind::FLOATINGPOINT_TO_REAL, "fp.to_real");
+
   Parser::addOperator(kind::FLOATINGPOINT_TO_FP_IEEE_BITVECTOR);
   Parser::addOperator(kind::FLOATINGPOINT_TO_FP_FLOATINGPOINT);
   Parser::addOperator(kind::FLOATINGPOINT_TO_FP_REAL);
@@ -127,15 +155,14 @@ void Smt2::addFloatingPointOperators() {
   Parser::addOperator(kind::FLOATINGPOINT_TO_FP_UNSIGNED_BITVECTOR);
   Parser::addOperator(kind::FLOATINGPOINT_TO_UBV);
   Parser::addOperator(kind::FLOATINGPOINT_TO_SBV);
-  Parser::addOperator(kind::FLOATINGPOINT_TO_REAL);
 }
 
 
 void Smt2::addTheory(Theory theory) {
   switch(theory) {
   case THEORY_ARRAYS:
-    Parser::addOperator(kind::SELECT);
-    Parser::addOperator(kind::STORE);
+    addOperator(kind::SELECT, "select");
+    addOperator(kind::STORE, "store");
     break;
 
   case THEORY_BITVECTORS:
@@ -160,16 +187,16 @@ void Smt2::addTheory(Theory theory) {
   case THEORY_REALS_INTS:
     defineType("Real", getExprManager()->realType());
     Parser::addOperator(kind::DIVISION);
-    Parser::addOperator(kind::TO_INTEGER);
-    Parser::addOperator(kind::IS_INTEGER);
-    Parser::addOperator(kind::TO_REAL);
+    addOperator(kind::TO_INTEGER, "to_int");
+    addOperator(kind::IS_INTEGER, "is_int");
+    addOperator(kind::TO_REAL, "to_real");
     // falling through on purpose, to add Ints part of Reals_Ints
   case THEORY_INTS:
     defineType("Int", getExprManager()->integerType());
     addArithmeticOperators();
-    Parser::addOperator(kind::INTS_DIVISION);
-    Parser::addOperator(kind::INTS_MODULUS);
-    Parser::addOperator(kind::ABS);
+    addOperator(kind::INTS_DIVISION, "div");
+    addOperator(kind::INTS_MODULUS, "mod");
+    addOperator(kind::ABS, "abs");
     Parser::addOperator(kind::DIVISIBLE);
     break;
 
