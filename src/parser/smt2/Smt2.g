@@ -2042,109 +2042,22 @@ builtinOp[CVC4::Kind& kind]
   | MINUS_TOK    { $kind = CVC4::kind::MINUS; }
   | STAR_TOK     { $kind = CVC4::kind::MULT; }
   | DIV_TOK      { $kind = CVC4::kind::DIVISION; }
-  | INTS_DIV_TOK      { $kind = CVC4::kind::INTS_DIVISION; }
-  | INTS_MOD_TOK      { $kind = CVC4::kind::INTS_MODULUS; }
-  | ABS_TOK      { $kind = CVC4::kind::ABS; }
-  | IS_INT_TOK   { $kind = CVC4::kind::IS_INTEGER; }
-  | TO_INT_TOK   { $kind = CVC4::kind::TO_INTEGER; }
-  | TO_REAL_TOK  { $kind = CVC4::kind::TO_REAL; }
-
-  | SELECT_TOK   { $kind = CVC4::kind::SELECT; }
-  | STORE_TOK    { $kind = CVC4::kind::STORE; }
-
-  | CONCAT_TOK   { $kind = CVC4::kind::BITVECTOR_CONCAT; }
-  | BVNOT_TOK   { $kind = CVC4::kind::BITVECTOR_NOT; }
-  | BVAND_TOK   { $kind = CVC4::kind::BITVECTOR_AND; }
-  | BVOR_TOK   { $kind = CVC4::kind::BITVECTOR_OR; }
-  | BVNEG_TOK   { $kind = CVC4::kind::BITVECTOR_NEG; }
-  | BVADD_TOK   { $kind = CVC4::kind::BITVECTOR_PLUS; }
-  | BVMUL_TOK   { $kind = CVC4::kind::BITVECTOR_MULT; }
-  | BVUDIV_TOK   { $kind = CVC4::kind::BITVECTOR_UDIV; }
-  | BVUREM_TOK   { $kind = CVC4::kind::BITVECTOR_UREM; }
-  | BVSHL_TOK     { $kind = CVC4::kind::BITVECTOR_SHL; }
-  | BVLSHR_TOK     { $kind = CVC4::kind::BITVECTOR_LSHR; }
-  | BVULT_TOK     { $kind = CVC4::kind::BITVECTOR_ULT; }
-  | BVNAND_TOK     { $kind = CVC4::kind::BITVECTOR_NAND; }
-  | BVNOR_TOK     { $kind = CVC4::kind::BITVECTOR_NOR; }
-  | BVXOR_TOK     { $kind = CVC4::kind::BITVECTOR_XOR; }
-  | BVXNOR_TOK     { $kind = CVC4::kind::BITVECTOR_XNOR; }
-  | BVCOMP_TOK     { $kind = CVC4::kind::BITVECTOR_COMP; }
-  | BVSUB_TOK     { $kind = CVC4::kind::BITVECTOR_SUB; }
-  | BVSDIV_TOK     { $kind = CVC4::kind::BITVECTOR_SDIV; }
-  | BVSREM_TOK     { $kind = CVC4::kind::BITVECTOR_SREM; }
-  | BVSMOD_TOK     { $kind = CVC4::kind::BITVECTOR_SMOD; }
-  | BVASHR_TOK     { $kind = CVC4::kind::BITVECTOR_ASHR; }
-  | BVULE_TOK     { $kind = CVC4::kind::BITVECTOR_ULE; }
-  | BVUGT_TOK     { $kind = CVC4::kind::BITVECTOR_UGT; }
-  | BVUGE_TOK     { $kind = CVC4::kind::BITVECTOR_UGE; }
-  | BVSLT_TOK     { $kind = CVC4::kind::BITVECTOR_SLT; }
-  | BVSLE_TOK     { $kind = CVC4::kind::BITVECTOR_SLE; }
-  | BVSGT_TOK     { $kind = CVC4::kind::BITVECTOR_SGT; }
-  | BVSGE_TOK     { $kind = CVC4::kind::BITVECTOR_SGE; }
 
   | BV2NAT_TOK     { $kind = CVC4::kind::BITVECTOR_TO_NAT;
                      if(PARSER_STATE->strictModeEnabled()) {
                        PARSER_STATE->parseError("bv2nat and int2bv are not part of SMT-LIB, and aren't available in SMT-LIB strict compliance mode");
                      } }
-  | STRCON_TOK     { $kind = CVC4::kind::STRING_CONCAT; }
-  | STRLEN_TOK     { $kind = CVC4::kind::STRING_LENGTH; }
-  | STRSUB_TOK     { $kind = CVC4::kind::STRING_SUBSTR; }
-  | STRCTN_TOK     { $kind = CVC4::kind::STRING_STRCTN; }
-  | STRCAT_TOK     { $kind = CVC4::kind::STRING_CHARAT; }
-  | STRIDOF_TOK    { $kind = CVC4::kind::STRING_STRIDOF; }
-  | STRREPL_TOK    { $kind = CVC4::kind::STRING_STRREPL; }
-  | STRPREF_TOK    { $kind = CVC4::kind::STRING_PREFIX; }
-  | STRSUFF_TOK    { $kind = CVC4::kind::STRING_SUFFIX; }
-  | STRITOS_TOK    { $kind = CVC4::kind::STRING_ITOS; }
-  | STRSTOI_TOK    { $kind = CVC4::kind::STRING_STOI; }
-  | STRU16TOS_TOK    { $kind = CVC4::kind::STRING_U16TOS; }
-  | STRSTOU16_TOK    { $kind = CVC4::kind::STRING_STOU16; }
-  | STRU32TOS_TOK    { $kind = CVC4::kind::STRING_U32TOS; }
-  | STRSTOU32_TOK    { $kind = CVC4::kind::STRING_STOU32; }
-  | STRINRE_TOK    { $kind = CVC4::kind::STRING_IN_REGEXP; }
-  | STRTORE_TOK    { $kind = CVC4::kind::STRING_TO_REGEXP; }
-  | RECON_TOK      { $kind = CVC4::kind::REGEXP_CONCAT; }
-  | REUNION_TOK    { $kind = CVC4::kind::REGEXP_UNION; }
-  | REINTER_TOK    { $kind = CVC4::kind::REGEXP_INTER; }
-  | RESTAR_TOK     { $kind = CVC4::kind::REGEXP_STAR; }
-  | REPLUS_TOK     { $kind = CVC4::kind::REGEXP_PLUS; }
-  | REOPT_TOK      { $kind = CVC4::kind::REGEXP_OPT; }
-  | RERANGE_TOK    { $kind = CVC4::kind::REGEXP_RANGE; }
-  | RELOOP_TOK    { $kind = CVC4::kind::REGEXP_LOOP; }
-  
+
   | DTSIZE_TOK     { $kind = CVC4::kind::DT_SIZE; }
-  
   | FMFCARD_TOK    { $kind = CVC4::kind::CARDINALITY_CONSTRAINT; }
-  
   | INST_CLOSURE_TOK { $kind = CVC4::kind::INST_CLOSURE; }
   
-  | FP_TOK        { $kind = CVC4::kind::FLOATINGPOINT_FP; }
-  | FP_EQ_TOK     { $kind = CVC4::kind::FLOATINGPOINT_EQ; }
-  | FP_ABS_TOK    { $kind = CVC4::kind::FLOATINGPOINT_ABS; }
-  | FP_NEG_TOK    { $kind = CVC4::kind::FLOATINGPOINT_NEG; }
-  | FP_PLUS_TOK   { $kind = CVC4::kind::FLOATINGPOINT_PLUS; }
-  | FP_SUB_TOK    { $kind = CVC4::kind::FLOATINGPOINT_SUB; }
-  | FP_MUL_TOK    { $kind = CVC4::kind::FLOATINGPOINT_MULT; }
-  | FP_DIV_TOK    { $kind = CVC4::kind::FLOATINGPOINT_DIV; }
-  | FP_FMA_TOK    { $kind = CVC4::kind::FLOATINGPOINT_FMA; }
-  | FP_SQRT_TOK   { $kind = CVC4::kind::FLOATINGPOINT_SQRT; }
-  | FP_REM_TOK    { $kind = CVC4::kind::FLOATINGPOINT_REM; }
-  | FP_RTI_TOK    { $kind = CVC4::kind::FLOATINGPOINT_RTI; }
-  | FP_MIN_TOK    { $kind = CVC4::kind::FLOATINGPOINT_MIN; }
-  | FP_MAX_TOK    { $kind = CVC4::kind::FLOATINGPOINT_MAX; }
-  | FP_LEQ_TOK    { $kind = CVC4::kind::FLOATINGPOINT_LEQ; }
-  | FP_LT_TOK     { $kind = CVC4::kind::FLOATINGPOINT_LT; }
-  | FP_GEQ_TOK    { $kind = CVC4::kind::FLOATINGPOINT_GEQ; }
-  | FP_GT_TOK     { $kind = CVC4::kind::FLOATINGPOINT_GT; }
-  | FP_ISN_TOK    { $kind = CVC4::kind::FLOATINGPOINT_ISN; }
-  | FP_ISSN_TOK   { $kind = CVC4::kind::FLOATINGPOINT_ISSN; }
-  | FP_ISZ_TOK    { $kind = CVC4::kind::FLOATINGPOINT_ISZ; }
-  | FP_ISINF_TOK  { $kind = CVC4::kind::FLOATINGPOINT_ISINF; }
-  | FP_ISNAN_TOK  { $kind = CVC4::kind::FLOATINGPOINT_ISNAN; }
-  | FP_ISNEG_TOK  { $kind = CVC4::kind::FLOATINGPOINT_ISNEG; }
-  | FP_ISPOS_TOK  { $kind = CVC4::kind::FLOATINGPOINT_ISPOS; }
-  | FP_TO_REAL_TOK {$kind = CVC4::kind::FLOATINGPOINT_TO_REAL; }
-  // NOTE: Theory operators go here
+  // NOTE: Theory operators no longer go here, add to smt2.cpp. Only
+  // special cases may go here. When this comment was written (2015
+  // Apr), the special cases were: core theory operators, arith
+  // operators which start with symbols like * / + >= etc, quantifier
+  // theory operators, and operators which depended on parser's state
+  // to accept or reject.
   ;
 
 quantOp[CVC4::Kind& kind]
@@ -2500,7 +2413,6 @@ FORALL_TOK        : 'forall';
 GREATER_THAN_TOK  : '>';
 GREATER_THAN_EQUAL_TOK  : '>=';
 IMPLIES_TOK       : '=>';
-IS_INT_TOK        : 'is_int';
 LESS_THAN_TOK     : '<';
 LESS_THAN_EQUAL_TOK     : '<=';
 MINUS_TOK         : '-';
@@ -2509,77 +2421,16 @@ OR_TOK            : 'or';
 // PERCENT_TOK       : '%';
 PLUS_TOK          : '+';
 //POUND_TOK         : '#';
-SELECT_TOK        : 'select';
 STAR_TOK          : '*';
-STORE_TOK         : 'store';
 // TILDE_TOK         : '~';
-TO_INT_TOK        : 'to_int';
-TO_REAL_TOK       : 'to_real';
 XOR_TOK           : 'xor';
 
-INTS_DIV_TOK : 'div';
-INTS_MOD_TOK : 'mod';
-ABS_TOK : 'abs';
 
 DIVISIBLE_TOK : 'divisible';
 
-CONCAT_TOK : 'concat';
-BVNOT_TOK : 'bvnot';
-BVAND_TOK : 'bvand';
-BVOR_TOK : 'bvor';
-BVNEG_TOK : 'bvneg';
-BVADD_TOK : 'bvadd';
-BVMUL_TOK : 'bvmul';
-BVUDIV_TOK : 'bvudiv';
-BVUREM_TOK : 'bvurem';
-BVSHL_TOK : 'bvshl';
-BVLSHR_TOK : 'bvlshr';
-BVULT_TOK : 'bvult';
-BVNAND_TOK : 'bvnand';
-BVNOR_TOK : 'bvnor';
-BVXOR_TOK : 'bvxor';
-BVXNOR_TOK : 'bvxnor';
-BVCOMP_TOK : 'bvcomp';
-BVSUB_TOK : 'bvsub';
-BVSDIV_TOK : 'bvsdiv';
-BVSREM_TOK : 'bvsrem';
-BVSMOD_TOK : 'bvsmod';
-BVASHR_TOK : 'bvashr';
-BVULE_TOK : 'bvule';
-BVUGT_TOK : 'bvugt';
-BVUGE_TOK : 'bvuge';
-BVSLT_TOK : 'bvslt';
-BVSLE_TOK : 'bvsle';
-BVSGT_TOK : 'bvsgt';
-BVSGE_TOK : 'bvsge';
 BV2NAT_TOK : 'bv2nat';
 INT2BV_TOK : 'int2bv';
 
-STRCON_TOK : 'str.++';
-STRLEN_TOK : 'str.len';
-STRSUB_TOK : 'str.substr' ;
-STRCTN_TOK : 'str.contains' ;
-STRCAT_TOK : 'str.at' ;
-STRIDOF_TOK : 'str.indexof' ;
-STRREPL_TOK : 'str.replace' ;
-STRPREF_TOK : 'str.prefixof' ;
-STRSUFF_TOK : 'str.suffixof' ;
-STRITOS_TOK : 'int.to.str' ;
-STRSTOI_TOK : 'str.to.int' ;
-STRU16TOS_TOK : 'u16.to.str' ;
-STRSTOU16_TOK : 'str.to.u16' ;
-STRU32TOS_TOK : 'u32.to.str' ;
-STRSTOU32_TOK : 'str.to.u32' ;
-STRINRE_TOK : 'str.in.re';
-STRTORE_TOK : 'str.to.re';
-RECON_TOK : 're.++';
-REUNION_TOK : 're.union';
-REINTER_TOK : 're.inter';
-RESTAR_TOK : 're.*';
-REPLUS_TOK : 're.+';
-REOPT_TOK : 're.opt';
-RERANGE_TOK : 're.range';
-RELOOP_TOK : 're.loop';
 RENOSTR_TOK : 're.nostr';
 REALLCHAR_TOK : 're.allchar';
 
@@ -2594,36 +2445,12 @@ EMPTYSET_TOK: { PARSER_STATE->isTheoryEnabled(Smt2::THEORY_SETS) }? 'emptyset';
 // tokenized and handled directly when
 // processing a term
 
-FP_TOK : 'fp';
 FP_PINF_TOK : '+oo';
 FP_NINF_TOK : '-oo';
 FP_PZERO_TOK : '+zero';
 FP_NZERO_TOK : '-zero';
 FP_NAN_TOK : 'NaN';
-FP_EQ_TOK : 'fp.eq';
-FP_ABS_TOK : 'fp.abs';
-FP_NEG_TOK : 'fp.neg';
-FP_PLUS_TOK : 'fp.add';
-FP_SUB_TOK : 'fp.sub';
-FP_MUL_TOK : 'fp.mul';
-FP_DIV_TOK : 'fp.div';
-FP_FMA_TOK : 'fp.fma';
-FP_SQRT_TOK : 'fp.sqrt';
-FP_REM_TOK : 'fp.rem';
-FP_RTI_TOK : 'fp.roundToIntegral';
-FP_MIN_TOK : 'fp.min';
-FP_MAX_TOK : 'fp.max';
-FP_LEQ_TOK : 'fp.leq';
-FP_LT_TOK : 'fp.lt';
-FP_GEQ_TOK : 'fp.geq';
-FP_GT_TOK : 'fp.gt';
-FP_ISN_TOK : 'fp.isNormal';
-FP_ISSN_TOK : 'fp.isSubnormal';
-FP_ISZ_TOK : 'fp.isZero';
-FP_ISINF_TOK : 'fp.isInfinite';
-FP_ISNAN_TOK : 'fp.isNaN';
-FP_ISNEG_TOK : 'fp.isNegative';
-FP_ISPOS_TOK : 'fp.isPositive';
+
 FP_TO_FP_TOK : 'to_fp';
 FP_TO_FPBV_TOK : 'to_fp_bv';
 FP_TO_FPFP_TOK : 'to_fp_fp';
@@ -2632,7 +2459,6 @@ FP_TO_FPS_TOK : 'to_fp_signed';
 FP_TO_FPU_TOK : 'to_fp_unsigned';
 FP_TO_UBV_TOK : 'fp.to_ubv';
 FP_TO_SBV_TOK : 'fp.to_sbv';
-FP_TO_REAL_TOK : 'fp.to_real';
 FP_RNE_TOK : 'RNE';
 FP_RNA_TOK : 'RNA';
 FP_RTP_TOK : 'RTP';

@@ -199,6 +199,8 @@ struct SmtEngineStatistics {
   TimerStat d_checkModelTime;
   /** time spent in checkProof() */
   TimerStat d_checkProofTime;
+  /** time spent in checkUnsatCore() */
+  TimerStat d_checkUnsatCoreTime;
   /** time spent in PropEngine::checkSat() */
   TimerStat d_solveTime;
   /** time spent in pushing/popping */
@@ -229,6 +231,7 @@ struct SmtEngineStatistics {
     d_numAssertionsPost("smt::SmtEngine::numAssertionsPostITERemoval", 0),
     d_checkModelTime("smt::SmtEngine::checkModelTime"),
     d_checkProofTime("smt::SmtEngine::checkProofTime"),
+    d_checkUnsatCoreTime("smt::SmtEngine::checkUnsatCoreTime"),
     d_solveTime("smt::SmtEngine::solveTime"),
     d_pushPopTime("smt::SmtEngine::pushPopTime"),
     d_processAssertionsTime("smt::SmtEngine::processAssertionsTime"),
@@ -253,6 +256,7 @@ struct SmtEngineStatistics {
     StatisticsRegistry::registerStat(&d_numAssertionsPost);
     StatisticsRegistry::registerStat(&d_checkModelTime);
     StatisticsRegistry::registerStat(&d_checkProofTime);
+    StatisticsRegistry::registerStat(&d_checkUnsatCoreTime);
     StatisticsRegistry::registerStat(&d_solveTime);
     StatisticsRegistry::registerStat(&d_pushPopTime);
     StatisticsRegistry::registerStat(&d_processAssertionsTime);
@@ -278,6 +282,7 @@ struct SmtEngineStatistics {
     StatisticsRegistry::unregisterStat(&d_numAssertionsPost);
     StatisticsRegistry::unregisterStat(&d_checkModelTime);
     StatisticsRegistry::unregisterStat(&d_checkProofTime);
+    StatisticsRegistry::unregisterStat(&d_checkUnsatCoreTime);
     StatisticsRegistry::unregisterStat(&d_solveTime);
     StatisticsRegistry::unregisterStat(&d_pushPopTime);
     StatisticsRegistry::unregisterStat(&d_processAssertionsTime);
@@ -695,6 +700,9 @@ SmtEngine::SmtEngine(ExprManager* em) throw() :
   d_modelGlobalCommands(),
   d_modelCommands(NULL),
   d_dumpCommands(),
+#ifdef CVC4_PROOF  
+  d_defineCommands(),
+#endif  
   d_logic(),
   d_originalOptions(em->getOptions()),
   d_pendingPops(0),
@@ -1029,6 +1037,14 @@ void SmtEngine::setDefaults() {
       Notice() << "SmtEngine: turning off bv-introduce-pow2 to support unsat-cores" << endl;
       setOption("bv-intro-pow2", false);
     }
+    if(options::repeatSimp()) {
+      if(options::repeatSimp.wasSetByUser()) {
+        throw OptionException("repeat-simp not supported with unsat cores");
+      }
+      Notice() << "SmtEngine: turning off repeat-simp to support unsat-cores" << endl;
+      setOption("repeat-simp", false);
+    }
+
   }
 
   if(options::produceAssignments() && !options::produceModels()) {
@@ -1045,6 +1061,24 @@ void SmtEngine::setDefaults() {
       Trace("smt") << "setting theoryof-mode to term-based" << endl;
       options::theoryOfMode.set(THEORY_OF_TERM_BASED);
     }
+  }
+
+  // strings require LIA, UF; widen the logic
+  if(d_logic.isTheoryEnabled(THEORY_STRINGS)) {
+    LogicInfo log(d_logic.getUnlockedCopy());
+    // Strings requires arith for length constraints, and also UF
+    if(!d_logic.isTheoryEnabled(THEORY_UF)) {
+      Trace("smt") << "because strings are enabled, also enabling UF" << endl;
+      log.enableTheory(THEORY_UF);
+    }
+    if(!d_logic.isTheoryEnabled(THEORY_ARITH) || d_logic.isDifferenceLogic() || !d_logic.areIntegersUsed()) {
+      Trace("smt") << "because strings are enabled, also enabling linear integer arithmetic" << endl;
+      log.enableTheory(THEORY_ARITH);
+      log.enableIntegers();
+      log.arithOnlyLinear();
+    }
+    d_logic = log;
+    d_logic.lock();
   }
 
   // by default, symmetry breaker is on only for QF_UF
@@ -1133,16 +1167,25 @@ void SmtEngine::setDefaults() {
   // Turn on multiple-pass non-clausal simplification for QF_AUFBV
   if(! options::repeatSimp.wasSetByUser()) {
     bool repeatSimp = !d_logic.isQuantified() &&
-      (d_logic.isTheoryEnabled(THEORY_ARRAY) && d_logic.isTheoryEnabled(THEORY_UF) && d_logic.isTheoryEnabled(THEORY_BV));
+                      (d_logic.isTheoryEnabled(THEORY_ARRAY) &&
+		       d_logic.isTheoryEnabled(THEORY_UF) &&
+		       d_logic.isTheoryEnabled(THEORY_BV)) &&
+                      !options::unsatCores();
     Trace("smt") << "setting repeat simplification to " << repeatSimp << endl;
     options::repeatSimp.set(repeatSimp);
   }
   // Turn on unconstrained simplification for QF_AUFBV
-  if(! options::unconstrainedSimp.wasSetByUser() || options::incrementalSolving()) {
+  if(!options::unconstrainedSimp.wasSetByUser() ||
+      options::incrementalSolving()) {
     //    bool qf_sat = d_logic.isPure(THEORY_BOOL) && !d_logic.isQuantified();
     //    bool uncSimp = false && !qf_sat && !options::incrementalSolving();
-    bool uncSimp = !options::incrementalSolving() && !d_logic.isQuantified() && !options::produceModels() && !options::produceAssignments() && !options::checkModels() &&
-      (d_logic.isTheoryEnabled(THEORY_ARRAY) && d_logic.isTheoryEnabled(THEORY_BV));
+    bool uncSimp = !options::incrementalSolving() &&
+                   !d_logic.isQuantified() &&
+                   !options::produceModels() &&
+                   !options::produceAssignments() &&
+                   !options::checkModels() &&
+                   !options::unsatCores() &&
+                   (d_logic.isTheoryEnabled(THEORY_ARRAY) && d_logic.isTheoryEnabled(THEORY_BV));
     Trace("smt") << "setting unconstrained simplification to " << uncSimp << endl;
     options::unconstrainedSimp.set(uncSimp);
   }
@@ -1660,6 +1703,11 @@ void SmtEngine::defineFunction(Expr func,
 
   SmtScope smts(this);
 
+  PROOF( if (options::checkUnsatCores()) {
+      d_defineCommands.push_back(c.clone());
+    });
+
+  
   // Substitute out any abstract values in formula
   Expr form = d_private->substituteAbstractValues(Node::fromExpr(formula)).toExpr();
 
@@ -3033,7 +3081,7 @@ void SmtEnginePrivate::processAssertions() {
   Trace("smt") << "SmtEnginePrivate::processAssertions()" << endl;
 
   Debug("smt") << " d_assertions     : " << d_assertions.size() << endl;
-
+  
   if (d_assertions.size() == 0) {
     // nothing to do
     return;
@@ -3331,8 +3379,7 @@ void SmtEnginePrivate::processAssertions() {
           d_iteSkolemMap.erase(toErase.back());
           toErase.pop_back();
         }
-        d_assertions[d_realAssertionsEnd - 1] =
-          Rewriter::rewrite(Node(builder));
+	d_assertions[d_realAssertionsEnd - 1] = Rewriter::rewrite(Node(builder));
       }
       // For some reason this is needed for some benchmarks, such as
       // http://cvc4.cs.nyu.edu/benchmarks/smtlib2/QF_AUFBV/dwp_formulas/try5_small_difret_functions_dwp_tac.re_node_set_remove_at.il.dwp.smt2
@@ -3442,6 +3489,12 @@ void SmtEnginePrivate::addFormula(TNode n, bool inUnsatCore, bool inInput)
       // n is the result of an unknown preprocessing step, add it to dependency map to null
       ProofManager::currentPM()->addDependence(n, Node::null());
     }
+    // rewrite rules are by default in the unsat core because
+    // they need to be applied until saturation
+    if(options::unsatCores() && 
+       n.getKind() == kind::REWRITE_RULE ){
+      ProofManager::currentPM()->addUnsatCore(n.toExpr());
+    }
   );
 
   // Add the normalized formula to the queue
@@ -3512,7 +3565,7 @@ Result SmtEngine::checkSat(const Expr& ex, bool inUnsatCore) throw(TypeCheckingE
     // Dump the query if requested
     if(Dump.isOn("benchmark")) {
       // the expr already got dumped out if assertion-dumping is on
-      Dump("benchmark") << CheckSatCommand();
+      Dump("benchmark") << CheckSatCommand(ex);
     }
 
     // Pop the context
@@ -3537,6 +3590,13 @@ Result SmtEngine::checkSat(const Expr& ex, bool inUnsatCore) throw(TypeCheckingE
       if(r.asSatisfiabilityResult().isSat() == Result::UNSAT) {
         TimerStat::CodeTimer checkProofTimer(d_stats->d_checkProofTime);
         checkProof();
+      }
+    }
+    // Check that UNSAT results generate an unsat core correctly.
+    if(options::checkUnsatCores()) {
+      if(r.asSatisfiabilityResult().isSat() == Result::UNSAT) {
+        TimerStat::CodeTimer checkUnsatCoreTimer(d_stats->d_checkUnsatCoreTime);
+        checkUnsatCore();
       }
     }
 
@@ -3596,7 +3656,7 @@ Result SmtEngine::query(const Expr& ex, bool inUnsatCore) throw(TypeCheckingExce
   // Dump the query if requested
   if(Dump.isOn("benchmark")) {
     // the expr already got dumped out if assertion-dumping is on
-    Dump("benchmark") << CheckSatCommand();
+    Dump("benchmark") << QueryCommand(ex);
   }
 
   // Pop the context
@@ -3621,6 +3681,13 @@ Result SmtEngine::query(const Expr& ex, bool inUnsatCore) throw(TypeCheckingExce
     if(r.asSatisfiabilityResult().isSat() == Result::UNSAT) {
       TimerStat::CodeTimer checkProofTimer(d_stats->d_checkProofTime);
       checkProof();
+    }
+  }
+  // Check that UNSAT results generate an unsat core correctly.
+  if(options::checkUnsatCores()) {
+    if(r.asSatisfiabilityResult().isSat() == Result::UNSAT) {
+      TimerStat::CodeTimer checkUnsatCoreTimer(d_stats->d_checkUnsatCoreTime);
+      checkUnsatCore();
     }
   }
 
@@ -3941,6 +4008,47 @@ Model* SmtEngine::getModel() throw(ModalException, UnsafeInterruptException) {
   TheoryModel* m = d_theoryEngine->getModel();
   m->d_inputName = d_filename;
   return m;
+}
+
+void SmtEngine::checkUnsatCore() {
+  Assert(options::unsatCores(), "cannot check unsat core if unsat cores are turned off");
+
+  Notice() << "SmtEngine::checkUnsatCore(): generating unsat core" << endl;
+  UnsatCore core = getUnsatCore();
+
+  SmtEngine coreChecker(d_exprManager);
+  coreChecker.setLogic(getLogicInfo());
+
+  PROOF(
+  std::vector<Command*>::const_iterator itg = d_defineCommands.begin();
+  for (; itg != d_defineCommands.end();  ++itg) {
+    (*itg)->invoke(&coreChecker);
+  }
+	);
+  
+  Notice() << "SmtEngine::checkUnsatCore(): pushing core assertions (size == " << core.size() << ")" << endl;
+  for(UnsatCore::iterator i = core.begin(); i != core.end(); ++i) {
+    Notice() << "SmtEngine::checkUnsatCore(): pushing core member " << *i << endl;
+    coreChecker.assertFormula(*i);
+  }
+  const bool checkUnsatCores = options::checkUnsatCores();
+  Result r;
+  try {
+    options::checkUnsatCores.set(false);
+    options::checkProofs.set(false);
+    r = coreChecker.checkSat();
+  } catch(...) {
+    options::checkUnsatCores.set(checkUnsatCores);
+    throw;
+  }
+  Notice() << "SmtEngine::checkUnsatCore(): result is " << r << endl;
+  if(r.asSatisfiabilityResult().isUnknown()) {
+    InternalError("SmtEngine::checkUnsatCore(): could not check core result unknown.");
+  }
+
+  if(r.asSatisfiabilityResult().isSat()) {
+    InternalError("SmtEngine::checkUnsatCore(): produced core was satisfiable.");
+  }
 }
 
 void SmtEngine::checkModel(bool hardFailure) {

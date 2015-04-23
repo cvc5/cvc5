@@ -223,13 +223,7 @@ void LogicInfo::setLogicString(std::string logicString) throw(IllegalArgumentExc
         p += 2;
       }
       if(*p == 'S') {
-        // Strings requires arith for length constraints,
-        // and UF for equality (?)
         enableTheory(THEORY_STRINGS);
-        enableTheory(THEORY_UF);
-        enableTheory(THEORY_ARITH);
-        enableIntegers();
-        arithOnlyLinear();
         ++p;
       }
       if(!strncmp(p, "IDL", 3)) {

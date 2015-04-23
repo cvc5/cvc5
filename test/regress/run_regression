@@ -230,15 +230,27 @@ if grep '^sat$' "$expoutfile" &>/dev/null || grep '^invalid$' "$expoutfile" &>/d
   fi
 fi
 check_proofs=false
+check_unsat_cores=false
 if [ "$proof" = yes ]; then
   # proofs not currently supported in incremental mode, turn it off
   if grep '^unsat$' "$expoutfile" &>/dev/null || grep '^valid$' "$expoutfile" &>/dev/null &>/dev/null; then
     if ! expr "$CVC4_REGRESSION_ARGS $command_line" : '.*--check-proofs' &>/dev/null &&
        ! expr "$CVC4_REGRESSION_ARGS $command_line" : '.*--no-check-proofs' &>/dev/null &&
        ! expr "$CVC4_REGRESSION_ARGS $command_line" : '.*--incremental' &>/dev/null &&
-       ! expr " $CVC4_REGRESSION_ARGS $command_line" : '.* -[a-zA-Z]*i' &>/dev/null; then
+       ! expr "$CVC4_REGRESSION_ARGS $command_line" : '.*--unconstrained-simp' &>/dev/null &&
+       ! expr " $CVC4_REGRESSION_ARGS $command_line" : '.* -[a-zA-Z]*i' &>/dev/null &&
+       ! expr "$benchmark" : '.*\.sy$' &>/dev/null; then
       # later on, we'll run another test with --check-proofs on
       check_proofs=true
+    fi
+    if ! expr "$CVC4_REGRESSION_ARGS $command_line" : '.*--check-unsat-cores' &>/dev/null &&
+       ! expr "$CVC4_REGRESSION_ARGS $command_line" : '.*--no-check-unsat-cores' &>/dev/null &&
+       ! expr "$CVC4_REGRESSION_ARGS $command_line" : '.*--incremental' &>/dev/null &&
+       ! expr "$CVC4_REGRESSION_ARGS $command_line" : '.*--unconstrained-simp' &>/dev/null &&
+       ! expr " $CVC4_REGRESSION_ARGS $command_line" : '.* -[a-zA-Z]*i' &>/dev/null &&
+       ! expr "$benchmark" : '.*\.sy$' &>/dev/null; then
+      # later on, we'll run another test with --check-unsat-cores on
+      check_unsat_cores=true
     fi
   fi
 fi
@@ -315,7 +327,7 @@ if [ "$exit_status" != "$expected_exit_status" ]; then
   exitcode=1
 fi
 
-if $check_models || $check_proofs; then
+if $check_models || $check_proofs || $check_unsat_cores; then
   check_cmdline=
   if $check_models; then
     check_cmdline="$check_cmdline --check-models"
@@ -323,7 +335,10 @@ if $check_models || $check_proofs; then
   if $check_proofs; then
     check_cmdline="$check_cmdline --check-proofs"
   fi
-  # at least one sat/invalid response: run an extra model/proof-checking pass
+  if $check_unsat_cores; then
+    check_cmdline="$check_cmdline --check-unsat-cores"
+  fi
+  # run an extra model/proof/core-checking pass
   if ! CVC4_REGRESSION_ARGS="$CVC4_REGRESSION_ARGS$check_cmdline" "$0" $wrapper "$cvc4" "$benchmark_orig"; then
     exitcode=1
   fi

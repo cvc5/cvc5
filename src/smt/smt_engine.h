@@ -186,6 +186,13 @@ class CVC4_PUBLIC SmtEngine {
   std::vector<Command*> d_dumpCommands;
 
   /**
+   *A vector of command definitions to be imported in the new
+   *SmtEngine when checking unsat-cores.
+   */
+#ifdef CVC4_PROOF  
+  std::vector<Command*> d_defineCommands;
+#endif   
+  /**
    * The logic we're in.
    */
   LogicInfo d_logic;
@@ -259,6 +266,11 @@ class CVC4_PUBLIC SmtEngine {
    * Check that a generated proof (via getProof()) checks.
    */
   void checkProof();
+
+  /**
+   * Check that an unsatisfiable core is indeed unsatisfiable.
+   */
+  void checkUnsatCore();
 
   /**
    * Check that a generated Model (via getModel()) actually satisfies
