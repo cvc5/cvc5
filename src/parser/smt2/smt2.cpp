@@ -228,6 +228,7 @@ void Smt2::addTheory(Theory theory) {
 
   case THEORY_STRINGS:
     defineType("String", getExprManager()->stringType());
+    defineType("Int", getExprManager()->integerType());
     addStringOperators();
     break;
 
