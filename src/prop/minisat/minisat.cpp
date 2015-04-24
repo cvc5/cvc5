@@ -32,7 +32,8 @@ MinisatSatSolver::MinisatSatSolver() :
   d_context(NULL)
 {}
 
-MinisatSatSolver::~MinisatSatSolver() {
+MinisatSatSolver::~MinisatSatSolver() throw()
+{
   delete d_minisat;
 }
 

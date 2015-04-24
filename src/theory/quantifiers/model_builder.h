@@ -123,7 +123,7 @@ protected:  //helper functions
   bool hasConstantDefinition( Node n );
 public:
   QModelBuilderIG( context::Context* c, QuantifiersEngine* qe );
-  virtual ~QModelBuilderIG(){}
+  virtual ~QModelBuilderIG() throw() {}
 public:
   //whether to add inst-gen lemmas
   virtual bool optInstGen();
@@ -192,7 +192,7 @@ protected:
   void constructModelUf( FirstOrderModel* fm, Node op );
 public:
   QModelBuilderDefault( context::Context* c, QuantifiersEngine* qe ) : QModelBuilderIG( c, qe ){}
-  ~QModelBuilderDefault(){}
+  ~QModelBuilderDefault() throw() {}
   //options
   bool optReconsiderFuncConstants() { return true; }
   //has inst gen

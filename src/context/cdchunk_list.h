@@ -136,7 +136,7 @@ protected:
       d_size(size),
       d_sizeAlloc(sizeAlloc) {
     }
-    ~CDChunkListSave() {
+    ~CDChunkListSave() throw() {
       this->destroy();
     }
     ContextObj* save(ContextMemoryManager* pCMM) {

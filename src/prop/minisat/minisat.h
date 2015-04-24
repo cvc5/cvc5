@@ -37,7 +37,8 @@ class MinisatSatSolver : public DPLLSatSolverInterface {
 public:
 
   MinisatSatSolver();
-  ~MinisatSatSolver();
+  ~MinisatSatSolver() throw();
+;
 
   static SatVariable     toSatVariable(Minisat::Var var);
   static Minisat::Lit    toMinisatLit(SatLiteral lit);
