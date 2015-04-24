@@ -26,17 +26,15 @@ TESTS = commutative.sy \
 	array_sum_2_5.sy \
 	parity-AIG-d0.sy \
 	twolets1.sy \
-	array_search_2.sy
+	array_search_2.sy \        
+	hd-01-d1-prog.sy \
+        icfp_28_10.sy
 
 # sygus tests currently taking too long for make regress
 EXTRA_DIST = $(TESTS) \
 	max.smt2 \
 	sygus-uf.sl
 
-# Failing dues to parser changes. Need to be fixed.
-EXTRA_DIST += \
-        hd-01-d1-prog.sy \
-        icfp_28_10.sy
 
 #if CVC4_BUILD_PROFILE_COMPETITION
 #else

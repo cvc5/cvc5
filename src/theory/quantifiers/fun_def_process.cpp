@@ -136,7 +136,7 @@ Node FunDefFmf::simplify( Node n, bool pol, bool hasPol, std::vector< Node >& co
         childChanged = c!=n[i] || childChanged;
       }
       if( childChanged ){
-        nn = n;
+        nn = NodeManager::currentNM()->mkNode( n.getKind(), children );
       }
     }else{
       //simplify term

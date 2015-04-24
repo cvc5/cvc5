@@ -724,15 +724,26 @@ sygusGTerm[std::string& fun, std::vector<CVC4::Expr>& ops, std::vector<std::stri
         name = kind::kindToString(k);
       }
     | symbol[name,CHECK_NONE,SYM_VARIABLE]
-      { // what is this sygus term trying to accomplish here, if the
-        // symbol isn't yet declared?!  probably the following line will
-        // fail, but we need an operator to continue here..
-        Debug("parser-sygus") << "Sygus grammar " << fun;
-        Debug("parser-sygus") << " : op (declare=" <<  PARSER_STATE->isDeclared(name) << ", define=" << PARSER_STATE->isDefinedFunction(name) << ") : " << name << std::endl;
-        if( !PARSER_STATE->isDefinedFunction(name) ){
-          PARSER_STATE->parseError(std::string("Functions in sygus grammars must be defined."));
+      { 
+        bool isBuiltinOperator = PARSER_STATE->isOperatorEnabled(name);
+        if(isBuiltinOperator) {
+          Kind k = PARSER_STATE->getOperatorKind(name);
+          if( k==CVC4::kind::BITVECTOR_UDIV ){
+            k = CVC4::kind::BITVECTOR_UDIV_TOTAL;
+          }
+          ops.push_back(EXPR_MANAGER->operatorOf(k));
+          name = kind::kindToString(k);
+        }else{
+          // what is this sygus term trying to accomplish here, if the
+          // symbol isn't yet declared?!  probably the following line will
+          // fail, but we need an operator to continue here..
+          Debug("parser-sygus") << "Sygus grammar " << fun;
+          Debug("parser-sygus") << " : op (declare=" <<  PARSER_STATE->isDeclared(name) << ", define=" << PARSER_STATE->isDefinedFunction(name) << ") : " << name << std::endl;
+          if( !PARSER_STATE->isDefinedFunction(name) ){
+            PARSER_STATE->parseError(std::string("Functions in sygus grammars must be defined."));
+          }
+          ops.push_back( PARSER_STATE->getVariable(name) );
         }
-        ops.push_back( PARSER_STATE->getVariable(name) );
       }
     )
     { cnames.push_back( name );
