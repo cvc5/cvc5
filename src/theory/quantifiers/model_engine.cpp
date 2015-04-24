@@ -77,7 +77,7 @@ void ModelEngine::check( Theory::Effort e, unsigned quant_e ){
       Trace("model-engine-debug") << "Check model..." << std::endl;
       d_incomplete_check = false;
       //print debug
-      Debug("fmf-model-complete") << std::endl;
+      Trace("fmf-model-complete") << std::endl;
       debugPrint("fmf-model-complete");
       //successfully built an acceptable model, now check it
       addedLemmas += checkModel();

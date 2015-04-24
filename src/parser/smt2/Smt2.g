@@ -912,7 +912,8 @@ smt25Command[CVC4::Command*& cmd]
           }
           t = EXPR_MANAGER->mkFunctionType(sorts, t);
         }
-        Expr func = PARSER_STATE->mkVar(fname, t, ExprManager::VAR_FLAG_DEFINED);
+        Expr func = PARSER_STATE->mkVar(fname, t);
+        static_cast<CommandSequence*>($cmd)->addCommand(new DeclareFunctionCommand(fname, func, t));
         std::vector< Expr > f_app;
         f_app.push_back( func );
         PARSER_STATE->pushScope(true);
@@ -958,7 +959,8 @@ smt25Command[CVC4::Command*& cmd]
           t = EXPR_MANAGER->mkFunctionType(sorts, t);
         }
         sortedVarNames.clear();
-        Expr func = PARSER_STATE->mkVar(fname, t, ExprManager::VAR_FLAG_DEFINED);
+        Expr func = PARSER_STATE->mkVar(fname, t);
+        static_cast<CommandSequence*>($cmd)->addCommand(new DeclareFunctionCommand(fname, func, t));
         funcs.push_back( func );
       }
       RPAREN_TOK
@@ -1079,6 +1081,7 @@ extendedCommand[CVC4::Command*& cmd]
         }
         Expr func = PARSER_STATE->mkVar(name, t);
         static_cast<CommandSequence*>($cmd)->addCommand(new DeclareFunctionCommand(name, func, t));
+        sorts.clear();
       }
     )+
     RPAREN_TOK
@@ -1098,6 +1101,7 @@ extendedCommand[CVC4::Command*& cmd]
         }
         Expr func = PARSER_STATE->mkVar(name, t);
         static_cast<CommandSequence*>($cmd)->addCommand(new DeclareFunctionCommand(name, func, t));
+        sorts.clear();
       }
     )+
     RPAREN_TOK
