@@ -127,6 +127,17 @@ Node InstMatch::get( int i ) {
   return d_vals[i];
 }
 
+void InstMatch::getTerms( QuantifiersEngine* qe, Node f, std::vector< Node >& inst ){
+  for( size_t i=0; i<f[0].getNumChildren(); i++ ){
+    Node val = get( i );
+    if( val.isNull() ){
+      Node ic =  qe->getTermDatabase()->getInstantiationConstant( f, i );
+      val = qe->getTermDatabase()->getFreeVariableForInstConstant( ic );
+    }
+    inst.push_back( val );
+  }
+}
+
 void InstMatch::setValue( int i, TNode n ) {
   d_vals[i] = n;
 }

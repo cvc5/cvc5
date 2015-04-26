@@ -36,7 +36,11 @@ TESTS =	\
 	fc-pigeonhole19.smt2 \
 	Hoare-z3.931718.smt \
 	bug0909.smt2 \
-	lst-no-self-rev-exp.smt2
+	lst-no-self-rev-exp.smt2 \
+	fib-core.smt2 \
+	fore19-exp2-core.smt2 \
+	with-ind-104-core.smt2
+
 
 EXTRA_DIST = $(TESTS)
 

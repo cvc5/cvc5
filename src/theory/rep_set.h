@@ -33,6 +33,8 @@ public:
   std::map< TypeNode, std::vector< Node > > d_type_reps;
   std::map< TypeNode, bool > d_type_complete;
   std::map< Node, int > d_tmap;
+  // map from values to terms they were assigned for
+  std::map< Node, Node > d_values_to_terms;
   /** clear the set */
   void clear();
   /** has type */

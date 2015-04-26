@@ -593,7 +593,7 @@ bool FullModelChecker::doExhaustiveInstantiation( FirstOrderModel * fm, Node f, 
           types.push_back(f[0][i].getType());
         }
         TypeNode typ = NodeManager::currentNM()->mkFunctionType( types, NodeManager::currentNM()->booleanType() );
-        Node op = NodeManager::currentNM()->mkSkolem( "fmc", typ, "op created for full-model checking" );
+        Node op = NodeManager::currentNM()->mkSkolem( "qfmc", typ, "op created for full-model checking" );
         d_quant_cond[f] = op;
       }
       //make sure all types are set
@@ -847,6 +847,8 @@ void FullModelChecker::doCheck(FirstOrderModelFmc * fm, Node f, Def & d, Node n 
   }
   else if( n.getType().isArray() ){
     //make the definition
+    bool success = false;
+    /*
     Node r = fm->getRepresentative(n);
     Trace("fmc-debug") << "Representative for array is " << r << std::endl;
     while( r.getKind() == kind::STORE ){
@@ -867,10 +869,11 @@ void FullModelChecker::doCheck(FirstOrderModelFmc * fm, Node f, Def & d, Node n 
         success = true;
       }
     }
+    */
     if( !success ){
-      Trace("fmc-warn") << "WARNING : ARRAYS : Can't process base array " << r << std::endl;
-      Trace("fmc-warn") << "          Default value was : " << odefaultValue << std::endl;
-      Trace("fmc-debug") << "Can't process base array " << r << std::endl;
+      //Trace("fmc-warn") << "WARNING : ARRAYS : Can't process base array " << r << std::endl;
+      //Trace("fmc-warn") << "          Default value was : " << odefaultValue << std::endl;
+      //Trace("fmc-debug") << "Can't process base array " << r << std::endl;
       //can't process this array
       d.reset();
       d.addEntry(fm, mkCondDefault(fm, f), Node::null());
@@ -1133,6 +1136,12 @@ void FullModelChecker::doUninterpretedCompose2( FirstOrderModelFmc * fm, Node f,
 void FullModelChecker::doInterpretedCompose( FirstOrderModelFmc * fm, Node f, Def & d, Node n,
                                              std::vector< Def > & dc, int index,
                                              std::vector< Node > & cond, std::vector<Node> & val ) {
+  Trace("fmc-if-process") << "int compose " << index << " / " << dc.size() << std::endl;
+  for( unsigned i=1; i<cond.size(); i++) {
+    debugPrint("fmc-if-process", cond[i], true);
+    Trace("fmc-if-process") << " ";
+  }
+  Trace("fmc-if-process") << std::endl;
   if ( index==(int)dc.size() ){
     Node c = mkCond(cond);
     Node v = evaluateInterpreted(n, val);
@@ -1264,6 +1273,7 @@ void FullModelChecker::mkCondDefaultVec( FirstOrderModelFmc * fm, Node f, std::v
   cond.push_back(d_quant_cond[f]);
   for (unsigned i=0; i<f[0].getNumChildren(); i++) {
     Node ts = fm->getStarElement( f[0][i].getType() );
+    Assert( ts.getType()==f[0][i].getType() );
     cond.push_back(ts);
   }
 }

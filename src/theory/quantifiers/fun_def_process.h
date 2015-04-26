@@ -36,7 +36,7 @@ private:
   //defined functions to injections input -> argument elements
   std::map< Node, std::vector< Node > > d_input_arg_inj;
   //simplify
-  Node simplify( Node n, bool pol, bool hasPol, std::vector< Node >& constraints, int is_fun_def = 0 );
+  Node simplifyFormula( Node n, bool pol, bool hasPol, std::vector< Node >& constraints, Node hd, int is_fun_def = 0 );
   //simplify term
   void simplifyTerm( Node n, std::vector< Node >& constraints );
 public:

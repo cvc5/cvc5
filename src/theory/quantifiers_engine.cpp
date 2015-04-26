@@ -748,24 +748,15 @@ void QuantifiersEngine::addRequirePhase( Node lit, bool req ){
 }
 
 bool QuantifiersEngine::addInstantiation( Node f, InstMatch& m, bool mkRep, bool modEq, bool modInst ){
-  // For resource-limiting (also does a time check).
-  getOutputChannel().safePoint();
-
   std::vector< Node > terms;
-  //make sure there are values for each variable we are instantiating
-  for( size_t i=0; i<f[0].getNumChildren(); i++ ){
-    Node val = m.get( i );
-    if( val.isNull() ){
-      Node ic = d_term_db->getInstantiationConstant( f, i );
-      val = d_term_db->getFreeVariableForInstConstant( ic );
-      Trace("inst-add-debug") << "mkComplete " << val << std::endl;
-    }
-    terms.push_back( val );
-  }
+  m.getTerms( this, f, terms );
   return addInstantiation( f, terms, mkRep, modEq, modInst );
 }
 
 bool QuantifiersEngine::addInstantiation( Node f, std::vector< Node >& terms, bool mkRep, bool modEq, bool modInst ) {
+  // For resource-limiting (also does a time check).
+  getOutputChannel().safePoint();
+
   Assert( terms.size()==f[0].getNumChildren() );
   Trace("inst-add-debug") << "Add instantiation: ";
   for( unsigned i=0; i<terms.size(); i++ ){
@@ -1020,7 +1011,7 @@ void QuantifiersEngine::debugPrintEqualityEngine( const char * c ) {
   }
   Trace(c) << std::endl;
   for( std::map< TypeNode, int >::iterator it = typ_num.begin(); it != typ_num.end(); ++it ){
-    Trace(c) << "# eqc for " << it->first << " : " << it->second << std::endl;    
+    Trace(c) << "# eqc for " << it->first << " : " << it->second << std::endl;
   }
 }
 
@@ -1075,6 +1066,23 @@ Node EqualityQueryQuantifiersEngine::getInternalRepresentative( Node a, Node f, 
   if( !options::internalReps() ){
     return r;
   }else{
+    if( options::finiteModelFind() ){
+      if( r.isConst() ){
+        //map back from values assigned by model, if any
+        if( d_qe->getModel() ){
+          std::map< Node, Node >::iterator it = d_qe->getModel()->d_rep_set.d_values_to_terms.find( r );
+          if( it!=d_qe->getModel()->d_rep_set.d_values_to_terms.end() ){
+            r = it->second;
+            r = getRepresentative( r );
+          }else{
+            if( r.getType().isSort() ){
+              Trace("internal-rep-warn") << "No representative for UF constant." << std::endl;
+            }
+          }
+        }
+      }
+    }
+
     if( d_int_rep.find( r )==d_int_rep.end() ){
       //find best selection for representative
       Node r_best;
@@ -1093,9 +1101,8 @@ Node EqualityQueryQuantifiersEngine::getInternalRepresentative( Node a, Node f, 
       Trace("internal-rep-select")  << " } " << std::endl;
       int r_best_score = -1;
       for( size_t i=0; i<eqc.size(); i++ ){
-        //if cbqi is active, do not choose instantiation constant terms
-        if( !options::cbqi() || !quantifiers::TermDb::hasInstConstAttr(eqc[i]) ){
-          int score = getRepScore( eqc[i], f, index );
+        int score = getRepScore( eqc[i], f, index );
+        if( score!=-2 ){
           if( r_best.isNull() || ( score>=0 && ( r_best_score<0 || score<r_best_score ) ) ){
             r_best = eqc[i];
             r_best_score = score;
@@ -1253,21 +1260,21 @@ int getDepth( Node n ){
 
 //smaller the score, the better
 int EqualityQueryQuantifiersEngine::getRepScore( Node n, Node f, int index ){
-  int s;
-  if( options::lteRestrictInstClosure() && ( !d_qe->getTermDatabase()->isInstClosure( n ) || !d_qe->getTermDatabase()->hasTermCurrent( n, false ) ) ){
+  if( options::cbqi() && quantifiers::TermDb::hasInstConstAttr(n) ){
+    return -2;
+  }else if( options::lteRestrictInstClosure() && ( !d_qe->getTermDatabase()->isInstClosure( n ) || !d_qe->getTermDatabase()->hasTermCurrent( n, false ) ) ){
     return -1;
   }else if( options::instMaxLevel()!=-1 ){
     //score prefer lowest instantiation level
     if( n.hasAttribute(InstLevelAttribute()) ){
-      s = n.getAttribute(InstLevelAttribute());
+      return n.getAttribute(InstLevelAttribute());
     }else{
-      s = options::instLevelInputOnly() ? -1 : 0;
+      return options::instLevelInputOnly() ? -1 : 0;
     }
   }else{
     //score prefers earliest use of this term as a representative
-    s = d_rep_score.find( n )==d_rep_score.end() ? -1 : d_rep_score[n];
+    return d_rep_score.find( n )==d_rep_score.end() ? -1 : d_rep_score[n];
   }
-  return s;
   //return ( d_rep_score.find( n )==d_rep_score.end() ? 100 : 0 ) + getDepth( n );    //term depth
 }
 

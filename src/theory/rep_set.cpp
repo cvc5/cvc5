@@ -26,6 +26,7 @@ void RepSet::clear(){
   d_type_reps.clear();
   d_type_complete.clear();
   d_tmap.clear();
+  d_values_to_terms.clear();
 }
 
 bool RepSet::hasRep( TypeNode tn, Node n ) {
