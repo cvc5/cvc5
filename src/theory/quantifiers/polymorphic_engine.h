@@ -33,9 +33,13 @@ class QuantInfo;
 
 class paralemma {
 public:
-  Node bv;
-  Node body;      /* possibly generalized */
+  Node bv; /** Bound Type Variables */
+  Node body; /** Body of the polymorphic lemma */
   Node origlemma; /* given by assert */
+  /**  When there are no universal quantifiers, these polymorphic
+       constants are used as triggers */
+  std::hash_set<TNode, TNodeHashFunction> polymorphicConstants;
+
   paralemma(Node lemma);
 };
 
@@ -43,6 +47,13 @@ class PolymorphicEngine : public QuantifiersModule
 {
   std::vector<paralemma> d_lemma;
   std::hash_set<TypeNode, TypeNode::HashFunction> d_doneType;
+
+  /** map of terms that will trigger the addition of instantiated
+      polymorphic lemma. For not creating trivial matching loop with
+      polymorphic lemma without terms binding.
+      (par (a) (= (length (as nil (list a)) 0)))
+ */
+  std::hash_map<Node, std::vector<Node>, NodeHashFunction> d_csttrigger;
 
   void instantiate(paralemma& lemma,
                    std::hash_map<TypeNode, TypeNode, TypeNode::HashFunction>& ty_subst,

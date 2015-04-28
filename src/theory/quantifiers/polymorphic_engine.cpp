@@ -156,7 +156,25 @@ void PolymorphicEngine::instantiate(paralemma& lemma,
         Trace("para") << "  -instantiated to:" << lem << std::endl;
         lem = NodeManager::currentNM()->mkNode( OR, lemma.origlemma.negate(), lem );
         Assert ( lem.getType(true).isBoolean());
-        d_quantEngine->addLemma(lem);
+
+        if(lemma.polymorphicConstants.empty()){
+          Trace("para") << "  -no polymorphic constants out of binder" << std::endl;
+          d_quantEngine->addLemma(lem);
+        } else {
+          //put the lemma on hold, wait for one of the polymorphic constant instantiated to appear
+          for(std::hash_set<TNode,TNodeHashFunction>::const_iterator cst = lemma.polymorphicConstants.begin();
+              cst != lemma.polymorphicConstants.end(); cst++){
+            Node cst_inst = substituteAll(*cst,ty_subst2,subst);
+            if(getTermDatabase()->isProcessed(cst_inst)){
+              Trace("para") << "  -already present: " << cst_inst << std::endl;
+              d_quantEngine->addLemma(lem);
+              break; // we don't need to add more terms
+            } else {
+              Trace("para") << "  -wait for: " << cst_inst << std::endl;
+              d_csttrigger[cst_inst].push_back(lem);
+            }
+          }
+        }
       } else {
         instantiate(lemma, ty_subst, v_id+1, todo_used, doneType, todoType);
       }
@@ -197,55 +215,43 @@ void PolymorphicEngine::check( Theory::Effort e, unsigned quant_e ){
 
 };
 
-bool hasQuantifiersBeforeTypeVariable(const TypeNode& type) {
+bool hasPolymorphicTypeVariable(const TypeNode& type) {
 
   // otherwise compute
   for(TypeNode::const_iterator i = type.begin(),
         iend = type.end(); i != iend; ++i) {
     if(NodeManager::currentNM()->isPolymorphicTypeVar(*i) ||
-       !hasQuantifiersBeforeTypeVariable(*i) ){
-      return false;
+       hasPolymorphicTypeVariable(*i) ){
+      return true;
     }
   }
-  return true;
+  return false;
 }
 
 /** Test if any polymorphic function is under quantifiers (usual one, which bind term variable) */
-bool hasQuantifiersBeforeTypeVariable(TNode n){
+void findPolymorphicConstants(TNode n, std::hash_set<TNode, TNodeHashFunction> &csts){
 
   // otherwise compute
   /** Bound variable */
   if(n.getKind() == kind::FORALL){
-    return true;
-  } else if(n.getKind() == kind::BOUND_VARIABLE){
-    return hasQuantifiersBeforeTypeVariable(n.getType());
+    return;
   } else if (n.getKind() == kind::ASCRIPTION_TYPE) {
-    TypeNode ty = TypeNode::fromType(n.getConst<AscriptionType>().getType());
-    return hasQuantifiersBeforeTypeVariable(ty);
+    return;
     /** After this point we should be able to take the type of the node */
     /** polymorphic function */
-  } else if (n.getType().isFunction() &&
-             NodeManager::currentNM()->isPolymorphicFunctionInstance(n)){
-    return hasQuantifiersBeforeTypeVariable(n.getType());
-  } else if ( n.getNumChildren() == 0 &&
-              n.getMetaKind() != kind::metakind::PARAMETERIZED
-              ){
-    return true;
   } else {
 
-    if(n.getMetaKind() == kind::metakind::PARAMETERIZED) {
-      // push the operator
-      if(!hasQuantifiersBeforeTypeVariable(n.getOperator()))
-        return false;
+    if ( hasPolymorphicTypeVariable(n.getType()) ){
+      csts.insert(n);
     }
+
     for(TNode::const_iterator i = n.begin(),
           iend = n.end();
         i != iend;
         ++i) {
-      if(!hasQuantifiersBeforeTypeVariable(*i))
-        return false;
+      findPolymorphicConstants(*i,csts);
     }
-    return true;
+    return;
   }
 }
 
@@ -257,17 +263,7 @@ paralemma::paralemma(Node lemma) {
   origlemma = lemma;
   body = lemma[1];
 
-  if(!hasQuantifiersBeforeTypeVariable(body)){
-    /* Generalize the formula on the constant used for polymorphic constant */
-    Trace("para") << " generalize polymorphic constant" << std::endl;
-    TNode paraConst = NodeManager::currentNM()->getPolymorphicConstantArg();
-    Node var = NodeManager::currentNM()->mkBoundVar(paraConst.getType());
-    body = body.substitute(paraConst,var);
-    body = NodeManager::currentNM()->
-      mkNode(kind::FORALL,
-             NodeManager::currentNM()->mkNode(kind::BOUND_VAR_LIST,var),
-             body);
-  }
+  findPolymorphicConstants(body,polymorphicConstants);
 }
 
 
@@ -289,4 +285,16 @@ void PolymorphicEngine::registerQuantifier( Node q ){
 
 void PolymorphicEngine::assertNode( Node n ){};
 
-void PolymorphicEngine::newTerm(Node n){}
+void PolymorphicEngine::newTerm(Node cst_inst){
+
+  std::hash_map<Node, std::vector<Node>, NodeHashFunction>::iterator v = d_csttrigger.find(cst_inst);
+  if(v != d_csttrigger.end()){
+    Trace("para") << "[Para] new_term:" << cst_inst << std::endl;
+    for(std::vector<Node>::const_iterator lem = v->second.begin();
+        lem != v->second.end(); lem++){
+      Trace("para") << " - add: " << *lem << std::endl;
+      d_quantEngine->addLemma(*lem);
+    };
+    d_csttrigger.erase(v);
+  }
+}

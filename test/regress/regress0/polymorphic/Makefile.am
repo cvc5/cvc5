@@ -28,6 +28,7 @@ TESTS =	\
 	parsing7.smt2 \
 	parsing8.smt2 \
 	parsing9.smt2 \
+	parsing10.smt2 \
 	typing_bad1.smt2 \
 	typing_bad2.smt2 \
 	typing_bad3.smt2 \
