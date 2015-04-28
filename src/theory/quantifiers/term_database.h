@@ -158,6 +158,8 @@ public:
   std::map< TypeNode, std::vector< Node > > d_type_map;
   /** add a term to the database */
   void addTerm( Node n, std::set< Node >& added, bool withinQuant = false, bool withinInstClosure = false );
+  /** Test if a Node have been already processed */
+  bool isProcessed( Node n);
   /** reset (calculate which terms are active) */
   void reset( Theory::Effort effort );
   /** get operator*/

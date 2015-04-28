@@ -175,6 +175,10 @@ void TermDb::addTerm( Node n, std::set< Node >& added, bool withinQuant, bool wi
   }
 }
 
+bool TermDb::isProcessed( Node n ){
+  return d_processed.find(n) != d_processed.end();
+}
+
 void TermDb::computeArgReps( TNode n ) {
   if( d_arg_reps.find( n )==d_arg_reps.end() ){
     eq::EqualityEngine * ee = d_quantEngine->getTheoryEngine()->getMasterEqualityEngine();
