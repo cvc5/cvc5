@@ -16,5 +16,5 @@
 
 (check-sat)
 (exit)
-; EXPECT-ERROR: (error "Parse Error: typing_bad4.smt2:14.42: No inference is done, you should add an (as term ty) for specifying the return type.")
+; EXPECT-ERROR: (error "Parse Error: typing_bad4.smt2:14.42: You should add an (as term ty) for specifying the return type.")
 ; EXIT: 1

@@ -753,7 +753,7 @@ bool NodeManager::matchPolymorphicType(TypeNode t1,
   throw(TypeCheckingExceptionPrivate){
 
   if(isPolymorphicTypeVarSchema(t2)){
-    throw TypeCheckingExceptionPrivate(Node::null(),"No inference is done, you should add an (as term ty) for specifying the return type.");
+    throw TypeCheckingExceptionPrivate(Node::null(),"You should add an (as term ty) for specifying the return type.");
   };
 
   std::hash_map<TypeNode, TypeNode, TypeNode::HashFunction>::const_iterator i = subst.find(t1);
@@ -763,7 +763,7 @@ bool NodeManager::matchPolymorphicType(TypeNode t1,
 
   if(t1 == t2) {
     if(!isCloseSchemaVar(*this,t2)){
-      throw TypeCheckingExceptionPrivate(Node::null(),"No inference is done, you should add an (as term ty) for specifying the return type.");
+      throw TypeCheckingExceptionPrivate(Node::null(),"You should add an (as term ty) for specifying the return type.");
     }
     subst[t1] = t2;
     return true;
