@@ -46,6 +46,7 @@ void FunDefFmf::simplify( std::vector< Node >& assertions, bool doRewrite ) {
       }
       
       Node bd = TermDb::getFunDefBody( assertions[i] );
+      Trace("fmf-fun-def-debug") << "Process function " << n << ", body = " << bd << std::endl;
       Assert( !bd.isNull() );
       bd = NodeManager::currentNM()->mkNode( n.getType().isBoolean() ? IFF : EQUAL, n, bd );
 

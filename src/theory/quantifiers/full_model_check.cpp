@@ -325,15 +325,9 @@ QModelBuilder( c, qe ){
   d_false = NodeManager::currentNM()->mkConst(false);
 }
 
-bool FullModelChecker::optBuildAtFullModel() {
-  //need to build after full model has taken effect if we are constructing interval models
-  //  this is because we need to have a constant in all integer equivalence classes
-  return options::mbqiMode()==quantifiers::MBQI_FMC_INTERVAL;
-}
-
 void FullModelChecker::processBuildModel(TheoryModel* m, bool fullModel){
   FirstOrderModelFmc * fm = ((FirstOrderModelFmc*)m)->asFirstOrderModelFmc();
-  if( fullModel==optBuildAtFullModel() ){
+  if( !fullModel ){
     Trace("fmc") << "---Full Model Check reset() " << std::endl;
     fm->initialize();
     d_quant_models.clear();
@@ -514,8 +508,7 @@ void FullModelChecker::processBuildModel(TheoryModel* m, bool fullModel){
       }
       */
     }
-  }
-  if( fullModel ){
+  }else{
     //make function values
     for( std::map<Node, Def * >::iterator it = fm->d_models.begin(); it != fm->d_models.end(); ++it ){
       m->d_uf_models[ it->first ] = getFunctionValue( fm, it->first, "$x" );

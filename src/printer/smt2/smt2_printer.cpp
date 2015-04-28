@@ -32,6 +32,7 @@
 
 #include "theory/theory_model.h"
 #include "theory/arrays/theory_arrays_rewriter.h"
+#include "theory/quantifiers/term_database.h"
 
 using namespace std;
 
@@ -589,9 +590,14 @@ void Smt2Printer::toStream(std::ostream& out, TNode n,
   case kind::INST_PATTERN:
     break;
   case kind::INST_PATTERN_LIST:
-    // TODO user patterns
     for(unsigned i=0; i<n.getNumChildren(); i++) {
-      out << ":pattern " << n[i];
+      if( n[i].getKind()==kind::INST_ATTRIBUTE ){
+        if( n[i][0].getAttribute(theory::FunDefAttribute()) ){
+          out << ":fun-def";
+        }
+      }else{
+        out << ":pattern " << n[i];
+      }
     }
     return;
     break;

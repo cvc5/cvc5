@@ -267,7 +267,6 @@ void QuantifiersEngine::check( Theory::Effort e ){
   }
   bool needsCheck = !d_lemmas_waiting.empty();
   bool needsModel = false;
-  bool needsFullModel = false;
   std::vector< QuantifiersModule* > qm;
   if( d_model->checkNeeded() ){
     needsCheck = needsCheck || e>=Theory::EFFORT_LAST_CALL;  //always need to check at or above last call
@@ -277,9 +276,6 @@ void QuantifiersEngine::check( Theory::Effort e ){
         needsCheck = true;
         if( d_modules[i]->needsModel( e ) ){
           needsModel = true;
-          if( d_modules[i]->needsFullModel( e ) ){
-            needsFullModel = true;
-          }
         }
       }
     }
@@ -347,9 +343,9 @@ void QuantifiersEngine::check( Theory::Effort e ){
       //build the model if any module requested it
       if( quant_e==QEFFORT_MODEL && needsModel ){
         Assert( d_builder!=NULL );
-        Trace("quant-engine-debug") << "Build model, fullModel = " << ( needsFullModel || d_builder->optBuildAtFullModel() ) << "..." << std::endl;
+        Trace("quant-engine-debug") << "Build model..." << std::endl;
         d_builder->d_addedLemmas = 0;
-        d_builder->buildModel( d_model, needsFullModel || d_builder->optBuildAtFullModel() );
+        d_builder->buildModel( d_model, false );
         //we are done if model building was unsuccessful
         if( d_builder->d_addedLemmas>0 ){
           success = false;
@@ -368,7 +364,7 @@ void QuantifiersEngine::check( Theory::Effort e ){
       if( d_hasAddedLemma ){
         break;
       //otherwise, complete the model generation if necessary
-      }else if( quant_e==QEFFORT_MODEL && needsModel && options::produceModels() && !needsFullModel && !d_builder->optBuildAtFullModel() ){
+      }else if( quant_e==QEFFORT_MODEL && needsModel && options::produceModels() ){
         Trace("quant-engine-debug") << "Build completed model..." << std::endl;
         d_builder->buildModel( d_model, true );
       }

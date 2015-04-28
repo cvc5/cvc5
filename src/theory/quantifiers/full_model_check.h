@@ -135,9 +135,6 @@ public:
   FullModelChecker( context::Context* c, QuantifiersEngine* qe );
   ~FullModelChecker() throw() {}
 
-  bool optBuildAtFullModel();
-
-
   void debugPrintCond(const char * tr, Node n, bool dispStar = false);
   void debugPrint(const char * tr, Node n, bool dispStar = false);
 
