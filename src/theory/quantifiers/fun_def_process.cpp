@@ -47,44 +47,47 @@ void FunDefFmf::simplify( std::vector< Node >& assertions, bool doRewrite ) {
       
       Node bd = TermDb::getFunDefBody( assertions[i] );
       Trace("fmf-fun-def-debug") << "Process function " << n << ", body = " << bd << std::endl;
-      Assert( !bd.isNull() );
-      bd = NodeManager::currentNM()->mkNode( n.getType().isBoolean() ? IFF : EQUAL, n, bd );
+      if( !bd.isNull() ){
+        bd = NodeManager::currentNM()->mkNode( n.getType().isBoolean() ? IFF : EQUAL, n, bd );
 
-      //create a sort S that represents the inputs of the function
-      std::stringstream ss;
-      ss << "I_" << f;
-      TypeNode iType = NodeManager::currentNM()->mkSort( ss.str() );
-      d_sorts[f] = iType;
-
-      //create functions f1...fn mapping from this sort to concrete elements
-      for( unsigned j=0; j<n.getNumChildren(); j++ ){
-        TypeNode typ = NodeManager::currentNM()->mkFunctionType( iType, n[j].getType() );
+        //create a sort S that represents the inputs of the function
         std::stringstream ss;
-        ss << f << "_arg_" << j;
-        d_input_arg_inj[f].push_back( NodeManager::currentNM()->mkSkolem( ss.str(), typ, "op created during fun def fmf" ) );
-      }
+        ss << "I_" << f;
+        TypeNode iType = NodeManager::currentNM()->mkSort( ss.str() );
+        d_sorts[f] = iType;
 
-      //construct new quantifier forall S. F[f1(S)/x1....fn(S)/xn]
-      std::vector< Node > children;
-      Node bv = NodeManager::currentNM()->mkBoundVar("?i", iType );
-      Node bvl = NodeManager::currentNM()->mkNode( kind::BOUND_VAR_LIST, bv );
-      std::vector< Node > subs;
-      std::vector< Node > vars;
-      for( unsigned j=0; j<n.getNumChildren(); j++ ){
-        vars.push_back( n[j] );
-        subs.push_back( NodeManager::currentNM()->mkNode( APPLY_UF, d_input_arg_inj[f][j], bv ) );
-      }
-      bd = bd.substitute( vars.begin(), vars.end(), subs.begin(), subs.end() );
-      subs_head[i] = n.substitute( vars.begin(), vars.end(), subs.begin(), subs.end() );
+        //create functions f1...fn mapping from this sort to concrete elements
+        for( unsigned j=0; j<n.getNumChildren(); j++ ){
+          TypeNode typ = NodeManager::currentNM()->mkFunctionType( iType, n[j].getType() );
+          std::stringstream ss;
+          ss << f << "_arg_" << j;
+          d_input_arg_inj[f].push_back( NodeManager::currentNM()->mkSkolem( ss.str(), typ, "op created during fun def fmf" ) );
+        }
 
-      Trace("fmf-fun-def") << "FMF fun def: FUNCTION : rewrite " << assertions[i] << std::endl;
-      Trace("fmf-fun-def") << "  to " << std::endl;
-      Node new_q = NodeManager::currentNM()->mkNode( FORALL, bvl, bd );
-      new_q = Rewriter::rewrite( new_q );
-      PROOF( ProofManager::currentPM()->addDependence(new_q, assertions[i]); );
-      assertions[i] = new_q;
-      Trace("fmf-fun-def") << "  " << assertions[i] << std::endl;
-      fd_assertions.push_back( i );
+        //construct new quantifier forall S. F[f1(S)/x1....fn(S)/xn]
+        std::vector< Node > children;
+        Node bv = NodeManager::currentNM()->mkBoundVar("?i", iType );
+        Node bvl = NodeManager::currentNM()->mkNode( kind::BOUND_VAR_LIST, bv );
+        std::vector< Node > subs;
+        std::vector< Node > vars;
+        for( unsigned j=0; j<n.getNumChildren(); j++ ){
+          vars.push_back( n[j] );
+          subs.push_back( NodeManager::currentNM()->mkNode( APPLY_UF, d_input_arg_inj[f][j], bv ) );
+        }
+        bd = bd.substitute( vars.begin(), vars.end(), subs.begin(), subs.end() );
+        subs_head[i] = n.substitute( vars.begin(), vars.end(), subs.begin(), subs.end() );
+
+        Trace("fmf-fun-def") << "FMF fun def: FUNCTION : rewrite " << assertions[i] << std::endl;
+        Trace("fmf-fun-def") << "  to " << std::endl;
+        Node new_q = NodeManager::currentNM()->mkNode( FORALL, bvl, bd );
+        new_q = Rewriter::rewrite( new_q );
+        PROOF( ProofManager::currentPM()->addDependence(new_q, assertions[i]); );
+        assertions[i] = new_q;
+        Trace("fmf-fun-def") << "  " << assertions[i] << std::endl;
+        fd_assertions.push_back( i );
+      }else{
+        //can be, e.g. in corner cases forall x. f(x)=f(x), forall x. f(x)=f(x)+1
+      }
     }
   }
   //second pass : rewrite assertions

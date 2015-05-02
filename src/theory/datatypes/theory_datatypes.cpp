@@ -1205,9 +1205,11 @@ void TheoryDatatypes::computeCareGraph(){
     unsigned functionTerms = r==0 ? d_consTerms.size() : d_selTerms.size();
     for( unsigned i=0; i<functionTerms; i++ ){
       TNode f1 = r==0 ? d_consTerms[i] : d_selTerms[i];
+      Assert(d_equalityEngine.hasTerm(f1));
       for( unsigned j=i+1; j<functionTerms; j++ ){
         TNode f2 = r==0 ? d_consTerms[j] : d_selTerms[j];
-        Trace("dt-cg-debug") << "dt-cg: " << f1 << " and " << f2 << " " << (f1.getOperator()==f2.getOperator()) << " " << areEqual( f1, f2 ) << std::endl;
+        Trace("dt-cg-debug") << "dt-cg(" << r << "): " << f1 << " and " << f2 << " " << (f1.getOperator()==f2.getOperator()) << " " << areEqual( f1, f2 ) << std::endl;
+        Assert(d_equalityEngine.hasTerm(f2));
         if( f1.getOperator()==f2.getOperator() &&
             ( ( f1.getKind()!=DT_SIZE && f1.getKind()!=DT_HEIGHT_BOUND ) || f1[0].getType()==f2[0].getType() ) &&
             !areEqual( f1, f2 ) ){
@@ -1477,7 +1479,7 @@ Node TheoryDatatypes::getSingletonLemma( TypeNode tn, bool pol ) {
     return a;
   }else{
     return it->second;
-  } 
+  }
 }
 
 void TheoryDatatypes::collectTerms( Node n ) {
@@ -1583,6 +1585,7 @@ Node TheoryDatatypes::getInstantiateCons( Node n, const Datatype& dt, int index 
     //Assert( n_ic==Rewriter::rewrite( n_ic ) );
     n_ic = Rewriter::rewrite( n_ic );
     collectTerms( n_ic );
+    d_equalityEngine.addTerm(n_ic);
     Debug("dt-enum") << "Made instantiate cons " << n_ic << std::endl;
     d_inst_map[n][index] = n_ic;
     return n_ic;
