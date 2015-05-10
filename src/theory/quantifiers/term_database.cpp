@@ -1591,8 +1591,12 @@ Node TermDbSygus::builtinToSygusConst( Node c, TypeNode tn ) {
       sc = Node::fromExpr( dt[carg].getSygusOp() );
     }else{
       //TODO
-      
-      
+      if( !options::cegqiSingleInvReconstructConst() ){
+        Node k = NodeManager::currentNM()->mkSkolem( "sy", tn, "sygus proxy" );
+        SygusProxyAttribute spa;
+        k.setAttribute(spa,c);
+        sc = k;
+      }
     }
     d_builtin_const_to_sygus[tn][c] = sc;
     return sc;

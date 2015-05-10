@@ -166,7 +166,7 @@ option instNoEntail --inst-no-entail bool :read-write :default true
  
 ### rewrite rules options 
  
-option quantRewriteRules --rewrite-rules bool :default true
+option quantRewriteRules --rewrite-rules bool :default false
  use rewrite rules module
 option rrOneInstPerRound --rr-one-inst-per-round bool :default false
  add one instance of rewrite rule per round
@@ -207,6 +207,8 @@ option cegqiSingleInv --cegqi-si bool :default false
   process single invocation synthesis conjectures
 option cegqiSingleInvReconstruct --cegqi-si-reconstruct bool :default true
   reconstruct solutions for single invocation conjectures in original grammar
+option cegqiSingleInvReconstructConst --cegqi-si-reconstruct-const bool :default true
+  include constants when reconstruct solutions for single invocation conjectures in original grammar
 option cegqiSingleInvAbort --cegqi-si-abort bool :default false
   abort if our synthesis conjecture is not single invocation
   

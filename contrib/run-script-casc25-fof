@@ -33,13 +33,13 @@ trywith 15 --relevant-triggers --clause-split --full-saturate-quant
 trywith 15 --clause-split --no-e-matching --full-saturate-quant 
 trywith 15 --finite-model-find --quant-cf --sort-inference --uf-ss-fair
 trywith 5 --trigger-sel=max --full-saturate-quant
-trywith 5 --multi-trigger-when-single --full-saturate-quant 
+trywith 5 --relevant-triggers --clause-split --multi-trigger-when-single --full-saturate-quant 
 trywith 5 --multi-trigger-when-single --multi-trigger-priority --full-saturate-quant 
 trywith 5 --pre-skolem-quant --no-pre-skolem-quant-nested --full-saturate-quant
-trywith 15 --decision=internal --full-saturate-quant
-trywith 15 --no-quant-cf --full-saturate-quant
-trywith 15 --trigger-sel=min --full-saturate-quant
-trywith 30 --prenex-quant=none --full-saturate-quant
+trywith 15 --relevant-triggers --decision=internal --full-saturate-quant
+trywith 15 --clause-split --no-quant-cf --full-saturate-quant
+trywith 15 --clause-split --trigger-sel=min --full-saturate-quant
+trywith 30 --relevant-triggers --prenex-quant=none --full-saturate-quant
 trywith 30 --decision=internal --simplification=none --no-inst-no-entail --no-quant-cf --full-saturate-quant
 trywith 30 --finite-model-find --fmf-inst-engine --sort-inference --uf-ss-fair --mbqi=gen-ev
 finishwith --term-db-mode=relevant --full-saturate-quant

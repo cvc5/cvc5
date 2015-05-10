@@ -51,8 +51,8 @@ bool ModelEngine::needsCheck( Theory::Effort e ) {
   return e==Theory::EFFORT_LAST_CALL;
 }
 
-bool ModelEngine::needsModel( Theory::Effort e ) {
-  return true;  
+unsigned ModelEngine::needsModel( Theory::Effort e ) {
+  return QuantifiersEngine::QEFFORT_MODEL;  
 }
 
 void ModelEngine::check( Theory::Effort e, unsigned quant_e ){

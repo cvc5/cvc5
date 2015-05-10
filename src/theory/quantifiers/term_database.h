@@ -88,6 +88,10 @@ typedef expr::Attribute<RrPriorityAttributeId, uint64_t> RrPriorityAttribute;
 struct LtePartialInstAttributeId {};
 typedef expr::Attribute< LtePartialInstAttributeId, bool > LtePartialInstAttribute;
 
+// attribute for "contains instantiation constants from"
+struct SygusProxyAttributeId {};
+typedef expr::Attribute<SygusProxyAttributeId, Node> SygusProxyAttribute;
+
 class QuantifiersEngine;
 
 namespace inst{

@@ -138,8 +138,8 @@ bool CegInstantiation::needsCheck( Theory::Effort e ) {
   return e>=Theory::EFFORT_LAST_CALL;
 }
 
-bool CegInstantiation::needsModel( Theory::Effort e ) {
-  return true;
+unsigned CegInstantiation::needsModel( Theory::Effort e ) {
+  return QuantifiersEngine::QEFFORT_MODEL;  
 }
 
 void CegInstantiation::check( Theory::Effort e, unsigned quant_e ) {
@@ -543,8 +543,11 @@ void CegInstantiation::printSygusTerm( std::ostream& out, Node n ) {
       }
       return;
     }
+  }else if( !n.getAttribute(SygusProxyAttribute()).isNull() ){
+    out << n.getAttribute(SygusProxyAttribute());
+  }else{
+    out << n;
   }
-  out << n;
 }
 
 void CegInstantiation::collectDisjuncts( Node n, std::vector< Node >& d ) {

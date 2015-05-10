@@ -1430,6 +1430,9 @@ void SmtEngine::setDefaults() {
     if( !options::quantConflictFind.wasSetByUser() ){
       options::quantConflictFind.set( false );
     }
+    if( !options::instNoEntail.wasSetByUser() ){
+      options::instNoEntail.set( false );
+    }
   }
 
   //implied options...

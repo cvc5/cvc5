@@ -44,6 +44,9 @@ using namespace CVC4::context;
 using namespace CVC4::theory;
 using namespace CVC4::theory::inst;
 
+unsigned QuantifiersModule::needsModel( Theory::Effort e ) {
+  return QuantifiersEngine::QEFFORT_NONE;  
+}
 
 eq::EqualityEngine * QuantifiersModule::getEqualityEngine() {
   return d_quantEngine->getMasterEqualityEngine();
@@ -266,7 +269,7 @@ void QuantifiersEngine::check( Theory::Effort e ){
     d_ierCounter_lc++;
   }
   bool needsCheck = !d_lemmas_waiting.empty();
-  bool needsModel = false;
+  unsigned needsModelE = QEFFORT_NONE;
   std::vector< QuantifiersModule* > qm;
   if( d_model->checkNeeded() ){
     needsCheck = needsCheck || e>=Theory::EFFORT_LAST_CALL;  //always need to check at or above last call
@@ -274,9 +277,8 @@ void QuantifiersEngine::check( Theory::Effort e ){
       if( d_modules[i]->needsCheck( e ) ){
         qm.push_back( d_modules[i] );
         needsCheck = true;
-        if( d_modules[i]->needsModel( e ) ){
-          needsModel = true;
-        }
+        unsigned me = d_modules[i]->needsModel( e );
+        needsModelE = me<needsModelE ? me : needsModelE;
       }
     }
   }
@@ -336,12 +338,11 @@ void QuantifiersEngine::check( Theory::Effort e ){
     }else if( e==Theory::EFFORT_FULL ){
       ++(d_statistics.d_instantiation_rounds);
     }
-
     Trace("quant-engine-debug") << "Check modules that needed check..." << std::endl;
     for( unsigned quant_e = QEFFORT_CONFLICT; quant_e<=QEFFORT_MODEL; quant_e++ ){
       bool success = true;
       //build the model if any module requested it
-      if( quant_e==QEFFORT_MODEL && needsModel ){
+      if( needsModelE==quant_e ){
         Assert( d_builder!=NULL );
         Trace("quant-engine-debug") << "Build model..." << std::endl;
         d_builder->d_addedLemmas = 0;
@@ -364,7 +365,7 @@ void QuantifiersEngine::check( Theory::Effort e ){
       if( d_hasAddedLemma ){
         break;
       //otherwise, complete the model generation if necessary
-      }else if( quant_e==QEFFORT_MODEL && needsModel && options::produceModels() ){
+      }else if( quant_e==QEFFORT_MODEL && needsModelE<=quant_e && options::produceModels() ){
         Trace("quant-engine-debug") << "Build completed model..." << std::endl;
         d_builder->buildModel( d_model, true );
       }
