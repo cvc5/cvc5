@@ -15,7 +15,7 @@ echo "------- cvc4-tff casc 25 : $bench at $2..."
 function trywith {
   limit=$1; shift;
   echo "--- Run $@ at $limit...";
-  (ulimit -t "$limit";$cvc4 --lang=tptp --no-checking --no-interactive "$@" $bench) 2>/dev/null |
+  (ulimit -t "$limit";$cvc4 --lang=tptp --no-checking --no-interactive --force-logic="UFNIRA" "$@" $bench) 2>/dev/null |
   (read w1 w2 w3 result w4 w5;
   case "$result" in
   Unsatisfiable) echo "$w1 $w2 $w3 $result $w4 $w5";cat;exit 0;;
@@ -25,14 +25,16 @@ function trywith {
 }
 function finishwith {
   echo "--- Run $@...";
-  $cvc4 --lang=tptp --no-checking --no-interactive "$@" $bench
+  $cvc4 --lang=tptp --no-checking --no-interactive --force-logic="UFNIRA" "$@" $bench
 }
 
-trywith 10 --cbqi2 --decision=internal --full-saturate-quant --force-logic="UFNIRA"
-trywith 10 --relevant-triggers --full-saturate-quant --force-logic="UFNIRA"
-trywith 20 --cbqi --cbqi-recurse --full-saturate-quant --force-logic="UFNIRA"
-trywith 20 --no-e-matching --full-saturate-quant --force-logic="UFNIRA"
-trywith 20 --qcf-tconstraint --full-saturate-quant --force-logic="UFNIRA"
-trywith 70 --full-saturate-quant --force-logic="UFNIRA"
-finishwith --cbqi2 --cbqi-recurse --full-saturate-quant --force-logic="UFNIRA"
+trywith 10 --cbqi2 --decision=internal --full-saturate-quant
+trywith 10 --relevant-triggers --full-saturate-quant
+trywith 10 --cbqi --full-saturate-quant
+trywith 30 --qcf-tconstraint --full-saturate-quant
+trywith 60 --cbqi --cbqi-recurse --full-saturate-quant
+trywith 10 --full-saturate-quant
+trywith 10 --no-e-matching --full-saturate-quant
+trywith 10 --fmf-bound-int
+finishwith --cbqi2 --cbqi-recurse --full-saturate-quant
 # echo "% SZS status" "GaveUp for $filename"

@@ -1235,7 +1235,7 @@ Node CegConjectureSingleInv::getSolution( unsigned sol_index, TypeNode stn, int&
 
   //reconstruct the solution into sygus if necessary
   reconstructed = 0;
-  if( options::cegqiSingleInvReconstruct() && !stn.isNull() ){
+  if( options::cegqiSingleInvReconstruct() && !dt.getSygusAllowAll() && !stn.isNull() ){
     d_sygus_solution = d_sol->reconstructSolution( s, stn, reconstructed );
     if( reconstructed==1 ){
       Trace("csi-sol") << "Solution (post-reconstruction into Sygus): " << d_sygus_solution << std::endl;

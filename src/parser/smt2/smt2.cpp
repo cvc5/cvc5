@@ -496,7 +496,113 @@ void Smt2::includeFile(const std::string& filename) {
   }
 }
 
-
+void Smt2::mkSygusDefaultGrammar( const Type& range, Expr& bvl, const std::string& fun, std::vector<CVC4::Datatype>& datatypes,
+                                  std::vector<Type>& sorts, std::vector< std::vector<Expr> >& ops, std::vector<Expr> sygus_vars ) {
+  
+  Debug("parser-sygus") << "Construct default grammar for " << fun << " " << range << std::endl;
+  
+  std::stringstream ssb;
+  ssb << fun << "_Bool";
+  std::string dbname = ssb.str();
+  
+  std::stringstream ss;
+  ss << fun << "_" << range;
+  std::string dname = ss.str();
+  datatypes.push_back(Datatype(dname));
+  ops.push_back(std::vector<Expr>());
+  std::vector<std::string> cnames;
+  std::vector<std::vector<CVC4::Type> > cargs;
+  //variables
+  for( unsigned i=0; i<sygus_vars.size(); i++ ){
+    if( sygus_vars[i].getType()==range ){
+      std::stringstream ss;
+      ss << sygus_vars[i];
+      Debug("parser-sygus") << "...add for variable " << ss.str() << std::endl;
+      ops.back().push_back( sygus_vars[i] );
+      cnames.push_back( ss.str() );
+      cargs.push_back( std::vector< CVC4::Type >() );
+    }
+  }
+  //constants
+  std::vector< Expr > consts;
+  mkSygusConstantsForType( range, consts );
+  for( unsigned i=0; i<consts.size(); i++ ){
+    std::stringstream ss;
+    ss << consts[i];
+    Debug("parser-sygus") << "...add for constant " << ss.str() << std::endl;
+    ops.back().push_back( consts[i] );
+    cnames.push_back( ss.str() );
+    cargs.push_back( std::vector< CVC4::Type >() );
+  }
+  //ITE
+  CVC4::Kind k = kind::ITE;
+  Debug("parser-sygus") << "...add for " << k << std::endl;
+  ops.back().push_back(getExprManager()->operatorOf(k));
+  cnames.push_back( kind::kindToString(k) );
+  cargs.push_back( std::vector< CVC4::Type >() );
+  cargs.back().push_back(mkUnresolvedType(ssb.str()));
+  cargs.back().push_back(mkUnresolvedType(ss.str()));
+  cargs.back().push_back(mkUnresolvedType(ss.str()));
+    
+  if( range.isInteger() ){
+    for( unsigned i=0; i<2; i++ ){
+      CVC4::Kind k = i==0 ? kind::PLUS : kind::MINUS;
+      Debug("parser-sygus") << "...add for " << k << std::endl;
+      ops.back().push_back(getExprManager()->operatorOf(k));
+      cnames.push_back(kind::kindToString(k));
+      cargs.push_back( std::vector< CVC4::Type >() );
+      cargs.back().push_back(mkUnresolvedType(ss.str()));
+      cargs.back().push_back(mkUnresolvedType(ss.str()));
+    }
+  }else{
+    std::stringstream sserr;
+    sserr << "Don't know default Sygus grammar for type " << range << std::endl;
+    parseError(sserr.str());
+  }
+  Debug("parser-sygus") << "...make datatype " << datatypes.back() << std::endl;
+  datatypes.back().setSygus( range, bvl, true, true );
+  mkSygusDatatype( datatypes.back(), ops.back(), cnames, cargs );
+  sorts.push_back( range );
+  
+  //Boolean type
+  datatypes.push_back(Datatype(dbname));
+  ops.push_back(std::vector<Expr>());
+  cnames.clear();
+  cargs.clear();
+  for( unsigned i=0; i<4; i++ ){
+    CVC4::Kind k = i==0 ? kind::NOT : ( i==1 ? kind::AND : ( i==2 ? kind::OR : kind::EQUAL ) );
+    Debug("parser-sygus") << "...add for " << k << std::endl;
+    ops.back().push_back(getExprManager()->operatorOf(k));
+    cnames.push_back(kind::kindToString(k));
+    cargs.push_back( std::vector< CVC4::Type >() );
+    if( k==kind::NOT ){
+      cargs.back().push_back(mkUnresolvedType(ssb.str()));
+    }else if( k==kind::AND || k==kind::OR ){
+      cargs.back().push_back(mkUnresolvedType(ssb.str()));
+      cargs.back().push_back(mkUnresolvedType(ssb.str()));
+    }else if( k==kind::EQUAL ){
+      cargs.back().push_back(mkUnresolvedType(ss.str()));
+      cargs.back().push_back(mkUnresolvedType(ss.str()));
+    }
+  }
+  if( range.isInteger() ){
+    CVC4::Kind k = kind::LEQ;
+    Debug("parser-sygus") << "...add for " << k << std::endl;
+    ops.back().push_back(getExprManager()->operatorOf(k));
+    cnames.push_back(kind::kindToString(k));
+    cargs.push_back( std::vector< CVC4::Type >() );
+    cargs.back().push_back(mkUnresolvedType(ss.str()));
+    cargs.back().push_back(mkUnresolvedType(ss.str()));
+  }
+  Debug("parser-sygus") << "...make datatype " << datatypes.back() << std::endl;
+  Type btype = getExprManager()->booleanType();
+  datatypes.back().setSygus( btype, bvl, true, true );
+  mkSygusDatatype( datatypes.back(), ops.back(), cnames, cargs );
+  sorts.push_back( btype );
+  
+  Debug("parser-sygus") << "...finished make default grammar for " << fun << " " << range << std::endl;
+}
+  
 void Smt2::mkSygusConstantsForType( const Type& type, std::vector<CVC4::Expr>& ops ) {
   if( type.isInteger() ){
     ops.push_back(getExprManager()->mkConst(Rational(0)));

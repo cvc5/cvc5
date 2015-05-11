@@ -496,7 +496,8 @@ sygusCommand returns [CVC4::Command* cmd = NULL]
   std::vector< std::vector<Expr> > ops;
   std::vector< std::vector< std::string > > cnames;
   std::vector< std::vector< std::vector< CVC4::Type > > > cargs;
-  bool allow_const;
+  bool allow_const = false;
+  bool read_syntax = false;
 }
   : /* set the logic */
     SET_LOGIC_TOK symbol[name,CHECK_NONE,SYM_SORT]
@@ -598,7 +599,7 @@ sygusCommand returns [CVC4::Command* cmd = NULL]
       terms.push_back(bvl);
     }
     sortSymbol[range,CHECK_DECLARED]
-    LPAREN_TOK
+    ( LPAREN_TOK
     ( LPAREN_TOK
       symbol[name,CHECK_NONE,SYM_VARIABLE] { PARSER_STATE->pushScope(true); }
       sortSymbol[t,CHECK_DECLARED]
@@ -614,18 +615,23 @@ sygusCommand returns [CVC4::Command* cmd = NULL]
           // if not unresolved, must be undeclared
           PARSER_STATE->checkDeclaration(dname, CHECK_UNDECLARED, SYM_SORT);
         }
-        allow_const = false;
       }
       // Note the official spec for NTDef is missing the ( parens )
       // but they are necessary to parse SyGuS examples
       LPAREN_TOK sygusGTerm[fun, ops.back(), cnames.back(), cargs.back(), sygus_vars, allow_const]+ RPAREN_TOK
       RPAREN_TOK
-      { datatypes.back().setSygus( t, terms[0], allow_const );
+      { datatypes.back().setSygus( t, terms[0], allow_const, false );
         PARSER_STATE->mkSygusDatatype( datatypes.back(), ops.back(), cnames.back(), cargs.back() );
         PARSER_STATE->popScope(); }
     )+
-    RPAREN_TOK
-    { PARSER_STATE->popScope();
+    RPAREN_TOK { read_syntax = true; }
+    )?
+    { 
+      if( !read_syntax ){
+        //create the default grammar
+        PARSER_STATE->mkSygusDefaultGrammar( range, terms[0], fun, datatypes, sorts, ops, sygus_vars );
+      }
+      PARSER_STATE->popScope();
       seq = new CommandSequence();
       std::vector<DatatypeType> datatypeTypes = PARSER_STATE->mkMutualDatatypeTypes(datatypes);
       seq->addCommand(new DatatypeDeclarationCommand(datatypeTypes));
@@ -794,7 +800,6 @@ sygusGTerm[std::string& fun, std::vector<CVC4::Expr>& ops, std::vector<std::stri
           cargs.pop_back();
           Debug("parser-sygus") << "Make constructors for Constant/Variable of type " << t << std::endl;
           if( gtermType==1 ){
-            //PARSER_STATE->parseError(std::string("Constant/Variable in sygus not supported."));
             std::vector< Expr > consts;
             PARSER_STATE->mkSygusConstantsForType( t, consts );
             for( unsigned i=0; i<consts.size(); i++ ){

@@ -178,6 +178,9 @@ public:
     return e;
   }
 
+  void mkSygusDefaultGrammar( const Type& range, Expr& bvl, const std::string& fun, std::vector<CVC4::Datatype>& datatypes,
+                              std::vector<Type>& sorts, std::vector< std::vector<Expr> >& ops, std::vector<Expr> sygus_vars );
+  
   void mkSygusConstantsForType( const Type& type, std::vector<CVC4::Expr>& ops );
   
   void addSygusFun(const std::string& fun, Expr eval) {

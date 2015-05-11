@@ -457,6 +457,7 @@ private:
   Type d_sygus_type;
   Expr d_sygus_bvl;  
   bool d_sygus_allow_const;
+  bool d_sygus_allow_all;
 
   // "mutable" because computing the cardinality can be expensive,
   // and so it's computed just once, on demand---this is the cache
@@ -537,7 +538,7 @@ public:
    *    bvl : the list of arguments for the synth-fun
    *    allow_const : whether all constants are (implicitly) included in the grammar
    */
-  void setSygus( Type st, Expr bvl, bool allow_const );
+  void setSygus( Type st, Expr bvl, bool allow_const, bool allow_all );
   
   /** Get the name of this Datatype. */
   inline std::string getName() const throw();
@@ -668,6 +669,8 @@ public:
   Expr getSygusVarList() const;
   /** does it allow constants */
   bool getSygusAllowConst() const;
+  /** does it allow constants */
+  bool getSygusAllowAll() const;
 
   /**
    * Get whether this datatype involves an external type.  If so,

@@ -1,0 +1,15 @@
+; EXPECT: unsat
+; COMMAND-LINE: --cegqi-si
+
+(set-logic LIA)
+
+(synth-fun f ((x Int) (y Int)) Int)
+
+(declare-var x Int)
+(declare-var y Int)
+
+(constraint (= (f x y) (+ x y 500)))
+
+
+(check-synth)
+

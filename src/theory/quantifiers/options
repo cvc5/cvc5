@@ -203,7 +203,7 @@ option ceGuidedInst --cegqi bool :default false :read-write
   counterexample-guided quantifier instantiation
 option ceGuidedInstFair --cegqi-fair=MODE CVC4::theory::quantifiers::CegqiFairMode :default CVC4::theory::quantifiers::CEGQI_FAIR_DT_SIZE :include "theory/quantifiers/modes.h" :handler CVC4::theory::quantifiers::stringToCegqiFairMode :handler-include "theory/quantifiers/options_handlers.h"
   if and how to apply fairness for cegqi
-option cegqiSingleInv --cegqi-si bool :default false
+option cegqiSingleInv --cegqi-si bool :default false :read-write
   process single invocation synthesis conjectures
 option cegqiSingleInvReconstruct --cegqi-si-reconstruct bool :default true
   reconstruct solutions for single invocation conjectures in original grammar

@@ -29,7 +29,9 @@ TESTS = commutative.sy \
 	array_search_2.sy \        
 	hd-01-d1-prog.sy \
         icfp_28_10.sy \
-        const-var-test.sy
+        const-var-test.sy \
+        no-syntax-test.sy \
+        no-syntax-test-no-si.sy
 
 # sygus tests currently taking too long for make regress
 EXTRA_DIST = $(TESTS) \

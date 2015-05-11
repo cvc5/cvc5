@@ -1399,6 +1399,9 @@ void SmtEngine::setDefaults() {
     options::ceGuidedInst.set( true );
   }
   if( options::ceGuidedInst() ){
+    if( !options::cegqiSingleInv.wasSetByUser() ){
+      options::cegqiSingleInv.set( true );
+    }
     if( !options::quantConflictFind.wasSetByUser() ){
       options::quantConflictFind.set( false );
     }
