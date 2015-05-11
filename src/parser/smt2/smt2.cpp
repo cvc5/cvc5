@@ -21,6 +21,8 @@
 #include "parser/smt2/smt2.h"
 #include "parser/antlr_input.h"
 
+#include "util/bitvector.h"
+
 // ANTLR defines these, which is really bad!
 #undef true
 #undef false
@@ -495,8 +497,21 @@ void Smt2::includeFile(const std::string& filename) {
 }
 
 
+void Smt2::mkSygusConstantsForType( const Type& type, std::vector<CVC4::Expr>& ops ) {
+  if( type.isInteger() ){
+    ops.push_back(getExprManager()->mkConst(Rational(0)));
+    ops.push_back(getExprManager()->mkConst(Rational(1)));
+  }else if( type.isBitVector() ){
+    unsigned sz = ((BitVectorType)type).getSize();
+    BitVector bval0(sz, (unsigned int)0);
+    ops.push_back( getExprManager()->mkConst(bval0) );
+    BitVector bval1(sz, (unsigned int)1);
+    ops.push_back( getExprManager()->mkConst(bval1) );
+  }
+  //TODO : others?
+}
 
- void Smt2::defineSygusFuns() {
+void Smt2::defineSygusFuns() {
   // only define each one once
   while(d_nextSygusFun < d_sygusFuns.size()) {
     std::pair<std::string, Expr> p = d_sygusFuns[d_nextSygusFun];

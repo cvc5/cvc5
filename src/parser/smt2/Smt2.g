@@ -488,6 +488,7 @@ sygusCommand returns [CVC4::Command* cmd = NULL]
   Type t, range;
   std::vector<Expr> terms;
   std::vector<Type> sorts;
+  std::vector<Expr> sygus_vars;
   std::vector<std::pair<std::string, Type> > sortedVarNames;
   SExpr sexpr;
   CommandSequence* seq;
@@ -495,6 +496,7 @@ sygusCommand returns [CVC4::Command* cmd = NULL]
   std::vector< std::vector<Expr> > ops;
   std::vector< std::vector< std::string > > cnames;
   std::vector< std::vector< std::vector< CVC4::Type > > > cargs;
+  bool allow_const;
 }
   : /* set the logic */
     SET_LOGIC_TOK symbol[name,CHECK_NONE,SYM_SORT]
@@ -584,7 +586,9 @@ sygusCommand returns [CVC4::Command* cmd = NULL]
             sortedVarNames.begin(), iend = sortedVarNames.end();
           i != iend;
           ++i) {
-        terms.push_back(PARSER_STATE->mkBoundVar((*i).first, (*i).second));
+        Expr v = PARSER_STATE->mkBoundVar((*i).first, (*i).second);
+        terms.push_back( v );
+        sygus_vars.push_back( v );
       }
       Expr bvl;
       if( !terms.empty() ){
@@ -603,7 +607,6 @@ sygusCommand returns [CVC4::Command* cmd = NULL]
         std::string dname = ss.str();
         sorts.push_back(t);
         datatypes.push_back(Datatype(dname));
-        datatypes.back().setSygus( t, terms[0] );
         ops.push_back(std::vector<Expr>());
         cnames.push_back(std::vector<std::string>());
         cargs.push_back(std::vector<std::vector<CVC4::Type> >());
@@ -611,12 +614,14 @@ sygusCommand returns [CVC4::Command* cmd = NULL]
           // if not unresolved, must be undeclared
           PARSER_STATE->checkDeclaration(dname, CHECK_UNDECLARED, SYM_SORT);
         }
+        allow_const = false;
       }
       // Note the official spec for NTDef is missing the ( parens )
       // but they are necessary to parse SyGuS examples
-      LPAREN_TOK sygusGTerm[fun, ops.back(), cnames.back(), cargs.back()]+ RPAREN_TOK
+      LPAREN_TOK sygusGTerm[fun, ops.back(), cnames.back(), cargs.back(), sygus_vars, allow_const]+ RPAREN_TOK
       RPAREN_TOK
-      { PARSER_STATE->mkSygusDatatype( datatypes.back(), ops.back(), cnames.back(), cargs.back() );
+      { datatypes.back().setSygus( t, terms[0], allow_const );
+        PARSER_STATE->mkSygusDatatype( datatypes.back(), ops.back(), cnames.back(), cargs.back() );
         PARSER_STATE->popScope(); }
     )+
     RPAREN_TOK
@@ -705,7 +710,10 @@ sygusCommand returns [CVC4::Command* cmd = NULL]
 
 // SyGuS grammar term
 // fun is the name of the synth-fun this grammar term is for
-sygusGTerm[std::string& fun, std::vector<CVC4::Expr>& ops, std::vector<std::string>& cnames, std::vector< std::vector< CVC4::Type > >& cargs]
+// this adds N operators to ops, N names to cnames and N type argument vectors to cargs (where typically N=1)
+sygusGTerm[std::string& fun, std::vector<CVC4::Expr>& ops, std::vector<std::string>& cnames, 
+           std::vector< std::vector< CVC4::Type > >& cargs, std::vector<CVC4::Expr>& sygus_vars,
+           bool& allow_const]
 @declarations {
   std::string name;
   Kind k;
@@ -713,6 +721,8 @@ sygusGTerm[std::string& fun, std::vector<CVC4::Expr>& ops, std::vector<std::stri
   CVC4::DatatypeConstructor* ctor = NULL;
   unsigned count = 0;
   std::string sname;
+  // 0 an operator, 1 any constant, 2 any variable
+  unsigned gtermType = 0;
 }
   : LPAREN_TOK
     ( builtinOp[k]
@@ -725,35 +735,49 @@ sygusGTerm[std::string& fun, std::vector<CVC4::Expr>& ops, std::vector<std::stri
       }
     | symbol[name,CHECK_NONE,SYM_VARIABLE]
       { 
-        bool isBuiltinOperator = PARSER_STATE->isOperatorEnabled(name);
-        if(isBuiltinOperator) {
-          Kind k = PARSER_STATE->getOperatorKind(name);
-          if( k==CVC4::kind::BITVECTOR_UDIV ){
-            k = CVC4::kind::BITVECTOR_UDIV_TOTAL;
-          }
-          ops.push_back(EXPR_MANAGER->operatorOf(k));
-          name = kind::kindToString(k);
+        if(name=="Constant"){
+          gtermType = 1;
+          Debug("parser-sygus") << "Sygus grammar constant." << std::endl;
+        }else if(name=="Variable"){
+          gtermType = 2;
+          allow_const = true;
+          Debug("parser-sygus") << "Sygus grammar variable." << std::endl;
         }else{
-          // what is this sygus term trying to accomplish here, if the
-          // symbol isn't yet declared?!  probably the following line will
-          // fail, but we need an operator to continue here..
-          Debug("parser-sygus") << "Sygus grammar " << fun;
-          Debug("parser-sygus") << " : op (declare=" <<  PARSER_STATE->isDeclared(name) << ", define=" << PARSER_STATE->isDefinedFunction(name) << ") : " << name << std::endl;
-          if( !PARSER_STATE->isDefinedFunction(name) ){
-            PARSER_STATE->parseError(std::string("Functions in sygus grammars must be defined."));
+          bool isBuiltinOperator = PARSER_STATE->isOperatorEnabled(name);
+          if(isBuiltinOperator) {
+            Kind k = PARSER_STATE->getOperatorKind(name);
+            if( k==CVC4::kind::BITVECTOR_UDIV ){
+              k = CVC4::kind::BITVECTOR_UDIV_TOTAL;
+            }
+            ops.push_back(EXPR_MANAGER->operatorOf(k));
+            name = kind::kindToString(k);
+          }else{
+            // what is this sygus term trying to accomplish here, if the
+            // symbol isn't yet declared?!  probably the following line will
+            // fail, but we need an operator to continue here..
+            Debug("parser-sygus") << "Sygus grammar " << fun;
+            Debug("parser-sygus") << " : op (declare=" <<  PARSER_STATE->isDeclared(name) << ", define=" << PARSER_STATE->isDefinedFunction(name) << ") : " << name << std::endl;
+            if( !PARSER_STATE->isDefinedFunction(name) ){
+              PARSER_STATE->parseError(std::string("Functions in sygus grammars must be defined."));
+            }
+            ops.push_back( PARSER_STATE->getVariable(name) );
           }
-          ops.push_back( PARSER_STATE->getVariable(name) );
         }
       }
     )
-    { cnames.push_back( name );
+    { if( gtermType==0 ){
+        cnames.push_back( name );
+      }
       cargs.push_back( std::vector< CVC4::Type >() );
     }
     ( //sortSymbol[t,CHECK_NONE]
       symbol[sname,CHECK_NONE,SYM_VARIABLE]
-      { std::stringstream ss;
-        ss << fun << "_" << sname;
-        sname = ss.str();
+      { 
+        if( gtermType==0 ){
+          std::stringstream ss;
+          ss << fun << "_" << sname;
+          sname = ss.str();
+        }
         if( PARSER_STATE->isDeclared(sname, SYM_SORT) ) {
           t = PARSER_STATE->getSort(sname);
         } else {
@@ -761,6 +785,40 @@ sygusGTerm[std::string& fun, std::vector<CVC4::Expr>& ops, std::vector<std::stri
         }
         cargs.back().push_back(t);
       } )+ RPAREN_TOK
+      {
+        if( gtermType==1 || gtermType==2 ){
+          if( cargs.back().size()!=1 ){
+            PARSER_STATE->parseError(std::string("Must provide single sort for constant/variable Sygus constructor."));
+          }
+          Type t = cargs.back()[0];
+          cargs.pop_back();
+          Debug("parser-sygus") << "Make constructors for Constant/Variable of type " << t << std::endl;
+          if( gtermType==1 ){
+            //PARSER_STATE->parseError(std::string("Constant/Variable in sygus not supported."));
+            std::vector< Expr > consts;
+            PARSER_STATE->mkSygusConstantsForType( t, consts );
+            for( unsigned i=0; i<consts.size(); i++ ){
+              std::stringstream ss;
+              ss << consts[i];
+              Debug("parser-sygus") << "...add for constant " << ss.str() << std::endl;
+              ops.push_back( consts[i] );
+              cnames.push_back( ss.str() );
+              cargs.push_back( std::vector< CVC4::Type >() );
+            }
+          }else if( gtermType==2 ){
+            for( unsigned i=0; i<sygus_vars.size(); i++ ){
+              if( sygus_vars[i].getType()==t ){
+                std::stringstream ss;
+                ss << sygus_vars[i];
+                Debug("parser-sygus") << "...add for variable " << ss.str() << std::endl;
+                ops.push_back( sygus_vars[i] );
+                cnames.push_back( ss.str() );
+                cargs.push_back( std::vector< CVC4::Type >() );
+              }
+            }
+          }
+        }
+      }
   | INTEGER_LITERAL
     { Debug("parser-sygus") << "Sygus grammar " << fun << " : integer literal " << AntlrInput::tokenText($INTEGER_LITERAL) << std::endl;
       ops.push_back(MK_CONST(Rational(AntlrInput::tokenText($INTEGER_LITERAL))));

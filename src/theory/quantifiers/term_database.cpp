@@ -1586,16 +1586,18 @@ Node TermDbSygus::builtinToSygusConst( Node c, TypeNode tn ) {
     const Datatype& dt = ((DatatypeType)(tn).toType()).getDatatype();
     Assert( dt.isSygus() );
     Node sc;
-    int carg = getOpArg( tn, c );
-    if( carg!=-1 ){
-      sc = Node::fromExpr( dt[carg].getSygusOp() );
+    // if we are not interested in reconstructing constants, or the grammar allows them, return a proxy
+    if( !options::cegqiSingleInvReconstructConst() || dt.getSygusAllowConst() ){
+      Node k = NodeManager::currentNM()->mkSkolem( "sy", tn, "sygus proxy" );
+      SygusProxyAttribute spa;
+      k.setAttribute(spa,c);
+      sc = k;
     }else{
-      //TODO
-      if( !options::cegqiSingleInvReconstructConst() ){
-        Node k = NodeManager::currentNM()->mkSkolem( "sy", tn, "sygus proxy" );
-        SygusProxyAttribute spa;
-        k.setAttribute(spa,c);
-        sc = k;
+      int carg = getOpArg( tn, c );
+      if( carg!=-1 ){
+        sc = Node::fromExpr( dt[carg].getSygusOp() );
+      }else{
+        //TODO
       }
     }
     d_builtin_const_to_sygus[tn][c] = sc;

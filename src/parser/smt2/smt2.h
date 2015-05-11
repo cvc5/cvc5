@@ -178,6 +178,8 @@ public:
     return e;
   }
 
+  void mkSygusConstantsForType( const Type& type, std::vector<CVC4::Expr>& ops );
+  
   void addSygusFun(const std::string& fun, Expr eval) {
     d_sygusFuns.push_back(std::make_pair(fun, eval));
   }
