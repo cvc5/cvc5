@@ -686,7 +686,8 @@ lbool Solver::assertAssumption(Lit p, bool propagate) {
   if (c->getLevel() > 0) {
     assumptions.push(p);
   } else {
-    if (!addClause(p)) {
+    ClauseId id;
+    if (!addClause(p, id)) {
       conflict.push(~p);
       return l_False;
     }

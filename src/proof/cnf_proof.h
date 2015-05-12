@@ -22,6 +22,7 @@
 #include "cvc4_private.h"
 #include "util/proof.h"
 #include "proof/sat_proof.h"
+#include "context/cdhashmap.h"
 
 #include <ext/hash_set>
 #include <ext/hash_map>
@@ -38,8 +39,8 @@ class CnfProof;
 typedef __gnu_cxx::hash_map<Expr, prop::SatVariable, ExprHashFunction > ExprToSatVar;
 typedef __gnu_cxx::hash_map<prop::SatVariable, Expr> SatVarToExpr;
 typedef __gnu_cxx::hash_map<Node, Node, NodeHashFunction> NodeToNode;
-typedef context::CDMap<ClauseId, Node> ClauseIdToNode;
-typedef context::CDMap<Node, ProofRule> NodeToProofRule;
+typedef context::CDHashMap<ClauseId, Node> ClauseIdToNode;
+typedef context::CDHashMap<Node, ProofRule, NodeHashFunction> NodeToProofRule;
 
 class CnfProof {
 protected:
@@ -77,7 +78,9 @@ protected:
   
   std::string d_name;
 public:
-  CnfProof(CVC4::prop::CnfStream* cnfStream, const std::string& name);
+  CnfProof(CVC4::prop::CnfStream* cnfStream,
+           context::Context* ctx,
+           const std::string& name);
   
   // typedef IdToClause::const_iterator clause_iterator;
   // clause_iterator begin_input_clauses() const { return d_inputClauses.begin(); }
@@ -99,7 +102,7 @@ public:
   // if it is an explanation, it does not have a CNF proof since it is
   // already in CNF
   void registerConvertedClause(ClauseId clause, bool explanation=false);
-  void setClauseFact(ClauseId clause, TNode fact);
+  void setClauseFact(ClauseId clause, Node fact);
   
   void registerAssertion(Node assertion, ProofRule reason);
   void setCnfDependence(Node from, Node to);
@@ -131,8 +134,10 @@ class LFSCCnfProof : public CnfProof {
                      std::map< Expr, bool >& childPol );
  
 public:
-  LFSCCnfProof(CVC4::prop::CnfStream* cnfStream, const std::string& name)
-    : CnfProof(cnfStream, name)
+  LFSCCnfProof(CVC4::prop::CnfStream* cnfStream,
+               context::Context* ctx,
+               const std::string& name)
+    : CnfProof(cnfStream, ctx, name)
   {}
 
   void printClause(const prop::SatClause& clause,

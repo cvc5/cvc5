@@ -96,7 +96,6 @@ protected:
   typedef std::hash_map < int, ClauseId>            UnitIdMap; 
   typedef std::hash_map < ClauseId, ResChain<Solver>* >      IdResMap;
   typedef std::hash_map < ClauseId, uint64_t >      IdProofRuleMap;
-  typedef std::hash_set < ClauseId >                IdHashSet;
   typedef std::vector   < ResChain<Solver>* >       ResStack;
   typedef std::hash_map <ClauseId, prop::SatClause* >     IdToSatClause;
   typedef std::set < ClauseId > IdSet;
@@ -144,7 +143,7 @@ protected:
   std::string d_name;
 public:
   TSatProof(Solver* solver, const std::string& name, bool checkRes = false);
-  virtual ~TSatProof() {}
+  virtual ~TSatProof();
   void setCnfProof(CnfProof* cnf_proof);
 protected:
   void print(ClauseId id);
@@ -198,7 +197,7 @@ public:
    * in the resolution map. Also registers the 'clause' parameter
    * @param clause the clause the resolution is proving
    */
-  void endResChain(typename Solver::TCRef clause);
+  // void endResChain(typename Solver::TCRef clause);
   void endResChain(typename Solver::TLit lit);
   void endResChain(ClauseId id);
   /** 
@@ -234,9 +233,9 @@ public:
   void registerAssumption(const typename Solver::TVar var);
   ClauseId registerAssumptionConflict(const typename Solver::TLitVec& confl);
   
-  void storeUnitConflict(typename Solver::TLit lit,
-                         ClauseKind kind);
-
+  ClauseId storeUnitConflict(typename Solver::TLit lit,
+                             ClauseKind kind);
+ 
   /**
    * Marks the deleted clauses as deleted. Note we may still use them in the final
    * resolution.
@@ -270,8 +269,8 @@ public:
   void collectClauses(ClauseId id);
 protected:
   IdSet              d_seenLearnt;
-  IdHashSet          d_seenInputsLemmas;
-  // IdHashSet          d_seenLemmas;
+  IdHashSet          d_seenInputs;
+  IdHashSet          d_seenLemmas;
 
   std::string varName(typename Solver::TLit lit);
   std::string clauseName(ClauseId id);
@@ -287,7 +286,7 @@ public:
 
   //typedef IdHashSet::const_iterator clause_iterator;
 
-  void getClausesUsed(IdHashSet& clauses);
+  void getClausesUsed(const IdHashSet& inputs, const IdHashSet& lemmas);
   // clause_iterator begin_input_clauses() { return d_seenInput.begin(); }
   // clause_iterator end_input_clauses() { return d_seenInput.end(); }
 

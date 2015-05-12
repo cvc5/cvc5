@@ -367,8 +367,8 @@ void LFSCProof::toStream(std::ostream& out) {
   d_satProof->constructProof();
 
   // collecting leaf clauses in resolution proof
-  IdHashSet used_lemmas;
-  IdHashSet used_inputs;
+  const IdHashSet used_lemmas;
+  const IdHashSet used_inputs;
   d_satProof->getClausesUsed(used_inputs,
                              used_lemmas);
 

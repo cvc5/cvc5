@@ -44,6 +44,9 @@ namespace prop {
 }/* CVC4::prop namespace */
 }/* CVC4 namespace */
 
+
+typedef unsigned ClauseId;
+
 namespace Minisat {
 
 //=================================================================================================

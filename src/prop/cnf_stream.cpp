@@ -66,11 +66,11 @@ TseitinCnfStream::TseitinCnfStream(SatSolver* satSolver,
   PROOF
     (
      if (name == "") {
-       ProofManager::currentPM()->initCnfProof(this);
+       ProofManager::currentPM()->initCnfProof(this, context);
        d_cnfProof = ProofManager::getCnfProof();
      } else {
        if (options::proof()) {
-         ProofManager::getBitVectorProof()->initCnfProof(this);
+         ProofManager::getBitVectorProof()->initCnfProof(this, context);
          d_cnfProof = ProofManager::getBitVectorProof()->getCnfProof();
        }
      }

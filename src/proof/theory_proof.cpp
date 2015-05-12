@@ -225,11 +225,11 @@ void LFSCTheoryProofEngine::printTheoryLemmas(const IdHashSet& lemmas,
   // proof lemmas
   std::vector<Expr> bv_lemmas;
   for (; it != end; ++it) {
-    ClauseId id = it->first;
+    ClauseId id = *it;
     TheoryId theory_id = getTheoryForLemma(id);
     if (theory_id != THEORY_BV) continue;
 
-    const prop::SatClause* clause = it->second;
+   
     std::vector<Expr> conflict;
     for(unsigned i = 0; i < clause->size(); ++i) {
       prop::SatLiteral lit = (*clause)[i];

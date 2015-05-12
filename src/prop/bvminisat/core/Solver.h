@@ -36,6 +36,7 @@ template <class Solver> class TSatProof;
 
 } /* CVC4 namespace*/
 
+typedef unsigned ClauseId;
 
 namespace BVMinisat {
 
@@ -391,7 +392,7 @@ inline void Solver::checkGarbage(double gf){
 // NOTE: enqueue does not set the ok flag! (only public methods do)
 inline bool     Solver::enqueue         (Lit p, CRef from)      { return value(p) != l_Undef ? value(p) != l_False : (uncheckedEnqueue(p, from), true); }
 inline bool     Solver::addClause       (const vec<Lit>& ps, ClauseId& id)    { ps.copyTo(add_tmp); return addClause_(add_tmp, id); }
-inline bool     Solver::addEmptyClause  ()                      { add_tmp.clear(); return addClause_(add_tmp); }
+inline bool     Solver::addEmptyClause  ()                      { add_tmp.clear(); ClauseId tmp; return addClause_(add_tmp, tmp); }
 inline bool     Solver::addClause       (Lit p, ClauseId& id)                 { add_tmp.clear(); add_tmp.push(p); return addClause_(add_tmp, id); }
 inline bool     Solver::addClause       (Lit p, Lit q, ClauseId& id)          { add_tmp.clear(); add_tmp.push(p); add_tmp.push(q); return addClause_(add_tmp, id); }
 inline bool     Solver::addClause       (Lit p, Lit q, Lit r, ClauseId& id)   { add_tmp.clear(); add_tmp.push(p); add_tmp.push(q); add_tmp.push(r); return addClause_(add_tmp, id); }

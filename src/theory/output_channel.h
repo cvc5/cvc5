@@ -22,6 +22,7 @@
 #include "util/cvc4_assert.h"
 #include "theory/interrupted.h"
 #include "util/resource_manager.h"
+#include "proof/proof_manager.h"
 
 namespace CVC4 {
 namespace theory {
@@ -123,7 +124,7 @@ public:
                             bool preprocess = false)
     throw(TypeCheckingExceptionPrivate, AssertionException, UnsafeInterruptException) = 0;
 
-  virtual LemmaStatus lemma(TNode n, ProofRule rule,
+  virtual LemmaStatus lemma(TNode n, 
                             bool removable = false,
                             bool preprocess = false)
     throw(TypeCheckingExceptionPrivate, AssertionException, UnsafeInterruptException) {

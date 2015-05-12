@@ -45,7 +45,7 @@ namespace prop {
 
 class SmtEngine;
 
-typedef int ClauseId;
+typedef unsigned ClauseId;
 
 class Proof;
 template <class Solver> class TSatProof; 
@@ -88,9 +88,11 @@ std::string append(const std::string& str, uint64_t num);
 typedef std::map < ClauseId, const prop::SatClause* > OrderedIdToClause;
 typedef __gnu_cxx::hash_map < ClauseId, const prop::SatClause* > IdToClause;
 typedef __gnu_cxx::hash_set<Expr, ExprHashFunction > ExprSet;
+typedef __gnu_cxx::hash_set<Node, NodeHashFunction > NodeSet;
 typedef __gnu_cxx::hash_map<Node, std::vector<Node>, NodeHashFunction > NodeToNodes;
+typedef std::hash_set<ClauseId> IdHashSet;
 
-typedef int ClauseId;
+typedef unsigned ClauseId;
 
 enum ProofRule {
   RULE_GIVEN,       /* input assertion */
@@ -100,7 +102,6 @@ enum ProofRule {
   RULE_INVALID,     /* assert-fail if this is ever needed in proof; use e.g. for split lemmas */
   RULE_CONFLICT,    /* re-construct as a conflict */
   RULE_TSEITIN,     /* Tseitin CNF transformation */
-  RULE_BV_CONFLICT, 
   
   RULE_ARRAYS_EXT,  /* arrays, extensional */
   RULE_ARRAYS_ROW,  /* arrays, read-over-write */

@@ -26,21 +26,21 @@ using namespace CVC4::prop;
 
 namespace CVC4 {
 
-CnfProof::CnfProof(CnfStream* stream, const std::string& name)
+CnfProof::CnfProof(CnfStream* stream,
+                   context::Context* ctx,
+                   const std::string& name)
   : d_cnfStream(stream)
   , d_atomToSatVar()
   , d_satVarToAtom()
-  , d_inputClauses()
+  , d_clauseToAssertion(ctx)
+  , d_assertionToProofRule(ctx)
+  , d_clauseToFact(ctx)
+  , d_topLevelFacts()
+  , d_cnfDeps()
   , d_name(name)
 {}
 
-CnfProof::~CnfProof() {
-  IdToClause::iterator it = d_inputClauses.begin();
-  IdToClause::iterator end = d_inputClauses.end();
-  for (; it != end; ++it) {
-    delete it->second;
-  }
-}
+CnfProof::~CnfProof() {}
 
 bool CnfProof::isAssertion(Node node) {
   return d_assertionToProofRule.find(node) !=
@@ -52,9 +52,10 @@ bool CnfProof::isTopLevelFact(Node node) {
          d_topLevelFacts.end();
 }
   
-ProofRule CnfProof::getProofRule(Node assertion) {
+ProofRule CnfProof::getProofRule(Node node) {
   Assert (isAssertion(node));
-  return *(d_assertionToProofRule.find(node);)
+  NodeToProofRule::iterator it = d_assertionToProofRule.find(node);
+  return (*it).second;
 }
 ProofRule CnfProof::getProofRule(ClauseId clause) {
   TNode assertion = getAssertionForClause(clause);
@@ -64,37 +65,37 @@ ProofRule CnfProof::getProofRule(ClauseId clause) {
 Node CnfProof::getAssertionForClause(ClauseId clause) {
   ClauseIdToNode::const_iterator it = d_clauseToAssertion.find(clause);
   Assert (it != d_clauseToAssertion.end());
-  return it->second;
+  return (*it).second;
 }
 
 Node CnfProof::getTopLevelFactForClause(ClauseId clause) {
   ClauseIdToNode::const_iterator it = d_clauseToFact.find(clause);
   Assert (it != d_clauseToFact.end());
-  return it->second;
+  return (*it).second;
 }
 
 void CnfProof::registerConvertedClause(ClauseId clause, bool explanation) {
   Assert (!explanation); // FIXME: handle explanations specially 
-  TNode current_assertion = getCurrentAssertion();
+  Node current_assertion = getCurrentAssertion();
   Assert (d_clauseToAssertion.find(clause) == d_clauseToAssertion.end());
-  d_clauseToAssertion.insert (make_pair(clause, current_assertion));
+  d_clauseToAssertion.insert (std::make_pair(clause, current_assertion));
 }
 
-void CnfProof::setClauseFact(ClauseId clause, TNode fact) {
+void CnfProof::setClauseFact(ClauseId clause, Node fact) {
   Assert (d_clauseToFact.find(clause) == d_clauseToFact.end());
-  d_clauseToFact.insert(make_pair(clause, fact));
+  d_clauseToFact.insert(std::make_pair(clause, fact));
   d_topLevelFacts.insert(fact);
 }
   
 void CnfProof::registerAssertion(Node assertion, ProofRule reason) {
   Assert (!isAssertion(assertion));
-  d_assertionToProofRule.insert(make_pair(assertion, reason));
+  d_assertionToProofRule.insert(std::make_pair(assertion, reason));
 }
 
 void CnfProof::setCnfDependence(Node from, Node to) {
   Assert (from != to);
   Assert (d_cnfDeps.find(from) == d_cnfDeps.end());
-  d_cnfDeps.insert(make_pair(from, to));
+  d_cnfDeps.insert(std::make_pair(from, to));
 }
 
 void CnfProof::pushCurrentAssertion(Node assertion) {
@@ -144,7 +145,6 @@ prop::SatLiteral CnfProof::getLiteral(TNode atom) {
 Expr CnfProof::getAssertion(uint64_t id) {
   return d_cnfStream->getAssertion(id).toExpr();
 }
-
 
 void LFSCCnfProof::printAtomMapping(std::ostream& os, std::ostream& paren) {
   atom_iterator it = begin_atoms(); 

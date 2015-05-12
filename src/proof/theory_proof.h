@@ -32,6 +32,9 @@ namespace theory {
 class Theory;
 }
 
+typedef unsigned ClauseId;
+typedef std::hash_set<ClauseId> IdHashSet;
+
 struct LetCount {
   static unsigned counter;
   static void resetCounter() { counter = 0; }
@@ -82,7 +85,7 @@ typedef __gnu_cxx::hash_map<Expr, LetCount, ExprHashFunction> LetMap;
 typedef std::vector<LetOrderElement> Bindings; 
 
 class TheoryProof; 
-typedef int ClauseId;
+typedef unsigned ClauseId;
 
 typedef __gnu_cxx::hash_set<Expr, ExprHashFunction > ExprSet;
 typedef std::map<theory::TheoryId, TheoryProof* > TheoryProofTable;
@@ -155,7 +158,9 @@ public:
   virtual void printLetTerm(Expr term, std::ostream& os);
   virtual void printBoundTerm(Expr term, std::ostream& os, const LetMap& map);
   virtual void printAssertions(std::ostream& os, std::ostream& paren);
-  virtual void printTheoryLemmas(std::ostream& os, std::ostream& paren);
+  virtual void printTheoryLemmas(const IdHashSet& lemmas,
+                                 std::ostream& os,
+                                 std::ostream& paren);
   virtual void printSort(Type type, std::ostream& os); 
 };
 

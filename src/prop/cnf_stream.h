@@ -235,9 +235,9 @@ public:
   /**
    * Get the assertion with a given ID.  (Used for reconstructing proofs.)
    */
-  TNode getAssertion(uint64_t id) {
-    return d_assertionTable[id];
-  }
+  // TNode getAssertion(uint64_t id) {
+  //   return d_assertionTable[id];
+  // }
 
   /**
    * Returns the Boolean variables from the input problem.

@@ -159,7 +159,7 @@ lbool SimpSolver::solve_(bool do_simp, bool turn_off_simp)
 
 
 
-bool SimpSolver::addClause_(vec<Lit>& ps, bool removable, uint64_t proof_id)
+bool SimpSolver::addClause_(vec<Lit>& ps, bool removable, ClauseId& id)
 {
 #ifndef NDEBUG
     if (use_simplification) {
@@ -173,7 +173,7 @@ bool SimpSolver::addClause_(vec<Lit>& ps, bool removable, uint64_t proof_id)
     if (use_rcheck && implied(ps))
         return true;
 
-    if (!Solver::addClause_(ps, removable, proof_id))
+    if (!Solver::addClause_(ps, removable, id))
         return false;
 
     if (use_simplification && clauses_persistent.size() == nclauses + 1){
@@ -540,12 +540,14 @@ bool SimpSolver::eliminateVar(Var v)
     for (int i = 0; i < cls.size(); i++)
         removeClause(cls[i]); 
 
+    ClauseId id = -1;
     // Produce clauses in cross product:
     vec<Lit>& resolvent = add_tmp;
     for (int i = 0; i < pos.size(); i++)
         for (int j = 0; j < neg.size(); j++) {
             bool removable = ca[pos[i]].removable() && ca[pos[neg[j]]].removable();
-            if (merge(ca[pos[i]], ca[neg[j]], v, resolvent) && !addClause_(resolvent, removable, uint64_t(-1))) {
+            if (merge(ca[pos[i]], ca[neg[j]], v, resolvent) &&
+                !addClause_(resolvent, removable, id)) {
                 return false;
             }
         }
@@ -584,8 +586,8 @@ bool SimpSolver::substitute(Var v, Lit x)
         }
 
         removeClause(cls[i]);
-
-        if (!addClause_(subst_clause, c.removable(), uint64_t(-1))) {
+        ClauseId id = -1;
+        if (!addClause_(subst_clause, c.removable(), id)) {
             return ok = false;
         }
     }

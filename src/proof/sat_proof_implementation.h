@@ -193,34 +193,51 @@ void ProofProxy<Solver>::updateCRef(typename Solver::TCRef oldref, typename Solv
 
 
 /// SatProof
- template <class Solver> 
-   TSatProof<Solver>::TSatProof(Solver* solver, const std::string& name, bool checkRes) :
-   d_solver(solver),
-   d_cnfProof(NULL),
-   d_idClause(),
-   d_clauseId(),
-   d_idUnit(),
-   d_deleted(),
-   d_inputClauses(),
-   d_lemmaClauses(),
-   d_assumptions(),
-   d_assumptionConflicts(),
-   d_assumptionConflictsDebug(),
-   d_resChains(),
-   d_resStack(),
-   d_checkRes(checkRes),
-   d_emptyClauseId(-1),
-   d_nullId(-2),
-   d_temp_clauseId(),
-   d_temp_idClause(),
-   d_unitConflictId(),
-   d_storedUnitConflict(false),
-   d_name(name),
-   d_seenLearnt(),
-   d_seenInput(),
-   d_seenLemmas() {
-   d_proxy = new ProofProxy<Solver>(this);
- }
+template <class Solver> 
+TSatProof<Solver>::TSatProof(Solver* solver, const std::string& name, bool checkRes) :
+  d_solver(solver),
+  d_cnfProof(NULL),
+  d_idClause(),
+  d_clauseId(),
+  d_idUnit(),
+  d_deleted(),
+  d_inputClauses(),
+  d_lemmaClauses(),
+  d_assumptions(),
+  d_assumptionConflicts(),
+  d_assumptionConflictsDebug(),
+  d_resChains(),
+  d_resStack(),
+  d_checkRes(checkRes),
+  d_emptyClauseId(-1),
+  d_nullId(-2),
+  d_temp_clauseId(),
+  d_temp_idClause(),
+  d_unitConflictId(),
+  d_storedUnitConflict(false),
+  d_name(name),
+  d_seenLearnt(),
+  d_seenInputs(),
+  d_seenLemmas()
+{
+  d_proxy = new ProofProxy<Solver>(this);
+}
+
+template <class Solver> 
+TSatProof<Solver>::~TSatProof() {
+  IdToClause::iterator it = d_inputClauses.begin();
+  IdToClause::iterator end = d_inputClauses.end();
+  for (; it != end; ++it) {
+    delete it->second;
+  }
+
+  it = d_deletedTheoryLemmas.begin();
+  end = d_deletedTheoryLemmas.end();
+
+  for (; it != end; ++it) {
+    delete it->second;
+  }
+}
  
 template <class Solver> 
 void TSatProof<Solver>::setCnfProof(CnfProof* cnf_proof) {
@@ -449,7 +466,7 @@ template <class Solver>
     d_idClause.insert(std::make_pair(newId, clause));
     if (kind == INPUT) {
       Assert(d_inputClauses.find(newId) == d_inputClauses.end());
-      d_inputClauses.insert(newId));
+      d_inputClauses.insert(newId);
     }
     if (kind == THEORY_LEMMA) {
       Assert(d_lemmaClauses.find(newId) == d_lemmaClauses.end());
@@ -559,7 +576,7 @@ void TSatProof<Solver>::removeRedundantFromRes(ResChain<Solver>* res, ClauseId i
       Assert(isUnit(~lit));
       reason_id = getUnitId(~lit);
     } else {
-      reason_id = registerClause(reason_ref, LEARNT, uint64_t(-1));
+      reason_id = registerClause(reason_ref, LEARNT);
     }
     res->addStep(lit, reason_id, !sign(lit));
   }
@@ -602,7 +619,7 @@ void TSatProof<Solver>::startResChain(typename Solver::TLit start) {
 template <class Solver> 
 void TSatProof<Solver>::addResolutionStep(typename Solver::TLit lit,
                                           typename Solver::TCRef clause, bool sign) {
-  ClauseId id = registerClause(clause, LEARNT, uint64_t(-1));
+  ClauseId id = registerClause(clause, LEARNT);
   ResChain<Solver>* res = d_resStack.back();
   res->addStep(lit, id, sign);
 }
@@ -616,19 +633,19 @@ void TSatProof<Solver>::endResChain(ClauseId id) {
 }
 
 
-template <class Solver> 
-void TSatProof<Solver>::endResChain(typename Solver::TCRef clause) {
-  Assert(d_resStack.size() > 0);
-  ClauseId id = registerClause(clause, LEARNT, uint64_t(-1));
-  ResChain<Solver>* res = d_resStack.back();
-  registerResolution(id, res);
-  d_resStack.pop_back();
-}
+// template <class Solver> 
+// void TSatProof<Solver>::endResChain(typename Solver::TCRef clause) {
+//   Assert(d_resStack.size() > 0);
+//   ClauseId id = registerClause(clause, LEARNT, uint64_t(-1));
+//   ResChain<Solver>* res = d_resStack.back();
+//   registerResolution(id, res);
+//   d_resStack.pop_back();
+// }
 
 template <class Solver> 
 void TSatProof<Solver>::endResChain(typename Solver::TLit lit) {
   Assert(d_resStack.size() > 0);
-  ClauseId id = registerUnitClause(lit, LEARNT, uint64_t(-1));
+  ClauseId id = registerUnitClause(lit, LEARNT);
   ResChain<Solver>* res = d_resStack.back();
   registerResolution(id, res);
   d_resStack.pop_back();
@@ -687,7 +704,7 @@ ClauseId TSatProof<Solver>::resolveUnit(typename Solver::TLit lit) {
       res->addStep(l, res_id, !sign(l));
     }
   }
-  ClauseId unit_id = registerUnitClause(lit, LEARNT, uint64_t(-1));
+  ClauseId unit_id = registerUnitClause(lit, LEARNT);
   registerResolution(unit_id, res);
   return unit_id;
 }
@@ -861,14 +878,16 @@ std::string TSatProof<Solver>::clauseName(ClauseId id) {
 
 template <class Solver> 
 void TSatProof<Solver>::collectClauses(ClauseId id) {
-  if (d_seenInputsLemmas.find(id) != d_seenInputsLemmas.end()) {
+  if (d_seenInputs.find(id) != d_seenInputs.end() ||
+      d_seenLemmas.find(id) != d_seenLemmas.end()) {
     return;
   }
 
-  if (isInputClause(id) ||
-      isLemmaClause(id)) {
-    d_seenInputsLemmas.insert(id);
+  if (isInputClause(id)) {
+    d_seenInputs.insert(id);
     return;
+  } else if (isLemmaClause(id)) {
+    d_seenLemmas.insert(id);
   } else if (!isAssumptionConflict(id)) {
     d_seenLearnt.insert(id);
   }
@@ -882,6 +901,13 @@ void TSatProof<Solver>::collectClauses(ClauseId id) {
   for(size_t i = 0; i < steps.size(); i++) {
     collectClauses(steps[i].id);
   }
+}
+
+template <class Solver> 
+void TSatProof<Solver>::getClausesUsed(const IdHashSet& inputs,
+                                       const IdHashSet& lemmas) {
+  inputs = d_seenInputs;
+  lemmas = d_seenLemmas;
 }
 
 /// LFSCSatProof class
