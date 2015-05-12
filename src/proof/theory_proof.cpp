@@ -91,7 +91,8 @@ void TheoryProofEngine::registerTerm(Expr term) {
 }
 
 theory::TheoryId TheoryProofEngine::getTheoryForLemma(ClauseId id) {
-  // TODO: have proper dispatch here
+  // TODO: now CNF proof has a map from formula to proof rule
+  // that should be checked to figure out what theory is responsible for this
   ProofManager* pm = ProofManager::currentPM(); 
   
   if (pm->getLogic() == "QF_UF") return theory::THEORY_UF;

@@ -195,6 +195,16 @@ std::string ProofManager::getLitName(prop::SatLiteral lit,
   return append(prefix+".l", lit.toInt());
 }
 
+
+std::string ProofManager::getPreprocessedAssertionName(Node node,
+                                                       const std::string& prefix) {
+  return append(prefix+".PA", node.getId());
+}
+std::string ProofManager::getAssertionName(Node node,
+                                           const std::string& prefix) {
+  return append(prefix+".A", node.getId());
+}
+
 // void ProofManager::addTheoryLemma(ClauseId id,
 //                                   const prop::SatClause* clause,
 //                                   ClauseKind kind) {
@@ -236,31 +246,28 @@ void ProofManager::traceDeps(TNode n) {
   }
 }
 
-// void ProofManager::addClause(ClauseId id, const prop::SatClause* clause, ClauseKind kind) {
-//   if (kind == INPUT) {
-//     d_inputClauses.insert(std::make_pair(id, clause));
-//     Assert(d_satProof->d_inputClauses.find(id) != d_satProof->d_inputClauses.end());
-//     Debug("cores") << "core id is " << d_satProof->d_inputClauses[id] << std::endl;
-//     if(d_satProof->d_inputClauses[id] == uint64_t(-1)) {
-//       Debug("cores") << " + constant unit (true or false)" << std::endl;
-//     } else if(options::unsatCores()) {
-//       Expr e = d_cnfProof->getAssertion(d_satProof->d_inputClauses[id] & 0xffffffff);
-//       Debug("cores") << "core input assertion from CnfStream is " << e << std::endl;
-//       Debug("cores") << "with proof rule " << ((d_satProof->d_inputClauses[id] & 0xffffffff00000000llu) >> 32) << std::endl;
-//       // Invalid proof rules are currently used for parts of CVC4 that don't
-//       // support proofs (these are e.g. unproven theory lemmas) or don't need
-//       // proofs (e.g. split lemmas).  We can ignore these safely when
-//       // constructing unsat cores.
-//       if(((d_satProof->d_inputClauses[id] & 0xffffffff00000000llu) >> 32) != RULE_INVALID) {
-//         // trace dependences back to actual assertions
-//         traceDeps(Node::fromExpr(e));
-//       }
-//     }
-//   } else {
-//     Assert(kind == THEORY_LEMMA);
-//     d_theoryLemmas.insert(std::make_pair(id, clause));
-//   }
-// }
+void ProofManager::traceUnsatCore() {
+  Assert (options::unsatCores());
+  
+  d_satProof->constructProof();
+  IdHashSet used_lemmas;
+  IdHashSet used_inputs;
+  d_satProof->getClausesUsed(used_inputs,
+                             used_lemmas);
+  IdHashSet::const_iterator it = used_inputs.begin();
+  for(; it != used_inputs.end(); ++it) {
+    Node node = d_cnfProof->getAssertionForClause(*it);
+    ProofRule rule = d_cnfProof->getProofRule(node);
+    
+    Debug("cores") << "core input assertion " << node << std::endl;
+    Debug("cores") << "with proof rule " << rule << std::endl;
+    if (rule != RULE_INVALID) {
+      // trace dependences back to actual assertions
+      // (this adds them to the unsat core)
+      traceDeps(node);
+    }
+  }
+}
 
 void ProofManager::addAssertion(Expr formula, bool inUnsatCore) {
   Debug("cores") << "assert: " << formula << std::endl;
@@ -292,9 +299,9 @@ void ProofManager::setLogic(const LogicInfo& logic) {
   d_logic = logic;
 }
 
-void ProofManager::printProof(std::ostream& os, TNode n) {
-  // no proofs here yet
-}
+// void ProofManager::printProof(std::ostream& os, TNode n) {
+//   // no proofs here yet
+// }
 
 // void ProofManager::setCnfDep( Expr child, Expr parent ) {
 //   Debug("cores") << "CNF dep : " << child << " : " << parent << std::endl;
@@ -414,8 +421,28 @@ void LFSCProof::toStream(std::ostream& out) {
   paren <<")))\n;;";
   out << paren.str();
   out << "\n";
-
 }
+
+void LFSCProof::printPreprocessedAssertions(const NodeSet& assertions,
+                                            std::ostream& os,
+                                            std::ostream& paren) {
+  os << " ;; Preprocessing \n";
+  NodeSet::const_iterator it = assertions.begin();
+  NodeSet::const_iterator end = assertions.end();
+  
+  for (; it != end; ++it) {
+    os << "(th_let_pf _ ";
+    
+    //TODO
+    os << "(trust_f ";
+    ProofManager::currentPM()->getTheoryProofEngine()->printLetTerm(*it, os);
+    os << ") ";
+    
+    os << "(\\ "<< ProofManager::getPreprocessedAssertionName(*it, "");
+    paren << "))";
+  }
+}
+
 
 // void LFSCProof::toStream(std::ostream& out) {
 //   smt::SmtScope scope(d_smtEngine);

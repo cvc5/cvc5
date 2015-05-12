@@ -38,6 +38,8 @@ class CnfProof;
 typedef __gnu_cxx::hash_map<Expr, prop::SatVariable, ExprHashFunction > ExprToSatVar;
 typedef __gnu_cxx::hash_map<prop::SatVariable, Expr> SatVarToExpr;
 typedef __gnu_cxx::hash_map<Node, Node, NodeHashFunction> NodeToNode;
+typedef context::CDMap<ClauseId, Node> ClauseIdToNode;
+typedef context::CDMap<Node, ProofRule> NodeToProofRule;
 
 class CnfProof {
 protected:
@@ -47,14 +49,20 @@ protected:
   // IdToClause d_inputClauses;   
 
   /** Map from ClauseId to the assertion that lead to adding this clause **/
-  context::CDMap<ClauseId, Node> d_clauseToAssertion;
+  ClauseIdToNode d_clauseToAssertion;
+
   /** Map from assertion to reason for adding assertion  **/
-  context::CDMap<Node, ProofRule> d_assertionToProofRule;
-  /** Original assertion currently being converted to CNF **/
+  NodeToProofRule d_assertionToProofRule;
+
+  /** Top of stack is assertion currently being converted to CNF **/
   std::vector<Node> d_currentAssertionStack;
 
   /** Map from ClauseId to the top-level fact that lead to adding this clause **/
-  context::CDMap<ClauseId, Node> d_clauseToFact;
+  ClauseIdToNode d_clauseToFact;
+
+  /** Top-level facts that follow from assertions during convertAndAssert **/
+  NodeSet d_topLevelFacts;
+  
   /** Map from top-level fact to facts/assertion that it follows from **/
   NodeToNode d_cnfDeps;
 
@@ -102,16 +110,21 @@ public:
   
   /** Virtual methods for printing things **/
   virtual void printAtomMapping(std::ostream& os, std::ostream& paren) = 0;
-  virtual void printClauses(std::ostream& os, std::ostream& paren) = 0;
-  virtual void printClause(const prop::SatClause& clause, std::ostream& os, std::ostream& paren) = 0;
-  virtual void printCnfProof(ClauseId id, std::ostream& os, std::ostream& paren);
+  // virtual void printClauses(std::ostream& os, std::ostream& paren) = 0;
+  virtual void printClause(const prop::SatClause& clause,
+                           std::ostream& os,
+                           std::ostream& paren) = 0;
+  virtual void printCnfProofForClause(ClauseId id,
+                                      const prop::SatClause* clause,
+                                      std::ostream& os,
+                                      std::ostream& paren);
   virtual ~CnfProof();
 };/* class CnfProof */
 
 class LFSCCnfProof : public CnfProof {
-  void printPreprocess(std::ostream& os, std::ostream& paren);
-  void printInputClauses(std::ostream& os, std::ostream& paren);
-  void printTheoryLemmas(std::ostream& os, std::ostream& paren);
+  // void printPreprocess(std::ostream& os, std::ostream& paren);
+  // void printInputClauses(std::ostream& os, std::ostream& paren);
+  // void printTheoryLemmas(std::ostream& os, std::ostream& paren);
 
   Expr clauseToExpr( const prop::SatClause& clause,
                      std::map< Expr, unsigned >& childIndex,
@@ -122,8 +135,12 @@ public:
     : CnfProof(cnfStream, name)
   {}
 
-  virtual void printClauses(std::ostream& os, std::ostream& paren);
-  void printClause(const prop::SatClause& clause, std::ostream& os, std::ostream& paren);
+  void printClause(const prop::SatClause& clause,
+                   std::ostream& os,
+                   std::ostream& paren);
+  void printCnfProofForClause(const prop::SatClause& clause,
+                              std::ostream& os,
+                              std::ostream& paren);
   void printAtomMapping(std::ostream& os, std::ostream& paren);
 };/* class LFSCCnfProof */
 

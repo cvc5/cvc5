@@ -100,7 +100,7 @@ enum ProofRule {
   RULE_INVALID,     /* assert-fail if this is ever needed in proof; use e.g. for split lemmas */
   RULE_CONFLICT,    /* re-construct as a conflict */
   RULE_TSEITIN,     /* Tseitin CNF transformation */
-  RULE_LEMMA,       /* Clause asserted through theory engine lemma channel */
+  RULE_BV_CONFLICT, 
   
   RULE_ARRAYS_EXT,  /* arrays, extensional */
   RULE_ARRAYS_ROW,  /* arrays, read-over-write */
@@ -136,7 +136,7 @@ class ProofManager {
   // std::map< ClauseId, ProofRule > d_clause_id_to_rule;
   // std::map< Expr, Expr > d_cnf_dep; // dependence of cnf top-level things
   //LFSC number for assertions
-  unsigned d_assertion_counter;
+  // unsigned d_assertion_counter;
   // std::map< Expr, unsigned > d_assertion_to_id; // unsat core deps and preprocessed things
 protected:
   LogicInfo d_logic;
@@ -151,6 +151,7 @@ public:
   static void         initSatProof(Minisat::Solver* solver);
   static void         initCnfProof(CVC4::prop::CnfStream* cnfStream);
   static void         initTheoryProofEngine();
+
   // getting various proofs
   static Proof*         getProof(SmtEngine* smt);
   static CoreSatProof*  getSatProof();
@@ -167,8 +168,8 @@ public:
   typedef ExprSet::const_iterator assertions_iterator;
 
 
-  NodeToNodes::const_iterator begin_deps() const { return d_deps.begin(); }
-  NodeToNodes::const_iterator end_deps() const { return d_deps.end(); }
+  // NodeToNodes::const_iterator begin_deps() const { return d_deps.begin(); }
+  // NodeToNodes::const_iterator end_deps() const { return d_deps.end(); }
 
   // clause_iterator begin_input_clauses() const { return d_inputClauses.begin(); }
   // clause_iterator end_input_clauses() const { return d_inputClauses.end(); }
@@ -184,9 +185,6 @@ public:
   assertions_iterator end_assertions() const { return d_inputFormulas.end(); }
   size_t num_assertions() const { return d_inputFormulas.size(); }
 
-  void addAssertion(Expr formula, bool inUnsatCore);
-  // note that n depends on dep (for cores)
-  void addDependence(TNode n, TNode dep);
 
   //void addTheoryLemma(ClauseId id, const prop::SatClause* clause, ClauseKind kind);
   //void addClause(ClauseId id, const prop::SatClause* clause, ClauseKind kind);
@@ -196,17 +194,23 @@ public:
   static std::string getLemmaClauseName(ClauseId id, const std::string& prefix = "");
   static std::string getLemmaName(ClauseId id, const std::string& prefix = "");
   static std::string getLearntClauseName(ClauseId id, const std::string& prefix = "");
-
+  static std::string getPreprocessedAssertionName(Node node, const std::string& prefix = "");
+  static std::string getAssertionName(Node node, const std::string& prefix = "");
+  
   static std::string getVarName(prop::SatVariable var, const std::string& prefix = "");
   static std::string getAtomName(prop::SatVariable var, const std::string& prefix = "");
   static std::string getAtomName(TNode atom, const std::string& prefix = "");
   static std::string getLitName(prop::SatLiteral lit, const std::string& prefix = "");
   static std::string getLitName(TNode lit, const std::string& prefix = "");
   
-  void printProof(std::ostream& os, TNode n);
+  //  void printProof(std::ostream& os, TNode n);
 
+  /** Public unsat core methods **/
+  void addAssertion(Expr formula, bool inUnsatCore);
+  void addDependence(TNode n, TNode dep);
   void addUnsatCore(Expr formula);
 
+  void traceUnsatCore();
   assertions_iterator begin_unsat_core() const { return d_outputCoreFormulas.begin(); }
   assertions_iterator end_unsat_core() const { return d_outputCoreFormulas.end(); }
   size_t size_unsat_core() const { return d_outputCoreFormulas.size(); }
@@ -238,6 +242,10 @@ class LFSCProof : public Proof {
   LFSCRewriterProof* d_rewriterProof;
   LFSCTheoryProofEngine* d_theoryProof;
   SmtEngine* d_smtEngine;
+  // FIXME: hack until we get preprocessing
+  void printPreprocessedAssertions(const NodeSet& assertions,
+                                   std::ostream& os,
+                                   std::ostream& paren);
 public:
   LFSCProof(SmtEngine* smtEngine,
             LFSCCoreSatProof* sat,

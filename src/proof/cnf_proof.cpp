@@ -42,6 +42,75 @@ CnfProof::~CnfProof() {
   }
 }
 
+bool CnfProof::isAssertion(Node node) {
+  return d_assertionToProofRule.find(node) !=
+         d_assertionToProofRule.end();
+}
+
+bool CnfProof::isTopLevelFact(Node node) {
+  return d_topLevelFacts.find(node) !=
+         d_topLevelFacts.end();
+}
+  
+ProofRule CnfProof::getProofRule(Node assertion) {
+  Assert (isAssertion(node));
+  return *(d_assertionToProofRule.find(node);)
+}
+ProofRule CnfProof::getProofRule(ClauseId clause) {
+  TNode assertion = getAssertionForClause(clause);
+  return getProofRule(assertion);
+}
+
+Node CnfProof::getAssertionForClause(ClauseId clause) {
+  ClauseIdToNode::const_iterator it = d_clauseToAssertion.find(clause);
+  Assert (it != d_clauseToAssertion.end());
+  return it->second;
+}
+
+Node CnfProof::getTopLevelFactForClause(ClauseId clause) {
+  ClauseIdToNode::const_iterator it = d_clauseToFact.find(clause);
+  Assert (it != d_clauseToFact.end());
+  return it->second;
+}
+
+void CnfProof::registerConvertedClause(ClauseId clause, bool explanation) {
+  Assert (!explanation); // FIXME: handle explanations specially 
+  TNode current_assertion = getCurrentAssertion();
+  Assert (d_clauseToAssertion.find(clause) == d_clauseToAssertion.end());
+  d_clauseToAssertion.insert (make_pair(clause, current_assertion));
+}
+
+void CnfProof::setClauseFact(ClauseId clause, TNode fact) {
+  Assert (d_clauseToFact.find(clause) == d_clauseToFact.end());
+  d_clauseToFact.insert(make_pair(clause, fact));
+  d_topLevelFacts.insert(fact);
+}
+  
+void CnfProof::registerAssertion(Node assertion, ProofRule reason) {
+  Assert (!isAssertion(assertion));
+  d_assertionToProofRule.insert(make_pair(assertion, reason));
+}
+
+void CnfProof::setCnfDependence(Node from, Node to) {
+  Assert (from != to);
+  Assert (d_cnfDeps.find(from) == d_cnfDeps.end());
+  d_cnfDeps.insert(make_pair(from, to));
+}
+
+void CnfProof::pushCurrentAssertion(Node assertion) {
+  d_currentAssertionStack.push_back(assertion);
+}
+
+void CnfProof::popCurrentAssertion() {
+  Assert (d_curentAssertionStack.size());
+  d_curentAssertionStack.pop_back();
+}
+
+Node CnfProof::getCurrentAssertion() {
+  Assert (d_curentAssertionStack.size());
+  return d_curentAssertionStack.back();
+}
+
 Expr CnfProof::getAtom(prop::SatVariable var) {
   prop::SatLiteral lit (var);
   Node node = d_cnfStream->getNode(lit);
@@ -68,6 +137,15 @@ void CnfProof::collectAtoms(const prop::SatClause* clause) {
   }
 }
 
+prop::SatLiteral CnfProof::getLiteral(TNode atom) {
+  return d_cnfStream->getLiteral(atom);
+}
+
+Expr CnfProof::getAssertion(uint64_t id) {
+  return d_cnfStream->getAssertion(id).toExpr();
+}
+
+
 void LFSCCnfProof::printAtomMapping(std::ostream& os, std::ostream& paren) {
   atom_iterator it = begin_atoms(); 
   atom_iterator end = end_atoms(); 
@@ -86,41 +164,6 @@ void LFSCCnfProof::printAtomMapping(std::ostream& os, std::ostream& paren) {
   }
 }
 
-prop::SatLiteral CnfProof::getLiteral(TNode atom) {
-  return d_cnfStream->getLiteral(atom);
-}
-
-Expr CnfProof::getAssertion(uint64_t id) {
-  return d_cnfStream->getAssertion(id).toExpr();
-}
-
-void LFSCCnfProof::printClauses(std::ostream& os, std::ostream& paren) {
-  printPreprocess(os, paren); // FIXME: move this to somewhere else
-  printInputClauses(os, paren);
-}
-
-void LFSCCnfProof::printPreprocess(std::ostream& os, std::ostream& paren) {
-  os << " ;; Preprocessing \n";
-  __gnu_cxx::hash_map< Node, std::vector<Node>, NodeHashFunction >::const_iterator it = ProofManager::currentPM()->begin_deps();
-  __gnu_cxx::hash_map< Node, std::vector<Node>, NodeHashFunction >::const_iterator end = ProofManager::currentPM()->end_deps();
-
-  for (; it != end; ++it) {
-    if( !it->second.empty() ){
-      Expr e = it->first.toExpr();
-      os << "(th_let_pf _ ";
-
-      //TODO
-      os << "(trust_f ";
-      ProofManager::currentPM()->getTheoryProofEngine()->printLetTerm(e, os);
-      os << ") ";
-
-      os << "(\\ A" << ProofManager::currentPM()->getAssertionCounter() << std::endl;
-      ProofManager::currentPM()->setAssertion( e );
-      paren << "))";
-    }
-  }
-}
-
 // maps each expr to the position it had in the clause and the polarity it had
 Expr LFSCCnfProof::clauseToExpr( const prop::SatClause& clause,
                                  std::map< Expr, unsigned >& childIndex,
@@ -135,96 +178,6 @@ Expr LFSCCnfProof::clauseToExpr( const prop::SatClause& clause,
     childPol[atom.toExpr()] = !lit.isNegated();
   }
   return children.size()==1 ? children[0].toExpr() : NodeManager::currentNM()->mkNode( kind::OR, children ).toExpr();
-}
-
-// void LFSCCnfProof::printInputClauses(std::ostream& os, std::ostream& paren) {
-//   os << " ;; Input Clauses \n";
-//   clause_iterator it = begin_input_clauses();
-//   clause_iterator end = end_input_clauses();
-
-//   for (; it != end; ++it) {
-//     ClauseId id = it->first;
-
-//   }
-// }
-
-void LFSCCnfProof::printTheoryLemmas(std::ostream& os, std::ostream& paren) {
-  os << " ;; Theory Lemmas\n";
-  ProofManager::ordered_clause_iterator it = ProofManager::currentPM()->begin_lemmas();
-  ProofManager::ordered_clause_iterator end = ProofManager::currentPM()->end_lemmas();
-
-  for(size_t n = 0; it != end; ++it, ++n) {
-    if(n % 100 == 0) {
-      Chat() << "proving theory conflicts...(" << n << "/" << ProofManager::currentPM()->num_lemmas() << ")" << std::endl;
-    }
-
-    ClauseId id = it->first;
-    const prop::SatClause* clause = it->second;
-    NodeBuilder<> c(kind::AND);
-    for(unsigned i = 0; i < clause->size(); ++i) {
-      prop::SatLiteral lit = (*clause)[i];
-      prop::SatVariable var = lit.getSatVariable();
-      if(lit.isNegated()) {
-        c << Node::fromExpr(getAtom(var));
-      } else {
-        c << Node::fromExpr(getAtom(var)).notNode();
-      }
-    }
-    Node cl = c;
-    if(ProofManager::getSatProof()->d_lemmaClauses.find(id) !=
-       ProofManager::getSatProof()->d_lemmaClauses.end()) {
-      uint64_t proof_id = ProofManager::getSatProof()->d_lemmaClauses[id];
-      TNode orig = d_cnfStream->getAssertion(proof_id & 0xffffffff);
-      if(((proof_id >> 32) & 0xffffffff) == RULE_ARRAYS_EXT) {
-        Debug("cores") << "; extensional lemma!" << std::endl;
-        Assert(cl.getKind() == kind::AND &&
-	       cl.getNumChildren() == 2 &&
-	       cl[0].getKind() == kind::EQUAL &&
-	       cl[0][0].getKind() == kind::SELECT);
-        TNode myk = cl[0][0][1];
-        Debug("cores") << "; so my skolemized k is " << myk << std::endl;
-        os << "(ext _ _ " << orig[0][0] << " " << orig[0][1]
-	   << " (\\ " << myk << " (\\ " << ProofManager::getLemmaName(id) << "\n";
-        paren << ")))";
-      }
-    }
-    os << "(satlem _ _ ";
-    std::ostringstream clause_paren;
-    printClause(*clause, os, clause_paren);
-
-    Debug("cores") << "\n;id is " << id << std::endl;
-    if(ProofManager::getSatProof()->d_lemmaClauses.find(id) !=
-       ProofManager::getSatProof()->d_lemmaClauses.end()) {
-      uint64_t proof_id = ProofManager::getSatProof()->d_lemmaClauses[id];
-      Debug("cores") << ";getting id " << int32_t(proof_id & 0xffffffff) << std::endl;
-      Assert(int32_t(proof_id & 0xffffffff) != -1);
-      TNode orig = d_cnfStream->getAssertion(proof_id & 0xffffffff);
-      Debug("cores") << "; ID is " << id << " and that's a lemma with " << ((proof_id >> 32) & 0xffffffff) << " / " << (proof_id & 0xffffffff) << std::endl;
-      Debug("cores") << "; that means the lemma was " << orig << std::endl;
-      if(((proof_id >> 32) & 0xffffffff) == RULE_ARRAYS_EXT) {
-        Debug("cores") << "; extensional" << std::endl;
-        os << "(clausify_false trust)\n";
-      } else if(proof_id == 0) {
-        // theory propagation caused conflict
-        //ProofManager::currentPM()->printProof(os, cl);
-        os << "(clausify_false trust)\n";
-      } else if(((proof_id >> 32) & 0xffffffff) == RULE_CONFLICT) {
-        os << "\n;; need to generate a (conflict) proof of " << cl << "\n";
-        //ProofManager::currentPM()->printProof(os, cl);
-        os << "(clausify_false trust)\n";
-      } else {
-        os << "\n;; need to generate a (lemma) proof of " << cl;
-        os << "\n;; DON'T KNOW HOW !!\n";
-        os << "(clausify_false trust)\n";
-      }
-    } else {
-      os << "\n;; need to generate a (conflict) proof of " << cl << "\n";
-      ProofManager::currentPM()->printProof(os, cl);
-    }
-    os << clause_paren.str()
-       << " (\\ " << ProofManager::getLemmaClauseName(id, d_name) << "\n";
-    paren << "))";
-  }
 }
 
 void LFSCCnfProof::printCnfProofForClause(ClauseId id,
@@ -287,7 +240,7 @@ void LFSCCnfProof::printCnfProofForClause(ClauseId id,
       os << ProofManager::getLitName(lit) << " " << os_base.str();
     }
     os << ")";
-  }else if ((base_assertion.getKind()==kind::AND && !base_pol) ||
+  } else if ((base_assertion.getKind()==kind::AND && !base_pol) ||
            ((base_assertion.getKind()==kind::OR ||
              base_assertion.getKind()==kind::IMPLIES) && base_pol)) {
     Trace("cnf-pf") << "; and/or case 1" << std::endl;
@@ -575,7 +528,9 @@ void LFSCCnfProof::printCnfProofForClause(ClauseId id,
   paren << "))";
 }
 
-void LFSCCnfProof::printClause(const prop::SatClause& clause, std::ostream& os, std::ostream& paren) {
+void LFSCCnfProof::printClause(const prop::SatClause& clause,
+                               std::ostream& os,
+                               std::ostream& paren) {
   for (unsigned i = 0; i < clause.size(); ++i) {
     prop::SatLiteral lit = clause[i];
     prop::SatVariable var = lit.getSatVariable();
@@ -591,38 +546,41 @@ void LFSCCnfProof::printClause(const prop::SatClause& clause, std::ostream& os, 
 
 // print a proof of the top-level formula e, based on the input assertions
 bool LFSCCnfProof::printProofTopLevel(Node e, std::ostream& out) {
-  std::map< Expr, unsigned >::iterator itp = d_assertion_to_id.find(e);
-  if( itp==d_assertion_to_id.end() ){
-    //check if deduced by CNF
+  if (!isAssertion(e)) {
+    // check if deduced by CNF
     // dependence on top level fact i.e. a depends on (a and b)
-    std::map< Expr, Expr >::iterator itd = d_cnf_dep.find( e );
-    if( itd!=d_cnf_dep.end() ){
-      Expr parent = itd->second;
+    NodeToNode::const_iterator itd = d_cnfDeps.find(e);
+    if (itd != d_cnfDeps.end()) {
+      TNode parent = itd->second;
       //check if parent is an input assertion
       std::stringstream out_parent;
-      if( isInputAssertion( parent, out_parent ) ){
+      if (printProofTopLevel(parent, out_parent)) {
         if(parent.getKind()==kind::AND ||
            (parent.getKind()==kind::NOT && (parent[0].getKind()==kind::IMPLIES ||
                                             parent[0].getKind()==kind::OR))) {
-          Expr parent_base = parent.getKind()==kind::NOT ? parent[0] : parent;
-          Expr e_base = e.getKind()==kind::NOT ? e[0] : e;
+          Node parent_base = parent.getKind()==kind::NOT ? parent[0] : parent;
+          Node e_base = e.getKind()==kind::NOT ? e[0] : e;
           bool e_pol = e.getKind()!=kind::NOT;
           for( unsigned i=0; i<parent_base.getNumChildren(); i++ ){
-            Expr child_base = parent_base[i].getKind()==kind::NOT ? parent_base[i][0] : parent_base[i];
+            Node child_base = parent_base[i].getKind()==kind::NOT ? parent_base[i][0] : parent_base[i];
             bool child_pol = parent_base[i].getKind()!=kind::NOT;
             if( parent_base.getKind()==kind::IMPLIES && i==0 ){
               child_pol = !child_pol;
             }
-            if( e_base==child_base && (e_pol==child_pol)==(parent_base.getKind()==kind::AND) ){
-              bool elimNn = ( ( parent_base.getKind()==kind::OR || ( parent_base.getKind()==kind::IMPLIES && i==1 ) ) && e_pol );
-              if( elimNn ){
+            if (e_base==child_base &&
+                (e_pol==child_pol)==(parent_base.getKind()==kind::AND)) {
+              bool elimNn = ((parent_base.getKind()==kind::OR ||
+                              (parent_base.getKind()==kind::IMPLIES && i==1)) && e_pol);
+              if (elimNn) {
                 out << "(not_not_elim _ ";
               }
               std::stringstream out_paren;
-              if( i+1<parent_base.getNumChildren() ){
+              if (i+1 < parent_base.getNumChildren()) {
                 out << "(and_elim_1 _ _ ";
-                if( parent_base.getKind()==kind::OR || parent_base.getKind()==kind::IMPLIES  ){
-                  out << "(not_" << ( parent_base.getKind()==kind::OR ? "or" : "impl" ) << "_elim _ _ ";
+                if( parent_base.getKind()==kind::OR ||
+                    parent_base.getKind()==kind::IMPLIES  ){
+                  out << "(not_" << ( parent_base.getKind()==kind::OR ? "or" : "impl" )
+                      << "_elim _ _ ";
                   out_paren << ")";
                 }
                 out_paren << ")";
@@ -643,21 +601,104 @@ bool LFSCCnfProof::printProofTopLevel(Node e, std::ostream& out) {
               return true;
             }
           }
-        }else{
-          Trace("cnf-pf-debug") << "; isInputAssertion : parent of " << e << " is not correct type (" << parent << ")" << std::endl;
+        } else {
+          Trace("cnf-pf-debug") << "; isInputAssertion : parent of " << e
+                                << " is not correct type (" << parent << ")" << std::endl;
         }
-      }else{
-        Trace("cnf-pf-debug") << "; isInputAssertion : parent of " << e << " is not input" << std::endl;
+      } else {
+        Trace("cnf-pf-debug") << "; isInputAssertion : parent of " << e
+                              << " is not input" << std::endl;
       }
-    }else{
-      Trace("cnf-pf-debug") << "; isInputAssertion : " << e << " has no parent" << std::endl;
+    } else {
+      Trace("cnf-pf-debug") << "; isInputAssertion : " << e
+                            << " has no parent" << std::endl;
     }
     return false;
-  }else{
-    out << "A" << itp->second;
+  } else {
+    out << ProofMananger::getPreprocessedAssertionName(e, d_name);
     return true;
   }
 }
+
+
+// void LFSCCnfProof::printTheoryLemmas(std::ostream& os, std::ostream& paren) {
+//   os << " ;; Theory Lemmas\n";
+//   ProofManager::ordered_clause_iterator it = ProofManager::currentPM()->begin_lemmas();
+//   ProofManager::ordered_clause_iterator end = ProofManager::currentPM()->end_lemmas();
+
+//   for(size_t n = 0; it != end; ++it, ++n) {
+//     if(n % 100 == 0) {
+//       Chat() << "proving theory conflicts...(" << n << "/" << ProofManager::currentPM()->num_lemmas() << ")" << std::endl;
+//     }
+
+//     ClauseId id = it->first;
+//     const prop::SatClause* clause = it->second;
+//     NodeBuilder<> c(kind::AND);
+//     for(unsigned i = 0; i < clause->size(); ++i) {
+//       prop::SatLiteral lit = (*clause)[i];
+//       prop::SatVariable var = lit.getSatVariable();
+//       if(lit.isNegated()) {
+//         c << Node::fromExpr(getAtom(var));
+//       } else {
+//         c << Node::fromExpr(getAtom(var)).notNode();
+//       }
+//     }
+//     Node cl = c;
+//     if(ProofManager::getSatProof()->d_lemmaClauses.find(id) !=
+//        ProofManager::getSatProof()->d_lemmaClauses.end()) {
+//       uint64_t proof_id = ProofManager::getSatProof()->d_lemmaClauses[id];
+//       TNode orig = d_cnfStream->getAssertion(proof_id & 0xffffffff);
+//       if(((proof_id >> 32) & 0xffffffff) == RULE_ARRAYS_EXT) {
+//         Debug("cores") << "; extensional lemma!" << std::endl;
+//         Assert(cl.getKind() == kind::AND &&
+// 	       cl.getNumChildren() == 2 &&
+// 	       cl[0].getKind() == kind::EQUAL &&
+// 	       cl[0][0].getKind() == kind::SELECT);
+//         TNode myk = cl[0][0][1];
+//         Debug("cores") << "; so my skolemized k is " << myk << std::endl;
+//         os << "(ext _ _ " << orig[0][0] << " " << orig[0][1]
+// 	   << " (\\ " << myk << " (\\ " << ProofManager::getLemmaName(id) << "\n";
+//         paren << ")))";
+//       }
+//     }
+//     os << "(satlem _ _ ";
+//     std::ostringstream clause_paren;
+//     printClause(*clause, os, clause_paren);
+
+//     Debug("cores") << "\n;id is " << id << std::endl;
+//     if(ProofManager::getSatProof()->d_lemmaClauses.find(id) !=
+//        ProofManager::getSatProof()->d_lemmaClauses.end()) {
+//       uint64_t proof_id = ProofManager::getSatProof()->d_lemmaClauses[id];
+//       Debug("cores") << ";getting id " << int32_t(proof_id & 0xffffffff) << std::endl;
+//       Assert(int32_t(proof_id & 0xffffffff) != -1);
+//       TNode orig = d_cnfStream->getAssertion(proof_id & 0xffffffff);
+//       Debug("cores") << "; ID is " << id << " and that's a lemma with " << ((proof_id >> 32) & 0xffffffff) << " / " << (proof_id & 0xffffffff) << std::endl;
+//       Debug("cores") << "; that means the lemma was " << orig << std::endl;
+//       if(((proof_id >> 32) & 0xffffffff) == RULE_ARRAYS_EXT) {
+//         Debug("cores") << "; extensional" << std::endl;
+//         os << "(clausify_false trust)\n";
+//       } else if(proof_id == 0) {
+//         // theory propagation caused conflict
+//         //ProofManager::currentPM()->printProof(os, cl);
+//         os << "(clausify_false trust)\n";
+//       } else if(((proof_id >> 32) & 0xffffffff) == RULE_CONFLICT) {
+//         os << "\n;; need to generate a (conflict) proof of " << cl << "\n";
+//         //ProofManager::currentPM()->printProof(os, cl);
+//         os << "(clausify_false trust)\n";
+//       } else {
+//         os << "\n;; need to generate a (lemma) proof of " << cl;
+//         os << "\n;; DON'T KNOW HOW !!\n";
+//         os << "(clausify_false trust)\n";
+//       }
+//     } else {
+//       os << "\n;; need to generate a (conflict) proof of " << cl << "\n";
+//       ProofManager::currentPM()->printProof(os, cl);
+//     }
+//     os << clause_paren.str()
+//        << " (\\ " << ProofManager::getLemmaClauseName(id, d_name) << "\n";
+//     paren << "))";
+//   }
+// }
 
 
 } /* CVC4 namespace */

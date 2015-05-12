@@ -805,7 +805,7 @@ void TheoryBV::setConflict(Node conflict) {
     lemmas.push_back(new_conflict); 
     d_abstractionModule->generalizeConflict(new_conflict, lemmas);
     for (unsigned i = 0; i < lemmas.size(); ++i) {
-      lemma(utils::mkNode(kind::NOT, lemmas[i])); 
+      lemma(utils::mkNode(kind::NOT, lemmas[i]), RULE_BV_CONFLICT); 
     }
   }
   d_conflict = true;
