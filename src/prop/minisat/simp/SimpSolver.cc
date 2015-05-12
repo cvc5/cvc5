@@ -23,8 +23,8 @@ OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWA
 #include "prop/minisat/utils/System.h"
 #include "prop/options.h"
 #include "proof/proof.h"
-using namespace Minisat;
 using namespace CVC4;
+using namespace CVC4::Minisat;
 
 //=================================================================================================
 // Options:

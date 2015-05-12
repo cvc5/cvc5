@@ -31,6 +31,7 @@ OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWA
 #include "prop/minisat/mtl/Map.h"
 #include "prop/minisat/mtl/Alloc.h"
 
+namespace CVC4 {
 namespace Minisat {
 
 //=================================================================================================
@@ -169,6 +170,7 @@ inline std::ostream& operator <<(std::ostream& out, Minisat::lbool val) {
 
 
 } /* Minisat */
+}
 
 
 
@@ -182,6 +184,7 @@ public:
 
 
 
+namespace CVC4 {
 namespace Minisat{
 
 //=================================================================================================
@@ -498,6 +501,7 @@ inline void Clause::strengthen(Lit p)
 }
 
 //=================================================================================================
+}
 }
 
 #endif

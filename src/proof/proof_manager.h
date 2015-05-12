@@ -27,12 +27,13 @@
 #include "theory/logic_info.h"
 #include "theory/substitutions.h"
 
+
+namespace CVC4 {
+
 // forward declarations
 namespace Minisat {
   class Solver;
 }/* Minisat namespace */
-
-namespace CVC4 {
 
 namespace prop {
   class CnfStream;

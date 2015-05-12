@@ -33,7 +33,7 @@ OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWA
 #include "proof/proof_manager.h"
 #include "proof/sat_proof.h"
 
-using namespace Minisat;
+using namespace CVC4::Minisat;
 using namespace CVC4;
 using namespace CVC4::prop;
 
