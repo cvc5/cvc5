@@ -138,10 +138,13 @@ void MinisatSatSolver::setupOptions() {
   d_minisat->restart_inc = options::satRestartInc();
 }
 
-void MinisatSatSolver::addClause(SatClause& clause, bool removable, uint64_t proof_id) {
+ClauseId MinisatSatSolver::addClause(SatClause& clause, bool removable) {
   Minisat::vec<Minisat::Lit> minisat_clause;
   toMinisatClause(clause, minisat_clause);
-  d_minisat->addClause(minisat_clause, removable, proof_id);
+  ClauseId clause_id = -1;
+  d_minisat->addClause(minisat_clause, removable, clause_id);
+  Assert (clause_id != -1);
+  return clause_id;
 }
 
 SatVariable MinisatSatSolver::newVar(bool isTheoryAtom, bool preRegister, bool canErase) {

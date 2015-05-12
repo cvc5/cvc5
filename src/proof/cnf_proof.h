@@ -34,36 +34,77 @@ namespace prop {
 
 class CnfProof;
 
-typedef __gnu_cxx::hash_map < ClauseId, const prop::SatClause* > IdToClause;
+// typedef __gnu_cxx::hash_map < ClauseId, const prop::SatClause* > IdToClause;
 typedef __gnu_cxx::hash_map<Expr, prop::SatVariable, ExprHashFunction > ExprToSatVar;
 typedef __gnu_cxx::hash_map<prop::SatVariable, Expr> SatVarToExpr;
+typedef __gnu_cxx::hash_map<Node, Node, NodeHashFunction> NodeToNode;
 
 class CnfProof {
 protected:
   CVC4::prop::CnfStream* d_cnfStream;
   ExprToSatVar d_atomToSatVar;
   SatVarToExpr d_satVarToAtom;
-  IdToClause d_inputClauses;
+  // IdToClause d_inputClauses;   
+
+  /** Map from ClauseId to the assertion that lead to adding this clause **/
+  context::CDMap<ClauseId, Node> d_clauseToAssertion;
+  /** Map from assertion to reason for adding assertion  **/
+  context::CDMap<Node, ProofRule> d_assertionToProofRule;
+  /** Original assertion currently being converted to CNF **/
+  std::vector<Node> d_currentAssertionStack;
+
+  /** Map from ClauseId to the top-level fact that lead to adding this clause **/
+  context::CDMap<ClauseId, Node> d_clauseToFact;
+  /** Map from top-level fact to facts/assertion that it follows from **/
+  NodeToNode d_cnfDeps;
+
+  bool isAssertion(Node node);
+  bool isTopLevelFact(Node node);
+  
+  ProofRule getProofRule(Node assertion);
+  ProofRule getProofRule(ClauseId clause);
+
+  Node getAssertionForClause(ClauseId clause);
+  Node getTopLevelFactForClause(ClauseId clause);
+  
   std::string d_name;
 public:
   CnfProof(CVC4::prop::CnfStream* cnfStream, const std::string& name);
-
-  typedef IdToClause::const_iterator clause_iterator;
-  clause_iterator begin_input_clauses() const { return d_inputClauses.begin(); }
-  clause_iterator end_input_clauses() const { return d_inputClauses.end(); }
-  void addInputClause(ClauseId id, const prop::SatClause* clause); 
-  void collectAtoms(const prop::SatClause* clause);
+  
+  // typedef IdToClause::const_iterator clause_iterator;
+  // clause_iterator begin_input_clauses() const { return d_inputClauses.begin(); }
+  // clause_iterator end_input_clauses() const { return d_inputClauses.end(); }
+  //void addInputClause(ClauseId id, const prop::SatClause* clause); 
   
   typedef ExprToSatVar::const_iterator atom_iterator;
   atom_iterator begin_atoms() { return d_atomToSatVar.begin(); }
   atom_iterator end_atoms() { return d_atomToSatVar.end(); }
+
   Expr getAtom(prop::SatVariable var);
   prop::SatLiteral getLiteral(TNode node);
-  Expr getAssertion(uint64_t id);
+  Expr getAssertion(ClauseId id);
+  void collectAtoms(const prop::SatClause* clause);
 
+  
+  /** Methods for logging what the CnfStream does **/
+  // map the clause back to the current assertion where it came from
+  // if it is an explanation, it does not have a CNF proof since it is
+  // already in CNF
+  void registerConvertedClause(ClauseId clause, bool explanation=false);
+  void setClauseFact(ClauseId clause, TNode fact);
+  
+  void registerAssertion(Node assertion, ProofRule reason);
+  void setCnfDependence(Node from, Node to);
+  void pushCurrentAssertion(Node assertion); // the current assertion being converted
+  void popCurrentAssertion();
+
+  Node getCurrentAssertion();
+  
+  /** Virtual methods for printing things **/
   virtual void printAtomMapping(std::ostream& os, std::ostream& paren) = 0;
   virtual void printClauses(std::ostream& os, std::ostream& paren) = 0;
   virtual void printClause(const prop::SatClause& clause, std::ostream& os, std::ostream& paren) = 0;
+  virtual void printCnfProof(ClauseId id, std::ostream& os, std::ostream& paren);
   virtual ~CnfProof();
 };/* class CnfProof */
 

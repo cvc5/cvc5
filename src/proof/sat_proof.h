@@ -40,6 +40,13 @@ class CnfProof;
 template <class Solver> void printDebug(typename Solver::TLit l);
 template <class Solver> void printDebug(typename Solver::TClause& c);
 
+enum ClauseKind {
+  INPUT,
+  THEORY_LEMMA, // we need to distinguish because we must reprove deleted theory lemmas
+  LEARNT
+};/* enum ClauseKind */
+
+
 template <class Solver>
 struct ResStep {
   typename Solver::TLit lit;
@@ -109,12 +116,9 @@ protected:
   IdHashSet           d_deleted;
   IdToSatClause       d_deletedTheoryLemmas;
 
-public:
-  IdProofRuleMap      d_inputClauses;
-  IdProofRuleMap      d_lemmaClauses;
 protected:
-  /* IdHashSet           d_inputClauses; */
-  /* IdHashSet           d_lemmaClauses; */
+  IdHashSet           d_inputClauses;
+  IdHashSet           d_lemmaClauses;
   VarSet              d_assumptions; // assumption literals for bv solver
   IdHashSet           d_assumptionConflicts; // assumption conflicts not actually added to SAT solver
   IdToConflicts       d_assumptionConflictsDebug;
@@ -131,7 +135,7 @@ protected:
 
   // temporary map for updating CRefs
   ClauseIdMap         d_temp_clauseId;
-  IdCRefMap         d_temp_idClause;
+  IdCRefMap           d_temp_idClause;
 
   // unit conflict
   ClauseId d_unitConflictId;
@@ -148,7 +152,7 @@ protected:
   void printRes(ResChain<Solver>* res);
 
   bool isInputClause(ClauseId id);
-  bool isTheoryConflict(ClauseId id);
+  //  bool isTheoryConflict(ClauseId id);
   bool isLemmaClause(ClauseId id);
   bool isAssumptionConflict(ClauseId id);
   bool isUnit(ClauseId id);
@@ -224,14 +228,14 @@ public:
   /// clause registration methods
 
   ClauseId registerClause(const typename Solver::TCRef clause,
-			  ClauseKind kind, uint64_t proof_id);
+			  ClauseKind kind);
   ClauseId registerUnitClause(const typename Solver::TLit lit,
-			      ClauseKind kind, uint64_t proof_id);
+			      ClauseKind kind);
   void registerAssumption(const typename Solver::TVar var);
   ClauseId registerAssumptionConflict(const typename Solver::TLitVec& confl);
   
   void storeUnitConflict(typename Solver::TLit lit,
-			  ClauseKind kind, uint64_t proof_id);
+                         ClauseKind kind);
 
   /**
    * Marks the deleted clauses as deleted. Note we may still use them in the final
@@ -260,13 +264,14 @@ public:
    * data-structures, also notifying the proofmanager.
    */
   void constructProof(ClauseId id);
-  void constructProof() { constructProof(d_emptyClauseId); }
+  void constructProof() {
+    constructProof(d_emptyClauseId);
+  }
   void collectClauses(ClauseId id);
 protected:
   IdSet              d_seenLearnt;
-  IdHashSet          d_seenInput;
-  IdHashSet          d_seenTheoryConflicts;
-  IdHashSet          d_seenLemmas;
+  IdHashSet          d_seenInputsLemmas;
+  // IdHashSet          d_seenLemmas;
 
   std::string varName(typename Solver::TLit lit);
   std::string clauseName(ClauseId id);
@@ -279,9 +284,16 @@ public:
   virtual void printResolutions(std::ostream& out, std::ostream& paren) = 0;
   virtual void printResolutionEmptyClause(std::ostream& out, std::ostream& paren) = 0;
   virtual void printAssumptionsResolution(ClauseId id, std::ostream& out, std::ostream& paren) = 0;
-  typedef IdHashSet::const_iterator clause_iterator;
-  clause_iterator begin_input_clauses() { return d_seenInput.begin(); }
-  clause_iterator end_input_clauses() { return d_seenInput.end(); }
+
+  //typedef IdHashSet::const_iterator clause_iterator;
+
+  void getClausesUsed(IdHashSet& clauses);
+  // clause_iterator begin_input_clauses() { return d_seenInput.begin(); }
+  // clause_iterator end_input_clauses() { return d_seenInput.end(); }
+
+  // clause_iterator begin_lemma_clauses() { return d_seenLemmas.begin(); }
+  // clause_iterator end_lemma_clauses() { return d_seenLemmas.end(); }
+
 };/* class TSatProof */
 
 template<typename Solver>

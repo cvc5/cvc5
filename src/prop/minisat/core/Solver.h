@@ -96,7 +96,7 @@ protected:
   vec<bool> lemmas_removable;
 
   /** Proof IDs for lemmas */
-  vec<uint64_t> lemmas_proof_id;
+  //  vec<uint64_t> lemmas_proof_id;
 
   /** Do a another check if FULL_EFFORT was the last one */
   bool recheck;
@@ -167,14 +167,14 @@ public:
     void          push                     ();
     void          pop                      ();
 
-    // CVC4 adds the "proof_id" here to refer to the input assertion/lemma
-    // that produced this clause
-    bool    addClause (const vec<Lit>& ps, bool removable, uint64_t proof_id);  // Add a clause to the solver.
-    bool    addEmptyClause(bool removable);                                     // Add the empty clause, making the solver contradictory.
-    bool    addClause (Lit p, bool removable, uint64_t proof_id);               // Add a unit clause to the solver.
-    bool    addClause (Lit p, Lit q, bool removable, uint64_t proof_id);        // Add a binary clause to the solver.
-    bool    addClause (Lit p, Lit q, Lit r, bool removable, uint64_t proof_id); // Add a ternary clause to the solver.
-    bool    addClause_(      vec<Lit>& ps, bool removable, uint64_t proof_id);  // Add a clause to the solver without making superflous internal copy. Will
+    // addClause returns the ClauseId corresponding to the clause added in the
+    // reference parameter id.
+    bool    addClause (const vec<Lit>& ps, bool removable, ClauseId& id);  // Add a clause to the solver.
+    bool    addEmptyClause(bool removable);                                // Add the empty clause, making the solver contradictory.
+    bool    addClause (Lit p, bool removable, ClauseId& id);               // Add a unit clause to the solver.
+    bool    addClause (Lit p, Lit q, bool removable, ClauseId& id);        // Add a binary clause to the solver.
+    bool    addClause (Lit p, Lit q, Lit r, bool removable, ClauseId& id); // Add a ternary clause to the solver.
+    bool    addClause_(      vec<Lit>& ps, bool removable, ClauseId& id);  // Add a clause to the solver without making superflous internal copy. Will
                                                                                  // change the passed vector 'ps'.
 
     // Solving:
@@ -505,15 +505,15 @@ inline void Solver::checkGarbage(double gf){
 
 // NOTE: enqueue does not set the ok flag! (only public methods do)
 inline bool     Solver::enqueue         (Lit p, CRef from)      { return value(p) != l_Undef ? value(p) != l_False : (uncheckedEnqueue(p, from), true); }
-inline bool     Solver::addClause       (const vec<Lit>& ps, bool removable, uint64_t proof_id)
-                                                                { ps.copyTo(add_tmp); return addClause_(add_tmp, removable, proof_id); }
-inline bool     Solver::addEmptyClause  (bool removable)        { add_tmp.clear(); return addClause_(add_tmp, removable, uint64_t(-1)); }
-inline bool     Solver::addClause       (Lit p, bool removable, uint64_t proof_id)
-                                                                { add_tmp.clear(); add_tmp.push(p); return addClause_(add_tmp, removable, proof_id); }
-inline bool     Solver::addClause       (Lit p, Lit q, bool removable, uint64_t proof_id)
-                                                                { add_tmp.clear(); add_tmp.push(p); add_tmp.push(q); return addClause_(add_tmp, removable, proof_id); }
-inline bool     Solver::addClause       (Lit p, Lit q, Lit r, bool removable, uint64_t proof_id)
-                                                                { add_tmp.clear(); add_tmp.push(p); add_tmp.push(q); add_tmp.push(r); return addClause_(add_tmp, removable, proof_id); }
+inline bool     Solver::addClause       (const vec<Lit>& ps, bool removable, ClauseId& id)
+                                                                { ps.copyTo(add_tmp); return addClause_(add_tmp, removable, id); }
+inline bool     Solver::addEmptyClause  (bool removable)        { add_tmp.clear(); ClauseId tmp; return addClause_(add_tmp, removable, tmp); }
+inline bool     Solver::addClause       (Lit p, bool removable, ClauseId& id)
+                                                                { add_tmp.clear(); add_tmp.push(p); return addClause_(add_tmp, removable, id); }
+inline bool     Solver::addClause       (Lit p, Lit q, bool removable, ClauseId& id)
+                                                                { add_tmp.clear(); add_tmp.push(p); add_tmp.push(q); return addClause_(add_tmp, removable, id); }
+inline bool     Solver::addClause       (Lit p, Lit q, Lit r, bool removable, ClauseId& id)
+                                                                { add_tmp.clear(); add_tmp.push(p); add_tmp.push(q); add_tmp.push(r); return addClause_(add_tmp, removable, id); }
 inline bool     Solver::locked          (const Clause& c) const { return value(c[0]) == l_True && isPropagatedBy(var(c[0]), c); }
 inline void     Solver::newDecisionLevel()                      { trail_lim.push(trail.size()); flipped.push(false); context->push(); if(Dump.isOn("state")) { Dump("state") << CVC4::PushCommand(); } }
 

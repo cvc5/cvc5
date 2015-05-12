@@ -54,16 +54,31 @@ CnfStream::CnfStream(SatSolver *satSolver, Registrar* registrar, context::Contex
   d_convertAndAssertCounter(0),
   d_registrar(registrar),
   d_name(name),
-  d_assertionTable(context),
+  d_cnfProof(NULL),
   d_removable(false) {
 }
 
-TseitinCnfStream::TseitinCnfStream(SatSolver* satSolver, Registrar* registrar, context::Context* context, bool fullLitToNodeMap, std::string name) :
+TseitinCnfStream::TseitinCnfStream(SatSolver* satSolver,
+                                   Registrar* registrar,
+                                   context::Context* context,
+                                   bool fullLitToNodeMap, std::string name) :
   CnfStream(satSolver, registrar, context, fullLitToNodeMap, name) {
+  PROOF
+    (
+     if (name == "") {
+       ProofManager::currentPM()->initCnfProof(this);
+       d_cnfProof = ProofManager::getCnfProof();
+     } else {
+       if (options::proof()) {
+         ProofManager::getBitVectorProof()->initCnfProof(this);
+         d_cnfProof = ProofManager::getBitVectorProof()->getCnfProof();
+       }
+     }
+     );
 }
 
-void CnfStream::assertClause(TNode node, SatClause& c, ProofRule proof_id) {
-  Debug("cnf") << "Inserting into stream " << c << " node = " << node << ", proof id = " << proof_id << endl;
+void CnfStream::assertClause(TNode node, SatClause& c) {
+  Debug("cnf") << "Inserting into stream " << c << " node = " << node << endl;
   if(Dump.isOn("clauses")) {
     if(c.size() == 1) {
       Dump("clauses") << AssertCommand(Expr(getNode(c[0]).toExpr()));
@@ -77,31 +92,34 @@ void CnfStream::assertClause(TNode node, SatClause& c, ProofRule proof_id) {
       Dump("clauses") << AssertCommand(Expr(n.toExpr()));
     }
   }
-  //store map between clause and original formula
-  PROOF(ProofManager::currentPM()->setRegisteringFormula( node, proof_id ); );
-  d_satSolver->addClause(c, d_removable, d_proofId);
-  PROOF(ProofManager::currentPM()->setRegisteringFormula( Node::null(), RULE_INVALID ); );
+
+  ClauseId clause_id = d_satSolver->addClause(c, d_removable);
+  //store map between clause and original assertion
+  PROOF(d_cnfProof->registerConvertedClause(clause_id));
+  // store map between clause and the formula it defines (note that this
+  // is not necessarly the original assertion)
+  PROOF(d_cnfProof->setClauseFact(clause_id, node); );
 }
 
-void CnfStream::assertClause(TNode node, SatLiteral a, ProofRule proof_id) {
+void CnfStream::assertClause(TNode node, SatLiteral a) {
   SatClause clause(1);
   clause[0] = a;
-  assertClause(node, clause, proof_id);
+  assertClause(node, clause);
 }
 
-void CnfStream::assertClause(TNode node, SatLiteral a, SatLiteral b, ProofRule proof_id) {
+void CnfStream::assertClause(TNode node, SatLiteral a, SatLiteral b) {
   SatClause clause(2);
   clause[0] = a;
   clause[1] = b;
-  assertClause(node, clause, proof_id);
+  assertClause(node, clause);
 }
 
-void CnfStream::assertClause(TNode node, SatLiteral a, SatLiteral b, SatLiteral c, ProofRule proof_id) {
+void CnfStream::assertClause(TNode node, SatLiteral a, SatLiteral b, SatLiteral c) {
   SatClause clause(3);
   clause[0] = a;
   clause[1] = b;
   clause[2] = c;
-  assertClause(node, clause, proof_id);
+  assertClause(node, clause);
 }
 
 bool CnfStream::hasLiteral(TNode n) const {
@@ -202,10 +220,12 @@ SatLiteral CnfStream::newLiteral(TNode node, bool isTheoryAtom, bool preRegister
   if (preRegister) {
     // In case we are re-entered due to lemmas, save our state
     bool backupRemovable = d_removable;
-    uint64_t backupProofId= d_proofId;
+    // Should be fine since cnfProof current assertion is stack based
+    // PROOF(Node backupCurrentAssertion = d_cnfProof->getCurrentAssertion(););
+    // PROOF(resetCurrentAssertion(););
     d_registrar->preRegister(node);
     d_removable = backupRemovable;
-    d_proofId = backupProofId;
+    // PROOF(d_cnfProof->setCurrentAssertion(backupCurrentAssertion););
   }
 
   // Here, you can have it
@@ -516,14 +536,14 @@ SatLiteral TseitinCnfStream::toCNF(TNode node, bool negated) {
   else return ~nodeLit;
 }
 
-void TseitinCnfStream::convertAndAssertAnd(TNode node, bool negated, ProofRule proof_id) {
+void TseitinCnfStream::convertAndAssertAnd(TNode node, bool negated) {
   Assert(node.getKind() == AND);
   if (!negated) {
     // If the node is a conjunction, we handle each conjunct separately
     for(TNode::const_iterator conjunct = node.begin(), node_end = node.end();
         conjunct != node_end; ++conjunct ) {
-      PROOF(ProofManager::currentPM()->setCnfDep( (*conjunct).toExpr(), node.toExpr() ) );
-      convertAndAssert(*conjunct, false, proof_id);
+      PROOF(d_cnfProof->setCnfDependence(*conjunct, node););
+      convertAndAssert(*conjunct, false);
     }
   } else {
     // If the node is a disjunction, we construct a clause and assert it
@@ -535,11 +555,11 @@ void TseitinCnfStream::convertAndAssertAnd(TNode node, bool negated, ProofRule p
       clause[i] = toCNF(*disjunct, true);
     }
     Assert(disjunct == node.end());
-    assertClause(node.negate(), clause, proof_id);
+    assertClause(node.negate(), clause);
   }
 }
 
-void TseitinCnfStream::convertAndAssertOr(TNode node, bool negated, ProofRule proof_id) {
+void TseitinCnfStream::convertAndAssertOr(TNode node, bool negated) {
   Assert(node.getKind() == OR);
   if (!negated) {
     // If the node is a disjunction, we construct a clause and assert it
@@ -551,18 +571,18 @@ void TseitinCnfStream::convertAndAssertOr(TNode node, bool negated, ProofRule pr
       clause[i] = toCNF(*disjunct, false);
     }
     Assert(disjunct == node.end());
-    assertClause(node, clause, proof_id);
+    assertClause(node, clause);
   } else {
     // If the node is a conjunction, we handle each conjunct separately
     for(TNode::const_iterator conjunct = node.begin(), node_end = node.end();
         conjunct != node_end; ++conjunct ) {
-      PROOF(ProofManager::currentPM()->setCnfDep( (*conjunct).negate().toExpr(), node.negate().toExpr() ) );
-      convertAndAssert(*conjunct, true, proof_id);
+      PROOF(d_cnfProof->setCnfDependence((*conjunct).negate(), node.negate()););
+      convertAndAssert(*conjunct, true);
     }
   }
 }
 
-void TseitinCnfStream::convertAndAssertXor(TNode node, bool negated, ProofRule proof_id) {
+void TseitinCnfStream::convertAndAssertXor(TNode node, bool negated) {
   if (!negated) {
     // p XOR q
     SatLiteral p = toCNF(node[0], false);
@@ -571,11 +591,11 @@ void TseitinCnfStream::convertAndAssertXor(TNode node, bool negated, ProofRule p
     SatClause clause1(2);
     clause1[0] = ~p;
     clause1[1] = ~q;
-    assertClause(node, clause1, proof_id);
+    assertClause(node, clause1);
     SatClause clause2(2);
     clause2[0] = p;
     clause2[1] = q;
-    assertClause(node, clause2, proof_id);
+    assertClause(node, clause2);
   } else {
     // !(p XOR q) is the same as p <=> q
     SatLiteral p = toCNF(node[0], false);
@@ -584,15 +604,15 @@ void TseitinCnfStream::convertAndAssertXor(TNode node, bool negated, ProofRule p
     SatClause clause1(2);
     clause1[0] = ~p;
     clause1[1] = q;
-    assertClause(node.negate(), clause1, proof_id);
+    assertClause(node.negate(), clause1);
     SatClause clause2(2);
     clause2[0] = p;
     clause2[1] = ~q;
-    assertClause(node.negate(), clause2, proof_id);
+    assertClause(node.negate(), clause2);
   }
 }
 
-void TseitinCnfStream::convertAndAssertIff(TNode node, bool negated, ProofRule proof_id) {
+void TseitinCnfStream::convertAndAssertIff(TNode node, bool negated) {
   if (!negated) {
     // p <=> q
     SatLiteral p = toCNF(node[0], false);
@@ -601,11 +621,11 @@ void TseitinCnfStream::convertAndAssertIff(TNode node, bool negated, ProofRule p
     SatClause clause1(2);
     clause1[0] = ~p;
     clause1[1] = q;
-    assertClause(node, clause1, proof_id);
+    assertClause(node, clause1);
     SatClause clause2(2);
     clause2[0] = p;
     clause2[1] = ~q;
-    assertClause(node, clause2, proof_id);
+    assertClause(node, clause2);
   } else {
     // !(p <=> q) is the same as p XOR q
     SatLiteral p = toCNF(node[0], false);
@@ -614,15 +634,15 @@ void TseitinCnfStream::convertAndAssertIff(TNode node, bool negated, ProofRule p
     SatClause clause1(2);
     clause1[0] = ~p;
     clause1[1] = ~q;
-    assertClause(node.negate(), clause1, proof_id);
+    assertClause(node.negate(), clause1);
     SatClause clause2(2);
     clause2[0] = p;
     clause2[1] = q;
-    assertClause(node.negate(), clause2, proof_id);
+    assertClause(node.negate(), clause2);
   }
 }
 
-void TseitinCnfStream::convertAndAssertImplies(TNode node, bool negated, ProofRule proof_id) {
+void TseitinCnfStream::convertAndAssertImplies(TNode node, bool negated) {
   if (!negated) {
     // p => q
     SatLiteral p = toCNF(node[0], false);
@@ -631,17 +651,17 @@ void TseitinCnfStream::convertAndAssertImplies(TNode node, bool negated, ProofRu
     SatClause clause(2);
     clause[0] = ~p;
     clause[1] = q;
-    assertClause(node, clause, proof_id);
+    assertClause(node, clause);
   } else {// Construct the
-    PROOF(ProofManager::currentPM()->setCnfDep( node[0].toExpr(), node.negate().toExpr() ) );
-    PROOF(ProofManager::currentPM()->setCnfDep( node[1].negate().toExpr(), node.negate().toExpr() ) );
+    PROOF(d_cnfProof->setCnfDependence(node[0], node.negate()););
+    PROOF(d_cnfProof->setCnfDependence(node[1].negate(), node.negate()););
     // !(p => q) is the same as (p && ~q)
-    convertAndAssert(node[0], false, proof_id);
-    convertAndAssert(node[1], true, proof_id);
+    convertAndAssert(node[0], false);
+    convertAndAssert(node[1], true);
   }
 }
 
-void TseitinCnfStream::convertAndAssertIte(TNode node, bool negated, ProofRule proof_id) {
+void TseitinCnfStream::convertAndAssertIte(TNode node, bool negated) {
   // ITE(p, q, r)
   SatLiteral p = toCNF(node[0], false);
   SatLiteral q = toCNF(node[1], negated);
@@ -655,35 +675,36 @@ void TseitinCnfStream::convertAndAssertIte(TNode node, bool negated, ProofRule p
   SatClause clause1(2);
   clause1[0] = ~p;
   clause1[1] = q;
-  assertClause(nnode, clause1, proof_id);
+  assertClause(nnode, clause1);
   SatClause clause2(2);
   clause2[0] = p;
   clause2[1] = r;
-  assertClause(nnode, clause2, proof_id);
+  assertClause(nnode, clause2);
 }
 
 // At the top level we must ensure that all clauses that are asserted are
 // not unit, except for the direct assertions. This allows us to remove the
 // clauses later when they are not needed anymore (lemmas for example).
-void TseitinCnfStream::convertAndAssert(TNode node, bool removable, bool negated, ProofRule proof_id, TNode from) {
-  Debug("cnf") << "convertAndAssert(" << node << ", removable = " << (removable ? "true" : "false") << ", negated = " << (negated ? "true" : "false") << ")" << endl;
+void TseitinCnfStream::convertAndAssert(TNode node,
+                                        bool removable,
+                                        bool negated,
+                                        ProofRule proof_id,
+                                        TNode from) {
+  Debug("cnf") << "convertAndAssert(" << node
+               << ", removable = " << (removable ? "true" : "false")
+               << ", negated = " << (negated ? "true" : "false") << ")" << endl;
   d_removable = removable;
+  
   if(options::proof() || options::unsatCores()) {
-    // Encode the assertion ID in the proof_id to store with generated clauses.
-    uint64_t assertionTableIndex = d_assertionTable.size();
-    Assert((uint64_t(proof_id) & 0xffffffff00000000llu) == 0 && (assertionTableIndex & 0xffffffff00000000llu) == 0, "proof_id/table_index collision");
-    d_proofId = assertionTableIndex | (uint64_t(proof_id) << 32);
-    d_assertionTable.push_back(from.isNull() ? node : from);
-    Debug("cores") << "cnf id " << assertionTableIndex << " asst " << node << "  proof_id " << proof_id << " from " << from << endl;
-  } else {
-    // We aren't producing proofs or unsat cores; use an invalid proof id.
-    d_proofId = uint64_t(-1);
-  }
-  convertAndAssert(node, negated, proof_id);
+    PROOF(d_cnfProof->setCurrentAssertion(from.isNull() ? node : from); );
+    PROOF(d_cnfProof->registerAssertion(from.isNull() ? node : from, proof_id); );
+  } 
+  convertAndAssert(node, negated);
 }
 
-void TseitinCnfStream::convertAndAssert(TNode node, bool negated, ProofRule proof_id) {
-  Debug("cnf") << "convertAndAssert(" << node << ", negated = " << (negated ? "true" : "false") << ")" << endl;
+void TseitinCnfStream::convertAndAssert(TNode node, bool negated) {
+  Debug("cnf") << "convertAndAssert(" << node
+               << ", negated = " << (negated ? "true" : "false") << ")" << endl;
 
   if (d_convertAndAssertCounter % ResourceManager::getFrequencyCount() == 0) {
     NodeManager::currentResourceManager()->spendResource();
@@ -693,25 +714,25 @@ void TseitinCnfStream::convertAndAssert(TNode node, bool negated, ProofRule proo
 
   switch(node.getKind()) {
   case AND:
-    convertAndAssertAnd(node, negated, proof_id);
+    convertAndAssertAnd(node, negated);
     break;
   case OR:
-    convertAndAssertOr(node, negated, proof_id);
+    convertAndAssertOr(node, negated);
     break;
   case IFF:
-    convertAndAssertIff(node, negated, proof_id);
+    convertAndAssertIff(node, negated);
     break;
   case XOR:
-    convertAndAssertXor(node, negated, proof_id);
+    convertAndAssertXor(node, negated);
     break;
   case IMPLIES:
-    convertAndAssertImplies(node, negated, proof_id);
+    convertAndAssertImplies(node, negated);
     break;
   case ITE:
-    convertAndAssertIte(node, negated, proof_id);
+    convertAndAssertIte(node, negated);
     break;
   case NOT:
-    convertAndAssert(node[0], !negated, proof_id);
+    convertAndAssert(node[0], !negated);
     break;
   default:
   {
@@ -720,7 +741,7 @@ void TseitinCnfStream::convertAndAssert(TNode node, bool negated, ProofRule proo
       nnode = node.negate();
     }
     // Atoms
-    assertClause(nnode, toCNF(node, negated), proof_id);
+    assertClause(nnode, toCNF(node, negated));
   }
     break;
   }

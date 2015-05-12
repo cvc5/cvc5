@@ -1378,7 +1378,12 @@ void TheoryEngine::ensureLemmaAtoms(const std::vector<TNode>& atoms, theory::The
   }
 }
 
-theory::LemmaStatus TheoryEngine::lemma(TNode node, bool negated, bool removable, bool preprocess, theory::TheoryId atomsTo) {
+theory::LemmaStatus TheoryEngine::lemma(TNode node,
+                                        ProofRule rule,
+                                        bool negated,
+                                        bool removable,
+                                        bool preprocess,
+                                        theory::TheoryId atomsTo) {
   // For resource-limiting (also does a time check).
   // spendResource();
 
@@ -1427,10 +1432,10 @@ theory::LemmaStatus TheoryEngine::lemma(TNode node, bool negated, bool removable
   }
 
   // assert to prop engine
-  d_propEngine->assertLemma(additionalLemmas[0], negated, removable, RULE_INVALID, node);
+  d_propEngine->assertLemma(additionalLemmas[0], negated, removable, rule, node);
   for (unsigned i = 1; i < additionalLemmas.size(); ++ i) {
     additionalLemmas[i] = theory::Rewriter::rewrite(additionalLemmas[i]);
-    d_propEngine->assertLemma(additionalLemmas[i], false, removable, RULE_INVALID, node);
+    d_propEngine->assertLemma(additionalLemmas[i], false, removable, rule, node);
   }
 
   // WARNING: Below this point don't assume additionalLemmas[0] to be not negated.

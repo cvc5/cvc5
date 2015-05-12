@@ -171,8 +171,8 @@ Solver::Solver(CVC4::context::Context* c) :
   // Assert the constants
   uncheckedEnqueue(mkLit(varTrue, false));
   uncheckedEnqueue(mkLit(varFalse, true));
-  THEORY_PROOF( ProofManager::getBitVectorProof()->getSatProof()->registerUnitClause(mkLit(varTrue, false), INPUT, uint64_t(-1)); )
-  THEORY_PROOF( ProofManager::getBitVectorProof()->getSatProof()->registerUnitClause(mkLit(varFalse, true), INPUT, uint64_t(-1)); )
+  THEORY_PROOF( ProofManager::getBitVectorProof()->getSatProof()->registerUnitClause(mkLit(varTrue, false), INPUT); )
+  THEORY_PROOF( ProofManager::getBitVectorProof()->getSatProof()->registerUnitClause(mkLit(varFalse, true), INPUT); )
 }
 
 
@@ -208,7 +208,7 @@ Var Solver::newVar(bool sign, bool dvar)
 }
 
 
-bool Solver::addClause_(vec<Lit>& ps)
+bool Solver::addClause_(vec<Lit>& ps, ClauseId& id)
 {
     if (decisionLevel() > 0) {
       cancelUntil(0);
@@ -233,7 +233,7 @@ bool Solver::addClause_(vec<Lit>& ps)
     if (ps.size() == 0)
         return ok = false;
     else if (ps.size() == 1){
-        THEORY_PROOF( ProofManager::getBitVectorProof()->getSatProof()->registerUnitClause(ps[0], INPUT, uint64_t(-1)););
+        THEORY_PROOF( id = ProofManager::getBitVectorProof()->getSatProof()->registerUnitClause(ps[0], INPUT););
         uncheckedEnqueue(ps[0]);
 
         return ok = (propagate() == CRef_Undef);
@@ -241,7 +241,7 @@ bool Solver::addClause_(vec<Lit>& ps)
         CRef cr = ca.alloc(ps, false);
         clauses.push(cr);
         attachClause(cr);
-        THEORY_PROOF( ProofManager::getBitVectorProof()->getSatProof()->registerClause(cr, INPUT, uint64_t(-1)););
+        THEORY_PROOF( id = ProofManager::getBitVectorProof()->getSatProof()->registerClause(cr, INPUT););
      }
     return ok; 
 }

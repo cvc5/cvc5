@@ -211,12 +211,14 @@ void LFSCTheoryProofEngine::printDeclarations(std::ostream& os, std::ostream& pa
   }
 }
 
-void LFSCTheoryProofEngine::printTheoryLemmas(std::ostream& os, std::ostream& paren) {
+void LFSCTheoryProofEngine::printTheoryLemmas(const IdHashSet& lemmas,
+                                              std::ostream& os,
+                                              std::ostream& paren) {
   os << " ;; Theory Lemmas \n";
   ProofManager* pm = ProofManager::currentPM();
-  ProofManager::ordered_clause_iterator it = pm->begin_lemmas();
-  ProofManager::ordered_clause_iterator end = pm->end_lemmas();
-
+  IdHashSet::const_iterator it = lemmas.begin();
+  IdHashSet::const_iterator end = lemmas.end();
+  
   // BitVector theory is special case: must know all
   // conflicts needed ahead of time for resolution
   // proof lemmas
@@ -257,7 +259,7 @@ void LFSCTheoryProofEngine::printTheoryLemmas(std::ostream& os, std::ostream& pa
     // printing clause as it appears in resolution proof
     os << "(satlem _ _ ";
     std::ostringstream clause_paren;
-    ProofManager::currentPM()->getCnfProof()->printClause(*clause, os, clause_paren);
+    pm->getCnfProof()->printClause(*clause, os, clause_paren);
     
     std::vector<Expr> clause_expr;
     for(unsigned i = 0; i < clause->size(); ++i) {
@@ -276,7 +278,7 @@ void LFSCTheoryProofEngine::printTheoryLemmas(std::ostream& os, std::ostream& pa
     getTheoryProof(theory_id)->printTheoryLemmaProof(clause_expr, os, paren); 
     // os << " (clausify_false trust)";
     os << clause_paren.str();
-    os << "( \\ " << ProofManager::getLemmaClauseName(id) <<"\n";
+    os << "( \\ " << pm->getLemmaClauseName(id) <<"\n";
     paren << "))";
   }
 }

@@ -92,12 +92,6 @@ typedef __gnu_cxx::hash_map<Node, std::vector<Node>, NodeHashFunction > NodeToNo
 
 typedef int ClauseId;
 
-enum ClauseKind {
-  INPUT,
-  THEORY_LEMMA,
-  LEARNT
-};/* enum ClauseKind */
-
 enum ProofRule {
   RULE_GIVEN,       /* input assertion */
   RULE_DERIVED,     /* a "macro" rule */
@@ -106,7 +100,8 @@ enum ProofRule {
   RULE_INVALID,     /* assert-fail if this is ever needed in proof; use e.g. for split lemmas */
   RULE_CONFLICT,    /* re-construct as a conflict */
   RULE_TSEITIN,     /* Tseitin CNF transformation */
-
+  RULE_LEMMA,       /* Clause asserted through theory engine lemma channel */
+  
   RULE_ARRAYS_EXT,  /* arrays, extensional */
   RULE_ARRAYS_ROW,  /* arrays, read-over-write */
 };/* enum ProofRules */
@@ -132,18 +127,17 @@ class ProofManager {
   ProofFormat d_format; // used for now only in debug builds
 
   NodeToNodes d_deps;
-
   // trace dependences back to unsat core
   void traceDeps(TNode n);
 
-  Node d_registering_assertion;
-  ProofRule d_registering_rule;
-  std::map< ClauseId, Expr > d_clause_id_to_assertion; // clause to top-level assertion 
-  std::map< ClauseId, ProofRule > d_clause_id_to_rule;
-  std::map< Expr, Expr > d_cnf_dep; // dependence of cnf top-level things
+  // Node d_registering_assertion;
+  // ProofRule d_registering_rule;
+  // std::map< ClauseId, Expr > d_clause_id_to_assertion; // clause to top-level assertion 
+  // std::map< ClauseId, ProofRule > d_clause_id_to_rule;
+  // std::map< Expr, Expr > d_cnf_dep; // dependence of cnf top-level things
   //LFSC number for assertions
   unsigned d_assertion_counter;
-  std::map< Expr, unsigned > d_assertion_to_id; // unsat core deps and preprocessed things
+  // std::map< Expr, unsigned > d_assertion_to_id; // unsat core deps and preprocessed things
 protected:
   LogicInfo d_logic;
 
@@ -176,14 +170,14 @@ public:
   NodeToNodes::const_iterator begin_deps() const { return d_deps.begin(); }
   NodeToNodes::const_iterator end_deps() const { return d_deps.end(); }
 
-  clause_iterator begin_input_clauses() const { return d_inputClauses.begin(); }
-  clause_iterator end_input_clauses() const { return d_inputClauses.end(); }
-  size_t num_input_clauses() const { return d_inputClauses.size(); }
+  // clause_iterator begin_input_clauses() const { return d_inputClauses.begin(); }
+  // clause_iterator end_input_clauses() const { return d_inputClauses.end(); }
+  // size_t num_input_clauses() const { return d_inputClauses.size(); }
 
   // iterate over theory lemmas (these are SAT clauses)
-  ordered_clause_iterator begin_lemmas() const { return d_theoryLemmas.begin(); }
-  ordered_clause_iterator end_lemmas() const { return d_theoryLemmas.end(); }
-  size_t num_lemmas() const { return d_theoryLemmas.size(); }
+  // ordered_clause_iterator begin_lemmas() const { return d_theoryLemmas.begin(); }
+  // ordered_clause_iterator end_lemmas() const { return d_theoryLemmas.end(); }
+  // size_t num_lemmas() const { return d_theoryLemmas.size(); }
 
   // iterate over the assertions (these are arbitrary boolean formulas)
   assertions_iterator begin_assertions() const { return d_inputFormulas.begin(); }
@@ -191,10 +185,11 @@ public:
   size_t num_assertions() const { return d_inputFormulas.size(); }
 
   void addAssertion(Expr formula, bool inUnsatCore);
-  void addTheoryLemma(ClauseId id, const prop::SatClause* clause, ClauseKind kind);
-  void addClause(ClauseId id, const prop::SatClause* clause, ClauseKind kind);
   // note that n depends on dep (for cores)
   void addDependence(TNode n, TNode dep);
+
+  //void addTheoryLemma(ClauseId id, const prop::SatClause* clause, ClauseKind kind);
+  //void addClause(ClauseId id, const prop::SatClause* clause, ClauseKind kind);
   
   // variable prefixes
   static std::string getInputClauseName(ClauseId id, const std::string& prefix = "");
@@ -221,20 +216,20 @@ public:
   void setLogic(const LogicInfo& logic);
   const std::string getLogic() const { return d_logic.getLogicString(); }
 
-  void setCnfDep(Expr child, Expr parent );
-  Expr getFormulaForClauseId(ClauseId id );
-  ProofRule getProofRuleForClauseId( ClauseId id );
-  unsigned getAssertionCounter() { return d_assertion_counter; }
-  void setAssertion( Expr e );
-  bool isInputAssertion( Expr e, std::ostream& out );
+  // void setCnfDep(Expr child, Expr parent );
+  // Expr getFormulaForClauseId(ClauseId id );
+  // ProofRule getProofRuleForClauseId( ClauseId id );
+  // unsigned getAssertionCounter() { return d_assertion_counter; }
+  // void setAssertion( Expr e );
+  // bool isInputAssertion( Expr e, std::ostream& out );
 
 public:  // AJR : FIXME this is hacky
   //currently, to map between ClauseId and Expr, requires:
   // (1) CnfStream::assertClause(...) to call setRegisteringFormula,
   // (2) SatProof::registerClause(...)/registerUnitClause(...) to call setRegisteredClauseId.
   //this is under the assumption that the first call at (2) is invoked for the clause corresponding to the Expr at (1).
-  void setRegisteringFormula( Node n, ProofRule proof_id );
-  void setRegisteredClauseId( ClauseId id );
+  // void setRegisteringFormula( Node n, ProofRule proof_id );
+  // void setRegisteredClauseId( ClauseId id );
 };/* class ProofManager */
 
 class LFSCProof : public Proof {

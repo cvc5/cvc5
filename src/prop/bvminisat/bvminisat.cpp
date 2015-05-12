@@ -46,14 +46,18 @@ void BVMinisatSatSolver::setNotify(Notify* notify) {
   d_minisat->setNotify(d_minisatNotify);
 }
 
-void BVMinisatSatSolver::addClause(SatClause& clause, bool removable, uint64_t proof_id) {
+ClauseId BVMinisatSatSolver::addClause(SatClause& clause,
+                                       bool removable) {
   Debug("sat::minisat") << "Add clause " << clause <<"\n";
   BVMinisat::vec<BVMinisat::Lit> minisat_clause;
   toMinisatClause(clause, minisat_clause);
   // for(unsigned i = 0; i < minisat_clause.size(); ++i) {
   //   d_minisat->setFrozen(BVMinisat::var(minisat_clause[i]), true);
   // }
-  d_minisat->addClause(minisat_clause);
+  ClauseId clause_id = -1;
+  d_minisat->addClause(minisat_clause, clause_id);
+  Assert (clause_id != -1);
+  return clause_id;
 }
 
 SatValue BVMinisatSatSolver::propagate() {

@@ -114,7 +114,10 @@ void PropEngine::assertFormula(TNode node) {
   d_cnfStream->convertAndAssert(node, false, false, RULE_GIVEN);
 }
 
-void PropEngine::assertLemma(TNode node, bool negated, bool removable, ProofRule rule, TNode from) {
+void PropEngine::assertLemma(TNode node, bool negated,
+                             bool removable,
+                             ProofRule rule,
+                             TNode from) {
   //Assert(d_inCheckSat, "Sat solver should be in solve()!");
   Debug("prop::lemmas") << "assertLemma(" << node << ")" << endl;
 

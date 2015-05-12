@@ -58,6 +58,7 @@ void TheoryProxy::explainPropagation(SatLiteral l, SatClause& explanation) {
   TNode lNode = d_cnfStream->getNode(l);
   Debug("prop-explain") << "explainPropagation(" << lNode << ")" << std::endl;
   Node theoryExplanation = d_theoryEngine->getExplanation(lNode);
+  PROOF(ProofManager::getCnfProof()->pushCurrentAssertion(theoryExplanation); );
   Debug("prop-explain") << "explainPropagation() => " <<  theoryExplanation << std::endl;
   if (theoryExplanation.getKind() == kind::AND) {
     Node::const_iterator it = theoryExplanation.begin();

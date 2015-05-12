@@ -440,8 +440,7 @@ void TSatProof<Solver>::printRes(ResChain<Solver>* res) {
 /// registration methods
 template <class Solver> 
   ClauseId TSatProof<Solver>::registerClause(typename Solver::TCRef clause,
-					     ClauseKind kind,
-					     uint64_t proof_id) {
+					     ClauseKind kind) {
   Assert(clause != Solver::TCRef_Undef);
   typename ClauseIdMap::iterator it = d_clauseId.find(clause);
   if (it == d_clauseId.end()) {
@@ -450,22 +449,21 @@ template <class Solver>
     d_idClause.insert(std::make_pair(newId, clause));
     if (kind == INPUT) {
       Assert(d_inputClauses.find(newId) == d_inputClauses.end());
-      d_inputClauses.insert(std::make_pair(newId, proof_id));
+      d_inputClauses.insert(newId));
     }
     if (kind == THEORY_LEMMA) {
       Assert(d_lemmaClauses.find(newId) == d_lemmaClauses.end());
-      d_lemmaClauses.insert(std::make_pair(newId, proof_id));
+      d_lemmaClauses.insert(newId);
     }
   }
-  Debug("proof:sat:detailed") << "registerClause CRef:" << clause << " id:" << d_clauseId[clause] << " " << kind << " " << int32_t((proof_id >> 32) & 0xffffffff) << "\n";
-  ProofManager::currentPM()->setRegisteredClauseId( d_clauseId[clause] );
+  Debug("proof:sat:detailed") << "registerClause CRef:" << clause << " id:" << d_clauseId[clause] <<  "\n";
+  //ProofManager::currentPM()->setRegisteredClauseId( d_clauseId[clause] );
   return d_clauseId[clause];
 }
 template <class Solver> 
 ClauseId TSatProof<Solver>::registerUnitClause(typename Solver::TLit lit,
-					       ClauseKind kind,
-					       uint64_t proof_id) {
-  Debug("cores") << "registerUnitClause " << kind << " " << proof_id << std::endl;
+					       ClauseKind kind) {
+  Debug("cores") << "registerUnitClause " << kind << std::endl;
   typename UnitIdMap::iterator it = d_unitId.find(toInt(lit));
   if (it == d_unitId.end()) {
     ClauseId newId = ProofManager::currentPM()->nextId();
@@ -474,15 +472,15 @@ ClauseId TSatProof<Solver>::registerUnitClause(typename Solver::TLit lit,
 
     if (kind == INPUT) {
       Assert(d_inputClauses.find(newId) == d_inputClauses.end());
-      d_inputClauses.insert(std::make_pair(newId, proof_id));
+      d_inputClauses.insert(newId);
     }
     if (kind == THEORY_LEMMA) {
       Assert(d_lemmaClauses.find(newId) == d_lemmaClauses.end());
-      d_lemmaClauses.insert(std::make_pair(newId, proof_id));
+      d_lemmaClauses.insert(newId);
     }
   }
   Debug("proof:sat:detailed") << "registerUnitClause " << d_unitId[toInt(lit)] << " " << kind << "\n";
-  ProofManager::currentPM()->setRegisteredClauseId( d_unitId[toInt(lit)] );
+  // ProofManager::currentPM()->setRegisteredClauseId( d_unitId[toInt(lit)] );
   return d_unitId[toInt(lit)];
 }
 template <class Solver> 
@@ -674,7 +672,7 @@ ClauseId TSatProof<Solver>::resolveUnit(typename Solver::TLit lit) {
   typename Solver::TCRef reason_ref = d_solver->reason(var(lit));
   Assert(reason_ref != Solver::TCRef_Undef);
 
-  ClauseId reason_id = registerClause(reason_ref, LEARNT, uint64_t(-1));
+  ClauseId reason_id = registerClause(reason_ref, LEARNT);
 
   ResChain<Solver>* res = new ResChain<Solver>(reason_id);
   // Here, the call to resolveUnit() can reallocate memory in the
@@ -699,13 +697,14 @@ void TSatProof<Solver>::toStream(std::ostream& out) {
   Unimplemented("native proof printing not supported yet");
 }
 template <class Solver> 
-void TSatProof<Solver>::storeUnitConflict(typename Solver::TLit conflict_lit,
-					  ClauseKind kind, uint64_t proof_id) {
+ClauseId TSatProof<Solver>::storeUnitConflict(typename Solver::TLit conflict_lit,
+                                              ClauseKind kind) {
   Debug("cores") << "STORE UNIT CONFLICT" << std::endl;
   Assert(!d_storedUnitConflict);
-  d_unitConflictId = registerUnitClause(conflict_lit, kind, proof_id);
+  d_unitConflictId = registerUnitClause(conflict_lit, kind);
   d_storedUnitConflict = true;
   Debug("proof:sat:detailed") <<"storeUnitConflict " << d_unitConflictId << "\n";
+  return d_storedUnitConflict;
 }
 template <class Solver> 
 void TSatProof<Solver>::finalizeProof(typename Solver::TCRef conflict_ref) {
@@ -726,7 +725,7 @@ void TSatProof<Solver>::finalizeProof(typename Solver::TCRef conflict_ref) {
     return;
   } else {
     Assert(!d_storedUnitConflict);
-    conflict_id = registerClause(conflict_ref, LEARNT, uint64_t(-1)); //FIXME
+    conflict_id = registerClause(conflict_ref, LEARNT); //FIXME
   }
 
   if(Debug.isOn("proof:sat")) {
@@ -813,76 +812,62 @@ std::string TSatProof<Solver>::clauseName(ClauseId id) {
     return os.str();
   }
 }
-template <class Solver> 
-void TSatProof<Solver>::addToProofManager(ClauseId id, ClauseKind kind) {
-  if (isUnit(id)) {
-    typename Solver::TLit lit = getUnit(id);
-    prop::SatLiteral sat_lit = toSatLiteral<Solver>(lit);
-    prop::SatClause* clause = new prop::SatClause();
-    clause->push_back(sat_lit);
-    ProofManager::currentPM()->addTheoryLemma(id, clause, kind);
-    return;
-  }
 
-  if (isDeleted(id)) {
-    Assert(kind == THEORY_LEMMA);
-    prop::SatClause* clause = d_deletedTheoryLemmas.find(id)->second;
-    ProofManager::currentPM()->addTheoryLemma(id, clause, kind);
-    return;
-  }
+// template <class Solver> 
+// void TSatProof<Solver>::addToProofManager(ClauseId id, ClauseKind kind) {
+//   if (isUnit(id)) {
+//     typename Solver::TLit lit = getUnit(id);
+//     prop::SatLiteral sat_lit = toSatLiteral<Solver>(lit);
+//     prop::SatClause* clause = new prop::SatClause();
+//     clause->push_back(sat_lit);
+//     ProofManager::currentPM()->addTheoryLemma(id, clause, kind);
+//     return;
+//   }
 
-  typename Solver::TCRef ref = getClauseRef(id);
-  const typename Solver::TClause& minisat_cl = getClause(ref);
-  prop::SatClause* clause = new prop::SatClause();
-  toSatClause<Solver>(minisat_cl, *clause);
-  ProofManager::currentPM()->addTheoryLemma(id, clause, kind);
-}
+//   if (isDeleted(id)) {
+//     Assert(kind == THEORY_LEMMA);
+//     prop::SatClause* clause = d_deletedTheoryLemmas.find(id)->second;
+//     ProofManager::currentPM()->addTheoryLemma(id, clause, kind);
+//     return;
+//   }
 
-template<class Solver>
-void TSatProof<Solver>::addToCnfProof(ClauseId id) {
-  if (isUnit(id)) {
-    typename Solver::TLit lit = getUnit(id);
-    prop::SatLiteral sat_lit = toSatLiteral<Solver>(lit);
-    prop::SatClause* clause = new prop::SatClause();
-    clause->push_back(sat_lit);
-    d_cnfProof->addInputClause(id, clause);
-    return;
-  }
+//   typename Solver::TCRef ref = getClauseRef(id);
+//   const typename Solver::TClause& minisat_cl = getClause(ref);
+//   prop::SatClause* clause = new prop::SatClause();
+//   toSatClause<Solver>(minisat_cl, *clause);
+//   ProofManager::currentPM()->addTheoryLemma(id, clause, kind);
+// }
 
-  Assert (!isDeleted(id)); 
+// template<class Solver>
+// void TSatProof<Solver>::addToCnfProof(ClauseId id) {
+//   if (isUnit(id)) {
+//     typename Solver::TLit lit = getUnit(id);
+//     prop::SatLiteral sat_lit = toSatLiteral<Solver>(lit);
+//     prop::SatClause* clause = new prop::SatClause();
+//     clause->push_back(sat_lit);
+//     d_cnfProof->addInputClause(id, clause);
+//     return;
+//   }
 
-  typename Solver::TCRef ref = getClauseRef(id);
-  const typename Solver::TClause& minisat_cl = getClause(ref);
-  prop::SatClause* clause = new prop::SatClause();
-  toSatClause<Solver>(minisat_cl, *clause);
-  d_cnfProof->addInputClause(id, clause);
-}
+//   Assert (!isDeleted(id)); 
+
+//   typename Solver::TCRef ref = getClauseRef(id);
+//   const typename Solver::TClause& minisat_cl = getClause(ref);
+//   prop::SatClause* clause = new prop::SatClause();
+//   toSatClause<Solver>(minisat_cl, *clause);
+//   d_cnfProof->addInputClause(id, clause);
+// }
 
 
 template <class Solver> 
 void TSatProof<Solver>::collectClauses(ClauseId id) {
-  if (d_seenLearnt.find(id) != d_seenLearnt.end()) {
-    return;
-  }
-  if (d_seenInput.find(id) != d_seenInput.end()) {
-    return;
-  }
-  if (d_seenLemmas.find(id) != d_seenLemmas.end()) {
+  if (d_seenInputsLemmas.find(id) != d_seenInputsLemmas.end()) {
     return;
   }
 
-  if (isInputClause(id)) {
-    // notify cnf proof of input clauses (must print cnf-conversion)
-    // FIXME: one or the other
-    addToProofManager(id, INPUT);
-    addToCnfProof(id); 
-    d_seenInput.insert(id);
-    return;
-  } else if (isLemmaClause(id)) {
-    // notify proof  manager of lemmas (must query theory proof engine
-    // for proofs)
-    addToProofManager(id, THEORY_LEMMA);
-    d_seenLemmas.insert(id);
+  if (isInputClause(id) ||
+      isLemmaClause(id)) {
+    d_seenInputsLemmas.insert(id);
     return;
   } else if (!isAssumptionConflict(id)) {
     d_seenLearnt.insert(id);
@@ -910,7 +895,6 @@ void LFSCSatProof<Solver>::printResolution(ClauseId id, std::ostream& out, std::
   for (int i = steps.size()-1; i >= 0; i--) {
     out << "(";
     out << (steps[i].sign? "R" : "Q") << " _ _ ";
-
   }
 
   ClauseId start_id = res->getStart();

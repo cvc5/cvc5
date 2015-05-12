@@ -80,7 +80,7 @@ public:
 
   void setNotify(Notify* notify);
 
-  void addClause(SatClause& clause, bool removable, uint64_t proof_id);
+  ClauseId addClause(SatClause& clause, bool removable);
 
   SatValue propagate();
 
