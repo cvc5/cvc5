@@ -22,6 +22,7 @@ Contributors to the CVC4 codebase additionally include:
 
   Peter Collingbourne, the Multicore Programming Group at Imperial College
     London (headed by Alastair Donaldson)
+  Finn Haedicke, University of Bremen, Germany
 
 CVC4 is the fourth in the CVC series of tools (CVC, CVC Lite, CVC3) but does
 not directly incorporate code from any previous version.  Information about
