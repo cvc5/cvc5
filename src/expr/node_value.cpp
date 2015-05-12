@@ -32,12 +32,10 @@ using namespace std;
 namespace CVC4 {
 namespace expr {
 
-NodeValue NodeValue::s_null(0);
-
 string NodeValue::toString() const {
   stringstream ss;
 
-  OutputLanguage outlang = (this == &s_null) ? language::output::LANG_AUTO : options::outputLanguage();
+  OutputLanguage outlang = (this == &null()) ? language::output::LANG_AUTO : options::outputLanguage();
   toStream(ss, -1, false, false, outlang);
   return ss.str();
 }

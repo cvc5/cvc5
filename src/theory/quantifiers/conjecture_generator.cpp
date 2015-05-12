@@ -285,8 +285,12 @@ Node ConjectureGenerator::getFreeVar( TypeNode tn, unsigned i ) {
   while( d_free_var[tn].size()<=i ){
     std::stringstream oss;
     oss << tn;
+    std::string typ_name = oss.str();
+    while( typ_name[0]=='(' ){
+      typ_name.erase( typ_name.begin() );
+    }
     std::stringstream os;
-    os << oss.str()[0] << i;
+    os << typ_name[0] << i;
     Node x = NodeManager::currentNM()->mkBoundVar( os.str().c_str(), tn );
     d_free_var_num[x] = d_free_var[tn].size();
     d_free_var[tn].push_back( x );
@@ -1155,6 +1159,8 @@ void ConjectureGenerator::getEnumerateUfTerm( Node n, unsigned num, std::vector<
             vec[i] = 0;
           }
           vec_sum = -1;
+        }else{
+          return;
         }
       }
     }
@@ -1713,7 +1719,9 @@ Node TermGenerator::getTerm( TermGenEnv * s ) {
     Node f = s->getTgFunc( d_typ, d_status_num );
     if( d_children.size()==s->d_func_args[f].size() ){
       std::vector< Node > children;
-      children.push_back( f );
+      if( s->d_tg_func_param[f] ){
+        children.push_back( f );
+      }
       for( unsigned i=0; i<d_children.size(); i++ ){
         Node nc = s->d_tg_alloc[d_children[i]].getTerm( s );
         if( nc.isNull() ){
@@ -1776,6 +1784,7 @@ void TermGenEnv::collectSignatureInformation() {
           d_func_kind[it->first] = nn.getKind();
           d_typ_tg_funcs[tnull].push_back( it->first );
           d_typ_tg_funcs[nn.getType()].push_back( it->first );
+          d_tg_func_param[it->first] = ( nn.getMetaKind() == kind::metakind::PARAMETERIZED );
           Trace("sg-rel-sig") << "Will enumerate function applications of : " << it->first << ", #args = " << d_func_args[it->first].size() << ", kind = " << nn.getKind() << std::endl;
           getTermDatabase()->computeUfEqcTerms( it->first );
         }

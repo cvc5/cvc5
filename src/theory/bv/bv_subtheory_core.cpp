@@ -32,7 +32,7 @@ using namespace CVC4::theory::bv::utils;
 CoreSolver::CoreSolver(context::Context* c, TheoryBV* bv)
   : SubtheorySolver(c, bv),
     d_notify(*this),
-    d_equalityEngine(d_notify, c, "theory::bv::TheoryBV", false),
+    d_equalityEngine(d_notify, c, "theory::bv::TheoryBV", true),
     d_slicer(new Slicer()),
     d_isComplete(c, true),
     d_useSlicer(false),
@@ -294,7 +294,7 @@ void CoreSolver::buildModel() {
 
 bool CoreSolver::assertFactToEqualityEngine(TNode fact, TNode reason) {
   // Notify the equality engine
-  if (!d_bv->inConflict() && (!d_bv->wasPropagatedBySubtheory(fact) || !d_bv->getPropagatingSubtheory(fact) == SUB_CORE)) {
+  if (!d_bv->inConflict() && (!d_bv->wasPropagatedBySubtheory(fact) || d_bv->getPropagatingSubtheory(fact) != SUB_CORE)) {
     Debug("bv-slicer-eq") << "CoreSolver::assertFactToEqualityEngine fact=" << fact << endl;
     // Debug("bv-slicer-eq") << "                     reason=" << reason << endl;
     bool negated = fact.getKind() == kind::NOT;

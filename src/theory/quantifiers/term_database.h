@@ -88,6 +88,10 @@ typedef expr::Attribute<RrPriorityAttributeId, uint64_t> RrPriorityAttribute;
 struct LtePartialInstAttributeId {};
 typedef expr::Attribute< LtePartialInstAttributeId, bool > LtePartialInstAttribute;
 
+// attribute for "contains instantiation constants from"
+struct SygusProxyAttributeId {};
+typedef expr::Attribute<SygusProxyAttributeId, Node> SygusProxyAttribute;
+
 class QuantifiersEngine;
 
 namespace inst{
@@ -340,6 +344,10 @@ public: //general queries concerning quantified formulas wrt modules
   static Node getRewriteRule( Node q );
   /** is fun def */
   static bool isFunDef( Node q );
+  /** get fun def body */
+  static Node getFunDefHead( Node q );
+  /** get fun def body */
+  static Node getFunDefBody( Node q );
 //attributes
 private:
   std::map< Node, bool > d_qattr_conjecture;

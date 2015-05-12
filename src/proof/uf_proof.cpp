@@ -95,6 +95,7 @@ void LFSCUFProof::printTheoryLemmaProof(std::vector<Expr>& lemma, std::ostream& 
   }
   os <<"\n";
   // TODO proper UF proof
+  // Use Morgan's replaying strategy here
   os << " (clausify_false trust)";
 }
 

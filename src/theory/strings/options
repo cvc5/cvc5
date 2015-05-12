@@ -8,10 +8,10 @@ module STRINGS "theory/strings/options.h" Strings theory
 option stringExp strings-exp --strings-exp bool :default false :read-write
  experimental features in the theory of strings
 
-option stringLB strings-lb --strings-lb=N unsigned :default 0 :predicate less_equal(2) :predicate-include "smt/smt_engine.h"
+option stringLB strings-lb --strings-lb=N unsigned :default 0 :predicate options::less_equal(2) :predicate-include "smt/smt_engine.h"
  the strategy of LB rule application: 0-lazy, 1-eager, 2-no
 
-option stdASCII strings-std-ascii --strings-std-ascii bool :default true :predicate less_equal(2) :predicate-include "smt/smt_engine.h"
+option stdASCII strings-std-ascii --strings-std-ascii bool :default true :predicate options::less_equal(2) :predicate-include "smt/smt_engine.h"
  the alphabet contains only characters from the standard ASCII or the extended one
 
 option stringFMF strings-fmf --strings-fmf bool :default false :read-write

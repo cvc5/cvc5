@@ -20,6 +20,7 @@
 #include "theory/rewriter.h"
 #include "theory/quantifiers/term_database.h"
 #include "theory/quantifiers/quant_util.h"
+#include "proof/proof_manager.h"
 
 using namespace CVC4;
 using namespace std;
@@ -30,27 +31,31 @@ using namespace CVC4::kind;
 
 void FunDefFmf::simplify( std::vector< Node >& assertions, bool doRewrite ) {
   std::vector< int > fd_assertions;
+  std::map< int, Node > subs_head;
   //first pass : find defined functions, transform quantifiers
   for( unsigned i=0; i<assertions.size(); i++ ){
-    if( assertions[i].getKind()==FORALL ){
-      if( quantifiers::TermDb::isFunDef( assertions[i] ) ){
-        Assert( assertions[i][1].getKind()==EQUAL || assertions[i][1].getKind()==IFF );
-        Node n = assertions[i][1][0];
-        Assert( n.getKind()==APPLY_UF );
-        Node f = n.getOperator();
-        
-        //check if already defined, if so, throw error
-        if( d_sorts.find( f )!=d_sorts.end() ){
-          Message() << "Cannot define function " << f << " more than once." << std::endl;
-          exit( 0 );
-        }
-        
+    Node n = TermDb::getFunDefHead( assertions[i] );
+    if( !n.isNull() ){
+      Assert( n.getKind()==APPLY_UF );
+      Node f = n.getOperator();
+
+      //check if already defined, if so, throw error
+      if( d_sorts.find( f )!=d_sorts.end() ){
+        Message() << "Cannot define function " << f << " more than once." << std::endl;
+        exit( 0 );
+      }
+      
+      Node bd = TermDb::getFunDefBody( assertions[i] );
+      Trace("fmf-fun-def-debug") << "Process function " << n << ", body = " << bd << std::endl;
+      if( !bd.isNull() ){
+        bd = NodeManager::currentNM()->mkNode( n.getType().isBoolean() ? IFF : EQUAL, n, bd );
+
         //create a sort S that represents the inputs of the function
         std::stringstream ss;
         ss << "I_" << f;
         TypeNode iType = NodeManager::currentNM()->mkSort( ss.str() );
         d_sorts[f] = iType;
-        
+
         //create functions f1...fn mapping from this sort to concrete elements
         for( unsigned j=0; j<n.getNumChildren(); j++ ){
           TypeNode typ = NodeManager::currentNM()->mkFunctionType( iType, n[j].getType() );
@@ -58,7 +63,7 @@ void FunDefFmf::simplify( std::vector< Node >& assertions, bool doRewrite ) {
           ss << f << "_arg_" << j;
           d_input_arg_inj[f].push_back( NodeManager::currentNM()->mkSkolem( ss.str(), typ, "op created during fun def fmf" ) );
         }
-        
+
         //construct new quantifier forall S. F[f1(S)/x1....fn(S)/xn]
         std::vector< Node > children;
         Node bv = NodeManager::currentNM()->mkBoundVar("?i", iType );
@@ -69,86 +74,98 @@ void FunDefFmf::simplify( std::vector< Node >& assertions, bool doRewrite ) {
           vars.push_back( n[j] );
           subs.push_back( NodeManager::currentNM()->mkNode( APPLY_UF, d_input_arg_inj[f][j], bv ) );
         }
-        Node bd = assertions[i][1].substitute( vars.begin(), vars.end(), subs.begin(), subs.end() );
-        
-        Trace("fmf-fun-def") << "FMF fun def: rewrite " << assertions[i] << std::endl;
+        bd = bd.substitute( vars.begin(), vars.end(), subs.begin(), subs.end() );
+        subs_head[i] = n.substitute( vars.begin(), vars.end(), subs.begin(), subs.end() );
+
+        Trace("fmf-fun-def") << "FMF fun def: FUNCTION : rewrite " << assertions[i] << std::endl;
         Trace("fmf-fun-def") << "  to " << std::endl;
-        assertions[i] = NodeManager::currentNM()->mkNode( FORALL, bvl, bd );
+        Node new_q = NodeManager::currentNM()->mkNode( FORALL, bvl, bd );
+        new_q = Rewriter::rewrite( new_q );
+        PROOF( ProofManager::currentPM()->addDependence(new_q, assertions[i]); );
+        assertions[i] = new_q;
         Trace("fmf-fun-def") << "  " << assertions[i] << std::endl;
         fd_assertions.push_back( i );
+      }else{
+        //can be, e.g. in corner cases forall x. f(x)=f(x), forall x. f(x)=f(x)+1
       }
     }
   }
   //second pass : rewrite assertions
   for( unsigned i=0; i<assertions.size(); i++ ){
-    bool is_fd = std::find( fd_assertions.begin(), fd_assertions.end(), i )!=fd_assertions.end();
-    std::vector< Node > constraints;
-    Node n = simplify( assertions[i], true, true, constraints, is_fd );
-    Assert( constraints.empty() );
-    if( n!=assertions[i] ){
-      n = Rewriter::rewrite( n );
-      Trace("fmf-fun-def-rewrite") << "FMF fun def : rewrite " << assertions[i] << std::endl;
-      Trace("fmf-fun-def-rewrite") << "  to " << std::endl;
-      Trace("fmf-fun-def-rewrite") << "  " << n << std::endl;
-      assertions[i] = n;
+    int is_fd = std::find( fd_assertions.begin(), fd_assertions.end(), i )!=fd_assertions.end() ? 1 : 0;
+    //constant boolean function definitions do not add domain constraints
+    if( is_fd==0 || ( is_fd==1 && ( assertions[i][1].getKind()==EQUAL || assertions[i][1].getKind()==IFF ) ) ){
+      std::vector< Node > constraints;
+      Trace("fmf-fun-def-rewrite") << "Rewriting " << assertions[i] << ", is_fd = " << is_fd << std::endl;
+      Node n = simplifyFormula( assertions[i], true, true, constraints, is_fd==1 ? subs_head[i] : Node::null(), is_fd );
+      Assert( constraints.empty() );
+      if( n!=assertions[i] ){
+        n = Rewriter::rewrite( n );
+        Trace("fmf-fun-def-rewrite") << "FMF fun def : rewrite " << assertions[i] << std::endl;
+        Trace("fmf-fun-def-rewrite") << "  to " << std::endl;
+        Trace("fmf-fun-def-rewrite") << "  " << n << std::endl;
+        PROOF( ProofManager::currentPM()->addDependence(n, assertions[i]); );
+        assertions[i] = n;
+      }
     }
   }
 }
 
-Node FunDefFmf::simplify( Node n, bool pol, bool hasPol, std::vector< Node >& constraints, bool is_fun_def ) {
+//is_fun_def 1 : top of fun-def, 2 : top of fun-def body, 0 : not top
+Node FunDefFmf::simplifyFormula( Node n, bool pol, bool hasPol, std::vector< Node >& constraints, Node hd, int is_fun_def ) {
   Trace("fmf-fun-def-debug") << "Simplify " << n << " " << pol << " " << hasPol << " " << is_fun_def << std::endl;
   if( n.getKind()==FORALL ){
-    Node c = simplify( n[1], pol, hasPol, constraints, is_fun_def );
+    Node c = simplifyFormula( n[1], pol, hasPol, constraints, hd, is_fun_def );
     if( c!=n[1] ){
       return NodeManager::currentNM()->mkNode( FORALL, n[0], c );
     }else{
       return n;
     }
-  }else if( n.getType().isBoolean() && n.getKind()!=APPLY_UF ){
-    std::vector< Node > children;
-    bool childChanged = false;
-    for( unsigned i=0; i<n.getNumChildren(); i++ ){
-      Node c = n[i];
-      //do not process LHS of definition
-      if( !is_fun_def || i!=0 ){
-        bool newHasPol;
-        bool newPol;
-        QuantPhaseReq::getPolarity( n, i, hasPol, pol, newHasPol, newPol );
-        //get child constraints
-        std::vector< Node > cconstraints;
-        c = simplify( n[i], newPol, newHasPol, cconstraints );
-        constraints.insert( constraints.end(), cconstraints.begin(), cconstraints.end() );
-      }
-      children.push_back( c );
-      childChanged = c!=n[i] || childChanged;
-    }
-    if( !constraints.empty() || childChanged ){
-      std::vector< Node > c;
-      if( childChanged ){
-        c.push_back( NodeManager::currentNM()->mkNode( n.getKind(), children ) );
-      }else{
-        c.push_back( n );
-      }
-      if( hasPol ){
-        //conjoin with current
-        for( unsigned i=0; i<constraints.size(); i++ ){
-          if( pol ){
-            c.push_back( constraints[i] );
-          }else{
-            c.push_back( constraints[i].negate() );
-          }
-        }
-        constraints.clear();
-      }else{
-        //must add at higher level
-      }
-      return c.size()==1 ? c[0] : NodeManager::currentNM()->mkNode( pol ? AND : OR, c );
-    }
   }else{
-    //simplify term
-    simplifyTerm( n, constraints );
+    Node nn = n;
+    bool isBool = n.getType().isBoolean();
+    if( isBool && n.getKind()!=APPLY_UF && is_fun_def!=2 ){
+      std::vector< Node > children;
+      bool childChanged = false;
+      for( unsigned i=0; i<n.getNumChildren(); i++ ){
+        Node c = n[i];
+        //do not process LHS of definition
+        if( is_fun_def!=1 || c!=hd ){
+          bool newHasPol;
+          bool newPol;
+          QuantPhaseReq::getPolarity( n, i, hasPol, pol, newHasPol, newPol );
+          //get child constraints
+          std::vector< Node > cconstraints;
+          c = simplifyFormula( n[i], newPol, newHasPol, cconstraints, hd, is_fun_def==1 ? 2 : 0 );
+          constraints.insert( constraints.end(), cconstraints.begin(), cconstraints.end() );
+        }
+        children.push_back( c );
+        childChanged = c!=n[i] || childChanged;
+      }
+      if( childChanged ){
+        nn = NodeManager::currentNM()->mkNode( n.getKind(), children );
+      }
+    }else{
+      //simplify term
+      simplifyTerm( n, constraints );
+    }
+    if( !constraints.empty() && isBool && hasPol ){
+      std::vector< Node > c;
+      c.push_back( nn );
+      //conjoin with current
+      for( unsigned i=0; i<constraints.size(); i++ ){
+        if( pol ){
+          c.push_back( constraints[i] );
+        }else{
+          c.push_back( constraints[i].negate() );
+        }
+      }
+      constraints.clear();
+      return c.size()==1 ? c[0] : NodeManager::currentNM()->mkNode( pol ? AND : OR, c );
+    }else{
+      return nn;
+    }
   }
-  return n;
 }
 
 void FunDefFmf::simplifyTerm( Node n, std::vector< Node >& constraints ) {

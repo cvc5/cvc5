@@ -35,15 +35,13 @@ protected:
   QuantifiersEngine* d_qe;
 public:
   QModelBuilder( context::Context* c, QuantifiersEngine* qe );
-  virtual ~QModelBuilder(){}
+  virtual ~QModelBuilder() throw() {}
   // is quantifier active?
   virtual bool isQuantifierActive( Node f );
   //do exhaustive instantiation
   virtual bool doExhaustiveInstantiation( FirstOrderModel * fm, Node f, int effort ) { return false; }
   //whether to construct model
   virtual bool optUseModel();
-  //whether to construct model at fullModel = true
-  virtual bool optBuildAtFullModel() { return false; }
   /** number of lemmas generated while building model */
   //is the exhaustive instantiation incomplete?
   bool d_incomplete_check;
@@ -123,7 +121,7 @@ protected:  //helper functions
   bool hasConstantDefinition( Node n );
 public:
   QModelBuilderIG( context::Context* c, QuantifiersEngine* qe );
-  virtual ~QModelBuilderIG(){}
+  virtual ~QModelBuilderIG() throw() {}
 public:
   //whether to add inst-gen lemmas
   virtual bool optInstGen();
@@ -192,7 +190,7 @@ protected:
   void constructModelUf( FirstOrderModel* fm, Node op );
 public:
   QModelBuilderDefault( context::Context* c, QuantifiersEngine* qe ) : QModelBuilderIG( c, qe ){}
-  ~QModelBuilderDefault(){}
+  ~QModelBuilderDefault() throw() {}
   //options
   bool optReconsiderFuncConstants() { return true; }
   //has inst gen

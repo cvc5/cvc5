@@ -57,9 +57,10 @@ void SmtEngine::checkProof() {
 
   Chat() << "checking proof..." << endl;
 
-  if( ! ( d_logic.isPure(theory::THEORY_BOOL) ||
-          ( d_logic.isPure(theory::THEORY_UF) &&
-            ! d_logic.hasCardinalityConstraints() ) ) ) {
+  if( !(d_logic.isPure(theory::THEORY_BOOL) ||
+	(d_logic.isPure(theory::THEORY_UF) &&
+	 ! d_logic.hasCardinalityConstraints())) ||
+      d_logic.isQuantified()) {
     // no checking for these yet
     Notice() << "Notice: no proof-checking for non-UF/Bool proofs yet" << endl;
     return;

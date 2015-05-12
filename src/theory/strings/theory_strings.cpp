@@ -37,7 +37,7 @@ TheoryStrings::TheoryStrings(context::Context* c, context::UserContext* u, Outpu
   : Theory(THEORY_STRINGS, c, u, out, valuation, logicInfo),
   RMAXINT(LONG_MAX),
   d_notify( *this ),
-  d_equalityEngine(d_notify, c, "theory::strings::TheoryStrings", false),
+  d_equalityEngine(d_notify, c, "theory::strings::TheoryStrings", true),
   d_conflict(c, false),
   d_infer(c),
   d_infer_exp(c),
@@ -158,11 +158,11 @@ Node TheoryStrings::getLengthTerm( Node t ) {
 
 Node TheoryStrings::getLength( Node t ) {
   Node retNode;
-  //if(t.isConst()) {
-  //  retNode = NodeManager::currentNM()->mkNode( kind::STRING_LENGTH, t );
-  //} else {
+  if(t.isConst()) {
+    retNode = NodeManager::currentNM()->mkNode( kind::STRING_LENGTH, t );
+  } else {
     retNode = NodeManager::currentNM()->mkNode( kind::STRING_LENGTH, getLengthTerm( t ) );
-  //}
+  }
   return Rewriter::rewrite( retNode );
 }
 
@@ -778,7 +778,7 @@ void TheoryStrings::assertPendingFact(Node fact, Node exp) {
     for( unsigned j=0; j<2; j++ ) {
       if( !d_equalityEngine.hasTerm( atom[j] ) ) {
         //TODO: check!!!
-		registerTerm( atom[j] );
+    registerTerm( atom[j] );
         d_equalityEngine.addTerm( atom[j] );
       }
     }
@@ -1943,15 +1943,17 @@ void TheoryStrings::sendSplit( Node a, Node b, const char * c, bool preq ) {
 
 void TheoryStrings::sendLengthLemma( Node n ){
   Node n_len = NodeManager::currentNM()->mkNode( kind::STRING_LENGTH, n);
-  //Node n_len_eq_z = n_len.eqNode( d_zero );
+  Node n_len_eq_z = n_len.eqNode( d_zero );
   //registerTerm( d_emptyString );
-  Node n_len_eq_z = n.eqNode( d_emptyString );
+  Node n_len_eq_z_2 = n.eqNode( d_emptyString );
   n_len_eq_z = Rewriter::rewrite( n_len_eq_z );
-  Node n_len_geq_zero = NodeManager::currentNM()->mkNode( kind::OR, n_len_eq_z,
+  n_len_eq_z_2 = Rewriter::rewrite( n_len_eq_z_2 );
+  Node n_len_geq_zero = NodeManager::currentNM()->mkNode( kind::OR, NodeManager::currentNM()->mkNode( kind::AND, n_len_eq_z, n_len_eq_z_2 ),
               NodeManager::currentNM()->mkNode( kind::GT, n_len, d_zero) );
   Trace("strings-lemma") << "Strings::Lemma LENGTH >= 0 : " << n_len_geq_zero << std::endl;
   d_out->lemma(n_len_geq_zero);
   d_out->requirePhase( n_len_eq_z, true );
+  d_out->requirePhase( n_len_eq_z_2, true );
 }
 
 Node TheoryStrings::mkConcat( Node n1, Node n2 ) {
@@ -1992,14 +1994,14 @@ Node TheoryStrings::mkSkolemS( const char *c, int isLenSplit ) {
 }
 
 void TheoryStrings::collectTerm( Node n ) {
-	if(d_registed_terms_cache.find(n) == d_registed_terms_cache.end()) {
+  if(d_registed_terms_cache.find(n) == d_registed_terms_cache.end()) {
     d_terms_cache.push_back(n);
   }
 }
 
 
 void TheoryStrings::appendTermLemma() {
-	for(std::vector< Node >::const_iterator it=d_terms_cache.begin();
+  for(std::vector< Node >::const_iterator it=d_terms_cache.begin();
       it!=d_terms_cache.begin();it++) {
         registerTerm(*it);
   }
@@ -2281,7 +2283,7 @@ void TheoryStrings::checkDeqNF() {
         for( unsigned k=(j+1); k<cols[i].size(); k++ ){
           Assert( !d_conflict );
           if( !areDisequal( cols[i][j], cols[i][k] ) ){
-            sendSplit( cols[i][j], cols[i][k], "D-NORM", false );
+            sendSplit( cols[i][j], cols[i][k], "D-NORM", true );
             return;
           }else{
             Trace("strings-solve") << "- Compare ";
@@ -2552,7 +2554,7 @@ Node TheoryStrings::normalizeRegexp(Node r) {
           }
         }
         case kind::REGEXP_CONCAT:
-        case kind::REGEXP_UNION: 
+        case kind::REGEXP_UNION:
         case kind::REGEXP_INTER: {
           bool flag = false;
           std::vector< Node > vec_nodes;
@@ -3017,7 +3019,7 @@ bool TheoryStrings::checkMemberships() {
                 nvec.push_back( tmp );
               }
             }*/
-            
+
             if(nvec.empty()) {
               d_regexp_opr.simplify(atom, nvec, polarity);
             }
@@ -3280,10 +3282,11 @@ bool TheoryStrings::checkPosContains() {
 
 bool TheoryStrings::checkNegContains() {
   bool addedLemma = false;
+  //check for conflicts
   for( unsigned i=0; i<d_str_neg_ctn.size(); i++ ){
     if( !d_conflict ){
       Node atom = d_str_neg_ctn[i];
-      Trace("strings-ctn") << "We have nagetive contain assertion : (not " << atom << " )" << std::endl;
+      Trace("strings-ctn") << "We have negative contain assertion : (not " << atom << " )" << std::endl;
       if( areEqual( atom[1], d_emptyString ) ) {
         Node ant = NodeManager::currentNM()->mkNode( kind::AND, atom.negate(), atom[1].eqNode( d_emptyString ) );
         Node conc = Node::null();
@@ -3294,77 +3297,82 @@ bool TheoryStrings::checkNegContains() {
         Node conc = Node::null();
         sendLemma( ant, conc, "NEG-CTN Conflict 2" );
         addedLemma = true;
-      } else {
-        if(options::stringExp()) {
-          Node x = atom[0];
-          Node s = atom[1];
-          Node lenx = getLength(x);
-          Node lens = getLength(s);
-          if(areEqual(lenx, lens)) {
-            if(d_neg_ctn_eqlen.find(atom) == d_neg_ctn_eqlen.end()) {
-              Node eq = lenx.eqNode(lens);
-              Node antc = Rewriter::rewrite( NodeManager::currentNM()->mkNode( kind::AND, atom.negate(), eq ) );
-              Node xneqs = x.eqNode(s).negate();
-              d_neg_ctn_eqlen.insert( atom );
-              sendLemma( antc, xneqs, "NEG-CTN-EQL" );
-              addedLemma = true;
-            }
-          } else if(!areDisequal(lenx, lens)) {
-            if(d_neg_ctn_ulen.find(atom) == d_neg_ctn_ulen.end()) {
-              lenx = NodeManager::currentNM()->mkNode(kind::STRING_LENGTH, x);
-              lens = NodeManager::currentNM()->mkNode(kind::STRING_LENGTH, s);
-              d_neg_ctn_ulen.insert( atom );
-              sendSplit(lenx, lens, "NEG-CTN-SP");
-              addedLemma = true;
-            }
-          } else {
-            if(d_neg_ctn_cached.find(atom) == d_neg_ctn_cached.end()) {
-              lenx = NodeManager::currentNM()->mkNode(kind::STRING_LENGTH, x);
-              lens = NodeManager::currentNM()->mkNode(kind::STRING_LENGTH, s);
-              Node b1 = NodeManager::currentNM()->mkBoundVar(NodeManager::currentNM()->integerType());
-              Node b1v = NodeManager::currentNM()->mkNode(kind::BOUND_VAR_LIST, b1);
-              Node g1 = Rewriter::rewrite( NodeManager::currentNM()->mkNode( kind::AND, NodeManager::currentNM()->mkNode( kind::GEQ, b1, d_zero ),
-                    NodeManager::currentNM()->mkNode( kind::GEQ, NodeManager::currentNM()->mkNode( kind::MINUS, lenx, lens ), b1 ) ) );
-              Node b2 = NodeManager::currentNM()->mkBoundVar(NodeManager::currentNM()->integerType());
-              Node s2 = NodeManager::currentNM()->mkNode(kind::STRING_SUBSTR_TOTAL, x, NodeManager::currentNM()->mkNode( kind::PLUS, b1, b2 ), d_one);
-              Node s5 = NodeManager::currentNM()->mkNode(kind::STRING_SUBSTR_TOTAL, s, b2, d_one);
-
-              Node b2v = NodeManager::currentNM()->mkNode(kind::BOUND_VAR_LIST, b2);//, s1, s3, s4, s6);
-
-              std::vector< Node > vec_nodes;
-              Node cc = NodeManager::currentNM()->mkNode( kind::GEQ, b2, d_zero );
-              vec_nodes.push_back(cc);
-              cc = NodeManager::currentNM()->mkNode( kind::GT, lens, b2 );
-              vec_nodes.push_back(cc);
-
-              cc = s2.eqNode(s5).negate();
-              vec_nodes.push_back(cc);
-
-              Node conc = NodeManager::currentNM()->mkNode(kind::AND, vec_nodes);
-              conc = NodeManager::currentNM()->mkNode( kind::EXISTS, b2v, conc );
-              conc = NodeManager::currentNM()->mkNode( kind::IMPLIES, g1, conc );
-              conc = NodeManager::currentNM()->mkNode( kind::FORALL, b1v, conc );
-              Node xlss = NodeManager::currentNM()->mkNode( kind::GT, lens, lenx );
-              conc = Rewriter::rewrite( NodeManager::currentNM()->mkNode( kind::OR, xlss, conc ) );
-
-              d_neg_ctn_cached.insert( atom );
-              sendLemma( atom.negate(), conc, "NEG-CTN-BRK" );
-              //d_pending_req_phase[xlss] = true;
-              addedLemma = true;
-            }
+      } 
+    }
+  }
+  if( !d_conflict ){
+    //check for lemmas
+    if(options::stringExp()) {
+      for( unsigned i=0; i<d_str_neg_ctn.size(); i++ ){
+        Node atom = d_str_neg_ctn[i];
+        Node x = atom[0];
+        Node s = atom[1];
+        Node lenx = getLength(x);
+        Node lens = getLength(s);
+        if(areEqual(lenx, lens)) {
+          if(d_neg_ctn_eqlen.find(atom) == d_neg_ctn_eqlen.end()) {
+            Node eq = lenx.eqNode(lens);
+            Node antc = Rewriter::rewrite( NodeManager::currentNM()->mkNode( kind::AND, atom.negate(), eq ) );
+            Node xneqs = x.eqNode(s).negate();
+            d_neg_ctn_eqlen.insert( atom );
+            sendLemma( antc, xneqs, "NEG-CTN-EQL" );
+            addedLemma = true;
+          }
+        } else if(!areDisequal(lenx, lens)) {
+          if(d_neg_ctn_ulen.find(atom) == d_neg_ctn_ulen.end()) {
+            lenx = NodeManager::currentNM()->mkNode(kind::STRING_LENGTH, x);
+            lens = NodeManager::currentNM()->mkNode(kind::STRING_LENGTH, s);
+            d_neg_ctn_ulen.insert( atom );
+            sendSplit(lenx, lens, "NEG-CTN-SP");
+            addedLemma = true;
           }
         } else {
-          throw LogicException("Strings Incomplete (due to Negative Contain) by default, try --strings-exp option.");
+          if(d_neg_ctn_cached.find(atom) == d_neg_ctn_cached.end()) {
+            lenx = NodeManager::currentNM()->mkNode(kind::STRING_LENGTH, x);
+            lens = NodeManager::currentNM()->mkNode(kind::STRING_LENGTH, s);
+            Node b1 = NodeManager::currentNM()->mkBoundVar(NodeManager::currentNM()->integerType());
+            Node b1v = NodeManager::currentNM()->mkNode(kind::BOUND_VAR_LIST, b1);
+            Node g1 = Rewriter::rewrite( NodeManager::currentNM()->mkNode( kind::AND, NodeManager::currentNM()->mkNode( kind::GEQ, b1, d_zero ),
+                  NodeManager::currentNM()->mkNode( kind::GEQ, NodeManager::currentNM()->mkNode( kind::MINUS, lenx, lens ), b1 ) ) );
+            Node b2 = NodeManager::currentNM()->mkBoundVar(NodeManager::currentNM()->integerType());
+            Node s2 = NodeManager::currentNM()->mkNode(kind::STRING_SUBSTR_TOTAL, x, NodeManager::currentNM()->mkNode( kind::PLUS, b1, b2 ), d_one);
+            Node s5 = NodeManager::currentNM()->mkNode(kind::STRING_SUBSTR_TOTAL, s, b2, d_one);
+
+            Node b2v = NodeManager::currentNM()->mkNode(kind::BOUND_VAR_LIST, b2);//, s1, s3, s4, s6);
+
+            std::vector< Node > vec_nodes;
+            Node cc = NodeManager::currentNM()->mkNode( kind::GEQ, b2, d_zero );
+            vec_nodes.push_back(cc);
+            cc = NodeManager::currentNM()->mkNode( kind::GT, lens, b2 );
+            vec_nodes.push_back(cc);
+
+            cc = s2.eqNode(s5).negate();
+            vec_nodes.push_back(cc);
+
+            Node conc = NodeManager::currentNM()->mkNode(kind::AND, vec_nodes);
+            conc = NodeManager::currentNM()->mkNode( kind::EXISTS, b2v, conc );
+            conc = NodeManager::currentNM()->mkNode( kind::IMPLIES, g1, conc );
+            conc = NodeManager::currentNM()->mkNode( kind::FORALL, b1v, conc );
+            Node xlss = NodeManager::currentNM()->mkNode( kind::GT, lens, lenx );
+            conc = Rewriter::rewrite( NodeManager::currentNM()->mkNode( kind::OR, xlss, conc ) );
+
+            d_neg_ctn_cached.insert( atom );
+            sendLemma( atom.negate(), conc, "NEG-CTN-BRK" );
+            //d_pending_req_phase[xlss] = true;
+            addedLemma = true;
+          }
         }
+      }
+      if( addedLemma ){
+        doPendingLemmas();
+      }
+    } else {
+      if( !d_str_neg_ctn.empty() ){
+        throw LogicException("Strings Incomplete (due to Negative Contain) by default, try --strings-exp option.");
       }
     }
   }
-  if( addedLemma ){
-    doPendingLemmas();
-    return true;
-  } else {
-    return false;
-  }
+  return addedLemma;
 }
 
 CVC4::String TheoryStrings::getHeadConst( Node x ) {

@@ -28,12 +28,81 @@ namespace quantifiers {
 
 class CegConjecture;
 
+class CegqiOutput
+{
+public:
+  virtual ~CegqiOutput() {}
+  virtual bool addInstantiation( std::vector< Node >& subs, std::vector< int >& subs_typ ) = 0;
+  virtual bool isEligibleForInstantiation( Node n ) = 0;
+  virtual bool addLemma( Node lem ) = 0;
+};
+
+class CegInstantiator
+{
+private:
+  Node d_zero;
+  Node d_one;
+  Node d_true;
+  QuantifiersEngine * d_qe;
+  CegqiOutput * d_out;
+  //program variable contains cache
+  std::map< Node, std::map< Node, bool > > d_prog_var;
+  std::map< Node, bool > d_inelig;
+  std::map< Node, bool > d_has_delta;
+private:
+  //for adding instantiations during check
+  void computeProgVars( Node n );
+  // effort=0 : do not use model value, 1: use model value, 2: one must use model value
+  bool addInstantiation( std::vector< Node >& subs, std::vector< Node >& vars,
+                         std::vector< Node >& coeff, std::vector< Node >& has_coeff, std::vector< int >& subs_typ,
+                         unsigned i, unsigned effort );
+  bool addInstantiationInc( Node n, Node pv, Node pv_coeff, int styp, std::vector< Node >& subs, std::vector< Node >& vars,
+                            std::vector< Node >& coeff, std::vector< Node >& has_coeff, std::vector< int >& subs_typ,
+                            unsigned i, unsigned effort );
+  bool addInstantiationCoeff( std::vector< Node >& subs, std::vector< Node >& vars,
+                              std::vector< Node >& coeff, std::vector< Node >& has_coeff, std::vector< int >& subs_typ,
+                              unsigned j );
+  bool addInstantiation( std::vector< Node >& subs, std::vector< Node >& vars, std::vector< int >& subs_typ );
+  Node applySubstitution( Node n, std::vector< Node >& subs, std::vector< Node >& vars,
+                          std::vector< Node >& coeff, std::vector< Node >& has_coeff, Node& pv_coeff, bool try_coeff = true );
+public:
+  CegInstantiator( QuantifiersEngine * qe, CegqiOutput * out );
+  //the CE variables
+  std::vector< Node > d_vars;
+  //delta
+  Node d_n_delta;
+  //check : add instantiations based on valuation of d_vars
+  void check();
+  // get delta lemmas : on-demand force minimality of d_n_delta
+  void getDeltaLemmas( std::vector< Node >& lems );
+};
+
+
+class CegConjectureSingleInv;
+
+class CegqiOutputSingleInv : public CegqiOutput
+{
+public:
+  CegqiOutputSingleInv( CegConjectureSingleInv * out ) : d_out( out ){}
+  ~CegqiOutputSingleInv() {}
+  CegConjectureSingleInv * d_out;
+  bool addInstantiation( std::vector< Node >& subs, std::vector< int >& subs_typ );
+  bool isEligibleForInstantiation( Node n );
+  bool addLemma( Node lem );
+};
+
+
+
 class CegConjectureSingleInv
 {
+  friend class CegqiOutputSingleInv;
 private:
   QuantifiersEngine * d_qe;
   CegConjecture * d_parent;
   CegConjectureSingleInvSol * d_sol;
+  //the instantiator
+  CegInstantiator * d_cinst;
+  //for recognizing when conjecture is single invocation
   bool analyzeSygusConjunct( Node n, Node p, std::map< Node, std::vector< Node > >& children,
                             std::map< Node, std::map< Node, std::vector< Node > > >& prog_invoke,
                             std::vector< Node >& progs, std::map< Node, std::map< Node, bool > >& contains, bool pol );
@@ -41,17 +110,9 @@ private:
   bool processSingleInvLiteral( Node lit, bool pol, std::map< Node, std::vector< Node > >& case_vals );
   bool doVariableElimination( Node v, std::vector< Node >& conjuncts );
   bool getVariableEliminationTerm( bool pol, bool active, Node v, Node n, TNode& s, int& status );
-
+  //constructing solution
   Node constructSolution( unsigned i, unsigned index );
-  int classifyTerm( Node n, std::map< Node, int >& subs_from_model );
-  void collectProgVars( Node n, std::vector< Node >& vars );
-  Node applyProgVarSubstitution( Node n, std::map< Node, int >& subs_from_model, std::vector< Node >& subs );
-public:
-  CegConjectureSingleInv( QuantifiersEngine * qe, Node q, CegConjecture * p );
-  // original conjecture
-  Node d_quant;
-  // single invocation version of quant
-  Node d_single_inv;
+private:
   //map from programs to variables in single invocation property
   std::map< Node, Node > d_single_inv_map;
   std::map< Node, Node > d_single_inv_map_to_prog;
@@ -67,16 +128,32 @@ public:
   //lemmas produced
   std::vector< Node > d_lemmas_produced;
   std::vector< std::vector< Node > > d_inst;
+  inst::InstMatchTrie d_inst_match_trie;
+  inst::CDInstMatchTrie * d_c_inst_match_trie;
   // solution
   std::vector< Node > d_varList;
   Node d_orig_solution;
   Node d_solution;
   Node d_sygus_solution;
+private:
+  std::vector< Node > d_curr_lemmas;
+  //add instantiation
+  bool addInstantiation( std::vector< Node >& subs, std::vector< int >& subs_typ );
+  //is eligible for instantiation
+  bool isEligibleForInstantiation( Node n );
+  // add lemma
+  bool addLemma( Node lem );
+public:
+  CegConjectureSingleInv( CegConjecture * p );
+  // original conjecture
+  Node d_quant;
+  // single invocation version of quant
+  Node d_single_inv;
 public:
   //get the single invocation lemma
   Node getSingleInvLemma( Node guard );
   //initialize
-  void initialize();
+  void initialize( QuantifiersEngine * qe, Node q );
   //check
   void check( std::vector< Node >& lems );
   //get solution

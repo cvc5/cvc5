@@ -1,4 +1,4 @@
-; COMMAND-LINE: --incremental
+; COMMAND-LINE: --incremental --rewrite-rules
 
 (set-logic AUFLIA)
 

@@ -24,6 +24,9 @@
 #  define PROOF(x) if(CVC4::options::proof() || CVC4::options::unsatCores()) { x; }
 #  define NULLPROOF(x) (CVC4::options::proof() || CVC4::options::unsatCores()) ? x : NULL
 #  define PROOF_ON() (CVC4::options::proof() || CVC4::options::unsatCores())
+#  define THEORY_PROOF(x) if(CVC4::options::proof()) { x; }
+#  define THEORY_NULLPROOF(x) CVC4::options::proof() ? x : NULL
+#  define THEORY_PROOF_ON() CVC4::options::proof()
 #else /* CVC4_PROOF */
 #  define PROOF(x)
 #  define NULLPROOF(x) NULL

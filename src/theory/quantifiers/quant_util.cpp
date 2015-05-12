@@ -68,19 +68,36 @@ bool QuantArith::getMonomialSumLit( Node lit, std::map< Node, Node >& msum ) {
           msum[Node::null()] = negate( lit[1] );
         }
         return true;
+      }else{
+        //subtract the other side
+        std::map< Node, Node > msum2;
+        if( getMonomialSum( lit[1], msum2 ) ){
+          for( std::map< Node, Node >::iterator it = msum2.begin(); it != msum2.end(); ++it ){
+            std::map< Node, Node >::iterator it2 = msum.find( it->first );
+            if( it2!=msum.end() ){
+              Node r = NodeManager::currentNM()->mkNode( MINUS, it2->second.isNull() ? NodeManager::currentNM()->mkConst( Rational(1) ) : it2->second, 
+                                                                it->second.isNull() ? NodeManager::currentNM()->mkConst( Rational(1) ) : it->second );
+              msum[it->first] = Rewriter::rewrite( r );
+            }else{
+              msum[it->first] = negate( it->second.isNull() ? NodeManager::currentNM()->mkConst( Rational(1) ) : it->second );
+            }
+          }
+          return true;
+        }
       }
     }
   }
   return false;
 }
 
-bool QuantArith::isolate( Node v, std::map< Node, Node >& msum, Node & veq, Kind k ) {
-  if( msum.find(v)!=msum.end() ){
+int QuantArith::isolate( Node v, std::map< Node, Node >& msum, Node & veq, Kind k, bool doCoeff ) {
+  std::map< Node, Node >::iterator itv = msum.find( v );
+  if( itv!=msum.end() ){
     std::vector< Node > children;
-    Rational r = msum[v].isNull() ? Rational(1) : msum[v].getConst<Rational>();
+    Rational r = itv->second.isNull() ? Rational(1) : itv->second.getConst<Rational>();
     if ( r.sgn()!=0 ){
       for( std::map< Node, Node >::iterator it = msum.begin(); it != msum.end(); ++it ){
-        if( it->first.isNull() || it->first!=v ){
+        if( it->first!=v ){
           Node m;
           if( !it->first.isNull() ){
             if ( !it->second.isNull() ){
@@ -96,22 +113,24 @@ bool QuantArith::isolate( Node v, std::map< Node, Node >& msum, Node & veq, Kind
       }
       veq = children.size()>1 ? NodeManager::currentNM()->mkNode( PLUS, children ) :
                                 (children.size()==1 ? children[0] : NodeManager::currentNM()->mkConst( Rational(0) ));
-      if( !r.isNegativeOne() ){
-        if( r.isOne() ){
-          veq = negate(veq);
+      Node vc = v;
+      if( !r.isOne() && !r.isNegativeOne() ){
+        if( doCoeff ){
+          vc = NodeManager::currentNM()->mkNode( MULT, NodeManager::currentNM()->mkConst( r.abs() ), vc );
         }else{
-          //TODO : lcd computation
-          return false;
+          return 0;
         }
       }
+      if( r.sgn()==1 ){
+        veq = negate(veq);
+      }
       veq = Rewriter::rewrite( veq );
-      veq = NodeManager::currentNM()->mkNode( k, r.sgn()==1 ? v : veq, r.sgn()==1 ? veq : v );
-      return true;
+      bool inOrder = r.sgn()==1 || k==EQUAL;
+      veq = NodeManager::currentNM()->mkNode( k, inOrder ? vc : veq, inOrder ? veq : vc );
+      return inOrder ? 1 : -1;
     }
-    return false;
-  }else{
-    return false;
   }
+  return 0;
 }
 
 Node QuantArith::negate( Node t ) {

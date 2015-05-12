@@ -138,6 +138,8 @@ public:
   std::map< TypeNode, unsigned > d_var_limit;
   //the functions we can currently generate
   std::map< TypeNode, std::vector< TNode > > d_typ_tg_funcs;
+  // whether functions must add operators
+  std::map< TNode, bool > d_tg_func_param;
   //the equivalence classes (if applicable) that match the currently generated term
   bool d_gen_relevant_terms;
   //relevant equivalence classes
@@ -404,6 +406,7 @@ private:  //information about ground equivalence classes
   unsigned flushWaitingConjectures( unsigned& addedLemmas, int ldepth, int rdepth );
 public:
   ConjectureGenerator( QuantifiersEngine * qe, context::Context* c );
+  ~ConjectureGenerator() throw() {}
   /* needs check */
   bool needsCheck( Theory::Effort e );
   /* reset at a round */

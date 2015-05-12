@@ -24,7 +24,7 @@ expert-option earlyExit --early-exit bool :default true
  do not run destructors at exit; default on except in debug builds
 
 # portfolio options
-option threads --threads=N unsigned :default 2 :predicate greater(0)
+option threads --threads=N unsigned :default 2 :predicate options::greater(0)
  Total number of threads for portfolio
 option - --threadN=string void :handler CVC4::main::threadN :handler-include "main/options_handlers.h"
  configures portfolio thread N (0..#threads-1)

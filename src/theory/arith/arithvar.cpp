@@ -18,12 +18,18 @@
 
 #include "theory/arith/arithvar.h"
 #include <limits>
+#include <set>
 
 namespace CVC4 {
 namespace theory {
 namespace arith {
 
 const ArithVar ARITHVAR_SENTINEL = std::numeric_limits<ArithVar>::max();
+
+bool debugIsASet(const std::vector<ArithVar>& variables){
+  std::set<ArithVar> asSet(variables.begin(), variables.end());
+  return asSet.size() == variables.size();
+}
 
 }/* CVC4::theory::arith namespace */
 }/* CVC4::theory namespace */

@@ -1,0 +1,5 @@
+(set-logic QF_LIA)
+(set-info :status sat)
+(declare-funs ((f Int) (g Int)))
+(assert (= f g))
+(check-sat)

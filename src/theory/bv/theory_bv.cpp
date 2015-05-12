@@ -580,8 +580,8 @@ Node TheoryBV::ppRewrite(TNode t)
   } else if( res.getKind() == kind::EQUAL &&
       ((res[0].getKind() == kind::BITVECTOR_PLUS &&
         RewriteRule<ConcatToMult>::applies(res[1])) ||
-       res[1].getKind() == kind::BITVECTOR_PLUS &&
-       RewriteRule<ConcatToMult>::applies(res[0]))) {
+       (res[1].getKind() == kind::BITVECTOR_PLUS &&
+	RewriteRule<ConcatToMult>::applies(res[0])))) {
     Node mult = RewriteRule<ConcatToMult>::applies(res[0])?
       RewriteRule<ConcatToMult>::run<false>(res[0]) :
       RewriteRule<ConcatToMult>::run<true>(res[1]);
@@ -752,8 +752,8 @@ void TheoryBV::ppStaticLearn(TNode in, NodeBuilder<>& learned) {
   d_staticLearnCache.insert(in);
     
   if (in.getKind() == kind::EQUAL) {
-    if(in[0].getKind() == kind::BITVECTOR_PLUS && in[1].getKind() == kind::BITVECTOR_SHL ||
-       in[1].getKind() == kind::BITVECTOR_PLUS && in[0].getKind() == kind::BITVECTOR_SHL){
+    if((in[0].getKind() == kind::BITVECTOR_PLUS && in[1].getKind() == kind::BITVECTOR_SHL) ||
+       (in[1].getKind() == kind::BITVECTOR_PLUS && in[0].getKind() == kind::BITVECTOR_SHL)) {
       TNode p = in[0].getKind() == kind::BITVECTOR_PLUS ? in[0] : in[1];
       TNode s = in[0].getKind() == kind::BITVECTOR_PLUS ? in[1] : in[0];
 

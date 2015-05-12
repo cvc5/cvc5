@@ -1199,6 +1199,7 @@ RewriteResponse TheoryStringsRewriter::preRewrite(TNode node) {
     if(r.getKind() == kind::REGEXP_STAR) {
       retNode = r;
     } else {
+      /* //lazy
       Node n1 = Rewriter::rewrite( node[1] );
       if(!n1.isConst()) {
         throw LogicException("re.loop contains non-constant integer (1).");
@@ -1239,8 +1240,9 @@ RewriteResponse TheoryStringsRewriter::preRewrite(TNode node) {
             NodeManager::currentNM()->mkNode(kind::REGEXP_LOOP, node[0], n1, n1), 
             NodeManager::currentNM()->mkNode(kind::REGEXP_STAR, node[0]));
       }
-    }
-    /*else {
+    }*/ //lazy
+    /*else {*/
+      // eager
       TNode n1 = Rewriter::rewrite( node[1] );
       //
       if(!n1.isConst()) {
@@ -1284,7 +1286,7 @@ RewriteResponse TheoryStringsRewriter::preRewrite(TNode node) {
                 :NodeManager::currentNM()->mkNode(kind::REGEXP_CONCAT,
                   NodeManager::currentNM()->mkNode(kind::REGEXP_CONCAT, vec_nodes), rest) );
       }
-    }*/
+    }
     Trace("strings-lp") << "Strings::lp " << node << " => " << retNode << std::endl;
   }
 

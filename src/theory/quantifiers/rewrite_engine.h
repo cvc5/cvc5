@@ -53,6 +53,7 @@ private:
   int checkRewriteRule( Node f, Theory::Effort e );
 public:
   RewriteEngine( context::Context* c, QuantifiersEngine* qe );
+  ~RewriteEngine() throw() {}
 
   bool needsCheck( Theory::Effort e );
   void check( Theory::Effort e, unsigned quant_e );

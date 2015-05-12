@@ -76,7 +76,7 @@ public: //for Theory Quantifiers:
   virtual void processInitializeQuantifier( Node q ) {}
 public:
   FirstOrderModel(QuantifiersEngine * qe, context::Context* c, std::string name );
-  virtual ~FirstOrderModel() {}
+  virtual ~FirstOrderModel() throw() {}
   virtual FirstOrderModelIG * asFirstOrderModelIG() { return NULL; }
   virtual fmcheck::FirstOrderModelFmc * asFirstOrderModelFmc() { return NULL; }
   virtual FirstOrderModelQInt * asFirstOrderModelQInt() { return NULL; }
@@ -136,6 +136,7 @@ private:
 //the following functions are for evaluating quantifier bodies
 public:
   FirstOrderModelIG(QuantifiersEngine * qe, context::Context* c, std::string name);
+  ~FirstOrderModelIG() throw() {}
   FirstOrderModelIG * asFirstOrderModelIG() { return this; }
   // initialize the model
   void processInitialize( bool ispre );
@@ -181,7 +182,7 @@ private:
   void processInitializeModelForTerm(Node n);
 public:
   FirstOrderModelFmc(QuantifiersEngine * qe, context::Context* c, std::string name);
-  virtual ~FirstOrderModelFmc();
+  virtual ~FirstOrderModelFmc() throw();
   FirstOrderModelFmc * asFirstOrderModelFmc() { return this; }
   // initialize the model
   void processInitialize( bool ispre );
@@ -218,6 +219,7 @@ private:
   void collectEqVars( TNode q, TNode n, std::map< int, bool >& eq_vars );
 public:
   FirstOrderModelAbs(QuantifiersEngine * qe, context::Context* c, std::string name);
+  ~FirstOrderModelAbs() throw() {}
   FirstOrderModelAbs * asFirstOrderModelAbs() { return this; }
   void processInitialize( bool ispre );
   unsigned getRepresentativeId( TNode n );

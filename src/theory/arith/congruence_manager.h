@@ -41,7 +41,7 @@ namespace arith {
 class ArithCongruenceManager {
 private:
   context::CDRaised d_inConflict;
-  RaiseConflict d_raiseConflict;
+  RaiseEqualityEngineConflict d_raiseConflict;
 
   /**
    * The set of ArithVars equivalent to a pair of terms.
@@ -132,7 +132,7 @@ private:
 
 public:
 
-  ArithCongruenceManager(context::Context* satContext, ConstraintDatabase&, SetupLiteralCallBack, const ArithVariables&, RaiseConflict raiseConflict);
+  ArithCongruenceManager(context::Context* satContext, ConstraintDatabase&, SetupLiteralCallBack, const ArithVariables&, RaiseEqualityEngineConflict raiseConflict);
 
   Node explain(TNode literal);
   void explain(TNode lit, NodeBuilder<>& out);

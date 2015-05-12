@@ -1131,11 +1131,13 @@ void RegExpOpr::simplifyPRegExp( Node s, Node r, std::vector< Node > &new_nodes 
         conc = s.eqNode( r[0] );
         if(r[0] != r[1]) {
           unsigned char a = r[0].getConst<String>().getFirstChar();
+          unsigned char b = r[1].getConst<String>().getFirstChar();
           a += 1;
-          Node tmp = NodeManager::currentNM()->mkNode(kind::STRING_IN_REGEXP, s,
+          Node tmp = a!=b? NodeManager::currentNM()->mkNode(kind::STRING_IN_REGEXP, s,
             NodeManager::currentNM()->mkNode(kind::REGEXP_RANGE,
               NodeManager::currentNM()->mkConst( CVC4::String(a) ),
-              r[1]));
+              r[1])) :
+            s.eqNode(r[1]);
           conc = NodeManager::currentNM()->mkNode(kind::OR, conc, tmp);
         }
         /*
@@ -1384,8 +1386,8 @@ void RegExpOpr::getCharSet( Node r, std::set<unsigned char> &pcset, SetNodes &pv
 bool RegExpOpr::isPairNodesInSet(std::set< PairNodes > &s, Node n1, Node n2) {
   for(std::set< PairNodes >::const_iterator itr = s.begin();
       itr != s.end(); ++itr) {
-    if(itr->first == n1 && itr->second == n2 ||
-       itr->first == n2 && itr->second == n1) {
+    if((itr->first == n1 && itr->second == n2) ||
+       (itr->first == n2 && itr->second == n1)) {
       return true;
     }
   }
@@ -2082,7 +2084,8 @@ std::string RegExpOpr::mkString( Node r ) {
         break;
       }
       case kind::STRING_TO_REGEXP: {
-        retStr += niceChar( r[0] );
+        std::string tmp( niceChar( r[0] ) );
+        retStr += tmp.size()==1? tmp : "(" + tmp + ")";
         break;
       }
       case kind::REGEXP_CONCAT: {

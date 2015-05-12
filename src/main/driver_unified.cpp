@@ -450,7 +450,8 @@ int runCvc4(int argc, char* argv[], Options& opts) {
              dynamic_cast<GetInstantiationsCommand*>(cmd) == NULL &&
              dynamic_cast<GetAssertionsCommand*>(cmd) == NULL &&
              dynamic_cast<GetInfoCommand*>(cmd) == NULL &&
-             dynamic_cast<GetOptionCommand*>(cmd) == NULL) {
+             dynamic_cast<GetOptionCommand*>(cmd) == NULL &&
+             dynamic_cast<EchoCommand*>(cmd) == NULL) {
             Command* copy = cmd->clone();
             allCommands.back().push_back(copy);
           }

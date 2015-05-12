@@ -17,6 +17,7 @@
 
 #include "theory/quantifiers/first_order_reasoning.h"
 #include "theory/rewriter.h"
+#include "proof/proof_manager.h"
 
 using namespace CVC4;
 using namespace std;
@@ -100,7 +101,12 @@ void FirstOrderPropagation::simplify( std::vector< Node >& assertions ){
   }while( num_processed>0 );
   Trace("fo-rsn-sum") << "Simplified " << num_true << " / " << assertions.size() << " in " << num_rounds << " rounds." << std::endl;
   for( unsigned i=0; i<assertions.size(); i++ ){
-    assertions[i] = theory::Rewriter::rewrite( simplify( assertions[i] ) );
+    Node curr = simplify( assertions[i] );
+    if( curr!=assertions[i] ){
+      curr = Rewriter::rewrite( curr );
+      PROOF( ProofManager::currentPM()->addDependence(curr, assertions[i]); );
+      assertions[i] = curr;
+    }
   }
 }
 

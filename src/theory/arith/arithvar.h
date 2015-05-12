@@ -37,6 +37,9 @@ typedef std::vector<ArithVar> ArithVarVec;
 typedef std::pair<ArithVar, Rational> ArithRatPair;
 typedef std::vector< ArithRatPair > ArithRatPairVec;
 
+extern bool debugIsASet(const ArithVarVec& variables);
+
+
 }/* CVC4::theory::arith namespace */
 }/* CVC4::theory namespace */
 }/* CVC4 namespace */

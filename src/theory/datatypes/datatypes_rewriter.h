@@ -146,14 +146,14 @@ public:
           gt = *te;
         }else{
           //check whether well-founded
-          bool isWellFounded = true;
-          if( isTypeDatatype( tn ) ){
-            const Datatype& dta = ((DatatypeType)(tn).toType()).getDatatype();
-            isWellFounded = dta.isWellFounded();
-          }
-          if( isWellFounded || in[0].isConst() ){
-            gt = tn.mkGroundTerm();
-          }
+          //bool isWf = true;
+          //if( isTypeDatatype( tn ) ){
+          //  const Datatype& dta = ((DatatypeType)(tn).toType()).getDatatype();
+          //  isWf = dta.isWellFounded();
+          //}
+          //if( isWf || in[0].isConst() ){
+          gt = tn.mkGroundTerm();
+          //}
         }
         if( !gt.isNull() ){
           //Assert( gtt.isDatatype() || gtt.isParametricDatatype() );

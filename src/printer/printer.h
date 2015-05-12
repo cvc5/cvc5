@@ -44,6 +44,7 @@ class Printer {
 protected:
   // derived classes can construct, but no one else.
   Printer() throw() {}
+  virtual ~Printer() {}
 
   /** write model response to command */
   virtual void toStream(std::ostream& out, const Model& m, const Command* c) const throw() = 0;

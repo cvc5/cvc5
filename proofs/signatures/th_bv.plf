@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 ; helper stuff
 (program mpz_sub ((x mpz) (y mpz)) mpz
 	 (mp_add x (mp_mul (~1) y)))

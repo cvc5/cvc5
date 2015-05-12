@@ -625,6 +625,7 @@ private:
 };/* class VarList */
 
 
+/** Constructors have side conditions. Use the static mkMonomial functions instead. */ 
 class Monomial : public NodeWrapper {
 private:
   Constant constant;
@@ -651,12 +652,10 @@ private:
       n.getNumChildren() == 2;
   }
 
-public:
-
   Monomial(const Constant& c):
     NodeWrapper(c.getNode()), constant(c), varList(VarList::mkEmptyVarList())
   { }
-
+  
   Monomial(const VarList& vl):
     NodeWrapper(vl.getNode()), constant(Constant::mkConstant(1)), varList(vl)
   {
@@ -672,12 +671,19 @@ public:
 
     Assert(multStructured(getNode()));
   }
-
+public:
   static bool isMember(TNode n);
 
   /** Makes a monomial with no restrictions on c and vl. */
   static Monomial mkMonomial(const Constant& c, const VarList& vl);
 
+  /** If vl is empty, this make one. */
+  static Monomial mkMonomial(const VarList& vl);
+
+  static Monomial mkMonomial(const Constant& c){
+    return Monomial(c);
+  }
+  
   static Monomial mkMonomial(const Variable& v){
     return Monomial(VarList(v));
   }
@@ -692,7 +698,7 @@ public:
   }
   const Constant& getConstant() const { return constant; }
   const VarList& getVarList() const { return varList; }
-
+  
   bool isConstant() const {
     return varList.empty();
   }
@@ -881,8 +887,12 @@ public:
     Assert( Monomial::isStrictlySorted(m) );
   }
 
+  static Polynomial mkPolynomial(const Constant& c){
+    return Polynomial(Monomial::mkMonomial(c));
+  }
+
   static Polynomial mkPolynomial(const Variable& v){
-    return Monomial::mkMonomial(v);
+    return Polynomial(Monomial::mkMonomial(v));
   }
 
   static Polynomial mkPolynomial(const std::vector<Monomial>& m) {
@@ -1016,13 +1026,8 @@ public:
    */
   Integer gcd() const;
 
-  Polynomial exactDivide(const Integer& z) const {
-    Assert(isIntegral());
-    Constant invz = Constant::mkConstant(Rational(1,z));
-    Polynomial prod = (*this) * Monomial(invz);
-    Assert(prod.isIntegral());
-    return prod;
-  }
+  /** z must divide all of the coefficients of the polynomial. */
+  Polynomial exactDivide(const Integer& z) const;
 
   Polynomial operator+(const Polynomial& vl) const;
   Polynomial operator-(const Polynomial& vl) const;

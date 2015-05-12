@@ -36,6 +36,7 @@ namespace arith {
  */
 class ArithVarCallBack {
 public:
+  virtual ~ArithVarCallBack() {}
   virtual void operator()(ArithVar x) = 0;
 };
 
@@ -45,22 +46,26 @@ public:
  */
 class ArithVarMalloc {
 public:
+  virtual ~ArithVarMalloc() {}
   virtual ArithVar request() = 0;
   virtual void release(ArithVar v) = 0;
 };
 
 class TNodeCallBack {
 public:
+  virtual ~TNodeCallBack() {}
   virtual void operator()(TNode n) = 0;
 };
 
 class NodeCallBack {
 public:
+  virtual ~NodeCallBack() {}
   virtual void operator()(Node n) = 0;
 };
 
 class RationalCallBack {
 public:
+  virtual ~RationalCallBack() {}
   virtual Rational operator()() const = 0;
 };
 
@@ -100,19 +105,80 @@ public:
 class RaiseConflict {
 private:
   TheoryArithPrivate& d_ta;
-  ConstraintCPVec& d_construction;
 public:
-  RaiseConflict(TheoryArithPrivate& ta, ConstraintCPVec& d_construction);
+  RaiseConflict(TheoryArithPrivate& ta);
 
-  /* Adds a constraint to the constraint under construction. */
-  void addConstraint(ConstraintCP c);
-  /* Turns the vector under construction into a conflict */
-  void commitConflict();
+  /** Calls d_ta.raiseConflict(c) */
+  void raiseConflict(ConstraintCP c) const;
+};
 
-  void sendConflict(const ConstraintCPVec& vec);
+class FarkasConflictBuilder {
+private:
+  RationalVector d_farkas;
+  ConstraintCPVec d_constraints;
+  ConstraintCP d_consequent;
+  bool d_consequentSet;
+public:
+
+  /**
+   * Constructs a new FarkasConflictBuilder.
+   */
+  FarkasConflictBuilder();
+
+  /**
+   * Adds an antecedent constraint to the conflict under construction
+   * with the farkas coefficient fc * mult.
+   *
+   * The value mult is either 1 or -1.
+   */
+  void addConstraint(ConstraintCP c, const Rational& fc, const Rational& mult);
+
+  /**
+   * Adds an antecedent constraint to the conflict under construction
+   * with the farkas coefficient fc.
+   */
+  void addConstraint(ConstraintCP c, const Rational& fc);
+  
+  /**
+   * Makes the last constraint added the consequent.
+   * Can be done exactly once per reset().
+   */
+  void makeLastConsequent();
+  
+  /**
+   * Turns the antecendents into a proof of the negation of one of the
+   * antecedents.
+   *
+   * The buffer is no longer underConstruction afterwards.
+   *
+   * precondition:
+   * - At least two constraints have been asserted.
+   * - makeLastConsequent() has been called.
+   *
+   * postcondition: The returned constraint is in conflict.
+   */
+  ConstraintCP commitConflict();
+
+  /** Returns true if a conflict has been pushed back since the last reset. */
+  bool underConstruction() const;
+  
+  /** Returns true if the consequent has been set since the last reset. */
+  bool consequentIsSet() const;
+
+  /** Resets the state of the buffer. */
+  void reset();
+};
+
+
+class RaiseEqualityEngineConflict {
+private:
+  TheoryArithPrivate& d_ta;
+  
+public:
+  RaiseEqualityEngineConflict(TheoryArithPrivate& ta);
 
   /* If you are not an equality engine, don't use this! */
-  void blackBoxConflict(Node n);
+  void raiseEEConflict(Node n) const;
 };
 
 class BoundCountingLookup {

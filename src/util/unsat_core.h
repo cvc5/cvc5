@@ -39,16 +39,22 @@ class CVC4_PUBLIC UnsatCore {
 
   std::vector<Expr> d_core;
 
+  void initMessage() const;
+
 public:
   UnsatCore() : d_smt(NULL) {}
 
   template <class T>
-  UnsatCore(SmtEngine* smt, T begin, T end) : d_smt(smt), d_core(begin, end) {}
+  UnsatCore(SmtEngine* smt, T begin, T end) : d_smt(smt), d_core(begin, end) {
+    initMessage();
+  }
 
   ~UnsatCore() {}
 
   /** get the smt engine that this unsat core is hooked up to */
   SmtEngine* getSmtEngine() { return d_smt; }
+
+  size_t size() const { return d_core.size(); }
 
   typedef std::vector<Expr>::const_iterator iterator;
   typedef std::vector<Expr>::const_iterator const_iterator;

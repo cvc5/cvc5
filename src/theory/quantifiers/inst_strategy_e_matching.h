@@ -70,10 +70,8 @@ private:
   /** regeneration */
   bool d_regenerate;
   int d_regenerate_frequency;
-  /** generate additional triggers */
-  bool d_generate_additional;
-  /** triggers for each quantifier */
-  std::map< Node, std::map< inst::Trigger*, bool > > d_auto_gen_trigger;
+  /** (single,multi) triggers for each quantifier */
+  std::map< Node, std::map< inst::Trigger*, bool > > d_auto_gen_trigger[2];
   std::map< Node, int > d_counter;
   /** single, multi triggers for each quantifier */
   std::map< Node, std::vector< Node > > d_patTerms[2];
@@ -89,16 +87,14 @@ private:
   void processResetInstantiationRound( Theory::Effort effort );
   int process( Node f, Theory::Effort effort, int e );
   /** generate triggers */
-  void generateTriggers( Node f, Theory::Effort effort, int e, int & status );
+  void generateTriggers( Node f, Theory::Effort effort, int e, int& status );
+  //bool addTrigger( inst::Trigger * tr, Node f, unsigned r );
   /** has user patterns */
   bool hasUserPatterns( Node f );
   /** has user patterns */
   std::map< Node, bool > d_hasUserPatterns;
 public:
-  /** tstrt is the type of triggers to use (maximum depth, minimum depth, or all)
-      rstrt is the relevance setting for trigger (use only relevant triggers vs. use all)
-      rgfr is the frequency at which triggers are generated */
-  InstStrategyAutoGenTriggers( QuantifiersEngine* qe, int tstrt, int rgfr = -1 );
+  InstStrategyAutoGenTriggers( QuantifiersEngine* qe );
   ~InstStrategyAutoGenTriggers(){}
 public:
   /** get auto-generated trigger */

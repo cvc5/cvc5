@@ -1,4 +1,3 @@
-/*********************                                                        */
 /*! \file congruence_manager.cpp
  ** \verbatim
  ** Original author: Tim King
@@ -24,7 +23,7 @@ namespace CVC4 {
 namespace theory {
 namespace arith {
 
-ArithCongruenceManager::ArithCongruenceManager(context::Context* c, ConstraintDatabase& cd, SetupLiteralCallBack setup, const ArithVariables& avars, RaiseConflict raiseConflict)
+ArithCongruenceManager::ArithCongruenceManager(context::Context* c, ConstraintDatabase& cd, SetupLiteralCallBack setup, const ArithVariables& avars, RaiseEqualityEngineConflict raiseConflict)
   : d_inConflict(c),
     d_raiseConflict(raiseConflict),
     d_notify(*this),
@@ -34,7 +33,7 @@ ArithCongruenceManager::ArithCongruenceManager(context::Context* c, ConstraintDa
     d_constraintDatabase(cd),
     d_setupLiteral(setup),
     d_avariables(avars),
-    d_ee(d_notify, c, "theory::arith::ArithCongruenceManager", false)
+    d_ee(d_notify, c, "theory::arith::ArithCongruenceManager", true)
 {}
 
 ArithCongruenceManager::Statistics::Statistics():
@@ -110,7 +109,7 @@ void ArithCongruenceManager::raiseConflict(Node conflict){
   Assert(!inConflict());
   Debug("arith::conflict") << "difference manager conflict   " << conflict << std::endl;
   d_inConflict.raise();
-  d_raiseConflict.blackBoxConflict(conflict);
+  d_raiseConflict.raiseEEConflict(conflict);
 }
 bool ArithCongruenceManager::inConflict() const{
   return d_inConflict.isRaised();
@@ -173,7 +172,7 @@ void ArithCongruenceManager::watchedVariableIsZero(ConstraintCP lb, ConstraintCP
   ++(d_statistics.d_watchedVariableIsZero);
 
   ArithVar s = lb->getVariable();
-  Node reason = Constraint_::externalExplainByAssertions(lb,ub);
+  Node reason = Constraint::externalExplainByAssertions(lb,ub);
 
   d_keepAlive.push_back(reason);
   assertionToEqualityEngine(true, s, reason);
@@ -414,7 +413,7 @@ void ArithCongruenceManager::equalsConstant(ConstraintCP lb, ConstraintCP ub){
                           << ub << std::endl;
 
   ArithVar x = lb->getVariable();
-  Node reason = Constraint_::externalExplainByAssertions(lb,ub);
+  Node reason = Constraint::externalExplainByAssertions(lb,ub);
 
   Node xAsNode = d_avariables.asNode(x);
   Node asRational = mkRationalNode(lb->getValue().getNoninfinitesimalPart());

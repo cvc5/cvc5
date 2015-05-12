@@ -209,6 +209,13 @@ private:
   Type doParametricSubstitution(Type range,
                                 const std::vector< SortConstructorType >& paramTypes,
                                 const std::vector< DatatypeType >& paramReplacements);
+  
+  /** compute the cardinality of this datatype */
+  Cardinality computeCardinality( std::vector< Type >& processing ) const throw(IllegalArgumentException);
+  /** compute whether this datatype is well-founded */
+  bool computeWellFounded( std::vector< Type >& processing ) const throw(IllegalArgumentException);
+  /** compute ground term */
+  Expr computeGroundTerm( Type t, std::vector< Type >& processing ) const throw(IllegalArgumentException);
 public:
   /**
    * Create a new Datatype constructor with the given name for the
@@ -313,20 +320,6 @@ public:
   bool isFinite() const throw(IllegalArgumentException);
 
   /**
-   * Return true iff this constructor is well-founded (there exist
-   * ground terms).  The constructor must be resolved or an
-   * exception is thrown.
-   */
-  bool isWellFounded() const throw(IllegalArgumentException);
-
-  /**
-   * Construct and return a ground term of this constructor.  The
-   * constructor must be both resolved and well-founded, or else an
-   * exception is thrown.
-   */
-  Expr mkGroundTerm( Type t ) const throw(IllegalArgumentException);
-
-  /**
    * Returns true iff this Datatype constructor has already been
    * resolved.
    */
@@ -427,6 +420,7 @@ public:
  *
  */
 class CVC4_PUBLIC Datatype {
+  friend class DatatypeConstructor;
 public:
   /**
    * Get the datatype of a constructor, selector, or tester operator.
@@ -466,6 +460,16 @@ private:
   // "mutable" because computing the cardinality can be expensive,
   // and so it's computed just once, on demand---this is the cache
   mutable Cardinality d_card;
+  
+  // is this type a recursive singleton type
+  mutable int d_card_rec_singleton;
+  // if d_card_rec_singleton is true,
+  // infinite cardinality depends on at least one of the following uninterpreted sorts having cardinality > 1
+  mutable std::vector< Type > d_card_u_assume;
+  // is this well-founded
+  mutable int d_well_founded;
+  // ground term for this datatype
+  mutable std::map< Type, Expr > d_ground_term;
 
   /**
    * Datatypes refer to themselves, recursively, and we have a
@@ -502,6 +506,14 @@ private:
     throw(IllegalArgumentException, DatatypeResolutionException);
   friend class ExprManager;// for access to resolve()
 
+  /** compute the cardinality of this datatype */
+  Cardinality computeCardinality( std::vector< Type >& processing ) const throw(IllegalArgumentException);
+  /** compute whether this datatype is a recursive singleton */
+  bool computeCardinalityRecSingleton( std::vector< Type >& processing, std::vector< Type >& u_assume ) const throw(IllegalArgumentException);
+  /** compute whether this datatype is well-founded */
+  bool computeWellFounded( std::vector< Type >& processing ) const throw(IllegalArgumentException);
+  /** compute ground term */
+  Expr computeGroundTerm( Type t, std::vector< Type >& processing ) const throw(IllegalArgumentException);
 public:
 
   /** Create a new Datatype of the given name. */
@@ -570,6 +582,16 @@ public:
    */
   bool isWellFounded() const throw(IllegalArgumentException);
 
+  /** 
+   * Return true iff this datatype is a recursive singleton
+   */
+  bool isRecursiveSingleton() const throw(IllegalArgumentException);
+  
+  
+  /** get number of recursive singleton argument types */
+  unsigned getNumRecursiveSingletonArgTypes() const throw(IllegalArgumentException);
+  Type getRecursiveSingletonArgType( unsigned i ) const throw(IllegalArgumentException);
+  
   /**
    * Construct and return a ground term of this Datatype.  The
    * Datatype must be both resolved and well-founded, or else an
@@ -698,7 +720,9 @@ inline Datatype::Datatype(std::string name, bool isCo) :
   d_resolved(false),
   d_self(),
   d_involvesExt(false),
-  d_card(CardinalityUnknown()) {
+  d_card(CardinalityUnknown()),
+  d_card_rec_singleton(0),
+  d_well_founded(0) {
 }
 
 inline Datatype::Datatype(std::string name, const std::vector<Type>& params, bool isCo) :
@@ -709,7 +733,9 @@ inline Datatype::Datatype(std::string name, const std::vector<Type>& params, boo
   d_resolved(false),
   d_self(),
   d_involvesExt(false),
-  d_card(CardinalityUnknown()) {
+  d_card(CardinalityUnknown()),
+  d_card_rec_singleton(0),
+  d_well_founded(0) {
 }
 
 inline std::string Datatype::getName() const throw() {

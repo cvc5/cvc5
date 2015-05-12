@@ -1,0 +1,9 @@
+#!/bin/bash
+# Run : mk_starexec [TEXT] 
+# Run from directory containing cvc4 binary and subdirectory starexec/ containing the starexec space, i.e. subdirectory bin/ with configuration files.
+# Generates file cvc4-[TEXT].tgz that can be uploaded to starexec.
+strip cvc4
+cp cvc4 ./starexec/bin/cvc4
+cd starexec
+tar -czf ../cvc4-$1.tgz .
+rm bin/cvc4

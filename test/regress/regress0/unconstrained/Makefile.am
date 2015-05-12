@@ -71,7 +71,8 @@ TESTS =	\
 	lt.smt2 \
 	uf1.smt2 \
 	uf2.smt2 \
-	xor.smt2
+	xor.smt2 \
+	mult1.smt2
 
 EXTRA_DIST = $(TESTS)
 

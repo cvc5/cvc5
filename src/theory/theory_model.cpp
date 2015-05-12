@@ -46,7 +46,7 @@ TheoryModel::TheoryModel(context::Context* c, std::string name, bool enableFuncM
   d_eeContext->push();
 }
 
-TheoryModel::~TheoryModel() {
+TheoryModel::~TheoryModel() throw() {
   d_eeContext->pop();
   delete d_equalityEngine;
   delete d_eeContext;
@@ -198,7 +198,7 @@ Node TheoryModel::getModelValue(TNode n, bool hasBoundVars) const
     }
 
     if (!d_equalityEngine->hasTerm(n)) {
-      if(n.getType().isRegExp()) { 
+      if(n.getType().isRegExp()) {
         ret = Rewriter::rewrite(ret);
       } else {
         // Unknown term - return first enumerated value for this type
@@ -666,7 +666,7 @@ void TheoryEngineModelBuilder::buildModel(Model* m, bool fullModel)
       }
     } while (changed);
 
-    if (!fullModel || !unassignedAssignable) {
+    if (!unassignedAssignable) {
       break;
     }
 
@@ -675,9 +675,8 @@ void TheoryEngineModelBuilder::buildModel(Model* m, bool fullModel)
     // different are different.
 
     // Only make assignments on a type if:
-    // 1. fullModel is true
-    // 2. there are no terms that share the same base type with un-normalized representatives
-    // 3. there are no terms that share teh same base type that are unevaluated evaluable terms
+    // 1. there are no terms that share the same base type with un-normalized representatives
+    // 2. there are no terms that share teh same base type that are unevaluated evaluable terms
     // Alternatively, if 2 or 3 don't hold but we are in a special deadlock-breaking mode where assignOne is true, go ahead and make one assignment
     changed = false;
     for (it = typeNoRepSet.begin(); it != typeNoRepSet.end(); ++it) {
@@ -730,6 +729,9 @@ void TheoryEngineModelBuilder::buildModel(Model* m, bool fullModel)
           Assert(!n.isNull());
           constantReps[*i2] = n;
           Trace("model-builder") << "    Assign: Setting constant rep of " << (*i2) << " to " << n << endl;
+          if( !fullModel ){
+            tm->d_rep_set.d_values_to_terms[n] = (*i2);
+          }
           changed = true;
           noRepSet.erase(i2);
           if (assignOne) {

@@ -21,6 +21,10 @@
 
 namespace CVC4 {
 
+void UnsatCore::initMessage() const {
+  Debug("core") << "UnsatCore size " << d_core.size() << std::endl;
+}
+
 UnsatCore::const_iterator UnsatCore::begin() const {
   return d_core.begin();
 }

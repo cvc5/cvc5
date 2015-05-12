@@ -753,6 +753,10 @@ public:
     return d_theoryTable[theoryId];
   }
 
+  inline bool isTheoryEnabled(theory::TheoryId theoryId) const {
+    return d_logicInfo.isTheoryEnabled(theoryId);
+  }
+  
   /**
    * Returns the equality status of the two terms, from the theory
    * that owns the domain type.  The types of a and b must be the same.

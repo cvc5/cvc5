@@ -77,7 +77,12 @@ int DidYouMean::editDistance(const std::string& a, const std::string& b)
   int len1 = a.size();
   int len2 = b.size();
 
-  int C[3][len2+1];             // cost
+  int* C[3];
+  int ii;
+  for (ii = 0; ii < 3; ++ii) {
+    C[ii] = new int[len2+1];
+  }
+  //  int C[3][len2+1];             // cost
 
   for(int j = 0; j <= len2; ++j) {
     C[0][j] = j * addCost;
@@ -123,7 +128,11 @@ int DidYouMean::editDistance(const std::string& a, const std::string& b)
     }
 
   }
-  return C[len1%3][len2];
+  int result = C[len1%3][len2];
+  for (ii = 0; ii < 3; ++ii) {
+    delete [] C[ii];
+  }
+  return result;
 }
 
 string DidYouMean::getMatchAsString(string input, int prefixNewLines, int suffixNewLines) {

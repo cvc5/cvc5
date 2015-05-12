@@ -24,7 +24,7 @@ using namespace std;
 
 namespace CVC4 {
 
-TypeNode TypeNode::s_null( &expr::NodeValue::s_null );
+TypeNode TypeNode::s_null( &expr::NodeValue::null() );
 
 TypeNode TypeNode::substitute(const TypeNode& type,
                               const TypeNode& replacement,

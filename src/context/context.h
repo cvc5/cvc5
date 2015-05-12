@@ -613,7 +613,7 @@ public:
   /**
    * Destructor does nothing: subclass must explicitly call destroy() instead.
    */
-  virtual ~ContextObj() {}
+  virtual ~ContextObj() throw(AssertionException) {}
 
   /**
    * If you want to allocate a ContextObj object on the heap, use this

@@ -51,6 +51,7 @@ TESTS =	\
   loop009.smt2 \
   reloop.smt2 
 
+
 FAILING_TESTS =
 
 EXTRA_DIST = $(TESTS) \
@@ -59,6 +60,8 @@ EXTRA_DIST = $(TESTS) \
   type002.smt2
 
 #   slow after changes on Nov 20 : artemis-0512-nonterm.smt2
+#   slow after decision engine respects requirePhase: type003.smt2  loop007.smt2 
+
 # and make sure to distribute it
 EXTRA_DIST +=
 

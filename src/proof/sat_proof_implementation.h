@@ -260,7 +260,13 @@ bool TSatProof<Solver>::checkResolution(ClauseId id) {
         break;
       }
     }
-
+    // compare clause we claimed to prove with the resolution result
+    if (isUnit(id)) {
+      // special case if it was a unit clause
+      typename Solver::TLit unit = getUnit(id);
+      validRes = clause1.size() == clause1.count(unit) && !clause1.empty();
+      return validRes;
+    }
     if (id == d_emptyClauseId) {
       return clause1.empty();
     }
@@ -439,40 +445,44 @@ template <class Solver>
   Assert(clause != Solver::TCRef_Undef);
   typename ClauseIdMap::iterator it = d_clauseId.find(clause);
   if (it == d_clauseId.end()) {
-    ClauseId newId = d_idCounter++;
-    d_clauseId[clause] = newId;
-    d_idClause[newId] = clause;
+    ClauseId newId = ProofManager::currentPM()->nextId();
+    d_clauseId.insert(std::make_pair(clause, newId)); 
+    d_idClause.insert(std::make_pair(newId, clause));
     if (kind == INPUT) {
       Assert(d_inputClauses.find(newId) == d_inputClauses.end());
-      d_inputClauses[newId] = proof_id;
+      d_inputClauses.insert(std::make_pair(newId, proof_id));
     }
     if (kind == THEORY_LEMMA) {
       Assert(d_lemmaClauses.find(newId) == d_lemmaClauses.end());
-      d_lemmaClauses[newId] = proof_id;
+      d_lemmaClauses.insert(std::make_pair(newId, proof_id));
     }
   }
-  Debug("proof:sat:detailed") <<"registerClause CRef:" << clause <<" id:" << d_clauseId[clause] << " " << kind << " " << int32_t((proof_id >> 32) & 0xffffffff) << "\n";
+  Debug("proof:sat:detailed") << "registerClause CRef:" << clause << " id:" << d_clauseId[clause] << " " << kind << " " << int32_t((proof_id >> 32) & 0xffffffff) << "\n";
+  ProofManager::currentPM()->setRegisteredClauseId( d_clauseId[clause] );
   return d_clauseId[clause];
 }
 template <class Solver> 
 ClauseId TSatProof<Solver>::registerUnitClause(typename Solver::TLit lit,
 					       ClauseKind kind,
 					       uint64_t proof_id) {
+  Debug("cores") << "registerUnitClause " << kind << " " << proof_id << std::endl;
   typename UnitIdMap::iterator it = d_unitId.find(toInt(lit));
   if (it == d_unitId.end()) {
-    ClauseId newId = d_idCounter++;
-    d_unitId[toInt(lit)] = newId;
-    d_idUnit[newId] = lit;
+    ClauseId newId = ProofManager::currentPM()->nextId();
+    d_unitId.insert(std::make_pair(toInt(lit), newId));
+    d_idUnit.insert(std::make_pair(newId, lit));
+
     if (kind == INPUT) {
       Assert(d_inputClauses.find(newId) == d_inputClauses.end());
-      d_inputClauses[newId] = proof_id;
+      d_inputClauses.insert(std::make_pair(newId, proof_id));
     }
     if (kind == THEORY_LEMMA) {
       Assert(d_lemmaClauses.find(newId) == d_lemmaClauses.end());
-      d_lemmaClauses[newId] = proof_id;
+      d_lemmaClauses.insert(std::make_pair(newId, proof_id));
     }
   }
-  Debug("proof:sat:detailed") <<"registerUnitClause " << d_unitId[toInt(lit)] << " " << kind <<"\n";
+  Debug("proof:sat:detailed") << "registerUnitClause " << d_unitId[toInt(lit)] << " " << kind << "\n";
+  ProofManager::currentPM()->setRegisteredClauseId( d_unitId[toInt(lit)] );
   return d_unitId[toInt(lit)];
 }
 template <class Solver> 
@@ -650,6 +660,7 @@ void TSatProof<Solver>::resolveOutUnit(typename Solver::TLit lit) {
 }
 template <class Solver> 
 void TSatProof<Solver>::storeUnitResolution(typename Solver::TLit lit) {
+  Debug("cores") << "STORE UNIT RESOLUTION" << std::endl;
   resolveUnit(lit);
 }
 template <class Solver> 
@@ -803,19 +814,20 @@ std::string TSatProof<Solver>::clauseName(ClauseId id) {
   }
 }
 template <class Solver> 
-void TSatProof<Solver>::addToProofManager(ClauseId id) {
+void TSatProof<Solver>::addToProofManager(ClauseId id, ClauseKind kind) {
   if (isUnit(id)) {
     typename Solver::TLit lit = getUnit(id);
     prop::SatLiteral sat_lit = toSatLiteral<Solver>(lit);
     prop::SatClause* clause = new prop::SatClause();
     clause->push_back(sat_lit);
-    ProofManager::currentPM()->addTheoryLemma(id, clause);
+    ProofManager::currentPM()->addTheoryLemma(id, clause, kind);
     return;
   }
 
   if (isDeleted(id)) {
+    Assert(kind == THEORY_LEMMA);
     prop::SatClause* clause = d_deletedTheoryLemmas.find(id)->second;
-    ProofManager::currentPM()->addTheoryLemma(id, clause);
+    ProofManager::currentPM()->addTheoryLemma(id, clause, kind);
     return;
   }
 
@@ -823,7 +835,7 @@ void TSatProof<Solver>::addToProofManager(ClauseId id) {
   const typename Solver::TClause& minisat_cl = getClause(ref);
   prop::SatClause* clause = new prop::SatClause();
   toSatClause<Solver>(minisat_cl, *clause);
-  ProofManager::currentPM()->addTheoryLemma(id, clause);
+  ProofManager::currentPM()->addTheoryLemma(id, clause, kind);
 }
 
 template<class Solver>
@@ -861,13 +873,15 @@ void TSatProof<Solver>::collectClauses(ClauseId id) {
 
   if (isInputClause(id)) {
     // notify cnf proof of input clauses (must print cnf-conversion)
+    // FIXME: one or the other
+    addToProofManager(id, INPUT);
     addToCnfProof(id); 
     d_seenInput.insert(id);
     return;
   } else if (isLemmaClause(id)) {
     // notify proof  manager of lemmas (must query theory proof engine
     // for proofs)
-    addToProofManager(id);
+    addToProofManager(id, THEORY_LEMMA);
     d_seenLemmas.insert(id);
     return;
   } else if (!isAssumptionConflict(id)) {

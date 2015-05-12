@@ -1187,20 +1187,44 @@ Node TermDb::getRewriteRule( Node q ) {
 }
 
 bool TermDb::isFunDef( Node q ) {
-  if( q.getKind()==FORALL && ( q[1].getKind()==EQUAL || q[1].getKind()==IFF ) && q[1][0].getKind()==APPLY_UF && q.getNumChildren()==3 ){
+  return !getFunDefHead( q ).isNull();
+}
+
+Node TermDb::getFunDefHead( Node q ) {
+  //&& ( q[1].getKind()==EQUAL || q[1].getKind()==IFF ) && q[1][0].getKind()==APPLY_UF && 
+  if( q.getKind()==FORALL && q.getNumChildren()==3 ){
     for( unsigned i=0; i<q[2].getNumChildren(); i++ ){
       if( q[2][i].getKind()==INST_ATTRIBUTE ){
         if( q[2][i][0].getAttribute(FunDefAttribute()) ){
-          return true;
+          return q[2][i][0];
         }
       }
     }
   }
-  return false;
+  return Node::null();
+}
+Node TermDb::getFunDefBody( Node q ) {
+  Node h = getFunDefHead( q );
+  if( !h.isNull() ){
+    if( q[1].getKind()==EQUAL || q[1].getKind()==IFF ){
+      if( q[1][0]==h ){
+        return q[1][1];
+      }else if( q[1][1]==h ){
+        return q[1][0];
+      }
+    }else{
+      Node atom = q[1].getKind()==NOT ? q[1][0] : q[1];
+      bool pol = q[1].getKind()!=NOT;
+      if( atom==h ){
+        return NodeManager::currentNM()->mkConst( pol );
+      }
+    }
+  }
+  return Node::null();
 }
 
-
 void TermDb::computeAttributes( Node q ) {
+  Trace("quant-attr-debug") << "Compute attributes for " << q << std::endl;
   if( q.getNumChildren()==3 ){
     for( unsigned i=0; i<q[2].getNumChildren(); i++ ){
       Trace("quant-attr-debug") << "Check : " << q[2][i] << " " << q[2][i].getKind() << std::endl;
@@ -1217,9 +1241,8 @@ void TermDb::computeAttributes( Node q ) {
         if( avar.getAttribute(FunDefAttribute()) ){
           Trace("quant-attr") << "Attribute : function definition : " << q << std::endl;
           d_qattr_fundef[q] = true;
-          Assert( q[1].getKind()==EQUAL || q[1].getKind()==IFF );
-          Assert( q[1][0].getKind()==APPLY_UF );
-          Node f = q[1][0].getOperator();
+          //get operator directly from pattern
+          Node f = q[2][i][0].getOperator();
           if( d_fun_defs.find( f )!=d_fun_defs.end() ){
             Message() << "Cannot define function " << f << " more than once." << std::endl;
             exit( 0 );
@@ -1568,6 +1591,12 @@ Node TermDbSygus::builtinToSygusConst( Node c, TypeNode tn ) {
       sc = Node::fromExpr( dt[carg].getSygusOp() );
     }else{
       //TODO
+      if( !options::cegqiSingleInvReconstructConst() ){
+        Node k = NodeManager::currentNM()->mkSkolem( "sy", tn, "sygus proxy" );
+        SygusProxyAttribute spa;
+        k.setAttribute(spa,c);
+        sc = k;
+      }
     }
     d_builtin_const_to_sygus[tn][c] = sc;
     return sc;
@@ -1955,7 +1984,9 @@ Node TermDbSygus::minimizeBuiltinTerm( Node n ) {
             mon[ro].push_back( nc );
             changed = true;
           }else{
-            mon[r].push_back( n[r][i] );
+            if( !n[r][i].isConst() || !n[r][i].getConst<Rational>().isZero() ){
+              mon[r].push_back( n[r][i] );
+            }
           }
         }
       }else{
@@ -1963,7 +1994,9 @@ Node TermDbSygus::minimizeBuiltinTerm( Node n ) {
           mon[ro].push_back( nc );
           changed = true;
         }else{
-          mon[r].push_back( n[r] );
+          if( !n[r].isConst() || !n[r].getConst<Rational>().isZero() ){
+            mon[r].push_back( n[r] );
+          }
         }
       }
     }

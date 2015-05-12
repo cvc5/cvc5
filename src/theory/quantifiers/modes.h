@@ -15,7 +15,7 @@
  ** \todo document this file
  **/
 
-#include "cvc4_private.h"
+#include "cvc4_public.h"
 
 #ifndef __CVC4__THEORY__QUANTIFIERS__MODES_H
 #define __CVC4__THEORY__QUANTIFIERS__MODES_H
@@ -114,7 +114,7 @@ typedef enum {
   TRIGGER_SEL_MAX,
 } TriggerSelMode;
 
-typedef enum {
+typedef enum CVC4_PUBLIC {
   /** default : prenex quantifiers without user patterns */
   PRENEX_NO_USER_PAT,
   /** prenex all */

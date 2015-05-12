@@ -114,7 +114,7 @@ std::string String::toString() const {
   std::string str;
   for(unsigned int i=0; i<d_str.size(); ++i) {
     unsigned char c = convertUnsignedIntToChar( d_str[i] );
-      if(isprint( c )) {
+    if(isprint( c )) {
       if(c == '\\') {
         str += "\\\\";
       } 

@@ -16,10 +16,6 @@ operator CONSTRUCTOR_TYPE 1: "constructor"
 cardinality CONSTRUCTOR_TYPE \
     "::CVC4::theory::datatypes::ConstructorProperties::computeCardinality(%TYPE%)" \
     "theory/datatypes/theory_datatypes_type_rules.h"
-well-founded CONSTRUCTOR_TYPE \
-    "::CVC4::theory::datatypes::ConstructorProperties::isWellFounded(%TYPE%)" \
-    "::CVC4::theory::datatypes::ConstructorProperties::mkGroundTerm(%TYPE%)" \
-    "theory/datatypes/theory_datatypes_type_rules.h"
 
 # selector type has domain type and a range type
 operator SELECTOR_TYPE 2 "selector"

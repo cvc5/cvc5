@@ -45,7 +45,10 @@ TESTS =	\
         bi-artm-s.smt2 \
 	simp-typ-test.smt2 \
 	macros-int-real.smt2 \
-	stream-x2014-09-18-unsat.smt2
+	stream-x2014-09-18-unsat.smt2 \
+	simp-len.smt2 \
+	is-even.smt2 \
+	is-even-pred.smt2
 
 # regression can be solved with --finite-model-find --fmf-inst-engine
 # set3.smt2

@@ -202,10 +202,10 @@ namespace rewrite {
 
   // Note these cannot be assumed to be symmetric for +0/-0, thus no symmetry reorder
   RewriteResponse compactMinMax (TNode node, bool isPreRewrite) {
+#ifdef CVC4_ASSERTIONS
     Kind k = node.getKind();
-
     Assert((k == kind::FLOATINGPOINT_MIN) || (k == kind::FLOATINGPOINT_MAX));
-
+#endif
     if (node[0] == node[1]) {
       return RewriteResponse(REWRITE_DONE, node[0]);
     } else {

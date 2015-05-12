@@ -199,7 +199,7 @@ struct sortExternalDegree {
 int gmcCount = 0;
 
 bool StrongSolverTheoryUF::SortModel::Region::getMustCombine( int cardinality ){
-  if( options::ufssRegions() && d_total_diseq_external>=long(cardinality) ){
+  if( options::ufssRegions() && d_total_diseq_external>=unsigned(cardinality) ){
     //The number of external disequalities is greater than or equal to cardinality.
     //Thus, a clique of size cardinality+1 may exist between nodes in d_regions[i] and other regions
     //Check if this is actually the case:  must have n nodes with outgoing degree (cardinality+1-n) for some n>0
@@ -238,7 +238,7 @@ bool StrongSolverTheoryUF::SortModel::Region::getMustCombine( int cardinality ){
 }
 
 bool StrongSolverTheoryUF::SortModel::Region::check( Theory::Effort level, int cardinality, std::vector< Node >& clique ){
-  if( d_reps_size>long(cardinality) ){
+  if( d_reps_size>unsigned(cardinality) ){
     if( d_total_diseq_internal==d_reps_size*( d_reps_size - 1 ) ){
       if( d_reps_size>1 ){
         //quick clique check, all reps form a clique
@@ -254,9 +254,9 @@ bool StrongSolverTheoryUF::SortModel::Region::check( Theory::Effort level, int c
       }
     }else if( options::ufssRegions() || options::ufssEagerSplits() || level==Theory::EFFORT_FULL ){
       //build test clique, up to size cardinality+1
-      if( d_testCliqueSize<=long(cardinality) ){
+      if( d_testCliqueSize<=unsigned(cardinality) ){
         std::vector< Node > newClique;
-        if( d_testCliqueSize<long(cardinality) ){
+        if( d_testCliqueSize<unsigned(cardinality) ){
           for( std::map< Node, RegionNodeInfo* >::iterator it = d_nodes.begin(); it != d_nodes.end(); ++it ){
             //if not in the test clique, add it to the set of new members
             if( it->second->d_valid && ( d_testClique.find( it->first )==d_testClique.end() || !d_testClique[ it->first ] ) ){
@@ -312,7 +312,7 @@ bool StrongSolverTheoryUF::SortModel::Region::check( Theory::Effort level, int c
         }
       }
       //check if test clique has larger size than cardinality, and forms a clique
-      if( d_testCliqueSize>=long(cardinality+1) && d_splitsSize==0 ){
+      if( d_testCliqueSize>=unsigned(cardinality+1) && d_splitsSize==0 ){
         //test clique is a clique
         for( NodeBoolMap::iterator it = d_testClique.begin(); it != d_testClique.end(); ++it ){
           if( (*it).second ){
@@ -327,7 +327,7 @@ bool StrongSolverTheoryUF::SortModel::Region::check( Theory::Effort level, int c
 }
 
 bool StrongSolverTheoryUF::SortModel::Region::getCandidateClique( int cardinality, std::vector< Node >& clique ) {
-  if( d_testCliqueSize>=long(cardinality+1) ){
+  if( d_testCliqueSize>=unsigned(cardinality+1) ){
     //test clique is a clique
     for( NodeBoolMap::iterator it = d_testClique.begin(); it != d_testClique.end(); ++it ){
       if( (*it).second ){

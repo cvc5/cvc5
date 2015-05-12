@@ -1415,11 +1415,14 @@ void EqualityEngine::propagate() {
             TNode rhs = equality[1];
             EqualityNodeId lhsId = getNodeId(lhs);
             EqualityNodeId rhsId = getNodeId(rhs);
-            if (!hasPropagatedDisequality(THEORY_BOOL, lhsId, rhsId)) {
+            // We use the THEORY_LAST as a marker for "marked as propagated, reasons stored".
+            // This tag is added to an internal theories set that is only inserted in, so this is
+            // safe. Had we iterated over, or done other set operations this might be dangerous.
+            if (!hasPropagatedDisequality(THEORY_LAST, lhsId, rhsId)) {
               if (!hasPropagatedDisequality(lhsId, rhsId)) {
                 d_deducedDisequalityReasons.push_back(EqualityPair(original, d_falseId));
               }
-              storePropagatedDisequality(THEORY_BOOL, lhsId, rhsId);
+              storePropagatedDisequality(THEORY_LAST, lhsId, rhsId);
               if (!d_notify.eqNotifyTriggerEquality(triggerInfo.trigger, triggerInfo.polarity)) {
                 d_done = true;
               }
@@ -1551,7 +1554,6 @@ void EqualityEngine::addTriggerTerm(TNode t, TheoryId tag)
   Debug("equality::trigger") << d_name << "::eq::addTriggerTerm(" << t << ", " << tag << ")" << std::endl;
 
   Assert(tag != THEORY_LAST);
-  Assert(tag != THEORY_BOOL, "This one is used internally, bummer");
 
   if (d_done) {
     return;

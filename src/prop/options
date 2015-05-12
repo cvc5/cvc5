@@ -5,18 +5,18 @@
 
 module PROP "prop/options.h" SAT layer
 
-option satRandomFreq random-frequency --random-freq=P double :default 0.0 :predicate greater_equal(0.0) less_equal(1.0)
+option satRandomFreq random-frequency --random-freq=P double :default 0.0 :predicate options::greater_equal(0.0) options::less_equal(1.0)
  sets the frequency of random decisions in the sat solver (P=0.0 by default)
 option satRandomSeed random-seed --random-seed=S uint32_t :default 0 :read-write
  sets the random seed for the sat solver
 
-option satVarDecay double :default 0.95 :predicate less_equal(1.0) greater_equal(0.0)
+option satVarDecay double :default 0.95 :predicate options::less_equal(1.0) options::greater_equal(0.0)
  variable activity decay factor for Minisat
-option satClauseDecay double :default 0.999 :predicate less_equal(1.0) greater_equal(0.0)
+option satClauseDecay double :default 0.999 :predicate options::less_equal(1.0) options::greater_equal(0.0)
  clause activity decay factor for Minisat
 option satRestartFirst --restart-int-base=N unsigned :default 25
  sets the base restart interval for the sat solver (N=25 by default)
-option satRestartInc --restart-int-inc=F double :default 3.0 :predicate greater_equal(0.0)
+option satRestartInc --restart-int-inc=F double :default 3.0 :predicate options::greater_equal(0.0)
  sets the restart interval increase factor for the sat solver (F=3.0 by default)
 
 option sat_refine_conflicts --refine-conflicts bool :default false

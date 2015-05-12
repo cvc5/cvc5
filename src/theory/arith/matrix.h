@@ -39,6 +39,7 @@ const RowIndex ROW_INDEX_SENTINEL  = std::numeric_limits<RowIndex>::max();
 
 class CoefficientChangeCallback {
 public:
+  virtual ~CoefficientChangeCallback() {}
   virtual void update(RowIndex ridx, ArithVar nb, int oldSgn, int currSgn) = 0;
   virtual void multiplyRow(RowIndex ridx, int Sgn) = 0;
   virtual bool canUseRow(RowIndex ridx) const = 0;

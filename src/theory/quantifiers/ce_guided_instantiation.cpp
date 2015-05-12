@@ -31,7 +31,7 @@ namespace CVC4 {
 
 CegConjecture::CegConjecture( context::Context* c ) : d_active( c, false ), d_infeasible( c, false ), d_curr_lit( c, 0 ){
   d_refine_count = 0;
-  d_ceg_si = NULL;
+  d_ceg_si = new CegConjectureSingleInv( this );
 }
 
 void CegConjecture::assign( QuantifiersEngine * qe, Node q ) {
@@ -60,8 +60,7 @@ void CegConjecture::assign( QuantifiersEngine * qe, Node q ) {
     }
     d_syntax_guided = true;
     if( options::cegqiSingleInv() ){
-      d_ceg_si = new CegConjectureSingleInv( qe, q, this );
-      d_ceg_si->initialize();
+      d_ceg_si->initialize( qe, q );
     }
   }else if( qe->getTermDatabase()->isQAttrSynthesis( q ) ){
     d_syntax_guided = false;
@@ -131,7 +130,7 @@ Node CegConjecture::getLiteral( QuantifiersEngine * qe, int i ) {
 }
 
 CegInstantiation::CegInstantiation( QuantifiersEngine * qe, context::Context* c ) : QuantifiersModule( qe ){
-  d_conj = new CegConjecture( d_quantEngine->getSatContext() );
+  d_conj = new CegConjecture( qe->getSatContext() );
   d_last_inst_si = false;
 }
 
@@ -139,11 +138,8 @@ bool CegInstantiation::needsCheck( Theory::Effort e ) {
   return e>=Theory::EFFORT_LAST_CALL;
 }
 
-bool CegInstantiation::needsModel( Theory::Effort e ) {
-  return true;
-}
-bool CegInstantiation::needsFullModel( Theory::Effort e ) {
-  return true;
+unsigned CegInstantiation::needsModel( Theory::Effort e ) {
+  return QuantifiersEngine::QEFFORT_MODEL;  
 }
 
 void CegInstantiation::check( Theory::Effort e, unsigned quant_e ) {
@@ -262,6 +258,7 @@ void CegInstantiation::checkCegConjecture( CegConjecture * conj ) {
             Trace("cegqi-lemma") << "Single invocation lemma : " << lems[j] << std::endl;
             d_quantEngine->addLemma( lems[j] );
           }
+          d_statistics.d_cegqi_si_lemmas += lems.size();
           Trace("cegqi-engine") << "  ...try single invocation." << std::endl;
           return;
         }
@@ -318,6 +315,7 @@ void CegInstantiation::checkCegConjecture( CegConjecture * conj ) {
         d_last_inst_si = false;
         Trace("cegqi-lemma") << "Counterexample lemma : " << lem << std::endl;
         d_quantEngine->addLemma( lem );
+        ++(d_statistics.d_cegqi_lemmas_ce);
         Trace("cegqi-engine") << "  ...find counterexample." << std::endl;
       }
 
@@ -365,6 +363,7 @@ void CegInstantiation::checkCegConjecture( CegConjecture * conj ) {
         Trace("cegqi-lemma") << "Candidate refinement lemma : " << lem << std::endl;
         Trace("cegqi-engine") << "  ...refine candidate." << std::endl;
         d_quantEngine->addLemma( lem );
+        ++(d_statistics.d_cegqi_lemmas_refine);
         conj->d_refine_count++;
       }
     }
@@ -503,7 +502,11 @@ void CegInstantiation::printSynthSolution( std::ostream& out ) {
       }
       if( !(Trace.isOn("cegqi-stats")) ){
         out << "(define-fun " << f << " ";
-        out << dt.getSygusVarList() << " ";
+        if( dt.getSygusVarList().isNull() ){
+          out << "() ";
+        }else{
+          out << dt.getSygusVarList() << " ";
+        }
         out << dt.getSygusType() << " ";
         if( status==0 ){
           out << sol;
@@ -540,8 +543,11 @@ void CegInstantiation::printSygusTerm( std::ostream& out, Node n ) {
       }
       return;
     }
+  }else if( !n.getAttribute(SygusProxyAttribute()).isNull() ){
+    out << n.getAttribute(SygusProxyAttribute());
+  }else{
+    out << n;
   }
-  out << n;
 }
 
 void CegInstantiation::collectDisjuncts( Node n, std::vector< Node >& d ) {
@@ -553,5 +559,22 @@ void CegInstantiation::collectDisjuncts( Node n, std::vector< Node >& d ) {
     d.push_back( n );
   }
 }
+
+CegInstantiation::Statistics::Statistics():
+  d_cegqi_lemmas_ce("CegInstantiation::cegqi_lemmas_ce", 0),
+  d_cegqi_lemmas_refine("CegInstantiation::cegqi_lemmas_refine", 0),
+  d_cegqi_si_lemmas("CegInstantiation::cegqi_lemmas_si", 0)
+{
+  StatisticsRegistry::registerStat(&d_cegqi_lemmas_ce);
+  StatisticsRegistry::registerStat(&d_cegqi_lemmas_refine);
+  StatisticsRegistry::registerStat(&d_cegqi_si_lemmas);
+}
+
+CegInstantiation::Statistics::~Statistics(){
+  StatisticsRegistry::unregisterStat(&d_cegqi_lemmas_ce);
+  StatisticsRegistry::unregisterStat(&d_cegqi_lemmas_refine);
+  StatisticsRegistry::unregisterStat(&d_cegqi_si_lemmas);
+}
+
 
 }

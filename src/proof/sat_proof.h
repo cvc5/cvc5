@@ -272,7 +272,7 @@ protected:
   std::string clauseName(ClauseId id);
 
 
-  void addToProofManager(ClauseId id);
+  void addToProofManager(ClauseId id, ClauseKind kind);
   void addToCnfProof(ClauseId id);
 public:
   virtual void printResolution(ClauseId id, std::ostream& out, std::ostream& paren) = 0;

@@ -193,11 +193,14 @@ void LFSCTheoryProofEngine::printAssertions(std::ostream& os, std::ostream& pare
 
   it = ProofManager::currentPM()->begin_assertions();
   for (; it != end; ++it) {
+    // FIXME: merge this with counter 
     os << "(% A" << counter++ << " (th_holds ";
     printLetTerm(*it,  os);
     os << ")\n";
     paren << ")";
   }
+  //store map between assertion and counter
+  // ProofManager::currentPM()->setAssertion( *it );
 }
 
 void LFSCTheoryProofEngine::printDeclarations(std::ostream& os, std::ostream& paren) {
@@ -242,6 +245,8 @@ void LFSCTheoryProofEngine::printTheoryLemmas(std::ostream& os, std::ostream& pa
   BitVectorProof* bv = ProofManager::getBitVectorProof(); 
   bv->finalizeConflicts(bv_lemmas); 
   bv->printBitblasting(os, paren);
+  // TODO
+  // bv->printCnfProof(os, paren);
   bv->printResolutionProof(os, paren);
   
   it = pm->begin_lemmas();
@@ -423,6 +428,7 @@ void LFSCBooleanProof::printTerm(Expr term, std::ostream& os, const LetMap& map)
   }
 
 }
+
 void LFSCBooleanProof::printSort(Type type, std::ostream& os) {
   Assert (type.isBoolean());
   os << "Bool";

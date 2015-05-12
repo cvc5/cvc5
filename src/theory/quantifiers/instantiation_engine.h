@@ -29,6 +29,7 @@ class InstStrategyAutoGenTriggers;
 class InstStrategyLocalTheoryExt;
 class InstStrategyFreeVariable;
 class InstStrategySimplex;
+class InstStrategyCegqi;
 
 /** instantiation strategy class */
 class InstStrategy {
@@ -40,21 +41,9 @@ public:
 protected:
   /** reference to the instantiation engine */
   QuantifiersEngine* d_quantEngine;
-  /** should process a quantifier */
-  std::map< Node, bool > d_quantActive;
-  /** calculate should process */
-  virtual bool calculateShouldProcess( Node f ) { return true; }
 public:
   InstStrategy( QuantifiersEngine* qe ) : d_quantEngine( qe ){}
   virtual ~InstStrategy(){}
-
-  /** should process quantified formula f? */
-  bool shouldProcess( Node f ) {
-    if( d_quantActive.find( f )==d_quantActive.end() ){
-      d_quantActive[f] = calculateShouldProcess( f );
-    }
-    return d_quantActive[f];
-  }
   /** reset instantiation */
   virtual void processResetInstantiationRound( Theory::Effort effort ) = 0;
   /** process method, returns a status */
@@ -80,6 +69,8 @@ private:
   InstStrategyFreeVariable * d_i_fs;
   /** simplex (cbqi) */
   InstStrategySimplex * d_i_splx;
+  /** generic cegqi */
+  InstStrategyCegqi * d_i_cegqi;
 private:
   typedef context::CDHashMap< Node, bool, NodeHashFunction > BoolMap;
   /** whether the instantiation engine should set incomplete if it cannot answer SAT */
@@ -131,7 +122,6 @@ public:
   public:
     IntStat d_instantiations_user_patterns;
     IntStat d_instantiations_auto_gen;
-    IntStat d_instantiations_auto_gen_min;
     IntStat d_instantiations_guess;
     IntStat d_instantiations_cbqi_arith;
     IntStat d_instantiations_cbqi_arith_minus;

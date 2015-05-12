@@ -31,7 +31,7 @@ using namespace CVC4::theory::quantifiers;
 using namespace CVC4::theory::inst;
 
 InstantiationEngine::InstantiationEngine( QuantifiersEngine* qe, bool setIncomplete ) :
-QuantifiersModule( qe ), d_isup(NULL), d_i_ag(NULL), d_i_lte(NULL), d_i_fs(NULL), d_i_splx(NULL), d_setIncomplete( setIncomplete ){
+QuantifiersModule( qe ), d_isup(NULL), d_i_ag(NULL), d_i_lte(NULL), d_i_fs(NULL), d_i_splx(NULL), d_i_cegqi( NULL ), d_setIncomplete( setIncomplete ){
 
 }
 
@@ -41,45 +41,46 @@ InstantiationEngine::~InstantiationEngine() {
   delete d_i_lte;
   delete d_i_fs;
   delete d_i_splx;
+  delete d_i_cegqi;
 }
 
 void InstantiationEngine::finishInit(){
   if( options::eMatching() ){
     //these are the instantiation strategies for E-matching
-    
+
     //user-provided patterns
     if( options::userPatternsQuant()!=USER_PAT_MODE_IGNORE ){
       d_isup = new InstStrategyUserPatterns( d_quantEngine );
       d_instStrategies.push_back( d_isup );
     }
-    
+
     //auto-generated patterns
-    int tstrt = Trigger::TS_ALL;
-    if( options::triggerSelMode()==TRIGGER_SEL_MIN ){
-      tstrt = Trigger::TS_MIN_TRIGGER;
-    }else if( options::triggerSelMode()==TRIGGER_SEL_MAX ){
-      tstrt = Trigger::TS_MAX_TRIGGER;
-    }
-    d_i_ag = new InstStrategyAutoGenTriggers( d_quantEngine, tstrt, 3 );
+    d_i_ag = new InstStrategyAutoGenTriggers( d_quantEngine );
     d_instStrategies.push_back( d_i_ag );
   }
-  
+
   //local theory extensions TODO?
   //if( options::localTheoryExt() ){
   //  d_i_lte = new InstStrategyLocalTheoryExt( d_quantEngine );
   //  d_instStrategies.push_back( d_i_lte );
   //}
-  
+
   //full saturation : instantiate from relevant domain, then arbitrary terms
   if( options::fullSaturateQuant() ){
     d_i_fs = new InstStrategyFreeVariable( d_quantEngine );
     d_instStrategies.push_back( d_i_fs );
   }
-  
+
   //counterexample-based quantifier instantiation
   if( options::cbqi() ){
-    d_i_splx = new InstStrategySimplex( (arith::TheoryArith*)d_quantEngine->getTheoryEngine()->theoryOf( THEORY_ARITH ), d_quantEngine );
-    d_instStrategies.push_back( d_i_splx );
+    if( !options::cbqi2() || options::cbqi.wasSetByUser() ){
+      d_i_splx = new InstStrategySimplex( (arith::TheoryArith*)d_quantEngine->getTheoryEngine()->theoryOf( THEORY_ARITH ), d_quantEngine );
+      d_instStrategies.push_back( d_i_splx );
+    }
+    if( options::cbqi2() ){
+      d_i_cegqi = new InstStrategyCegqi( d_quantEngine );
+      d_instStrategies.push_back( d_i_cegqi );
+    }
   }
 }
 
@@ -117,11 +118,7 @@ bool InstantiationEngine::doInstantiationRound( Theory::Effort effort ){
     }
   }
   //if not, proceed to instantiation round
-  Debug("inst-engine") << "IE: Instantiation Round." << std::endl;
-  Debug("inst-engine-ctrl") << "IE: Instantiation Round." << std::endl;
-  //reset the quantifiers engine
-  Debug("inst-engine-ctrl") << "Reset IE" << std::endl;
-  //reset the instantiators
+  //reset the instantiation strategies
   for( size_t i=0; i<d_instStrategies.size(); ++i ){
     InstStrategy* is = d_instStrategies[i];
     is->processResetInstantiationRound( effort );
@@ -143,16 +140,15 @@ bool InstantiationEngine::doInstantiationRound( Theory::Effort effort ){
         //int e_use = d_quantEngine->getRelevance( f )==-1 ? e - 1 : e;
         int e_use = e;
         if( e_use>=0 ){
+          Trace("inst-engine-debug") << "inst-engine : " << f << std::endl;
           //check each instantiation strategy
           for( size_t i=0; i<d_instStrategies.size(); ++i ){
             InstStrategy* is = d_instStrategies[i];
-            if( is->shouldProcess( f ) ){
-              Debug("inst-engine-debug") << "Do " << is->identify() << " " << e_use << std::endl;
-              int quantStatus = is->process( f, effort, e_use );
-              Debug("inst-engine-debug") << " -> status is " << quantStatus << std::endl;
-              if( quantStatus==InstStrategy::STATUS_UNFINISHED ){
-                finished = false;
-              }
+            Trace("inst-engine-debug") << "Do " << is->identify() << " " << e_use << std::endl;
+            int quantStatus = is->process( f, effort, e_use );
+            Trace("inst-engine-debug") << " -> status is " << quantStatus << std::endl;
+            if( quantStatus==InstStrategy::STATUS_UNFINISHED ){
+              finished = false;
             }
           }
         }
@@ -164,14 +160,10 @@ bool InstantiationEngine::doInstantiationRound( Theory::Effort effort ){
     }
     e++;
   }
-  Debug("inst-engine") << "All instantiators finished, # added lemmas = ";
-  Debug("inst-engine") << (int)d_quantEngine->d_lemmas_waiting.size() << std::endl;
   //Notice() << "All instantiators finished, # added lemmas = " << (int)d_lemmas_waiting.size() << std::endl;
   if( !d_quantEngine->hasAddedLemma() ){
-    Debug("inst-engine-ctrl") << "---Fail." << std::endl;
     return false;
   }else{
-    Debug("inst-engine-ctrl") << "---Done. " << (int)(d_quantEngine->d_lemmas_waiting.size()-lastWaiting) << std::endl;
     Trace("inst-engine") << "Added lemmas = " << (int)(d_quantEngine->d_lemmas_waiting.size()-lastWaiting)  << std::endl;
     return true;
   }
@@ -194,11 +186,14 @@ void InstantiationEngine::check( Theory::Effort e, unsigned quant_e ){
                           << d_quantEngine->getModel()->getNumAssertedQuantifiers() << std::endl;
     for( int i=0; i<(int)d_quantEngine->getModel()->getNumAssertedQuantifiers(); i++ ){
       Node n = d_quantEngine->getModel()->getAssertedQuantifier( i );
+      Debug("quantifiers") << "Process " << n << "..." << std::endl;
       //it is not active if it corresponds to a rewrite rule: we will process in rewrite engine
       if( !d_quantEngine->hasOwnership( n, this ) ){
         d_quant_active[n] = false;
+        Debug("quantifiers") << "  Quantifier has owner." << std::endl;
       }else if( !d_quantEngine->getModel()->isQuantifierActive( n ) ){
         d_quant_active[n] = false;
+        Debug("quantifiers") << "  Quantifier is not active (from model)." << std::endl;
       //it is not active if we have found the skolemized negation is unsat
       }else if( options::cbqi() && hasAddedCbqiLemma( n ) ){
         Node cel = d_quantEngine->getTermDatabase()->getCounterexampleLiteral( n );
@@ -334,7 +329,7 @@ bool InstantiationEngine::hasNonArithmeticVariable( Node f ){
 }
 
 bool InstantiationEngine::doCbqi( Node f ){
-  if( options::cbqi.wasSetByUser() ){
+  if( options::cbqi.wasSetByUser() || options::cbqi2.wasSetByUser() ){
     return options::cbqi();
   }else if( options::cbqi() ){
     //if quantifier has a non-arithmetic variable, then do not use cbqi
@@ -433,7 +428,6 @@ void InstantiationEngine::addUserNoPattern( Node f, Node pat ){
 InstantiationEngine::Statistics::Statistics():
   d_instantiations_user_patterns("InstantiationEngine::Instantiations_User_Patterns", 0),
   d_instantiations_auto_gen("InstantiationEngine::Instantiations_Auto_Gen", 0),
-  d_instantiations_auto_gen_min("InstantiationEngine::Instantiations_Auto_Gen_Min", 0),
   d_instantiations_guess("InstantiationEngine::Instantiations_Guess", 0),
   d_instantiations_cbqi_arith("InstantiationEngine::Instantiations_Cbqi_Arith", 0),
   d_instantiations_cbqi_arith_minus("InstantiationEngine::Instantiations_Cbqi_Arith_Minus", 0),
@@ -443,7 +437,6 @@ InstantiationEngine::Statistics::Statistics():
 {
   StatisticsRegistry::registerStat(&d_instantiations_user_patterns);
   StatisticsRegistry::registerStat(&d_instantiations_auto_gen);
-  StatisticsRegistry::registerStat(&d_instantiations_auto_gen_min);
   StatisticsRegistry::registerStat(&d_instantiations_guess);
   StatisticsRegistry::registerStat(&d_instantiations_cbqi_arith);
   StatisticsRegistry::registerStat(&d_instantiations_cbqi_arith_minus);
@@ -455,7 +448,6 @@ InstantiationEngine::Statistics::Statistics():
 InstantiationEngine::Statistics::~Statistics(){
   StatisticsRegistry::unregisterStat(&d_instantiations_user_patterns);
   StatisticsRegistry::unregisterStat(&d_instantiations_auto_gen);
-  StatisticsRegistry::unregisterStat(&d_instantiations_auto_gen_min);
   StatisticsRegistry::unregisterStat(&d_instantiations_guess);
   StatisticsRegistry::unregisterStat(&d_instantiations_cbqi_arith);
   StatisticsRegistry::unregisterStat(&d_instantiations_cbqi_arith_minus);

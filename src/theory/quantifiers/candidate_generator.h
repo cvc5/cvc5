@@ -31,7 +31,7 @@ namespace inst {
 class CandidateGenerator {
 public:
   CandidateGenerator(){}
-  ~CandidateGenerator(){}
+  virtual ~CandidateGenerator(){}
 
   /** Get candidates functions.  These set up a context to get all match candidates.
       cg->reset( eqc );
@@ -60,7 +60,7 @@ private:
   int d_candidate_index;
 public:
   CandidateGeneratorQueue() : d_candidate_index( 0 ){}
-  ~CandidateGeneratorQueue(){}
+  ~CandidateGeneratorQueue() throw() {}
 
   void addCandidate( Node n );
 
@@ -94,7 +94,7 @@ private:
   Node d_n;
 public:
   CandidateGeneratorQE( QuantifiersEngine* qe, Node op );
-  ~CandidateGeneratorQE(){}
+  ~CandidateGeneratorQE() throw() {}
 
   void resetInstantiationRound();
   void reset( Node eqc );
@@ -112,7 +112,7 @@ private:
   QuantifiersEngine* d_qe;
 public:
   CandidateGeneratorQELitEq( QuantifiersEngine* qe, Node mpat );
-  ~CandidateGeneratorQELitEq(){}
+  ~CandidateGeneratorQELitEq() throw() {}
 
   void resetInstantiationRound();
   void reset( Node eqc );
@@ -130,7 +130,7 @@ private:
   QuantifiersEngine* d_qe;
 public:
   CandidateGeneratorQELitDeq( QuantifiersEngine* qe, Node mpat );
-  ~CandidateGeneratorQELitDeq(){}
+  ~CandidateGeneratorQELitDeq() throw() {}
 
   void resetInstantiationRound();
   void reset( Node eqc );
@@ -154,7 +154,7 @@ private:
   bool d_firstTime;
 public:
   CandidateGeneratorQEAll( QuantifiersEngine* qe, Node mpat );
-  ~CandidateGeneratorQEAll(){}
+  ~CandidateGeneratorQEAll() throw() {}
 
   void resetInstantiationRound();
   void reset( Node eqc );

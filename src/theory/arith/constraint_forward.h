@@ -26,15 +26,21 @@ namespace CVC4 {
 namespace theory {
 namespace arith {
 
-class Constraint_;
-typedef Constraint_* ConstraintP;
-typedef const Constraint_* ConstraintCP;
+class Constraint;
+typedef Constraint* ConstraintP;
+typedef const Constraint* ConstraintCP;
 
-const ConstraintP NullConstraint = NULL;
+static const ConstraintP NullConstraint = NULL;
 
 class ConstraintDatabase;
 
 typedef std::vector<ConstraintCP> ConstraintCPVec;
+
+typedef std::vector<Rational> RationalVector;
+typedef RationalVector* RationalVectorP;
+typedef const RationalVector* RationalVectorCP;
+static const RationalVectorCP RationalVectorCPSentinel = NULL;
+static const RationalVectorP RationalVectorPSentinel = NULL;
 
 }/* CVC4::theory::arith namespace */
 }/* CVC4::theory namespace */

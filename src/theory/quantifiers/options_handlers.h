@@ -195,10 +195,10 @@ static const std::string termDbModeHelp = "\
 Modes for term database, supported by --term-db-mode:\n\
 \n\
 all  \n\
-+ Consider all terms in the system.\n\
++ Quantifiers module considers all ground terms.\n\
 \n\
 relevant \n\
-+ Consider only terms connected to current assertions. \n\
++ Quantifiers module considers only ground terms connected to current assertions. \n\
 \n\
 ";
 

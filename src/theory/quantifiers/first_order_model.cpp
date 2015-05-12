@@ -169,10 +169,10 @@ void FirstOrderModelIG::processInitializeModelForTerm( Node n ){
       TypeNode tn = op.getType();
       tn = tn[ (int)tn.getNumChildren()-1 ];
       //only generate models for predicates and functions with uninterpreted range types
-      if( tn==NodeManager::currentNM()->booleanType() || tn.isSort() ){
+      //if( tn==NodeManager::currentNM()->booleanType() || tn.isSort() ){
         d_uf_model_tree[ op ] = uf::UfModelTree( op );
         d_uf_model_gen[ op ].clear();
-      }
+      //}
     }
   }
   /*
@@ -355,42 +355,9 @@ Node FirstOrderModelIG::evaluateTerm( Node n, int& depIndex, RepSetIterator* ri 
     }
   }else{
     std::vector< int > children_depIndex;
-    //for select, pre-process read over writes
-    if( n.getKind()==SELECT ){
-#if 0
-      //std::cout << "Evaluate " << n << std::endl;
-      Node sel = evaluateTerm( n[1], depIndex, ri );
-      if( sel.isNull() ){
-        depIndex = ri->getNumTerms()-1;
-        return Node::null();
-      }
-      Node arr = getRepresentative( n[0] );
-      //if( n[0]!=getRepresentative( n[0] ) ){
-      //  std::cout << n[0] << " is " << getRepresentative( n[0] ) << std::endl;
-      //}
-      int tempIndex;
-      int eval = 1;
-      while( arr.getKind()==STORE && eval!=0 ){
-        eval = evaluate( sel.eqNode( arr[1] ), tempIndex, ri );
-        depIndex = tempIndex > depIndex ? tempIndex : depIndex;
-        if( eval==1 ){
-          val = evaluateTerm( arr[2], tempIndex, ri );
-          depIndex = tempIndex > depIndex ? tempIndex : depIndex;
-          return val;
-        }else if( eval==-1 ){
-          arr = arr[0];
-        }
-      }
-      arr = evaluateTerm( arr, tempIndex, ri );
-      depIndex = tempIndex > depIndex ? tempIndex : depIndex;
-      val = NodeManager::currentNM()->mkNode( SELECT, arr, sel );
-#else
-      val = evaluateTermDefault( n, depIndex, children_depIndex, ri );
-#endif
-    }else{
-      //default term evaluate : evaluate all children, recreate the value
-      val = evaluateTermDefault( n, depIndex, children_depIndex, ri );
-    }
+    //default term evaluate : evaluate all children, recreate the value
+    val = evaluateTermDefault( n, depIndex, children_depIndex, ri );
+    Trace("fmf-eval-debug") << "Evaluate term, value from " << n << " is " << val << std::endl;
     if( !val.isNull() ){
       bool setVal = false;
       //custom ways of evaluating terms
@@ -405,8 +372,10 @@ Node FirstOrderModelIG::evaluateTerm( Node n, int& depIndex, RepSetIterator* ri 
           makeEvalUfModel( n );
           //now, consult the model
           if( d_eval_uf_use_default[n] ){
+            Trace("fmf-eval-debug") << "get default" << std::endl;
             val = d_uf_model_tree[ op ].getValue( this, val, argDepIndex );
           }else{
+            Trace("fmf-eval-debug") << "get uf model" << std::endl;
             val = d_eval_uf_model[ n ].getValue( this, val, argDepIndex );
           }
           //Debug("fmf-eval-debug") << "Evaluate term " << n << " (" << gn << ")" << std::endl;
@@ -422,22 +391,20 @@ Node FirstOrderModelIG::evaluateTerm( Node n, int& depIndex, RepSetIterator* ri 
             }
           }
           setVal = true;
+        }else{
+          Trace("fmf-eval-debug") << "No model." << std::endl;
         }
-      }else if( n.getKind()==SELECT ){
-        //we are free to interpret this term however we want
       }
       //if not set already, rewrite and consult model for interpretation
       if( !setVal ){
         val = Rewriter::rewrite( val );
-        if( val.getMetaKind()!=kind::metakind::CONSTANT ){
-          //FIXME: we cannot do this until we trust all theories collectModelInfo!
-          //val = getInterpretedValue( val );
-          //val = getRepresentative( val );
+        if( !val.isConst() ){
+          return Node::null();
         }
       }
       Trace("fmf-eval-debug") << "Evaluate term " << n << " = ";
       printRepresentativeDebug( "fmf-eval-debug", val );
-      Trace("fmf-eval-debug") << ", depIndex = " << depIndex << std::endl;
+      Trace("fmf-eval-debug") << " (term " << val << "), depIndex = " << depIndex << std::endl;
     }
   }
   return val;
@@ -448,6 +415,7 @@ Node FirstOrderModelIG::evaluateTermDefault( Node n, int& depIndex, std::vector<
   if( n.getNumChildren()==0 ){
     return n;
   }else{
+    bool isInterp = n.getKind()!=APPLY_UF;
     //first we must evaluate the arguments
     std::vector< Node > children;
     if( n.getMetaKind()==kind::metakind::PARAMETERIZED ){
@@ -461,10 +429,15 @@ Node FirstOrderModelIG::evaluateTermDefault( Node n, int& depIndex, std::vector<
         depIndex = ri->getNumTerms()-1;
         return nn;
       }else{
-        children.push_back( nn );
         if( childDepIndex[i]>depIndex ){
           depIndex = childDepIndex[i];
         }
+        if( isInterp ){
+          if( !nn.isConst() ) {
+            nn = getRepresentative( nn );
+          }
+        }
+        children.push_back( nn );
       }
     }
     //recreate the value
@@ -585,7 +558,7 @@ FirstOrderModel(qe, c, name){
 
 }
 
-FirstOrderModelFmc::~FirstOrderModelFmc() {
+FirstOrderModelFmc::~FirstOrderModelFmc() throw() {
   for(std::map<Node, Def*>::iterator i = d_models.begin(); i != d_models.end(); ++i) {
     delete (*i).second;
   }
@@ -730,6 +703,7 @@ Node FirstOrderModelFmc::getFunctionValue(Node op, const char* argPrefix ) {
         }else if ( !isStar(cond[j]) &&  //handle the case where there are 0 or 1 ground eqc of this type
                    d_rep_set.d_type_reps.find( tn )!=d_rep_set.d_type_reps.end() && d_rep_set.d_type_reps[ tn ].size()>1 ){
           Node c = getUsedRepresentative( cond[j] );
+          c = getRepresentative( c );
           children.push_back( NodeManager::currentNM()->mkNode( EQUAL, vars[j], c ) );
         }
       }
