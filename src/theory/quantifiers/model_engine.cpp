@@ -35,7 +35,7 @@ using namespace CVC4::theory::inst;
 //Model Engine constructor
 ModelEngine::ModelEngine( context::Context* c, QuantifiersEngine* qe ) :
 QuantifiersModule( qe ),
-d_incomplete_check(false),
+d_incomplete_check(true),
 d_addedLemmas(0),
 d_triedLemmas(0),
 d_totalLemmas(0)
@@ -53,6 +53,10 @@ bool ModelEngine::needsCheck( Theory::Effort e ) {
 
 unsigned ModelEngine::needsModel( Theory::Effort e ) {
   return QuantifiersEngine::QEFFORT_MODEL;  
+}
+
+void ModelEngine::reset_round( Theory::Effort e ) {
+  d_incomplete_check = true;
 }
 
 void ModelEngine::check( Theory::Effort e, unsigned quant_e ){
@@ -95,14 +99,14 @@ void ModelEngine::check( Theory::Effort e, unsigned quant_e ){
       //CVC4 will answer SAT or unknown
       Trace("fmf-consistent") << std::endl;
       debugPrint("fmf-consistent");
-      //if the check was incomplete, we must set incomplete flag
-      if( d_incomplete_check ){
-        d_quantEngine->getOutputChannel().setIncomplete();
-      }
     }else{
       //otherwise, the search will continue
     }
   }
+}
+
+bool ModelEngine::checkComplete() {
+  return !d_incomplete_check;
 }
 
 void ModelEngine::registerQuantifier( Node f ){
@@ -218,7 +222,7 @@ int ModelEngine::checkModel(){
     if( d_addedLemmas==0 && options::axiomInstMode()==AXIOM_INST_MODE_TRUST ){
       //set incomplete
       if( effort==0 ){
-        d_quantEngine->getOutputChannel().setIncomplete();
+        d_incomplete_check = true;
       }
       break;
     }

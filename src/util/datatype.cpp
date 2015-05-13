@@ -140,7 +140,7 @@ void Datatype::setSygus( Type st, Expr bvl, bool allow_const, bool allow_all ){
   d_sygus_type = st;
   d_sygus_bvl = bvl;
   d_sygus_allow_const = allow_const || allow_all;
-  d_sygus_allow_const = allow_all;
+  d_sygus_allow_all = allow_all;
 }
 
 

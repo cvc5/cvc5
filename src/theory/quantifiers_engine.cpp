@@ -86,7 +86,7 @@ d_lemmas_produced_c(u){
   d_hasAddedLemma = false;
 
   bool needsBuilder = false;
-
+  Trace("quant-engine-debug") << "Initialize quantifiers engine." << std::endl;
   Trace("quant-engine-debug") << "Initialize model, mbqi : " << options::mbqiMode() << std::endl;
 
   //the model object
@@ -123,9 +123,9 @@ d_lemmas_produced_c(u){
   }else{
     d_sg_gen = NULL;
   }
+  //maintain invariant : either InstantiationEngine or ModelEngine must be in d_modules
   if( !options::finiteModelFind() || options::fmfInstEngine() ){
-    //the instantiation must set incomplete flag unless finite model finding is turned on
-    d_inst_engine = new quantifiers::InstantiationEngine( this, !options::finiteModelFind() );
+    d_inst_engine = new quantifiers::InstantiationEngine( this );
     d_modules.push_back(  d_inst_engine );
   }else{
     d_inst_engine = NULL;
@@ -329,11 +329,9 @@ void QuantifiersEngine::check( Theory::Effort e ){
     Trace("quant-engine-debug") << "Done resetting all modules." << std::endl;
 
     if( e==Theory::EFFORT_LAST_CALL ){
-      //if effort is last call, try to minimize model first FIXME: remove?
-      uf::StrongSolverTheoryUF * ufss = ((uf::TheoryUF*)getTheoryEngine()->theoryOf( THEORY_UF ))->getStrongSolver();
-      if( ufss && !ufss->minimize() ){
-        return;
-      }
+      //if effort is last call, try to minimize model first
+      //uf::StrongSolverTheoryUF * ufss = ((uf::TheoryUF*)getTheoryEngine()->theoryOf( THEORY_UF ))->getStrongSolver();
+      //if( ufss && !ufss->minimize() ){ return; }
       ++(d_statistics.d_instantiation_rounds_lc);
     }else if( e==Theory::EFFORT_FULL ){
       ++(d_statistics.d_instantiation_rounds);
@@ -381,6 +379,8 @@ void QuantifiersEngine::check( Theory::Effort e ){
       }
     }
     Trace("quant-engine") << "Finished quantifiers engine check." << std::endl;
+  }else{
+    Trace("quant-engine") << "Quantifiers Engine does not need check." << std::endl;
   }
   //SAT case
   if( e==Theory::EFFORT_LAST_CALL && !d_hasAddedLemma ){
@@ -390,12 +390,27 @@ void QuantifiersEngine::check( Theory::Effort e ){
       d_te->getModelBuilder()->buildModel( d_model, true );
       Trace("quant-engine-debug") << "Done building the model." << std::endl;
     }
-    //check other sources of incompleteness
     bool setInc = false;
-    if( d_lte_part_inst && d_lte_part_inst->wasInvoked() ){
+    if( needsCheck ){
       setInc = true;
+      for( unsigned i=0; i<qm.size(); i++ ){
+        if( qm[i]->checkComplete() ){
+          Trace("quant-engine-debug") << "Do not set incomplete because " << qm[i]->identify().c_str() << " was complete." << std::endl;
+          setInc = false;
+        }
+      }
+    }else{
+      Trace("quant-engine-debug") << "Do not set incomplete because check wasn't necessary." << std::endl;
+    }
+    //check other sources of incompleteness
+    if( !setInc ){
+      if( d_lte_part_inst && d_lte_part_inst->wasInvoked() ){
+        Trace("quant-engine-debug") << "Set incomplete due to LTE partial instantiation." << std::endl;
+        setInc = true;
+      }
     }
     if( setInc ){
+      Trace("quant-engine-debug") << "Set incomplete flag." << std::endl;
       getOutputChannel().setIncomplete();
     }
     //output debug stats

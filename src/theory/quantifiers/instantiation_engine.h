@@ -73,10 +73,8 @@ private:
   InstStrategyCegqi * d_i_cegqi;
 private:
   typedef context::CDHashMap< Node, bool, NodeHashFunction > BoolMap;
-  /** whether the instantiation engine should set incomplete if it cannot answer SAT */
-  bool d_setIncomplete;
-  /** whether each quantifier is active */
-  std::map< Node, bool > d_quant_active;
+  /** current processing quantified formulas */
+  std::vector< Node > d_quants;
   /** whether we have added cbqi lemma */
   std::map< Node, bool > d_added_cbqi_lemma;
 private:
@@ -94,21 +92,16 @@ private:
   bool doInstantiationRound( Theory::Effort effort );
   /** register literals of n, f is the quantifier it belongs to */
   //void registerLiterals( Node n, Node f );
-private:
-  enum{
-    SAT_CBQI,
-    SAT_INST_STRATEGY,
-  };
-  /** debug sat */
-  void debugSat( int reason );
 public:
-  InstantiationEngine( QuantifiersEngine* qe, bool setIncomplete = true );
+  InstantiationEngine( QuantifiersEngine* qe );
   ~InstantiationEngine();
   /** initialize */
   void finishInit();
 
-  bool needsCheck( Theory::Effort e );
+  bool needsCheck( Theory::Effort e ); 
+  void reset_round( Theory::Effort e );
   void check( Theory::Effort e, unsigned quant_e );
+  bool checkComplete();
   void registerQuantifier( Node f );
   void assertNode( Node f );
   Node explain(TNode n){ return Node::null(); }

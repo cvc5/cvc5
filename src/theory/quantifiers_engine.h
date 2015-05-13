@@ -60,6 +60,8 @@ public:
   virtual void reset_round( Theory::Effort e ){}
   /* Call during quantifier engine's check */
   virtual void check( Theory::Effort e, unsigned quant_e ) = 0;
+  /* check was complete (e.g. no lemmas implies a model) */
+  virtual bool checkComplete() { return false; }
   /* Called for new quantifiers */
   virtual void registerQuantifier( Node q ) = 0;
   virtual void assertNode( Node n ) = 0;

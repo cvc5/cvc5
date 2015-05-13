@@ -30,8 +30,8 @@ using namespace CVC4::theory;
 using namespace CVC4::theory::quantifiers;
 using namespace CVC4::theory::inst;
 
-InstantiationEngine::InstantiationEngine( QuantifiersEngine* qe, bool setIncomplete ) :
-QuantifiersModule( qe ), d_isup(NULL), d_i_ag(NULL), d_i_lte(NULL), d_i_fs(NULL), d_i_splx(NULL), d_i_cegqi( NULL ), d_setIncomplete( setIncomplete ){
+InstantiationEngine::InstantiationEngine( QuantifiersEngine* qe ) :
+QuantifiersModule( qe ), d_isup(NULL), d_i_ag(NULL), d_i_lte(NULL), d_i_fs(NULL), d_i_splx(NULL), d_i_cegqi( NULL ){
 
 }
 
@@ -101,14 +101,16 @@ bool InstantiationEngine::doInstantiationRound( Theory::Effort effort ){
         Node ceLit = d_quantEngine->getTermDatabase()->getCounterexampleLiteral( f );
         if( !ceLit.isNull() ){
           //require any decision on cel to be phase=true
-          d_quantEngine->getOutputChannel().requirePhase( ceLit, true );
+          //d_quantEngine->getOutputChannel().requirePhase( ceLit, true );
+          d_quantEngine->addRequirePhase( ceLit, true );
           Debug("cbqi-debug") << "Require phase " << ceLit << " = true." << std::endl;
           //add counterexample lemma
           NodeBuilder<> nb(kind::OR);
           nb << f << ceLit;
           Node lem = nb;
           Trace("cbqi") << "Counterexample lemma : " << lem << std::endl;
-          d_quantEngine->getOutputChannel().lemma( lem, false, true );
+          //d_quantEngine->getOutputChannel().lemma( lem, false, true );
+          d_quantEngine->addLemma( lem, false );
           addedLemma = true;
         }
       }
@@ -123,6 +125,7 @@ bool InstantiationEngine::doInstantiationRound( Theory::Effort effort ){
     InstStrategy* is = d_instStrategies[i];
     is->processResetInstantiationRound( effort );
   }
+  
   //iterate over an internal effort level e
   int e = 0;
   int eLimit = effort==Theory::EFFORT_LAST_CALL ? 10 : 2;
@@ -132,24 +135,21 @@ bool InstantiationEngine::doInstantiationRound( Theory::Effort effort ){
     Debug("inst-engine") << "IE: Prepare instantiation (" << e << ")." << std::endl;
     finished = true;
     //instantiate each quantifier
-    for( int q=0; q<d_quantEngine->getModel()->getNumAssertedQuantifiers(); q++ ){
-      Node f = d_quantEngine->getModel()->getAssertedQuantifier( q );
-      Debug("inst-engine-debug") << "IE: Instantiate " << f << "..." << std::endl;
-      //if this quantifier is active
-      if( d_quant_active[ f ] ){
-        //int e_use = d_quantEngine->getRelevance( f )==-1 ? e - 1 : e;
-        int e_use = e;
-        if( e_use>=0 ){
-          Trace("inst-engine-debug") << "inst-engine : " << f << std::endl;
-          //check each instantiation strategy
-          for( size_t i=0; i<d_instStrategies.size(); ++i ){
-            InstStrategy* is = d_instStrategies[i];
-            Trace("inst-engine-debug") << "Do " << is->identify() << " " << e_use << std::endl;
-            int quantStatus = is->process( f, effort, e_use );
-            Trace("inst-engine-debug") << " -> status is " << quantStatus << std::endl;
-            if( quantStatus==InstStrategy::STATUS_UNFINISHED ){
-              finished = false;
-            }
+    for( unsigned i=0; i<d_quants.size(); i++ ){
+      Node q = d_quants[i];
+      Debug("inst-engine-debug") << "IE: Instantiate " << q << "..." << std::endl;
+      //int e_use = d_quantEngine->getRelevance( q )==-1 ? e - 1 : e;
+      int e_use = e;
+      if( e_use>=0 ){
+        Trace("inst-engine-debug") << "inst-engine : " << q << std::endl;
+        //check each instantiation strategy
+        for( size_t i=0; i<d_instStrategies.size(); ++i ){
+          InstStrategy* is = d_instStrategies[i];
+          Trace("inst-engine-debug") << "Do " << is->identify() << " " << e_use << std::endl;
+          int quantStatus = is->process( q, effort, e_use );
+          Trace("inst-engine-debug") << " -> status is " << quantStatus << std::endl;
+          if( quantStatus==InstStrategy::STATUS_UNFINISHED ){
+            finished = false;
           }
         }
       }
@@ -173,6 +173,32 @@ bool InstantiationEngine::needsCheck( Theory::Effort e ){
   return d_quantEngine->getInstWhenNeedsCheck( e );
 }
 
+void InstantiationEngine::reset_round( Theory::Effort e ) {
+  if( options::cbqi() ){
+    //set inactive the quantified formulas whose CE literals are asserted false
+    for( int i=0; i<(int)d_quantEngine->getModel()->getNumAssertedQuantifiers(); i++ ){
+      Node q = d_quantEngine->getModel()->getAssertedQuantifier( i );
+      //it is not active if it corresponds to a rewrite rule: we will process in rewrite engine
+      if( d_quantEngine->hasOwnership( q, this ) && d_quantEngine->getModel()->isQuantifierActive( q ) && hasAddedCbqiLemma( q ) ){
+        Debug("cbqi-debug") << "Check quantified formula " << q << "..." << std::endl;
+        Node cel = d_quantEngine->getTermDatabase()->getCounterexampleLiteral( q );
+        bool value;
+        if( d_quantEngine->getValuation().hasSatValue( cel, value ) ){
+          Debug("cbqi-debug") << "...CE Literal has value " << value << std::endl;
+          if( !value ){
+            d_quantEngine->getModel()->setQuantifierActive( q, false );
+            if( d_quantEngine->getValuation().isDecision( cel ) ){
+              Trace("cbqi-warn") << "CBQI WARNING: Bad decision on CE Literal." << std::endl;
+            }
+          }
+        }else{
+          Debug("cbqi-debug") << "...CE Literal does not have value " << std::endl;
+        }
+      }
+    }
+  }
+}
+
 void InstantiationEngine::check( Theory::Effort e, unsigned quant_e ){
   if( quant_e==QuantifiersEngine::QEFFORT_STANDARD ){
     double clSet = 0;
@@ -182,95 +208,38 @@ void InstantiationEngine::check( Theory::Effort e, unsigned quant_e ){
     }
     ++(d_statistics.d_instantiation_rounds);
     bool quantActive = false;
-    Debug("quantifiers") << "quantifiers:  check:  asserted quantifiers size="
-                          << d_quantEngine->getModel()->getNumAssertedQuantifiers() << std::endl;
+    d_quants.clear();
     for( int i=0; i<(int)d_quantEngine->getModel()->getNumAssertedQuantifiers(); i++ ){
       Node n = d_quantEngine->getModel()->getAssertedQuantifier( i );
-      Debug("quantifiers") << "Process " << n << "..." << std::endl;
-      //it is not active if it corresponds to a rewrite rule: we will process in rewrite engine
-      if( !d_quantEngine->hasOwnership( n, this ) ){
-        d_quant_active[n] = false;
-        Debug("quantifiers") << "  Quantifier has owner." << std::endl;
-      }else if( !d_quantEngine->getModel()->isQuantifierActive( n ) ){
-        d_quant_active[n] = false;
-        Debug("quantifiers") << "  Quantifier is not active (from model)." << std::endl;
-      //it is not active if we have found the skolemized negation is unsat
-      }else if( options::cbqi() && hasAddedCbqiLemma( n ) ){
-        Node cel = d_quantEngine->getTermDatabase()->getCounterexampleLiteral( n );
-        bool active, value;
-        bool ceValue = false;
-        if( d_quantEngine->getValuation().hasSatValue( cel, value ) ){
-          active = value;
-          ceValue = true;
-        }else{
-          active = true;
-        }
-        d_quant_active[n] = active;
-        if( active ){
-          Debug("quantifiers") << "  Active : " << n;
-          if( !TermDb::hasInstConstAttr(n) ){
-            quantActive = true;
-          }
-        }else{
-          Debug("quantifiers") << "  NOT active : " << n;
-          if( d_quantEngine->getValuation().isDecision( cel ) ){
-            Debug("quant-req-phase") << "Bad decision : " << cel << std::endl;
-          }
-          //note that the counterexample literal must not be a decision
-          Assert( !d_quantEngine->getValuation().isDecision( cel ) );
-        }
-        if( d_quantEngine->getValuation().hasSatValue( n, value ) ){
-          Debug("quantifiers") << ", value = " << value;
-        }
-        if( ceValue ){
-          Debug("quantifiers") << ", ce is asserted";
-        }
-        Debug("quantifiers") << std::endl;
-      }else{
-        d_quant_active[n] = true;
-        if( !TermDb::hasInstConstAttr(n) ){
+      if( d_quantEngine->hasOwnership( n, this ) && d_quantEngine->getModel()->isQuantifierActive( n ) ){
+        if( !options::cbqi() || !TermDb::hasInstConstAttr(n) ){
           quantActive = true;
         }
-        Debug("quantifiers") << "  Active : " << n << ", no ce assigned." << std::endl;
+        d_quants.push_back( n );
       }
-      Debug("quantifiers-relevance")  << "Quantifier : " << n << std::endl;
-      if( options::relevantTriggers() ){
-        Debug("quantifiers-relevance")  << "   Relevance : " << d_quantEngine->getQuantifierRelevance()->getRelevance( n ) << std::endl;
-        Debug("quantifiers") << "   Relevance : " << d_quantEngine->getQuantifierRelevance()->getRelevance( n ) << std::endl;
-      }
-      Trace("inst-engine-debug") << "Process : " << n << " " << d_quant_active[n] << std::endl;
     }
+    Trace("inst-engine-debug") << "InstEngine: check: # asserted quantifiers " << d_quants.size() << "/";
+    Trace("inst-engine-debug") << d_quantEngine->getModel()->getNumAssertedQuantifiers() << " " << quantActive << std::endl;
     if( quantActive ){
       bool addedLemmas = doInstantiationRound( e );
-      if( !addedLemmas && e==Theory::EFFORT_LAST_CALL ){
-        //check if we need to set the incomplete flag
-        if( d_setIncomplete ){
-          //check if we are complete for all active quantifiers
-          bool inc = false;
-          for( int i=0; i<d_quantEngine->getModel()->getNumAssertedQuantifiers(); i++ ){
-            Node f = d_quantEngine->getModel()->getAssertedQuantifier( i );
-            if( isIncomplete( f ) ){
-              inc = true;
-              break;
-            }
-          }
-          if( inc ){
-            Debug("inst-engine") << "No instantiation given, returning unknown..." << std::endl;
-            d_quantEngine->getOutputChannel().setIncomplete();
-          }else{
-            Debug("inst-engine") << "Instantiation strategies were complete..." << std::endl;
-          }
-        }else{
-          Assert( options::finiteModelFind() );
-          Debug("inst-engine") << "No instantiation given, defer to another engine..." << std::endl;
-        }
-      }
+      Trace("inst-engine-debug") << "Add lemmas = " << addedLemmas << std::endl;
+    }else{
+      d_quants.clear();
     }
     if( Trace.isOn("inst-engine") ){
       double clSet2 = double(clock())/double(CLOCKS_PER_SEC);
       Trace("inst-engine") << "Finished instantiation engine, time = " << (clSet2-clSet) << std::endl;
     }
   }
+}
+
+bool InstantiationEngine::checkComplete() {
+  for( unsigned i=0; i<d_quants.size(); i++ ){
+    if( isIncomplete( d_quants[i] ) ){
+      return false;
+    }
+  }
+  return true;
 }
 
 void InstantiationEngine::registerQuantifier( Node f ){
@@ -341,13 +310,10 @@ bool InstantiationEngine::doCbqi( Node f ){
 }
 
 bool InstantiationEngine::isIncomplete( Node f ) {
-  if( d_i_lte ){
-    //TODO : ensure completeness for local theory extensions
-    //return !d_i_lte->isLocalTheoryExt( f );
-    return true;
-  }else{
-    return true;
-  }
+  return true;
+  //TODO : ensure completeness for local theory extensions
+  //if( d_i_lte ){
+  //return !d_i_lte->isLocalTheoryExt( f );
 }
 
 
@@ -360,39 +326,6 @@ bool InstantiationEngine::isIncomplete( Node f ) {
 
 
 
-
-
-void InstantiationEngine::debugSat( int reason ){
-  if( reason==SAT_CBQI ){
-    //Debug("quantifiers-sat") << "Decisions:" << std::endl;
-    //for( int i=1; i<=(int)d_quantEngine->getValuation().getDecisionLevel(); i++ ){
-    //  Debug("quantifiers-sat") << "   " << i << ": " << d_quantEngine->getValuation().getDecision( i ) << std::endl;
-    //}
-    //for( BoolMap::iterator i = d_forall_asserts.begin(); i != d_forall_asserts.end(); i++ ) {
-    //  if( (*i).second ) {
-    for( int i=0; i<(int)d_quantEngine->getModel()->getNumAssertedQuantifiers(); i++ ){
-      Node f = d_quantEngine->getModel()->getAssertedQuantifier( i );
-      Node cel = d_quantEngine->getTermDatabase()->getCounterexampleLiteral( f );
-      Assert( !cel.isNull() );
-      bool value;
-      if( d_quantEngine->getValuation().hasSatValue( cel, value ) ){
-        if( !value ){
-          AlwaysAssert(! d_quantEngine->getValuation().isDecision( cel ),
-                       "bad decision on counterexample literal");
-        }
-      }
-    }
-    if( d_setIncomplete ){
-      Debug("quantifiers-sat") << "Cannot conclude SAT with nested quantifiers in recursive strategy." << std::endl;
-      //TODO : only when existentials with inst constants
-      d_quantEngine->getOutputChannel().setIncomplete();
-    }
-    //}
-    Debug("quantifiers-sat") << "return SAT: Cbqi, no quantifier is active. " << std::endl;
-  }else if( reason==SAT_INST_STRATEGY ){
-    Debug("quantifiers-sat") << "return SAT: No strategy chose to add an instantiation." << std::endl;
-  }
-}
 
 Node InstantiationEngine::getNextDecisionRequest(){
   //propagate as decision all counterexample literals that are not asserted
@@ -403,8 +336,7 @@ Node InstantiationEngine::getNextDecisionRequest(){
         Node cel = d_quantEngine->getTermDatabase()->getCounterexampleLiteral( f );
         bool value;
         if( !d_quantEngine->getValuation().hasSatValue( cel, value ) ){
-          //if not already set, propagate as decision
-          Debug("cbqi-prop-as-dec") << "CBQI: propagate as decision " << cel << std::endl;
+          Debug("cbqi-prop-as-dec") << "CBQI: get next decision " << cel << std::endl;
           return cel;
         }
       }
