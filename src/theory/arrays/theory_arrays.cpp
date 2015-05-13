@@ -123,7 +123,7 @@ TheoryArrays::TheoryArrays(context::Context* c, context::UserContext* u, OutputC
   if (d_useArrTable) {
     d_equalityEngine.addFunctionKind(kind::ARR_TABLE_FUN);
   }
-  PROOF (ProofManager::currentPM()->getTheoryProofEngine()->registerTheory(this); );
+  THEORY_PROOF (ProofManager::currentPM()->getTheoryProofEngine()->registerTheory(this); );
 }
 
 TheoryArrays::~TheoryArrays() {

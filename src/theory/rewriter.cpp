@@ -139,7 +139,7 @@ Node Rewriter::rewriteTo(theory::TheoryId theoryId, Node node) {
         for(;;) {
           // Perform the pre-rewrite
           RewriteResponse response = Rewriter::callPreRewrite((TheoryId) rewriteStackTop.theoryId, rewriteStackTop.node);
-          PROOF(
+          THEORY_PROOF(
                 if(rewriteStackTop.node != response.node) {
                   Expr from = rewriteStackTop.node.toExpr();
                   Expr to = response.node.toExpr();
@@ -201,7 +201,7 @@ Node Rewriter::rewriteTo(theory::TheoryId theoryId, Node node) {
       // Incorporate the children if necessary
       if (rewriteStackTop.node.getNumChildren() > 0) {
         Node rewritten = rewriteStackTop.builder;
-        PROOF(
+        THEORY_PROOF(
               if (rewritten != rewriteStackTop.node) {
                 Expr from = rewriteStackTop.node.toExpr();
                 Expr to = rewritten.toExpr();
@@ -218,7 +218,7 @@ Node Rewriter::rewriteTo(theory::TheoryId theoryId, Node node) {
         RewriteResponse response = Rewriter::callPostRewrite((TheoryId) rewriteStackTop.theoryId, rewriteStackTop.node);
         // We continue with the response we got
         TheoryId newTheoryId = theoryOf(response.node);
-        PROOF(
+        THEORY_PROOF(
               if (rewriteStackTop.node != response.node) {
                 Expr from = rewriteStackTop.node.toExpr();
                 Expr to = response.node.toExpr();
@@ -235,7 +235,7 @@ Node Rewriter::rewriteTo(theory::TheoryId theoryId, Node node) {
           s_rewriteStack->insert(response.node);
 #endif
           Node rewritten = rewriteTo(newTheoryId, response.node);
-          PROOF (
+          THEORY_PROOF (
                  if (rewriteStackTop.node != rewritten) {
                    Expr from = rewriteStackTop.node.toExpr();
                    Expr to = rewritten.toExpr();

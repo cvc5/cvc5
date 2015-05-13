@@ -60,7 +60,7 @@ TheoryBV::TheoryBV(context::Context* c, context::UserContext* u, OutputChannel& 
     d_isCoreTheory(false),
     d_calledPreregister(false)
 {
-  PROOF (ProofManager::currentPM()->getTheoryProofEngine()->registerTheory(this); );
+  THEORY_PROOF (ProofManager::currentPM()->getTheoryProofEngine()->registerTheory(this); );
 
   if (options::bitblastMode() == theory::bv::BITBLAST_MODE_EAGER) {
     d_eagerSolver = new EagerBitblastSolver(this);

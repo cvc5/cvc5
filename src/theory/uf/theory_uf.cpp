@@ -45,7 +45,7 @@ TheoryUF::TheoryUF(context::Context* c, context::UserContext* u, OutputChannel& 
 {
   // The kinds we are treating as function application in congruence
   d_equalityEngine.addFunctionKind(kind::APPLY_UF);
-  PROOF (ProofManager::currentPM()->getTheoryProofEngine()->registerTheory(this); );
+  THEORY_PROOF (ProofManager::currentPM()->getTheoryProofEngine()->registerTheory(this); );
 }
 
 TheoryUF::~TheoryUF() {

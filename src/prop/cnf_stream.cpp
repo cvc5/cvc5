@@ -83,6 +83,7 @@ void CnfStream::assertClause(TNode node, SatClause& c) {
   }
 
   ClauseId clause_id = d_satSolver->addClause(c, d_removable);
+  if (clause_id == -1) return; 
   //store map between clause and original assertion
   PROOF(d_cnfProof->registerConvertedClause(clause_id));
   // store map between clause and the formula it defines (note that this

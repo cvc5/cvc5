@@ -45,7 +45,7 @@ BitblastSolver::BitblastSolver(context::Context* c, TheoryBV* bv)
     d_quickCheck(options::bitvectorQuickXplain() ? new BVQuickCheck("bb", bv) : NULL),
     d_quickXplain(options::bitvectorQuickXplain() ? new QuickXPlain("bb", d_quickCheck) :  NULL)
 {
-  PROOF(ProofManager::currentPM()->getBitVectorProof()->setBitblaster(d_bitblaster)); 
+  THEORY_PROOF(ProofManager::currentPM()->getBitVectorProof()->setBitblaster(d_bitblaster)); 
 }
 
 BitblastSolver::~BitblastSolver() {

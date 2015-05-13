@@ -34,6 +34,7 @@ CnfProof::CnfProof(CnfStream* stream,
   // , d_satVarToAtom()
   , d_clauseToAssertion(ctx)
   , d_assertionToProofRule(ctx)
+  , d_currentAssertionStack()
   , d_clauseToFact(ctx)
   , d_topLevelFacts()
   , d_cnfDeps()
@@ -88,7 +89,8 @@ void CnfProof::setClauseFact(ClauseId clause, Node fact) {
 }
   
 void CnfProof::registerAssertion(Node assertion, ProofRule reason) {
-  Assert (!isAssertion(assertion));
+  Assert (!isAssertion(assertion) ||
+          d_assertionToProofRule[assertion] == reason);
   d_assertionToProofRule.insert(assertion, reason);
 }
 
