@@ -225,17 +225,26 @@ TSatProof<Solver>::TSatProof(Solver* solver, const std::string& name, bool check
 
 template <class Solver> 
 TSatProof<Solver>::~TSatProof() {
-  IdToClause::iterator it = d_inputClauses.begin();
-  IdToClause::iterator end = d_inputClauses.end();
+  // FIXME: double free if deleted clause also appears in d_seenLemmas?
+  IdToSatClause::iterator it = d_deletedTheoryLemmas.begin();
+  IdToSatClause::iterator end = d_deletedTheoryLemmas.end();
+
   for (; it != end; ++it) {
     delete it->second;
   }
 
-  it = d_deletedTheoryLemmas.begin();
-  end = d_deletedTheoryLemmas.end();
+  IdToClause::iterator seen_it = d_seenLemmas.begin();
+  IdToClause::iterator seen_end = d_seenLemmas.end();
 
-  for (; it != end; ++it) {
-    delete it->second;
+  for (; seen_it != seen_end; ++seen_it) {
+    delete seen_it->second;
+  }
+
+  seen_it = d_seenInputs.begin();
+  seen_end = d_seenInputs.end();
+
+  for (; seen_it != seen_end; ++seen_it) {
+    delete seen_it->second;
   }
 }
  
@@ -830,30 +839,27 @@ std::string TSatProof<Solver>::clauseName(ClauseId id) {
   }
 }
 
-// template <class Solver> 
-// void TSatProof<Solver>::addToProofManager(ClauseId id, ClauseKind kind) {
-//   if (isUnit(id)) {
-//     typename Solver::TLit lit = getUnit(id);
-//     prop::SatLiteral sat_lit = toSatLiteral<Solver>(lit);
-//     prop::SatClause* clause = new prop::SatClause();
-//     clause->push_back(sat_lit);
-//     ProofManager::currentPM()->addTheoryLemma(id, clause, kind);
-//     return;
-//   }
+template <class Solver> 
+prop::SatClause* TSatProof<Solver>::buildClause(ClauseId id) {
+  if (isUnit(id)) {
+    typename Solver::TLit lit = getUnit(id);
+    prop::SatLiteral sat_lit = toSatLiteral<Solver>(lit);
+    prop::SatClause* clause = new prop::SatClause();
+    clause->push_back(sat_lit);
+    return clause;
+  }
 
-//   if (isDeleted(id)) {
-//     Assert(kind == THEORY_LEMMA);
-//     prop::SatClause* clause = d_deletedTheoryLemmas.find(id)->second;
-//     ProofManager::currentPM()->addTheoryLemma(id, clause, kind);
-//     return;
-//   }
+  if (isDeleted(id)) {
+    prop::SatClause* clause = d_deletedTheoryLemmas.find(id)->second;
+    return clause;
+  }
 
-//   typename Solver::TCRef ref = getClauseRef(id);
-//   const typename Solver::TClause& minisat_cl = getClause(ref);
-//   prop::SatClause* clause = new prop::SatClause();
-//   toSatClause<Solver>(minisat_cl, *clause);
-//   ProofManager::currentPM()->addTheoryLemma(id, clause, kind);
-// }
+  typename Solver::TCRef ref = getClauseRef(id);
+  const typename Solver::TClause& minisat_cl = getClause(ref);
+  prop::SatClause* clause = new prop::SatClause();
+  toSatClause<Solver>(minisat_cl, *clause);
+  return clause;
+}
 
 // template<class Solver>
 // void TSatProof<Solver>::addToCnfProof(ClauseId id) {
@@ -884,10 +890,10 @@ void TSatProof<Solver>::collectClauses(ClauseId id) {
   }
 
   if (isInputClause(id)) {
-    d_seenInputs.insert(id);
+    d_seenInputs.insert(std::make_pair(id, buildClause(id)));
     return;
   } else if (isLemmaClause(id)) {
-    d_seenLemmas.insert(id);
+    d_seenLemmas.insert(std::make_pair(id, buildClause(id)));
   } else if (!isAssumptionConflict(id)) {
     d_seenLearnt.insert(id);
   }
@@ -904,8 +910,8 @@ void TSatProof<Solver>::collectClauses(ClauseId id) {
 }
 
 template <class Solver> 
-void TSatProof<Solver>::getClausesUsed(const IdHashSet& inputs,
-                                       const IdHashSet& lemmas) {
+void TSatProof<Solver>::collectClausesUsed(IdToClause& inputs,
+                                           IdToClause& lemmas) {
   inputs = d_seenInputs;
   lemmas = d_seenLemmas;
 }

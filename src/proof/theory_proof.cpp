@@ -212,28 +212,29 @@ void LFSCTheoryProofEngine::printDeclarations(std::ostream& os, std::ostream& pa
   }
 }
 
-void LFSCTheoryProofEngine::printTheoryLemmas(const IdHashSet& lemmas,
+void LFSCTheoryProofEngine::printTheoryLemmas(const IdToClause& lemmas,
                                               std::ostream& os,
                                               std::ostream& paren) {
   os << " ;; Theory Lemmas \n";
   ProofManager* pm = ProofManager::currentPM();
-  IdHashSet::const_iterator it = lemmas.begin();
-  IdHashSet::const_iterator end = lemmas.end();
+  IdToClause::const_iterator it = lemmas.begin();
+  IdToClause::const_iterator end = lemmas.end();
   
   // BitVector theory is special case: must know all
   // conflicts needed ahead of time for resolution
   // proof lemmas
   std::vector<Expr> bv_lemmas;
   for (; it != end; ++it) {
-    ClauseId id = *it;
+    ClauseId id = it->first;
+    const prop::SatClause* clause = it->second;
+    
     TheoryId theory_id = getTheoryForLemma(id);
     if (theory_id != THEORY_BV) continue;
 
-   
     std::vector<Expr> conflict;
     for(unsigned i = 0; i < clause->size(); ++i) {
       prop::SatLiteral lit = (*clause)[i];
-      Expr atom = pm->getCnfProof()->getAtom(lit.getSatVariable());
+      Expr atom = pm->getCnfProof()->getAtom(lit.getSatVariable()).toExpr();
       if (atom.isConst()) {
         Assert (atom == utils::mkTrue());
         continue;
@@ -247,12 +248,10 @@ void LFSCTheoryProofEngine::printTheoryLemmas(const IdHashSet& lemmas,
   // queue inside each theory_proof
   BitVectorProof* bv = ProofManager::getBitVectorProof(); 
   bv->finalizeConflicts(bv_lemmas); 
-  bv->printBitblasting(os, paren);
-  // TODO
-  // bv->printCnfProof(os, paren);
+
   bv->printResolutionProof(os, paren);
   
-  it = pm->begin_lemmas();
+  it = lemmas.begin();
   
   for (; it != end; ++it) {
     ClauseId id = it->first;
@@ -265,7 +264,7 @@ void LFSCTheoryProofEngine::printTheoryLemmas(const IdHashSet& lemmas,
     std::vector<Expr> clause_expr;
     for(unsigned i = 0; i < clause->size(); ++i) {
       prop::SatLiteral lit = (*clause)[i];
-      Expr atom = pm->getCnfProof()->getAtom(lit.getSatVariable());
+      Expr atom = pm->getCnfProof()->getAtom(lit.getSatVariable()).toExpr();
       if (atom.isConst()) {
         Assert (atom == utils::mkTrue());
         continue;

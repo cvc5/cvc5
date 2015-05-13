@@ -45,9 +45,10 @@ void BitVectorProof::initSatProof(::BVMinisat::Solver* solver) {
   d_resolutionProof = new LFSCBVSatProof(solver, "bb", true);
 }
 
-void BitVectorProof::initCnfProof(prop::CnfStream* cnfStream) {
+void BitVectorProof::initCnfProof(prop::CnfStream* cnfStream,
+                                  context::Context* cnf) {
   Assert (d_cnfProof == NULL);
-  d_cnfProof = new LFSCCnfProof(cnfStream, "bb");
+  d_cnfProof = new LFSCCnfProof(cnfStream, cnf, "bb");
   Assert (d_resolutionProof != NULL);
   d_resolutionProof->setCnfProof(d_cnfProof); 
 }
@@ -114,7 +115,7 @@ void BitVectorProof::endBVConflict(const BVMinisat::Solver::TLitVec& confl) {
   std::vector<Expr> expr_confl;
   for (int i = 0; i < confl.size(); ++i) {
     prop::SatLiteral lit = prop::BVMinisatSatSolver::toSatLiteral(confl[i]);
-    Expr atom = d_cnfProof->getAtom(lit.getSatVariable());
+    Expr atom = d_cnfProof->getAtom(lit.getSatVariable()).toExpr();
     Expr expr_lit = lit.isNegated() ? atom.notExpr() : atom; 
     expr_confl.push_back(expr_lit); 
   }
@@ -497,14 +498,35 @@ void LFSCBitVectorProof::printBitblasting(std::ostream& os, std::ostream& paren)
 
 }
 
-void LFSCBitVectorProof::printResolutionProof(std::ostream& os, std::ostream& paren) {
-  // print mapping between theory atoms and internal SAT variables
-  os << ";; BB atom mapping\n"; 
-  d_cnfProof->printAtomMapping(os, paren);
+void LFSCBitVectorProof::printResolutionProof(std::ostream& os,
+                                              std::ostream& paren) {
+  // collect the input clauses used
+  IdToClause used_lemmas;
+  IdToClause used_inputs;
+  d_resolutionProof->collectClausesUsed(used_inputs,
+                                        used_lemmas);
+  Assert (used_lemmas.empty());
 
-  // print all the bit-blasting clauses marked by finalize conflict
+  // print mapping between theory atoms and internal SAT variables
+  os << ";; BB atom mapping\n";
+
+  NodeSet atoms;
+  d_cnfProof->collectAtomsForClauses(used_inputs,atoms);
+  // NodeSet assertions;
+  // d_cnfProof->collectAssertionsUsed(assertions, used_inputs);
+
+  // TODO: only print bit-blasted terms that were used/?
+  // first print bit-blasting
+  printBitblasting(os, paren);
+
+  // print CNF conversion proof for bit-blasted facts
+  d_cnfProof->printAtomMapping(atoms, os, paren);
   os << ";; Bit-blasting definitional clauses \n";
-  d_cnfProof->printClauses(os, paren);
+  for (IdToClause::iterator it = used_inputs.begin();
+       it != used_inputs.end(); ++it) {
+    d_cnfProof->printCnfProofForClause(it->first, it->second, os, paren);
+  }
+  
   os << ";; Bit-blasting learned clauses \n";
   d_resolutionProof->printResolutions(os, paren);
 }

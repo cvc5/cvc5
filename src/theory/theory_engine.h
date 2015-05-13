@@ -318,7 +318,7 @@ class TheoryEngine {
       Trace("theory::lemma") << "EngineOutputChannel<" << d_theory << ">::lemma(" << lemma << ")" << std::endl;
       ++ d_statistics.lemmas;
       d_engine->d_outputChannelUsed = true;
-      return d_engine->lemma(lemma, false, removable, false, d_theory);
+      return d_engine->lemma(lemma, RULE_SPLIT, false, removable, false, d_theory);
     }
 
     void demandRestart() throw(TypeCheckingExceptionPrivate, AssertionException, UnsafeInterruptException) {
@@ -328,7 +328,7 @@ class TheoryEngine {
                                         "A boolean variable asserted to be true to force a restart");
       Trace("theory::restart") << "EngineOutputChannel<" << d_theory << ">::restart(" << restartVar << ")" << std::endl;
       ++ d_statistics.restartDemands;
-      lemma(restartVar, true);
+      lemma(restartVar, RULE_INVALID, true);
     }
 
     void requirePhase(TNode n, bool phase)

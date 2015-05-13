@@ -493,7 +493,7 @@ void TheoryEngine::combineTheories() {
 
     // We need to split on it
     Debug("combineTheories") << "TheoryEngine::combineTheories(): requesting a split " << endl;
-    lemma(equality.orNode(equality.notNode()), false, false, false, carePair.theory);
+    lemma(equality.orNode(equality.notNode()), RULE_INVALID, false, false, false, carePair.theory);
     // This code is supposed to force preference to follow what the theory models already have
     // but it doesn't seem to make a big difference - need to explore more -Clark
     // if (true) {
@@ -1479,11 +1479,11 @@ void TheoryEngine::conflict(TNode conflict, TheoryId theoryId) {
     Node fullConflict = mkExplanation(explanationVector);
     Debug("theory::conflict") << "TheoryEngine::conflict(" << conflict << ", " << theoryId << "): full = " << fullConflict << endl;
     Assert(properConflict(fullConflict));
-    lemma(fullConflict, true, true, false, THEORY_LAST);
+    lemma(fullConflict, RULE_CONFLICT, true, true, false, THEORY_LAST);
   } else {
     // When only one theory, the conflict should need no processing
     Assert(properConflict(conflict));
-    lemma(conflict, true, true, false, THEORY_LAST);
+    lemma(conflict, RULE_CONFLICT, true, true, false, THEORY_LAST);
   }
 }
 

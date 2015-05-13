@@ -102,6 +102,7 @@ enum ProofRule {
   RULE_INVALID,     /* assert-fail if this is ever needed in proof; use e.g. for split lemmas */
   RULE_CONFLICT,    /* re-construct as a conflict */
   RULE_TSEITIN,     /* Tseitin CNF transformation */
+  RULE_SPLIT,       /* A splitting lemma of the form a v ~ a*/
   
   RULE_ARRAYS_EXT,  /* arrays, extensional */
   RULE_ARRAYS_ROW,  /* arrays, read-over-write */
@@ -115,7 +116,7 @@ class ProofManager {
 
   // information that will need to be shared across proofs
   IdToClause d_inputClauses;
-  OrderedIdToClause d_theoryLemmas;
+  //  OrderedIdToClause d_theoryLemmas;
   //  IdToClause d_theoryPropagations;
   ExprSet    d_inputFormulas;
   ExprSet    d_inputCoreFormulas;
@@ -150,7 +151,8 @@ public:
 
   // initialization
   static void         initSatProof(Minisat::Solver* solver);
-  static void         initCnfProof(CVC4::prop::CnfStream* cnfStream);
+  static void         initCnfProof(CVC4::prop::CnfStream* cnfStream,
+                                   context::Context* ctx);
   static void         initTheoryProofEngine();
 
   // getting various proofs
@@ -187,7 +189,7 @@ public:
   size_t num_assertions() const { return d_inputFormulas.size(); }
 
 
-  //void addTheoryLemma(ClauseId id, const prop::SatClause* clause, ClauseKind kind);
+  // void addTheoryLemma(ClauseId id, const prop::SatClause* clause, ClauseKind kind);
   //void addClause(ClauseId id, const prop::SatClause* clause, ClauseKind kind);
   
   // variable prefixes

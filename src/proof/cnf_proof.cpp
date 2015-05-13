@@ -30,8 +30,8 @@ CnfProof::CnfProof(CnfStream* stream,
                    context::Context* ctx,
                    const std::string& name)
   : d_cnfStream(stream)
-  , d_atomToSatVar()
-  , d_satVarToAtom()
+  // , d_atomToSatVar()
+  // , d_satVarToAtom()
   , d_clauseToAssertion(ctx)
   , d_assertionToProofRule(ctx)
   , d_clauseToFact(ctx)
@@ -78,18 +78,18 @@ void CnfProof::registerConvertedClause(ClauseId clause, bool explanation) {
   Assert (!explanation); // FIXME: handle explanations specially 
   Node current_assertion = getCurrentAssertion();
   Assert (d_clauseToAssertion.find(clause) == d_clauseToAssertion.end());
-  d_clauseToAssertion.insert (std::make_pair(clause, current_assertion));
+  d_clauseToAssertion.insert (clause, current_assertion);
 }
 
 void CnfProof::setClauseFact(ClauseId clause, Node fact) {
   Assert (d_clauseToFact.find(clause) == d_clauseToFact.end());
-  d_clauseToFact.insert(std::make_pair(clause, fact));
+  d_clauseToFact.insert(clause, fact);
   d_topLevelFacts.insert(fact);
 }
   
 void CnfProof::registerAssertion(Node assertion, ProofRule reason) {
   Assert (!isAssertion(assertion));
-  d_assertionToProofRule.insert(std::make_pair(assertion, reason));
+  d_assertionToProofRule.insert(assertion, reason);
 }
 
 void CnfProof::setCnfDependence(Node from, Node to) {
@@ -103,37 +103,36 @@ void CnfProof::pushCurrentAssertion(Node assertion) {
 }
 
 void CnfProof::popCurrentAssertion() {
-  Assert (d_curentAssertionStack.size());
-  d_curentAssertionStack.pop_back();
+  Assert (d_currentAssertionStack.size());
+  d_currentAssertionStack.pop_back();
 }
 
 Node CnfProof::getCurrentAssertion() {
-  Assert (d_curentAssertionStack.size());
-  return d_curentAssertionStack.back();
+  Assert (d_currentAssertionStack.size());
+  return d_currentAssertionStack.back();
 }
 
-Expr CnfProof::getAtom(prop::SatVariable var) {
+Node CnfProof::getAtom(prop::SatVariable var) {
   prop::SatLiteral lit (var);
   Node node = d_cnfStream->getNode(lit);
-  Expr atom = node.toExpr();
-  return atom;
+  return node;
 }
 
-void CnfProof::addInputClause(ClauseId id, const prop::SatClause* clause) {
-  Assert (d_inputClauses.find(id) == d_inputClauses.end());
-  d_inputClauses[id] = clause;
-  collectAtoms(clause);
-}
+// void CnfProof::addInputClause(ClauseId id, const prop::SatClause* clause) {
+//   Assert (d_inputClauses.find(id) == d_inputClauses.end());
+//   d_inputClauses[id] = clause;
+//   collectAtoms(clause);
+// }
 
-void CnfProof::collectAtoms(const prop::SatClause* clause) {
+void CnfProof::collectAtoms(const prop::SatClause* clause,
+                            NodeSet& atoms) {
   for (unsigned i = 0; i < clause->size(); ++i) {
     SatLiteral lit = clause->operator[](i);
     SatVariable var = lit.getSatVariable();
-    Expr atom = getAtom(var);
-    if (d_satVarToAtom.find(var) == d_satVarToAtom.end()) {
-      Assert (d_atomToSatVar.find(atom) == d_atomToSatVar.end());
-      d_satVarToAtom[var] = atom;
-      d_atomToSatVar[atom] = var;
+    TNode atom = getAtom(var);
+    if (atoms.find(atom) == atoms.end()) {
+      Assert (atoms.find(atom) == atoms.end());
+      atoms.insert(atom);
     }
   }
 }
@@ -142,21 +141,42 @@ prop::SatLiteral CnfProof::getLiteral(TNode atom) {
   return d_cnfStream->getLiteral(atom);
 }
 
-Expr CnfProof::getAssertion(uint64_t id) {
-  return d_cnfStream->getAssertion(id).toExpr();
+// Expr CnfProof::getAssertion(uint64_t id) {
+//   return d_cnfStream->getAssertion(id).toExpr();
+// }
+
+void CnfProof::collectAtomsForClauses(const IdToClause& clauses,
+                                       NodeSet& atom_map) {
+  IdToClause::const_iterator it = clauses.begin();
+  for (; it != clauses.end(); ++it) {
+    const prop::SatClause* clause = it->second;
+    collectAtoms(clause, atom_map);
+  }
+
 }
 
-void LFSCCnfProof::printAtomMapping(std::ostream& os, std::ostream& paren) {
-  atom_iterator it = begin_atoms(); 
-  atom_iterator end = end_atoms(); 
+void CnfProof::collectAssertionsForClauses(const IdToClause& clauses,
+                                           NodeSet& assertions) {
+  IdToClause::const_iterator it = clauses.begin();
+  for (; it != clauses.end(); ++it) {
+    TNode used_assertion =  getAssertionForClause(it->first);
+    assertions.insert(used_assertion);
+  }
+}
+
+void LFSCCnfProof::printAtomMapping(const NodeSet& atoms,
+                                    std::ostream& os,
+                                    std::ostream& paren) {
+  NodeSet::const_iterator it = atoms.begin(); 
+  NodeSet::const_iterator end = atoms.end(); 
 
   for (;it != end;  ++it) {
     os << "(decl_atom ";
-    prop::SatVariable var = it->second;
-    Expr atom = it->first;
+    Node atom = *it;
+    prop::SatVariable var = getLiteral(atom).getSatVariable();
     //FIXME hideous
     LFSCTheoryProofEngine* pe = (LFSCTheoryProofEngine*)ProofManager::currentPM()->getTheoryProofEngine();
-    pe->printLetTerm(atom, os);
+    pe->printLetTerm(atom.toExpr(), os);
     
     os << " (\\ " << ProofManager::getVarName(var, d_name)
        << " (\\ " << ProofManager::getAtomName(var, d_name) << "\n";
@@ -165,19 +185,20 @@ void LFSCCnfProof::printAtomMapping(std::ostream& os, std::ostream& paren) {
 }
 
 // maps each expr to the position it had in the clause and the polarity it had
-Expr LFSCCnfProof::clauseToExpr( const prop::SatClause& clause,
-                                 std::map< Expr, unsigned >& childIndex,
-                                 std::map< Expr, bool >& childPol ) {
+Node LFSCCnfProof::clauseToNode(const prop::SatClause& clause,
+                                std::map<Node, unsigned>& childIndex,
+                                std::map<Node, bool>& childPol ) {
   std::vector< Node > children;
   for (unsigned i = 0; i < clause.size(); ++i) {
     prop::SatLiteral lit = clause[i];
     prop::SatVariable var = lit.getSatVariable();
-    Node atom = Node::fromExpr( getAtom(var) );
+    Node atom = getAtom(var);
     children.push_back( lit.isNegated() ? atom.negate() : atom );
-    childIndex[atom.toExpr()] = i;
-    childPol[atom.toExpr()] = !lit.isNegated();
+    childIndex[atom] = i;
+    childPol[atom] = !lit.isNegated();
   }
-  return children.size()==1 ? children[0].toExpr() : NodeManager::currentNM()->mkNode( kind::OR, children ).toExpr();
+  return children.size()==1 ? children[0] :
+         NodeManager::currentNM()->mkNode(kind::OR, children );
 }
 
 void LFSCCnfProof::printCnfProofForClause(ClauseId id,
@@ -195,7 +216,7 @@ void LFSCCnfProof::printCnfProofForClause(ClauseId id,
   //get the assertion for the clause id
   std::map<Node, unsigned > childIndex;
   std::map<Node, bool > childPol;
-  Node assertion = clauseToExpr( *clause, childIndex, childPol );
+  Node assertion = clauseToNode( *clause, childIndex, childPol );
   //if there is no reason, construct assertion directly.   This can happen for unit clauses.
   if( base_assertion.isNull() ){
     base_assertion = assertion;
@@ -205,7 +226,7 @@ void LFSCCnfProof::printCnfProofForClause(ClauseId id,
 
   // checks if tautological definitional clause or top-level clause
   // and prints the proof of the top-level formula
-  bool is_input = ProofManager::currentPM()->printProofTopLevel(base_assertion, os_base);
+  bool is_input = printProofTopLevel(base_assertion, os_base);
 
   //get base assertion with polarity
   bool base_pol = base_assertion.getKind()!=kind::NOT;
@@ -249,7 +270,7 @@ void LFSCCnfProof::printCnfProofForClause(ClauseId id,
     std::stringstream os_paren;
     //eliminate each one
     for (int j = base_assertion.getNumChildren()-2; j >= 0; j--) {
-      Expr child_base = base_assertion[j].getKind()==kind::NOT ?
+      Node child_base = base_assertion[j].getKind()==kind::NOT ?
                         base_assertion[j][0] : base_assertion[j];
       bool child_pol = base_assertion[j].getKind()!=kind::NOT;
       
@@ -262,7 +283,7 @@ void LFSCCnfProof::printCnfProofForClause(ClauseId id,
                             << child_pol << " "
                             << childPol[child_base] << std::endl;
       
-      std::map< Expr, unsigned >::iterator itcic = childIndex.find( child_base );
+      std::map< Node, unsigned >::iterator itcic = childIndex.find( child_base );
 
       if( itcic!=childIndex.end() ){
         //Assert( child_pol==childPol[child_base] );
@@ -292,9 +313,9 @@ void LFSCCnfProof::printCnfProofForClause(ClauseId id,
       }
       os_main << os_paren.str();
       int last_index = base_assertion.getNumChildren()-1;
-      Expr child_base = base_assertion[last_index].getKind()==kind::NOT ? base_assertion[last_index][0] : base_assertion[last_index];
+      Node child_base = base_assertion[last_index].getKind()==kind::NOT ? base_assertion[last_index][0] : base_assertion[last_index];
       //bool child_pol = base_assertion[last_index].getKind()!=kind::NOT;
-      std::map< Expr, unsigned >::iterator itcic = childIndex.find( child_base );
+      std::map< Node, unsigned >::iterator itcic = childIndex.find( child_base );
       if( itcic!=childIndex.end() ){
         os << "(contra _ ";
         prop::SatLiteral lit = (*clause)[itcic->second];
@@ -314,7 +335,7 @@ void LFSCCnfProof::printCnfProofForClause(ClauseId id,
     
     std::stringstream os_main;
 
-    Expr iatom;
+    Node iatom;
     if (is_in_clause) {
       Assert( assertion.getNumChildren()==2 );
       iatom = assertion[ base_index==0 ? 1 : 0];
@@ -324,14 +345,14 @@ void LFSCCnfProof::printCnfProofForClause(ClauseId id,
     }
     
     Trace("cnf-pf") << "; and/or case 2, iatom = " << iatom << std::endl;
-    Expr e_base = iatom.getKind()==kind::NOT ? iatom[0] : iatom;
+    Node e_base = iatom.getKind()==kind::NOT ? iatom[0] : iatom;
     bool e_pol = iatom.getKind()!=kind::NOT;
-    std::map< Expr, unsigned >::iterator itcic = childIndex.find( e_base );
+    std::map< Node, unsigned >::iterator itcic = childIndex.find( e_base );
     if( itcic!=childIndex.end() ){
       prop::SatLiteral lit = (*clause)[itcic->second];
       //eliminate until we find iatom
       for( unsigned j=0; j<base_assertion.getNumChildren(); j++ ){
-        Expr child_base = base_assertion[j].getKind()==kind::NOT ? base_assertion[j][0] : base_assertion[j];
+        Node child_base = base_assertion[j].getKind()==kind::NOT ? base_assertion[j][0] : base_assertion[j];
         bool child_pol = base_assertion[j].getKind()!=kind::NOT;
         if( j==0 && base_assertion.getKind()==kind::IMPLIES ){
           child_pol = !child_pol;
@@ -394,9 +415,9 @@ void LFSCCnfProof::printCnfProofForClause(ClauseId id,
     success = true;
     int elimNum = 0;
     for( unsigned i=0; i<2; i++ ){
-      Expr child_base = base_assertion[i].getKind()==kind::NOT ? base_assertion[i][0] : base_assertion[i];
+      Node child_base = base_assertion[i].getKind()==kind::NOT ? base_assertion[i][0] : base_assertion[i];
       bool child_pol = base_assertion[i].getKind()!=kind::NOT;
-      std::map< Expr, unsigned >::iterator itcic = childIndex.find( child_base );
+      std::map< Node, unsigned >::iterator itcic = childIndex.find( child_base );
       if( itcic!=childIndex.end() ){
         indices.push_back( itcic->second );
         pols.push_back( childPol[child_base] );
@@ -456,11 +477,11 @@ void LFSCCnfProof::printCnfProofForClause(ClauseId id,
     }
   }else if( base_assertion.getKind()==kind::ITE ){
     std::map< unsigned, unsigned > appears;
-    std::map< unsigned, Expr > appears_expr;
+    std::map< unsigned, Node > appears_expr;
     unsigned appears_count = 0;
     for( unsigned r=0; r<3; r++ ){
-      Expr child_base = base_assertion[r].getKind()==kind::NOT ? base_assertion[r][0] : base_assertion[r];
-      std::map< Expr, unsigned >::iterator itcic = childIndex.find( child_base );
+      Node child_base = base_assertion[r].getKind()==kind::NOT ? base_assertion[r][0] : base_assertion[r];
+      std::map< Node, unsigned >::iterator itcic = childIndex.find( child_base );
       if( itcic!=childIndex.end() ){
         appears[r] = itcic->second;
         appears_expr[r] = child_base;
@@ -501,7 +522,7 @@ void LFSCCnfProof::printCnfProofForClause(ClauseId id,
       os << ")";
     }
   }else if( base_assertion.isConst() ){
-    bool pol = base_assertion==NodeManager::currentNM()->mkConst( true ).toExpr();
+    bool pol = base_assertion==NodeManager::currentNM()->mkConst( true );
     if( pol!=base_pol ){
       success = true;
       if( pol ){
@@ -514,7 +535,7 @@ void LFSCCnfProof::printCnfProofForClause(ClauseId id,
 
   if( !success ){
     Trace("cnf-pf") << std::endl;
-    Trace("cnf-pf") << ";!!!!!!!!! CnfProof : Can't process " << assertion << ", base = " << base_assertion << ", id = " << id << ", proof rule = " << pr << std::endl;
+    Trace("cnf-pf") << ";!!!!!!!!! CnfProof : Can't process " << assertion << ", base = " << base_assertion << ", id = " << id << std::endl;
     Trace("cnf-pf") << ";!!!!!!!!! Clause is : ";
     for (unsigned i = 0; i < clause->size(); ++i) {
       Trace("cnf-pf") << (*clause)[i] << " ";
@@ -615,7 +636,7 @@ bool LFSCCnfProof::printProofTopLevel(Node e, std::ostream& out) {
     }
     return false;
   } else {
-    out << ProofMananger::getPreprocessedAssertionName(e, d_name);
+    out << ProofManager::getPreprocessedAssertionName(e, d_name);
     return true;
   }
 }

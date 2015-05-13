@@ -23,6 +23,7 @@
 #include "cvc4_private.h"
 #include "util/proof.h"
 #include "expr/expr.h"
+#include "prop/sat_solver_types.h"
 #include <ext/hash_set>
 #include <iostream>
 
@@ -33,7 +34,7 @@ class Theory;
 }
 
 typedef unsigned ClauseId;
-typedef std::hash_set<ClauseId> IdHashSet;
+typedef __gnu_cxx::hash_map < ClauseId, const prop::SatClause* > IdToClause;
 
 struct LetCount {
   static unsigned counter;
@@ -130,7 +131,9 @@ public:
    * @param os 
    * @param paren 
    */
-  virtual void printTheoryLemmas(std::ostream& os, std::ostream& paren) = 0;
+  virtual void printTheoryLemmas(const IdToClause& lemmas,
+                                 std::ostream& os,
+                                 std::ostream& paren) = 0;
   /** 
    * Register theory atom (ensures all terms and atoms are declared). 
    * 
@@ -158,7 +161,7 @@ public:
   virtual void printLetTerm(Expr term, std::ostream& os);
   virtual void printBoundTerm(Expr term, std::ostream& os, const LetMap& map);
   virtual void printAssertions(std::ostream& os, std::ostream& paren);
-  virtual void printTheoryLemmas(const IdHashSet& lemmas,
+  virtual void printTheoryLemmas(const IdToClause& lemmas,
                                  std::ostream& os,
                                  std::ostream& paren);
   virtual void printSort(Type type, std::ostream& os); 

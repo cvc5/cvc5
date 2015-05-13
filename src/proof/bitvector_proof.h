@@ -84,10 +84,11 @@ public:
   BitVectorProof(theory::bv::TheoryBV* bv, TheoryProofEngine* proofEngine);
 
   void initSatProof(::BVMinisat::Solver* solver);
-  void initCnfProof(prop::CnfStream* cnfStream);
+  void initCnfProof(prop::CnfStream* cnfStream, context::Context* ctx);
   void setBitblaster(theory::bv::TLazyBitblaster* lazyBB);
   
   BVSatProof* getSatProof();
+  CnfProof* getCnfProof() {return d_cnfProof; }
   void finalizeConflicts(std::vector<Expr>& conflicts);
 
   void startBVConflict(::BVMinisat::Solver::TCRef cr);

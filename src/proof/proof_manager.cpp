@@ -56,7 +56,7 @@ ProofManager::ProofManager(ProofFormat format):
   //  d_nextId(0),
   d_fullProof(NULL),
   d_format(format),
-  d_deps(),
+  d_deps()
   //  d_assertion_counter(1)
 {
 }
@@ -78,7 +78,7 @@ ProofManager::~ProofManager() {
   //     it != d_theoryLemmas.end();
   //     ++it) {
   //   delete it->second;
-  }
+  // }
 
   // FIXME: memory leak because there are deleted theory lemmas that
   // were not used in the SatProof
@@ -149,11 +149,12 @@ void ProofManager::initSatProof(Minisat::Solver* solver) {
   currentPM()->d_satProof = new LFSCCoreSatProof(solver, "");
 }
 
-void ProofManager::initCnfProof(prop::CnfStream* cnfStream) {
+void ProofManager::initCnfProof(prop::CnfStream* cnfStream,
+                                context::Context* ctx) {
   ProofManager* pm = currentPM();
   Assert (pm->d_cnfProof == NULL);
   Assert (pm->d_format == LFSC);
-  CnfProof* cnf = new LFSCCnfProof(cnfStream, "");
+  CnfProof* cnf = new LFSCCnfProof(cnfStream, ctx, "");
   pm->d_cnfProof = cnf;
   Assert(pm-> d_satProof != NULL);
   pm->d_satProof->setCnfProof(cnf); 
@@ -250,13 +251,13 @@ void ProofManager::traceUnsatCore() {
   Assert (options::unsatCores());
   
   d_satProof->constructProof();
-  IdHashSet used_lemmas;
-  IdHashSet used_inputs;
-  d_satProof->getClausesUsed(used_inputs,
-                             used_lemmas);
-  IdHashSet::const_iterator it = used_inputs.begin();
+  IdToClause used_lemmas;
+  IdToClause used_inputs;
+  d_satProof->collectClausesUsed(used_inputs,
+                                 used_lemmas);
+  IdToClause::const_iterator it = used_inputs.begin();
   for(; it != used_inputs.end(); ++it) {
-    Node node = d_cnfProof->getAssertionForClause(*it);
+    Node node = d_cnfProof->getAssertionForClause(it->first);
     ProofRule rule = d_cnfProof->getProofRule(node);
     
     Debug("cores") << "core input assertion " << node << std::endl;
@@ -298,6 +299,15 @@ void ProofManager::addUnsatCore(Expr formula) {
 void ProofManager::setLogic(const LogicInfo& logic) {
   d_logic = logic;
 }
+
+// void ProofManager::addTheoryLemma(ClauseId id,
+//                                   const prop::SatClause* clause,
+//                                   ClauseKind kind) {
+//   Assert (d_theoryLemmas.find(id) == d_theoryLemmas.end()); 
+//   d_theoryLemmas.insert(std::make_pair(id, clause));
+//   d_cnfProof->collectAtoms(clause);
+// }
+
 
 // void ProofManager::printProof(std::ostream& os, TNode n) {
 //   // no proofs here yet
@@ -367,29 +377,31 @@ void LFSCProof::toStream(std::ostream& out) {
   d_satProof->constructProof();
 
   // collecting leaf clauses in resolution proof
-  const IdHashSet used_lemmas;
-  const IdHashSet used_inputs;
-  d_satProof->getClausesUsed(used_inputs,
-                             used_lemmas);
+  IdToClause used_lemmas;
+  IdToClause used_inputs;
+  d_satProof->collectClausesUsed(used_inputs,
+                                 used_lemmas);
 
   // collecting assertions that lead to the clauses being asserted
   NodeSet used_assertions;
-  IdHashSet::const_iterator it = used_inputs.begin();
-  for (; it != used_inputs.end(); ++it) {
-    TNode used_assertion =  d_cnfProof->getAssertionForClause(*it);
-    used_assertions.insert(used_assertion);
-  }
+  d_cnfProof->collectAssertionsForClauses(used_inputs, used_assertions);
 
+  NodeSet atoms;
+  d_cnfProof->collectAtomsForClauses(used_inputs, atoms);
+  d_cnfProof->collectAtomsForClauses(used_lemmas, atoms);
+
+  
+  
   smt::SmtScope scope(d_smtEngine);
   std::ostringstream paren;
   out << "(check\n";
   out << " ;; Declarations\n";
   
   // declare the theory atoms
-  CnfProof::atom_iterator begin = d_cnfProof->begin_atoms();
-  CnfProof::atom_iterator end = d_cnfProof->end_atoms();
-  for(CnfProof::atom_iterator it = begin; it != end; ++it) {
-    d_theoryProof->registerTerm(it->first);
+  NodeSet::const_iterator it = atoms.begin();
+  NodeSet::const_iterator end = atoms.end();
+  for(; it != end; ++it) {
+    d_theoryProof->registerTerm((*it).toExpr());
   }
   // print out all the original assertions
   d_theoryProof->printAssertions(out, paren);
@@ -399,15 +411,15 @@ void LFSCProof::toStream(std::ostream& out) {
   out << "(: (holds cln)\n";
 
   // print trust that input assertions are their preprocessed form
-  printPreprocessing(used_assertions);
+  printPreprocessedAssertions(used_assertions, out, paren);
 
   // print mapping between theory atoms and internal SAT variables
-  d_cnfProof->printAtomMapping(out, paren);
+  d_cnfProof->printAtomMapping(atoms, out, paren);
 
+  IdToClause::const_iterator cl_it = used_inputs.begin();
   // print CNF conversion proof for each clause
-  for (; it != used_inputs.end(); ++it) {
-    const prop::SatClause* clause = d_satProof->getClause(*it);
-    d_cnfProof->printCnfProofForClause(*it, clause, os, paren);
+  for (; cl_it != used_inputs.end(); ++cl_it) {
+    d_cnfProof->printCnfProofForClause(cl_it->first, cl_it->second, out, paren);
   }
 
   // FIXME: for now assume all theory lemmas are in CNF form so
@@ -435,7 +447,7 @@ void LFSCProof::printPreprocessedAssertions(const NodeSet& assertions,
     
     //TODO
     os << "(trust_f ";
-    ProofManager::currentPM()->getTheoryProofEngine()->printLetTerm(*it, os);
+    ProofManager::currentPM()->getTheoryProofEngine()->printLetTerm((*it).toExpr(), os);
     os << ") ";
     
     os << "(\\ "<< ProofManager::getPreprocessedAssertionName(*it, "");

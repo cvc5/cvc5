@@ -267,10 +267,11 @@ public:
     constructProof(d_emptyClauseId);
   }
   void collectClauses(ClauseId id);
+  prop::SatClause* buildClause(ClauseId id);
 protected:
-  IdSet              d_seenLearnt;
-  IdHashSet          d_seenInputs;
-  IdHashSet          d_seenLemmas;
+  IdSet               d_seenLearnt;
+  IdToClause          d_seenInputs;
+  IdToClause          d_seenLemmas;
 
   std::string varName(typename Solver::TLit lit);
   std::string clauseName(ClauseId id);
@@ -286,7 +287,8 @@ public:
 
   //typedef IdHashSet::const_iterator clause_iterator;
 
-  void getClausesUsed(const IdHashSet& inputs, const IdHashSet& lemmas);
+  void collectClausesUsed(IdToClause& inputs,
+                          IdToClause& lemmas);
   // clause_iterator begin_input_clauses() { return d_seenInput.begin(); }
   // clause_iterator end_input_clauses() { return d_seenInput.end(); }
 

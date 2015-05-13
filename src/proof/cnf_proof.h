@@ -36,7 +36,7 @@ namespace prop {
 class CnfProof;
 
 // typedef __gnu_cxx::hash_map < ClauseId, const prop::SatClause* > IdToClause;
-typedef __gnu_cxx::hash_map<Expr, prop::SatVariable, ExprHashFunction > ExprToSatVar;
+// typedef __gnu_cxx::hash_map<Expr, prop::SatVariable, ExprHashFunction > ExprToSatVar;
 typedef __gnu_cxx::hash_map<prop::SatVariable, Expr> SatVarToExpr;
 typedef __gnu_cxx::hash_map<Node, Node, NodeHashFunction> NodeToNode;
 typedef context::CDHashMap<ClauseId, Node> ClauseIdToNode;
@@ -45,8 +45,8 @@ typedef context::CDHashMap<Node, ProofRule, NodeHashFunction> NodeToProofRule;
 class CnfProof {
 protected:
   CVC4::prop::CnfStream* d_cnfStream;
-  ExprToSatVar d_atomToSatVar;
-  SatVarToExpr d_satVarToAtom;
+  // ExprToSatVar d_atomToSatVar;
+  // SatVarToExpr d_satVarToAtom;
   // IdToClause d_inputClauses;   
 
   /** Map from ClauseId to the assertion that lead to adding this clause **/
@@ -67,13 +67,9 @@ protected:
   /** Map from top-level fact to facts/assertion that it follows from **/
   NodeToNode d_cnfDeps;
 
-  bool isAssertion(Node node);
-  bool isTopLevelFact(Node node);
-  
-  ProofRule getProofRule(Node assertion);
-  ProofRule getProofRule(ClauseId clause);
 
-  Node getAssertionForClause(ClauseId clause);
+  bool isTopLevelFact(Node node);
+
   Node getTopLevelFactForClause(ClauseId clause);
   
   std::string d_name;
@@ -87,16 +83,17 @@ public:
   // clause_iterator end_input_clauses() const { return d_inputClauses.end(); }
   //void addInputClause(ClauseId id, const prop::SatClause* clause); 
   
-  typedef ExprToSatVar::const_iterator atom_iterator;
-  atom_iterator begin_atoms() { return d_atomToSatVar.begin(); }
-  atom_iterator end_atoms() { return d_atomToSatVar.end(); }
 
-  Expr getAtom(prop::SatVariable var);
+  Node getAtom(prop::SatVariable var);
   prop::SatLiteral getLiteral(TNode node);
-  Expr getAssertion(ClauseId id);
-  void collectAtoms(const prop::SatClause* clause);
+  // Node getAssertion(ClauseId id);
+  void collectAtoms(const prop::SatClause* clause,
+                    NodeSet& atoms);
+  void collectAtomsForClauses(const IdToClause& clauses,
+                               NodeSet& atoms);
+  void collectAssertionsForClauses(const IdToClause& clauses,
+                                   NodeSet& assertions);
 
-  
   /** Methods for logging what the CnfStream does **/
   // map the clause back to the current assertion where it came from
   // if it is an explanation, it does not have a CNF proof since it is
@@ -110,9 +107,18 @@ public:
   void popCurrentAssertion();
 
   Node getCurrentAssertion();
+
+  // accessors for the leaf assertions that are being converted to CNF
+  bool isAssertion(Node node);
+  ProofRule getProofRule(Node assertion);
+  ProofRule getProofRule(ClauseId clause);
+  Node getAssertionForClause(ClauseId clause);
+
   
   /** Virtual methods for printing things **/
-  virtual void printAtomMapping(std::ostream& os, std::ostream& paren) = 0;
+  virtual void printAtomMapping(const NodeSet& atoms,
+                                std::ostream& os,
+                                std::ostream& paren) = 0;
   // virtual void printClauses(std::ostream& os, std::ostream& paren) = 0;
   virtual void printClause(const prop::SatClause& clause,
                            std::ostream& os,
@@ -120,7 +126,7 @@ public:
   virtual void printCnfProofForClause(ClauseId id,
                                       const prop::SatClause* clause,
                                       std::ostream& os,
-                                      std::ostream& paren);
+                                      std::ostream& paren) = 0;
   virtual ~CnfProof();
 };/* class CnfProof */
 
@@ -129,24 +135,29 @@ class LFSCCnfProof : public CnfProof {
   // void printInputClauses(std::ostream& os, std::ostream& paren);
   // void printTheoryLemmas(std::ostream& os, std::ostream& paren);
 
-  Expr clauseToExpr( const prop::SatClause& clause,
-                     std::map< Expr, unsigned >& childIndex,
-                     std::map< Expr, bool >& childPol );
- 
+  Node clauseToNode( const prop::SatClause& clause,
+                     std::map<Node, unsigned>& childIndex,
+                     std::map<Node, bool>& childPol );
+  bool printProofTopLevel(Node e, std::ostream& out);
 public:
   LFSCCnfProof(CVC4::prop::CnfStream* cnfStream,
                context::Context* ctx,
                const std::string& name)
     : CnfProof(cnfStream, ctx, name)
   {}
+  ~LFSCCnfProof() {}
 
+  void printAtomMapping(const NodeSet& atoms,
+                        std::ostream& os,
+                        std::ostream& paren);
+  
   void printClause(const prop::SatClause& clause,
                    std::ostream& os,
                    std::ostream& paren);
-  void printCnfProofForClause(const prop::SatClause& clause,
+  void printCnfProofForClause(ClauseId id,
+                              const prop::SatClause* clause,
                               std::ostream& os,
                               std::ostream& paren);
-  void printAtomMapping(std::ostream& os, std::ostream& paren);
 };/* class LFSCCnfProof */
 
 } /* CVC4 namespace */

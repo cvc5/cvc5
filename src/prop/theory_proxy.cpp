@@ -18,6 +18,7 @@
 #include "prop/cnf_stream.h"
 #include "prop/prop_engine.h"
 #include "prop/theory_proxy.h"
+#include "proof/cnf_proof.h"
 #include "context/context.h"
 #include "theory/theory_engine.h"
 #include "theory/rewriter.h"
@@ -27,6 +28,7 @@
 #include "util/lemma_input_channel.h"
 #include "util/lemma_output_channel.h"
 #include "util/statistics_registry.h"
+
 
 namespace CVC4 {
 namespace prop {
