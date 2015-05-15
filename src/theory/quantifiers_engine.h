@@ -266,8 +266,6 @@ public:
   Node getInstantiation( Node f, std::vector< Node >& terms );
   /** do substitution */
   Node getSubstitute( Node n, std::vector< Node >& terms );
-  /** exist instantiation ? */
-  //bool existsInstantiation( Node f, InstMatch& m, bool modEq = true, bool modInst = false );
   /** add lemma lem */
   bool addLemma( Node lem, bool doCache = true );
   /** add require phase */

@@ -45,7 +45,7 @@ using namespace CVC4::theory;
 using namespace CVC4::theory::inst;
 
 unsigned QuantifiersModule::needsModel( Theory::Effort e ) {
-  return QuantifiersEngine::QEFFORT_NONE;  
+  return QuantifiersEngine::QEFFORT_NONE;
 }
 
 eq::EqualityEngine * QuantifiersModule::getEqualityEngine() {

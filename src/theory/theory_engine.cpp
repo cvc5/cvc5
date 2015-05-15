@@ -428,7 +428,8 @@ void TheoryEngine::check(Theory::Effort effort) {
       }
     }
 
-    Debug("theory") << "TheoryEngine::check(" << effort << "): done, we are " << (d_inConflict ? "unsat" : "sat") << (d_lemmasAdded ? " with new lemmas" : " with no new lemmas") << endl;
+    Debug("theory") << "TheoryEngine::check(" << effort << "): done, we are " << (d_inConflict ? "unsat" : "sat") << (d_lemmasAdded ? " with new lemmas" : " with no new lemmas");
+    Debug("theory") << ", need check = " << needCheck() << endl;
 
     if(!d_inConflict && Theory::fullEffort(effort) && d_masterEqualityEngine != NULL && !d_lemmasAdded) {
       AlwaysAssert(d_masterEqualityEngine->consistent());

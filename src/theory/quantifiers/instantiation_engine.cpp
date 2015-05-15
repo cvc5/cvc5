@@ -95,21 +95,20 @@ bool InstantiationEngine::doInstantiationRound( Theory::Effort effort ){
       Node f = d_quantEngine->getModel()->getAssertedQuantifier( i );
       if( doCbqi( f ) && !hasAddedCbqiLemma( f ) ){
         d_added_cbqi_lemma[f] = true;
-        Debug("cbqi") << "Do cbqi for " << f << std::endl;
+        Trace("cbqi") << "Do cbqi for " << f << std::endl;
         //add cbqi lemma
         //get the counterexample literal
         Node ceLit = d_quantEngine->getTermDatabase()->getCounterexampleLiteral( f );
-        if( !ceLit.isNull() ){
+        Node ceBody = d_quantEngine->getTermDatabase()->getInstConstantBody( f );
+        if( !ceBody.isNull() ){
+          //add counterexample lemma
+          Node lem = NodeManager::currentNM()->mkNode( OR, ceLit.negate(), ceBody.negate() );
           //require any decision on cel to be phase=true
-          //d_quantEngine->getOutputChannel().requirePhase( ceLit, true );
           d_quantEngine->addRequirePhase( ceLit, true );
           Debug("cbqi-debug") << "Require phase " << ceLit << " = true." << std::endl;
           //add counterexample lemma
-          NodeBuilder<> nb(kind::OR);
-          nb << f << ceLit;
-          Node lem = nb;
+          lem = Rewriter::rewrite( lem );
           Trace("cbqi") << "Counterexample lemma : " << lem << std::endl;
-          //d_quantEngine->getOutputChannel().lemma( lem, false, true );
           d_quantEngine->addLemma( lem, false );
           addedLemma = true;
         }
@@ -125,7 +124,7 @@ bool InstantiationEngine::doInstantiationRound( Theory::Effort effort ){
     InstStrategy* is = d_instStrategies[i];
     is->processResetInstantiationRound( effort );
   }
-  
+
   //iterate over an internal effort level e
   int e = 0;
   int eLimit = effort==Theory::EFFORT_LAST_CALL ? 10 : 2;

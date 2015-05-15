@@ -741,6 +741,7 @@ Node TermDb::getInstConstantBody( Node f ){
 
 Node TermDb::getCounterexampleLiteral( Node f ){
   if( d_ce_lit.find( f )==d_ce_lit.end() ){
+    /*
     Node ceBody = getInstConstantBody( f );
     //check if any variable are of bad types, and fail if so
     for( size_t i=0; i<d_inst_constants[f].size(); i++ ){
@@ -749,8 +750,10 @@ Node TermDb::getCounterexampleLiteral( Node f ){
         return Node::null();
       }
     }
+    */
+    Node g = NodeManager::currentNM()->mkSkolem( "g", NodeManager::currentNM()->booleanType() );
     //otherwise, ensure literal
-    Node ceLit = d_quantEngine->getValuation().ensureLiteral( ceBody.notNode() );
+    Node ceLit = d_quantEngine->getValuation().ensureLiteral( g );
     d_ce_lit[ f ] = ceLit;
   }
   return d_ce_lit[ f ];
@@ -1191,7 +1194,7 @@ bool TermDb::isFunDef( Node q ) {
 }
 
 Node TermDb::getFunDefHead( Node q ) {
-  //&& ( q[1].getKind()==EQUAL || q[1].getKind()==IFF ) && q[1][0].getKind()==APPLY_UF && 
+  //&& ( q[1].getKind()==EQUAL || q[1].getKind()==IFF ) && q[1][0].getKind()==APPLY_UF &&
   if( q.getKind()==FORALL && q.getNumChildren()==3 ){
     for( unsigned i=0; i<q[2].getNumChildren(); i++ ){
       if( q[2][i].getKind()==INST_ATTRIBUTE ){
@@ -1972,7 +1975,7 @@ TypeNode TermDbSygus::getArgType( const DatatypeConstructor& c, int i ) {
 }
 
 Node TermDbSygus::minimizeBuiltinTerm( Node n ) {
-  if( ( n.getKind()==EQUAL || n.getKind()==LEQ || n.getKind()==LT || n.getKind()==GEQ || n.getKind()==GT ) && 
+  if( ( n.getKind()==EQUAL || n.getKind()==LEQ || n.getKind()==LT || n.getKind()==GEQ || n.getKind()==GT ) &&
       ( n[0].getType().isInteger() || n[0].getType().isReal() ) ){
     bool changed = false;
     std::vector< Node > mon[2];
