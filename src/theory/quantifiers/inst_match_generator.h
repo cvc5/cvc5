@@ -64,10 +64,11 @@ protected:
   InstMatchGenerator* d_next;
   /** eq class */
   Node d_eq_class;
+  bool d_eq_class_rel;
   /** variable numbers */
   std::map< int, int > d_var_num;
   /** initialize pattern */
-  void initialize( QuantifiersEngine* qe, std::vector< InstMatchGenerator * > & gens );
+  void initialize( Node q, QuantifiersEngine* qe, std::vector< InstMatchGenerator * > & gens );
   /** children types 0 : variable, 1 : child term, -1 : ground term */
   std::vector< int > d_children_types;
   /** continue */
@@ -116,8 +117,8 @@ public:
   bool d_active_add;
   void setActiveAdd( bool val );
 
-  static InstMatchGenerator* mkInstMatchGenerator( Node pat, QuantifiersEngine* qe );
-  static InstMatchGenerator* mkInstMatchGenerator( std::vector< Node >& pats, QuantifiersEngine* qe );
+  static InstMatchGenerator* mkInstMatchGenerator( Node q, Node pat, QuantifiersEngine* qe );
+  static InstMatchGenerator* mkInstMatchGenerator( Node q, std::vector< Node >& pats, QuantifiersEngine* qe );
 };/* class InstMatchGenerator */
 
 //match generator for boolean term ITEs

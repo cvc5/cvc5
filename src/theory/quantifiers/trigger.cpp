@@ -43,7 +43,7 @@ d_quantEngine( qe ), d_f( f ){
       if( isSimpleTrigger( d_nodes[0] ) ){
         d_mg = new InstMatchGeneratorSimple( f, d_nodes[0] );
       }else{
-        d_mg = InstMatchGenerator::mkInstMatchGenerator( d_nodes[0], qe );
+        d_mg = InstMatchGenerator::mkInstMatchGenerator( f, d_nodes[0], qe );
         d_mg->setActiveAdd(true);
       }
     }else{
@@ -52,7 +52,7 @@ d_quantEngine( qe ), d_f( f ){
       //d_mg->setActiveAdd();
     }
   }else{
-    d_mg = InstMatchGenerator::mkInstMatchGenerator( d_nodes, qe );
+    d_mg = InstMatchGenerator::mkInstMatchGenerator( f, d_nodes, qe );
     d_mg->setActiveAdd(true);
   }
   if( d_nodes.size()==1 ){
@@ -553,7 +553,7 @@ Node Trigger::getInversion( Node n, Node x ) {
   return Node::null();
 }
 
-InstMatchGenerator* Trigger::getInstMatchGenerator( Node n ) {
+InstMatchGenerator* Trigger::getInstMatchGenerator( Node q, Node n ) {
   if( n.getKind()==INST_CONSTANT ){
     return NULL;
   }else{
