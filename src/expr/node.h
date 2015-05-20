@@ -458,6 +458,7 @@ public:
 
   /**
    * Returns true if this node represents a variable
+   * @return true if variable
    */
   inline bool isVar() const {
     assertTNodeNotExpired();
