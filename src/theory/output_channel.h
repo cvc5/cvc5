@@ -22,6 +22,7 @@
 #include "util/cvc4_assert.h"
 #include "theory/interrupted.h"
 #include "util/resource_manager.h"
+#include "smt/logic_exception.h"
 
 namespace CVC4 {
 namespace theory {
@@ -120,7 +121,7 @@ public:
    */
   virtual LemmaStatus lemma(TNode n, bool removable = false,
                             bool preprocess = false)
-    throw(TypeCheckingExceptionPrivate, AssertionException, UnsafeInterruptException) = 0;
+    throw(TypeCheckingExceptionPrivate, AssertionException, UnsafeInterruptException, LogicException) = 0;
 
   /**
    * Request a split on a new theory atom.  This is equivalent to
