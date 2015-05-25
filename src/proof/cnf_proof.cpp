@@ -194,7 +194,7 @@ void LFSCCnfProof::printInputClauses(std::ostream& os, std::ostream& paren) {
           //Assert( child_pol==childPol[child_base] );
           os_main << "(or_elim_1 _ _ ";
           prop::SatLiteral lit = (*clause)[itcic->second];
-          if( childPol[child_base] ){
+          if( childPol[child_base] && base_pol ){
             os_main << ProofManager::getLitName(lit) << " ";
           }else{
             os_main << "(not_not_intro _ " << ProofManager::getLitName(lit) << ") ";
@@ -224,7 +224,7 @@ void LFSCCnfProof::printInputClauses(std::ostream& os, std::ostream& paren) {
         if( itcic!=childIndex.end() ){
           os << "(contra _ ";
           prop::SatLiteral lit = (*clause)[itcic->second];
-          if( childPol[child_base] ){
+          if( childPol[child_base] && base_pol ){
             os << os_main.str() << " " << ProofManager::getLitName(lit);
           }else{
             os << ProofManager::getLitName(lit) << " " << os_main.str();
