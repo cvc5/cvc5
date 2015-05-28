@@ -18,6 +18,7 @@
 #include "theory/bv/theory_bv.h"
 #include "theory/bv/theory_bv_utils.h"
 #include "theory/theory_model.h"
+#include "smt/options.h"
 
 using namespace std;
 using namespace CVC4;
@@ -29,7 +30,7 @@ using namespace CVC4::theory::bv::utils;
 bool InequalitySolver::check(Theory::Effort e) {
   Debug("bv-subtheory-inequality") << "InequalitySolveR::check("<< e <<")\n";
   ++(d_statistics.d_numCallstoCheck);
-  d_bv->spendResource();
+  d_bv->spendResource(options::theoryCheckStep());
 
   bool ok = true;
   while (!done() && ok) {

@@ -17,6 +17,7 @@
 
 #include "theory/uf/theory_uf.h"
 #include "theory/uf/options.h"
+#include "smt/options.h"
 #include "theory/quantifiers/options.h"
 #include "theory/uf/theory_uf_strong_solver.h"
 #include "theory/theory_model.h"
@@ -92,7 +93,7 @@ void TheoryUF::check(Effort level) {
   if (done() && !fullEffort(level)) {
     return;
   }
-
+  getOutputChannel().spendResource(options::theoryCheckStep());
   TimerStat::CodeTimer checkTimer(d_checkTime);
 
   while (!done() && !d_conflict)

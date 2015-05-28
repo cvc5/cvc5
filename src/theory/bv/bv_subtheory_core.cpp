@@ -21,6 +21,7 @@
 #include "theory/bv/slicer.h"
 #include "theory/theory_model.h"
 #include "theory/bv/options.h"
+#include "smt/options.h"
 
 using namespace std;
 using namespace CVC4;
@@ -167,7 +168,7 @@ bool CoreSolver::decomposeFact(TNode fact) {
 bool CoreSolver::check(Theory::Effort e) {
   Trace("bitvector::core") << "CoreSolver::check \n";
 
-  d_bv->spendResource();
+  d_bv->spendResource(options::theoryCheckStep());
 
   d_checkCalled = true; 
   Assert (!d_bv->inConflict());

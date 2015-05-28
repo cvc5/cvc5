@@ -116,7 +116,7 @@ Node Rewriter::rewriteTo(theory::TheoryId theoryId, Node node) {
 
     if (hasSmtEngine &&
 		d_iterationCount % ResourceManager::getFrequencyCount() == 0) {
-      rm->spendResource();
+      rm->spendResource(options::rewriteStep());
       d_iterationCount = 0;
     }
 

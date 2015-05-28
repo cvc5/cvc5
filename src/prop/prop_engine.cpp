@@ -281,8 +281,8 @@ void PropEngine::interrupt() throw(ModalException) {
   Debug("prop") << "interrupt()" << endl;
 }
 
-void PropEngine::spendResource() throw (UnsafeInterruptException) {
-  d_resourceManager->spendResource();
+void PropEngine::spendResource(uint64_t ammount) throw (UnsafeInterruptException) {
+  d_resourceManager->spendResource(ammount);
 }
 
 bool PropEngine::properExplanation(TNode node, TNode expl) const {

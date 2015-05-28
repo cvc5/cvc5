@@ -424,7 +424,7 @@ protected:
     int      trail_index      (Var x) const; // Index in the trail
     double   progressEstimate ()      const; // DELETE THIS ?? IT'S NOT VERY USEFUL ...
 public:
-    bool     withinBudget     ()      const;
+    bool     withinBudget     (uint64_t amount)      const;
 protected:
 
     // Static helpers:

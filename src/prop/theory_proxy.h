@@ -111,7 +111,7 @@ public:
 
   void logDecision(SatLiteral lit);
 
-  void spendResource();
+  void spendResource(uint64_t ammount);
 
   bool isDecisionEngineDone();
 

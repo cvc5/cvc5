@@ -29,6 +29,7 @@ OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWA
 #include "util/utility.h"
 #include "util/exception.h"
 #include "theory/bv/options.h"
+#include "smt/options.h"
 #include "theory/interrupted.h"
 using namespace BVMinisat;
 
@@ -871,7 +872,7 @@ lbool Solver::search(int nof_conflicts, UIP uip)
             // NO CONFLICT
             bool isWithinBudget;
             try {
-              isWithinBudget = withinBudget(); 
+              isWithinBudget = withinBudget(CVC4::options::bvSatConflictStep()); 
             }
             catch (const CVC4::theory::Interrupted& e) {
               // do some clean-up and rethrow 
@@ -1021,7 +1022,7 @@ lbool Solver::solve_()
     while (status == l_Undef){
         double rest_base = luby_restart ? luby(restart_inc, curr_restarts) : pow(restart_inc, curr_restarts);
         status = search(rest_base * restart_first);
-        if (!withinBudget()) break;
+        if (!withinBudget(CVC4::options::bvSatConflictStep())) break;
         curr_restarts++;
     }
 

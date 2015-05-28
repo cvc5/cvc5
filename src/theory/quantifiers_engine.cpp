@@ -767,7 +767,7 @@ bool QuantifiersEngine::addInstantiation( Node f, InstMatch& m, bool mkRep, bool
 
 bool QuantifiersEngine::addInstantiation( Node f, std::vector< Node >& terms, bool mkRep, bool modEq, bool modInst ) {
   // For resource-limiting (also does a time check).
-  getOutputChannel().safePoint();
+  getOutputChannel().safePoint(options::quantifierStep());
 
   Assert( terms.size()==f[0].getNumChildren() );
   Trace("inst-add-debug") << "Add instantiation: ";

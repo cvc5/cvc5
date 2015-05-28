@@ -1205,7 +1205,8 @@ lbool Solver::search(int nof_conflicts)
               check_type = CHECK_WITH_THEORY;
             }
 
-            if (nof_conflicts >= 0 && conflictC >= nof_conflicts || !withinBudget()) {
+            if (nof_conflicts >= 0 && conflictC >= nof_conflicts ||
+                !withinBudget(options::satConflictStep())) {
                 // Reached bound on number of conflicts:
                 progress_estimate = progressEstimate();
                 cancelUntil(0);
@@ -1343,11 +1344,11 @@ lbool Solver::solve_()
     while (status == l_Undef){
         double rest_base = luby_restart ? luby(restart_inc, curr_restarts) : pow(restart_inc, curr_restarts);
         status = search(rest_base * restart_first);
-        if (!withinBudget()) break;
+        if (!withinBudget(options::satConflictStep())) break; // FIXME add restart option?
         curr_restarts++;
     }
 
-    if(!withinBudget())
+    if(!withinBudget(options::satConflictStep()))
         status = l_Undef;
 
     if (verbosity >= 1)
@@ -1599,7 +1600,7 @@ CRef Solver::updateLemmas() {
   Debug("minisat::lemmas") << "Solver::updateLemmas() begin" << std::endl;
 
   // Avoid adding lemmas indefinitely without resource-out
-  proxy->spendResource();
+  proxy->spendResource(options::lemmaStep());
 
   CRef conflict = CRef_Undef;
 
@@ -1717,11 +1718,11 @@ CRef Solver::updateLemmas() {
   return conflict;
 }
 
-inline bool Solver::withinBudget() const {
+inline bool Solver::withinBudget(uint64_t ammount) const {
   Assert (proxy);
   // spendResource sets async_interrupt or throws UnsafeInterruptException
   // depending on whether hard-limit is enabled
-  proxy->spendResource();
+  proxy->spendResource(ammount);
 
   bool within_budget =  !asynch_interrupt &&
     (conflict_budget    < 0 || conflicts < (uint64_t)conflict_budget) &&

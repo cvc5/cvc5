@@ -69,7 +69,7 @@ public:
 
   ~TestOutputChannel() {}
 
-  void safePoint()  throw(Interrupted, AssertionException) {}
+  void safePoint(uint64_t ammount)  throw(Interrupted, AssertionException) {}
 
   void conflict(TNode n)
     throw(AssertionException, UnsafeInterruptException) {

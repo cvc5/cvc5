@@ -492,8 +492,8 @@ public:
   }
 
   ResourceManager* getResourceManager() { return d_resourceManager; }
-  void spendResource() throw(UnsafeInterruptException) {
-    d_resourceManager->spendResource();
+  void spendResource(uint64_t ammount) throw(UnsafeInterruptException) {
+    d_resourceManager->spendResource(ammount);
   }
 
   void nmNotifyNewSort(TypeNode tn, uint32_t flags) {
@@ -1776,7 +1776,7 @@ Node SmtEnginePrivate::expandDefinitions(TNode n, hash_map<Node, Node, NodeHashF
   // or upward pass).
 
   do {
-    spendResource();
+    spendResource(options::preprocessStep());
     n = worklist.top().first;                      // n is the input / original
     Node node = worklist.top().second;             // node is the output / result
     bool childrenPushed = worklist.top().third;
@@ -1912,7 +1912,7 @@ Node SmtEnginePrivate::expandDefinitions(TNode n, hash_map<Node, Node, NodeHashF
 
 void SmtEnginePrivate::removeITEs() {
   d_smt.finalOptionsAreSet();
-  spendResource();
+  spendResource(options::preprocessStep());
   Trace("simplify") << "SmtEnginePrivate::removeITEs()" << endl;
 
   // Remove all of the ITE occurrences and normalize
@@ -1924,7 +1924,7 @@ void SmtEnginePrivate::removeITEs() {
 
 void SmtEnginePrivate::staticLearning() {
   d_smt.finalOptionsAreSet();
-  spendResource();
+  spendResource(options::preprocessStep());
 
   TimerStat::CodeTimer staticLearningTimer(d_smt.d_stats->d_staticLearningTime);
 
@@ -1957,7 +1957,7 @@ static void dumpAssertions(const char* key, const AssertionPipeline& assertionLi
 
 // returns false if it learns a conflict
 bool SmtEnginePrivate::nonClausalSimplify() {
-  spendResource();
+  spendResource(options::preprocessStep());
   d_smt.finalOptionsAreSet();
 
   if(options::unsatCores()) {
@@ -2286,7 +2286,7 @@ void SmtEnginePrivate::bvAbstraction() {
 
 void SmtEnginePrivate::bvToBool() {
   Trace("bv-to-bool") << "SmtEnginePrivate::bvToBool()" << endl;
-  spendResource();
+  spendResource(options::preprocessStep());
   std::vector<Node> new_assertions;
   d_smt.d_theoryEngine->ppBvToBool(d_assertions.ref(), new_assertions);
   for (unsigned i = 0; i < d_assertions.size(); ++ i) {
@@ -2297,13 +2297,13 @@ void SmtEnginePrivate::bvToBool() {
 bool SmtEnginePrivate::simpITE() {
   TimerStat::CodeTimer simpITETimer(d_smt.d_stats->d_simpITETime);
 
-  spendResource();
+  spendResource(options::preprocessStep());
 
   Trace("simplify") << "SmtEnginePrivate::simpITE()" << endl;
 
   unsigned numAssertionOnEntry = d_assertions.size();
   for (unsigned i = 0; i < d_assertions.size(); ++i) {
-    spendResource();
+    spendResource(options::preprocessStep());
     Node result = d_smt.d_theoryEngine->ppSimpITE(d_assertions[i]);
     d_assertions.replace(i, result);
     if(result.isConst() && !result.getConst<bool>()){
@@ -2350,7 +2350,7 @@ void SmtEnginePrivate::compressBeforeRealAssertions(size_t before){
 
 void SmtEnginePrivate::unconstrainedSimp() {
   TimerStat::CodeTimer unconstrainedSimpTimer(d_smt.d_stats->d_unconstrainedSimpTime);
-  spendResource();
+  spendResource(options::preprocessStep());
   Trace("simplify") << "SmtEnginePrivate::unconstrainedSimp()" << endl;
   d_smt.d_theoryEngine->ppUnconstrainedSimp(d_assertions.ref());
 }
@@ -2799,7 +2799,7 @@ void SmtEnginePrivate::doMiplibTrick() {
 // returns false if simplification led to "false"
 bool SmtEnginePrivate::simplifyAssertions()
   throw(TypeCheckingException, LogicException, UnsafeInterruptException) {
-  spendResource();
+  spendResource(options::preprocessStep());
   Assert(d_smt.d_pendingPops == 0);
   try {
     ScopeCounter depth(d_simplifyAssertionsDepth);
@@ -3042,7 +3042,7 @@ bool SmtEnginePrivate::checkForBadSkolems(TNode n, TNode skolem, hash_map<Node, 
 Node SmtEnginePrivate::rewriteBooleanTerms(TNode n) {
   TimerStat::CodeTimer codeTimer(d_smt.d_stats->d_rewriteBooleanTermsTime);
 
-  spendResource();
+  spendResource(options::preprocessStep());
 
   if(d_booleanTermConverter == NULL) {
     // This needs to be initialized _after_ the whole SMT framework is in place, subscribed
@@ -3077,7 +3077,7 @@ Node SmtEnginePrivate::rewriteBooleanTerms(TNode n) {
 
 void SmtEnginePrivate::processAssertions() {
   TimerStat::CodeTimer paTimer(d_smt.d_stats->d_processAssertionsTime);
-  spendResource();
+  spendResource(options::preprocessStep());
   Assert(d_smt.d_fullyInited);
   Assert(d_smt.d_pendingPops == 0);
 
@@ -3199,7 +3199,7 @@ void SmtEnginePrivate::processAssertions() {
                         << "applying substitutions" << endl;
       for (unsigned i = 0; i < d_assertions.size(); ++ i) {
         Trace("simplify") << "applying to " << d_assertions[i] << endl;
-         spendResource();
+         spendResource(options::preprocessStep());
         d_assertions.replace(i, Rewriter::rewrite(d_topLevelSubstitutions.apply(d_assertions[i])));
         Trace("simplify") << "  got " << d_assertions[i] << endl;
       }
@@ -3759,7 +3759,7 @@ Expr SmtEngine::simplify(const Expr& ex) throw(TypeCheckingException, LogicExcep
 }
 
 Expr SmtEngine::expandDefinitions(const Expr& ex) throw(TypeCheckingException, LogicException, UnsafeInterruptException) {
-  d_private->spendResource();
+  d_private->spendResource(options::preprocessStep());
 
   Assert(ex.getExprManager() == d_exprManager);
   SmtScope smts(this);

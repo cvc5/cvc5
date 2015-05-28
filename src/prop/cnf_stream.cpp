@@ -679,7 +679,7 @@ void TseitinCnfStream::convertAndAssert(TNode node, bool negated, ProofRule proo
   Debug("cnf") << "convertAndAssert(" << node << ", negated = " << (negated ? "true" : "false") << ")" << endl;
 
   if (d_convertAndAssertCounter % ResourceManager::getFrequencyCount() == 0) {
-    NodeManager::currentResourceManager()->spendResource();
+    NodeManager::currentResourceManager()->spendResource(options::cnfStep());
     d_convertAndAssertCounter = 0;
   }
   ++d_convertAndAssertCounter;

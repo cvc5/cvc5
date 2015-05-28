@@ -107,8 +107,8 @@ void TheoryBV::setMasterEqualityEngine(eq::EqualityEngine* eq) {
   }
 }
 
-void TheoryBV::spendResource() throw(UnsafeInterruptException) {
-  getOutputChannel().spendResource();
+void TheoryBV::spendResource(uint64_t ammount) throw(UnsafeInterruptException) {
+  getOutputChannel().spendResource(ammount);
 }
 
 TheoryBV::Statistics::Statistics():

@@ -23,6 +23,7 @@
 #include "expr/command.h"
 #include "theory/theory_model.h"
 #include "theory/arrays/options.h"
+#include "smt/options.h"
 #include "smt/logic_exception.h"
 
 
@@ -1031,6 +1032,9 @@ void TheoryArrays::check(Effort e) {
   if (done() && !fullEffort(e)) {
     return;
   }
+  
+  getOutputChannel().spendResource(options::theoryCheckStep());
+
   TimerStat::CodeTimer checkTimer(d_checkTime);
 
   while (!done() && !d_conflict)
@@ -1209,7 +1213,7 @@ void TheoryArrays::checkModel(Effort e)
   int numrestarts = 0;
   while (true || numrestarts < 1 || fullEffort(e) || combination(e)) {
     ++numrestarts;
-    d_out->safePoint();
+    d_out->safePoint(1);
     int level = getSatContext()->getLevel();
     d_getModelValCache.clear();
     for (constraintIdx = 0; constraintIdx < d_modelConstraints.size(); ++constraintIdx) {
