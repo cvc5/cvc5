@@ -356,11 +356,11 @@ void TLazyBitblaster::MinisatNotify::notify(prop::SatClause& clause) {
   }
 }
 
-void TLazyBitblaster::MinisatNotify::spendResource(uint64_t ammount) {
+void TLazyBitblaster::MinisatNotify::spendResource(unsigned ammount) {
   d_bv->spendResource(ammount);
 }
 
-void TLazyBitblaster::MinisatNotify::safePoint(uint64_t ammount) {
+void TLazyBitblaster::MinisatNotify::safePoint(unsigned ammount) {
   d_bv->d_out->safePoint(ammount);
 }
 

@@ -170,7 +170,7 @@ uint64_t ResourceManager::getTimeRemaining() const {
   return d_thisCallTimeBudget - time_passed;
 }
 
-void ResourceManager::spendResource(uint64_t ammount) throw (UnsafeInterruptException) {
+void ResourceManager::spendResource(unsigned ammount) throw (UnsafeInterruptException) {
   ++d_spendResourceCalls;
   d_cumulativeResourceUsed += ammount;
   if (!d_on) return;

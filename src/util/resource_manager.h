@@ -128,7 +128,7 @@ public:
     return d_thisCallResourceBudget;
   }
 
-  void spendResource(uint64_t ammount) throw(UnsafeInterruptException);
+  void spendResource(unsigned ammount) throw(UnsafeInterruptException);
 
   void setHardLimit(bool value);
   void setResourceLimit(uint64_t units, bool cumulative = false);

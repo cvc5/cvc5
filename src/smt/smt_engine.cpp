@@ -492,7 +492,7 @@ public:
   }
 
   ResourceManager* getResourceManager() { return d_resourceManager; }
-  void spendResource(uint64_t ammount) throw(UnsafeInterruptException) {
+  void spendResource(unsigned ammount) throw(UnsafeInterruptException) {
     d_resourceManager->spendResource(ammount);
   }
 

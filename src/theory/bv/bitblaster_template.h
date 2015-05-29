@@ -135,8 +135,8 @@ class TLazyBitblaster :  public TBitblaster<Node> {
     {}
     bool notify(prop::SatLiteral lit);
     void notify(prop::SatClause& clause);
-    void spendResource(uint64_t ammount);
-    void safePoint(uint64_t ammount);
+    void spendResource(unsigned ammount);
+    void safePoint(unsigned ammount);
   };
   
   TheoryBV *d_bv;
@@ -240,10 +240,10 @@ public:
   MinisatEmptyNotify() {}
   bool notify(prop::SatLiteral lit) { return true; }
   void notify(prop::SatClause& clause) { }
-  void spendResource(uint64_t ammount) {
+  void spendResource(unsigned ammount) {
     NodeManager::currentResourceManager()->spendResource(ammount);
   }
-  void safePoint(uint64_t ammount) {}
+  void safePoint(unsigned ammount) {}
 };
 
 

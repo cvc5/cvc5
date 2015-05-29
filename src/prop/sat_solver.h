@@ -97,8 +97,8 @@ public:
      * Notify about a learnt clause.
      */
     virtual void notify(SatClause& clause) = 0;
-    virtual void spendResource(uint64_t ammount) = 0;
-    virtual void safePoint(uint64_t ammount) = 0;
+    virtual void spendResource(unsigned ammount) = 0;
+    virtual void safePoint(unsigned ammount) = 0;
     
   };/* class BVSatSolverInterface::Notify */
 

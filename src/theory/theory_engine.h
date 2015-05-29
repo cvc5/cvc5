@@ -347,7 +347,7 @@ class TheoryEngine {
       d_engine->setIncomplete(d_theory);
     }
 
-    void spendResource(uint64_t ammount) throw(UnsafeInterruptException) {
+    void spendResource(unsigned ammount) throw(UnsafeInterruptException) {
       d_engine->spendResource(ammount);
     }
 
@@ -488,7 +488,7 @@ public:
   /**
    * "Spend" a resource during a search or preprocessing.
    */
-  void spendResource(uint64_t ammount);
+  void spendResource(unsigned ammount);
 
   /**
    * Adds a theory. Only one theory per TheoryId can be present, so if

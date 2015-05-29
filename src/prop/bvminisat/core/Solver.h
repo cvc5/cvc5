@@ -52,8 +52,8 @@ public:
    */
   virtual void notify(vec<Lit>& learnt) = 0;
 
-  virtual void spendResource(uint64_t ammount) = 0;
-  virtual void safePoint(uint64_t ammount) = 0;
+  virtual void spendResource(unsigned ammount) = 0;
+  virtual void safePoint(unsigned ammount) = 0;
 };
 
 //=================================================================================================

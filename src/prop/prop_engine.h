@@ -228,7 +228,7 @@ public:
    * Informs the ResourceManager that a resource has been spent.  If out of
    * resources, can throw an UnsafeInterruptException exception.
    */
-  void spendResource(uint64_t ammount) throw (UnsafeInterruptException);
+  void spendResource(unsigned ammount) throw (UnsafeInterruptException);
 
   /**
    * For debugging.  Return true if "expl" is a well-formed

@@ -281,7 +281,7 @@ void PropEngine::interrupt() throw(ModalException) {
   Debug("prop") << "interrupt()" << endl;
 }
 
-void PropEngine::spendResource(uint64_t ammount) throw (UnsafeInterruptException) {
+void PropEngine::spendResource(unsigned ammount) throw (UnsafeInterruptException) {
   d_resourceManager->spendResource(ammount);
 }
 

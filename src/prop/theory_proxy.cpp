@@ -179,7 +179,7 @@ void TheoryProxy::logDecision(SatLiteral lit) {
 #endif /* CVC4_REPLAY */
 }
 
-void TheoryProxy::spendResource(uint64_t ammount) {
+void TheoryProxy::spendResource(unsigned ammount) {
   d_theoryEngine->spendResource(ammount);
 }
 

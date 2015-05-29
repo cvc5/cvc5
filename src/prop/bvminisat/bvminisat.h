@@ -46,10 +46,10 @@ private:
       d_notify->notify(satClause);
     }
 
-    void spendResource(uint64_t ammount) {
+    void spendResource(unsigned ammount) {
       d_notify->spendResource(ammount);
     }
-    void safePoint(uint64_t ammount) {
+    void safePoint(unsigned ammount) {
       d_notify->safePoint(ammount);
     }
   };

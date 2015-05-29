@@ -213,7 +213,7 @@ public:
    * long-running operations, they cannot rely on resource() to break
    * out of infinite or intractable computations.
    */
-  virtual void spendResource(uint64_t ammount) throw(UnsafeInterruptException) {}
+  virtual void spendResource(unsigned ammount) throw(UnsafeInterruptException) {}
 
   /**
    * Handle user attribute.
