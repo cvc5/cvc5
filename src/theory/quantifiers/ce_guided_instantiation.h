@@ -21,6 +21,7 @@
 #include "context/cdchunk_list.h"
 #include "theory/quantifiers_engine.h"
 #include "theory/quantifiers/ce_guided_single_inv.h"
+#include "theory/quantifiers/modes.h"
 
 namespace CVC4 {
 namespace theory {
@@ -49,7 +50,7 @@ public:
   /** list of constants for quantified formula */
   std::vector< Node > d_candidates;
   /** list of variables on inner quantification */
-  std::vector< Node > d_inner_vars;    
+  std::vector< Node > d_inner_vars;
   std::vector< std::vector< Node > > d_inner_vars_disj;
   /** list of terms we have instantiated candidates with */
   std::map< int, std::vector< Node > > d_candidate_inst;
@@ -78,9 +79,13 @@ public:  //for fairness
   Node getLiteral( QuantifiersEngine * qe, int i );
   /** is ground */
   bool isGround() { return d_inner_vars.empty(); }
+  /** fairness */
+  CegqiFairMode getCegqiFairMode();
+  /** is single invocation */
+  bool isSingleInvocation();
 };
-  
-  
+
+
 class CegInstantiation : public QuantifiersModule
 {
   typedef context::CDHashMap<Node, bool, NodeHashFunction> NodeBoolMap;
@@ -128,7 +133,7 @@ public:
   /** Identify this module (for debugging, dynamic configuration, etc..) */
   std::string identify() const { return "CegInstantiation"; }
   /** print solution for synthesis conjectures */
-  void printSynthSolution( std::ostream& out );  
+  void printSynthSolution( std::ostream& out );
   /** collect disjuncts */
   static void collectDisjuncts( Node n, std::vector< Node >& ex );
 public:
@@ -139,7 +144,7 @@ public:
     IntStat d_cegqi_si_lemmas;
     Statistics();
     ~Statistics();
-  };/* class CegInstantiation::Statistics */  
+  };/* class CegInstantiation::Statistics */
   Statistics d_statistics;
 };
 

@@ -888,12 +888,14 @@ void QuantifiersEngine::flushLemmas(){
     //take default output channel if none is provided
     d_hasAddedLemma = true;
     for( int i=0; i<(int)d_lemmas_waiting.size(); i++ ){
+      Trace("qe-lemma") << "Lemma : " << d_lemmas_waiting[i] << std::endl;
       getOutputChannel().lemma( d_lemmas_waiting[i], false, true );
     }
     d_lemmas_waiting.clear();
   }
   if( !d_phase_req_waiting.empty() ){
     for( std::map< Node, bool >::iterator it = d_phase_req_waiting.begin(); it != d_phase_req_waiting.end(); ++it ){
+      Trace("qe-lemma") << "Require phase : " << it->first << " -> " << it->second << std::endl;
       getOutputChannel().requirePhase( it->first, it->second );
     }
     d_phase_req_waiting.clear();

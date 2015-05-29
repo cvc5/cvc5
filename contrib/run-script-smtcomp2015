@@ -55,7 +55,7 @@ ALIA|AUFLIA|AUFLIRA|AUFNIRA|BV|UF|UFBV|UFIDL|UFLIA|UFLRA|UFNIA)
   trywith 30 --finite-model-find --mbqi=gen-ev --uf-ss-totality
   trywith 30 --inst-when=full --full-saturate-quant
   trywith 30 --fmf-bound-int --macros-quant
-  trywith 30 --no-inst-no-entail --decision=internal --simplification=none --no-inst-no-entail --no-quant-cf --full-saturate-quant
+  trywith 30 --decision=internal --simplification=none --no-inst-no-entail --no-quant-cf --full-saturate-quant
   trywith 30 --decision=justification-stoponly --full-saturate-quant
   # large runs 3min
   trywith 60 --term-db-mode=relevant --full-saturate-quant

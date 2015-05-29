@@ -158,6 +158,8 @@ public:
   void check( std::vector< Node >& lems );
   //get solution
   Node getSolution( unsigned sol_index, TypeNode stn, int& reconstructed );
+  // is single invocation
+  bool isSingleInvocation() { return !d_single_inv.isNull(); }
 };
 
 }
