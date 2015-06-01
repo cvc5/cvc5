@@ -49,7 +49,8 @@ TESTS =	\
 	cnf-iff.smt2 \
 	cnf-iff-base.smt2 \
 	cnf-ite.smt2 \
-	cnf-and-neg.smt2
+	cnf-and-neg.smt2 \
+	cnf_abc.smt2
 
 EXTRA_DIST = $(TESTS) \
 	mkpidgeon

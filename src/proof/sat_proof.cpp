@@ -364,12 +364,12 @@ void SatProof::printRes(ResChain* res) {
 /// registration methods
 
 ClauseId SatProof::registerClause(Minisat::CRef clause, ClauseKind kind, uint64_t proof_id) {
-  Debug("cores") << "registerClause " << proof_id << std::endl;
+  Debug("cores") << "registerClause, proof id = " << proof_id << std::endl;
   Assert(clause != CRef_Undef);
   ClauseIdMap::iterator it = d_clauseId.find(clause);
   if (it == d_clauseId.end()) {
     ClauseId newId = ProofManager::currentPM()->nextId();
-    d_clauseId.insert(ClauseIdMap::value_type(clause, newId)); 
+    d_clauseId.insert(ClauseIdMap::value_type(clause, newId));
     d_idClause.insert(IdCRefMap::value_type(newId, clause));
     if (kind == INPUT) {
       Assert(d_inputClauses.find(newId) == d_inputClauses.end());

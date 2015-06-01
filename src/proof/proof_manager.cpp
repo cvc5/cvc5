@@ -176,15 +176,16 @@ void ProofManager::addClause(ClauseId id, const prop::SatClause* clause, ClauseK
     d_propVars.insert(lit.getSatVariable());
   }*/
   if (kind == INPUT) {
+    Debug("cores") << "; Add to inputClauses " << id << std::endl;
     d_inputClauses.insert(std::make_pair(id, clause));
     Assert(d_satProof->d_inputClauses.find(id) != d_satProof->d_inputClauses.end());
-    Debug("cores") << "core id is " << d_satProof->d_inputClauses[id] << std::endl;
+    Debug("cores") << "; core id is " << d_satProof->d_inputClauses[id] << std::endl;
     if(d_satProof->d_inputClauses[id] == uint64_t(-1)) {
-      Debug("cores") << " + constant unit (true or false)" << std::endl;
+      Debug("cores") << "; + constant unit (true or false)" << std::endl;
     } else if(options::unsatCores()) {
       Expr e = d_cnfProof->getAssertion(d_satProof->d_inputClauses[id] & 0xffffffff);
-      Debug("cores") << "core input assertion from CnfStream is " << e << std::endl;
-      Debug("cores") << "with proof rule " << ((d_satProof->d_inputClauses[id] & 0xffffffff00000000llu) >> 32) << std::endl;
+      Debug("cores") << "; core input assertion from CnfStream is " << e << std::endl;
+      Debug("cores") << "; with proof rule " << ((d_satProof->d_inputClauses[id] & 0xffffffff00000000llu) >> 32) << std::endl;
       // Invalid proof rules are currently used for parts of CVC4 that don't
       // support proofs (these are e.g. unproven theory lemmas) or don't need
       // proofs (e.g. split lemmas).  We can ignore these safely when
@@ -331,12 +332,13 @@ bool ProofManager::isInputAssertion( Expr e, std::ostream& out ) {
 }
 
 void ProofManager::setRegisteringFormula( Node n, ProofRule proof_id ) {
+  Trace("cnf-pf-debug") << "; set registering formula " << n << " proof rule = " << proof_id << std::endl;
   d_registering_assertion = n;
   d_registering_rule = proof_id;
 }
 
 void ProofManager::setRegisteredClauseId( ClauseId id ) {
-  Trace("cnf-pf-debug") << "set register clause id " << id << " " << d_registering_assertion << std::endl;
+  Trace("cnf-pf-debug") << "; set register clause id " << id << " " << d_registering_assertion << std::endl;
   if( !d_registering_assertion.isNull() ){
      d_clause_id_to_assertion[id] = d_registering_assertion.toExpr();
      d_clause_id_to_rule[id] = d_registering_rule;
