@@ -31,7 +31,8 @@ TESTS = commutative.sy \
         icfp_28_10.sy \
         const-var-test.sy \
         no-syntax-test.sy \
-        no-syntax-test-no-si.sy
+        no-syntax-test-no-si.sy \
+        no-flat-simp.sy
 
 # sygus tests currently taking too long for make regress
 EXTRA_DIST = $(TESTS) \

@@ -519,6 +519,12 @@ Expr ExprManager::operatorOf(Kind k) {
   return d_nodeManager->operatorOf(k).toExpr();
 }
 
+Kind ExprManager::operatorToKind(Expr e) {
+  NodeManagerScope nms(d_nodeManager);
+
+  return d_nodeManager->operatorToKind( e.getNode() );
+}
+
 /** Make a function type from domain to range. */
 FunctionType ExprManager::mkFunctionType(Type domain, Type range) {
   NodeManagerScope nms(d_nodeManager);

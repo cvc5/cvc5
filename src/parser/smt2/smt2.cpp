@@ -683,19 +683,48 @@ void Smt2::defineSygusFuns() {
 
 void Smt2::mkSygusDatatype( CVC4::Datatype& dt, std::vector<CVC4::Expr>& ops,
                             std::vector<std::string>& cnames, std::vector< std::vector< CVC4::Type > >& cargs ) {
-  for( unsigned i=0; i<cnames.size(); i++ ){
-    std::string name = dt.getName() + "_" + cnames[i];
-    std::string testerId("is-");
-    testerId.append(name);
-    checkDeclaration(name, CHECK_UNDECLARED, SYM_VARIABLE);
-    checkDeclaration(testerId, CHECK_UNDECLARED, SYM_VARIABLE);
-    CVC4::DatatypeConstructor c(name, testerId, ops[i] );
-    for( unsigned j=0; j<cargs[i].size(); j++ ){
-      std::stringstream sname;
-      sname << name << "_" << j;
-      c.addArg(sname.str(), cargs[i][j]);
+  for( int i=0; i<(int)cnames.size(); i++ ){
+    bool is_dup = false;
+    //FIXME : should allow multiple operators with different sygus type arguments
+    //        for now, just ignore them (introduces incompleteness).
+    for( int j=0; j<i; j++ ){
+      if( ops[i]==ops[j] ){
+        is_dup = true;
+        break;
+      }
+      /*  
+      if( ops[i]==ops[j] && cargs[i].size()==cargs[j].size() ){
+        is_dup = true;
+        for( unsigned k=0; k<cargs[i].size(); k++ ){
+          if( cargs[i][k]!=cargs[j][k] ){
+            is_dup = false;
+            break;
+          }
+        }
+      }
+      */
+    } 
+    if( is_dup ){
+      Debug("parser-sygus") << "--> Duplicate gterm : " << ops[i] << " at " << i << std::endl;
+      ops.erase( ops.begin() + i, ops.begin() + i + 1 );
+      cnames.erase( cnames.begin() + i, cnames.begin() + i + 1 );
+      cargs.erase( cargs.begin() + i, cargs.begin() + i + 1 );
+      i--;
+    }else{
+      std::string name = dt.getName() + "_" + cnames[i];
+      std::string testerId("is-");
+      testerId.append(name);
+      checkDeclaration(name, CHECK_UNDECLARED, SYM_VARIABLE);
+      checkDeclaration(testerId, CHECK_UNDECLARED, SYM_VARIABLE);
+      CVC4::DatatypeConstructor c(name, testerId, ops[i] );
+      for( unsigned j=0; j<cargs[i].size(); j++ ){
+        std::stringstream sname;
+        sname << name << "_" << j;
+        c.addArg(sname.str(), cargs[i][j]);
+      }
+      Debug("parser-sygus") << "--> Add constructor " << cnames[i] << " to " << dt.getName() << std::endl;
+      dt.addConstructor(c);
     }
-    dt.addConstructor(c);
   }
 }
 

@@ -319,7 +319,10 @@ public:
    * e.getConst<CVC4::Kind>() will yield k.
    */
   Expr operatorOf(Kind k);
-
+  
+  /** Get a Kind from an operator expression */
+  Kind operatorToKind(Expr e);
+  
   /** Make a function type from domain to range. */
   FunctionType mkFunctionType(Type domain, Type range);
 

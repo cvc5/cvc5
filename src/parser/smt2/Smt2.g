@@ -500,6 +500,7 @@ sygusCommand returns [CVC4::Command* cmd = NULL]
   bool read_syntax = false;
   int sygus_dt_index;
   Type sygus_ret;
+  std::map< CVC4::Type, CVC4::Type > sygus_to_builtin;
 }
   : /* set the logic */
     SET_LOGIC_TOK symbol[name,CHECK_NONE,SYM_SORT]
@@ -616,14 +617,21 @@ sygusCommand returns [CVC4::Command* cmd = NULL]
           // if not unresolved, must be undeclared
           PARSER_STATE->checkDeclaration(dname, CHECK_UNDECLARED, SYM_SORT);
         }
+        Type unres_t = PARSER_STATE->mkUnresolvedType(dname);
+        sygus_to_builtin[unres_t] = t;
         sygus_dt_index = ops.size()-1;
         Debug("parser-sygus") << "Read sygus grammar " << name << " under function " << fun << "..." << std::endl;
       }
       // Note the official spec for NTDef is missing the ( parens )
       // but they are necessary to parse SyGuS examples
-      LPAREN_TOK sygusGTerm[sygus_dt_index, datatypes, sorts, fun, ops, cnames, cargs, sygus_vars, allow_const, sygus_ret, -1]+ RPAREN_TOK
+      LPAREN_TOK sygusGTerm[sygus_dt_index, datatypes, sorts, fun, ops, cnames, cargs, sygus_vars, sygus_to_builtin, allow_const, sygus_ret, -1]+ RPAREN_TOK
       RPAREN_TOK
-      { for( unsigned i=sygus_dt_index; i<datatypes.size(); i++ ){
+      { Debug("parser-sygus") << "Making sygus datatypes..." << std::endl;
+        for( unsigned i=sygus_dt_index; i<datatypes.size(); i++ ){
+          Debug("parser-sygus") << "...make " << datatypes[i].getName() << " with builtin sort " << sorts[i] << std::endl;
+          if( sorts[i].isNull() ){
+            Debug("parser-sygus") << "Must resolve builtin type within context for " << datatypes[i] << std::endl;
+          }
           datatypes[i].setSygus( sorts[i], terms[0], sygus_dt_index==(int)i ? allow_const : false, false );
           PARSER_STATE->mkSygusDatatype( datatypes[i], ops[i], cnames[i], cargs[i] );
         }
@@ -637,6 +645,7 @@ sygusCommand returns [CVC4::Command* cmd = NULL]
         PARSER_STATE->mkSygusDefaultGrammar( range, terms[0], fun, datatypes, sorts, ops, sygus_vars );
       }
       PARSER_STATE->popScope();
+      Debug("parser-sygus") << "Make mutual datatypes..." << std::endl;
       seq = new CommandSequence();
       std::vector<DatatypeType> datatypeTypes = PARSER_STATE->mkMutualDatatypeTypes(datatypes);
       seq->addCommand(new DatatypeDeclarationCommand(datatypeTypes));
@@ -723,13 +732,13 @@ sygusCommand returns [CVC4::Command* cmd = NULL]
 // fun is the name of the synth-fun this grammar term is for
 // this adds N operators to ops[index], N names to cnames[index] and N type argument vectors to cargs[index] (where typically N=1)
 sygusGTerm[int index, 
-           std::vector< CVC4::Datatype > datatypes,
-           std::vector< CVC4::Type> sorts,
+           std::vector< CVC4::Datatype >& datatypes,
+           std::vector< CVC4::Type>& sorts,
            std::string& fun, 
            std::vector< std::vector<CVC4::Expr> >& ops, 
            std::vector< std::vector<std::string> >& cnames, 
            std::vector< std::vector< std::vector< CVC4::Type > > >& cargs, 
-           std::vector<CVC4::Expr>& sygus_vars, bool& allow_const, CVC4::Type& ret, int gtermType]
+           std::vector<CVC4::Expr>& sygus_vars, std::map< CVC4::Type, CVC4::Type >& sygus_to_builtin, bool& allow_const, CVC4::Type& ret, int gtermType]
 @declarations {
   std::string name;
   Kind k;
@@ -741,6 +750,9 @@ sygusGTerm[int index,
   int sub_gtermType = -1;
   bool sub_allow_const;
   Type sub_ret;
+  int sub_dt_index;
+  std::string sub_dname;
+  Type null_type;
 }
   : LPAREN_TOK
     ( builtinOp[k]
@@ -759,16 +771,16 @@ sygusGTerm[int index,
     | symbol[name,CHECK_NONE,SYM_VARIABLE]
       { 
         if(name=="Constant"){
-          sub_gtermType = 1;
+          sub_gtermType = 2;
           Debug("parser-sygus") << "Sygus grammar constant." << std::endl;
         }else if(name=="Variable"){
-          sub_gtermType = 2;
+          sub_gtermType = 3;
           allow_const = true;
           Debug("parser-sygus") << "Sygus grammar variable." << std::endl;
         }else{
           bool isBuiltinOperator = PARSER_STATE->isOperatorEnabled(name);
           if(isBuiltinOperator) {
-            Kind k = PARSER_STATE->getOperatorKind(name);
+            k = PARSER_STATE->getOperatorKind(name);
             if( k==CVC4::kind::BITVECTOR_UDIV ){
               k = CVC4::kind::BITVECTOR_UDIV_TOTAL;
             }
@@ -785,42 +797,110 @@ sygusGTerm[int index,
               PARSER_STATE->parseError(std::string("Functions in sygus grammars must be defined."));
             }
             ops[index].push_back( PARSER_STATE->getVariable(name) );
-            sub_gtermType = 0;
+            sub_gtermType = 1;
           }
         }
       }
     )
-    { if( sub_gtermType==0 ){
+    { if( sub_gtermType<=1 ){
         cnames[index].push_back( name );
       }
       cargs[index].push_back( std::vector< CVC4::Type >() );
       Debug("parser-sygus") << "Read arguments under " << name << ", gtermType = " << sub_gtermType << std::endl;
+      if( !ops[index].empty() ){
+        Debug("parser-sygus") << "Operator " << ops[index].back() << std::endl;
+      }
       //add datatype definition for argument
+      count++;
+      std::stringstream ss;
+      ss << datatypes[index].getName() << "_" << name << "_arg_" << count;
+      sub_dname = ss.str();
+      sorts.push_back(null_type);
+      datatypes.push_back(Datatype(sub_dname));
+      ops.push_back(std::vector<Expr>());
+      cnames.push_back(std::vector<std::string>());
+      cargs.push_back(std::vector<std::vector<CVC4::Type> >());
+      sub_dt_index = datatypes.size()-1;
+      sub_ret = null_type;
     }
     ( //symbol[sname,CHECK_NONE,SYM_VARIABLE]
-      sygusGTerm[datatypes.size()-1,datatypes,sorts,fun,ops,cnames,cargs,sygus_vars,sub_allow_const,sub_ret,sub_gtermType]
+      sygusGTerm[sub_dt_index,datatypes,sorts,fun,ops,cnames,cargs,sygus_vars,sygus_to_builtin,sub_allow_const,sub_ret,sub_gtermType]
       {
         Type t = sub_ret;
+        Debug("parser-sygus") << "Argument #" << count << " is ";
         if( t.isNull() ){
-          //then, it is the datatype we constructed
+          //then, it is the datatype we constructed, which should have a single constructor
+          t = PARSER_STATE->mkUnresolvedType(sub_dname);
+          Debug("parser-sygus") << "inline flattening of (auxiliary, local) datatype " << t << std::endl;
+          Debug("parser-sygus") << ": to compute type, construct ground term witnessing the grammar, #cons=" << cargs[sub_dt_index].size() << std::endl;
+          Expr sop = ops[sub_dt_index][0];
+          Type curr_t;
+          if( sop.getKind() != kind::BUILTIN && sop.isConst() ){
+            curr_t = sop.getType();
+            Debug("parser-sygus") << ": it is constant with type " << sop.getType() << std::endl;
+          }else{
+            std::vector< Expr > children;
+            if( sop.getKind() != kind::BUILTIN ){
+              children.push_back( sop );
+            }
+            for( unsigned i=0; i<cargs[sub_dt_index][0].size(); i++ ){
+              Type bt = sygus_to_builtin[cargs[sub_dt_index][0][i]];
+              Debug("parser-sygus") << ":  type elem " << i << " " << cargs[sub_dt_index][0][i] << " " << bt << std::endl;
+              children.push_back( PARSER_STATE->mkVar("x", bt) );
+            }
+            Kind sk;
+            if( sop.getKind() != kind::BUILTIN ){
+              sk = kind::APPLY;
+            }else{
+              sk = EXPR_MANAGER->operatorToKind(sop);
+            }
+            Debug("parser-sygus") << ": operator " << sop << " with " << sop.getKind() << " " << sk << std::endl;
+            Expr e = EXPR_MANAGER->mkExpr( sk, children );
+            Debug("parser-sygus") << ": constructed " << e << ", which has type " << e.getType() << std::endl;
+            curr_t = e.getType();
+          }
+          sorts[sub_dt_index] = curr_t;
+        }else{
+          Debug("parser-sygus") << "simple argument " << t << std::endl;
+          Debug("parser-sygus") << "...removing " << datatypes.back().getName() << std::endl;
+          //otherwise, datatype was unecessary
+          //pop argument datatype definition
+          sorts.pop_back();
+          datatypes.pop_back();
+          ops.pop_back();
+          cnames.pop_back();
+          cargs.pop_back();
         }
         cargs[index].back().push_back(t);
-        //pop argument datatype definition if empty
-        
         //add next datatype definition for argument
-        
+        count++;
+        std::stringstream ss;
+        ss << datatypes[index].getName() << "_" << name << "_arg_" << count;
+        sub_dname = ss.str();
+        sorts.push_back(null_type);
+        datatypes.push_back(Datatype(sub_dname));
+        ops.push_back(std::vector<Expr>());
+        cnames.push_back(std::vector<std::string>());
+        cargs.push_back(std::vector<std::vector<CVC4::Type> >());
+        sub_dt_index = datatypes.size()-1;
+        sub_ret = null_type;
       } )+ RPAREN_TOK
       {
         //pop argument datatype definition
-      
-        if( sub_gtermType==1 || sub_gtermType==2 ){
+        sorts.pop_back();
+        datatypes.pop_back();
+        ops.pop_back();
+        cnames.pop_back();
+        cargs.pop_back();        
+        //process constant/variable case 
+        if( sub_gtermType==2 || sub_gtermType==3 ){
           if( cargs[index].back().size()!=1 ){
             PARSER_STATE->parseError(std::string("Must provide single sort for constant/variable Sygus constructor."));
           }
           Type t = cargs[index].back()[0];
           cargs[index].pop_back();
           Debug("parser-sygus") << "Make constructors for Constant/Variable of type " << t << std::endl;
-          if( gtermType==1 ){
+          if( gtermType==2 ){
             std::vector< Expr > consts;
             PARSER_STATE->mkSygusConstantsForType( t, consts );
             for( unsigned i=0; i<consts.size(); i++ ){
@@ -831,7 +911,7 @@ sygusGTerm[int index,
               cnames[index].push_back( ss.str() );
               cargs[index].push_back( std::vector< CVC4::Type >() );
             }
-          }else if( sub_gtermType==2 ){
+          }else if( sub_gtermType==3 ){
             for( unsigned i=0; i<sygus_vars.size(); i++ ){
               if( sygus_vars[i].getType()==t ){
                 std::stringstream ss;
@@ -881,7 +961,7 @@ sygusGTerm[int index,
         cargs[index].push_back( std::vector< CVC4::Type >() );
       }else{
         //prepend function name to base sorts when reading an operator
-        if( gtermType==0 ){
+        if( gtermType<=1 ){
           std::stringstream ss;
           ss << fun << "_" << name;
           name = ss.str();
@@ -890,8 +970,12 @@ sygusGTerm[int index,
           Debug("parser-sygus") << "Sygus grammar " << fun << " : nested sort " << name << std::endl;
           ret = PARSER_STATE->getSort(name);
         }else{
-          Debug("parser-sygus") << "Sygus grammar " << fun << " : unresolved " << name << std::endl;
-          ret = PARSER_STATE->mkUnresolvedType(name);
+          if( gtermType==-1 ){
+            //if we don't know what this symbol is, and it is top level, just ignore it
+          }else{
+            Debug("parser-sygus") << "Sygus grammar " << fun << " : unresolved " << name << std::endl;
+            ret = PARSER_STATE->mkUnresolvedType(name);
+          }
         }
       }
     }
