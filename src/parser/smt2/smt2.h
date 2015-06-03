@@ -180,9 +180,29 @@ public:
 
   void mkSygusDefaultGrammar( const Type& range, Expr& bvl, const std::string& fun, std::vector<CVC4::Datatype>& datatypes,
                               std::vector<Type>& sorts, std::vector< std::vector<Expr> >& ops, std::vector<Expr> sygus_vars );
-  
+
   void mkSygusConstantsForType( const Type& type, std::vector<CVC4::Expr>& ops );
-  
+
+  static bool pushSygusDatatypeDef( Type t, std::string& dname,
+                                    std::vector< CVC4::Datatype >& datatypes,
+                                    std::vector< CVC4::Type>& sorts,
+                                    std::vector< std::vector<CVC4::Expr> >& ops,
+                                    std::vector< std::vector<std::string> >& cnames,
+                                    std::vector< std::vector< std::vector< CVC4::Type > > >& cargs );
+
+  static bool popSygusDatatypeDef( std::vector< CVC4::Datatype >& datatypes,
+                                   std::vector< CVC4::Type>& sorts,
+                                   std::vector< std::vector<CVC4::Expr> >& ops,
+                                   std::vector< std::vector<std::string> >& cnames,
+                                   std::vector< std::vector< std::vector< CVC4::Type > > >& cargs );
+
+  Type processSygusNestedGTerm( int sub_dt_index, std::string& sub_dname, std::vector< CVC4::Datatype >& datatypes,
+                                std::vector< CVC4::Type>& sorts,
+                                std::vector< std::vector<CVC4::Expr> >& ops,
+                                std::vector< std::vector<std::string> >& cnames,
+                                std::vector< std::vector< std::vector< CVC4::Type > > >& cargs,
+                                std::map< CVC4::Type, CVC4::Type >& sygus_to_builtin, Type sub_ret );
+
   void addSygusFun(const std::string& fun, Expr eval) {
     d_sygusFuns.push_back(std::make_pair(fun, eval));
   }

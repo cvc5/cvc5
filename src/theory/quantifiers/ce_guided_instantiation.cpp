@@ -484,9 +484,9 @@ void CegInstantiation::getMeasureLemmas( Node n, Node v, std::vector< Node >& le
 
 void CegInstantiation::printSynthSolution( std::ostream& out ) {
   if( d_conj ){
-    if( !(Trace.isOn("cegqi-stats")) ){
-      out << "Solution:" << std::endl;
-    }
+    //if( !(Trace.isOn("cegqi-stats")) ){
+    //  out << "Solution:" << std::endl;
+    //}
     for( unsigned i=0; i<d_conj->d_candidates.size(); i++ ){
       std::stringstream ss;
       ss << d_conj->d_quant[0][i];
