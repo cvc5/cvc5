@@ -87,6 +87,8 @@ private:
   bool doCbqi( Node f );
   /** is the engine incomplete for this quantifier */
   bool isIncomplete( Node f );
+  /** cbqi set inactive */
+  bool d_cbqi_set_quant_inactive;
 private:
   /** do instantiation round */
   bool doInstantiationRound( Theory::Effort effort );
@@ -98,7 +100,7 @@ public:
   /** initialize */
   void finishInit();
 
-  bool needsCheck( Theory::Effort e ); 
+  bool needsCheck( Theory::Effort e );
   void reset_round( Theory::Effort e );
   void check( Theory::Effort e, unsigned quant_e );
   bool checkComplete();

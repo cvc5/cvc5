@@ -173,6 +173,7 @@ bool InstantiationEngine::needsCheck( Theory::Effort e ){
 }
 
 void InstantiationEngine::reset_round( Theory::Effort e ) {
+  d_cbqi_set_quant_inactive = false;
   if( options::cbqi() ){
     //set inactive the quantified formulas whose CE literals are asserted false
     for( int i=0; i<(int)d_quantEngine->getModel()->getNumAssertedQuantifiers(); i++ ){
@@ -185,9 +186,11 @@ void InstantiationEngine::reset_round( Theory::Effort e ) {
         if( d_quantEngine->getValuation().hasSatValue( cel, value ) ){
           Debug("cbqi-debug") << "...CE Literal has value " << value << std::endl;
           if( !value ){
-            d_quantEngine->getModel()->setQuantifierActive( q, false );
             if( d_quantEngine->getValuation().isDecision( cel ) ){
               Trace("cbqi-warn") << "CBQI WARNING: Bad decision on CE Literal." << std::endl;
+            }else{
+              d_quantEngine->getModel()->setQuantifierActive( q, false );
+              d_cbqi_set_quant_inactive = true;
             }
           }
         }else{
@@ -233,12 +236,16 @@ void InstantiationEngine::check( Theory::Effort e, unsigned quant_e ){
 }
 
 bool InstantiationEngine::checkComplete() {
-  for( unsigned i=0; i<d_quants.size(); i++ ){
-    if( isIncomplete( d_quants[i] ) ){
-      return false;
+  if( !options::cbqiSat() && d_cbqi_set_quant_inactive ){
+    return false;
+  }else{
+    for( unsigned i=0; i<d_quants.size(); i++ ){
+      if( isIncomplete( d_quants[i] ) ){
+        return false;
+      }
     }
+    return true;
   }
-  return true;
 }
 
 void InstantiationEngine::registerQuantifier( Node f ){

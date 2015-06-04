@@ -232,6 +232,8 @@ option cbqi2 --cbqi2 bool :read-write :default false
  turns on new implementation of counterexample-based quantifier instantiation
 option recurseCbqi --cbqi-recurse bool :default false
  turns on recursive counterexample-based quantifier instantiation
+option cbqiSat --cbqi-sat bool :read-write :default true
+ answer sat when quantifiers are asserted with counterexample-based quantifier instantiation
  
 ### local theory extensions options 
 

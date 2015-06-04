@@ -67,12 +67,12 @@ ALIA|AUFLIA|AUFLIRA|AUFNIRA|BV|UF|UFBV|UFIDL|UFLIA|UFLRA|UFNIA)
   finishwith --full-saturate-quant
   ;;
 LIA|LRA|NIA|NRA)
-  trywith 20 --cbqi --full-saturate-quant
-  trywith 20 --full-saturate-quant
-  trywith 20 --cbqi --cbqi-recurse --full-saturate-quant
-  trywith 60 --qcf-tconstraint --full-saturate-quant
-  trywith 120 --cbqi --cbqi-recurse --full-saturate-quant
-  finishwith --cbqi-recurse --pre-skolem-quant --full-saturate-quant
+  trywith 60 --cbqi --full-saturate-quant
+  trywith 60 --full-saturate-quant
+  trywith 60 --cbqi --cbqi-recurse --full-saturate-quant
+  trywith 180 --qcf-tconstraint --full-saturate-quant
+  trywith 240 --cbqi --cbqi-recurse --full-saturate-quant
+  finishwith --cbqi --cbqi-recurse --pre-skolem-quant --full-saturate-quant
   ;;
 QF_AUFBV)
   trywith 600

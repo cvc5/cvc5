@@ -33,10 +33,10 @@ QF_LIA)
   runcvc4 --enable-miplib-trick --miplib-trick-subs=4 --lemmas-on-replay-failure --replay-early-close-depth=4 --replay-lemma-reject-cut=128 --replay-reject-cut=512 --unconstrained-simp --pb-rewrites
   ;;
 ALIA|AUFLIA|AUFLIRA|AUFNIRA|BV|UF|UFBV|UFIDL|UFLIA|UFLRA|UFNIA)
-  runcvc4 --simplification=none --decision=internal --full-saturate-quant
+  runcvc4 
   ;;
 LIA|LRA|NIA|NRA)
-  runcvc4 --enable-cbqi --full-saturate-quant
+  runcvc4 --cbqi
   ;;
 QF_BV)
   runcvc4 --unconstrained-simp --bv-eq-slicer=auto --bv-div-zero-const --bv-intro-pow2
