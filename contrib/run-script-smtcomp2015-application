@@ -20,33 +20,33 @@ function runcvc4 {
   # we run in this way for line-buffered input, otherwise memory's a
   # concern (plus it mimics what we'll end up getting from an
   # application-track trace runner?)
-  $cvc4 --force-logic="$logic" -L smt2 --print-success --no-checking --no-interactive --tear-down-incremental "$@" <&0-
+  $cvc4 --force-logic="$logic" -L smt2 --print-success --no-checking --no-interactive "$@" <&0-
 }
 
 case "$logic" in
 
 QF_LRA)
-  runcvc4 --enable-miplib-trick --miplib-trick-subs=4 --lemmas-on-replay-failure --replay-early-close-depth=4 --replay-lemma-reject-cut=128 --replay-reject-cut=512 --unconstrained-simp
+  runcvc4 --tear-down-incremental --enable-miplib-trick --miplib-trick-subs=4 --lemmas-on-replay-failure --replay-early-close-depth=4 --replay-lemma-reject-cut=128 --replay-reject-cut=512 --unconstrained-simp
   ;;
 QF_LIA)
   # same as QF_LRA but add --pb-rewrites
-  runcvc4 --enable-miplib-trick --miplib-trick-subs=4 --lemmas-on-replay-failure --replay-early-close-depth=4 --replay-lemma-reject-cut=128 --replay-reject-cut=512 --unconstrained-simp --pb-rewrites
+  runcvc4 --tear-down-incremental --enable-miplib-trick --miplib-trick-subs=4 --lemmas-on-replay-failure --replay-early-close-depth=4 --replay-lemma-reject-cut=128 --replay-reject-cut=512 --unconstrained-simp --pb-rewrites
   ;;
 ALIA|AUFLIA|AUFLIRA|AUFNIRA|BV|UF|UFBV|UFIDL|UFLIA|UFLRA|UFNIA)
-  runcvc4 
+  runcvc4  --tear-down-incremental
   ;;
 LIA|LRA|NIA|NRA)
-  runcvc4 --cbqi --no-cbqi-sat
+  runcvc4 --tear-down-incremental --cbqi --no-cbqi-sat
   ;;
 QF_BV)
-  runcvc4 --unconstrained-simp --bv-eq-slicer=auto --bv-div-zero-const --bv-intro-pow2
+  runcvc4 --tear-down-incremental --unconstrained-simp --bv-eq-slicer=auto --bv-div-zero-const --bv-intro-pow2
   ;;
 QF_AUFLIA|QF_AX)
-  runcvc4 --no-arrays-eager-index --arrays-eager-lemmas
+  runcvc4 --tear-down-incremental --no-arrays-eager-index --arrays-eager-lemmas
   ;;
 *)
   # just run the default
-  runcvc4
+  runcvc4 --tear-down-incremental
   ;;
 
 esac
