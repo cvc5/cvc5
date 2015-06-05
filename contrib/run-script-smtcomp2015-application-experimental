@@ -26,27 +26,27 @@ function runcvc4 {
 case "$logic" in
 
 QF_LRA)
-  runcvc4 --tear-down-incremental --enable-miplib-trick --miplib-trick-subs=4 --lemmas-on-replay-failure --replay-early-close-depth=4 --replay-lemma-reject-cut=128 --replay-reject-cut=512 --unconstrained-simp
+  runcvc4 --incremental --enable-miplib-trick --miplib-trick-subs=4 --lemmas-on-replay-failure --replay-early-close-depth=4 --replay-lemma-reject-cut=128 --replay-reject-cut=512 --unconstrained-simp
   ;;
 QF_LIA)
   # same as QF_LRA but add --pb-rewrites
-  runcvc4 --tear-down-incremental --enable-miplib-trick --miplib-trick-subs=4 --lemmas-on-replay-failure --replay-early-close-depth=4 --replay-lemma-reject-cut=128 --replay-reject-cut=512 --unconstrained-simp --pb-rewrites
+  runcvc4 --incremental --enable-miplib-trick --miplib-trick-subs=4 --lemmas-on-replay-failure --replay-early-close-depth=4 --replay-lemma-reject-cut=128 --replay-reject-cut=512 --unconstrained-simp --pb-rewrites
   ;;
 ALIA|AUFLIA|AUFLIRA|AUFNIRA|BV|UF|UFBV|UFIDL|UFLIA|UFLRA|UFNIA)
-  runcvc4 --tear-down-incremental
+  runcvc4 --incremental
   ;;
 LIA|LRA|NIA|NRA)
-  runcvc4 --tear-down-incremental --cbqi
+  runcvc4 --incremental --cbqi
   ;;
 QF_BV)
-  runcvc4 --tear-down-incremental --unconstrained-simp --bv-eq-slicer=auto --bv-div-zero-const --bv-intro-pow2
+  runcvc4 --incremental --unconstrained-simp --bv-eq-slicer=auto --bv-div-zero-const --bv-intro-pow2
   ;;
 QF_AUFLIA|QF_AX)
-  runcvc4 --tear-down-incremental --no-arrays-eager-index --arrays-eager-lemmas
+  runcvc4 --incremental --no-arrays-eager-index --arrays-eager-lemmas
   ;;
 *)
   # just run the default
-  runcvc4 --tear-down-incremental
+  runcvc4 --incremental
   ;;
 
 esac
