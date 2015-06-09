@@ -80,7 +80,7 @@ QF_ABV)
   finishwith --ite-simp --simp-with-care --repeat-simp
   ;;
 QF_BV)
-  exec ./pcvc4 -L smt2 --no-incremental --no-checking --no-interactive --thread-stack=256 \
+  exec ./pcvc4 -L smt2 --no-incremental --no-checking --no-interactive --thread-stack=1024 \
          --threads 2 \
          --thread0 '--unconstrained-simp --bv-div-zero-const --bv-intro-pow2 --bitblast=eager --no-bv-abstraction' \
          --thread1 '--unconstrained-simp --bv-div-zero-const --bv-intro-pow2 --bv-eq-slicer=auto ' \
