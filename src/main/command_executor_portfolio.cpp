@@ -343,8 +343,8 @@ bool CommandExecutorPortfolio::doCommandSingleton(Command* cmd)
         << std::flush;
 
 #ifdef CVC4_COMPETITION_MODE
-      // There's some hang-up in thread destruction?
-      // Anyway for SMT-COMP we don't care, just exit now.
+      // We use CVC4 in competition with --no-wait-to-join. If
+      // destructors run, they will destroy(!) us. So, just exit now.
       _exit(0);
 #endif /* CVC4_COMPETITION_MODE */
     }
