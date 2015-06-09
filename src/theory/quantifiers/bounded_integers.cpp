@@ -372,6 +372,7 @@ Node BoundedIntegers::getNextDecisionRequest() {
       }
     }
   }
+  Trace("bound-int-dec-debug") << "No decision request." << std::endl;
   return Node::null();
 }
 

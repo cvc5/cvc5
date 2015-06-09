@@ -1480,7 +1480,13 @@ void SmtEngine::setDefaults() {
       options::conjectureGen.set( false );
     }
   }
-
+  //can't pre-skolemize nested quantifiers without UF theory
+  if( !d_logic.isTheoryEnabled(THEORY_UF) && options::preSkolemQuant() ){
+    if( !options::preSkolemQuantNested.wasSetByUser() ){
+      options::preSkolemQuantNested.set( false );
+    }
+  } 
+  
   //until bugs 371,431 are fixed
   if( ! options::minisatUseElim.wasSetByUser()){
     if( d_logic.isQuantified() || options::produceModels() || options::produceAssignments() || options::checkModels() ){

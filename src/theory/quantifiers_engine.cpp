@@ -770,6 +770,7 @@ bool QuantifiersEngine::addInstantiation( Node f, std::vector< Node >& terms, bo
   getOutputChannel().safePoint(options::quantifierStep());
 
   Assert( terms.size()==f[0].getNumChildren() );
+  Trace("inst-add-debug") << "For quantified formula " << f << "..." << std::endl;
   Trace("inst-add-debug") << "Add instantiation: ";
   for( unsigned i=0; i<terms.size(); i++ ){
     if( i>0 ) Trace("inst-add-debug") << ", ";

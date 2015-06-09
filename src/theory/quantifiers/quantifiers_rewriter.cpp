@@ -1210,7 +1210,7 @@ Node QuantifiersRewriter::preSkolemizeQuantifiers( Node n, bool polarity, std::v
     return nn.negate();
   }else if( n.getKind()==kind::FORALL ){
     if( polarity ){
-      if( options::preSkolemQuant() && ( options::preSkolemQuantNested() || fvs.empty() ) ){
+      if( options::preSkolemQuant() && options::preSkolemQuantNested() ){
         vector< Node > children;
         children.push_back( n[0] );
         //add children to current scope

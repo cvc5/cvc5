@@ -74,10 +74,8 @@ ALIA|AUFLIA|AUFLIRA|AUFNIRA|BV|UF|UFBV|UFIDL|UFLIA|UFLRA|UFNIA)
 LIA|LRA|NIA|NRA)
   trywith 30 --cbqi --no-cbqi-sat --full-saturate-quant
   trywith 30 --full-saturate-quant
-  trywith 30 --cbqi --no-cbqi-sat --cbqi-recurse --full-saturate-quant
   trywith 30 --qcf-tconstraint --full-saturate-quant
-  trywith 30 --cbqi --no-cbqi-sat --cbqi-recurse --full-saturate-quant
-  finishwith --cbqi --no-cbqi-sat --cbqi-recurse --pre-skolem-quant --full-saturate-quant
+  finishwith --cbqi --no-cbqi-sat --cbqi-recurse --full-saturate-quant
   ;;
 QF_AUFBV)
   trywith 30

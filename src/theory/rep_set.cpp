@@ -370,7 +370,9 @@ bool RepSetIterator::isFinished(){
 }
 
 Node RepSetIterator::getTerm( int i ){
-  int index = d_index_order[i];
+  Trace("rsi-debug") << "rsi : get term " << i << ", index order = " << d_index_order[i] << std::endl;
+  //int index = d_index_order[i];
+  int index = i;
   if( d_enum_type[index]==ENUM_DOMAIN_ELEMENTS ){
     TypeNode tn = d_types[index];
     Assert( d_rep_set->d_type_reps.find( tn )!=d_rep_set->d_type_reps.end() );
