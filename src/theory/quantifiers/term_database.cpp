@@ -23,6 +23,7 @@
 #include "theory/datatypes/datatypes_rewriter.h"
 #include "theory/quantifiers/ce_guided_instantiation.h"
 #include "theory/quantifiers/rewrite_engine.h"
+#include "theory/quantifiers/polymorphic_engine.h"
 
 //for sygus
 #include "theory/bv/theory_bv_utils.h"
@@ -130,6 +131,7 @@ void TermDb::addTerm( Node n, std::set< Node >& added, bool withinQuant, bool wi
   if( d_processed.find( n )==d_processed.end() ){
     d_processed.insert(n);
     d_type_map[ n.getType() ].push_back( n );
+    d_quantEngine->getPolymorphicEngine()->newTerm(n);
     //if this is an atomic trigger, consider adding it
     //Call the children?
     if( inst::Trigger::isAtomicTrigger( n ) ){
@@ -171,6 +173,10 @@ void TermDb::addTerm( Node n, std::set< Node >& added, bool withinQuant, bool wi
       addTerm( n[i], added, withinQuant, withinInstClosure );
     }
   }
+}
+
+bool TermDb::isProcessed( Node n ){
+  return d_processed.find(n) != d_processed.end();
 }
 
 void TermDb::computeArgReps( TNode n ) {
@@ -1228,7 +1234,10 @@ Node TermDb::getFunDefBody( Node q ) {
 
 void TermDb::computeAttributes( Node q ) {
   Trace("quant-attr-debug") << "Compute attributes for " << q << std::endl;
-  if( q.getNumChildren()==3 ){
+  if( isPolymorphic( q ) ){
+    Trace("quant-attr") << "Attribute : polymorphic quantifier : " << q << std::endl;
+    d_quantEngine->setOwner( q, d_quantEngine->getPolymorphicEngine() );
+  } else if( q.getNumChildren()==3 ){
     for( unsigned i=0; i<q[2].getNumChildren(); i++ ){
       Trace("quant-attr-debug") << "Check : " << q[2][i] << " " << q[2][i].getKind() << std::endl;
       if( q[2][i].getKind()==INST_ATTRIBUTE ){
@@ -2028,4 +2037,11 @@ Node TermDbSygus::expandBuiltinTerm( Node t ){
                                                  NodeManager::currentNM()->mkNode( AND, t[0].negate(), t[1].negate() ) );
   }
   return Node::null();
+}
+
+bool TermDb::isPolymorphic( Node q ) {
+  return q.getKind()==FORALL && q.getNumChildren() >= 1 &&
+    q[0].getKind()==kind::BOUND_VAR_LIST &&
+    q[0].getNumChildren() >= 1 &&
+    NodeManager::currentNM()->isPolymorphicTypeVar(q[0][0].getType());
 }

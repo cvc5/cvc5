@@ -19,6 +19,7 @@
 #include "expr/variable_type_map.h"
 #include "options/options.h"
 #include "util/statistics_registry.h"
+#include "expr/node_manager_attributes.h"
 
 #include <map>
 
@@ -28,7 +29,7 @@ ${includes}
 // compiler directs the user to the template file instead of the
 // generated one.  We don't want the user to modify the generated one,
 // since it'll get overwritten on a later build.
-#line 32 "${template}"
+#line 33 "${template}"
 
 #ifdef CVC4_STATISTICS_ON
   #define INC_STAT(kind) \
@@ -965,6 +966,101 @@ Expr ExprManager::mkAssociative(Kind kind,
   return Expr(this, d_nodeManager->mkNodePtr(kind,newChildren) );
 }
 
+
+void ExprManager::newPolymorphicFunction(Expr n){
+  NodeManagerScope nms(d_nodeManager);
+  d_nodeManager->newPolymorphicFunction(n);
+}
+
+bool ExprManager::isPolymorphicFunction(Expr n){
+  NodeManagerScope nms(d_nodeManager);
+  return d_nodeManager->isPolymorphicFunction(n);
+}
+
+bool ExprManager::isPolymorphicFunctionInstance(Expr n){
+  NodeManagerScope nms(d_nodeManager);
+  return d_nodeManager->isPolymorphicFunctionInstance(n);
+}
+
+Expr ExprManager::getPolymorphicFunction(Expr n){
+  NodeManagerScope nms(d_nodeManager);
+  return Expr(this,new Node(d_nodeManager->getPolymorphicFunction(n.getNode())));
+}
+
+Expr ExprManager::instanciatePolymorphicFunction(Expr n, FunctionType ty)
+  throw(TypeCheckingException) {
+  NodeManagerScope nms(d_nodeManager);
+  if (FunctionType(n.getType()).getArity() != ty.getArity()){
+    throw TypeCheckingException(n,"application arity mismatch");
+  };
+
+  try {
+    return Expr(this,new Node (d_nodeManager->instanciatePolymorphicFunction(n.getNode(),*ty.d_typeNode)));
+  } catch (const TypeCheckingExceptionPrivate& e) {
+    throw TypeCheckingException(this, &e);
+  }
+}
+
+Expr ExprManager::instanciatePolymorphicFunction(Expr n, std::vector<Type> tys)
+  throw(TypeCheckingException) {
+  NodeManagerScope nms(d_nodeManager);
+  if (FunctionType(n.getType()).getArity() != tys.size()){
+    throw TypeCheckingException(n,"arity application mismatch");
+  };
+
+  std::vector<TypeNode> tys2; tys2.reserve(tys.size());
+  for(size_t i=0, len = tys.size(); i < len; ++i){
+    tys2.push_back(*(tys[i]).d_typeNode);
+  };
+  try {
+    return Expr(this,new Node (d_nodeManager->instanciatePolymorphicFunction(n.getNode(),tys2)));
+  } catch (const TypeCheckingExceptionPrivate& e) {
+    throw TypeCheckingException(this, &e);
+  }
+}
+
+bool ExprManager::isPolymorphicTypeVar(Type tv){
+  NodeManagerScope nms(d_nodeManager);
+  return d_nodeManager->isPolymorphicTypeVar(*tv.d_typeNode);
+}
+
+std::vector<std::pair<Type,Expr> > ExprManager::getPolymorphicTypeVars(size_t nb){
+  NodeManagerScope nms(d_nodeManager);
+  std::vector< std::pair<TypeNode,TNode> > res = d_nodeManager->getPolymorphicTypeVars(nb);
+  std::vector< std::pair<Type,Expr> > res2;
+  res2.reserve(nb);
+  for(std::vector< std::pair<TypeNode,TNode> >::const_iterator i =
+        res.begin();
+      i != res.end(); ++i){
+    res2.push_back( std::make_pair(Type(d_nodeManager,new TypeNode(i->first)),
+                                   Expr(this,new Node(i->second))));
+  }
+  return res2;
+}
+
+bool ExprManager::isPolymorphicTypeVarSchema(Type tv){
+  NodeManagerScope nms(d_nodeManager);
+  return d_nodeManager->isPolymorphicTypeVarSchema(*tv.d_typeNode);
+}
+
+std::vector< Type > ExprManager::getPolymorphicTypeVarsSchema(size_t nb){
+  NodeManagerScope nms(d_nodeManager);
+  std::vector< TypeNode > res = d_nodeManager->getPolymorphicTypeVarsSchema(nb);
+  std::vector< Type > res2;
+  res2.reserve(nb);
+  for(std::vector< TypeNode >::const_iterator i = res.begin(); i != res.end(); ++i){
+    res2.push_back( Type(d_nodeManager,new TypeNode(*i)));
+  }
+  return res2;
+}
+
+Expr ExprManager::getPolymorphicConstantArg(){
+  NodeManagerScope nms(d_nodeManager);
+  return Expr(this,new Node(d_nodeManager->getPolymorphicConstantArg()));
+}
+
+
+
 unsigned ExprManager::minArity(Kind kind) {
   return metakind::getLowerBoundForKind(kind);
 }
@@ -1012,21 +1108,50 @@ TypeNode exportTypeInternal(TypeNode n, NodeManager* from, NodeManager* to, Expr
   if(! to_t.isNull()) {
     Debug("export") << "+ mapped `" << from_t << "' to `" << to_t << "'" << std::endl;
     return *Type::getTypeNode(to_t);
-  }
-  NodeBuilder<> children(to, n.getKind());
-  if(n.getKind() == kind::SORT_TYPE) {
-    Debug("export") << "type: operator: " << n.getOperator() << std::endl;
-    // make a new sort tag in target node manager
-    Node sortTag = NodeBuilder<0>(to, kind::SORT_TAG);
-    children << sortTag;
-  }
-  for(TypeNode::iterator i = n.begin(), i_end = n.end(); i != i_end; ++i) {
-    Debug("export") << "type: child: " << *i << std::endl;
-    children << exportTypeInternal(*i, from, to, vmap);
-  }
-  TypeNode out = children.constructTypeNode();// FIXME thread safety
-  to_t = to->toType(out);
-  return out;
+  };
+
+  if(from->isPolymorphicTypeVar(n)){
+    //create the exported type and associated boundvariable
+    TypeNode to_ty = to->mkSort("cvc4_tyvar");
+    Node to_bv = to->mkBoundVar("cvc4_bvvar",to_ty);
+    to->d_parameterVariables[to_ty] = to_bv;
+
+    to_t = to->toType(to_ty);
+  } else if(from->isPolymorphicTypeVarSchema(n)){
+    TypeNode to_ty = to->mkSort("cvc4_schema");
+    to->d_schemaVariables.insert(to_ty);
+
+    to_t = to->toType(to_ty);
+  } else {
+    NodeBuilder<> children(to, n.getKind());
+    if(n.getKind() == kind::SORT_TYPE) {
+      // export the operator
+      Expr from_op = from->toExpr(n.getOperator());
+      Expr& to_op = vmap.d_typeMap[from_op];
+      if( to_op.isNull() ) {
+        // make a new sort tag in target node manager
+        Node sortTag = NodeBuilder<0>(to, kind::SORT_TAG);
+        Debug("export") << "type: operator: " << n.getOperator() << "->" << sortTag << std::endl;
+        to_op = to->toExpr(sortTag);
+        vmap.d_typeMap[to_op] = from_op;
+      }
+      children << Node::fromExpr(to_op);
+    }
+    for(TypeNode::iterator i = n.begin(), i_end = n.end(); i != i_end; ++i) {
+      Debug("export") << "type: child: " << *i << std::endl;
+      children << exportTypeInternal(*i, from, to, vmap);
+    }
+    TypeNode out = children.constructTypeNode();// FIXME thread safety
+    // Copy constructor type name
+    string name;
+    if(from->getAttribute(n,expr::VarNameAttr(), name)){
+      to->setAttribute(out,expr::VarNameAttr(), name);
+    };
+    to_t = to->toType(out);
+  };
+
+  Debug("export") << "+ mapped `" << from_t << "' to `" << to_t << "'" << std::endl;
+  return TypeNode::fromType(to_t);
 }/* exportTypeInternal() */
 
 }/* CVC4::expr namespace */

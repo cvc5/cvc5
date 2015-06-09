@@ -315,6 +315,8 @@ libcvc4_la_SOURCES = \
 	theory/quantifiers/first_order_reasoning.cpp \
 	theory/quantifiers/rewrite_engine.h \
 	theory/quantifiers/rewrite_engine.cpp \
+	theory/quantifiers/polymorphic_engine.h \
+	theory/quantifiers/polymorphic_engine.cpp \
 	theory/quantifiers/relevant_domain.h \
 	theory/quantifiers/relevant_domain.cpp \
 	theory/quantifiers/symmetry_breaking.h \

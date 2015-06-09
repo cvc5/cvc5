@@ -151,6 +151,12 @@ public:
              Iterator2 replacementsBegin, Iterator2 replacementsEnd) const;
 
   /**
+   * Simultaneous substitution of TypeNodes using the cache as
+   * representation of the substitution
+   */
+  TypeNode substitute(std::hash_map<TypeNode, TypeNode, HashFunction>& cache) const;
+
+  /**
    * Structural comparison operator for expressions.
    *
    * @param typeNode the type node to compare to

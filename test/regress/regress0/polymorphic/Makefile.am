@@ -19,11 +19,24 @@ MAKEFLAGS = -k
 # If a test shouldn't be run in e.g. competition mode,
 # put it below in "TESTS +="
 TESTS =	\
-	declarefun-emptyset-uf.smt2 \
-	constraint.smt2 \
-	strings20.smt2 \
-	strings25.smt2 \
-	as.smt2
+	parsing.smt2 \
+	parsing2.smt2 \
+	parsing3.smt2 \
+	parsing4.smt2 \
+	parsing5.smt2 \
+	parsing6.smt2 \
+	parsing7.smt2 \
+	parsing8.smt2 \
+	parsing9.smt2 \
+	parsing10.smt2 \
+	typing_bad1.smt2 \
+	typing_bad2.smt2 \
+	typing_bad3.smt2 \
+	typing_bad4.smt2 \
+	typing_bad5.smt2 \
+	typing_bad6.smt2 \
+	typing_bad7.smt2 \
+	typing_bad8.smt2
 
 EXTRA_DIST = $(TESTS)
 

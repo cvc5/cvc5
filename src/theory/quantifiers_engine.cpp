@@ -27,6 +27,7 @@
 #include "theory/quantifiers/trigger.h"
 #include "theory/quantifiers/bounded_integers.h"
 #include "theory/quantifiers/rewrite_engine.h"
+#include "theory/quantifiers/polymorphic_engine.h"
 #include "theory/quantifiers/quant_conflict_find.h"
 #include "theory/quantifiers/conjecture_generator.h"
 #include "theory/quantifiers/ce_guided_instantiation.h"
@@ -181,6 +182,11 @@ d_lemmas_produced_c(u){
     d_builder = NULL;
   }
 
+  d_para_engine = new quantifiers::PolymorphicEngine( c, this );
+  d_modules.push_back(d_para_engine);
+
+
+  //options
   d_total_inst_count_debug = 0;
   d_ierCounter = 0;
   d_ierCounter_lc = 0;
@@ -189,6 +195,7 @@ d_lemmas_produced_c(u){
 QuantifiersEngine::~QuantifiersEngine(){
   delete d_builder;
   delete d_rr_engine;
+  delete d_para_engine;
   delete d_bint;
   delete d_model_engine;
   delete d_inst_engine;

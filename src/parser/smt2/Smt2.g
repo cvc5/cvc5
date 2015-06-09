@@ -237,6 +237,7 @@ command returns [CVC4::Command* cmd = NULL]
   Expr expr, expr2;
   Type t;
   std::vector<Expr> terms;
+  std::vector<std::string> par_sorts;
   std::vector<Type> sorts;
   std::vector<std::pair<std::string, Type> > sortedVarNames;
 }
@@ -305,16 +306,22 @@ command returns [CVC4::Command* cmd = NULL]
     DECLARE_FUN_TOK { PARSER_STATE->checkThatLogicIsSet(); }
     symbol[name,CHECK_UNDECLARED,SYM_VARIABLE]
     { PARSER_STATE->checkUserSymbol(name); }
-    LPAREN_TOK sortList[sorts] RPAREN_TOK
-    sortSymbol[t,CHECK_DECLARED]
+    polymorphicSignature[par_sorts,sorts,t]
     { Debug("parser") << "declare fun: '" << name << "'" << std::endl;
-      if( sorts.size() > 0 ) {
+      if( sorts.size() > 0 || par_sorts.size() > 0) {
         if(!PARSER_STATE->isTheoryEnabled(Smt2::THEORY_UF)) {
           PARSER_STATE->parseError(std::string("Functions (of non-zero arity) cannot be declared in logic ") + PARSER_STATE->getLogic().getLogicString());
         }
+
+        //Polymorphic constant are transformed into function
+        if(sorts.size() == 0 && par_sorts.size() > 0){
+          sorts.push_back(EXPR_MANAGER->getPolymorphicConstantArg().getType());
+        };
+
         t = EXPR_MANAGER->mkFunctionType(sorts, t);
       }
       Expr func = PARSER_STATE->mkVar(name, t);
+      if (par_sorts.size() > 0) { EXPR_MANAGER->newPolymorphicFunction(func); };
       $cmd = new DeclareFunctionCommand(name, func, t); }
   | /* function definition */
     DEFINE_FUN_TOK { PARSER_STATE->checkThatLogicIsSet(); }
@@ -363,7 +370,7 @@ command returns [CVC4::Command* cmd = NULL]
   | /* assertion */
     ASSERT_TOK { PARSER_STATE->checkThatLogicIsSet(); }
     { PARSER_STATE->clearLastNamedTerm(); }
-    term[expr, expr2]
+    polymorphicAssert[par_sorts,expr, expr2]
     { bool inUnsatCore = PARSER_STATE->lastNamedTerm().first == expr;
       cmd = new AssertCommand(expr, inUnsatCore);
       if(inUnsatCore) {
@@ -1607,10 +1614,26 @@ term[CVC4::Expr& expr, CVC4::Expr& expr2]
         Debug("parser") << "Empty set encountered: " << f << " "
                           << f2 << " " << type <<  std::endl;
         expr = MK_CONST( ::CVC4::EmptySet(type) );
+      } else if( !PARSER_STATE->strictModeEnabled() &&
+                 f.getKind() == CVC4::kind::APPLY_UF &&
+                 EXPR_MANAGER->isPolymorphicFunction(f.getOperator())){
+          Debug("parser") << "Polymorphic function " << f.getOperator() << std::endl;
+        std::vector<Type> sorts;
+        sorts.reserve(f.getNumChildren() + 1);
+        for(Expr::const_iterator i = f.begin(); i != f.end(); ++i){
+          sorts.push_back((*i).getType());
+        };
+        sorts.push_back(type);
+        FunctionType sig = EXPR_MANAGER->mkFunctionType(sorts);
+        Expr op = EXPR_MANAGER->instanciatePolymorphicFunction(f.getOperator(),sig);
+        expr = MK_EXPR(CVC4::kind::APPLY_UF, op, f.getChildren());
       } else {
         if(f.getType() != type) {
+          Debug("parser") << "Type " << f.getType() << " and "
+                          << type << " not equal." <<  std::endl;
           PARSER_STATE->parseError("Type ascription not satisfied.");
         }
+        expr = f;
       }
     }
   | LPAREN_TOK quantOp[kind]
@@ -1678,7 +1701,7 @@ term[CVC4::Expr& expr, CVC4::Expr& expr2]
         }
         args.push_back(expr);
       }
-        }
+    }
     termList[args,expr] RPAREN_TOK
     { Debug("parser") << "args has size " << args.size() << std::endl << "expr is " << expr << std::endl;
       for(std::vector<Expr>::iterator i = args.begin(); i != args.end(); ++i) {
@@ -1686,6 +1709,20 @@ term[CVC4::Expr& expr, CVC4::Expr& expr2]
       }
       if(isBuiltinOperator) {
         PARSER_STATE->checkOperator(kind, args.size());
+      }
+      if(!PARSER_STATE->strictModeEnabled() &&
+         kind == CVC4::kind::APPLY_UF &&
+         EXPR_MANAGER->isPolymorphicFunction(args[0])){
+        std::vector<Type> sorts;
+        sorts.reserve(args.size() - 1 /* operator */);
+        for(size_t i = 1; i < args.size(); ++i){
+          sorts.push_back(args[i].getType());
+        };
+        /* replace the operator with the instanciated
+         * one (result type not taken into account yet) */
+        Debug("parser") << "Polymorphic function " << args[0] << " encountered with" << args[1] << std::endl;
+        args[0] = EXPR_MANAGER->instanciatePolymorphicFunction(args[0],sorts);
+        Debug("parser") << "Replaced by " << args[0] << std::endl;
       }
       expr = MK_EXPR(kind, args); }
 
@@ -1759,7 +1796,12 @@ term[CVC4::Expr& expr, CVC4::Expr& expr2]
       } else {
         expr = PARSER_STATE->getVariable(name);
         Type t = PARSER_STATE->getType(name);
-        if(t.isConstructor() && ConstructorType(t).getArity() == 0) {
+        if(!PARSER_STATE->strictModeEnabled() &&
+           expr.getType().isFunction() &&
+           EXPR_MANAGER->isPolymorphicFunction(expr) ) {
+          /* constant polymorphic are turned into an unary function */
+          expr = MK_EXPR(CVC4::kind::APPLY_UF,expr,EXPR_MANAGER->getPolymorphicConstantArg());
+        } else if(t.isConstructor() && ConstructorType(t).getArity() == 0) {
           // don't require parentheses, immediately turn it into an apply
           expr = MK_EXPR(CVC4::kind::APPLY_CONSTRUCTOR, expr);
         }
@@ -2256,6 +2298,76 @@ nonemptySortList[std::vector<CVC4::Type>& sorts]
   ;
 
 /**
+ * match a signature possibly polymorphic
+ */
+
+
+polymorphicSignature[std::vector<std::string>& pars, std::vector<CVC4::Type>& sorts, CVC4::Type& result]
+  :
+    LPAREN_TOK sortList[sorts] RPAREN_TOK
+    sortSymbol[result,CHECK_DECLARED]
+  | LPAREN_TOK PAR_TOK
+    {
+      if(PARSER_STATE->strictModeEnabled()) {
+        PARSER_STATE->parseError("Polymorphic functions are not permitted while operating in strict compliance mode.");
+      }
+    }
+    LPAREN_TOK symbolList[pars,CHECK_NONE,SYM_SORT] RPAREN_TOK
+    {
+      PARSER_STATE->pushScope(true);
+      std::vector< Type > typars =
+        EXPR_MANAGER->getPolymorphicTypeVarsSchema( pars.size() );
+      for(size_t i = 0; i < pars.size(); ++i){
+        PARSER_STATE->defineType(pars[i],typars[i]);
+      }
+    }
+    LPAREN_TOK sortList[sorts] RPAREN_TOK
+    sortSymbol[result,CHECK_DECLARED]
+    RPAREN_TOK
+    { PARSER_STATE->popScope(); }
+  ;
+
+polymorphicAssert[std::vector<std::string>& pars, CVC4::Expr& expr, CVC4::Expr& expr2]
+@declarations {
+  std::vector< Expr > args;
+}
+  :
+    LPAREN_TOK PAR_TOK
+    {
+      if(PARSER_STATE->strictModeEnabled()) {
+        PARSER_STATE->parseError("Polymorphic functions are not permitted while operating in strict compliance mode.");
+      }
+    }
+    LPAREN_TOK symbolList[pars,CHECK_NONE,SYM_SORT] RPAREN_TOK
+    {
+      PARSER_STATE->pushScope(true);
+
+      std::vector< std::pair <Type,Expr> > typars =
+        EXPR_MANAGER->getPolymorphicTypeVars( pars.size() );
+
+      for(size_t i = 0; i < pars.size(); ++i){
+        PARSER_STATE->defineType(pars[i],typars[i].first);
+        args.push_back(typars[i].second);
+      }
+
+      Expr bvl = MK_EXPR(kind::BOUND_VAR_LIST, args);
+      args.clear();
+      args.push_back(bvl);
+
+    }
+    term[expr,expr2]
+    RPAREN_TOK
+    {
+      args.push_back(expr);
+      expr = MK_EXPR(CVC4::kind::FORALL, args);
+
+      PARSER_STATE->popScope(); }
+  | term[expr,expr2]
+  ;
+
+
+
+/**
  * Matches a sequence of (variable,sort) symbol pairs and fills them
  * into the given vector.
  */
@@ -2530,6 +2642,7 @@ PUSH_TOK : 'push';
 POP_TOK : 'pop';
 AS_TOK : 'as';
 CONST_TOK : 'const';
+PAR_TOK : 'par';
 
 // extended commands
 DECLARE_DATATYPES_TOK : 'declare-datatypes';
