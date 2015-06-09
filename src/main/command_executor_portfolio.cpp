@@ -318,9 +318,6 @@ bool CommandExecutorPortfolio::doCommandSingleton(Command* cmd)
     d_statWaitTime.stop();
 #endif /* CVC4_STATISTICS_ON */
 
-    delete d_seq;
-    d_seq = new CommandSequence();
-
     d_lastWinner = portfolioReturn.first;
     d_result = d_smts[d_lastWinner]->getStatusOfLastCommand();
 
@@ -354,6 +351,9 @@ bool CommandExecutorPortfolio::doCommandSingleton(Command* cmd)
 
     /* cleanup this check sat specific stuff */
     lemmaSharingCleanup();
+
+    delete d_seq;
+    d_seq = new CommandSequence();
 
     delete[] fns;
 
