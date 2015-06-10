@@ -928,10 +928,17 @@ bool SygusSymBreak::processCurrentProgram( Node a, TypeNode at, int depth, Node 
               Node progc = prog;
               if( options::sygusNormalFormGlobalArg() ){
                 bool argChanged = false;
+                Trace("sygus-nf-gen-debug") << "Check replacements on " << prog << " " << prog.getKind() << std::endl;
                 for( unsigned i=0; i<prog.getNumChildren(); i++ ){
                   Node prev = children[i];
                   children[i] = d_tds->getVarInc( children_stype[i], var_count );
+                  if( parentOpKind!=kind::BUILTIN ){
+                    children.insert( children.begin(), prog.getOperator() );
+                  }
                   Node progcn = NodeManager::currentNM()->mkNode( prog.getKind(), children );
+                  if( parentOpKind!=kind::BUILTIN ){
+                    children.erase( children.begin(), children.begin() + 1 );
+                  }
                   Node progcr = Rewriter::rewrite( progcn );
                   Trace("sygus-nf-gen-debug") << "Var replace argument " << i << " : " << progcn << " -> " << progcr << std::endl;
                   if( progcr==progr ){

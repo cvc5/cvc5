@@ -116,9 +116,6 @@ private:
   Node getModelValue( Node n );
   /** get model term */
   Node getModelTerm( Node n );
-private:
-  /** print sygus term */
-  void printSygusTerm( std::ostream& out, Node n );
 public:
   CegInstantiation( QuantifiersEngine * qe, context::Context* c );
 public:

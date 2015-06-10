@@ -1511,7 +1511,9 @@ Node TermDbSygus::getGenericBase( TypeNode tn, const Datatype& dt, int c ) {
     std::map< TypeNode, int > var_count;
     std::map< int, Node > pre;
     Node g = mkGeneric( dt, c, var_count, pre );
+    Trace("sygus-db-debug") << "Sygus DB : Generic is " << g << std::endl;
     Node gr = Rewriter::rewrite( g );
+    Trace("sygus-db-debug") << "Sygus DB : Generic rewritten is " << gr << std::endl;
     gr = Node::fromExpr( smt::currentSmtEngine()->expandDefinitions( gr.toExpr() ) );
     Trace("sygus-db") << "Sygus DB : Generic base " << dt[c].getName() << " : " << gr << std::endl;
     d_generic_base[tn][c] = gr;
@@ -1530,6 +1532,7 @@ Node TermDbSygus::mkGeneric( const Datatype& dt, int c, std::map< TypeNode, int 
   if( op.getKind()!=BUILTIN ){
     children.push_back( op );
   }
+  Trace("sygus-db") << "mkGeneric " << dt.getName() << " " << op << " " << op.getKind() << "..." << std::endl;
   for( int i=0; i<(int)dt[c].getNumArgs(); i++ ){
     TypeNode tna = TypeNode::fromType( ((SelectorType)dt[c][i].getType()).getRangeType() );
     Node a;
@@ -1542,13 +1545,14 @@ Node TermDbSygus::mkGeneric( const Datatype& dt, int c, std::map< TypeNode, int 
     Assert( !a.isNull() );
     children.push_back( a );
   }
+  Node ret;
   if( op.getKind()==BUILTIN ){
-    return NodeManager::currentNM()->mkNode( op, children );
+    ret = NodeManager::currentNM()->mkNode( op, children );
   }else{
     if( children.size()==1 ){
-      return children[0];
+      ret = children[0];
     }else{
-      return NodeManager::currentNM()->mkNode( APPLY, children );
+      ret = NodeManager::currentNM()->mkNode( APPLY, children );
       /*
       Node n = NodeManager::currentNM()->mkNode( APPLY, children );
       //must expand definitions
@@ -1558,6 +1562,8 @@ Node TermDbSygus::mkGeneric( const Datatype& dt, int c, std::map< TypeNode, int 
       */
     }
   }
+  Trace("sygus-db") << "...returning " << ret << std::endl;
+  return ret;
 }
 
 Node TermDbSygus::sygusToBuiltin( Node n, TypeNode tn ) {
@@ -1573,7 +1579,9 @@ Node TermDbSygus::sygusToBuiltin( Node n, TypeNode tn ) {
       pre[j] = sygusToBuiltin( n[j], getArgType( dt[i], j ) );
     }
     Node ret = mkGeneric( dt, i, var_count, pre );
+    Trace("sygus-db-debug") << "SygusToBuiltin : Generic is " << ret << std::endl;
     ret = Node::fromExpr( smt::currentSmtEngine()->expandDefinitions( ret.toExpr() ) );
+    Trace("sygus-db-debug") << "SygusToBuiltin : After expand definitions " << ret << std::endl;
     d_sygus_to_builtin[tn][n] = ret;
     return ret;
   }else{
@@ -2031,3 +2039,79 @@ Node TermDbSygus::expandBuiltinTerm( Node t ){
   }
   return Node::null();
 }
+
+
+void doReplace(std::string& str, const std::string& oldStr, const std::string& newStr){
+  size_t pos = 0;
+  while((pos = str.find(oldStr, pos)) != std::string::npos){
+     str.replace(pos, oldStr.length(), newStr);
+     pos += newStr.length();
+  }
+}
+
+void TermDbSygus::printSygusTerm( std::ostream& out, Node n, std::vector< Node >& lvs ) {
+  if( n.getKind()==APPLY_CONSTRUCTOR ){
+    TypeNode tn = n.getType();
+    const Datatype& dt = ((DatatypeType)(tn).toType()).getDatatype();
+    if( dt.isSygus() ){
+      int cIndex = Datatype::indexOf( n.getOperator().toExpr() );
+      Assert( !dt[cIndex].getSygusOp().isNull() );
+      if( dt[cIndex].getSygusLetBody().isNull() ){
+        if( n.getNumChildren()>0 ){
+          out << "(";
+        }
+        out << dt[cIndex].getSygusOp();
+        if( n.getNumChildren()>0 ){
+          for( unsigned i=0; i<n.getNumChildren(); i++ ){
+            out << " ";
+            printSygusTerm( out, n[i], lvs );
+          }
+          out << ")";
+        }
+      }else{
+        //print as let term
+        out << "(let (";
+        std::vector< Node > subs_lvs;
+        std::vector< Node > new_lvs;
+        for( unsigned i=0; i<dt[cIndex].getNumSygusLetArgs(); i++ ){
+          Node v = Node::fromExpr( dt[cIndex].getSygusLetArg( i ) );
+          subs_lvs.push_back( v );
+          std::stringstream ss;
+          ss << "_l_" << new_lvs.size();
+          Node lv = NodeManager::currentNM()->mkBoundVar( ss.str(), v.getType() );
+          new_lvs.push_back( lv );
+          //map free variables to proper terms
+          if( i<dt[cIndex].getNumSygusLetInputArgs() ){
+            //it should be printed as a let argument
+            out << "(";
+            out << lv << " " << lv.getType() << " ";
+            printSygusTerm( out, n[i], lvs );
+            out << ")";
+          }
+        }
+        out << ") ";
+        //print the body
+        Node let_body = Node::fromExpr( dt[cIndex].getSygusLetBody() );
+        let_body = let_body.substitute( subs_lvs.begin(), subs_lvs.end(), new_lvs.begin(), new_lvs.end() );
+        new_lvs.insert( new_lvs.end(), lvs.begin(), lvs.end() );
+        std::stringstream body_out;
+        printSygusTerm( body_out, let_body, new_lvs );
+        std::string body = body_out.str();
+        for( unsigned i=dt[cIndex].getNumSygusLetInputArgs(); i<dt[cIndex].getNumSygusLetArgs(); i++ ){ 
+          std::stringstream old_str;
+          old_str << new_lvs[i];
+          std::stringstream new_str;
+          printSygusTerm( new_str, n[i], lvs );
+          doReplace( body, old_str.str().c_str(), new_str.str().c_str() );
+        }
+        out << body << ")";
+      }
+      return;
+    }
+  }else if( !n.getAttribute(SygusProxyAttribute()).isNull() ){
+    out << n.getAttribute(SygusProxyAttribute());
+  }else{
+    out << n;
+  }
+}
+

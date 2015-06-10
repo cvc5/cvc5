@@ -1429,6 +1429,11 @@ void SmtEngine::setDefaults() {
   if( options::recurseCbqi() || options::cbqi2() ){
     options::cbqi.set( true );
   }
+  if( options::cbqi2() ){
+    if( !options::rewriteDivk.wasSetByUser()) {
+      options::rewriteDivk.set( true );
+    }
+  }
   if( options::cbqi() ){
     if( !options::quantConflictFind.wasSetByUser() ){
       options::quantConflictFind.set( false );

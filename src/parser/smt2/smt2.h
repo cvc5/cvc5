@@ -301,6 +301,7 @@ private:
   std::map< CVC4::Expr, CVC4::Type > d_sygus_bound_var_type;
   std::map< CVC4::Expr, std::vector< CVC4::Expr > > d_sygus_let_func_to_vars;
   std::map< CVC4::Expr, CVC4::Expr > d_sygus_let_func_to_body;
+  std::map< CVC4::Expr, unsigned > d_sygus_let_func_to_num_input_vars;
   
   void collectSygusLetArgs( CVC4::Expr e, std::vector< CVC4::Type >& sygusArgs, std::vector< CVC4::Expr >& builtinArgs );
 

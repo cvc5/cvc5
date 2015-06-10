@@ -187,6 +187,9 @@ private:
   std::vector<DatatypeConstructorArg> d_args;
   /** the operator associated with this constructor (for sygus) */
   Expr d_sygus_op;
+  Expr d_sygus_let_body;
+  std::vector< Expr > d_sygus_let_args;
+  unsigned d_sygus_num_let_input_args;
 
   void resolve(ExprManager* em, DatatypeType self,
                const std::map<std::string, DatatypeType>& resolutions,
@@ -232,7 +235,9 @@ public:
    * constructor and tester aren't created until resolution time.
    */
   DatatypeConstructor(std::string name, std::string tester);
-  DatatypeConstructor(std::string name, std::string tester, Expr sygus_op);
+  
+  /** set sygus */
+  void setSygus( Expr op, Expr let_body, std::vector< Expr >& let_args, unsigned num_let_input_argus );
 
   /**
    * Add an argument (i.e., a data field) of the given name and type
@@ -281,7 +286,15 @@ public:
   
   /** get sygus op */
   Expr getSygusOp() const;
-
+  /** get sygus let body */
+  Expr getSygusLetBody() const;
+  /** get number of sygus let args */
+  unsigned getNumSygusLetArgs() const;
+  /** get sygus let arg */
+  Expr getSygusLetArg( unsigned i ) const;
+  /** get number of let arguments that should be printed as arguments to let */
+  unsigned getNumSygusLetInputArgs() const;
+  
   /**
    * Get the tester name for this Datatype constructor.
    */

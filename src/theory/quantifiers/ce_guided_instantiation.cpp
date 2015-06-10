@@ -389,7 +389,8 @@ bool CegInstantiation::getModelValues( CegConjecture * conj, std::vector< Node >
       TypeNode tn = nv.getType();
       Trace("cegqi-engine") << n[i] << " -> ";
       std::stringstream ss;
-      printSygusTerm( ss, nv );
+      std::vector< Node > lvs;
+      TermDbSygus::printSygusTerm( ss, nv, lvs );
       Trace("cegqi-engine") << ss.str() << " ";
     }
     if( nv.isNull() ){
@@ -522,39 +523,13 @@ void CegInstantiation::printSynthSolution( std::ostream& out ) {
           if( sol.isNull() ){
             out << "?";
           }else{
-            printSygusTerm( out, sol );
+            std::vector< Node > lvs;
+            TermDbSygus::printSygusTerm( out, sol, lvs );
           }
         }
         out << ")" << std::endl;
       }
     }
-  }
-}
-
-void CegInstantiation::printSygusTerm( std::ostream& out, Node n ) {
-  if( n.getKind()==APPLY_CONSTRUCTOR ){
-    TypeNode tn = n.getType();
-    const Datatype& dt = ((DatatypeType)(tn).toType()).getDatatype();
-    if( dt.isSygus() ){
-      int cIndex = Datatype::indexOf( n.getOperator().toExpr() );
-      Assert( !dt[cIndex].getSygusOp().isNull() );
-      if( n.getNumChildren()>0 ){
-        out << "(";
-      }
-      out << dt[cIndex].getSygusOp();
-      if( n.getNumChildren()>0 ){
-        for( unsigned i=0; i<n.getNumChildren(); i++ ){
-          out << " ";
-          printSygusTerm( out, n[i] );
-        }
-        out << ")";
-      }
-      return;
-    }
-  }else if( !n.getAttribute(SygusProxyAttribute()).isNull() ){
-    out << n.getAttribute(SygusProxyAttribute());
-  }else{
-    out << n;
   }
 }
 

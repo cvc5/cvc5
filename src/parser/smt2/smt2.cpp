@@ -663,11 +663,14 @@ Type Smt2::processSygusNestedGTerm( int sub_dt_index, std::string& sub_dname, st
     }
     Expr sop = ops[sub_dt_index][0];
     Type curr_t;
-    if( sop.getKind() != kind::BUILTIN && ( sop.isConst() || sop.getNumChildren()==0 ) ){
+    if( sop.getKind() != kind::BUILTIN && ( sop.isConst() || cargs[sub_dt_index][0].empty() ) ){
       curr_t = sop.getType();
-      Debug("parser-sygus") << ": it is constant/0-arg cons " << sop << " with type " << sop.getType() << std::endl;
+      Debug("parser-sygus") << ": it is constant/0-arg cons " << sop << " with type " << sop.getType() << ", debug=" << sop.isConst() << " " << cargs[sub_dt_index][0].size() << std::endl;
       sygus_to_builtin_expr[t] = sop;
-      d_sygus_bound_var_type[sop] = t;
+      //store that term sop has dedicated sygus type t
+      if( d_sygus_bound_var_type.find( sop )==d_sygus_bound_var_type.end() ){
+        d_sygus_bound_var_type[sop] = t;
+      }
     }else{
       std::vector< Expr > children;
       if( sop.getKind() != kind::BUILTIN ){
@@ -677,13 +680,14 @@ Type Smt2::processSygusNestedGTerm( int sub_dt_index, std::string& sub_dname, st
         std::map< CVC4::Type, CVC4::Expr >::iterator it = sygus_to_builtin_expr.find( cargs[sub_dt_index][0][i] );
         if( it==sygus_to_builtin_expr.end() ){
           Type bt = sygus_to_builtin[cargs[sub_dt_index][0][i]];
-          Debug("parser-sygus") << ":  type elem " << i << " " << cargs[sub_dt_index][0][i] << " " << bt << std::endl;
+          Debug("parser-sygus") << ":  child " << i << " introduce type elem for " << cargs[sub_dt_index][0][i] << " " << bt << std::endl;
           std::stringstream ss;
           ss << t << "_x_" << i;
           Expr bv = mkBoundVar(ss.str(), bt);
           children.push_back( bv );
           d_sygus_bound_var_type[bv] = cargs[sub_dt_index][0][i];
         }else{
+          Debug("parser-sygus") << ":  child " << i << " existing sygus to builtin expr : " << it->second << std::endl;
           children.push_back( it->second );
         }
       }
@@ -775,9 +779,10 @@ void Smt2::processSygusLetConstructor( std::vector< CVC4::Expr >& let_vars,
   cnames[index].pop_back();
   cnames[index].push_back(ss.str());
   
-  //TODO : mark function as let constructor
-  d_sygus_let_func_to_vars[let_func].insert( d_sygus_let_func_to_vars[let_func].end(), let_vars.begin(), let_vars.end() );
+  //mark function as let constructor
+  d_sygus_let_func_to_vars[let_func].insert( d_sygus_let_func_to_vars[let_func].end(), let_define_args.begin(), let_define_args.end() );
   d_sygus_let_func_to_body[let_func] = let_body;
+  d_sygus_let_func_to_num_input_vars[let_func] = let_vars.size();
 }
 
 
@@ -899,13 +904,24 @@ void Smt2::mkSygusDatatype( CVC4::Datatype& dt, std::vector<CVC4::Expr>& ops,
       testerId.append(name);
       checkDeclaration(name, CHECK_UNDECLARED, SYM_VARIABLE);
       checkDeclaration(testerId, CHECK_UNDECLARED, SYM_VARIABLE);
-      CVC4::DatatypeConstructor c(name, testerId, ops[i] );
+      CVC4::DatatypeConstructor c(name, testerId );
+      Debug("parser-sygus") << "--> Add constructor " << cnames[i] << " to " << dt.getName() << std::endl;
+      Expr let_body;
+      std::vector< Expr > let_args;
+      unsigned let_num_input_args = 0;
+      std::map< CVC4::Expr, CVC4::Expr >::iterator it = d_sygus_let_func_to_body.find( ops[i] );
+      if( it!=d_sygus_let_func_to_body.end() ){
+        let_body = it->second;
+        let_args.insert( let_args.end(), d_sygus_let_func_to_vars[ops[i]].begin(), d_sygus_let_func_to_vars[ops[i]].end() );
+        let_num_input_args = d_sygus_let_func_to_num_input_vars[ops[i]];
+        Debug("parser-sygus") << "    it is a let gterm with body " << let_body << std::endl;
+      }
+      c.setSygus( ops[i], let_body, let_args, let_num_input_args );
       for( unsigned j=0; j<cargs[i].size(); j++ ){
         std::stringstream sname;
         sname << name << "_" << j;
         c.addArg(sname.str(), cargs[i][j]);
       }
-      Debug("parser-sygus") << "--> Add constructor " << cnames[i] << " to " << dt.getName() << std::endl;
       dt.addConstructor(c);
     }
   }

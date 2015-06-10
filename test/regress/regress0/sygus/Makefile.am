@@ -32,7 +32,10 @@ TESTS = commutative.sy \
         const-var-test.sy \
         no-syntax-test.sy \
         no-syntax-test-no-si.sy \
-        no-flat-simp.sy
+        no-flat-simp.sy \
+        twolets2-orig.sy \
+        let-ringer.sy \
+        let-simp.sy
 
 # sygus tests currently taking too long for make regress
 EXTRA_DIST = $(TESTS) \

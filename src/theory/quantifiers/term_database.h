@@ -459,6 +459,8 @@ public:
   Node minimizeBuiltinTerm( Node n );
   /** given a term, expand it into more basic components */
   Node expandBuiltinTerm( Node n );
+  /** print sygus term */
+  static void printSygusTerm( std::ostream& out, Node n, std::vector< Node >& lvs );
 };
 
 }/* CVC4::theory::quantifiers namespace */
