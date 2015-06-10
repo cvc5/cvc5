@@ -878,10 +878,11 @@ sygusGTerm[int index,
             PARSER_STATE->parseError(std::string("Must provide single sort for constant/variable Sygus constructor."));
           }
           cargs[index].pop_back();
-          Debug("parser-sygus") << "Make constructors for Constant/Variable of type " << t << std::endl;
-          if( gtermType==2 ){
+          Debug("parser-sygus") << "Make constructors for Constant/Variable of type " << t << ", gterm type=" << sub_gtermType << std::endl;
+          if( sub_gtermType==2 ){
             std::vector< Expr > consts;
             PARSER_STATE->mkSygusConstantsForType( t, consts );
+            Debug("parser-sygus") << "...made " << consts.size() << " constants." << std::endl;
             for( unsigned i=0; i<consts.size(); i++ ){
               std::stringstream ss;
               ss << consts[i];
@@ -891,6 +892,7 @@ sygusGTerm[int index,
               cargs[index].push_back( std::vector< CVC4::Type >() );
             }
           }else if( sub_gtermType==3 ){
+            Debug("parser-sygus") << "...process " << sygus_vars.size() << " variables." << std::endl;
             for( unsigned i=0; i<sygus_vars.size(); i++ ){
               if( sygus_vars[i].getType()==t ){
                 std::stringstream ss;
