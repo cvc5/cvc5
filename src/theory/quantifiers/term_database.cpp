@@ -1612,6 +1612,7 @@ Node TermDbSygus::builtinToSygusConst( Node c, TypeNode tn ) {
 
 Node TermDbSygus::getSygusNormalized( Node n, std::map< TypeNode, int >& var_count, std::map< Node, Node >& subs ) {
   return n;
+  /*  TODO?
   if( n.getKind()==SKOLEM ){
     std::map< Node, Node >::iterator its = subs.find( n );
     if( its!=subs.end() ){
@@ -1644,6 +1645,7 @@ Node TermDbSygus::getSygusNormalized( Node n, std::map< TypeNode, int >& var_cou
     }
     return n;
   }
+  */
 }
 
 Node TermDbSygus::getNormalized( TypeNode t, Node prog, bool do_pre_norm, bool do_post_norm ) {

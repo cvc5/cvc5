@@ -201,8 +201,21 @@ public:
                                 std::vector< std::vector<CVC4::Expr> >& ops,
                                 std::vector< std::vector<std::string> >& cnames,
                                 std::vector< std::vector< std::vector< CVC4::Type > > >& cargs,
-                                std::map< CVC4::Type, CVC4::Type >& sygus_to_builtin, Type sub_ret );
+                                std::map< CVC4::Type, CVC4::Type >& sygus_to_builtin,
+                                std::map< CVC4::Type, CVC4::Expr >& sygus_to_builtin_expr, Type sub_ret );
 
+  void processSygusLetConstructor( std::vector< CVC4::Expr >& let_vars,
+                                   int index, int start_index,
+                                   std::vector< CVC4::Datatype >& datatypes,
+                                   std::vector< CVC4::Type>& sorts,
+                                   std::vector< std::vector<CVC4::Expr> >& ops,
+                                   std::vector< std::vector<std::string> >& cnames,
+                                   std::vector< std::vector< std::vector< CVC4::Type > > >& cargs,
+                                   std::vector<CVC4::Expr>& sygus_vars, 
+                                   std::map< CVC4::Type, CVC4::Type >& sygus_to_builtin,
+                                   std::map< CVC4::Type, CVC4::Expr >& sygus_to_builtin_expr );
+  
+  
   void addSygusFun(const std::string& fun, Expr eval) {
     d_sygusFuns.push_back(std::make_pair(fun, eval));
   }
@@ -285,6 +298,11 @@ public:
   }
 
 private:
+  std::map< CVC4::Expr, CVC4::Type > d_sygus_bound_var_type;
+  std::map< CVC4::Expr, std::vector< CVC4::Expr > > d_sygus_let_func_to_vars;
+  std::map< CVC4::Expr, CVC4::Expr > d_sygus_let_func_to_body;
+  
+  void collectSygusLetArgs( CVC4::Expr e, std::vector< CVC4::Type >& sygusArgs, std::vector< CVC4::Expr >& builtinArgs );
 
   void addArithmeticOperators();
 

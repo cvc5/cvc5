@@ -498,9 +498,10 @@ sygusCommand returns [CVC4::Command* cmd = NULL]
   std::vector< std::vector< std::vector< CVC4::Type > > > cargs;
   bool allow_const = false;
   bool read_syntax = false;
-  int sygus_dt_index;
+  int sygus_dt_index = 0;
   Type sygus_ret;
   std::map< CVC4::Type, CVC4::Type > sygus_to_builtin;
+  std::map< CVC4::Type, CVC4::Expr > sygus_to_builtin_expr;
 }
   : /* set the logic */
     SET_LOGIC_TOK symbol[name,CHECK_NONE,SYM_SORT]
@@ -620,7 +621,7 @@ sygusCommand returns [CVC4::Command* cmd = NULL]
       }
       // Note the official spec for NTDef is missing the ( parens )
       // but they are necessary to parse SyGuS examples
-      LPAREN_TOK sygusGTerm[sygus_dt_index, datatypes, sorts, fun, ops, cnames, cargs, sygus_vars, sygus_to_builtin, allow_const, sygus_ret, -1]+ RPAREN_TOK
+      LPAREN_TOK sygusGTerm[sygus_dt_index, datatypes, sorts, fun, ops, cnames, cargs, sygus_vars, sygus_to_builtin, sygus_to_builtin_expr, allow_const, sygus_ret, -1]+ RPAREN_TOK
       RPAREN_TOK
       { Debug("parser-sygus") << "Making sygus datatypes..." << std::endl;
         for( unsigned i=sygus_dt_index; i<datatypes.size(); i++ ){
@@ -641,7 +642,10 @@ sygusCommand returns [CVC4::Command* cmd = NULL]
         PARSER_STATE->mkSygusDefaultGrammar( range, terms[0], fun, datatypes, sorts, ops, sygus_vars );
       }
       PARSER_STATE->popScope();
-      Debug("parser-sygus") << "Make mutual datatypes..." << std::endl;
+      Debug("parser-sygus") << "Make " << datatypes.size() << " mutual datatypes..." << std::endl;
+      for( unsigned i=0; i<datatypes.size(); i++ ){
+        Debug("parser-sygus") << "  " << i << " : " << datatypes[i].getName() << std::endl;
+      }
       seq = new CommandSequence();
       std::vector<DatatypeType> datatypeTypes = PARSER_STATE->mkMutualDatatypeTypes(datatypes);
       seq->addCommand(new DatatypeDeclarationCommand(datatypeTypes));
@@ -735,7 +739,9 @@ sygusGTerm[int index,
            std::vector< std::vector<CVC4::Expr> >& ops, 
            std::vector< std::vector<std::string> >& cnames, 
            std::vector< std::vector< std::vector< CVC4::Type > > >& cargs, 
-           std::vector<CVC4::Expr>& sygus_vars, std::map< CVC4::Type, CVC4::Type >& sygus_to_builtin, bool& allow_const, CVC4::Type& ret, int gtermType]
+           std::vector<CVC4::Expr>& sygus_vars, 
+           std::map< CVC4::Type, CVC4::Type >& sygus_to_builtin, std::map< CVC4::Type, CVC4::Expr >& sygus_to_builtin_expr,
+           bool& allow_const, CVC4::Type& ret, int gtermType]
 @declarations {
   std::string name;
   Kind k;
@@ -745,12 +751,17 @@ sygusGTerm[int index,
   std::string sname;
   // 0 builtin operator, 1 defined operator, 2 any constant, 3 any variable, 4 ignore, 5 let, -1 none
   int sub_gtermType = -1;
-  bool sub_allow_const;
+  bool sub_allow_const = false;
   Type sub_ret;
-  int sub_dt_index;
+  int sub_dt_index = -1;
   std::string sub_dname;
   Type null_type;
+  Expr null_expr;
   std::vector< Expr > let_vars;
+  int let_start_index = -1;
+  int let_end_index = -1;
+  int let_end_arg_index = -1;
+  Expr let_func;
 }
   : LPAREN_TOK
     ( builtinOp[k]
@@ -759,31 +770,41 @@ sygusGTerm[int index,
         if( k==CVC4::kind::BITVECTOR_UDIV ){
           k = CVC4::kind::BITVECTOR_UDIV_TOTAL;
         }
-        ops[index].push_back(EXPR_MANAGER->operatorOf(k));
         name = kind::kindToString(k);
         sub_gtermType = 0;
+        ops[index].push_back(EXPR_MANAGER->operatorOf(k));
+        cnames[index].push_back( name );
       }
-      /* TODO
-     | LET_TOK { sub_gtermType = 5; }
-       LPAREN_TOK { PARSER_STATE->pushScope(true); }
-      ( LPAREN_TOK 
+     | LET_TOK LPAREN_TOK { 
+         name = std::string("let");
+         sub_gtermType = 5; 
+         ops[index].push_back( null_expr );
+         cnames[index].push_back( name );
+         cargs[index].push_back( std::vector< CVC4::Type >() );
+         PARSER_STATE->pushScope(true);
+         let_start_index = datatypes.size();
+       }
+       ( LPAREN_TOK 
         symbol[sname,CHECK_NONE,SYM_VARIABLE] 
         sortSymbol[t,CHECK_DECLARED] { 
-          Expr v = PARSER_STATE->mkVar(sname,t); 
+          Expr v = PARSER_STATE->mkBoundVar(sname,t); 
           let_vars.push_back( v ); 
           std::stringstream ss;
-          ss << datatypes[index].getName() << "_let_arg_" << let_vars.size();
+          ss << datatypes[index].getName() << "_let_var_" << let_vars.size();
           sub_dname = ss.str();
           PARSER_STATE->pushSygusDatatypeDef( null_type, sub_dname, datatypes, sorts, ops, cnames, cargs );
           sub_dt_index = datatypes.size()-1;
           sub_ret = null_type;
         } 
-        sygusGTerm[sub_dt_index,datatypes,sorts,fun,ops,cnames,cargs,sygus_vars,sygus_to_builtin,sub_allow_const,sub_ret,sub_gtermType] {
+        sygusGTerm[sub_dt_index,datatypes,sorts,fun,ops,cnames,cargs,sygus_vars,sygus_to_builtin,sygus_to_builtin_expr,sub_allow_const,sub_ret,sub_gtermType] {
           Debug("parser-sygus") << "Process argument #" << let_vars.size() << "..." << std::endl;
-          Type t = PARSER_STATE->processSygusNestedGTerm( sub_dt_index, sub_dname, datatypes, sorts, ops, cnames, cargs, sygus_to_builtin, sub_ret );
+          Type tt = PARSER_STATE->processSygusNestedGTerm( sub_dt_index, sub_dname, datatypes, sorts, ops, cnames, cargs, sygus_to_builtin, sygus_to_builtin_expr, sub_ret );
+          cargs[index].back().push_back(tt);
         }
-        RPAREN_TOK )+ RPAREN_TOK  
-        */
+        RPAREN_TOK )+ RPAREN_TOK { 
+          let_end_index = datatypes.size();
+          let_end_arg_index = cargs[index].back().size();
+        }
     | SYGUS_CONSTANT_TOK sortSymbol[t,CHECK_DECLARED] 
       { sub_gtermType = 2; allow_const = true;Debug("parser-sygus") << "Sygus grammar constant." << std::endl; }
     | SYGUS_VARIABLE_TOK sortSymbol[t,CHECK_DECLARED]
@@ -800,8 +821,9 @@ sygusGTerm[int index,
           if( k==CVC4::kind::BITVECTOR_UDIV ){
             k = CVC4::kind::BITVECTOR_UDIV_TOTAL;
           }
-          ops[index].push_back(EXPR_MANAGER->operatorOf(k));
           name = kind::kindToString(k);
+          ops[index].push_back(EXPR_MANAGER->operatorOf(k));
+          cnames[index].push_back( name );
           sub_gtermType = 0;
         }else{
           // what is this sygus term trying to accomplish here, if the
@@ -813,17 +835,17 @@ sygusGTerm[int index,
             PARSER_STATE->parseError(std::string("Functions in sygus grammars must be defined."));
           }
           ops[index].push_back( PARSER_STATE->getVariable(name) );
+          cnames[index].push_back( name );
           sub_gtermType = 1;
         }
       }
     )
-    { if( sub_gtermType<=1 ){
-        cnames[index].push_back( name );
-      }
-      cargs[index].push_back( std::vector< CVC4::Type >() );
-      Debug("parser-sygus") << "Read arguments under " << name << ", gtermType = " << sub_gtermType << std::endl;
-      if( !ops[index].empty() ){
-        Debug("parser-sygus") << "Operator " << ops[index].back() << std::endl;
+    { Debug("parser-sygus") << "Read arguments under " << name << ", gtermType = " << sub_gtermType << std::endl;
+      if( sub_gtermType!=5 ){
+        cargs[index].push_back( std::vector< CVC4::Type >() );
+        if( !ops[index].empty()  ){
+          Debug("parser-sygus") << "Operator " << ops[index].back() << std::endl;
+        }
       }
       //add datatype definition for argument
       count++;
@@ -834,10 +856,9 @@ sygusGTerm[int index,
       sub_dt_index = datatypes.size()-1;
       sub_ret = null_type;
     }
-    ( //symbol[sname,CHECK_NONE,SYM_VARIABLE]
-      sygusGTerm[sub_dt_index,datatypes,sorts,fun,ops,cnames,cargs,sygus_vars,sygus_to_builtin,sub_allow_const,sub_ret,sub_gtermType]
+    ( sygusGTerm[sub_dt_index,datatypes,sorts,fun,ops,cnames,cargs,sygus_vars,sygus_to_builtin,sygus_to_builtin_expr,sub_allow_const,sub_ret,sub_gtermType]
       { Debug("parser-sygus") << "Process argument #" << count << "..." << std::endl;
-        Type tt = PARSER_STATE->processSygusNestedGTerm( sub_dt_index, sub_dname, datatypes, sorts, ops, cnames, cargs, sygus_to_builtin, sub_ret );
+        Type tt = PARSER_STATE->processSygusNestedGTerm( sub_dt_index, sub_dname, datatypes, sorts, ops, cnames, cargs, sygus_to_builtin, sygus_to_builtin_expr, sub_ret );
         cargs[index].back().push_back(tt);
         //add next datatype definition for argument
         count++;
@@ -883,6 +904,19 @@ sygusGTerm[int index,
           }else if( sub_gtermType==4 ){
             //local variable, TODO?
           }
+        }else if( sub_gtermType==5 ){
+          if( (cargs[index].back().size()-let_end_arg_index)!=1 ){
+            PARSER_STATE->parseError(std::string("Must provide single body for let Sygus constructor."));
+          }
+          PARSER_STATE->processSygusLetConstructor( let_vars, index, let_start_index, datatypes, sorts, ops, cnames, cargs, 
+                                                    sygus_vars, sygus_to_builtin, sygus_to_builtin_expr );
+          PARSER_STATE->popScope();
+          //remove datatypes defining body
+          //while( (int)datatypes.size()>let_end_index ){
+          //  Debug("parser-sygus") << "Removing let body datatype " << datatypes[datatypes.size()-1].getName() << std::endl;
+          //  PARSER_STATE->popSygusDatatypeDef( datatypes, sorts, ops, cnames, cargs );
+          //}
+          //Debug("parser-sygus") << "Done let body datatypes" << std::endl;
         }else{
           if( cargs[index].back().empty() ){
             PARSER_STATE->parseError(std::string("Must provide argument for Sygus constructor."));
@@ -925,11 +959,9 @@ sygusGTerm[int index,
         cargs[index].push_back( std::vector< CVC4::Type >() );
       }else{
         //prepend function name to base sorts when reading an operator
-        if( gtermType<=1 ){
-          std::stringstream ss;
-          ss << fun << "_" << name;
-          name = ss.str();
-        }
+        std::stringstream ss;
+        ss << fun << "_" << name;
+        name = ss.str();
         if( PARSER_STATE->isDeclared(name, SYM_SORT) ){
           Debug("parser-sygus") << "Sygus grammar " << fun << " : nested sort " << name << std::endl;
           ret = PARSER_STATE->getSort(name);
