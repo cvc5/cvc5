@@ -257,6 +257,14 @@ class TheoryArrays : public Theory {
 
   private:
 
+  TNode weakEquivGetRep(TNode node);
+  TNode weakEquivGetRepIndex(TNode node, TNode index);
+  void weakEquivBuildCond(TNode node, TNode index, std::vector<TNode>& conjunctions);
+  void weakEquivMakeRep(TNode node);
+  void weakEquivMakeRepIndex(TNode node);
+  void weakEquivAddSecondary(TNode index, TNode arrayFrom, TNode arrayTo, TNode reason);
+  void checkWeakEquiv();
+
   // NotifyClass: template helper class for d_equalityEngine - handles call-back from congruence closure module
   class NotifyClass : public eq::EqualityEngineNotify {
     TheoryArrays& d_arrays;
@@ -394,6 +402,10 @@ class TheoryArrays : public Theory {
   typedef context::CDHashMap<Node,Node,NodeHashFunction> DefValMap;
   DefValMap d_defValues;
 
+  typedef std::hash_map<std::pair<TNode, TNode>, CTNodeList*, TNodePairHashFunction> ReadBucketMap;
+  ReadBucketMap d_readBucketTable;
+  context::Context* d_readTableContext;
+
   Node getSkolem(TNode ref, const std::string& name, const TypeNode& type, const std::string& comment, bool makeEqual = true);
   Node mkAnd(std::vector<TNode>& conjunctions, bool invert = false, unsigned startIndex = 0);
   void setNonLinear(TNode a);
@@ -410,17 +422,6 @@ class TheoryArrays : public Theory {
   std::vector<Node> d_decisions;
   bool d_inCheckModel;
   int d_topLevel;
-  void convertNodeToAssumptions(TNode node, std::vector<TNode>& assumptions, TNode nodeSkip);
-  void preRegisterStores(TNode s);
-  void checkModel(Effort e);
-  bool hasLoop(TNode node, TNode target);
-  typedef std::hash_map<Node, Node, NodeHashFunction> NodeMap;
-  NodeMap d_getModelValCache;
-  NodeMap d_lastVal;
-  Node getModelVal(TNode node);
-  Node getModelValRec(TNode node);
-  bool setModelVal(TNode node, TNode val, bool invert,
-                   bool explain, std::vector<TNode>& assumptions);
 
   public:
 
