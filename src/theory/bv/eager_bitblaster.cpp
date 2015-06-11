@@ -22,15 +22,26 @@
 #include "theory/bv/theory_bv.h"
 #include "prop/cnf_stream.h"
 #include "prop/sat_solver_factory.h"
-
+#include "prop/sat_solver.h"
 
 using namespace CVC4;
 using namespace CVC4::theory;
 using namespace CVC4::theory::bv; 
 
 void BitblastingRegistrar::preRegister(Node n) {
+  // we treat Boolean variables differently
+  // since the bv solver is responsible for building a model
+  if (n.isVar() && n.getType().isBoolean()) {
+    if (d_bitblaster->hasBBTerm(n)) return;
+    std::vector<Node> bits(1);
+    bits[0] = n;
+    d_bitblaster->storeBBTerm(n, bits);
+    d_bitblaster->d_variables.insert(n);
+    return;
+  }
+  
   d_bitblaster->bbAtom(n); 
-};
+}
 
 EagerBitblaster::EagerBitblaster(TheoryBV* theory_bv)
   : TBitblaster<Node>()
@@ -40,12 +51,29 @@ EagerBitblaster::EagerBitblaster(TheoryBV* theory_bv)
 {
   d_bitblastingRegistrar = new BitblastingRegistrar(this); 
   d_nullContext = new context::Context();
+  switch(options::bvSatSolver()) {
+   case SAT_SOLVER_MINISAT: {
+    prop::BVSatSolverInterface* minisat = prop::SatSolverFactory::createMinisat(d_nullContext,
+ 									  "EagerBitblaster");
+    MinisatEmptyNotify* notify = new MinisatEmptyNotify();
+    minisat->setNotify(notify);
+    d_satSolver = minisat;
+    break;
+  }
+  case SAT_SOLVER_CRYPTOMINISAT:
+    d_satSolver = prop::SatSolverFactory::createCryptoMinisat("EagerBitblaster");
+    break;
+  case SAT_SOLVER_RISS:
+    d_satSolver = prop::SatSolverFactory::createRiss("EagerBitblaster");
+    break;
+  case SAT_SOLVER_GLUCOSE:
+    d_satSolver = prop::SatSolverFactory::createGlucose("EagerBitblaster");
+    break;
+  default:
+    Unreachable("Unknown SAT solver type");
+  }
 
-  d_satSolver = prop::SatSolverFactory::createMinisat(d_nullContext, "EagerBitblaster");
   d_cnfStream = new prop::TseitinCnfStream(d_satSolver, d_bitblastingRegistrar, d_nullContext);
-  
-  MinisatEmptyNotify* notify = new MinisatEmptyNotify();
-  d_satSolver->setNotify(notify);
 }
 
 EagerBitblaster::~EagerBitblaster() {
@@ -68,7 +96,12 @@ void EagerBitblaster::bbFormula(TNode node) {
 void EagerBitblaster::bbAtom(TNode node) {
   node = node.getKind() == kind::NOT?  node[0] : node;
   if (node.getKind() == kind::BITVECTOR_BITOF)
-    return; 
+    return;
+
+  if (node.isVar() && node.getType().isBoolean()) {
+   d_variables.insert(node);
+   return;
+  }
   if (hasBBAtom(node)) {
     return;
   }
@@ -169,7 +202,7 @@ Node EagerBitblaster::getModelFromSatSolver(TNode a, bool fullModel) {
     prop::SatValue bit_value;
     if (d_cnfStream->hasLiteral(bits[i])) {
       prop::SatLiteral bit = d_cnfStream->getLiteral(bits[i]);
-      bit_value = d_satSolver->value(bit);
+      bit_value = d_satSolver->value(bit); 
       Assert (bit_value != prop::SAT_VALUE_UNKNOWN);
     } else {
       if (!fullModel) return Node();
@@ -179,6 +212,15 @@ Node EagerBitblaster::getModelFromSatSolver(TNode a, bool fullModel) {
     Integer bit_int = bit_value == prop::SAT_VALUE_TRUE ? Integer(1) : Integer(0);
     value = value * 2 + bit_int;
   }
+
+  if (a.getType().isBoolean()) {
+    Assert ( value == Integer(1) ||
+	     value == Integer(0));
+	    
+    Node res = (value == Integer(1) ? utils::mkTrue() : utils::mkFalse());
+    return res;
+  }
+  
   return utils::mkConst(BitVector(bits.size(), value));
 }
 
@@ -197,7 +239,14 @@ void EagerBitblaster::collectModelInfo(TheoryModel* m, bool fullModel) {
         Debug("bitvector-model") << "EagerBitblaster::collectModelInfo (assert (= "
                                  << var << " "
                                  << const_value << "))\n";
-        m->assertEquality(var, const_value, true);
+	// for eager bit-blasting we need to provide  models for
+	// boolean variables too
+	if (var.getType().isBoolean()) {
+	  m->assertPredicate(var, const_value == utils::mkTrue() ? true : false);
+	}
+	else {
+	  m->assertEquality(var, const_value, true);
+	}
       }
     }
   }

@@ -82,6 +82,36 @@ void CnfStream::assertClause(TNode node, SatClause& c, ProofRule proof_id) {
   PROOF(ProofManager::currentPM()->setRegisteringFormula( Node::null(), RULE_INVALID ); );
 }
 
+  void CnfStream::assertXorClause(TNode node,
+				  bool rhs,
+				  SatClause& c,
+				  ProofRule proof_id) {
+  Debug("cnf") << "Inserting into stream " << c << " node = " << node << ", proof id = " << proof_id << endl;
+  if(Dump.isOn("clauses")) {
+    if(c.size() == 1) {
+      Dump("clauses") << AssertCommand(Expr(getNode(c[0]).toExpr()));
+    } else {
+      Assert(c.size() > 1);
+      NodeBuilder<> b(kind::XOR);
+      for(unsigned i = 0; i < c.size(); ++i) {
+        b << getNode(c[i]);
+      }
+      Node n = b;
+      NodeManager* nm = NodeManager::currentNM();
+      Node assertion = nm->mkNode(kind::IFF, n, rhs ? nm->mkConst<bool>(true) :
+				                      nm->mkConst<bool>(false));
+      Dump("clauses") << AssertCommand(assertion.toExpr());
+    }
+  }
+  //store map between clause and original formula
+  // FIXME: no proofs for XOR solvers yet
+  // PROOF(ProofManager::currentPM()->setRegisteringFormula( node, proof_id ); );
+  d_satSolver->addXorClause(c, rhs, d_removable, d_proofId);
+  // FIXME: no proofs for XOR solvers yet
+  // PROOF(ProofManager::currentPM()->setRegisteringFormula( Node::null(), RULE_INVALID ); );
+}
+  
+  
 void CnfStream::assertClause(TNode node, SatLiteral a, ProofRule proof_id) {
   SatClause clause(1);
   clause[0] = a;
@@ -227,7 +257,9 @@ SatLiteral CnfStream::convertAtom(TNode node) {
 
   bool theoryLiteral = false;
   bool canEliminate = true;
-  bool preRegister = false;
+  //  bool preRegister = false;
+  // FIXME: hacky and sketchy
+  bool preRegister = (options::bitblastMode() == theory::bv::BITBLAST_MODE_EAGER);
 
   // Is this a variable add it to the list
   if (node.isVar()) {
@@ -263,6 +295,17 @@ SatLiteral TseitinCnfStream::handleXor(TNode xorNode) {
 
   SatLiteral xorLit = newLiteral(xorNode);
 
+  if (d_satSolver->nativeXor() &&
+      options::bvNativeXor()) {
+    SatClause clause(3);
+    clause[0] = a;
+    clause[1] = b;
+    clause[2] = xorLit;
+    // FIXME: no proofs yet for xor solvers
+    assertXorClause(xorNode, false, clause, RULE_INVALID);
+    return xorLit;
+  }
+  
   assertClause(xorNode.negate(), a, b, ~xorLit, RULE_TSEITIN);
   assertClause(xorNode.negate(), ~a, ~b, ~xorLit, RULE_TSEITIN);
   assertClause(xorNode, a, ~b, xorLit, RULE_TSEITIN);
@@ -556,6 +599,17 @@ void TseitinCnfStream::convertAndAssertOr(TNode node, bool negated, ProofRule pr
 }
 
 void TseitinCnfStream::convertAndAssertXor(TNode node, bool negated, ProofRule proof_id) {
+  if (d_satSolver->nativeXor() &&
+      options::bvNativeXor()) {
+    SatLiteral p = toCNF(node[0]);
+    SatLiteral q = toCNF(node[1]);
+    SatClause clause(2);
+    clause[0] = p;
+    clause[1] = q;
+    assertXorClause(node, !negated, clause, proof_id);
+    return;
+  }
+  
   if (!negated) {
     // p XOR q
     SatLiteral p = toCNF(node[0], false);

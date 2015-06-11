@@ -5,6 +5,18 @@
 
 module BV "theory/bv/options.h" Bitvector theory
 
+# Option to set SAT solver used
+
+expert-option bvSatSolver bv-sat-solver --bv-sat-solver=MODE CVC4::theory::bv::SatSolverMode :predicate CVC4::theory::bv::satSolverEnabledBuild :handler CVC4::theory::bv::stringToSatSolver :default CVC4::theory::bv::SAT_SOLVER_MINISAT :read-write :include "theory/bv/bitblast_mode.h" :handler-include "theory/bv/options_handlers.h" :link --bv-native-xor
+ choose which sat solver to use, see --bv-sat-solver=help
+
+expert-option bvNativeXor --bv-native-xor bool :default false :read-write 
+ use native xor reasoning in the SAT solver (if it supports it)
+
+expert-option rissCommands --riss-cmd=COMMAND std::string :default "" :read-write :link --bv-sat-solver=riss
+ simplification commands to pass to the Riss sat solver.
+
+ 
 # Option to set the bit-blasting mode (lazy, eager)
 
 option bitblastMode bitblast --bitblast=MODE CVC4::theory::bv::BitblastMode :handler CVC4::theory::bv::stringToBitblastMode :default CVC4::theory::bv::BITBLAST_MODE_LAZY :read-write :include "theory/bv/bitblast_mode.h" :handler-include "theory/bv/options_handlers.h"

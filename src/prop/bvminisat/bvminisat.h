@@ -79,6 +79,9 @@ public:
   void setNotify(Notify* notify);
 
   void addClause(SatClause& clause, bool removable, uint64_t proof_id);
+  void addXorClause(SatClause& clause, bool rhs, bool removable, uint64_t proof_id) {
+    Unreachable("Minisat does not support native XOR reasoning");
+  }
 
   SatValue propagate();
 

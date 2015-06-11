@@ -41,6 +41,12 @@ public:
   /** Assert a clause in the solver. */
   virtual void addClause(SatClause& clause, bool removable, uint64_t proof_id) = 0;
 
+  /** Return true if the solver supports native xor resoning */
+  virtual bool nativeXor() { return false; }
+
+  /** Add a clause corresponding to rhs = l1 xor .. xor ln  */
+  virtual void addXorClause(SatClause& clause, bool rhs, bool removable, uint64_t proof_id) = 0;
+  
   /**
    * Create a new boolean variable in the solver.
    * @param isTheoryAtom is this a theory atom that needs to be asserted to theory
@@ -73,6 +79,7 @@ public:
 
   /** Get the current assertion level */
   virtual unsigned getAssertionLevel() const = 0;
+
 
 };/* class SatSolver */
 
@@ -177,4 +184,4 @@ inline std::ostream& operator <<(std::ostream& out, prop::SatValue val) {
 }/* CVC4::prop namespace */
 }/* CVC4 namespace */
 
-#endif /* __CVC4__PROP__SAT_MODULE_H */
+#endif /* __CVC4__PROP__SAT_SOLVER_H */

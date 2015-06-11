@@ -29,6 +29,10 @@ class SatSolverFactory {
 public:
 
   static BVSatSolverInterface* createMinisat(context::Context* mainSatContext, const std::string& name = "");
+  static SatSolver* createCryptoMinisat(const std::string& name = "");
+  static SatSolver* createRiss(const std::string& name = "");
+  static SatSolver* createGlucose(const std::string& name = "");
+  
   static DPLLSatSolverInterface* createDPLLMinisat();
 
 };/* class SatSolverFactory */

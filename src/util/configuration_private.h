@@ -113,6 +113,24 @@ namespace CVC4 {
 #  define IS_ABC_BUILD false
 #endif /* CVC4_USE_ABC */
 
+#if CVC4_USE_CRYPTOMINISAT
+#  define IS_CRYPTOMINISAT_BUILD true
+#else /* CVC4_USE_CRYPTOMINISAT */
+#  define IS_CRYPTOMINISAT_BUILD false
+#endif /* CVC4_USE_CRYPTOMINISAT */
+
+#if CVC4_USE_GLUCOSE
+#  define IS_GLUCOSE_BUILD true
+#else /* CVC4_USE_GLUCOSE */
+#  define IS_GLUCOSE_BUILD false
+#endif /* CVC4_USE_GLUCOSE */
+
+#if CVC4_USE_RISS
+#  define IS_RISS_BUILD true
+#else /* CVC4_USE_RISS */
+#  define IS_RISS_BUILD false
+#endif /* CVC4_USE_RISS */
+  
 #ifdef HAVE_LIBREADLINE
 #  define IS_READLINE_BUILD true
 #else /* HAVE_LIBREADLINE */

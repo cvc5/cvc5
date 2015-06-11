@@ -67,6 +67,9 @@ public:
     return d_nextVar++;
   }
 
+  void addXorClause(SatClause& clause, bool rhs, bool removable, uint64_t proof_id) {
+    Unreachable();
+  }
   void addClause(SatClause& c, bool lemma, uint64_t) {
     d_addClauseCalled = true;
   }

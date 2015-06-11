@@ -25,51 +25,54 @@ namespace main {
 inline void showConfiguration(std::string option, SmtEngine* smt) {
   fputs(Configuration::about().c_str(), stdout);
   printf("\n");
-  printf("version    : %s\n", Configuration::getVersionString().c_str());
+  printf("version       : %s\n", Configuration::getVersionString().c_str());
   if(Configuration::isGitBuild()) {
     const char* branchName = Configuration::getGitBranchName();
     if(*branchName == '\0') {
       branchName = "-";
     }
-    printf("scm        : git [%s %s%s]\n",
+    printf("scm           : git [%s %s%s]\n",
            branchName,
            std::string(Configuration::getGitCommit()).substr(0, 8).c_str(),
            Configuration::hasGitModifications() ?
              " (with modifications)" : "");
   } else if(Configuration::isSubversionBuild()) {
-    printf("scm        : svn [%s r%u%s]\n",
+    printf("scm           : svn [%s r%u%s]\n",
            Configuration::getSubversionBranchName(),
            Configuration::getSubversionRevision(),
            Configuration::hasSubversionModifications() ?
              " (with modifications)" : "");
   } else {
-    printf("scm        : no\n");
+    printf("scm           : no\n");
   }
   printf("\n");
-  printf("library    : %u.%u.%u\n",
+  printf("library       : %u.%u.%u\n",
          Configuration::getVersionMajor(),
          Configuration::getVersionMinor(),
          Configuration::getVersionRelease());
   printf("\n");
-  printf("debug code : %s\n", Configuration::isDebugBuild() ? "yes" : "no");
-  printf("statistics : %s\n", Configuration::isStatisticsBuild() ? "yes" : "no");
-  printf("replay     : %s\n", Configuration::isReplayBuild() ? "yes" : "no");
-  printf("tracing    : %s\n", Configuration::isTracingBuild() ? "yes" : "no");
-  printf("dumping    : %s\n", Configuration::isDumpingBuild() ? "yes" : "no");
-  printf("muzzled    : %s\n", Configuration::isMuzzledBuild() ? "yes" : "no");
-  printf("assertions : %s\n", Configuration::isAssertionBuild() ? "yes" : "no");
-  printf("proof      : %s\n", Configuration::isProofBuild() ? "yes" : "no");
-  printf("coverage   : %s\n", Configuration::isCoverageBuild() ? "yes" : "no");
-  printf("profiling  : %s\n", Configuration::isProfilingBuild() ? "yes" : "no");
-  printf("competition: %s\n", Configuration::isCompetitionBuild() ? "yes" : "no");
+  printf("debug code    : %s\n", Configuration::isDebugBuild() ? "yes" : "no");
+  printf("statistics    : %s\n", Configuration::isStatisticsBuild() ? "yes" : "no");
+  printf("replay        : %s\n", Configuration::isReplayBuild() ? "yes" : "no");
+  printf("tracing       : %s\n", Configuration::isTracingBuild() ? "yes" : "no");
+  printf("dumping       : %s\n", Configuration::isDumpingBuild() ? "yes" : "no");
+  printf("muzzled       : %s\n", Configuration::isMuzzledBuild() ? "yes" : "no");
+  printf("assertions    : %s\n", Configuration::isAssertionBuild() ? "yes" : "no");
+  printf("proof         : %s\n", Configuration::isProofBuild() ? "yes" : "no");
+  printf("coverage      : %s\n", Configuration::isCoverageBuild() ? "yes" : "no");
+  printf("profiling     : %s\n", Configuration::isProfilingBuild() ? "yes" : "no");
+  printf("competition   : %s\n", Configuration::isCompetitionBuild() ? "yes" : "no");
   printf("\n");
-  printf("cudd       : %s\n", Configuration::isBuiltWithCudd() ? "yes" : "no");
-  printf("cln        : %s\n", Configuration::isBuiltWithCln() ? "yes" : "no");
-  printf("gmp        : %s\n", Configuration::isBuiltWithGmp() ? "yes" : "no");
-  printf("glpk       : %s\n", Configuration::isBuiltWithGlpk() ? "yes" : "no");
-  printf("abc        : %s\n", Configuration::isBuiltWithAbc() ? "yes" : "no");
-  printf("readline   : %s\n", Configuration::isBuiltWithReadline() ? "yes" : "no");
-  printf("tls        : %s\n", Configuration::isBuiltWithTlsSupport() ? "yes" : "no");
+  printf("cudd          : %s\n", Configuration::isBuiltWithCudd() ? "yes" : "no");
+  printf("cln           : %s\n", Configuration::isBuiltWithCln() ? "yes" : "no");
+  printf("gmp           : %s\n", Configuration::isBuiltWithGmp() ? "yes" : "no");
+  printf("glpk          : %s\n", Configuration::isBuiltWithGlpk() ? "yes" : "no");
+  printf("abc           : %s\n", Configuration::isBuiltWithAbc() ? "yes" : "no");
+  printf("cryptominisat : %s\n", Configuration::isBuiltWithCryptominisat() ? "yes" : "no");
+  printf("glucose       : %s\n", Configuration::isBuiltWithGlucose() ? "yes" : "no");
+  printf("riss          : %s\n", Configuration::isBuiltWithRiss() ? "yes" : "no");
+  printf("readline      : %s\n", Configuration::isBuiltWithReadline() ? "yes" : "no");
+  printf("tls           : %s\n", Configuration::isBuiltWithTlsSupport() ? "yes" : "no");
   exit(0);
 }
 

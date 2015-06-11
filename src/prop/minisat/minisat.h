@@ -27,7 +27,7 @@ namespace prop {
 class MinisatSatSolver : public DPLLSatSolverInterface {
 
   /** The SatSolver used */
-  Minisat::SimpSolver* d_minisat;
+  CVC4::Minisat::SimpSolver* d_minisat;
 
   /** Context we will be using to synchronize the sat solver */
   context::Context* d_context;
@@ -40,20 +40,22 @@ public:
   ~MinisatSatSolver() throw();
 ;
 
-  static SatVariable     toSatVariable(Minisat::Var var);
-  static Minisat::Lit    toMinisatLit(SatLiteral lit);
-  static SatLiteral      toSatLiteral(Minisat::Lit lit);
-  static SatValue        toSatLiteralValue(Minisat::lbool res);
-  static Minisat::lbool  toMinisatlbool(SatValue val);
+  static SatVariable     toSatVariable(CVC4::Minisat::Var var);
+  static CVC4::Minisat::Lit    toMinisatLit(SatLiteral lit);
+  static SatLiteral      toSatLiteral(CVC4::Minisat::Lit lit);
+  static SatValue        toSatLiteralValue(CVC4::Minisat::lbool res);
+  static CVC4::Minisat::lbool  toMinisatlbool(SatValue val);
   //(Commented because not in use) static bool            tobool(SatValue val);
 
-  static void  toMinisatClause(SatClause& clause, Minisat::vec<Minisat::Lit>& minisat_clause);
-  static void  toSatClause    (Minisat::vec<Minisat::Lit>& clause, SatClause& sat_clause);
-  static void  toSatClause    (const Minisat::Clause& clause, SatClause& sat_clause);
+  static void  toMinisatClause(SatClause& clause, CVC4::Minisat::vec<CVC4::Minisat::Lit>& minisat_clause);
+  static void  toSatClause    (CVC4::Minisat::vec<CVC4::Minisat::Lit>& clause, SatClause& sat_clause);
+  static void  toSatClause    (const CVC4::Minisat::Clause& clause, SatClause& sat_clause);
   void initialize(context::Context* context, TheoryProxy* theoryProxy);
 
   void addClause(SatClause& clause, bool removable, uint64_t proof_id);
-
+  void addXorClause(SatClause& clause, bool rhs, bool removable, uint64_t proof_id) {
+    Unreachable("Minisat does not support native XOR reasoning");
+  }
   SatVariable newVar(bool isTheoryAtom, bool preRegister, bool canErase);
   SatVariable trueVar() { return d_minisat->trueVar(); }
   SatVariable falseVar() { return d_minisat->falseVar(); }
@@ -93,7 +95,7 @@ public:
   public:
     Statistics();
     ~Statistics();
-    void init(Minisat::SimpSolver* d_minisat);
+    void init(CVC4::Minisat::SimpSolver* d_minisat);
   };/* class MinisatSatSolver::Statistics */
   Statistics d_statistics;
 

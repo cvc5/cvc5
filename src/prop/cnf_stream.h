@@ -134,6 +134,14 @@ protected:
    * @param clause the clause to assert
    */
   void assertClause(TNode node, SatClause& clause, ProofRule proof_id);
+  /**
+   * Asserts the given xor clause to the sat solver.
+   * @param node the node giving rise to this clause
+   * @param rhs whether the xor of the literals in c is equal rhs
+   * @param c the clause to assert
+   */
+  void assertXorClause(TNode node, bool rhs, SatClause& c, ProofRule proof_id);
+      
 
   /**
    * Asserts the unit clause to the sat solver.

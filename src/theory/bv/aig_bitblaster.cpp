@@ -136,14 +136,38 @@ Abc_Aig_t* AigBitblaster::currentAigM() {
 
 AigBitblaster::AigBitblaster()
   : TBitblaster<Abc_Obj_t*>()
+  , d_satSolver(NULL)
   , d_aigCache()
   , d_bbAtoms()
   , d_aigOutputNode(NULL)
 {
-  d_nullContext = new context::Context(); 
-  d_satSolver = prop::SatSolverFactory::createMinisat(d_nullContext, "AigBitblaster");
-  MinisatEmptyNotify* notify = new MinisatEmptyNotify();
-  d_satSolver->setNotify(notify);
+  d_nullContext = new context::Context();
+
+  switch(options::bvSatSolver()) {
+  case SAT_SOLVER_MINISAT: {
+    prop::BVSatSolverInterface* minisat = prop::SatSolverFactory::createMinisat(d_nullContext,
+										"AigBitblaster");
+    MinisatEmptyNotify* notify = new MinisatEmptyNotify();
+    minisat->setNotify(notify);
+    d_satSolver = minisat;
+    break;
+  }
+  case SAT_SOLVER_CRYPTOMINISAT:
+    d_satSolver = prop::SatSolverFactory::createCryptoMinisat("AigBitblaster");
+    break;
+  case SAT_SOLVER_RISS:
+    d_satSolver = prop::SatSolverFactory::createRiss("AigBitblaster");
+    break;
+  case SAT_SOLVER_GLUCOSE:
+    d_satSolver = prop::SatSolverFactory::createGlucose("AigBitblaster");
+    break;
+  default:
+    Unreachable("Unknown SAT solver type");
+  }
+
+  // d_satSolver = prop::SatSolverFactory::createMinisat(d_nullContext, "AigBitblaster");
+  // MinisatEmptyNotify* notify = new MinisatEmptyNotify();
+  // d_satSolver->setNotify(notify);
 }
 
 AigBitblaster::~AigBitblaster() {

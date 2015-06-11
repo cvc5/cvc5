@@ -246,14 +246,15 @@ public:
   void safePoint(unsigned ammount) {}
 };
 
+class BitblastingRegistrar;
 
 class EagerBitblaster : public TBitblaster<Node> {
   typedef __gnu_cxx::hash_set<TNode, TNodeHashFunction> TNodeSet;
   // sat solver used for bitblasting and associated CnfStream
-  prop::BVSatSolverInterface*        d_satSolver;
-  BitblastingRegistrar*              d_bitblastingRegistrar;
-  context::Context*                  d_nullContext;
-  prop::CnfStream*                   d_cnfStream;
+  prop::SatSolver*        d_satSolver;
+  BitblastingRegistrar*   d_bitblastingRegistrar;
+  context::Context*       d_nullContext;
+  prop::CnfStream*        d_cnfStream;
 
   theory::bv::TheoryBV* d_bv;
   TNodeSet d_bbAtoms;
@@ -276,6 +277,7 @@ public:
   bool assertToSat(TNode node, bool propagate = true);
   bool solve();
   void collectModelInfo(TheoryModel* m, bool fullModel);
+  friend class BitblastingRegistrar;
 };
 
 class BitblastingRegistrar: public prop::Registrar {
@@ -293,7 +295,7 @@ class AigBitblaster : public TBitblaster<Abc_Obj_t*> {
   
   static Abc_Ntk_t* abcAigNetwork;
   context::Context* d_nullContext;
-  prop::BVSatSolverInterface* d_satSolver;
+  prop::SatSolver* d_satSolver;
   TNodeAigMap d_aigCache;
   NodeAigMap d_bbAtoms;
   

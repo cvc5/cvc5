@@ -54,7 +54,7 @@ SimpSolver::SimpSolver(CVC4::context::Context* c) :
   , use_rcheck         (opt_use_rcheck)
   , use_elim           (opt_use_elim &&
                         CVC4::options::bitblastMode() == CVC4::theory::bv::BITBLAST_MODE_EAGER &&
-                        !CVC4::options::produceModels())
+                        !CVC4::options::produceModels()) // FIXME: want to only freeze inputs
   , merges             (0)
   , asymm_lits         (0)
   , eliminated_vars    (0)

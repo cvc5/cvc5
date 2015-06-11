@@ -132,11 +132,11 @@ void BVMinisatSatSolver::getUnsatCore(SatClause& unsatCore) {
 }
 
 SatValue BVMinisatSatSolver::value(SatLiteral l){
-	return toSatLiteralValue(d_minisat->value(toMinisatLit(l)));
+  return toSatLiteralValue(d_minisat->value(toMinisatLit(l)));
 }
 
 SatValue BVMinisatSatSolver::modelValue(SatLiteral l){
-	return toSatLiteralValue(d_minisat->modelValue(toMinisatLit(l)));
+  return toSatLiteralValue(d_minisat->modelValue(toMinisatLit(l)));
 }
 
 void BVMinisatSatSolver::unregisterVar(SatLiteral lit) {
