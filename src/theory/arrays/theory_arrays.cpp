@@ -31,8 +31,6 @@ using namespace std;
 
 namespace CVC4 {
 
-bool next_lemma_is_ext;
-
 namespace theory {
 namespace arrays {
 
@@ -98,7 +96,6 @@ TheoryArrays::TheoryArrays(context::Context* c, context::UserContext* u, OutputC
   d_arrayMerges(c),
   d_inCheckModel(false)
 {
-  next_lemma_is_ext = false;
   StatisticsRegistry::registerStat(&d_numRow);
   StatisticsRegistry::registerStat(&d_numExt);
   StatisticsRegistry::registerStat(&d_numProp);
@@ -1298,7 +1295,6 @@ void TheoryArrays::check(Effort e) {
             Node bk = nm->mkNode(kind::SELECT, fact[0][1], k);
             Node eq = d_valuation.ensureLiteral(ak.eqNode(bk));
             Assert(eq.getKind() == kind::EQUAL);
-            next_lemma_is_ext = true;
             Node lemma = fact[0].orNode(eq.notNode());
             Trace("arrays-lem")<<"Arrays::addExtLemma " << lemma <<"\n";
             d_out->lemma(lemma);
