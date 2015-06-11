@@ -42,7 +42,7 @@ namespace arrays {
 const bool d_ccStore = false;
 const bool d_useArrTable = false;
   //const bool d_eagerLemmas = false;
-  const bool d_preprocess = true;
+const bool d_preprocess = true;
 const bool d_solveWrite = true;
 const bool d_solveWrite2 = false;
   // These are now options
@@ -635,7 +635,7 @@ void TheoryArrays::preRegisterTermInternal(TNode node)
     // The may equal needs the store
     d_mayEqualEqualityEngine.addTerm(store);
 
-    if (options::arraysLazyRIntro1()) {
+    if (options::arraysLazyRIntro1() && !options::arraysWeakEquivalence()) {
       // Apply RIntro1 rule to any stores equal to store if not done already
       const CTNodeList* stores = d_infoMap.getStores(store);
       CTNodeList::const_iterator it = stores->begin();
@@ -725,7 +725,7 @@ void TheoryArrays::preRegisterTermInternal(TNode node)
       Assert(d_mayEqualEqualityEngine.consistent());
     }
 
-    if (!options::arraysLazyRIntro1()) {
+    if (!options::arraysLazyRIntro1() || options::arraysWeakEquivalence()) {
       TNode i = node[1];
       TNode v = node[2];
       NodeManager* nm = NodeManager::currentNM();
@@ -1600,7 +1600,7 @@ void TheoryArrays::mergeArrays(TNode a, TNode b)
   while (true) {
     Trace("arrays-merge") << spaces(getSatContext()->getLevel()) << "Arrays::merge: " << a << "," << b << ")\n";
 
-    if (options::arraysLazyRIntro1()) {
+    if (options::arraysLazyRIntro1() && !options::arraysWeakEquivalence()) {
       checkRIntro1(a, b);
       checkRIntro1(b, a);
     }

@@ -8,10 +8,10 @@ module ARRAYS "theory/arrays/options.h" Arrays theory
 option arraysOptimizeLinear --arrays-optimize-linear bool :default true :read-write
  turn on optimization for linear array terms (see de Moura FMCAD 09 arrays paper)
 
-option arraysLazyRIntro1 --arrays-lazy-rintro1 bool :default false :read-write
+option arraysLazyRIntro1 --arrays-lazy-rintro1 bool :default true :read-write
  turn on optimization to only perform RIntro1 rule lazily (see Jovanovic/Barrett 2012: Being Careful with Theory Combination)
 
-option arraysWeakEquivalence --arrays-weak-equiv bool :default true :read-write
+option arraysWeakEquivalence --arrays-weak-equiv bool :default false :read-write
  use algorithm from Christ/Hoenicke (SMT 2014)
 
 option arraysModelBased --arrays-model-based bool :default false :read-write
