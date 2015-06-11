@@ -36,7 +36,7 @@ ALIA|AUFLIA|AUFLIRA|AUFNIRA|BV|UF|UFBV|UFIDL|UFLIA|UFLRA|UFNIA)
   runcvc4 --incremental
   ;;
 LIA|LRA|NIA|NRA)
-  runcvc4 --incremental --cbqi
+  runcvc4 --incremental --cbqi2
   ;;
 QF_BV)
   runcvc4 --incremental --unconstrained-simp --bv-eq-slicer=auto --bv-div-zero-const --bv-intro-pow2

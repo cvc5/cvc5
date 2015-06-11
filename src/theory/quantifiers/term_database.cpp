@@ -2070,7 +2070,9 @@ void TermDbSygus::printSygusTerm( std::ostream& out, Node n, std::vector< Node >
         }
       }else{
         //print as let term
-        out << "(let (";
+        if( dt[cIndex].getNumSygusLetInputArgs()>0 ){
+          out << "(let (";
+        }
         std::vector< Node > subs_lvs;
         std::vector< Node > new_lvs;
         for( unsigned i=0; i<dt[cIndex].getNumSygusLetArgs(); i++ ){
@@ -2089,7 +2091,9 @@ void TermDbSygus::printSygusTerm( std::ostream& out, Node n, std::vector< Node >
             out << ")";
           }
         }
-        out << ") ";
+        if( dt[cIndex].getNumSygusLetInputArgs()>0 ){
+          out << ") ";
+        }
         //print the body
         Node let_body = Node::fromExpr( dt[cIndex].getSygusLetBody() );
         let_body = let_body.substitute( subs_lvs.begin(), subs_lvs.end(), new_lvs.begin(), new_lvs.end() );
@@ -2104,7 +2108,10 @@ void TermDbSygus::printSygusTerm( std::ostream& out, Node n, std::vector< Node >
           printSygusTerm( new_str, n[i], lvs );
           doReplace( body, old_str.str().c_str(), new_str.str().c_str() );
         }
-        out << body << ")";
+        out << body;
+        if( dt[cIndex].getNumSygusLetInputArgs()>0 ){
+          out << ")";
+        }
       }
       return;
     }
