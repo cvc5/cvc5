@@ -1379,6 +1379,10 @@ void TheoryEngine::ensureLemmaAtoms(const std::vector<TNode>& atoms, theory::The
   }
 }
 
+namespace CVC4 {
+extern bool next_lemma_is_ext;
+}
+
 theory::LemmaStatus TheoryEngine::lemma(TNode node, bool negated, bool removable, bool preprocess, theory::TheoryId atomsTo) {
   // For resource-limiting (also does a time check).
   // spendResource();
@@ -1391,7 +1395,10 @@ theory::LemmaStatus TheoryEngine::lemma(TNode node, bool negated, bool removable
     ensureLemmaAtoms(collectAtoms.getAtoms(), atomsTo);
   }
 
-  if(Dump.isOn("t-lemmas")) {
+  if (CVC4::next_lemma_is_ext) {
+    CVC4::next_lemma_is_ext = false;
+  }
+  else if(Dump.isOn("t-lemmas")) {
     Node n = node;
     if (negated) {
       n = node.negate();

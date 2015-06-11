@@ -30,6 +30,9 @@
 using namespace std;
 
 namespace CVC4 {
+
+bool next_lemma_is_ext;
+
 namespace theory {
 namespace arrays {
 
@@ -92,8 +95,10 @@ TheoryArrays::TheoryArrays(context::Context* c, context::UserContext* u, OutputC
   d_lemmasSaved(c),
   d_defValues(c),
   d_readTableContext(new context::Context()),
+  d_arrayMerges(c),
   d_inCheckModel(false)
 {
+  next_lemma_is_ext = false;
   StatisticsRegistry::registerStat(&d_numRow);
   StatisticsRegistry::registerStat(&d_numExt);
   StatisticsRegistry::registerStat(&d_numProp);
@@ -112,10 +117,6 @@ TheoryArrays::TheoryArrays(context::Context* c, context::UserContext* u, OutputC
   d_ppEqualityEngine.addFunctionKind(kind::SELECT);
   d_ppEqualityEngine.addFunctionKind(kind::STORE);
 
-  // The mayequal congruence kinds
-  d_mayEqualEqualityEngine.addFunctionKind(kind::SELECT);
-  d_mayEqualEqualityEngine.addFunctionKind(kind::STORE);
-
   // The kinds we are treating as function application in congruence
   d_equalityEngine.addFunctionKind(kind::SELECT);
   if (d_ccStore) {
@@ -127,9 +128,9 @@ TheoryArrays::TheoryArrays(context::Context* c, context::UserContext* u, OutputC
 }
 
 TheoryArrays::~TheoryArrays() {
-  ReadBucketMap::iterator it = d_readBucketTable.begin(), iend = d_readBucketTable.end();
+  vector<CTNodeList*>::iterator it = d_readBucketAllocations.begin(), iend = d_readBucketAllocations.end();
   for (; it != iend; ++it) {
-    it->second->deleteSelf();
+    (*it)->deleteSelf();
   }
   delete d_readTableContext;
   CNodeNListMap::iterator it2 = d_constReads.begin();
@@ -431,6 +432,24 @@ TNode TheoryArrays::weakEquivGetRepIndex(TNode node, TNode index) {
   }
 }
 
+void TheoryArrays::visitAllLeaves(TNode reason, vector<TNode>& conjunctions) {
+  switch (reason.getKind()) {
+    case kind::AND:
+      Assert(reason.getNumChildren() == 2);
+      visitAllLeaves(reason[0], conjunctions);
+      visitAllLeaves(reason[1], conjunctions);
+      break;
+    case kind::NOT:
+      conjunctions.push_back(reason);
+      break;
+    case kind::EQUAL:
+      d_equalityEngine.explainEquality(reason[0], reason[1], true, conjunctions);
+      break;
+    default:
+      Unreachable();
+  }
+}
+
 void TheoryArrays::weakEquivBuildCond(TNode node, TNode index, vector<TNode>& conjunctions) {
   Assert(!index.isNull());
   TNode pointer, index2;
@@ -446,7 +465,7 @@ void TheoryArrays::weakEquivBuildCond(TNode node, TNode index, vector<TNode>& co
       node = pointer;
     }
     else if (!d_equalityEngine.areEqual(index, index2)) {
-      // If indices are not equal in current context, need to add their equality to the lemma.
+      // If indices are not equal in current context, need to add that to the lemma.
       Node reason = index.eqNode(index2).notNode();
       d_permRef.push_back(reason);
       conjunctions.push_back(reason);
@@ -458,10 +477,8 @@ void TheoryArrays::weakEquivBuildCond(TNode node, TNode index, vector<TNode>& co
         return;
       }
       TNode reason = d_infoMap.getWeakEquivSecondaryReason(node);
-      if (!reason.isNull()) {
-        Assert(reason.getKind() == kind::EQUAL);
-        d_equalityEngine.explainEquality(reason[0], reason[1], true, conjunctions);
-      }
+      Assert(!reason.isNull());
+      visitAllLeaves(reason, conjunctions);
       node = secondary;
     }
   }
@@ -487,12 +504,24 @@ void TheoryArrays::weakEquivMakeRepIndex(TNode node) {
   TNode index = d_infoMap.getWeakEquivIndex(node);
   Assert(!index.isNull());
   TNode index2 = d_infoMap.getWeakEquivIndex(secondary);
+  Node reason;
+  TNode next;
   while (index2.isNull() || !d_equalityEngine.areEqual(index, index2)) {
-    secondary = d_infoMap.getWeakEquivPointer(secondary);
-    d_infoMap.setWeakEquivSecondary(node, secondary);
-    if (secondary.isNull()) {
+    next = d_infoMap.getWeakEquivPointer(secondary);
+    d_infoMap.setWeakEquivSecondary(node, next);
+    reason = d_infoMap.getWeakEquivSecondaryReason(node);
+    if (index2.isNull()) {
+      reason = reason.andNode(secondary.eqNode(next));
+    }
+    else {
+      reason = reason.andNode(index.eqNode(index2).notNode());
+    }
+    d_permRef.push_back(reason);
+    d_infoMap.setWeakEquivSecondaryReason(node, reason);
+    if (next.isNull()) {
       return;
     }
+    secondary = next;
     index2 = d_infoMap.getWeakEquivIndex(secondary);
   }
   weakEquivMakeRepIndex(secondary);
@@ -504,25 +533,40 @@ void TheoryArrays::weakEquivMakeRepIndex(TNode node) {
 
 void TheoryArrays::weakEquivAddSecondary(TNode index, TNode arrayFrom, TNode arrayTo, TNode reason) {
   std::hash_set<TNode, TNodeHashFunction> marked;
+  vector<TNode> index_trail;
+  vector<TNode>::iterator it, iend;
+  Node equivalence_trail = reason;
+  Node current_reason;
+  TNode pointer, indexRep;
   if (!index.isNull()) {
+    index_trail.push_back(index);
     marked.insert(d_equalityEngine.getRepresentative(index));
   }
   while (arrayFrom != arrayTo) {
     index = d_infoMap.getWeakEquivIndex(arrayFrom);
+    pointer = d_infoMap.getWeakEquivPointer(arrayFrom);
     if (!index.isNull()) {
-      index = d_equalityEngine.getRepresentative(index);
-      if (marked.find(index) == marked.end() && weakEquivGetRepIndex(arrayFrom, index) != arrayTo) {
+      indexRep = d_equalityEngine.getRepresentative(index);
+      if (marked.find(indexRep) == marked.end() && weakEquivGetRepIndex(arrayFrom, index) != arrayTo) {
         weakEquivMakeRepIndex(arrayFrom);
         d_infoMap.setWeakEquivSecondary(arrayFrom, arrayTo);
-        d_infoMap.setWeakEquivSecondaryReason(arrayFrom, reason);
+        current_reason = equivalence_trail;
+        for (it = index_trail.begin(), iend = index_trail.end(); it != iend; ++it) {
+          current_reason = current_reason.andNode(index.eqNode(*it).notNode());
+        }
+        d_permRef.push_back(current_reason);
+        d_infoMap.setWeakEquivSecondaryReason(arrayFrom, current_reason);
       }
-      marked.insert(index);
+      marked.insert(indexRep);
     }
-    arrayFrom = d_infoMap.getWeakEquivPointer(arrayFrom);
+    else {
+      equivalence_trail = equivalence_trail.andNode(arrayFrom.eqNode(pointer));
+    }
+    arrayFrom = pointer;
   }
 }
 
-void TheoryArrays::checkWeakEquiv() {
+void TheoryArrays::checkWeakEquiv(bool arraysMerged) {
   eq::EqClassesIterator eqcs_i = eq::EqClassesIterator(&d_mayEqualEqualityEngine);
   for (; !eqcs_i.isFinished(); ++eqcs_i) {
     Node eqc = (*eqcs_i);
@@ -534,7 +578,7 @@ void TheoryArrays::checkWeakEquiv() {
     TNode weakEquivRep = weakEquivGetRep(rep);
     for (; !eqc_i.isFinished(); ++eqc_i) {
       TNode n = *eqc_i;
-      Assert(weakEquivGetRep(n) == weakEquivRep);
+      Assert(!arraysMerged || weakEquivGetRep(n) == weakEquivRep);
       TNode pointer = d_infoMap.getWeakEquivPointer(n);
       TNode index = d_infoMap.getWeakEquivIndex(n);
       TNode secondary = d_infoMap.getWeakEquivSecondary(n);
@@ -703,17 +747,12 @@ void TheoryArrays::preRegisterTermInternal(TNode node)
 
     //Add-Store for Weak Equivalence
     if (options::arraysWeakEquivalence()) {
-      weakEquivMakeRep(node);
       Assert(weakEquivGetRep(node[0]) == weakEquivGetRep(a));
-      if (weakEquivGetRep(node[0]) == node) {
-        weakEquivAddSecondary(node[1], node[0], node, TNode());
-      }
-      else {
-        d_infoMap.setWeakEquivPointer(node, node[0]);
-        d_infoMap.setWeakEquivIndex(node, node[1]);
-      }
+      Assert(weakEquivGetRep(node) == node);
+      d_infoMap.setWeakEquivPointer(node, node[0]);
+      d_infoMap.setWeakEquivIndex(node, node[1]);
 #ifdef CVC4_ASSERTIONS
-      checkWeakEquiv();
+      checkWeakEquiv(false);
 #endif
     }
 
@@ -901,7 +940,7 @@ void TheoryArrays::computeCareGraph()
       }
     }
   }
-  if (!options::arraysWeakEquivalence() && d_sharedTerms) {
+  if (d_sharedTerms) {
     // Synchronize d_constReadsContext with SAT context
     Assert(d_constReadsContext->getLevel() <= getSatContext()->getLevel());
     while (d_constReadsContext->getLevel() < getSatContext()->getLevel()) {
@@ -1259,6 +1298,7 @@ void TheoryArrays::check(Effort e) {
             Node bk = nm->mkNode(kind::SELECT, fact[0][1], k);
             Node eq = d_valuation.ensureLiteral(ak.eqNode(bk));
             Assert(eq.getKind() == kind::EQUAL);
+            next_lemma_is_ext = true;
             Node lemma = fact[0].orNode(eq.notNode());
             Trace("arrays-lem")<<"Arrays::addExtLemma " << lemma <<"\n";
             d_out->lemma(lemma);
@@ -1272,6 +1312,29 @@ void TheoryArrays::check(Effort e) {
   }
 
   if ((options::arraysEagerLemmas() || fullEffort(e)) && !d_conflict && options::arraysWeakEquivalence()) {
+    // Replay all array merges to update weak equivalence data structures
+    context::CDList<Node>::iterator it = d_arrayMerges.begin(), iend = d_arrayMerges.end();
+    TNode a, b, eq;
+    for (; it != iend; ++it) {
+      eq = *it;
+      a = eq[0];
+      b = eq[1];
+      weakEquivMakeRep(b);
+      if (weakEquivGetRep(a) == b) {
+        weakEquivAddSecondary(TNode(), a, b, eq);
+      }
+      else {
+        d_infoMap.setWeakEquivPointer(b, a);
+        d_infoMap.setWeakEquivIndex(b, TNode());
+      }
+#ifdef CVC4_ASSERTIONS
+    checkWeakEquiv(false);
+#endif
+    }
+#ifdef CVC4_ASSERTIONS
+    checkWeakEquiv(true);
+#endif
+
     d_readTableContext->push();
     TNode mayRep, iRep;
     CTNodeList* bucketList = NULL;
@@ -1288,6 +1351,7 @@ void TheoryArrays::check(Effort e) {
       ReadBucketMap::iterator it = d_readBucketTable.find(key);
       if (it == d_readBucketTable.end()) {
         bucketList = new(true) CTNodeList(d_readTableContext);
+        d_readBucketAllocations.push_back(bucketList);
         d_readBucketTable[key] = bucketList;
       }
       else {
@@ -1305,16 +1369,19 @@ void TheoryArrays::check(Effort e) {
         if (weakEquivGetRepIndex(r[0], r[1]) == weakEquivGetRepIndex(r2[0], r[1])) {
           // add lemma: r[1] = r2[1] /\ cond(r[0],r2[0]) => r = r2
           vector<TNode> conjunctions;
-          Node lemma = r.eqNode(r2).negate();
+          Assert(d_equalityEngine.areEqual(r, Rewriter::rewrite(r)));
+          Assert(d_equalityEngine.areEqual(r2, Rewriter::rewrite(r2)));
+          Node lemma = Rewriter::rewrite(r).eqNode(Rewriter::rewrite(r2)).negate();
           d_permRef.push_back(lemma);
           conjunctions.push_back(lemma);
           if (r[1] != r2[1]) {
             d_equalityEngine.explainEquality(r[1], r2[1], true, conjunctions);
           }
+          // TODO: get smaller lemmas by eliminating shared parts of path
           weakEquivBuildCond(r[0], r[1], conjunctions);
           weakEquivBuildCond(r2[0], r[1], conjunctions);
           lemma = mkAnd(conjunctions, true);
-          d_out->lemma(lemma);
+          d_out->lemma(lemma, false, false, true);
           d_readTableContext->pop();
           return;
         }
@@ -1617,19 +1684,7 @@ void TheoryArrays::mergeArrays(TNode a, TNode b)
     d_infoMap.mergeInfo(a, b);
 
     if (options::arraysWeakEquivalence()) {
-      // Update weak equivalence data structures
-      weakEquivMakeRep(b);
-      if (weakEquivGetRep(a) == b) {
-        d_permRef.push_back(a.eqNode(b));
-        weakEquivAddSecondary(TNode(), a, b, a.eqNode(b));
-      }
-      else {
-        d_infoMap.setWeakEquivPointer(b, a);
-        d_infoMap.setWeakEquivIndex(b, TNode());
-      }
-#ifdef CVC4_ASSERTIONS
-      checkWeakEquiv();
-#endif
+      d_arrayMerges.push_back(a.eqNode(b));
     }
 
     // If no more to do, break

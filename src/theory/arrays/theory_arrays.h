@@ -259,11 +259,12 @@ class TheoryArrays : public Theory {
 
   TNode weakEquivGetRep(TNode node);
   TNode weakEquivGetRepIndex(TNode node, TNode index);
+  void visitAllLeaves(TNode reason, std::vector<TNode>& conjunctions);
   void weakEquivBuildCond(TNode node, TNode index, std::vector<TNode>& conjunctions);
   void weakEquivMakeRep(TNode node);
   void weakEquivMakeRepIndex(TNode node);
   void weakEquivAddSecondary(TNode index, TNode arrayFrom, TNode arrayTo, TNode reason);
-  void checkWeakEquiv();
+  void checkWeakEquiv(bool arraysMerged);
 
   // NotifyClass: template helper class for d_equalityEngine - handles call-back from congruence closure module
   class NotifyClass : public eq::EqualityEngineNotify {
@@ -405,6 +406,8 @@ class TheoryArrays : public Theory {
   typedef std::hash_map<std::pair<TNode, TNode>, CTNodeList*, TNodePairHashFunction> ReadBucketMap;
   ReadBucketMap d_readBucketTable;
   context::Context* d_readTableContext;
+  context::CDList<Node> d_arrayMerges;
+  std::vector<CTNodeList*> d_readBucketAllocations;
 
   Node getSkolem(TNode ref, const std::string& name, const TypeNode& type, const std::string& comment, bool makeEqual = true);
   Node mkAnd(std::vector<TNode>& conjunctions, bool invert = false, unsigned startIndex = 0);
