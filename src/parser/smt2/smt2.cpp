@@ -500,6 +500,7 @@ void Smt2::mkSygusDefaultGrammar( const Type& range, Expr& bvl, const std::strin
                                   std::vector<Type>& sorts, std::vector< std::vector<Expr> >& ops, std::vector<Expr> sygus_vars ) {
 
   Debug("parser-sygus") << "Construct default grammar for " << fun << " " << range << std::endl;
+  std::map< CVC4::Type, CVC4::Type > sygus_to_builtin;
   
   std::stringstream ssb;
   ssb << fun << "_Bool";
@@ -562,7 +563,7 @@ void Smt2::mkSygusDefaultGrammar( const Type& range, Expr& bvl, const std::strin
   }
   Debug("parser-sygus") << "...make datatype " << datatypes.back() << std::endl;
   datatypes.back().setSygus( range, bvl, true, true );
-  mkSygusDatatype( datatypes.back(), ops.back(), cnames, cargs, unresolved_gterm_sym );
+  mkSygusDatatype( datatypes.back(), ops.back(), cnames, cargs, unresolved_gterm_sym, sygus_to_builtin );
   sorts.push_back( range );
 
   //Boolean type
@@ -598,7 +599,7 @@ void Smt2::mkSygusDefaultGrammar( const Type& range, Expr& bvl, const std::strin
   Debug("parser-sygus") << "...make datatype " << datatypes.back() << std::endl;
   Type btype = getExprManager()->booleanType();
   datatypes.back().setSygus( btype, bvl, true, true );
-  mkSygusDatatype( datatypes.back(), ops.back(), cnames, cargs, unresolved_gterm_sym );
+  mkSygusDatatype( datatypes.back(), ops.back(), cnames, cargs, unresolved_gterm_sym, sygus_to_builtin );
   sorts.push_back( btype );
 
   Debug("parser-sygus") << "...finished make default grammar for " << fun << " " << range << std::endl;
@@ -882,29 +883,32 @@ void Smt2::defineSygusFuns() {
 
 void Smt2::mkSygusDatatype( CVC4::Datatype& dt, std::vector<CVC4::Expr>& ops,
                             std::vector<std::string>& cnames, std::vector< std::vector< CVC4::Type > >& cargs,
-                            std::vector<std::string>& unresolved_gterm_sym ) {
+                            std::vector<std::string>& unresolved_gterm_sym, 
+                            std::map< CVC4::Type, CVC4::Type >& sygus_to_builtin ) {
   Debug("parser-sygus") << "Making sygus datatype " << dt.getName() << std::endl;
   Debug("parser-sygus") << "  add constructors..." << std::endl;
   for( int i=0; i<(int)cnames.size(); i++ ){
     bool is_dup = false;
-    //FIXME : should allow multiple operators with different sygus type arguments
-    //        for now, just ignore them (introduces incompleteness).
+    bool is_dup_op = false;
+    Expr let_body;
+    std::vector< Expr > let_args;
+    unsigned let_num_input_args = 0;
     for( int j=0; j<i; j++ ){
       if( ops[i]==ops[j] ){
-        is_dup = true;
-        break;
-      }
-      /*
-      if( ops[i]==ops[j] && cargs[i].size()==cargs[j].size() ){
-        is_dup = true;
-        for( unsigned k=0; k<cargs[i].size(); k++ ){
-          if( cargs[i][k]!=cargs[j][k] ){
-            is_dup = false;
-            break;
+        is_dup_op = true;
+        if( cargs[i].size()==cargs[j].size() ){
+          is_dup = true;
+          for( unsigned k=0; k<cargs[i].size(); k++ ){
+            if( cargs[i][k]!=cargs[j][k] ){
+              is_dup = false;
+              break;
+            }
           }
         }
+        if( is_dup ){
+          break;
+        }
       }
-      */
     }
     if( is_dup ){
       Debug("parser-sygus") << "--> Duplicate gterm : " << ops[i] << " at " << i << std::endl;
@@ -912,10 +916,39 @@ void Smt2::mkSygusDatatype( CVC4::Datatype& dt, std::vector<CVC4::Expr>& ops,
       cnames.erase( cnames.begin() + i, cnames.begin() + i + 1 );
       cargs.erase( cargs.begin() + i, cargs.begin() + i + 1 );
       i--;
+    }else if( is_dup_op ){
+      Debug("parser-sygus") << "--> Duplicate gterm operator : " << ops[i] << " at " << i << std::endl;
+      //make into define-fun
+      std::vector<CVC4::Type> fsorts;
+      for( unsigned j=0; j<cargs[i].size(); j++ ){
+        Type bt = sygus_to_builtin[cargs[i][j]];
+        std::stringstream ss;
+        ss << dt.getName() << "_x_" << i << "_" << j;
+        Expr v = mkBoundVar(ss.str(), bt);
+        let_args.push_back( v );
+        fsorts.push_back( bt );
+      }
+      //make the let_body
+      std::vector< Expr > children;
+      if( ops[i].getKind() != kind::BUILTIN ){
+        children.push_back( ops[i] );
+      }
+      children.insert( children.end(), let_args.begin(), let_args.end() );
+      Kind sk = ops[i].getKind() != kind::BUILTIN ? kind::APPLY : getExprManager()->operatorToKind(ops[i]);
+      Debug("parser-sygus") << ": replace " << ops[i] << " " << ops[i].getKind() << " " << sk << std::endl;
+      let_body = getExprManager()->mkExpr( sk, children );
+      Debug("parser-sygus") << ": new body of function is " << let_body << std::endl;
+      
+      Type ft = getExprManager()->mkFunctionType(fsorts, let_body.getType());
+      Debug("parser-sygus") << ": function type is " << ft << std::endl;
+      std::stringstream ss;
+      ss << dt.getName() << "_df_" << i;
+      //replace operator and name
+      ops[i] = mkFunction(ss.str(), ft, ExprManager::VAR_FLAG_DEFINED);
+      cnames[i] = ss.str();
+      preemptCommand( new DefineFunctionCommand(ss.str(), ops[i], let_args, let_body) );
+      addSygusDatatypeConstructor( dt, ops[i], cnames[i], cargs[i], let_body, let_args, 0 );
     }else{
-      Expr let_body;
-      std::vector< Expr > let_args;
-      unsigned let_num_input_args = 0;
       std::map< CVC4::Expr, CVC4::Expr >::iterator it = d_sygus_let_func_to_body.find( ops[i] );
       if( it!=d_sygus_let_func_to_body.end() ){
         let_body = it->second;

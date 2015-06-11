@@ -230,7 +230,8 @@ public:
 
   void mkSygusDatatype( CVC4::Datatype& dt, std::vector<CVC4::Expr>& ops,
                         std::vector<std::string>& cnames, std::vector< std::vector< CVC4::Type > >& cargs,
-                        std::vector<std::string>& unresolved_gterm_sym );
+                        std::vector<std::string>& unresolved_gterm_sym, 
+                        std::map< CVC4::Type, CVC4::Type >& sygus_to_builtin );
 
   // i is index in datatypes/ops
   // j is index is datatype

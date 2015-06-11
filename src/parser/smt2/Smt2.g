@@ -509,13 +509,14 @@ sygusCommand returns [CVC4::Command* cmd = NULL]
     { PARSER_STATE->setLogic(name);
       $cmd = new SetBenchmarkLogicCommand("ALL_SUPPORTED"); }
   | /* set-options */
-    SET_OPTIONS_TOK LPAREN_TOK { seq = new CommandSequence(); }
-    ( LPAREN_TOK symbol[name,CHECK_NONE,SYM_VARIABLE] symbolicExpr[sexpr] RPAREN_TOK
-      { PARSER_STATE->setOption(name.c_str(), sexpr);
-        seq->addCommand(new SetOptionCommand(name.c_str() + 1, sexpr));
+    SET_OPTIONS_TOK LPAREN_TOK
+    ( LPAREN_TOK symbol[name,CHECK_NONE,SYM_VARIABLE] SYGUS_QUOTED_LITERAL RPAREN_TOK
+      { //TODO?
+        //PARSER_STATE->setOption(name.c_str(), sexpr);
+        //seq->addCommand(new SetOptionCommand(name.c_str() + 1, sexpr));
       }
     )+ RPAREN_TOK
-    { $cmd = seq; }
+    { $cmd = new EmptyCommand(); }
   | /* sort definition */
     DEFINE_SORT_TOK { PARSER_STATE->checkThatLogicIsSet(); }
     symbol[name,CHECK_UNDECLARED,SYM_SORT]
@@ -644,7 +645,7 @@ sygusCommand returns [CVC4::Command* cmd = NULL]
             PARSER_STATE->parseError(std::string("Internal error : could not infer builtin sort for nested gterm."));
           }
           datatypes[i].setSygus( sorts[i], terms[0], allow_const[i], false );
-          PARSER_STATE->mkSygusDatatype( datatypes[i], ops[i], cnames[i], cargs[i], unresolved_gterm_sym[i] );
+          PARSER_STATE->mkSygusDatatype( datatypes[i], ops[i], cnames[i], cargs[i], unresolved_gterm_sym[i], sygus_to_builtin );
         }
       }
       PARSER_STATE->popScope();
@@ -2800,6 +2801,14 @@ STRING_LITERAL_2_5
     '"' (~('"') | '""')* '"'
   ;
 
+/**
+ * Matches sygus quoted literal 
+ */
+SYGUS_QUOTED_LITERAL
+ : { PARSER_STATE->sygus() }?=>
+   '"' (ALPHA|DIGIT)* '"'
+  ;
+  
 /**
  * Matches the comments and ignores them
  */
