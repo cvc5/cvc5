@@ -503,6 +503,7 @@ sygusCommand returns [CVC4::Command* cmd = NULL]
   Type sygus_ret;
   std::map< CVC4::Type, CVC4::Type > sygus_to_builtin;
   std::map< CVC4::Type, CVC4::Expr > sygus_to_builtin_expr;
+  int startIndex = -1;
 }
   : /* set the logic */
     SET_LOGIC_TOK symbol[name,CHECK_NONE,SYM_SORT]
@@ -606,26 +607,34 @@ sygusCommand returns [CVC4::Command* cmd = NULL]
     sortSymbol[range,CHECK_DECLARED]
     ( LPAREN_TOK
     ( LPAREN_TOK
-      symbol[name,CHECK_NONE,SYM_VARIABLE] { PARSER_STATE->pushScope(true); }
+      symbol[name,CHECK_NONE,SYM_VARIABLE] 
       sortSymbol[t,CHECK_DECLARED]
       { std::stringstream ss;
         ss << fun << "_" << name;
+        if( name=="Start" ){
+          startIndex = datatypes.size();
+        }
         std::string dname = ss.str();
         PARSER_STATE->pushSygusDatatypeDef(t, dname, datatypes, sorts, ops, cnames, cargs, allow_const, unresolved_gterm_sym);
+        Type unres_t;
         if(!PARSER_STATE->isUnresolvedType(dname)) {
           // if not unresolved, must be undeclared
           PARSER_STATE->checkDeclaration(dname, CHECK_UNDECLARED, SYM_SORT);
+          unres_t = PARSER_STATE->mkUnresolvedType(dname);
+        }else{
+          unres_t = PARSER_STATE->getSort(dname);
         }
-        Type unres_t = PARSER_STATE->mkUnresolvedType(dname);
         sygus_to_builtin[unres_t] = t;
         sygus_dt_index = datatypes.size()-1;
-        Debug("parser-sygus") << "Read sygus grammar " << name << " under function " << fun << "..." << std::endl;
+        Debug("parser-sygus") << "--- Read sygus grammar " << name << " under function " << fun << "..." << std::endl;
+        Debug("parser-sygus") << "    type to resolve " << unres_t << std::endl;
+        Debug("parser-sygus") << "    builtin type " << t << std::endl;
       }
       // Note the official spec for NTDef is missing the ( parens )
       // but they are necessary to parse SyGuS examples
       LPAREN_TOK sygusGTerm[sygus_dt_index, datatypes, sorts, fun, ops, cnames, cargs, allow_const, unresolved_gterm_sym, 
                             sygus_vars, sygus_to_builtin, sygus_to_builtin_expr, sygus_ret, -1]+ RPAREN_TOK
-      RPAREN_TOK { PARSER_STATE->popScope(); }
+      RPAREN_TOK 
     )+
     RPAREN_TOK { read_syntax = true; }
     )?
@@ -634,10 +643,10 @@ sygusCommand returns [CVC4::Command* cmd = NULL]
         //create the default grammar
         PARSER_STATE->mkSygusDefaultGrammar( range, terms[0], fun, datatypes, sorts, ops, sygus_vars );
       }else{
+        //swap index if necessary
         Debug("parser-sygus") << "Making sygus datatypes..." << std::endl;
-        //make unresolved types to recognize 
         for( unsigned i=0; i<datatypes.size(); i++ ){
-          PARSER_STATE->mkUnresolvedType(datatypes[i].getName());
+          Debug("parser-sygus") << "..." << datatypes[i].getName() << " has builtin sort " << sorts[i] << std::endl;
         }
         for( unsigned i=0; i<datatypes.size(); i++ ){
           Debug("parser-sygus") << "...make " << datatypes[i].getName() << " with builtin sort " << sorts[i] << std::endl;
@@ -646,6 +655,22 @@ sygusCommand returns [CVC4::Command* cmd = NULL]
           }
           datatypes[i].setSygus( sorts[i], terms[0], allow_const[i], false );
           PARSER_STATE->mkSygusDatatype( datatypes[i], ops[i], cnames[i], cargs[i], unresolved_gterm_sym[i], sygus_to_builtin );
+        }
+        //only care about datatypes/sorts/ops past here
+        if( startIndex>0 ){
+         // PARSER_STATE->swapSygusStart( startIndex, datatypes, sorts, ops, cnames, cargs, allow_const, unresolved_gterm_sym );
+          CVC4::Datatype tmp_dt = datatypes[0];
+          Type tmp_sort = sorts[0];
+          std::vector< Expr > tmp_ops;
+          tmp_ops.insert( tmp_ops.end(), ops[0].begin(), ops[0].end() );
+          datatypes[0] = datatypes[startIndex];
+          sorts[0] = sorts[startIndex];
+          ops[0].clear();
+          ops[0].insert( ops[0].end(), ops[startIndex].begin(), ops[startIndex].end() );
+          datatypes[startIndex] = tmp_dt;
+          sorts[startIndex] = tmp_sort;
+          ops[startIndex].clear();
+          ops[startIndex].insert( ops[startIndex].begin(), tmp_ops.begin(), tmp_ops.end() );
         }
       }
       PARSER_STATE->popScope();
@@ -798,7 +823,7 @@ sygusGTerm[int index,
           Expr v = PARSER_STATE->mkBoundVar(sname,t); 
           let_vars.push_back( v ); 
           std::stringstream ss;
-          ss << datatypes[index].getName() << "_let_var_" << let_vars.size();
+          ss << datatypes[index].getName() << "_" << ops[index].size() << "_lv_" << let_vars.size();
           sub_dname = ss.str();
           PARSER_STATE->pushSygusDatatypeDef( null_type, sub_dname, datatypes, sorts, ops, cnames, cargs, allow_const, unresolved_gterm_sym );
           sub_dt_index = datatypes.size()-1;
@@ -860,7 +885,7 @@ sygusGTerm[int index,
       //add datatype definition for argument
       count++;
       std::stringstream ss;
-      ss << datatypes[index].getName() << "_" << name << "_arg_" << count;
+      ss << datatypes[index].getName() << "_" << ops[index].size() << "_arg_" << count;
       sub_dname = ss.str();
       PARSER_STATE->pushSygusDatatypeDef( null_type, sub_dname, datatypes, sorts, ops, cnames, cargs, allow_const, unresolved_gterm_sym );
       sub_dt_index = datatypes.size()-1;
@@ -875,7 +900,7 @@ sygusGTerm[int index,
         //add next datatype definition for argument
         count++;
         std::stringstream ss;
-        ss << datatypes[index].getName() << "_" << name << "_arg_" << count;
+        ss << datatypes[index].getName() << "_" << ops[index].size() << "_arg_" << count;
         sub_dname = ss.str();
         PARSER_STATE->pushSygusDatatypeDef( null_type, sub_dname, datatypes, sorts, ops, cnames, cargs, allow_const, unresolved_gterm_sym );
         sub_dt_index = datatypes.size()-1;

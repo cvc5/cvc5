@@ -37,7 +37,8 @@ TESTS = commutative.sy \
         let-ringer.sy \
         let-simp.sy \
         tl-type.sy \
-        dup-op.sy
+        dup-op.sy \
+        nflat-fwd.sy
 
 # sygus tests currently taking too long for make regress
 EXTRA_DIST = $(TESTS) \

@@ -653,7 +653,7 @@ bool Smt2::popSygusDatatypeDef( std::vector< CVC4::Datatype >& datatypes,
   unresolved_gterm_sym.pop_back();
   return true;
 }
-
+  
 Type Smt2::processSygusNestedGTerm( int sub_dt_index, std::string& sub_dname, std::vector< CVC4::Datatype >& datatypes,
                                     std::vector< CVC4::Type>& sorts,
                                     std::vector< std::vector<CVC4::Expr> >& ops,
@@ -927,6 +927,7 @@ void Smt2::mkSygusDatatype( CVC4::Datatype& dt, std::vector<CVC4::Expr>& ops,
         Expr v = mkBoundVar(ss.str(), bt);
         let_args.push_back( v );
         fsorts.push_back( bt );
+        Debug("parser-sygus") << ": var " << i << " " << v << " with type " << bt << " from " << cargs[i][j] << std::endl;
       }
       //make the let_body
       std::vector< Expr > children;
