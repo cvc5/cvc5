@@ -382,6 +382,8 @@ private:
   std::map< TypeNode, std::vector< Node > > d_fv;
   std::map< Node, TypeNode > d_fv_stype;
   std::map< Node, int > d_fv_num;
+  Node d_true;
+  Node d_false;
 public:
   TNode getVar( TypeNode tn, int i );
   TNode getVarInc( TypeNode tn, std::map< TypeNode, int >& var_count );
@@ -404,6 +406,9 @@ private:
   std::map< TypeNode, std::map< Node, int > > d_consts;
   std::map< TypeNode, std::map< Node, int > > d_ops;
   std::map< TypeNode, std::map< int, Node > > d_arg_ops;
+  std::map< TypeNode, std::vector< int > > d_id_funcs;
+  std::map< TypeNode, std::vector< Node > > d_const_list; //sorted list of constants for type
+  std::map< TypeNode, unsigned > d_const_list_pos;
   //information for builtin types
   std::map< TypeNode, std::map< int, Node > > d_type_value;
   std::map< TypeNode, Node > d_type_max_value;
@@ -414,7 +419,7 @@ private:
   std::map< TypeNode, std::map< Node, Node > > d_sygus_to_builtin;
   std::map< TypeNode, std::map< Node, Node > > d_builtin_const_to_sygus;
 public:
-  TermDbSygus(){}
+  TermDbSygus();
   bool isRegistered( TypeNode tn );
   int getKindArg( TypeNode tn, Kind k );
   int getConstArg( TypeNode tn, Node n );
@@ -427,6 +432,8 @@ public:
   Kind getArgKind( TypeNode tn, int i );
   bool isKindArg( TypeNode tn, int i );
   bool isConstArg( TypeNode tn, int i );
+  unsigned getNumIdFuncs( TypeNode tn );
+  unsigned getIdFuncIndex( TypeNode tn, unsigned i );
   void registerSygusType( TypeNode tn );
   /** get arg type */
   TypeNode getArgType( const DatatypeConstructor& c, int i );
@@ -451,7 +458,7 @@ public:
   TypeNode getSygusType( Node v );
   Node mkGeneric( const Datatype& dt, int c, std::map< TypeNode, int >& var_count, std::map< int, Node >& pre );
   Node sygusToBuiltin( Node n, TypeNode tn );
-  Node builtinToSygusConst( Node c, TypeNode tn );
+  Node builtinToSygusConst( Node c, TypeNode tn, int rcons_depth = 0 );
   Node getSygusNormalized( Node n, std::map< TypeNode, int >& var_count, std::map< Node, Node >& subs );
   Node getNormalized( TypeNode t, Node prog, bool do_pre_norm = false, bool do_post_norm = true );
   int getTermSize( Node n );
@@ -459,6 +466,10 @@ public:
   Node minimizeBuiltinTerm( Node n );
   /** given a term, expand it into more basic components */
   Node expandBuiltinTerm( Node n );
+  /** get comparison kind */
+  Kind getComparisonKind( TypeNode tn );
+  Kind getPlusKind( TypeNode tn, bool is_neg = false );
+  bool doCompare( Node a, Node b, Kind k );
   /** print sygus term */
   static void printSygusTerm( std::ostream& out, Node n, std::vector< Node >& lvs );
 };

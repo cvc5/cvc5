@@ -3,7 +3,7 @@
  ** \verbatim
  ** Original author: Morgan Deters
  ** Major contributors: none
- ** Minor contributors (to current version): Francois Bobot
+ ** Minor contributors (to current version): Francois Bobot, Andrew Reynolds
  ** This file is part of the CVC4 project.
  ** Copyright (c) 2009-2014  New York University and The University of Iowa
  ** See the file COPYING in the top-level source directory for licensing
@@ -57,11 +57,11 @@ enum CVC4_PUBLIC Language {
   LANG_CVC4,
   /** The Z3-str input language */
   LANG_Z3STR,
-
-  // START INPUT-ONLY LANGUAGES AT ENUM VALUE 10
-  // THESE ARE IN PRINCIPLE NOT POSSIBLE OUTPUT LANGUAGES
   /** The SyGuS input language */
   LANG_SYGUS,
+  
+  // START OUTPUT-ONLY LANGUAGES AT ENUM VALUE 10
+  // THESE ARE IN PRINCIPLE NOT POSSIBLE INPUT LANGUAGES
 
   /** LANG_MAX is > any valid InputLanguage id */
   LANG_MAX
@@ -131,6 +131,8 @@ enum CVC4_PUBLIC Language {
   LANG_CVC4 = input::LANG_CVC4,
   /** The Z3-str output language */
   LANG_Z3STR = input::LANG_Z3STR,
+  /** The sygus output language */
+  LANG_SYGUS = input::LANG_SYGUS,
 
   // START OUTPUT-ONLY LANGUAGES AT ENUM VALUE 10
   // THESE ARE IN PRINCIPLE NOT POSSIBLE INPUT LANGUAGES
@@ -164,6 +166,9 @@ inline std::ostream& operator<<(std::ostream& out, Language lang) {
     break;
   case LANG_Z3STR:
     out << "LANG_Z3STR";
+    break;
+  case LANG_SYGUS:
+    out << "LANG_SYGUS";
     break;
   case LANG_AST:
     out << "LANG_AST";

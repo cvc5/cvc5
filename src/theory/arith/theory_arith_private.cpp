@@ -2360,8 +2360,15 @@ ConstraintCP TheoryArithPrivate::vectorToIntHoleConflict(const ConstraintCPVec& 
   Assert(conflict.size() >= 2);
   ConstraintCPVec exp(conflict.begin(), conflict.end()-1);
   ConstraintCP back = conflict.back();
+  Assert(back->hasProof());
   ConstraintP negBack = back->getNegation();
-  negBack->impliedByIntHole(exp, true);
+  // This can select negBack multiple times so we need to test if negBack has a proof.
+  if(negBack->hasProof()){
+    // back is in conflict already
+  } else {
+    negBack->impliedByIntHole(exp, true);
+  }
+
   return back;
 }
 

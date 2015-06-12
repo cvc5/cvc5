@@ -707,6 +707,11 @@ unsigned DatatypeConstructor::getNumSygusLetInputArgs() const {
   CheckArgument(isResolved(), this, "this datatype constructor is not yet resolved");
   return d_sygus_num_let_input_args;
 }
+
+bool DatatypeConstructor::isSygusIdFunc() const {
+  CheckArgument(isResolved(), this, "this datatype constructor is not yet resolved");
+  return d_sygus_let_args.size()==1 && d_sygus_let_args[0]==d_sygus_let_body;
+}
   
 Cardinality DatatypeConstructor::getCardinality() const throw(IllegalArgumentException) {
   CheckArgument(isResolved(), this, "this datatype constructor is not yet resolved");
