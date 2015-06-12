@@ -294,6 +294,8 @@ public:
   Expr getSygusLetArg( unsigned i ) const;
   /** get number of let arguments that should be printed as arguments to let */
   unsigned getNumSygusLetInputArgs() const;
+  /** is this a sygus identity function */
+  bool isSygusIdFunc() const;
   
   /**
    * Get the tester name for this Datatype constructor.

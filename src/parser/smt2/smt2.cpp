@@ -1001,17 +1001,22 @@ void Smt2::mkSygusDatatype( CVC4::Datatype& dt, std::vector<CVC4::Expr>& ops,
 
 void Smt2::addSygusDatatypeConstructor( CVC4::Datatype& dt, CVC4::Expr op, std::string& cname, std::vector< CVC4::Type >& cargs,
                                         CVC4::Expr& let_body, std::vector< CVC4::Expr >& let_args, unsigned let_num_input_args ) {
-  
+  Debug("parser-sygus") << "--> Add constructor " << cname << " to " << dt.getName() << std::endl;
+  if( !let_body.isNull() ){
+    Debug("parser-sygus") << "    let body = " << let_body << ", args = " << let_args.size() << "," << let_num_input_args << std::endl;
+    //TODO : remove arguments not occurring in body
+    //if this is a self identity function, ignore
+    if( let_args.size()==0 && let_args[0]==let_body ){
+      Debug("parser-sygus") << "    identity function " << cargs[0] << " to " << dt.getName() << std::endl;
+      //TODO
+    }
+  }
   std::string name = dt.getName() + "_" + cname;
   std::string testerId("is-");
   testerId.append(name);
   checkDeclaration(name, CHECK_UNDECLARED, SYM_VARIABLE);
   checkDeclaration(testerId, CHECK_UNDECLARED, SYM_VARIABLE);
   CVC4::DatatypeConstructor c(name, testerId );
-  Debug("parser-sygus") << "--> Add constructor " << cname << " to " << dt.getName() << std::endl;
-  if( !let_body.isNull() ){
-    Debug("parser-sygus") << "    let body = " << let_body << ", args = " << let_args.size() << "," << let_num_input_args << std::endl;
-  }
   c.setSygus( op, let_body, let_args, let_num_input_args );
   for( unsigned j=0; j<cargs.size(); j++ ){
     std::stringstream sname;
