@@ -101,7 +101,7 @@ void InstStrategySimplex::processResetInstantiationRound( Theory::Effort effort 
 
 void InstStrategySimplex::addTermToRow( Node i, ArithVar x, Node n, NodeBuilder<>& t ){
   if( n.getKind()==MULT ){
-    if( TermDb::hasInstConstAttr(n[1]) ){
+    if( TermDb::hasInstConstAttr(n[1]) && n[0].getKind()==CONST_RATIONAL ){
       if( n[1]==i ){
         d_ceTableaux[i][x][ n[1] ] = n[0];
       }else{
@@ -254,7 +254,7 @@ void InstStrategySimplex::debugPrint( const char* c ){
     //}
   }
   Debug(c) << std::endl;
-  
+
   for( int i=0; i<(int)d_quantEngine->getModel()->getNumAssertedQuantifiers(); i++ ){
     Node f = d_quantEngine->getModel()->getAssertedQuantifier( i );
     Debug(c) << f << std::endl;
@@ -316,6 +316,7 @@ bool InstStrategySimplex::doInstantiation2( Node f, Node ic, Node term, ArithVar
         Assert( d_ceTableaux[ic][x][var]==NodeManager::currentNM()->mkConst( Rational(-1) ) );
         instVal = NodeManager::currentNM()->mkNode( MULT, d_ceTableaux[ic][x][var], instVal );
       }else{
+        Assert( d_ceTableaux[ic][x][var].getKind()==CONST_RATIONAL );
         Node coeff = NodeManager::currentNM()->mkConst( Rational(1) / d_ceTableaux[ic][x][var].getConst<Rational>() );
         instVal = NodeManager::currentNM()->mkNode( MULT, coeff, instVal );
       }
@@ -392,11 +393,11 @@ int InstStrategyCegqi::process( Node f, Theory::Effort effort, int e ) {
       cinst = it->second;
     }
     if( d_check_delta_lemma ){
-      Trace("inst-alg") << "-> Get delta lemmas for cegqi..." << std::endl; 
+      Trace("inst-alg") << "-> Get delta lemmas for cegqi..." << std::endl;
       d_check_delta_lemma = false;
       std::vector< Node > dlemmas;
       cinst->getDeltaLemmas( dlemmas );
-      Trace("inst-alg") << "...got " << dlemmas.size() << " delta lemmas." << std::endl; 
+      Trace("inst-alg") << "...got " << dlemmas.size() << " delta lemmas." << std::endl;
       if( !dlemmas.empty() ){
         bool addedLemma = false;
         for( unsigned i=0; i<dlemmas.size(); i++ ){
@@ -428,7 +429,7 @@ bool InstStrategyCegqi::addInstantiation( std::vector< Node >& subs, std::vector
       siss << " (" << d_single_inv_sk[j] << ")";
       siss << " -> " << ( subs_typ[j]==9 ? "M:" : "") << subs[j] << std::endl;
     }
-  }  
+  }
   */
   return d_quantEngine->addInstantiation( d_curr_quant, subs, false );
 }
@@ -444,7 +445,7 @@ bool InstStrategyCegqi::isEligibleForInstantiation( Node n ) {
   }else{
     return true;
   }
-} 
+}
 
 
 
