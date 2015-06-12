@@ -203,7 +203,7 @@ int runCvc4(int argc, char* argv[], Options& opts) {
                 || (len >= 3 && !strcmp(".sl", filename + len - 3))) {
         opts.set(options::inputLanguage, language::input::LANG_SYGUS);
         //since there is no sygus output language, set this to SMT lib 2
-        opts.set(options::outputLanguage, language::output::LANG_SMTLIB_V2_0);
+        //opts.set(options::outputLanguage, language::output::LANG_SMTLIB_V2_0);
       }
     }
   }

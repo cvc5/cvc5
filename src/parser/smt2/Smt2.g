@@ -546,9 +546,20 @@ sygusCommand returns [CVC4::Command* cmd = NULL]
     { PARSER_STATE->mkSygusVar(name, t);
       $cmd = new EmptyCommand(); }
   | /* declare-fun */
-    (DECLARE_FUN_TOK)=>
     DECLARE_FUN_TOK { PARSER_STATE->checkThatLogicIsSet(); }
-    { PARSER_STATE->parseError("declare-fun not yet supported in SyGuS input"); }
+    symbol[name,CHECK_UNDECLARED,SYM_VARIABLE]
+    { PARSER_STATE->checkUserSymbol(name); }
+    LPAREN_TOK sortList[sorts] RPAREN_TOK
+    sortSymbol[t,CHECK_DECLARED]
+    { Debug("parser") << "declare fun: '" << name << "'" << std::endl;
+      if( sorts.size() > 0 ) {
+        if(!PARSER_STATE->isTheoryEnabled(Smt2::THEORY_UF)) {
+          PARSER_STATE->parseError(std::string("Functions (of non-zero arity) cannot be declared in logic ") + PARSER_STATE->getLogic().getLogicString());
+        }
+        t = EXPR_MANAGER->mkFunctionType(sorts, t);
+      }
+      Expr func = PARSER_STATE->mkVar(name, t);
+      $cmd = new DeclareFunctionCommand(name, func, t); }
   | /* function definition */
     DEFINE_FUN_TOK { PARSER_STATE->checkThatLogicIsSet(); }
     symbol[name,CHECK_UNDECLARED,SYM_VARIABLE]
@@ -1729,6 +1740,10 @@ term[CVC4::Expr& expr, CVC4::Expr& expr2]
       } else {
         /* A non-built-in function application */
         PARSER_STATE->checkDeclaration(name, CHECK_DECLARED, SYM_VARIABLE);
+        //hack to allow constants with parentheses (disabled for now)
+        //if( PARSER_STATE->sygus() && !PARSER_STATE->isFunctionLike(name) ){
+        //  op = PARSER_STATE->getVariable(name);
+        //}else{
         PARSER_STATE->checkFunctionLike(name);
         const bool isDefinedFunction =
           PARSER_STATE->isDefinedFunction(name);
@@ -1751,15 +1766,26 @@ term[CVC4::Expr& expr, CVC4::Expr& expr2]
         args.push_back(expr);
       }
         }
+    //(termList[args,expr])? RPAREN_TOK
     termList[args,expr] RPAREN_TOK
-    { Debug("parser") << "args has size " << args.size() << std::endl << "expr is " << expr << std::endl;
+    { //if( PARSER_STATE->sygus() && !isBuiltinOperator && !PARSER_STATE->isFunctionLike(name) ){
+      //  if( !args.empty() ){
+      //    PARSER_STATE->parseError("Non-empty list of arguments for constant.");
+      //  }
+      //  expr = op; 
+      //}else{
+      //  if( args.empty() ){
+      //    PARSER_STATE->parseError("Empty list of arguments for non-constant.");
+      //  }
+      Debug("parser") << "args has size " << args.size() << std::endl << "expr is " << expr << std::endl;
       for(std::vector<Expr>::iterator i = args.begin(); i != args.end(); ++i) {
         Debug("parser") << "++ " << *i << std::endl;
       }
       if(isBuiltinOperator) {
         PARSER_STATE->checkOperator(kind, args.size());
       }
-      expr = MK_EXPR(kind, args); }
+      expr = MK_EXPR(kind, args); 
+    }
 
   | LPAREN_TOK
     ( /* An indexed function application */
@@ -1821,7 +1847,8 @@ term[CVC4::Expr& expr, CVC4::Expr& expr2]
 
     /* a variable */
   | symbol[name,CHECK_DECLARED,SYM_VARIABLE]
-    { if( PARSER_STATE->sygus() && name[0]=='-' ){ //allow unary minus in sygus
+    { if( PARSER_STATE->sygus() && name[0]=='-' && 
+          name.find_first_not_of("0123456789", 1) == std::string::npos ){ //allow unary minus in sygus
         expr = MK_CONST(Rational(name));
       }else{
         const bool isDefinedFunction =
@@ -2358,7 +2385,7 @@ sortSymbol[CVC4::Type& t, CVC4::parser::DeclarationCheck check]
   std::string name;
   std::vector<CVC4::Type> args;
   std::vector<uint64_t> numerals;
-  bool indexed;
+  bool indexed = false;
 }
   : sortName[name,CHECK_NONE]
     {

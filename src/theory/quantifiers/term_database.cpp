@@ -2153,7 +2153,7 @@ Node TermDbSygus::expandBuiltinTerm( Node t ){
 
 
 Kind TermDbSygus::getComparisonKind( TypeNode tn ) {
-  if( tn.isInteger() ){
+  if( tn.isInteger() || tn.isReal() ){
     return LT;
   }else if( tn.isBitVector() ){
     return BITVECTOR_ULT;
@@ -2163,7 +2163,7 @@ Kind TermDbSygus::getComparisonKind( TypeNode tn ) {
 }
 
 Kind TermDbSygus::getPlusKind( TypeNode tn, bool is_neg ) {
-  if( tn.isInteger() ){
+  if( tn.isInteger() || tn.isReal() ){
     return is_neg ? MINUS : PLUS;
   }else if( tn.isBitVector() ){
     return is_neg ? BITVECTOR_SUB : BITVECTOR_PLUS;

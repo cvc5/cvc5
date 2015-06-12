@@ -152,7 +152,11 @@ void Smt2Printer::toStream(std::ostream& out, TNode n,
       }
       break;
     case kind::BITVECTOR_TYPE:
-      out << "(_ BitVec " << n.getConst<BitVectorSize>().size << ")";
+      if(d_variant == sygus_variant ){
+        out << "(BitVec " << n.getConst<BitVectorSize>().size << ")";
+      }else{
+        out << "(_ BitVec " << n.getConst<BitVectorSize>().size << ")";
+      }
       break;
     case kind::FLOATINGPOINT_TYPE:
       out << "(_ FloatingPoint "

@@ -30,7 +30,8 @@ namespace smt2 {
 enum Variant {
   no_variant,
   smt2_0_variant, // old-style 2.0 syntax, when it makes a difference
-  z3str_variant // old-style 2.0 and also z3str syntax
+  z3str_variant, // old-style 2.0 and also z3str syntax
+  sygus_variant  // variant for sygus
 };/* enum Variant */
 
 class Smt2Printer : public CVC4::Printer {

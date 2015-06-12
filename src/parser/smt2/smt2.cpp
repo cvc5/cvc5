@@ -347,6 +347,9 @@ void Smt2::setLogic(std::string name) {
       ss << "Unknown SyGuS background logic `" << name << "'";
       parseError(ss.str());
     }
+    //TODO : add additional non-standard define-funs here
+    
+    
   }
 
   d_logicSet = true;
