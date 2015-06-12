@@ -81,7 +81,9 @@ QF_AUFBV)
   finishwith --decision=justification-stoponly
   ;;
 QF_ABV)
-  finishwith --ite-simp --simp-with-care --repeat-simp
+  trywith 50 --ite-simp --simp-with-care --repeat-simp --arrays-weak-equiv
+  trywith 500 --arrays-weak-equiv
+  finishwith --ite-simp --simp-with-care --repeat-simp --arrays-weak-equiv
   ;;
 QF_BV)
   exec ./pcvc4 -L smt2 --no-incremental --no-checking --no-interactive --thread-stack=1024 \
