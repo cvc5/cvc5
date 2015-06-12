@@ -1,11 +1,11 @@
 #!/bin/bash
 
+cvc4=./cvc4-assertions
 # Attempt to run each benchmark 1-5 min depending on numconfigs
 # quanitifers get 5 min / benchmark
 # quantifier free uf, arith, arrays get 1 min / benchmark
 # qf_bv gets 1 min wall (2 min user) / benchmark
 
-cvc4=./cvc4-assertions
 bench="$1"
 
 logic=$(expr "$(grep -m1 '^[^;]*set-logic' "$bench")" : ' *(set-logic  *\([A-Z_]*\) *) *$')
@@ -59,7 +59,7 @@ ALIA|AUFLIA|AUFLIRA|AUFNIRA|BV|UF|UFBV|UFIDL|UFLIA|UFLRA|UFNIA)
   trywith 10 --no-inst-no-entail --no-quant-cf --full-saturate-quant
   trywith 10 --finite-model-find --mbqi=gen-ev --uf-ss-totality
   trywith 10 --inst-when=full --full-saturate-quant
-  trywith 10 --fmf-bound-int --macros-quant
+  #trywith 10 --fmf-bound-int --macros-quant   # recently bug fixed
   trywith 10 --decision=internal --simplification=none --no-inst-no-entail --no-quant-cf --full-saturate-quant
   trywith 10 --decision=justification-stoponly --full-saturate-quant
   # large runs 3min
@@ -67,7 +67,7 @@ ALIA|AUFLIA|AUFLIRA|AUFNIRA|BV|UF|UFBV|UFIDL|UFLIA|UFLRA|UFNIA)
   trywith 10 --finite-model-find --mbqi=none
   trywith 10 --decision=internal --full-saturate-quant
   # last call runs 20min
-  trywith 20 --finite-model-find --fmf-inst-engine --quant-cf --sort-inference --uf-ss-fair
+  trywith 20 --finite-model-find --fmf-inst-engine --quant-cf --sort-inference --uf-ss-fair 
   trywith 20 --no-inst-no-entail --full-saturate-quant
   finishwith --full-saturate-quant
   ;;
