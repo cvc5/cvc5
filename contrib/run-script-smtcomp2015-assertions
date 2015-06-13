@@ -38,7 +38,10 @@ QF_LIA)
   # same as QF_LRA but add --pb-rewrites
   finishwith --enable-miplib-trick --miplib-trick-subs=4 --use-approx --lemmas-on-replay-failure --replay-early-close-depth=4 --replay-lemma-reject-cut=128 --replay-reject-cut=512 --unconstrained-simp --use-soi --pb-rewrites
   ;;
-ALIA|AUFLIA|AUFLIRA|AUFNIRA|BV|UF|UFBV|UFIDL|UFLIA|UFLRA|UFNIA)
+AUFLIA)
+  finishwith --no-e-matching --full-saturate-quant
+  ;;
+ALIA|AUFLIRA|AUFNIRA|BV|UF|UFBV|UFIDL|UFLIA|UFLRA|UFNIA)
   # the following is designed for a run time of 1800s.
   # initial runs 1min (30)
   trywith 10 --simplification=none --full-saturate-quant
@@ -102,8 +105,18 @@ QF_BV)
   #trywith 600 --decision=internal --bitblast-eager
   #finishwith --decision=justification --decision-use-weight --decision-weight-internal=usr1
   ;;
-QF_AUFLIA|QF_AX)
-  finishwith --no-arrays-eager-index --arrays-eager-lemmas
+QF_AUFLIA)
+  finishwith --no-arrays-eager-index --arrays-eager-lemmas --decision=justification
+  ;;
+QF_AX)
+  finishwith --no-arrays-eager-index --arrays-eager-lemmas --decision=internal
+  ;;
+QF_AUFNIA)
+  finishwith --decision=justification --no-arrays-eager-index --arrays-eager-lemmas
+  ;;
+QF_ALIA)
+  trywith 30 --decision=justification --arrays-weak-equiv
+  finishwith --decision=justification-stoponly --no-arrays-eager-index --arrays-eager-lemmas
   ;;
 *)
   # just run the default
