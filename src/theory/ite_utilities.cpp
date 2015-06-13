@@ -1028,7 +1028,7 @@ Node ITESimplifier::intersectConstantIte(TNode lcite, TNode rcite){
       Node bothHold = lefteq.andNode(righteq);
       nb << bothHold;
     }
-    Node result = (nb.getNumChildren() >= 1) ? (Node)nb : nb[0];
+    Node result = (nb.getNumChildren() > 1) ? (Node)nb : nb[0];
     return result;
   }
 }
