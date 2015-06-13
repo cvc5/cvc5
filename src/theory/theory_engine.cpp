@@ -1589,7 +1589,7 @@ bool TheoryEngine::donePPSimpITE(std::vector<Node>& assertions){
           if(curr != res){
             Node more = aiteu.reduceConstantIteByGCD(res);
             Debug("arith::ite::red") << "  gcd->" << more << endl;
-            assertions[i] = more;
+            assertions[i] = Rewriter::rewrite(more);
           }
         }
       }
