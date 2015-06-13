@@ -4180,6 +4180,9 @@ void TheoryArithPrivate::collectModelInfo( TheoryModel* m, bool fullModel ){
 
   Debug("arith::collectModelInfo") << "collectModelInfo() begin " << endl;
 
+  std::set<Node> termSet;
+  d_containing.computeRelevantTerms(termSet);
+ 
 
   // Delta lasts at least the duration of the function call
   const Rational& delta = d_partialModel.getDelta();
@@ -4194,7 +4197,9 @@ void TheoryArithPrivate::collectModelInfo( TheoryModel* m, bool fullModel ){
     if(!isAuxiliaryVariable(v)){
       Node term = d_partialModel.asNode(v);
 
-      if(theoryOf(term) == THEORY_ARITH || shared.find(term) != shared.end()){
+      if((theoryOf(term) == THEORY_ARITH || shared.find(term) != shared.end())
+         && termSet.find(term) != termSet.end()){
+
         const DeltaRational& mod = d_partialModel.getAssignment(v);
         Rational qmodel = mod.substituteDelta(delta);
 
