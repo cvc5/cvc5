@@ -1531,7 +1531,12 @@ void TheoryEngine::mkAckermanizationAsssertions(std::vector<Node>& assertions) {
 
 Node TheoryEngine::ppSimpITE(TNode assertion)
 {
-  if(!d_iteRemover.containsTermITE(assertion)){
+  if(options::incrementalSolving()){
+    // disabling the d_iteUtilities->simpITE(assertion) pass for incremental solving.
+    // This is paranoia. We do not actually know of a bug coming from this.
+    // TODO re-enable
+    return assertion;
+  } else if(!d_iteRemover.containsTermITE(assertion)){
     return assertion;
   }else{
 
@@ -1576,7 +1581,8 @@ bool TheoryEngine::donePPSimpITE(std::vector<Node>& assertions){
   }
 
   // Do theory specific preprocessing passes
-  if(d_logicInfo.isTheoryEnabled(theory::THEORY_ARITH)){
+  if(d_logicInfo.isTheoryEnabled(theory::THEORY_ARITH)
+     && !options::incrementalSolving() ){
     if(!simpDidALotOfWork){
       ContainsTermITEVisitor& contains = *d_iteRemover.getContainsVisitor();
       arith::ArithIteUtils aiteu(contains, d_userContext, getModel());

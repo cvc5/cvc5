@@ -15,6 +15,7 @@
  ** \todo document this file
  **/
 
+#include "smt/options.h"
 #include "theory/arith/arith_ite_utils.h"
 #include "theory/arith/normal_form.h"
 #include "theory/arith/arith_utilities.h"
@@ -272,6 +273,7 @@ void ArithIteUtils::addSubstitution(TNode f, TNode t){
 }
 
 Node ArithIteUtils::applySubstitutions(TNode f){
+  AlwaysAssert(!options::incrementalSolving());
   return d_subs->apply(f);
 }
 
@@ -285,6 +287,7 @@ Node ArithIteUtils::selectForCmp(Node n) const{
 }
 
 void ArithIteUtils::learnSubstitutions(const std::vector<Node>& assertions){
+  AlwaysAssert(!options::incrementalSolving());
   for(size_t i=0, N=assertions.size(); i < N; ++i){
     collectAssertions(assertions[i]);
   }
