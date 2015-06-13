@@ -48,7 +48,7 @@ ALIA|AUFLIA|AUFLIRA|AUFNIRA|BV|UF|UFBV|UFIDL|UFLIA|UFLRA|UFNIA)
   trywith 10 --qcf-tconstraint --full-saturate-quant
   # medium runs 5min
   trywith 30 --no-quant-cf --full-saturate-quant
-  trywith 30 --finite-model-find --fmf-inst-engine --sort-inference --uf-ss-fair --mbqi=gen-ev
+  trywith 30 --finite-model-find --fmf-inst-engine --mbqi=gen-ev
   trywith 30 --no-e-matching --no-quant-cf --full-saturate-quant
   trywith 30 --pre-skolem-quant --full-saturate-quant
   trywith 30 --no-inst-no-entail --no-quant-cf --full-saturate-quant
@@ -62,7 +62,7 @@ ALIA|AUFLIA|AUFLIRA|AUFNIRA|BV|UF|UFBV|UFIDL|UFLIA|UFLRA|UFNIA)
   trywith 60 --finite-model-find --mbqi=none
   trywith 60 --decision=internal --full-saturate-quant
   # last call runs 20min
-  trywith 300 --finite-model-find --fmf-inst-engine --quant-cf --sort-inference --uf-ss-fair 
+  trywith 300 --finite-model-find --fmf-inst-engine --quant-cf
   trywith 300 --no-inst-no-entail --full-saturate-quant
   finishwith --full-saturate-quant
   ;;
