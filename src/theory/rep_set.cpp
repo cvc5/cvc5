@@ -48,10 +48,13 @@ int RepSet::getNumRepresentatives( TypeNode tn ) const{
 }
 
 void RepSet::add( TypeNode tn, Node n ){
-  Trace("rsi-debug") << "Add rep #" << d_type_reps[tn].size() << " for " << tn << " : " << n << std::endl;
-  Assert( n.getType().isSubtypeOf( tn ) );
-  d_tmap[ n ] = (int)d_type_reps[tn].size();
-  d_type_reps[tn].push_back( n );
+  //for now, do not add array constants FIXME
+  if( !tn.isArray() || !n.isConst() ){
+    Trace("rsi-debug") << "Add rep #" << d_type_reps[tn].size() << " for " << tn << " : " << n << std::endl;
+    Assert( n.getType().isSubtypeOf( tn ) );
+    d_tmap[ n ] = (int)d_type_reps[tn].size();
+    d_type_reps[tn].push_back( n );
+  }
 }
 
 int RepSet::getIndexFor( Node n ) const {
@@ -179,8 +182,8 @@ bool RepSetIterator::initialize(){
           d_incomplete = true;
         }
       }
-    //enumerate if the sort is reasonably small, the upper bound of 1000 is chosen arbitrarily for now
-    }else if( tn.getCardinality().isFinite() && !tn.getCardinality().isLargeFinite() &&
+    //enumerate if the sort is reasonably small, not an Array, the upper bound of 1000 is chosen arbitrarily for now
+    }else if( !tn.isArray() && tn.getCardinality().isFinite() && !tn.getCardinality().isLargeFinite() &&
               tn.getCardinality().getFiniteCardinality().toUnsignedInt()<=1000 ){
       d_rep_set->complete( tn );
     }else{

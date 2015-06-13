@@ -1100,6 +1100,8 @@ Node EqualityQueryQuantifiersEngine::getInternalRepresentative( Node a, Node f, 
             r = getRepresentative( r );
           }else{
             if( r.getType().isSort() ){
+              //TODO : this can happen in rare cases
+              // say x:(Array Int U), select( x, 0 ), x assigned (const @u1).
               Trace("internal-rep-warn") << "No representative for UF constant." << std::endl;
             }
           }
