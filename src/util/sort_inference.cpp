@@ -290,7 +290,6 @@ void SortInference::setEqual( int t1, int t2 ){
         rt1 = rt2;
         rt2 = swap;
       }
-      d_type_union_find.d_eqc[rt1] = rt2;
       std::map< int, TypeNode >::iterator it1 = d_type_types.find( rt1 );
       if( it1!=d_type_types.end() ){
         if( d_type_types.find( rt2 )==d_type_types.end() ){
@@ -298,8 +297,10 @@ void SortInference::setEqual( int t1, int t2 ){
           d_type_types.erase( rt1 );
         }else{
           //may happen for mixed int/real
+          return;
         }
       }
+      d_type_union_find.d_eqc[rt1] = rt2;
     }
   }
 }

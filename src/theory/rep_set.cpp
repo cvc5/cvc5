@@ -47,14 +47,34 @@ int RepSet::getNumRepresentatives( TypeNode tn ) const{
   }
 }
 
+bool containsStoreAll( Node n, std::vector< Node >& cache ){
+  if( std::find( cache.begin(), cache.end(), n )==cache.end() ){
+    cache.push_back( n );
+    if( n.getKind()==STORE_ALL ){
+      return true;
+    }else{
+      for( unsigned i=0; i<n.getNumChildren(); i++ ){
+        if( containsStoreAll( n[i], cache ) ){
+          return true;
+        }
+      }
+    }
+  }
+  return false;
+}
+
 void RepSet::add( TypeNode tn, Node n ){
   //for now, do not add array constants FIXME
-  if( !tn.isArray() || !n.isConst() ){
-    Trace("rsi-debug") << "Add rep #" << d_type_reps[tn].size() << " for " << tn << " : " << n << std::endl;
-    Assert( n.getType().isSubtypeOf( tn ) );
-    d_tmap[ n ] = (int)d_type_reps[tn].size();
-    d_type_reps[tn].push_back( n );
+  if( tn.isArray() ){
+    std::vector< Node > cache;
+    if( containsStoreAll( n, cache ) ){
+      return;
+    }
   }
+  Trace("rsi-debug") << "Add rep #" << d_type_reps[tn].size() << " for " << tn << " : " << n << std::endl;
+  Assert( n.getType().isSubtypeOf( tn ) );
+  d_tmap[ n ] = (int)d_type_reps[tn].size();
+  d_type_reps[tn].push_back( n );
 }
 
 int RepSet::getIndexFor( Node n ) const {
