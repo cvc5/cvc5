@@ -575,16 +575,21 @@ bool QuantifiersEngine::addInstantiation( Node f, std::vector< Node >& vars, std
     d_total_inst_count_debug++;
     Trace("inst") << "*** Instantiate " << f << " with " << std::endl;
     for( int i=0; i<(int)terms.size(); i++ ){
-      Trace("inst") << "   " << terms[i];
-      Trace("inst") << std::endl;
+      if( Trace.isOn("inst") ){
+        Trace("inst") << "   " << terms[i];
+        if( Trace.isOn("inst-debug") ){
+          Trace("inst-debug") << ", type=" << terms[i].getType() << ", var_type=" << f[0][i].getType();
+        }
+        Trace("inst") << std::endl;
+      }
       Assert( terms[i].getType().isSubtypeOf( f[0][i].getType() ) );
     }
     if( options::cbqi() && !options::cbqi2() ){
       for( int i=0; i<(int)terms.size(); i++ ){
         if( quantifiers::TermDb::hasInstConstAttr(terms[i]) ){
-          Debug("inst")<< "***& Bad Instantiate " << f << " with " << std::endl;
+          Trace("inst")<< "***& Bad Instantiate " << f << " with " << std::endl;
           for( int i=0; i<(int)terms.size(); i++ ){
-            Debug("inst") << "   " << terms[i] << std::endl;
+            Trace("inst") << "   " << terms[i] << std::endl;
           }
           Unreachable("Bad instantiation");
         }
@@ -778,8 +783,12 @@ bool QuantifiersEngine::addInstantiation( Node f, std::vector< Node >& terms, bo
     //make it representative, this is helpful for recognizing duplication
     if( mkRep ){
       //pick the best possible representative for instantiation, based on past use and simplicity of term
-      terms[i] = d_eq_query->getInternalRepresentative( terms[i], f, i );
-      Trace("inst-add-debug2") << " (" << terms[i] << ")";
+      Node ti = d_eq_query->getInternalRepresentative( terms[i], f, i );
+      //check if it is a subtype (can be violated in mixed int/real) FIXME : do this check inside getInternalRepresentative
+      if( ti.getType().isSubtypeOf( f[0][i].getType() ) ){
+        terms[i] = ti;
+        Trace("inst-add-debug2") << " (" << terms[i] << ")";
+      }
     }
   }
   Trace("inst-add-debug") << std::endl;
@@ -1097,8 +1106,8 @@ Node EqualityQueryQuantifiersEngine::getInternalRepresentative( Node a, Node f, 
         }
       }
     }
-
-    if( d_int_rep.find( r )==d_int_rep.end() ){
+    std::map< Node, Node >::iterator itir = d_int_rep.find( r );
+    if( itir==d_int_rep.end() ){
       //find best selection for representative
       Node r_best;
       //if( options::fmfRelevantDomain() && !f.isNull() ){
@@ -1147,7 +1156,7 @@ Node EqualityQueryQuantifiersEngine::getInternalRepresentative( Node a, Node f, 
       }
       return r_best;
     }else{
-      return d_int_rep[r];
+      return itir->second;
     }
   }
 }
