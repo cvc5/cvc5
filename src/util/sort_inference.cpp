@@ -293,9 +293,12 @@ void SortInference::setEqual( int t1, int t2 ){
       d_type_union_find.d_eqc[rt1] = rt2;
       std::map< int, TypeNode >::iterator it1 = d_type_types.find( rt1 );
       if( it1!=d_type_types.end() ){
-        Assert( d_type_types.find( rt2 )==d_type_types.end() );
-        d_type_types[rt2] = it1->second;
-        d_type_types.erase( rt1 );
+        if( d_type_types.find( rt2 )==d_type_types.end() ){
+          d_type_types[rt2] = it1->second;
+          d_type_types.erase( rt1 );
+        }else{
+          //may happen for mixed int/real
+        }
       }
     }
   }
@@ -316,7 +319,6 @@ int SortInference::getIdForType( TypeNode tn ){
 }
 
 int SortInference::process( Node n, std::map< Node, Node >& var_bound ){
-  Trace("sort-inference-debug") << "...Process " << n << std::endl;
   //add to variable bindings
   if( n.getKind()==kind::FORALL || n.getKind()==kind::EXISTS ){
     if( d_var_types.find( n )!=d_var_types.end() ){
@@ -354,6 +356,7 @@ int SortInference::process( Node n, std::map< Node, Node >& var_bound ){
       var_bound.erase( n[0][i] );
     }
   }
+  Trace("sort-inference-debug") << "...Process " << n << std::endl;
 
   int retType;
   if( n.getKind()==kind::EQUAL ){
@@ -559,7 +562,9 @@ Node SortInference::simplify( Node n, std::map< Node, Node >& var_bound ){
     }
     return NodeManager::currentNM()->mkNode( n.getKind(), children );
   }else if( n.getKind()==kind::EQUAL ){
-    if( children[0].getType()!=children[1].getType() ){
+    TypeNode tn1 = children[0].getType();
+    TypeNode tn2 = children[1].getType();
+    if( !tn1.isSubtypeOf( tn2 ) && !tn2.isSubtypeOf( tn1 ) ){
       if( children[0].isConst() ){
         children[0] = getNewSymbol( children[0], children[1].getType() );
       }else if( children[1].isConst() ){
