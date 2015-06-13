@@ -26,11 +26,11 @@ function runcvc4 {
 case "$logic" in
 
 QF_LRA)
-  runcvc4 --tear-down-incremental --enable-miplib-trick --miplib-trick-subs=4 --lemmas-on-replay-failure --replay-early-close-depth=4 --replay-lemma-reject-cut=128 --replay-reject-cut=512 --unconstrained-simp
+  runcvc4 --tear-down-incremental --unconstrained-simp
   ;;
 QF_LIA)
   # same as QF_LRA but add --pb-rewrites
-  runcvc4 --tear-down-incremental --enable-miplib-trick --miplib-trick-subs=4 --lemmas-on-replay-failure --replay-early-close-depth=4 --replay-lemma-reject-cut=128 --replay-reject-cut=512 --unconstrained-simp --pb-rewrites
+  runcvc4 --tear-down-incremental --unconstrained-simp
   ;;
 ALIA|AUFLIA|AUFLIRA|AUFNIRA|BV|UF|UFBV|UFIDL|UFLIA|UFLRA|UFNIA)
   runcvc4  --tear-down-incremental
