@@ -2258,10 +2258,32 @@ std::pair<ConstraintP, ArithVar> TheoryArithPrivate::replayGetConstraint(const D
   Node sum = toSumNode(d_partialModel, lhs);
   if(sum.isNull()){ return make_pair(NullConstraint, added); }
 
-  Node norm = Rewriter::rewrite(sum);
-  DeltaRational dr(rhs);
+  Debug("approx::constraint") << "replayGetConstraint " << sum
+                              << " " << k
+                              << " " << rhs
+                              << endl;
 
-  ConstraintType t = (k == kind::LEQ) ? UpperBound : LowerBound;
+  Assert( k == kind::LEQ || k == kind::GEQ );
+
+  Node comparison = NodeManager::currentNM()->mkNode(k, sum, mkRationalNode(rhs));
+  Node rewritten = Rewriter::rewrite(comparison);
+  if(!(Comparison::isNormalAtom(rewritten))){
+    return make_pair(NullConstraint, added);
+  }
+
+  Comparison cmp = Comparison::parseNormalForm(rewritten);
+  if(cmp.isBoolean()){ return make_pair(NullConstraint, added); }
+
+  Polynomial nvp =  cmp.normalizedVariablePart();
+  if(nvp.isZero()){ return make_pair(NullConstraint, added); }
+
+  Node norm = nvp.getNode();
+
+  ConstraintType t = Constraint::constraintTypeOfComparison(cmp);
+  DeltaRational dr = cmp.normalizedDeltaRational();
+
+  Debug("approx::constraint") << "rewriting " << rewritten << endl
+                              << " |-> " << norm << " " << t << " " << dr << endl;
 
   Assert(!branch || d_partialModel.hasArithVar(norm));
   ArithVar v = ARITHVAR_SENTINEL;
@@ -2299,6 +2321,8 @@ std::pair<ConstraintP, ArithVar> TheoryArithPrivate::replayGetConstraint(const D
       return make_pair(imp, added);
     }
   }
+  
+
   ConstraintP newc = d_constraintDatabase.getConstraint(v, t, dr);
   d_replayConstraints.push_back(newc);
   return make_pair(newc, added);
@@ -2342,6 +2366,7 @@ std::pair<ConstraintP, ArithVar> TheoryArithPrivate::replayGetConstraint(const C
 // }
 
 Node toSumNode(const ArithVariables& vars, const DenseMap<Rational>& sum){
+  Debug("arith::toSumNode") << "toSumNode() begin" << endl;
   NodeBuilder<> nb(kind::PLUS);
   NodeManager* nm = NodeManager::currentNM();
   DenseMap<Rational>::const_iterator iter, end;
@@ -2351,8 +2376,11 @@ Node toSumNode(const ArithVariables& vars, const DenseMap<Rational>& sum){
     if(!vars.hasNode(x)){ return Node::null(); }
     Node xNode = vars.asNode(x);
     const Rational& q = sum[x];
-    nb << nm->mkNode(kind::MULT, mkRationalNode(q), xNode);
+    Node mult = nm->mkNode(kind::MULT, mkRationalNode(q), xNode);
+    Debug("arith::toSumNode") << "toSumNode() " << x << " " << mult << endl;
+    nb << mult;
   }
+  Debug("arith::toSumNode") << "toSumNode() end" << endl;
   return safeConstructNary(nb);
 }
 

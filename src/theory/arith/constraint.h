@@ -96,6 +96,13 @@
 namespace CVC4 {
 namespace theory {
 namespace arith {
+class Comparison;
+}
+}
+}
+namespace CVC4 {
+namespace theory {
+namespace arith {
 
 /**
  * Logs the types of different proofs. 
@@ -448,6 +455,7 @@ private:
   void initialize(ConstraintDatabase* db, SortedConstraintMapIterator v, ConstraintP negation);
 
 
+
   class ConstraintRuleCleanup {
   public:
     inline void operator()(ConstraintRule* crp){
@@ -516,6 +524,8 @@ private:
 
 
 public:
+
+  static ConstraintType constraintTypeOfComparison(const Comparison& cmp);
 
   inline ConstraintType getType() const {
     return d_type;
