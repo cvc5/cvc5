@@ -161,4 +161,6 @@ option lemmaOutputChannel LemmaOutputChannel* :default NULL :include "util/lemma
 option forceNoLimitCpuWhileDump --force-no-limit-cpu-while-dump bool :default false
  Force no CPU limit when dumping models and proofs
 
+option solveIntAsBV --solve-int-as-bv uint32_t :default 0
+
 endmodule

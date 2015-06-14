@@ -400,6 +400,9 @@ private:
    */
   void removeITEs();
 
+  Node intToBV(TNode n, std::hash_map<Node, Node, NodeHashFunction>& cache);
+  Node intToBVMakeBinary(TNode n, std::hash_map<Node, Node, NodeHashFunction>& cache);
+
   /**
    * Helper function to fix up assertion list to restore invariants needed after ite removal
    */
@@ -931,6 +934,9 @@ void SmtEngine::setLogicInternal() throw() {
 void SmtEngine::setDefaults() {
   if(options::forceLogic.wasSetByUser()) {
     d_logic = options::forceLogic();
+  }
+  else if (options::solveIntAsBV() > 0) {
+    d_logic = LogicInfo("QF_BV");
   }
 
   // set strings-exp
@@ -1919,6 +1925,237 @@ Node SmtEnginePrivate::expandDefinitions(TNode n, hash_map<Node, Node, NodeHashF
   AlwaysAssert(result.size() == 1);
 
   return result.top();
+}
+
+//TODO: clean this up
+struct intToBV_stack_element {
+  TNode node;
+  bool children_added;
+  intToBV_stack_element(TNode node)
+  : node(node), children_added(false) {}
+};/* struct intToBV_stack_element */
+
+typedef std::hash_map<Node, Node, NodeHashFunction> NodeMap;
+
+Node SmtEnginePrivate::intToBVMakeBinary(TNode n, NodeMap& cache) {
+  // Do a topological sort of the subexpressions and substitute them
+  vector<intToBV_stack_element> toVisit;
+  toVisit.push_back(n);
+
+  while (!toVisit.empty())
+  {
+    // The current node we are processing
+    intToBV_stack_element& stackHead = toVisit.back();
+    TNode current = stackHead.node;
+
+    NodeMap::iterator find = cache.find(current);
+    if (find != cache.end()) {
+      toVisit.pop_back();
+      continue;
+    }
+    if (stackHead.children_added) {
+      // Children have been processed, so rebuild this node
+      Node result;
+      NodeManager* nm = NodeManager::currentNM(); 
+      if (current.getNumChildren() > 2 && (current.getKind() == kind::PLUS || current.getKind() == kind::MULT)) {
+        Assert(cache.find(current[0]) != cache.end());
+        result = cache[current[0]];
+        for (unsigned i = 1; i < current.getNumChildren(); ++ i) {
+          Assert(cache.find(current[i]) != cache.end());
+          Node child = current[i];
+          Node childRes = cache[current[i]];
+          result = nm->mkNode(current.getKind(), result, childRes);
+        }
+      }
+      else {
+        NodeBuilder<> builder(current.getKind());
+        for (unsigned i = 0; i < current.getNumChildren(); ++ i) {
+          Assert(cache.find(current[i]) != cache.end());
+          builder << cache[current[i]];
+        }
+        result = builder;
+      }
+      cache[current] = result;
+      toVisit.pop_back();
+    } else {
+      // Mark that we have added the children if any
+      if (current.getNumChildren() > 0) {
+        stackHead.children_added = true;
+        // We need to add the children
+        for(TNode::iterator child_it = current.begin(); child_it != current.end(); ++ child_it) {
+          TNode childNode = *child_it;
+          NodeMap::iterator childFind = cache.find(childNode);
+          if (childFind == cache.end()) {
+            toVisit.push_back(childNode);
+          }
+        }
+      } else {
+        cache[current] = current;
+        toVisit.pop_back();
+      }
+    }
+  }
+  return cache[n];
+}
+
+Node SmtEnginePrivate::intToBV(TNode n, NodeMap& cache) {
+  // Do a topological sort of the subexpressions and substitute them
+  int size = options::solveIntAsBV();
+  Assert(size > 0);
+  vector<intToBV_stack_element> toVisit;
+  Node n_binary = intToBVMakeBinary(n, cache);
+  toVisit.push_back(TNode(n_binary));
+  cache.clear();
+
+  while (!toVisit.empty())
+  {
+    // The current node we are processing
+    intToBV_stack_element& stackHead = toVisit.back();
+    TNode current = stackHead.node;
+
+    // If node has no ITE's or already in the cache we're done, pop from the stack
+    NodeMap::iterator find = cache.find(current);
+    if (find != cache.end()) {
+      toVisit.pop_back();
+      continue;
+    }
+
+    // Not yet substituted, so process
+    NodeManager* nm = NodeManager::currentNM(); 
+    if (stackHead.children_added) {
+      // Children have been processed, so rebuild this node
+      vector<Node> children;
+      unsigned max = 0;
+      for (unsigned i = 0; i < current.getNumChildren(); ++ i) {
+        Assert(cache.find(current[i]) != cache.end());
+        TNode childRes = cache[current[i]];
+        TypeNode type = childRes.getType();
+        if (type.isBitVector()) {
+          unsigned bvsize = type.getBitVectorSize();
+          if (bvsize > max) {
+            max = bvsize;
+          }
+        }
+        children.push_back(childRes);
+      }
+
+      kind::Kind_t newKind = current.getKind();
+      if (max > 0) {
+        switch (newKind) {
+          case kind::PLUS:
+            Assert(children.size() == 2);
+            newKind = kind::BITVECTOR_PLUS;
+            max = max + 1;
+            break;
+          case kind::MULT:
+            Assert(children.size() == 2);
+            newKind = kind::BITVECTOR_MULT;
+            max = max * 2;
+            break;
+          case kind::MINUS:
+            Assert(children.size() == 2);
+            newKind = kind::BITVECTOR_SUB;
+            max = max + 1;
+            break;
+          case kind::UMINUS:
+            Assert(children.size() == 1);
+            newKind = kind::BITVECTOR_NEG;
+            break;
+          case kind::LT:
+            newKind = kind::BITVECTOR_SLT;
+            break;
+          case kind::LEQ:
+            newKind = kind::BITVECTOR_SLE;
+            break;
+          case kind::GT:
+            newKind = kind::BITVECTOR_SGT;
+            break;
+          case kind::GEQ:
+            newKind = kind::BITVECTOR_SGE;
+            break;
+          case kind::EQUAL:
+          case kind::ITE:
+            break;
+          default:
+            if (Theory::theoryOf(current) == THEORY_BOOL) {
+              break;
+            }
+            throw TypeCheckingException(current.toExpr(), string("Cannot translate to BV: ") + current.toString());
+        }
+        for (unsigned i = 0; i < children.size(); ++i) {
+          TypeNode type = children[i].getType();
+          if (!type.isBitVector()) {
+            continue;
+          }
+          unsigned bvsize = type.getBitVectorSize();
+          if (bvsize < max) {
+            // sign extend
+            Node signExtendOp = nm->mkConst<BitVectorSignExtend>(BitVectorSignExtend(max - bvsize));
+            children[i] = nm->mkNode(signExtendOp, children[i]); 
+          }
+        }
+      }
+      NodeBuilder<> builder(newKind);
+      for (unsigned i = 0; i < children.size(); ++i) {
+        builder << children[i];
+      }
+      // Mark the substitution and continue
+      Node result = builder;
+
+      result = Rewriter::rewrite(result);
+      cache[current] = result;
+      toVisit.pop_back();
+    } else {
+      // Mark that we have added the children if any
+      if (current.getNumChildren() > 0) {
+        stackHead.children_added = true;
+        // We need to add the children
+        for(TNode::iterator child_it = current.begin(); child_it != current.end(); ++ child_it) {
+          TNode childNode = *child_it;
+          NodeMap::iterator childFind = cache.find(childNode);
+          if (childFind == cache.end()) {
+            toVisit.push_back(childNode);
+          }
+        }
+      } else {
+        // It's a leaf: could be a variable or a numeral
+        Node result = current;
+        if (current.isVar()) {
+          if (current.getType() == nm->integerType()) {
+            result = nm->mkSkolem("__intToBV_var", nm->mkBitVectorType(size),
+                                  "Variable introduced in intToBV pass");
+          }
+          else {
+            Assert(current.getType() == nm->booleanType());
+          }
+        }
+        else if (current.isConst()) {
+          switch (current.getKind()) {
+            case kind::CONST_RATIONAL: {
+              Rational constant = current.getConst<Rational>();
+              Assert(constant.isIntegral());
+              BitVector bv(size, constant.getNumerator());
+              if (bv.getValue() != constant.getNumerator()) {
+                throw TypeCheckingException(current.toExpr(), string("Not enough bits for constant in intToBV: ") + current.toString());
+              }
+              result = nm->mkConst(bv);
+              break;
+            }
+            case kind::CONST_BOOLEAN:
+              break;
+            default:
+              throw TypeCheckingException(current.toExpr(), string("Cannot translate const to BV: ") + current.toString());
+          }
+        }
+        else {
+          throw TypeCheckingException(current.toExpr(), string("Cannot translate to BV: ") + current.toString());
+        }
+        cache[current] = result;
+        toVisit.pop_back();
+      }
+    }
+  }
+  return cache[n_binary];
 }
 
 void SmtEnginePrivate::removeITEs() {
@@ -3131,6 +3368,15 @@ void SmtEnginePrivate::processAssertions() {
   }
   dumpAssertions("post-definition-expansion", d_assertions);
 
+  if (options::solveIntAsBV() > 0) {
+    Chat() << "converting ints to bit-vectors..." << endl;
+    hash_map<Node, Node, NodeHashFunction> cache;
+    for(unsigned i = 0; i < d_assertions.size(); ++ i) {
+      d_assertions.replace(i, intToBV(d_assertions[i], cache));
+    }
+  }
+    
+
   Debug("smt") << " d_assertions     : " << d_assertions.size() << endl;
 
   if (options::bitblastMode() == theory::bv::BITBLAST_MODE_EAGER &&
@@ -3577,6 +3823,11 @@ Result SmtEngine::checkSat(const Expr& ex, bool inUnsatCore) throw(TypeCheckingE
 
     Result r(Result::SAT_UNKNOWN, Result::UNKNOWN_REASON);
     r = check().asSatisfiabilityResult();
+
+    if (options::solveIntAsBV() > 0 &&r.asSatisfiabilityResult().isSat() == Result::UNSAT) {
+      r = Result(Result::SAT_UNKNOWN, Result::UNKNOWN_REASON);
+    }
+
     d_needPostsolve = true;
 
     // Dump the query if requested
