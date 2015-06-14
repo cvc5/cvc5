@@ -2639,13 +2639,16 @@ std::vector<ConstraintCPVec> TheoryArithPrivate::replayLogRec(ApproximateSimplex
 
             const ConstraintCPVec& exp = ci->getExplanation();
             // success
-            Assert(!con->negationHasProof());
             if(con->isTrue()){
               Debug("approx::replayLogRec") << "not asserted?" << endl;
-            }else{
+            }else if(!con->negationHasProof()){
               con->impliedByIntHole(exp, false);
               replayAssert(con);
               Debug("approx::replayLogRec") << "cut prop" << endl;
+            }else {
+              con->impliedByIntHole(exp, true);
+              Debug("approx::replayLogRec") << "cut into conflict " << con << endl;
+              raiseConflict(con);
             }
           }else{
             ++d_statistics.d_cutsProofFailed;
