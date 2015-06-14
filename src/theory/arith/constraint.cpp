@@ -34,7 +34,7 @@ namespace arith {
 
 /** Given a simplifiedKind this returns the corresponding ConstraintType. */
 //ConstraintType constraintTypeOfLiteral(Kind k);
-ConstraintType constraintTypeOfComparison(const Comparison& cmp){
+ConstraintType Constraint::constraintTypeOfComparison(const Comparison& cmp){
   Kind k = cmp.comparisonKind();
   switch(k){
   case LT:
@@ -989,7 +989,7 @@ ConstraintP ConstraintDatabase::addLiteral(TNode literal){
   Assert(!hasLiteral(negationNode));
   Comparison posCmp = Comparison::parseNormalForm(atomNode);
 
-  ConstraintType posType = constraintTypeOfComparison(posCmp);
+  ConstraintType posType = Constraint::constraintTypeOfComparison(posCmp);
 
   Polynomial nvp = posCmp.normalizedVariablePart();
   ArithVar v = d_avariables.asArithVar(nvp.getNode());
@@ -1024,7 +1024,7 @@ ConstraintP ConstraintDatabase::addLiteral(TNode literal){
   }else{
     Comparison negCmp = Comparison::parseNormalForm(negationNode);
     
-    ConstraintType negType = constraintTypeOfComparison(negCmp);
+    ConstraintType negType = Constraint::constraintTypeOfComparison(negCmp);
     DeltaRational negDR = negCmp.normalizedDeltaRational();
 
     ConstraintP negC = new Constraint(v, negType, negDR);
