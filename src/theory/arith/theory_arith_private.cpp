@@ -3787,7 +3787,7 @@ void TheoryArithPrivate::check(Theory::Effort effortLevel){
     setIncomplete();
   }
 
-  if(Theory::fullEffort(effortLevel)){
+  if(Theory::fullEffort(effortLevel) && options::incrementalSolving() ){
     uint32_t N = d_divlikeAxioms.size();
     AlwaysAssert(N == d_divlikeAxioms.size());
     while(d_lastDivAxiomExpanded < N){
