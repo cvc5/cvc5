@@ -130,7 +130,7 @@ private:
   __gnu_cxx::hash_map<unsigned, Node> d_BVRemByZero;
 
 
-  typedef __gnu_cxx::hash_map<Node, TNodeSet, NodeHashFunction>  FunctionToArgs;
+  typedef __gnu_cxx::hash_map<Node, NodeSet, NodeHashFunction>  FunctionToArgs;
   typedef __gnu_cxx::hash_map<Node, Node, NodeHashFunction>  NodeToNode;
   // for ackermanization
   FunctionToArgs d_funcToArgs;

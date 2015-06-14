@@ -188,9 +188,9 @@ void TheoryBV::collectFunctionSymbols(TNode term, TNodeSet& seen) {
 
 void TheoryBV::storeFunction(TNode func, TNode term) {
   if (d_funcToArgs.find(func) == d_funcToArgs.end()) {
-    d_funcToArgs.insert(make_pair(func, TNodeSet()));
+    d_funcToArgs.insert(make_pair(func, NodeSet()));
   }
-  TNodeSet& set = d_funcToArgs[func];
+  NodeSet& set = d_funcToArgs[func];
   if (set.find(term) == set.end()) {
     set.insert(term);
     Node skolem = utils::mkVar(utils::getSize(term));
@@ -212,18 +212,18 @@ void TheoryBV::mkAckermanizationAsssertions(std::vector<Node>& assertions) {
   NodeManager* nm = NodeManager::currentNM();
   for (; it!= d_funcToArgs.end(); ++it) {
     TNode func = it->first;
-    const TNodeSet& args = it->second;
-    TNodeSet::const_iterator it1 = args.begin();
+    const NodeSet& args = it->second;
+    NodeSet::const_iterator it1 = args.begin();
     for ( ; it1 != args.end(); ++it1) {
-      for(TNodeSet::const_iterator it2 = it1; it2 != args.end(); ++it2) {
+      for(NodeSet::const_iterator it2 = it1; it2 != args.end(); ++it2) {
         TNode args1 = *it1;
         TNode args2 = *it2;
 
-        Assert (args1.getKind() == kind::APPLY_UF &&
+        AlwaysAssert (args1.getKind() == kind::APPLY_UF &&
                 args1.getOperator() == func);
-        Assert (args2.getKind() == kind::APPLY_UF &&
+        AlwaysAssert (args2.getKind() == kind::APPLY_UF &&
                 args2.getOperator() == func);
-        Assert (args1.getNumChildren() == args2.getNumChildren());
+        AlwaysAssert (args1.getNumChildren() == args2.getNumChildren());
 
         std::vector<Node> eqs(args1.getNumChildren());
 

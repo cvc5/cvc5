@@ -97,7 +97,7 @@ QF_ABV)
   finishwith --ite-simp --simp-with-care --repeat-simp --arrays-weak-equiv
   ;;
 QF_UFBV)
-  finishwith --bitblast=eager --bv-sat-solver=cryptominisat
+  finishwith --bitblast=eager --bv-sat-solver=cryptominisat --no-bv-native-xor
   ;;
 QF_BV)
   exec ./pcvc4 -L smt2 --no-incremental --no-checking --no-interactive --thread-stack=1024 \
