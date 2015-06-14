@@ -1999,13 +1999,12 @@ Node SmtEnginePrivate::intToBVMakeBinary(TNode n, NodeMap& cache) {
 }
 
 Node SmtEnginePrivate::intToBV(TNode n, NodeMap& cache) {
-  // Do a topological sort of the subexpressions and substitute them
   int size = options::solveIntAsBV();
   Assert(size > 0);
   vector<intToBV_stack_element> toVisit;
-  Node n_binary = intToBVMakeBinary(n, cache);
+  NodeMap binaryCache;
+  Node n_binary = intToBVMakeBinary(n, binaryCache);
   toVisit.push_back(TNode(n_binary));
-  cache.clear();
 
   while (!toVisit.empty())
   {
@@ -2013,7 +2012,7 @@ Node SmtEnginePrivate::intToBV(TNode n, NodeMap& cache) {
     intToBV_stack_element& stackHead = toVisit.back();
     TNode current = stackHead.node;
 
-    // If node has no ITE's or already in the cache we're done, pop from the stack
+    // If node is already in the cache we're done, pop from the stack
     NodeMap::iterator find = cache.find(current);
     if (find != cache.end()) {
       toVisit.pop_back();
