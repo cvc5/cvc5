@@ -2000,7 +2000,9 @@ Node SmtEnginePrivate::intToBVMakeBinary(TNode n, NodeMap& cache) {
 
 Node SmtEnginePrivate::intToBV(TNode n, NodeMap& cache) {
   int size = options::solveIntAsBV();
-  Assert(size > 0);
+  AlwaysAssert(size > 0);
+  AlwaysAssert(!options::incrementalSolving());
+
   vector<intToBV_stack_element> toVisit;
   NodeMap binaryCache;
   Node n_binary = intToBVMakeBinary(n, binaryCache);
@@ -2126,14 +2128,14 @@ Node SmtEnginePrivate::intToBV(TNode n, NodeMap& cache) {
                                   "Variable introduced in intToBV pass");
           }
           else {
-            Assert(current.getType() == nm->booleanType());
+            AlwaysAssert(current.getType() == nm->booleanType());
           }
         }
         else if (current.isConst()) {
           switch (current.getKind()) {
             case kind::CONST_RATIONAL: {
               Rational constant = current.getConst<Rational>();
-              Assert(constant.isIntegral());
+              AlwaysAssert(constant.isIntegral());
               BitVector bv(size, constant.getNumerator());
               if (bv.getValue() != constant.getNumerator()) {
                 throw TypeCheckingException(current.toExpr(), string("Not enough bits for constant in intToBV: ") + current.toString());
