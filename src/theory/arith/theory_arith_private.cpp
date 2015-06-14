@@ -122,6 +122,10 @@ TheoryArithPrivate::TheoryArithPrivate(TheoryArith& containing, context::Context
   d_tableauResetPeriod(10),
   d_conflicts(c),
   d_blackBoxConflict(c, Node::null()),
+
+  d_divlikeAxioms(),
+  d_lastDivAxiomExpanded(u,0),
+
   d_congruenceManager(c, d_constraintDatabase, SetupLiteralCallBack(*this), d_partialModel, RaiseEqualityEngineConflict(*this)),
   d_cmEnabled(c, true),
 
@@ -1460,6 +1464,7 @@ void TheoryArithPrivate::setupDivLike(const Variable& v){
   if(!lem.isNull()){
     Debug("arith::div") << lem << endl;
     outputLemma(lem);
+    d_divlikeAxioms.push_back(lem);
   }
 }
 
@@ -3782,6 +3787,17 @@ void TheoryArithPrivate::check(Theory::Effort effortLevel){
     setIncomplete();
   }
 
+  if(Theory::fullEffort(effortLevel) && options::incrementalSolving() ){
+    uint32_t N = d_divlikeAxioms.size();
+    AlwaysAssert(N == d_divlikeAxioms.size());
+    while(d_lastDivAxiomExpanded < N){
+      Node divaxiom = d_divlikeAxioms[d_lastDivAxiomExpanded];
+      d_lastDivAxiomExpanded = d_lastDivAxiomExpanded + 1;
+      outputLemma(divaxiom);
+    }
+  }
+
+
   if(Theory::fullEffort(effortLevel)){
     if(Debug.isOn("arith::consistency::final")){
       entireStateIsConsistent("arith::consistency::final");
@@ -3789,12 +3805,21 @@ void TheoryArithPrivate::check(Theory::Effort effortLevel){
     // cout << "fulleffort" << getSatContext()->getLevel() << endl;
     // entireStateIsConsistent("arith::consistency::final");
     // cout << "emmittedConflictOrSplit" << emmittedConflictOrSplit << endl;
+
+    // static int instance = 0;
+    // ++instance;
+    // cout << "Theory arith full effort check" <<  instance << endl;
+    // debugPrintAssertions(cout);
+    // debugPrintModel(cout);
+    // cout << "Theory arith full effort check" <<  instance << " done()" << endl;
   }
 
   if(Debug.isOn("paranoid:check_tableau")){ d_linEq.debugCheckTableau(); }
   if(Debug.isOn("arith::print_model")) {
     debugPrintModel(Debug("arith::print_model"));
   }
+  
+
   Debug("arith") << "TheoryArithPrivate::check end" << std::endl;
 }
 
