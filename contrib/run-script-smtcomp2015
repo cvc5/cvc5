@@ -33,6 +33,11 @@ QF_LIA)
   # same as QF_LRA but add --pb-rewrites
   finishwith --enable-miplib-trick --miplib-trick-subs=4 --use-approx --lemmas-on-replay-failure --replay-early-close-depth=4 --replay-lemma-reject-cut=128 --replay-reject-cut=512 --unconstrained-simp --use-soi --pb-rewrites
   ;;
+QF_NIA)
+  trywith 100 --solve-int-as-bv=8
+  trywith 1000 --solve-int-as-bv=16
+  finishwith
+  ;;
 AUFLIA)
   finishwith --no-e-matching --full-saturate-quant
   ;;
