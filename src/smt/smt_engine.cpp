@@ -937,8 +937,11 @@ void SmtEngine::setDefaults() {
   }
   else if (options::solveIntAsBV() > 0) {
     d_logic = LogicInfo("QF_BV");
+  } else if (d_logic.getLogicString() == "QF_UFBV" &&
+             options::bitblastMode() == theory::bv::BITBLAST_MODE_EAGER) {
+    d_logic = LogicInfo("QF_BV");
   }
-
+  
   // set strings-exp
   /* - disabled for 1.4 release [MGD 2014.06.25]
   if(!d_logic.hasEverything() && d_logic.isTheoryEnabled(THEORY_STRINGS) ) {
@@ -3382,12 +3385,14 @@ void SmtEnginePrivate::processAssertions() {
   Debug("smt") << " d_assertions     : " << d_assertions.size() << endl;
 
   if (options::bitblastMode() == theory::bv::BITBLAST_MODE_EAGER &&
-      !d_smt.d_logic.isPure(THEORY_BV)) {
+      !d_smt.d_logic.isPure(THEORY_BV) &&
+      d_smt.d_logic.getLogicString() != "QF_UFBV")
+    {
     throw ModalException("Eager bit-blasting does not currently support theory combination. "
                          "Note that in a QF_BV problem UF symbols can be introduced for division. "
                          "Try --bv-div-zero-const to interpret division by zero as a constant.");
-  }
-
+    }
+  
   if (options::bitblastMode() == theory::bv::BITBLAST_MODE_EAGER) {
     d_smt.d_theoryEngine->mkAckermanizationAsssertions(d_assertions.ref());
   }

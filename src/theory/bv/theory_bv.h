@@ -19,6 +19,7 @@
 
 #include "cvc4_private.h"
 #include "theory/theory.h"
+#include "theory/substitutions.h"
 #include "context/context.h"
 #include "context/cdlist.h"
 #include "context/cdhashset.h"
@@ -116,8 +117,8 @@ private:
   Node getBVDivByZero(Kind k, unsigned width);
 
   typedef __gnu_cxx::hash_set<TNode, TNodeHashFunction> TNodeSet; 
-  void collectNumerators(TNode term, TNodeSet& seen);
-  
+  void collectFunctionSymbols(TNode term, TNodeSet& seen);
+  void storeFunction(TNode func, TNode term);
   typedef __gnu_cxx::hash_set<Node, NodeHashFunction> NodeSet;
   NodeSet d_staticLearnCache;
   
@@ -128,14 +129,12 @@ private:
   __gnu_cxx::hash_map<unsigned, Node> d_BVDivByZero;
   __gnu_cxx::hash_map<unsigned, Node> d_BVRemByZero;
 
-  /**
-   * Maps from bit-vector width to numerators
-   * of uninterpreted function symbol
-   */
-  typedef __gnu_cxx::hash_map<unsigned, TNodeSet > WidthToNumerators;
 
-  WidthToNumerators d_BVDivByZeroAckerman;
-  WidthToNumerators d_BVRemByZeroAckerman;
+  typedef __gnu_cxx::hash_map<Node, TNodeSet, NodeHashFunction>  FunctionToArgs;
+  typedef __gnu_cxx::hash_map<Node, Node, NodeHashFunction>  NodeToNode;
+  // for ackermanization
+  FunctionToArgs d_funcToArgs;
+  CVC4::theory::SubstitutionMap d_funcToSkolem;
 
   context::CDO<bool> d_lemmasAdded;
   
