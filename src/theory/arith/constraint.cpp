@@ -1346,7 +1346,7 @@ void Constraint::assertionFringe(ConstraintCPVec& v){
           v[writePos] = vi;
           writePos++;
         }else{
-          Assert(vi->hasFarkasProof() || vi->hasIntHoleProof() );
+          Assert(vi->hasTrichotomyProof() || vi->hasFarkasProof() || vi->hasIntHoleProof() );
           AntecedentId p = vi->getEndAntecedent();
 
           ConstraintCP antecedent = antecedents[p];
