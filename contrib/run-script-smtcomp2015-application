@@ -32,10 +32,16 @@ QF_LIA)
   # same as QF_LRA but add --pb-rewrites
   runcvc4 --incremental
   ;;
-ALIA|AUFLIA|AUFLIRA|AUFNIRA|BV|UF|UFBV|UFIDL|UFLIA|UFLRA|UFNIA)
+ANIA|AUFNIRA|QF_ANIA|QF_NIA|QF_UFNIA|UFNIA)
+  runcvc4 --tear-down-incremental
+  ;;
+ALIA|AUFLIA|AUFLIRA|BV|UF|UFBV|UFIDL|UFLIA|UFLRA)
   runcvc4 --incremental
   ;;
-LIA|LRA|NIA|NRA)
+NIA|NRA)
+  runcvc4 --tear-down-incremental --cbqi
+  ;;
+LIA|LRA)
   runcvc4 --incremental --cbqi
   ;;
 QF_BV)
