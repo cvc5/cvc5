@@ -34,9 +34,12 @@ QF_LIA)
   finishwith --enable-miplib-trick --miplib-trick-subs=4 --use-approx --lemmas-on-replay-failure --replay-early-close-depth=4 --replay-lemma-reject-cut=128 --replay-reject-cut=512 --unconstrained-simp --use-soi --pb-rewrites
   ;;
 QF_NIA)
-  trywith 10
+  trywith 20
+  trywith 1800 --solve-int-as-bv=2 --bitblast=eager
+  trywith 1800 --solve-int-as-bv=4 --bitblast=eager
   trywith 1800 --solve-int-as-bv=8 --bitblast=eager
-  finishwith --solve-int-as-bv=16 --bitblast=eager
+  trywith 1800 --solve-int-as-bv=16 --bitblast=eager
+  finishwith --solve-int-as-bv=32 --bitblast=eager
   ;;
 AUFLIA)
   finishwith --no-e-matching --full-saturate-quant
