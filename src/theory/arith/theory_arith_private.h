@@ -329,6 +329,16 @@ private:
 
   /** This is only used by simplex at the moment. */
   context::CDO<Node> d_blackBoxConflict;
+
+  /** The list of all instantiated division by 0 axioms.
+   * Due to a problem with setup() and garbageCollection
+   * if incremental is on, this list must be expanded
+   * every user context.
+   * This is regardless of the symbol reappearing in the assertions.
+   */
+  std::vector<Node> d_divlikeAxioms;
+  context::CDO<uint32_t> d_lastDivAxiomExpanded;
+
 public:
 
   /**
