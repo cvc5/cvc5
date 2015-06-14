@@ -2059,6 +2059,7 @@ Node SmtEnginePrivate::intToBV(TNode n, NodeMap& cache) {
           case kind::UMINUS:
             Assert(children.size() == 1);
             newKind = kind::BITVECTOR_NEG;
+            max = max + 1;
             break;
           case kind::LT:
             newKind = kind::BITVECTOR_SLT;
