@@ -97,13 +97,13 @@ QF_ABV)
   finishwith --ite-simp --simp-with-care --repeat-simp --arrays-weak-equiv
   ;;
 QF_UFBV)
-  finishwith --bitblast=eager --bv-sat-solver=cryptominisat --no-bv-native-xor
+  finishwith --bitblast=eager --bv-sat-solver=cryptominisat
   ;;
 QF_BV)
   exec ./pcvc4 -L smt2 --no-incremental --no-checking --no-interactive --thread-stack=1024 \
          --threads 2 \
-         --thread0 '--unconstrained-simp --bv-div-zero-const --bv-intro-pow2 --bitblast=eager  --bv-sat-solver=cryptominisat --bitblast-aig --no-bv-native-xor' \
-         --thread1 '--unconstrained-simp --bv-div-zero-const --bv-intro-pow2 --bv-eq-slicer=auto ' \
+         --thread0 '--unconstrained-simp --bv-div-zero-const --bv-intro-pow2 --bitblast=eager  --bv-sat-solver=cryptominisat --bitblast-aig --no-bv-native-xor --no-bv-abstraction' \
+         --thread1 '--unconstrained-simp --bv-div-zero-const --bv-intro-pow2 --bv-eq-slicer=auto --no-bv-abstraction' \
          --no-wait-to-join \
          "$bench"
   #trywith 10 --bv-eq-slicer=auto --decision=justification
