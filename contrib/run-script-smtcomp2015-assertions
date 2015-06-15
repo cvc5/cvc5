@@ -1,6 +1,7 @@
 #!/bin/bash
 
 cvc4=./cvc4-assertions
+
 # Attempt to run each benchmark 1-5 min depending on numconfigs
 # quanitifers get 5 min / benchmark
 # quantifier free uf, arith, arrays get 1 min / benchmark
