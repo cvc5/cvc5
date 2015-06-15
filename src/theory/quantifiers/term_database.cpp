@@ -571,7 +571,7 @@ Node TermDb::getModelBasisTerm( TypeNode tn, int i ){
     Node mbt;
     if( tn.isInteger() || tn.isReal() ){
       mbt = NodeManager::currentNM()->mkConst( Rational( 0 ) );
-    }else if( !tn.isSort() ){
+    }else if( !tn.isArray() && !tn.isSort() ){
       mbt = tn.mkGroundTerm();
     }else{
       if( options::fmfFreshDistConst() || d_type_map[ tn ].empty() ){
