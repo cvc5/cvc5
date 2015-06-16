@@ -48,7 +48,7 @@ public:
   /** returns index in d_type_reps for node n */
   int getIndexFor( Node n ) const;
   /** complete all values */
-  void complete( TypeNode t );
+  bool complete( TypeNode t );
   /** debug print */
   void toStream(std::ostream& out);
 };/* class RepSet */

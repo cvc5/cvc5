@@ -77,12 +77,6 @@ public:
     *   If it cannot find such a node, it returns null.
     */
   Node getNewDomainValue( TypeNode tn );
-  /** complete all values for type
-    *   Calling this function ensures that all terms of type tn exist in d_rep_set.d_type_reps[tn]
-    */
-  void completeDomainValues( TypeNode tn ){
-    d_rep_set.complete( tn );
-  }
 public:
   /** Adds a substitution from x to t. */
   void addSubstitution(TNode x, TNode t, bool invalidateCache = true);

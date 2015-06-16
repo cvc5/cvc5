@@ -137,6 +137,8 @@ private:
   NodeIntMap d_op_ccount;
   /** set has term */
   void setHasTerm( Node n );
+  /** may complete */
+  std::map< TypeNode, bool > d_may_complete;
 public:
   TermDb( context::Context* c, context::UserContext* u, QuantifiersEngine* qe );
   ~TermDb(){}
@@ -191,6 +193,8 @@ public:
   Node getEligibleTermInEqc( TNode r );
   /** is inst closure */
   bool isInstClosure( Node r );
+  /** may complete */
+  bool mayComplete( TypeNode tn );
 //for model basis
 private:
   //map from types to model basis terms

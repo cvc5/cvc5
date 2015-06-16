@@ -15,6 +15,7 @@
 #include "theory/rep_set.h"
 #include "theory/type_enumerator.h"
 #include "theory/quantifiers/bounded_integers.h"
+#include "theory/quantifiers/term_database.h"
 
 using namespace std;
 using namespace CVC4;
@@ -86,8 +87,15 @@ int RepSet::getIndexFor( Node n ) const {
   }
 }
 
-void RepSet::complete( TypeNode t ){
-  if( d_type_complete.find( t )==d_type_complete.end() ){
+bool RepSet::complete( TypeNode t ){
+  std::map< TypeNode, bool >::iterator it = d_type_complete.find( t );
+  if( it==d_type_complete.end() ){
+    //remove all previous 
+    for( unsigned i=0; i<d_type_reps[t].size(); i++ ){
+      d_tmap.erase( d_type_reps[t][i] );
+    }
+    d_type_reps[t].clear();
+    //now complete the type
     d_type_complete[t] = true;
     TypeEnumerator te(t);
     while( !te.isFinished() ){
@@ -101,6 +109,9 @@ void RepSet::complete( TypeNode t ){
       Trace("reps-complete") << d_type_reps[t][i] << " ";
     }
     Trace("reps-complete") << std::endl;
+    return true;
+  }else{
+    return it->second;
   }
 }
 
@@ -165,6 +176,7 @@ bool RepSetIterator::setFunctionDomain( Node op ){
 }
 
 bool RepSetIterator::initialize(){
+  Trace("rsi") << "Initialize rep set iterator..." << std::endl;
   for( size_t i=0; i<d_types.size(); i++ ){
     d_index.push_back( 0 );
     //store default index order
@@ -173,6 +185,7 @@ bool RepSetIterator::initialize(){
     //store default domain
     d_domain.push_back( RepDomain() );
     TypeNode tn = d_types[i];
+    Trace("rsi") << "Var #" << i << " is type " << tn << "..." << std::endl;
     if( tn.isSort() ){
       if( !d_rep_set->hasType( tn ) ){
         Node var = NodeManager::currentNM()->mkSkolem( "repSet", tn, "is a variable created by the RepSetIterator" );
@@ -184,7 +197,7 @@ bool RepSetIterator::initialize(){
       //check if it is bound
       if( d_owner.getKind()==FORALL && d_qe && d_qe->getBoundedIntegers() ){
         if( d_qe->getBoundedIntegers()->isBoundVar( d_owner, d_owner[0][i] ) ){
-          Trace("bound-int-rsi") << "Rep set iterator: variable #" << i << " is bounded integer." << std::endl;
+          Trace("rsi") << "  variable is bounded integer." << std::endl;
           d_enum_type.push_back( ENUM_RANGE );
         }else{
           inc = true;
@@ -195,18 +208,20 @@ bool RepSetIterator::initialize(){
       if( inc ){
         //check if it is otherwise bound
         if( d_bounds[0].find(i)!=d_bounds[0].end() && d_bounds[1].find(i)!=d_bounds[1].end() ){
-          Trace("bound-int-rsi") << "Rep set iterator: variable #" << i << " is bounded." << std::endl;
+          Trace("rsi") << "  variable is bounded." << std::endl;
           d_enum_type.push_back( ENUM_RANGE );
         }else{
+          Trace("rsi") << "  variable cannot be bounded." << std::endl;
           Trace("fmf-incomplete") << "Incomplete because of integer quantification of " << d_owner[0][i] << "." << std::endl;
           d_incomplete = true;
         }
       }
     //enumerate if the sort is reasonably small, not an Array, the upper bound of 1000 is chosen arbitrarily for now
-    }else if( !tn.isArray() && tn.getCardinality().isFinite() && !tn.getCardinality().isLargeFinite() &&
-              tn.getCardinality().getFiniteCardinality().toUnsignedInt()<=1000 ){
+    }else if( d_qe->getTermDatabase()->mayComplete( tn ) ){
+      Trace("rsi") << "  do complete, since cardinality is small (" << tn.getCardinality() << ")..." << std::endl;
       d_rep_set->complete( tn );
     }else{
+      Trace("rsi") << "  variable cannot be bounded." << std::endl;
       Trace("fmf-incomplete") << "Incomplete because of quantification of type " << tn << std::endl;
       d_incomplete = true;
     }

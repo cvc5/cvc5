@@ -409,6 +409,25 @@ bool TermDb::isInstClosure( Node r ) {
   return d_iclosure_processed.find( r )!=d_iclosure_processed.end();
 }
 
+//checks whether a type is reasonably small enough such that all of its domain elements can be enumerated
+bool TermDb::mayComplete( TypeNode tn ) {
+  std::map< TypeNode, bool >::iterator it = d_may_complete.find( tn );
+  if( it==d_may_complete.end() ){
+    bool mc = false;
+    if( !tn.isArray() && tn.getCardinality().isFinite() && !tn.getCardinality().isLargeFinite() ){
+      Node card = NodeManager::currentNM()->mkConst( Rational(tn.getCardinality().getFiniteCardinality()) );
+      Node oth = NodeManager::currentNM()->mkConst( Rational(1000) );
+      Node eq = NodeManager::currentNM()->mkNode( LEQ, card, oth );
+      eq = Rewriter::rewrite( eq );
+      mc = eq==d_true;
+    }
+    d_may_complete[tn] = mc;
+    return mc;
+  }else{
+    return it->second;
+  }
+}
+
 void TermDb::setHasTerm( Node n ) {
   Trace("term-db-debug2") << "hasTerm : " << n  << std::endl;
   //if( inst::Trigger::isAtomicTrigger( n ) ){
