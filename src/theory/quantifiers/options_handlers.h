@@ -148,6 +148,9 @@ resort \n\
 ignore \n\
 + Ignore user-provided patterns. \n\
 \n\
+interleave \n\
++ Alternate between use/resort. \n\
+\n\
 ";
 static const std::string triggerSelModeHelp = "\
 Trigger selection modes currently supported by the --trigger-sel option:\n\
@@ -336,6 +339,8 @@ inline UserPatMode stringToUserPatMode(std::string option, std::string optarg, S
     return USER_PAT_MODE_RESORT;
   } else if(optarg == "ignore") {
     return USER_PAT_MODE_IGNORE;
+  } else if(optarg == "interleave") {
+    return USER_PAT_MODE_INTERLEAVE;
   } else if(optarg ==  "help") {
     puts(userPatModeHelp.c_str());
     exit(1);

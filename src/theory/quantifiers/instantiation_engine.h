@@ -26,7 +26,6 @@ namespace quantifiers {
 
 class InstStrategyUserPatterns;
 class InstStrategyAutoGenTriggers;
-class InstStrategyLocalTheoryExt;
 class InstStrategyFreeVariable;
 class InstStrategySimplex;
 class InstStrategyCegqi;
@@ -63,8 +62,6 @@ private:
   InstStrategyUserPatterns* d_isup;
   /** auto gen triggers; only kept for destructor cleanup */
   InstStrategyAutoGenTriggers* d_i_ag;
-  /** local theory extensions */
-  InstStrategyLocalTheoryExt * d_i_lte;
   /** full saturate */
   InstStrategyFreeVariable * d_i_fs;
   /** simplex (cbqi) */

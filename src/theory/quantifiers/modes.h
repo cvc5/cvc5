@@ -103,6 +103,8 @@ typedef enum {
   USER_PAT_MODE_RESORT,
   /** ignore user patterns */
   USER_PAT_MODE_IGNORE,
+  /** interleave use/resort for user patterns */
+  USER_PAT_MODE_INTERLEAVE,
 } UserPatMode;
 
 typedef enum {

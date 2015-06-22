@@ -29,12 +29,13 @@ using namespace CVC4::theory::inst;
 using namespace CVC4::theory::quantifiers;
 
 //priority levels :
-//1 : user patterns (when user-pat!={resort,ignore}), auto-gen patterns (for non-user pattern quantifiers)
-//2 : user patterns (when user-pat=resort ), auto gen patterns (for user pattern quantifiers, when user-pat=use)
+//1 : user patterns (when user-pat!={resort,ignore}), auto-gen patterns (for non-user pattern quantifiers, or when user-pat={ignore,resort})
+//2 : user patterns (when user-pat=resort), auto gen patterns (for user pattern quantifiers when user-pat=use)
 //3 :
 //4 :
 //5 : full saturate quantifiers
 
+// user-pat=interleave alternates between use and resort
 
 //#define MULTI_TRIGGER_FULL_EFFORT_HALF
 
@@ -67,14 +68,14 @@ int InstStrategyUserPatterns::process( Node f, Theory::Effort effort, int e ){
   if( e==0 ){
     return STATUS_UNFINISHED;
   }else{
-    int peffort = options::userPatternsQuant()==USER_PAT_MODE_RESORT ? 2 : 1;
+    int peffort = d_quantEngine->getInstUserPatMode()==USER_PAT_MODE_RESORT ? 2 : 1;
     if( e<peffort ){
       return STATUS_UNFINISHED;
     }else if( e==peffort ){
       d_counter[f]++;
 
       Trace("inst-alg") << "-> User-provided instantiate " << f << "..." << std::endl;
-      if( options::userPatternsQuant()==USER_PAT_MODE_RESORT  ){
+      if( d_quantEngine->getInstUserPatMode()==USER_PAT_MODE_RESORT  ){
         int matchOption = 0;
         for( unsigned i=0; i<d_user_gen_wait[f].size(); i++ ){
           Trigger * t = Trigger::mkTrigger( d_quantEngine, f, d_user_gen_wait[f][i], matchOption, true, Trigger::TR_RETURN_NULL, options::smartTriggers() );
@@ -125,7 +126,7 @@ void InstStrategyUserPatterns::addUserPattern( Node f, Node pat ){
     d_quantEngine->getPhaseReqTerms( f, nodes );
     //check match option
     int matchOption = 0;
-    if( options::userPatternsQuant()==USER_PAT_MODE_RESORT ){
+    if( d_quantEngine->getInstUserPatMode()==USER_PAT_MODE_RESORT ){
       d_user_gen_wait[f].push_back( nodes );
     }else{
       d_user_gen[f].push_back( Trigger::mkTrigger( d_quantEngine, f, nodes, matchOption, true, Trigger::TR_MAKE_NEW, options::smartTriggers() ) );
@@ -165,10 +166,11 @@ void InstStrategyAutoGenTriggers::processResetInstantiationRound( Theory::Effort
 }
 
 int InstStrategyAutoGenTriggers::process( Node f, Theory::Effort effort, int e ){
-  if( hasUserPatterns( f ) && options::userPatternsQuant()==USER_PAT_MODE_TRUST ){
+  UserPatMode upMode = d_quantEngine->getInstUserPatMode();
+  if( hasUserPatterns( f ) && upMode==USER_PAT_MODE_TRUST ){
     return STATUS_UNKNOWN;
   }else{
-    int peffort = ( hasUserPatterns( f ) && options::userPatternsQuant()!=USER_PAT_MODE_IGNORE && options::userPatternsQuant()!=USER_PAT_MODE_RESORT ) ? 2 : 1;
+    int peffort = ( hasUserPatterns( f ) && upMode!=USER_PAT_MODE_IGNORE && upMode!=USER_PAT_MODE_RESORT ) ? 2 : 1;
     if( e<peffort ){
       return STATUS_UNFINISHED;
     }else{
@@ -417,37 +419,7 @@ void InstStrategyAutoGenTriggers::addUserNoPattern( Node f, Node pat ) {
   }
 }
 
-
-void InstStrategyLocalTheoryExt::processResetInstantiationRound( Theory::Effort effort ){
-  //reset triggers
-  for( std::map< Node, Trigger* >::iterator it = d_lte_trigger.begin(); it != d_lte_trigger.end(); ++it ){
-    it->second->resetInstantiationRound();
-    it->second->reset( Node::null() );
-  }
-}
-
-int InstStrategyLocalTheoryExt::process( Node f, Theory::Effort effort, int e ) {
-  if( e<3 ){
-    return STATUS_UNFINISHED;
-  }else if( e==3 ){
-    if( isLocalTheoryExt( f ) ){
-      std::map< Node, Trigger* >::iterator it = d_lte_trigger.find( f );
-      if( it!=d_lte_trigger.end() ){
-        Trigger * tr = it->second;
-        //process the trigger
-        Trace("process-trigger") << "  LTE process ";
-        tr->debugPrint("process-trigger");
-        Trace("process-trigger") << "..." << std::endl;
-        InstMatch baseMatch( f );
-        int numInst = tr->addInstantiations( baseMatch );
-        Trace("process-trigger") << "  Done, numInst = " << numInst << "." << std::endl;
-        d_quantEngine->getInstantiationEngine()->d_statistics.d_instantiations_lte += numInst;
-      }
-    }
-  }
-  return STATUS_UNKNOWN;
-}
-
+/*  TODO?
 bool InstStrategyLocalTheoryExt::isLocalTheoryExt( Node f ) {
   std::map< Node, bool >::iterator itq = d_quant.find( f );
   if( itq==d_quant.end() ){
@@ -483,6 +455,7 @@ bool InstStrategyLocalTheoryExt::isLocalTheoryExt( Node f ) {
     return itq->second;
   }
 }
+*/
 
 void InstStrategyFreeVariable::processResetInstantiationRound( Theory::Effort effort ){
 

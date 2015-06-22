@@ -21,6 +21,7 @@
 #include "util/hash.h"
 #include "theory/quantifiers/inst_match.h"
 #include "theory/quantifiers/quant_util.h"
+#include "theory/quantifiers/modes.h"
 #include "expr/attribute.h"
 
 #include "util/statistics_registry.h"
@@ -284,6 +285,8 @@ public:
   int getNumLemmasWaiting() { return (int)d_lemmas_waiting.size(); }
   /** get needs check */
   bool getInstWhenNeedsCheck( Theory::Effort e );
+  /** get user pat mode */
+  quantifiers::UserPatMode getInstUserPatMode();
   /** set instantiation level attr */
   static void setInstantiationLevelAttr( Node n, uint64_t level );
 public:

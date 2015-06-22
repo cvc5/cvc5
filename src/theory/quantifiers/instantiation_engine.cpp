@@ -31,14 +31,13 @@ using namespace CVC4::theory::quantifiers;
 using namespace CVC4::theory::inst;
 
 InstantiationEngine::InstantiationEngine( QuantifiersEngine* qe ) :
-QuantifiersModule( qe ), d_isup(NULL), d_i_ag(NULL), d_i_lte(NULL), d_i_fs(NULL), d_i_splx(NULL), d_i_cegqi( NULL ){
+QuantifiersModule( qe ), d_isup(NULL), d_i_ag(NULL), d_i_fs(NULL), d_i_splx(NULL), d_i_cegqi( NULL ){
 
 }
 
 InstantiationEngine::~InstantiationEngine() {
   delete d_i_ag;
   delete d_isup;
-  delete d_i_lte;
   delete d_i_fs;
   delete d_i_splx;
   delete d_i_cegqi;
@@ -58,12 +57,6 @@ void InstantiationEngine::finishInit(){
     d_i_ag = new InstStrategyAutoGenTriggers( d_quantEngine );
     d_instStrategies.push_back( d_i_ag );
   }
-
-  //local theory extensions TODO?
-  //if( options::localTheoryExt() ){
-  //  d_i_lte = new InstStrategyLocalTheoryExt( d_quantEngine );
-  //  d_instStrategies.push_back( d_i_lte );
-  //}
 
   //full saturation : instantiate from relevant domain, then arbitrary terms
   if( options::fullSaturateQuant() ){

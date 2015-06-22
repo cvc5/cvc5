@@ -893,6 +893,14 @@ bool QuantifiersEngine::getInstWhenNeedsCheck( Theory::Effort e ) {
   return performCheck;
 }
 
+quantifiers::UserPatMode QuantifiersEngine::getInstUserPatMode() {
+  if( options::userPatternsQuant()==quantifiers::USER_PAT_MODE_INTERLEAVE ){
+    return d_ierCounter%2==0 ? quantifiers::USER_PAT_MODE_USE : quantifiers::USER_PAT_MODE_RESORT;
+  }else{
+    return options::userPatternsQuant();
+  }
+}
+
 void QuantifiersEngine::flushLemmas(){
   if( !d_lemmas_waiting.empty() ){
     //take default output channel if none is provided

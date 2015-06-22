@@ -105,26 +105,6 @@ public:
   void addUserNoPattern( Node f, Node pat );
 };/* class InstStrategyAutoGenTriggers */
 
-
-class InstStrategyLocalTheoryExt : public InstStrategy {
-private:
-  /** have we registered quantifier, value is whether it is an LTE term */
-  std::map< Node, bool > d_quant;
-  /** triggers for each quantifier */
-  std::map< Node, inst::Trigger* > d_lte_trigger;
-private:
-  /** process functions */
-  void processResetInstantiationRound( Theory::Effort effort );
-  int process( Node f, Theory::Effort effort, int e );
-public:
-  InstStrategyLocalTheoryExt( QuantifiersEngine* qe ) : InstStrategy( qe ){}
-  /** identify */
-  std::string identify() const { return std::string("LocalTheoryExt"); }
-  /** is local theory quantifier? */
-  bool isLocalTheoryExt( Node f );
-};
-
-
 class InstStrategyFreeVariable : public InstStrategy{
 private:
   /** guessed instantiations */
