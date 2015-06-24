@@ -209,7 +209,7 @@ TSatProof<Solver>::TSatProof(Solver* solver, const std::string& name, bool check
   d_resChains(),
   d_resStack(),
   d_checkRes(checkRes),
-  d_emptyClauseId(-1),
+  d_emptyClauseId(ClauseIdEmpty),
   d_nullId(-2),
   d_temp_clauseId(),
   d_temp_idClause(),

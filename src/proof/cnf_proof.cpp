@@ -76,7 +76,9 @@ Node CnfProof::getTopLevelFactForClause(ClauseId clause) {
 }
 
 void CnfProof::registerConvertedClause(ClauseId clause, bool explanation) {
-  Assert (!explanation); // FIXME: handle explanations specially 
+  Assert (!explanation); // FIXME: handle explanations specially
+  Assert (clause != ClauseIdUndef && clause != ClauseIdError &&
+          clause != ClauseIdEmpty);
   Node current_assertion = getCurrentAssertion();
   Assert (d_clauseToAssertion.find(clause) == d_clauseToAssertion.end());
   d_clauseToAssertion.insert (clause, current_assertion);

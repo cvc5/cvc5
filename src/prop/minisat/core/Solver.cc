@@ -299,11 +299,13 @@ bool Solver::addClause_(vec<Lit>& ps, bool removable, ClauseId& id)
       clauseLevel = std::max(clauseLevel, intro_level(var(ps[i])));
       // Tautologies are ignored
       if (ps[i] == ~p) {
+        id = ClauseIdUndef;
         // Clause can be ignored
         return true;
       }
       // Clauses with 0-level true literals are also ignored
       if (value(ps[i]) == l_True && level(var(ps[i])) == 0 && user_level(var(ps[i])) == 0) {
+        id = ClauseIdUndef;
         return true;
       }
       // Ignore repeated literals

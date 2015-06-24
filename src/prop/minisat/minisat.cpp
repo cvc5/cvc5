@@ -141,8 +141,9 @@ void MinisatSatSolver::setupOptions() {
 ClauseId MinisatSatSolver::addClause(SatClause& clause, bool removable) {
   Minisat::vec<Minisat::Lit> minisat_clause;
   toMinisatClause(clause, minisat_clause);
-  ClauseId clause_id = -1;
+  ClauseId clause_id = ClauseIdError;
   d_minisat->addClause(minisat_clause, removable, clause_id);
+  Assert (clause_id != ClauseIdError);
   return clause_id;
 }
 

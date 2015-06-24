@@ -54,9 +54,9 @@ ClauseId BVMinisatSatSolver::addClause(SatClause& clause,
   // for(unsigned i = 0; i < minisat_clause.size(); ++i) {
   //   d_minisat->setFrozen(BVMinisat::var(minisat_clause[i]), true);
   // }
-  ClauseId clause_id = -1;
+  ClauseId clause_id = ClauseIdError;
   d_minisat->addClause(minisat_clause, clause_id);
-  PROOF(Assert (clause_id != -1););
+  PROOF(Assert (clause_id != ClauseIdError););
   return clause_id;
 }
 

@@ -46,6 +46,9 @@ namespace prop {
 class SmtEngine;
 
 typedef unsigned ClauseId;
+const ClauseId ClauseIdEmpty(-1);
+const ClauseId ClauseIdUndef(-2);  
+const ClauseId ClauseIdError(-3);
 
 class Proof;
 template <class Solver> class TSatProof; 

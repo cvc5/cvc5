@@ -221,27 +221,31 @@ bool Solver::addClause_(vec<Lit>& ps, ClauseId& id)
     sort(ps);
     Lit p; int i, j;
     for (i = j = 0, p = lit_Undef; i < ps.size(); i++)
-        if (value(ps[i]) == l_True || ps[i] == ~p)
-            return true;
-        else if (value(ps[i]) != l_False && ps[i] != p)
-            ps[j++] = p = ps[i];
+      if (value(ps[i]) == l_True || ps[i] == ~p) {
+        id = ClauseIdUndef;
+        return true;
+      }
+      else if (value(ps[i]) != l_False && ps[i] != p)
+        ps[j++] = p = ps[i];
     ps.shrink(i - j);
 
     clause_added = true;
 
     // TODO PROOF unit conflicts and removal of false literals
-    if (ps.size() == 0)
-        return ok = false;
+    if (ps.size() == 0) {
+      
+      return ok = false;
+    }
     else if (ps.size() == 1){
-        THEORY_PROOF( id = ProofManager::getBitVectorProof()->getSatProof()->registerUnitClause(ps[0], INPUT););
-        uncheckedEnqueue(ps[0]);
-
-        return ok = (propagate() == CRef_Undef);
+      THEORY_PROOF( id = ProofManager::getBitVectorProof()->getSatProof()->registerUnitClause(ps[0], INPUT););
+      uncheckedEnqueue(ps[0]);
+      
+      return ok = (propagate() == CRef_Undef);
     } else {
-        CRef cr = ca.alloc(ps, false);
-        clauses.push(cr);
-        attachClause(cr);
-        THEORY_PROOF( id = ProofManager::getBitVectorProof()->getSatProof()->registerClause(cr, INPUT););
+      CRef cr = ca.alloc(ps, false);
+      clauses.push(cr);
+      attachClause(cr);
+      THEORY_PROOF( id = ProofManager::getBitVectorProof()->getSatProof()->registerClause(cr, INPUT););
      }
     return ok; 
 }
