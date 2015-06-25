@@ -110,9 +110,10 @@ void CnfProof::setClauseFact(ClauseId clause, Node fact) {
 void CnfProof::registerAssertion(Node assertion, ProofRule reason) {
   Debug("proof:cnf") << "CnfProof::registerAssertion "
                      << assertion << " reason " << reason << std::endl;
-  
-  Assert (!isAssertion(assertion) ||
-          d_assertionToProofRule[assertion] == reason);
+
+  if (isAssertion(assertion)) {
+    Assert (d_assertionToProofRule[assertion] == reason); 
+  }
   d_assertionToProofRule.insert(assertion, reason);
 }
 

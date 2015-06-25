@@ -148,7 +148,7 @@ ClauseId MinisatSatSolver::addClause(SatClause& clause, bool removable) {
     return ClauseIdUndef; 
   }
   d_minisat->addClause(minisat_clause, removable, clause_id);
-  Assert (clause_id != ClauseIdError);
+  PROOF( Assert (clause_id != ClauseIdError););
   return clause_id;
 }
 

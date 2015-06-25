@@ -697,8 +697,10 @@ void TseitinCnfStream::convertAndAssert(TNode node,
   
   PROOF
     (if (d_cnfProof) {
-      d_cnfProof->pushCurrentAssertion(from.isNull() ? node : from);
-      d_cnfProof->registerAssertion(from.isNull() ? node : from, proof_id);
+      Node assertion = negated ? node.notNode() : (Node)node;
+      Node from_assertion = negated? from.notNode() : (Node) from; 
+      d_cnfProof->pushCurrentAssertion(from.isNull() ? assertion : from_assertion);
+      d_cnfProof->registerAssertion(from.isNull() ? assertion : from_assertion, proof_id);
     });
   
   convertAndAssert(node, negated);

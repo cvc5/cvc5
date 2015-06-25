@@ -281,7 +281,8 @@ void ProofManager::traceUnsatCore() {
     
     Debug("cores") << "core input assertion " << node << std::endl;
     Debug("cores") << "with proof rule " << rule << std::endl;
-    if (rule != RULE_INVALID) {
+    if (rule == RULE_TSEITIN ||
+        rule == RULE_GIVEN) {
       // trace dependences back to actual assertions
       // (this adds them to the unsat core)
       traceDeps(node);
