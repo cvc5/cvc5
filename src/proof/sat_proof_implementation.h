@@ -546,17 +546,22 @@ void TSatProof<Solver>::registerAssumption(const typename Solver::TVar var) {
 
 template <class Solver> 
 ClauseId TSatProof<Solver>::registerAssumptionConflict(const typename Solver::TLitVec& confl) {
+  Debug("proof:sat:detailed") << "registerAssumptionConflict " << std::endl;
   // Uniqueness is checked in the bit-vector proof
   // should be vars
   for (int i = 0; i < confl.size(); ++i) {
     Assert (d_assumptions.find(var(confl[i])) != d_assumptions.end());
   }
-  ClauseId new_id = d_idCounter++;
+  ClauseId new_id = ProofManager::currentPM()->nextId();
   d_assumptionConflicts.insert(new_id);
   LitVector* vec_confl = new LitVector(confl.size()); 
   for (int i = 0; i < confl.size(); ++i) {
     vec_confl->operator[](i) = confl[i];
   }
+  if (Debug.isOn("proof:sat:detailed")) {
+    printClause<Solver>(*vec_confl);
+  }
+
   d_assumptionConflictsDebug[new_id] = vec_confl;
   return new_id;
 }

@@ -277,7 +277,7 @@ void LFSCBitVectorProof::printOperatorUnary(Expr term, std::ostream& os, const L
 
 void LFSCBitVectorProof::printPredicate(Expr term, std::ostream& os, const LetMap& map) {
   os <<"(";
-  os << utils::toLFSCKind(term.getKind()) << " " << utils::getSize(term) <<" ";
+  os << utils::toLFSCKind(term.getKind()) << " " << utils::getSize(term[0]) <<" ";
   os << " ";
   d_proofEngine->printBoundTerm(term[0], os, map);
   os << " ";

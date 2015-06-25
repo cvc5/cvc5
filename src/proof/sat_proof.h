@@ -105,7 +105,6 @@ protected:
   
   typename Solver::Solver*    d_solver;
   CnfProof* d_cnfProof; 
-  static ClauseId d_idCounter;
   
   // clauses
   IdCRefMap           d_idClause;
@@ -306,9 +305,6 @@ public:
   // clause_iterator end_lemma_clauses() { return d_seenLemmas.end(); }
 
 };/* class TSatProof */
-
-template<typename Solver>
-ClauseId TSatProof<Solver>::d_idCounter = 0; 
 
 
 template <class S>
