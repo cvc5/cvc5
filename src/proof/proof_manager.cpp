@@ -157,7 +157,22 @@ void ProofManager::initCnfProof(prop::CnfStream* cnfStream,
   CnfProof* cnf = new LFSCCnfProof(cnfStream, ctx, "");
   pm->d_cnfProof = cnf;
   Assert(pm-> d_satProof != NULL);
-  pm->d_satProof->setCnfProof(cnf); 
+  pm->d_satProof->setCnfProof(cnf);
+
+  // true and false have to be setup in a special way
+  Node true_node = NodeManager::currentNM()->mkConst<bool>(true);
+  Node false_node = NodeManager::currentNM()->mkConst<bool>(false).notNode();
+
+  pm->d_cnfProof->pushCurrentAssertion(true_node);
+  pm->d_cnfProof->registerConvertedClause(pm->d_satProof->getTrueUnit());
+  pm->d_cnfProof->setClauseFact(pm->d_satProof->getTrueUnit(), true_node);
+  pm->d_cnfProof->popCurrentAssertion();
+
+  pm->d_cnfProof->pushCurrentAssertion(false_node);
+  pm->d_cnfProof->registerConvertedClause(pm->d_satProof->getFalseUnit());
+  pm->d_cnfProof->setClauseFact(pm->d_satProof->getFalseUnit(), false_node);
+  pm->d_cnfProof->popCurrentAssertion();
+  
 }
 
 void ProofManager::initTheoryProofEngine() {
@@ -227,6 +242,10 @@ std::string ProofManager::getLitName(TNode lit,
 
 void ProofManager::traceDeps(TNode n) {
   Debug("cores") << "trace deps " << n << std::endl;
+  if ((n.isConst() && n == NodeManager::currentNM()->mkConst<bool>(true)) ||
+      (n.getKind() == kind::NOT && n[0] == NodeManager::currentNM()->mkConst<bool>(false))) {
+    return;
+  }
   if(d_inputCoreFormulas.find(n.toExpr()) != d_inputCoreFormulas.end()) {
     // originating formula was in core set
     Debug("cores") << " -- IN INPUT CORE LIST!" << std::endl;
@@ -386,6 +405,13 @@ void LFSCProof::toStream(std::ostream& out) {
   NodeSet used_assertions;
   d_cnfProof->collectAssertionsForClauses(used_inputs, used_assertions);
 
+  if (Debug.isOn("proof:pm")) {
+    Debug("proof:pm") << "LFSCProof::Used assertions: "<< std::endl;
+    for(NodeSet::const_iterator it = used_assertions.begin(); it != used_assertions.end(); ++it) {
+      Debug("proof:pm") << "   " << *it << std::endl;
+    }
+  }
+  
   NodeSet atoms;
   d_cnfProof->collectAtomsForClauses(used_inputs, atoms);
   d_cnfProof->collectAtomsForClauses(used_lemmas, atoms);
@@ -450,7 +476,7 @@ void LFSCProof::printPreprocessedAssertions(const NodeSet& assertions,
     ProofManager::currentPM()->getTheoryProofEngine()->printLetTerm((*it).toExpr(), os);
     os << ") ";
     
-    os << "(\\ "<< ProofManager::getPreprocessedAssertionName(*it, "");
+    os << "(\\ "<< ProofManager::getPreprocessedAssertionName(*it, "") << "\n";
     paren << "))";
   }
 }

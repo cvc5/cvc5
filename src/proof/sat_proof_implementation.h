@@ -215,6 +215,8 @@ TSatProof<Solver>::TSatProof(Solver* solver, const std::string& name, bool check
   d_temp_idClause(),
   d_unitConflictId(),
   d_storedUnitConflict(false),
+  d_trueLit(ClauseIdUndef),
+  d_falseLit(ClauseIdUndef),                           
   d_name(name),
   d_seenLearnt(),
   d_seenInputs(),
@@ -482,7 +484,8 @@ template <class Solver>
       d_lemmaClauses.insert(newId);
     }
   }
-  Debug("proof:sat:detailed") << "registerClause CRef:" << clause << " id:" << d_clauseId[clause] <<  "\n";
+  Debug("proof:sat:detailed") << "registerClause CRef: " << clause << " id:" << d_clauseId[clause]
+                              <<"                kind: " << kind << "\n";
   //ProofManager::currentPM()->setRegisteredClauseId( d_clauseId[clause] );
   return d_clauseId[clause];
 }
@@ -505,10 +508,36 @@ ClauseId TSatProof<Solver>::registerUnitClause(typename Solver::TLit lit,
       d_lemmaClauses.insert(newId);
     }
   }
-  Debug("proof:sat:detailed") << "registerUnitClause " << d_unitId[toInt(lit)] << " " << kind << "\n";
+  Debug("proof:sat:detailed") << "registerUnitClause " << d_unitId[toInt(lit)] << " " << kind
+                              <<"                kind: " << kind << "\n";
   // ProofManager::currentPM()->setRegisteredClauseId( d_unitId[toInt(lit)] );
   return d_unitId[toInt(lit)];
 }
+template <class Solver> 
+void TSatProof<Solver>::registerTrueLit(const typename Solver::TLit lit) {
+  Assert (d_trueLit == ClauseIdUndef);
+  d_trueLit = registerUnitClause(lit, INPUT);
+}
+
+template <class Solver> 
+void TSatProof<Solver>::registerFalseLit(const typename Solver::TLit lit) {
+  Assert (d_falseLit == ClauseIdUndef);
+  d_falseLit = registerUnitClause(lit, INPUT);
+}
+
+template <class Solver> 
+ClauseId TSatProof<Solver>::getTrueUnit() const {
+  Assert (d_trueLit != ClauseIdUndef);
+  return d_trueLit;
+}
+
+template <class Solver> 
+ClauseId TSatProof<Solver>::getFalseUnit() const {
+  Assert (d_falseLit != ClauseIdUndef);
+  return d_falseLit;
+}
+
+
 template <class Solver> 
 void TSatProof<Solver>::registerAssumption(const typename Solver::TVar var) {
   Assert (d_assumptions.find(var) == d_assumptions.end());
@@ -635,6 +664,7 @@ void TSatProof<Solver>::addResolutionStep(typename Solver::TLit lit,
 
 template <class Solver> 
 void TSatProof<Solver>::endResChain(ClauseId id) {
+  Debug("proof:sat:detailed") <<"endResChain " << id << "\n";
   Assert(d_resStack.size() > 0);
   ResChain<Solver>* res = d_resStack.back();
   registerResolution(id, res);
@@ -655,6 +685,7 @@ template <class Solver>
 void TSatProof<Solver>::endResChain(typename Solver::TLit lit) {
   Assert(d_resStack.size() > 0);
   ClauseId id = registerUnitClause(lit, LEARNT);
+  Debug("proof:sat:detailed") <<"endResChain unit " << id << "\n";
   ResChain<Solver>* res = d_resStack.back();
   registerResolution(id, res);
   d_resStack.pop_back();
@@ -730,7 +761,7 @@ ClauseId TSatProof<Solver>::storeUnitConflict(typename Solver::TLit conflict_lit
   d_unitConflictId = registerUnitClause(conflict_lit, kind);
   d_storedUnitConflict = true;
   Debug("proof:sat:detailed") <<"storeUnitConflict " << d_unitConflictId << "\n";
-  return d_storedUnitConflict;
+  return d_unitConflictId;
 }
 template <class Solver> 
 void TSatProof<Solver>::finalizeProof(typename Solver::TCRef conflict_ref) {
@@ -894,6 +925,7 @@ void TSatProof<Solver>::collectClauses(ClauseId id) {
     return;
   } else if (isLemmaClause(id)) {
     d_seenLemmas.insert(std::make_pair(id, buildClause(id)));
+    return;
   } else if (!isAssumptionConflict(id)) {
     d_seenLearnt.insert(id);
   }
@@ -995,7 +1027,25 @@ void LFSCSatProof<Solver>::printResolutionEmptyClause(std::ostream& out, std::os
   printResolution(this->d_emptyClauseId, out, paren);  
 }
 
-}/* CVC4 namespace */
 
+inline std::ostream& operator<<(std::ostream& out, CVC4::ClauseKind k) {
+  switch(k) {
+  case CVC4::INPUT:
+    out << "INPUT"; 
+    break;
+  case CVC4::THEORY_LEMMA:
+    out << "THEORY_LEMMA"; 
+    break;
+  case CVC4::LEARNT:
+    out << "LEARNT"; 
+    break;
+  default:
+    out << "ClauseKind Unknown! [" << unsigned(k) << "]";
+  }
+
+  return out;
+}
+
+}/* CVC4 namespace */
 
 #endif /* __CVC4__SAT__PROOF_IMPLEMENTATION_H */

@@ -95,6 +95,7 @@ public:
   
   SatValue solve();
   SatValue solve(long unsigned int&);
+  bool ok() const; 
   void getUnsatCore(SatClause& unsatCore);
 
   SatValue value(SatLiteral l);

@@ -19,6 +19,7 @@
 #ifndef __CVC4__PROOF__PROOF_H
 #define __CVC4__PROOF__PROOF_H
 
+// FIXME: rename proof to unsat core and theory_proof to proof
 #include "smt/options.h"
 #ifdef CVC4_PROOF
 #  define PROOF(x) if(CVC4::options::proof() || CVC4::options::unsatCores()) { x; }

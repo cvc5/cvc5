@@ -236,7 +236,8 @@ void LFSCTheoryProofEngine::printTheoryLemmas(const IdToClause& lemmas,
       prop::SatLiteral lit = (*clause)[i];
       Expr atom = pm->getCnfProof()->getAtom(lit.getSatVariable()).toExpr();
       if (atom.isConst()) {
-        Assert (atom == utils::mkTrue());
+        Assert (atom == utils::mkTrue() ||
+                (atom == utils::mkFalse() && lit.isNegated()));
         continue;
       }
       Expr expr_lit = lit.isNegated() ? atom.notExpr() : atom;

@@ -76,21 +76,41 @@ Node CnfProof::getTopLevelFactForClause(ClauseId clause) {
 }
 
 void CnfProof::registerConvertedClause(ClauseId clause, bool explanation) {
-  Assert (!explanation); // FIXME: handle explanations specially
-  Assert (clause != ClauseIdUndef && clause != ClauseIdError &&
+  Assert (clause != ClauseIdUndef &&
+          clause != ClauseIdError &&
           clause != ClauseIdEmpty);
+
+  // Explanations do not need a CNF conversion proof since they are in CNF
+  // (they will only need a theory proof as they are theory valid)
+  if (explanation) {
+    Debug("proof:cnf") << "CnfProof::registerConvertedClause "
+                       << clause << " explanation? " << explanation << std::endl;
+    Assert (d_explanations.find(clause) == d_explanations.end());
+    d_explanations.insert(clause);
+    return;
+  }
+
   Node current_assertion = getCurrentAssertion();
+  Debug("proof:cnf") << "CnfProof::registerConvertedClause "
+                     << clause << " node = " << current_assertion << std::endl;
+  
   Assert (d_clauseToAssertion.find(clause) == d_clauseToAssertion.end());
   d_clauseToAssertion.insert (clause, current_assertion);
 }
 
 void CnfProof::setClauseFact(ClauseId clause, Node fact) {
+  Debug("proof:cnf") << "CnfProof::setClauseFact "
+                     << clause << " fact " << fact << std::endl;
+  
   Assert (d_clauseToFact.find(clause) == d_clauseToFact.end());
   d_clauseToFact.insert(clause, fact);
   d_topLevelFacts.insert(fact);
 }
   
 void CnfProof::registerAssertion(Node assertion, ProofRule reason) {
+  Debug("proof:cnf") << "CnfProof::registerAssertion "
+                     << assertion << " reason " << reason << std::endl;
+  
   Assert (!isAssertion(assertion) ||
           d_assertionToProofRule[assertion] == reason);
   d_assertionToProofRule.insert(assertion, reason);
@@ -103,11 +123,18 @@ void CnfProof::setCnfDependence(Node from, Node to) {
 }
 
 void CnfProof::pushCurrentAssertion(Node assertion) {
+  Debug("proof:cnf") << "CnfProof::pushCurrentAssertion "
+                     << assertion  << std::endl;
+
   d_currentAssertionStack.push_back(assertion);
 }
 
 void CnfProof::popCurrentAssertion() {
   Assert (d_currentAssertionStack.size());
+  
+  Debug("proof:cnf") << "CnfProof::popCurrentAssertion "
+                     << d_currentAssertionStack.back() << std::endl;
+  
   d_currentAssertionStack.pop_back();
 }
 

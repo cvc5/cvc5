@@ -60,6 +60,8 @@ public:
   SatValue solve();
   SatValue solve(long unsigned int&);
 
+  bool ok() const;
+  
   void interrupt();
 
   SatValue value(SatLiteral l);

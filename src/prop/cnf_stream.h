@@ -252,10 +252,7 @@ public:
     return d_literalToNodeMap;
   }
 
-  void setProof(CnfProof* proof) {
-    Assert (d_cnfProof == NULL);
-    d_cnfProof = proof;
-  }
+  void setProof(CnfProof* proof);
 };/* class CnfStream */
 
 

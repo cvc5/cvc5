@@ -50,7 +50,21 @@ void BitVectorProof::initCnfProof(prop::CnfStream* cnfStream,
   Assert (d_cnfProof == NULL);
   d_cnfProof = new LFSCCnfProof(cnfStream, cnf, "bb");
   Assert (d_resolutionProof != NULL);
-  d_resolutionProof->setCnfProof(d_cnfProof); 
+  d_resolutionProof->setCnfProof(d_cnfProof);
+
+  // true and false have to be setup in a special way
+  Node true_node = NodeManager::currentNM()->mkConst<bool>(true);
+  Node false_node = NodeManager::currentNM()->mkConst<bool>(false).notNode();
+
+  d_cnfProof->pushCurrentAssertion(true_node);
+  d_cnfProof->registerConvertedClause(d_resolutionProof->getTrueUnit());
+  d_cnfProof->setClauseFact(d_resolutionProof->getTrueUnit(), true_node);
+  d_cnfProof->popCurrentAssertion();
+  
+  d_cnfProof->pushCurrentAssertion(false_node);
+  d_cnfProof->registerConvertedClause(d_resolutionProof->getFalseUnit());
+  d_cnfProof->setClauseFact(d_resolutionProof->getFalseUnit(), false_node);
+  d_cnfProof->popCurrentAssertion();         
 }
 
 void BitVectorProof::setBitblaster(bv::TLazyBitblaster* lazyBB) {

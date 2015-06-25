@@ -83,13 +83,18 @@ void CnfStream::assertClause(TNode node, SatClause& c) {
   }
 
   ClauseId clause_id = d_satSolver->addClause(c, d_removable);
-  if (clause_id == ClauseIdUndef) return;
-  Assert (clause_id != ClauseIdError);
-  //store map between clause and original assertion
-  PROOF(d_cnfProof->registerConvertedClause(clause_id));
-  // store map between clause and the formula it defines (note that this
-  // is not necessarly the original assertion)
-  PROOF(d_cnfProof->setClauseFact(clause_id, node); );
+  if (clause_id == ClauseIdUndef) return; // nothing to store (no clause was added)
+  
+  PROOF
+    (
+     if (d_cnfProof) {
+       Assert (clause_id != ClauseIdError);
+       d_cnfProof->registerConvertedClause(clause_id);
+       // store map between clause and the formula it defines (note that this
+       // is not necessarly the original assertion)
+       d_cnfProof->setClauseFact(clause_id, node);
+     }
+     );
 }
 
 void CnfStream::assertClause(TNode node, SatLiteral a) {
@@ -235,6 +240,11 @@ void CnfStream::getBooleanVariables(std::vector<TNode>& outputVariables) const {
   for (it = d_booleanVariables.begin(); it != d_booleanVariables.end(); ++ it) {
     outputVariables.push_back(*it);
   }
+}
+
+void CnfStream::setProof(CnfProof* proof) {
+  Assert (d_cnfProof == NULL);
+  d_cnfProof = proof;
 }
 
 SatLiteral CnfStream::convertAtom(TNode node) {
@@ -532,7 +542,7 @@ void TseitinCnfStream::convertAndAssertAnd(TNode node, bool negated) {
     // If the node is a conjunction, we handle each conjunct separately
     for(TNode::const_iterator conjunct = node.begin(), node_end = node.end();
         conjunct != node_end; ++conjunct ) {
-      PROOF(d_cnfProof->setCnfDependence(*conjunct, node););
+      PROOF(if (d_cnfProof) d_cnfProof->setCnfDependence(*conjunct, node););
       convertAndAssert(*conjunct, false);
     }
   } else {
@@ -566,7 +576,7 @@ void TseitinCnfStream::convertAndAssertOr(TNode node, bool negated) {
     // If the node is a conjunction, we handle each conjunct separately
     for(TNode::const_iterator conjunct = node.begin(), node_end = node.end();
         conjunct != node_end; ++conjunct ) {
-      PROOF(d_cnfProof->setCnfDependence((*conjunct).negate(), node.negate()););
+      PROOF(if (d_cnfProof) d_cnfProof->setCnfDependence((*conjunct).negate(), node.negate()););
       convertAndAssert(*conjunct, true);
     }
   }
@@ -643,8 +653,8 @@ void TseitinCnfStream::convertAndAssertImplies(TNode node, bool negated) {
     clause[1] = q;
     assertClause(node, clause);
   } else {// Construct the
-    PROOF(d_cnfProof->setCnfDependence(node[0], node.negate()););
-    PROOF(d_cnfProof->setCnfDependence(node[1].negate(), node.negate()););
+    PROOF(if (d_cnfProof) d_cnfProof->setCnfDependence(node[0], node.negate()););
+    PROOF(if (d_cnfProof) d_cnfProof->setCnfDependence(node[1].negate(), node.negate()););
     // !(p => q) is the same as (p && ~q)
     convertAndAssert(node[0], false);
     convertAndAssert(node[1], true);
@@ -685,11 +695,14 @@ void TseitinCnfStream::convertAndAssert(TNode node,
                << ", negated = " << (negated ? "true" : "false") << ")" << endl;
   d_removable = removable;
   
-  if(options::proof() || options::unsatCores()) {
-    PROOF(d_cnfProof->pushCurrentAssertion(from.isNull() ? node : from); );
-    PROOF(d_cnfProof->registerAssertion(from.isNull() ? node : from, proof_id); );
-  } 
+  PROOF
+    (if (d_cnfProof) {
+      d_cnfProof->pushCurrentAssertion(from.isNull() ? node : from);
+      d_cnfProof->registerAssertion(from.isNull() ? node : from, proof_id);
+    });
+  
   convertAndAssert(node, negated);
+  PROOF(if (d_cnfProof) d_cnfProof->popCurrentAssertion(); );
 }
 
 void TseitinCnfStream::convertAndAssert(TNode node, bool negated) {

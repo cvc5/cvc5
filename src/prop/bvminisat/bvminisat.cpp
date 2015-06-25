@@ -56,7 +56,7 @@ ClauseId BVMinisatSatSolver::addClause(SatClause& clause,
   // }
   ClauseId clause_id = ClauseIdError;
   d_minisat->addClause(minisat_clause, clause_id);
-  PROOF(Assert (clause_id != ClauseIdError););
+  THEORY_PROOF(Assert (clause_id != ClauseIdError););
   return clause_id;
 }
 
@@ -127,6 +127,10 @@ SatValue BVMinisatSatSolver::solve(long unsigned int& resource){
   resource = d_minisat->conflicts - conflictsBefore;
   Trace("limit") << "<MinisatSatSolver::solve(): it took " << resource << " conflicts" << std::endl;
   return result;
+}
+
+bool BVMinisatSatSolver::ok() const {
+  return d_minisat->okay(); 
 }
 
 void BVMinisatSatSolver::getUnsatCore(SatClause& unsatCore) {

@@ -139,6 +139,9 @@ protected:
   // unit conflict
   ClauseId d_unitConflictId;
   bool d_storedUnitConflict;
+
+  ClauseId d_trueLit;
+  ClauseId d_falseLit;
   
   std::string d_name;
 public:
@@ -230,6 +233,13 @@ public:
 			  ClauseKind kind);
   ClauseId registerUnitClause(const typename Solver::TLit lit,
 			      ClauseKind kind);
+  void registerTrueLit(const typename Solver::TLit lit);
+  void registerFalseLit(const typename Solver::TLit lit);
+
+  ClauseId getTrueUnit() const;
+  ClauseId getFalseUnit() const;
+
+  
   void registerAssumption(const typename Solver::TVar var);
   ClauseId registerAssumptionConflict(const typename Solver::TLitVec& confl);
   

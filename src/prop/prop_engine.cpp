@@ -25,7 +25,6 @@
 #include "decision/options.h"
 #include "theory/theory_engine.h"
 #include "theory/theory_registrar.h"
-#include "proof/proof_manager.h"
 #include "util/cvc4_assert.h"
 #include "options/options.h"
 #include "smt/options.h"

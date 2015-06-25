@@ -142,6 +142,11 @@ ClauseId MinisatSatSolver::addClause(SatClause& clause, bool removable) {
   Minisat::vec<Minisat::Lit> minisat_clause;
   toMinisatClause(clause, minisat_clause);
   ClauseId clause_id = ClauseIdError;
+  // FIXME: This relies on the invariant that when ok() is false
+  // the SAT solver does not add the clause (which is what Minisat currently does)
+  if (!ok()) {
+    return ClauseIdUndef; 
+  }
   d_minisat->addClause(minisat_clause, removable, clause_id);
   Assert (clause_id != ClauseIdError);
   return clause_id;
@@ -174,6 +179,9 @@ SatValue MinisatSatSolver::solve() {
   return toSatLiteralValue(d_minisat->solve());
 }
 
+bool MinisatSatSolver::ok() const {
+  return d_minisat->okay(); 
+}
 
 void MinisatSatSolver::interrupt() {
   d_minisat->interrupt();

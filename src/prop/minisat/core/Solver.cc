@@ -138,8 +138,12 @@ Solver::Solver(CVC4::prop::TheoryProxy* proxy, CVC4::context::Context* context, 
   // Assert the constants
   uncheckedEnqueue(mkLit(varTrue, false));
   uncheckedEnqueue(mkLit(varFalse, true));
-  PROOF( ProofManager::getSatProof()->registerUnitClause(mkLit(varTrue, false), INPUT); );
-  PROOF( ProofManager::getSatProof()->registerUnitClause(mkLit(varFalse, true), INPUT); );
+  // FIXME: these should be axioms I believe
+  PROOF
+    (
+     ProofManager::getSatProof()->registerTrueLit(mkLit(varTrue, false));
+     ProofManager::getSatProof()->registerFalseLit(mkLit(varFalse, true));
+     );
 }
 
 
@@ -272,7 +276,8 @@ CRef Solver::reason(Var x) {
     // came from (ie. the theory/sharing)
     PROOF (ClauseId id = ProofManager::getSatProof()->registerClause(real_reason, THEORY_LEMMA);
            ProofManager::getCnfProof()->registerConvertedClause(id, true);
-           ProofManager::getCnfProof()->popCurrentAssertion();
+           // no need to pop current assertion as this is not converted to cnf
+           // ProofManager::getCnfProof()->popCurrentAssertion();
            );
     vardata[x] = VarData(real_reason, level(x), user_level(x), intro_level(x), trail_index(x));
     clauses_removable.push(real_reason);
@@ -333,6 +338,7 @@ bool Solver::addClause_(vec<Lit>& ps, bool removable, ClauseId& id)
       lemmas.push();
       ps.copyTo(lemmas.last());
       lemmas_removable.push(removable);
+      PROOF(id = ProofManager::getSatProof()->registerUnitClause(ps[0], INPUT););
       // Debug("cores") << "lemma push " << proof_id << " " << (proof_id & 0xffffffff) << std::endl;
       // lemmas_proof_id.push(proof_id);
     } else {

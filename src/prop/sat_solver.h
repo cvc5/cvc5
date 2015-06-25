@@ -77,6 +77,10 @@ public:
   /** Get the current assertion level */
   virtual unsigned getAssertionLevel() const = 0;
 
+  /** Check if the solver is in an inconsistent state */
+  virtual bool ok() const = 0;
+
+  
 };/* class SatSolver */
 
 
@@ -121,6 +125,8 @@ public:
 
   virtual void popAssumption() = 0;
 
+  virtual bool ok() const = 0;
+
 };/* class BVSatSolverInterface */
 
 
@@ -139,7 +145,8 @@ public:
   virtual bool flipDecision() = 0;
 
   virtual bool isDecision(SatVariable decn) const = 0;
-
+  
+  virtual bool ok() const = 0;
 };/* class DPLLSatSolverInterface */
 
 inline std::ostream& operator <<(std::ostream& out, prop::SatLiteral lit) {

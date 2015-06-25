@@ -171,8 +171,11 @@ Solver::Solver(CVC4::context::Context* c) :
   // Assert the constants
   uncheckedEnqueue(mkLit(varTrue, false));
   uncheckedEnqueue(mkLit(varFalse, true));
-  THEORY_PROOF( ProofManager::getBitVectorProof()->getSatProof()->registerUnitClause(mkLit(varTrue, false), INPUT); )
-  THEORY_PROOF( ProofManager::getBitVectorProof()->getSatProof()->registerUnitClause(mkLit(varFalse, true), INPUT); )
+  THEORY_PROOF
+    (
+     ProofManager::getBitVectorProof()->getSatProof()->registerTrueLit(mkLit(varTrue, false));
+     ProofManager::getBitVectorProof()->getSatProof()->registerFalseLit(mkLit(varFalse, true));
+     );
 }
 
 

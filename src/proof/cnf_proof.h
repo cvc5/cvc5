@@ -39,6 +39,8 @@ class CnfProof;
 // typedef __gnu_cxx::hash_map<Expr, prop::SatVariable, ExprHashFunction > ExprToSatVar;
 typedef __gnu_cxx::hash_map<prop::SatVariable, Expr> SatVarToExpr;
 typedef __gnu_cxx::hash_map<Node, Node, NodeHashFunction> NodeToNode;
+typedef __gnu_cxx::hash_set<ClauseId> ClauseIdSet;
+
 typedef context::CDHashMap<ClauseId, Node> ClauseIdToNode;
 typedef context::CDHashMap<Node, ProofRule, NodeHashFunction> NodeToProofRule;
 
@@ -67,7 +69,8 @@ protected:
   /** Map from top-level fact to facts/assertion that it follows from **/
   NodeToNode d_cnfDeps;
 
-
+  ClauseIdSet d_explanations;
+  
   bool isTopLevelFact(Node node);
 
   Node getTopLevelFactForClause(ClauseId clause);
