@@ -57,18 +57,19 @@ typedef LFSCSatProof< ::BVMinisat::Solver> LFSCBVSatProof;
 typedef __gnu_cxx::hash_set<Expr, ExprHashFunction> ExprSet;
 typedef __gnu_cxx::hash_map<Expr, ClauseId, ExprHashFunction> ExprToClauseId;
 typedef __gnu_cxx::hash_map<Expr, unsigned, ExprHashFunction> ExprToId;
+typedef __gnu_cxx::hash_map<Expr, Expr, ExprHashFunction> ExprToExpr;
 
 class BitVectorProof : public TheoryProof {
 protected:
   ExprSet d_declarations;
   
-  ExprToId d_terms; // bit-vector terms appearing in the problem 
-  ExprToId d_atoms; // bit-vector atoms appearing in the problem 
+  // ExprToId d_terms; // bit-vector terms appearing in the problem 
+  // ExprToId d_atoms; // bit-vector atoms appearing in the problem 
 
-  ExprToId d_bb_terms; // terms that need to be bit-blasted
-  ExprToId d_bb_atoms; // atoms that need to be bit-blasted
+  ExprSet d_bb_terms; // terms that need to be bit-blasted
+  ExprToExpr d_bb_atoms; // atoms that need to be bit-blasted
 
-  unsigned d_bbIdCount;
+  //  unsigned d_bbIdCount;
   
   // map from Expr representing normalized lemma to ClauseId in SAT solver
   ExprToClauseId d_conflictMap;
@@ -78,8 +79,9 @@ protected:
   
   bool d_isAssumptionConflict;
   theory::bv::TLazyBitblaster* d_lazyBB;
-  unsigned newBBId(); 
-  unsigned getBBId(Expr expr);
+  // unsigned newBBId(); 
+  // unsigned getBBId(Expr expr);
+  std::string getBBTermName(Expr expr);
 public:
   BitVectorProof(theory::bv::TheoryBV* bv, TheoryProofEngine* proofEngine);
 
@@ -101,6 +103,10 @@ public:
   void endBVConflict(const BVMinisat::Solver::TLitVec& confl);
   void markAssumptionConflict() { d_isAssumptionConflict = true; }
   bool isAssumptionConflict() { return d_isAssumptionConflict; }
+
+  void registerTermBB(Expr term);
+  void registerAtomBB(Expr atom, Expr atom_bb);
+  
   virtual void registerTerm(Expr term);
   
   virtual void printTerm(Expr term, std::ostream& os, const LetMap& map) = 0;
@@ -108,7 +114,9 @@ public:
   virtual void printTermBitblasting(Expr term, std::ostream& os) = 0;
   virtual void printAtomBitblasting(Expr term, std::ostream& os) = 0;
 
-  virtual void printTheoryLemmaProof(std::vector<Expr>& lemma, std::ostream& os, std::ostream& paren) = 0;
+  virtual void printTheoryLemmaProof(std::vector<Expr>& lemma,
+                                     std::ostream& os,
+                                     std::ostream& paren) = 0;
   virtual void printDeclarations(std::ostream& os, std::ostream& paren) = 0;
   virtual void printBitblasting(std::ostream& os, std::ostream& paren) = 0;
   virtual void printResolutionProof(std::ostream& os, std::ostream& paren) = 0;

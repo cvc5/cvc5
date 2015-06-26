@@ -146,9 +146,16 @@ void TLazyBitblaster::bbAtom(TNode node) {
 }
 
 void TLazyBitblaster::storeBBAtom(TNode atom, Node atom_bb) {
-  // no need to store the definition for the lazy bit-blaster
+  // no need to store the definition for the lazy bit-blaster (unless proofs)
+  THEORY_PROOF (ProofManager::getBitVectorProof()->registerAtomBB(atom.toExpr(), atom_bb.toExpr()););
   d_bbAtoms.insert(atom); 
 }
+
+void TLazyBitblaster::storeBBTerm(TNode node, const Bits& bits) {
+  THEORY_PROOF (ProofManager::getBitVectorProof()->registerTermBB(node.toExpr()););
+  d_termCache.insert(std::make_pair(node, bits));
+}
+
 
 bool TLazyBitblaster::hasBBAtom(TNode atom) const {
   return d_bbAtoms.find(atom) != d_bbAtoms.end(); 

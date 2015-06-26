@@ -418,7 +418,7 @@
          (! bbx (bblast_term n x bx)
          (! bby (bblast_term n y by)
          (! c (^ (bblast_eq bx by) f)
-            (th_holds (impl (= (BitVec n) x y) f))))))))))))
+            (th_holds (iff (= (BitVec n) x y) f))))))))))))
 
 			 
 	    
@@ -441,7 +441,7 @@
          (! bbx (bblast_term n x bx)
          (! bby (bblast_term n y by)
          (! c (^ (bblast_bvult bx by (mp_add n (~1))) f)
-            (th_holds (impl (bvult n x y) f))))))))))))
+            (th_holds (iff (bvult n x y) f))))))))))))
 
 	    
 

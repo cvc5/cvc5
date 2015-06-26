@@ -30,11 +30,11 @@ using namespace CVC4::theory::bv;
 BitVectorProof::BitVectorProof(theory::bv::TheoryBV* bv, TheoryProofEngine* proofEngine)
   : TheoryProof(bv, proofEngine)
   , d_declarations()
-  , d_terms()
-  , d_atoms()
+    // , d_terms()
+    // , d_atoms()
   , d_bb_terms()
   , d_bb_atoms()
-  , d_bbIdCount(0)
+    // , d_bbIdCount(0)
   , d_resolutionProof(NULL)
   , d_cnfProof(NULL)
   , d_lazyBB(NULL)
@@ -77,29 +77,36 @@ BVSatProof* BitVectorProof::getSatProof() {
   return d_resolutionProof;
 }
 
+void BitVectorProof::registerTermBB(Expr term) {
+  d_bb_terms.insert(term);
+}
+void BitVectorProof::registerAtomBB(Expr atom, Expr atom_bb) {
+  d_bb_atoms.insert(std::make_pair(atom, atom.iffExpr(atom_bb)));
+}
+
 void BitVectorProof::registerTerm(Expr term) {
   if (Theory::isLeafOf(term, theory::THEORY_BV) &&
       !term.isConst()) {
     d_declarations.insert(term);
   }
 
-  if (Theory::theoryOf(term) == theory::THEORY_BV) {
-    if (term.getType().isBoolean()) {
-      if (d_atoms.find(term) == d_atoms.end())
-        d_atoms[term] = newBBId();
+  // if (Theory::theoryOf(term) == theory::THEORY_BV) {
+  //   if (term.getType().isBoolean()) {
+  //     if (d_atoms.find(term) == d_atoms.end())
+  //       d_atoms[term] = newBBId();
 
-      if (d_lazyBB->hasBBAtom(term) && d_bb_atoms.find(term) == d_bb_atoms.end())
-        d_bb_atoms[term] = newBBId();
+  //     if (d_lazyBB->hasBBAtom(term) && d_bb_atoms.find(term) == d_bb_atoms.end())
+  //       d_bb_atoms[term] = newBBId();
 
-    }
-    if (term.getType().isBitVector()) {
-      if (d_terms.find(term) == d_terms.end())
-        d_terms[term] = newBBId();
+  //   }
+  //   if (term.getType().isBitVector()) {
+  //     if (d_terms.find(term) == d_terms.end())
+  //       d_terms[term] = newBBId();
 
-      if (d_lazyBB->hasBBTerm(term) && d_bb_terms.find(term) == d_bb_terms.end())
-        d_bb_terms[term] = newBBId();
-    }
-  }
+  //     if (d_lazyBB->hasBBTerm(term) && d_bb_terms.find(term) == d_bb_terms.end())
+  //       d_bb_terms[term] = newBBId();
+  //   }
+  // }
   
   // don't care about parametric operators for bv?
   for (unsigned i = 0; i < term.getNumChildren(); ++i) {
@@ -107,14 +114,12 @@ void BitVectorProof::registerTerm(Expr term) {
   }
 }
 
-unsigned BitVectorProof::newBBId() { return d_bbIdCount++; }
+// unsigned BitVectorProof::newBBId() { return d_bbIdCount++; }
 
-unsigned BitVectorProof::getBBId(Expr expr) {
-  ExprToId::const_iterator it = d_bb_atoms.find(expr);
-  if (it != d_bb_atoms.end()) return it->second;
-  it = d_bb_terms.find(expr);
-  Assert (it != d_bb_terms.end());
-  return it->second;
+std::string BitVectorProof::getBBTermName(Expr expr) {
+  std::ostringstream os;
+  os << "bt"<< expr.getId();
+  return os.str();
 }
 
 void BitVectorProof::startBVConflict(::BVMinisat::Solver::TCRef cr) {
@@ -409,7 +414,7 @@ void LFSCBitVectorProof::printTermBitblasting(Expr term, std::ostream& os) {
     os <<"(bv_bbl_"<< utils::toLFSCKind(kind);
     os <<" _ _ _ _ _ _ ";
     for (unsigned i = 0; i < term.getNumChildren(); ++i) {
-      os << "bt" << getBBId(term[i]);
+      os << getBBTermName(term[i]);
       os << " ";
       if (i + 2 < term.getNumChildren()) {
         os <<"(bv_bbl_"<<utils::toLFSCKind(kind);
@@ -426,7 +431,7 @@ void LFSCBitVectorProof::printTermBitblasting(Expr term, std::ostream& os) {
   case kind::BITVECTOR_ROTATE_RIGHT : {
     os <<"(bv_bbl_"<<utils::toLFSCKind(kind);
     os <<" _ _ _ _ ";
-    os << "bt" << getBBId(term[0]);
+    os << getBBTermName(term[0]);
     os <<")";
     return;
   }
@@ -435,7 +440,7 @@ void LFSCBitVectorProof::printTermBitblasting(Expr term, std::ostream& os) {
     os << utils::getExtractHigh(term) << " ";
     os << utils::getExtractLow(term) << " ";
     os << " _ _ _ _ ";
-    os << "bt" << getBBId(term[0]);
+    os << getBBTermName(term[0]);
     os <<")";
     return;
   }
@@ -457,7 +462,7 @@ void LFSCBitVectorProof::printTermBitblasting(Expr term, std::ostream& os) {
       os << amount; 
     }
     os <<" _ _ _ _ ";
-    os << "bt"<< getBBId(term[0]);
+    os << getBBTermName(term[0]);
     os <<")";
     return;
   }
@@ -481,7 +486,7 @@ void LFSCBitVectorProof::printAtomBitblasting(Expr atom, std::ostream& os) {
     {
     os <<"(bv_bbl_" << utils::toLFSCKind(atom.getKind()); 
     os << " _ _ _ _ _ _ ";
-    os << "bt"<< getBBId(atom[0]) <<" bt" << getBBId(atom[1]) <<")"; 
+    os << getBBTermName(atom[0])<<" " << getBBTermName(atom[1]) <<")"; 
     return;
   }
   default:
@@ -492,24 +497,23 @@ void LFSCBitVectorProof::printAtomBitblasting(Expr atom, std::ostream& os) {
 
 void LFSCBitVectorProof::printBitblasting(std::ostream& os, std::ostream& paren) {
   // bit-blast terms
-  ExprToId::const_iterator it = d_bb_terms.begin();
-  ExprToId::const_iterator end = d_bb_terms.end();
+  ExprSet::const_iterator it = d_bb_terms.begin();
+  ExprSet::const_iterator end = d_bb_terms.end();
   for (; it != end; ++it) {
     os <<"(decl_bblast _ _ _ ";
-    printTermBitblasting(it->first, os);
-    os <<"(\\ bt"<<it->second <<"\n";
-    paren <<"))";
+    printTermBitblasting(*it, os);
+    os << "(\\ "<< getBBTermName(*it);
+    paren <<"\n))";
   }
   // bit-blast atoms
-  it = d_bb_atoms.begin();
-  end = d_bb_atoms.end();
-  for (; it != end; ++it) {
+  ExprToExpr::const_iterator ait = d_bb_atoms.begin();
+  ExprToExpr::const_iterator aend = d_bb_atoms.end();
+  for (; ait != aend; ++ait) {
     os << "(th_let_pf _ ";
-    printAtomBitblasting(it->first, os);
-    os <<"(\\ bf"<<it->second <<"\n";
+    printAtomBitblasting(ait->first, os);
+    os <<"(\\ " << ProofManager::getPreprocessedAssertionName(ait->second, "bb") <<"\n";
     paren <<"))";
   }
-
 }
 
 void LFSCBitVectorProof::printResolutionProof(std::ostream& os,

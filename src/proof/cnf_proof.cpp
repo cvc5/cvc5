@@ -272,7 +272,7 @@ void LFSCCnfProof::printCnfProofForClause(ClauseId id,
   if (!is_input){
     Assert(is_in_clause);
     prop::SatLiteral blit = (*clause)[ base_index ];
-    os_base << ProofManager::getLitName(blit);
+    os_base << ProofManager::getLitName(blit, d_name);
     base_pol = !childPol[base_assertion];
   }
   Trace("cnf-pf") << "; polarity of base assertion = " << base_pol << std::endl;
@@ -288,9 +288,9 @@ void LFSCCnfProof::printCnfProofForClause(ClauseId id,
     success = true;
     prop::SatLiteral lit = (*clause)[itci->second];
     if( base_pol ){
-      os << os_base.str() << " " << ProofManager::getLitName(lit);
+      os << os_base.str() << " " << ProofManager::getLitName(lit, d_name);
     }else{
-      os << ProofManager::getLitName(lit) << " " << os_base.str();
+      os << ProofManager::getLitName(lit, d_name) << " " << os_base.str();
     }
     os << ")";
   } else if ((base_assertion.getKind()==kind::AND && !base_pol) ||
@@ -322,9 +322,9 @@ void LFSCCnfProof::printCnfProofForClause(ClauseId id,
         os_main << "(or_elim_1 _ _ ";
         prop::SatLiteral lit = (*clause)[itcic->second];
         if( childPol[child_base] ){
-          os_main << ProofManager::getLitName(lit) << " ";
+          os_main << ProofManager::getLitName(lit, d_name) << " ";
         }else{
-          os_main << "(not_not_intro _ " << ProofManager::getLitName(lit) << ") ";
+          os_main << "(not_not_intro _ " << ProofManager::getLitName(lit, d_name) << ") ";
         }
         if( base_assertion.getKind()==kind::AND ){
           os_main << "(not_and_elim _ _ ";
@@ -352,9 +352,9 @@ void LFSCCnfProof::printCnfProofForClause(ClauseId id,
         os << "(contra _ ";
         prop::SatLiteral lit = (*clause)[itcic->second];
         if( childPol[child_base] ){
-          os << os_main.str() << " " << ProofManager::getLitName(lit);
+          os << os_main.str() << " " << ProofManager::getLitName(lit, d_name);
         }else{
-          os << ProofManager::getLitName(lit) << " " << os_main.str();
+          os << ProofManager::getLitName(lit, d_name) << " " << os_main.str();
         }
         os << ")";
       }else{
@@ -422,9 +422,9 @@ void LFSCCnfProof::printCnfProofForClause(ClauseId id,
       if( success ){
         os << "(contra _ ";
         if( !e_pol ){
-          os << ProofManager::getLitName(lit) << " " << os_main.str();
+          os << ProofManager::getLitName(lit, d_name) << " " << os_main.str();
         }else{
-          os << os_main.str() << " " << ProofManager::getLitName(lit);
+          os << os_main.str() << " " << ProofManager::getLitName(lit, d_name);
         }
         os << ")";
       }
@@ -478,9 +478,9 @@ void LFSCCnfProof::printCnfProofForClause(ClauseId id,
       os_base_n << "(or_elim_1 _ _ ";
       prop::SatLiteral lit1 = (*clause)[indices[0]];
       if( !pols[0] || num_nots_1==1 ){
-        os_base_n << "(not_not_intro _ " << ProofManager::getLitName(lit1) << ") ";
+        os_base_n << "(not_not_intro _ " << ProofManager::getLitName(lit1, d_name) << ") ";
       }else{
-        os_base_n << ProofManager::getLitName(lit1) << " ";
+        os_base_n << ProofManager::getLitName(lit1, d_name) << " ";
       }
       Assert( elimNum!=0 );
       os_base_n << "(" << ( k==kind::IFF ? "iff" : "xor" ) << "_elim_" << elimNum << " _ _ ";
@@ -498,12 +498,12 @@ void LFSCCnfProof::printCnfProofForClause(ClauseId id,
       if( pols[1]==(num_nots_2==0) ){
         os << os_base_n.str() << " ";
         if( num_nots_2==1 ){
-          os << "(not_not_intro _ " << ProofManager::getLitName(lit2) << ")";
+          os << "(not_not_intro _ " << ProofManager::getLitName(lit2, d_name) << ")";
         }else{
-          os << ProofManager::getLitName(lit2);
+          os << ProofManager::getLitName(lit2, d_name);
         }
       }else{
-        os << ProofManager::getLitName(lit2) << " " << os_base_n.str();
+        os << ProofManager::getLitName(lit2, d_name) << " " << os_base_n.str();
       }
       os << ")";
     }
@@ -538,18 +538,18 @@ void LFSCCnfProof::printCnfProofForClause(ClauseId id,
       os_main << "(or_elim_1 _ _ ";
       prop::SatLiteral lit1 = (*clause)[appears[index1]];
       if( !childPol[appears_expr[index1]] || elimNum==1 || ( elimNum==3 && !base_pol ) ){
-        os_main << "(not_not_intro _ " << ProofManager::getLitName(lit1) << ") ";
+        os_main << "(not_not_intro _ " << ProofManager::getLitName(lit1, d_name) << ") ";
       }else{
-        os_main << ProofManager::getLitName(lit1) << " ";
+        os_main << ProofManager::getLitName(lit1, d_name) << " ";
       }
       os_main << "(" << ( base_pol ? "" : "not_" ) << "ite_elim_" << elimNum << " _ _ _ ";
       os_main << os_base.str() << "))";
       os << "(contra _ ";
       prop::SatLiteral lit2 = (*clause)[appears[index2]];
       if( !childPol[appears_expr[index2]] || !base_pol ){
-        os << ProofManager::getLitName(lit2) << " " << os_main.str();
+        os << ProofManager::getLitName(lit2, d_name) << " " << os_main.str();
       }else{
-        os << os_main.str() << " " << ProofManager::getLitName(lit2);
+        os << os_main.str() << " " << ProofManager::getLitName(lit2, d_name);
       }
       os << ")";
     }
@@ -577,7 +577,7 @@ void LFSCCnfProof::printCnfProofForClause(ClauseId id,
   }
 
   os << ")" << clause_paren.str()
-     << " (\\ " << ProofManager::getInputClauseName(id) << "\n";
+     << " (\\ " << ProofManager::getInputClauseName(id, d_name) << "\n";
   paren << "))";
 }
 

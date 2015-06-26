@@ -484,11 +484,17 @@ template <class Solver>
       d_lemmaClauses.insert(newId);
     }
   }
-  Debug("proof:sat:detailed") << "registerClause CRef: " << clause << " id:" << d_clauseId[clause]
+
+  ClauseId id = d_clauseId[clause];
+  Assert(kind != INPUT || d_inputClauses.count(id));
+  Assert(kind != THEORY_LEMMA || d_lemmaClauses.count(id));
+
+  Debug("proof:sat:detailed") << "registerClause CRef: " << clause << " id: " << d_clauseId[clause]
                               <<"                kind: " << kind << "\n";
   //ProofManager::currentPM()->setRegisteredClauseId( d_clauseId[clause] );
-  return d_clauseId[clause];
+  return id;
 }
+
 template <class Solver> 
 ClauseId TSatProof<Solver>::registerUnitClause(typename Solver::TLit lit,
 					       ClauseKind kind) {
@@ -508,10 +514,13 @@ ClauseId TSatProof<Solver>::registerUnitClause(typename Solver::TLit lit,
       d_lemmaClauses.insert(newId);
     }
   }
-  Debug("proof:sat:detailed") << "registerUnitClause " << d_unitId[toInt(lit)] << " " << kind
-                              <<"                kind: " << kind << "\n";
+  ClauseId id = d_unitId[toInt(lit)];
+  Assert(kind != INPUT || d_inputClauses.count(id));
+  Assert(kind != THEORY_LEMMA || d_lemmaClauses.count(id));
+  Debug("proof:sat:detailed") << "registerUnitClause id: " << id 
+                              <<" kind: " << kind << "\n";
   // ProofManager::currentPM()->setRegisteredClauseId( d_unitId[toInt(lit)] );
-  return d_unitId[toInt(lit)];
+  return id;
 }
 template <class Solver> 
 void TSatProof<Solver>::registerTrueLit(const typename Solver::TLit lit) {

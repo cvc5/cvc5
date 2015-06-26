@@ -104,7 +104,7 @@ public:
   
   bool hasBBTerm(TNode node) const;
   void getBBTerm(TNode node, Bits& bits) const;
-  void storeBBTerm(TNode term, const Bits& bits);
+  virtual void storeBBTerm(TNode term, const Bits& bits);
   /**
    * Return a constant representing the value of a in the  model.
    * If fullModel is true set unconstrained bits to 0. If not return
@@ -168,6 +168,7 @@ public:
   void bbAtom(TNode node);
   Node getBBAtom(TNode atom) const;
   void storeBBAtom(TNode atom, Node atom_bb);
+  void storeBBTerm(TNode node, const Bits& bits);
   bool hasBBAtom(TNode atom) const; 
   TLazyBitblaster(context::Context* c, bv::TheoryBV* bv, const std::string name="", bool emptyNotify = false);
   ~TLazyBitblaster() throw();

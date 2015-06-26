@@ -407,17 +407,25 @@ void LFSCProof::toStream(std::ostream& out) {
   d_cnfProof->collectAssertionsForClauses(used_inputs, used_assertions);
 
   if (Debug.isOn("proof:pm")) {
+    std::cout << NodeManager::currentNM(); 
     Debug("proof:pm") << "LFSCProof::Used assertions: "<< std::endl;
     for(NodeSet::const_iterator it = used_assertions.begin(); it != used_assertions.end(); ++it) {
       Debug("proof:pm") << "   " << *it << std::endl;
     }
+    
+    NodeSet lemmas;
+    d_cnfProof->collectAssertionsForClauses(used_lemmas, lemmas);
+
+    Debug("proof:pm") << "LFSCProof::Used lemmas: "<< std::endl;
+    for(NodeSet::const_iterator it = lemmas.begin(); it != lemmas.end(); ++it) {
+      Debug("proof:pm") << "   " << *it << std::endl;
+    }
   }
+
   
   NodeSet atoms;
   d_cnfProof->collectAtomsForClauses(used_inputs, atoms);
   d_cnfProof->collectAtomsForClauses(used_lemmas, atoms);
-
-  
   
   smt::SmtScope scope(d_smtEngine);
   std::ostringstream paren;
