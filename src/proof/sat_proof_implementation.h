@@ -232,11 +232,14 @@ TSatProof<Solver>::~TSatProof() {
   IdToSatClause::iterator end = d_deletedTheoryLemmas.end();
 
   for (; it != end; ++it) {
-    delete it->second;
+    ClauseId id = it->first;
+    // otherwise deleted in next loop
+    if (d_seenLemmas.find(id) == d_seenLemmas.end())
+      delete it->second;
   }
 
-  IdToClause::iterator seen_it = d_seenLemmas.begin();
-  IdToClause::iterator seen_end = d_seenLemmas.end();
+  IdToSatClause::iterator seen_it = d_seenLemmas.begin();
+  IdToSatClause::iterator seen_end = d_seenLemmas.end();
 
   for (; seen_it != seen_end; ++seen_it) {
     delete seen_it->second;
@@ -569,6 +572,7 @@ ClauseId TSatProof<Solver>::registerAssumptionConflict(const typename Solver::TL
   }
   if (Debug.isOn("proof:sat:detailed")) {
     printClause<Solver>(*vec_confl);
+    Debug("proof:sat:detailed") << "\n"; 
   }
 
   d_assumptionConflictsDebug[new_id] = vec_confl;
@@ -689,7 +693,7 @@ void TSatProof<Solver>::endResChain(ClauseId id) {
 // template <class Solver> 
 // void TSatProof<Solver>::endResChain(typename Solver::TCRef clause) {
 //   Assert(d_resStack.size() > 0);
-//   ClauseId id = registerClause(clause, LEARNT, uint64_t(-1));
+//   ClauseId id = registerClause(clause, LEARNT);
 //   ResChain<Solver>* res = d_resStack.back();
 //   registerResolution(id, res);
 //   d_resStack.pop_back();
@@ -956,8 +960,8 @@ void TSatProof<Solver>::collectClauses(ClauseId id) {
 }
 
 template <class Solver> 
-void TSatProof<Solver>::collectClausesUsed(IdToClause& inputs,
-                                           IdToClause& lemmas) {
+void TSatProof<Solver>::collectClausesUsed(IdToSatClause& inputs,
+                                           IdToSatClause& lemmas) {
   inputs = d_seenInputs;
   lemmas = d_seenLemmas;
 }

@@ -35,7 +35,7 @@ namespace prop {
 
 class CnfProof;
 
-// typedef __gnu_cxx::hash_map < ClauseId, const prop::SatClause* > IdToClause;
+// typedef __gnu_cxx::hash_map < ClauseId, const prop::SatClause* > IdToSatClause;
 // typedef __gnu_cxx::hash_map<Expr, prop::SatVariable, ExprHashFunction > ExprToSatVar;
 typedef __gnu_cxx::hash_map<prop::SatVariable, Expr> SatVarToExpr;
 typedef __gnu_cxx::hash_map<Node, Node, NodeHashFunction> NodeToNode;
@@ -49,7 +49,7 @@ protected:
   CVC4::prop::CnfStream* d_cnfStream;
   // ExprToSatVar d_atomToSatVar;
   // SatVarToExpr d_satVarToAtom;
-  // IdToClause d_inputClauses;   
+  // IdToSatClause d_inputClauses;   
 
   /** Map from ClauseId to the assertion that lead to adding this clause **/
   ClauseIdToNode d_clauseToAssertion;
@@ -60,20 +60,24 @@ protected:
   /** Top of stack is assertion currently being converted to CNF **/
   std::vector<Node> d_currentAssertionStack;
 
+  /** Top of stack is top-level fact currently being converted to CNF **/
+  std::vector<Node> d_currentDefinitionStack;
+
+  
   /** Map from ClauseId to the top-level fact that lead to adding this clause **/
-  ClauseIdToNode d_clauseToFact;
+  ClauseIdToNode d_clauseToDefinition;
 
   /** Top-level facts that follow from assertions during convertAndAssert **/
-  NodeSet d_topLevelFacts;
+  NodeSet d_definitions;
   
   /** Map from top-level fact to facts/assertion that it follows from **/
   NodeToNode d_cnfDeps;
 
   ClauseIdSet d_explanations;
   
-  bool isTopLevelFact(Node node);
+  bool isDefinition(Node node);
 
-  Node getTopLevelFactForClause(ClauseId clause);
+  Node getDefinitionForClause(ClauseId clause);
   
   std::string d_name;
 public:
@@ -81,7 +85,7 @@ public:
            context::Context* ctx,
            const std::string& name);
   
-  // typedef IdToClause::const_iterator clause_iterator;
+  // typedef IdToSatClause::const_iterator clause_iterator;
   // clause_iterator begin_input_clauses() const { return d_inputClauses.begin(); }
   // clause_iterator end_input_clauses() const { return d_inputClauses.end(); }
   //void addInputClause(ClauseId id, const prop::SatClause* clause); 
@@ -92,9 +96,9 @@ public:
   // Node getAssertion(ClauseId id);
   void collectAtoms(const prop::SatClause* clause,
                     NodeSet& atoms);
-  void collectAtomsForClauses(const IdToClause& clauses,
+  void collectAtomsForClauses(const IdToSatClause& clauses,
                                NodeSet& atoms);
-  void collectAssertionsForClauses(const IdToClause& clauses,
+  void collectAssertionsForClauses(const IdToSatClause& clauses,
                                    NodeSet& assertions);
 
   /** Methods for logging what the CnfStream does **/
@@ -102,15 +106,25 @@ public:
   // if it is an explanation, it does not have a CNF proof since it is
   // already in CNF
   void registerConvertedClause(ClauseId clause, bool explanation=false);
-  void setClauseFact(ClauseId clause, Node fact);
+
+  /** Clause is one of the clauses defining the node expression*/
+  void setClauseDefinition(ClauseId clause, Node node);
+
+  /** Clause is one of the clauses defining top-level assertion node*/
+  void setClauseAssertion(ClauseId clause, Node node);
   
   void registerAssertion(Node assertion, ProofRule reason);
   void setCnfDependence(Node from, Node to);
+  
   void pushCurrentAssertion(Node assertion); // the current assertion being converted
   void popCurrentAssertion();
-
   Node getCurrentAssertion();
 
+  void pushCurrentDefinition(Node assertion); // the current Tseitin definition being converted
+  void popCurrentDefinition();
+  Node getCurrentDefinition();
+
+  
   // accessors for the leaf assertions that are being converted to CNF
   bool isAssertion(Node node);
   ProofRule getProofRule(Node assertion);

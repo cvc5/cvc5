@@ -932,7 +932,11 @@ lbool Solver::search(int nof_conflicts, UIP uip)
               learnts.push(cr);
               attachClause(cr);
               claBumpActivity(ca[cr]);
-              THEORY_PROOF( ProofManager::getBitVectorProof()->getSatProof()->endResChain(cr); );
+              THEORY_PROOF(
+                 ClauseId id = ProofManager::getBitVectorProof()->
+                                   getSatProof()->registerClause(cr, LEARNT);
+                 ProofManager::getBitVectorProof()->getSatProof()->endResChain(id);
+                 );
             }
             
             if (learnt_clause.size() == 1) {

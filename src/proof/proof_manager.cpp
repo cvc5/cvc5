@@ -68,13 +68,13 @@ ProofManager::~ProofManager() {
   delete d_theoryProof;
   delete d_fullProof;
 
-  // for(IdToClause::iterator it = d_inputClauses.begin();
+  // for(IdToSatClause::iterator it = d_inputClauses.begin();
   //     it != d_inputClauses.end();
   //     ++it) {
   //   delete it->second;
   // }
 
-  // for(OrderedIdToClause::iterator it = d_theoryLemmas.begin();
+  // for(OrderedIdToSatClause::iterator it = d_theoryLemmas.begin();
   //     it != d_theoryLemmas.end();
   //     ++it) {
   //   delete it->second;
@@ -164,14 +164,18 @@ void ProofManager::initCnfProof(prop::CnfStream* cnfStream,
   Node false_node = NodeManager::currentNM()->mkConst<bool>(false).notNode();
 
   pm->d_cnfProof->pushCurrentAssertion(true_node);
+  pm->d_cnfProof->pushCurrentDefinition(true_node);
   pm->d_cnfProof->registerConvertedClause(pm->d_satProof->getTrueUnit());
-  pm->d_cnfProof->setClauseFact(pm->d_satProof->getTrueUnit(), true_node);
+  //pm->d_cnfProof->setClauseFact(pm->d_satProof->getTrueUnit(), true_node);
   pm->d_cnfProof->popCurrentAssertion();
+  pm->d_cnfProof->popCurrentDefinition();
 
   pm->d_cnfProof->pushCurrentAssertion(false_node);
+  pm->d_cnfProof->pushCurrentDefinition(false_node);
   pm->d_cnfProof->registerConvertedClause(pm->d_satProof->getFalseUnit());
-  pm->d_cnfProof->setClauseFact(pm->d_satProof->getFalseUnit(), false_node);
+  //pm->d_cnfProof->setClauseFact(pm->d_satProof->getFalseUnit(), false_node);
   pm->d_cnfProof->popCurrentAssertion();
+  pm->d_cnfProof->popCurrentDefinition();
   
 }
 
@@ -270,11 +274,11 @@ void ProofManager::traceUnsatCore() {
   Assert (options::unsatCores());
   
   d_satProof->constructProof();
-  IdToClause used_lemmas;
-  IdToClause used_inputs;
+  IdToSatClause used_lemmas;
+  IdToSatClause used_inputs;
   d_satProof->collectClausesUsed(used_inputs,
                                  used_lemmas);
-  IdToClause::const_iterator it = used_inputs.begin();
+  IdToSatClause::const_iterator it = used_inputs.begin();
   for(; it != used_inputs.end(); ++it) {
     Node node = d_cnfProof->getAssertionForClause(it->first);
     ProofRule rule = d_cnfProof->getProofRule(node);
@@ -397,8 +401,8 @@ void LFSCProof::toStream(std::ostream& out) {
   d_satProof->constructProof();
 
   // collecting leaf clauses in resolution proof
-  IdToClause used_lemmas;
-  IdToClause used_inputs;
+  IdToSatClause used_lemmas;
+  IdToSatClause used_inputs;
   d_satProof->collectClausesUsed(used_inputs,
                                  used_lemmas);
 
@@ -451,7 +455,7 @@ void LFSCProof::toStream(std::ostream& out) {
   // print mapping between theory atoms and internal SAT variables
   d_cnfProof->printAtomMapping(atoms, out, paren);
 
-  IdToClause::const_iterator cl_it = used_inputs.begin();
+  IdToSatClause::const_iterator cl_it = used_inputs.begin();
   // print CNF conversion proof for each clause
   for (; cl_it != used_inputs.end(); ++cl_it) {
     d_cnfProof->printCnfProofForClause(cl_it->first, cl_it->second, out, paren);

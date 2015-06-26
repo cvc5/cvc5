@@ -97,7 +97,7 @@ protected:
   typedef std::hash_map < ClauseId, ResChain<Solver>* >      IdResMap;
   typedef std::hash_map < ClauseId, uint64_t >      IdProofRuleMap;
   typedef std::vector   < ResChain<Solver>* >       ResStack;
-  typedef std::hash_map <ClauseId, prop::SatClause* >     IdToSatClause;
+  //typedef std::hash_map <ClauseId, prop::SatClause* >     IdToSatClause;
   typedef std::set < ClauseId > IdSet;
   typedef std::vector < typename Solver::TLit > LitVector;
   typedef __gnu_cxx::hash_map<ClauseId, typename Solver::TClause& > IdToMinisatClause;
@@ -199,7 +199,7 @@ public:
    * in the resolution map. Also registers the 'clause' parameter
    * @param clause the clause the resolution is proving
    */
-  // void endResChain(typename Solver::TCRef clause);
+  //void endResChain(typename Solver::TCRef clause);
   void endResChain(typename Solver::TLit lit);
   void endResChain(ClauseId id);
   /** 
@@ -279,8 +279,8 @@ public:
   prop::SatClause* buildClause(ClauseId id);
 protected:
   IdSet               d_seenLearnt;
-  IdToClause          d_seenInputs;
-  IdToClause          d_seenLemmas;
+  IdToSatClause          d_seenInputs;
+  IdToSatClause          d_seenLemmas;
 
   std::string varName(typename Solver::TLit lit);
   std::string clauseName(ClauseId id);
@@ -296,8 +296,8 @@ public:
 
   //typedef IdHashSet::const_iterator clause_iterator;
 
-  void collectClausesUsed(IdToClause& inputs,
-                          IdToClause& lemmas);
+  void collectClausesUsed(IdToSatClause& inputs,
+                          IdToSatClause& lemmas);
   // clause_iterator begin_input_clauses() { return d_seenInput.begin(); }
   // clause_iterator end_input_clauses() { return d_seenInput.end(); }
 

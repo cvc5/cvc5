@@ -257,8 +257,8 @@ RewriteResponse TheoryBVRewriter::RewriteOr(TNode node, bool prerewrite){
 RewriteResponse TheoryBVRewriter::RewriteXor(TNode node, bool prerewrite) {
   Node resultNode = node;
   resultNode = LinearRewriteStrategy
-    <// RewriteRule<FlattenAssocCommut>, // flatten the expression 
-    //RewriteRule<XorSimplify>,        // simplify duplicates and constants
+    < RewriteRule<FlattenAssocCommut>, // flatten the expression 
+      RewriteRule<XorSimplify>,        // simplify duplicates and constants
       RewriteRule<XorZero>,            // checks if the constant part is zero and eliminates it
       RewriteRule<BitwiseSlicing>
       >::apply(node);
@@ -313,7 +313,7 @@ RewriteResponse TheoryBVRewriter::RewriteMult(TNode node, bool prerewrite) {
   Node resultNode = node; 
   resultNode = LinearRewriteStrategy
     < RewriteRule<FlattenAssocCommut>, // flattens and sorts
-      //      RewriteRule<MultSimplify>,       // multiplies constant part and checks for 0
+      RewriteRule<MultSimplify>,       // multiplies constant part and checks for 0
       RewriteRule<MultPow2>            // replaces multiplication by a power of 2 by a shift
     >::apply(resultNode);
 
@@ -321,7 +321,7 @@ RewriteResponse TheoryBVRewriter::RewriteMult(TNode node, bool prerewrite) {
   if (!prerewrite) {
     resultNode = LinearRewriteStrategy
       <   RewriteRule<MultDistribConst>
-          //        , RewriteRule<MultDistrib>
+        , RewriteRule<MultDistrib>
         >::apply(resultNode);
   }
 
@@ -333,17 +333,17 @@ RewriteResponse TheoryBVRewriter::RewriteMult(TNode node, bool prerewrite) {
 
 RewriteResponse TheoryBVRewriter::RewritePlus(TNode node, bool prerewrite) {
   Node resultNode = node;
-  // if (prerewrite) {
-  //   resultNode = LinearRewriteStrategy
-  //     < RewriteRule<FlattenAssocCommut>
-  //       >::apply(node);
-  //   return RewriteResponse(REWRITE_DONE, resultNode);
-  // }
+  if (prerewrite) {
+    resultNode = LinearRewriteStrategy
+      < RewriteRule<FlattenAssocCommut>
+        >::apply(node);
+    return RewriteResponse(REWRITE_DONE, resultNode);
+  }
   
-  // resultNode =  LinearRewriteStrategy
-  //   < RewriteRule<FlattenAssocCommut>,
-  //     RewriteRule<PlusCombineLikeTerms>
-  //     >::apply(node);
+  resultNode =  LinearRewriteStrategy
+    < RewriteRule<FlattenAssocCommut>,
+      RewriteRule<PlusCombineLikeTerms>
+      >::apply(node);
 
   if (node != resultNode) {
     return RewriteResponse(REWRITE_AGAIN_FULL, resultNode);
@@ -585,12 +585,12 @@ RewriteResponse TheoryBVRewriter::RewriteEqual(TNode node, bool prerewrite) {
         RewriteRule<ReflexivityEq>
         >::apply(node);
 
-    // if(RewriteRule<SolveEq>::applies(resultNode)) {
-    //   resultNode = RewriteRule<SolveEq>::run<false>(resultNode);
-    //   if (resultNode != node) {
-    //     return RewriteResponse(REWRITE_AGAIN_FULL, resultNode);
-    //   }
-    // }
+    if(RewriteRule<SolveEq>::applies(resultNode)) {
+      resultNode = RewriteRule<SolveEq>::run<false>(resultNode);
+      if (resultNode != node) {
+        return RewriteResponse(REWRITE_AGAIN_FULL, resultNode);
+      }
+    }
     return RewriteResponse(REWRITE_DONE, resultNode); 
   }
 }

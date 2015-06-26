@@ -212,13 +212,13 @@ void LFSCTheoryProofEngine::printDeclarations(std::ostream& os, std::ostream& pa
   }
 }
 
-void LFSCTheoryProofEngine::printTheoryLemmas(const IdToClause& lemmas,
+void LFSCTheoryProofEngine::printTheoryLemmas(const IdToSatClause& lemmas,
                                               std::ostream& os,
                                               std::ostream& paren) {
   os << " ;; Theory Lemmas \n";
   ProofManager* pm = ProofManager::currentPM();
-  IdToClause::const_iterator it = lemmas.begin();
-  IdToClause::const_iterator end = lemmas.end();
+  IdToSatClause::const_iterator it = lemmas.begin();
+  IdToSatClause::const_iterator end = lemmas.end();
   
   // BitVector theory is special case: must know all
   // conflicts needed ahead of time for resolution

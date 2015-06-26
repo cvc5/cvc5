@@ -89,7 +89,7 @@ enum ProofFormat {
 std::string append(const std::string& str, uint64_t num);
 
 typedef std::map < ClauseId, const prop::SatClause* > OrderedIdToClause;
-typedef __gnu_cxx::hash_map < ClauseId, const prop::SatClause* > IdToClause;
+typedef __gnu_cxx::hash_map < ClauseId, prop::SatClause* > IdToSatClause;
 typedef __gnu_cxx::hash_set<Expr, ExprHashFunction > ExprSet;
 typedef __gnu_cxx::hash_set<Node, NodeHashFunction > NodeSet;
 typedef __gnu_cxx::hash_map<Node, std::vector<Node>, NodeHashFunction > NodeToNodes;
@@ -118,9 +118,9 @@ class ProofManager {
   TheoryProofEngine* d_theoryProof;
 
   // information that will need to be shared across proofs
-  IdToClause d_inputClauses;
-  //  OrderedIdToClause d_theoryLemmas;
-  //  IdToClause d_theoryPropagations;
+  IdToSatClause d_inputClauses;
+  //  OrderedIdToSatClause d_theoryLemmas;
+  //  IdToSatClause d_theoryPropagations;
   ExprSet    d_inputFormulas;
   ExprSet    d_inputCoreFormulas;
   ExprSet    d_outputCoreFormulas;
@@ -169,7 +169,7 @@ public:
   static ArrayProof* getArrayProof();
   
   // iterators over data shared by proofs
-  typedef IdToClause::const_iterator clause_iterator;
+  typedef IdToSatClause::const_iterator clause_iterator;
   typedef OrderedIdToClause::const_iterator ordered_clause_iterator;
   typedef ExprSet::const_iterator assertions_iterator;
 

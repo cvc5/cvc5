@@ -57,14 +57,18 @@ void BitVectorProof::initCnfProof(prop::CnfStream* cnfStream,
   Node false_node = NodeManager::currentNM()->mkConst<bool>(false).notNode();
 
   d_cnfProof->pushCurrentAssertion(true_node);
+  d_cnfProof->pushCurrentDefinition(true_node);
   d_cnfProof->registerConvertedClause(d_resolutionProof->getTrueUnit());
-  d_cnfProof->setClauseFact(d_resolutionProof->getTrueUnit(), true_node);
+  //d_cnfProof->setClauseFact(d_resolutionProof->getTrueUnit(), true_node);
   d_cnfProof->popCurrentAssertion();
+  d_cnfProof->popCurrentDefinition();         
   
   d_cnfProof->pushCurrentAssertion(false_node);
+  d_cnfProof->pushCurrentDefinition(false_node);
   d_cnfProof->registerConvertedClause(d_resolutionProof->getFalseUnit());
-  d_cnfProof->setClauseFact(d_resolutionProof->getFalseUnit(), false_node);
-  d_cnfProof->popCurrentAssertion();         
+  //d_cnfProof->setClauseFact(d_resolutionProof->getFalseUnit(), false_node);
+  d_cnfProof->popCurrentAssertion();
+  d_cnfProof->popCurrentDefinition();         
 }
 
 void BitVectorProof::setBitblaster(bv::TLazyBitblaster* lazyBB) {
@@ -292,7 +296,7 @@ void LFSCBitVectorProof::printPredicate(Expr term, std::ostream& os, const LetMa
 
 void LFSCBitVectorProof::printOperatorParametric(Expr term, std::ostream& os, const LetMap& map) {
   os <<"(";  
-  os << utils::toLFSCKind(term.getKind()) << utils::getSize(term) <<" "; 
+  os << utils::toLFSCKind(term.getKind()) << " " << utils::getSize(term) <<" "; 
   os <<" "; 
   if (term.getKind() == kind::BITVECTOR_REPEAT) {
     unsigned amount = term.getOperator().getConst<BitVectorRepeat>().repeatAmount;
@@ -519,8 +523,8 @@ void LFSCBitVectorProof::printBitblasting(std::ostream& os, std::ostream& paren)
 void LFSCBitVectorProof::printResolutionProof(std::ostream& os,
                                               std::ostream& paren) {
   // collect the input clauses used
-  IdToClause used_lemmas;
-  IdToClause used_inputs;
+  IdToSatClause used_lemmas;
+  IdToSatClause used_inputs;
   d_resolutionProof->collectClausesUsed(used_inputs,
                                         used_lemmas);
   Assert (used_lemmas.empty());
@@ -540,7 +544,7 @@ void LFSCBitVectorProof::printResolutionProof(std::ostream& os,
   // print CNF conversion proof for bit-blasted facts
   d_cnfProof->printAtomMapping(atoms, os, paren);
   os << ";; Bit-blasting definitional clauses \n";
-  for (IdToClause::iterator it = used_inputs.begin();
+  for (IdToSatClause::iterator it = used_inputs.begin();
        it != used_inputs.end(); ++it) {
     d_cnfProof->printCnfProofForClause(it->first, it->second, os, paren);
   }

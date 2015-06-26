@@ -338,8 +338,17 @@ bool Solver::addClause_(vec<Lit>& ps, bool removable, ClauseId& id)
       lemmas.push();
       ps.copyTo(lemmas.last());
       lemmas_removable.push(removable);
+      PROOF(
+            // Store the expression being converted to CNF until
+            // the clause is actually created
+            Node assertion = ProofManager::getCnfProof()->getCurrentAssertion();
+            Node def = ProofManager::getCnfProof()->getCurrentDefinition();
+            lemmas_cnf_assertion.push_back(std::make_pair(assertion, def));
+            id = ClauseIdUndef;
+        );
       // does it have to always be a lemma?
-      PROOF(id = ProofManager::getSatProof()->registerUnitClause(ps[0], THEORY_LEMMA););
+      // PROOF(id = ProofManager::getSatProof()->registerUnitClause(ps[0], THEORY_LEMMA););
+      // PROOF(id = ProofManager::getSatProof()->registerTheoryLemma(ps););
       // Debug("cores") << "lemma push " << proof_id << " " << (proof_id & 0xffffffff) << std::endl;
       // lemmas_proof_id.push(proof_id);
     } else {
@@ -1675,6 +1684,8 @@ CRef Solver::updateLemmas() {
   // Last index in the trail
   int backtrack_index = trail.size();
 
+  PROOF(Assert (lemmas.size() == lemmas_cnf_assertion.size()););
+  
   // Attach all the clauses and enqueue all the propagations
   for (int i = 0; i < lemmas.size(); ++ i)
   {
@@ -1697,7 +1708,15 @@ CRef Solver::updateLemmas() {
       }
 
       lemma_ref = ca.alloc(clauseLevel, lemma, removable);
-      PROOF( ProofManager::getSatProof()->registerClause(lemma_ref, THEORY_LEMMA); );
+      PROOF
+        (
+         TNode cnf_assertion = lemmas_cnf_assertion[i].first;
+         TNode cnf_def = lemmas_cnf_assertion[i].second;
+
+         ClauseId id = ProofManager::getSatProof()->registerClause(lemma_ref, THEORY_LEMMA);
+         ProofManager::getCnfProof()->setClauseAssertion(id, cnf_assertion);
+         ProofManager::getCnfProof()->setClauseDefinition(id, cnf_def);
+         );
       if (removable) {
         clauses_removable.push(lemma_ref);
       } else {
@@ -1705,7 +1724,15 @@ CRef Solver::updateLemmas() {
       }
       attachClause(lemma_ref);
     } else {
-      PROOF( ProofManager::getSatProof()->registerUnitClause(lemma[0], THEORY_LEMMA); );
+      PROOF
+        (
+         Node cnf_assertion = lemmas_cnf_assertion[i].first;
+         Node cnf_def = lemmas_cnf_assertion[i].second;
+         
+         ClauseId id = ProofManager::getSatProof()->registerUnitClause(lemma[0], THEORY_LEMMA);
+         ProofManager::getCnfProof()->setClauseAssertion(id, cnf_assertion);
+         ProofManager::getCnfProof()->setClauseDefinition(id, cnf_def);
+         );
     }
 
     // If the lemma is propagating enqueue its literal (or set the conflict)
@@ -1729,8 +1756,10 @@ CRef Solver::updateLemmas() {
     }
   }
 
+  PROOF(Assert (lemmas.size() == lemmas_cnf_assertion.size()););
   // Clear the lemmas
   lemmas.clear();
+  lemmas_cnf_assertion.clear();
   lemmas_removable.clear();
   //  lemmas_proof_id.clear();
 

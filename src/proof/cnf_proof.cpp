@@ -35,8 +35,9 @@ CnfProof::CnfProof(CnfStream* stream,
   , d_clauseToAssertion(ctx)
   , d_assertionToProofRule(ctx)
   , d_currentAssertionStack()
-  , d_clauseToFact(ctx)
-  , d_topLevelFacts()
+  , d_currentDefinitionStack()
+  , d_clauseToDefinition(ctx)
+  , d_definitions()
   , d_cnfDeps()
   , d_name(name)
 {}
@@ -48,9 +49,9 @@ bool CnfProof::isAssertion(Node node) {
          d_assertionToProofRule.end();
 }
 
-bool CnfProof::isTopLevelFact(Node node) {
-  return d_topLevelFacts.find(node) !=
-         d_topLevelFacts.end();
+bool CnfProof::isDefinition(Node node) {
+  return d_definitions.find(node) !=
+         d_definitions.end();
 }
   
 ProofRule CnfProof::getProofRule(Node node) {
@@ -69,9 +70,9 @@ Node CnfProof::getAssertionForClause(ClauseId clause) {
   return (*it).second;
 }
 
-Node CnfProof::getTopLevelFactForClause(ClauseId clause) {
-  ClauseIdToNode::const_iterator it = d_clauseToFact.find(clause);
-  Assert (it != d_clauseToFact.end());
+Node CnfProof::getDefinitionForClause(ClauseId clause) {
+  ClauseIdToNode::const_iterator it = d_clauseToDefinition.find(clause);
+  Assert (it != d_clauseToDefinition.end());
   return (*it).second;
 }
 
@@ -91,20 +92,31 @@ void CnfProof::registerConvertedClause(ClauseId clause, bool explanation) {
   }
 
   Node current_assertion = getCurrentAssertion();
-  Debug("proof:cnf") << "CnfProof::registerConvertedClause "
-                     << clause << " node = " << current_assertion << std::endl;
+  Node current_expr = getCurrentDefinition();
   
-  Assert (d_clauseToAssertion.find(clause) == d_clauseToAssertion.end());
-  d_clauseToAssertion.insert (clause, current_assertion);
+  Debug("proof:cnf") << "CnfProof::registerConvertedClause "
+                     << clause << " assertion = " << current_assertion
+                     << clause << " definition = " << current_expr << std::endl;
+
+  setClauseAssertion(clause, current_assertion);
+  setClauseDefinition(clause, current_expr);
 }
 
-void CnfProof::setClauseFact(ClauseId clause, Node fact) {
-  Debug("proof:cnf") << "CnfProof::setClauseFact "
-                     << clause << " fact " << fact << std::endl;
+void CnfProof::setClauseAssertion(ClauseId clause, Node expr) {
+  Debug("proof:cnf") << "CnfProof::setClauseAssertion "
+                     << clause << " assertion " << expr << std::endl;
   
-  Assert (d_clauseToFact.find(clause) == d_clauseToFact.end());
-  d_clauseToFact.insert(clause, fact);
-  d_topLevelFacts.insert(fact);
+  Assert (d_clauseToAssertion.find(clause) == d_clauseToAssertion.end());
+  d_clauseToAssertion.insert (clause, expr);
+}
+
+void CnfProof::setClauseDefinition(ClauseId clause, Node definition) {
+  Debug("proof:cnf") << "CnfProof::setClauseDefinition "
+                     << clause << " definition " << definition << std::endl;
+  
+  Assert (d_clauseToDefinition.find(clause) == d_clauseToDefinition.end());
+  d_clauseToDefinition.insert(clause, definition);
+  d_definitions.insert(definition);
 }
   
 void CnfProof::registerAssertion(Node assertion, ProofRule reason) {
@@ -144,6 +156,28 @@ Node CnfProof::getCurrentAssertion() {
   return d_currentAssertionStack.back();
 }
 
+void CnfProof::pushCurrentDefinition(Node definition) {
+  Debug("proof:cnf") << "CnfProof::pushCurrentDefinition "
+                     << definition  << std::endl;
+
+  d_currentDefinitionStack.push_back(definition);
+}
+
+void CnfProof::popCurrentDefinition() {
+  Assert (d_currentDefinitionStack.size());
+  
+  Debug("proof:cnf") << "CnfProof::popCurrentDefinition "
+                     << d_currentDefinitionStack.back() << std::endl;
+  
+  d_currentDefinitionStack.pop_back();
+}
+
+Node CnfProof::getCurrentDefinition() {
+  Assert (d_currentDefinitionStack.size());
+  return d_currentDefinitionStack.back();
+}
+
+
 Node CnfProof::getAtom(prop::SatVariable var) {
   prop::SatLiteral lit (var);
   Node node = d_cnfStream->getNode(lit);
@@ -177,9 +211,9 @@ prop::SatLiteral CnfProof::getLiteral(TNode atom) {
 //   return d_cnfStream->getAssertion(id).toExpr();
 // }
 
-void CnfProof::collectAtomsForClauses(const IdToClause& clauses,
+void CnfProof::collectAtomsForClauses(const IdToSatClause& clauses,
                                        NodeSet& atom_map) {
-  IdToClause::const_iterator it = clauses.begin();
+  IdToSatClause::const_iterator it = clauses.begin();
   for (; it != clauses.end(); ++it) {
     const prop::SatClause* clause = it->second;
     collectAtoms(clause, atom_map);
@@ -187,9 +221,9 @@ void CnfProof::collectAtomsForClauses(const IdToClause& clauses,
 
 }
 
-void CnfProof::collectAssertionsForClauses(const IdToClause& clauses,
+void CnfProof::collectAssertionsForClauses(const IdToSatClause& clauses,
                                            NodeSet& assertions) {
-  IdToClause::const_iterator it = clauses.begin();
+  IdToSatClause::const_iterator it = clauses.begin();
   for (; it != clauses.end(); ++it) {
     TNode used_assertion =  getAssertionForClause(it->first);
     assertions.insert(used_assertion);
@@ -243,7 +277,7 @@ void LFSCCnfProof::printCnfProofForClause(ClauseId id,
   os << "(clausify_false ";
   Assert( clause->size()>0 );
   
-  Node base_assertion = getTopLevelFactForClause(id);
+  Node base_assertion = getDefinitionForClause(id);
 
   //get the assertion for the clause id
   std::map<Node, unsigned > childIndex;

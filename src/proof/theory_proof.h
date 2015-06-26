@@ -34,7 +34,6 @@ class Theory;
 }
 
 typedef unsigned ClauseId;
-typedef __gnu_cxx::hash_map < ClauseId, const prop::SatClause* > IdToClause;
 
 struct LetCount {
   static unsigned counter;
@@ -81,6 +80,8 @@ struct LetOrderElement {
     , id(-1)
   {}
 };
+
+typedef __gnu_cxx::hash_map < ClauseId, prop::SatClause* > IdToSatClause;
 
 typedef __gnu_cxx::hash_map<Expr, LetCount, ExprHashFunction> LetMap;
 typedef std::vector<LetOrderElement> Bindings; 
@@ -131,7 +132,7 @@ public:
    * @param os 
    * @param paren 
    */
-  virtual void printTheoryLemmas(const IdToClause& lemmas,
+  virtual void printTheoryLemmas(const IdToSatClause& lemmas,
                                  std::ostream& os,
                                  std::ostream& paren) = 0;
   /** 
@@ -161,7 +162,7 @@ public:
   virtual void printLetTerm(Expr term, std::ostream& os);
   virtual void printBoundTerm(Expr term, std::ostream& os, const LetMap& map);
   virtual void printAssertions(std::ostream& os, std::ostream& paren);
-  virtual void printTheoryLemmas(const IdToClause& lemmas,
+  virtual void printTheoryLemmas(const IdToSatClause& lemmas,
                                  std::ostream& os,
                                  std::ostream& paren);
   virtual void printSort(Type type, std::ostream& os); 

@@ -82,6 +82,8 @@ void CnfStream::assertClause(TNode node, SatClause& c) {
     }
   }
 
+  PROOF(if (d_cnfProof) d_cnfProof->pushCurrentDefinition(node););
+  
   ClauseId clause_id = d_satSolver->addClause(c, d_removable);
   if (clause_id == ClauseIdUndef) return; // nothing to store (no clause was added)
   
@@ -90,11 +92,9 @@ void CnfStream::assertClause(TNode node, SatClause& c) {
      if (d_cnfProof) {
        Assert (clause_id != ClauseIdError);
        d_cnfProof->registerConvertedClause(clause_id);
-       // store map between clause and the formula it defines (note that this
-       // is not necessarly the original assertion)
-       d_cnfProof->setClauseFact(clause_id, node);
+       d_cnfProof->popCurrentDefinition();
      }
-     );
+    );
 }
 
 void CnfStream::assertClause(TNode node, SatLiteral a) {

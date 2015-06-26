@@ -98,6 +98,8 @@ protected:
   /** Is the lemma removable */
   vec<bool> lemmas_removable;
 
+  /** Nodes being converted to CNF */
+  std::vector<std::pair<CVC4::Node, CVC4::Node > >lemmas_cnf_assertion;
   /** Proof IDs for lemmas */
   //  vec<uint64_t> lemmas_proof_id;
 
