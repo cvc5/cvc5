@@ -296,7 +296,7 @@ void SortInference::setEqual( int t1, int t2 ){
           d_type_types[rt2] = it1->second;
           d_type_types.erase( rt1 );
         }else{
-          //may happen for mixed int/real
+          Trace("sort-inference-debug") << "...fail : associated with types " << d_type_types[rt1] << " and " << d_type_types[rt2] << std::endl;
           return;
         }
       }
@@ -361,14 +361,25 @@ int SortInference::process( Node n, std::map< Node, Node >& var_bound ){
 
   int retType;
   if( n.getKind()==kind::EQUAL ){
-    //we only require that the left and right hand side must be equal
-    setEqual( child_types[0], child_types[1] );
+    Trace("sort-inference-debug") << "For equality " << n << ", set equal types from : " << n[0].getType() << " " << n[1].getType() << std::endl;
+    //if original types are mixed (e.g. Int/Real), don't commit type equality in either direction
+    if( n[0].getType()!=n[1].getType() ){
+      //for now, assume the original types
+      for( unsigned i=0; i<2; i++ ){
+        int ct = getIdForType( n[i].getType() );
+        setEqual( child_types[i], ct );
+      }
+    }else{
+      //we only require that the left and right hand side must be equal
+      setEqual( child_types[0], child_types[1] );
+    }
     //int eqType = getIdForType( n[0].getType() );
     //setEqual( child_types[0], eqType );
     //setEqual( child_types[1], eqType );
     retType = getIdForType( n.getType() );
   }else if( n.getKind()==kind::APPLY_UF ){
     Node op = n.getOperator();
+    TypeNode tn_op = op.getType();
     if( d_op_return_types.find( op )==d_op_return_types.end() ){
       if( n.getType().isBoolean() ){
         //use booleans
@@ -387,7 +398,17 @@ int SortInference::process( Node n, std::map< Node, Node >& var_bound ){
     }
     for( size_t i=0; i<n.getNumChildren(); i++ ){
       //the argument of the operator must match the return type of the subterm
-      setEqual( child_types[i], d_op_arg_types[op][i] );
+      if( n[i].getType()!=tn_op[i] ){
+        //if type mismatch, assume original types
+        Trace("sort-inference-debug") << "Argument " << i << " of " << op << " " << n[i] << " has type " << n[i].getType();
+        Trace("sort-inference-debug") << ", while operator arg has type " << tn_op[i] << std::endl;
+        int ct1 = getIdForType( n[i].getType() );
+        setEqual( child_types[i], ct1 );
+        int ct2 = getIdForType( tn_op[i] );
+        setEqual( d_op_arg_types[op][i], ct2 );
+      }else{
+        setEqual( child_types[i], d_op_arg_types[op][i] );
+      }
     }
     //return type is the return type
     retType = d_op_return_types[op];

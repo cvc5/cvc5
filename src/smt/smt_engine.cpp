@@ -1426,6 +1426,12 @@ void SmtEngine::setDefaults() {
   }
 
   //cbqi options
+  // enable if pure arithmetic quantifiers
+  if( d_logic.isQuantified() && d_logic.isPure(THEORY_ARITH) ){
+    if( !options::cbqi.wasSetByUser() && !options::cbqi2.wasSetByUser() ){
+      options::cbqi2.set( true );
+    }
+  }
   if( options::recurseCbqi() || options::cbqi2() ){
     options::cbqi.set( true );
   }

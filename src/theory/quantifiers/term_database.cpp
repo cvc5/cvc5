@@ -409,7 +409,7 @@ bool TermDb::isInstClosure( Node r ) {
   return d_iclosure_processed.find( r )!=d_iclosure_processed.end();
 }
 
-//checks whether a type is reasonably small enough such that all of its domain elements can be enumerated
+//checks whether a type is not Array and is reasonably small enough (<1000) such that all of its domain elements can be enumerated
 bool TermDb::mayComplete( TypeNode tn ) {
   std::map< TypeNode, bool >::iterator it = d_may_complete.find( tn );
   if( it==d_may_complete.end() ){
@@ -1756,13 +1756,13 @@ Node TermDbSygus::getNormalized( TypeNode t, Node prog, bool do_pre_norm, bool d
   }
 }
 
-int TermDbSygus::getTermSize( Node n ){
+int TermDbSygus::getSygusTermSize( Node n ){
   if( isVar( n ) ){
     return 0;
   }else{
     int sum = 0;
     for( unsigned i=0; i<n.getNumChildren(); i++ ){
-      sum += getTermSize( n[i] );
+      sum += getSygusTermSize( n[i] );
     }
     return 1+sum;
   }

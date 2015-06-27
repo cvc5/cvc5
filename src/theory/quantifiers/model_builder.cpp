@@ -176,7 +176,7 @@ void QModelBuilderIG::processBuildModel( TheoryModel* m, bool fullModel ) {
         }
 
         //if applicable, find exceptions to model via inst-gen
-        if( optInstGen() ){
+        if( options::fmfInstGen() ){
           d_didInstGen = true;
           d_instGenMatches = 0;
           d_numQuantSat = 0;
@@ -201,7 +201,7 @@ void QModelBuilderIG::processBuildModel( TheoryModel* m, bool fullModel ) {
               }else{
                 d_numQuantNoSelForm++;
               }
-              if( optOneQuantPerRoundInstGen() && lems>0 ){
+              if( options::fmfInstGenOneQuantPerRound() && lems>0 ){
                 break;
               }
             }else if( d_quant_sat.find( f )!=d_quant_sat.end() ){
@@ -339,14 +339,6 @@ bool QModelBuilderIG::hasConstantDefinition( Node n ){
     }
   }
   return false;
-}
-
-bool QModelBuilderIG::optInstGen(){
-  return options::fmfInstGen();
-}
-
-bool QModelBuilderIG::optOneQuantPerRoundInstGen(){
-  return options::fmfInstGenOneQuantPerRound();
 }
 
 QModelBuilderIG::Statistics::Statistics():

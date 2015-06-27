@@ -337,20 +337,18 @@ private:
   /** pointer to theory engine */
   QuantifiersEngine* d_qe;
   /** internal representatives */
-  std::map< Node, Node > d_int_rep;
+  std::map< TypeNode, std::map< Node, Node > > d_int_rep;
   /** rep score */
   std::map< Node, int > d_rep_score;
   /** reset count */
   int d_reset_count;
-
-  bool d_liberal;
 private:
   /** node contains */
   Node getInstance( Node n, const std::vector< Node >& eqc, std::hash_map<TNode, Node, TNodeHashFunction>& cache );
   /** get score */
-  int getRepScore( Node n, Node f, int index );
+  int getRepScore( Node n, Node f, int index, TypeNode v_tn );
 public:
-  EqualityQueryQuantifiersEngine( QuantifiersEngine* qe ) : d_qe( qe ), d_reset_count( 0 ), d_liberal( false ){}
+  EqualityQueryQuantifiersEngine( QuantifiersEngine* qe ) : d_qe( qe ), d_reset_count( 0 ){}
   ~EqualityQueryQuantifiersEngine(){}
   /** reset */
   void reset();
@@ -368,8 +366,6 @@ public:
   Node getInternalRepresentative( Node a, Node f, int index );
   /** flatten representatives */
   void flattenRepresentatives( std::map< TypeNode, std::vector< Node > >& reps );
-
-  void setLiberal( bool l ) { d_liberal = l; }
 }; /* EqualityQueryQuantifiersEngine */
 
 }/* CVC4::theory namespace */

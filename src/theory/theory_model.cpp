@@ -478,6 +478,14 @@ void TheoryEngineModelBuilder::checkTerms(TNode n, TheoryModel* tm, NodeSet& cac
   cache.insert(n);
 }
 
+void TheoryEngineModelBuilder::assignConstantRep( TheoryModel* tm, std::map<Node, Node>& constantReps, Node eqc, Node const_rep, bool fullModel ) {
+  constantReps[eqc] = const_rep;
+  Trace("model-builder") << "    Assign: Setting constant rep of " << eqc << " to " << const_rep << endl;
+  if( !fullModel ){
+    tm->d_rep_set.d_values_to_terms[const_rep] = eqc;
+  }
+}
+
 
 void TheoryEngineModelBuilder::buildModel(Model* m, bool fullModel)
 {
@@ -551,7 +559,7 @@ void TheoryEngineModelBuilder::buildModel(Model* m, bool fullModel)
     if (!const_rep.isNull()) {
       // Theories should not specify a rep if there is already a constant in the EC
       Assert(rep.isNull() || rep == const_rep);
-      constantReps[eqc] = const_rep;
+      assignConstantRep( tm, constantReps, eqc, const_rep, fullModel );
       typeConstSet.add(eqct.getBaseType(), const_rep);
     }
     else if (!rep.isNull()) {
@@ -615,7 +623,7 @@ void TheoryEngineModelBuilder::buildModel(Model* m, bool fullModel)
                 Node normalized = normalize(tm, n, constantReps, true);
                 if (normalized.isConst()) {
                   typeConstSet.add(tb, normalized);
-                  constantReps[*i2] = normalized;
+                  assignConstantRep( tm, constantReps, *i2, normalized, fullModel );
                   Trace("model-builder") << "    Eval: Setting constant rep of " << (*i2) << " to " << normalized << endl;
                   changed = true;
                   evaluated = true;
@@ -648,7 +656,7 @@ void TheoryEngineModelBuilder::buildModel(Model* m, bool fullModel)
             if (normalized.isConst()) {
               changed = true;
               typeConstSet.add(tb, normalized);
-              constantReps[*i] = normalized;
+              assignConstantRep( tm, constantReps, *i, normalized, fullModel );
               assertedReps.erase(*i);
               i2 = i;
               ++i;
@@ -727,11 +735,7 @@ void TheoryEngineModelBuilder::buildModel(Model* m, bool fullModel)
             n = *te;
           }
           Assert(!n.isNull());
-          constantReps[*i2] = n;
-          Trace("model-builder") << "    Assign: Setting constant rep of " << (*i2) << " to " << n << endl;
-          if( !fullModel ){
-            tm->d_rep_set.d_values_to_terms[n] = (*i2);
-          }
+          assignConstantRep( tm, constantReps, *i2, n, fullModel );
           changed = true;
           noRepSet.erase(i2);
           if (assignOne) {

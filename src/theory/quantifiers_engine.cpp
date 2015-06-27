@@ -99,7 +99,7 @@ d_lemmas_produced_c(u){
   }else{
     d_model = new quantifiers::FirstOrderModelIG( this, c, "FirstOrderModelIG" );
   }
-  if( !options::finiteModelFind() ){
+  if( options::fullSaturateQuant() ){
     d_rel_dom = new quantifiers::RelevantDomain( this, d_model );
   }else{
     d_rel_dom = NULL;
@@ -783,12 +783,7 @@ bool QuantifiersEngine::addInstantiation( Node f, std::vector< Node >& terms, bo
     //make it representative, this is helpful for recognizing duplication
     if( mkRep ){
       //pick the best possible representative for instantiation, based on past use and simplicity of term
-      Node ti = d_eq_query->getInternalRepresentative( terms[i], f, i );
-      //check if it is a subtype (can be violated in mixed int/real) FIXME : do this check inside getInternalRepresentative
-      if( ti.getType().isSubtypeOf( f[0][i].getType() ) ){
-        terms[i] = ti;
-        Trace("inst-add-debug2") << " (" << terms[i] << ")";
-      }
+      terms[i] = d_eq_query->getInternalRepresentative( terms[i], f, i );
     }
   }
   Trace("inst-add-debug") << std::endl;
@@ -1070,16 +1065,12 @@ bool EqualityQueryQuantifiersEngine::areEqual( Node a, Node b ){
     return true;
   }else{
     eq::EqualityEngine* ee = getEngine();
-    if( d_liberal ){
-      return true;//!areDisequal( a, b );
-    }else{
-      if( ee->hasTerm( a ) && ee->hasTerm( b ) ){
-        if( ee->areEqual( a, b ) ){
-          return true;
-        }
+    if( ee->hasTerm( a ) && ee->hasTerm( b ) ){
+      if( ee->areEqual( a, b ) ){
+        return true;
       }
-      return false;
     }
+    return false;
   }
 }
 
@@ -1094,6 +1085,7 @@ bool EqualityQueryQuantifiersEngine::areDisequal( Node a, Node b ){
 }
 
 Node EqualityQueryQuantifiersEngine::getInternalRepresentative( Node a, Node f, int index ){
+  Assert( f.isNull() || f.getKind()==FORALL );
   Node r = getRepresentative( a );
   if( !options::internalReps() ){
     return r;
@@ -1108,16 +1100,17 @@ Node EqualityQueryQuantifiersEngine::getInternalRepresentative( Node a, Node f, 
             r = getRepresentative( r );
           }else{
             if( r.getType().isSort() ){
-              //TODO : this can happen in rare cases
-              // say x:(Array Int U), select( x, 0 ), x assigned (const @u1).
               Trace("internal-rep-warn") << "No representative for UF constant." << std::endl;
+              //should never happen : UF constants should never escape model
+              Assert( false );
             }
           }
         }
       }
     }
-    std::map< Node, Node >::iterator itir = d_int_rep.find( r );
-    if( itir==d_int_rep.end() ){
+    TypeNode v_tn = f.isNull() ? a.getType() : f[0][index].getType();
+    std::map< Node, Node >::iterator itir = d_int_rep[v_tn].find( r );
+    if( itir==d_int_rep[v_tn].end() ){
       //find best selection for representative
       Node r_best;
       //if( options::fmfRelevantDomain() && !f.isNull() ){
@@ -1134,8 +1127,9 @@ Node EqualityQueryQuantifiersEngine::getInternalRepresentative( Node a, Node f, 
       }
       Trace("internal-rep-select")  << " } " << std::endl;
       int r_best_score = -1;
+      TypeNode v_tn = f[0][index].getType();
       for( size_t i=0; i<eqc.size(); i++ ){
-        int score = getRepScore( eqc[i], f, index );
+        int score = getRepScore( eqc[i], f, index, v_tn );
         if( score!=-2 ){
           if( r_best.isNull() || ( score>=0 && ( r_best_score<0 || score<r_best_score ) ) ){
             r_best = eqc[i];
@@ -1144,12 +1138,8 @@ Node EqualityQueryQuantifiersEngine::getInternalRepresentative( Node a, Node f, 
         }
       }
       if( r_best.isNull() ){
-        if( !f.isNull() ){
-          Node ic = d_qe->getTermDatabase()->getInstantiationConstant( f, index );
-          r_best = d_qe->getTermDatabase()->getFreeVariableForInstConstant( ic );
-        }else{
-          r_best = a;
-        }
+		Trace("internal-rep-warn") << "No valid choice for representative in eqc class." << std::endl;
+        r_best = r;
       }
       //now, make sure that no other member of the class is an instance
       std::hash_map<TNode, Node, TNodeHashFunction> cache;
@@ -1159,7 +1149,7 @@ Node EqualityQueryQuantifiersEngine::getInternalRepresentative( Node a, Node f, 
         d_rep_score[ r_best ] = d_reset_count;
       }
       Trace("internal-rep-select") << "...Choose " << r_best << std::endl;
-      d_int_rep[r] = r_best;
+      d_int_rep[v_tn][r] = r_best;
       if( r_best!=a ){
         Trace("internal-rep-debug") << "rep( " << a << " ) = " << r << ", " << std::endl;
         Trace("internal-rep-debug") << "int_rep( " << a << " ) = " << r_best << ", " << std::endl;
@@ -1181,8 +1171,10 @@ void EqualityQueryQuantifiersEngine::flattenRepresentatives( std::map< TypeNode,
     }
   }
   Trace("internal-rep-flatten") << "---Flattening representatives : " << std::endl;
-  for( std::map< Node, Node >::iterator it = d_int_rep.begin(); it != d_int_rep.end(); ++it ){
-    Trace("internal-rep-flatten") << it->first.getType() << " : irep( " << it->first << " ) = " << it->second << std::endl;
+  for( std::map< TypeNode, std::map< Node, Node > >::iterator itt = d_int_rep.begin(); itt != d_int_rep.end(); ++itt ){
+    for( std::map< Node, Node >::iterator it = itt->second.begin(); it != itt->second.end(); ++it ){
+      Trace("internal-rep-flatten") << itt->first << " : irep( " << it->first << " ) = " << it->second << std::endl;
+    }
   }
   //store representatives for newly created terms
   std::map< Node, Node > temp_rep_map;
@@ -1190,51 +1182,55 @@ void EqualityQueryQuantifiersEngine::flattenRepresentatives( std::map< TypeNode,
   bool success;
   do {
     success = false;
-    for( std::map< Node, Node >::iterator it = d_int_rep.begin(); it != d_int_rep.end(); ++it ){
-      if( it->second.getKind()==APPLY_UF && it->second.getType().isSort() ){
-        Node ni = it->second;
-        std::vector< Node > cc;
-        cc.push_back( it->second.getOperator() );
-        bool changed = false;
-        for( unsigned j=0; j<ni.getNumChildren(); j++ ){
-          if( ni[j].getType().isSort() ){
-            Node r = getRepresentative( ni[j] );
-            if( d_int_rep.find( r )==d_int_rep.end() ){
-              Assert( temp_rep_map.find( r )!=temp_rep_map.end() );
-              r = temp_rep_map[r];
-            }
-            if( r==ni ){
-              //found sub-term as instance
-              Trace("internal-rep-flatten-debug") << "...Changed " << it->second << " to subterm " << ni[j] << std::endl;
-              d_int_rep[it->first] = ni[j];
-              changed = false;
-              success = true;
-              break;
-            }else{
-              Node ir = d_int_rep[r];
-              cc.push_back( ir );
-              if( ni[j]!=ir ){
-                changed = true;
+    for( std::map< TypeNode, std::map< Node, Node > >::iterator itt = d_int_rep.begin(); itt != d_int_rep.end(); ++itt ){
+      for( std::map< Node, Node >::iterator it = itt->second.begin(); it != itt->second.end(); ++it ){
+        if( it->second.getKind()==APPLY_UF && it->second.getType().isSort() ){
+          Node ni = it->second;
+          std::vector< Node > cc;
+          cc.push_back( it->second.getOperator() );
+          bool changed = false;
+          for( unsigned j=0; j<ni.getNumChildren(); j++ ){
+            if( ni[j].getType().isSort() ){
+              Node r = getRepresentative( ni[j] );
+              if( itt->second.find( r )==itt->second.end() ){
+                Assert( temp_rep_map.find( r )!=temp_rep_map.end() );
+                r = temp_rep_map[r];
               }
+              if( r==ni ){
+                //found sub-term as instance
+                Trace("internal-rep-flatten-debug") << "...Changed " << it->second << " to subterm " << ni[j] << std::endl;
+                itt->second[it->first] = ni[j];
+                changed = false;
+                success = true;
+                break;
+              }else{
+                Node ir = itt->second[r];
+                cc.push_back( ir );
+                if( ni[j]!=ir ){
+                  changed = true;
+                }
+              }
+            }else{
+              changed = false;
+              break;
             }
-          }else{
-            changed = false;
-            break;
           }
-        }
-        if( changed ){
-          Node n = NodeManager::currentNM()->mkNode( APPLY_UF, cc );
-          Trace("internal-rep-flatten-debug") << "...Changed " << it->second << " to " << n << std::endl;
-          success = true;
-          d_int_rep[it->first] = n;
-          temp_rep_map[n] = it->first;
+          if( changed ){
+            Node n = NodeManager::currentNM()->mkNode( APPLY_UF, cc );
+            Trace("internal-rep-flatten-debug") << "...Changed " << it->second << " to " << n << std::endl;
+            success = true;
+            itt->second[it->first] = n;
+            temp_rep_map[n] = it->first;
+          }
         }
       }
     }
   }while( success );
   Trace("internal-rep-flatten") << "---After flattening : " << std::endl;
-  for( std::map< Node, Node >::iterator it = d_int_rep.begin(); it != d_int_rep.end(); ++it ){
-    Trace("internal-rep-flatten") << it->first.getType() << " : irep( " << it->first << " ) = " << it->second << std::endl;
+  for( std::map< TypeNode, std::map< Node, Node > >::iterator itt = d_int_rep.begin(); itt != d_int_rep.end(); ++itt ){
+    for( std::map< Node, Node >::iterator it = itt->second.begin(); it != itt->second.end(); ++it ){
+      Trace("internal-rep-flatten") << itt->first << " : irep( " << it->first << " ) = " << it->second << std::endl;
+    }
   }
 }
 
@@ -1277,6 +1273,7 @@ Node EqualityQueryQuantifiersEngine::getInstance( Node n, const std::vector< Nod
   }
 }
 
+/*
 int getDepth( Node n ){
   if( n.getNumChildren()==0 ){
     return 0;
@@ -1291,10 +1288,13 @@ int getDepth( Node n ){
     return maxDepth;
   }
 }
+*/
 
-//smaller the score, the better
-int EqualityQueryQuantifiersEngine::getRepScore( Node n, Node f, int index ){
-  if( options::cbqi() && quantifiers::TermDb::hasInstConstAttr(n) ){
+//-2 : invalid, -1 : undesired, otherwise : smaller the score, the better
+int EqualityQueryQuantifiersEngine::getRepScore( Node n, Node f, int index, TypeNode v_tn ){
+  if( options::cbqi() && quantifiers::TermDb::hasInstConstAttr(n) ){  //reject
+    return -2;
+  }else if( !n.getType().isSubtypeOf( v_tn ) ){  //reject if incorrect type
     return -2;
   }else if( options::lteRestrictInstClosure() && ( !d_qe->getTermDatabase()->isInstClosure( n ) || !d_qe->getTermDatabase()->hasTermCurrent( n, false ) ) ){
     return -1;

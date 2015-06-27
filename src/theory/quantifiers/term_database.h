@@ -465,7 +465,7 @@ public:
   Node builtinToSygusConst( Node c, TypeNode tn, int rcons_depth = 0 );
   Node getSygusNormalized( Node n, std::map< TypeNode, int >& var_count, std::map< Node, Node >& subs );
   Node getNormalized( TypeNode t, Node prog, bool do_pre_norm = false, bool do_post_norm = true );
-  int getTermSize( Node n );
+  int getSygusTermSize( Node n );
   /** given a term, construct an equivalent smaller one that respects syntax */
   Node minimizeBuiltinTerm( Node n );
   /** given a term, expand it into more basic components */

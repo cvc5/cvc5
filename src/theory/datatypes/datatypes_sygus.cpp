@@ -820,7 +820,7 @@ bool SygusSymBreak::processCurrentProgram( Node a, TypeNode at, int depth, Node 
     Node progr = d_tds->getNormalized( at, prog );
     Node rep_prog;
     std::map< Node, Node >::iterator itnp = d_normalized_to_orig[at].find( progr );
-    int tsize = d_tds->getTermSize( prog );
+    int tsize = d_tds->getSygusTermSize( prog );
     if( itnp==d_normalized_to_orig[at].end() ){
       d_normalized_to_orig[at][progr] = prog;
       if( progr.getKind()==SKOLEM && d_tds->getSygusType( progr )==at ){

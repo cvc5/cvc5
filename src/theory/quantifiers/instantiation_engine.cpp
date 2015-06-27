@@ -66,11 +66,10 @@ void InstantiationEngine::finishInit(){
 
   //counterexample-based quantifier instantiation
   if( options::cbqi() ){
-    if( !options::cbqi2() || options::cbqi.wasSetByUser() ){
+    if( !options::cbqi2() ){
       d_i_splx = new InstStrategySimplex( (arith::TheoryArith*)d_quantEngine->getTheoryEngine()->theoryOf( THEORY_ARITH ), d_quantEngine );
       d_instStrategies.push_back( d_i_splx );
-    }
-    if( options::cbqi2() ){
+    }else{
       d_i_cegqi = new InstStrategyCegqi( d_quantEngine );
       d_instStrategies.push_back( d_i_cegqi );
     }
