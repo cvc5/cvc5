@@ -1,0 +1,3 @@
+* concat needs result bitwidth (ask Andy why side condition failed)
+* bit-blasting concat also needs output width and proper number of holes
+* bitblast-eq and is in reversed order
