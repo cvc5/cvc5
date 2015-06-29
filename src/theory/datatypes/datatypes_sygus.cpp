@@ -88,7 +88,7 @@ void SygusSplit::getSygusSplits( Node n, const Datatype& dt, std::vector< Node >
             Kind k = d_tds->getArgKind( tnnp, csIndex );
             //size comparison for arguments (if necessary)
             Node sz_leq;
-            if( tn1==tnn && d_tds->isComm( k ) ){
+            if( tn1==tnn && quantifiers::TermDb::isComm( k ) ){
               sz_leq = NodeManager::currentNM()->mkNode( LEQ, NodeManager::currentNM()->mkNode( DT_SIZE, n ), NodeManager::currentNM()->mkNode( DT_SIZE, arg1 ) );
             }
             std::map< int, std::vector< int > >::iterator it = d_sygus_pc_arg_pos[tnn][csIndex].find( i );
@@ -327,7 +327,7 @@ void SygusSplit::registerSygusTypeConstructorArg( TypeNode tnn, const Datatype& 
             Assert( d_sygus_pc_nred[tnn][csIndex].find( sIndex )!=d_sygus_pc_nred[tnn][csIndex].end() );
             Assert( d_sygus_pc_nred[tnno][csIndex].find( osIndex )!=d_sygus_pc_nred[tnno][csIndex].end() );
 
-            bool isPComm = d_tds->isComm( parentKind );
+            bool isPComm = quantifiers::TermDb::isComm( parentKind );
             std::map< int, bool > larg_consider;
             for( unsigned i=0; i<dto.getNumConstructors(); i++ ){
               if( d_sygus_pc_nred[tnno][csIndex][osIndex][i] ){
@@ -411,7 +411,7 @@ bool SygusSplit::considerSygusSplitKind( const Datatype& dt, const Datatype& pdt
   int pc = d_tds->getKindArg( tnp, parent );
   if( k==parent ){
     //check for associativity
-    if( d_tds->isAssoc( k ) ){
+    if( quantifiers::TermDb::isAssoc( k ) ){
       //if the operator is associative, then a repeated occurrence should only occur in the leftmost argument position
       int firstArg = getFirstArgOccurrence( pdt[pc], dt );
       Assert( firstArg!=-1 );
@@ -511,8 +511,8 @@ bool SygusSplit::considerSygusSplitKind( const Datatype& dt, const Datatype& pdt
     }
   }
   if( parent==MINUS || parent==BITVECTOR_SUB ){
-    
-    
+
+
   }
   return true;
 }

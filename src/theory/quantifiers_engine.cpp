@@ -32,6 +32,7 @@
 #include "theory/quantifiers/ce_guided_instantiation.h"
 #include "theory/quantifiers/local_theory_ext.h"
 #include "theory/quantifiers/relevant_domain.h"
+#include "theory/quantifiers/alpha_equivalence.h"
 #include "theory/uf/options.h"
 #include "theory/uf/theory_uf.h"
 #include "theory/quantifiers/full_model_check.h"
@@ -162,6 +163,11 @@ d_lemmas_produced_c(u){
     d_modules.push_back( d_lte_part_inst );
   }else{
     d_lte_part_inst = NULL;
+  }
+  if( options::quantAlphaEquiv() ){
+    d_alpha_equiv = new quantifiers::AlphaEquivalence( this );
+  }else{
+    d_alpha_equiv = NULL;
   }
 
   if( needsBuilder ){
@@ -422,6 +428,38 @@ void QuantifiersEngine::check( Theory::Effort e ){
   }
 }
 
+bool QuantifiersEngine::reduceQuantifier( Node q ) {
+  std::map< Node, bool >::iterator it = d_quants_red.find( q );
+  if( it==d_quants_red.end() ){
+    if( d_alpha_equiv ){
+      Trace("quant-engine-debug") << "Alpha equivalence " << q << "?" << std::endl;
+      //add equivalence with another quantified formula
+      if( !d_alpha_equiv->registerQuantifier( q ) ){
+        Trace("quant-engine-debug") << "...alpha equivalence success." << std::endl;
+        ++(d_statistics.d_red_alpha_equiv);
+        d_quants_red[q] = true;
+        return true;
+      }
+    }
+    if( d_lte_part_inst && !q.getAttribute(LtePartialInstAttribute()) ){
+      //will partially instantiate
+      Trace("quant-engine-debug") << "LTE: Partially instantiate " << q << "?" << std::endl;
+      if( d_lte_part_inst->addQuantifier( q ) ){
+        Trace("quant-engine-debug") << "...LTE partially instantiate success." << std::endl;
+        //delayed reduction : assert to model
+        d_model->assertQuantifier( q, true );
+        ++(d_statistics.d_red_lte_partial_inst);
+        d_quants_red[q] = true;
+        return true;
+      }
+    }
+    d_quants_red[q] = false;
+    return false;
+  }else{
+    return it->second;
+  }
+}
+
 bool QuantifiersEngine::registerQuantifier( Node f ){
   std::map< Node, bool >::iterator it = d_quants.find( f );
   if( it==d_quants.end() ){
@@ -431,15 +469,7 @@ bool QuantifiersEngine::registerQuantifier( Node f ){
     Assert( f.getKind()==FORALL );
 
     //check whether we should apply a reduction
-    bool reduced = false;
-    if( d_lte_part_inst && !f.getAttribute(LtePartialInstAttribute()) ){
-      Trace("lte-partial-inst") << "LTE: Partially instantiate " << f << "?" << std::endl;
-      if( d_lte_part_inst->addQuantifier( f ) ){
-        reduced = true;
-      }
-    }
-    if( reduced ){
-      d_model->assertQuantifier( f, true );
+    if( reduceQuantifier( f ) ){
       d_quants[f] = false;
       return false;
     }else{
@@ -482,26 +512,26 @@ void QuantifiersEngine::registerPattern( std::vector<Node> & pattern) {
 
 void QuantifiersEngine::assertQuantifier( Node f, bool pol ){
   if( !pol ){
-    //do skolemization
-    if( d_skolemized.find( f )==d_skolemized.end() ){
-      Node body = d_term_db->getSkolemizedBody( f );
-      NodeBuilder<> nb(kind::OR);
-      nb << f << body.notNode();
-      Node lem = nb;
-      if( Trace.isOn("quantifiers-sk") ){
-        Node slem = Rewriter::rewrite( lem );
-        Trace("quantifiers-sk") << "Skolemize lemma : " << slem << std::endl;
+    //if not reduced
+    if( !reduceQuantifier( f ) ){
+      //do skolemization
+      if( d_skolemized.find( f )==d_skolemized.end() ){
+        Node body = d_term_db->getSkolemizedBody( f );
+        NodeBuilder<> nb(kind::OR);
+        nb << f << body.notNode();
+        Node lem = nb;
+        if( Trace.isOn("quantifiers-sk") ){
+          Node slem = Rewriter::rewrite( lem );
+          Trace("quantifiers-sk") << "Skolemize lemma : " << slem << std::endl;
+        }
+        getOutputChannel().lemma( lem, false, true );
+        d_skolemized[f] = true;
       }
-      getOutputChannel().lemma( lem, false, true );
-      d_skolemized[f] = true;
     }
-  }
-  //assert to modules TODO : handle !pol
-  if( pol ){
-    //register the quantifier
-    bool nreduced = registerQuantifier( f );
-    //assert it to each module
-    if( nreduced ){
+  }else{
+    //assert to modules TODO : also for !pol?
+    //register the quantifier, assert it to each module
+    if( registerQuantifier( f ) ){
       d_model->assertQuantifier( f );
       for( int i=0; i<(int)d_modules.size(); i++ ){
         d_modules[i]->assertNode( f );
@@ -975,7 +1005,9 @@ QuantifiersEngine::Statistics::Statistics():
   d_triggers("QuantifiersEngine::Triggers", 0),
   d_simple_triggers("QuantifiersEngine::Triggers_Simple", 0),
   d_multi_triggers("QuantifiersEngine::Triggers_Multi", 0),
-  d_multi_trigger_instantiations("QuantifiersEngine::Multi_Trigger_Instantiations", 0)
+  d_multi_trigger_instantiations("QuantifiersEngine::Multi_Trigger_Instantiations", 0),
+  d_red_alpha_equiv("QuantifiersEngine::Reductions_Alpha_Equivalence", 0),
+  d_red_lte_partial_inst("QuantifiersEngine::Reductions_Lte_Partial_Inst", 0)
 {
   StatisticsRegistry::registerStat(&d_num_quant);
   StatisticsRegistry::registerStat(&d_instantiation_rounds);
@@ -987,6 +1019,8 @@ QuantifiersEngine::Statistics::Statistics():
   StatisticsRegistry::registerStat(&d_simple_triggers);
   StatisticsRegistry::registerStat(&d_multi_triggers);
   StatisticsRegistry::registerStat(&d_multi_trigger_instantiations);
+  StatisticsRegistry::registerStat(&d_red_alpha_equiv);
+  StatisticsRegistry::registerStat(&d_red_lte_partial_inst);
 }
 
 QuantifiersEngine::Statistics::~Statistics(){
@@ -1000,6 +1034,8 @@ QuantifiersEngine::Statistics::~Statistics(){
   StatisticsRegistry::unregisterStat(&d_simple_triggers);
   StatisticsRegistry::unregisterStat(&d_multi_triggers);
   StatisticsRegistry::unregisterStat(&d_multi_trigger_instantiations);
+  StatisticsRegistry::unregisterStat(&d_red_alpha_equiv);
+  StatisticsRegistry::unregisterStat(&d_red_lte_partial_inst);
 }
 
 eq::EqualityEngine* QuantifiersEngine::getMasterEqualityEngine(){
@@ -1138,7 +1174,7 @@ Node EqualityQueryQuantifiersEngine::getInternalRepresentative( Node a, Node f, 
         }
       }
       if( r_best.isNull() ){
-		Trace("internal-rep-warn") << "No valid choice for representative in eqc class." << std::endl;
+        Trace("internal-rep-warn") << "No valid choice for representative in eqc class." << std::endl;
         r_best = r;
       }
       //now, make sure that no other member of the class is an instance

@@ -77,7 +77,7 @@ void TermArgTrie::debugPrint( const char * c, Node n, unsigned depth ) {
   }
 }
 
-TermDb::TermDb( context::Context* c, context::UserContext* u, QuantifiersEngine* qe ) : d_quantEngine( qe ), d_op_ccount( u ) {
+TermDb::TermDb( context::Context* c, context::UserContext* u, QuantifiersEngine* qe ) : d_quantEngine( qe ), d_op_ccount( u ), d_op_id_count( 0 ), d_typ_id_count( 0 ) {
   d_true = NodeManager::currentNM()->mkConst( true );
   d_false = NodeManager::currentNM()->mkConst( false );
   if( options::ceGuidedInst() ){
@@ -1154,6 +1154,133 @@ void TermDb::filterInstances( std::vector< Node >& nodes ){
   nodes.insert( nodes.begin(), temp.begin(), temp.end() );
 }
 
+int TermDb::getIdForOperator( Node op ) {
+  std::map< Node, int >::iterator it = d_op_id.find( op );
+  if( it==d_op_id.end() ){
+    d_op_id[op] = d_op_id_count;
+    d_op_id_count++;
+    return d_op_id[op];
+  }else{
+    return it->second;
+  }
+}
+
+int TermDb::getIdForType( TypeNode t ) {
+  std::map< TypeNode, int >::iterator it = d_typ_id.find( t );
+  if( it==d_typ_id.end() ){
+    d_typ_id[t] = d_typ_id_count;
+    d_typ_id_count++;
+    return d_typ_id[t];
+  }else{
+    return it->second;
+  }
+}
+
+bool TermDb::getTermOrder( Node a, Node b ) {
+  if( a.getKind()==BOUND_VARIABLE ){
+    if( b.getKind()==BOUND_VARIABLE ){
+      return a.getAttribute(InstVarNumAttribute())<b.getAttribute(InstVarNumAttribute());
+    }else{
+      return true;
+    }
+  }else if( b.getKind()!=BOUND_VARIABLE ){
+    Node aop = a.hasOperator() ? a.getOperator() : a;
+    Node bop = b.hasOperator() ? b.getOperator() : b;
+    Trace("aeq-debug2") << a << "...op..." << aop << std::endl;
+    Trace("aeq-debug2") << b << "...op..." << bop << std::endl;
+    if( aop==bop ){
+      if( aop.getNumChildren()==bop.getNumChildren() ){
+        for( unsigned i=0; i<a.getNumChildren(); i++ ){
+          if( a[i]!=b[i] ){
+            //first distinct child determines the ordering
+            return getTermOrder( a[i], b[i] );
+          }
+        }
+      }else{
+        return aop.getNumChildren()<bop.getNumChildren();
+      }
+    }else{
+      return getIdForOperator( aop )<getIdForOperator( bop );
+    }
+  }
+  return false;
+}
+
+
+
+Node TermDb::getCanonicalFreeVar( TypeNode tn, unsigned i ) {
+  Assert( !tn.isNull() );
+  while( d_cn_free_var[tn].size()<=i ){
+    std::stringstream oss;
+    oss << tn;
+    std::string typ_name = oss.str();
+    while( typ_name[0]=='(' ){
+      typ_name.erase( typ_name.begin() );
+    }
+    std::stringstream os;
+    os << typ_name[0] << i;
+    Node x = NodeManager::currentNM()->mkBoundVar( os.str().c_str(), tn );
+    InstVarNumAttribute ivna;
+    x.setAttribute(ivna,d_cn_free_var[tn].size());
+    d_cn_free_var[tn].push_back( x );
+  }
+  return d_cn_free_var[tn][i];
+}
+
+struct sortTermOrder {
+  TermDb* d_tdb;
+  bool operator() (Node i, Node j) {
+    return d_tdb->getTermOrder( i, j );
+  }
+};
+
+//this function makes a canonical representation of a term (
+//  - orders variables left to right
+//  - if apply_torder, then sort direct subterms of commutative operators
+Node TermDb::getCanonicalTerm( TNode n, std::map< TypeNode, unsigned >& var_count, std::map< TNode, TNode >& subs, bool apply_torder ) {
+  if( n.getKind()==BOUND_VARIABLE ){
+    std::map< TNode, TNode >::iterator it = subs.find( n );
+    if( it==subs.end() ){
+      TypeNode tn = n.getType();
+      //allocate variable
+      unsigned vn = var_count[tn];
+      var_count[tn]++;
+      subs[n] = getCanonicalFreeVar( tn, vn );
+      return subs[n];
+    }else{
+      return it->second;
+    }
+  }else if( n.getNumChildren()>0 ){
+    //collect children
+    std::vector< Node > cchildren;
+    for( unsigned i=0; i<n.getNumChildren(); i++ ){
+      cchildren.push_back( n[i] );
+    }
+    //if applicable, first sort by term order
+    if( apply_torder && isComm( n.getKind() ) ){
+      sortTermOrder sto;
+      sto.d_tdb = this;
+      std::sort( cchildren.begin(), cchildren.end(), sto );
+    }
+    //now make canonical
+    for( unsigned i=0; i<cchildren.size(); i++ ){
+      cchildren[i] = getCanonicalTerm( cchildren[i], var_count, subs, apply_torder );
+    }
+    if( n.hasOperator() ){
+      cchildren.insert( cchildren.begin(), n.getOperator() );
+    }
+    return NodeManager::currentNM()->mkNode( n.getKind(), cchildren );
+  }else{
+    return n;
+  }
+}
+
+Node TermDb::getCanonicalTerm( TNode n, bool apply_torder ){
+  std::map< TypeNode, unsigned > var_count;
+  std::map< TNode, TNode > subs;
+  return getCanonicalTerm( n, var_count, subs, apply_torder );
+}
+
 bool TermDb::containsTerm( Node n, Node t ) {
   if( n==t ){
     return true;
@@ -1179,6 +1306,15 @@ Node TermDb::simpleNegate( Node n ){
   }
 }
 
+bool TermDb::isAssoc( Kind k ) {
+  return k==PLUS || k==MULT || k==AND || k==OR || k==XOR || k==IFF ||
+         k==BITVECTOR_PLUS || k==BITVECTOR_MULT || k==BITVECTOR_AND || k==BITVECTOR_OR || k==BITVECTOR_XOR || k==BITVECTOR_XNOR || k==BITVECTOR_CONCAT;
+}
+
+bool TermDb::isComm( Kind k ) {
+  return k==PLUS || k==MULT || k==AND || k==OR || k==XOR || k==IFF ||
+         k==BITVECTOR_PLUS || k==BITVECTOR_MULT || k==BITVECTOR_AND || k==BITVECTOR_OR || k==BITVECTOR_XOR || k==BITVECTOR_XNOR;
+}
 
 void TermDb::registerTrigger( theory::inst::Trigger* tr, Node op ){
   if( std::find( d_op_triggers[op].begin(), d_op_triggers[op].end(), tr )==d_op_triggers[op].end() ){
@@ -1440,7 +1576,7 @@ bool TermDbSygus::getMatch2( Node p, Node n, std::map< int, Node >& s, std::vect
     return p==n;
   }else if( n.getKind()==p.getKind() && n.getNumChildren()==p.getNumChildren() ){
     //try both ways?
-    unsigned rmax = isComm( n.getKind() ) && n.getNumChildren()==2 ? 2 : 1;
+    unsigned rmax = TermDb::isComm( n.getKind() ) && n.getNumChildren()==2 ? 2 : 1;
     std::vector< int > new_tmp;
     for( unsigned r=0; r<rmax; r++ ){
       bool success = true;
@@ -1666,7 +1802,7 @@ Node TermDbSygus::builtinToSygusConst( Node c, TypeNode tn, int rcons_depth ) {
                 int end = d_const_list[tn1].size()-d_const_list_pos[tn1];
                 for( int i=start; i>=end; --i ){
                   Node c1 = d_const_list[tn1][i];
-                  //only consider if smaller than c, and 
+                  //only consider if smaller than c, and
                   if( doCompare( c1, c, ck ) ){
                     Node c2 = NodeManager::currentNM()->mkNode( pkm, c, c1 );
                     c2 = Rewriter::rewrite( c2 );
@@ -1766,16 +1902,6 @@ int TermDbSygus::getSygusTermSize( Node n ){
     }
     return 1+sum;
   }
-}
-
-bool TermDbSygus::isAssoc( Kind k ) {
-  return k==PLUS || k==MULT || k==AND || k==OR || k==XOR || k==IFF ||
-         k==BITVECTOR_PLUS || k==BITVECTOR_MULT || k==BITVECTOR_AND || k==BITVECTOR_OR || k==BITVECTOR_XOR || k==BITVECTOR_XNOR || k==BITVECTOR_CONCAT;
-}
-
-bool TermDbSygus::isComm( Kind k ) {
-  return k==PLUS || k==MULT || k==AND || k==OR || k==XOR || k==IFF ||
-         k==BITVECTOR_PLUS || k==BITVECTOR_MULT || k==BITVECTOR_AND || k==BITVECTOR_OR || k==BITVECTOR_XOR || k==BITVECTOR_XNOR;
 }
 
 bool TermDbSygus::isAntisymmetric( Kind k, Kind& dk ) {
@@ -2257,7 +2383,7 @@ void TermDbSygus::printSygusTerm( std::ostream& out, Node n, std::vector< Node >
         std::stringstream body_out;
         printSygusTerm( body_out, let_body, new_lvs );
         std::string body = body_out.str();
-        for( unsigned i=0; i<dt[cIndex].getNumSygusLetArgs(); i++ ){ 
+        for( unsigned i=0; i<dt[cIndex].getNumSygusLetArgs(); i++ ){
           std::stringstream old_str;
           old_str << new_lvs[i];
           std::stringstream new_str;

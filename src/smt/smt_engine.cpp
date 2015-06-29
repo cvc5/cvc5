@@ -82,10 +82,8 @@
 #include "prop/options.h"
 #include "theory/arrays/options.h"
 #include "util/sort_inference.h"
-#include "theory/quantifiers/quant_conflict_find.h"
 #include "theory/quantifiers/macros.h"
 #include "theory/quantifiers/fun_def_process.h"
-#include "theory/quantifiers/first_order_reasoning.h"
 #include "theory/quantifiers/quantifiers_rewriter.h"
 #include "theory/quantifiers/options.h"
 #include "theory/datatypes/options.h"
@@ -1496,8 +1494,8 @@ void SmtEngine::setDefaults() {
     if( !options::preSkolemQuantNested.wasSetByUser() ){
       options::preSkolemQuantNested.set( false );
     }
-  } 
-  
+  }
+
   //until bugs 371,431 are fixed
   if( ! options::minisatUseElim.wasSetByUser()){
     if( d_logic.isQuantified() || options::produceModels() || options::produceAssignments() || options::checkModels() ){
@@ -3282,15 +3280,11 @@ void SmtEnginePrivate::processAssertions() {
         success = qm.simplify( d_assertions.ref(), true );
       }while( success );
     }
+
+    //fmf-fun : assume admissible functions, applying preprocessing reduction to FMF
     if( options::fmfFunWellDefined() ){
       quantifiers::FunDefFmf fdf;
       fdf.simplify( d_assertions.ref() );
-    }
-
-    Trace("fo-rsn-enable") << std::endl;
-    if( options::foPropQuant() ){
-      quantifiers::FirstOrderPropagation fop;
-      fop.simplify( d_assertions.ref() );
     }
   }
 

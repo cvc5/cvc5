@@ -92,6 +92,7 @@ namespace quantifiers {
   class ConjectureGenerator;
   class CegInstantiation;
   class LtePartialInst;
+  class AlphaEquivalence;
 }/* CVC4::theory::quantifiers */
 
 namespace inst {
@@ -119,6 +120,8 @@ private:
   QuantRelevance * d_quant_rel;
   /** relevant domain */
   quantifiers::RelevantDomain* d_rel_dom;
+  /** alpha equivalence */
+  quantifiers::AlphaEquivalence * d_alpha_equiv;
   /** model builder */
   quantifiers::QModelBuilder* d_builder;
   /** phase requirements for each quantifier for each instantiation literal */
@@ -150,6 +153,8 @@ public: //effort levels
 private:
   /** list of all quantifiers seen */
   std::map< Node, bool > d_quants;
+  /** quantifiers reduced */
+  std::map< Node, bool > d_quants_red;
   /** list of all lemmas produced */
   //std::map< Node, bool > d_lemmas_produced;
   BoolMap d_lemmas_produced_c;
@@ -186,8 +191,7 @@ public:
   ~QuantifiersEngine();
   /** get theory engine */
   TheoryEngine* getTheoryEngine() { return d_te; }
-  /** get equality query object for the given type. The default is the
-      generic one */
+  /** get equality query */
   EqualityQueryQuantifiersEngine* getEqualityQuery();
   /** get default sat context for quantifiers engine */
   context::Context* getSatContext();
@@ -250,6 +254,8 @@ public:
   /** get next decision request */
   Node getNextDecisionRequest();
 private:
+  /** reduce quantifier */
+  bool reduceQuantifier( Node q );
   /** compute term vector */
   void computeTermVector( Node f, InstMatch& m, std::vector< Node >& vars, std::vector< Node >& terms );
   /** instantiate f with arguments terms */
@@ -322,6 +328,8 @@ public:
     IntStat d_simple_triggers;
     IntStat d_multi_triggers;
     IntStat d_multi_trigger_instantiations;
+    IntStat d_red_alpha_equiv;
+    IntStat d_red_lte_partial_inst;
     Statistics();
     ~Statistics();
   };/* class QuantifiersEngine::Statistics */

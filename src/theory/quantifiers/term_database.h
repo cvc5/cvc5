@@ -149,13 +149,13 @@ public:
   unsigned getNumGroundTerms( Node f );
   /** count number of non-redundant ground terms per operator */
   std::map< Node, int > d_op_nonred_count;
-  /** map from APPLY_UF operators to ground terms for that operator */
+  /** map from operators to ground terms for that operator */
   std::map< Node, std::vector< Node > > d_op_map;
   /** has map */
   std::map< Node, bool > d_has_map;
   /** map from reps to a term in eqc in d_has_map */
   std::map< Node, Node > d_term_elig_eqc;
-  /** map from APPLY_UF functions to trie */
+  /** map from operators to trie */
   std::map< Node, TermArgTrie > d_func_map_trie;
   std::map< Node, TermArgTrie > d_func_map_eqc_trie;
   /**mapping from UF terms to representatives of their arguments */
@@ -326,12 +326,42 @@ public:
   /** filter all nodes that have instances */
   void filterInstances( std::vector< Node >& nodes );
 
+//for term ordering
+private:
+  /** operator id count */
+  int d_op_id_count;
+  /** map from operators to id */
+  std::map< Node, int > d_op_id;
+  /** type id count */
+  int d_typ_id_count;
+  /** map from type to id */
+  std::map< TypeNode, int > d_typ_id;
+  //free variables
+  std::map< TypeNode, std::vector< Node > > d_cn_free_var;
+  // get canonical term, return null if it contains a term apart from handled signature
+  Node getCanonicalTerm( TNode n, std::map< TypeNode, unsigned >& var_count, std::map< TNode, TNode >& subs, bool apply_torder );
+public:
+  /** get id for operator */
+  int getIdForOperator( Node op );
+  /** get id for type */
+  int getIdForType( TypeNode t );
+  /** get term order */
+  bool getTermOrder( Node a, Node b );
+  /** get canonical free variable #i of type tn */
+  Node getCanonicalFreeVar( TypeNode tn, unsigned i );
+  /** get canonical term */
+  Node getCanonicalTerm( TNode n, bool apply_torder = false );
+
 //general utilities
 public:
   /** simple check for contains term */
   static bool containsTerm( Node n, Node t );
   /** simple negate */
   static Node simpleNegate( Node n );
+  /** is assoc */
+  static bool isAssoc( Kind k );
+  /** is comm */
+  static bool isComm( Kind k );
 
 //for sygus
 private:
@@ -441,10 +471,6 @@ public:
   void registerSygusType( TypeNode tn );
   /** get arg type */
   TypeNode getArgType( const DatatypeConstructor& c, int i );
-  /** is assoc */
-  bool isAssoc( Kind k );
-  /** is comm */
-  bool isComm( Kind k );
   /** isAntisymmetric */
   bool isAntisymmetric( Kind k, Kind& dk );
   /** is idempotent arg */

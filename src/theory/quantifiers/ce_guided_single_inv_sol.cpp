@@ -309,7 +309,7 @@ Node CegConjectureSingleInvSol::simplifySolution( Node sol, TypeNode stn ){
   }
   Node sol0 = Rewriter::rewrite( sol );
   Trace("csi-sol") << "now : " << sol0 << std::endl;
-  
+
   Node curr_sol = sol0;
   Node prev_sol;
   do{
@@ -359,7 +359,7 @@ Node CegConjectureSingleInvSol::simplifySolution( Node sol, TypeNode stn ){
       curr_sol = sol4;
     }
   }while( curr_sol!=prev_sol );
-  
+
   return curr_sol;
 }
 
@@ -726,7 +726,7 @@ int CegConjectureSingleInvSol::collectReconstructNodes( Node t, TypeNode stn, in
       if( karg!=-1 ){
         //collect the children of min_t
         std::vector< Node > tchildren;
-        if( min_t.getNumChildren()>dt[karg].getNumArgs() && d_qe->getTermDatabaseSygus()->isAssoc( min_t.getKind() ) && dt[karg].getNumArgs()==2 ){
+        if( min_t.getNumChildren()>dt[karg].getNumArgs() && quantifiers::TermDb::isAssoc( min_t.getKind() ) && dt[karg].getNumArgs()==2 ){
           tchildren.push_back( min_t[0] );
           std::vector< Node > rem_children;
           for( unsigned i=1; i<min_t.getNumChildren(); i++ ){

@@ -281,61 +281,7 @@ TNode ConjectureGenerator::getUniversalRepresentative( TNode n, bool add ) {
 }
 
 Node ConjectureGenerator::getFreeVar( TypeNode tn, unsigned i ) {
-  Assert( !tn.isNull() );
-  while( d_free_var[tn].size()<=i ){
-    std::stringstream oss;
-    oss << tn;
-    std::string typ_name = oss.str();
-    while( typ_name[0]=='(' ){
-      typ_name.erase( typ_name.begin() );
-    }
-    std::stringstream os;
-    os << typ_name[0] << i;
-    Node x = NodeManager::currentNM()->mkBoundVar( os.str().c_str(), tn );
-    d_free_var_num[x] = d_free_var[tn].size();
-    d_free_var[tn].push_back( x );
-  }
-  return d_free_var[tn][i];
-}
-
-
-
-Node ConjectureGenerator::getCanonicalTerm( TNode n, std::map< TypeNode, unsigned >& var_count, std::map< TNode, TNode >& subs ) {
-  if( n.getKind()==BOUND_VARIABLE ){
-    std::map< TNode, TNode >::iterator it = subs.find( n );
-    if( it==subs.end() ){
-      TypeNode tn = n.getType();
-      //allocate variable
-      unsigned vn = var_count[tn];
-      var_count[tn]++;
-      subs[n] = getFreeVar( tn, vn );
-      return subs[n];
-    }else{
-      return it->second;
-    }
-  }else{
-    std::vector< Node > children;
-    if( n.getKind()!=EQUAL ){
-      if( n.hasOperator() ){
-        TNode op = n.getOperator();
-        if( !d_tge.isRelevantFunc( op ) ){
-          return Node::null();
-        }
-        children.push_back( op );
-      }else{
-        return Node::null();
-      }
-    }
-    for( unsigned i=0; i<n.getNumChildren(); i++ ){
-      Node cn = getCanonicalTerm( n[i], var_count, subs );
-      if( cn.isNull() ){
-        return Node::null();
-      }else{
-        children.push_back( cn );
-      }
-    }
-    return NodeManager::currentNM()->mkNode( n.getKind(), children );
-  }
+  return d_quantEngine->getTermDatabase()->getCanonicalFreeVar( tn, i );
 }
 
 bool ConjectureGenerator::isHandledTerm( TNode n ){
@@ -555,11 +501,14 @@ void ConjectureGenerator::check( Theory::Effort e, unsigned quant_e ) {
             TNode nr = q[1][r==0 ? 1 : 0];
             Node eq = nl.eqNode( nr );
             if( r==1 || std::find( d_conjectures.begin(), d_conjectures.end(), q )==d_conjectures.end() ){
-              //must make it canonical
-              std::map< TypeNode, unsigned > var_count;
-              std::map< TNode, TNode > subs;
-              Trace("sg-proc-debug") << "get canonical " << eq << std::endl;
-              eq = getCanonicalTerm( eq, var_count, subs );
+              //check if it contains only relevant functions
+              if( d_tge.isRelevantTerm( eq ) ){
+                //make it canonical
+                Trace("sg-proc-debug") << "get canonical " << eq << std::endl;
+                eq = d_quantEngine->getTermDatabase()->getCanonicalTerm( eq );
+              }else{
+                eq = Node::null();
+              }
             }
             if( !eq.isNull() ){
               if( r==0 ){
@@ -697,7 +646,7 @@ void ConjectureGenerator::check( Theory::Effort e, unsigned quant_e ) {
                 typ_to_subs_index[it->first] = sum;
                 sum += it->second;
                 for( unsigned i=0; i<it->second; i++ ){
-                  gsubs_vars.push_back( getFreeVar( it->first, i ) );
+                  gsubs_vars.push_back( d_quantEngine->getTermDatabase()->getCanonicalFreeVar( it->first, i ) );
                 }
               }
             }
@@ -993,7 +942,7 @@ unsigned ConjectureGenerator::collectFunctions( TNode opat, TNode pat, std::map<
       }else{
         //check for max/min
         TypeNode tn = pat.getType();
-        unsigned vn = d_free_var_num[pat];
+        unsigned vn = pat.getAttribute(InstVarNumAttribute());
         std::map< TypeNode, unsigned >::iterator it = mnvn.find( tn );
         if( it!=mnvn.end() ){
           if( vn<it->second ){
@@ -2012,6 +1961,28 @@ bool TermGenEnv::considerCurrentTermCanon( unsigned tg_id ){
 bool TermGenEnv::isRelevantFunc( Node f ) {
   return std::find( d_funcs.begin(), d_funcs.end(), f )!=d_funcs.end();
 }
+
+bool TermGenEnv::isRelevantTerm( Node t ) {
+  if( t.getKind()!=BOUND_VARIABLE ){
+    if( t.getKind()!=EQUAL ){
+      if( t.hasOperator() ){
+        TNode op = t.getOperator();
+        if( !isRelevantFunc( op ) ){
+          return false;
+        }
+      }else{
+        return false;
+      }
+    }
+    for( unsigned i=0; i<t.getNumChildren(); i++ ){
+      if( !isRelevantTerm( t[i] ) ){
+        return false;
+      }
+    }
+  }
+  return true;
+}
+
 TermDb * TermGenEnv::getTermDatabase() {
   return d_cg->getTermDatabase();
 }

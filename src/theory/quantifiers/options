@@ -54,10 +54,7 @@ option aggressiveMiniscopeQuant --ag-miniscope-quant bool :default false
 # Whether to perform quantifier macro expansion
 option macrosQuant --macros-quant bool :default false
  perform quantifiers macro expansions
-# Whether to perform first-order propagation
-option foPropQuant --fo-prop-quant bool :default false
- perform first-order propagation on quantifiers
-
+ 
 #### E-matching options
  
 option eMatching --e-matching bool :read-write :default true
@@ -227,7 +224,7 @@ option sygusNormalFormGlobalArg --sygus-nf-sym-arg bool :default true
 option sygusNormalFormGlobalContent --sygus-nf-sym-content bool :default true
   generalize based on content in global search space narrowing
   
-# older implementation
+# approach applied to general quantified formulas
 option cbqi --cbqi bool :read-write :default false
  turns on counterexample-based quantifier instantiation
 option cbqi2 --cbqi2 bool :read-write :default false
@@ -245,5 +242,10 @@ option ltePartialInst --lte-partial-inst bool :default false
   partially instantiate local theory quantifiers
 option lteRestrictInstClosure --lte-restrict-inst-closure bool :default false
   treat arguments of inst closure as restricted terms for instantiation
+ 
+### reduction options
+
+option quantAlphaEquiv --quant-alpha-equiv bool :default false
+  infer alpha equivalence between quantified formulas
  
 endmodule
