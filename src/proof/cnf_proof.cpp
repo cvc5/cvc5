@@ -135,8 +135,8 @@ void CnfProof::setCnfDependence(Node from, Node to) {
                      << "     to " << to << std::endl;
 
   Assert (from != to);
-  Assert (d_cnfDeps.find(from) == d_cnfDeps.end() ||
-          d_cnfDeps[from] == to);
+  // Assert (d_cnfDeps.find(from) == d_cnfDeps.end() ||
+  //         d_cnfDeps[from] == to);
   d_cnfDeps.insert(std::make_pair(from, to));
 }
 

@@ -2,6 +2,9 @@
 (program mpz_sub ((x mpz) (y mpz)) mpz
 	 (mp_add x (mp_mul (~1) y)))
 
+(program mp_ispos ((x mpz)) formula
+	 (mp_ifneg x false true))
+	 
 (program mpz_eq ((x mpz) (y mpz)) formula
     (mp_ifzero (mpz_sub x y) true false))
 
@@ -10,7 +13,7 @@
 
 (program mpz_lte ((x mpz) (y mpz)) formula
     (mp_ifneg (mpz_sub x y) true (mpz_eq x y)))
-    
+
 (program mpz_ ((x mpz) (y mpz)) formula
     (mp_ifzero (mpz_sub x y) true false))
 
@@ -104,36 +107,45 @@
 
 ;; (declare repeat bvopp)
 
+(declare extract
+	 (! n mpz
+	 (! i mpz
+	 (! j mpz
+	 (! m mpz
+	 (! t2 (term (BitVec m))
+	    (term (BitVec n))))))))
+
+
 (define zero_extend
 	(! n mpz
 	(! k mpz
 	(! t (term (BitVec n))
 	(! m mpz
-	(! s (^ (mp_add n k) m)
-	   (term (BitVec m))))))))
+	   (term (BitVec m)))))))
 
 (define sign_extend
 	(! n mpz
 	(! k mpz
 	(! t (term (BitVec n))
 	(! m mpz
-	(! s (^ (mp_add n k) m)
-	   (term (BitVec m))))))))
+	   (term (BitVec m)))))))
 
-(define extract
+
+(define repeat
 	(! n mpz
-	(! i mpz
-	(! j mpz	
-	(! t (term (BitVec n))
 	(! m mpz
-	(! c1 (^ (mpz_lte i j) true)
-	(! c2 (^ (mpz_lt i n) true)
-	(! c3 (^ (mp_ifneg i false true) true)
-	(! c4 (^ (mp_ifneg j false true) true)	
-	(! s (^ (mp_add (mpz_sub i j) 1) m)
-	   (term (BitVec m)))))))))))))
-	   
+	(! t (term (BitVec n))
+	   (term (BitVec m))))))
 
+	   
+;; TODO: add checks for valid typing for these operators	   
+;; (! c1 (^ (mpz_lte i j)
+;; (! c2 (^ (mpz_lt i n) true)
+;; (! c3 (^ (mp_ifneg i false true) true)
+;; (! c4 (^ (mp_ifneg j false true) true)	
+;; (! s (^ (mp_add (mpz_sub i j) 1) m)
+
+	   
 ; bit vector predicates
 (define bvpred
 	(! n mpz

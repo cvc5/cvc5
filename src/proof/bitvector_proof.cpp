@@ -315,7 +315,7 @@ void LFSCBitVectorProof::printOperatorParametric(Expr term, std::ostream& os, co
   if (term.getKind() == kind::BITVECTOR_EXTRACT) {
     unsigned low = utils::getExtractLow(term);
     unsigned high = utils::getExtractHigh(term);
-    os << high <<" " << low; 
+    os << high <<" " << low << " " << utils::getSize(term[0]); 
   }
   os <<" ";
   Assert (term.getNumChildren() == 1); 
@@ -445,6 +445,7 @@ void LFSCBitVectorProof::printTermBitblasting(Expr term, std::ostream& os) {
   }
   case kind::BITVECTOR_EXTRACT : {
     os <<"(bv_bbl_"<<utils::toLFSCKind(kind) <<" ";
+    os << utils::getSize(term) << " ";
     os << utils::getExtractHigh(term) << " ";
     os << utils::getExtractLow(term) << " ";
     os << " _ _ _ _ ";

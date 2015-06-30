@@ -57,6 +57,7 @@
                       (! c (^ (bblast_const v (mp_add n (~ 1))) f)
                            (bblast_term n (a_bv n v) f)))))))
 
+		   
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; BITBLAST VARIABLE
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -101,27 +102,32 @@
 ;; BITBLAST EXTRACT
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-;; (program bblast_extract ((x bblt) (i mpz) (j mpz) (n mpz)) bblt
-;;   (match x 
-;;     (bbltn (fail bblt))
-;;     ((bbltc bx x') (mp_ifneg (mpz_sub n i)
-;;     	       	   	     (mp_ifneg (mpz_sub n j)
-;; 			     	       bbltn
-;; 			     	       (bblast_extract x' i j (mpz_sub n 1)))
-;; 			     (bblast_extract x' i j (mpz_sub n 1))))))
+(program bblast_extract_rec ((x bblt) (i mpz) (j mpz) (n mpz)) bblt
+  (match x 
+    ((bbltc bx x') (mp_ifneg (mpz_sub (mpz_sub j n) 1)
+    	       	   	     (mp_ifneg (mpz_sub (mpz_sub n i) 1)
+			    	  	  (bbltc bx (bblast_extract_rec x' i j (mpz_sub n 1)))
+					  (bblast_extract_rec x' i j (mpz_sub n 1)))
+ 					 
+			     bbltn))
+   (bbltn bbltn)))
 
-;; (declare bv_bbl_extract (! n mpz ;; hole
-;; 	 		(! k mpz ;; width of result hole
-;; 	 		(! i mpz
-;; 		      	(! j mpz
-;; 			(! xb bblt 
-;; 			(! rb bblt	
-;; 			(! x (term (BitVec n))
-;; 			(! xbb (bblast_term m x xb)
-;; 			(! c1 (^ (bblast_extract xb i j n) rb)
-;;                             (bblast_term n (extract n i j x k) rb)))))))))))
+(program bblast_extract ((x bblt) (i mpz) (j mpz) (n mpz)) bblt
+ (bblast_extract_rec x i j (mpz_sub n 1)))			    
 
-			    
+(declare bv_bbl_extract (! n mpz
+			(! i mpz
+			(! j mpz
+			(! m mpz
+                       	(! x (term (BitVec m))	
+		       	(! xb bblt
+		       	(! rb bblt
+		       	(! xbb (bblast_term m x xb)
+			(! c ( ^ (bblast_extract xb i j m) rb)
+                           (bblast_term n (extract n i j m x) rb)))))))))))
+
+
+			     
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; BITBLAST BVAND
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
