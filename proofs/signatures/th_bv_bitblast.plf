@@ -127,6 +127,43 @@
                            (bblast_term n (extract n i j m x) rb)))))))))))
 
 
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; BITBLAST ZERO/SIGN EXTEND
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+(program extend_rec ((x bblt) (i mpz) (b formula)) bblt
+  (mp_ifneg i x
+  	    (bbltc b (extend_rec x (mpz_sub i 1) b)))))
+
+(program bblast_zextend ((x bblt) (i mpz)) bblt
+ (extend_rec x (mpz_sub i 1) false))
+
+(declare bv_bbl_zero_extend (! n mpz
+			(! k mpz
+			(! m mpz
+                       	(! x (term (BitVec m))	
+		       	(! xb bblt
+		       	(! rb bblt
+		       	(! xbb (bblast_term m x xb)
+			(! c ( ^ (bblast_zextend xb k m) rb)
+                           (bblast_term n (zero_extend n k m x) rb))))))))))
+
+			
+(program bblast_sextend ((x bblt) (i mpz)) bblt
+ (match x (bbltn (fail bblt))
+ 	  ((bbltc xb x') (extend_rec x (mpz_sub i 1) xb))))			    
+
+(declare bv_bbl_sign_extend (! n mpz
+			(! k mpz
+			(! m mpz
+                       	(! x (term (BitVec m))	
+		       	(! xb bblt
+		       	(! rb bblt
+		       	(! xbb (bblast_term m x xb)
+			(! c ( ^ (bblast_sextend xb k m) rb)
+                           (bblast_term n (sign_extend n k m x) rb))))))))))
+			   
+			   
 			     
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; BITBLAST BVAND

@@ -1,3 +1,7 @@
+;;;; TEMPORARY:
+
+(declare trust-bad (th_holds false))
+
 ; helper stuff
 (program mpz_sub ((x mpz) (y mpz)) mpz
 	 (mp_add x (mp_mul (~1) y)))
@@ -115,20 +119,19 @@
 	 (! t2 (term (BitVec m))
 	    (term (BitVec n))))))))
 
+(declare zero_extend
+	 (! n mpz
+	 (! i mpz
+	 (! m mpz
+	 (! t2 (term (BitVec m))
+	    (term (BitVec n)))))))
 
-(define zero_extend
-	(! n mpz
-	(! k mpz
-	(! t (term (BitVec n))
-	(! m mpz
-	   (term (BitVec m)))))))
-
-(define sign_extend
-	(! n mpz
-	(! k mpz
-	(! t (term (BitVec n))
-	(! m mpz
-	   (term (BitVec m)))))))
+(declare sign_extend
+	 (! n mpz
+	 (! i mpz
+	 (! m mpz
+	 (! t2 (term (BitVec m))
+	    (term (BitVec n)))))))
 
 
 (define repeat

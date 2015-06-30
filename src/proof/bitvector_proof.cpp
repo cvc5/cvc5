@@ -301,16 +301,16 @@ void LFSCBitVectorProof::printOperatorParametric(Expr term, std::ostream& os, co
   os <<" "; 
   if (term.getKind() == kind::BITVECTOR_REPEAT) {
     unsigned amount = term.getOperator().getConst<BitVectorRepeat>().repeatAmount;
-    os << amount; 
+    os << amount<<" _ "; 
   }
   if (term.getKind() == kind::BITVECTOR_SIGN_EXTEND) {
     unsigned amount = term.getOperator().getConst<BitVectorSignExtend>().signExtendAmount;
-    os << amount; 
+    os << amount <<" _ "; 
   }
 
   if (term.getKind() == kind::BITVECTOR_ZERO_EXTEND) {
     unsigned amount = term.getOperator().getConst<BitVectorZeroExtend>().zeroExtendAmount;
-    os << amount; 
+    os << amount<<" _ "; 
   }
   if (term.getKind() == kind::BITVECTOR_EXTRACT) {
     unsigned low = utils::getExtractLow(term);
@@ -457,6 +457,7 @@ void LFSCBitVectorProof::printTermBitblasting(Expr term, std::ostream& os) {
   case kind::BITVECTOR_ZERO_EXTEND :
   case kind::BITVECTOR_SIGN_EXTEND : {
     os <<"(bv_bbl_"<<utils::toLFSCKind(kind) <<" ";
+    os << utils::getSize(term) <<" "; 
     if (term.getKind() == kind::BITVECTOR_REPEAT) {
       unsigned amount = term.getOperator().getConst<BitVectorRepeat>().repeatAmount;
       os << amount; 
