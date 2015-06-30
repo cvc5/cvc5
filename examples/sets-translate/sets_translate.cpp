@@ -94,8 +94,13 @@ class Mapper {
       setTypes.insert(t);
 
       Type elementType = t.getElementType();
-      string elementTypeAsString = elementType.toString();
-      remove_if(elementTypeAsString.begin(), elementTypeAsString.end(), nonsense);
+      ostringstream oss_type;
+      oss_type << Expr::setlanguage(language::output::LANG_SMTLIB_V2)
+               << elementType;
+      string elementTypeAsString = oss_type.str();
+      elementTypeAsString.erase(
+        remove_if(elementTypeAsString.begin(), elementTypeAsString.end(), nonsense),
+        elementTypeAsString.end());
 
       // define-sort
       ostringstream oss_name;
