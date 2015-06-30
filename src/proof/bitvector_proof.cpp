@@ -264,12 +264,13 @@ void LFSCBitVectorProof::printConstant(Expr term, std::ostream& os) {
 void LFSCBitVectorProof::printOperatorNary(Expr term, std::ostream& os, const LetMap& map) {
   std::string op = utils::toLFSCKind(term.getKind());
   std::ostringstream paren;
-  os <<"("<< op <<" " << utils::getSize(term) <<" ";
+  std::string holes = term.getKind() == kind::BITVECTOR_CONCAT ? "_ _ " : "";
+  os <<"("<< op <<" " <<  utils::getSize(term) <<" " << holes;
   for (unsigned i = 0; i < term.getNumChildren(); ++i) {
     d_proofEngine->printBoundTerm(term[i], os, map);
     os << " ";
     if (i + 2 < term.getNumChildren()) {
-      os <<"(" << op <<" ";
+      os <<"(" << op <<" " << utils::getSize(term) <<" " << holes;
       paren <<")";
     }
   }
@@ -416,6 +417,9 @@ void LFSCBitVectorProof::printTermBitblasting(Expr term, std::ostream& os) {
   case kind::BITVECTOR_CONCAT : {
     std::ostringstream paren;
     os <<"(bv_bbl_"<< utils::toLFSCKind(kind);
+    if (kind == kind::BITVECTOR_CONCAT) {
+      os << " " << utils::getSize(term) <<" _ ";
+    }
     os <<" _ _ _ _ _ _ ";
     for (unsigned i = 0; i < term.getNumChildren(); ++i) {
       os << getBBTermName(term[i]);

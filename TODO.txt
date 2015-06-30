@@ -1,3 +1,15 @@
 * concat needs result bitwidth (ask Andy why side condition failed)
 * bit-blasting concat also needs output width and proper number of holes
 * bitblast-eq and is in reversed order
+
+
+RUN EXPERIMENTS:
+* filter unsats from all QF_BV
+* filter all we cannot solve with lazy/eager
+* starexec script that computes the size of the generated proof and prints it to output
+
+
+* run proof build as baseline: lazy/eager
+* run unsat cores in lazy
+* run proof bookkeeping
+* run proof generation and writing to file

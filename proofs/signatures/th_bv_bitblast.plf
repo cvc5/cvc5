@@ -331,14 +331,22 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 			   
 ; bit blast  x = y
-;  for x,y of size n, it will return a conjuction (x.{n-1} = y.{n-1} ^ ( ... ^ (x.0 = y.0 ^ true)))
-(program bblast_eq ((x bblt) (y bblt)) formula
+; for x,y of size n, it will return a conjuction (x.0 = y.0 ^ ( ... ^ (x.{n-1} = y.{n-1})))
+; f is the accumulator formula that builds the equality in the right order
+(program bblast_eq_rec ((x bblt) (y bblt) (f formula)) formula
   (match x 
-    (bbltn (match y (bbltn true) (default (fail formula))))
+    (bbltn (match y (bbltn f) (default (fail formula))))
     ((bbltc fx x') (match y 
                       (bbltn (fail formula))
-                      ((bbltc fy y') (and (iff fx fy) (bblast_eq x' y')))))))
+                      ((bbltc fy y') (bblast_eq_rec x' y' (and (iff fx fy) f)))))
+    (default (fail formula))))
 
+(program bblast_eq ((x bblt) (y bblt)) formula
+	 (match x
+	 	((bbltc bx x') (match y ((bbltc by y') (bblast_eq_rec x' y' (iff bx by)))
+			       	      	(default (fail formula))))
+		(default (fail formula))))
+	
 (declare bv_bbl_=
 	 (! n mpz
 	 (! x (term (BitVec n))

@@ -58,7 +58,7 @@ void SmtEngine::checkProof() {
   Chat() << "checking proof..." << endl;
 
   if( !(d_logic.isPure(theory::THEORY_BOOL) ||
-        d_logic.isPure(theory::THEORY_BV) ||
+        //d_logic.isPure(theory::THEORY_BV) ||
 	(d_logic.isPure(theory::THEORY_UF) &&
 	 ! d_logic.hasCardinalityConstraints())) ||
       d_logic.isQuantified()) {
