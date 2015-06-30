@@ -265,12 +265,14 @@ void LFSCBitVectorProof::printOperatorNary(Expr term, std::ostream& os, const Le
   std::string op = utils::toLFSCKind(term.getKind());
   std::ostringstream paren;
   std::string holes = term.getKind() == kind::BITVECTOR_CONCAT ? "_ _ " : "";
-  os <<"("<< op <<" " <<  utils::getSize(term) <<" " << holes;
+  unsigned size = term.getKind() == kind::BITVECTOR_CONCAT? utils::getSize(term) :
+                                                            utils::getSize(term[0]); // cause of COMP
+  os <<"("<< op <<" " <<  size <<" " << holes;
   for (unsigned i = 0; i < term.getNumChildren(); ++i) {
     d_proofEngine->printBoundTerm(term[i], os, map);
     os << " ";
     if (i + 2 < term.getNumChildren()) {
-      os <<"(" << op <<" " << utils::getSize(term) <<" " << holes;
+      os <<"(" << op <<" " << size <<" " << holes;
       paren <<")";
     }
   }

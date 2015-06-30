@@ -71,7 +71,6 @@
 (declare bvnand bvop2)
 (declare bvnor bvop2)
 (declare bvxnor bvop2)
-(declare bvcomp bvop2)
 (declare bvmul bvop2)
 (declare bvadd bvop2)
 (declare bvsub bvop2)
@@ -96,6 +95,12 @@
 (declare bvnot bvop1)
 (declare rotate_left  bvop1)
 (declare rotate_right bvop1)
+
+(declare bvcomp
+	 (! n mpz
+ 	 (! t1 (term (BitVec n))
+	 (! t2 (term (BitVec n))
+	    (term (BitVec 1))))))
 
 
 (declare concat
