@@ -288,10 +288,20 @@ void Smt2Printer::toStream(std::ostream& out, TNode n,
 
   if(n.getKind() == kind::SORT_TYPE) {
     string name;
+    if(n.getNumChildren() != 0) {
+      out << '(';
+    }
     if(n.getAttribute(expr::VarNameAttr(), name)) {
       out << maybeQuoteSymbol(name);
-      return;
     }
+    if(n.getNumChildren() != 0) {
+      for(unsigned i = 0; i < n.getNumChildren(); ++i) {
+	out << ' ';
+	toStream(out, n[i], toDepth, types);
+      }
+      out << ')';
+    }
+    return;
   }
 
   bool stillNeedToPrintParams = true;
