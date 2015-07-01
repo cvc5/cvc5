@@ -1163,7 +1163,6 @@ Node EqualityQueryQuantifiersEngine::getInternalRepresentative( Node a, Node f, 
       }
       Trace("internal-rep-select")  << " } " << std::endl;
       int r_best_score = -1;
-      TypeNode v_tn = f[0][index].getType();
       for( size_t i=0; i<eqc.size(); i++ ){
         int score = getRepScore( eqc[i], f, index, v_tn );
         if( score!=-2 ){

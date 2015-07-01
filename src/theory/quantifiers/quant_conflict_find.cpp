@@ -1971,6 +1971,7 @@ void QuantConflictFind::check( Theory::Effort level, unsigned quant_e ) {
         Trace("qcf-debug") << std::endl;
       }
       short end_e = getMaxQcfEffort();
+      bool isConflict = false;
       for( short e = effort_conflict; e<=end_e; e++ ){
         d_effort = e;
         Trace("qcf-check") << "Checking quantified formulas at effort " << e << "..." << std::endl;
@@ -2014,8 +2015,12 @@ void QuantConflictFind::check( Theory::Effort level, unsigned quant_e ) {
                       ++addedLemmas;
                       if( e==effort_conflict ){
                         d_quant_order.insert( d_quant_order.begin(), q );
-                        d_conflict.set( true );
                         ++(d_statistics.d_conflict_inst);
+                        if( options::qcfAllConflict() ){
+                          isConflict = true;
+                        }else{
+                          d_conflict.set( true );
+                        }
                         break;
                       }else if( e==effort_prop_eq ){
                         ++(d_statistics.d_prop_inst);
@@ -2043,6 +2048,9 @@ void QuantConflictFind::check( Theory::Effort level, unsigned quant_e ) {
         if( addedLemmas>0 ){
           break;
         }
+      }
+      if( isConflict ){
+        d_conflict.set( true );
       }
       if( Trace.isOn("qcf-engine") ){
         double clSet2 = double(clock())/double(CLOCKS_PER_SEC);

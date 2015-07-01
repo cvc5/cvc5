@@ -143,6 +143,14 @@ typedef enum {
   TERM_DB_RELEVANT,
 } TermDbMode;
 
+typedef enum {
+  /** do not lift ITEs in quantified formulas */
+  ITE_LIFT_QUANT_MODE_NONE,
+  /** only lift ITEs in quantified formulas if reduces the term size */
+  ITE_LIFT_QUANT_MODE_SIMPLE,
+  /** lift ITEs  */
+  ITE_LIFT_QUANT_MODE_ALL,
+} IteLiftQuantMode;
 
 }/* CVC4::theory::quantifiers namespace */
 }/* CVC4::theory namespace */

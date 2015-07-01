@@ -40,12 +40,14 @@ private:
   static bool hasArg( std::vector< Node >& args, Node n );
   static bool hasArg1( Node a, Node n );
   static Node computeClause( Node n );
+  static void computeDtTesterIteSplit( Node n, std::map< Node, Node >& pcons, std::map< Node, std::map< int, Node > >& ncons, std::vector< Node >& conj );
 private:
   static Node computeElimSymbols( Node body );
   static Node computeMiniscoping( Node f, std::vector< Node >& args, Node body, Node ipl );
   static Node computeAggressiveMiniscoping( std::vector< Node >& args, Node body );
   static Node computeNNF( Node body );
   static Node computeProcessIte( Node body, bool hasPol, bool pol );
+  static Node computeProcessIte2( Node body );
   static Node computeVarElimination( Node body, std::vector< Node >& args, Node& ipl );
   static Node computeCNF( Node body, std::vector< Node >& args, NodeBuilder<>& defs, bool forcePred );
   static Node computePrenex( Node body, std::vector< Node >& args, bool pol );
@@ -57,6 +59,7 @@ private:
     COMPUTE_AGGRESSIVE_MINISCOPING,
     COMPUTE_NNF,
     COMPUTE_PROCESS_ITE,
+    COMPUTE_PROCESS_ITE_2,
     COMPUTE_PRENEX,
     COMPUTE_VAR_ELIMINATION,
     //COMPUTE_FLATTEN_ARGS_UF,

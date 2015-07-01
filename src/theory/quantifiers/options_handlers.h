@@ -204,6 +204,19 @@ relevant \n\
 + Quantifiers module considers only ground terms connected to current assertions. \n\
 \n\
 ";
+static const std::string iteLiftQuantHelp = "\
+Modes for term database, supported by --ite-lift-quant:\n\
+\n\
+all  \n\
++ Do not lift if-then-else in quantified formulas.\n\
+\n\
+simple  \n\
++ Lift if-then-else in quantified formulas if results in smaller term size.\n\
+\n\
+none \n\
++ Lift if-then-else in quantified formulas. \n\
+\n\
+";
 
 inline InstWhenMode stringToInstWhenMode(std::string option, std::string optarg, SmtEngine* smt) throw(OptionException) {
   if(optarg == "pre-full") {
@@ -411,6 +424,22 @@ inline TermDbMode stringToTermDbMode(std::string option, std::string optarg, Smt
   } else {
     throw OptionException(std::string("unknown option for --term-db-mode: `") +
                           optarg + "'.  Try --term-db-mode help.");
+  }
+}
+
+inline IteLiftQuantMode stringToIteLiftQuantMode(std::string option, std::string optarg, SmtEngine* smt) throw(OptionException) {
+  if(optarg == "all" ) {
+    return ITE_LIFT_QUANT_MODE_ALL;
+  } else if(optarg == "simple") {
+    return ITE_LIFT_QUANT_MODE_SIMPLE;
+  } else if(optarg == "none") {
+    return ITE_LIFT_QUANT_MODE_NONE;
+  } else if(optarg ==  "help") {
+    puts(iteLiftQuantHelp.c_str());
+    exit(1);
+  } else {
+    throw OptionException(std::string("unknown option for --ite-lift-quant: `") +
+                          optarg + "'.  Try --ite-lift-quant help.");
   }
 }
 

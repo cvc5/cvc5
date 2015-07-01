@@ -1189,7 +1189,7 @@ bool TermDb::getTermOrder( Node a, Node b ) {
     Trace("aeq-debug2") << a << "...op..." << aop << std::endl;
     Trace("aeq-debug2") << b << "...op..." << bop << std::endl;
     if( aop==bop ){
-      if( aop.getNumChildren()==bop.getNumChildren() ){
+      if( a.getNumChildren()==b.getNumChildren() ){
         for( unsigned i=0; i<a.getNumChildren(); i++ ){
           if( a[i]!=b[i] ){
             //first distinct child determines the ordering
@@ -1229,7 +1229,19 @@ Node TermDb::getCanonicalFreeVar( TypeNode tn, unsigned i ) {
 
 struct sortTermOrder {
   TermDb* d_tdb;
+  //std::map< Node, std::map< Node, bool > > d_cache;
   bool operator() (Node i, Node j) {
+    /*
+    //must consult cache since term order is partial?
+    std::map< Node, bool >::iterator it = d_cache[j].find( i );
+    if( it!=d_cache[j].end() && it->second ){
+      return false;
+    }else{
+      bool ret = d_tdb->getTermOrder( i, j );
+      d_cache[i][j] = ret;
+      return ret;
+    }
+    */
     return d_tdb->getTermOrder( i, j );
   }
 };
@@ -1238,6 +1250,7 @@ struct sortTermOrder {
 //  - orders variables left to right
 //  - if apply_torder, then sort direct subterms of commutative operators
 Node TermDb::getCanonicalTerm( TNode n, std::map< TypeNode, unsigned >& var_count, std::map< TNode, TNode >& subs, bool apply_torder ) {
+  Trace("canon-term-debug") << "Get canonical term for " << n << std::endl;
   if( n.getKind()==BOUND_VARIABLE ){
     std::map< TNode, TNode >::iterator it = subs.find( n );
     if( it==subs.end() ){
@@ -1246,31 +1259,41 @@ Node TermDb::getCanonicalTerm( TNode n, std::map< TypeNode, unsigned >& var_coun
       unsigned vn = var_count[tn];
       var_count[tn]++;
       subs[n] = getCanonicalFreeVar( tn, vn );
+      Trace("canon-term-debug") << "...allocate variable." << std::endl;
       return subs[n];
     }else{
+      Trace("canon-term-debug") << "...return variable in subs." << std::endl;
       return it->second;
     }
   }else if( n.getNumChildren()>0 ){
     //collect children
+    Trace("canon-term-debug") << "Collect children" << std::endl;
     std::vector< Node > cchildren;
     for( unsigned i=0; i<n.getNumChildren(); i++ ){
       cchildren.push_back( n[i] );
     }
     //if applicable, first sort by term order
     if( apply_torder && isComm( n.getKind() ) ){
+      Trace("canon-term-debug") << "Sort based on commutative operator " << n.getKind() << std::endl;
       sortTermOrder sto;
       sto.d_tdb = this;
       std::sort( cchildren.begin(), cchildren.end(), sto );
     }
     //now make canonical
+    Trace("canon-term-debug") << "Make canonical children" << std::endl;
     for( unsigned i=0; i<cchildren.size(); i++ ){
       cchildren[i] = getCanonicalTerm( cchildren[i], var_count, subs, apply_torder );
     }
-    if( n.hasOperator() ){
+    if( n.getMetaKind() == kind::metakind::PARAMETERIZED ){
+      Trace("canon-term-debug") << "Insert operator " << n.getOperator() << std::endl;
       cchildren.insert( cchildren.begin(), n.getOperator() );
     }
-    return NodeManager::currentNM()->mkNode( n.getKind(), cchildren );
+    Trace("canon-term-debug") << "...constructing for " << n << "." << std::endl;
+    Node ret = NodeManager::currentNM()->mkNode( n.getKind(), cchildren );
+    Trace("canon-term-debug") << "...constructed " << ret << " for " << n << "." << std::endl;
+    return ret;
   }else{
+    Trace("canon-term-debug") << "...return 0-child term." << std::endl;
     return n;
   }
 }
