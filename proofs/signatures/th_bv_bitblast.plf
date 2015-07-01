@@ -284,6 +284,29 @@
 		      (! ybb (bblast_term n y yb)
                       (! c (^ (bblast_bvadd xb yb false) rb)
                            (bblast_term n (bvadd n x y) rb)))))))))))
+
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; BITBLAST BVNEG
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+(program bblast_zero ((n mpz)) bblt
+(mp_ifzero n bbltn
+	     (bbltc false (bblast_zero (mp_add n (~1))))))
+
+(program bblast_bvneg ((x bblt) (n mpz)) bblt
+  (bblast_bvadd (bblast_bvnot x) (bblast_zero n) true))
+				
+				
+(declare bv_bbl_bvneg (! n mpz
+                      (! x (term (BitVec n))
+		      (! xb bblt
+		      (! rb bblt
+		      (! xbb (bblast_term n x xb)
+                      (! c (^ (bblast_bvneg xb n) rb)
+                           (bblast_term n (bvneg n x) rb))))))))
+
+
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; BITBLAST BVMUL
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -368,6 +391,8 @@
                       (! c (^ (bblast_bvmul xb yb n) rb)
                            (bblast_term n (bvmul n x y) rb)))))))))))
 
+
+			   
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; BITBLAST EQUALS
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;

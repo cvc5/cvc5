@@ -312,7 +312,7 @@ void LFSCCnfProof::printCnfProofForClause(ClauseId id,
     Assert(is_in_clause);
     prop::SatLiteral blit = (*clause)[ base_index ];
     os_base << ProofManager::getLitName(blit, d_name);
-    base_pol = !childPol[base_assertion];
+    base_pol = !childPol[base_assertion]; // WHY? if the case is =>
   }
   Trace("cnf-pf") << "; polarity of base assertion = " << base_pol << std::endl;
   Trace("cnf-pf") << "; proof of base : " << os_base.str() << std::endl;
@@ -360,7 +360,8 @@ void LFSCCnfProof::printCnfProofForClause(ClauseId id,
         //Assert( child_pol==childPol[child_base] );
         os_main << "(or_elim_1 _ _ ";
         prop::SatLiteral lit = (*clause)[itcic->second];
-        if( childPol[child_base] ){
+        // Should be if in the original formula it was negated
+        if( childPol[child_base] && base_pol ){
           os_main << ProofManager::getLitName(lit, d_name) << " ";
         }else{
           os_main << "(not_not_intro _ " << ProofManager::getLitName(lit, d_name) << ") ";
@@ -390,7 +391,7 @@ void LFSCCnfProof::printCnfProofForClause(ClauseId id,
       if( itcic!=childIndex.end() ){
         os << "(contra _ ";
         prop::SatLiteral lit = (*clause)[itcic->second];
-        if( childPol[child_base] ){
+        if( childPol[child_base] && base_pol){
           os << os_main.str() << " " << ProofManager::getLitName(lit, d_name);
         }else{
           os << ProofManager::getLitName(lit, d_name) << " " << os_main.str();
