@@ -53,9 +53,8 @@
 (declare bv_bbl_const (! n mpz
                       (! f bblt
                       (! v bv
-		      ;;(! s ((^ (bv_len v) n)
                       (! c (^ (bblast_const v (mp_add n (~ 1))) f)
-                           (bblast_term n (a_bv n v) f)))))))
+                           (bblast_term n (a_bv n v) f))))))
 
 		   
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -68,7 +67,7 @@
 
 (declare bv_bbl_var (! n mpz
                     (! x var_bv
-                    (! f bblt                    
+                    (! f bblt
                     (! c (^ (bblast_var x (mp_add n (~ 1))) f)
                          (bblast_term n (a_var_bv n x) f))))))
 
@@ -271,7 +270,7 @@
   ( bbltn (match b (bbltn bbltn) (default (fail bblt))))
   ((bbltc ai a') (match b
   	     	   (bbltn (fail bblt))
-	 	   ((bbltc bi b') (bbltc (xor ai (xor bi (bblast_bvadd_carry a' b' carry)))
+	 	   ((bbltc bi b') (bbltc (xor (xor ai bi) (bblast_bvadd_carry a' b' carry))
 				  	 (bblast_bvadd a' b' carry)))))))
 				
 				
@@ -428,6 +427,32 @@
          (! c (^ (bblast_bvult bx by (mp_add n (~1))) f)
             (th_holds (iff (bvult n x y) f))))))))))))
 
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; BITBLAST BVSLT
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+	    
+(program bblast_bvslt ((x bblt) (y bblt) (n mpz)) formula
+(match x
+  ( bbltn (fail formula))
+  ((bbltc xi x') (match y
+  	     	   (bbltn (fail formula))
+	 	   ((bbltc yi y') (mp_ifzero (mpz_sub n 1)
+		   	      	  	     (and xi (not yi))
+		   	      		     (or (and (iff xi yi)
+					     	      (bblast_bvult x' y' (mpz_sub n 2)))
+					     	 (and xi (not yi)))))))))
+
+(declare bv_bbl_bvslt
+	 (! n mpz
+	 (! x (term (BitVec n))
+         (! y (term (BitVec n))
+         (! bx bblt
+         (! by bblt
+         (! f formula
+         (! bbx (bblast_term n x bx)
+         (! bby (bblast_term n y by)
+         (! c (^ (bblast_bvslt bx by n) f)
+            (th_holds (iff (bvslt n x y) f))))))))))))
 	    
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;

@@ -114,7 +114,7 @@ enum ProofRule {
 class ProofManager {
   CoreSatProof*  d_satProof;
   CnfProof*      d_cnfProof;
-  RewriterProof* d_rewriterProof;
+  //  RewriterProof* d_rewriterProof;
   TheoryProofEngine* d_theoryProof;
 
   // information that will need to be shared across proofs
@@ -245,7 +245,7 @@ public:  // AJR : FIXME this is hacky
 class LFSCProof : public Proof {
   LFSCCoreSatProof* d_satProof;
   LFSCCnfProof* d_cnfProof;
-  LFSCRewriterProof* d_rewriterProof;
+  //  LFSCRewriterProof* d_rewriterProof;
   LFSCTheoryProofEngine* d_theoryProof;
   SmtEngine* d_smtEngine;
   // FIXME: hack until we get preprocessing
@@ -256,7 +256,7 @@ public:
   LFSCProof(SmtEngine* smtEngine,
             LFSCCoreSatProof* sat,
             LFSCCnfProof* cnf,
-            LFSCRewriterProof* rwr,
+            //      LFSCRewriterProof* rwr,
             LFSCTheoryProofEngine* theory);
   virtual void toStream(std::ostream& out);
   virtual ~LFSCProof() {}

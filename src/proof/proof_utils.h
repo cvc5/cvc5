@@ -27,6 +27,7 @@
 namespace CVC4 {
 
 typedef __gnu_cxx::hash_set<Expr, ExprHashFunction> ExprSet;
+typedef __gnu_cxx::hash_set<Node, NodeHashFunction> NodeSet;
   
 namespace utils {
 
@@ -255,6 +256,8 @@ namespace utils {
     Integer bit = expr.getConst<BitVector>().extract(i, i).getValue();
     return (bit == 1u); 
   }
+
+void collectAtoms(TNode node, NodeSet& seen);
 
 
 }

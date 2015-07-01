@@ -280,11 +280,11 @@ template<> inline
 Node RewriteRule<ReflexivityEq>::apply(TNode node) {
   Debug("bv-rewrite") << "RewriteRule<ReflexivityEq>(" << node << ")" << std::endl;
   Node res = node[1].eqNode(node[0]);
-  THEORY_PROOF(
-  Expr from = node.toExpr();
-  Expr to = res.toExpr();
-  ProofManager::currentPM()->getRewriterProof()->pushRewriteRule(from, to, EqReflexivity);
-  );
+  // THEORY_PROOF(
+  // Expr from = node.toExpr();
+  // Expr to = res.toExpr();
+  // ProofManager::currentPM()->getRewriterProof()->pushRewriteRule(from, to, EqReflexivity);
+  // );
 
   return res;
 }

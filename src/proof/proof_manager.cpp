@@ -21,6 +21,7 @@
 #include "proof/cnf_proof.h"
 #include "proof/theory_proof.h"
 #include "proof/rewriter_proof.h"
+#include "proof/proof_utils.h"
 
 #include "util/cvc4_assert.h"
 #include "smt/smt_engine.h"
@@ -64,7 +65,7 @@ ProofManager::ProofManager(ProofFormat format):
 ProofManager::~ProofManager() {
   delete d_satProof;
   delete d_cnfProof;
-  delete d_rewriterProof;
+  //  delete d_rewriterProof;
   delete d_theoryProof;
   delete d_fullProof;
 
@@ -97,7 +98,7 @@ Proof* ProofManager::getProof(SmtEngine* smt) {
   currentPM()->d_fullProof = new LFSCProof(smt,
                                            (LFSCCoreSatProof*)getSatProof(),
                                            (LFSCCnfProof*)getCnfProof(),
-                                           (LFSCRewriterProof*)getRewriterProof(),
+                                           //                                           (LFSCRewriterProof*)getRewriterProof(),
                                            (LFSCTheoryProofEngine*)getTheoryProofEngine());
   return currentPM()->d_fullProof;
 }
@@ -112,12 +113,14 @@ CnfProof* ProofManager::getCnfProof() {
   return currentPM()->d_cnfProof;
 }
 RewriterProof* ProofManager::getRewriterProof() {
-  Assert (options::proof());
-  if (currentPM()->d_rewriterProof == NULL) {
-    Assert (currentPM()->d_format == LFSC);
-    currentPM()->d_rewriterProof = new LFSCRewriterProof();
-  }
-  return currentPM()->d_rewriterProof;
+  Unreachable();
+  return NULL;
+  // Assert (options::proof());
+  // if (currentPM()->d_rewriterProof == NULL) {
+  //   Assert (currentPM()->d_format == LFSC);
+  //   currentPM()->d_rewriterProof = new LFSCRewriterProof();
+  // }
+  // return currentPM()->d_rewriterProof;
 }
 
 TheoryProofEngine* ProofManager::getTheoryProofEngine() {
@@ -388,11 +391,11 @@ void ProofManager::setLogic(const LogicInfo& logic) {
 LFSCProof::LFSCProof(SmtEngine* smtEngine,
                      LFSCCoreSatProof* sat,
                      LFSCCnfProof* cnf,
-                     LFSCRewriterProof* rwr,
+                     //               LFSCRewriterProof* rwr,
                      LFSCTheoryProofEngine* theory)
   : d_satProof(sat)
   , d_cnfProof(cnf)
-  , d_rewriterProof(rwr)    
+    //  , d_rewriterProof(rwr)    
   , d_theoryProof(theory)
   , d_smtEngine(smtEngine)
 {}
@@ -410,6 +413,17 @@ void LFSCProof::toStream(std::ostream& out) {
   NodeSet used_assertions;
   d_cnfProof->collectAssertionsForClauses(used_inputs, used_assertions);
 
+  NodeSet atoms;
+  // collects the atoms in the clauses
+  d_cnfProof->collectAtomsForClauses(used_inputs, atoms);
+  d_cnfProof->collectAtomsForClauses(used_lemmas, atoms);
+
+  // collects the atoms in the assertions
+  for (NodeSet::const_iterator it = used_assertions.begin();
+       it != used_assertions.end(); ++it) {
+    utils::collectAtoms(*it, atoms);
+  }
+  
   if (Debug.isOn("proof:pm")) {
     std::cout << NodeManager::currentNM(); 
     Debug("proof:pm") << "LFSCProof::Used assertions: "<< std::endl;
@@ -417,19 +431,21 @@ void LFSCProof::toStream(std::ostream& out) {
       Debug("proof:pm") << "   " << *it << std::endl;
     }
     
-    NodeSet lemmas;
-    d_cnfProof->collectAssertionsForClauses(used_lemmas, lemmas);
+    // NodeSet lemmas;
+    // d_cnfProof->collectAssertionsForClauses(used_lemmas, lemmas);
 
-    Debug("proof:pm") << "LFSCProof::Used lemmas: "<< std::endl;
-    for(NodeSet::const_iterator it = lemmas.begin(); it != lemmas.end(); ++it) {
+    // Debug("proof:pm") << "LFSCProof::Used lemmas: "<< std::endl;
+    // for(NodeSet::const_iterator it = lemmas.begin(); it != lemmas.end(); ++it) {
+    //   Debug("proof:pm") << "   " << *it << std::endl;
+    // }
+
+    Debug("proof:pm") << "LFSCProof::Used atoms: "<< std::endl;
+    for(NodeSet::const_iterator it = atoms.begin(); it != atoms.end(); ++it) {
       Debug("proof:pm") << "   " << *it << std::endl;
     }
   }
 
   
-  NodeSet atoms;
-  d_cnfProof->collectAtomsForClauses(used_inputs, atoms);
-  d_cnfProof->collectAtomsForClauses(used_lemmas, atoms);
   
   smt::SmtScope scope(d_smtEngine);
   std::ostringstream paren;

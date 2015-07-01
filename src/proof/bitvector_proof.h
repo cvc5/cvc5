@@ -66,8 +66,11 @@ protected:
   // ExprToId d_terms; // bit-vector terms appearing in the problem 
   // ExprToId d_atoms; // bit-vector atoms appearing in the problem 
 
-  ExprSet d_bb_terms; // terms that need to be bit-blasted
-  ExprToExpr d_bb_atoms; // atoms that need to be bit-blasted
+  ExprSet d_usedBB; // terms and formulas that are actually relevant to the proof
+  
+  ExprSet d_seenBBTerms; // terms that need to be bit-blasted
+  std::vector<Expr> d_bbTerms; // order of bit-blasting 
+  ExprToExpr d_bbAtoms; // atoms that need to be bit-blasted
 
   //  unsigned d_bbIdCount;
   

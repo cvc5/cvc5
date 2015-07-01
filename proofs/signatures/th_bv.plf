@@ -42,6 +42,7 @@
     (bvn 0)
     ((bvc b v') (mp_add (bv_len v') 1))))
 
+
 ; a bv constant term
 (declare a_bv
 	 (! n mpz
@@ -138,12 +139,13 @@
 	 (! t2 (term (BitVec m))
 	    (term (BitVec n)))))))
 
+(declare repeat
+	 (! n mpz
+	 (! i mpz
+	 (! m mpz
+	 (! t2 (term (BitVec m))
+	    (term (BitVec n)))))))
 
-(define repeat
-	(! n mpz
-	(! m mpz
-	(! t (term (BitVec n))
-	   (term (BitVec m))))))
 
 	   
 ;; TODO: add checks for valid typing for these operators	   

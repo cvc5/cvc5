@@ -97,6 +97,7 @@ libcvc4_la_SOURCES = \
 	proof/proof_manager.h \
 	proof/proof_manager.cpp \
 	proof/proof_utils.h \
+	proof/proof_utils.cpp \
 	prop/registrar.h \
 	prop/prop_engine.cpp \
 	prop/prop_engine.h \
