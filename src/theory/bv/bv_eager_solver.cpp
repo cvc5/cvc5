@@ -17,6 +17,7 @@
 #include "theory/bv/bv_eager_solver.h"
 #include "theory/bv/bitblaster_template.h"
 #include "theory/bv/options.h"
+#include "proof/bitvector_proof.h"
 
 using namespace std;
 using namespace CVC4;
@@ -54,6 +55,7 @@ void EagerBitblastSolver::initialize() {
     d_aigBitblaster = new AigBitblaster();
   } else {
     d_bitblaster = new EagerBitblaster(d_bv);
+    THEORY_PROOF(ProofManager::currentPM()->getBitVectorProof()->setBitblaster(d_bitblaster)); 
   }
 }
 

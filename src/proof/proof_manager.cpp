@@ -221,6 +221,8 @@ std::string ProofManager::getLitName(prop::SatLiteral lit,
 
 std::string ProofManager::getPreprocessedAssertionName(Node node,
                                                        const std::string& prefix) {
+  // node = node.getKind() == kind::BITVECTOR_EAGER_ATOM ? node[0] : node;
+  // std::cout << std::endl << "id"<<node.getId() << " " << node << std::endl;
   return append(prefix+".PA", node.getId());
 }
 std::string ProofManager::getAssertionName(Node node,
@@ -507,6 +509,7 @@ void LFSCProof::printPreprocessedAssertions(const NodeSet& assertions,
     
     os << "(\\ "<< ProofManager::getPreprocessedAssertionName(*it, "") << "\n";
     paren << "))";
+
   }
 }
 

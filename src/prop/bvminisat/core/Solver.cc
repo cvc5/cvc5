@@ -236,7 +236,7 @@ bool Solver::addClause_(vec<Lit>& ps, ClauseId& id)
 
     // TODO PROOF unit conflicts and removal of false literals
     if (ps.size() == 0) {
-      
+      // CONTINUE FROM HERE
       return ok = false;
     }
     else if (ps.size() == 1){

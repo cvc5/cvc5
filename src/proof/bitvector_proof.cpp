@@ -17,6 +17,7 @@
 
 #include "theory/bv/theory_bv.h"
 #include "theory/bv/bitblaster_template.h"
+#include "theory/bv/options.h"
 
 #include "proof/bitvector_proof.h"
 #include "proof/sat_proof_implementation.h"
@@ -38,7 +39,7 @@ BitVectorProof::BitVectorProof(theory::bv::TheoryBV* bv, TheoryProofEngine* proo
     // , d_bbIdCount(0)
   , d_resolutionProof(NULL)
   , d_cnfProof(NULL)
-  , d_lazyBB(NULL)
+  , d_bitblaster(NULL)
 {}
 
 void BitVectorProof::initSatProof(::BVMinisat::Solver* solver) {
@@ -72,9 +73,9 @@ void BitVectorProof::initCnfProof(prop::CnfStream* cnfStream,
   d_cnfProof->popCurrentDefinition();         
 }
 
-void BitVectorProof::setBitblaster(bv::TLazyBitblaster* lazyBB) {
-  Assert (d_lazyBB == NULL);
-  d_lazyBB = lazyBB;
+void BitVectorProof::setBitblaster(bv::TBitblaster<Node>* bb) {
+  Assert (d_bitblaster == NULL);
+  d_bitblaster = bb;
 }
 
 BVSatProof* BitVectorProof::getSatProof() {
@@ -107,7 +108,7 @@ void BitVectorProof::registerTerm(Expr term) {
   //     if (d_atoms.find(term) == d_atoms.end())
   //       d_atoms[term] = newBBId();
 
-  //     if (d_lazyBB->hasBBAtom(term) && d_bbAtoms.find(term) == d_bbAtoms.end())
+  //     if (d_bitblaster->hasBBAtom(term) && d_bbAtoms.find(term) == d_bbAtoms.end())
   //       d_bbAtoms[term] = newBBId();
 
   //   }
@@ -115,7 +116,7 @@ void BitVectorProof::registerTerm(Expr term) {
   //     if (d_terms.find(term) == d_terms.end())
   //       d_terms[term] = newBBId();
 
-  //     if (d_lazyBB->hasBBTerm(term) && d_bbTerms.find(term) == d_bbTerms.end())
+  //     if (d_bitblaster->hasBBTerm(term) && d_bbTerms.find(term) == d_bbTerms.end())
   //       d_bbTerms[term] = newBBId();
   //   }
   // }
@@ -168,6 +169,10 @@ void BitVectorProof::endBVConflict(const BVMinisat::Solver::TLitVec& confl) {
 }
 
 void BitVectorProof::finalizeConflicts(std::vector<Expr>& conflicts) {
+  if (options::bitblastMode() == theory::bv::BITBLAST_MODE_EAGER) {
+    d_resolutionProof->constructProof();
+    return; 
+  }
   for(unsigned i = 0; i < conflicts.size(); ++i) {
     Expr confl = conflicts[i];
     Assert (d_conflictMap.find(confl) != d_conflictMap.end());
@@ -178,7 +183,13 @@ void BitVectorProof::finalizeConflicts(std::vector<Expr>& conflicts) {
 
 void LFSCBitVectorProof::printTerm(Expr term, std::ostream& os, const LetMap& map) {
   Assert (Theory::theoryOf(term) == THEORY_BV);
-  
+
+  // peel off eager bit-blasting trick
+  if (term.getKind() == kind::BITVECTOR_EAGER_ATOM) {
+    d_proofEngine->printBoundTerm(term[0], os, map);
+    return;
+  }
+
   switch (term.getKind()) {
   case kind::CONST_BITVECTOR : {
     printConstant(term, os);
@@ -215,6 +226,7 @@ void LFSCBitVectorProof::printTerm(Expr term, std::ostream& os, const LetMap& ma
     printOperatorUnary(term, os, map);
     return;
   }
+  case kind::EQUAL :
   case kind::BITVECTOR_ULT :
   case kind::BITVECTOR_ULE :
   case kind::BITVECTOR_UGT :
@@ -525,7 +537,8 @@ void LFSCBitVectorProof::printBitblasting(std::ostream& os, std::ostream& paren)
   std::vector<Expr>::const_iterator it = d_bbTerms.begin();
   std::vector<Expr>::const_iterator end = d_bbTerms.end();
   for (; it != end; ++it) {
-    if (d_usedBB.find(*it) == d_usedBB.end())
+    if (d_usedBB.find(*it) == d_usedBB.end() &&
+        options::bitblastMode() != theory::bv::BITBLAST_MODE_EAGER)
       continue;
     os <<"(decl_bblast _ _ _ ";
     printTermBitblasting(*it, os);
@@ -536,9 +549,12 @@ void LFSCBitVectorProof::printBitblasting(std::ostream& os, std::ostream& paren)
   ExprToExpr::const_iterator ait = d_bbAtoms.begin();
   ExprToExpr::const_iterator aend = d_bbAtoms.end();
   for (; ait != aend; ++ait) {
-    if (d_usedBB.find(ait->first) == d_usedBB.end())
+    if (d_usedBB.find(ait->first) == d_usedBB.end() &&
+        options::bitblastMode() != theory::bv::BITBLAST_MODE_EAGER)
       continue;
 
+    if (ait->first.getKind() == kind::CONST_BOOLEAN)
+      continue;
     os << "(th_let_pf _ ";
     printAtomBitblasting(ait->first, os);
     os <<"(\\ " << ProofManager::getPreprocessedAssertionName(ait->second, "bb") <<"\n";
@@ -563,7 +579,6 @@ void LFSCBitVectorProof::printResolutionProof(std::ostream& os,
   // NodeSet assertions;
   // d_cnfProof->collectAssertionsUsed(assertions, used_inputs);
 
-  // TODO: only print bit-blasted terms that were used/?
   // first print bit-blasting
   printBitblasting(os, paren);
 

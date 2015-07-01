@@ -272,6 +272,7 @@ public:
   bool hasBBAtom(TNode atom) const; 
   void bbFormula(TNode formula);
   void storeBBAtom(TNode atom, Node atom_bb);
+  void storeBBTerm(TNode node, const Bits& bits);
   EagerBitblaster(theory::bv::TheoryBV* theory_bv); 
   ~EagerBitblaster();
   bool assertToSat(TNode node, bool propagate = true);

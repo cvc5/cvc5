@@ -22,7 +22,7 @@
 #include "theory/bv/theory_bv.h"
 #include "prop/cnf_stream.h"
 #include "prop/sat_solver_factory.h"
-
+#include "proof/bitvector_proof.h"
 
 using namespace CVC4;
 using namespace CVC4::theory;
@@ -42,7 +42,17 @@ EagerBitblaster::EagerBitblaster(TheoryBV* theory_bv)
   d_nullContext = new context::Context();
 
   d_satSolver = prop::SatSolverFactory::createMinisat(d_nullContext, "EagerBitblaster");
-  d_cnfStream = new prop::TseitinCnfStream(d_satSolver, d_bitblastingRegistrar, d_nullContext, false, "EagerBitblaster");
+  d_cnfStream = new prop::TseitinCnfStream(d_satSolver,
+                                           d_bitblastingRegistrar,
+                                           d_nullContext,
+                                           options::proof(),
+                                           "EagerBitblaster");
+  
+  THEORY_PROOF
+    (
+     ProofManager::currentPM()->getBitVectorProof()->initCnfProof(d_cnfStream, d_nullContext);
+     d_cnfStream->setProof(ProofManager::getBitVectorProof()->getCnfProof());
+     ); 
   
   MinisatEmptyNotify* notify = new MinisatEmptyNotify();
   d_satSolver->setNotify(notify);
@@ -89,9 +99,15 @@ void EagerBitblaster::bbAtom(TNode node) {
 }
 
 void EagerBitblaster::storeBBAtom(TNode atom, Node atom_bb) {
-  // no need to store the definition for the lazy bit-blaster
+  THEORY_PROOF (ProofManager::getBitVectorProof()->registerAtomBB(atom.toExpr(), atom_bb.toExpr()););
   d_bbAtoms.insert(atom); 
 }
+
+void EagerBitblaster::storeBBTerm(TNode node, const Bits& bits) {
+  THEORY_PROOF (ProofManager::getBitVectorProof()->registerTermBB(node.toExpr()););
+  d_termCache.insert(std::make_pair(node, bits));
+}
+
 
 bool EagerBitblaster::hasBBAtom(TNode atom) const {
   return d_bbAtoms.find(atom) != d_bbAtoms.end(); 

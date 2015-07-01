@@ -2,7 +2,11 @@
 
 DEBUGGING:
 * implement bvslt bit-blasting rule
+* implement bvshl, bvlrsh, etc. side condition code
 
+EAGER BB:
+* missing bb.PA
+* add resolution proof for when added clause reduces to false (based on Minisat code)
 
 RUN EXPERIMENTS:
 * filter all we cannot solve with lazy/eager

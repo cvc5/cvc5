@@ -18,6 +18,7 @@
 #include "proof/theory_proof.h"
 #include "proof/proof_manager.h"
 #include "theory/theory.h"
+#include "theory/bv/options.h"
 #include "proof/uf_proof.h"
 #include "proof/array_proof.h"
 #include "proof/bitvector_proof.h"
@@ -251,6 +252,12 @@ void LFSCTheoryProofEngine::printTheoryLemmas(const IdToSatClause& lemmas,
   bv->finalizeConflicts(bv_lemmas); 
 
   bv->printResolutionProof(os, paren);
+
+  if (options::bitblastMode() == theory::bv::BITBLAST_MODE_EAGER) {
+    Assert (lemmas.size() == 1);
+    // nothing more to do (no combination with eager so far)
+    return; 
+  }
   
   it = lemmas.begin();
   

@@ -42,7 +42,7 @@ class CnfStream;
 namespace theory {
 namespace bv{
 class TheoryBV;
-class TLazyBitblaster;
+template <class T> class TBitblaster;
 }
 }
 
@@ -81,7 +81,7 @@ protected:
   CnfProof* d_cnfProof;
   
   bool d_isAssumptionConflict;
-  theory::bv::TLazyBitblaster* d_lazyBB;
+  theory::bv::TBitblaster<Node>* d_bitblaster;
   // unsigned newBBId(); 
   // unsigned getBBId(Expr expr);
   std::string getBBTermName(Expr expr);
@@ -90,7 +90,7 @@ public:
 
   void initSatProof(::BVMinisat::Solver* solver);
   void initCnfProof(prop::CnfStream* cnfStream, context::Context* ctx);
-  void setBitblaster(theory::bv::TLazyBitblaster* lazyBB);
+  void setBitblaster(theory::bv::TBitblaster<Node>* bb);
   
   BVSatProof* getSatProof();
   CnfProof* getCnfProof() {return d_cnfProof; }
