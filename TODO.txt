@@ -2,17 +2,32 @@
 
 DEBUGGING:
 * implement bvshl, bvlrsh, etc. side condition code
-* assertion failure on starexec jobs
+* 
 
 EAGER BB:
 
 RUN EXPERIMENTS:
 * filter all we cannot solve with lazy/eager
+* run new binary:
+  * lazy_proof
+  * eager_proof
+  * lazy_proof_size
+  * eager_proof_size
+  
+* run on small subset
+  * check proofs eager and lazy 
 
-* run proof build as baseline: lazy/eager
-* run unsat cores in lazy
-* run proof bookkeeping
-* run proof generation and writing to file
+ANALYZE RESULTS:
+* overhead of --proof:
+  * eager
+  * lazy
+* what's the right way to measure overhead of --dump-proof?
+
+* proof sizes (also histogram)
+  * eager
+  *lazy
+
+* check-proofs (this writes to disk)
 
 
 FUTURE TODO:

@@ -1258,21 +1258,24 @@ void Solver::explain(Lit p, std::vector<Lit>& explanation) {
 
   // top level fact, no explanation necessary
   if (level(var(p)) == 0) {
-    THEORY_PROOF(
-          // the only way a marker variable is 
-          Assert (reason(var(p)) == CRef_Undef);
-          ProofManager::currentPM()->getBitVectorProof()->startBVConflict(p);
-          vec<Lit> confl;
-          confl.push(p);
-          ProofManager::currentPM()->getBitVectorProof()->endBVConflict(confl);
+    THEORY_PROOF
+      (
+       if (reason(var(p)) == CRef_Undef) {
+         ProofManager::currentPM()->getBitVectorProof()->startBVConflict(p);
+         vec<Lit> confl;
+         confl.push(p);
+         ProofManager::currentPM()->getBitVectorProof()->endBVConflict(confl);
+         return;
+       }
     );
-    return;
+    if (!THEORY_PROOF_ON())
+      return;
   }
   
   seen[var(p)] = 1;
 
   // if we are called at decisionLevel = 0 trail_lim is empty
-  int bottom = trail_lim.size() ? trail_lim[0] : 0;
+  int bottom = trail_lim.size() && level(var(p)) ? trail_lim[0] : 0;
   for (int i = trail.size()-1; i >= bottom; i--){
     Var x = var(trail[i]);
     if (seen[x]) {
@@ -1284,7 +1287,7 @@ void Solver::explain(Lit p, std::vector<Lit>& explanation) {
         Clause& c = ca[reason(x)];
         THEORY_PROOF(
               if (p == trail[i]) {
-                THEORY_PROOF(ProofManager::currentPM()->getBitVectorProof()->startBVConflict(reason(var(p))););
+                ProofManager::currentPM()->getBitVectorProof()->startBVConflict(reason(var(p)));
               } else {
                 ProofManager::getBitVectorProof()->getSatProof()->addResolutionStep(trail[i], reason(x), sign(trail[i]));
               }
