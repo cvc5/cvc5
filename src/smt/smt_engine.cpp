@@ -3272,7 +3272,7 @@ void SmtEnginePrivate::processAssertions() {
       }
     }
     dumpAssertions("post-skolem-quant", d_assertions);
-    if( options::macrosQuant() ){
+    if( options::macrosQuant() && !options::incrementalSolving() ){
       //quantifiers macro expansion
       bool success;
       do{

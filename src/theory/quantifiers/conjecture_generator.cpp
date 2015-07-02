@@ -1717,15 +1717,18 @@ void TermGenEnv::collectSignatureInformation() {
   for( std::map< Node, TermArgTrie >::iterator it = getTermDatabase()->d_func_map_trie.begin(); it != getTermDatabase()->d_func_map_trie.end(); ++it ){
     if( !getTermDatabase()->d_op_map[it->first].empty() ){
       Node nn = getTermDatabase()->d_op_map[it->first][0];
+      Trace("sg-rel-sig-debug") << "Check in signature : " << nn << std::endl;
       if( d_cg->isHandledTerm( nn ) && nn.getKind()!=APPLY_SELECTOR_TOTAL && !nn.getType().isBoolean() ){
         bool do_enum = true;
         //check if we have enumerated ground terms
         if( nn.getKind()==APPLY_UF ){
+          Trace("sg-rel-sig-debug") << "Check enumeration..." << std::endl;
           if( !d_cg->hasEnumeratedUf( nn ) ){
             do_enum = false;
           }
         }
         if( do_enum ){
+          Trace("sg-rel-sig-debug") << "Set enumeration..." << std::endl;
           d_funcs.push_back( it->first );
           for( unsigned i=0; i<nn.getNumChildren(); i++ ){
             d_func_args[it->first].push_back( nn[i].getType() );
@@ -1738,6 +1741,7 @@ void TermGenEnv::collectSignatureInformation() {
           getTermDatabase()->computeUfEqcTerms( it->first );
         }
       }
+      Trace("sg-rel-sig-debug") << "Done check in signature : " << nn << std::endl;
     }
   }
   //shuffle functions

@@ -72,7 +72,7 @@ public:
   //delta
   Node d_n_delta;
   //check : add instantiations based on valuation of d_vars
-  void check();
+  bool check();
   // get delta lemmas : on-demand force minimality of d_n_delta
   void getDeltaLemmas( std::vector< Node >& lems );
 };

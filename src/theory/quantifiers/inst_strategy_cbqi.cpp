@@ -369,6 +369,7 @@ InstStrategyCegqi::InstStrategyCegqi( QuantifiersEngine * qe ) : InstStrategy( q
 
 void InstStrategyCegqi::processResetInstantiationRound( Theory::Effort effort ) {
   d_check_delta_lemma = true;
+  d_check_delta_lemma_lc = true;
 }
 
 int InstStrategyCegqi::process( Node f, Theory::Effort effort, int e ) {
@@ -383,6 +384,9 @@ int InstStrategyCegqi::process( Node f, Theory::Effort effort, int e ) {
         d_n_delta = NodeManager::currentNM()->mkSkolem( "delta", NodeManager::currentNM()->realType(), "delta for cegqi inst strategy" );
         Node delta_lem = NodeManager::currentNM()->mkNode( GT, d_n_delta, NodeManager::currentNM()->mkConst( Rational( 0 ) ) );
         d_quantEngine->getOutputChannel().lemma( delta_lem );
+        d_n_delta_ub = NodeManager::currentNM()->mkConst( Rational(1)/Rational(1000000) );
+        Node delta_lem_ub = NodeManager::currentNM()->mkNode( LT, d_n_delta, d_n_delta_ub );
+        d_quantEngine->getOutputChannel().lemma( delta_lem_ub );
       }
       cinst->d_n_delta = d_n_delta;
       for( int i=0; i<d_quantEngine->getTermDatabase()->getNumInstantiationConstants( f ); i++ ){
@@ -412,8 +416,18 @@ int InstStrategyCegqi::process( Node f, Theory::Effort effort, int e ) {
     }
     Trace("inst-alg") << "-> Run cegqi for " << f << std::endl;
     d_curr_quant = f;
-    cinst->check();
+    bool addedLemma = cinst->check();
     d_curr_quant = Node::null();
+    return addedLemma ? STATUS_UNKNOWN : STATUS_UNFINISHED;
+  }else if( e==3 ){
+    if( d_check_delta_lemma_lc ){
+      d_check_delta_lemma_lc = false;
+      d_n_delta_ub = NodeManager::currentNM()->mkNode( MULT, d_n_delta_ub, d_n_delta_ub );
+      d_n_delta_ub = Rewriter::rewrite( d_n_delta_ub );
+      Trace("cegqi") << "Delta lemma for " << d_n_delta_ub << std::endl;
+      Node delta_lem_ub = NodeManager::currentNM()->mkNode( LT, d_n_delta, d_n_delta_ub );
+      d_quantEngine->getOutputChannel().lemma( delta_lem_ub );
+    }
   }
   return STATUS_UNKNOWN;
 }

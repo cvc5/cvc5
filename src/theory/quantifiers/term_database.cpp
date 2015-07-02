@@ -945,6 +945,7 @@ Node TermDb::getSkolemizedBody( Node f ){
 }
 
 Node TermDb::getEnumerateTerm( TypeNode tn, unsigned index ) {
+  Trace("term-db-enum") << "Get enumerate term " << tn << " " << index << std::endl;
   std::map< TypeNode, unsigned >::iterator it = d_typ_enum_map.find( tn );
   unsigned teIndex;
   if( it==d_typ_enum_map.end() ){

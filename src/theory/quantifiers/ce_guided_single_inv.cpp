@@ -706,7 +706,7 @@ void CegInstantiator::getDeltaLemmas( std::vector< Node >& lems ) {
   */
 }
 
-void CegInstantiator::check() {
+bool CegInstantiator::check() {
 
   for( unsigned r=0; r<2; r++ ){
     std::vector< Node > subs;
@@ -716,10 +716,11 @@ void CegInstantiator::check() {
     std::vector< int > subs_typ;
     //try to add an instantiation
     if( addInstantiation( subs, vars, coeff, has_coeff, subs_typ, 0, r==0 ? 0 : 2 ) ){
-      return;
+      return true;
     }
   }
   Trace("cegqi-engine") << "  WARNING : unable to find CEGQI single invocation instantiation." << std::endl;
+  return false;
 }
 
 
