@@ -612,15 +612,19 @@ void Solver::analyzeFinal2(Lit p, CRef confl_clause, vec<Lit>& out_conflict) {
     seen[var(cl[i])] = 1;
   }
 
-  for (int i = trail.size() - 1; i >= trail_lim[0]; i--) {
+  int end = options::proof() ? 0 :  trail_lim[0];
+  for (int i = trail.size() - 1; i >= end; i--) {
     Var x = var(trail[i]);
     if (seen[x]) {
       if (reason(x) == CRef_Undef) {
         // we skip p if was a learnt unit
         if (x != var(p)) {
-          assert (marker[x] == 2);
-          assert (level(x) > 0);
-          out_conflict.push(~trail[i]);
+          if (marker[x] == 2) {
+            assert (level(x) > 0);
+            out_conflict.push(~trail[i]);
+          } else {
+            THEORY_PROOF(ProofManager::getBitVectorProof()->getSatProof()->resolveOutUnit(~(trail[i]));); 
+          }
         } else {
           THEORY_PROOF(ProofManager::getBitVectorProof()->getSatProof()->resolveOutUnit(~p);); 
         }

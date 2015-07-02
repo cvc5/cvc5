@@ -5,8 +5,6 @@ DEBUGGING:
 * assertion failure on starexec jobs
 
 EAGER BB:
-* missing bb.PA
-* add resolution proof for when added clause reduces to false (based on Minisat code)
 
 RUN EXPERIMENTS:
 * filter all we cannot solve with lazy/eager
