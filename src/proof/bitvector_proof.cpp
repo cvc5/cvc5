@@ -557,7 +557,7 @@ void LFSCBitVectorProof::printBitblasting(std::ostream& os, std::ostream& paren)
       continue;
     os << "(th_let_pf _ ";
     printAtomBitblasting(ait->first, os);
-    os <<"(\\ " << ProofManager::getPreprocessedAssertionName(ait->second, "bb") <<"\n";
+    os <<"(\\ " << ProofManager::getPreprocessedAssertionName(ait->second) <<"\n";
     paren <<"))";
   }
 }

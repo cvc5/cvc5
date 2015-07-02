@@ -708,7 +708,7 @@ bool LFSCCnfProof::printProofTopLevel(Node e, std::ostream& out) {
     }
     return false;
   } else {
-    out << ProofManager::getPreprocessedAssertionName(e, d_name);
+    out << ProofManager::getPreprocessedAssertionName(e);
     return true;
   }
 }

@@ -223,34 +223,97 @@ bool Solver::addClause_(vec<Lit>& ps, ClauseId& id)
     // TODO proof for duplicate literals removal?
     sort(ps);
     Lit p; int i, j;
-    for (i = j = 0, p = lit_Undef; i < ps.size(); i++)
+    int falseLiteralsCount = 0;
+    
+    for (i = j = 0, p = lit_Undef; i < ps.size(); i++) {
+      // tautologies are ignored
       if (value(ps[i]) == l_True || ps[i] == ~p) {
         id = ClauseIdUndef;
         return true;
       }
-      else if (value(ps[i]) != l_False && ps[i] != p)
-        ps[j++] = p = ps[i];
+
+      // Ignore repeated literals
+      if (ps[i] == p) {
+        continue;
+      }
+
+      if (value(ps[i]) == l_False) {
+        if (!THEORY_PROOF_ON())
+          continue;
+        ++falseLiteralsCount;
+      }
+      ps[j++] = p = ps[i];
+    }
+    
     ps.shrink(i - j);
 
     clause_added = true;
 
-    // TODO PROOF unit conflicts and removal of false literals
-    if (ps.size() == 0) {
-      // CONTINUE FROM HERE
-      return ok = false;
-    }
-    else if (ps.size() == 1){
-      THEORY_PROOF( id = ProofManager::getBitVectorProof()->getSatProof()->registerUnitClause(ps[0], INPUT););
-      uncheckedEnqueue(ps[0]);
+    Assert(falseLiteralsCount == 0 || THEORY_PROOF_ON());
+    
+    if(falseLiteralsCount == 0) {
+      if (ps.size() == 0) {
+        Assert (!THEORY_PROOF_ON());
+        return ok = false;
+      }
+      else if (ps.size() == 1){
+        THEORY_PROOF( id = ProofManager::getBitVectorProof()->getSatProof()->registerUnitClause(ps[0], INPUT););
+        uncheckedEnqueue(ps[0]);
       
-      return ok = (propagate() == CRef_Undef);
-    } else {
+        return ok = (propagate() == CRef_Undef);
+      } else {
+        CRef cr = ca.alloc(ps, false);
+        clauses.push(cr);
+        attachClause(cr);
+        THEORY_PROOF( id = ProofManager::getBitVectorProof()->getSatProof()->registerClause(cr, INPUT););
+      }
+      return ok; 
+    }
+    
+    if (falseLiteralsCount != 0 && THEORY_PROOF_ON()) {
+      // we are in a conflicting state
+      if (ps.size() == falseLiteralsCount && falseLiteralsCount == 1) {
+        THEORY_PROOF( id = ProofManager::getBitVectorProof()->getSatProof()->storeUnitConflict(ps[0], INPUT); );
+        THEORY_PROOF( ProofManager::getBitVectorProof()->getSatProof()->finalizeProof(::BVMinisat::CRef_Lazy); );
+        return ok = false;
+      }
+      
       CRef cr = ca.alloc(ps, false);
       clauses.push(cr);
       attachClause(cr);
-      THEORY_PROOF( id = ProofManager::getBitVectorProof()->getSatProof()->registerClause(cr, INPUT););
-     }
-    return ok; 
+      
+      THEORY_PROOF(id = ProofManager::getBitVectorProof()->getSatProof()->registerClause(cr, INPUT););
+
+      if(ps.size() == falseLiteralsCount) {
+        THEORY_PROOF( ProofManager::getBitVectorProof()->getSatProof()->finalizeProof(cr); );
+        return ok = false;
+      }
+      
+      // Check if it propagates
+      if (ps.size() == falseLiteralsCount + 1) {
+        int i = 0;
+        // find undefined literal
+        while(value(ps[i]) == l_False) {
+          Assert (i < ps.size());
+          ++i;
+        }
+        
+        Assert (value(ps[i]) == l_Undef);
+        uncheckedEnqueue(ps[i], cr);
+        Assert (ps.size() > 1);
+        CRef confl = propagate();
+        if(! (ok = (confl == CRef_Undef)) ) {
+          if(ca[confl].size() == 1) {
+            THEORY_PROOF
+              (id = ProofManager::getBitVectorProof()->getSatProof()->storeUnitConflict(ca[confl][0], LEARNT);
+               ProofManager::getBitVectorProof()->getSatProof()->finalizeProof(::BVMinisat::CRef_Lazy); );
+              } else {
+            THEORY_PROOF( ProofManager::getBitVectorProof()->getSatProof()->finalizeProof(confl); );
+          }
+        }
+      }
+    }
+    return ok;
 }
 
 void Solver::attachClause(CRef cr) {

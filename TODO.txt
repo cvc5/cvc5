@@ -1,8 +1,8 @@
 * [DONE] concat needs result bitwidth (ask Andy why side condition failed)
 
 DEBUGGING:
-* implement bvslt bit-blasting rule
 * implement bvshl, bvlrsh, etc. side condition code
+* assertion failure on starexec jobs
 
 EAGER BB:
 * missing bb.PA
