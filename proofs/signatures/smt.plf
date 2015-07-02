@@ -121,12 +121,17 @@
   (! u2 (! v (th_holds f) (holds cln))
     (holds cln)))))
 
-
+  
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;
 ; Natural deduction rules : used for CNF
 ;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+;; for eager bit-blasting
+(declare iff_symm
+	(! f formula
+	   (th_holds (iff f f))))
 
 
 ;; contradiction

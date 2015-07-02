@@ -553,10 +553,14 @@ void LFSCBitVectorProof::printBitblasting(std::ostream& os, std::ostream& paren)
         options::bitblastMode() != theory::bv::BITBLAST_MODE_EAGER)
       continue;
 
-    if (ait->first.getKind() == kind::CONST_BOOLEAN)
-      continue;
     os << "(th_let_pf _ ";
-    printAtomBitblasting(ait->first, os);
+    if (ait->first.getKind() == kind::CONST_BOOLEAN) {
+      bool val = ait->first.getConst<bool>();
+      os << "(iff_symm " << (val ? "true" : "false" ) << ")";
+    } else {
+      printAtomBitblasting(ait->first, os);
+    }
+    
     os <<"(\\ " << ProofManager::getPreprocessedAssertionName(ait->second) <<"\n";
     paren <<"))";
   }
