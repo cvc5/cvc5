@@ -32,7 +32,7 @@
 (satlem_simplify _ _ _ (Q _ _ bb.pb23 bb.cl31 bb.v11)(\bb.cl33
 (satlem_simplify _ _ _ (Q _ _ (Q _ _ bb.pb28 bb.cl32 bb.v9)bb.cl33 bb.v10)(\bb.cl34
 (satlem_simplify _ _ _ (Q _ _ bb.pb29 bb.cl34 bb.v13)(\bb.cl35
-(satlem_simplify _ _ _ (Q _ _ .lemc37 .pb36 .v2)(\empty empty)))))))))))
+(satlem_simplify _ _ _ (Q _ _ bb.pb30 bb.cl35 bb.v12)(\empty empty)))))))))))
 ))
 ))
 ))

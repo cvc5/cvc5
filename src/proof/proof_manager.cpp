@@ -20,6 +20,7 @@
 #include "proof/sat_proof_implementation.h"
 #include "proof/cnf_proof.h"
 #include "proof/theory_proof.h"
+#include "proof/bitvector_proof.h"
 #include "proof/rewriter_proof.h"
 #include "proof/proof_utils.h"
 
@@ -33,6 +34,7 @@
 #include "theory/uf/theory_uf.h"
 #include "theory/uf/equality_engine.h"
 #include "theory/arrays/theory_arrays.h"
+#include "theory/bv/options.h"
 #include "context/context.h"
 #include "util/hash.h"
 
@@ -483,12 +485,22 @@ void LFSCProof::toStream(std::ostream& out) {
   // print theory lemmas for resolution proof
   d_theoryProof->printTheoryLemmas(used_lemmas, out, paren);
 
-  // priunt actual resolution proof
-  d_satProof->printResolutions(out, paren);
-  d_satProof->printResolutionEmptyClause(out, paren);
-  paren <<")))\n;;";
-  out << paren.str();
-  out << "\n";
+  
+  if (options::bitblastMode() == theory::bv::BITBLAST_MODE_EAGER) {
+    // priunt actual resolution proof
+    // d_satProof->printResolutions(out, paren);
+    ProofManager::getBitVectorProof()->getSatProof()->printResolutionEmptyClause(out, paren);
+    paren <<")))\n;;";
+    out << paren.str();
+    out << "\n";
+  } else {
+    // priunt actual resolution proof
+    d_satProof->printResolutions(out, paren);
+    d_satProof->printResolutionEmptyClause(out, paren);
+    paren <<")))\n;;";
+    out << paren.str();
+    out << "\n";
+  }
 }
 
 void LFSCProof::printPreprocessedAssertions(const NodeSet& assertions,
