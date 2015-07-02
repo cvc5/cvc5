@@ -217,7 +217,10 @@ bool Solver::addClause_(vec<Lit>& ps, ClauseId& id)
       cancelUntil(0);
     }
     
-    if (!ok) return false;
+    if (!ok) {
+      id = ClauseIdUndef;
+      return false;
+    }
 
     // Check if clause is satisfied and remove false/duplicate literals:
     // TODO proof for duplicate literals removal?
@@ -257,10 +260,12 @@ bool Solver::addClause_(vec<Lit>& ps, ClauseId& id)
         return ok = false;
       }
       else if (ps.size() == 1){
-        THEORY_PROOF( id = ProofManager::getBitVectorProof()->getSatProof()->registerUnitClause(ps[0], INPUT););
+        THEORY_PROOF(id = ProofManager::getBitVectorProof()->getSatProof()->registerUnitClause(ps[0], INPUT););
         uncheckedEnqueue(ps[0]);
-      
-        return ok = (propagate() == CRef_Undef);
+        CRef confl_ref = propagate();
+        ok = (confl_ref == CRef_Undef);
+        THEORY_PROOF(if (!ok) ProofManager::getBitVectorProof()->getSatProof()->finalizeProof(confl_ref););
+        return ok;
       } else {
         CRef cr = ca.alloc(ps, false);
         clauses.push(cr);
