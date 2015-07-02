@@ -211,8 +211,12 @@ public:
   
   //  void printProof(std::ostream& os, TNode n);
 
+  /** Add proof assertion - unlinke addCoreAssertion this is post definition expansion **/
+  void addAssertion(Expr formula);
+  
   /** Public unsat core methods **/
-  void addAssertion(Expr formula, bool inUnsatCore);
+  void addCoreAssertion(Expr formula);
+  
   void addDependence(TNode n, TNode dep);
   void addUnsatCore(Expr formula);
 

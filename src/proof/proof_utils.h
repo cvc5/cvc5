@@ -64,8 +64,10 @@ namespace utils {
     case kind::BITVECTOR_SUB :
       return "bvsub";
     case kind::BITVECTOR_UDIV :
+    case kind::BITVECTOR_UDIV_TOTAL :
       return "bvudiv";
     case kind::BITVECTOR_UREM :
+    case kind::BITVECTOR_UREM_TOTAL :
       return "bvurem"; 
     case kind::BITVECTOR_SDIV :
       return "bvsdiv"; 

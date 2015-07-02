@@ -13,3 +13,8 @@ RUN EXPERIMENTS:
 * run unsat cores in lazy
 * run proof bookkeeping
 * run proof generation and writing to file
+
+
+FUTURE TODO:
+* definition expansion: now just adding assertions after definition expansion for proof purposes
+* this may not be ok in general, in a way we want a "definition rule" to mimic the SMTLIB define-fun command

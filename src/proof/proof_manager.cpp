@@ -53,7 +53,7 @@ ProofManager::ProofManager(ProofFormat format):
   //  d_inputClauses(),
   //  d_theoryLemmas(),
   //  d_theoryPropagations(),
-  // d_inputFormulas(), moved to cnfProof
+  d_inputFormulas(), 
   d_inputCoreFormulas(),
   d_outputCoreFormulas(),
   //  d_nextId(0),
@@ -301,14 +301,15 @@ void ProofManager::traceUnsatCore() {
   }
 }
 
-void ProofManager::addAssertion(Expr formula, bool inUnsatCore) {
-  Debug("cores") << "assert: " << formula << std::endl;
+void ProofManager::addAssertion(Expr formula) {
+  Debug("proof:pm") << "assert: " << formula << std::endl;
   d_inputFormulas.insert(formula);
+}
+
+void ProofManager::addCoreAssertion(Expr formula) {
+  Debug("cores") << "assert: " << formula << std::endl;
   d_deps[Node::fromExpr(formula)]; // empty vector of deps
-  if(inUnsatCore || options::dumpUnsatCores() || options::checkUnsatCores()) {
-    Debug("cores") << "adding to input core forms: " << formula << std::endl;
-    d_inputCoreFormulas.insert(formula);
-  }
+  d_inputCoreFormulas.insert(formula);
 }
 
 void ProofManager::addDependence(TNode n, TNode dep) {
