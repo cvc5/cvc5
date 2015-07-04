@@ -674,18 +674,21 @@ void Solver::analyzeFinal(Lit p, vec<Lit>& out_conflict)
 
     THEORY_PROOF(
           if (level(var(p)) == 0 && ProofManager::getBitVectorProof()->isAssumptionConflict()) {
-            Assert (reason(var(p)) == CRef_Undef && out_conflict.size()); 
-            ProofManager::getBitVectorProof()->startBVConflict(p);
+            Assert ( marker[var(p)] == 2);
+            if (reason(var(p)) == CRef_Undef) {
+              ProofManager::getBitVectorProof()->startBVConflict(p);
+            }
           }
     );
     
-    if (decisionLevel() == 0) {
+    if (decisionLevel() == 0 && !options::proof()) {
       return;
     }
 
     seen[var(p)] = 1;
-
-    for (int i = trail.size()-1; i >= trail_lim[0]; i--){
+    int end = options::proof() ? 0 : trail_lim[0];
+    
+    for (int i = trail.size()-1; i >= end; i--){
         Var x = var(trail[i]);
         if (seen[x]) {
             if (reason(x) == CRef_Undef) {
@@ -699,17 +702,19 @@ void Solver::analyzeFinal(Lit p, vec<Lit>& out_conflict)
                         trail[i] == p) {
                       ProofManager::getBitVectorProof()->startBVConflict(reason(x));
                     } else {
-                      ProofManager::getBitVectorProof()->getSatProof()->addResolutionStep(trail[i], reason(x), sign(trail[i]));
+                      ProofManager::getBitVectorProof()->getSatProof()->addResolutionStep(trail[i],
+                                                                                          reason(x),
+                                                                                          sign(trail[i]));
                         }
                     );
               for (int j = 1; j < c.size(); j++) {
                 if (level(var(c[j])) > 0) {
                   seen[var(c[j])] = 1;
                 }
-                THEORY_PROOF(
-                      if (level(var(c[j])) == 0) {
-                        ProofManager::getBitVectorProof()->getSatProof()->resolveOutUnit(c[j]);
-                      }
+                THEORY_PROOF
+                  (if (level(var(c[j])) == 0) {
+                    ProofManager::getBitVectorProof()->getSatProof()->resolveOutUnit(c[j]);
+                  }
                 );
               }
             }
