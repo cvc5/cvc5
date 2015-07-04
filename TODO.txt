@@ -2,7 +2,7 @@
 
 DEBUGGING:
 * implement bvshl, bvlrsh, etc. side condition code
-* 
+* check bvmul works properly on small toy example (concat addition of mult)
 
 EAGER BB:
 
@@ -13,6 +13,7 @@ RUN EXPERIMENTS:
   * eager_proof
   * lazy_proof_size
   * eager_proof_size
+* instrument CVC4 with statistics for clauseId: glue, reschain length (in final proof), num lemmas in final proof (use a histogram stat)
   
 * run on small subset
   * check proofs eager and lazy 
