@@ -638,8 +638,6 @@ void Solver::analyzeFinal2(Lit p, CRef confl_clause, vec<Lit>& out_conflict) {
         } else {
           THEORY_PROOF(ProofManager::getBitVectorProof()->getSatProof()->resolveOutUnit(~p);); 
         }
-        
-        
       } else {
         Clause& c = ca[reason(x)];
         THEORY_PROOF(ProofManager::getBitVectorProof()->getSatProof()->addResolutionStep(trail[i],reason(x), sign(trail[i])););
@@ -650,6 +648,7 @@ void Solver::analyzeFinal2(Lit p, CRef confl_clause, vec<Lit>& out_conflict) {
           THEORY_PROOF(
                 if (level(var(c[j])) == 0) {
                   THEORY_PROOF( ProofManager::getBitVectorProof()->getSatProof()->resolveOutUnit(c[j]););
+                  seen[var(c[j])] = 0; // we don't need to resolve it out again
                 }
                 );
         }
