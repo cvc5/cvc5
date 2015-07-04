@@ -26,7 +26,7 @@ ANALYZE RESULTS:
 
 * proof sizes (also histogram)
   * eager
-  *lazy
+  * lazy
 
 * check-proofs (this writes to disk)
 

@@ -28,6 +28,8 @@
 #include "expr/expr.h"
 #include "proof/proof_manager.h"
 #include "util/proof.h"
+#include "util/statistics_registry.h"
+
 
 namespace CVC4 {
 
@@ -298,12 +300,25 @@ public:
 
   void collectClausesUsed(IdToSatClause& inputs,
                           IdToSatClause& lemmas);
-  // clause_iterator begin_input_clauses() { return d_seenInput.begin(); }
-  // clause_iterator end_input_clauses() { return d_seenInput.end(); }
 
-  // clause_iterator begin_lemma_clauses() { return d_seenLemmas.begin(); }
-  // clause_iterator end_lemma_clauses() { return d_seenLemmas.end(); }
+  void storeClauseGlue(ClauseId clause, int glue);
 
+private:
+  __gnu_cxx::hash_map<ClauseId, int> d_glueMap; 
+  struct Statistics {
+    IntStat d_numLearnedClauses;
+    IntStat d_numLearnedInProof;
+    IntStat d_numLemmasInProof;
+    AverageStat d_avgChainLength;
+    HistogramStat<uint64_t> d_resChainLengths;
+    HistogramStat<uint64_t> d_usedResChainLengths;
+    HistogramStat<uint64_t> d_clauseGlue;
+    HistogramStat<uint64_t> d_usedClauseGlue;
+    Statistics(const std::string& name);
+    ~Statistics();
+  };
+
+  Statistics d_statistics;
 };/* class TSatProof */
 
 

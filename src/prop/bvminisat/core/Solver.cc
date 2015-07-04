@@ -1016,13 +1016,20 @@ lbool Solver::search(int nof_conflicts, UIP uip)
               THEORY_PROOF(
                  ClauseId id = ProofManager::getBitVectorProof()->
                                    getSatProof()->registerClause(cr, LEARNT);
+                 
+                 __gnu_cxx::hash_set<int> cl_levels;
+                 for (int i = 0; i < learnt_clause.size(); ++i) {
+                   cl_levels.insert(level(var(learnt_clause[i])));
+                 }
+                 ProofManager::getBitVectorProof()->getSatProof()->storeClauseGlue(id, cl_levels.size());
                  ProofManager::getBitVectorProof()->getSatProof()->endResChain(id);
                  );
             }
             
             if (learnt_clause.size() == 1) {
               // learning a unit clause
-              THEORY_PROOF( ProofManager::getBitVectorProof()->getSatProof()->endResChain(learnt_clause[0]););
+              THEORY_PROOF
+                (ProofManager::getBitVectorProof()->getSatProof()->endResChain(learnt_clause[0]););
             }
             
             //  if the uip was an assumption we are unsat

@@ -1194,8 +1194,15 @@ lbool Solver::search(int nof_conflicts)
                 attachClause(cr);
                 claBumpActivity(ca[cr]);
                 uncheckedEnqueue(learnt_clause[0], cr);
-                PROOF( ClauseId id = ProofManager::getSatProof()->registerClause(cr, LEARNT);
-                       ProofManager::getSatProof()->endResChain(id); );
+                PROOF(
+                      ClauseId id = ProofManager::getSatProof()->registerClause(cr, LEARNT);
+                      __gnu_cxx::hash_set<int> cl_levels;
+                      for (int i = 0; i < learnt_clause.size(); ++i) {
+                        cl_levels.insert(level(var(learnt_clause[i])));
+                      }
+                      ProofManager::getSatProof()->storeClauseGlue(id, cl_levels.size());
+                      ProofManager::getSatProof()->endResChain(id);
+                      );
             }
 
             varDecayActivity();
