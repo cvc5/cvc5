@@ -2,7 +2,7 @@
 
 DEBUGGING:
 * implement bvshl, bvlrsh, etc. side condition code
-* check bvmul works properly on small toy example (concat addition of mult)
+
 
 EAGER BB:
 

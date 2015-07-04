@@ -296,16 +296,21 @@ bool Solver::addClause_(vec<Lit>& ps, ClauseId& id)
       
       // Check if it propagates
       if (ps.size() == falseLiteralsCount + 1) {
+        Clause& cl = ca[cr];
         int i = 0;
         // find undefined literal
-        while(value(ps[i]) == l_False) {
-          Assert (i < ps.size());
+        while(value(cl[i]) == l_False) {
+          Assert (i < cl.size());
           ++i;
         }
+        // make sure undefined literal is at position zero
+        Lit aux = cl[0];
+        cl[0] = cl[i];
+        cl[i] = aux;
         
-        Assert (value(ps[i]) == l_Undef);
-        uncheckedEnqueue(ps[i], cr);
-        Assert (ps.size() > 1);
+        Assert (value(cl[0]) == l_Undef);
+        uncheckedEnqueue(cl[0], cr);
+        Assert (cl.size() > 1);
         CRef confl = propagate();
         if(! (ok = (confl == CRef_Undef)) ) {
           if(ca[confl].size() == 1) {
@@ -1285,9 +1290,16 @@ void Solver::explain(Lit p, std::vector<Lit>& explanation) {
     Var x = var(trail[i]);
     if (seen[x]) {
       if (reason(x) == CRef_Undef) {
-        assert(marker[x] == 2);
-        assert(level(x) > 0);
-        explanation.push_back(trail[i]);
+        if (marker[x] == 2) {
+          assert(level(x) > 0);
+          explanation.push_back(trail[i]);
+        } else {
+          Assert (level(x) == 0);
+          THEORY_PROOF(
+                       ProofManager::getBitVectorProof()->getSatProof()->resolveOutUnit(~(trail[i]));
+                       );
+         }
+        
       } else {
         Clause& c = ca[reason(x)];
         THEORY_PROOF(
@@ -1297,10 +1309,11 @@ void Solver::explain(Lit p, std::vector<Lit>& explanation) {
                 ProofManager::getBitVectorProof()->getSatProof()->addResolutionStep(trail[i], reason(x), sign(trail[i]));
               }
               );
-        for (int j = 1; j < c.size(); j++)
-          if (level(var(c[j])) > 0) {
+        for (int j = 1; j < c.size(); j++) {
+          if (level(var(c[j])) > 0 || options::proof()) {
             seen[var(c[j])] = 1;
           }
+        }
       }
       seen[x] = 0;
     }
