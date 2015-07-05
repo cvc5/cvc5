@@ -57,6 +57,9 @@ option aggressiveMiniscopeQuant --ag-miniscope-quant bool :default false
 # Whether to perform quantifier macro expansion
 option macrosQuant --macros-quant bool :default false
  perform quantifiers macro expansions
+# Whether to CNF quantifier bodies
+option elimTautQuant --elim-taut-quant bool :default true
+ eliminate tautological disjuncts of quantified formulas
  
 #### E-matching options
  
@@ -83,6 +86,8 @@ option purifyDtTriggers --purify-dt-triggers bool :default false :read-write
  purify dt triggers, match all constructors of correct form instead of selectors
 option pureThTriggers --pure-th-triggers bool :default false :read-write
  use pure theory terms as single triggers
+option partialTriggers --partial-triggers bool :default false :read-write
+ use triggers that do not contain all free variables
 option multiTriggerWhenSingle --multi-trigger-when-single bool :default false
  select multi triggers when single triggers exist
 option multiTriggerPriority --multi-trigger-priority bool :default false
@@ -250,7 +255,7 @@ option lteRestrictInstClosure --lte-restrict-inst-closure bool :default false
  
 ### reduction options
 
-option quantAlphaEquiv --quant-alpha-equiv bool :default false
+option quantAlphaEquiv --quant-alpha-equiv bool :default true
   infer alpha equivalence between quantified formulas
  
 endmodule

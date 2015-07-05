@@ -538,6 +538,7 @@ bool CegInstantiator::addInstantiation( std::vector< Node >& subs, std::vector< 
         d_qe->getOutputChannel().lemma( delta_lem );
       }
       subs[i] = NodeManager::currentNM()->mkNode( subs_typ[i]==2 ? PLUS : MINUS, subs[i], d_n_delta );
+      d_used_delta = true;
     }
   }
   //check if we have already added this instantiation

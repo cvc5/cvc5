@@ -71,6 +71,7 @@ public:
   std::vector< Node > d_vars;
   //delta
   Node d_n_delta;
+  bool d_used_delta;
   //check : add instantiations based on valuation of d_vars
   bool check();
   // get delta lemmas : on-demand force minimality of d_n_delta

@@ -774,6 +774,30 @@ Node QuantifiersRewriter::computePrenex( Node body, std::vector< Node >& args, b
   }
 }
 
+Node QuantifiersRewriter::computeElimTaut( Node body ) {
+  if( body.getKind()==OR ){
+    std::vector< Node > children;
+    std::map< Node, bool > lit_pol;
+    for( unsigned i=0; i<body.getNumChildren(); i++ ){
+      Node lit = body[i].getKind()==NOT ? body[i][0] : body[i];
+      bool pol = body[i].getKind()!=NOT;
+      std::map< Node, bool >::iterator it = lit_pol.find( lit );
+      if( it==lit_pol.end() ){
+        lit_pol[lit] = pol;
+        children.push_back( body[i] );
+      }else{
+        if( it->second!=pol ){
+          return NodeManager::currentNM()->mkConst( true );
+        }
+      }
+    }
+    if( children.size()!=body.getNumChildren() ){
+      return children.size()==1 ? children[0] : NodeManager::currentNM()->mkNode( OR, children );
+    }
+  }
+  return body;
+}
+  
 Node QuantifiersRewriter::computeSplit( Node f, Node body, std::vector< Node >& vars ) {
   if( body.getKind()==OR ){
     size_t var_found_count = 0;
@@ -1104,6 +1128,8 @@ bool QuantifiersRewriter::doOperation( Node f, bool isNested, int computeOption 
     return options::iteDtTesterSplitQuant();
   }else if( computeOption==COMPUTE_PRENEX ){
     return options::prenexQuant()!=PRENEX_NONE && !options::aggressiveMiniscopeQuant();
+  }else if( computeOption==COMPUTE_ELIM_TAUT ){
+    return options::elimTautQuant();
   }else if( computeOption==COMPUTE_VAR_ELIMINATION ){
     return options::varElimQuant() || options::dtVarExpandQuant();
   }else if( computeOption==COMPUTE_CNF ){
@@ -1144,6 +1170,8 @@ Node QuantifiersRewriter::computeOperation( Node f, bool isNested, int computeOp
       n = computeProcessIte2( n );
     }else if( computeOption==COMPUTE_PRENEX ){
       n = computePrenex( n, args, true );
+    }else if( computeOption==COMPUTE_ELIM_TAUT ){
+      n = computeElimTaut( n );
     }else if( computeOption==COMPUTE_VAR_ELIMINATION ){
       Node prev;
       do{

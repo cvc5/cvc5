@@ -29,11 +29,12 @@ function finishwith {
 }
 
 trywith 10 --cbqi2 --decision=internal --full-saturate-quant
-trywith 10 --relevant-triggers --full-saturate-quant
+trywith 10 --relevant-triggers --full-saturate-quant --partial-triggers --purify-triggers
 trywith 10 --cbqi --full-saturate-quant
+trywith 10 --cbqi2 --e-matching  --partial-triggers --purify-triggers
 trywith 30 --qcf-tconstraint --full-saturate-quant
 trywith 60 --cbqi --cbqi-recurse --full-saturate-quant
-trywith 10 --full-saturate-quant
+trywith 10 --full-saturate-quant --partial-triggers --purify-triggers
 trywith 10 --no-e-matching --full-saturate-quant
 trywith 10 --fmf-bound-int
 finishwith --cbqi2 --cbqi-recurse --full-saturate-quant

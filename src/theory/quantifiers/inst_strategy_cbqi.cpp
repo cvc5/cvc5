@@ -126,9 +126,9 @@ void InstStrategySimplex::addTermToRow( Node i, ArithVar x, Node n, NodeBuilder<
 }
 
 int InstStrategySimplex::process( Node f, Theory::Effort effort, int e ){
-  if( e<2 ){
+  if( e<1 ){
     return STATUS_UNFINISHED;
-  }else if( e==2 ){
+  }else if( e==1 ){
     if( d_quantActive.find( f )!=d_quantActive.end() ){
       //the point instantiation
       InstMatch m_point( f );
@@ -373,9 +373,9 @@ void InstStrategyCegqi::processResetInstantiationRound( Theory::Effort effort ) 
 }
 
 int InstStrategyCegqi::process( Node f, Theory::Effort effort, int e ) {
-  if( e<2 ){
+  if( e<1 ){
     return STATUS_UNFINISHED;
-  }else if( e==2 ){
+  }else if( e==1 ){
     CegInstantiator * cinst;
     std::map< Node, CegInstantiator * >::iterator it = d_cinst.find( f );
     if( it==d_cinst.end() ){
@@ -417,10 +417,11 @@ int InstStrategyCegqi::process( Node f, Theory::Effort effort, int e ) {
     Trace("inst-alg") << "-> Run cegqi for " << f << std::endl;
     d_curr_quant = f;
     bool addedLemma = cinst->check();
+    d_used_delta = d_used_delta || cinst->d_used_delta;
     d_curr_quant = Node::null();
     return addedLemma ? STATUS_UNKNOWN : STATUS_UNFINISHED;
-  }else if( e==3 ){
-    if( d_check_delta_lemma_lc ){
+  }else if( e==2 ){
+    if( d_check_delta_lemma_lc && d_used_delta ){
       d_check_delta_lemma_lc = false;
       d_n_delta_ub = NodeManager::currentNM()->mkNode( MULT, d_n_delta_ub, d_n_delta_ub );
       d_n_delta_ub = Rewriter::rewrite( d_n_delta_ub );

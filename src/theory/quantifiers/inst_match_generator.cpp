@@ -463,13 +463,17 @@ bool VarMatchGeneratorTermSubs::getNextMatch( Node f, InstMatch& m, QuantifiersE
     s = Rewriter::rewrite( s );
     Trace("var-trigger-matching") << "...got " << s << std::endl;
     d_eq_class = Node::null();
-    d_rm_prev = m.get( d_var_num[0] ).isNull();
-    if( !m.set( qe, d_var_num[0], s ) ){
-      return false;
-    }else{
-      if( continueNextMatch( f, m, qe ) ){
-        return true;
+    if( s.getType().isSubtypeOf( d_var.getType() ) ){
+      d_rm_prev = m.get( d_var_num[0] ).isNull();
+      if( !m.set( qe, d_var_num[0], s ) ){
+        return false;
+      }else{
+        if( continueNextMatch( f, m, qe ) ){
+          return true;
+        }
       }
+    }else{
+      Trace("var-trigger-matching") << "Violates type requirement." << std::endl;
     }
   }
   if( d_rm_prev ){

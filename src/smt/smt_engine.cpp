@@ -771,7 +771,7 @@ void SmtEngine::finishInit() {
     // Dump("benchmark") << SetBenchmarkLogicCommand(logic.getLogicString());
     LogicInfo everything;
     everything.lock();
-    Dump("benchmark") << CommentCommand("CVC4 always dumps the most general, \"all-supported\" logic (below), as some internals might require the use of a logic more general than the input.")
+    Dump("benchmark") << CommentCommand("CVC4 always dumps the most general, all-supported logic (below), as some internals might require the use of a logic more general than the input.")
                       << SetBenchmarkLogicCommand(everything.getLogicString());
   }
 
