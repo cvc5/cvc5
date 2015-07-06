@@ -1196,11 +1196,13 @@ lbool Solver::search(int nof_conflicts)
                 uncheckedEnqueue(learnt_clause[0], cr);
                 PROOF(
                       ClauseId id = ProofManager::getSatProof()->registerClause(cr, LEARNT);
+                      PSTATS(
                       __gnu_cxx::hash_set<int> cl_levels;
                       for (int i = 0; i < learnt_clause.size(); ++i) {
                         cl_levels.insert(level(var(learnt_clause[i])));
                       }
                       ProofManager::getSatProof()->storeClauseGlue(id, cl_levels.size());
+                            )
                       ProofManager::getSatProof()->endResChain(id);
                       );
             }
