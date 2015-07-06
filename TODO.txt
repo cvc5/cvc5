@@ -2,6 +2,9 @@
 
 DEBUGGING:
 * implement bvshl, bvlrsh, etc. side condition code
+* why isAssertion is not in sync with d_clauseToAssertion and why not printing preprocessed assertion
+
+builds/bin/cvc4 --bv-div-zero-const --bitblast=lazy --no-bv-eq --no-bv-ineq --no-bv-alg --proof /home/lianah/benchmarks/QF_BV/bruttomesso/simple_processor/368529/simple_processors_002_002_0004.smt2 -d proof:pm -d proof:cnf> temp
 
 
 EAGER BB:
