@@ -1292,7 +1292,7 @@ void Solver::explain(Lit p, std::vector<Lit>& explanation) {
   seen[var(p)] = 1;
 
   // if we are called at decisionLevel = 0 trail_lim is empty
-  int bottom = trail_lim.size() && level(var(p)) ? trail_lim[0] : 0;
+  int bottom = options::proof() ? 0 : trail_lim[0];
   for (int i = trail.size()-1; i >= bottom; i--){
     Var x = var(trail[i]);
     if (seen[x]) {
