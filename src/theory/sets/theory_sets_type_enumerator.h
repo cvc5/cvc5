@@ -62,6 +62,7 @@ public:
   // by the TypeEnumerator framework.
   SetEnumerator(const SetEnumerator& ae) throw() :
     TypeEnumeratorBase<SetEnumerator>(ae.d_nm->mkSetType(ae.d_constituentType)),
+    d_index(ae.d_index),
     d_constituentType(ae.d_constituentType),
     d_nm(ae.d_nm),
     d_indexVec(ae.d_indexVec),
