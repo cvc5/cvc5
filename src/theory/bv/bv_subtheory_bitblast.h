@@ -73,6 +73,7 @@ public:
   void bitblastQueue();
   void setAbstraction(AbstractionModule* module); 
   uint64_t computeAtomWeight(TNode atom); 
+  void setProofLog( BitVectorProof * bvp );
 };
 
 }

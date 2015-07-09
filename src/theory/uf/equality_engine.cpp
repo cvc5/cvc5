@@ -1098,15 +1098,47 @@ void EqualityEngine::getExplanation(EqualityNodeId t1Id, EqualityNodeId t2Id, st
             currentEdge = bfsQueue[currentIndex].edgeId;
             currentIndex = bfsQueue[currentIndex].previousIndex;
 
+            //---from Morgan---
+            if(eqpc != NULL && eqpc->d_id == MERGED_THROUGH_REFLEXIVITY) {
+              if(eqpc->d_node.isNull()) {
+                Assert(eqpc->d_children.size() == 1);
+                EqProof *p = eqpc;
+                eqpc = p->d_children[0];
+                delete p;
+              } else {
+                Assert(eqpc->d_children.empty());
+              }
+            }
+            //---end from Morgan---
+            
             eqp_trans.push_back( eqpc );
 
           } while (currentEdge != null_id);
 
-          if( eqp ){
-            eqp->d_id = MERGED_THROUGH_TRANS;
-            eqp->d_children.insert( eqp->d_children.end(), eqp_trans.begin(), eqp_trans.end() );
+          //if( eqp ){
+          //  eqp->d_id = MERGED_THROUGH_TRANS;
+          //  eqp->d_children.insert( eqp->d_children.end(), eqp_trans.begin(), eqp_trans.end() );
+          //}
+          //---from Morgan---
+          if(eqp) {
+            if(eqp_trans.size() > 1) {
+              for(size_t i = 0; i < eqp_trans.size(); ++i) {
+                if(eqp_trans[i]->isReflexivity()) {
+                  eqp_trans.erase(eqp_trans.begin() + i);
+                }
+              }
+            }
+            if(eqp_trans.size() == 1) {
+              *eqp = *eqp_trans[0];
+              delete eqp_trans[0];
+            } else {
+              eqp->d_id = MERGED_THROUGH_TRANS;
+              eqp->d_children.insert( eqp->d_children.end(), eqp_trans.begin(), eqp_trans.end() );
+              eqp->d_node = NodeManager::currentNM()->mkNode(d_nodes[t1Id].getType().isBoolean() ? kind::IFF : kind::EQUAL, d_nodes[t1Id], d_nodes[t2Id]);
+            }
           }
-
+          //---end from Morgan---
+          
           // Done
           return;
         }
@@ -2035,6 +2067,32 @@ bool EqClassIterator::isFinished() const {
   return d_current == null_id;
 }
 
+//---from Morgan---
+bool EqProof::isReflexivity(){
+  if(d_id == MERGED_THROUGH_REFLEXIVITY) {
+    return true;
+  }
+  if(d_id == MERGED_THROUGH_CONGRUENCE) {
+    return d_children[0]->isReflexivity() && d_children[1]->isReflexivity();
+  }
+  if(d_id == MERGED_THROUGH_TRANS) {
+    size_t n = d_children.size() - 1;
+    if(n > 0) {
+      if(d_children[n]->d_node[0] == d_children[0]->d_node[0] ||
+         d_children[n]->d_node[1] == d_children[0]->d_node[0] ||
+         d_children[n]->d_node[0] == d_children[0]->d_node[1] ||
+         d_children[n]->d_node[1] == d_children[0]->d_node[1]) {
+        // fixme
+        Debug("mgd") << "found transitive-reflexive proof:\n";
+        debug_print("mgd");
+        Debug("mgd") << "\n";
+        return true;
+      }
+    }
+  }
+  return false;
+}
+//---end from Morgan---
 
 void EqProof::debug_print( const char * c, unsigned tb ){
   for( unsigned i=0; i<tb; i++ ) { Debug( c ) << "  "; }

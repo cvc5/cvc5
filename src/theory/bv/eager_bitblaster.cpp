@@ -48,14 +48,9 @@ EagerBitblaster::EagerBitblaster(TheoryBV* theory_bv)
                                            options::proof(),
                                            "EagerBitblaster");
   
-  THEORY_PROOF
-    (
-     ProofManager::currentPM()->getBitVectorProof()->initCnfProof(d_cnfStream, d_nullContext);
-     d_cnfStream->setProof(ProofManager::getBitVectorProof()->getCnfProof());
-     ); 
-  
   MinisatEmptyNotify* notify = new MinisatEmptyNotify();
   d_satSolver->setNotify(notify);
+  d_bvp = NULL;
 }
 
 EagerBitblaster::~EagerBitblaster() {
@@ -104,12 +99,12 @@ void EagerBitblaster::bbAtom(TNode node) {
 }
 
 void EagerBitblaster::storeBBAtom(TNode atom, Node atom_bb) {
-  THEORY_PROOF (ProofManager::getBitVectorProof()->registerAtomBB(atom.toExpr(), atom_bb.toExpr()););
+  if( d_bvp ){ d_bvp->registerAtomBB(atom.toExpr(), atom_bb.toExpr()); }
   d_bbAtoms.insert(atom); 
 }
 
 void EagerBitblaster::storeBBTerm(TNode node, const Bits& bits) {
-  THEORY_PROOF (ProofManager::getBitVectorProof()->registerTermBB(node.toExpr()););
+  if( d_bvp ){ d_bvp->registerTermBB(node.toExpr()); }
   d_termCache.insert(std::make_pair(node, bits));
 }
 
@@ -222,6 +217,13 @@ void EagerBitblaster::collectModelInfo(TheoryModel* m, bool fullModel) {
       }
     }
   }
+}
+
+void EagerBitblaster::setProofLog( BitVectorProof * bvp ) {
+  d_bvp = bvp;
+  d_satSolver->setProofLog(bvp);
+  bvp->initCnfProof(d_cnfStream, d_nullContext);
+  d_cnfStream->setProof(bvp->getCnfProof());
 }
 
 bool EagerBitblaster::isSharedTerm(TNode node) {

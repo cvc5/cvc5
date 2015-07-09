@@ -24,6 +24,11 @@ using namespace CVC4;
 using namespace CVC4::theory;
 using namespace CVC4::theory::uf;
 
+
+void ProofUF::toStream(std::ostream& out) {
+  Trace("theory-proof-debug") << "; Print UF proof..." << std::endl;
+}
+
 UFProof::UFProof(theory::uf::TheoryUF* uf, TheoryProofEngine* pe)
   : TheoryProof(uf, pe)
 {}
@@ -94,9 +99,8 @@ void LFSCUFProof::printTheoryLemmaProof(std::vector<Expr>& lemma, std::ostream& 
     os << lemma[i] <<" "; 
   }
   os <<"\n";
-  // TODO proper UF proof
-  // Use Morgan's replaying strategy here
-  os << " (clausify_false trust)";
+  //os << " (clausify_false trust)";
+  UFProof::printTheoryLemmaProof( lemma, os, paren );
 }
 
 void LFSCUFProof::printDeclarations(std::ostream& os, std::ostream& paren) {

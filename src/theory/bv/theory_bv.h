@@ -86,6 +86,8 @@ public:
   
   void presolve();
   bool applyAbstraction(const std::vector<Node>& assertions, std::vector<Node>& new_assertions); 
+  
+  void setProofLog( BitVectorProof * bvp );
 private:
 
   class Statistics {
@@ -209,8 +211,7 @@ private:
   void lemma(TNode node) { d_out->lemma(node, RULE_CONFLICT); d_lemmasAdded = true; }
 
   void checkForLemma(TNode node); 
-
- 
+  
   friend class LazyBitblaster;
   friend class TLazyBitblaster;
   friend class EagerBitblaster;

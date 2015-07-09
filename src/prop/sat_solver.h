@@ -27,6 +27,9 @@
 #include "expr/node.h"
 
 namespace CVC4 {
+  
+class BitVectorProof;
+
 namespace prop {
 
 class TheoryProxy;
@@ -126,6 +129,8 @@ public:
   virtual void popAssumption() = 0;
 
   virtual bool ok() const = 0;
+  
+  virtual void setProofLog( BitVectorProof * bvp ) {}
 
 };/* class BVSatSolverInterface */
 

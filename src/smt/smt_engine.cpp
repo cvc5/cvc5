@@ -700,9 +700,9 @@ SmtEngine::SmtEngine(ExprManager* em) throw() :
   d_modelGlobalCommands(),
   d_modelCommands(NULL),
   d_dumpCommands(),
-#ifdef CVC4_PROOF  
+#ifdef CVC4_PROOF
   d_defineCommands(),
-#endif  
+#endif
   d_logic(),
   d_originalOptions(em->getOptions()),
   d_pendingPops(0),
@@ -727,14 +727,18 @@ SmtEngine::SmtEngine(ExprManager* em) throw() :
 
   Assert(d_proofManager == NULL);
   PROOF( d_proofManager = new ProofManager(); );
-  
+
   // We have mutual dependency here, so we add the prop engine to the theory
   // engine later (it is non-essential there)
   d_theoryEngine = new TheoryEngine(d_context, d_userContext, d_private->d_iteRemover, const_cast<const LogicInfo&>(d_logic));
 
   // Add the theories
   for(TheoryId id = theory::THEORY_FIRST; id < theory::THEORY_LAST; ++id) {
+    Debug("ajr-temp") << "Add theory " << id << std::endl;
     TheoryConstructor::addTheory(d_theoryEngine, id);
+    Debug("ajr-temp") << "Done add theory " << id << std::endl;
+    //register with proof engine if applicable
+    THEORY_PROOF(ProofManager::currentPM()->getTheoryProofEngine()->registerTheory(d_theoryEngine->theoryOf(id)); );
   }
 
   // global push/pop around everything, to ensure proper destruction
@@ -1170,8 +1174,8 @@ void SmtEngine::setDefaults() {
   if(! options::repeatSimp.wasSetByUser()) {
     bool repeatSimp = !d_logic.isQuantified() &&
                       (d_logic.isTheoryEnabled(THEORY_ARRAY) &&
-		       d_logic.isTheoryEnabled(THEORY_UF) &&
-		       d_logic.isTheoryEnabled(THEORY_BV)) &&
+           d_logic.isTheoryEnabled(THEORY_UF) &&
+           d_logic.isTheoryEnabled(THEORY_BV)) &&
                       !options::unsatCores();
     Trace("smt") << "setting repeat simplification to " << repeatSimp << endl;
     options::repeatSimp.set(repeatSimp);
@@ -1712,7 +1716,7 @@ void SmtEngine::defineFunction(Expr func,
       d_defineCommands.push_back(c.clone());
     });
 
-  
+
   // Substitute out any abstract values in formula
   Expr form = d_private->substituteAbstractValues(Node::fromExpr(formula)).toExpr();
 
@@ -3086,7 +3090,7 @@ void SmtEnginePrivate::processAssertions() {
   Trace("smt") << "SmtEnginePrivate::processAssertions()" << endl;
 
   Debug("smt") << " d_assertions     : " << d_assertions.size() << endl;
-  
+
   if (d_assertions.size() == 0) {
     // nothing to do
     return;
@@ -3384,7 +3388,7 @@ void SmtEnginePrivate::processAssertions() {
           d_iteSkolemMap.erase(toErase.back());
           toErase.pop_back();
         }
-	d_assertions[d_realAssertionsEnd - 1] = Rewriter::rewrite(Node(builder));
+  d_assertions[d_realAssertionsEnd - 1] = Rewriter::rewrite(Node(builder));
       }
       // For some reason this is needed for some benchmarks, such as
       // http://cvc4.cs.nyu.edu/benchmarks/smtlib2/QF_AUFBV/dwp_formulas/try5_small_difret_functions_dwp_tac.re_node_set_remove_at.il.dwp.smt2
@@ -3496,7 +3500,7 @@ void SmtEnginePrivate::addFormula(TNode n, bool inUnsatCore, bool inInput)
     }
     // rewrite rules are by default in the unsat core because
     // they need to be applied until saturation
-    if(options::unsatCores() && 
+    if(options::unsatCores() &&
        n.getKind() == kind::REWRITE_RULE ){
       ProofManager::currentPM()->addUnsatCore(n.toExpr());
     }
@@ -4029,8 +4033,8 @@ void SmtEngine::checkUnsatCore() {
   for (; itg != d_defineCommands.end();  ++itg) {
     (*itg)->invoke(&coreChecker);
   }
-	);
-  
+  );
+
   Notice() << "SmtEngine::checkUnsatCore(): pushing core assertions (size == " << core.size() << ")" << endl;
   for(UnsatCore::iterator i = core.begin(); i != core.end(); ++i) {
     Notice() << "SmtEngine::checkUnsatCore(): pushing core member " << *i << endl;

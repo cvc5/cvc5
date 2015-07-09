@@ -23,6 +23,7 @@
 #include "theory/type_enumerator.h"
 #include "proof/theory_proof.h"
 #include "proof/proof_manager.h"
+#include "proof/uf_proof.h"
 
 using namespace std;
 using namespace CVC4;
@@ -45,7 +46,6 @@ TheoryUF::TheoryUF(context::Context* c, context::UserContext* u, OutputChannel& 
 {
   // The kinds we are treating as function application in congruence
   d_equalityEngine.addFunctionKind(kind::APPLY_UF);
-  THEORY_PROOF (ProofManager::currentPM()->getTheoryProofEngine()->registerTheory(this); );
 }
 
 TheoryUF::~TheoryUF() {
@@ -205,27 +205,29 @@ Node TheoryUF::getNextDecisionRequest(){
   }
 }
 
-void TheoryUF::explain(TNode literal, std::vector<TNode>& assumptions) {
+void TheoryUF::explain(TNode literal, std::vector<TNode>& assumptions, eq::EqProof* pf) {
   // Do the work
   bool polarity = literal.getKind() != kind::NOT;
   TNode atom = polarity ? literal : literal[0];
-  eq::EqProof * eqp = d_proofEnabled ? new eq::EqProof : NULL;
   if (atom.getKind() == kind::EQUAL || atom.getKind() == kind::IFF) {
-    d_equalityEngine.explainEquality(atom[0], atom[1], polarity, assumptions, eqp);
+    d_equalityEngine.explainEquality(atom[0], atom[1], polarity, assumptions, pf);
   } else {
-    d_equalityEngine.explainPredicate(atom, polarity, assumptions, eqp);
+    d_equalityEngine.explainPredicate(atom, polarity, assumptions, pf);
   }
-  //for now, just print debug
-  //TODO : send the proof outwards : d_out->conflict( lem, eqp );
-  if( eqp ){
-    eqp->debug_print("uf-pf");
+  if( pf ){
+    Debug("uf-pf") << std::endl;
+    pf->debug_print("uf-pf");
   }
 }
 
 Node TheoryUF::explain(TNode literal) {
+  return explain(literal, NULL);
+}
+
+Node TheoryUF::explain(TNode literal, eq::EqProof* pf) {
   Debug("uf") << "TheoryUF::explain(" << literal << ")" << std::endl;
   std::vector<TNode> assumptions;
-  explain(literal, assumptions);
+  explain(literal, assumptions, pf);
   return mkAnd(assumptions);
 }
 
@@ -506,13 +508,14 @@ void TheoryUF::computeCareGraph() {
 }/* TheoryUF::computeCareGraph() */
 
 void TheoryUF::conflict(TNode a, TNode b) {
-  //TODO: create EqProof at this level if d_proofEnabled = true
+  eq::EqProof* pf = d_proofsEnabled ? new eq::EqProof() : NULL;
   if (a.getKind() == kind::CONST_BOOLEAN) {
-    d_conflictNode = explain(a.iffNode(b));
+    d_conflictNode = explain(a.iffNode(b),pf);
   } else {
-    d_conflictNode = explain(a.eqNode(b));
+    d_conflictNode = explain(a.eqNode(b),pf);
   }
-  d_out->conflict(d_conflictNode);
+  ProofUF * puf = d_proofsEnabled ? new ProofUF( pf ) : NULL;
+  d_out->conflict(d_conflictNode, puf);
   d_conflict = true;
 }
 

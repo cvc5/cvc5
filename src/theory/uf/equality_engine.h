@@ -200,10 +200,10 @@ public:
       functionTermsCount(name + "::functionTermsCount", 0),
       constantTermsCount(name + "::constantTermsCount", 0)
     {
-      StatisticsRegistry::registerStat(&mergesCount);
-      StatisticsRegistry::registerStat(&termsCount);
-      StatisticsRegistry::registerStat(&functionTermsCount);
-      StatisticsRegistry::registerStat(&constantTermsCount);
+      StatisticsRegistry::registerStatMultiple(&mergesCount);
+      StatisticsRegistry::registerStatMultiple(&termsCount);
+      StatisticsRegistry::registerStatMultiple(&functionTermsCount);
+      StatisticsRegistry::registerStatMultiple(&constantTermsCount);
     }
 
     ~Statistics() {
@@ -895,6 +895,7 @@ public:
   MergeReasonType d_id;
   Node d_node;
   std::vector< EqProof * > d_children;
+  bool isReflexivity();
   void debug_print( const char * c, unsigned tb = 0 );
 };
 

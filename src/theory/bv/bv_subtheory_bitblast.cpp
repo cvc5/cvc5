@@ -45,7 +45,6 @@ BitblastSolver::BitblastSolver(context::Context* c, TheoryBV* bv)
     d_quickCheck(options::bitvectorQuickXplain() ? new BVQuickCheck("bb", bv) : NULL),
     d_quickXplain(options::bitvectorQuickXplain() ? new QuickXPlain("bb", d_quickCheck) :  NULL)
 {
-  THEORY_PROOF(ProofManager::currentPM()->getBitVectorProof()->setBitblaster(d_bitblaster)); 
 }
 
 BitblastSolver::~BitblastSolver() {
@@ -279,4 +278,9 @@ void BitblastSolver::setConflict(TNode conflict) {
     //std::cout << "Minimized conflict " << final_conflict.getNumChildren() << "\n"; 
   }
   d_bv->setConflict(final_conflict);
+}
+
+void BitblastSolver::setProofLog( BitVectorProof * bvp ) {
+  d_bitblaster->setProofLog( bvp );
+  bvp->setBitblaster(d_bitblaster);
 }

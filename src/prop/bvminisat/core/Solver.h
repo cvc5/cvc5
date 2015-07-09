@@ -33,7 +33,7 @@ OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWA
 
 namespace CVC4 {
 template <class Solver> class TSatProof;
-
+class BitVectorProof;
 } /* CVC4 namespace*/
 
 typedef unsigned ClauseId;
@@ -209,6 +209,8 @@ public:
     bool only_bcp;                      // solving mode in which only boolean constraint propagation is done
     void setOnlyBCP (bool val) { only_bcp = val;}
     void explain(Lit l, std::vector<Lit>& explanation);
+    
+    void setProofLog( CVC4::BitVectorProof * bvp );
 
 protected:
 
@@ -285,6 +287,9 @@ protected:
     int64_t             conflict_budget;    // -1 means no budget.
     int64_t             propagation_budget; // -1 means no budget.
     bool                asynch_interrupt;
+    
+    //proof log
+    CVC4::BitVectorProof * d_bvp;
 
     // Main internal methods:
     //

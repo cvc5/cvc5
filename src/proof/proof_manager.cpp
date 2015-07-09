@@ -487,7 +487,7 @@ void LFSCProof::toStream(std::ostream& out) {
   d_theoryProof->printTheoryLemmas(used_lemmas, out, paren);
 
   
-  if (options::bitblastMode() == theory::bv::BITBLAST_MODE_EAGER) {
+  if (options::bitblastMode() == theory::bv::BITBLAST_MODE_EAGER && ProofManager::getBitVectorProof()) {
     // priunt actual resolution proof
     // d_satProof->printResolutions(out, paren);
     ProofManager::getBitVectorProof()->getSatProof()->printResolutionEmptyClause(out, paren);
@@ -495,7 +495,7 @@ void LFSCProof::toStream(std::ostream& out) {
     out << paren.str();
     out << "\n";
   } else {
-    // priunt actual resolution proof
+    // print actual resolution proof
     d_satProof->printResolutions(out, paren);
     d_satProof->printResolutionEmptyClause(out, paren);
     paren <<")))\n;;";

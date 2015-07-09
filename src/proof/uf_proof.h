@@ -21,10 +21,20 @@
 
 #include "expr/expr.h"
 #include "proof/proof_manager.h"
-//#include "theory/uf/theory_uf.h"
+#include "theory/uf/equality_engine.h"
 
 namespace CVC4 {
 
+//proof object outputted by TheoryUF
+class ProofUF : public Proof {
+public:
+  ProofUF( theory::eq::EqProof * pf ) : d_proof( pf ) {}
+  //it is simply an equality engine proof
+  theory::eq::EqProof * d_proof;
+  void toStream(std::ostream& out);
+};
+
+  
 namespace theory {
 namespace uf {
 class TheoryUF;
@@ -32,6 +42,7 @@ class TheoryUF;
 }
 
 typedef __gnu_cxx::hash_set<Type, TypeHashFunction > TypeSet;
+
 
 class UFProof : public TheoryProof {
 protected:
@@ -42,24 +53,6 @@ public:
   UFProof(theory::uf::TheoryUF* uf, TheoryProofEngine* proofEngine);
 
   virtual void registerTerm(Expr term);
-  
-  virtual void printTerm(Expr term, std::ostream& os, const LetMap& map) = 0;
-  virtual void printSort(Type type, std::ostream& os) = 0; 
-  /** 
-   * Print a proof for the theory lemma. Must prove
-   * clause representing lemma to be used in resolution proof.
-   * 
-   * @param lemma clausal form of lemma
-   * @param os output stream
-   */
-  virtual void printTheoryLemmaProof(std::vector<Expr>& lemma, std::ostream& os, std::ostream& paren) = 0;
-  /** 
-   * Print the variable/sorts declarations for this theory.
-   * 
-   * @param os 
-   * @param paren 
-   */
-  virtual void printDeclarations(std::ostream& os, std::ostream& paren) = 0;
 };
 
 class LFSCUFProof : public UFProof {

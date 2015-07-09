@@ -1032,12 +1032,15 @@ void LFSCSatProof<Solver>::printAssumptionsResolution(ClauseId id, std::ostream&
 
 template <class Solver>
 void LFSCSatProof<Solver>::printResolutions(std::ostream& out, std::ostream& paren) {
+  Debug("bv-proof") << "; print resolutions" << std::endl;
   std::set<ClauseId>::iterator it = this->d_seenLearnt.begin();
   for(; it!= this->d_seenLearnt.end(); ++it) {
     if(*it != this->d_emptyClauseId) {
+      Debug("bv-proof") << "; print resolution for " << *it << std::endl;
       printResolution(*it, out, paren);
     }
   }
+  Debug("bv-proof") << "; done print resolutions" << std::endl;
 }
 
 template <class Solver>

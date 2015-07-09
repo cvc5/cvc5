@@ -199,7 +199,7 @@ public:
    * 
    * @param os output stream
    */
-  virtual void printTheoryLemmaProof(std::vector<Expr>& lemma, std::ostream& os, std::ostream& paren) = 0;
+  virtual void printTheoryLemmaProof(std::vector<Expr>& lemma, std::ostream& os, std::ostream& paren);
   /** 
    * Print the variable/sorts declarations for this theory.
    * 

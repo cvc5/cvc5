@@ -40,6 +40,7 @@ class EagerBitblastSolver {
   AigBitblaster* d_aigBitblaster;
   bool d_useAig;
   TheoryBV* d_bv; 
+  BitVectorProof * d_bvp;
 public:
   EagerBitblastSolver(theory::bv::TheoryBV* bv); 
   ~EagerBitblastSolver();
@@ -52,6 +53,7 @@ public:
   bool isInitialized();
   void initialize();
   void collectModelInfo(theory::TheoryModel* m, bool fullModel);
+  void setProofLog( BitVectorProof * bvp );
 };
 
 }

@@ -55,7 +55,12 @@ void EagerBitblastSolver::initialize() {
     d_aigBitblaster = new AigBitblaster();
   } else {
     d_bitblaster = new EagerBitblaster(d_bv);
-    THEORY_PROOF(ProofManager::currentPM()->getBitVectorProof()->setBitblaster(d_bitblaster)); 
+    THEORY_PROOF(
+      if( d_bvp ){
+        d_bitblaster->setProofLog( d_bvp );
+        d_bvp->setBitblaster(d_bitblaster);
+      }
+    );
   }
 }
 
@@ -113,4 +118,8 @@ bool EagerBitblastSolver::hasAssertions(const std::vector<TNode> &formulas) {
 void EagerBitblastSolver::collectModelInfo(TheoryModel* m, bool fullModel) {
   AlwaysAssert(!d_useAig && d_bitblaster);
   d_bitblaster->collectModelInfo(m, fullModel); 
+}
+
+void EagerBitblastSolver::setProofLog( BitVectorProof * bvp ) {
+  d_bvp = bvp;
 }

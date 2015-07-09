@@ -60,8 +60,6 @@ TheoryBV::TheoryBV(context::Context* c, context::UserContext* u, OutputChannel& 
     d_isCoreTheory(false),
     d_calledPreregister(false)
 {
-  THEORY_PROOF (ProofManager::currentPM()->getTheoryProofEngine()->registerTheory(this); );
-
   if (options::bitblastMode() == theory::bv::BITBLAST_MODE_EAGER) {
     d_eagerSolver = new EagerBitblastSolver(this);
     return; 
@@ -362,7 +360,6 @@ void TheoryBV::checkForLemma(TNode fact) {
     }
   }
 }
-
 
 void TheoryBV::check(Effort e)
 {
@@ -795,6 +792,16 @@ bool TheoryBV::applyAbstraction(const std::vector<Node>& assertions, std::vector
     d_eagerSolver->initialize();
   }
   return changed;
+}
+
+void TheoryBV::setProofLog( BitVectorProof * bvp ) {
+  if( options::bitblastMode() == theory::bv::BITBLAST_MODE_EAGER ){
+    d_eagerSolver->setProofLog( bvp );
+  }else{
+    for( unsigned i=0; i< d_subtheories.size(); i++ ){
+      d_subtheories[i]->setProofLog( bvp );
+    }
+  }
 }
 
 void TheoryBV::setConflict(Node conflict) {

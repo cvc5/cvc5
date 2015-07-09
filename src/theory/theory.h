@@ -262,10 +262,10 @@ protected:
   , d_sharedTerms(satContext)
   , d_out(&out)
   , d_valuation(valuation)
-  , d_proofEnabled(false)
+  , d_proofsEnabled(false)
   {
-    StatisticsRegistry::registerStat(&d_checkTime);
-    StatisticsRegistry::registerStat(&d_computeCareGraphTime);
+    StatisticsRegistry::registerStatMultiple(&d_checkTime);
+    StatisticsRegistry::registerStatMultiple(&d_computeCareGraphTime);
   }
 
   /**
@@ -291,6 +291,12 @@ protected:
   Valuation d_valuation;
 
   /**
+   * Whether proofs are enabled
+   *
+   */
+  bool d_proofsEnabled;
+  
+  /**
    * Returns the next assertion in the assertFact() queue.
    *
    * @return the next assertion in the assertFact() queue
@@ -308,12 +314,6 @@ protected:
 
   void printFacts(std::ostream& os) const;
   void debugPrintFacts() const;
-
-  /**
-   * Whether proofs are enabled
-   *
-   */
-  bool d_proofEnabled;
 
 public:
 
@@ -872,6 +872,11 @@ public:
    */
   virtual std::pair<bool, Node> entailmentCheck(TNode lit, const EntailmentCheckParameters* params = NULL, EntailmentCheckSideEffects* out = NULL);
 
+  /**
+   * Turn on proof-production mode.
+   */
+  void produceProofs() { d_proofsEnabled = true; }
+  
 };/* class Theory */
 
 std::ostream& operator<<(std::ostream& os, theory::Theory::Effort level);

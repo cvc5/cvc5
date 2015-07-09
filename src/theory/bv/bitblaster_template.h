@@ -83,6 +83,7 @@ protected:
   // caches and mappings
   TermDefMap d_termCache;
   ModelCache d_modelCache;
+  BitVectorProof * d_bvp;
   
   void initAtomBBStrategies();
   void initTermBBStrategies();
@@ -199,6 +200,7 @@ public:
    * constants to equivalence classes that don't already have them
    */
   void collectModelInfo(TheoryModel* m, bool fullModel);
+  void setProofLog( BitVectorProof * bvp );
 
   typedef TNodeSet::const_iterator vars_iterator;
   vars_iterator beginVars() { return d_variables.begin(); }
@@ -278,6 +280,7 @@ public:
   bool assertToSat(TNode node, bool propagate = true);
   bool solve();
   void collectModelInfo(TheoryModel* m, bool fullModel);
+  void setProofLog( BitVectorProof * bvp );
 };
 
 class BitblastingRegistrar: public prop::Registrar {
@@ -404,6 +407,7 @@ template <class T>
 TBitblaster<T>::TBitblaster()
   : d_termCache()
   , d_modelCache()
+  , d_bvp( NULL )
 {
   initAtomBBStrategies();
   initTermBBStrategies(); 

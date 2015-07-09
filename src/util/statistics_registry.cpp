@@ -63,6 +63,31 @@ void StatisticsRegistry::registerStat(Stat* s) throw(CVC4::IllegalArgumentExcept
 #endif /* CVC4_STATISTICS_ON */
 }/* StatisticsRegistry::registerStat() */
 
+void StatisticsRegistry::registerStatMultiple(Stat* s) throw() {
+#ifdef CVC4_STATISTICS_ON
+  StatSet& stats = current()->d_stats;
+  StatSet::iterator i = stats.find(s);
+  if(i != stats.end()) {
+    unsigned seq = ++current()->d_sequenceNumber[s->getName()];
+    std::stringstream ss;
+    ss << s->getName() << "/" << seq;
+    s->d_name = ss.str();
+    /*
+    if(seq == 1) {
+      // rename the original one, too
+      Stat* s2 = *i;
+      stats.erase(i);
+      ss.str("");
+      ss << s2->getName() << "/0";
+      s2->d_name = ss.str();
+      stats.insert(s2);
+    }
+    */
+  }
+  stats.insert(s);
+#endif /* CVC4_STATISTICS_ON */
+}/* StatisticsRegistry::registerStatMultiple() */
+
 void StatisticsRegistry::unregisterStat(Stat* s) throw(CVC4::IllegalArgumentException) {
 #ifdef CVC4_STATISTICS_ON
   StatSet& stats = current()->d_stats;
@@ -81,6 +106,31 @@ void StatisticsRegistry::registerStat_(Stat* s) throw(CVC4::IllegalArgumentExcep
   d_stats.insert(s);
 #endif /* CVC4_STATISTICS_ON */
 }/* StatisticsRegistry::registerStat_() */
+
+
+void StatisticsRegistry::registerStatMultiple_(Stat* s) throw() {
+#ifdef CVC4_STATISTICS_ON
+  StatSet::iterator i = d_stats.find(s);
+  if(i != d_stats.end()) {
+    unsigned seq = d_sequenceNumber[s->getName()];
+    std::stringstream ss;
+    ss << s->getName() << "/" << seq;
+    s->d_name = ss.str();
+    /*
+    if(seq == 1) {
+      // rename the original one, too
+      Stat* s2 = *i;
+      d_stats.erase(i);
+      ss.str("");
+      ss << s2->getName() << "/0";
+      s2->d_name = ss.str();
+      d_stats.insert(s2);
+    }
+    */
+  }
+  d_stats.insert(s);
+#endif /* CVC4_STATISTICS_ON */
+}/* StatisticsRegistry::registerStatMultiple_() */
 
 void StatisticsRegistry::unregisterStat_(Stat* s) throw(CVC4::IllegalArgumentException) {
 #ifdef CVC4_STATISTICS_ON

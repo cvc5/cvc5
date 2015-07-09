@@ -94,6 +94,10 @@ void BVMinisatSatSolver::popAssumption() {
   d_minisat->popAssumption();
 }
 
+void BVMinisatSatSolver::setProofLog( BitVectorProof * bvp ) {
+  d_minisat->setProofLog( bvp );
+}
+
 SatVariable BVMinisatSatSolver::newVar(bool isTheoryAtom, bool preRegister, bool canErase){
   return d_minisat->newVar(true, true, !canErase);
 }

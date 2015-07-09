@@ -63,14 +63,14 @@ void BitVectorProof::initCnfProof(prop::CnfStream* cnfStream,
   d_cnfProof->registerConvertedClause(d_resolutionProof->getTrueUnit());
   //d_cnfProof->setClauseFact(d_resolutionProof->getTrueUnit(), true_node);
   d_cnfProof->popCurrentAssertion();
-  d_cnfProof->popCurrentDefinition();         
-  
+  d_cnfProof->popCurrentDefinition();
+
   d_cnfProof->pushCurrentAssertion(false_node);
   d_cnfProof->pushCurrentDefinition(false_node);
   d_cnfProof->registerConvertedClause(d_resolutionProof->getFalseUnit());
   //d_cnfProof->setClauseFact(d_resolutionProof->getFalseUnit(), false_node);
   d_cnfProof->popCurrentAssertion();
-  d_cnfProof->popCurrentDefinition();         
+  d_cnfProof->popCurrentDefinition();
 }
 
 void BitVectorProof::setBitblaster(bv::TBitblaster<Node>* bb) {
@@ -86,7 +86,7 @@ BVSatProof* BitVectorProof::getSatProof() {
 void BitVectorProof::registerTermBB(Expr term) {
   if (d_seenBBTerms.find(term) != d_seenBBTerms.end())
     return;
-  
+
   d_seenBBTerms.insert(term);
   d_bbTerms.push_back(term);
 }
@@ -97,7 +97,7 @@ void BitVectorProof::registerAtomBB(Expr atom, Expr atom_bb) {
 
 void BitVectorProof::registerTerm(Expr term) {
   d_usedBB.insert(term);
-  
+
   if (Theory::isLeafOf(term, theory::THEORY_BV) &&
       !term.isConst()) {
     d_declarations.insert(term);
@@ -120,10 +120,10 @@ void BitVectorProof::registerTerm(Expr term) {
   //       d_bbTerms[term] = newBBId();
   //   }
   // }
-  
+
   // don't care about parametric operators for bv?
   for (unsigned i = 0; i < term.getNumChildren(); ++i) {
-     d_proofEngine->registerTerm(term[i]); 
+     d_proofEngine->registerTerm(term[i]);
   }
 }
 
@@ -148,36 +148,44 @@ void BitVectorProof::endBVConflict(const BVMinisat::Solver::TLitVec& confl) {
   for (int i = 0; i < confl.size(); ++i) {
     prop::SatLiteral lit = prop::BVMinisatSatSolver::toSatLiteral(confl[i]);
     Expr atom = d_cnfProof->getAtom(lit.getSatVariable()).toExpr();
-    Expr expr_lit = lit.isNegated() ? atom.notExpr() : atom; 
-    expr_confl.push_back(expr_lit); 
+    Expr expr_lit = lit.isNegated() ? atom.notExpr() : atom;
+    expr_confl.push_back(expr_lit);
   }
   Expr conflict = utils::mkSortedExpr(kind::OR, expr_confl);
+  Debug("bv-proof") << "Make conflict for " << conflict << std::endl;
 
-  if (d_conflictMap.find(conflict) != d_conflictMap.end()) {
+  if (d_bbConflictMap.find(conflict) != d_bbConflictMap.end()) {
+    Debug("bv-proof") << "Abort...already conflict for " << conflict << std::endl;
     // This can only happen when we have eager explanations in the bv solver
     // if we don't get to propagate p before ~p is already asserted
     d_resolutionProof->cancelResChain();
     return;
   }
 
-  // we don't need to check for uniqueness in the sat solver then        
+  // we don't need to check for uniqueness in the sat solver then
   ClauseId clause_id = d_resolutionProof->registerAssumptionConflict(confl);
-  d_conflictMap[conflict] = clause_id;
+  d_bbConflictMap[conflict] = clause_id;
   d_resolutionProof->endResChain(clause_id);
-  Debug("bv-proof") << "BitVectorProof::endBVConflict id"<<clause_id<< " => " << conflict << "\n"; 
+  Debug("bv-proof") << "BitVectorProof::endBVConflict id"<<clause_id<< " => " << conflict << "\n";
   d_isAssumptionConflict = false;
 }
 
 void BitVectorProof::finalizeConflicts(std::vector<Expr>& conflicts) {
   if (options::bitblastMode() == theory::bv::BITBLAST_MODE_EAGER) {
+    Debug("bv-proof") << "Construct full proof." << std::endl;
     d_resolutionProof->constructProof();
-    return; 
+    return;
   }
   for(unsigned i = 0; i < conflicts.size(); ++i) {
     Expr confl = conflicts[i];
-    Assert (d_conflictMap.find(confl) != d_conflictMap.end());
-    ClauseId id = d_conflictMap[confl];
-    d_resolutionProof->collectClauses(id);
+    Debug("bv-proof") << "Finalize conflict " << confl << std::endl;
+    //Assert (d_bbConflictMap.find(confl) != d_bbConflictMap.end());
+    if(d_bbConflictMap.find(confl) != d_bbConflictMap.end()){
+      ClauseId id = d_bbConflictMap[confl];
+      d_resolutionProof->collectClauses(id);
+    }else{
+      Debug("bv-proof") << "Do not collect clauses for " << confl << std::endl;
+    }
   }
 }
 
@@ -193,9 +201,9 @@ void LFSCBitVectorProof::printTerm(Expr term, std::ostream& os, const LetMap& ma
   switch (term.getKind()) {
   case kind::CONST_BITVECTOR : {
     printConstant(term, os);
-    return; 
+    return;
   }
-  case kind::BITVECTOR_AND : 
+  case kind::BITVECTOR_AND :
   case kind::BITVECTOR_OR :
   case kind::BITVECTOR_XOR :
   case kind::BITVECTOR_NAND :
@@ -246,7 +254,7 @@ void LFSCBitVectorProof::printTerm(Expr term, std::ostream& os, const LetMap& ma
     return;
   }
   case kind::BITVECTOR_BITOF : {
-    printBitOf(term, os); 
+    printBitOf(term, os);
     return;
   }
   case kind::VARIABLE:
@@ -255,7 +263,7 @@ void LFSCBitVectorProof::printTerm(Expr term, std::ostream& os, const LetMap& ma
     return;
   }
   default:
-    Unreachable(); 
+    Unreachable();
   }
 }
 
@@ -264,8 +272,8 @@ void LFSCBitVectorProof::printBitOf(Expr term, std::ostream& os) {
   unsigned bit = term.getOperator().getConst<BitVectorBitOf>().bitIndex;
   Expr var = term[0];
   Assert (var.getKind() == kind::VARIABLE ||
-          var.getKind() == kind::SKOLEM); 
-  os << "(bitof " << var <<" " << bit <<")"; 
+          var.getKind() == kind::SKOLEM);
+  os << "(bitof " << var <<" " << bit <<")";
 }
 
 void LFSCBitVectorProof::printConstant(Expr term, std::ostream& os) {
@@ -275,11 +283,11 @@ void LFSCBitVectorProof::printConstant(Expr term, std::ostream& os) {
   int size = utils::getSize(term);
   for (int i = size - 1; i >= 0; --i) {
     os << "(bvc ";
-    os << (utils::getBit(term, i) ? "b1" : "b0") <<" "; 
+    os << (utils::getBit(term, i) ? "b1" : "b0") <<" ";
     paren << ")";
   }
   os << " bvn)";
-  os << paren.str(); 
+  os << paren.str();
 }
 
 void LFSCBitVectorProof::printOperatorNary(Expr term, std::ostream& os, const LetMap& map) {
@@ -304,7 +312,7 @@ void LFSCBitVectorProof::printOperatorUnary(Expr term, std::ostream& os, const L
   os <<"(";
   os << utils::toLFSCKind(term.getKind()) << " " << utils::getSize(term) <<" ";
   os << " ";
-  d_proofEngine->printBoundTerm(term[0], os, map); 
+  d_proofEngine->printBoundTerm(term[0], os, map);
   os <<")";
 }
 
@@ -314,34 +322,34 @@ void LFSCBitVectorProof::printPredicate(Expr term, std::ostream& os, const LetMa
   os << " ";
   d_proofEngine->printBoundTerm(term[0], os, map);
   os << " ";
-  d_proofEngine->printBoundTerm(term[1], os, map); 
+  d_proofEngine->printBoundTerm(term[1], os, map);
   os <<")";
 }
 
 void LFSCBitVectorProof::printOperatorParametric(Expr term, std::ostream& os, const LetMap& map) {
-  os <<"(";  
-  os << utils::toLFSCKind(term.getKind()) << " " << utils::getSize(term) <<" "; 
-  os <<" "; 
+  os <<"(";
+  os << utils::toLFSCKind(term.getKind()) << " " << utils::getSize(term) <<" ";
+  os <<" ";
   if (term.getKind() == kind::BITVECTOR_REPEAT) {
     unsigned amount = term.getOperator().getConst<BitVectorRepeat>().repeatAmount;
-    os << amount <<" _ "; 
+    os << amount <<" _ ";
   }
   if (term.getKind() == kind::BITVECTOR_SIGN_EXTEND) {
     unsigned amount = term.getOperator().getConst<BitVectorSignExtend>().signExtendAmount;
-    os << amount <<" _ "; 
+    os << amount <<" _ ";
   }
 
   if (term.getKind() == kind::BITVECTOR_ZERO_EXTEND) {
     unsigned amount = term.getOperator().getConst<BitVectorZeroExtend>().zeroExtendAmount;
-    os << amount<<" _ "; 
+    os << amount<<" _ ";
   }
   if (term.getKind() == kind::BITVECTOR_EXTRACT) {
     unsigned low = utils::getExtractLow(term);
     unsigned high = utils::getExtractHigh(term);
-    os << high <<" " << low << " " << utils::getSize(term[0]); 
+    os << high <<" " << low << " " << utils::getSize(term[0]);
   }
   os <<" ";
-  Assert (term.getNumChildren() == 1); 
+  Assert (term.getNumChildren() == 1);
   d_proofEngine->printBoundTerm(term[0], os, map);
   os <<")";
 }
@@ -349,45 +357,51 @@ void LFSCBitVectorProof::printOperatorParametric(Expr term, std::ostream& os, co
 void LFSCBitVectorProof::printSort(Type type, std::ostream& os) {
   Assert (type.isBitVector());
   unsigned width = utils::getSize(type);
-  os << "(BitVec "<<width<<")";  
+  os << "(BitVec "<<width<<")";
 }
 
 void LFSCBitVectorProof::printTheoryLemmaProof(std::vector<Expr>& lemma, std::ostream& os, std::ostream& paren) {
-  std::ostringstream lemma_paren;
-  for (unsigned i = 0; i < lemma.size(); ++i) {
-    Expr lit = lemma[i];
-    if (lit.getKind() == kind::NOT) {
-      os << "(intro_assump_t _ _ _ ";
-    } else {
-      os << "(intro_assump_f _ _ _ ";
+  Expr conflict = utils::mkSortedExpr(kind::OR, lemma);
+  if (d_bbConflictMap.find(conflict) != d_bbConflictMap.end()) {
+    std::ostringstream lemma_paren;
+    for (unsigned i = 0; i < lemma.size(); ++i) {
+      Expr lit = lemma[i];
+      Debug("ajr-temp") << "   child " << i << " : " << lit << std::endl;
+      if (lit.getKind() == kind::NOT) {
+        os << "(intro_assump_t _ _ _ ";
+      } else {
+        os << "(intro_assump_f _ _ _ ";
+      }
+      lemma_paren <<")";
+      // print corresponding literal in main sat solver
+      ProofManager* pm = ProofManager::currentPM();
+      CnfProof* cnf = pm->getCnfProof();
+      prop::SatLiteral main_lit = cnf->getLiteral(lit);
+      os << pm->getLitName(main_lit);
+      os <<" ";
+      // print corresponding literal in bv sat solver
+      prop::SatVariable bb_var = d_cnfProof->getLiteral(lit).getSatVariable();
+      os << pm->getAtomName(bb_var, "bb");
+      os <<"(\\unit"<<bb_var<<"\n";
+      lemma_paren <<")";
     }
-    lemma_paren <<")";
-    // print corresponding literal in main sat solver
-    ProofManager* pm = ProofManager::currentPM(); 
-    CnfProof* cnf = pm->getCnfProof(); 
-    prop::SatLiteral main_lit = cnf->getLiteral(lit);
-    os << pm->getLitName(main_lit);
-    os <<" "; 
-    // print corresponding literal in bv sat solver
-    prop::SatVariable bb_var = d_cnfProof->getLiteral(lit).getSatVariable();
-    os << pm->getAtomName(bb_var, "bb");
-    os <<"(\\unit"<<bb_var<<"\n"; 
-    lemma_paren <<")";
+    Expr lem = utils::mkOr(lemma);
+    Assert (d_bbConflictMap.find(lem) != d_bbConflictMap.end());
+    ClauseId lemma_id = d_bbConflictMap[lem];
+    d_resolutionProof->printAssumptionsResolution(lemma_id, os, lemma_paren);
+    os <<lemma_paren.str();
+    // os << "(clausify_false trust)\n";
+  }else{
+    Debug("bv-proof") << std::endl << "; Print non-bitblast theory conflict " << conflict << std::endl;
+    BitVectorProof::printTheoryLemmaProof( lemma, os, paren );
   }
-
-  Expr lem = utils::mkOr(lemma);
-  Assert (d_conflictMap.find(lem) != d_conflictMap.end()); 
-  ClauseId lemma_id = d_conflictMap[lem];
-  d_resolutionProof->printAssumptionsResolution(lemma_id, os, lemma_paren);
-  os <<lemma_paren.str();
-  // os << "(clausify_false trust)\n"; 
 }
 void LFSCBitVectorProof::printDeclarations(std::ostream& os, std::ostream& paren) {
   ExprSet::const_iterator it = d_declarations.begin();
   ExprSet::const_iterator end = d_declarations.end();
   for (; it != end; ++it) {
     os << "(% " << *it <<" var_bv\n";
-    paren <<")"; 
+    paren <<")";
   }
 }
 
@@ -397,13 +411,13 @@ void LFSCBitVectorProof::printTermBitblasting(Expr term, std::ostream& os) {
   // eliminated
   Assert (term.getType().isBitVector());
   Kind kind = term.getKind();
-  
+
   if (Theory::isLeafOf(term, theory::THEORY_BV) &&
       !term.isConst()) {
     os << "(bv_bbl_var "<<utils::getSize(term) << " " << term <<" _ )";
     return;
   }
-  
+
   switch(kind) {
   case kind::CONST_BITVECTOR : {
     os << "(bv_bbl_const "<< utils::getSize(term) <<" _ ";
@@ -411,12 +425,12 @@ void LFSCBitVectorProof::printTermBitblasting(Expr term, std::ostream& os) {
     int size = utils::getSize(term);
     for (int i = size - 1; i>= 0; --i) {
       os << "(bvc ";
-      os << (utils::getBit(term, i) ? "b1" : "b0") <<" "; 
+      os << (utils::getBit(term, i) ? "b1" : "b0") <<" ";
       paren << ")";
     }
     os << " bvn)";
-    os << paren.str(); 
-    return; 
+    os << paren.str();
+    return;
   }
   case kind::BITVECTOR_AND :
   case kind::BITVECTOR_OR :
@@ -484,19 +498,19 @@ void LFSCBitVectorProof::printTermBitblasting(Expr term, std::ostream& os) {
   case kind::BITVECTOR_ZERO_EXTEND :
   case kind::BITVECTOR_SIGN_EXTEND : {
     os <<"(bv_bbl_"<<utils::toLFSCKind(kind) <<" ";
-    os << utils::getSize(term) <<" "; 
+    os << utils::getSize(term) <<" ";
     if (term.getKind() == kind::BITVECTOR_REPEAT) {
       unsigned amount = term.getOperator().getConst<BitVectorRepeat>().repeatAmount;
-      os << amount; 
+      os << amount;
     }
     if (term.getKind() == kind::BITVECTOR_SIGN_EXTEND) {
       unsigned amount = term.getOperator().getConst<BitVectorSignExtend>().signExtendAmount;
-      os << amount; 
+      os << amount;
     }
-    
+
     if (term.getKind() == kind::BITVECTOR_ZERO_EXTEND) {
       unsigned amount = term.getOperator().getConst<BitVectorZeroExtend>().zeroExtendAmount;
-      os << amount; 
+      os << amount;
     }
     os <<" _ _ _ _ ";
     os << getBBTermName(term[0]);
@@ -504,7 +518,7 @@ void LFSCBitVectorProof::printTermBitblasting(Expr term, std::ostream& os) {
     return;
   }
   default:
-    Unreachable("LFSCBitVectorProof Unknown operator"); 
+    Unreachable("LFSCBitVectorProof Unknown operator");
   }
 }
 
@@ -521,9 +535,9 @@ void LFSCBitVectorProof::printAtomBitblasting(Expr atom, std::ostream& os) {
   case kind::BITVECTOR_SGE :
   case kind::EQUAL:
     {
-    os <<"(bv_bbl_" << utils::toLFSCKind(atom.getKind()); 
+    os <<"(bv_bbl_" << utils::toLFSCKind(atom.getKind());
     os << " _ _ _ _ _ _ ";
-    os << getBBTermName(atom[0])<<" " << getBBTermName(atom[1]) <<")"; 
+    os << getBBTermName(atom[0])<<" " << getBBTermName(atom[1]) <<")";
     return;
   }
   default:
@@ -560,7 +574,7 @@ void LFSCBitVectorProof::printBitblasting(std::ostream& os, std::ostream& paren)
     } else {
       printAtomBitblasting(ait->first, os);
     }
-    
+
     os <<"(\\ " << ProofManager::getPreprocessedAssertionName(ait->second) <<"\n";
     paren <<"))";
   }
@@ -593,7 +607,7 @@ void LFSCBitVectorProof::printResolutionProof(std::ostream& os,
        it != used_inputs.end(); ++it) {
     d_cnfProof->printCnfProofForClause(it->first, it->second, os, paren);
   }
-  
+
   os << ";; Bit-blasting learned clauses \n";
   d_resolutionProof->printResolutions(os, paren);
 }

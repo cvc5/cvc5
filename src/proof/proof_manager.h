@@ -57,6 +57,7 @@ typedef TSatProof< ::Minisat::Solver> CoreSatProof;
 class CnfProof;
 class RewriterProof;
 class TheoryProofEngine;
+class TheoryProof;
 class UFProof;
 class ArrayProof;
 class BitVectorProof;
@@ -164,6 +165,7 @@ public:
   static CnfProof*      getCnfProof();
   static TheoryProofEngine* getTheoryProofEngine();
   static RewriterProof* getRewriterProof();
+  static TheoryProof* getTheoryProof( theory::TheoryId id );
   static UFProof* getUfProof();
   static BitVectorProof* getBitVectorProof();
   static ArrayProof* getArrayProof();
@@ -225,6 +227,7 @@ public:
 
   void setLogic(const LogicInfo& logic);
   const std::string getLogic() const { return d_logic.getLogicString(); }
+  LogicInfo & getLogicInfo() { return d_logic; }
 
   // void setCnfDep(Expr child, Expr parent );
   // Expr getFormulaForClauseId(ClauseId id );

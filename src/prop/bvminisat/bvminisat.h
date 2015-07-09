@@ -122,6 +122,8 @@ public:
   SatValue assertAssumption(SatLiteral lit, bool propagate);
   
   void popAssumption();
+  
+  void setProofLog( BitVectorProof * bvp );
 
   class Statistics {
   public:

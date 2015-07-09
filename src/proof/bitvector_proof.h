@@ -31,7 +31,7 @@
 #include "prop/bvminisat/core/Solver.h"
 
 // namespace BVMinisat {
-// class Solver; 
+// class Solver;
 // }
 
 namespace CVC4 {
@@ -46,7 +46,7 @@ template <class T> class TBitblaster;
 }
 }
 
-class CnfProof; 
+class CnfProof;
 
 template <class Solver> class TSatProof;
 typedef TSatProof< ::BVMinisat::Solver> BVSatProof;
@@ -62,27 +62,27 @@ typedef __gnu_cxx::hash_map<Expr, Expr, ExprHashFunction> ExprToExpr;
 class BitVectorProof : public TheoryProof {
 protected:
   ExprSet d_declarations;
-  
-  // ExprToId d_terms; // bit-vector terms appearing in the problem 
-  // ExprToId d_atoms; // bit-vector atoms appearing in the problem 
+
+  // ExprToId d_terms; // bit-vector terms appearing in the problem
+  // ExprToId d_atoms; // bit-vector atoms appearing in the problem
 
   ExprSet d_usedBB; // terms and formulas that are actually relevant to the proof
-  
+
   ExprSet d_seenBBTerms; // terms that need to be bit-blasted
-  std::vector<Expr> d_bbTerms; // order of bit-blasting 
+  std::vector<Expr> d_bbTerms; // order of bit-blasting
   ExprToExpr d_bbAtoms; // atoms that need to be bit-blasted
 
   //  unsigned d_bbIdCount;
-  
+
   // map from Expr representing normalized lemma to ClauseId in SAT solver
-  ExprToClauseId d_conflictMap;
+  ExprToClauseId d_bbConflictMap;
   BVSatProof* d_resolutionProof;
 
   CnfProof* d_cnfProof;
-  
+
   bool d_isAssumptionConflict;
   theory::bv::TBitblaster<Node>* d_bitblaster;
-  // unsigned newBBId(); 
+  // unsigned newBBId();
   // unsigned getBBId(Expr expr);
   std::string getBBTermName(Expr expr);
 public:
@@ -91,16 +91,16 @@ public:
   void initSatProof(::BVMinisat::Solver* solver);
   void initCnfProof(prop::CnfStream* cnfStream, context::Context* ctx);
   void setBitblaster(theory::bv::TBitblaster<Node>* bb);
-  
+
   BVSatProof* getSatProof();
   CnfProof* getCnfProof() {return d_cnfProof; }
   void finalizeConflicts(std::vector<Expr>& conflicts);
 
   void startBVConflict(::BVMinisat::Solver::TCRef cr);
   void startBVConflict(::BVMinisat::Solver::TLit lit);
-  /** 
-   * All the 
-   * 
+  /**
+   * All the
+   *
    * @param confl an inconsistent set of bv literals
    */
   void endBVConflict(const BVMinisat::Solver::TLitVec& confl);
@@ -109,25 +109,19 @@ public:
 
   void registerTermBB(Expr term);
   void registerAtomBB(Expr atom, Expr atom_bb);
-  
+
   virtual void registerTerm(Expr term);
-  
-  virtual void printTerm(Expr term, std::ostream& os, const LetMap& map) = 0;
-  virtual void printSort(Type type, std::ostream& os) = 0;
+
   virtual void printTermBitblasting(Expr term, std::ostream& os) = 0;
   virtual void printAtomBitblasting(Expr term, std::ostream& os) = 0;
-
-  virtual void printTheoryLemmaProof(std::vector<Expr>& lemma,
-                                     std::ostream& os,
-                                     std::ostream& paren) = 0;
-  virtual void printDeclarations(std::ostream& os, std::ostream& paren) = 0;
+  
   virtual void printBitblasting(std::ostream& os, std::ostream& paren) = 0;
   virtual void printResolutionProof(std::ostream& os, std::ostream& paren) = 0;
-  
+
 };
 
 class LFSCBitVectorProof: public BitVectorProof {
-  
+
   void printConstant(Expr term, std::ostream& os);
   void printOperatorNary(Expr term, std::ostream& os, const LetMap& map);
   void printOperatorUnary(Expr term, std::ostream& os, const LetMap& map);
@@ -145,8 +139,8 @@ public:
   virtual void printTheoryLemmaProof(std::vector<Expr>& lemma, std::ostream& os, std::ostream& paren);
   virtual void printDeclarations(std::ostream& os, std::ostream& paren);
   virtual void printBitblasting(std::ostream& os, std::ostream& paren);
-  virtual void printResolutionProof(std::ostream& os, std::ostream& paren); 
-}; 
+  virtual void printResolutionProof(std::ostream& os, std::ostream& paren);
+};
 
 }/* CVC4 namespace */
 

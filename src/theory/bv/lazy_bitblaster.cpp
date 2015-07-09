@@ -55,11 +55,6 @@ TLazyBitblaster::TLazyBitblaster(context::Context* c, bv::TheoryBV* bv, const st
                                            options::proof(),
                                            "LazyBitblaster");
 
-  THEORY_PROOF
-    (
-     ProofManager::currentPM()->getBitVectorProof()->initCnfProof(d_cnfStream, d_nullContext);
-     d_cnfStream->setProof(ProofManager::getBitVectorProof()->getCnfProof());
-     ); 
   d_satSolverNotify = d_emptyNotify ?
     (prop::BVSatSolverInterface::Notify*) new MinisatEmptyNotify() :
     (prop::BVSatSolverInterface::Notify*) new MinisatNotify(d_cnfStream, bv, this);
@@ -147,12 +142,12 @@ void TLazyBitblaster::bbAtom(TNode node) {
 
 void TLazyBitblaster::storeBBAtom(TNode atom, Node atom_bb) {
   // no need to store the definition for the lazy bit-blaster (unless proofs)
-  THEORY_PROOF (ProofManager::getBitVectorProof()->registerAtomBB(atom.toExpr(), atom_bb.toExpr()););
+  if( d_bvp ){ d_bvp->registerAtomBB(atom.toExpr(), atom_bb.toExpr()); }
   d_bbAtoms.insert(atom); 
 }
 
 void TLazyBitblaster::storeBBTerm(TNode node, const Bits& bits) {
-  THEORY_PROOF (ProofManager::getBitVectorProof()->registerTermBB(node.toExpr()););
+  if( d_bvp ){ d_bvp->registerTermBB(node.toExpr()); }
   d_termCache.insert(std::make_pair(node, bits));
 }
 
@@ -498,6 +493,13 @@ void TLazyBitblaster::collectModelInfo(TheoryModel* m, bool fullModel) {
         m->assertEquality(var, const_value, true);
     }
   }
+}
+
+void TLazyBitblaster::setProofLog( BitVectorProof * bvp ){
+  d_bvp = bvp;
+  d_satSolver->setProofLog( bvp );
+  bvp->initCnfProof(d_cnfStream, d_nullContext);
+  d_cnfStream->setProof(bvp->getCnfProof());
 }
 
 void TLazyBitblaster::clearSolver() {

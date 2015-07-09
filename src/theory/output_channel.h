@@ -99,7 +99,7 @@ public:
    * unit conflict) which is assigned TRUE (and T-conflicting) in the
    * current assignment.
    */
-  virtual void conflict(TNode n) throw(AssertionException, UnsafeInterruptException) = 0;
+  virtual void conflict(TNode n, Proof* pf = NULL) throw(AssertionException, UnsafeInterruptException) = 0;
 
   /**
    * Propagate a theory literal.
