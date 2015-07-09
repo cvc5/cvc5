@@ -232,6 +232,13 @@ void CnfProof::collectAssertionsForClauses(const IdToSatClause& clauses,
   for (; it != clauses.end(); ++it) {
     TNode used_assertion =  getAssertionForClause(it->first);
     assertions.insert(used_assertion);
+    // it can be the case that a definition for a clause is an assertion
+    // but it is not the assertion for the clause
+    // e.g. the assertions [(and a b), a]
+    TNode used_definition = getDefinitionForClause(it->first);
+    if (isAssertion(used_definition)) {
+      assertions.insert(used_definition);
+    }
   }
 }
 
