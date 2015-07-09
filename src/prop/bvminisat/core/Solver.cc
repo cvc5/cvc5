@@ -211,7 +211,10 @@ bool Solver::addClause_(vec<Lit>& ps, ClauseId& id)
       cancelUntil(0);
     }
     
-    if (!ok) return false;
+    if (!ok) {
+      id = ClauseIdUndef;
+      return false;
+    }
 
     // Check if clause is satisfied and remove false/duplicate literals:
     // TODO proof for duplicate literals removal?
@@ -253,8 +256,10 @@ bool Solver::addClause_(vec<Lit>& ps, ClauseId& id)
       else if (ps.size() == 1){
         if(d_bvp){ id = d_bvp->getSatProof()->registerUnitClause(ps[0], INPUT);}
         uncheckedEnqueue(ps[0]);
-      
-        return ok = (propagate() == CRef_Undef);
+        CRef confl_ref = propagate();
+        ok = (confl_ref == CRef_Undef);
+        if(d_bvp){ if (!ok) d_bvp->getSatProof()->finalizeProof(confl_ref); }
+        return ok;
       } else {
         CRef cr = ca.alloc(ps, false);
         clauses.push(cr);
@@ -271,6 +276,9 @@ bool Solver::addClause_(vec<Lit>& ps, ClauseId& id)
         if(d_bvp){ d_bvp->getSatProof()->finalizeProof(::BVMinisat::CRef_Lazy); }
         return ok = false;
       }
+
+      assign_lt lt(*this);
+      sort(ps, lt);
       
       CRef cr = ca.alloc(ps, false);
       clauses.push(cr);
@@ -285,18 +293,14 @@ bool Solver::addClause_(vec<Lit>& ps, ClauseId& id)
       
       // Check if it propagates
       if (ps.size() == falseLiteralsCount + 1) {
-        int i = 0;
-        // find undefined literal
-        while(value(ps[i]) == l_False) {
-          Assert (i < ps.size());
-          ++i;
-        }
+        Clause& cl = ca[cr];
         
-        Assert (value(ps[i]) == l_Undef);
-        uncheckedEnqueue(ps[i], cr);
-        Assert (ps.size() > 1);
+        Assert (value(cl[0]) == l_Undef);
+        uncheckedEnqueue(cl[0], cr);
+        Assert (cl.size() > 1);
         CRef confl = propagate();
-        if(! (ok = (confl == CRef_Undef)) ) {
+        ok = (confl == CRef_Undef);
+        if(!ok) {
           if(d_bvp){
             if(ca[confl].size() == 1) {
               id = d_bvp->getSatProof()->storeUnitConflict(ca[confl][0], LEARNT);
@@ -607,20 +611,22 @@ void Solver::analyzeFinal2(Lit p, CRef confl_clause, vec<Lit>& out_conflict) {
     seen[var(cl[i])] = 1;
   }
 
-  for (int i = trail.size() - 1; i >= trail_lim[0]; i--) {
+  int end = options::proof() ? 0 :  trail_lim[0];
+  for (int i = trail.size() - 1; i >= end; i--) {
     Var x = var(trail[i]);
     if (seen[x]) {
       if (reason(x) == CRef_Undef) {
         // we skip p if was a learnt unit
         if (x != var(p)) {
-          assert (marker[x] == 2);
-          assert (level(x) > 0);
-          out_conflict.push(~trail[i]);
+          if (marker[x] == 2) {
+            assert (level(x) > 0);
+            out_conflict.push(~trail[i]);
+          } else {
+            if(d_bvp){d_bvp->getSatProof()->resolveOutUnit(~(trail[i])); }
+          }
         } else {
           if(d_bvp){d_bvp->getSatProof()->resolveOutUnit(~p);} 
         }
-        
-        
       } else {
         Clause& c = ca[reason(x)];
         if(d_bvp){d_bvp->getSatProof()->addResolutionStep(trail[i],reason(x), sign(trail[i]));}
@@ -631,6 +637,7 @@ void Solver::analyzeFinal2(Lit p, CRef confl_clause, vec<Lit>& out_conflict) {
           if(d_bvp){
             if (level(var(c[j])) == 0) {
               d_bvp->getSatProof()->resolveOutUnit(c[j]);
+              seen[var(c[j])] = 0; // we don't need to resolve it out again
             }
           }
         }
@@ -660,18 +667,21 @@ void Solver::analyzeFinal(Lit p, vec<Lit>& out_conflict)
 
     if(d_bvp){
       if (level(var(p)) == 0 && d_bvp->isAssumptionConflict()) {
-        Assert (reason(var(p)) == CRef_Undef && out_conflict.size()); 
-        d_bvp->startBVConflict(p);
+        Assert ( marker[var(p)] == 2);
+        if (reason(var(p)) == CRef_Undef) {
+          d_bvp->startBVConflict(p);
+        }
       }
     }
     
-    if (decisionLevel() == 0) {
+    if (decisionLevel() == 0 && !options::proof()) {
       return;
     }
 
     seen[var(p)] = 1;
-
-    for (int i = trail.size()-1; i >= trail_lim[0]; i--){
+    int end = options::proof() ? 0 : trail_lim[0];
+    
+    for (int i = trail.size()-1; i >= end; i--){
         Var x = var(trail[i]);
         if (seen[x]) {
             if (reason(x) == CRef_Undef) {
@@ -991,8 +1001,14 @@ lbool Solver::search(int nof_conflicts, UIP uip)
               attachClause(cr);
               claBumpActivity(ca[cr]);
               if(d_bvp){
-                 ClauseId id = d_bvp->
-                                   getSatProof()->registerClause(cr, LEARNT);
+                 ClauseId id = d_bvp->getSatProof()->registerClause(cr, LEARNT);
+                 PSTATS(
+                 __gnu_cxx::hash_set<int> cl_levels;
+                 for (int i = 0; i < learnt_clause.size(); ++i) {
+                   cl_levels.insert(level(var(learnt_clause[i])));
+                 }
+                 if( d_bvp ){ d_bvp->getSatProof()->storeClauseGlue(id, cl_levels.size()); }
+                       )
                  d_bvp->getSatProof()->endResChain(id);
               }
             }
@@ -1246,26 +1262,34 @@ void Solver::explain(Lit p, std::vector<Lit>& explanation) {
   if (level(var(p)) == 0) {
     if(d_bvp){
           // the only way a marker variable is 
-          Assert (reason(var(p)) == CRef_Undef);
+       if (reason(var(p)) == CRef_Undef) {
           d_bvp->startBVConflict(p);
           vec<Lit> confl;
           confl.push(p);
           d_bvp->endBVConflict(confl);
+          return;
+       }
     }
-    return;
+    if (!THEORY_PROOF_ON())
+      return;
   }
   
   seen[var(p)] = 1;
 
   // if we are called at decisionLevel = 0 trail_lim is empty
-  int bottom = trail_lim.size() ? trail_lim[0] : 0;
+  int bottom = options::proof() ? 0 : trail_lim[0];
   for (int i = trail.size()-1; i >= bottom; i--){
     Var x = var(trail[i]);
     if (seen[x]) {
       if (reason(x) == CRef_Undef) {
-        assert(marker[x] == 2);
-        assert(level(x) > 0);
-        explanation.push_back(trail[i]);
+        if (marker[x] == 2) {
+          assert(level(x) > 0);
+          explanation.push_back(trail[i]);
+        } else {
+          Assert (level(x) == 0);
+          if(d_bvp){ d_bvp->getSatProof()->resolveOutUnit(~(trail[i])); }
+         }
+        
       } else {
         Clause& c = ca[reason(x)];
         if(d_bvp){
@@ -1275,10 +1299,11 @@ void Solver::explain(Lit p, std::vector<Lit>& explanation) {
             d_bvp->getSatProof()->addResolutionStep(trail[i], reason(x), sign(trail[i]));
           }
         }
-        for (int j = 1; j < c.size(); j++)
-          if (level(var(c[j])) > 0) {
+        for (int j = 1; j < c.size(); j++) {
+          if (level(var(c[j])) > 0 || options::proof()) {
             seen[var(c[j])] = 1;
           }
+        }
       }
       seen[x] = 0;
     }

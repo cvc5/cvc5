@@ -356,6 +356,35 @@ protected:
     // Returns a random integer 0 <= x < size. Seed must never be 0.
     static inline int irand(double& seed, int size) {
         return (int)(drand(seed) * size); }
+
+  // Less than for literals in an added clause when proofs are on
+  struct assign_lt {
+    Solver& solver;
+    assign_lt(Solver& solver) : solver(solver) {}
+    bool operator () (Lit x, Lit y) {
+      lbool x_value = solver.value(x);
+      lbool y_value = solver.value(y);
+      // Two unassigned literals are sorted arbitrarily
+      if (x_value == l_Undef && y_value == l_Undef) {
+        return x < y;
+      }
+      // Unassigned literals are put to front
+      if (x_value == l_Undef) return true;
+      if (y_value == l_Undef) return false;
+      // Literals of the same value are sorted by decreasing levels
+      if (x_value == y_value) {
+        return solver.level(var(x)) > solver.level(var(y));
+      } else {
+        // True literals go up front
+        if (x_value == l_True) {
+          return true;
+        } else {
+          return false;
+        }
+      }
+    }
+  };
+
 };
 
 

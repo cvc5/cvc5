@@ -3123,6 +3123,14 @@ void SmtEnginePrivate::processAssertions() {
   }
   dumpAssertions("post-definition-expansion", d_assertions);
 
+  // save the assertions now
+  THEORY_PROOF
+    (
+     for (unsigned i = 0; i < d_assertions.size(); ++i) {
+       ProofManager::currentPM()->addAssertion(d_assertions[i].toExpr());
+     }
+     );
+  
   Debug("smt") << " d_assertions     : " << d_assertions.size() << endl;
 
   if (options::bitblastMode() == theory::bv::BITBLAST_MODE_EAGER &&
@@ -3493,7 +3501,7 @@ void SmtEnginePrivate::addFormula(TNode n, bool inUnsatCore, bool inInput)
   PROOF(
     if( inInput ){
       // n is an input assertion
-      ProofManager::currentPM()->addAssertion(n.toExpr(), inUnsatCore);
+      if (inUnsatCore) ProofManager::currentPM()->addCoreAssertion(n.toExpr());
     }else{
       // n is the result of an unknown preprocessing step, add it to dependency map to null
       ProofManager::currentPM()->addDependence(n, Node::null());

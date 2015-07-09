@@ -34,4 +34,10 @@
 #  define PROOF_ON() false
 #endif /* CVC4_PROOF */
 
+#ifdef CVC4_PROOF_STATS /* CVC4_PROOF_STATS */
+# define PSTATS(x) { x; }
+#else
+# define PSTATS(x)
+#endif /* CVC4_PROOF_STATS */
+
 #endif /* __CVC4__PROOF__PROOF_H */

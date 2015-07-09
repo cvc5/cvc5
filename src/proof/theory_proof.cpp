@@ -399,6 +399,7 @@ void LFSCTheoryProofEngine::printCoreTerm(Expr term, std::ostream& os, const Let
   }
 
   Kind k = term.getKind();
+
   switch(k) {
   case kind::ITE:
     os << (term.getType().isBoolean() ? "(ifte ": "(ite _ ");

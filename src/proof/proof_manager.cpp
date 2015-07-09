@@ -53,7 +53,7 @@ ProofManager::ProofManager(ProofFormat format):
   //  d_inputClauses(),
   //  d_theoryLemmas(),
   //  d_theoryPropagations(),
-  // d_inputFormulas(), moved to cnfProof
+  d_inputFormulas(), 
   d_inputCoreFormulas(),
   d_outputCoreFormulas(),
   //  d_nextId(0),
@@ -224,7 +224,7 @@ std::string ProofManager::getLitName(prop::SatLiteral lit,
 std::string ProofManager::getPreprocessedAssertionName(Node node,
                                                        const std::string& prefix) {
   node = node.getKind() == kind::BITVECTOR_EAGER_ATOM ? node[0] : node;
-  // std::cout <<std::endl << "id" << node.getId() << " " << node <<std::endl;
+  //std::cout <<std::endl << "id" << node.getId() << " " << node <<std::endl;
   return append(prefix+".PA", node.getId());
 }
 std::string ProofManager::getAssertionName(Node node,
@@ -301,14 +301,15 @@ void ProofManager::traceUnsatCore() {
   }
 }
 
-void ProofManager::addAssertion(Expr formula, bool inUnsatCore) {
-  Debug("cores") << "assert: " << formula << std::endl;
+void ProofManager::addAssertion(Expr formula) {
+  Debug("proof:pm") << "assert: " << formula << std::endl;
   d_inputFormulas.insert(formula);
+}
+
+void ProofManager::addCoreAssertion(Expr formula) {
+  Debug("cores") << "assert: " << formula << std::endl;
   d_deps[Node::fromExpr(formula)]; // empty vector of deps
-  if(inUnsatCore || options::dumpUnsatCores() || options::checkUnsatCores()) {
-    Debug("cores") << "adding to input core forms: " << formula << std::endl;
-    d_inputCoreFormulas.insert(formula);
-  }
+  d_inputCoreFormulas.insert(formula);
 }
 
 void ProofManager::addDependence(TNode n, TNode dep) {
@@ -429,7 +430,7 @@ void LFSCProof::toStream(std::ostream& out) {
   }
   
   if (Debug.isOn("proof:pm")) {
-    std::cout << NodeManager::currentNM(); 
+    // std::cout << NodeManager::currentNM(); 
     Debug("proof:pm") << "LFSCProof::Used assertions: "<< std::endl;
     for(NodeSet::const_iterator it = used_assertions.begin(); it != used_assertions.end(); ++it) {
       Debug("proof:pm") << "   " << *it << std::endl;

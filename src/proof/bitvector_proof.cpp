@@ -296,16 +296,16 @@ void LFSCBitVectorProof::printOperatorNary(Expr term, std::ostream& os, const Le
   std::string holes = term.getKind() == kind::BITVECTOR_CONCAT ? "_ _ " : "";
   unsigned size = term.getKind() == kind::BITVECTOR_CONCAT? utils::getSize(term) :
                                                             utils::getSize(term[0]); // cause of COMP
-  os <<"("<< op <<" " <<  size <<" " << holes;
-  for (unsigned i = 0; i < term.getNumChildren(); ++i) {
-    d_proofEngine->printBoundTerm(term[i], os, map);
-    os << " ";
-    if (i + 2 < term.getNumChildren()) {
-      os <<"(" << op <<" " << size <<" " << holes;
-      paren <<")";
-    }
+
+  for (unsigned i = 0; i < term.getNumChildren() - 1; ++i) {
+    os <<"("<< op <<" " <<  size <<" " << holes;
   }
-  os <<")" << paren.str();
+  d_proofEngine->printBoundTerm(term[0], os, map);
+  os <<" ";
+  for (unsigned i = 1; i < term.getNumChildren(); ++i) {
+    d_proofEngine->printBoundTerm(term[i], os, map);
+    os << ")";
+  }
 }
 
 void LFSCBitVectorProof::printOperatorUnary(Expr term, std::ostream& os, const LetMap& map) {
@@ -453,25 +453,19 @@ void LFSCBitVectorProof::printTermBitblasting(Expr term, std::ostream& os) {
   case kind::BITVECTOR_LSHR :
   case kind::BITVECTOR_ASHR :
   case kind::BITVECTOR_CONCAT : {
-    std::ostringstream paren;
-    os <<"(bv_bbl_"<< utils::toLFSCKind(kind);
-    if (kind == kind::BITVECTOR_CONCAT) {
-      os << " " << utils::getSize(term) <<" _ ";
-    }
-    os <<" _ _ _ _ _ _ ";
-    for (unsigned i = 0; i < term.getNumChildren(); ++i) {
-      os << getBBTermName(term[i]);
-      os << " ";
-      if (i + 2 < term.getNumChildren()) {
-        os <<"(bv_bbl_"<<utils::toLFSCKind(kind);
-        if (kind == kind::BITVECTOR_CONCAT) {
-          os << " " << utils::getSize(term) <<" _ ";
-        }
-        os <<" _ _ _ _ _ _ ";
-        paren <<")";
+    for (unsigned i =0; i < term.getNumChildren() - 1; ++i) {
+      os <<"(bv_bbl_"<< utils::toLFSCKind(kind);
+      if (kind == kind::BITVECTOR_CONCAT) {
+        os << " " << utils::getSize(term) <<" _ ";
       }
+      os <<" _ _ _ _ _ _ ";
     }
-    os <<")" << paren.str();
+    os << getBBTermName(term[0]) <<" ";
+    
+    for (unsigned i = 1; i < term.getNumChildren(); ++i) {
+      os << getBBTermName(term[i]);
+      os << ") ";
+    }
     return;
   }
   case kind::BITVECTOR_NEG :

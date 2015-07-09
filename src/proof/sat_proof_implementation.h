@@ -194,33 +194,34 @@ void ProofProxy<Solver>::updateCRef(typename Solver::TCRef oldref, typename Solv
 
 /// SatProof
 template <class Solver> 
-TSatProof<Solver>::TSatProof(Solver* solver, const std::string& name, bool checkRes) :
-  d_solver(solver),
-  d_cnfProof(NULL),
-  d_idClause(),
-  d_clauseId(),
-  d_idUnit(),
-  d_deleted(),
-  d_inputClauses(),
-  d_lemmaClauses(),
-  d_assumptions(),
-  d_assumptionConflicts(),
-  d_assumptionConflictsDebug(),
-  d_resChains(),
-  d_resStack(),
-  d_checkRes(checkRes),
-  d_emptyClauseId(ClauseIdEmpty),
-  d_nullId(-2),
-  d_temp_clauseId(),
-  d_temp_idClause(),
-  d_unitConflictId(),
-  d_storedUnitConflict(false),
-  d_trueLit(ClauseIdUndef),
-  d_falseLit(ClauseIdUndef),                           
-  d_name(name),
-  d_seenLearnt(),
-  d_seenInputs(),
-  d_seenLemmas()
+TSatProof<Solver>::TSatProof(Solver* solver, const std::string& name, bool checkRes)
+  : d_solver(solver)
+  , d_cnfProof(NULL)
+  , d_idClause()
+  , d_clauseId()
+  , d_idUnit()
+  , d_deleted()
+  , d_inputClauses()
+  , d_lemmaClauses()
+  , d_assumptions()
+  , d_assumptionConflicts()
+  , d_assumptionConflictsDebug()
+  , d_resChains()
+  , d_resStack()
+  , d_checkRes(checkRes)
+  , d_emptyClauseId(ClauseIdEmpty)
+  , d_nullId(-2)
+  , d_temp_clauseId()
+  , d_temp_idClause()
+  , d_unitConflictId()
+  , d_storedUnitConflict(false)
+  , d_trueLit(ClauseIdUndef)
+  , d_falseLit(ClauseIdUndef)                           
+  , d_name(name)
+  , d_seenLearnt()
+  , d_seenInputs()
+  , d_seenLemmas()
+  , d_statistics(name)
 {
   d_proxy = new ProofProxy<Solver>(this);
 }
@@ -653,6 +654,12 @@ void TSatProof<Solver>::registerResolution(ClauseId id, ResChain<Solver>* res) {
   if(d_checkRes) {
     Assert(checkResolution(id));
   }
+
+  PSTATS(
+  d_statistics.d_resChainLengths << ((uint64_t)res->getSteps().size());
+  d_statistics.d_avgChainLength.addEntry((uint64_t)res->getSteps().size());
+  ++(d_statistics.d_numLearnedClauses);
+  )
 }
 
 
@@ -705,6 +712,7 @@ void TSatProof<Solver>::endResChain(typename Solver::TLit lit) {
   ClauseId id = registerUnitClause(lit, LEARNT);
   Debug("proof:sat:detailed") <<"endResChain unit " << id << "\n";
   ResChain<Solver>* res = d_resStack.back();
+  d_glueMap[id] = 1;
   registerResolution(id, res);
   d_resStack.pop_back();
 }
@@ -934,7 +942,8 @@ prop::SatClause* TSatProof<Solver>::buildClause(ClauseId id) {
 template <class Solver> 
 void TSatProof<Solver>::collectClauses(ClauseId id) {
   if (d_seenInputs.find(id) != d_seenInputs.end() ||
-      d_seenLemmas.find(id) != d_seenLemmas.end()) {
+      d_seenLemmas.find(id) != d_seenLemmas.end() ||
+      d_seenLearnt.find(id) != d_seenLearnt.end()) {
     return;
   }
 
@@ -950,6 +959,10 @@ void TSatProof<Solver>::collectClauses(ClauseId id) {
 
   Assert(d_resChains.find(id) != d_resChains.end());
   ResChain<Solver>* res = d_resChains[id];
+  PSTATS(
+  d_statistics.d_usedResChainLengths << ((uint64_t)res->getSteps().size());
+  d_statistics.d_usedClauseGlue << ((uint64_t) d_glueMap[id]);
+         );
   ClauseId start = res->getStart();
   collectClauses(start);
 
@@ -964,7 +977,50 @@ void TSatProof<Solver>::collectClausesUsed(IdToSatClause& inputs,
                                            IdToSatClause& lemmas) {
   inputs = d_seenInputs;
   lemmas = d_seenLemmas;
+  PSTATS (
+  d_statistics.d_numLearnedInProof.setData(d_seenLearnt.size());
+  d_statistics.d_numLemmasInProof.setData(d_seenLemmas.size());
+          );
 }
+
+template <class Solver> 
+void TSatProof<Solver>::storeClauseGlue(ClauseId clause, int glue) {
+  Assert (d_glueMap.find(clause) == d_glueMap.end());
+  d_glueMap.insert(std::make_pair(clause, glue));
+}
+
+template <class Solver> 
+TSatProof<Solver>::Statistics::Statistics(const std::string& prefix)
+  : d_numLearnedClauses("satproof::"+prefix+"::NumLearnedClauses", 0)
+  , d_numLearnedInProof("satproof::"+prefix+"::NumLearnedInProof", 0)
+  , d_numLemmasInProof("satproof::"+prefix+"::NumLemmasInProof", 0)
+  , d_avgChainLength("satproof::"+prefix+"::AvgResChainLength")
+  , d_resChainLengths("satproof::"+prefix+"::ResChainLengthsHist")
+  , d_usedResChainLengths("satproof::"+prefix+"::UsedResChainLengthsHist")
+  , d_clauseGlue("satproof::"+prefix+"::ClauseGlueHist")
+  , d_usedClauseGlue("satproof::"+prefix+"::UsedClauseGlueHist") {
+  StatisticsRegistry::registerStat(&d_numLearnedClauses);
+  StatisticsRegistry::registerStat(&d_numLearnedInProof);
+  StatisticsRegistry::registerStat(&d_numLemmasInProof);
+  StatisticsRegistry::registerStat(&d_avgChainLength);
+  StatisticsRegistry::registerStat(&d_resChainLengths);
+  StatisticsRegistry::registerStat(&d_usedResChainLengths);
+  StatisticsRegistry::registerStat(&d_clauseGlue);
+  StatisticsRegistry::registerStat(&d_usedClauseGlue);
+}
+
+template <class Solver> 
+TSatProof<Solver>::Statistics::~Statistics() {
+  StatisticsRegistry::unregisterStat(&d_numLearnedClauses);
+  StatisticsRegistry::unregisterStat(&d_numLearnedInProof);
+  StatisticsRegistry::unregisterStat(&d_numLemmasInProof);
+  StatisticsRegistry::unregisterStat(&d_avgChainLength);
+  StatisticsRegistry::unregisterStat(&d_resChainLengths);
+  StatisticsRegistry::unregisterStat(&d_usedResChainLengths);
+  StatisticsRegistry::unregisterStat(&d_clauseGlue);
+  StatisticsRegistry::unregisterStat(&d_usedClauseGlue);
+}
+
 
 /// LFSCSatProof class
 template <class Solver> 
