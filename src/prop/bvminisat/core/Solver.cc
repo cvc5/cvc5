@@ -282,6 +282,9 @@ bool Solver::addClause_(vec<Lit>& ps, ClauseId& id)
         THEORY_PROOF( ProofManager::getBitVectorProof()->getSatProof()->finalizeProof(::BVMinisat::CRef_Lazy); );
         return ok = false;
       }
+
+      assign_lt lt(*this);
+      sort(ps, lt);
       
       CRef cr = ca.alloc(ps, false);
       clauses.push(cr);
@@ -297,22 +300,13 @@ bool Solver::addClause_(vec<Lit>& ps, ClauseId& id)
       // Check if it propagates
       if (ps.size() == falseLiteralsCount + 1) {
         Clause& cl = ca[cr];
-        int i = 0;
-        // find undefined literal
-        while(value(cl[i]) == l_False) {
-          Assert (i < cl.size());
-          ++i;
-        }
-        // make sure undefined literal is at position zero
-        Lit aux = cl[0];
-        cl[0] = cl[i];
-        cl[i] = aux;
         
         Assert (value(cl[0]) == l_Undef);
         uncheckedEnqueue(cl[0], cr);
         Assert (cl.size() > 1);
         CRef confl = propagate();
-        if(! (ok = (confl == CRef_Undef)) ) {
+        ok = (confl == CRef_Undef);
+        if(!ok) {
           if(ca[confl].size() == 1) {
             THEORY_PROOF
               (id = ProofManager::getBitVectorProof()->getSatProof()->storeUnitConflict(ca[confl][0], LEARNT);
