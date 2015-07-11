@@ -259,7 +259,7 @@ void LFSCBitVectorProof::printTerm(Expr term, std::ostream& os, const LetMap& ma
   }
   case kind::VARIABLE:
   case kind::SKOLEM: {
-    os << "(a_var_bv " << utils::getSize(term)<<" " << term <<")";
+    os << "(a_var_bv " << utils::getSize(term)<<" " << ProofManager::sanitize(term) <<")";
     return;
   }
   default:
@@ -273,7 +273,7 @@ void LFSCBitVectorProof::printBitOf(Expr term, std::ostream& os) {
   Expr var = term[0];
   Assert (var.getKind() == kind::VARIABLE ||
           var.getKind() == kind::SKOLEM);
-  os << "(bitof " << var <<" " << bit <<")";
+  os << "(bitof " << ProofManager::sanitize(var) <<" " << bit <<")";
 }
 
 void LFSCBitVectorProof::printConstant(Expr term, std::ostream& os) {
@@ -400,7 +400,7 @@ void LFSCBitVectorProof::printDeclarations(std::ostream& os, std::ostream& paren
   ExprSet::const_iterator it = d_declarations.begin();
   ExprSet::const_iterator end = d_declarations.end();
   for (; it != end; ++it) {
-    os << "(% " << *it <<" var_bv\n";
+    os << "(% " << ProofManager::sanitize(*it) <<" var_bv\n";
     paren <<")";
   }
 }
@@ -414,7 +414,7 @@ void LFSCBitVectorProof::printTermBitblasting(Expr term, std::ostream& os) {
 
   if (Theory::isLeafOf(term, theory::THEORY_BV) &&
       !term.isConst()) {
-    os << "(bv_bbl_var "<<utils::getSize(term) << " " << term <<" _ )";
+    os << "(bv_bbl_var "<<utils::getSize(term) << " " << ProofManager::sanitize(term) <<" _ )";
     return;
   }
 

@@ -251,6 +251,14 @@ std::string ProofManager::getLitName(TNode lit,
   return getLitName(currentPM()->d_cnfProof->getLiteral(lit), prefix);
 }
 
+std::string ProofManager::sanitize(TNode var) {
+  Assert (var.isVariable());
+  std::string name = var.toString();
+  std::replace(name.begin(), name.end(), ' ', '_');
+  return name;
+}
+
+
 void ProofManager::traceDeps(TNode n) {
   Debug("cores") << "trace deps " << n << std::endl;
   if ((n.isConst() && n == NodeManager::currentNM()->mkConst<bool>(true)) ||

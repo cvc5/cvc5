@@ -114,7 +114,7 @@ void LFSCUFProof::printDeclarations(std::ostream& os, std::ostream& paren) {
   for (ExprSet::const_iterator it = d_declarations.begin(); it != d_declarations.end(); ++it) {
     Expr term = *it;
 
-    os << "(% " << term << " ";
+    os << "(% " << ProofManager::sanitize(term) << " ";
     os << "(term ";
 
     Type type = term.getType();

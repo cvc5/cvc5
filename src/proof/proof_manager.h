@@ -210,6 +210,9 @@ public:
   static std::string getAtomName(TNode atom, const std::string& prefix = "");
   static std::string getLitName(prop::SatLiteral lit, const std::string& prefix = "");
   static std::string getLitName(TNode lit, const std::string& prefix = "");
+
+  // for SMT variable names that have spaces and other things
+  static std::string sanitize(TNode var);
   
   //  void printProof(std::ostream& os, TNode n);
 

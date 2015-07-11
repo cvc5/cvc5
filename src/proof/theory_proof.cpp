@@ -394,7 +394,7 @@ void LFSCTheoryProofEngine::printBoundTerm(Expr term, std::ostream& os, const Le
 
 void LFSCTheoryProofEngine::printCoreTerm(Expr term, std::ostream& os, const LetMap& map) {
   if (term.isVariable()) {
-    os << term;
+    os << ProofManager::sanitize(term);
     return;
   }
 
@@ -520,7 +520,7 @@ void BooleanProof::registerTerm(Expr term) {
 void LFSCBooleanProof::printTerm(Expr term, std::ostream& os, const LetMap& map) {
   Assert (term.getType().isBoolean());
   if (term.isVariable()) {
-    os << "(p_app " << term <<")";
+    os << "(p_app " << ProofManager::sanitize(term) <<")";
     return;
   }
 
@@ -576,7 +576,7 @@ void LFSCBooleanProof::printDeclarations(std::ostream& os, std::ostream& paren) 
   for (ExprSet::const_iterator it = d_declarations.begin(); it != d_declarations.end(); ++it) {
     Expr term = *it;
 
-    os << "(% " << term << " (term ";
+    os << "(% " << ProofManager::sanitize(term) << " (term ";
     printSort(term.getType(), os);
     os <<")\n";
     paren <<")";
