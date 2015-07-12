@@ -304,6 +304,7 @@ void QuantifiersEngine::check( Theory::Effort e ){
         Trace("quant-engine-debug") << "  lemmas waiting = " << d_lemmas_waiting.size() << std::endl;
       }
       Trace("quant-engine-debug") << "  Theory engine finished : " << !d_te->needCheck() << std::endl;
+      Trace("quant-engine-debug") << "  Needs model effort : " << needsModelE << std::endl;
       Trace("quant-engine-debug") << "Resetting all modules..." << std::endl;
     }
     if( Trace.isOn("quant-engine-ee") ){
@@ -536,6 +537,7 @@ void QuantifiersEngine::assertQuantifier( Node f, bool pol ){
       for( int i=0; i<(int)d_modules.size(); i++ ){
         d_modules[i]->assertNode( f );
       }
+      addTermToDatabase( d_term_db->getInstConstantBody( f ), true );
     }
   }
 }

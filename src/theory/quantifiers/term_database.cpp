@@ -129,11 +129,12 @@ void TermDb::addTerm( Node n, std::set< Node >& added, bool withinQuant, bool wi
   bool rec = false;
   if( d_processed.find( n )==d_processed.end() ){
     d_processed.insert(n);
-    d_type_map[ n.getType() ].push_back( n );
-    //if this is an atomic trigger, consider adding it
-    //Call the children?
-    if( inst::Trigger::isAtomicTrigger( n ) ){
-      if( !TermDb::hasInstConstAttr(n) ){
+    if( !TermDb::hasInstConstAttr(n) ){
+      Trace("term-db-debug") << "register term : " << n << std::endl;
+      d_type_map[ n.getType() ].push_back( n );
+      //if this is an atomic trigger, consider adding it
+      //Call the children?
+      if( inst::Trigger::isAtomicTrigger( n ) ){
         Trace("term-db") << "register term in db " << n << std::endl;
         Node op = getOperator( n );
         /*
@@ -166,7 +167,7 @@ void TermDb::addTerm( Node n, std::set< Node >& added, bool withinQuant, bool wi
     d_iclosure_processed.insert( n );
     rec = true;
   }
-  if( rec ){
+  if( rec && n.getKind()!=FORALL ){
     for( size_t i=0; i<n.getNumChildren(); i++ ){
       addTerm( n[i], added, withinQuant, withinInstClosure );
     }
