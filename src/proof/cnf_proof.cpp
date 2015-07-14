@@ -287,6 +287,15 @@ void LFSCCnfProof::printCnfProofForClause(ClauseId id,
   std::ostringstream clause_paren;
   printClause(*clause, os, clause_paren);
   os << "(clausify_false ";
+
+  // FIXMEEEEEEEEEEEE
+  // os <<"trust)";
+  // os << clause_paren.str()
+  //    << " (\\ " << ProofManager::getInputClauseName(id, d_name) << "\n";
+  // paren << "))";
+
+  // return;
+  
   Assert( clause->size()>0 );
   
   Node base_assertion = getDefinitionForClause(id);

@@ -541,6 +541,8 @@ void LFSCBitVectorProof::printAtomBitblasting(Expr atom, std::ostream& os) {
 
 
 void LFSCBitVectorProof::printBitblasting(std::ostream& os, std::ostream& paren) {
+  // //FIXMEEEEEEEEEE
+  // return ;
   // bit-blast terms
   std::vector<Expr>::const_iterator it = d_bbTerms.begin();
   std::vector<Expr>::const_iterator end = d_bbTerms.end();

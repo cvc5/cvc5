@@ -252,7 +252,7 @@ std::string ProofManager::getLitName(TNode lit,
 }
 
 std::string ProofManager::sanitize(TNode var) {
-  Assert (var.isVariable());
+  Assert (var.isVar());
   std::string name = var.toString();
   std::replace(name.begin(), name.end(), ' ', '_');
   return name;

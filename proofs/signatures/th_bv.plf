@@ -37,10 +37,10 @@
 (declare bvc (! b bit (! v bv bv)))
 
 ; calculate the length of a bitvector
-(program bv_len ((v bv)) mpz 
-  (match v
-    (bvn 0)
-    ((bvc b v') (mp_add (bv_len v') 1))))
+;; (program bv_len ((v bv)) mpz 
+;;   (match v
+;;     (bvn 0)
+;;     ((bvc b v') (mp_add (bv_len v') 1))))
 
 
 ; a bv constant term
