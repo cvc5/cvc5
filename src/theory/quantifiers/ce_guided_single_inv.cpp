@@ -742,29 +742,38 @@ CegConjectureSingleInv::CegConjectureSingleInv( CegConjecture * p ) : d_parent( 
   d_sol = NULL;
   d_c_inst_match_trie = NULL;
   d_cinst = NULL;
+  d_has_ites = true;
 }
 
 Node CegConjectureSingleInv::getSingleInvLemma( Node guard ) {
   if( !d_single_inv.isNull() ) {
-    Assert( d_single_inv.getKind()==FORALL );
     d_single_inv_var.clear();
     d_single_inv_sk.clear();
-    for( unsigned i=0; i<d_single_inv[0].getNumChildren(); i++ ){
-      std::stringstream ss;
-      ss << "k_" << d_single_inv[0][i];
-      Node k = NodeManager::currentNM()->mkSkolem( ss.str(), d_single_inv[0][i].getType(), "single invocation function skolem" );
-      d_single_inv_var.push_back( d_single_inv[0][i] );
-      d_single_inv_sk.push_back( k );
-      d_single_inv_sk_index[k] = i;
+    Node inst;
+    if( d_single_inv.getKind()==FORALL ){
+      for( unsigned i=0; i<d_single_inv[0].getNumChildren(); i++ ){
+        std::stringstream ss;
+        ss << "k_" << d_single_inv[0][i];
+        Node k = NodeManager::currentNM()->mkSkolem( ss.str(), d_single_inv[0][i].getType(), "single invocation function skolem" );
+        d_single_inv_var.push_back( d_single_inv[0][i] );
+        d_single_inv_sk.push_back( k );
+        d_single_inv_sk_index[k] = i;
+      }
+      inst = d_single_inv[1].substitute( d_single_inv_var.begin(), d_single_inv_var.end(), d_single_inv_sk.begin(), d_single_inv_sk.end() );
+    }else{
+      inst = d_single_inv;
     }
-    Node inst = d_single_inv[1].substitute( d_single_inv_var.begin(), d_single_inv_var.end(), d_single_inv_sk.begin(), d_single_inv_sk.end() );
     inst = TermDb::simpleNegate( inst );
     Trace("cegqi-si") << "Single invocation initial lemma : " << inst << std::endl;
 
     //initialize the instantiator for this
-    CegqiOutputSingleInv * cosi = new CegqiOutputSingleInv( this );
-    d_cinst = new CegInstantiator( d_qe, cosi );
-    d_cinst->d_vars.insert( d_cinst->d_vars.end(), d_single_inv_sk.begin(), d_single_inv_sk.end() );
+    if( !d_single_inv_sk.empty() ){
+      CegqiOutputSingleInv * cosi = new CegqiOutputSingleInv( this );
+      d_cinst = new CegInstantiator( d_qe, cosi );
+      d_cinst->d_vars.insert( d_cinst->d_vars.end(), d_single_inv_sk.begin(), d_single_inv_sk.end() );
+    }else{
+      d_cinst = NULL;
+    }
 
     return NodeManager::currentNM()->mkNode( OR, guard.negate(), inst );
   }else{
@@ -790,6 +799,14 @@ void CegConjectureSingleInv::initialize( QuantifiersEngine * qe, Node q ) {
   std::map< Node, std::map< Node, bool > > contains;
   for( unsigned i=0; i<q[0].getNumChildren(); i++ ){
     progs.push_back( q[0][i] );
+    //check whether all types have ITE
+    TypeNode tn = q[0][i].getType();
+    d_qe->getTermDatabaseSygus()->registerSygusType( tn );
+    if( !d_qe->getTermDatabaseSygus()->sygusToBuiltinType( tn ).isBoolean() ){
+      if( !d_qe->getTermDatabaseSygus()->hasKind( tn, ITE ) ){
+        d_has_ites = false;
+      }
+    }
   }
   //collect information about conjunctions
   bool singleInvocation = false;
@@ -881,8 +898,10 @@ void CegConjectureSingleInv::initialize( QuantifiersEngine * qe, Node q ) {
       //construct the single invocation version of the property
       Trace("cegqi-si") << "Single invocation formula conjuncts are : " << std::endl;
       //std::vector< Node > si_conj;
-      Assert( !pbvs.empty() );
-      Node pbvl = NodeManager::currentNM()->mkNode( BOUND_VAR_LIST, pbvs );
+      Node pbvl;
+      if( !pbvs.empty() ){
+        pbvl = NodeManager::currentNM()->mkNode( BOUND_VAR_LIST, pbvs );
+      }
       for( std::map< Node, std::vector< Node > >::iterator it = children.begin(); it != children.end(); ++it ){
         //should hold since we prevent miniscoping
         Assert( d_single_inv.isNull() );
@@ -978,9 +997,14 @@ void CegConjectureSingleInv::initialize( QuantifiersEngine * qe, Node q ) {
 
         if( singleInvocation ){
           Node bd = conjuncts.size()==1 ? conjuncts[0] : NodeManager::currentNM()->mkNode( OR, conjuncts );
-          d_single_inv = NodeManager::currentNM()->mkNode( FORALL, pbvl, bd );
+          if( pbvl.isNull() ){
+            d_single_inv = bd;
+          }else{
+            d_single_inv = NodeManager::currentNM()->mkNode( FORALL, pbvl, bd );
+          }
           Trace("cegqi-si-debug") << "...formula is : " << d_single_inv << std::endl;
-          if( options::eMatching.wasSetByUser() ){
+          /*
+          if( options::eMatching() && options::eMatching.wasSetByUser() ){
             Node bd = d_qe->getTermDatabase()->getInstConstantBody( d_single_inv );
             std::vector< Node > patTerms;
             std::vector< Node > exclude;
@@ -992,6 +1016,7 @@ void CegConjectureSingleInv::initialize( QuantifiersEngine * qe, Node q ) {
               }
             }
           }
+          */
         }
       }
     }
@@ -999,8 +1024,67 @@ void CegConjectureSingleInv::initialize( QuantifiersEngine * qe, Node q ) {
   if( !singleInvocation ){
     Trace("cegqi-si") << "Property is not single invocation." << std::endl;
     if( options::cegqiSingleInvAbort() ){
-      Message() << "Property is not single invocation." << std::endl;
+      Notice() << "Property is not single invocation." << std::endl;
       exit( 0 );
+    }
+  }else{
+    if( options::cegqiSingleInvPreRegInst() && d_single_inv.getKind()==FORALL ){
+      Trace("cegqi-si-presolve") << "Check " << d_single_inv << std::endl;
+      //at preregister time, add proxy of obvious instantiations up front, which helps learning during preprocessing
+      std::vector< Node > vars;
+      std::map< Node, std::vector< Node > > teq;
+      for( unsigned i=0; i<d_single_inv[0].getNumChildren(); i++ ){
+        vars.push_back( d_single_inv[0][i] );
+        teq[d_single_inv[0][i]].clear();
+      }
+      collectPresolveEqTerms( d_single_inv[1], teq );
+      std::vector< Node > terms;
+      std::vector< Node > conj;
+      getPresolveEqConjuncts( vars, terms, teq, d_single_inv, conj );
+
+      if( !conj.empty() ){
+        Node lem = conj.size()==1 ? conj[0] : NodeManager::currentNM()->mkNode( AND, conj );
+        Node g = NodeManager::currentNM()->mkSkolem( "g", NodeManager::currentNM()->booleanType() );
+        lem = NodeManager::currentNM()->mkNode( OR, g, lem );
+        d_qe->getOutputChannel().lemma( lem, false, true );
+      }
+    }
+  }
+}
+
+void CegConjectureSingleInv::collectPresolveEqTerms( Node n, std::map< Node, std::vector< Node > >& teq ) {
+  if( n.getKind()==EQUAL ){
+    for( unsigned i=0; i<2; i++ ){
+      std::map< Node, std::vector< Node > >::iterator it = teq.find( n[i] );
+      if( it!=teq.end() ){
+        Node nn = n[ i==0 ? 1 : 0 ];
+        if( std::find( it->second.begin(), it->second.end(), nn )==it->second.end() ){
+          it->second.push_back( nn );
+          Trace("cegqi-si-presolve") << "  - " << n[i] << " = " << nn << std::endl;
+        }
+      }
+    }
+  }
+  for( unsigned i=0; i<n.getNumChildren(); i++ ){
+    collectPresolveEqTerms( n[i], teq );
+  }
+}
+
+void CegConjectureSingleInv::getPresolveEqConjuncts( std::vector< Node >& vars, std::vector< Node >& terms,
+                                                     std::map< Node, std::vector< Node > >& teq, Node f, std::vector< Node >& conj ) {
+  if( conj.size()<1000 ){
+    if( terms.size()==f[0].getNumChildren() ){
+      Node c = f[1].substitute( vars.begin(), vars.end(), terms.begin(), terms.end() );
+      conj.push_back( c );
+    }else{
+      unsigned i = terms.size();
+      Node v = f[0][i];
+      terms.push_back( Node::null() );
+      for( unsigned j=0; j<teq[v].size(); j++ ){
+        terms[i] = teq[v][j];
+        getPresolveEqConjuncts( vars, terms, teq, f, conj );
+      }
+      terms.pop_back();
     }
   }
 }
@@ -1171,8 +1255,7 @@ bool CegConjectureSingleInv::addLemma( Node n ) {
 }
 
 void CegConjectureSingleInv::check( std::vector< Node >& lems ) {
-  if( !d_single_inv.isNull() ) {
-    Assert( d_cinst!=NULL );
+  if( !d_single_inv.isNull() && d_cinst!=NULL ) {
     d_curr_lemmas.clear();
     //check if there are delta lemmas
     d_cinst->getDeltaLemmas( lems );
@@ -1186,19 +1269,60 @@ void CegConjectureSingleInv::check( std::vector< Node >& lems ) {
   }
 }
 
-Node CegConjectureSingleInv::constructSolution( unsigned i, unsigned index ) {
+Node CegConjectureSingleInv::constructSolution( std::vector< unsigned >& indices, unsigned i, unsigned index ) {
   Assert( index<d_inst.size() );
   Assert( i<d_inst[index].size() );
+  unsigned uindex = indices[index];
   if( index==d_inst.size()-1 ){
-    return d_inst[index][i];
+    return d_inst[uindex][i];
   }else{
-    Node cond = d_lemmas_produced[index];
+    Node cond = d_lemmas_produced[uindex];
     cond = TermDb::simpleNegate( cond );
-    Node ite1 = d_inst[index][i];
-    Node ite2 = constructSolution( i, index+1 );
+    Node ite1 = d_inst[uindex][i];
+    Node ite2 = constructSolution( indices, i, index+1 );
     return NodeManager::currentNM()->mkNode( ITE, cond, ite1, ite2 );
   }
 }
+
+//TODO: use term size?
+struct sortSiInstanceIndices {
+  CegConjectureSingleInv* d_ccsi;
+  int d_i;
+  bool operator() (unsigned i, unsigned j) {
+    if( d_ccsi->d_inst[i][d_i].isConst() && !d_ccsi->d_inst[j][d_i].isConst() ){
+      return true;
+    }else{
+      return false;
+    }
+  }
+};
+
+/*
+Node removeBooleanIte( Node n ){
+  if( n.getKind()==ITE && n.getType().isBoolean() ){
+    Node n1 = removeBooleanIte( n[1] );
+    Node n2 = removeBooleanIte( n[2] );
+    return NodeManager::currentNM()->mkNode( OR, NodeManager::currentNM()->mkNode( AND, n[0], n1 ),
+                                                 NodeManager::currentNM()->mkNode( AND, n[0].negate(), n2 ) );
+  }else{
+    bool childChanged = false;
+    std::vector< Node > children;
+    for( unsigned i=0; i<n.getNumChildren(); i++ ){
+      Node nn = removeBooleanIte( n[i] );
+      children.push_back( nn );
+      childChanged = childChanged || nn!=n[i];
+    }
+    if( childChanged ){
+      if( n.hasOperator() ){
+        children.insert( children.begin(), n.getOperator() );
+      }
+      return NodeManager::currentNM()->mkNode( n.getKind(), children );
+    }else{
+      return n;
+    }
+  }
+}
+*/
 
 Node CegConjectureSingleInv::getSolution( unsigned sol_index, TypeNode stn, int& reconstructed ){
   Assert( d_sol!=NULL );
@@ -1225,7 +1349,21 @@ Node CegConjectureSingleInv::getSolution( unsigned sol_index, TypeNode stn, int&
     d_sol->d_varList.push_back( varList[i-1] );
   }
   //construct the solution
-  Node s = constructSolution( sol_index, 0 );
+  Trace("csi-sol") << "Sort solution return values " << sol_index << std::endl;
+  Assert( d_lemmas_produced.size()==d_inst.size() );
+  std::vector< unsigned > indices;
+  for( unsigned i=0; i<d_lemmas_produced.size(); i++ ){
+    Assert( sol_index<d_inst[i].size() );
+    indices.push_back( i );
+  }
+  //sort indices based on heuristic : currently, do all constant returns first (leads to simpler conditions)
+  // TODO : to minimize solution size, put the largest term last
+  sortSiInstanceIndices ssii;
+  ssii.d_ccsi = this;
+  ssii.d_i = sol_index;
+  std::sort( indices.begin(), indices.end(), ssii );
+  Trace("csi-sol") << "Construct solution" << std::endl;
+  Node s = constructSolution( indices, sol_index, 0 );
   s = s.substitute( vars.begin(), vars.end(), d_varList.begin(), d_varList.end() );
   d_orig_solution = s;
 
@@ -1242,6 +1380,10 @@ Node CegConjectureSingleInv::getSolution( unsigned sol_index, TypeNode stn, int&
     if( reconstructed==1 ){
       Trace("csi-sol") << "Solution (post-reconstruction into Sygus): " << d_sygus_solution << std::endl;
     }
+  }else{
+    ////remove boolean ITE (not allowed for sygus comp 2015)
+    //d_solution = removeBooleanIte( d_solution );
+    //Trace("csi-sol") << "Solution (after remove boolean ITE) : " << d_solution << std::endl;
   }
 
 
@@ -1276,6 +1418,15 @@ Node CegConjectureSingleInv::getSolution( unsigned sol_index, TypeNode stn, int&
   }else{
     return d_solution;
   }
+}
+
+bool CegConjectureSingleInv::needsCheck() {
+  if( options::cegqiSingleInvMultiInstAbort() ){
+    if( !hasITEs() ){
+      return d_inst.empty();
+    }
+  }
+  return true;
 }
 
 }

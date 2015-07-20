@@ -220,8 +220,12 @@ option cegqiSingleInvReconstruct --cegqi-si-reconstruct bool :default true
   reconstruct solutions for single invocation conjectures in original grammar
 option cegqiSingleInvReconstructConst --cegqi-si-reconstruct-const bool :default true
   include constants when reconstruct solutions for single invocation conjectures in original grammar
+option cegqiSingleInvPreRegInst --cegqi-si-prereg-inst bool :default true
+  preregister ground instantiations when single invocation
 option cegqiSingleInvAbort --cegqi-si-abort bool :default false
-  abort if our synthesis conjecture is not single invocation
+  abort if synthesis conjecture is not single invocation
+option cegqiSingleInvMultiInstAbort --cegqi-si-multi-inst-abort bool :default false
+  abort if synthesis conjecture is single invocation with no ITE in grammar and multiple instantiations are tried
   
 option sygusNormalForm --sygus-nf bool :default true
   only search for sygus builtin terms that are in normal form
@@ -259,5 +263,10 @@ option lteRestrictInstClosure --lte-restrict-inst-closure bool :default false
 
 option quantAlphaEquiv --quant-alpha-equiv bool :default true
   infer alpha equivalence between quantified formulas
+
+### recursive function options
+
+#option funDefs --fun-defs bool :default false
+#  enable specialized techniques for recursive function definitions
  
 endmodule

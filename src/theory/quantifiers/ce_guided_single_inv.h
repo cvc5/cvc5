@@ -111,8 +111,11 @@ private:
   bool processSingleInvLiteral( Node lit, bool pol, std::map< Node, std::vector< Node > >& case_vals );
   bool doVariableElimination( Node v, std::vector< Node >& conjuncts );
   bool getVariableEliminationTerm( bool pol, bool active, Node v, Node n, TNode& s, int& status );
+  //presolve
+  void collectPresolveEqTerms( Node n, std::map< Node, std::vector< Node > >& teq );
+  void getPresolveEqConjuncts( std::vector< Node >& vars, std::vector< Node >& terms, std::map< Node, std::vector< Node > >& teq, Node n, std::vector< Node >& conj );
   //constructing solution
-  Node constructSolution( unsigned i, unsigned index );
+  Node constructSolution( std::vector< unsigned >& indices, unsigned i, unsigned index );
 private:
   //map from programs to variables in single invocation property
   std::map< Node, Node > d_single_inv_map;
@@ -127,8 +130,6 @@ private:
   //list of skolems for each program
   std::vector< Node > d_single_inv_var;
   //lemmas produced
-  std::vector< Node > d_lemmas_produced;
-  std::vector< std::vector< Node > > d_inst;
   inst::InstMatchTrie d_inst_match_trie;
   inst::CDInstMatchTrie * d_c_inst_match_trie;
   // solution
@@ -136,6 +137,11 @@ private:
   Node d_orig_solution;
   Node d_solution;
   Node d_sygus_solution;
+  bool d_has_ites;
+public:
+  //lemmas produced
+  std::vector< Node > d_lemmas_produced;
+  std::vector< std::vector< Node > > d_inst; 
 private:
   std::vector< Node > d_curr_lemmas;
   //add instantiation
@@ -159,8 +165,12 @@ public:
   void check( std::vector< Node >& lems );
   //get solution
   Node getSolution( unsigned sol_index, TypeNode stn, int& reconstructed );
+  // has ites
+  bool hasITEs() { return d_has_ites; }
   // is single invocation
   bool isSingleInvocation() { return !d_single_inv.isNull(); }
+  //needs check
+  bool needsCheck();
 };
 
 }

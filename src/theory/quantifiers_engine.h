@@ -93,6 +93,7 @@ namespace quantifiers {
   class CegInstantiation;
   class LtePartialInst;
   class AlphaEquivalence;
+  class FunDefEngine;
 }/* CVC4::theory::quantifiers */
 
 namespace inst {
@@ -142,6 +143,8 @@ private:
   quantifiers::CegInstantiation * d_ceg_inst;
   /** lte partial instantiation */
   quantifiers::LtePartialInst * d_lte_part_inst;
+  /** function definitions engine */
+  quantifiers::FunDefEngine * d_fun_def_engine;
 public: //effort levels
   enum {
     QEFFORT_CONFLICT,
@@ -228,6 +231,8 @@ public:  //modules
   quantifiers::CegInstantiation * getCegInstantiation() { return d_ceg_inst; }
   /** local theory ext partial inst */
   quantifiers::LtePartialInst * getLtePartialInst() { return d_lte_part_inst; }
+  /** function definition engine */
+  quantifiers::FunDefEngine * getFunDefEngine() { return d_fun_def_engine; }
 private:
   /** owner of quantified formulas */
   std::map< Node, QuantifiersModule * > d_owner;

@@ -37,6 +37,7 @@
 #include "theory/uf/theory_uf.h"
 #include "theory/quantifiers/full_model_check.h"
 #include "theory/quantifiers/ambqi_builder.h"
+#include "theory/quantifiers/fun_def_engine.h"
 
 using namespace std;
 using namespace CVC4;
@@ -169,6 +170,12 @@ d_lemmas_produced_c(u){
   }else{
     d_alpha_equiv = NULL;
   }
+  //if( options::funDefs() ){
+  //  d_fun_def_engine = new quantifiers::FunDefEngine( this, c );
+  //  d_modules.push_back( d_fun_def_engine );
+  //}else{
+  d_fun_def_engine = NULL;
+  //}
 
   if( needsBuilder ){
     Trace("quant-engine-debug") << "Initialize model engine, mbqi : " << options::mbqiMode() << " " << options::fmfBoundInt() << std::endl;
@@ -208,6 +215,7 @@ QuantifiersEngine::~QuantifiersEngine(){
   delete d_sg_gen;
   delete d_ceg_inst;
   delete d_lte_part_inst;
+  delete d_fun_def_engine;
   for(std::map< Node, QuantPhaseReq* >::iterator i = d_phase_reqs.begin(); i != d_phase_reqs.end(); ++i) {
     delete (*i).second;
   }

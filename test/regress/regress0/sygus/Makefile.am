@@ -38,7 +38,12 @@ TESTS = commutative.sy \
         let-simp.sy \
         tl-type.sy \
         dup-op.sy \
-        nflat-fwd.sy
+        nflat-fwd.sy \
+        nflat-fwd-3.sy \
+        enum-test.sy \
+        no-syntax-test-bool.sy \
+        inv-example.sy \
+        uminus_one.sy
 
 # sygus tests currently taking too long for make regress
 EXTRA_DIST = $(TESTS) \

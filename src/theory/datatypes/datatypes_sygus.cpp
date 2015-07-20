@@ -650,12 +650,22 @@ void SygusSymBreak::addTester( Node tst ) {
     std::map< Node, ProgSearch * >::iterator it = d_prog_search.find( a );
     ProgSearch * ps;
     if( it==d_prog_search.end() ){
-      ps = new ProgSearch( this, a, d_context );
+      //check if sygus type
+      TypeNode tn = a.getType();
+      Assert( DatatypesRewriter::isTypeDatatype( tn ) );
+      const Datatype& dt = ((DatatypeType)(tn).toType()).getDatatype();
+      if( dt.isSygus() ){
+        ps = new ProgSearch( this, a, d_context );
+      }else{
+        ps = NULL;
+      }
       d_prog_search[a] = ps;
     }else{
       ps = it->second;
     }
-    ps->addTester( tst );
+    if( ps ){
+      ps->addTester( tst );
+    }
   }
 }
 
@@ -781,7 +791,7 @@ bool SygusSymBreak::ProgSearch::processSubprograms( Node n, int depth, int odept
 Node SygusSymBreak::ProgSearch::getCandidateProgramAtDepth( int depth, Node prog, int curr_depth, Node parent, std::map< TypeNode, int >& var_count,
                                                             std::vector< Node >& testers, std::map< Node, std::vector< Node > >& testers_u ) {
   Assert( depth>=curr_depth );
-  Trace("sygus-sym-break-debug") << "Reconstructing program for " << prog << " at depth " << curr_depth << "/" << depth << std::endl;
+  Trace("sygus-sym-break-debug") << "Reconstructing program for " << prog << " at depth " << curr_depth << "/" << depth << " " << prog.getType() << std::endl;
   NodeMap::const_iterator it = d_testers.find( prog );
   if( it!=d_testers.end() ){
     Node tst = (*it).second;
@@ -823,7 +833,7 @@ bool SygusSymBreak::processCurrentProgram( Node a, TypeNode at, int depth, Node 
     int tsize = d_tds->getSygusTermSize( prog );
     if( itnp==d_normalized_to_orig[at].end() ){
       d_normalized_to_orig[at][progr] = prog;
-      if( progr.getKind()==SKOLEM && d_tds->getSygusType( progr )==at ){
+      if( progr.getKind()==SKOLEM && d_tds->getSygusTypeForVar( progr )==at ){
         Trace("sygus-nf") << "* Sygus sym break : " << prog << " rewrites to variable " << progr << " of same type as self" << std::endl;
         d_redundant[at][prog] = true;
         red = true;

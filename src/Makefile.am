@@ -335,6 +335,8 @@ libcvc4_la_SOURCES = \
 	theory/quantifiers/local_theory_ext.cpp \
 	theory/quantifiers/fun_def_process.h \
 	theory/quantifiers/fun_def_process.cpp \
+	theory/quantifiers/fun_def_engine.h \
+	theory/quantifiers/fun_def_engine.cpp \
 	theory/quantifiers/options_handlers.h \
 	theory/arith/theory_arith_type_rules.h \
 	theory/arith/type_enumerator.h \

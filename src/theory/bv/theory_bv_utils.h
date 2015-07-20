@@ -385,6 +385,8 @@ inline bool isBVPredicate(TNode node) {
       node.getKind() == kind::BITVECTOR_SGE ||
       node.getKind() == kind::BITVECTOR_ULE || 
       node.getKind() == kind::BITVECTOR_SLE ||
+      node.getKind() == kind::BITVECTOR_REDOR ||
+      node.getKind() == kind::BITVECTOR_REDAND ||
       ( node.getKind() == kind::NOT && (node[0].getKind() == kind::EQUAL ||
                                         node[0].getKind() == kind::BITVECTOR_ULT ||
                                         node[0].getKind() == kind::BITVECTOR_SLT ||
@@ -393,7 +395,9 @@ inline bool isBVPredicate(TNode node) {
                                         node[0].getKind() == kind::BITVECTOR_SGT ||
                                         node[0].getKind() == kind::BITVECTOR_SGE ||
                                         node[0].getKind() == kind::BITVECTOR_ULE || 
-                                        node[0].getKind() == kind::BITVECTOR_SLE)))
+                                        node[0].getKind() == kind::BITVECTOR_SLE ||
+                                        node[0].getKind() == kind::BITVECTOR_REDOR ||
+                                        node[0].getKind() == kind::BITVECTOR_REDAND)))
     {
       return true; 
     }

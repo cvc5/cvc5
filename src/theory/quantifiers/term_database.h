@@ -433,7 +433,7 @@ public:
   bool getMatch( Node n, TypeNode st, int& index_found, std::vector< Node >& args, int index_exc = -1, int index_start = 0 );
 private:
   //information for sygus types
-  std::map< TypeNode, TypeNode > d_register;  //stores sygus type
+  std::map< TypeNode, TypeNode > d_register;  //stores sygus -> builtin type
   std::map< TypeNode, std::map< int, Kind > > d_arg_kind;
   std::map< TypeNode, std::map< Kind, int > > d_kinds;
   std::map< TypeNode, std::map< int, Node > > d_arg_const;
@@ -455,6 +455,7 @@ private:
 public:
   TermDbSygus();
   bool isRegistered( TypeNode tn );
+  TypeNode sygusToBuiltinType( TypeNode tn );
   int getKindArg( TypeNode tn, Kind k );
   int getConstArg( TypeNode tn, Node n );
   int getOpArg( TypeNode tn, Node n );
@@ -485,7 +486,7 @@ public:
   Node getTypeValueOffset( TypeNode tn, Node val, int offset, int& status );
   /** get value */
   Node getTypeMaxValue( TypeNode tn );
-  TypeNode getSygusType( Node v );
+  TypeNode getSygusTypeForVar( Node v );
   Node mkGeneric( const Datatype& dt, int c, std::map< TypeNode, int >& var_count, std::map< int, Node >& pre );
   Node sygusToBuiltin( Node n, TypeNode tn );
   Node builtinToSygusConst( Node c, TypeNode tn, int rcons_depth = 0 );

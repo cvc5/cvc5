@@ -905,7 +905,21 @@ Node QuantifiersRewriter::computeSplit( Node f, Node body, std::vector< Node >& 
 
 Node QuantifiersRewriter::mkForAll( std::vector< Node >& args, Node body, Node ipl ){
   std::vector< Node > activeArgs;
-  computeArgVec2( args, activeArgs, body, ipl );
+  //if cegqi is on, may be synthesis conjecture, in which case we want to keep all variables 
+  if( options::ceGuidedInst() && !ipl.isNull() ){
+    for( unsigned i=0; i<ipl.getNumChildren(); i++ ){
+      Trace("quant-attr-debug") << "Check : " << ipl[i] << " " << ipl[i].getKind() << std::endl;
+      if( ipl[i].getKind()==INST_ATTRIBUTE ){
+        Node avar = ipl[i][0];
+        if( avar.getAttribute(SygusAttribute()) ){
+          activeArgs.insert( activeArgs.end(), args.begin(), args.end() );
+        }
+      }
+    }
+  }
+  if( activeArgs.empty() ){
+    computeArgVec2( args, activeArgs, body, ipl );
+  }
   if( activeArgs.empty() ){
     return body;
   }else{

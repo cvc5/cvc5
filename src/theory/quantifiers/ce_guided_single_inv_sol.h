@@ -78,6 +78,8 @@ private:
   bool collectReconstructNodes( int pid, std::vector< Node >& ts, const DatatypeConstructor& dtc, std::vector< int >& ids, int& status );
   bool getPathToRoot( int id );
   void setReconstructed( int id, Node n );
+  //get equivalent terms to n with top symbol k
+  void getEquivalentTerms( Kind k, Node n, std::vector< Node >& equiv );
 public:
   Node reconstructSolution( Node sol, TypeNode stn, int& reconstructed );
 public:

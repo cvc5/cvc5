@@ -70,7 +70,7 @@ void CegConjecture::assign( QuantifiersEngine * qe, Node q ) {
 }
 
 void CegConjecture::initializeGuard( QuantifiersEngine * qe ){
-  if( d_guard.isNull() ){
+  if( isAssigned() && d_guard.isNull() ){
     d_guard = Rewriter::rewrite( NodeManager::currentNM()->mkSkolem( "G", NodeManager::currentNM()->booleanType() ) );
     //specify guard behavior
     d_guard = qe->getValuation().ensureLiteral( d_guard );
@@ -137,6 +137,10 @@ bool CegConjecture::isSingleInvocation() {
   return d_ceg_si->isSingleInvocation();
 }
 
+bool CegConjecture::needsCheck() {
+  return d_active && !d_infeasible && ( !isSingleInvocation() || d_ceg_si->needsCheck() );
+}
+
 CegInstantiation::CegInstantiation( QuantifiersEngine * qe, context::Context* c ) : QuantifiersModule( qe ){
   d_conj = new CegConjecture( qe->getSatContext() );
   d_last_inst_si = false;
@@ -155,7 +159,7 @@ void CegInstantiation::check( Theory::Effort e, unsigned quant_e ) {
     Trace("cegqi-engine") << "---Counterexample Guided Instantiation Engine---" << std::endl;
     Trace("cegqi-engine-debug") << std::endl;
     Trace("cegqi-engine-debug") << "Current conjecture status : active : " << d_conj->d_active << " feasible : " << !d_conj->d_infeasible << std::endl;
-    if( d_conj->d_active && !d_conj->d_infeasible ){
+    if( d_conj->needsCheck() ){
       checkCegConjecture( d_conj );
     }
     Trace("cegqi-engine") << "Finished Counterexample Guided Instantiation engine." << std::endl;
@@ -213,29 +217,32 @@ void CegInstantiation::assertNode( Node n ) {
 }
 
 Node CegInstantiation::getNextDecisionRequest() {
-  d_conj->initializeGuard( d_quantEngine );
-  bool value;
-  if( !d_quantEngine->getValuation().hasSatValue( d_conj->d_guard, value ) ) {
-    //if( d_conj->d_guard_split.isNull() ){
-    //  Node lem = NodeManager::currentNM()->mkNode( OR, d_conj->d_guard.negate(), d_conj->d_guard );
-    //  d_quantEngine->getOutputChannel().lemma( lem );
-    //}
-    Trace("cegqi-debug") << "CEGQI : Decide next on : " << d_conj->d_guard << "..." << std::endl;
-    return d_conj->d_guard;
-  }
   //enforce fairness
-  if( d_conj->isAssigned() && d_conj->getCegqiFairMode()!=CEGQI_FAIR_NONE ){
-    Node lit = d_conj->getLiteral( d_quantEngine, d_conj->d_curr_lit.get() );
-    if( d_quantEngine->getValuation().hasSatValue( lit, value ) ) {
-      if( !value ){
-        d_conj->d_curr_lit.set( d_conj->d_curr_lit.get() + 1 );
-        lit = d_conj->getLiteral( d_quantEngine, d_conj->d_curr_lit.get() );
-        Trace("cegqi-debug") << "CEGQI : Decide on next lit : " << lit << "..." << std::endl;
+  if( d_conj->isAssigned() ){
+    d_conj->initializeGuard( d_quantEngine );
+    bool value;
+    if( !d_quantEngine->getValuation().hasSatValue( d_conj->d_guard, value ) ) {
+      //if( d_conj->d_guard_split.isNull() ){
+      //  Node lem = NodeManager::currentNM()->mkNode( OR, d_conj->d_guard.negate(), d_conj->d_guard );
+      //  d_quantEngine->getOutputChannel().lemma( lem );
+      //}
+      Trace("cegqi-debug") << "CEGQI : Decide next on : " << d_conj->d_guard << "..." << std::endl;
+      return d_conj->d_guard;
+    }
+    
+    if( d_conj->getCegqiFairMode()!=CEGQI_FAIR_NONE ){
+      Node lit = d_conj->getLiteral( d_quantEngine, d_conj->d_curr_lit.get() );
+      if( d_quantEngine->getValuation().hasSatValue( lit, value ) ) {
+        if( !value ){
+          d_conj->d_curr_lit.set( d_conj->d_curr_lit.get() + 1 );
+          lit = d_conj->getLiteral( d_quantEngine, d_conj->d_curr_lit.get() );
+          Trace("cegqi-debug") << "CEGQI : Decide on next lit : " << lit << "..." << std::endl;
+          return lit;
+        }
+      }else{
+        Trace("cegqi-debug") << "CEGQI : Decide on current lit : " << lit << "..." << std::endl;
         return lit;
       }
-    }else{
-      Trace("cegqi-debug") << "CEGQI : Decide on current lit : " << lit << "..." << std::endl;
-      return lit;
     }
   }
 
@@ -484,7 +491,8 @@ void CegInstantiation::getMeasureLemmas( Node n, Node v, std::vector< Node >& le
 }
 
 void CegInstantiation::printSynthSolution( std::ostream& out ) {
-  if( d_conj ){
+  if( d_conj->isAssigned() ){
+    Trace("cegqi-debug") << "Printing synth solution..." << std::endl;
     //if( !(Trace.isOn("cegqi-stats")) ){
     //  out << "Solution:" << std::endl;
     //}
@@ -530,6 +538,8 @@ void CegInstantiation::printSynthSolution( std::ostream& out ) {
         out << ")" << std::endl;
       }
     }
+  }else{
+    Assert( false );
   }
 }
 

@@ -23,6 +23,7 @@
 #include "theory/datatypes/datatypes_rewriter.h"
 #include "theory/quantifiers/ce_guided_instantiation.h"
 #include "theory/quantifiers/rewrite_engine.h"
+#include "theory/quantifiers/fun_def_engine.h"
 
 //for sygus
 #include "theory/bv/theory_bv_utils.h"
@@ -1431,6 +1432,7 @@ void TermDb::computeAttributes( Node q ) {
             exit( 0 );
           }
           d_fun_defs[f] = true;
+          d_quantEngine->setOwner( q, d_quantEngine->getFunDefEngine() );
         }
         if( avar.getAttribute(SygusAttribute()) ){
           //not necessarily nested existential
@@ -1578,7 +1580,7 @@ TNode TermDbSygus::getVarInc( TypeNode tn, std::map< TypeNode, int >& var_count 
   }
 }
 
-TypeNode TermDbSygus::getSygusType( Node v ) {
+TypeNode TermDbSygus::getSygusTypeForVar( Node v ) {
   Assert( d_fv_stype.find( v )!=d_fv_stype.end() );
   return d_fv_stype[v];
 }
@@ -1740,7 +1742,7 @@ Node TermDbSygus::mkGeneric( const Datatype& dt, int c, std::map< TypeNode, int 
       Node n = NodeManager::currentNM()->mkNode( APPLY, children );
       //must expand definitions
       Node ne = Node::fromExpr( smt::currentSmtEngine()->expandDefinitions( n.toExpr() ) );
-      Trace("sygus-util-debug") << "Expanded definitions in " << n << " to " << ne << std::endl;
+      Trace("sygus-db-debug") << "Expanded definitions in " << n << " to " << ne << std::endl;
       return ne;
       */
     }
@@ -2093,10 +2095,10 @@ void TermDbSygus::registerSygusType( TypeNode tn ){
       d_register[tn] = TypeNode::null();
     }else{
       const Datatype& dt = ((DatatypeType)(tn).toType()).getDatatype();
-      Trace("sygus-util") << "Register type " << dt.getName() << "..." << std::endl;
+      Trace("sygus-db") << "Register type " << dt.getName() << "..." << std::endl;
       d_register[tn] = TypeNode::fromType( dt.getSygusType() );
       if( d_register[tn].isNull() ){
-        Trace("sygus-util") << "...not sygus." << std::endl;
+        Trace("sygus-db") << "...not sygus." << std::endl;
       }else{
         //for constant reconstruction
         Kind ck = getComparisonKind( TypeNode::fromType( dt.getSygusType() ) );
@@ -2107,14 +2109,14 @@ void TermDbSygus::registerSygusType( TypeNode tn ){
           Expr sop = dt[i].getSygusOp();
           Assert( !sop.isNull() );
           Node n = Node::fromExpr( sop );
-          Trace("sygus-util") << "  Operator #" << i << " : " << sop;
+          Trace("sygus-db") << "  Operator #" << i << " : " << sop;
           if( sop.getKind() == kind::BUILTIN ){
             Kind sk = NodeManager::operatorToKind( n );
-            Trace("sygus-util") << ", kind = " << sk;
+            Trace("sygus-db") << ", kind = " << sk;
             d_kinds[tn][sk] = i;
             d_arg_kind[tn][i] = sk;
           }else if( sop.isConst() ){
-            Trace("sygus-util") << ", constant";
+            Trace("sygus-db") << ", constant";
             d_consts[tn][n] = i;
             d_arg_const[tn][i] = n;
             d_const_list[tn].push_back( n );
@@ -2127,7 +2129,7 @@ void TermDbSygus::registerSygusType( TypeNode tn ){
           }
           d_ops[tn][n] = i;
           d_arg_ops[tn][i] = n;
-          Trace("sygus-util") << std::endl;
+          Trace("sygus-db") << std::endl;
         }
         //sort the constant list
         if( !d_const_list[tn].empty() ){
@@ -2137,12 +2139,12 @@ void TermDbSygus::registerSygusType( TypeNode tn ){
             sc.d_tds = this;
             std::sort( d_const_list[tn].begin(), d_const_list[tn].end(), sc );
           }
-          Trace("sygus-util") << "Type has " << d_const_list[tn].size() << " constants..." << std::endl << "  ";
+          Trace("sygus-db") << "Type has " << d_const_list[tn].size() << " constants..." << std::endl << "  ";
           for( unsigned i=0; i<d_const_list[tn].size(); i++ ){
-            Trace("sygus-util") << d_const_list[tn][i] << " ";
+            Trace("sygus-db") << d_const_list[tn][i] << " ";
           }
-          Trace("sygus-util") << std::endl;
-          Trace("sygus-util") << "Of these, " << d_const_list_pos[tn] << " are marked as positive." << std::endl;
+          Trace("sygus-db") << std::endl;
+          Trace("sygus-db") << "Of these, " << d_const_list_pos[tn] << " are marked as positive." << std::endl;
         }
         //register connected types
         for( unsigned i=0; i<dt.getNumConstructors(); i++ ){
@@ -2157,6 +2159,11 @@ void TermDbSygus::registerSygusType( TypeNode tn ){
 
 bool TermDbSygus::isRegistered( TypeNode tn ) {
   return d_register.find( tn )!=d_register.end();
+}
+
+TypeNode TermDbSygus::sygusToBuiltinType( TypeNode tn ) {
+  Assert( isRegistered( tn ) );
+  return d_register[tn];
 }
 
 int TermDbSygus::getKindArg( TypeNode tn, Kind k ) {
@@ -2348,6 +2355,7 @@ bool TermDbSygus::doCompare( Node a, Node b, Kind k ) {
   return com==d_true;
 }
 
+
 void doStrReplace(std::string& str, const std::string& oldStr, const std::string& newStr){
   size_t pos = 0;
   while((pos = str.find(oldStr, pos)) != std::string::npos){
@@ -2367,7 +2375,20 @@ void TermDbSygus::printSygusTerm( std::ostream& out, Node n, std::vector< Node >
         if( n.getNumChildren()>0 ){
           out << "(";
         }
-        out << dt[cIndex].getSygusOp();
+        Node op = dt[cIndex].getSygusOp();
+        if( op.getType().isBitVector() && op.isConst() ){
+          //print in the style it was given
+          Trace("sygus-print-bvc") << "[Print " << op << " " << dt[cIndex].getName() << "]" << std::endl;
+          std::stringstream ss;
+          ss << dt[cIndex].getName();
+          std::string str = ss.str();
+          std::size_t found = str.find_last_of("_");
+          Assert( found!=std::string::npos );
+          std::string name = std::string( str.begin() + found +1, str.end() );
+          out << name;
+        }else{
+          out << op;
+        }
         if( n.getNumChildren()>0 ){
           for( unsigned i=0; i<n.getNumChildren(); i++ ){
             out << " ";
@@ -2376,9 +2397,10 @@ void TermDbSygus::printSygusTerm( std::ostream& out, Node n, std::vector< Node >
           out << ")";
         }
       }else{
+        std::stringstream let_out;
         //print as let term
         if( dt[cIndex].getNumSygusLetInputArgs()>0 ){
-          out << "(let (";
+          let_out << "(let (";
         }
         std::vector< Node > subs_lvs;
         std::vector< Node > new_lvs;
@@ -2392,22 +2414,25 @@ void TermDbSygus::printSygusTerm( std::ostream& out, Node n, std::vector< Node >
           //map free variables to proper terms
           if( i<dt[cIndex].getNumSygusLetInputArgs() ){
             //it should be printed as a let argument
-            out << "(";
-            out << lv << " " << lv.getType() << " ";
-            printSygusTerm( out, n[i], lvs );
-            out << ")";
+            let_out << "(";
+            let_out << lv << " " << lv.getType() << " ";
+            printSygusTerm( let_out, n[i], lvs );
+            let_out << ")";
           }
         }
         if( dt[cIndex].getNumSygusLetInputArgs()>0 ){
-          out << ") ";
+          let_out << ") ";
         }
         //print the body
         Node let_body = Node::fromExpr( dt[cIndex].getSygusLetBody() );
         let_body = let_body.substitute( subs_lvs.begin(), subs_lvs.end(), new_lvs.begin(), new_lvs.end() );
         new_lvs.insert( new_lvs.end(), lvs.begin(), lvs.end() );
-        std::stringstream body_out;
-        printSygusTerm( body_out, let_body, new_lvs );
-        std::string body = body_out.str();
+        printSygusTerm( let_out, let_body, new_lvs );
+        if( dt[cIndex].getNumSygusLetInputArgs()>0 ){
+          let_out << ")";
+        }
+        //do variable substitutions since ASSUMING : let_vars are interpreted literally and do not represent a class of variables
+        std::string lbody = let_out.str();
         for( unsigned i=0; i<dt[cIndex].getNumSygusLetArgs(); i++ ){
           std::stringstream old_str;
           old_str << new_lvs[i];
@@ -2417,12 +2442,9 @@ void TermDbSygus::printSygusTerm( std::ostream& out, Node n, std::vector< Node >
           }else{
             new_str << Node::fromExpr( dt[cIndex].getSygusLetArg( i ) );
           }
-          doStrReplace( body, old_str.str().c_str(), new_str.str().c_str() );
+          doStrReplace( lbody, old_str.str().c_str(), new_str.str().c_str() );
         }
-        out << body;
-        if( dt[cIndex].getNumSygusLetInputArgs()>0 ){
-          out << ")";
-        }
+        out << lbody;
       }
       return;
     }

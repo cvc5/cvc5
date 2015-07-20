@@ -46,7 +46,7 @@ static void printBvParameterizedOp(std::ostream& out, TNode n) throw();
 static void printFpParameterizedOp(std::ostream& out, TNode n) throw();
 
 static void toStreamRational(std::ostream& out, const Rational& r, bool decimal) throw();
-  
+
 void Smt2Printer::toStream(std::ostream& out, TNode n,
                            int toDepth, bool types, size_t dag) const throw() {
   if(dag != 0) {
@@ -160,17 +160,22 @@ void Smt2Printer::toStream(std::ostream& out, TNode n,
       break;
     case kind::FLOATINGPOINT_TYPE:
       out << "(_ FloatingPoint "
-	  << n.getConst<FloatingPointSize>().exponent() << " "
-	  << n.getConst<FloatingPointSize>().significand()
-	  << ")";
+          << n.getConst<FloatingPointSize>().exponent() << " "
+          << n.getConst<FloatingPointSize>().significand()
+          << ")";
       break;
     case kind::CONST_BITVECTOR: {
       const BitVector& bv = n.getConst<BitVector>();
       const Integer& x = bv.getValue();
       unsigned n = bv.getSize();
-      out << "(_ ";
-      out << "bv" << x <<" " << n;
-      out << ")";
+      if(d_variant == sygus_variant ){
+        out << "#b" << bv.toString();
+      }else{
+        out << "(_ ";
+        out << "bv" << x <<" " << n;
+        out << ")";
+      }
+
       // //out << "#b";
 
       // while(n-- > 0) {
@@ -189,7 +194,7 @@ void Smt2Printer::toStream(std::ostream& out, TNode n,
       case roundTowardNegative : out << "roundTowardNegative"; break;
       case roundTowardZero : out << "roundTowardZero"; break;
       default :
-	Unreachable("Invalid value of rounding mode constant (%d)",n.getConst<RoundingMode>());
+        Unreachable("Invalid value of rounding mode constant (%d)",n.getConst<RoundingMode>());
       }
       break;
     case kind::CONST_BOOLEAN:
@@ -205,7 +210,15 @@ void Smt2Printer::toStream(std::ostream& out, TNode n,
       break;
     case kind::CONST_RATIONAL: {
       const Rational& r = n.getConst<Rational>();
-      toStreamRational(out, r, false);
+      if(d_variant == sygus_variant ){
+        if(r < 0) {
+          out << "-" << -r;
+        }else{
+          toStreamRational(out, r, false);
+        }
+      }else{
+        toStreamRational(out, r, false);
+      }
       // Rational r = n.getConst<Rational>();
       // if(r < 0) {
       //   if(r.isIntegral()) {
@@ -467,6 +480,8 @@ void Smt2Printer::toStream(std::ostream& out, TNode n,
   case kind::BITVECTOR_SGT: out << "bvsgt "; break;
   case kind::BITVECTOR_SGE: out << "bvsge "; break;
   case kind::BITVECTOR_TO_NAT: out << "bv2nat "; break;
+  case kind::BITVECTOR_REDOR: out << "bvredor "; break;
+  case kind::BITVECTOR_REDAND: out << "bvredand "; break;
 
   case kind::BITVECTOR_EXTRACT:
   case kind::BITVECTOR_REPEAT:
@@ -540,13 +555,13 @@ void Smt2Printer::toStream(std::ostream& out, TNode n,
         // Special case, in model output integer constants that should be
         // Real-sorted are wrapped in a type ascription.  Handle that here.
 
-	// Note: This is Tim making a guess about Morgan's Code.
-	Assert(n[0].getKind() == kind::CONST_RATIONAL);	
-	toStreamRational(out, n[0].getConst<Rational>(), true);
+        // Note: This is Tim making a guess about Morgan's Code.
+        Assert(n[0].getKind() == kind::CONST_RATIONAL);
+        toStreamRational(out, n[0].getConst<Rational>(), true);
 
         //toStream(out, n[0], -1, false);
         //out << ".0";
-	
+
         return;
       }
       out << "(as ";
@@ -555,8 +570,8 @@ void Smt2Printer::toStream(std::ostream& out, TNode n,
       return;
     }
     break;
-  case kind::APPLY_TESTER:
   case kind::APPLY_CONSTRUCTOR:
+  case kind::APPLY_TESTER:
   case kind::APPLY_SELECTOR:
   case kind::APPLY_SELECTOR_TOTAL:
   case kind::PARAMETRIC_DATATYPE:
@@ -625,7 +640,18 @@ void Smt2Printer::toStream(std::ostream& out, TNode n,
   if( n.getMetaKind() == kind::metakind::PARAMETERIZED &&
       stillNeedToPrintParams ) {
     if(toDepth != 0) {
-      toStream(out, n.getOperator(), toDepth < 0 ? toDepth : toDepth - 1, types);
+      if( d_variant==sygus_variant && n.getKind()==kind::APPLY_CONSTRUCTOR ){
+        std::stringstream ss;
+        toStream(ss, n.getOperator(), toDepth < 0 ? toDepth : toDepth - 1, types);
+        std::string tmp = ss.str();
+        size_t pos = 0;
+        if((pos = tmp.find("__Enum__", pos)) != std::string::npos){
+           tmp.replace(pos, 8, "::");
+        }
+        out << tmp;
+      }else{
+        toStream(out, n.getOperator(), toDepth < 0 ? toDepth : toDepth - 1, types);
+      }
     } else {
       out << "(...)";
     }
@@ -719,6 +745,7 @@ static string smtKindString(Kind k) throw() {
   case kind::BITVECTOR_PLUS: return "bvadd";
   case kind::BITVECTOR_SUB: return "bvsub";
   case kind::BITVECTOR_NEG: return "bvneg";
+  case kind::BITVECTOR_UDIV_TOTAL:
   case kind::BITVECTOR_UDIV: return "bvudiv";
   case kind::BITVECTOR_UREM: return "bvurem";
   case kind::BITVECTOR_SDIV: return "bvsdiv";
@@ -735,6 +762,8 @@ static string smtKindString(Kind k) throw() {
   case kind::BITVECTOR_SLE: return "bvsle";
   case kind::BITVECTOR_SGT: return "bvsgt";
   case kind::BITVECTOR_SGE: return "bvsge";
+  case kind::BITVECTOR_REDOR: return "bvredor";
+  case kind::BITVECTOR_REDAND: return "bvredand";
 
   case kind::BITVECTOR_EXTRACT: return "extract";
   case kind::BITVECTOR_REPEAT: return "repeat";
@@ -775,7 +804,7 @@ static string smtKindString(Kind k) throw() {
 
   case kind::FLOATINGPOINT_ISN: return "fp.isNormal";
   case kind::FLOATINGPOINT_ISSN: return "fp.isSubnormal";
-  case kind::FLOATINGPOINT_ISZ: return "fp.isZero";  
+  case kind::FLOATINGPOINT_ISZ: return "fp.isZero";
   case kind::FLOATINGPOINT_ISINF: return "fp.isInfinite";
   case kind::FLOATINGPOINT_ISNAN: return "fp.isNaN";
   case kind::FLOATINGPOINT_ISNEG: return "fp.isNegative";
@@ -1045,7 +1074,7 @@ void Smt2Printer::toStream(std::ostream& out, const Model& m, const Command* c) 
       }
     }
   } else if(dynamic_cast<const DeclareFunctionCommand*>(c) != NULL) {
-    const DeclareFunctionCommand* dfc = (const DeclareFunctionCommand*)c; 
+    const DeclareFunctionCommand* dfc = (const DeclareFunctionCommand*)c;
     Node n = Node::fromExpr( dfc->getFunction() );
     if(dfc->getPrintInModelSetByUser()) {
       if(!dfc->getPrintInModel()) {
@@ -1071,9 +1100,9 @@ void Smt2Printer::toStream(std::ostream& out, const Model& m, const Command* c) 
       out << "(define-fun " << n << " () "
           << n.getType() << " ";
       if(val.getType().isInteger() && n.getType().isReal() && !n.getType().isInteger()) {
-	//toStreamReal(out, val, true);
-	toStreamRational(out, val.getConst<Rational>(), true);
-	//out << val << ".0";	
+        //toStreamReal(out, val, true);
+        toStreamRational(out, val.getConst<Rational>(), true);
+        //out << val << ".0";
       } else {
         out << val;
       }
@@ -1228,16 +1257,16 @@ static void toStream(std::ostream& out, const DefineFunctionCommand* c) throw() 
 
 static void toStreamRational(std::ostream& out, const Rational& r, bool decimal) throw() {
   bool neg = r.sgn() < 0;
-  
+
   // TODO:
   // We are currently printing (- (/ 5 3))
   // instead of (/ (- 5) 3) which is what is in the SMT-LIB value in the theory definition.
   // Before switching, I'll keep to what was there and send an email.
 
   // Tim: Apologies for the ifs on one line but in this case they are cleaner.
-  
+
   if (neg) { out << "(- "; }
-  
+
   if(r.isIntegral()) {
     if (neg) {
       out << (-r);

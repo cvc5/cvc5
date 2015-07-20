@@ -83,6 +83,8 @@ public:  //for fairness
   CegqiFairMode getCegqiFairMode();
   /** is single invocation */
   bool isSingleInvocation();
+  /** needs check */
+  bool needsCheck();
 };
 
 
