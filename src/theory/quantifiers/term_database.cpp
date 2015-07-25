@@ -781,6 +781,7 @@ Node TermDb::getCounterexampleLiteral( Node f ){
 }
 
 Node TermDb::getInstConstantNode( Node n, Node f ){
+  Assert( d_inst_constants.find( f )!=d_inst_constants.end() );
   return convertNodeToPattern(n,f,d_vars[f],d_inst_constants[ f ]);
 }
 
@@ -1754,6 +1755,7 @@ Node TermDbSygus::mkGeneric( const Datatype& dt, int c, std::map< TypeNode, int 
 Node TermDbSygus::sygusToBuiltin( Node n, TypeNode tn ) {
   std::map< Node, Node >::iterator it = d_sygus_to_builtin[tn].find( n );
   if( it==d_sygus_to_builtin[tn].end() ){
+    Trace("sygus-db-debug") << "SygusToBuiltin : compute for " << n << ", type = " << tn << std::endl;
     Assert( n.getKind()==APPLY_CONSTRUCTOR );
     const Datatype& dt = ((DatatypeType)(tn).toType()).getDatatype();
     unsigned i = Datatype::indexOf( n.getOperator().toExpr() );

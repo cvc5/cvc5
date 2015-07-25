@@ -810,6 +810,7 @@ void CegConjectureSingleInv::initialize( QuantifiersEngine * qe, Node q ) {
   }
   //collect information about conjunctions
   bool singleInvocation = false;
+  bool invExtractPrePost = false;
   if( analyzeSygusConjunct( Node::null(), q[1], children, prog_invoke, progs, contains, true ) ){
     singleInvocation = true;
     //try to phrase as single invocation property
@@ -826,7 +827,6 @@ void CegConjectureSingleInv::initialize( QuantifiersEngine * qe, Node q ) {
           for( std::map< Node, std::vector< Node > >::iterator it2 = itp->second.begin(); it2 != itp->second.end(); ++it2 ){
             if( it2->second.size()>1 ){
               singleInvocation = false;
-              break;
             }else if( it2->second.size()==1 ){
               Node prog = it2->first;
               Node inv = it2->second[0];
@@ -840,15 +840,26 @@ void CegConjectureSingleInv::initialize( QuantifiersEngine * qe, Node q ) {
                   single_invoke_args[prog][k-1].push_back( arg );
                 }
               }
+              if( inv.getType().isBoolean() ){
+                //conjunct defines pre and/or post conditions
+                if( options::sygusInvTemplMode() != SYGUS_INV_TEMPL_MODE_NONE ){
+                  invExtractPrePost = true;
+                }
+              }
             }
           }
         }
       }
     }
-    if( singleInvocation ){
+    if( singleInvocation || invExtractPrePost ){
+      //no value in extracting pre/post if we are single invocation
+      if( singleInvocation ){
+        invExtractPrePost = false;
+      }
       Trace("cegqi-si") << "Property is single invocation with : " << std::endl;
       std::vector< Node > pbvs;
       std::vector< Node > new_vars;
+      std::map< Node, std::vector< Node > > prog_vars;
       std::map< Node, std::vector< Node > > new_assumptions;
       for( std::map< Node, std::vector< Node > >::iterator it = invocations.begin(); it != invocations.end(); ++it ){
         Assert( !it->second.empty() );
@@ -868,12 +879,14 @@ void CegConjectureSingleInv::initialize( QuantifiersEngine * qe, Node q ) {
           Assert( !single_invoke_args[prog][k-1].empty() );
           if( single_invoke_args[prog][k-1].size()==1 && single_invoke_args[prog][k-1][0].getKind()==BOUND_VARIABLE ){
             invc.push_back( single_invoke_args[prog][k-1][0] );
+            prog_vars[prog].push_back( single_invoke_args[prog][k-1][0] );
           }else{
             //introduce fresh variable, assign all
             Node v = NodeManager::currentNM()->mkSkolem( "a", single_invoke_args[prog][k-1][0].getType(), "single invocation arg" );
             new_vars.push_back( v );
             invc.push_back( v );
             d_single_inv_arg_sk.push_back( v );
+            prog_vars[prog].push_back( v );
 
             for( unsigned i=0; i<single_invoke_args[prog][k-1].size(); i++ ){
               Node arg = single_invoke_args[prog][k-1][i];
@@ -897,7 +910,6 @@ void CegConjectureSingleInv::initialize( QuantifiersEngine * qe, Node q ) {
       }
       //construct the single invocation version of the property
       Trace("cegqi-si") << "Single invocation formula conjuncts are : " << std::endl;
-      //std::vector< Node > si_conj;
       Node pbvl;
       if( !pbvs.empty() ){
         pbvl = NodeManager::currentNM()->mkNode( BOUND_VAR_LIST, pbvs );
@@ -906,6 +918,8 @@ void CegConjectureSingleInv::initialize( QuantifiersEngine * qe, Node q ) {
         //should hold since we prevent miniscoping
         Assert( d_single_inv.isNull() );
         std::vector< Node > conjuncts;
+        std::vector< Node > conjuncts_si_progs;
+        std::vector< Node > conjuncts_si_invokes;
         for( unsigned i=0; i<it->second.size(); i++ ){
           Node c = it->second[i];
           std::vector< Node > disj;
@@ -917,17 +931,32 @@ void CegConjectureSingleInv::initialize( QuantifiersEngine * qe, Node q ) {
           if( itp!=prog_invoke.end() ){
             std::vector< Node > terms;
             std::vector< Node > subs;
+            std::vector< Node > progs;
             for( std::map< Node, std::vector< Node > >::iterator it2 = itp->second.begin(); it2 != itp->second.end(); ++it2 ){
-              if( !it2->second.empty() ){
+              if( it2->second.size()==1 ){
                 Node prog = it2->first;
                 Node inv = it2->second[0];
                 Assert( it2->second.size()==1 );
                 terms.push_back( inv );
                 subs.push_back( d_single_inv_map[prog] );
+                progs.push_back( prog );
                 Trace("cegqi-si-debug2") << "subs : " << inv << " -> var for " << prog << " : " << d_single_inv_map[prog] << std::endl;
               }
             }
-            cr = c.substitute( terms.begin(), terms.end(), subs.begin(), subs.end() );
+            if( singleInvocation ){
+              cr = c.substitute( terms.begin(), terms.end(), subs.begin(), subs.end() );
+            }else{
+              cr = c;
+              if( invExtractPrePost ){
+                if( terms.size()==1 ){
+                  conjuncts_si_progs.push_back( progs[0] );
+                  conjuncts_si_invokes.push_back( terms[0] );
+                }else if( terms.size()>1 ){
+                  //abort when mixing multiple invariants?  TODO
+                  invExtractPrePost = false;
+                }
+              }
+            }
           }else{
             cr = c;
           }
@@ -941,6 +970,10 @@ void CegConjectureSingleInv::initialize( QuantifiersEngine * qe, Node q ) {
           Node curr = disj.size()==1 ? disj[0] : NodeManager::currentNM()->mkNode( OR, disj );
           curr = TermDb::simpleNegate( curr );
           Trace("cegqi-si") << "    " << curr;
+          if( invExtractPrePost && conjuncts.size()==conjuncts_si_progs.size() ){
+            conjuncts_si_progs.push_back( Node::null() );
+            conjuncts_si_invokes.push_back( Node::null() );
+          }
           conjuncts.push_back( curr );
           if( !it->first.isNull() ){
             Trace("cegqi-si-debug") << " under " << it->first;
@@ -948,75 +981,163 @@ void CegConjectureSingleInv::initialize( QuantifiersEngine * qe, Node q ) {
           Trace("cegqi-si") << std::endl;
         }
         Assert( !conjuncts.empty() );
-        //make the skolems for the existential
-        if( !it->first.isNull() ){
-          std::vector< Node > vars;
-          std::vector< Node > sks;
-          for( unsigned j=0; j<it->first.getNumChildren(); j++ ){
-            std::stringstream ss;
-            ss << "a_" << it->first[j];
-            Node v = NodeManager::currentNM()->mkSkolem( ss.str(), it->first[j].getType(), "single invocation skolem" );
-            vars.push_back( it->first[j] );
-            sks.push_back( v );
+        //CASE 1 : rewrite based on a template for invariants
+        if( invExtractPrePost ){
+          //for invariant synthesis
+          std::map< Node, bool > has_inv;
+          std::map< Node, std::vector< Node > > inv_pre_post[2];
+          for( unsigned c=0; c<conjuncts.size(); c++ ){
+            Node inv = conjuncts_si_invokes[c];
+            Node prog = conjuncts_si_progs[c];
+            Trace("cegqi-si-inv-debug") << "Conjunct #" << c << ": " << conjuncts[c] << std::endl;
+            if( !prog.isNull() ){
+              Trace("cegqi-si-inv-debug") << "...has program " << prog << " invoked once: " << inv << std::endl;
+              std::vector< Node > curr_disj;
+              //find the polarity of the invocation : this determines pre vs. post
+              int pol = extractInvariantPolarity( conjuncts[c], inv, curr_disj, true );
+              Trace("cegqi-si-inv-debug") << "...polarity is " << pol << std::endl;
+              if( ( pol==1 && !curr_disj.empty() ) || pol==0 ){
+                //conjunct is part of pre/post condition : will add to template of invariant
+                Node nc = curr_disj.empty() ? NodeManager::currentNM()->mkConst( true ) :
+                           ( curr_disj.size()==1 ? curr_disj[0] : NodeManager::currentNM()->mkNode( AND, curr_disj ) );
+                nc = pol==0 ? nc : TermDb::simpleNegate( nc );
+                Trace("cegqi-si-inv-debug") << "  -> " << nc << " is " << ( pol==0 ? "pre" : "post" ) << "condition of invariant " << prog << "." << std::endl;
+                inv_pre_post[pol][prog].push_back( nc );
+                has_inv[prog] = true;
+              }
+            }
           }
-          //substitute conjunctions
-          for( unsigned i=0; i<conjuncts.size(); i++ ){
-            conjuncts[i] = conjuncts[i].substitute( vars.begin(), vars.end(), sks.begin(), sks.end() );
+          Trace("cegqi-si-inv") << "Constructing invariant templates..." << std::endl;
+          //now, contruct the template for the invariant(s)
+          std::map< Node, Node > prog_templ;
+          for( std::map< Node, bool >::iterator iti = has_inv.begin(); iti != has_inv.end(); ++iti ){
+            Node prog = iti->first;
+            Trace("cegqi-si-inv") << "...for " << prog << "..." << std::endl;
+            Trace("cegqi-si-inv") << "   args : ";
+            for( unsigned j=0; j<prog_vars[prog].size(); j++ ){
+              Node v = NodeManager::currentNM()->mkBoundVar( prog_vars[prog][j].getType() );
+              d_prog_templ_vars[prog].push_back( v );
+              Trace("cegqi-si-inv") << v << " ";
+            }
+            Trace("cegqi-si-inv") << std::endl;
+            Node pre = inv_pre_post[0][prog].empty() ? NodeManager::currentNM()->mkConst( false ) :
+                       ( inv_pre_post[0][prog].size()==1 ? inv_pre_post[0][prog][0] : NodeManager::currentNM()->mkNode( OR, inv_pre_post[0][prog] ) );
+            d_trans_pre[prog] = pre.substitute( prog_vars[prog].begin(), prog_vars[prog].end(), d_prog_templ_vars[prog].begin(), d_prog_templ_vars[prog].end() );
+            Node post = inv_pre_post[1][prog].empty() ? NodeManager::currentNM()->mkConst( true ) :
+                        ( inv_pre_post[1][prog].size()==1 ? inv_pre_post[1][prog][0] : NodeManager::currentNM()->mkNode( AND, inv_pre_post[1][prog] ) );
+            d_trans_post[prog] = post.substitute( prog_vars[prog].begin(), prog_vars[prog].end(), d_prog_templ_vars[prog].begin(), d_prog_templ_vars[prog].end() );
+            Trace("cegqi-si-inv") << "   precondition : " << d_trans_pre[prog] << std::endl;
+            Trace("cegqi-si-inv") << "  postcondition : " << d_trans_post[prog] << std::endl;
+            Node invariant = d_single_inv_app_map[prog];
+            invariant = invariant.substitute( prog_vars[prog].begin(), prog_vars[prog].end(), d_prog_templ_vars[prog].begin(), d_prog_templ_vars[prog].end() );
+            Trace("cegqi-si-inv") << "      invariant : " << invariant << std::endl;
+            //construct template
+            Node templ;
+            if( options::sygusInvTemplMode() == SYGUS_INV_TEMPL_MODE_PRE ){
+              //templ = NodeManager::currentNM()->mkNode( AND, NodeManager::currentNM()->mkNode( OR, d_trans_pre[prog], invariant ), d_trans_post[prog] );
+              templ = NodeManager::currentNM()->mkNode( OR, d_trans_pre[prog], invariant );
+            }else{
+              Assert( options::sygusInvTemplMode() == SYGUS_INV_TEMPL_MODE_POST );
+              //templ = NodeManager::currentNM()->mkNode( OR, d_trans_pre[prog], NodeManager::currentNM()->mkNode( AND, d_trans_post[prog], invariant ) );
+              templ = NodeManager::currentNM()->mkNode( AND, d_trans_post[prog], invariant );
+            }
+            Trace("cegqi-si-inv") << "       template : " << templ << std::endl;
+            prog_templ[prog] = templ;
           }
-          d_single_inv_arg_sk.insert( d_single_inv_arg_sk.end(), sks.begin(), sks.end() );
-          //substitute single invocation applications
+          Node bd = conjuncts.size()==1 ? conjuncts[0] : NodeManager::currentNM()->mkNode( OR, conjuncts );
+          Trace("cegqi-si-inv") << "           body : " << bd << std::endl;
+          bd = substituteInvariantTemplates( bd, prog_templ, d_prog_templ_vars );
+          Trace("cegqi-si-inv-debug") << "     templ-subs body : " << bd << std::endl;
+          //make inner existential
+          std::vector< Node > new_var_bv;
+          for( unsigned j=0; j<new_vars.size(); j++ ){
+            new_var_bv.push_back( NodeManager::currentNM()->mkBoundVar( new_vars[j].getType() ) );
+          }
+          bd = bd.substitute( new_vars.begin(), new_vars.end(), new_var_bv.begin(), new_var_bv.end() );
+          for( unsigned j=0; j<q[1][0][0].getNumChildren(); j++ ){
+            new_var_bv.push_back( q[1][0][0][j] );
+          }
+          if( !new_var_bv.empty() ){
+            Node bvl = NodeManager::currentNM()->mkNode( BOUND_VAR_LIST, new_var_bv );
+            bd = NodeManager::currentNM()->mkNode( FORALL, bvl, TermDb::simpleNegate( bd ) ).negate();
+          }
+          //make outer universal
+          bd = NodeManager::currentNM()->mkNode( FORALL, q[0], bd );
+          bd = Rewriter::rewrite( bd );
+          Trace("cegqi-si-inv") << "  rtempl-subs body : " << bd << std::endl;
+          d_quant = bd;
+        //CASE 2 : rewrite based on single invocation
+        }else{
+          //make the skolems for the existential
+          if( !it->first.isNull() ){
+            std::vector< Node > vars;
+            std::vector< Node > sks;
+            for( unsigned j=0; j<it->first.getNumChildren(); j++ ){
+              std::stringstream ss;
+              ss << "a_" << it->first[j];
+              Node v = NodeManager::currentNM()->mkSkolem( ss.str(), it->first[j].getType(), "single invocation skolem" );
+              vars.push_back( it->first[j] );
+              sks.push_back( v );
+            }
+            //substitute conjunctions
+            for( unsigned i=0; i<conjuncts.size(); i++ ){
+              conjuncts[i] = conjuncts[i].substitute( vars.begin(), vars.end(), sks.begin(), sks.end() );
+            }
+            d_single_inv_arg_sk.insert( d_single_inv_arg_sk.end(), sks.begin(), sks.end() );
+            //substitute single invocation applications
+            for( std::map< Node, Node >::iterator itam = d_single_inv_app_map.begin(); itam != d_single_inv_app_map.end(); ++itam ){
+              Node n = itam->second;
+              d_single_inv_app_map[itam->first] = n.substitute( vars.begin(), vars.end(), sks.begin(), sks.end() );
+            }
+          }
+          //ensure that this is a ground property
           for( std::map< Node, Node >::iterator itam = d_single_inv_app_map.begin(); itam != d_single_inv_app_map.end(); ++itam ){
             Node n = itam->second;
-            d_single_inv_app_map[itam->first] = n.substitute( vars.begin(), vars.end(), sks.begin(), sks.end() );
-          }
-        }
-        //ensure that this is a ground property
-        for( std::map< Node, Node >::iterator itam = d_single_inv_app_map.begin(); itam != d_single_inv_app_map.end(); ++itam ){
-          Node n = itam->second;
-          //check if all variables are arguments of this
-          std::vector< Node > n_args;
-          for( unsigned i=1; i<n.getNumChildren(); i++ ){
-            n_args.push_back( n[i] );
-          }
-          for( int i=0; i<(int)d_single_inv_arg_sk.size(); i++ ){
-            if( std::find( n_args.begin(), n_args.end(), d_single_inv_arg_sk[i] )==n_args.end() ){
-              Trace("cegqi-si") << "...property is not ground: program invocation " << n << " does not contain variable " << d_single_inv_arg_sk[i] << "." << std::endl;
-              //try to do variable elimination on d_single_inv_arg_sk[i]
-              if( doVariableElimination( d_single_inv_arg_sk[i], conjuncts ) ){
-                Trace("cegqi-si") << "...did variable elimination on " << d_single_inv_arg_sk[i] << std::endl;
-                d_single_inv_arg_sk.erase( d_single_inv_arg_sk.begin() + i, d_single_inv_arg_sk.begin() + i + 1 );
-                i--;
-              }else{
-                singleInvocation = false;
-                //exit( 57 );
+            //check if all variables are arguments of this
+            std::vector< Node > n_args;
+            for( unsigned i=1; i<n.getNumChildren(); i++ ){
+              n_args.push_back( n[i] );
+            }
+            for( int i=0; i<(int)d_single_inv_arg_sk.size(); i++ ){
+              if( std::find( n_args.begin(), n_args.end(), d_single_inv_arg_sk[i] )==n_args.end() ){
+                Trace("cegqi-si") << "...property is not ground: program invocation " << n << " does not contain variable " << d_single_inv_arg_sk[i] << "." << std::endl;
+                //try to do variable elimination on d_single_inv_arg_sk[i]
+                if( doVariableElimination( d_single_inv_arg_sk[i], conjuncts ) ){
+                  Trace("cegqi-si") << "...did variable elimination on " << d_single_inv_arg_sk[i] << std::endl;
+                  d_single_inv_arg_sk.erase( d_single_inv_arg_sk.begin() + i, d_single_inv_arg_sk.begin() + i + 1 );
+                  i--;
+                }else{
+                  singleInvocation = false;
+                  //exit( 57 );
+                }
+                break;
               }
-              break;
             }
           }
-        }
 
-        if( singleInvocation ){
-          Node bd = conjuncts.size()==1 ? conjuncts[0] : NodeManager::currentNM()->mkNode( OR, conjuncts );
-          if( pbvl.isNull() ){
-            d_single_inv = bd;
-          }else{
-            d_single_inv = NodeManager::currentNM()->mkNode( FORALL, pbvl, bd );
-          }
-          Trace("cegqi-si-debug") << "...formula is : " << d_single_inv << std::endl;
-          /*
-          if( options::eMatching() && options::eMatching.wasSetByUser() ){
-            Node bd = d_qe->getTermDatabase()->getInstConstantBody( d_single_inv );
-            std::vector< Node > patTerms;
-            std::vector< Node > exclude;
-            inst::Trigger::collectPatTerms( d_qe, d_single_inv, bd, patTerms, inst::Trigger::TS_ALL, exclude );
-            if( !patTerms.empty() ){
-              Trace("cegqi-si-em") << "Triggers : " << std::endl;
-              for( unsigned i=0; i<patTerms.size(); i++ ){
-                Trace("cegqi-si-em") << "   " << patTerms[i] << std::endl;
+          if( singleInvocation ){
+            Node bd = conjuncts.size()==1 ? conjuncts[0] : NodeManager::currentNM()->mkNode( OR, conjuncts );
+            if( pbvl.isNull() ){
+              d_single_inv = bd;
+            }else{
+              d_single_inv = NodeManager::currentNM()->mkNode( FORALL, pbvl, bd );
+            }
+            Trace("cegqi-si-debug") << "...formula is : " << d_single_inv << std::endl;
+            /*
+            if( options::eMatching() && options::eMatching.wasSetByUser() ){
+              Node bd = d_qe->getTermDatabase()->getInstConstantBody( d_single_inv );
+              std::vector< Node > patTerms;
+              std::vector< Node > exclude;
+              inst::Trigger::collectPatTerms( d_qe, d_single_inv, bd, patTerms, inst::Trigger::TS_ALL, exclude );
+              if( !patTerms.empty() ){
+                Trace("cegqi-si-em") << "Triggers : " << std::endl;
+                for( unsigned i=0; i<patTerms.size(); i++ ){
+                  Trace("cegqi-si-em") << "   " << patTerms[i] << std::endl;
+                }
               }
             }
+            */
           }
-          */
         }
       }
     }
@@ -1146,9 +1267,66 @@ bool CegConjectureSingleInv::getVariableEliminationTerm( bool pol, bool hasPol, 
   return false;
 }
 
+int CegConjectureSingleInv::extractInvariantPolarity( Node n, Node inv, std::vector< Node >& curr_disj, bool pol ) {
+  if( n.getKind()==NOT ){
+    return extractInvariantPolarity( n[0], inv, curr_disj, !pol );
+  }else if( ( n.getKind()==AND && pol ) || ( n.getKind()==OR && !pol ) ){
+    int curr_pol = -1;
+    for( unsigned i=0; i<n.getNumChildren(); i++ ){
+      int eipc = extractInvariantPolarity( n[i], inv, curr_disj, pol );
+      if( eipc!=-1 ){
+        if( curr_pol==-1 ){
+          curr_pol = eipc;
+        }else{
+          return -1;
+        }
+      }else{
+        curr_disj.push_back( pol ? n[i] : TermDb::simpleNegate( n[i] ) );
+      }
+    }
+    return curr_pol;
+  }else if( n==inv ){
+    return pol ? 1 : 0;
+  }else{
+    return -1;
+  }
+}
+
+Node CegConjectureSingleInv::substituteInvariantTemplates( Node n, std::map< Node, Node >& prog_templ, std::map< Node, std::vector< Node > >& prog_templ_vars ) {
+  if( n.getKind()==APPLY_UF && n.getNumChildren()>0 ){
+    std::map< Node, Node >::iterator it = prog_templ.find( n[0] );
+    if( it!=prog_templ.end() ){
+      std::vector< Node > children;
+      for( unsigned i=1; i<n.getNumChildren(); i++ ){
+        children.push_back( n[i] );
+      }
+      std::map< Node, std::vector< Node > >::iterator itv = prog_templ_vars.find( n[0] );
+      Assert( itv!=prog_templ_vars.end() );
+      Assert( children.size()==itv->second.size() );
+      Node newc = it->second.substitute( itv->second.begin(), itv->second.end(), children.begin(), children.end() );
+      return newc;
+    }
+  }
+  bool childChanged = false;
+  std::vector< Node > children;
+  for( unsigned i=0; i<n.getNumChildren(); i++ ){
+    Node nn = substituteInvariantTemplates( n[i], prog_templ, prog_templ_vars );
+    children.push_back( nn );
+    childChanged = childChanged || ( nn!=n[i] );
+  }
+  if( childChanged ){
+    if( n.getMetaKind() == kind::metakind::PARAMETERIZED ){
+      children.insert( children.begin(), n.getOperator() );
+    }
+    return NodeManager::currentNM()->mkNode( n.getKind(), children );
+  }else{
+    return n;
+  }
+}
+
 bool CegConjectureSingleInv::analyzeSygusConjunct( Node p, Node n, std::map< Node, std::vector< Node > >& children,
-                                                            std::map< Node, std::map< Node, std::vector< Node > > >& prog_invoke,
-                                                            std::vector< Node >& progs, std::map< Node, std::map< Node, bool > >& contains, bool pol ) {
+                                                   std::map< Node, std::map< Node, std::vector< Node > > >& prog_invoke,
+                                                   std::vector< Node >& progs, std::map< Node, std::map< Node, bool > >& contains, bool pol ) {
   if( ( pol && n.getKind()==OR ) || ( !pol && n.getKind()==AND ) ){
     for( unsigned i=0; i<n.getNumChildren(); i++ ){
       if( !analyzeSygusConjunct( p, n[i], children, prog_invoke, progs, contains, pol ) ){
@@ -1371,7 +1549,12 @@ Node CegConjectureSingleInv::getSolution( unsigned sol_index, TypeNode stn, int&
   Trace("csi-sol") << "Solution (pre-simplification): " << d_orig_solution << std::endl;
   s = d_sol->simplifySolution( s, stn );
   Trace("csi-sol") << "Solution (post-simplification): " << s << std::endl;
+  return reconstructToSyntax( s, stn, reconstructed );
+}
+
+Node CegConjectureSingleInv::reconstructToSyntax( Node s, TypeNode stn, int& reconstructed ) {
   d_solution = s;
+  const Datatype& dt = ((DatatypeType)(stn).toType()).getDatatype();
 
   //reconstruct the solution into sygus if necessary
   reconstructed = 0;
@@ -1428,5 +1611,6 @@ bool CegConjectureSingleInv::needsCheck() {
   }
   return true;
 }
+
 
 }

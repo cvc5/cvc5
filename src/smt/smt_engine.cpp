@@ -1465,6 +1465,13 @@ void SmtEngine::setDefaults() {
     if( !options::dtForceAssignment.wasSetByUser() ){
       options::dtForceAssignment.set( true );
     }
+    //try to remove ITEs from quantified formulas
+    if( !options::iteDtTesterSplitQuant.wasSetByUser() ){
+      options::iteDtTesterSplitQuant.set( true );
+    }
+    if( !options::iteLiftQuant.wasSetByUser() ){
+      options::iteLiftQuant.set( quantifiers::ITE_LIFT_QUANT_MODE_ALL );
+    }
   }
   if( options::intWfInduction() ){
     if( !options::purifyTriggers.wasSetByUser() ){

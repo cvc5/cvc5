@@ -111,6 +111,9 @@ private:
   bool processSingleInvLiteral( Node lit, bool pol, std::map< Node, std::vector< Node > >& case_vals );
   bool doVariableElimination( Node v, std::vector< Node >& conjuncts );
   bool getVariableEliminationTerm( bool pol, bool active, Node v, Node n, TNode& s, int& status );
+  //for recognizing templates for invariant synthesis
+  int extractInvariantPolarity( Node n, Node inv, std::vector< Node >& curr_disj, bool pol );
+  Node substituteInvariantTemplates( Node n, std::map< Node, Node >& prog_templ, std::map< Node, std::vector< Node > >& prog_templ_vars );
   //presolve
   void collectPresolveEqTerms( Node n, std::map< Node, std::vector< Node > >& teq );
   void getPresolveEqConjuncts( std::vector< Node >& vars, std::vector< Node >& terms, std::map< Node, std::vector< Node > >& teq, Node n, std::vector< Node >& conj );
@@ -141,7 +144,7 @@ private:
 public:
   //lemmas produced
   std::vector< Node > d_lemmas_produced;
-  std::vector< std::vector< Node > > d_inst; 
+  std::vector< std::vector< Node > > d_inst;
 private:
   std::vector< Node > d_curr_lemmas;
   //add instantiation
@@ -156,6 +159,10 @@ public:
   Node d_quant;
   // single invocation version of quant
   Node d_single_inv;
+  // transition relation version per program
+  std::map< Node, Node > d_trans_pre;
+  std::map< Node, Node > d_trans_post;
+  std::map< Node, std::vector< Node > > d_prog_templ_vars;
 public:
   //get the single invocation lemma
   Node getSingleInvLemma( Node guard );
@@ -165,6 +172,8 @@ public:
   void check( std::vector< Node >& lems );
   //get solution
   Node getSolution( unsigned sol_index, TypeNode stn, int& reconstructed );
+  //reconstruct to syntax
+  Node reconstructToSyntax( Node s, TypeNode stn, int& reconstructed );
   // has ites
   bool hasITEs() { return d_has_ites; }
   // is single invocation

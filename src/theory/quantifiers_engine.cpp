@@ -754,6 +754,7 @@ Node QuantifiersEngine::getInstantiation( Node f, InstMatch& m ){
 }
 
 Node QuantifiersEngine::getInstantiation( Node f, std::vector< Node >& terms ) {
+  d_term_db->makeInstantiationConstantsFor( f );
   return getInstantiation( f, d_term_db->d_inst_constants[f], terms );
 }
 

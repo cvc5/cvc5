@@ -152,6 +152,15 @@ typedef enum {
   ITE_LIFT_QUANT_MODE_ALL,
 } IteLiftQuantMode;
 
+typedef enum {
+  /** synthesize I( x ) */
+  SYGUS_INV_TEMPL_MODE_NONE,
+  /** synthesize ( pre( x ) V I( x ) ) */
+  SYGUS_INV_TEMPL_MODE_PRE,
+  /** synthesize ( post( x ) ^ I( x ) ) */
+  SYGUS_INV_TEMPL_MODE_POST,
+} SygusInvTemplMode;
+
 }/* CVC4::theory::quantifiers namespace */
 }/* CVC4::theory namespace */
 

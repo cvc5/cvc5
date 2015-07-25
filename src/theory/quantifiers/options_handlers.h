@@ -217,6 +217,19 @@ none \n\
 + Lift if-then-else in quantified formulas. \n\
 \n\
 ";
+static const std::string sygusInvTemplHelp = "\
+Template modes for sygus invariant synthesis, supported by --sygus-inv-templ:\n\
+\n\
+none  \n\
++ Synthesize invariant directly.\n\
+\n\
+pre  \n\
++ Synthesize invariant based on weakening of precondition .\n\
+\n\
+post \n\
++ Synthesize invariant based on strengthening of postcondition. \n\
+\n\
+";
 
 inline InstWhenMode stringToInstWhenMode(std::string option, std::string optarg, SmtEngine* smt) throw(OptionException) {
   if(optarg == "pre-full") {
@@ -440,6 +453,22 @@ inline IteLiftQuantMode stringToIteLiftQuantMode(std::string option, std::string
   } else {
     throw OptionException(std::string("unknown option for --ite-lift-quant: `") +
                           optarg + "'.  Try --ite-lift-quant help.");
+  }
+}
+
+inline SygusInvTemplMode stringToSygusInvTemplMode(std::string option, std::string optarg, SmtEngine* smt) throw(OptionException) {
+  if(optarg == "none" ) {
+    return SYGUS_INV_TEMPL_MODE_NONE;
+  } else if(optarg == "pre") {
+    return SYGUS_INV_TEMPL_MODE_PRE;
+  } else if(optarg == "post") {
+    return SYGUS_INV_TEMPL_MODE_POST;
+  } else if(optarg ==  "help") {
+    puts(sygusInvTemplHelp.c_str());
+    exit(1);
+  } else {
+    throw OptionException(std::string("unknown option for --sygus-inv-templ: `") +
+                          optarg + "'.  Try --sygus-inv-templ help.");
   }
 }
 

@@ -1,5 +1,5 @@
 ; EXPECT: unsat
-; COMMAND-LINE: --cegqi
+; COMMAND-LINE: --cegqi --no-dump-synth
 
 (set-logic BV)
 
@@ -8,12 +8,12 @@
 (synth-fun f ((x (BitVec 32))) (BitVec 32)
     ((Start (BitVec 32) ((bvand Start Start)
                          (bvsub Start Start)
-						 (bvor Start Start)
-						 (bvadd Start Start)
-						 (bvxor Start Start)
+             (bvor Start Start)
+             (bvadd Start Start)
+             (bvxor Start Start)
                          x
-						 #x00000000
-						 #xFFFFFFFF
+             #x00000000
+             #xFFFFFFFF
                          #x00000001))))
 
 (declare-var x (BitVec 32))

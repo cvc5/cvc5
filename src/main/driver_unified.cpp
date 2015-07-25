@@ -213,9 +213,13 @@ int runCvc4(int argc, char* argv[], Options& opts) {
   }
 
   // if doing sygus, turn on CEGQI by default
-  if(opts[options::inputLanguage] == language::input::LANG_SYGUS &&
-     !opts.wasSetByUser(options::ceGuidedInst)) {
-    opts.set(options::ceGuidedInst, true);
+  if(opts[options::inputLanguage] == language::input::LANG_SYGUS ){
+    if( !opts.wasSetByUser(options::ceGuidedInst)) {
+      opts.set(options::ceGuidedInst, true);
+    }
+    if( !opts.wasSetByUser(options::dumpSynth)) {
+      opts.set(options::dumpSynth, true);
+    }
   }
 
   // Determine which messages to show based on smtcomp_mode and verbosity
@@ -572,7 +576,7 @@ int runCvc4(int argc, char* argv[], Options& opts) {
     // make sure out and err streams are flushed too
     *opts[options::out] << flush;
     *opts[options::err] << flush;
- 
+
 #ifdef CVC4_DEBUG
     if(opts[options::earlyExit] && opts.wasSetByUser(options::earlyExit)) {
       _exit(returnValue);

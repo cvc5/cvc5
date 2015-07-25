@@ -32,7 +32,7 @@ option iteLiftQuant --ite-lift-quant=MODE CVC4::theory::quantifiers::IteLiftQuan
  ite lifting mode for quantified formulas
 option iteCondVarSplitQuant --ite-cond-var-split-quant bool :default true
  split variables occurring as conditions of ITE in quantifiers
-option iteDtTesterSplitQuant --ite-dtt-split-quant bool :default false
+option iteDtTesterSplitQuant --ite-dtt-split-quant bool :read-write :default false
  split ites with dt testers as conditions
 # Whether to CNF quantifier bodies
 # option cnfQuant --cnf-quant bool :default false
@@ -240,6 +240,9 @@ option sygusNormalFormGlobalArg --sygus-nf-sym-arg bool :default true
 option sygusNormalFormGlobalContent --sygus-nf-sym-content bool :default true
   generalize based on content in global search space narrowing
   
+option sygusInvTemplMode --sygus-inv-templ=MODE CVC4::theory::quantifiers::SygusInvTemplMode :default CVC4::theory::quantifiers::SYGUS_INV_TEMPL_MODE_NONE :include "theory/quantifiers/modes.h" :handler CVC4::theory::quantifiers::stringToSygusInvTemplMode :handler-include "theory/quantifiers/options_handlers.h"
+  template mode for sygus invariant synthesis
+
 # approach applied to general quantified formulas
 option cbqi --cbqi bool :read-write :default false
  turns on counterexample-based quantifier instantiation
