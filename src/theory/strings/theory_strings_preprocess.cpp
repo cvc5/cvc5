@@ -196,7 +196,7 @@ Node StringsPreprocess::simplify( Node t, std::vector< Node > &new_nodes ) {
           NodeManager::currentNM()->mkNode( kind::STRING_LENGTH, t[0] ),
           NodeManager::currentNM()->mkNode( kind::PLUS, t[1], t[2] ) );
     Node t1geq0 = NodeManager::currentNM()->mkNode(kind::GEQ, t[1], d_zero);
-    Node t2geq0 = NodeManager::currentNM()->mkNode(kind::GEQ, t[2], d_zero);
+    Node t2geq0 = NodeManager::currentNM()->mkNode(kind::GT, t[2], d_zero);
     Node cond = Rewriter::rewrite( NodeManager::currentNM()->mkNode( kind::AND, lenxgti, t1geq0, t2geq0 ));
     Node sk1 = NodeManager::currentNM()->mkSkolem( "ss1", NodeManager::currentNM()->stringType(), "created for charat/substr" );
     Node sk3 = NodeManager::currentNM()->mkSkolem( "ss3", NodeManager::currentNM()->stringType(), "created for charat/substr" );
