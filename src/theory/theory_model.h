@@ -261,7 +261,7 @@ protected:
   Node normalize(TheoryModel* m, TNode r, std::map<Node, Node>& constantReps, bool evalOnly);
   bool isAssignable(TNode n);
   void checkTerms(TNode n, TheoryModel* tm, NodeSet& cache);
-
+  void assignConstantRep( TheoryModel* tm, std::map<Node, Node>& constantReps, Node eqc, Node const_rep, bool fullModel );
 public:
   TheoryEngineModelBuilder(TheoryEngine* te);
   virtual ~TheoryEngineModelBuilder(){}

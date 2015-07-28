@@ -171,6 +171,7 @@ public:
   bool considerCurrentTermCanon( unsigned tg_id );
   void changeContext( bool add );
   bool isRelevantFunc( Node f );
+  bool isRelevantTerm( Node t );
   //carry
   TermDb * getTermDatabase();
   Node getGroundEqc( TNode r );
@@ -307,14 +308,8 @@ private:  //information regarding the conjectures
   /** conjecture index */
   TheoremIndex d_thm_index;
 private:  //free variable list
-  //free variables
-  std::map< TypeNode, std::vector< Node > > d_free_var;
-  //map from free variable to FV#
-  std::map< TNode, unsigned > d_free_var_num;
   // get canonical free variable #i of type tn
   Node getFreeVar( TypeNode tn, unsigned i );
-  // get canonical term, return null if it contains a term apart from handled signature
-  Node getCanonicalTerm( TNode n, std::map< TypeNode, unsigned >& var_count, std::map< TNode, TNode >& subs );
 private:  //information regarding the terms
   //relevant patterns (the LHS's)
   std::map< TypeNode, std::vector< Node > > d_rel_patterns;

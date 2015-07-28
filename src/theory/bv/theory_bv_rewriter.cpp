@@ -553,6 +553,22 @@ RewriteResponse TheoryBVRewriter::RewriteRotateLeft(TNode node, bool prerewrite)
   return RewriteResponse(REWRITE_AGAIN_FULL, resultNode); 
 }
 
+RewriteResponse TheoryBVRewriter::RewriteRedor(TNode node, bool prerewrite){
+  Node resultNode = LinearRewriteStrategy
+    < RewriteRule<RedorEliminate>
+    >::apply(node);
+  
+  return RewriteResponse(REWRITE_AGAIN_FULL, resultNode); 
+}
+
+RewriteResponse TheoryBVRewriter::RewriteRedand(TNode node, bool prerewrite){
+  Node resultNode = LinearRewriteStrategy
+    < RewriteRule<RedandEliminate>
+    >::apply(node);
+  
+  return RewriteResponse(REWRITE_AGAIN_FULL, resultNode); 
+}
+
 RewriteResponse TheoryBVRewriter::RewriteBVToNat(TNode node, bool prerewrite) {
   Node resultNode = LinearRewriteStrategy
     < RewriteRule<BVToNatEliminate>
@@ -651,6 +667,8 @@ void TheoryBVRewriter::initializeRewrites() {
   d_rewriteTable [ kind::BITVECTOR_SIGN_EXTEND ] = RewriteSignExtend;
   d_rewriteTable [ kind::BITVECTOR_ROTATE_RIGHT ] = RewriteRotateRight;
   d_rewriteTable [ kind::BITVECTOR_ROTATE_LEFT ] = RewriteRotateLeft;
+  d_rewriteTable [ kind::BITVECTOR_REDOR ] = RewriteRedor;
+  d_rewriteTable [ kind::BITVECTOR_REDAND ] = RewriteRedand;
 
   d_rewriteTable [ kind::BITVECTOR_TO_NAT ] = RewriteBVToNat;
   d_rewriteTable [ kind::INT_TO_BITVECTOR ] = RewriteIntToBV;

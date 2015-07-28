@@ -35,7 +35,9 @@ public:
   context::CDO< bool > d_active;
   /** is conjecture infeasible */
   context::CDO< bool > d_infeasible;
-  /** quantified formula */
+  /** quantified formula asserted */
+  Node d_assert_quant;
+  /** quantified formula (after processing) */
   Node d_quant;
   /** guard */
   Node d_guard;
@@ -83,6 +85,8 @@ public:  //for fairness
   CegqiFairMode getCegqiFairMode();
   /** is single invocation */
   bool isSingleInvocation();
+  /** needs check */
+  bool needsCheck();
 };
 
 

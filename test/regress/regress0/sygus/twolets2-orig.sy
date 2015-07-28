@@ -1,25 +1,25 @@
 ; EXPECT: unsat
-; COMMAND-LINE: --cegqi-si
+; COMMAND-LINE: --cegqi-si --no-dump-synth
 (set-logic LIA)
 (synth-fun f1 ((x Int)) Int
-	   (
-	   (Start Int (
-	   	      (let ((y Int CInt) (z Int CInt)) (+ (+ y x) z))
-	   	      )
- 	   )
-	   (CInt Int (0 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15))
+     (
+     (Start Int (
+            (let ((y Int CInt) (z Int CInt)) (+ (+ y x) z))
+            )
+     )
+     (CInt Int (0 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15))
 
-	   )
+     )
 )
 (synth-fun f2 ((x Int)) Int
-	   (
-	   (Start Int (x
-	   	      (let ((y Int Start) (z Int CInt)) (+ (+ y x) z))
-	   	      )
- 	   )
-	   (CInt Int (0 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15))
+     (
+     (Start Int (x
+            (let ((y Int Start) (z Int CInt)) (+ (+ y x) z))
+            )
+     )
+     (CInt Int (0 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15))
 
-	   )
+     )
 )
 (declare-var x1 Int)
 (declare-var x2 Int)

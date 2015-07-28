@@ -311,8 +311,8 @@ libcvc4_la_SOURCES = \
 	theory/quantifiers/full_model_check.cpp \
 	theory/quantifiers/bounded_integers.h \
 	theory/quantifiers/bounded_integers.cpp \
-	theory/quantifiers/first_order_reasoning.h \
-	theory/quantifiers/first_order_reasoning.cpp \
+	theory/quantifiers/alpha_equivalence.h \
+	theory/quantifiers/alpha_equivalence.cpp \
 	theory/quantifiers/rewrite_engine.h \
 	theory/quantifiers/rewrite_engine.cpp \
 	theory/quantifiers/relevant_domain.h \
@@ -335,6 +335,8 @@ libcvc4_la_SOURCES = \
 	theory/quantifiers/local_theory_ext.cpp \
 	theory/quantifiers/fun_def_process.h \
 	theory/quantifiers/fun_def_process.cpp \
+	theory/quantifiers/fun_def_engine.h \
+	theory/quantifiers/fun_def_engine.cpp \
 	theory/quantifiers/options_handlers.h \
 	theory/arith/theory_arith_type_rules.h \
 	theory/arith/type_enumerator.h \

@@ -145,7 +145,7 @@ Trigger* Trigger::mkTrigger( QuantifiersEngine* qe, Node f, std::vector< Node >&
         break;
       }
     }
-    if( varCount<f[0].getNumChildren() ){
+    if( varCount<f[0].getNumChildren() && !options::partialTriggers() ){
       Trace("trigger-debug") << "Don't consider trigger since it does not contain all variables in " << f << std::endl;
       for( unsigned i=0; i<nodes.size(); i++) {
         Trace("trigger-debug") << nodes[i] << " ";
@@ -226,6 +226,12 @@ bool Trigger::isUsable( Node n, Node f ){
       if( isBooleanTermTrigger( n ) ){
         return true;
       }
+      if( options::purifyTriggers() ){
+        Node x = getInversionVariable( n );
+        if( !x.isNull() ){
+          return true;
+        }
+      }
     }
     return false;
   }else{
@@ -247,6 +253,7 @@ bool nodeContainsVar( Node n, Node v ){
 }
 
 Node Trigger::getIsUsableTrigger( Node n, Node f, bool pol, bool hasPol ) {
+  Trace("trigger-debug") << "Is " << n << " a usable trigger?" << std::endl;
   if( options::relationalTriggers() ){
     if( n.getKind()==EQUAL || n.getKind()==IFF || n.getKind()==GEQ ){
       Node rtr;
@@ -287,7 +294,7 @@ Node Trigger::getIsUsableTrigger( Node n, Node f, bool pol, bool hasPol ) {
     }
   }
   bool usable = quantifiers::TermDb::getInstConstAttr(n)==f && isAtomicTrigger( n ) && isUsable( n, f );
-  Trace("usable") << n << " usable : " << (quantifiers::TermDb::getInstConstAttr(n)==f) << " " << isAtomicTrigger( n ) << " " << isUsable( n, f ) << std::endl;
+  Trace("trigger-debug") << n << " usable : " << (quantifiers::TermDb::getInstConstAttr(n)==f) << " " << isAtomicTrigger( n ) << " " << isUsable( n, f ) << std::endl;
   if( usable ){
     return n;
   }else{
@@ -512,13 +519,16 @@ Node Trigger::getInversionVariable( Node n ) {
         if( !n[i].isConst() ){
           Trace("var-trigger-debug") << "No : non-linear coefficient " << n << std::endl;
           return Node::null();
-        }else if( n.getType().isInteger() ){
+        }
+        /*
+        else if( n.getType().isInteger() ){
           Rational r = n[i].getConst<Rational>();
           if( r!=Rational(-1) && r!=Rational(1) ){
             Trace("var-trigger-debug") << "No : not integer coefficient " << n << std::endl;
             return Node::null();
           }
         }
+        */
       }
     }
     return ret;
@@ -539,8 +549,13 @@ Node Trigger::getInversion( Node n, Node x ) {
           x = NodeManager::currentNM()->mkNode( MINUS, x, n[i] );
         }else if( n.getKind()==MULT ){
           Assert( n[i].isConst() );
-          Node coeff = NodeManager::currentNM()->mkConst( Rational(1) / n[i].getConst<Rational>() );
-          x = NodeManager::currentNM()->mkNode( MULT, x, coeff );
+          if( x.getType().isInteger() ){
+            Node coeff = NodeManager::currentNM()->mkConst( n[i].getConst<Rational>() );
+            x = NodeManager::currentNM()->mkNode( INTS_DIVISION, x, coeff );
+          }else{
+            Node coeff = NodeManager::currentNM()->mkConst( Rational(1) / n[i].getConst<Rational>() );
+            x = NodeManager::currentNM()->mkNode( MULT, x, coeff );
+          }
         }
       }else{
         Assert( cindex==-1 );

@@ -32,10 +32,12 @@
 #include "theory/quantifiers/ce_guided_instantiation.h"
 #include "theory/quantifiers/local_theory_ext.h"
 #include "theory/quantifiers/relevant_domain.h"
+#include "theory/quantifiers/alpha_equivalence.h"
 #include "theory/uf/options.h"
 #include "theory/uf/theory_uf.h"
 #include "theory/quantifiers/full_model_check.h"
 #include "theory/quantifiers/ambqi_builder.h"
+#include "theory/quantifiers/fun_def_engine.h"
 
 using namespace std;
 using namespace CVC4;
@@ -99,7 +101,7 @@ d_lemmas_produced_c(u){
   }else{
     d_model = new quantifiers::FirstOrderModelIG( this, c, "FirstOrderModelIG" );
   }
-  if( !options::finiteModelFind() ){
+  if( options::fullSaturateQuant() ){
     d_rel_dom = new quantifiers::RelevantDomain( this, d_model );
   }else{
     d_rel_dom = NULL;
@@ -163,6 +165,17 @@ d_lemmas_produced_c(u){
   }else{
     d_lte_part_inst = NULL;
   }
+  if( options::quantAlphaEquiv() ){
+    d_alpha_equiv = new quantifiers::AlphaEquivalence( this );
+  }else{
+    d_alpha_equiv = NULL;
+  }
+  //if( options::funDefs() ){
+  //  d_fun_def_engine = new quantifiers::FunDefEngine( this, c );
+  //  d_modules.push_back( d_fun_def_engine );
+  //}else{
+  d_fun_def_engine = NULL;
+  //}
 
   if( needsBuilder ){
     Trace("quant-engine-debug") << "Initialize model engine, mbqi : " << options::mbqiMode() << " " << options::fmfBoundInt() << std::endl;
@@ -202,6 +215,7 @@ QuantifiersEngine::~QuantifiersEngine(){
   delete d_sg_gen;
   delete d_ceg_inst;
   delete d_lte_part_inst;
+  delete d_fun_def_engine;
   for(std::map< Node, QuantPhaseReq* >::iterator i = d_phase_reqs.begin(); i != d_phase_reqs.end(); ++i) {
     delete (*i).second;
   }
@@ -298,6 +312,7 @@ void QuantifiersEngine::check( Theory::Effort e ){
         Trace("quant-engine-debug") << "  lemmas waiting = " << d_lemmas_waiting.size() << std::endl;
       }
       Trace("quant-engine-debug") << "  Theory engine finished : " << !d_te->needCheck() << std::endl;
+      Trace("quant-engine-debug") << "  Needs model effort : " << needsModelE << std::endl;
       Trace("quant-engine-debug") << "Resetting all modules..." << std::endl;
     }
     if( Trace.isOn("quant-engine-ee") ){
@@ -422,6 +437,38 @@ void QuantifiersEngine::check( Theory::Effort e ){
   }
 }
 
+bool QuantifiersEngine::reduceQuantifier( Node q ) {
+  std::map< Node, bool >::iterator it = d_quants_red.find( q );
+  if( it==d_quants_red.end() ){
+    if( d_alpha_equiv ){
+      Trace("quant-engine-debug") << "Alpha equivalence " << q << "?" << std::endl;
+      //add equivalence with another quantified formula
+      if( !d_alpha_equiv->registerQuantifier( q ) ){
+        Trace("quant-engine-debug") << "...alpha equivalence success." << std::endl;
+        ++(d_statistics.d_red_alpha_equiv);
+        d_quants_red[q] = true;
+        return true;
+      }
+    }
+    if( d_lte_part_inst && !q.getAttribute(LtePartialInstAttribute()) ){
+      //will partially instantiate
+      Trace("quant-engine-debug") << "LTE: Partially instantiate " << q << "?" << std::endl;
+      if( d_lte_part_inst->addQuantifier( q ) ){
+        Trace("quant-engine-debug") << "...LTE partially instantiate success." << std::endl;
+        //delayed reduction : assert to model
+        d_model->assertQuantifier( q, true );
+        ++(d_statistics.d_red_lte_partial_inst);
+        d_quants_red[q] = true;
+        return true;
+      }
+    }
+    d_quants_red[q] = false;
+    return false;
+  }else{
+    return it->second;
+  }
+}
+
 bool QuantifiersEngine::registerQuantifier( Node f ){
   std::map< Node, bool >::iterator it = d_quants.find( f );
   if( it==d_quants.end() ){
@@ -431,15 +478,7 @@ bool QuantifiersEngine::registerQuantifier( Node f ){
     Assert( f.getKind()==FORALL );
 
     //check whether we should apply a reduction
-    bool reduced = false;
-    if( d_lte_part_inst && !f.getAttribute(LtePartialInstAttribute()) ){
-      Trace("lte-partial-inst") << "LTE: Partially instantiate " << f << "?" << std::endl;
-      if( d_lte_part_inst->addQuantifier( f ) ){
-        reduced = true;
-      }
-    }
-    if( reduced ){
-      d_model->assertQuantifier( f, true );
+    if( reduceQuantifier( f ) ){
       d_quants[f] = false;
       return false;
     }else{
@@ -482,30 +521,31 @@ void QuantifiersEngine::registerPattern( std::vector<Node> & pattern) {
 
 void QuantifiersEngine::assertQuantifier( Node f, bool pol ){
   if( !pol ){
-    //do skolemization
-    if( d_skolemized.find( f )==d_skolemized.end() ){
-      Node body = d_term_db->getSkolemizedBody( f );
-      NodeBuilder<> nb(kind::OR);
-      nb << f << body.notNode();
-      Node lem = nb;
-      if( Trace.isOn("quantifiers-sk") ){
-        Node slem = Rewriter::rewrite( lem );
-        Trace("quantifiers-sk") << "Skolemize lemma : " << slem << std::endl;
+    //if not reduced
+    if( !reduceQuantifier( f ) ){
+      //do skolemization
+      if( d_skolemized.find( f )==d_skolemized.end() ){
+        Node body = d_term_db->getSkolemizedBody( f );
+        NodeBuilder<> nb(kind::OR);
+        nb << f << body.notNode();
+        Node lem = nb;
+        if( Trace.isOn("quantifiers-sk") ){
+          Node slem = Rewriter::rewrite( lem );
+          Trace("quantifiers-sk") << "Skolemize lemma : " << slem << std::endl;
+        }
+        getOutputChannel().lemma( lem, false, true );
+        d_skolemized[f] = true;
       }
-      getOutputChannel().lemma( lem, false, true );
-      d_skolemized[f] = true;
     }
-  }
-  //assert to modules TODO : handle !pol
-  if( pol ){
-    //register the quantifier
-    bool nreduced = registerQuantifier( f );
-    //assert it to each module
-    if( nreduced ){
+  }else{
+    //assert to modules TODO : also for !pol?
+    //register the quantifier, assert it to each module
+    if( registerQuantifier( f ) ){
       d_model->assertQuantifier( f );
       for( int i=0; i<(int)d_modules.size(); i++ ){
         d_modules[i]->assertNode( f );
       }
+      addTermToDatabase( d_term_db->getInstConstantBody( f ), true );
     }
   }
 }
@@ -714,6 +754,7 @@ Node QuantifiersEngine::getInstantiation( Node f, InstMatch& m ){
 }
 
 Node QuantifiersEngine::getInstantiation( Node f, std::vector< Node >& terms ) {
+  d_term_db->makeInstantiationConstantsFor( f );
   return getInstantiation( f, d_term_db->d_inst_constants[f], terms );
 }
 
@@ -783,12 +824,7 @@ bool QuantifiersEngine::addInstantiation( Node f, std::vector< Node >& terms, bo
     //make it representative, this is helpful for recognizing duplication
     if( mkRep ){
       //pick the best possible representative for instantiation, based on past use and simplicity of term
-      Node ti = d_eq_query->getInternalRepresentative( terms[i], f, i );
-      //check if it is a subtype (can be violated in mixed int/real) FIXME : do this check inside getInternalRepresentative
-      if( ti.getType().isSubtypeOf( f[0][i].getType() ) ){
-        terms[i] = ti;
-        Trace("inst-add-debug2") << " (" << terms[i] << ")";
-      }
+      terms[i] = d_eq_query->getInternalRepresentative( terms[i], f, i );
     }
   }
   Trace("inst-add-debug") << std::endl;
@@ -980,7 +1016,9 @@ QuantifiersEngine::Statistics::Statistics():
   d_triggers("QuantifiersEngine::Triggers", 0),
   d_simple_triggers("QuantifiersEngine::Triggers_Simple", 0),
   d_multi_triggers("QuantifiersEngine::Triggers_Multi", 0),
-  d_multi_trigger_instantiations("QuantifiersEngine::Multi_Trigger_Instantiations", 0)
+  d_multi_trigger_instantiations("QuantifiersEngine::Multi_Trigger_Instantiations", 0),
+  d_red_alpha_equiv("QuantifiersEngine::Reductions_Alpha_Equivalence", 0),
+  d_red_lte_partial_inst("QuantifiersEngine::Reductions_Lte_Partial_Inst", 0)
 {
   StatisticsRegistry::registerStat(&d_num_quant);
   StatisticsRegistry::registerStat(&d_instantiation_rounds);
@@ -992,6 +1030,8 @@ QuantifiersEngine::Statistics::Statistics():
   StatisticsRegistry::registerStat(&d_simple_triggers);
   StatisticsRegistry::registerStat(&d_multi_triggers);
   StatisticsRegistry::registerStat(&d_multi_trigger_instantiations);
+  StatisticsRegistry::registerStat(&d_red_alpha_equiv);
+  StatisticsRegistry::registerStat(&d_red_lte_partial_inst);
 }
 
 QuantifiersEngine::Statistics::~Statistics(){
@@ -1005,6 +1045,8 @@ QuantifiersEngine::Statistics::~Statistics(){
   StatisticsRegistry::unregisterStat(&d_simple_triggers);
   StatisticsRegistry::unregisterStat(&d_multi_triggers);
   StatisticsRegistry::unregisterStat(&d_multi_trigger_instantiations);
+  StatisticsRegistry::unregisterStat(&d_red_alpha_equiv);
+  StatisticsRegistry::unregisterStat(&d_red_lte_partial_inst);
 }
 
 eq::EqualityEngine* QuantifiersEngine::getMasterEqualityEngine(){
@@ -1070,16 +1112,12 @@ bool EqualityQueryQuantifiersEngine::areEqual( Node a, Node b ){
     return true;
   }else{
     eq::EqualityEngine* ee = getEngine();
-    if( d_liberal ){
-      return true;//!areDisequal( a, b );
-    }else{
-      if( ee->hasTerm( a ) && ee->hasTerm( b ) ){
-        if( ee->areEqual( a, b ) ){
-          return true;
-        }
+    if( ee->hasTerm( a ) && ee->hasTerm( b ) ){
+      if( ee->areEqual( a, b ) ){
+        return true;
       }
-      return false;
     }
+    return false;
   }
 }
 
@@ -1094,6 +1132,7 @@ bool EqualityQueryQuantifiersEngine::areDisequal( Node a, Node b ){
 }
 
 Node EqualityQueryQuantifiersEngine::getInternalRepresentative( Node a, Node f, int index ){
+  Assert( f.isNull() || f.getKind()==FORALL );
   Node r = getRepresentative( a );
   if( !options::internalReps() ){
     return r;
@@ -1108,16 +1147,17 @@ Node EqualityQueryQuantifiersEngine::getInternalRepresentative( Node a, Node f, 
             r = getRepresentative( r );
           }else{
             if( r.getType().isSort() ){
-              //TODO : this can happen in rare cases
-              // say x:(Array Int U), select( x, 0 ), x assigned (const @u1).
               Trace("internal-rep-warn") << "No representative for UF constant." << std::endl;
+              //should never happen : UF constants should never escape model
+              Assert( false );
             }
           }
         }
       }
     }
-    std::map< Node, Node >::iterator itir = d_int_rep.find( r );
-    if( itir==d_int_rep.end() ){
+    TypeNode v_tn = f.isNull() ? a.getType() : f[0][index].getType();
+    std::map< Node, Node >::iterator itir = d_int_rep[v_tn].find( r );
+    if( itir==d_int_rep[v_tn].end() ){
       //find best selection for representative
       Node r_best;
       //if( options::fmfRelevantDomain() && !f.isNull() ){
@@ -1135,7 +1175,7 @@ Node EqualityQueryQuantifiersEngine::getInternalRepresentative( Node a, Node f, 
       Trace("internal-rep-select")  << " } " << std::endl;
       int r_best_score = -1;
       for( size_t i=0; i<eqc.size(); i++ ){
-        int score = getRepScore( eqc[i], f, index );
+        int score = getRepScore( eqc[i], f, index, v_tn );
         if( score!=-2 ){
           if( r_best.isNull() || ( score>=0 && ( r_best_score<0 || score<r_best_score ) ) ){
             r_best = eqc[i];
@@ -1144,12 +1184,8 @@ Node EqualityQueryQuantifiersEngine::getInternalRepresentative( Node a, Node f, 
         }
       }
       if( r_best.isNull() ){
-        if( !f.isNull() ){
-          Node ic = d_qe->getTermDatabase()->getInstantiationConstant( f, index );
-          r_best = d_qe->getTermDatabase()->getFreeVariableForInstConstant( ic );
-        }else{
-          r_best = a;
-        }
+        Trace("internal-rep-warn") << "No valid choice for representative in eqc class." << std::endl;
+        r_best = r;
       }
       //now, make sure that no other member of the class is an instance
       std::hash_map<TNode, Node, TNodeHashFunction> cache;
@@ -1159,7 +1195,7 @@ Node EqualityQueryQuantifiersEngine::getInternalRepresentative( Node a, Node f, 
         d_rep_score[ r_best ] = d_reset_count;
       }
       Trace("internal-rep-select") << "...Choose " << r_best << std::endl;
-      d_int_rep[r] = r_best;
+      d_int_rep[v_tn][r] = r_best;
       if( r_best!=a ){
         Trace("internal-rep-debug") << "rep( " << a << " ) = " << r << ", " << std::endl;
         Trace("internal-rep-debug") << "int_rep( " << a << " ) = " << r_best << ", " << std::endl;
@@ -1181,8 +1217,10 @@ void EqualityQueryQuantifiersEngine::flattenRepresentatives( std::map< TypeNode,
     }
   }
   Trace("internal-rep-flatten") << "---Flattening representatives : " << std::endl;
-  for( std::map< Node, Node >::iterator it = d_int_rep.begin(); it != d_int_rep.end(); ++it ){
-    Trace("internal-rep-flatten") << it->first.getType() << " : irep( " << it->first << " ) = " << it->second << std::endl;
+  for( std::map< TypeNode, std::map< Node, Node > >::iterator itt = d_int_rep.begin(); itt != d_int_rep.end(); ++itt ){
+    for( std::map< Node, Node >::iterator it = itt->second.begin(); it != itt->second.end(); ++it ){
+      Trace("internal-rep-flatten") << itt->first << " : irep( " << it->first << " ) = " << it->second << std::endl;
+    }
   }
   //store representatives for newly created terms
   std::map< Node, Node > temp_rep_map;
@@ -1190,51 +1228,55 @@ void EqualityQueryQuantifiersEngine::flattenRepresentatives( std::map< TypeNode,
   bool success;
   do {
     success = false;
-    for( std::map< Node, Node >::iterator it = d_int_rep.begin(); it != d_int_rep.end(); ++it ){
-      if( it->second.getKind()==APPLY_UF && it->second.getType().isSort() ){
-        Node ni = it->second;
-        std::vector< Node > cc;
-        cc.push_back( it->second.getOperator() );
-        bool changed = false;
-        for( unsigned j=0; j<ni.getNumChildren(); j++ ){
-          if( ni[j].getType().isSort() ){
-            Node r = getRepresentative( ni[j] );
-            if( d_int_rep.find( r )==d_int_rep.end() ){
-              Assert( temp_rep_map.find( r )!=temp_rep_map.end() );
-              r = temp_rep_map[r];
-            }
-            if( r==ni ){
-              //found sub-term as instance
-              Trace("internal-rep-flatten-debug") << "...Changed " << it->second << " to subterm " << ni[j] << std::endl;
-              d_int_rep[it->first] = ni[j];
-              changed = false;
-              success = true;
-              break;
-            }else{
-              Node ir = d_int_rep[r];
-              cc.push_back( ir );
-              if( ni[j]!=ir ){
-                changed = true;
+    for( std::map< TypeNode, std::map< Node, Node > >::iterator itt = d_int_rep.begin(); itt != d_int_rep.end(); ++itt ){
+      for( std::map< Node, Node >::iterator it = itt->second.begin(); it != itt->second.end(); ++it ){
+        if( it->second.getKind()==APPLY_UF && it->second.getType().isSort() ){
+          Node ni = it->second;
+          std::vector< Node > cc;
+          cc.push_back( it->second.getOperator() );
+          bool changed = false;
+          for( unsigned j=0; j<ni.getNumChildren(); j++ ){
+            if( ni[j].getType().isSort() ){
+              Node r = getRepresentative( ni[j] );
+              if( itt->second.find( r )==itt->second.end() ){
+                Assert( temp_rep_map.find( r )!=temp_rep_map.end() );
+                r = temp_rep_map[r];
               }
+              if( r==ni ){
+                //found sub-term as instance
+                Trace("internal-rep-flatten-debug") << "...Changed " << it->second << " to subterm " << ni[j] << std::endl;
+                itt->second[it->first] = ni[j];
+                changed = false;
+                success = true;
+                break;
+              }else{
+                Node ir = itt->second[r];
+                cc.push_back( ir );
+                if( ni[j]!=ir ){
+                  changed = true;
+                }
+              }
+            }else{
+              changed = false;
+              break;
             }
-          }else{
-            changed = false;
-            break;
           }
-        }
-        if( changed ){
-          Node n = NodeManager::currentNM()->mkNode( APPLY_UF, cc );
-          Trace("internal-rep-flatten-debug") << "...Changed " << it->second << " to " << n << std::endl;
-          success = true;
-          d_int_rep[it->first] = n;
-          temp_rep_map[n] = it->first;
+          if( changed ){
+            Node n = NodeManager::currentNM()->mkNode( APPLY_UF, cc );
+            Trace("internal-rep-flatten-debug") << "...Changed " << it->second << " to " << n << std::endl;
+            success = true;
+            itt->second[it->first] = n;
+            temp_rep_map[n] = it->first;
+          }
         }
       }
     }
   }while( success );
   Trace("internal-rep-flatten") << "---After flattening : " << std::endl;
-  for( std::map< Node, Node >::iterator it = d_int_rep.begin(); it != d_int_rep.end(); ++it ){
-    Trace("internal-rep-flatten") << it->first.getType() << " : irep( " << it->first << " ) = " << it->second << std::endl;
+  for( std::map< TypeNode, std::map< Node, Node > >::iterator itt = d_int_rep.begin(); itt != d_int_rep.end(); ++itt ){
+    for( std::map< Node, Node >::iterator it = itt->second.begin(); it != itt->second.end(); ++it ){
+      Trace("internal-rep-flatten") << itt->first << " : irep( " << it->first << " ) = " << it->second << std::endl;
+    }
   }
 }
 
@@ -1277,6 +1319,7 @@ Node EqualityQueryQuantifiersEngine::getInstance( Node n, const std::vector< Nod
   }
 }
 
+/*
 int getDepth( Node n ){
   if( n.getNumChildren()==0 ){
     return 0;
@@ -1291,10 +1334,13 @@ int getDepth( Node n ){
     return maxDepth;
   }
 }
+*/
 
-//smaller the score, the better
-int EqualityQueryQuantifiersEngine::getRepScore( Node n, Node f, int index ){
-  if( options::cbqi() && quantifiers::TermDb::hasInstConstAttr(n) ){
+//-2 : invalid, -1 : undesired, otherwise : smaller the score, the better
+int EqualityQueryQuantifiersEngine::getRepScore( Node n, Node f, int index, TypeNode v_tn ){
+  if( options::cbqi() && quantifiers::TermDb::hasInstConstAttr(n) ){  //reject
+    return -2;
+  }else if( !n.getType().isSubtypeOf( v_tn ) ){  //reject if incorrect type
     return -2;
   }else if( options::lteRestrictInstClosure() && ( !d_qe->getTermDatabase()->isInstClosure( n ) || !d_qe->getTermDatabase()->hasTermCurrent( n, false ) ) ){
     return -1;

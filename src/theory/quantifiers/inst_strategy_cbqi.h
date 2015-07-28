@@ -100,8 +100,11 @@ private:
   CegqiOutputInstStrategy * d_out;
   std::map< Node, CegInstantiator * > d_cinst;
   Node d_n_delta;
+  Node d_n_delta_ub;
   Node d_curr_quant;
   bool d_check_delta_lemma;
+  bool d_check_delta_lemma_lc;
+  bool d_used_delta;
   /** process functions */
   void processResetInstantiationRound( Theory::Effort effort );
   int process( Node f, Theory::Effort effort, int e );

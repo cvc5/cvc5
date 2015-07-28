@@ -92,6 +92,8 @@ namespace quantifiers {
   class ConjectureGenerator;
   class CegInstantiation;
   class LtePartialInst;
+  class AlphaEquivalence;
+  class FunDefEngine;
 }/* CVC4::theory::quantifiers */
 
 namespace inst {
@@ -119,6 +121,8 @@ private:
   QuantRelevance * d_quant_rel;
   /** relevant domain */
   quantifiers::RelevantDomain* d_rel_dom;
+  /** alpha equivalence */
+  quantifiers::AlphaEquivalence * d_alpha_equiv;
   /** model builder */
   quantifiers::QModelBuilder* d_builder;
   /** phase requirements for each quantifier for each instantiation literal */
@@ -139,6 +143,8 @@ private:
   quantifiers::CegInstantiation * d_ceg_inst;
   /** lte partial instantiation */
   quantifiers::LtePartialInst * d_lte_part_inst;
+  /** function definitions engine */
+  quantifiers::FunDefEngine * d_fun_def_engine;
 public: //effort levels
   enum {
     QEFFORT_CONFLICT,
@@ -150,6 +156,8 @@ public: //effort levels
 private:
   /** list of all quantifiers seen */
   std::map< Node, bool > d_quants;
+  /** quantifiers reduced */
+  std::map< Node, bool > d_quants_red;
   /** list of all lemmas produced */
   //std::map< Node, bool > d_lemmas_produced;
   BoolMap d_lemmas_produced_c;
@@ -186,8 +194,7 @@ public:
   ~QuantifiersEngine();
   /** get theory engine */
   TheoryEngine* getTheoryEngine() { return d_te; }
-  /** get equality query object for the given type. The default is the
-      generic one */
+  /** get equality query */
   EqualityQueryQuantifiersEngine* getEqualityQuery();
   /** get default sat context for quantifiers engine */
   context::Context* getSatContext();
@@ -224,6 +231,8 @@ public:  //modules
   quantifiers::CegInstantiation * getCegInstantiation() { return d_ceg_inst; }
   /** local theory ext partial inst */
   quantifiers::LtePartialInst * getLtePartialInst() { return d_lte_part_inst; }
+  /** function definition engine */
+  quantifiers::FunDefEngine * getFunDefEngine() { return d_fun_def_engine; }
 private:
   /** owner of quantified formulas */
   std::map< Node, QuantifiersModule * > d_owner;
@@ -250,6 +259,8 @@ public:
   /** get next decision request */
   Node getNextDecisionRequest();
 private:
+  /** reduce quantifier */
+  bool reduceQuantifier( Node q );
   /** compute term vector */
   void computeTermVector( Node f, InstMatch& m, std::vector< Node >& vars, std::vector< Node >& terms );
   /** instantiate f with arguments terms */
@@ -322,6 +333,8 @@ public:
     IntStat d_simple_triggers;
     IntStat d_multi_triggers;
     IntStat d_multi_trigger_instantiations;
+    IntStat d_red_alpha_equiv;
+    IntStat d_red_lte_partial_inst;
     Statistics();
     ~Statistics();
   };/* class QuantifiersEngine::Statistics */
@@ -337,20 +350,18 @@ private:
   /** pointer to theory engine */
   QuantifiersEngine* d_qe;
   /** internal representatives */
-  std::map< Node, Node > d_int_rep;
+  std::map< TypeNode, std::map< Node, Node > > d_int_rep;
   /** rep score */
   std::map< Node, int > d_rep_score;
   /** reset count */
   int d_reset_count;
-
-  bool d_liberal;
 private:
   /** node contains */
   Node getInstance( Node n, const std::vector< Node >& eqc, std::hash_map<TNode, Node, TNodeHashFunction>& cache );
   /** get score */
-  int getRepScore( Node n, Node f, int index );
+  int getRepScore( Node n, Node f, int index, TypeNode v_tn );
 public:
-  EqualityQueryQuantifiersEngine( QuantifiersEngine* qe ) : d_qe( qe ), d_reset_count( 0 ), d_liberal( false ){}
+  EqualityQueryQuantifiersEngine( QuantifiersEngine* qe ) : d_qe( qe ), d_reset_count( 0 ){}
   ~EqualityQueryQuantifiersEngine(){}
   /** reset */
   void reset();
@@ -368,8 +379,6 @@ public:
   Node getInternalRepresentative( Node a, Node f, int index );
   /** flatten representatives */
   void flattenRepresentatives( std::map< TypeNode, std::vector< Node > >& reps );
-
-  void setLiberal( bool l ) { d_liberal = l; }
 }; /* EqualityQueryQuantifiersEngine */
 
 }/* CVC4::theory namespace */

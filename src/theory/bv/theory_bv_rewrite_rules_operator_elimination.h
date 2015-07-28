@@ -479,6 +479,33 @@ Node RewriteRule<SignExtendEliminate>::apply(TNode node) {
   return utils::mkConcat(extension, node[0]);
 }
 
+template<>
+bool RewriteRule<RedorEliminate>::applies(TNode node) {
+  return (node.getKind() == kind::BITVECTOR_REDOR);
+}
+
+template<>
+Node RewriteRule<RedorEliminate>::apply(TNode node) {
+  Debug("bv-rewrite") << "RewriteRule<RedorEliminate>(" << node << ")" << std::endl;
+  TNode a = node[0];
+  unsigned size = utils::getSize(node[0]); 
+  Node result = NodeManager::currentNM()->mkNode(kind::EQUAL, a, utils::mkConst( size, 0 ) );
+  return result.negate();
+}
+
+template<>
+bool RewriteRule<RedandEliminate>::applies(TNode node) {
+  return (node.getKind() == kind::BITVECTOR_REDAND);
+}
+
+template<>
+Node RewriteRule<RedandEliminate>::apply(TNode node) {
+  Debug("bv-rewrite") << "RewriteRule<RedandEliminate>(" << node << ")" << std::endl;
+  TNode a = node[0];
+  unsigned size = utils::getSize(node[0]); 
+  Node result = NodeManager::currentNM()->mkNode(kind::EQUAL, a, utils::mkOnes( size ) );
+  return result;
+}
 
 }
 }

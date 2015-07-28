@@ -467,12 +467,13 @@ int InstStrategyFreeVariable::process( Node f, Theory::Effort effort, int e ){
   }else{
     //first, try from relevant domain
     RelevantDomain * rd = d_quantEngine->getRelevantDomain();
-    for( unsigned r=0; r<2; r++ ){
-      if( rd || r==1 ){
+    unsigned rstart = options::fullSaturateQuantRd() ? 0 : 1;
+    for( unsigned r=rstart; r<2; r++ ){
+      if( rd || r>0 ){
         if( r==0 ){
           Trace("inst-alg") << "-> Relevant domain instantiate " << f << "..." << std::endl;
         }else{
-          Trace("inst-alg") << "-> Guess instantiate " << f << "..." << std::endl;
+          Trace("inst-alg") << "-> Ground term instantiate " << f << "..." << std::endl;
         }
         rd->compute();
         unsigned final_max_i = 0;
@@ -550,6 +551,7 @@ int InstStrategyFreeVariable::process( Node f, Theory::Effort effort, int e ){
         }
       }
       if( r==0 ){
+        //complete guess
         if( d_guessed.find( f )==d_guessed.end() ){
           Trace("inst-alg") << "-> Guess instantiate " << f << "..." << std::endl;
           d_guessed[f] = true;
@@ -561,6 +563,7 @@ int InstStrategyFreeVariable::process( Node f, Theory::Effort effort, int e ){
         }
       }
     }
+    //term enumerator?
   }
   return STATUS_UNKNOWN;
 }

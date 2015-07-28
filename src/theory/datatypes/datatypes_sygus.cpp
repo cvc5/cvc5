@@ -88,7 +88,7 @@ void SygusSplit::getSygusSplits( Node n, const Datatype& dt, std::vector< Node >
             Kind k = d_tds->getArgKind( tnnp, csIndex );
             //size comparison for arguments (if necessary)
             Node sz_leq;
-            if( tn1==tnn && d_tds->isComm( k ) ){
+            if( tn1==tnn && quantifiers::TermDb::isComm( k ) ){
               sz_leq = NodeManager::currentNM()->mkNode( LEQ, NodeManager::currentNM()->mkNode( DT_SIZE, n ), NodeManager::currentNM()->mkNode( DT_SIZE, arg1 ) );
             }
             std::map< int, std::vector< int > >::iterator it = d_sygus_pc_arg_pos[tnn][csIndex].find( i );
@@ -327,7 +327,7 @@ void SygusSplit::registerSygusTypeConstructorArg( TypeNode tnn, const Datatype& 
             Assert( d_sygus_pc_nred[tnn][csIndex].find( sIndex )!=d_sygus_pc_nred[tnn][csIndex].end() );
             Assert( d_sygus_pc_nred[tnno][csIndex].find( osIndex )!=d_sygus_pc_nred[tnno][csIndex].end() );
 
-            bool isPComm = d_tds->isComm( parentKind );
+            bool isPComm = quantifiers::TermDb::isComm( parentKind );
             std::map< int, bool > larg_consider;
             for( unsigned i=0; i<dto.getNumConstructors(); i++ ){
               if( d_sygus_pc_nred[tnno][csIndex][osIndex][i] ){
@@ -411,7 +411,7 @@ bool SygusSplit::considerSygusSplitKind( const Datatype& dt, const Datatype& pdt
   int pc = d_tds->getKindArg( tnp, parent );
   if( k==parent ){
     //check for associativity
-    if( d_tds->isAssoc( k ) ){
+    if( quantifiers::TermDb::isAssoc( k ) ){
       //if the operator is associative, then a repeated occurrence should only occur in the leftmost argument position
       int firstArg = getFirstArgOccurrence( pdt[pc], dt );
       Assert( firstArg!=-1 );
@@ -511,8 +511,8 @@ bool SygusSplit::considerSygusSplitKind( const Datatype& dt, const Datatype& pdt
     }
   }
   if( parent==MINUS || parent==BITVECTOR_SUB ){
-    
-    
+
+
   }
   return true;
 }
@@ -650,12 +650,22 @@ void SygusSymBreak::addTester( Node tst ) {
     std::map< Node, ProgSearch * >::iterator it = d_prog_search.find( a );
     ProgSearch * ps;
     if( it==d_prog_search.end() ){
-      ps = new ProgSearch( this, a, d_context );
+      //check if sygus type
+      TypeNode tn = a.getType();
+      Assert( DatatypesRewriter::isTypeDatatype( tn ) );
+      const Datatype& dt = ((DatatypeType)(tn).toType()).getDatatype();
+      if( dt.isSygus() ){
+        ps = new ProgSearch( this, a, d_context );
+      }else{
+        ps = NULL;
+      }
       d_prog_search[a] = ps;
     }else{
       ps = it->second;
     }
-    ps->addTester( tst );
+    if( ps ){
+      ps->addTester( tst );
+    }
   }
 }
 
@@ -781,7 +791,7 @@ bool SygusSymBreak::ProgSearch::processSubprograms( Node n, int depth, int odept
 Node SygusSymBreak::ProgSearch::getCandidateProgramAtDepth( int depth, Node prog, int curr_depth, Node parent, std::map< TypeNode, int >& var_count,
                                                             std::vector< Node >& testers, std::map< Node, std::vector< Node > >& testers_u ) {
   Assert( depth>=curr_depth );
-  Trace("sygus-sym-break-debug") << "Reconstructing program for " << prog << " at depth " << curr_depth << "/" << depth << std::endl;
+  Trace("sygus-sym-break-debug") << "Reconstructing program for " << prog << " at depth " << curr_depth << "/" << depth << " " << prog.getType() << std::endl;
   NodeMap::const_iterator it = d_testers.find( prog );
   if( it!=d_testers.end() ){
     Node tst = (*it).second;
@@ -820,10 +830,10 @@ bool SygusSymBreak::processCurrentProgram( Node a, TypeNode at, int depth, Node 
     Node progr = d_tds->getNormalized( at, prog );
     Node rep_prog;
     std::map< Node, Node >::iterator itnp = d_normalized_to_orig[at].find( progr );
-    int tsize = d_tds->getTermSize( prog );
+    int tsize = d_tds->getSygusTermSize( prog );
     if( itnp==d_normalized_to_orig[at].end() ){
       d_normalized_to_orig[at][progr] = prog;
-      if( progr.getKind()==SKOLEM && d_tds->getSygusType( progr )==at ){
+      if( progr.getKind()==SKOLEM && d_tds->getSygusTypeForVar( progr )==at ){
         Trace("sygus-nf") << "* Sygus sym break : " << prog << " rewrites to variable " << progr << " of same type as self" << std::endl;
         d_redundant[at][prog] = true;
         red = true;

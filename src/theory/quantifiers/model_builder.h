@@ -123,10 +123,6 @@ public:
   QModelBuilderIG( context::Context* c, QuantifiersEngine* qe );
   virtual ~QModelBuilderIG() throw() {}
 public:
-  //whether to add inst-gen lemmas
-  virtual bool optInstGen();
-  //whether to only consider only quantifier per round of inst-gen
-  virtual bool optOneQuantPerRoundInstGen();
   /** statistics class */
   class Statistics {
   public:

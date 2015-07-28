@@ -675,10 +675,11 @@ Node FirstOrderModelFmc::getFunctionValue(Node op, const char* argPrefix ) {
       //check if it is a constant introduced as a representative not existing in the model's equality engine
       if( !d_rep_set.hasRep( tn, v ) ){
         if( d_rep_set.d_type_reps.find( tn )!=d_rep_set.d_type_reps.end() && !d_rep_set.d_type_reps[ tn ].empty() ){
-          //see full_model_check.cpp line 366
           v = d_rep_set.d_type_reps[tn][ d_rep_set.d_type_reps[tn].size()-1 ];
         }else{
-          Assert( false );
+          //can happen for types not involved in quantified formulas
+          Trace("fmc-model-func") << "No type rep for " << tn << std::endl;
+          v = d_qe->getTermDatabase()->getEnumerateTerm( tn, 0 );
         }
         Trace("fmc-model-func") << "No term, assign " << v << std::endl;
       }

@@ -1,5 +1,5 @@
 ; EXPECT: unsat
-; COMMAND-LINE: --cegqi
+; COMMAND-LINE: --cegqi --no-dump-synth
 
 (set-logic BV)
 
@@ -14,14 +14,14 @@
 
 (Start (BitVec 64) (#x0000000000000000 #x0000000000000001 x (bvnot Start)
                     (shl1 Start)
- 		    (shr1 Start)
-		    (shr4 Start)
-		    (shr16 Start)
-		    (bvand Start Start)
-		    (bvor Start Start)
-		    (bvxor Start Start)
-		    (bvadd Start Start)
-		    (if0 Start Start Start)
+        (shr1 Start)
+        (shr4 Start)
+        (shr16 Start)
+        (bvand Start Start)
+        (bvor Start Start)
+        (bvxor Start Start)
+        (bvadd Start Start)
+        (if0 Start Start Start)
  ))
 )
 )

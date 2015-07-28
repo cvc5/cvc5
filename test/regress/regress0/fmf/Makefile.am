@@ -39,7 +39,8 @@ TESTS =	\
 	lst-no-self-rev-exp.smt2 \
 	fib-core.smt2 \
 	fore19-exp2-core.smt2 \
-	with-ind-104-core.smt2
+	with-ind-104-core.smt2 \
+	syn002-si-real-int.smt2
 
 
 EXTRA_DIST = $(TESTS)

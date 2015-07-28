@@ -16,6 +16,7 @@
 #include "theory/type_enumerator.h"
 #include "theory/quantifiers/bounded_integers.h"
 #include "theory/quantifiers/term_database.h"
+#include "theory/quantifiers/first_order_model.h"
 
 using namespace std;
 using namespace CVC4;
@@ -187,8 +188,14 @@ bool RepSetIterator::initialize(){
     TypeNode tn = d_types[i];
     Trace("rsi") << "Var #" << i << " is type " << tn << "..." << std::endl;
     if( tn.isSort() ){
+      //must ensure uninterpreted type is non-empty.
       if( !d_rep_set->hasType( tn ) ){
-        Node var = NodeManager::currentNM()->mkSkolem( "repSet", tn, "is a variable created by the RepSetIterator" );
+        //FIXME:
+        // terms in rep_set are now constants which mapped to terms through TheoryModel
+        // thus, should introduce a constant and a term.  for now, just a term.
+        
+        //Node c = d_qe->getTermDatabase()->getEnumerateTerm( tn, 0 );
+        Node var = d_qe->getModel()->getSomeDomainElement( tn );
         Trace("mkVar") << "RepSetIterator:: Make variable " << var << " : " << tn << std::endl;
         d_rep_set->add( tn, var );
       }
@@ -216,15 +223,18 @@ bool RepSetIterator::initialize(){
           d_incomplete = true;
         }
       }
-    //enumerate if the sort is reasonably small, not an Array, the upper bound of 1000 is chosen arbitrarily for now
+    //enumerate if the sort is reasonably small
     }else if( d_qe->getTermDatabase()->mayComplete( tn ) ){
       Trace("rsi") << "  do complete, since cardinality is small (" << tn.getCardinality() << ")..." << std::endl;
       d_rep_set->complete( tn );
+      //must have succeeded
+      Assert( d_rep_set->hasType( tn ) );
     }else{
       Trace("rsi") << "  variable cannot be bounded." << std::endl;
       Trace("fmf-incomplete") << "Incomplete because of quantification of type " << tn << std::endl;
       d_incomplete = true;
     }
+    //if we have yet to determine the type of enumeration
     if( d_enum_type.size()<=i ){
       d_enum_type.push_back( ENUM_DOMAIN_ELEMENTS );
       if( d_rep_set->hasType( tn ) ){

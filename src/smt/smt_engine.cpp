@@ -82,10 +82,8 @@
 #include "prop/options.h"
 #include "theory/arrays/options.h"
 #include "util/sort_inference.h"
-#include "theory/quantifiers/quant_conflict_find.h"
 #include "theory/quantifiers/macros.h"
 #include "theory/quantifiers/fun_def_process.h"
-#include "theory/quantifiers/first_order_reasoning.h"
 #include "theory/quantifiers/quantifiers_rewriter.h"
 #include "theory/quantifiers/options.h"
 #include "theory/datatypes/options.h"
@@ -773,7 +771,7 @@ void SmtEngine::finishInit() {
     // Dump("benchmark") << SetBenchmarkLogicCommand(logic.getLogicString());
     LogicInfo everything;
     everything.lock();
-    Dump("benchmark") << CommentCommand("CVC4 always dumps the most general, \"all-supported\" logic (below), as some internals might require the use of a logic more general than the input.")
+    Dump("benchmark") << CommentCommand("CVC4 always dumps the most general, all-supported logic (below), as some internals might require the use of a logic more general than the input.")
                       << SetBenchmarkLogicCommand(everything.getLogicString());
   }
 
@@ -1426,6 +1424,12 @@ void SmtEngine::setDefaults() {
   }
 
   //cbqi options
+  // enable if pure arithmetic quantifiers
+  if( d_logic.isQuantified() && d_logic.isPure(THEORY_ARITH) ){
+    if( !options::cbqi.wasSetByUser() && !options::cbqi2.wasSetByUser() ){
+      options::cbqi2.set( true );
+    }
+  }
   if( options::recurseCbqi() || options::cbqi2() ){
     options::cbqi.set( true );
   }
@@ -1461,6 +1465,13 @@ void SmtEngine::setDefaults() {
     if( !options::dtForceAssignment.wasSetByUser() ){
       options::dtForceAssignment.set( true );
     }
+    //try to remove ITEs from quantified formulas
+    if( !options::iteDtTesterSplitQuant.wasSetByUser() ){
+      options::iteDtTesterSplitQuant.set( true );
+    }
+    if( !options::iteLiftQuant.wasSetByUser() ){
+      options::iteLiftQuant.set( quantifiers::ITE_LIFT_QUANT_MODE_ALL );
+    }
   }
   if( options::intWfInduction() ){
     if( !options::purifyTriggers.wasSetByUser() ){
@@ -1490,8 +1501,8 @@ void SmtEngine::setDefaults() {
     if( !options::preSkolemQuantNested.wasSetByUser() ){
       options::preSkolemQuantNested.set( false );
     }
-  } 
-  
+  }
+
   //until bugs 371,431 are fixed
   if( ! options::minisatUseElim.wasSetByUser()){
     if( d_logic.isQuantified() || options::produceModels() || options::produceAssignments() || options::checkModels() ){
@@ -3268,7 +3279,7 @@ void SmtEnginePrivate::processAssertions() {
       }
     }
     dumpAssertions("post-skolem-quant", d_assertions);
-    if( options::macrosQuant() ){
+    if( options::macrosQuant() && !options::incrementalSolving() ){
       //quantifiers macro expansion
       bool success;
       do{
@@ -3276,15 +3287,11 @@ void SmtEnginePrivate::processAssertions() {
         success = qm.simplify( d_assertions.ref(), true );
       }while( success );
     }
+
+    //fmf-fun : assume admissible functions, applying preprocessing reduction to FMF
     if( options::fmfFunWellDefined() ){
       quantifiers::FunDefFmf fdf;
       fdf.simplify( d_assertions.ref() );
-    }
-
-    Trace("fo-rsn-enable") << std::endl;
-    if( options::foPropQuant() ){
-      quantifiers::FirstOrderPropagation fop;
-      fop.simplify( d_assertions.ref() );
     }
   }
 
