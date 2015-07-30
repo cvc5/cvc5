@@ -21,64 +21,13 @@
 #include "context/cdchunk_list.h"
 #include "theory/quantifiers_engine.h"
 #include "theory/quantifiers/ce_guided_single_inv_sol.h"
+#include "theory/quantifiers/inst_strategy_cbqi.h"
 
 namespace CVC4 {
 namespace theory {
 namespace quantifiers {
 
 class CegConjecture;
-
-class CegqiOutput
-{
-public:
-  virtual ~CegqiOutput() {}
-  virtual bool addInstantiation( std::vector< Node >& subs, std::vector< int >& subs_typ ) = 0;
-  virtual bool isEligibleForInstantiation( Node n ) = 0;
-  virtual bool addLemma( Node lem ) = 0;
-};
-
-class CegInstantiator
-{
-private:
-  Node d_zero;
-  Node d_one;
-  Node d_true;
-  QuantifiersEngine * d_qe;
-  CegqiOutput * d_out;
-  //program variable contains cache
-  std::map< Node, std::map< Node, bool > > d_prog_var;
-  std::map< Node, bool > d_inelig;
-  std::map< Node, bool > d_has_delta;
-private:
-  //for adding instantiations during check
-  void computeProgVars( Node n );
-  // effort=0 : do not use model value, 1: use model value, 2: one must use model value
-  bool addInstantiation( std::vector< Node >& subs, std::vector< Node >& vars,
-                         std::vector< Node >& coeff, std::vector< Node >& has_coeff, std::vector< int >& subs_typ,
-                         unsigned i, unsigned effort );
-  bool addInstantiationInc( Node n, Node pv, Node pv_coeff, int styp, std::vector< Node >& subs, std::vector< Node >& vars,
-                            std::vector< Node >& coeff, std::vector< Node >& has_coeff, std::vector< int >& subs_typ,
-                            unsigned i, unsigned effort );
-  bool addInstantiationCoeff( std::vector< Node >& subs, std::vector< Node >& vars,
-                              std::vector< Node >& coeff, std::vector< Node >& has_coeff, std::vector< int >& subs_typ,
-                              unsigned j );
-  bool addInstantiation( std::vector< Node >& subs, std::vector< Node >& vars, std::vector< int >& subs_typ );
-  Node applySubstitution( Node n, std::vector< Node >& subs, std::vector< Node >& vars,
-                          std::vector< Node >& coeff, std::vector< Node >& has_coeff, Node& pv_coeff, bool try_coeff = true );
-public:
-  CegInstantiator( QuantifiersEngine * qe, CegqiOutput * out );
-  //the CE variables
-  std::vector< Node > d_vars;
-  //delta
-  Node d_n_delta;
-  bool d_used_delta;
-  //check : add instantiations based on valuation of d_vars
-  bool check();
-  // get delta lemmas : on-demand force minimality of d_n_delta
-  void getDeltaLemmas( std::vector< Node >& lems );
-};
-
-
 class CegConjectureSingleInv;
 
 class CegqiOutputSingleInv : public CegqiOutput

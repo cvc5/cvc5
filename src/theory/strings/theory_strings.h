@@ -138,7 +138,7 @@ private:
   bool areEqual( Node a, Node b );
   bool areDisequal( Node a, Node b );
   Node getLengthTerm( Node t );
-  Node getLength( Node t );
+  Node getLength( Node t, bool use_t = false );
 
 private:
   /** The notify class */

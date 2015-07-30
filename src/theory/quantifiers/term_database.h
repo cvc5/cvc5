@@ -145,6 +145,9 @@ public:
   /** boolean terms */
   Node d_true;
   Node d_false;
+  /** constants */
+  Node d_zero;
+  Node d_one;
   /** ground terms */
   unsigned getNumGroundTerms( Node f );
   /** count number of non-redundant ground terms per operator */
@@ -351,6 +354,20 @@ public:
   Node getCanonicalFreeVar( TypeNode tn, unsigned i );
   /** get canonical term */
   Node getCanonicalTerm( TNode n, bool apply_torder = false );
+
+//for virtual term substitution
+private:
+  Node d_vts_delta;
+  Node d_vts_inf;
+  Node d_vts_delta_free;
+  Node d_vts_inf_free;
+public:
+  /** get vts delta */
+  Node getVtsDelta( bool isFree = false, bool create = true );
+  /** get vts infinity */
+  Node getVtsInfinity( bool isFree = false, bool create = true );
+  /** rewrite delta */
+  Node rewriteVtsSymbols( Node n );
 
 //general utilities
 public:

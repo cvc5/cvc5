@@ -552,11 +552,11 @@ Node StringsPreprocess::simplify( Node t, std::vector< Node > &new_nodes ) {
     }
   }*/
   if( t!=retNode ){
-    Trace("strings-preprocess") << "StringsPreprocess::simplify returns: " << retNode << std::endl;
+    Trace("strings-preprocess-debug") << "StringsPreprocess::simplify: " << t << " -> " << retNode << std::endl;
     if(!new_nodes.empty()) {
-      Trace("strings-preprocess") << " ... new nodes (" << new_nodes.size() << "):\n";
+      Trace("strings-preprocess-debug") << " ... new nodes (" << new_nodes.size() << "):\n";
       for(unsigned int i=0; i<new_nodes.size(); ++i) {
-        Trace("strings-preprocess") << "\t" << new_nodes[i] << "\n";
+        Trace("strings-preprocess-debug") << "\t" << new_nodes[i] << "\n";
       }
     }
   }

@@ -81,6 +81,8 @@ void TermArgTrie::debugPrint( const char * c, Node n, unsigned depth ) {
 TermDb::TermDb( context::Context* c, context::UserContext* u, QuantifiersEngine* qe ) : d_quantEngine( qe ), d_op_ccount( u ), d_op_id_count( 0 ), d_typ_id_count( 0 ) {
   d_true = NodeManager::currentNM()->mkConst( true );
   d_false = NodeManager::currentNM()->mkConst( false );
+  d_zero = NodeManager::currentNM()->mkConst( Rational( 0 ) );
+  d_one = NodeManager::currentNM()->mkConst( Rational( 1 ) );
   if( options::ceGuidedInst() ){
     d_sygus_tdb = new TermDbSygus;
   }else{
@@ -1306,6 +1308,101 @@ Node TermDb::getCanonicalTerm( TNode n, bool apply_torder ){
   std::map< TypeNode, unsigned > var_count;
   std::map< TNode, TNode > subs;
   return getCanonicalTerm( n, var_count, subs, apply_torder );
+}
+
+
+Node TermDb::getVtsDelta( bool isFree, bool create ) {
+  if( create ){
+    if( d_vts_delta_free.isNull() ){
+      d_vts_delta_free = NodeManager::currentNM()->mkSkolem( "delta", NodeManager::currentNM()->realType(), "free delta for virtual term substitution" );
+      Node delta_lem = NodeManager::currentNM()->mkNode( GT, d_vts_delta_free, NodeManager::currentNM()->mkConst( Rational( 0 ) ) );
+      d_quantEngine->getOutputChannel().lemma( delta_lem );
+    }
+    if( d_vts_delta.isNull() ){
+      d_vts_delta = NodeManager::currentNM()->mkSkolem( "delta", NodeManager::currentNM()->realType(), "delta for virtual term substitution" );
+    }
+  }
+  return isFree ? d_vts_delta_free : d_vts_delta;  
+}
+
+Node TermDb::getVtsInfinity( bool isFree, bool create ) {
+  if( create ){
+    if( d_vts_inf_free.isNull() ){
+      d_vts_inf_free = NodeManager::currentNM()->mkSkolem( "inf", NodeManager::currentNM()->realType(), "free infinity for virtual term substitution" );
+    }
+    if( d_vts_inf.isNull() ){
+      d_vts_inf = NodeManager::currentNM()->mkSkolem( "inf", NodeManager::currentNM()->realType(), "infinity for virtual term substitution" );
+    }
+  }
+  return isFree ? d_vts_inf_free : d_vts_inf;
+}
+
+Node TermDb::rewriteVtsSymbols( Node n ) {
+  Assert( !d_vts_delta_free.isNull() );
+  Assert( !d_vts_delta.isNull() );
+  if( ( n.getKind()==EQUAL || n.getKind()==GEQ ) && containsTerm( n, d_vts_delta ) ){
+    Trace("quant-vts-debug") << "VTS : process " << n << std::endl;
+    if( n.getKind()==EQUAL ){
+      return d_false;
+    }else{
+      std::map< Node, Node > msum;
+      if( QuantArith::getMonomialSumLit( n, msum ) ){
+        if( Trace.isOn("quant-vts-debug") ){
+          Trace("quant-vts-debug") << "VTS got monomial sum : " << std::endl;
+          QuantArith::debugPrintMonomialSum( msum, "quant-vts-debug" );
+        }
+        Node iso_n;
+        int res = QuantArith::isolate( d_vts_delta, msum, iso_n, n.getKind(), true );
+        if( res!=0 ){
+          Trace("quant-vts-debug") << "VTS isolated :  -> " << iso_n << ", res = " << res << std::endl;
+          int index = res==1 ? 0 : 1;
+          Node slv = iso_n[res==1 ? 1 : 0];
+          if( iso_n[index]!=d_vts_delta ){
+            if( iso_n[index].getKind()==MULT && iso_n[index].getNumChildren()==2 && iso_n[index][0].isConst() && iso_n[index][1]==d_vts_delta ){
+              slv = NodeManager::currentNM()->mkNode( MULT, slv, NodeManager::currentNM()->mkConst( Rational(1)/iso_n[index][0].getConst<Rational>() ) );
+            }else{
+              return n;
+            }
+          }
+          Node nlit;
+          if( res==1 ){
+            nlit = NodeManager::currentNM()->mkNode( GEQ, d_zero, slv );
+          }else{
+            nlit = NodeManager::currentNM()->mkNode( GT, slv, d_zero );
+          }
+          Trace("quant-vts-debug") << "Return " << nlit << std::endl;
+          return nlit;
+        }
+      }
+      return n;
+    }
+  }else if( n.getKind()==FORALL ){
+    //cannot traverse beneath quantifiers
+    std::vector< Node > delta;
+    delta.push_back( d_vts_delta );
+    std::vector< Node > delta_free;
+    delta_free.push_back( d_vts_delta_free );
+    n = n.substitute( delta.begin(), delta.end(), delta_free.begin(), delta_free.end() );
+    return n;
+  }else{
+    bool childChanged = false;
+    std::vector< Node > children;
+    for( unsigned i=0; i<n.getNumChildren(); i++ ){
+      Node nn = rewriteVtsSymbols( n[i] );
+      children.push_back( nn );
+      childChanged = childChanged || nn!=n[i];
+    }
+    if( childChanged ){
+      if( n.getMetaKind() == kind::metakind::PARAMETERIZED ){
+        children.insert( children.begin(), n.getOperator() );
+      }
+      Node ret = NodeManager::currentNM()->mkNode( n.getKind(), children );
+      Trace("quant-vts-debug") << "...make node " << ret << std::endl;
+      return ret;
+    }else{
+      return n;
+    }
+  }
 }
 
 bool TermDb::containsTerm( Node n, Node t ) {

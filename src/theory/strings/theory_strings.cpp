@@ -156,9 +156,9 @@ Node TheoryStrings::getLengthTerm( Node t ) {
   return length_term;
 }
 
-Node TheoryStrings::getLength( Node t ) {
+Node TheoryStrings::getLength( Node t, bool use_t ) {
   Node retNode;
-  if(t.isConst()) {
+  if(t.isConst() || use_t) {
     retNode = NodeManager::currentNM()->mkNode( kind::STRING_LENGTH, t );
   } else {
     retNode = NodeManager::currentNM()->mkNode( kind::STRING_LENGTH, getLengthTerm( t ) );
@@ -1463,6 +1463,13 @@ bool TheoryStrings::processSimpleNEq( std::vector< std::vector< Node > > &normal
           std::vector< Node > temp_exp;
           temp_exp.insert(temp_exp.end(), curr_exp.begin(), curr_exp.end() );
           temp_exp.push_back(length_eq);
+          //must add explanation for length terms
+          if( !normal_forms[i][index_i].isConst() && length_term_i[0]!=normal_forms[i][index_i] ){
+            temp_exp.push_back( length_term_i[0].eqNode( normal_forms[i][index_i] ) );
+          }
+          if( !normal_forms[j][index_j].isConst() && length_term_j[0]!=normal_forms[j][index_j] ){
+            temp_exp.push_back( length_term_j[0].eqNode( normal_forms[j][index_j] ) );
+          }
           Node eq_exp = temp_exp.empty() ? d_true :
                   temp_exp.size() == 1 ? temp_exp[0] : NodeManager::currentNM()->mkNode( kind::AND, temp_exp );
           sendInfer( eq_exp, eq, "LengthEq" );
@@ -1905,6 +1912,7 @@ void TheoryStrings::sendLemma( Node ant, Node conc, const char * c ) {
   if( conc.isNull() || conc == d_false ) {
     d_out->conflict(ant);
     Trace("strings-conflict") << "Strings::Conflict : " << ant << std::endl;
+    Trace("strings-assert") << "(assert (not " << ant << ")) ; conflict" << std::endl;
     d_conflict = true;
   } else {
     Node lem = NodeManager::currentNM()->mkNode( kind::IMPLIES, ant, conc );
@@ -1912,6 +1920,7 @@ void TheoryStrings::sendLemma( Node ant, Node conc, const char * c ) {
       lem = conc;
     }
     Trace("strings-lemma") << "Strings::Lemma " << c << " : " << lem << std::endl;
+    Trace("strings-assert") << "(assert " << lem << ") ; lemma " << c << std::endl;
     d_lemma_cache.push_back( lem );
   }
 }
@@ -1922,6 +1931,7 @@ void TheoryStrings::sendInfer( Node eq_exp, Node eq, const char * c ) {
     sendLemma( eq_exp, eq, c );
   } else {
     Trace("strings-lemma") << "Strings::Infer " << eq << " from " << eq_exp << " by " << c << std::endl;
+    Trace("strings-assert") << "(assert (=> " << eq_exp << " " << eq << ")) ; infer " << c << std::endl;
     d_pending.push_back( eq );
     d_pending_exp[eq] = eq_exp;
     d_infer.push_back(eq);

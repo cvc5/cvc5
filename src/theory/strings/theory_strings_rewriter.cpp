@@ -1115,6 +1115,9 @@ RewriteResponse TheoryStringsRewriter::postRewrite(TNode node) {
   }
 
   Trace("strings-postrewrite") << "Strings::postRewrite returning " << retNode << std::endl;
+  if( orig!=retNode ){
+    Trace("strings-rewrite-debug") << "Strings: post-rewrite " << orig << " to " << retNode << std::endl;
+  }
   return RewriteResponse(orig==retNode ? REWRITE_DONE : REWRITE_AGAIN_FULL, retNode);
 }
 
@@ -1291,5 +1294,8 @@ RewriteResponse TheoryStringsRewriter::preRewrite(TNode node) {
   }
 
   Trace("strings-prerewrite") << "Strings::preRewrite returning " << retNode << std::endl;
+  if( orig!=retNode ){
+    Trace("strings-rewrite-debug") << "Strings: pre-rewrite " << orig << " to " << retNode << std::endl;
+  }
   return RewriteResponse(orig==retNode ? REWRITE_DONE : REWRITE_AGAIN_FULL, retNode);
 }

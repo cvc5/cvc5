@@ -264,7 +264,7 @@ private:
   /** compute term vector */
   void computeTermVector( Node f, InstMatch& m, std::vector< Node >& vars, std::vector< Node >& terms );
   /** instantiate f with arguments terms */
-  bool addInstantiation( Node f, std::vector< Node >& vars, std::vector< Node >& terms );
+  bool addInstantiation( Node f, std::vector< Node >& vars, std::vector< Node >& terms, bool doVts = false );
   /** set instantiation level attr */
   static void setInstantiationLevelAttr( Node n, Node qn, uint64_t level );
   /** flush lemmas */
@@ -283,9 +283,9 @@ public:
   /** add require phase */
   void addRequirePhase( Node lit, bool req );
   /** do instantiation specified by m */
-  bool addInstantiation( Node f, InstMatch& m, bool mkRep = true, bool modEq = false, bool modInst = false );
+  bool addInstantiation( Node f, InstMatch& m, bool mkRep = true, bool modEq = false, bool modInst = false, bool doVts = false );
   /** add instantiation */
-  bool addInstantiation( Node f, std::vector< Node >& terms, bool mkRep = true, bool modEq = false, bool modInst = false );
+  bool addInstantiation( Node f, std::vector< Node >& terms, bool mkRep = true, bool modEq = false, bool modInst = false, bool doVts = false );
   /** split on node n */
   bool addSplit( Node n, bool reqPhase = false, bool reqPhasePol = true );
   /** add split equality */
