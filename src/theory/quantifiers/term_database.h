@@ -518,6 +518,8 @@ public:
   Kind getComparisonKind( TypeNode tn );
   Kind getPlusKind( TypeNode tn, bool is_neg = false );
   bool doCompare( Node a, Node b, Kind k );
+  /** get operator kind */
+  static Kind getOperatorKind( Node op );
   /** print sygus term */
   static void printSygusTerm( std::ostream& out, Node n, std::vector< Node >& lvs );
 };

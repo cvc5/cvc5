@@ -522,8 +522,12 @@ void Smt2::mkSygusDefaultGrammar( const Type& range, Expr& bvl, const std::strin
   for( unsigned i=0; i<sygus_vars.size(); i++ ){
     Type t = sygus_vars[i].getType();
     if( !t.isBoolean() && std::find( types.begin(), types.end(), t )==types.end() ){
+      Debug("parser-sygus") << "...will make grammar for " << t << std::endl;
       types.push_back( t );
     }
+  }
+  if( !range.isBoolean() && !range.isInteger() && !range.isBitVector() ){
+    parseError("No default grammar for type.");
   }
 
   //name of boolean sort
@@ -993,6 +997,7 @@ void Smt2::processSygusLetConstructor( std::vector< CVC4::Expr >& let_vars,
   std::stringstream ss;
   ss << datatypes[index].getName() << "_let";
   Expr let_func = mkFunction(ss.str(), ft, ExprManager::VAR_FLAG_DEFINED);
+  d_sygus_defined_funs.push_back( let_func );
   preemptCommand( new DefineFunctionCommand(ss.str(), let_func, let_define_args, let_body) );
 
   ops[index].pop_back();
@@ -1180,6 +1185,7 @@ void Smt2::mkSygusDatatype( CVC4::Datatype& dt, std::vector<CVC4::Expr>& ops,
       //replace operator and name
       ops[i] = mkFunction(ss.str(), ft, ExprManager::VAR_FLAG_DEFINED);
       cnames[i] = ss.str();
+      d_sygus_defined_funs.push_back( ops[i] );
       preemptCommand( new DefineFunctionCommand(ss.str(), ops[i], let_args, let_body) );
       addSygusDatatypeConstructor( dt, ops[i], cnames[i], cargs[i], let_body, let_args, 0 );
     }else{
@@ -1216,6 +1222,7 @@ void Smt2::mkSygusDatatype( CVC4::Datatype& dt, std::vector<CVC4::Expr>& ops,
           std::stringstream ssid;
           ssid << unresolved_gterm_sym[i] << "_id";
           Expr id_op = mkFunction(ss.str(), ft, ExprManager::VAR_FLAG_DEFINED);
+          d_sygus_defined_funs.push_back( id_op );
           preemptCommand( new DefineFunctionCommand(ssid.str(), id_op, let_args, let_body) );
           //make the sygus argument list
           std::vector< Type > id_carg;
@@ -1310,15 +1317,35 @@ Expr Smt2::getSygusAssertion( std::vector<DatatypeType>& datatypeTypes, std::vec
   for(size_t k = 0; k < builtApply.size(); ++k) {
   }
   Expr builtTerm;
-  //if( ops[i][j].getKind() == kind::BUILTIN ){
-  if( !builtApply.empty() ){
-    if( ops[i][j].getKind() != kind::BUILTIN ){
-      builtTerm = getExprManager()->mkExpr(kind::APPLY, ops[i][j], builtApply);
+  Debug("parser-sygus") << "...operator is : " << ops[i][j] << ", type = " << ops[i][j].getType() << ", kind = " << ops[i][j].getKind() << ", is defined = " << isDefinedFunction( ops[i][j] ) << std::endl;
+  if( ops[i][j].getKind() != kind::BUILTIN ){
+    Kind ok = kind::UNDEFINED_KIND;
+    if( isDefinedFunction( ops[i][j] ) || std::find( d_sygus_defined_funs.begin(), d_sygus_defined_funs.end(), ops[i][j] )!=d_sygus_defined_funs.end() ){
+      ok = kind::APPLY;
     }else{
-      builtTerm = getExprManager()->mkExpr(ops[i][j], builtApply);
+      Type t = ops[i][j].getType();
+      if( t.isConstructor() ){
+        ok = kind::APPLY_CONSTRUCTOR;
+      }else if( t.isSelector() ){
+        ok = kind::APPLY_SELECTOR;
+      }else if( t.isTester() ){
+        ok = kind::APPLY_TESTER;
+      }else{
+        ok = getExprManager()->operatorToKind( ops[i][j] );
+      }
+    }
+    Debug("parser-sygus") << "...processed operator kind : " << ok << std::endl;
+    if( ok!=kind::UNDEFINED_KIND ){
+      builtTerm = getExprManager()->mkExpr(ok, ops[i][j], builtApply);
+    }else{
+      builtTerm = ops[i][j];
     }
   }else{
-    builtTerm = ops[i][j];
+    if( !builtApply.empty() ){
+      builtTerm = getExprManager()->mkExpr(ops[i][j], builtApply);
+    }else{
+      builtTerm = ops[i][j];
+    }
   }
   Debug("parser-sygus") << "...made built term " << builtTerm << std::endl;
   Expr assertion = getExprManager()->mkExpr(evalApply.getType().isBoolean() ? kind::IFF : kind::EQUAL, evalApply, builtTerm);

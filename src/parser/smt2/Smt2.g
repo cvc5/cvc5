@@ -606,6 +606,8 @@ sygusCommand returns [CVC4::Command* cmd = NULL]
       Expr func = PARSER_STATE->mkFunction(name, t, ExprManager::VAR_FLAG_DEFINED);
       $cmd = new DefineFunctionCommand(name, func, terms, expr);
     }
+  | DECLARE_DATATYPES_TOK datatypesDefCommand[false, cmd]
+  | DECLARE_CODATATYPES_TOK datatypesDefCommand[true, cmd]
   | /* synth-fun */
     ( SYNTH_FUN_TOK | SYNTH_INV_TOK { range = EXPR_MANAGER->booleanType(); } ) { PARSER_STATE->checkThatLogicIsSet(); }
     symbol[fun,CHECK_UNDECLARED,SYM_VARIABLE]
@@ -912,7 +914,7 @@ sygusGTerm[CVC4::SygusGTerm& sgt, std::string& fun]
           // fail, but we need an operator to continue here..
           Debug("parser-sygus") << "Sygus grammar " << fun;
           Debug("parser-sygus") << " : op (declare=" <<  PARSER_STATE->isDeclared(name) << ", define=" << PARSER_STATE->isDefinedFunction(name) << ") : " << name << std::endl;
-          if( !PARSER_STATE->isDefinedFunction(name) ){
+          if( !PARSER_STATE->isDeclared(name) && !PARSER_STATE->isDefinedFunction(name) ){
             PARSER_STATE->parseError(std::string("Functions in sygus grammars must be defined."));
           }
           sgt.d_name = name;

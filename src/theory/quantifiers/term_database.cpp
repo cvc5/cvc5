@@ -1322,7 +1322,7 @@ Node TermDb::getVtsDelta( bool isFree, bool create ) {
       d_vts_delta = NodeManager::currentNM()->mkSkolem( "delta", NodeManager::currentNM()->realType(), "delta for virtual term substitution" );
     }
   }
-  return isFree ? d_vts_delta_free : d_vts_delta;  
+  return isFree ? d_vts_delta_free : d_vts_delta;
 }
 
 Node TermDb::getVtsInfinity( bool isFree, bool create ) {
@@ -1832,10 +1832,12 @@ Node TermDbSygus::mkGeneric( const Datatype& dt, int c, std::map< TypeNode, int 
   if( op.getKind()==BUILTIN ){
     ret = NodeManager::currentNM()->mkNode( op, children );
   }else{
-    if( children.size()==1 ){
+    Kind ok = getOperatorKind( op );
+    Trace("sygus-db") << "Operator kind is " << ok << std::endl;
+    if( children.size()==1 && ok==kind::UNDEFINED_KIND ){
       ret = children[0];
     }else{
-      ret = NodeManager::currentNM()->mkNode( APPLY, children );
+      ret = NodeManager::currentNM()->mkNode( ok, children );
       /*
       Node n = NodeManager::currentNM()->mkNode( APPLY, children );
       //must expand definitions
@@ -2460,6 +2462,24 @@ void doStrReplace(std::string& str, const std::string& oldStr, const std::string
   while((pos = str.find(oldStr, pos)) != std::string::npos){
      str.replace(pos, oldStr.length(), newStr);
      pos += newStr.length();
+  }
+}
+
+Kind TermDbSygus::getOperatorKind( Node op ) {
+  Assert( op.getKind()!=BUILTIN );
+  if( smt::currentSmtEngine()->isDefinedFunction( op.toExpr() ) ){
+    return APPLY;
+  }else{
+    TypeNode tn = op.getType();
+    if( tn.isConstructor() ){
+      return APPLY_CONSTRUCTOR;
+    }else if( tn.isSelector() ){
+      return APPLY_SELECTOR;
+    }else if( tn.isTester() ){
+      return APPLY_TESTER;
+    }else{
+      return NodeManager::operatorToKind( op );
+    }
   }
 }
 

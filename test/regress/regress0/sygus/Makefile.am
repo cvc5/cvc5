@@ -43,7 +43,8 @@ TESTS = commutative.sy \
         enum-test.sy \
         no-syntax-test-bool.sy \
         inv-example.sy \
-        uminus_one.sy
+        uminus_one.sy \
+        sygus-dt.sy
 
 # sygus tests currently taking too long for make regress
 EXTRA_DIST = $(TESTS) \

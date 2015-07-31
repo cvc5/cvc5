@@ -1787,6 +1787,12 @@ void SmtEngine::defineFunction(Expr func,
   d_definedFunctions->insert(funcNode, def);
 }
 
+bool SmtEngine::isDefinedFunction( Expr func ){
+  Node nf = Node::fromExpr( func );
+  Debug("smt") << "isDefined function " << nf << "?" << std::endl;
+  return d_definedFunctions->find(nf) != d_definedFunctions->end();
+}
+
 Node SmtEnginePrivate::expandDefinitions(TNode n, hash_map<Node, Node, NodeHashFunction>& cache, bool expandOnly)
   throw(TypeCheckingException, LogicException, UnsafeInterruptException) {
 

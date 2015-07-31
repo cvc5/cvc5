@@ -189,9 +189,9 @@ class CVC4_PUBLIC SmtEngine {
    *A vector of command definitions to be imported in the new
    *SmtEngine when checking unsat-cores.
    */
-#ifdef CVC4_PROOF  
+#ifdef CVC4_PROOF
   std::vector<Command*> d_defineCommands;
-#endif   
+#endif
   /**
    * The logic we're in.
    */
@@ -455,6 +455,9 @@ public:
                       const std::vector<Expr>& formals,
                       Expr formula);
 
+  /** is defined function */
+  bool isDefinedFunction(Expr func);
+
   /**
    * Add a formula to the current context: preprocess, do per-theory
    * setup, use processAssertionList(), asserting to T-solver for
@@ -536,7 +539,7 @@ public:
    * Print solution for synthesis conjectures found by ce_guided_instantiation module
    */
   void printSynthSolution( std::ostream& out );
-  
+
   /**
    * Get an unsatisfiable core (only if immediately preceded by an
    * UNSAT or VALID query).  Only permitted if CVC4 was built with
@@ -707,7 +710,7 @@ public:
    * Set print function in model
    */
   void setPrintFuncInModel(Expr f, bool p);
-  
+
 };/* class SmtEngine */
 
 }/* CVC4 namespace */
