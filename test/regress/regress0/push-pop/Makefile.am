@@ -29,14 +29,17 @@ CVC_TESTS = \
 	incremental-subst-bug.cvc
 
 SMT2_TESTS = \
-	tiny_bug.smt2
+  tiny_bug.smt2
 
 BUG_TESTS = \
 	bug216.smt2 \
 	bug233.cvc \
 	bug326.smt2 \
 	arith_lra_01.smt2 \
-	arith_lra_02.smt2
+  arith_lra_02.smt2 \
+  quant-fun-proc.smt2 \
+  quant-fun-proc-unmacro.smt2 \
+  quant-fun-proc-unfd.smt2 
 
 TESTS =	$(SMT_TESTS) $(SMT2_TESTS) $(CVC_TESTS) $(BUG_TESTS)
 

@@ -128,6 +128,10 @@ class CVC4_PUBLIC SmtEngine {
   typedef context::CDList<Expr> AssertionList;
   /** The type of our internal assignment set */
   typedef context::CDHashSet<Node, NodeHashFunction> AssignmentSet;
+  /** The types for the recursive function definitions */
+  typedef context::CDHashMap< Node, TypeNode, NodeHashFunction > TypeNodeMap;
+  typedef context::CDList<Node> NodeList;
+  typedef context::CDHashMap<Node, NodeList*, NodeHashFunction> NodeListMap;
 
   /** Expr manager context */
   context::Context* d_context;
@@ -151,6 +155,9 @@ class CVC4_PUBLIC SmtEngine {
   ProofManager* d_proofManager;
   /** An index of our defined functions */
   DefinedFunctionMap* d_definedFunctions;
+  /** recursive function definition abstractions for --fmf-fun */
+  TypeNodeMap* d_fmfRecFunctionsAbs;
+  NodeListMap* d_fmfRecFunctionsConcrete;
 
   /**
    * The assertion list (before any conversion) for supporting

@@ -693,6 +693,8 @@ SmtEngine::SmtEngine(ExprManager* em) throw() :
   d_propEngine(NULL),
   d_proofManager(NULL),
   d_definedFunctions(NULL),
+  d_fmfRecFunctionsAbs(NULL),
+  d_fmfRecFunctionsConcrete(NULL),
   d_assertionList(NULL),
   d_assignments(NULL),
   d_modelGlobalCommands(),
@@ -736,6 +738,10 @@ SmtEngine::SmtEngine(ExprManager* em) throw() :
   d_context->push();
 
   d_definedFunctions = new(true) DefinedFunctionMap(d_userContext);
+  if( options::fmfFunWellDefined() ){
+    d_fmfRecFunctionsAbs = new(true) TypeNodeMap(d_userContext);
+    d_fmfRecFunctionsConcrete = new(true) NodeListMap(d_userContext);
+  }
   d_modelCommands = new(true) smt::CommandList(d_userContext);
 }
 
@@ -1841,7 +1847,14 @@ Node SmtEnginePrivate::expandDefinitions(TNode n, hash_map<Node, Node, NodeHashF
       }
 
       // otherwise expand it
-      if (k == kind::APPLY && n.getOperator().getKind() != kind::LAMBDA) {
+      bool doExpand = ( k == kind::APPLY && n.getOperator().getKind() != kind::LAMBDA );
+      if( !doExpand ){
+        if( options::macrosQuant() ){
+          //expand if we have inferred an operator corresponds to a defined function
+          doExpand = k==kind::APPLY_UF && d_smt.isDefinedFunction( n.getOperator().toExpr() );
+        }
+      }
+      if (doExpand) {
         // application of a user-defined symbol
         TNode func = n.getOperator();
         SmtEngine::DefinedFunctionMap::const_iterator i = d_smt.d_definedFunctions->find(func);
@@ -3285,7 +3298,7 @@ void SmtEnginePrivate::processAssertions() {
       }
     }
     dumpAssertions("post-skolem-quant", d_assertions);
-    if( options::macrosQuant() && !options::incrementalSolving() ){
+    if( options::macrosQuant() ){
       //quantifiers macro expansion
       bool success;
       do{
@@ -3297,7 +3310,29 @@ void SmtEnginePrivate::processAssertions() {
     //fmf-fun : assume admissible functions, applying preprocessing reduction to FMF
     if( options::fmfFunWellDefined() ){
       quantifiers::FunDefFmf fdf;
+      //must carry over current definitions (for incremental)
+      for( SmtEngine::TypeNodeMap::const_iterator fit = d_smt.d_fmfRecFunctionsAbs->begin(); fit != d_smt.d_fmfRecFunctionsAbs->end(); ++fit ){
+        Node f = (*fit).first;
+        TypeNode ft = (*fit).second;
+        fdf.d_sorts[f] = ft;
+        SmtEngine::NodeListMap::const_iterator fcit = d_smt.d_fmfRecFunctionsConcrete->find( f );
+        Assert( fcit!=d_smt.d_fmfRecFunctionsConcrete->end() );
+        SmtEngine::NodeList* cl = (*fcit).second;
+        for( SmtEngine::NodeList::const_iterator cit = cl->begin(); cit != cl->end(); ++cit ){
+          fdf.d_input_arg_inj[f].push_back( *cit );
+        }
+      }
       fdf.simplify( d_assertions.ref() );
+      //must store new definitions (for incremental)
+      for( unsigned i=0; i<fdf.d_funcs.size(); i++ ){
+        Node f = fdf.d_funcs[i];
+        d_smt.d_fmfRecFunctionsAbs->insert( f, fdf.d_sorts[f] );
+        SmtEngine::NodeList* cl = new(true) SmtEngine::NodeList( d_smt.d_userContext );
+        for( unsigned j=0; j<fdf.d_input_arg_inj[f].size(); j++ ){
+          cl->push_back( fdf.d_input_arg_inj[f][j] );
+        }
+        d_smt.d_fmfRecFunctionsConcrete->insert( f, cl );
+      }
     }
   }
 

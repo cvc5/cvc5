@@ -19,6 +19,7 @@
 #include "theory/quantifiers/macros.h"
 #include "theory/rewriter.h"
 #include "proof/proof_manager.h"
+#include "smt/smt_engine_scope.h"
 
 using namespace CVC4;
 using namespace std;
@@ -45,6 +46,22 @@ bool QuantifierMacros::simplify( std::vector< Node >& assertions, bool doRewrite
         assertions[i] = curr;
         retVal = true;
       }
+    }
+    //also store as defined functions
+    for( std::map< Node, Node >::iterator it = d_macro_defs.begin(); it != d_macro_defs.end(); ++it ){
+      Trace("macros-def") << "Macro definition for " << it->first << " : " << it->second << std::endl;
+      Trace("macros-def") << "  basis is : ";
+      std::vector< Node > nargs;
+      std::vector< Expr > args;
+      for( unsigned i=0; i<d_macro_basis[it->first].size(); i++ ){
+        Node bv = NodeManager::currentNM()->mkBoundVar( d_macro_basis[it->first][i].getType() );
+        Trace("macros-def") << d_macro_basis[it->first][i] << " ";
+        nargs.push_back( bv );
+        args.push_back( bv.toExpr() );
+      }
+      Trace("macros-def") << std::endl;
+      Node sbody = it->second.substitute( d_macro_basis[it->first].begin(), d_macro_basis[it->first].end(), nargs.begin(), nargs.end() );
+      smt::currentSmtEngine()->defineFunction( it->first.toExpr(), args, sbody.toExpr() );
     }
   }
   return retVal;
@@ -167,7 +184,7 @@ Node QuantifierMacros::solveInEquality( Node n, Node lit ){
           }
         }
         if( !coeff.isNull() ){
-          term = NodeManager::currentNM()->mkNode( PLUS, plus_children );
+          term = plus_children.size()==1 ? plus_children[0] : NodeManager::currentNM()->mkNode( PLUS, plus_children );
           term = NodeManager::currentNM()->mkNode( MINUS, lit[0], term );
         }
       }

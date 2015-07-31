@@ -44,10 +44,11 @@ void FunDefFmf::simplify( std::vector< Node >& assertions, bool doRewrite ) {
         Message() << "Cannot define function " << f << " more than once." << std::endl;
         exit( 0 );
       }
-      
+
       Node bd = TermDb::getFunDefBody( assertions[i] );
       Trace("fmf-fun-def-debug") << "Process function " << n << ", body = " << bd << std::endl;
       if( !bd.isNull() ){
+        d_funcs.push_back( f );
         bd = NodeManager::currentNM()->mkNode( n.getType().isBoolean() ? IFF : EQUAL, n, bd );
 
         //create a sort S that represents the inputs of the function
