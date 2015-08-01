@@ -51,13 +51,11 @@ private:
   Node d_zero;
   Node d_one;
   Node d_true;
-  Node d_n_delta;
   QuantifiersEngine * d_qe;
   CegqiOutput * d_out;
   //program variable contains cache
   std::map< Node, std::map< Node, bool > > d_prog_var;
   std::map< Node, bool > d_inelig;
-  std::map< Node, bool > d_has_delta;
 private:
   //for adding instantiations during check
   void computeProgVars( Node n );

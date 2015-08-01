@@ -545,11 +545,7 @@ void Smt2::mkSygusDefaultGrammar( const Type& range, Expr& bvl, const std::strin
   std::map< Type, std::vector< DatatypeConstructorArg > > sels;
   //types for each of the variables
   for( unsigned i=0; i<sygus_vars.size(); i++ ){
-    Type t = sygus_vars[i].getType();
-    if( !t.isBoolean() && std::find( types.begin(), types.end(), t )==types.end() ){
-      Debug("parser-sygus") << "...will make grammar for " << t << std::endl;
-      types.push_back( t );
-    }
+    collectSygusGrammarTypesFor( sygus_vars[i].getType(), types, sels );
   }
   //types connected to range
   collectSygusGrammarTypesFor( range, types, sels );

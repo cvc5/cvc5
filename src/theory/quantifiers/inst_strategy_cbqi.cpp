@@ -56,15 +56,9 @@ void CegInstantiator::computeProgVars( Node n ){
         d_inelig[n] = true;
         return;
       }
-      if( d_has_delta.find( n[i] )!=d_has_delta.end() ){
-        d_has_delta[n] = true;
-      }
       for( std::map< Node, bool >::iterator it = d_prog_var[n[i]].begin(); it != d_prog_var[n[i]].end(); ++it ){
         d_prog_var[n][it->first] = true;
       }
-    }
-    if( n==d_n_delta ){
-      d_has_delta[n] = true;
     }
   }
 }
@@ -107,12 +101,6 @@ bool CegInstantiator::addInstantiation( std::vector< Node >& subs, std::vector< 
               }else{
                 ns = n;
                 proc = true;
-              }
-              if( d_has_delta.find( ns )!=d_has_delta.end() ){
-                //also must set delta to zero
-                ns = ns.substitute( (TNode)d_n_delta, (TNode)d_zero );
-                ns = Rewriter::rewrite( ns );
-                computeProgVars( ns );
               }
               if( proc ){
                 //try the substitution
@@ -180,9 +168,6 @@ bool CegInstantiator::addInstantiation( std::vector< Node >& subs, std::vector< 
                       Trace("cegqi-si-inst-debug") << "...equality is " << eq << std::endl;
                       std::map< Node, Node > msum;
                       if( QuantArith::getMonomialSumLit( eq, msum ) ){
-                        if( !d_n_delta.isNull() ){
-                          msum.erase( d_n_delta );
-                        }
                         if( Trace.isOn("cegqi-si-inst-debug") ){
                           Trace("cegqi-si-inst-debug") << "...got monomial sum: " << std::endl;
                           QuantArith::debugPrintMonomialSum( msum, "cegqi-si-inst-debug" );
@@ -269,9 +254,6 @@ bool CegInstantiator::addInstantiation( std::vector< Node >& subs, std::vector< 
                   Trace("cegqi-si-inst-debug") << "       substituted : " << satom << ", pol = " << pol << std::endl;
                   std::map< Node, Node > msum;
                   if( QuantArith::getMonomialSumLit( satom, msum ) ){
-                    if( !d_n_delta.isNull() ){
-                      msum.erase( d_n_delta );
-                    }
                     if( Trace.isOn("cegqi-si-inst-debug") ){
                       Trace("cegqi-si-inst-debug") << "...got monomial sum: " << std::endl;
                       QuantArith::debugPrintMonomialSum( msum, "cegqi-si-inst-debug" );
@@ -358,6 +340,11 @@ bool CegInstantiator::addInstantiation( std::vector< Node >& subs, std::vector< 
 bool CegInstantiator::addInstantiationInc( Node n, Node pv, Node pv_coeff, int styp, std::vector< Node >& subs, std::vector< Node >& vars,
                                            std::vector< Node >& coeff, std::vector< Node >& has_coeff, std::vector< int >& subs_typ,
                                            unsigned i, unsigned effort ) {
+  if( styp==2 || styp==-2 ){
+    Node delta = d_qe->getTermDatabase()->getVtsDelta();
+    n = NodeManager::currentNM()->mkNode( styp==2 ? PLUS : MINUS, n, delta );
+    n = Rewriter::rewrite( n );
+  }
   //must ensure variables have been computed for n
   computeProgVars( n );
   //substitute into previous substitutions, when applicable
@@ -530,25 +517,7 @@ bool CegInstantiator::addInstantiationCoeff( std::vector< Node >& subs, std::vec
 }
 
 bool CegInstantiator::addInstantiation( std::vector< Node >& subs, std::vector< Node >& vars, std::vector< int >& subs_typ ) {
-  // do delta rationals
-  std::map< int, Node > prev;
-  for( unsigned i=0; i<subs.size(); i++ ){
-    if( subs_typ[i]==2 || subs_typ[i]==-2 ){
-      prev[i] = subs[i];
-      Node delta = d_qe->getTermDatabase()->getVtsDelta();
-      d_n_delta = delta;
-      subs[i] = NodeManager::currentNM()->mkNode( subs_typ[i]==2 ? PLUS : MINUS, subs[i], delta );
-    }
-  }
-  //check if we have already added this instantiation
-  bool success = d_out->addInstantiation( subs, subs_typ );
-  if( !success ){
-    //revert the substitution
-    for( std::map< int, Node >::iterator it = prev.begin(); it != prev.end(); ++it ){
-      subs[it->first] = it->second;
-    }
-  }
-  return success;
+  return d_out->addInstantiation( subs, subs_typ );
 }
 
 
