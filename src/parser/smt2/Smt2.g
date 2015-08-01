@@ -730,6 +730,7 @@ sygusCommand returns [CVC4::Command* cmd = NULL]
         }
         evalType.push_back(sorts[i]);
         Expr eval = PARSER_STATE->mkVar(name, EXPR_MANAGER->mkFunctionType(evalType));
+        Debug("parser-sygus") << "Make eval " << eval << " for " << dt.getName() << std::endl;
         evals.insert(std::make_pair(dtt, eval));
         if(i == 0) {
           PARSER_STATE->addSygusFun(fun, eval);

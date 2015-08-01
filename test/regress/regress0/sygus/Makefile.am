@@ -9,8 +9,8 @@ AM_LOG_FLAGS = $(RUN_REGRESSION_ARGS) @top_builddir@/src/main/$(BINARY)$(EXEEXT)
 if AUTOMAKE_1_11
 # old-style (pre-automake 1.12) test harness
 TESTS_ENVIRONMENT = \
-	$(LOG_COMPILER) \
-	$(AM_LOG_FLAGS) $(LOG_FLAGS)
+  $(LOG_COMPILER) \
+  $(AM_LOG_FLAGS) $(LOG_FLAGS)
 endif
 
 MAKEFLAGS = -k
@@ -22,12 +22,12 @@ TESTS = commutative.sy \
         constant.sy \
         multi-fun-polynomial2.sy \
         unbdd_inv_gen_winf1.sy \
-	max.sy \
-	array_sum_2_5.sy \
-	parity-AIG-d0.sy \
-	twolets1.sy \
-	array_search_2.sy \        
-	hd-01-d1-prog.sy \
+        max.sy \
+        array_sum_2_5.sy \
+        parity-AIG-d0.sy \
+        twolets1.sy \
+        array_search_2.sy \        
+        hd-01-d1-prog.sy \
         icfp_28_10.sy \
         const-var-test.sy \
         no-syntax-test.sy \
@@ -44,23 +44,24 @@ TESTS = commutative.sy \
         no-syntax-test-bool.sy \
         inv-example.sy \
         uminus_one.sy \
-        sygus-dt.sy
+        sygus-dt.sy \
+        dt-no-syntax.sy
 
 # sygus tests currently taking too long for make regress
 EXTRA_DIST = $(TESTS) \
-	max.smt2 \
-	sygus-uf.sl
+  max.smt2 \
+  sygus-uf.sl
 
 
 #if CVC4_BUILD_PROFILE_COMPETITION
 #else
 #TESTS += \
-#	error.cvc
+# error.cvc
 #endif
 
 # disabled tests, yet distribute
 #EXTRA_DIST += \
-#	setofsets-disequal.smt2
+# setofsets-disequal.smt2
 
 # synonyms for "check"
 .PHONY: regress regress0 test

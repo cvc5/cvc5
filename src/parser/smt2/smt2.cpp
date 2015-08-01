@@ -512,13 +512,38 @@ Expr Smt2::mkSygusVar(const std::string& name, const Type& type, bool isPrimed) 
   return e;
 }
 
+void collectSygusGrammarTypesFor( Type range, std::vector< Type >& types, std::map< Type, std::vector< DatatypeConstructorArg > >& sels ){
+  if( range.isInteger() || range.isBitVector() || range.isDatatype() ){
+    if( std::find( types.begin(), types.end(), range )==types.end() ){
+      Debug("parser-sygus") << "...will make grammar for " << range << std::endl;
+      types.push_back( range );
+      if( range.isDatatype() ){
+        const Datatype& dt = ((DatatypeType)range).getDatatype();
+        for( unsigned i=0; i<dt.getNumConstructors(); i++ ){
+          for( unsigned j=0; j<dt[i].getNumArgs(); j++ ){
+            Type crange = ((SelectorType)dt[i][j].getType()).getRangeType();
+            sels[crange].push_back( dt[i][j] );
+            collectSygusGrammarTypesFor( crange, types, sels );
+          }
+        }
+      }
+    }
+  }
+}
+
 void Smt2::mkSygusDefaultGrammar( const Type& range, Expr& bvl, const std::string& fun, std::vector<CVC4::Datatype>& datatypes,
                                   std::vector<Type>& sorts, std::vector< std::vector<Expr> >& ops, std::vector<Expr> sygus_vars, int& startIndex ) {
+
+  if( !range.isBoolean() && !range.isInteger() && !range.isBitVector() && !range.isDatatype() ){
+    parseError("No default grammar for type.");
+  }
   startIndex = -1;
   Debug("parser-sygus") << "Construct default grammar for " << fun << " " << range << std::endl;
   std::map< CVC4::Type, CVC4::Type > sygus_to_builtin;
 
   std::vector< Type > types;
+  std::map< Type, std::vector< DatatypeConstructorArg > > sels;
+  //types for each of the variables
   for( unsigned i=0; i<sygus_vars.size(); i++ ){
     Type t = sygus_vars[i].getType();
     if( !t.isBoolean() && std::find( types.begin(), types.end(), t )==types.end() ){
@@ -526,9 +551,8 @@ void Smt2::mkSygusDefaultGrammar( const Type& range, Expr& bvl, const std::strin
       types.push_back( t );
     }
   }
-  if( !range.isBoolean() && !range.isInteger() && !range.isBitVector() ){
-    parseError("No default grammar for type.");
-  }
+  //types connected to range
+  collectSygusGrammarTypesFor( range, types, sels );
 
   //name of boolean sort
   std::stringstream ssb;
@@ -537,25 +561,32 @@ void Smt2::mkSygusDefaultGrammar( const Type& range, Expr& bvl, const std::strin
   Type unres_bt = mkUnresolvedType(ssb.str());
 
   std::vector< Type > unres_types;
+  std::map< Type, Type > type_to_unres;
   for( unsigned i=0; i<types.size(); i++ ){
     std::stringstream ss;
     ss << fun << "_" << types[i];
     std::string dname = ss.str();
     datatypes.push_back(Datatype(dname));
     ops.push_back(std::vector<Expr>());
-    std::vector<std::string> cnames;
-    std::vector<std::vector<CVC4::Type> > cargs;
-    std::vector<std::string> unresolved_gterm_sym;
     //make unresolved type
     Type unres_t = mkUnresolvedType(dname);
     unres_types.push_back(unres_t);
+    type_to_unres[types[i]] = unres_t;
+    sygus_to_builtin[unres_t] = types[i];
+  }
+  for( unsigned i=0; i<types.size(); i++ ){
+    Debug("parser-sygus") << "Make grammar for " << types[i] << " " << unres_types[i] << std::endl;
+    std::vector<std::string> cnames;
+    std::vector<std::vector<CVC4::Type> > cargs;
+    std::vector<std::string> unresolved_gterm_sym;
+    Type unres_t = unres_types[i];
     //add variables
     for( unsigned j=0; j<sygus_vars.size(); j++ ){
       if( sygus_vars[j].getType()==types[i] ){
         std::stringstream ss;
         ss << sygus_vars[j];
         Debug("parser-sygus") << "...add for variable " << ss.str() << std::endl;
-        ops.back().push_back( sygus_vars[j] );
+        ops[i].push_back( sygus_vars[j] );
         cnames.push_back( ss.str() );
         cargs.push_back( std::vector< CVC4::Type >() );
       }
@@ -567,14 +598,14 @@ void Smt2::mkSygusDefaultGrammar( const Type& range, Expr& bvl, const std::strin
       std::stringstream ss;
       ss << consts[j];
       Debug("parser-sygus") << "...add for constant " << ss.str() << std::endl;
-      ops.back().push_back( consts[j] );
+      ops[i].push_back( consts[j] );
       cnames.push_back( ss.str() );
       cargs.push_back( std::vector< CVC4::Type >() );
     }
     //ITE
     CVC4::Kind k = kind::ITE;
     Debug("parser-sygus") << "...add for " << k << std::endl;
-    ops.back().push_back(getExprManager()->operatorOf(k));
+    ops[i].push_back(getExprManager()->operatorOf(k));
     cnames.push_back( kind::kindToString(k) );
     cargs.push_back( std::vector< CVC4::Type >() );
     cargs.back().push_back(unres_bt);
@@ -585,20 +616,45 @@ void Smt2::mkSygusDefaultGrammar( const Type& range, Expr& bvl, const std::strin
       for( unsigned j=0; j<2; j++ ){
         CVC4::Kind k = j==0 ? kind::PLUS : kind::MINUS;
         Debug("parser-sygus") << "...add for " << k << std::endl;
-        ops.back().push_back(getExprManager()->operatorOf(k));
+        ops[i].push_back(getExprManager()->operatorOf(k));
         cnames.push_back(kind::kindToString(k));
         cargs.push_back( std::vector< CVC4::Type >() );
         cargs.back().push_back(unres_t);
         cargs.back().push_back(unres_t);
+      }
+    }else if( types[i].isDatatype() ){
+      Debug("parser-sygus") << "...add for constructors" << std::endl;
+      const Datatype& dt = ((DatatypeType)types[i]).getDatatype();
+      for( unsigned k=0; k<dt.getNumConstructors(); k++ ){
+        Debug("parser-sygus") << "...for " << dt[k].getName() << std::endl;
+        ops[i].push_back( dt[k].getConstructor() );
+        cnames.push_back( dt[k].getName() );
+        cargs.push_back( std::vector< CVC4::Type >() );
+        for( unsigned j=0; j<dt[k].getNumArgs(); j++ ){
+          Type crange = ((SelectorType)dt[k][j].getType()).getRangeType();
+          cargs.back().push_back( type_to_unres[crange] );
+        }
       }
     }else{
       std::stringstream sserr;
       sserr << "No implementation for default Sygus grammar of type " << types[i] << std::endl;
       warning(sserr.str());
     }
+    //add for all selectors to this type
+    if( !sels[types[i]].empty() ){
+      Debug("parser-sygus") << "...add for selectors" << std::endl;
+      for( unsigned j=0; j<sels[types[i]].size(); j++ ){
+        Debug("parser-sygus") << "...for " << sels[types[i]][j].getName() << std::endl;
+        Type arg_type = ((SelectorType)sels[types[i]][j].getType()).getDomain();
+        ops[i].push_back( sels[types[i]][j].getSelector() );
+        cnames.push_back( sels[types[i]][j].getName() );
+        cargs.push_back( std::vector< CVC4::Type >() );
+        cargs.back().push_back( type_to_unres[arg_type] );
+      }
+    }
     Debug("parser-sygus") << "...make datatype " << datatypes.back() << std::endl;
-    datatypes.back().setSygus( types[i], bvl, true, true );
-    mkSygusDatatype( datatypes.back(), ops.back(), cnames, cargs, unresolved_gterm_sym, sygus_to_builtin );
+    datatypes[i].setSygus( types[i], bvl, true, true );
+    mkSygusDatatype( datatypes[i], ops[i], cnames, cargs, unresolved_gterm_sym, sygus_to_builtin );
     sorts.push_back( types[i] );
     //set start index if applicable
     if( types[i]==range ){
@@ -613,6 +669,7 @@ void Smt2::mkSygusDefaultGrammar( const Type& range, Expr& bvl, const std::strin
   std::vector<std::string> cnames;
   std::vector<std::vector<CVC4::Type> > cargs;
   std::vector<std::string> unresolved_gterm_sym;
+  Debug("parser-sygus") << "Make grammar for " << btype << " " << datatypes.back() << std::endl;
   //add variables
   for( unsigned i=0; i<sygus_vars.size(); i++ ){
     if( sygus_vars[i].getType().isBoolean() ){
@@ -653,6 +710,7 @@ void Smt2::mkSygusDefaultGrammar( const Type& range, Expr& bvl, const std::strin
   }
   //add predicates for types
   for( unsigned i=0; i<types.size(); i++ ){
+    Debug("parser-sygus") << "...add predicates for " << types[i] << std::endl;
     //add equality per type
     CVC4::Kind k = kind::EQUAL;
     Debug("parser-sygus") << "...add for " << k << std::endl;
@@ -672,6 +730,17 @@ void Smt2::mkSygusDefaultGrammar( const Type& range, Expr& bvl, const std::strin
       cargs.push_back( std::vector< CVC4::Type >() );
       cargs.back().push_back(unres_types[i]);
       cargs.back().push_back(unres_types[i]);
+    }else if( types[i].isDatatype() ){
+      //add for testers
+      Debug("parser-sygus") << "...add for testers" << std::endl;
+      const Datatype& dt = ((DatatypeType)types[i]).getDatatype();
+      for( unsigned k=0; k<dt.getNumConstructors(); k++ ){
+        Debug("parser-sygus") << "...for " << dt[k].getTesterName() << std::endl;
+        ops.back().push_back(dt[k].getTester());
+        cnames.push_back(dt[k].getTesterName());
+        cargs.push_back( std::vector< CVC4::Type >() );
+        cargs.back().push_back(unres_types[i]);
+      }
     }
   }
   if( range==btype ){
@@ -1312,7 +1381,9 @@ Expr Smt2::getSygusAssertion( std::vector<DatatypeType>& datatypeTypes, std::vec
     if( !terms[0].isNull() ){
       patvb.insert(patvb.end(), terms[0].begin(), terms[0].end());
     }
+    Debug("parser-sygus-debug") << "...add to built apply " << evals[DatatypeType(extraArgs[k].getType())] << " " << extraArgs[k] << " " << extraArgs[k].getType() << std::endl;
     builtApply.push_back(getExprManager()->mkExpr(kind::APPLY_UF, patvb));
+    Debug("parser-sygus-debug") << "...added " << builtApply.back() << std::endl;
   }
   for(size_t k = 0; k < builtApply.size(); ++k) {
   }

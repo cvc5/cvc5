@@ -1338,51 +1338,73 @@ Node TermDb::getVtsInfinity( bool isFree, bool create ) {
 }
 
 Node TermDb::rewriteVtsSymbols( Node n ) {
-  Assert( !d_vts_delta_free.isNull() );
-  Assert( !d_vts_delta.isNull() );
-  if( ( n.getKind()==EQUAL || n.getKind()==GEQ ) && containsTerm( n, d_vts_delta ) ){
+  if( ( n.getKind()==EQUAL || n.getKind()==GEQ ) ){
     Trace("quant-vts-debug") << "VTS : process " << n << std::endl;
-    if( n.getKind()==EQUAL ){
-      return d_false;
-    }else{
-      std::map< Node, Node > msum;
-      if( QuantArith::getMonomialSumLit( n, msum ) ){
-        if( Trace.isOn("quant-vts-debug") ){
-          Trace("quant-vts-debug") << "VTS got monomial sum : " << std::endl;
-          QuantArith::debugPrintMonomialSum( msum, "quant-vts-debug" );
-        }
-        Node iso_n;
-        int res = QuantArith::isolate( d_vts_delta, msum, iso_n, n.getKind(), true );
-        if( res!=0 ){
-          Trace("quant-vts-debug") << "VTS isolated :  -> " << iso_n << ", res = " << res << std::endl;
-          int index = res==1 ? 0 : 1;
-          Node slv = iso_n[res==1 ? 1 : 0];
-          if( iso_n[index]!=d_vts_delta ){
-            if( iso_n[index].getKind()==MULT && iso_n[index].getNumChildren()==2 && iso_n[index][0].isConst() && iso_n[index][1]==d_vts_delta ){
-              slv = NodeManager::currentNM()->mkNode( MULT, slv, NodeManager::currentNM()->mkConst( Rational(1)/iso_n[index][0].getConst<Rational>() ) );
-            }else{
-              return n;
+    bool rew_inf = false;
+    bool rew_delta = false;
+    if( !d_vts_inf.isNull() && containsTerm( n, d_vts_inf ) ){
+      rew_inf = true;
+    }else if( !d_vts_delta.isNull() && containsTerm( n, d_vts_delta ) ){
+      rew_delta = true;
+    }
+    if( rew_inf || rew_delta ){
+      if( n.getKind()==EQUAL ){
+        return d_false;
+      }else{
+        std::map< Node, Node > msum;
+        if( QuantArith::getMonomialSumLit( n, msum ) ){
+          if( Trace.isOn("quant-vts-debug") ){
+            Trace("quant-vts-debug") << "VTS got monomial sum : " << std::endl;
+            QuantArith::debugPrintMonomialSum( msum, "quant-vts-debug" );
+          }
+          Node vts_sym = rew_inf ? d_vts_inf : d_vts_delta;
+          Node iso_n;
+          int res = QuantArith::isolate( vts_sym, msum, iso_n, n.getKind(), true );
+          if( res!=0 ){
+            Trace("quant-vts-debug") << "VTS isolated :  -> " << iso_n << ", res = " << res << std::endl;
+            int index = res==1 ? 0 : 1;
+            Node slv = iso_n[res==1 ? 1 : 0];
+            if( iso_n[index]!=vts_sym ){
+              if( iso_n[index].getKind()==MULT && iso_n[index].getNumChildren()==2 && iso_n[index][0].isConst() && iso_n[index][1]==d_vts_delta ){
+                slv = NodeManager::currentNM()->mkNode( MULT, slv, NodeManager::currentNM()->mkConst( Rational(1)/iso_n[index][0].getConst<Rational>() ) );
+              }else{
+                return n;
+              }
             }
+            Node nlit;
+            if( res==1 ){
+              if( rew_inf ){
+                nlit = d_true;
+              }else{
+                nlit = NodeManager::currentNM()->mkNode( GEQ, d_zero, slv );
+              }
+            }else{
+              if( rew_inf ){
+                nlit = d_false;
+              }else{
+                nlit = NodeManager::currentNM()->mkNode( GT, slv, d_zero );
+              }
+            }
+            Trace("quant-vts-debug") << "Return " << nlit << std::endl;
+            return nlit;
           }
-          Node nlit;
-          if( res==1 ){
-            nlit = NodeManager::currentNM()->mkNode( GEQ, d_zero, slv );
-          }else{
-            nlit = NodeManager::currentNM()->mkNode( GT, slv, d_zero );
-          }
-          Trace("quant-vts-debug") << "Return " << nlit << std::endl;
-          return nlit;
         }
       }
-      return n;
     }
+    return n;
   }else if( n.getKind()==FORALL ){
     //cannot traverse beneath quantifiers
-    std::vector< Node > delta;
-    delta.push_back( d_vts_delta );
-    std::vector< Node > delta_free;
-    delta_free.push_back( d_vts_delta_free );
-    n = n.substitute( delta.begin(), delta.end(), delta_free.begin(), delta_free.end() );
+    std::vector< Node > vars;
+    std::vector< Node > vars_free;
+    if( !d_vts_inf.isNull() ){
+      vars.push_back( d_vts_inf );
+      vars_free.push_back( d_vts_inf_free );
+    }
+    if( !d_vts_delta.isNull() ){
+      vars.push_back( d_vts_delta );
+      vars_free.push_back( d_vts_delta_free );
+    }
+    n = n.substitute( vars.begin(), vars.end(), vars_free.begin(), vars_free.end() );
     return n;
   }else{
     bool childChanged = false;
