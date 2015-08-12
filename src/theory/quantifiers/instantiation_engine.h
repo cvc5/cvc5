@@ -98,6 +98,7 @@ public:
   void finishInit();
 
   bool needsCheck( Theory::Effort e );
+  unsigned needsModel( Theory::Effort e );
   void reset_round( Theory::Effort e );
   void check( Theory::Effort e, unsigned quant_e );
   bool checkComplete();

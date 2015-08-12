@@ -230,6 +230,16 @@ post \n\
 + Synthesize invariant based on strengthening of postcondition. \n\
 \n\
 ";
+static const std::string macrosQuantHelp = "\
+Template modes for quantifiers macro expansion, supported by --macros-quant-mode:\n\
+\n\
+all \n\
++ Infer definitions for functions, including those containing quantified formulas.\n\
+\n\
+ground (default) \n\
++ Only infer ground definitions for functions.\n\
+\n\
+";
 
 inline InstWhenMode stringToInstWhenMode(std::string option, std::string optarg, SmtEngine* smt) throw(OptionException) {
   if(optarg == "pre-full") {
@@ -469,6 +479,20 @@ inline SygusInvTemplMode stringToSygusInvTemplMode(std::string option, std::stri
   } else {
     throw OptionException(std::string("unknown option for --sygus-inv-templ: `") +
                           optarg + "'.  Try --sygus-inv-templ help.");
+  }
+}
+
+inline MacrosQuantMode stringToMacrosQuantMode(std::string option, std::string optarg, SmtEngine* smt) throw(OptionException) {
+  if(optarg == "all" ) {
+    return MACROS_QUANT_MODE_ALL;
+  } else if(optarg == "ground") {
+    return MACROS_QUANT_MODE_GROUND;
+  } else if(optarg ==  "help") {
+    puts(macrosQuantHelp.c_str());
+    exit(1);
+  } else {
+    throw OptionException(std::string("unknown option for --macros-quant-mode: `") +
+                          optarg + "'.  Try --macros-quant-mode help.");
   }
 }
 

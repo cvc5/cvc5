@@ -94,6 +94,7 @@ namespace quantifiers {
   class LtePartialInst;
   class AlphaEquivalence;
   class FunDefEngine;
+  class QuantEqualityEngine;
 }/* CVC4::theory::quantifiers */
 
 namespace inst {
@@ -145,6 +146,8 @@ private:
   quantifiers::LtePartialInst * d_lte_part_inst;
   /** function definitions engine */
   quantifiers::FunDefEngine * d_fun_def_engine;
+  /** quantifiers equality engine */
+  quantifiers::QuantEqualityEngine * d_uee;
 public: //effort levels
   enum {
     QEFFORT_CONFLICT,
@@ -233,6 +236,8 @@ public:  //modules
   quantifiers::LtePartialInst * getLtePartialInst() { return d_lte_part_inst; }
   /** function definition engine */
   quantifiers::FunDefEngine * getFunDefEngine() { return d_fun_def_engine; }
+  /** quantifiers equality engine */
+  quantifiers::QuantEqualityEngine * getQuantEqualityEngine() { return d_uee; }
 private:
   /** owner of quantified formulas */
   std::map< Node, QuantifiersModule * > d_owner;

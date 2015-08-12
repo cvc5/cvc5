@@ -49,7 +49,11 @@ TESTS =	\
 	simp-len.smt2 \
 	is-even.smt2 \
 	is-even-pred.smt2 \
-	delta-simp.smt2
+	delta-simp.smt2  \
+	nested-delta.smt2 \
+	nested-inf.smt2
+
+
 
 # regression can be solved with --finite-model-find --fmf-inst-engine
 # set3.smt2

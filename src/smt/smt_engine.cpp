@@ -3125,6 +3125,7 @@ void SmtEnginePrivate::processAssertions() {
   // Dump the assertions
   dumpAssertions("pre-everything", d_assertions);
 
+  Trace("smt-proc") << "SmtEnginePrivate::processAssertions() begin" << endl;
   Trace("smt") << "SmtEnginePrivate::processAssertions()" << endl;
 
   Debug("smt") << " d_assertions     : " << d_assertions.size() << endl;
@@ -3149,6 +3150,7 @@ void SmtEnginePrivate::processAssertions() {
 
   // Assertions are NOT guaranteed to be rewritten by this point
 
+  Trace("smt-proc") << "SmtEnginePrivate::processAssertions() : pre-definition-expansion" << endl;
   dumpAssertions("pre-definition-expansion", d_assertions);
   {
     Chat() << "expanding definitions..." << endl;
@@ -3159,6 +3161,7 @@ void SmtEnginePrivate::processAssertions() {
       d_assertions.replace(i, expandDefinitions(d_assertions[i], cache));
     }
   }
+  Trace("smt-proc") << "SmtEnginePrivate::processAssertions() : post-definition-expansion" << endl;
   dumpAssertions("post-definition-expansion", d_assertions);
 
   Debug("smt") << " d_assertions     : " << d_assertions.size() << endl;
@@ -3212,12 +3215,14 @@ void SmtEnginePrivate::processAssertions() {
 
   // Unconstrained simplification
   if(options::unconstrainedSimp()) {
+    Trace("smt-proc") << "SmtEnginePrivate::processAssertions() : pre-unconstrained-simp" << endl;
     dumpAssertions("pre-unconstrained-simp", d_assertions);
     Chat() << "...doing unconstrained simplification..." << endl;
     for (unsigned i = 0; i < d_assertions.size(); ++ i) {
       d_assertions.replace(i, Rewriter::rewrite(d_assertions[i]));
     }
     unconstrainedSimp();
+    Trace("smt-proc") << "SmtEnginePrivate::processAssertions() : post-unconstrained-simp" << endl;
     dumpAssertions("post-unconstrained-simp", d_assertions);
   }
 
@@ -3225,6 +3230,7 @@ void SmtEnginePrivate::processAssertions() {
     theory::bv::BVIntroducePow2::pow2Rewrite(d_assertions.ref());
   }
 
+  Trace("smt-proc") << "SmtEnginePrivate::processAssertions() : pre-substitution" << endl;
   dumpAssertions("pre-substitution", d_assertions);
 
   if(options::unsatCores()) {
@@ -3240,13 +3246,13 @@ void SmtEnginePrivate::processAssertions() {
                         << "applying substitutions" << endl;
       for (unsigned i = 0; i < d_assertions.size(); ++ i) {
         Trace("simplify") << "applying to " << d_assertions[i] << endl;
-         spendResource(options::preprocessStep());
+        spendResource(options::preprocessStep());
         d_assertions.replace(i, Rewriter::rewrite(d_topLevelSubstitutions.apply(d_assertions[i])));
         Trace("simplify") << "  got " << d_assertions[i] << endl;
       }
     }
   }
-
+  Trace("smt-proc") << "SmtEnginePrivate::processAssertions() : post-substitution" << endl;
   dumpAssertions("post-substitution", d_assertions);
 
   // Assertions ARE guaranteed to be rewritten by this point
@@ -3261,15 +3267,18 @@ void SmtEnginePrivate::processAssertions() {
   }
 
   if( d_smt.d_logic.isTheoryEnabled(THEORY_STRINGS) ) {
+    Trace("smt-proc") << "SmtEnginePrivate::processAssertions() : pre-strings-preprocess" << endl;
     dumpAssertions("pre-strings-pp", d_assertions);
     CVC4::theory::strings::StringsPreprocess sp;
     sp.simplify( d_assertions.ref() );
     //for (unsigned i = 0; i < d_assertions.size(); ++ i) {
     //  d_assertions.replace( i, Rewriter::rewrite( d_assertions[i] ) );
     //}
+    Trace("smt-proc") << "SmtEnginePrivate::processAssertions() : post-strings-preprocess" << endl;
     dumpAssertions("post-strings-pp", d_assertions);
   }
   if( d_smt.d_logic.isQuantified() ){
+    Trace("smt-proc") << "SmtEnginePrivate::processAssertions() : pre-quant-preprocess" << endl;
     //remove rewrite rules
     for( unsigned i=0; i < d_assertions.size(); i++ ) {
       if( d_assertions[i].getKind() == kind::REWRITE_RULE ){
@@ -3300,11 +3309,13 @@ void SmtEnginePrivate::processAssertions() {
     dumpAssertions("post-skolem-quant", d_assertions);
     if( options::macrosQuant() ){
       //quantifiers macro expansion
+      quantifiers::QuantifierMacros qm;
       bool success;
       do{
-        quantifiers::QuantifierMacros qm;
         success = qm.simplify( d_assertions.ref(), true );
       }while( success );
+      //finalize the definitions
+      qm.finalizeDefinitions();
     }
 
     //fmf-fun : assume admissible functions, applying preprocessing reduction to FMF
@@ -3334,6 +3345,7 @@ void SmtEnginePrivate::processAssertions() {
         d_smt.d_fmfRecFunctionsConcrete->insert( f, cl );
       }
     }
+    Trace("smt-proc") << "SmtEnginePrivate::processAssertions() : post-quant-preprocess" << endl;
   }
 
   if( options::sortInference() ){
@@ -3353,27 +3365,32 @@ void SmtEnginePrivate::processAssertions() {
     }
   }
 
+  Trace("smt-proc") << "SmtEnginePrivate::processAssertions() : pre-simplify" << endl;
   dumpAssertions("pre-simplify", d_assertions);
   Chat() << "simplifying assertions..." << endl;
   noConflict = simplifyAssertions();
   if(!noConflict){
     ++(d_smt.d_stats->d_simplifiedToFalse);
   }
+  Trace("smt-proc") << "SmtEnginePrivate::processAssertions() : post-simplify" << endl;
   dumpAssertions("post-simplify", d_assertions);
 
   dumpAssertions("pre-static-learning", d_assertions);
   if(options::doStaticLearning()) {
+    Trace("smt-proc") << "SmtEnginePrivate::processAssertions() : pre-static-learning" << endl;
     // Perform static learning
     Chat() << "doing static learning..." << endl;
     Trace("simplify") << "SmtEnginePrivate::simplify(): "
                       << "performing static learning" << endl;
     staticLearning();
+    Trace("smt-proc") << "SmtEnginePrivate::processAssertions() : post-static-learning" << endl;
   }
   dumpAssertions("post-static-learning", d_assertions);
 
   Debug("smt") << " d_assertions     : " << d_assertions.size() << endl;
 
 
+  Trace("smt-proc") << "SmtEnginePrivate::processAssertions() : pre-ite-removal" << endl;
   dumpAssertions("pre-ite-removal", d_assertions);
   {
     Chat() << "removing term ITEs..." << endl;
@@ -3383,10 +3400,12 @@ void SmtEnginePrivate::processAssertions() {
     removeITEs();
     d_smt.d_stats->d_numAssertionsPost += d_assertions.size();
   }
+  Trace("smt-proc") << "SmtEnginePrivate::processAssertions() : post-ite-removal" << endl;
   dumpAssertions("post-ite-removal", d_assertions);
 
   dumpAssertions("pre-repeat-simplify", d_assertions);
   if(options::repeatSimp()) {
+    Trace("smt-proc") << "SmtEnginePrivate::processAssertions() : pre-repeat-simplify" << endl;
     Chat() << "re-simplifying assertions..." << endl;
     ScopeCounter depth(d_simplifyAssertionsDepth);
     noConflict &= simplifyAssertions();
@@ -3452,6 +3471,7 @@ void SmtEnginePrivate::processAssertions() {
       removeITEs();
       //      Assert(iteRewriteAssertionsEnd == d_assertions.size());
     }
+    Trace("smt-proc") << "SmtEnginePrivate::processAssertions() : post-repeat-simplify" << endl;
   }
   dumpAssertions("post-repeat-simplify", d_assertions);
 
@@ -3476,6 +3496,7 @@ void SmtEnginePrivate::processAssertions() {
   Debug("smt") << "SmtEnginePrivate::processAssertions() POST SIMPLIFICATION" << endl;
   Debug("smt") << " d_assertions     : " << d_assertions.size() << endl;
 
+  Trace("smt-proc") << "SmtEnginePrivate::processAssertions() : pre-theory-preprocessing" << endl;
   dumpAssertions("pre-theory-preprocessing", d_assertions);
   {
     Chat() << "theory preprocessing..." << endl;
@@ -3486,6 +3507,7 @@ void SmtEnginePrivate::processAssertions() {
       d_assertions.replace(i, d_smt.d_theoryEngine->preprocess(d_assertions[i]));
     }
   }
+  Trace("smt-proc") << "SmtEnginePrivate::processAssertions() : post-theory-preprocessing" << endl;
   dumpAssertions("post-theory-preprocessing", d_assertions);
 
   // If we are using eager bit-blasting wrap assertions in fake atom so that
@@ -3511,6 +3533,7 @@ void SmtEnginePrivate::processAssertions() {
   // end: INVARIANT to maintain: no reordering of assertions or
   // introducing new ones
 
+  Trace("smt-proc") << "SmtEnginePrivate::processAssertions() end" << endl;
   dumpAssertions("post-everything", d_assertions);
 
   //set instantiation level of everything to zero

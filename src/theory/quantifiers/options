@@ -40,7 +40,7 @@ option iteDtTesterSplitQuant --ite-dtt-split-quant bool :read-write :default fal
 # Whether to NNF quantifier bodies
 option nnfQuant --nnf-quant bool :default true
  apply NNF conversion to quantified formulas
-option clauseSplit --clause-split bool :default false
+option clauseSplit --clause-split bool :default true
  apply clause splitting to quantified formulas
 # Whether to pre-skolemize quantifier bodies.
 # For example, forall x. ( P( x ) => (exists y. f( y ) = x) ) will be rewritten to
@@ -54,9 +54,6 @@ option preSkolemQuantAgg --pre-skolem-quant-agg bool :read-write :default true
 # Whether to perform agressive miniscoping
 option aggressiveMiniscopeQuant --ag-miniscope-quant bool :default false
  perform aggressive miniscoping for quantifiers
-# Whether to perform quantifier macro expansion
-option macrosQuant --macros-quant bool :default false
- perform quantifiers macro expansions
 # Whether to CNF quantifier bodies
 option elimTautQuant --elim-taut-quant bool :default true
  eliminate tautological disjuncts of quantified formulas
@@ -65,17 +62,14 @@ option elimTautQuant --elim-taut-quant bool :default true
  
 option eMatching --e-matching bool :read-write :default true
  whether to do heuristic E-matching
- 
+
 option termDbMode --term-db-mode CVC4::theory::quantifiers::TermDbMode :default CVC4::theory::quantifiers::TERM_DB_ALL :read-write :include "theory/quantifiers/modes.h" :handler  CVC4::theory::quantifiers::stringToTermDbMode :handler-include "theory/quantifiers/options_handlers.h"
  which ground terms to consider for instantiation
-# Whether to consider terms in the bodies of quantifiers for matching
 option registerQuantBodyTerms --register-quant-body-terms bool :default false
  consider ground terms within bodies of quantified formulas for matching
  
-# Whether to use smart triggers
 option smartTriggers --smart-triggers bool :default true
  disable smart triggers
-# Whether to use relevent triggers
 option relevantTriggers --relevant-triggers bool :default false
  prefer triggers that are more relevant based on SInE style analysis
 option relationalTriggers --relational-triggers bool :default false
@@ -96,10 +90,11 @@ option triggerSelMode --trigger-sel CVC4::theory::quantifiers::TriggerSelMode :d
  selection mode for triggers
 option userPatternsQuant --user-pat=MODE CVC4::theory::quantifiers::UserPatMode :default CVC4::theory::quantifiers::USER_PAT_MODE_TRUST :include "theory/quantifiers/modes.h" :handler CVC4::theory::quantifiers::stringToUserPatMode :handler-include "theory/quantifiers/options_handlers.h"
  policy for handling user-provided patterns for quantifier instantiation
+option incrementTriggers --increment-triggers bool :default true
+ generate additional triggers as needed during search
  
 option instWhenMode --inst-when=MODE CVC4::theory::quantifiers::InstWhenMode :default CVC4::theory::quantifiers::INST_WHEN_FULL_LAST_CALL :read-write :include "theory/quantifiers/modes.h" :handler CVC4::theory::quantifiers::stringToInstWhenMode :handler-include "theory/quantifiers/options_handlers.h" :predicate CVC4::theory::quantifiers::checkInstWhenMode :predicate-include "theory/quantifiers/options_handlers.h"
  when to apply instantiation
- 
  
 option instMaxLevel --inst-max-level=N int :read-write :default -1
  maximum inst level of terms used to instantiate quantified formulas with (-1 == no limit, default)
@@ -108,8 +103,6 @@ option instLevelInputOnly --inst-level-input-only bool :default true
 option internalReps --quant-internal-reps bool :default true
  instantiate with representatives chosen by quantifiers engine
  
-option incrementTriggers --increment-triggers bool :default true
- generate additional triggers as needed during search
 option eagerInstQuant --eager-inst-quant bool :default false
  apply quantifier instantiation eagerly
 
@@ -124,7 +117,6 @@ option literalMatchMode --literal-matching=MODE CVC4::theory::quantifiers::Liter
 option axiomInstMode --axiom-inst=MODE CVC4::theory::quantifiers::AxiomInstMode :default CVC4::theory::quantifiers::AXIOM_INST_MODE_DEFAULT :include "theory/quantifiers/modes.h" :handler CVC4::theory::quantifiers::stringToAxiomInstMode :handler-include "theory/quantifiers/options_handlers.h"
  policy for instantiating axioms
 
- 
 ### finite model finding options
  
 option finiteModelFind finite-model-find --finite-model-find bool :default false :read-write
@@ -252,6 +244,8 @@ option recurseCbqi --cbqi-recurse bool :default false
  turns on recursive counterexample-based quantifier instantiation
 option cbqiSat --cbqi-sat bool :read-write :default true
  answer sat when quantifiers are asserted with counterexample-based quantifier instantiation
+option cbqiModel --cbqi-model bool :read-write :default true
+ guide instantiations by model values for counterexample-based quantifier instantiation
  
 ### local theory extensions options 
 
@@ -266,10 +260,19 @@ option lteRestrictInstClosure --lte-restrict-inst-closure bool :default false
 
 option quantAlphaEquiv --quant-alpha-equiv bool :default true
   infer alpha equivalence between quantified formulas
+option macrosQuant --macros-quant bool :default false
+ perform quantifiers macro expansion
+option macrosQuantMode --macros-quant-mode=MODE CVC4::theory::quantifiers::MacrosQuantMode :default CVC4::theory::quantifiers::MACROS_QUANT_MODE_GROUND :include "theory/quantifiers/modes.h" :handler CVC4::theory::quantifiers::stringToMacrosQuantMode :handler-include "theory/quantifiers/options_handlers.h"
+ mode for quantifiers macro expansion
 
 ### recursive function options
 
 #option funDefs --fun-defs bool :default false
 #  enable specialized techniques for recursive function definitions
+ 
+### e-unification options
+
+option quantEqualityEngine --quant-ee bool :default false
+  maintain congrunce closure over universal equalities
  
 endmodule

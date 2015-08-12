@@ -161,6 +161,13 @@ typedef enum {
   SYGUS_INV_TEMPL_MODE_POST,
 } SygusInvTemplMode;
 
+typedef enum {
+  /** infer all definitions */
+  MACROS_QUANT_MODE_ALL,
+  /** infer ground definitions */
+  MACROS_QUANT_MODE_GROUND,
+} MacrosQuantMode;
+
 }/* CVC4::theory::quantifiers namespace */
 }/* CVC4::theory namespace */
 

@@ -164,6 +164,14 @@ bool InstantiationEngine::needsCheck( Theory::Effort e ){
   return d_quantEngine->getInstWhenNeedsCheck( e );
 }
 
+unsigned InstantiationEngine::needsModel( Theory::Effort e ) {
+  if( options::cbqiModel() && options::cbqi() ){
+    return QuantifiersEngine::QEFFORT_STANDARD;
+  }else{
+    return QuantifiersEngine::QEFFORT_NONE;
+  }
+}
+
 void InstantiationEngine::reset_round( Theory::Effort e ) {
   d_cbqi_set_quant_inactive = false;
   if( options::cbqi() ){
@@ -288,7 +296,7 @@ bool InstantiationEngine::hasApplyUf( Node f ){
 bool InstantiationEngine::hasNonArithmeticVariable( Node f ){
   for( int i=0; i<(int)f[0].getNumChildren(); i++ ){
     TypeNode tn = f[0][i].getType();
-    if( !tn.isInteger() && !tn.isReal() ){
+    if( !tn.isInteger() && !tn.isReal() && !tn.isBoolean() ){
       return true;
     }
   }

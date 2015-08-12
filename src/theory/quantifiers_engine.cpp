@@ -38,6 +38,7 @@
 #include "theory/quantifiers/full_model_check.h"
 #include "theory/quantifiers/ambqi_builder.h"
 #include "theory/quantifiers/fun_def_engine.h"
+#include "theory/quantifiers/quant_equality_engine.h"
 
 using namespace std;
 using namespace CVC4;
@@ -129,6 +130,9 @@ d_lemmas_produced_c(u){
   if( !options::finiteModelFind() || options::fmfInstEngine() ){
     d_inst_engine = new quantifiers::InstantiationEngine( this );
     d_modules.push_back(  d_inst_engine );
+    if( options::cbqi() && options::cbqiModel() ){
+      needsBuilder = true;
+    }
   }else{
     d_inst_engine = NULL;
   }
@@ -176,6 +180,13 @@ d_lemmas_produced_c(u){
   //}else{
   d_fun_def_engine = NULL;
   //}
+  if( options::quantEqualityEngine() ){
+    d_uee = new quantifiers::QuantEqualityEngine( this, c );
+    d_modules.push_back( d_uee );
+  }else{
+    d_uee = NULL;
+  }
+
 
   if( needsBuilder ){
     Trace("quant-engine-debug") << "Initialize model engine, mbqi : " << options::mbqiMode() << " " << options::fmfBoundInt() << std::endl;
@@ -216,6 +227,7 @@ QuantifiersEngine::~QuantifiersEngine(){
   delete d_ceg_inst;
   delete d_lte_part_inst;
   delete d_fun_def_engine;
+  delete d_uee;
   for(std::map< Node, QuantPhaseReq* >::iterator i = d_phase_reqs.begin(); i != d_phase_reqs.end(); ++i) {
     delete (*i).second;
   }
@@ -378,7 +390,7 @@ void QuantifiersEngine::check( Theory::Effort e ){
       if( d_hasAddedLemma ){
         break;
       //otherwise, complete the model generation if necessary
-      }else if( quant_e==QEFFORT_MODEL && needsModelE<=quant_e && options::produceModels() ){
+      }else if( quant_e==QEFFORT_MODEL && needsModelE<=quant_e && options::produceModels() && e==Theory::EFFORT_LAST_CALL ){
         Trace("quant-engine-debug") << "Build completed model..." << std::endl;
         d_builder->buildModel( d_model, true );
       }
@@ -441,10 +453,10 @@ bool QuantifiersEngine::reduceQuantifier( Node q ) {
   std::map< Node, bool >::iterator it = d_quants_red.find( q );
   if( it==d_quants_red.end() ){
     if( d_alpha_equiv ){
-      Trace("quant-engine-debug") << "Alpha equivalence " << q << "?" << std::endl;
+      Trace("quant-engine-red") << "Alpha equivalence " << q << "?" << std::endl;
       //add equivalence with another quantified formula
       if( !d_alpha_equiv->registerQuantifier( q ) ){
-        Trace("quant-engine-debug") << "...alpha equivalence success." << std::endl;
+        Trace("quant-engine-red") << "...alpha equivalence success." << std::endl;
         ++(d_statistics.d_red_alpha_equiv);
         d_quants_red[q] = true;
         return true;
@@ -452,9 +464,9 @@ bool QuantifiersEngine::reduceQuantifier( Node q ) {
     }
     if( d_lte_part_inst && !q.getAttribute(LtePartialInstAttribute()) ){
       //will partially instantiate
-      Trace("quant-engine-debug") << "LTE: Partially instantiate " << q << "?" << std::endl;
+      Trace("quant-engine-red") << "LTE: Partially instantiate " << q << "?" << std::endl;
       if( d_lte_part_inst->addQuantifier( q ) ){
-        Trace("quant-engine-debug") << "...LTE partially instantiate success." << std::endl;
+        Trace("quant-engine-red") << "...LTE partially instantiate success." << std::endl;
         //delayed reduction : assert to model
         d_model->assertQuantifier( q, true );
         ++(d_statistics.d_red_lte_partial_inst);
@@ -795,7 +807,7 @@ bool QuantifiersEngine::addLemma( Node lem, bool doCache ){
       //d_curr_out->lemma( lem, false, true );
       d_lemmas_produced_c[ lem ] = true;
       d_lemmas_waiting.push_back( lem );
-      Trace("inst-add-debug2") << "Added lemma : " << lem << std::endl;
+      Trace("inst-add-debug2") << "Added lemma" << std::endl;
       return true;
     }else{
       Trace("inst-add-debug2") << "Duplicate." << std::endl;
@@ -980,7 +992,9 @@ void QuantifiersEngine::getPhaseReqTerms( Node f, std::vector< Node >& nodes ){
 }
 
 void QuantifiersEngine::printInstantiations( std::ostream& out ) {
+  bool printed = false;
   for( std::map< Node, bool >::iterator it = d_skolemized.begin(); it != d_skolemized.end(); ++it ){
+    printed = true;
     out << "Skolem constants of " << it->first << " : " << std::endl;
     out << "  ( ";
     for( unsigned i=0; i<d_term_db->d_skolem_constants[it->first].size(); i++ ){
@@ -992,15 +1006,20 @@ void QuantifiersEngine::printInstantiations( std::ostream& out ) {
   }
   if( options::incrementalSolving() ){
     for( std::map< Node, inst::CDInstMatchTrie* >::iterator it = d_c_inst_match_trie.begin(); it != d_c_inst_match_trie.end(); ++it ){
+      printed = true;
       out << "Instantiations of " << it->first << " : " << std::endl;
       it->second->print( out, it->first );
     }
   }else{
     for( std::map< Node, inst::InstMatchTrie >::iterator it = d_inst_match_trie.begin(); it != d_inst_match_trie.end(); ++it ){
+      printed = true;
       out << "Instantiations of " << it->first << " : " << std::endl;
       it->second.print( out, it->first );
       out << std::endl;
     }
+  }
+  if( !printed ){
+    out << "No instantiations." << std::endl;
   }
 }
 

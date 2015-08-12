@@ -109,7 +109,7 @@ void QuantifiersRewriter::computeArgVec( std::vector< Node >& args, std::vector<
   std::map< Node, bool > activeMap;
   computeArgs( args, activeMap, n );
   for( unsigned i=0; i<args.size(); i++ ){
-    if( activeMap[args[i]] ){
+    if( activeMap.find( args[i] )!=activeMap.end() ){
       activeArgs.push_back( args[i] );
     }
   }
@@ -119,10 +119,13 @@ void QuantifiersRewriter::computeArgVec2( std::vector< Node >& args, std::vector
   Assert( activeArgs.empty() );
   std::map< Node, bool > activeMap;
   computeArgs( args, activeMap, n );
-  computeArgs( args, activeMap, ipl );
-  for( unsigned i=0; i<args.size(); i++ ){
-    if( activeMap[args[i]] ){
-      activeArgs.push_back( args[i] );
+  if( !activeMap.empty() ){
+    //collect variables in inst pattern list only if we cannot eliminate quantifier
+    computeArgs( args, activeMap, ipl );
+    for( unsigned i=0; i<args.size(); i++ ){
+      if( activeMap.find( args[i] )!=activeMap.end() ){
+        activeArgs.push_back( args[i] );
+      }
     }
   }
 }
@@ -341,7 +344,7 @@ Node QuantifiersRewriter::computeNNF( Node body ){
 }
 
 
-void QuantifiersRewriter::computeDtTesterIteSplit( Node n, std::map< Node, Node >& pcons, std::map< Node, std::map< int, Node > >& ncons, 
+void QuantifiersRewriter::computeDtTesterIteSplit( Node n, std::map< Node, Node >& pcons, std::map< Node, std::map< int, Node > >& ncons,
                                                    std::vector< Node >& conj ){
   if( n.getKind()==ITE && n[0].getKind()==APPLY_TESTER && n[1].getType().isBoolean() ){
   Trace("quantifiers-rewrite-ite-debug") << "Split tester condition : " << n << std::endl;
@@ -375,7 +378,7 @@ void QuantifiersRewriter::computeDtTesterIteSplit( Node n, std::map< Node, Node 
     std::vector< Node > children;
     children.push_back( n );
     std::vector< Node > vars;
-    //add all positive testers 
+    //add all positive testers
     for( std::map< Node, Node >::iterator it = pcons.begin(); it != pcons.end(); ++it ){
       children.push_back( it->second.negate() );
       vars.push_back( it->first );
@@ -797,7 +800,7 @@ Node QuantifiersRewriter::computeElimTaut( Node body ) {
   }
   return body;
 }
-  
+
 Node QuantifiersRewriter::computeSplit( Node f, Node body, std::vector< Node >& vars ) {
   if( body.getKind()==OR ){
     size_t var_found_count = 0;
@@ -905,7 +908,7 @@ Node QuantifiersRewriter::computeSplit( Node f, Node body, std::vector< Node >& 
 
 Node QuantifiersRewriter::mkForAll( std::vector< Node >& args, Node body, Node ipl ){
   std::vector< Node > activeArgs;
-  //if cegqi is on, may be synthesis conjecture, in which case we want to keep all variables 
+  //if cegqi is on, may be synthesis conjecture, in which case we want to keep all variables
   if( options::ceGuidedInst() && !ipl.isNull() ){
     for( unsigned i=0; i<ipl.getNumChildren(); i++ ){
       Trace("quant-attr-debug") << "Check : " << ipl[i] << " " << ipl[i].getKind() << std::endl;

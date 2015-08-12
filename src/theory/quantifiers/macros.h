@@ -30,11 +30,12 @@ namespace quantifiers {
 
 class QuantifierMacros{
 private:
-  void processAssertion( Node n );
+  bool d_ground_macros;
+  bool processAssertion( Node n );
   bool isBoundVarApplyUf( Node n );
-  void process( Node n, bool pol, std::vector< Node >& args, Node f );
+  bool process( Node n, bool pol, std::vector< Node >& args, Node f );
   bool contains( Node n, Node n_s );
-  bool containsBadOp( Node n, Node op );
+  bool containsBadOp( Node n, Node op, std::vector< Node >& opc );
   bool isMacroLiteral( Node n, bool pol );
   void getMacroCandidates( Node n, std::vector< Node >& candidates );
   Node solveInEquality( Node n, Node lit );
@@ -45,13 +46,21 @@ private:
   std::map< Node, std::vector< Node > > d_macro_basis;
   //map from operators to macro definition
   std::map< Node, Node > d_macro_defs;
+  std::map< Node, Node > d_macro_defs_new;
+  //operators to macro ops that contain them
+  std::map< Node, std::vector< Node > > d_macro_def_contains;
+  //simplify cache
+  std::map< Node, Node > d_simplify_cache;
 private:
   Node simplify( Node n );
+  void addMacro( Node op, Node n, std::vector< Node >& opc );
+  void debugMacroDefinition( Node oo, Node n );
 public:
   QuantifierMacros(){}
   ~QuantifierMacros(){}
 
   bool simplify( std::vector< Node >& assertions, bool doRewrite = false );
+  void finalizeDefinitions();
 };
 
 }

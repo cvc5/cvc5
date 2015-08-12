@@ -1130,7 +1130,7 @@ bool InstStrategyCegqi::addLemma( Node lem ) {
 }
 
 bool InstStrategyCegqi::isEligibleForInstantiation( Node n ) {
-  if( n.getKind()==INST_CONSTANT ){
+  if( n.getKind()==INST_CONSTANT || n.getKind()==SKOLEM ){
     //only legal if current quantified formula contains n
     return TermDb::containsTerm( d_curr_quant, n );
   }else{
