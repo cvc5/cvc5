@@ -248,14 +248,6 @@ public:
       instantiation.
    */
   Node getInstConstantNode( Node n, Node f );
-  /** same as before but node f is just linked to the new pattern by the
-      applied attribute
-      vars the bind variable
-      nvars the same variable but with an attribute
-  */
-  Node convertNodeToPattern( Node n, Node f,
-                             const std::vector<Node> & vars,
-                             const std::vector<Node> & nvars);
 
   static Node getInstConstAttr( Node n );
   static bool hasInstConstAttr( Node n );
@@ -306,18 +298,16 @@ public:
 //for triggers
 private:
   /** helper function for compute var contains */
-  void computeVarContains2( Node n, Node parent );
-  /** var contains */
-  std::map< TNode, std::vector< TNode > > d_var_contains;
+  void computeVarContains2( Node n, std::vector< Node >& varContains, std::map< Node, bool >& visited );
   /** triggers for each operator */
   std::map< Node, std::vector< inst::Trigger* > > d_op_triggers;
   /** helper for is instance of */
   bool isUnifiableInstanceOf( Node n1, Node n2, std::map< Node, Node >& subs );
+  /** -1: n1 is an instance of n2, 1: n1 is an instance of n2 */
+  int isInstanceOf2( Node n1, Node n2, std::vector< Node >& varContains1, std::vector< Node >& varContains2 );
 public:
   /** compute var contains */
-  void computeVarContains( Node n );
-  /** variables subsume, return true if n1 contains all free variables in n2 */
-  bool isVariableSubsume( Node n1, Node n2 );
+  void computeVarContains( Node n, std::vector< Node >& varContains );
   /** get var contains for each of the patterns in pats */
   void getVarContains( Node f, std::vector< Node >& pats, std::map< Node, std::vector< Node > >& varContains );
   /** get var contains for node n */

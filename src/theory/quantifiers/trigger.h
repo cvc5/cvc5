@@ -94,7 +94,7 @@ private:
   static bool isUsable( Node n, Node f );
   static Node getIsUsableTrigger( Node n, Node f, bool pol = true, bool hasPol = false );
   /** collect all APPLY_UF pattern terms for f in n */
-  static bool collectPatTerms2( QuantifiersEngine* qe, Node f, Node n, std::map< Node, bool >& patMap, int tstrt, std::vector< Node >& exclude, bool pol, bool hasPol );
+  static bool collectPatTerms2( Node f, Node n, std::map< Node, bool >& patMap, int tstrt, std::vector< Node >& exclude, bool pol, bool hasPol );
 public:
   //different strategies for choosing trigger terms
   enum {
@@ -116,6 +116,8 @@ public:
   static InstMatchGenerator* getInstMatchGenerator( Node q, Node n );
   static Node getInversionVariable( Node n );
   static Node getInversion( Node n, Node x );
+  /** get all variables that E-matching can possibly handle */
+  static void getTriggerVariables( QuantifiersEngine* qe, Node icn, Node f, std::vector< Node >& t_vars );
 
   inline void toStream(std::ostream& out) const {
     /*

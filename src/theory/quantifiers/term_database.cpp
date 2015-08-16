@@ -753,7 +753,6 @@ int TermDb::getNumInstantiationConstants( Node f ) const {
 Node TermDb::getInstConstantBody( Node f ){
   std::map< Node, Node >::iterator it = d_inst_const_body.find( f );
   if( it==d_inst_const_body.end() ){
-    makeInstantiationConstantsFor( f );
     Node n = getInstConstantNode( f[1], f );
     d_inst_const_body[ f ] = n;
     return n;
@@ -783,15 +782,9 @@ Node TermDb::getCounterexampleLiteral( Node f ){
 }
 
 Node TermDb::getInstConstantNode( Node n, Node f ){
-  Assert( d_inst_constants.find( f )!=d_inst_constants.end() );
-  return convertNodeToPattern(n,f,d_vars[f],d_inst_constants[ f ]);
-}
-
-Node TermDb::convertNodeToPattern( Node n, Node f, const std::vector<Node> & vars,
-                                              const std::vector<Node> & inst_constants){
-  Node n2 = n.substitute( vars.begin(), vars.end(),
-                          inst_constants.begin(),
-                          inst_constants.end() );
+  makeInstantiationConstantsFor( f );
+  Node n2 = n.substitute( d_vars[f].begin(), d_vars[f].end(),
+                          d_inst_constants[f].begin(), d_inst_constants[f].end() );
   return n2;
 }
 
@@ -1001,66 +994,47 @@ Node TermDb::getFreeVariableForType( TypeNode tn ) {
   return d_free_vars[tn];
 }
 
-void TermDb::computeVarContains( Node n ) {
-  if( d_var_contains.find( n )==d_var_contains.end() ){
-    d_var_contains[n].clear();
-    computeVarContains2( n, n );
-  }
+void TermDb::computeVarContains( Node n, std::vector< Node >& varContains ) {
+  std::map< Node, bool > visited;
+  computeVarContains2( n, varContains, visited );
 }
 
-void TermDb::computeVarContains2( Node n, Node parent ){
-  if( n.getKind()==INST_CONSTANT ){
-    if( std::find( d_var_contains[parent].begin(), d_var_contains[parent].end(), n )==d_var_contains[parent].end() ){
-      d_var_contains[parent].push_back( n );
-    }
-  }else{
-    for( int i=0; i<(int)n.getNumChildren(); i++ ){
-      computeVarContains2( n[i], parent );
-    }
-  }
-}
-
-bool TermDb::isVariableSubsume( Node n1, Node n2 ){
-  if( n1==n2 ){
-    return true;
-  }else{
-    //Notice() << "is variable subsume ? " << n1 << " " << n2 << std::endl;
-    computeVarContains( n1 );
-    computeVarContains( n2 );
-    for( int i=0; i<(int)d_var_contains[n2].size(); i++ ){
-      if( std::find( d_var_contains[n1].begin(), d_var_contains[n1].end(), d_var_contains[n2][i] )==d_var_contains[n1].end() ){
-        //Notice() << "no" << std::endl;
-        return false;
+void TermDb::computeVarContains2( Node n, std::vector< Node >& varContains, std::map< Node, bool >& visited ){
+  if( visited.find( n )==visited.end() ){
+    visited[n] = true;
+    if( n.getKind()==INST_CONSTANT ){
+      if( std::find( varContains.begin(), varContains.end(), n )==varContains.end() ){
+        varContains.push_back( n );
+      }
+    }else{
+      for( unsigned i=0; i<n.getNumChildren(); i++ ){
+        computeVarContains2( n[i], varContains, visited );
       }
     }
-    //Notice() << "yes" << std::endl;
-    return true;
   }
 }
 
 void TermDb::getVarContains( Node f, std::vector< Node >& pats, std::map< Node, std::vector< Node > >& varContains ){
-  for( int i=0; i<(int)pats.size(); i++ ){
-    computeVarContains( pats[i] );
+  for( unsigned i=0; i<pats.size(); i++ ){
     varContains[ pats[i] ].clear();
-    for( int j=0; j<(int)d_var_contains[pats[i]].size(); j++ ){
-      if( d_var_contains[pats[i]][j].getAttribute(InstConstantAttribute())==f ){
-        varContains[ pats[i] ].push_back( d_var_contains[pats[i]][j] );
+    getVarContainsNode( f, pats[i], varContains[ pats[i] ] );
+  }
+}
+
+void TermDb::getVarContainsNode( Node f, Node n, std::vector< Node >& varContains ){
+  std::vector< Node > vars;
+  computeVarContains( n, vars );  
+  for( unsigned j=0; j<vars.size(); j++ ){
+    Node v = vars[j];
+    if( v.getAttribute(InstConstantAttribute())==f ){
+      if( std::find( varContains.begin(), varContains.end(), v )==varContains.end() ){
+        varContains.push_back( v );
       }
     }
   }
 }
 
-void TermDb::getVarContainsNode( Node f, Node n, std::vector< Node >& varContains ){
-  computeVarContains( n );
-  for( int j=0; j<(int)d_var_contains[n].size(); j++ ){
-    if( d_var_contains[n][j].getAttribute(InstConstantAttribute())==f ){
-      varContains.push_back( d_var_contains[n][j] );
-    }
-  }
-}
-
-/** is n1 an instance of n2 or vice versa? */
-int TermDb::isInstanceOf( Node n1, Node n2 ){
+int TermDb::isInstanceOf2( Node n1, Node n2, std::vector< Node >& varContains1, std::vector< Node >& varContains2 ){
   if( n1==n2 ){
     return 1;
   }else if( n1.getKind()==n2.getKind() ){
@@ -1069,7 +1043,7 @@ int TermDb::isInstanceOf( Node n1, Node n2 ){
         int result = 0;
         for( int i=0; i<(int)n1.getNumChildren(); i++ ){
           if( n1[i]!=n2[i] ){
-            int cResult = isInstanceOf( n1[i], n2[i] );
+            int cResult = isInstanceOf2( n1[i], n2[i], varContains1, varContains2 );
             if( cResult==0 ){
               return 0;
             }else if( cResult!=result ){
@@ -1086,23 +1060,29 @@ int TermDb::isInstanceOf( Node n1, Node n2 ){
     }
     return 0;
   }else if( n2.getKind()==INST_CONSTANT ){
-    computeVarContains( n1 );
     //if( std::find( d_var_contains[ n1 ].begin(), d_var_contains[ n1 ].end(), n2 )!=d_var_contains[ n1 ].end() ){
     //  return 1;
     //}
-    if( d_var_contains[ n1 ].size()==1 && d_var_contains[ n1 ][ 0 ]==n2 ){
+    if( varContains1.size()==1 && varContains1[ 0 ]==n2 ){
       return 1;
     }
   }else if( n1.getKind()==INST_CONSTANT ){
-    computeVarContains( n2 );
     //if( std::find( d_var_contains[ n2 ].begin(), d_var_contains[ n2 ].end(), n1 )!=d_var_contains[ n2 ].end() ){
     //  return -1;
     //}
-    if( d_var_contains[ n2 ].size()==1 && d_var_contains[ n2 ][ 0 ]==n1 ){
+    if( varContains2.size()==1 && varContains2[ 0 ]==n1 ){
       return 1;
     }
   }
   return 0;
+}
+
+int TermDb::isInstanceOf( Node n1, Node n2 ){
+  std::vector< Node > varContains1;
+  std::vector< Node > varContains2;
+  computeVarContains( n1, varContains1 );
+  computeVarContains( n1, varContains2 );
+  return isInstanceOf2( n1, n2, varContains1, varContains2 );
 }
 
 bool TermDb::isUnifiableInstanceOf( Node n1, Node n2, std::map< Node, Node >& subs ){
@@ -1136,10 +1116,14 @@ bool TermDb::isUnifiableInstanceOf( Node n1, Node n2, std::map< Node, Node >& su
 void TermDb::filterInstances( std::vector< Node >& nodes ){
   std::vector< bool > active;
   active.resize( nodes.size(), true );
-  for( int i=0; i<(int)nodes.size(); i++ ){
-    for( int j=i+1; j<(int)nodes.size(); j++ ){
+  std::map< int, std::vector< Node > > varContains;
+  for( unsigned i=0; i<nodes.size(); i++ ){
+    computeVarContains( nodes[i], varContains[i] );
+  }   
+  for( unsigned i=0; i<nodes.size(); i++ ){
+    for( unsigned j=i+1; j<nodes.size(); j++ ){
       if( active[i] && active[j] ){
-        int result = isInstanceOf( nodes[i], nodes[j] );
+        int result = isInstanceOf2( nodes[i], nodes[j], varContains[i], varContains[j] );
         if( result==1 ){
           Trace("filter-instances") << nodes[j] << " is an instance of " << nodes[i] << std::endl;
           active[j] = false;
@@ -1151,7 +1135,7 @@ void TermDb::filterInstances( std::vector< Node >& nodes ){
     }
   }
   std::vector< Node > temp;
-  for( int i=0; i<(int)nodes.size(); i++ ){
+  for( unsigned i=0; i<nodes.size(); i++ ){
     if( active[i] ){
       temp.push_back( nodes[i] );
     }

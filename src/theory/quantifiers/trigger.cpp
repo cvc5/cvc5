@@ -121,23 +121,23 @@ Trigger* Trigger::mkTrigger( QuantifiersEngine* qe, Node f, std::vector< Node >&
     std::map< Node, bool > vars;
     std::map< Node, std::vector< Node > > patterns;
     size_t varCount = 0;
-    for( int i=0; i<(int)temp.size(); i++ ){
+    std::map< Node, std::vector< Node > > varContains;
+    qe->getTermDatabase()->getVarContains( f, temp, varContains );
+    for( unsigned i=0; i<temp.size(); i++ ){
       bool foundVar = false;
-      qe->getTermDatabase()->computeVarContains( temp[i] );
-      for( int j=0; j<(int)qe->getTermDatabase()->d_var_contains[ temp[i] ].size(); j++ ){
-        Node v = qe->getTermDatabase()->d_var_contains[ temp[i] ][j];
-        if( quantifiers::TermDb::getInstConstAttr(v)==f ){
-          if( vars.find( v )==vars.end() ){
-            varCount++;
-            vars[ v ] = true;
-            foundVar = true;
-          }
+      for( unsigned j=0; j<varContains[ temp[i] ].size(); j++ ){
+        Node v = varContains[ temp[i] ][j];
+        Assert( quantifiers::TermDb::getInstConstAttr(v)==f );
+        if( vars.find( v )==vars.end() ){
+          varCount++;
+          vars[ v ] = true;
+          foundVar = true;
         }
       }
       if( foundVar ){
         trNodes.push_back( temp[i] );
-        for( int j=0; j<(int)qe->getTermDatabase()->d_var_contains[ temp[i] ].size(); j++ ){
-          Node v = qe->getTermDatabase()->d_var_contains[ temp[i] ][j];
+        for( unsigned j=0; j<varContains[ temp[i] ].size(); j++ ){
+          Node v = varContains[ temp[i] ][j];
           patterns[ v ].push_back( temp[i] );
         }
       }
@@ -156,11 +156,11 @@ Trigger* Trigger::mkTrigger( QuantifiersEngine* qe, Node f, std::vector< Node >&
       return NULL;
     }else{
       //now, minimize the trigger
-      for( int i=0; i<(int)trNodes.size(); i++ ){
+      for( unsigned i=0; i<trNodes.size(); i++ ){
         bool keepPattern = false;
         Node n = trNodes[i];
-        for( int j=0; j<(int)qe->getTermDatabase()->d_var_contains[ n ].size(); j++ ){
-          Node v = qe->getTermDatabase()->d_var_contains[ n ][j];
+        for( unsigned j=0; j<varContains[ n ].size(); j++ ){
+          Node v = varContains[ n ][j];
           if( patterns[v].size()==1 ){
             keepPattern = true;
             break;
@@ -168,9 +168,9 @@ Trigger* Trigger::mkTrigger( QuantifiersEngine* qe, Node f, std::vector< Node >&
         }
         if( !keepPattern ){
           //remove from pattern vector
-          for( int j=0; j<(int)qe->getTermDatabase()->d_var_contains[ n ].size(); j++ ){
-            Node v = qe->getTermDatabase()->d_var_contains[ n ][j];
-            for( int k=0; k<(int)patterns[v].size(); k++ ){
+          for( unsigned j=0; j<varContains[ n ].size(); j++ ){
+            Node v = varContains[ n ][j];
+            for( unsigned k=0; k<patterns[v].size(); k++ ){
               if( patterns[v][k]==n ){
                 patterns[v].erase( patterns[v].begin() + k, patterns[v].begin() + k + 1 );
                 break;
@@ -335,7 +335,7 @@ bool Trigger::isSimpleTrigger( Node n ){
 }
 
 
-bool Trigger::collectPatTerms2( QuantifiersEngine* qe, Node f, Node n, std::map< Node, bool >& patMap, int tstrt, std::vector< Node >& exclude, bool pol, bool hasPol ){
+bool Trigger::collectPatTerms2( Node f, Node n, std::map< Node, bool >& patMap, int tstrt, std::vector< Node >& exclude, bool pol, bool hasPol ){
   if( patMap.find( n )==patMap.end() ){
     patMap[ n ] = false;
     bool newHasPol = n.getKind()==IFF ? false : hasPol;
@@ -347,7 +347,7 @@ bool Trigger::collectPatTerms2( QuantifiersEngine* qe, Node f, Node n, std::map<
         bool retVal = false;
         for( int i=0; i<(int)n.getNumChildren(); i++ ){
           bool newHasPol2 = (n.getKind()==ITE && i==0) ? false : newHasPol;
-          if( collectPatTerms2( qe, f, n[i], patMap, tstrt, exclude, newPol, newHasPol2 ) ){
+          if( collectPatTerms2( f, n[i], patMap, tstrt, exclude, newPol, newHasPol2 ) ){
             retVal = true;
           }
         }
@@ -383,7 +383,7 @@ bool Trigger::collectPatTerms2( QuantifiersEngine* qe, Node f, Node n, std::map<
       if( n.getKind()!=FORALL ){
         for( int i=0; i<(int)n.getNumChildren(); i++ ){
           bool newHasPol2 = (n.getKind()==ITE && i==0) ? false : newHasPol;
-          if( collectPatTerms2( qe, f, n[i], patMap, tstrt, exclude, newPol, newHasPol2 ) ){
+          if( collectPatTerms2( f, n[i], patMap, tstrt, exclude, newPol, newHasPol2 ) ){
             retVal = true;
           }
         }
@@ -491,7 +491,7 @@ void Trigger::collectPatTerms( QuantifiersEngine* qe, Node f, Node n, std::vecto
       }
     }
   }
-  collectPatTerms2( qe, f, n, patMap, tstrt, exclude, true, true );
+  collectPatTerms2( f, n, patMap, tstrt, exclude, true, true );
   for( std::map< Node, bool >::iterator it = patMap.begin(); it != patMap.end(); ++it ){
     if( it->second ){
       patTerms.push_back( it->first );
@@ -566,6 +566,17 @@ Node Trigger::getInversion( Node n, Node x ) {
     return getInversion( n[cindex], x );
   }
   return Node::null();
+}
+
+void Trigger::getTriggerVariables( QuantifiersEngine* qe, Node icn, Node f, std::vector< Node >& t_vars ) {
+  std::vector< Node > patTerms;
+  //collect all patterns from icn
+  std::vector< Node > exclude;
+  collectPatTerms( qe, f, icn, patTerms, TS_ALL, exclude );
+  //collect all variables from all patterns in patTerms, add to t_vars
+  for( unsigned i=0; i<patTerms.size(); i++ ){
+    qe->getTermDatabase()->getVarContainsNode( f, patTerms[i], t_vars );
+  }
 }
 
 InstMatchGenerator* Trigger::getInstMatchGenerator( Node q, Node n ) {

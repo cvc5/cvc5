@@ -239,6 +239,9 @@ all \n\
 ground (default) \n\
 + Only infer ground definitions for functions.\n\
 \n\
+ground-uf \n\
++ Only infer ground definitions for functions that result in triggers for all free variables.\n\
+\n\
 ";
 
 inline InstWhenMode stringToInstWhenMode(std::string option, std::string optarg, SmtEngine* smt) throw(OptionException) {
@@ -487,6 +490,8 @@ inline MacrosQuantMode stringToMacrosQuantMode(std::string option, std::string o
     return MACROS_QUANT_MODE_ALL;
   } else if(optarg == "ground") {
     return MACROS_QUANT_MODE_GROUND;
+  } else if(optarg == "ground-uf") {
+    return MACROS_QUANT_MODE_GROUND_UF;
   } else if(optarg ==  "help") {
     puts(macrosQuantHelp.c_str());
     exit(1);

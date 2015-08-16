@@ -1427,6 +1427,10 @@ void SmtEngine::setDefaults() {
     if( !options::rewriteDivk.wasSetByUser()) {
       options::rewriteDivk.set( true );
     }
+    //do not do macros
+    if( !options::macrosQuant.wasSetByUser()) {
+      options::macrosQuant.set( false );
+    }
   }
 
   //cbqi options
@@ -3309,7 +3313,7 @@ void SmtEnginePrivate::processAssertions() {
     dumpAssertions("post-skolem-quant", d_assertions);
     if( options::macrosQuant() ){
       //quantifiers macro expansion
-      quantifiers::QuantifierMacros qm;
+      quantifiers::QuantifierMacros qm( d_smt.d_theoryEngine->getQuantifiersEngine() );
       bool success;
       do{
         success = qm.simplify( d_assertions.ref(), true );

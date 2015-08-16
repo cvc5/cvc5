@@ -166,6 +166,8 @@ typedef enum {
   MACROS_QUANT_MODE_ALL,
   /** infer ground definitions */
   MACROS_QUANT_MODE_GROUND,
+  /** infer ground uf definitions */
+  MACROS_QUANT_MODE_GROUND_UF,
 } MacrosQuantMode;
 
 }/* CVC4::theory::quantifiers namespace */

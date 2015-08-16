@@ -260,9 +260,9 @@ option lteRestrictInstClosure --lte-restrict-inst-closure bool :default false
 
 option quantAlphaEquiv --quant-alpha-equiv bool :default true
   infer alpha equivalence between quantified formulas
-option macrosQuant --macros-quant bool :default false
+option macrosQuant --macros-quant bool :read-write :default false
  perform quantifiers macro expansion
-option macrosQuantMode --macros-quant-mode=MODE CVC4::theory::quantifiers::MacrosQuantMode :default CVC4::theory::quantifiers::MACROS_QUANT_MODE_GROUND :include "theory/quantifiers/modes.h" :handler CVC4::theory::quantifiers::stringToMacrosQuantMode :handler-include "theory/quantifiers/options_handlers.h"
+option macrosQuantMode --macros-quant-mode=MODE CVC4::theory::quantifiers::MacrosQuantMode :default CVC4::theory::quantifiers::MACROS_QUANT_MODE_GROUND_UF :include "theory/quantifiers/modes.h" :handler CVC4::theory::quantifiers::stringToMacrosQuantMode :handler-include "theory/quantifiers/options_handlers.h"
  mode for quantifiers macro expansion
 
 ### recursive function options
