@@ -1464,10 +1464,10 @@ bool TheoryStrings::processSimpleNEq( std::vector< std::vector< Node > > &normal
           temp_exp.insert(temp_exp.end(), curr_exp.begin(), curr_exp.end() );
           temp_exp.push_back(length_eq);
           //must add explanation for length terms
-          if( !normal_forms[i][index_i].isConst() && length_term_i[0]!=normal_forms[i][index_i] ){
+          if( !normal_forms[i][index_i].isConst() && !length_term_i.isConst() && length_term_i[0]!=normal_forms[i][index_i] ){
             temp_exp.push_back( length_term_i[0].eqNode( normal_forms[i][index_i] ) );
           }
-          if( !normal_forms[j][index_j].isConst() && length_term_j[0]!=normal_forms[j][index_j] ){
+          if( !normal_forms[j][index_j].isConst() && !length_term_j.isConst() && length_term_j[0]!=normal_forms[j][index_j] ){
             temp_exp.push_back( length_term_j[0].eqNode( normal_forms[j][index_j] ) );
           }
           Node eq_exp = temp_exp.empty() ? d_true :
