@@ -830,6 +830,8 @@ public:
   SharedTermsDatabase* getSharedTermsDatabase() { return &d_sharedTerms; }
 
   theory::eq::EqualityEngine* getMasterEqualityEngine() { return d_masterEqualityEngine; }
+  
+  RemoveITE* getIteRemover() { return &d_iteRemover; }
 
   SortInference* getSortInference() { return &d_sortInfer; }
 private:

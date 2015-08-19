@@ -21,6 +21,7 @@
 #include "theory/quantifiers/inst_strategy_e_matching.h"
 #include "theory/quantifiers/inst_strategy_cbqi.h"
 #include "theory/quantifiers/trigger.h"
+#include "util/ite_removal.h"
 
 using namespace std;
 using namespace CVC4;
@@ -101,7 +102,26 @@ bool InstantiationEngine::doInstantiationRound( Theory::Effort effort ){
           //add counterexample lemma
           lem = Rewriter::rewrite( lem );
           Trace("cbqi") << "Counterexample lemma : " << lem << std::endl;
-          d_quantEngine->addLemma( lem, false );
+          
+          //must explicitly remove ITEs so that we record dependencies
+          IteSkolemMap iteSkolemMap;
+          std::vector< Node > lems;
+          lems.push_back( lem );
+          d_quantEngine->getTheoryEngine()->getIteRemover()->run(lems, iteSkolemMap);
+          std::vector< Node > aux_vars;
+          for( unsigned i=0; i<lems.size(); i++ ){
+            Trace("cbqi-debug") << "Counterexample lemma (processed) " << i << " : " << lems[i] << std::endl;
+            d_quantEngine->addLemma( lems[i], false );
+          }
+          for(IteSkolemMap::iterator i = iteSkolemMap.begin(); i != iteSkolemMap.end(); ++i) {
+            Trace("cbqi-debug") << "  Auxiliary var (from ITE) : " << i->first << std::endl;
+            aux_vars.push_back( i->first );
+          }
+          //record the auxiliary variables in the inst strategy
+          if( d_i_cegqi ){
+            d_i_cegqi->setAuxiliaryVariables( f, aux_vars );
+          }
+          
           addedLemma = true;
         }
       }

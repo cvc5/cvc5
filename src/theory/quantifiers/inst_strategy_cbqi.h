@@ -59,6 +59,11 @@ private:
   //program variable contains cache
   std::map< Node, std::map< Node, bool > > d_prog_var;
   std::map< Node, bool > d_inelig;
+  //current assertions
+  std::map< TheoryId, std::vector< Node > > d_curr_asserts;
+  std::map< Node, std::vector< Node > > d_curr_eqc;
+  std::map< Node, Node > d_curr_rep;
+  std::vector< Node > d_curr_arith_eqc;
 private:
   //for adding instantiations during check
   void computeProgVars( Node n );
@@ -75,10 +80,14 @@ private:
   Node applySubstitution( Node n, std::vector< Node >& subs, std::vector< Node >& vars,
                           std::vector< Node >& coeff, std::vector< Node >& has_coeff, Node& pv_coeff, bool try_coeff = true );
   Node getModelBasedProjectionValue( Node t, bool strict, bool isLower, Node c, Node me, Node mt, Node theta );
+  void processAssertions();
+  void addToAuxVarSubstitution( std::vector< Node >& subs_lhs, std::vector< Node >& subs_rhs, Node l, Node r );
 public:
   CegInstantiator( QuantifiersEngine * qe, CegqiOutput * out, bool use_vts_delta = true, bool use_vts_inf = true );
   //the CE variables
   std::vector< Node > d_vars;
+  //auxiliary variables
+  std::vector< Node > d_aux_vars;
   //check : add instantiations based on valuation of d_vars
   bool check();
 };
@@ -144,6 +153,7 @@ class InstStrategyCegqi : public InstStrategy {
 private:
   CegqiOutputInstStrategy * d_out;
   std::map< Node, CegInstantiator * > d_cinst;
+  std::map< Node, std::vector< Node > > d_aux_variables;
   Node d_small_const;
   Node d_curr_quant;
   bool d_check_vts_lemma_lc;
@@ -159,6 +169,9 @@ public:
   bool addLemma( Node lem );
   /** identify */
   std::string identify() const { return std::string("Cegqi"); }
+  
+  //set auxiliary variables
+  void setAuxiliaryVariables( Node q, std::vector< Node >& vars );
 };
 
 }

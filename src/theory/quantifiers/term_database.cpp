@@ -1294,6 +1294,20 @@ Node TermDb::getCanonicalTerm( TNode n, bool apply_torder ){
   return getCanonicalTerm( n, var_count, subs, apply_torder );
 }
 
+void TermDb::getVtsTerms( std::vector< Node >& t, bool isFree, bool create, bool inc_delta ) {
+  if( inc_delta ){
+    Node delta = getVtsDelta( isFree, create );
+    if( !delta.isNull() ){
+      t.push_back( delta );
+    }
+  }
+  for( unsigned r=0; r<2; r++ ){
+    Node inf = getVtsInfinityIndex( r, isFree, create );
+    if( !inf.isNull() ){
+      t.push_back( inf );
+    }
+  }
+}
 
 Node TermDb::getVtsDelta( bool isFree, bool create ) {
   if( create ){
@@ -1309,30 +1323,62 @@ Node TermDb::getVtsDelta( bool isFree, bool create ) {
   return isFree ? d_vts_delta_free : d_vts_delta;
 }
 
-Node TermDb::getVtsInfinity( bool isFree, bool create ) {
+Node TermDb::getVtsInfinity( TypeNode tn, bool isFree, bool create ) {
   if( create ){
-    if( d_vts_inf_free.isNull() ){
-      d_vts_inf_free = NodeManager::currentNM()->mkSkolem( "inf", NodeManager::currentNM()->integerType(), "free infinity for virtual term substitution" );
+    if( d_vts_inf_free[tn].isNull() ){
+      d_vts_inf_free[tn] = NodeManager::currentNM()->mkSkolem( "inf", tn, "free infinity for virtual term substitution" );
     }
-    if( d_vts_inf.isNull() ){
-      d_vts_inf = NodeManager::currentNM()->mkSkolem( "inf", NodeManager::currentNM()->integerType(), "infinity for virtual term substitution" );
+    if( d_vts_inf[tn].isNull() ){
+      d_vts_inf[tn] = NodeManager::currentNM()->mkSkolem( "inf", tn, "infinity for virtual term substitution" );
     }
   }
-  return isFree ? d_vts_inf_free : d_vts_inf;
+  return isFree ? d_vts_inf_free[tn] : d_vts_inf[tn];
+}
+
+Node TermDb::getVtsInfinityIndex( int i, bool isFree, bool create ) {
+  if( i==0 ){
+    return getVtsInfinity( NodeManager::currentNM()->realType(), isFree, create );
+  }else if( i==1 ){
+    return getVtsInfinity( NodeManager::currentNM()->integerType(), isFree, create );
+  }else{
+    Assert( false );
+    return Node::null();
+  }
 }
 
 Node TermDb::rewriteVtsSymbols( Node n ) {
   if( ( n.getKind()==EQUAL || n.getKind()==GEQ ) ){
     Trace("quant-vts-debug") << "VTS : process " << n << std::endl;
-    bool rew_inf = false;
+    Node rew_vts_inf;
     bool rew_delta = false;
     //rewriting infinity always takes precedence over rewriting delta
-    if( !d_vts_inf.isNull() && containsTerm( n, d_vts_inf ) ){
-      rew_inf = true;
-    }else if( !d_vts_delta.isNull() && containsTerm( n, d_vts_delta ) ){
-      rew_delta = true;
+    for( unsigned r=0; r<2; r++ ){
+      Node inf = getVtsInfinityIndex( r, false, false );
+      if( !inf.isNull() && containsTerm( n, inf ) ){
+        if( rew_vts_inf.isNull() ){
+          rew_vts_inf = inf;
+        }else{
+          //for mixed int/real with multiple infinities
+          Trace("quant-vts-debug") << "Multiple infinities...equate " << inf << " = " << rew_vts_inf << std::endl;
+          std::vector< Node > subs_lhs;
+          subs_lhs.push_back( inf );
+          std::vector< Node > subs_rhs;
+          subs_lhs.push_back( rew_vts_inf );
+          n = n.substitute( subs_lhs.begin(), subs_lhs.end(), subs_rhs.begin(), subs_rhs.end() );
+          n = Rewriter::rewrite( n );
+          //may have cancelled
+          if( !containsTerm( n, rew_vts_inf ) ){
+            rew_vts_inf = Node::null();
+          }
+        }
+      }
     }
-    if( rew_inf || rew_delta ){
+    if( rew_vts_inf.isNull() ){
+      if( !d_vts_delta.isNull() && containsTerm( n, d_vts_delta ) ){
+        rew_delta = true;
+      }
+    }
+    if( !rew_vts_inf.isNull()  || rew_delta ){
       if( n.getKind()==EQUAL ){
         return d_false;
       }else{
@@ -1342,7 +1388,7 @@ Node TermDb::rewriteVtsSymbols( Node n ) {
             Trace("quant-vts-debug") << "VTS got monomial sum : " << std::endl;
             QuantArith::debugPrintMonomialSum( msum, "quant-vts-debug" );
           }
-          Node vts_sym = rew_inf ? d_vts_inf : d_vts_delta;
+          Node vts_sym = !rew_vts_inf.isNull() ? rew_vts_inf : d_vts_delta;
           Assert( !vts_sym.isNull() );
           Node iso_n;
           int res = QuantArith::isolate( vts_sym, msum, iso_n, n.getKind(), true );
@@ -1360,13 +1406,13 @@ Node TermDb::rewriteVtsSymbols( Node n ) {
             }
             Node nlit;
             if( res==1 ){
-              if( rew_inf ){
+              if( !rew_vts_inf.isNull() ){
                 nlit = d_true;
               }else{
                 nlit = NodeManager::currentNM()->mkNode( GEQ, d_zero, slv );
               }
             }else{
-              if( rew_inf ){
+              if( !rew_vts_inf.isNull() ){
                 nlit = d_false;
               }else{
                 nlit = NodeManager::currentNM()->mkNode( GT, slv, d_zero );
@@ -1382,16 +1428,13 @@ Node TermDb::rewriteVtsSymbols( Node n ) {
   }else if( n.getKind()==FORALL ){
     //cannot traverse beneath quantifiers
     std::vector< Node > vars;
+    getVtsTerms( vars, false );
     std::vector< Node > vars_free;
-    if( !d_vts_inf.isNull() ){
-      vars.push_back( d_vts_inf );
-      vars_free.push_back( d_vts_inf_free );
+    getVtsTerms( vars_free, true );
+    Assert( vars.size()==vars_free.size() );
+    if( !vars.empty() ){
+      n = n.substitute( vars.begin(), vars.end(), vars_free.begin(), vars_free.end() );
     }
-    if( !d_vts_delta.isNull() ){
-      vars.push_back( d_vts_delta );
-      vars_free.push_back( d_vts_delta_free );
-    }
-    n = n.substitute( vars.begin(), vars.end(), vars_free.begin(), vars_free.end() );
     return n;
   }else{
     bool childChanged = false;
@@ -1414,16 +1457,74 @@ Node TermDb::rewriteVtsSymbols( Node n ) {
   }
 }
 
-bool TermDb::containsTerm( Node n, Node t ) {
-  if( n==t ){
-    return true;
-  }else{
-    for( unsigned i=0; i<n.getNumChildren(); i++ ){
-      if( containsTerm( n[i], t ) ){
+bool TermDb::containsVtsTerm( Node n, bool isFree ) {
+  std::vector< Node > t;
+  getVtsTerms( t, isFree, false );
+  return containsTerms( n, t );
+}
+
+bool TermDb::containsVtsTerm( std::vector< Node >& n, bool isFree ) {
+  std::vector< Node > t;
+  getVtsTerms( t, isFree, false );
+  if( !t.empty() ){
+    for( unsigned i=0; i<n.size(); i++ ){
+      if( containsTerms( n[i], t ) ){
         return true;
       }
     }
+  }
+  return false;
+}
+
+bool TermDb::containsVtsInfinity( Node n, bool isFree ) {
+  std::vector< Node > t;
+  getVtsTerms( t, isFree, false, false );
+  return containsTerms( n, t );
+}
+
+bool TermDb::containsTerm2( Node n, Node t, std::map< Node, bool >& visited ) {
+  if( n==t ){
+    return true;
+  }else{
+    if( visited.find( n )==visited.end() ){
+      visited[n] = true;
+      for( unsigned i=0; i<n.getNumChildren(); i++ ){
+        if( containsTerm2( n[i], t, visited ) ){
+          return true;
+        }
+      }
+    }
     return false;
+  }
+}
+
+bool TermDb::containsTerms2( Node n, std::vector< Node >& t, std::map< Node, bool >& visited ) {
+  if( std::find( t.begin(), t.end(), n )!=t.end() ){
+    return true;
+  }else{
+    if( visited.find( n )==visited.end() ){
+      visited[n] = true;
+      for( unsigned i=0; i<n.getNumChildren(); i++ ){
+        if( containsTerms2( n[i], t, visited ) ){
+          return true;
+        }
+      }
+    }
+    return false;
+  }
+}
+
+bool TermDb::containsTerm( Node n, Node t ) {
+  std::map< Node, bool > visited;
+  return containsTerm2( n, t, visited );
+}
+
+bool TermDb::containsTerms( Node n, std::vector< Node >& t ) {
+  if( t.empty() ){
+    return false;
+  }else{
+    std::map< Node, bool > visited;
+    return containsTerms2( n, t, visited );
   }
 }
 

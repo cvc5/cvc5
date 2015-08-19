@@ -246,6 +246,8 @@ option cbqiSat --cbqi-sat bool :read-write :default true
  answer sat when quantifiers are asserted with counterexample-based quantifier instantiation
 option cbqiModel --cbqi-model bool :read-write :default true
  guide instantiations by model values for counterexample-based quantifier instantiation
+option cbqiUseInf --cbqi-use-inf bool :read-write :default false
+ use infinity for vts in counterexample-based quantifier instantiation
  
 ### local theory extensions options 
 

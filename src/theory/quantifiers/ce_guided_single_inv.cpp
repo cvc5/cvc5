@@ -719,10 +719,7 @@ bool CegConjectureSingleInv::addInstantiation( std::vector< Node >& subs ){
   }else{
     Trace("cegqi-engine") << siss.str() << std::endl;
     Node lem = d_single_inv[1].substitute( d_single_inv_var.begin(), d_single_inv_var.end(), subs.begin(), subs.end() );
-    Node delta = d_qe->getTermDatabase()->getVtsDelta( false, false );
-    Node inf = d_qe->getTermDatabase()->getVtsInfinity( false, false );
-    if( ( !delta.isNull() && TermDb::containsTerm( lem, delta ) ) || 
-        ( !inf.isNull() && TermDb::containsTerm( lem, inf ) ) ){
+    if( d_qe->getTermDatabase()->containsVtsTerm( lem ) ){
       Trace("cegqi-engine-debug") << "Rewrite based on vts symbols..." << std::endl;
       lem = d_qe->getTermDatabase()->rewriteVtsSymbols( lem );
     }
