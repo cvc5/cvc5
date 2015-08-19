@@ -214,6 +214,8 @@ bool TypeNode::isComparableTo(TypeNode t) const {
       }
     }
     return true;
+  } else if(isSet() && t.isSet()) {
+    return getSetElementType().isComparableTo(t.getSetElementType());
   }
 
   if(isPredicateSubtype()) {
