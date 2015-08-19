@@ -36,7 +36,7 @@ public:
   CegqiOutputSingleInv( CegConjectureSingleInv * out ) : d_out( out ){}
   ~CegqiOutputSingleInv() {}
   CegConjectureSingleInv * d_out;
-  bool addInstantiation( std::vector< Node >& subs, std::vector< int >& subs_typ );
+  bool addInstantiation( std::vector< Node >& subs );
   bool isEligibleForInstantiation( Node n );
   bool addLemma( Node lem );
 };
@@ -97,7 +97,7 @@ public:
 private:
   std::vector< Node > d_curr_lemmas;
   //add instantiation
-  bool addInstantiation( std::vector< Node >& subs, std::vector< int >& subs_typ );
+  bool addInstantiation( std::vector< Node >& subs );
   //is eligible for instantiation
   bool isEligibleForInstantiation( Node n );
   // add lemma

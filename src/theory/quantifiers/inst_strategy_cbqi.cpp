@@ -31,11 +31,12 @@ using namespace CVC4::theory::arith;
 using namespace CVC4::theory::datatypes;
 
 #define ARITH_INSTANTIATOR_USE_MINUS_DELTA
+//#define MBP_STRICT_ASSERTIONS
 
 
 
-
-CegInstantiator::CegInstantiator( QuantifiersEngine * qe, CegqiOutput * out ) : d_qe( qe ), d_out( out ){
+CegInstantiator::CegInstantiator( QuantifiersEngine * qe, CegqiOutput * out, bool use_vts_delta, bool use_vts_inf ) :
+d_qe( qe ), d_out( out ), d_use_vts_delta( use_vts_delta ), d_use_vts_inf( use_vts_inf ){
   d_zero = NodeManager::currentNM()->mkConst( Rational( 0 ) );
   d_one = NodeManager::currentNM()->mkConst( Rational( 1 ) );
   d_true = NodeManager::currentNM()->mkConst( true );
@@ -64,26 +65,28 @@ void CegInstantiator::computeProgVars( Node n ){
 }
 
 bool CegInstantiator::addInstantiation( std::vector< Node >& subs, std::vector< Node >& vars,
-                                        std::vector< Node >& coeff, std::vector< Node >& has_coeff, std::vector< int >& subs_typ,
+                                        std::vector< Node >& coeff, std::vector< Node >& has_coeff, Node theta,
                                         unsigned i, unsigned effort ){
   if( i==d_vars.size() ){
-    return addInstantiationCoeff( subs, vars, coeff, has_coeff, subs_typ, 0 );
+    return addInstantiationCoeff( subs, vars, coeff, has_coeff, 0 );
   }else{
     eq::EqualityEngine* ee = d_qe->getMasterEqualityEngine();
-    std::map< int, std::map< Node, std::map< Node, bool > > > subs_proc;
+    std::map< Node, std::map< Node, bool > > subs_proc;
     //Node v = d_single_inv_map_to_prog[d_single_inv[0][i]];
     Node pv = d_vars[i];
     TypeNode pvtn = pv.getType();
 
+    //if in effort=2, we must choose at least one model value
     if( (i+1)<d_vars.size() || effort!=2 ){
       //[1] easy case : pv is in the equivalence class as another term not containing pv
       if( ee->hasTerm( pv ) ){
+        //std::vector< Node > eqc_sk;
         Node pvr = ee->getRepresentative( pv );
         eq::EqClassIterator eqc_i = eq::EqClassIterator( pvr, ee );
         while( !eqc_i.isFinished() ){
           Node n = *eqc_i;
           if( n!=pv ){
-            Trace("cegqi-si-inst-debug") << "[1] " << i << "...try based on equal term " << n << std::endl;
+            Trace("cbqi-inst-debug") << "[1] " << i << "...try based on equal term " << n << std::endl;
             //compute d_subs_fv, which program variables are contained in n
             computeProgVars( n );
             //must be an eligible term
@@ -96,7 +99,7 @@ bool CegInstantiator::addInstantiation( std::vector< Node >& subs, std::vector< 
                 if( !ns.isNull() ){
                   computeProgVars( ns );
                   //substituted version must be new and cannot contain pv
-                  proc = subs_proc[0][pv_coeff].find( ns )==subs_proc[0][pv_coeff].end() && d_prog_var[ns].find( pv )==d_prog_var[ns].end();
+                  proc = subs_proc[pv_coeff].find( ns )==subs_proc[pv_coeff].end() && d_prog_var[ns].find( pv )==d_prog_var[ns].end();
                 }
               }else{
                 ns = n;
@@ -104,12 +107,16 @@ bool CegInstantiator::addInstantiation( std::vector< Node >& subs, std::vector< 
               }
               if( proc ){
                 //try the substitution
-                subs_proc[0][ns][pv_coeff] = true;
-                if( addInstantiationInc( ns, pv, pv_coeff, 0, subs, vars, coeff, has_coeff, subs_typ, i, effort ) ){
+                subs_proc[ns][pv_coeff] = true;
+                if( addInstantiationInc( ns, pv, pv_coeff, subs, vars, coeff, has_coeff, theta, i, effort ) ){
                   return true;
                 }
               }
             }
+            //record this as skolem
+            //if( n.getKind()==SKOLEM ){
+            //  eqc_sk.push_back( n );
+            //}
           }
           ++eqc_i;
         }
@@ -117,6 +124,7 @@ bool CegInstantiator::addInstantiation( std::vector< Node >& subs, std::vector< 
 
       //[2] : we can solve an equality for pv
       ///iterate over equivalence classes to find cases where we can solve for the variable
+      Node vts_inf = d_qe->getTermDatabase()->getVtsInfinity( false, false );
       if( pvtn.isInteger() || pvtn.isReal() ){
         eq::EqClassesIterator eqcs_i = eq::EqClassesIterator( ee );
         while( !eqcs_i.isFinished() ){
@@ -147,46 +155,56 @@ bool CegInstantiator::addInstantiation( std::vector< Node >& subs, std::vector< 
                   for( unsigned j=0; j<lhs.size(); j++ ){
                     //if this term or the another has pv in it, try to solve for it
                     if( hasVar || lhs_v[j] ){
-                      Trace("cegqi-si-inst-debug") << "[2] " << i << "...try based on equality " << lhs[j] << " " << ns << std::endl;
+                      Trace("cbqi-inst-debug") << "[2] " << i << "...try based on equality " << lhs[j] << " = " << ns << std::endl;
                       Node eq_lhs = lhs[j];
                       Node eq_rhs = ns;
                       //make the same coefficient
                       if( pv_coeff!=lhs_coeff[j] ){
                         if( !pv_coeff.isNull() ){
-                          Trace("cegqi-si-inst-debug") << "...mult lhs by " << pv_coeff << std::endl;
+                          Trace("cbqi-inst-debug") << "...mult lhs by " << pv_coeff << std::endl;
                           eq_lhs = NodeManager::currentNM()->mkNode( MULT, pv_coeff, eq_lhs );
                           eq_lhs = Rewriter::rewrite( eq_lhs );
                         }
                         if( !lhs_coeff[j].isNull() ){
-                          Trace("cegqi-si-inst-debug") << "...mult rhs by " << lhs_coeff[j] << std::endl;
+                          Trace("cbqi-inst-debug") << "...mult rhs by " << lhs_coeff[j] << std::endl;
                           eq_rhs = NodeManager::currentNM()->mkNode( MULT, lhs_coeff[j], eq_rhs );
                           eq_rhs = Rewriter::rewrite( eq_rhs );
                         }
                       }
                       Node eq = eq_lhs.eqNode( eq_rhs );
                       eq = Rewriter::rewrite( eq );
-                      Trace("cegqi-si-inst-debug") << "...equality is " << eq << std::endl;
-                      std::map< Node, Node > msum;
-                      if( QuantArith::getMonomialSumLit( eq, msum ) ){
-                        if( Trace.isOn("cegqi-si-inst-debug") ){
-                          Trace("cegqi-si-inst-debug") << "...got monomial sum: " << std::endl;
-                          QuantArith::debugPrintMonomialSum( msum, "cegqi-si-inst-debug" );
-                          Trace("cegqi-si-inst-debug") << "isolate for " << pv << "..." << std::endl;
-                        }
-                        Node veq;
-                        if( QuantArith::isolate( pv, msum, veq, EQUAL, true )!=0 ){
-                          Trace("cegqi-si-inst-debug") << "...isolated equality " << veq << "." << std::endl;
-                          Node veq_c;
-                          if( veq[0]!=pv ){
-                            Node veq_v;
-                            if( QuantArith::getMonomial( veq[0], veq_c, veq_v ) ){
-                              Assert( veq_v==pv );
-                            }
+                      //cannot contain infinity
+                      if( vts_inf.isNull() || !TermDb::containsTerm( eq, vts_inf ) ){
+                        Trace("cbqi-inst-debug") << "...equality is " << eq << std::endl;
+                        std::map< Node, Node > msum;
+                        if( QuantArith::getMonomialSumLit( eq, msum ) ){
+                          if( Trace.isOn("cbqi-inst-debug") ){
+                            Trace("cbqi-inst-debug") << "...got monomial sum: " << std::endl;
+                            QuantArith::debugPrintMonomialSum( msum, "cbqi-inst-debug" );
+                            Trace("cbqi-inst-debug") << "isolate for " << pv << "..." << std::endl;
                           }
-                          if( subs_proc[0][veq[1]].find( veq_c )==subs_proc[0][veq[1]].end() ){
-                            subs_proc[0][veq[1]][veq_c] = true;
-                            if( addInstantiationInc( veq[1], pv, veq_c, 0, subs, vars, coeff, has_coeff, subs_typ, i, effort ) ){
-                              return true;
+                          Node veq;
+                          if( QuantArith::isolate( pv, msum, veq, EQUAL, true )!=0 ){
+                            Trace("cbqi-inst-debug") << "...isolated equality " << veq << "." << std::endl;
+                            Node veq_c;
+                            if( veq[0]!=pv ){
+                              Node veq_v;
+                              if( QuantArith::getMonomial( veq[0], veq_c, veq_v ) ){
+                                Assert( veq_v==pv );
+                              }
+                            }
+                            Node val = veq[1];
+                            //eliminate coefficient if real
+                            if( !pvtn.isInteger() && !veq_c.isNull() ){
+                              val = NodeManager::currentNM()->mkNode( MULT, val, NodeManager::currentNM()->mkConst( Rational(1) / veq_c.getConst<Rational>() ) );
+                              val = Rewriter::rewrite( val );
+                              veq_c = Node::null();
+                            }
+                            if( subs_proc[val].find( veq_c )==subs_proc[val].end() ){
+                              subs_proc[val][veq_c] = true;
+                              if( addInstantiationInc( val, pv, veq_c, subs, vars, coeff, has_coeff, theta, i, effort ) ){
+                                return true;
+                              }
                             }
                           }
                         }
@@ -206,17 +224,21 @@ bool CegInstantiator::addInstantiation( std::vector< Node >& subs, std::vector< 
       }
 
       //[3] directly look at assertions
+      std::vector< Node > mbp_bounds[2];
+      std::vector< Node > mbp_coeff[2];
+      std::vector< bool > mbp_strict[2];
+      std::vector< Node > mbp_lit[2];
       unsigned rmax = Theory::theoryOf( pv )==Theory::theoryOf( pv.getType() ) ? 1 : 2;
       for( unsigned r=0; r<rmax; r++ ){
         TheoryId tid = r==0 ? Theory::theoryOf( pv ) : Theory::theoryOf( pv.getType() );
         Theory* theory = d_qe->getTheoryEngine()->theoryOf( tid );
-        Trace("cegqi-si-inst-debug2") << "Theory of " << pv << " (r=" << r << ") is " << tid << std::endl;
+        Trace("cbqi-inst-debug2") << "Theory of " << pv << " (r=" << r << ") is " << tid << std::endl;
         if (theory && d_qe->getTheoryEngine()->isTheoryEnabled(tid)) {
-          Trace("cegqi-si-inst-debug2") << "Look at assertions of " << tid << std::endl;
+          Trace("cbqi-inst-debug2") << "Look at assertions of " << tid << std::endl;
           context::CDList<Assertion>::const_iterator it = theory->facts_begin(), it_end = theory->facts_end();
           for (unsigned j = 0; it != it_end; ++ it, ++j) {
             Node lit = (*it).assertion;
-            Trace("cegqi-si-inst-debug2") << "  look at " << lit << std::endl;
+            Trace("cbqi-inst-debug2") << "  look at " << lit << std::endl;
             Node atom = lit.getKind()==NOT ? lit[0] : lit;
             bool pol = lit.getKind()!=NOT;
             //arithmetic inequalities and disequalities
@@ -247,71 +269,101 @@ bool CegInstantiator::addInstantiation( std::vector< Node >& subs, std::vector< 
                     }
                   }
                 }
-                //if it contains pv
+                //if it contains pv, not infinity
                 if( !atom_lhs.isNull() && d_prog_var[atom_lhs].find( pv )!=d_prog_var[atom_lhs].end() ){
                   Node satom = NodeManager::currentNM()->mkNode( atom.getKind(), atom_lhs, atom_rhs );
-                  Trace("cegqi-si-inst-debug") << "[3] From assertion : " << atom << ", pol = " << pol << std::endl;
-                  Trace("cegqi-si-inst-debug") << "       substituted : " << satom << ", pol = " << pol << std::endl;
-                  std::map< Node, Node > msum;
-                  if( QuantArith::getMonomialSumLit( satom, msum ) ){
-                    if( Trace.isOn("cegqi-si-inst-debug") ){
-                      Trace("cegqi-si-inst-debug") << "...got monomial sum: " << std::endl;
-                      QuantArith::debugPrintMonomialSum( msum, "cegqi-si-inst-debug" );
-                      Trace("cegqi-si-inst-debug") << "isolate for " << pv << "..." << std::endl;
-                    }
-                    Node vatom;
-                    //isolate pv in the inequality
-                    int ires = QuantArith::isolate( pv, msum, vatom, atom.getKind(), true );
-                    if( ires!=0 ){
-                      Trace("cegqi-si-inst-debug") << "...isolated atom " << vatom << "." << std::endl;
-                      Node val = vatom[ ires==1 ? 1 : 0 ];
-                      Node pvm = vatom[ ires==1 ? 0 : 1 ];
-                      //get monomial
-                      Node veq_c;
-                      if( pvm!=pv ){
-                        Node veq_v;
-                        if( QuantArith::getMonomial( pvm, veq_c, veq_v ) ){
-                          Assert( veq_v==pv );
-                        }
+                  //cannot contain infinity
+                  if( vts_inf.isNull() || !TermDb::containsTerm( atom_lhs, vts_inf ) ){
+                    Trace("cbqi-inst-debug") << "[3] From assertion : " << atom << ", pol = " << pol << std::endl;
+                    Trace("cbqi-inst-debug") << "       substituted : " << satom << ", pol = " << pol << std::endl;
+                    std::map< Node, Node > msum;
+                    if( QuantArith::getMonomialSumLit( satom, msum ) ){
+                      if( Trace.isOn("cbqi-inst-debug") ){
+                        Trace("cbqi-inst-debug") << "...got monomial sum: " << std::endl;
+                        QuantArith::debugPrintMonomialSum( msum, "cbqi-inst-debug" );
+                        Trace("cbqi-inst-debug") << "isolate for " << pv << "..." << std::endl;
                       }
-                      //disequalities are both strict upper and lower bounds
-                      unsigned rmax = atom.getKind()==GEQ ? 1 : 2;
-                      for( unsigned r=0; r<rmax; r++ ){
-                        int uires = ires;
-                        Node uval = val;
-                        if( atom.getKind()==GEQ ){
-                          //push negation downwards
-                          if( !pol ){
-                            uires = -ires;
+                      Node vatom;
+                      //isolate pv in the inequality
+                      int ires = QuantArith::isolate( pv, msum, vatom, atom.getKind(), true );
+                      if( ires!=0 ){
+                        Trace("cbqi-inst-debug") << "...isolated atom " << vatom << "." << std::endl;
+                        Node val = vatom[ ires==1 ? 1 : 0 ];
+                        Node pvm = vatom[ ires==1 ? 0 : 1 ];
+                        //get monomial
+                        Node veq_c;
+                        if( pvm!=pv ){
+                          Node veq_v;
+                          if( QuantArith::getMonomial( pvm, veq_c, veq_v ) ){
+                            Assert( veq_v==pv );
+                          }
+                        }
+                        //eliminate coefficient if real
+                        if( !pvtn.isInteger() && !veq_c.isNull() ){
+                          val = NodeManager::currentNM()->mkNode( MULT, val, NodeManager::currentNM()->mkConst( Rational(1) / veq_c.getConst<Rational>() ) );
+                          val = Rewriter::rewrite( val );
+                          veq_c = Node::null();
+                        }
+
+                        //disequalities are both strict upper and lower bounds
+                        unsigned rmax = atom.getKind()==GEQ ? 1 : 2;
+                        for( unsigned r=0; r<rmax; r++ ){
+                          int uires = ires;
+                          Node uval = val;
+                          if( atom.getKind()==GEQ ){
+                            //push negation downwards
+                            if( !pol ){
+                              uires = -ires;
+                              if( pvtn.isInteger() ){
+                                uval = NodeManager::currentNM()->mkNode( PLUS, val, NodeManager::currentNM()->mkConst( Rational( uires ) ) );
+                                uval = Rewriter::rewrite( uval );
+                              }else{
+                                Assert( pvtn.isReal() );
+                                //now is strict inequality
+                                uires = uires*2;
+                              }
+                            }
+                          }else{
+                            Assert( atom.getKind()==EQUAL && !pol );
                             if( pvtn.isInteger() ){
+                              uires = r==0 ? -1 : 1;
                               uval = NodeManager::currentNM()->mkNode( PLUS, val, NodeManager::currentNM()->mkConst( Rational( uires ) ) );
                               uval = Rewriter::rewrite( uval );
-                            }else if( pvtn.isReal() ){
-                              //now is strict inequality
-                              uires = uires*2;
                             }else{
-                              Assert( false );
+                              Assert( pvtn.isReal() );
+                              uires = r==0 ? -2 : 2;
                             }
                           }
-                        }else{
-                          Assert( atom.getKind()==EQUAL && !pol );
-                          if( pvtn.isInteger() ){
-                            uires = r==0 ? -1 : 1;
-                            uval = NodeManager::currentNM()->mkNode( PLUS, val, NodeManager::currentNM()->mkConst( Rational( uires ) ) );
-                            uval = Rewriter::rewrite( uval );
-                          }else if( pvtn.isReal() ){
-                            uires = r==0 ? -2 : 2;
+                          Trace("cbqi-bound-inf") << "From " << lit << ", got : ";
+                          if( !veq_c.isNull() ){
+                            Trace("cbqi-bound-inf") << veq_c << " * ";
+                          }
+                          Trace("cbqi-bound-inf") << pv << " -> " << uval << ", styp = " << uires << std::endl;
+                          if( options::cbqiModel() ){
+                            //just store bounds, will choose based on tighest bound
+                            unsigned index = uires>0 ? 0 : 1;
+                            mbp_bounds[index].push_back( uval );
+                            mbp_coeff[index].push_back( veq_c );
+                            mbp_strict[index].push_back( uires==2 || uires==-2 );
+                            mbp_lit[index].push_back( lit );
                           }else{
-                            Assert( false );
+                            //take into account delta
+                            if( uires==2 || uires==-2 ){
+                              if( d_use_vts_delta ){
+                                Node delta = d_qe->getTermDatabase()->getVtsDelta();
+                                uval = NodeManager::currentNM()->mkNode( uires==2 ? PLUS : MINUS, uval, delta );
+                                uval = Rewriter::rewrite( uval );
+                              }
+                            }
+                            if( subs_proc[uval].find( veq_c )==subs_proc[uval].end() ){
+                              subs_proc[uval][veq_c] = true;
+                              if( addInstantiationInc( uval, pv, veq_c, subs, vars, coeff, has_coeff, theta, i, effort ) ){
+                                return true;
+                              }
+                            }else{
+                              Trace("cbqi-inst-debug") << "...already processed." << std::endl;
+                            }
                           }
-                        }
-                        if( subs_proc[uires][uval].find( veq_c )==subs_proc[uires][uval].end() ){
-                          subs_proc[uires][uval][veq_c] = true;
-                          if( addInstantiationInc( uval, pv, veq_c, uires, subs, vars, coeff, has_coeff, subs_typ, i, effort ) ){
-                            return true;
-                          }
-                        }else{
-                          Trace("cegqi-si-inst-debug") << "...already processed." << std::endl;
                         }
                       }
                     }
@@ -322,14 +374,104 @@ bool CegInstantiator::addInstantiation( std::vector< Node >& subs, std::vector< 
           }
         }
       }
+      if( options::cbqiModel() ){
+        if( pvtn.isInteger() || pvtn.isReal() ){
+          bool upper_first = false;
+          unsigned best_used[2];
+          std::vector< Node > t_values[2];
+          Node pv_value = d_qe->getModel()->getValue( pv );
+          Trace("cbqi-bound2") << "...M( " << pv << " ) = " << pv_value << std::endl;
+          //try optimal bounds
+          for( unsigned r=0; r<2; r++ ){
+            int rr = upper_first ? (1-r) : r;
+            if( mbp_bounds[rr].empty() ){
+              /*
+              if( d_use_vts_inf ){
+                Trace("cbqi-bound") << "No " << ( rr==0 ? "lower" : "upper" ) << " bounds for " << pv << " (type=" << pvtn << ")" << std::endl;
+                //no bounds, we do +- infinity
+                Node val = d_qe->getTermDatabase()->getVtsInfinity();
+                if( rr==0 ){
+                  val = NodeManager::currentNM()->mkNode( UMINUS, val );
+                  val = Rewriter::rewrite( val );
+                }
+                if( addInstantiationInc( val, pv, Node::null(), subs, vars, coeff, has_coeff, theta, i, effort ) ){
+                  return true;
+                }
+              }
+              */
+            }else{
+              Trace("cbqi-bound") << ( rr==0 ? "Lower" : "Upper" ) << " bounds for " << pv << " (type=" << pvtn << ") : " << std::endl;
+              int best = -1;
+              Node best_bound_value;
+              for( unsigned j=0; j<mbp_bounds[rr].size(); j++ ){
+                Node t_value = d_qe->getModel()->getValue( mbp_bounds[rr][j] );
+                t_values[rr].push_back( t_value );
+                Trace("cbqi-bound2") << "...M( " << mbp_bounds[rr][j] << " ) = " << t_value << std::endl;
+                Node value = t_value;
+                Trace("cbqi-bound") << "  " << j << ": " << mbp_bounds[rr][j];
+                if( !mbp_coeff[rr][j].isNull() ){
+                  Trace("cbqi-bound") << " (div " << mbp_coeff[rr][j] << ")";
+                  Assert( mbp_coeff[rr][j].isConst() );
+                  value = NodeManager::currentNM()->mkNode( MULT, NodeManager::currentNM()->mkConst( Rational(1) / mbp_coeff[rr][j].getConst<Rational>() ), value );
+                  value = Rewriter::rewrite( value );
+                }
+                if( mbp_strict[rr][j] ){
+                  Trace("cbqi-bound") << " (strict)";
+                }
+                Trace("cbqi-bound") << ", value = " << value << std::endl;
+                bool new_best = false;
+                if( best==-1 ){
+                  new_best = true;
+                }else{
+                  Kind k = rr==0 ? GEQ : LEQ;
+                  Node cmp_bound = NodeManager::currentNM()->mkNode( k, value, best_bound_value );
+                  cmp_bound = Rewriter::rewrite( cmp_bound );
+                  if( cmp_bound==d_true && ( !mbp_strict[rr][best] || mbp_strict[rr][j] ) ){
+                    new_best = true;
+                  }
+                }
+                if( new_best ){
+                  best_bound_value = value;
+                  best = j;
+                }
+              }
+              if( best!=-1 ){
+                Trace("cbqi-bound") << "...best bound is " << best << " : " << best_bound_value << std::endl;
+                best_used[rr] = (unsigned)best;
+                Node val = getModelBasedProjectionValue( mbp_bounds[rr][best], mbp_strict[rr][best], rr==0, mbp_coeff[rr][best], pv_value, t_values[rr][best], theta );
+                if( !val.isNull() && addInstantiationInc( val, pv, mbp_coeff[rr][best], subs, vars, coeff, has_coeff, theta, i, effort ) ){
+                  return true;
+                }
+              }
+            }
+          }
+          //try non-optimal bounds (heuristic)
+          for( unsigned r=0; r<2; r++ ){
+            int rr = upper_first ? (1-r) : r;
+            for( unsigned j=0; j<mbp_bounds[rr].size(); j++ ){
+              if( j!=best_used[rr] ){
+                Node val = getModelBasedProjectionValue( mbp_bounds[rr][j], mbp_strict[rr][j], rr==0, mbp_coeff[rr][j], pv_value, t_values[rr][j], theta );
+                if( !val.isNull() && addInstantiationInc( val, pv, mbp_coeff[rr][j], subs, vars, coeff, has_coeff, theta, i, effort ) ){
+                  return true;
+                }
+              }
+            }
+          }
+        }
+      }
     }
 
     //[4] resort to using value in model
-    if( effort>0 ){
+    if( effort>0 || ( pvtn.isBoolean() && ( (i+1)<d_vars.size() || effort!=2 ) ) ){
       Node mv = d_qe->getModel()->getValue( pv );
       Node pv_coeff_m;
-      Trace("cegqi-si-inst-debug") << i << "[4] ...try model value " << mv << std::endl;
-      return addInstantiationInc( mv, pv, pv_coeff_m, 9, subs, vars, coeff, has_coeff, subs_typ, i, 1 );
+      Trace("cbqi-inst-debug") << "[4] " << i << "...try model value " << mv << std::endl;
+      int new_effort = pvtn.isBoolean() ? effort : 1;
+#ifdef MBP_STRICT_ASSERTIONS
+      //we only resort to values in the case of booleans
+      Assert( pvtn.isBoolean() );
+#endif
+      return addInstantiationInc( mv, pv, pv_coeff_m, subs, vars, coeff, has_coeff, theta, i, new_effort );
     }else{
       return false;
     }
@@ -337,13 +479,17 @@ bool CegInstantiator::addInstantiation( std::vector< Node >& subs, std::vector< 
 }
 
 
-bool CegInstantiator::addInstantiationInc( Node n, Node pv, Node pv_coeff, int styp, std::vector< Node >& subs, std::vector< Node >& vars,
-                                           std::vector< Node >& coeff, std::vector< Node >& has_coeff, std::vector< int >& subs_typ,
-                                           unsigned i, unsigned effort ) {
-  if( styp==2 || styp==-2 ){
-    Node delta = d_qe->getTermDatabase()->getVtsDelta();
-    n = NodeManager::currentNM()->mkNode( styp==2 ? PLUS : MINUS, n, delta );
-    n = Rewriter::rewrite( n );
+bool CegInstantiator::addInstantiationInc( Node n, Node pv, Node pv_coeff, std::vector< Node >& subs, std::vector< Node >& vars,
+                                           std::vector< Node >& coeff, std::vector< Node >& has_coeff, Node theta, unsigned i, unsigned effort ) {
+  if( Trace.isOn("cbqi-inst") ){
+    for( unsigned i=0; i<subs.size(); i++ ){
+      Trace("cbqi-inst") << " ";
+    }
+    Trace("cbqi-inst") << "i: ";
+    if( !pv_coeff.isNull() ){
+      Trace("cbqi-inst") << pv_coeff << " * ";
+    }
+    Trace("cbqi-inst") << pv << " -> " << n << std::endl;
   }
   //must ensure variables have been computed for n
   computeProgVars( n );
@@ -389,6 +535,7 @@ bool CegInstantiator::addInstantiationInc( Node n, Node pv, Node pv_coeff, int s
           computeProgVars( subs[j] );
         }
       }else{
+        Trace("cbqi-inst-debug") << "...failed to apply substitution to " << subs[j] << std::endl;
         success = false;
         break;
       }
@@ -401,13 +548,21 @@ bool CegInstantiator::addInstantiationInc( Node n, Node pv, Node pv_coeff, int s
     if( !pv_coeff.isNull() ){
       has_coeff.push_back( pv );
     }
-    subs_typ.push_back( styp );
-    Trace("cegqi-si-inst-debug") << i << ": ";
+    Trace("cbqi-inst-debug") << i << ": ";
     if( !pv_coeff.isNull() ){
-      Trace("cegqi-si-inst-debug") << pv_coeff << "*";
+      Trace("cbqi-inst-debug") << pv_coeff << "*";
     }
-    Trace("cegqi-si-inst-debug") << pv << " -> " << n << std::endl;
-    success = addInstantiation( subs, vars, coeff, has_coeff, subs_typ, i+1, effort );
+    Trace("cbqi-inst-debug") << pv << " -> " << n << std::endl;
+    Node new_theta = theta;
+    if( !pv_coeff.isNull() ){
+      if( new_theta.isNull() ){
+        new_theta = pv_coeff;
+      }else{
+        new_theta = NodeManager::currentNM()->mkNode( MULT, new_theta, pv_coeff );
+        new_theta = Rewriter::rewrite( new_theta );
+      }
+    }
+    success = addInstantiation( subs, vars, coeff, has_coeff, new_theta, i+1, effort );
     if( !success ){
       subs.pop_back();
       vars.pop_back();
@@ -415,7 +570,6 @@ bool CegInstantiator::addInstantiationInc( Node n, Node pv, Node pv_coeff, int s
       if( !pv_coeff.isNull() ){
         has_coeff.pop_back();
       }
-      subs_typ.pop_back();
     }
   }
   if( success ){
@@ -436,88 +590,83 @@ bool CegInstantiator::addInstantiationInc( Node n, Node pv, Node pv_coeff, int s
 }
 
 bool CegInstantiator::addInstantiationCoeff( std::vector< Node >& subs, std::vector< Node >& vars,
-                                             std::vector< Node >& coeff, std::vector< Node >& has_coeff, std::vector< int >& subs_typ, unsigned j ) {
+                                             std::vector< Node >& coeff, std::vector< Node >& has_coeff, unsigned j ) {
   if( j==has_coeff.size() ){
-    return addInstantiation( subs, vars, subs_typ );
+    return addInstantiation( subs, vars );
   }else{
     Assert( std::find( vars.begin(), vars.end(), has_coeff[j] )!=vars.end() );
     unsigned index = std::find( vars.begin(), vars.end(), has_coeff[j] )-vars.begin();
     Node prev = subs[index];
     Assert( !coeff[index].isNull() );
-    Trace("cegqi-si-inst-debug") << "Normalize substitution for " << coeff[index] << " * " << vars[index] << " = " << subs[index] << ", stype = " << subs_typ[index] << std::endl;
-    if( vars[index].getType().isInteger() ){
-      //must ensure that divisibility constraints are met
-      //solve updated rewritten equality for vars[index], if coefficient is one, then we are successful
-      Node eq_lhs = NodeManager::currentNM()->mkNode( MULT, coeff[index], vars[index] );
-      Node eq_rhs = subs[index];
-      Node eq = eq_lhs.eqNode( eq_rhs );
-      eq = Rewriter::rewrite( eq );
-      Trace("cegqi-si-inst-debug") << "...equality is " << eq << std::endl;
-      std::map< Node, Node > msum;
-      if( QuantArith::getMonomialSumLit( eq, msum ) ){
-        Node veq;
-        if( QuantArith::isolate( vars[index], msum, veq, EQUAL, true )!=0 ){
-          Node veq_c;
-          if( veq[0]!=vars[index] ){
-            Node veq_v;
-            if( QuantArith::getMonomial( veq[0], veq_c, veq_v ) ){
-              Assert( veq_v==vars[index] );
-            }
+    Trace("cbqi-inst-debug") << "Normalize substitution for " << coeff[index] << " * " << vars[index] << " = " << subs[index] << std::endl;
+    Assert( vars[index].getType().isInteger() );
+    //must ensure that divisibility constraints are met
+    //solve updated rewritten equality for vars[index], if coefficient is one, then we are successful
+    Node eq_lhs = NodeManager::currentNM()->mkNode( MULT, coeff[index], vars[index] );
+    Node eq_rhs = subs[index];
+    Node eq = eq_lhs.eqNode( eq_rhs );
+    eq = Rewriter::rewrite( eq );
+    Trace("cbqi-inst-debug") << "...equality is " << eq << std::endl;
+    std::map< Node, Node > msum;
+    if( QuantArith::getMonomialSumLit( eq, msum ) ){
+      Node veq;
+      if( QuantArith::isolate( vars[index], msum, veq, EQUAL, true )!=0 ){
+        Node veq_c;
+        if( veq[0]!=vars[index] ){
+          Node veq_v;
+          if( QuantArith::getMonomial( veq[0], veq_c, veq_v ) ){
+            Assert( veq_v==vars[index] );
           }
-          subs[index] = veq[1];
-          if( !veq_c.isNull() ){
-            subs[index] = NodeManager::currentNM()->mkNode( INTS_DIVISION, veq[1], veq_c );
-            if( subs_typ[index]>=1 && subs_typ[index]<=2 ){
-              subs[index] = NodeManager::currentNM()->mkNode( PLUS, subs[index],
-                NodeManager::currentNM()->mkNode( ITE,
-                  NodeManager::currentNM()->mkNode( EQUAL,
-                    NodeManager::currentNM()->mkNode( INTS_MODULUS, veq[1], veq_c ),
-                    d_zero ),
-                  d_zero, d_one )
-              );
-            }
-          }
-          Trace("cegqi-si-inst-debug") << "...normalize integers : " << subs[index] << std::endl;
-          if( addInstantiationCoeff( subs, vars, coeff, has_coeff, subs_typ, j+1 ) ){
-            return true;
-          }
-            //equalities are both upper and lower bounds
-            /*
-            if( subs_typ[index]==0 && !veq_c.isNull() ){
-              subs[index] = NodeManager::currentNM()->mkNode( PLUS, subs[index],
-                NodeManager::currentNM()->mkNode( ITE,
-                  NodeManager::currentNM()->mkNode( EQUAL,
-                    NodeManager::currentNM()->mkNode( INTS_MODULUS, veq[1], veq_c ),
-                    NodeManager::currentNM()->mkConst( Rational( 0 ) ) ),
-                  NodeManager::currentNM()->mkConst( Rational( 0 ) ),
-                  NodeManager::currentNM()->mkConst( Rational( 1 ) ) )
-              );
-              if( addInstantiationCoeff( subs, vars, coeff, has_coeff, subs_typ, j+1 ) ){
-                return true;
-              }
-            }
-            */
         }
+        subs[index] = veq[1];
+        if( !veq_c.isNull() ){
+          subs[index] = NodeManager::currentNM()->mkNode( INTS_DIVISION, veq[1], veq_c );
+          /*
+          if( subs_typ[index]>=1 && subs_typ[index]<=2 ){
+            subs[index] = NodeManager::currentNM()->mkNode( PLUS, subs[index],
+              NodeManager::currentNM()->mkNode( ITE,
+                NodeManager::currentNM()->mkNode( EQUAL,
+                  NodeManager::currentNM()->mkNode( INTS_MODULUS, veq[1], veq_c ),
+                  d_zero ),
+                d_zero, d_one )
+            );
+          }
+          */
+        }
+        Trace("cbqi-inst-debug") << "...normalize integers : " << subs[index] << std::endl;
+        if( addInstantiationCoeff( subs, vars, coeff, has_coeff, j+1 ) ){
+          return true;
+        }
+          //equalities are both upper and lower bounds
+          /*
+          if( subs_typ[index]==0 && !veq_c.isNull() ){
+            subs[index] = NodeManager::currentNM()->mkNode( PLUS, subs[index],
+              NodeManager::currentNM()->mkNode( ITE,
+                NodeManager::currentNM()->mkNode( EQUAL,
+                  NodeManager::currentNM()->mkNode( INTS_MODULUS, veq[1], veq_c ),
+                  NodeManager::currentNM()->mkConst( Rational( 0 ) ) ),
+                NodeManager::currentNM()->mkConst( Rational( 0 ) ),
+                NodeManager::currentNM()->mkConst( Rational( 1 ) ) )
+            );
+            if( addInstantiationCoeff( subs, vars, coeff, has_coeff, j+1 ) ){
+              return true;
+            }
+          }
+          */
       }
-    }else if( vars[index].getType().isReal() ){
-      // can always invert
-      subs[index] = NodeManager::currentNM()->mkNode( MULT, NodeManager::currentNM()->mkConst( Rational(1) / coeff[index].getConst<Rational>() ), subs[index] );
-      subs[index] = Rewriter::rewrite( subs[index] );
-      Trace("cegqi-si-inst-debug") << "...success, reals : " << subs[index] << std::endl;
-      if( addInstantiationCoeff( subs, vars, coeff, has_coeff, subs_typ, j+1 ) ){
-        return true;
-      }
-    }else{
-      Assert( false );
     }
     subs[index] = prev;
-    Trace("cegqi-si-inst-debug") << "...failed." << std::endl;
+    Trace("cbqi-inst-debug") << "...failed." << std::endl;
     return false;
   }
 }
 
-bool CegInstantiator::addInstantiation( std::vector< Node >& subs, std::vector< Node >& vars, std::vector< int >& subs_typ ) {
-  return d_out->addInstantiation( subs, subs_typ );
+bool CegInstantiator::addInstantiation( std::vector< Node >& subs, std::vector< Node >& vars ) {
+  bool ret = d_out->addInstantiation( subs );
+#ifdef MBP_STRICT_ASSERTIONS
+  Assert( ret );
+#endif
+  return ret;
 }
 
 
@@ -603,88 +752,71 @@ Node CegInstantiator::applySubstitution( Node n, std::vector< Node >& subs, std:
   }
 }
 
-//check if delta has a lower bound L
-// if so, add lemma L>0 => L>d
-void CegInstantiator::getDeltaLemmas( std::vector< Node >& lems ) {
-  return;
-  /*  disable for now
-  if( !d_n_delta.isNull() ){
-    Theory* theory = d_qe->getTheoryEngine()->theoryOf( THEORY_ARITH );
-    if( theory && d_qe->getTheoryEngine()->isTheoryEnabled( THEORY_ARITH ) ){
-      context::CDList<Assertion>::const_iterator it = theory->facts_begin(), it_end = theory->facts_end();
-      for (unsigned j = 0; it != it_end; ++ it, ++j) {
-        Node lit = (*it).assertion;
-        Node atom = lit.getKind()==NOT ? lit[0] : lit;
-        bool pol = lit.getKind()!=NOT;
-        if( atom.getKind()==GEQ || ( pol && atom.getKind()==EQUAL ) ){
-          Assert( atom.getKind()!=GEQ || atom[1].isConst() );
-          Node atom_lhs;
-          Node atom_rhs;
-          if( atom.getKind()==GEQ ){
-            atom_lhs = atom[0];
-            atom_rhs = atom[1];
-          }else{
-            atom_lhs = NodeManager::currentNM()->mkNode( MINUS, atom[0], atom[1] );
-            atom_lhs = Rewriter::rewrite( atom_lhs );
-            atom_rhs = d_zero;
-          }
-          computeProgVars( atom_lhs );
-          //must be an eligible term with delta
-          if( d_inelig.find( atom_lhs )==d_inelig.end() && d_has_delta.find( atom_lhs )!=d_has_delta.end() ){
-            Node satom = NodeManager::currentNM()->mkNode( atom.getKind(), atom_lhs, atom_rhs );
-            Trace("cegqi-delta") << "Delta assertion : " << atom << ", pol = " << pol << std::endl;
-            std::map< Node, Node > msum;
-            if( QuantArith::getMonomialSumLit( satom, msum ) ){
-              Node vatom;
-              //isolate delta in the inequality
-              int ires = QuantArith::isolate( d_n_delta, msum, vatom, atom.getKind(), true );
-              if( ((ires==1)==pol) || ( ires!=0 && lit.getKind()==EQUAL ) ){
-                Node val = vatom[ ires==1 ? 1 : 0 ];
-                Node pvm = vatom[ ires==1 ? 0 : 1 ];
-                //get monomial
-                if( pvm!=d_n_delta ){
-                  Node veq_c;
-                  Node veq_v;
-                  if( QuantArith::getMonomial( pvm, veq_c, veq_v ) ){
-                    Assert( veq_v==d_n_delta );
-                    val = NodeManager::currentNM()->mkNode( MULT, val, NodeManager::currentNM()->mkConst( Rational(1) / veq_c.getConst<Rational>() ) );
-                    val = Rewriter::rewrite( val );
-                  }else{
-                    val = Node::null();
-                  }
-                }
-                if( !val.isNull()  ){
-                  Node lem1 = NodeManager::currentNM()->mkNode( GT, val, d_zero );
-                  lem1 = Rewriter::rewrite( lem1 );
-                  if( !lem1.isConst() || lem1==d_true ){
-                    Node lem2 = NodeManager::currentNM()->mkNode( GT, val, d_n_delta );
-                    Node lem = lem1==d_true ? lem2 : NodeManager::currentNM()->mkNode( OR, lem1.negate(), lem2 );
-                    lems.push_back( lem );
-                    Trace("cegqi-delta") << "...lemma : " << lem << std::endl;
-                  }
-                }
-              }else{
-                Trace("cegqi-delta") << "...wrong polarity." << std::endl;
-              }
-            }
-          }
-        }
-      }
+Node CegInstantiator::getModelBasedProjectionValue( Node t, bool strict, bool isLower, Node c, Node me, Node mt, Node theta ) {
+  Node val = t;
+  Trace("cbqi-bound2") << "Value : " << val << std::endl;
+  //take into account strictness
+  if( strict ){
+    if( !d_use_vts_delta ){
+      return Node::null();
+    }else{
+      Node delta = d_qe->getTermDatabase()->getVtsDelta();
+      Kind k = isLower ? PLUS : MINUS;
+      val = NodeManager::currentNM()->mkNode( k, val, delta );
+      val = Rewriter::rewrite( val );
+      Trace("cbqi-bound2") << "(after strict) : " << val << std::endl;
     }
   }
-  */
+  //add rho value
+  //get the value of c*e
+  Node ceValue = me;
+  Node new_theta = theta;
+  if( !c.isNull() ){
+    ceValue = NodeManager::currentNM()->mkNode( MULT, ceValue, c );
+    ceValue = Rewriter::rewrite( ceValue );
+    if( new_theta.isNull() ){
+      new_theta = c;
+    }else{
+      new_theta = NodeManager::currentNM()->mkNode( MULT, new_theta, c );
+      new_theta = Rewriter::rewrite( new_theta );
+    }
+    Trace("cbqi-bound2") << "...c*e = " << ceValue << std::endl;
+    Trace("cbqi-bound2") << "...theta = " << new_theta << std::endl;
+  }
+  if( !new_theta.isNull() ){
+    Node rho;
+    if( isLower ){
+      rho = NodeManager::currentNM()->mkNode( MINUS, ceValue, mt );
+    }else{
+      rho = NodeManager::currentNM()->mkNode( MINUS, mt, ceValue );
+    }
+    rho = Rewriter::rewrite( rho );
+    Trace("cbqi-bound2") << "...rho = " << me << " - " << mt << " = " << rho << std::endl;
+    Trace("cbqi-bound2") << "..." << rho << " mod " << new_theta << " = ";
+    rho = NodeManager::currentNM()->mkNode( INTS_MODULUS_TOTAL, rho, new_theta );
+    rho = Rewriter::rewrite( rho );
+    Trace("cbqi-bound2") << rho << std::endl;
+    Kind rk = isLower ? PLUS : MINUS;
+    val = NodeManager::currentNM()->mkNode( rk, val, rho );
+    val = Rewriter::rewrite( val );
+    Trace("cbqi-bound2") << "(after rho) : " << val << std::endl;
+  }
+  return val;
 }
 
 bool CegInstantiator::check() {
-
+  if( d_qe->getTheoryEngine()->needCheck() ){
+    Trace("cegqi-engine") << "  CEGQI instantiator : wait until all ground theories are finished." << std::endl;
+    return false;
+  }
   for( unsigned r=0; r<2; r++ ){
     std::vector< Node > subs;
     std::vector< Node > vars;
     std::vector< Node > coeff;
     std::vector< Node > has_coeff;
-    std::vector< int > subs_typ;
+    Node theta;
     //try to add an instantiation
-    if( addInstantiation( subs, vars, coeff, has_coeff, subs_typ, 0, r==0 ? 0 : 2 ) ){
+    if( addInstantiation( subs, vars, coeff, has_coeff, theta, 0, r==0 ? 0 : 2 ) ){
       return true;
     }
   }
@@ -1015,8 +1147,8 @@ Node InstStrategySimplex::getTableauxValue( ArithVar v, bool minus_delta ){
 
 //new implementation
 
-bool CegqiOutputInstStrategy::addInstantiation( std::vector< Node >& subs, std::vector< int >& subs_typ ) {
-  return d_out->addInstantiation( subs, subs_typ );
+bool CegqiOutputInstStrategy::addInstantiation( std::vector< Node >& subs ) {
+  return d_out->addInstantiation( subs );
 }
 
 bool CegqiOutputInstStrategy::isEligibleForInstantiation( Node n ) {
@@ -1030,11 +1162,11 @@ bool CegqiOutputInstStrategy::addLemma( Node lem ) {
 
 InstStrategyCegqi::InstStrategyCegqi( QuantifiersEngine * qe ) : InstStrategy( qe ) {
   d_out = new CegqiOutputInstStrategy( this );
+  d_small_const = NodeManager::currentNM()->mkConst( Rational(1)/Rational(1000000) );
 }
 
 void InstStrategyCegqi::processResetInstantiationRound( Theory::Effort effort ) {
-  d_check_delta_lemma = true;
-  d_check_delta_lemma_lc = true;
+  d_check_vts_lemma_lc = true;
 }
 
 int InstStrategyCegqi::process( Node f, Theory::Effort effort, int e ) {
@@ -1052,31 +1184,6 @@ int InstStrategyCegqi::process( Node f, Theory::Effort effort, int e ) {
     }else{
       cinst = it->second;
     }
-    if( d_check_delta_lemma ){
-      //minimize the free delta heuristically
-      Trace("inst-alg") << "-> Get delta lemmas for cegqi..." << std::endl;
-      Node delta = d_quantEngine->getTermDatabase()->getVtsDelta( true, false );
-      if( !delta.isNull() ){
-        if( d_n_delta_ub.isNull() ){
-          d_n_delta_ub = NodeManager::currentNM()->mkConst( Rational(1)/Rational(1000000) );
-        }
-        d_check_delta_lemma = false;
-        std::vector< Node > dlemmas;
-        cinst->getDeltaLemmas( dlemmas );
-        Trace("inst-alg") << "...got " << dlemmas.size() << " delta lemmas." << std::endl;
-        if( !dlemmas.empty() ){
-          bool addedLemma = false;
-          for( unsigned i=0; i<dlemmas.size(); i++ ){
-            if( addLemma( dlemmas[i] ) ){
-              addedLemma = true;
-            }
-          }
-          if( addedLemma ){
-            return STATUS_UNKNOWN;
-          }
-        }
-      }
-    }
     Trace("inst-alg") << "-> Run cegqi for " << f << std::endl;
     d_curr_quant = f;
     bool addedLemma = cinst->check();
@@ -1084,22 +1191,31 @@ int InstStrategyCegqi::process( Node f, Theory::Effort effort, int e ) {
     return addedLemma ? STATUS_UNKNOWN : STATUS_UNFINISHED;
   }else if( e==2 ){
     //minimize the free delta heuristically on demand
-    if( d_check_delta_lemma_lc ){
+    if( d_check_vts_lemma_lc ){
       Node delta = d_quantEngine->getTermDatabase()->getVtsDelta( true, false );
-      if( !delta.isNull() ){
-        d_check_delta_lemma_lc = false;
-        d_n_delta_ub = NodeManager::currentNM()->mkNode( MULT, d_n_delta_ub, d_n_delta_ub );
-        d_n_delta_ub = Rewriter::rewrite( d_n_delta_ub );
-        Trace("cegqi") << "Delta lemma for " << d_n_delta_ub << std::endl;
-        Node delta_lem_ub = NodeManager::currentNM()->mkNode( LT, delta, d_n_delta_ub );
-        d_quantEngine->getOutputChannel().lemma( delta_lem_ub );
+      Node inf = d_quantEngine->getTermDatabase()->getVtsInfinity( true, false );
+      if( !delta.isNull() || !inf.isNull() ){
+        d_check_vts_lemma_lc = false;
+        d_small_const = NodeManager::currentNM()->mkNode( MULT, d_small_const, d_small_const );
+        d_small_const = Rewriter::rewrite( d_small_const );
+        //heuristic for now, until we know how to do nested quantification
+        if( !delta.isNull() ){
+          Trace("cegqi") << "Delta lemma for " << d_small_const << std::endl;
+          Node delta_lem_ub = NodeManager::currentNM()->mkNode( LT, delta, d_small_const );
+          d_quantEngine->getOutputChannel().lemma( delta_lem_ub );
+        }
+        if( !inf.isNull() ){
+          Trace("cegqi") << "Infinity lemma for " << d_small_const << std::endl;
+          Node inf_lem_lb = NodeManager::currentNM()->mkNode( GT, inf, NodeManager::currentNM()->mkConst( Rational(1)/d_small_const.getConst<Rational>() ) );
+          d_quantEngine->getOutputChannel().lemma( inf_lem_lb );
+        }
       }
     }
   }
   return STATUS_UNKNOWN;
 }
 
-bool InstStrategyCegqi::addInstantiation( std::vector< Node >& subs, std::vector< int >& subs_typ ) {
+bool InstStrategyCegqi::addInstantiation( std::vector< Node >& subs ) {
   Assert( !d_curr_quant.isNull() );
   /*
   std::stringstream siss;
@@ -1113,16 +1229,20 @@ bool InstStrategyCegqi::addInstantiation( std::vector< Node >& subs, std::vector
   }
   */
   //check if we need virtual term substitution (if used delta)
-  bool used_delta = false;
+  bool used_vts = false;
   Node delta = d_quantEngine->getTermDatabase()->getVtsDelta( false, false );
-  if( !delta.isNull() ){
+  Node inf = d_quantEngine->getTermDatabase()->getVtsInfinity( false, false );
+  if( !delta.isNull() || !inf.isNull() ){
     for( unsigned i=0; i<subs.size(); i++ ){
-      if( TermDb::containsTerm( subs[i], delta ) ){
-        used_delta = true;
+      if( !delta.isNull() && TermDb::containsTerm( subs[i], delta ) ){
+        used_vts = true;
+      }
+      if( !inf.isNull() && TermDb::containsTerm( subs[i], inf ) ){
+        used_vts = true;
       }
     }
   }
-  return d_quantEngine->addInstantiation( d_curr_quant, subs, false, false, false, used_delta );
+  return d_quantEngine->addInstantiation( d_curr_quant, subs, false, false, false, used_vts );
 }
 
 bool InstStrategyCegqi::addLemma( Node lem ) {

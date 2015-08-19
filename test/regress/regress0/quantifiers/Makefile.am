@@ -51,7 +51,9 @@ TESTS =	\
 	is-even-pred.smt2 \
 	delta-simp.smt2  \
 	nested-delta.smt2 \
-	nested-inf.smt2
+	nested-inf.smt2 \
+	RND-small.smt2 \
+	clock-10.smt2
 
 
 

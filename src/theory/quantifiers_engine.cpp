@@ -84,8 +84,6 @@ d_lemmas_produced_c(u){
   d_eq_query = new EqualityQueryQuantifiersEngine( this );
   d_term_db = new quantifiers::TermDb( c, u, this );
   d_tr_trie = new inst::TriggerTrie;
-  //d_rr_tr_trie = new rrinst::TriggerTrie;
-  //d_eem = new EfficientEMatcher( this );
   d_hasAddedLemma = false;
 
   bool needsBuilder = false;
@@ -834,18 +832,15 @@ bool QuantifiersEngine::addInstantiation( Node f, std::vector< Node >& terms, bo
   getOutputChannel().safePoint(options::quantifierStep());
 
   Assert( terms.size()==f[0].getNumChildren() );
-  Trace("inst-add-debug") << "For quantified formula " << f << "..." << std::endl;
-  Trace("inst-add-debug") << "Add instantiation: ";
+  Trace("inst-add-debug") << "For quantified formula " << f << ", add instantiation: " << std::endl;
   for( unsigned i=0; i<terms.size(); i++ ){
-    if( i>0 ) Trace("inst-add-debug") << ", ";
-    Trace("inst-add-debug") << f[0][i] << " -> " << terms[i];
+    Trace("inst-add-debug") << "  " << f[0][i] << " -> " << terms[i] << std::endl;
     //make it representative, this is helpful for recognizing duplication
     if( mkRep ){
       //pick the best possible representative for instantiation, based on past use and simplicity of term
       terms[i] = d_eq_query->getInternalRepresentative( terms[i], f, i );
     }
   }
-  Trace("inst-add-debug") << std::endl;
 
   //check based on instantiation level
   if( options::instMaxLevel()!=-1 || options::lteRestrictInstClosure() ){

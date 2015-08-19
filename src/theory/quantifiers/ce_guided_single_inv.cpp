@@ -32,8 +32,8 @@ using namespace std;
 
 namespace CVC4 {
 
-bool CegqiOutputSingleInv::addInstantiation( std::vector< Node >& subs, std::vector< int >& subs_typ ) {
-  return d_out->addInstantiation( subs, subs_typ );
+bool CegqiOutputSingleInv::addInstantiation( std::vector< Node >& subs ) {
+  return d_out->addInstantiation( subs );
 }
 
 bool CegqiOutputSingleInv::isEligibleForInstantiation( Node n ) {
@@ -76,7 +76,8 @@ Node CegConjectureSingleInv::getSingleInvLemma( Node guard ) {
     //initialize the instantiator for this
     if( !d_single_inv_sk.empty() ){
       CegqiOutputSingleInv * cosi = new CegqiOutputSingleInv( this );
-      d_cinst = new CegInstantiator( d_qe, cosi );
+      //  third and fourth arguments set to (false,false) until we have solution reconstruction for delta and infinity
+      d_cinst = new CegInstantiator( d_qe, cosi, false, false );
       d_cinst->d_vars.insert( d_cinst->d_vars.end(), d_single_inv_sk.begin(), d_single_inv_sk.end() );
     }else{
       d_cinst = NULL;
@@ -694,7 +695,7 @@ bool CegConjectureSingleInv::analyzeSygusTerm( Node n, std::map< Node, std::vect
   return true;
 }
 
-bool CegConjectureSingleInv::addInstantiation( std::vector< Node >& subs, std::vector< int >& subs_typ ){
+bool CegConjectureSingleInv::addInstantiation( std::vector< Node >& subs ){
   std::stringstream siss;
   if( Trace.isOn("cegqi-si-inst-debug") || Trace.isOn("cegqi-engine") ){
     siss << "  * single invocation: " << std::endl;
@@ -702,7 +703,7 @@ bool CegConjectureSingleInv::addInstantiation( std::vector< Node >& subs, std::v
       Node v = d_single_inv_map_to_prog[d_single_inv[0][j]];
       siss << "    * " << v;
       siss << " (" << d_single_inv_sk[j] << ")";
-      siss << " -> " << ( subs_typ[j]==9 ? "M:" : "") << subs[j] << std::endl;
+      siss << " -> " << subs[j] << std::endl;
     }
   }
   bool alreadyExists;
@@ -719,7 +720,9 @@ bool CegConjectureSingleInv::addInstantiation( std::vector< Node >& subs, std::v
     Trace("cegqi-engine") << siss.str() << std::endl;
     Node lem = d_single_inv[1].substitute( d_single_inv_var.begin(), d_single_inv_var.end(), subs.begin(), subs.end() );
     Node delta = d_qe->getTermDatabase()->getVtsDelta( false, false );
-    if( !delta.isNull() && TermDb::containsTerm( lem, delta ) ){
+    Node inf = d_qe->getTermDatabase()->getVtsInfinity( false, false );
+    if( ( !delta.isNull() && TermDb::containsTerm( lem, delta ) ) || 
+        ( !inf.isNull() && TermDb::containsTerm( lem, inf ) ) ){
       Trace("cegqi-engine-debug") << "Rewrite based on vts symbols..." << std::endl;
       lem = d_qe->getTermDatabase()->rewriteVtsSymbols( lem );
     }
@@ -748,15 +751,10 @@ bool CegConjectureSingleInv::addLemma( Node n ) {
 void CegConjectureSingleInv::check( std::vector< Node >& lems ) {
   if( !d_single_inv.isNull() && d_cinst!=NULL ) {
     d_curr_lemmas.clear();
-    //check if there are delta lemmas
-    d_cinst->getDeltaLemmas( lems );
-    //if not, do ce-guided instantiation
-    if( lems.empty() ){
-      //call check for instantiator
-      d_cinst->check();
-      //add lemmas
-      lems.insert( lems.end(), d_curr_lemmas.begin(), d_curr_lemmas.end() );
-    }
+    //call check for instantiator
+    d_cinst->check();
+    //add lemmas
+    lems.insert( lems.end(), d_curr_lemmas.begin(), d_curr_lemmas.end() );
   }
 }
 

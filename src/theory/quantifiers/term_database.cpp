@@ -1312,10 +1312,10 @@ Node TermDb::getVtsDelta( bool isFree, bool create ) {
 Node TermDb::getVtsInfinity( bool isFree, bool create ) {
   if( create ){
     if( d_vts_inf_free.isNull() ){
-      d_vts_inf_free = NodeManager::currentNM()->mkSkolem( "inf", NodeManager::currentNM()->realType(), "free infinity for virtual term substitution" );
+      d_vts_inf_free = NodeManager::currentNM()->mkSkolem( "inf", NodeManager::currentNM()->integerType(), "free infinity for virtual term substitution" );
     }
     if( d_vts_inf.isNull() ){
-      d_vts_inf = NodeManager::currentNM()->mkSkolem( "inf", NodeManager::currentNM()->realType(), "infinity for virtual term substitution" );
+      d_vts_inf = NodeManager::currentNM()->mkSkolem( "inf", NodeManager::currentNM()->integerType(), "infinity for virtual term substitution" );
     }
   }
   return isFree ? d_vts_inf_free : d_vts_inf;
@@ -1326,6 +1326,7 @@ Node TermDb::rewriteVtsSymbols( Node n ) {
     Trace("quant-vts-debug") << "VTS : process " << n << std::endl;
     bool rew_inf = false;
     bool rew_delta = false;
+    //rewriting infinity always takes precedence over rewriting delta
     if( !d_vts_inf.isNull() && containsTerm( n, d_vts_inf ) ){
       rew_inf = true;
     }else if( !d_vts_delta.isNull() && containsTerm( n, d_vts_delta ) ){
@@ -1342,6 +1343,7 @@ Node TermDb::rewriteVtsSymbols( Node n ) {
             QuantArith::debugPrintMonomialSum( msum, "quant-vts-debug" );
           }
           Node vts_sym = rew_inf ? d_vts_inf : d_vts_delta;
+          Assert( !vts_sym.isNull() );
           Node iso_n;
           int res = QuantArith::isolate( vts_sym, msum, iso_n, n.getKind(), true );
           if( res!=0 ){
@@ -1349,9 +1351,10 @@ Node TermDb::rewriteVtsSymbols( Node n ) {
             int index = res==1 ? 0 : 1;
             Node slv = iso_n[res==1 ? 1 : 0];
             if( iso_n[index]!=vts_sym ){
-              if( iso_n[index].getKind()==MULT && iso_n[index].getNumChildren()==2 && iso_n[index][0].isConst() && iso_n[index][1]==d_vts_delta ){
+              if( iso_n[index].getKind()==MULT && iso_n[index].getNumChildren()==2 && iso_n[index][0].isConst() && iso_n[index][1]==vts_sym ){
                 slv = NodeManager::currentNM()->mkNode( MULT, slv, NodeManager::currentNM()->mkConst( Rational(1)/iso_n[index][0].getConst<Rational>() ) );
               }else{
+                Trace("quant-vts-debug") << "Failed, return " << n << std::endl;
                 return n;
               }
             }

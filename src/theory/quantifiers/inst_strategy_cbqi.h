@@ -40,7 +40,7 @@ class CegqiOutput
 {
 public:
   virtual ~CegqiOutput() {}
-  virtual bool addInstantiation( std::vector< Node >& subs, std::vector< int >& subs_typ ) = 0;
+  virtual bool addInstantiation( std::vector< Node >& subs ) = 0;
   virtual bool isEligibleForInstantiation( Node n ) = 0;
   virtual bool addLemma( Node lem ) = 0;
 };
@@ -48,11 +48,14 @@ public:
 class CegInstantiator
 {
 private:
+  QuantifiersEngine * d_qe;
+  CegqiOutput * d_out;
+  //constants
   Node d_zero;
   Node d_one;
   Node d_true;
-  QuantifiersEngine * d_qe;
-  CegqiOutput * d_out;
+  bool d_use_vts_delta;
+  bool d_use_vts_inf;
   //program variable contains cache
   std::map< Node, std::map< Node, bool > > d_prog_var;
   std::map< Node, bool > d_inelig;
@@ -61,25 +64,23 @@ private:
   void computeProgVars( Node n );
   // effort=0 : do not use model value, 1: use model value, 2: one must use model value
   bool addInstantiation( std::vector< Node >& subs, std::vector< Node >& vars,
-                         std::vector< Node >& coeff, std::vector< Node >& has_coeff, std::vector< int >& subs_typ,
+                         std::vector< Node >& coeff, std::vector< Node >& has_coeff, Node theta,
                          unsigned i, unsigned effort );
-  bool addInstantiationInc( Node n, Node pv, Node pv_coeff, int styp, std::vector< Node >& subs, std::vector< Node >& vars,
-                            std::vector< Node >& coeff, std::vector< Node >& has_coeff, std::vector< int >& subs_typ,
-                            unsigned i, unsigned effort );
+  bool addInstantiationInc( Node n, Node pv, Node pv_coeff, std::vector< Node >& subs, std::vector< Node >& vars,
+                            std::vector< Node >& coeff, std::vector< Node >& has_coeff, Node theta, unsigned i, unsigned effort );
   bool addInstantiationCoeff( std::vector< Node >& subs, std::vector< Node >& vars,
-                              std::vector< Node >& coeff, std::vector< Node >& has_coeff, std::vector< int >& subs_typ,
+                              std::vector< Node >& coeff, std::vector< Node >& has_coeff,
                               unsigned j );
-  bool addInstantiation( std::vector< Node >& subs, std::vector< Node >& vars, std::vector< int >& subs_typ );
+  bool addInstantiation( std::vector< Node >& subs, std::vector< Node >& vars );
   Node applySubstitution( Node n, std::vector< Node >& subs, std::vector< Node >& vars,
                           std::vector< Node >& coeff, std::vector< Node >& has_coeff, Node& pv_coeff, bool try_coeff = true );
+  Node getModelBasedProjectionValue( Node t, bool strict, bool isLower, Node c, Node me, Node mt, Node theta );
 public:
-  CegInstantiator( QuantifiersEngine * qe, CegqiOutput * out );
+  CegInstantiator( QuantifiersEngine * qe, CegqiOutput * out, bool use_vts_delta = true, bool use_vts_inf = true );
   //the CE variables
   std::vector< Node > d_vars;
   //check : add instantiations based on valuation of d_vars
   bool check();
-  // get delta lemmas : on-demand force minimality of d_n_delta
-  void getDeltaLemmas( std::vector< Node >& lems );
 };
 
 class InstStrategySimplex : public InstStrategy{
@@ -134,7 +135,7 @@ class CegqiOutputInstStrategy : public CegqiOutput
 public:
   CegqiOutputInstStrategy( InstStrategyCegqi * out ) : d_out( out ){}
   InstStrategyCegqi * d_out;
-  bool addInstantiation( std::vector< Node >& subs, std::vector< int >& subs_typ );
+  bool addInstantiation( std::vector< Node >& subs );
   bool isEligibleForInstantiation( Node n );
   bool addLemma( Node lem );
 };
@@ -143,10 +144,9 @@ class InstStrategyCegqi : public InstStrategy {
 private:
   CegqiOutputInstStrategy * d_out;
   std::map< Node, CegInstantiator * > d_cinst;
-  Node d_n_delta_ub;
+  Node d_small_const;
   Node d_curr_quant;
-  bool d_check_delta_lemma;
-  bool d_check_delta_lemma_lc;
+  bool d_check_vts_lemma_lc;
   /** process functions */
   void processResetInstantiationRound( Theory::Effort effort );
   int process( Node f, Theory::Effort effort, int e );
@@ -154,7 +154,7 @@ public:
   InstStrategyCegqi( QuantifiersEngine * qe );
   ~InstStrategyCegqi() throw() {}
 
-  bool addInstantiation( std::vector< Node >& subs, std::vector< int >& subs_typ );
+  bool addInstantiation( std::vector< Node >& subs );
   bool isEligibleForInstantiation( Node n );
   bool addLemma( Node lem );
   /** identify */
