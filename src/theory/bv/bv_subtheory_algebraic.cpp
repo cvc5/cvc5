@@ -684,16 +684,19 @@ void AlgebraicSolver::collectModelInfo(TheoryModel* model, bool fullModel) {
     }
   }
 
+  NodeSet leaf_vars;
   Debug("bitvector-model") << "Substitutions:\n";
   for (unsigned i = 0; i < variables.size(); ++i) {
     TNode current = variables[i];
     TNode subst = Rewriter::rewrite(d_modelMap->apply(current));
     Debug("bitvector-model") << "   " << current << " => " << subst << "\n";
     values[i] = subst;
+    utils::collectVariables(subst, leaf_vars);
   }
 
   Debug("bitvector-model") << "Model:\n";
-  for (BVQuickCheck::vars_iterator it = d_quickSolver->beginVars(); it != d_quickSolver->endVars(); ++it) {
+
+  for (NodeSet::const_iterator it = leaf_vars.begin(); it != leaf_vars.end(); ++it) {
     TNode var = *it;
     Node value = d_quickSolver->getVarValue(var, true);
     Assert (!value.isNull() || !fullModel);
@@ -712,7 +715,7 @@ void AlgebraicSolver::collectModelInfo(TheoryModel* model, bool fullModel) {
     TNode subst = Rewriter::rewrite(d_modelMap->apply(current));
     Debug("bitvector-model") << "AlgebraicSolver:   " << variables[i] << " => " << subst << "\n"; 
     // Doesn't have to be constant as it may be irrelevant
-    // Assert (subst.getKind() == kind::CONST_BITVECTOR); 
+    Assert (subst.getKind() == kind::CONST_BITVECTOR); 
     model->assertEquality(variables[i], subst, true);
   }
 
