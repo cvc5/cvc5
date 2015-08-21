@@ -329,6 +329,10 @@ void QuantifiersEngine::check( Theory::Effort e ){
       Trace("quant-engine-ee") << "Equality engine : " << std::endl;
       debugPrintEqualityEngine( "quant-engine-ee" );
     }
+    if( Trace.isOn("quant-engine-assert") ){
+      Trace("quant-engine-assert") << "Assertions : " << std::endl;
+      getTheoryEngine()->printAssertions("quant-engine-assert");
+    }
 
     //reset relevant information
     d_conflict = false;

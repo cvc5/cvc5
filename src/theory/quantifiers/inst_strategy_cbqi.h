@@ -88,6 +88,8 @@ public:
   std::vector< Node > d_vars;
   //auxiliary variables
   std::vector< Node > d_aux_vars;
+  //literals to equalities for aux vars
+  std::map< Node, std::map< Node, Node > > d_aux_eq;
   //check : add instantiations based on valuation of d_vars
   bool check();
 };
@@ -153,7 +155,6 @@ class InstStrategyCegqi : public InstStrategy {
 private:
   CegqiOutputInstStrategy * d_out;
   std::map< Node, CegInstantiator * > d_cinst;
-  std::map< Node, std::vector< Node > > d_aux_variables;
   Node d_small_const;
   Node d_curr_quant;
   bool d_check_vts_lemma_lc;
@@ -170,8 +171,8 @@ public:
   /** identify */
   std::string identify() const { return std::string("Cegqi"); }
   
-  //set auxiliary variables
-  void setAuxiliaryVariables( Node q, std::vector< Node >& vars );
+  //get instantiator for quantifier
+  CegInstantiator * getInstantiator( Node q );
 };
 
 }

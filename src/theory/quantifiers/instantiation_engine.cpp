@@ -108,18 +108,37 @@ bool InstantiationEngine::doInstantiationRound( Theory::Effort effort ){
           std::vector< Node > lems;
           lems.push_back( lem );
           d_quantEngine->getTheoryEngine()->getIteRemover()->run(lems, iteSkolemMap);
-          std::vector< Node > aux_vars;
-          for( unsigned i=0; i<lems.size(); i++ ){
-            Trace("cbqi-debug") << "Counterexample lemma (processed) " << i << " : " << lems[i] << std::endl;
-            d_quantEngine->addLemma( lems[i], false );
-          }
-          for(IteSkolemMap::iterator i = iteSkolemMap.begin(); i != iteSkolemMap.end(); ++i) {
-            Trace("cbqi-debug") << "  Auxiliary var (from ITE) : " << i->first << std::endl;
-            aux_vars.push_back( i->first );
-          }
-          //record the auxiliary variables in the inst strategy
+          CegInstantiator * cinst = NULL;
           if( d_i_cegqi ){
-            d_i_cegqi->setAuxiliaryVariables( f, aux_vars );
+            cinst = d_i_cegqi->getInstantiator( f );
+            Assert( cinst->d_aux_vars.empty() );
+            for(IteSkolemMap::iterator i = iteSkolemMap.begin(); i != iteSkolemMap.end(); ++i) {
+              Trace("cbqi-debug") << "  Auxiliary var (from ITE) : " << i->first << std::endl;
+              cinst->d_aux_vars.push_back( i->first );
+            }
+          }
+          for( unsigned i=0; i<lems.size(); i++ ){
+            Trace("cbqi-debug") << "Counterexample lemma (pre-rewrite)  " << i << " : " << lems[i] << std::endl;
+            if( !cinst ){
+              d_quantEngine->addLemma( lems[i], false );
+            }else{
+              Node rlem = lems[i];
+              rlem = Rewriter::rewrite( rlem );
+              Trace("cbqi-debug") << "Counterexample lemma (post-rewrite) " << i << " : " << rlem << std::endl;
+              d_quantEngine->addLemma( rlem, false );
+              //record the literals that imply auxiliary variables to be equal to terms
+              if( lems[i].getKind()==ITE && rlem.getKind()==ITE ){
+                if( lems[i][1].getKind()==EQUAL && lems[i][2].getKind()==EQUAL && lems[i][1][0]==lems[i][2][0] ){
+                  if( std::find( cinst->d_aux_vars.begin(), cinst->d_aux_vars.end(), lems[i][1][0] )!=cinst->d_aux_vars.end() ){
+                    Node v = lems[i][1][0];
+                    for( unsigned r=1; r<=2; r++ ){
+                      cinst->d_aux_eq[rlem[r]][v] = lems[i][r][1];
+                      Trace("cbqi-debug") << "  " << rlem[r] << " implies " << v << " = " << lems[i][r][1] << std::endl;
+                    }
+                  }
+                }
+              }
+            }
           }
           
           addedLemma = true;

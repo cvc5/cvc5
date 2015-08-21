@@ -798,9 +798,6 @@ private:
   /** Visitor for collecting shared terms */
   SharedTermsVisitor d_sharedTermsVisitor;
 
-  /** Prints the assertions to the debug stream */
-  void printAssertions(const char* tag);
-
   /** Dump the assertions to the dump */
   void dumpAssertions(const char* tag);
 
@@ -834,6 +831,10 @@ public:
   RemoveITE* getIteRemover() { return &d_iteRemover; }
 
   SortInference* getSortInference() { return &d_sortInfer; }
+  
+  /** Prints the assertions to the debug stream */
+  void printAssertions(const char* tag);
+
 private:
   std::map< std::string, std::vector< theory::Theory* > > d_attr_handle;
 public:

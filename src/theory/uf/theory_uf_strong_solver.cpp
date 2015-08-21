@@ -1047,6 +1047,7 @@ void StrongSolverTheoryUF::SortModel::allocateCardinality( OutputChannel* out ){
     //add splitting lemma for cardinality constraint
     Assert( !d_cardinality_term.isNull() );
     Node lem = getCardinalityLiteral( d_aloc_cardinality );
+    Trace("uf-ss-lemma") << "*** Cardinality split on : " << lem << std::endl;
     lem = NodeManager::currentNM()->mkNode( OR, lem, lem.notNode() );
     d_cardinality_lemma[ d_aloc_cardinality ] = lem;
     //add as lemma to output channel
