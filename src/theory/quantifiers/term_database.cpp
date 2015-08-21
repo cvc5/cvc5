@@ -1558,7 +1558,8 @@ void TermDb::registerTrigger( theory::inst::Trigger* tr, Node op ){
 
 bool TermDb::isInductionTerm( Node n ) {
   if( options::dtStcInduction() && datatypes::DatatypesRewriter::isTermDatatype( n ) ){
-    return true;
+    const Datatype& dt = ((DatatypeType)(n.getType()).toType()).getDatatype();
+    return !dt.isCodatatype();
   }
   if( options::intWfInduction() && n.getType().isInteger() ){
     return true;
