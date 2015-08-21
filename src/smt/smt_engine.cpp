@@ -1544,14 +1544,23 @@ void SmtEngine::setDefaults() {
   if (d_logic.isTheoryEnabled(THEORY_ARITH) &&
       !d_logic.isLinear()) {
     if (options::produceModels()) {
+      if(options::produceModels.wasSetByUser()) {
+        throw OptionException("produce-model not supported with nonlinear arith");
+      }
       Warning() << "SmtEngine: turning off produce-models because unsupported for nonlinear arith" << endl;
       setOption("produce-models", SExpr("false"));
     }
     if (options::produceAssignments()) {
+      if(options::produceAssignments.wasSetByUser()) {
+        throw OptionException("produce-assignments not supported with nonlinear arith");
+      }
       Warning() << "SmtEngine: turning off produce-assignments because unsupported for nonlinear arith" << endl;
       setOption("produce-assignments", SExpr("false"));
     }
     if (options::checkModels()) {
+      if(options::checkModels.wasSetByUser()) {
+        throw OptionException("check-models not supported with nonlinear arith");
+      }
       Warning() << "SmtEngine: turning off check-models because unsupported for nonlinear arith" << endl;
       setOption("check-models", SExpr("false"));
     }
