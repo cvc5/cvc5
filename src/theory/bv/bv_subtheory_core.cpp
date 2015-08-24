@@ -276,6 +276,11 @@ void CoreSolver::buildModel() {
           for (unsigned j = i + 1; j < representatives.size(); ++j) {
             TNode a = representatives[i];
             TNode b = representatives[j];
+            if (a.getKind() == kind::CONST_BITVECTOR &&
+                b.getKind() == kind::CONST_BITVECTOR) {
+              Assert (a != b);
+              continue;
+            }
             if (utils::getSize(a) == utils::getSize(b)) {
               equalities.push_back(utils::mkNode(kind::EQUAL, a, b));
             }
