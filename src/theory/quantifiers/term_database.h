@@ -353,6 +353,8 @@ private:
   std::map< TypeNode, Node > d_vts_inf_free;
   /** get vts infinity index */
   Node getVtsInfinityIndex( int i, bool isFree = false, bool create = true  );
+  /** substitute vts free terms */
+  Node substituteVtsFreeTerms( Node n );
 public:
   /** get vts delta */
   Node getVtsDelta( bool isFree = false, bool create = true );

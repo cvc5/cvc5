@@ -29,18 +29,18 @@ using namespace std;
 
 namespace CVC4 {
 
-CegConjecture::CegConjecture( context::Context* c ) : d_active( c, false ), d_infeasible( c, false ), d_curr_lit( c, 0 ){
+CegConjecture::CegConjecture( QuantifiersEngine * qe, context::Context* c ) : d_qe( qe ), d_active( c, false ), d_infeasible( c, false ), d_curr_lit( c, 0 ){
   d_refine_count = 0;
-  d_ceg_si = new CegConjectureSingleInv( this );
+  d_ceg_si = new CegConjectureSingleInv( qe, this );
 }
 
-void CegConjecture::assign( QuantifiersEngine * qe, Node q ) {
+void CegConjecture::assign( Node q ) {
   Assert( d_quant.isNull() );
   Assert( q.getKind()==FORALL );
   d_assert_quant = q;
   //register with single invocation if applicable
-  if( qe->getTermDatabase()->isQAttrSygus( d_assert_quant ) && options::cegqiSingleInv() ){
-    d_ceg_si->initialize( qe, q );
+  if( d_qe->getTermDatabase()->isQAttrSygus( d_assert_quant ) && options::cegqiSingleInv() ){
+    d_ceg_si->initialize( q );
     if( q!=d_ceg_si->d_quant ){
       //Node red_lem = NodeManager::currentNM()->mkNode( OR, q.negate(), d_cegqi_si->d_quant );
       //may have rewritten quantified formula (for invariant synthesis)
@@ -53,9 +53,9 @@ void CegConjecture::assign( QuantifiersEngine * qe, Node q ) {
   }
   Trace("cegqi") << "Base quantified fm is : " << q << std::endl;
   //construct base instantiation
-  d_base_inst = Rewriter::rewrite( qe->getInstantiation( q, d_candidates ) );
+  d_base_inst = Rewriter::rewrite( d_qe->getInstantiation( q, d_candidates ) );
   Trace("cegqi") << "Base instantiation is : " << d_base_inst << std::endl;
-  if( qe->getTermDatabase()->isQAttrSygus( d_assert_quant ) ){
+  if( d_qe->getTermDatabase()->isQAttrSygus( d_assert_quant ) ){
     CegInstantiation::collectDisjuncts( d_base_inst, d_base_disj );
     Trace("cegqi") << "Conjecture has " << d_base_disj.size() << " disjuncts." << std::endl;
     //store the inner variables for each disjunct
@@ -70,7 +70,7 @@ void CegConjecture::assign( QuantifiersEngine * qe, Node q ) {
       }
     }
     d_syntax_guided = true;
-  }else if( qe->getTermDatabase()->isQAttrSynthesis( d_assert_quant ) ){
+  }else if( d_qe->getTermDatabase()->isQAttrSynthesis( d_assert_quant ) ){
     d_syntax_guided = false;
   }else{
     Assert( false );
@@ -150,7 +150,7 @@ bool CegConjecture::needsCheck() {
 }
 
 CegInstantiation::CegInstantiation( QuantifiersEngine * qe, context::Context* c ) : QuantifiersModule( qe ){
-  d_conj = new CegConjecture( qe->getSatContext() );
+  d_conj = new CegConjecture( qe, qe->getSatContext() );
   d_last_inst_si = false;
 }
 
@@ -178,7 +178,7 @@ void CegInstantiation::registerQuantifier( Node q ) {
   if( d_quantEngine->getOwner( q )==this ){
     if( !d_conj->isAssigned() ){
       Trace("cegqi") << "Register conjecture : " << q << std::endl;
-      d_conj->assign( d_quantEngine, q );
+      d_conj->assign( q );
 
       //fairness
       if( d_conj->getCegqiFairMode()!=CEGQI_FAIR_NONE ){

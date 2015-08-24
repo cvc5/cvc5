@@ -102,7 +102,7 @@ bool InstantiationEngine::doInstantiationRound( Theory::Effort effort ){
           //add counterexample lemma
           lem = Rewriter::rewrite( lem );
           Trace("cbqi") << "Counterexample lemma : " << lem << std::endl;
-          
+
           //must explicitly remove ITEs so that we record dependencies
           IteSkolemMap iteSkolemMap;
           std::vector< Node > lems;
@@ -140,7 +140,7 @@ bool InstantiationEngine::doInstantiationRound( Theory::Effort effort ){
               }
             }
           }
-          
+
           addedLemma = true;
         }
       }
@@ -289,6 +289,9 @@ bool InstantiationEngine::checkComplete() {
 
 void InstantiationEngine::registerQuantifier( Node f ){
   if( d_quantEngine->hasOwnership( f, this ) ){
+    for( unsigned i=0; i<d_instStrategies.size(); ++i ){
+      d_instStrategies[i]->registerQuantifier( f );
+    }
     //Notice() << "do cbqi " << f << " ? " << std::endl;
     if( options::cbqi() ){
       Node ceBody = d_quantEngine->getTermDatabase()->getInstConstantBody( f );

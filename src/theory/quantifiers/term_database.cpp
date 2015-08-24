@@ -1312,7 +1312,7 @@ void TermDb::getVtsTerms( std::vector< Node >& t, bool isFree, bool create, bool
 Node TermDb::getVtsDelta( bool isFree, bool create ) {
   if( create ){
     if( d_vts_delta_free.isNull() ){
-      d_vts_delta_free = NodeManager::currentNM()->mkSkolem( "delta", NodeManager::currentNM()->realType(), "free delta for virtual term substitution" );
+      d_vts_delta_free = NodeManager::currentNM()->mkSkolem( "delta_free", NodeManager::currentNM()->realType(), "free delta for virtual term substitution" );
       Node delta_lem = NodeManager::currentNM()->mkNode( GT, d_vts_delta_free, NodeManager::currentNM()->mkConst( Rational( 0 ) ) );
       d_quantEngine->getOutputChannel().lemma( delta_lem );
     }
@@ -1326,7 +1326,7 @@ Node TermDb::getVtsDelta( bool isFree, bool create ) {
 Node TermDb::getVtsInfinity( TypeNode tn, bool isFree, bool create ) {
   if( create ){
     if( d_vts_inf_free[tn].isNull() ){
-      d_vts_inf_free[tn] = NodeManager::currentNM()->mkSkolem( "inf", tn, "free infinity for virtual term substitution" );
+      d_vts_inf_free[tn] = NodeManager::currentNM()->mkSkolem( "inf_free", tn, "free infinity for virtual term substitution" );
     }
     if( d_vts_inf[tn].isNull() ){
       d_vts_inf[tn] = NodeManager::currentNM()->mkSkolem( "inf", tn, "infinity for virtual term substitution" );
@@ -1343,6 +1343,19 @@ Node TermDb::getVtsInfinityIndex( int i, bool isFree, bool create ) {
   }else{
     Assert( false );
     return Node::null();
+  }
+}
+
+Node TermDb::substituteVtsFreeTerms( Node n ) {
+  std::vector< Node > vars;
+  getVtsTerms( vars, false, false );
+  std::vector< Node > vars_free;
+  getVtsTerms( vars_free, true, false );
+  Assert( vars.size()==vars_free.size() );
+  if( !vars.empty() ){
+    return n.substitute( vars.begin(), vars.end(), vars_free.begin(), vars_free.end() );
+  }else{
+    return n;
   }
 }
 
@@ -1379,63 +1392,58 @@ Node TermDb::rewriteVtsSymbols( Node n ) {
       }
     }
     if( !rew_vts_inf.isNull()  || rew_delta ){
-      if( n.getKind()==EQUAL ){
-        return d_false;
-      }else{
-        std::map< Node, Node > msum;
-        if( QuantArith::getMonomialSumLit( n, msum ) ){
-          if( Trace.isOn("quant-vts-debug") ){
-            Trace("quant-vts-debug") << "VTS got monomial sum : " << std::endl;
-            QuantArith::debugPrintMonomialSum( msum, "quant-vts-debug" );
-          }
-          Node vts_sym = !rew_vts_inf.isNull() ? rew_vts_inf : d_vts_delta;
-          Assert( !vts_sym.isNull() );
-          Node iso_n;
-          int res = QuantArith::isolate( vts_sym, msum, iso_n, n.getKind(), true );
-          if( res!=0 ){
-            Trace("quant-vts-debug") << "VTS isolated :  -> " << iso_n << ", res = " << res << std::endl;
-            int index = res==1 ? 0 : 1;
-            Node slv = iso_n[res==1 ? 1 : 0];
-            if( iso_n[index]!=vts_sym ){
-              if( iso_n[index].getKind()==MULT && iso_n[index].getNumChildren()==2 && iso_n[index][0].isConst() && iso_n[index][1]==vts_sym ){
-                slv = NodeManager::currentNM()->mkNode( MULT, slv, NodeManager::currentNM()->mkConst( Rational(1)/iso_n[index][0].getConst<Rational>() ) );
-              }else{
-                Trace("quant-vts-debug") << "Failed, return " << n << std::endl;
-                return n;
-              }
-            }
-            Node nlit;
-            if( res==1 ){
-              if( !rew_vts_inf.isNull() ){
-                nlit = d_true;
-              }else{
-                nlit = NodeManager::currentNM()->mkNode( GEQ, d_zero, slv );
-              }
+      std::map< Node, Node > msum;
+      if( QuantArith::getMonomialSumLit( n, msum ) ){
+        if( Trace.isOn("quant-vts-debug") ){
+          Trace("quant-vts-debug") << "VTS got monomial sum : " << std::endl;
+          QuantArith::debugPrintMonomialSum( msum, "quant-vts-debug" );
+        }
+        Node vts_sym = !rew_vts_inf.isNull() ? rew_vts_inf : d_vts_delta;
+        Assert( !vts_sym.isNull() );
+        Node iso_n;
+        Node nlit;
+        int res = QuantArith::isolate( vts_sym, msum, iso_n, n.getKind(), true );
+        if( res!=0 ){
+          Trace("quant-vts-debug") << "VTS isolated :  -> " << iso_n << ", res = " << res << std::endl;
+          Node slv = iso_n[res==1 ? 1 : 0];
+          //ensure the vts terms have been eliminated
+          if( containsVtsTerm( slv ) ){
+            Trace("quant-vts-warn") << "Bad vts literal : " << n << ", contains " << vts_sym << " but bad solved form " << slv << "." << std::endl;
+            nlit = substituteVtsFreeTerms( n );
+            Trace("quant-vts-debug") << "...return " << nlit << std::endl;
+            //Assert( false );
+            //safe case: just convert to free symbols
+            return nlit;
+          }else{
+            if( !rew_vts_inf.isNull() ){
+              nlit = ( n.getKind()==GEQ && res==1 ) ? d_true : d_false;
             }else{
-              if( !rew_vts_inf.isNull() ){
+              Assert( iso_n[res==1 ? 0 : 1]==d_vts_delta );
+              if( n.getKind()==EQUAL ){
                 nlit = d_false;
+              }else if( res==1 ){
+                nlit = NodeManager::currentNM()->mkNode( GEQ, d_zero, slv );
               }else{
                 nlit = NodeManager::currentNM()->mkNode( GT, slv, d_zero );
               }
             }
-            Trace("quant-vts-debug") << "Return " << nlit << std::endl;
-            return nlit;
           }
+          Trace("quant-vts-debug") << "Return " << nlit << std::endl;
+          return nlit;
+        }else{
+          Trace("quant-vts-warn") << "Bad vts literal : " << n << ", contains " << vts_sym << " but could not isolate." << std::endl;
+          //safe case: just convert to free symbols
+          nlit = substituteVtsFreeTerms( n );
+          Trace("quant-vts-debug") << "...return " << nlit << std::endl;
+          //Assert( false );
+          return nlit;
         }
       }
     }
     return n;
   }else if( n.getKind()==FORALL ){
     //cannot traverse beneath quantifiers
-    std::vector< Node > vars;
-    getVtsTerms( vars, false );
-    std::vector< Node > vars_free;
-    getVtsTerms( vars_free, true );
-    Assert( vars.size()==vars_free.size() );
-    if( !vars.empty() ){
-      n = n.substitute( vars.begin(), vars.end(), vars_free.begin(), vars_free.end() );
-    }
-    return n;
+    return substituteVtsFreeTerms( n );
   }else{
     bool childChanged = false;
     std::vector< Node > children;

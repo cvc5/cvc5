@@ -45,11 +45,18 @@ bool CegqiOutputSingleInv::addLemma( Node n ) {
 }
 
 
-CegConjectureSingleInv::CegConjectureSingleInv( CegConjecture * p ) : d_parent( p ){
-  d_sol = NULL;
-  d_c_inst_match_trie = NULL;
-  d_cinst = NULL;
+CegConjectureSingleInv::CegConjectureSingleInv( QuantifiersEngine * qe, CegConjecture * p ) : d_qe( qe ), d_parent( p ){
   d_has_ites = true;
+  if( options::incrementalSolving() ){
+    d_c_inst_match_trie = new inst::CDInstMatchTrie( qe->getUserContext() );
+  }else{
+    d_c_inst_match_trie = NULL;
+  }
+  CegqiOutputSingleInv * cosi = new CegqiOutputSingleInv( this );
+  //  third and fourth arguments set to (false,false) until we have solution reconstruction for delta and infinity
+  d_cinst = new CegInstantiator( qe, cosi, false, false );
+
+  d_sol = new CegConjectureSingleInvSol( qe );
 }
 
 Node CegConjectureSingleInv::getSingleInvLemma( Node guard ) {
@@ -73,15 +80,9 @@ Node CegConjectureSingleInv::getSingleInvLemma( Node guard ) {
     inst = TermDb::simpleNegate( inst );
     Trace("cegqi-si") << "Single invocation initial lemma : " << inst << std::endl;
 
-    //initialize the instantiator for this
-    if( !d_single_inv_sk.empty() ){
-      CegqiOutputSingleInv * cosi = new CegqiOutputSingleInv( this );
-      //  third and fourth arguments set to (false,false) until we have solution reconstruction for delta and infinity
-      d_cinst = new CegInstantiator( d_qe, cosi, false, false );
-      d_cinst->d_vars.insert( d_cinst->d_vars.end(), d_single_inv_sk.begin(), d_single_inv_sk.end() );
-    }else{
-      d_cinst = NULL;
-    }
+    //copy variables to instantiator
+    d_cinst->d_vars.clear();
+    d_cinst->d_vars.insert( d_cinst->d_vars.end(), d_single_inv_sk.begin(), d_single_inv_sk.end() );
 
     return NodeManager::currentNM()->mkNode( OR, guard.negate(), inst );
   }else{
@@ -89,14 +90,9 @@ Node CegConjectureSingleInv::getSingleInvLemma( Node guard ) {
   }
 }
 
-void CegConjectureSingleInv::initialize( QuantifiersEngine * qe, Node q ) {
+void CegConjectureSingleInv::initialize( Node q ) {
   //initialize data
-  d_sol = new CegConjectureSingleInvSol( qe );
-  d_qe = qe;
   d_quant = q;
-  if( options::incrementalSolving() ){
-    d_c_inst_match_trie = new inst::CDInstMatchTrie( qe->getUserContext() );
-  }
   //process
   Trace("cegqi-si") << "Initialize cegqi-si for " << q << std::endl;
   // conj -> conj*
@@ -457,63 +453,8 @@ void CegConjectureSingleInv::initialize( QuantifiersEngine * qe, Node q ) {
       exit( 0 );
     }
   }else{
-    if( options::cegqiSingleInvPreRegInst() && d_single_inv.getKind()==FORALL ){
-      Trace("cegqi-si-presolve") << "Check " << d_single_inv << std::endl;
-      //at preregister time, add proxy of obvious instantiations up front, which helps learning during preprocessing
-      std::vector< Node > vars;
-      std::map< Node, std::vector< Node > > teq;
-      for( unsigned i=0; i<d_single_inv[0].getNumChildren(); i++ ){
-        vars.push_back( d_single_inv[0][i] );
-        teq[d_single_inv[0][i]].clear();
-      }
-      collectPresolveEqTerms( d_single_inv[1], teq );
-      std::vector< Node > terms;
-      std::vector< Node > conj;
-      getPresolveEqConjuncts( vars, terms, teq, d_single_inv, conj );
-
-      if( !conj.empty() ){
-        Node lem = conj.size()==1 ? conj[0] : NodeManager::currentNM()->mkNode( AND, conj );
-        Node g = NodeManager::currentNM()->mkSkolem( "g", NodeManager::currentNM()->booleanType() );
-        lem = NodeManager::currentNM()->mkNode( OR, g, lem );
-        d_qe->getOutputChannel().lemma( lem, false, true );
-      }
-    }
-  }
-}
-
-void CegConjectureSingleInv::collectPresolveEqTerms( Node n, std::map< Node, std::vector< Node > >& teq ) {
-  if( n.getKind()==EQUAL ){
-    for( unsigned i=0; i<2; i++ ){
-      std::map< Node, std::vector< Node > >::iterator it = teq.find( n[i] );
-      if( it!=teq.end() ){
-        Node nn = n[ i==0 ? 1 : 0 ];
-        if( std::find( it->second.begin(), it->second.end(), nn )==it->second.end() ){
-          it->second.push_back( nn );
-          Trace("cegqi-si-presolve") << "  - " << n[i] << " = " << nn << std::endl;
-        }
-      }
-    }
-  }
-  for( unsigned i=0; i<n.getNumChildren(); i++ ){
-    collectPresolveEqTerms( n[i], teq );
-  }
-}
-
-void CegConjectureSingleInv::getPresolveEqConjuncts( std::vector< Node >& vars, std::vector< Node >& terms,
-                                                     std::map< Node, std::vector< Node > >& teq, Node f, std::vector< Node >& conj ) {
-  if( conj.size()<1000 ){
-    if( terms.size()==f[0].getNumChildren() ){
-      Node c = f[1].substitute( vars.begin(), vars.end(), terms.begin(), terms.end() );
-      conj.push_back( c );
-    }else{
-      unsigned i = terms.size();
-      Node v = f[0][i];
-      terms.push_back( Node::null() );
-      for( unsigned j=0; j<teq[v].size(); j++ ){
-        terms[i] = teq[v][j];
-        getPresolveEqConjuncts( vars, terms, teq, f, conj );
-      }
-      terms.pop_back();
+    if( options::cbqiSingleInvPreRegInst() && d_single_inv.getKind()==FORALL ){
+      d_cinst->presolve( d_single_inv );
     }
   }
 }
@@ -746,7 +687,7 @@ bool CegConjectureSingleInv::addLemma( Node n ) {
 }
 
 void CegConjectureSingleInv::check( std::vector< Node >& lems ) {
-  if( !d_single_inv.isNull() && d_cinst!=NULL ) {
+  if( !d_single_inv.isNull() ) {
     d_curr_lemmas.clear();
     //call check for instantiator
     d_cinst->check();

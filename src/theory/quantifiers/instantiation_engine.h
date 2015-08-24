@@ -49,6 +49,8 @@ public:
   virtual int process( Node f, Theory::Effort effort, int e ) = 0;
   /** identify */
   virtual std::string identify() const { return std::string("Unknown"); }
+  /** register quantifier */
+  virtual void registerQuantifier( Node q ) {}
 };/* class InstStrategy */
 
 class InstantiationEngine : public QuantifiersModule

@@ -620,9 +620,9 @@ bool QuantifiersEngine::addInstantiation( Node f, std::vector< Node >& vars, std
   //do virtual term substitution
   if( doVts ){
     body = Rewriter::rewrite( body );
-    Trace("inst-debug") << "Rewrite vts symbols in " << body << std::endl;
+    Trace("quant-vts-debug") << "Rewrite vts symbols in " << body << std::endl;
     Node body_r = d_term_db->rewriteVtsSymbols( body );
-    Trace("inst-debug") << "            ...result: " << body_r << std::endl;
+    Trace("quant-vts-debug") << "            ...result: " << body_r << std::endl;
     body = body_r;
   }
   Trace("inst-assert") << "(assert " << body << ")" << std::endl;
@@ -804,15 +804,15 @@ bool QuantifiersEngine::existsInstantiation( Node f, InstMatch& m, bool modEq, b
 bool QuantifiersEngine::addLemma( Node lem, bool doCache ){
   if( doCache ){
     lem = Rewriter::rewrite(lem);
-    Trace("inst-add-debug2") << "Adding lemma : " << lem << std::endl;
+    Trace("inst-add-debug") << "Adding lemma : " << lem << std::endl;
     if( d_lemmas_produced_c.find( lem )==d_lemmas_produced_c.end() ){
       //d_curr_out->lemma( lem, false, true );
       d_lemmas_produced_c[ lem ] = true;
       d_lemmas_waiting.push_back( lem );
-      Trace("inst-add-debug2") << "Added lemma" << std::endl;
+      Trace("inst-add-debug") << "Added lemma" << std::endl;
       return true;
     }else{
-      Trace("inst-add-debug2") << "Duplicate." << std::endl;
+      Trace("inst-add-debug") << "Duplicate." << std::endl;
       return false;
     }
   }else{

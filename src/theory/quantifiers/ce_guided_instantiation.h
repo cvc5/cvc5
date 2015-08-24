@@ -29,8 +29,10 @@ namespace quantifiers {
 
 /** a synthesis conjecture */
 class CegConjecture {
+private:
+  QuantifiersEngine * d_qe;
 public:
-  CegConjecture( context::Context* c );
+  CegConjecture( QuantifiersEngine * qe, context::Context* c );
   /** is conjecture active */
   context::CDO< bool > d_active;
   /** is conjecture infeasible */
@@ -65,7 +67,7 @@ public:
   /** refine count */
   unsigned d_refine_count;
   /** assign */
-  void assign( QuantifiersEngine * qe, Node q );
+  void assign( Node q );
   /** is assigned */
   bool isAssigned() { return !d_quant.isNull(); }
   /** current extential quantifeirs whose couterexamples we must refine */

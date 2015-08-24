@@ -103,7 +103,7 @@ private:
   // add lemma
   bool addLemma( Node lem );
 public:
-  CegConjectureSingleInv( CegConjecture * p );
+  CegConjectureSingleInv( QuantifiersEngine * qe, CegConjecture * p );
   // original conjecture
   Node d_quant;
   // single invocation version of quant
@@ -116,7 +116,7 @@ public:
   //get the single invocation lemma
   Node getSingleInvLemma( Node guard );
   //initialize
-  void initialize( QuantifiersEngine * qe, Node q );
+  void initialize( Node q );
   //check
   void check( std::vector< Node >& lems );
   //get solution

@@ -1375,9 +1375,6 @@ void SmtEngine::setDefaults() {
     if( !options::eMatching.wasSetByUser() ){
       options::eMatching.set( options::fmfInstEngine() );
     }
-    if( !options::quantConflictFind.wasSetByUser() ){
-      options::quantConflictFind.set( false );
-    }
     if( ! options::instWhenMode.wasSetByUser()){
       //instantiate only on last call
       if( options::eMatching() ){
@@ -1440,7 +1437,7 @@ void SmtEngine::setDefaults() {
       options::cbqi2.set( true );
     }
   }
-  if( options::recurseCbqi() || options::cbqi2() ){
+  if( options::cbqi2() ){
     options::cbqi.set( true );
   }
   if( options::cbqi2() ){

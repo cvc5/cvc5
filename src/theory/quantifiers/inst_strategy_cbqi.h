@@ -79,7 +79,8 @@ private:
   bool addInstantiation( std::vector< Node >& subs, std::vector< Node >& vars );
   Node applySubstitution( Node n, std::vector< Node >& subs, std::vector< Node >& vars,
                           std::vector< Node >& coeff, std::vector< Node >& has_coeff, Node& pv_coeff, bool try_coeff = true );
-  Node getModelBasedProjectionValue( Node t, bool strict, bool isLower, Node c, Node me, Node mt, Node theta );
+  Node getModelBasedProjectionValue( Node t, bool isLower, Node c, Node me, Node mt, Node theta, 
+                                     Node inf_coeff, Node vts_inf, Node delta_coeff, Node vts_delta );
   void processAssertions();
   void addToAuxVarSubstitution( std::vector< Node >& subs_lhs, std::vector< Node >& subs_rhs, Node l, Node r );
 public:
@@ -92,6 +93,8 @@ public:
   std::map< Node, std::map< Node, Node > > d_aux_eq;
   //check : add instantiations based on valuation of d_vars
   bool check();
+  //presolve for quantified formula
+  void presolve( Node q );
 };
 
 class InstStrategySimplex : public InstStrategy{
@@ -170,9 +173,11 @@ public:
   bool addLemma( Node lem );
   /** identify */
   std::string identify() const { return std::string("Cegqi"); }
-  
+
   //get instantiator for quantifier
   CegInstantiator * getInstantiator( Node q );
+  //register quantifier
+  void registerQuantifier( Node q );
 };
 
 }

@@ -169,7 +169,7 @@ Node TheoryQuantifiers::getNextDecisionRequest(){
 
 void TheoryQuantifiers::assertUniversal( Node n ){
   Assert( n.getKind()==FORALL );
-  if( options::recurseCbqi() || !TermDb::hasInstConstAttr(n) ){
+  if( !options::cbqi() || options::recurseCbqi() || !TermDb::hasInstConstAttr(n) ){
     getQuantifiersEngine()->assertQuantifier( n, true );
   }
 }
