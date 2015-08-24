@@ -187,7 +187,8 @@ void EagerBitblaster::collectModelInfo(TheoryModel* m, bool fullModel) {
   TNodeSet::iterator it = d_variables.begin();
   for (; it!= d_variables.end(); ++it) {
     TNode var = *it;
-    if (d_bv->isLeaf(var) || isSharedTerm(var))  {
+    if (d_bv->isLeaf(var) || isSharedTerm(var) ||
+        (var.isVar() && var.getType().isBoolean()))  {
       // only shared terms could not have been bit-blasted
       Assert (hasBBTerm(var) || isSharedTerm(var));
       
