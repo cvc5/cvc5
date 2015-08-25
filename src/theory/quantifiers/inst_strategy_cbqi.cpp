@@ -419,6 +419,7 @@ bool CegInstantiator::addInstantiation( std::vector< Node >& subs, std::vector< 
       }
       if( options::cbqiModel() ){
         if( pvtn.isInteger() || pvtn.isReal() ){
+          bool use_inf = d_use_vts_inf && ( pvtn.isInteger() ? options::cbqiUseInfInt() : options::cbqiUseInfReal() );
           bool upper_first = false;
           if( options::cbqiMinBounds() ){
             upper_first = mbp_bounds[1].size()<mbp_bounds[0].size();
@@ -429,7 +430,7 @@ bool CegInstantiator::addInstantiation( std::vector< Node >& subs, std::vector< 
           for( unsigned r=0; r<2; r++ ){
             int rr = upper_first ? (1-r) : r;
             if( mbp_bounds[rr].empty() ){
-              if( d_use_vts_inf && ( pvtn.isInteger() ? options::cbqiUseInfInt() : options::cbqiUseInfReal() ) ){
+              if( use_inf ){
                 Trace("cbqi-bound") << "No " << ( rr==0 ? "lower" : "upper" ) << " bounds for " << pv << " (type=" << pvtn << ")" << std::endl;
                 //no bounds, we do +- infinity
                 Node val = d_qe->getTermDatabase()->getVtsInfinity( pvtn );
@@ -540,6 +541,23 @@ bool CegInstantiator::addInstantiation( std::vector< Node >& subs, std::vector< 
               }
             }
           }
+          //if not using infinity, use model value of zero
+          if( !use_inf && mbp_bounds[0].empty() && mbp_bounds[1].empty() ){
+            Node val = d_zero;
+            Node c; //null (one) coefficient
+            val = getModelBasedProjectionValue( val, true, c, pv_value, d_zero, theta, Node::null(), vts_sym[0], Node::null(), vts_sym[1] );
+            if( !val.isNull() ){
+              if( subs_proc[val].find( c )==subs_proc[val].end() ){
+                subs_proc[val][c] = true;
+                if( addInstantiationInc( val, pv, c, subs, vars, coeff, has_coeff, theta, i, effort ) ){
+                  return true;
+                }
+              }
+            }
+          }
+#ifdef MBP_STRICT_ASSERTIONS
+          Assert( false );
+#endif
           //try non-optimal bounds (heuristic, may help when nested quantification) ?
           Trace("cbqi-bound") << "Try non-optimal bounds..." << std::endl;
           for( unsigned r=0; r<2; r++ ){
