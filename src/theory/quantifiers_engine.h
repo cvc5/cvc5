@@ -53,6 +53,8 @@ public:
   QuantifiersEngine* getQuantifiersEngine() { return d_quantEngine; }
   /** initialize */
   virtual void finishInit() {}
+  /** presolve */
+  virtual void presolve() {}
   /* whether this module needs to check this round */
   virtual bool needsCheck( Theory::Effort e ) { return e>=Theory::EFFORT_LAST_CALL; }
   /* whether this module needs a model built */
@@ -251,6 +253,8 @@ public:
 public:
   /** initialize */
   void finishInit();
+  /** presolve */
+  void presolve();
   /** check at level */
   void check( Theory::Effort e );
   /** register quantifier */

@@ -77,6 +77,11 @@ void InstantiationEngine::finishInit(){
   }
 }
 
+void InstantiationEngine::presolve() {
+  for( unsigned i=0; i<d_instStrategies.size(); ++i ){
+    d_instStrategies[i]->presolve();
+  }
+}
 
 bool InstantiationEngine::doInstantiationRound( Theory::Effort effort ){
   unsigned lastWaiting = d_quantEngine->d_lemmas_waiting.size();

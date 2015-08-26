@@ -453,7 +453,8 @@ void CegConjectureSingleInv::initialize( Node q ) {
       exit( 0 );
     }
   }else{
-    if( options::cbqiSingleInvPreRegInst() && d_single_inv.getKind()==FORALL ){
+    if( options::cbqiPreRegInst() && d_single_inv.getKind()==FORALL ){
+      //just invoke the presolve now
       d_cinst->presolve( d_single_inv );
     }
   }

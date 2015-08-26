@@ -1428,6 +1428,9 @@ void SmtEngine::setDefaults() {
     if( !options::macrosQuant.wasSetByUser()) {
       options::macrosQuant.set( false );
     }
+    if( !options::cbqiPreRegInst.wasSetByUser()) {
+      options::cbqiPreRegInst.set( true );
+    }
   }
 
   //cbqi options

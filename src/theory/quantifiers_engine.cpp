@@ -252,6 +252,7 @@ Valuation& QuantifiersEngine::getValuation(){
 }
 
 void QuantifiersEngine::finishInit(){
+  Trace("quant-engine-debug") << "QuantifiersEngine : finishInit " << std::endl;
   for( int i=0; i<(int)d_modules.size(); i++ ){
     d_modules[i]->finishInit();
   }
@@ -279,6 +280,13 @@ void QuantifiersEngine::setOwner( Node q, QuantifiersModule * m ) {
 bool QuantifiersEngine::hasOwnership( Node q, QuantifiersModule * m ) {
   QuantifiersModule * mo = getOwner( q );
   return mo==m || mo==NULL;
+}
+
+void QuantifiersEngine::presolve() {
+  Trace("quant-engine-debug") << "QuantifiersEngine : presolve " << std::endl;
+  for( unsigned i=0; i<d_modules.size(); i++ ){
+    d_modules[i]->presolve();
+  }
 }
 
 void QuantifiersEngine::check( Theory::Effort e ){

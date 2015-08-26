@@ -244,7 +244,7 @@ option cbqiUseInfInt --cbqi-use-inf-int bool :read-write :default false
  use integer infinity for vts in counterexample-based quantifier instantiation
 option cbqiUseInfReal --cbqi-use-inf-real bool :read-write :default false
  use real infinity for vts in counterexample-based quantifier instantiation
-option cbqiSingleInvPreRegInst --cbqi-prereg-inst bool :default false
+option cbqiPreRegInst --cbqi-prereg-inst bool :read-write :default false
   preregister ground instantiations in counterexample-based quantifier instantiation
 option cbqiMinBounds --cbqi-min-bounds bool :default false
   use minimally constrained lower/upper bound for counterexample-based quantifier instantiation

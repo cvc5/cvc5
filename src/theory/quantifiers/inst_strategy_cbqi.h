@@ -69,13 +69,15 @@ private:
   void computeProgVars( Node n );
   // effort=0 : do not use model value, 1: use model value, 2: one must use model value
   bool addInstantiation( std::vector< Node >& subs, std::vector< Node >& vars,
-                         std::vector< Node >& coeff, std::vector< Node >& has_coeff, Node theta,
+                         std::vector< Node >& coeff, std::vector< int >& btyp, 
+                         std::vector< Node >& has_coeff, Node theta,
                          unsigned i, unsigned effort );
-  bool addInstantiationInc( Node n, Node pv, Node pv_coeff, std::vector< Node >& subs, std::vector< Node >& vars,
-                            std::vector< Node >& coeff, std::vector< Node >& has_coeff, Node theta, unsigned i, unsigned effort );
+  bool addInstantiationInc( Node n, Node pv, Node pv_coeff, int bt, std::vector< Node >& subs, std::vector< Node >& vars,
+                            std::vector< Node >& coeff, std::vector< int >& btyp, 
+                            std::vector< Node >& has_coeff, Node theta, unsigned i, unsigned effort );
   bool addInstantiationCoeff( std::vector< Node >& subs, std::vector< Node >& vars,
-                              std::vector< Node >& coeff, std::vector< Node >& has_coeff,
-                              unsigned j );
+                              std::vector< Node >& coeff, std::vector< int >& btyp, 
+                              std::vector< Node >& has_coeff, unsigned j );
   bool addInstantiation( std::vector< Node >& subs, std::vector< Node >& vars );
   Node applySubstitution( Node n, std::vector< Node >& subs, std::vector< Node >& vars,
                           std::vector< Node >& coeff, std::vector< Node >& has_coeff, Node& pv_coeff, bool try_coeff = true );
@@ -178,6 +180,8 @@ public:
   CegInstantiator * getInstantiator( Node q );
   //register quantifier
   void registerQuantifier( Node q );
+  //presolve
+  void presolve();
 };
 
 }

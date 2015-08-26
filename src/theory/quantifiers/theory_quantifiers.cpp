@@ -77,6 +77,9 @@ void TheoryQuantifiers::preRegisterTerm(TNode n) {
 
 void TheoryQuantifiers::presolve() {
   Debug("quantifiers-presolve") << "TheoryQuantifiers::presolve()" << endl;
+  if( getQuantifiersEngine() ){
+    getQuantifiersEngine()->presolve();
+  }
 }
 
 Node TheoryQuantifiers::getValue(TNode n) {
