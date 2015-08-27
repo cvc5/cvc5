@@ -53,7 +53,7 @@ TESTS =	\
 	nested-delta.smt2 \
 	nested-inf.smt2 \
 	RND-small.smt2 \
-	clock-10.smt2 \
+	clock-3.smt2 \
 	006-cbqi-ite.smt2
 
 
@@ -73,7 +73,8 @@ TESTS =	\
 #		javafe.ast.WhileStmt.447.smt2 \
 #		javafe.tc.CheckCompilationUnit.001.smt2 \
 #		javafe.tc.FlowInsensitiveChecks.682.smt2 \
-#		array-unsat-simp3.smt2
+#		array-unsat-simp3.smt2 \
+#		clock-10.smt2
 #
 
 EXTRA_DIST = $(TESTS) \
