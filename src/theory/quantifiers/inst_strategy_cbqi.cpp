@@ -9,7 +9,7 @@
  ** See the file COPYING in the top-level source directory for licensing
  ** information.\endverbatim
  **
- ** \brief Implementation of cbqi instantiation strategies
+ ** \brief Implementation of counterexample-guided quantifier instantiation strategies
  **/
 
 #include "theory/quantifiers/inst_strategy_cbqi.h"
@@ -20,6 +20,7 @@
 #include "theory/quantifiers/options.h"
 #include "theory/quantifiers/term_database.h"
 #include "theory/quantifiers/first_order_model.h"
+#include "util/ite_removal.h"
 
 using namespace std;
 using namespace CVC4;
@@ -28,7 +29,6 @@ using namespace CVC4::context;
 using namespace CVC4::theory;
 using namespace CVC4::theory::quantifiers;
 using namespace CVC4::theory::arith;
-using namespace CVC4::theory::datatypes;
 
 #define ARITH_INSTANTIATOR_USE_MINUS_DELTA
 //#define MBP_STRICT_ASSERTIONS
@@ -1182,6 +1182,37 @@ void CegInstantiator::addToAuxVarSubstitution( std::vector< Node >& subs_lhs, st
   subs_rhs.push_back( r );
 }
 
+void CegInstantiator::registerCounterexampleLemma( std::vector< Node >& lems, std::vector< Node >& ce_vars ) {
+  Assert( d_vars.empty() );
+  d_vars.insert( d_vars.end(), ce_vars.begin(), ce_vars.end() );
+  IteSkolemMap iteSkolemMap;
+  d_qe->getTheoryEngine()->getIteRemover()->run(lems, iteSkolemMap);
+  Assert( d_aux_vars.empty() );
+  for(IteSkolemMap::iterator i = iteSkolemMap.begin(); i != iteSkolemMap.end(); ++i) {
+    Trace("cbqi-debug") << "  Auxiliary var (from ITE) : " << i->first << std::endl;
+    d_aux_vars.push_back( i->first );
+  }
+  for( unsigned i=0; i<lems.size(); i++ ){
+    Trace("cbqi-debug") << "Counterexample lemma (pre-rewrite)  " << i << " : " << lems[i] << std::endl;
+    Node rlem = lems[i];
+    rlem = Rewriter::rewrite( rlem );
+    Trace("cbqi-debug") << "Counterexample lemma (post-rewrite) " << i << " : " << rlem << std::endl;
+    //record the literals that imply auxiliary variables to be equal to terms
+    if( lems[i].getKind()==ITE && rlem.getKind()==ITE ){
+      if( lems[i][1].getKind()==EQUAL && lems[i][2].getKind()==EQUAL && lems[i][1][0]==lems[i][2][0] ){
+        if( std::find( d_aux_vars.begin(), d_aux_vars.end(), lems[i][1][0] )!=d_aux_vars.end() ){
+          Node v = lems[i][1][0];
+          for( unsigned r=1; r<=2; r++ ){
+            d_aux_eq[rlem[r]][v] = lems[i][r][1];
+            Trace("cbqi-debug") << "  " << rlem[r] << " implies " << v << " = " << lems[i][r][1] << std::endl;
+          }
+        }
+      }
+    }
+    lems[i] = rlem;
+  }
+}
+
 //old implementation
 
 InstStrategySimplex::InstStrategySimplex( TheoryArith* th, QuantifiersEngine* ie ) :
@@ -1585,9 +1616,6 @@ CegInstantiator * InstStrategyCegqi::getInstantiator( Node q ) {
   std::map< Node, CegInstantiator * >::iterator it = d_cinst.find( q );
   if( it==d_cinst.end() ){
     CegInstantiator * cinst = new CegInstantiator( d_quantEngine, d_out, true, true );
-    for( int i=0; i<d_quantEngine->getTermDatabase()->getNumInstantiationConstants( q ); i++ ){
-      cinst->d_vars.push_back( d_quantEngine->getTermDatabase()->getInstantiationConstant( q, i ) );
-    }
     d_cinst[q] = cinst;
     return cinst;
   }else{

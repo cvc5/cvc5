@@ -9,14 +9,14 @@
  ** See the file COPYING in the top-level source directory for licensing
  ** information.\endverbatim
  **
- ** \brief instantiator_arith_instantiator
+ ** \brief counterexample-guided quantifier instantiation
  **/
 
 
 #include "cvc4_private.h"
 
-#ifndef __CVC4__INST_STRATEGT_CBQI_H
-#define __CVC4__INST_STRATEGT_CBQI_H
+#ifndef __CVC4__INST_STRATEGY_CBQI_H
+#define __CVC4__INST_STRATEGY_CBQI_H
 
 #include "theory/quantifiers/instantiation_engine.h"
 #include "theory/arith/arithvar.h"
@@ -28,10 +28,6 @@ namespace theory {
 
 namespace arith {
   class TheoryArith;
-}
-
-namespace datatypes {
-  class TheoryDatatypes;
 }
 
 namespace quantifiers {
@@ -64,6 +60,12 @@ private:
   std::map< Node, std::vector< Node > > d_curr_eqc;
   std::map< Node, Node > d_curr_rep;
   std::vector< Node > d_curr_arith_eqc;
+  //auxiliary variables
+  std::vector< Node > d_aux_vars;
+  //literals to equalities for aux vars
+  std::map< Node, std::map< Node, Node > > d_aux_eq;
+  //the CE variables
+  std::vector< Node > d_vars;
 private:
   //for adding instantiations during check
   void computeProgVars( Node n );
@@ -87,16 +89,12 @@ private:
   void addToAuxVarSubstitution( std::vector< Node >& subs_lhs, std::vector< Node >& subs_rhs, Node l, Node r );
 public:
   CegInstantiator( QuantifiersEngine * qe, CegqiOutput * out, bool use_vts_delta = true, bool use_vts_inf = true );
-  //the CE variables
-  std::vector< Node > d_vars;
-  //auxiliary variables
-  std::vector< Node > d_aux_vars;
-  //literals to equalities for aux vars
-  std::map< Node, std::map< Node, Node > > d_aux_eq;
   //check : add instantiations based on valuation of d_vars
   bool check();
   //presolve for quantified formula
   void presolve( Node q );
+  //register the counterexample lemma (stored in lems), modify vector 
+  void registerCounterexampleLemma( std::vector< Node >& lems, std::vector< Node >& ce_vars );
 };
 
 class InstStrategySimplex : public InstStrategy{

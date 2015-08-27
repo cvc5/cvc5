@@ -948,8 +948,9 @@ RewriteResponse TheoryStringsRewriter::postRewrite(TNode node) {
         bool flag = false;
         unsigned n1 = node[0].getNumChildren();
         unsigned n2 = node[1].getNumChildren();
-        if(n1 - n2) {
-          for(unsigned i=0; i<=n1 - n2; i++) {
+        if( n1>n2 ){
+          unsigned diff = n1-n2;
+          for(unsigned i=0; i<diff; i++) {
             if(node[0][i] == node[1][0]) {
               flag = true;
               for(unsigned j=1; j<n2; j++) {

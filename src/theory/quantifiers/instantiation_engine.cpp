@@ -21,7 +21,6 @@
 #include "theory/quantifiers/inst_strategy_e_matching.h"
 #include "theory/quantifiers/inst_strategy_cbqi.h"
 #include "theory/quantifiers/trigger.h"
-#include "util/ite_removal.h"
 
 using namespace std;
 using namespace CVC4;
@@ -108,44 +107,25 @@ bool InstantiationEngine::doInstantiationRound( Theory::Effort effort ){
           lem = Rewriter::rewrite( lem );
           Trace("cbqi") << "Counterexample lemma : " << lem << std::endl;
 
-          //must explicitly remove ITEs so that we record dependencies
-          IteSkolemMap iteSkolemMap;
-          std::vector< Node > lems;
-          lems.push_back( lem );
-          d_quantEngine->getTheoryEngine()->getIteRemover()->run(lems, iteSkolemMap);
-          CegInstantiator * cinst = NULL;
           if( d_i_cegqi ){
-            cinst = d_i_cegqi->getInstantiator( f );
-            Assert( cinst->d_aux_vars.empty() );
-            for(IteSkolemMap::iterator i = iteSkolemMap.begin(); i != iteSkolemMap.end(); ++i) {
-              Trace("cbqi-debug") << "  Auxiliary var (from ITE) : " << i->first << std::endl;
-              cinst->d_aux_vars.push_back( i->first );
+            //must register with the instantiator
+            //must explicitly remove ITEs so that we record dependencies
+            std::vector< Node > ce_vars;
+            for( int i=0; i<d_quantEngine->getTermDatabase()->getNumInstantiationConstants( f ); i++ ){
+              ce_vars.push_back( d_quantEngine->getTermDatabase()->getInstantiationConstant( f, i ) );
             }
-          }
-          for( unsigned i=0; i<lems.size(); i++ ){
-            Trace("cbqi-debug") << "Counterexample lemma (pre-rewrite)  " << i << " : " << lems[i] << std::endl;
-            if( !cinst ){
+            std::vector< Node > lems;
+            lems.push_back( lem );
+            CegInstantiator * cinst = d_i_cegqi->getInstantiator( f );
+            cinst->registerCounterexampleLemma( lems, ce_vars );
+            for( unsigned i=0; i<lems.size(); i++ ){
+              Trace("cbqi-debug") << "Counterexample lemma " << i << " : " << lems[i] << std::endl;
               d_quantEngine->addLemma( lems[i], false );
-            }else{
-              Node rlem = lems[i];
-              rlem = Rewriter::rewrite( rlem );
-              Trace("cbqi-debug") << "Counterexample lemma (post-rewrite) " << i << " : " << rlem << std::endl;
-              d_quantEngine->addLemma( rlem, false );
-              //record the literals that imply auxiliary variables to be equal to terms
-              if( lems[i].getKind()==ITE && rlem.getKind()==ITE ){
-                if( lems[i][1].getKind()==EQUAL && lems[i][2].getKind()==EQUAL && lems[i][1][0]==lems[i][2][0] ){
-                  if( std::find( cinst->d_aux_vars.begin(), cinst->d_aux_vars.end(), lems[i][1][0] )!=cinst->d_aux_vars.end() ){
-                    Node v = lems[i][1][0];
-                    for( unsigned r=1; r<=2; r++ ){
-                      cinst->d_aux_eq[rlem[r]][v] = lems[i][r][1];
-                      Trace("cbqi-debug") << "  " << rlem[r] << " implies " << v << " = " << lems[i][r][1] << std::endl;
-                    }
-                  }
-                }
-              }
             }
+          }else{
+            Trace("cbqi-debug") << "Counterexample lemma  : " << lem << std::endl;
+            d_quantEngine->addLemma( lem, false );
           }
-
           addedLemma = true;
         }
       }

@@ -87,16 +87,17 @@ void CegConjecture::initializeGuard( QuantifiersEngine * qe ){
     if( !d_syntax_guided ){
       //add immediate lemma
       Node lem = NodeManager::currentNM()->mkNode( OR, d_guard.negate(), d_base_inst.negate() );
-      Trace("cegqi") << "Add candidate lemma : " << lem << std::endl;
+      Trace("cegqi-lemma") << "Add candidate lemma : " << lem << std::endl;
       qe->getOutputChannel().lemma( lem );
     }else if( d_ceg_si ){
-      Node lem = d_ceg_si->getSingleInvLemma( d_guard );
-      if( !lem.isNull() ){
-        Trace("cegqi") << "Add single invocation lemma : " << lem << std::endl;
-        qe->getOutputChannel().lemma( lem );
+      std::vector< Node > lems;
+      d_ceg_si->getSingleInvLemma( d_guard, lems );
+      for( unsigned i=0; i<lems.size(); i++ ){
+        Trace("cegqi-lemma") << "Add single invocation lemma " << i << " : " << lems[i] << std::endl;
+        qe->getOutputChannel().lemma( lems[i] );
         if( Trace.isOn("cegqi-debug") ){
-          lem = Rewriter::rewrite( lem );
-          Trace("cegqi-debug") << "...rewritten : " << lem << std::endl;
+          Node rlem = Rewriter::rewrite( lems[i] );
+          Trace("cegqi-debug") << "...rewritten : " << rlem << std::endl;
         }
       }
     }
@@ -279,7 +280,7 @@ void CegInstantiation::checkCegConjecture( CegConjecture * conj ) {
         if( !lems.empty() ){
           d_last_inst_si = true;
           for( unsigned j=0; j<lems.size(); j++ ){
-            Trace("cegqi-lemma") << "Single invocation lemma : " << lems[j] << std::endl;
+            Trace("cegqi-lemma") << "Single invocation instantiation lemma : " << lems[j] << std::endl;
             d_quantEngine->addLemma( lems[j] );
           }
           d_statistics.d_cegqi_si_lemmas += lems.size();

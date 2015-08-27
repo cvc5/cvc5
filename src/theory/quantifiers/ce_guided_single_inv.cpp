@@ -59,7 +59,7 @@ CegConjectureSingleInv::CegConjectureSingleInv( QuantifiersEngine * qe, CegConje
   d_sol = new CegConjectureSingleInvSol( qe );
 }
 
-Node CegConjectureSingleInv::getSingleInvLemma( Node guard ) {
+void CegConjectureSingleInv::getSingleInvLemma( Node guard, std::vector< Node >& lems ) {
   if( !d_single_inv.isNull() ) {
     d_single_inv_var.clear();
     d_single_inv_sk.clear();
@@ -80,13 +80,10 @@ Node CegConjectureSingleInv::getSingleInvLemma( Node guard ) {
     inst = TermDb::simpleNegate( inst );
     Trace("cegqi-si") << "Single invocation initial lemma : " << inst << std::endl;
 
-    //copy variables to instantiator
-    d_cinst->d_vars.clear();
-    d_cinst->d_vars.insert( d_cinst->d_vars.end(), d_single_inv_sk.begin(), d_single_inv_sk.end() );
-
-    return NodeManager::currentNM()->mkNode( OR, guard.negate(), inst );
-  }else{
-    return Node::null();
+    //register with the instantiator
+    Node ginst = NodeManager::currentNM()->mkNode( OR, guard.negate(), inst );
+    lems.push_back( ginst );
+    d_cinst->registerCounterexampleLemma( lems, d_single_inv_sk );
   }
 }
 

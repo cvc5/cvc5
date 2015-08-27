@@ -113,8 +113,8 @@ public:
   std::map< Node, Node > d_trans_post;
   std::map< Node, std::vector< Node > > d_prog_templ_vars;
 public:
-  //get the single invocation lemma
-  Node getSingleInvLemma( Node guard );
+  //get the single invocation lemma(s)
+  void getSingleInvLemma( Node guard, std::vector< Node >& lems );
   //initialize
   void initialize( Node q );
   //check
