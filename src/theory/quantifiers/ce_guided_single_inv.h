@@ -84,6 +84,8 @@ private:
   //lemmas produced
   inst::InstMatchTrie d_inst_match_trie;
   inst::CDInstMatchTrie * d_c_inst_match_trie;
+  //original conjecture 
+  Node d_orig_conjecture;
   // solution
   std::vector< Node > d_varList;
   Node d_orig_solution;
@@ -129,6 +131,8 @@ public:
   bool isSingleInvocation() { return !d_single_inv.isNull(); }
   //needs check
   bool needsCheck();
+  /** preregister conjecture */
+  void preregisterConjecture( Node q );
 };
 
 }

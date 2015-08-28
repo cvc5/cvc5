@@ -806,6 +806,7 @@ Node CegConjectureSingleInv::reconstructToSyntax( Node s, TypeNode stn, int& rec
   //reconstruct the solution into sygus if necessary
   reconstructed = 0;
   if( options::cegqiSingleInvReconstruct() && !dt.getSygusAllowAll() && !stn.isNull() ){
+    d_sol->preregisterConjecture( d_orig_conjecture );
     d_sygus_solution = d_sol->reconstructSolution( s, stn, reconstructed );
     if( reconstructed==1 ){
       Trace("csi-sol") << "Solution (post-reconstruction into Sygus): " << d_sygus_solution << std::endl;
@@ -859,5 +860,8 @@ bool CegConjectureSingleInv::needsCheck() {
   return true;
 }
 
+void CegConjectureSingleInv::preregisterConjecture( Node q ) {
+  d_orig_conjecture = q;
+}
 
 }

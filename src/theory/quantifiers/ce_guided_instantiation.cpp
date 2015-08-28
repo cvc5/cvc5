@@ -150,6 +150,10 @@ bool CegConjecture::needsCheck() {
   return d_active && !d_infeasible && ( !isSingleInvocation() || d_ceg_si->needsCheck() );
 }
 
+void CegConjecture::preregisterConjecture( Node q ) {
+  d_ceg_si->preregisterConjecture( q );
+}
+
 CegInstantiation::CegInstantiation( QuantifiersEngine * qe, context::Context* c ) : QuantifiersModule( qe ){
   d_conj = new CegConjecture( qe, qe->getSatContext() );
   d_last_inst_si = false;
@@ -589,6 +593,24 @@ void CegInstantiation::collectDisjuncts( Node n, std::vector< Node >& d ) {
     }
   }else{
     d.push_back( n );
+  }
+}
+
+void CegInstantiation::preregisterAssertion( Node n ) {
+  //check if it sygus conjecture
+  if( n.getKind()==FORALL ){
+    if( n.getNumChildren()==3 ){
+      for( unsigned i=0; i<n[2].getNumChildren(); i++ ){
+        if( n[2][i].getKind()==INST_ATTRIBUTE ){
+          Node avar = n[2][i][0];
+          if( avar.getAttribute(SygusAttribute()) ){
+            //this is a sygus conjecture 
+            Trace("cegqi") << "Preregister sygus conjecture : " << n << std::endl;
+            d_conj->preregisterConjecture( n );
+          }
+        }
+      }
+    }
   }
 }
 

@@ -89,6 +89,8 @@ public:  //for fairness
   bool isSingleInvocation();
   /** needs check */
   bool needsCheck();
+  /** preregister conjecture */
+  void preregisterConjecture( Node q );
 };
 
 
@@ -139,6 +141,8 @@ public:
   void printSynthSolution( std::ostream& out );
   /** collect disjuncts */
   static void collectDisjuncts( Node n, std::vector< Node >& ex );
+  /** preregister assertion (before rewrite) */
+  void preregisterAssertion( Node n );
 public:
   class Statistics {
   public:
