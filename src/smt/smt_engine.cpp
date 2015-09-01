@@ -4401,6 +4401,7 @@ void SmtEngine::printSynthSolution( std::ostream& out ) {
 vector<Expr> SmtEngine::getAssertions() throw(ModalException) {
   SmtScope smts(this);
   finalOptionsAreSet();
+  doPendingPops();
   if(Dump.isOn("benchmark")) {
     Dump("benchmark") << GetAssertionsCommand();
   }
