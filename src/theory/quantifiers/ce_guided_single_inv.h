@@ -84,6 +84,8 @@ private:
   //lemmas produced
   inst::InstMatchTrie d_inst_match_trie;
   inst::CDInstMatchTrie * d_c_inst_match_trie;
+  //original conjecture 
+  Node d_orig_conjecture;
   // solution
   std::vector< Node > d_varList;
   Node d_orig_solution;
@@ -103,7 +105,7 @@ private:
   // add lemma
   bool addLemma( Node lem );
 public:
-  CegConjectureSingleInv( CegConjecture * p );
+  CegConjectureSingleInv( QuantifiersEngine * qe, CegConjecture * p );
   // original conjecture
   Node d_quant;
   // single invocation version of quant
@@ -113,10 +115,10 @@ public:
   std::map< Node, Node > d_trans_post;
   std::map< Node, std::vector< Node > > d_prog_templ_vars;
 public:
-  //get the single invocation lemma
-  Node getSingleInvLemma( Node guard );
+  //get the single invocation lemma(s)
+  void getSingleInvLemma( Node guard, std::vector< Node >& lems );
   //initialize
-  void initialize( QuantifiersEngine * qe, Node q );
+  void initialize( Node q );
   //check
   void check( std::vector< Node >& lems );
   //get solution
@@ -129,6 +131,8 @@ public:
   bool isSingleInvocation() { return !d_single_inv.isNull(); }
   //needs check
   bool needsCheck();
+  /** preregister conjecture */
+  void preregisterConjecture( Node q );
 };
 
 }

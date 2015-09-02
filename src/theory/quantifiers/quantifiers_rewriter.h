@@ -46,7 +46,7 @@ private:
   static Node computeMiniscoping( Node f, std::vector< Node >& args, Node body, Node ipl );
   static Node computeAggressiveMiniscoping( std::vector< Node >& args, Node body );
   static Node computeNNF( Node body );
-  static Node computeProcessIte( Node body, bool hasPol, bool pol );
+  static Node computeProcessIte( Node body, bool hasPol, bool pol, std::map< Node, bool >& currCond );
   static Node computeProcessIte2( Node body );
   static Node computeVarElimination( Node body, std::vector< Node >& args, Node& ipl );
   static Node computeCNF( Node body, std::vector< Node >& args, NodeBuilder<>& defs, bool forcePred );

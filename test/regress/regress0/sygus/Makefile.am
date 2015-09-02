@@ -31,7 +31,6 @@ TESTS = commutative.sy \
         icfp_28_10.sy \
         const-var-test.sy \
         no-syntax-test.sy \
-        no-syntax-test-no-si.sy \
         no-flat-simp.sy \
         twolets2-orig.sy \
         let-ringer.sy \
@@ -62,6 +61,7 @@ EXTRA_DIST = $(TESTS) \
 # disabled tests, yet distribute
 #EXTRA_DIST += \
 # setofsets-disequal.smt2
+# no-syntax-test-no-si.sy
 
 # synonyms for "check"
 .PHONY: regress regress0 test

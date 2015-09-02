@@ -85,6 +85,7 @@
 #include "theory/quantifiers/macros.h"
 #include "theory/quantifiers/fun_def_process.h"
 #include "theory/quantifiers/quantifiers_rewriter.h"
+#include "theory/quantifiers/ce_guided_instantiation.h"
 #include "theory/quantifiers/options.h"
 #include "theory/datatypes/options.h"
 #include "theory/strings/theory_strings_preprocess.h"
@@ -1375,9 +1376,6 @@ void SmtEngine::setDefaults() {
     if( !options::eMatching.wasSetByUser() ){
       options::eMatching.set( options::fmfInstEngine() );
     }
-    if( !options::quantConflictFind.wasSetByUser() ){
-      options::quantConflictFind.set( false );
-    }
     if( ! options::instWhenMode.wasSetByUser()){
       //instantiate only on last call
       if( options::eMatching() ){
@@ -1431,6 +1429,9 @@ void SmtEngine::setDefaults() {
     if( !options::macrosQuant.wasSetByUser()) {
       options::macrosQuant.set( false );
     }
+    if( !options::cbqiPreRegInst.wasSetByUser()) {
+      options::cbqiPreRegInst.set( true );
+    }
   }
 
   //cbqi options
@@ -1440,7 +1441,7 @@ void SmtEngine::setDefaults() {
       options::cbqi2.set( true );
     }
   }
-  if( options::recurseCbqi() || options::cbqi2() ){
+  if( options::cbqi2() ){
     options::cbqi.set( true );
   }
   if( options::cbqi2() ){
@@ -3179,6 +3180,13 @@ void SmtEnginePrivate::processAssertions() {
 
   Debug("smt") << " d_assertions     : " << d_assertions.size() << endl;
 
+  if( options::ceGuidedInst() ){
+    //register sygus conjecture pre-rewrite (motivated by solution reconstruction)
+    for (unsigned i = 0; i < d_assertions.size(); ++ i) {
+      d_smt.d_theoryEngine->getQuantifiersEngine()->getCegInstantiation()->preregisterAssertion( d_assertions[i] );
+    }
+  }
+  
   if (options::bitblastMode() == theory::bv::BITBLAST_MODE_EAGER &&
       !d_smt.d_logic.isPure(THEORY_BV)) {
     throw ModalException("Eager bit-blasting does not currently support theory combination. "
@@ -4402,6 +4410,7 @@ void SmtEngine::printSynthSolution( std::ostream& out ) {
 vector<Expr> SmtEngine::getAssertions() throw(ModalException) {
   SmtScope smts(this);
   finalOptionsAreSet();
+  doPendingPops();
   if(Dump.isOn("benchmark")) {
     Dump("benchmark") << GetAssertionsCommand();
   }

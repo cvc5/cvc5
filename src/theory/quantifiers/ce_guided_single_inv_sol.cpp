@@ -618,9 +618,27 @@ Node CegConjectureSingleInvSol::simplifySolutionNode( Node sol, TypeNode stn, st
 }
 
 
-
-
-
+void CegConjectureSingleInvSol::preregisterConjecture( Node q ) {
+  Trace("csi-sol") << "Preregister conjecture : " << q << std::endl;
+  Node n = q;
+  if( n.getKind()==FORALL ){
+    n = n[1];
+  }
+  if( n.getKind()==EXISTS ){
+    if( n[0].getNumChildren()==d_varList.size() ){
+      std::vector< Node > evars;
+      for( unsigned i=0; i<n[0].getNumChildren(); i++ ){
+        evars.push_back( n[0][i] );
+      }
+      n = n[1].substitute( evars.begin(), evars.end(), d_varList.begin(), d_varList.end() );
+    }else{
+      Trace("csi-sol") << "Not the same number of variables, return." << std::endl;
+      return;
+    }
+  }
+  Trace("csi-sol") << "Preregister node for solution reconstruction : " << n << std::endl;
+  registerEquivalentTerms( n );
+}
 
 Node CegConjectureSingleInvSol::reconstructSolution( Node sol, TypeNode stn, int& reconstructed ) {
   Trace("csi-rcons") << "Solution (pre-reconstruction) is : " << sol << std::endl;
@@ -1054,6 +1072,7 @@ void CegConjectureSingleInvSol::setReconstructed( int id, Node n ) {
 }
 
 void CegConjectureSingleInvSol::getEquivalentTerms( Kind k, Node n, std::vector< Node >& equiv ) {
+  Assert( n.getKind()!=k ); //?
   if( k==AND || k==OR ){
     equiv.push_back( NodeManager::currentNM()->mkNode( k, n, n ) );
     equiv.push_back( NodeManager::currentNM()->mkNode( k, n, NodeManager::currentNM()->mkConst( k==AND ) ) );
@@ -1108,7 +1127,68 @@ void CegConjectureSingleInvSol::getEquivalentTerms( Kind k, Node n, std::vector<
       nn = Rewriter::rewrite( nn );
       equiv.push_back( NodeManager::currentNM()->mkNode( MINUS, NodeManager::currentNM()->mkConst( Rational(0) ), nn ) );
     }
-  }  
+  }
+  //inequalities
+  if( k==GEQ || k==LEQ || k==LT || k==GT || k==NOT ){
+    Node atom = n.getKind()==NOT ? n[0] : n;
+    bool pol = n.getKind()!=NOT;
+    Kind ak = atom.getKind();
+    if( ( ak==GEQ || ak==LEQ || ak==LT || ak==GT ) && ( pol || k!=NOT ) ){
+      Node t1 = atom[0];
+      Node t2 = atom[1];
+      if( !pol ){
+        ak = ak==GEQ ? LT : ( ak==LEQ ? GT : ( ak==LT ? GEQ : LEQ ) );
+      }
+      if( k==NOT ){
+        equiv.push_back( NodeManager::currentNM()->mkNode( ak==GEQ ? LT : ( ak==LEQ ? GT : ( ak==LT ? GEQ : LEQ ) ), t1, t2 ).negate() );
+      }else if( k==ak ){
+        equiv.push_back( NodeManager::currentNM()->mkNode( k, t1, t2 ) );
+      }else if( (k==GEQ || k==LEQ)==(ak==GEQ || ak==LEQ) ){
+        equiv.push_back( NodeManager::currentNM()->mkNode( k, t2, t1 ) );
+      }else if( t1.getType().isInteger() && t2.getType().isInteger() ){
+        if( (k==GEQ || k==GT)!=(ak==GEQ || ak==GT) ){
+          Node ts = t1;
+          t1 = t2;
+          t2 = ts;
+          ak = ak==GEQ ? LEQ : ( ak==LEQ ? GEQ : ( ak==LT ? GT : LT ) );
+        }
+        t2 = NodeManager::currentNM()->mkNode( PLUS, t2, NodeManager::currentNM()->mkConst( Rational( (ak==GT || ak==LEQ) ? 1 : -1 ) ) );
+        t2 = Rewriter::rewrite( t2 );
+        equiv.push_back( NodeManager::currentNM()->mkNode( k, t1, t2 ) );
+      }
+    }
+  }
+
+  //based on eqt cache
+  std::map< Node, Node >::iterator itet = d_eqt_rep.find( n );
+  if( itet!=d_eqt_rep.end() ){
+    Node rn = itet->second;
+    for( unsigned i=0; i<d_eqt_eqc[rn].size(); i++ ){
+      if( d_eqt_eqc[rn][i]!=n && d_eqt_eqc[rn][i].getKind()==k ){
+        if( std::find( equiv.begin(), equiv.end(), d_eqt_eqc[rn][i] )==equiv.end() ){
+          equiv.push_back( d_eqt_eqc[rn][i] );
+        }
+      }
+    }
+  }
 }
-  
+
+void CegConjectureSingleInvSol::registerEquivalentTerms( Node n ) {
+  for( unsigned i=0; i<n.getNumChildren(); i++ ){
+    registerEquivalentTerms( n[i] );
+  }
+  Node rn = Rewriter::rewrite( n );
+  if( rn!=n ){
+    Trace("csi-equiv") << "  eq terms : " << n << " " << rn << std::endl;
+    d_eqt_rep[n] = rn;
+    d_eqt_rep[rn] = rn;
+    if( std::find( d_eqt_eqc[rn].begin(), d_eqt_eqc[rn].end(), rn )==d_eqt_eqc[rn].end() ){
+      d_eqt_eqc[rn].push_back( rn );
+    }
+    if( std::find( d_eqt_eqc[rn].begin(), d_eqt_eqc[rn].end(), n )==d_eqt_eqc[rn].end() ){
+      d_eqt_eqc[rn].push_back( n );
+    }
+  }
+}
+
 }

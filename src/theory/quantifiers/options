@@ -17,7 +17,8 @@ option miniscopeQuant --miniscope-quant bool :default true :read-write
 # ( forall x. P( x ) ) V Q
 option miniscopeQuantFreeVar --miniscope-quant-fv bool :default true :read-write
  disable miniscope quantifiers for ground subformulas
-# Whether to prenex (nested universal) quantifiers
+option clauseSplit --clause-split bool :default true
+ apply clause splitting to quantified formulas
 option prenexQuant --prenex-quant=MODE CVC4::theory::quantifiers::PrenexQuantMode :default CVC4::theory::quantifiers::PRENEX_NO_USER_PAT :include "theory/quantifiers/modes.h" :read-write :handler CVC4::theory::quantifiers::stringToPrenexQuantMode :handler-include "theory/quantifiers/options_handlers.h"
  prenex mode for quantified formulas
 # Whether to variable-eliminate quantifiers.
@@ -37,11 +38,8 @@ option iteDtTesterSplitQuant --ite-dtt-split-quant bool :read-write :default fal
 # Whether to CNF quantifier bodies
 # option cnfQuant --cnf-quant bool :default false
 #  apply CNF conversion to quantified formulas
-# Whether to NNF quantifier bodies
 option nnfQuant --nnf-quant bool :default true
  apply NNF conversion to quantified formulas
-option clauseSplit --clause-split bool :default true
- apply clause splitting to quantified formulas
 # Whether to pre-skolemize quantifier bodies.
 # For example, forall x. ( P( x ) => (exists y. f( y ) = x) ) will be rewritten to
 #   forall x. P( x ) => f( S( x ) ) = x
@@ -51,10 +49,8 @@ option preSkolemQuantNested --pre-skolem-quant-nested bool :read-write :default 
  apply skolemization to nested quantified formulass
 option preSkolemQuantAgg --pre-skolem-quant-agg bool :read-write :default true
  apply skolemization to quantified formulas aggressively
-# Whether to perform agressive miniscoping
 option aggressiveMiniscopeQuant --ag-miniscope-quant bool :default false
  perform aggressive miniscoping for quantifiers
-# Whether to CNF quantifier bodies
 option elimTautQuant --elim-taut-quant bool :default true
  eliminate tautological disjuncts of quantified formulas
  
@@ -212,8 +208,6 @@ option cegqiSingleInvReconstruct --cegqi-si-reconstruct bool :default true
   reconstruct solutions for single invocation conjectures in original grammar
 option cegqiSingleInvReconstructConst --cegqi-si-reconstruct-const bool :default true
   include constants when reconstruct solutions for single invocation conjectures in original grammar
-option cegqiSingleInvPreRegInst --cegqi-si-prereg-inst bool :default true
-  preregister ground instantiations when single invocation
 option cegqiSingleInvAbort --cegqi-si-abort bool :default false
   abort if synthesis conjecture is not single invocation
 option cegqiSingleInvMultiInstAbort --cegqi-si-multi-inst-abort bool :default false
@@ -240,12 +234,20 @@ option cbqi --cbqi bool :read-write :default false
  turns on counterexample-based quantifier instantiation
 option cbqi2 --cbqi2 bool :read-write :default false
  turns on new implementation of counterexample-based quantifier instantiation
-option recurseCbqi --cbqi-recurse bool :default false
+option recurseCbqi --cbqi-recurse bool :default true
  turns on recursive counterexample-based quantifier instantiation
 option cbqiSat --cbqi-sat bool :read-write :default true
  answer sat when quantifiers are asserted with counterexample-based quantifier instantiation
 option cbqiModel --cbqi-model bool :read-write :default true
  guide instantiations by model values for counterexample-based quantifier instantiation
+option cbqiUseInfInt --cbqi-use-inf-int bool :read-write :default false
+ use integer infinity for vts in counterexample-based quantifier instantiation
+option cbqiUseInfReal --cbqi-use-inf-real bool :read-write :default false
+ use real infinity for vts in counterexample-based quantifier instantiation
+option cbqiPreRegInst --cbqi-prereg-inst bool :read-write :default false
+  preregister ground instantiations in counterexample-based quantifier instantiation
+option cbqiMinBounds --cbqi-min-bounds bool :default false
+  use minimally constrained lower/upper bound for counterexample-based quantifier instantiation
  
 ### local theory extensions options 
 

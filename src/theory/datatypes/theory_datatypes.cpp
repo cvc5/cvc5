@@ -1414,11 +1414,15 @@ void TheoryDatatypes::collectModelInfo( TheoryModel* m, bool fullModel ){
     Node eqc = it->first;
     const Datatype& dt = ((DatatypeType)(eqc.getType()).toType()).getDatatype();
     if( dt.isCodatatype() ){
+      //until models are implemented for codatatypes
+      throw Exception("Models for codatatypes are not supported in this version.");
+      /*
       std::map< Node, Node > vmap;
       std::vector< Node > fv;
       Node v = getCodatatypesValue( it->first, eqc_cons, eqc_mu, vmap, fv );
       Trace("dt-cmi-cdt") << "  EQC(" << it->first << "), constructor is " << it->second << ", value is " << v << ", const = " << v.isConst() << std::endl;
       //m->assertEquality( eqc, v, true );
+      */
     }
   }
 }

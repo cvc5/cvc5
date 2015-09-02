@@ -76,6 +76,11 @@ void InstantiationEngine::finishInit(){
   }
 }
 
+void InstantiationEngine::presolve() {
+  for( unsigned i=0; i<d_instStrategies.size(); ++i ){
+    d_instStrategies[i]->presolve();
+  }
+}
 
 bool InstantiationEngine::doInstantiationRound( Theory::Effort effort ){
   unsigned lastWaiting = d_quantEngine->d_lemmas_waiting.size();
@@ -101,7 +106,26 @@ bool InstantiationEngine::doInstantiationRound( Theory::Effort effort ){
           //add counterexample lemma
           lem = Rewriter::rewrite( lem );
           Trace("cbqi") << "Counterexample lemma : " << lem << std::endl;
-          d_quantEngine->addLemma( lem, false );
+
+          if( d_i_cegqi ){
+            //must register with the instantiator
+            //must explicitly remove ITEs so that we record dependencies
+            std::vector< Node > ce_vars;
+            for( int i=0; i<d_quantEngine->getTermDatabase()->getNumInstantiationConstants( f ); i++ ){
+              ce_vars.push_back( d_quantEngine->getTermDatabase()->getInstantiationConstant( f, i ) );
+            }
+            std::vector< Node > lems;
+            lems.push_back( lem );
+            CegInstantiator * cinst = d_i_cegqi->getInstantiator( f );
+            cinst->registerCounterexampleLemma( lems, ce_vars );
+            for( unsigned i=0; i<lems.size(); i++ ){
+              Trace("cbqi-debug") << "Counterexample lemma " << i << " : " << lems[i] << std::endl;
+              d_quantEngine->addLemma( lems[i], false );
+            }
+          }else{
+            Trace("cbqi-debug") << "Counterexample lemma  : " << lem << std::endl;
+            d_quantEngine->addLemma( lem, false );
+          }
           addedLemma = true;
         }
       }
@@ -250,6 +274,9 @@ bool InstantiationEngine::checkComplete() {
 
 void InstantiationEngine::registerQuantifier( Node f ){
   if( d_quantEngine->hasOwnership( f, this ) ){
+    for( unsigned i=0; i<d_instStrategies.size(); ++i ){
+      d_instStrategies[i]->registerQuantifier( f );
+    }
     //Notice() << "do cbqi " << f << " ? " << std::endl;
     if( options::cbqi() ){
       Node ceBody = d_quantEngine->getTermDatabase()->getInstConstantBody( f );

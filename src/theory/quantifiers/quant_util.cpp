@@ -115,10 +115,14 @@ int QuantArith::isolate( Node v, std::map< Node, Node >& msum, Node & veq, Kind 
                                 (children.size()==1 ? children[0] : NodeManager::currentNM()->mkConst( Rational(0) ));
       Node vc = v;
       if( !r.isOne() && !r.isNegativeOne() ){
-        if( doCoeff ){
-          vc = NodeManager::currentNM()->mkNode( MULT, NodeManager::currentNM()->mkConst( r.abs() ), vc );
+        if( vc.getType().isInteger() ){
+          if( doCoeff ){
+            vc = NodeManager::currentNM()->mkNode( MULT, NodeManager::currentNM()->mkConst( r.abs() ), vc );
+          }else{
+            return 0;
+          }
         }else{
-          return 0;
+          veq = NodeManager::currentNM()->mkNode( MULT, veq, NodeManager::currentNM()->mkConst( Rational(1) / r.abs() ) );
         }
       }
       if( r.sgn()==1 ){
@@ -313,15 +317,20 @@ void QuantPhaseReq::computePhaseReqs( Node n, bool polarity, std::map< Node, int
 }
 
 void QuantPhaseReq::getPolarity( Node n, int child, bool hasPol, bool pol, bool& newHasPol, bool& newPol ) {
-  newHasPol = hasPol;
-  newPol = pol;
-  if( n.getKind()==NOT || ( n.getKind()==IMPLIES && child==0 ) ){
+  if( n.getKind()==AND || n.getKind()==OR ){
+    newHasPol = hasPol;
+    newPol = pol;
+  }else if( n.getKind()==IMPLIES ){
+    newHasPol = hasPol;
+    newPol = child==0 ? !pol : pol;
+  }else if( n.getKind()==NOT ){
+    newHasPol = hasPol;
     newPol = !pol;
-  }else if( n.getKind()==IFF || n.getKind()==XOR ){
-    newHasPol = false;
   }else if( n.getKind()==ITE ){
-    if( child==0 ){
-      newHasPol = false;
-    }
+    newHasPol = (child!=0) && hasPol;
+    newPol = pol;
+  }else{
+    newHasPol = false;
+    newPol = pol;
   }
 }

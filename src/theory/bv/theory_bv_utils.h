@@ -513,6 +513,8 @@ typedef __gnu_cxx::hash_set<Node, NodeHashFunction> NodeSet;
 
 uint64_t numNodes(TNode node, NodeSet& seen);
 
+void collectVariables(TNode node, NodeSet& vars);
+
 }
 }
 }

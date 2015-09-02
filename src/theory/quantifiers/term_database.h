@@ -348,21 +348,39 @@ public:
 //for virtual term substitution
 private:
   Node d_vts_delta;
-  Node d_vts_inf;
+  std::map< TypeNode, Node > d_vts_inf;
   Node d_vts_delta_free;
-  Node d_vts_inf_free;
+  std::map< TypeNode, Node > d_vts_inf_free;
+  /** get vts infinity index */
+  Node getVtsInfinityIndex( int i, bool isFree = false, bool create = true  );
+  /** substitute vts free terms */
+  Node substituteVtsFreeTerms( Node n );
 public:
   /** get vts delta */
   Node getVtsDelta( bool isFree = false, bool create = true );
   /** get vts infinity */
-  Node getVtsInfinity( bool isFree = false, bool create = true );
+  Node getVtsInfinity( TypeNode tn, bool isFree = false, bool create = true );
+  /** get all vts terms */
+  void getVtsTerms( std::vector< Node >& t, bool isFree = false, bool create = true, bool inc_delta = true );
   /** rewrite delta */
   Node rewriteVtsSymbols( Node n );
-
+  /** simple check for contains term */
+  bool containsVtsTerm( Node n, bool isFree = false );
+  /** simple check for contains term */
+  bool containsVtsTerm( std::vector< Node >& n, bool isFree = false );
+  /** simple check for contains term */
+  bool containsVtsInfinity( Node n, bool isFree = false );
+  
+private:
+  //helper for contains term
+  static bool containsTerm2( Node n, Node t, std::map< Node, bool >& visited );
+  static bool containsTerms2( Node n, std::vector< Node >& t, std::map< Node, bool >& visited );
 //general utilities
 public:
   /** simple check for contains term */
   static bool containsTerm( Node n, Node t );
+  /** simple check for contains term */
+  static bool containsTerms( Node n, std::vector< Node >& t );
   /** simple negate */
   static Node simpleNegate( Node n );
   /** is assoc */

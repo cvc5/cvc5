@@ -100,3 +100,18 @@ uint64_t CVC4::theory::bv::utils::numNodes(TNode node, NodeSet& seen) {
   seen.insert(node);
   return size;
 }
+
+
+
+void CVC4::theory::bv::utils::collectVariables(TNode node, NodeSet& vars) {
+  if (vars.find(node) != vars.end())
+    return;
+
+  if (Theory::isLeafOf(node, THEORY_BV) && node.getKind() != kind::CONST_BITVECTOR) {
+    vars.insert(node);
+    return;
+  }
+  for (unsigned i = 0; i < node.getNumChildren(); ++i) {
+    collectVariables(node[i], vars);
+  }
+}

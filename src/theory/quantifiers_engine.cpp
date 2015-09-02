@@ -252,6 +252,7 @@ Valuation& QuantifiersEngine::getValuation(){
 }
 
 void QuantifiersEngine::finishInit(){
+  Trace("quant-engine-debug") << "QuantifiersEngine : finishInit " << std::endl;
   for( int i=0; i<(int)d_modules.size(); i++ ){
     d_modules[i]->finishInit();
   }
@@ -279,6 +280,13 @@ void QuantifiersEngine::setOwner( Node q, QuantifiersModule * m ) {
 bool QuantifiersEngine::hasOwnership( Node q, QuantifiersModule * m ) {
   QuantifiersModule * mo = getOwner( q );
   return mo==m || mo==NULL;
+}
+
+void QuantifiersEngine::presolve() {
+  Trace("quant-engine-debug") << "QuantifiersEngine : presolve " << std::endl;
+  for( unsigned i=0; i<d_modules.size(); i++ ){
+    d_modules[i]->presolve();
+  }
 }
 
 void QuantifiersEngine::check( Theory::Effort e ){
@@ -328,6 +336,10 @@ void QuantifiersEngine::check( Theory::Effort e ){
     if( Trace.isOn("quant-engine-ee") ){
       Trace("quant-engine-ee") << "Equality engine : " << std::endl;
       debugPrintEqualityEngine( "quant-engine-ee" );
+    }
+    if( Trace.isOn("quant-engine-assert") ){
+      Trace("quant-engine-assert") << "Assertions : " << std::endl;
+      getTheoryEngine()->printAssertions("quant-engine-assert");
     }
 
     //reset relevant information
@@ -616,9 +628,9 @@ bool QuantifiersEngine::addInstantiation( Node f, std::vector< Node >& vars, std
   //do virtual term substitution
   if( doVts ){
     body = Rewriter::rewrite( body );
-    Trace("inst-debug") << "Rewrite vts symbols in " << body << std::endl;
+    Trace("quant-vts-debug") << "Rewrite vts symbols in " << body << std::endl;
     Node body_r = d_term_db->rewriteVtsSymbols( body );
-    Trace("inst-debug") << "            ...result: " << body_r << std::endl;
+    Trace("quant-vts-debug") << "            ...result: " << body_r << std::endl;
     body = body_r;
   }
   Trace("inst-assert") << "(assert " << body << ")" << std::endl;
@@ -800,15 +812,15 @@ bool QuantifiersEngine::existsInstantiation( Node f, InstMatch& m, bool modEq, b
 bool QuantifiersEngine::addLemma( Node lem, bool doCache ){
   if( doCache ){
     lem = Rewriter::rewrite(lem);
-    Trace("inst-add-debug2") << "Adding lemma : " << lem << std::endl;
+    Trace("inst-add-debug") << "Adding lemma : " << lem << std::endl;
     if( d_lemmas_produced_c.find( lem )==d_lemmas_produced_c.end() ){
       //d_curr_out->lemma( lem, false, true );
       d_lemmas_produced_c[ lem ] = true;
       d_lemmas_waiting.push_back( lem );
-      Trace("inst-add-debug2") << "Added lemma" << std::endl;
+      Trace("inst-add-debug") << "Added lemma" << std::endl;
       return true;
     }else{
-      Trace("inst-add-debug2") << "Duplicate." << std::endl;
+      Trace("inst-add-debug") << "Duplicate." << std::endl;
       return false;
     }
   }else{
