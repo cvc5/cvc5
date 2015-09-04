@@ -110,6 +110,8 @@ void QuantEqualityEngine::assertNode( Node n ) {
       d_quant_red.push_back( n );
       Trace("qee-debug") << "...add to redundant" << std::endl;
     }else{
+      Trace("qee-debug") << "...assert" << std::endl;
+      Trace("qee-assert") << "QEE : assert : " << lit << ", pol = " << pol << ", kind = " << lit.getKind() << std::endl;
       if( lit.getKind()==APPLY_UF ){
         d_uequalityEngine.assertPredicate(lit, pol, n);
       }else{

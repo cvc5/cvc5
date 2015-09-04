@@ -185,7 +185,10 @@ Node TheoryModel::getModelValue(TNode n, bool hasBoundVars) const
         Debug("model-getvalue-debug") << "  " << n << "[" << i << "] is " << ret << std::endl;
         children.push_back(ret);
       }
-      ret = Rewriter::rewrite(NodeManager::currentNM()->mkNode(n.getKind(), children));
+      ret = NodeManager::currentNM()->mkNode(n.getKind(), children);
+      Debug("model-getvalue-debug") << "ret (pre-rewrite): " << ret << std::endl;
+      ret = Rewriter::rewrite(ret);
+      Debug("model-getvalue-debug") << "ret (post-rewrite): " << ret << std::endl;
       if(ret.getKind() == kind::CARDINALITY_CONSTRAINT) {
         ret = NodeManager::currentNM()->mkConst(getCardinality(ret[0].getType().toType()).getFiniteCardinality() <= ret[1].getConst<Rational>().getNumerator());
       }

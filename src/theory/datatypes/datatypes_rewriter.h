@@ -279,10 +279,13 @@ public:
   static inline void shutdown() {}
 
   static bool checkClash( Node n1, Node n2, std::vector< Node >& rew ) {
+    Trace("datatypes-rewrite-debug") << "Check clash : " << n1 << " " << n2 << std::endl;
     if( (n1.getKind() == kind::APPLY_CONSTRUCTOR && n2.getKind() == kind::APPLY_CONSTRUCTOR) ||
         (n1.getKind() == kind::TUPLE && n2.getKind() == kind::TUPLE) ||
         (n1.getKind() == kind::RECORD && n2.getKind() == kind::RECORD) ) {
+      //n1.getKind()==kind::APPLY_CONSTRUCTOR
       if( n1.getOperator() != n2.getOperator() ) {
+        Trace("datatypes-rewrite-debug") << "Clash operators : " << n1 << " " << n2 << " " << n1.getOperator() << " " << n2.getOperator() << std::endl;
         return true;
       } else {
         Assert( n1.getNumChildren() == n2.getNumChildren() );
@@ -294,6 +297,7 @@ public:
       }
     }else if( n1!=n2 ){
       if( n1.isConst() && n2.isConst() ){
+        Trace("datatypes-rewrite-debug") << "Clash constants : " << n1 << " " << n2 << std::endl;
         return true;
       }else{
         Node eq = NodeManager::currentNM()->mkNode( n1.getType().isBoolean() ? kind::IFF : kind::EQUAL, n1, n2 );

@@ -173,9 +173,9 @@ BUG_TESTS = \
 	bug593.smt2 \
 	bug595.cvc \
 	bug596.cvc \
-	bug596b.cvc
+	bug596b.cvc \
+	bug605.cvc
 #bug590.smt2
-#bug605.cvc  %% fixes 605, but disabling as it runs into a different assertion failure
 
 TESTS = $(SMT_TESTS) $(SMT2_TESTS) $(CVC_TESTS) $(TPTP_TESTS) $(BUG_TESTS)
 

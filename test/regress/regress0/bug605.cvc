@@ -1,3 +1,4 @@
+% EXPECT: sat
 OPTION "produce-models";
 
 % GeoLocation
@@ -27,4 +28,3 @@ init: (A, INT, Facet) -> BOOLEAN
 ASSERT (init(a, 2, f0));
 
 CHECKSAT TRUE;
-COUNTERMODEL;

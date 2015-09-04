@@ -3835,6 +3835,8 @@ Node SmtEngine::postprocess(TNode node, TypeNode expectedType) const {
   Debug("boolean-terms") << "postproc: got " << value << " expect type " << expectedType << endl;
   Node realValue = mpost.rewriteAs(value, expectedType);
   Debug("boolean-terms") << "postproc: realval " << realValue << " expect type " << expectedType << endl;
+  realValue = Rewriter::rewrite(realValue);
+  Debug("boolean-terms") << "postproc: after rewrite " << realValue << endl;
   return realValue;
 }
 
@@ -4287,6 +4289,7 @@ void SmtEngine::checkModel(bool hardFailure) {
       // In case it's a quantifier (or contains one), look up its value before
       // simplifying, or the quantifier might be irreparably altered.
       n = m->getValue(n);
+      Notice() << "SmtEngine::checkModel(): -- get value : " << n << std::endl;
     } else {
       // Note this "skip" is done here, rather than above.  This is
       // because (1) the quantifier could in principle simplify to false,
