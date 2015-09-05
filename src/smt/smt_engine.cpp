@@ -3186,7 +3186,7 @@ void SmtEnginePrivate::processAssertions() {
       d_smt.d_theoryEngine->getQuantifiersEngine()->getCegInstantiation()->preregisterAssertion( d_assertions[i] );
     }
   }
-  
+
   if (options::bitblastMode() == theory::bv::BITBLAST_MODE_EAGER &&
       !d_smt.d_logic.isPure(THEORY_BV)) {
     throw ModalException("Eager bit-blasting does not currently support theory combination. "
@@ -4284,7 +4284,6 @@ void SmtEngine::checkModel(bool hardFailure) {
     Debug("boolean-terms") << "++ got " << n << endl;
     Notice() << "SmtEngine::checkModel(): -- substitutes to " << n << endl;
 
-    //AJR : FIXME need to ignore quantifiers too?
     if( n.getKind() != kind::REWRITE_RULE ){
       // In case it's a quantifier (or contains one), look up its value before
       // simplifying, or the quantifier might be irreparably altered.
@@ -4296,7 +4295,7 @@ void SmtEngine::checkModel(bool hardFailure) {
       // which should be reported, and (2) checking for the quantifier
       // above, before simplification, doesn't catch buried quantifiers
       // anyway (those not at the top-level).
-      Notice() << "SmtEngine::checkModel(): -- skipping quantifiers/rewrite-rules assertion"
+      Notice() << "SmtEngine::checkModel(): -- skipping rewrite-rules assertion"
                << endl;
       continue;
     }
@@ -4320,8 +4319,21 @@ void SmtEngine::checkModel(bool hardFailure) {
     // but don't show up in our substitution map above.
     n = m->getValue(n);
     Notice() << "SmtEngine::checkModel(): -- model-substitutes to " << n << endl;
-    AlwaysAssert(!hardFailure || n.isConst() || n.getKind() == kind::LAMBDA);
 
+    if( d_logic.isQuantified() ){
+      // AJR: since quantified formulas are not checkable, we assign them to true/false based on the satisfying assignment.
+      // however, quantified formulas can be modified during preprocess, so they may not correspond to those in the satisfying assignment.
+      // hence we use a relaxed version of check model here.
+      // this is necessary until preprocessing passes explicitly record how they rewrite quantified formulas
+      if( hardFailure && !n.isConst() && n.getKind() != kind::LAMBDA ){
+        Notice() << "SmtEngine::checkModel(): -- relax check model wrt quantified formulas..." << endl;
+        AlwaysAssert( quantifiers::QuantifiersRewriter::containsQuantifiers( n ) );
+        Warning() << "Warning : SmtEngine::checkModel(): cannot check simplified assertion : " << n << endl;
+        continue;
+      }
+    }else{
+      AlwaysAssert(!hardFailure || n.isConst() || n.getKind() == kind::LAMBDA);
+    }
     // The result should be == true.
     if(n != NodeManager::currentNM()->mkConst(true)) {
       Notice() << "SmtEngine::checkModel(): *** PROBLEM: EXPECTED `TRUE' ***"
