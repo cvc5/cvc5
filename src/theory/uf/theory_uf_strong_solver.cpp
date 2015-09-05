@@ -405,7 +405,7 @@ void StrongSolverTheoryUF::SortModel::Region::debugPrint( const char* c, bool in
 StrongSolverTheoryUF::SortModel::SortModel( Node n, context::Context* c, context::UserContext* u, StrongSolverTheoryUF* thss ) : d_type( n.getType() ),
           d_thss( thss ), d_regions_index( c, 0 ), d_regions_map( c ), d_split_score( c ), d_disequalities_index( c, 0 ),
           d_reps( c, 0 ), d_conflict( c, false ), d_cardinality( c, 1 ), d_aloc_cardinality( u, 0 ),
-          d_cardinality_assertions( c ), d_hasCard( c, false ), d_maxNegCard( c, 0 ){
+          d_cardinality_assertions( c ), d_hasCard( c, false ), d_maxNegCard( c, 0 ), d_initialized( u, false ){
   d_cardinality_term = n;
   //if( d_type.isSort() ){
   //  TypeEnumerator te(tn);
@@ -417,7 +417,10 @@ StrongSolverTheoryUF::SortModel::SortModel( Node n, context::Context* c, context
 
 /** initialize */
 void StrongSolverTheoryUF::SortModel::initialize( OutputChannel* out ){
-  allocateCardinality( out );
+  if( !d_initialized ){
+    d_initialized = true;
+    allocateCardinality( out );
+  }
 }
 
 /** new node */
@@ -714,11 +717,13 @@ Node StrongSolverTheoryUF::SortModel::getNextDecisionRequest(){
       Node cn = d_cardinality_literal[ i ];
       Assert( !cn.isNull() );
       if( d_cardinality_assertions.find( cn )==d_cardinality_assertions.end() ){
-        Trace("uf-ss-dec") << "Propagate as decision " << d_type << " " << i << std::endl;
+        Trace("uf-ss-dec") << "UFSS : Get next decision " << d_type << " " << i << std::endl;
         return cn;
       }
     }
   }
+  Trace("uf-ss-dec") << "UFSS : no decisions for " << d_type << "." << std::endl;
+  Trace("uf-ss-dec-debug") << "  aloc_cardinality = " << d_aloc_cardinality << ", cardinality = " << d_cardinality << ", hasCard = " << d_hasCard << std::endl;
   return Node::null();
 }
 
@@ -1444,7 +1449,7 @@ bool StrongSolverTheoryUF::SortModel::debugModel( TheoryModel* m ){
         Node nn = NodeManager::currentNM()->mkSkolem( ss.str(), d_type, "enumeration to meet negative card constraint" );
         d_fresh_aloc_reps.push_back( nn );
       }
-      if( d_maxNegCard==1 ){
+      if( d_maxNegCard==0 ){
         m->d_rep_set.d_type_reps[d_type].push_back( d_fresh_aloc_reps[0] );
       }else{
         //must add lemma
@@ -1711,12 +1716,16 @@ Node StrongSolverTheoryUF::getNextDecisionRequest(){
     int comCard = 0;
     Node com_lit;
     do {
-      com_lit = d_com_card_literal.find( comCard )!=d_com_card_literal.end() ? d_com_card_literal[comCard] : Node::null();
-      if( !com_lit.isNull() && d_com_card_assertions.find( com_lit )==d_com_card_assertions.end() ){
-        Trace("uf-ss-dec") << "Decide on combined cardinality : " << com_lit << std::endl;
-        return com_lit;
+      if( comCard<d_aloc_com_card.get() ){
+        com_lit = d_com_card_literal.find( comCard )!=d_com_card_literal.end() ? d_com_card_literal[comCard] : Node::null();
+        if( !com_lit.isNull() && d_com_card_assertions.find( com_lit )==d_com_card_assertions.end() ){
+          Trace("uf-ss-dec") << "Decide on combined cardinality : " << com_lit << std::endl;
+          return com_lit;
+        }
+        comCard++;
+      }else{
+        com_lit = Node::null();
       }
-      comCard++;
     }while( !com_lit.isNull() );
   }
   //otherwise, check each individual sort
@@ -1726,6 +1735,7 @@ Node StrongSolverTheoryUF::getNextDecisionRequest(){
       return n;
     }
   }
+  Trace("uf-ss-dec") << "...no UF SS decisions." << std::endl;
   return Node::null();
 }
 
@@ -1736,10 +1746,11 @@ void StrongSolverTheoryUF::preRegisterTerm( TNode n ){
   Trace("uf-ss-register") << "Preregister " << n << "." << std::endl;
   //shouldn't have to preregister this type (it may be that there are no quantifiers over tn)
   TypeNode tn = n.getType();
-  if( d_rep_model.find( tn )==d_rep_model.end() ){
+  std::map< TypeNode, SortModel* >::iterator it = d_rep_model.find( tn );
+  if( it==d_rep_model.end() ){
     SortModel* rm = NULL;
     if( tn.isSort() ){
-      Trace("uf-ss-register") << "Preregister sort " << tn << "." << std::endl;
+      Trace("uf-ss-register") << "Create sort model " << tn << "." << std::endl;
       rm  = new SortModel( n, d_th->getSatContext(), d_th->getUserContext(), this );
       //getOutputChannel().lemma( n.eqNode( rm->getCardinalityTerm() ) );
     }else{
@@ -1763,7 +1774,8 @@ void StrongSolverTheoryUF::preRegisterTerm( TNode n ){
       //d_rep_model_init[tn] = true;
     }
   }else{
-    Trace("uf-ss-register") << "Already preregistered sort " << tn << "." << std::endl;
+    //ensure sort model is initialized
+    it->second->initialize( d_out );
   }
 }
 

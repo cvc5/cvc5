@@ -244,6 +244,8 @@ public:
     context::CDO< int > d_maxNegCard;
     /** list of fresh representatives allocated */
     std::vector< Node > d_fresh_aloc_reps;
+    /** whether we are initialized */
+    context::CDO< bool > d_initialized;
   private:
     /** apply totality */
     bool applyTotality( int cardinality );
