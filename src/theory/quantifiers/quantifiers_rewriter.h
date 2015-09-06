@@ -34,11 +34,9 @@ public:
 private:
   static void addNodeToOrBuilder( Node n, NodeBuilder<>& t );
   static Node mkForAll( std::vector< Node >& args, Node body, Node ipl );
-  static void computeArgs( std::vector< Node >& args, std::map< Node, bool >& activeMap, Node n );
+  static void computeArgs( std::vector< Node >& args, std::map< Node, bool >& activeMap, Node n, std::map< Node, bool >& visited );
   static void computeArgVec( std::vector< Node >& args, std::vector< Node >& activeArgs, Node n );
   static void computeArgVec2( std::vector< Node >& args, std::vector< Node >& activeArgs, Node n, Node ipl );
-  static bool hasArg( std::vector< Node >& args, Node n );
-  static bool hasArg1( Node a, Node n );
   static Node computeClause( Node n );
   static void computeDtTesterIteSplit( Node n, std::map< Node, Node >& pcons, std::map< Node, std::map< int, Node > >& ncons, std::vector< Node >& conj );
 private:
@@ -51,8 +49,7 @@ private:
   static Node computeVarElimination( Node body, std::vector< Node >& args, Node& ipl );
   static Node computeCNF( Node body, std::vector< Node >& args, NodeBuilder<>& defs, bool forcePred );
   static Node computePrenex( Node body, std::vector< Node >& args, bool pol );
-  static Node computeElimTaut( Node body );
-  static Node computeSplit( Node f, Node body, std::vector< Node >& args );
+  static Node computeSplit( Node f, std::vector< Node >& args, Node body );
 private:
   enum{
     COMPUTE_ELIM_SYMBOLS = 0,
@@ -62,10 +59,9 @@ private:
     COMPUTE_PROCESS_ITE,
     COMPUTE_PROCESS_ITE_2,
     COMPUTE_PRENEX,
-    COMPUTE_ELIM_TAUT,
     COMPUTE_VAR_ELIMINATION,
     //COMPUTE_FLATTEN_ARGS_UF,
-    COMPUTE_CNF,
+    //COMPUTE_CNF,
     COMPUTE_SPLIT,
     COMPUTE_LAST
   };
@@ -77,8 +73,6 @@ public:
   static inline void shutdown() {}
 private:
   /** options */
-  static bool doMiniscopingNoFreeVar();
-  static bool doMiniscopingAnd();
   static bool doOperation( Node f, bool isNested, int computeOption );
 public:
   static Node rewriteRewriteRule( Node r );

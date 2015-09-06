@@ -11,21 +11,21 @@ module QUANTIFIERS "theory/quantifiers/options.h" Quantifiers
 # For example, forall x. ( P( x ) ^ Q( x ) ) will be rewritten to
 # ( forall x. P( x ) ) ^ ( forall x. Q( x ) )
 option miniscopeQuant --miniscope-quant bool :default true :read-write
- disable miniscope quantifiers
+ miniscope quantifiers
 # Whether to mini-scope quantifiers based on formulas with no free variables.
 # For example, forall x. ( P( x ) V Q ) will be rewritten to
 # ( forall x. P( x ) ) V Q
 option miniscopeQuantFreeVar --miniscope-quant-fv bool :default true :read-write
- disable miniscope quantifiers for ground subformulas
-option clauseSplit --clause-split bool :default true
- apply clause splitting to quantified formulas
+ miniscope quantifiers for ground subformulas
+option quantSplit --quant-split bool :default true
+ apply splitting to quantified formulas based on variable disjoint disjuncts
 option prenexQuant --prenex-quant=MODE CVC4::theory::quantifiers::PrenexQuantMode :default CVC4::theory::quantifiers::PRENEX_NO_USER_PAT :include "theory/quantifiers/modes.h" :read-write :handler CVC4::theory::quantifiers::stringToPrenexQuantMode :handler-include "theory/quantifiers/options_handlers.h"
  prenex mode for quantified formulas
 # Whether to variable-eliminate quantifiers.
 # For example, forall x y. ( P( x, y ) V x != c ) will be rewritten to
 #   forall y. P( c, y )
 option varElimQuant --var-elim-quant bool :default true
- disable simple variable elimination for quantified formulas
+ enable simple variable elimination for quantified formulas
 option dtVarExpandQuant --dt-var-exp-quant bool :default true
  expand datatype variables bound to one constructor in quantifiers
 #ite lift mode for quantified formulas
@@ -65,7 +65,7 @@ option registerQuantBodyTerms --register-quant-body-terms bool :default false
  consider ground terms within bodies of quantified formulas for matching
  
 option smartTriggers --smart-triggers bool :default true
- disable smart triggers
+ enable smart triggers
 option relevantTriggers --relevant-triggers bool :default false
  prefer triggers that are more relevant based on SInE style analysis
 option relationalTriggers --relational-triggers bool :default false
@@ -135,13 +135,13 @@ option fmfInstEngine --fmf-inst-engine bool :default false
 option fmfFullSaturate --fmf-full-saturate bool :default false
  instantiate with all known ground terms for infinite domain quantifiers when finite model finding
 option fmfInstGen --fmf-inst-gen bool :default true
- disable Inst-Gen instantiation techniques for finite model finding 
+ enable Inst-Gen instantiation techniques for finite model finding 
 option fmfInstGenOneQuantPerRound --fmf-inst-gen-one-quant-per-round bool :default false
  only perform Inst-Gen instantiation techniques on one quantifier per round
 option fmfFreshDistConst --fmf-fresh-dc bool :default false
  use fresh distinguished representative when applying Inst-Gen techniques
 option fmfFmcSimple --fmf-fmc-simple bool :default true
- disable simple models in full model check for finite model finding
+ simple models in full model check for finite model finding
 option fmfBoundInt fmf-bound-int --fmf-bound-int bool :default false :read-write
  finite model finding on bounded integer quantification
 option fmfBoundIntLazy --fmf-bound-int-lazy bool :default false :read-write

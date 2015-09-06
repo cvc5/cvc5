@@ -598,19 +598,10 @@ void CegInstantiation::collectDisjuncts( Node n, std::vector< Node >& d ) {
 
 void CegInstantiation::preregisterAssertion( Node n ) {
   //check if it sygus conjecture
-  if( n.getKind()==FORALL ){
-    if( n.getNumChildren()==3 ){
-      for( unsigned i=0; i<n[2].getNumChildren(); i++ ){
-        if( n[2][i].getKind()==INST_ATTRIBUTE ){
-          Node avar = n[2][i][0];
-          if( avar.getAttribute(SygusAttribute()) ){
-            //this is a sygus conjecture 
-            Trace("cegqi") << "Preregister sygus conjecture : " << n << std::endl;
-            d_conj->preregisterConjecture( n );
-          }
-        }
-      }
-    }
+  if( TermDb::isSygusConjecture( n ) ){
+    //this is a sygus conjecture
+    Trace("cegqi") << "Preregister sygus conjecture : " << n << std::endl;
+    d_conj->preregisterConjecture( n );
   }
 }
 

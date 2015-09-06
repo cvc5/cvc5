@@ -370,7 +370,7 @@ public:
   bool containsVtsTerm( std::vector< Node >& n, bool isFree = false );
   /** simple check for contains term */
   bool containsVtsInfinity( Node n, bool isFree = false );
-  
+
 private:
   //helper for contains term
   static bool containsTerm2( Node n, Node t, std::map< Node, bool >& visited );
@@ -379,7 +379,7 @@ private:
 public:
   /** simple check for contains term */
   static bool containsTerm( Node n, Node t );
-  /** simple check for contains term */
+  /** simple check for contains term, true if contains at least one term in t */
   static bool containsTerms( Node n, std::vector< Node >& t );
   /** simple negate */
   static Node simpleNegate( Node n );
@@ -403,6 +403,10 @@ public: //general queries concerning quantified formulas wrt modules
   static Node getRewriteRule( Node q );
   /** is fun def */
   static bool isFunDef( Node q );
+  /** is sygus conjecture */
+  static bool isSygusConjecture( Node q );
+  /** is sygus conjecture */
+  static bool isSygusConjectureAnnotation( Node ipl );
   /** get fun def body */
   static Node getFunDefHead( Node q );
   /** get fun def body */

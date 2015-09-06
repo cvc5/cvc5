@@ -1023,7 +1023,7 @@ void TermDb::getVarContains( Node f, std::vector< Node >& pats, std::map< Node, 
 
 void TermDb::getVarContainsNode( Node f, Node n, std::vector< Node >& varContains ){
   std::vector< Node > vars;
-  computeVarContains( n, vars );  
+  computeVarContains( n, vars );
   for( unsigned j=0; j<vars.size(); j++ ){
     Node v = vars[j];
     if( v.getAttribute(InstConstantAttribute())==f ){
@@ -1119,7 +1119,7 @@ void TermDb::filterInstances( std::vector< Node >& nodes ){
   std::map< int, std::vector< Node > > varContains;
   for( unsigned i=0; i<nodes.size(); i++ ){
     computeVarContains( nodes[i], varContains[i] );
-  }   
+  }
   for( unsigned i=0; i<nodes.size(); i++ ){
     for( unsigned j=i+1; j<nodes.size(); j++ ){
       if( active[i] && active[j] ){
@@ -1622,6 +1622,24 @@ Node TermDb::getFunDefBody( Node q ) {
     }
   }
   return Node::null();
+}
+
+bool TermDb::isSygusConjecture( Node q ) {
+  return ( q.getKind()==FORALL && q.getNumChildren()==3 ) ? isSygusConjectureAnnotation( q[2] ) : false;
+}
+
+bool TermDb::isSygusConjectureAnnotation( Node ipl ){
+  if( !ipl.isNull() ){
+    for( unsigned i=0; i<ipl.getNumChildren(); i++ ){
+      if( ipl[i].getKind()==INST_ATTRIBUTE ){
+        Node avar = ipl[i][0];
+        if( avar.getAttribute(SygusAttribute()) ){
+          return true;
+        }
+      }
+    }
+  }
+  return false;
 }
 
 void TermDb::computeAttributes( Node q ) {
