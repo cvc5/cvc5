@@ -32,7 +32,7 @@ public:
   UninterpretedConstant(Type type, Integer index) throw(IllegalArgumentException) :
     d_type(type),
     d_index(index) {
-    CheckArgument(type.isSort(), type, "uninterpreted constants can only be created for uninterpreted sorts, not `%s'", type.toString().c_str());
+    //CheckArgument(type.isSort(), type, "uninterpreted constants can only be created for uninterpreted sorts, not `%s'", type.toString().c_str());
     CheckArgument(index >= 0, index, "index >= 0 required for uninterpreted constant index, not `%s'", index.toString().c_str());
   }
 

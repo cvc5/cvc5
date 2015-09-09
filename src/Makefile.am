@@ -232,6 +232,7 @@ libcvc4_la_SOURCES = \
 	theory/builtin/theory_builtin.cpp \
 	theory/datatypes/theory_datatypes_type_rules.h \
 	theory/datatypes/type_enumerator.h \
+        theory/datatypes/type_enumerator.cpp \
 	theory/datatypes/theory_datatypes.h \
 	theory/datatypes/datatypes_rewriter.h \
 	theory/datatypes/theory_datatypes.cpp \

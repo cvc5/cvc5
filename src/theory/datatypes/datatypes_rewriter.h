@@ -384,7 +384,75 @@ public:
     return tn.isDatatype() || tn.isParametricDatatype() ||
            tn.isTuple() || tn.isRecord();
   }
-
+private:
+  static Node collectRef( Node n, std::vector< Node >& sk, std::map< Node, Node >& rf, std::vector< Node >& rf_pending ){
+    Assert( n.isConst() );
+    TypeNode tn = n.getType();
+    if( tn.isDatatype() ){
+      if( n.getKind()==kind::APPLY_CONSTRUCTOR ){
+        sk.push_back( n );
+        rf_pending.push_back( Node::null() );
+        std::vector< Node > children;
+        children.push_back( n.getOperator() );
+        bool childChanged = false;
+        for( unsigned i=0; i<n.getNumChildren(); i++ ){
+          Node nc = collectRef( n[i], sk, rf, rf_pending );
+          if( nc.isNull() ){
+            return Node::null();
+          }
+          childChanged = nc!=n[i] || childChanged;
+          children.push_back( nc );
+        }
+        sk.pop_back();
+        Node ret;
+        if( childChanged ){
+          ret = NodeManager::currentNM()->mkNode( kind::APPLY_CONSTRUCTOR, children );
+          if( !rf_pending.back().isNull() ){
+            rf[rf_pending.back()] = ret;
+          }
+        }else{
+          ret = n;
+          Assert( rf_pending.back().isNull() );
+        }
+        rf_pending.pop_back();
+        return ret;
+      }else{
+        const Integer& i = n.getConst<UninterpretedConstant>().getIndex();
+        uint32_t index = i.toUnsignedInt();
+        if( index>=sk.size() ){
+          return Node::null();
+        }else{
+          Assert( sk.size()==rf_pending.size() );
+          Node r = rf_pending[ rf_pending.size()-1-index ];
+          if( r.isNull() ){
+            r = NodeManager::currentNM()->mkBoundVar( sk[ rf_pending.size()-1-index ].getType() );
+            rf_pending[ rf_pending.size()-1-index ] = r;
+          }
+          return r;
+        }
+      }
+    }else{
+      return n;
+    }
+  }
+public:
+  static Node normalizeMuConstant( Node n ){
+    Trace("dt-nconst") << "Normalize " << n << std::endl;
+    std::map< Node, Node > rf;
+    std::vector< Node > sk;
+    std::vector< Node > rf_pending;
+    Node s = collectRef( n, sk, rf, rf_pending );
+    if( !s.isNull() ){
+      Trace("dt-nconst") << "...symbolic normalized is : " << s << std::endl;
+      for( std::map< Node, Node >::iterator it = rf.begin(); it != rf.end(); ++it ){
+        Trace("dt-nconst") << "  " << it->first << " = " << it->second << std::endl;
+      }
+      return n;
+    }else{
+      Trace("dt-nconst") << "...invalid." << std::endl;
+      return Node::null();
+    }
+  }
 };/* class DatatypesRewriter */
 
 }/* CVC4::theory::datatypes namespace */
