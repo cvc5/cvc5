@@ -1893,6 +1893,7 @@ bool TheoryStrings::registerTerm( Node n ) {
         }
         Node ceq = Rewriter::rewrite( skl.eqNode( lsum ) );
         Trace("strings-lemma") << "Strings::Lemma LENGTH : " << ceq << std::endl;
+        Trace("strings-lemma-debug") << "  prerewrite : " << skl.eqNode( lsum ) << std::endl;
         d_out->lemma(ceq);
         //also add this to the equality engine
         if( n.getKind() == kind::CONST_STRING ) {
@@ -3307,7 +3308,7 @@ bool TheoryStrings::checkNegContains() {
         Node conc = Node::null();
         sendLemma( ant, conc, "NEG-CTN Conflict 2" );
         addedLemma = true;
-      } 
+      }
     }
   }
   if( !d_conflict ){

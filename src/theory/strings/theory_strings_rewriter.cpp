@@ -3,7 +3,7 @@
  ** \verbatim
  ** Original author: Tianyi Liang
  ** Major contributors: none
- ** Minor contributors (to current version): none
+ ** Minor contributors (to current version): Andrew Reynolds
  ** This file is part of the CVC4 project.
  ** Copyright (c) 2009-2014  New York University and The University of Iowa
  ** See the file COPYING in the top-level source directory for licensing
@@ -283,15 +283,15 @@ Node TheoryStringsRewriter::applyAX( TNode node ) {
         retNode = emptysingleton;
       } else if(vec_nodes.size() == 1) {
         shrinkConVec(vec_nodes[0]);
-        retNode = vec_nodes[0].empty()? emptysingleton 
-          : vec_nodes[0].size()==1? vec_nodes[0][0] 
+        retNode = vec_nodes[0].empty()? emptysingleton
+          : vec_nodes[0].size()==1? vec_nodes[0][0]
           : NodeManager::currentNM()->mkNode(kind::REGEXP_CONCAT, vec_nodes[0]);
       } else {
         std::vector<Node> vtmp;
         for(unsigned i=0; i<vec_nodes.size(); i++) {
           shrinkConVec(vec_nodes[i]);
           if(!vec_nodes[i].empty()) {
-            Node ntmp = vec_nodes[i].size()==1? vec_nodes[i][0] 
+            Node ntmp = vec_nodes[i].size()==1? vec_nodes[i][0]
               : NodeManager::currentNM()->mkNode(kind::REGEXP_CONCAT, vec_nodes[i]);
             vtmp.push_back(ntmp);
           }
@@ -614,7 +614,7 @@ Node TheoryStringsRewriter::prerewriteAndRegExp(TNode node) {
   }
   if(!emptyflag) {
     std::vector< Node > nvec;
-    retNode = node_vec.size() == 0 ? 
+    retNode = node_vec.size() == 0 ?
           NodeManager::currentNM()->mkNode(kind::REGEXP_STAR, NodeManager::currentNM()->mkNode(kind::REGEXP_SIGMA, nvec)) :
           node_vec.size() == 1 ? node_vec[0] : NodeManager::currentNM()->mkNode(kind::REGEXP_INTER, node_vec);
   }
@@ -867,13 +867,13 @@ RewriteResponse TheoryStringsRewriter::postRewrite(TNode node) {
     if(node[0].isConst()) {
       retNode = NodeManager::currentNM()->mkConst( ::CVC4::Rational( node[0].getConst<String>().size() ) );
     } else if(node[0].getKind() == kind::STRING_SUBSTR_TOTAL) {
-        retNode = node[0][2];
+      //retNode = node[0][2];
     } else if(node[0].getKind() == kind::STRING_CONCAT) {
       Node tmpNode = rewriteConcatString(node[0]);
       if(tmpNode.isConst()) {
         retNode = NodeManager::currentNM()->mkConst( ::CVC4::Rational( tmpNode.getConst<String>().size() ) );
       } else if(tmpNode.getKind() == kind::STRING_SUBSTR_TOTAL) {
-        retNode = tmpNode[2];
+        //retNode = tmpNode[2];
       } else {
         // it has to be string concat
         std::vector<Node> node_vec;
@@ -1138,14 +1138,14 @@ RewriteResponse TheoryStringsRewriter::preRewrite(TNode node) {
 
   if(node.getKind() == kind::STRING_CONCAT) {
     retNode = rewriteConcatString(node);
-  } 
+  }
   else if(node.getKind() == kind::REGEXP_CONCAT) {
     retNode = prerewriteConcatRegExp(node);
   } else if(node.getKind() == kind::REGEXP_UNION) {
     retNode = prerewriteOrRegExp(node);
   } else if(node.getKind() == kind::REGEXP_INTER) {
     retNode = prerewriteAndRegExp(node);
-  } 
+  }
   else if(node.getKind() == kind::REGEXP_STAR) {
     if(node[0].getKind() == kind::REGEXP_STAR) {
       retNode = node[0];
@@ -1240,8 +1240,8 @@ RewriteResponse TheoryStringsRewriter::preRewrite(TNode node) {
         }
       } else {
         retNode = l==0? NodeManager::currentNM()->mkNode(kind::REGEXP_STAR, node[0]) :
-          NodeManager::currentNM()->mkNode(kind::REGEXP_CONCAT, 
-            NodeManager::currentNM()->mkNode(kind::REGEXP_LOOP, node[0], n1, n1), 
+          NodeManager::currentNM()->mkNode(kind::REGEXP_CONCAT,
+            NodeManager::currentNM()->mkNode(kind::REGEXP_LOOP, node[0], n1, n1),
             NodeManager::currentNM()->mkNode(kind::REGEXP_STAR, node[0]));
       }
     }*/ //lazy

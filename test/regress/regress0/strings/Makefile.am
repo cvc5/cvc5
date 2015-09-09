@@ -9,8 +9,8 @@ AM_LOG_FLAGS = $(RUN_REGRESSION_ARGS) @abs_top_builddir@/src/main/$(BINARY)$(EXE
 if AUTOMAKE_1_11
 # old-style (pre-automake 1.12) test harness
 TESTS_ENVIRONMENT = \
-	$(LOG_COMPILER) \
-	$(AM_LOG_FLAGS) $(LOG_FLAGS)
+  $(LOG_COMPILER) \
+  $(AM_LOG_FLAGS) $(LOG_FLAGS)
 endif
 
 MAKEFLAGS = -k
@@ -18,7 +18,7 @@ MAKEFLAGS = -k
 # These are run for all build profiles.
 # If a test shouldn't be run in e.g. competition mode,
 # put it below in "TESTS +="
-TESTS =	\
+TESTS = \
   at001.smt2 \
   bug001.smt2 \
   bug002.smt2 \
@@ -49,7 +49,8 @@ TESTS =	\
   loop007.smt2 \
   loop008.smt2 \
   loop009.smt2 \
-  reloop.smt2 
+  reloop.smt2 \
+  unsound-0908.smt2 
 
 
 FAILING_TESTS =
