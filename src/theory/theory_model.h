@@ -262,6 +262,9 @@ protected:
   bool isAssignable(TNode n);
   void checkTerms(TNode n, TheoryModel* tm, NodeSet& cache);
   void assignConstantRep( TheoryModel* tm, std::map<Node, Node>& constantReps, Node eqc, Node const_rep, bool fullModel );
+  /** is v an excluded codatatype value */
+  bool isExcludedCdtValue( Node v, std::set<Node>* repSet, std::map< Node, Node >& assertedReps, Node eqc );
+  bool isCdtValueMatch( Node v, Node r, Node eqc, Node& eqc_m );
 public:
   TheoryEngineModelBuilder(TheoryEngine* te);
   virtual ~TheoryEngineModelBuilder(){}

@@ -1277,26 +1277,10 @@ void TheoryDatatypes::collectModelInfo( TheoryModel* m, bool fullModel ){
         Node c = ei->d_constructor.get();
         cons.push_back( c );
         eqc_cons[ eqc ] = c;
-        Trace("dt-cmi") << "Datatypes : assert representative " << c << " for " << eqc << std::endl;
-        m->assertRepresentative( c );
       }else{
         //if eqc contains a symbol known to datatypes (a selector), then we must assign
-#if 0
-        bool shouldConsider = false;
-        eq::EqClassIterator eqc_i = eq::EqClassIterator( eqc, &d_equalityEngine );
-        while( !eqc_i.isFinished() ){
-          Node n = *eqc_i;
-          Trace("dt-cmi-debug") << n << " has kind " << n.getKind() << ", isVar = " << n.isVar() << std::endl;
-          if( n.isVar() || n.getKind()==APPLY_SELECTOR_TOTAL ){
-            shouldConsider = true;
-            break;
-          }
-          ++eqc_i;
-        }
-#else
         //should assign constructors to EQC if they have a selector or a tester
         bool shouldConsider = ( ei && ei->d_selectors ) || hasTester( eqc );
-#endif
         if( shouldConsider ){
           nodes.push_back( eqc );
         }
@@ -1398,68 +1382,56 @@ void TheoryDatatypes::collectModelInfo( TheoryModel* m, bool fullModel ){
       Trace("dt-cmi") << "Assign : " << neqc << std::endl;
       m->assertEquality( eqc, neqc, true );
       eqc_cons[ eqc ] = neqc;
-      Trace("dt-cmi") << "Datatypes : assert representative " << neqc << " for " << eqc << std::endl;
-      m->assertRepresentative( neqc );
     }
-    //m->assertRepresentative( neqc );
     if( addCons ){
       cons.push_back( neqc );
     }
     ++index;
   }
 
-  //assign MU for each codatatype eqc
-  std::map< Node, Node > eqc_mu;
   for( std::map< Node, Node >::iterator it = eqc_cons.begin(); it != eqc_cons.end(); ++it ){
     Node eqc = it->first;
     const Datatype& dt = ((DatatypeType)(eqc.getType()).toType()).getDatatype();
     if( dt.isCodatatype() ){
       //until models are implemented for codatatypes
-      throw Exception("Models for codatatypes are not supported in this version.");
-      /*
-      std::map< Node, Node > vmap;
-      std::vector< Node > fv;
-      Node v = getCodatatypesValue( it->first, eqc_cons, eqc_mu, vmap, fv );
-      Trace("dt-cmi-cdt") << "  EQC(" << it->first << "), constructor is " << it->second << ", value is " << v << ", const = " << v.isConst() << std::endl;
-      //m->assertEquality( eqc, v, true );
-      */
+      //throw Exception("Models for codatatypes are not supported in this version.");
+      //must proactive expand to avoid looping behavior in model builder
+      std::map< Node, int > vmap;
+      Node v = getCodatatypesValue( it->first, eqc_cons, vmap, 0 );
+      Trace("dt-cmi") << "  EQC(" << it->first << "), constructor is " << it->second << ", value is " << v << ", const = " << v.isConst() << std::endl;
+      m->assertEquality( eqc, v, true );
+      m->assertRepresentative( v );
+    }else{
+      Trace("dt-cmi") << "Datatypes : assert representative " << it->second << " for " << it->first << std::endl;
+      m->assertRepresentative( it->second );
     }
   }
 }
 
 
-Node TheoryDatatypes::getCodatatypesValue( Node n, std::map< Node, Node >& eqc_cons, std::map< Node, Node >& eqc_mu, std::map< Node, Node >& vmap, std::vector< Node >& fv ){
-  std::map< Node, Node >::iterator itv = vmap.find( n );
+Node TheoryDatatypes::getCodatatypesValue( Node n, std::map< Node, Node >& eqc_cons, std::map< Node, int >& vmap, int depth ){
+  std::map< Node, int >::iterator itv = vmap.find( n );
   if( itv!=vmap.end() ){
-    if( std::find( fv.begin(), fv.end(), itv->second )==fv.end() ){
-      fv.push_back( itv->second );
-    }
-    return itv->second;
+    int debruijn = depth - 1 - itv->second;
+    return NodeManager::currentNM()->mkConst(UninterpretedConstant(n.getType().toType(), debruijn));
   }else if( DatatypesRewriter::isTermDatatype( n ) ){
-    std::stringstream ss;
-    ss << "$x" << vmap.size();
-    Node nv = NodeManager::currentNM()->mkBoundVar( ss.str().c_str(), n.getType() );
-    vmap[n] = nv;
-    Trace("dt-cmi-cdt-debug") << "    map " << n << " -> " << nv << std::endl;
     Node nc = eqc_cons[n];
-    Assert( nc.getKind()==APPLY_CONSTRUCTOR );
-    std::vector< Node > children;
-    children.push_back( nc.getOperator() );
-    for( unsigned i=0; i<nc.getNumChildren(); i++ ){
-      Node r = getRepresentative( nc[i] );
-      Node rv = getCodatatypesValue( r, eqc_cons, eqc_mu, vmap, fv );
-      children.push_back( rv );
+    if( !nc.isNull() ){
+      vmap[n] = depth;
+      Trace("dt-cmi-cdt-debug") << "    map " << n << " -> " << depth << std::endl;
+      Assert( nc.getKind()==APPLY_CONSTRUCTOR );
+      std::vector< Node > children;
+      children.push_back( nc.getOperator() );
+      for( unsigned i=0; i<nc.getNumChildren(); i++ ){
+        Node r = getRepresentative( nc[i] );
+        Node rv = getCodatatypesValue( r, eqc_cons, vmap, depth+1 );
+        children.push_back( rv );
+      }
+      vmap.erase( n );
+      return NodeManager::currentNM()->mkNode( APPLY_CONSTRUCTOR, children );
     }
-    vmap.erase( n );
-    Node v = NodeManager::currentNM()->mkNode( APPLY_CONSTRUCTOR, children );
-    //add mu if we found a circular reference
-    if( std::find( fv.begin(), fv.end(), nv )!=fv.end() ){
-      v = NodeManager::currentNM()->mkNode( MU, nv, v );
-    }
-    return v;
-  }else{
-    return n;
   }
+  return n;
 }
 
 Node TheoryDatatypes::getSingletonLemma( TypeNode tn, bool pol ) {

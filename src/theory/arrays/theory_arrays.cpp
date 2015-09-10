@@ -757,7 +757,7 @@ void TheoryArrays::computeCareGraph()
 
       // Get the model value of index and find all reads that read from that same model value: these are the pairs we have to check
       // Also, insert this read in the list at the proper index
-      
+
       if (!x_shared.isConst()) {
         x_shared = d_valuation.getModelValue(x_shared);
       }
@@ -1032,7 +1032,7 @@ void TheoryArrays::check(Effort e) {
   if (done() && !fullEffort(e)) {
     return;
   }
-  
+
   getOutputChannel().spendResource(options::theoryCheckStep());
 
   TimerStat::CodeTimer checkTimer(d_checkTime);

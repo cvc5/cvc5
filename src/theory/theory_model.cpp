@@ -489,6 +489,46 @@ void TheoryEngineModelBuilder::assignConstantRep( TheoryModel* tm, std::map<Node
   }
 }
 
+bool TheoryEngineModelBuilder::isExcludedCdtValue( Node val, std::set<Node>* repSet, std::map< Node, Node >& assertedReps, Node eqc ) {
+  Trace("model-builder-cdt") << "Is " << val << " and excluded codatatype value for " << eqc << "? " << std::endl;
+  for (set<Node>::iterator i = repSet->begin(); i != repSet->end(); ++i ) {
+    Assert(assertedReps.find(*i) != assertedReps.end());
+    Node rep = assertedReps[*i];
+    Trace("model-builder-cdt") << "  Rep : " << rep << std::endl;
+    //check matching val to rep with eqc as a free variable
+    Node eqc_m;
+    if( isCdtValueMatch( val, rep, eqc, eqc_m ) ){
+      Trace("model-builder-cdt") << "  ...matches with " << eqc << " -> " << eqc_m << std::endl;
+      Trace("model-builder-cdt") << "*** " << val << " is excluded datatype for " << eqc << std::endl;
+      return true;
+    }
+  }
+  return false;
+}
+
+bool TheoryEngineModelBuilder::isCdtValueMatch( Node v, Node r, Node eqc, Node& eqc_m ) {
+  if( r==v ){
+    return true;
+  }else if( r==eqc ){
+    if( eqc_m.isNull() ){
+      //only if an uninterpreted constant?
+      eqc_m = v;
+      return true;
+    }else{
+      return v==eqc_m;
+    }
+  }else if( v.getKind()==kind::APPLY_CONSTRUCTOR && r.getKind()==kind::APPLY_CONSTRUCTOR ){
+    if( v.getOperator()==r.getOperator() ){
+      for( unsigned i=0; i<v.getNumChildren(); i++ ){
+        if( !isCdtValueMatch( v[i], r[i], eqc, eqc_m ) ){
+          return false;
+        }
+      }
+      return true;
+    }
+  }
+  return false;
+}
 
 void TheoryEngineModelBuilder::buildModel(Model* m, bool fullModel)
 {
@@ -699,6 +739,12 @@ void TheoryEngineModelBuilder::buildModel(Model* m, bool fullModel)
       if(t.isTuple() || t.isRecord()) {
         t = NodeManager::currentNM()->getDatatypeForTupleRecord(t);
       }
+      bool isCorecursive = false;
+      if( t.isDatatype() ){
+        const Datatype& dt = ((DatatypeType)(t).toType()).getDatatype();
+        isCorecursive = dt.isCodatatype() && ( !dt.isFinite() || dt.isRecursiveSingleton() );
+      }
+      set<Node>* repSet = typeRepSet.getSet(t);
       TypeNode tb = t.getBaseType();
       if (!assignOne) {
         set<Node>* repSet = typeRepSet.getSet(tb);
@@ -731,7 +777,18 @@ void TheoryEngineModelBuilder::buildModel(Model* m, bool fullModel)
           Assert(!t.isBoolean() || (*i2).getKind() == kind::APPLY_UF);
           Node n;
           if (t.getCardinality().isInfinite()) {
-            n = typeConstSet.nextTypeEnum(t, true);
+            bool success;
+            do{
+              n = typeConstSet.nextTypeEnum(t, true);
+              success = true;
+              if( isCorecursive ){
+                if (repSet != NULL && !repSet->empty()) {
+                  // in the case of codatatypes, check if it is in the set of values that we cannot assign
+                  // this will check whether n \not\in V^x_I from page 9 of Reynolds/Blanchette CADE 2015
+                  success = !isExcludedCdtValue( n, repSet, assertedReps, *i2 );
+                }
+              }
+            }while( !success );
           }
           else {
             TypeEnumerator te(t);

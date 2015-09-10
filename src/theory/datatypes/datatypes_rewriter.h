@@ -58,6 +58,13 @@ public:
           return RewriteResponse(REWRITE_DONE, inr);
         }
       }
+      if( in.isConst() ){
+        Node inn = normalizeConstant( in );
+        if( inn!=in ){
+          Trace("datatypes-rewrite-debug") << "Normalized constant " << in << " -> " << inn << std::endl;
+          return RewriteResponse(REWRITE_DONE, inn);
+        }
+      }
     }
 
     if(in.getKind() == kind::APPLY_TESTER) {
@@ -585,23 +592,27 @@ public:
   }
   //normalize constant : apply to top-level codatatype constants
   static Node normalizeConstant( Node n ){
-    Assert( n.getType().isDatatype() );
-    const Datatype& dt = ((DatatypeType)(n.getType()).toType()).getDatatype();
-    if( dt.isCodatatype() ){
-      return normalizeCodatatypeConstant( n );
-    }else{
-      std::vector< Node > children;
-      bool childrenChanged = false;
-      for( unsigned i = 0; i<n.getNumChildren(); i++ ){
-        Node nc = normalizeConstant( n[i] );
-        children.push_back( nc );
-        childrenChanged = childrenChanged || nc!=n[i];
-      }
-      if( childrenChanged ){
-        return NodeManager::currentNM()->mkNode( n.getKind(), children );
+    if( n.getType().isDatatype() ){
+      Assert( n.getType().isDatatype() );
+      const Datatype& dt = ((DatatypeType)(n.getType()).toType()).getDatatype();
+      if( dt.isCodatatype() ){
+        return normalizeCodatatypeConstant( n );
       }else{
-        return n;
+        std::vector< Node > children;
+        bool childrenChanged = false;
+        for( unsigned i = 0; i<n.getNumChildren(); i++ ){
+          Node nc = normalizeConstant( n[i] );
+          children.push_back( nc );
+          childrenChanged = childrenChanged || nc!=n[i];
+        }
+        if( childrenChanged ){
+          return NodeManager::currentNM()->mkNode( n.getKind(), children );
+        }else{
+          return n;
+        }
       }
+    }else{
+      return n;
     }
   }
 };/* class DatatypesRewriter */

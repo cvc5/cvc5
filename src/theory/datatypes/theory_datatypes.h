@@ -266,7 +266,7 @@ private:
                           std::map< Node, Node >& cn,
                           std::map< Node, std::map< Node, int > >& dni, int dniLvl, bool mkExp );
   /** build model */
-  Node getCodatatypesValue( Node n, std::map< Node, Node >& eqc_cons, std::map< Node, Node >& eqc_mu, std::map< Node, Node >& vmap, std::vector< Node >& fv );
+  Node getCodatatypesValue( Node n, std::map< Node, Node >& eqc_cons, std::map< Node, int >& vmap, int depth );
   /** get singleton lemma */
   Node getSingletonLemma( TypeNode tn, bool pol );
   /** collect terms */
