@@ -385,7 +385,7 @@ public:
            tn.isTuple() || tn.isRecord();
   }
 private:
-  static Node collectRef( Node n, std::vector< Node >& sk, std::map< Node, Node >& rf, std::vector< Node >& rf_pending ){
+  static Node collectRef( Node n, std::vector< Node >& sk, std::map< Node, Node >& rf, std::vector< Node >& rf_pending, std::vector< Node >& terms ){
     Assert( n.isConst() );
     TypeNode tn = n.getType();
     if( tn.isDatatype() ){
@@ -396,7 +396,7 @@ private:
         children.push_back( n.getOperator() );
         bool childChanged = false;
         for( unsigned i=0; i<n.getNumChildren(); i++ ){
-          Node nc = collectRef( n[i], sk, rf, rf_pending );
+          Node nc = collectRef( n[i], sk, rf, rf_pending, terms );
           if( nc.isNull() ){
             return Node::null();
           }
@@ -415,6 +415,9 @@ private:
           Assert( rf_pending.back().isNull() );
         }
         rf_pending.pop_back();
+        if( std::find( terms.begin(), terms.end(), ret )==terms.end() ){
+          terms.push_back( ret );
+        }
         return ret;
       }else{
         const Integer& i = n.getConst<UninterpretedConstant>().getIndex();
@@ -441,16 +444,41 @@ public:
     std::map< Node, Node > rf;
     std::vector< Node > sk;
     std::vector< Node > rf_pending;
-    Node s = collectRef( n, sk, rf, rf_pending );
+    std::vector< Node > terms;
+    Node s = collectRef( n, sk, rf, rf_pending, terms );
     if( !s.isNull() ){
       Trace("dt-nconst") << "...symbolic normalized is : " << s << std::endl;
       for( std::map< Node, Node >::iterator it = rf.begin(); it != rf.end(); ++it ){
         Trace("dt-nconst") << "  " << it->first << " = " << it->second << std::endl;
       }
+      Trace("dt-nconst") << "  " << terms.size() << " total subterms." << std::endl;
+      //now run bisimulations on all terms
+
       return n;
     }else{
       Trace("dt-nconst") << "...invalid." << std::endl;
       return Node::null();
+    }
+  }
+  //normalize constant : apply to top-level codatatype constants
+  static Node normalizeConstant( Node n ){
+    Assert( n.getType().isDatatype() );
+    const Datatype& dt = ((DatatypeType)(n.getType()).toType()).getDatatype();
+    if( dt.isCodatatype() ){
+      return normalizeMuConstant( n );
+    }else{
+      std::vector< Node > children;
+      bool childrenChanged = false;
+      for( unsigned i = 0; i<n.getNumChildren(); i++ ){
+        Node nc = normalizeConstant( n[i] );
+        children.push_back( nc );
+        childrenChanged = childrenChanged || nc!=n[i];
+      }
+      if( childrenChanged ){
+        return NodeManager::currentNM()->mkNode( n.getKind(), children );
+      }else{
+        return n;
+      }
     }
   }
 };/* class DatatypesRewriter */

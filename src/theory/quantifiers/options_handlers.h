@@ -207,13 +207,13 @@ relevant \n\
 static const std::string iteLiftQuantHelp = "\
 Modes for term database, supported by --ite-lift-quant:\n\
 \n\
-all  \n\
+none  \n\
 + Do not lift if-then-else in quantified formulas.\n\
 \n\
 simple  \n\
 + Lift if-then-else in quantified formulas if results in smaller term size.\n\
 \n\
-none \n\
+all \n\
 + Lift if-then-else in quantified formulas. \n\
 \n\
 ";

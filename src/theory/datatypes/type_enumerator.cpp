@@ -100,7 +100,12 @@ Node DatatypesEnumerator::getTermEnum( TypeNode tn, unsigned i ){
    Debug("dt-enum-debug") << "Get current term at " << index << " " << d_type << std::endl;
    Node ret;
    if( index<d_has_debruijn ){
-     ret = NodeManager::currentNM()->mkConst(UninterpretedConstant(d_type.toType(), d_size_limit));
+     if( d_child_enum ){
+       ret = NodeManager::currentNM()->mkConst(UninterpretedConstant(d_type.toType(), d_size_limit));
+     }else{
+       //no top-level variables
+       return Node::null();
+     }
    }else{
      Debug("dt-enum-debug") << "Look at constructor " << (index - d_has_debruijn) << std::endl;
      DatatypeConstructor ctor = d_datatype[index - d_has_debruijn];

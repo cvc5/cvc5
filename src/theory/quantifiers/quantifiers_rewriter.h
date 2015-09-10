@@ -62,7 +62,6 @@ private:
     COMPUTE_VAR_ELIMINATION,
     //COMPUTE_FLATTEN_ARGS_UF,
     //COMPUTE_CNF,
-    COMPUTE_SPLIT,
     COMPUTE_LAST
   };
   static Node computeOperation( Node f, bool isNested, int computeOption );
