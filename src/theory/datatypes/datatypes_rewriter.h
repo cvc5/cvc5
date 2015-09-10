@@ -385,76 +385,199 @@ public:
            tn.isTuple() || tn.isRecord();
   }
 private:
-  static Node collectRef( Node n, std::vector< Node >& sk, std::map< Node, Node >& rf, std::vector< Node >& rf_pending, std::vector< Node >& terms ){
+  static Node collectRef( Node n, std::vector< Node >& sk, std::map< Node, Node >& rf, std::vector< Node >& rf_pending,
+                          std::vector< Node >& terms, std::map< Node, bool >& cdts ){
     Assert( n.isConst() );
     TypeNode tn = n.getType();
+    Node ret = n;
+    bool isCdt = false;
     if( tn.isDatatype() ){
-      if( n.getKind()==kind::APPLY_CONSTRUCTOR ){
-        sk.push_back( n );
-        rf_pending.push_back( Node::null() );
-        std::vector< Node > children;
-        children.push_back( n.getOperator() );
-        bool childChanged = false;
-        for( unsigned i=0; i<n.getNumChildren(); i++ ){
-          Node nc = collectRef( n[i], sk, rf, rf_pending, terms );
-          if( nc.isNull() ){
-            return Node::null();
-          }
-          childChanged = nc!=n[i] || childChanged;
-          children.push_back( nc );
-        }
-        sk.pop_back();
-        Node ret;
-        if( childChanged ){
-          ret = NodeManager::currentNM()->mkNode( kind::APPLY_CONSTRUCTOR, children );
-          if( !rf_pending.back().isNull() ){
-            rf[rf_pending.back()] = ret;
-          }
-        }else{
-          ret = n;
-          Assert( rf_pending.back().isNull() );
-        }
-        rf_pending.pop_back();
-        if( std::find( terms.begin(), terms.end(), ret )==terms.end() ){
-          terms.push_back( ret );
-        }
-        return ret;
+      const Datatype& dt = ((DatatypeType)(tn).toType()).getDatatype();
+      if( !dt.isCodatatype() ){
+        //nested datatype within codatatype : can be normalized independently since all loops should be self-contained
+        ret = normalizeConstant( n );
       }else{
-        const Integer& i = n.getConst<UninterpretedConstant>().getIndex();
-        uint32_t index = i.toUnsignedInt();
-        if( index>=sk.size() ){
-          return Node::null();
-        }else{
-          Assert( sk.size()==rf_pending.size() );
-          Node r = rf_pending[ rf_pending.size()-1-index ];
-          if( r.isNull() ){
-            r = NodeManager::currentNM()->mkBoundVar( sk[ rf_pending.size()-1-index ].getType() );
-            rf_pending[ rf_pending.size()-1-index ] = r;
+        isCdt = true;
+        if( n.getKind()==kind::APPLY_CONSTRUCTOR ){
+          sk.push_back( n );
+          rf_pending.push_back( Node::null() );
+          std::vector< Node > children;
+          children.push_back( n.getOperator() );
+          bool childChanged = false;
+          for( unsigned i=0; i<n.getNumChildren(); i++ ){
+            Node nc = collectRef( n[i], sk, rf, rf_pending, terms, cdts );
+            if( nc.isNull() ){
+              return Node::null();
+            }
+            childChanged = nc!=n[i] || childChanged;
+            children.push_back( nc );
           }
-          return r;
+          sk.pop_back();
+          if( childChanged ){
+            ret = NodeManager::currentNM()->mkNode( kind::APPLY_CONSTRUCTOR, children );
+            if( !rf_pending.back().isNull() ){
+              rf[rf_pending.back()] = ret;
+            }
+          }else{
+            Assert( rf_pending.back().isNull() );
+          }
+          rf_pending.pop_back();
+        }else{
+          //a loop
+          const Integer& i = n.getConst<UninterpretedConstant>().getIndex();
+          uint32_t index = i.toUnsignedInt();
+          if( index>=sk.size() ){
+            return Node::null();
+          }else{
+            Assert( sk.size()==rf_pending.size() );
+            Node r = rf_pending[ rf_pending.size()-1-index ];
+            if( r.isNull() ){
+              r = NodeManager::currentNM()->mkBoundVar( sk[ rf_pending.size()-1-index ].getType() );
+              rf_pending[ rf_pending.size()-1-index ] = r;
+            }
+            return r;
+          }
         }
       }
+    }
+    Trace("dt-nconst-debug") << "Return term : " << ret << " from " << n << std::endl;
+    if( std::find( terms.begin(), terms.end(), ret )==terms.end() ){
+      terms.push_back( ret );
+      Assert( ret.getType()==tn );
+      cdts[ret] = isCdt;
+    }
+    return ret;
+  }
+  //eqc_stack stores depth
+  static Node normalizeCodatatypeConstantEqc( Node n, std::map< int, int >& eqc_stack, std::map< Node, int >& eqc, int depth ){
+    Assert( eqc.find( n )!=eqc.end() );
+    int e = eqc[n];
+    std::map< int, int >::iterator it = eqc_stack.find( e );
+    if( it!=eqc_stack.end() ){
+      int debruijn = depth - it->second - 1;
+      return NodeManager::currentNM()->mkConst(UninterpretedConstant(n.getType().toType(), debruijn));
     }else{
-      return n;
+      std::vector< Node > children;
+      bool childChanged = false;
+      eqc_stack[e] = depth;
+      for( unsigned i=0; i<n.getNumChildren(); i++ ){
+        Node nc = normalizeCodatatypeConstantEqc( n[i], eqc_stack, eqc, depth+1 );
+        children.push_back( nc );
+        childChanged = childChanged || nc!=n[i];
+      }
+      eqc_stack.erase(e);
+      if( childChanged ){
+        Assert( n.getKind()==kind::APPLY_CONSTRUCTOR );
+        children.insert( children.begin(), n.getOperator() );
+        return NodeManager::currentNM()->mkNode( n.getKind(), children );
+      }else{
+        return n;
+      }
     }
   }
 public:
-  static Node normalizeMuConstant( Node n ){
+  static Node normalizeCodatatypeConstant( Node n ){
     Trace("dt-nconst") << "Normalize " << n << std::endl;
     std::map< Node, Node > rf;
     std::vector< Node > sk;
     std::vector< Node > rf_pending;
     std::vector< Node > terms;
-    Node s = collectRef( n, sk, rf, rf_pending, terms );
+    std::map< Node, bool > cdts;
+    Node s = collectRef( n, sk, rf, rf_pending, terms, cdts );
     if( !s.isNull() ){
       Trace("dt-nconst") << "...symbolic normalized is : " << s << std::endl;
       for( std::map< Node, Node >::iterator it = rf.begin(); it != rf.end(); ++it ){
         Trace("dt-nconst") << "  " << it->first << " = " << it->second << std::endl;
       }
-      Trace("dt-nconst") << "  " << terms.size() << " total subterms." << std::endl;
-      //now run bisimulations on all terms
-
-      return n;
+      //now run DFA minimization on term structure
+      Trace("dt-nconst") << "  " << terms.size() << " total subterms :" << std::endl;
+      int eqc_count = 0;
+      std::map< Node, int > eqc_op_map;
+      std::map< Node, int > eqc;
+      std::map< int, std::vector< Node > > eqc_nodes;
+      //partition based on top symbol
+      for( unsigned j=0; j<terms.size(); j++ ){
+        Node t = terms[j];
+        Trace("dt-nconst") << "    " << t << ", cdt=" << cdts[t] << std::endl;
+        int e;
+        if( cdts[t] ){
+          Assert( t.getKind()==kind::APPLY_CONSTRUCTOR );
+          Node op = t.getOperator();
+          std::map< Node, int >::iterator it = eqc_op_map.find( op );
+          if( it==eqc_op_map.end() ){
+            e = eqc_count;
+            eqc_op_map[op] = eqc_count;
+            eqc_count++;
+          }else{
+            e = it->second;
+          }
+        }else{
+          e = eqc_count;
+          eqc_count++;
+        }
+        eqc[t] = e;
+        eqc_nodes[e].push_back( t );
+      }
+      //partition until fixed point
+      int eqc_curr = 0;
+      bool success = true;
+      while( success ){
+        success = false;
+        int eqc_end = eqc_count;
+        while( eqc_curr<eqc_end ){
+          if( eqc_nodes[eqc_curr].size()>1 ){
+            //look at all nodes in this equivalence class
+            unsigned nchildren = eqc_nodes[eqc_curr][0].getNumChildren();
+            std::map< int, std::vector< Node > > prt;
+            for( unsigned j=0; j<nchildren; j++ ){
+              prt.clear();
+              //partition based on children : for the first child that causes a split, break
+              for( unsigned k=0; k<eqc_nodes[eqc_curr].size(); k++ ){
+                Node t = eqc_nodes[eqc_curr][k];
+                Assert( t.getNumChildren()==nchildren );
+                Node tc = t[j];
+                //refer to loops
+                std::map< Node, Node >::iterator itr = rf.find( tc );
+                if( itr!=rf.end() ){
+                  tc = itr->second;
+                }
+                Assert( eqc.find( tc)!=eqc.end() );
+                prt[eqc[tc]].push_back( t );
+              }
+              if( prt.size()>1 ){
+                success = true;
+                break;
+              }
+            }
+            //move into new eqc(s)
+            for( std::map< int, std::vector< Node > >::iterator it = prt.begin(); it != prt.end(); ++it ){
+              int e = eqc_count;
+              for( unsigned j=0; j<it->second.size(); j++ ){
+                Node t = it->second[j];
+                eqc[t] = e;
+                eqc_nodes[e].push_back( t );
+              }
+              eqc_count++;
+            }
+          }
+          eqc_nodes.erase( eqc_curr );
+          eqc_curr++;
+        }
+      }
+      //add in already occurring loop variables
+      for( std::map< Node, Node >::iterator it = rf.begin(); it != rf.end(); ++it ){
+        Trace("dt-nconst-debug") << "Mapping equivalence class of " << it->first << " -> " << it->second << std::endl;
+        Assert( eqc.find(it->second)!=eqc.end() );
+        eqc[it->first] = eqc[it->second];
+      }
+      //we now have a partition of equivalent terms
+      Trace("dt-nconst") << "Equivalence classes ids : " << std::endl;
+      for( std::map< Node, int >::iterator it = eqc.begin(); it != eqc.end(); ++it ){
+        Trace("dt-nconst") << "  " << it->first << " -> " << it->second << std::endl;
+      }
+      //traverse top-down based on equivalence class
+      std::map< int, int > eqc_stack;
+      return normalizeCodatatypeConstantEqc( s, eqc_stack, eqc, 0 );
     }else{
       Trace("dt-nconst") << "...invalid." << std::endl;
       return Node::null();
@@ -465,7 +588,7 @@ public:
     Assert( n.getType().isDatatype() );
     const Datatype& dt = ((DatatypeType)(n.getType()).toType()).getDatatype();
     if( dt.isCodatatype() ){
-      return normalizeMuConstant( n );
+      return normalizeCodatatypeConstant( n );
     }else{
       std::vector< Node > children;
       bool childrenChanged = false;

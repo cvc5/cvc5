@@ -150,9 +150,14 @@ Node DatatypesEnumerator::getTermEnum( TypeNode tn, unsigned i ){
    }
 
    if( !d_child_enum && d_has_debruijn ){
-     Node nret = DatatypesRewriter::normalizeMuConstant( ret );
+     Node nret = DatatypesRewriter::normalizeCodatatypeConstant( ret );
      if( nret!=ret ){
-       Debug("dt-enum-nn") << "Non-normal constant : " << ret << std::endl;
+       if( nret.isNull() ){
+         Trace("dt-enum-nn") << "Invalid constant : " << ret << std::endl;
+       }else{
+         Trace("dt-enum-nn") << "Non-normal constant : " << ret << std::endl;
+         Trace("dt-enum-nn") << "  ...normal form is : " << nret << std::endl;
+       }
        return Node::null();
      }
    }
