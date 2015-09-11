@@ -582,6 +582,9 @@ public:
   /** Is this a parameterized datatype type */
   bool isParametricDatatype() const;
 
+  /** Is this a codatatype type */
+  bool isCodatatype() const;
+
   /** Is this a fully instantiated datatype type */
   bool isInstantiatedDatatype() const;
 
@@ -985,6 +988,15 @@ inline bool TypeNode::isParametricDatatype() const {
     ( isPredicateSubtype() && getSubtypeParentType().isParametricDatatype() );
 }
 
+/** Is this a codatatype type */
+inline bool TypeNode::isCodatatype() const {
+  if( isDatatype() ){
+    return getDatatype().isCodatatype();
+  }else{
+    return false;
+  }
+}
+
 /** Is this a constructor type */
 inline bool TypeNode::isConstructor() const {
   return getKind() == kind::CONSTRUCTOR_TYPE;
@@ -1004,7 +1016,7 @@ inline bool TypeNode::isTester() const {
     and <code>sig</code> significand bits */
 inline bool TypeNode::isFloatingPoint(unsigned exp, unsigned sig) const {
   return
-    ( getKind() == kind::FLOATINGPOINT_TYPE && 
+    ( getKind() == kind::FLOATINGPOINT_TYPE &&
       getConst<FloatingPointSize>().exponent() == exp &&
       getConst<FloatingPointSize>().significand() == sig ) ||
     ( isPredicateSubtype() && getSubtypeParentType().isFloatingPoint(exp,sig) );

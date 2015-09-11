@@ -282,6 +282,8 @@ private:
 public:
   //get nth term for type
   Node getEnumerateTerm( TypeNode tn, unsigned index );
+  //does this type have an enumerator that produces constants that are handled by ground theory solvers
+  static bool isClosedEnumerableType( TypeNode tn );
 
 //miscellaneous
 public:

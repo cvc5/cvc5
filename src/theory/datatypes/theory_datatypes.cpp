@@ -190,6 +190,7 @@ void TheoryDatatypes::check(Effort e) {
             const Datatype& dt = ((DatatypeType)(tn).toType()).getDatatype();
             bool continueProc = true;
             if( dt.isRecursiveSingleton() ){
+              Trace("datatypes-debug") << "Check recursive singleton..." << std::endl;
               //handle recursive singleton case
               std::map< TypeNode, Node >::iterator itrs = rec_singletons.find( tn );
               if( itrs!=rec_singletons.end() ){
@@ -230,6 +231,7 @@ void TheoryDatatypes::check(Effort e) {
               continueProc = ( getQuantifiersEngine()!=NULL );
             }
             if( continueProc ){
+              Trace("datatypes-debug") << "Get possible cons..." << std::endl;
               //all other cases
               std::vector< bool > pcons;
               getPossibleCons( eqc, n, pcons );
@@ -237,32 +239,30 @@ void TheoryDatatypes::check(Effort e) {
               // this is if there are no selectors for this equivalence class, its possible values are infinite,
               //  and we are not producing a model, then do not split.
               int consIndex = -1;
+              int fconsIndex = -1;
               bool needSplit = true;
               for( unsigned int j=0; j<pcons.size(); j++ ) {
                 if( pcons[j] ) {
                   if( consIndex==-1 ){
                     consIndex = j;
                   }
-                  if( !dt[ j ].isFinite() && ( !eqc || !eqc->d_selectors ) ) {
-                    needSplit = false;
+                  if( !dt[ j ].isFinite() ) {
+                    if( !eqc || !eqc->d_selectors ){
+                      needSplit = false;
+                    }
+                  }else{
+                    if( fconsIndex==-1 ){
+                      fconsIndex = j;
+                    }
                   }
                 }
               }
+              //if we want to force an assignment of constructors to all ground eqc
               //d_dtfCounter++;
               if( !needSplit && options::dtForceAssignment() && d_dtfCounter%2==0 ){
-                //for the sake of termination, we must choose the constructor of a ground term
-                //NEED GUARENTEE: groundTerm should not contain any subterms of the same type
-                // TODO: this is probably not good enough, actually need fair enumeration strategy
-                if( !n.getType().isRecord() ){ //FIXME
-                  Node groundTerm = n.getType().mkGroundTerm();
-                  if( groundTerm.getOperator().getType().isConstructor() ){ //FIXME
-                    int index = Datatype::indexOf( groundTerm.getOperator().toExpr() );
-                    if( pcons[index] ){
-                      consIndex = index;
-                    }
-                    needSplit = true;
-                  }
-                }
+                Trace("datatypes-force-assign") << "Force assignment for " << n << std::endl;
+                needSplit = true;
+                consIndex = fconsIndex!=-1 ? fconsIndex : consIndex;
               }
 
               if( needSplit && consIndex!=-1 ) {
@@ -1391,8 +1391,7 @@ void TheoryDatatypes::collectModelInfo( TheoryModel* m, bool fullModel ){
 
   for( std::map< Node, Node >::iterator it = eqc_cons.begin(); it != eqc_cons.end(); ++it ){
     Node eqc = it->first;
-    const Datatype& dt = ((DatatypeType)(eqc.getType()).toType()).getDatatype();
-    if( dt.isCodatatype() ){
+    if( eqc.getType().isCodatatype() ){
       //until models are implemented for codatatypes
       //throw Exception("Models for codatatypes are not supported in this version.");
       //must proactive expand to avoid looping behavior in model builder
@@ -1583,7 +1582,7 @@ void TheoryDatatypes::instantiate( EqcInfo* eqc, Node n ){
     int index = getLabelIndex( eqc, n );
     const Datatype& dt = ((DatatypeType)(tt.getType()).toType()).getDatatype();
     //must be finite or have a selector
-    //if( eqc->d_selectors || dt[ index ].isFinite() ){ // || mustSpecifyAssignment()
+    //if( eqc->d_selectors || dt[ index ].isFinite() ){
     //instantiate this equivalence class
     eqc->d_inst = true;
     Node tt_cons = getInstantiateCons( tt, dt, index );
@@ -1613,8 +1612,7 @@ void TheoryDatatypes::checkCycles() {
     Node eqc = (*eqcs_i);
     TypeNode tn = eqc.getType();
     if( DatatypesRewriter::isTypeDatatype( tn ) ) {
-      const Datatype& dt = ((DatatypeType)(tn).toType()).getDatatype();
-      if( !dt.isCodatatype() ){
+      if( !tn.isCodatatype() ){
         if( options::dtCyclic() ){
           //do cycle checks
           std::map< TNode, bool > visited;
@@ -1846,22 +1844,12 @@ Node TheoryDatatypes::searchForCycle( TNode n, TNode on,
   }else{
     TypeNode tn = nn.getType();
     if( DatatypesRewriter::isTypeDatatype( tn ) ) {
-      const Datatype& dt = ((DatatypeType)(tn).toType()).getDatatype();
-      if( !dt.isCodatatype() ){
+      if( !tn.isCodatatype() ){
         return nn;
       }
     }
     return Node::null();
   }
-}
-
-bool TheoryDatatypes::mustSpecifyAssignment(){
-  //FIXME: the condition finiteModelFind is an over-approximation in this function
-  //   we still may not want to specify assignments for datatypes that are truly infinite
-  //   the fix for this is to correctly compute the cardinality for datatypes containing uninterpered sorts in fmf (i.e. by assuming they are finite)
-  return options::finiteModelFind() || options::produceModels() || options::dtForceAssignment();
-  //return options::produceModels();
-  //return false;
 }
 
 bool TheoryDatatypes::mustCommunicateFact( Node n, Node exp ){

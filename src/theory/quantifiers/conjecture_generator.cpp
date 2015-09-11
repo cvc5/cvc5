@@ -1044,8 +1044,15 @@ Node ConjectureGenerator::getPredicateForType( TypeNode tn ) {
 void ConjectureGenerator::getEnumerateUfTerm( Node n, unsigned num, std::vector< Node >& terms ) {
   if( n.getNumChildren()>0 ){
     std::vector< int > vec;
+    std::vector< TypeNode > types;
     for( unsigned i=0; i<n.getNumChildren(); i++ ){
       vec.push_back( 0 );
+      TypeNode tn = n[i].getType();
+      if( TermDb::isClosedEnumerableType( tn ) ){
+        types.push_back( tn );
+      }else{
+        return;
+      }
     }
     vec.pop_back();
     int size_limit = 0;
@@ -1059,7 +1066,7 @@ void ConjectureGenerator::getEnumerateUfTerm( Node n, unsigned num, std::vector<
         vec.push_back( size_limit );
       }else{
         //see if we can iterate current
-        if( vec_sum<size_limit && !getTermDatabase()->getEnumerateTerm( n[index].getType(), vec[index]+1 ).isNull() ){
+        if( vec_sum<size_limit && !getTermDatabase()->getEnumerateTerm( types[index], vec[index]+1 ).isNull() ){
           vec[index]++;
           vec_sum++;
           vec.push_back( size_limit - vec_sum );
@@ -1074,7 +1081,7 @@ void ConjectureGenerator::getEnumerateUfTerm( Node n, unsigned num, std::vector<
       }
       if( success ){
         if( vec.size()==n.getNumChildren() ){
-          Node lc = getTermDatabase()->getEnumerateTerm( n[vec.size()-1].getType(), vec[vec.size()-1] );
+          Node lc = getTermDatabase()->getEnumerateTerm( types[vec.size()-1], vec[vec.size()-1] );
           if( !lc.isNull() ){
             for( unsigned i=0; i<vec.size(); i++ ){
               Trace("sg-gt-enum-debug") << vec[i] << " ";
@@ -1087,7 +1094,7 @@ void ConjectureGenerator::getEnumerateUfTerm( Node n, unsigned num, std::vector<
             std::vector< Node > children;
             children.push_back( n.getOperator() );
             for( unsigned i=0; i<(vec.size()-1); i++ ){
-              Node nn = getTermDatabase()->getEnumerateTerm( n[i].getType(), vec[i] );
+              Node nn = getTermDatabase()->getEnumerateTerm( types[i], vec[i] );
               Assert( !nn.isNull() );
               Assert( nn.getType()==n[i].getType() );
               children.push_back( nn );

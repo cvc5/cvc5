@@ -594,7 +594,7 @@ Node TermDb::getModelBasisTerm( TypeNode tn, int i ){
     Node mbt;
     if( tn.isInteger() || tn.isReal() ){
       mbt = NodeManager::currentNM()->mkConst( Rational( 0 ) );
-    }else if( !tn.isArray() && !tn.isSort() ){
+    }else if( isClosedEnumerableType( tn ) ){
       mbt = tn.mkGroundTerm();
     }else{
       if( options::fmfFreshDistConst() || d_type_map[ tn ].empty() ){
@@ -963,6 +963,9 @@ Node TermDb::getEnumerateTerm( TypeNode tn, unsigned index ) {
   return d_enum_terms[tn][index];
 }
 
+bool TermDb::isClosedEnumerableType( TypeNode tn ) {
+  return !tn.isArray() && !tn.isSort() && !tn.isCodatatype();
+}
 
 Node TermDb::getFreeVariableForInstConstant( Node n ){
   return getFreeVariableForType( n.getType() );

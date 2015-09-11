@@ -277,11 +277,6 @@ private:
   void processNewTerm( Node n );
   /** check instantiate */
   void instantiate( EqcInfo* eqc, Node n );
-  /** must specify model
-    *  This returns true when the datatypes theory is expected to specify the constructor
-    *  type for all equivalence classes.
-    */
-  bool mustSpecifyAssignment();
   /** must communicate fact */
   bool mustCommunicateFact( Node n, Node exp );
   /** check clash mod eq */

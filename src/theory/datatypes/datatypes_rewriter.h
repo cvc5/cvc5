@@ -60,8 +60,9 @@ public:
       }
       if( in.isConst() ){
         Node inn = normalizeConstant( in );
+        Assert( !inn.isNull() );
         if( inn!=in ){
-          Trace("datatypes-rewrite-debug") << "Normalized constant " << in << " -> " << inn << std::endl;
+          Trace("datatypes-rewrite") << "Normalized constant " << in << " -> " << inn << std::endl;
           return RewriteResponse(REWRITE_DONE, inn);
         }
       }
@@ -399,8 +400,7 @@ private:
     Node ret = n;
     bool isCdt = false;
     if( tn.isDatatype() ){
-      const Datatype& dt = ((DatatypeType)(tn).toType()).getDatatype();
-      if( !dt.isCodatatype() ){
+      if( !tn.isCodatatype() ){
         //nested datatype within codatatype : can be normalized independently since all loops should be self-contained
         ret = normalizeConstant( n );
       }else{
@@ -592,10 +592,9 @@ public:
   }
   //normalize constant : apply to top-level codatatype constants
   static Node normalizeConstant( Node n ){
-    if( n.getType().isDatatype() ){
-      Assert( n.getType().isDatatype() );
-      const Datatype& dt = ((DatatypeType)(n.getType()).toType()).getDatatype();
-      if( dt.isCodatatype() ){
+    TypeNode tn = n.getType();
+    if( tn.isDatatype() ){
+      if( tn.isCodatatype() ){
         return normalizeCodatatypeConstant( n );
       }else{
         std::vector< Node > children;
