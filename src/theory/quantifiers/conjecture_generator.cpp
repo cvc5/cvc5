@@ -1048,7 +1048,7 @@ void ConjectureGenerator::getEnumerateUfTerm( Node n, unsigned num, std::vector<
     for( unsigned i=0; i<n.getNumChildren(); i++ ){
       vec.push_back( 0 );
       TypeNode tn = n[i].getType();
-      if( TermDb::isClosedEnumerableType( tn ) ){
+      if( getTermDatabase()->isClosedEnumerableType( tn ) ){
         types.push_back( tn );
       }else{
         return;

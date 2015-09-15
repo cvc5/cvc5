@@ -40,7 +40,8 @@ BUG_TESTS = \
   quant-fun-proc.smt2 \
   quant-fun-proc-unmacro.smt2 \
   quant-fun-proc-unfd.smt2 \
-  bug654-dd.smt2
+  bug654-dd.smt2 \
+  bug-fmf-fun-skolem.smt2
 
 TESTS =	$(SMT_TESTS) $(SMT2_TESTS) $(CVC_TESTS) $(BUG_TESTS)
 

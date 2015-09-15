@@ -72,11 +72,6 @@ public:
     *   This function returns a term in d_rep_set.d_type_reps[tn] but not in exclude
     */
   Node getDomainValue( TypeNode tn, std::vector< Node >& exclude );
-  /** get new domain value
-    *   This function returns a constant term of type tn that is not in d_rep_set.d_type_reps[tn]
-    *   If it cannot find such a node, it returns null.
-    */
-  Node getNewDomainValue( TypeNode tn );
 public:
   /** Adds a substitution from x to t. */
   void addSubstitution(TNode x, TNode t, bool invalidateCache = true);

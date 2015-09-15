@@ -178,7 +178,7 @@ private:
   std::map< Node, inst::InstMatchTrie > d_inst_match_trie;
   std::map< Node, inst::CDInstMatchTrie* > d_c_inst_match_trie;
   /** quantifiers that have been skolemized */
-  std::map< Node, bool > d_skolemized;
+  BoolMap d_skolemized;
   /** term database */
   quantifiers::TermDb* d_term_db;
   /** all triggers will be stored in this trie */

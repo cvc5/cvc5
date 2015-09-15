@@ -418,7 +418,7 @@ bool TermDb::mayComplete( TypeNode tn ) {
   std::map< TypeNode, bool >::iterator it = d_may_complete.find( tn );
   if( it==d_may_complete.end() ){
     bool mc = false;
-    if( !tn.isArray() && tn.getCardinality().isFinite() && !tn.getCardinality().isLargeFinite() ){
+    if( isClosedEnumerableType( tn ) && tn.getCardinality().isFinite() && !tn.getCardinality().isLargeFinite() ){
       Node card = NodeManager::currentNM()->mkConst( Rational(tn.getCardinality().getFiniteCardinality()) );
       Node oth = NodeManager::currentNM()->mkConst( Rational(1000) );
       Node eq = NodeManager::currentNM()->mkNode( LEQ, card, oth );
@@ -964,7 +964,19 @@ Node TermDb::getEnumerateTerm( TypeNode tn, unsigned index ) {
 }
 
 bool TermDb::isClosedEnumerableType( TypeNode tn ) {
-  return !tn.isArray() && !tn.isSort() && !tn.isCodatatype();
+  std::map< TypeNode, bool >::iterator it = d_typ_closed_enum.find( tn );
+  if( it==d_typ_closed_enum.end() ){
+    bool ret = true;
+    if( tn.isArray() || tn.isSort() || tn.isCodatatype() ){
+      ret = false;
+    }else{
+      //TODO: all subfields must be closed enumerable?
+    }
+    d_typ_closed_enum[tn] = ret;
+    return ret;
+  }else{
+    return it->second;
+  }
 }
 
 Node TermDb::getFreeVariableForInstConstant( Node n ){

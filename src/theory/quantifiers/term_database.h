@@ -279,11 +279,13 @@ private:
   //type enumerators
   std::map< TypeNode, unsigned > d_typ_enum_map;
   std::vector< TypeEnumerator > d_typ_enum;
+  // closed enumerable type cache
+  std::map< TypeNode, bool > d_typ_closed_enum;
 public:
   //get nth term for type
   Node getEnumerateTerm( TypeNode tn, unsigned index );
   //does this type have an enumerator that produces constants that are handled by ground theory solvers
-  static bool isClosedEnumerableType( TypeNode tn );
+  bool isClosedEnumerableType( TypeNode tn );
 
 //miscellaneous
 public:

@@ -80,7 +80,8 @@ quantifiers::TermDb * QuantifiersModule::getTermDatabase() {
 
 QuantifiersEngine::QuantifiersEngine(context::Context* c, context::UserContext* u, TheoryEngine* te):
 d_te( te ),
-d_lemmas_produced_c(u){
+d_lemmas_produced_c(u),
+d_skolemized(u){
   d_eq_query = new EqualityQueryQuantifiersEngine( this );
   d_term_db = new quantifiers::TermDb( c, u, this );
   d_tr_trie = new inst::TriggerTrie;
@@ -1000,13 +1001,14 @@ void QuantifiersEngine::getPhaseReqTerms( Node f, std::vector< Node >& nodes ){
 
 void QuantifiersEngine::printInstantiations( std::ostream& out ) {
   bool printed = false;
-  for( std::map< Node, bool >::iterator it = d_skolemized.begin(); it != d_skolemized.end(); ++it ){
+  for( BoolMap::iterator it = d_skolemized.begin(); it != d_skolemized.end(); ++it ){
+    Node q = (*it).first;
     printed = true;
-    out << "Skolem constants of " << it->first << " : " << std::endl;
+    out << "Skolem constants of " << q << " : " << std::endl;
     out << "  ( ";
-    for( unsigned i=0; i<d_term_db->d_skolem_constants[it->first].size(); i++ ){
+    for( unsigned i=0; i<d_term_db->d_skolem_constants[q].size(); i++ ){
       if( i>0 ){ out << ", "; }
-      out << d_term_db->d_skolem_constants[it->first][i];
+      out << d_term_db->d_skolem_constants[q][i];
     }
     out << " )" << std::endl;
     out << std::endl;
