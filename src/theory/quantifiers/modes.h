@@ -49,15 +49,6 @@ typedef enum {
 } LiteralMatchMode;
 
 typedef enum {
-  /** default, use all methods for axioms */
-  AXIOM_INST_MODE_DEFAULT,
-  /** only use heuristic methods for axioms, return unknown in the case no instantiations are produced */
-  AXIOM_INST_MODE_TRUST,
-  /** only use heuristic methods for axioms, resort to all methods when no instantiations are produced */
-  AXIOM_INST_MODE_PRIORITY,
-} AxiomInstMode;
-
-typedef enum {
   /** mbqi from CADE 24 paper */
   MBQI_GEN_EVAL,
   /** no mbqi */

@@ -824,6 +824,9 @@ void TheoryEngineModelBuilder::buildModel(Model* m, bool fullModel)
         tm->d_rep_set.add((*i).getType(), *i);
       }
     }
+    for( std::map< TypeNode, std::vector< Node > >::iterator it = tm->d_rep_set.d_type_reps.begin(); it != tm->d_rep_set.d_type_reps.end(); ++it ){
+      tm->d_rep_set.d_type_rlv_rep[it->first] = (int)it->second.size();
+    }
   }
 
   //modelBuilder-specific initialization

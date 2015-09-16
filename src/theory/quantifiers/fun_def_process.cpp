@@ -55,6 +55,8 @@ void FunDefFmf::simplify( std::vector< Node >& assertions, bool doRewrite ) {
         std::stringstream ss;
         ss << "I_" << f;
         TypeNode iType = NodeManager::currentNM()->mkSort( ss.str() );
+        AbsTypeFunDefAttribute atfda;
+        iType.setAttribute(atfda,true);
         d_sorts[f] = iType;
 
         //create functions f1...fn mapping from this sort to concrete elements

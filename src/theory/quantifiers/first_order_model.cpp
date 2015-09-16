@@ -32,7 +32,7 @@ using namespace CVC4::theory::quantifiers::fmcheck;
 
 FirstOrderModel::FirstOrderModel(QuantifiersEngine * qe, context::Context* c, std::string name ) :
 TheoryModel( c, name, true ),
-d_qe( qe ), d_axiom_asserted( c, false ), d_forall_asserts( c ), d_isModelSet( c, false ){
+d_qe( qe ), d_forall_asserts( c ), d_isModelSet( c, false ){
 
 }
 
@@ -40,9 +40,6 @@ void FirstOrderModel::assertQuantifier( Node n, bool reduced ){
   if( !reduced ){
     if( n.getKind()==FORALL ){
       d_forall_asserts.push_back( n );
-      if( n.getAttribute(AxiomAttribute()) ){
-        d_axiom_asserted = true;
-      }
     }else if( n.getKind()==NOT ){
       Assert( n[0].getKind()==FORALL );
     }

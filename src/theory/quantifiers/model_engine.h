@@ -34,6 +34,8 @@ private:
 private:
   //check model
   int checkModel();
+  //consider quantified formula
+  bool considerQuantifiedFormula( Node q );
   //exhaustively instantiate quantifier (possibly using mbqi)
   void exhaustiveInstantiate( Node f, int effort = 0 );
 private:

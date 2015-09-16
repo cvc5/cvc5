@@ -92,6 +92,10 @@ typedef expr::Attribute< LtePartialInstAttributeId, bool > LtePartialInstAttribu
 struct SygusProxyAttributeId {};
 typedef expr::Attribute<SygusProxyAttributeId, Node> SygusProxyAttribute;
 
+//attribute for fun-def abstraction type
+struct AbsTypeFunDefAttributeId {};
+typedef expr::Attribute<AbsTypeFunDefAttributeId, bool> AbsTypeFunDefAttribute;
+
 class QuantifiersEngine;
 
 namespace inst{

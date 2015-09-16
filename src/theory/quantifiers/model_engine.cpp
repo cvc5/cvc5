@@ -52,7 +52,7 @@ bool ModelEngine::needsCheck( Theory::Effort e ) {
 }
 
 unsigned ModelEngine::needsModel( Theory::Effort e ) {
-  return QuantifiersEngine::QEFFORT_MODEL;  
+  return QuantifiersEngine::QEFFORT_MODEL;
 }
 
 void ModelEngine::reset_round( Theory::Effort e ) {
@@ -64,7 +64,7 @@ void ModelEngine::check( Theory::Effort e, unsigned quant_e ){
     int addedLemmas = 0;
     FirstOrderModel* fm = d_quantEngine->getModel();
 
-    //the following will test that the model satisfies all asserted universal quantifiers by 
+    //the following will test that the model satisfies all asserted universal quantifiers by
     // (model-based) exhaustive instantiation.
     double clSet = 0;
     if( Trace.isOn("model-engine") ){
@@ -88,7 +88,7 @@ void ModelEngine::check( Theory::Effort e, unsigned quant_e ){
     }else{
       addedLemmas++;
     }
-      
+
     if( Trace.isOn("model-engine") ){
       double clSet2 = double(clock())/double(CLOCKS_PER_SEC);
       Trace("model-engine") << "Finished model engine, time = " << (clSet2-clSet) << std::endl;
@@ -143,8 +143,6 @@ bool ModelEngine::optOneQuantPerRound(){
 
 int ModelEngine::checkModel(){
   FirstOrderModel* fm = d_quantEngine->getModel();
-  quantifiers::QModelBuilder * mb = d_quantEngine->getModelBuilder();
-  Assert( mb!=NULL );
 
   //flatten the representatives
   //Trace("model-engine-debug") << "Flattening representatives...." << std::endl;
@@ -192,50 +190,57 @@ int ModelEngine::checkModel(){
   }
 
   Trace("model-engine-debug") << "Do exhaustive instantiation..." << std::endl;
-  //default : 1 : conj,axiom
-  //priority : 0 : conj, 1 : axiom
-  //trust : 0 : conj
-  int startEffort = ( !fm->isAxiomAsserted() || options::axiomInstMode()==AXIOM_INST_MODE_DEFAULT ) ? 1 : 0;
-  for( int effort=startEffort; effort<2; effort++ ){
-    // FMC uses two sub-effort levels
-    int e_max = options::mbqiMode()==MBQI_FMC || options::mbqiMode()==MBQI_FMC_INTERVAL ? 2 : ( options::mbqiMode()==MBQI_TRUST ? 0 : 1 );
-    for( int e=0; e<e_max; e++) {
-      if (d_addedLemmas==0) {
-        for( int i=0; i<fm->getNumAssertedQuantifiers(); i++ ){
-          Node f = fm->getAssertedQuantifier( i );
-          bool isAx = getTermDatabase()->isQAttrAxiom( f );
-          Trace("fmf-exh-inst") << "-> Exhaustive instantiate " << f << ", effort = " << e << "..." << std::endl;
-          //determine if we should check this quantifier
-          if( ( ( effort==1 && ( options::axiomInstMode()==AXIOM_INST_MODE_DEFAULT || isAx ) ) || ( effort==0 && !isAx ) ) && mb->isQuantifierActive( f ) ){
-            exhaustiveInstantiate( f, e );
-            if( Trace.isOn("model-engine-warn") ){
-              if( d_addedLemmas>10000 ){
-                Debug("fmf-exit") << std::endl;
-                debugPrint("fmf-exit");
-                exit( 0 );
-              }
+  // FMC uses two sub-effort levels
+  int e_max = options::mbqiMode()==MBQI_FMC || options::mbqiMode()==MBQI_FMC_INTERVAL ? 2 : ( options::mbqiMode()==MBQI_TRUST ? 0 : 1 );
+  for( int e=0; e<e_max; e++) {
+    if (d_addedLemmas==0) {
+      for( int i=0; i<fm->getNumAssertedQuantifiers(); i++ ){
+        Node f = fm->getAssertedQuantifier( i );
+        Trace("fmf-exh-inst") << "-> Exhaustive instantiate " << f << ", effort = " << e << "..." << std::endl;
+        //determine if we should check this quantifier
+        if( considerQuantifiedFormula( f ) ){
+          exhaustiveInstantiate( f, e );
+          if( Trace.isOn("model-engine-warn") ){
+            if( d_addedLemmas>10000 ){
+              Debug("fmf-exit") << std::endl;
+              debugPrint("fmf-exit");
+              exit( 0 );
             }
-            if( optOneQuantPerRound() && d_addedLemmas>0 ){
-              break;
-            }
-          }else{
-            Trace("fmf-exh-inst") << "-> Inactive : " << f << std::endl;
           }
+          if( optOneQuantPerRound() && d_addedLemmas>0 ){
+            break;
+          }
+        }else{
+          Trace("fmf-exh-inst") << "-> Inactive : " << f << std::endl;
         }
       }
     }
-    if( d_addedLemmas==0 && options::axiomInstMode()==AXIOM_INST_MODE_TRUST ){
-      //set incomplete
-      if( effort==0 ){
-        d_incomplete_check = true;
-      }
-      break;
-    }
   }
+
   //print debug information
   Trace("model-engine") << "Added Lemmas = " << d_addedLemmas << " / " << d_triedLemmas << " / ";
   Trace("model-engine") << d_totalLemmas << std::endl;
   return d_addedLemmas;
+}
+
+bool ModelEngine::considerQuantifiedFormula( Node q ) {
+  if( !d_quantEngine->getModelBuilder()->isQuantifierActive( q ) ){ //!d_quantEngine->getModel()->isQuantifierActive( q );
+    return false;
+  }else{
+    if( options::fmfFunWellDefinedRelevant() ){
+      if( q[0].getNumChildren()==1 ){
+        TypeNode tn = q[0][0].getType();
+        if( tn.getAttribute(AbsTypeFunDefAttribute()) ){
+          //we are allowed to assume the introduced type is empty
+          if( d_quantEngine->getModel()->d_rep_set.getNumRelevantGroundReps( tn )==0 ){
+            Trace("model-engine-debug") << "Irrelevant function definition : " << q << std::endl;
+            return false;
+          }
+        }
+      }
+    }
+    return true;
+  }
 }
 
 void ModelEngine::exhaustiveInstantiate( Node f, int effort ){

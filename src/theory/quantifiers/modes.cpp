@@ -59,24 +59,6 @@ std::ostream& operator<<(std::ostream& out, theory::quantifiers::LiteralMatchMod
   return out;
 }
 
-std::ostream& operator<<(std::ostream& out, theory::quantifiers::AxiomInstMode mode) {
-  switch(mode) {
-  case theory::quantifiers::AXIOM_INST_MODE_DEFAULT:
-    out << "AXIOM_INST_MODE_DEFAULT";
-    break;
-  case theory::quantifiers::AXIOM_INST_MODE_TRUST:
-    out << "AXIOM_INST_MODE_TRUST";
-    break;
-  case theory::quantifiers::AXIOM_INST_MODE_PRIORITY:
-    out << "AXIOM_INST_MODE_PRIORITY";
-    break;
-  default:
-    out << "AxiomInstMode!UNKNOWN";
-  }
-
-  return out;
-}
-
 std::ostream& operator<<(std::ostream& out, theory::quantifiers::MbqiMode mode) {
   switch(mode) {
   case theory::quantifiers::MBQI_GEN_EVAL:

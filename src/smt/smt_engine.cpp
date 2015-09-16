@@ -739,7 +739,7 @@ SmtEngine::SmtEngine(ExprManager* em) throw() :
   d_context->push();
 
   d_definedFunctions = new(true) DefinedFunctionMap(d_userContext);
-  if( options::fmfFunWellDefined() ){
+  if( options::fmfFunWellDefined() || options::fmfFunWellDefinedRelevant() ){
     d_fmfRecFunctionsAbs = new(true) TypeNodeMap(d_userContext);
     d_fmfRecFunctionsConcrete = new(true) NodeListMap(d_userContext);
   }
@@ -1363,6 +1363,11 @@ void SmtEngine::setDefaults() {
   }
   if( options::ufssSymBreak() ){
     options::sortInference.set( true );
+  }
+  if( options::fmfFunWellDefinedRelevant() ){
+    if( !options::fmfFunWellDefined.wasSetByUser() ){
+      options::fmfFunWellDefined.set( true );
+    }
   }
   if( options::fmfFunWellDefined() ){
     if( !options::finiteModelFind.wasSetByUser() ){

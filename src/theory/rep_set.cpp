@@ -29,6 +29,7 @@ void RepSet::clear(){
   d_type_complete.clear();
   d_tmap.clear();
   d_values_to_terms.clear();
+  d_type_rlv_rep.clear();
 }
 
 bool RepSet::hasRep( TypeNode tn, Node n ) {
@@ -91,7 +92,7 @@ int RepSet::getIndexFor( Node n ) const {
 bool RepSet::complete( TypeNode t ){
   std::map< TypeNode, bool >::iterator it = d_type_complete.find( t );
   if( it==d_type_complete.end() ){
-    //remove all previous 
+    //remove all previous
     for( unsigned i=0; i<d_type_reps[t].size(); i++ ){
       d_tmap.erase( d_type_reps[t][i] );
     }
@@ -111,6 +112,15 @@ bool RepSet::complete( TypeNode t ){
     }
     Trace("reps-complete") << std::endl;
     return true;
+  }else{
+    return it->second;
+  }
+}
+
+int RepSet::getNumRelevantGroundReps( TypeNode t ) {
+  std::map< TypeNode, int >::iterator it = d_type_rlv_rep.find( t );
+  if( it==d_type_rlv_rep.end() ){
+    return 0;
   }else{
     return it->second;
   }
@@ -193,7 +203,7 @@ bool RepSetIterator::initialize(){
         //FIXME:
         // terms in rep_set are now constants which mapped to terms through TheoryModel
         // thus, should introduce a constant and a term.  for now, just a term.
-        
+
         //Node c = d_qe->getTermDatabase()->getEnumerateTerm( tn, 0 );
         Node var = d_qe->getModel()->getSomeDomainElement( tn );
         Trace("mkVar") << "RepSetIterator:: Make variable " << var << " : " << tn << std::endl;
