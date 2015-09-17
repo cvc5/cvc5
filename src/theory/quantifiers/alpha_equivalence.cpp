@@ -55,9 +55,9 @@ bool AlphaEquivalenceNode::registerNode( AlphaEquivalenceNode* aen, QuantifiersE
     return true;
   }else{
     //lemma ( q <=> d_quant )
-    Trace("alpha-eq") << "Alpha equivalent : " << std::endl;
-    Trace("alpha-eq") << "  " << q << std::endl;
-    Trace("alpha-eq") << "  " << aen->d_quant << std::endl;
+    Trace("quant-ae") << "Alpha equivalent : " << std::endl;
+    Trace("quant-ae") << "  " << q << std::endl;
+    Trace("quant-ae") << "  " << aen->d_quant << std::endl;
     qe->getOutputChannel().lemma( q.iffNode( aen->d_quant ) );
     return false;
   }

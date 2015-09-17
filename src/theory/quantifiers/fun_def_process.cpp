@@ -119,6 +119,11 @@ Node FunDefFmf::simplifyFormula( Node n, bool pol, bool hasPol, std::vector< Nod
   Trace("fmf-fun-def-debug") << "Simplify " << n << " " << pol << " " << hasPol << " " << is_fun_def << std::endl;
   if( n.getKind()==FORALL ){
     Node c = simplifyFormula( n[1], pol, hasPol, constraints, hd, is_fun_def );
+    //append prenex to constraints
+    for( unsigned i=0; i<constraints.size(); i++ ){
+      constraints[i] = NodeManager::currentNM()->mkNode( FORALL, n[0], constraints[i] );
+      constraints[i] = Rewriter::rewrite( constraints[i] );
+    }
     if( c!=n[1] ){
       return NodeManager::currentNM()->mkNode( FORALL, n[0], c );
     }else{

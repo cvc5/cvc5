@@ -247,7 +247,11 @@ command returns [CVC4::Command* cmd = NULL]
         PARSER_STATE->parseError("Only one set-logic is allowed.");
       }
       PARSER_STATE->setLogic(name);
-      $cmd = new SetBenchmarkLogicCommand(name); }
+      if( PARSER_STATE->sygus() ){
+        $cmd = new SetBenchmarkLogicCommand("ALL_SUPPORTED");
+      }else{
+        $cmd = new SetBenchmarkLogicCommand(name);
+      } }
   | /* set-info */
     SET_INFO_TOK metaInfoInternal[cmd]
   | /* get-info */
@@ -362,6 +366,7 @@ command returns [CVC4::Command* cmd = NULL]
     { cmd = new GetAssignmentCommand(); }
   | /* assertion */
     ASSERT_TOK { PARSER_STATE->checkThatLogicIsSet(); }
+    { if( PARSER_STATE->sygus() ){ PARSER_STATE->parseError("Sygus does not support assert command."); } }
     { PARSER_STATE->clearLastNamedTerm(); }
     term[expr, expr2]
     { bool inUnsatCore = PARSER_STATE->lastNamedTerm().first == expr;
@@ -372,6 +377,7 @@ command returns [CVC4::Command* cmd = NULL]
     }
   | /* check-sat */
     CHECKSAT_TOK { PARSER_STATE->checkThatLogicIsSet(); }
+    { if( PARSER_STATE->sygus() ){ PARSER_STATE->parseError("Sygus does not support check-sat command."); } }
     ( term[expr, expr2]
       { if(PARSER_STATE->strictModeEnabled()) {
           PARSER_STATE->parseError("Extended commands (such as check-sat with an argument) are not permitted while operating in strict compliance mode.");
@@ -505,45 +511,7 @@ sygusCommand returns [CVC4::Command* cmd = NULL]
   std::map< CVC4::Type, CVC4::Expr > sygus_to_builtin_expr;
   int startIndex = -1;
 }
-  : /* set the logic */
-    SET_LOGIC_TOK symbol[name,CHECK_NONE,SYM_SORT]
-    { PARSER_STATE->setLogic(name);
-      $cmd = new SetBenchmarkLogicCommand("ALL_SUPPORTED"); }
-  | /* set-options */
-    SET_OPTIONS_TOK LPAREN_TOK
-    ( LPAREN_TOK symbol[name,CHECK_NONE,SYM_VARIABLE] SYGUS_QUOTED_LITERAL RPAREN_TOK
-      { //TODO?
-        //PARSER_STATE->setOption(name.c_str(), sexpr);
-        //seq->addCommand(new SetOptionCommand(name.c_str() + 1, sexpr));
-      }
-    )+ RPAREN_TOK
-    { $cmd = new EmptyCommand(); }
-  | /* sort definition */
-    DEFINE_SORT_TOK { PARSER_STATE->checkThatLogicIsSet(); }
-    symbol[name,CHECK_UNDECLARED,SYM_SORT]
-    { PARSER_STATE->checkUserSymbol(name); }
-    ( LPAREN_TOK SYGUS_ENUM_TOK LPAREN_TOK symbolList[names,CHECK_NONE,SYM_SORT] RPAREN_TOK RPAREN_TOK {
-        Debug("parser-sygus") << "Defining enum datatype " << name << " with " << names.size() << " constructors." << std::endl;
-        //make datatype
-        datatypes.push_back(Datatype(name));
-        for( unsigned i=0; i<names.size(); i++ ){
-          std::string cname = name + "__Enum__" + names[i];
-          std::string testerId("is-");
-          testerId.append(cname);
-          PARSER_STATE->checkDeclaration(cname, CHECK_UNDECLARED, SYM_VARIABLE);
-          PARSER_STATE->checkDeclaration(testerId, CHECK_UNDECLARED, SYM_VARIABLE);
-          CVC4::DatatypeConstructor c(cname, testerId);
-          datatypes[0].addConstructor(c);
-        }
-        std::vector<DatatypeType> datatypeTypes = PARSER_STATE->mkMutualDatatypeTypes(datatypes);
-        $cmd = new DatatypeDeclarationCommand(datatypeTypes);
-      }
-      | sortSymbol[t,CHECK_DECLARED] { 
-        PARSER_STATE->defineParameterizedType(name, sorts, t);
-        $cmd = new DefineTypeCommand(name, sorts, t);
-      }
-    )
-  | /* declare-var */
+  : /* declare-var */
     DECLARE_VAR_TOK { PARSER_STATE->checkThatLogicIsSet(); }
     symbol[name,CHECK_UNDECLARED,SYM_VARIABLE]
     { PARSER_STATE->checkUserSymbol(name); }
@@ -557,57 +525,7 @@ sygusCommand returns [CVC4::Command* cmd = NULL]
     sortSymbol[t,CHECK_DECLARED]
     { PARSER_STATE->mkSygusVar(name, t, true);
       $cmd = new EmptyCommand(); }
-  | /* declare-fun */
-    DECLARE_FUN_TOK { PARSER_STATE->checkThatLogicIsSet(); }
-    symbol[name,CHECK_UNDECLARED,SYM_VARIABLE]
-    { PARSER_STATE->checkUserSymbol(name); }
-    LPAREN_TOK sortList[sorts] RPAREN_TOK
-    sortSymbol[t,CHECK_DECLARED]
-    { Debug("parser") << "declare fun: '" << name << "'" << std::endl;
-      if( sorts.size() > 0 ) {
-        if(!PARSER_STATE->isTheoryEnabled(Smt2::THEORY_UF)) {
-          PARSER_STATE->parseError(std::string("Functions (of non-zero arity) cannot be declared in logic ") + PARSER_STATE->getLogic().getLogicString());
-        }
-        t = EXPR_MANAGER->mkFunctionType(sorts, t);
-      }
-      Expr func = PARSER_STATE->mkVar(name, t);
-      $cmd = new DeclareFunctionCommand(name, func, t); }
-  | /* function definition */
-    DEFINE_FUN_TOK { PARSER_STATE->checkThatLogicIsSet(); }
-    symbol[name,CHECK_UNDECLARED,SYM_VARIABLE]
-    { PARSER_STATE->checkUserSymbol(name); }
-    LPAREN_TOK sortedVarList[sortedVarNames] RPAREN_TOK
-    sortSymbol[t,CHECK_DECLARED]
-    { /* add variables to parser state before parsing term */
-      Debug("parser") << "define fun: '" << name << "'" << std::endl;
-      if( sortedVarNames.size() > 0 ) {
-        sorts.reserve(sortedVarNames.size());
-        for(std::vector<std::pair<std::string, CVC4::Type> >::const_iterator i =
-              sortedVarNames.begin(), iend = sortedVarNames.end();
-            i != iend;
-            ++i) {
-          sorts.push_back((*i).second);
-        }
-        t = EXPR_MANAGER->mkFunctionType(sorts, t);
-      }
-      PARSER_STATE->pushScope(true);
-      for(std::vector<std::pair<std::string, CVC4::Type> >::const_iterator i =
-            sortedVarNames.begin(), iend = sortedVarNames.end();
-          i != iend;
-          ++i) {
-        terms.push_back(PARSER_STATE->mkBoundVar((*i).first, (*i).second));
-      }
-    }
-    term[expr, expr2]
-    { PARSER_STATE->popScope();
-      // declare the name down here (while parsing term, signature
-      // must not be extended with the name itself; no recursion
-      // permitted)
-      Expr func = PARSER_STATE->mkFunction(name, t, ExprManager::VAR_FLAG_DEFINED);
-      $cmd = new DefineFunctionCommand(name, func, terms, expr);
-    }
-  | DECLARE_DATATYPES_TOK datatypesDefCommand[false, cmd]
-  | DECLARE_CODATATYPES_TOK datatypesDefCommand[true, cmd]
+
   | /* synth-fun */
     ( SYNTH_FUN_TOK | SYNTH_INV_TOK { range = EXPR_MANAGER->booleanType(); } ) { PARSER_STATE->checkThatLogicIsSet(); }
     symbol[fun,CHECK_UNDECLARED,SYM_VARIABLE]
@@ -838,14 +756,14 @@ sygusCommand returns [CVC4::Command* cmd = NULL]
       PARSER_STATE->preemptCommand(c);
       $cmd = new CheckSatCommand();
     }
-
-    /* error handling */
-  | (~(CHECK_SYNTH_TOK))=> token=.
-    { std::string id = AntlrInput::tokenText($token);
-      std::stringstream ss;
-      ss << "Not a recognized SyGuS command: `" << id << "'";
-      PARSER_STATE->parseError(ss.str());
-    }
+  | c = command { $cmd = c; }
+ //   /* error handling */
+ // | (~(CHECK_SYNTH_TOK))=> token=.
+ //   { std::string id = AntlrInput::tokenText($token);
+ //     std::stringstream ss;
+ //     ss << "Not a recognized SyGuS command: `" << id << "'";
+ //     PARSER_STATE->parseError(ss.str());
+ //   }
   ;
 
 // SyGuS grammar term
