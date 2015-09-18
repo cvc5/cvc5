@@ -396,6 +396,7 @@ command returns [CVC4::Command* cmd = NULL]
     { cmd = new GetUnsatCoreCommand(PARSER_STATE->getUnsatCoreNames()); }
   | /* push */
     PUSH_TOK { PARSER_STATE->checkThatLogicIsSet(); }
+    { if( PARSER_STATE->sygus() ){ PARSER_STATE->parseError("Sygus does not support push command."); } }
     ( k=INTEGER_LITERAL
       { unsigned n = AntlrInput::tokenToUnsigned(k);
         if(n == 0) {
@@ -425,6 +426,7 @@ command returns [CVC4::Command* cmd = NULL]
         }
       } )
   | POP_TOK { PARSER_STATE->checkThatLogicIsSet(); }
+    { if( PARSER_STATE->sygus() ){ PARSER_STATE->parseError("Sygus does not support pop command."); } }
     ( k=INTEGER_LITERAL
       { unsigned n = AntlrInput::tokenToUnsigned(k);
         if(n > PARSER_STATE->scopeLevel()) {

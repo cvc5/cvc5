@@ -1419,6 +1419,9 @@ void SmtEngine::setDefaults() {
     if( !options::bitvectorDivByZeroConst.wasSetByUser() ){
       options::bitvectorDivByZeroConst.set( true );
     }
+    if( !options::dtRewriteErrorSel.wasSetByUser() ){
+      options::dtRewriteErrorSel.set( true );
+    }
     //do not miniscope
     if( !options::miniscopeQuant.wasSetByUser() ){
       options::miniscopeQuant.set( false );
