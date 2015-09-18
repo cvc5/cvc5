@@ -172,8 +172,6 @@ private:
   std::map< Node, bool > d_phase_req_waiting;
   /** has added lemma this round */
   bool d_hasAddedLemma;
-  /** has a conflict been found */
-  bool d_conflict;
   /** list of all instantiations produced for each quantifier */
   std::map< Node, inst::InstMatchTrie > d_inst_match_trie;
   std::map< Node, inst::CDInstMatchTrie* > d_c_inst_match_trie;

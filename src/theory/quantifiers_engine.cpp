@@ -315,6 +315,7 @@ void QuantifiersEngine::check( Theory::Effort e ){
       }
     }
   }
+  Trace("quant-engine-debug") << "Quantifiers Engine call to check, level = " << e << std::endl;
   if( needsCheck ){
     Trace("quant-engine") << "Quantifiers Engine check, level = " << e << std::endl;
     if( Trace.isOn("quant-engine-debug") ){
@@ -344,7 +345,6 @@ void QuantifiersEngine::check( Theory::Effort e ){
     }
 
     //reset relevant information
-    d_conflict = false;
     d_hasAddedLemma = false;
 
     //flush previous lemmas (for instance, if was interupted), or other lemmas to process
@@ -419,6 +419,7 @@ void QuantifiersEngine::check( Theory::Effort e ){
     Trace("quant-engine") << "Finished quantifiers engine check." << std::endl;
   }else{
     Trace("quant-engine") << "Quantifiers Engine does not need check." << std::endl;
+    d_hasAddedLemma = false;
   }
   //SAT case
   if( e==Theory::EFFORT_LAST_CALL && !d_hasAddedLemma ){
