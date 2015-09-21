@@ -593,11 +593,16 @@ EqualityStatus TheorySetsPrivate::getEqualityStatus(TNode a, TNode b) {
     // The terms are implied to be dis-equal
     return EQUALITY_FALSE;
   }
-  if( d_external.d_valuation.getModelValue(a) == d_external.d_valuation.getModelValue(b) ) {
-    // Ther term are true in current model
+  Node aModelValue = d_external.d_valuation.getModelValue(a);
+  if(aModelValue.isNull()) { return EQUALITY_UNKNOWN; }
+  Node bModelValue = d_external.d_valuation.getModelValue(b);
+  if(bModelValue.isNull()) { return EQUALITY_UNKNOWN; }
+  if( aModelValue == bModelValue ) {
+    // The term are true in current model
     return EQUALITY_TRUE_IN_MODEL;
+  } else {
+    return EQUALITY_FALSE_IN_MODEL;
   }
-  return EQUALITY_FALSE_IN_MODEL;
   // }
   // //TODO: can we be more precise sometimes?
   // return EQUALITY_UNKNOWN;
@@ -1561,7 +1566,9 @@ Node TheorySetsPrivate::TermInfoManager::getModelValue(TNode n)
     if(e.isConst()) {
       elements_const.insert(e);
     } else {
-      elements_const.insert(d_theory.d_external.d_valuation.getModelValue(e));
+      Node eModelValue = d_theory.d_external.d_valuation.getModelValue(e);
+      if( eModelValue.isNull() ) return eModelValue;
+      elements_const.insert(eModelValue);
     }
   }
   Node v = d_theory.elementsToShape(elements_const, n.getType());
