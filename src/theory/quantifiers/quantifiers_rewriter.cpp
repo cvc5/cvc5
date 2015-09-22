@@ -416,7 +416,133 @@ void QuantifiersRewriter::computeDtTesterIteSplit( Node n, std::map< Node, Node 
   }
 }
 
+bool addEntailedCond( Node n, bool pol, std::map< Node, bool >& currCond, std::vector< Node >& new_cond ) {
+  std::map< Node, bool >::iterator it = currCond.find( n );
+  if( it==currCond.end() ){
+    Trace("quantifiers-rewrite-ite-debug") << "ITE cond : " << n << " -> " << pol << std::endl;
+    new_cond.push_back( n );
+    currCond[n] = pol;
+    return true;
+  }else{
+    Assert( it->second==pol );
+    return false;
+  }
+}
+
+void setEntailedCond( Node n, bool pol, std::map< Node, bool >& currCond, std::vector< Node >& new_cond ) {
+  if( ( n.getKind()==AND && pol ) || ( n.getKind()==OR && !pol ) ){
+    for( unsigned i=0; i<n.getNumChildren(); i++ ){
+      setEntailedCond( n[i], pol, currCond, new_cond );
+    }
+  }else if( n.getKind()==NOT ){
+    setEntailedCond( n[0], !pol, currCond, new_cond );
+  }
+  if( addEntailedCond( n, pol, currCond, new_cond ) ){
+    if( n.getKind()==APPLY_TESTER ){
+      const Datatype& dt = Datatype::datatypeOf(n.getOperator().toExpr());
+      unsigned index = Datatype::indexOf(n.getOperator().toExpr());
+      Assert( dt.getNumConstructors()>1 );
+      if( pol ){
+        for( unsigned i=0; i<dt.getNumConstructors(); i++ ){
+          if( i!=index ){
+            Node t = NodeManager::currentNM()->mkNode( APPLY_TESTER, Node::fromExpr( dt[i].getTester() ), n[0] );
+            addEntailedCond( t, false, currCond, new_cond );
+          }
+        }
+      }else{
+        if( dt.getNumConstructors()==2 ){
+          int oindex = 1-index;
+          Node t = NodeManager::currentNM()->mkNode( APPLY_TESTER, Node::fromExpr( dt[oindex].getTester() ), n[0] );
+          addEntailedCond( t, true, currCond, new_cond );
+        }
+      }
+    }
+  }
+}
+
+int getEntailedCond( Node n, std::map< Node, bool >& currCond ){
+  std::map< Node, bool >::iterator it = currCond.find( n );
+  if( it!=currCond.end() ){
+    return it->second ? 1 : -1;
+  }else if( n.getKind()==AND || n.getKind()==OR ){
+    bool hasZero = false;
+    for( unsigned i=0; i<n.getNumChildren(); i++ ){
+      int res = getEntailedCond( n[i], currCond );
+      if( res==0 ){
+        hasZero = true;
+      }else if( n.getKind()==AND && res==-1 ){
+        return -1;
+      }else if( n.getKind()==OR && res==1 ){
+        return 1;
+      }
+    }
+    return hasZero ? 0 : ( n.getKind()==AND ? 1 : -1 );
+  }else if( n.getKind()==ITE ){
+    int res = getEntailedCond( n[0], currCond );
+    if( res==1 ){
+      return getEntailedCond( n[1], currCond );
+    }else if( res==-1 ){
+      return getEntailedCond( n[2], currCond );
+    }
+  }
+  if( n.getKind()==IFF || n.getKind()==ITE ){
+    unsigned start = n.getKind()==IFF ? 0 : 1;
+    int res1 = 0;
+    for( unsigned j=start; j<=(start+1); j++ ){
+      int res = getEntailedCond( n[j], currCond );
+      if( res==0 ){
+        return 0;
+      }else if( j==start ){
+        res1 = res;
+      }else{
+        Assert( res!=0 );
+        if( n.getKind()==ITE ){
+          return res1==res ? res : 0;
+        }else if( n.getKind()==IFF ){
+          return res1==res ? 1 : -1;
+        }
+      }
+    }
+  }
+  return 0;
+}
+
 Node QuantifiersRewriter::computeProcessIte( Node body, bool hasPol, bool pol, std::map< Node, bool >& currCond ) {
+  bool changed = false;
+  std::vector< Node > children;
+  for( size_t i=0; i<body.getNumChildren(); i++ ){
+    std::vector< Node > new_cond;
+    if( body.getKind()==ITE && i>0 ){
+      setEntailedCond( children[0], i==1, currCond, new_cond );
+    }
+    bool newHasPol;
+    bool newPol;
+    QuantPhaseReq::getPolarity( body, i, hasPol, pol, newHasPol, newPol );
+    Node nn = computeProcessIte( body[i], newHasPol, newPol, currCond );
+    if( body.getKind()==ITE ){
+      if( i==0 ){
+        int res = getEntailedCond( nn, currCond );
+        if( res==1 ){
+          return computeProcessIte( body[1], hasPol, pol, currCond );
+        }else if( res==-1 ){
+          return computeProcessIte( body[2], hasPol, pol, currCond );
+        }
+      }else{
+        for( unsigned j=0; j<new_cond.size(); j++ ){
+          currCond.erase( new_cond[j] );
+        }
+      }
+    }
+    children.push_back( nn );
+    changed = changed || nn!=body[i];
+  }
+  if( changed ){
+    if( body.getMetaKind() == kind::metakind::PARAMETERIZED ){
+      children.insert( children.begin(), body.getOperator() );
+    }
+    body = NodeManager::currentNM()->mkNode( body.getKind(), children );
+  }
+
   if( body.getKind()==EQUAL && options::iteLiftQuant()!=ITE_LIFT_QUANT_MODE_NONE ){
     for( size_t i=0; i<2; i++ ){
       if( body[i].getKind()==ITE ){
@@ -481,40 +607,7 @@ Node QuantifiersRewriter::computeProcessIte( Node body, bool hasPol, bool pol, s
       }
     }
   }
-  bool changed = false;
-  std::vector< Node > children;
-  for( size_t i=0; i<body.getNumChildren(); i++ ){
-    bool newHasPol;
-    bool newPol;
-    QuantPhaseReq::getPolarity( body, i, hasPol, pol, newHasPol, newPol );
-    if( body.getKind()==ITE && i>0 ){
-      currCond[children[0]] = (i==1);
-    }
-    Node nn = computeProcessIte( body[i], newHasPol, newPol, currCond );
-    if( body.getKind()==ITE && i==0 ){
-      std::map< Node, bool >::iterator itc = currCond.find( nn );
-      if( itc!=currCond.end() ){
-        if( itc->second ){
-          return computeProcessIte( body[1], hasPol, pol, currCond );
-        }else{
-          return computeProcessIte( body[2], hasPol, pol, currCond );
-        }
-      }
-    }
-    children.push_back( nn );
-    changed = changed || nn!=body[i];
-  }
-  if( body.getKind()==ITE ){
-    currCond.erase( children[0] );
-  }
-  if( changed ){
-    if( body.getMetaKind() == kind::metakind::PARAMETERIZED ){
-      children.insert( children.begin(), body.getOperator() );
-    }
-    return NodeManager::currentNM()->mkNode( body.getKind(), children );
-  }else{
-    return body;
-  }
+  return body;
 }
 
 Node QuantifiersRewriter::computeProcessIte2( Node body ){
