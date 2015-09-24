@@ -80,14 +80,14 @@ private:
   std::map< Node, bool > d_added_cbqi_lemma;
 private:
   /** has added cbqi lemma */
-  bool hasAddedCbqiLemma( Node f ) { return d_added_cbqi_lemma.find( f )!=d_added_cbqi_lemma.end(); }
+  bool hasAddedCbqiLemma( Node q ) { return d_added_cbqi_lemma.find( q )!=d_added_cbqi_lemma.end(); }
   /** helper functions */
-  bool hasNonArithmeticVariable( Node f );
-  bool hasApplyUf( Node f );
-  /** whether to do CBQI for quantifier f */
-  bool doCbqi( Node f );
+  bool hasNonCbqiVariable( Node q );
+  bool hasApplyUf( Node n );
+  /** whether to do CBQI for quantifier q */
+  bool doCbqi( Node q );
   /** is the engine incomplete for this quantifier */
-  bool isIncomplete( Node f );
+  bool isIncomplete( Node q );
   /** cbqi set inactive */
   bool d_cbqi_set_quant_inactive;
 private:

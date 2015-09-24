@@ -366,7 +366,7 @@ command returns [CVC4::Command* cmd = NULL]
     { cmd = new GetAssignmentCommand(); }
   | /* assertion */
     ASSERT_TOK { PARSER_STATE->checkThatLogicIsSet(); }
-    { if( PARSER_STATE->sygus() ){ PARSER_STATE->parseError("Sygus does not support assert command."); } }
+    /* { if( PARSER_STATE->sygus() ){ PARSER_STATE->parseError("Sygus does not support assert command."); } } */
     { PARSER_STATE->clearLastNamedTerm(); }
     term[expr, expr2]
     { bool inUnsatCore = PARSER_STATE->lastNamedTerm().first == expr;
@@ -1719,7 +1719,7 @@ term[CVC4::Expr& expr, CVC4::Expr& expr2]
     ( LPAREN_TOK symbol[name,CHECK_NONE,SYM_VARIABLE] (term[expr, f2] | sortSymbol[type,CHECK_DECLARED] { readLetSort = true; } term[expr, f2] ) RPAREN_TOK
       // this is a parallel let, so we have to save up all the contributions
       // of the let and define them only later on
-      { if( readLetSort!=PARSER_STATE->sygus() ){
+      { if( !PARSER_STATE->sygus() && readLetSort ){
           PARSER_STATE->parseError("Bad syntax for let term.");
         }else if(names.count(name) == 1) {
           std::stringstream ss;

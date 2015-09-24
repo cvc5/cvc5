@@ -308,41 +308,48 @@ void InstantiationEngine::assertNode( Node f ){
   //}
 }
 
-bool InstantiationEngine::hasApplyUf( Node f ){
-  if( f.getKind()==APPLY_UF ){
+bool InstantiationEngine::hasApplyUf( Node n ){
+  if( n.getKind()==APPLY_UF ){
     return true;
   }else{
-    for( int i=0; i<(int)f.getNumChildren(); i++ ){
-      if( hasApplyUf( f[i] ) ){
+    for( unsigned i=0; i<n.getNumChildren(); i++ ){
+      if( hasApplyUf( n[i] ) ){
         return true;
       }
     }
     return false;
   }
 }
-bool InstantiationEngine::hasNonArithmeticVariable( Node f ){
-  for( int i=0; i<(int)f[0].getNumChildren(); i++ ){
-    TypeNode tn = f[0][i].getType();
+bool InstantiationEngine::hasNonCbqiVariable( Node q ){
+  for( unsigned i=0; i<q[0].getNumChildren(); i++ ){
+    TypeNode tn = q[0][i].getType();
     if( !tn.isInteger() && !tn.isReal() && !tn.isBoolean() ){
-      return true;
+      if( options::cbqi2() ){
+        //datatypes supported in new implementation
+        if( !tn.isDatatype() ){
+          return true;
+        }
+      }else{
+        return true;
+      }
     }
   }
   return false;
 }
 
-bool InstantiationEngine::doCbqi( Node f ){
+bool InstantiationEngine::doCbqi( Node q ){
   if( options::cbqi.wasSetByUser() || options::cbqi2.wasSetByUser() ){
     return options::cbqi();
   }else if( options::cbqi() ){
     //if quantifier has a non-arithmetic variable, then do not use cbqi
     //if quantifier has an APPLY_UF term, then do not use cbqi
-    return !hasNonArithmeticVariable( f ) && !hasApplyUf( f[1] );
+    return !hasNonCbqiVariable( q ) && !hasApplyUf( q[1] );
   }else{
     return false;
   }
 }
 
-bool InstantiationEngine::isIncomplete( Node f ) {
+bool InstantiationEngine::isIncomplete( Node q ) {
   return true;
   //TODO : ensure completeness for local theory extensions
   //if( d_i_lte ){

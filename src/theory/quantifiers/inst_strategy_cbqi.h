@@ -59,7 +59,7 @@ private:
   std::map< TheoryId, std::vector< Node > > d_curr_asserts;
   std::map< Node, std::vector< Node > > d_curr_eqc;
   std::map< Node, Node > d_curr_rep;
-  std::vector< Node > d_curr_arith_eqc;
+  std::map< TypeNode, std::vector< Node > > d_curr_type_eqc;
   //auxiliary variables
   std::vector< Node > d_aux_vars;
   //literals to equalities for aux vars
@@ -73,14 +73,17 @@ private:
   bool addInstantiation( std::vector< Node >& subs, std::vector< Node >& vars,
                          std::vector< Node >& coeff, std::vector< int >& btyp, 
                          std::vector< Node >& has_coeff, Node theta,
-                         unsigned i, unsigned effort );
+                         unsigned i, unsigned effort,
+                         std::map< Node, Node >& cons, std::vector< Node >& curr_var );
   bool addInstantiationInc( Node n, Node pv, Node pv_coeff, int bt, std::vector< Node >& subs, std::vector< Node >& vars,
                             std::vector< Node >& coeff, std::vector< int >& btyp, 
-                            std::vector< Node >& has_coeff, Node theta, unsigned i, unsigned effort );
+                            std::vector< Node >& has_coeff, Node theta, unsigned i, unsigned effort,
+                            std::map< Node, Node >& cons, std::vector< Node >& curr_var );
   bool addInstantiationCoeff( std::vector< Node >& subs, std::vector< Node >& vars,
                               std::vector< Node >& coeff, std::vector< int >& btyp, 
-                              std::vector< Node >& has_coeff, unsigned j );
-  bool addInstantiation( std::vector< Node >& subs, std::vector< Node >& vars );
+                              std::vector< Node >& has_coeff, unsigned j, std::map< Node, Node >& cons );
+  bool addInstantiation( std::vector< Node >& subs, std::vector< Node >& vars, std::map< Node, Node >& cons );
+  Node constructInstantiation( Node n, std::map< Node, Node >& subs_map, std::map< Node, Node >& cons );
   Node applySubstitution( Node n, std::vector< Node >& subs, std::vector< Node >& vars,
                           std::vector< Node >& coeff, std::vector< Node >& has_coeff, Node& pv_coeff, bool try_coeff = true );
   Node getModelBasedProjectionValue( Node t, bool isLower, Node c, Node me, Node mt, Node theta, 

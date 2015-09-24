@@ -54,7 +54,8 @@ TESTS =	\
 	nested-inf.smt2 \
 	RND-small.smt2 \
 	clock-3.smt2 \
-	006-cbqi-ite.smt2
+	006-cbqi-ite.smt2 \
+	cbqi-lia-dt-simp.smt2
 
 
 
