@@ -53,8 +53,6 @@ public:
   void debugPrint( const char* c );
   /** is complete? */
   bool isComplete();
-  /** make complete */
-  void makeComplete( Node f, QuantifiersEngine* qe );
   /** make representative */
   void makeRepresentative( QuantifiersEngine* qe );
   /** empty */

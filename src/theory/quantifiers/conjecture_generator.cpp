@@ -1722,8 +1722,8 @@ void TermGenEnv::collectSignatureInformation() {
   d_func_args.clear();
   TypeNode tnull;
   for( std::map< Node, TermArgTrie >::iterator it = getTermDatabase()->d_func_map_trie.begin(); it != getTermDatabase()->d_func_map_trie.end(); ++it ){
-    if( !getTermDatabase()->d_op_map[it->first].empty() ){
-      Node nn = getTermDatabase()->d_op_map[it->first][0];
+    if( getTermDatabase()->getNumGroundTerms( it->first )>0 ){
+      Node nn = getTermDatabase()->getGroundTerm( it->first, 0 );
       Trace("sg-rel-sig-debug") << "Check in signature : " << nn << std::endl;
       if( d_cg->isHandledTerm( nn ) && nn.getKind()!=APPLY_SELECTOR_TOTAL && !nn.getType().isBoolean() ){
         bool do_enum = true;

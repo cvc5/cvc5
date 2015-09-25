@@ -92,7 +92,9 @@ void TheoryEngine::finishInit() {
 }
 
 void TheoryEngine::eqNotifyNewClass(TNode t){
-  d_quantEngine->addTermToDatabase( t );
+  if( d_logicInfo.isQuantified() ){
+    d_quantEngine->addTermToDatabase( t );
+  }
 }
 
 void TheoryEngine::eqNotifyPreMerge(TNode t1, TNode t2){

@@ -38,7 +38,6 @@ struct PrioritySort {
 
 
 RewriteEngine::RewriteEngine( context::Context* c, QuantifiersEngine* qe ) : QuantifiersModule(qe) {
-  d_true = NodeManager::currentNM()->mkConst( true );
   d_needsSort = false;
 }
 
@@ -277,7 +276,7 @@ void RewriteEngine::registerQuantifier( Node f ) {
             body_c.push_back( d_rr[f][1][j].negate() );
           }
         }
-      }else if( d_rr[f][1]!=d_true ){
+      }else if( d_rr[f][1]!=d_quantEngine->getTermDatabase()->d_true ){
         if( MatchGen::isHandled( d_rr[f][1] ) ){
           body_c.push_back( d_rr[f][1].negate() );
         }

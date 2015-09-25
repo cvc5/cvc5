@@ -190,6 +190,12 @@ private:
   /** inst round counters */
   int d_ierCounter;
   int d_ierCounter_lc;
+  /** has presolve been called */
+  context::CDO< bool > d_presolve;
+  /** presolve cache */
+  std::vector< Node > d_presolve_cache;
+  std::vector< bool > d_presolve_cache_wq;
+  std::vector< bool > d_presolve_cache_wic;
 private:
   KEEP_STATISTIC(TimerStat, d_time, "theory::QuantifiersEngine::time");
 public:
@@ -278,11 +284,11 @@ private:
   void flushLemmas();
 public:
   /** get instantiation */
-  Node getInstantiation( Node f, std::vector< Node >& vars, std::vector< Node >& terms );
+  Node getInstantiation( Node q, std::vector< Node >& vars, std::vector< Node >& terms );
   /** get instantiation */
-  Node getInstantiation( Node f, InstMatch& m );
+  Node getInstantiation( Node q, InstMatch& m );
   /** get instantiation */
-  Node getInstantiation( Node f, std::vector< Node >& terms );
+  Node getInstantiation( Node q, std::vector< Node >& terms );
   /** do substitution */
   Node getSubstitute( Node n, std::vector< Node >& terms );
   /** add lemma lem */
@@ -290,9 +296,9 @@ public:
   /** add require phase */
   void addRequirePhase( Node lit, bool req );
   /** do instantiation specified by m */
-  bool addInstantiation( Node f, InstMatch& m, bool mkRep = true, bool modEq = false, bool modInst = false, bool doVts = false );
+  bool addInstantiation( Node q, InstMatch& m, bool mkRep = true, bool modEq = false, bool modInst = false, bool doVts = false );
   /** add instantiation */
-  bool addInstantiation( Node f, std::vector< Node >& terms, bool mkRep = true, bool modEq = false, bool modInst = false, bool doVts = false );
+  bool addInstantiation( Node q, std::vector< Node >& terms, bool mkRep = true, bool modEq = false, bool modInst = false, bool doVts = false );
   /** split on node n */
   bool addSplit( Node n, bool reqPhase = false, bool reqPhasePol = true );
   /** add split equality */

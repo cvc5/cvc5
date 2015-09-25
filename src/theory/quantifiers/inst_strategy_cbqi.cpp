@@ -76,11 +76,13 @@ bool CegInstantiator::addInstantiation( std::vector< Node >& subs, std::vector< 
   }else{
     std::map< Node, std::map< Node, bool > > subs_proc;
     //Node v = d_single_inv_map_to_prog[d_single_inv[0][i]];
+    bool is_cv = false;
     Node pv;
     if( curr_var.empty() ){
       pv = d_vars[i];
     }else{
       pv = curr_var.back();
+      is_cv = true;
     }
     TypeNode pvtn = pv.getType();
     Trace("cbqi-inst-debug") << "[Find instantiation for " << pv << "]" << std::endl;
@@ -89,19 +91,23 @@ bool CegInstantiator::addInstantiation( std::vector< Node >& subs, std::vector< 
       pv_value = d_qe->getModel()->getValue( pv );
       Trace("cbqi-bound2") << "...M( " << pv << " ) = " << pv_value << std::endl;
     }
+    Node pvr = pv;
+    if( d_qe->getMasterEqualityEngine()->hasTerm( pv ) ){
+      pvr = d_qe->getMasterEqualityEngine()->getRepresentative( pv );
+    }
 
     //if in effort=2, we must choose at least one model value
     if( (i+1)<d_vars.size() || effort!=2 ){
+      
       //[1] easy case : pv is in the equivalence class as another term not containing pv
       Trace("cbqi-inst-debug") << "[1] try based on equivalence class." << std::endl;
-      std::map< Node, Node >::iterator itr = d_curr_rep.find( pv );
-      if( itr!=d_curr_rep.end() ){
-        std::map< Node, std::vector< Node > >::iterator it_eqc = d_curr_eqc.find( itr->second );
-        Assert( it_eqc!=d_curr_eqc.end() );
+      std::map< Node, std::vector< Node > >::iterator it_eqc = d_curr_eqc.find( pvr );
+      if( it_eqc!=d_curr_eqc.end() ){
+        Trace("cbqi-inst-debug2") << "...eqc has size " << it_eqc->second.size() << std::endl;
         for( unsigned k=0; k<it_eqc->second.size(); k++ ){
           Node n = it_eqc->second[k];
           if( n!=pv ){
-            Trace("cbqi-inst-debug") << "..[1] " << i << "...try based on equal term " << n << std::endl;
+            Trace("cbqi-inst-debug") << "...try based on equal term " << n << std::endl;
             //compute d_subs_fv, which program variables are contained in n
             computeProgVars( n );
             //must be an eligible term
@@ -130,22 +136,24 @@ bool CegInstantiator::addInstantiation( std::vector< Node >& subs, std::vector< 
             }
           }
         }
+      }else{
+        Trace("cbqi-inst-debug2") << "...eqc not found." << std::endl;
       }
 
       //[2] : we can solve an equality for pv
       if( pvtn.isInteger() || pvtn.isReal() ){
         ///iterate over equivalence classes to find cases where we can solve for the variable
         TypeNode pvtnb = pvtn.getBaseType();
-        Trace("cbqi-inst-debug") << "[2] try based on solving over equivalence classes." << std::endl;
+        Trace("cbqi-inst-debug") << "[2] try based on solving arithmetic equivalence classes." << std::endl;
         for( unsigned k=0; k<d_curr_type_eqc[pvtnb].size(); k++ ){
           Node r = d_curr_type_eqc[pvtnb][k];
-          std::map< Node, std::vector< Node > >::iterator it_eqc = d_curr_eqc.find( r );
+          std::map< Node, std::vector< Node > >::iterator it_reqc = d_curr_eqc.find( r );
           std::vector< Node > lhs;
           std::vector< bool > lhs_v;
           std::vector< Node > lhs_coeff;
-          Assert( it_eqc!=d_curr_eqc.end() );
-          for( unsigned kk=0; kk<it_eqc->second.size(); kk++ ){
-            Node n = it_eqc->second[kk];
+          Assert( it_reqc!=d_curr_eqc.end() );
+          for( unsigned kk=0; kk<it_reqc->second.size(); kk++ ){
+            Node n = it_reqc->second[kk];
             Trace("cbqi-inst-debug2") << "...look at term " << n << std::endl;
             //compute the variables in n
             computeProgVars( n );
@@ -228,11 +236,9 @@ bool CegInstantiator::addInstantiation( std::vector< Node >& subs, std::vector< 
           }
         }
       }else if( pvtn.isDatatype() ){
+        Trace("cbqi-inst-debug") << "[2] try based on constructors in equivalence class." << std::endl;
         //look in equivalence class for a constructor
-        if( itr!=d_curr_rep.end() ){
-          std::map< Node, std::vector< Node > >::iterator it_eqc = d_curr_eqc.find( itr->second );
-          Assert( it_eqc!=d_curr_eqc.end() );
-          Trace("cbqi-inst-debug") << "[2] try based on constructors in equivalence class." << std::endl;
+        if( it_eqc!=d_curr_eqc.end() ){
           for( unsigned k=0; k<it_eqc->second.size(); k++ ){
             Node n = it_eqc->second[k];
             if( n.getKind()==APPLY_CONSTRUCTOR ){
@@ -240,6 +246,9 @@ bool CegInstantiator::addInstantiation( std::vector< Node >& subs, std::vector< 
               cons[pv] = n.getOperator();
               const Datatype& dt = ((DatatypeType)(pvtn).toType()).getDatatype();
               unsigned cindex = Datatype::indexOf( n.getOperator().toExpr() );
+              if( is_cv ){
+                curr_var.pop_back();
+              }
               //now must solve for selectors applied to pv
               for( unsigned j=0; j<dt[cindex].getNumArgs(); j++ ){
                 curr_var.push_back( NodeManager::currentNM()->mkNode( APPLY_SELECTOR_TOTAL, Node::fromExpr( dt[cindex][j].getSelector() ), pv ) );
@@ -253,12 +262,15 @@ bool CegInstantiator::addInstantiation( std::vector< Node >& subs, std::vector< 
                 for( unsigned j=0; j<dt[cindex].getNumArgs(); j++ ){
                   curr_var.pop_back();
                 }
+                if( is_cv ){
+                  curr_var.push_back( pv );
+                }
                 break;
               }
             }
           }
         }else{
-          Trace("cbqi-inst-debug2") << "... " << i << " does not have a representative." << std::endl;
+          Trace("cbqi-inst-debug2") << "... " << i << " does not have an eqc." << std::endl;
         }
       }
 
@@ -1122,7 +1134,6 @@ void CegInstantiator::processAssertions() {
   Trace("cbqi-proc") << "--- Process assertions, #var = " << d_vars.size() << ", #aux-var = " << d_aux_vars.size() << std::endl;
   d_curr_asserts.clear();
   d_curr_eqc.clear();
-  d_curr_rep.clear();
   d_curr_type_eqc.clear();
 
   eq::EqualityEngine* ee = d_qe->getMasterEqualityEngine();
@@ -1140,7 +1151,6 @@ void CegInstantiator::processAssertions() {
     //collect information about eqc
     if( ee->hasTerm( pv ) ){
       Node pvr = ee->getRepresentative( pv );
-      d_curr_rep[pv] = pvr;
       if( d_curr_eqc.find( pvr )==d_curr_eqc.end() ){
         Trace("cbqi-proc") << "Collect equivalence class " << pvr << std::endl;
         eq::EqClassIterator eqc_i = eq::EqClassIterator( pvr, ee );
@@ -1191,11 +1201,14 @@ void CegInstantiator::processAssertions() {
       d_curr_type_eqc[rtn].push_back( r );
       if( d_curr_eqc.find( r )==d_curr_eqc.end() ){
         Trace("cbqi-proc") << "Collect equivalence class " << r << std::endl;
+        Trace("cbqi-proc-debug") << "  ";
         eq::EqClassIterator eqc_i = eq::EqClassIterator( r, ee );
         while( !eqc_i.isFinished() ){
+          Trace("cbqi-proc-debug") << *eqc_i << " ";
           d_curr_eqc[r].push_back( *eqc_i );
           ++eqc_i;
         }
+        Trace("cbqi-proc-debug") << std::endl;
       }
     }
     ++eqcs_i;

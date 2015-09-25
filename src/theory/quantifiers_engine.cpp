@@ -81,7 +81,8 @@ quantifiers::TermDb * QuantifiersModule::getTermDatabase() {
 QuantifiersEngine::QuantifiersEngine(context::Context* c, context::UserContext* u, TheoryEngine* te):
 d_te( te ),
 d_lemmas_produced_c(u),
-d_skolemized(u){
+d_skolemized(u),
+d_presolve(u, true){
   d_eq_query = new EqualityQueryQuantifiersEngine( this );
   d_term_db = new quantifiers::TermDb( c, u, this );
   d_tr_trie = new inst::TriggerTrie;
@@ -288,6 +289,15 @@ void QuantifiersEngine::presolve() {
   for( unsigned i=0; i<d_modules.size(); i++ ){
     d_modules[i]->presolve();
   }
+  d_term_db->presolve();
+  d_presolve = false;
+  //clear presolve cache
+  for( unsigned i=0; i<d_presolve_cache.size(); i++ ){
+    addTermToDatabase( d_presolve_cache[i], d_presolve_cache_wq[i], d_presolve_cache_wic[i] );
+  }
+  d_presolve_cache.clear();
+  d_presolve_cache_wq.clear();
+  d_presolve_cache_wic.clear();
 }
 
 void QuantifiersEngine::check( Theory::Effort e ){
@@ -315,6 +325,9 @@ void QuantifiersEngine::check( Theory::Effort e ){
       }
     }
   }
+  
+  d_hasAddedLemma = false;
+  
   Trace("quant-engine-debug") << "Quantifiers Engine call to check, level = " << e << std::endl;
   if( needsCheck ){
     Trace("quant-engine") << "Quantifiers Engine check, level = " << e << std::endl;
@@ -345,7 +358,6 @@ void QuantifiersEngine::check( Theory::Effort e ){
     }
 
     //reset relevant information
-    d_hasAddedLemma = false;
 
     //flush previous lemmas (for instance, if was interupted), or other lemmas to process
     flushLemmas();
@@ -419,7 +431,6 @@ void QuantifiersEngine::check( Theory::Effort e ){
     Trace("quant-engine") << "Finished quantifiers engine check." << std::endl;
   }else{
     Trace("quant-engine") << "Quantifiers Engine does not need check." << std::endl;
-    d_hasAddedLemma = false;
   }
   //SAT case
   if( e==Theory::EFFORT_LAST_CALL && !d_hasAddedLemma ){
@@ -597,17 +608,23 @@ quantifiers::TermDbSygus* QuantifiersEngine::getTermDatabaseSygus() {
 }
 
 void QuantifiersEngine::addTermToDatabase( Node n, bool withinQuant, bool withinInstClosure ){
-  std::set< Node > added;
-  getTermDatabase()->addTerm( n, added, withinQuant, withinInstClosure );
-  //maybe have triggered instantiations if we are doing eager instantiation
-  if( options::eagerInstQuant() ){
-    flushLemmas();
-  }
-  //added contains also the Node that just have been asserted in this branch
-  if( d_quant_rel ){
-    for( std::set< Node >::iterator i=added.begin(), end=added.end(); i!=end; i++ ){
-      if( !withinQuant ){
-        d_quant_rel->setRelevance( i->getOperator(), 0 );
+  if( d_presolve ){
+    d_presolve_cache.push_back( n );
+    d_presolve_cache_wq.push_back( withinQuant );
+    d_presolve_cache_wic.push_back( withinInstClosure );
+  }else{
+    std::set< Node > added;
+    getTermDatabase()->addTerm( n, added, withinQuant, withinInstClosure );
+    //maybe have triggered instantiations if we are doing eager instantiation
+    if( options::eagerInstQuant() ){
+      flushLemmas();
+    }
+    //added contains also the Node that just have been asserted in this branch
+    if( d_quant_rel ){
+      for( std::set< Node >::iterator i=added.begin(), end=added.end(); i!=end; i++ ){
+        if( !withinQuant ){
+          d_quant_rel->setRelevance( i->getOperator(), 0 );
+        }
       }
     }
   }
@@ -742,31 +759,31 @@ Node QuantifiersEngine::getSubstitute( Node n, std::vector< Node >& terms ){
 }
 
 
-Node QuantifiersEngine::getInstantiation( Node f, std::vector< Node >& vars, std::vector< Node >& terms ){
+Node QuantifiersEngine::getInstantiation( Node q, std::vector< Node >& vars, std::vector< Node >& terms ){
   Node body;
   //process partial instantiation if necessary
-  if( d_term_db->d_vars[f].size()!=vars.size() ){
-    body = f[ 1 ].substitute( vars.begin(), vars.end(), terms.begin(), terms.end() );
+  if( d_term_db->d_vars[q].size()!=vars.size() ){
+    body = q[ 1 ].substitute( vars.begin(), vars.end(), terms.begin(), terms.end() );
     std::vector< Node > uninst_vars;
     //doing a partial instantiation, must add quantifier for all uninstantiated variables
-    for( int i=0; i<(int)f[0].getNumChildren(); i++ ){
-      if( std::find( vars.begin(), vars.end(), f[0][i] )==vars.end() ){
-        uninst_vars.push_back( f[0][i] );
+    for( unsigned i=0; i<q[0].getNumChildren(); i++ ){
+      if( std::find( vars.begin(), vars.end(), q[0][i] )==vars.end() ){
+        uninst_vars.push_back( q[0][i] );
       }
     }
     Node bvl = NodeManager::currentNM()->mkNode( BOUND_VAR_LIST, uninst_vars );
     body = NodeManager::currentNM()->mkNode( FORALL, bvl, body );
-    Trace("partial-inst") << "Partial instantiation : " << f << std::endl;
+    Trace("partial-inst") << "Partial instantiation : " << q << std::endl;
     Trace("partial-inst") << "                      : " << body << std::endl;
   }else{
     if( options::cbqi() ){
-      body = f[ 1 ].substitute( vars.begin(), vars.end(), terms.begin(), terms.end() );
+      body = q[ 1 ].substitute( vars.begin(), vars.end(), terms.begin(), terms.end() );
     }else{
       //do optimized version
-      Node icb = d_term_db->getInstConstantBody( f );
+      Node icb = d_term_db->getInstConstantBody( q );
       body = getSubstitute( icb, terms );
       if( Debug.isOn("check-inst") ){
-        Node body2 = f[ 1 ].substitute( vars.begin(), vars.end(), terms.begin(), terms.end() );
+        Node body2 = q[ 1 ].substitute( vars.begin(), vars.end(), terms.begin(), terms.end() );
         if( body!=body2 ){
           Debug("check-inst") << "Substitution is wrong : " << body << " " << body2 << std::endl;
         }
@@ -776,16 +793,15 @@ Node QuantifiersEngine::getInstantiation( Node f, std::vector< Node >& vars, std
   return body;
 }
 
-Node QuantifiersEngine::getInstantiation( Node f, InstMatch& m ){
+Node QuantifiersEngine::getInstantiation( Node q, InstMatch& m ){
   std::vector< Node > vars;
   std::vector< Node > terms;
-  computeTermVector( f, m, vars, terms );
-  return getInstantiation( f, vars, terms );
+  computeTermVector( q, m, vars, terms );
+  return getInstantiation( q, vars, terms );
 }
 
-Node QuantifiersEngine::getInstantiation( Node f, std::vector< Node >& terms ) {
-  d_term_db->makeInstantiationConstantsFor( f );
-  return getInstantiation( f, d_term_db->d_inst_constants[f], terms );
+Node QuantifiersEngine::getInstantiation( Node q, std::vector< Node >& terms ) {
+  return getInstantiation( q, d_term_db->d_vars[q], terms );
 }
 
 /*
@@ -835,31 +851,31 @@ void QuantifiersEngine::addRequirePhase( Node lit, bool req ){
   d_phase_req_waiting[lit] = req;
 }
 
-bool QuantifiersEngine::addInstantiation( Node f, InstMatch& m, bool mkRep, bool modEq, bool modInst, bool doVts ){
+bool QuantifiersEngine::addInstantiation( Node q, InstMatch& m, bool mkRep, bool modEq, bool modInst, bool doVts ){
   std::vector< Node > terms;
-  m.getTerms( this, f, terms );
-  return addInstantiation( f, terms, mkRep, modEq, modInst, doVts );
+  m.getTerms( this, q, terms );
+  return addInstantiation( q, terms, mkRep, modEq, modInst, doVts );
 }
 
-bool QuantifiersEngine::addInstantiation( Node f, std::vector< Node >& terms, bool mkRep, bool modEq, bool modInst, bool doVts ) {
+bool QuantifiersEngine::addInstantiation( Node q, std::vector< Node >& terms, bool mkRep, bool modEq, bool modInst, bool doVts ) {
   // For resource-limiting (also does a time check).
   getOutputChannel().safePoint(options::quantifierStep());
 
-  Assert( terms.size()==f[0].getNumChildren() );
-  Trace("inst-add-debug") << "For quantified formula " << f << ", add instantiation: " << std::endl;
+  Assert( terms.size()==q[0].getNumChildren() );
+  Trace("inst-add-debug") << "For quantified formula " << q << ", add instantiation: " << std::endl;
   for( unsigned i=0; i<terms.size(); i++ ){
-    Trace("inst-add-debug") << "  " << f[0][i] << " -> " << terms[i] << std::endl;
+    Trace("inst-add-debug") << "  " << q[0][i] << " -> " << terms[i] << std::endl;
     //make it representative, this is helpful for recognizing duplication
     if( mkRep ){
       //pick the best possible representative for instantiation, based on past use and simplicity of term
-      terms[i] = d_eq_query->getInternalRepresentative( terms[i], f, i );
+      terms[i] = d_eq_query->getInternalRepresentative( terms[i], q, i );
     }
   }
 
   //check based on instantiation level
   if( options::instMaxLevel()!=-1 || options::lteRestrictInstClosure() ){
     for( unsigned i=0; i<terms.size(); i++ ){
-      if( !d_term_db->isTermEligibleForInstantiation( terms[i], f, true ) ){
+      if( !d_term_db->isTermEligibleForInstantiation( terms[i], q, true ) ){
         return false;
       }
     }
@@ -868,9 +884,9 @@ bool QuantifiersEngine::addInstantiation( Node f, std::vector< Node >& terms, bo
   if( options::instNoEntail() ){
     std::map< TNode, TNode > subs;
     for( unsigned i=0; i<terms.size(); i++ ){
-      subs[f[0][i]] = terms[i];
+      subs[q[0][i]] = terms[i];
     }
-    if( d_term_db->isEntailed( f[1], subs, false, true ) ){
+    if( d_term_db->isEntailed( q[1], subs, false, true ) ){
       Trace("inst-add-debug") << " -> Currently entailed." << std::endl;
       return false;
     }
@@ -881,17 +897,17 @@ bool QuantifiersEngine::addInstantiation( Node f, std::vector< Node >& terms, bo
   if( options::incrementalSolving() ){
     Trace("inst-add-debug") << "Adding into context-dependent inst trie, modEq = " << modEq << ", modInst = " << modInst << std::endl;
     inst::CDInstMatchTrie* imt;
-    std::map< Node, inst::CDInstMatchTrie* >::iterator it = d_c_inst_match_trie.find( f );
+    std::map< Node, inst::CDInstMatchTrie* >::iterator it = d_c_inst_match_trie.find( q );
     if( it!=d_c_inst_match_trie.end() ){
       imt = it->second;
     }else{
       imt = new CDInstMatchTrie( getUserContext() );
-      d_c_inst_match_trie[f] = imt;
+      d_c_inst_match_trie[q] = imt;
     }
-    alreadyExists = !imt->addInstMatch( this, f, terms, getUserContext(), modEq, modInst );
+    alreadyExists = !imt->addInstMatch( this, q, terms, getUserContext(), modEq, modInst );
   }else{
     Trace("inst-add-debug") << "Adding into inst trie" << std::endl;
-    alreadyExists = !d_inst_match_trie[f].addInstMatch( this, f, terms, modEq, modInst );
+    alreadyExists = !d_inst_match_trie[q].addInstMatch( this, q, terms, modEq, modInst );
   }
   if( alreadyExists ){
     Trace("inst-add-debug") << " -> Already exists." << std::endl;
@@ -902,7 +918,7 @@ bool QuantifiersEngine::addInstantiation( Node f, std::vector< Node >& terms, bo
 
   //add the instantiation
   Trace("inst-add-debug") << "Constructing instantiation..." << std::endl;
-  bool addedInst = addInstantiation( f, d_term_db->d_vars[f], terms, doVts );
+  bool addedInst = addInstantiation( q, d_term_db->d_vars[q], terms, doVts );
   //report the result
   if( addedInst ){
     Trace("inst-add-debug") << " -> Success." << std::endl;

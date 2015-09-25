@@ -134,15 +134,10 @@ private:
   std::hash_set< Node, NodeHashFunction > d_processed;
   /** terms processed */
   std::hash_set< Node, NodeHashFunction > d_iclosure_processed;
-private:
   /** select op map */
   std::map< Node, std::map< TypeNode, Node > > d_par_op_map;
-  /** count number of ground terms per operator (user-context dependent) */
-  NodeIntMap d_op_ccount;
   /** set has term */
   void setHasTerm( Node n );
-  /** may complete */
-  std::map< TypeNode, bool > d_may_complete;
 public:
   TermDb( context::Context* c, context::UserContext* u, QuantifiersEngine* qe );
   ~TermDb(){}
@@ -152,25 +147,34 @@ public:
   /** constants */
   Node d_zero;
   Node d_one;
-  /** ground terms */
-  unsigned getNumGroundTerms( Node f );
-  /** count number of non-redundant ground terms per operator */
-  std::map< Node, int > d_op_nonred_count;
+  
   /** map from operators to ground terms for that operator */
   std::map< Node, std::vector< Node > > d_op_map;
+  /** map from type nodes to terms of that type */
+  std::map< TypeNode, std::vector< Node > > d_type_map;
+  
+  
+  /** count number of non-redundant ground terms per operator */
+  std::map< Node, int > d_op_nonred_count;
+  /**mapping from UF terms to representatives of their arguments */
+  std::map< TNode, std::vector< TNode > > d_arg_reps;
+  /** map from operators to trie */
+  std::map< Node, TermArgTrie > d_func_map_trie;
+  std::map< Node, TermArgTrie > d_func_map_eqc_trie;
   /** has map */
   std::map< Node, bool > d_has_map;
   /** map from reps to a term in eqc in d_has_map */
   std::map< Node, Node > d_term_elig_eqc;
-  /** map from operators to trie */
-  std::map< Node, TermArgTrie > d_func_map_trie;
-  std::map< Node, TermArgTrie > d_func_map_eqc_trie;
-  /**mapping from UF terms to representatives of their arguments */
-  std::map< TNode, std::vector< TNode > > d_arg_reps;
-  /** map from type nodes to terms of that type */
-  std::map< TypeNode, std::vector< Node > > d_type_map;
+  
+public:
+  /** ground terms for operator */
+  unsigned getNumGroundTerms( Node f );
+  /** get ground term for operator */
+  Node getGroundTerm( Node f, unsigned i );
   /** add a term to the database */
   void addTerm( Node n, std::set< Node >& added, bool withinQuant = false, bool withinInstClosure = false );
+  /** presolve (called once per user check-sat) */
+  void presolve();
   /** reset (calculate which terms are active) */
   void reset( Theory::Effort effort );
   /** get operator*/
@@ -200,8 +204,7 @@ public:
   Node getEligibleTermInEqc( TNode r );
   /** is inst closure */
   bool isInstClosure( Node r );
-  /** may complete */
-  bool mayComplete( TypeNode tn );
+  
 //for model basis
 private:
   //map from types to model basis terms
@@ -220,12 +223,14 @@ public:
   //get model basis term for op
   Node getModelBasisOpTerm( Node op );
   //get model basis
-  Node getModelBasis( Node f, Node n );
+  Node getModelBasis( Node q, Node n );
   //get model basis body
-  Node getModelBasisBody( Node f );
+  Node getModelBasisBody( Node q );
 
 //for inst constant
 private:
+  /** map from universal quantifiers to the list of variables */
+  std::map< Node, std::vector< Node > > d_vars;
   /** map from universal quantifiers to the list of instantiation constants */
   std::map< Node, std::vector< Node > > d_inst_constants;
   /** map from universal quantifiers to their inst constant body */
@@ -235,30 +240,32 @@ private:
   /** instantiation constants to universal quantifiers */
   std::map< Node, Node > d_inst_constants_map;
   /** make instantiation constants for */
-  void makeInstantiationConstantsFor( Node f );
+  void makeInstantiationConstantsFor( Node q );
 public:
-  /** get the i^th instantiation constant of f */
-  Node getInstantiationConstant( Node f, int i ) const;
-  /** get number of instantiation constants for f */
-  int getNumInstantiationConstants( Node f ) const;
-  /** get the ce body f[e/x] */
-  Node getInstConstantBody( Node f );
+  /** get the i^th instantiation constant of q */
+  Node getInstantiationConstant( Node q, int i ) const;
+  /** get number of instantiation constants for q */
+  int getNumInstantiationConstants( Node q ) const;
+  /** get the ce body q[e/x] */
+  Node getInstConstantBody( Node q );
   /** get counterexample literal (for cbqi) */
-  Node getCounterexampleLiteral( Node f );
-  /** returns node n with bound vars of f replaced by instantiation constants of f
+  Node getCounterexampleLiteral( Node q );
+  /** returns node n with bound vars of q replaced by instantiation constants of q
       node n : is the future pattern
-      node f : is the quantifier containing which bind the variable
+      node q : is the quantifier containing which bind the variable
       return a pattern where the variable are replaced by variable for
       instantiation.
    */
-  Node getInstConstantNode( Node n, Node f );
+  Node getInstConstantNode( Node n, Node q );
+  /** get substituted node */
+  Node getInstantiatedNode( Node n, Node q, std::vector< Node >& terms );
 
   static Node getInstConstAttr( Node n );
   static bool hasInstConstAttr( Node n );
 //for bound variables
 public:
   //get bound variables in n
-  static void getBoundVars( Node n, std::vector< Node >& bvs);
+  static void getBoundVars( Node n, std::vector< Node >& bvs );
 
 
 //for skolem
@@ -285,24 +292,16 @@ private:
   std::vector< TypeEnumerator > d_typ_enum;
   // closed enumerable type cache
   std::map< TypeNode, bool > d_typ_closed_enum;
+  /** may complete */
+  std::map< TypeNode, bool > d_may_complete;
 public:
   //get nth term for type
   Node getEnumerateTerm( TypeNode tn, unsigned index );
   //does this type have an enumerator that produces constants that are handled by ground theory solvers
   bool isClosedEnumerableType( TypeNode tn );
-
-//miscellaneous
-public:
-  /** map from universal quantifiers to the list of variables */
-  std::map< Node, std::vector< Node > > d_vars;
-  /** free variable for instantiation constant type */
-  std::map< TypeNode, Node > d_free_vars;
-public:
-  /** get free variable for instantiation constant */
-  Node getFreeVariableForInstConstant( Node n );
-  /** get free variable for type */
-  Node getFreeVariableForType( TypeNode tn );
-
+  // may complete
+  bool mayComplete( TypeNode tn );
+  
 //for triggers
 private:
   /** helper function for compute var contains */

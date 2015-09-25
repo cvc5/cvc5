@@ -58,7 +58,6 @@ private:
   //current assertions
   std::map< TheoryId, std::vector< Node > > d_curr_asserts;
   std::map< Node, std::vector< Node > > d_curr_eqc;
-  std::map< Node, Node > d_curr_rep;
   std::map< TypeNode, std::vector< Node > > d_curr_type_eqc;
   //auxiliary variables
   std::vector< Node > d_aux_vars;

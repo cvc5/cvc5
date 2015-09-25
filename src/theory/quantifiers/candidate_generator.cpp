@@ -100,7 +100,7 @@ Node CandidateGeneratorQE::getNextCandidate(){
   if( d_mode==cand_term_db ){
     //get next candidate term in the uf term database
     while( d_term_iter<d_term_iter_limit ){
-      Node n = d_qe->getTermDatabase()->d_op_map[d_op][d_term_iter];
+      Node n = d_qe->getTermDatabase()->getGroundTerm( d_op, d_term_iter );
       d_term_iter++;
       if( isLegalCandidate( n ) ){
         if( d_qe->getTermDatabase()->hasTermCurrent( n ) ){
@@ -221,7 +221,7 @@ Node CandidateGeneratorQEAll::getNextCandidate() {
     Assert( d_qe->getTermDatabase()->d_type_map[d_match_pattern_type].empty() );
     //must return something
     d_firstTime = false;
-    return d_qe->getTermDatabase()->getFreeVariableForType( d_match_pattern_type );
+    return d_qe->getTermDatabase()->getModelBasisTerm( d_match_pattern_type );
   }
   return Node::null();
 }
