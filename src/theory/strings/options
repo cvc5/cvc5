@@ -32,4 +32,7 @@ option stringIgnNegMembership strings-inm --strings-inm bool :default false
 #expert-option stringCharCardinality strings-alphabet-card --strings-alphabet-card=N int16_t :default 128 :read-write
 # the cardinality of the characters used by the theory of strings, default 128 (for standard ASCII) or 256 (for extended ASCII)
 
+option stringLazyPreproc strings-lazy-pp --strings-lazy-pp bool :default true
+ perform string preprocessing lazily
+
 endmodule

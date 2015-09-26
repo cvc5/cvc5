@@ -74,10 +74,14 @@ TheoryStrings::TheoryStrings(context::Context* c, context::UserContext* u, Outpu
   d_equalityEngine.addFunctionKind(kind::STRING_SUBSTR_TOTAL);
   d_equalityEngine.addFunctionKind(kind::STRING_ITOS);
   d_equalityEngine.addFunctionKind(kind::STRING_STOI);
-  //d_equalityEngine.addFunctionKind(kind::STRING_U16TOS);
-  //d_equalityEngine.addFunctionKind(kind::STRING_STOU16);
-  //d_equalityEngine.addFunctionKind(kind::STRING_U32TOS);
-  //d_equalityEngine.addFunctionKind(kind::STRING_STOU32);
+  if( options::stringLazyPreproc() ){
+    d_equalityEngine.addFunctionKind(kind::STRING_U16TOS);
+    d_equalityEngine.addFunctionKind(kind::STRING_STOU16);
+    d_equalityEngine.addFunctionKind(kind::STRING_U32TOS);
+    d_equalityEngine.addFunctionKind(kind::STRING_STOU32);
+    d_equalityEngine.addFunctionKind(kind::STRING_STRIDOF);
+    d_equalityEngine.addFunctionKind(kind::STRING_STRREPL);
+  }
 
   d_zero = NodeManager::currentNM()->mkConst( Rational( 0 ) );
   d_one = NodeManager::currentNM()->mkConst( Rational( 1 ) );
@@ -593,9 +597,37 @@ void TheoryStrings::check(Effort e) {
     TNode fact = assertion.assertion;
 
     Trace("strings-assertion") << "get assertion: " << fact << endl;
-
     polarity = fact.getKind() != kind::NOT;
     atom = polarity ? fact : fact[0];
+
+    //run preprocess
+    if( options::stringLazyPreproc() ){
+      std::map< Node, Node >::iterator itp = d_preproc_cache.find( atom );
+      if( itp==d_preproc_cache.end() ){
+        std::vector< Node > new_nodes;
+        Node res = d_preproc.decompose( atom, new_nodes );
+        d_preproc_cache[atom] = res;
+        if( atom!=res ){
+          Trace("strings-assertion-debug") << "...preprocessed to : " << res << std::endl;
+          Node plem = NodeManager::currentNM()->mkNode( kind::IFF, atom, res );
+          plem = Rewriter::rewrite( plem );
+          d_out->lemma( plem );
+          Trace("strings-pp-lemma") << "Preprocess eq lemma : " << plem << std::endl;
+          Trace("strings-pp-lemma") << "...from " << fact << std::endl;
+        }else{
+          Trace("strings-assertion-debug") << "...preprocess ok." << std::endl;
+        }
+        if( !new_nodes.empty() ){
+          Node nnlem = new_nodes.size()==1 ? new_nodes[0] : NodeManager::currentNM()->mkNode( kind::AND, new_nodes );
+          nnlem = Rewriter::rewrite( nnlem );
+          Trace("strings-assertion-debug") << "...new nodes : " << nnlem << std::endl;
+          Trace("strings-pp-lemma") << "Preprocess lemma : " << nnlem << std::endl;
+          Trace("strings-pp-lemma") << "...from " << fact << std::endl;
+          d_out->lemma( nnlem );
+        }
+      }
+    }
+
     //must record string in regular expressions
     if ( atom.getKind() == kind::STRING_IN_REGEXP ) {
       addMembership(assertion);

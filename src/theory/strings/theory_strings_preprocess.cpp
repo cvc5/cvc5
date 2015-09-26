@@ -244,7 +244,7 @@ Node StringsPreprocess::simplify( Node t, std::vector< Node > &new_nodes ) {
       //t3 = s2
       Node c4 = t[1].eqNode( sk3 );
       //~contain(t2, s2)
-      Node c5 = NodeManager::currentNM()->mkNode( kind::STRING_STRCTN, 
+      Node c5 = NodeManager::currentNM()->mkNode( kind::STRING_STRCTN,
                   NodeManager::currentNM()->mkNode(kind::STRING_CONCAT, sk2,
                     NodeManager::currentNM()->mkNode(kind::STRING_SUBSTR_TOTAL, t[1], d_zero,
                       NodeManager::currentNM()->mkNode(kind::MINUS,
@@ -259,8 +259,13 @@ Node StringsPreprocess::simplify( Node t, std::vector< Node > &new_nodes ) {
       Node cond = skk.eqNode( negone );
       Node rr = NodeManager::currentNM()->mkNode( kind::ITE, cond, left, right );
       new_nodes.push_back( rr );
-      d_cache[t] = skk;
-      retNode = skk;
+      if( options::stringLazyPreproc() ){
+        new_nodes.push_back( t.eqNode( skk ) );
+        d_cache[t] = Node::null();
+      }else{
+        d_cache[t] = skk;
+        retNode = skk;
+      }
     } else {
       throw LogicException("string indexof not supported in default mode, try --strings-exp");
     }
@@ -373,12 +378,17 @@ Node StringsPreprocess::simplify( Node t, std::vector< Node > &new_nodes ) {
               t.eqNode(NodeManager::currentNM()->mkNode(kind::STRING_CONCAT,
                 NodeManager::currentNM()->mkConst(::CVC4::String("-")), pret))));
       new_nodes.push_back( conc );*/
-
-      d_cache[t] = pret;
+      if( options::stringLazyPreproc() && t!=pret ){
+        new_nodes.push_back( t.eqNode( pret ) );
+        d_cache[t] = Node::null();
+      }else{
+        d_cache[t] = pret;
+        retNode = pret;
+      }
+      //don't rewrite processed
       if(t != pret) {
         d_cache[pret] = pret;
       }
-      retNode = pret;
     } else {
       throw LogicException("string int.to.str not supported in default mode, try --strings-exp");
     }
@@ -488,12 +498,16 @@ Node StringsPreprocess::simplify( Node t, std::vector< Node > &new_nodes ) {
       Node conc = NodeManager::currentNM()->mkNode(kind::ITE, pret.eqNode(negone),
               NodeManager::currentNM()->mkNode(kind::OR, cc1, cc2), cc3);
       new_nodes.push_back( conc );
-
-      d_cache[t] = pret;
+      if( options::stringLazyPreproc() && t!=pret ){
+        new_nodes.push_back( t.eqNode( pret ) );
+        d_cache[t] = Node::null();
+      }else{
+        d_cache[t] = pret;
+        retNode = pret;
+      }
       if(t != pret) {
         d_cache[pret] = pret;
       }
-      retNode = pret;
     } else {
       throw LogicException("string int.to.str not supported in default mode, try --strings-exp");
     }
@@ -511,8 +525,8 @@ Node StringsPreprocess::simplify( Node t, std::vector< Node > &new_nodes ) {
       Node c3 = NodeManager::currentNM()->mkNode(kind::STRING_STRCTN,
                   NodeManager::currentNM()->mkNode(kind::STRING_CONCAT, sk1,
                      NodeManager::currentNM()->mkNode(kind::STRING_SUBSTR_TOTAL, y, d_zero,
-                        NodeManager::currentNM()->mkNode(kind::MINUS, 
-                          NodeManager::currentNM()->mkNode(kind::STRING_LENGTH, y), 
+                        NodeManager::currentNM()->mkNode(kind::MINUS,
+                          NodeManager::currentNM()->mkNode(kind::STRING_LENGTH, y),
                           NodeManager::currentNM()->mkConst(::CVC4::Rational(1))))), y).negate();
       Node rr = Rewriter::rewrite( NodeManager::currentNM()->mkNode( kind::ITE, cond,
               NodeManager::currentNM()->mkNode( kind::AND, c1, c2, c3),
@@ -520,9 +534,13 @@ Node StringsPreprocess::simplify( Node t, std::vector< Node > &new_nodes ) {
       new_nodes.push_back( rr );
       rr = Rewriter::rewrite( NodeManager::currentNM()->mkNode(kind::GT, NodeManager::currentNM()->mkNode(kind::STRING_LENGTH, y), d_zero) );
       new_nodes.push_back( rr );
-
-      d_cache[t] = skw;
-      retNode = skw;
+      if( options::stringLazyPreproc() ){
+        new_nodes.push_back( t.eqNode( skw ) );
+        d_cache[t] = Node::null();
+      }else{
+        d_cache[t] = skw;
+        retNode = skw;
+      }
     } else {
       throw LogicException("string replace not supported in default mode, try --strings-exp");
     }
@@ -609,13 +627,6 @@ void StringsPreprocess::simplify(std::vector< Node > &vec_node) {
     }
   }
 }
-/*
-void StringsPreprocess::simplify(std::vector< Node > &vec_node) {
-  std::vector< Node > new_nodes;
-  simplify(vec_node, new_nodes);
-  vec_node.insert( vec_node.end(), new_nodes.begin(), new_nodes.end() );
-}
-*/
 
 }/* CVC4::theory::strings namespace */
 }/* CVC4::theory namespace */

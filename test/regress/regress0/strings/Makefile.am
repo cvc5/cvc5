@@ -50,8 +50,10 @@ TESTS = \
   loop008.smt2 \
   loop009.smt2 \
   reloop.smt2 \
-  unsound-0908.smt2 
-
+  unsound-0908.smt2 \
+  ilc-like.smt2 \ 
+  indexof-sym-simp.smt2 \
+  bug613.smt2
 
 FAILING_TESTS =
 

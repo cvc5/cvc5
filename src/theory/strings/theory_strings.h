@@ -173,6 +173,9 @@ private:
   std::vector< Node > d_terms_cache;
   void collectTerm( Node n );
   void appendTermLemma();
+  // preprocess cache
+  StringsPreprocess d_preproc;
+  std::map< Node, Node > d_preproc_cache;
 
   /////////////////////////////////////////////////////////////////////////////
   // MODEL GENERATION

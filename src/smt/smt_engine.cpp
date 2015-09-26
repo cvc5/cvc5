@@ -3294,17 +3294,18 @@ void SmtEnginePrivate::processAssertions() {
     dumpAssertions("post-bv-to-bool", d_assertions);
     Trace("smt") << "POST bvToBool" << endl;
   }
-
-  if( d_smt.d_logic.isTheoryEnabled(THEORY_STRINGS) ) {
-    Trace("smt-proc") << "SmtEnginePrivate::processAssertions() : pre-strings-preprocess" << endl;
-    dumpAssertions("pre-strings-pp", d_assertions);
-    CVC4::theory::strings::StringsPreprocess sp;
-    sp.simplify( d_assertions.ref() );
-    //for (unsigned i = 0; i < d_assertions.size(); ++ i) {
-    //  d_assertions.replace( i, Rewriter::rewrite( d_assertions[i] ) );
-    //}
-    Trace("smt-proc") << "SmtEnginePrivate::processAssertions() : post-strings-preprocess" << endl;
-    dumpAssertions("post-strings-pp", d_assertions);
+  if( !options::stringLazyPreproc() ){
+    if( d_smt.d_logic.isTheoryEnabled(THEORY_STRINGS) ) {
+      Trace("smt-proc") << "SmtEnginePrivate::processAssertions() : pre-strings-preprocess" << endl;
+      dumpAssertions("pre-strings-pp", d_assertions);
+      CVC4::theory::strings::StringsPreprocess sp;
+      sp.simplify( d_assertions.ref() );
+      //for (unsigned i = 0; i < d_assertions.size(); ++ i) {
+      //  d_assertions.replace( i, Rewriter::rewrite( d_assertions[i] ) );
+      //}
+      Trace("smt-proc") << "SmtEnginePrivate::processAssertions() : post-strings-preprocess" << endl;
+      dumpAssertions("post-strings-pp", d_assertions);
+    }
   }
   if( d_smt.d_logic.isQuantified() ){
     Trace("smt-proc") << "SmtEnginePrivate::processAssertions() : pre-quant-preprocess" << endl;
