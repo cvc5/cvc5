@@ -66,8 +66,6 @@ private:
   InstStrategyUserPatterns* d_isup;
   /** auto gen triggers; only kept for destructor cleanup */
   InstStrategyAutoGenTriggers* d_i_ag;
-  /** full saturate */
-  InstStrategyFreeVariable * d_i_fs;
   /** simplex (cbqi) */
   InstStrategySimplex * d_i_splx;
   /** generic cegqi */

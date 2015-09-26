@@ -131,8 +131,6 @@ option fmfOneQuantPerRound --mbqi-one-quant-per-round bool :default false
 
 option fmfInstEngine --fmf-inst-engine bool :default false
  use instantiation engine in conjunction with finite model finding
-option fmfFullSaturate --fmf-full-saturate bool :default false
- instantiate with all known ground terms for infinite domain quantifiers when finite model finding
 option fmfInstGen --fmf-inst-gen bool :default true
  enable Inst-Gen instantiation techniques for finite model finding 
 option fmfInstGenOneQuantPerRound --fmf-inst-gen-one-quant-per-round bool :default false
@@ -247,6 +245,10 @@ option cbqiPreRegInst --cbqi-prereg-inst bool :read-write :default false
   preregister ground instantiations in counterexample-based quantifier instantiation
 option cbqiMinBounds --cbqi-min-bounds bool :default false
   use minimally constrained lower/upper bound for counterexample-based quantifier instantiation
+option cbqiSymLia --cbqi-sym-lia bool :default false
+  use symbolic integer division in substitutions for counterexample-based quantifier instantiation
+option cbqiRoundUpLowerLia --cbqi-round-up-lia bool :default false
+  round up integer lower bounds in substitutions for counterexample-based quantifier instantiation
  
 ### local theory extensions options 
 

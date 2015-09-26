@@ -105,20 +105,22 @@ public:
   void addUserNoPattern( Node f, Node pat );
 };/* class InstStrategyAutoGenTriggers */
 
-class InstStrategyFreeVariable : public InstStrategy{
+class FullSaturation : public QuantifiersModule {
 private:
   /** guessed instantiations */
   std::map< Node, bool > d_guessed;
   /** process functions */
-  void processResetInstantiationRound( Theory::Effort effort );
-  int process( Node f, Theory::Effort effort, int e );
+  bool process( Node f, Theory::Effort effort );
 public:
-  InstStrategyFreeVariable( QuantifiersEngine* qe ) :
-      InstStrategy( qe ){}
-  ~InstStrategyFreeVariable(){}
+  FullSaturation( QuantifiersEngine* qe );
+  ~FullSaturation(){}
+  void reset_round( Theory::Effort e );
+  void check( Theory::Effort e, unsigned quant_e );
+  void registerQuantifier( Node q );
+  void assertNode( Node n );
   /** identify */
-  std::string identify() const { return std::string("FreeVariable"); }
-};/* class InstStrategyFreeVariable */
+  std::string identify() const { return std::string("FullSaturation"); }
+};/* class FullSaturation */
 
 
 }

@@ -31,14 +31,13 @@ using namespace CVC4::theory::quantifiers;
 using namespace CVC4::theory::inst;
 
 InstantiationEngine::InstantiationEngine( QuantifiersEngine* qe ) :
-QuantifiersModule( qe ), d_isup(NULL), d_i_ag(NULL), d_i_fs(NULL), d_i_splx(NULL), d_i_cegqi( NULL ){
+QuantifiersModule( qe ), d_isup(NULL), d_i_ag(NULL), d_i_splx(NULL), d_i_cegqi( NULL ){
 
 }
 
 InstantiationEngine::~InstantiationEngine() {
   delete d_i_ag;
   delete d_isup;
-  delete d_i_fs;
   delete d_i_splx;
   delete d_i_cegqi;
 }
@@ -57,13 +56,7 @@ void InstantiationEngine::finishInit(){
     d_i_ag = new InstStrategyAutoGenTriggers( d_quantEngine );
     d_instStrategies.push_back( d_i_ag );
   }
-
-  //full saturation : instantiate from relevant domain, then arbitrary terms
-  if( options::fullSaturateQuant() ){
-    d_i_fs = new InstStrategyFreeVariable( d_quantEngine );
-    d_instStrategies.push_back( d_i_fs );
-  }
-
+  
   //counterexample-based quantifier instantiation
   if( options::cbqi() ){
     if( !options::cbqi2() ){
@@ -88,7 +81,7 @@ bool InstantiationEngine::doInstantiationRound( Theory::Effort effort ){
   if( options::cbqi() ){
     //check if any cbqi lemma has not been added yet
     bool addedLemma = false;
-    for( int i=0; i<(int)d_quantEngine->getModel()->getNumAssertedQuantifiers(); i++ ){
+    for( int i=0; i<d_quantEngine->getModel()->getNumAssertedQuantifiers(); i++ ){
       Node f = d_quantEngine->getModel()->getAssertedQuantifier( i );
       if( doCbqi( f ) && !hasAddedCbqiLemma( f ) ){
         d_added_cbqi_lemma[f] = true;
@@ -136,7 +129,7 @@ bool InstantiationEngine::doInstantiationRound( Theory::Effort effort ){
   }
   //if not, proceed to instantiation round
   //reset the instantiation strategies
-  for( size_t i=0; i<d_instStrategies.size(); ++i ){
+  for( unsigned i=0; i<d_instStrategies.size(); ++i ){
     InstStrategy* is = d_instStrategies[i];
     is->processResetInstantiationRound( effort );
   }
@@ -158,8 +151,8 @@ bool InstantiationEngine::doInstantiationRound( Theory::Effort effort ){
       if( e_use>=0 ){
         Trace("inst-engine-debug") << "inst-engine : " << q << std::endl;
         //check each instantiation strategy
-        for( size_t i=0; i<d_instStrategies.size(); ++i ){
-          InstStrategy* is = d_instStrategies[i];
+        for( unsigned j=0; j<d_instStrategies.size(); j++ ){
+          InstStrategy* is = d_instStrategies[j];
           Trace("inst-engine-debug") << "Do " << is->identify() << " " << e_use << std::endl;
           int quantStatus = is->process( q, effort, e_use );
           Trace("inst-engine-debug") << " -> status is " << quantStatus << std::endl;
@@ -200,7 +193,7 @@ void InstantiationEngine::reset_round( Theory::Effort e ) {
   d_cbqi_set_quant_inactive = false;
   if( options::cbqi() ){
     //set inactive the quantified formulas whose CE literals are asserted false
-    for( int i=0; i<(int)d_quantEngine->getModel()->getNumAssertedQuantifiers(); i++ ){
+    for( int i=0; i<d_quantEngine->getModel()->getNumAssertedQuantifiers(); i++ ){
       Node q = d_quantEngine->getModel()->getAssertedQuantifier( i );
       //it is not active if it corresponds to a rewrite rule: we will process in rewrite engine
       if( d_quantEngine->hasOwnership( q, this ) && d_quantEngine->getModel()->isQuantifierActive( q ) && hasAddedCbqiLemma( q ) ){
@@ -236,12 +229,12 @@ void InstantiationEngine::check( Theory::Effort e, unsigned quant_e ){
     bool quantActive = false;
     d_quants.clear();
     for( int i=0; i<(int)d_quantEngine->getModel()->getNumAssertedQuantifiers(); i++ ){
-      Node n = d_quantEngine->getModel()->getAssertedQuantifier( i );
-      if( d_quantEngine->hasOwnership( n, this ) && d_quantEngine->getModel()->isQuantifierActive( n ) ){
-        if( !options::cbqi() || !TermDb::hasInstConstAttr(n) ){
+      Node q = d_quantEngine->getModel()->getAssertedQuantifier( i );
+      if( d_quantEngine->hasOwnership( q, this ) && d_quantEngine->getModel()->isQuantifierActive( q ) ){
+        if( !options::cbqi() || !TermDb::hasInstConstAttr(q) ){
           quantActive = true;
         }
-        d_quants.push_back( n );
+        d_quants.push_back( q );
       }
     }
     Trace("inst-engine-debug") << "InstEngine: check: # asserted quantifiers " << d_quants.size() << "/";

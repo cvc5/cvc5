@@ -39,6 +39,7 @@
 #include "theory/quantifiers/ambqi_builder.h"
 #include "theory/quantifiers/fun_def_engine.h"
 #include "theory/quantifiers/quant_equality_engine.h"
+#include "theory/quantifiers/inst_strategy_e_matching.h"
 
 using namespace std;
 using namespace CVC4;
@@ -186,7 +187,14 @@ d_presolve(u, true){
   }else{
     d_uee = NULL;
   }
-
+  
+  //full saturation : instantiate from relevant domain, then arbitrary terms
+  if( options::fullSaturateQuant() ){
+    d_fs = new quantifiers::FullSaturation( this );
+    d_modules.push_back( d_fs );
+  }else{
+    d_fs = NULL;
+  }
 
   if( needsBuilder ){
     Trace("quant-engine-debug") << "Initialize model engine, mbqi : " << options::mbqiMode() << " " << options::fmfBoundInt() << std::endl;
@@ -228,6 +236,7 @@ QuantifiersEngine::~QuantifiersEngine(){
   delete d_lte_part_inst;
   delete d_fun_def_engine;
   delete d_uee;
+  delete d_fs;
   for(std::map< Node, QuantPhaseReq* >::iterator i = d_phase_reqs.begin(); i != d_phase_reqs.end(); ++i) {
     delete (*i).second;
   }
@@ -327,7 +336,16 @@ void QuantifiersEngine::check( Theory::Effort e ){
   }
   
   d_hasAddedLemma = false;
-  
+  bool setIncomplete = false;
+  if( e==Theory::EFFORT_LAST_CALL ){
+    //sources of incompleteness
+    if( d_lte_part_inst && d_lte_part_inst->wasInvoked() ){
+      Trace("quant-engine-debug") << "Set incomplete due to LTE partial instantiation." << std::endl;
+      setIncomplete = true;
+    }
+  }
+  bool usedModelBuilder = false;
+    
   Trace("quant-engine-debug") << "Quantifiers Engine call to check, level = " << e << std::endl;
   if( needsCheck ){
     Trace("quant-engine") << "Quantifiers Engine check, level = " << e << std::endl;
@@ -387,12 +405,13 @@ void QuantifiersEngine::check( Theory::Effort e ){
       ++(d_statistics.d_instantiation_rounds);
     }
     Trace("quant-engine-debug") << "Check modules that needed check..." << std::endl;
-    for( unsigned quant_e = QEFFORT_CONFLICT; quant_e<=QEFFORT_MODEL; quant_e++ ){
+    for( unsigned quant_e = QEFFORT_CONFLICT; quant_e<=QEFFORT_LAST_CALL; quant_e++ ){
       bool success = true;
       //build the model if any module requested it
       if( needsModelE==quant_e ){
         Assert( d_builder!=NULL );
         Trace("quant-engine-debug") << "Build model..." << std::endl;
+        usedModelBuilder = true;
         d_builder->d_addedLemmas = 0;
         d_builder->buildModel( d_model, false );
         //we are done if model building was unsuccessful
@@ -412,10 +431,23 @@ void QuantifiersEngine::check( Theory::Effort e ){
       //if we have added one, stop
       if( d_hasAddedLemma ){
         break;
-      //otherwise, complete the model generation if necessary
-      }else if( quant_e==QEFFORT_MODEL && needsModelE<=quant_e && options::produceModels() && e==Theory::EFFORT_LAST_CALL ){
-        Trace("quant-engine-debug") << "Build completed model..." << std::endl;
-        d_builder->buildModel( d_model, true );
+      }else if( e==Theory::EFFORT_LAST_CALL && quant_e==QEFFORT_MODEL ){
+        //if we have a chance not to set incomplete
+        if( !setIncomplete ){
+          setIncomplete = true;
+          //check if we should set the incomplete flag
+          for( unsigned i=0; i<qm.size(); i++ ){
+            if( qm[i]->checkComplete() ){
+              Trace("quant-engine-debug") << "Do not set incomplete because " << qm[i]->identify().c_str() << " was complete." << std::endl;
+              setIncomplete = false;
+              break;
+            }
+          }
+        }
+        //if setIncomplete = false, we will answer SAT, otherwise we will run at quant_e QEFFORT_LAST_CALL
+        if( !setIncomplete ){
+          break;
+        }
       }
     }
     Trace("quant-engine-debug") << "Done check modules that needed check." << std::endl;
@@ -432,34 +464,21 @@ void QuantifiersEngine::check( Theory::Effort e ){
   }else{
     Trace("quant-engine") << "Quantifiers Engine does not need check." << std::endl;
   }
+  
   //SAT case
   if( e==Theory::EFFORT_LAST_CALL && !d_hasAddedLemma ){
-    if( options::produceModels() && !d_model->isModelSet() ){
-      //use default model builder when no module built the model
-      Trace("quant-engine-debug") << "Build the model..." << std::endl;
-      d_te->getModelBuilder()->buildModel( d_model, true );
-      Trace("quant-engine-debug") << "Done building the model." << std::endl;
-    }
-    bool setInc = false;
-    if( needsCheck ){
-      setInc = true;
-      for( unsigned i=0; i<qm.size(); i++ ){
-        if( qm[i]->checkComplete() ){
-          Trace("quant-engine-debug") << "Do not set incomplete because " << qm[i]->identify().c_str() << " was complete." << std::endl;
-          setInc = false;
-        }
-      }
-    }else{
-      Trace("quant-engine-debug") << "Do not set incomplete because check wasn't necessary." << std::endl;
-    }
-    //check other sources of incompleteness
-    if( !setInc ){
-      if( d_lte_part_inst && d_lte_part_inst->wasInvoked() ){
-        Trace("quant-engine-debug") << "Set incomplete due to LTE partial instantiation." << std::endl;
-        setInc = true;
+    if( options::produceModels() ){
+      if( usedModelBuilder ){
+        Trace("quant-engine-debug") << "Build completed model..." << std::endl;
+        d_builder->buildModel( d_model, true );
+      }else if( !d_model->isModelSet() ){
+        //use default model builder when no module built the model
+        Trace("quant-engine-debug") << "Build the model..." << std::endl;
+        d_te->getModelBuilder()->buildModel( d_model, true );
+        Trace("quant-engine-debug") << "Done building the model." << std::endl;
       }
     }
-    if( setInc ){
+    if( setIncomplete ){
       Trace("quant-engine-debug") << "Set incomplete flag." << std::endl;
       getOutputChannel().setIncomplete();
     }

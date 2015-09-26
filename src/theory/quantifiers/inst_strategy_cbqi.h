@@ -68,24 +68,50 @@ private:
 private:
   //for adding instantiations during check
   void computeProgVars( Node n );
+  //solved form, involves substitution with coefficients
+  class SolvedForm {
+  public:
+    std::vector< Node > d_subs;
+    std::vector< Node > d_coeff;
+    std::vector< Node > d_has_coeff;
+    void copy( SolvedForm& sf ){
+      d_subs.insert( d_subs.end(), sf.d_subs.begin(), sf.d_subs.end() );
+      d_coeff.insert( d_coeff.end(), sf.d_coeff.begin(), sf.d_coeff.end() );
+      d_has_coeff.insert( d_has_coeff.end(), sf.d_has_coeff.begin(), sf.d_has_coeff.end() );
+    }
+    void push_back( Node pv, Node n, Node pv_coeff ){
+      d_subs.push_back( n );
+      d_coeff.push_back( pv_coeff );
+      if( !pv_coeff.isNull() ){
+        d_has_coeff.push_back( pv );
+      }
+    }
+    void pop_back( Node pv, Node n, Node pv_coeff ){
+      d_subs.pop_back();
+      d_coeff.pop_back();
+      if( !pv_coeff.isNull() ){
+        d_has_coeff.pop_back();
+      }
+    }
+  };
   // effort=0 : do not use model value, 1: use model value, 2: one must use model value
-  bool addInstantiation( std::vector< Node >& subs, std::vector< Node >& vars,
-                         std::vector< Node >& coeff, std::vector< int >& btyp, 
-                         std::vector< Node >& has_coeff, Node theta,
-                         unsigned i, unsigned effort,
+  bool addInstantiation( SolvedForm& sf, SolvedForm& ssf, std::vector< Node >& vars,
+                         std::vector< int >& btyp, Node theta, unsigned i, unsigned effort,
                          std::map< Node, Node >& cons, std::vector< Node >& curr_var );
-  bool addInstantiationInc( Node n, Node pv, Node pv_coeff, int bt, std::vector< Node >& subs, std::vector< Node >& vars,
-                            std::vector< Node >& coeff, std::vector< int >& btyp, 
-                            std::vector< Node >& has_coeff, Node theta, unsigned i, unsigned effort,
+  bool addInstantiationInc( Node n, Node pv, Node pv_coeff, int bt, SolvedForm& sf, SolvedForm& ssf, std::vector< Node >& vars,
+                            std::vector< int >& btyp, Node theta, unsigned i, unsigned effort,
                             std::map< Node, Node >& cons, std::vector< Node >& curr_var );
-  bool addInstantiationCoeff( std::vector< Node >& subs, std::vector< Node >& vars,
-                              std::vector< Node >& coeff, std::vector< int >& btyp, 
-                              std::vector< Node >& has_coeff, unsigned j, std::map< Node, Node >& cons );
+  bool addInstantiationCoeff( SolvedForm& sf,
+                              std::vector< Node >& vars, std::vector< int >& btyp,
+                              unsigned j, std::map< Node, Node >& cons );
   bool addInstantiation( std::vector< Node >& subs, std::vector< Node >& vars, std::map< Node, Node >& cons );
   Node constructInstantiation( Node n, std::map< Node, Node >& subs_map, std::map< Node, Node >& cons );
-  Node applySubstitution( Node n, std::vector< Node >& subs, std::vector< Node >& vars,
-                          std::vector< Node >& coeff, std::vector< Node >& has_coeff, Node& pv_coeff, bool try_coeff = true );
-  Node getModelBasedProjectionValue( Node t, bool isLower, Node c, Node me, Node mt, Node theta, 
+  Node applySubstitution( Node n, SolvedForm& sf, std::vector< Node >& vars, Node& pv_coeff, bool try_coeff = true ) {
+    return applySubstitution( n, sf.d_subs, sf.d_coeff, sf.d_has_coeff, vars, pv_coeff, try_coeff );
+  }
+  Node applySubstitution( Node n, std::vector< Node >& subs, std::vector< Node >& coeff, std::vector< Node >& has_coeff,
+                          std::vector< Node >& vars, Node& pv_coeff, bool try_coeff = true );
+  Node getModelBasedProjectionValue( Node t, bool isLower, Node c, Node me, Node mt, Node theta,
                                      Node inf_coeff, Node vts_inf, Node delta_coeff, Node vts_delta );
   void processAssertions();
   void addToAuxVarSubstitution( std::vector< Node >& subs_lhs, std::vector< Node >& subs_rhs, Node l, Node r );
@@ -95,7 +121,7 @@ public:
   bool check();
   //presolve for quantified formula
   void presolve( Node q );
-  //register the counterexample lemma (stored in lems), modify vector 
+  //register the counterexample lemma (stored in lems), modify vector
   void registerCounterexampleLemma( std::vector< Node >& lems, std::vector< Node >& ce_vars );
 };
 

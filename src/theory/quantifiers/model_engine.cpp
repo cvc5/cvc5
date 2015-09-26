@@ -265,7 +265,7 @@ void ModelEngine::exhaustiveInstantiate( Node f, int effort ){
     RepSetIterator riter( d_quantEngine, &(d_quantEngine->getModel()->d_rep_set) );
     if( riter.setQuantifier( f ) ){
       Trace("fmf-exh-inst") << "...exhaustive instantiation incomplete=" << riter.d_incomplete << "..." << std::endl;
-      if( !riter.d_incomplete || options::fmfFullSaturate() ){
+      if( !riter.d_incomplete ){
         int triedLemmas = 0;
         int addedLemmas = 0;
         while( !riter.isFinished() && ( addedLemmas==0 || !options::fmfOneInstPerRound() ) ){

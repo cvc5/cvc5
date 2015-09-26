@@ -97,6 +97,7 @@ namespace quantifiers {
   class AlphaEquivalence;
   class FunDefEngine;
   class QuantEqualityEngine;
+  class FullSaturation;
 }/* CVC4::theory::quantifiers */
 
 namespace inst {
@@ -150,11 +151,14 @@ private:
   quantifiers::FunDefEngine * d_fun_def_engine;
   /** quantifiers equality engine */
   quantifiers::QuantEqualityEngine * d_uee;
+  /** full saturation */
+  quantifiers::FullSaturation * d_fs;
 public: //effort levels
   enum {
     QEFFORT_CONFLICT,
     QEFFORT_STANDARD,
     QEFFORT_MODEL,
+    QEFFORT_LAST_CALL,
     //none
     QEFFORT_NONE,
   };
@@ -244,6 +248,8 @@ public:  //modules
   quantifiers::FunDefEngine * getFunDefEngine() { return d_fun_def_engine; }
   /** quantifiers equality engine */
   quantifiers::QuantEqualityEngine * getQuantEqualityEngine() { return d_uee; }
+  /** get full saturation */
+  quantifiers::FullSaturation * getFullSaturation() { return d_fs; }
 private:
   /** owner of quantified formulas */
   std::map< Node, QuantifiersModule * > d_owner;
