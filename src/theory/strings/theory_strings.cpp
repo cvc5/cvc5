@@ -26,6 +26,8 @@
 #include "theory/strings/type_enumerator.h"
 #include <cmath>
 
+#define LAZY_ADD_MEMBERSHIP
+
 using namespace std;
 using namespace CVC4::context;
 
@@ -44,14 +46,14 @@ TheoryStrings::TheoryStrings(context::Context* c, context::UserContext* u, Outpu
   d_nf_pairs(c),
   d_loop_antec(u),
   d_length_intro_vars(u),
-  d_registed_terms_cache(u),
-  d_length_inst(u),
-  d_str_pos_ctn(c),
-  d_str_neg_ctn(c),
+  d_registered_terms_cache(u),
+  d_preproc_cache(u),
+  d_proxy_var(u),
   d_neg_ctn_eqlen(u),
   d_neg_ctn_ulen(u),
   d_pos_ctn_cached(u),
   d_neg_ctn_cached(u),
+  d_ext_func_terms(c),
   d_regexp_memberships(c),
   d_regexp_ucached(u),
   d_regexp_ccached(c),
@@ -330,7 +332,7 @@ void TheoryStrings::collectModelInfo( TheoryModel* m, bool fullModel ) {
       Trace("strings-model") << col[i][j] << " ";
       //check if col[i][j] has only variables
       EqcInfo* ei = getOrMakeEqcInfo( col[i][j], false );
-            Node cst = ei ? ei->d_const_term : Node::null();
+      Node cst = ei ? ei->d_const_term : Node::null();
       if( cst.isNull() ){
         Assert( d_normal_forms.find( col[i][j] )!=d_normal_forms.end() );
         if( d_normal_forms[col[i][j]].size()==1 ){//&& d_normal_forms[col[i][j]][0]==col[i][j] ){
@@ -414,72 +416,20 @@ void TheoryStrings::collectModelInfo( TheoryModel* m, bool fullModel ) {
 // MAIN SOLVER
 /////////////////////////////////////////////////////////////////////////////
 
-/*
-void TheoryStrings::preRegisterTerm(TNode n) {
-  if(d_registed_terms_cache.find(n) == d_registed_terms_cache.end()) {
-    Debug("strings-prereg") << "TheoryStrings::preRegisterTerm() " << n << endl;
-    //collectTerms( n );
-    switch (n.getKind()) {
-      case kind::EQUAL:
-        d_equalityEngine.addTriggerEquality(n);
-        break;
-      case kind::STRING_IN_REGEXP:
-        //do not add trigger here
-        d_equalityEngine.addTriggerPredicate(n);
-        break;
-      case kind::STRING_SUBSTR_TOTAL: {
-        Node lenxgti = NodeManager::currentNM()->mkNode( kind::GEQ,
-                  NodeManager::currentNM()->mkNode( kind::STRING_LENGTH, n[0] ),
-                  NodeManager::currentNM()->mkNode( kind::PLUS, n[1], n[2] ) );
-        Node t1geq0 = NodeManager::currentNM()->mkNode(kind::GEQ, n[1], d_zero);
-        Node t2geq0 = NodeManager::currentNM()->mkNode(kind::GEQ, n[2], d_zero);
-        Node cond = Rewriter::rewrite( NodeManager::currentNM()->mkNode( kind::AND, lenxgti, t1geq0, t2geq0 ));
-        Node sk1 = NodeManager::currentNM()->mkSkolem( "ss1", NodeManager::currentNM()->stringType(), "created for charat/substr" );
-        Node sk3 = NodeManager::currentNM()->mkSkolem( "ss3", NodeManager::currentNM()->stringType(), "created for charat/substr" );
-        d_statistics.d_new_skolems += 2;
-        Node x_eq_123 = n[0].eqNode( NodeManager::currentNM()->mkNode( kind::STRING_CONCAT, sk1, n, sk3 ) );
-        Node len_sk1_eq_i = n[1].eqNode( NodeManager::currentNM()->mkNode( kind::STRING_LENGTH, sk1 ) );
-        Node lenc = n[2].eqNode( NodeManager::currentNM()->mkNode( kind::STRING_LENGTH, n ) );
-        Node lemma = Rewriter::rewrite(NodeManager::currentNM()->mkNode(kind::ITE, cond,
-          NodeManager::currentNM()->mkNode( kind::AND, x_eq_123, len_sk1_eq_i, lenc ),
-          n.eqNode(d_emptyString)));
-        Trace("strings-lemma") << "Strings::Lemma SUBSTR : " << lemma << std::endl;
-        d_out->lemma(lemma);
-        //d_equalityEngine.addTerm(n);
-      }
-      default: {
-        if(n.getType().isString() && n.getKind()!=kind::STRING_CONCAT && n.getKind()!=kind::CONST_STRING ) {
-          if( d_length_intro_vars.find(n)==d_length_intro_vars.end() ) {
-            Node n_len = NodeManager::currentNM()->mkNode( kind::STRING_LENGTH, n);
-            Node n_len_eq_z = n_len.eqNode( d_zero );
-            n_len_eq_z = Rewriter::rewrite( n_len_eq_z );
-            Node n_len_geq_zero = NodeManager::currentNM()->mkNode( kind::OR, n_len_eq_z,
-                        NodeManager::currentNM()->mkNode( kind::GT, n_len, d_zero) );
-            Trace("strings-lemma") << "Strings::Lemma LENGTH >= 0 : " << n_len_geq_zero << std::endl;
-            d_out->lemma(n_len_geq_zero);
-            d_out->requirePhase( n_len_eq_z, true );
-          }
-          // FMF
-          if( n.getKind() == kind::VARIABLE && options::stringFMF() ) {
-            d_input_vars.insert(n);
-          }
-        }
-        if (n.getType().isBoolean()) {
-          // Get triggered for both equal and dis-equal
-          d_equalityEngine.addTriggerPredicate(n);
-        } else {
-          // Function applications/predicates
-          d_equalityEngine.addTerm(n);
-        }
-      }
-    }
-    d_registed_terms_cache.insert(n);
-  }
-}
-*/
 
 void TheoryStrings::preRegisterTerm(TNode n) {
-  if( d_registed_terms_cache.find(n) == d_registed_terms_cache.end() ) {
+  if( d_registered_terms_cache.find(n) == d_registered_terms_cache.end() ) {
+    //check for logic exceptions
+    if( !options::stringExp() ){
+      if( n.getKind()==kind::STRING_STRIDOF ||
+          n.getKind() == kind::STRING_ITOS || n.getKind() == kind::STRING_U16TOS || n.getKind() == kind::STRING_U32TOS ||
+          n.getKind() == kind::STRING_STOI || n.getKind() == kind::STRING_STOU16 || n.getKind() == kind::STRING_STOU32 ||
+          n.getKind() == kind::STRING_STRREPL || n.getKind() == kind::STRING_STRCTN ){
+        std::stringstream ss;
+        ss << "Term of kind " << n.getKind() << " not supported in default mode, try --strings-exp";
+        throw LogicException(ss.str());
+      }
+    }
     switch( n.getKind() ) {
       case kind::EQUAL: {
         d_equalityEngine.addTriggerEquality(n);
@@ -509,7 +459,7 @@ void TheoryStrings::preRegisterTerm(TNode n) {
         }
       }
     }
-    d_registed_terms_cache.insert(n);
+    d_registered_terms_cache.insert(n);
   }
 }
 
@@ -600,20 +550,39 @@ void TheoryStrings::check(Effort e) {
     polarity = fact.getKind() != kind::NOT;
     atom = polarity ? fact : fact[0];
 
-    //run preprocess
+    //run preprocess on memberships
+    bool addFact = true;
     if( options::stringLazyPreproc() ){
-      std::map< Node, Node >::iterator itp = d_preproc_cache.find( atom );
-      if( itp==d_preproc_cache.end() ){
+      NodeBoolMap::const_iterator it = d_preproc_cache.find( atom );
+      if( it==d_preproc_cache.end() ){
+        d_preproc_cache[ atom ] = true;
         std::vector< Node > new_nodes;
         Node res = d_preproc.decompose( atom, new_nodes );
-        d_preproc_cache[atom] = res;
         if( atom!=res ){
-          Trace("strings-assertion-debug") << "...preprocessed to : " << res << std::endl;
-          Node plem = NodeManager::currentNM()->mkNode( kind::IFF, atom, res );
-          plem = Rewriter::rewrite( plem );
-          d_out->lemma( plem );
-          Trace("strings-pp-lemma") << "Preprocess eq lemma : " << plem << std::endl;
-          Trace("strings-pp-lemma") << "...from " << fact << std::endl;
+          //check if reduction/deduction
+          std::vector< Node > subs_lhs;
+          std::vector< Node > subs_rhs;
+          subs_lhs.push_back( atom );
+          subs_rhs.push_back( d_true );
+          Node sres = res.substitute( subs_lhs.begin(), subs_lhs.end(), subs_rhs.begin(), subs_rhs.end() );
+          sres = Rewriter::rewrite( sres );
+          if( sres!=res ){
+            Node plem = NodeManager::currentNM()->mkNode( kind::IMPLIES, atom, sres );
+            plem = Rewriter::rewrite( plem );
+            d_out->lemma( plem );
+            Trace("strings-pp-lemma") << "Preprocess impl lemma : " << plem << std::endl;
+            Trace("strings-pp-lemma") << "...from " << fact << std::endl;
+          }else{
+            Trace("strings-assertion-debug") << "...preprocessed to : " << res << std::endl;
+            Node plem = NodeManager::currentNM()->mkNode( kind::IFF, atom, res );
+            plem = Rewriter::rewrite( plem );
+            d_out->lemma( plem );
+            Trace("strings-pp-lemma") << "Preprocess eq lemma : " << plem << std::endl;
+            Trace("strings-pp-lemma") << "...from " << fact << std::endl;
+            //reduced by preprocess
+            addFact = false;
+            d_preproc_cache[ atom ] = false;
+          }
         }else{
           Trace("strings-assertion-debug") << "...preprocess ok." << std::endl;
         }
@@ -625,26 +594,13 @@ void TheoryStrings::check(Effort e) {
           Trace("strings-pp-lemma") << "...from " << fact << std::endl;
           d_out->lemma( nnlem );
         }
+      }else{
+        addFact = (*it).second;
       }
     }
-
-    //must record string in regular expressions
-    if ( atom.getKind() == kind::STRING_IN_REGEXP ) {
-      addMembership(assertion);
-      //if(polarity || !options::stringIgnNegMembership()) {
-        d_equalityEngine.assertPredicate(atom, polarity, fact);
-      //}
-    } else if (atom.getKind() == kind::STRING_STRCTN) {
-      if(polarity) {
-        d_str_pos_ctn.push_back( atom );
-      } else {
-        d_str_neg_ctn.push_back( atom );
-      }
-      d_equalityEngine.assertPredicate(atom, polarity, fact);
-    } else if (atom.getKind() == kind::EQUAL) {
-      d_equalityEngine.assertEquality(atom, polarity, fact);
-    } else {
-      d_equalityEngine.assertPredicate(atom, polarity, fact);
+    //assert pending fact
+    if( addFact ){
+      assertPendingFact( atom, polarity, fact );
     }
   }
   doPendingFacts();
@@ -654,28 +610,28 @@ void TheoryStrings::check(Effort e) {
   bool addedLemma = false;
   if( e == EFFORT_FULL && !d_conflict && !d_valuation.needCheck() ) {
     Trace("strings-check") << "Theory of strings full effort check " << std::endl;
-    //addedLemma = checkSimple();
-    //Trace("strings-process") << "Done simple checking, addedLemma = " << addedLemma << ", d_conflict = " << d_conflict << std::endl;
-    //if( !addedLemma ) {
+    addedLemma = checkExtendedFuncsEval();
+    Trace("strings-process") << "Done check extended functions eval, addedLemma = " << addedLemma << ", d_conflict = " << d_conflict << std::endl;
+    if( !d_conflict && !addedLemma ){
       addedLemma = checkNormalForms();
       Trace("strings-process") << "Done check normal forms, addedLemma = " << addedLemma << ", d_conflict = " << d_conflict << std::endl;
       if(!d_conflict && !addedLemma) {
         addedLemma = checkLengthsEqc();
         Trace("strings-process") << "Done check lengths, addedLemma = " << addedLemma << ", d_conflict = " << d_conflict << std::endl;
         if(!d_conflict && !addedLemma) {
-          addedLemma = checkContains();
-          Trace("strings-process") << "Done check contain constraints, addedLemma = " << addedLemma << ", d_conflict = " << d_conflict << std::endl;
+          addedLemma = checkExtendedFuncs();
+          Trace("strings-process") << "Done check extended functions, addedLemma = " << addedLemma << ", d_conflict = " << d_conflict << std::endl;
           if( !d_conflict && !addedLemma ) {
-            addedLemma = checkMemberships();
-            Trace("strings-process") << "Done check membership constraints, addedLemma = " << addedLemma << ", d_conflict = " << d_conflict << std::endl;
-            if( !d_conflict && !addedLemma ) {
-              addedLemma = checkCardinality();
-              Trace("strings-process") << "Done check cardinality, addedLemma = " << addedLemma << ", d_conflict = " << d_conflict << std::endl;
-            }
+            addedLemma = checkCardinality();
+            Trace("strings-process") << "Done check cardinality, addedLemma = " << addedLemma << ", d_conflict = " << d_conflict << std::endl;
+            //if( !d_conflict && !addedLemma ) {
+            //  addedLemma = checkExtendedFuncsReduction();
+            //  Trace("strings-process") << "Done check extended functions reductions, addedLemma = " << addedLemma << ", d_conflict = " << d_conflict << std::endl;
+            //}
           }
         }
       }
-    //}
+    }
     Trace("strings-check") << "Theory of strings done full effort check " << addedLemma << " " << d_conflict << std::endl;
   }
   if(!d_conflict && !d_terms_cache.empty()) {
@@ -801,31 +757,35 @@ void TheoryStrings::computeCareGraph(){
   Theory::computeCareGraph();
 }
 
-void TheoryStrings::assertPendingFact(Node fact, Node exp) {
-  Trace("strings-pending") << "Assert pending fact : " << fact << " from " << exp << std::endl;
-  bool polarity = fact.getKind() != kind::NOT;
-  TNode atom = polarity ? fact : fact[0];
+void TheoryStrings::assertPendingFact(Node atom, bool polarity, Node exp) {
+  Trace("strings-pending") << "Assert pending fact : " << atom << " " << polarity << " from " << exp << std::endl;
   Assert(atom.getKind() != kind::OR, "Infer error: a split.");
-  if (atom.getKind() == kind::EQUAL) {
+  if( atom.getKind()==kind::EQUAL ){
+    //AJR : is this necessary?
     for( unsigned j=0; j<2; j++ ) {
-      if( !d_equalityEngine.hasTerm( atom[j] ) ) {
+      if( !d_equalityEngine.hasTerm( atom[j] ) && atom[j].getType().isString() ) {
         //TODO: check!!!
-    registerTerm( atom[j] );
-        d_equalityEngine.addTerm( atom[j] );
+        registerTerm( atom[j] );
       }
     }
     d_equalityEngine.assertEquality( atom, polarity, exp );
   } else {
-    if ( atom.getKind() == kind::STRING_IN_REGEXP ) {
-      addMembership(fact);
-    } else if (atom.getKind() == kind::STRING_STRCTN) {
-      if(polarity) {
-        d_str_pos_ctn.push_back( atom );
-      } else {
-        d_str_neg_ctn.push_back( atom );
+    if( atom.getKind()==kind::STRING_IN_REGEXP ) {
+#ifdef LAZY_ADD_MEMBERSHIP
+      if( d_ext_func_terms.find( atom )==d_ext_func_terms.end() ){
+        Trace("strings-extf-debug") << "Found extended function (membership) : " << atom << std::endl;
+        d_ext_func_terms[atom] = true;
       }
+#else
+      addMembership( polarity ? atom : atom.negate() );
+#endif
     }
     d_equalityEngine.assertPredicate( atom, polarity, exp );
+  }
+  //collect extended function terms in the atom
+  if( options::stringExp() ){
+    std::map< Node, bool > visited;
+    collectExtendedFuncTerms( atom, visited );
   }
 }
 
@@ -836,10 +796,14 @@ void TheoryStrings::doPendingFacts() {
     Node exp = d_pending_exp[ fact ];
     if(fact.getKind() == kind::AND) {
       for(size_t j=0; j<fact.getNumChildren(); j++) {
-        assertPendingFact(fact[j], exp);
+        bool polarity = fact[j].getKind() != kind::NOT;
+        TNode atom = polarity ? fact[j] : fact[j][0];
+        assertPendingFact(atom, polarity, exp);
       }
     } else {
-      assertPendingFact(fact, exp);
+      bool polarity = fact.getKind() != kind::NOT;
+      TNode atom = polarity ? fact : fact[0];
+      assertPendingFact(atom, polarity, exp);
     }
     i++;
   }
@@ -1582,10 +1546,10 @@ bool TheoryStrings::processSimpleNEq( std::vector< std::vector< Node > > &normal
 
 //nf_exp is conjunction
 bool TheoryStrings::normalizeEquivalenceClass( Node eqc, std::vector< Node > & visited, std::vector< Node > & nf, std::vector< Node > & nf_exp ) {
-  Trace("strings-process") << "Process equivalence class " << eqc << std::endl;
+  Trace("strings-process-debug") << "Process equivalence class " << eqc << std::endl;
   if( std::find( visited.begin(), visited.end(), eqc )!=visited.end() ){
     getConcatVec( eqc, nf );
-    Trace("strings-process") << "Return process equivalence class " << eqc << " : already visited." << std::endl;
+    Trace("strings-process-debug") << "Return process equivalence class " << eqc << " : already visited." << std::endl;
     return false;
   } else if( areEqual( eqc, d_emptyString ) ) {
     eq::EqClassIterator eqc_i = eq::EqClassIterator( eqc, &d_equalityEngine );
@@ -1602,7 +1566,7 @@ bool TheoryStrings::normalizeEquivalenceClass( Node eqc, std::vector< Node > & v
       ++eqc_i;
     }
     //do nothing
-    Trace("strings-process") << "Return process equivalence class " << eqc << " : empty." << std::endl;
+    Trace("strings-process-debug") << "Return process equivalence class " << eqc << " : empty." << std::endl;
     d_normal_forms_base[eqc] = d_emptyString;
     d_normal_forms[eqc].clear();
     d_normal_forms_exp[eqc].clear();
@@ -1646,9 +1610,9 @@ bool TheoryStrings::normalizeEquivalenceClass( Node eqc, std::vector< Node > & v
       d_normal_forms_base[eqc] = normal_form_src.empty() ? eqc : normal_form_src[0];
       d_normal_forms[eqc].insert( d_normal_forms[eqc].end(), nf.begin(), nf.end() );
       d_normal_forms_exp[eqc].insert( d_normal_forms_exp[eqc].end(), nf_exp.begin(), nf_exp.end() );
-      Trace("strings-process") << "Return process equivalence class " << eqc << " : returned, size = " << nf.size() << std::endl;
+      Trace("strings-process-debug") << "Return process equivalence class " << eqc << " : returned, size = " << nf.size() << std::endl;
     } else {
-      Trace("strings-process") << "Return process equivalence class " << eqc << " : already computed, size = " << d_normal_forms[eqc].size() << std::endl;
+      Trace("strings-process-debug") << "Return process equivalence class " << eqc << " : already computed, size = " << d_normal_forms[eqc].size() << std::endl;
       nf.insert( nf.end(), d_normal_forms[eqc].begin(), d_normal_forms[eqc].end() );
       nf_exp.insert( nf_exp.end(), d_normal_forms_exp[eqc].begin(), d_normal_forms_exp[eqc].end() );
       result = true;
@@ -1880,7 +1844,7 @@ bool TheoryStrings::isNormalFormPair2( Node n1, Node n2 ) {
 }
 
 bool TheoryStrings::registerTerm( Node n ) {
-  if(d_registed_terms_cache.find(n) == d_registed_terms_cache.end()) {
+  if(d_registered_terms_cache.find(n) == d_registered_terms_cache.end()) {
     Debug("strings-register") << "TheoryStrings::registerTerm() " << n << endl;
     if(n.getType().isString()) {
       if(n.getKind() == kind::STRING_SUBSTR_TOTAL) {
@@ -1910,6 +1874,7 @@ bool TheoryStrings::registerTerm( Node n ) {
         Node sk = mkSkolemS("lsym", 2);
         Node eq = Rewriter::rewrite( sk.eqNode(n) );
         Trace("strings-lemma") << "Strings::Lemma LENGTH Term : " << eq << std::endl;
+        d_proxy_var[n] = sk;
         d_out->lemma(eq);
         Node skl = NodeManager::currentNM()->mkNode( kind::STRING_LENGTH, sk );
         Node lsum;
@@ -1932,7 +1897,7 @@ bool TheoryStrings::registerTerm( Node n ) {
           d_equalityEngine.assertEquality( ceq, true, d_true );
         }
       }
-      d_registed_terms_cache.insert(n);
+      d_registered_terms_cache.insert(n);
       return true;
     } else {
       AlwaysAssert(false, "String Terms only in registerTerm.");
@@ -1948,9 +1913,11 @@ void TheoryStrings::sendLemma( Node ant, Node conc, const char * c ) {
     Trace("strings-assert") << "(assert (not " << ant << ")) ; conflict" << std::endl;
     d_conflict = true;
   } else {
-    Node lem = NodeManager::currentNM()->mkNode( kind::IMPLIES, ant, conc );
+    Node lem;
     if( ant == d_true ) {
       lem = conc;
+    }else{
+      lem = NodeManager::currentNM()->mkNode( kind::IMPLIES, ant, conc );
     }
     Trace("strings-lemma") << "Strings::Lemma " << c << " : " << lem << std::endl;
     Trace("strings-assert") << "(assert " << lem << ") ; lemma " << c << std::endl;
@@ -1997,6 +1964,13 @@ void TheoryStrings::sendLengthLemma( Node n ){
   d_out->lemma(n_len_geq_zero);
   d_out->requirePhase( n_len_eq_z, true );
   d_out->requirePhase( n_len_eq_z_2, true );
+
+  //AJR: probably a good idea
+  if( options::stringLenGeqZ() ){
+    Node n_len_geq = NodeManager::currentNM()->mkNode( kind::GEQ, n_len, d_zero);
+    n_len_geq = Rewriter::rewrite( n_len_geq );
+    d_out->lemma( n_len_geq );
+  }
 }
 
 Node TheoryStrings::mkConcat( Node n1, Node n2 ) {
@@ -2037,16 +2011,15 @@ Node TheoryStrings::mkSkolemS( const char *c, int isLenSplit ) {
 }
 
 void TheoryStrings::collectTerm( Node n ) {
-  if(d_registed_terms_cache.find(n) == d_registed_terms_cache.end()) {
+  if(d_registered_terms_cache.find(n) == d_registered_terms_cache.end()) {
     d_terms_cache.push_back(n);
   }
 }
 
 
 void TheoryStrings::appendTermLemma() {
-  for(std::vector< Node >::const_iterator it=d_terms_cache.begin();
-      it!=d_terms_cache.begin();it++) {
-        registerTerm(*it);
+  for(std::vector< Node >::const_iterator it=d_terms_cache.begin(); it!=d_terms_cache.begin();it++) {
+    registerTerm(*it);
   }
 }
 
@@ -2124,64 +2097,6 @@ void TheoryStrings::getConcatVec( Node n, std::vector< Node >& c ) {
     c.push_back( n );
   }
 }
-/*
-bool TheoryStrings::checkSimple() {
-  bool addedLemma = false;
-  eq::EqClassesIterator eqcs_i = eq::EqClassesIterator( &d_equalityEngine );
-  while( !eqcs_i.isFinished() ) {
-    Node eqc = (*eqcs_i);
-    if (eqc.getType().isString()) {
-      //EqcInfo* ei = getOrMakeEqcInfo( eqc, true );
-      //get the constant for the equivalence class
-      //int c_len = ...;
-      eq::EqClassIterator eqc_i = eq::EqClassIterator( eqc, &d_equalityEngine );
-      while( !eqc_i.isFinished() ) {
-        Node n = (*eqc_i);
-        //length axiom
-        if( n.getKind() == kind::CONST_STRING || n.getKind() == kind::STRING_CONCAT ) {
-          if( d_length_nodes.find(n)==d_length_nodes.end() ) {
-            Trace("strings-dassert-debug") << "get n: " << n << endl;
-            Node sk;
-            //if( d_length_inst.find(n)==d_length_inst.end() ) {
-              //Node nr = d_equalityEngine.getRepresentative( n );
-              sk = NodeManager::currentNM()->mkSkolem( "lsym", n.getType(), "created for length" );
-              d_statistics.d_new_skolems += 1;
-              d_length_intro_vars.insert( sk );
-              Node eq = sk.eqNode(n);
-              eq = Rewriter::rewrite(eq);
-              Trace("strings-lemma") << "Strings::Lemma LENGTH Term : " << eq << std::endl;
-              d_out->lemma(eq);
-            //} else {
-            //  sk = d_length_inst[n];
-            //}
-            Node skl = NodeManager::currentNM()->mkNode( kind::STRING_LENGTH, sk );
-            Node lsum;
-            if( n.getKind() == kind::STRING_CONCAT ) {
-              std::vector<Node> node_vec;
-              for( unsigned i=0; i<n.getNumChildren(); i++ ) {
-                Node lni = NodeManager::currentNM()->mkNode( kind::STRING_LENGTH, n[i] );
-                node_vec.push_back(lni);
-              }
-              lsum = NodeManager::currentNM()->mkNode( kind::PLUS, node_vec );
-            } else if( n.getKind() == kind::CONST_STRING ) {
-              lsum = NodeManager::currentNM()->mkConst( ::CVC4::Rational( n.getConst<String>().size() ) );
-            }
-            Node ceq = Rewriter::rewrite( skl.eqNode( lsum ) );
-            Trace("strings-lemma") << "Strings::Lemma LENGTH : " << ceq << std::endl;
-            d_out->lemma(ceq);
-            addedLemma = true;
-
-            d_length_nodes.insert(n);
-          }
-        }
-        ++eqc_i;
-      }
-    }
-    ++eqcs_i;
-  }
-  return addedLemma;
-}
-  */
 
 bool TheoryStrings::checkNormalForms() {
   Trace("strings-process") << "Normalize equivalence classes...." << std::endl;
@@ -2244,7 +2159,7 @@ bool TheoryStrings::checkNormalForms() {
     getEquivalenceClasses( eqcs );
     for( unsigned i=0; i<eqcs.size(); i++ ) {
       Node eqc = eqcs[i];
-      Trace("strings-process") << "- Verify normal forms are the same for " << eqc << std::endl;
+      Trace("strings-process-debug") << "- Verify normal forms are the same for " << eqc << std::endl;
       std::vector< Node > visited;
       std::vector< Node > nf;
       std::vector< Node > nf_exp;
@@ -2279,7 +2194,7 @@ bool TheoryStrings::checkNormalForms() {
           eqc_to_exp[eqc] = nf_term_exp;
         }
       }
-      Trace("strings-process") << "Done verifying normal forms are the same for " << eqc << std::endl;
+      Trace("strings-process-debug") << "Done verifying normal forms are the same for " << eqc << std::endl;
     }
 
     if(Debug.isOn("strings-nf")) {
@@ -3279,21 +3194,222 @@ bool TheoryStrings::checkPDerivative(Node x, Node r, Node atom, bool &addedLemma
   return true;
 }
 
-bool TheoryStrings::checkContains() {
-  bool addedLemma = checkPosContains();
+bool TheoryStrings::checkExtendedFuncsEval() {
+  bool addedLemma = false;
+  Trace("strings-extf-debug") << "Checking " << d_ext_func_terms.size() << " extended functions." << std::endl;
+  for( NodeBoolMap::iterator it = d_ext_func_terms.begin(); it != d_ext_func_terms.end(); ++it ){
+    if( (*it).second ){
+      //check if all children are in eqc with a constant, if so, we can rewrite
+      Node n = (*it).first;
+      Trace("strings-extf-debug") << "Check extf " << n << "..." << std::endl;
+      std::vector< Node > children;
+      std::vector< Node > exp;
+      std::map< Node, Node > visited;
+      for( unsigned i=0; i<n.getNumChildren(); i++ ){
+        Node nc = inferConstantDefinition( n[i], exp, visited );
+        if( !nc.isNull() ){
+          Trace("strings-extf-debug") << "  child " << i << " : " << nc << std::endl;
+          children.push_back( nc );
+          Assert( nc.getType()==n[i].getType() );
+        }else{
+          Trace("strings-extf-debug") << "  unresolved due to " << n[i] << std::endl;
+          break;
+        }
+      }
+      if( children.size()==n.getNumChildren() ){
+        if (n.getMetaKind() == kind::metakind::PARAMETERIZED) {
+          children.insert(children.begin(),n.getOperator());
+        }
+        Trace("strings-extf-debug") << "  resolvable by evaluation..." << std::endl;
+        //mark as reduced
+        d_ext_func_terms[n] = false;
+        Node nr = NodeManager::currentNM()->mkNode( n.getKind(), children );
+        Node nrc = Rewriter::rewrite( nr );
+        Assert( nrc.isConst() );
+        Node nrs = getSymbolicDefinition( nr );
+        Node conc;
+        if( !nrs.isNull() ){
+          Trace("strings-extf-debug") << "  symbolic def : " << nrs << std::endl;
+          exp.clear();
+          if( !areEqual( nrs, nrc ) ){
+            //infer symbolic unit
+            if( n.getType().isBoolean() ){
+              conc = nrc==d_true ? nrs : nrs.negate();
+            }else{
+              conc = nrs.eqNode( nrc );
+            }
+          }
+        }else{
+          if( !areEqual( n, nrc ) ){
+            if( n.getType().isBoolean() ){
+              exp.push_back( n );
+              conc = d_false;
+            }else{
+              conc = n.eqNode( nrc );
+            }
+          }
+        }
+        if( !conc.isNull() ){
+          Trace("strings-extf") << "  resolve extf : " << nr << " -> " << nrc << std::endl;
+          if( n.getType().isInteger() || exp.empty() ){
+            sendLemma( mkExplain( exp ), conc, "EXTF" );
+            addedLemma = true;
+          }else{
+            sendInfer( mkExplain( exp ), conc, "EXTF" );
+          }
+          if( d_conflict ){
+            return true;
+          }
+        }
+      }else{
+        Trace("strings-extf-debug") << "  unresolved ext function : " << n << std::endl;
+      }
+    }
+  }
+  doPendingFacts();
+  if( addedLemma ){
+    doPendingLemmas();
+    return true;
+  }else{
+    return false;
+  }
+}
+
+Node TheoryStrings::inferConstantDefinition( Node n, std::vector< Node >& exp, std::map< Node, Node >& visited ) {
+  if( n.isConst() ){
+    return n;
+  }else{
+    Node nr = getRepresentative( n );
+    std::map< Node, Node >::iterator it = visited.find( nr );
+    if( it==visited.end() ){
+      visited[nr] = Node::null();
+      if( nr.isConst() ){
+        exp.push_back( n.eqNode( nr ) );
+        visited[nr] = nr;
+        return nr;
+      }else{
+        EqcInfo* ei = n.getType().isString() ? getOrMakeEqcInfo( nr, false ) : NULL;
+        if( ei && !ei->d_const_term.get().isNull() ){
+          exp.push_back( n.eqNode( ei->d_const_term.get() ) );
+          visited[nr] = ei->d_const_term.get();
+          return ei->d_const_term.get();
+        }else{
+          //scan the equivalence class
+          if( d_equalityEngine.hasTerm( nr ) ){
+            eq::EqClassIterator eqc_i = eq::EqClassIterator( nr, &d_equalityEngine );
+            while( !eqc_i.isFinished() ) {
+              if( (*eqc_i).isConst() ){
+                visited[nr] = *eqc_i;
+                return *eqc_i;
+              }
+              ++eqc_i;
+            }
+          }
+          if( n.getNumChildren()>0 ){
+            std::vector< Node > children;
+            for( unsigned i=0; i<n.getNumChildren(); i++ ){
+              Node nic = inferConstantDefinition( n[i], exp, visited );
+              if( nic.isNull() ){
+                break;
+              }else{
+                children.push_back( nic );
+              }
+            }
+            if( children.size()==n.getNumChildren() ){
+              if (n.getMetaKind() == kind::metakind::PARAMETERIZED) {
+                children.insert(children.begin(),n.getOperator());
+              }
+              Node ret = NodeManager::currentNM()->mkNode( n.getKind(), children );
+              visited[nr] = ret;
+              return ret;
+            }
+          }
+        }
+      }
+    }else{
+      return it->second;
+    }
+  }
+  return Node::null();
+}
+
+Node TheoryStrings::getSymbolicDefinition( Node n ) {
+  if( n.getNumChildren()==0 ){
+    NodeNodeMap::const_iterator it = d_proxy_var.find( n );
+    if( it==d_proxy_var.end() ){
+      return Node::null();
+    }else{
+      return (*it).second;
+    }
+  }else{
+    std::vector< Node > children;
+    if (n.getMetaKind() == kind::metakind::PARAMETERIZED) {
+      children.push_back( n.getOperator() );
+    }
+    for( unsigned i=0; i<n.getNumChildren(); i++ ){
+      if( n.getKind()==kind::STRING_IN_REGEXP && i==1 ){
+        children.push_back( n[i] );
+      }else{
+        Node ns = getSymbolicDefinition( n[i] );
+        if( ns.isNull() ){
+          return Node::null();
+        }else{
+          children.push_back( ns );
+        }
+      }
+    }
+    return NodeManager::currentNM()->mkNode( n.getKind(), children );
+  }
+}
+
+bool TheoryStrings::checkExtendedFuncs() {
+  std::map< bool, std::vector< Node > > pnContains;
+  std::map< bool, std::vector< Node > > pnMem;
+  for( NodeBoolMap::iterator it = d_ext_func_terms.begin(); it != d_ext_func_terms.end(); ++it ){
+    if( (*it).second ){
+      Node n = (*it).first;
+      if( n.getKind()==kind::STRING_STRCTN ) {
+        bool pol = areEqual( n, d_true );
+        Assert( pol || areEqual( n, d_false ) );
+        pnContains[pol].push_back( n );
+      }
+#ifdef LAZY_ADD_MEMBERSHIP
+      else if( n.getKind()==kind::STRING_IN_REGEXP ) {
+        bool pol = areEqual( n, d_true );
+        Assert( pol || areEqual( n, d_false ) );
+        pnMem[pol].push_back( n );
+      }
+#endif
+    }
+  }
+
+  bool addedLemma = checkPosContains( pnContains[true] );
   Trace("strings-process") << "Done check positive contain constraints, addedLemma = " << addedLemma << ", d_conflict = " << d_conflict << std::endl;
   if(!d_conflict && !addedLemma) {
-    addedLemma = checkNegContains();
+    addedLemma = checkNegContains( pnContains[false] );
     Trace("strings-process") << "Done check negative contain constraints, addedLemma = " << addedLemma << ", d_conflict = " << d_conflict << std::endl;
+    if(!d_conflict && !addedLemma) {
+      Trace("strings-process") << "Adding memberships..." << std::endl;
+      //add all non-evaluated memberships
+#ifdef LAZY_ADD_MEMBERSHIP
+      for( std::map< bool, std::vector< Node > >::iterator it=pnMem.begin(); it != pnMem.end(); ++it ){
+        for( unsigned i=0; i<it->second.size(); i++ ){
+          addMembership( it->first ? it->second[i] : it->second[i].negate() );
+        }
+      }
+#endif
+      addedLemma = checkMemberships();
+      Trace("strings-process") << "Done check memberships, addedLemma = " << addedLemma << ", d_conflict = " << d_conflict << std::endl;
+    }
   }
   return addedLemma;
 }
 
-bool TheoryStrings::checkPosContains() {
+bool TheoryStrings::checkPosContains( std::vector< Node >& posContains ) {
   bool addedLemma = false;
-  for( unsigned i=0; i<d_str_pos_ctn.size(); i++ ) {
+  for( unsigned i=0; i<posContains.size(); i++ ) {
     if( !d_conflict ){
-      Node atom = d_str_pos_ctn[i];
+      Node atom = posContains[i];
       Trace("strings-ctn") << "We have positive contain assertion : " << atom << std::endl;
       Assert( atom.getKind()==kind::STRING_STRCTN );
       Node x = atom[0];
@@ -3323,12 +3439,12 @@ bool TheoryStrings::checkPosContains() {
   }
 }
 
-bool TheoryStrings::checkNegContains() {
+bool TheoryStrings::checkNegContains( std::vector< Node >& negContains ) {
   bool addedLemma = false;
   //check for conflicts
-  for( unsigned i=0; i<d_str_neg_ctn.size(); i++ ){
+  for( unsigned i=0; i<negContains.size(); i++ ){
     if( !d_conflict ){
-      Node atom = d_str_neg_ctn[i];
+      Node atom = negContains[i];
       Trace("strings-ctn") << "We have negative contain assertion : (not " << atom << " )" << std::endl;
       if( areEqual( atom[1], d_emptyString ) ) {
         Node ant = NodeManager::currentNM()->mkNode( kind::AND, atom.negate(), atom[1].eqNode( d_emptyString ) );
@@ -3346,8 +3462,8 @@ bool TheoryStrings::checkNegContains() {
   if( !d_conflict ){
     //check for lemmas
     if(options::stringExp()) {
-      for( unsigned i=0; i<d_str_neg_ctn.size(); i++ ){
-        Node atom = d_str_neg_ctn[i];
+      for( unsigned i=0; i<negContains.size(); i++ ){
+        Node atom = negContains[i];
         Node x = atom[0];
         Node s = atom[1];
         Node lenx = getLength(x);
@@ -3410,13 +3526,45 @@ bool TheoryStrings::checkNegContains() {
         doPendingLemmas();
       }
     } else {
-      if( !d_str_neg_ctn.empty() ){
+      if( !negContains.empty() ){
         throw LogicException("Strings Incomplete (due to Negative Contain) by default, try --strings-exp option.");
       }
     }
   }
   return addedLemma;
 }
+
+bool TheoryStrings::checkExtendedFuncsReduction() {
+  bool addedLemmas = false;
+  //very lazy reduction?
+  /*
+  if( options::stringLazyPreproc() ){
+    for( NodeBoolMap::iterator it = d_ext_func_terms.begin(); it != d_ext_func_terms.end(); ++it ){
+      if( (*it).second ){
+        Node n = (*it).first;
+        if( n.getKind()!=kind::STRING_IN_REGEXP ){
+          if( d_preproc_cache.find( n )==d_preproc_cache.end() ){
+            d_preproc_cache[n] = true;
+            std::vector< Node > new_nodes;
+            Node res = d_preproc.decompose( n, new_nodes );
+            Assert( res==n );
+            if( !new_nodes.empty() ){
+              Node nnlem = new_nodes.size()==1 ? new_nodes[0] : NodeManager::currentNM()->mkNode( kind::AND, new_nodes );
+              nnlem = Rewriter::rewrite( nnlem );
+              Trace("strings-pp-lemma") << "Reduction lemma : " << nnlem << std::endl;
+              Trace("strings-pp-lemma") << "...from term " << n << std::endl;
+              d_out->lemma( nnlem );
+              addedLemmas = true;
+            }
+          }
+        }
+      }
+    }
+  }
+  */
+  return addedLemmas;
+}
+
 
 CVC4::String TheoryStrings::getHeadConst( Node x ) {
   if( x.isConst() ) {
@@ -3728,6 +3876,24 @@ Node TheoryStrings::mkSplitEq( const char * c, const char * info, Node lhs, Node
     d_lemma_cache.push_back( sk_gt_zero );
   }*/
   return eq;
+}
+
+void TheoryStrings::collectExtendedFuncTerms( Node n, std::map< Node, bool >& visited ) {
+  if( visited.find( n )==visited.end() ){
+    visited[n] = true;
+    if( n.getKind()==kind::STRING_SUBSTR_TOTAL || n.getKind()==kind::STRING_STRIDOF ||
+        n.getKind() == kind::STRING_ITOS || n.getKind() == kind::STRING_U16TOS || n.getKind() == kind::STRING_U32TOS ||
+        n.getKind() == kind::STRING_STOI || n.getKind() == kind::STRING_STOU16 || n.getKind() == kind::STRING_STOU32 ||
+        n.getKind() == kind::STRING_STRREPL || n.getKind() == kind::STRING_STRCTN ){
+      if( d_ext_func_terms.find( n )==d_ext_func_terms.end() ){
+        Trace("strings-extf-debug") << "Found extended function : " << n << std::endl;
+        d_ext_func_terms[n] = true;
+      }
+    }
+    for( unsigned i=0; i<n.getNumChildren(); i++ ){
+      collectExtendedFuncTerms( n[i], visited );
+    }
+  }
 }
 
 // Stats

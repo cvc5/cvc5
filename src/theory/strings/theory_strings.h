@@ -168,14 +168,14 @@ private:
   NodeSet d_loop_antec;
   NodeSet d_length_intro_vars;
   // preReg cache
-  NodeSet d_registed_terms_cache;
+  NodeSet d_registered_terms_cache;
   // term cache
   std::vector< Node > d_terms_cache;
   void collectTerm( Node n );
   void appendTermLemma();
   // preprocess cache
   StringsPreprocess d_preproc;
-  std::map< Node, Node > d_preproc_cache;
+  NodeBoolMap d_preproc_cache;
 
   /////////////////////////////////////////////////////////////////////////////
   // MODEL GENERATION
@@ -213,7 +213,7 @@ private:
   std::map< Node, EqcInfo* > d_eqc_info;
   EqcInfo * getOrMakeEqcInfo( Node eqc, bool doMake = true );
   //maintain which concat terms have the length lemma instantiated
-  NodeNodeMap d_length_inst;
+  NodeNodeMap d_proxy_var;
 private:
   void mergeCstVec(std::vector< Node > &vec_strings);
   bool getNormalForms(Node &eqc, std::vector< Node > & visited, std::vector< Node > & nf,
@@ -264,9 +264,13 @@ private:
   bool checkPDerivative(Node x, Node r, Node atom, bool &addedLemma,
     std::vector< Node > &processed, std::vector< Node > &cprocessed,
     std::vector< Node > &nf_exp);
-  bool checkContains();
-  bool checkPosContains();
-  bool checkNegContains();
+  bool checkExtendedFuncs();
+  bool checkPosContains( std::vector< Node >& posContains );
+  bool checkNegContains( std::vector< Node >& negContains );
+  bool checkExtendedFuncsEval();
+  Node inferConstantDefinition( Node n, std::vector< Node >& exp, std::map< Node, Node >& visited );
+  Node getSymbolicDefinition( Node n );
+  bool checkExtendedFuncsReduction();
 
 public:
   void preRegisterTerm(TNode n);
@@ -288,7 +292,7 @@ protected:
   void computeCareGraph();
 
   //do pending merges
-  void assertPendingFact(Node fact, Node exp);
+  void assertPendingFact(Node atom, bool polarity, Node exp);
   void doPendingFacts();
   void doPendingLemmas();
 
@@ -327,12 +331,14 @@ private:
   Node mkSplitEq( const char * c, const char * info, Node lhs, Node rhs, bool lgtZero );
 
   // Special String Functions
-  NodeList d_str_pos_ctn;
-  NodeList d_str_neg_ctn;
   NodeSet d_neg_ctn_eqlen;
   NodeSet d_neg_ctn_ulen;
   NodeSet d_pos_ctn_cached;
   NodeSet d_neg_ctn_cached;
+  //extended string terms and whether they have been reduced
+  NodeBoolMap d_ext_func_terms;
+  //collect extended operator terms
+  void collectExtendedFuncTerms( Node n, std::map< Node, bool >& visited );
 
   // Symbolic Regular Expression
 private:

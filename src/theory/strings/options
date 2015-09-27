@@ -35,4 +35,7 @@ option stringIgnNegMembership strings-inm --strings-inm bool :default false
 option stringLazyPreproc strings-lazy-pp --strings-lazy-pp bool :default true
  perform string preprocessing lazily
 
+option stringLenGeqZ strings-len-geqz --strings-len-geqz bool :default false
+ strings length greater than zero lemmas
+
 endmodule

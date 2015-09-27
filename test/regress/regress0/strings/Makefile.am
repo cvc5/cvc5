@@ -52,13 +52,14 @@ TESTS = \
   reloop.smt2 \
   unsound-0908.smt2 \
   ilc-like.smt2 \ 
+  ilc-l-nt.smt2 \ 
+  artemis-0512-nonterm.smt2 \
   indexof-sym-simp.smt2 \
   bug613.smt2
 
 FAILING_TESTS =
 
 EXTRA_DIST = $(TESTS) \
-  artemis-0512-nonterm.smt2 \
   fmf001.smt2 \
   type002.smt2
 
