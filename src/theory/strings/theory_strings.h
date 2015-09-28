@@ -269,7 +269,7 @@ private:
   bool checkNegContains( std::vector< Node >& negContains );
   bool checkExtendedFuncsEval();
   Node inferConstantDefinition( Node n, std::vector< Node >& exp, std::map< Node, Node >& visited );
-  Node getSymbolicDefinition( Node n );
+  Node getSymbolicDefinition( Node n, std::vector< Node >& exp );
   bool checkExtendedFuncsReduction();
 
 public:
@@ -327,6 +327,10 @@ protected:
   void separateByLength( std::vector< Node >& n, std::vector< std::vector< Node > >& col, std::vector< Node >& lts );
   void printConcat( std::vector< Node >& n, const char * c );
 
+  void inferSubstitutionProxyVars( Node n, std::vector< Node >& vars, std::vector< Node >& subs, std::vector< Node >& unproc, std::vector< Node >& exp );
+
+  std::map< Node, std::map< Node, Node > > d_skolem_cache;
+  Node mkSkolemSplit( Node a, Node b, const char * c );
 private:
   Node mkSplitEq( const char * c, const char * info, Node lhs, Node rhs, bool lgtZero );
 

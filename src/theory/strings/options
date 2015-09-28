@@ -38,4 +38,9 @@ option stringLazyPreproc strings-lazy-pp --strings-lazy-pp bool :default true
 option stringLenGeqZ strings-len-geqz --strings-len-geqz bool :default false
  strings length greater than zero lemmas
 
+option stringLenNorm strings-len-norm --strings-len-norm bool :default true
+ strings length normalization lemma
+option stringSplitEmp strings-sp-emp --strings-sp-emp bool :default true
+ strings split on empty string
+
 endmodule
