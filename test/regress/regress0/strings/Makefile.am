@@ -56,7 +56,9 @@ TESTS = \
   artemis-0512-nonterm.smt2 \
   indexof-sym-simp.smt2 \
   bug613.smt2 \
-  idof-triv.smt2
+  idof-triv.smt2 \
+  chapman150408.smt2 \
+  pierre150331.smt2
 
 FAILING_TESTS =
 

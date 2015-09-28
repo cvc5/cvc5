@@ -329,8 +329,8 @@ protected:
 
   void inferSubstitutionProxyVars( Node n, std::vector< Node >& vars, std::vector< Node >& subs, std::vector< Node >& unproc, std::vector< Node >& exp );
 
-  std::map< Node, std::map< Node, Node > > d_skolem_cache;
-  Node mkSkolemSplit( Node a, Node b, const char * c );
+  std::map< Node, std::map< Node, std::map< int, Node > > > d_skolem_cache;
+  Node mkSkolemSplit( Node a, Node b, const char * c, int isLenSplit = 0 );
 private:
   Node mkSplitEq( const char * c, const char * info, Node lhs, Node rhs, bool lgtZero );
 
