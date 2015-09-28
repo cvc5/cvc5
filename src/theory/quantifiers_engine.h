@@ -29,6 +29,8 @@
 #include <ext/hash_set>
 #include <iostream>
 #include <map>
+#include "context/cdchunk_list.h"
+#include "context/cdhashset.h"
 
 namespace CVC4 {
 
@@ -113,8 +115,11 @@ class QuantifiersEngine {
   friend class quantifiers::RewriteEngine;
   friend class quantifiers::QuantConflictFind;
   friend class inst::InstMatch;
-private:
   typedef context::CDHashMap< Node, bool, NodeHashFunction > BoolMap;
+  typedef context::CDChunkList<Node> NodeList;
+  typedef context::CDChunkList<bool> BoolList;
+  typedef context::CDHashSet<Node, NodeHashFunction> NodeSet;
+private:
   /** reference to theory engine object */
   TheoryEngine* d_te;
   /** vector of modules for quantifiers */
@@ -197,9 +202,10 @@ private:
   /** has presolve been called */
   context::CDO< bool > d_presolve;
   /** presolve cache */
-  std::vector< Node > d_presolve_cache;
-  std::vector< bool > d_presolve_cache_wq;
-  std::vector< bool > d_presolve_cache_wic;
+  NodeSet d_presolve_in;
+  NodeList d_presolve_cache;
+  BoolList d_presolve_cache_wq;
+  BoolList d_presolve_cache_wic;
 private:
   KEEP_STATISTIC(TimerStat, d_time, "theory::QuantifiersEngine::time");
 public:

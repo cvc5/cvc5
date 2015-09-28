@@ -58,7 +58,8 @@ TESTS = \
   bug613.smt2 \
   idof-triv.smt2 \
   chapman150408.smt2 \
-  pierre150331.smt2
+  pierre150331.smt2 \
+  norn-360.smt2
 
 FAILING_TESTS =
 

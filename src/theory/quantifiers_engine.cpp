@@ -83,7 +83,11 @@ QuantifiersEngine::QuantifiersEngine(context::Context* c, context::UserContext* 
 d_te( te ),
 d_lemmas_produced_c(u),
 d_skolemized(u),
-d_presolve(u, true){
+d_presolve(u, true),
+d_presolve_in(u),
+d_presolve_cache(u),
+d_presolve_cache_wq(u),
+d_presolve_cache_wic(u){
   d_eq_query = new EqualityQueryQuantifiersEngine( this );
   d_term_db = new quantifiers::TermDb( c, u, this );
   d_tr_trie = new inst::TriggerTrie;
@@ -300,13 +304,12 @@ void QuantifiersEngine::presolve() {
   }
   d_term_db->presolve();
   d_presolve = false;
-  //clear presolve cache
-  for( unsigned i=0; i<d_presolve_cache.size(); i++ ){
-    addTermToDatabase( d_presolve_cache[i], d_presolve_cache_wq[i], d_presolve_cache_wic[i] );
+  //add all terms to database
+  if( options::incrementalSolving() ){
+    for( unsigned i=0; i<d_presolve_cache.size(); i++ ){
+      addTermToDatabase( d_presolve_cache[i], d_presolve_cache_wq[i], d_presolve_cache_wic[i] );
+    }
   }
-  d_presolve_cache.clear();
-  d_presolve_cache_wq.clear();
-  d_presolve_cache_wic.clear();
 }
 
 void QuantifiersEngine::check( Theory::Effort e ){
@@ -627,11 +630,16 @@ quantifiers::TermDbSygus* QuantifiersEngine::getTermDatabaseSygus() {
 }
 
 void QuantifiersEngine::addTermToDatabase( Node n, bool withinQuant, bool withinInstClosure ){
-  if( d_presolve ){
-    d_presolve_cache.push_back( n );
-    d_presolve_cache_wq.push_back( withinQuant );
-    d_presolve_cache_wic.push_back( withinInstClosure );
-  }else{
+  if( options::incrementalSolving() ){
+    if( d_presolve_in.find( n )==d_presolve_in.end() ){
+      d_presolve_in.insert( n );
+      d_presolve_cache.push_back( n );
+      d_presolve_cache_wq.push_back( withinQuant );
+      d_presolve_cache_wic.push_back( withinInstClosure );
+    }
+  }
+  //only wait if we are doing incremental solving
+  if( !d_presolve || !options::incrementalSolving() ){
     std::set< Node > added;
     getTermDatabase()->addTerm( n, added, withinQuant, withinInstClosure );
     //maybe have triggered instantiations if we are doing eager instantiation

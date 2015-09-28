@@ -420,11 +420,13 @@ void TermDb::setHasTerm( Node n ) {
 }
 
 void TermDb::presolve() {
-  //reset the caches that are SAT context-independent
-  d_op_map.clear();
-  d_type_map.clear();
-  d_processed.clear();
-  d_iclosure_processed.clear();
+  if( options::incrementalSolving() ){
+    //reset the caches that are SAT context-independent
+    d_op_map.clear();
+    d_type_map.clear();
+    d_processed.clear();
+    d_iclosure_processed.clear();
+  }
 }
 
 void TermDb::reset( Theory::Effort effort ){
