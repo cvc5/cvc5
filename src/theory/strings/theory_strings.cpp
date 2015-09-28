@@ -1207,6 +1207,7 @@ bool TheoryStrings::processLoop(std::vector< Node > &antec,
   return true;
 }
 Node TheoryStrings::mkSkolemSplit( Node a, Node b, const char * c, int isLenSplit ){
+  //return mkSkolemS( c, isLenSplit );
   std::map< int, Node >::iterator it = d_skolem_cache[a][b].find( isLenSplit );
   if( it==d_skolem_cache[a][b].end() ){
     Node sk = mkSkolemS( c, isLenSplit );
@@ -1215,6 +1216,7 @@ Node TheoryStrings::mkSkolemSplit( Node a, Node b, const char * c, int isLenSpli
   }else{
     return it->second;
   }
+
 }
 
 bool TheoryStrings::processNEqc(std::vector< std::vector< Node > > &normal_forms,
@@ -3328,13 +3330,14 @@ bool TheoryStrings::checkExtendedFuncsEval() {
           }
         }else{
           if( !areEqual( n, nrc ) ){
-            expl = mkExplain( exp );
             if( n.getType().isBoolean() ){
               exp.push_back( nrc==d_true ? n.negate() : n );
+              //exp.push_back( n );
               conc = d_false;
             }else{
               conc = n.eqNode( nrc );
             }
+            expl = mkExplain( exp );
           }
         }
         if( !conc.isNull() ){
