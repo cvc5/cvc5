@@ -43,7 +43,8 @@ BUG_TESTS = \
   bug654-dd.smt2 \
   bug-fmf-fun-skolem.smt2 \
   bug674.smt2 \
-  inc-double-u.smt2
+  inc-double-u.smt2 \
+  fmf-fun-dbu.smt2
 
 TESTS =	$(SMT_TESTS) $(SMT2_TESTS) $(CVC_TESTS) $(BUG_TESTS)
 

@@ -706,6 +706,11 @@ void StrongSolverTheoryUF::SortModel::check( Theory::Effort level, OutputChannel
   }
 }
 
+void StrongSolverTheoryUF::SortModel::presolve() {
+  d_initialized = false;
+  d_aloc_cardinality = 0;
+}
+
 void StrongSolverTheoryUF::SortModel::propagate( Theory::Effort level, OutputChannel* out ){
 
 }
@@ -719,11 +724,14 @@ Node StrongSolverTheoryUF::SortModel::getNextDecisionRequest(){
       if( d_cardinality_assertions.find( cn )==d_cardinality_assertions.end() ){
         Trace("uf-ss-dec") << "UFSS : Get next decision " << d_type << " " << i << std::endl;
         return cn;
+      }else{
+        Trace("uf-ss-dec-debug") << "  dec : " << cn << " already asserted " << d_cardinality_assertions[cn].get() << std::endl;
       }
     }
   }
   Trace("uf-ss-dec") << "UFSS : no decisions for " << d_type << "." << std::endl;
   Trace("uf-ss-dec-debug") << "  aloc_cardinality = " << d_aloc_cardinality << ", cardinality = " << d_cardinality << ", hasCard = " << d_hasCard << std::endl;
+  Assert( d_hasCard );
   return Node::null();
 }
 
@@ -834,6 +842,7 @@ void StrongSolverTheoryUF::SortModel::assertCardinality( OutputChannel* out, int
   if( !d_conflict ){
     Trace("uf-ss-assert") << "Assert cardinality " << d_type << " " << c << " " << val << " level = ";
     Trace("uf-ss-assert") << d_thss->getTheory()->d_valuation.getAssertionLevel() << std::endl;
+    Assert( c>0 );
     Node cl = getCardinalityLiteral( c );
     d_cardinality_assertions[ cl ] = val;
     if( val ){
@@ -878,10 +887,12 @@ void StrongSolverTheoryUF::SortModel::assertCardinality( OutputChannel* out, int
       if( !d_hasCard ){
         bool needsCard = true;
         for( std::map< int, Node >::iterator it = d_cardinality_literal.begin(); it!=d_cardinality_literal.end(); ++it ){
-          if( d_cardinality_assertions.find( it->second )==d_cardinality_assertions.end() ){
-            Debug("fmf-card-debug") << "..does not need allocate because of " << it->second << std::endl;
-            needsCard = false;
-            break;
+          if( it->first<=d_aloc_cardinality.get() ){
+            if( d_cardinality_assertions.find( it->second )==d_cardinality_assertions.end() ){
+              Debug("fmf-card-debug") << "..does not need allocate because of " << it->second << std::endl;
+              needsCard = false;
+              break;
+            }
           }
         }
         if( needsCard ){
@@ -1702,6 +1713,14 @@ void StrongSolverTheoryUF::check( Theory::Effort level ){
   }
 }
 
+void StrongSolverTheoryUF::presolve() {
+  d_aloc_com_card.set( 0 );
+  for( std::map< TypeNode, SortModel* >::iterator it = d_rep_model.begin(); it != d_rep_model.end(); ++it ){
+    it->second->presolve();
+    it->second->initialize( d_out );
+  }
+}
+
 /** propagate */
 void StrongSolverTheoryUF::propagate( Theory::Effort level ){
   //for( std::map< TypeNode, SortModel* >::iterator it = d_rep_model.begin(); it != d_rep_model.end(); ++it ){
@@ -1779,14 +1798,14 @@ void StrongSolverTheoryUF::preRegisterTerm( TNode n ){
   }
 }
 
-void StrongSolverTheoryUF::registerQuantifier( Node f ){
-  Debug("uf-ss-register") << "Register quantifier " << f << std::endl;
+//void StrongSolverTheoryUF::registerQuantifier( Node f ){
+//  Debug("uf-ss-register") << "Register quantifier " << f << std::endl;
   //must ensure the quantifier does not quantify over arithmetic
   //for( int i=0; i<(int)f[0].getNumChildren(); i++ ){
   //  TypeNode tn = f[0][i].getType();
   //  preRegisterType( tn, true );
   //}
-}
+//}
 
 
 StrongSolverTheoryUF::SortModel* StrongSolverTheoryUF::getSortModel( Node n ){
@@ -1798,15 +1817,10 @@ StrongSolverTheoryUF::SortModel* StrongSolverTheoryUF::getSortModel( Node n ){
     it = d_rep_model.find( tn );
   }
   if( it!=d_rep_model.end() ){
-    //initialize the type if necessary
-    //if( d_rep_model_init.find( tn )==d_rep_model_init.end() ){
-      ////initialize the model
-      //it->second->initialize( d_out );
-      //d_rep_model_init[tn] = true;
-    //}
     return it->second;
+  }else{
+    return NULL;
   }
-  return NULL;
 }
 
 void StrongSolverTheoryUF::notifyRestart(){

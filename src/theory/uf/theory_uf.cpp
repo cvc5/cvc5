@@ -265,6 +265,9 @@ void TheoryUF::presolve() {
       d_out->lemma(*i);
     }
   }
+  if( d_thss ){
+    d_thss->presolve();
+  }
   Debug("uf") << "uf: end presolve()" << endl;
 }
 

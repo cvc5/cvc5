@@ -1549,6 +1549,10 @@ bool TermDb::isComm( Kind k ) {
          k==BITVECTOR_PLUS || k==BITVECTOR_MULT || k==BITVECTOR_AND || k==BITVECTOR_OR || k==BITVECTOR_XOR || k==BITVECTOR_XNOR;
 }
 
+bool TermDb::isBoolConnective( Kind k ) {
+  return k==OR || k==AND || k==IFF || k==ITE || k==FORALL || k==NOT;
+}
+
 void TermDb::registerTrigger( theory::inst::Trigger* tr, Node op ){
   if( std::find( d_op_triggers[op].begin(), d_op_triggers[op].end(), tr )==d_op_triggers[op].end() ){
     d_op_triggers[op].push_back( tr );

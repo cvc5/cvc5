@@ -1649,7 +1649,7 @@ void MatchGen::setInvalid() {
 }
 
 bool MatchGen::isHandledBoolConnective( TNode n ) {
-  return n.getType().isBoolean() && ( n.getKind()==OR || n.getKind()==AND || n.getKind()==IFF || n.getKind()==ITE || n.getKind()==FORALL || n.getKind()==NOT );
+  return n.getType().isBoolean() && TermDb::isBoolConnective( n.getKind() );
 }
 
 bool MatchGen::isHandledUfTerm( TNode n ) {

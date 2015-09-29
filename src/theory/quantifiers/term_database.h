@@ -394,6 +394,8 @@ public:
   static bool isAssoc( Kind k );
   /** is comm */
   static bool isComm( Kind k );
+  /** is bool connective */
+  static bool isBoolConnective( Kind k );
 
 //for sygus
 private:

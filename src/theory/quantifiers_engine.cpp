@@ -298,7 +298,7 @@ bool QuantifiersEngine::hasOwnership( Node q, QuantifiersModule * m ) {
 }
 
 void QuantifiersEngine::presolve() {
-  Trace("quant-engine-debug") << "QuantifiersEngine : presolve " << std::endl;
+  Trace("quant-engine-proc") << "QuantifiersEngine : presolve " << std::endl;
   for( unsigned i=0; i<d_modules.size(); i++ ){
     d_modules[i]->presolve();
   }
@@ -306,9 +306,11 @@ void QuantifiersEngine::presolve() {
   d_presolve = false;
   //add all terms to database
   if( options::incrementalSolving() ){
+    Trace("quant-engine-proc") << "Add presolve cache " << d_presolve_cache.size() << std::endl;
     for( unsigned i=0; i<d_presolve_cache.size(); i++ ){
       addTermToDatabase( d_presolve_cache[i], d_presolve_cache_wq[i], d_presolve_cache_wic[i] );
     }
+    Trace("quant-engine-proc") << "Done add presolve cache " << std::endl;
   }
 }
 
@@ -558,9 +560,9 @@ bool QuantifiersEngine::registerQuantifier( Node f ){
       //generate the phase requirements
       d_phase_reqs[f] = new QuantPhaseReq( ceBody, true );
       //also register it with the strong solver
-      if( options::finiteModelFind() ){
-        ((uf::TheoryUF*)d_te->theoryOf( THEORY_UF ))->getStrongSolver()->registerQuantifier( f );
-      }
+      //if( options::finiteModelFind() ){
+      //  ((uf::TheoryUF*)d_te->theoryOf( THEORY_UF ))->getStrongSolver()->registerQuantifier( f );
+      //}
       d_quants[f] = true;
       return true;
     }

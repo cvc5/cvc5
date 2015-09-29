@@ -65,7 +65,12 @@ private:
   std::map< Node, std::map< Node, Node > > d_aux_eq;
   //the CE variables
   std::vector< Node > d_vars;
+  //atoms of the CE lemma
+  bool d_is_nested_quant;
+  std::vector< Node > d_ce_atoms;
 private:
+  //collect atoms
+  void collectCeAtoms( Node n, std::map< Node, bool >& visited );
   //for adding instantiations during check
   void computeProgVars( Node n );
   //solved form, involves substitution with coefficients

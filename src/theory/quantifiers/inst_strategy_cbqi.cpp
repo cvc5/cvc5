@@ -39,6 +39,7 @@ d_qe( qe ), d_out( out ), d_use_vts_delta( use_vts_delta ), d_use_vts_inf( use_v
   d_zero = NodeManager::currentNM()->mkConst( Rational( 0 ) );
   d_one = NodeManager::currentNM()->mkConst( Rational( 1 ) );
   d_true = NodeManager::currentNM()->mkConst( true );
+  d_is_nested_quant = false;
 }
 
 void CegInstantiator::computeProgVars( Node n ){
@@ -1202,8 +1203,13 @@ void CegInstantiator::processAssertions() {
       //collect all assertions from theory
       for( context::CDList<Assertion>::const_iterator it = theory->facts_begin(); it != theory->facts_end(); ++ it) {
         Node lit = (*it).assertion;
-        d_curr_asserts[tid].push_back( lit );
-        Trace("cbqi-proc-debug") << "...add : " << lit << std::endl;
+        Node atom = lit.getKind()==NOT ? lit[0] : lit;
+        if( d_is_nested_quant || std::find( d_ce_atoms.begin(), d_ce_atoms.end(), atom )!=d_ce_atoms.end() ){
+          d_curr_asserts[tid].push_back( lit );
+          Trace("cbqi-proc-debug") << "...add : " << lit << std::endl;
+        }else{
+          Trace("cbqi-proc") << "...do not consider literal " << tid << " : " << lit << " since it is not part of CE body." << std::endl;
+        }
         if( lit.getKind()==EQUAL ){
           std::map< Node, std::map< Node, Node > >::iterator itae = d_aux_eq.find( lit );
           if( itae!=d_aux_eq.end() ){
@@ -1338,6 +1344,25 @@ void CegInstantiator::addToAuxVarSubstitution( std::vector< Node >& subs_lhs, st
   subs_rhs.push_back( r );
 }
 
+void CegInstantiator::collectCeAtoms( Node n, std::map< Node, bool >& visited ) {
+  if( n.getKind()==FORALL ){
+    d_is_nested_quant = true;
+  }else{
+    if( visited.find( n )==visited.end() ){
+      visited[n] = true;
+      if( TermDb::isBoolConnective( n.getKind() ) ){
+        for( unsigned i=0; i<n.getNumChildren(); i++ ){
+          collectCeAtoms( n[i], visited );
+        }
+      }else{
+        if( std::find( d_ce_atoms.begin(), d_ce_atoms.end(), n )==d_ce_atoms.end() ){
+          d_ce_atoms.push_back( n );
+        }
+      }
+    }
+  }
+}
+
 void CegInstantiator::registerCounterexampleLemma( std::vector< Node >& lems, std::vector< Node >& ce_vars ) {
   Assert( d_vars.empty() );
   d_vars.insert( d_vars.end(), ce_vars.begin(), ce_vars.end() );
@@ -1367,6 +1392,10 @@ void CegInstantiator::registerCounterexampleLemma( std::vector< Node >& lems, st
     }
     lems[i] = rlem;
   }
+  //collect atoms from lem[0]: we will only do bounds coming from original body
+  d_is_nested_quant = false;
+  std::map< Node, bool > visited;
+  collectCeAtoms( lems[0], visited );
 }
 
 //old implementation

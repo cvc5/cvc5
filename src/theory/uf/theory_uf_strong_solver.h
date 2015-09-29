@@ -268,6 +268,8 @@ public:
     bool areDisequal( Node a, Node b );
     /** check */
     void check( Theory::Effort level, OutputChannel* out );
+    /** presolve */
+    void presolve();
     /** propagate */
     void propagate( Theory::Effort level, OutputChannel* out );
     /** get next decision request */
@@ -365,6 +367,8 @@ public:
 public:
   /** check */
   void check( Theory::Effort level );
+  /** presolve */
+  void presolve();
   /** propagate */
   void propagate( Theory::Effort level );
   /** get next decision request */
@@ -372,7 +376,7 @@ public:
   /** preregister a term */
   void preRegisterTerm( TNode n );
   /** preregister a quantifier */
-  void registerQuantifier( Node f );
+  //void registerQuantifier( Node f );
   /** notify restart */
   void notifyRestart();
 public:
