@@ -244,10 +244,10 @@ private:
   Node mkRegExpAntec(Node atom, Node ant);
 
   //bool checkSimple();
-  bool checkNormalForms();
+  void checkNormalForms();
   void checkDeqNF();
-  bool checkLengthsEqc();
-  bool checkCardinality();
+  void checkLengthsEqc();
+  void checkCardinality();
   bool checkInductiveEquations();
   //check membership constraints
   Node normalizeRegexp(Node r);
@@ -258,19 +258,19 @@ private:
   bool checkMembershipsWithoutLength(
     std::map< Node, std::vector< Node > > &memb_with_exps,
     std::map< Node, std::vector< Node > > &XinR_with_exps);
-  bool checkMemberships();
+  void checkMemberships();
   //temp
   bool checkMemberships2();
   bool checkPDerivative(Node x, Node r, Node atom, bool &addedLemma,
     std::vector< Node > &processed, std::vector< Node > &cprocessed,
     std::vector< Node > &nf_exp);
-  bool checkExtendedFuncs();
-  bool checkPosContains( std::vector< Node >& posContains );
-  bool checkNegContains( std::vector< Node >& negContains );
-  bool checkExtendedFuncsEval();
+  void checkExtendedFuncs();
+  void checkPosContains( std::vector< Node >& posContains );
+  void checkNegContains( std::vector< Node >& negContains );
+  void checkExtendedFuncsEval();
   Node inferConstantDefinition( Node n, std::vector< Node >& exp, std::map< Node, Node >& visited );
   Node getSymbolicDefinition( Node n, std::vector< Node >& exp );
-  bool checkExtendedFuncsReduction();
+  void checkExtendedFuncsReduction();
 
 public:
   void preRegisterTerm(TNode n);
