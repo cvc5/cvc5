@@ -26,6 +26,7 @@
 
 #include "context/cdchunk_list.h"
 #include "context/cdhashset.h"
+#include "expr/attribute.h"
 
 #include <climits>
 
@@ -37,6 +38,9 @@ namespace strings {
  * Decision procedure for strings.
  *
  */
+
+struct StringsProxyVarAttributeId {};
+typedef expr::Attribute< StringsProxyVarAttributeId, bool > StringsProxyVarAttribute;
 
 class TheoryStrings : public Theory {
   typedef context::CDChunkList<Node> NodeList;
@@ -169,13 +173,27 @@ private:
   NodeSet d_length_intro_vars;
   // preReg cache
   NodeSet d_registered_terms_cache;
-  // term cache
-  std::vector< Node > d_terms_cache;
-  void collectTerm( Node n );
-  void appendTermLemma();
   // preprocess cache
   StringsPreprocess d_preproc;
   NodeBoolMap d_preproc_cache;
+
+  bool hasProcessed();
+  void addToExplanation( Node a, Node b, std::vector< Node >& exp );
+private:
+  std::vector< Node > d_congruent;
+  std::map< Node, Node > d_eqc_to_const;
+  std::map< Node, Node > d_eqc_to_const_base;
+  std::map< Node, Node > d_eqc_to_const_exp;
+  Node d_emptyString_r;
+  class TermIndex {
+  public:
+    Node d_data;
+    std::map< Node, TermIndex > d_children;
+    Node add( Node n, unsigned index, TheoryStrings* t, Node er, std::vector< Node >& c );
+    void clear(){ d_children.clear(); }
+  };
+  std::map< Kind, TermIndex > d_term_index;
+  std::map< Node, std::vector< Node > > d_eqc;
 
   /////////////////////////////////////////////////////////////////////////////
   // MODEL GENERATION
@@ -243,8 +261,11 @@ private:
   //bool unrollStar( Node atom );
   Node mkRegExpAntec(Node atom, Node ant);
 
-  //bool checkSimple();
+  void checkInit();
+  void checkConstantEquivalenceClasses( TermIndex* ti, std::vector< Node >& vecc );
+  void checkExtendedFuncsEval();
   void checkNormalForms();
+  Node checkCycles( Node eqc, std::vector< Node >& eqcs, std::vector< Node >& curr, std::vector< Node >& exp );
   void checkDeqNF();
   void checkLengthsEqc();
   void checkCardinality();
@@ -267,7 +288,6 @@ private:
   void checkExtendedFuncs();
   void checkPosContains( std::vector< Node >& posContains );
   void checkNegContains( std::vector< Node >& negContains );
-  void checkExtendedFuncsEval();
   Node inferConstantDefinition( Node n, std::vector< Node >& exp, std::map< Node, Node >& visited );
   Node getSymbolicDefinition( Node n, std::vector< Node >& exp );
   void checkExtendedFuncsReduction();
@@ -327,7 +347,7 @@ protected:
   void separateByLength( std::vector< Node >& n, std::vector< std::vector< Node > >& col, std::vector< Node >& lts );
   void printConcat( std::vector< Node >& n, const char * c );
 
-  void inferSubstitutionProxyVars( Node n, std::vector< Node >& vars, std::vector< Node >& subs, std::vector< Node >& unproc, std::vector< Node >& exp );
+  void inferSubstitutionProxyVars( Node n, std::vector< Node >& vars, std::vector< Node >& subs, std::vector< Node >& unproc );
 
   std::map< Node, std::map< Node, std::map< int, Node > > > d_skolem_cache;
   Node mkSkolemSplit( Node a, Node b, const char * c, int isLenSplit = 0 );
