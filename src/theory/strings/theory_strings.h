@@ -29,6 +29,7 @@
 #include "expr/attribute.h"
 
 #include <climits>
+#include <deque>
 
 namespace CVC4 {
 namespace theory {
@@ -184,6 +185,7 @@ private:
   std::map< Node, Node > d_eqc_to_const;
   std::map< Node, Node > d_eqc_to_const_base;
   std::map< Node, Node > d_eqc_to_const_exp;
+  std::vector< Node > d_strings_eqc;
   Node d_emptyString_r;
   class TermIndex {
   public:
@@ -193,8 +195,25 @@ private:
     void clear(){ d_children.clear(); }
   };
   std::map< Kind, TermIndex > d_term_index;
+  // (ordered) strings eqc to process
+  std::vector< Node > d_eqcs;
+  //list of non-congruent concat terms in each eqc
   std::map< Node, std::vector< Node > > d_eqc;
+  //their flat forms
+  /*
+  class FlatForm {
+  public:
+    Node d_node;
+    std::deque< Node > d_vec;
+    std::deque< std::vector< Node > > d_exp;
+  };
+  std::map< Node, FlatForm > d_flat_form;
+  std::map< Node, FlatForm > d_flat_form_proc;
+  */
+  std::map< Node, std::vector< Node > > d_flat_form;
+  std::map< Node, std::vector< int > > d_flat_form_index;
 
+  void debugPrintFlatForms( const char * tc );
   /////////////////////////////////////////////////////////////////////////////
   // MODEL GENERATION
   /////////////////////////////////////////////////////////////////////////////
@@ -263,9 +282,9 @@ private:
 
   void checkInit();
   void checkConstantEquivalenceClasses( TermIndex* ti, std::vector< Node >& vecc );
-  void checkExtendedFuncsEval();
+  void checkExtendedFuncsEval( int effort = 0 );
   void checkNormalForms();
-  Node checkCycles( Node eqc, std::vector< Node >& eqcs, std::vector< Node >& curr, std::vector< Node >& exp );
+  Node checkCycles( Node eqc, std::vector< Node >& curr, std::vector< Node >& exp );
   void checkDeqNF();
   void checkLengthsEqc();
   void checkCardinality();
@@ -352,7 +371,6 @@ protected:
   std::map< Node, std::map< Node, std::map< int, Node > > > d_skolem_cache;
   Node mkSkolemSplit( Node a, Node b, const char * c, int isLenSplit = 0 );
 private:
-  Node mkSplitEq( const char * c, const char * info, Node lhs, Node rhs, bool lgtZero );
 
   // Special String Functions
   NodeSet d_neg_ctn_eqlen;

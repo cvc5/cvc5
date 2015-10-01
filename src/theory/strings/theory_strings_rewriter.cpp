@@ -939,6 +939,14 @@ RewriteResponse TheoryStringsRewriter::postRewrite(TNode node) {
           if(node[0][i] == node[1]) {
             flag = true;
             break;
+          //constant contains
+          }else if( node[0][i].isConst() && node[1].isConst() ){
+            CVC4::String s = node[0][i].getConst<String>();
+            CVC4::String t = node[1].getConst<String>();
+            if( s.find(t) != std::string::npos ) {
+              flag = true;
+              break;
+            }
           }
         }
         if(flag) {
