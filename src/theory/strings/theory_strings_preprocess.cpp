@@ -218,37 +218,30 @@ Node StringsPreprocess::simplify( Node t, std::vector< Node > &new_nodes, bool d
     new_nodes.push_back( lemma );
     d_cache[t] = t;
   } else if( t.getKind() == kind::STRING_STRIDOF ) {
-    Node sk1 = NodeManager::currentNM()->mkSkolem( "io1", NodeManager::currentNM()->stringType(), "created for indexof" );
     Node sk2 = NodeManager::currentNM()->mkSkolem( "io2", NodeManager::currentNM()->stringType(), "created for indexof" );
     Node sk3 = NodeManager::currentNM()->mkSkolem( "io3", NodeManager::currentNM()->stringType(), "created for indexof" );
     Node sk4 = NodeManager::currentNM()->mkSkolem( "io4", NodeManager::currentNM()->stringType(), "created for indexof" );
     Node skk = NodeManager::currentNM()->mkSkolem( "iok", NodeManager::currentNM()->integerType(), "created for indexof" );
-    Node eq = t[0].eqNode( NodeManager::currentNM()->mkNode( kind::STRING_CONCAT, sk1, sk2, sk3, sk4 ) );
+    Node st = NodeManager::currentNM()->mkNode( kind::STRING_SUBSTR_TOTAL, t[0], t[2], NodeManager::currentNM()->mkNode( kind::STRING_LENGTH, t[0] ) );
+    Node eq = st.eqNode( NodeManager::currentNM()->mkNode( kind::STRING_CONCAT, sk2, sk3, sk4 ) );
     new_nodes.push_back( eq );
     Node negone = NodeManager::currentNM()->mkConst( ::CVC4::Rational(-1) );
     Node krange = NodeManager::currentNM()->mkNode( kind::GEQ, skk, negone );
     new_nodes.push_back( krange );
-    krange = Rewriter::rewrite( NodeManager::currentNM()->mkNode( kind::GT,
-          NodeManager::currentNM()->mkNode( kind::STRING_LENGTH, t[0] ), skk) );
+    krange = Rewriter::rewrite( NodeManager::currentNM()->mkNode( kind::GT, NodeManager::currentNM()->mkNode( kind::STRING_LENGTH, t[0] ), skk) );
     new_nodes.push_back( krange );
-    krange = Rewriter::rewrite( NodeManager::currentNM()->mkNode( kind::GT,
-          NodeManager::currentNM()->mkNode( kind::STRING_LENGTH, t[1] ), d_zero) );
+    krange = Rewriter::rewrite( NodeManager::currentNM()->mkNode( kind::GT, NodeManager::currentNM()->mkNode( kind::STRING_LENGTH, t[1] ), d_zero) );
     new_nodes.push_back( krange );
-    krange = Rewriter::rewrite( NodeManager::currentNM()->mkNode( kind::GEQ,
-          t[2], d_zero) );
-    new_nodes.push_back( krange );
+    Node start_valid = Rewriter::rewrite( NodeManager::currentNM()->mkNode( kind::GEQ, t[2], d_zero) );
 
     //str.len(s1) < y + str.len(s2)
     Node c1 = Rewriter::rewrite(NodeManager::currentNM()->mkNode( kind::GT,
             NodeManager::currentNM()->mkNode( kind::PLUS, t[2], NodeManager::currentNM()->mkNode( kind::STRING_LENGTH, t[1] )),
             NodeManager::currentNM()->mkNode( kind::STRING_LENGTH, t[0] )));
-    //str.len(t1) = y
-    Node c2 = t[2].eqNode( NodeManager::currentNM()->mkNode( kind::STRING_LENGTH, sk1 ) );
     //~contain(t234, s2)
-    Node c3 = Rewriter::rewrite(NodeManager::currentNM()->mkNode( kind::STRING_STRCTN,
-          NodeManager::currentNM()->mkNode( kind::STRING_CONCAT, sk2, sk3, sk4), t[1] ).negate());
+    Node c3 = Rewriter::rewrite(NodeManager::currentNM()->mkNode( kind::STRING_STRCTN, st, t[1] ).negate());
     //left
-    Node left = NodeManager::currentNM()->mkNode( kind::OR, c1, NodeManager::currentNM()->mkNode( kind::AND, c2, c3 ) );
+    Node left = NodeManager::currentNM()->mkNode( kind::OR, c1, c3, start_valid.negate() );
     //t3 = s2
     Node c4 = t[1].eqNode( sk3 );
     //~contain(t2, s2)
@@ -259,11 +252,11 @@ Node StringsPreprocess::simplify( Node t, std::vector< Node > &new_nodes, bool d
                       NodeManager::currentNM()->mkNode(kind::STRING_LENGTH, t[1]),
                       NodeManager::currentNM()->mkConst( ::CVC4::Rational(1) )))),
                 t[1] ).negate();
-    //k=str.len(s1, s2)
-    Node c6 = skk.eqNode( NodeManager::currentNM()->mkNode( kind::STRING_LENGTH,
-                NodeManager::currentNM()->mkNode( kind::STRING_CONCAT, sk1, sk2 )));
+    //k=str.len(s2)
+    Node c6 = skk.eqNode( NodeManager::currentNM()->mkNode( kind::PLUS, t[2],
+                            NodeManager::currentNM()->mkNode( kind::STRING_LENGTH, sk2 )) );
     //right
-    Node right = Rewriter::rewrite(NodeManager::currentNM()->mkNode( kind::AND, c2, c4, c5, c6 ));
+    Node right = Rewriter::rewrite(NodeManager::currentNM()->mkNode( kind::AND, c4, c5, c6, start_valid ));
     Node cond = skk.eqNode( negone );
     Node rr = NodeManager::currentNM()->mkNode( kind::ITE, cond, left, right );
     new_nodes.push_back( rr );

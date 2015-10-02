@@ -59,7 +59,14 @@ TESTS = \
   idof-triv.smt2 \
   chapman150408.smt2 \
   pierre150331.smt2 \
-  norn-360.smt2
+  norn-360.smt2 \
+  norn-simp-rew.smt2 \
+  norn-simp-rew-sat.smt2 \
+  idof-handg.smt2 \
+  idof-nconst-index.smt2 \
+  idof-neg-index.smt2 \
+  bug612.smt2 \
+  bug615.smt2
 
 FAILING_TESTS =
 

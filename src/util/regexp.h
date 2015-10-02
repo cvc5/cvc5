@@ -3,7 +3,7 @@
  ** \verbatim
  ** Original author: Tianyi Liang
  ** Major contributors: none
- ** Minor contributors (to current version): Morgan Deters
+ ** Minor contributors (to current version): Morgan Deters, Andrew Reynolds
  ** This file is part of the CVC4 project.
  ** Copyright (c) 2009-2014  New York University and The University of Iowa
  ** See the file COPYING in the top-level source directory for licensing
@@ -252,7 +252,7 @@ public:
         }
       }
     }*/
-    std::vector<unsigned>::const_iterator itr = std::search(d_str.begin(), d_str.end(), y.d_str.begin(), y.d_str.end());
+    std::vector<unsigned>::const_iterator itr = std::search(d_str.begin() + start, d_str.end(), y.d_str.begin(), y.d_str.end());
     if(itr != d_str.end()) {
       ret = itr - d_str.begin();
     }

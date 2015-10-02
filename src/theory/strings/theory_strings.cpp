@@ -1968,6 +1968,12 @@ bool TheoryStrings::registerTerm( Node n ) {
           ++(d_statistics.d_splits);
         }
       } else {
+        if( n.getKind()==kind::STRING_CONCAT ){
+          //normalize wrt proxy variables
+
+        }
+
+
         Node sk = mkSkolemS("lsym", 2);
         StringsProxyVarAttribute spva;
         sk.setAttribute(spva,true);
@@ -2269,27 +2275,38 @@ void TheoryStrings::getConcatVec( Node n, std::vector< Node >& c ) {
 void TheoryStrings::debugPrintFlatForms( const char * tc ){
   for( unsigned k=0; k<d_eqcs.size(); k++ ){
     Node eqc = d_eqcs[k];
-    Trace( tc ) << "EQC [" << eqc << "]" << std::endl;
+    if( d_eqc[eqc].size()>1 ){
+      Trace( tc ) << "EQC [" << eqc << "]" << std::endl;
+    }else{
+      Trace( tc ) << "eqc [" << eqc << "]";
+    }
     std::map< Node, Node >::iterator itc = d_eqc_to_const.find( eqc );
     if( itc!=d_eqc_to_const.end() ){
-      Trace( tc ) << "  C: " << itc->second << std::endl;
+      Trace( tc ) << "  C: " << itc->second;
+      if( d_eqc[eqc].size()>1 ){
+        Trace( tc ) << std::endl;
+      }
     }
-    for( unsigned i=0; i<d_eqc[eqc].size(); i++ ){
-      Node n = d_eqc[eqc][i];
-      Trace( tc ) << "    ";
-      for( unsigned j=0; j<d_flat_form[n].size(); j++ ){
-        Node fc = d_flat_form[n][j];
-        itc = d_eqc_to_const.find( fc );
-        Trace( tc ) << " ";
-        if( itc!=d_eqc_to_const.end() ){
-          Trace( tc ) << itc->second;
-        }else{
-          Trace( tc ) << fc;
+    if( d_eqc[eqc].size()>1 ){
+      for( unsigned i=0; i<d_eqc[eqc].size(); i++ ){
+        Node n = d_eqc[eqc][i];
+        Trace( tc ) << "    ";
+        for( unsigned j=0; j<d_flat_form[n].size(); j++ ){
+          Node fc = d_flat_form[n][j];
+          itc = d_eqc_to_const.find( fc );
+          Trace( tc ) << " ";
+          if( itc!=d_eqc_to_const.end() ){
+            Trace( tc ) << itc->second;
+          }else{
+            Trace( tc ) << fc;
+          }
         }
+        if( n!=eqc ){
+          Trace( tc ) << ", from " << n;
+        }
+        Trace( tc ) << std::endl;
       }
-      if( n!=eqc ){
-        Trace( tc ) << ", from " << n;
-      }
+    }else{
       Trace( tc ) << std::endl;
     }
   }
@@ -2377,14 +2394,14 @@ void TheoryStrings::checkNormalForms() {
                       for( unsigned j=0; j<count; j++ ){
                         addToExplanation( a[d_flat_form_index[a][j]], b[d_flat_form_index[b][j]], exp );
                       }
-                      
+
                     }
                   }
                 }
               }
             }
           }while( success &&  );
-          
+
           if( r==1 ){
             for( unsigned i=0; i<it->second.size(); i++ ){
               std::reverse( d_flat_form[it->second].begin(), d_flat_form[it->second].end() );
@@ -2439,7 +2456,7 @@ void TheoryStrings::checkNormalForms() {
         }
         Debug("strings-nf") << std::endl;
       }
-      
+
       if( !hasProcessed() ){
         checkExtendedFuncsEval( 1 );
         Trace("strings-process-debug") << "Done check extended functions re-eval, addedFact = " << !d_pending.empty() << " " << !d_lemma_cache.empty() << ", d_conflict = " << d_conflict << std::endl;
@@ -3789,7 +3806,7 @@ void TheoryStrings::checkExtendedFuncsEval( int effort ) {
             }
           }
         }else{
-          Trace("strings-extf-debug") << "  could not rewrite : " << nr  << std::endl;
+          Trace("strings-extf-debug") << "  cannot rewrite extf : " << nrc << std::endl;
         }
       }
     }
