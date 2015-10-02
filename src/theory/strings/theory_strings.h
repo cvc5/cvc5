@@ -251,6 +251,7 @@ private:
   EqcInfo * getOrMakeEqcInfo( Node eqc, bool doMake = true );
   //maintain which concat terms have the length lemma instantiated
   NodeNodeMap d_proxy_var;
+  NodeNodeMap d_proxy_var_to_length;
 private:
   void mergeCstVec(std::vector< Node > &vec_strings);
   bool getNormalForms(Node &eqc, std::vector< Node > & visited, std::vector< Node > & nf,

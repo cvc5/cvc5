@@ -91,7 +91,7 @@ Node TheoryStringsRewriter::simpleRegexpConsume( std::vector< Node >& mchildren,
               return NodeManager::currentNM()->mkConst( false );
             }
           }else if( rc.getKind()==kind::REGEXP_INTER || rc.getKind()==kind::REGEXP_UNION ){
-            //TODO
+            //TODO?  note this is only propagation : cannot make choices
           }else if( rc.getKind()==kind::REGEXP_STAR ){
             //TODO
           }
@@ -848,7 +848,7 @@ Node TheoryStringsRewriter::rewriteMembership(TNode node) {
   }else if(x != node[0] || r != node[1]) {
     retNode = NodeManager::currentNM()->mkNode( kind::STRING_IN_REGEXP, x, r );
   }
-  
+
   //do simple consumes
   if( retNode==node ){
     if( r.getKind()==kind::REGEXP_STAR ){
@@ -957,7 +957,7 @@ RewriteResponse TheoryStringsRewriter::postRewrite(TNode node) {
         retNode = NodeManager::currentNM()->mkNode(kind::PLUS, node_vec);
       }
     }
-  } else if(node.getKind() == kind::STRING_SUBSTR_TOTAL) {
+  } else if( node.getKind() == kind::STRING_SUBSTR_TOTAL ){
     Node zero = NodeManager::currentNM()->mkConst( ::CVC4::Rational(0) );
     if(node[2] == zero) {
       retNode = NodeManager::currentNM()->mkConst( ::CVC4::String("") );

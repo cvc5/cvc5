@@ -222,7 +222,7 @@ Node StringsPreprocess::simplify( Node t, std::vector< Node > &new_nodes, bool d
     Node sk3 = NodeManager::currentNM()->mkSkolem( "io3", NodeManager::currentNM()->stringType(), "created for indexof" );
     Node sk4 = NodeManager::currentNM()->mkSkolem( "io4", NodeManager::currentNM()->stringType(), "created for indexof" );
     Node skk = NodeManager::currentNM()->mkSkolem( "iok", NodeManager::currentNM()->integerType(), "created for indexof" );
-    Node st = NodeManager::currentNM()->mkNode( kind::STRING_SUBSTR_TOTAL, t[0], t[2], NodeManager::currentNM()->mkNode( kind::STRING_LENGTH, t[0] ) );
+    Node st = NodeManager::currentNM()->mkNode( kind::STRING_SUBSTR_TOTAL, t[0], t[2], NodeManager::currentNM()->mkNode( kind::MINUS, NodeManager::currentNM()->mkNode( kind::STRING_LENGTH, t[0] ), t[2] ) );
     Node eq = st.eqNode( NodeManager::currentNM()->mkNode( kind::STRING_CONCAT, sk2, sk3, sk4 ) );
     new_nodes.push_back( eq );
     Node negone = NodeManager::currentNM()->mkConst( ::CVC4::Rational(-1) );

@@ -69,6 +69,7 @@ TheoryStrings::TheoryStrings(context::Context* c, context::UserContext* u, Outpu
   d_registered_terms_cache(u),
   d_preproc_cache(u),
   d_proxy_var(u),
+  d_proxy_var_to_length(u),
   d_neg_ctn_eqlen(u),
   d_neg_ctn_ulen(u),
   d_pos_ctn_cached(u),
@@ -1968,12 +1969,6 @@ bool TheoryStrings::registerTerm( Node n ) {
           ++(d_statistics.d_splits);
         }
       } else {
-        if( n.getKind()==kind::STRING_CONCAT ){
-          //normalize wrt proxy variables
-
-        }
-
-
         Node sk = mkSkolemS("lsym", 2);
         StringsProxyVarAttribute spva;
         sk.setAttribute(spva,true);
@@ -1987,13 +1982,20 @@ bool TheoryStrings::registerTerm( Node n ) {
         if( n.getKind() == kind::STRING_CONCAT ) {
           std::vector<Node> node_vec;
           for( unsigned i=0; i<n.getNumChildren(); i++ ) {
-            Node lni = NodeManager::currentNM()->mkNode( kind::STRING_LENGTH, n[i] );
-            node_vec.push_back(lni);
+            if( n[i].getAttribute(StringsProxyVarAttribute()) ){
+              Assert( d_proxy_var_to_length.find( n[i] )!=d_proxy_var_to_length.end() );
+              node_vec.push_back( d_proxy_var_to_length[n[i]] );
+            }else{
+              Node lni = NodeManager::currentNM()->mkNode( kind::STRING_LENGTH, n[i] );
+              node_vec.push_back(lni);
+            }
           }
           lsum = NodeManager::currentNM()->mkNode( kind::PLUS, node_vec );
         } else if( n.getKind() == kind::CONST_STRING ) {
           lsum = NodeManager::currentNM()->mkConst( ::CVC4::Rational( n.getConst<String>().size() ) );
         }
+        lsum = Rewriter::rewrite( lsum );
+        d_proxy_var_to_length[sk] = lsum;
         Node ceq = Rewriter::rewrite( skl.eqNode( lsum ) );
         Trace("strings-lemma") << "Strings::Lemma LENGTH : " << ceq << std::endl;
         Trace("strings-lemma-debug") << "  prerewrite : " << skl.eqNode( lsum ) << std::endl;
@@ -2034,6 +2036,7 @@ void TheoryStrings::sendLemma( Node ant, Node conc, const char * c ) {
 }
 
 void TheoryStrings::sendInfer( Node eq_exp, Node eq, const char * c ) {
+  Trace("strings-infer-debug") << "infer : " << eq << " from " << eq_exp << std::endl;
   eq = Rewriter::rewrite( eq );
   if( eq==d_false || eq.getKind()==kind::OR ) {
     sendLemma( eq_exp, eq, c );
@@ -2118,7 +2121,7 @@ void TheoryStrings::inferSubstitutionProxyVars( Node n, std::vector< Node >& var
         Node ss;
         if( ns[i].getAttribute(StringsProxyVarAttribute()) ){
           ss = ns[i];
-        }else{
+        }else if( ns[i].isConst() ){
           NodeNodeMap::const_iterator it = d_proxy_var.find( ns[i] );
           if( it!=d_proxy_var.end() ){
             ss = (*it).second;
@@ -2482,7 +2485,7 @@ Node TheoryStrings::checkCycles( Node eqc, std::vector< Node >& curr, std::vecto
     while( !eqc_i.isFinished() ) {
       Node n = (*eqc_i);
       if( std::find( d_congruent.begin(), d_congruent.end(), n )==d_congruent.end() ){
-        Trace("strings-cycle") << "Check term : " << n << std::endl;
+        Trace("strings-cycle") << eqc << " check term : " << n << " in " << eqc << std::endl;
         if( n.getKind() == kind::STRING_CONCAT ) {
           if( eqc!=d_emptyString_r ){
             d_eqc[eqc].push_back( n );
@@ -2503,6 +2506,13 @@ Node TheoryStrings::checkCycles( Node eqc, std::vector< Node >& curr, std::vecto
               //for non-empty eqc, recurse and see if we find a loop
               Node ncy = checkCycles( nr, curr, exp );
               if( !ncy.isNull() ){
+                Trace("strings-cycle") << eqc << " cycle: " << ncy << " at " << n << "[" << i << "] : " << n[i] << std::endl;
+                if( n!=eqc ){
+                  exp.push_back( n.eqNode( eqc ) );
+                }
+                if( nr!=n[i] ){
+                  exp.push_back( nr.eqNode( n[i] ) );
+                }
                 if( ncy==eqc ){
                   //can infer all other components must be empty
                   for( unsigned j=0; j<n.getNumChildren(); j++ ){
@@ -2516,12 +2526,6 @@ Node TheoryStrings::checkCycles( Node eqc, std::vector< Node >& curr, std::vecto
                   //should find a non-empty component, otherwise would have been singular congruent (I_Norm_S)
                   Assert( false );
                 }else{
-                  if( n!=eqc ){
-                    exp.push_back( n.eqNode( eqc ) );
-                  }
-                  if( nr!=n[i] ){
-                    exp.push_back( nr.eqNode( n[i] ) );
-                  }
                   return ncy;
                 }
               }else{
@@ -2754,9 +2758,9 @@ void TheoryStrings::separateByLength(std::vector< Node >& n,
       lt = NodeManager::currentNM()->mkNode( kind::STRING_LENGTH, lt );
       Node r = d_equalityEngine.getRepresentative( lt );
       if( eqc_to_leqc.find( r )==eqc_to_leqc.end() ){
-      eqc_to_leqc[r] = leqc_counter;
-      leqc_to_eqc[leqc_counter] = r;
-      leqc_counter++;
+        eqc_to_leqc[r] = leqc_counter;
+        leqc_to_eqc[leqc_counter] = r;
+        leqc_counter++;
       }
       eqc_to_strings[ eqc_to_leqc[r] ].push_back( eqc );
     }else{
