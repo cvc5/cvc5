@@ -62,11 +62,13 @@ TESTS = \
   norn-360.smt2 \
   norn-simp-rew.smt2 \
   norn-simp-rew-sat.smt2 \
-  idof-handg.smt2 \
   idof-nconst-index.smt2 \
   idof-neg-index.smt2 \
   bug612.smt2 \
-  bug615.smt2
+  bug615.smt2 \
+  kaluza-fl.smt2 \
+  norn-ab.smt2 \
+  idof-rewrites.smt2
 
 FAILING_TESTS =
 
@@ -74,8 +76,7 @@ EXTRA_DIST = $(TESTS) \
   fmf001.smt2 \
   type002.smt2
 
-#   slow after changes on Nov 20 : artemis-0512-nonterm.smt2
-#   slow after decision engine respects requirePhase: type003.smt2  loop007.smt2 
+#   somewhat slow after changes on Oct 6: idof-handg.smt2
 
 # and make sure to distribute it
 EXTRA_DIST +=

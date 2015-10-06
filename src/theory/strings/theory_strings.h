@@ -178,13 +178,17 @@ private:
   StringsPreprocess d_preproc;
   NodeBoolMap d_preproc_cache;
 
+  bool doPreprocess( Node atom );
   bool hasProcessed();
   void addToExplanation( Node a, Node b, std::vector< Node >& exp );
+  void addToExplanation( Node lit, std::vector< Node >& exp );
+
 private:
   std::vector< Node > d_congruent;
   std::map< Node, Node > d_eqc_to_const;
   std::map< Node, Node > d_eqc_to_const_base;
   std::map< Node, Node > d_eqc_to_const_exp;
+  std::map< Node, Node > d_eqc_to_len_term;
   std::vector< Node > d_strings_eqc;
   Node d_emptyString_r;
   class TermIndex {
@@ -199,17 +203,6 @@ private:
   std::vector< Node > d_eqcs;
   //list of non-congruent concat terms in each eqc
   std::map< Node, std::vector< Node > > d_eqc;
-  //their flat forms
-  /*
-  class FlatForm {
-  public:
-    Node d_node;
-    std::deque< Node > d_vec;
-    std::deque< std::vector< Node > > d_exp;
-  };
-  std::map< Node, FlatForm > d_flat_form;
-  std::map< Node, FlatForm > d_flat_form_proc;
-  */
   std::map< Node, std::vector< Node > > d_flat_form;
   std::map< Node, std::vector< int > > d_flat_form_index;
 
@@ -284,6 +277,7 @@ private:
   void checkInit();
   void checkConstantEquivalenceClasses( TermIndex* ti, std::vector< Node >& vecc );
   void checkExtendedFuncsEval( int effort = 0 );
+  void collectVars( Node n, std::map< Node, std::vector< Node > >& vars, std::map< Node, bool >& visited );
   void checkNormalForms();
   Node checkCycles( Node eqc, std::vector< Node >& curr, std::vector< Node >& exp );
   void checkDeqNF();
@@ -308,9 +302,7 @@ private:
   void checkExtendedFuncs();
   void checkPosContains( std::vector< Node >& posContains );
   void checkNegContains( std::vector< Node >& negContains );
-  Node inferConstantDefinition( Node n, std::vector< Node >& exp, std::map< Node, Node >& visited );
   Node getSymbolicDefinition( Node n, std::vector< Node >& exp );
-  void checkExtendedFuncsReduction();
 
 public:
   void preRegisterTerm(TNode n);
@@ -380,6 +372,7 @@ private:
   NodeSet d_neg_ctn_cached;
   //extended string terms and whether they have been reduced
   NodeBoolMap d_ext_func_terms;
+  std::map< Node, std::map< Node, std::vector< Node > > > d_extf_vars;
   //collect extended operator terms
   void collectExtendedFuncTerms( Node n, std::map< Node, bool >& visited );
 

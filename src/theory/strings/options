@@ -44,5 +44,8 @@ option stringSplitEmp strings-sp-emp --strings-sp-emp bool :default true
  strings split on empty string
 option stringInferSym strings-infer-sym --strings-infer-sym bool :default true
  strings split on empty string
+option stringEagerLen strings-eager-len --strings-eager-len bool :default true
+ strings eager length lemmas
+
 
 endmodule

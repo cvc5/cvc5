@@ -30,38 +30,30 @@ Node TheoryStringsRewriter::simpleRegexpConsume( std::vector< Node >& mchildren,
   //try to remove off front and back
   for( unsigned t=0; t<2; t++ ){
     if( tmin<=t && t<=tmax ){
-      int count = children.size()-1;
-      int mcount = mchildren.size()-1;
       bool do_next = true;
-      while( count>=0 && mcount>=0 && do_next ){
+      while( !children.empty() && !mchildren.empty() && do_next ){
         do_next = false;
-        Node rc = children[count];
-        Node xc = mchildren[mcount];
+        Node xc = mchildren[mchildren.size()-1];
+        Node rc = children[children.size()-1];
         if( rc.getKind() == kind::STRING_TO_REGEXP ){
           if( xc==rc[0] ){
             children.pop_back();
             mchildren.pop_back();
-            count--;
-            mcount--;
             do_next = true;
           }else if( xc.isConst() && rc[0].isConst() ){
             //split the constant
             int index;
             Node s = splitConstant( xc, rc[0], index, t==0 );
-            //Trace("spl-const") << "Regexp const split : " << xc << " " << rc[0] << " -> " << s << " " << index << " " << t << std::endl;
+            Trace("regexp-ext-rewrite-debug") << "CRE: Regexp const split : " << xc << " " << rc[0] << " -> " << s << " " << index << " " << t << std::endl;
             if( s.isNull() ){
               return NodeManager::currentNM()->mkConst( false );
             }else{
               children.pop_back();
               mchildren.pop_back();
-              count--;
-              mcount--;
               if( index==0 ){
                 mchildren.push_back( s );
-                mcount++;
               }else{
                 children.push_back( s );
-                count++;
               }
             }
             do_next = true;
@@ -81,20 +73,113 @@ Node TheoryStringsRewriter::simpleRegexpConsume( std::vector< Node >& mchildren,
                 }else{
                   mchildren.push_back( NodeManager::currentNM()->mkConst(s.substr( 1 )) );
                 }
-              }else{
-                mcount--;
               }
               children.pop_back();
-              count--;
               do_next = true;
             }else{
               return NodeManager::currentNM()->mkConst( false );
             }
           }else if( rc.getKind()==kind::REGEXP_INTER || rc.getKind()==kind::REGEXP_UNION ){
-            //TODO?  note this is only propagation : cannot make choices
+            //see if any/each child does not work
+            bool result_valid = true;
+            Node result;
+            Node emp_s = NodeManager::currentNM()->mkConst( ::CVC4::String("") );
+            for( unsigned i=0; i<rc.getNumChildren(); i++ ){
+              std::vector< Node > mchildren_s;
+              std::vector< Node > children_s;
+              mchildren_s.push_back( xc );
+              children_s.push_back( rc[i] );
+              Node ret = simpleRegexpConsume( mchildren_s, children_s, t );
+              if( !ret.isNull() ){
+                // one conjunct cannot be satisfied, return false
+                if( rc.getKind()==kind::REGEXP_INTER ){
+                  return ret;
+                }
+              }else{
+                if( children_s.empty() ){
+                  //if we were able to fully consume, store the result
+                  Assert( mchildren_s.size()<=1 );
+                  if( mchildren_s.empty() ){
+                    mchildren_s.push_back( emp_s );
+                  }
+                  if( result.isNull() ){
+                    result = mchildren_s[0];
+                  }else if( result!=mchildren_s[0] ){
+                    result_valid = false;
+                  }
+                }else{
+                  result_valid = false;
+                }
+              }
+            }
+            if( result_valid ){
+              if( result.isNull() ){
+                //all disjuncts cannot be satisfied, return false
+                Assert( rc.getKind()==kind::REGEXP_UNION );
+                return NodeManager::currentNM()->mkConst( false );
+              }else{
+                //all branches led to the same result
+                children.pop_back();
+                mchildren.pop_back();
+                if( result!=emp_s ){
+                  mchildren.push_back( result );
+                }
+                do_next = true;
+              }
+            }
           }else if( rc.getKind()==kind::REGEXP_STAR ){
-            //TODO
+            //check if there is no way that this star can be unrolled even once
+            std::vector< Node > mchildren_s;
+            mchildren_s.insert( mchildren_s.end(), mchildren.begin(), mchildren.end() );
+            if( t==1 ){
+              std::reverse( mchildren_s.begin(), mchildren_s.end() );
+            }
+            std::vector< Node > children_s;
+            getConcat( rc[0], children_s );
+            Node ret = simpleRegexpConsume( mchildren_s, children_s, t );
+            if( !ret.isNull() ){
+              Trace("regexp-ext-rewrite-debug") << "CRE : regexp star infeasable " << xc << " " << rc << std::endl;
+              children.pop_back();
+              if( children.empty() ){
+                return NodeManager::currentNM()->mkConst( false );
+              }else{
+                do_next = true;
+              }
+            }else{
+              if( children_s.empty() ){
+                //check if beyond this, we can't do it or there is nothing left, if so, repeat
+                bool can_skip = false;
+                if( children.size()>1 ){
+                  std::vector< Node > mchildren_ss;
+                  mchildren_ss.insert( mchildren_ss.end(), mchildren.begin(), mchildren.end() );
+                  std::vector< Node > children_ss;
+                  children_ss.insert( children_ss.end(), children.begin(), children.end()-1 );
+                  if( t==1 ){
+                    std::reverse( mchildren_ss.begin(), mchildren_ss.end() );
+                    std::reverse( children_ss.begin(), children_ss.end() );
+                  }
+                  Node ret = simpleRegexpConsume( mchildren_ss, children_ss, t );
+                  if( ret.isNull() ){
+                    can_skip = true;
+                  }
+                }
+                if( !can_skip ){
+                  //take the result of fully consuming once
+                  if( t==1 ){
+                    std::reverse( mchildren_s.begin(), mchildren_s.end() );
+                  }
+                  mchildren.clear();
+                  mchildren.insert( mchildren.end(), mchildren_s.begin(), mchildren_s.end() );
+                  do_next = true;
+                }else{
+                  Trace("regexp-ext-rewrite-debug") << "CRE : can skip " << rc << " from " << xc << std::endl;
+                }
+              }
+            }
           }
+        }
+        if( !do_next ){
+          Trace("regexp-ext-rewrite") << "Cannot consume : " << xc << " " << rc << std::endl;
         }
       }
     }
@@ -121,12 +206,11 @@ Node TheoryStringsRewriter::rewriteConcatString( TNode node ) {
           if(tmpNode[0].isConst()) {
             preNode = NodeManager::currentNM()->mkConst( preNode.getConst<String>().concat( tmpNode[0].getConst<String>() ) );
             node_vec.push_back( preNode );
-            preNode = Node::null();
           } else {
             node_vec.push_back( preNode );
-            preNode = Node::null();
             node_vec.push_back( tmpNode[0] );
           }
+          preNode = Node::null();
           ++j;
         }
         for(; j<tmpNode.getNumChildren() - 1; ++j) {
@@ -137,30 +221,24 @@ Node TheoryStringsRewriter::rewriteConcatString( TNode node ) {
     }
     if(!tmpNode.isConst()) {
       if(!preNode.isNull()) {
-        if(preNode.getKind() == kind::CONST_STRING && preNode.getConst<String>().isEmptyString() ) {
-          preNode = Node::null();
-        } else {
+        if(preNode.getKind() == kind::CONST_STRING && !preNode.getConst<String>().isEmptyString() ) {
           node_vec.push_back( preNode );
-          preNode = Node::null();
         }
+        preNode = Node::null();
       }
       node_vec.push_back( tmpNode );
-    } else {
-      if(preNode.isNull()) {
+    }else{
+      if( preNode.isNull() ){
         preNode = tmpNode;
-      } else {
+      }else{
         preNode = NodeManager::currentNM()->mkConst( preNode.getConst<String>().concat( tmpNode.getConst<String>() ) );
       }
     }
   }
-  if(preNode != Node::null()) {
+  if( !preNode.isNull() && ( preNode.getKind()!=kind::CONST_STRING || !preNode.getConst<String>().isEmptyString() ) ){
     node_vec.push_back( preNode );
   }
-  if(node_vec.size() > 1) {
-    retNode = NodeManager::currentNM()->mkNode(kind::STRING_CONCAT, node_vec);
-  } else {
-    retNode = node_vec[0];
-  }
+  retNode = mkConcat( kind::STRING_CONCAT, node_vec );
   Trace("strings-prerewrite") << "Strings::rewriteConcatString end " << retNode << std::endl;
   return retNode;
 }
@@ -956,6 +1034,12 @@ RewriteResponse TheoryStringsRewriter::postRewrite(TNode node) {
         }
         retNode = NodeManager::currentNM()->mkNode(kind::PLUS, node_vec);
       }
+    }else if( node[0].getKind()==kind::STRING_STRREPL ){
+      if( node[0][1].isConst() && node[0][2].isConst() ){
+        if( node[0][1].getConst<String>().size()==node[0][2].getConst<String>().size() ){
+          retNode = NodeManager::currentNM()->mkNode( kind::STRING_LENGTH, node[0][0] );
+        }
+      }
     }
   } else if( node.getKind() == kind::STRING_SUBSTR_TOTAL ){
     Node zero = NodeManager::currentNM()->mkConst( ::CVC4::Rational(0) );
@@ -986,8 +1070,17 @@ RewriteResponse TheoryStringsRewriter::postRewrite(TNode node) {
       } else {
         retNode = NodeManager::currentNM()->mkConst( ::CVC4::String("") );
       }
-    } else if(node[1] == zero && node[2].getKind() == kind::STRING_LENGTH && node[2][0] == node[0]) {
-      retNode = node[0];
+    } else if(node[1] == zero ) {
+      if( node[2].getKind() == kind::STRING_LENGTH && node[2][0]==node[0] ){
+        retNode = node[0];
+      }else{
+        //check if lengths rewrite to the same thing
+        Node lt = NodeManager::currentNM()->mkNode( kind::STRING_LENGTH, node[0] );
+        lt = Rewriter::rewrite( lt );
+        if( lt==node[2] ){
+          retNode = node[0];
+        }
+      }
     }
   } else if( node.getKind() == kind::STRING_STRCTN ){
     if( node[0] == node[1] ) {
@@ -995,50 +1088,84 @@ RewriteResponse TheoryStringsRewriter::postRewrite(TNode node) {
     } else if( node[0].isConst() && node[1].isConst() ) {
       CVC4::String s = node[0].getConst<String>();
       CVC4::String t = node[1].getConst<String>();
-      if( s.find(t) != std::string::npos ) {
+      if( s.find(t) != std::string::npos ){
         retNode = NodeManager::currentNM()->mkConst( true );
-      } else {
+      }else{
         retNode = NodeManager::currentNM()->mkConst( false );
       }
-    } else if( node[0].getKind()==kind::STRING_CONCAT ) {
-      if( node[1].getKind()!=kind::STRING_CONCAT ){
-        for(unsigned i=0; i<node[0].getNumChildren(); i++) {
-          if(node[0][i] == node[1]) {
-            retNode = NodeManager::currentNM()->mkConst( true );
-            break;
-          //constant contains
-          }else if( node[0][i].isConst() && node[1].isConst() ){
-            CVC4::String s = node[0][i].getConst<String>();
-            CVC4::String t = node[1].getConst<String>();
-            if( s.find(t) != std::string::npos ) {
-              retNode = NodeManager::currentNM()->mkConst( true );
+    }else if( node[0].getKind()==kind::STRING_CONCAT ) {
+      //component-wise containment
+      unsigned n1 = node[0].getNumChildren();
+      std::vector< Node > nc1;
+      getConcat( node[1], nc1 );
+      unsigned n2 = nc1.size();
+      if( n1>n2 ){
+        bool flag = false;
+        unsigned diff = n1-n2;
+        for(unsigned i=0; i<diff; i++) {
+          if( node[0][i]==nc1[0] ){
+            flag = true;
+            for(unsigned j=1; j<n2; j++) {
+              if( node[0][i+j]!=nc1[j] ){
+                flag = false;
+                break;
+              }
+            }
+            if(flag) {
               break;
             }
           }
         }
-      }else{
-        //component-wise containment
-        bool flag = false;
-        unsigned n1 = node[0].getNumChildren();
-        unsigned n2 = node[1].getNumChildren();
-        if( n1>n2 ){
-          unsigned diff = n1-n2;
-          for(unsigned i=0; i<diff; i++) {
-            if(node[0][i] == node[1][0]) {
-              flag = true;
-              for(unsigned j=1; j<n2; j++) {
-                if(node[0][i+j] != node[1][j]) {
-                  flag = false;
-                  break;
+        if( flag ){
+          retNode = NodeManager::currentNM()->mkConst( true );
+        }
+      }
+      if( retNode==node ){
+        if( node[1].isConst() ){
+          CVC4::String t = node[1].getConst<String>();
+          for(unsigned i=0; i<node[0].getNumChildren(); i++) {
+            //constant contains
+            if( node[0][i].isConst() ){
+              CVC4::String s = node[0][i].getConst<String>();
+              if( s.find(t)!=std::string::npos ) {
+                retNode = NodeManager::currentNM()->mkConst( true );
+                break;
+              }else{
+                //if no overlap, we can split into disjunction
+                // if first child, only require no left overlap
+                // if last child, only require no right overlap
+                if( i==0 || i==node[0].getNumChildren()-1 || t.find(s)==std::string::npos ){
+                  bool do_split = false;
+                  int sot = s.overlap( t );
+                  Trace("strings-ext-rewrite") << "Overlap " << s << " " << t << " is " << sot << std::endl;
+                  if( sot==0 ){
+                    do_split = i==0;
+                  }
+                  if( !do_split && ( i==(node[0].getNumChildren()-1) || sot==0 ) ){
+                    int tos = t.overlap( s );
+                    Trace("strings-ext-rewrite") << "Overlap " << t << " " << s << " is " << tos << std::endl;
+                    if( tos==0 ){
+                      do_split = true;
+                    }
+                  }
+                  if( do_split ){
+                    std::vector< Node > nc0;
+                    getConcat( node[0], nc0 );
+                    std::vector< Node > spl[2];
+                    if( i>0 ){
+                      spl[0].insert( spl[0].end(), nc0.begin(), nc0.begin()+i );
+                    }
+                    if( i<nc0.size()-1 ){
+                      spl[1].insert( spl[1].end(), nc0.begin()+i+1, nc0.end() );
+                    }
+                    retNode = NodeManager::currentNM()->mkNode( kind::OR,
+                                NodeManager::currentNM()->mkNode( kind::STRING_STRCTN, mkConcat( kind::STRING_CONCAT, spl[0] ), node[1] ),
+                                NodeManager::currentNM()->mkNode( kind::STRING_STRCTN, mkConcat( kind::STRING_CONCAT, spl[1] ), node[1] ) );
+                    break;
+                  }
                 }
               }
-              if(flag) {
-                break;
-              }
             }
-          }
-          if(flag) {
-            retNode = NodeManager::currentNM()->mkConst( true );
           }
         }
       }
@@ -1064,50 +1191,123 @@ RewriteResponse TheoryStringsRewriter::postRewrite(TNode node) {
   }else if( node.getKind()==kind::STRING_STRIDOF ){
     std::vector< Node > children;
     getConcat( node[0], children );
-    if( children[0].isConst() && node[1].isConst() ) {
-      CVC4::String s = children[0].getConst<String>();
-      CVC4::String t = node[1].getConst<String>();
-      std::size_t i = 0;
-      bool do_find = true;
-      if( node[2].isConst() ){
-        CVC4::Rational RMAXINT(LONG_MAX);
-        if( node[2].getConst<Rational>()>RMAXINT ){
-          Assert(node[2].getConst<Rational>() <= RMAXINT, "Number exceeds LONG_MAX in string index_of");
-          retNode = NodeManager::currentNM()->mkConst( false );
-          do_find = false;
-        }else{
-          i = node[2].getConst<Rational>().getNumerator().toUnsignedInt();
-        }
-      }
-      if( do_find ){
-        std::size_t ret = s.find(t, i);
-        if( ret!=std::string::npos ) {
-          //only exact if start value was constant
-          if( node[2].isConst() ){
-            retNode = NodeManager::currentNM()->mkConst( ::CVC4::Rational((unsigned) ret) );
-          }
-        }else{
-          //only exact if we scanned the entire string
-          if( node[0].isConst() ){
-            retNode = NodeManager::currentNM()->mkConst( ::CVC4::Rational(-1) );
-          }
-        }
+    //std::vector< Node > children1;
+    //getConcat( node[1], children1 );  TODO
+    std::size_t start = 0;
+    std::size_t val2 = 0;
+    if( node[2].isConst() ){
+      CVC4::Rational RMAXINT(LONG_MAX);
+      if( node[2].getConst<Rational>()>RMAXINT ){
+        Assert(node[2].getConst<Rational>() <= RMAXINT, "Number exceeds LONG_MAX in string index_of");
+        retNode = NodeManager::currentNM()->mkConst( ::CVC4::Rational(-1) );
+      }else if( node[2].getConst<Rational>().sgn()==-1 ){
+        //constant negative
+        retNode = NodeManager::currentNM()->mkConst( ::CVC4::Rational(-1) );
+      }else{
+        val2 = node[2].getConst<Rational>().getNumerator().toUnsignedInt();
+        start = val2;
       }
     }
-    //constant negative
-    if( node[2].isConst() ){
-      if( node[2].getConst<Rational>().sgn()==-1 ){
-        retNode = NodeManager::currentNM()->mkConst( ::CVC4::Rational(-1) );
+    if( retNode==node ){
+      bool prefixNoOverlap = false;
+      CVC4::String t;
+      if( node[1].isConst() ){
+        t = node[1].getConst<String>();
+      }
+      //unsigned ch1_index = 0;
+      for( unsigned i=0; i<children.size(); i++ ){
+        bool do_splice = false;
+        if( children[i].isConst() ){
+          CVC4::String s = children[i].getConst<String>();
+          if( node[1].isConst() ){
+            if( i==0 ){
+              std::size_t ret = s.find( t, start );
+              if( ret!=std::string::npos ) {
+                //exact if start value was constant
+                if( node[2].isConst() ){
+                  retNode = NodeManager::currentNM()->mkConst( ::CVC4::Rational((unsigned) ret) );
+                  break;
+                }
+              }else{
+                //exact if we scanned the entire string
+                if( node[0].isConst() ){
+                  retNode = NodeManager::currentNM()->mkConst( ::CVC4::Rational(-1) );
+                  break;
+                }else{
+                  prefixNoOverlap = (s.overlap(t)==0);
+                  Trace("strings-rewrite-debug") << "Prefix no overlap : " << s << " " << t << " " << prefixNoOverlap << std::endl;
+                }
+              }
+            }else if( !node[2].isConst() ){
+              break;
+            }else{
+              std::size_t ret = s.find(t, start);
+              //remove remaining children after finding the string
+              if( ret!=std::string::npos ){
+                Assert( ret+t.size()<=s.size() );
+                children[i] = NodeManager::currentNM()->mkConst( ::CVC4::String( s.substr(0,ret+t.size()) ) );
+                do_splice = true;
+              }else{
+                //if no overlap on last child, can remove
+                if( t.overlap( s )==0 && i==children.size()-1 ){
+                  std::vector< Node > spl;
+                  spl.insert( spl.end(), children.begin(), children.begin()+i );
+                  retNode = NodeManager::currentNM()->mkNode( kind::STRING_STRIDOF, mkConcat( kind::STRING_CONCAT, spl ), node[1], node[2] );
+                  break;
+                }
+              }
+            }
+          }
+          //decrement the start index
+          if( start>0 ){
+            if( s.size()>start ){
+              start = 0;
+            }else{
+              start = start - s.size();
+            }
+          }
+        }else if( !node[2].isConst() ){
+          break;
+        }else{
+          if( children[i]==node[1] && start==0 ){
+            //can remove beyond this
+            do_splice = true;
+          }
+        }
+        if( do_splice ){
+          std::vector< Node > spl;
+          //since we definitely will find the string, we can safely add the length of the constant non-overlapping prefix
+          if( prefixNoOverlap ){
+            Node pl = Rewriter::rewrite( NodeManager::currentNM()->mkNode( kind::STRING_LENGTH, children[0] ) );
+            Assert( pl.isConst() );
+            Assert( node[2].isConst() );
+            int new_start = val2 - pl.getConst<Rational>().getNumerator().toUnsignedInt();
+            if( new_start<0 ){
+              new_start = 0;
+            }
+            spl.insert( spl.end(), children.begin()+1, children.begin()+i+1 );
+            retNode = NodeManager::currentNM()->mkNode( kind::PLUS, pl,
+                        NodeManager::currentNM()->mkNode( kind::STRING_STRIDOF, mkConcat( kind::STRING_CONCAT, spl ), node[1], NodeManager::currentNM()->mkConst( Rational(new_start) ) ) );
+          }else{
+            spl.insert( spl.end(), children.begin(), children.begin()+i+1 );
+            retNode = NodeManager::currentNM()->mkNode( kind::STRING_STRIDOF, mkConcat( kind::STRING_CONCAT, spl ), node[1], node[2] );
+          }
+          break;
+        }
       }
     }
   }else if( node.getKind() == kind::STRING_STRREPL ){
-    if( node[1]!=node[2] ){
-      if(node[0].isConst() && node[1].isConst()) {
-        CVC4::String s = node[0].getConst<String>();
+    if( node[1]==node[2] ){
+      retNode = node[0];
+    }else{
+      std::vector< Node > children;
+      getConcat( node[0], children );
+      if( children[0].isConst() && node[1].isConst() ){
+        CVC4::String s = children[0].getConst<String>();
         CVC4::String t = node[1].getConst<String>();
         std::size_t p = s.find(t);
         if( p != std::string::npos ) {
-          if(node[2].isConst()) {
+          if( node[2].isConst() ){
             CVC4::String r = node[2].getConst<String>();
             CVC4::String ret = s.replace(t, r);
             retNode = NodeManager::currentNM()->mkConst( ::CVC4::String(ret) );
@@ -1118,12 +1318,25 @@ RewriteResponse TheoryStringsRewriter::postRewrite(TNode node) {
             Node ns3 = NodeManager::currentNM()->mkConst( ::CVC4::String(s3) );
             retNode = NodeManager::currentNM()->mkNode( kind::STRING_CONCAT, ns1, node[2], ns3 );
           }
-        } else {
-          retNode = node[0];
+          if( children.size()>1 ){
+            children[0] = retNode;
+            retNode = mkConcat( kind::STRING_CONCAT, children );
+          }
+        }else{
+          //could not find replacement string
+          if( node[0].isConst() ){
+            retNode = node[0];
+          }else{
+            //check for overlap, if none, we can remove the prefix
+            if( s.overlap(t)==0 ){
+              std::vector< Node > spl;
+              spl.insert( spl.end(), children.begin()+1, children.end() );
+              retNode = NodeManager::currentNM()->mkNode( kind::STRING_CONCAT, children[0],
+                          NodeManager::currentNM()->mkNode( kind::STRING_STRREPL, mkConcat( kind::STRING_CONCAT, spl ), node[1], node[2] ) );
+            }
+          }
         }
       }
-    } else {
-      retNode = node[0];
     }
   }else if( node.getKind() == kind::STRING_PREFIX ){
     if( node[0].isConst() && node[1].isConst() ){
@@ -1290,8 +1503,7 @@ RewriteResponse TheoryStringsRewriter::preRewrite(TNode node) {
       }
     }
   } else if(node.getKind() == kind::REGEXP_PLUS) {
-    retNode = NodeManager::currentNM()->mkNode( kind::REGEXP_CONCAT, node[0],
-      NodeManager::currentNM()->mkNode( kind::REGEXP_STAR, node[0]));
+    retNode = NodeManager::currentNM()->mkNode( kind::REGEXP_CONCAT, node[0], NodeManager::currentNM()->mkNode( kind::REGEXP_STAR, node[0]));
   } else if(node.getKind() == kind::REGEXP_OPT) {
     retNode = NodeManager::currentNM()->mkNode( kind::REGEXP_UNION,
           NodeManager::currentNM()->mkNode( kind::STRING_TO_REGEXP, NodeManager::currentNM()->mkConst( ::CVC4::String("") ) ),

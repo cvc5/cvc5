@@ -293,6 +293,7 @@ public:
   String suffix(std::size_t i) const {
     return substr(d_str.size() - i, i);
   }
+  // if y=y1...yn and overlap returns m, then this is x1...y1...ym
   std::size_t overlap(String &y) const;
 
   bool isNumber() const {
