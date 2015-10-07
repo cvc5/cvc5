@@ -119,11 +119,12 @@ Node TheoryModel::getModelValue(TNode n, bool hasBoundVars) const
     // no good.  Instead, return the quantifier itself.  If we're in
     // checkModel(), and the quantifier actually matters, we'll get an
     // assert-fail since the quantifier isn't a constant.
-    if(!d_equalityEngine->hasTerm(Rewriter::rewrite(n))) {
+    Node nr = Rewriter::rewrite(n);
+    if(!d_equalityEngine->hasTerm(nr)) {
       d_modelCache[n] = ret;
       return ret;
     } else {
-      ret = Rewriter::rewrite(n);
+      ret = nr;
     }
   } else {
     if(n.getKind() == kind::LAMBDA) {
@@ -193,8 +194,7 @@ Node TheoryModel::getModelValue(TNode n, bool hasBoundVars) const
         ret = NodeManager::currentNM()->mkConst(getCardinality(ret[0].getType().toType()).getFiniteCardinality() <= ret[1].getConst<Rational>().getNumerator());
       }
       if(ret.getKind() == kind::COMBINED_CARDINALITY_CONSTRAINT ){
-        //FIXME
-        ret = NodeManager::currentNM()->mkConst(false);
+        //do nothing
       }
       d_modelCache[n] = ret;
       return ret;

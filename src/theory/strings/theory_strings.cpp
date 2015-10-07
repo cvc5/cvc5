@@ -675,25 +675,22 @@ bool TheoryStrings::doPreprocess( Node atom ) {
       subs_rhs.push_back( d_true );
       Node sres = res.substitute( subs_lhs.begin(), subs_lhs.end(), subs_rhs.begin(), subs_rhs.end() );
       sres = Rewriter::rewrite( sres );
+      Node plem;
       if( sres!=res ){
-        Node plem = NodeManager::currentNM()->mkNode( kind::IMPLIES, atom, sres );
-        plem = Rewriter::rewrite( plem );
-        Trace("strings-assert") << "(assert " << plem << ")" << std::endl;
-        d_out->lemma( plem );
-        Trace("strings-pp-lemma") << "Preprocess impl lemma : " << plem << std::endl;
-        Trace("strings-pp-lemma") << "...from " << atom << std::endl;
+        plem = NodeManager::currentNM()->mkNode( kind::IMPLIES, atom, sres );
       }else{
         Trace("strings-assertion-debug") << "...preprocessed to : " << res << std::endl;
-        Node plem = NodeManager::currentNM()->mkNode( kind::IFF, atom, res );
-        plem = Rewriter::rewrite( plem );
-        Trace("strings-assert") << "(assert " << plem << ")" << std::endl;
-        d_out->lemma( plem );
-        Trace("strings-pp-lemma") << "Preprocess eq lemma : " << plem << std::endl;
-        Trace("strings-pp-lemma") << "...from " << atom << std::endl;
+        plem = NodeManager::currentNM()->mkNode( kind::IFF, atom, res );
         //reduced by preprocess
         addFact = false;
         d_preproc_cache[ atom ] = false;
       }
+      plem = Rewriter::rewrite( plem );
+      Trace("strings-assert") << "(assert " << plem << ")" << std::endl;
+      Trace("strings-lemma") << "Strings::Lemma " << plem << " by preprocess" << std::endl;
+      d_out->lemma( plem );
+      Trace("strings-pp-lemma") << "Preprocess reduce lemma : " << plem << std::endl;
+      Trace("strings-pp-lemma") << "...from " << atom << std::endl;
     }else{
       Trace("strings-assertion-debug") << "...preprocess ok." << std::endl;
     }
@@ -2420,6 +2417,8 @@ void TheoryStrings::checkNormalForms() {
                     }else{
                       Node cc = d_flat_form[b][count];
                       if( cc!=curr ){
+                        Node ac = a[d_flat_form_index[a][count]];
+                        Node bc = b[d_flat_form_index[b][count]];
                         inelig.push_back( b );
                         Assert( !areEqual( curr, cc ) );
                         Node cc_c = d_eqc_to_const[cc];
@@ -2428,20 +2427,22 @@ void TheoryStrings::checkNormalForms() {
                           int index;
                           Node s = TheoryStringsRewriter::splitConstant( cc_c, curr_c, index, r==1 );
                           if( s.isNull() ){
-                            addToExplanation( a[d_flat_form_index[a][count]], d_eqc_to_const_base[curr], exp );
+                            addToExplanation( ac, d_eqc_to_const_base[curr], exp );
                             addToExplanation( d_eqc_to_const_exp[curr], exp );
-                            addToExplanation( b[d_flat_form_index[b][count]], d_eqc_to_const_base[cc], exp );
+                            addToExplanation( bc, d_eqc_to_const_base[cc], exp );
                             addToExplanation( d_eqc_to_const_exp[cc], exp );
                             conc = d_false;
                             inf_type = 0;
                             break;
                           }
+                        }else if( (d_flat_form[a].size()-1)==count && (d_flat_form[b].size()-1)==count ){
+                          conc = ac.eqNode( bc );
+                          inf_type = 3;
+                          break;
                         }else{
                           //if lengths are the same, apply LengthEq
                           Node lcc = getLength( cc );
                           if( areEqual( lcurr, lcc ) ){
-                            Node ac = a[d_flat_form_index[a][count]];
-                            Node bc = b[d_flat_form_index[b][count]];
                             //exp_n.push_back( getLength( curr, true ).eqNode( getLength( cc, true ) ) );
                             addToExplanation( lcurr, lcc, exp );
                             if( !lcc.isConst() ){
@@ -2487,7 +2488,7 @@ void TheoryStrings::checkNormalForms() {
                   }
                 }
                 //if( exp_n.empty() ){
-                sendInfer( mkAnd( exp ), conc, inf_type==0? "F_Const" : ( inf_type==1 ? "F_LengthEq" : "F_Endpoint" ) );
+                sendInfer( mkAnd( exp ), conc, inf_type==0? "F_Const" : ( inf_type==1 ? "F_LengthEq" : ( inf_type==2 ? "F_Endpoint" : "F_EndpointEq" ) ) );
                 //}else{
                 //}
                 if( d_conflict ){
@@ -3894,7 +3895,7 @@ void TheoryStrings::checkExtendedFuncsEval( int effort ) {
       if( !var.empty() ){
         Node nr = n.substitute( var.begin(), var.end(), sub.begin(), sub.end() );
         Node nrc = Rewriter::rewrite( nr );
-        if( nrc.isConst() || hasTerm( nrc ) ){
+        if( nrc.isConst() ){
           //mark as reduced
           d_ext_func_terms[n] = false;
           Trace("strings-extf-debug") << "  resolvable by evaluation..." << std::endl;
@@ -3947,7 +3948,13 @@ void TheoryStrings::checkExtendedFuncsEval( int effort ) {
             }
           }
         }else{
-          Trace("strings-extf-debug") << "  cannot rewrite extf : " << nrc << std::endl;
+          if( effort==1 ){
+            Trace("strings-extf") << "  cannot rewrite extf : " << nrc << std::endl;
+          }
+        }
+      }else{
+        if( effort==1 ){
+          Trace("strings-extf") << "  cannot rewrite extf : " << n << std::endl;
         }
       }
     }

@@ -35,6 +35,8 @@ Node TheoryStringsRewriter::simpleRegexpConsume( std::vector< Node >& mchildren,
         do_next = false;
         Node xc = mchildren[mchildren.size()-1];
         Node rc = children[children.size()-1];
+        Assert( rc.getKind()!=kind::REGEXP_CONCAT );
+        Assert( xc.getKind()!=kind::STRING_CONCAT );
         if( rc.getKind() == kind::STRING_TO_REGEXP ){
           if( xc==rc[0] ){
             children.pop_back();
@@ -88,7 +90,7 @@ Node TheoryStringsRewriter::simpleRegexpConsume( std::vector< Node >& mchildren,
               std::vector< Node > mchildren_s;
               std::vector< Node > children_s;
               mchildren_s.push_back( xc );
-              children_s.push_back( rc[i] );
+              getConcat( rc[i], children_s );
               Node ret = simpleRegexpConsume( mchildren_s, children_s, t );
               if( !ret.isNull() ){
                 // one conjunct cannot be satisfied, return false
