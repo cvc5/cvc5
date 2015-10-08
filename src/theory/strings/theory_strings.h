@@ -360,9 +360,19 @@ protected:
   void printConcat( std::vector< Node >& n, const char * c );
 
   void inferSubstitutionProxyVars( Node n, std::vector< Node >& vars, std::vector< Node >& subs, std::vector< Node >& unproc );
-
+  
+  enum {
+    sk_id_c_spt,
+    sk_id_vc_spt,
+    sk_id_v_spt,
+    sk_id_ctn_pre,
+    sk_id_ctn_post,
+    sk_id_deq_x,
+    sk_id_deq_y,
+    sk_id_deq_z,
+  };
   std::map< Node, std::map< Node, std::map< int, Node > > > d_skolem_cache;
-  Node mkSkolemSplit( Node a, Node b, const char * c, int isLenSplit = 0 );
+  Node mkSkolemCached( Node a, Node b, int id, const char * c, int isLenSplit = 0 );
 private:
 
   // Special String Functions

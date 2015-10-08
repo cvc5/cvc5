@@ -104,7 +104,7 @@ Node TheoryModel::getModelValue(TNode n, bool hasBoundVars) const
     return (*it).second;
   }
   Node ret = n;
-  if(n.getKind() == kind::EXISTS || n.getKind() == kind::FORALL) {
+  if(n.getKind() == kind::EXISTS || n.getKind() == kind::FORALL || n.getKind() == kind::COMBINED_CARDINALITY_CONSTRAINT) {
     // We should have terms, thanks to TheoryQuantifiers::collectModelInfo().
     // However, if the Decision Engine stops us early, there might be a
     // quantifier that isn't assigned.  In conjunction with miniscoping, this
@@ -192,9 +192,6 @@ Node TheoryModel::getModelValue(TNode n, bool hasBoundVars) const
       Debug("model-getvalue-debug") << "ret (post-rewrite): " << ret << std::endl;
       if(ret.getKind() == kind::CARDINALITY_CONSTRAINT) {
         ret = NodeManager::currentNM()->mkConst(getCardinality(ret[0].getType().toType()).getFiniteCardinality() <= ret[1].getConst<Rational>().getNumerator());
-      }
-      if(ret.getKind() == kind::COMBINED_CARDINALITY_CONSTRAINT ){
-        //do nothing
       }
       d_modelCache[n] = ret;
       return ret;

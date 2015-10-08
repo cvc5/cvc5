@@ -54,6 +54,10 @@ public:
   static inline void init() {}
   static inline void shutdown() {}
 
+  static Node rewriteContains( Node n );
+  static Node rewriteIndexof( Node n );
+  static Node rewriteReplace( Node n );
+  
   static void getConcat( Node n, std::vector< Node >& c );
   static Node mkConcat( Kind k, std::vector< Node >& c );
   static Node splitConstant( Node a, Node b, int& index, bool isRev );

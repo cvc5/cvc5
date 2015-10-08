@@ -506,6 +506,7 @@ Node TheoryStrings::expandDefinition(LogicRequest &logicRequest, Node node) {
       Node totalf = NodeManager::currentNM()->mkNode(kind::STRING_SUBSTR_TOTAL, node[0], node[1], d_one);
       Node uf = NodeManager::currentNM()->mkNode(kind::APPLY_UF, d_ufSubstr, node[0], node[1], d_one);
       return NodeManager::currentNM()->mkNode( kind::ITE, cond, totalf, uf );
+      //return NodeManager::currentNM()->mkNode(kind::STRING_SUBSTR_TOTAL, node[0], node[1], d_one);
       break;
     }
 
@@ -530,6 +531,7 @@ Node TheoryStrings::expandDefinition(LogicRequest &logicRequest, Node node) {
       Node totalf = NodeManager::currentNM()->mkNode(kind::STRING_SUBSTR_TOTAL, node[0], node[1], node[2]);
       Node uf = NodeManager::currentNM()->mkNode(kind::APPLY_UF, d_ufSubstr, node[0], node[1], node[2]);
       return NodeManager::currentNM()->mkNode( kind::ITE, cond, totalf, uf );
+      //return NodeManager::currentNM()->mkNode(kind::STRING_SUBSTR_TOTAL, node[0], node[1], node[2]);
       break;
     }
 
@@ -687,9 +689,9 @@ bool TheoryStrings::doPreprocess( Node atom ) {
       }
       plem = Rewriter::rewrite( plem );
       Trace("strings-assert") << "(assert " << plem << ")" << std::endl;
-      Trace("strings-lemma") << "Strings::Lemma " << plem << " by preprocess" << std::endl;
+      Trace("strings-lemma") << "Strings::Lemma " << plem << " by preprocess reduction" << std::endl;
       d_out->lemma( plem );
-      Trace("strings-pp-lemma") << "Preprocess reduce lemma : " << plem << std::endl;
+      Trace("strings-pp-lemma") << "Preprocess reduction lemma : " << plem << std::endl;
       Trace("strings-pp-lemma") << "...from " << atom << std::endl;
     }else{
       Trace("strings-assertion-debug") << "...preprocess ok." << std::endl;
@@ -700,6 +702,7 @@ bool TheoryStrings::doPreprocess( Node atom ) {
       Trace("strings-assertion-debug") << "...new nodes : " << nnlem << std::endl;
       Trace("strings-pp-lemma") << "Preprocess lemma : " << nnlem << std::endl;
       Trace("strings-pp-lemma") << "...from " << atom << std::endl;
+      Trace("strings-lemma") << "Strings::Lemma " << nnlem << " by preprocess" << std::endl;
       Trace("strings-assert") << "(assert " << nnlem << ")" << std::endl;
       d_out->lemma( nnlem );
     }
@@ -1291,12 +1294,12 @@ bool TheoryStrings::processLoop(std::vector< Node > &antec,
   }
   return true;
 }
-Node TheoryStrings::mkSkolemSplit( Node a, Node b, const char * c, int isLenSplit ){
+Node TheoryStrings::mkSkolemCached( Node a, Node b, int id, const char * c, int isLenSplit ){
   //return mkSkolemS( c, isLenSplit );
-  std::map< int, Node >::iterator it = d_skolem_cache[a][b].find( isLenSplit );
+  std::map< int, Node >::iterator it = d_skolem_cache[a][b].find( id );
   if( it==d_skolem_cache[a][b].end() ){
     Node sk = mkSkolemS( c, isLenSplit );
-    d_skolem_cache[a][b][isLenSplit] = sk;
+    d_skolem_cache[a][b][id] = sk;
     return sk;
   }else{
     return it->second;
@@ -1410,10 +1413,8 @@ bool TheoryStrings::processNEqc(std::vector< std::vector< Node > > &normal_forms
                     antec.insert( antec.end(), curr_exp.begin(), curr_exp.end() );
                     Node xnz = other_str.eqNode(d_emptyString).negate();
                     antec.push_back( xnz );
-                    //Node sk = mkSkolemS( "c_spt" );
                     Node conc;
-                    if( normal_forms[nconst_k].size() > nconst_index_k + 1 &&
-                      normal_forms[nconst_k][nconst_index_k + 1].isConst() ) {
+                    if( normal_forms[nconst_k].size() > nconst_index_k + 1 && normal_forms[nconst_k][nconst_index_k + 1].isConst() ) {
                       CVC4::String stra = const_str.getConst<String>();
                       CVC4::String strb = normal_forms[nconst_k][nconst_index_k + 1].getConst<String>();
                       CVC4::String stra1 = stra.substr(1);
@@ -1421,14 +1422,14 @@ bool TheoryStrings::processNEqc(std::vector< std::vector< Node > > &normal_forms
                       size_t p2 = stra1.find(strb);
                       p = p2==std::string::npos? p : ( p>p2+1? p2+1 : p );
                       Node prea = p==stra.size()? const_str : NodeManager::currentNM()->mkConst(stra.substr(0, p));
-                      Node sk = mkSkolemSplit( other_str, prea, "c_spt" );
+                      Node sk = mkSkolemCached( other_str, prea, sk_id_c_spt, "c_spt" );
                       conc = other_str.eqNode( mkConcat(prea, sk) );
                       Trace("strings-csp") << "Const Split: " << prea << " is removed from " << stra << " due to " << strb << std::endl;
                     } else {
                       // normal v/c split
                       Node firstChar = const_str.getConst<String>().size() == 1 ? const_str :
                         NodeManager::currentNM()->mkConst( const_str.getConst<String>().substr(0, 1) );
-                      Node sk = mkSkolemSplit( other_str, firstChar, "c_spt" );
+                      Node sk = mkSkolemCached( other_str, firstChar, sk_id_vc_spt, "c_spt" );
                       conc = other_str.eqNode( mkConcat(firstChar, sk) );
                       Trace("strings-csp") << "Const Split: " << firstChar << " is removed from " << const_str << " (normal) " << std::endl;
                     }
@@ -1460,8 +1461,7 @@ bool TheoryStrings::processNEqc(std::vector< std::vector< Node > > &normal_forms
                     }
                   }
 
-                  //Node sk = mkSkolemS( "v_spt", 1 );
-                  Node sk = mkSkolemSplit( normal_forms[i][index_i], normal_forms[j][index_j], "v_spt", 1 );
+                  Node sk = mkSkolemCached( normal_forms[i][index_i], normal_forms[j][index_j], sk_id_v_spt, "v_spt", 1 );
                   Node eq1 = normal_forms[i][index_i].eqNode( mkConcat(normal_forms[j][index_j], sk) );
                   Node eq2 = normal_forms[j][index_j].eqNode( mkConcat(normal_forms[i][index_i], sk) );
                   conc = Rewriter::rewrite(NodeManager::currentNM()->mkNode( kind::OR, eq1, eq2 ));
@@ -1777,18 +1777,16 @@ bool TheoryStrings::processDeq( Node ni, Node nj ) {
             }
             antec_new_lits.push_back( li.eqNode( lj ).negate() );
             std::vector< Node > conc;
-            Node sk1 = mkSkolemS( "x_dsplit" );
-            Node sk2 = mkSkolemS( "y_dsplit" );
-            Node sk3 = mkSkolemS( "z_dsplit", 1 );
+            Node sk1 = mkSkolemCached( i, j, sk_id_deq_x, "x_dsplit" );
+            Node sk2 = mkSkolemCached( i, j, sk_id_deq_y, "y_dsplit" );
+            Node sk3 = mkSkolemCached( i, j, sk_id_deq_z, "z_dsplit", 1 );
             //Node nemp = sk3.eqNode(d_emptyString).negate();
             //conc.push_back(nemp);
             Node lsk1 = getLength( sk1 );
             conc.push_back( lsk1.eqNode( li ) );
             Node lsk2 = getLength( sk2 );
             conc.push_back( lsk2.eqNode( lj ) );
-            conc.push_back( NodeManager::currentNM()->mkNode( kind::OR,
-                      j.eqNode( mkConcat( sk1, sk3 ) ), i.eqNode( mkConcat( sk2, sk3 ) ) ) );
-
+            conc.push_back( NodeManager::currentNM()->mkNode( kind::OR, j.eqNode( mkConcat( sk1, sk3 ) ), i.eqNode( mkConcat( sk2, sk3 ) ) ) );
             sendLemma( mkExplain( antec, antec_new_lits ), NodeManager::currentNM()->mkNode( kind::AND, conc ), "D-DISL-Split" );
             ++(d_statistics.d_deq_splits);
             return true;
@@ -1954,25 +1952,9 @@ bool TheoryStrings::registerTerm( Node n ) {
     d_registered_terms_cache.insert(n);
     Debug("strings-register") << "TheoryStrings::registerTerm() " << n << endl;
     if(n.getType().isString()) {
-      if(n.getKind() == kind::STRING_SUBSTR_TOTAL) {
-        Node lenxgti = NodeManager::currentNM()->mkNode( kind::GEQ,
-                  NodeManager::currentNM()->mkNode( kind::STRING_LENGTH, n[0] ),
-                  NodeManager::currentNM()->mkNode( kind::PLUS, n[1], n[2] ) );
-        Node t1geq0 = NodeManager::currentNM()->mkNode(kind::GEQ, n[1], d_zero);
-        Node t2geq0 = NodeManager::currentNM()->mkNode(kind::GT, n[2], d_zero);
-        Node cond = Rewriter::rewrite( NodeManager::currentNM()->mkNode( kind::AND, lenxgti, t1geq0, t2geq0 ));
-        Node sk1 = mkSkolemS( "ss1", 2 );
-        Node sk3 = mkSkolemS( "ss3", 2 );
-        Node x_eq_123 = n[0].eqNode( NodeManager::currentNM()->mkNode( kind::STRING_CONCAT, sk1, n, sk3 ) );
-        Node len_sk1_eq_i = n[1].eqNode( NodeManager::currentNM()->mkNode( kind::STRING_LENGTH, sk1 ) );
-        Node lenc = n[2].eqNode( NodeManager::currentNM()->mkNode( kind::STRING_LENGTH, n ) );
-        Node lemma = Rewriter::rewrite(NodeManager::currentNM()->mkNode(kind::ITE, cond,
-          NodeManager::currentNM()->mkNode( kind::AND, x_eq_123, len_sk1_eq_i, lenc ),
-          n.eqNode(d_emptyString)));
-        Trace("strings-lemma") << "Strings::Lemma SUBSTR : " << lemma << std::endl;
-         Trace("strings-assert") << "(assert " << lemma << ")" << std::endl;
-        d_out->lemma(lemma);
-      }
+      //register length information:
+      //  for variables, split on empty vs positive length
+      //  for concat/const, introduce proxy var and state length relation
       if( n.getKind()!=kind::STRING_CONCAT && n.getKind()!=kind::CONST_STRING ) {
         if( d_length_intro_vars.find(n)==d_length_intro_vars.end() ) {
           sendLengthLemma( n );
@@ -3947,6 +3929,8 @@ void TheoryStrings::checkExtendedFuncsEval( int effort ) {
               return;
             }
           }
+        //}else if( hasTerm( nrc ) && !areEqual( nrc, n ) ){
+        //  Trace("strings-extf-debug") << "Reduction inference : " << nrc << " " << n << std::endl;  TODO?
         }else{
           if( effort==1 ){
             Trace("strings-extf") << "  cannot rewrite extf : " << nrc << std::endl;
@@ -4063,8 +4047,8 @@ void TheoryStrings::checkPosContains( std::vector< Node >& posContains ) {
       Node s = atom[1];
       if( !areEqual( s, d_emptyString ) && !areEqual( s, x ) ) {
         if(d_pos_ctn_cached.find(atom) == d_pos_ctn_cached.end()) {
-          Node sk1 = mkSkolemS( "sc1" );
-          Node sk2 = mkSkolemS( "sc2" );
+          Node sk1 = mkSkolemCached( x, s, sk_id_ctn_pre, "sc1" );
+          Node sk2 = mkSkolemCached( x, s, sk_id_ctn_post, "sc2" );
           Node eq = Rewriter::rewrite( x.eqNode( mkConcat( sk1, s, sk2 ) ) );
           sendLemma( atom, eq, "POS-INC" );
           d_pos_ctn_cached.insert( atom );

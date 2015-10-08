@@ -212,8 +212,9 @@ Node StringsPreprocess::simplify( Node t, std::vector< Node > &new_nodes, bool d
     Node sk3 = NodeManager::currentNM()->mkSkolem( "ss3", NodeManager::currentNM()->stringType(), "created for charat/substr" );
     Node x_eq_123 = t[0].eqNode( NodeManager::currentNM()->mkNode( kind::STRING_CONCAT, sk1, t, sk3 ) );
     Node len_sk1_eq_i = t[1].eqNode( NodeManager::currentNM()->mkNode( kind::STRING_LENGTH, sk1 ) );
+    Node lenc = t[2].eqNode( NodeManager::currentNM()->mkNode( kind::STRING_LENGTH, t ) );
     Node lemma = Rewriter::rewrite( NodeManager::currentNM()->mkNode( kind::ITE, cond,
-            NodeManager::currentNM()->mkNode( kind::AND, x_eq_123, len_sk1_eq_i ),
+            NodeManager::currentNM()->mkNode( kind::AND, x_eq_123, len_sk1_eq_i, lenc ),
             t.eqNode(NodeManager::currentNM()->mkConst( ::CVC4::String("") )) ));
     new_nodes.push_back( lemma );
     d_cache[t] = t;

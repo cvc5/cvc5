@@ -124,6 +124,10 @@ void TheoryUF::check(Effort level) {
         ss << "Try using a logic containing \"UFC\"." << std::endl;
         throw Exception( ss.str() );
       }
+      //needed for models
+      if( options::produceModels() && atom.getKind() == kind::COMBINED_CARDINALITY_CONSTRAINT ){
+        d_equalityEngine.assertPredicate(atom, polarity, fact);
+      }
     } else {
       d_equalityEngine.assertPredicate(atom, polarity, fact);
     }
