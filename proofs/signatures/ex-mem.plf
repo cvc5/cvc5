@@ -18,7 +18,7 @@
 ; ---------- use atoms (a1, a2, a3) to map theory literals to boolean literals (v1, v2, v3) ------
 
 (decl_atom (= s a b) (\ v1 (\ a1
-(decl_atom (= s b a) (\ v2 (\ a2
+(decl_atom (= s b c) (\ v2 (\ a2
 (decl_atom (= s a c) (\ v3 (\ a3
 
 ; --------------------------- proof of theory lemma ---------------------------------------------
