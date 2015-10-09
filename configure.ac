@@ -443,7 +443,7 @@ case "$with_build" in
     if test -z "${enable_statistics+set}"   ; then enable_statistics=yes            ; fi
     if test -z "${enable_replay+set}"       ; then enable_replay=no                 ; fi
     if test -z "${enable_assertions+set}"   ; then enable_assertions=no             ; fi
-    if test -z "${enable_proof+set}"        ; then enable_proof=yes                 ; fi
+    if test -z "${enable_proof+set}"        ; then enable_proof=no                  ; fi
     if test -z "${enable_tracing+set}"      ; then enable_tracing=no                ; fi
     if test -z "${enable_dumping+set}"      ; then enable_dumping=yes               ; fi
     if test -z "${enable_muzzle+set}"       ; then enable_muzzle=no                 ; fi
@@ -459,7 +459,7 @@ case "$with_build" in
     if test -z "${enable_statistics+set}"   ; then enable_statistics=yes            ; fi
     if test -z "${enable_replay+set}"       ; then enable_replay=yes                ; fi
     if test -z "${enable_assertions+set}"   ; then enable_assertions=yes            ; fi
-    if test -z "${enable_proof+set}"        ; then enable_proof=yes                 ; fi
+    if test -z "${enable_proof+set}"        ; then enable_proof=no                  ; fi
     if test -z "${enable_tracing+set}"      ; then enable_tracing=yes               ; fi
     if test -z "${enable_dumping+set}"      ; then enable_dumping=yes               ; fi
     if test -z "${enable_muzzle+set}"       ; then enable_muzzle=no                 ; fi
@@ -476,7 +476,7 @@ case "$with_build" in
     if test -z "${enable_statistics+set}"   ; then enable_statistics=yes            ; fi
     if test -z "${enable_replay+set}"       ; then enable_replay=yes                ; fi
     if test -z "${enable_assertions+set}"   ; then enable_assertions=yes            ; fi
-    if test -z "${enable_proof+set}"        ; then enable_proof=yes                 ; fi
+    if test -z "${enable_proof+set}"        ; then enable_proof=no                  ; fi
     if test -z "${enable_tracing+set}"      ; then enable_tracing=yes               ; fi
     if test -z "${enable_dumping+set}"      ; then enable_dumping=yes               ; fi
     if test -z "${enable_muzzle+set}"       ; then enable_muzzle=no                 ; fi
@@ -542,7 +542,7 @@ AC_ARG_ENABLE([proof],
   [AS_HELP_STRING([--enable-proof],
      [support proof generation])])
 if test -z "${enable_proof+set}"; then
-  enable_proof=yes
+  enable_proof=no
 fi
 AC_MSG_RESULT([$enable_proof])
 
