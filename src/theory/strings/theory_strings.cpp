@@ -68,7 +68,9 @@ TheoryStrings::TheoryStrings(context::Context* c, context::UserContext* u, Outpu
   d_loop_antec(u),
   d_length_intro_vars(u),
   d_registered_terms_cache(u),
+  d_preproc(u),
   d_preproc_cache(u),
+  d_extf_infer_cache(c),
   d_proxy_var(u),
   d_proxy_var_to_length(u),
   d_neg_ctn_eqlen(u),
@@ -2054,8 +2056,8 @@ void TheoryStrings::sendInfer( Node eq_exp, Node eq, const char * c ) {
     Trace("strings-assert") << "(assert (=> " << eq_exp << " " << eq << ")) ; infer " << c << std::endl;
     d_pending.push_back( eq );
     d_pending_exp[eq] = eq_exp;
-    d_infer.push_back(eq);
-    d_infer_exp.push_back(eq_exp);
+    d_infer.push_back( eq );
+    d_infer_exp.push_back( eq_exp );
   }
 }
 
@@ -3832,12 +3834,20 @@ void TheoryStrings::checkExtendedFuncsEval( int effort ) {
   for( NodeBoolMap::iterator it = d_ext_func_terms.begin(); it != d_ext_func_terms.end(); ++it ){
     if( (*it).second ){
       Node n = (*it).first;
+      int n_pol = 0;
+      if( n.getType().isBoolean() ){
+        if( areEqual( n, d_true ) ){
+          n_pol = 1;
+        }else if( areEqual( n, d_false ) ){
+          n_pol = -1;
+        }
+      }
       Trace("strings-extf-debug") << "Check extf " << n << "..." << std::endl;
       if( effort==0 ){
         std::map< Node, bool > visited;
         collectVars( n, d_extf_vars[n], visited );
       }
-      //build up a best current substitution for the variables in the term
+      //build up a best current substitution for the variables in the term, exp is explanation for substitution
       std::vector< Node > exp;
       std::vector< Node > var;
       std::vector< Node > sub;
@@ -3873,7 +3883,7 @@ void TheoryStrings::checkExtendedFuncsEval( int effort ) {
           }
         }
       }
-
+      Node to_reduce;
       if( !var.empty() ){
         Node nr = n.substitute( var.begin(), var.end(), sub.begin(), sub.end() );
         Node nrc = Rewriter::rewrite( nr );
@@ -3929,16 +3939,46 @@ void TheoryStrings::checkExtendedFuncsEval( int effort ) {
               return;
             }
           }
+        }else if( ( nrc.getKind()==kind::OR && n_pol==-1 ) || ( nrc.getKind()==kind::AND && n_pol==1 ) ){
+          //infer the consequence of each
+          d_ext_func_terms[n] = false;
+          exp.push_back( n_pol==-1 ? n.negate() : n );
+          Trace("strings-extf-debug") << "  decomposable..." << std::endl;
+          Trace("strings-extf") << "  resolve extf : " << nr << " -> " << nrc << ", pol = " << n_pol << std::endl;
+          for( unsigned i=0; i<nrc.getNumChildren(); i++ ){
+            sendInfer( mkAnd( exp ), n_pol==-1 ? nrc[i].negate() : nrc[i], effort==0 ? "EXTF_d" : "EXTF_d-N" );
+          }
         //}else if( hasTerm( nrc ) && !areEqual( nrc, n ) ){
         //  Trace("strings-extf-debug") << "Reduction inference : " << nrc << " " << n << std::endl;  TODO?
         }else{
-          if( effort==1 ){
-            Trace("strings-extf") << "  cannot rewrite extf : " << nrc << std::endl;
-          }
+          to_reduce = nrc;
         }
       }else{
+        to_reduce = n;
+      }
+      if( !to_reduce.isNull() ){
+        //TODO
+        //checkExtfInference( n, to_reduce, n_pol, exp, effort );
         if( effort==1 ){
-          Trace("strings-extf") << "  cannot rewrite extf : " << n << std::endl;
+          Trace("strings-extf") << "  cannot rewrite extf : " << to_reduce << std::endl;
+        }
+      }
+    }
+  }
+}
+
+void TheoryStrings::checkExtfInference( Node n, Node nr, int n_pol, std::vector< Node >& exp, int effort ){
+  if( n_pol!=0 ){
+    if( d_extf_infer_cache.find( nr )==d_extf_infer_cache.end() ){
+      d_extf_infer_cache.insert( nr );
+      if( nr.getKind()==kind::STRING_STRCTN ){
+        if( ( n_pol==1 && nr[1].getKind()==kind::STRING_CONCAT ) || ( n_pol==-1 && nr[0].getKind()==kind::STRING_CONCAT ) ){
+          //one argument does (not) contain each of the components of the other argument
+          exp.push_back( n_pol==1 ? n : n.negate() );
+          int index = n_pol==1 ? 1 : 0;
+          for( unsigned i=0; i<nr[index].getNumChildren(); i++ ){
+            //TODO
+          }
         }
       }
     }

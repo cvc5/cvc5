@@ -88,7 +88,7 @@
 #include "theory/quantifiers/ce_guided_instantiation.h"
 #include "theory/quantifiers/options.h"
 #include "theory/datatypes/options.h"
-#include "theory/strings/theory_strings_preprocess.h"
+#include "theory/strings/theory_strings.h"
 #include "printer/options.h"
 
 #include "theory/arith/pseudoboolean_proc.h"
@@ -3297,8 +3297,7 @@ void SmtEnginePrivate::processAssertions() {
   if( d_smt.d_logic.isTheoryEnabled(THEORY_STRINGS) ) {
     Trace("smt-proc") << "SmtEnginePrivate::processAssertions() : pre-strings-preprocess" << endl;
     dumpAssertions("pre-strings-pp", d_assertions);
-    CVC4::theory::strings::StringsPreprocess sp;
-    sp.simplify( d_assertions.ref() );
+    ((theory::strings::TheoryStrings*)d_smt.d_theoryEngine->theoryOf(THEORY_STRINGS))->getPreprocess()->simplify( d_assertions.ref() );
     //for (unsigned i = 0; i < d_assertions.size(); ++ i) {
     //  d_assertions.replace( i, Rewriter::rewrite( d_assertions[i] ) );
     //}

@@ -157,7 +157,7 @@ private:
   std::vector< Node > d_pending;
   std::vector< Node > d_lemma_cache;
   std::map< Node, bool > d_pending_req_phase;
-  /** inferences */
+  /** inferences: maintained to ensure ref count for internally introduced nodes */
   NodeList d_infer;
   NodeList d_infer_exp;
   /** normal forms */
@@ -177,6 +177,8 @@ private:
   // preprocess cache
   StringsPreprocess d_preproc;
   NodeBoolMap d_preproc_cache;
+  // extended functions inferences cache
+  NodeSet d_extf_infer_cache;
 
   bool doPreprocess( Node atom );
   bool hasProcessed();
@@ -277,6 +279,7 @@ private:
   void checkInit();
   void checkConstantEquivalenceClasses( TermIndex* ti, std::vector< Node >& vecc );
   void checkExtendedFuncsEval( int effort = 0 );
+  void checkExtfInference( Node n, Node nr, int n_pol, std::vector< Node >& exp, int effort );
   void collectVars( Node n, std::map< Node, std::vector< Node > >& vars, std::map< Node, bool >& visited );
   void checkNormalForms();
   Node checkCycles( Node eqc, std::vector< Node >& curr, std::vector< Node >& exp );
@@ -319,6 +322,8 @@ public:
   void eqNotifyPostMerge(TNode t1, TNode t2);
   /** called when two equivalence classes are made disequal */
   void eqNotifyDisequal(TNode t1, TNode t2, TNode reason);
+  /** get preprocess */
+  StringsPreprocess * getPreprocess() { return &d_preproc; }
 protected:
   /** compute care graph */
   void computeCareGraph();
@@ -360,7 +365,7 @@ protected:
   void printConcat( std::vector< Node >& n, const char * c );
 
   void inferSubstitutionProxyVars( Node n, std::vector< Node >& vars, std::vector< Node >& subs, std::vector< Node >& unproc );
-  
+
   enum {
     sk_id_c_spt,
     sk_id_vc_spt,

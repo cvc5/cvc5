@@ -25,7 +25,7 @@ namespace CVC4 {
 namespace theory {
 namespace strings {
 
-StringsPreprocess::StringsPreprocess() {
+StringsPreprocess::StringsPreprocess( context::UserContext* u ) : d_cache( u ){
   //Constants
   d_zero = NodeManager::currentNM()->mkConst( ::CVC4::Rational(0) );
 }
@@ -119,7 +119,9 @@ void StringsPreprocess::processRegExp( Node s, Node r, std::vector< Node > &ret 
 bool StringsPreprocess::checkStarPlus( Node t ) {
   if( t.getKind() != kind::REGEXP_STAR && t.getKind() != kind::REGEXP_PLUS ) {
     for( unsigned i = 0; i<t.getNumChildren(); ++i ) {
-      if( checkStarPlus(t[i]) ) return true;
+      if( checkStarPlus(t[i]) ){
+        return true;
+      }
     }
     return false;
   } else {
@@ -151,7 +153,7 @@ int StringsPreprocess::checkFixLenVar( Node t ) {
   return ret;
 }
 Node StringsPreprocess::simplify( Node t, std::vector< Node > &new_nodes, bool during_pp ) {
-  std::hash_map<TNode, Node, TNodeHashFunction>::const_iterator i = d_cache.find(t);
+  NodeNodeMap::const_iterator i = d_cache.find(t);
   if(i != d_cache.end()) {
     return (*i).second.isNull() ? t : (*i).second;
   }
@@ -568,7 +570,7 @@ Node StringsPreprocess::simplify( Node t, std::vector< Node > &new_nodes, bool d
 }
 
 Node StringsPreprocess::decompose(Node t, std::vector< Node > & new_nodes, bool during_pp) {
-  std::hash_map<TNode, Node, TNodeHashFunction>::const_iterator i = d_cache.find(t);
+  NodeNodeMap::const_iterator i = d_cache.find(t);
   if(i != d_cache.end()) {
     return (*i).second.isNull() ? t : (*i).second;
   }

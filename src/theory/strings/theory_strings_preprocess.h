@@ -23,14 +23,17 @@
 #include "util/hash.h"
 #include "theory/theory.h"
 #include "theory/rewriter.h"
+#include "context/cdchunk_list.h"
+#include "context/cdhashmap.h"
 
 namespace CVC4 {
 namespace theory {
 namespace strings {
 
 class StringsPreprocess {
+  typedef context::CDHashMap<Node, Node, NodeHashFunction> NodeNodeMap;
   // NOTE: this class is NOT context-dependent
-  std::hash_map<TNode, Node, TNodeHashFunction> d_cache;
+  NodeNodeMap d_cache;
   //Constants
   Node d_zero;
 private:
@@ -39,7 +42,7 @@ private:
   void processRegExp( Node s, Node r, std::vector< Node > &ret );
   Node simplify( Node t, std::vector< Node > &new_nodes, bool during_pp );
 public:
-  StringsPreprocess();
+  StringsPreprocess( context::UserContext* u );
 
   Node decompose( Node t, std::vector< Node > &new_nodes, bool during_pp = false );
   void simplify(std::vector< Node > &vec_node);
