@@ -60,6 +60,11 @@ class CVC4_PUBLIC Options {
 
 public:
 
+  /** Return true if current Options are null */
+  static inline bool isCurrentNull() {
+    return s_current == NULL;
+  }
+
   /** Get the current Options in effect */
   static inline Options& current() {
     return *s_current;

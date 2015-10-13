@@ -649,7 +649,7 @@ public:
     long& l = out.iword(s_iosIndex);
     if(l == 0) {
       // set the default print depth on this ostream
-      if(&Options::current() != NULL) {
+      if(not Options::isCurrentNull()) {
         l = options::defaultExprDepth();
       }
       if(l == 0) {
@@ -801,7 +801,7 @@ public:
     if(l == 0) {
       // set the default dag setting on this ostream
       // (offset by one to detect whether default has been set yet)
-      if(&Options::current() != NULL) {
+      if(not Options::isCurrentNull()) {
         l = options::defaultDagThresh() + 1;
       }
       if(l == 0) {
@@ -884,7 +884,7 @@ public:
     if(l == 0) {
       // set the default language on this ostream
       // (offset by one to detect whether default has been set yet)
-      if(&Options::current() != NULL) {
+      if(not Options::isCurrentNull()) {
         l = options::outputLanguage() + 1;
       }
       if(l <= 0 || l > language::output::LANG_MAX) {
