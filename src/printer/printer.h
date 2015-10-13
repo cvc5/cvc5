@@ -62,7 +62,7 @@ public:
       //
       // Options can be null in certain circumstances (e.g., when printing
       // the singleton "null" expr.  So we guard against segfault
-      if(&Options::current() != NULL) {
+      if(not Options::isCurrentNull()) {
         if(options::outputLanguage.wasSetByUser()) {
           lang = options::outputLanguage();
         }
