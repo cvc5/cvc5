@@ -421,7 +421,6 @@ void Smt2Printer::toStream(std::ostream& out, TNode n,
     break;
   }
   case kind::STRING_LENGTH: out << (d_variant == z3str_variant ? "Length " : "str.len "); break;
-  case kind::STRING_SUBSTR_TOTAL:
   case kind::STRING_SUBSTR: out << "str.substr "; break;
   case kind::STRING_CHARAT: out << "str.at "; break;
   case kind::STRING_STRCTN: out << "str.contains "; break;

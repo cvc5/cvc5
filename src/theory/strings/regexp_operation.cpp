@@ -975,8 +975,8 @@ void RegExpOpr::simplifyNRegExp( Node s, Node r, std::vector< Node > &new_nodes 
         Node b1v = NodeManager::currentNM()->mkNode(kind::BOUND_VAR_LIST, b1);
         Node g1 = NodeManager::currentNM()->mkNode( kind::AND, NodeManager::currentNM()->mkNode(kind::GEQ, b1, d_zero),
               NodeManager::currentNM()->mkNode( kind::GEQ, NodeManager::currentNM()->mkNode(kind::STRING_LENGTH, s), b1 ) );
-        Node s1 = Rewriter::rewrite(NodeManager::currentNM()->mkNode(kind::STRING_SUBSTR_TOTAL, s, d_zero, b1));
-        Node s2 = Rewriter::rewrite(NodeManager::currentNM()->mkNode(kind::STRING_SUBSTR_TOTAL, s, b1, NodeManager::currentNM()->mkNode(kind::MINUS, lens, b1)));
+        Node s1 = Rewriter::rewrite(NodeManager::currentNM()->mkNode(kind::STRING_SUBSTR, s, d_zero, b1));
+        Node s2 = Rewriter::rewrite(NodeManager::currentNM()->mkNode(kind::STRING_SUBSTR, s, b1, NodeManager::currentNM()->mkNode(kind::MINUS, lens, b1)));
         Node s1r1 = NodeManager::currentNM()->mkNode(kind::STRING_IN_REGEXP, s1, r[0]).negate();
         if(r[0].getKind() == kind::STRING_TO_REGEXP) {
           s1r1 = s1.eqNode(r[0][0]).negate();
@@ -1054,8 +1054,8 @@ void RegExpOpr::simplifyNRegExp( Node s, Node r, std::vector< Node > &new_nodes 
           Node g1 = NodeManager::currentNM()->mkNode( kind::AND, NodeManager::currentNM()->mkNode(kind::GEQ, b1, d_one),
                 NodeManager::currentNM()->mkNode( kind::GEQ, lens, b1 ) );
           //internal
-          Node s1 = NodeManager::currentNM()->mkNode(kind::STRING_SUBSTR_TOTAL, s, d_zero, b1);
-          Node s2 = NodeManager::currentNM()->mkNode(kind::STRING_SUBSTR_TOTAL, s, b1, NodeManager::currentNM()->mkNode(kind::MINUS, lens, b1));
+          Node s1 = NodeManager::currentNM()->mkNode(kind::STRING_SUBSTR, s, d_zero, b1);
+          Node s2 = NodeManager::currentNM()->mkNode(kind::STRING_SUBSTR, s, b1, NodeManager::currentNM()->mkNode(kind::MINUS, lens, b1));
           Node s1r1 = NodeManager::currentNM()->mkNode(kind::STRING_IN_REGEXP, s1, r[0]).negate();
           Node s2r2 = NodeManager::currentNM()->mkNode(kind::STRING_IN_REGEXP, s2, r).negate();
 

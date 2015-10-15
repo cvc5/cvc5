@@ -97,7 +97,7 @@ TheoryStrings::TheoryStrings(context::Context* c, context::UserContext* u, Outpu
   d_equalityEngine.addFunctionKind(kind::STRING_LENGTH);
   d_equalityEngine.addFunctionKind(kind::STRING_CONCAT);
   d_equalityEngine.addFunctionKind(kind::STRING_STRCTN);
-  d_equalityEngine.addFunctionKind(kind::STRING_SUBSTR_TOTAL);
+  d_equalityEngine.addFunctionKind(kind::STRING_SUBSTR);
   d_equalityEngine.addFunctionKind(kind::STRING_ITOS);
   d_equalityEngine.addFunctionKind(kind::STRING_STOI);
   if( options::stringLazyPreproc() ){
@@ -466,7 +466,7 @@ void TheoryStrings::preRegisterTerm(TNode n) {
         d_equalityEngine.addTerm(n[1]);
         break;
       }
-      //case kind::STRING_SUBSTR_TOTAL:
+      //case kind::STRING_SUBSTR:
       default: {
         if( n.getType().isString() ) {
           registerTerm(n);
@@ -488,60 +488,7 @@ void TheoryStrings::preRegisterTerm(TNode n) {
 }
 
 Node TheoryStrings::expandDefinition(LogicRequest &logicRequest, Node node) {
-  switch (node.getKind()) {
-    case kind::STRING_CHARAT: {
-      if(d_ufSubstr.isNull()) {
-        std::vector< TypeNode > argTypes;
-        argTypes.push_back(NodeManager::currentNM()->stringType());
-        argTypes.push_back(NodeManager::currentNM()->integerType());
-        argTypes.push_back(NodeManager::currentNM()->integerType());
-        d_ufSubstr = NodeManager::currentNM()->mkSkolem("__ufSS",
-                    NodeManager::currentNM()->mkFunctionType(
-                               argTypes, NodeManager::currentNM()->stringType()),
-                    "uf substr",
-                    NodeManager::SKOLEM_EXACT_NAME);
-      }
-      Node lenxgti = NodeManager::currentNM()->mkNode( kind::GT,
-                   NodeManager::currentNM()->mkNode( kind::STRING_LENGTH, node[0] ), node[1] );
-      Node t1greq0 = NodeManager::currentNM()->mkNode( kind::GEQ, node[1], d_zero);
-      Node cond = Rewriter::rewrite( NodeManager::currentNM()->mkNode( kind::AND, lenxgti, t1greq0 ));
-      Node totalf = NodeManager::currentNM()->mkNode(kind::STRING_SUBSTR_TOTAL, node[0], node[1], d_one);
-      Node uf = NodeManager::currentNM()->mkNode(kind::APPLY_UF, d_ufSubstr, node[0], node[1], d_one);
-      return NodeManager::currentNM()->mkNode( kind::ITE, cond, totalf, uf );
-      //return NodeManager::currentNM()->mkNode(kind::STRING_SUBSTR_TOTAL, node[0], node[1], d_one);
-      break;
-    }
-
-    case kind::STRING_SUBSTR: {
-      if(d_ufSubstr.isNull()) {
-        std::vector< TypeNode > argTypes;
-        argTypes.push_back(NodeManager::currentNM()->stringType());
-        argTypes.push_back(NodeManager::currentNM()->integerType());
-        argTypes.push_back(NodeManager::currentNM()->integerType());
-        d_ufSubstr = NodeManager::currentNM()->mkSkolem("__ufSS",
-                    NodeManager::currentNM()->mkFunctionType(
-                               argTypes, NodeManager::currentNM()->stringType()),
-                    "uf substr",
-                    NodeManager::SKOLEM_EXACT_NAME);
-      }
-      Node lenxgti = NodeManager::currentNM()->mkNode( kind::GEQ,
-                   NodeManager::currentNM()->mkNode( kind::STRING_LENGTH, node[0] ),
-                   NodeManager::currentNM()->mkNode( kind::PLUS, node[1], node[2] ) );
-      Node t1geq0 = NodeManager::currentNM()->mkNode(kind::GEQ, node[1], d_zero);
-      Node t2geq0 = NodeManager::currentNM()->mkNode(kind::GEQ, node[2], d_zero);
-      Node cond = Rewriter::rewrite( NodeManager::currentNM()->mkNode( kind::AND, lenxgti, t1geq0, t2geq0 ));
-      Node totalf = NodeManager::currentNM()->mkNode(kind::STRING_SUBSTR_TOTAL, node[0], node[1], node[2]);
-      Node uf = NodeManager::currentNM()->mkNode(kind::APPLY_UF, d_ufSubstr, node[0], node[1], node[2]);
-      return NodeManager::currentNM()->mkNode( kind::ITE, cond, totalf, uf );
-      //return NodeManager::currentNM()->mkNode(kind::STRING_SUBSTR_TOTAL, node[0], node[1], node[2]);
-      break;
-    }
-
-    default :
-      return node;
-  }
-
-  Unreachable();
+  return node;
 }
 
 
@@ -3492,10 +3439,10 @@ void TheoryStrings::checkMemberships() {
                       NodeManager::currentNM()->mkNode(kind::GEQ, len1, bi),
                       NodeManager::currentNM()->mkNode(kind::GEQ, bj, d_zero),
                       NodeManager::currentNM()->mkNode(kind::GEQ, len2, bj));
-                Node s11 = NodeManager::currentNM()->mkNode(kind::STRING_SUBSTR_TOTAL, p1, d_zero, bi);
-                Node s12 = NodeManager::currentNM()->mkNode(kind::STRING_SUBSTR_TOTAL, p1, bi, NodeManager::currentNM()->mkNode(kind::MINUS, len1, bi));
-                Node s21 = NodeManager::currentNM()->mkNode(kind::STRING_SUBSTR_TOTAL, p2, d_zero, bj);
-                Node s22 = NodeManager::currentNM()->mkNode(kind::STRING_SUBSTR_TOTAL, p2, bj, NodeManager::currentNM()->mkNode(kind::MINUS, len2, bj));
+                Node s11 = NodeManager::currentNM()->mkNode(kind::STRING_SUBSTR, p1, d_zero, bi);
+                Node s12 = NodeManager::currentNM()->mkNode(kind::STRING_SUBSTR, p1, bi, NodeManager::currentNM()->mkNode(kind::MINUS, len1, bi));
+                Node s21 = NodeManager::currentNM()->mkNode(kind::STRING_SUBSTR, p2, d_zero, bj);
+                Node s22 = NodeManager::currentNM()->mkNode(kind::STRING_SUBSTR, p2, bj, NodeManager::currentNM()->mkNode(kind::MINUS, len2, bj));
                 Node cc1 = NodeManager::currentNM()->mkNode(kind::STRING_IN_REGEXP, s11, r).negate();
                 Node cc2 = NodeManager::currentNM()->mkNode(kind::STRING_IN_REGEXP,  mkConcat(s12, s21), r[0]).negate();
                 Node cc3 = NodeManager::currentNM()->mkNode(kind::STRING_IN_REGEXP, s22, r).negate();
@@ -4178,8 +4125,8 @@ void TheoryStrings::checkNegContains( std::vector< Node >& negContains ) {
             Node g1 = Rewriter::rewrite( NodeManager::currentNM()->mkNode( kind::AND, NodeManager::currentNM()->mkNode( kind::GEQ, b1, d_zero ),
                   NodeManager::currentNM()->mkNode( kind::GEQ, NodeManager::currentNM()->mkNode( kind::MINUS, lenx, lens ), b1 ) ) );
             Node b2 = NodeManager::currentNM()->mkBoundVar(NodeManager::currentNM()->integerType());
-            Node s2 = NodeManager::currentNM()->mkNode(kind::STRING_SUBSTR_TOTAL, x, NodeManager::currentNM()->mkNode( kind::PLUS, b1, b2 ), d_one);
-            Node s5 = NodeManager::currentNM()->mkNode(kind::STRING_SUBSTR_TOTAL, s, b2, d_one);
+            Node s2 = NodeManager::currentNM()->mkNode(kind::STRING_SUBSTR, x, NodeManager::currentNM()->mkNode( kind::PLUS, b1, b2 ), d_one);
+            Node s5 = NodeManager::currentNM()->mkNode(kind::STRING_SUBSTR, s, b2, d_one);
 
             Node b2v = NodeManager::currentNM()->mkNode(kind::BOUND_VAR_LIST, b2);//, s1, s3, s4, s6);
 
@@ -4506,7 +4453,7 @@ void TheoryStrings::assertNode( Node lit ) {
 void TheoryStrings::collectExtendedFuncTerms( Node n, std::map< Node, bool >& visited ) {
   if( visited.find( n )==visited.end() ){
     visited[n] = true;
-    if( n.getKind()==kind::STRING_SUBSTR_TOTAL || n.getKind()==kind::STRING_STRIDOF ||
+    if( n.getKind()==kind::STRING_SUBSTR || n.getKind()==kind::STRING_STRIDOF ||
         n.getKind() == kind::STRING_ITOS || n.getKind() == kind::STRING_U16TOS || n.getKind() == kind::STRING_U32TOS ||
         n.getKind() == kind::STRING_STOI || n.getKind() == kind::STRING_STOU16 || n.getKind() == kind::STRING_STOU32 ||
         n.getKind() == kind::STRING_STRREPL || n.getKind() == kind::STRING_STRCTN ){

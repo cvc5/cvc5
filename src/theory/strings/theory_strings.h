@@ -119,12 +119,6 @@ public:
   };/* class TheoryStrings::NotifyClass */
 
 private:
-  /**
-   * Function symbol used to implement uninterpreted undefined string
-   * semantics.  Needed to deal with partial charat/substr function.
-   */
-  Node d_ufSubstr;
-
   // Constants
   Node d_emptyString;
   Node d_emptyRegexp;

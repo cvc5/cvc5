@@ -162,7 +162,7 @@ Node StringsPreprocess::simplify( Node t, std::vector< Node > &new_nodes, bool d
   Node retNode = t;
   if( options::stringLazyPreproc() ){
     //only process extended operators after preprocess
-    if( during_pp && ( t.getKind() == kind::STRING_SUBSTR_TOTAL || t.getKind() == kind::STRING_STRIDOF ||
+    if( during_pp && ( t.getKind() == kind::STRING_SUBSTR || t.getKind() == kind::STRING_STRIDOF ||
                        t.getKind() == kind::STRING_ITOS || t.getKind() == kind::STRING_U16TOS || t.getKind() == kind::STRING_U32TOS ||
                        t.getKind() == kind::STRING_STOI || t.getKind() == kind::STRING_STOU16 || t.getKind() == kind::STRING_STOU32 ||
                        t.getKind() == kind::STRING_STRREPL ) ){
@@ -203,7 +203,8 @@ Node StringsPreprocess::simplify( Node t, std::vector< Node > &new_nodes, bool d
     n = Rewriter::rewrite(n);
     d_cache[t] = (t == n) ? Node::null() : n;
     retNode = n;
-  } else if( t.getKind() == kind::STRING_SUBSTR_TOTAL ) {
+  } else if( t.getKind() == kind::STRING_SUBSTR ) {
+    /*
     Node lenxgti = NodeManager::currentNM()->mkNode( kind::GEQ,
           NodeManager::currentNM()->mkNode( kind::STRING_LENGTH, t[0] ),
           NodeManager::currentNM()->mkNode( kind::PLUS, t[1], t[2] ) );
@@ -218,6 +219,31 @@ Node StringsPreprocess::simplify( Node t, std::vector< Node > &new_nodes, bool d
     Node lemma = Rewriter::rewrite( NodeManager::currentNM()->mkNode( kind::ITE, cond,
             NodeManager::currentNM()->mkNode( kind::AND, x_eq_123, len_sk1_eq_i, lenc ),
             t.eqNode(NodeManager::currentNM()->mkConst( ::CVC4::String("") )) ));
+            */
+    Node t12 = NodeManager::currentNM()->mkNode( kind::PLUS, t[1], t[2] );
+    Node lt0 = NodeManager::currentNM()->mkNode( kind::STRING_LENGTH, t[0] );
+    //start point is greater than or equal zero
+    Node c1 = NodeManager::currentNM()->mkNode( kind::GEQ, t[1], d_zero );
+    //start point is less than end of string
+    Node c2 = NodeManager::currentNM()->mkNode( kind::GT, lt0, t[1] );
+    //length is positive
+    Node c3 = NodeManager::currentNM()->mkNode( kind::GT, t[2], d_zero );
+    Node cond = NodeManager::currentNM()->mkNode( kind::AND, c1, c2, c3 );
+    
+    Node sk1 = NodeManager::currentNM()->mkSkolem( "ss1", NodeManager::currentNM()->stringType(), "created for substr" );
+    Node sk2 = NodeManager::currentNM()->mkSkolem( "ss2", NodeManager::currentNM()->stringType(), "created for substr" );
+    Node b11 = t[0].eqNode( NodeManager::currentNM()->mkNode( kind::STRING_CONCAT, sk1, t, sk2 ) );
+    //length of first skolem is second argument
+    Node b12 = NodeManager::currentNM()->mkNode( kind::STRING_LENGTH, sk1 ).eqNode( t[1] );
+    //length of second skolem is abs difference between end point and end of string
+    Node b13 = NodeManager::currentNM()->mkNode( kind::STRING_LENGTH, sk2 ).eqNode( 
+                 NodeManager::currentNM()->mkNode( kind::ITE, NodeManager::currentNM()->mkNode( kind::GEQ, lt0, t12 ), 
+                    NodeManager::currentNM()->mkNode( kind::MINUS, lt0, t12 ), d_zero ) );
+    
+    Node b1 = NodeManager::currentNM()->mkNode( kind::AND, b11, b12, b13 );
+    Node b2 = t.eqNode( NodeManager::currentNM()->mkConst( ::CVC4::String("") ) );
+    
+    Node lemma = Rewriter::rewrite( NodeManager::currentNM()->mkNode( kind::ITE, cond, b1, b2 ) );
     new_nodes.push_back( lemma );
     d_cache[t] = t;
   } else if( t.getKind() == kind::STRING_STRIDOF ) {
@@ -225,7 +251,7 @@ Node StringsPreprocess::simplify( Node t, std::vector< Node > &new_nodes, bool d
     Node sk3 = NodeManager::currentNM()->mkSkolem( "io3", NodeManager::currentNM()->stringType(), "created for indexof" );
     Node sk4 = NodeManager::currentNM()->mkSkolem( "io4", NodeManager::currentNM()->stringType(), "created for indexof" );
     Node skk = NodeManager::currentNM()->mkSkolem( "iok", NodeManager::currentNM()->integerType(), "created for indexof" );
-    Node st = NodeManager::currentNM()->mkNode( kind::STRING_SUBSTR_TOTAL, t[0], t[2], NodeManager::currentNM()->mkNode( kind::MINUS, NodeManager::currentNM()->mkNode( kind::STRING_LENGTH, t[0] ), t[2] ) );
+    Node st = NodeManager::currentNM()->mkNode( kind::STRING_SUBSTR, t[0], t[2], NodeManager::currentNM()->mkNode( kind::MINUS, NodeManager::currentNM()->mkNode( kind::STRING_LENGTH, t[0] ), t[2] ) );
     Node eq = st.eqNode( NodeManager::currentNM()->mkNode( kind::STRING_CONCAT, sk2, sk3, sk4 ) );
     new_nodes.push_back( eq );
     Node negone = NodeManager::currentNM()->mkConst( ::CVC4::Rational(-1) );
@@ -250,7 +276,7 @@ Node StringsPreprocess::simplify( Node t, std::vector< Node > &new_nodes, bool d
     //~contain(t2, s2)
     Node c5 = NodeManager::currentNM()->mkNode( kind::STRING_STRCTN,
                 NodeManager::currentNM()->mkNode(kind::STRING_CONCAT, sk2,
-                  NodeManager::currentNM()->mkNode(kind::STRING_SUBSTR_TOTAL, t[1], d_zero,
+                  NodeManager::currentNM()->mkNode(kind::STRING_SUBSTR, t[1], d_zero,
                     NodeManager::currentNM()->mkNode(kind::MINUS,
                       NodeManager::currentNM()->mkNode(kind::STRING_LENGTH, t[1]),
                       NodeManager::currentNM()->mkConst( ::CVC4::Rational(1) )))),
@@ -437,7 +463,7 @@ Node StringsPreprocess::simplify( Node t, std::vector< Node > &new_nodes, bool d
     vec_n.push_back(g);
     g = NodeManager::currentNM()->mkNode(kind::GT, lenp, p);
     vec_n.push_back(g);
-    Node z2 = NodeManager::currentNM()->mkNode(kind::STRING_SUBSTR_TOTAL, str, p, one);
+    Node z2 = NodeManager::currentNM()->mkNode(kind::STRING_SUBSTR, str, p, one);
     char chtmp[2];
     chtmp[1] = '\0';
     for(unsigned i=0; i<=9; i++) {
@@ -463,7 +489,7 @@ Node StringsPreprocess::simplify( Node t, std::vector< Node > &new_nodes, bool d
     vec_c3b.push_back(c3cc);
     c3cc = NodeManager::currentNM()->mkNode(kind::GEQ, nine, ufMx);
     vec_c3b.push_back(c3cc);
-    Node sx = NodeManager::currentNM()->mkNode(kind::STRING_SUBSTR_TOTAL, str, b2, one);
+    Node sx = NodeManager::currentNM()->mkNode(kind::STRING_SUBSTR, str, b2, one);
     for(unsigned i=0; i<=9; i++) {
       chtmp[0] = i + '0';
       std::string stmp(chtmp);
@@ -516,7 +542,7 @@ Node StringsPreprocess::simplify( Node t, std::vector< Node > &new_nodes, bool d
     Node c2 = skw.eqNode( NodeManager::currentNM()->mkNode( kind::STRING_CONCAT, sk1, z, sk2 ) );
     Node c3 = NodeManager::currentNM()->mkNode(kind::STRING_STRCTN,
                 NodeManager::currentNM()->mkNode(kind::STRING_CONCAT, sk1,
-                   NodeManager::currentNM()->mkNode(kind::STRING_SUBSTR_TOTAL, y, d_zero,
+                   NodeManager::currentNM()->mkNode(kind::STRING_SUBSTR, y, d_zero,
                       NodeManager::currentNM()->mkNode(kind::MINUS,
                         NodeManager::currentNM()->mkNode(kind::STRING_LENGTH, y),
                         NodeManager::currentNM()->mkConst(::CVC4::Rational(1))))), y).negate();

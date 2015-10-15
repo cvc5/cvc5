@@ -1014,13 +1014,13 @@ RewriteResponse TheoryStringsRewriter::postRewrite(TNode node) {
   } else if(node.getKind() == kind::STRING_LENGTH) {
     if(node[0].isConst()) {
       retNode = NodeManager::currentNM()->mkConst( ::CVC4::Rational( node[0].getConst<String>().size() ) );
-    } else if(node[0].getKind() == kind::STRING_SUBSTR_TOTAL) {
+    } else if(node[0].getKind() == kind::STRING_SUBSTR) {
       //retNode = node[0][2];
     } else if(node[0].getKind() == kind::STRING_CONCAT) {
       Node tmpNode = rewriteConcatString(node[0]);
       if(tmpNode.isConst()) {
         retNode = NodeManager::currentNM()->mkConst( ::CVC4::Rational( tmpNode.getConst<String>().size() ) );
-      } else if(tmpNode.getKind() == kind::STRING_SUBSTR_TOTAL) {
+      } else if(tmpNode.getKind() == kind::STRING_SUBSTR) {
         //retNode = tmpNode[2];
       } else {
         // it has to be string concat
@@ -1028,7 +1028,7 @@ RewriteResponse TheoryStringsRewriter::postRewrite(TNode node) {
         for(unsigned int i=0; i<tmpNode.getNumChildren(); ++i) {
           if(tmpNode[i].isConst()) {
             node_vec.push_back( NodeManager::currentNM()->mkConst( ::CVC4::Rational( tmpNode[i].getConst<String>().size() ) ) );
-          } else if(tmpNode[i].getKind() == kind::STRING_SUBSTR_TOTAL) {
+          } else if(tmpNode[i].getKind() == kind::STRING_SUBSTR) {
             node_vec.push_back( tmpNode[i][2] );
           } else {
             node_vec.push_back( NodeManager::currentNM()->mkNode(kind::STRING_LENGTH, tmpNode[i]) );
@@ -1043,44 +1043,72 @@ RewriteResponse TheoryStringsRewriter::postRewrite(TNode node) {
         }
       }
     }
-  } else if( node.getKind() == kind::STRING_SUBSTR_TOTAL ){
+  }else if( node.getKind() == kind::STRING_CHARAT ){
+    Node one = NodeManager::currentNM()->mkConst( Rational( 1 ) );
+    retNode = NodeManager::currentNM()->mkNode(kind::STRING_SUBSTR, node[0], node[1], one);
+  }else if( node.getKind() == kind::STRING_SUBSTR ){
     Node zero = NodeManager::currentNM()->mkConst( ::CVC4::Rational(0) );
-    if(node[2] == zero) {
+    if( node[2].isConst() && node[2].getConst<Rational>().sgn()<=0 ) {
       retNode = NodeManager::currentNM()->mkConst( ::CVC4::String("") );
-    } else if( node[1].isConst() && node[2].isConst() ) {
-      if(node[1].getConst<Rational>().sgn()>=0 && node[2].getConst<Rational>().sgn()>=0) {
-        CVC4::Rational sum(node[1].getConst<Rational>() + node[2].getConst<Rational>());
-        if( node[0].isConst() ) {
-          CVC4::Rational size(node[0].getConst<String>().size());
-          if( size >= sum ) {
-            //because size is smaller than MAX_INT
-            size_t i = node[1].getConst<Rational>().getNumerator().toUnsignedInt();
-            size_t j = node[2].getConst<Rational>().getNumerator().toUnsignedInt();
-            retNode = NodeManager::currentNM()->mkConst( node[0].getConst<String>().substr(i, j) );
-          } else {
-            retNode = NodeManager::currentNM()->mkConst( ::CVC4::String("") );
-          }
-        } else if(node[0].getKind() == kind::STRING_CONCAT && node[0][0].isConst()) {
-          CVC4::Rational size2(node[0][0].getConst<String>().size());
-          if( size2 >= sum ) {
-            //because size2 is smaller than MAX_INT
-            size_t i = node[1].getConst<Rational>().getNumerator().toUnsignedInt();
-            size_t j = node[2].getConst<Rational>().getNumerator().toUnsignedInt();
-            retNode = NodeManager::currentNM()->mkConst( node[0][0].getConst<String>().substr(i, j) );
-          }
-        }
-      } else {
+    }else if( node[1].isConst() ){
+      if( node[1].getConst<Rational>().sgn()<0 ){
+        //bring forward to start at zero?  don't use this semantics, e.g. does not compose well with error conditions for str.indexof.
+        //retNode = NodeManager::currentNM()->mkNode( kind::STRING_SUBSTR, node[0], zero, NodeManager::currentNM()->mkNode( kind::PLUS, node[1], node[2] ) );
         retNode = NodeManager::currentNM()->mkConst( ::CVC4::String("") );
-      }
-    } else if(node[1] == zero ) {
-      if( node[2].getKind() == kind::STRING_LENGTH && node[2][0]==node[0] ){
-        retNode = node[0];
       }else{
-        //check if lengths rewrite to the same thing
-        Node lt = NodeManager::currentNM()->mkNode( kind::STRING_LENGTH, node[0] );
-        lt = Rewriter::rewrite( lt );
-        if( lt==node[2] ){
-          retNode = node[0];
+        if( node[2].isConst() ){
+          Assert( node[2].getConst<Rational>().sgn()>=0);
+          CVC4::Rational v1( node[1].getConst<Rational>() );
+          CVC4::Rational v2( node[2].getConst<Rational>() );
+          std::vector< Node > children;
+          getConcat( node[0], children );
+          if( children[0].isConst() ){
+            CVC4::Rational size(children[0].getConst<String>().size());
+            if( v1 >= size ){
+              if( node[0].isConst() ){
+                retNode = NodeManager::currentNM()->mkConst( ::CVC4::String("") );
+              }else{
+                children.erase( children.begin(), children.begin()+1 );
+                retNode = NodeManager::currentNM()->mkNode( kind::STRING_SUBSTR, mkConcat( kind::STRING_CONCAT, children ), 
+                                                            NodeManager::currentNM()->mkNode( kind::MINUS, node[1], NodeManager::currentNM()->mkConst( size ) ),
+                                                            node[2] );
+              }
+            }else{
+              //since size is smaller than MAX_INT, v1 is smaller than MAX_INT
+              size_t i = v1.getNumerator().toUnsignedInt();
+              CVC4::Rational sum(v1 + v2);
+              bool full_spl = false;
+              size_t j;
+              if( sum>size ){
+                j = size.getNumerator().toUnsignedInt();
+              }else{
+                //similarly, sum is smaller than MAX_INT
+                j = sum.getNumerator().toUnsignedInt();
+                full_spl = true;
+              }
+              //split the first component of the string
+              Node spl = NodeManager::currentNM()->mkConst( children[0].getConst<String>().substr(i, j-i) );
+              if( node[0].isConst() || full_spl ){
+                retNode = spl;
+              }else{
+                children[0] = spl;
+                retNode = NodeManager::currentNM()->mkNode( kind::STRING_SUBSTR, mkConcat( kind::STRING_CONCAT, children ), zero, node[2] );
+              }
+            }
+          }
+        }else{
+          if( node[1]==zero ){
+            if( node[2].getKind() == kind::STRING_LENGTH && node[2][0]==node[0] ){
+              retNode = node[0];
+            }else{
+              //check if the length argument is always at least the length of the string
+              Node cmp = NodeManager::currentNM()->mkNode( kind::GEQ, node[2], NodeManager::currentNM()->mkNode( kind::STRING_LENGTH, node[0] ) );
+              cmp = Rewriter::rewrite( cmp );
+              if( cmp==NodeManager::currentNM()->mkConst(true) ){
+                retNode = node[0];
+              }
+            }
+          }
         }
       }
     }
@@ -1105,7 +1133,7 @@ RewriteResponse TheoryStringsRewriter::postRewrite(TNode node) {
       Node lent = NodeManager::currentNM()->mkNode(kind::STRING_LENGTH, node[1]);
       retNode = NodeManager::currentNM()->mkNode(kind::AND,
             NodeManager::currentNM()->mkNode(kind::GEQ, lent, lens),
-            node[0].eqNode(NodeManager::currentNM()->mkNode(kind::STRING_SUBSTR_TOTAL, node[1],
+            node[0].eqNode(NodeManager::currentNM()->mkNode(kind::STRING_SUBSTR, node[1],
                     NodeManager::currentNM()->mkConst( ::CVC4::Rational(0) ), lens)));
     }
   }else if( node.getKind() == kind::STRING_SUFFIX ){
@@ -1123,7 +1151,7 @@ RewriteResponse TheoryStringsRewriter::postRewrite(TNode node) {
       Node lent = NodeManager::currentNM()->mkNode(kind::STRING_LENGTH, node[1]);
       retNode = NodeManager::currentNM()->mkNode(kind::AND,
             NodeManager::currentNM()->mkNode(kind::GEQ, lent, lens),
-            node[0].eqNode(NodeManager::currentNM()->mkNode(kind::STRING_SUBSTR_TOTAL, node[1],
+            node[0].eqNode(NodeManager::currentNM()->mkNode(kind::STRING_SUBSTR, node[1],
                     NodeManager::currentNM()->mkNode(kind::MINUS, lent, lens), lens)));
     }
   }else if(node.getKind() == kind::STRING_ITOS || node.getKind() == kind::STRING_U16TOS || node.getKind() == kind::STRING_U32TOS) {
