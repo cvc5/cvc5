@@ -180,7 +180,7 @@ private:
   void addToExplanation( Node lit, std::vector< Node >& exp );
 
 private:
-  std::vector< Node > d_congruent;
+  NodeSet d_congruent;
   std::map< Node, Node > d_eqc_to_const;
   std::map< Node, Node > d_eqc_to_const_base;
   std::map< Node, Node > d_eqc_to_const_exp;

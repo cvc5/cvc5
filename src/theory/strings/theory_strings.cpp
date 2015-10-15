@@ -71,6 +71,7 @@ TheoryStrings::TheoryStrings(context::Context* c, context::UserContext* u, Outpu
   d_preproc(u),
   d_preproc_cache(u),
   d_extf_infer_cache(c),
+  d_congruent(c),
   d_proxy_var(u),
   d_proxy_var_to_length(u),
   d_neg_ctn_eqlen(u),
@@ -571,8 +572,8 @@ void TheoryStrings::check(Effort e) {
 
     bool addedLemma = false;
     bool addedFact;
-    d_congruent.clear();
     do{
+      Trace("strings-process") << "----check, next round---" << std::endl;
       checkInit();
       Trace("strings-process") << "Done check init, addedFact = " << !d_pending.empty() << " " << !d_lemma_cache.empty() << ", d_conflict = " << d_conflict << std::endl;
       if( !hasProcessed() ){
@@ -873,7 +874,7 @@ bool TheoryStrings::getNormalForms(Node &eqc, std::vector< Node > & visited, std
   eq::EqClassIterator eqc_i = eq::EqClassIterator( eqc, &d_equalityEngine );
   while( !eqc_i.isFinished() ) {
     Node n = (*eqc_i);
-    if( std::find( d_congruent.begin(), d_congruent.end(), n )==d_congruent.end() ){
+    if( d_congruent.find( n )==d_congruent.end() ){
       if( n.getKind() == kind::CONST_STRING || n.getKind() == kind::STRING_CONCAT ) {
         Trace("strings-process-debug") << "Get Normal Form : Process term " << n << " in eqc " << eqc << std::endl;
         std::vector<Node> nf_n;
@@ -1607,7 +1608,7 @@ bool TheoryStrings::normalizeEquivalenceClass( Node eqc, std::vector< Node > & v
     eq::EqClassIterator eqc_i = eq::EqClassIterator( eqc, &d_equalityEngine );
     while( !eqc_i.isFinished() ) {
       Node n = (*eqc_i);
-      if( std::find( d_congruent.begin(), d_congruent.end(), n )==d_congruent.end() ){
+      if( d_congruent.find( n )==d_congruent.end() ){
         if( n.getKind()==kind::STRING_CONCAT ){
           //std::vector< Node > exp;
           //exp.push_back( n.eqNode( d_emptyString ) );
@@ -2515,7 +2516,7 @@ Node TheoryStrings::checkCycles( Node eqc, std::vector< Node >& curr, std::vecto
     eq::EqClassIterator eqc_i = eq::EqClassIterator( eqc, &d_equalityEngine );
     while( !eqc_i.isFinished() ) {
       Node n = (*eqc_i);
-      if( std::find( d_congruent.begin(), d_congruent.end(), n )==d_congruent.end() ){
+      if( d_congruent.find( n )==d_congruent.end() ){
         Trace("strings-cycle") << eqc << " check term : " << n << " in " << eqc << std::endl;
         if( n.getKind() == kind::STRING_CONCAT ) {
           if( eqc!=d_emptyString_r ){
@@ -2989,7 +2990,7 @@ bool TheoryStrings::normalizePosMemberships(std::map< Node, std::vector< Node > 
         //conflict
         Node antec = exp.size() == 1? exp[0] : NodeManager::currentNM()->mkNode(kind::AND, exp);
         Node conc;
-        sendLemma(antec, conc, "INTERSEC CONFLICT");
+        sendLemma(antec, conc, "INTERSECT CONFLICT");
         addLemma = true;
         break;
       }
@@ -3214,7 +3215,7 @@ void TheoryStrings::checkMemberships() {
               }
               Node antec = vec_nodes.size() == 1? vec_nodes[0] : NodeManager::currentNM()->mkNode(kind::AND, vec_nodes);
               Node conc;
-              sendLemma(antec, conc, "INTERSEC CONFLICT");
+              sendLemma(antec, conc, "INTERSECT CONFLICT");
               addedLemma = true;
               break;
             }
@@ -3232,7 +3233,7 @@ void TheoryStrings::checkMemberships() {
     }
   //}
 
-  Trace("regexp-debug") << "... No Intersec Conflict in Memberships, addedLemma: " << addedLemma << std::endl;
+  Trace("regexp-debug") << "... No Intersect Conflict in Memberships, addedLemma: " << addedLemma << std::endl;
   if(!addedLemma) {
     for( unsigned i=0; i<d_regexp_memberships.size(); i++ ) {
       //check regular expression membership
@@ -3587,7 +3588,7 @@ void TheoryStrings::checkInit() {
         }else if( n.getNumChildren()>0 ){
           Kind k = n.getKind();
           if( k!=kind::EQUAL ){
-            if( std::find( d_congruent.begin(), d_congruent.end(), n )==d_congruent.end() ){
+            if( d_congruent.find( n )==d_congruent.end() ){
               std::vector< Node > c;
               Node nc = d_term_index[k].add( n, 0, this, d_emptyString_r, c );
               if( nc!=n ){
@@ -3633,7 +3634,7 @@ void TheoryStrings::checkInit() {
                 }
                 //this node is congruent to another one, we can ignore it
                 Trace("strings-process-debug") << "  congruent term : " << n << std::endl;
-                d_congruent.push_back( n );
+                d_congruent.insert( n );
                 congruent[k]++;
               }else if( k==kind::STRING_CONCAT && c.size()==1 ){
                 Trace("strings-process-debug") << "  congruent term by singular : " << n << " " << c[0] << std::endl;
@@ -3659,7 +3660,7 @@ void TheoryStrings::checkInit() {
                   //infer the equality
                   sendInfer( mkAnd( exp ), n.eqNode( c[0] ), "I_Norm_S" );
                 }
-                d_congruent.push_back( n );
+                d_congruent.insert( n );
                 congruent[k]++;
               }else{
                 ncongruent[k]++;
@@ -3908,6 +3909,8 @@ void TheoryStrings::checkExtendedFuncsEval( int effort ) {
           Trace("strings-extf") << "  cannot rewrite extf : " << to_reduce << std::endl;
         }
       }
+    }else{
+      Trace("strings-extf-debug")  << "  already reduced " << (*it).first << std::endl;
     }
   }
   /*
@@ -4039,6 +4042,7 @@ void TheoryStrings::checkExtendedFuncs() {
 #ifdef LAZY_ADD_MEMBERSHIP
       for( std::map< bool, std::vector< Node > >::iterator it=pnMem.begin(); it != pnMem.end(); ++it ){
         for( unsigned i=0; i<it->second.size(); i++ ){
+          Trace("strings-process-debug") << "  add membership : " << it->second[i] << ", pol = " << it->first << std::endl;
           addMembership( it->first ? it->second[i] : it->second[i].negate() );
         }
       }

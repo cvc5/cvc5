@@ -69,7 +69,8 @@ TESTS = \
   kaluza-fl.smt2 \
   norn-ab.smt2 \
   idof-rewrites.smt2 \
-  bug682.smt2
+  bug682.smt2 \
+  bug686dd.smt2
 
 FAILING_TESTS =
 
