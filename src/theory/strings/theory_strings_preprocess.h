@@ -32,7 +32,6 @@ namespace strings {
 
 class StringsPreprocess {
   typedef context::CDHashMap<Node, Node, NodeHashFunction> NodeNodeMap;
-  // NOTE: this class is NOT context-dependent
   NodeNodeMap d_cache;
   //Constants
   Node d_zero;

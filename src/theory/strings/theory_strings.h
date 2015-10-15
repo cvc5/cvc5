@@ -201,8 +201,6 @@ private:
     void clear(){ d_children.clear(); }
   };
   std::map< Kind, TermIndex > d_term_index;
-  // (ordered) strings eqc to process
-  std::vector< Node > d_eqcs;
   //list of non-congruent concat terms in each eqc
   std::map< Node, std::vector< Node > > d_eqc;
   std::map< Node, std::vector< Node > > d_flat_form;
@@ -279,8 +277,9 @@ private:
   void checkInit();
   void checkConstantEquivalenceClasses( TermIndex* ti, std::vector< Node >& vecc );
   void checkExtendedFuncsEval( int effort = 0 );
-  void checkExtfInference( Node n, Node nr, int n_pol, std::vector< Node >& exp, int effort );
+  void checkExtfInference( Node n, Node nr, int n_pol, int effort );
   void collectVars( Node n, std::map< Node, std::vector< Node > >& vars, std::map< Node, bool >& visited );
+  void checkFlatForms();
   void checkNormalForms();
   Node checkCycles( Node eqc, std::vector< Node >& curr, std::vector< Node >& exp );
   void checkDeqNF();
@@ -388,6 +387,13 @@ private:
   //extended string terms and whether they have been reduced
   NodeBoolMap d_ext_func_terms;
   std::map< Node, std::map< Node, std::vector< Node > > > d_extf_vars;
+  class ExtfInfo {
+  public:
+    std::map< bool, std::vector< Node > > d_ctn;
+    std::map< bool, std::vector< Node > > d_ctn_from;
+  };
+  std::map< Node, std::vector< Node > > d_extf_exp;
+  std::map< Node, ExtfInfo > d_extf_info;
   //collect extended operator terms
   void collectExtendedFuncTerms( Node n, std::map< Node, bool >& visited );
 
