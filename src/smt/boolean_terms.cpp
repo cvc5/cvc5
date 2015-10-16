@@ -121,7 +121,8 @@ static inline bool isBoolean(TNode top, unsigned i) {
 // Note this isn't the case any longer, and parts of what's below have
 // been repurposed for *forward* conversion, meaning this works in either
 // direction.
-Node BooleanTermConverter::rewriteAs(TNode in, TypeNode as) throw() {
+Node BooleanTermConverter::rewriteAs(TNode in, TypeNode as, std::map< TypeNode, bool >& processing) throw() {
+  Debug("boolean-terms2") << "Rewrite as " << in << " " << as << std::endl;
   if(in.getType() == as) {
     return in;
   }
@@ -132,128 +133,140 @@ Node BooleanTermConverter::rewriteAs(TNode in, TypeNode as) throw() {
   if(as.isBoolean() && in.getType().isBitVector() && in.getType().getBitVectorSize() == 1) {
     return NodeManager::currentNM()->mkNode(kind::EQUAL, NodeManager::currentNM()->mkConst(BitVector(1u, 1u)), in);
   }
-  if(in.getType().isRecord()) {
-    Assert(as.isRecord());
-    const Record& inRec = in.getType().getConst<Record>();
-    const Record& asRec = as.getConst<Record>();
-    Assert(inRec.getNumFields() == asRec.getNumFields());
-    NodeBuilder<> nb(kind::RECORD);
-    nb << NodeManager::currentNM()->mkConst(asRec);
-    for(size_t i = 0; i < asRec.getNumFields(); ++i) {
-      Assert(inRec[i].first == asRec[i].first);
-      Node arg = NodeManager::currentNM()->mkNode(NodeManager::currentNM()->mkConst(RecordSelect(inRec[i].first)), in);
-      if(inRec[i].second != asRec[i].second) {
-        arg = rewriteAs(arg, TypeNode::fromType(asRec[i].second));
+  TypeNode in_t = in.getType();
+  if( processing.find( in_t )==processing.end() ){
+    processing[in_t] = true;
+    if(in.getType().isRecord()) {
+      Assert(as.isRecord());
+      const Record& inRec = in.getType().getConst<Record>();
+      const Record& asRec = as.getConst<Record>();
+      Assert(inRec.getNumFields() == asRec.getNumFields());
+      NodeBuilder<> nb(kind::RECORD);
+      nb << NodeManager::currentNM()->mkConst(asRec);
+      for(size_t i = 0; i < asRec.getNumFields(); ++i) {
+        Assert(inRec[i].first == asRec[i].first);
+        Node arg = NodeManager::currentNM()->mkNode(NodeManager::currentNM()->mkConst(RecordSelect(inRec[i].first)), in);
+        if(inRec[i].second != asRec[i].second) {
+          arg = rewriteAs(arg, TypeNode::fromType(asRec[i].second), processing);
+        }
+        nb << arg;
       }
-      nb << arg;
+      Node out = nb;
+      processing.erase( in_t );
+      return out;
     }
-    Node out = nb;
-    return out;
-  }
-  if(in.getType().isTuple()) {
-    Assert(as.isTuple());
-    Assert(in.getType().getNumChildren() == as.getNumChildren());
-    NodeBuilder<> nb(kind::TUPLE);
-    for(size_t i = 0; i < as.getNumChildren(); ++i) {
-      Node arg = NodeManager::currentNM()->mkNode(NodeManager::currentNM()->mkConst(TupleSelect(i)), in);
-      if(in.getType()[i] != as[i]) {
-        arg = rewriteAs(arg, as[i]);
+    if(in.getType().isTuple()) {
+      Assert(as.isTuple());
+      Assert(in.getType().getNumChildren() == as.getNumChildren());
+      NodeBuilder<> nb(kind::TUPLE);
+      for(size_t i = 0; i < as.getNumChildren(); ++i) {
+        Node arg = NodeManager::currentNM()->mkNode(NodeManager::currentNM()->mkConst(TupleSelect(i)), in);
+        if(in.getType()[i] != as[i]) {
+          arg = rewriteAs(arg, as[i], processing);
+        }
+        nb << arg;
       }
-      nb << arg;
+      Node out = nb;
+      processing.erase( in_t );
+      return out;
     }
-    Node out = nb;
-    return out;
-  }
-  if(in.getType().isDatatype()) {
-    if(as.isBoolean() && in.getType().hasAttribute(BooleanTermAttr())) {
-      return NodeManager::currentNM()->mkNode(kind::EQUAL, d_ttDt, in);
-    }
-    Assert(as.isDatatype());
-    const Datatype* dt2 = &as.getDatatype();
-    const Datatype* dt1;
-    if(d_datatypeCache.find(dt2) != d_datatypeCache.end()) {
-      dt1 = d_datatypeCache[dt2];
-    } else {
-      dt1 = d_datatypeReverseCache[dt2];
-    }
-    Assert(dt1 != NULL, "expected datatype in cache");
-    Assert(*dt1 == in.getType().getDatatype(), "improper rewriteAs() between datatypes");
-    Node out;
-    for(size_t i = 0; i < dt1->getNumConstructors(); ++i) {
-      DatatypeConstructor ctor = (*dt1)[i];
-      NodeBuilder<> appctorb(kind::APPLY_CONSTRUCTOR);
-      appctorb << (*dt2)[i].getConstructor();
-      for(size_t j = 0; j < ctor.getNumArgs(); ++j) {
-        appctorb << rewriteAs(NodeManager::currentNM()->mkNode(kind::APPLY_SELECTOR_TOTAL, ctor[j].getSelector(), in), TypeNode::fromType(SelectorType((*dt2)[i][j].getSelector().getType()).getRangeType()));
+    if(in.getType().isDatatype()) {
+      if(as.isBoolean() && in.getType().hasAttribute(BooleanTermAttr())) {
+        processing.erase( in_t );
+        return NodeManager::currentNM()->mkNode(kind::EQUAL, d_ttDt, in);
       }
-      Node appctor = appctorb;
-      if(i == 0) {
-        out = appctor;
+      Assert(as.isDatatype());
+      const Datatype* dt2 = &as.getDatatype();
+      const Datatype* dt1;
+      if(d_datatypeCache.find(dt2) != d_datatypeCache.end()) {
+        dt1 = d_datatypeCache[dt2];
       } else {
-        Node newOut = NodeManager::currentNM()->mkNode(kind::ITE, ctor.getTester(), appctor, out);
-        out = newOut;
+        dt1 = d_datatypeReverseCache[dt2];
       }
-    }
-    return out;
-  }
-  if(in.getType().isArray()) {
-    // convert in to in'
-    // e.g. in : (Array Int Bool)
-    // for in' : (Array Int (_ BitVec 1))
-    // then subs  in  |=>  \array_lambda ( \lambda (x:Int) . [convert (read a' x) x]
-    Assert(as.isArray());
-    Assert(as.getArrayIndexType() == in.getType().getArrayIndexType());
-    Assert(as.getArrayConstituentType() != in.getType().getArrayConstituentType());
-    Node x = NodeManager::currentNM()->mkBoundVar(as.getArrayIndexType());
-    Node boundvars = NodeManager::currentNM()->mkNode(kind::BOUND_VAR_LIST, x);
-    Node sel = NodeManager::currentNM()->mkNode(kind::SELECT, in, x);
-    Node selprime = rewriteAs(sel, as.getArrayConstituentType());
-    Node lam = NodeManager::currentNM()->mkNode(kind::LAMBDA, boundvars, selprime);
-    Node out = NodeManager::currentNM()->mkNode(kind::ARRAY_LAMBDA, lam);
-    Assert(out.getType() == as);
-    return out;
-  }
-  if(in.getType().isParametricDatatype() &&
-     in.getType().isInstantiatedDatatype()) {
-    // We have something here like (Pair Bool Bool)---need to dig inside
-    // and make it (Pair BV1 BV1)
-    Assert(as.isParametricDatatype() && as.isInstantiatedDatatype());
-    const Datatype* dt2 = &as[0].getDatatype();
-    std::vector<TypeNode> fromParams, toParams;
-    for(unsigned i = 0; i < dt2->getNumParameters(); ++i) {
-      fromParams.push_back(TypeNode::fromType(dt2->getParameter(i)));
-      toParams.push_back(as[i + 1]);
-    }
-    const Datatype* dt1;
-    if(d_datatypeCache.find(dt2) != d_datatypeCache.end()) {
-      dt1 = d_datatypeCache[dt2];
-    } else {
-      dt1 = d_datatypeReverseCache[dt2];
-    }
-    Assert(dt1 != NULL, "expected datatype in cache");
-    Assert(*dt1 == in.getType()[0].getDatatype(), "improper rewriteAs() between datatypes");
-    Node out;
-    for(size_t i = 0; i < dt1->getNumConstructors(); ++i) {
-      DatatypeConstructor ctor = (*dt1)[i];
-      NodeBuilder<> appctorb(kind::APPLY_CONSTRUCTOR);
-      appctorb << (*dt2)[i].getConstructor();
-      for(size_t j = 0; j < ctor.getNumArgs(); ++j) {
-        TypeNode asType = TypeNode::fromType(SelectorType((*dt2)[i][j].getSelector().getType()).getRangeType());
-        asType = asType.substitute(fromParams.begin(), fromParams.end(), toParams.begin(), toParams.end());
-        appctorb << rewriteAs(NodeManager::currentNM()->mkNode(kind::APPLY_SELECTOR_TOTAL, ctor[j].getSelector(), in), asType);
+      Assert(dt1 != NULL, "expected datatype in cache");
+      Assert(*dt1 == in.getType().getDatatype(), "improper rewriteAs() between datatypes");
+      Node out;
+      for(size_t i = 0; i < dt1->getNumConstructors(); ++i) {
+        DatatypeConstructor ctor = (*dt1)[i];
+        NodeBuilder<> appctorb(kind::APPLY_CONSTRUCTOR);
+        appctorb << (*dt2)[i].getConstructor();
+        for(size_t j = 0; j < ctor.getNumArgs(); ++j) {
+          appctorb << rewriteAs(NodeManager::currentNM()->mkNode(kind::APPLY_SELECTOR_TOTAL, ctor[j].getSelector(), in), TypeNode::fromType(SelectorType((*dt2)[i][j].getSelector().getType()).getRangeType()), processing);
+        }
+        Node appctor = appctorb;
+        if(i == 0) {
+          out = appctor;
+        } else {
+          Node newOut = NodeManager::currentNM()->mkNode(kind::ITE, ctor.getTester(), appctor, out);
+          out = newOut;
+        }
       }
-      Node appctor = appctorb;
-      if(i == 0) {
-        out = appctor;
+      processing.erase( in_t );
+      return out;
+    }
+    if(in.getType().isArray()) {
+      // convert in to in'
+      // e.g. in : (Array Int Bool)
+      // for in' : (Array Int (_ BitVec 1))
+      // then subs  in  |=>  \array_lambda ( \lambda (x:Int) . [convert (read a' x) x]
+      Assert(as.isArray());
+      Assert(as.getArrayIndexType() == in.getType().getArrayIndexType());
+      Assert(as.getArrayConstituentType() != in.getType().getArrayConstituentType());
+      Node x = NodeManager::currentNM()->mkBoundVar(as.getArrayIndexType());
+      Node boundvars = NodeManager::currentNM()->mkNode(kind::BOUND_VAR_LIST, x);
+      Node sel = NodeManager::currentNM()->mkNode(kind::SELECT, in, x);
+      Node selprime = rewriteAs(sel, as.getArrayConstituentType(), processing);
+      Node lam = NodeManager::currentNM()->mkNode(kind::LAMBDA, boundvars, selprime);
+      Node out = NodeManager::currentNM()->mkNode(kind::ARRAY_LAMBDA, lam);
+      Assert(out.getType() == as);
+      processing.erase( in_t );
+      return out;
+    }
+    if(in.getType().isParametricDatatype() &&
+      in.getType().isInstantiatedDatatype()) {
+      // We have something here like (Pair Bool Bool)---need to dig inside
+      // and make it (Pair BV1 BV1)
+      Assert(as.isParametricDatatype() && as.isInstantiatedDatatype());
+      const Datatype* dt2 = &as[0].getDatatype();
+      std::vector<TypeNode> fromParams, toParams;
+      for(unsigned i = 0; i < dt2->getNumParameters(); ++i) {
+        fromParams.push_back(TypeNode::fromType(dt2->getParameter(i)));
+        toParams.push_back(as[i + 1]);
+      }
+      const Datatype* dt1;
+      if(d_datatypeCache.find(dt2) != d_datatypeCache.end()) {
+        dt1 = d_datatypeCache[dt2];
       } else {
-        Node newOut = NodeManager::currentNM()->mkNode(kind::ITE, ctor.getTester(), appctor, out);
-        out = newOut;
+        dt1 = d_datatypeReverseCache[dt2];
       }
+      Assert(dt1 != NULL, "expected datatype in cache");
+      Assert(*dt1 == in.getType()[0].getDatatype(), "improper rewriteAs() between datatypes");
+      Node out;
+      for(size_t i = 0; i < dt1->getNumConstructors(); ++i) {
+        DatatypeConstructor ctor = (*dt1)[i];
+        NodeBuilder<> appctorb(kind::APPLY_CONSTRUCTOR);
+        appctorb << (*dt2)[i].getConstructor();
+        for(size_t j = 0; j < ctor.getNumArgs(); ++j) {
+          TypeNode asType = TypeNode::fromType(SelectorType((*dt2)[i][j].getSelector().getType()).getRangeType());
+          asType = asType.substitute(fromParams.begin(), fromParams.end(), toParams.begin(), toParams.end());
+          appctorb << rewriteAs(NodeManager::currentNM()->mkNode(kind::APPLY_SELECTOR_TOTAL, ctor[j].getSelector(), in), asType, processing);
+        }
+        Node appctor = appctorb;
+        if(i == 0) {
+          out = appctor;
+        } else {
+          Node newOut = NodeManager::currentNM()->mkNode(kind::ITE, ctor.getTester(), appctor, out);
+          out = newOut;
+        }
+      }
+      processing.erase( in_t );
+      return out;
     }
-    return out;
+    Unhandled(in);
+  }else{
+    Message() << "Type " << in_t << " involving Boolean sort is not supported." << std::endl;
+    exit( 0 );
   }
-
-  Unhandled(in);
 }
 
 const Datatype& BooleanTermConverter::convertDatatype(const Datatype& dt) throw() {
@@ -573,7 +586,8 @@ Node BooleanTermConverter::rewriteBooleanTermsRec(TNode top, theory::TheoryId pa
                 Node var = nm->mkBoundVar(t[j]);
                 boundVarsBuilder << var;
                 if(t[j] != argTypes[j]) {
-                  bodyBuilder << rewriteAs(var, argTypes[j]);
+                  std::map< TypeNode, bool > processing;
+                  bodyBuilder << rewriteAs(var, argTypes[j], processing);
                 } else {
                   bodyBuilder << var;
                 }
@@ -581,7 +595,8 @@ Node BooleanTermConverter::rewriteBooleanTermsRec(TNode top, theory::TheoryId pa
               Node boundVars = boundVarsBuilder;
               Node body = bodyBuilder;
               if(t.getRangeType() != rangeType) {
-                Node convbody = rewriteAs(body, t.getRangeType());
+                std::map< TypeNode, bool > processing;
+                Node convbody = rewriteAs(body, t.getRangeType(), processing);
                 body = convbody;
               }
               Node lam = nm->mkNode(kind::LAMBDA, boundVars, body);
