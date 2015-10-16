@@ -59,11 +59,15 @@ public:
         }
       }
       if( in.isConst() ){
+        Trace("datatypes-rewrite-debug") << "Normalizing constant " << in << std::endl;
         Node inn = normalizeConstant( in );
-        Assert( !inn.isNull() );
-        if( inn!=in ){
+        //constant may be a subterm of another constant, so cannot assume that this will succeed for codatatypes
+        //Assert( !inn.isNull() );
+        if( !inn.isNull() && inn!=in ){
           Trace("datatypes-rewrite") << "Normalized constant " << in << " -> " << inn << std::endl;
           return RewriteResponse(REWRITE_DONE, inn);
+        }else{
+          return RewriteResponse(REWRITE_DONE, in);
         }
       }
     }
