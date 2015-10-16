@@ -460,12 +460,34 @@ FullSaturation::FullSaturation( QuantifiersEngine* qe ) : QuantifiersModule( qe 
 
 }
 
+bool FullSaturation::needsCheck( Theory::Effort e ){
+  if( options::fullSaturateInst() ){
+    if( d_quantEngine->getInstWhenNeedsCheck( e ) ){
+      return true;
+    }
+  }
+  if( options::fullSaturateQuant() ){
+    if( e>=Theory::EFFORT_LAST_CALL ){
+      return true;
+    }
+  }
+  return false;
+}
+
 void FullSaturation::reset_round( Theory::Effort e ) {
 
 }
 
 void FullSaturation::check( Theory::Effort e, unsigned quant_e ) {
-  if( quant_e==QuantifiersEngine::QEFFORT_LAST_CALL ){
+  bool doCheck = false;
+  if( options::fullSaturateInst() ){
+    //we only add when interleaved with other strategies
+    doCheck = quant_e==QuantifiersEngine::QEFFORT_STANDARD && d_quantEngine->hasAddedLemma();
+  }
+  if( options::fullSaturateQuant() && !doCheck ){
+    doCheck = quant_e==QuantifiersEngine::QEFFORT_LAST_CALL;
+  }
+  if( doCheck ){
     double clSet = 0;
     if( Trace.isOn("fs-engine") ){
       clSet = double(clock())/double(CLOCKS_PER_SEC);

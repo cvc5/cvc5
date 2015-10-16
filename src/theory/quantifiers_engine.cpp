@@ -94,6 +94,7 @@ d_presolve_cache_wic(u){
   d_hasAddedLemma = false;
 
   bool needsBuilder = false;
+  bool needsRelDom = false;
   Trace("quant-engine-debug") << "Initialize quantifiers engine." << std::endl;
   Trace("quant-engine-debug") << "Initialize model, mbqi : " << options::mbqiMode() << std::endl;
 
@@ -106,11 +107,6 @@ d_presolve_cache_wic(u){
     d_model = new quantifiers::FirstOrderModelAbs( this, c, "FirstOrderModelAbs" );
   }else{
     d_model = new quantifiers::FirstOrderModelIG( this, c, "FirstOrderModelIG" );
-  }
-  if( options::fullSaturateQuant() ){
-    d_rel_dom = new quantifiers::RelevantDomain( this, d_model );
-  }else{
-    d_rel_dom = NULL;
   }
   if( options::relevantTriggers() ){
     d_quant_rel = new QuantRelevance( false );
@@ -191,15 +187,21 @@ d_presolve_cache_wic(u){
   }else{
     d_uee = NULL;
   }
-  
   //full saturation : instantiate from relevant domain, then arbitrary terms
-  if( options::fullSaturateQuant() ){
+  if( options::fullSaturateQuant() || options::fullSaturateInst() ){
     d_fs = new quantifiers::FullSaturation( this );
     d_modules.push_back( d_fs );
+    needsRelDom = true;
   }else{
     d_fs = NULL;
   }
 
+  if( needsRelDom ){
+    d_rel_dom = new quantifiers::RelevantDomain( this, d_model );
+  }else{
+    d_rel_dom = NULL;
+  }
+  
   if( needsBuilder ){
     Trace("quant-engine-debug") << "Initialize model engine, mbqi : " << options::mbqiMode() << " " << options::fmfBoundInt() << std::endl;
     if( options::mbqiMode()==quantifiers::MBQI_FMC || options::mbqiMode()==quantifiers::MBQI_FMC_INTERVAL ||

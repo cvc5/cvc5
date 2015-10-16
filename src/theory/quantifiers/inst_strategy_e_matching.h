@@ -114,6 +114,7 @@ private:
 public:
   FullSaturation( QuantifiersEngine* qe );
   ~FullSaturation(){}
+  bool needsCheck( Theory::Effort e );
   void reset_round( Theory::Effort e );
   void check( Theory::Effort e, unsigned quant_e );
   void registerQuantifier( Node q );
