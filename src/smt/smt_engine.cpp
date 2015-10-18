@@ -3841,8 +3841,10 @@ Node SmtEngine::postprocess(TNode node, TypeNode expectedType) const {
   Debug("boolean-terms") << "postproc: got " << value << " expect type " << expectedType << endl;
   Node realValue = mpost.rewriteAs(value, expectedType);
   Debug("boolean-terms") << "postproc: realval " << realValue << " expect type " << expectedType << endl;
-  realValue = Rewriter::rewrite(realValue);
-  Debug("boolean-terms") << "postproc: after rewrite " << realValue << endl;
+  if(options::condenseFunctionValues()) {
+    realValue = Rewriter::rewrite(realValue);
+    Debug("boolean-terms") << "postproc: after rewrite " << realValue << endl;
+  }
   return realValue;
 }
 
