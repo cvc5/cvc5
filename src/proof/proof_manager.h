@@ -192,8 +192,16 @@ public:
   assertions_iterator begin_assertions() const { return d_inputFormulas.begin(); }
   assertions_iterator end_assertions() const { return d_inputFormulas.end(); }
   size_t num_assertions() const { return d_inputFormulas.size(); }
-
-
+  
+//---from Morgan---
+  Node mkOp(TNode n);
+  Node lookupOp(TNode n) const;
+  bool hasOp(TNode n) const;
+  
+  std::map<Node, Node> d_ops;
+  std::map<Node, Node> d_bops;
+//---end from Morgan---
+  
   // void addTheoryLemma(ClauseId id, const prop::SatClause* clause, ClauseKind kind);
   //void addClause(ClauseId id, const prop::SatClause* clause, ClauseKind kind);
   

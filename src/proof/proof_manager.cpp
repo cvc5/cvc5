@@ -565,4 +565,45 @@ void LFSCProof::printPreprocessedAssertions(const NodeSet& assertions,
 //   out << "\n";
 // }
 
+
+//---from Morgan---
+bool ProofManager::hasOp(TNode n) const {
+  return d_bops.find(n) != d_bops.end();
+}
+
+Node ProofManager::lookupOp(TNode n) const {
+  std::map<Node, Node>::const_iterator i = d_bops.find(n);
+  Assert(i != d_bops.end());
+  return (*i).second;
+}
+
+Node ProofManager::mkOp(TNode n) {
+  if(n.getKind() != kind::BUILTIN) {
+    return n;
+  }
+  Node& op = d_ops[n];
+  if(op.isNull()) {
+    Debug("mgd") << "making an op for " << n << "\n";
+    std::stringstream ss;
+    ss << n;
+    std::string s = ss.str();
+    Debug("mgd") << " : " << s << std::endl;
+    std::vector<TypeNode> v;
+    v.push_back(NodeManager::currentNM()->integerType());
+    if(n.getConst<Kind>() == kind::SELECT) {
+      v.push_back(NodeManager::currentNM()->integerType());
+      v.push_back(NodeManager::currentNM()->integerType());
+    } else if(n.getConst<Kind>() == kind::STORE) {
+      v.push_back(NodeManager::currentNM()->integerType());
+      v.push_back(NodeManager::currentNM()->integerType());
+      v.push_back(NodeManager::currentNM()->integerType());
+    }
+    TypeNode type = NodeManager::currentNM()->mkFunctionType(v);
+    op = NodeManager::currentNM()->mkSkolem(s, type, " ignore", NodeManager::SKOLEM_NO_NOTIFY);
+    d_bops[op] = n;
+  }
+  return op;
+}
+//---end from Morgan---
+
 } /* CVC4  namespace */

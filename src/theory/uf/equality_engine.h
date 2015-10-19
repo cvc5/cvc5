@@ -896,7 +896,7 @@ public:
   Node d_node;
   std::vector< EqProof * > d_children;
   bool isReflexivity();
-  void debug_print( const char * c, unsigned tb = 0 );
+  void debug_print( const char * c, unsigned tb = 0 ) const;
 };
 
 } // Namespace eq

@@ -99,6 +99,14 @@ public:
   }
 };/* class CardinalityConstraintTypeRule */
 
+class PartialTypeRule {
+public:
+  inline static TypeNode computeType(NodeManager* nodeManager, TNode n, bool check)
+      throw (TypeCheckingExceptionPrivate, AssertionException) {
+    return n.getOperator().getType().getRangeType();
+  }
+};
+
 }/* CVC4::theory::uf namespace */
 }/* CVC4::theory namespace */
 }/* CVC4 namespace */

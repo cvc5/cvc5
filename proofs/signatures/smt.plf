@@ -62,6 +62,19 @@
 (declare Bool sort)				; the special sort for predicates
 (declare p_app (! x (term Bool) formula))	; propositional application of term
 
+; boolean terms
+(declare t_true (term Bool))
+(declare t_false (term Bool))
+(declare t_t_neq_f
+ (th_holds (not (= Bool t_true t_false))))
+(declare pred_eq_t
+ (! x (term Bool)
+ (! u (th_holds (p_app x))
+   (th_holds (= Bool x t_true)))))
+(declare pred_eq_f
+ (! x (term Bool)
+ (! u (th_holds (not (p_app x)))
+   (th_holds (= Bool x t_false)))))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;

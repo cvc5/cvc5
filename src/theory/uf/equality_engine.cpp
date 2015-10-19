@@ -2094,7 +2094,7 @@ bool EqProof::isReflexivity(){
 }
 //---end from Morgan---
 
-void EqProof::debug_print( const char * c, unsigned tb ){
+void EqProof::debug_print( const char * c, unsigned tb ) const{
   for( unsigned i=0; i<tb; i++ ) { Debug( c ) << "  "; }
   Debug( c ) << d_id << "(";
   if( !d_children.empty() || !d_node.isNull() ){
