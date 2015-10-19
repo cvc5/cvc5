@@ -30,29 +30,6 @@ StringsPreprocess::StringsPreprocess( context::UserContext* u ) : d_cache( u ){
   d_zero = NodeManager::currentNM()->mkConst( ::CVC4::Rational(0) );
 }
 
-void StringsPreprocess::processRegExp( Node s, Node r, std::vector< Node > &new_nodes ) {
-  CVC4::Kind k = r.getKind();
-  switch( k ) {
-    case kind::REGEXP_RANGE: {
-      Node one = NodeManager::currentNM()->mkConst( ::CVC4::Rational(1) );
-      Node eq = one.eqNode(NodeManager::currentNM()->mkNode(kind::STRING_LENGTH, s));
-      new_nodes.push_back( eq );
-      break;
-    }
-    case kind::REGEXP_STAR:
-    case kind::REGEXP_CONCAT:
-    case kind::REGEXP_LOOP: {
-      //do nothing
-      break;
-    }
-    default: {
-      //all others should be rewritten by now
-      Trace("strings-error") << "Unsupported term: " << r << " in processRegExp." << std::endl;
-      Assert( false, "Unsupported Term" );
-    }
-  }
-}
-
 /*
 int StringsPreprocess::checkFixLenVar( Node t ) {
   int ret = 2;
@@ -110,31 +87,7 @@ Node StringsPreprocess::simplify( Node t, std::vector< Node > &new_nodes ) {
       retNode = t;
     }
   } else */
-  if( t.getKind() == kind::STRING_IN_REGEXP ) {
-    //process any reductions
-    std::vector< Node > ret;
-    processRegExp( t[0], t[1], ret );
-    Node conc;
-    if( !ret.empty() ){
-      conc = ret.size()==1 ? ret[0] : NodeManager::currentNM()->mkNode( kind::AND, ret );
-    }
-    if( options::stringLazyPreproc() ){
-      //implication as lemma
-      if( !conc.isNull() ){
-        new_nodes.push_back( NodeManager::currentNM()->mkNode( kind::IMPLIES, t, conc ) );
-      }
-      d_cache[t] = t;
-    }else{
-      //rewrite as conjunction
-      Node n = t;
-      if( !conc.isNull() ){
-        n = NodeManager::currentNM()->mkNode( kind::AND, t, conc );
-        n = Rewriter::rewrite( n );
-      }
-      d_cache[t] = n;
-      retNode = n;
-    }
-  } else if( t.getKind() == kind::STRING_SUBSTR ) {
+  if( t.getKind() == kind::STRING_SUBSTR ) {
     /*
     Node lenxgti = NodeManager::currentNM()->mkNode( kind::GEQ,
           NodeManager::currentNM()->mkNode( kind::STRING_LENGTH, t[0] ),

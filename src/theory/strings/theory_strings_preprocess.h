@@ -37,7 +37,6 @@ class StringsPreprocess {
   Node d_zero;
 private:
   //int checkFixLenVar( Node t );
-  void processRegExp( Node s, Node r, std::vector< Node > &new_nodes );
   Node simplify( Node t, std::vector< Node > &new_nodes );
 public:
   StringsPreprocess( context::UserContext* u );
