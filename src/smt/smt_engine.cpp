@@ -3297,10 +3297,9 @@ void SmtEnginePrivate::processAssertions() {
   if( d_smt.d_logic.isTheoryEnabled(THEORY_STRINGS) ) {
     Trace("smt-proc") << "SmtEnginePrivate::processAssertions() : pre-strings-preprocess" << endl;
     dumpAssertions("pre-strings-pp", d_assertions);
-    ((theory::strings::TheoryStrings*)d_smt.d_theoryEngine->theoryOf(THEORY_STRINGS))->getPreprocess()->simplify( d_assertions.ref() );
-    //for (unsigned i = 0; i < d_assertions.size(); ++ i) {
-    //  d_assertions.replace( i, Rewriter::rewrite( d_assertions[i] ) );
-    //}
+    if( !options::stringLazyPreproc() ){
+      ((theory::strings::TheoryStrings*)d_smt.d_theoryEngine->theoryOf(THEORY_STRINGS))->getPreprocess()->simplify( d_assertions.ref() );
+    }
     Trace("smt-proc") << "SmtEnginePrivate::processAssertions() : post-strings-preprocess" << endl;
     dumpAssertions("post-strings-pp", d_assertions);
   }

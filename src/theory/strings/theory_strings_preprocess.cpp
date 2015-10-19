@@ -2,8 +2,8 @@
 /*! \file theory_strings_preprocess.cpp
  ** \verbatim
  ** Original author: Tianyi Liang
- ** Major contributors: none
- ** Minor contributors (to current version): Morgan Deters, Andrew Reynolds
+ ** Major contributors: Andrew Reynolds
+ ** Minor contributors (to current version): Morgan Deters
  ** This file is part of the CVC4 project.
  ** Copyright (c) 2009-2014  New York University and The University of Iowa
  ** See the file COPYING in the top-level source directory for licensing
@@ -30,104 +30,30 @@ StringsPreprocess::StringsPreprocess( context::UserContext* u ) : d_cache( u ){
   d_zero = NodeManager::currentNM()->mkConst( ::CVC4::Rational(0) );
 }
 
-void StringsPreprocess::processRegExp( Node s, Node r, std::vector< Node > &ret ) {
-  int k = r.getKind();
+void StringsPreprocess::processRegExp( Node s, Node r, std::vector< Node > &new_nodes ) {
+  CVC4::Kind k = r.getKind();
   switch( k ) {
-    case kind::REGEXP_EMPTY: {
-      Node eq = NodeManager::currentNM()->mkConst( false );
-      ret.push_back( eq );
-      break;
-    }
-    case kind::REGEXP_SIGMA: {
-      Node one = NodeManager::currentNM()->mkConst( ::CVC4::Rational(1) );
-      Node eq = one.eqNode(NodeManager::currentNM()->mkNode(kind::STRING_LENGTH, s));
-      ret.push_back( eq );
-      break;
-    }
     case kind::REGEXP_RANGE: {
       Node one = NodeManager::currentNM()->mkConst( ::CVC4::Rational(1) );
       Node eq = one.eqNode(NodeManager::currentNM()->mkNode(kind::STRING_LENGTH, s));
-      ret.push_back( eq );
-      eq = NodeManager::currentNM()->mkNode( kind::STRING_IN_REGEXP, s, r );
-      ret.push_back( eq );
+      new_nodes.push_back( eq );
       break;
     }
-    case kind::STRING_TO_REGEXP: {
-      Node eq = s.eqNode( r[0] );
-      ret.push_back( eq );
-      break;
-    }
-    case kind::REGEXP_CONCAT: {
-      bool flag = true;
-      std::vector< Node > cc;
-      for(unsigned i=0; i<r.getNumChildren(); ++i) {
-        if(r[i].getKind() == kind::STRING_TO_REGEXP) {
-          cc.push_back( r[i][0] );
-        } else {
-          flag = false;
-          break;
-        }
-      }
-      if(flag) {
-        Node eq = s.eqNode(NodeManager::currentNM()->mkNode(kind::STRING_CONCAT, cc));
-        ret.push_back(eq);
-      } else {
-        Node eq = NodeManager::currentNM()->mkNode( kind::STRING_IN_REGEXP, s, r );
-        ret.push_back( eq );
-      }
-      break;
-    }
-    case kind::REGEXP_UNION: {
-      std::vector< Node > c_or;
-      for(unsigned i=0; i<r.getNumChildren(); ++i) {
-        std::vector< Node > ntmp;
-        processRegExp( s, r[i], ntmp );
-        Node lem = ntmp.size()==1 ? ntmp[0] : NodeManager::currentNM()->mkNode(kind::AND, ntmp);
-        c_or.push_back( lem );
-      }
-      Node eq = NodeManager::currentNM()->mkNode(kind::OR, c_or);
-      ret.push_back( eq );
-      break;
-    }
-    case kind::REGEXP_INTER: {
-      for(unsigned i=0; i<r.getNumChildren(); ++i) {
-        processRegExp( s, r[i], ret );
-      }
-      break;
-    }
-    case kind::REGEXP_STAR: {
-      if(r[0].getKind() == kind::REGEXP_SIGMA) {
-        ret.push_back(NodeManager::currentNM()->mkConst(true));
-      } else {
-        Node eq = NodeManager::currentNM()->mkNode( kind::STRING_IN_REGEXP, s, r );
-        ret.push_back( eq );
-      }
-      break;
-    }
+    case kind::REGEXP_STAR:
+    case kind::REGEXP_CONCAT:
     case kind::REGEXP_LOOP: {
-      Node eq = NodeManager::currentNM()->mkNode( kind::STRING_IN_REGEXP, s, r );
-      ret.push_back( eq );
+      //do nothing
       break;
     }
     default: {
-      Trace("strings-error") << "Unsupported term: " << r << " in simplifyRegExp." << std::endl;
+      //all others should be rewritten by now
+      Trace("strings-error") << "Unsupported term: " << r << " in processRegExp." << std::endl;
       Assert( false, "Unsupported Term" );
     }
   }
 }
 
-bool StringsPreprocess::checkStarPlus( Node t ) {
-  if( t.getKind() != kind::REGEXP_STAR && t.getKind() != kind::REGEXP_PLUS ) {
-    for( unsigned i = 0; i<t.getNumChildren(); ++i ) {
-      if( checkStarPlus(t[i]) ){
-        return true;
-      }
-    }
-    return false;
-  } else {
-    return true;
-  }
-}
+/*
 int StringsPreprocess::checkFixLenVar( Node t ) {
   int ret = 2;
   if(t.getKind() == kind::EQUAL) {
@@ -152,7 +78,8 @@ int StringsPreprocess::checkFixLenVar( Node t ) {
   }
   return ret;
 }
-Node StringsPreprocess::simplify( Node t, std::vector< Node > &new_nodes, bool during_pp ) {
+*/
+Node StringsPreprocess::simplify( Node t, std::vector< Node > &new_nodes ) {
   NodeNodeMap::const_iterator i = d_cache.find(t);
   if(i != d_cache.end()) {
     return (*i).second.isNull() ? t : (*i).second;
@@ -160,15 +87,6 @@ Node StringsPreprocess::simplify( Node t, std::vector< Node > &new_nodes, bool d
 
   Trace("strings-preprocess") << "StringsPreprocess::simplify: " << t << std::endl;
   Node retNode = t;
-  if( options::stringLazyPreproc() ){
-    //only process extended operators after preprocess
-    if( during_pp && ( t.getKind() == kind::STRING_SUBSTR || t.getKind() == kind::STRING_STRIDOF ||
-                       t.getKind() == kind::STRING_ITOS || t.getKind() == kind::STRING_U16TOS || t.getKind() == kind::STRING_U32TOS ||
-                       t.getKind() == kind::STRING_STOI || t.getKind() == kind::STRING_STOU16 || t.getKind() == kind::STRING_STOU32 ||
-                       t.getKind() == kind::STRING_STRREPL ) ){
-      return t;
-    }
-  }
 
   /*int c_id = checkFixLenVar(t);
   if( c_id != 2 ) {
@@ -193,16 +111,29 @@ Node StringsPreprocess::simplify( Node t, std::vector< Node > &new_nodes, bool d
     }
   } else */
   if( t.getKind() == kind::STRING_IN_REGEXP ) {
-    Node t0 = simplify( t[0], new_nodes, during_pp );
-
-    //rewrite it
+    //process any reductions
     std::vector< Node > ret;
-    processRegExp( t0, t[1], ret );
-
-    Node n = ret.size() == 1 ? ret[0] : NodeManager::currentNM()->mkNode( kind::AND, ret );
-    n = Rewriter::rewrite(n);
-    d_cache[t] = (t == n) ? Node::null() : n;
-    retNode = n;
+    processRegExp( t[0], t[1], ret );
+    Node conc;
+    if( !ret.empty() ){
+      conc = ret.size()==1 ? ret[0] : NodeManager::currentNM()->mkNode( kind::AND, ret );
+    }
+    if( options::stringLazyPreproc() ){
+      //implication as lemma
+      if( !conc.isNull() ){
+        new_nodes.push_back( NodeManager::currentNM()->mkNode( kind::IMPLIES, t, conc ) );
+      }
+      d_cache[t] = t;
+    }else{
+      //rewrite as conjunction
+      Node n = t;
+      if( !conc.isNull() ){
+        n = NodeManager::currentNM()->mkNode( kind::AND, t, conc );
+        n = Rewriter::rewrite( n );
+      }
+      d_cache[t] = n;
+      retNode = n;
+    }
   } else if( t.getKind() == kind::STRING_SUBSTR ) {
     /*
     Node lenxgti = NodeManager::currentNM()->mkNode( kind::GEQ,
@@ -595,7 +526,7 @@ Node StringsPreprocess::simplify( Node t, std::vector< Node > &new_nodes, bool d
   return retNode;
 }
 
-Node StringsPreprocess::decompose(Node t, std::vector< Node > & new_nodes, bool during_pp) {
+Node StringsPreprocess::decompose(Node t, std::vector< Node > & new_nodes) {
   NodeNodeMap::const_iterator i = d_cache.find(t);
   if(i != d_cache.end()) {
     return (*i).second.isNull() ? t : (*i).second;
@@ -603,7 +534,7 @@ Node StringsPreprocess::decompose(Node t, std::vector< Node > & new_nodes, bool 
 
   unsigned num = t.getNumChildren();
   if(num == 0) {
-    return simplify(t, new_nodes, during_pp);
+    return simplify(t, new_nodes);
   } else {
     bool changed = false;
     std::vector< Node > cc;
@@ -611,7 +542,7 @@ Node StringsPreprocess::decompose(Node t, std::vector< Node > & new_nodes, bool 
       cc.push_back(t.getOperator());
     }
     for(unsigned i=0; i<t.getNumChildren(); i++) {
-      Node s = decompose(t[i], new_nodes, during_pp);
+      Node s = decompose(t[i], new_nodes);
       cc.push_back( s );
       if(s != t[i]) {
         changed = true;
@@ -619,9 +550,9 @@ Node StringsPreprocess::decompose(Node t, std::vector< Node > & new_nodes, bool 
     }
     if(changed) {
       Node tmp = NodeManager::currentNM()->mkNode( t.getKind(), cc );
-      return simplify(tmp, new_nodes, during_pp);
+      return simplify(tmp, new_nodes);
     } else {
-      return simplify(t, new_nodes, during_pp);
+      return simplify(t, new_nodes);
     }
   }
 }
@@ -629,7 +560,7 @@ Node StringsPreprocess::decompose(Node t, std::vector< Node > & new_nodes, bool 
 void StringsPreprocess::simplify(std::vector< Node > &vec_node) {
   for( unsigned i=0; i<vec_node.size(); i++ ){
     std::vector< Node > new_nodes;
-    Node curr = decompose( vec_node[i], new_nodes, true );
+    Node curr = decompose( vec_node[i], new_nodes );
     if( !new_nodes.empty() ){
       new_nodes.insert( new_nodes.begin(), curr );
       curr = NodeManager::currentNM()->mkNode( kind::AND, new_nodes );

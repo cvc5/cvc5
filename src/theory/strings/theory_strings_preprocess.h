@@ -2,8 +2,8 @@
 /*! \file theory_strings_preprocess.h
  ** \verbatim
  ** Original author: Tianyi Liang
- ** Major contributors: Morgan Deters
- ** Minor contributors (to current version): Andrew Reynolds
+ ** Major contributors: Morgan Deters, Andrew Reynolds
+ ** Minor contributors (to current version): none
  ** This file is part of the CVC4 project.
  ** Copyright (c) 2009-2014  New York University and The University of Iowa
  ** See the file COPYING in the top-level source directory for licensing
@@ -36,14 +36,13 @@ class StringsPreprocess {
   //Constants
   Node d_zero;
 private:
-  bool checkStarPlus( Node t );
-  int checkFixLenVar( Node t );
-  void processRegExp( Node s, Node r, std::vector< Node > &ret );
-  Node simplify( Node t, std::vector< Node > &new_nodes, bool during_pp );
+  //int checkFixLenVar( Node t );
+  void processRegExp( Node s, Node r, std::vector< Node > &new_nodes );
+  Node simplify( Node t, std::vector< Node > &new_nodes );
 public:
   StringsPreprocess( context::UserContext* u );
 
-  Node decompose( Node t, std::vector< Node > &new_nodes, bool during_pp = false );
+  Node decompose( Node t, std::vector< Node > &new_nodes );
   void simplify(std::vector< Node > &vec_node);
 };
 

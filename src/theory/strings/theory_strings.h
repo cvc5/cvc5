@@ -128,9 +128,6 @@ private:
   Node d_one;
   CVC4::Rational RMAXINT;
   unsigned d_card_size;
-  // Options
-  bool d_opt_fmf;
-  bool d_opt_regexp_gcd;
   // Helper functions
   Node getRepresentative( Node t );
   bool hasTerm( Node a );
@@ -175,9 +172,7 @@ private:
   NodeSet d_extf_infer_cache;
 
   bool doPreprocess( Node atom );
-  bool hasProcessed();
-  void addToExplanation( Node a, Node b, std::vector< Node >& exp );
-  void addToExplanation( Node lit, std::vector< Node >& exp );
+
 
 private:
   NodeSet d_congruent;
@@ -240,6 +235,20 @@ private:
   NodeNodeMap d_proxy_var;
   NodeNodeMap d_proxy_var_to_length;
 private:
+
+  //initial check
+  void checkInit();
+  void checkConstantEquivalenceClasses( TermIndex* ti, std::vector< Node >& vecc );
+  //extended functions evaluation check
+  void checkExtendedFuncsEval( int effort = 0 );
+  void checkExtfInference( Node n, Node nr, int effort );
+  void collectVars( Node n, std::map< Node, std::vector< Node > >& vars, std::map< Node, bool >& visited );
+  Node getSymbolicDefinition( Node n, std::vector< Node >& exp );
+  //flat forms check
+  void checkFlatForms();
+  Node checkCycles( Node eqc, std::vector< Node >& curr, std::vector< Node >& exp );
+  //normal forms check
+  void checkNormalForms();
   void mergeCstVec(std::vector< Node > &vec_strings);
   bool getNormalForms(Node &eqc, std::vector< Node > & visited, std::vector< Node > & nf,
         std::vector< std::vector< Node > > &normal_forms,
@@ -265,22 +274,12 @@ private:
   bool processDeq( Node n1, Node n2 );
   int processReverseDeq( std::vector< Node >& nfi, std::vector< Node >& nfj, Node ni, Node nj );
   int processSimpleDeq( std::vector< Node >& nfi, std::vector< Node >& nfj, Node ni, Node nj, unsigned& index, bool isRev );
-  //bool unrollStar( Node atom );
-  Node mkRegExpAntec(Node atom, Node ant);
-
-  void checkInit();
-  void checkConstantEquivalenceClasses( TermIndex* ti, std::vector< Node >& vecc );
-  void checkExtendedFuncsEval( int effort = 0 );
-  void checkExtfInference( Node n, Node nr, int n_pol, int effort );
-  void collectVars( Node n, std::map< Node, std::vector< Node > >& vars, std::map< Node, bool >& visited );
-  void checkFlatForms();
-  void checkNormalForms();
-  Node checkCycles( Node eqc, std::vector< Node >& curr, std::vector< Node >& exp );
   void checkDeqNF();
-  void checkLengthsEqc();
-  void checkCardinality();
-  bool checkInductiveEquations();
+
+  //check for extended functions
+  void checkExtendedFuncs();
   //check membership constraints
+  Node mkRegExpAntec(Node atom, Node ant);
   Node normalizeRegexp(Node r);
   bool normalizePosMemberships(std::map< Node, std::vector< Node > > &memb_with_exps);
   bool applyRConsume( CVC4::String &s, Node &r);
@@ -290,21 +289,25 @@ private:
     std::map< Node, std::vector< Node > > &memb_with_exps,
     std::map< Node, std::vector< Node > > &XinR_with_exps);
   void checkMemberships();
-  //temp
   bool checkMemberships2();
   bool checkPDerivative(Node x, Node r, Node atom, bool &addedLemma,
     std::vector< Node > &processed, std::vector< Node > &cprocessed,
     std::vector< Node > &nf_exp);
-  void checkExtendedFuncs();
+  //check contains
   void checkPosContains( std::vector< Node >& posContains );
   void checkNegContains( std::vector< Node >& negContains );
-  Node getSymbolicDefinition( Node n, std::vector< Node >& exp );
-
+  //lengths normalize check
+  void checkLengthsEqc();
+  //cardinality check
+  void checkCardinality();
+  
 public:
+  /** preregister term */
   void preRegisterTerm(TNode n);
+  /** Expand definition */
   Node expandDefinition(LogicRequest &logicRequest, Node n);
+  /** Check at effort e */
   void check(Effort e);
-
   /** Conflict when merging two constants */
   void conflict(TNode a, TNode b);
   /** called when a new equivalence class is created */
@@ -320,12 +323,15 @@ public:
 protected:
   /** compute care graph */
   void computeCareGraph();
-
+  
   //do pending merges
   void assertPendingFact(Node atom, bool polarity, Node exp);
   void doPendingFacts();
   void doPendingLemmas();
-
+  bool hasProcessed();
+  void addToExplanation( Node a, Node b, std::vector< Node >& exp );
+  void addToExplanation( Node lit, std::vector< Node >& exp );
+  
   //register term
   bool registerTerm( Node n );
   //send lemma
@@ -381,11 +387,13 @@ private:
   //extended string terms and whether they have been reduced
   NodeBoolMap d_ext_func_terms;
   std::map< Node, std::map< Node, std::vector< Node > > > d_extf_vars;
+  // list of terms that something (does not) contain and their explanation
   class ExtfInfo {
   public:
     std::map< bool, std::vector< Node > > d_ctn;
     std::map< bool, std::vector< Node > > d_ctn_from;
   };
+  std::map< Node, int > d_extf_pol;
   std::map< Node, std::vector< Node > > d_extf_exp;
   std::map< Node, ExtfInfo > d_extf_info;
   //collect extended operator terms
@@ -432,7 +440,6 @@ private:
 public:
   //for finite model finding
   Node getNextDecisionRequest();
-  void assertNode( Node lit );
 
 public:
 /** statistics class */
