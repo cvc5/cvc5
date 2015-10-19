@@ -133,8 +133,9 @@ private:
   bool hasTerm( Node a );
   bool areEqual( Node a, Node b );
   bool areDisequal( Node a, Node b );
-  Node getLengthTerm( Node t );
-  Node getLength( Node t, bool use_t = false );
+  // t is representative, te = t, add lt = te to explanation exp
+  Node getLengthExp( Node t, std::vector< Node >& exp, Node te );
+  Node getLength( Node t, std::vector< Node >& exp );
 
 private:
   /** The notify class */
@@ -300,7 +301,7 @@ private:
   void checkLengthsEqc();
   //cardinality check
   void checkCardinality();
-  
+
 public:
   /** preregister term */
   void preRegisterTerm(TNode n);
@@ -323,7 +324,7 @@ public:
 protected:
   /** compute care graph */
   void computeCareGraph();
-  
+
   //do pending merges
   void assertPendingFact(Node atom, bool polarity, Node exp);
   void doPendingFacts();
@@ -331,7 +332,7 @@ protected:
   bool hasProcessed();
   void addToExplanation( Node a, Node b, std::vector< Node >& exp );
   void addToExplanation( Node lit, std::vector< Node >& exp );
-  
+
   //register term
   bool registerTerm( Node n );
   //send lemma
@@ -343,6 +344,7 @@ protected:
   inline Node mkConcat( Node n1, Node n2 );
   inline Node mkConcat( Node n1, Node n2, Node n3 );
   inline Node mkConcat( const std::vector< Node >& c );
+  inline Node mkLength( Node n );
   //mkSkolem
   inline Node mkSkolemS(const char * c, int isLenSplit = 0);
   //inline Node mkSkolemI(const char * c);

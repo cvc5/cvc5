@@ -73,7 +73,8 @@ TESTS = \
   bug686dd.smt2 \
   idof-handg.smt2 \
   fmf001.smt2 \
-  type002.smt2
+  type002.smt2 \
+  crash-1019.smt2
 
 FAILING_TESTS =
 

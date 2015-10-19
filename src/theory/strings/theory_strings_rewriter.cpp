@@ -1025,8 +1025,6 @@ RewriteResponse TheoryStringsRewriter::postRewrite(TNode node) {
   } else if(node.getKind() == kind::STRING_LENGTH) {
     if(node[0].isConst()) {
       retNode = NodeManager::currentNM()->mkConst( ::CVC4::Rational( node[0].getConst<String>().size() ) );
-    } else if(node[0].getKind() == kind::STRING_SUBSTR) {
-      //retNode = node[0][2];
     } else if(node[0].getKind() == kind::STRING_CONCAT) {
       Node tmpNode = rewriteConcatString(node[0]);
       if(tmpNode.isConst()) {
@@ -1054,6 +1052,8 @@ RewriteResponse TheoryStringsRewriter::postRewrite(TNode node) {
         }
       }
     }
+    //else if(node[0].getKind() == kind::STRING_SUBSTR) {
+    //retNode = node[0][2];
   }else if( node.getKind() == kind::STRING_CHARAT ){
     Node one = NodeManager::currentNM()->mkConst( Rational( 1 ) );
     retNode = NodeManager::currentNM()->mkNode(kind::STRING_SUBSTR, node[0], node[1], one);
@@ -1080,7 +1080,7 @@ RewriteResponse TheoryStringsRewriter::postRewrite(TNode node) {
                 retNode = NodeManager::currentNM()->mkConst( ::CVC4::String("") );
               }else{
                 children.erase( children.begin(), children.begin()+1 );
-                retNode = NodeManager::currentNM()->mkNode( kind::STRING_SUBSTR, mkConcat( kind::STRING_CONCAT, children ), 
+                retNode = NodeManager::currentNM()->mkNode( kind::STRING_SUBSTR, mkConcat( kind::STRING_CONCAT, children ),
                                                             NodeManager::currentNM()->mkNode( kind::MINUS, node[1], NodeManager::currentNM()->mkConst( size ) ),
                                                             node[2] );
               }

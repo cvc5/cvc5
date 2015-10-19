@@ -113,20 +113,20 @@ Node StringsPreprocess::simplify( Node t, std::vector< Node > &new_nodes ) {
     //length is positive
     Node c3 = NodeManager::currentNM()->mkNode( kind::GT, t[2], d_zero );
     Node cond = NodeManager::currentNM()->mkNode( kind::AND, c1, c2, c3 );
-    
+
     Node sk1 = NodeManager::currentNM()->mkSkolem( "ss1", NodeManager::currentNM()->stringType(), "created for substr" );
     Node sk2 = NodeManager::currentNM()->mkSkolem( "ss2", NodeManager::currentNM()->stringType(), "created for substr" );
     Node b11 = t[0].eqNode( NodeManager::currentNM()->mkNode( kind::STRING_CONCAT, sk1, t, sk2 ) );
     //length of first skolem is second argument
     Node b12 = NodeManager::currentNM()->mkNode( kind::STRING_LENGTH, sk1 ).eqNode( t[1] );
     //length of second skolem is abs difference between end point and end of string
-    Node b13 = NodeManager::currentNM()->mkNode( kind::STRING_LENGTH, sk2 ).eqNode( 
-                 NodeManager::currentNM()->mkNode( kind::ITE, NodeManager::currentNM()->mkNode( kind::GEQ, lt0, t12 ), 
+    Node b13 = NodeManager::currentNM()->mkNode( kind::STRING_LENGTH, sk2 ).eqNode(
+                 NodeManager::currentNM()->mkNode( kind::ITE, NodeManager::currentNM()->mkNode( kind::GEQ, lt0, t12 ),
                     NodeManager::currentNM()->mkNode( kind::MINUS, lt0, t12 ), d_zero ) );
-    
+
     Node b1 = NodeManager::currentNM()->mkNode( kind::AND, b11, b12, b13 );
     Node b2 = t.eqNode( NodeManager::currentNM()->mkConst( ::CVC4::String("") ) );
-    
+
     Node lemma = Rewriter::rewrite( NodeManager::currentNM()->mkNode( kind::ITE, cond, b1, b2 ) );
     new_nodes.push_back( lemma );
     d_cache[t] = t;
@@ -488,7 +488,7 @@ Node StringsPreprocess::decompose(Node t, std::vector< Node > & new_nodes) {
   unsigned num = t.getNumChildren();
   if(num == 0) {
     return simplify(t, new_nodes);
-  } else {
+  }else{
     bool changed = false;
     std::vector< Node > cc;
     if (t.getMetaKind() == kind::metakind::PARAMETERIZED) {
