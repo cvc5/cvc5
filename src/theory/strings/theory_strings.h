@@ -250,11 +250,11 @@ private:
   Node checkCycles( Node eqc, std::vector< Node >& curr, std::vector< Node >& exp );
   //normal forms check
   void checkNormalForms();
-  void mergeCstVec(std::vector< Node > &vec_strings);
-  bool getNormalForms(Node &eqc, std::vector< Node > & visited, std::vector< Node > & nf,
-        std::vector< std::vector< Node > > &normal_forms,
-        std::vector< std::vector< Node > > &normal_forms_exp,
-        std::vector< Node > &normal_form_src);
+  bool normalizeEquivalenceClass( Node n, std::vector< Node > & nf, std::vector< Node > & nf_exp );
+  bool getNormalForms( Node &eqc, std::vector< Node > & nf,
+                       std::vector< std::vector< Node > > &normal_forms,
+                       std::vector< std::vector< Node > > &normal_forms_exp,
+                       std::vector< Node > &normal_form_src);
   bool detectLoop(std::vector< std::vector< Node > > &normal_forms,
         int i, int j, int index_i, int index_j,
         int &loop_in_i, int &loop_in_j);
@@ -271,7 +271,6 @@ private:
   bool processSimpleNEq( std::vector< std::vector< Node > > &normal_forms,
         std::vector< Node > &normal_form_src, std::vector< Node > &curr_exp, unsigned i, unsigned j,
         unsigned& index_i, unsigned& index_j, bool isRev );
-  bool normalizeEquivalenceClass( Node n, std::vector< Node > & visited, std::vector< Node > & nf, std::vector< Node > & nf_exp );
   bool processDeq( Node n1, Node n2 );
   int processReverseDeq( std::vector< Node >& nfi, std::vector< Node >& nfj, Node ni, Node nj );
   int processSimpleDeq( std::vector< Node >& nfi, std::vector< Node >& nfj, Node ni, Node nj, unsigned& index, bool isRev );
@@ -282,18 +281,17 @@ private:
   //check membership constraints
   Node mkRegExpAntec(Node atom, Node ant);
   Node normalizeRegexp(Node r);
-  bool normalizePosMemberships(std::map< Node, std::vector< Node > > &memb_with_exps);
-  bool applyRConsume( CVC4::String &s, Node &r);
-  Node applyRSplit(Node s1, Node s2, Node r);
-  bool applyRLen(std::map< Node, std::vector< Node > > &XinR_with_exps);
-  bool checkMembershipsWithoutLength(
-    std::map< Node, std::vector< Node > > &memb_with_exps,
-    std::map< Node, std::vector< Node > > &XinR_with_exps);
+  bool normalizePosMemberships( std::map< Node, std::vector< Node > > &memb_with_exps );
+  bool applyRConsume( CVC4::String &s, Node &r );
+  Node applyRSplit( Node s1, Node s2, Node r );
+  bool applyRLen( std::map< Node, std::vector< Node > > &XinR_with_exps );
+  bool checkMembershipsWithoutLength( std::map< Node, std::vector< Node > > &memb_with_exps, 
+                                      std::map< Node, std::vector< Node > > &XinR_with_exps);
   void checkMemberships();
   bool checkMemberships2();
-  bool checkPDerivative(Node x, Node r, Node atom, bool &addedLemma,
-    std::vector< Node > &processed, std::vector< Node > &cprocessed,
-    std::vector< Node > &nf_exp);
+  bool checkPDerivative( Node x, Node r, Node atom, bool &addedLemma,
+                         std::vector< Node > &processed, std::vector< Node > &cprocessed,
+                         std::vector< Node > &nf_exp);
   //check contains
   void checkPosContains( std::vector< Node >& posContains );
   void checkNegContains( std::vector< Node >& negContains );
@@ -346,6 +344,18 @@ protected:
   inline Node mkConcat( const std::vector< Node >& c );
   inline Node mkLength( Node n );
   //mkSkolem
+  enum {
+    sk_id_c_spt,
+    sk_id_vc_spt,
+    sk_id_v_spt,
+    sk_id_ctn_pre,
+    sk_id_ctn_post,
+    sk_id_deq_x,
+    sk_id_deq_y,
+    sk_id_deq_z,
+  };
+  std::map< Node, std::map< Node, std::map< int, Node > > > d_skolem_cache;
+  Node mkSkolemCached( Node a, Node b, int id, const char * c, int isLenSplit = 0 );
   inline Node mkSkolemS(const char * c, int isLenSplit = 0);
   //inline Node mkSkolemI(const char * c);
   /** mkExplain **/
@@ -366,19 +376,6 @@ protected:
   void printConcat( std::vector< Node >& n, const char * c );
 
   void inferSubstitutionProxyVars( Node n, std::vector< Node >& vars, std::vector< Node >& subs, std::vector< Node >& unproc );
-
-  enum {
-    sk_id_c_spt,
-    sk_id_vc_spt,
-    sk_id_v_spt,
-    sk_id_ctn_pre,
-    sk_id_ctn_post,
-    sk_id_deq_x,
-    sk_id_deq_y,
-    sk_id_deq_z,
-  };
-  std::map< Node, std::map< Node, std::map< int, Node > > > d_skolem_cache;
-  Node mkSkolemCached( Node a, Node b, int id, const char * c, int isLenSplit = 0 );
 private:
 
   // Special String Functions
