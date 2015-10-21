@@ -165,6 +165,7 @@ private:
   NodeSet d_loop_antec;
   NodeSet d_length_intro_vars;
   // preReg cache
+  NodeSet d_pregistered_terms_cache;
   NodeSet d_registered_terms_cache;
   // preprocess cache
   StringsPreprocess d_preproc;
@@ -332,7 +333,7 @@ protected:
   void addToExplanation( Node lit, std::vector< Node >& exp );
 
   //register term
-  bool registerTerm( Node n );
+  void registerTerm( Node n, int effort );
   //send lemma
   void sendLemma( Node ant, Node conc, const char * c );
   void sendInfer( Node eq_exp, Node eq, const char * c );
