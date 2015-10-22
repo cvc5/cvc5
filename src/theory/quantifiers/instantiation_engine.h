@@ -27,6 +27,7 @@ namespace quantifiers {
 class InstStrategyUserPatterns;
 class InstStrategyAutoGenTriggers;
 class InstStrategyFreeVariable;
+class InstStrategyCbqi;
 class InstStrategySimplex;
 class InstStrategyCegqi;
 
@@ -53,6 +54,8 @@ public:
   virtual std::string identify() const { return std::string("Unknown"); }
   /** register quantifier */
   virtual void registerQuantifier( Node q ) {}
+  /** get next decision request */
+  virtual Node getNextDecisionRequest() { return Node::null(); }
 };/* class InstStrategy */
 
 class InstantiationEngine : public QuantifiersModule
@@ -66,6 +69,7 @@ private:
   InstStrategyUserPatterns* d_isup;
   /** auto gen triggers; only kept for destructor cleanup */
   InstStrategyAutoGenTriggers* d_i_ag;
+  InstStrategyCbqi * d_i_cbqi;
   /** simplex (cbqi) */
   InstStrategySimplex * d_i_splx;
   /** generic cegqi */
@@ -74,25 +78,11 @@ private:
   typedef context::CDHashMap< Node, bool, NodeHashFunction > BoolMap;
   /** current processing quantified formulas */
   std::vector< Node > d_quants;
-  /** whether we have added cbqi lemma */
-  std::map< Node, bool > d_added_cbqi_lemma;
 private:
-  /** has added cbqi lemma */
-  bool hasAddedCbqiLemma( Node q ) { return d_added_cbqi_lemma.find( q )!=d_added_cbqi_lemma.end(); }
-  /** helper functions */
-  bool hasNonCbqiVariable( Node q );
-  bool hasApplyUf( Node n );
-  /** whether to do CBQI for quantifier q */
-  bool doCbqi( Node q );
   /** is the engine incomplete for this quantifier */
   bool isIncomplete( Node q );
-  /** cbqi set inactive */
-  bool d_cbqi_set_quant_inactive;
-private:
   /** do instantiation round */
   bool doInstantiationRound( Theory::Effort effort );
-  /** register literals of n, f is the quantifier it belongs to */
-  //void registerLiterals( Node n, Node f );
 public:
   InstantiationEngine( QuantifiersEngine* qe );
   ~InstantiationEngine();

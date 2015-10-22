@@ -35,6 +35,8 @@ typedef enum {
   INST_WHEN_FULL_DELAY,
   /** Apply instantiation round at full effort half the time, and last call always */
   INST_WHEN_FULL_LAST_CALL,
+  /** Apply instantiation round at full effort after all other theories finish half the time, and last call always */
+  INST_WHEN_FULL_DELAY_LAST_CALL,
   /** Apply instantiation round at last call only */
   INST_WHEN_LAST_CALL,
 } InstWhenMode;

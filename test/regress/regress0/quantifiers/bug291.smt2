@@ -10,5 +10,4 @@
 (declare-fun store2 (Int) Int)
 (assert (forall ((?A Int) (?o Int) (?f Int) (?p Int) (?g Int) (?v Int)) (=> (not (= ?o ?p)) (= (select2 (store2 ?A)) (select2 ?A)))))
 (check-sat)
-(get-info :reason-unknown)
 (exit)

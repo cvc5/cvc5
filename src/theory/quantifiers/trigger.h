@@ -108,6 +108,7 @@ public:
   static bool isUsableTrigger( Node n, Node f );
   static bool isAtomicTrigger( Node n );
   static bool isAtomicTriggerKind( Kind k );
+  static bool isCbqiKind( Kind k );
   static bool isSimpleTrigger( Node n );
   static bool isBooleanTermTrigger( Node n );
   static bool isPureTheoryTrigger( Node n );

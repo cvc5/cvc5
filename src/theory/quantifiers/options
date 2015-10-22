@@ -229,16 +229,18 @@ option sygusInvTemplMode --sygus-inv-templ=MODE CVC4::theory::quantifiers::Sygus
   template mode for sygus invariant synthesis
 
 # approach applied to general quantified formulas
+option cbqiSplx --cbqi-splx bool :read-write :default false
+ turns on old implementation of counterexample-based quantifier instantiation
 option cbqi --cbqi bool :read-write :default false
  turns on counterexample-based quantifier instantiation
-option cbqi2 --cbqi2 bool :read-write :default false
- turns on new implementation of counterexample-based quantifier instantiation
 option recurseCbqi --cbqi-recurse bool :default true
  turns on recursive counterexample-based quantifier instantiation
 option cbqiSat --cbqi-sat bool :read-write :default true
  answer sat when quantifiers are asserted with counterexample-based quantifier instantiation
 option cbqiModel --cbqi-model bool :read-write :default true
  guide instantiations by model values for counterexample-based quantifier instantiation
+option cbqiAll --cbqi-all bool :default false
+ apply counterexample-based instantiation to all quantified formulas
 option cbqiUseInfInt --cbqi-use-inf-int bool :read-write :default false
  use integer infinity for vts in counterexample-based quantifier instantiation
 option cbqiUseInfReal --cbqi-use-inf-real bool :read-write :default false

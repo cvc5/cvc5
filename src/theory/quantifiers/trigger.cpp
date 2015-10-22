@@ -312,10 +312,16 @@ bool Trigger::isAtomicTrigger( Node n ){
   return ( k==APPLY_UF && !n.getOperator().getAttribute(NoMatchAttribute()) ) ||
          ( k!=APPLY_UF && isAtomicTriggerKind( k ) );
 }
+
 bool Trigger::isAtomicTriggerKind( Kind k ) {
   return k==APPLY_UF || k==SELECT || k==STORE ||
          k==APPLY_CONSTRUCTOR || k==APPLY_SELECTOR_TOTAL || k==APPLY_TESTER ||
          k==UNION || k==INTERSECTION || k==SUBSET || k==SETMINUS || k==MEMBER || k==SINGLETON;
+}
+
+bool Trigger::isCbqiKind( Kind k ) {
+  return quantifiers::TermDb::isBoolConnective( k ) || k==PLUS || k==GEQ || k==EQUAL || k==MULT ||
+         k==APPLY_CONSTRUCTOR || k==APPLY_SELECTOR_TOTAL || k==APPLY_TESTER;
 }
 
 bool Trigger::isSimpleTrigger( Node n ){

@@ -137,7 +137,7 @@ d_presolve_cache_wic(u){
   }else{
     d_inst_engine = NULL;
   }
-  if( options::finiteModelFind()  ){
+  if( options::finiteModelFind() ){
     if( options::fmfBoundInt() ){
       d_bint = new quantifiers::BoundedIntegers( c, this );
       d_modules.push_back( d_bint );
@@ -336,8 +336,11 @@ void QuantifiersEngine::check( Theory::Effort e ){
       if( d_modules[i]->needsCheck( e ) ){
         qm.push_back( d_modules[i] );
         needsCheck = true;
-        unsigned me = d_modules[i]->needsModel( e );
-        needsModelE = me<needsModelE ? me : needsModelE;
+        //can only request model at last call since theory combination can find inconsistencies
+        if( e>=Theory::EFFORT_LAST_CALL ){
+          unsigned me = d_modules[i]->needsModel( e );
+          needsModelE = me<needsModelE ? me : needsModelE;
+        }
       }
     }
   }
@@ -402,6 +405,11 @@ void QuantifiersEngine::check( Theory::Effort e ){
       d_modules[i]->reset_round( e );
     }
     Trace("quant-engine-debug") << "Done resetting all modules." << std::endl;
+    //reset may have added lemmas
+    flushLemmas();
+    if( d_hasAddedLemma ){
+      return;
+    }
 
     if( e==Theory::EFFORT_LAST_CALL ){
       //if effort is last call, try to minimize model first
@@ -702,7 +710,7 @@ bool QuantifiersEngine::addInstantiation( Node f, std::vector< Node >& vars, std
       }
       Assert( terms[i].getType().isSubtypeOf( f[0][i].getType() ) );
     }
-    if( options::cbqi() && !options::cbqi2() ){
+    if( options::cbqiSplx() ){
       for( int i=0; i<(int)terms.size(); i++ ){
         if( quantifiers::TermDb::hasInstConstAttr(terms[i]) ){
           Trace("inst")<< "***& Bad Instantiate " << f << " with " << std::endl;
@@ -987,7 +995,9 @@ bool QuantifiersEngine::getInstWhenNeedsCheck( Theory::Effort e ) {
   }else if( options::instWhenMode()==quantifiers::INST_WHEN_FULL_DELAY ){
     performCheck = ( e >= Theory::EFFORT_FULL ) && !getTheoryEngine()->needCheck();
   }else if( options::instWhenMode()==quantifiers::INST_WHEN_FULL_LAST_CALL ){
-    performCheck = ( ( e==Theory::EFFORT_FULL  && d_ierCounter%2==0 ) || e==Theory::EFFORT_LAST_CALL );
+    performCheck = ( ( e==Theory::EFFORT_FULL && d_ierCounter%2==0 ) || e==Theory::EFFORT_LAST_CALL );
+  }else if( options::instWhenMode()==quantifiers::INST_WHEN_FULL_DELAY_LAST_CALL ){
+    performCheck = ( ( e==Theory::EFFORT_FULL && !getTheoryEngine()->needCheck() && d_ierCounter%2==0 ) || e==Theory::EFFORT_LAST_CALL );
   }else if( options::instWhenMode()==quantifiers::INST_WHEN_LAST_CALL ){
     performCheck = ( e >= Theory::EFFORT_LAST_CALL );
   }else{

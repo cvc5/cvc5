@@ -337,9 +337,11 @@ libcvc4_la_SOURCES = \
 	theory/quantifiers/fun_def_process.h \
 	theory/quantifiers/fun_def_process.cpp \
 	theory/quantifiers/fun_def_engine.h \
-  theory/quantifiers/fun_def_engine.cpp \
-  theory/quantifiers/quant_equality_engine.h \
-  theory/quantifiers/quant_equality_engine.cpp \
+	theory/quantifiers/fun_def_engine.cpp \
+	theory/quantifiers/quant_equality_engine.h \
+	theory/quantifiers/quant_equality_engine.cpp \
+	theory/quantifiers/ceg_instantiator.h \
+	theory/quantifiers/ceg_instantiator.cpp \
 	theory/quantifiers/options_handlers.h \
 	theory/arith/theory_arith_type_rules.h \
 	theory/arith/type_enumerator.h \

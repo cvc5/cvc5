@@ -40,6 +40,10 @@ full-delay \n\
 + Run instantiation round at full effort, before theory combination, after\n\
   all other theories have finished.\n\
 \n\
+full-delay-last-call \n\
++ Alternate running instantiation rounds at full effort after all other\n\
+  theories have finished, and last call.  \n\
+\n\
 last-call\n\
 + Run instantiation at last call effort, after theory combination and\n\
   and theories report sat.\n\
@@ -235,6 +239,8 @@ inline InstWhenMode stringToInstWhenMode(std::string option, std::string optarg,
     return INST_WHEN_FULL_DELAY;
   } else if(optarg == "full-last-call") {
     return INST_WHEN_FULL_LAST_CALL;
+  } else if(optarg == "full-delay-last-call") {
+    return INST_WHEN_FULL_DELAY_LAST_CALL;
   } else if(optarg == "last-call") {
     return INST_WHEN_LAST_CALL;
   } else if(optarg == "help") {

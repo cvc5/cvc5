@@ -1381,10 +1381,9 @@ void SmtEngine::setDefaults() {
     if( !options::eMatching.wasSetByUser() ){
       options::eMatching.set( options::fmfInstEngine() );
     }
-    if( ! options::instWhenMode.wasSetByUser()){
-      //instantiate only on last call
+    if( !options::instWhenMode.wasSetByUser() ){
+      //instantiate only on last call  FIXME: remove?
       if( options::eMatching() ){
-        Trace("smt") << "setting inst when mode to LAST_CALL" << endl;
         options::instWhenMode.set( quantifiers::INST_WHEN_LAST_CALL );
       }
     }
@@ -1406,6 +1405,7 @@ void SmtEngine::setDefaults() {
     options::ceGuidedInst.set( true );
   }
   if( options::ceGuidedInst() ){
+    //counterexample-guided instantiation for sygus
     if( !options::cegqiSingleInv.wasSetByUser() ){
       options::cegqiSingleInv.set( true );
     }
@@ -1440,29 +1440,37 @@ void SmtEngine::setDefaults() {
     if( !options::cbqiPreRegInst.wasSetByUser()) {
       options::cbqiPreRegInst.set( true );
     }
-  }
-
-  //cbqi options
-  // enable if pure arithmetic quantifiers
-  if( d_logic.isQuantified() && d_logic.isPure(THEORY_ARITH) ){
-    if( !options::cbqi.wasSetByUser() && !options::cbqi2.wasSetByUser() ){
-      options::cbqi2.set( true );
+  }else{
+    //counterexample-guided instantiation for non-sygus
+    // enable if any quantifiers with arithmetic or datatypes
+    if( d_logic.isQuantified() && ( d_logic.isTheoryEnabled(THEORY_ARITH) || d_logic.isTheoryEnabled(THEORY_DATATYPES) ) ){
+      if( !options::cbqi.wasSetByUser() ){
+        options::cbqi.set( true );
+      }
     }
-  }
-  if( options::cbqi2() ){
-    options::cbqi.set( true );
-  }
-  if( options::cbqi2() ){
-    if( !options::rewriteDivk.wasSetByUser()) {
-      options::rewriteDivk.set( true );
+    if( options::cbqiSplx() ){
+      //implies more general option
+      options::cbqi.set( true );
     }
-  }
-  if( options::cbqi() ){
-    if( !options::quantConflictFind.wasSetByUser() ){
-      options::quantConflictFind.set( false );
+    if( options::cbqi() ){
+      //must rewrite divk
+      if( !options::rewriteDivk.wasSetByUser()) {
+        options::rewriteDivk.set( true );
+      }
     }
-    if( !options::instNoEntail.wasSetByUser() ){
-      options::instNoEntail.set( false );
+    if( options::cbqi() && d_logic.isPure(THEORY_ARITH) ){
+      if( !options::quantConflictFind.wasSetByUser() ){
+        options::quantConflictFind.set( false );
+      }
+      if( !options::instNoEntail.wasSetByUser() ){
+        options::instNoEntail.set( false );
+      }
+      if( !options::instWhenMode.wasSetByUser() && options::cbqiModel() ){
+        //only instantiation should happen at last call when model is avaiable
+        if( !options::instWhenMode.wasSetByUser() ){
+          options::instWhenMode.set( quantifiers::INST_WHEN_LAST_CALL );
+        }
+      }
     }
   }
 
