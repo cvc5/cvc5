@@ -29,7 +29,9 @@ OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWA
 #include "core/Dimacs.h"
 #include "core/Solver.h"
 
-using namespace BVMinisat;
+
+namespace CVC4 {
+namespace BVMinisat {
 
 //=================================================================================================
 
@@ -63,6 +65,8 @@ static void SIGINT_exit(int signum) {
         printf("\n"); printf("*** INTERRUPTED ***\n"); }
     _exit(1); }
 
+} /* CVC4::BVMinisat namespace */
+} /* CVC4 namespace */
 
 //=================================================================================================
 // Main:
@@ -70,6 +74,9 @@ static void SIGINT_exit(int signum) {
 
 int main(int argc, char** argv)
 {
+  using namespace CVC4;
+  using namespace CVC4::BVMinisat;
+
     try {
         setUsageHelp("USAGE: %s [options] <input-file> <result-output-file>\n\n  where input may be either in plain or gzipped DIMACS.\n");
         // printf("This is MiniSat 2.0 beta\n");

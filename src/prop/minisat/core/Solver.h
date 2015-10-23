@@ -557,7 +557,7 @@ inline void     Solver::toDimacs     (const char* file, Lit p, Lit q, Lit r){ ve
 
 
 //=================================================================================================
-}/* Minisat namespace */
-}
+} /* CVC4::Minisat namespace */
+} /* CVC4 namespace */
 
 #endif

@@ -32,6 +32,7 @@ OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWA
 #include <ext/hash_set>
 #include <vector>
 
+namespace CVC4 {
 namespace BVMinisat {
 
 /** Interface for minisat callbacks */
@@ -440,6 +441,8 @@ inline void     Solver::toDimacs     (const char* file, Lit p, Lit q, Lit r){ ve
 
 
 //=================================================================================================
-}
+} /* CVC4::BVMinisat namespace */
+} /* CVC4 namespace */
+
 
 #endif

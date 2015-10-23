@@ -33,9 +33,10 @@ OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWA
 #include "proof/proof_manager.h"
 #include "proof/sat_proof.h"
 
-using namespace CVC4::Minisat;
-using namespace CVC4;
 using namespace CVC4::prop;
+
+namespace CVC4 {
+namespace Minisat {
 
 //=================================================================================================
 // Options:
@@ -332,7 +333,7 @@ bool Solver::addClause_(vec<Lit>& ps, bool removable, uint64_t proof_id)
           // as the final conflict.
           if(falseLiteralsCount == 1) {
             PROOF( ProofManager::getSatProof()->storeUnitConflict(ps[0], INPUT, proof_id); )
-            PROOF( ProofManager::getSatProof()->finalizeProof(::Minisat::CRef_Lazy); )
+            PROOF( ProofManager::getSatProof()->finalizeProof(CVC4::Minisat::CRef_Lazy); )
             return ok = false;
           }
         } else {
@@ -372,7 +373,7 @@ bool Solver::addClause_(vec<Lit>& ps, bool removable, uint64_t proof_id)
           if(! (ok = (confl == CRef_Undef)) ) {
             if(ca[confl].size() == 1) {
               PROOF( ProofManager::getSatProof()->storeUnitConflict(ca[confl][0], LEARNT, proof_id); );
-              PROOF( ProofManager::getSatProof()->finalizeProof(::Minisat::CRef_Lazy); )
+              PROOF( ProofManager::getSatProof()->finalizeProof(CVC4::Minisat::CRef_Lazy); )
             } else {
               PROOF( ProofManager::getSatProof()->finalizeProof(confl); );
             }
@@ -1729,3 +1730,7 @@ inline bool Solver::withinBudget(uint64_t ammount) const {
     (propagation_budget < 0 || propagations < (uint64_t)propagation_budget);
   return within_budget;
 }
+
+
+} /* CVC4::Minisat namespace */
+} /* CVC4 namespace */

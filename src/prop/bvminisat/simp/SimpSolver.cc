@@ -23,7 +23,9 @@ OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWA
 #include "utils/System.h"
 #include "theory/bv/options.h"
 #include "smt/options.h"
-using namespace BVMinisat;
+
+namespace CVC4 {
+namespace BVMinisat {
 
 //=================================================================================================
 // Options:
@@ -749,3 +751,6 @@ void SimpSolver::garbageCollect()
                ca.size()*ClauseAllocator::Unit_Size, to.size()*ClauseAllocator::Unit_Size);
     to.moveTo(ca);
 }
+
+} /* CVC4::BVMinisat namespace */
+} /* CVC4 namespace */

@@ -139,9 +139,5 @@ public:
   Statistics d_statistics;
 };
 
-}
-}
-
-
-
-
+} /* CVC4::prop namespace */
+} /* CVC4 namespace */

@@ -31,8 +31,8 @@ OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWA
 #include "theory/bv/options.h"
 #include "smt/options.h"
 #include "theory/interrupted.h"
-using namespace BVMinisat;
 
+namespace CVC4 {
 namespace BVMinisat {
 
 #define OUTPUT_TAG "bvminisat: [a=" << assumptions.size() << ",l=" << decisionLevel() << "] "
@@ -52,7 +52,6 @@ std::ostream& operator << (std::ostream& out, const BVMinisat::Clause& c) {
   return out;
 }
 
-}
 
 //=================================================================================================
 // Options:
@@ -1207,3 +1206,6 @@ void Solver::garbageCollect()
                ca.size()*ClauseAllocator::Unit_Size, to.size()*ClauseAllocator::Unit_Size);
     to.moveTo(ca);
 }
+
+} /* CVC4::BVMinisat namespace */
+} /* CVC4 namespace */

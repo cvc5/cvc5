@@ -235,7 +235,7 @@ inline lbool SimpSolver::solveLimited (const vec<Lit>& assumps, bool do_simp, bo
     assumps.copyTo(assumptions); return solve_(do_simp, turn_off_simp); }
 
 //=================================================================================================
-}
-}
+} /* CVC4::Minisat namespace */
+} /* CVC4 namespace */
 
 #endif
