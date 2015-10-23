@@ -1738,7 +1738,7 @@ CVC4::SExpr SmtEngine::getInfo(const std::string& key) const
     return SExpr(d_userLevels.size());
   } else if(key == "all-options") {
     // get the options, like all-statistics
-    return Options::current().getOptions();
+    return Options::current()->getOptions();
   } else {
     throw UnrecognizedOptionException();
   }

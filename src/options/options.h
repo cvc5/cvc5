@@ -66,8 +66,8 @@ public:
   }
 
   /** Get the current Options in effect */
-  static inline Options& current() {
-    return *s_current;
+  static inline Options* current() {
+    return s_current;
   }
 
   Options();

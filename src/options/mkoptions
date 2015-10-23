@@ -493,9 +493,9 @@ function handle_option {
 extern struct CVC4_PUBLIC ${internal}__option_t { typedef $type type; type operator()() const; bool wasSetByUser() const; } $internal CVC4_PUBLIC;"
       module_inlines="${module_inlines}
 #line $lineno \"$kf\"
-inline ${internal}__option_t::type ${internal}__option_t::operator()() const { return Options::current()[*this]; }
+inline ${internal}__option_t::type ${internal}__option_t::operator()() const { return (*Options::current())[*this]; }
 #line $lineno \"$kf\"
-inline bool ${internal}__option_t::wasSetByUser() const { return Options::current().wasSetByUser(*this); }
+inline bool ${internal}__option_t::wasSetByUser() const { return Options::current()->wasSetByUser(*this); }
 "
     else
       module_decls="${module_decls}
@@ -503,11 +503,11 @@ inline bool ${internal}__option_t::wasSetByUser() const { return Options::curren
 extern struct CVC4_PUBLIC ${internal}__option_t { typedef $type type; type operator()() const; bool wasSetByUser() const; void set(const type& v); } $internal CVC4_PUBLIC;"
       module_inlines="${module_inlines}
 #line $lineno \"$kf\"
-inline ${internal}__option_t::type ${internal}__option_t::operator()() const { return Options::current()[*this]; }
+inline ${internal}__option_t::type ${internal}__option_t::operator()() const { return (*Options::current())[*this]; }
 #line $lineno \"$kf\"
-inline bool ${internal}__option_t::wasSetByUser() const { return Options::current().wasSetByUser(*this); }
+inline bool ${internal}__option_t::wasSetByUser() const { return Options::current()->wasSetByUser(*this); }
 #line $lineno \"$kf\"
-inline void ${internal}__option_t::set(const ${internal}__option_t::type& v) { Options::current().set(*this, v); }
+inline void ${internal}__option_t::set(const ${internal}__option_t::type& v) { Options::current()->set(*this, v); }
 "
       module_specializations="${module_specializations}
 #line $lineno \"$kf\"
@@ -783,7 +783,7 @@ template <> options::${internal}__option_t::type runHandlerAndPredicates(options
 #line $lineno \"$kf\"
   if(key == \"$smtname\") {
 #line $lineno \"$kf\"
-    Options::current().assignBool(options::$internal, \"$smtname\", optionarg == \"true\", smt);$run_smt_links
+    Options::current()->assignBool(options::$internal, \"$smtname\", optionarg == \"true\", smt);$run_smt_links
     return;
   }"
     elif [ -n "$expect_arg" -a "$internal" != - ]; then
@@ -800,7 +800,7 @@ template <> options::${internal}__option_t::type runHandlerAndPredicates(options
 #line $lineno \"$kf\"
   if(key == \"$smtname\") {
 #line $lineno \"$kf\"
-    Options::current().assign(options::$internal, \"$smtname\", optionarg, smt);$run_smt_links
+    Options::current()->assign(options::$internal, \"$smtname\", optionarg, smt);$run_smt_links
     return;
   }"
     elif [ -n "$expect_arg" ]; then
