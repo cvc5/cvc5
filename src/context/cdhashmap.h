@@ -188,6 +188,7 @@ public:
          bool allocatedInCMM = false) :
     ContextObj(allocatedInCMM, context),
     d_key(key),
+    d_data(),
     d_map(NULL),
     d_noTrash(allocatedInCMM) {
 
