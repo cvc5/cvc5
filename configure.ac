@@ -394,8 +394,10 @@ elif test "$CVC4_CONFIGURE_AT_TOP_LEVEL" = yes; then
   $as_echo "cd builds/$target/$build_type"
   cd "builds/$target/$build_type"
   CVC4_CONFIGURE_IN_BUILDS=yes; export CVC4_CONFIGURE_IN_BUILDS
+  # Runs the single recursive configure invocation using a relative path.
+  # See https://lists.gnu.org/archive/html/autoconf/2011-04/msg00060.html
   echo "$SHELL ../../../configure ${config_cmdline[[@]]}"
-  "$SHELL" "`pwd`/../../../configure" "${config_cmdline[[@]]}"
+  "$SHELL" "../../../configure" "${config_cmdline[[@]]}"
   exitval=$?
   cd ../../..
   if test $exitval -eq 0; then
