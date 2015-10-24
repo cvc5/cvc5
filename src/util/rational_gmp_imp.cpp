@@ -24,13 +24,17 @@
 #  error "This source should only ever be built if CVC4_GMP_IMP is on !"
 #endif /* CVC4_GMP_IMP */
 
-using namespace std;
-using namespace CVC4;
+std::ostream& CVC4::operator<<(std::ostream& os, const Rational& q){
+  return os << q.toString();
+}
+
+namespace CVC4 {
 
 /* Computes a rational given a decimal string. The rational
  * version of <code>xxx.yyy</code> is <code>xxxyyy/(10^3)</code>.
  */
 Rational Rational::fromDecimal(const std::string& dec) {
+  using std::string;
   // Find the decimal point, if there is one
   string::size_type i( dec.find(".") );
   if( i != string::npos ) {
@@ -48,9 +52,6 @@ Rational Rational::fromDecimal(const std::string& dec) {
   }
 }
 
-std::ostream& CVC4::operator<<(std::ostream& os, const Rational& q){
-  return os << q.toString();
-}
 
 
 /** Equivalent to calling (this->abs()).cmp(b.abs()) */
@@ -83,7 +84,8 @@ int Rational::absCmp(const Rational& q) const{
 
 /** Return an exact rational for a double d. */
 Rational Rational::fromDouble(double d) throw(RationalFromDoubleException){
-  if(std::isfinite(d)){
+  using namespace std;
+  if(isfinite(d)){
     Rational q;
     mpq_set_d(q.d_value.get_mpq_t(), d);
     return q;
@@ -101,3 +103,5 @@ RationalFromDoubleException::RationalFromDoubleException(double d) throw()
   ss << ")";
   setMessage(ss.str());
 }
+
+} /* namespace CVC4 */
