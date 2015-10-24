@@ -1499,10 +1499,12 @@ Node TheoryStringsRewriter::rewriteContains( Node node ) {
       }
     }
   }else if( node[0].isConst() ){
-    if( node[1].getKind()==kind::STRING_CONCAT ){
+    CVC4::String t = node[0].getConst<String>();
+    if( t.size()==0 ){
+      return NodeManager::currentNM()->mkNode( kind::EQUAL, node[0], node[1] );
+    }else if( node[1].getKind()==kind::STRING_CONCAT ){
       //must find constant components in order
       size_t pos = 0;
-      CVC4::String t = node[0].getConst<String>();
       for(unsigned i=0; i<node[1].getNumChildren(); i++) {
         if( node[1][i].isConst() ){
           CVC4::String s = node[1][i].getConst<String>();

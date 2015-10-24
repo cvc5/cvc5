@@ -73,8 +73,8 @@ TheoryStrings::TheoryStrings(context::Context* c, context::UserContext* u, Outpu
   d_congruent(c),
   d_proxy_var(u),
   d_proxy_var_to_length(u),
-  d_neg_ctn_eqlen(u),
-  d_neg_ctn_ulen(u),
+  d_neg_ctn_eqlen(c),
+  d_neg_ctn_ulen(c),
   d_neg_ctn_cached(u),
   d_ext_func_terms(c),
   d_regexp_memberships(c),
@@ -1219,13 +1219,23 @@ void TheoryStrings::checkExtfInference( Node n, Node nr, int effort ){
           bool opol = !pol;
           for( unsigned i=0; i<d_extf_info[nr[0]].d_ctn[opol].size(); i++ ){
             Node onr = d_extf_info[nr[0]].d_ctn[opol][i];
-            Node conc = NodeManager::currentNM()->mkNode( kind::STRING_STRCTN, pol ? nr[1] : onr, pol ? onr : nr[1] ).negate();
-            std::vector< Node > exp;
-            exp.insert( exp.end(), d_extf_exp[n].begin(), d_extf_exp[n].end() );
-            Node ofrom = d_extf_info[nr[0]].d_ctn_from[opol][i];
-            Assert( d_extf_exp.find( ofrom )!=d_extf_exp.end() );
-            exp.insert( exp.end(), d_extf_exp[ofrom].begin(), d_extf_exp[ofrom].end() );
-            sendInfer( mkAnd( exp ), conc, "CTN_Trans" );
+            Node conc = NodeManager::currentNM()->mkNode( kind::STRING_STRCTN, pol ? nr[1] : onr, pol ? onr : nr[1] );
+            conc = Rewriter::rewrite( conc );
+            bool do_infer = false;
+            if( conc.getKind()==kind::EQUAL ){
+              do_infer = !areDisequal( conc[0], conc[1] );
+            }else{
+              do_infer = !areEqual( conc, d_false );
+            }
+            if( do_infer ){
+              conc = conc.negate();
+              std::vector< Node > exp;
+              exp.insert( exp.end(), d_extf_exp[n].begin(), d_extf_exp[n].end() );
+              Node ofrom = d_extf_info[nr[0]].d_ctn_from[opol][i];
+              Assert( d_extf_exp.find( ofrom )!=d_extf_exp.end() );
+              exp.insert( exp.end(), d_extf_exp[ofrom].begin(), d_extf_exp[ofrom].end() );
+              sendInfer( mkAnd( exp ), conc, "CTN_Trans" );
+            }
           }
         }else{
           Trace("strings-extf-debug") << "  redundant." << std::endl;
