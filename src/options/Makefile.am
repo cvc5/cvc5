@@ -131,35 +131,24 @@ EXTRA_DIST = \
 	../smt/smt_options.cpp \
 	options.cpp \
 	options_holder.h \
-	$(OPTIONS_FILES_SRCS)
+	$(OPTIONS_FILES_SRCS) \
+	mktagheaders \
+	mktags
 
-if CVC4_DEBUG
-# listing Debug_tags too ensures that make doesn't auto-remove it
+
+# listing {Debug,Trace}_tags too ensures that make doesn't auto-remove it
 # after building (if it does, we don't get the "cached" effect with
 # the .tmp files below, and we have to re-compile and re-link each
 # time, even when there are no changes).
 BUILT_SOURCES += \
 	Debug_tags.h \
-	Debug_tags
-endif
-if CVC4_TRACING
-# listing Trace_tags too ensures that make doesn't auto-remove it
-# after building (if it does, we don't get the "cached" effect with
-# the .tmp files below, and we have to re-compile and re-link each
-# time, even when there are no changes).
-BUILT_SOURCES += \
+	Debug_tags \
 	Trace_tags.h \
 	Trace_tags
-endif
-%_tags.h: %_tags
-	$(AM_V_GEN)( \
-	  echo 'static char const* const $^[] = {'; \
-	  for tag in `cat $^`; do \
-	    echo "\"$$tag\","; \
-	  done; \
-	  echo 'NULL'; \
-	  echo '};' \
-	) >"$@"
+
+%_tags.h: %_tags mktagheaders
+	$(AM_V_at)chmod +x @srcdir@/mktagheaders
+	$(AM_V_GEN)( @srcdir@/mktagheaders "$<" ) >"$@"
 
 # This .tmp business is to keep from having to re-compile options.cpp
 # (and then re-link the libraries) if nothing has changed.
@@ -171,11 +160,9 @@ endif
 # The "sed" invocation below is particularly obnoxious, but it works around
 # inconsistencies in REs on different platforms, using only a basic regular
 # expression (no |, no \<, ...).
-Debug_tags.tmp Trace_tags.tmp:
-	$(AM_V_GEN)\
-	grep -h '\<$(@:_tags.tmp=)\(\.isOn\)* *( *\".*\" *)' \
-		`find @srcdir@/../ -name "*.cpp" -o -name "*.h" -o -name "*.cc" -o -name "*.g"` | \
-	sed 's/\/\/.*//;s/^$(@:_tags.tmp=)\(\.isOn\)* *( *\"\([^"]*\)\".*/\2/;s/.*[^a-zA-Z0-9_]$(@:_tags.tmp=)\(\.isOn\)* *( *\"\([^"]*\)\".*/\2/' | LC_ALL=C sort | uniq >"$@"
+Debug_tags.tmp Trace_tags.tmp: mktags
+	$(AM_V_at)chmod +x @srcdir@/mktags
+	$(AM_V_GEN)(@srcdir@/mktags '$(@:_tags.tmp=)' '@srcdir@/../') >"$@"
 
 MOSTLYCLEANFILES = \
 	Debug_tags \
