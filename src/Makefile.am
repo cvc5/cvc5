@@ -20,7 +20,8 @@ AM_CPPFLAGS = \
 AM_CXXFLAGS = -Wall -Wno-unknown-pragmas -Wno-parentheses $(FLAG_VISIBILITY_HIDDEN)
 
 SUBDIRS = lib options expr util prop/minisat prop/bvminisat . parser compat bindings main
-THEORIES = builtin booleans uf arith bv fp arrays datatypes sets strings quantifiers idl
+# The THEORIES list has been moved to Makefile.theories
+include @top_srcdir@/src/Makefile.theories
 
 lib_LTLIBRARIES = libcvc4.la
 
@@ -232,7 +233,7 @@ libcvc4_la_SOURCES = \
 	theory/builtin/theory_builtin.cpp \
 	theory/datatypes/theory_datatypes_type_rules.h \
 	theory/datatypes/type_enumerator.h \
-        theory/datatypes/type_enumerator.cpp \
+	theory/datatypes/type_enumerator.cpp \
 	theory/datatypes/theory_datatypes.h \
 	theory/datatypes/datatypes_rewriter.h \
 	theory/datatypes/theory_datatypes.cpp \
@@ -465,7 +466,8 @@ endif
 BUILT_SOURCES = \
 	theory/rewriter_tables.h \
 	theory/theory_traits.h \
-	theory/type_enumerator.cpp
+	theory/type_enumerator.cpp \
+	$(top_builddir)/src/.subdirs
 
 CLEANFILES = \
 	svn_versioninfo.cpp \
@@ -476,7 +478,8 @@ CLEANFILES = \
 	gitinfo \
 	theory/rewriter_tables.h \
 	theory/theory_traits.h \
-	theory/type_enumerator.cpp
+	theory/type_enumerator.cpp \
+	$(top_builddir)/src/.subdirs
 
 EXTRA_DIST = \
 	include/cvc4_private_library.h \
@@ -486,6 +489,7 @@ EXTRA_DIST = \
 	include/cvc4_public.h \
 	include/cvc4.h \
 	cvc4.i \
+	Makefile.theories \
 	smt/smt_options_template.cpp \
 	smt/modal_exception.i \
 	smt/logic_exception.i \
@@ -496,7 +500,6 @@ EXTRA_DIST = \
 	theory/type_enumerator_template.cpp \
 	theory/mktheorytraits \
 	theory/mkrewriter \
-	theory/Makefile.subdirs \
 	theory/uf/kinds \
 	theory/bv/kinds \
 	theory/idl/kinds \
@@ -633,28 +636,41 @@ uninstall-local:
 # fails.
 %.Plo:; $(MKDIR_P) "$(dir $@)" && : > "$@"
 
-include @top_srcdir@/src/theory/Makefile.subdirs
+#include @top_srcdir@/src/theory/Makefile.subdirs
+$(top_builddir)/src/.subdirs: $(top_srcdir)/src/Makefile.theories  @top_srcdir@/src/mksubdirs
+	$(AM_V_at)test -d $(top_builddir)/src || mkdir $(top_builddir)/src
+	$(AM_V_at)chmod +x @top_srcdir@/src/mksubdirs
+	$(AM_V_at)( @top_srcdir@/src/mksubdirs "$(top_srcdir)" ) > $(top_builddir)/src/.subdirs.tmp
+	@if ! diff -q $(top_builddir)/src/.subdirs $(top_builddir)/src/.subdirs.tmp &>/dev/null; then \
+		echo "  GEN   " $@; \
+		$(am__mv) $(top_builddir)/src/.subdirs.tmp $(top_builddir)/src/.subdirs; \
+	fi
 
-theory/rewriter_tables.h: theory/rewriter_tables_template.h theory/mkrewriter @top_builddir@/src/theory/.subdirs @top_srcdir@/src/theory/*/kinds
+#	$(AM_V_at)(\
+#	  grep '^THEORIES = ' $(top_srcdir)/src/Makefile.theories | \
+#	  cut -d' ' -f3- | tr ' ' "\n" | \
+#	  xargs -I__D__ echo $(top_srcdir)/src/theory/__D__/kinds ) >$(top_builddir)/src/.subdirs.tmp
+
+theory/rewriter_tables.h: theory/rewriter_tables_template.h theory/mkrewriter @top_builddir@/src/.subdirs @top_srcdir@/src/theory/*/kinds
 	$(AM_V_at)chmod +x @srcdir@/theory/mkrewriter
 	$(AM_V_at)$(am__mv) $@ $@~ 2>/dev/null || true
 	$(AM_V_GEN)(@srcdir@/theory/mkrewriter \
 		$< \
-		`cat @top_builddir@/src/theory/.subdirs` \
+		`cat @top_builddir@/src/.subdirs` \
 	> $@) || (rm -f $@ && exit 1)
 
-theory/theory_traits.h: theory/theory_traits_template.h theory/mktheorytraits @top_builddir@/src/theory/.subdirs @top_srcdir@/src/theory/*/kinds
+theory/theory_traits.h: theory/theory_traits_template.h theory/mktheorytraits @top_builddir@/src/.subdirs @top_srcdir@/src/theory/*/kinds
 	$(AM_V_at)chmod +x @srcdir@/theory/mktheorytraits
 	$(AM_V_at)$(am__mv) $@ $@~ 2>/dev/null || true
 	$(AM_V_GEN)(@srcdir@/theory/mktheorytraits \
 		$< \
-		`cat @top_builddir@/src/theory/.subdirs` \
+		`cat @top_builddir@/src/.subdirs` \
 	> $@) || (rm -f $@ && exit 1)
 
-theory/type_enumerator.cpp: theory/type_enumerator_template.cpp theory/mktheorytraits @top_builddir@/src/theory/.subdirs @top_srcdir@/src/theory/*/kinds
+theory/type_enumerator.cpp: theory/type_enumerator_template.cpp theory/mktheorytraits @top_builddir@/src/.subdirs @top_srcdir@/src/theory/*/kinds
 	$(AM_V_at)chmod +x @srcdir@/theory/mktheorytraits
 	$(AM_V_at)$(am__mv) $@ $@~ 2>/dev/null || true
 	$(AM_V_GEN)(@srcdir@/theory/mktheorytraits \
 		$< \
-		`cat @top_builddir@/src/theory/.subdirs` \
+		`cat @top_builddir@/src/.subdirs` \
 	> $@) || (rm -f $@ && exit 1)

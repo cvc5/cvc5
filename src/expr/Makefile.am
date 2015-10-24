@@ -80,7 +80,7 @@ BUILT_SOURCES = \
 	expr_manager.h \
 	expr_manager.cpp \
 	type_checker.cpp \
-	$(top_builddir)/src/theory/.subdirs
+	$(top_builddir)/src/expr/.subdirs
 
 CLEANFILES = \
 	kind.h \
@@ -91,72 +91,79 @@ CLEANFILES = \
 	expr_manager.cpp \
 	type_checker.cpp \
 	type_properties.h \
-	$(top_builddir)/src/theory/.subdirs
+	$(top_builddir)/src/expr/.subdirs
 
-include @top_srcdir@/src/theory/Makefile.subdirs
+$(top_builddir)/src/expr/.subdirs: $(top_srcdir)/src/Makefile.theories  @top_srcdir@/src/mksubdirs
+	$(AM_V_at)test -d $(top_builddir)/src/expr || mkdir $(top_builddir)/src/expr
+	$(AM_V_at)chmod +x @top_srcdir@/src/mksubdirs
+	$(AM_V_at)( @top_srcdir@/src/mksubdirs "$(top_srcdir)" ) > $(top_builddir)/src/expr/.subdirs.tmp
+	@if ! diff -q $(top_builddir)/src/expr/.subdirs $(top_builddir)/src/expr/.subdirs.tmp &>/dev/null; then \
+		echo "  GEN   " $@; \
+		$(am__mv) $(top_builddir)/src/expr/.subdirs.tmp $(top_builddir)/src/expr/.subdirs; \
+	fi
 
-kind.h: kind_template.h mkkind @top_builddir@/src/theory/.subdirs @top_srcdir@/src/theory/*/kinds
+kind.h: kind_template.h mkkind @top_builddir@/src/expr/.subdirs @top_srcdir@/src/theory/*/kinds
 	$(AM_V_at)chmod +x @srcdir@/mkkind
 	$(AM_V_at)$(am__mv) $@ $@~ 2>/dev/null || true
 	$(AM_V_GEN)(@srcdir@/mkkind \
 		$< \
-		`cat @top_builddir@/src/theory/.subdirs` \
+		`cat @top_builddir@/src/expr/.subdirs` \
 	> $@) || (rm -f $@ && exit 1)
 
-metakind.h: metakind_template.h mkmetakind @top_builddir@/src/theory/.subdirs @top_srcdir@/src/theory/*/kinds
+metakind.h: metakind_template.h mkmetakind @top_builddir@/src/expr/.subdirs @top_srcdir@/src/theory/*/kinds
 	$(AM_V_at)chmod +x @srcdir@/mkmetakind
 	$(AM_V_at)$(am__mv) $@ $@~ 2>/dev/null || true
 	$(AM_V_GEN)(@srcdir@/mkmetakind \
 		$< \
-		`cat @top_builddir@/src/theory/.subdirs` \
+		`cat @top_builddir@/src/expr/.subdirs` \
 	> $@) || (rm -f $@ && exit 1)
 
-type_properties.h: type_properties_template.h mkkind @top_builddir@/src/theory/.subdirs @top_srcdir@/src/theory/*/kinds
+type_properties.h: type_properties_template.h mkkind @top_builddir@/src/expr/.subdirs @top_srcdir@/src/theory/*/kinds
 	$(AM_V_at)chmod +x @srcdir@/mkkind
 	$(AM_V_at)$(am__mv) $@ $@~ 2>/dev/null || true
 	$(AM_V_GEN)(@srcdir@/mkkind \
 		$< \
-		`cat @top_builddir@/src/theory/.subdirs` \
+		`cat @top_builddir@/src/expr/.subdirs` \
 	> $@) || (rm -f $@ && exit 1)
 
-expr.h: expr_template.h mkexpr @top_builddir@/src/theory/.subdirs @top_srcdir@/src/theory/*/kinds
+expr.h: expr_template.h mkexpr @top_builddir@/src/expr/.subdirs @top_srcdir@/src/theory/*/kinds
 	$(AM_V_at)chmod +x @srcdir@/mkexpr
 	$(AM_V_at)$(am__mv) $@ $@~ 2>/dev/null || true
 	$(AM_V_GEN)(@srcdir@/mkexpr \
 		$< \
-		`cat @top_builddir@/src/theory/.subdirs` \
+		`cat @top_builddir@/src/expr/.subdirs` \
 	> $@) || (rm -f $@ && exit 1)
 
-expr.cpp: expr_template.cpp mkexpr @top_builddir@/src/theory/.subdirs @top_srcdir@/src/theory/*/kinds
+expr.cpp: expr_template.cpp mkexpr @top_builddir@/src/expr/.subdirs @top_srcdir@/src/theory/*/kinds
 	$(AM_V_at)chmod +x @srcdir@/mkexpr
 	$(AM_V_at)$(am__mv) $@ $@~ 2>/dev/null || true
 	$(AM_V_GEN)(@srcdir@/mkexpr \
 		$< \
-		`cat @top_builddir@/src/theory/.subdirs` \
+		`cat @top_builddir@/src/expr/.subdirs` \
 	> $@) || (rm -f $@ && exit 1)
 
-expr_manager.h: expr_manager_template.h mkexpr @top_builddir@/src/theory/.subdirs @top_srcdir@/src/theory/*/kinds
+expr_manager.h: expr_manager_template.h mkexpr @top_builddir@/src/expr/.subdirs @top_srcdir@/src/theory/*/kinds
 	$(AM_V_at)chmod +x @srcdir@/mkexpr
 	$(AM_V_at)$(am__mv) $@ $@~ 2>/dev/null || true
 	$(AM_V_GEN)(@srcdir@/mkexpr \
 		$< \
-		`cat @top_builddir@/src/theory/.subdirs` \
+		`cat @top_builddir@/src/expr/.subdirs` \
 	> $@) || (rm -f $@ && exit 1)
 
-expr_manager.cpp: expr_manager_template.cpp mkexpr @top_builddir@/src/theory/.subdirs @top_srcdir@/src/theory/*/kinds
+expr_manager.cpp: expr_manager_template.cpp mkexpr @top_builddir@/src/expr/.subdirs @top_srcdir@/src/theory/*/kinds
 	$(AM_V_at)chmod +x @srcdir@/mkexpr
 	$(AM_V_at)$(am__mv) $@ $@~ 2>/dev/null || true
 	$(AM_V_GEN)(@srcdir@/mkexpr \
 		$< \
-		`cat @top_builddir@/src/theory/.subdirs` \
+		`cat @top_builddir@/src/expr/.subdirs` \
 	> $@) || (rm -f $@ && exit 1)
 
-type_checker.cpp: type_checker_template.cpp mkexpr @top_builddir@/src/theory/.subdirs @top_srcdir@/src/theory/*/kinds
+type_checker.cpp: type_checker_template.cpp mkexpr @top_builddir@/src/expr/.subdirs @top_srcdir@/src/theory/*/kinds
 	$(AM_V_at)chmod +x @srcdir@/mkexpr
 	$(AM_V_at)$(am__mv) $@ $@~ 2>/dev/null || true
 	$(AM_V_GEN)(@srcdir@/mkexpr \
 		$< \
-		`cat @top_builddir@/src/theory/.subdirs` \
+		`cat @top_builddir@/src/expr/.subdirs` \
 	> $@) || (rm -f $@ && exit 1)
 
 .PHONY: builts
