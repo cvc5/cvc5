@@ -20,6 +20,7 @@
 #define __CVC4__SMT__OPTIONS_HANDLERS_H
 
 #include "cvc4autoconfig.h"
+#include "util/configuration_private.h"
 #include "util/dump.h"
 #include "util/resource_manager.h"
 #include "smt/modal_exception.h"
@@ -307,13 +308,13 @@ inline void setProduceAssertions(std::string option, bool value, SmtEngine* smt)
 
 // ensure we are a proof-enabled build of CVC4
 inline void proofEnabledBuild(std::string option, bool value, SmtEngine* smt) throw(OptionException) {
-#ifndef CVC4_PROOF
+#if !(IS_PROOFS_BUILD)
   if(value) {
     std::stringstream ss;
     ss << "option `" << option << "' requires a proofs-enabled build of CVC4; this binary was not built with proof support";
     throw OptionException(ss.str());
   }
-#endif /* CVC4_PROOF */
+#endif /* IS_PROOFS_BUILD */
 }
 
 // This macro is used for setting :regular-output-channel and :diagnostic-output-channel

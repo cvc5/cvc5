@@ -16,6 +16,7 @@
  **/
 
 #include "smt/smt_engine.h"
+#include "util/configuration_private.h"
 #include "util/statistics_registry.h"
 #include "check.h"
 
@@ -49,7 +50,7 @@ public:
 
 void SmtEngine::checkProof() {
 
-#ifdef CVC4_PROOF
+#if IS_PROOFS_BUILD
 
   Chat() << "generating proof..." << endl;
 
@@ -88,10 +89,10 @@ void SmtEngine::checkProof() {
   check_file(pfFile, args());
   close(fd);
 
-#else /* CVC4_PROOF */
+#else /* IS_PROOFS_BUILD */
 
   Unreachable("This version of CVC4 was built without proof support; cannot check proofs.");
 
-#endif /* CVC4_PROOF */
+#endif /* IS_PROOFS_BUILD */
 
 }

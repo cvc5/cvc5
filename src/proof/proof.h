@@ -21,6 +21,30 @@
 
 #include "smt/options.h"
 
+
+/* Do NOT use #ifdef CVC4_PROOF to check if proofs are enabled.
+ * We cannot assume users will use -DCVC4_PROOFS if they have a proofs build.
+ * The preferred way of checking that proofs are enabled is to use:
+ * #if IS_PROOFS_BUILD
+ * ...
+ * #endif
+ *
+ * The macro IS_PROOFS_BUILD is defined in util/configuration_private.h
+ *
+ * This has the effect of forcing that location to have included this header
+ * *before* performing this test. This includes C preprocessing expansion.
+ * This forces the inclusion of "cvc4_private.h". This is intentional!
+ *
+ * See bug 688 for more details:
+ * http://cvc4.cs.nyu.edu/bugs/show_bug.cgi?id=688
+ *
+ * If you want to check CVC4_PROOF, you should have a very good reason
+ * and should list the exceptions here:
+ * - Makefile.am
+ * - proof/proofs.h
+ * - util/configuration_private.h
+ */
+
 #ifdef CVC4_PROOF
 #  define PROOF(x) if(options::proof() || options::unsatCores()) { x; }
 #  define NULLPROOF(x) (options::proof() || options::unsatCores()) ? x : NULL
@@ -30,5 +54,6 @@
 #  define NULLPROOF(x) NULL
 #  define PROOF_ON() false
 #endif /* CVC4_PROOF */
+
 
 #endif /* __CVC4__PROOF__PROOF_H */

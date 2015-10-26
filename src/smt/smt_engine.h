@@ -196,9 +196,8 @@ class CVC4_PUBLIC SmtEngine {
    *A vector of command definitions to be imported in the new
    *SmtEngine when checking unsat-cores.
    */
-#ifdef CVC4_PROOF
   std::vector<Command*> d_defineCommands;
-#endif
+
   /**
    * The logic we're in.
    */

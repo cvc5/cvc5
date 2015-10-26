@@ -57,6 +57,7 @@
 #include "util/boolean_simplification.h"
 #include "util/node_visitor.h"
 #include "util/configuration.h"
+#include "util/configuration_private.h"
 #include "util/exception.h"
 #include "util/nary_builder.h"
 #include "smt/command_list.h"
@@ -701,9 +702,7 @@ SmtEngine::SmtEngine(ExprManager* em) throw() :
   d_modelGlobalCommands(),
   d_modelCommands(NULL),
   d_dumpCommands(),
-#ifdef CVC4_PROOF
   d_defineCommands(),
-#endif
   d_logic(),
   d_originalOptions(em->getOptions()),
   d_pendingPops(0),
@@ -4377,7 +4376,7 @@ UnsatCore SmtEngine::getUnsatCore() throw(ModalException, UnsafeInterruptExcepti
   if(Dump.isOn("benchmark")) {
     Dump("benchmark") << GetUnsatCoreCommand();
   }
-#ifdef CVC4_PROOF
+#if IS_PROOFS_BUILD
   if(!options::unsatCores()) {
     throw ModalException("Cannot get an unsat core when produce-unsat-cores option is off.");
   }
@@ -4389,9 +4388,9 @@ UnsatCore SmtEngine::getUnsatCore() throw(ModalException, UnsafeInterruptExcepti
 
   d_proofManager->getProof(this);// just to trigger core creation
   return UnsatCore(this, d_proofManager->begin_unsat_core(), d_proofManager->end_unsat_core());
-#else /* CVC4_PROOF */
+#else /* IS_PROOFS_BUILD */
   throw ModalException("This build of CVC4 doesn't have proof support (required for unsat cores).");
-#endif /* CVC4_PROOF */
+#endif /* IS_PROOFS_BUILD */
 }
 
 Proof* SmtEngine::getProof() throw(ModalException, UnsafeInterruptException) {
@@ -4401,7 +4400,7 @@ Proof* SmtEngine::getProof() throw(ModalException, UnsafeInterruptException) {
   if(Dump.isOn("benchmark")) {
     Dump("benchmark") << GetProofCommand();
   }
-#ifdef CVC4_PROOF
+#if IS_PROOFS_BUILD
   if(!options::proof()) {
     throw ModalException("Cannot get a proof when produce-proofs option is off.");
   }
@@ -4412,9 +4411,9 @@ Proof* SmtEngine::getProof() throw(ModalException, UnsafeInterruptException) {
   }
 
   return ProofManager::getProof(this);
-#else /* CVC4_PROOF */
+#else /* IS_PROOFS_BUILD */
   throw ModalException("This build of CVC4 doesn't have proof support.");
-#endif /* CVC4_PROOF */
+#endif /* IS_PROOFS_BUILD */
 }
 
 void SmtEngine::printInstantiations( std::ostream& out ) {

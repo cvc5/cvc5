@@ -615,10 +615,10 @@ bool Constraint::wellFormedFarkasProof() const {
   ConstraintCP antecedent = d_database->d_antecedents[p];
   if(antecedent  == NullConstraint) { return false; }
 
-#ifdef CVC4_PROOF
+#if IS_PROOFS_BUILD
   if(!PROOF_ON()){ return cr.d_farkasCoefficients == RationalVectorCPSentinel; }
   Assert(PROOF_ON());
-  
+
   if(cr.d_farkasCoefficients == RationalVectorCPSentinel){ return false; }
   if(cr.d_farkasCoefficients->size() < 2){ return false; }
 
@@ -717,9 +717,9 @@ bool Constraint::wellFormedFarkasProof() const {
     (lhs.isNull() || Constant::isMember(lhs) && Constant(lhs).isZero() ) &&
     rhs.sgn() < 0;
 
-#else
+#else  /* IS_PROOFS_BUILD */
   return true;
-#endif
+#endif /* IS_PROOFS_BUILD */
 }
 
 ConstraintP Constraint::makeNegation(ArithVar v, ConstraintType t, const DeltaRational& r){
