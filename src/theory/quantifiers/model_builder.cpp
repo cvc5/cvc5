@@ -500,9 +500,11 @@ void QModelBuilderDefault::analyzeQuantifier( FirstOrderModel* fm, Node f ){
   //for each asserted quantifier f,
   // - determine selection literals
   // - check which function/predicates have good and bad definitions for satisfying f
+  if( d_phase_reqs.find( f )==d_phase_reqs.end() ){
+    d_phase_reqs[f].initialize( d_qe->getTermDatabase()->getInstConstantBody( f ), true );
+  }
   int selectLitScore = -1;
-  QuantPhaseReq* qpr = d_qe->getPhaseRequirements( f );
-  for( std::map< Node, bool >::iterator it = qpr->d_phase_reqs.begin(); it != qpr->d_phase_reqs.end(); ++it ){
+  for( std::map< Node, bool >::iterator it = d_phase_reqs[f].d_phase_reqs.begin(); it != d_phase_reqs[f].d_phase_reqs.end(); ++it ){
     //the literal n is phase-required for quantifier f
     Node n = it->first;
     Node gn = d_qe->getTermDatabase()->getModelBasis( f, n );

@@ -550,10 +550,12 @@ Node QuantifiersRewriter::computeProcessTerms( Node body, bool hasPol, bool pol,
             break;
           }
         }else{
-          for( unsigned j=0; j<new_cond.size(); j++ ){
-            currCond.erase( new_cond[j] );
+          if( !new_cond.empty() ){
+            for( unsigned j=0; j<new_cond.size(); j++ ){
+              currCond.erase( new_cond[j] );
+            }
+            cache.clear();
           }
-          cache.clear();
         }
       }
       children.push_back( nn );

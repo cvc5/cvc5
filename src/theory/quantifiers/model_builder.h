@@ -184,6 +184,8 @@ protected:
   int doInstGen( FirstOrderModel* fm, Node f );
   //theory-specific build models
   void constructModelUf( FirstOrderModel* fm, Node op );
+protected:
+  std::map< Node, QuantPhaseReq > d_phase_reqs;
 public:
   QModelBuilderDefault( context::Context* c, QuantifiersEngine* qe ) : QModelBuilderIG( c, qe ){}
   ~QModelBuilderDefault() throw() {}

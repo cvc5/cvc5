@@ -250,6 +250,10 @@ void QuantRelevance::setRelevance( Node s, int r ){
 
 
 QuantPhaseReq::QuantPhaseReq( Node n, bool computeEq ){
+  initialize( n, computeEq );
+}
+
+void QuantPhaseReq::initialize( Node n, bool computeEq ){
   std::map< Node, int > phaseReqs2;
   computePhaseReqs( n, false, phaseReqs2 );
   for( std::map< Node, int >::iterator it = phaseReqs2.begin(); it != phaseReqs2.end(); ++it ){

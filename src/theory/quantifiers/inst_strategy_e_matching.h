@@ -118,7 +118,6 @@ public:
   void reset_round( Theory::Effort e );
   void check( Theory::Effort e, unsigned quant_e );
   void registerQuantifier( Node q );
-  void assertNode( Node n );
   /** identify */
   std::string identify() const { return std::string("FullSaturation"); }
 };/* class FullSaturation */

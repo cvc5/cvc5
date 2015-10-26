@@ -95,7 +95,7 @@ int InstStrategyUserPatterns::process( Node f, Theory::Effort effort, int e ){
           InstMatch baseMatch( f );
           int numInst = d_user_gen[f][i]->addInstantiations( baseMatch );
           Trace("process-trigger") << "  Done, numInst = " << numInst << "." << std::endl;
-          d_quantEngine->getInstantiationEngine()->d_statistics.d_instantiations_user_patterns += numInst;
+          d_quantEngine->d_statistics.d_instantiations_user_patterns += numInst;
           if( d_user_gen[f][i]->isMultiTrigger() ){
             d_quantEngine->d_statistics.d_multi_trigger_instantiations += numInst;
           }
@@ -212,7 +212,7 @@ int InstStrategyAutoGenTriggers::process( Node f, Theory::Effort effort, int e )
               int numInst = tr->addInstantiations( baseMatch );
               hasInst = numInst>0 || hasInst;
               Trace("process-trigger") << "  Done, numInst = " << numInst << "." << std::endl;
-              d_quantEngine->getInstantiationEngine()->d_statistics.d_instantiations_auto_gen += numInst;
+              d_quantEngine->d_statistics.d_instantiations_auto_gen += numInst;
               if( r==1 ){
                 d_quantEngine->d_statistics.d_multi_trigger_instantiations += numInst;
               }
@@ -583,7 +583,7 @@ bool FullSaturation::process( Node f, Theory::Effort effort ){
             }
             if( d_quantEngine->addInstantiation( f, terms, false ) ){
               Trace("inst-alg-rd") << "Success!" << std::endl;
-              ++(d_quantEngine->getInstantiationEngine()->d_statistics.d_instantiations_guess);
+              ++(d_quantEngine->d_statistics.d_instantiations_guess);
               return true;
             }else{
               index--;
@@ -600,7 +600,7 @@ bool FullSaturation::process( Node f, Theory::Effort effort ){
         d_guessed[f] = true;
         InstMatch m( f );
         if( d_quantEngine->addInstantiation( f, m ) ){
-          ++(d_quantEngine->getInstantiationEngine()->d_statistics.d_instantiations_guess);
+          ++(d_quantEngine->d_statistics.d_instantiations_guess);
           return true;
         }
       }
@@ -614,6 +614,3 @@ void FullSaturation::registerQuantifier( Node q ) {
 
 }
 
-void FullSaturation::assertNode( Node n ) {
-
-}

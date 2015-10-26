@@ -47,12 +47,6 @@ TheoryUF::TheoryUF(context::Context* c, context::UserContext* u, OutputChannel& 
 }
 
 TheoryUF::~TheoryUF() {
-  // destruct all ppRewrite() callbacks
-  for(RegisterPpRewrites::iterator i = d_registeredPpRewrites.begin();
-      i != d_registeredPpRewrites.end();
-      ++i) {
-    delete i->second;
-  }
   delete d_thss;
 }
 
@@ -544,24 +538,3 @@ void TheoryUF::eqNotifyDisequal(TNode t1, TNode t2, TNode reason) {
     d_thss->assertDisequal(t1, t2, reason);
   }
 }
-
-Node TheoryUF::ppRewrite(TNode node) {
-
-  if (node.getKind() != kind::APPLY_UF) {
-    return node;
-  }
-
-  // perform the callbacks requested by TheoryUF::registerPpRewrite()
-  RegisterPpRewrites::iterator c = d_registeredPpRewrites.find(node.getOperator());
-  if (c == d_registeredPpRewrites.end()) {
-    return node;
-  } else {
-    Node res = c->second->ppRewrite(node);
-    if (res != node) {
-      return ppRewrite(res);
-    } else {
-      return res;
-    }
-  }
-}
-

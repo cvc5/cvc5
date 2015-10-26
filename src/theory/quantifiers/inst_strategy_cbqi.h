@@ -33,11 +33,12 @@ namespace arith {
 
 namespace quantifiers {
 
-class InstStrategyCbqi : public InstStrategy {
+class InstStrategyCbqi : public QuantifiersModule {
+  typedef context::CDHashSet<Node, NodeHashFunction> NodeSet;
 protected:
   bool d_cbqi_set_quant_inactive;
   /** whether we have added cbqi lemma */
-  std::map< Node, bool > d_added_cbqi_lemma;
+  NodeSet d_added_cbqi_lemma;
   /** whether to do cbqi for this quantified formula */
   std::map< Node, bool > d_do_cbqi;  
   /** register ce lemma */
@@ -47,17 +48,24 @@ protected:
   /** helper functions */
   bool hasNonCbqiVariable( Node q );
   bool hasNonCbqiOperator( Node n, std::map< Node, bool >& visited );
+  /** process functions */
+  virtual void processResetInstantiationRound( Theory::Effort effort ) = 0;
+  virtual void process( Node q, Theory::Effort effort, int e ) = 0;
 public:
   InstStrategyCbqi( QuantifiersEngine * qe );
   ~InstStrategyCbqi() throw() {}
-  /** process functions */
-  void processResetInstantiationRound( Theory::Effort effort );
-  /** get next decision request */
-  Node getNextDecisionRequest();
-  //set quant inactive
-  bool setQuantifierInactive() { return d_cbqi_set_quant_inactive; }
   /** whether to do CBQI for quantifier q */
   bool doCbqi( Node q );
+  /** process functions */
+  bool needsCheck( Theory::Effort e );
+  unsigned needsModel( Theory::Effort e );
+  void reset_round( Theory::Effort e );
+  void check( Theory::Effort e, unsigned quant_e );
+  bool checkComplete();
+  void preRegisterQuantifier( Node q );
+  void registerQuantifier( Node q );
+  /** get next decision request */
+  Node getNextDecisionRequest();
 };
 
 
@@ -95,7 +103,7 @@ private:
   Node d_negOne;
   /** process functions */
   void processResetInstantiationRound( Theory::Effort effort );
-  int process( Node f, Theory::Effort effort, int e );
+  void process( Node f, Theory::Effort effort, int e );
 public:
   InstStrategySimplex( arith::TheoryArith* th, QuantifiersEngine* ie );
   ~InstStrategySimplex() throw() {}
@@ -126,7 +134,7 @@ protected:
   bool d_check_vts_lemma_lc;
   /** process functions */
   void processResetInstantiationRound( Theory::Effort effort );
-  int process( Node f, Theory::Effort effort, int e );
+  void process( Node f, Theory::Effort effort, int e );
   /** register ce lemma */
   void registerCounterexampleLemma( Node q, Node lem );
 public:

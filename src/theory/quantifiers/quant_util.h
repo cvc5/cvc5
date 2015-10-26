@@ -77,8 +77,10 @@ private:
   /** helper functions compute phase requirements */
   void computePhaseReqs( Node n, bool polarity, std::map< Node, int >& phaseReqs );
 public:
+  QuantPhaseReq(){}
   QuantPhaseReq( Node n, bool computeEq = false );
   ~QuantPhaseReq(){}
+  void initialize( Node n, bool computeEq );
   /** is phase required */
   bool isPhaseReq( Node lit ) { return d_phase_reqs.find( lit )!=d_phase_reqs.end(); }
   /** get phase requirement */

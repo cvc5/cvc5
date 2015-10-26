@@ -27,9 +27,6 @@ namespace quantifiers {
 class InstStrategyUserPatterns;
 class InstStrategyAutoGenTriggers;
 class InstStrategyFreeVariable;
-class InstStrategyCbqi;
-class InstStrategySimplex;
-class InstStrategyCegqi;
 
 /** instantiation strategy class */
 class InstStrategy {
@@ -53,9 +50,7 @@ public:
   /** identify */
   virtual std::string identify() const { return std::string("Unknown"); }
   /** register quantifier */
-  virtual void registerQuantifier( Node q ) {}
-  /** get next decision request */
-  virtual Node getNextDecisionRequest() { return Node::null(); }
+  //virtual void registerQuantifier( Node q ) {}
 };/* class InstStrategy */
 
 class InstantiationEngine : public QuantifiersModule
@@ -63,17 +58,10 @@ class InstantiationEngine : public QuantifiersModule
 private:
   /** instantiation strategies */
   std::vector< InstStrategy* > d_instStrategies;
-  /** instantiation strategies active */
-  //std::map< InstStrategy*, bool > d_instStrategyActive;
   /** user-pattern instantiation strategy */
   InstStrategyUserPatterns* d_isup;
   /** auto gen triggers; only kept for destructor cleanup */
   InstStrategyAutoGenTriggers* d_i_ag;
-  InstStrategyCbqi * d_i_cbqi;
-  /** simplex (cbqi) */
-  InstStrategySimplex * d_i_splx;
-  /** generic cegqi */
-  InstStrategyCegqi * d_i_cegqi;
 private:
   typedef context::CDHashMap< Node, bool, NodeHashFunction > BoolMap;
   /** current processing quantified formulas */
@@ -90,34 +78,15 @@ public:
   void finishInit();
   void presolve();
   bool needsCheck( Theory::Effort e );
-  unsigned needsModel( Theory::Effort e );
   void reset_round( Theory::Effort e );
   void check( Theory::Effort e, unsigned quant_e );
   bool checkComplete();
-  void preRegisterQuantifier( Node q );
   void registerQuantifier( Node q );
-  void assertNode( Node f );
   Node explain(TNode n){ return Node::null(); }
-  Node getNextDecisionRequest();
   /** add user pattern */
   void addUserPattern( Node f, Node pat );
   void addUserNoPattern( Node f, Node pat );
 public:
-  /** statistics class */
-  class Statistics {
-  public:
-    IntStat d_instantiations_user_patterns;
-    IntStat d_instantiations_auto_gen;
-    IntStat d_instantiations_guess;
-    IntStat d_instantiations_cbqi_arith;
-    IntStat d_instantiations_cbqi_arith_minus;
-    IntStat d_instantiations_cbqi_datatypes;
-    IntStat d_instantiations_lte;
-    IntStat d_instantiation_rounds;
-    Statistics();
-    ~Statistics();
-  };
-  Statistics d_statistics;
   /** Identify this module */
   std::string identify() const { return "InstEngine"; }
 };/* class InstantiationEngine */

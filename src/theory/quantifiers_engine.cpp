@@ -40,6 +40,7 @@
 #include "theory/quantifiers/fun_def_engine.h"
 #include "theory/quantifiers/quant_equality_engine.h"
 #include "theory/quantifiers/inst_strategy_e_matching.h"
+#include "theory/quantifiers/inst_strategy_cbqi.h"
 
 using namespace std;
 using namespace CVC4;
@@ -128,15 +129,18 @@ d_presolve_cache_wic(u){
     d_sg_gen = NULL;
   }
   //maintain invariant : either InstantiationEngine or ModelEngine must be in d_modules
-  if( !options::finiteModelFind() || options::fmfInstEngine() || options::cbqi() ){
+  if( !options::finiteModelFind() || options::fmfInstEngine() ){
     d_inst_engine = new quantifiers::InstantiationEngine( this );
     d_modules.push_back(  d_inst_engine );
-    if( options::cbqi() && options::cbqiModel() ){
-      needsBuilder = true;
-    }
   }else{
     d_inst_engine = NULL;
   }
+  //counterexample-based instantiation (initialized during finishInit)
+  d_i_cbqi = NULL;
+  if( options::cbqi() && options::cbqiModel() ){
+    needsBuilder = true;
+  }
+  //finite model finding
   if( options::finiteModelFind() ){
     if( options::fmfBoundInt() ){
       d_bint = new quantifiers::BoundedIntegers( c, this );
@@ -243,9 +247,7 @@ QuantifiersEngine::~QuantifiersEngine(){
   delete d_fun_def_engine;
   delete d_uee;
   delete d_fs;
-  for(std::map< Node, QuantPhaseReq* >::iterator i = d_phase_reqs.begin(); i != d_phase_reqs.end(); ++i) {
-    delete (*i).second;
-  }
+  delete d_i_cbqi;
 }
 
 EqualityQueryQuantifiersEngine* QuantifiersEngine::getEqualityQuery() {
@@ -270,6 +272,18 @@ Valuation& QuantifiersEngine::getValuation(){
 
 void QuantifiersEngine::finishInit(){
   Trace("quant-engine-debug") << "QuantifiersEngine : finishInit " << std::endl;
+  //counterexample-based quantifier instantiation
+  if( options::cbqi() ){
+    if( options::cbqiSplx() ){
+      d_i_cbqi = new quantifiers::InstStrategySimplex( (arith::TheoryArith*)getTheoryEngine()->theoryOf( THEORY_ARITH ), this );
+      d_modules.push_back( d_i_cbqi );
+    }else{
+      d_i_cbqi = new quantifiers::InstStrategyCegqi( this );
+      d_modules.push_back( d_i_cbqi );
+    }
+  }else{
+    d_i_cbqi = NULL;
+  }
   for( int i=0; i<(int)d_modules.size(); i++ ){
     d_modules[i]->finishInit();
   }
@@ -449,12 +463,12 @@ void QuantifiersEngine::check( Theory::Effort e ){
       }else if( e==Theory::EFFORT_LAST_CALL && quant_e==QEFFORT_MODEL ){
         //if we have a chance not to set incomplete
         if( !setIncomplete ){
-          setIncomplete = true;
+          setIncomplete = false;
           //check if we should set the incomplete flag
           for( unsigned i=0; i<qm.size(); i++ ){
-            if( qm[i]->checkComplete() ){
-              Trace("quant-engine-debug") << "Do not set incomplete because " << qm[i]->identify().c_str() << " was complete." << std::endl;
-              setIncomplete = false;
+            if( !qm[i]->checkComplete() ){
+              Trace("quant-engine-debug") << "Set incomplete because " << qm[i]->identify().c_str() << " was incomplete." << std::endl;
+              setIncomplete = true;
               break;
             }
           }
@@ -571,7 +585,7 @@ bool QuantifiersEngine::registerQuantifier( Node f ){
       }
       Node ceBody = d_term_db->getInstConstantBody( f );
       //generate the phase requirements
-      d_phase_reqs[f] = new QuantPhaseReq( ceBody, true );
+      //d_phase_reqs[f] = new QuantPhaseReq( ceBody, true );
       //also register it with the strong solver
       //if( options::finiteModelFind() ){
       //  ((uf::TheoryUF*)d_te->theoryOf( THEORY_UF ))->getStrongSolver()->registerQuantifier( f );
@@ -1043,23 +1057,6 @@ void QuantifiersEngine::flushLemmas(){
   }
 }
 
-void QuantifiersEngine::getPhaseReqTerms( Node f, std::vector< Node >& nodes ){
-  if( options::literalMatchMode()!=quantifiers::LITERAL_MATCH_NONE && d_phase_reqs.find( f )!=d_phase_reqs.end() ){
-    // doing literal-based matching (consider polarity of literals)
-    for( int i=0; i<(int)nodes.size(); i++ ){
-      Node prev = nodes[i];
-      if( d_phase_reqs[f]->isPhaseReq( nodes[i] ) ){
-        bool preq = d_phase_reqs[f]->getPhaseReq( nodes[i] );
-        nodes[i] = NodeManager::currentNM()->mkNode( IFF, nodes[i], NodeManager::currentNM()->mkConst<bool>(preq) );
-      }
-      //else if( qe->isPhaseReqEquality( f, trNodes[i] ) ){
-      //  Node req = qe->getPhaseReqEquality( f, trNodes[i] );
-      //  trNodes[i] = NodeManager::currentNM()->mkNode( EQUAL, trNodes[i], req );
-      //}
-    }
-  }
-}
-
 void QuantifiersEngine::printInstantiations( std::ostream& out ) {
   bool printed = false;
   for( BoolMap::iterator it = d_skolemized.begin(); it != d_skolemized.end(); ++it ){
@@ -1113,7 +1110,11 @@ QuantifiersEngine::Statistics::Statistics():
   d_multi_triggers("QuantifiersEngine::Triggers_Multi", 0),
   d_multi_trigger_instantiations("QuantifiersEngine::Multi_Trigger_Instantiations", 0),
   d_red_alpha_equiv("QuantifiersEngine::Reductions_Alpha_Equivalence", 0),
-  d_red_lte_partial_inst("QuantifiersEngine::Reductions_Lte_Partial_Inst", 0)
+  d_red_lte_partial_inst("QuantifiersEngine::Reductions_Lte_Partial_Inst", 0),
+  d_instantiations_user_patterns("QuantifiersEngine::Instantiations_User_Patterns", 0),
+  d_instantiations_auto_gen("QuantifiersEngine::Instantiations_Auto_Gen", 0),
+  d_instantiations_guess("QuantifiersEngine::Instantiations_Guess", 0),
+  d_instantiations_cbqi_arith("QuantifiersEngine::Instantiations_Cbqi_Arith", 0)
 {
   StatisticsRegistry::registerStat(&d_num_quant);
   StatisticsRegistry::registerStat(&d_instantiation_rounds);
@@ -1126,7 +1127,11 @@ QuantifiersEngine::Statistics::Statistics():
   StatisticsRegistry::registerStat(&d_multi_triggers);
   StatisticsRegistry::registerStat(&d_multi_trigger_instantiations);
   StatisticsRegistry::registerStat(&d_red_alpha_equiv);
-  StatisticsRegistry::registerStat(&d_red_lte_partial_inst);
+  StatisticsRegistry::registerStat(&d_red_lte_partial_inst);  
+  StatisticsRegistry::registerStat(&d_instantiations_user_patterns);
+  StatisticsRegistry::registerStat(&d_instantiations_auto_gen);
+  StatisticsRegistry::registerStat(&d_instantiations_guess);
+  StatisticsRegistry::registerStat(&d_instantiations_cbqi_arith);
 }
 
 QuantifiersEngine::Statistics::~Statistics(){
@@ -1142,6 +1147,10 @@ QuantifiersEngine::Statistics::~Statistics(){
   StatisticsRegistry::unregisterStat(&d_multi_trigger_instantiations);
   StatisticsRegistry::unregisterStat(&d_red_alpha_equiv);
   StatisticsRegistry::unregisterStat(&d_red_lte_partial_inst);
+  StatisticsRegistry::unregisterStat(&d_instantiations_user_patterns);
+  StatisticsRegistry::unregisterStat(&d_instantiations_auto_gen);
+  StatisticsRegistry::unregisterStat(&d_instantiations_guess);
+  StatisticsRegistry::unregisterStat(&d_instantiations_cbqi_arith);
 }
 
 eq::EqualityEngine* QuantifiersEngine::getMasterEqualityEngine(){

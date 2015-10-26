@@ -19,7 +19,6 @@
 #include "theory/quantifiers/term_database.h"
 #include "theory/quantifiers/first_order_model.h"
 #include "theory/quantifiers/inst_strategy_e_matching.h"
-#include "theory/quantifiers/inst_strategy_cbqi.h"
 #include "theory/quantifiers/trigger.h"
 
 using namespace std;
@@ -31,21 +30,18 @@ using namespace CVC4::theory::quantifiers;
 using namespace CVC4::theory::inst;
 
 InstantiationEngine::InstantiationEngine( QuantifiersEngine* qe ) :
-QuantifiersModule( qe ), d_isup(NULL), d_i_ag(NULL), d_i_splx(NULL), d_i_cegqi( NULL ){
+QuantifiersModule( qe ), d_isup(NULL), d_i_ag(NULL){
 
 }
 
 InstantiationEngine::~InstantiationEngine() {
   delete d_i_ag;
   delete d_isup;
-  delete d_i_splx;
-  delete d_i_cegqi;
 }
 
 void InstantiationEngine::finishInit(){
   if( options::eMatching() ){
     //these are the instantiation strategies for E-matching
-
     //user-provided patterns
     if( options::userPatternsQuant()!=USER_PAT_MODE_IGNORE ){
       d_isup = new InstStrategyUserPatterns( d_quantEngine );
@@ -56,21 +52,6 @@ void InstantiationEngine::finishInit(){
     d_i_ag = new InstStrategyAutoGenTriggers( d_quantEngine );
     d_instStrategies.push_back( d_i_ag );
   }
-
-  //counterexample-based quantifier instantiation
-  if( options::cbqi() ){
-    if( options::cbqiSplx() ){
-      d_i_splx = new InstStrategySimplex( (arith::TheoryArith*)d_quantEngine->getTheoryEngine()->theoryOf( THEORY_ARITH ), d_quantEngine );
-      d_instStrategies.push_back( d_i_splx );
-      d_i_cbqi = d_i_splx;
-    }else{
-      d_i_cegqi = new InstStrategyCegqi( d_quantEngine );
-      d_instStrategies.push_back( d_i_cegqi );
-      d_i_cbqi = d_i_cegqi;
-    }
-  }else{
-    d_i_cbqi = NULL;
-  }
 }
 
 void InstantiationEngine::presolve() {
@@ -80,7 +61,7 @@ void InstantiationEngine::presolve() {
 }
 
 bool InstantiationEngine::doInstantiationRound( Theory::Effort effort ){
-  unsigned lastWaiting = d_quantEngine->d_lemmas_waiting.size();
+  unsigned lastWaiting = d_quantEngine->getNumLemmasWaiting();
   //iterate over an internal effort level e
   int e = 0;
   int eLimit = effort==Theory::EFFORT_LAST_CALL ? 10 : 2;
@@ -110,7 +91,7 @@ bool InstantiationEngine::doInstantiationRound( Theory::Effort effort ){
       }
     }
     //do not consider another level if already added lemma at this level
-    if( d_quantEngine->d_lemmas_waiting.size()>lastWaiting ){
+    if( d_quantEngine->getNumLemmasWaiting()>lastWaiting ){
       finished = true;
     }
     e++;
@@ -126,20 +107,6 @@ bool InstantiationEngine::doInstantiationRound( Theory::Effort effort ){
 
 bool InstantiationEngine::needsCheck( Theory::Effort e ){
   return d_quantEngine->getInstWhenNeedsCheck( e );
-}
-
-unsigned InstantiationEngine::needsModel( Theory::Effort e ){
-  if( options::cbqiModel() && options::cbqi() ){
-    Assert( d_i_cbqi!=NULL );
-    //needs model if there is at least one cbqi quantified formula that is active
-    for( int i=0; i<d_quantEngine->getModel()->getNumAssertedQuantifiers(); i++ ){
-      Node q = d_quantEngine->getModel()->getAssertedQuantifier( i );
-      if( d_quantEngine->hasOwnership( q, this ) && d_i_cbqi->doCbqi( q ) && d_quantEngine->getModel()->isQuantifierActive( q ) ){
-        return QuantifiersEngine::QEFFORT_STANDARD;
-      }
-    }
-  }
-  return QuantifiersEngine::QEFFORT_NONE;
 }
 
 void InstantiationEngine::reset_round( Theory::Effort e ){
@@ -158,15 +125,13 @@ void InstantiationEngine::check( Theory::Effort e, unsigned quant_e ){
       clSet = double(clock())/double(CLOCKS_PER_SEC);
       Trace("inst-engine") << "---Instantiation Engine Round, effort = " << e << "---" << std::endl;
     }
-    ++(d_statistics.d_instantiation_rounds);
+    //collect all active quantified formulas belonging to this
     bool quantActive = false;
     d_quants.clear();
     for( int i=0; i<d_quantEngine->getModel()->getNumAssertedQuantifiers(); i++ ){
       Node q = d_quantEngine->getModel()->getAssertedQuantifier( i );
       if( d_quantEngine->hasOwnership( q, this ) && d_quantEngine->getModel()->isQuantifierActive( q ) ){
-        if( !options::cbqi() || !TermDb::hasInstConstAttr( q ) ){
-          quantActive = true;
-        }
+        quantActive = true;
         d_quants.push_back( q );
       }
     }
@@ -186,42 +151,25 @@ void InstantiationEngine::check( Theory::Effort e, unsigned quant_e ){
 }
 
 bool InstantiationEngine::checkComplete() {
-  if( !options::cbqiSat() && ( d_i_cbqi && d_i_cbqi->setQuantifierInactive() ) ){
-    return false;
-  }else{
+  if( !options::finiteModelFind() ){
     for( unsigned i=0; i<d_quants.size(); i++ ){
       if( isIncomplete( d_quants[i] ) ){
         return false;
       }
     }
-    return true;
   }
+  return true;
 }
 
-
-void InstantiationEngine::preRegisterQuantifier( Node q ) {
-  if( options::cbqi() ){
-    if( d_i_cbqi->doCbqi( q ) ){
-      d_quantEngine->setOwner( q, this );
-    }
-  }
+bool InstantiationEngine::isIncomplete( Node q ) {
+  return true;
 }
 
 void InstantiationEngine::registerQuantifier( Node f ){
   if( d_quantEngine->hasOwnership( f, this ) ){
-    for( unsigned i=0; i<d_instStrategies.size(); ++i ){
-      d_instStrategies[i]->registerQuantifier( f );
-    }
-    //Notice() << "do cbqi " << f << " ? " << std::endl;
-    /*
-    if( options::cbqi() ){
-      Node ceBody = d_quantEngine->getTermDatabase()->getInstConstantBody( f );
-      if( !doCbqi( f ) ){
-        d_quantEngine->addTermToDatabase( ceBody, true );
-      }
-    }
-    */
-
+    //for( unsigned i=0; i<d_instStrategies.size(); ++i ){
+    //  d_instStrategies[i]->registerQuantifier( f );
+    //}
     //take into account user patterns
     if( f.getNumChildren()==3 ){
       Node subsPat = d_quantEngine->getTermDatabase()->getInstConstantNode( f[2], f );
@@ -238,26 +186,6 @@ void InstantiationEngine::registerQuantifier( Node f ){
   }
 }
 
-void InstantiationEngine::assertNode( Node f ){
-}
-
-bool InstantiationEngine::isIncomplete( Node q ) {
-  return true;
-}
-
-Node InstantiationEngine::getNextDecisionRequest(){
-  if( options::cbqi() ){
-    for( unsigned i=0; i<d_instStrategies.size(); ++i ){
-      InstStrategy* is = d_instStrategies[i];
-      Node lit = is->getNextDecisionRequest();
-      if( !lit.isNull() ){
-        return lit;
-      }
-    }
-  }
-  return Node::null();
-}
-
 void InstantiationEngine::addUserPattern( Node f, Node pat ){
   if( d_isup ){
     d_isup->addUserPattern( f, pat );
@@ -268,35 +196,4 @@ void InstantiationEngine::addUserNoPattern( Node f, Node pat ){
   if( d_i_ag ){
     d_i_ag->addUserNoPattern( f, pat );
   }
-}
-
-InstantiationEngine::Statistics::Statistics():
-  d_instantiations_user_patterns("InstantiationEngine::Instantiations_User_Patterns", 0),
-  d_instantiations_auto_gen("InstantiationEngine::Instantiations_Auto_Gen", 0),
-  d_instantiations_guess("InstantiationEngine::Instantiations_Guess", 0),
-  d_instantiations_cbqi_arith("InstantiationEngine::Instantiations_Cbqi_Arith", 0),
-  d_instantiations_cbqi_arith_minus("InstantiationEngine::Instantiations_Cbqi_Arith_Minus", 0),
-  d_instantiations_cbqi_datatypes("InstantiationEngine::Instantiations_Cbqi_Datatypes", 0),
-  d_instantiations_lte("InstantiationEngine::Instantiations_Local_T_Ext", 0),
-  d_instantiation_rounds("InstantiationEngine::Rounds", 0 )
-{
-  StatisticsRegistry::registerStat(&d_instantiations_user_patterns);
-  StatisticsRegistry::registerStat(&d_instantiations_auto_gen);
-  StatisticsRegistry::registerStat(&d_instantiations_guess);
-  StatisticsRegistry::registerStat(&d_instantiations_cbqi_arith);
-  StatisticsRegistry::registerStat(&d_instantiations_cbqi_arith_minus);
-  StatisticsRegistry::registerStat(&d_instantiations_cbqi_datatypes);
-  StatisticsRegistry::registerStat(&d_instantiations_lte);
-  StatisticsRegistry::registerStat(&d_instantiation_rounds);
-}
-
-InstantiationEngine::Statistics::~Statistics(){
-  StatisticsRegistry::unregisterStat(&d_instantiations_user_patterns);
-  StatisticsRegistry::unregisterStat(&d_instantiations_auto_gen);
-  StatisticsRegistry::unregisterStat(&d_instantiations_guess);
-  StatisticsRegistry::unregisterStat(&d_instantiations_cbqi_arith);
-  StatisticsRegistry::unregisterStat(&d_instantiations_cbqi_arith_minus);
-  StatisticsRegistry::unregisterStat(&d_instantiations_cbqi_datatypes);
-  StatisticsRegistry::unregisterStat(&d_instantiations_lte);
-  StatisticsRegistry::unregisterStat(&d_instantiation_rounds);
 }

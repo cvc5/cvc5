@@ -66,15 +66,14 @@ public:
   /* Call during quantifier engine's check */
   virtual void check( Theory::Effort e, unsigned quant_e ) = 0;
   /* check was complete (e.g. no lemmas implies a model) */
-  virtual bool checkComplete() { return false; }
+  virtual bool checkComplete() { return true; }
   /* Called for new quantifiers */
   virtual void preRegisterQuantifier( Node q ) {}
   /* Called for new quantifiers after owners are finalized */
   virtual void registerQuantifier( Node q ) = 0;
-  virtual void assertNode( Node n ) = 0;
+  virtual void assertNode( Node n ) {}
   virtual void propagate( Theory::Effort level ){}
   virtual Node getNextDecisionRequest() { return TNode::null(); }
-  virtual Node explain(TNode n) { return TNode::null(); }
   /** Identify this module (for debugging, dynamic configuration, etc..) */
   virtual std::string identify() const = 0;
 public:
@@ -102,6 +101,7 @@ namespace quantifiers {
   class FunDefEngine;
   class QuantEqualityEngine;
   class FullSaturation;
+  class InstStrategyCbqi;
 }/* CVC4::theory::quantifiers */
 
 namespace inst {
@@ -136,8 +136,6 @@ private:
   quantifiers::AlphaEquivalence * d_alpha_equiv;
   /** model builder */
   quantifiers::QModelBuilder* d_builder;
-  /** phase requirements for each quantifier for each instantiation literal */
-  std::map< Node, QuantPhaseReq* > d_phase_reqs;
   /** instantiation engine */
   quantifiers::InstantiationEngine* d_inst_engine;
   /** model engine */
@@ -160,6 +158,8 @@ private:
   quantifiers::QuantEqualityEngine * d_uee;
   /** full saturation */
   quantifiers::FullSaturation * d_fs;
+  /** counterexample-based quantifier instantiation */
+  quantifiers::InstStrategyCbqi * d_i_cbqi;
 public: //effort levels
   enum {
     QEFFORT_CONFLICT,
@@ -231,10 +231,6 @@ public:
   QuantRelevance* getQuantifierRelevance() { return d_quant_rel; }
   /** get the model builder */
   quantifiers::QModelBuilder* getModelBuilder() { return d_builder; }
-  /** get phase requirement information */
-  QuantPhaseReq* getPhaseRequirements( Node f ) { return d_phase_reqs.find( f )==d_phase_reqs.end() ? NULL : d_phase_reqs[f]; }
-  /** get phase requirement terms */
-  void getPhaseReqTerms( Node f, std::vector< Node >& nodes );
 public:  //modules
   /** get instantiation engine */
   quantifiers::InstantiationEngine* getInstantiationEngine() { return d_inst_engine; }
@@ -258,6 +254,8 @@ public:  //modules
   quantifiers::QuantEqualityEngine * getQuantEqualityEngine() { return d_uee; }
   /** get full saturation */
   quantifiers::FullSaturation * getFullSaturation() { return d_fs; }
+  /** get inst strategy cbqi */
+  quantifiers::InstStrategyCbqi * getInstStrategyCbqi() { return d_i_cbqi; }
 private:
   /** owner of quantified formulas */
   std::map< Node, QuantifiersModule * > d_owner;
@@ -320,7 +318,7 @@ public:
   /** has added lemma */
   bool hasAddedLemma() { return !d_lemmas_waiting.empty() || d_hasAddedLemma; }
   /** get number of waiting lemmas */
-  int getNumLemmasWaiting() { return (int)d_lemmas_waiting.size(); }
+  unsigned getNumLemmasWaiting() { return d_lemmas_waiting.size(); }
   /** get needs check */
   bool getInstWhenNeedsCheck( Theory::Effort e );
   /** get user pat mode */
@@ -362,6 +360,10 @@ public:
     IntStat d_multi_trigger_instantiations;
     IntStat d_red_alpha_equiv;
     IntStat d_red_lte_partial_inst;
+    IntStat d_instantiations_user_patterns;
+    IntStat d_instantiations_auto_gen;
+    IntStat d_instantiations_guess;
+    IntStat d_instantiations_cbqi_arith;
     Statistics();
     ~Statistics();
   };/* class QuantifiersEngine::Statistics */
