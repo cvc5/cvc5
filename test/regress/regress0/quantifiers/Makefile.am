@@ -22,7 +22,6 @@ TESTS =	\
 	bug269.smt2 \
 	bug290.smt2 \
 	bug291.smt2 \
-	ex3.smt2 \
 	Arrays_Q1-noinfer.smt2 \
 	bignum_quant.smt2 \
 	bug269.smt2 \
@@ -55,8 +54,10 @@ TESTS =	\
 	RND-small.smt2 \
 	clock-3.smt2 \
 	006-cbqi-ite.smt2 \
-	cbqi-lia-dt-simp.smt2
-
+	cbqi-lia-dt-simp.smt2 \
+	is-int.smt2 \
+	floor.smt2 \
+	array-unsat-simp3.smt2
 
 
 # regression can be solved with --finite-model-find --fmf-inst-engine
@@ -64,17 +65,12 @@ TESTS =	\
 
 
 # removed because they take more than 20s
-#		ex1.smt2 \
-#		ex6.smt2 \
-#	        ex7.smt2 \
-#		array-unsat-simp3.smt2are
 #		javafe.ast.ArrayInit.35.smt2 \
 #		javafe.ast.StandardPrettyPrint.319.smt2 \
 #		javafe.ast.StmtVec.009.smt2 \
 #		javafe.ast.WhileStmt.447.smt2 \
 #		javafe.tc.CheckCompilationUnit.001.smt2 \
 #		javafe.tc.FlowInsensitiveChecks.682.smt2 \
-#		array-unsat-simp3.smt2 \
 #		clock-10.smt2
 #
 

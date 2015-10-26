@@ -122,8 +122,6 @@ void InstStrategyUserPatterns::addUserPattern( Node f, Node pat ){
   }
   if( usable ){
     Trace("user-pat") << "Add user pattern: " << pat << " for " << f << std::endl;
-    //extend to literal matching
-    d_quantEngine->getPhaseReqTerms( f, nodes );
     //check match option
     int matchOption = 0;
     if( d_quantEngine->getInstUserPatMode()==USER_PAT_MODE_RESORT ){
@@ -260,8 +258,6 @@ void InstStrategyAutoGenTriggers::generateTriggers( Node f, Theory::Effort effor
       }
       Trace("auto-gen-trigger") << std::endl;
     }
-    //extend to literal matching (if applicable)
-    d_quantEngine->getPhaseReqTerms( f, patTermsF );
     //sort into single/multi triggers
     std::map< Node, std::vector< Node > > varContains;
     d_quantEngine->getTermDatabase()->getVarContains( f, patTermsF, varContains );

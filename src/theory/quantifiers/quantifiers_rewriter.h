@@ -44,8 +44,11 @@ private:
   static Node computeMiniscoping( Node f, std::vector< Node >& args, Node body, Node ipl );
   static Node computeAggressiveMiniscoping( std::vector< Node >& args, Node body );
   static Node computeNNF( Node body );
-  static Node computeProcessIte( Node body, bool hasPol, bool pol, std::map< Node, bool >& currCond );
-  static Node computeProcessIte2( Node body );
+  //cache is dependent upon currCond, icache is not, new_conds are negated conditions
+  static Node computeProcessTerms( Node body, bool hasPol, bool pol, std::map< Node, bool >& currCond, int nCurrCond,
+                                   std::map< Node, Node >& cache, std::map< Node, Node >& icache,
+                                   std::vector< Node >& new_vars, std::vector< Node >& new_conds );
+  static Node computeProcessIte( Node body );
   static Node computeVarElimination( Node body, std::vector< Node >& args, Node& ipl );
   static Node computeCNF( Node body, std::vector< Node >& args, NodeBuilder<>& defs, bool forcePred );
   static Node computePrenex( Node body, std::vector< Node >& args, bool pol );
@@ -56,8 +59,8 @@ private:
     COMPUTE_MINISCOPING,
     COMPUTE_AGGRESSIVE_MINISCOPING,
     COMPUTE_NNF,
+    COMPUTE_PROCESS_TERMS,
     COMPUTE_PROCESS_ITE,
-    COMPUTE_PROCESS_ITE_2,
     COMPUTE_PRENEX,
     COMPUTE_VAR_ELIMINATION,
     //COMPUTE_FLATTEN_ARGS_UF,

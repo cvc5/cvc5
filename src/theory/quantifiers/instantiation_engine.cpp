@@ -56,7 +56,7 @@ void InstantiationEngine::finishInit(){
     d_i_ag = new InstStrategyAutoGenTriggers( d_quantEngine );
     d_instStrategies.push_back( d_i_ag );
   }
-  
+
   //counterexample-based quantifier instantiation
   if( options::cbqi() ){
     if( options::cbqiSplx() ){
@@ -164,7 +164,7 @@ void InstantiationEngine::check( Theory::Effort e, unsigned quant_e ){
     for( int i=0; i<d_quantEngine->getModel()->getNumAssertedQuantifiers(); i++ ){
       Node q = d_quantEngine->getModel()->getAssertedQuantifier( i );
       if( d_quantEngine->hasOwnership( q, this ) && d_quantEngine->getModel()->isQuantifierActive( q ) ){
-        if( !options::cbqi() || !TermDb::hasInstConstAttr(q) ){
+        if( !options::cbqi() || !TermDb::hasInstConstAttr( q ) ){
           quantActive = true;
         }
         d_quants.push_back( q );
@@ -195,6 +195,15 @@ bool InstantiationEngine::checkComplete() {
       }
     }
     return true;
+  }
+}
+
+
+void InstantiationEngine::preRegisterQuantifier( Node q ) {
+  if( options::cbqi() ){
+    if( d_i_cbqi->doCbqi( q ) ){
+      d_quantEngine->setOwner( q, this );
+    }
   }
 }
 
@@ -230,7 +239,6 @@ void InstantiationEngine::registerQuantifier( Node f ){
 }
 
 void InstantiationEngine::assertNode( Node f ){
-
 }
 
 bool InstantiationEngine::isIncomplete( Node q ) {

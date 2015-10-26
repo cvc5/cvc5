@@ -125,7 +125,7 @@ bool CegInstantiator::addInstantiation( SolvedForm& sf, SolvedForm& ssf, std::ve
               Node pv_coeff;  //coefficient of pv in the equality we solve (null is 1)
               bool proc = false;
               if( !d_prog_var[n].empty() ){
-                ns = applySubstitution( n, sf, vars, pv_coeff, false );
+                ns = applySubstitution( pvtn, n, sf, vars, pv_coeff, false );
                 if( !ns.isNull() ){
                   computeProgVars( ns );
                   //substituted version must be new and cannot contain pv
@@ -171,7 +171,7 @@ bool CegInstantiator::addInstantiation( SolvedForm& sf, SolvedForm& ssf, std::ve
               Node ns;
               Node pv_coeff;
               if( !d_prog_var[n].empty() ){
-                ns = applySubstitution( n, sf, vars, pv_coeff );
+                ns = applySubstitution( pvtn, n, sf, vars, pv_coeff );
                 if( !ns.isNull() ){
                   computeProgVars( ns );
                 }
@@ -210,7 +210,7 @@ bool CegInstantiator::addInstantiation( SolvedForm& sf, SolvedForm& ssf, std::ve
                       if( Trace.isOn("cbqi-inst-debug") ){
                         Trace("cbqi-inst-debug") << "...got monomial sum: " << std::endl;
                         QuantArith::debugPrintMonomialSum( msum, "cbqi-inst-debug" );
-                        Trace("cbqi-inst-debug") << "isolate for " << pv << "..." << std::endl;
+                        Trace("cbqi-inst-debug") << "isolate for " << pv << " : " << pv.getType() << "..." << std::endl;
                       }
                       Node veq;
                       if( QuantArith::isolate( pv, msum, veq, EQUAL, true )!=0 ){
@@ -325,7 +325,7 @@ bool CegInstantiator::addInstantiation( SolvedForm& sf, SolvedForm& ssf, std::ve
                   //apply substitution to LHS of atom
                   if( !d_prog_var[atom_lhs].empty() ){
                     Node atom_lhs_coeff;
-                    atom_lhs = applySubstitution( atom_lhs, sf, vars, atom_lhs_coeff );
+                    atom_lhs = applySubstitution( pvtn, atom_lhs, sf, vars, atom_lhs_coeff );
                     if( !atom_lhs.isNull() ){
                       computeProgVars( atom_lhs );
                       if( !atom_lhs_coeff.isNull() ){
@@ -470,6 +470,20 @@ bool CegInstantiator::addInstantiation( SolvedForm& sf, SolvedForm& ssf, std::ve
                           }
                           if( options::cbqiModel() ){
                             //just store bounds, will choose based on tighest bound
+                            if( pvtn.isInteger() && !veq_c.isNull() && !veq_c.getType().isInteger() ){
+                              Trace("cbqi-bound2") << "Non-integer coefficient : " << veq_c << " for " << pv << std::endl;
+                              Assert( veq_c.isConst() );
+                              //multiply everything by denominator of coefficient
+                              Rational r = veq_c.getConst<Rational>();
+                              Node den = NodeManager::currentNM()->mkConst( Rational(r.getDenominator()) );
+                              uval = Rewriter::rewrite( NodeManager::currentNM()->mkNode( MULT, den, uval ) );
+                              veq_c = NodeManager::currentNM()->mkConst( Rational(r.getNumerator()) );
+                              for( unsigned t=0; t<2; t++ ){
+                                if( !vts_coeff[t].isNull() ){
+                                  vts_coeff[t] = Rewriter::rewrite( NodeManager::currentNM()->mkNode( MULT, den, vts_coeff[t] ) );
+                                }
+                              }
+                            }
                             unsigned index = uires>0 ? 0 : 1;
                             mbp_bounds[index].push_back( uval );
                             mbp_coeff[index].push_back( veq_c );
@@ -607,7 +621,7 @@ bool CegInstantiator::addInstantiation( SolvedForm& sf, SolvedForm& ssf, std::ve
                 Trace("cbqi-bound") << std::endl;
                 best_used[rr] = (unsigned)best;
                 Node val = mbp_bounds[rr][best];
-                val = getModelBasedProjectionValue( val, rr==0, mbp_coeff[rr][best], pv_value, t_values[rr][best], theta,
+                val = getModelBasedProjectionValue( pv, val, rr==0, mbp_coeff[rr][best], pv_value, t_values[rr][best], theta,
                                                     mbp_vts_coeff[rr][0][best], vts_sym[0], mbp_vts_coeff[rr][1][best], vts_sym[1] );
                 if( !val.isNull() ){
                   if( subs_proc[val].find( mbp_coeff[rr][best] )==subs_proc[val].end() ){
@@ -624,7 +638,7 @@ bool CegInstantiator::addInstantiation( SolvedForm& sf, SolvedForm& ssf, std::ve
           if( !use_inf && mbp_bounds[0].empty() && mbp_bounds[1].empty() ){
             Node val = d_zero;
             Node c; //null (one) coefficient
-            val = getModelBasedProjectionValue( val, true, c, pv_value, d_zero, theta, Node::null(), vts_sym[0], Node::null(), vts_sym[1] );
+            val = getModelBasedProjectionValue( pv, val, true, c, pv_value, d_zero, theta, Node::null(), vts_sym[0], Node::null(), vts_sym[1] );
             if( !val.isNull() ){
               if( subs_proc[val].find( c )==subs_proc[val].end() ){
                 subs_proc[val][c] = true;
@@ -643,7 +657,7 @@ bool CegInstantiator::addInstantiation( SolvedForm& sf, SolvedForm& ssf, std::ve
             int rr = upper_first ? (1-r) : r;
             for( unsigned j=0; j<mbp_bounds[rr].size(); j++ ){
               if( j!=best_used[rr] ){
-                Node val = getModelBasedProjectionValue( mbp_bounds[rr][j], rr==0, mbp_coeff[rr][j], pv_value, t_values[rr][j], theta,
+                Node val = getModelBasedProjectionValue( pv, mbp_bounds[rr][j], rr==0, mbp_coeff[rr][j], pv_value, t_values[rr][j], theta,
                                                          mbp_vts_coeff[rr][0][j], vts_sym[0], mbp_vts_coeff[rr][1][j], vts_sym[1] );
                 if( !val.isNull() ){
                   if( subs_proc[val].find( mbp_coeff[rr][j] )==subs_proc[val].end() ){
@@ -720,7 +734,7 @@ bool CegInstantiator::addInstantiationInc( Node n, Node pv, Node pv_coeff, int b
       TNode tv = pv;
       TNode ts = n;
       Node a_pv_coeff;
-      Node new_subs = applySubstitution( sf.d_subs[j], a_subs, a_coeff, a_has_coeff, a_var, a_pv_coeff, true );
+      Node new_subs = applySubstitution( vars[j].getType(), sf.d_subs[j], a_subs, a_coeff, a_has_coeff, a_var, a_pv_coeff, true );
       if( !new_subs.isNull() ){
         sf.d_subs[j] = new_subs;
         if( !a_pv_coeff.isNull() ){
@@ -917,7 +931,7 @@ Node CegInstantiator::constructInstantiation( Node n, std::map< Node, Node >& su
   }
 }
 
-Node CegInstantiator::applySubstitution( Node n, std::vector< Node >& subs, std::vector< Node >& coeff, std::vector< Node >& has_coeff,
+Node CegInstantiator::applySubstitution( TypeNode tn, Node n, std::vector< Node >& subs, std::vector< Node >& coeff, std::vector< Node >& has_coeff,
                                          std::vector< Node >& vars, Node& pv_coeff, bool try_coeff ) {
   Assert( d_prog_var.find( n )!=d_prog_var.end() );
   Assert( n==Rewriter::rewrite( n ) );
@@ -935,10 +949,26 @@ Node CegInstantiator::applySubstitution( Node n, std::vector< Node >& subs, std:
     if( n!=nret ){
       nret = Rewriter::rewrite( nret );
     }
-    //result is nret
     return nret;
   }else{
-    if( try_coeff ){
+    if( !tn.isInteger() ){
+      //can do basic substitution instead with divisions
+      std::vector< Node > nvars;
+      std::vector< Node > nsubs;
+      for( unsigned i=0; i<vars.size(); i++ ){
+        if( !coeff[i].isNull() ){
+          Assert( coeff[i].isConst() );
+          nsubs.push_back( Rewriter::rewrite( NodeManager::currentNM()->mkNode( MULT, subs[i], NodeManager::currentNM()->mkConst( Rational(1)/coeff[i].getConst<Rational>() ) ) ));
+        }else{
+          nsubs.push_back( subs[i] );
+        }
+      }
+      Node nret = n.substitute( vars.begin(), vars.end(), nsubs.begin(), nsubs.end() );
+      if( n!=nret ){
+        nret = Rewriter::rewrite( nret );
+      }
+      return nret;
+    }else if( try_coeff ){
       //must convert to monomial representation
       std::map< Node, Node > msum;
       if( QuantArith::getMonomialSum( n, msum ) ){
@@ -999,8 +1029,12 @@ Node CegInstantiator::applySubstitution( Node n, std::vector< Node >& subs, std:
   }
 }
 
-Node CegInstantiator::getModelBasedProjectionValue( Node t, bool isLower, Node c, Node me, Node mt, Node theta,
+Node CegInstantiator::getModelBasedProjectionValue( Node e, Node t, bool isLower, Node c, Node me, Node mt, Node theta,
                                                     Node inf_coeff, Node vts_inf, Node delta_coeff, Node vts_delta ) {
+  if( e.getType().isInteger() && !t.getType().isInteger() ){
+    //TODO : round up/down this bound?
+    return Node::null();
+  }
   Node val = t;
   Trace("cbqi-bound2") << "Value : " << val << std::endl;
   //add rho value
@@ -1008,6 +1042,7 @@ Node CegInstantiator::getModelBasedProjectionValue( Node t, bool isLower, Node c
   Node ceValue = me;
   Node new_theta = theta;
   if( !c.isNull() ){
+    Assert( c.getType().isInteger() );
     ceValue = NodeManager::currentNM()->mkNode( MULT, ceValue, c );
     ceValue = Rewriter::rewrite( ceValue );
     if( new_theta.isNull() ){
@@ -1019,7 +1054,7 @@ Node CegInstantiator::getModelBasedProjectionValue( Node t, bool isLower, Node c
     Trace("cbqi-bound2") << "...c*e = " << ceValue << std::endl;
     Trace("cbqi-bound2") << "...theta = " << new_theta << std::endl;
   }
-  if( !new_theta.isNull() ){
+  if( !new_theta.isNull() && e.getType().isInteger() ){
     Node rho;
     if( isLower ){
       rho = NodeManager::currentNM()->mkNode( MINUS, ceValue, mt );

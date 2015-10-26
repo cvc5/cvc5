@@ -94,7 +94,8 @@ public:
   void reset_round( Theory::Effort e );
   void check( Theory::Effort e, unsigned quant_e );
   bool checkComplete();
-  void registerQuantifier( Node f );
+  void preRegisterQuantifier( Node q );
+  void registerQuantifier( Node q );
   void assertNode( Node f );
   Node explain(TNode n){ return Node::null(); }
   Node getNextDecisionRequest();

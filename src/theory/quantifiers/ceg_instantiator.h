@@ -107,12 +107,12 @@ private:
                               unsigned j, std::map< Node, Node >& cons );
   bool addInstantiation( std::vector< Node >& subs, std::vector< Node >& vars, std::map< Node, Node >& cons );
   Node constructInstantiation( Node n, std::map< Node, Node >& subs_map, std::map< Node, Node >& cons );
-  Node applySubstitution( Node n, SolvedForm& sf, std::vector< Node >& vars, Node& pv_coeff, bool try_coeff = true ) {
-    return applySubstitution( n, sf.d_subs, sf.d_coeff, sf.d_has_coeff, vars, pv_coeff, try_coeff );
+  Node applySubstitution( TypeNode tn, Node n, SolvedForm& sf, std::vector< Node >& vars, Node& pv_coeff, bool try_coeff = true ) {
+    return applySubstitution( tn, n, sf.d_subs, sf.d_coeff, sf.d_has_coeff, vars, pv_coeff, try_coeff );
   }
-  Node applySubstitution( Node n, std::vector< Node >& subs, std::vector< Node >& coeff, std::vector< Node >& has_coeff,
+  Node applySubstitution( TypeNode tn, Node n, std::vector< Node >& subs, std::vector< Node >& coeff, std::vector< Node >& has_coeff,
                           std::vector< Node >& vars, Node& pv_coeff, bool try_coeff = true );
-  Node getModelBasedProjectionValue( Node t, bool isLower, Node c, Node me, Node mt, Node theta,
+  Node getModelBasedProjectionValue( Node e, Node t, bool isLower, Node c, Node me, Node mt, Node theta,
                                      Node inf_coeff, Node vts_inf, Node delta_coeff, Node vts_delta );
   void processAssertions();
   void addToAuxVarSubstitution( std::vector< Node >& subs_lhs, std::vector< Node >& subs_rhs, Node l, Node r );

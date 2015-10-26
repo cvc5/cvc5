@@ -416,50 +416,6 @@ void QuantifiersRewriter::computeDtTesterIteSplit( Node n, std::map< Node, Node 
   }
 }
 
-bool addEntailedCond( Node n, bool pol, std::map< Node, bool >& currCond, std::vector< Node >& new_cond ) {
-  std::map< Node, bool >::iterator it = currCond.find( n );
-  if( it==currCond.end() ){
-    Trace("quantifiers-rewrite-ite-debug") << "ITE cond : " << n << " -> " << pol << std::endl;
-    new_cond.push_back( n );
-    currCond[n] = pol;
-    return true;
-  }else{
-    Assert( it->second==pol );
-    return false;
-  }
-}
-
-void setEntailedCond( Node n, bool pol, std::map< Node, bool >& currCond, std::vector< Node >& new_cond ) {
-  if( ( n.getKind()==AND && pol ) || ( n.getKind()==OR && !pol ) ){
-    for( unsigned i=0; i<n.getNumChildren(); i++ ){
-      setEntailedCond( n[i], pol, currCond, new_cond );
-    }
-  }else if( n.getKind()==NOT ){
-    setEntailedCond( n[0], !pol, currCond, new_cond );
-  }
-  if( addEntailedCond( n, pol, currCond, new_cond ) ){
-    if( n.getKind()==APPLY_TESTER ){
-      const Datatype& dt = Datatype::datatypeOf(n.getOperator().toExpr());
-      unsigned index = Datatype::indexOf(n.getOperator().toExpr());
-      Assert( dt.getNumConstructors()>1 );
-      if( pol ){
-        for( unsigned i=0; i<dt.getNumConstructors(); i++ ){
-          if( i!=index ){
-            Node t = NodeManager::currentNM()->mkNode( APPLY_TESTER, Node::fromExpr( dt[i].getTester() ), n[0] );
-            addEntailedCond( t, false, currCond, new_cond );
-          }
-        }
-      }else{
-        if( dt.getNumConstructors()==2 ){
-          int oindex = 1-index;
-          Node t = NodeManager::currentNM()->mkNode( APPLY_TESTER, Node::fromExpr( dt[oindex].getTester() ), n[0] );
-          addEntailedCond( t, true, currCond, new_cond );
-        }
-      }
-    }
-  }
-}
-
 int getEntailedCond( Node n, std::map< Node, bool >& currCond ){
   std::map< Node, bool >::iterator it = currCond.find( n );
   if( it!=currCond.end() ){
@@ -507,110 +463,190 @@ int getEntailedCond( Node n, std::map< Node, bool >& currCond ){
   return 0;
 }
 
-Node QuantifiersRewriter::computeProcessIte( Node body, bool hasPol, bool pol, std::map< Node, bool >& currCond ) {
-  bool changed = false;
-  std::vector< Node > children;
-  for( size_t i=0; i<body.getNumChildren(); i++ ){
-    std::vector< Node > new_cond;
-    if( body.getKind()==ITE && i>0 ){
-      setEntailedCond( children[0], i==1, currCond, new_cond );
-    }
-    bool newHasPol;
-    bool newPol;
-    QuantPhaseReq::getPolarity( body, i, hasPol, pol, newHasPol, newPol );
-    Node nn = computeProcessIte( body[i], newHasPol, newPol, currCond );
-    if( body.getKind()==ITE ){
-      if( i==0 ){
-        int res = getEntailedCond( nn, currCond );
-        if( res==1 ){
-          return computeProcessIte( body[1], hasPol, pol, currCond );
-        }else if( res==-1 ){
-          return computeProcessIte( body[2], hasPol, pol, currCond );
-        }
-      }else{
-        for( unsigned j=0; j<new_cond.size(); j++ ){
-          currCond.erase( new_cond[j] );
-        }
-      }
-    }
-    children.push_back( nn );
-    changed = changed || nn!=body[i];
+bool addEntailedCond( Node n, bool pol, std::map< Node, bool >& currCond, std::vector< Node >& new_cond ) {
+  std::map< Node, bool >::iterator it = currCond.find( n );
+  if( it==currCond.end() ){
+    Trace("quantifiers-rewrite-ite-debug") << "ITE cond : " << n << " -> " << pol << std::endl;
+    new_cond.push_back( n );
+    currCond[n] = pol;
+    return true;
+  }else{
+    Assert( it->second==pol );
+    return false;
   }
-  if( changed ){
-    if( body.getMetaKind() == kind::metakind::PARAMETERIZED ){
-      children.insert( children.begin(), body.getOperator() );
-    }
-    body = NodeManager::currentNM()->mkNode( body.getKind(), children );
-  }
-
-  if( body.getKind()==EQUAL && options::iteLiftQuant()!=ITE_LIFT_QUANT_MODE_NONE ){
-    for( size_t i=0; i<2; i++ ){
-      if( body[i].getKind()==ITE ){
-        Node no = i==0 ? body[1] : body[0];
-        if( no.getKind()!=ITE ){
-          bool doRewrite = options::iteLiftQuant()==ITE_LIFT_QUANT_MODE_ALL;
-          std::vector< Node > children;
-          children.push_back( body[i][0] );
-          for( size_t j=1; j<=2; j++ ){
-            //check if it rewrites to a constant
-            Node nn = NodeManager::currentNM()->mkNode( EQUAL, no, body[i][j] );
-            nn = Rewriter::rewrite( nn );
-            children.push_back( nn );
-            if( nn.isConst() ){
-              doRewrite = true;
-            }
-          }
-          if( doRewrite ){
-            return NodeManager::currentNM()->mkNode( ITE, children );
-          }
-        }
-      }
-    }
-  }else if( body.getKind()==ITE ){
-    if( body.getType().isBoolean() && hasPol && options::iteCondVarSplitQuant() ){
-      Trace("quantifiers-rewrite-ite-debug") << "Conditional var eq split " << body << std::endl;
-      for( unsigned r=0; r<2; r++ ){
-        //check if there is a variable elimination
-        Node b = r==0 ? body[0] : body[0].negate();
-        QuantPhaseReq qpr( b );
-        std::vector< Node > vars;
-        std::vector< Node > subs;
-        Trace("quantifiers-rewrite-ite-debug") << "phase req " << body[0] << " #: " << qpr.d_phase_reqs.size() << std::endl;
-        for( std::map< Node, bool >::iterator it = qpr.d_phase_reqs.begin(); it != qpr.d_phase_reqs.end(); ++it ){
-          Trace("quantifiers-rewrite-ite-debug") << "phase req " << it->first << " -> " << it->second << std::endl;
-          if( it->second ){
-            if( it->first.getKind()==EQUAL ){
-              for( unsigned i=0; i<2; i++ ){
-                if( it->first[i].getKind()==BOUND_VARIABLE ){
-                  unsigned j = i==0 ? 1 : 0;
-                  if( !TermDb::containsTerm( it->first[j], it->first[i] ) ){
-                    vars.push_back( it->first[i] );
-                    subs.push_back( it->first[j] );
-                    break;
-                  }
-                }
-              }
-            }
-          }
-        }
-        if( !vars.empty() ){
-          //bool cpol = (r==1);
-          Node pos = NodeManager::currentNM()->mkNode( OR, body[0].negate(), body[1] );
-          //pos = pos.substitute( vars.begin(), vars.end(), subs.begin(), subs.end() );
-          //pos = Rewriter::rewrite( pos );
-          Node neg = NodeManager::currentNM()->mkNode( OR, body[0], body[2] );
-          Trace("quantifiers-rewrite-ite") << "*** Split ITE (conditional variable eq) " << body << " into : " << std::endl;
-          Trace("quantifiers-rewrite-ite") << "   " << pos << std::endl;
-          Trace("quantifiers-rewrite-ite") << "   " << neg << std::endl;
-          return NodeManager::currentNM()->mkNode( AND, pos, neg );
-        }
-      }
-    }
-  }
-  return body;
 }
 
-Node QuantifiersRewriter::computeProcessIte2( Node body ){
+void setEntailedCond( Node n, bool pol, std::map< Node, bool >& currCond, std::vector< Node >& new_cond ) {
+  if( ( n.getKind()==AND && pol ) || ( n.getKind()==OR && !pol ) ){
+    for( unsigned i=0; i<n.getNumChildren(); i++ ){
+      setEntailedCond( n[i], pol, currCond, new_cond );
+    }
+  }else if( n.getKind()==NOT ){
+    setEntailedCond( n[0], !pol, currCond, new_cond );
+  }else if( n.getKind()==ITE ){
+    int pol = getEntailedCond( n, currCond );
+    if( pol==1 ){
+      setEntailedCond( n[1], pol, currCond, new_cond );
+    }else if( pol==-1 ){
+      setEntailedCond( n[2], pol, currCond, new_cond );
+    }
+  }
+  if( addEntailedCond( n, pol, currCond, new_cond ) ){
+    if( n.getKind()==APPLY_TESTER ){
+      const Datatype& dt = Datatype::datatypeOf(n.getOperator().toExpr());
+      unsigned index = Datatype::indexOf(n.getOperator().toExpr());
+      Assert( dt.getNumConstructors()>1 );
+      if( pol ){
+        for( unsigned i=0; i<dt.getNumConstructors(); i++ ){
+          if( i!=index ){
+            Node t = NodeManager::currentNM()->mkNode( APPLY_TESTER, Node::fromExpr( dt[i].getTester() ), n[0] );
+            addEntailedCond( t, false, currCond, new_cond );
+          }
+        }
+      }else{
+        if( dt.getNumConstructors()==2 ){
+          int oindex = 1-index;
+          Node t = NodeManager::currentNM()->mkNode( APPLY_TESTER, Node::fromExpr( dt[oindex].getTester() ), n[0] );
+          addEntailedCond( t, true, currCond, new_cond );
+        }
+      }
+    }
+  }
+}
+
+Node QuantifiersRewriter::computeProcessTerms( Node body, bool hasPol, bool pol, std::map< Node, bool >& currCond, int nCurrCond,
+                                               std::map< Node, Node >& cache, std::map< Node, Node >& icache,
+                                               std::vector< Node >& new_vars, std::vector< Node >& new_conds ) {
+  Node ret;
+  std::map< Node, Node >::iterator iti = cache.find( body );
+  if( iti!=cache.end() ){
+    ret = iti->second;
+  }else{
+    bool do_ite = false;
+    if( body.getKind()==ITE && nCurrCond<8 ){
+      do_ite = true;
+      nCurrCond = nCurrCond + 1;
+    }
+    bool changed = false;
+    std::vector< Node > children;
+    for( size_t i=0; i<body.getNumChildren(); i++ ){
+      std::vector< Node > new_cond;
+      if( do_ite && i>0 ){
+        setEntailedCond( children[0], i==1, currCond, new_cond );
+        cache.clear();
+      }
+      bool newHasPol;
+      bool newPol;
+      QuantPhaseReq::getPolarity( body, i, hasPol, pol, newHasPol, newPol );
+      Node nn = computeProcessTerms( body[i], newHasPol, newPol, currCond, nCurrCond, cache, icache, new_vars, new_conds );
+      if( body.getKind()==ITE ){
+        if( i==0 ){
+          int res = getEntailedCond( nn, currCond );
+          if( res==1 ){
+            ret = computeProcessTerms( body[1], hasPol, pol, currCond, nCurrCond, cache, icache, new_vars, new_conds );
+            break;
+          }else if( res==-1 ){
+            ret = computeProcessTerms( body[2], hasPol, pol, currCond, nCurrCond, cache, icache, new_vars, new_conds );
+            break;
+          }
+        }else{
+          for( unsigned j=0; j<new_cond.size(); j++ ){
+            currCond.erase( new_cond[j] );
+          }
+          cache.clear();
+        }
+      }
+      children.push_back( nn );
+      changed = changed || nn!=body[i];
+    }
+    if( ret.isNull() && changed ){
+      if( body.getMetaKind() == kind::metakind::PARAMETERIZED ){
+        children.insert( children.begin(), body.getOperator() );
+      }
+      ret = NodeManager::currentNM()->mkNode( body.getKind(), children );
+    }else{
+      ret = body;
+    }
+    cache[body] = ret;
+  }
+
+  iti = icache.find( ret );
+  if( iti!=icache.end() ){
+    return iti->second;
+  }else{
+    Node prev = ret;
+    if( ret.getKind()==EQUAL && options::iteLiftQuant()!=ITE_LIFT_QUANT_MODE_NONE ){
+      for( size_t i=0; i<2; i++ ){
+        if( ret[i].getKind()==ITE ){
+          Node no = i==0 ? ret[1] : ret[0];
+          if( no.getKind()!=ITE ){
+            bool doRewrite = options::iteLiftQuant()==ITE_LIFT_QUANT_MODE_ALL;
+            std::vector< Node > children;
+            children.push_back( ret[i][0] );
+            for( size_t j=1; j<=2; j++ ){
+              //check if it rewrites to a constant
+              Node nn = NodeManager::currentNM()->mkNode( EQUAL, no, ret[i][j] );
+              nn = Rewriter::rewrite( nn );
+              children.push_back( nn );
+              if( nn.isConst() ){
+                doRewrite = true;
+              }
+            }
+            if( doRewrite ){
+              ret = NodeManager::currentNM()->mkNode( ITE, children );
+              break;
+            }
+          }
+        }
+      }
+    }else if( ret.getKind()==INTS_DIVISION_TOTAL || ret.getKind()==INTS_MODULUS_TOTAL ){
+      Node num = ret[0];
+      Node den = ret[1];
+      if(den.isConst()) {
+        const Rational& rat = den.getConst<Rational>();
+        Assert(!num.isConst());
+        if(rat != 0) {
+          Node intVar = NodeManager::currentNM()->mkBoundVar(NodeManager::currentNM()->integerType());
+          new_vars.push_back( intVar );
+          Node cond;
+          if(rat > 0) {
+            cond = NodeManager::currentNM()->mkNode(kind::AND,
+                     NodeManager::currentNM()->mkNode(kind::LEQ, NodeManager::currentNM()->mkNode(kind::MULT, den, intVar), num),
+                     NodeManager::currentNM()->mkNode(kind::LT, num,
+                       NodeManager::currentNM()->mkNode(kind::MULT, den, NodeManager::currentNM()->mkNode(kind::PLUS, intVar, NodeManager::currentNM()->mkConst(Rational(1))))));
+          } else {
+            cond = NodeManager::currentNM()->mkNode(kind::AND,
+                     NodeManager::currentNM()->mkNode(kind::LEQ, NodeManager::currentNM()->mkNode(kind::MULT, den, intVar), num),
+                     NodeManager::currentNM()->mkNode(kind::LT, num,
+                       NodeManager::currentNM()->mkNode(kind::MULT, den, NodeManager::currentNM()->mkNode(kind::PLUS, intVar, NodeManager::currentNM()->mkConst(Rational(-1))))));
+          }
+          new_conds.push_back( cond.negate() );
+          if( ret.getKind()==INTS_DIVISION_TOTAL ){
+            ret = intVar;
+          }else{
+            ret = NodeManager::currentNM()->mkNode(kind::MINUS, num, NodeManager::currentNM()->mkNode(kind::MULT, den, intVar));
+          }
+        }
+      }
+    }else if( ret.getKind()==TO_INTEGER || ret.getKind()==IS_INTEGER ){
+      Node intVar = NodeManager::currentNM()->mkBoundVar(NodeManager::currentNM()->integerType());
+      new_vars.push_back( intVar );
+      new_conds.push_back(NodeManager::currentNM()->mkNode(kind::AND,
+                            NodeManager::currentNM()->mkNode(kind::LT,
+                              NodeManager::currentNM()->mkNode(kind::MINUS, ret[0], NodeManager::currentNM()->mkConst(Rational(1))), intVar),
+                            NodeManager::currentNM()->mkNode(kind::LEQ, intVar, ret[0])).negate());
+      if( ret.getKind()==TO_INTEGER ){
+        ret = intVar;
+      }else{
+        ret = ret[0].eqNode( intVar );
+      }
+    }
+    icache[prev] = ret;
+    return ret;
+  }
+}
+
+Node QuantifiersRewriter::computeProcessIte( Node body ){
   if( body.getKind()==ITE ){
     if( options::iteDtTesterSplitQuant() ){
       Trace("quantifiers-rewrite-ite-debug") << "DTT split : " << body << std::endl;
@@ -627,6 +663,46 @@ Node QuantifiersRewriter::computeProcessIte2( Node body ){
         return NodeManager::currentNM()->mkNode( AND, conj );
       }
     }
+    if( options::iteCondVarSplitQuant() ){
+      Trace("quantifiers-rewrite-ite-debug") << "Conditional var eq split " << body << std::endl;
+      bool do_split = false;
+      for( unsigned r=0; r<2; r++ ){
+        //check if there is a variable elimination
+        Node b = r==0 ? body[0] : body[0].negate();
+        QuantPhaseReq qpr( b );
+        Trace("quantifiers-rewrite-ite-debug") << "phase req " << body[0] << " #: " << qpr.d_phase_reqs.size() << std::endl;
+        for( std::map< Node, bool >::iterator it = qpr.d_phase_reqs.begin(); it != qpr.d_phase_reqs.end(); ++it ){
+          Trace("quantifiers-rewrite-ite-debug") << "phase req " << it->first << " -> " << it->second << std::endl;
+          if( it->second ){
+            if( it->first.getKind()==EQUAL ){
+              for( unsigned i=0; i<2; i++ ){
+                if( it->first[i].getKind()==BOUND_VARIABLE ){
+                  unsigned j = i==0 ? 1 : 0;
+                  if( !TermDb::containsTerm( it->first[j], it->first[i] ) ){
+                    do_split = true;
+                    break;
+                  }
+                }
+              }
+            }
+          }
+          if( do_split ){
+            break;
+          }
+        }
+        if( do_split ){
+          //bool cpol = (r==1);
+          Node pos = NodeManager::currentNM()->mkNode( OR, body[0].negate(), body[1] );
+          //pos = pos.substitute( vars.begin(), vars.end(), subs.begin(), subs.end() );
+          //pos = Rewriter::rewrite( pos );
+          Node neg = NodeManager::currentNM()->mkNode( OR, body[0], body[2] );
+          Trace("quantifiers-rewrite-ite") << "*** Split ITE (conditional variable eq) " << body << " into : " << std::endl;
+          Trace("quantifiers-rewrite-ite") << "   " << pos << std::endl;
+          Trace("quantifiers-rewrite-ite") << "   " << neg << std::endl;
+          return NodeManager::currentNM()->mkNode( AND, pos, neg );
+        }
+      }
+    }
   }
   return body;
 }
@@ -641,13 +717,16 @@ Node QuantifiersRewriter::computeVarElimination( Node body, std::vector< Node >&
     //Notice() << "   " << it->first << " -> " << ( it->second ? "true" : "false" ) << std::endl;
     if( it->first.getKind()==EQUAL ){
       if( it->second && options::varElimQuant() ){
+        TypeNode types[2];
         for( int i=0; i<2; i++ ){
-          int j = i==0 ? 1 : 0;
+          types[i] = it->first[i].getType();
+        }
+        for( int i=0; i<2; i++ ){
           std::vector< Node >::iterator ita = std::find( args.begin(), args.end(), it->first[i] );
           if( ita!=args.end() ){
-            if( !TermDb::containsTerm( it->first[j], it->first[i] ) ){
+            if( !TermDb::containsTerm( it->first[1-i], it->first[i] ) && types[1-i].isSubtypeOf( types[i] ) ){
               vars.push_back( it->first[i] );
-              subs.push_back( it->first[j] );
+              subs.push_back( it->first[1-i] );
               args.erase( ita );
               break;
             }
@@ -1201,12 +1280,11 @@ bool QuantifiersRewriter::doOperation( Node f, bool isNested, int computeOption 
     return options::aggressiveMiniscopeQuant();
   }else if( computeOption==COMPUTE_NNF ){
     return options::nnfQuant();
-  }else if( computeOption==COMPUTE_PROCESS_ITE ){
-    //always eliminate redundant conditions in ITE
+  }else if( computeOption==COMPUTE_PROCESS_TERMS ){
     return true;
     //return options::iteLiftQuant()!=ITE_LIFT_QUANT_MODE_NONE || options::iteCondVarSplitQuant();
-  }else if( computeOption==COMPUTE_PROCESS_ITE_2 ){
-    return options::iteDtTesterSplitQuant();
+  }else if( computeOption==COMPUTE_PROCESS_ITE ){
+    return options::iteDtTesterSplitQuant() || options::iteCondVarSplitQuant();
   }else if( computeOption==COMPUTE_PRENEX ){
     return options::prenexQuant()!=PRENEX_NONE && !options::aggressiveMiniscopeQuant();
   }else if( computeOption==COMPUTE_VAR_ELIMINATION ){
@@ -1241,11 +1319,18 @@ Node QuantifiersRewriter::computeOperation( Node f, bool isNested, int computeOp
       return computeAggressiveMiniscoping( args, n );
     }else if( computeOption==COMPUTE_NNF ){
       n = computeNNF( n );
-    }else if( computeOption==COMPUTE_PROCESS_ITE ){
+    }else if( computeOption==COMPUTE_PROCESS_TERMS ){
       std::map< Node, bool > curr_cond;
-      n = computeProcessIte( n, true, true, curr_cond );
-    }else if( computeOption==COMPUTE_PROCESS_ITE_2 ){
-      n = computeProcessIte2( n );
+      std::map< Node, Node > cache;
+      std::map< Node, Node > icache;
+      std::vector< Node > new_conds;
+      n = computeProcessTerms( n, true, true, curr_cond, 0, cache, icache, args, new_conds );
+      if( !new_conds.empty() ){
+        new_conds.push_back( n );
+        n = NodeManager::currentNM()->mkNode( OR, new_conds );
+      }
+    }else if( computeOption==COMPUTE_PROCESS_ITE ){
+      n = computeProcessIte( n );
     }else if( computeOption==COMPUTE_PRENEX ){
       n = computePrenex( n, args, true );
     }else if( computeOption==COMPUTE_VAR_ELIMINATION ){

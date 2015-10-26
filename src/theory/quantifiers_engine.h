@@ -68,6 +68,8 @@ public:
   /* check was complete (e.g. no lemmas implies a model) */
   virtual bool checkComplete() { return false; }
   /* Called for new quantifiers */
+  virtual void preRegisterQuantifier( Node q ) {}
+  /* Called for new quantifiers after owners are finalized */
   virtual void registerQuantifier( Node q ) = 0;
   virtual void assertNode( Node n ) = 0;
   virtual void propagate( Theory::Effort level ){}

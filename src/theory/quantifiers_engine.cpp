@@ -128,7 +128,7 @@ d_presolve_cache_wic(u){
     d_sg_gen = NULL;
   }
   //maintain invariant : either InstantiationEngine or ModelEngine must be in d_modules
-  if( !options::finiteModelFind() || options::fmfInstEngine() ){
+  if( !options::finiteModelFind() || options::fmfInstEngine() || options::cbqi() ){
     d_inst_engine = new quantifiers::InstantiationEngine( this );
     d_modules.push_back(  d_inst_engine );
     if( options::cbqi() && options::cbqiModel() ){
@@ -201,7 +201,7 @@ d_presolve_cache_wic(u){
   }else{
     d_rel_dom = NULL;
   }
-  
+
   if( needsBuilder ){
     Trace("quant-engine-debug") << "Initialize model engine, mbqi : " << options::mbqiMode() << " " << options::fmfBoundInt() << std::endl;
     if( options::mbqiMode()==quantifiers::MBQI_FMC || options::mbqiMode()==quantifiers::MBQI_FMC_INTERVAL ||
@@ -344,7 +344,7 @@ void QuantifiersEngine::check( Theory::Effort e ){
       }
     }
   }
-  
+
   d_hasAddedLemma = false;
   bool setIncomplete = false;
   if( e==Theory::EFFORT_LAST_CALL ){
@@ -355,7 +355,7 @@ void QuantifiersEngine::check( Theory::Effort e ){
     }
   }
   bool usedModelBuilder = false;
-    
+
   Trace("quant-engine-debug") << "Quantifiers Engine call to check, level = " << e << std::endl;
   if( needsCheck ){
     Trace("quant-engine") << "Quantifiers Engine check, level = " << e << std::endl;
@@ -479,7 +479,7 @@ void QuantifiersEngine::check( Theory::Effort e ){
   }else{
     Trace("quant-engine") << "Quantifiers Engine does not need check." << std::endl;
   }
-  
+
   //SAT case
   if( e==Theory::EFFORT_LAST_CALL && !d_hasAddedLemma ){
     if( options::produceModels() ){
@@ -554,6 +554,9 @@ bool QuantifiersEngine::registerQuantifier( Node f ){
       //make instantiation constants for f
       d_term_db->makeInstantiationConstantsFor( f );
       d_term_db->computeAttributes( f );
+      for( unsigned i=0; i<d_modules.size(); i++ ){
+        d_modules[i]->preRegisterQuantifier( f );
+      }
       QuantifiersModule * qm = getOwner( f );
       if( qm!=NULL ){
         Trace("quant") << "   Owner : " << qm->identify() << std::endl;
@@ -563,7 +566,7 @@ bool QuantifiersEngine::registerQuantifier( Node f ){
         d_quant_rel->registerQuantifier( f );
       }
       //register with each module
-      for( int i=0; i<(int)d_modules.size(); i++ ){
+      for( unsigned i=0; i<d_modules.size(); i++ ){
         d_modules[i]->registerQuantifier( f );
       }
       Node ceBody = d_term_db->getInstConstantBody( f );
