@@ -489,6 +489,7 @@ EXTRA_DIST = \
 	include/cvc4_public.h \
 	include/cvc4.h \
 	cvc4.i \
+	mksubdirs \
 	Makefile.theories \
 	smt/smt_options_template.cpp \
 	smt/modal_exception.i \
