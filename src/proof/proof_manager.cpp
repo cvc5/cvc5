@@ -53,7 +53,7 @@ ProofManager::ProofManager(ProofFormat format):
   //  d_inputClauses(),
   //  d_theoryLemmas(),
   //  d_theoryPropagations(),
-  d_inputFormulas(), 
+  d_inputFormulas(),
   d_inputCoreFormulas(),
   d_outputCoreFormulas(),
   //  d_nextId(0),
@@ -134,18 +134,18 @@ TheoryProofEngine* ProofManager::getTheoryProofEngine() {
 UFProof* ProofManager::getUfProof() {
   Assert (options::proof());
   TheoryProof* pf = getTheoryProofEngine()->getTheoryProof(theory::THEORY_UF);
-  return (UFProof*)pf; 
+  return (UFProof*)pf;
 }
 BitVectorProof* ProofManager::getBitVectorProof() {
   Assert (options::proof());
   TheoryProof* pf = getTheoryProofEngine()->getTheoryProof(theory::THEORY_BV);
-  return (BitVectorProof*)pf; 
+  return (BitVectorProof*)pf;
 }
 
 ArrayProof* ProofManager::getArrayProof() {
   Assert (options::proof());
   TheoryProof* pf = getTheoryProofEngine()->getTheoryProof(theory::THEORY_ARRAY);
-  return (ArrayProof*)pf; 
+  return (ArrayProof*)pf;
 }
 
 void ProofManager::initSatProof(Minisat::Solver* solver) {
@@ -181,7 +181,7 @@ void ProofManager::initCnfProof(prop::CnfStream* cnfStream,
   //pm->d_cnfProof->setClauseFact(pm->d_satProof->getFalseUnit(), false_node);
   pm->d_cnfProof->popCurrentAssertion();
   pm->d_cnfProof->popCurrentDefinition();
-  
+
 }
 
 void ProofManager::initTheoryProofEngine() {
@@ -199,10 +199,10 @@ std::string ProofManager::getLemmaClauseName(ClauseId id,
   return append(prefix+".lemc", id);
 }
   std::string ProofManager::getLemmaName(ClauseId id,
-					 const std::string& prefix) {
+           const std::string& prefix) {
   return append(prefix+"lem", id);
 }
-  
+
 std::string ProofManager::getLearntClauseName(ClauseId id,
                                               const std::string& prefix) {
   return append(prefix+".cl", id);
@@ -235,11 +235,11 @@ std::string ProofManager::getAssertionName(Node node,
 // void ProofManager::addTheoryLemma(ClauseId id,
 //                                   const prop::SatClause* clause,
 //                                   ClauseKind kind) {
-//   Assert (d_theoryLemmas.find(id) == d_theoryLemmas.end()); 
+//   Assert (d_theoryLemmas.find(id) == d_theoryLemmas.end());
 //   d_theoryLemmas.insert(std::make_pair(id, clause));
 //   d_cnfProof->collectAtoms(clause);
 // }
-  
+
 std::string ProofManager::getAtomName(TNode atom,
                                       const std::string& prefix) {
   prop::SatLiteral lit = currentPM()->d_cnfProof->getLiteral(atom);
@@ -287,7 +287,7 @@ void ProofManager::traceDeps(TNode n) {
 
 void ProofManager::traceUnsatCore() {
   Assert (options::unsatCores());
-  
+
   d_satProof->constructProof();
   IdToSatClause used_lemmas;
   IdToSatClause used_inputs;
@@ -297,7 +297,7 @@ void ProofManager::traceUnsatCore() {
   for(; it != used_inputs.end(); ++it) {
     Node node = d_cnfProof->getAssertionForClause(it->first);
     ProofRule rule = d_cnfProof->getProofRule(node);
-    
+
     Debug("cores") << "core input assertion " << node << std::endl;
     Debug("cores") << "with proof rule " << rule << std::endl;
     if (rule == RULE_TSEITIN ||
@@ -343,7 +343,7 @@ void ProofManager::setLogic(const LogicInfo& logic) {
 // void ProofManager::addTheoryLemma(ClauseId id,
 //                                   const prop::SatClause* clause,
 //                                   ClauseKind kind) {
-//   Assert (d_theoryLemmas.find(id) == d_theoryLemmas.end()); 
+//   Assert (d_theoryLemmas.find(id) == d_theoryLemmas.end());
 //   d_theoryLemmas.insert(std::make_pair(id, clause));
 //   d_cnfProof->collectAtoms(clause);
 // }
@@ -408,7 +408,7 @@ LFSCProof::LFSCProof(SmtEngine* smtEngine,
                      LFSCTheoryProofEngine* theory)
   : d_satProof(sat)
   , d_cnfProof(cnf)
-    //  , d_rewriterProof(rwr)    
+    //  , d_rewriterProof(rwr)
   , d_theoryProof(theory)
   , d_smtEngine(smtEngine)
 {}
@@ -436,14 +436,14 @@ void LFSCProof::toStream(std::ostream& out) {
        it != used_assertions.end(); ++it) {
     utils::collectAtoms(*it, atoms);
   }
-  
+
   if (Debug.isOn("proof:pm")) {
-    // std::cout << NodeManager::currentNM(); 
+    // std::cout << NodeManager::currentNM();
     Debug("proof:pm") << "LFSCProof::Used assertions: "<< std::endl;
     for(NodeSet::const_iterator it = used_assertions.begin(); it != used_assertions.end(); ++it) {
       Debug("proof:pm") << "   " << *it << std::endl;
     }
-    
+
     // NodeSet lemmas;
     // d_cnfProof->collectAssertionsForClauses(used_lemmas, lemmas);
 
@@ -458,13 +458,13 @@ void LFSCProof::toStream(std::ostream& out) {
     }
   }
 
-  
-  
+
+
   smt::SmtScope scope(d_smtEngine);
   std::ostringstream paren;
   out << "(check\n";
   out << " ;; Declarations\n";
-  
+
   // declare the theory atoms
   NodeSet::const_iterator it = atoms.begin();
   NodeSet::const_iterator end = atoms.end();
@@ -495,7 +495,7 @@ void LFSCProof::toStream(std::ostream& out) {
   // print theory lemmas for resolution proof
   d_theoryProof->printTheoryLemmas(used_lemmas, out, paren);
 
-  
+
   if (options::bitblastMode() == theory::bv::BITBLAST_MODE_EAGER && ProofManager::getBitVectorProof()) {
     // priunt actual resolution proof
     // d_satProof->printResolutions(out, paren);
@@ -519,15 +519,15 @@ void LFSCProof::printPreprocessedAssertions(const NodeSet& assertions,
   os << " ;; Preprocessing \n";
   NodeSet::const_iterator it = assertions.begin();
   NodeSet::const_iterator end = assertions.end();
-  
+
   for (; it != end; ++it) {
     os << "(th_let_pf _ ";
-    
+
     //TODO
     os << "(trust_f ";
     ProofManager::currentPM()->getTheoryProofEngine()->printLetTerm((*it).toExpr(), os);
     os << ") ";
-    
+
     os << "(\\ "<< ProofManager::getPreprocessedAssertionName(*it, "") << "\n";
     paren << "))";
 
@@ -550,7 +550,7 @@ void LFSCProof::printPreprocessedAssertions(const NodeSet& assertions,
 //   // print out the assertions
 //   d_theoryProof->printAssertions(out, paren);
 //   // d_rewriterProof->printRewrittenAssertios(out, paren);
-  
+
 //   out << "(: (holds cln)\n";
 //   // print mapping between theory atoms and internal SAT variables
 //   d_cnfProof->printAtomMapping(out, paren);
@@ -578,6 +578,7 @@ Node ProofManager::lookupOp(TNode n) const {
 }
 
 Node ProofManager::mkOp(TNode n) {
+  Trace("ajr-temp") << "MkOp : " << n << " " << n.getKind() << std::endl;
   if(n.getKind() != kind::BUILTIN) {
     return n;
   }

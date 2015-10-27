@@ -292,10 +292,10 @@ void EqualityEngine::addTermInternal(TNode t, bool isOperator) {
       // How many children are not constants yet
       d_subtermsToEvaluate[result] = t.getNumChildren();
       for (unsigned i = 0; i < t.getNumChildren(); ++ i) {
-	if (isConstant(getNodeId(t[i]))) {
-	  Debug("equality::evaluation") << d_name << "::eq::addTermInternal(" << t << "): evaluates " << t[i] << std::endl;
-	  subtermEvaluates(result);
-	}
+  if (isConstant(getNodeId(t[i]))) {
+    Debug("equality::evaluation") << d_name << "::eq::addTermInternal(" << t << "): evaluates " << t[i] << std::endl;
+    subtermEvaluates(result);
+  }
       }
     }
   } else {
@@ -313,7 +313,7 @@ void EqualityEngine::addTermInternal(TNode t, bool isOperator) {
   } else if (d_constantsAreTriggers && d_isConstant[result]) {
     // Non-Boolean constants are trigger terms for all tags
     EqualityNodeId tId = getNodeId(t);
-    // Setup the new set 
+    // Setup the new set
     Theory::Set newSetTags = 0;
     EqualityNodeId newSetTriggers[THEORY_LAST];
     unsigned newSetTriggersSize = THEORY_LAST;
@@ -607,12 +607,12 @@ bool EqualityEngine::merge(EqualityNode& class1, EqualityNode& class2, std::vect
         Debug("equality") << d_name << "::eq::merge(" << class1.getFind() << "," << class2.getFind() << "): " << d_nodes[currentId] << " in " << d_nodes[funId] << std::endl;
         const FunctionApplication& fun = d_applications[useNode.getApplicationId()].normalized;
         // If it's interpreted and we can interpret
-	if (fun.isInterpreted() && class1isConstant && !d_isInternal[currentId]) {
-	  // Get the actual term id
-	  TNode term = d_nodes[funId];
-	  subtermEvaluates(getNodeId(term));
-	}
-	// Check if there is an application with find arguments
+  if (fun.isInterpreted() && class1isConstant && !d_isInternal[currentId]) {
+    // Get the actual term id
+    TNode term = d_nodes[funId];
+    subtermEvaluates(getNodeId(term));
+  }
+  // Check if there is an application with find arguments
         EqualityNodeId aNormalized = getEqualityNode(fun.a).getFind();
         EqualityNodeId bNormalized = getEqualityNode(fun.b).getFind();
         FunctionApplication funNormalized(fun.type, aNormalized, bNormalized);
@@ -950,7 +950,7 @@ void EqualityEngine::getExplanation(EqualityNodeId t1Id, EqualityNodeId t2Id, st
   // If the nodes are the same, we're done
   if (t1Id == t2Id){
     if( eqp ) {
-      eqp->d_node = d_nodes[t1Id];
+      eqp->d_node = ProofManager::currentPM()->mkOp(d_nodes[t1Id]);
     }
     return;
   }
@@ -1029,6 +1029,16 @@ void EqualityEngine::getExplanation(EqualityNodeId t1Id, EqualityNodeId t2Id, st
               if( eqpc ){
                 eqpc->d_children.push_back( eqpc1 );
                 eqpc->d_children.push_back( eqpc2 );
+Debug("mgdx") << "HRRM, so " << f1.a << " / " << f2.a << "\n";
+Debug("mgdx") << "HRRM, so " << d_nodes[f1.a] << " / " << d_nodes[f2.a] << "\n"
+              << "         " << d_nodes[f1.b] << " / " << d_nodes[f2.b] << "\n";
+                if(d_nodes[f1.a].getKind() == kind::APPLY_UF ||
+                   d_nodes[f1.a].getKind() == kind::SELECT ||
+                   d_nodes[f1.a].getKind() == kind::STORE) {
+                  eqpc->d_node = d_nodes[f1.a];
+                } else {
+                  eqpc->d_node = NodeManager::currentNM()->mkNode(kind::PARTIAL_APPLY_UF, ProofManager::currentPM()->mkOp(d_nodes[f1.a]), d_nodes[f1.b]);
+                }
               }
               Debug("equality") << pop;
               break;
@@ -1081,13 +1091,14 @@ void EqualityEngine::getExplanation(EqualityNodeId t1Id, EqualityNodeId t2Id, st
               // Construct the equality
               Debug("equality") << d_name << "::eq::getExplanation(): adding: " << d_equalityEdges[currentEdge].getReason() << std::endl;
               if( eqpc ){
-                if( reasonType==MERGED_THROUGH_EQUALITY ){
+                if(reasonType == MERGED_THROUGH_EQUALITY) {
                   eqpc->d_node = d_equalityEdges[currentEdge].getReason();
-                }else{
-                  //theory-specific proof rule : TODO
-                  eqpc->d_id = reasonType;
-                  //eqpc->d_node = d_equalityEdges[currentEdge].getNodeId();
+                } else {
+                  // theory-specific proof rule : TODO
+                  eqpc->d_node = d_nodes[d_equalityEdges[currentEdge].getNodeId()].eqNode(d_nodes[currentNode]);
+                  Debug("mgd") << "theory eq : " << eqpc->d_node << std::endl;
                 }
+                eqpc->d_id = reasonType;
               }
               equalities.push_back(d_equalityEdges[currentEdge].getReason());
               break;
@@ -1110,15 +1121,11 @@ void EqualityEngine::getExplanation(EqualityNodeId t1Id, EqualityNodeId t2Id, st
               }
             }
             //---end from Morgan---
-            
+
             eqp_trans.push_back( eqpc );
 
           } while (currentEdge != null_id);
 
-          //if( eqp ){
-          //  eqp->d_id = MERGED_THROUGH_TRANS;
-          //  eqp->d_children.insert( eqp->d_children.end(), eqp_trans.begin(), eqp_trans.end() );
-          //}
           //---from Morgan---
           if(eqp) {
             if(eqp_trans.size() > 1) {
@@ -1138,7 +1145,7 @@ void EqualityEngine::getExplanation(EqualityNodeId t1Id, EqualityNodeId t2Id, st
             }
           }
           //---end from Morgan---
-          
+
           // Done
           return;
         }

@@ -32,13 +32,32 @@ inline static Node eqNode(TNode n1, TNode n2) {
 
 // congrence matching term helper
 inline static bool match(TNode n1, TNode n2) {
-  if(n1.getKind() != kind::PARTIAL_APPLY_UF && n1.getKind() != kind::APPLY_UF) {
-    return n1 == n2.getOperator();
+  Debug("mgd") << "match " << n1 << " " << n2 << std::endl;
+  if(ProofManager::currentPM()->hasOp(n1)) {
+    n1 = ProofManager::currentPM()->lookupOp(n1);
   }
-  if(n2.getKind() != kind::PARTIAL_APPLY_UF && n2.getKind() != kind::APPLY_UF) {
-    return n2 == n1.getOperator();
+  if(ProofManager::currentPM()->hasOp(n2)) {
+    n2 = ProofManager::currentPM()->lookupOp(n2);
   }
-  if(n1.getOperator() != n2.getOperator()) {
+  Debug("mgd") << "+ match " << n1 << " " << n2 << std::endl;
+  if(n1 == n2) {
+    return true;
+  }
+  if(n1.getType().isFunction() && n2.hasOperator()) {
+    if(ProofManager::currentPM()->hasOp(n2.getOperator())) {
+      return n1 == ProofManager::currentPM()->lookupOp(n2.getOperator());
+    } else {
+      return n1 == n2.getOperator();
+    }
+  }
+  if(n2.getType().isFunction() && n1.hasOperator()) {
+    if(ProofManager::currentPM()->hasOp(n1.getOperator())) {
+      return n2 == ProofManager::currentPM()->lookupOp(n1.getOperator());
+    } else {
+      return n2 == n1.getOperator();
+    }
+  }
+  if(n1.hasOperator() && n2.hasOperator() && n1.getOperator() != n2.getOperator()) {
     return false;
   }
   for(size_t i = 0; i < n1.getNumChildren() && i < n2.getNumChildren(); ++i) {
@@ -464,13 +483,13 @@ void UFProof::registerTerm(Expr term) {
   // already registered
   if (d_declarations.find(term) != d_declarations.end())
     return;
-  
+
   Type type = term.getType();
   if (type.isSort()) {
     // declare uninterpreted sorts
     d_sorts.insert(type);
   }
-  
+
   if (term.getKind() == kind::APPLY_UF) {
     Expr function = term.getOperator();
     d_declarations.insert(function);
@@ -479,7 +498,7 @@ void UFProof::registerTerm(Expr term) {
   if (term.isVariable()) {
     d_declarations.insert(term);
   }
-  
+
   // recursively declare all other terms
   for (unsigned i = 0; i < term.getNumChildren(); ++i) {
     // could belong to other theories
@@ -493,11 +512,11 @@ void LFSCUFProof::printTerm(Expr term, std::ostream& os, const LetMap& map) {
   if (term.getKind() == kind::VARIABLE ||
       term.getKind() == kind::SKOLEM) {
     os << term;
-    return; 
+    return;
   }
-  
+
   Assert (term.getKind() == kind::APPLY_UF);
-  
+
   if(term.getType().isBoolean()) {
     os << "(p_app ";
   }
@@ -517,13 +536,13 @@ void LFSCUFProof::printTerm(Expr term, std::ostream& os, const LetMap& map) {
 
 void LFSCUFProof::printSort(Type type, std::ostream& os) {
   Assert (type.isSort());
-  os << type <<" "; 
+  os << type <<" ";
 }
 
 void LFSCUFProof::printTheoryLemmaProof(std::vector<Expr>& lemma, std::ostream& os, std::ostream& paren) {
   os << " ;; UF Theory Lemma \n;;";
   for (unsigned i = 0; i < lemma.size(); ++i) {
-    os << lemma[i] <<" "; 
+    os << lemma[i] <<" ";
   }
   os <<"\n";
   //os << " (clausify_false trust)";
