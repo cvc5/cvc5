@@ -14,7 +14,7 @@ TAG_FILE=$1
 
 echo 'static char const* const '$TAG_FILE'[] = {';
 for tag in `cat $TAG_FILE`; do
-  echo "\"$$tag\",";
+  echo "\"$tag\",";
 done;
 echo 'NULL';
 echo '};'
