@@ -34,9 +34,7 @@ public:
   //it is simply an equality engine proof
   theory::eq::EqProof * d_proof;
   void toStream(std::ostream& out);
-  static void toStreamLFSC(std::ostream& out, TheoryProof * tp, theory::eq::EqProof * pf, const LetMap& map) { 
-    toStreamRecLFSC( out, tp, pf, 0, map ); 
-  }
+  static void toStreamLFSC(std::ostream& out, TheoryProof * tp, theory::eq::EqProof * pf, const LetMap& map);
 };
 
   

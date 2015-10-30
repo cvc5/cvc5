@@ -1007,6 +1007,7 @@ void EqualityEngine::getExplanation(EqualityNodeId t1Id, EqualityNodeId t2Id, st
             MergeReasonType reasonType = d_equalityEdges[currentEdge].getReasonType();
 
             Debug("equality") << d_name << "::eq::getExplanation(): currentEdge = " << currentEdge << ", currentNode = " << currentNode << std::endl;
+            Debug("equality") << d_name << "                     in currentEdge = (" << d_nodes[currentNode] << "," << d_nodes[edge.getNodeId()] << ")" << std::endl;
 
             EqProof * eqpc = NULL;
             //make child proof if a proof is being constructed
@@ -1029,15 +1030,19 @@ void EqualityEngine::getExplanation(EqualityNodeId t1Id, EqualityNodeId t2Id, st
               if( eqpc ){
                 eqpc->d_children.push_back( eqpc1 );
                 eqpc->d_children.push_back( eqpc2 );
-Debug("mgdx") << "HRRM, so " << f1.a << " / " << f2.a << "\n";
-Debug("mgdx") << "HRRM, so " << d_nodes[f1.a] << " / " << d_nodes[f2.a] << "\n"
-              << "         " << d_nodes[f1.b] << " / " << d_nodes[f2.b] << "\n";
-                if(d_nodes[f1.a].getKind() == kind::APPLY_UF ||
-                   d_nodes[f1.a].getKind() == kind::SELECT ||
-                   d_nodes[f1.a].getKind() == kind::STORE) {
-                  eqpc->d_node = d_nodes[f1.a];
-                } else {
-                  eqpc->d_node = NodeManager::currentNM()->mkNode(kind::PARTIAL_APPLY_UF, ProofManager::currentPM()->mkOp(d_nodes[f1.a]), d_nodes[f1.b]);
+                Debug("equality-pf") << "Congruence : " << d_nodes[currentNode] << " " << d_nodes[edgeNode] << std::endl;
+                if( d_nodes[currentNode].getKind()==kind::EQUAL ){
+                  //leave node null for now
+                  eqpc->d_node = Node::null();
+                }else{
+                  Debug("equality-pf") << d_nodes[f1.a] << " / " << d_nodes[f2.a] << ", " << d_nodes[f1.b] << " / " << d_nodes[f2.b] << std::endl;
+                  if(d_nodes[f1.a].getKind() == kind::APPLY_UF ||
+                     d_nodes[f1.a].getKind() == kind::SELECT ||
+                     d_nodes[f1.a].getKind() == kind::STORE) {
+                    eqpc->d_node = d_nodes[f1.a];
+                  } else {
+                    eqpc->d_node = NodeManager::currentNM()->mkNode(kind::PARTIAL_APPLY_UF, ProofManager::currentPM()->mkOp(d_nodes[f1.a]), d_nodes[f1.b]);
+                  }
                 }
               }
               Debug("equality") << pop;
@@ -1094,9 +1099,9 @@ Debug("mgdx") << "HRRM, so " << d_nodes[f1.a] << " / " << d_nodes[f2.a] << "\n"
                 if(reasonType == MERGED_THROUGH_EQUALITY) {
                   eqpc->d_node = d_equalityEdges[currentEdge].getReason();
                 } else {
-                  // theory-specific proof rule : TODO
+                  // theory-specific proof rule
                   eqpc->d_node = d_nodes[d_equalityEdges[currentEdge].getNodeId()].eqNode(d_nodes[currentNode]);
-                  Debug("mgd") << "theory eq : " << eqpc->d_node << std::endl;
+                  Debug("equality-pf") << "theory eq : " << eqpc->d_node << std::endl;
                 }
                 eqpc->d_id = reasonType;
               }
@@ -1126,15 +1131,7 @@ Debug("mgdx") << "HRRM, so " << d_nodes[f1.a] << " / " << d_nodes[f2.a] << "\n"
 
           } while (currentEdge != null_id);
 
-          //---from Morgan---
           if(eqp) {
-            if(eqp_trans.size() > 1) {
-              for(size_t i = 0; i < eqp_trans.size(); ++i) {
-                if(eqp_trans[i]->isReflexivity()) {
-                  eqp_trans.erase(eqp_trans.begin() + i);
-                }
-              }
-            }
             if(eqp_trans.size() == 1) {
               *eqp = *eqp_trans[0];
               delete eqp_trans[0];
@@ -1144,7 +1141,6 @@ Debug("mgdx") << "HRRM, so " << d_nodes[f1.a] << " / " << d_nodes[f2.a] << "\n"
               eqp->d_node = NodeManager::currentNM()->mkNode(d_nodes[t1Id].getType().isBoolean() ? kind::IFF : kind::EQUAL, d_nodes[t1Id], d_nodes[t2Id]);
             }
           }
-          //---end from Morgan---
 
           // Done
           return;
@@ -2073,33 +2069,6 @@ EqClassIterator EqClassIterator::operator++(int) {
 bool EqClassIterator::isFinished() const {
   return d_current == null_id;
 }
-
-//---from Morgan---
-bool EqProof::isReflexivity(){
-  if(d_id == MERGED_THROUGH_REFLEXIVITY) {
-    return true;
-  }
-  if(d_id == MERGED_THROUGH_CONGRUENCE) {
-    return d_children[0]->isReflexivity() && d_children[1]->isReflexivity();
-  }
-  if(d_id == MERGED_THROUGH_TRANS) {
-    size_t n = d_children.size() - 1;
-    if(n > 0) {
-      if(d_children[n]->d_node[0] == d_children[0]->d_node[0] ||
-         d_children[n]->d_node[1] == d_children[0]->d_node[0] ||
-         d_children[n]->d_node[0] == d_children[0]->d_node[1] ||
-         d_children[n]->d_node[1] == d_children[0]->d_node[1]) {
-        // fixme
-        Debug("mgd") << "found transitive-reflexive proof:\n";
-        debug_print("mgd");
-        Debug("mgd") << "\n";
-        return true;
-      }
-    }
-  }
-  return false;
-}
-//---end from Morgan---
 
 void EqProof::debug_print( const char * c, unsigned tb ) const{
   for( unsigned i=0; i<tb; i++ ) { Debug( c ) << "  "; }

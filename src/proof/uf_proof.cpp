@@ -76,6 +76,13 @@ void ProofUF::toStream(std::ostream& out) {
   toStreamLFSC(out, ProofManager::getUfProof(), d_proof, map);
 }
 
+void ProofUF::toStreamLFSC(std::ostream& out, TheoryProof * tp, theory::eq::EqProof * pf, const LetMap& map) { 
+  Debug("lfsc-uf") << "Printing uf proof in LFSC : " << std::endl;
+  pf->debug_print("lfsc-uf");
+  Debug("lfsc-uf") << std::endl;
+  toStreamRecLFSC( out, tp, pf, 0, map ); 
+}
+  
 Node ProofUF::toStreamRecLFSC(std::ostream& out, TheoryProof * tp, theory::eq::EqProof * pf, unsigned tb, const LetMap& map) {
   if(tb == 0) {
     Assert(pf->d_id == eq::MERGED_THROUGH_TRANS);
@@ -90,6 +97,12 @@ Node ProofUF::toStreamRecLFSC(std::ostream& out, TheoryProof * tp, theory::eq::E
       if(!pf->d_children[i]->d_node.isNull() && pf->d_children[i]->d_node.getKind() == kind::NOT) {
         Assert(neg < 0);
         neg = i;
+      //equality congruences
+      } else if( pf->d_children[i]->d_id==eq::MERGED_THROUGH_CONGRUENCE && pf->d_children[i]->d_node.isNull() ){
+        //append to front and back 
+        Assert( pf->d_children[i]->d_children.size()==2 );
+        subTrans.d_children.insert( subTrans.d_children.begin(), pf->d_children[i]->d_children[0] );
+        subTrans.d_children.push_back( pf->d_children[i]->d_children[1] );
       } else {
         subTrans.d_children.push_back(pf->d_children[i]);
       }
@@ -98,8 +111,8 @@ Node ProofUF::toStreamRecLFSC(std::ostream& out, TheoryProof * tp, theory::eq::E
 
     Node n1;
     std::stringstream ss;
-    Assert(subTrans.d_children.size() == pf->d_children.size() - 1);
-      Debug("mgdx") << "\nsubtrans has " << subTrans.d_children.size() << " children\n";
+    //Assert(subTrans.d_children.size() == pf->d_children.size() - 1);
+    Debug("mgdx") << "\nsubtrans has " << subTrans.d_children.size() << " children\n";
     if(pf->d_children.size() > 2) {
       n1 = toStreamRecLFSC(ss, tp, &subTrans, 1, map);
     } else {
@@ -120,8 +133,7 @@ Node ProofUF::toStreamRecLFSC(std::ostream& out, TheoryProof * tp, theory::eq::E
       out << ss.str();
       out << ") (pred_eq_f _ " << ProofManager::getLitName(n2[0]) << ")) t_t_neq_f))" << std::endl;
     } else {
-      Assert((n1[0] == n2[0][0] && n1[1] == n2[0][1]) ||
-             (n1[1] == n2[0][0] && n1[0] == n2[0][1]));
+      Assert((n1[0] == n2[0][0] && n1[1] == n2[0][1]) || (n1[1] == n2[0][0] && n1[0] == n2[0][1]));
       if(n1[1] == n2[0][0]) {
         out << "(symm _ _ _ " << ss.str() << ")";
       } else {
@@ -153,25 +165,25 @@ Node ProofUF::toStreamRecLFSC(std::ostream& out, TheoryProof * tp, theory::eq::E
     out << " ";
     std::stringstream ss;
     Node n2 = toStreamRecLFSC(ss, tp, pf2->d_children[1], tb + 1, map);
-Debug("mgd") << "\nok, in FIRST cong[" << stk.size() << "]" << "\n";
+    Debug("mgd") << "\nok, in FIRST cong[" << stk.size() << "]" << "\n";
     pf2->debug_print("mgd");
-Debug("mgd") << "looking at " << pf2->d_node << "\n";
-Debug("mgd") << "           " << n1 << "\n";
-Debug("mgd") << "           " << n2 << "\n";
+    Debug("mgd") << "looking at " << pf2->d_node << "\n";
+    Debug("mgd") << "           " << n1 << "\n";
+    Debug("mgd") << "           " << n2 << "\n";
     int side = 0;
     if(match(pf2->d_node, n1[0])) {
       //if(tb == 1) {
-Debug("mgd") << "SIDE IS 0\n";
-//}
+      Debug("mgd") << "SIDE IS 0\n";
+      //}
       side = 0;
     } else {
       //if(tb == 1) {
-Debug("mgd") << "SIDE IS 1\n";
-//}
-if(!match(pf2->d_node, n1[1])) {
-Debug("mgd") << "IN BAD CASE, our first subproof is\n";
-pf2->d_children[0]->debug_print("mgd");
-}
+      Debug("mgd") << "SIDE IS 1\n";
+      //}
+      if(!match(pf2->d_node, n1[1])) {
+      Debug("mgd") << "IN BAD CASE, our first subproof is\n";
+      pf2->d_children[0]->debug_print("mgd");
+      }
       Assert(match(pf2->d_node, n1[1]));
       side = 1;
     }
@@ -212,21 +224,21 @@ pf2->d_children[0]->debug_print("mgd");
     }
     out << ")";
     while(!stk.empty()) {
-if(tb == 1) {
-Debug("mgd") << "\nMORE TO DO\n";
-}
+      if(tb == 1) {
+      Debug("mgd") << "\nMORE TO DO\n";
+      }
       pf2 = stk.top();
       stk.pop();
       Assert(pf2->d_id == eq::MERGED_THROUGH_CONGRUENCE);
       out << " ";
       ss.str("");
       n2 = toStreamRecLFSC(ss, tp, pf2->d_children[1], tb + 1, map);
-Debug("mgd") << "\nok, in cong[" << stk.size() << "]" << "\n";
-Debug("mgd") << "looking at " << pf2->d_node << "\n";
-Debug("mgd") << "           " << n1 << "\n";
-Debug("mgd") << "           " << n2 << "\n";
-Debug("mgd") << "           " << b1 << "\n";
-Debug("mgd") << "           " << b2 << "\n";
+      Debug("mgd") << "\nok, in cong[" << stk.size() << "]" << "\n";
+      Debug("mgd") << "looking at " << pf2->d_node << "\n";
+      Debug("mgd") << "           " << n1 << "\n";
+      Debug("mgd") << "           " << n2 << "\n";
+      Debug("mgd") << "           " << b1 << "\n";
+      Debug("mgd") << "           " << b2 << "\n";
       if(pf2->d_node[b1.getNumChildren()] == n2[side]) {
         b1 << n2[side];
         b2 << n2[1-side];
@@ -241,7 +253,7 @@ Debug("mgd") << "           " << b2 << "\n";
     }
     n1 = b1;
     n2 = b2;
-Debug("mgd") << "at end assert, got " << pf2->d_node << "  and  " << n1 << std::endl;
+    Debug("mgd") << "at end assert, got " << pf2->d_node << "  and  " << n1 << std::endl;
     if(pf2->d_node.getKind() == kind::PARTIAL_APPLY_UF) {
       Assert(n1 == pf2->d_node);
     }
@@ -254,7 +266,7 @@ Debug("mgd") << "at end assert, got " << pf2->d_node << "  and  " << n1 << std::
       }
       b1.append(n1.begin(), n1.end());
       n1 = b1;
-Debug("mgd") << "at[2] end assert, got " << pf2->d_node << "  and  " << n1 << std::endl;
+      Debug("mgd") << "at[2] end assert, got " << pf2->d_node << "  and  " << n1 << std::endl;
       if(pf2->d_node.getKind() == kind::APPLY_UF) {
         Assert(n1 == pf2->d_node);
       }
@@ -270,9 +282,9 @@ Debug("mgd") << "at[2] end assert, got " << pf2->d_node << "  and  " << n1 << st
       n2 = b2;
     }
     Node n = (side == 0 ? eqNode(n1, n2) : eqNode(n2, n1));
-if(tb == 1) {
-Debug("mgdx") << "\ncong proved: " << n << "\n";
-}
+    if(tb == 1) {
+    Debug("mgdx") << "\ncong proved: " << n << "\n";
+    }
     return n;
   }
 
@@ -294,84 +306,84 @@ Debug("mgdx") << "\ncong proved: " << n << "\n";
     Assert(!pf->d_node.isNull());
     Assert(pf->d_children.size() >= 2);
     std::stringstream ss;
-Debug("mgd") << "\ndoing trans proof[[\n";
-pf->debug_print("mgd");
-Debug("mgd") << "\n";
+    Debug("mgd") << "\ndoing trans proof[[\n";
+    pf->debug_print("mgd");
+    Debug("mgd") << "\n";
     Node n1 = toStreamRecLFSC(ss, tp, pf->d_children[0], tb + 1, map);
-Debug("mgd") << "\ndoing trans proof, got n1 " << n1 << "\n";
-if(tb == 1) {
-Debug("mgdx") << "\ntrans proof[0], got n1 " << n1 << "\n";
-}
+    Debug("mgd") << "\ndoing trans proof, got n1 " << n1 << "\n";
+    if(tb == 1) {
+      Debug("mgdx") << "\ntrans proof[0], got n1 " << n1 << "\n";
+    }
     for(size_t i = 1; i < pf->d_children.size(); ++i) {
       std::stringstream ss1(ss.str()), ss2;
       ss.str("");
       Node n2 = toStreamRecLFSC(ss2, tp, pf->d_children[i], tb + 1, map);
-Debug("mgd") << "\ndoing trans proof, got n2 " << n2 << "\n";
-if(tb == 1) {
-Debug("mgdx") << "\ntrans proof[" << i << "], got n2 " << n2 << "\n";
-Debug("mgdx") << (n2.getKind() == kind::EQUAL || n2.getKind() == kind::IFF) << "\n";
-Debug("mgdx") << n1[0].getId() << " " << n1[1].getId() << " / " << n2[0].getId() << " " << n2[1].getId() << "\n";
-Debug("mgdx") << n1[0].getId() << " " << n1[0] << "\n";
-Debug("mgdx") << n1[1].getId() << " " << n1[1] << "\n";
-Debug("mgdx") << n2[0].getId() << " " << n2[0] << "\n";
-Debug("mgdx") << n2[1].getId() << " " << n2[1] << "\n";
-Debug("mgdx") << (n1[0] == n2[0]) << "\n";
-Debug("mgdx") << (n1[1] == n2[1]) << "\n";
-Debug("mgdx") << (n1[0] == n2[1]) << "\n";
-Debug("mgdx") << (n1[1] == n2[0]) << "\n";
-}
+      Debug("mgd") << "\ndoing trans proof, got n2 " << n2 << "\n";
+      if(tb == 1) {
+      Debug("mgdx") << "\ntrans proof[" << i << "], got n2 " << n2 << "\n";
+      Debug("mgdx") << (n2.getKind() == kind::EQUAL || n2.getKind() == kind::IFF) << "\n";
+      Debug("mgdx") << n1[0].getId() << " " << n1[1].getId() << " / " << n2[0].getId() << " " << n2[1].getId() << "\n";
+      Debug("mgdx") << n1[0].getId() << " " << n1[0] << "\n";
+      Debug("mgdx") << n1[1].getId() << " " << n1[1] << "\n";
+      Debug("mgdx") << n2[0].getId() << " " << n2[0] << "\n";
+      Debug("mgdx") << n2[1].getId() << " " << n2[1] << "\n";
+      Debug("mgdx") << (n1[0] == n2[0]) << "\n";
+      Debug("mgdx") << (n1[1] == n2[1]) << "\n";
+      Debug("mgdx") << (n1[0] == n2[1]) << "\n";
+      Debug("mgdx") << (n1[1] == n2[0]) << "\n";
+      }
       ss << "(trans _ _ _ _ ";
       if(n2.getKind() == kind::EQUAL || n2.getKind() == kind::IFF) {
         if(n1[0] == n2[0]) {
-if(n1[1] == n2[1] && match(n1[0], pf->d_node[0])) {
-if(match(n1[1], pf->d_node[1])) {
-//Warning() << "TRICKY CASE 1!\n";
-ss.str(ss1.str());
-break;
-}
-//ambiguity -- could replace with refl
-          n1 = eqNode(n1[0], n2[0]);
-          ss << ss1.str() << " (symm _ _ _ " << ss2.str() << ")";
-} else {
-if(tb == 1) { Debug("mgdx") << "case 1\n"; }
-          n1 = eqNode(n1[1], n2[1]);
-          ss << "(symm _ _ _ " << ss1.str() << ") " << ss2.str();
-}
+          if(n1[1] == n2[1] && match(n1[0], pf->d_node[0])) {
+            if(match(n1[1], pf->d_node[1])) {
+              //Warning() << "TRICKY CASE 1!\n";
+              ss.str(ss1.str());
+              break;
+            }
+            //ambiguity -- could replace with refl
+            n1 = eqNode(n1[0], n2[0]);
+            ss << ss1.str() << " (symm _ _ _ " << ss2.str() << ")";
+          } else {
+            if(tb == 1) { Debug("mgdx") << "case 1\n"; }
+            n1 = eqNode(n1[1], n2[1]);
+            ss << "(symm _ _ _ " << ss1.str() << ") " << ss2.str();
+          }
         } else if(n1[1] == n2[1]) {
-if(tb == 1) { Debug("mgdx") << "case 2\n"; }
+          if(tb == 1) { Debug("mgdx") << "case 2\n"; }
           n1 = eqNode(n1[0], n2[0]);
           ss << ss1.str() << " (symm _ _ _ " << ss2.str() << ")";
         } else if(n1[0] == n2[1]) {
-if(n1[1] == n2[0] && match(n1[0], pf->d_node[0])) {
-if(match(n1[1], pf->d_node[1])) {
-//Warning() << "TRICKY CASE 2!\n";
-ss.str(ss1.str());
-break;
-}
-//ambiguity -- could replace with refl
-          n1 = eqNode(n1[0], n2[1]);
-Debug("mgdx") << "ambiguity resolved in favor of " << n1 << "\n";
-          ss << ss1.str() << " " << ss2.str();
-} else {
-if(tb == 1) { Debug("mgdx") << "case 3\n"; }
-          n1 = eqNode(n2[0], n1[1]);
-          ss << ss2.str() << " " << ss1.str();
-if(tb == 1) { Debug("mgdx") << "++ proved " << n1 << "\n"; }
-}
+          if(n1[1] == n2[0] && match(n1[0], pf->d_node[0])) {
+            if(match(n1[1], pf->d_node[1])) {
+              //Warning() << "TRICKY CASE 2!\n";
+              ss.str(ss1.str());
+              break;
+            }
+            //ambiguity -- could replace with refl
+            n1 = eqNode(n1[0], n2[1]);
+            Debug("mgdx") << "ambiguity resolved in favor of " << n1 << "\n";
+            ss << ss1.str() << " " << ss2.str();
+          } else {
+            if(tb == 1) { Debug("mgdx") << "case 3\n"; }
+            n1 = eqNode(n2[0], n1[1]);
+            ss << ss2.str() << " " << ss1.str();
+            if(tb == 1) { Debug("mgdx") << "++ proved " << n1 << "\n"; }
+          }
         } else if(n1[1] == n2[0]) {
-if(tb == 1) { Debug("mgdx") << "case 4\n"; }
+          if(tb == 1) { Debug("mgdx") << "case 4\n"; }
           n1 = eqNode(n1[0], n2[1]);
           ss << ss1.str() << " " << ss2.str();
         } else {
-Warning() << "\n\ntrans proof failure at step " << i << "\n\n";
-Warning() << "0 proves " << n1 << "\n";
-Warning() << "1 proves " << n2 << "\n\n";
-pf->debug_print("mgdx",0);
-//toStreamRec(Warning.getStream(), pf, 0);
-Warning() << "\n\n";
+          Warning() << "\n\ntrans proof failure at step " << i << "\n\n";
+          Warning() << "0 proves " << n1 << "\n";
+          Warning() << "1 proves " << n2 << "\n\n";
+          pf->debug_print("mgdx",0);
+          //toStreamRec(Warning.getStream(), pf, 0);
+          Warning() << "\n\n";
           Unreachable();
         }
-Debug("mgd") << "++ trans proof[" << i << "], now have " << n1 << std::endl;
+        Debug("mgd") << "++ trans proof[" << i << "], now have " << n1 << std::endl;
       } else {
         if(n1[0] == n2) {
           n1 = n1[1];
@@ -386,7 +398,7 @@ Debug("mgd") << "++ trans proof[" << i << "], now have " << n1 << std::endl;
       ss << ")";
     }
     out << ss.str();
-Debug("mgd") << "\n++ trans proof done, have proven " << n1 << std::endl;
+    Debug("mgd") << "\n++ trans proof done, have proven " << n1 << std::endl;
     return n1;
   }
 
