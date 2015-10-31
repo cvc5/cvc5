@@ -285,13 +285,13 @@ bool CegInstantiator::addInstantiation( SolvedForm& sf, SolvedForm& ssf, std::ve
 
       //[3] directly look at assertions
       Trace("cbqi-inst-debug") << "[3] try based on assertions." << std::endl;
-      Node vts_sym[2];
-      vts_sym[0] = d_qe->getTermDatabase()->getVtsInfinity( pvtn, false, false );
-      vts_sym[1] = d_qe->getTermDatabase()->getVtsDelta( false, false );
+      d_vts_sym[0] = d_qe->getTermDatabase()->getVtsInfinity( pvtn, false, false );
+      d_vts_sym[1] = d_qe->getTermDatabase()->getVtsDelta( false, false );
       std::vector< Node > mbp_bounds[2];
       std::vector< Node > mbp_coeff[2];
       std::vector< Node > mbp_vts_coeff[2][2];
       std::vector< Node > mbp_lit[2];
+      //std::vector< MbpBounds > mbp_bounds[2];
       unsigned rmax = Theory::theoryOf( pv )==Theory::theoryOf( pv.getType() ) ? 1 : 2;
       for( unsigned r=0; r<rmax; r++ ){
         TheoryId tid = r==0 ? Theory::theoryOf( pv ) : Theory::theoryOf( pv.getType() );
@@ -340,164 +340,102 @@ bool CegInstantiator::addInstantiation( SolvedForm& sf, SolvedForm& ssf, std::ve
                     //if( !d_qe->getTermDatabase()->containsVtsInfinity( atom_lhs ) ){
                     Trace("cbqi-inst-debug") << "..[3] From assertion : " << atom << ", pol = " << pol << std::endl;
                     Trace("cbqi-inst-debug") << "         substituted : " << satom << ", pol = " << pol << std::endl;
-                    std::map< Node, Node > msum;
-                    if( QuantArith::getMonomialSumLit( satom, msum ) ){
-                      if( Trace.isOn("cbqi-inst-debug") ){
-                        Trace("cbqi-inst-debug") << "...got monomial sum: " << std::endl;
-                        QuantArith::debugPrintMonomialSum( msum, "cbqi-inst-debug" );
-                      }
-                      //get the coefficient of infinity and remove it from msum
-                      Node vts_coeff[2];
-                      for( unsigned t=0; t<2; t++ ){
-                        if( !vts_sym[t].isNull() ){
-                          std::map< Node, Node >::iterator itminf = msum.find( vts_sym[t] );
-                          if( itminf!=msum.end() ){
-                            vts_coeff[t] = itminf->second;
-                            if( vts_coeff[t].isNull() ){
-                              vts_coeff[t] = NodeManager::currentNM()->mkConst( Rational( 1 ) );
-                            }
-                            //negate if coefficient on variable is positive
-                            std::map< Node, Node >::iterator itv = msum.find( pv );
-                            if( itv!=msum.end() ){
-                              //multiply by the coefficient we will isolate for
-                              if( itv->second.isNull() ){
-                                vts_coeff[t] = QuantArith::negate(vts_coeff[t]);
-                              }else{
-                                if( !pvtn.isInteger() ){
-                                  vts_coeff[t] = NodeManager::currentNM()->mkNode( MULT, NodeManager::currentNM()->mkConst( Rational(-1) / itv->second.getConst<Rational>() ), vts_coeff[t] );
-                                  vts_coeff[t] = Rewriter::rewrite( vts_coeff[t] );
-                                }else if( itv->second.getConst<Rational>().sgn()==1 ){
-                                  vts_coeff[t] = QuantArith::negate(vts_coeff[t]);
-                                }
-                              }
-                            }
-                            Trace("cbqi-inst-debug") << "vts[" << t << "] coefficient is " << vts_coeff[t] << std::endl;
-                            msum.erase( vts_sym[t] );
-                          }
-                        }
-                      }
-
-                      Trace("cbqi-inst-debug") << "isolate for " << pv << "..." << std::endl;
-                      Node vatom;
-                      //isolate pv in the inequality
-                      int ires = QuantArith::isolate( pv, msum, vatom, atom.getKind(), true );
-                      if( ires!=0 ){
-                        Trace("cbqi-inst-debug") << "...isolated atom " << vatom << "." << std::endl;
-                        Node val = vatom[ ires==1 ? 1 : 0 ];
-                        Node pvm = vatom[ ires==1 ? 0 : 1 ];
-                        //get monomial
-                        Node veq_c;
-                        if( pvm!=pv ){
-                          Node veq_v;
-                          if( QuantArith::getMonomial( pvm, veq_c, veq_v ) ){
-                            Assert( veq_v==pv );
-                          }
-                        }
-
-                        //disequalities are either strict upper or lower bounds
-                        unsigned rmax = ( atom.getKind()==GEQ && options::cbqiModel() ) ? 1 : 2;
-                        for( unsigned r=0; r<rmax; r++ ){
-                          int uires = ires;
-                          Node uval = val;
-                          if( atom.getKind()==GEQ ){
-                            //push negation downwards
-                            if( !pol ){
-                              uires = -ires;
-                              if( pvtn.isInteger() ){
-                                uval = NodeManager::currentNM()->mkNode( PLUS, val, NodeManager::currentNM()->mkConst( Rational( uires ) ) );
-                                uval = Rewriter::rewrite( uval );
-                              }else{
-                                Assert( pvtn.isReal() );
-                                //now is strict inequality
-                                uires = uires*2;
-                              }
-                            }
-                          }else{
-                            bool is_upper = ( r==0 );
-                            if( options::cbqiModel() ){
-                              // disequality is a disjunction : only consider the bound in the direction of the model
-                              //first check if there is an infinity...
-                              if( !vts_coeff[0].isNull() ){
-                                //coefficient or val won't make a difference, just compare with zero
-                                Trace("cbqi-inst-debug") << "Disequality : check infinity polarity " << vts_coeff[0] << std::endl;
-                                Assert( vts_coeff[0].isConst() );
-                                is_upper = ( vts_coeff[0].getConst<Rational>().sgn()==1 );
-                              }else{
-                                Node rhs_value = getModelValue( val );
-                                Node lhs_value = pv_value;
-                                if( !veq_c.isNull() ){
-                                  lhs_value = NodeManager::currentNM()->mkNode( MULT, lhs_value, veq_c );
-                                  lhs_value = Rewriter::rewrite( lhs_value );
-                                }
-                                Trace("cbqi-inst-debug") << "Disequality : check model values " << lhs_value << " " << rhs_value << std::endl;
-                                Assert( lhs_value!=rhs_value );
-                                Node cmp = NodeManager::currentNM()->mkNode( GEQ, lhs_value, rhs_value );
-                                cmp = Rewriter::rewrite( cmp );
-                                Assert( cmp.isConst() );
-                                is_upper = ( cmp!=d_true );
-                              }
-                            }
-                            Assert( atom.getKind()==EQUAL && !pol );
+                    Node vts_coeff_inf;
+                    Node vts_coeff_delta;
+                    Node val;
+                    Node veq_c;
+                    //isolate pv in the inequality
+                    int ires = isolate( pv, satom, veq_c, val, vts_coeff_inf, vts_coeff_delta );
+                    if( ires!=0 ){
+                      //disequalities are either strict upper or lower bounds
+                      unsigned rmax = ( atom.getKind()==GEQ && options::cbqiModel() ) ? 1 : 2;
+                      for( unsigned r=0; r<rmax; r++ ){
+                        int uires = ires;
+                        Node uval = val;
+                        if( atom.getKind()==GEQ ){
+                          //push negation downwards
+                          if( !pol ){
+                            uires = -ires;
                             if( pvtn.isInteger() ){
-                              uires = is_upper ? -1 : 1;
                               uval = NodeManager::currentNM()->mkNode( PLUS, val, NodeManager::currentNM()->mkConst( Rational( uires ) ) );
                               uval = Rewriter::rewrite( uval );
                             }else{
                               Assert( pvtn.isReal() );
-                              uires = is_upper ? -2 : 2;
+                              //now is strict inequality
+                              uires = uires*2;
                             }
                           }
-                          Trace("cbqi-bound-inf") << "From " << lit << ", got : ";
-                          if( !veq_c.isNull() ){
-                            Trace("cbqi-bound-inf") << veq_c << " * ";
-                          }
-                          Trace("cbqi-bound-inf") << pv << " -> " << uval << ", styp = " << uires << std::endl;
-                          //take into account delta
-                          if( d_use_vts_delta && ( uires==2 || uires==-2 ) ){
-                            if( options::cbqiModel() ){
-                              Node delta_coeff = NodeManager::currentNM()->mkConst( Rational( uires > 0 ? 1 : -1 ) );
-                              if( vts_coeff[1].isNull() ){
-                                vts_coeff[1] = delta_coeff;
-                              }else{
-                                vts_coeff[1] = NodeManager::currentNM()->mkNode( PLUS, vts_coeff[1], delta_coeff );
-                                vts_coeff[1] = Rewriter::rewrite( vts_coeff[1] );
-                              }
-                            }else{
-                              Node delta = d_qe->getTermDatabase()->getVtsDelta();
-                              uval = NodeManager::currentNM()->mkNode( uires==2 ? PLUS : MINUS, uval, delta );
-                              uval = Rewriter::rewrite( uval );
-                            }
-                          }
+                        }else{
+                          bool is_upper = ( r==0 );
                           if( options::cbqiModel() ){
-                            //just store bounds, will choose based on tighest bound
-                            if( pvtn.isInteger() && !veq_c.isNull() && !veq_c.getType().isInteger() ){
-                              Trace("cbqi-bound2") << "Non-integer coefficient : " << veq_c << " for " << pv << std::endl;
-                              Assert( veq_c.isConst() );
-                              //multiply everything by denominator of coefficient
-                              Rational r = veq_c.getConst<Rational>();
-                              Node den = NodeManager::currentNM()->mkConst( Rational(r.getDenominator()) );
-                              uval = Rewriter::rewrite( NodeManager::currentNM()->mkNode( MULT, den, uval ) );
-                              veq_c = NodeManager::currentNM()->mkConst( Rational(r.getNumerator()) );
-                              for( unsigned t=0; t<2; t++ ){
-                                if( !vts_coeff[t].isNull() ){
-                                  vts_coeff[t] = Rewriter::rewrite( NodeManager::currentNM()->mkNode( MULT, den, vts_coeff[t] ) );
-                                }
+                            // disequality is a disjunction : only consider the bound in the direction of the model
+                            //first check if there is an infinity...
+                            if( !vts_coeff_inf.isNull() ){
+                              //coefficient or val won't make a difference, just compare with zero
+                              Trace("cbqi-inst-debug") << "Disequality : check infinity polarity " << vts_coeff_inf << std::endl;
+                              Assert( vts_coeff_inf.isConst() );
+                              is_upper = ( vts_coeff_inf.getConst<Rational>().sgn()==1 );
+                            }else{
+                              Node rhs_value = getModelValue( val );
+                              Node lhs_value = pv_value;
+                              if( !veq_c.isNull() ){
+                                lhs_value = NodeManager::currentNM()->mkNode( MULT, lhs_value, veq_c );
+                                lhs_value = Rewriter::rewrite( lhs_value );
                               }
+                              Trace("cbqi-inst-debug") << "Disequality : check model values " << lhs_value << " " << rhs_value << std::endl;
+                              Assert( lhs_value!=rhs_value );
+                              Node cmp = NodeManager::currentNM()->mkNode( GEQ, lhs_value, rhs_value );
+                              cmp = Rewriter::rewrite( cmp );
+                              Assert( cmp.isConst() );
+                              is_upper = ( cmp!=d_true );
                             }
-                            unsigned index = uires>0 ? 0 : 1;
-                            mbp_bounds[index].push_back( uval );
-                            mbp_coeff[index].push_back( veq_c );
-                            for( unsigned t=0; t<2; t++ ){
-                              mbp_vts_coeff[index][t].push_back( vts_coeff[t] );
-                            }
-                            mbp_lit[index].push_back( lit );
+                          }
+                          Assert( atom.getKind()==EQUAL && !pol );
+                          if( pvtn.isInteger() ){
+                            uires = is_upper ? -1 : 1;
+                            uval = NodeManager::currentNM()->mkNode( PLUS, val, NodeManager::currentNM()->mkConst( Rational( uires ) ) );
+                            uval = Rewriter::rewrite( uval );
                           }else{
-                            //try this bound
-                            if( subs_proc[uval].find( veq_c )==subs_proc[uval].end() ){
-                              subs_proc[uval][veq_c] = true;
-                              if( addInstantiationInc( uval, pv, veq_c, uires>0 ? 1 : -1, sf, ssf, vars, btyp, theta, i, effort, cons, curr_var ) ){
-                                return true;
-                              }
+                            Assert( pvtn.isReal() );
+                            uires = is_upper ? -2 : 2;
+                          }
+                        }
+                        Trace("cbqi-bound-inf") << "From " << lit << ", got : ";
+                        if( !veq_c.isNull() ){
+                          Trace("cbqi-bound-inf") << veq_c << " * ";
+                        }
+                        Trace("cbqi-bound-inf") << pv << " -> " << uval << ", styp = " << uires << std::endl;
+                        //take into account delta
+                        if( d_use_vts_delta && ( uires==2 || uires==-2 ) ){
+                          if( options::cbqiModel() ){
+                            Node delta_coeff = NodeManager::currentNM()->mkConst( Rational( uires > 0 ? 1 : -1 ) );
+                            if( vts_coeff_delta.isNull() ){
+                              vts_coeff_delta = delta_coeff;
+                            }else{
+                              vts_coeff_delta = NodeManager::currentNM()->mkNode( PLUS, vts_coeff_delta, delta_coeff );
+                              vts_coeff_delta = Rewriter::rewrite( vts_coeff_delta );
+                            }
+                          }else{
+                            Node delta = d_qe->getTermDatabase()->getVtsDelta();
+                            uval = NodeManager::currentNM()->mkNode( uires==2 ? PLUS : MINUS, uval, delta );
+                            uval = Rewriter::rewrite( uval );
+                          }
+                        }
+                        if( options::cbqiModel() ){
+                          //just store bounds, will choose based on tighest bound
+                          unsigned index = uires>0 ? 0 : 1;
+                          mbp_bounds[index].push_back( uval );
+                          mbp_coeff[index].push_back( veq_c );
+                          for( unsigned t=0; t<2; t++ ){
+                            mbp_vts_coeff[index][t].push_back( t==0 ? vts_coeff_inf : vts_coeff_delta );
+                          }
+                          mbp_lit[index].push_back( lit );
+                        }else{
+                          //try this bound
+                          if( subs_proc[uval].find( veq_c )==subs_proc[uval].end() ){
+                            subs_proc[uval][veq_c] = true;
+                            if( addInstantiationInc( uval, pv, veq_c, uires>0 ? 1 : -1, sf, ssf, vars, btyp, theta, i, effort, cons, curr_var ) ){
+                              return true;
                             }
                           }
                         }
@@ -622,7 +560,7 @@ bool CegInstantiator::addInstantiation( SolvedForm& sf, SolvedForm& ssf, std::ve
                 best_used[rr] = (unsigned)best;
                 Node val = mbp_bounds[rr][best];
                 val = getModelBasedProjectionValue( pv, val, rr==0, mbp_coeff[rr][best], pv_value, t_values[rr][best], theta,
-                                                    mbp_vts_coeff[rr][0][best], vts_sym[0], mbp_vts_coeff[rr][1][best], vts_sym[1] );
+                                                    mbp_vts_coeff[rr][0][best], mbp_vts_coeff[rr][1][best] );
                 if( !val.isNull() ){
                   if( subs_proc[val].find( mbp_coeff[rr][best] )==subs_proc[val].end() ){
                     subs_proc[val][mbp_coeff[rr][best]] = true;
@@ -638,7 +576,7 @@ bool CegInstantiator::addInstantiation( SolvedForm& sf, SolvedForm& ssf, std::ve
           if( !use_inf && mbp_bounds[0].empty() && mbp_bounds[1].empty() ){
             Node val = d_zero;
             Node c; //null (one) coefficient
-            val = getModelBasedProjectionValue( pv, val, true, c, pv_value, d_zero, theta, Node::null(), vts_sym[0], Node::null(), vts_sym[1] );
+            val = getModelBasedProjectionValue( pv, val, true, c, pv_value, d_zero, theta, Node::null(), Node::null() );
             if( !val.isNull() ){
               if( subs_proc[val].find( c )==subs_proc[val].end() ){
                 subs_proc[val][c] = true;
@@ -658,7 +596,7 @@ bool CegInstantiator::addInstantiation( SolvedForm& sf, SolvedForm& ssf, std::ve
             for( unsigned j=0; j<mbp_bounds[rr].size(); j++ ){
               if( j!=best_used[rr] ){
                 Node val = getModelBasedProjectionValue( pv, mbp_bounds[rr][j], rr==0, mbp_coeff[rr][j], pv_value, t_values[rr][j], theta,
-                                                         mbp_vts_coeff[rr][0][j], vts_sym[0], mbp_vts_coeff[rr][1][j], vts_sym[1] );
+                                                         mbp_vts_coeff[rr][0][j], mbp_vts_coeff[rr][1][j] );
                 if( !val.isNull() ){
                   if( subs_proc[val].find( mbp_coeff[rr][j] )==subs_proc[val].end() ){
                     subs_proc[val][mbp_coeff[rr][j]] = true;
@@ -904,6 +842,14 @@ bool CegInstantiator::addInstantiation( std::vector< Node >& subs, std::vector< 
       subs.push_back( n );
     }
   }
+  if( !d_var_order_index.empty() ){
+    std::vector< Node > subs_orig;
+    subs_orig.insert( subs_orig.end(), subs.begin(), subs.end() );
+    subs.clear();
+    for( unsigned i=0; i<subs_orig.size(); i++ ){
+      subs.push_back( subs_orig[d_var_order_index[i]] );
+    }
+  }
   bool ret = d_out->addInstantiation( subs );
 #ifdef MBP_STRICT_ASSERTIONS
   Assert( ret );
@@ -1029,12 +975,13 @@ Node CegInstantiator::applySubstitution( TypeNode tn, Node n, std::vector< Node 
   }
 }
 
-Node CegInstantiator::getModelBasedProjectionValue( Node e, Node t, bool isLower, Node c, Node me, Node mt, Node theta,
-                                                    Node inf_coeff, Node vts_inf, Node delta_coeff, Node vts_delta ) {
+Node CegInstantiator::getModelBasedProjectionValue( Node e, Node t, bool isLower, Node c, Node me, Node mt, Node theta, Node inf_coeff, Node delta_coeff ) {
+  /*
   if( e.getType().isInteger() && !t.getType().isInteger() ){
     //TODO : round up/down this bound?
     return Node::null();
   }
+  */
   Node val = t;
   Trace("cbqi-bound2") << "Value : " << val << std::endl;
   //add rho value
@@ -1056,6 +1003,10 @@ Node CegInstantiator::getModelBasedProjectionValue( Node e, Node t, bool isLower
   }
   if( !new_theta.isNull() && e.getType().isInteger() ){
     Node rho;
+    //if( !mt.getType().isInteger() ){
+      //round up/down
+      //mt = NodeManager::currentNM()->mkNode( 
+    //}
     if( isLower ){
       rho = NodeManager::currentNM()->mkNode( MINUS, ceValue, mt );
     }else{
@@ -1073,16 +1024,16 @@ Node CegInstantiator::getModelBasedProjectionValue( Node e, Node t, bool isLower
     Trace("cbqi-bound2") << "(after rho) : " << val << std::endl;
   }
   if( !inf_coeff.isNull() ){
-    Assert( !vts_inf.isNull() );
-    val = NodeManager::currentNM()->mkNode( PLUS, val, NodeManager::currentNM()->mkNode( MULT, inf_coeff, vts_inf ) );
+    Assert( !d_vts_sym[0].isNull() );
+    val = NodeManager::currentNM()->mkNode( PLUS, val, NodeManager::currentNM()->mkNode( MULT, inf_coeff, d_vts_sym[0] ) );
     val = Rewriter::rewrite( val );
   }
   if( !delta_coeff.isNull() ){
     //create delta here if necessary
-    if( vts_delta.isNull() ){
-      vts_delta = d_qe->getTermDatabase()->getVtsDelta();
+    if( d_vts_sym[1].isNull() ){
+      d_vts_sym[1] = d_qe->getTermDatabase()->getVtsDelta();
     }
-    val = NodeManager::currentNM()->mkNode( PLUS, val, NodeManager::currentNM()->mkNode( MULT, delta_coeff, vts_delta ) );
+    val = NodeManager::currentNM()->mkNode( PLUS, val, NodeManager::currentNM()->mkNode( MULT, delta_coeff, d_vts_sym[1] ) );
     val = Rewriter::rewrite( val );
   }
   return val;
@@ -1399,9 +1350,47 @@ void CegInstantiator::collectCeAtoms( Node n, std::map< Node, bool >& visited ) 
   }
 }
 
+struct sortCegVarOrder {
+  bool operator() (Node i, Node j) {
+    TypeNode it = i.getType();
+    TypeNode jt = j.getType();
+    return ( it!=jt && jt.isSubtypeOf( it ) ) || ( it==jt && i<j );
+  }
+};
+
+
 void CegInstantiator::registerCounterexampleLemma( std::vector< Node >& lems, std::vector< Node >& ce_vars ) {
   Assert( d_vars.empty() );
   d_vars.insert( d_vars.end(), ce_vars.begin(), ce_vars.end() );
+
+  //determine variable order: must do Reals before Ints
+  if( !d_vars.empty() ){
+    TypeNode tn0 = d_vars[0].getType();
+    bool doSort = false;
+    std::map< Node, unsigned > voo;
+    for( unsigned i=0; i<d_vars.size(); i++ ){
+      voo[d_vars[i]] = i;
+      d_var_order_index.push_back( 0 );
+      if( d_vars[i].getType()!=tn0 ){
+        doSort = true;
+      }
+    }
+    if( doSort ){
+      Trace("cbqi-debug") << "Sort variables based on ordering." << std::endl;
+      sortCegVarOrder scvo;
+      std::sort( d_vars.begin(), d_vars.end(), scvo );
+      Trace("cbqi-debug") << "Consider variables in this order : " << std::endl;
+      for( unsigned i=0; i<d_vars.size(); i++ ){
+        d_var_order_index[voo[d_vars[i]]] = i;
+        Trace("cbqi-debug") << "  " << d_vars[i] << " : " << d_vars[i].getType() << ", index was : " << voo[d_vars[i]] << std::endl;
+      }
+      Trace("cbqi-debug") << std::endl;
+    }else{
+      d_var_order_index.clear();
+    }
+  }
+  
+  //remove ITEs 
   IteSkolemMap iteSkolemMap;
   d_qe->getTheoryEngine()->getIteRemover()->run(lems, iteSkolemMap);
   Assert( d_aux_vars.empty() );
@@ -1434,4 +1423,104 @@ void CegInstantiator::registerCounterexampleLemma( std::vector< Node >& lems, st
   for( unsigned i=0; i<lems.size(); i++ ){
     collectCeAtoms( lems[i], visited );
   }
+}
+
+//this isolates the monomial sum into solved form (pv k t), ensures t is Int if pv is Int, and t does not contain vts symbols
+int CegInstantiator::isolate( Node pv, Node atom, Node & veq_c, Node & val, Node& vts_coeff_inf, Node& vts_coeff_delta ) {
+  int ires = 0;
+  Trace("cbqi-inst-debug") << "isolate for " << pv << " in " << atom << std::endl;
+  std::map< Node, Node > msum;
+  if( QuantArith::getMonomialSumLit( atom, msum ) ){
+    Trace("cbqi-inst-debug") << "got monomial sum: " << std::endl;
+    if( Trace.isOn("cbqi-inst-debug") ){
+      QuantArith::debugPrintMonomialSum( msum, "cbqi-inst-debug" );
+    }
+    TypeNode pvtn = pv.getType();
+    //remove vts symbols from polynomial
+    Node vts_coeff[2];
+    for( unsigned t=0; t<2; t++ ){
+      if( !d_vts_sym[t].isNull() ){
+        std::map< Node, Node >::iterator itminf = msum.find( d_vts_sym[t] );
+        if( itminf!=msum.end() ){
+          vts_coeff[t] = itminf->second;
+          if( vts_coeff[t].isNull() ){
+            vts_coeff[t] = NodeManager::currentNM()->mkConst( Rational( 1 ) );
+          }
+          //negate if coefficient on variable is positive
+          std::map< Node, Node >::iterator itv = msum.find( pv );
+          if( itv!=msum.end() ){
+            //multiply by the coefficient we will isolate for
+            if( itv->second.isNull() ){
+              vts_coeff[t] = QuantArith::negate(vts_coeff[t]);
+            }else{
+              if( !pvtn.isInteger() ){
+                vts_coeff[t] = NodeManager::currentNM()->mkNode( MULT, NodeManager::currentNM()->mkConst( Rational(-1) / itv->second.getConst<Rational>() ), vts_coeff[t] );
+                vts_coeff[t] = Rewriter::rewrite( vts_coeff[t] );
+              }else if( itv->second.getConst<Rational>().sgn()==1 ){
+                vts_coeff[t] = QuantArith::negate(vts_coeff[t]);
+              }
+            }
+          }
+          Trace("cbqi-inst-debug") << "vts[" << t << "] coefficient is " << vts_coeff[t] << std::endl;
+          msum.erase( d_vts_sym[t] );
+        }
+      }
+    }
+    
+    ires = QuantArith::isolate( pv, msum, veq_c, val, atom.getKind() );
+    if( ires!=0 ){
+      Node realPart;
+      Trace("cbqi-inst-debug") << "Isolate : " << veq_c << " * " << pv << " " << atom.getKind() << " " << val << std::endl;
+      if( pvtn.isInteger() && ( ( !veq_c.isNull() && !veq_c.getType().isInteger() ) || !val.getType().isInteger() ) ){
+        //redo, split integer/non-integer parts
+        bool useCoeff = false;
+        Integer coeff = d_one.getConst<Rational>().getNumerator();
+        for( std::map< Node, Node >::iterator it = msum.begin(); it != msum.end(); ++it ){
+          if( it->first.isNull() || it->first.getType().isInteger() ){
+            if( !it->second.isNull() ){
+              coeff = coeff.lcm( it->second.getConst<Rational>().getDenominator() );
+              useCoeff = true;
+            }
+          }
+        }
+        //multiply everything by this coefficient
+        Node rcoeff = NodeManager::currentNM()->mkConst( Rational( coeff ) );
+        std::vector< Node > real_part;
+        for( std::map< Node, Node >::iterator it = msum.begin(); it != msum.end(); ++it ){
+          if( useCoeff ){
+            if( it->second.isNull() ){
+              msum[it->first] = rcoeff;
+            }else{
+              msum[it->first] = Rewriter::rewrite( NodeManager::currentNM()->mkNode( MULT, it->second, rcoeff ) );
+            }
+          }
+          if( !it->first.isNull() && !it->first.getType().isInteger() ){
+            real_part.push_back( msum[it->first].isNull() ? it->first : NodeManager::currentNM()->mkNode( MULT, msum[it->first], it->first ) );
+          }
+        }
+        for( unsigned t=0; t<2; t++ ){
+          if( !vts_coeff[t].isNull() ){
+            vts_coeff[t] = Rewriter::rewrite( NodeManager::currentNM()->mkNode( MULT, rcoeff, vts_coeff[t] ) );
+          }
+        }
+        realPart = real_part.empty() ? d_zero : ( real_part.size()==1 ? real_part[0] : NodeManager::currentNM()->mkNode( PLUS, real_part ) );
+        Assert( d_out->isEligibleForInstantiation( realPart ) );
+        //re-isolate
+        ires = QuantArith::isolate( pv, msum, veq_c, val, atom.getKind() );
+        Trace("cbqi-inst-debug") << "Isolate for mixed Int/Real : " << veq_c << " * " << pv << " " << atom.getKind() << " " << val << std::endl;
+        Trace("cbqi-inst-debug") << "                 real part : " << realPart << std::endl;
+        if( ires!=0 ){
+          val = Rewriter::rewrite( NodeManager::currentNM()->mkNode( ires==-1 ? PLUS : MINUS, 
+                                    NodeManager::currentNM()->mkNode( ires==-1 ? MINUS : PLUS, val, realPart ),
+                                    NodeManager::currentNM()->mkNode( TO_INTEGER, realPart ) ) );
+          Trace("cbqi-inst-debug") << "result : " << val << std::endl;
+          Assert( val.getType().isInteger() );
+        }
+      }
+    }
+    vts_coeff_inf = vts_coeff[0];
+    vts_coeff_delta = vts_coeff[1];
+  }
+    
+  return ires;
 }

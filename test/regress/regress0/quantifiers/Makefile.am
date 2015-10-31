@@ -57,7 +57,10 @@ TESTS =	\
 	cbqi-lia-dt-simp.smt2 \
 	is-int.smt2 \
 	floor.smt2 \
-	array-unsat-simp3.smt2
+	array-unsat-simp3.smt2 \
+	mix-simp.smt2 \
+	mix-coeff.smt2  \
+	mix-match.smt2
 
 
 # regression can be solved with --finite-model-find --fmf-inst-engine

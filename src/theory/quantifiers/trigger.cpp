@@ -62,7 +62,9 @@ d_quantEngine( qe ), d_f( f ){
       ++(qe->d_statistics.d_simple_triggers);
     }
   }else{
-    Trace("multi-trigger") << "Multi-trigger " << (*this) << " for " << f << std::endl;
+    Trace("multi-trigger") << "Multi-trigger ";
+    debugPrint("multi-trigger");
+    Trace("multi-trigger") << " for " << f << std::endl;
     //Notice() << "Multi-trigger for " << f << " : " << std::endl;
     //Notice() << "   " << (*this) << std::endl;
     ++(qe->d_statistics.d_multi_triggers);

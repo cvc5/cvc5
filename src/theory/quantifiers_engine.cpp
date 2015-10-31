@@ -696,7 +696,7 @@ void QuantifiersEngine::computeTermVector( Node f, InstMatch& m, std::vector< No
   }
 }
 
-bool QuantifiersEngine::addInstantiation( Node f, std::vector< Node >& vars, std::vector< Node >& terms, bool doVts ){
+bool QuantifiersEngine::addInstantiationInternal( Node f, std::vector< Node >& vars, std::vector< Node >& terms, bool doVts ){
   Assert( f.getKind()==FORALL );
   Assert( vars.size()==terms.size() );
   Node body = getInstantiation( f, vars, terms );
@@ -920,12 +920,17 @@ bool QuantifiersEngine::addInstantiation( Node q, std::vector< Node >& terms, bo
   Assert( terms.size()==q[0].getNumChildren() );
   Trace("inst-add-debug") << "For quantified formula " << q << ", add instantiation: " << std::endl;
   for( unsigned i=0; i<terms.size(); i++ ){
-    Trace("inst-add-debug") << "  " << q[0][i] << " -> " << terms[i] << std::endl;
+    Trace("inst-add-debug") << "  " << q[0][i] << " -> " << terms[i];
     //make it representative, this is helpful for recognizing duplication
     if( mkRep ){
       //pick the best possible representative for instantiation, based on past use and simplicity of term
       terms[i] = d_eq_query->getInternalRepresentative( terms[i], q, i );
+    }else{
+      //ensure the type is correct
+      terms[i] = quantifiers::TermDb::mkNodeType( terms[i], q[0][i].getType() );
     }
+    Trace("inst-add-debug") << " -> " << terms[i] << std::endl;
+    Assert( !terms[i].isNull() );
   }
 
   //check based on instantiation level
@@ -974,7 +979,7 @@ bool QuantifiersEngine::addInstantiation( Node q, std::vector< Node >& terms, bo
 
   //add the instantiation
   Trace("inst-add-debug") << "Constructing instantiation..." << std::endl;
-  bool addedInst = addInstantiation( q, d_term_db->d_vars[q], terms, doVts );
+  bool addedInst = addInstantiationInternal( q, d_term_db->d_vars[q], terms, doVts );
   //report the result
   if( addedInst ){
     Trace("inst-add-debug") << " -> Success." << std::endl;
@@ -1276,7 +1281,7 @@ Node EqualityQueryQuantifiersEngine::getInternalRepresentative( Node a, Node f, 
         if( i>0 ) Trace("internal-rep-select") << ", ";
         Trace("internal-rep-select") << eqc[i];
       }
-      Trace("internal-rep-select")  << " } " << std::endl;
+      Trace("internal-rep-select")  << " }, type = " << v_tn << std::endl;
       int r_best_score = -1;
       for( size_t i=0; i<eqc.size(); i++ ){
         int score = getRepScore( eqc[i], f, index, v_tn );
@@ -1299,6 +1304,7 @@ Node EqualityQueryQuantifiersEngine::getInternalRepresentative( Node a, Node f, 
         d_rep_score[ r_best ] = d_reset_count;
       }
       Trace("internal-rep-select") << "...Choose " << r_best << std::endl;
+      Assert( r_best.getType().isSubtypeOf( v_tn ) );
       d_int_rep[v_tn][r] = r_best;
       if( r_best!=a ){
         Trace("internal-rep-debug") << "rep( " << a << " ) = " << r << ", " << std::endl;

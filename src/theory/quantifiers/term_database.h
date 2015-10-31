@@ -377,6 +377,8 @@ public:
   bool containsVtsTerm( std::vector< Node >& n, bool isFree = false );
   /** simple check for contains term */
   bool containsVtsInfinity( Node n, bool isFree = false );
+  /** make type */
+  static Node mkNodeType( Node n, TypeNode tn );
 
 private:
   //helper for contains term

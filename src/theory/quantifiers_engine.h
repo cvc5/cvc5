@@ -289,7 +289,7 @@ private:
   /** compute term vector */
   void computeTermVector( Node f, InstMatch& m, std::vector< Node >& vars, std::vector< Node >& terms );
   /** instantiate f with arguments terms */
-  bool addInstantiation( Node f, std::vector< Node >& vars, std::vector< Node >& terms, bool doVts = false );
+  bool addInstantiationInternal( Node f, std::vector< Node >& vars, std::vector< Node >& terms, bool doVts = false );
   /** set instantiation level attr */
   static void setInstantiationLevelAttr( Node n, Node qn, uint64_t level );
   /** flush lemmas */

@@ -48,6 +48,7 @@ private:
   Node d_true;
   bool d_use_vts_delta;
   bool d_use_vts_inf;
+  Node d_vts_sym[2];
   //program variable contains cache
   std::map< Node, std::map< Node, bool > > d_prog_var;
   std::map< Node, bool > d_inelig;
@@ -61,6 +62,8 @@ private:
   std::map< Node, std::map< Node, Node > > d_aux_eq;
   //the CE variables
   std::vector< Node > d_vars;
+  //index of variables reported in instantiation
+  std::vector< unsigned > d_var_order_index;
   //atoms of the CE lemma
   bool d_is_nested_quant;
   std::vector< Node > d_ce_atoms;
@@ -95,6 +98,15 @@ private:
       }
     }
   };
+  /*
+  class MbpBound {
+  public:
+    Node d_bound;
+    Node d_coeff;
+    Node d_vts_coeff[2];
+    Node d_lit;
+  };
+  */
   // effort=0 : do not use model value, 1: use model value, 2: one must use model value
   bool addInstantiation( SolvedForm& sf, SolvedForm& ssf, std::vector< Node >& vars,
                          std::vector< int >& btyp, Node theta, unsigned i, unsigned effort,
@@ -112,12 +124,13 @@ private:
   }
   Node applySubstitution( TypeNode tn, Node n, std::vector< Node >& subs, std::vector< Node >& coeff, std::vector< Node >& has_coeff,
                           std::vector< Node >& vars, Node& pv_coeff, bool try_coeff = true );
-  Node getModelBasedProjectionValue( Node e, Node t, bool isLower, Node c, Node me, Node mt, Node theta,
-                                     Node inf_coeff, Node vts_inf, Node delta_coeff, Node vts_delta );
+  Node getModelBasedProjectionValue( Node e, Node t, bool isLower, Node c, Node me, Node mt, Node theta, Node inf_coeff, Node delta_coeff );
   void processAssertions();
   void addToAuxVarSubstitution( std::vector< Node >& subs_lhs, std::vector< Node >& subs_rhs, Node l, Node r );
   //get model value
   Node getModelValue( Node n );
+private:
+  int isolate( Node v, Node atom, Node & veq_c, Node & val, Node& vts_coeff_inf, Node& vts_coeff_delta );
 public:
   CegInstantiator( QuantifiersEngine * qe, CegqiOutput * out, bool use_vts_delta = true, bool use_vts_inf = true );
   //check : add instantiations based on valuation of d_vars

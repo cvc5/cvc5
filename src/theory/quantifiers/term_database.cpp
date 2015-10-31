@@ -1481,6 +1481,19 @@ bool TermDb::containsVtsInfinity( Node n, bool isFree ) {
   return containsTerms( n, t );
 }
 
+Node TermDb::mkNodeType( Node n, TypeNode tn ) {
+  TypeNode ntn = n.getType();
+  Assert( ntn.isComparableTo( tn ) );
+  if( ntn.isSubtypeOf( tn ) ){
+    return n;
+  }else{
+    if( tn.isInteger() ){
+      return NodeManager::currentNM()->mkNode( TO_INTEGER, n );
+    }
+    return Node::null();
+  }
+}
+
 bool TermDb::containsTerm2( Node n, Node t, std::map< Node, bool >& visited ) {
   if( n==t ){
     return true;

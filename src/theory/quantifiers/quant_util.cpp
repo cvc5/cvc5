@@ -137,6 +137,24 @@ int QuantArith::isolate( Node v, std::map< Node, Node >& msum, Node & veq, Kind 
   return 0;
 }
 
+int QuantArith::isolate( Node v, std::map< Node, Node >& msum, Node & veq_c, Node & val, Kind k ) {
+  Node vatom;
+  //isolate pv in the inequality
+  int ires = isolate( v, msum, vatom, k, true );
+  if( ires!=0 ){
+    val = vatom[ ires==1 ? 1 : 0 ];
+    Node pvm = vatom[ ires==1 ? 0 : 1 ];
+    //get monomial
+    if( pvm!=v ){
+      Node veq_v;
+      if( QuantArith::getMonomial( pvm, veq_c, veq_v ) ){
+        Assert( veq_v==v );
+      }
+    }
+  }
+  return ires;
+}
+
 Node QuantArith::negate( Node t ) {
   Node tt = NodeManager::currentNM()->mkNode( MULT, NodeManager::currentNM()->mkConst( Rational(-1) ), t );
   tt = Rewriter::rewrite( tt );

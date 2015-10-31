@@ -120,16 +120,6 @@ public:
   /** get all variables that E-matching can possibly handle */
   static void getTriggerVariables( QuantifiersEngine* qe, Node icn, Node f, std::vector< Node >& t_vars );
 
-  inline void toStream(std::ostream& out) const {
-    /*
-    out << "TRIGGER( ";
-    for( int i=0; i<(int)d_nodes.size(); i++ ){
-      if( i>0 ){ out << ", "; }
-      out << d_nodes[i];
-    }
-    out << " )";
-    */
-  }
   void debugPrint( const char * c ) {
     Trace(c) << "TRIGGER( ";
     for( int i=0; i<(int)d_nodes.size(); i++ ){
@@ -139,12 +129,6 @@ public:
     Trace(c) << " )";
   }
 };
-
-inline std::ostream& operator<<(std::ostream& out, const Trigger & tr) {
-  tr.toStream(out);
-  return out;
-}
-
 
 /** a trie of triggers */
 class TriggerTrie {
