@@ -647,12 +647,8 @@ $(top_builddir)/src/.subdirs: $(top_srcdir)/src/Makefile.theories  @top_srcdir@/
 		$(am__mv) $(top_builddir)/src/.subdirs.tmp $(top_builddir)/src/.subdirs; \
 	fi
 
-#	$(AM_V_at)(\
-#	  grep '^THEORIES = ' $(top_srcdir)/src/Makefile.theories | \
-#	  cut -d' ' -f3- | tr ' ' "\n" | \
-#	  xargs -I__D__ echo $(top_srcdir)/src/theory/__D__/kinds ) >$(top_builddir)/src/.subdirs.tmp
-
 theory/rewriter_tables.h: theory/rewriter_tables_template.h theory/mkrewriter @top_builddir@/src/.subdirs @top_srcdir@/src/theory/*/kinds
+	$(AM_V_at)test -d $(top_builddir)/src/theory || mkdir -p @top_builddir@/src/theory
 	$(AM_V_at)chmod +x @srcdir@/theory/mkrewriter
 	$(AM_V_at)$(am__mv) $@ $@~ 2>/dev/null || true
 	$(AM_V_GEN)(@srcdir@/theory/mkrewriter \
@@ -661,6 +657,7 @@ theory/rewriter_tables.h: theory/rewriter_tables_template.h theory/mkrewriter @t
 	> $@) || (rm -f $@ && exit 1)
 
 theory/theory_traits.h: theory/theory_traits_template.h theory/mktheorytraits @top_builddir@/src/.subdirs @top_srcdir@/src/theory/*/kinds
+	$(AM_V_at)test -d $(top_builddir)/src/theory || mkdir -p @top_builddir@/src/theory
 	$(AM_V_at)chmod +x @srcdir@/theory/mktheorytraits
 	$(AM_V_at)$(am__mv) $@ $@~ 2>/dev/null || true
 	$(AM_V_GEN)(@srcdir@/theory/mktheorytraits \
@@ -669,6 +666,7 @@ theory/theory_traits.h: theory/theory_traits_template.h theory/mktheorytraits @t
 	> $@) || (rm -f $@ && exit 1)
 
 theory/type_enumerator.cpp: theory/type_enumerator_template.cpp theory/mktheorytraits @top_builddir@/src/.subdirs @top_srcdir@/src/theory/*/kinds
+	$(AM_V_at)test -d $(top_builddir)/src/theory || mkdir -p @top_builddir@/src/theory
 	$(AM_V_at)chmod +x @srcdir@/theory/mktheorytraits
 	$(AM_V_at)$(am__mv) $@ $@~ 2>/dev/null || true
 	$(AM_V_GEN)(@srcdir@/theory/mktheorytraits \
