@@ -1985,6 +1985,11 @@ simpleTerm[CVC4::Expr& f]
       }
     }
 
+    /* set cardinality literal */
+  | BAR BAR formula[f] { args.push_back(f); } BAR BAR
+    { f = MK_EXPR(kind::CARD, args[0]);
+    }
+
     /* array literals */
   | ARRAY_TOK /* { PARSER_STATE->pushScope(); } */ LPAREN
     restrictedType[t, CHECK_DECLARED] OF_TOK restrictedType[t2, CHECK_DECLARED]

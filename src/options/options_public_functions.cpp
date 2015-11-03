@@ -204,7 +204,7 @@ std::ostream* Options::getOut(){
 }
 
 std::ostream* Options::getOutConst() const{
-#warning "Remove Options::getOutConst"
+  // #warning "Remove Options::getOutConst"
   return (*this)[options::out];
 }
 

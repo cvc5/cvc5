@@ -22,7 +22,7 @@
 #include <fstream>
 #include <string>
 
-#warning "TODO: Why is lfsc's check.h being included like this?"
+// #warning "TODO: Why is lfsc's check.h being included like this?"
 #include "check.h"
 
 #include "base/configuration_private.h"

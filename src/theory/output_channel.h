@@ -142,7 +142,6 @@ public:
     return lemma(n, RULE_INVALID, removable, preprocess, sendAtoms);
   }
 
-  
   /**
    * Request a split on a new theory atom.  This is equivalent to
    * calling lemma({OR n (NOT n)}).

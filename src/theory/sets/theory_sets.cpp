@@ -70,6 +70,10 @@ void TheorySets::preRegisterTerm(TNode node) {
   d_internal->preRegisterTerm(node);
 }
 
+void TheorySets::presolve() {
+  d_internal->presolve();
+}
+
 void TheorySets::propagate(Effort e) {
   d_internal->propagate(e);
 }

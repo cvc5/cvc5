@@ -231,13 +231,15 @@ void Theory::collectTerms(TNode n, set<Node>& termSet) const
 }
 
 
-void Theory::computeRelevantTerms(set<Node>& termSet) const
+void Theory::computeRelevantTerms(set<Node>& termSet, bool includeShared) const
 {
   // Collect all terms appearing in assertions
   context::CDList<Assertion>::const_iterator assert_it = facts_begin(), assert_it_end = facts_end();
   for (; assert_it != assert_it_end; ++assert_it) {
     collectTerms(*assert_it, termSet);
   }
+
+  if (!includeShared) return;
 
   // Add terms that are shared terms
   context::CDList<TNode>::const_iterator shared_it = shared_terms_begin(), shared_it_end = shared_terms_end();

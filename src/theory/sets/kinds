@@ -12,7 +12,7 @@ rewriter ::CVC4::theory::sets::TheorySetsRewriter \
     "theory/sets/theory_sets_rewriter.h"
 
 properties parametric
-properties check propagate
+properties check propagate presolve
 
 # constants
 constant EMPTYSET \
@@ -42,6 +42,7 @@ operator SUBSET        2  "subset predicate; first parameter a subset of second"
 operator MEMBER        2  "set membership predicate; first parameter a member of second"
 operator SINGLETON     1  "the set of the single element given as a parameter"
 operator INSERT        2: "set obtained by inserting elements (first N-1 parameters) into a set (the last parameter)"
+operator CARD          1  "set cardinality operator"
 
 typerule UNION          ::CVC4::theory::sets::SetsBinaryOperatorTypeRule
 typerule INTERSECTION   ::CVC4::theory::sets::SetsBinaryOperatorTypeRule
@@ -51,11 +52,13 @@ typerule MEMBER         ::CVC4::theory::sets::MemberTypeRule
 typerule SINGLETON      ::CVC4::theory::sets::SingletonTypeRule
 typerule EMPTYSET       ::CVC4::theory::sets::EmptySetTypeRule
 typerule INSERT         ::CVC4::theory::sets::InsertTypeRule
+typerule CARD           ::CVC4::theory::sets::CardTypeRule
 
 construle UNION         ::CVC4::theory::sets::SetsBinaryOperatorTypeRule
 construle INTERSECTION  ::CVC4::theory::sets::SetsBinaryOperatorTypeRule
 construle SETMINUS      ::CVC4::theory::sets::SetsBinaryOperatorTypeRule
 construle SINGLETON     ::CVC4::theory::sets::SingletonTypeRule
 construle INSERT        ::CVC4::theory::sets::InsertTypeRule
+construle CARD          ::CVC4::theory::sets::CardTypeRule
 
 endtheory

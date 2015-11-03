@@ -347,6 +347,7 @@ void TheoryEngine::check(Theory::Effort effort) {
     if (theory::TheoryTraits<THEORY>::hasCheck && d_logicInfo.isTheoryEnabled(THEORY)) { \
        theoryOf(THEORY)->check(effort); \
        if (d_inConflict) { \
+         Debug("conflict") << THEORY << " in conflict. " << std::endl; \
          break; \
        } \
     }

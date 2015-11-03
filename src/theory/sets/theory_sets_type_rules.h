@@ -136,6 +136,25 @@ struct EmptySetTypeRule {
   }
 };/* struct EmptySetTypeRule */
 
+struct CardTypeRule {
+  inline static TypeNode computeType(NodeManager* nodeManager, TNode n, bool check)
+    throw (TypeCheckingExceptionPrivate, AssertionException) {
+    Assert(n.getKind() == kind::CARD);
+    TypeNode setType = n[0].getType(check);
+    if( check ) {
+      if(!setType.isSet()) {
+        throw TypeCheckingExceptionPrivate(n, "cardinality operates on a set, non-set object found");
+      }
+    }
+    return nodeManager->integerType();
+  }
+
+  inline static bool computeIsConst(NodeManager* nodeManager, TNode n) {
+    Assert(n.getKind() == kind::CARD);
+    return false;
+  }
+};/* struct CardTypeRule */
+
 struct InsertTypeRule {
   inline static TypeNode computeType(NodeManager* nodeManager, TNode n, bool check)
     throw (TypeCheckingExceptionPrivate, AssertionException) {
@@ -163,7 +182,6 @@ struct InsertTypeRule {
     return false;
   }
 };/* struct InsertTypeRule */
-
 
 struct SetsProperties {
   inline static Cardinality computeCardinality(TypeNode type) {

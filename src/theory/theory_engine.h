@@ -297,8 +297,15 @@ class TheoryEngine {
       return d_engine->lemma(lemma, rule, false, removable, preprocess, sendAtoms ? d_theory : theory::THEORY_LAST, d_theory);
     }
 
+    /*theory::LemmaStatus preservedLemma(TNode lemma, bool removable = false, bool preprocess = false) throw(TypeCheckingExceptionPrivate, AssertionException, UnsafeInterruptException, LogicException) {
+      Trace("theory::lemma") << "EngineOutputChannel<" << d_theory << ">::preservedLemma(" << lemma << ")" << std::endl;
+      ++ d_statistics.lemmas;
+      d_engine->d_outputChannelUsed = true;
+      return d_engine->lemma(lemma, false, removable, preprocess, d_theory);
+    }*/
+
     theory::LemmaStatus splitLemma(TNode lemma, bool removable = false) throw(TypeCheckingExceptionPrivate, AssertionException, UnsafeInterruptException) {
-      Trace("theory::lemma") << "EngineOutputChannel<" << d_theory << ">::lemma(" << lemma << ")" << std::endl;
+      Trace("theory::lemma") << "EngineOutputChannel<" << d_theory << ">::splitLemma(" << lemma << ")" << std::endl;
       ++ d_statistics.lemmas;
       d_engine->d_outputChannelUsed = true;
       return d_engine->lemma(lemma, RULE_SPLIT, false, removable, false, d_theory, d_theory);

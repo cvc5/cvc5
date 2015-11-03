@@ -237,7 +237,7 @@ protected:
    * termSet.  This is used by collectModelInfo to delimit the set of
    * terms that should be used when constructing a model
    */
-  void computeRelevantTerms(std::set<Node>& termSet) const;
+  void computeRelevantTerms(std::set<Node>& termSet, bool includeShared = true) const;
 
   /**
    * Construct a Theory.

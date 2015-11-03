@@ -54,6 +54,10 @@ static Node EQUAL(TNode a, TNode b) {
   return NodeManager::currentNM()->mkNode(kind::EQUAL, a, b);
 }
 
+static Node CARD(TNode a) {
+  return NodeManager::currentNM()->mkNode(kind::CARD, a);
+}
+
 }/* CVC4::expr::pattern namespace */
 }/* CVC4::expr namespace */
 }/* CVC4 namespace */

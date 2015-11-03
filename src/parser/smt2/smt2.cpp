@@ -226,6 +226,7 @@ void Smt2::addTheory(Theory theory) {
     addOperator(kind::MEMBER, "member");
     addOperator(kind::SINGLETON, "singleton");
     addOperator(kind::INSERT, "insert");
+    addOperator(kind::CARD, "card");
     break;
 
   case THEORY_DATATYPES:
