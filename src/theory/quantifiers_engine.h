@@ -53,8 +53,6 @@ public:
   virtual ~QuantifiersModule(){}
   //get quantifiers engine
   QuantifiersEngine* getQuantifiersEngine() { return d_quantEngine; }
-  /** initialize */
-  virtual void finishInit() {}
   /** presolve */
   virtual void presolve() {}
   /* whether this module needs to check this round */
@@ -201,6 +199,7 @@ private:
   /** inst round counters */
   int d_ierCounter;
   int d_ierCounter_lc;
+  int d_inst_when_phase;
   /** has presolve been called */
   context::CDO< bool > d_presolve;
   /** presolve cache */
@@ -220,7 +219,7 @@ public:
   /** get default sat context for quantifiers engine */
   context::Context* getSatContext();
   /** get default sat context for quantifiers engine */
-  context::Context* getUserContext();
+  context::UserContext* getUserContext();
   /** get default output channel for the quantifiers engine */
   OutputChannel& getOutputChannel();
   /** get default valuation for the quantifiers engine */

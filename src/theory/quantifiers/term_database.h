@@ -147,13 +147,13 @@ public:
   /** constants */
   Node d_zero;
   Node d_one;
-  
+
   /** map from operators to ground terms for that operator */
   std::map< Node, std::vector< Node > > d_op_map;
   /** map from type nodes to terms of that type */
   std::map< TypeNode, std::vector< Node > > d_type_map;
-  
-  
+
+
   /** count number of non-redundant ground terms per operator */
   std::map< Node, int > d_op_nonred_count;
   /**mapping from UF terms to representatives of their arguments */
@@ -165,7 +165,7 @@ public:
   std::map< Node, bool > d_has_map;
   /** map from reps to a term in eqc in d_has_map */
   std::map< Node, Node > d_term_elig_eqc;
-  
+
 public:
   /** ground terms for operator */
   unsigned getNumGroundTerms( Node f );
@@ -204,7 +204,7 @@ public:
   Node getEligibleTermInEqc( TNode r );
   /** is inst closure */
   bool isInstClosure( Node r );
-  
+
 //for model basis
 private:
   //map from types to model basis terms
@@ -301,7 +301,7 @@ public:
   bool isClosedEnumerableType( TypeNode tn );
   // may complete
   bool mayComplete( TypeNode tn );
-  
+
 //for triggers
 private:
   /** helper function for compute var contains */
@@ -414,6 +414,8 @@ public: //general queries concerning quantified formulas wrt modules
   static Node getRewriteRule( Node q );
   /** is fun def */
   static bool isFunDef( Node q );
+  /** is fun def */
+  static bool isFunDefAnnotation( Node ipl );
   /** is sygus conjecture */
   static bool isSygusConjecture( Node q );
   /** is sygus conjecture */

@@ -34,7 +34,7 @@ using namespace CVC4::theory::arith;
 #define ARITH_INSTANTIATOR_USE_MINUS_DELTA
 
 InstStrategyCbqi::InstStrategyCbqi( QuantifiersEngine * qe ) : QuantifiersModule( qe ), d_added_cbqi_lemma( qe->getUserContext() ){
-  
+
 }
 
 bool InstStrategyCbqi::needsCheck( Theory::Effort e ) {
@@ -44,7 +44,7 @@ bool InstStrategyCbqi::needsCheck( Theory::Effort e ) {
 unsigned InstStrategyCbqi::needsModel( Theory::Effort e ) {
   for( int i=0; i<d_quantEngine->getModel()->getNumAssertedQuantifiers(); i++ ){
     Node q = d_quantEngine->getModel()->getAssertedQuantifier( i );
-    if( d_quantEngine->getOwner( q )==this && d_quantEngine->getModel()->isQuantifierActive( q ) ){
+    if( doCbqi( q ) && d_quantEngine->getModel()->isQuantifierActive( q ) ){
       return QuantifiersEngine::QEFFORT_STANDARD;
     }
   }
@@ -57,7 +57,7 @@ void InstStrategyCbqi::reset_round( Theory::Effort effort ) {
   for( int i=0; i<d_quantEngine->getModel()->getNumAssertedQuantifiers(); i++ ){
     Node q = d_quantEngine->getModel()->getAssertedQuantifier( i );
     //it is not active if it corresponds to a rewrite rule: we will process in rewrite engine
-    if( d_quantEngine->getOwner( q )==this ){
+    if( doCbqi( q ) ){
       if( !hasAddedCbqiLemma( q ) ){
         d_added_cbqi_lemma.insert( q );
         Trace("cbqi") << "Do cbqi for " << q << std::endl;
@@ -76,7 +76,7 @@ void InstStrategyCbqi::reset_round( Theory::Effort effort ) {
           Trace("cbqi") << "Counterexample lemma : " << lem << std::endl;
           registerCounterexampleLemma( q, lem );
         }
-      //set inactive the quantified formulas whose CE literals are asserted false  
+      //set inactive the quantified formulas whose CE literals are asserted false
       }else if( d_quantEngine->getModel()->isQuantifierActive( q ) ){
         Debug("cbqi-debug") << "Check quantified formula " << q << "..." << std::endl;
         Node cel = d_quantEngine->getTermDatabase()->getCounterexampleLiteral( q );
@@ -106,7 +106,7 @@ void InstStrategyCbqi::check( Theory::Effort e, unsigned quant_e ) {
       unsigned lastWaiting = d_quantEngine->getNumLemmasWaiting();
       for( int i=0; i<d_quantEngine->getModel()->getNumAssertedQuantifiers(); i++ ){
         Node q = d_quantEngine->getModel()->getAssertedQuantifier( i );
-        if( d_quantEngine->getOwner( q )==this && d_quantEngine->getModel()->isQuantifierActive( q ) ){
+        if( doCbqi( q ) && d_quantEngine->getModel()->isQuantifierActive( q ) ){
           process( q, e, ee );
         }
       }
@@ -127,13 +127,15 @@ bool InstStrategyCbqi::checkComplete() {
 
 void InstStrategyCbqi::preRegisterQuantifier( Node q ) {
   if( d_quantEngine->getOwner( q )==NULL && doCbqi( q ) ){
-    //take ownership of the quantified formula
-    d_quantEngine->setOwner( q, this );
+    if( !options::cbqiAll() && !options::cbqiSplx() ){
+      //take full ownership of the quantified formula
+      d_quantEngine->setOwner( q, this );
+    }
   }
 }
 
 void InstStrategyCbqi::registerQuantifier( Node q ) {
-  
+
 }
 
 void InstStrategyCbqi::registerCounterexampleLemma( Node q, Node lem ){

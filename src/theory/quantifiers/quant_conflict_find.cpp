@@ -624,7 +624,7 @@ bool QuantInfo::completeMatch( QuantConflictFind * p, std::vector< int >& assign
   }
 
   if( !d_unassigned.empty() && ( success || doContinue ) ){
-    Trace("qcf-check") << "Assign to unassigned..." << std::endl;
+    Trace("qcf-check") << "Assign to unassigned (" << d_unassigned.size() << ")..." << std::endl;
     do {
       if( doFail ){
         Trace("qcf-check-unassign") << "Failure, try again..." << std::endl;
@@ -702,6 +702,7 @@ bool QuantInfo::completeMatch( QuantConflictFind * p, std::vector< int >& assign
         }
       }
     }while( success && isMatchSpurious( p ) );
+    Trace("qcf-check") << "done assigning." << std::endl;
   }
   if( success ){
     for( unsigned i=0; i<d_unassigned.size(); i++ ){
@@ -2113,7 +2114,9 @@ void QuantConflictFind::computeRelevantEqr() {
             itt->second.push_back( r );
           }
         }else{
-          d_eqcs[rtn].push_back( r );
+          if( !options::cbqi() || !TermDb::hasInstConstAttr( r ) ){
+            d_eqcs[rtn].push_back( r );
+          }
         }
       }
       ++eqcs_i;

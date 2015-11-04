@@ -1599,9 +1599,23 @@ bool TermDb::isFunDef( Node q ) {
   return !getFunDefHead( q ).isNull();
 }
 
+bool TermDb::isFunDefAnnotation( Node ipl ) {
+  if( !ipl.isNull() ){
+    for( unsigned i=0; i<ipl.getNumChildren(); i++ ){
+      if( ipl[i].getKind()==INST_ATTRIBUTE ){
+        if( ipl[i][0].getAttribute(FunDefAttribute()) ){
+          return true;
+        }
+      }
+    }
+  }
+  return false;
+}
+
 Node TermDb::getFunDefHead( Node q ) {
   //&& ( q[1].getKind()==EQUAL || q[1].getKind()==IFF ) && q[1][0].getKind()==APPLY_UF &&
   if( q.getKind()==FORALL && q.getNumChildren()==3 ){
+
     for( unsigned i=0; i<q[2].getNumChildren(); i++ ){
       if( q[2][i].getKind()==INST_ATTRIBUTE ){
         if( q[2][i][0].getAttribute(FunDefAttribute()) ){

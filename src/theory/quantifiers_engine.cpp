@@ -94,8 +94,6 @@ d_presolve_cache_wic(u){
   d_tr_trie = new inst::TriggerTrie;
   d_hasAddedLemma = false;
 
-  bool needsBuilder = false;
-  bool needsRelDom = false;
   Trace("quant-engine-debug") << "Initialize quantifiers engine." << std::endl;
   Trace("quant-engine-debug") << "Initialize model, mbqi : " << options::mbqiMode() << std::endl;
 
@@ -115,117 +113,27 @@ d_presolve_cache_wic(u){
     d_quant_rel = NULL;
   }
 
-  //add quantifiers modules
-  if( options::quantConflictFind() || options::quantRewriteRules() ){
-    d_qcf = new quantifiers::QuantConflictFind( this, c);
-    d_modules.push_back( d_qcf );
-  }else{
-    d_qcf = NULL;
-  }
-  if( options::conjectureGen() ){
-    d_sg_gen = new quantifiers::ConjectureGenerator( this, c );
-    d_modules.push_back( d_sg_gen );
-  }else{
-    d_sg_gen = NULL;
-  }
-  //maintain invariant : either InstantiationEngine or ModelEngine must be in d_modules
-  if( !options::finiteModelFind() || options::fmfInstEngine() ){
-    d_inst_engine = new quantifiers::InstantiationEngine( this );
-    d_modules.push_back(  d_inst_engine );
-  }else{
-    d_inst_engine = NULL;
-  }
-  //counterexample-based instantiation (initialized during finishInit)
+  d_qcf = NULL;
+  d_sg_gen = NULL;
+  d_inst_engine = NULL;
   d_i_cbqi = NULL;
-  if( options::cbqi() && options::cbqiModel() ){
-    needsBuilder = true;
-  }
-  //finite model finding
-  if( options::finiteModelFind() ){
-    if( options::fmfBoundInt() ){
-      d_bint = new quantifiers::BoundedIntegers( c, this );
-      d_modules.push_back( d_bint );
-    }else{
-      d_bint = NULL;
-    }
-    d_model_engine = new quantifiers::ModelEngine( c, this );
-    d_modules.push_back( d_model_engine );
-    needsBuilder = true;
-  }else{
-    d_model_engine = NULL;
-    d_bint = NULL;
-  }
-  if( options::quantRewriteRules() ){
-    d_rr_engine = new quantifiers::RewriteEngine( c, this );
-    d_modules.push_back(d_rr_engine);
-  }else{
-    d_rr_engine = NULL;
-  }
-  if( options::ceGuidedInst() ){
-    d_ceg_inst = new quantifiers::CegInstantiation( this, c );
-    d_modules.push_back( d_ceg_inst );
-    needsBuilder = true;
-  }else{
-    d_ceg_inst = NULL;
-  }
-  if( options::ltePartialInst() ){
-    d_lte_part_inst = new quantifiers::LtePartialInst( this, c );
-    d_modules.push_back( d_lte_part_inst );
-  }else{
-    d_lte_part_inst = NULL;
-  }
-  if( options::quantAlphaEquiv() ){
-    d_alpha_equiv = new quantifiers::AlphaEquivalence( this );
-  }else{
-    d_alpha_equiv = NULL;
-  }
-  //if( options::funDefs() ){
-  //  d_fun_def_engine = new quantifiers::FunDefEngine( this, c );
-  //  d_modules.push_back( d_fun_def_engine );
-  //}else{
+  d_model_engine = NULL;
+  d_bint = NULL;
+  d_rr_engine = NULL;
+  d_ceg_inst = NULL;
+  d_lte_part_inst = NULL;
+  d_alpha_equiv = NULL;
   d_fun_def_engine = NULL;
-  //}
-  if( options::quantEqualityEngine() ){
-    d_uee = new quantifiers::QuantEqualityEngine( this, c );
-    d_modules.push_back( d_uee );
-  }else{
-    d_uee = NULL;
-  }
-  //full saturation : instantiate from relevant domain, then arbitrary terms
-  if( options::fullSaturateQuant() || options::fullSaturateInst() ){
-    d_fs = new quantifiers::FullSaturation( this );
-    d_modules.push_back( d_fs );
-    needsRelDom = true;
-  }else{
-    d_fs = NULL;
-  }
-
-  if( needsRelDom ){
-    d_rel_dom = new quantifiers::RelevantDomain( this, d_model );
-  }else{
-    d_rel_dom = NULL;
-  }
-
-  if( needsBuilder ){
-    Trace("quant-engine-debug") << "Initialize model engine, mbqi : " << options::mbqiMode() << " " << options::fmfBoundInt() << std::endl;
-    if( options::mbqiMode()==quantifiers::MBQI_FMC || options::mbqiMode()==quantifiers::MBQI_FMC_INTERVAL ||
-        options::mbqiMode()==quantifiers::MBQI_TRUST || options::fmfBoundInt() ){
-      Trace("quant-engine-debug") << "...make fmc builder." << std::endl;
-      d_builder = new quantifiers::fmcheck::FullModelChecker( c, this );
-    }else if( options::mbqiMode()==quantifiers::MBQI_ABS ){
-      Trace("quant-engine-debug") << "...make abs mbqi builder." << std::endl;
-      d_builder = new quantifiers::AbsMbqiBuilder( c, this );
-    }else{
-      Trace("quant-engine-debug") << "...make default model builder." << std::endl;
-      d_builder = new quantifiers::QModelBuilderDefault( c, this );
-    }
-  }else{
-    d_builder = NULL;
-  }
+  d_uee = NULL;
+  d_fs = NULL;
+  d_rel_dom = NULL;
+  d_builder = NULL;
 
   d_total_inst_count_debug = 0;
   d_ierCounter = 0;
   d_ierCounter_lc = 0;
+  //if any strategy called only on last call, use phase 3
+  d_inst_when_phase = options::cbqi() ? 3 : 2;
 }
 
 QuantifiersEngine::~QuantifiersEngine(){
@@ -258,7 +166,7 @@ context::Context* QuantifiersEngine::getSatContext(){
   return d_te->theoryOf( THEORY_QUANTIFIERS )->getSatContext();
 }
 
-context::Context* QuantifiersEngine::getUserContext(){
+context::UserContext* QuantifiersEngine::getUserContext(){
   return d_te->theoryOf( THEORY_QUANTIFIERS )->getUserContext();
 }
 
@@ -271,8 +179,24 @@ Valuation& QuantifiersEngine::getValuation(){
 }
 
 void QuantifiersEngine::finishInit(){
+  context::Context * c = getSatContext();
   Trace("quant-engine-debug") << "QuantifiersEngine : finishInit " << std::endl;
-  //counterexample-based quantifier instantiation
+  bool needsBuilder = false;
+  bool needsRelDom = false;
+  //add quantifiers modules
+  if( options::quantConflictFind() || options::quantRewriteRules() ){
+    d_qcf = new quantifiers::QuantConflictFind( this, c);
+    d_modules.push_back( d_qcf );
+  }
+  if( options::conjectureGen() ){
+    d_sg_gen = new quantifiers::ConjectureGenerator( this, c );
+    d_modules.push_back( d_sg_gen );
+  }
+  //maintain invariant : either InstantiationEngine or ModelEngine must be in d_modules
+  if( !options::finiteModelFind() || options::fmfInstEngine() ){
+    d_inst_engine = new quantifiers::InstantiationEngine( this );
+    d_modules.push_back(  d_inst_engine );
+  }
   if( options::cbqi() ){
     if( options::cbqiSplx() ){
       d_i_cbqi = new quantifiers::InstStrategySimplex( (arith::TheoryArith*)getTheoryEngine()->theoryOf( THEORY_ARITH ), this );
@@ -280,13 +204,71 @@ void QuantifiersEngine::finishInit(){
     }else{
       d_i_cbqi = new quantifiers::InstStrategyCegqi( this );
       d_modules.push_back( d_i_cbqi );
+      if( options::cbqiModel() ){
+        needsBuilder = true;
+      }
     }
-  }else{
-    d_i_cbqi = NULL;
   }
-  for( int i=0; i<(int)d_modules.size(); i++ ){
-    d_modules[i]->finishInit();
+  //finite model finding
+  if( options::finiteModelFind() ){
+    if( options::fmfBoundInt() ){
+      d_bint = new quantifiers::BoundedIntegers( c, this );
+      d_modules.push_back( d_bint );
+    }
+    d_model_engine = new quantifiers::ModelEngine( c, this );
+    d_modules.push_back( d_model_engine );
+    needsBuilder = true;
   }
+  if( options::quantRewriteRules() ){
+    d_rr_engine = new quantifiers::RewriteEngine( c, this );
+    d_modules.push_back(d_rr_engine);
+  }
+  if( options::ceGuidedInst() ){
+    d_ceg_inst = new quantifiers::CegInstantiation( this, c );
+    d_modules.push_back( d_ceg_inst );
+    needsBuilder = true;
+  }
+  if( options::ltePartialInst() ){
+    d_lte_part_inst = new quantifiers::LtePartialInst( this, c );
+    d_modules.push_back( d_lte_part_inst );
+  }
+  if( options::quantAlphaEquiv() ){
+    d_alpha_equiv = new quantifiers::AlphaEquivalence( this );
+  }
+  //if( options::funDefs() ){
+  //  d_fun_def_engine = new quantifiers::FunDefEngine( this, c );
+  //  d_modules.push_back( d_fun_def_engine );
+  //}
+  if( options::quantEqualityEngine() ){
+    d_uee = new quantifiers::QuantEqualityEngine( this, c );
+    d_modules.push_back( d_uee );
+  }
+  //full saturation : instantiate from relevant domain, then arbitrary terms
+  if( options::fullSaturateQuant() || options::fullSaturateInst() ){
+    d_fs = new quantifiers::FullSaturation( this );
+    d_modules.push_back( d_fs );
+    needsRelDom = true;
+  }
+
+  if( needsRelDom ){
+    d_rel_dom = new quantifiers::RelevantDomain( this, d_model );
+  }
+
+  if( needsBuilder ){
+    Trace("quant-engine-debug") << "Initialize model engine, mbqi : " << options::mbqiMode() << " " << options::fmfBoundInt() << std::endl;
+    if( options::mbqiMode()==quantifiers::MBQI_FMC || options::mbqiMode()==quantifiers::MBQI_FMC_INTERVAL ||
+        options::mbqiMode()==quantifiers::MBQI_TRUST || options::fmfBoundInt() ){
+      Trace("quant-engine-debug") << "...make fmc builder." << std::endl;
+      d_builder = new quantifiers::fmcheck::FullModelChecker( c, this );
+    }else if( options::mbqiMode()==quantifiers::MBQI_ABS ){
+      Trace("quant-engine-debug") << "...make abs mbqi builder." << std::endl;
+      d_builder = new quantifiers::AbsMbqiBuilder( c, this );
+    }else{
+      Trace("quant-engine-debug") << "...make default model builder." << std::endl;
+      d_builder = new quantifiers::QModelBuilderDefault( c, this );
+    }
+  }
+
 }
 
 QuantifiersModule * QuantifiersEngine::getOwner( Node q ) {
@@ -717,7 +699,7 @@ bool QuantifiersEngine::addInstantiationInternal( Node f, std::vector< Node >& v
     d_temp_inst_debug[f]++;
     d_total_inst_count_debug++;
     Trace("inst") << "*** Instantiate " << f << " with " << std::endl;
-    for( int i=0; i<(int)terms.size(); i++ ){
+    for( unsigned i=0; i<terms.size(); i++ ){
       if( Trace.isOn("inst") ){
         Trace("inst") << "   " << terms[i];
         if( Trace.isOn("inst-debug") ){
@@ -725,22 +707,20 @@ bool QuantifiersEngine::addInstantiationInternal( Node f, std::vector< Node >& v
         }
         Trace("inst") << std::endl;
       }
-      Assert( terms[i].getType().isSubtypeOf( f[0][i].getType() ) );
-    }
-    if( options::cbqiSplx() ){
-      for( int i=0; i<(int)terms.size(); i++ ){
-        if( quantifiers::TermDb::hasInstConstAttr(terms[i]) ){
+      if( options::cbqi() ){
+        if( quantifiers::TermDb::getInstConstAttr(terms[i])==f ){
           Trace("inst")<< "***& Bad Instantiate " << f << " with " << std::endl;
-          for( int i=0; i<(int)terms.size(); i++ ){
+          for( unsigned i=0; i<terms.size(); i++ ){
             Trace("inst") << "   " << terms[i] << std::endl;
           }
           Unreachable("Bad instantiation");
         }
       }
+      Assert( terms[i].getType().isSubtypeOf( f[0][i].getType() ) );
     }
     if( options::instMaxLevel()!=-1 ){
       uint64_t maxInstLevel = 0;
-      for( int i=0; i<(int)terms.size(); i++ ){
+      for( unsigned i=0; i<terms.size(); i++ ){
         if( terms[i].hasAttribute(InstLevelAttribute()) ){
           if( terms[i].getAttribute(InstLevelAttribute())>maxInstLevel ){
             maxInstLevel = terms[i].getAttribute(InstLevelAttribute());
@@ -1017,9 +997,9 @@ bool QuantifiersEngine::getInstWhenNeedsCheck( Theory::Effort e ) {
   }else if( options::instWhenMode()==quantifiers::INST_WHEN_FULL_DELAY ){
     performCheck = ( e >= Theory::EFFORT_FULL ) && !getTheoryEngine()->needCheck();
   }else if( options::instWhenMode()==quantifiers::INST_WHEN_FULL_LAST_CALL ){
-    performCheck = ( ( e==Theory::EFFORT_FULL && d_ierCounter%2==0 ) || e==Theory::EFFORT_LAST_CALL );
+    performCheck = ( ( e==Theory::EFFORT_FULL && d_ierCounter%d_inst_when_phase==0 ) || e==Theory::EFFORT_LAST_CALL );
   }else if( options::instWhenMode()==quantifiers::INST_WHEN_FULL_DELAY_LAST_CALL ){
-    performCheck = ( ( e==Theory::EFFORT_FULL && !getTheoryEngine()->needCheck() && d_ierCounter%2==0 ) || e==Theory::EFFORT_LAST_CALL );
+    performCheck = ( ( e==Theory::EFFORT_FULL && !getTheoryEngine()->needCheck() && d_ierCounter%d_inst_when_phase==0 ) || e==Theory::EFFORT_LAST_CALL );
   }else if( options::instWhenMode()==quantifiers::INST_WHEN_LAST_CALL ){
     performCheck = ( e >= Theory::EFFORT_LAST_CALL );
   }else{

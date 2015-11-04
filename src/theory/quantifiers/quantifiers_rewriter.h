@@ -39,6 +39,7 @@ private:
   static void computeArgVec2( std::vector< Node >& args, std::vector< Node >& activeArgs, Node n, Node ipl );
   static Node computeClause( Node n );
   static void computeDtTesterIteSplit( Node n, std::map< Node, Node >& pcons, std::map< Node, std::map< int, Node > >& ncons, std::vector< Node >& conj );
+  static bool isConditionalVariableElim( Node n, int pol=0 );
 private:
   static Node computeElimSymbols( Node body );
   static Node computeMiniscoping( Node f, std::vector< Node >& args, Node body, Node ipl );
@@ -48,7 +49,7 @@ private:
   static Node computeProcessTerms( Node body, bool hasPol, bool pol, std::map< Node, bool >& currCond, int nCurrCond,
                                    std::map< Node, Node >& cache, std::map< Node, Node >& icache,
                                    std::vector< Node >& new_vars, std::vector< Node >& new_conds );
-  static Node computeProcessIte( Node body );
+  static Node computeProcessIte( Node body, Node ipl );
   static Node computeVarElimination( Node body, std::vector< Node >& args, Node& ipl );
   static Node computeCNF( Node body, std::vector< Node >& args, NodeBuilder<>& defs, bool forcePred );
   static Node computePrenex( Node body, std::vector< Node >& args, bool pol );
@@ -60,9 +61,9 @@ private:
     COMPUTE_AGGRESSIVE_MINISCOPING,
     COMPUTE_NNF,
     COMPUTE_PROCESS_TERMS,
-    COMPUTE_PROCESS_ITE,
     COMPUTE_PRENEX,
     COMPUTE_VAR_ELIMINATION,
+    COMPUTE_PROCESS_ITE,
     //COMPUTE_FLATTEN_ARGS_UF,
     //COMPUTE_CNF,
     COMPUTE_LAST

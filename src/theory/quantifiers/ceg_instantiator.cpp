@@ -292,9 +292,9 @@ bool CegInstantiator::addInstantiation( SolvedForm& sf, SolvedForm& ssf, std::ve
       std::vector< Node > mbp_vts_coeff[2][2];
       std::vector< Node > mbp_lit[2];
       //std::vector< MbpBounds > mbp_bounds[2];
-      unsigned rmax = Theory::theoryOf( pv )==Theory::theoryOf( pv.getType() ) ? 1 : 2;
-      for( unsigned r=0; r<rmax; r++ ){
-        TheoryId tid = r==0 ? Theory::theoryOf( pv ) : Theory::theoryOf( pv.getType() );
+      //unsigned rmax = Theory::theoryOf( pv )==Theory::theoryOf( pv.getType() ) ? 1 : 2;
+      for( unsigned r=0; r<2; r++ ){
+        TheoryId tid = r==0 ? Theory::theoryOf( pvtn ) : THEORY_UF;
         Trace("cbqi-inst-debug2") << "  look at assertions of " << tid << std::endl;
         std::map< TheoryId, std::vector< Node > >::iterator ita = d_curr_asserts.find( tid );
         if( ita!=d_curr_asserts.end() ){
@@ -303,7 +303,7 @@ bool CegInstantiator::addInstantiation( SolvedForm& sf, SolvedForm& ssf, std::ve
             Trace("cbqi-inst-debug2") << "  look at " << lit << std::endl;
             Node atom = lit.getKind()==NOT ? lit[0] : lit;
             bool pol = lit.getKind()!=NOT;
-            if( tid==THEORY_ARITH ){
+            if( pvtn.isReal() ){
               //arithmetic inequalities and disequalities
               if( atom.getKind()==GEQ || ( atom.getKind()==EQUAL && !pol ) ){
                 Assert( atom[0].getType().isInteger() || atom[0].getType().isReal() );
@@ -614,7 +614,7 @@ bool CegInstantiator::addInstantiation( SolvedForm& sf, SolvedForm& ssf, std::ve
 
     //[4] resort to using value in model
     // do so if we are in effort=1, or if the variable is boolean, or if we are solving for a subfield of a datatype
-    if( effort>0 || pvtn.isBoolean() || !curr_var.empty() ){
+    if( ( effort>0 || pvtn.isBoolean() || !curr_var.empty() ) && !pvtn.isSort() ){
       Node mv = getModelValue( pv );
       Node pv_coeff_m;
       Trace("cbqi-inst-debug") << "[4] " << i << "...try model value " << mv << std::endl;
@@ -976,14 +976,10 @@ Node CegInstantiator::applySubstitution( TypeNode tn, Node n, std::vector< Node 
 }
 
 Node CegInstantiator::getModelBasedProjectionValue( Node e, Node t, bool isLower, Node c, Node me, Node mt, Node theta, Node inf_coeff, Node delta_coeff ) {
-  /*
-  if( e.getType().isInteger() && !t.getType().isInteger() ){
-    //TODO : round up/down this bound?
-    return Node::null();
-  }
-  */
   Node val = t;
   Trace("cbqi-bound2") << "Value : " << val << std::endl;
+  Assert( !e.getType().isInteger() || t.getType().isInteger() );
+  Assert( !e.getType().isInteger() || mt.getType().isInteger() );
   //add rho value
   //get the value of c*e
   Node ceValue = me;
@@ -1005,7 +1001,7 @@ Node CegInstantiator::getModelBasedProjectionValue( Node e, Node t, bool isLower
     Node rho;
     //if( !mt.getType().isInteger() ){
       //round up/down
-      //mt = NodeManager::currentNM()->mkNode( 
+      //mt = NodeManager::currentNM()->mkNode(
     //}
     if( isLower ){
       rho = NodeManager::currentNM()->mkNode( MINUS, ceValue, mt );
@@ -1157,6 +1153,7 @@ void CegInstantiator::processAssertions() {
 
   //for each variable
   std::vector< TheoryId > tids;
+  tids.push_back(THEORY_UF);
   for( unsigned i=0; i<d_vars.size(); i++ ){
     Node pv = d_vars[i];
     TypeNode pvtn = pv.getType();
@@ -1389,8 +1386,8 @@ void CegInstantiator::registerCounterexampleLemma( std::vector< Node >& lems, st
       d_var_order_index.clear();
     }
   }
-  
-  //remove ITEs 
+
+  //remove ITEs
   IteSkolemMap iteSkolemMap;
   d_qe->getTheoryEngine()->getIteRemover()->run(lems, iteSkolemMap);
   Assert( d_aux_vars.empty() );
@@ -1466,7 +1463,7 @@ int CegInstantiator::isolate( Node pv, Node atom, Node & veq_c, Node & val, Node
         }
       }
     }
-    
+
     ires = QuantArith::isolate( pv, msum, veq_c, val, atom.getKind() );
     if( ires!=0 ){
       Node realPart;
@@ -1510,7 +1507,7 @@ int CegInstantiator::isolate( Node pv, Node atom, Node & veq_c, Node & val, Node
         Trace("cbqi-inst-debug") << "Isolate for mixed Int/Real : " << veq_c << " * " << pv << " " << atom.getKind() << " " << val << std::endl;
         Trace("cbqi-inst-debug") << "                 real part : " << realPart << std::endl;
         if( ires!=0 ){
-          val = Rewriter::rewrite( NodeManager::currentNM()->mkNode( ires==-1 ? PLUS : MINUS, 
+          val = Rewriter::rewrite( NodeManager::currentNM()->mkNode( ires==-1 ? PLUS : MINUS,
                                     NodeManager::currentNM()->mkNode( ires==-1 ? MINUS : PLUS, val, realPart ),
                                     NodeManager::currentNM()->mkNode( TO_INTEGER, realPart ) ) );
           Trace("cbqi-inst-debug") << "result : " << val << std::endl;
@@ -1521,6 +1518,6 @@ int CegInstantiator::isolate( Node pv, Node atom, Node & veq_c, Node & val, Node
     vts_coeff_inf = vts_coeff[0];
     vts_coeff_delta = vts_coeff[1];
   }
-    
+
   return ires;
 }

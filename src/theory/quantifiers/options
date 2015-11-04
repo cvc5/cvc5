@@ -31,8 +31,10 @@ option dtVarExpandQuant --dt-var-exp-quant bool :default true
 #ite lift mode for quantified formulas
 option iteLiftQuant --ite-lift-quant=MODE CVC4::theory::quantifiers::IteLiftQuantMode :default CVC4::theory::quantifiers::ITE_LIFT_QUANT_MODE_SIMPLE :include "theory/quantifiers/modes.h" :read-write :handler CVC4::theory::quantifiers::stringToIteLiftQuantMode :handler-include "theory/quantifiers/options_handlers.h"
  ite lifting mode for quantified formulas
-option iteCondVarSplitQuant --ite-cond-var-split-quant bool :default true
- split variables occurring as conditions of ITE in quantifiers
+option condVarSplitQuant --cond-var-split-quant bool :default true
+ split quantified formulas that lead to variable eliminations
+option condVarSplitQuantAgg --cond-var-split-agg-quant bool :default false
+ aggressive split quantified formulas that lead to variable eliminations
 option iteDtTesterSplitQuant --ite-dtt-split-quant bool :read-write :default false
  split ites with dt testers as conditions
 # Whether to CNF quantifier bodies

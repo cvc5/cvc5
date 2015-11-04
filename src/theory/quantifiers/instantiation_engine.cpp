@@ -30,16 +30,7 @@ using namespace CVC4::theory::quantifiers;
 using namespace CVC4::theory::inst;
 
 InstantiationEngine::InstantiationEngine( QuantifiersEngine* qe ) :
-QuantifiersModule( qe ), d_isup(NULL), d_i_ag(NULL){
-
-}
-
-InstantiationEngine::~InstantiationEngine() {
-  delete d_i_ag;
-  delete d_isup;
-}
-
-void InstantiationEngine::finishInit(){
+QuantifiersModule( qe ){
   if( options::eMatching() ){
     //these are the instantiation strategies for E-matching
     //user-provided patterns
@@ -51,8 +42,17 @@ void InstantiationEngine::finishInit(){
     //auto-generated patterns
     d_i_ag = new InstStrategyAutoGenTriggers( d_quantEngine );
     d_instStrategies.push_back( d_i_ag );
+  }else{
+    d_isup = NULL;
+    d_i_ag = NULL;
   }
 }
+
+InstantiationEngine::~InstantiationEngine() {
+  delete d_i_ag;
+  delete d_isup;
+}
+
 
 void InstantiationEngine::presolve() {
   for( unsigned i=0; i<d_instStrategies.size(); ++i ){

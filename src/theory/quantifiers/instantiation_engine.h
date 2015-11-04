@@ -74,8 +74,6 @@ private:
 public:
   InstantiationEngine( QuantifiersEngine* qe );
   ~InstantiationEngine();
-  /** initialize */
-  void finishInit();
   void presolve();
   bool needsCheck( Theory::Effort e );
   void reset_round( Theory::Effort e );
