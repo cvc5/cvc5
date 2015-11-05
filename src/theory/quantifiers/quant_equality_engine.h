@@ -64,7 +64,7 @@ private:
   void eqNotifyDisequal(TNode t1, TNode t2, TNode reason);
 public:
   QuantEqualityEngine( QuantifiersEngine * qe, context::Context* c );
-  ~QuantEqualityEngine(){}
+  virtual ~QuantEqualityEngine() throw (){}
 
   /* whether this module needs to check this round */
   bool needsCheck( Theory::Effort e );

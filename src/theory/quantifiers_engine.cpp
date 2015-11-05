@@ -229,6 +229,7 @@ d_presolve_cache_wic(u){
 }
 
 QuantifiersEngine::~QuantifiersEngine(){
+  delete d_alpha_equiv;
   delete d_builder;
   delete d_rr_engine;
   delete d_bint;

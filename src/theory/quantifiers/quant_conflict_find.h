@@ -78,7 +78,7 @@ public:
   };
   void debugPrintType( const char * c, short typ, bool isTrace = false );
 public:
-  MatchGen() : d_type( typ_invalid ){}
+  MatchGen();
   MatchGen( QuantInfo * qi, Node n, bool isVar = false );
   bool d_tgt;
   bool d_tgt_orig;
