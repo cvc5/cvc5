@@ -13,14 +13,17 @@
 #
 # Invocation:
 #
-#    mktags {Debug,Trace} <directory>
+#    mktags {Debug,Trace} <input-files>
 #
+# <input-files> is expected to be passed a single space separated list of files.
+#  One can use quotes to achieve this. This is one reason to use "$(...)"
+#  instead of back ticks `...`.
 
 DebugOrTrace=$1
-FindDirectory=$2
+InputFiles=$2
 
 grep -h '\<'$DebugOrTrace'\(\.isOn\)* *( *\".*\" *)' \
-  `find $FindDirectory -name "*.cpp" -o -name "*.h" -o -name "*.cc" -o -name "*.g"` | \
+  $InputFiles | \
   sed 's/\/\/.*//;s/^'$DebugOrTrace'\(\.isOn\)* *( *\"\([^"]*\)\".*/\2/;s/.*[^a-zA-Z0-9_]'$DebugOrTrace'\(\.isOn\)* *( *\"\([^"]*\)\".*/\2/' | \
   LC_ALL=C sort | \
   uniq

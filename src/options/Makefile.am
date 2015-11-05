@@ -148,7 +148,7 @@ BUILT_SOURCES += \
 
 %_tags.h: %_tags mktagheaders
 	$(AM_V_at)chmod +x @srcdir@/mktagheaders
-	$(AM_V_GEN)( @srcdir@/mktagheaders "$<" ) >"$@"
+	$(AM_V_GEN)( @srcdir@/mktagheaders "$<" "$<" ) >"$@"
 
 # This .tmp business is to keep from having to re-compile options.cpp
 # (and then re-link the libraries) if nothing has changed.
@@ -162,7 +162,9 @@ BUILT_SOURCES += \
 # expression (no |, no \<, ...).
 Debug_tags.tmp Trace_tags.tmp: mktags
 	$(AM_V_at)chmod +x @srcdir@/mktags
-	$(AM_V_GEN)(@srcdir@/mktags '$(@:_tags.tmp=)' '@srcdir@/../') >"$@"
+	$(AM_V_GEN)(@srcdir@/mktags \
+    '$(@:_tags.tmp=)' \
+    "$$(find @srcdir@/../ -name '*.cpp' -o -name '*.h' -o -name '*.cc' -o -name '*.g')") >"$@"
 
 MOSTLYCLEANFILES = \
 	Debug_tags \
