@@ -771,7 +771,28 @@ void QuantInfo::debugPrintMatch( const char * c ) {
   }
 }
 
-MatchGen::MatchGen( QuantInfo * qi, Node n, bool isVar ){
+MatchGen::MatchGen()
+  : d_matched_basis(),
+    d_binding(),
+    d_tgt(),
+    d_tgt_orig(),
+    d_wasSet(),
+    d_n(),
+    d_type( typ_invalid ),
+    d_type_not()
+{}
+
+
+MatchGen::MatchGen( QuantInfo * qi, Node n, bool isVar )
+  : d_matched_basis(),
+    d_binding(),
+    d_tgt(),
+    d_tgt_orig(),
+    d_wasSet(),
+    d_n(),
+    d_type(),
+    d_type_not()
+{
   Trace("qcf-qregister-debug") << "Make match gen for " << n << ", isVar = " << isVar << std::endl;
   std::vector< Node > qni_apps;
   d_qni_size = 0;

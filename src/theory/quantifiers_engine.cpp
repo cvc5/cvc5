@@ -137,6 +137,7 @@ d_presolve_cache_wic(u){
 }
 
 QuantifiersEngine::~QuantifiersEngine(){
+  delete d_alpha_equiv;
   delete d_builder;
   delete d_rr_engine;
   delete d_bint;
@@ -1447,4 +1448,3 @@ int EqualityQueryQuantifiersEngine::getRepScore( Node n, Node f, int index, Type
   }
   //return ( d_rep_score.find( n )==d_rep_score.end() ? 100 : 0 ) + getDepth( n );    //term depth
 }
-
