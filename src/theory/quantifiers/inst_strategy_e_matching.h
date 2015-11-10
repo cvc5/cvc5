@@ -49,11 +49,11 @@ public:
   ~InstStrategyUserPatterns(){}
 public:
   /** add pattern */
-  void addUserPattern( Node f, Node pat );
+  void addUserPattern( Node q, Node pat );
   /** get num patterns */
-  int getNumUserGenerators( Node f ) { return (int)d_user_gen[f].size(); }
+  int getNumUserGenerators( Node q ) { return (int)d_user_gen[q].size(); }
   /** get user pattern */
-  inst::Trigger* getUserGenerator( Node f, int i ) { return d_user_gen[f][ i ]; }
+  inst::Trigger* getUserGenerator( Node q, int i ) { return d_user_gen[q][ i ]; }
   /** identify */
   std::string identify() const { return std::string("UserPatterns"); }
 };/* class InstStrategyUserPatterns */
@@ -85,12 +85,12 @@ private:
 private:
   /** process functions */
   void processResetInstantiationRound( Theory::Effort effort );
-  int process( Node f, Theory::Effort effort, int e );
+  int process( Node q, Theory::Effort effort, int e );
   /** generate triggers */
-  void generateTriggers( Node f, Theory::Effort effort, int e, int& status );
+  void generateTriggers( Node q, Theory::Effort effort, int e, int& status );
   //bool addTrigger( inst::Trigger * tr, Node f, unsigned r );
   /** has user patterns */
-  bool hasUserPatterns( Node f );
+  bool hasUserPatterns( Node q );
   /** has user patterns */
   std::map< Node, bool > d_hasUserPatterns;
 public:
@@ -98,11 +98,11 @@ public:
   ~InstStrategyAutoGenTriggers(){}
 public:
   /** get auto-generated trigger */
-  inst::Trigger* getAutoGenTrigger( Node f );
+  inst::Trigger* getAutoGenTrigger( Node q );
   /** identify */
   std::string identify() const { return std::string("AutoGenTriggers"); }
   /** add pattern */
-  void addUserNoPattern( Node f, Node pat );
+  void addUserNoPattern( Node q, Node pat );
 };/* class InstStrategyAutoGenTriggers */
 
 class FullSaturation : public QuantifiersModule {
@@ -110,7 +110,7 @@ private:
   /** guessed instantiations */
   std::map< Node, bool > d_guessed;
   /** process functions */
-  bool process( Node f, Theory::Effort effort );
+  bool process( Node q, Theory::Effort effort, unsigned quant_e );
 public:
   FullSaturation( QuantifiersEngine* qe );
   ~FullSaturation(){}

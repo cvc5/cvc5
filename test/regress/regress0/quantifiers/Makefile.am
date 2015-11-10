@@ -61,7 +61,9 @@ TESTS =	\
 	mix-simp.smt2 \
 	mix-coeff.smt2 \
 	mix-match.smt2 \
-	ari056.smt2
+	ari056.smt2 \
+	ext-ex-deq-trigger.smt2 \
+	matching-lia-1arg.smt2
 
 
 # regression can be solved with --finite-model-find --fmf-inst-engine

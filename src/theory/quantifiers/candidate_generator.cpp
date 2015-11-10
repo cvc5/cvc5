@@ -154,24 +154,31 @@ Node CandidateGeneratorQELitEq::getNextCandidate(){
 CandidateGeneratorQELitDeq::CandidateGeneratorQELitDeq( QuantifiersEngine* qe, Node mpat ) :
   d_match_pattern( mpat ), d_qe( qe ){
 
+  Assert( d_match_pattern.getKind()==EQUAL || d_match_pattern.getKind()==IFF );
+  d_match_pattern_type = d_match_pattern[0].getType();
 }
+
 void CandidateGeneratorQELitDeq::resetInstantiationRound(){
 
 }
+
 void CandidateGeneratorQELitDeq::reset( Node eqc ){
   Node false_term = d_qe->getEqualityQuery()->getEngine()->getRepresentative( NodeManager::currentNM()->mkConst<bool>(false) );
   d_eqc_false = eq::EqClassIterator( false_term, d_qe->getEqualityQuery()->getEngine() );
 }
+
 Node CandidateGeneratorQELitDeq::getNextCandidate(){
   //get next candidate term in equivalence class
   while( !d_eqc_false.isFinished() ){
     Node n = (*d_eqc_false);
     ++d_eqc_false;
     if( n.getKind()==d_match_pattern.getKind() ){
-      //found an iff or equality, try to match it
-      //DO_THIS: cache to avoid redundancies?
-      //DO_THIS: do we need to try the symmetric equality for n?  or will it also exist in the eq class of false?
-      return n;
+      if( n[0].getType().isComparableTo( d_match_pattern_type ) ){
+        //found an iff or equality, try to match it
+        //DO_THIS: cache to avoid redundancies?
+        //DO_THIS: do we need to try the symmetric equality for n?  or will it also exist in the eq class of false?
+        return n;
+      }
     }
   }
   return Node::null();

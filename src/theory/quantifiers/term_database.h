@@ -262,10 +262,6 @@ public:
 
   static Node getInstConstAttr( Node n );
   static bool hasInstConstAttr( Node n );
-//for bound variables
-public:
-  //get bound variables in n
-  static void getBoundVars( Node n, std::vector< Node >& bvs );
 
 
 //for skolem

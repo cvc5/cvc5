@@ -901,7 +901,7 @@ bool QuantifiersEngine::addInstantiation( Node q, std::vector< Node >& terms, bo
   Assert( terms.size()==q[0].getNumChildren() );
   Trace("inst-add-debug") << "For quantified formula " << q << ", add instantiation: " << std::endl;
   for( unsigned i=0; i<terms.size(); i++ ){
-    Trace("inst-add-debug") << "  " << q[0][i] << " -> " << terms[i];
+    Trace("inst-add-debug") << "  " << q[0][i] << " -> " << terms[i] << std::endl;
     //make it representative, this is helpful for recognizing duplication
     if( mkRep ){
       //pick the best possible representative for instantiation, based on past use and simplicity of term
@@ -910,7 +910,7 @@ bool QuantifiersEngine::addInstantiation( Node q, std::vector< Node >& terms, bo
       //ensure the type is correct
       terms[i] = quantifiers::TermDb::mkNodeType( terms[i], q[0][i].getType() );
     }
-    Trace("inst-add-debug") << " -> " << terms[i] << std::endl;
+    Trace("inst-add-debug2") << " -> " << terms[i] << std::endl;
     Assert( !terms[i].isNull() );
   }
 

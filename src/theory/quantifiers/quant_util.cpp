@@ -79,7 +79,7 @@ bool QuantArith::getMonomialSumLit( Node lit, std::map< Node, Node >& msum ) {
                                                                 it->second.isNull() ? NodeManager::currentNM()->mkConst( Rational(1) ) : it->second );
               msum[it->first] = Rewriter::rewrite( r );
             }else{
-              msum[it->first] = negate( it->second.isNull() ? NodeManager::currentNM()->mkConst( Rational(1) ) : it->second );
+              msum[it->first] = it->second.isNull() ? NodeManager::currentNM()->mkConst( Rational(-1) ) : negate( it->second );
             }
           }
           return true;

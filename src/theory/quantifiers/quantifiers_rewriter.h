@@ -31,6 +31,7 @@ public:
   static bool isClause( Node n );
   static bool isLiteral( Node n );
   static bool isCube( Node n );
+  static int getPurifyId( Node n );
 private:
   static void addNodeToOrBuilder( Node n, NodeBuilder<>& t );
   static Node mkForAll( std::vector< Node >& args, Node body, Node ipl );
@@ -40,6 +41,12 @@ private:
   static Node computeClause( Node n );
   static void computeDtTesterIteSplit( Node n, std::map< Node, Node >& pcons, std::map< Node, std::map< int, Node > >& ncons, std::vector< Node >& conj );
   static bool isConditionalVariableElim( Node n, int pol=0 );
+  static bool isVariableElim( Node v, Node s, std::map< Node, std::vector< int > >& var_parent );
+  static bool computeVariableElimLit( Node n, bool pol, std::vector< Node >& args, std::vector< Node >& var, std::vector< Node >& subs,
+                                      std::map< Node, std::vector< int > >& var_parent );
+  static Node computePurify2( Node body, std::vector< Node >& args, std::map< Node, Node >& visited, std::map< Node, Node >& var_to_term,
+                              std::map< Node, std::vector< int > >& var_parent, int parentId );
+  static Node computeVarElimination2( Node body, std::vector< Node >& args, Node& ipl, std::map< Node, std::vector< int > >& var_parent );
 private:
   static Node computeElimSymbols( Node body );
   static Node computeMiniscoping( Node f, std::vector< Node >& args, Node body, Node ipl );
@@ -50,10 +57,11 @@ private:
                                    std::map< Node, Node >& cache, std::map< Node, Node >& icache,
                                    std::vector< Node >& new_vars, std::vector< Node >& new_conds );
   static Node computeProcessIte( Node body, Node ipl );
-  static Node computeVarElimination( Node body, std::vector< Node >& args, Node& ipl );
   static Node computeCNF( Node body, std::vector< Node >& args, NodeBuilder<>& defs, bool forcePred );
   static Node computePrenex( Node body, std::vector< Node >& args, bool pol );
   static Node computeSplit( Node f, std::vector< Node >& args, Node body );
+  static Node computeVarElimination( Node body, std::vector< Node >& args, Node& ipl );
+  static Node computePurify( Node body, std::vector< Node >& args, std::map< Node, std::vector< int > >& var_parent );
 private:
   enum{
     COMPUTE_ELIM_SYMBOLS = 0,

@@ -1442,7 +1442,8 @@ void SmtEngine::setDefaults() {
   }else{
     //counterexample-guided instantiation for non-sygus
     // enable if any quantifiers with arithmetic or datatypes
-    if( d_logic.isQuantified() && ( d_logic.isTheoryEnabled(THEORY_ARITH) || d_logic.isTheoryEnabled(THEORY_DATATYPES) ) ){
+    if( ( d_logic.isQuantified() && ( d_logic.isTheoryEnabled(THEORY_ARITH) || d_logic.isTheoryEnabled(THEORY_DATATYPES) ) ) || 
+        options::cbqiAll() ){
       if( !options::cbqi.wasSetByUser() ){
         options::cbqi.set( true );
       }
@@ -1458,6 +1459,7 @@ void SmtEngine::setDefaults() {
       }
     }
     if( options::cbqi() && d_logic.isPure(THEORY_ARITH) ){
+      options::cbqiAll.set( false );
       if( !options::quantConflictFind.wasSetByUser() ){
         options::quantConflictFind.set( false );
       }

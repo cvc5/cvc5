@@ -212,11 +212,11 @@ Trigger* Trigger::mkTrigger( QuantifiersEngine* qe, Node f, Node n, int matchOpt
   return mkTrigger( qe, f, nodes, matchOption, keepAll, trOption, smartTriggers );
 }
 
-bool Trigger::isUsable( Node n, Node f ){
-  if( quantifiers::TermDb::getInstConstAttr(n)==f ){
+bool Trigger::isUsable( Node n, Node q ){
+  if( quantifiers::TermDb::getInstConstAttr(n)==q ){
     if( isAtomicTrigger( n ) ){
       for( int i=0; i<(int)n.getNumChildren(); i++ ){
-        if( !isUsable( n[i], f ) ){
+        if( !isUsable( n[i], q ) ){
           return false;
         }
       }
@@ -227,8 +227,7 @@ bool Trigger::isUsable( Node n, Node f ){
       std::map< Node, Node > coeffs;
       if( isBooleanTermTrigger( n ) ){
         return true;
-      }
-      if( options::purifyTriggers() ){
+      }else if( options::purifyTriggers() ){
         Node x = getInversionVariable( n );
         if( !x.isNull() ){
           return true;
@@ -241,41 +240,39 @@ bool Trigger::isUsable( Node n, Node f ){
   }
 }
 
-bool nodeContainsVar( Node n, Node v ){
-  if( n==v) {
-    return true;
-  }else{
-    for( unsigned i=0; i<n.getNumChildren(); i++) {
-      if( nodeContainsVar(n[i], v) ){
-        return true;
-      }
-    }
-    return false;
-  }
-}
-
 Node Trigger::getIsUsableTrigger( Node n, Node f, bool pol, bool hasPol ) {
   Trace("trigger-debug") << "Is " << n << " a usable trigger?" << std::endl;
+  if( n.getKind()==NOT ){
+    pol = !pol;
+    n = n[0];
+  }
   if( options::relationalTriggers() ){
     if( n.getKind()==EQUAL || n.getKind()==IFF || n.getKind()==GEQ ){
       Node rtr;
+      bool do_negate = hasPol && pol;
       for( unsigned i=0; i<2; i++) {
-        unsigned j = (i==0) ? 1 : 0;
-        if( n[j].getKind()==INST_CONSTANT && isUsableTrigger(n[i], f) && !nodeContainsVar( n[i], n[j] ) ) {
-          rtr = n;
-          break;
+        if( n[1-i].getKind()==INST_CONSTANT ){
+          if( isUsableTrigger(n[i], f) && !quantifiers::TermDb::containsTerm( n[i], n[1-i] ) ){
+            rtr = n;
+            break;
+          }
+          if( n[i].getKind()==INST_CONSTANT && ( !hasPol || pol ) ){
+            do_negate = true;
+            rtr = n;
+            break;
+          }
         }
       }
       if( n[0].getType().isInteger() ){
         //try to rearrange?
         std::map< Node, Node > m;
-        if (QuantArith::getMonomialSumLit(n, m) ){
+        if( QuantArith::getMonomialSumLit(n, m) ){
           for( std::map< Node, Node >::iterator it = m.begin(); it!=m.end(); ++it ){
             if( !it->first.isNull() && it->first.getKind()==INST_CONSTANT ){
               Node veq;
               if( QuantArith::isolate( it->first, m, veq, n.getKind() )!=0 ){
                 int vti = veq[0]==it->first ? 1 : 0;
-                if( isUsableTrigger(veq[vti], f) && !nodeContainsVar( veq[vti], veq[vti==0 ? 1 : 0]) ){
+                if( isUsableTrigger( veq[vti], f ) && !quantifiers::TermDb::containsTerm( veq[vti], veq[1-vti] ) ){
                   rtr = veq;
                 }
               }
@@ -290,7 +287,8 @@ Node Trigger::getIsUsableTrigger( Node n, Node f, bool pol, bool hasPol ) {
         if( hasPol ){
           Trace("relational-trigger") << "    polarity : " << pol << std::endl;
         }
-        Node rtr2 = (hasPol && pol) ? rtr.negate() : rtr;
+        Node rtr2 = do_negate ? rtr.negate() : rtr;
+        Trace("relational-trigger") << "    return : " << rtr2 << std::endl;
         return rtr2;
       }
     }
@@ -304,8 +302,8 @@ Node Trigger::getIsUsableTrigger( Node n, Node f, bool pol, bool hasPol ) {
   }
 }
 
-bool Trigger::isUsableTrigger( Node n, Node f ){
-  Node nu = getIsUsableTrigger(n,f);
+bool Trigger::isUsableTrigger( Node n, Node q ){
+  Node nu = getIsUsableTrigger( n, q );
   return !nu.isNull();
 }
 
@@ -346,16 +344,15 @@ bool Trigger::isSimpleTrigger( Node n ){
 bool Trigger::collectPatTerms2( Node f, Node n, std::map< Node, bool >& patMap, int tstrt, std::vector< Node >& exclude, bool pol, bool hasPol ){
   if( patMap.find( n )==patMap.end() ){
     patMap[ n ] = false;
-    bool newHasPol = n.getKind()==IFF ? false : hasPol;
-    bool newPol = n.getKind()==NOT ? !pol : pol;
     if( tstrt==TS_MIN_TRIGGER ){
       if( n.getKind()==FORALL ){
         return false;
       }else{
         bool retVal = false;
-        for( int i=0; i<(int)n.getNumChildren(); i++ ){
-          bool newHasPol2 = (n.getKind()==ITE && i==0) ? false : newHasPol;
-          if( collectPatTerms2( f, n[i], patMap, tstrt, exclude, newPol, newHasPol2 ) ){
+        for( unsigned i=0; i<n.getNumChildren(); i++ ){
+          bool newHasPol, newPol;
+          QuantPhaseReq::getPolarity( n, i, hasPol, pol, newHasPol, newPol );
+          if( collectPatTerms2( f, n[i], patMap, tstrt, exclude, newPol, newHasPol ) ){
             retVal = true;
           }
         }
@@ -389,9 +386,10 @@ bool Trigger::collectPatTerms2( Node f, Node n, std::map< Node, bool >& patMap, 
         }
       }
       if( n.getKind()!=FORALL ){
-        for( int i=0; i<(int)n.getNumChildren(); i++ ){
-          bool newHasPol2 = (n.getKind()==ITE && i==0) ? false : newHasPol;
-          if( collectPatTerms2( f, n[i], patMap, tstrt, exclude, newPol, newHasPol2 ) ){
+        for( unsigned i=0; i<n.getNumChildren(); i++ ){
+          bool newHasPol, newPol;
+          QuantPhaseReq::getPolarity( n, i, hasPol, pol, newHasPol, newPol );
+          if( collectPatTerms2( f, n[i], patMap, tstrt, exclude, newPol, newHasPol ) ){
             retVal = true;
           }
         }
@@ -558,13 +556,19 @@ Node Trigger::getInversion( Node n, Node x ) {
         }else if( n.getKind()==MULT ){
           Assert( n[i].isConst() );
           if( x.getType().isInteger() ){
-            Node coeff = NodeManager::currentNM()->mkConst( n[i].getConst<Rational>() );
-            x = NodeManager::currentNM()->mkNode( INTS_DIVISION, x, coeff );
+            Node coeff = NodeManager::currentNM()->mkConst( n[i].getConst<Rational>().abs() );
+            if( !n[i].getConst<Rational>().abs().isOne() ){
+              x = NodeManager::currentNM()->mkNode( INTS_DIVISION_TOTAL, x, coeff );
+            }
+            if( n[i].getConst<Rational>().sgn()<0 ){
+              x = NodeManager::currentNM()->mkNode( UMINUS, x );
+            }
           }else{
             Node coeff = NodeManager::currentNM()->mkConst( Rational(1) / n[i].getConst<Rational>() );
             x = NodeManager::currentNM()->mkNode( MULT, x, coeff );
           }
         }
+        x = Rewriter::rewrite( x );
       }else{
         Assert( cindex==-1 );
         cindex = i;

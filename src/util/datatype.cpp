@@ -334,6 +334,20 @@ Expr Datatype::mkGroundTerm( Type t ) const throw(IllegalArgumentException) {
   }
 }
 
+Expr getSubtermWithType( Expr e, Type t, bool isTop ){
+  if( !isTop && e.getType()==t ){
+    return e;
+  }else{
+    for( unsigned i=0; i<e.getNumChildren(); i++ ){
+      Expr se = getSubtermWithType( e[i], t, false );
+      if( !se.isNull() ){
+        return se;
+      }
+    }
+    return Expr();
+  }
+}
+
 Expr Datatype::computeGroundTerm( Type t, std::vector< Type >& processing ) const throw(IllegalArgumentException) {
   if( std::find( processing.begin(), processing.end(), d_self )==processing.end() ){
     processing.push_back( d_self );
@@ -342,8 +356,14 @@ Expr Datatype::computeGroundTerm( Type t, std::vector< Type >& processing ) cons
         //do nullary constructors first
         if( ((*i).getNumArgs()==0)==(r==0)){
           Debug("datatypes") << "Try constructing for " << (*i).getName() << ", processing = " << processing.size() << std::endl;
-          Expr e = (*i).computeGroundTerm( t, processing );
+          Expr e = (*i).computeGroundTerm( t, processing, d_ground_term );
           if( !e.isNull() ){
+            //must check subterms for the same type to avoid infinite loops in type enumeration
+            Expr se = getSubtermWithType( e, t, true );
+            if( !se.isNull() ){
+              Debug("datatypes") << "Take subterm " << se << std::endl;
+              e = se;
+            }
             processing.pop_back();
             return e;
           }else{
@@ -780,7 +800,7 @@ bool DatatypeConstructor::isFinite() const throw(IllegalArgumentException) {
   return true;
 }
 
-Expr DatatypeConstructor::computeGroundTerm( Type t, std::vector< Type >& processing ) const throw(IllegalArgumentException) {
+Expr DatatypeConstructor::computeGroundTerm( Type t, std::vector< Type >& processing, std::map< Type, Expr >& gt ) const throw(IllegalArgumentException) {
 // we're using some internals, so we have to set up this library context
   ExprManagerScope ems(d_constructor);
 
@@ -801,8 +821,13 @@ Expr DatatypeConstructor::computeGroundTerm( Type t, std::vector< Type >& proces
     }
     Expr arg;
     if( selType.isDatatype() ){
-      const Datatype & dt = DatatypeType(selType).getDatatype();
-      arg = dt.computeGroundTerm( selType, processing );
+      std::map< Type, Expr >::iterator itgt = gt.find( selType );
+      if( itgt != gt.end() ){
+        arg = itgt->second;
+      }else{
+        const Datatype & dt = DatatypeType(selType).getDatatype();
+        arg = dt.computeGroundTerm( selType, processing );
+      }
     }else{
       arg = selType.mkGroundTerm();
     }

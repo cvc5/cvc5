@@ -699,19 +699,6 @@ bool TermDb::hasInstConstAttr( Node n ) {
   return !getInstConstAttr(n).isNull();
 }
 
-void TermDb::getBoundVars( Node n, std::vector< Node >& bvs) {
-  if (n.getKind()==BOUND_VARIABLE ){
-    if ( std::find( bvs.begin(), bvs.end(), n)==bvs.end() ){
-      bvs.push_back( n );
-    }
-  }else{
-    for( unsigned i=0; i<n.getNumChildren(); i++) {
-      getBoundVars(n[i], bvs);
-    }
-  }
-}
-
-
 /** get the i^th instantiation constant of q */
 Node TermDb::getInstantiationConstant( Node q, int i ) const {
   std::map< Node, std::vector< Node > >::const_iterator it = d_inst_constants.find( q );

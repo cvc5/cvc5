@@ -218,7 +218,7 @@ private:
   /** compute whether this datatype is well-founded */
   bool computeWellFounded( std::vector< Type >& processing ) const throw(IllegalArgumentException);
   /** compute ground term */
-  Expr computeGroundTerm( Type t, std::vector< Type >& processing ) const throw(IllegalArgumentException);
+  Expr computeGroundTerm( Type t, std::vector< Type >& processing, std::map< Type, Expr >& gt ) const throw(IllegalArgumentException);
 public:
   /**
    * Create a new Datatype constructor with the given name for the

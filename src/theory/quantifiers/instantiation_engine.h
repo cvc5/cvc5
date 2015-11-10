@@ -82,8 +82,8 @@ public:
   void registerQuantifier( Node q );
   Node explain(TNode n){ return Node::null(); }
   /** add user pattern */
-  void addUserPattern( Node f, Node pat );
-  void addUserNoPattern( Node f, Node pat );
+  void addUserPattern( Node q, Node pat );
+  void addUserNoPattern( Node q, Node pat );
 public:
   /** Identify this module */
   std::string identify() const { return "InstEngine"; }

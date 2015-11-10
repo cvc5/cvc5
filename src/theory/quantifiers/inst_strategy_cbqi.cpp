@@ -102,8 +102,13 @@ void InstStrategyCbqi::reset_round( Theory::Effort effort ) {
 
 void InstStrategyCbqi::check( Theory::Effort e, unsigned quant_e ) {
   if( quant_e==QuantifiersEngine::QEFFORT_STANDARD ){
+    double clSet = 0;
+    if( Trace.isOn("cbqi-engine") ){
+      clSet = double(clock())/double(CLOCKS_PER_SEC);
+      Trace("cbqi-engine") << "---Cbqi Engine Round, effort = " << e << "---" << std::endl;
+    }
+    unsigned lastWaiting = d_quantEngine->getNumLemmasWaiting();
     for( int ee=0; ee<=1; ee++ ){
-      unsigned lastWaiting = d_quantEngine->getNumLemmasWaiting();
       for( int i=0; i<d_quantEngine->getModel()->getNumAssertedQuantifiers(); i++ ){
         Node q = d_quantEngine->getModel()->getAssertedQuantifier( i );
         if( doCbqi( q ) && d_quantEngine->getModel()->isQuantifierActive( q ) ){
@@ -113,6 +118,13 @@ void InstStrategyCbqi::check( Theory::Effort e, unsigned quant_e ) {
       if( d_quantEngine->getNumLemmasWaiting()>lastWaiting ){
         break;
       }
+    }
+    if( Trace.isOn("cbqi-engine") ){
+      if( d_quantEngine->getNumLemmasWaiting()>lastWaiting ){
+        Trace("cbqi-engine") << "Added lemmas = " << (d_quantEngine->getNumLemmasWaiting()-lastWaiting) << std::endl;
+      }
+      double clSet2 = double(clock())/double(CLOCKS_PER_SEC);
+      Trace("cbqi-engine") << "Finished cbqi engine, time = " << (clSet2-clSet) << std::endl;
     }
   }
 }

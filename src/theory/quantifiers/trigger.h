@@ -91,7 +91,7 @@ public:
                              bool smartTriggers = false );
 private:
   /** is subterm of trigger usable */
-  static bool isUsable( Node n, Node f );
+  static bool isUsable( Node n, Node q );
   static Node getIsUsableTrigger( Node n, Node f, bool pol = true, bool hasPol = false );
   /** collect all APPLY_UF pattern terms for f in n */
   static bool collectPatTerms2( Node f, Node n, std::map< Node, bool >& patMap, int tstrt, std::vector< Node >& exclude, bool pol, bool hasPol );
@@ -105,7 +105,7 @@ public:
   static void collectPatTerms( QuantifiersEngine* qe, Node f, Node n, std::vector< Node >& patTerms, int tstrt, std::vector< Node >& exclude, bool filterInst = false );
 public:
   /** is usable trigger */
-  static bool isUsableTrigger( Node n, Node f );
+  static bool isUsableTrigger( Node n, Node q );
   static bool isAtomicTrigger( Node n );
   static bool isAtomicTriggerKind( Kind k );
   static bool isCbqiKind( Kind k );

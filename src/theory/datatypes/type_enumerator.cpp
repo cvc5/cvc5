@@ -167,10 +167,10 @@ Node DatatypesEnumerator::getTermEnum( TypeNode tn, unsigned i ){
 
  void DatatypesEnumerator::init(){
    //Assert(type.isDatatype());
-   Debug("te") << "datatype is datatype? " << d_type.isDatatype() << std::endl;
-   Debug("te") << "datatype is kind " << d_type.getKind() << std::endl;
-   Debug("te") << "datatype is " << d_type << std::endl;
-   Debug("te") << "properties : " << d_datatype.isCodatatype() << " " << d_datatype.isRecursiveSingleton() << " " << d_datatype.isFinite() << std::endl;
+   Debug("dt-enum") << "datatype is datatype? " << d_type.isDatatype() << std::endl;
+   Debug("dt-enum") << "datatype is kind " << d_type.getKind() << std::endl;
+   Debug("dt-enum") << "datatype is " << d_type << std::endl;
+   Debug("dt-enum") << "properties : " << d_datatype.isCodatatype() << " " << d_datatype.isRecursiveSingleton() << " " << d_datatype.isFinite() << std::endl;
 
    if( d_datatype.isCodatatype() && hasCyclesDt( d_datatype ) ){
      //start with uninterpreted constant
@@ -181,12 +181,15 @@ Node DatatypesEnumerator::getTermEnum( TypeNode tn, unsigned i ){
      d_sel_sum.push_back( -1 );
    }else{
      // find the "zero" constructor via mkGroundTerm
+     Debug("dt-enum-debug") << "make ground term..." << std::endl;
      Node t = d_type.mkGroundTerm();
+     Debug("dt-enum-debug") << "done : " << t << std::endl;
      Assert( t.getKind()==kind::APPLY_CONSTRUCTOR );
      // start with the constructor for which a ground term is constructed
      d_zeroCtor = Datatype::indexOf( t.getOperator().toExpr() );
      d_has_debruijn = 0;
    }
+   Debug("dt-enum") << "zero ctor : " << d_zeroCtor << std::endl;
    d_ctor = d_zeroCtor;
    for( unsigned i=0; i<d_datatype.getNumConstructors(); ++i ){
      d_sel_types.push_back( std::vector< TypeNode >() );

@@ -100,7 +100,7 @@ bool InstantiationEngine::doInstantiationRound( Theory::Effort effort ){
   if( !d_quantEngine->hasAddedLemma() ){
     return false;
   }else{
-    Trace("inst-engine") << "Added lemmas = " << (int)(d_quantEngine->d_lemmas_waiting.size()-lastWaiting)  << std::endl;
+    Trace("inst-engine") << "Added lemmas = " << (int)(d_quantEngine->getNumLemmasWaiting()-lastWaiting)  << std::endl;
     return true;
   }
 }
@@ -186,14 +186,14 @@ void InstantiationEngine::registerQuantifier( Node f ){
   }
 }
 
-void InstantiationEngine::addUserPattern( Node f, Node pat ){
+void InstantiationEngine::addUserPattern( Node q, Node pat ){
   if( d_isup ){
-    d_isup->addUserPattern( f, pat );
+    d_isup->addUserPattern( q, pat );
   }
 }
 
-void InstantiationEngine::addUserNoPattern( Node f, Node pat ){
+void InstantiationEngine::addUserNoPattern( Node q, Node pat ){
   if( d_i_ag ){
-    d_i_ag->addUserNoPattern( f, pat );
+    d_i_ag->addUserNoPattern( q, pat );
   }
 }

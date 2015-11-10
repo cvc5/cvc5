@@ -202,6 +202,21 @@ bool CegInstantiator::addInstantiation( SolvedForm& sf, SolvedForm& ssf, std::ve
                     }
                     Node eq = eq_lhs.eqNode( eq_rhs );
                     eq = Rewriter::rewrite( eq );
+                    Node vts_coeff_inf;
+                    Node vts_coeff_delta;
+                    Node val;
+                    Node veq_c;
+                    //isolate pv in the equality
+                    int ires = isolate( pv, eq, veq_c, val, vts_coeff_inf, vts_coeff_delta );
+                    if( ires!=0 ){
+                      if( subs_proc[val].find( veq_c )==subs_proc[val].end() ){
+                        subs_proc[val][veq_c] = true;
+                        if( addInstantiationInc( val, pv, veq_c, 0, sf, ssf, vars, btyp, theta, i, effort, cons, curr_var ) ){
+                          return true;
+                        }
+                      }
+                    }
+                    /*
                     //cannot contain infinity?
                     //if( !d_qe->getTermDatabase()->containsVtsInfinity( eq ) ){
                     Trace("cbqi-inst-debug") << "...equality is " << eq << std::endl;
@@ -231,6 +246,7 @@ bool CegInstantiator::addInstantiation( SolvedForm& sf, SolvedForm& ssf, std::ve
                         }
                       }
                     }
+                    */
                   }
                 }
                 lhs.push_back( ns );
@@ -787,14 +803,14 @@ bool CegInstantiator::addInstantiationCoeff( SolvedForm& sf, std::vector< Node >
         }
         sf.d_subs[index] = veq[1];
         if( !veq_c.isNull() ){
-          sf.d_subs[index] = NodeManager::currentNM()->mkNode( INTS_DIVISION, veq[1], veq_c );
+          sf.d_subs[index] = NodeManager::currentNM()->mkNode( INTS_DIVISION_TOTAL, veq[1], veq_c );
           Trace("cbqi-inst-debug") << "...bound type is : " << btyp[index] << std::endl;
           //intger division rounding up if from a lower bound
           if( btyp[index]==1 && options::cbqiRoundUpLowerLia() ){
             sf.d_subs[index] = NodeManager::currentNM()->mkNode( PLUS, sf.d_subs[index],
               NodeManager::currentNM()->mkNode( ITE,
                 NodeManager::currentNM()->mkNode( EQUAL,
-                  NodeManager::currentNM()->mkNode( INTS_MODULUS, veq[1], veq_c ),
+                  NodeManager::currentNM()->mkNode( INTS_MODULUS_TOTAL, veq[1], veq_c ),
                   d_zero ),
                 d_zero, d_one )
             );
@@ -1423,7 +1439,7 @@ void CegInstantiator::registerCounterexampleLemma( std::vector< Node >& lems, st
 }
 
 //this isolates the monomial sum into solved form (pv k t), ensures t is Int if pv is Int, and t does not contain vts symbols
-int CegInstantiator::isolate( Node pv, Node atom, Node & veq_c, Node & val, Node& vts_coeff_inf, Node& vts_coeff_delta ) {
+int CegInstantiator::isolate( Node pv, Node atom, Node& veq_c, Node& val, Node& vts_coeff_inf, Node& vts_coeff_delta ) {
   int ires = 0;
   Trace("cbqi-inst-debug") << "isolate for " << pv << " in " << atom << std::endl;
   std::map< Node, Node > msum;
@@ -1468,6 +1484,12 @@ int CegInstantiator::isolate( Node pv, Node atom, Node & veq_c, Node & val, Node
     if( ires!=0 ){
       Node realPart;
       Trace("cbqi-inst-debug") << "Isolate : " << veq_c << " * " << pv << " " << atom.getKind() << " " << val << std::endl;
+      if( options::cbqiAll() ){
+        // when not pure LIA/LRA, we must check whether the lhs contains pv
+        if( TermDb::containsTerm( val, pv ) ){
+          return 0;
+        }
+      }
       if( pvtn.isInteger() && ( ( !veq_c.isNull() && !veq_c.getType().isInteger() ) || !val.getType().isInteger() ) ){
         //redo, split integer/non-integer parts
         bool useCoeff = false;

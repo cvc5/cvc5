@@ -67,8 +67,7 @@ void InstMatchGenerator::initialize( Node q, QuantifiersEngine* qe, std::vector<
     if( d_match_pattern.getKind()==IFF || d_match_pattern.getKind()==EQUAL || d_match_pattern.getKind()==GEQ ){
       //make sure the matching portion of the equality is on the LHS of d_pattern
       //  and record what d_match_pattern is
-      if( !quantifiers::TermDb::hasInstConstAttr(d_match_pattern[0]) ||
-          d_match_pattern[0].getKind()==INST_CONSTANT ){
+      if( !quantifiers::TermDb::hasInstConstAttr(d_match_pattern[0]) || d_match_pattern[0].getKind()==INST_CONSTANT ){
         if( d_match_pattern[1].getKind()!=INST_CONSTANT ){
           Assert( quantifiers::TermDb::hasInstConstAttr(d_match_pattern[1]) );
           Node mp = d_match_pattern[1];
@@ -83,8 +82,7 @@ void InstMatchGenerator::initialize( Node q, QuantifiersEngine* qe, std::vector<
           d_pattern = pat.getKind()==NOT ? d_pattern.negate() : d_pattern;
           d_match_pattern = mp;
         }
-      }else if( !quantifiers::TermDb::hasInstConstAttr(d_match_pattern[1]) ||
-                d_match_pattern[1].getKind()==INST_CONSTANT ){
+      }else if( !quantifiers::TermDb::hasInstConstAttr(d_match_pattern[1]) || d_match_pattern[1].getKind()==INST_CONSTANT ){
         if( d_match_pattern[0].getKind()!=INST_CONSTANT ){
           Assert( quantifiers::TermDb::hasInstConstAttr(d_match_pattern[0]) );
           if( d_pattern.getKind()!=NOT ){   //TEMPORARY until we do better implementation of disequality matching
@@ -463,7 +461,7 @@ bool VarMatchGeneratorTermSubs::getNextMatch( Node q, InstMatch& m, QuantifiersE
     Trace("var-trigger-matching") << "Matching " << d_eq_class << " against " << d_var << " in " << d_subs << std::endl;
     Node s = d_subs.substitute( d_var, d_eq_class );
     s = Rewriter::rewrite( s );
-    Trace("var-trigger-matching") << "...got " << s << std::endl;
+    Trace("var-trigger-matching") << "...got " << s << ", " << s.getKind() << std::endl;
     d_eq_class = Node::null();
     //if( s.getType().isSubtypeOf( d_var_type ) ){
     d_rm_prev = m.get( d_var_num[0] ).isNull();
