@@ -63,7 +63,8 @@ TESTS =	\
 	mix-match.smt2 \
 	ari056.smt2 \
 	ext-ex-deq-trigger.smt2 \
-	matching-lia-1arg.smt2
+	matching-lia-1arg.smt2 \
+	RND_4_16.smt2
 
 
 # regression can be solved with --finite-model-find --fmf-inst-engine

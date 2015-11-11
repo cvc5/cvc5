@@ -321,8 +321,7 @@ bool CegInstantiator::addInstantiation( SolvedForm& sf, SolvedForm& ssf, std::ve
             bool pol = lit.getKind()!=NOT;
             if( pvtn.isReal() ){
               //arithmetic inequalities and disequalities
-              if( atom.getKind()==GEQ || ( atom.getKind()==EQUAL && !pol ) ){
-                Assert( atom[0].getType().isInteger() || atom[0].getType().isReal() );
+              if( atom.getKind()==GEQ || ( atom.getKind()==EQUAL && !pol && atom[0].getType().isReal() ) ){
                 Assert( atom.getKind()!=GEQ || atom[1].isConst() );
                 Node atom_lhs;
                 Node atom_rhs;
@@ -664,6 +663,7 @@ bool CegInstantiator::addInstantiationInc( Node n, Node pv, Node pv_coeff, int b
   }
   //must ensure variables have been computed for n
   computeProgVars( n );
+  Assert( d_inelig.find( n )==d_inelig.end() );
 
   //substitute into previous substitutions, when applicable
   std::vector< Node > a_subs;
@@ -681,6 +681,7 @@ bool CegInstantiator::addInstantiationInc( Node n, Node pv, Node pv_coeff, int b
   std::map< int, Node > prev_coeff;
   std::map< int, Node > prev_sym_subs;
   std::vector< Node > new_has_coeff;
+  Trace("cbqi-inst-debug2") << "Applying substitutions..." << std::endl;
   for( unsigned j=0; j<sf.d_subs.size(); j++ ){
     Assert( d_prog_var.find( sf.d_subs[j] )!=d_prog_var.end() );
     if( d_prog_var[sf.d_subs[j]].find( pv )!=d_prog_var[sf.d_subs[j]].end() ){
@@ -705,12 +706,16 @@ bool CegInstantiator::addInstantiationInc( Node n, Node pv, Node pv_coeff, int b
         }
         if( sf.d_subs[j]!=prev_subs[j] ){
           computeProgVars( sf.d_subs[j] );
+          Assert( d_inelig.find( sf.d_subs[j] )==d_inelig.end() );
         }
+        Trace("cbqi-inst-debug2") << "Subs " << j << " " << sf.d_subs[j] << std::endl;
       }else{
-        Trace("cbqi-inst-debug") << "...failed to apply substitution to " << sf.d_subs[j] << std::endl;
+        Trace("cbqi-inst-debug2") << "...failed to apply substitution to " << sf.d_subs[j] << std::endl;
         success = false;
         break;
       }
+    }else{
+      Trace("cbqi-inst-debug2") << "Skip " << j << " " << sf.d_subs[j] << std::endl;
     }
     if( options::cbqiSymLia() && pv_coeff.isNull() ){
       //apply simple substitutions also to sym_subs
@@ -1483,7 +1488,13 @@ int CegInstantiator::isolate( Node pv, Node atom, Node& veq_c, Node& val, Node& 
     ires = QuantArith::isolate( pv, msum, veq_c, val, atom.getKind() );
     if( ires!=0 ){
       Node realPart;
-      Trace("cbqi-inst-debug") << "Isolate : " << veq_c << " * " << pv << " " << atom.getKind() << " " << val << std::endl;
+      if( Trace.isOn("cbqi-inst-debug") ){
+        Trace("cbqi-inst-debug") << "Isolate : ";
+        if( !veq_c.isNull() ){
+          Trace("cbqi-inst-debug") << veq_c << " * ";
+        }
+        Trace("cbqi-inst-debug") << pv << " " << atom.getKind() << " " << val << std::endl;
+      }
       if( options::cbqiAll() ){
         // when not pure LIA/LRA, we must check whether the lhs contains pv
         if( TermDb::containsTerm( val, pv ) ){
@@ -1529,8 +1540,9 @@ int CegInstantiator::isolate( Node pv, Node atom, Node& veq_c, Node& val, Node& 
         Trace("cbqi-inst-debug") << "Isolate for mixed Int/Real : " << veq_c << " * " << pv << " " << atom.getKind() << " " << val << std::endl;
         Trace("cbqi-inst-debug") << "                 real part : " << realPart << std::endl;
         if( ires!=0 ){
-          val = Rewriter::rewrite( NodeManager::currentNM()->mkNode( ires==-1 ? PLUS : MINUS,
-                                    NodeManager::currentNM()->mkNode( ires==-1 ? MINUS : PLUS, val, realPart ),
+          int ires_use = ( msum[pv].isNull() || msum[pv].getConst<Rational>().sgn()==1 ) ? 1 : -1;
+          val = Rewriter::rewrite( NodeManager::currentNM()->mkNode( ires_use==-1 ? PLUS : MINUS,
+                                    NodeManager::currentNM()->mkNode( ires_use==-1 ? MINUS : PLUS, val, realPart ),
                                     NodeManager::currentNM()->mkNode( TO_INTEGER, realPart ) ) );
           Trace("cbqi-inst-debug") << "result : " << val << std::endl;
           Assert( val.getType().isInteger() );

@@ -31,7 +31,7 @@ public:
   static bool isClause( Node n );
   static bool isLiteral( Node n );
   static bool isCube( Node n );
-  static int getPurifyId( Node n );
+  static int getPurifyId( Node n, std::vector< Node >& args );
 private:
   static void addNodeToOrBuilder( Node n, NodeBuilder<>& t );
   static Node mkForAll( std::vector< Node >& args, Node body, Node ipl );
@@ -41,7 +41,7 @@ private:
   static Node computeClause( Node n );
   static void computeDtTesterIteSplit( Node n, std::map< Node, Node >& pcons, std::map< Node, std::map< int, Node > >& ncons, std::vector< Node >& conj );
   static bool isConditionalVariableElim( Node n, int pol=0 );
-  static bool isVariableElim( Node v, Node s, std::map< Node, std::vector< int > >& var_parent );
+  static bool isVariableElim( Node v, Node s, std::vector< Node >& args, std::map< Node, std::vector< int > >& var_parent );
   static bool computeVariableElimLit( Node n, bool pol, std::vector< Node >& args, std::vector< Node >& var, std::vector< Node >& subs,
                                       std::map< Node, std::vector< int > >& var_parent );
   static Node computePurify2( Node body, std::vector< Node >& args, std::map< Node, Node >& visited, std::map< Node, Node >& var_to_term,

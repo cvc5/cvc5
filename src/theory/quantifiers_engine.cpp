@@ -709,7 +709,16 @@ bool QuantifiersEngine::addInstantiationInternal( Node f, std::vector< Node >& v
         Trace("inst") << std::endl;
       }
       if( options::cbqi() ){
-        if( quantifiers::TermDb::getInstConstAttr(terms[i])==f ){
+        Node icf = quantifiers::TermDb::getInstConstAttr(terms[i]);
+        bool bad_inst = false;
+        if( !icf.isNull() ){
+          if( icf==f ){
+            bad_inst = true;
+          }else{
+            bad_inst = quantifiers::TermDb::containsTerms( terms[i], d_term_db->d_inst_constants[f] );
+          }
+        }
+        if( bad_inst ){
           Trace("inst")<< "***& Bad Instantiate " << f << " with " << std::endl;
           for( unsigned i=0; i<terms.size(); i++ ){
             Trace("inst") << "   " << terms[i] << std::endl;
