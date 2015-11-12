@@ -83,10 +83,10 @@ bool QuantifiersRewriter::isCube( Node n ){
   }
 }
 
-int QuantifiersRewriter::getPurifyId( Node n, std::vector< Node >& args ){
+int QuantifiersRewriter::getPurifyId( Node n ){
   if( inst::Trigger::isAtomicTriggerKind( n.getKind() ) ){
     return 1;
-  }else if( TermDb::isBoolConnective( n.getKind() ) || n.getKind()==EQUAL || n.getKind()==BOUND_VARIABLE || !TermDb::containsTerms( n, args ) ){
+  }else if( TermDb::isBoolConnective( n.getKind() ) || n.getKind()==EQUAL || n.getKind()==BOUND_VARIABLE || !TermDb::hasBoundVarAttr( n ) ){
     return 0;
   }else{
     return -1;
@@ -768,7 +768,7 @@ Node QuantifiersRewriter::computeProcessIte( Node body, Node ipl ){
   return body;
 }
 
-bool QuantifiersRewriter::isVariableElim( Node v, Node s, std::vector< Node >& args, std::map< Node, std::vector< int > >& var_parent ) {
+bool QuantifiersRewriter::isVariableElim( Node v, Node s, std::map< Node, std::vector< int > >& var_parent ) {
   if( TermDb::containsTerm( s, v ) || !s.getType().isSubtypeOf( v.getType() ) ){
     return false;
   }else{
@@ -776,7 +776,7 @@ bool QuantifiersRewriter::isVariableElim( Node v, Node s, std::vector< Node >& a
       std::map< Node, std::vector< int > >::iterator it = var_parent.find( v );
       if( it!=var_parent.end() ){
         Assert( !it->second.empty() );
-        int id = getPurifyId( s, args );
+        int id = getPurifyId( s );
         return it->second.size()==1 && it->second[0]==id;
       }
     }
@@ -790,7 +790,7 @@ bool QuantifiersRewriter::computeVariableElimLit( Node lit, bool pol, std::vecto
     for( unsigned i=0; i<2; i++ ){
       std::vector< Node >::iterator ita = std::find( args.begin(), args.end(), lit[i] );
       if( ita!=args.end() ){
-        if( isVariableElim( lit[i], lit[1-i], args, var_parent ) ){
+        if( isVariableElim( lit[i], lit[1-i], var_parent ) ){
           Trace("var-elim-quant") << "Variable eliminate based on equality : " << lit[i] << " -> " << lit[1-i] << std::endl;
           vars.push_back( lit[i] );
           subs.push_back( lit[1-i] );
@@ -809,7 +809,7 @@ bool QuantifiersRewriter::computeVariableElimLit( Node lit, bool pol, std::vecto
             Node veq_c;
             Node val;
             int ires = QuantArith::isolate( itm->first, msum, veq_c, val, EQUAL );
-            if( ires!=0 && veq_c.isNull() && isVariableElim( itm->first, val, args, var_parent ) ){
+            if( ires!=0 && veq_c.isNull() && isVariableElim( itm->first, val, var_parent ) ){
               Trace("var-elim-quant") << "Variable eliminate based on solved equality : " << itm->first << " -> " << val << std::endl;
               vars.push_back( itm->first );
               subs.push_back( val );
@@ -1689,17 +1689,17 @@ Node QuantifiersRewriter::computePurify2( Node body, std::vector< Node >& args, 
     return it->second;
   }else{
     Node ret = body;
-    if( body.getNumChildren()>0 && body.getKind()!=FORALL && TermDb::containsTerms( ret, args ) ){
+    if( body.getNumChildren()>0 && body.getKind()!=FORALL && TermDb::hasBoundVarAttr( ret ) ){
       std::vector< Node > children;
       bool childrenChanged = false;
-      int id = getPurifyId( body, args );
+      int id = getPurifyId( body );
       for( unsigned i=0; i<body.getNumChildren(); i++ ){
         Node bi;
         if( body.getKind()==EQUAL && i==1 ){
-          int cid = getPurifyId( children[0], args );
+          int cid = getPurifyId( children[0] );
           bi = computePurify2( body[i], args, visited, var_to_term, var_parent, cid );
           if( children[0].getKind()==BOUND_VARIABLE ){
-            cid = getPurifyId( bi, args );
+            cid = getPurifyId( bi );
             if( cid!=0 && std::find( var_parent[children[0]].begin(), var_parent[children[0]].end(), cid )==var_parent[children[0]].end() ){
               var_parent[children[0]].push_back( id );
             }

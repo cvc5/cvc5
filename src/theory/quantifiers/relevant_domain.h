@@ -37,7 +37,7 @@ private:
     void merge( RDomain * r );
     void addTerm( Node t, bool nonGround = false );
     RDomain * getParent();
-    void removeRedundantTerms( FirstOrderModel * fm );
+    void removeRedundantTerms( QuantifiersEngine * qe );
     bool hasTerm( Node n ) { return std::find( d_terms.begin(), d_terms.end(), n )!=d_terms.end(); }
   };
   std::map< Node, std::map< int, RDomain * > > d_rel_doms;
@@ -56,7 +56,7 @@ public:
   void compute();
 
   RDomain * getRDomain( Node n, int i );
-  Node getRelevantTerm( Node f, int i, Node r );
+  //Node getRelevantTerm( Node f, int i, Node r );
 };/* class RelevantDomain */
 
 }/* CVC4::theory::quantifiers namespace */

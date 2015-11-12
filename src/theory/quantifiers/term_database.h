@@ -59,6 +59,9 @@ typedef expr::Attribute< NoMatchAttributeId,
 struct InstConstantAttributeId {};
 typedef expr::Attribute<InstConstantAttributeId, Node> InstConstantAttribute;
 
+struct BoundVarAttributeId {};
+typedef expr::Attribute<BoundVarAttributeId, Node> BoundVarAttribute;
+
 struct InstLevelAttributeId {};
 typedef expr::Attribute<InstLevelAttributeId, uint64_t> InstLevelAttribute;
 
@@ -262,6 +265,8 @@ public:
 
   static Node getInstConstAttr( Node n );
   static bool hasInstConstAttr( Node n );
+  static Node getBoundVarAttr( Node n );
+  static bool hasBoundVarAttr( Node n );
 
 
 //for skolem

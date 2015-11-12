@@ -56,12 +56,12 @@ RelevantDomain::RDomain * RelevantDomain::RDomain::getParent() {
   }
 }
 
-void RelevantDomain::RDomain::removeRedundantTerms( FirstOrderModel * fm ) {
+void RelevantDomain::RDomain::removeRedundantTerms( QuantifiersEngine * qe ) {
   std::map< Node, Node > rterms;
   for( unsigned i=0; i<d_terms.size(); i++ ){
     Node r = d_terms[i];
     if( !TermDb::hasInstConstAttr( d_terms[i] ) ){
-      r = fm->getRepresentative( d_terms[i] );
+      r = qe->getEqualityQuery()->getRepresentative( d_terms[i] );
     }
     if( rterms.find( r )==rterms.end() ){
       rterms[r] = d_terms[i];
@@ -132,7 +132,7 @@ void RelevantDomain::compute(){
         RDomain * r = it2->second;
         RDomain * rp = r->getParent();
         if( r==rp ){
-          r->removeRedundantTerms( d_model );
+          r->removeRedundantTerms( d_qe );
           for( unsigned i=0; i<r->d_terms.size(); i++ ){
             Trace("rel-dom") << r->d_terms[i] << " ";
           }
@@ -190,7 +190,7 @@ void RelevantDomain::computeRelevantDomain( Node n, bool hasPol, bool pol ) {
     }else if( varCount==1 ){
       int oCh = varCh==0 ? 1 : 0;
       bool ng = d_qe->getTermDatabase()->hasInstConstAttr( n[oCh] );
-      Trace("rel-dom-debug") << "...add term " << n[oCh] << ", is ground = " << (!ng) << std::endl;
+      Trace("rel-dom-debug") << "...add term " << n[oCh] << ", is ground = " << (!ng) << ", pol = " << pol << ", hasPol = " << hasPol << ", kind = " << n.getKind() << std::endl;
       //the negative occurrence adds the term to the domain
       if( !hasPol || !pol ){
         rds[varCh]->addTerm( n[oCh], ng );
@@ -202,7 +202,6 @@ void RelevantDomain::computeRelevantDomain( Node n, bool hasPol, bool pol ) {
             rds[varCh]->addTerm( QuantArith::offset( n[oCh], i==0 ? 1 : -1 ), ng  );
           }
         }else if( n.getKind()==GEQ ){
-          Node nt = QuantArith::offset( n[oCh], varCh==0 ? 1 : -1 );
           rds[varCh]->addTerm( QuantArith::offset( n[oCh], varCh==0 ? 1 : -1 ), ng );
         }
       }
@@ -228,6 +227,7 @@ void RelevantDomain::computeRelevantDomainOpCh( RDomain * rf, Node n ) {
   }
 }
 
+/*
 Node RelevantDomain::getRelevantTerm( Node f, int i, Node r ) {
   RDomain * rf = getRDomain( f, i );
   Trace("rel-dom-debug") << "Get relevant domain " << rf << " " << r << std::endl;
@@ -248,3 +248,4 @@ Node RelevantDomain::getRelevantTerm( Node f, int i, Node r ) {
     return r;
   }
 }
+*/

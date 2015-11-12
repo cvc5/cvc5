@@ -250,9 +250,10 @@ Node Trigger::getIsUsableTrigger( Node n, Node f, bool pol, bool hasPol ) {
     if( n.getKind()==EQUAL || n.getKind()==IFF || n.getKind()==GEQ ){
       Node rtr;
       bool do_negate = hasPol && pol;
+      bool is_arith = n[0].getType().isReal();
       for( unsigned i=0; i<2; i++) {
         if( n[1-i].getKind()==INST_CONSTANT ){
-          if( isUsableTrigger(n[i], f) && !quantifiers::TermDb::containsTerm( n[i], n[1-i] ) ){
+          if( isUsableTrigger( n[i], f ) && !quantifiers::TermDb::containsTerm( n[i], n[1-i] ) && ( !do_negate || is_arith ) ){
             rtr = n;
             break;
           }
@@ -263,7 +264,7 @@ Node Trigger::getIsUsableTrigger( Node n, Node f, bool pol, bool hasPol ) {
           }
         }
       }
-      if( n[0].getType().isInteger() ){
+      if( is_arith ){
         //try to rearrange?
         std::map< Node, Node > m;
         if( QuantArith::getMonomialSumLit(n, m) ){

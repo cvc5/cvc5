@@ -238,21 +238,19 @@ bool InstMatchGenerator::getMatch( Node f, Node t, InstMatch& m, QuantifiersEngi
       Node pat = d_pattern.getKind()==NOT ? d_pattern[0] : d_pattern;
       Node t_match;
       if( pol ){
-        if (pat.getKind()==GT) {
-          Node r = NodeManager::currentNM()->mkConst( Rational(-1) );
-          t_match = NodeManager::currentNM()->mkNode(PLUS, t, r);
+        if( pat.getKind()==GT ){
+          t_match = NodeManager::currentNM()->mkNode(MINUS, t, qe->getTermDatabase()->d_one);
         }else{
           t_match = t;
         }
       }else{
-        if(pat.getKind()==EQUAL) {
-          Node r = NodeManager::currentNM()->mkConst( Rational(1) );
-          t_match = NodeManager::currentNM()->mkNode(PLUS, t, r);
+        if( pat.getKind()==EQUAL ){
+          Assert( t.getType().isReal() );
+          t_match = NodeManager::currentNM()->mkNode(PLUS, t, qe->getTermDatabase()->d_one);
         }else if( pat.getKind()==IFF ){
-          t_match = NodeManager::currentNM()->mkConst( !q->areEqual( NodeManager::currentNM()->mkConst(true), t ) );
+          t_match = NodeManager::currentNM()->mkConst( !q->areEqual( qe->getTermDatabase()->d_true, t ) );
         }else if( pat.getKind()==GEQ ){
-          Node r = NodeManager::currentNM()->mkConst( Rational(1) );
-          t_match = NodeManager::currentNM()->mkNode(PLUS, t, r);
+          t_match = NodeManager::currentNM()->mkNode(PLUS, t, qe->getTermDatabase()->d_one);
         }else if( pat.getKind()==GT ){
           t_match = t;
         }
