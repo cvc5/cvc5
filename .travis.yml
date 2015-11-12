@@ -9,11 +9,23 @@ env:
  - TRAVIS_CVC4=yes TRAVIS_CVC4_DISTCHECK=yes
  - TRAVIS_LFSC=yes
  - TRAVIS_LFSC=yes TRAVIS_LFSC_DISTCHECK=yes
+addons:
+  apt:
+    sources:
+    - ubuntu-toolchain-r-test
+    packages:
+    - libgmp-dev
+    - libboost-dev
+    - libboost-thread-dev
+    - swig
+    - libcln-dev
+    - openjdk-7-jdk
 before_install:
 # dhart/ppa is for cxxtest package, which doesn't appear officially until quantal
+# - travis_retry sudo apt-get install -qq libgmp-dev antlr3 libantlr3c-dev libboost-dev libboost-thread-dev swig2.0 libcln-dev openjdk-7-jdk
  - travis_retry sudo apt-add-repository -y ppa:dhart/ppa
  - travis_retry sudo apt-get update -qq
- - travis_retry sudo apt-get install -qq libgmp-dev antlr3 libantlr3c-dev libboost-dev libboost-thread-dev swig2.0 libcln-dev openjdk-7-jdk
+ - travis_retry sudo apt-get install -qq antlr3 libantlr3c-dev
  - travis_retry sudo apt-get install -qq --force-yes cxxtest
 before_script:
  - export JAVA_HOME=/usr/lib/jvm/java-7-openjdk-amd64
