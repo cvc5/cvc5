@@ -51,9 +51,9 @@ script:
    }
    addNewTheoryTest() {
        contrib/new-theory test_newtheory || error "NEWTHEORY FAILED";
-       grep -q '^THEORIES *=.* test_newtheory' src/Makefile.am || error "NEWTHEORY FAILED";
+       grep -q '^THEORIES *=.* test_newtheory' src/Makefile.theories || error "NEWTHEORY FAILED";
        contrib/new-theory --alternate test_newtheory test_newalttheory || error "NEWTHEORY-ALTERNATE FAILED";
-       grep -q '^THEORIES *=.* test_newalttheory' src/Makefile.am || error "NEWTHEORY-ALTERNATE FAILED";
+       grep -q '^THEORIES *=.* test_newalttheory' src/Makefile.theories || error "NEWTHEORY-ALTERNATE FAILED";
    }
    LFSCchecks() {
      cd proofs/lfsc_checker &&

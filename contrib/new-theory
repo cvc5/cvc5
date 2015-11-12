@@ -133,17 +133,17 @@ else
 fi
 
 echo
-echo "Adding $dir to THEORIES to src/Makefile.am..."
-if grep -q '^THEORIES = .*[^a-zA-Z0-9_]'"$dir"'\([^a-zA-Z0-9_]\|$\)' src/Makefile.am &>/dev/null; then
-  echo "NOTE: src/Makefile.am already lists theory $dir"
+echo "Adding $dir to THEORIES to src/Makefile.theories..."
+if grep -q '^THEORIES = .*[^a-zA-Z0-9_]'"$dir"'\([^a-zA-Z0-9_]\|$\)' src/Makefile.theories &>/dev/null; then
+  echo "NOTE: src/Makefile.theories already lists theory $dir"
 else
-  awk '/^THEORIES = / {print $0,"'"$dir"'"} !/^THEORIES = / {print$0}' src/Makefile.am > src/Makefile.am.new-theory
-  if ! cp -f src/Makefile.am src/Makefile.am~; then
-    echo "ERROR: cannot copy src/Makefile.am !" >&2
+  awk '/^THEORIES = / {print $0,"'"$dir"'"} !/^THEORIES = / {print$0}' src/Makefile.theories > src/Makefile.theories.new-theory
+  if ! cp -f src/Makefile.theories src/Makefile.theories~; then
+    echo "ERROR: cannot copy src/Makefile.theories !" >&2
     exit 1
   fi
-  if ! mv -f src/Makefile.am.new-theory src/Makefile.am; then
-    echo "ERROR: cannot replace src/Makefile.am !" >&2
+  if ! mv -f src/Makefile.theories.new-theory src/Makefile.theories; then
+    echo "ERROR: cannot replace src/Makefile.theories !" >&2
     exit 1
   fi
 fi
