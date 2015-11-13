@@ -609,5 +609,7 @@ int runCvc4(int argc, char* argv[], Options& opts) {
   pTotalTime = NULL;
   pExecutor = NULL;
 
+  cvc4_shutdown();
+
   return returnValue;
 }

@@ -249,7 +249,7 @@ void cvc4_init() throw(Exception) {
     }
   }
   cvc4StackSize = limit.rlim_cur;
-  cvc4StackBase = &ss;
+  cvc4StackBase = ss.ss_sp;
 
   struct sigaction act1;
   act1.sa_sigaction = sigint_handler;
@@ -287,6 +287,12 @@ void cvc4_init() throw(Exception) {
 
   set_unexpected(cvc4unexpected);
   default_terminator = set_terminate(cvc4terminate);
+}
+
+void cvc4_shutdown() throw () {
+  free(cvc4StackBase);
+  cvc4StackBase = NULL;
+  cvc4StackSize = 0;
 }
 
 }/* CVC4::main namespace */

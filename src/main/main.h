@@ -59,6 +59,10 @@ extern CVC4_THREADLOCAL(Options*) pOptions;
 /** Initialize the driver.  Sets signal handlers for SIGINT and SIGSEGV. */
 void cvc4_init() throw(Exception);
 
+/** Shutdown the driver. Frees memory for the signal handlers. */
+void cvc4_shutdown() throw();
+
+
 }/* CVC4::main namespace */
 }/* CVC4 namespace */
 
