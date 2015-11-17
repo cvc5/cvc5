@@ -76,13 +76,13 @@ void ProofUF::toStream(std::ostream& out) {
   toStreamLFSC(out, ProofManager::getUfProof(), d_proof, map);
 }
 
-void ProofUF::toStreamLFSC(std::ostream& out, TheoryProof * tp, theory::eq::EqProof * pf, const LetMap& map) { 
+void ProofUF::toStreamLFSC(std::ostream& out, TheoryProof * tp, theory::eq::EqProof * pf, const LetMap& map) {
   Debug("lfsc-uf") << "Printing uf proof in LFSC : " << std::endl;
   pf->debug_print("lfsc-uf");
   Debug("lfsc-uf") << std::endl;
-  toStreamRecLFSC( out, tp, pf, 0, map ); 
+  toStreamRecLFSC( out, tp, pf, 0, map );
 }
-  
+
 Node ProofUF::toStreamRecLFSC(std::ostream& out, TheoryProof * tp, theory::eq::EqProof * pf, unsigned tb, const LetMap& map) {
   if(tb == 0) {
     Assert(pf->d_id == eq::MERGED_THROUGH_TRANS);
@@ -93,21 +93,25 @@ Node ProofUF::toStreamRecLFSC(std::ostream& out, TheoryProof * tp, theory::eq::E
     theory::eq::EqProof subTrans;
     subTrans.d_id = eq::MERGED_THROUGH_TRANS;
     subTrans.d_node = pf->d_node;
+    std::vector<theory::eq::EqProof *> childrenTail;
     for(size_t i = 0; i < pf->d_children.size(); ++i) {
       if(!pf->d_children[i]->d_node.isNull() && pf->d_children[i]->d_node.getKind() == kind::NOT) {
         Assert(neg < 0);
         neg = i;
       //equality congruences
       } else if( pf->d_children[i]->d_id==eq::MERGED_THROUGH_CONGRUENCE && pf->d_children[i]->d_node.isNull() ){
-        //append to front and back 
+        // When encountering equality congruences, the 2nd child needs to be concatenated to the
+        // end of the transitivity proof
         Assert( pf->d_children[i]->d_children.size()==2 );
         subTrans.d_children.insert( subTrans.d_children.begin(), pf->d_children[i]->d_children[0] );
-        subTrans.d_children.push_back( pf->d_children[i]->d_children[1] );
+        childrenTail.insert( childrenTail.begin(), pf->d_children[i]->d_children[1] );
       } else {
         subTrans.d_children.push_back(pf->d_children[i]);
       }
     }
     Assert(neg >= 0);
+    // When done, add the tail of children to the transitivity proof
+    subTrans.d_children.insert( subTrans.d_children.end(), childrenTail.begin(), childrenTail.end() );
 
     Node n1;
     std::stringstream ss;
@@ -598,4 +602,3 @@ void LFSCUFProof::printDeclarations(std::ostream& os, std::ostream& paren) {
     paren << ")";
   }
 }
-
