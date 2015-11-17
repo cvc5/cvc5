@@ -527,7 +527,7 @@ void TheoryStrings::check(Effort e) {
   }
   doPendingFacts();
 
-  if( e == EFFORT_FULL && !d_conflict && !d_valuation.needCheck() ) {
+  if( !d_conflict && ( ( e == EFFORT_FULL && !d_valuation.needCheck() ) || ( e==EFFORT_STANDARD && options::stringEager() ) ) ) {
     Trace("strings-check") << "Theory of strings full effort check " << std::endl;
 
     if(Trace.isOn("strings-eqc")) {
@@ -573,7 +573,7 @@ void TheoryStrings::check(Effort e) {
         if( !hasProcessed() ){
           checkFlatForms();
           Trace("strings-process") << "Done check flat forms, addedFact = " << !d_pending.empty() << " " << !d_lemma_cache.empty() << ", d_conflict = " << d_conflict << std::endl;
-          if( !hasProcessed() ){
+          if( !hasProcessed() && e==EFFORT_FULL ){
             checkNormalForms();
             Trace("strings-process") << "Done check normal forms, addedFact = " << !d_pending.empty() << " " << !d_lemma_cache.empty() << ", d_conflict = " << d_conflict << std::endl;
             if( !hasProcessed() ){

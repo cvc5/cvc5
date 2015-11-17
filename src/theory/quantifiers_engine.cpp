@@ -899,7 +899,7 @@ void QuantifiersEngine::addRequirePhase( Node lit, bool req ){
 
 bool QuantifiersEngine::addInstantiation( Node q, InstMatch& m, bool mkRep, bool modEq, bool modInst, bool doVts ){
   std::vector< Node > terms;
-  m.getTerms( this, q, terms );
+  m.getTerms( q, terms );
   return addInstantiation( q, terms, mkRep, modEq, modInst, doVts );
 }
 
@@ -910,7 +910,11 @@ bool QuantifiersEngine::addInstantiation( Node q, std::vector< Node >& terms, bo
   Assert( terms.size()==q[0].getNumChildren() );
   Trace("inst-add-debug") << "For quantified formula " << q << ", add instantiation: " << std::endl;
   for( unsigned i=0; i<terms.size(); i++ ){
-    Trace("inst-add-debug") << "  " << q[0][i] << " -> " << terms[i] << std::endl;
+    Trace("inst-add-debug") << "  " << q[0][i];
+    Trace("inst-add-debug2") << " -> " << terms[i];
+    if( terms[i].isNull() ){
+      terms[i] = d_term_db->getModelBasisTerm( q[0][i].getType() );
+    }
     //make it representative, this is helpful for recognizing duplication
     if( mkRep ){
       //pick the best possible representative for instantiation, based on past use and simplicity of term
@@ -919,7 +923,7 @@ bool QuantifiersEngine::addInstantiation( Node q, std::vector< Node >& terms, bo
       //ensure the type is correct
       terms[i] = quantifiers::TermDb::mkNodeType( terms[i], q[0][i].getType() );
     }
-    Trace("inst-add-debug2") << " -> " << terms[i] << std::endl;
+    Trace("inst-add-debug") << " -> " << terms[i] << std::endl;
     Assert( !terms[i].isNull() );
   }
 

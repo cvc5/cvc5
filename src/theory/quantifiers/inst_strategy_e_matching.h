@@ -87,7 +87,7 @@ private:
   void processResetInstantiationRound( Theory::Effort effort );
   int process( Node q, Theory::Effort effort, int e );
   /** generate triggers */
-  void generateTriggers( Node q, Theory::Effort effort, int e, int& status );
+  void generateTriggers( Node q );
   //bool addTrigger( inst::Trigger * tr, Node f, unsigned r );
   /** has user patterns */
   bool hasUserPatterns( Node q );
@@ -110,7 +110,7 @@ private:
   /** guessed instantiations */
   std::map< Node, bool > d_guessed;
   /** process functions */
-  bool process( Node q, Theory::Effort effort, unsigned quant_e );
+  bool process( Node q, bool fullEffort );
 public:
   FullSaturation( QuantifiersEngine* qe );
   ~FullSaturation(){}

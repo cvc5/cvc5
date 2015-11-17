@@ -49,6 +49,16 @@ struct sortQuantifiersForSymbol {
   }
 };
 
+struct sortTriggers {
+  bool operator() (Node i, Node j) {
+    if( Trigger::isAtomicTrigger( i ) ){
+      return i<j || !Trigger::isAtomicTrigger( j );
+    }else{
+      return i<j && !Trigger::isAtomicTrigger( j );
+    }
+  }
+};
+
 void InstStrategyUserPatterns::processResetInstantiationRound( Theory::Effort effort ){
   //reset triggers
   for( std::map< Node, std::vector< Trigger* > >::iterator it = d_user_gen.begin(); it != d_user_gen.end(); ++it ){
@@ -168,7 +178,6 @@ int InstStrategyAutoGenTriggers::process( Node f, Theory::Effort effort, int e )
       return STATUS_UNFINISHED;
     }else{
       Trace("inst-alg") << "-> Auto-gen instantiate " << f << "..." << std::endl;
-      int status = STATUS_UNKNOWN;
       bool gen = false;
       if( e==peffort ){
         if( d_counter.find( f )==d_counter.end() ){
@@ -182,7 +191,7 @@ int InstStrategyAutoGenTriggers::process( Node f, Theory::Effort effort, int e )
         gen = true;
       }
       if( gen ){
-        generateTriggers( f, effort, e, status );
+        generateTriggers( f );
         if( d_counter[f]==0 && d_auto_gen_trigger[0][f].empty() && d_auto_gen_trigger[1][f].empty() && f.getNumChildren()==2 ){
           Trace("trigger-warn") << "Could not find trigger for " << f << std::endl;
         }
@@ -222,17 +231,18 @@ int InstStrategyAutoGenTriggers::process( Node f, Theory::Effort effort, int e )
       //if( e==4 ){
       //  d_quantEngine->getEqualityQuery()->setLiberal( false );
       //}
-      return status;
+      return STATUS_UNKNOWN;
     }
   }
 }
 
-void InstStrategyAutoGenTriggers::generateTriggers( Node f, Theory::Effort effort, int e, int & status ){
-  Trace("auto-gen-trigger-debug") << "Generate trigger for " << f << std::endl;
+void InstStrategyAutoGenTriggers::generateTriggers( Node f ){
+  Trace("auto-gen-trigger-debug") << "Generate triggers for " << f << std::endl;
   if( d_patTerms[0].find( f )==d_patTerms[0].end() ){
     //determine all possible pattern terms based on trigger term selection strategy d_tr_strategy
     d_patTerms[0][f].clear();
     d_patTerms[1][f].clear();
+    bool ntrivTriggers = options::relationalTriggers();
     std::vector< Node > patTermsF;
     //well-defined function: can assume LHS is only trigger
     if( options::quantFunWellDefined() ){
@@ -246,42 +256,61 @@ void InstStrategyAutoGenTriggers::generateTriggers( Node f, Theory::Effort effor
     if( patTermsF.empty() ){
       Node bd = d_quantEngine->getTermDatabase()->getInstConstantBody( f );
       Trigger::collectPatTerms( d_quantEngine, f, bd, patTermsF, d_tr_strategy, d_user_no_gen[f], true );
-      Trace("auto-gen-trigger") << "Collected pat terms for " << bd << ", no-patterns : " << d_user_no_gen[f].size() << std::endl;
-      Trace("auto-gen-trigger") << "   ";
+      Trace("auto-gen-trigger-debug") << "Collected pat terms for " << bd << ", no-patterns : " << d_user_no_gen[f].size() << std::endl;
+      Trace("auto-gen-trigger-debug") << "   ";
       for( int i=0; i<(int)patTermsF.size(); i++ ){
-        Trace("auto-gen-trigger") << patTermsF[i] << " ";
+        Trace("auto-gen-trigger-debug") << patTermsF[i] << " ";
       }
-      Trace("auto-gen-trigger") << std::endl;
+      Trace("auto-gen-trigger-debug") << std::endl;
+      if( ntrivTriggers ){
+        sortTriggers st;
+        std::sort( patTermsF.begin(), patTermsF.end(), st );
+      }
     }
     //sort into single/multi triggers
     std::map< Node, std::vector< Node > > varContains;
-    d_quantEngine->getTermDatabase()->getVarContains( f, patTermsF, varContains );
+    std::map< Node, bool > vcMap;
+    std::map< Node, bool > rmPatTermsF;
+    for( unsigned i=0; i<patTermsF.size(); i++ ){
+      d_quantEngine->getTermDatabase()->getVarContainsNode( f, patTermsF[i], varContains[ patTermsF[i] ] );
+      bool newVar = false;
+      for( unsigned j=0; j<varContains[ patTermsF[i] ].size(); j++ ){
+        if( vcMap.find( varContains[ patTermsF[i] ][j] )==vcMap.end() ){
+          vcMap[varContains[ patTermsF[i] ][j]] = true;
+          newVar = true;
+        }
+      }
+      if( ntrivTriggers && !newVar && !Trigger::isAtomicTrigger( patTermsF[i] ) ){
+        Trace("auto-gen-trigger-debug") << "Exclude expendible non-trivial trigger : " << patTermsF[i] << std::endl;
+        rmPatTermsF[patTermsF[i]] = true;
+      }
+    }
     for( std::map< Node, std::vector< Node > >::iterator it = varContains.begin(); it != varContains.end(); ++it ){
-      if( it->second.size()==f[0].getNumChildren() && ( options::pureThTriggers() || !Trigger::isPureTheoryTrigger( it->first ) ) ){
-        d_patTerms[0][f].push_back( it->first );
-        d_is_single_trigger[ it->first ] = true;
-      }else{
-        d_patTerms[1][f].push_back( it->first );
-        d_is_single_trigger[ it->first ] = false;
+      if( rmPatTermsF.find( it->first )==rmPatTermsF.end() ){
+        if( it->second.size()==f[0].getNumChildren() && ( options::pureThTriggers() || !Trigger::isPureTheoryTrigger( it->first ) ) ){
+          d_patTerms[0][f].push_back( it->first );
+          d_is_single_trigger[ it->first ] = true;
+        }else{
+          d_patTerms[1][f].push_back( it->first );
+          d_is_single_trigger[ it->first ] = false;
+        }
       }
     }
     d_made_multi_trigger[f] = false;
     Trace("auto-gen-trigger") << "Single triggers for " << f << " : " << std::endl;
-    Trace("auto-gen-trigger") << "   ";
-    for( int i=0; i<(int)d_patTerms[0][f].size(); i++ ){
-      Trace("auto-gen-trigger") << d_patTerms[0][f][i] << " ";
+    for( unsigned i=0; i<d_patTerms[0][f].size(); i++ ){
+      Trace("auto-gen-trigger") << "   " << d_patTerms[0][f][i] << std::endl;
     }
-    Trace("auto-gen-trigger") << std::endl;
-    Trace("auto-gen-trigger") << "Multi-trigger term pool for " << f << " : " << std::endl;
-    Trace("auto-gen-trigger") << "   ";
-    for( int i=0; i<(int)d_patTerms[1][f].size(); i++ ){
-      Trace("auto-gen-trigger") << d_patTerms[1][f][i] << " ";
+    if( !d_patTerms[1][f].empty() ){
+      Trace("auto-gen-trigger") << "Multi-trigger term pool for " << f << " : " << std::endl;
+      for( unsigned i=0; i<d_patTerms[1][f].size(); i++ ){
+        Trace("auto-gen-trigger") << "   " << d_patTerms[1][f][i] << std::endl;
+      }
     }
-    Trace("auto-gen-trigger") << std::endl;
   }
 
   unsigned rmin = d_patTerms[0][f].empty() ? 1 : 0;
-  unsigned rmax = ( options::multiTriggerWhenSingle() || e>2 ) ? 1 : rmin;
+  unsigned rmax = options::multiTriggerWhenSingle() ? 1 : rmin;
   for( unsigned r=rmin; r<=rmax; r++ ){
     std::vector< Node > patTerms;
     for( int i=0; i<(int)d_patTerms[r][f].size(); i++ ){
@@ -310,13 +339,12 @@ void InstStrategyAutoGenTriggers::generateTriggers( Node f, Theory::Effort effor
         tr = Trigger::mkTrigger( d_quantEngine, f, patTerms[0], matchOption, false, Trigger::TR_RETURN_NULL, options::smartTriggers() );
         d_single_trigger_gen[ patTerms[0] ] = true;
       }else{
-        //only generate multi trigger if effort level > 5, or if no single triggers exist
+        //only generate multi trigger if option set, or if no single triggers exist
         if( !d_patTerms[0][f].empty() ){
-          if( e<=5 && !options::multiTriggerWhenSingle() ){
-            status = STATUS_UNFINISHED;
-            return;
-          }else{
+          if( options::multiTriggerWhenSingle() ){
             Trace("multi-trigger-debug") << "Resort to choosing multi-triggers..." << std::endl;
+          }else{
+            return;
           }
         }
         //if we are re-generating triggers, shuffle based on some method
@@ -471,12 +499,14 @@ void FullSaturation::reset_round( Theory::Effort e ) {
 
 void FullSaturation::check( Theory::Effort e, unsigned quant_e ) {
   bool doCheck = false;
+  bool fullEffort = false;
   if( options::fullSaturateInst() ){
     //we only add when interleaved with other strategies
     doCheck = quant_e==QuantifiersEngine::QEFFORT_STANDARD && d_quantEngine->hasAddedLemma();
   }
   if( options::fullSaturateQuant() && !doCheck ){
     doCheck = quant_e==QuantifiersEngine::QEFFORT_LAST_CALL;
+    fullEffort = !d_quantEngine->hasAddedLemma();
   }
   if( doCheck ){
     double clSet = 0;
@@ -488,7 +518,7 @@ void FullSaturation::check( Theory::Effort e, unsigned quant_e ) {
     for( int i=0; i<d_quantEngine->getModel()->getNumAssertedQuantifiers(); i++ ){
       Node q = d_quantEngine->getModel()->getAssertedQuantifier( i );
       if( d_quantEngine->hasOwnership( q, this ) && d_quantEngine->getModel()->isQuantifierActive( q ) ){
-        if( process( q, e, quant_e ) ){
+        if( process( q, fullEffort ) ){
           //added lemma
           addedLemmas++;
         }
@@ -502,13 +532,13 @@ void FullSaturation::check( Theory::Effort e, unsigned quant_e ) {
   }
 }
 
-bool FullSaturation::process( Node f, Theory::Effort effort, unsigned quant_e ){
+bool FullSaturation::process( Node f, bool fullEffort ){
   //first, try from relevant domain
   RelevantDomain * rd = d_quantEngine->getRelevantDomain();
   unsigned rstart = options::fullSaturateQuantRd() ? 0 : 1;
-  unsigned rend = quant_e==QuantifiersEngine::QEFFORT_STANDARD ? rstart : 2;
+  unsigned rend = fullEffort ? 1 : rstart;
   for( unsigned r=rstart; r<=rend; r++ ){
-    if( r==1 ){
+      /*
       //complete guess
       if( d_guessed.find( f )==d_guessed.end() ){
         Trace("inst-alg") << "-> Guess instantiate " << f << "..." << std::endl;
@@ -519,38 +549,40 @@ bool FullSaturation::process( Node f, Theory::Effort effort, unsigned quant_e ){
           return true;
         }
       }
-    }else{
-      if( rd || r>0 ){
+      */
+    if( rd || r>0 ){
+      if( r==0 ){
+        Trace("inst-alg") << "-> Relevant domain instantiate " << f << "..." << std::endl;
+      }else{
+        Trace("inst-alg") << "-> Ground term instantiate " << f << "..." << std::endl;
+      }
+      rd->compute();
+      unsigned final_max_i = 0;
+      std::vector< unsigned > maxs;
+      std::vector< bool > max_zero;
+      bool has_zero = false;
+      for(unsigned i=0; i<f[0].getNumChildren(); i++ ){
+        unsigned ts;
         if( r==0 ){
-          Trace("inst-alg") << "-> Relevant domain instantiate " << f << "..." << std::endl;
+          ts = rd->getRDomain( f, i )->d_terms.size();
         }else{
-          Trace("inst-alg") << "-> Ground term instantiate " << f << "..." << std::endl;
+          ts = d_quantEngine->getTermDatabase()->d_type_map[f[0][i].getType()].size();
         }
-        rd->compute();
-        bool max_zero = false;
-        unsigned final_max_i = 0;
-        std::vector< unsigned > maxs;
-        for(unsigned i=0; i<f[0].getNumChildren(); i++ ){
-          unsigned ts;
-          if( r==0 ){
-            ts = rd->getRDomain( f, i )->d_terms.size();
-          }else{
-            ts = d_quantEngine->getTermDatabase()->d_type_map[f[0][i].getType()].size();
-          }
+        max_zero.push_back( fullEffort && ts==0 );
+        ts = ( fullEffort && ts==0 ) ? 1 : ts;
+        Trace("inst-alg-rd") << "Variable " << i << " has " << ts << " in relevant domain." << std::endl;
+        if( ts==0 ){
+          has_zero = true;
+          break;
+        }else{
           maxs.push_back( ts );
-          Trace("inst-alg-rd") << "Variable " << i << " has " << ts << " in relevant domain." << std::endl;
           if( ts>final_max_i ){
             final_max_i = ts;
           }
-          if( ts==0 ){
-            max_zero = true;
-          }
         }
-        if( max_zero ){
-          final_max_i = 0;
-        }
+      }
+      if( !has_zero ){
         Trace("inst-alg-rd") << "Will do " << final_max_i << " stages of instantiation." << std::endl;
-
         unsigned max_i = 0;
         bool success;
         while( max_i<=final_max_i ){
@@ -564,10 +596,10 @@ bool FullSaturation::process( Node f, Theory::Effort effort, unsigned quant_e ){
               }else{
                 Assert( index==(int)(childIndex.size())-1 );
                 unsigned nv = childIndex[index]+1;
-                if( options::cbqi() ){
+                if( options::cbqi() && r==1 && !max_zero[index] ){
                   //skip inst constant nodes
                   while( nv<maxs[index] && nv<=max_i &&
-                          r==1 && quantifiers::TermDb::hasInstConstAttr( d_quantEngine->getTermDatabase()->d_type_map[f[0][index].getType()][nv] ) ){
+                          quantifiers::TermDb::hasInstConstAttr( d_quantEngine->getTermDatabase()->d_type_map[f[0][index].getType()][nv] ) ){
                     nv++;
                   }
                 }
@@ -590,7 +622,10 @@ bool FullSaturation::process( Node f, Theory::Effort effort, unsigned quant_e ){
               //try instantiation
               std::vector< Node > terms;
               for( unsigned i=0; i<f[0].getNumChildren(); i++ ){
-                if( r==0 ){
+                if( max_zero[i] ){
+                  //no terms available, will report incomplete instantiation
+                  terms.push_back( Node::null() );
+                }else if( r==0 ){
                   terms.push_back( rd->getRDomain( f, i )->d_terms[childIndex[i]] );
                 }else{
                   terms.push_back( d_quantEngine->getTermDatabase()->d_type_map[f[0][i].getType()][childIndex[i]] );

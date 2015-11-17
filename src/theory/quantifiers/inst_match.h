@@ -76,7 +76,7 @@ public:
   void applyRewrite();
   /** get */
   Node get( int i );
-  void getTerms( QuantifiersEngine* qe, Node f, std::vector< Node >& inst );
+  void getTerms( Node f, std::vector< Node >& inst );
   /** set */
   void setValue( int i, TNode n );
   bool set( QuantifiersEngine* qe, int i, TNode n );
