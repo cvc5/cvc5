@@ -465,16 +465,17 @@ bool CegInstantiator::addInstantiation( SolvedForm& sf, SolvedForm& ssf, std::ve
       }
       if( options::cbqiModel() ){
         if( pvtn.isInteger() || pvtn.isReal() ){
-          bool use_inf = d_use_vts_inf && ( pvtn.isInteger() ? options::cbqiUseInfInt() : options::cbqiUseInfReal() );
+          bool use_inf = d_use_vts_inf && ( pvtn.isInteger() ? options::cbqiUseInfInt() : options::cbqiUseInfReal() ) && !options::cbqiMidpoint();
           bool upper_first = false;
           if( options::cbqiMinBounds() ){
             upper_first = mbp_bounds[1].size()<mbp_bounds[0].size();
           }
-          unsigned best_used[2];
+          int best_used[2];
           std::vector< Node > t_values[3];
           //try optimal bounds
           for( unsigned r=0; r<2; r++ ){
             int rr = upper_first ? (1-r) : r;
+            best_used[rr] = -1;
             if( mbp_bounds[rr].empty() ){
               if( use_inf ){
                 Trace("cbqi-bound") << "No " << ( rr==0 ? "lower" : "upper" ) << " bounds for " << pv << " (type=" << pvtn << ")" << std::endl;
@@ -572,15 +573,18 @@ bool CegInstantiator::addInstantiation( SolvedForm& sf, SolvedForm& ssf, std::ve
                   Trace("cbqi-bound") << " + ( " << best_bound_value[2] << " * DELTA )";
                 }
                 Trace("cbqi-bound") << std::endl;
-                best_used[rr] = (unsigned)best;
-                Node val = mbp_bounds[rr][best];
-                val = getModelBasedProjectionValue( pv, val, rr==0, mbp_coeff[rr][best], pv_value, t_values[rr][best], theta,
-                                                    mbp_vts_coeff[rr][0][best], mbp_vts_coeff[rr][1][best] );
-                if( !val.isNull() ){
-                  if( subs_proc[val].find( mbp_coeff[rr][best] )==subs_proc[val].end() ){
-                    subs_proc[val][mbp_coeff[rr][best]] = true;
-                    if( addInstantiationInc( val, pv, mbp_coeff[rr][best], rr==0 ? 1 : -1, sf, ssf, vars, btyp, theta, i, effort, cons, curr_var ) ){
-                      return true;
+                best_used[rr] = best;
+                //if using cbqiMidpoint, only add the instance based on one bound if the bound is non-strict
+                if( !options::cbqiMidpoint() || pvtn.isInteger() || mbp_vts_coeff[rr][1][best].isNull() ){
+                  Node val = mbp_bounds[rr][best];
+                  val = getModelBasedProjectionValue( pv, val, rr==0, mbp_coeff[rr][best], pv_value, t_values[rr][best], theta,
+                                                      mbp_vts_coeff[rr][0][best], mbp_vts_coeff[rr][1][best] );
+                  if( !val.isNull() ){
+                    if( subs_proc[val].find( mbp_coeff[rr][best] )==subs_proc[val].end() ){
+                      subs_proc[val][mbp_coeff[rr][best]] = true;
+                      if( addInstantiationInc( val, pv, mbp_coeff[rr][best], rr==0 ? 1 : -1, sf, ssf, vars, btyp, theta, i, effort, cons, curr_var ) ){
+                        return true;
+                      }
                     }
                   }
                 }
@@ -601,22 +605,68 @@ bool CegInstantiator::addInstantiation( SolvedForm& sf, SolvedForm& ssf, std::ve
               }
             }
           }
+          if( options::cbqiMidpoint() && !pvtn.isInteger() ){
+            Node vals[2];
+            bool bothBounds = true;
+            Trace("cbqi-bound") << "Try midpoint of bounds..." << std::endl;
+            for( unsigned rr=0; rr<2; rr++ ){
+              int best = best_used[rr];
+              if( best==-1 ){
+                bothBounds = false;
+              }else{
+                vals[rr] = mbp_bounds[rr][best];
+                vals[rr] = getModelBasedProjectionValue( pv, vals[rr], rr==0, Node::null(), pv_value, t_values[rr][best], theta,
+                                                         mbp_vts_coeff[rr][0][best], Node::null() );
+              }
+              Trace("cbqi-bound") << "Bound : " << vals[rr] << std::endl;
+            }
+            Node val;
+            if( bothBounds ){
+              Assert( !vals[0].isNull() && !vals[1].isNull() );
+              if( vals[0]==vals[1] ){
+                val = vals[0];
+              }else{
+                val = NodeManager::currentNM()->mkNode( MULT, NodeManager::currentNM()->mkNode( PLUS, vals[0], vals[1] ),
+                                                              NodeManager::currentNM()->mkConst( Rational(1)/Rational(2) ) );
+                val = Rewriter::rewrite( val );
+              }
+            }else{
+              if( !vals[0].isNull() ){
+                val = NodeManager::currentNM()->mkNode( PLUS, vals[0], d_one );
+                val = Rewriter::rewrite( val );
+              }else if( !vals[1].isNull() ){
+                val = NodeManager::currentNM()->mkNode( MINUS, vals[1], d_one );
+                val = Rewriter::rewrite( val );
+              }
+            }
+            Trace("cbqi-bound") << "Midpoint value : " << val << std::endl;
+            if( !val.isNull() ){
+              if( subs_proc[val].find( Node::null() )==subs_proc[val].end() ){
+                subs_proc[val][Node::null()] = true;
+                if( addInstantiationInc( val, pv, Node::null(), 0, sf, ssf, vars, btyp, theta, i, effort, cons, curr_var ) ){
+                  return true;
+                }
+              }
+            }
+          }
 #ifdef MBP_STRICT_ASSERTIONS
           Assert( false );
 #endif
-          //try non-optimal bounds (heuristic, may help when nested quantification) ?
-          Trace("cbqi-bound") << "Try non-optimal bounds..." << std::endl;
-          for( unsigned r=0; r<2; r++ ){
-            int rr = upper_first ? (1-r) : r;
-            for( unsigned j=0; j<mbp_bounds[rr].size(); j++ ){
-              if( j!=best_used[rr] ){
-                Node val = getModelBasedProjectionValue( pv, mbp_bounds[rr][j], rr==0, mbp_coeff[rr][j], pv_value, t_values[rr][j], theta,
-                                                         mbp_vts_coeff[rr][0][j], mbp_vts_coeff[rr][1][j] );
-                if( !val.isNull() ){
-                  if( subs_proc[val].find( mbp_coeff[rr][j] )==subs_proc[val].end() ){
-                    subs_proc[val][mbp_coeff[rr][j]] = true;
-                    if( addInstantiationInc( val, pv, mbp_coeff[rr][j], rr==0 ? 1 : -1, sf, ssf, vars, btyp, theta, i, effort, cons, curr_var ) ){
-                      return true;
+          if( options::cbqiNopt() ){
+            //try non-optimal bounds (heuristic, may help when nested quantification) ?
+            Trace("cbqi-bound") << "Try non-optimal bounds..." << std::endl;
+            for( unsigned r=0; r<2; r++ ){
+              int rr = upper_first ? (1-r) : r;
+              for( unsigned j=0; j<mbp_bounds[rr].size(); j++ ){
+                if( (int)j!=best_used[rr] && ( !options::cbqiMidpoint() || mbp_vts_coeff[rr][1][j].isNull() ) ){
+                  Node val = getModelBasedProjectionValue( pv, mbp_bounds[rr][j], rr==0, mbp_coeff[rr][j], pv_value, t_values[rr][j], theta,
+                                                           mbp_vts_coeff[rr][0][j], mbp_vts_coeff[rr][1][j] );
+                  if( !val.isNull() ){
+                    if( subs_proc[val].find( mbp_coeff[rr][j] )==subs_proc[val].end() ){
+                      subs_proc[val][mbp_coeff[rr][j]] = true;
+                      if( addInstantiationInc( val, pv, mbp_coeff[rr][j], rr==0 ? 1 : -1, sf, ssf, vars, btyp, theta, i, effort, cons, curr_var ) ){
+                        return true;
+                      }
                     }
                   }
                 }

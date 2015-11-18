@@ -257,6 +257,10 @@ option cbqiSymLia --cbqi-sym-lia bool :default false
   use symbolic integer division in substitutions for counterexample-based quantifier instantiation
 option cbqiRoundUpLowerLia --cbqi-round-up-lia bool :default false
   round up integer lower bounds in substitutions for counterexample-based quantifier instantiation
+option cbqiMidpoint --cbqi-midpoint bool :default false
+  choose substitutions based on midpoints of lower and upper bounds for counterexample-based quantifier instantiation
+option cbqiNopt --cbqi-nopt bool :default true
+  non-optimal bounds for counterexample-based quantifier instantiation
  
 ### local theory extensions options 
 
