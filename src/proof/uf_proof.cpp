@@ -104,7 +104,12 @@ Node ProofUF::toStreamRecLFSC(std::ostream& out, TheoryProof * tp, theory::eq::E
         // end of the transitivity proof
         Assert( pf->d_children[i]->d_children.size()==2 );
         subTrans.d_children.insert( subTrans.d_children.begin(), pf->d_children[i]->d_children[0] );
-        childrenTail.insert( childrenTail.begin(), pf->d_children[i]->d_children[1] );
+
+        // If the second child is a reflexitivity child, we can omit it; this will be sorted out
+        // by transitivity.
+        if ( pf->d_children[i]->d_children[1]->d_id != eq::MERGED_THROUGH_REFLEXIVITY) {
+          childrenTail.insert( childrenTail.begin(), pf->d_children[i]->d_children[1] );
+        }
       } else {
         subTrans.d_children.push_back(pf->d_children[i]);
       }
