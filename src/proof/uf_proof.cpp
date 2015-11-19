@@ -139,8 +139,10 @@ Node ProofUF::toStreamRecLFSC(std::ostream& out, TheoryProof * tp, theory::eq::E
     out << "(clausify_false (contra _ ";
     Debug("mgdx") << "\nhave proven: " << n1 << std::endl;
     Debug("mgdx") << "n2 is " << n2[0] << std::endl;
-    Debug("mgdx") << "\nn2[0]: " << n2[0][0] << std::endl;
-    Debug("mgdx") << "n1[1]: " << n1[1] << std::endl;
+
+    if (n2[0].getNumChildren() > 0) { Debug("mgdx") << "\nn2[0]: " << n2[0][0] << std::endl; }
+    if (n1.getNumChildren() > 1) { Debug("mgdx") << "n1[1]: " << n1[1] << std::endl; }
+
     if(n2[0].getKind() == kind::APPLY_UF) {
       out << "(trans _ _ _ _ ";
       out << "(symm _ _ _ ";
@@ -334,17 +336,20 @@ Node ProofUF::toStreamRecLFSC(std::ostream& out, TheoryProof * tp, theory::eq::E
       Node n2 = toStreamRecLFSC(ss2, tp, pf->d_children[i], tb + 1, map);
       Debug("mgd") << "\ndoing trans proof, got n2 " << n2 << "\n";
       if(tb == 1) {
-      Debug("mgdx") << "\ntrans proof[" << i << "], got n2 " << n2 << "\n";
-      Debug("mgdx") << (n2.getKind() == kind::EQUAL || n2.getKind() == kind::IFF) << "\n";
-      Debug("mgdx") << n1[0].getId() << " " << n1[1].getId() << " / " << n2[0].getId() << " " << n2[1].getId() << "\n";
-      Debug("mgdx") << n1[0].getId() << " " << n1[0] << "\n";
-      Debug("mgdx") << n1[1].getId() << " " << n1[1] << "\n";
-      Debug("mgdx") << n2[0].getId() << " " << n2[0] << "\n";
-      Debug("mgdx") << n2[1].getId() << " " << n2[1] << "\n";
-      Debug("mgdx") << (n1[0] == n2[0]) << "\n";
-      Debug("mgdx") << (n1[1] == n2[1]) << "\n";
-      Debug("mgdx") << (n1[0] == n2[1]) << "\n";
-      Debug("mgdx") << (n1[1] == n2[0]) << "\n";
+        Debug("mgdx") << "\ntrans proof[" << i << "], got n2 " << n2 << "\n";
+        Debug("mgdx") << (n2.getKind() == kind::EQUAL || n2.getKind() == kind::IFF) << "\n";
+
+        if ((n1.getNumChildren() >= 2) && (n2.getNumChildren() >= 2)) {
+          Debug("mgdx") << n1[0].getId() << " " << n1[1].getId() << " / " << n2[0].getId() << " " << n2[1].getId() << "\n";
+          Debug("mgdx") << n1[0].getId() << " " << n1[0] << "\n";
+          Debug("mgdx") << n1[1].getId() << " " << n1[1] << "\n";
+          Debug("mgdx") << n2[0].getId() << " " << n2[0] << "\n";
+          Debug("mgdx") << n2[1].getId() << " " << n2[1] << "\n";
+          Debug("mgdx") << (n1[0] == n2[0]) << "\n";
+          Debug("mgdx") << (n1[1] == n2[1]) << "\n";
+          Debug("mgdx") << (n1[0] == n2[1]) << "\n";
+          Debug("mgdx") << (n1[1] == n2[0]) << "\n";
+        }
       }
       ss << "(trans _ _ _ _ ";
       if(n2.getKind() == kind::EQUAL || n2.getKind() == kind::IFF) {
