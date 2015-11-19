@@ -346,9 +346,12 @@ Node ProofUF::toStreamRecLFSC(std::ostream& out, TheoryProof * tp, theory::eq::E
         if(n1[0] == n2[0]) {
           if(n1[1] == n2[1] && match(n1[0], pf->d_node[0])) {
             if(match(n1[1], pf->d_node[1])) {
+              // We have multiple identical nodes in the transitivity proof.
+              // Simply ignore the redundancy, until we reach a different node.
+
               //Warning() << "TRICKY CASE 1!\n";
               ss.str(ss1.str());
-              break;
+              continue;
             }
             //ambiguity -- could replace with refl
             n1 = eqNode(n1[0], n2[0]);
