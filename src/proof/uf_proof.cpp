@@ -103,7 +103,12 @@ Node ProofUF::toStreamRecLFSC(std::ostream& out, TheoryProof * tp, theory::eq::E
         // When encountering equality congruences, the 2nd child needs to be concatenated to the
         // end of the transitivity proof
         Assert( pf->d_children[i]->d_children.size()==2 );
-        subTrans.d_children.insert( subTrans.d_children.begin(), pf->d_children[i]->d_children[0] );
+
+        // If the first child is a reflexitivity child, we can omit it; It's just part of
+        // a PARTIAL_APPLY_UF, and we don't need it.
+        if ( pf->d_children[i]->d_children[0]->d_id != eq::MERGED_THROUGH_REFLEXIVITY) {
+          subTrans.d_children.insert( subTrans.d_children.begin(), pf->d_children[i]->d_children[0] );
+        }
 
         // If the second child is a reflexitivity child, we can omit it; this will be sorted out
         // by transitivity.
