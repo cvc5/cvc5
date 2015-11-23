@@ -53,7 +53,7 @@ protected:
   virtual void process( Node q, Theory::Effort effort, int e ) = 0;
 public:
   InstStrategyCbqi( QuantifiersEngine * qe );
-  ~InstStrategyCbqi() throw() {}
+  ~InstStrategyCbqi() throw();
   /** whether to do CBQI for quantifier q */
   bool doCbqi( Node q );
   /** process functions */
@@ -139,7 +139,7 @@ protected:
   void registerCounterexampleLemma( Node q, Node lem );
 public:
   InstStrategyCegqi( QuantifiersEngine * qe );
-  ~InstStrategyCegqi() throw() {}
+  ~InstStrategyCegqi() throw(); 
 
   bool addInstantiation( std::vector< Node >& subs );
   bool isEligibleForInstantiation( Node n );

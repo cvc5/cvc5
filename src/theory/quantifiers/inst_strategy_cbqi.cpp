@@ -33,9 +33,12 @@ using namespace CVC4::theory::arith;
 
 #define ARITH_INSTANTIATOR_USE_MINUS_DELTA
 
-InstStrategyCbqi::InstStrategyCbqi( QuantifiersEngine * qe ) : QuantifiersModule( qe ), d_added_cbqi_lemma( qe->getUserContext() ){
-
+InstStrategyCbqi::InstStrategyCbqi( QuantifiersEngine * qe )
+  : QuantifiersModule( qe )
+  , d_added_cbqi_lemma( qe->getUserContext() ){
 }
+
+InstStrategyCbqi::~InstStrategyCbqi() throw(){}
 
 bool InstStrategyCbqi::needsCheck( Theory::Effort e ) {
   return e>=Theory::EFFORT_LAST_CALL;
@@ -568,9 +571,14 @@ bool CegqiOutputInstStrategy::addLemma( Node lem ) {
 }
 
 
-InstStrategyCegqi::InstStrategyCegqi( QuantifiersEngine * qe ) : InstStrategyCbqi( qe ) {
+InstStrategyCegqi::InstStrategyCegqi( QuantifiersEngine * qe )
+  : InstStrategyCbqi( qe ) {
   d_out = new CegqiOutputInstStrategy( this );
   d_small_const = NodeManager::currentNM()->mkConst( Rational(1)/Rational(1000000) );
+}
+
+InstStrategyCegqi::~InstStrategyCegqi() throw () {
+  delete d_out;
 }
 
 void InstStrategyCegqi::processResetInstantiationRound( Theory::Effort effort ) {
