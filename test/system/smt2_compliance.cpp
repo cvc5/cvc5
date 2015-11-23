@@ -67,6 +67,6 @@ void testGetInfo(SmtEngine& smt, const char* s) {
   c->invoke(&smt, ss);
   assert(p->nextCommand() == NULL);
   delete p;
-
+  delete c;
   cout << ss.str() << endl << endl;
 }
