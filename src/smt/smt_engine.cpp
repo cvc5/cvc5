@@ -3501,7 +3501,8 @@ void SmtEnginePrivate::addFormula(TNode n, bool inUnsatCore, bool inInput)
   PROOF(
     if( inInput ){
       // n is an input assertion
-      if (inUnsatCore) ProofManager::currentPM()->addCoreAssertion(n.toExpr());
+      if (inUnsatCore || options::dumpUnsatCores() || options::checkUnsatCores())
+        ProofManager::currentPM()->addCoreAssertion(n.toExpr());
     }else{
       // n is the result of an unknown preprocessing step, add it to dependency map to null
       ProofManager::currentPM()->addDependence(n, Node::null());

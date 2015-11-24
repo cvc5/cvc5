@@ -287,7 +287,6 @@ void ProofManager::traceDeps(TNode n) {
 
 void ProofManager::traceUnsatCore() {
   Assert (options::unsatCores());
-
   d_satProof->constructProof();
   IdToSatClause used_lemmas;
   IdToSatClause used_inputs;
