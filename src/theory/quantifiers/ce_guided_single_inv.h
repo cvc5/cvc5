@@ -42,11 +42,13 @@ public:
 };
 
 
+class SingleInvocationPartition;
 
 class CegConjectureSingleInv
 {
   friend class CegqiOutputSingleInv;
 private:
+  SingleInvocationPartition * d_sip;
   QuantifiersEngine * d_qe;
   CegConjecture * d_parent;
   CegConjectureSingleInvSol * d_sol;
@@ -63,6 +65,8 @@ private:
   //for recognizing templates for invariant synthesis
   int extractInvariantPolarity( Node n, Node inv, std::vector< Node >& curr_disj, bool pol );
   Node substituteInvariantTemplates( Node n, std::map< Node, Node >& prog_templ, std::map< Node, std::vector< Node > >& prog_templ_vars );
+  // partially single invocation
+  Node removeDeepEmbedding( Node n, std::vector< Node >& progs, std::vector< TypeNode >& types, int& type_valid, std::map< Node, Node >& visited );
   //presolve
   void collectPresolveEqTerms( Node n, std::map< Node, std::vector< Node > >& teq );
   void getPresolveEqConjuncts( std::vector< Node >& vars, std::vector< Node >& terms, std::map< Node, std::vector< Node > >& teq, Node n, std::vector< Node >& conj );
@@ -76,15 +80,16 @@ private:
   std::map< Node, Node > d_single_inv_app_map;
   //list of skolems for each argument of programs
   std::vector< Node > d_single_inv_arg_sk;
-  //list of skolems for each program
+  //list of variables/skolems for each program
+  std::vector< Node > d_single_inv_var;
   std::vector< Node > d_single_inv_sk;
   std::map< Node, int > d_single_inv_sk_index;
-  //list of skolems for each program
-  std::vector< Node > d_single_inv_var;
+  //program to solution index
+  std::map< Node, unsigned > d_prog_to_sol_index;
   //lemmas produced
   inst::InstMatchTrie d_inst_match_trie;
   inst::CDInstMatchTrie * d_c_inst_match_trie;
-  //original conjecture 
+  //original conjecture
   Node d_orig_conjecture;
   // solution
   std::vector< Node > d_varList;
@@ -108,12 +113,14 @@ public:
   CegConjectureSingleInv( QuantifiersEngine * qe, CegConjecture * p );
   // original conjecture
   Node d_quant;
-  // single invocation version of quant
+  // single invocation version of quantified formula
   Node d_single_inv;
   // transition relation version per program
   std::map< Node, Node > d_trans_pre;
   std::map< Node, Node > d_trans_post;
   std::map< Node, std::vector< Node > > d_prog_templ_vars;
+  //the non-single invocation portion of the quantified formula
+  std::map< Node, Node > d_nsi_op_map;
 public:
   //get the single invocation lemma(s)
   void getSingleInvLemma( Node guard, std::vector< Node >& lems );
@@ -134,6 +141,41 @@ public:
   /** preregister conjecture */
   void preregisterConjecture( Node q );
 };
+
+// partitions any formulas given to it into single invocation/non-single invocation
+// only processes functions having argument types exactly matching "d_arg_types", 
+//   and all invocations are in the same order across all functions
+class SingleInvocationPartition
+{
+private:
+  bool collectConjuncts( Node n, bool pol, std::vector< Node >& conj );
+  bool processConjunct( Node n, std::map< Node, bool >& visited, std::vector< Node >& args, 
+                        std::vector< Node >& terms, std::vector< Node >& subs );
+public:
+  void init( std::vector< TypeNode >& typs );
+  //inputs
+  void process( Node n );
+  std::vector< TypeNode > d_arg_types;
+  
+  //outputs (everything is with bound var)
+  std::map< Node, bool > d_funcs;
+  std::map< Node, Node > d_func_inv;
+  std::map< Node, Node > d_func_fo_var;
+  std::vector< Node > d_func_vars;
+  std::vector< Node > d_si_vars;
+  // si, nsi, all
+  std::vector< Node > d_conjuncts[3];
+  
+  bool isAntiSkolemizableType( Node f );
+  
+  Node getConjunct( int index );
+  Node getSingleInvocation() { return getConjunct( 0 ); }
+  Node getNonSingleInvocation() { return getConjunct( 1 ); }
+  Node getFullSpecification() { return getConjunct( 2 ); }
+  
+  void debugPrint( const char * c );
+};
+
 
 }
 }

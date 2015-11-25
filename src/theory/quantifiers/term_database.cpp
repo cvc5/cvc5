@@ -674,6 +674,47 @@ void TermDb::makeInstantiationConstantsFor( Node q ){
   }
 }
 
+void TermDb::getBoundVars2( Node n, std::vector< Node >& vars, std::map< Node, bool >& visited ) {
+  if( visited.find( n )==visited.end() ){
+    visited[n] = true;
+    if( n.getKind()==BOUND_VARIABLE ){
+      if( std::find( vars.begin(), vars.end(), n )==vars.end() ) {
+        vars.push_back( n );
+      }
+    }
+    for( unsigned i=0; i<n.getNumChildren(); i++ ){
+      getBoundVars2( n[i], vars, visited );
+    }
+  }
+}
+
+Node TermDb::getRemoveQuantifiers2( Node n, std::map< Node, Node >& visited ) {
+  std::map< Node, Node >::iterator it = visited.find( n );
+  if( it!=visited.end() ){
+    return it->second;
+  }else{
+    Node ret = n;
+    if( n.getKind()==FORALL ){
+      ret = getRemoveQuantifiers2( n[1], visited );
+    }else if( n.getNumChildren()>0 ){
+      std::vector< Node > children;
+      bool childrenChanged = false;
+      for( unsigned i=0; i<n.getNumChildren(); i++ ){
+        Node ni = getRemoveQuantifiers2( n[i], visited );
+        childrenChanged = childrenChanged || ni!=n[i];
+        children.push_back( ni );
+      }
+      if( childrenChanged ){
+        if( n.getMetaKind() == kind::metakind::PARAMETERIZED ){
+          children.insert( children.begin(), n.getOperator() );
+        }
+        ret = NodeManager::currentNM()->mkNode( n.getKind(), children );
+      }
+    }
+    visited[n] = ret;
+    return ret;
+  }
+}
 
 Node TermDb::getInstConstAttr( Node n ) {
   if (!n.hasAttribute(InstConstantAttribute()) ){
@@ -720,6 +761,30 @@ Node TermDb::getBoundVarAttr( Node n ) {
 
 bool TermDb::hasBoundVarAttr( Node n ) {
   return !getBoundVarAttr(n).isNull();
+}
+
+void TermDb::getBoundVars( Node n, std::vector< Node >& vars ) {
+  std::map< Node, bool > visited;
+  return getBoundVars2( n, vars, visited );
+}
+
+//remove quantifiers
+Node TermDb::getRemoveQuantifiers( Node n ) {
+  std::map< Node, Node > visited;
+  return getRemoveQuantifiers2( n, visited );
+}
+
+//quantified simplify 
+Node TermDb::getQuantSimplify( Node n ) {
+  std::vector< Node > bvs;
+  getBoundVars( n, bvs );
+  if( bvs.empty() ) {
+    return Rewriter::rewrite( n );
+  }else{
+    Node q = NodeManager::currentNM()->mkNode( FORALL, NodeManager::currentNM()->mkNode( BOUND_VAR_LIST, bvs ), n );
+    q = Rewriter::rewrite( q );
+    return getRemoveQuantifiers( q );
+  }
 }
 
 /** get the i^th instantiation constant of q */

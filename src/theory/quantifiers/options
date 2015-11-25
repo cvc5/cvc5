@@ -207,6 +207,8 @@ option ceGuidedInstFair --cegqi-fair=MODE CVC4::theory::quantifiers::CegqiFairMo
   if and how to apply fairness for cegqi
 option cegqiSingleInv --cegqi-si bool :default false :read-write
   process single invocation synthesis conjectures
+option cegqiSingleInvPartial --cegqi-si-partial bool :default false
+  combined techniques for synthesis conjectures that are partially single invocation 
 option cegqiSingleInvReconstruct --cegqi-si-reconstruct bool :default true
   reconstruct solutions for single invocation conjectures in original grammar
 option cegqiSingleInvReconstructConst --cegqi-si-reconstruct-const bool :default true

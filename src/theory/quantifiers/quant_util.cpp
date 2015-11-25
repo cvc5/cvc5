@@ -75,7 +75,7 @@ bool QuantArith::getMonomialSumLit( Node lit, std::map< Node, Node >& msum ) {
           for( std::map< Node, Node >::iterator it = msum2.begin(); it != msum2.end(); ++it ){
             std::map< Node, Node >::iterator it2 = msum.find( it->first );
             if( it2!=msum.end() ){
-              Node r = NodeManager::currentNM()->mkNode( MINUS, it2->second.isNull() ? NodeManager::currentNM()->mkConst( Rational(1) ) : it2->second, 
+              Node r = NodeManager::currentNM()->mkNode( MINUS, it2->second.isNull() ? NodeManager::currentNM()->mkConst( Rational(1) ) : it2->second,
                                                                 it->second.isNull() ? NodeManager::currentNM()->mkConst( Rational(1) ) : it->second );
               msum[it->first] = Rewriter::rewrite( r );
             }else{
@@ -155,6 +155,31 @@ int QuantArith::isolate( Node v, std::map< Node, Node >& msum, Node & veq_c, Nod
   return ires;
 }
 
+Node QuantArith::solveEqualityFor( Node lit, Node v ) {
+  Assert( lit.getKind()==EQUAL || lit.getKind()==IFF );
+  //first look directly at sides
+  TypeNode tn = lit[0].getType();
+  for( unsigned r=0; r<2; r++ ){
+    if( lit[r]==v ){
+      return lit[1-r];
+    }
+  }
+  if( tn.isInteger() || tn.isReal() ){
+    if( quantifiers::TermDb::containsTerm( lit, v ) ){
+      std::map< Node, Node > msum;
+      if( QuantArith::getMonomialSumLit( lit, msum ) ){
+        Node val, veqc;
+        if( QuantArith::isolate( v, msum, veqc, val, EQUAL )!=0 ){
+          if( veqc.isNull() ){
+            return val;
+          }
+        }
+      }
+    }
+  }
+  return Node::null();
+}
+
 Node QuantArith::negate( Node t ) {
   Node tt = NodeManager::currentNM()->mkNode( MULT, NodeManager::currentNM()->mkConst( Rational(-1) ), t );
   tt = Rewriter::rewrite( tt );
@@ -183,33 +208,6 @@ void QuantArith::debugPrintMonomialSum( std::map< Node, Node >& msum, const char
   }
   Trace(c) << std::endl;
 }
-
-bool QuantArith::solveEqualityFor( Node lit, Node v, Node & veq ) {
-  Assert( lit.getKind()==EQUAL || lit.getKind()==IFF );
-  //first look directly at sides
-  TypeNode tn = lit[0].getType();
-  for( unsigned r=0; r<2; r++ ){
-    if( lit[r]==v ){
-      Node olitr = lit[r==0 ? 1 : 0];
-      veq = tn.isBoolean() ? lit[r].iffNode( olitr ) : lit[r].eqNode( olitr );
-      return true;
-    }
-  }
-  if( tn.isInteger() || tn.isReal() ){
-    std::map< Node, Node > msum;
-    if( QuantArith::getMonomialSumLit( lit, msum ) ){
-      if( QuantArith::isolate( v, msum, veq, EQUAL ) ){
-        if( veq[0]!=v ){
-          Assert( veq[1]==v );
-          veq = v.eqNode( veq[0] );
-        }
-        return true;
-      }
-    }
-  }
-  return false;
-}
-
 
 
 void QuantRelevance::registerQuantifier( Node f ){

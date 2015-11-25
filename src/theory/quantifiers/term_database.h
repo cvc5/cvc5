@@ -267,7 +267,19 @@ public:
   static bool hasInstConstAttr( Node n );
   static Node getBoundVarAttr( Node n );
   static bool hasBoundVarAttr( Node n );
-
+  
+private:
+  /** get bound vars */
+  static void getBoundVars2( Node n, std::vector< Node >& vars, std::map< Node, bool >& visited );
+  /** get bound vars */
+  static Node getRemoveQuantifiers2( Node n, std::map< Node, Node >& visited );
+public:
+  //get the bound variables in this node
+  static void getBoundVars( Node n, std::vector< Node >& vars );
+  //remove quantifiers
+  static Node getRemoveQuantifiers( Node n );
+  //quantified simplify (treat free variables in n as quantified and run rewriter)
+  static Node getQuantSimplify( Node n );
 
 //for skolem
 private:
@@ -387,7 +399,7 @@ private:
   static bool containsTerms2( Node n, std::vector< Node >& t, std::map< Node, bool >& visited );
 //general utilities
 public:
-  /** simple check for contains term */
+  /** simple check for whether n contains t as subterm */
   static bool containsTerm( Node n, Node t );
   /** simple check for contains term, true if contains at least one term in t */
   static bool containsTerms( Node n, std::vector< Node >& t );
