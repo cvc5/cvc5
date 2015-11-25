@@ -1,3 +1,3 @@
-
+# fp must occur after bv for model building
 
 THEORIES = builtin booleans uf arith bv fp arrays datatypes sep sets strings quantifiers idl
