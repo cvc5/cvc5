@@ -67,6 +67,7 @@ private:
   Node substituteInvariantTemplates( Node n, std::map< Node, Node >& prog_templ, std::map< Node, std::vector< Node > >& prog_templ_vars );
   // partially single invocation
   Node removeDeepEmbedding( Node n, std::vector< Node >& progs, std::vector< TypeNode >& types, int& type_valid, std::map< Node, Node >& visited );
+  Node addDeepEmbedding( Node n, std::map< Node, Node >& visited );
   //presolve
   void collectPresolveEqTerms( Node n, std::map< Node, std::vector< Node > >& teq );
   void getPresolveEqConjuncts( std::vector< Node >& vars, std::vector< Node >& terms, std::map< Node, std::vector< Node > >& teq, Node n, std::vector< Node >& conj );
@@ -122,6 +123,8 @@ public:
   std::map< Node, std::vector< Node > > d_prog_templ_vars;
   //the non-single invocation portion of the quantified formula
   std::map< Node, Node > d_nsi_op_map;
+  std::map< Node, Node > d_nsi_op_map_to_prog;
+  std::map< Node, Node > d_prog_to_eval_op;
 public:
   //get the single invocation lemma(s)
   void getSingleInvLemma( Node guard, std::vector< Node >& lems );
@@ -152,6 +155,8 @@ private:
   bool collectConjuncts( Node n, bool pol, std::vector< Node >& conj );
   bool processConjunct( Node n, std::map< Node, bool >& visited, std::vector< Node >& args, 
                         std::vector< Node >& terms, std::vector< Node >& subs );
+  std::map< Node, Node > d_inv_to_func;
+  std::map< Node, Node > d_fo_var_to_func;
 public:
   void init( std::vector< TypeNode >& typs );
   //inputs
@@ -173,6 +178,8 @@ public:
   Node getSingleInvocation() { return getConjunct( 0 ); }
   Node getNonSingleInvocation() { return getConjunct( 1 ); }
   Node getFullSpecification() { return getConjunct( 2 ); }
+  
+  void extractInvariant( Node n, Node& func, int& pol, std::vector< Node >& disjuncts );
   
   void debugPrint( const char * c );
 };
