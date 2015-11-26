@@ -5,7 +5,7 @@
 # Tue, 25 Sep 2012 15:44:27 -0400
 #
 
-macports_prereq="boost gmp gtime readline"
+macports_prereq="autoconf automake boost gmp gtime libtool readline"
 
 export PATH="/opt/local/bin:$PATH"
 
@@ -41,6 +41,11 @@ else
   echo "ERROR: See http://www.macports.org/"
   reporterror
 fi
+echo
+echo =============================================================================
+echo
+echo "running: ./autogen.sh"
+./autogen.sh || reporterror
 echo
 echo =============================================================================
 echo
