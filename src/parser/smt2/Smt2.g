@@ -2214,6 +2214,7 @@ builtinOp[CVC4::Kind& kind]
 
   | DTSIZE_TOK     { $kind = CVC4::kind::DT_SIZE; }
   | FMFCARD_TOK    { $kind = CVC4::kind::CARDINALITY_CONSTRAINT; }
+  | FMFCARDVAL_TOK    { $kind = CVC4::kind::CARDINALITY_VALUE; }
   | INST_CLOSURE_TOK { $kind = CVC4::kind::INST_CLOSURE; }
   
   // NOTE: Theory operators no longer go here, add to smt2.cpp. Only
@@ -2613,6 +2614,7 @@ REALLCHAR_TOK : 're.allchar';
 DTSIZE_TOK : 'dt.size';
 
 FMFCARD_TOK : 'fmf.card';
+FMFCARDVAL_TOK : 'fmf.card.val';
 
 INST_CLOSURE_TOK : 'inst-closure';
 

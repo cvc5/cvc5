@@ -72,6 +72,7 @@ private:
   void getPresolveEqConjuncts( std::vector< Node >& vars, std::vector< Node >& terms, std::map< Node, std::vector< Node > >& teq, Node n, std::vector< Node >& conj );
   //constructing solution
   Node constructSolution( std::vector< unsigned >& indices, unsigned i, unsigned index );
+  Node postProcessSolution( Node n );
 private:
   //map from programs to variables in single invocation property
   std::map< Node, Node > d_single_inv_map;

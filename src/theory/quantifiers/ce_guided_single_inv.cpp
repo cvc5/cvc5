@@ -865,32 +865,42 @@ struct sortSiInstanceIndices {
   }
 };
 
-/*
-Node removeBooleanIte( Node n ){
+
+Node CegConjectureSingleInv::postProcessSolution( Node n ){
+  /*
+  ////remove boolean ITE (not allowed for sygus comp 2015)
   if( n.getKind()==ITE && n.getType().isBoolean() ){
-    Node n1 = removeBooleanIte( n[1] );
-    Node n2 = removeBooleanIte( n[2] );
+    Node n1 = postProcessSolution( n[1] );
+    Node n2 = postProcessSolution( n[2] );
     return NodeManager::currentNM()->mkNode( OR, NodeManager::currentNM()->mkNode( AND, n[0], n1 ),
                                                  NodeManager::currentNM()->mkNode( AND, n[0].negate(), n2 ) );
   }else{
-    bool childChanged = false;
-    std::vector< Node > children;
-    for( unsigned i=0; i<n.getNumChildren(); i++ ){
-      Node nn = removeBooleanIte( n[i] );
-      children.push_back( nn );
-      childChanged = childChanged || nn!=n[i];
+    */
+  bool childChanged = false;
+  Kind k = n.getKind();
+  if( n.getKind()==INTS_DIVISION_TOTAL ){
+    k = INTS_DIVISION;
+    childChanged = true;
+  }else if( n.getKind()==INTS_MODULUS_TOTAL ){
+    k = INTS_MODULUS;
+    childChanged = true;
+  }
+  std::vector< Node > children;
+  for( unsigned i=0; i<n.getNumChildren(); i++ ){
+    Node nn = postProcessSolution( n[i] );
+    children.push_back( nn );
+    childChanged = childChanged || nn!=n[i];
+  }
+  if( childChanged ){
+    if( n.hasOperator() && k==n.getKind() ){
+      children.insert( children.begin(), n.getOperator() );
     }
-    if( childChanged ){
-      if( n.hasOperator() ){
-        children.insert( children.begin(), n.getOperator() );
-      }
-      return NodeManager::currentNM()->mkNode( n.getKind(), children );
-    }else{
-      return n;
-    }
+    return NodeManager::currentNM()->mkNode( k, children );
+  }else{
+    return n;
   }
 }
-*/
+
 
 Node CegConjectureSingleInv::getSolution( unsigned sol_index, TypeNode stn, int& reconstructed ){
   Assert( d_sol!=NULL );
@@ -994,9 +1004,12 @@ Node CegConjectureSingleInv::reconstructToSyntax( Node s, TypeNode stn, int& rec
       Trace("csi-sol") << "Solution (post-reconstruction into Sygus): " << d_sygus_solution << std::endl;
     }
   }else{
-    ////remove boolean ITE (not allowed for sygus comp 2015)
-    //d_solution = removeBooleanIte( d_solution );
-    //Trace("csi-sol") << "Solution (after remove boolean ITE) : " << d_solution << std::endl;
+    Trace("csi-sol") << "Post-process solution..." << std::endl;
+    Node prev = d_solution;
+    d_solution = postProcessSolution( d_solution );
+    if( prev!=d_solution ){ 
+      Trace("csi-sol") << "Solution (after post process) : " << d_solution << std::endl;
+    }
   }
 
 

@@ -446,6 +446,9 @@ void Smt2Printer::toStream(std::ostream& out, TNode n,
   case kind::REGEXP_EMPTY: out << "re.nostr "; break;
   case kind::REGEXP_SIGMA: out << "re.allchar "; break;
 
+  case kind::CARDINALITY_CONSTRAINT: out << "fmf.card "; break;
+  case kind::CARDINALITY_VALUE: out << "fmf.card.val "; break;
+  
     // bv theory
   case kind::BITVECTOR_CONCAT: out << "concat "; forceBinary = true; break;
   case kind::BITVECTOR_AND: out << "bvand "; forceBinary = true; break;

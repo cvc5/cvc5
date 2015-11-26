@@ -88,11 +88,14 @@ Cardinality TheoryModel::getCardinality( Type t ) const{
   //for now, we only handle cardinalities for uninterpreted sorts
   if( tn.isSort() ){
     if( d_rep_set.hasType( tn ) ){
+      Debug("model-getvalue-debug") << "Get cardinality sort, #rep : " << d_rep_set.getNumRepresentatives( tn ) << std::endl;
       return Cardinality( d_rep_set.getNumRepresentatives( tn ) );
     }else{
-      return Cardinality( CardinalityUnknown() );
+      Debug("model-getvalue-debug") << "Get cardinality sort, unconstrained, return 1." << std::endl;
+      return Cardinality( 1 );
     }
   }else{
+      Debug("model-getvalue-debug") << "Get cardinality other sort, unknown." << std::endl;
     return Cardinality( CardinalityUnknown() );
   }
 }
@@ -191,7 +194,11 @@ Node TheoryModel::getModelValue(TNode n, bool hasBoundVars) const
       ret = Rewriter::rewrite(ret);
       Debug("model-getvalue-debug") << "ret (post-rewrite): " << ret << std::endl;
       if(ret.getKind() == kind::CARDINALITY_CONSTRAINT) {
+        Debug("model-getvalue-debug") << "get cardinality constraint " << ret[0].getType() << std::endl;
         ret = NodeManager::currentNM()->mkConst(getCardinality(ret[0].getType().toType()).getFiniteCardinality() <= ret[1].getConst<Rational>().getNumerator());
+      }else if(ret.getKind() == kind::CARDINALITY_VALUE) {
+        Debug("model-getvalue-debug") << "get cardinality value " << ret[0].getType() << std::endl;
+        ret = NodeManager::currentNM()->mkConst(Rational(getCardinality(ret[0].getType().toType()).getFiniteCardinality()));
       }
       d_modelCache[n] = ret;
       return ret;

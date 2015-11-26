@@ -99,6 +99,17 @@ public:
   }
 };/* class CardinalityConstraintTypeRule */
 
+class CardinalityValueTypeRule {
+public:
+  inline static TypeNode computeType(NodeManager* nodeManager, TNode n, bool check)
+      throw(TypeCheckingExceptionPrivate) {
+    if( check ) {
+      n[0].getType(check);
+    }
+    return nodeManager->integerType();
+  }
+};/* class CardinalityValueTypeRule */
+
 }/* CVC4::theory::uf namespace */
 }/* CVC4::theory namespace */
 }/* CVC4 namespace */
