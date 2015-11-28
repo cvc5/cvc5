@@ -290,9 +290,11 @@ void cvc4_init() throw(Exception) {
 }
 
 void cvc4_shutdown() throw () {
+#ifndef __WIN32__
   free(cvc4StackBase);
   cvc4StackBase = NULL;
   cvc4StackSize = 0;
+#endif /* __WIN32__ */
 }
 
 }/* CVC4::main namespace */
