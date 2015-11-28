@@ -54,20 +54,13 @@ private:
   CegConjectureSingleInvSol * d_sol;
   //the instantiator
   CegInstantiator * d_cinst;
-  //for recognizing when conjecture is single invocation
-  bool analyzeSygusConjunct( Node n, Node p, std::map< Node, std::vector< Node > >& children,
-                            std::map< Node, std::map< Node, std::vector< Node > > >& prog_invoke,
-                            std::vector< Node >& progs, std::map< Node, std::map< Node, bool > >& contains, bool pol );
-  bool analyzeSygusTerm( Node n, std::map< Node, std::vector< Node > >& prog_invoke, std::map< Node, bool >& contains );
-  bool processSingleInvLiteral( Node lit, bool pol, std::map< Node, std::vector< Node > >& case_vals );
-  bool doVariableElimination( Node v, std::vector< Node >& conjuncts );
-  bool getVariableEliminationTerm( bool pol, bool active, Node v, Node n, TNode& s, int& status );
   //for recognizing templates for invariant synthesis
-  int extractInvariantPolarity( Node n, Node inv, std::vector< Node >& curr_disj, bool pol );
   Node substituteInvariantTemplates( Node n, std::map< Node, Node >& prog_templ, std::map< Node, std::vector< Node > >& prog_templ_vars );
   // partially single invocation
   Node removeDeepEmbedding( Node n, std::vector< Node >& progs, std::vector< TypeNode >& types, int& type_valid, std::map< Node, Node >& visited );
   Node addDeepEmbedding( Node n, std::map< Node, Node >& visited );
+  //initialize next candidate si conjecture
+  void initializeNextSiConjecture();
   //presolve
   void collectPresolveEqTerms( Node n, std::map< Node, std::vector< Node > >& teq );
   void getPresolveEqConjuncts( std::vector< Node >& vars, std::vector< Node >& terms, std::map< Node, std::vector< Node > >& teq, Node n, std::vector< Node >& conj );
@@ -75,11 +68,6 @@ private:
   Node constructSolution( std::vector< unsigned >& indices, unsigned i, unsigned index );
   Node postProcessSolution( Node n );
 private:
-  //map from programs to variables in single invocation property
-  std::map< Node, Node > d_single_inv_map;
-  std::map< Node, Node > d_single_inv_map_to_prog;
-  //map from programs to evaluator term representing the above variable
-  std::map< Node, Node > d_single_inv_app_map;
   //list of skolems for each argument of programs
   std::vector< Node > d_single_inv_arg_sk;
   //list of variables/skolems for each program
@@ -94,7 +82,6 @@ private:
   //original conjecture
   Node d_orig_conjecture;
   // solution
-  std::vector< Node > d_varList;
   Node d_orig_solution;
   Node d_solution;
   Node d_sygus_solution;
@@ -115,8 +102,14 @@ public:
   CegConjectureSingleInv( QuantifiersEngine * qe, CegConjecture * p );
   // original conjecture
   Node d_quant;
-  // single invocation version of quantified formula
+  // single invocation portion of quantified formula
   Node d_single_inv;
+  // non-single invocation portion of quantified formula
+  Node d_nsingle_inv;
+  // full version quantified formula
+  Node d_full_inv;
+  // current guard
+  Node d_ns_guard;
   // transition relation version per program
   std::map< Node, Node > d_trans_pre;
   std::map< Node, Node > d_trans_post;
@@ -127,19 +120,21 @@ public:
   std::map< Node, Node > d_prog_to_eval_op;
 public:
   //get the single invocation lemma(s)
-  void getSingleInvLemma( Node guard, std::vector< Node >& lems );
+  void getInitialSingleInvLemma( Node guard, std::vector< Node >& lems );
   //initialize
   void initialize( Node q );
   //check
   void check( std::vector< Node >& lems );
   //get solution
-  Node getSolution( unsigned sol_index, TypeNode stn, int& reconstructed );
+  Node getSolution( unsigned sol_index, TypeNode stn, int& reconstructed, bool rconsSygus = true );
   //reconstruct to syntax
-  Node reconstructToSyntax( Node s, TypeNode stn, int& reconstructed );
+  Node reconstructToSyntax( Node s, TypeNode stn, int& reconstructed, bool rconsSygus = true );
   // has ites
   bool hasITEs() { return d_has_ites; }
   // is single invocation
   bool isSingleInvocation() { return !d_single_inv.isNull(); }
+  // is single invocation
+  bool isFullySingleInvocation() { return d_nsingle_inv.isNull(); }
   //needs check
   bool needsCheck();
   /** preregister conjecture */
@@ -147,40 +142,45 @@ public:
 };
 
 // partitions any formulas given to it into single invocation/non-single invocation
-// only processes functions having argument types exactly matching "d_arg_types", 
+// only processes functions having argument types exactly matching "d_arg_types",
 //   and all invocations are in the same order across all functions
 class SingleInvocationPartition
 {
 private:
   bool collectConjuncts( Node n, bool pol, std::vector< Node >& conj );
-  bool processConjunct( Node n, std::map< Node, bool >& visited, std::vector< Node >& args, 
+  bool processConjunct( Node n, std::map< Node, bool >& visited, std::vector< Node >& args,
                         std::vector< Node >& terms, std::vector< Node >& subs );
-  std::map< Node, Node > d_inv_to_func;
-  std::map< Node, Node > d_fo_var_to_func;
+  Node getSpecificationInst( Node n, std::map< Node, Node >& lam, std::map< Node, Node >& visited );
+  void extractInvariant2( Node n, Node& func, int& pol, std::vector< Node >& disjuncts, bool hasPol, std::map< Node, bool >& visited );
 public:
   void init( std::vector< TypeNode >& typs );
   //inputs
   void process( Node n );
   std::vector< TypeNode > d_arg_types;
-  
+
   //outputs (everything is with bound var)
   std::map< Node, bool > d_funcs;
   std::map< Node, Node > d_func_inv;
+  std::map< Node, Node > d_inv_to_func;
   std::map< Node, Node > d_func_fo_var;
-  std::vector< Node > d_func_vars;
-  std::vector< Node > d_si_vars;
+  std::map< Node, Node > d_fo_var_to_func;
+  std::vector< Node > d_func_vars; //the first-order variables corresponding to all functions
+  std::vector< Node > d_si_vars;   //the arguments that we based the anti-skolemization on
+  std::vector< Node > d_all_vars;  //every free variable of conjuncts[2]
   // si, nsi, all
   std::vector< Node > d_conjuncts[3];
-  
+
   bool isAntiSkolemizableType( Node f );
-  
+
   Node getConjunct( int index );
   Node getSingleInvocation() { return getConjunct( 0 ); }
   Node getNonSingleInvocation() { return getConjunct( 1 ); }
   Node getFullSpecification() { return getConjunct( 2 ); }
-  
+
+  Node getSpecificationInst( int index, std::map< Node, Node >& lam );
+
   void extractInvariant( Node n, Node& func, int& pol, std::vector< Node >& disjuncts );
-  
+
   void debugPrint( const char * c );
 };
 

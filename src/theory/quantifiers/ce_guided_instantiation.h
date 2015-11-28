@@ -33,10 +33,6 @@ private:
   QuantifiersEngine * d_qe;
 public:
   CegConjecture( QuantifiersEngine * qe, context::Context* c );
-  /** is conjecture active */
-  context::CDO< bool > d_active;
-  /** is conjecture infeasible */
-  context::CDO< bool > d_infeasible;
   /** quantified formula asserted */
   Node d_assert_quant;
   /** quantified formula (after processing) */
@@ -87,6 +83,8 @@ public:  //for fairness
   CegqiFairMode getCegqiFairMode();
   /** is single invocation */
   bool isSingleInvocation();
+  /** is single invocation */
+  bool isFullySingleInvocation();
   /** needs check */
   bool needsCheck();
   /** preregister conjecture */

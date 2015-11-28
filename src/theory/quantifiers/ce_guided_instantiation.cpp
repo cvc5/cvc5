@@ -29,7 +29,7 @@ using namespace std;
 
 namespace CVC4 {
 
-CegConjecture::CegConjecture( QuantifiersEngine * qe, context::Context* c ) : d_qe( qe ), d_active( c, false ), d_infeasible( c, false ), d_curr_lit( c, 0 ){
+CegConjecture::CegConjecture( QuantifiersEngine * qe, context::Context* c ) : d_qe( qe ), d_curr_lit( c, 0 ){
   d_refine_count = 0;
   d_ceg_si = new CegConjectureSingleInv( qe, this );
 }
@@ -51,10 +51,10 @@ void CegConjecture::assign( Node q ) {
   for( unsigned i=0; i<q[0].getNumChildren(); i++ ){
     d_candidates.push_back( NodeManager::currentNM()->mkSkolem( "e", q[0][i].getType() ) );
   }
-  Trace("cegqi") << "Base quantified fm is : " << q << std::endl;
+  Trace("cegqi") << "Base quantified formula is : " << q << std::endl;
   //construct base instantiation
   d_base_inst = Rewriter::rewrite( d_qe->getInstantiation( q, d_candidates ) );
-  Trace("cegqi") << "Base instantiation is : " << d_base_inst << std::endl;
+  Trace("cegqi") << "Base instantiation is :      " << d_base_inst << std::endl;
   if( d_qe->getTermDatabase()->isQAttrSygus( d_assert_quant ) ){
     CegInstantiation::collectDisjuncts( d_base_inst, d_base_disj );
     Trace("cegqi") << "Conjecture has " << d_base_disj.size() << " disjuncts." << std::endl;
@@ -91,7 +91,7 @@ void CegConjecture::initializeGuard( QuantifiersEngine * qe ){
       qe->getOutputChannel().lemma( lem );
     }else if( d_ceg_si ){
       std::vector< Node > lems;
-      d_ceg_si->getSingleInvLemma( d_guard, lems );
+      d_ceg_si->getInitialSingleInvLemma( d_guard, lems );
       for( unsigned i=0; i<lems.size(); i++ ){
         Trace("cegqi-lemma") << "Add single invocation lemma " << i << " : " << lems[i] << std::endl;
         qe->getOutputChannel().lemma( lems[i] );
@@ -146,8 +146,12 @@ bool CegConjecture::isSingleInvocation() {
   return d_ceg_si->isSingleInvocation();
 }
 
+bool CegConjecture::isFullySingleInvocation() {
+  return d_ceg_si->isFullySingleInvocation();
+}
+
 bool CegConjecture::needsCheck() {
-  return d_active && !d_infeasible && ( !isSingleInvocation() || d_ceg_si->needsCheck() );
+  return !isSingleInvocation() || d_ceg_si->needsCheck();
 }
 
 void CegConjecture::preregisterConjecture( Node q ) {
@@ -171,8 +175,21 @@ void CegInstantiation::check( Theory::Effort e, unsigned quant_e ) {
   if( quant_e==QuantifiersEngine::QEFFORT_MODEL ){
     Trace("cegqi-engine") << "---Counterexample Guided Instantiation Engine---" << std::endl;
     Trace("cegqi-engine-debug") << std::endl;
-    Trace("cegqi-engine-debug") << "Current conjecture status : active : " << d_conj->d_active << " feasible : " << !d_conj->d_infeasible << std::endl;
-    if( d_conj->needsCheck() ){
+    bool active = false;
+    bool feasible = false;
+    bool value;
+    if( d_quantEngine->getValuation().hasSatValue( d_conj->d_assert_quant, value ) ) {
+      active = value;
+    }else{
+      Trace("cegqi-engine-debug") << "...no value for quantified formula." << std::endl;
+    }
+    if( d_quantEngine->getValuation().hasSatValue( d_conj->d_guard, value ) ) {
+      feasible = value;
+    }else{
+      Trace("cegqi-engine-debug") << "...no value for guard." << std::endl;
+    }
+    Trace("cegqi-engine-debug") << "Current conjecture status : active : " << active << " feasible : " << feasible << std::endl;
+    if( active && feasible && d_conj->needsCheck() ){
       checkCegConjecture( d_conj );
     }
     Trace("cegqi-engine") << "Finished Counterexample Guided Instantiation engine." << std::endl;
@@ -217,34 +234,28 @@ void CegInstantiation::registerQuantifier( Node q ) {
 }
 
 void CegInstantiation::assertNode( Node n ) {
-  Trace("cegqi-debug") << "Cegqi : Assert : " << n << std::endl;
-  bool pol = n.getKind()!=NOT;
-  Node lit = n.getKind()==NOT ? n[0] : n;
-  if( lit==d_conj->d_guard ){
-    //d_guard_assertions[lit] = pol;
-    d_conj->d_infeasible = !pol;
-  }
-  if( lit==d_conj->d_assert_quant ){
-    d_conj->d_active = true;
-  }
 }
 
 Node CegInstantiation::getNextDecisionRequest() {
   //enforce fairness
   if( d_conj->isAssigned() ){
     d_conj->initializeGuard( d_quantEngine );
-    bool value;
-    if( !d_quantEngine->getValuation().hasSatValue( d_conj->d_guard, value ) ) {
-      //if( d_conj->d_guard_split.isNull() ){
-      //  Node lem = NodeManager::currentNM()->mkNode( OR, d_conj->d_guard.negate(), d_conj->d_guard );
-      //  d_quantEngine->getOutputChannel().lemma( lem );
-      //}
-      Trace("cegqi-debug") << "CEGQI : Decide next on : " << d_conj->d_guard << "..." << std::endl;
-      return d_conj->d_guard;
+    std::vector< Node > req_dec;
+    req_dec.push_back( d_conj->d_guard );
+    if( d_conj->d_ceg_si && !d_conj->d_ceg_si->d_ns_guard.isNull() ){
+      req_dec.push_back( d_conj->d_ceg_si->d_ns_guard );
+    }
+    for( unsigned i=0; i<req_dec.size(); i++ ){
+      bool value;
+      if( !d_quantEngine->getValuation().hasSatValue( req_dec[i], value ) ) {
+        Trace("cegqi-debug") << "CEGQI : Decide next on : " << req_dec[i] << "..." << std::endl;
+        return req_dec[i];
+      }
     }
 
     if( d_conj->getCegqiFairMode()!=CEGQI_FAIR_NONE ){
       Node lit = d_conj->getLiteral( d_quantEngine, d_conj->d_curr_lit.get() );
+      bool value;
       if( d_quantEngine->getValuation().hasSatValue( lit, value ) ) {
         if( !value ){
           d_conj->d_curr_lit.set( d_conj->d_curr_lit.get() + 1 );
@@ -511,7 +522,7 @@ void CegInstantiation::printSynthSolution( std::ostream& out ) {
     //if( !(Trace.isOn("cegqi-stats")) ){
     //  out << "Solution:" << std::endl;
     //}
-    for( unsigned i=0; i<d_conj->d_candidates.size(); i++ ){
+    for( unsigned i=0; i<d_conj->d_quant[0].getNumChildren(); i++ ){
       Node prog = d_conj->d_quant[0][i];
       std::stringstream ss;
       ss << prog;
@@ -527,34 +538,50 @@ void CegInstantiation::printSynthSolution( std::ostream& out ) {
       if( d_last_inst_si ){
         Assert( d_conj->d_ceg_si );
         sol = d_conj->d_ceg_si->getSolution( i, tn, status );
+        sol = sol.getKind()==LAMBDA ? sol[1] : sol;
       }else{
         if( !d_conj->d_candidate_inst[i].empty() ){
           sol = d_conj->d_candidate_inst[i].back();
           //check if this was based on a template, if so, we must do reconstruction
           if( d_conj->d_assert_quant!=d_conj->d_quant ){
+            Node sygus_sol = sol;
             Trace("cegqi-inv") << "Sygus version of solution is : " << sol << ", type : " << sol.getType() << std::endl;
-            sol = getTermDatabase()->getTermDatabaseSygus()->sygusToBuiltin( sol, sol.getType() );
-            Trace("cegqi-inv") << "Builtin version of solution is : " << sol << ", type : " << sol.getType() << std::endl;
             std::vector< Node > subs;
             Expr svl = dt.getSygusVarList();
             for( unsigned j=0; j<svl.getNumChildren(); j++ ){
               subs.push_back( Node::fromExpr( svl[j] ) );
             }
             if( options::sygusInvTemplMode() == SYGUS_INV_TEMPL_MODE_PRE ){
-              Node pre = d_conj->d_ceg_si->d_trans_pre[prog];
-              pre = pre.substitute( d_conj->d_ceg_si->d_prog_templ_vars[prog].begin(), d_conj->d_ceg_si->d_prog_templ_vars[prog].end(),
-                                    subs.begin(), subs.end() );
-              sol = NodeManager::currentNM()->mkNode( OR, sol, pre );
-            }else if( options::sygusInvTemplMode() == SYGUS_INV_TEMPL_MODE_POST ){
-              Node post = d_conj->d_ceg_si->d_trans_post[prog];
-              post = post.substitute( d_conj->d_ceg_si->d_prog_templ_vars[prog].begin(), d_conj->d_ceg_si->d_prog_templ_vars[prog].end(),
+              if( d_conj->d_ceg_si->d_trans_pre.find( prog )!=d_conj->d_ceg_si->d_trans_pre.end() ){
+                Assert( d_conj->d_ceg_si->d_prog_templ_vars[prog].size()==subs.size() );
+                Node pre = d_conj->d_ceg_si->d_trans_pre[prog];
+                pre = pre.substitute( d_conj->d_ceg_si->d_prog_templ_vars[prog].begin(), d_conj->d_ceg_si->d_prog_templ_vars[prog].end(),
                                       subs.begin(), subs.end() );
-              sol = NodeManager::currentNM()->mkNode( AND, sol, post );
+                sol = getTermDatabase()->getTermDatabaseSygus()->sygusToBuiltin( sol, sol.getType() );
+                Trace("cegqi-inv") << "Builtin version of solution is : " << sol << ", type : " << sol.getType() << std::endl;
+                sol = NodeManager::currentNM()->mkNode( OR, sol, pre );
+              }
+            }else if( options::sygusInvTemplMode() == SYGUS_INV_TEMPL_MODE_POST ){
+              if( d_conj->d_ceg_si->d_trans_post.find( prog )!=d_conj->d_ceg_si->d_trans_post.end() ){
+                Assert( d_conj->d_ceg_si->d_prog_templ_vars[prog].size()==subs.size() );
+                Node post = d_conj->d_ceg_si->d_trans_post[prog];
+                post = post.substitute( d_conj->d_ceg_si->d_prog_templ_vars[prog].begin(), d_conj->d_ceg_si->d_prog_templ_vars[prog].end(),
+                                        subs.begin(), subs.end() );
+                sol = getTermDatabase()->getTermDatabaseSygus()->sygusToBuiltin( sol, sol.getType() );
+                Trace("cegqi-inv") << "Builtin version of solution is : " << sol << ", type : " << sol.getType() << std::endl;
+                sol = NodeManager::currentNM()->mkNode( AND, sol, post );
+              }
             }
-            Trace("cegqi-inv-debug") << "With template : " << sol << std::endl;
-            sol = Rewriter::rewrite( sol );
-            Trace("cegqi-inv-debug") << "Simplified : " << sol << std::endl;
-            sol = d_conj->d_ceg_si->reconstructToSyntax( sol, tn, status );
+            if( sol==sygus_sol ){
+              sol = sygus_sol;
+              status = 1;
+            }else{
+              Trace("cegqi-inv-debug") << "With template : " << sol << std::endl;
+              sol = Rewriter::rewrite( sol );
+              Trace("cegqi-inv-debug") << "Simplified : " << sol << std::endl;
+              sol = d_conj->d_ceg_si->reconstructToSyntax( sol, tn, status );
+              sol = sol.getKind()==LAMBDA ? sol[1] : sol;
+            }
           }else{
             status = 1;
           }

@@ -131,6 +131,7 @@ public:
     std::vector< TNode > terms;
     print( out, q, terms );
   }
+  void clear() { d_data.clear(); }
 };/* class InstMatchTrie */
 
 /** trie for InstMatch objects */
