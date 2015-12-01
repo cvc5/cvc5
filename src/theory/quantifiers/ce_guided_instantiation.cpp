@@ -78,22 +78,23 @@ void CegConjecture::assign( Node q ) {
 }
 
 void CegConjecture::initializeGuard( QuantifiersEngine * qe ){
-  if( isAssigned() && d_guard.isNull() ){
-    d_guard = Rewriter::rewrite( NodeManager::currentNM()->mkSkolem( "G", NodeManager::currentNM()->booleanType() ) );
-    //specify guard behavior
-    d_guard = qe->getValuation().ensureLiteral( d_guard );
-    AlwaysAssert( !d_guard.isNull() );
-    qe->getOutputChannel().requirePhase( d_guard, true );
+  if( isAssigned() ){
     if( !d_syntax_guided ){
-      //add immediate lemma
-      Node lem = NodeManager::currentNM()->mkNode( OR, d_guard.negate(), d_base_inst.negate() );
-      Trace("cegqi-lemma") << "Add candidate lemma : " << lem << std::endl;
-      qe->getOutputChannel().lemma( lem );
-    }else if( d_ceg_si ){
+      if( d_nsg_guard.isNull() ){
+        d_nsg_guard = Rewriter::rewrite( NodeManager::currentNM()->mkSkolem( "G", NodeManager::currentNM()->booleanType() ) );
+        d_nsg_guard = qe->getValuation().ensureLiteral( d_nsg_guard );
+        AlwaysAssert( !d_nsg_guard.isNull() );
+        qe->getOutputChannel().requirePhase( d_nsg_guard, true );
+        //add immediate lemma
+        Node lem = NodeManager::currentNM()->mkNode( OR, d_nsg_guard.negate(), d_base_inst.negate() );
+        Trace("cegqi-lemma") << "Cegqi::Lemma : non-syntax-guided : " << lem << std::endl;
+        qe->getOutputChannel().lemma( lem );
+      }
+    }else if( d_ceg_si->d_si_guard.isNull() ){
       std::vector< Node > lems;
-      d_ceg_si->getInitialSingleInvLemma( d_guard, lems );
+      d_ceg_si->getInitialSingleInvLemma( lems );
       for( unsigned i=0; i<lems.size(); i++ ){
-        Trace("cegqi-lemma") << "Add single invocation lemma " << i << " : " << lems[i] << std::endl;
+        Trace("cegqi-lemma") << "Cegqi::Lemma : single invocation " << i << " : " << lems[i] << std::endl;
         qe->getOutputChannel().lemma( lems[i] );
         if( Trace.isOn("cegqi-debug") ){
           Node rlem = Rewriter::rewrite( lems[i] );
@@ -101,6 +102,7 @@ void CegConjecture::initializeGuard( QuantifiersEngine * qe ){
         }
       }
     }
+    Assert( !getGuard().isNull() );
   }
 }
 
@@ -117,7 +119,7 @@ Node CegConjecture::getLiteral( QuantifiersEngine * qe, int i ) {
       d_lits[i] = lit;
 
       Node lem = NodeManager::currentNM()->mkNode( kind::OR, lit, lit.negate() );
-      Trace("cegqi-lemma") << "Fairness split : " << lem << std::endl;
+      Trace("cegqi-lemma") << "Cegqi::Lemma : Fairness split : " << lem << std::endl;
       qe->getOutputChannel().lemma( lem );
       qe->getOutputChannel().requirePhase( lit, true );
 
@@ -128,7 +130,7 @@ Node CegConjecture::getLiteral( QuantifiersEngine * qe, int i ) {
           lem_c.push_back( NodeManager::currentNM()->mkNode( DT_HEIGHT_BOUND, d_candidates[j], c ) );
         }
         Node hlem = NodeManager::currentNM()->mkNode( OR, lit.negate(), lem_c.size()==1 ? lem_c[0] : NodeManager::currentNM()->mkNode( AND, lem_c ) );
-        Trace("cegqi-lemma") << "Fairness expansion (dt-height-pred) : " << hlem << std::endl;
+        Trace("cegqi-lemma") << "Cegqi::Lemma : Fairness expansion (dt-height-pred) : " << hlem << std::endl;
         qe->getOutputChannel().lemma( hlem );
       }
       return lit;
@@ -136,6 +138,10 @@ Node CegConjecture::getLiteral( QuantifiersEngine * qe, int i ) {
       return it->second;
     }
   }
+}
+
+Node CegConjecture::getGuard() {
+  return !d_syntax_guided ? d_nsg_guard : d_ceg_si->d_si_guard;
 }
 
 CegqiFairMode CegConjecture::getCegqiFairMode() {
@@ -150,8 +156,52 @@ bool CegConjecture::isFullySingleInvocation() {
   return d_ceg_si->isFullySingleInvocation();
 }
 
-bool CegConjecture::needsCheck() {
-  return !isSingleInvocation() || d_ceg_si->needsCheck();
+bool CegConjecture::needsCheck( std::vector< Node >& lem ) {
+  if( isSingleInvocation() && !d_ceg_si->needsCheck() ){
+    return false;
+  }else{
+    bool value;
+    if( !isSingleInvocation() || isFullySingleInvocation() ){
+      Assert( !getGuard().isNull() );
+      // non or fully single invocation : look at guard only
+      if( d_qe->getValuation().hasSatValue( getGuard(), value ) ) {
+        if( !value ){
+          Trace("cegqi-engine-debug") << "Conjecture is infeasible." << std::endl;
+          return false;
+        }
+      }else{
+        Assert( false );
+      }
+    }else{
+      // not fully single invocation : infeasible if overall specification is infeasible
+      Assert( !d_ceg_si->d_full_guard.isNull() );
+      if( d_qe->getValuation().hasSatValue( d_ceg_si->d_full_guard, value ) ) {
+        if( !value ){
+          Trace("cegqi-nsi") << "NSI : found full specification is infeasible." << std::endl;
+          return false;
+        }else{
+          Assert( !d_ceg_si->d_si_guard.isNull() );
+          if( d_qe->getValuation().hasSatValue( d_ceg_si->d_si_guard, value ) ) {
+            if( !value ){
+              if( !d_ceg_si->d_single_inv_exp.isNull() ){
+                //this should happen infrequently : only if cegqi determines infeasibility of a false candidate before E-matching does
+                Trace("cegqi-nsi") << "NSI : current single invocation lemma was infeasible, block assignment upon which conjecture was based." << std::endl;
+                Node l = NodeManager::currentNM()->mkNode( OR, d_ceg_si->d_full_guard.negate(), d_ceg_si->d_single_inv_exp );
+                lem.push_back( l );
+                d_ceg_si->initializeNextSiConjecture();
+              }
+              return false;
+            }
+          }else{
+            Assert( false );
+          }
+        }
+      }else{
+        Assert( false );
+      }
+    }
+    return true;
+  }
 }
 
 void CegConjecture::preregisterConjecture( Node q ) {
@@ -168,29 +218,30 @@ bool CegInstantiation::needsCheck( Theory::Effort e ) {
 }
 
 unsigned CegInstantiation::needsModel( Theory::Effort e ) {
-  return QuantifiersEngine::QEFFORT_MODEL;
+  return d_conj->d_ceg_si->isSingleInvocation() ? QuantifiersEngine::QEFFORT_STANDARD : QuantifiersEngine::QEFFORT_MODEL;
 }
 
 void CegInstantiation::check( Theory::Effort e, unsigned quant_e ) {
-  if( quant_e==QuantifiersEngine::QEFFORT_MODEL ){
+  unsigned echeck = d_conj->d_ceg_si->isSingleInvocation() ? QuantifiersEngine::QEFFORT_STANDARD : QuantifiersEngine::QEFFORT_MODEL;
+  if( quant_e==echeck ){
     Trace("cegqi-engine") << "---Counterexample Guided Instantiation Engine---" << std::endl;
     Trace("cegqi-engine-debug") << std::endl;
     bool active = false;
-    bool feasible = false;
     bool value;
     if( d_quantEngine->getValuation().hasSatValue( d_conj->d_assert_quant, value ) ) {
       active = value;
     }else{
       Trace("cegqi-engine-debug") << "...no value for quantified formula." << std::endl;
     }
-    if( d_quantEngine->getValuation().hasSatValue( d_conj->d_guard, value ) ) {
-      feasible = value;
-    }else{
-      Trace("cegqi-engine-debug") << "...no value for guard." << std::endl;
-    }
-    Trace("cegqi-engine-debug") << "Current conjecture status : active : " << active << " feasible : " << feasible << std::endl;
-    if( active && feasible && d_conj->needsCheck() ){
+    Trace("cegqi-engine-debug") << "Current conjecture status : active : " << active << std::endl;
+    std::vector< Node > lem;
+    if( active && d_conj->needsCheck( lem ) ){
       checkCegConjecture( d_conj );
+    }else{
+      for( unsigned i=0; i<lem.size(); i++ ){
+        Trace("cegqi-lemma") << "Cegqi::Lemma : check lemma : " << lem[i] << std::endl;
+        d_quantEngine->getOutputChannel().lemma( lem[i] );
+      }
     }
     Trace("cegqi-engine") << "Finished Counterexample Guided Instantiation engine." << std::endl;
   }
@@ -241,9 +292,14 @@ Node CegInstantiation::getNextDecisionRequest() {
   if( d_conj->isAssigned() ){
     d_conj->initializeGuard( d_quantEngine );
     std::vector< Node > req_dec;
-    req_dec.push_back( d_conj->d_guard );
-    if( d_conj->d_ceg_si && !d_conj->d_ceg_si->d_ns_guard.isNull() ){
-      req_dec.push_back( d_conj->d_ceg_si->d_ns_guard );
+    req_dec.push_back( d_conj->getGuard() );
+    if( d_conj->d_ceg_si ){
+      if( !d_conj->d_ceg_si->d_full_guard.isNull() ){
+        req_dec.push_back( d_conj->d_ceg_si->d_full_guard );
+      }
+      if( !d_conj->d_ceg_si->d_ns_guard.isNull() ){
+        req_dec.push_back( d_conj->d_ceg_si->d_ns_guard );
+      }
     }
     for( unsigned i=0; i<req_dec.size(); i++ ){
       bool value;
@@ -295,7 +351,7 @@ void CegInstantiation::checkCegConjecture( CegConjecture * conj ) {
         if( !lems.empty() ){
           d_last_inst_si = true;
           for( unsigned j=0; j<lems.size(); j++ ){
-            Trace("cegqi-lemma") << "Single invocation instantiation lemma : " << lems[j] << std::endl;
+            Trace("cegqi-lemma") << "Cegqi::Lemma : single invocation instantiation : " << lems[j] << std::endl;
             d_quantEngine->addLemma( lems[j] );
           }
           d_statistics.d_cegqi_si_lemmas += lems.size();
@@ -313,7 +369,7 @@ void CegInstantiation::checkCegConjecture( CegConjecture * conj ) {
           }
           if( !lems.empty() ){
             for( unsigned j=0; j<lems.size(); j++ ){
-              Trace("cegqi-lemma") << "Measure lemma : " << lems[j] << std::endl;
+              Trace("cegqi-lemma") << "Cegqi::Lemma : measure : " << lems[j] << std::endl;
               d_quantEngine->addLemma( lems[j] );
             }
             Trace("cegqi-engine") << "  ...refine size." << std::endl;
@@ -353,7 +409,7 @@ void CegInstantiation::checkCegConjecture( CegConjecture * conj ) {
         Node lem = NodeManager::currentNM()->mkNode( OR, ic );
         lem = Rewriter::rewrite( lem );
         d_last_inst_si = false;
-        Trace("cegqi-lemma") << "Counterexample lemma : " << lem << std::endl;
+        Trace("cegqi-lemma") << "Cegqi::Lemma : counterexample : " << lem << std::endl;
         d_quantEngine->addLemma( lem );
         ++(d_statistics.d_cegqi_lemmas_ce);
         Trace("cegqi-engine") << "  ...find counterexample." << std::endl;
@@ -399,9 +455,9 @@ void CegInstantiation::checkCegConjecture( CegConjecture * conj ) {
       }
       if( success ){
         Node lem = lem_c.size()==1 ? lem_c[0] : NodeManager::currentNM()->mkNode( AND, lem_c );
-        lem = NodeManager::currentNM()->mkNode( OR, conj->d_guard.negate(), lem );
+        lem = NodeManager::currentNM()->mkNode( OR, conj->getGuard().negate(), lem );
         lem = Rewriter::rewrite( lem );
-        Trace("cegqi-lemma") << "Candidate refinement lemma : " << lem << std::endl;
+        Trace("cegqi-lemma") << "Cegqi::Lemma : candidate refinement : " << lem << std::endl;
         Trace("cegqi-engine") << "  ...refine candidate." << std::endl;
         d_quantEngine->addLemma( lem );
         ++(d_statistics.d_cegqi_lemmas_refine);

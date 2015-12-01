@@ -333,6 +333,8 @@ libcvc4_la_SOURCES = \
 	theory/quantifiers/ce_guided_single_inv.cpp \
 	theory/quantifiers/ce_guided_single_inv_sol.h \
 	theory/quantifiers/ce_guided_single_inv_sol.cpp \
+	theory/quantifiers/ce_guided_single_inv_ei.h \
+	theory/quantifiers/ce_guided_single_inv_ei.cpp \
 	theory/quantifiers/local_theory_ext.h \
 	theory/quantifiers/local_theory_ext.cpp \
 	theory/quantifiers/fun_def_process.h \

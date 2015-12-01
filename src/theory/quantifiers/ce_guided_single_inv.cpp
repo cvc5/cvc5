@@ -15,6 +15,7 @@
 
 #include "theory/quantifiers/ce_guided_single_inv.h"
 #include "theory/quantifiers/ce_guided_instantiation.h"
+#include "theory/quantifiers/ce_guided_single_inv_ei.h"
 #include "theory/theory_engine.h"
 #include "theory/quantifiers/options.h"
 #include "theory/quantifiers/term_database.h"
@@ -52,17 +53,31 @@ CegConjectureSingleInv::CegConjectureSingleInv( QuantifiersEngine * qe, CegConje
   }else{
     d_c_inst_match_trie = NULL;
   }
-  CegqiOutputSingleInv * cosi = new CegqiOutputSingleInv( this );
+  d_cosi = new CegqiOutputSingleInv( this );
   //  third and fourth arguments set to (false,false) until we have solution reconstruction for delta and infinity
-  d_cinst = new CegInstantiator( qe, cosi, false, false );
+  d_cinst = new CegInstantiator( d_qe, d_cosi, false, false );   
 
   d_sol = new CegConjectureSingleInvSol( qe );
 
   d_sip = new SingleInvocationPartition;
+  
+  if( options::cegqiSingleInvPartial() ){
+    d_ei = new CegEntailmentInfer( qe, d_sip );
+  }else{
+    d_ei = NULL;
+  }
 }
 
-void CegConjectureSingleInv::getInitialSingleInvLemma( Node guard, std::vector< Node >& lems ) {
+void CegConjectureSingleInv::getInitialSingleInvLemma( std::vector< Node >& lems ) {
+  Assert( d_si_guard.isNull() );
+  //single invocation guard
+  d_si_guard = Rewriter::rewrite( NodeManager::currentNM()->mkSkolem( "G", NodeManager::currentNM()->booleanType() ) );
+  d_si_guard = d_qe->getValuation().ensureLiteral( d_si_guard );
+  AlwaysAssert( !d_si_guard.isNull() );
+  d_qe->getOutputChannel().requirePhase( d_si_guard, true );
+
   if( !d_single_inv.isNull() ) {
+    //make for new var/sk
     d_single_inv_var.clear();
     d_single_inv_sk.clear();
     Node inst;
@@ -83,8 +98,13 @@ void CegConjectureSingleInv::getInitialSingleInvLemma( Node guard, std::vector< 
     Trace("cegqi-si") << "Single invocation initial lemma : " << inst << std::endl;
 
     //register with the instantiator
-    Node ginst = NodeManager::currentNM()->mkNode( OR, guard.negate(), inst );
+    Node ginst = NodeManager::currentNM()->mkNode( OR, d_si_guard.negate(), inst );
     lems.push_back( ginst );
+    //make and register the instantiator
+    if( d_cinst ){
+      delete d_cinst;
+    }
+    d_cinst = new CegInstantiator( d_qe, d_cosi, false, false );   
     d_cinst->registerCounterexampleLemma( lems, d_single_inv_sk );
   }
 }
@@ -162,13 +182,12 @@ void CegConjectureSingleInv::initialize( Node q ) {
     if( !d_sip->d_conjuncts[1].empty() ){
       singleInvocation = false;
       if( options::cegqiSingleInvPartial() ){
-        /*  TODO : this enables partially single invocation techniques
+        //this enables partially single invocation techniques
         d_nsingle_inv = d_sip->getNonSingleInvocation();
         d_nsingle_inv = TermDb::simpleNegate( d_nsingle_inv );
         d_full_inv = d_sip->getFullSpecification();
         d_full_inv = TermDb::simpleNegate( d_full_inv );
         singleInvocation = true;
-        */
       }else if( options::sygusInvTemplMode() != SYGUS_INV_TEMPL_MODE_NONE ){
         //if we are doing invariant templates, then construct the template
         std::map< Node, bool > has_inv;
@@ -287,11 +306,33 @@ void CegConjectureSingleInv::initialize( Node q ) {
       //just invoke the presolve now
       d_cinst->presolve( d_single_inv );
     }
-    if( !d_nsingle_inv.isNull() ){
+    if( !isFullySingleInvocation() ){
       //initialize information as next single invocation conjecture
       initializeNextSiConjecture();
       Trace("cegqi-si") << "Non-single invocation formula is : " << d_nsingle_inv << std::endl;
       Trace("cegqi-si") << "Full specification is : " << d_full_inv << std::endl;
+      //add full specification lemma : will use for testing infeasibility/deriving entailments
+      d_full_guard = Rewriter::rewrite( NodeManager::currentNM()->mkSkolem( "GF", NodeManager::currentNM()->booleanType() ) );
+      d_full_guard = d_qe->getValuation().ensureLiteral( d_full_guard );
+      AlwaysAssert( !d_full_guard.isNull() );
+      d_qe->getOutputChannel().requirePhase( d_full_guard, true );
+      Node fbvl;
+      if( !d_sip->d_all_vars.empty() ){
+        fbvl = NodeManager::currentNM()->mkNode( BOUND_VAR_LIST, d_sip->d_all_vars );
+      }
+      std::vector< Node > flem_c;
+      for( unsigned i=0; i<d_sip->d_conjuncts[2].size(); i++ ){
+        Node flemi = d_sip->d_conjuncts[2][i];
+        if( !fbvl.isNull() ){
+          flemi = NodeManager::currentNM()->mkNode( FORALL, fbvl, flemi );
+        }
+        flem_c.push_back( flemi );
+      }
+      Node flem = flem_c.empty() ? d_qe->getTermDatabase()->d_true : ( flem_c.size()==1 ? flem_c[0] : NodeManager::currentNM()->mkNode( AND, flem_c ) );
+      flem = NodeManager::currentNM()->mkNode( OR, d_full_guard.negate(), flem );
+      flem = Rewriter::rewrite( flem );
+      Trace("cegqi-lemma") << "Cegqi::Lemma : full specification " << flem << std::endl;
+      d_qe->getOutputChannel().lemma( flem );
     }
   }else{
     Trace("cegqi-si") << "Formula is not single invocation." << std::endl;
@@ -435,6 +476,23 @@ Node CegConjectureSingleInv::addDeepEmbedding( Node n, std::map< Node, Node >& v
 }
 
 void CegConjectureSingleInv::initializeNextSiConjecture() {
+  Trace("cegqi-nsi") << "NSI : initialize next candidate conjecture..." << std::endl;
+  if( d_single_inv.isNull() ){
+    if( d_ei->getEntailedConjecture( d_single_inv, d_single_inv_exp ) ){
+      Trace("cegqi-nsi") << "NSI : got : " << d_single_inv << std::endl;
+      Trace("cegqi-nsi") << "NSI : exp : " << d_single_inv_exp << std::endl; 
+    }else{
+      Trace("cegqi-nsi") << "NSI : failed to construct next conjecture." << std::endl;
+      Notice() << "Incomplete due to --cegqi-si-partial." << std::endl;
+      exit( 10 );
+    }
+  }else{
+    //initial call
+    Trace("cegqi-nsi") << "NSI : have : " << d_single_inv << std::endl;
+    Assert( d_single_inv_exp.isNull() );
+  }
+  
+  d_si_guard = Node::null();
   d_ns_guard = Rewriter::rewrite( NodeManager::currentNM()->mkSkolem( "GS", NodeManager::currentNM()->booleanType() ) );
   d_ns_guard = d_qe->getValuation().ensureLiteral( d_ns_guard );
   AlwaysAssert( !d_ns_guard.isNull() );
@@ -480,10 +538,6 @@ bool CegConjectureSingleInv::addInstantiation( std::vector< Node >& subs ){
     if( d_qe->getTermDatabase()->containsVtsTerm( lem ) ){
       Trace("cegqi-engine-debug") << "Rewrite based on vts symbols..." << std::endl;
       lem = d_qe->getTermDatabase()->rewriteVtsSymbols( lem );
-    }
-    //add guard if not fully single invocation
-    if( !isFullySingleInvocation() ){
-      lem = NodeManager::currentNM()->mkNode( OR, d_ns_guard.negate(), lem );
     }
     Trace("cegqi-engine-debug") << "Rewrite..." << std::endl;
     lem = Rewriter::rewrite( lem );
@@ -554,14 +608,25 @@ void CegConjectureSingleInv::check( std::vector< Node >& lems ) {
       }
     }else if( !isFullySingleInvocation() ){
       //create next candidate conjecture
-      Trace("cegqi-nsi") << "NSI : create next candidate conjecture..." << std::endl;
-      exit( 10 );
+      Assert( d_ei!=NULL );
+      //construct d_single_inv
+      d_single_inv = Node::null();
+      initializeNextSiConjecture();
+      return;
     }
     d_curr_lemmas.clear();
     //call check for instantiator
     d_cinst->check();
     //add lemmas
-    lems.insert( lems.end(), d_curr_lemmas.begin(), d_curr_lemmas.end() );
+    //add guard if not fully single invocation
+    if( !isFullySingleInvocation() ){
+      Assert( !d_ns_guard.isNull() );
+      for( unsigned i=0; i<d_curr_lemmas.size(); i++ ){
+        lems.push_back( NodeManager::currentNM()->mkNode( OR, d_ns_guard.negate(), d_curr_lemmas[i] ) );
+      }
+    }else{
+      lems.insert( lems.end(), d_curr_lemmas.begin(), d_curr_lemmas.end() );
+    }
   }
 }
 

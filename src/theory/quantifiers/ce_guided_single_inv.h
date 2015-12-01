@@ -29,6 +29,7 @@ namespace quantifiers {
 
 class CegConjecture;
 class CegConjectureSingleInv;
+class CegEntailmentInfer;
 
 class CegqiOutputSingleInv : public CegqiOutput
 {
@@ -52,15 +53,15 @@ private:
   QuantifiersEngine * d_qe;
   CegConjecture * d_parent;
   CegConjectureSingleInvSol * d_sol;
+  CegEntailmentInfer * d_ei;
   //the instantiator
+  CegqiOutputSingleInv * d_cosi;
   CegInstantiator * d_cinst;
   //for recognizing templates for invariant synthesis
   Node substituteInvariantTemplates( Node n, std::map< Node, Node >& prog_templ, std::map< Node, std::vector< Node > >& prog_templ_vars );
   // partially single invocation
   Node removeDeepEmbedding( Node n, std::vector< Node >& progs, std::vector< TypeNode >& types, int& type_valid, std::map< Node, Node >& visited );
   Node addDeepEmbedding( Node n, std::map< Node, Node >& visited );
-  //initialize next candidate si conjecture
-  void initializeNextSiConjecture();
   //presolve
   void collectPresolveEqTerms( Node n, std::map< Node, std::vector< Node > >& teq );
   void getPresolveEqConjuncts( std::vector< Node >& vars, std::vector< Node >& terms, std::map< Node, std::vector< Node > >& teq, Node n, std::vector< Node >& conj );
@@ -104,12 +105,15 @@ public:
   Node d_quant;
   // single invocation portion of quantified formula
   Node d_single_inv;
+  Node d_si_guard;
   // non-single invocation portion of quantified formula
   Node d_nsingle_inv;
+  Node d_ns_guard;
   // full version quantified formula
   Node d_full_inv;
-  // current guard
-  Node d_ns_guard;
+  Node d_full_guard;
+  //explanation for current single invocation conjecture
+  Node d_single_inv_exp;  
   // transition relation version per program
   std::map< Node, Node > d_trans_pre;
   std::map< Node, Node > d_trans_post;
@@ -120,7 +124,7 @@ public:
   std::map< Node, Node > d_prog_to_eval_op;
 public:
   //get the single invocation lemma(s)
-  void getInitialSingleInvLemma( Node guard, std::vector< Node >& lems );
+  void getInitialSingleInvLemma( std::vector< Node >& lems );
   //initialize
   void initialize( Node q );
   //check
@@ -134,11 +138,13 @@ public:
   // is single invocation
   bool isSingleInvocation() { return !d_single_inv.isNull(); }
   // is single invocation
-  bool isFullySingleInvocation() { return d_nsingle_inv.isNull(); }
+  bool isFullySingleInvocation() { return !d_single_inv.isNull() && d_nsingle_inv.isNull(); }
   //needs check
   bool needsCheck();
   /** preregister conjecture */
   void preregisterConjecture( Node q );
+  //initialize next candidate si conjecture (if not fully single invocation)
+  void initializeNextSiConjecture();  
 };
 
 // partitions any formulas given to it into single invocation/non-single invocation

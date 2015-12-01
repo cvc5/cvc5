@@ -37,16 +37,10 @@ public:
   Node d_assert_quant;
   /** quantified formula (after processing) */
   Node d_quant;
-  /** guard */
-  Node d_guard;
   /** base instantiation */
   Node d_base_inst;
   /** expand base inst to disjuncts */
   std::vector< Node > d_base_disj;
-  /** guard split */
-  Node d_guard_split;
-  /** is syntax-guided */
-  bool d_syntax_guided;
   /** list of constants for quantified formula */
   std::vector< Node > d_candidates;
   /** list of variables on inner quantification */
@@ -54,22 +48,20 @@ public:
   std::vector< std::vector< Node > > d_inner_vars_disj;
   /** list of terms we have instantiated candidates with */
   std::map< int, std::vector< Node > > d_candidate_inst;
-  /** initialize guard */
-  void initializeGuard( QuantifiersEngine * qe );
   /** measure term */
   Node d_measure_term;
   /** measure sum size */
   int d_measure_term_size;
   /** refine count */
   unsigned d_refine_count;
-  /** assign */
-  void assign( Node q );
-  /** is assigned */
-  bool isAssigned() { return !d_quant.isNull(); }
   /** current extential quantifeirs whose couterexamples we must refine */
   std::vector< std::vector< Node > > d_ce_sk;
   /** single invocation utility */
   CegConjectureSingleInv * d_ceg_si;
+public: //non-syntax guided (deprecated)
+  /** guard */
+  bool d_syntax_guided;
+  Node d_nsg_guard;  
 public:  //for fairness
   /** the cardinality literals */
   std::map< int, Node > d_lits;
@@ -77,6 +69,8 @@ public:  //for fairness
   context::CDO< int > d_curr_lit;
   /** allocate literal */
   Node getLiteral( QuantifiersEngine * qe, int i );
+  /** get guard */
+  Node getGuard();
   /** is ground */
   bool isGround() { return d_inner_vars.empty(); }
   /** fairness */
@@ -86,9 +80,15 @@ public:  //for fairness
   /** is single invocation */
   bool isFullySingleInvocation();
   /** needs check */
-  bool needsCheck();
+  bool needsCheck( std::vector< Node >& lem );
   /** preregister conjecture */
   void preregisterConjecture( Node q );
+  /** initialize guard */
+  void initializeGuard( QuantifiersEngine * qe );
+  /** assign */
+  void assign( Node q );
+  /** is assigned */
+  bool isAssigned() { return !d_quant.isNull(); }
 };
 
 
