@@ -47,6 +47,41 @@ OPTIONS_FILES_SRCS = \
 OPTIONS_FILES = \
 	$(patsubst %.cpp,%,$(filter %.cpp,$(OPTIONS_FILES_SRCS)))
 
+OPTIONS_CPPS = \
+	$(filter %.cpp,$(OPTIONS_FILES_SRCS))
+
+OPTIONS_HEADS = \
+	$(filter %.h,$(OPTIONS_FILES_SRCS))
+
+OPTIONS_SEDS = \
+	$(patsubst %,%.sed,$(OPTIONS_FILES))
+
+OPTIONS_OBJ = \
+	$(patsubst %.cpp,%.$(OBJEXT),$(OPTIONS_CPP))
+
+
+
+
+DOCUMENTATION_FILES = \
+	../../doc/cvc4.1 \
+	../../doc/libcvc4.3 \
+	../../doc/SmtEngine.3cvc \
+	../../doc/options.3cvc
+
+TEMPLATE_FILES = \
+	base_options_template.h \
+	base_options_template.cpp \
+	options_holder_template.h \
+	options_template.cpp \
+	../smt/smt_options_template.cpp \
+	../../doc/cvc4.1_template \
+	../../doc/libcvc4.3_template \
+	../../doc/SmtEngine.3cvc_template \
+	../../doc/options.3cvc_template
+
+TEMPLATE_SEDS = \
+	$(patsubst %,%.sed,$(TEMPLATE_FILES))
+
 AM_CPPFLAGS = \
 	-D__BUILDING_CVC4LIB \
 	-I@builddir@/.. -I@srcdir@/../include -I@srcdir@/..
@@ -57,7 +92,7 @@ noinst_LTLIBRARIES = liboptions.la
 liboptions_la_SOURCES = \
 	options.h \
 	base_options_handlers.h \
-	option_exception.h
+	option_exception.h 
 
 nodist_liboptions_la_SOURCES = \
 	options.cpp \
@@ -111,12 +146,23 @@ BUILT_SOURCES = \
 	exprs-builts \
 	../smt/smt_options.cpp \
 	options.cpp \
-	options_holder.h
+	options_holder.h \
+	$(OPTIONS_FILES_SRCS)
+
+
+
+# The documentation files are added to BUILT_SOURCES to get the files to
+# be built. Alternative suggestions for building these files would be
+# appreciated.
+BUILT_SOURCES += \
+	$(DOCUMENTATION_FILES)
+
 
 CLEANFILES = \
 	$(OPTIONS_FILES_SRCS) \
 	$(BUILT_SOURCES) \
-	options-stamp
+	options-stamp \
+	$(DOCUMENTATION_FILES)
 
 EXTRA_DIST = \
 	mkoptions \
@@ -133,7 +179,8 @@ EXTRA_DIST = \
 	options_holder.h \
 	$(OPTIONS_FILES_SRCS) \
 	mktagheaders \
-	mktags
+	mktags \
+	$(DOCUMENTATION_FILES)
 
 
 # listing {Debug,Trace}_tags too ensures that make doesn't auto-remove it
@@ -174,24 +221,110 @@ MOSTLYCLEANFILES = \
 	Debug_tags.h \
 	Trace_tags.h
 
-options_holder.h options.cpp ../smt/smt_options.cpp $(OPTIONS_FILES_SRCS): options-stamp
-options-stamp: options_holder_template.h options_template.cpp ../smt/smt_options_template.cpp base_options_template.h base_options_template.cpp mkoptions $(OPTIONS_FILES)
-	$(AM_V_at)chmod +x @srcdir@/mkoptions
-	$(AM_V_GEN)(@srcdir@/mkoptions \
-		@srcdir@/options_holder_template.h @builddir@/options_holder.h \
-		@srcdir@/options_template.cpp @builddir@/options.cpp \
-		@srcdir@/../smt/smt_options_template.cpp @builddir@/../smt/smt_options.cpp \
-		@top_builddir@/doc/cvc4.1_template @top_builddir@/doc/cvc4.1 \
-		@top_builddir@/doc/libcvc4.3_template @top_builddir@/doc/libcvc4.3 \
-		@top_builddir@/doc/SmtEngine.3cvc_template @top_builddir@/doc/SmtEngine.3cvc \
-		@top_builddir@/doc/options.3cvc_template @top_builddir@/doc/options.3cvc \
-		-t \
-		@srcdir@/base_options_template.h @srcdir@/base_options_template.cpp \
-		$(foreach o,$(OPTIONS_FILES),"$(srcdir)/$(o)" "$(patsubst %/,%,$(dir $(o)))") \
-	)
-	touch "$@"
+#   mkoptions template-sed template-file (options-file)*
+#   mkoptions apply-sed-files-to-template sed-file template-file filename
 
-$(OPTIONS_FILES):;
+$(TEMPLATE_SEDS) : %.sed : % mkoptions
+#	echo "template seds"
+#	echo "$@"
+#	echo $(TEMPLATE_SEDS)
+	$(AM_V_at)chmod +x @srcdir@/mkoptions
+	$(AM_V_GEN)(@srcdir@/mkoptions template-sed "$<" ) > "$@"
+
+
+$(OPTIONS_SEDS) : %.sed : @srcdir@/% mkoptions
+#	echo "sedheads"
+#	echo "$@"
+#	echo $(OPTIONS_SEDS)
+	$(AM_V_at)chmod +x @srcdir@/mkoptions
+	$(AM_V_at)mkdir -p `dirname "$@"`
+	$(AM_V_GEN)(@srcdir@/mkoptions module-sed "$<" ) > "$@"
+
+$(OPTIONS_HEADS) : %.h : %.sed mkoptions base_options_template.h base_options_template.h.sed
+#	echo heads
+#	echo "$@"
+#	echo $(OPTIONS_HEADS)
+	$(AM_V_at)chmod +x @srcdir@/mkoptions
+	$(AM_V_at)mkdir -p `dirname "$@"`
+	$(AM_V_GEN)(@srcdir@/mkoptions apply-sed-files-to-template \
+		@srcdir@/base_options_template.h \
+		base_options_template.h.sed \
+		"$<" \
+	) > "$@"
+
+# Bit of a hack here. The .h file needs to always be built before the .cpp file is compiled.
+$(OPTIONS_CPPS) : %.cpp : %.sed mkoptions base_options_template.cpp base_options_template.cpp.sed
+#	echo "cpps"
+#	echo "$@"
+#	echo "$<"
+#	echo $(OPTIONS_CPPS)
+#	echo $(OPTIONS_FILES_SRCS)
+	$(AM_V_at)chmod +x @srcdir@/mkoptions
+	$(AM_V_at)mkdir -p `dirname "$@"`
+	$(AM_V_GEN)(@srcdir@/mkoptions apply-sed-files-to-template \
+		@srcdir@/base_options_template.cpp \
+		base_options_template.cpp.sed \
+		"$<" \
+	) > "$@"
+
+
+
+summary.sed : mkoptions $(OPTIONS_FILES)
+	$(AM_V_at)chmod +x @srcdir@/mkoptions
+	$(AM_V_GEN)(@srcdir@/mkoptions summary-sed \
+		$(foreach o,$(OPTIONS_FILES),"$(srcdir)/$(o)") \
+	) > summary.sed
+
+
+
+#   mkoptions apply-sed-to-template sed-file template-file
+options_holder.h : options_holder_template.h options_holder_template.h.sed summary.sed mkoptions $(OPTIONS_HEADERS)
+#	echo "$(OPTIONS_FILES)"
+	$(AM_V_at)chmod +x @srcdir@/mkoptions
+	$(AM_V_GEN)(@srcdir@/mkoptions apply-sed-files-to-template \
+		@srcdir@/options_holder_template.h \
+		@builddir@/options_holder_template.h.sed \
+		summary.sed \
+	) > "$@"
+
+#   mkoptions apply-sed-to-template sed-file template-file
+options.cpp : options_template.cpp options_template.cpp.sed mkoptions summary.sed $(OPTIONS_HEADERS)
+#	echo "$(OPTIONS_FILES)"
+	$(AM_V_at)chmod +x @srcdir@/mkoptions
+	$(AM_V_GEN)(@srcdir@/mkoptions apply-sed-files-to-template \
+		@srcdir@/options_template.cpp \
+		@builddir@/options_template.cpp.sed \
+		summary.sed \
+	) > "$@"
+
+
+#   mkoptions apply-sed-to-template sed-file template-file
+../smt/smt_options.cpp : ../smt/smt_options_template.cpp ../smt/smt_options_template.cpp.sed mkoptions summary.sed $(OPTIONS_HEADERS)
+#	echo "$(OPTIONS_FILES)"
+	$(AM_V_at)chmod +x @srcdir@/mkoptions
+	$(AM_V_GEN)(@srcdir@/mkoptions apply-sed-files-to-template \
+		@srcdir@/../smt/smt_options_template.cpp \
+		@builddir@/../smt/smt_options_template.cpp.sed \
+		summary.sed \
+	) > "$@"
+
+
+
+
+$(DOCUMENTATION_FILES) : % : %_template %_template.sed mkoptions summary.sed
+#	echo "$<"
+#	echo "$@"
+	$(AM_V_at)chmod +x @srcdir@/mkoptions
+	$(AM_V_GEN)(@srcdir@/mkoptions apply-sed-files-to-template \
+		"$<" \
+		"$<".sed \
+		@builddir@/summary.sed \
+	) > "$@"
+
+
+
+options-stamp: options_holder_template.h options_template.cpp ../smt/smt_options_template.cpp base_options_template.h base_options_template.cpp mkoptions $(OPTIONS_FILE_SRCS)
+
 
 # This rule is ugly.  It's needed to ensure that automake's dependence
 # includes are available during distclean, even though they come from
@@ -201,3 +334,4 @@ $(OPTIONS_FILES):;
 
 .PHONY: exprs-builts
 exprs-builts:; $(AM_V_at)[ "$(FROM_EXPR)" != 1 ] && $(MAKE) -C ../expr builts || true
+

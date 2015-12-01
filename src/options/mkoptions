@@ -2,73 +2,80 @@
 #
 # mkoptions
 # Morgan Deters <mdeters@cs.nyu.edu> for CVC4
-# Copyright (c) 2011-2014  The CVC4 Project
-#
-# The purpose of this script is to create options.{h,cpp}
-# from template files and a list of options.
+# Tim King <taking@google.com> for CVC4
+# Copyright (c) 2011-2015  The CVC4 Project
 #
 # Invocation:
 #
-#   mkoptions (template-file output-file)+ -t options.h-template options.cpp-template (options-file output-dir)+
+#   mkoptions module-sed options-file
+#   mkoptions summary-sed (options-file)*
+#   mkoptions template-sed template-file
+#   mkoptions apply-sed-files-to-template template-file (sed-file)*
 #
+# The primary purpose of this script is to create options.{h,cpp}
+# from template files and a list of options. This additionally generates
+# the several documentation files, smt/smt_options.{h,cpp}, and
+# options_holder.{h,cpp}. This script can in broad terms be thought of
+# as an interpreter for a domain specific language within bash.
+#
+# The process for generating the files is as follows.
+# 1) Scan all of the option files that are of interest.
+#    For an options.h file this is a single option file. For the system wide
+#    aggregates, like documentation, this is all of the option files.
+#
+# 2) Each option file is effectively a bash script. To oversimplify, each line
+#    in the file corresponds to executing a command in this file.
+#    The side effect of running the bash script is to populate the internal
+#    variables of this script.
+#    See the "eval" call in scan_module to see how internal functions are
+#    called.
+# 
+# 3) The internal variables are then compiled into a map from variables to
+#    string values. These maps are printed to standard output. This output
+#    is a valid sed file.
+#
+# 4) These sed maps are then applied to templates files to generate the final
+#    output files.
+#
+# Example of generating a module:
+#   mkoptions module-sed src/options/base_options.h src/theory
 
-copyright=2011-2014
+copyright=2011-2015
 
 me=$(basename "$0")
 
 function usage {
-  echo "usage: $me (template-file output-file)+ -t options.h-template options.cpp-template (options-file output-dir)+" >&2
+  echo "usage: $me module-sed options-file" >&2
+  echo "usage: $me summary-sed (options-file)*" >&2
+  echo "usage: $me template-sed template-file" >&2
+  echo "usage: $me apply-sed-files-to-template template-file (sed-file)*" >&2
 }
 
-progress_char=/
-if [ -t 1 ]; then r="\r"; else r=""; fi
-function progress {
-  file="$(expr "$1" : '.*\(.................................................................\)')"
-  if [ -z "$file" ]; then file="$1"; else file="[...]$file"; fi
-  [ -t 1 ] && printf "$r%c %-70s (%3d%%)" "$progress_char" "$file" "$(($2*100/$3))"
-  progress_char="`echo "$progress_char" | tr -- '-\\\\|/' '\\\\|/-'`"
-}
+# progress_char=/
+# if [ -t 1 ]; then r="\r"; else r=""; fi
+# function progress {
+#   file="$(expr "$1" : '.*\(.................................................................\)')"
+#   if [ -z "$file" ]; then file="$1"; else file="[...]$file"; fi
+#   [ -t 1 ] && printf "$r%c %-70s (%3d%%)" "$progress_char" "$file" "$(($2*100/$3))"
+#   progress_char="`echo "$progress_char" | tr -- '-\\\\|/' '\\\\|/-'`"
+# }
 
 function NOTE {
-  printf "$r%-80s\n" "$kf:$lineno: note: $@"
+  printf "$r%-80s\n" "$kf:$lineno: note: $@" >&2
 }
 
 function WARN {
-  printf "$r%-80s\n" "$kf:$lineno: warning: $@"
+  printf "$r%-80s\n" "$kf:$lineno: warning: $@" >&2
 }
 
 function ERR {
-  printf "$r%-80s\n" "$kf:$lineno: error: $@"
+  printf "$r%-80s\n" "$kf:$lineno: error: $@" >&2
   exit 1
 }
 
-declare -a templates
-declare -a outputs
 
-while [ "$1" != -t ]; do
-  if [ "$#" -lt 2 ]; then
-    echo "$me: error: expected -t on command line" >&2
-    usage
-    exit 1
-  fi
-  templates[${#templates[@]}]="$1"; shift
-  if [ "$1" = -t ]; then
-    echo "$me: error: mismatched number of templates and output files (before -t)" >&2
-    usage
-    exit 1
-  fi
-  outputs[${#outputs[@]}]="$1"; shift
-done
-
-shift
-if [ "$#" -lt 3 ]; then
-  echo "$me: error: not enough arguments" >&2
-  usage
-  exit 1
-fi
-
-options_h_template="$1"; shift
-options_cpp_template="$1"; shift
+#options_h_template="$1"; shift
+#options_cpp_template="$1"; shift
 
 all_modules_defaults=
 all_modules_short_options=
@@ -1397,64 +1404,38 @@ function check_include {
   fi
 }
 
-function output_module {
+function apply_sed_files_to_template {
   template="$1"
-  output="$2"
+  sed_files="$2"
+  command="$3"
 
-  filename="$(basename "$output")"
+  filename="$(basename "$sed_file")"
+  filename="${filename%.*}"
 
-  #echo "generating module $output from $template"
+  echo "applying sed files $sed_files to $template to get $filename " 1>&2
 
-  # generate warnings about incorrect #line annotations in templates
-  nl -ba -s' ' "$template"  | grep '^ *[0-9][0-9]* # *line' |
-    awk '{OFS="";if($1+1!=$3) print "'"$template"':",$1,": warning: incorrect annotation \"#line ",$3,"\" (it should be \"#line ",($1+1),"\")"}' >&2
-
-  mkdir -p "`dirname "$output"`"
-  cp "$template" "$output.working"
-  echo -n > "$output.sed"
-  for var in \
-      module_id \
-      module_name \
-      module_includes \
-      module_optionholder_spec \
-      module_decls \
-      module_specializations \
-      module_inlines \
-      module_accessors \
-      module_global_definitions \
-      template \
-      ; do
-    progress "$output" $count $total
-    repl="$(eval "echo \"\${$var}\"" | sed 's,\\,\\\\,g;s/,/\\,/g;s,&,\\\&,g;$!s,$,\\,g')"
-    # a little nasty; for multi-line replacements, bash can eat a final
-    # (blank) newline, and so we get a final \ on the final line, leading
-    # to malformed replacements in the sed script
-    repl2="$(echo "$repl" | sed '$s,\\*$,,')"
-    while [ "$repl" != "$repl2" ]; do
-      repl="$repl2"
-      repl2="$(echo "$repl" | sed '$s,\\*$,,')"
-    done
-    repl="$repl2"
-    echo -n ";s,$(eval echo "\$\{$var\}"),$repl,g" >>"$output.sed"
+  sed_args=""
+  for file in $sed_files; do
+    sed_args+=" -f $file"
   done
-  sed -f "$output.sed" "$output.working" >"$output.working2"
-  mv -f "$output.working2" "$output.working"
-  error="$(grep '.*\${[^}]*}.*' "$output.working" | head -n 1)"
+  
+  echo "applying sed files $sed_args " 1>&2
+
+  output_working=$(sed $sed_args "$template")
+  error="$(echo "$output_working" | grep '.*\${[^}]*}.*' | head -n 1)"
   if [ -n "$error" ]; then
     error="$(echo "$error" | sed 's,.*\${\([^}]*\)}.*,\1,')"
-    rm -f "$output.working"
-    rm -f "$output.sed"
     kf="$template"
     lineno=0
     ERR "undefined replacement \${$error}"
   fi
 
-  (
-
+  
   # Output header (if this is a .cpp or .c or .h file) and then the
   # processed text
 
-  if expr "$output" : '.*\.cpp$' &>/dev/null || expr "$output" : '.*\.[ch]$' &>/dev/null; then
+  if expr "$filename" : '.*\.cpp$' &>/dev/null || expr "$filename" : '.*\.[ch]$' &>/dev/null; then
+
 
   cat <<EOF
 /*********************                                                        */
@@ -1465,7 +1446,7 @@ function output_module {
  **
  ** This file automatically generated by:
  **
- **     $0 $@
+ **     $command
  **
  ** for the CVC4 project.
  **/
@@ -1489,34 +1470,123 @@ function output_module {
 EOF
   fi
 
-  cat "$output.working"
-
-  ) >"$output.tmp"
-
-  rm -f "$output.working"
-  rm -f "$output.sed"
-  if diff -q "$output" "$output.tmp" &>/dev/null; then
-    rm -f "$output.tmp"
-  else
-    mv -f "$output.tmp" "$output"
-    printf "${r}regenerated %-68s\n" "$output"
-  fi
+  echo -n "$output_working"
+  echo ""
 }
 
-total=$(($#/2+23*${#templates[@]}))
-count=0
-while [ $# -gt 0 ]; do
-  kf="$1"; shift
-  if [ $# -eq 0 ]; then
-    echo "$me: error: mismatched number of templates and output files (after -t)" >&2
-    usage
-    exit 1
-  fi
-  outdir="$1"; shift
+function output_module_sed {
+  options_file="$1"
 
-  #echo "scanning $kf"
+  echo "generating sed file from $options_file" 1>&2
+
+
+  for var in \
+      module_id \
+      module_name \
+      module_includes \
+      module_optionholder_spec \
+      module_decls \
+      module_specializations \
+      module_inlines \
+      module_accessors \
+      module_global_definitions \
+      ; do
+    repl="$(eval "echo \"\${$var}\"" | sed 's,\\,\\\\,g;s/,/\\,/g;s,&,\\\&,g;$!s,$,\\,g')"
+    # a little nasty; for multi-line replacements, bash can eat a final
+    # (blank) newline, and so we get a final \ on the final line, leading
+    # to malformed replacements in the sed script
+    repl2="$(echo "$repl" | sed '$s,\\*$,,')"
+    while [ "$repl" != "$repl2" ]; do
+      repl="$repl2"
+      repl2="$(echo "$repl" | sed '$s,\\*$,,')"
+    done
+    repl="$repl2"
+    echo -n ";s,$(eval echo "\$\{$var\}"),$repl,g"
+  done
+}
+
+function output_summary_sed {
+  echo "generating summary sed" 1>&2
+
+  long_option_value_end=$n_long
+
+  for var in \
+      smt_getoption_handlers \
+      smt_setoption_handlers \
+      long_option_value_begin \
+      long_option_value_end \
+      option_handler_includes \
+      all_modules_defaults \
+      all_modules_short_options \
+      all_modules_long_options \
+      all_modules_smt_options \
+      all_modules_option_handlers \
+      all_modules_get_options \
+      include_all_option_headers \
+      all_modules_contributions \
+      all_custom_handlers \
+      common_documentation \
+      remaining_documentation \
+      common_manpage_documentation \
+      remaining_manpage_documentation \
+      common_manpage_smt_documentation \
+      remaining_manpage_smt_documentation \
+      common_manpage_internals_documentation \
+      remaining_manpage_internals_documentation \
+      ; do
+    let ++count
+    repl="$(eval "echo \"\${$var}\"" | sed 's,\\,\\\\,g;s/,/\\,/g;s,&,\\\&,g;$!s,$,\\,g')"
+    # a little nasty; for multi-line replacements, bash can eat a final
+    # (blank) newline, and so we get a final \ on the final line, leading
+    # to malformed replacements in the sed script
+    repl2="$(echo "$repl" | sed '$s,\\*$,,')"
+    while [ "$repl" != "$repl2" ]; do
+      repl="$repl2"
+      repl2="$(echo "$repl" | sed '$s,\\*$,,')"
+    done
+    repl="$repl2"
+    echo -n ";s,$(eval echo "\$\{$var\}"),$repl,g"
+  done
+}
+
+
+function output_template_sed {
+  template="$1"
+
+  echo "generating $template" 1>&2
+
+  # generate warnings about incorrect #line annotations in templates
+  nl -ba -s' ' "$template"  | grep '^ *[0-9][0-9]* # *line' |
+    awk '{OFS="";if($1+1!=$3) print "'"$template"':",$1,": warning: incorrect annotation \"#line ",$3,"\" (it should be \"#line ",($1+1),"\")"}' >&2
+
+  long_option_value_end=$n_long
+
+  for var in \
+      template \
+      ; do
+    let ++count
+    repl="$(eval "echo \"\${$var}\"" | sed 's,\\,\\\\,g;s/,/\\,/g;s,&,\\\&,g;$!s,$,\\,g')"
+    # a little nasty; for multi-line replacements, bash can eat a final
+    # (blank) newline, and so we get a final \ on the final line, leading
+    # to malformed replacements in the sed script
+    repl2="$(echo "$repl" | sed '$s,\\*$,,')"
+    while [ "$repl" != "$repl2" ]; do
+      repl="$repl2"
+      repl2="$(echo "$repl" | sed '$s,\\*$,,')"
+    done
+    repl="$repl2"
+    echo -n ";s,$(eval echo "\$\{$var\}"),$repl,g"
+  done
+}
+
+
+
+function scan_module {
+  kf="$1";
+
+  echo "scanning $kf" >&2
   let ++count
-  progress "$kf" $count $total
+  #progress "$kf" $count $total
 
   seen_module=false
   seen_endmodule=false
@@ -1541,12 +1611,13 @@ while [ $# -gt 0 ]; do
       doc-alternate "$(echo "$line" | sed 's,^/,,')"
     else
       line="$(echo "$line" | sed 's,\([<>&()!?*]\),\\\1,g')"
-      progress "$kf" $count $total
+      #progress "$kf" $count $total
       if ! eval "$line"; then
         ERR "error was due to evaluation of this line"
       fi
     fi
   done < "$kf"
+
   if ! $seen_module; then
     ERR "no module content found in file!"
   fi
@@ -1554,144 +1625,60 @@ while [ $# -gt 0 ]; do
     ERR "no \"endmodule\" declaration found (it is required at the end)"
   fi
 
-  output_module "$options_h_template" "$outdir/$(basename "$kf").h"
-  output_module "$options_cpp_template" "$outdir/$(basename "$kf").cpp"
-done
+  echo "done scanning $kf" >&2
+}
 
-## final outputs
 
-regenerated=false
-i=0; while [ $i -lt ${#templates[@]} ]; do
+running_command="$1"
 
-template="${templates[$i]}"
-output="${outputs[$i]}"
+if [ "$running_command" = "module-sed" ]; then
+#   mkoptions module-sed options-file
+  echo "args: $#" >&2
+  if [ "$#" -eq 2 ]; then
+    options_file="$2"
+    scan_module  "$options_file"
+    output_module_sed "$options_file"
+  else
+    usage
+    exit 1
+  fi
+elif [ "$running_command" = "apply-sed-files-to-template" ]; then
+#   mkoptions apply-sed-files-to-template template-file (sed-file)*
+  echo "args: $#" >&2
+  if [ "$#" -ge 2 ]; then
+    shift;
+    options_template="$1"; shift
+    sed_files="$@"
+    apply_sed_files_to_template "$options_template" "$sed_files" "$*"
+  else
+    usage
+    exit 1
+  fi
+elif [ "$running_command" = "summary-sed" ]; then
+#   mkoptions summary-sed (options-file)*
+  echo "args: $#" >&2
+  shift;
 
-progress "$output" $count $total
-
-let ++i
-
-filename="$(basename "$output")"
-
-#echo "generating $output from $template"
-
-# generate warnings about incorrect #line annotations in templates
-nl -ba -s' ' "$template"  | grep '^ *[0-9][0-9]* # *line' |
-  awk '{OFS="";if($1+1!=$3) print "'"$template"':",$1,": warning: incorrect annotation \"#line ",$3,"\" (it should be \"#line ",($1+1),"\")"}' >&2
-
-long_option_value_end=$n_long
-
-cp "$template" "$output.working"
-echo -n > "$output.sed"
-for var in \
-    smt_getoption_handlers \
-    smt_setoption_handlers \
-    long_option_value_begin \
-    long_option_value_end \
-    template \
-    option_handler_includes \
-    all_modules_defaults \
-    all_modules_short_options \
-    all_modules_long_options \
-    all_modules_smt_options \
-    all_modules_option_handlers \
-    all_modules_get_options \
-    include_all_option_headers \
-    all_modules_contributions \
-    all_custom_handlers \
-    common_documentation \
-    remaining_documentation \
-    common_manpage_documentation \
-    remaining_manpage_documentation \
-    common_manpage_smt_documentation \
-    remaining_manpage_smt_documentation \
-    common_manpage_internals_documentation \
-    remaining_manpage_internals_documentation \
-    ; do
-  let ++count
-  progress "$output" $count $total
-  repl="$(eval "echo \"\${$var}\"" | sed 's,\\,\\\\,g;s/,/\\,/g;s,&,\\\&,g;$!s,$,\\,g')"
-  # a little nasty; for multi-line replacements, bash can eat a final
-  # (blank) newline, and so we get a final \ on the final line, leading
-  # to malformed replacements in the sed script
-  repl2="$(echo "$repl" | sed '$s,\\*$,,')"
-  while [ "$repl" != "$repl2" ]; do
-    repl="$repl2"
-    repl2="$(echo "$repl" | sed '$s,\\*$,,')"
+  while [ $# -gt 0 ]; do
+    kf="$1"; shift
+    scan_module "$kf"
   done
-  repl="$repl2"
-  echo -n ";s,$(eval echo "\$\{$var\}"),$repl,g" >>"$output.sed"
-done
-sed -f "$output.sed" "$output.working" >"$output.working2"
-mv -f "$output.working2" "$output.working"
-error="$(grep '.*\${[^}]*}.*' "$output.working" | head -n 1)"
-if [ -n "$error" ]; then
-  error="$(echo "$error" | sed 's,.*\${\([^}]*\)}.*,\1,')"
-  echo "$template:0: error: undefined replacement \${$error}" >&2
-  rm -f "$output.working"
-  rm -f "$output.sed"
+  output_summary_sed 
+elif [ "$running_command" = "template-sed" ]; then
+#   mkoptions template-sed template-file
+  if [ "$#" -eq 2 ]; then
+    template_file="$2"
+    output_template_sed "$template_file"
+  else
+    echo "$me: error: expected -t on command line" >&2
+    usage
+    exit 1
+  fi
+else
+  echo "$me: error: $running_command" >&2
+  usage
   exit 1
 fi
 
-progress "$output" $count $total
+exit 0
 
-(
-
-# Output header (if this is a .cpp or .c or .h file) and then the
-# processed text
-
-if expr "$output" : '.*\.cpp$' &>/dev/null || expr "$output" : '.*\.[ch]$' &>/dev/null; then
-
-cat <<EOF
-/*********************                                                        */
-/** $filename
- **
- ** Copyright $copyright  New York University and The University of Iowa,
- ** and as below.
- **
- ** This file automatically generated by:
- **
- **     $0 $@
- **
- ** for the CVC4 project.
- **/
-
-/* THIS FILE IS AUTOMATICALLY GENERATED, DO NOT EDIT ! */
-/* THIS FILE IS AUTOMATICALLY GENERATED, DO NOT EDIT ! */
-/* THIS FILE IS AUTOMATICALLY GENERATED, DO NOT EDIT ! */
-/* THIS FILE IS AUTOMATICALLY GENERATED, DO NOT EDIT ! */
-/* THIS FILE IS AUTOMATICALLY GENERATED, DO NOT EDIT ! */
-/* THIS FILE IS AUTOMATICALLY GENERATED, DO NOT EDIT ! */
-
-/* THIS FILE IS AUTOMATICALLY GENERATED, DO NOT EDIT ! */
-/* THIS FILE IS AUTOMATICALLY GENERATED, DO NOT EDIT ! */
-/* THIS FILE IS AUTOMATICALLY GENERATED, DO NOT EDIT ! */
-/* THIS FILE IS AUTOMATICALLY GENERATED, DO NOT EDIT ! */
-/* THIS FILE IS AUTOMATICALLY GENERATED, DO NOT EDIT ! */
-/* THIS FILE IS AUTOMATICALLY GENERATED, DO NOT EDIT ! */
-
-/* Edit the template file instead:                     */
-/* $1 */
-
-EOF
-fi
-
-cat "$output.working"
-
-) >"$output.tmp"
-
-rm -f "$output.working"
-rm -f "$output.sed"
-if diff -q "$output" "$output.tmp" &>/dev/null; then
-  regenerated=false
-else
-  mv -f "$output.tmp" "$output"
-  printf "${r}regenerated %-68s\n" "$output"
-  regenerated=true
-fi
-rm -f "$output.tmp"
-
-done
-
-if ! $regenerated; then
-  [ -t 1 ] && printf "$r%-80s$r" ""
-fi
