@@ -44,11 +44,6 @@ fi
 echo
 echo =============================================================================
 echo
-echo "running: ./autogen.sh"
-./autogen.sh || reporterror
-echo
-echo =============================================================================
-echo
 contrib/get-antlr-3.4 | grep -v 'Now configure CVC4 with' | grep -v '\./configure --with-antlr-dir='
 [ ${PIPESTATUS[0]} -eq 0 ] || reporterror
 echo
