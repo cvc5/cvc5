@@ -84,6 +84,10 @@ void ProofUF::toStreamLFSC(std::ostream& out, TheoryProof * tp, theory::eq::EqPr
 }
 
 Node ProofUF::toStreamRecLFSC(std::ostream& out, TheoryProof * tp, theory::eq::EqProof * pf, unsigned tb, const LetMap& map) {
+  Debug("gk::proof") << std::endl << std::endl << "toStreamRecLFSC called. tb = " << tb << " . proof:" << std::endl;
+  pf->debug_print("gk::proof");
+  Debug("gk::proof") << std::endl;
+
   if(tb == 0) {
     Assert(pf->d_id == eq::MERGED_THROUGH_TRANS);
     Assert(!pf->d_node.isNull());
@@ -93,35 +97,101 @@ Node ProofUF::toStreamRecLFSC(std::ostream& out, TheoryProof * tp, theory::eq::E
     theory::eq::EqProof subTrans;
     subTrans.d_id = eq::MERGED_THROUGH_TRANS;
     subTrans.d_node = pf->d_node;
-    std::vector<theory::eq::EqProof *> childrenTail;
-    for(size_t i = 0; i < pf->d_children.size(); ++i) {
+
+    size_t i = 0;
+    while (i < pf->d_children.size()) {
+      // Look for the negative clause, with which we will form a contradiction.
       if(!pf->d_children[i]->d_node.isNull() && pf->d_children[i]->d_node.getKind() == kind::NOT) {
         Assert(neg < 0);
         neg = i;
-      //equality congruences
-      } else if( pf->d_children[i]->d_id==eq::MERGED_THROUGH_CONGRUENCE && pf->d_children[i]->d_node.isNull() ){
-        // When encountering equality congruences, the 2nd child needs to be concatenated to the
-        // end of the transitivity proof
-        Assert( pf->d_children[i]->d_children.size()==2 );
+        ++i;
+      }
 
-        // If the first child is a reflexitivity child, we can omit it; this will be sorted out
-        // by transitivity
-        if ( pf->d_children[i]->d_children[0]->d_id != eq::MERGED_THROUGH_REFLEXIVITY) {
-          subTrans.d_children.insert( subTrans.d_children.begin(), pf->d_children[i]->d_children[0] );
+      // Handle congruence closures over equalities.
+      else if (pf->d_children[i]->d_id==eq::MERGED_THROUGH_CONGRUENCE && pf->d_children[i]->d_node.isNull()) {
+        Debug("gk::proof") << "Handling congruence over equalities" << std::endl;
+
+        // Gather the sequence of consecutive congruence closures.
+        std::vector<const theory::eq::EqProof *> congruenceClosures;
+        unsigned count;
+        Debug("gk::proof") << "Collecting congruence sequence" << std::endl;
+        for (count = 0;
+             i + count < pf->d_children.size() &&
+             pf->d_children[i + count]->d_id==eq::MERGED_THROUGH_CONGRUENCE &&
+             pf->d_children[i + count]->d_node.isNull();
+             ++count) {
+          Debug("gk::proof") << "Found a congruence: " << std::endl;
+          pf->d_children[i+count]->debug_print("gk::proof");
+          congruenceClosures.push_back(pf->d_children[i+count]);
         }
 
-        // If the second child is a reflexitivity child, we can omit it; this will be sorted out
-        // by transitivity
-        if ( pf->d_children[i]->d_children[1]->d_id != eq::MERGED_THROUGH_REFLEXIVITY) {
-          childrenTail.insert( childrenTail.end(), pf->d_children[i]->d_children[1] );
+        Debug("gk::proof") << "Total number of congruences found: " << congruenceClosures.size() << std::endl;
+
+        // Determine if the "target" of the congruence sequence appears right before or right after the sequence.
+        bool targetAppearsBefore = true;
+        bool targetAppearsAfter = true;
+
+        if ((i == 0) || (i == 1 && neg == 0)) {
+          Debug("gk::proof") << "Target does not appear before" << std::endl;
+          targetAppearsBefore = false;
         }
-      } else {
+
+        if ((i + count >= pf->d_children.size()) ||
+            (!pf->d_children[i + count]->d_node.isNull() &&
+             pf->d_children[i + count]->d_node.getKind() == kind::NOT)) {
+          Debug("gk::proof") << "Target does not appear after" << std::endl;
+          targetAppearsAfter = false;
+        }
+
+        // Assert that we have precisely one target clause.
+        Assert(targetAppearsBefore != targetAppearsAfter);
+
+        // Begin breaking up the congruences and ordering the equalities correctly.
+        std::vector<theory::eq::EqProof *> orderedEqualities;
+
+        // Insert target clause first.
+        if (targetAppearsBefore) {
+          orderedEqualities.push_back(pf->d_children[i - 1]);
+          // The target has already been added to subTrans; remove it.
+          subTrans.d_children.pop_back();
+        } else {
+          orderedEqualities.push_back(pf->d_children[i + count]);
+        }
+
+        // Start with the congruence closure closest to the target clause, and work our way back/forward.
+        if (targetAppearsBefore) {
+          for (unsigned j = 0; j < count; ++j) {
+            if (pf->d_children[i + j]->d_children[0]->d_id != eq::MERGED_THROUGH_REFLEXIVITY)
+              orderedEqualities.insert(orderedEqualities.begin(), pf->d_children[i + j]->d_children[0]);
+            if (pf->d_children[i + j]->d_children[1]->d_id != eq::MERGED_THROUGH_REFLEXIVITY)
+            orderedEqualities.insert(orderedEqualities.end(), pf->d_children[i + j]->d_children[1]);
+          }
+        } else {
+          for (unsigned j = 0; j < count; ++j) {
+            if (pf->d_children[i + count - 1 - j]->d_children[0]->d_id != eq::MERGED_THROUGH_REFLEXIVITY)
+              orderedEqualities.insert(orderedEqualities.begin(), pf->d_children[i + count - 1 - j]->d_children[0]);
+            if (pf->d_children[i + count - 1 - j]->d_children[1]->d_id != eq::MERGED_THROUGH_REFLEXIVITY)
+              orderedEqualities.insert(orderedEqualities.end(), pf->d_children[i + count - 1 - j]->d_children[1]);
+          }
+        }
+
+        // Copy the result into the main transitivity proof.
+        subTrans.d_children.insert(subTrans.d_children.end(), orderedEqualities.begin(), orderedEqualities.end());
+
+        // Increase i to skip over the children that have been processed.
+        i += count;
+        if (targetAppearsAfter) {
+          ++i;
+        }
+      }
+
+      // Else, just copy the child proof as is
+      else {
         subTrans.d_children.push_back(pf->d_children[i]);
+        ++i;
       }
     }
     Assert(neg >= 0);
-    // When done, add the tail of children to the transitivity proof
-    subTrans.d_children.insert( subTrans.d_children.end(), childrenTail.begin(), childrenTail.end() );
 
     Node n1;
     std::stringstream ss;
@@ -203,8 +273,8 @@ Node ProofUF::toStreamRecLFSC(std::ostream& out, TheoryProof * tp, theory::eq::E
       Assert(match(pf2->d_node, n1[1]));
       side = 1;
     }
-    if(n1[side].getKind() == kind::APPLY_UF || n1[side].getKind() == kind::SELECT || n1[side].getKind() == kind::STORE) {
-      if(n1[side].getKind() == kind::APPLY_UF) {
+    if(n1[side].getKind() == kind::APPLY_UF || n1[side].getKind() == kind::APPLY_UF || n1[side].getKind() == kind::SELECT || n1[side].getKind() == kind::STORE) {
+      if(n1[side].getKind() == kind::APPLY_UF || n1[side].getKind() == kind::PARTIAL_APPLY_UF) {
         b1 << n1[side].getOperator();
       } else {
         b1 << ProofManager::currentPM()->mkOp(n1[side].getOperator());
