@@ -128,7 +128,7 @@ public:
   //initialize
   void initialize( Node q );
   //check
-  void check( std::vector< Node >& lems );
+  bool check( std::vector< Node >& lems );
   //get solution
   Node getSolution( unsigned sol_index, TypeNode stn, int& reconstructed, bool rconsSygus = true );
   //reconstruct to syntax

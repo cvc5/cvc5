@@ -238,9 +238,10 @@ void CegInstantiation::check( Theory::Effort e, unsigned quant_e ) {
     if( active && d_conj->needsCheck( lem ) ){
       checkCegConjecture( d_conj );
     }else{
+      Trace("cegqi-engine-debug") << "...does not need check." << std::endl;
       for( unsigned i=0; i<lem.size(); i++ ){
         Trace("cegqi-lemma") << "Cegqi::Lemma : check lemma : " << lem[i] << std::endl;
-        d_quantEngine->getOutputChannel().lemma( lem[i] );
+        d_quantEngine->addLemma( lem[i] );
       }
     }
     Trace("cegqi-engine") << "Finished Counterexample Guided Instantiation engine." << std::endl;
@@ -292,20 +293,21 @@ Node CegInstantiation::getNextDecisionRequest() {
   if( d_conj->isAssigned() ){
     d_conj->initializeGuard( d_quantEngine );
     std::vector< Node > req_dec;
-    req_dec.push_back( d_conj->getGuard() );
-    if( d_conj->d_ceg_si ){
-      if( !d_conj->d_ceg_si->d_full_guard.isNull() ){
-        req_dec.push_back( d_conj->d_ceg_si->d_full_guard );
-      }
-      if( !d_conj->d_ceg_si->d_ns_guard.isNull() ){
-        req_dec.push_back( d_conj->d_ceg_si->d_ns_guard );
-      }
+    if( !d_conj->d_ceg_si->d_full_guard.isNull() ){
+      req_dec.push_back( d_conj->d_ceg_si->d_full_guard );
     }
+    //must decide ns guard before s guard
+    if( !d_conj->d_ceg_si->d_ns_guard.isNull() ){
+      req_dec.push_back( d_conj->d_ceg_si->d_ns_guard );
+    }
+    req_dec.push_back( d_conj->getGuard() );
     for( unsigned i=0; i<req_dec.size(); i++ ){
       bool value;
       if( !d_quantEngine->getValuation().hasSatValue( req_dec[i], value ) ) {
         Trace("cegqi-debug") << "CEGQI : Decide next on : " << req_dec[i] << "..." << std::endl;
         return req_dec[i];
+      }else{
+        Trace("cegqi-debug") << "CEGQI : " << req_dec[i] << " already has value " << value << std::endl;
       }
     }
 
@@ -347,15 +349,16 @@ void CegInstantiation::checkCegConjecture( CegConjecture * conj ) {
     if( conj->d_syntax_guided ){
       if( conj->d_ceg_si ){
         std::vector< Node > lems;
-        conj->d_ceg_si->check( lems );
-        if( !lems.empty() ){
-          d_last_inst_si = true;
-          for( unsigned j=0; j<lems.size(); j++ ){
-            Trace("cegqi-lemma") << "Cegqi::Lemma : single invocation instantiation : " << lems[j] << std::endl;
-            d_quantEngine->addLemma( lems[j] );
+        if( conj->d_ceg_si->check( lems ) ){
+          if( !lems.empty() ){
+            d_last_inst_si = true;
+            for( unsigned j=0; j<lems.size(); j++ ){
+              Trace("cegqi-lemma") << "Cegqi::Lemma : single invocation instantiation : " << lems[j] << std::endl;
+              d_quantEngine->addLemma( lems[j] );
+            }
+            d_statistics.d_cegqi_si_lemmas += lems.size();
+            Trace("cegqi-engine") << "  ...try single invocation." << std::endl;
           }
-          d_statistics.d_cegqi_si_lemmas += lems.size();
-          Trace("cegqi-engine") << "  ...try single invocation." << std::endl;
           return;
         }
       }

@@ -320,6 +320,7 @@ void CegConjectureSingleInv::initialize( Node q ) {
       if( !d_sip->d_all_vars.empty() ){
         fbvl = NodeManager::currentNM()->mkNode( BOUND_VAR_LIST, d_sip->d_all_vars );
       }
+      //should construct this conjunction directly since miniscoping is disabled
       std::vector< Node > flem_c;
       for( unsigned i=0; i<d_sip->d_conjuncts[2].size(); i++ ){
         Node flemi = d_sip->d_conjuncts[2][i];
@@ -504,7 +505,7 @@ void CegConjectureSingleInv::initializeNextSiConjecture() {
   }else{
     d_inst_match_trie.clear();
   }
-  Trace("cegqi-nsi") << "NSI : initialize next candidate conjecture, guard = " << d_ns_guard << std::endl;
+  Trace("cegqi-nsi") << "NSI : initialize next candidate conjecture, ns guard = " << d_ns_guard << std::endl;
   Trace("cegqi-nsi") << "NSI : conjecture is " << d_single_inv << std::endl;
 }
 
@@ -561,7 +562,7 @@ bool CegConjectureSingleInv::addLemma( Node n ) {
   return true;
 }
 
-void CegConjectureSingleInv::check( std::vector< Node >& lems ) {
+bool CegConjectureSingleInv::check( std::vector< Node >& lems ) {
   if( !d_single_inv.isNull() ) {
     if( !d_ns_guard.isNull() ){
       //if partially single invocation, check if we have constructed a candidate by refutation
@@ -596,9 +597,18 @@ void CegConjectureSingleInv::check( std::vector< Node >& lems ) {
             subs.push_back( NodeManager::currentNM()->mkSkolem( "kv", d_sip->d_all_vars[i].getType(), "created for verifying nsi" ) );
           }
           inst = inst.substitute( d_sip->d_all_vars.begin(), d_sip->d_all_vars.end(), subs.begin(), subs.end() );
-          Trace("cegqi-nsi") << "NSI : verification lemma : " << inst << std::endl;
-          lems.push_back( inst );
-          return;
+          Trace("cegqi-nsi") << "NSI : verification : " << inst << std::endl;
+          Trace("cegqi-lemma") << "Cegqi::Lemma : verification lemma : " << inst << std::endl;
+          d_qe->addLemma( inst );
+          /*
+          Node finst = d_sip->getFullSpecification();
+          finst = finst.substitute( d_sip->d_all_vars.begin(), d_sip->d_all_vars.end(), subs.begin(), subs.end() );
+          Trace("cegqi-nsi") << "NSI : check refinement : " << finst << std::endl;
+          Node finst_lem = NodeManager::currentNM()->mkNode( OR, d_full_guard.negate(), finst );
+          Trace("cegqi-lemma") << "Cegqi::Lemma : verification, refinement lemma : " << inst << std::endl;
+          d_qe->addLemma( finst_lem );
+          */
+          return true;
         }else{
           //currently trying to construct candidate by refutation (by d_cinst->check below)
         }
@@ -612,7 +622,7 @@ void CegConjectureSingleInv::check( std::vector< Node >& lems ) {
       //construct d_single_inv
       d_single_inv = Node::null();
       initializeNextSiConjecture();
-      return;
+      return true;
     }
     d_curr_lemmas.clear();
     //call check for instantiator
@@ -627,6 +637,9 @@ void CegConjectureSingleInv::check( std::vector< Node >& lems ) {
     }else{
       lems.insert( lems.end(), d_curr_lemmas.begin(), d_curr_lemmas.end() );
     }
+    return !lems.empty();
+  }else{
+    return false;
   }
 }
 
