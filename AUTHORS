@@ -9,7 +9,7 @@ The core designers and authors of CVC4 are:
   Clark Barrett, New York University
   Francois Bobot, The University of Iowa & Commissariat a l'Energie Atomique
   Martin Brain, University of Oxford
-  Christopher Conway, New York University
+  Christopher Conway, New York University & Google, Inc.
   Morgan Deters, New York University
   Liana Hadarean, New York University & Mentor Graphics Corporation
   Dejan Jovanovic, New York University & SRI International
@@ -23,6 +23,7 @@ Contributors to the CVC4 codebase additionally include:
   Peter Collingbourne, the Multicore Programming Group at Imperial College
     London (headed by Alastair Donaldson)
   Finn Haedicke, University of Bremen, Germany
+  Google, Inc.
 
 CVC4 is the fourth in the CVC series of tools (CVC, CVC Lite, CVC3) but does
 not directly incorporate code from any previous version.  Information about
