@@ -20,8 +20,8 @@
 #define __CVC4__PARSER__CVC_INPUT_H
 
 #include "parser/antlr_input.h"
-#include "parser/cvc/generated/CvcLexer.h"
-#include "parser/cvc/generated/CvcParser.h"
+#include "parser/cvc/CvcLexer.h"
+#include "parser/cvc/CvcParser.h"
 
 // extern void CvcParserSetAntlrParser(CVC4::parser::AntlrParser* newAntlrParser);
 
