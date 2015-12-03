@@ -92,63 +92,23 @@ noinst_LTLIBRARIES = liboptions.la
 liboptions_la_SOURCES = \
 	options.h \
 	base_options_handlers.h \
-	option_exception.h 
+	option_exception.h
 
 nodist_liboptions_la_SOURCES = \
 	options.cpp \
 	options_holder.h \
-	base_options.cpp \
-	base_options.h \
-	../expr/options.cpp \
-	../expr/options.h \
-	../theory/booleans/options.cpp \
-	../theory/booleans/options.h \
-	../theory/options.cpp \
-	../theory/options.h \
-	../theory/bv/options.cpp \
-	../theory/bv/options.h \
-	../theory/datatypes/options.cpp \
-	../theory/datatypes/options.h \
-	../theory/builtin/options.cpp \
-	../theory/builtin/options.h \
-	../theory/arith/options.cpp \
-	../theory/arith/options.h \
-	../theory/uf/options.cpp \
-	../theory/uf/options.h \
-	../theory/arrays/options.cpp \
-	../theory/arrays/options.h \
-	../theory/quantifiers/options.cpp \
-	../theory/quantifiers/options.h \
-	../theory/strings/options.cpp \
-	../theory/strings/options.h \
-	../prop/options.cpp \
-	../prop/options.h \
-	../proof/options.cpp \
-	../proof/options.h \
-	../printer/options.cpp \
-	../printer/options.h \
-	../smt/options.cpp \
-	../smt/options.h \
-	../decision/options.cpp \
-	../decision/options.h \
-	../main/options.cpp \
-	../main/options.h \
-	../parser/options.cpp \
-	../parser/options.h \
-	../theory/idl/options.cpp \
-	../theory/idl/options.h \
-	../theory/sets/options.cpp \
-	../theory/sets/options.h \
-	../theory/fp/options.cpp \
-	../theory/fp/options.h
+	$(OPTIONS_FILES_SRCS)
+
 
 BUILT_SOURCES = \
 	exprs-builts \
 	../smt/smt_options.cpp \
 	options.cpp \
 	options_holder.h \
-	$(OPTIONS_FILES_SRCS)
-
+	$(OPTIONS_FILES_SRCS) \
+	$(OPTIONS_SEDS) \
+	summary.sed \
+	$(TEMPLATE_SEDS)
 
 
 # The documentation files are added to BUILT_SOURCES to get the files to
@@ -161,7 +121,6 @@ BUILT_SOURCES += \
 CLEANFILES = \
 	$(OPTIONS_FILES_SRCS) \
 	$(BUILT_SOURCES) \
-	options-stamp \
 	$(DOCUMENTATION_FILES)
 
 EXTRA_DIST = \
@@ -173,11 +132,6 @@ EXTRA_DIST = \
 	options.i \
 	option_exception.i \
 	$(OPTIONS_FILES) \
-	options-stamp \
-	../smt/smt_options.cpp \
-	options.cpp \
-	options_holder.h \
-	$(OPTIONS_FILES_SRCS) \
 	mktagheaders \
 	mktags \
 	$(DOCUMENTATION_FILES)
@@ -224,6 +178,10 @@ MOSTLYCLEANFILES = \
 #   mkoptions template-sed template-file (options-file)*
 #   mkoptions apply-sed-files-to-template sed-file template-file filename
 
+$(OPTIONS_FILES):;
+options_holder_template.h options_template.cpp ../smt/smt_options_template.cpp base_options_template.h base_options_template.cpp :;
+
+
 $(TEMPLATE_SEDS) : %.sed : % mkoptions
 #	echo "template seds"
 #	echo "$@"
@@ -232,7 +190,7 @@ $(TEMPLATE_SEDS) : %.sed : % mkoptions
 	$(AM_V_GEN)(@srcdir@/mkoptions template-sed "$<" ) > "$@"
 
 
-$(OPTIONS_SEDS) : %.sed : @srcdir@/% mkoptions
+$(OPTIONS_SEDS) : %.sed : % mkoptions
 #	echo "sedheads"
 #	echo "$@"
 #	echo $(OPTIONS_SEDS)
@@ -252,8 +210,30 @@ $(OPTIONS_HEADS) : %.h : %.sed mkoptions base_options_template.h base_options_te
 		"$<" \
 	) > "$@"
 
+summary.sed : mkoptions $(OPTIONS_FILES)
+	$(AM_V_at)chmod +x @srcdir@/mkoptions
+	$(AM_V_GEN)(@srcdir@/mkoptions summary-sed \
+		$(foreach o,$(OPTIONS_FILES),"$(srcdir)/$(o)") \
+	) > summary.sed
+
+
+
+#   mkoptions apply-sed-to-template sed-file template-file
+options_holder.h : options_holder_template.h options_holder_template.h.sed summary.sed mkoptions
+#	echo "$(OPTIONS_FILES)"
+	$(AM_V_at)chmod +x @srcdir@/mkoptions
+	$(AM_V_GEN)(@srcdir@/mkoptions apply-sed-files-to-template \
+		@srcdir@/options_holder_template.h \
+		@builddir@/options_holder_template.h.sed \
+		summary.sed \
+	) > "$@"
+
+gen-heads-stamp : $(OPTIONS_HEADS) options_holder.h
+.PHONY : gen-heads-stamp
+
+
 # Bit of a hack here. The .h file needs to always be built before the .cpp file is compiled.
-$(OPTIONS_CPPS) : %.cpp : %.sed mkoptions base_options_template.cpp base_options_template.cpp.sed
+$(OPTIONS_CPPS) : %.cpp : %.sed mkoptions base_options_template.cpp base_options_template.cpp.sed gen-heads-stamp
 #	echo "cpps"
 #	echo "$@"
 #	echo "$<"
@@ -269,26 +249,8 @@ $(OPTIONS_CPPS) : %.cpp : %.sed mkoptions base_options_template.cpp base_options
 
 
 
-summary.sed : mkoptions $(OPTIONS_FILES)
-	$(AM_V_at)chmod +x @srcdir@/mkoptions
-	$(AM_V_GEN)(@srcdir@/mkoptions summary-sed \
-		$(foreach o,$(OPTIONS_FILES),"$(srcdir)/$(o)") \
-	) > summary.sed
-
-
-
 #   mkoptions apply-sed-to-template sed-file template-file
-options_holder.h : options_holder_template.h options_holder_template.h.sed summary.sed mkoptions $(OPTIONS_HEADERS)
-#	echo "$(OPTIONS_FILES)"
-	$(AM_V_at)chmod +x @srcdir@/mkoptions
-	$(AM_V_GEN)(@srcdir@/mkoptions apply-sed-files-to-template \
-		@srcdir@/options_holder_template.h \
-		@builddir@/options_holder_template.h.sed \
-		summary.sed \
-	) > "$@"
-
-#   mkoptions apply-sed-to-template sed-file template-file
-options.cpp : options_template.cpp options_template.cpp.sed mkoptions summary.sed $(OPTIONS_HEADERS)
+options.cpp : options_template.cpp options_template.cpp.sed mkoptions summary.sed gen-heads-stamp
 #	echo "$(OPTIONS_FILES)"
 	$(AM_V_at)chmod +x @srcdir@/mkoptions
 	$(AM_V_GEN)(@srcdir@/mkoptions apply-sed-files-to-template \
@@ -299,7 +261,7 @@ options.cpp : options_template.cpp options_template.cpp.sed mkoptions summary.se
 
 
 #   mkoptions apply-sed-to-template sed-file template-file
-../smt/smt_options.cpp : ../smt/smt_options_template.cpp ../smt/smt_options_template.cpp.sed mkoptions summary.sed $(OPTIONS_HEADERS)
+../smt/smt_options.cpp : ../smt/smt_options_template.cpp ../smt/smt_options_template.cpp.sed mkoptions summary.sed gen-heads-stamp
 #	echo "$(OPTIONS_FILES)"
 	$(AM_V_at)chmod +x @srcdir@/mkoptions
 	$(AM_V_GEN)(@srcdir@/mkoptions apply-sed-files-to-template \
@@ -323,7 +285,7 @@ $(DOCUMENTATION_FILES) : % : %_template %_template.sed mkoptions summary.sed
 
 
 
-options-stamp: options_holder_template.h options_template.cpp ../smt/smt_options_template.cpp base_options_template.h base_options_template.cpp mkoptions $(OPTIONS_FILE_SRCS)
+#options-stamp: options_holder_template.h options_template.cpp ../smt/smt_options_template.cpp base_options_template.h base_options_template.cpp mkoptions $(OPTIONS_FILE_SRCS)
 
 
 # This rule is ugly.  It's needed to ensure that automake's dependence
@@ -331,6 +293,43 @@ options-stamp: options_holder_template.h options_template.cpp ../smt/smt_options
 # directories that are cleaned first.  Without this rule, "distclean"
 # fails.
 %.Plo:; $(MKDIR_P) "$(dir $@)" && : > "$@"
+
+# Tim:
+# This is insanely ugly and brittle!
+# *Any* proposal to clean this up is welcomed!
+# We are overloading automake's default distclean here. We have to overload
+# distclean because otherwise it deletes the dependency directory
+# "src/expr/.deps", then when running make distclean in src/expr it attempts to
+# include .Plo files "defined in src/expr/.deps".
+# An example from src/expr/Makefile.ina :
+# @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/attribute.Plo@am__quote@
+# The include must fail because this make file deleted that directory and
+# distclean cannot proceed. So we override distclean to only remove
+# "-rm -rf ./$(DEPDIR)". We then do manual massaging to finish up removing the
+# extra files. To reproduce this, you can comment out the distclean below, run
+# a distcheck and repeat this process.
+# Why was this not a problem before? I do not know.
+MANUAL_RM = \
+	$(CLEANFILES) \
+	../main/.dirstamp \
+	../expr/.dirstamp \
+	../options/options.lo \
+	../options/base_options.lo \
+	../options/.libs/options.o \
+	../options/.libs/base_options.o \
+	../options/.libs/liboptions.a \
+	../options/Trace_tags.tmp \
+	../options/Debug_tags.tmp \
+	../options/liboptions.la \
+	../parser/.dirstamp
+
+
+
+
+distclean:
+	-rm -rf ./$(DEPDIR)
+	-rm -f Makefile
+	-rm -f $(MANUAL_RM)
 
 .PHONY: exprs-builts
 exprs-builts:; $(AM_V_at)[ "$(FROM_EXPR)" != 1 ] && $(MAKE) -C ../expr builts || true
