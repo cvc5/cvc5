@@ -321,8 +321,30 @@ MANUAL_RM = \
 	../options/Trace_tags.tmp \
 	../options/Debug_tags.tmp \
 	../options/liboptions.la \
-	../parser/.dirstamp
-
+	../parser/.dirstamp \
+	../expr/.deps/options.Plo \
+	../main/.deps/options.Plo \
+	../parser/.deps/options.Plo \
+	../prop/options.lo \
+	../decision/options.lo \
+	../printer/options.lo \
+	../proof/options.lo \
+	../smt/options.lo \
+	../theory/arith/options.lo \
+	../theory/arrays/options.lo \
+	../theory/booleans/options.lo \
+	../theory/builtin/options.lo \
+	../theory/bv/options.lo \
+	../theory/datatypes/options.lo \
+	../theory/fp/options.lo \
+	../theory/idl/options.lo \
+	../theory/quantifiers/options.lo \
+	../theory/sets/options.lo \
+	../theory/strings/options.lo \
+	../theory/test_newalttheory/options.lo \
+	../theory/test_newtheory/options.lo \
+	../theory/uf/options.lo \
+	../theory/options.lo
 
 
 
