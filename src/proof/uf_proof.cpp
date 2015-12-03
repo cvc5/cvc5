@@ -400,10 +400,124 @@ Node ProofUF::toStreamRecLFSC(std::ostream& out, TheoryProof * tp, theory::eq::E
     if(tb == 1) {
       Debug("mgdx") << "\ntrans proof[0], got n1 " << n1 << "\n";
     }
+
+    bool identicalEqualities = false;
+    bool evenLengthSequence;
+    Node nodeAfterEqualitySequence;
+
     for(size_t i = 1; i < pf->d_children.size(); ++i) {
       std::stringstream ss1(ss.str()), ss2;
       ss.str("");
       Node n2 = toStreamRecLFSC(ss2, tp, pf->d_children[i], tb + 1, map);
+
+      // The following branch is dedicated to handling sequences of identical equalities,
+      // i.e. trans[ a=b, a=b, a=b ].
+      //
+      // There are two cases:
+      //    1. The number of equalities is odd. Then, the sequence can be collapsed to just one equality,
+      //       i.e. a=b.
+      //    2. The number of equalities is even. Now, we have two options: a=a or b=b. To determine this,
+      //       we look at the node after the equality sequence. If it needs a, we go for a=a; and if it needs
+      //       b, we go for b=b. If there is no following node, we look at the goal of the transitivity proof,
+      //       and use it to determine which option we need.
+      if(n2.getKind() == kind::EQUAL || n2.getKind() == kind::IFF) {
+        if (((n1[0] == n2[0]) && (n1[1] == n2[1])) || ((n1[0] == n2[1]) && (n1[1] == n2[0]))) {
+          // We are in a sequence of identical equalities
+
+          Debug("gk::proof") << "Detected identical equalities: " << std::endl << "\t" << n1 << std::endl;
+
+          if (!identicalEqualities) {
+            // The sequence of identical equalities has started just now
+            identicalEqualities = true;
+
+            Debug("gk::proof") << "The sequence is just beginning. Determining length..." << std::endl;
+
+            // Determine whether the length of this sequence is odd or even.
+            evenLengthSequence = true;
+            bool sequenceOver = false;
+            size_t j = i + 1;
+
+            while (j < pf->d_children.size() && !sequenceOver) {
+              std::stringstream dontCare;
+              nodeAfterEqualitySequence = toStreamRecLFSC(dontCare, tp, pf->d_children[j], tb + 1, map );
+
+              if (((nodeAfterEqualitySequence[0] == n1[0]) && (nodeAfterEqualitySequence[1] == n1[1])) ||
+                  ((nodeAfterEqualitySequence[0] == n1[1]) && (nodeAfterEqualitySequence[1] == n1[0]))) {
+                evenLengthSequence = !evenLengthSequence;
+              } else {
+                sequenceOver = true;
+              }
+
+              ++j;
+            }
+
+            if (evenLengthSequence) {
+              // If the length is even, we need to apply transitivity for the "correct" hand of the equality.
+
+              Debug("gk::proof") << "Equality sequence of even length" << std::endl;
+              Debug("gk::proof") << "n1 is: " << n1 << std::endl;
+              Debug("gk::proof") << "n2 is: " << n2 << std::endl;
+              Debug("gk::proof") << "pf-d_node is: " << pf->d_node << std::endl;
+              Debug("gk::proof") << "Next node is: " << nodeAfterEqualitySequence << std::endl;
+
+              ss << "(trans _ _ _ _ ";
+
+              // If the sequence is at the very end of the transitivity proof, use pf->d_node to guide us.
+              if (!sequenceOver) {
+                if (match(n1[0], pf->d_node[0])) {
+                  n1 = eqNode(n1[0], n1[0]);
+                  ss << ss1.str() << " (symm _ _ _ " << ss1.str() << ")";
+                } else if (match(n1[1], pf->d_node[1])) {
+                  n1 = eqNode(n1[1], n1[1]);
+                  ss << " (symm _ _ _ " << ss1.str() << ")" << ss1.str();
+                } else {
+                  Debug("gk::proof") << "Error: identical equalities over, but hands don't match what we're proving."
+                                     << std::endl;
+                  Assert(false);
+                }
+              } else {
+                // We have a "next node". Use it to guide us.
+
+                Assert(nodeAfterEqualitySequence.getKind() == kind::EQUAL ||
+                       nodeAfterEqualitySequence.getKind() == kind::IFF);
+
+                if ((n1[0] == nodeAfterEqualitySequence[0]) || (n1[0] == nodeAfterEqualitySequence[1])) {
+
+                  // Eliminate n1[1]
+                  ss << ss1.str() << " (symm _ _ _ " << ss1.str() << ")";
+                  n1 = eqNode(n1[0], n1[0]);
+
+                } else if ((n1[1] == nodeAfterEqualitySequence[0]) || (n1[1] == nodeAfterEqualitySequence[1])) {
+
+                  // Eliminate n1[0]
+                  ss << " (symm _ _ _ " << ss1.str() << ")" << ss1.str();
+                  n1 = eqNode(n1[1], n1[1]);
+
+                } else {
+                  Debug("gk::proof") << "Error: even length sequence, but I don't know which hand to keep!" << std::endl;
+                  Assert(false);
+                }
+              }
+            } else {
+              Debug("gk::proof") << "Equality sequence length is odd!" << std::endl;
+              ss.str(ss1.str());
+            }
+
+            Debug("gk::proof") << "Have proven: " << n1 << std::endl;
+          } else {
+            ss.str(ss1.str());
+          }
+
+          // Ignore the redundancy.
+          continue;
+        }
+      }
+
+      if (identicalEqualities) {
+        // We were in a sequence of identical equalities, but it has now ended. Resume normal operation.
+        identicalEqualities = false;
+      }
+
       Debug("mgd") << "\ndoing trans proof, got n2 " << n2 << "\n";
       if(tb == 1) {
         Debug("mgdx") << "\ntrans proof[" << i << "], got n2 " << n2 << "\n";
@@ -424,47 +538,18 @@ Node ProofUF::toStreamRecLFSC(std::ostream& out, TheoryProof * tp, theory::eq::E
       ss << "(trans _ _ _ _ ";
       if(n2.getKind() == kind::EQUAL || n2.getKind() == kind::IFF) {
         if(n1[0] == n2[0]) {
-          if(n1[1] == n2[1] && match(n1[0], pf->d_node[0])) {
-            if(match(n1[1], pf->d_node[1])) {
-              // We have multiple identical nodes in the transitivity proof.
-              // Simply ignore the redundancy, until we reach a different node.
-
-              //Warning() << "TRICKY CASE 1!\n";
-              ss.str(ss1.str());
-              continue;
-            }
-            //ambiguity -- could replace with refl
-            n1 = eqNode(n1[0], n2[0]);
-            ss << ss1.str() << " (symm _ _ _ " << ss2.str() << ")";
-          } else {
             if(tb == 1) { Debug("mgdx") << "case 1\n"; }
             n1 = eqNode(n1[1], n2[1]);
             ss << "(symm _ _ _ " << ss1.str() << ") " << ss2.str();
-          }
         } else if(n1[1] == n2[1]) {
           if(tb == 1) { Debug("mgdx") << "case 2\n"; }
           n1 = eqNode(n1[0], n2[0]);
           ss << ss1.str() << " (symm _ _ _ " << ss2.str() << ")";
         } else if(n1[0] == n2[1]) {
-          if(n1[1] == n2[0] && match(n1[0], pf->d_node[0])) {
-            if(match(n1[1], pf->d_node[1])) {
-              // We have multiple identical nodes in the transitivity proof.
-              // Simply ignore the redundancy, until we reach a different node.
-
-              //Warning() << "TRICKY CASE 2!\n";
-              ss.str(ss1.str());
-              continue;
-            }
-            //ambiguity -- could replace with refl
-            n1 = eqNode(n1[0], n2[1]);
-            Debug("mgdx") << "ambiguity resolved in favor of " << n1 << "\n";
-            ss << ss1.str() << " " << ss2.str();
-          } else {
             if(tb == 1) { Debug("mgdx") << "case 3\n"; }
             n1 = eqNode(n2[0], n1[1]);
             ss << ss2.str() << " " << ss1.str();
             if(tb == 1) { Debug("mgdx") << "++ proved " << n1 << "\n"; }
-          }
         } else if(n1[1] == n2[0]) {
           if(tb == 1) { Debug("mgdx") << "case 4\n"; }
           n1 = eqNode(n1[0], n2[1]);
