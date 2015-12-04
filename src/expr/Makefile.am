@@ -37,9 +37,7 @@ libexpr_la_SOURCES = \
 	pickler.cpp \
 	node_self_iterator.h \
 	expr_stream.h \
-	kind_map.h \
-	options_handlers.h \
-	options_handlers.cpp
+	kind_map.h
 
 nodist_libexpr_la_SOURCES = \
 	kind.h \
