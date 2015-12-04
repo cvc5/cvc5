@@ -498,6 +498,9 @@ Node ProofUF::toStreamRecLFSC(std::ostream& out, TheoryProof * tp, theory::eq::E
                   Assert(false);
                 }
               }
+
+              ss << ")";
+
             } else {
               Debug("gk::proof") << "Equality sequence length is odd!" << std::endl;
               ss.str(ss1.str());
@@ -718,7 +721,7 @@ void LFSCUFProof::printTerm(Expr term, std::ostream& os, const LetMap& map) {
   }
   os << func << " ";
   for (unsigned i = 0; i < term.getNumChildren(); ++i) {
-    d_proofEngine->printBoundTerm(term[i], os, map);
+    printTerm(term[i], os, map);
     os << ")";
   }
   if(term.getType().isBoolean()) {
