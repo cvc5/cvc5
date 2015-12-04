@@ -128,8 +128,8 @@ class CDOhash_map : public ContextObj {
   }
 
   virtual void restore(ContextObj* data) {
+    CDOhash_map* p = static_cast<CDOhash_map*>(data);
     if(d_map != NULL) {
-      CDOhash_map* p = static_cast<CDOhash_map*>(data);
       if(p->d_map == NULL) {
         Assert(d_map->d_map.find(d_key) != d_map->d_map.end() &&
                (*d_map->d_map.find(d_key)).second == this);
@@ -163,6 +163,10 @@ class CDOhash_map : public ContextObj {
         d_data = p->d_data;
       }
     }
+    // Explicitly call destructors fro the key and the date as they will not
+    // otherwise get called.
+    p->d_key.~Key();
+    p->d_data.~Data();
   }
 
   /** ensure copy ctor is only called by us */

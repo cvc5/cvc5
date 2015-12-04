@@ -70,8 +70,11 @@ protected:
    */
   virtual void restore(ContextObj* pContextObj) {
     //Debug("context") << "restore cdo " << this;
-    d_data = ((CDO<T>*) pContextObj)->d_data;
+    CDO<T>* p = static_cast<CDO<T>*>(pContextObj);
+    d_data = p->d_data;
     //Debug("context") << " to " << get() << std::endl;
+    // Explicitly call destructor as it will not otherwise get called.
+    p->d_data.~T();
   }
 
 public:
