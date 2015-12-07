@@ -423,13 +423,43 @@ void LFSCTheoryProofEngine::printCoreTerm(Expr term, std::ostream& os, const Let
     return;
 
   case kind::DISTINCT:
-    os << "(not (= ";
-    printSort(term[0].getType(), os);
-    printBoundTerm(term[0], os, map);
-    os << " ";
-    printBoundTerm(term[1], os, map);
-    os << "))";
-    Assert (term.getNumChildren() == 2);
+    // Distinct nodes can have any number of chidlren.
+    Assert (term.getNumChildren() >= 2);
+
+    if (term.getNumChildren() == 2) {
+      os << "(not (= ";
+      printSort(term[0].getType(), os);
+      printBoundTerm(term[0], os, map);
+      os << " ";
+      printBoundTerm(term[1], os, map);
+      os << "))";
+    } else {
+      unsigned numOfPairs = term.getNumChildren() * (term.getNumChildren() - 1) / 2;
+      for (unsigned i = 1; i < numOfPairs; ++i) {
+        os << "(and ";
+      }
+
+      for (unsigned i = 0; i < term.getNumChildren(); ++i) {
+        for (unsigned j = i + 1; j < term.getNumChildren(); ++j) {
+          if ((i != 0) || (j != 1)) {
+            os << "(not (= ";
+            printSort(term[0].getType(), os);
+            printBoundTerm(term[i], os, map);
+            os << " ";
+            printBoundTerm(term[j], os, map);
+            os << ")))";
+          } else {
+            os << "(not (= ";
+            printSort(term[0].getType(), os);
+            printBoundTerm(term[0], os, map);
+            os << " ";
+            printBoundTerm(term[1], os, map);
+            os << "))";
+          }
+        }
+      }
+    }
+
     return;
 
   case kind::CHAIN: {
@@ -582,6 +612,3 @@ void LFSCBooleanProof::printDeclarations(std::ostream& os, std::ostream& paren) 
     paren <<")";
   }
 }
-
-
-
