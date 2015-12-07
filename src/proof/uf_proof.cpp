@@ -539,7 +539,11 @@ Node ProofUF::toStreamRecLFSC(std::ostream& out, TheoryProof * tp, theory::eq::E
         }
       }
       ss << "(trans _ _ _ _ ";
-      if(n2.getKind() == kind::EQUAL || n2.getKind() == kind::IFF) {
+
+      if((n2.getKind() == kind::EQUAL || n2.getKind() == kind::IFF) &&
+         (n1.getKind() == kind::EQUAL || n1.getKind() == kind::IFF))
+        // Both elements of the transitivity rule are equalities/iffs
+      {
         if(n1[0] == n2[0]) {
             if(tb == 1) { Debug("mgdx") << "case 1\n"; }
             n1 = eqNode(n1[1], n2[1]);
@@ -567,7 +571,8 @@ Node ProofUF::toStreamRecLFSC(std::ostream& out, TheoryProof * tp, theory::eq::E
           Unreachable();
         }
         Debug("mgd") << "++ trans proof[" << i << "], now have " << n1 << std::endl;
-      } else {
+      } else if(n1.getKind() == kind::EQUAL || n1.getKind() == kind::IFF) {
+        // n1 is an equality/iff, but n2 is a predicate
         if(n1[0] == n2) {
           n1 = n1[1];
           ss << "(symm _ _ _ " << ss1.str() << ") (pred_eq_t _ " << ss2.str() << ")";
@@ -577,7 +582,22 @@ Node ProofUF::toStreamRecLFSC(std::ostream& out, TheoryProof * tp, theory::eq::E
         } else {
           Unreachable();
         }
+      } else if(n2.getKind() == kind::EQUAL || n2.getKind() == kind::IFF) {
+        // n2 is an equality/iff, but n1 is a predicate
+        if(n2[0] == n1) {
+          n1 = n2[1];
+          ss << "(symm _ _ _ " << ss2.str() << ") (pred_eq_t _ " << ss1.str() << ")";
+        } else if(n2[1] == n1) {
+          n1 = n2[0];
+          ss << ss2.str() << " (pred_eq_t _ " << ss1.str() << ")";
+        } else {
+          Unreachable();
+        }
+      } else {
+        // Both n1 and n2 are prediacates. Don't know what to do...
+        Unreachable();
       }
+
       ss << ")";
     }
     out << ss.str();
