@@ -127,6 +127,8 @@ option fmfFunWellDefined --fmf-fun bool :default false :read-write
  find models for recursively defined functions, assumes functions are admissible
 option fmfFunWellDefinedRelevant --fmf-fun-rlv bool :default false
  find models for recursively defined functions, assumes functions are admissible, allows empty type when function is irrelevant
+option fmfEmptySorts --fmf-empty-sorts bool :default false
+ allow finite model finding to assume sorts that do not occur in ground assertions are empty
  
 option mbqiMode --mbqi=MODE CVC4::theory::quantifiers::MbqiMode :read-write :default CVC4::theory::quantifiers::MBQI_FMC :include "theory/quantifiers/modes.h" :handler CVC4::theory::quantifiers::stringToMbqiMode :handler-include "theory/quantifiers/options_handlers.h" :predicate CVC4::theory::quantifiers::checkMbqiMode :predicate-include "theory/quantifiers/options_handlers.h"
  choose mode for model-based quantifier instantiation
