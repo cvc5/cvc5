@@ -83,10 +83,10 @@ void CnfStream::assertClause(TNode node, SatClause& c) {
   }
 
   PROOF(if (d_cnfProof) d_cnfProof->pushCurrentDefinition(node););
-  
+
   ClauseId clause_id = d_satSolver->addClause(c, d_removable);
   if (clause_id == ClauseIdUndef) return; // nothing to store (no clause was added)
-  
+
   PROOF
     (
      if (d_cnfProof) {
@@ -197,7 +197,7 @@ SatLiteral CnfStream::newLiteral(TNode node, bool isTheoryAtom, bool preRegister
     //          ProofManager::currentPM()->registerTheoryAtom(node.toExpr(), lit.getSatVariable());
     //        }
     //        // TODO: register for bit-vector theory
-    //        ); 
+    //        );
   } else {
     lit = getLiteral(node);
   }
@@ -694,15 +694,22 @@ void TseitinCnfStream::convertAndAssert(TNode node,
                << ", removable = " << (removable ? "true" : "false")
                << ", negated = " << (negated ? "true" : "false") << ")" << endl;
   d_removable = removable;
-  
+
   PROOF
     (if (d_cnfProof) {
       Node assertion = negated ? node.notNode() : (Node)node;
-      Node from_assertion = negated? from.notNode() : (Node) from; 
-      d_cnfProof->pushCurrentAssertion(from.isNull() ? assertion : from_assertion);
-      d_cnfProof->registerAssertion(from.isNull() ? assertion : from_assertion, proof_id);
+      Node from_assertion = negated? from.notNode() : (Node) from;
+
+      if (proof_id != RULE_INVALID) {
+        d_cnfProof->pushCurrentAssertion(from.isNull() ? assertion : from_assertion);
+        d_cnfProof->registerAssertion(from.isNull() ? assertion : from_assertion, proof_id);
+      }
+      else {
+        d_cnfProof->pushCurrentAssertion(assertion);
+        d_cnfProof->registerAssertion(assertion, proof_id);
+      }
     });
-  
+
   convertAndAssert(node, negated);
   PROOF(if (d_cnfProof) d_cnfProof->popCurrentAssertion(); );
 }
