@@ -18,9 +18,9 @@
 #include <iostream>
 #include <string>
 
-#include "util/language.h"
-#include "util/unsafe_interrupt_exception.h"
+#include "options/language.h"
 #include "options/options.h"
+#include "util/unsafe_interrupt_exception.h"
 
 namespace CVC4 {
 

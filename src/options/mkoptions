@@ -12,11 +12,12 @@
 #   mkoptions template-sed template-file
 #   mkoptions apply-sed-files-to-template template-file (sed-file)*
 #
-# The primary purpose of this script is to create options.{h,cpp}
+# The primary purpose of this script is to create options/*_options.{h,cpp}
 # from template files and a list of options. This additionally generates
-# the several documentation files, smt/smt_options.{h,cpp}, and
-# options_holder.{h,cpp}. This script can in broad terms be thought of
-# as an interpreter for a domain specific language within bash.
+# the several documentation files, option_handler_get_option.cpp,
+# option_handler_set_option.cpp, and options_holder.{h,cpp}. This script can in
+# broad terms be thought of as an interpreter for a domain specific language
+# within bash.
 #
 # The process for generating the files is as follows.
 # 1) Scan all of the option files that are of interest.
@@ -534,11 +535,11 @@ template <> bool Options::wasSetByUser(options::${internal}__option_t) const;"
     if [ "$type" = bool ]; then
       module_specializations="${module_specializations}
 #line $lineno \"$kf\"
-template <> void Options::assignBool(options::${internal}__option_t, std::string option, bool value, SmtEngine* smt);"
+template <> void Options::assignBool(options::${internal}__option_t, std::string option, bool value, options::OptionsHandler* handler);"
     elif [ "$internal" != - ]; then
       module_specializations="${module_specializations}
 #line $lineno \"$kf\"
-template <> void Options::assign(options::${internal}__option_t, std::string option, std::string value, SmtEngine* smt);"
+template <> void Options::assign(options::${internal}__option_t, std::string option, std::string value, options::OptionsHandler* handler);"
     fi
 
     module_accessors="${module_accessors}
@@ -604,7 +605,7 @@ template <> bool Options::wasSetByUser(options::${internal}__option_t) const { r
     while [ $i -lt ${#smt_links[@]} ]; do
       run_smt_links="$run_smt_links
 #line $lineno \"$kf\"
-    smt->setOption(std::string(\"${smt_links[$i]}\"), SExpr(${smt_links[$(($i+1))]}));"
+    handler->setOption(std::string(\"${smt_links[$i]}\"), (${smt_links[$(($i+1))]}));"
       i=$((i+2))
     done
   fi
@@ -625,13 +626,13 @@ template <> bool Options::wasSetByUser(options::${internal}__option_t) const { r
       for predicate in $predicates; do
         run_handlers="$run_handlers
 #line $lineno \"$kf\"
-  $predicate(option, b, smt);"
+  $predicate(option, b, handler);"
       done
     fi
     if [ -n "$run_handlers" ]; then
       all_custom_handlers="${all_custom_handlers}
 #line $lineno \"$kf\"
-template <> void runBoolPredicates(options::${internal}__option_t, std::string option, bool b, SmtEngine* smt) {
+template <> void runBoolPredicates(options::${internal}__option_t, std::string option, bool b, options::OptionsHandler* handler) {
   $run_handlers
 }"
     fi
@@ -640,7 +641,7 @@ template <> void runBoolPredicates(options::${internal}__option_t, std::string o
     if [ "$type" = bool ]; then
       all_modules_option_handlers="${all_modules_option_handlers}${cases}
 #line $lineno \"$kf\"
-      assignBool(options::$internal, option, true, NULL);$run_links
+      assignBool(options::$internal, option, true, handler);$run_links
       break;
 "
     elif [ -n "$expect_arg" -a "$internal" != - ]; then
@@ -649,7 +650,7 @@ template <> void runBoolPredicates(options::${internal}__option_t, std::string o
         for handler in $handlers; do
           run_handlers="$run_handlers
 #line $lineno \"$kf\"
-  $handler(option, optionarg, smt);"
+  $handler(option, optionarg, handler);"
         done
       else
         run_handlers="
@@ -660,12 +661,12 @@ template <> void runBoolPredicates(options::${internal}__option_t, std::string o
         for predicate in $predicates; do
           run_handlers="$run_handlers
 #line $lineno \"$kf\"
-  $predicate(option, retval, smt);"
+  $predicate(option, retval, handler);"
         done
       fi
       all_custom_handlers="${all_custom_handlers}
 #line $lineno \"$kf\"
-template <> options::${internal}__option_t::type runHandlerAndPredicates(options::${internal}__option_t, std::string option, std::string optionarg, SmtEngine* smt) {
+template <> options::${internal}__option_t::type runHandlerAndPredicates(options::${internal}__option_t, std::string option, std::string optionarg, options::OptionsHandler* handler) {
 #line $lineno \"$kf\"
   options::${internal}__option_t::type retval = $run_handlers
 #line $lineno \"$kf\"
@@ -673,7 +674,7 @@ template <> options::${internal}__option_t::type runHandlerAndPredicates(options
 }"
       all_modules_option_handlers="${all_modules_option_handlers}${cases}
 #line $lineno \"$kf\"
-      assign(options::$internal, option, optionarg, NULL);$run_links
+      assign(options::$internal, option, optionarg, handler);$run_links
       break;
 "
     elif [ -n "$expect_arg" ]; then
@@ -685,7 +686,7 @@ template <> options::${internal}__option_t::type runHandlerAndPredicates(options
         for handler in $handlers; do
           run_handlers="$run_handlers
 #line $lineno \"$kf\"
-      $handler(option, optionarg, smt);"
+      $handler(option, optionarg, handler);"
         done
       fi
       all_modules_option_handlers="${all_modules_option_handlers}${cases}
@@ -702,7 +703,7 @@ template <> options::${internal}__option_t::type runHandlerAndPredicates(options
         for handler in $handlers; do
           run_handlers="$run_handlers
 #line $lineno \"$kf\"
-      $handler(option, smt);"
+      $handler(option, handler);"
         done
       fi
       all_modules_option_handlers="${all_modules_option_handlers}${cases}
@@ -716,7 +717,7 @@ template <> options::${internal}__option_t::type runHandlerAndPredicates(options
     if [ "$type" = bool ]; then
       all_modules_option_handlers="${all_modules_option_handlers}${cases_alternate}
 #line $lineno \"$kf\"
-      assignBool(options::$internal, option, false, NULL);$run_links_alternate
+      assignBool(options::$internal, option, false, handler);$run_links_alternate
       break;
 "
     else
@@ -733,54 +734,33 @@ template <> options::${internal}__option_t::type runHandlerAndPredicates(options
       bool)
         all_modules_get_options="${all_modules_get_options:+$all_modules_get_options
 #line $lineno \"$kf\"
-  }{ std::vector<SExpr> v; v.push_back(\"$smtname\"); v.push_back(SExpr::Keyword(d_holder->$internal ? \"true\" : \"false\")); opts.push_back(v); }"
+  }{ std::vector<std::string> v; v.push_back(\"$smtname\"); v.push_back(std::string(d_holder->$internal ? \"true\" : \"false\")); opts.push_back(v); }"
         smt_getoption_handlers="${smt_getoption_handlers}
 #line $lineno \"$kf\"
   if(key == \"$smtname\") {
 #line $lineno \"$kf\"
-    return SExprKeyword(options::$internal() ? \"true\" : \"false\");
+    return std::string(options::$internal() ? \"true\" : \"false\");
   }";;
-      int|unsigned|int*_t|uint*_t|unsigned\ long|long|CVC4::Integer)
+      int|unsigned|int*_t|uint*_t|unsigned\ long|long|float|double)
         all_modules_get_options="${all_modules_get_options:+$all_modules_get_options
 #line $lineno \"$kf\"
-  }{ std::vector<SExpr> v; v.push_back(\"$smtname\"); v.push_back(d_holder->$internal); opts.push_back(v); }"
+  }{ std::stringstream ss; ss << std::fixed << std::setprecision(8); ss << d_holder->$internal; std::vector<std::string> v; v.push_back(\"$smtname\"); v.push_back(ss.str()); opts.push_back(v); }"
         smt_getoption_handlers="${smt_getoption_handlers}
 #line $lineno \"$kf\"
   if(key == \"$smtname\") {
 #line $lineno \"$kf\"
-    return SExpr(Integer(options::$internal()));
-  }";;
-      float|double)
-        all_modules_get_options="${all_modules_get_options:+$all_modules_get_options
-#line $lineno \"$kf\"
-  }{ std::vector<SExpr> v; v.push_back(\"$smtname\"); v.push_back(Rational::fromDouble(d_holder->$internal)); opts.push_back(v); }"
-        smt_getoption_handlers="${smt_getoption_handlers}
-#line $lineno \"$kf\"
-  if(key == \"$smtname\") {
-#line $lineno \"$kf\"
-    stringstream ss; ss << std::fixed << options::$internal();
-    return SExpr(Rational::fromDecimal(ss.str()));
-  }";;
-      CVC4::Rational)
-        all_modules_get_options="${all_modules_get_options:+$all_modules_get_options
-#line $lineno \"$kf\"
-  }{ std::vector<SExpr> v; v.push_back(\"$smtname\"); v.push_back(d_holder->$internal); opts.push_back(v); }"
-        smt_getoption_handlers="${smt_getoption_handlers}
-#line $lineno \"$kf\"
-  if(key == \"$smtname\") {
-#line $lineno \"$kf\"
-    return SExpr(options::$internal());
+    std::stringstream ss; ss << std::fixed << std::setprecision(8); ss << options::$internal(); return ss.str();
   }";;
       *)
         all_modules_get_options="${all_modules_get_options:+$all_modules_get_options
 #line $lineno \"$kf\"
-  }{ std::stringstream ss; ss << d_holder->$internal; std::vector<SExpr> v; v.push_back(\"$smtname\"); v.push_back(ss.str()); opts.push_back(v); }"
+  }{ std::stringstream ss; ss << d_holder->$internal; std::vector<std::string> v; v.push_back(\"$smtname\"); v.push_back(ss.str()); opts.push_back(v); }"
         smt_getoption_handlers="${smt_getoption_handlers}
 #line $lineno \"$kf\"
   if(key == \"$smtname\") {
 #line $lineno \"$kf\"
-    stringstream ss; ss << options::$internal();
-    return SExpr(ss.str());
+    std::stringstream ss; ss << options::$internal();
+    return ss.str();
   }";;
       esac
     fi
@@ -790,7 +770,7 @@ template <> options::${internal}__option_t::type runHandlerAndPredicates(options
 #line $lineno \"$kf\"
   if(key == \"$smtname\") {
 #line $lineno \"$kf\"
-    Options::current()->assignBool(options::$internal, \"$smtname\", optionarg == \"true\", smt);$run_smt_links
+    Options::current()->assignBool(options::$internal, \"$smtname\", optionarg == \"true\", handler);$run_smt_links
     return;
   }"
     elif [ -n "$expect_arg" -a "$internal" != - ]; then
@@ -799,7 +779,7 @@ template <> options::${internal}__option_t::type runHandlerAndPredicates(options
         for handler in $handlers; do
           run_handlers="$run_handlers
 #line $lineno \"$kf\"
-    $handler(\"$smtname\", optionarg, smt);
+    $handler(\"$smtname\", optionarg, handler);
 "
         done
       fi
@@ -807,7 +787,7 @@ template <> options::${internal}__option_t::type runHandlerAndPredicates(options
 #line $lineno \"$kf\"
   if(key == \"$smtname\") {
 #line $lineno \"$kf\"
-    Options::current()->assign(options::$internal, \"$smtname\", optionarg, smt);$run_smt_links
+    Options::current()->assign(options::$internal, \"$smtname\", optionarg, handler);$run_smt_links
     return;
   }"
     elif [ -n "$expect_arg" ]; then
@@ -815,7 +795,7 @@ template <> options::${internal}__option_t::type runHandlerAndPredicates(options
       for handler in $handlers; do
         run_handlers="$run_handlers
 #line $lineno \"$kf\"
-    $handler(\"$smtname\", optionarg, smt);
+    $handler(\"$smtname\", optionarg, handler);
 "
       done
       smt_setoption_handlers="${smt_setoption_handlers}
@@ -830,7 +810,7 @@ template <> options::${internal}__option_t::type runHandlerAndPredicates(options
       for handler in $handlers; do
         run_handlers="$run_handlers
 #line $lineno \"$kf\"
-    $handler(\"$smtname\", smt);
+    $handler(\"$smtname\", handler);
 "
       done
       smt_setoption_handlers="${smt_setoption_handlers}
@@ -853,23 +833,15 @@ template <> options::${internal}__option_t::type runHandlerAndPredicates(options
       fi
       all_modules_get_options="${all_modules_get_options:+$all_modules_get_options
 #line $lineno \"$kf\"
-  }{ std::vector<SExpr> v; v.push_back(\"$getoption_name\"); v.push_back(SExpr::Keyword((${inv}d_holder->$internal) ? \"true\" : \"false\")); opts.push_back(v); }";;
-    int|unsigned|int*_t|uint*_t|unsigned\ long|long|CVC4::Integer)
+  }{ std::vector<std::string> v; v.push_back(\"$getoption_name\"); v.push_back(std::string((${inv}d_holder->$internal) ? \"true\" : \"false\")); opts.push_back(v); }";;
+    int|unsigned|int*_t|uint*_t|unsigned\ long|long|float|double)
         all_modules_get_options="${all_modules_get_options:+$all_modules_get_options
 #line $lineno \"$kf\"
-  }{ std::vector<SExpr> v; v.push_back(\"$long_option\"); v.push_back(d_holder->$internal); opts.push_back(v); }";;
-    float|double)
-      all_modules_get_options="${all_modules_get_options:+$all_modules_get_options
-#line $lineno \"$kf\"
-  }{ std::vector<SExpr> v; v.push_back(\"$long_option\"); v.push_back(Rational::fromDouble(d_holder->$internal)); opts.push_back(v); }";;
-    CVC4::Rational)
-      all_modules_get_options="${all_modules_get_options:+$all_modules_get_options
-#line $lineno \"$kf\"
-  }{ std::vector<SExpr> v; v.push_back(\"$long_option\"); v.push_back(d_holder->$internal); opts.push_back(v); }";;
+  }{ std::stringstream ss; ss << std::fixed << std::setprecision(8); ss << d_holder->$internal; std::vector<std::string> v; v.push_back(\"$long_option\"); v.push_back(ss.str()); opts.push_back(v); }";;
     *)
       all_modules_get_options="${all_modules_get_options:+$all_modules_get_options
 #line $lineno \"$kf\"
-  }{ std::stringstream ss; ss << d_holder->$internal; std::vector<SExpr> v; v.push_back(\"$long_option\"); v.push_back(ss.str()); opts.push_back(v); }";;
+  }{ std::stringstream ss; ss << std::fixed << std::setprecision(8); ss << d_holder->$internal; std::vector<std::string> v; v.push_back(\"$long_option\"); v.push_back(ss.str()); opts.push_back(v); }";;
     esac
   fi
 
@@ -877,9 +849,9 @@ template <> options::${internal}__option_t::type runHandlerAndPredicates(options
     # emit assignBool/assign
     all_custom_handlers="${all_custom_handlers}
 #line $lineno \"$kf\"
-template <> void Options::assignBool(options::${internal}__option_t, std::string option, bool value, SmtEngine* smt) {
+template <> void Options::assignBool(options::${internal}__option_t, std::string option, bool value, options::OptionsHandler* handler) {
 #line $lineno \"$kf\"
-  runBoolPredicates(options::$internal, option, value, smt);
+  runBoolPredicates(options::$internal, option, value, handler);
 #line $lineno \"$kf\"
   d_holder->$internal = value;
 #line $lineno \"$kf\"
@@ -890,9 +862,9 @@ template <> void Options::assignBool(options::${internal}__option_t, std::string
   elif [ -n "$expect_arg" -a "$internal" != - ] && [ -n "$cases" -o -n "$cases_alternate" -o -n "$smtname" ]; then
     all_custom_handlers="${all_custom_handlers}
 #line $lineno \"$kf\"
-template <> void Options::assign(options::${internal}__option_t, std::string option, std::string value, SmtEngine* smt) {
+template <> void Options::assign(options::${internal}__option_t, std::string option, std::string value, options::OptionsHandler* handler) {
 #line $lineno \"$kf\"
-  d_holder->$internal = runHandlerAndPredicates(options::$internal, option, value, smt);
+  d_holder->$internal = runHandlerAndPredicates(options::$internal, option, value, handler);
 #line $lineno \"$kf\"
   d_holder->${internal}__setByUser__ = true;
 #line $lineno \"$kf\"

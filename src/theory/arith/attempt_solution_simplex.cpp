@@ -15,9 +15,9 @@
  ** \todo document this file
  **/
 
-
+#include "base/output.h"
+#include "options/arith_options.h"
 #include "theory/arith/attempt_solution_simplex.h"
-#include "theory/arith/options.h"
 #include "theory/arith/constraint.h"
 
 using namespace std;

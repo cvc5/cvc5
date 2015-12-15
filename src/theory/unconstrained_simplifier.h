@@ -24,8 +24,8 @@
 #include <utility>
 
 #include "expr/node.h"
+#include "expr/statistics_registry.h"
 #include "theory/substitutions.h"
-#include "util/statistics_registry.h"
 
 namespace CVC4 {
 

@@ -14,86 +14,89 @@
  ** The main entry point into the CVC4 library's SMT interface.
  **/
 
-#include <vector>
-#include <string>
+#include "smt/smt_engine.h"
+
+#include <algorithm>
+#include <cctype>
+#include <ext/hash_map>
 #include <iterator>
-#include <utility>
 #include <sstream>
 #include <stack>
-#include <cctype>
-#include <algorithm>
-#include <ext/hash_map>
+#include <string>
+#include <utility>
+#include <vector>
 
-#include "context/cdlist.h"
+#include "options/boolean_term_conversion_mode.h"
+#include "options/decision_mode.h"
+#include "base/exception.h"
+#include "base/modal_exception.h"
+#include "options/option_exception.h"
+#include "base/output.h"
 #include "context/cdhashset.h"
+#include "context/cdlist.h"
 #include "context/context.h"
 #include "decision/decision_engine.h"
-#include "decision/decision_mode.h"
-#include "decision/options.h"
-#include "expr/command.h"
+#include "expr/attribute.h"
 #include "expr/expr.h"
 #include "expr/kind.h"
 #include "expr/metakind.h"
-#include "expr/node_builder.h"
 #include "expr/node.h"
+#include "expr/node_builder.h"
 #include "expr/node_self_iterator.h"
-#include "expr/attribute.h"
-#include "prop/prop_engine.h"
-#include "proof/theory_proof.h"
-#include "smt/modal_exception.h"
-#include "smt/smt_engine.h"
-#include "smt/smt_engine_scope.h"
-#include "smt/model_postprocessor.h"
-#include "smt/logic_request.h"
-#include "theory/theory_engine.h"
-#include "theory/bv/theory_bv_rewriter.h"
-#include "proof/proof_manager.h"
-#include "main/options.h"
-#include "util/unsat_core.h"
-#include "util/proof.h"
-#include "util/resource_manager.h"
+#include "expr/resource_manager.h"
+#include "options/arith_options.h"
+#include "options/arrays_options.h"
+#include "options/booleans_options.h"
+#include "options/booleans_options.h"
+#include "options/bv_options.h"
+#include "options/datatypes_options.h"
+#include "options/decision_options.h"
+#include "options/main_options.h"
+#include "options/options_handler_interface.h"
+#include "options/printer_options.h"
+#include "options/prop_options.h"
+#include "options/quantifiers_options.h"
+#include "options/smt_options.h"
+#include "options/strings_options.h"
+#include "options/theory_options.h"
+#include "options/uf_options.h"
+#include "printer/printer.h"
 #include "proof/proof.h"
 #include "proof/proof_manager.h"
-#include "util/boolean_simplification.h"
-#include "util/node_visitor.h"
+#include "proof/proof_manager.h"
+#include "proof/unsat_core.h"
+#include "proof/theory_proof.h"
+#include "prop/prop_engine.h"
+#include "smt/boolean_terms.h"
+#include "smt/command_list.h"
+#include "smt/logic_request.h"
+#include "smt/model_postprocessor.h"
+#include "smt/smt_engine_scope.h"
+#include "smt/smt_options_handler.h"
+#include "smt_util/command.h"
+#include "smt_util/boolean_simplification.h"
+#include "smt_util/ite_removal.h"
+#include "smt_util/nary_builder.h"
+#include "smt_util/node_visitor.h"
+#include "theory/arith/pseudoboolean_proc.h"
+#include "theory/booleans/circuit_propagator.h"
+#include "theory/bv/bvintropow2.h"
+#include "theory/bv/theory_bv_rewriter.h"
+#include "theory/logic_info.h"
+#include "theory/quantifiers/ce_guided_instantiation.h"
+#include "theory/quantifiers/fun_def_process.h"
+#include "theory/quantifiers/macros.h"
+#include "theory/quantifiers/quantifiers_rewriter.h"
+#include "theory/sort_inference.h"
+#include "theory/strings/theory_strings.h"
+#include "theory/substitutions.h"
+#include "theory/theory_engine.h"
+#include "theory/theory_model.h"
+#include "theory/theory_traits.h"
 #include "util/configuration.h"
 #include "util/configuration_private.h"
-#include "util/exception.h"
-#include "util/nary_builder.h"
-#include "smt/command_list.h"
-#include "smt/boolean_terms.h"
-#include "smt/options.h"
-#include "options/option_exception.h"
-#include "util/output.h"
 #include "util/hash.h"
-#include "theory/substitutions.h"
-#include "theory/uf/options.h"
-#include "theory/arith/options.h"
-#include "theory/strings/options.h"
-#include "theory/bv/options.h"
-#include "theory/theory_traits.h"
-#include "theory/logic_info.h"
-#include "theory/options.h"
-#include "theory/booleans/circuit_propagator.h"
-#include "theory/booleans/boolean_term_conversion_mode.h"
-#include "theory/booleans/options.h"
-#include "util/ite_removal.h"
-#include "theory/theory_model.h"
-#include "printer/printer.h"
-#include "prop/options.h"
-#include "theory/arrays/options.h"
-#include "util/sort_inference.h"
-#include "theory/quantifiers/macros.h"
-#include "theory/quantifiers/fun_def_process.h"
-#include "theory/quantifiers/quantifiers_rewriter.h"
-#include "theory/quantifiers/ce_guided_instantiation.h"
-#include "theory/quantifiers/options.h"
-#include "theory/datatypes/options.h"
-#include "theory/strings/theory_strings.h"
-#include "printer/options.h"
-
-#include "theory/arith/pseudoboolean_proc.h"
-#include "theory/bv/bvintropow2.h"
+#include "util/proof.h"
 
 using namespace std;
 using namespace CVC4;
@@ -712,6 +715,7 @@ SmtEngine::SmtEngine(ExprManager* em) throw() :
   d_needPostsolve(false),
   d_earlyTheoryPP(true),
   d_status(),
+  d_optionsHandler(new SmtOptionsHandler(this)),
   d_private(NULL),
   d_smtAttributes(NULL),
   d_statisticsRegistry(NULL),
@@ -884,6 +888,9 @@ SmtEngine::~SmtEngine() throw() {
     delete d_statisticsRegistry;
     d_statisticsRegistry = NULL;
 
+    delete d_optionsHandler;
+    d_optionsHandler = NULL;
+
     delete d_private;
     d_private = NULL;
 
@@ -934,7 +941,7 @@ void SmtEngine::setLogicInternal() throw() {
 
 void SmtEngine::setDefaults() {
   if(options::forceLogic.wasSetByUser()) {
-    d_logic = options::forceLogic();
+    d_logic = *(options::forceLogic());
   }
 
   // set strings-exp
@@ -1596,6 +1603,7 @@ void SmtEngine::setInfo(const std::string& key, const CVC4::SExpr& value)
   SmtScope smts(this);
 
   Trace("smt") << "SMT setInfo(" << key << ", " << value << ")" << endl;
+
   if(Dump.isOn("benchmark")) {
     if(key == "status") {
       string s = value.getValue();
@@ -1700,29 +1708,29 @@ CVC4::SExpr SmtEngine::getInfo(const std::string& key) const
       v.push_back((*i).second);
       stats.push_back(v);
     }
-    return stats;
+    return SExpr(stats);
   } else if(key == "error-behavior") {
     // immediate-exit | continued-execution
     if( options::continuedExecution() || options::interactive() ) {
-      return SExpr::Keyword("continued-execution");
+      return SExpr(SExpr::Keyword("continued-execution"));
     } else {
-      return SExpr::Keyword("immediate-exit");
+      return SExpr(SExpr::Keyword("immediate-exit"));
     }
   } else if(key == "name") {
-    return Configuration::getName();
+    return SExpr(Configuration::getName());
   } else if(key == "version") {
-    return Configuration::getVersionString();
+    return SExpr(Configuration::getVersionString());
   } else if(key == "authors") {
-    return Configuration::about();
+    return SExpr(Configuration::about());
   } else if(key == "status") {
     // sat | unsat | unknown
     switch(d_status.asSatisfiabilityResult().isSat()) {
     case Result::SAT:
-      return SExpr::Keyword("sat");
+      return SExpr(SExpr::Keyword("sat"));
     case Result::UNSAT:
-      return SExpr::Keyword("unsat");
+      return SExpr(SExpr::Keyword("unsat"));
     default:
-      return SExpr::Keyword("unknown");
+      return SExpr(SExpr::Keyword("unknown"));
     }
   } else if(key == "reason-unknown") {
     if(!d_status.isNull() && d_status.isUnknown()) {
@@ -1730,7 +1738,7 @@ CVC4::SExpr SmtEngine::getInfo(const std::string& key) const
       ss << d_status.whyUnknown();
       string s = ss.str();
       transform(s.begin(), s.end(), s.begin(), ::tolower);
-      return SExpr::Keyword(s);
+      return SExpr(SExpr::Keyword(s));
     } else {
       throw ModalException("Can't get-info :reason-unknown when the "
                            "last result wasn't unknown!");
@@ -1739,7 +1747,8 @@ CVC4::SExpr SmtEngine::getInfo(const std::string& key) const
     return SExpr(d_userLevels.size());
   } else if(key == "all-options") {
     // get the options, like all-statistics
-    return Options::current()->getOptions();
+    std::vector< std::vector<std::string> > current_options = Options::current()->getOptions();
+    return SExpr::parseListOfListOfAtoms(current_options);
   } else {
     throw UnrecognizedOptionException();
   }
@@ -4068,13 +4077,13 @@ CVC4::SExpr SmtEngine::getAssignment() throw(ModalException, UnsafeInterruptExce
     vector<SExpr> v;
     if((*i).getKind() == kind::APPLY) {
       Assert((*i).getNumChildren() == 0);
-      v.push_back(SExpr::Keyword((*i).getOperator().toString()));
+      v.push_back(SExpr(SExpr::Keyword((*i).getOperator().toString())));
     } else {
       Assert((*i).isVar());
-      v.push_back(SExpr::Keyword((*i).toString()));
+      v.push_back(SExpr(SExpr::Keyword((*i).toString())));
     }
-    v.push_back(SExpr::Keyword(resultNode.toString()));
-    sexprs.push_back(v);
+    v.push_back(SExpr(SExpr::Keyword(resultNode.toString())));
+    sexprs.push_back(SExpr(v));
   }
   return SExpr(sexprs);
 }
@@ -4667,6 +4676,110 @@ void SmtEngine::setPrintFuncInModel(Expr f, bool p) {
       }
     }
   }
+}
+
+
+
+void SmtEngine::beforeSearch(SmtEngine* smt, const std::string& option) throw(ModalException) {
+  if(smt != NULL && smt->d_fullyInited) {
+    std::stringstream ss;
+    ss << "cannot change option `" << option << "' after final initialization (i.e., after logic has been set)";
+    throw ModalException(ss.str());
+  }
+}
+
+
+void SmtEngine::setOption(const std::string& key, const CVC4::SExpr& value)
+  throw(OptionException, ModalException) {
+
+  NodeManagerScope nms(d_nodeManager);
+  Trace("smt") << "SMT setOption(" << key << ", " << value << ")" << endl;
+
+  if(Dump.isOn("benchmark")) {
+    Dump("benchmark") << SetOptionCommand(key, value);
+  }
+
+  if(key == "command-verbosity") {
+    if(!value.isAtom()) {
+      const vector<SExpr>& cs = value.getChildren();
+      if(cs.size() == 2 &&
+         (cs[0].isKeyword() || cs[0].isString()) &&
+         cs[1].isInteger()) {
+        string c = cs[0].getValue();
+        const Integer& v = cs[1].getIntegerValue();
+        if(v < 0 || v > 2) {
+          throw OptionException("command-verbosity must be 0, 1, or 2");
+        }
+        d_commandVerbosity[c] = v;
+        return;
+      }
+    }
+    throw OptionException("command-verbosity value must be a tuple (command-name, integer)");
+  }
+
+  if(!value.isAtom()) {
+    throw OptionException("bad value for :" + key);
+  }
+
+  string optionarg = value.getValue();
+
+  d_optionsHandler->setOption(key, optionarg);
+}
+
+CVC4::SExpr SmtEngine::getOption(const std::string& key) const
+  throw(OptionException) {
+
+  NodeManagerScope nms(d_nodeManager);
+
+  Trace("smt") << "SMT getOption(" << key << ")" << endl;
+
+  if(key.length() >= 18 &&
+     key.compare(0, 18, "command-verbosity:") == 0) {
+    map<string, Integer>::const_iterator i = d_commandVerbosity.find(key.c_str() + 18);
+    if(i != d_commandVerbosity.end()) {
+      return SExpr((*i).second);
+    }
+    i = d_commandVerbosity.find("*");
+    if(i != d_commandVerbosity.end()) {
+      return SExpr((*i).second);
+    }
+    return SExpr(Integer(2));
+  }
+
+  if(Dump.isOn("benchmark")) {
+    Dump("benchmark") << GetOptionCommand(key);
+  }
+
+  if(key == "command-verbosity") {
+    vector<SExpr> result;
+    SExpr defaultVerbosity;
+    for(map<string, Integer>::const_iterator i = d_commandVerbosity.begin();
+        i != d_commandVerbosity.end();
+        ++i) {
+      vector<SExpr> v;
+      v.push_back(SExpr((*i).first));
+      v.push_back(SExpr((*i).second));
+      if((*i).first == "*") {
+        // put the default at the end of the SExpr
+        defaultVerbosity = SExpr(v);
+      } else {
+        result.push_back(SExpr(v));
+      }
+    }
+    // put the default at the end of the SExpr
+    if(!defaultVerbosity.isAtom()) {
+      result.push_back(defaultVerbosity);
+    } else {
+      // ensure the default is always listed
+      vector<SExpr> v;
+      v.push_back(SExpr("*"));
+      v.push_back(SExpr(Integer(2)));
+      result.push_back(SExpr(v));
+    }
+    return SExpr(result);
+  }
+
+  return SExpr::parseAtom(d_optionsHandler->getOption(key));
 }
 
 }/* CVC4 namespace */

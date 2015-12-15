@@ -16,7 +16,8 @@
  **/
 
 #include "util/divisible.h"
-#include "util/exception.h"
+
+#include "base/exception.h"
 
 using namespace std;
 

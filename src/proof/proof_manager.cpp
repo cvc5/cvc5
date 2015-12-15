@@ -16,22 +16,23 @@
  **/
 
 #include "proof/proof_manager.h"
-#include "util/proof.h"
-#include "proof/sat_proof.h"
+
+#include "base/cvc4_assert.h"
+#include "context/context.h"
 #include "proof/cnf_proof.h"
+#include "proof/sat_proof.h"
 #include "proof/theory_proof.h"
-#include "util/cvc4_assert.h"
 #include "smt/smt_engine.h"
 #include "smt/smt_engine_scope.h"
-#include "theory/output_channel.h"
-#include "theory/valuation.h"
-#include "util/node_visitor.h"
-#include "theory/term_registration_visitor.h"
-#include "theory/uf/theory_uf.h"
-#include "theory/uf/equality_engine.h"
+#include "smt_util/node_visitor.h"
 #include "theory/arrays/theory_arrays.h"
-#include "context/context.h"
+#include "theory/output_channel.h"
+#include "theory/term_registration_visitor.h"
+#include "theory/uf/equality_engine.h"
+#include "theory/uf/theory_uf.h"
+#include "theory/valuation.h"
 #include "util/hash.h"
+#include "util/proof.h"
 
 namespace CVC4 {
 

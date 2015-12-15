@@ -22,11 +22,12 @@
 #ifndef __CVC4__ITE_UTILITIES_H
 #define __CVC4__ITE_UTILITIES_H
 
-#include <vector>
 #include <ext/hash_map>
 #include <ext/hash_set>
+#include <vector>
+
 #include "expr/node.h"
-#include "util/statistics_registry.h"
+#include "expr/statistics_registry.h"
 
 namespace CVC4 {
 namespace theory {

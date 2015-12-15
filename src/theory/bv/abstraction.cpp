@@ -12,12 +12,13 @@
  ** [[ Add lengthier description here ]]
  ** \todo document this file
  **/
-
 #include "theory/bv/abstraction.h"
+
+#include "options/bv_options.h"
+#include "smt_util/dump.h"
 #include "theory/bv/theory_bv_utils.h"
 #include "theory/rewriter.h"
-#include "theory/bv/options.h"
-#include "util/dump.h"
+
 
 using namespace CVC4;
 using namespace CVC4::theory;
@@ -28,10 +29,10 @@ using namespace std;
 using namespace CVC4::theory::bv::utils;
 
 bool AbstractionModule::applyAbstraction(const std::vector<Node>& assertions, std::vector<Node>& new_assertions) {
-  Debug("bv-abstraction") << "AbstractionModule::applyAbstraction\n"; 
+  Debug("bv-abstraction") << "AbstractionModule::applyAbstraction\n";
 
   TimerStat::CodeTimer abstractionTimer(d_statistics.d_abstractionTime);
-    
+
   for (unsigned i = 0; i < assertions.size(); ++i) {
     if (assertions[i].getKind() == kind::OR) {
       for (unsigned j = 0; j < assertions[i].getNumChildren(); ++j) {

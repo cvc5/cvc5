@@ -15,11 +15,11 @@
  **/
 
 
-#include "theory/datatypes/datatypes_sygus.h"
-#include "theory/datatypes/datatypes_rewriter.h"
 #include "expr/node_manager.h"
+#include "options/quantifiers_options.h"
+#include "theory/datatypes/datatypes_rewriter.h"
+#include "theory/datatypes/datatypes_sygus.h"
 #include "theory/quantifiers/term_database.h"
-#include "theory/quantifiers/options.h"
 
 using namespace CVC4;
 using namespace CVC4::kind;

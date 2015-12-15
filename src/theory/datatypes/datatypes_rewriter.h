@@ -19,10 +19,10 @@
 #ifndef __CVC4__THEORY__DATATYPES__DATATYPES_REWRITER_H
 #define __CVC4__THEORY__DATATYPES__DATATYPES_REWRITER_H
 
-#include "theory/rewriter.h"
-#include "theory/datatypes/options.h"
-#include "theory/type_enumerator.h"
 #include "expr/node_manager_attributes.h"
+#include "options/datatypes_options.h"
+#include "theory/rewriter.h"
+#include "theory/type_enumerator.h"
 
 namespace CVC4 {
 namespace theory {
@@ -625,4 +625,3 @@ public:
 }/* CVC4 namespace */
 
 #endif /* __CVC4__THEORY__DATATYPES__DATATYPES_REWRITER_H */
-

@@ -23,7 +23,7 @@
 
 #include "expr/variable_type_map.h"
 #include "expr/expr.h"
-#include "util/exception.h"
+#include "base/exception.h"
 
 #include <exception>
 #include <stack>

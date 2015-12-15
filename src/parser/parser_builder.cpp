@@ -13,19 +13,18 @@
  **
  ** A builder for parsers.
  **/
+#include "parser/parser_builder.h"
 
 #include <string>
 
-#include "parser/parser_builder.h"
+#include "expr/expr_manager.h"
+#include "options/parser_options.h"
+#include "options/smt_options.h"
 #include "parser/input.h"
 #include "parser/parser.h"
 #include "smt1/smt1.h"
 #include "smt2/smt2.h"
 #include "tptp/tptp.h"
-
-#include "expr/expr_manager.h"
-#include "parser/options.h"
-#include "smt/options.h"
 
 namespace CVC4 {
 namespace parser {
@@ -168,7 +167,7 @@ ParserBuilder& ParserBuilder::withOptions(const Options& options) {
       .withParseOnly(options[options::parseOnly])
       .withIncludeFile(options[options::filesystemAccess]);
   if(options.wasSetByUser(options::forceLogic)) {
-    retval = retval.withForcedLogic(options[options::forceLogic].getLogicString());
+    retval = retval.withForcedLogic(options[options::forceLogic]->getLogicString());
   }
   return retval;
 }

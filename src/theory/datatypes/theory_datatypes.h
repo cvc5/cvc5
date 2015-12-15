@@ -19,16 +19,16 @@
 #ifndef __CVC4__THEORY__DATATYPES__THEORY_DATATYPES_H
 #define __CVC4__THEORY__DATATYPES__THEORY_DATATYPES_H
 
-#include "theory/theory.h"
-#include "util/datatype.h"
-#include "util/hash.h"
-#include "theory/uf/equality_engine.h"
-#include "theory/datatypes/datatypes_sygus.h"
-
 #include <ext/hash_set>
 #include <iostream>
 #include <map>
+
 #include "context/cdchunk_list.h"
+#include "expr/datatype.h"
+#include "theory/datatypes/datatypes_sygus.h"
+#include "theory/theory.h"
+#include "theory/uf/equality_engine.h"
+#include "util/hash.h"
 
 namespace CVC4 {
 namespace theory {

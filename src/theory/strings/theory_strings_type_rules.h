@@ -15,7 +15,7 @@
  **/
 
 #include "cvc4_private.h"
-#include "theory/strings/options.h"
+#include "options/strings_options.h"
 
 #ifndef __CVC4__THEORY__STRINGS__THEORY_STRINGS_TYPE_RULES_H
 #define __CVC4__THEORY__STRINGS__THEORY_STRINGS_TYPE_RULES_H

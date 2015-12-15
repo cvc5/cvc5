@@ -19,13 +19,13 @@
 #ifndef __CVC4__THEORY__ARRAYS__THEORY_ARRAYS_H
 #define __CVC4__THEORY__ARRAYS__THEORY_ARRAYS_H
 
-#include "theory/theory.h"
-#include "theory/arrays/array_info.h"
-#include "util/statistics_registry.h"
-#include "theory/uf/equality_engine.h"
 #include "context/cdhashmap.h"
 #include "context/cdhashset.h"
 #include "context/cdqueue.h"
+#include "expr/statistics_registry.h"
+#include "theory/arrays/array_info.h"
+#include "theory/theory.h"
+#include "theory/uf/equality_engine.h"
 
 namespace CVC4 {
 namespace theory {

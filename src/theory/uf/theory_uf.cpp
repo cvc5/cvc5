@@ -16,12 +16,13 @@
  **/
 
 #include "theory/uf/theory_uf.h"
-#include "theory/uf/options.h"
-#include "smt/options.h"
-#include "theory/quantifiers/options.h"
-#include "theory/uf/theory_uf_strong_solver.h"
+
+#include "options/quantifiers_options.h"
+#include "options/smt_options.h"
+#include "options/uf_options.h"
 #include "theory/theory_model.h"
 #include "theory/type_enumerator.h"
+#include "theory/uf/theory_uf_strong_solver.h"
 
 using namespace std;
 using namespace CVC4;

@@ -26,21 +26,22 @@ ${includes}
 #ifndef __CVC4__EXPR_H
 #define __CVC4__EXPR_H
 
-#include <string>
+#include <stdint.h>
 #include <iostream>
 #include <iterator>
-#include <stdint.h>
 
-#include "util/exception.h"
-#include "util/language.h"
+#include <string>
+
+#include "base/exception.h"
+#include "options/expr_options.h"
+#include "options/language.h"
 #include "util/hash.h"
-#include "expr/options.h"
 
 // This is a hack, but an important one: if there's an error, the
 // compiler directs the user to the template file instead of the
 // generated one.  We don't want the user to modify the generated one,
 // since it'll get overwritten on a later build.
-#line 44 "${template}"
+#line 45 "${template}"
 
 namespace CVC4 {
 
@@ -934,7 +935,7 @@ public:
 
 ${getConst_instantiations}
 
-#line 938 "${template}"
+#line 939 "${template}"
 
 namespace expr {
 

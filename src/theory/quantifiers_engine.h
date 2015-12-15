@@ -17,20 +17,19 @@
 #ifndef __CVC4__THEORY__QUANTIFIERS_ENGINE_H
 #define __CVC4__THEORY__QUANTIFIERS_ENGINE_H
 
-#include "theory/theory.h"
-#include "util/hash.h"
-#include "theory/quantifiers/inst_match.h"
-#include "theory/quantifiers/quant_util.h"
-#include "theory/quantifiers/modes.h"
-#include "expr/attribute.h"
-
-#include "util/statistics_registry.h"
-
 #include <ext/hash_set>
 #include <iostream>
 #include <map>
+
 #include "context/cdchunk_list.h"
 #include "context/cdhashset.h"
+#include "expr/attribute.h"
+#include "expr/statistics_registry.h"
+#include "options/quantifiers_modes.h"
+#include "theory/quantifiers/inst_match.h"
+#include "theory/quantifiers/quant_util.h"
+#include "theory/theory.h"
+#include "util/hash.h"
 
 namespace CVC4 {
 

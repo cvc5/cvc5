@@ -95,12 +95,12 @@
 #ifndef __CVC4__CONTEXT__CDHASHMAP_H
 #define __CVC4__CONTEXT__CDHASHMAP_H
 
-#include <vector>
-#include <iterator>
 #include <ext/hash_map>
+#include <iterator>
+#include <vector>
 
+#include "base/cvc4_assert.h"
 #include "context/context.h"
-#include "util/cvc4_assert.h"
 #include "context/cdhashmap_forward.h"
 
 namespace CVC4 {

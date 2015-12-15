@@ -16,30 +16,29 @@
 
 #include "compat/cvc3_compat.h"
 
+#include <algorithm>
+#include <cassert>
+#include <iostream>
+#include <iterator>
+#include <sstream>
+#include <string>
+
+#include "base/output.h"
 #include "expr/kind.h"
-#include "expr/command.h"
-
-#include "util/rational.h"
-#include "util/integer.h"
-#include "util/bitvector.h"
-#include "util/hash.h"
-#include "util/subrange_bound.h"
-#include "util/predicate.h"
-#include "util/output.h"
-
+#include "expr/predicate.h"
+#include "expr/sexpr.h"
+#include "options/expr_options.h"
+#include "options/parser_options.h"
+#include "options/smt_options.h"
 #include "parser/parser.h"
 #include "parser/parser_builder.h"
+#include "smt_util/command.h"
+#include "util/bitvector.h"
+#include "util/hash.h"
+#include "util/integer.h"
+#include "util/rational.h"
+#include "util/subrange_bound.h"
 
-#include "parser/options.h"
-#include "smt/options.h"
-#include "expr/options.h"
-
-#include <iostream>
-#include <string>
-#include <sstream>
-#include <algorithm>
-#include <iterator>
-#include <cassert>
 
 using namespace std;
 
@@ -2498,8 +2497,8 @@ void ValidityChecker::loadFile(const std::string& fileName,
   CVC4::Options opts = d_em->getOptions();
   stringstream langss;
   langss << lang;
-  d_smt->setOption("input-language", langss.str());
-  d_smt->setOption("interactive-mode", string(interactive ? "true" : "false"));
+  d_smt->setOption("input-language", CVC4::SExpr(langss.str()));
+  d_smt->setOption("interactive-mode", CVC4::SExpr(interactive ? true : false));
   CVC4::parser::ParserBuilder parserBuilder(d_em, fileName, opts);
   CVC4::parser::Parser* p = parserBuilder.build();
   p->useDeclarationsFrom(d_parserContext);
@@ -2513,8 +2512,8 @@ void ValidityChecker::loadFile(std::istream& is,
   CVC4::Options opts = d_em->getOptions();
   stringstream langss;
   langss << lang;
-  d_smt->setOption("input-language", langss.str());
-  d_smt->setOption("interactive-mode", string(interactive ? "true" : "false"));
+  d_smt->setOption("input-language", CVC4::SExpr(langss.str()));
+  d_smt->setOption("interactive-mode", CVC4::SExpr(interactive ? true : false));
   CVC4::parser::ParserBuilder parserBuilder(d_em, "[stream]", opts);
   CVC4::parser::Parser* p = parserBuilder.withStreamInput(is).build();
   d_parserContext = p;

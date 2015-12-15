@@ -22,16 +22,15 @@ OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWA
 
 #include <iostream>
 
-#include "prop/minisat/mtl/Sort.h"
-#include "prop/minisat/core/Solver.h"
-
-#include "prop/theory_proxy.h"
-#include "prop/minisat/minisat.h"
-#include "prop/options.h"
-#include "util/output.h"
-#include "expr/command.h"
+#include "base/output.h"
+#include "options/prop_options.h"
 #include "proof/proof_manager.h"
 #include "proof/sat_proof.h"
+#include "prop/minisat/core/Solver.h"
+#include "prop/minisat/minisat.h"
+#include "prop/minisat/mtl/Sort.h"
+#include "prop/theory_proxy.h"
+#include "smt_util/command.h"
 
 using namespace CVC4::prop;
 

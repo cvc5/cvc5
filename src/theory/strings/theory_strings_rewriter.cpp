@@ -13,10 +13,13 @@
  **
  ** Implementation of the theory of strings.
  **/
+
 #include "theory/strings/theory_strings_rewriter.h"
-#include "theory/strings/options.h"
-#include "smt/logic_exception.h"
+
 #include <stdint.h>
+
+#include "options/strings_options.h"
+#include "smt/logic_exception.h"
 
 using namespace std;
 using namespace CVC4;

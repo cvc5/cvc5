@@ -25,8 +25,8 @@
 #include <set>
 #include <sstream>
 #include <cassert>
-//#include "util/integer.h"
-#include "util/exception.h"
+
+#include "base/exception.h"
 #include "util/hash.h"
 
 namespace CVC4 {

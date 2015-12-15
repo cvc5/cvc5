@@ -12,13 +12,16 @@
  ** \brief Code relevant only for portfolio builds
  **/
 
+#include <unistd.h>
+
 #include <cassert>
 #include <vector>
-#include <unistd.h>
+
+#include "options/main_options.h"
 #include "options/options.h"
-#include "main/options.h"
-#include "prop/options.h"
-#include "smt/options.h"
+#include "options/prop_options.h"
+#include "options/smt_options.h"
+#include "smt/smt_options_handler.h"
 
 using namespace std;
 
@@ -27,6 +30,9 @@ namespace CVC4 {
 vector<Options> parseThreadSpecificOptions(Options opts)
 {
   vector<Options> threadOptions;
+
+#warning "TODO: Check that the SmtEngine pointer should be NULL with Kshitij."
+  smt::SmtOptionsHandler optionsHandler(NULL);
 
   unsigned numThreads = opts[options::threads];
 
@@ -37,7 +43,7 @@ vector<Options> parseThreadSpecificOptions(Options opts)
     // Set thread identifier
     tOpts.set(options::thread_id, i);
 
-    if(i < opts[options::threadArgv].size() && 
+    if(i < opts[options::threadArgv].size() &&
        !opts[options::threadArgv][i].empty()) {
 
       // separate out the thread's individual configuration string
@@ -60,7 +66,7 @@ vector<Options> parseThreadSpecificOptions(Options opts)
       *vp++ = NULL;
       if(targc > 1) { // this is necessary in case you do e.g. --thread0="  "
         try {
-          tOpts.parseOptions(targc, targv);
+          tOpts.parseOptions(targc, targv, &optionsHandler);
         } catch(OptionException& e) {
           stringstream ss;
           ss << optid << ": " << e.getMessage();

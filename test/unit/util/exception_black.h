@@ -19,7 +19,7 @@
 #include <iostream>
 #include <sstream>
 
-#include "util/exception.h"
+#include "base/exception.h"
 
 using namespace CVC4;
 using namespace std;

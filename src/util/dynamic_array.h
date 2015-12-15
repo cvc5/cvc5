@@ -20,7 +20,7 @@
 #ifndef __CVC4__UTIL__DYNAMIC_ARRAY_H
 #define __CVC4__UTIL__DYNAMIC_ARRAY_H
 
-#include "util/cvc4_assert.h"
+#include "base/cvc4_assert.h"
 
 namespace CVC4 {
 

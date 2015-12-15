@@ -14,14 +14,13 @@
  ** Algebraic solver.
  **/
 
-#include "util/boolean_simplification.h"
-#include "theory/theory_model.h"
-
-#include "theory/bv/options.h"
-#include "theory/bv/theory_bv.h"
-#include "theory/bv/bv_subtheory_algebraic.h"
+#include "options/bv_options.h"
+#include "smt_util/boolean_simplification.h"
 #include "theory/bv/bv_quick_check.h"
+#include "theory/bv/bv_subtheory_algebraic.h"
+#include "theory/bv/theory_bv.h"
 #include "theory/bv/theory_bv_utils.h"
+#include "theory/theory_model.h"
 
 
 using namespace std;

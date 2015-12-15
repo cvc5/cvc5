@@ -30,15 +30,15 @@
 #include <functional>
 #include <stdint.h>
 
+#include "base/cvc4_assert.h"
+#include "base/exception.h"
+#include "base/output.h"
 #include "expr/type.h"
 #include "expr/kind.h"
 #include "expr/metakind.h"
 #include "expr/expr.h"
-#include "util/cvc4_assert.h"
+#include "options/language.h"
 #include "util/configuration.h"
-#include "util/output.h"
-#include "util/exception.h"
-#include "util/language.h"
 #include "util/utility.h"
 #include "util/hash.h"
 

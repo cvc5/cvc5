@@ -3,41 +3,75 @@ AM_CPPFLAGS = \
 	-I@builddir@/.. -I@srcdir@/../include -I@srcdir@/..
 AM_CXXFLAGS = -Wall -Wno-unknown-pragmas $(FLAG_VISIBILITY_HIDDEN)
 
+#noinst_LTLIBRARIES = libexpr.la libstatistics.la
 noinst_LTLIBRARIES = libexpr.la
 
+# libstatistics_la_CPPFLAGS = $(CPPFLAGS) $(AM_CPPFLAGS) -D__BUILDING_STATISTICS_FOR_EXPORT
+# libstatistics_la_SOURCES = \
+# 	statistics_registry.h \
+# 	statistics_registry.cpp
+
+# EXTRA_libstatistics_la_DEPENDENCIES = \
+# 	builts
+
+# For some reason statistics were in libutil. No idea why though.
 libexpr_la_SOURCES = \
-	node.h \
-	node.cpp \
-	type_node.h \
-	type_node.cpp \
-	node_builder.h \
-	convenience_node_builders.h \
-	type.h \
-	type.cpp \
-	node_value.h \
-	node_value.cpp \
-	node_manager.h \
-	node_manager.cpp \
-	node_manager_attributes.h \
-	type_checker.h \
-	attribute_unique_id.h \
+	statistics.cpp \
+	statistics.h \
+	statistics_registry.cpp \
+	statistics_registry.h \
+	array.h \
+	array_store_all.cpp \
+	array_store_all.h \
+	ascription_type.h \
 	attribute.h \
-	attribute_internals.h \
 	attribute.cpp \
-	command.h \
-	command.cpp \
-	symbol_table.h \
-	symbol_table.cpp \
+	attribute_internals.h \
+	attribute_unique_id.h \
+	convenience_node_builders.h \
+	chain.h \
+	emptyset.cpp \
+	emptyset.h \
 	expr_manager_scope.h \
-	node_self_iterator.h \
-	variable_type_map.h \
-	pickle_data.h \
-	pickle_data.cpp \
-	pickler.h \
-	pickler.cpp \
-	node_self_iterator.h \
 	expr_stream.h \
-	kind_map.h
+	kind_map.h \
+	matcher.h \
+	node.cpp \
+	node.h \
+	node_builder.h \
+	node_manager.cpp \
+	node_manager.h \
+	node_manager_attributes.h \
+	node_self_iterator.h \
+	node_self_iterator.h \
+	node_value.cpp \
+	node_value.h \
+	pickle_data.cpp \
+	pickle_data.h \
+	pickler.cpp \
+	pickler.h \
+	resource_manager.cpp \
+	resource_manager.h \
+	sexpr.cpp \
+	sexpr.h \
+	symbol_table.cpp \
+	symbol_table.h \
+	type.cpp \
+	type.h \
+	type_checker.h \
+	type_node.cpp \
+	type_node.h \
+	variable_type_map.h \
+	datatype.h \
+	datatype.cpp \
+	predicate.h \
+	predicate.cpp \
+	record.cpp \
+	record.h \
+	result.cpp \
+	result.h \
+	uninterpreted_constant.cpp \
+	uninterpreted_constant.h
 
 nodist_libexpr_la_SOURCES = \
 	kind.h \
@@ -50,6 +84,12 @@ nodist_libexpr_la_SOURCES = \
 	type_checker.cpp
 
 EXTRA_DIST = \
+	array.i \
+	chain.i \
+	array_store_all.i \
+	ascription_type.i \
+	datatype.i \
+	emptyset.i \
 	kind_template.h \
 	metakind_template.h \
 	type_properties_template.h \
@@ -58,18 +98,23 @@ EXTRA_DIST = \
 	expr_template.h \
 	expr_template.cpp \
 	type_checker_template.cpp \
-	options_handlers.h \
 	mkkind \
 	mkmetakind \
 	mkexpr \
 	expr_stream.i \
 	expr_manager.i \
 	symbol_table.i \
-	command.i \
+	statistics.i \
 	type.i \
 	kind.i \
 	expr.i \
-	variable_type_map.i
+	resource_manager.i \
+	sexpr.i \
+	record.i \
+	result.i \
+	predicate.i \
+	variable_type_map.i \
+	uninterpreted_constant.i
 
 BUILT_SOURCES = \
 	kind.h \

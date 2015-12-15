@@ -18,7 +18,7 @@ namespace std {
 }
 
 #include "expr/type.h"
-#include "expr/command.h"
+#include "smt_util/command.h"
 #include "parser/parser.h"
 #include "parser/smt1/smt1.h"
 

@@ -22,7 +22,7 @@
 #include <iostream>
 #include <sstream>
 
-#include "util/exception.h"
+#include "base/exception.h"
 
 namespace CVC4 {
 namespace kind {

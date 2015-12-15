@@ -48,11 +48,11 @@
 #include <list>
 #include <vector>
 
+#include "context/cdlist.h"
+#include "context/context.h"
 #include "expr/node.h"
 #include "expr/node_builder.h"
-#include "context/context.h"
-#include "context/cdlist.h"
-#include "util/statistics_registry.h"
+#include "expr/statistics_registry.h"
 
 namespace CVC4 {
 namespace theory {

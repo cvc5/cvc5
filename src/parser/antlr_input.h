@@ -36,14 +36,14 @@
 #include <vector>
 #include <cassert>
 
+#include "base/output.h"
 #include "parser/bounded_token_buffer.h"
-#include "parser/parser_exception.h"
 #include "parser/input.h"
-
+#include "parser/parser_exception.h"
 #include "util/bitvector.h"
 #include "util/integer.h"
 #include "util/rational.h"
-#include "util/output.h"
+
 
 namespace CVC4 {
 

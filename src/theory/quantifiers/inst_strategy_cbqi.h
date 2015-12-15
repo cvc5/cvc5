@@ -18,11 +18,10 @@
 #ifndef __CVC4__INST_STRATEGY_CBQI_H
 #define __CVC4__INST_STRATEGY_CBQI_H
 
-#include "theory/quantifiers/instantiation_engine.h"
+#include "expr/statistics_registry.h"
 #include "theory/arith/arithvar.h"
 #include "theory/quantifiers/ceg_instantiator.h"
-
-#include "util/statistics_registry.h"
+#include "theory/quantifiers/instantiation_engine.h"
 
 namespace CVC4 {
 namespace theory {

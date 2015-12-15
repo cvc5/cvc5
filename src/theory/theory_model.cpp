@@ -11,15 +11,15 @@
  **
  ** \brief Implementation of model class
  **/
-
 #include "theory/theory_model.h"
+
+#include "options/smt_options.h"
+#include "options/uf_options.h"
+#include "smt/smt_engine.h"
 #include "theory/quantifiers_engine.h"
 #include "theory/theory_engine.h"
 #include "theory/type_enumerator.h"
-#include "smt/options.h"
-#include "smt/smt_engine.h"
 #include "theory/uf/theory_uf_model.h"
-#include "theory/uf/options.h"
 
 using namespace std;
 using namespace CVC4;

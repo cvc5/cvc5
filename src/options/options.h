@@ -24,21 +24,18 @@
 #include <string>
 #include <vector>
 
+#include "base/tls.h"
 #include "options/option_exception.h"
-#include "util/language.h"
-#include "util/tls.h"
-#include "util/sexpr.h"
 
 namespace CVC4 {
 
 namespace options {
   struct OptionsHolder;
+  class OptionsHandler;
 }/* CVC4::options namespace */
 
+// Forward declaration for smt_options
 class ExprStream;
-class NodeManager;
-class NodeManagerScope;
-class SmtEngine;
 
 class CVC4_PUBLIC Options {
   /** The struct that holds all option values. */
@@ -49,16 +46,27 @@ class CVC4_PUBLIC Options {
 
   /** Low-level assignment function for options */
   template <class T>
-  void assign(T, std::string option, std::string value, SmtEngine* smt);
+  void assign(T, std::string option, std::string value, options::OptionsHandler* handler);
   /** Low-level assignment function for bool-valued options */
   template <class T>
-  void assignBool(T, std::string option, bool value, SmtEngine* smt);
+  void assignBool(T, std::string option, bool value, options::OptionsHandler* handler);
 
-  friend class NodeManager;
-  friend class NodeManagerScope;
-  friend class SmtEngine;
+  friend class options::OptionsHandler;
 
 public:
+  class CVC4_PUBLIC OptionsScope {
+  private:
+    Options* d_oldOptions;
+  public:
+    OptionsScope(Options* newOptions) :
+        d_oldOptions(Options::s_current)
+    {
+      Options::s_current = newOptions;
+    }
+    ~OptionsScope(){
+      Options::s_current = d_oldOptions;
+    }
+  };
 
   /** Return true if current Options are null */
   static inline bool isCurrentNull() {
@@ -145,12 +153,12 @@ public:
    * The return value is what's left of the command line (that is, the
    * non-option arguments).
    */
-  std::vector<std::string> parseOptions(int argc, char* argv[]) throw(OptionException);
+  std::vector<std::string> parseOptions(int argc, char* argv[], options::OptionsHandler* handler) throw(OptionException);
 
   /**
    * Get the setting for all options.
    */
-  SExpr getOptions() const throw();
+  std::vector< std::vector<std::string> > getOptions() const throw();
 
 };/* class Options */
 

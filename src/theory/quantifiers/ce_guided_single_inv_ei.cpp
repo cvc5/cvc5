@@ -13,12 +13,12 @@
  **
  **/
 
-#include "theory/quantifiers/ce_guided_single_inv_ei.h"
+#include "options/quantifiers_options.h"
 #include "theory/quantifiers/ce_guided_instantiation.h"
-#include "theory/theory_engine.h"
-#include "theory/quantifiers/options.h"
-#include "theory/quantifiers/term_database.h"
+#include "theory/quantifiers/ce_guided_single_inv_ei.h"
 #include "theory/quantifiers/quant_util.h"
+#include "theory/quantifiers/term_database.h"
+#include "theory/theory_engine.h"
 
 using namespace CVC4;
 using namespace CVC4::kind;

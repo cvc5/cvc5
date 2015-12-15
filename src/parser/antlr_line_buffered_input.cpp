@@ -29,7 +29,7 @@
 #include <string>
 #include <cassert>
 
-#include "util/output.h"
+#include "base/output.h"
 #include "parser/antlr_line_buffered_input.h"
 
 namespace CVC4 {

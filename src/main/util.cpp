@@ -28,15 +28,14 @@
 
 #endif /* __WIN32__ */
 
-#include "util/exception.h"
-#include "options/options.h"
-#include "util/statistics.h"
-#include "util/tls.h"
-#include "smt/smt_engine.h"
-
+#include "base/exception.h"
+#include "base/tls.h"
 #include "cvc4autoconfig.h"
-#include "main/main.h"
+#include "expr/statistics.h"
 #include "main/command_executor.h"
+#include "main/main.h"
+#include "options/options.h"
+#include "smt/smt_engine.h"
 
 using CVC4::Exception;
 using namespace std;

@@ -14,9 +14,9 @@
  ** Eager bit-blasting solver.
  **/
 
-#include "theory/bv/bv_eager_solver.h"
+#include "options/bv_options.h"
 #include "theory/bv/bitblaster_template.h"
-#include "theory/bv/options.h"
+#include "theory/bv/bv_eager_solver.h"
 
 using namespace std;
 using namespace CVC4;

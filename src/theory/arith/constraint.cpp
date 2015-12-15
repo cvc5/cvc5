@@ -15,15 +15,15 @@
  ** \todo document this file
  **/
 
-#include "cvc4_private.h"
-#include "theory/arith/constraint.h"
-#include "theory/arith/arith_utilities.h"
-#include "theory/arith/normal_form.h"
-
-#include "proof/proof.h"
-
 #include <ostream>
 #include <algorithm>
+
+#include "base/output.h"
+#include "proof/proof.h"
+#include "theory/arith/arith_utilities.h"
+#include "theory/arith/constraint.h"
+#include "theory/arith/normal_form.h"
+
 
 using namespace std;
 using namespace CVC4::kind;

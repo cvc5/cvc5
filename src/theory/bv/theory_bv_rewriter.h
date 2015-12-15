@@ -20,8 +20,8 @@
 #ifndef __CVC4__THEORY__BV__THEORY_BV_REWRITER_H
 #define __CVC4__THEORY__BV__THEORY_BV_REWRITER_H
 
+#include "expr/statistics_registry.h"
 #include "theory/rewriter.h"
-#include "util/statistics_registry.h"
 
 namespace CVC4 {
 namespace theory {

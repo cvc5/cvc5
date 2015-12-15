@@ -14,11 +14,11 @@
 
 #include "theory/quantifiers/inst_strategy_e_matching.h"
 
-#include "theory/theory_engine.h"
-#include "theory/quantifiers/options.h"
-#include "theory/quantifiers/term_database.h"
+#include "options/quantifiers_options.h"
 #include "theory/quantifiers/inst_match_generator.h"
 #include "theory/quantifiers/relevant_domain.h"
+#include "theory/quantifiers/term_database.h"
+#include "theory/theory_engine.h"
 
 using namespace std;
 using namespace CVC4;
@@ -652,4 +652,3 @@ bool FullSaturation::process( Node f, bool fullEffort ){
 void FullSaturation::registerQuantifier( Node q ) {
 
 }
-

@@ -14,31 +14,17 @@
  ** This file is the implementation for the CVC4 interactive shell.
  ** The shell supports the readline library.
  **/
-
-#include <iostream>
-#include <cstdlib>
-#include <vector>
-#include <string>
-#include <set>
-#include <algorithm>
-#include <utility>
-
-#include "cvc4autoconfig.h"
-
 #include "main/interactive_shell.h"
 
-#include "expr/command.h"
-#include "parser/input.h"
-#include "parser/parser.h"
-#include "parser/parser_builder.h"
-#include "options/options.h"
-#include "smt/options.h"
-#include "main/options.h"
-#include "util/language.h"
-#include "util/output.h"
-
-#include <string.h>
+#include <algorithm>
 #include <cassert>
+#include <cstdlib>
+#include <iostream>
+#include <set>
+#include <string.h>
+#include <string>
+#include <utility>
+#include <vector>
 
 #if HAVE_LIBREADLINE
 #  include <readline/readline.h>
@@ -47,6 +33,19 @@
 #    include <ext/stdio_filebuf.h>
 #  endif /* HAVE_EXT_STDIO_FILEBUF_H */
 #endif /* HAVE_LIBREADLINE */
+
+
+#include "base/output.h"
+#include "cvc4autoconfig.h"
+#include "options/language.h"
+#include "options/main_options.h"
+#include "options/options.h"
+#include "options/smt_options.h"
+#include "parser/input.h"
+#include "parser/parser.h"
+#include "parser/parser_builder.h"
+#include "theory/logic_info.h"
+#include "smt_util/command.h"
 
 using namespace std;
 
@@ -99,7 +98,7 @@ InteractiveShell::InteractiveShell(ExprManager& exprManager,
   /* Create parser with bogus input. */
   d_parser = parserBuilder.withStringInput("").build();
   if(d_options.wasSetByUser(options::forceLogic)) {
-    d_parser->forceLogic(d_options[options::forceLogic].getLogicString());
+    d_parser->forceLogic(d_options[options::forceLogic]->getLogicString());
   }
 
 #if HAVE_LIBREADLINE
@@ -401,4 +400,3 @@ char* commandGenerator(const char* text, int state) {
 #endif /* HAVE_LIBREADLINE */
 
 }/* CVC4 namespace */
-

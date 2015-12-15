@@ -48,23 +48,19 @@
 #define _cvc3__include__queryresult_h_
 #define _cvc3__include__formula_value_h_
 
-#include "expr/expr_manager.h"
-#include "expr/expr.h"
-#include "expr/type.h"
-
-#include "smt/smt_engine.h"
-
-#include "util/rational.h"
-#include "util/integer.h"
-
-#include "util/exception.h"
-#include "util/hash.h"
-
-#include "parser/parser.h"
-
 #include <stdlib.h>
 #include <map>
 #include <utility>
+
+#include "base/exception.h"
+#include "expr/expr.h"
+#include "expr/expr_manager.h"
+#include "expr/type.h"
+#include "parser/parser.h"
+#include "smt/smt_engine.h"
+#include "util/hash.h"
+#include "util/integer.h"
+#include "util/rational.h"
 
 //class CInterface;
 

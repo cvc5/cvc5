@@ -13,14 +13,14 @@
  **
  ** Definitions of SMT2 constants.
  **/
+#include "parser/smt2/smt2.h"
+
 
 #include "expr/type.h"
-#include "expr/command.h"
+#include "parser/antlr_input.h"
 #include "parser/parser.h"
 #include "parser/smt1/smt1.h"
-#include "parser/smt2/smt2.h"
-#include "parser/antlr_input.h"
-
+#include "smt_util/command.h"
 #include "util/bitvector.h"
 
 // ANTLR defines these, which is really bad!

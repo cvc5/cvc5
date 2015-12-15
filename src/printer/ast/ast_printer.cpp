@@ -13,20 +13,20 @@
  **
  ** The pretty-printer interface for the AST output language.
  **/
-
 #include "printer/ast/ast_printer.h"
-#include "expr/expr.h" // for ExprSetDepth etc..
-#include "util/language.h" // for LANG_AST
-#include "expr/node_manager_attributes.h" // for VarNameAttr
-#include "expr/command.h"
-#include "printer/dagification_visitor.h"
-#include "util/node_visitor.h"
-#include "theory/substitutions.h"
 
 #include <iostream>
-#include <vector>
 #include <string>
 #include <typeinfo>
+#include <vector>
+
+#include "expr/expr.h" // for ExprSetDepth etc..
+#include "expr/node_manager_attributes.h" // for VarNameAttr
+#include "options/language.h" // for LANG_AST
+#include "printer/dagification_visitor.h"
+#include "smt_util/command.h"
+#include "smt_util/node_visitor.h"
+#include "theory/substitutions.h"
 
 using namespace std;
 
@@ -398,4 +398,3 @@ static bool tryToStream(std::ostream& out, const CommandStatus* s) throw() {
 }/* CVC4::printer::ast namespace */
 }/* CVC4::printer namespace */
 }/* CVC4 namespace */
-

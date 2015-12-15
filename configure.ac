@@ -1410,9 +1410,9 @@ if test -n "$CVC4_LANGUAGE_BINDINGS"; then
   fi
 fi
 
-CVC4_CONFIG_FILE_ONLY_IF_CHANGED([src/util/rational.h])
+CVC4_CONFIG_FILE_ONLY_IF_CHANGED([src/base/tls.h])
 CVC4_CONFIG_FILE_ONLY_IF_CHANGED([src/util/integer.h])
-CVC4_CONFIG_FILE_ONLY_IF_CHANGED([src/util/tls.h])
+CVC4_CONFIG_FILE_ONLY_IF_CHANGED([src/util/rational.h])
 
 CVC4_CONFIG_FILE_ONLY_IF_CHANGED([doc/cvc4.1_template])
 CVC4_CONFIG_FILE_ONLY_IF_CHANGED([doc/cvc4.5])

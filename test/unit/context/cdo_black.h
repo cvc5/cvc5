@@ -16,12 +16,13 @@
 
 #include <cxxtest/TestSuite.h>
 
-#include <vector>
 #include <iostream>
-#include "context/context.h"
+#include <vector>
+
+#include "base/cvc4_assert.h"
 #include "context/cdlist.h"
 #include "context/cdo.h"
-#include "util/cvc4_assert.h"
+#include "context/context.h"
 
 using namespace std;
 using namespace CVC4;

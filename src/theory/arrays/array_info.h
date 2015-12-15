@@ -18,16 +18,17 @@
 #ifndef __CVC4__THEORY__ARRAYS__ARRAY_INFO_H
 #define __CVC4__THEORY__ARRAYS__ARRAY_INFO_H
 
-#include "util/backtrackable.h"
-#include "context/cdlist.h"
-#include "context/cdhashmap.h"
-#include "expr/node.h"
-#include "util/statistics_registry.h"
-#include "util/ntuple.h"
 #include <ext/hash_set>
 #include <ext/hash_map>
 #include <iostream>
 #include <map>
+
+#include "context/backtrackable.h"
+#include "context/cdlist.h"
+#include "context/cdhashmap.h"
+#include "expr/node.h"
+#include "expr/statistics_registry.h"
+#include "util/ntuple.h"
 
 namespace CVC4 {
 namespace theory {

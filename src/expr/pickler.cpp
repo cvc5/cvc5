@@ -20,6 +20,8 @@
 #include <sstream>
 #include <string>
 
+#include "base/cvc4_assert.h"
+#include "base/output.h"
 #include "expr/pickler.h"
 #include "expr/pickle_data.h"
 #include "expr/expr.h"
@@ -28,10 +30,8 @@
 #include "expr/node_value.h"
 #include "expr/expr_manager_scope.h"
 #include "expr/variable_type_map.h"
-#include "util/cvc4_assert.h"
 #include "expr/kind.h"
 #include "expr/metakind.h"
-#include "util/output.h"
 
 namespace CVC4 {
 namespace expr {

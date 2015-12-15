@@ -15,23 +15,23 @@
  ** A CNF converter that takes in asserts and has the side effect
  ** of given an equisatisfiable stream of assertions to PropEngine.
  **/
+#include <queue>
 
-#include "prop/cnf_stream.h"
-#include "prop/prop_engine.h"
-#include "theory/theory_engine.h"
-#include "theory/theory.h"
-#include "expr/node.h"
-#include "util/cvc4_assert.h"
-#include "util/output.h"
-#include "expr/command.h"
+#include "base/cvc4_assert.h"
+#include "base/output.h"
 #include "expr/expr.h"
-#include "prop/theory_proxy.h"
-#include "theory/bv/options.h"
+#include "expr/node.h"
+#include "options/bv_options.h"
 #include "proof/proof_manager.h"
 #include "proof/sat_proof.h"
+#include "prop/cnf_stream.h"
 #include "prop/minisat/minisat.h"
+#include "prop/prop_engine.h"
+#include "prop/theory_proxy.h"
 #include "smt/smt_engine_scope.h"
-#include <queue>
+#include "smt_util/command.h"
+#include "theory/theory.h"
+#include "theory/theory_engine.h"
 
 using namespace std;
 using namespace CVC4::kind;

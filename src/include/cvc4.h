@@ -18,20 +18,17 @@
 #ifndef __CVC4__CVC4_H
 #define __CVC4__CVC4_H
 
-#include <cvc4/smt/smt_engine.h>
-
-#include <cvc4/expr/expr_manager.h>
+#include <cvc4/base/exception.h>
+#include <cvc4/expr/datatype.h>
 #include <cvc4/expr/expr.h>
-#include <cvc4/expr/command.h>
-
-#include <cvc4/util/datatype.h>
-#include <cvc4/util/integer.h>
-#include <cvc4/util/rational.h>
-#include <cvc4/util/exception.h>
+#include <cvc4/expr/expr_manager.h>
 #include <cvc4/options/options.h>
-#include <cvc4/util/configuration.h>
-
 #include <cvc4/parser/parser.h>
 #include <cvc4/parser/parser_builder.h>
+#include <cvc4/smt/smt_engine.h>
+#include <cvc4/smt_util/command.h>
+#include <cvc4/util/configuration.h>
+#include <cvc4/util/integer.h>
+#include <cvc4/util/rational.h>
 
 #endif /* __CVC4__CVC4_H */

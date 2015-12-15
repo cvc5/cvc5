@@ -19,15 +19,16 @@
 #include <cxxtest/TestSuite.h>
 #include <sstream>
 
+#include "base/output.h"
 #include "expr/expr.h"
 #include "expr/expr_manager.h"
+#include "options/language.h"
+#include "options/options.h"
 #include "parser/parser.h"
 #include "parser/parser_builder.h"
 #include "parser/smt2/smt2.h"
-#include "expr/command.h"
-#include "options/options.h"
-#include "util/output.h"
-#include "util/language.h"
+#include "smt_util/command.h"
+
 
 using namespace CVC4;
 using namespace CVC4::parser;

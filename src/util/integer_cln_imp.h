@@ -29,7 +29,7 @@
 #include <cln/integer_io.h>
 #include <limits>
 
-#include "util/exception.h"
+#include "base/exception.h"
 
 namespace CVC4 {
 

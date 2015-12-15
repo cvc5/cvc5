@@ -26,7 +26,7 @@
 #include <limits>
 #include <functional>
 
-#include "util/exception.h"
+#include "base/exception.h"
 
 namespace CVC4 {
 

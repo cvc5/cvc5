@@ -19,10 +19,10 @@
 #ifndef __CVC4__THEORY__OUTPUT_CHANNEL_H
 #define __CVC4__THEORY__OUTPUT_CHANNEL_H
 
-#include "util/cvc4_assert.h"
-#include "theory/interrupted.h"
-#include "util/resource_manager.h"
+#include "base/cvc4_assert.h"
+#include "expr/resource_manager.h"
 #include "smt/logic_exception.h"
+#include "theory/interrupted.h"
 
 namespace CVC4 {
 namespace theory {

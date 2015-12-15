@@ -16,7 +16,8 @@
  **/
 
 #include "theory/builtin/theory_builtin_rewriter.h"
-#include "util/chain.h"
+
+#include "expr/chain.h"
 
 using namespace std;
 

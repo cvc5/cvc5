@@ -14,17 +14,17 @@
  ** Bitblaster for the lazy bv solver. 
  **/
 
-#include "cvc4_private.h"
 #include "bitblaster_template.h"
-#include "theory_bv_utils.h"
-#include "theory/rewriter.h"
+#include "cvc4_private.h"
+#include "options/bv_options.h"
 #include "prop/cnf_stream.h"
 #include "prop/sat_solver.h"
 #include "prop/sat_solver_factory.h"
-#include "theory/bv/theory_bv.h"
-#include "theory/bv/options.h"
-#include "theory/theory_model.h"
 #include "theory/bv/abstraction.h"
+#include "theory/bv/theory_bv.h"
+#include "theory/rewriter.h"
+#include "theory/theory_model.h"
+#include "theory_bv_utils.h"
 
 using namespace CVC4;
 using namespace CVC4::theory;

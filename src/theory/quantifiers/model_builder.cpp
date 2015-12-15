@@ -12,18 +12,19 @@
  ** \brief Implementation of model builder class
  **/
 
+#include "theory/quantifiers/model_builder.h"
+
+#include "options/quantifiers_options.h"
+#include "theory/quantifiers/first_order_model.h"
 #include "theory/quantifiers/model_engine.h"
+#include "theory/quantifiers/quantifiers_attributes.h"
+#include "theory/quantifiers/term_database.h"
+#include "theory/quantifiers/trigger.h"
 #include "theory/theory_engine.h"
 #include "theory/uf/equality_engine.h"
 #include "theory/uf/theory_uf.h"
 #include "theory/uf/theory_uf_model.h"
 #include "theory/uf/theory_uf_strong_solver.h"
-#include "theory/quantifiers/first_order_model.h"
-#include "theory/quantifiers/term_database.h"
-#include "theory/quantifiers/model_builder.h"
-#include "theory/quantifiers/quantifiers_attributes.h"
-#include "theory/quantifiers/trigger.h"
-#include "theory/quantifiers/options.h"
 
 using namespace std;
 using namespace CVC4;
@@ -745,5 +746,3 @@ void QModelBuilderDefault::constructModelUf( FirstOrderModel* fm, Node op ){
     Debug("fmf-model-cons") << "  Finished constructing model for " << op << "." << std::endl;
   }
 }
-
-

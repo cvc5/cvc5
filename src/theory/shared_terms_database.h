@@ -17,11 +17,11 @@
 
 #pragma once
 
+#include "context/cdhashset.h"
 #include "expr/node.h"
+#include "expr/statistics_registry.h"
 #include "theory/theory.h"
 #include "theory/uf/equality_engine.h"
-#include "util/statistics_registry.h"
-#include "context/cdhashset.h"
 
 namespace CVC4 {
 

@@ -15,20 +15,19 @@
  ** \todo document this file
  **/
 
-#include <string>
-#include <iostream>
-#include <typeinfo>
 #include <cassert>
-#include <vector>
+#include <iostream>
 #include <map>
+#include <string>
+#include <typeinfo>
+#include <vector>
 
-
-#include "options/options.h"
 #include "expr/expr.h"
-#include "expr/command.h"
+#include "options/options.h"
 #include "parser/parser.h"
 #include "parser/parser_builder.h"
 #include "smt/smt_engine.h"
+#include "smt_util/command.h"
 
 using namespace std;
 using namespace CVC4;

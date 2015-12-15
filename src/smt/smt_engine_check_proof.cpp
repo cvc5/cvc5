@@ -15,16 +15,18 @@
  ** \todo document this file
  **/
 
-#include "smt/smt_engine.h"
-#include "util/configuration_private.h"
-#include "util/statistics_registry.h"
-#include "check.h"
+#include <unistd.h>
 
 #include <cstdlib>
 #include <cstring>
 #include <fstream>
 #include <string>
-#include <unistd.h>
+
+#include "base/output.h"
+#include "check.h"
+#include "expr/statistics_registry.h"
+#include "smt/smt_engine.h"
+#include "util/configuration_private.h"
 
 using namespace CVC4;
 using namespace std;

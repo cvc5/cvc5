@@ -29,9 +29,9 @@
 #include <string>
 
 #include "expr/expr.h"
-#include "expr/command.h"
 #include "parser/parser.h"
 #include "parser/parser_builder.h"
+#include "smt_util/command.h"
 
 using namespace CVC4;
 using namespace CVC4::parser;

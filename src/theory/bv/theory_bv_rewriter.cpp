@@ -15,15 +15,15 @@
  ** \todo document this file
  **/
 
-#include "theory/theory.h"
-#include "theory/bv/options.h"
-#include "theory/bv/theory_bv_rewriter.h"
+#include "options/bv_options.h"
 #include "theory/bv/theory_bv_rewrite_rules.h"
-#include "theory/bv/theory_bv_rewrite_rules_core.h"
-#include "theory/bv/theory_bv_rewrite_rules_operator_elimination.h"
 #include "theory/bv/theory_bv_rewrite_rules_constant_evaluation.h"
-#include "theory/bv/theory_bv_rewrite_rules_simplification.h"
+#include "theory/bv/theory_bv_rewrite_rules_core.h"
 #include "theory/bv/theory_bv_rewrite_rules_normalization.h"
+#include "theory/bv/theory_bv_rewrite_rules_operator_elimination.h"
+#include "theory/bv/theory_bv_rewrite_rules_simplification.h"
+#include "theory/bv/theory_bv_rewriter.h"
+#include "theory/theory.h"
 
 using namespace CVC4;
 using namespace CVC4::theory;
@@ -682,6 +682,3 @@ Node TheoryBVRewriter::eliminateBVSDiv(TNode node) {
     >::apply(node);
   return result; 
 }
-
-
-

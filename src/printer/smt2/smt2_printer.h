@@ -45,7 +45,6 @@ public:
   void toStream(std::ostream& out, TNode n, int toDepth, bool types, size_t dag) const throw();
   void toStream(std::ostream& out, const Command* c, int toDepth, bool types, size_t dag) const throw();
   void toStream(std::ostream& out, const CommandStatus* s) const throw();
-  void toStream(std::ostream& out, const Result& r) const throw();
   void toStream(std::ostream& out, const SExpr& sexpr) const throw();
   void toStream(std::ostream& out, const Model& m) const throw();
   void toStream(std::ostream& out, const UnsatCore& core, const std::map<Expr, std::string>& names) const throw();

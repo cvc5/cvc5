@@ -14,18 +14,19 @@
  ** Bitvector theory.
  **/
 
+#include "cvc4_private.h"
+
 #ifndef __CVC4__THEORY__BV__THEORY_BV_H
 #define __CVC4__THEORY__BV__THEORY_BV_H
 
-#include "cvc4_private.h"
-#include "theory/theory.h"
-#include "context/context.h"
-#include "context/cdlist.h"
 #include "context/cdhashset.h"
-#include "theory/bv/theory_bv_utils.h"
-#include "util/statistics_registry.h"
-#include "util/hash.h"
+#include "context/cdlist.h"
+#include "context/context.h"
+#include "expr/statistics_registry.h"
 #include "theory/bv/bv_subtheory.h"
+#include "theory/bv/theory_bv_utils.h"
+#include "theory/theory.h"
+#include "util/hash.h"
 
 namespace CVC4 {
 namespace theory {

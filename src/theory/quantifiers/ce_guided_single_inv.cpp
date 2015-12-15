@@ -12,18 +12,18 @@
  ** \brief utility for processing single invocation synthesis conjectures
  **
  **/
-
 #include "theory/quantifiers/ce_guided_single_inv.h"
+
+#include "expr/datatype.h"
+#include "options/quantifiers_options.h"
+#include "theory/datatypes/datatypes_rewriter.h"
 #include "theory/quantifiers/ce_guided_instantiation.h"
 #include "theory/quantifiers/ce_guided_single_inv_ei.h"
-#include "theory/theory_engine.h"
-#include "theory/quantifiers/options.h"
-#include "theory/quantifiers/term_database.h"
 #include "theory/quantifiers/first_order_model.h"
-#include "theory/datatypes/datatypes_rewriter.h"
-#include "util/datatype.h"
 #include "theory/quantifiers/quant_util.h"
+#include "theory/quantifiers/term_database.h"
 #include "theory/quantifiers/trigger.h"
+#include "theory/theory_engine.h"
 
 using namespace CVC4;
 using namespace CVC4::kind;

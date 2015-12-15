@@ -20,18 +20,19 @@
 #ifndef __CVC4__THEORY__ARITH__NORMAL_FORM_H
 #define __CVC4__THEORY__ARITH__NORMAL_FORM_H
 
-#include "expr/node.h"
-#include "expr/node_self_iterator.h"
-#include "util/rational.h"
-#include "theory/arith/delta_rational.h"
-//#include "theory/arith/arith_utilities.h"
-
-#include <list>
 #include <algorithm>
+#include <list>
 
 #if IS_SORTED_IN_GNUCXX_NAMESPACE
 #  include <ext/algorithm>
 #endif /* IS_SORTED_IN_GNUCXX_NAMESPACE */
+
+#include "base/output.h"
+#include "expr/node.h"
+#include "expr/node_self_iterator.h"
+#include "theory/arith/delta_rational.h"
+#include "util/rational.h"
+
 
 namespace CVC4 {
 namespace theory {

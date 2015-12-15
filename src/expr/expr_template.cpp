@@ -14,11 +14,11 @@
  ** Public-facing expression interface, implementation.
  **/
 
+#include "base/cvc4_assert.h"
 #include "expr/expr.h"
 #include "expr/node.h"
 #include "expr/expr_manager_scope.h"
 #include "expr/variable_type_map.h"
-#include "util/cvc4_assert.h"
 #include "expr/node_manager_attributes.h"
 
 #include <vector>

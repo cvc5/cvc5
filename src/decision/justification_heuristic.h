@@ -23,17 +23,16 @@
 #ifndef __CVC4__DECISION__JUSTIFICATION_HEURISTIC
 #define __CVC4__DECISION__JUSTIFICATION_HEURISTIC
 
-#include "decision_engine.h"
-#include "decision_strategy.h"
-
+#include "context/cdhashmap.h"
 #include "context/cdhashset.h"
 #include "context/cdlist.h"
-#include "context/cdhashmap.h"
+#include "decision/decision_attributes.h"
+#include "decision/decision_engine.h"
+#include "decision/decision_strategy.h"
 #include "expr/node.h"
 #include "prop/sat_solver_types.h"
 
 namespace CVC4 {
-
 namespace decision {
 
 class JustificationHeuristic : public ITEDecisionStrategy {

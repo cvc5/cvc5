@@ -15,11 +15,14 @@
  **/
 
 #include "theory/strings/theory_strings_preprocess.h"
-#include "expr/kind.h"
-#include "theory/strings/options.h"
-#include "smt/logic_exception.h"
+
 #include <stdint.h>
+
+#include "expr/kind.h"
+#include "options/strings_options.h"
 #include "proof/proof_manager.h"
+#include "smt/logic_exception.h"
+
 
 namespace CVC4 {
 namespace theory {

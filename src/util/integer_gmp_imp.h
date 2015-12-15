@@ -24,8 +24,8 @@
 #include <iostream>
 #include <limits>
 
+#include "base/exception.h"
 #include "util/gmp_util.h"
-#include "util/exception.h"
 
 namespace CVC4 {
 

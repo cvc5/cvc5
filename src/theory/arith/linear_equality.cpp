@@ -15,8 +15,9 @@
  **/
 
 
-#include "theory/arith/linear_equality.h"
+#include "base/output.h"
 #include "theory/arith/constraint.h"
+#include "theory/arith/linear_equality.h"
 
 using namespace std;
 

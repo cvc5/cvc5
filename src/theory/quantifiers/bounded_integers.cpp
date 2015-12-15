@@ -14,12 +14,12 @@
  ** This class manages integer bounds for quantifiers
  **/
 
+#include "options/quantifiers_options.h"
 #include "theory/quantifiers/bounded_integers.h"
-#include "theory/quantifiers/quant_util.h"
 #include "theory/quantifiers/first_order_model.h"
 #include "theory/quantifiers/model_engine.h"
+#include "theory/quantifiers/quant_util.h"
 #include "theory/quantifiers/term_database.h"
-#include "theory/quantifiers/options.h"
 
 using namespace CVC4;
 using namespace std;
@@ -425,4 +425,3 @@ void BoundedIntegers::getBoundValues( Node f, Node v, RepSetIterator * rsi, Node
 bool BoundedIntegers::isGroundRange(Node f, Node v) {
   return isBoundVar(f,v) && !getLowerBound(f,v).hasBoundVar() && !getUpperBound(f,v).hasBoundVar();
 }
-

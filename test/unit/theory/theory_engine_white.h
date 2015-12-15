@@ -20,24 +20,24 @@
 
 #include <cxxtest/TestSuite.h>
 
+#include <deque>
 #include <iostream>
 #include <string>
-#include <deque>
 
+#include "base/cvc4_assert.h"
+#include "context/context.h"
+#include "expr/kind.h"
+#include "expr/node.h"
+#include "expr/node_manager.h"
+#include "options/options.h"
+#include "smt/smt_engine.h"
+#include "smt/smt_engine_scope.h"
+#include "theory/rewriter.h"
 #include "theory/theory.h"
 #include "theory/theory_engine.h"
 #include "theory/valuation.h"
-#include "theory/rewriter.h"
-#include "expr/node.h"
-#include "expr/node_manager.h"
-#include "expr/kind.h"
-#include "context/context.h"
-#include "smt/smt_engine.h"
-#include "smt/smt_engine_scope.h"
-#include "util/rational.h"
 #include "util/integer.h"
-#include "options/options.h"
-#include "util/cvc4_assert.h"
+#include "util/rational.h"
 
 using namespace CVC4;
 using namespace CVC4::theory;

@@ -13,12 +13,12 @@
  **
  **/
 
+#include "options/quantifiers_options.h"
 #include "theory/quantifiers/conjecture_generator.h"
-#include "theory/theory_engine.h"
-#include "theory/quantifiers/options.h"
+#include "theory/quantifiers/first_order_model.h"
 #include "theory/quantifiers/term_database.h"
 #include "theory/quantifiers/trigger.h"
-#include "theory/quantifiers/first_order_model.h"
+#include "theory/theory_engine.h"
 
 using namespace CVC4;
 using namespace CVC4::kind;

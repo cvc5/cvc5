@@ -14,18 +14,17 @@
  ** Sets theory implementation.
  **/
 
-#include <boost/foreach.hpp>
-
-#include "theory/theory_model.h"
-#include "theory/sets/scrutinize.h"
-#include "theory/sets/theory_sets.h"
 #include "theory/sets/theory_sets_private.h"
 
-#include "theory/sets/options.h"
-#include "theory/sets/expr_patterns.h" // ONLY included here
+#include <boost/foreach.hpp>
 
-#include "util/emptyset.h"
-#include "util/result.h"
+#include "expr/emptyset.h"
+#include "expr/result.h"
+#include "options/sets_options.h"
+#include "theory/sets/expr_patterns.h" // ONLY included here
+#include "theory/sets/scrutinize.h"
+#include "theory/sets/theory_sets.h"
+#include "theory/theory_model.h"
 
 using namespace std;
 using namespace CVC4::expr::pattern;

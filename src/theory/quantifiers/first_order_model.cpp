@@ -12,13 +12,13 @@
  ** \brief Implementation of model engine model class
  **/
 
-#include "theory/quantifiers/first_order_model.h"
-#include "theory/quantifiers/model_engine.h"
-#include "theory/quantifiers/term_database.h"
-#include "theory/quantifiers/quantifiers_attributes.h"
-#include "theory/quantifiers/full_model_check.h"
+#include "options/quantifiers_options.h"
 #include "theory/quantifiers/ambqi_builder.h"
-#include "theory/quantifiers/options.h"
+#include "theory/quantifiers/first_order_model.h"
+#include "theory/quantifiers/full_model_check.h"
+#include "theory/quantifiers/model_engine.h"
+#include "theory/quantifiers/quantifiers_attributes.h"
+#include "theory/quantifiers/term_database.h"
 
 #define USE_INDEX_ORDERING
 

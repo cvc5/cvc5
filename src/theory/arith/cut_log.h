@@ -20,15 +20,16 @@
 
 #pragma once
 
+#include <ext/hash_map>
+#include <map>
+#include <set>
+#include <vector>
+
 #include "expr/kind.h"
-#include "util/statistics_registry.h"
+#include "expr/statistics_registry.h"
 #include "theory/arith/arithvar.h"
 #include "theory/arith/constraint_forward.h"
 #include "util/dense_map.h"
-#include <vector>
-#include <map>
-#include <set>
-#include <ext/hash_map>
 
 namespace CVC4 {
 namespace theory {

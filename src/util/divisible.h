@@ -21,8 +21,9 @@
 #define __CVC4__DIVISIBLE_H
 
 #include <iostream>
+
+#include "base/exception.h"
 #include "util/integer.h"
-#include "util/exception.h"
 
 namespace CVC4 {
 

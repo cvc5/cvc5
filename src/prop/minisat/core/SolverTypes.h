@@ -24,7 +24,7 @@ OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWA
 #define Minisat_SolverTypes_h
 
 #include <assert.h>
-#include "util/output.h"
+#include "base/output.h"
 #include "prop/minisat/mtl/IntTypes.h"
 #include "prop/minisat/mtl/Alg.h"
 #include "prop/minisat/mtl/Vec.h"

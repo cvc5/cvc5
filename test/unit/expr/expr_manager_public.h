@@ -21,7 +21,7 @@
 
 #include "expr/expr_manager.h"
 #include "expr/expr.h"
-#include "util/exception.h"
+#include "base/exception.h"
 
 using namespace CVC4;
 using namespace CVC4::kind;

@@ -13,26 +13,24 @@
  **
  ** Implementation of the theory of datatypes.
  **/
-
-
 #include "theory/datatypes/theory_datatypes.h"
-#include "theory/valuation.h"
-#include "expr/kind.h"
-#include "util/datatype.h"
-#include "util/cvc4_assert.h"
-#include "theory/datatypes/datatypes_rewriter.h"
-#include "theory/datatypes/theory_datatypes_type_rules.h"
-#include "theory/theory_model.h"
-#include "smt/options.h"
-#include "smt/boolean_terms.h"
-#include "theory/datatypes/options.h"
-#include "theory/type_enumerator.h"
-
-#include "theory/quantifiers/options.h"
-#include "theory/quantifiers_engine.h"
-
 
 #include <map>
+
+#include "base/cvc4_assert.h"
+#include "expr/datatype.h"
+#include "expr/kind.h"
+#include "options/datatypes_options.h"
+#include "options/quantifiers_options.h"
+#include "options/smt_options.h"
+#include "smt/boolean_terms.h"
+#include "theory/datatypes/datatypes_rewriter.h"
+#include "theory/datatypes/theory_datatypes_type_rules.h"
+#include "theory/quantifiers_engine.h"
+#include "theory/theory_model.h"
+#include "theory/type_enumerator.h"
+#include "theory/valuation.h"
+
 
 using namespace std;
 using namespace CVC4;

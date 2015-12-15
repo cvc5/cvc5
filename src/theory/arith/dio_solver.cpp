@@ -14,10 +14,11 @@
  ** A Diophantine equation solver for the theory of arithmetic.
  **/
 
-#include "theory/arith/dio_solver.h"
-#include "theory/arith/options.h"
-
 #include <iostream>
+
+#include "base/output.h"
+#include "options/arith_options.h"
+#include "theory/arith/dio_solver.h"
 
 using namespace std;
 

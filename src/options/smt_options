@@ -1,0 +1,164 @@
+#
+# Option specification file for CVC4
+# See src/options/base_options for a description of this file format
+#
+
+module SMT "options/smt_options.h" SMT layer
+
+common-option - dump --dump=MODE argument :handler CVC4::options::dumpMode :handler-include "options/options_handler_interface.h"
+ dump preprocessed assertions, etc., see --dump=help
+common-option - dump-to --dump-to=FILE argument :handler CVC4::options::dumpToFile :handler-include "options/options_handler_interface.h"
+ all dumping goes to FILE (instead of stdout)
+
+expert-option forceLogic force-logic --force-logic=LOGIC LogicInfo* :include "options/logic_info_forward.h" :handler CVC4::options::stringToLogicInfo :handler-include "options/options_handler_interface.h" :default NULL
+ set the logic, and override all further user attempts to change it
+
+option simplificationMode simplification-mode --simplification=MODE SimplificationMode :handler CVC4::options::stringToSimplificationMode :default SIMPLIFICATION_MODE_BATCH :read-write :include "options/simplification_mode.h" :handler-include "options/options_handler_interface.h"
+ choose simplification mode, see --simplification=help
+alias --no-simplification = --simplification=none
+ turn off all simplification (same as --simplification=none)
+
+option doStaticLearning static-learning --static-learning bool :default true
+ use static learning (on by default)
+
+option expandDefinitions expand-definitions bool :default false
+ always expand symbol definitions in output
+common-option produceModels produce-models -m --produce-models bool :default false :predicate CVC4::options::beforeSearch :predicate-include "options/options_handler_interface.h"
+ support the get-value and get-model commands
+option checkModels check-models --check-models bool :link --produce-models --produce-assertions :link-smt produce-models :link-smt produce-assertions :predicate CVC4::options::beforeSearch :predicate-include "options/options_handler_interface.h"
+ after SAT/INVALID/UNKNOWN, check that the generated model satisfies user assertions
+option dumpModels --dump-models bool :default false :link --produce-models
+ output models after every SAT/INVALID/UNKNOWN response
+option proof produce-proofs --proof bool :default false :predicate CVC4::options::proofEnabledBuild CVC4::options::beforeSearch :predicate-include "options/options_handler_interface.h"
+ turn on proof generation
+option checkProofs check-proofs --check-proofs bool :link --proof :link-smt produce-proofs :predicate CVC4::options::beforeSearch :predicate-include "options/options_handler_interface.h" :read-write
+ after UNSAT/VALID, machine-check the generated proof
+option dumpProofs --dump-proofs bool :default false :link --proof
+ output proofs after every UNSAT/VALID response
+option dumpInstantiations --dump-instantiations bool :default false
+ output instantiations of quantified formulas after every UNSAT/VALID response
+option dumpSynth --dump-synth bool :read-write :default false
+ output solution for synthesis conjectures after every UNSAT/VALID response
+option unsatCores produce-unsat-cores --produce-unsat-cores bool :predicate CVC4::options::proofEnabledBuild CVC4::options::beforeSearch :predicate-include "options/options_handler_interface.h"
+ turn on unsat core generation
+option checkUnsatCores check-unsat-cores --check-unsat-cores bool :link --produce-unsat-cores :link-smt produce-unsat-cores :read-write
+ after UNSAT/VALID, produce and check an unsat core (expensive)
+option dumpUnsatCores --dump-unsat-cores bool :default false :link --produce-unsat-cores :link-smt produce-unsat-cores :predicate CVC4::options::beforeSearch :predicate-include "options/options_handler_interface.h"
+ output unsat cores after every UNSAT/VALID response
+
+option produceAssignments produce-assignments --produce-assignments bool :default false :predicate CVC4::options::beforeSearch :predicate-include "options/options_handler_interface.h"
+ support the get-assignment command
+
+undocumented-option interactiveMode interactive-mode bool :predicate CVC4::options::beforeSearch CVC4::options::setProduceAssertions :predicate-include "options/options_handler_interface.h" :read-write
+ deprecated name for produce-assertions
+common-option produceAssertions produce-assertions --produce-assertions bool :predicate CVC4::options::beforeSearch CVC4::options::setProduceAssertions :predicate-include "options/options_handler_interface.h" :read-write
+ keep an assertions list (enables get-assertions command)
+
+option doITESimp --ite-simp bool :read-write
+ turn on ite simplification (Kim (and Somenzi) et al., SAT 2009)
+
+option doITESimpOnRepeat --on-repeat-ite-simp bool :read-write :default false
+ do the ite simplification pass again if repeating simplification
+
+option simplifyWithCareEnabled --simp-with-care bool :default false :read-write
+ enables simplifyWithCare in ite simplificiation
+
+option compressItes --simp-ite-compress bool :default false :read-write
+ enables compressing ites after ite simplification
+
+option unconstrainedSimp --unconstrained-simp bool :default false :read-write
+ turn on unconstrained simplification (see Bruttomesso/Brummayer PhD thesis)
+
+option repeatSimp --repeat-simp bool :read-write
+ make multiple passes with nonclausal simplifier
+
+option zombieHuntThreshold --simp-ite-hunt-zombies uint32_t :default 524288
+ post ite compression enables zombie removal while the number of nodes is above this threshold
+
+option sortInference --sort-inference bool :read-write :default false
+ calculate sort inference of input problem, convert the input based on monotonic sorts
+
+common-option incrementalSolving incremental -i --incremental bool :default true
+ enable incremental solving
+
+option abstractValues abstract-values --abstract-values bool :default false
+ in models, output arrays (and in future, maybe others) using abstract values, as required by the SMT-LIB standard
+option modelUninterpDtEnum --model-u-dt-enum bool :default false
+ in models, output uninterpreted sorts as datatype enumerations
+
+option - regular-output-channel argument :handler CVC4::options::setRegularOutputChannel :handler-include "options/options_handler_interface.h"
+ set the regular output channel of the solver
+option - diagnostic-output-channel argument :handler CVC4::options::setDiagnosticOutputChannel :handler-include "options/options_handler_interface.h"
+ set the diagnostic output channel of the solver
+
+common-option cumulativeMillisecondLimit tlimit --tlimit=MS "unsigned long" :handler CVC4::options::tlimitHandler :handler-include "options/options_handler_interface.h"
+ enable time limiting (give milliseconds)
+common-option perCallMillisecondLimit  tlimit-per --tlimit-per=MS "unsigned long" :handler CVC4::options::tlimitPerHandler :handler-include "options/options_handler_interface.h"
+ enable time limiting per query (give milliseconds)
+common-option cumulativeResourceLimit rlimit --rlimit=N "unsigned long" :handler CVC4::options::rlimitHandler :handler-include "options/options_handler_interface.h"
+ enable resource limiting (currently, roughly the number of SAT conflicts)
+common-option perCallResourceLimit reproducible-resource-limit --rlimit-per=N "unsigned long" :handler CVC4::options::rlimitPerHandler :handler-include "options/options_handler_interface.h"
+ enable resource limiting per query
+common-option hardLimit hard-limit --hard-limit bool :default false
+ the resource limit is hard potentially leaving the smtEngine in an unsafe state (should be destroyed and rebuild after resourcing out)
+common-option cpuTime cpu-time --cpu-time bool :default false
+ measures CPU time if set to true and wall time if false (default false)
+
+# Resource spending options for SPARK
+expert-option rewriteStep rewrite-step --rewrite-step unsigned :default 1
+ ammount of resources spent for each rewrite step
+
+expert-option theoryCheckStep theory-check-step --theory-check-step unsigned :default 1
+ ammount of resources spent for each theory check call
+
+expert-option decisionStep decision-step --decision-step unsigned :default 1
+ ammount of getNext decision calls in the decision engine
+ 
+expert-option bitblastStep bitblast-step --bitblast-step unsigned :default 1
+ ammount of resources spent for each bitblast step
+ 
+expert-option parseStep parse-step --parse-step unsigned :default 1
+ ammount of resources spent for each command/expression parsing
+ 
+expert-option lemmaStep lemma-step --lemma-step unsigned :default 1
+ ammount of resources spent when adding lemmas
+ 
+expert-option restartStep restart-step --restart-step unsigned :default 1
+ ammount of resources spent for each theory restart
+ 
+expert-option cnfStep cnf-step --cnf-step unsigned :default 1
+ ammount of resources spent for each call to cnf conversion
+ 
+expert-option preprocessStep preprocess-step --preprocess-step unsigned :default 1
+ ammount of resources spent for each preprocessing step in SmtEngine
+ 
+expert-option quantifierStep quantifier-step --quantifier-step unsigned :default 1
+ ammount of resources spent for quantifier instantiations
+ 
+expert-option satConflictStep sat-conflict-step --sat-conflict-step unsigned :default 1
+ ammount of resources spent for each sat conflict (main sat solver)
+ 
+expert-option bvSatConflictStep bv-sat-conflict-step --bv-sat-conflict-step unsigned :default 1
+ ammount of resources spent for each sat conflict (bitvectors)
+ 
+ 
+expert-option rewriteApplyToConst rewrite-apply-to-const --rewrite-apply-to-const bool :default false
+ eliminate function applications, rewriting e.g. f(5) to a new symbol f_5
+
+# --replay is currently broken; don't document it for 1.0
+undocumented-option replayFilename --replay=FILE std::string :handler CVC4::options::checkReplayFilename :handler-include "options/options_handler_interface.h"
+ replay decisions from file
+undocumented-option replayLog --replay-log=FILE std::ostream* :handler CVC4::options::checkReplayLogFilename :handler-include "options/options_handler_interface.h"
+ log decisions and propagations to file
+option replayStream ExprStream*
+
+# portfolio options
+option lemmaInputChannel LemmaInputChannel* :default NULL :include "base/lemma_input_channel_forward.h"
+ The input channel to receive notfication events for new lemmas
+option lemmaOutputChannel LemmaOutputChannel* :default NULL :include "base/lemma_output_channel_forward.h"
+ The output channel to receive notfication events for new lemmas
+
+option forceNoLimitCpuWhileDump --force-no-limit-cpu-while-dump bool :default false
+ Force no CPU limit when dumping models and proofs
+
+endmodule

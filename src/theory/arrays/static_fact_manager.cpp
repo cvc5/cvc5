@@ -18,9 +18,9 @@
 
 #include <iostream>
 
-#include "theory/arrays/static_fact_manager.h"
-#include "util/cvc4_assert.h"
+#include "base/cvc4_assert.h"
 #include "expr/node.h"
+#include "theory/arrays/static_fact_manager.h"
 
 using namespace std;
 

@@ -21,16 +21,14 @@
 
 #include <vector>
 
+#include "base/output.h"
 #include "decision/decision_strategy.h"
-
 #include "expr/node.h"
 #include "prop/cnf_stream.h"
 #include "prop/prop_engine.h"
 #include "prop/sat_solver_types.h"
-#include "theory/decision_attributes.h"
-#include "util/ite_removal.h"
-#include "util/output.h"
 #include "smt/smt_engine_scope.h"
+#include "smt_util/ite_removal.h"
 
 using namespace std;
 using namespace CVC4::prop;

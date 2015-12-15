@@ -15,24 +15,23 @@
  **
  ** Reviewed by Chris Conway, Apr 5 2010 (bug #65).
  **/
-
 #include "expr/node_manager.h"
-#include "expr/node_manager_attributes.h"
-
-#include "expr/attribute.h"
-#include "util/cvc4_assert.h"
-#include "options/options.h"
-#include "smt/options.h"
-#include "util/statistics_registry.h"
-#include "util/resource_manager.h"
-#include "util/tls.h"
-
-#include "expr/type_checker.h"
 
 #include <algorithm>
+#include <ext/hash_set>
 #include <stack>
 #include <utility>
-#include <ext/hash_set>
+
+#include "base/cvc4_assert.h"
+#include "base/tls.h"
+#include "expr/attribute.h"
+#include "expr/node_manager_attributes.h"
+#include "expr/type_checker.h"
+#include "options/options.h"
+#include "options/smt_options.h"
+#include "expr/resource_manager.h"
+#include "expr/statistics_registry.h"
+
 
 using namespace std;
 using namespace CVC4::expr;

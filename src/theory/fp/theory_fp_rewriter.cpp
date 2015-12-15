@@ -25,11 +25,10 @@
  **       ]]
  **/
 
-#include "theory/fp/theory_fp_rewriter.h"
-
-#include "util/cvc4_assert.h"
-
 #include <algorithm>
+
+#include "base/cvc4_assert.h"
+#include "theory/fp/theory_fp_rewriter.h"
 
 namespace CVC4 {
 namespace theory {

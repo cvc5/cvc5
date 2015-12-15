@@ -18,23 +18,22 @@
 #include <antlr3.h>
 #include <stdint.h>
 
+#include "base/output.h"
+#include "expr/type.h"
 #include "parser/antlr_input.h"
-#include "parser/input.h"
+#include "parser/antlr_line_buffered_input.h"
 #include "parser/bounded_token_buffer.h"
 #include "parser/bounded_token_factory.h"
-#include "parser/antlr_line_buffered_input.h"
-#include "parser/memory_mapped_input_buffer.h"
-#include "parser/parser_exception.h"
-#include "parser/parser.h"
-
-#include "expr/command.h"
-#include "expr/type.h"
 #include "parser/cvc/cvc_input.h"
+#include "parser/input.h"
+#include "parser/memory_mapped_input_buffer.h"
+#include "parser/parser.h"
+#include "parser/parser_exception.h"
 #include "parser/smt1/smt1_input.h"
 #include "parser/smt2/smt2_input.h"
 #include "parser/smt2/sygus_input.h"
 #include "parser/tptp/tptp_input.h"
-#include "util/output.h"
+#include "smt_util/command.h"
 
 using namespace std;
 using namespace CVC4;

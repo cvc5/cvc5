@@ -19,10 +19,11 @@
 #ifndef __CVC4__THEORY__DATATYPES__DATATYPES_SYGUS_H
 #define __CVC4__THEORY__DATATYPES__DATATYPES_SYGUS_H
 
-#include "expr/node.h"
-#include "util/datatype.h"
 #include <iostream>
 #include <map>
+
+#include "expr/node.h"
+#include "expr/datatype.h"
 #include "context/context.h"
 #include "context/cdchunk_list.h"
 #include "context/cdhashmap.h"
@@ -30,11 +31,10 @@
 
 namespace CVC4 {
 namespace theory {
-  
 namespace quantifiers {
   class TermDbSygus;
-}
-  
+} /* namespace quantifiers */
+
 namespace datatypes {
 
 class SygusSplit

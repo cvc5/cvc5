@@ -16,12 +16,12 @@
 
 #include "theory/bv/bv_subtheory_core.h"
 
+#include "options/bv_options.h"
+#include "options/smt_options.h"
+#include "theory/bv/slicer.h"
 #include "theory/bv/theory_bv.h"
 #include "theory/bv/theory_bv_utils.h"
-#include "theory/bv/slicer.h"
 #include "theory/theory_model.h"
-#include "theory/bv/options.h"
-#include "smt/options.h"
 
 using namespace std;
 using namespace CVC4;

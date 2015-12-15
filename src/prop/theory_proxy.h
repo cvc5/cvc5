@@ -23,12 +23,10 @@
 // Optional blocks below will be unconditionally included
 #define __CVC4_USE_MINISAT
 
-#include "theory/theory.h"
-#include "util/statistics_registry.h"
-
 #include "context/cdqueue.h"
-
+#include "expr/statistics_registry.h"
 #include "prop/sat_solver.h"
+#include "theory/theory.h"
 
 namespace CVC4 {
 

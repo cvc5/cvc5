@@ -13,39 +13,38 @@
  ** sequential and portfolio versions
  **/
 
+#include <stdio.h>
+#include <unistd.h>
+
 #include <cstdlib>
 #include <cstring>
 #include <fstream>
 #include <iostream>
 #include <new>
-#include <unistd.h>
 
-#include <stdio.h>
-#include <unistd.h>
-
+#include "base/output.h"
 #include "cvc4autoconfig.h"
-#include "main/main.h"
-#include "main/interactive_shell.h"
-#include "main/options.h"
-#include "parser/parser.h"
-#include "parser/parser_builder.h"
-#include "parser/parser_exception.h"
 #include "expr/expr_manager.h"
-#include "expr/command.h"
-#include "util/configuration.h"
-#include "options/options.h"
-#include "theory/quantifiers/options.h"
+#include "expr/result.h"
+#include "expr/statistics_registry.h"
 #include "main/command_executor.h"
 
 #ifdef PORTFOLIO_BUILD
 #  include "main/command_executor_portfolio.h"
 #endif
 
-#include "main/options.h"
-#include "smt/options.h"
-#include "util/output.h"
-#include "util/result.h"
-#include "util/statistics_registry.h"
+#include "main/interactive_shell.h"
+#include "main/main.h"
+#include "options/main_options.h"
+#include "options/options.h"
+#include "options/quantifiers_options.h"
+#include "options/smt_options.h"
+#include "parser/parser.h"
+#include "parser/parser_builder.h"
+#include "parser/parser_exception.h"
+#include "smt/smt_options_handler.h"
+#include "smt_util/command.h"
+#include "util/configuration.h"
 
 using namespace std;
 using namespace CVC4;
@@ -130,8 +129,11 @@ int runCvc4(int argc, char* argv[], Options& opts) {
 
   progPath = argv[0];
 
+#warning "TODO: Check that the SmtEngine pointer should be NULL with Kshitij."
+  smt::SmtOptionsHandler optionsHandler(NULL);
+
   // Parse the options
-  vector<string> filenames = opts.parseOptions(argc, argv);
+  vector<string> filenames = opts.parseOptions(argc, argv, &optionsHandler);
 
 # ifndef PORTFOLIO_BUILD
   if( opts.wasSetByUser(options::threads) ||
@@ -302,7 +304,7 @@ int runCvc4(int argc, char* argv[], Options& opts) {
       }
 #ifndef PORTFOLIO_BUILD
       if(!opts.wasSetByUser(options::incrementalSolving)) {
-        cmd = new SetOptionCommand("incremental", true);
+        cmd = new SetOptionCommand("incremental", SExpr(true));
         cmd->setMuted(true);
         pExecutor->doCommand(cmd);
         delete cmd;
@@ -349,7 +351,7 @@ int runCvc4(int argc, char* argv[], Options& opts) {
           throw OptionException("--tear-down-incremental incompatible with --incremental");
         }
 
-        cmd = new SetOptionCommand("incremental", false);
+        cmd = new SetOptionCommand("incremental", SExpr(false));
         cmd->setMuted(true);
         pExecutor->doCommand(cmd);
         delete cmd;
@@ -488,7 +490,7 @@ int runCvc4(int argc, char* argv[], Options& opts) {
       delete parser;
     } else {
       if(!opts.wasSetByUser(options::incrementalSolving)) {
-        cmd = new SetOptionCommand("incremental", false);
+        cmd = new SetOptionCommand("incremental", SExpr(false));
         cmd->setMuted(true);
         pExecutor->doCommand(cmd);
         delete cmd;

@@ -11,15 +11,15 @@
  **
  ** [[ Add lengthier description here ]]
  ** \todo document this file
-**/
-
+ **/
 #include "theory/quantifiers/inst_match_generator.h"
-#include "theory/quantifiers/trigger.h"
-#include "theory/quantifiers/term_database.h"
+
+#include "expr/datatype.h"
+#include "options/quantifiers_options.h"
 #include "theory/quantifiers/candidate_generator.h"
+#include "theory/quantifiers/term_database.h"
+#include "theory/quantifiers/trigger.h"
 #include "theory/quantifiers_engine.h"
-#include "theory/quantifiers/options.h"
-#include "util/datatype.h"
 
 using namespace std;
 using namespace CVC4;

@@ -17,28 +17,30 @@
 #include "printer/smt2/smt2_printer.h"
 
 #include <iostream>
-#include <vector>
 #include <string>
 #include <typeinfo>
+#include <vector>
 
-#include "util/boolean_simplification.h"
-#include "printer/dagification_visitor.h"
-#include "util/node_visitor.h"
-#include "theory/substitutions.h"
-#include "util/language.h"
-#include "smt/smt_engine.h"
-#include "smt/options.h"
 #include "expr/node_manager_attributes.h"
-
-#include "theory/theory_model.h"
+#include "options/language.h"
+#include "options/smt_options.h"
+#include "printer/dagification_visitor.h"
+#include "smt/smt_engine.h"
+#include "smt_util/boolean_simplification.h"
+#include "smt_util/node_visitor.h"
 #include "theory/arrays/theory_arrays_rewriter.h"
 #include "theory/quantifiers/term_database.h"
+#include "theory/substitutions.h"
+#include "theory/theory_model.h"
+#include "util/smt2_quote_string.h"
 
 using namespace std;
 
 namespace CVC4 {
 namespace printer {
 namespace smt2 {
+
+static OutputLanguage variantToLanguage(Variant v) throw();
 
 static string smtKindString(Kind k) throw();
 
@@ -971,38 +973,14 @@ void Smt2Printer::toStream(std::ostream& out, const Command* c,
 
 }/* Smt2Printer::toStream(Command*) */
 
-static inline void toStream(std::ostream& out, const SExpr& sexpr) throw() {
-  Printer::getPrinter(language::output::LANG_SMTLIB_V2_5)->toStream(out, sexpr);
-}
-
-// SMT-LIB quoting for symbols
-static std::string quoteSymbol(std::string s) {
-  if(s.find_first_not_of("ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789~!@$%^&*_-+=<>.?/") == std::string::npos) {
-    // simple unquoted symbol
-    return s;
-  }
-
-  // must quote the symbol, but it cannot contain | or \, we turn those into _
-  size_t p;
-  while((p = s.find_first_of("\\|")) != std::string::npos) {
-    s = s.replace(p, 1, "_");
-  }
-  return "|" + s + "|";
-}
 
 static std::string quoteSymbol(TNode n) {
+#warning "check the old implementation. It seems off."
   std::stringstream ss;
   ss << Expr::setlanguage(language::output::LANG_SMTLIB_V2_5);
-  return quoteSymbol(ss.str());
+  return CVC4::quoteSymbol(ss.str());
 }
 
-void Smt2Printer::toStream(std::ostream& out, const SExpr& sexpr) const throw() {
-  if(sexpr.isKeyword()) {
-    out << quoteSymbol(sexpr.getValue());
-  } else {
-    this->Printer::toStream(out, sexpr);
-  }
-}
 
 template <class T>
 static bool tryToStream(std::ostream& out, const CommandStatus* s, Variant v) throw();
@@ -1047,29 +1025,33 @@ void Smt2Printer::toStream(std::ostream& out, const Model& m, const Command* c) 
   const theory::TheoryModel& tm = (const theory::TheoryModel&) m;
   if(dynamic_cast<const DeclareTypeCommand*>(c) != NULL) {
     TypeNode tn = TypeNode::fromType( ((const DeclareTypeCommand*)c)->getType() );
-    if( options::modelUninterpDtEnum() && tn.isSort() &&
-        tm.d_rep_set.d_type_reps.find( tn )!=tm.d_rep_set.d_type_reps.end() ){
+    const std::map< TypeNode, std::vector< Node > >& type_reps = tm.d_rep_set.d_type_reps;
+
+    std::map< TypeNode, std::vector< Node > >::const_iterator tn_iterator = type_reps.find( tn );
+    if( options::modelUninterpDtEnum() && tn.isSort() && tn_iterator != type_reps.end() ){
       out << "(declare-datatypes () ((" << dynamic_cast<const DeclareTypeCommand*>(c)->getSymbol() << " ";
-      for( size_t i=0; i<(*tm.d_rep_set.d_type_reps.find(tn)).second.size(); i++ ){
-        out << "(" << (*tm.d_rep_set.d_type_reps.find(tn)).second[i] << ")";
+
+      for( size_t i=0, N = tn_iterator->second.size(); i < N; i++ ){
+        out << "(" << (*tn_iterator).second[i] << ")";
       }
       out << ")))" << endl;
     } else {
       if( tn.isSort() ){
         //print the cardinality
-        if( tm.d_rep_set.d_type_reps.find( tn )!=tm.d_rep_set.d_type_reps.end() ){
-          out << "; cardinality of " << tn << " is " << (*tm.d_rep_set.d_type_reps.find(tn)).second.size() << endl;
+        if( tn_iterator != type_reps.end() ) {
+          out << "; cardinality of " << tn << " is " << tn_iterator->second.size() << endl;
         }
       }
       out << c << endl;
       if( tn.isSort() ){
         //print the representatives
-        if( tm.d_rep_set.d_type_reps.find( tn )!=tm.d_rep_set.d_type_reps.end() ){
-          for( size_t i=0; i<(*tm.d_rep_set.d_type_reps.find(tn)).second.size(); i++ ){
-            if( (*tm.d_rep_set.d_type_reps.find(tn)).second[i].isVar() ){
-              out << "(declare-fun " << quoteSymbol((*tm.d_rep_set.d_type_reps.find(tn)).second[i]) << " () " << tn << ")" << endl;
+        if( tn_iterator != type_reps.end() ){
+          for( size_t i = 0, N = (*tn_iterator).second.size(); i < N; i++ ){
+            TNode current = (*tn_iterator).second[i];
+            if( current.isVar() ){
+              out << "(declare-fun " << quoteSymbol(current) << " () " << tn << ")" << endl;
             }else{
-              out << "; rep: " << (*tm.d_rep_set.d_type_reps.find(tn)).second[i] << endl;
+              out << "; rep: " << current << endl;
             }
           }
         }
@@ -1138,13 +1120,6 @@ void Smt2Printer::toStream(std::ostream& out, const Model& m, const Command* c) 
   }
 }
 
-void Smt2Printer::toStream(std::ostream& out, const Result& r) const throw() {
-  if(r.getType() == Result::TYPE_SAT && r.isSat() == Result::SAT_UNKNOWN) {
-    out << "unknown";
-  } else {
-    Printer::toStream(out, r);
-  }
-}
 
 static void toStream(std::ostream& out, const AssertCommand* c) throw() {
   out << "(assert " << c->getExpr() << ")";
@@ -1210,7 +1185,7 @@ static void toStream(std::ostream& out, const CommandSequence* c) throw() {
 
 static void toStream(std::ostream& out, const DeclareFunctionCommand* c) throw() {
   Type type = c->getType();
-  out << "(declare-fun " << quoteSymbol(c->getSymbol()) << " (";
+  out << "(declare-fun " << CVC4::quoteSymbol(c->getSymbol()) << " (";
   if(type.isFunction()) {
     FunctionType ft = type;
     const vector<Type> argTypes = ft.getArgTypes();
@@ -1389,7 +1364,8 @@ static void toStream(std::ostream& out, const SetInfoCommand* c, Variant v) thro
   } else {
     out << "(meta-info :" << c->getFlag() << " ";
   }
-  toStream(out, c->getSExpr());
+
+  SExpr::toStream(out, c->getSExpr(), variantToLanguage(v));
   out << ")";
 }
 
@@ -1399,7 +1375,7 @@ static void toStream(std::ostream& out, const GetInfoCommand* c) throw() {
 
 static void toStream(std::ostream& out, const SetOptionCommand* c) throw() {
   out << "(set-option :" << c->getFlag() << " ";
-  toStream(out, c->getSExpr());
+  SExpr::toStream(out, c->getSExpr(), language::output::LANG_SMTLIB_V2_5);
   out << ")";
 }
 
@@ -1516,6 +1492,20 @@ static bool tryToStream(std::ostream& out, const CommandStatus* s, Variant v) th
     return true;
   }
   return false;
+}
+
+static OutputLanguage variantToLanguage(Variant variant) throw() {
+  switch(variant) {
+  case smt2_0_variant:
+    return language::output::LANG_SMTLIB_V2_0;
+  case z3str_variant:
+    return language::output::LANG_Z3STR;
+  case sygus_variant:
+    return language::output::LANG_SYGUS;
+  case no_variant:
+  default:
+    return language::output::LANG_SMTLIB_V2_5;
+  }
 }
 
 }/* CVC4::printer::smt2 namespace */

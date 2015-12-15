@@ -14,24 +14,26 @@
  ** Parser state implementation.
  **/
 
-#include <iostream>
-#include <fstream>
-#include <sstream>
-#include <iterator>
-#include <stdint.h>
-#include <cassert>
-
-#include "parser/input.h"
 #include "parser/parser.h"
-#include "parser/parser_exception.h"
-#include "expr/command.h"
+
+#include <stdint.h>
+
+#include <cassert>
+#include <fstream>
+#include <iostream>
+#include <iterator>
+#include <sstream>
+
+#include "base/output.h"
 #include "expr/expr.h"
 #include "expr/kind.h"
+#include "expr/resource_manager.h"
 #include "expr/type.h"
-#include "util/output.h"
-#include "util/resource_manager.h"
 #include "options/options.h"
-#include "smt/options.h"
+#include "options/smt_options.h"
+#include "parser/input.h"
+#include "parser/parser_exception.h"
+#include "smt_util/command.h"
 
 using namespace std;
 using namespace CVC4::kind;

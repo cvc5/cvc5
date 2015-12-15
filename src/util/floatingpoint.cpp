@@ -13,8 +13,9 @@
  **
  **/
 
-#include "util/cvc4_assert.h"
 #include "util/floatingpoint.h"
+
+#include "base/cvc4_assert.h"
 
 namespace CVC4 {
 
@@ -35,4 +36,3 @@ namespace CVC4 {
   }
 
 }/* CVC4 namespace */
-

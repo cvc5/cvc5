@@ -15,18 +15,19 @@
  ** CVC4's input languages to one of its output languages.
  **/
 
-#include <iostream>
+#include <cerrno>
+#include <cstdlib>
+#include <cstring>
 #include <fstream>
 #include <getopt.h>
-#include <cstring>
-#include <cstdlib>
-#include <cerrno>
-#include "smt/smt_engine.h"
-#include "util/language.h"
-#include "expr/command.h"
+#include <iostream>
+
 #include "expr/expr.h"
-#include "parser/parser_builder.h"
+#include "options/language.h"
 #include "parser/parser.h"
+#include "parser/parser_builder.h"
+#include "smt/smt_engine.h"
+#include "smt_util/command.h"
 
 using namespace std;
 using namespace CVC4;

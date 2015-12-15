@@ -19,7 +19,7 @@
 #ifndef __CVC4__PROOF__PROOF_H
 #define __CVC4__PROOF__PROOF_H
 
-#include "smt/options.h"
+#include "options/smt_options.h"
 
 
 /* Do NOT use #ifdef CVC4_PROOF to check if proofs are enabled.

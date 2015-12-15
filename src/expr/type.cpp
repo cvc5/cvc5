@@ -13,16 +13,16 @@
  **
  ** Implementation of expression types.
  **/
+#include "expr/type.h"
 
 #include <iostream>
 #include <string>
 #include <vector>
 
+#include "base/exception.h"
 #include "expr/node_manager.h"
 #include "expr/node_manager_attributes.h"
-#include "expr/type.h"
 #include "expr/type_node.h"
-#include "util/exception.h"
 
 using namespace std;
 

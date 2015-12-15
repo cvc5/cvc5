@@ -20,14 +20,14 @@
 #define __CVC4__PARSER__INPUT_H
 
 #include <iostream>
-#include <string>
 #include <stdio.h>
+#include <string>
 #include <vector>
 
+#include "options/language.h"
 #include "expr/expr.h"
 #include "expr/expr_manager.h"
 #include "parser/parser_exception.h"
-#include "util/language.h"
 
 namespace CVC4 {
 

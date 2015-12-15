@@ -23,32 +23,32 @@
 #include <vector>
 #include <utility>
 
-#include "expr/node.h"
-#include "expr/command.h"
-#include "prop/prop_engine.h"
+#include "base/cvc4_assert.h"
 #include "context/cdhashset.h"
-#include "theory/theory.h"
-#include "theory/rewriter.h"
-#include "theory/substitutions.h"
-#include "theory/shared_terms_database.h"
-#include "theory/term_registration_visitor.h"
-#include "theory/valuation.h"
-#include "theory/interrupted.h"
+#include "expr/node.h"
+#include "expr/statistics_registry.h"
 #include "options/options.h"
-#include "smt/options.h"
-#include "util/statistics_registry.h"
-#include "util/cvc4_assert.h"
-#include "util/sort_inference.h"
-#include "util/unsafe_interrupt_exception.h"
-#include "theory/quantifiers/quant_conflict_find.h"
-#include "theory/uf/equality_engine.h"
-#include "theory/bv/bv_to_bool.h"
+#include "options/smt_options.h"
+#include "prop/prop_engine.h"
+#include "smt_util/command.h"
 #include "theory/atom_requests.h"
+#include "theory/bv/bv_to_bool.h"
+#include "theory/interrupted.h"
+#include "theory/quantifiers/quant_conflict_find.h"
+#include "theory/rewriter.h"
+#include "theory/shared_terms_database.h"
+#include "theory/sort_inference.h"
+#include "theory/substitutions.h"
+#include "theory/term_registration_visitor.h"
+#include "theory/theory.h"
+#include "theory/uf/equality_engine.h"
+#include "theory/valuation.h"
+#include "util/unsafe_interrupt_exception.h"
 
 namespace CVC4 {
 
 class ResourceManager;
-  
+
 /**
  * A pair of a theory and a node. This is used to mark the flow of
  * propagations between theories.

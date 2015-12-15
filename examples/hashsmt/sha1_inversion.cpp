@@ -29,7 +29,7 @@
 
 #include "word.h"
 #include "sha1.hpp"
-#include "expr/command.h"
+#include "smt_util/command.h"
 
 #include <boost/uuid/sha1.hpp>
 

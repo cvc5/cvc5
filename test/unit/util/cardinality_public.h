@@ -14,11 +14,11 @@
  ** Public-box testing of CVC4::Cardinality.
  **/
 
-#include "util/cardinality.h"
-#include "util/integer.h"
-
-#include <string>
 #include <sstream>
+#include <string>
+
+#include "util/integer.h"
+#include "util/cardinality.h"
 
 using namespace CVC4;
 using namespace std;

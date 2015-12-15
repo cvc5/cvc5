@@ -11,16 +11,16 @@
  **
  ** \brief Implementation of counterexample-guided quantifier instantiation
  **/
-
 #include "theory/quantifiers/ceg_instantiator.h"
-#include "theory/arith/theory_arith.h"
+
+#include "options/quantifiers_options.h"
+#include "smt_util/ite_removal.h"
 #include "theory/arith/partial_model.h"
+#include "theory/arith/theory_arith.h"
 #include "theory/arith/theory_arith_private.h"
-#include "theory/theory_engine.h"
-#include "theory/quantifiers/options.h"
-#include "theory/quantifiers/term_database.h"
 #include "theory/quantifiers/first_order_model.h"
-#include "util/ite_removal.h"
+#include "theory/quantifiers/term_database.h"
+#include "theory/theory_engine.h"
 
 //#define MBP_STRICT_ASSERTIONS
 

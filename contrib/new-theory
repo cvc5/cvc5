@@ -119,6 +119,15 @@ function copyaltskel {
     > "src/theory/$dir/$dest"
 }
 
+function copyoptions {
+  src="$1"
+  dest="`echo "$src" | sed "s/DIR/$dir/g"`"
+  echo "Creating src/options/$dest..."
+  sed "s/\$dir/$dir/g;s/\$camel/$camel/g;s/\$id/$id/g;s/\$alt_id/$alt_id/g" \
+    contrib/optionsskel/$src \
+    > "src/options/$dest"
+}
+
 # copy files from the skeleton, with proper replacements
 if $alternate; then
   alternate01=1
@@ -131,6 +140,11 @@ else
     copyskel "$file"
   done
 fi
+# Copy the options file independently
+for file in `ls contrib/optionsskel`; do
+  copyoptions "$file"
+done
+
 
 echo
 echo "Adding $dir to THEORIES to src/Makefile.theories..."
@@ -158,19 +172,18 @@ perl -e '
     while(<>) { if(!/\\$/) { chomp; print "$_ \\\n\ttheory/'"$dir"'/theory_'"$dir"'.h \\\n\ttheory/'"$dir"'/theory_'"$dir"'.cpp \\\n\ttheory/'"$dir"'/theory_'"$dir"'_rewriter.h \\\n\ttheory/'"$dir"'/theory_'"$dir"'_type_rules.h\n"; last; } else { print; } }
   }
   while(<>) { print; last if /^EXTRA_DIST = /; }
-  while(<>) { if(!/\\$/) { chomp; print "$_ \\\n\ttheory/'"$dir"'/kinds \\\n\ttheory/'"$dir"'/options_handlers.h\n"; last; } else { print; } }
+  while(<>) { if(!/\\$/) { chomp; print "$_ \\\n\ttheory/'"$dir"'/kinds\n"; last; } else { print; } }
   while(<>) { print; }' src/Makefile.am > src/Makefile.am.new-theory
 if ! mv -f src/Makefile.am.new-theory src/Makefile.am; then
   echo "ERROR: cannot replace src/Makefile.am !" >&2
   exit 1
 fi
 
-echo "Adding ../theory/$dir/options.cpp to OPTIONS_FILES_SRCS"
-echo "  and nodist_liboptions_la_SOURCES to src/options/Makefile.am..."
-if grep -q '^	\.\./theory/'"$dir"'/options\.cpp\>' src/options/Makefile.am &>/dev/null; then
+echo "Adding ${dir}_options to src/options/Makefile.am..."
+if grep -q '^	${dir}_options' src/options/Makefile.am &>/dev/null; then
   echo "NOTE: src/options/Makefile.am already seems to link to $dir option files"
 else
-  awk '!/^OPTIONS_FILES_SRCS = \\|^nodist_liboptions_la_SOURCES = / {print$0} /^OPTIONS_FILES_SRCS = \\|^nodist_liboptions_la_SOURCES = / {while(/\\ *$/){print $0;getline} print $0,"\\";print "\t../theory/'"$dir"'/options.cpp","\\";print "\t../theory/'"$dir"'/options.h";}' src/options/Makefile.am > src/options/Makefile.am.new-theory
+  awk -v name="$dir" -f contrib/new-theory.awk src/options/Makefile.am > src/options/Makefile.am.new-theory
   if ! cp -f src/options/Makefile.am src/options/Makefile.am~; then
     echo "ERROR: cannot copy src/options/Makefile.am !" >&2
     exit 1

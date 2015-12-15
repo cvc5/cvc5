@@ -19,8 +19,9 @@
 #include <sstream>
 
 #include "expr/expr.h"
+#include "expr/sexpr.h"
+#include "expr/statistics.h"
 #include "smt/smt_engine.h"
-#include "util/statistics.h"
 
 using namespace CVC4;
 using namespace std;
@@ -53,7 +54,8 @@ int main() {
     cout << "stat1 " << (*i).first << " is " << stats.getStatistic((*i).first) << endl;
     cout << "stat2 " << (*i).first << " is " << (*i).second << endl;
     if(smt.getStatistic((*i).first) != (*i).second) {
-      cout << "SMT engine reports different value for statistic " << (*i).first << ": " << smt.getStatistic((*i).first) << endl;
+      cout << "SMT engine reports different value for statistic "
+           << (*i).first << ": " << smt.getStatistic((*i).first) << endl;
       exit(1);
     }
     different = different || stats.getStatistic((*i).first) != (*i).second;
@@ -68,5 +70,3 @@ int main() {
 
   return r == Result::VALID ? 0 : 1;
 }
-
-

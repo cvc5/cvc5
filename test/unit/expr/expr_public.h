@@ -19,9 +19,10 @@
 #include <sstream>
 #include <string>
 
+#include "base/exception.h"
 #include "expr/expr_manager.h"
 #include "expr/expr.h"
-#include "util/exception.h"
+#include "smt/smt_options_handler.h"
 
 using namespace CVC4;
 using namespace CVC4::kind;
@@ -31,6 +32,7 @@ class ExprPublic : public CxxTest::TestSuite {
 private:
 
   Options opts;
+  smt::SmtOptionsHandler* d_handler;
 
   ExprManager* d_em;
 
@@ -53,10 +55,12 @@ public:
 
   void setUp() {
     try {
+      d_handler = new smt::SmtOptionsHandler(NULL);
+
       char *argv[2];
       argv[0] = strdup("");
       argv[1] = strdup("--output-language=ast");
-      opts.parseOptions(2, argv);
+      opts.parseOptions(2, argv, d_handler);
       free(argv[0]);
       free(argv[1]);
 
@@ -98,6 +102,7 @@ public:
       delete c_bool_and;
       delete b_bool;
       delete a_bool;
+      delete d_handler;
 
       delete d_em;
     } catch(Exception e) {

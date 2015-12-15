@@ -18,8 +18,9 @@
 
 #pragma once
 
-#include "expr/type.h"
 #include <iostream>
+
+#include "util/integer.h"
 
 namespace CVC4 {
 
@@ -28,13 +29,9 @@ class CVC4_PUBLIC AbstractValue {
 
 public:
 
-  AbstractValue(Integer index) throw(IllegalArgumentException) :
-    d_index(index) {
-    CheckArgument(index >= 1, index, "index >= 1 required for abstract value, not `%s'", index.toString().c_str());
-  }
+  AbstractValue(Integer index) throw(IllegalArgumentException);
 
-  ~AbstractValue() throw() {
-  }
+  ~AbstractValue() throw() {}
 
   const Integer& getIndex() const throw() {
     return d_index;

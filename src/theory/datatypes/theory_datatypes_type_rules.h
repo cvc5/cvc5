@@ -19,7 +19,7 @@
 #ifndef __CVC4__THEORY__DATATYPES__THEORY_DATATYPES_TYPE_RULES_H
 #define __CVC4__THEORY__DATATYPES__THEORY_DATATYPES_TYPE_RULES_H
 
-#include "util/matcher.h"
+#include "expr/matcher.h"
 //#include "expr/attribute.h"
 
 namespace CVC4 {

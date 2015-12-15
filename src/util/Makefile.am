@@ -3,11 +3,10 @@ AM_CPPFLAGS = \
 	-I@builddir@/.. -I@srcdir@/../include -I@srcdir@/..
 AM_CXXFLAGS = -Wall -Wno-unknown-pragmas $(FLAG_VISIBILITY_HIDDEN)
 
-noinst_LTLIBRARIES = libutil.la libstatistics.la
+noinst_LTLIBRARIES = libutil.la
 
-libstatistics_la_CPPFLAGS = $(CPPFLAGS) $(AM_CPPFLAGS) -D__BUILDING_STATISTICS_FOR_EXPORT
 
-# Do not list built sources (like integer.h, rational.h, and tls.h) here!
+# Do not list built sources (like integer.h, rational.h) here!
 # Rather, list them under BUILT_SOURCES, and their .in versions under
 # EXTRA_DIST.  Otherwise, they're packaged up in the tarball, which is
 # no good---they belong in the configured builds/ directory.  If they
@@ -15,102 +14,45 @@ libstatistics_la_CPPFLAGS = $(CPPFLAGS) $(AM_CPPFLAGS) -D__BUILDING_STATISTICS_F
 # configured at the time of the "make dist", which (1) may not be the
 # configuration that the user wants, and (2) might cause link errors.
 libutil_la_SOURCES = \
-	cvc4_assert.h \
-	cvc4_assert.cpp \
-	backtrackable.h \
 	Makefile.am \
 	Makefile.in \
-	debug.h \
-	exception.h \
-	exception.cpp \
-	hash.h \
+	abstract_value.cpp \
+	abstract_value.h \
+	bin_heap.h \
+	bitvector.h \
 	bool.h \
-	proof.h \
-	output.cpp \
-	output.h \
-	result.h \
-	result.cpp \
+	cache.h \
+	cardinality.cpp \
+	cardinality.h \
+	channel.h \
+	configuration.cpp \
 	configuration.h \
 	configuration_private.h \
-	configuration.cpp \
-	bitvector.h \
-	ascription_type.h \
-	array.h \
-	datatype.h \
-	datatype.cpp \
-	tuple.h \
-	record.h \
-	record.cpp \
-	divisible.h \
-	divisible.cpp \
-	maybe.h \
-	matcher.h \
-	gmp_util.h \
-	sexpr.h \
-	sexpr.cpp \
-	statistics.h \
-	statistics.cpp \
-	statistics_registry.h \
-	statistics_registry.cpp \
-	dynamic_array.h \
-	language.h \
-	lemma_input_channel.h \
-	lemma_output_channel.h \
+	debug.h \
 	dense_map.h \
-	channel.h \
-	language.cpp \
-	ntuple.h \
-	subrange_bound.h \
-	dump.h \
-	dump.cpp \
-	predicate.h \
-	predicate.cpp \
-	cardinality.h \
-	cardinality.cpp \
-	cache.h \
-	utility.h \
-	boolean_simplification.h \
-	boolean_simplification.cpp \
-	ite_removal.h \
-	ite_removal.cpp \
-	nary_builder.h \
-	nary_builder.cpp \
-	node_visitor.h \
-	chain.h \
-	index.h \
-	uninterpreted_constant.h \
-	uninterpreted_constant.cpp \
-	abstract_value.h \
-	abstract_value.cpp \
-	array_store_all.h \
-	array_store_all.cpp \
-	emptyset.h \
-	emptyset.cpp \
-	model.h \
-	model.cpp \
-	sort_inference.h \
-	sort_inference.cpp \
-	regexp.h \
-	regexp.cpp \
-	bin_heap.h \
-	didyoumean.h \
-	didyoumean.cpp \
-	unsat_core.h \
-	unsat_core.cpp \
-	floatingpoint.h \
+	divisible.cpp \
+	divisible.h \
+	dynamic_array.h \
 	floatingpoint.cpp \
-	resource_manager.h \
-	resource_manager.cpp \
-	unsafe_interrupt_exception.h
-
-libstatistics_la_SOURCES = \
-	statistics_registry.h \
-	statistics_registry.cpp
+	floatingpoint.h \
+	gmp_util.h \
+	hash.h \
+	index.h \
+	maybe.h \
+	ntuple.h \
+	proof.h \
+	regexp.cpp \
+	regexp.h \
+	smt2_quote_string.cpp \
+	smt2_quote_string.h \
+	subrange_bound.h \
+	tuple.h \
+	unsafe_interrupt_exception.h \
+	utility.h
 
 BUILT_SOURCES = \
 	rational.h \
-	integer.h \
-	tls.h
+	integer.h
 
 if CVC4_CLN_IMP
 libutil_la_SOURCES += \
@@ -123,53 +65,36 @@ libutil_la_SOURCES += \
 	integer_gmp_imp.cpp
 endif
 
+
 EXTRA_DIST = \
-	rational_cln_imp.h \
-	integer_cln_imp.h \
-	integer_cln_imp.cpp \
-	rational_cln_imp.cpp \
-	rational_gmp_imp.h \
-	integer_gmp_imp.h \
-	integer_gmp_imp.cpp \
-	rational_gmp_imp.cpp \
-	rational.h.in \
-	integer.h.in \
-	tls.h.in \
-	integer.i \
-	statistics.i \
-	bool.i \
-	sexpr.i \
-	datatype.i \
-	tuple.i \
-	record.i \
-	divisible.i \
-	cardinality.i \
-	result.i \
-	configuration.i \
 	bitvector.i \
-	subrange_bound.i \
-	exception.i \
-	language.i \
-	array.i \
-	array_store_all.i \
-	emptyset.i \
-	ascription_type.i \
-	rational.i \
+	bool.i \
+	cardinality.i \
+	configuration.i \
+	divisible.i \
+	floatingpoint.i \
 	hash.i \
-	predicate.i \
-	uninterpreted_constant.i \
-	chain.i \
-	regexp.i \
-	resource_manager.i \
-	unsafe_interrupt_exception.i \
+	integer.h.in \
+	integer.i \
+	integer_cln_imp.cpp \
+	integer_cln_imp.h \
+	integer_gmp_imp.cpp \
+	integer_gmp_imp.h \
 	proof.i \
-	unsat_core.i \
-	floatingpoint.i
+	rational.h.in \
+	rational.i \
+	rational_cln_imp.cpp \
+	rational_cln_imp.h \
+	rational_gmp_imp.cpp \
+	rational_gmp_imp.h \
+	regexp.i \
+	subrange_bound.i \
+	tuple.i \
+	unsafe_interrupt_exception.i
+
 
 DISTCLEANFILES = \
 	integer.h.tmp \
 	rational.h.tmp \
-	tls.h.tmp \
 	integer.h \
-	rational.h \
-	tls.h
+	rational.h

@@ -14,18 +14,19 @@
  ** Implementation of the theory of strings.
  **/
 
-
 #include "theory/strings/theory_strings.h"
-#include "theory/valuation.h"
-#include "expr/kind.h"
-#include "theory/rewriter.h"
-#include "expr/command.h"
-#include "theory/theory_model.h"
-#include "smt/logic_exception.h"
-#include "theory/strings/options.h"
-#include "theory/strings/type_enumerator.h"
-#include "theory/strings/theory_strings_rewriter.h"
+
 #include <cmath>
+
+#include "expr/kind.h"
+#include "options/strings_options.h"
+#include "smt/logic_exception.h"
+#include "smt_util/command.h"
+#include "theory/rewriter.h"
+#include "theory/strings/theory_strings_rewriter.h"
+#include "theory/strings/type_enumerator.h"
+#include "theory/theory_model.h"
+#include "theory/valuation.h"
 
 using namespace std;
 using namespace CVC4::context;

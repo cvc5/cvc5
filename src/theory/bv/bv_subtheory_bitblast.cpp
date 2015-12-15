@@ -14,23 +14,23 @@
  ** Algebraic solver.
  **/
 
+#include "decision/decision_attributes.h"
+#include "options/decision_options.h"
+#include "options/bv_options.h"
+#include "theory/bv/abstraction.h"
+#include "theory/bv/bitblaster_template.h"
+#include "theory/bv/bv_quick_check.h"
 #include "theory/bv/bv_subtheory_bitblast.h"
 #include "theory/bv/theory_bv.h"
 #include "theory/bv/theory_bv_utils.h"
-#include "theory/bv/bitblaster_template.h"
-#include "theory/bv/bv_quick_check.h"
-#include "theory/bv/options.h"
-#include "theory/bv/abstraction.h"
-#include "theory/decision_attributes.h"
-#include "decision/options.h"
-
 
 using namespace std;
-using namespace CVC4;
 using namespace CVC4::context;
-using namespace CVC4::theory;
-using namespace CVC4::theory::bv;
 using namespace CVC4::theory::bv::utils;
+
+namespace CVC4 {
+namespace theory {
+namespace bv {
 
 BitblastSolver::BitblastSolver(context::Context* c, TheoryBV* bv)
   : SubtheorySolver(c, bv),
@@ -78,8 +78,8 @@ void BitblastSolver::preRegister(TNode node) {
     CodeTimer weightComputationTime(d_bv->d_statistics.d_weightComputationTimer);
     d_bitblastQueue.push_back(node);
     if ((options::decisionUseWeight() || options::decisionThreshold() != 0) &&
-        !node.hasAttribute(theory::DecisionWeightAttr())) {
-      node.setAttribute(theory::DecisionWeightAttr(),computeAtomWeight(node));
+        !node.hasAttribute(decision::DecisionWeightAttr())) {
+      node.setAttribute(decision::DecisionWeightAttr(),computeAtomWeight(node));
     }
   }
 }
@@ -277,3 +277,7 @@ void BitblastSolver::setConflict(TNode conflict) {
   }
   d_bv->setConflict(final_conflict);
 }
+
+}/* namespace CVC4::theory::bv */
+}/* namespace CVC4::theory */
+}/* namespace CVC4 */

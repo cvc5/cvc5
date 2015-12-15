@@ -14,11 +14,13 @@
  ** [[ Add lengthier description here ]]
  ** \todo document this file
  **/
+#include "util/integer.h"
+
+#include <sstream>
+#include <string>
 
 #include "cvc4autoconfig.h"
-#include "util/integer.h"
-#include <string>
-#include <sstream>
+
 
 #ifndef CVC4_CLN_IMP
 #  error "This source should only ever be built if CVC4_CLN_IMP is on !"

@@ -75,9 +75,9 @@ using namespace CVC4::parser;
 }/* @lexer::postinclude */
 
 @parser::includes {
-#include "expr/command.h"
 #include "parser/parser.h"
 #include "parser/antlr_tracing.h"
+#include "smt_util/command.h"
 
 namespace CVC4 {
   class Expr;
@@ -102,21 +102,22 @@ namespace CVC4 {
 
 @parser::postinclude {
 
+#include <set>
+#include <sstream>
+#include <string>
+#include <vector>
+
+#include "base/output.h"
 #include "expr/expr.h"
 #include "expr/kind.h"
 #include "expr/type.h"
 #include "parser/antlr_input.h"
 #include "parser/parser.h"
 #include "parser/smt2/smt2.h"
-#include "util/integer.h"
-#include "util/output.h"
-#include "util/rational.h"
-#include "util/hash.h"
 #include "util/floatingpoint.h"
-#include <vector>
-#include <set>
-#include <string>
-#include <sstream>
+#include "util/hash.h"
+#include "util/integer.h"
+#include "util/rational.h"
 // \todo Review the need for this header
 #include "math.h"
 
@@ -995,10 +996,7 @@ smt25Command[CVC4::Command*& cmd]
     /* echo */
   | ECHO_TOK
     ( simpleSymbolicExpr[sexpr]
-      { std::stringstream ss;
-        ss << sexpr;
-        cmd = new EchoCommand(ss.str());
-      }
+      { cmd = new EchoCommand(sexpr.toString()); }
     | { cmd = new EchoCommand(); }
     )
 
@@ -1446,12 +1444,12 @@ simpleSymbolicExprNoKeyword[CVC4::SExpr& sexpr]
   | HEX_LITERAL
     { assert( AntlrInput::tokenText($HEX_LITERAL).find("#x") == 0 );
       std::string hexString = AntlrInput::tokenTextSubstr($HEX_LITERAL, 2);
-      sexpr = Integer(hexString, 16);
+      sexpr = SExpr(Integer(hexString, 16));
     }
   | BINARY_LITERAL
     { assert( AntlrInput::tokenText($BINARY_LITERAL).find("#b") == 0 );
       std::string binString = AntlrInput::tokenTextSubstr($BINARY_LITERAL, 2);
-      sexpr = Integer(binString, 2);
+      sexpr = SExpr(Integer(binString, 2));
     }
   | str[s,false]
     { sexpr = SExpr(s); }

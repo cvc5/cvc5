@@ -16,24 +16,23 @@
  **/
 
 #include "theory/bv/theory_bv_utils.h"
-#include "theory/decision_attributes.h"
 #include "theory/theory.h"
 
-using namespace CVC4;
-using namespace CVC4::theory;
-using namespace CVC4::theory::bv;
-using namespace CVC4::theory::bv::utils;
+namespace CVC4 {
+namespace theory {
+namespace bv {
+namespace utils {
 
-bool CVC4::theory::bv::utils::isCoreTerm(TNode term, TNodeBoolMap& cache) {
-  term = term.getKind() == kind::NOT ? term[0] : term; 
-  TNodeBoolMap::const_iterator it = cache.find(term); 
+bool isCoreTerm(TNode term, TNodeBoolMap& cache) {
+  term = term.getKind() == kind::NOT ? term[0] : term;
+  TNodeBoolMap::const_iterator it = cache.find(term);
   if (it != cache.end()) {
     return it->second;
   }
-    
+
   if (term.getNumChildren() == 0)
     return true;
-  
+
   if (theory::Theory::theoryOf(theory::THEORY_OF_TERM_BASED, term) == THEORY_BV) {
     Kind k = term.getKind();
     if (k != kind::CONST_BITVECTOR &&
@@ -52,21 +51,21 @@ bool CVC4::theory::bv::utils::isCoreTerm(TNode term, TNodeBoolMap& cache) {
       return false;
     }
   }
-  
-  cache[term]= true; 
+
+  cache[term]= true;
   return true;
 }
 
-bool CVC4::theory::bv::utils::isEqualityTerm(TNode term, TNodeBoolMap& cache) {
-  term = term.getKind() == kind::NOT ? term[0] : term; 
-  TNodeBoolMap::const_iterator it = cache.find(term); 
+bool isEqualityTerm(TNode term, TNodeBoolMap& cache) {
+  term = term.getKind() == kind::NOT ? term[0] : term;
+  TNodeBoolMap::const_iterator it = cache.find(term);
   if (it != cache.end()) {
     return it->second;
   }
-    
+
   if (term.getNumChildren() == 0)
     return true;
-  
+
   if (theory::Theory::theoryOf(theory::THEORY_OF_TERM_BASED, term) == THEORY_BV) {
     Kind k = term.getKind();
     if (k != kind::CONST_BITVECTOR &&
@@ -83,13 +82,13 @@ bool CVC4::theory::bv::utils::isEqualityTerm(TNode term, TNodeBoolMap& cache) {
       return false;
     }
   }
-  
-  cache[term]= true; 
+
+  cache[term]= true;
   return true;
 }
 
 
-uint64_t CVC4::theory::bv::utils::numNodes(TNode node, NodeSet& seen) {
+uint64_t numNodes(TNode node, NodeSet& seen) {
   if (seen.find(node) != seen.end())
     return 0;
 
@@ -101,9 +100,7 @@ uint64_t CVC4::theory::bv::utils::numNodes(TNode node, NodeSet& seen) {
   return size;
 }
 
-
-
-void CVC4::theory::bv::utils::collectVariables(TNode node, NodeSet& vars) {
+void collectVariables(TNode node, NodeSet& vars) {
   if (vars.find(node) != vars.end())
     return;
 
@@ -115,3 +112,8 @@ void CVC4::theory::bv::utils::collectVariables(TNode node, NodeSet& vars) {
     collectVariables(node[i], vars);
   }
 }
+
+}/* CVC4::theory::bv::utils namespace */
+}/* CVC4::theory::bv namespace */
+}/* CVC4::theory namespace */
+}/* CVC4 namespace */

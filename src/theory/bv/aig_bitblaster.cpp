@@ -14,11 +14,11 @@
  ** Bitblaster for the lazy bv solver. 
  **/
 
-#include "cvc4_private.h"
 #include "bitblaster_template.h"
+#include "cvc4_private.h"
+#include "options/bv_options.h"
 #include "prop/cnf_stream.h"
 #include "prop/sat_solver_factory.h"
-#include "theory/bv/options.h"
 
 
 #ifdef CVC4_USE_ABC

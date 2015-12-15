@@ -15,8 +15,9 @@
  **/
 
 #include "theory/strings/regexp_operation.h"
+
 #include "expr/kind.h"
-#include "theory/strings/options.h"
+#include "options/strings_options.h"
 
 namespace CVC4 {
 namespace theory {

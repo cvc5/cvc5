@@ -17,71 +17,59 @@
 
 #include "theory/arith/theory_arith_private.h"
 
-#include "expr/node.h"
-#include "expr/kind.h"
-#include "expr/metakind.h"
-#include "expr/node_builder.h"
-
-#include "context/context.h"
-#include "context/cdlist.h"
-#include "context/cdhashset.h"
-#include "context/cdinsert_hashmap.h"
-#include "context/cdqueue.h"
-
-#include "theory/valuation.h"
-#include "theory/rewriter.h"
-
-#include "util/rational.h"
-#include "util/integer.h"
-#include "util/boolean_simplification.h"
-#include "util/dense_map.h"
-#include "util/statistics_registry.h"
-#include "util/result.h"
-
-#include "smt/logic_request.h"
-#include "smt/logic_exception.h"
-#include "smt/options.h"  // for incrementalSolving()
-
-#include "theory/arith/arithvar.h"
-#include "theory/arith/cut_log.h"
-#include "theory/arith/delta_rational.h"
-#include "theory/arith/matrix.h"
-#include "theory/arith/arith_rewriter.h"
-#include "theory/arith/partial_model.h"
-#include "theory/arith/linear_equality.h"
-#include "theory/arith/simplex.h"
-#include "theory/arith/arith_static_learner.h"
-#include "theory/arith/dio_solver.h"
-#include "theory/arith/congruence_manager.h"
-
-#include "theory/arith/approx_simplex.h"
-#include "theory/arith/constraint.h"
-
-#include "theory/ite_utilities.h"
-#include "theory/arith/arith_ite_utils.h"
-
-#include "theory/arith/arith_utilities.h"
-#include "theory/arith/delta_rational.h"
-#include "theory/arith/partial_model.h"
-#include "theory/arith/matrix.h"
-
-#include "theory/arith/arith_rewriter.h"
-#include "theory/arith/constraint.h"
-#include "theory/arith/theory_arith.h"
-#include "theory/arith/normal_form.h"
-#include "theory/theory_model.h"
-
-#include "theory/arith/options.h"
-#include "theory/quantifiers/options.h"
-
-
-#include "theory/quantifiers/bounded_integers.h"
-
 #include <stdint.h>
 
-#include <vector>
 #include <map>
 #include <queue>
+#include <vector>
+
+#include "base/output.h"
+#include "context/cdhashset.h"
+#include "context/cdinsert_hashmap.h"
+#include "context/cdlist.h"
+#include "context/cdqueue.h"
+#include "context/context.h"
+#include "expr/kind.h"
+#include "expr/metakind.h"
+#include "expr/node.h"
+#include "expr/node_builder.h"
+#include "expr/result.h"
+#include "expr/statistics_registry.h"
+#include "options/arith_options.h"
+#include "options/smt_options.h"  // for incrementalSolving()
+#include "smt/logic_exception.h"
+#include "smt/logic_request.h"
+#include "smt_util/boolean_simplification.h"
+#include "theory/arith/approx_simplex.h"
+#include "theory/arith/arith_ite_utils.h"
+#include "theory/arith/arith_rewriter.h"
+#include "theory/arith/arith_rewriter.h"
+#include "theory/arith/arith_static_learner.h"
+#include "theory/arith/arith_utilities.h"
+#include "theory/arith/arithvar.h"
+#include "theory/arith/congruence_manager.h"
+#include "theory/arith/constraint.h"
+#include "theory/arith/constraint.h"
+#include "theory/arith/cut_log.h"
+#include "theory/arith/delta_rational.h"
+#include "theory/arith/delta_rational.h"
+#include "theory/arith/dio_solver.h"
+#include "theory/arith/linear_equality.h"
+#include "theory/arith/matrix.h"
+#include "theory/arith/matrix.h"
+#include "theory/arith/normal_form.h"
+#include "theory/arith/partial_model.h"
+#include "theory/arith/partial_model.h"
+#include "theory/arith/simplex.h"
+#include "theory/arith/theory_arith.h"
+#include "theory/ite_utilities.h"
+#include "theory/quantifiers/bounded_integers.h"
+#include "theory/rewriter.h"
+#include "theory/theory_model.h"
+#include "theory/valuation.h"
+#include "util/dense_map.h"
+#include "util/integer.h"
+#include "util/rational.h"
 
 using namespace std;
 using namespace CVC4::kind;

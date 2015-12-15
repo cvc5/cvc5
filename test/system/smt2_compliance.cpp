@@ -14,16 +14,16 @@
  ** A test of SMT-LIBv2 commands, checks for compliant output.
  **/
 
+#include <cassert>
 #include <iostream>
 #include <sstream>
-#include <cassert>
 
-#include "smt/options.h"
-#include "parser/parser.h"
 #include "expr/expr_manager.h"
-#include "expr/command.h"
-#include "smt/smt_engine.h"
+#include "options/smt_options.h"
+#include "parser/parser.h"
 #include "parser/parser_builder.h"
+#include "smt/smt_engine.h"
+#include "smt_util/command.h"
 
 using namespace CVC4;
 using namespace CVC4::parser;

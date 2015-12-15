@@ -27,7 +27,8 @@
 #pragma once
 
 #include <ostream>
-#include "util/exception.h"
+
+#include "base/exception.h"
 
 namespace CVC4 {
 

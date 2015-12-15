@@ -22,22 +22,22 @@
 #include <string>
 #include <vector>
 
-#include "context/cdlist_forward.h"
+#include "base/modal_exception.h"
 #include "context/cdhashmap_forward.h"
 #include "context/cdhashset_forward.h"
+#include "context/cdlist_forward.h"
 #include "expr/expr.h"
 #include "expr/expr_manager.h"
-#include "util/proof.h"
-#include "util/unsat_core.h"
-#include "smt/modal_exception.h"
-#include "smt/logic_exception.h"
+#include "expr/result.h"
+#include "expr/sexpr.h"
+#include "expr/statistics.h"
 #include "options/options.h"
-#include "util/result.h"
-#include "util/sexpr.h"
-#include "util/hash.h"
-#include "util/unsafe_interrupt_exception.h"
-#include "util/statistics.h"
+#include "proof/unsat_core.h"
+#include "smt/logic_exception.h"
 #include "theory/logic_info.h"
+#include "util/hash.h"
+#include "util/proof.h"
+#include "util/unsafe_interrupt_exception.h"
 
 // In terms of abstraction, this is below (and provides services to)
 // ValidityChecker and above (and requires the services of)
@@ -72,6 +72,10 @@ namespace prop {
   class PropEngine;
 }/* CVC4::prop namespace */
 
+namespace options {
+  class OptionsHandler;
+}/* CVC4::prop namespace */
+
 namespace expr {
   namespace attr {
     class AttributeManager;
@@ -93,7 +97,6 @@ namespace smt {
   class SmtScope;
   class BooleanTermConverter;
 
-  void beforeSearch(std::string, bool, SmtEngine*) throw(ModalException);
   ProofManager* currentProofManager();
 
   struct CommandCleanup;
@@ -264,6 +267,11 @@ class CVC4_PUBLIC SmtEngine {
   std::map<std::string, Integer> d_commandVerbosity;
 
   /**
+   * This responds to requests to set options.
+   */
+  options::OptionsHandler* d_optionsHandler;
+
+  /**
    * A private utility class to SmtEngine.
    */
   smt::SmtEnginePrivate* d_private;
@@ -354,7 +362,6 @@ class CVC4_PUBLIC SmtEngine {
   friend class ::CVC4::smt::SmtScope;
   friend class ::CVC4::smt::BooleanTermConverter;
   friend ::CVC4::StatisticsRegistry* ::CVC4::stats::getStatisticsRegistry(SmtEngine*);
-  friend void ::CVC4::smt::beforeSearch(std::string, bool, SmtEngine*) throw(ModalException);
   friend ProofManager* ::CVC4::smt::currentProofManager();
   friend class ::CVC4::LogicRequest;
   // to access d_modelCommands
@@ -717,6 +724,11 @@ public:
    */
   void setPrintFuncInModel(Expr f, bool p);
 
+
+  /**
+   * Throws a ModalException if smt is non-null and the SmtEngine has not been fully initialized.
+   */
+  static void beforeSearch(SmtEngine* smt, const std::string& option) throw(ModalException);
 };/* class SmtEngine */
 
 }/* CVC4 namespace */

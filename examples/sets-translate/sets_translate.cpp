@@ -15,20 +15,19 @@
  ** \todo document this file
  **/
 
-#include <string>
-#include <iostream>
-#include <typeinfo>
-#include <cassert>
-#include <vector>
 #include <boost/algorithm/string.hpp> // include Boost, a C++ library
+#include <cassert>
+#include <iostream>
+#include <string>
+#include <typeinfo>
+#include <vector>
 
-
-#include "options/options.h"
 #include "expr/expr.h"
-#include "theory/logic_info.h"
-#include "expr/command.h"
+#include "options/options.h"
 #include "parser/parser.h"
 #include "parser/parser_builder.h"
+#include "smt_util/command.h"
+#include "theory/logic_info.h"
 
 using namespace std;
 using namespace CVC4;

@@ -24,6 +24,7 @@
 #include <string>
 #include <vector>
 #include "expr/kind.h"
+#include "options/logic_info_forward.h"
 
 namespace CVC4 {
 
@@ -338,4 +339,3 @@ std::ostream& operator<<(std::ostream& out, const LogicInfo& logic) CVC4_PUBLIC;
 }/* CVC4 namespace */
 
 #endif /* __CVC4__LOGIC_INFO_H */
-
