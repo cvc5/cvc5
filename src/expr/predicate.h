@@ -35,28 +35,36 @@ struct CVC4_PUBLIC PredicateHashFunction {
 
 }/* CVC4 namespace */
 
-// TIM: This needs to be here due to a circular dependency.
-#warning "TODO: Track down the circular dependence on expr.h."
-#include "expr/expr.h"
 
 namespace CVC4 {
+class CVC4_PUBLIC Expr;
+}/* CVC4 namespace */
 
+
+namespace CVC4 {
 class CVC4_PUBLIC Predicate {
-
-  Expr d_predicate;
-  Expr d_witness;
-
 public:
 
-  Predicate(Expr e, Expr w = Expr()) throw(IllegalArgumentException);
+  Predicate(const Expr& e) throw(IllegalArgumentException);
+  Predicate(const Expr& e, const Expr& w) throw(IllegalArgumentException);
 
-  operator Expr() const;
+  Predicate(const Predicate& p);
+  ~Predicate();
+  Predicate& operator=(const Predicate& p);
+
+  //operator Expr() const;
+
+  const Expr& getExpression() const;
+  const Expr& getWitness() const;
 
   bool operator==(const Predicate& p) const;
 
   friend std::ostream& CVC4::operator<<(std::ostream& out, const Predicate& p);
   friend size_t PredicateHashFunction::operator()(const Predicate& p) const;
 
+private:
+  Expr* d_predicate;
+  Expr* d_witness;
 };/* class Predicate */
 
 }/* CVC4 namespace */

@@ -226,7 +226,7 @@ bool TypeNode::isComparableTo(TypeNode t) const {
 
 Node TypeNode::getSubtypePredicate() const {
   Assert(isPredicateSubtype());
-  return Node::fromExpr(getConst<Predicate>());
+  return Node::fromExpr(getConst<Predicate>().getExpression());
 }
 
 TypeNode TypeNode::getSubtypeParentType() const {

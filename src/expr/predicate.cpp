@@ -25,32 +25,71 @@ using namespace std;
 
 namespace CVC4 {
 
-Predicate::Predicate(Expr e, Expr w) throw(IllegalArgumentException) : d_predicate(e), d_witness(w) {
+Predicate::Predicate(const Predicate& p)
+    : d_predicate(new Expr(p.getExpression()))
+    , d_witness(new Expr(p.getWitness()))
+{}
+
+Predicate::Predicate(const Expr& e) throw(IllegalArgumentException)
+    : d_predicate(new Expr(e))
+    , d_witness(new Expr())
+{
   CheckArgument(! e.isNull(), e, "Predicate cannot be null");
   CheckArgument(e.getType().isPredicate(), e, "Expression given is not predicate");
   CheckArgument(FunctionType(e.getType()).getArgTypes().size() == 1, e, "Expression given is not predicate of a single argument");
 }
 
-Predicate::operator Expr() const {
-  return d_predicate;
+Predicate::Predicate(const Expr& e, const Expr& w)
+    throw(IllegalArgumentException)
+    : d_predicate(new Expr(e))
+    , d_witness(new Expr(w))
+{
+  CheckArgument(! e.isNull(), e, "Predicate cannot be null");
+  CheckArgument(e.getType().isPredicate(), e, "Expression given is not predicate");
+  CheckArgument(FunctionType(e.getType()).getArgTypes().size() == 1, e, "Expression given is not predicate of a single argument");
+}
+
+Predicate::~Predicate() {
+  delete d_predicate;
+  delete d_witness;
+}
+
+Predicate& Predicate::operator=(const Predicate& p){
+  (*d_predicate) = p.getExpression();
+  (*d_witness) = p.getWitness();
+  return *this;
+}
+
+
+// Predicate::operator Expr() const {
+//   return d_predicate;
+// }
+
+const Expr& Predicate::getExpression() const {
+  return *d_predicate;
+}
+
+const Expr& Predicate::getWitness() const {
+  return *d_witness;
 }
 
 bool Predicate::operator==(const Predicate& p) const {
-  return d_predicate == p.d_predicate && d_witness == p.d_witness;
+  return getExpression() == p.getExpression() &&
+      getWitness() == p.getWitness();
 }
 
-std::ostream&
-operator<<(std::ostream& out, const Predicate& p) {
-  out << p.d_predicate;
-  if(! p.d_witness.isNull()) {
-    out << " : " << p.d_witness;
+std::ostream& operator<<(std::ostream& out, const Predicate& p) {
+  out << p.getExpression();
+  const Expr& witness = p.getWitness();
+  if(! witness.isNull()) {
+    out << " : " << witness;
   }
   return out;
 }
 
 size_t PredicateHashFunction::operator()(const Predicate& p) const {
   ExprHashFunction h;
-  return h(p.d_witness) * 5039 + h(p.d_predicate);
+  return h(p.getWitness()) * 5039 + h(p.getExpression());
 }
 
 }/* CVC4 namespace */
