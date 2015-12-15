@@ -1337,9 +1337,13 @@ void SmtEngine::setDefaults() {
     options::decisionMode.set(decMode);
     options::decisionStopOnly.set(stoponly);
   }
+  if( options::incrementalSolving() ){
+    //disable modes not supported by incremental
+    options::sortInference.set( false );
+    options::ufssFairnessMonotone.set( false );
+  }
   //local theory extensions
   if( options::localTheoryExt() ){
-    //no E-matching?
     if( !options::instMaxLevel.wasSetByUser() ){
       options::instMaxLevel.set( 0 );
     }
@@ -3392,10 +3396,10 @@ void SmtEnginePrivate::processAssertions() {
     Trace("smt-proc") << "SmtEnginePrivate::processAssertions() : post-quant-preprocess" << endl;
   }
 
-  if( options::sortInference() ){
+  if( options::sortInference() || options::ufssFairnessMonotone() ){
     //sort inference technique
     SortInference * si = d_smt.d_theoryEngine->getSortInference();
-    si->simplify( d_assertions.ref() );
+    si->simplify( d_assertions.ref(), options::sortInference(), options::ufssFairnessMonotone() );
     for( std::map< Node, Node >::iterator it = si->d_model_replace_f.begin(); it != si->d_model_replace_f.end(); ++it ){
       d_smt.setPrintFuncInModel( it->first.toExpr(), false );
       d_smt.setPrintFuncInModel( it->second.toExpr(), true );

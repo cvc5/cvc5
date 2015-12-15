@@ -26,7 +26,9 @@
 #include "options/uf_options.h"
 #include "proof/proof_manager.h"
 #include "theory/rewriter.h"
+#include "theory/quantifiers/quant_util.h"
 
+using namespace CVC4;
 using namespace std;
 
 namespace CVC4 {
@@ -40,7 +42,6 @@ void SortInference::UnionFind::print(const char * c){
   }
   Trace(c) << std::endl;
 }
-
 void SortInference::UnionFind::set( UnionFind& c ) {
   clear();
   for( std::map< int, int >::iterator it = c.d_eqc.begin(); it != c.d_eqc.end(); ++it ){
@@ -48,7 +49,6 @@ void SortInference::UnionFind::set( UnionFind& c ) {
   }
   d_deq.insert( d_deq.end(), c.d_deq.begin(), c.d_deq.end() );
 }
-
 int SortInference::UnionFind::getRepresentative( int t ){
   std::map< int, int >::iterator it = d_eqc.find( t );
   if( it==d_eqc.end() || it->second==t ){
@@ -59,7 +59,6 @@ int SortInference::UnionFind::getRepresentative( int t ){
     return rt;
   }
 }
-
 void SortInference::UnionFind::setEqual( int t1, int t2 ){
   if( t1!=t2 ){
     int rt1 = getRepresentative( t1 );
@@ -71,7 +70,6 @@ void SortInference::UnionFind::setEqual( int t1, int t2 ){
     }
   }
 }
-
 bool SortInference::UnionFind::isValid() {
   for( unsigned i=0; i<d_deq.size(); i++ ){
     if( areEqual( d_deq[i].first, d_deq[i].second ) ){
@@ -116,157 +114,166 @@ void SortInference::reset() {
   d_const_map.clear();
 }
 
-bool SortInference::simplify( std::vector< Node >& assertions ){
-  Trace("sort-inference") << "Calculating sort inference..." << std::endl;
-  //process all assertions
-  for( unsigned i=0; i<assertions.size(); i++ ){
-    Trace("sort-inference-debug") << "Process " << assertions[i] << std::endl;
-    std::map< Node, Node > var_bound;
-    process( assertions[i], var_bound );
-  }
-  for( std::map< Node, int >::iterator it = d_op_return_types.begin(); it != d_op_return_types.end(); ++it ){
-    Trace("sort-inference") << it->first << " : ";
-    TypeNode retTn = it->first.getType();
-    if( !d_op_arg_types[ it->first ].empty() ){
-      Trace("sort-inference") << "( ";
-      for( size_t i=0; i<d_op_arg_types[ it->first ].size(); i++ ){
-        recordSubsort( retTn[i], d_op_arg_types[ it->first ][i] );
-        printSort( "sort-inference", d_op_arg_types[ it->first ][i] );
-        Trace("sort-inference") << " ";
-      }
-      Trace("sort-inference") << ") -> ";
-      retTn = retTn[(int)retTn.getNumChildren()-1];
+void SortInference::simplify( std::vector< Node >& assertions, bool doSortInference, bool doMonotonicyInference ){
+  if( doSortInference ){
+    Trace("sort-inference") << "Calculating sort inference..." << std::endl;
+    //process all assertions
+    for( unsigned i=0; i<assertions.size(); i++ ){
+      Trace("sort-inference-debug") << "Process " << assertions[i] << std::endl;
+      std::map< Node, Node > var_bound;
+      process( assertions[i], var_bound );
     }
-    recordSubsort( retTn, it->second );
-    printSort( "sort-inference", it->second );
-    Trace("sort-inference") << std::endl;
-  }
-  for( std::map< Node, std::map< Node, int > >::iterator it = d_var_types.begin(); it != d_var_types.end(); ++it ){
-    Trace("sort-inference") << "Quantified formula : " << it->first << " : " << std::endl;
-    for( unsigned i=0; i<it->first[0].getNumChildren(); i++ ){
-      recordSubsort( it->first[0][i].getType(), it->second[it->first[0][i]] );
-      printSort( "sort-inference", it->second[it->first[0][i]] );
+    for( std::map< Node, int >::iterator it = d_op_return_types.begin(); it != d_op_return_types.end(); ++it ){
+      Trace("sort-inference") << it->first << " : ";
+      TypeNode retTn = it->first.getType();
+      if( !d_op_arg_types[ it->first ].empty() ){
+        Trace("sort-inference") << "( ";
+        for( size_t i=0; i<d_op_arg_types[ it->first ].size(); i++ ){
+          recordSubsort( retTn[i], d_op_arg_types[ it->first ][i] );
+          printSort( "sort-inference", d_op_arg_types[ it->first ][i] );
+          Trace("sort-inference") << " ";
+        }
+        Trace("sort-inference") << ") -> ";
+        retTn = retTn[(int)retTn.getNumChildren()-1];
+      }
+      recordSubsort( retTn, it->second );
+      printSort( "sort-inference", it->second );
       Trace("sort-inference") << std::endl;
     }
-    Trace("sort-inference") << std::endl;
-  }
-
-  if( !options::ufssSymBreak() ){
-    bool rewritten = false;
-    //determine monotonicity of sorts
-    for( unsigned i=0; i<assertions.size(); i++ ){
-      Trace("sort-inference-debug") << "Process monotonicity for " << assertions[i] << std::endl;
-      std::map< Node, Node > var_bound;
-      processMonotonic( assertions[i], true, true, var_bound );
-    }
-
-    Trace("sort-inference") << "We have " << d_sub_sorts.size() << " sub-sorts : " << std::endl;
-    for( unsigned i=0; i<d_sub_sorts.size(); i++ ){
-      printSort( "sort-inference", d_sub_sorts[i] );
-      if( d_type_types.find( d_sub_sorts[i] )!=d_type_types.end() ){
-        Trace("sort-inference") << " is interpreted." << std::endl;
-      }else if( d_non_monotonic_sorts.find( d_sub_sorts[i] )==d_non_monotonic_sorts.end() ){
-        Trace("sort-inference") << " is monotonic." << std::endl;
-      }else{
-        Trace("sort-inference") << " is not monotonic." << std::endl;
+    for( std::map< Node, std::map< Node, int > >::iterator it = d_var_types.begin(); it != d_var_types.end(); ++it ){
+      Trace("sort-inference") << "Quantified formula : " << it->first << " : " << std::endl;
+      for( unsigned i=0; i<it->first[0].getNumChildren(); i++ ){
+        recordSubsort( it->first[0][i].getType(), it->second[it->first[0][i]] );
+        printSort( "sort-inference", it->second[it->first[0][i]] );
+        Trace("sort-inference") << std::endl;
       }
+      Trace("sort-inference") << std::endl;
     }
 
-    //simplify all assertions by introducing new symbols wherever necessary
-    for( unsigned i=0; i<assertions.size(); i++ ){
-      Node prev = assertions[i];
-      std::map< Node, Node > var_bound;
-      Trace("sort-inference-debug") << "Rewrite " << assertions[i] << std::endl;
-      Node curr = simplify( assertions[i], var_bound );
-      Trace("sort-inference-debug") << "Done." << std::endl;
-      if( curr!=assertions[i] ){
-        curr = theory::Rewriter::rewrite( curr );
-        rewritten = true;
-        Trace("sort-inference-rewrite") << assertions << std::endl;
-        Trace("sort-inference-rewrite") << " --> " << curr << std::endl;
-        PROOF( ProofManager::currentPM()->addDependence(curr, assertions[i]); );
-        assertions[i] = curr;
+    if( !options::ufssSymBreak() ){
+      bool rewritten = false;
+      //determine monotonicity of sorts
+      for( unsigned i=0; i<assertions.size(); i++ ){
+        Trace("sort-inference-debug") << "Process monotonicity for " << assertions[i] << std::endl;
+        std::map< Node, Node > var_bound;
+        processMonotonic( assertions[i], true, true, var_bound );
       }
-    }
-    //now, ensure constants are distinct
-    for( std::map< TypeNode, std::map< Node, Node > >::iterator it = d_const_map.begin(); it != d_const_map.end(); ++it ){
-      std::vector< Node > consts;
-      for( std::map< Node, Node >::iterator it2 = it->second.begin(); it2 != it->second.end(); ++it2 ){
-        consts.push_back( it2->second );
-      }
-      //TODO: add lemma enforcing introduced constants to be distinct
-    }
+      //doMonotonicyInference = false;
 
-    //enforce constraints based on monotonicity
-    for( std::map< TypeNode, std::vector< int > >::iterator it = d_type_sub_sorts.begin(); it != d_type_sub_sorts.end(); ++it ){
-      int nmonSort = -1;
-      for( unsigned i=0; i<it->second.size(); i++ ){
-        if( d_non_monotonic_sorts.find( it->second[i] )!=d_non_monotonic_sorts.end() ){
-          nmonSort = it->second[i];
-          break;
+      Trace("sort-inference") << "We have " << d_sub_sorts.size() << " sub-sorts : " << std::endl;
+      for( unsigned i=0; i<d_sub_sorts.size(); i++ ){
+        printSort( "sort-inference", d_sub_sorts[i] );
+        if( d_type_types.find( d_sub_sorts[i] )!=d_type_types.end() ){
+          Trace("sort-inference") << " is interpreted." << std::endl;
+        }else if( d_non_monotonic_sorts.find( d_sub_sorts[i] )==d_non_monotonic_sorts.end() ){
+          Trace("sort-inference") << " is monotonic." << std::endl;
+        }else{
+          Trace("sort-inference") << " is not monotonic." << std::endl;
         }
       }
-      if( nmonSort!=-1 ){
-        std::vector< Node > injections;
-        TypeNode base_tn = getOrCreateTypeForId( nmonSort, it->first );
+
+      //simplify all assertions by introducing new symbols wherever necessary
+      for( unsigned i=0; i<assertions.size(); i++ ){
+        Node prev = assertions[i];
+        std::map< Node, Node > var_bound;
+        Trace("sort-inference-debug") << "Rewrite " << assertions[i] << std::endl;
+        Node curr = simplify( assertions[i], var_bound );
+        Trace("sort-inference-debug") << "Done." << std::endl;
+        if( curr!=assertions[i] ){
+          curr = theory::Rewriter::rewrite( curr );
+          rewritten = true;
+          Trace("sort-inference-rewrite") << assertions << std::endl;
+          Trace("sort-inference-rewrite") << " --> " << curr << std::endl;
+          PROOF( ProofManager::currentPM()->addDependence(curr, assertions[i]); );
+          assertions[i] = curr;
+        }
+      }
+      //now, ensure constants are distinct
+      for( std::map< TypeNode, std::map< Node, Node > >::iterator it = d_const_map.begin(); it != d_const_map.end(); ++it ){
+        std::vector< Node > consts;
+        for( std::map< Node, Node >::iterator it2 = it->second.begin(); it2 != it->second.end(); ++it2 ){
+          consts.push_back( it2->second );
+        }
+        //TODO: add lemma enforcing introduced constants to be distinct
+      }
+
+      //enforce constraints based on monotonicity
+      for( std::map< TypeNode, std::vector< int > >::iterator it = d_type_sub_sorts.begin(); it != d_type_sub_sorts.end(); ++it ){
+        int nmonSort = -1;
         for( unsigned i=0; i<it->second.size(); i++ ){
-          if( it->second[i]!=nmonSort ){
-            TypeNode new_tn = getOrCreateTypeForId( it->second[i], it->first );
-            //make injection to nmonSort
-            Node a1 = mkInjection( new_tn, base_tn );
-            injections.push_back( a1 );
-            if( d_non_monotonic_sorts.find( it->second[i] )!=d_non_monotonic_sorts.end() ){
-              //also must make injection from nmonSort to this
-              Node a2 = mkInjection( base_tn, new_tn );
-              injections.push_back( a2 );
-            }
+          if( d_non_monotonic_sorts.find( it->second[i] )!=d_non_monotonic_sorts.end() ){
+            nmonSort = it->second[i];
+            break;
           }
         }
-        Trace("sort-inference-rewrite") << "Add the following injections for " << it->first << " to ensure consistency wrt non-monotonic sorts : " << std::endl;
-        for( unsigned j=0; j<injections.size(); j++ ){
-          Trace("sort-inference-rewrite") << "   " << injections[j] << std::endl;
+        if( nmonSort!=-1 ){
+          std::vector< Node > injections;
+          TypeNode base_tn = getOrCreateTypeForId( nmonSort, it->first );
+          for( unsigned i=0; i<it->second.size(); i++ ){
+            if( it->second[i]!=nmonSort ){
+              TypeNode new_tn = getOrCreateTypeForId( it->second[i], it->first );
+              //make injection to nmonSort
+              Node a1 = mkInjection( new_tn, base_tn );
+              injections.push_back( a1 );
+              if( d_non_monotonic_sorts.find( it->second[i] )!=d_non_monotonic_sorts.end() ){
+                //also must make injection from nmonSort to this
+                Node a2 = mkInjection( base_tn, new_tn );
+                injections.push_back( a2 );
+              }
+            }
+          }
+          Trace("sort-inference-rewrite") << "Add the following injections for " << it->first << " to ensure consistency wrt non-monotonic sorts : " << std::endl;
+          for( unsigned j=0; j<injections.size(); j++ ){
+            Trace("sort-inference-rewrite") << "   " << injections[j] << std::endl;
+          }
+          assertions.insert( assertions.end(), injections.begin(), injections.end() );
+          if( !injections.empty() ){
+            rewritten = true;
+          }
         }
-        assertions.insert( assertions.end(), injections.begin(), injections.end() );
-        if( !injections.empty() ){
-          rewritten = true;
+      }
+      //no sub-sort information is stored
+      reset();
+      Trace("sort-inference-debug") << "Finished sort inference, rewritten = " << rewritten << std::endl;
+    }
+    /*
+    else if( !options::ufssSymBreak() ){
+      //just add the unit lemmas between constants
+      std::map< TypeNode, std::map< int, Node > > constants;
+      for( std::map< Node, int >::iterator it = d_op_return_types.begin(); it != d_op_return_types.end(); ++it ){
+        int rt = d_type_union_find.getRepresentative( it->second );
+        if( d_op_arg_types[ it->first ].empty() ){
+          TypeNode tn = it->first.getType();
+          if( constants[ tn ].find( rt )==constants[ tn ].end() ){
+            constants[ tn ][ rt ] = it->first;
+          }
+        }
+      }
+      //add unit lemmas for each constant
+      for( std::map< TypeNode, std::map< int, Node > >::iterator it = constants.begin(); it != constants.end(); ++it ){
+        Node first_const;
+        for( std::map< int, Node >::iterator it2 = it->second.begin(); it2 != it->second.end(); ++it2 ){
+          if( first_const.isNull() ){
+            first_const = it2->second;
+          }else{
+            Node eq = first_const.eqNode( it2->second );
+            //eq = Rewriter::rewrite( eq );
+            Trace("sort-inference-lemma") << "Sort inference lemma : " << eq << std::endl;
+            assertions.push_back( eq );
+          }
         }
       }
     }
-    //no sub-sort information is stored
-    reset();
-    return rewritten;
+    */
+    initialSortCount = sortCount;
   }
-  /*
-  else if( !options::ufssSymBreak() ){
-    //just add the unit lemmas between constants
-    std::map< TypeNode, std::map< int, Node > > constants;
-    for( std::map< Node, int >::iterator it = d_op_return_types.begin(); it != d_op_return_types.end(); ++it ){
-      int rt = d_type_union_find.getRepresentative( it->second );
-      if( d_op_arg_types[ it->first ].empty() ){
-        TypeNode tn = it->first.getType();
-        if( constants[ tn ].find( rt )==constants[ tn ].end() ){
-          constants[ tn ][ rt ] = it->first;
-        }
-      }
-    }
-    //add unit lemmas for each constant
-    for( std::map< TypeNode, std::map< int, Node > >::iterator it = constants.begin(); it != constants.end(); ++it ){
-      Node first_const;
-      for( std::map< int, Node >::iterator it2 = it->second.begin(); it2 != it->second.end(); ++it2 ){
-        if( first_const.isNull() ){
-          first_const = it2->second;
-        }else{
-          Node eq = first_const.eqNode( it2->second );
-          //eq = Rewriter::rewrite( eq );
-          Trace("sort-inference-lemma") << "Sort inference lemma : " << eq << std::endl;
-          assertions.push_back( eq );
-        }
-      }
+  if( doMonotonicyInference ){
+    for( unsigned i=0; i<assertions.size(); i++ ){
+      Trace("sort-inference-debug") << "Process type monotonicity for " << assertions[i] << std::endl;
+      std::map< Node, Node > var_bound;
+      processMonotonic( assertions[i], true, true, var_bound, true );
     }
   }
-  */
-  initialSortCount = sortCount;
-  return false;
 }
 
 void SortInference::setEqual( int t1, int t2 ){
@@ -455,37 +462,42 @@ int SortInference::process( Node n, std::map< Node, Node >& var_bound ){
   return retType;
 }
 
-void SortInference::processMonotonic( Node n, bool pol, bool hasPol, std::map< Node, Node >& var_bound ) {
+void SortInference::processMonotonic( Node n, bool pol, bool hasPol, std::map< Node, Node >& var_bound, bool typeMode ) {
   Trace("sort-inference-debug") << "...Process monotonic " << pol << " " << hasPol << " " << n << std::endl;
   if( n.getKind()==kind::FORALL ){
-    for( unsigned i=0; i<n[0].getNumChildren(); i++ ){
-      var_bound[n[0][i]] = n;
+    //only consider variables universally if it is possible this quantified formula is asserted positively
+    if( !hasPol || pol ){
+      for( unsigned i=0; i<n[0].getNumChildren(); i++ ){
+        var_bound[n[0][i]] = n;
+      }
     }
-    processMonotonic( n[1], pol, hasPol, var_bound );
-    for( unsigned i=0; i<n[0].getNumChildren(); i++ ){
-      var_bound.erase( n[0][i] );
+    processMonotonic( n[1], pol, hasPol, var_bound, typeMode );
+    if( !hasPol || pol ){
+      for( unsigned i=0; i<n[0].getNumChildren(); i++ ){
+        var_bound.erase( n[0][i] );
+      }
     }
+    return;
   }else if( n.getKind()==kind::EQUAL ){
     if( !hasPol || pol ){
       for( unsigned i=0; i<2; i++ ){
         if( var_bound.find( n[i] )!=var_bound.end() ){
-          int sid = getSortId( var_bound[n[i]], n[i] );
-          d_non_monotonic_sorts[sid] = true;
+          if( !typeMode ){
+            int sid = getSortId( var_bound[n[i]], n[i] );
+            d_non_monotonic_sorts[sid] = true;
+          }else{
+            d_non_monotonic_sorts_orig[n[i].getType()] = true;
+          }
           break;
         }
       }
     }
   }
   for( unsigned i=0; i<n.getNumChildren(); i++ ){
-    bool npol = pol;
-    bool nhasPol = hasPol;
-    if( n.getKind()==kind::NOT || ( n.getKind()==kind::IMPLIES && i==0 ) ){
-      npol = !npol;
-    }
-    if( ( n.getKind()==kind::ITE && i==0 ) || n.getKind()==kind::XOR || n.getKind()==kind::IFF ){
-      nhasPol = false;
-    }
-    processMonotonic( n[i], npol, nhasPol, var_bound );
+    bool npol;
+    bool nhasPol;
+    theory::QuantPhaseReq::getPolarity( n, i, hasPol, pol, nhasPol, npol );
+    processMonotonic( n[i], npol, nhasPol, var_bound, typeMode );
   }
 }
 
@@ -754,6 +766,11 @@ void SortInference::getSortConstraints( Node n, UnionFind& uf ) {
       uf.setEqual( getSortId( n[i] ), d_type_union_find.getRepresentative( d_op_arg_types[ n.getOperator() ][i] ) );
     }
   }
+}
+
+bool SortInference::isMonotonic( TypeNode tn ) {
+  Assert( tn.isSort() );
+  return d_non_monotonic_sorts_orig.find( tn )==d_non_monotonic_sorts_orig.end();
 }
 
 }/* CVC4 namespace */

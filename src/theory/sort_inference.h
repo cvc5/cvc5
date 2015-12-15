@@ -71,7 +71,7 @@ private:
   int process( Node n, std::map< Node, Node >& var_bound );
 //for monotonicity inference
 private:
-  void processMonotonic( Node n, bool pol, bool hasPol, std::map< Node, Node >& var_bound );
+  void processMonotonic( Node n, bool pol, bool hasPol, std::map< Node, Node >& var_bound, bool typeMode = false );
 
 //for rewriting
 private:
@@ -93,7 +93,7 @@ public:
   SortInference() : sortCount( 1 ){}
   ~SortInference(){}
 
-  bool simplify( std::vector< Node >& assertions );
+  void simplify( std::vector< Node >& assertions, bool doSortInference, bool doMonotonicyInference );
   //get sort id for term n
   int getSortId( Node n );
   //get sort id for variable of quantified formula f
@@ -109,6 +109,13 @@ public:
 public:
   //list of all functions and the uninterpreted symbols they were replaced with
   std::map< Node, Node > d_model_replace_f;
+
+private:
+  // store monotonicity for original sorts as well
+  std::map< TypeNode, bool > d_non_monotonic_sorts_orig;  
+public:
+  //is monotonic
+  bool isMonotonic( TypeNode tn );  
 };
 
 }

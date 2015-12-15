@@ -314,8 +314,14 @@ private:
   std::map< int, Node > d_com_card_literal;
   /** combined cardinality assertions (indexed by cardinality literals ) */
   NodeBoolMap d_com_card_assertions;
+  /** minimum positive combined cardinality */
+  context::CDO< int > d_min_pos_com_card;
   /** cardinality literals for which we have added */
   NodeBoolMap d_card_assertions_eqv_lemma;
+  /** the master monotone type (if ufssFairnessMonotone enabled) */
+  TypeNode d_tn_mono_master;
+  std::map< TypeNode, bool > d_tn_mono_slave;
+  context::CDO< int > d_min_pos_tn_master_card;  
   /** initialize */
   void initializeCombinedCardinality();
   /** allocateCombinedCardinality */

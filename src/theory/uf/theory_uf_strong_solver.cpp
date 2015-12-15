@@ -1501,8 +1501,8 @@ Node StrongSolverTheoryUF::SortModel::getCardinalityLiteral( int c ) {
 }
 
 StrongSolverTheoryUF::StrongSolverTheoryUF(context::Context* c, context::UserContext* u, OutputChannel& out, TheoryUF* th) :
-d_out( &out ), d_th( th ), d_conflict( c, false ), d_rep_model(), d_aloc_com_card( u, 0 ), d_com_card_assertions( c ),
-d_card_assertions_eqv_lemma( u ), d_rel_eqc( c )
+d_out( &out ), d_th( th ), d_conflict( c, false ), d_rep_model(), d_aloc_com_card( u, 0 ), d_com_card_assertions( c ), d_min_pos_com_card( c, -1 ), 
+d_card_assertions_eqv_lemma( u ), d_min_pos_tn_master_card( c, -1 ), d_rel_eqc( c )
 {
   if( options::ufssDiseqPropagation() ){
     d_deq_prop = new DisequalityPropagator( th->getQuantifiersEngine(), this );
@@ -1618,9 +1618,45 @@ void StrongSolverTheoryUF::assertNode( Node n, bool isDecision ){
     TypeNode tn = lit[0].getType();
     Assert( tn.isSort() );
     Assert( d_rep_model[tn] );
-    long nCard = lit[1].getConst<Rational>().getNumerator().getLong();
+    int nCard = lit[1].getConst<Rational>().getNumerator().getSignedInt();
     Node ct = d_rep_model[tn]->getCardinalityTerm();
+    Trace("uf-ss-debug") << "...check cardinality terms : " << lit[0] << " " << ct << std::endl;
     if( lit[0]==ct ){
+      if( options::ufssFairnessMonotone() ){
+        Trace("uf-ss-com-card-debug") << "...set master/slave" << std::endl;
+        if( tn!=d_tn_mono_master ){
+          std::map< TypeNode, bool >::iterator it = d_tn_mono_slave.find( tn );
+          if( it==d_tn_mono_slave.end() ){
+            bool isMonotonic;
+            if( d_th->getQuantifiersEngine() ){
+              isMonotonic = getSortInference()->isMonotonic( tn );
+            }else{
+              //if ground, everything is monotonic
+              isMonotonic = true;
+            }
+            if( isMonotonic ){
+              if( d_tn_mono_master.isNull() ){
+                Trace("uf-ss-com-card-debug") << "uf-ss-fair-monotone: Set master : " << tn << std::endl;
+                d_tn_mono_master = tn;
+              }else{
+                Trace("uf-ss-com-card-debug") << "uf-ss-fair-monotone: Set slave : " << tn << std::endl;
+                d_tn_mono_slave[tn] = true;
+              }
+            }else{
+              Trace("uf-ss-com-card-debug") << "uf-ss-fair-monotone: Set non-monotonic : " << tn << std::endl;
+              d_tn_mono_slave[tn] = false;
+            }
+          }
+        }
+        //set the minimum positive cardinality for master if necessary
+        if( polarity && tn==d_tn_mono_master ){
+          Trace("uf-ss-com-card-debug") << "...set min positive cardinality" << std::endl;
+          if( d_min_pos_tn_master_card.get()==-1 || nCard<d_min_pos_tn_master_card.get() ){
+            d_min_pos_tn_master_card.set( nCard );
+          }
+        }
+      }
+      Trace("uf-ss-com-card-debug") << "...assert cardinality" << std::endl;
       d_rep_model[tn]->assertCardinality( d_out, nCard, polarity );
       //check if combined cardinality is violated
       checkCombinedCardinality();
@@ -1636,14 +1672,28 @@ void StrongSolverTheoryUF::assertNode( Node n, bool isDecision ){
   }else if( lit.getKind()==COMBINED_CARDINALITY_CONSTRAINT ){
     d_com_card_assertions[lit] = polarity;
     if( polarity ){
-      checkCombinedCardinality();
+      //safe to assume int here 
+      int nCard = lit[0].getConst<Rational>().getNumerator().getSignedInt();
+      if( d_min_pos_com_card.get()==-1 || nCard<d_min_pos_com_card.get() ){
+        d_min_pos_com_card.set( nCard );
+        checkCombinedCardinality();
+      }
     }else{
       bool needsCard = true;
-      for( std::map< int, Node >::iterator it = d_com_card_literal.begin(); it != d_com_card_literal.end(); ++it ){
-        if( d_com_card_assertions.find( it->second )==d_com_card_assertions.end() || d_com_card_assertions[it->second] ){
-          needsCard = false;
-          break;
+      if( d_min_pos_com_card.get()==-1 ){
+        //check if all current combined cardinality constraints are asserted negatively
+        for( std::map< int, Node >::iterator it = d_com_card_literal.begin(); it != d_com_card_literal.end(); ++it ){
+          if( d_com_card_assertions.find( it->second )==d_com_card_assertions.end() ){
+            Trace("uf-ss-com-card-debug") << "Does not need combined cardinality : non-assertion : " << it->first << std::endl;
+            needsCard = false;
+            break;
+          }else{
+            Assert( !d_com_card_assertions[it->second] );
+          }
         }
+      }else{
+        Trace("uf-ss-com-card-debug") << "Does not need combined cardinality : positive assertion : " << d_min_pos_com_card.get() << std::endl;
+        needsCard = false;
       }
       if( needsCard ){
         allocateCombinedCardinality();
@@ -1892,8 +1942,8 @@ bool StrongSolverTheoryUF::debugModel( TheoryModel* m ){
 /** initialize */
 void StrongSolverTheoryUF::initializeCombinedCardinality() {
   if( options::ufssFairness() ){
-    Trace("uf-ss-com-card-debug") << "Initialize combined cardinality" << std::endl;
     if( d_aloc_com_card.get()==0 ){
+      Trace("uf-ss-com-card-debug") << "Initialize combined cardinality" << std::endl;
       allocateCombinedCardinality();
     }
   }
@@ -1902,36 +1952,76 @@ void StrongSolverTheoryUF::initializeCombinedCardinality() {
 /** check */
 void StrongSolverTheoryUF::checkCombinedCardinality() {
   if( options::ufssFairness() ){
+    Trace("uf-ss-com-card-debug") << "Check combined cardinality, get maximum negative cardinalities..." << std::endl;
     int totalCombinedCard = 0;
+    int maxMonoSlave = 0;
+    TypeNode maxSlaveType;
     for( std::map< TypeNode, SortModel* >::iterator it = d_rep_model.begin(); it != d_rep_model.end(); ++it ){
-      totalCombinedCard += it->second->getMaximumNegativeCardinality();
-    }
-    Trace("uf-ss-com-card-debug") << "Check combined cardinality, total combined card : " << totalCombinedCard << std::endl;
-    for( int i=0; i<totalCombinedCard; i++ ){
-      if( d_com_card_literal.find( i )!=d_com_card_literal.end() ){
-        Node com_lit = d_com_card_literal[i];
-        if( d_com_card_assertions.find( com_lit )!=d_com_card_assertions.end() && d_com_card_assertions[com_lit] ){
-          //conflict
-          std::vector< Node > conf;
-          conf.push_back( com_lit );
-          int totalAdded = 0;
-          for( std::map< TypeNode, SortModel* >::iterator it = d_rep_model.begin(); it != d_rep_model.end(); ++it ){
-            int c = it->second->getMaximumNegativeCardinality();
-            if( c>0 ){
-              conf.push_back( it->second->getCardinalityLiteral( c ).negate() );
-              totalAdded += c;
-            }
-            if( totalAdded>i ){
-              break;
-            }
+      int max_neg = it->second->getMaximumNegativeCardinality();
+      if( !options::ufssFairnessMonotone() ){
+        totalCombinedCard += max_neg;
+      }else{
+        std::map< TypeNode, bool >::iterator its = d_tn_mono_slave.find( it->first );
+        if( its==d_tn_mono_slave.end() || !its->second ){
+          totalCombinedCard += max_neg;
+        }else{
+          if( max_neg>maxMonoSlave ){
+            maxMonoSlave = max_neg;
+            maxSlaveType = it->first;
           }
-          Node cc = NodeManager::currentNM()->mkNode( AND, conf );
-          Trace("uf-ss-lemma") << "*** Combined cardinality conflict : " << cc << std::endl;
-          Trace("uf-ss-com-card") << "*** Combined cardinality conflict : " << cc << std::endl;
-          getOutputChannel().conflict( cc );
-          d_conflict.set( true );
         }
       }
+    }
+    Trace("uf-ss-com-card-debug") << "Check combined cardinality, total combined card : " << totalCombinedCard << std::endl;
+    if( options::ufssFairnessMonotone() ){
+      Trace("uf-ss-com-card-debug") << "Max slave monotonic negated cardinality : " << maxMonoSlave << std::endl;
+      if( d_min_pos_tn_master_card.get()!=-1 && maxMonoSlave>d_min_pos_tn_master_card.get() ){
+        int mc = d_min_pos_tn_master_card.get();
+        std::vector< Node > conf;
+        conf.push_back( d_rep_model[d_tn_mono_master]->getCardinalityLiteral( mc ) );
+        conf.push_back( d_rep_model[maxSlaveType]->getCardinalityLiteral( maxMonoSlave ).negate() );
+        Node cf = NodeManager::currentNM()->mkNode( AND, conf );
+        Trace("uf-ss-lemma") << "*** Combined monotone cardinality conflict : " << cf << std::endl;
+        Trace("uf-ss-com-card") << "*** Combined monotone cardinality conflict : " << cf << std::endl;
+        getOutputChannel().conflict( cf );
+        d_conflict.set( true );
+        return;
+      }
+    }
+    if( d_min_pos_com_card.get()!=-1 && totalCombinedCard>d_min_pos_com_card.get() ){
+      //conflict
+      int cc = d_min_pos_com_card.get();
+      Assert( d_com_card_literal.find( cc )!=d_com_card_literal.end() );
+      Node com_lit = d_com_card_literal[cc];
+      Assert( d_com_card_assertions.find( com_lit )!=d_com_card_assertions.end() );
+      Assert( d_com_card_assertions[com_lit] );
+      std::vector< Node > conf;
+      conf.push_back( com_lit );
+      int totalAdded = 0;
+      for( std::map< TypeNode, SortModel* >::iterator it = d_rep_model.begin(); it != d_rep_model.end(); ++it ){
+        bool doAdd = true;
+        if( options::ufssFairnessMonotone() ){
+          std::map< TypeNode, bool >::iterator its = d_tn_mono_slave.find( it->first );
+          if( its!=d_tn_mono_slave.end() && its->second ){
+            doAdd = false;
+          }
+        }
+        if( doAdd ){
+          int c = it->second->getMaximumNegativeCardinality();
+          if( c>0 ){
+            conf.push_back( it->second->getCardinalityLiteral( c ).negate() );
+            totalAdded += c;
+          }
+          if( totalAdded>cc ){
+            break;
+          }
+        }
+      }
+      Node cf = NodeManager::currentNM()->mkNode( AND, conf );
+      Trace("uf-ss-lemma") << "*** Combined cardinality conflict : " << cf << std::endl;
+      Trace("uf-ss-com-card") << "*** Combined cardinality conflict : " << cf << std::endl;
+      getOutputChannel().conflict( cf );
+      d_conflict.set( true );
     }
   }
 }
