@@ -157,14 +157,7 @@ public:
    * This adds a convenience wrapper to SExpr to cast from bools.
    * This is internally handled as the strings "true" and "false"
    */
-  SExpr(bool value) :
-#warning "TODO: Discuss this change with Clark."
-    d_sexprType(SEXPR_KEYWORD),
-    d_integerValue(0),
-    d_rationalValue(0),
-    d_stringValue(value ? "true" : "false"),
-    d_children() {
-  }
+  SExpr(bool value);
 
   SExpr(const Keyword& value) :
     d_sexprType(SEXPR_KEYWORD),

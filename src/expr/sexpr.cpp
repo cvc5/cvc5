@@ -42,6 +42,15 @@ std::ostream& operator<<(std::ostream& out, PrettySExprs ps) {
   return out;
 }
 
+#warning "TODO: Discuss this change with Clark."
+SExpr::SExpr(bool value) :
+    d_sexprType(SEXPR_KEYWORD),
+    d_integerValue(0),
+    d_rationalValue(0),
+    d_stringValue(value ? "true" : "false"),
+    d_children() {
+}
+
 std::string SExpr::toString() const {
   std::stringstream ss;
   ss << (*this);
