@@ -389,8 +389,9 @@ TypeNode BooleanTermConverter::convertType(TypeNode type, bool datatypesContext)
   }
   if(type.isRecord()) {
     const Record& rec = type.getConst<Record>();
+    const Record::FieldVector& fields = rec.getFields();
     vector< pair<string, Type> > flds;
-    for(Record::const_iterator i = rec.begin(); i != rec.end(); ++i) {
+    for(Record::FieldVector::const_iterator i = fields.begin(); i != fields.end(); ++i) {
       TypeNode converted = convertType(TypeNode::fromType((*i).second), true);
       if(TypeNode::fromType((*i).second) != converted) {
         flds.push_back(make_pair((*i).first, converted.toType()));

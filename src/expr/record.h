@@ -25,9 +25,14 @@
 #include <utility>
 #include "util/hash.h"
 
+// Forward Declarations
 namespace CVC4 {
+// This forward delcartion is required to resolve a cicular dependency with
+// Record which is a referenced in a Kind file.
+class CVC4_PUBLIC Type;
+} /* namespace CVC4 */
 
-class CVC4_PUBLIC Record;
+namespace CVC4 {
 
 // operators for record select and update
 
@@ -64,87 +69,37 @@ struct CVC4_PUBLIC RecordUpdateHashFunction {
 std::ostream& operator<<(std::ostream& out, const RecordSelect& t) CVC4_PUBLIC;
 std::ostream& operator<<(std::ostream& out, const RecordUpdate& t) CVC4_PUBLIC;
 
-inline std::ostream& operator<<(std::ostream& out, const RecordSelect& t) {
-  return out << "[" << t.getField() << "]";
-}
-
-inline std::ostream& operator<<(std::ostream& out, const RecordUpdate& t) {
-  return out << "[" << t.getField() << "]";
-}
-
-}/* CVC4 namespace */
-
-#warning "TODO: Address circular dependence in Record."
-#include "expr/expr.h"
-#include "expr/type.h"
-
-namespace CVC4 {
-
 // now an actual record definition
-
 class CVC4_PUBLIC Record {
-  std::vector< std::pair<std::string, Type> > d_fields;
-
 public:
+  // Type must stay as incomplete types throughout this header!
+  // Everything containing a Type must be a pointer or a reference.
+  typedef std::vector< std::pair<std::string, Type> > FieldVector;
 
-  typedef std::vector< std::pair<std::string, Type> >::const_iterator const_iterator;
-  typedef const_iterator iterator;
+  Record(const FieldVector& fields);
+  Record(const Record& other);
+  ~Record();
+  Record& operator=(const Record& r);
 
-  Record(const std::vector< std::pair<std::string, Type> >& fields) :
-    d_fields(fields) {
-  }
+  bool contains(const std::string &name) const;
 
-  const_iterator find(std::string name) const {
-    const_iterator i;
-    for(i = begin(); i != end(); ++i) {
-      if((*i).first == name) {
-        break;
-      }
-    }
-    return i;
-  }
+  size_t getIndex(std::string name) const;
+  size_t getNumFields() const;
 
-  size_t getIndex(std::string name) const {
-    const_iterator i = find(name);
-    CheckArgument(i != end(), name, "requested field `%s' does not exist in record", name.c_str());
-    return i - begin();
-  }
+  const FieldVector& getFields() const;
+  const std::pair<std::string, Type>& operator[](size_t index) const;
 
-  size_t getNumFields() const {
-    return d_fields.size();
-  }
-
-  const_iterator begin() const {
-    return d_fields.begin();
-  }
-
-  const_iterator end() const {
-    return d_fields.end();
-  }
-
-  std::pair<std::string, Type> operator[](size_t index) const {
-    CheckArgument(index < d_fields.size(), index, "index out of bounds for record type");
-    return d_fields[index];
-  }
-
-  bool operator==(const Record& r) const {
-    return d_fields == r.d_fields;
-  }
-
+  bool operator==(const Record& r) const;
   bool operator!=(const Record& r) const {
     return !(*this == r);
   }
 
+private:
+  FieldVector* d_fields;
 };/* class Record */
 
 struct CVC4_PUBLIC RecordHashFunction {
-  inline size_t operator()(const Record& r) const {
-    size_t n = 0;
-    for(Record::iterator i = r.begin(); i != r.end(); ++i) {
-      n = (n << 3) ^ TypeHashFunction()((*i).second);
-    }
-    return n;
-  }
+  size_t operator()(const Record& r) const;
 };/* struct RecordHashFunction */
 
 std::ostream& operator<<(std::ostream& os, const Record& r) CVC4_PUBLIC;

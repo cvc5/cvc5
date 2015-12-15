@@ -15,12 +15,15 @@
  **/
 
 #include "smt/model_postprocessor.h"
-#include "smt/boolean_terms.h"
+
 #include "expr/node_manager_attributes.h"
+#include "expr/record.h"
+#include "smt/boolean_terms.h"
 
 using namespace std;
-using namespace CVC4;
-using namespace CVC4::smt;
+
+namespace CVC4 {
+namespace smt {
 
 Node ModelPostprocessor::rewriteAs(TNode n, TypeNode asType) {
   if(n.getType().isSubtypeOf(asType)) {
@@ -191,10 +194,11 @@ void ModelPostprocessor::visit(TNode current, TNode parent) {
     const Record& expectRec = expectType.getConst<Record>();
     NodeBuilder<> b(kind::RECORD);
     b << current.getType().getAttribute(expr::DatatypeRecordAttr());
-    Record::const_iterator t = expectRec.begin();
+    const Record::FieldVector& fields = expectRec.getFields();
+    Record::FieldVector::const_iterator t = fields.begin();
     for(TNode::iterator i = current.begin(); i != current.end(); ++i, ++t) {
       Assert(alreadyVisited(*i, TNode::null()));
-      Assert(t != expectRec.end());
+      Assert(t != fields.end());
       TNode n = d_nodes[*i];
       n = n.isNull() ? *i : n;
       if(!n.getType().isSubtypeOf(TypeNode::fromType((*t).second))) {
@@ -212,7 +216,7 @@ void ModelPostprocessor::visit(TNode current, TNode parent) {
         b << n;
       }
     }
-    Assert(t == expectRec.end());
+    Assert(t == fields.end());
     d_nodes[current] = b;
     Debug("tuprec") << "returning " << d_nodes[current] << ", operator = " << d_nodes[current].getOperator() << endl;
     Assert(d_nodes[current].getType() == expectType);
@@ -298,3 +302,6 @@ void ModelPostprocessor::visit(TNode current, TNode parent) {
     d_nodes[current] = Node::null();
   }
 }/* ModelPostprocessor::visit() */
+
+} /* namespace smt */
+} /* namespace CVC4 */

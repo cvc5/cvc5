@@ -1559,8 +1559,7 @@ recordStore[CVC4::Expr& f]
         PARSER_STATE->parseError(ss.str());
       }
       const Record& rec = RecordType(t).getRecord();
-      Record::const_iterator fld = rec.find(id);
-      if(fld == rec.end()) {
+      if(! rec.contains(id)) {
         PARSER_STATE->parseError(std::string("no such field `") + id + "' in record");
       }
       f2 = MK_EXPR(MK_CONST(RecordSelect(id)), f);
@@ -1687,8 +1686,7 @@ postfixTerm[CVC4::Expr& f]
             PARSER_STATE->parseError("record-select applied to non-record");
           }
           const Record& rec = RecordType(t).getRecord();
-          Record::const_iterator fld = rec.find(id);
-          if(fld == rec.end()) {
+          if(!rec.contains(id)){
             PARSER_STATE->parseError(std::string("no such field `") + id + "' in record");
           }
           f = MK_EXPR(MK_CONST(RecordSelect(id)), f);

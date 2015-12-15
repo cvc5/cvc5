@@ -390,7 +390,8 @@ void CvcPrinter::toStream(std::ostream& out, TNode n, int depth, bool types, boo
       out << "(# ";
       TNode::iterator i = n.begin();
       bool first = true;
-      for(Record::const_iterator j = rec.begin(); j != rec.end(); ++i, ++j) {
+      const Record::FieldVector& fields = rec.getFields();
+      for(Record::FieldVector::const_iterator j = fields.begin(); j != fields.end(); ++i, ++j) {
         if(!first) {
           out << ", ";
         }

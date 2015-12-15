@@ -447,8 +447,8 @@ TypeNode NodeManager::mkSubrangeType(const SubrangeBounds& bounds)
 TypeNode NodeManager::getDatatypeForTupleRecord(TypeNode t) {
   Assert(t.isTuple() || t.isRecord());
 
-  //AJR: not sure why .getBaseType() was used in two cases below, 
-  //     disabling this, which is necessary to fix bug 605/667, 
+  //AJR: not sure why .getBaseType() was used in two cases below,
+  //     disabling this, which is necessary to fix bug 605/667,
   //     which involves records of INT which were mapped to records of REAL below.
   TypeNode tOrig = t;
   if(t.isTuple()) {
@@ -472,7 +472,8 @@ TypeNode NodeManager::getDatatypeForTupleRecord(TypeNode t) {
     const Record& r = t.getRecord();
     std::vector< std::pair<std::string, Type> > v;
     bool changed = false;
-    for(Record::iterator i = r.begin(); i != r.end(); ++i) {
+    const Record::FieldVector& fields = r.getFields();
+    for(Record::FieldVector::const_iterator i = fields.begin(); i != fields.end(); ++i) {
       Type tn = (*i).second;
       Type base;
       if(tn.isTuple() || tn.isRecord()) {
@@ -503,9 +504,10 @@ TypeNode NodeManager::getDatatypeForTupleRecord(TypeNode t) {
       dtt.setAttribute(DatatypeTupleAttr(), tOrig);
     } else {
       const Record& rec = t.getRecord();
+      const Record::FieldVector& fields = rec.getFields();
       Datatype dt("__cvc4_record");
       DatatypeConstructor c("__cvc4_record_ctor");
-      for(Record::const_iterator i = rec.begin(); i != rec.end(); ++i) {
+      for(Record::FieldVector::const_iterator i = fields.begin(); i != fields.end(); ++i) {
         c.addArg((*i).first, (*i).second);
       }
       dt.addConstructor(c);
