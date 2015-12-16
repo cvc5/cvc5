@@ -149,7 +149,6 @@ Node ProofUF::toStreamRecLFSC(std::ostream& out, TheoryProof * tp, theory::eq::E
         // Begin breaking up the congruences and ordering the equalities correctly.
         std::vector<theory::eq::EqProof *> orderedEqualities;
 
-
         // Insert target clause first.
         if (targetAppearsBefore) {
           orderedEqualities.push_back(pf->d_children[i - 1]);
@@ -406,10 +405,21 @@ Node ProofUF::toStreamRecLFSC(std::ostream& out, TheoryProof * tp, theory::eq::E
     bool evenLengthSequence;
     Node nodeAfterEqualitySequence;
 
+    std::map<size_t, Node> childToStream;
+
     for(size_t i = 1; i < pf->d_children.size(); ++i) {
       std::stringstream ss1(ss.str()), ss2;
       ss.str("");
-      Node n2 = toStreamRecLFSC(ss2, tp, pf->d_children[i], tb + 1, map);
+
+      // It is possible that we've already converted the i'th child to stream. If so,
+      // use previously stored result. Otherwise, convert and store.
+      Node n2;
+      if (childToStream.find(i) != childToStream.end())
+        n2 = childToStream[i];
+      else {
+        n2 = toStreamRecLFSC(ss2, tp, pf->d_children[i], tb + 1, map);
+        childToStream[i] = n2;
+      }
 
       // The following branch is dedicated to handling sequences of identical equalities,
       // i.e. trans[ a=b, a=b, a=b ].
