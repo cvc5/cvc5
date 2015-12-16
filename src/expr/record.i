@@ -43,58 +43,7 @@
       jenv->SetObjectArrayElement($result, 1, jenv->NewObject(clazz, methodid, reinterpret_cast<long>(new CVC4::Type($1.second)), true));
     };
 
-// Instead of Record::begin() and end(), create an
-// iterator() method on the Java side that returns a Java-style
-// Iterator.
-%ignore CVC4::Record::begin() const;
-%ignore CVC4::Record::end() const;
-%extend CVC4::Record {
-  CVC4::Type find(std::string name) const {
-    CVC4::Record::const_iterator i;
-    for(i = $self->begin(); i != $self->end(); ++i) {
-      if((*i).first == name) {
-        return (*i).second;
-      }
-    }
-    return CVC4::Type();
-  }
 
-  CVC4::JavaIteratorAdapter<CVC4::Record> iterator() {
-    return CVC4::JavaIteratorAdapter<CVC4::Record>(*$self);
-  }
-}
-
-// Record is "iterable" on the Java side
-%typemap(javainterfaces) CVC4::Record "java.lang.Iterable<Object[]>";
-
-// the JavaIteratorAdapter should not be public, and implements Iterator
-%typemap(javaclassmodifiers) CVC4::JavaIteratorAdapter<CVC4::Record> "class";
-%typemap(javainterfaces) CVC4::JavaIteratorAdapter<CVC4::Record> "java.util.Iterator<Object[]>";
-// add some functions to the Java side (do it here because there's no way to do these in C++)
-%typemap(javacode) CVC4::JavaIteratorAdapter<CVC4::Record> "
-  public void remove() {
-    throw new java.lang.UnsupportedOperationException();
-  }
-
-  public Object[] next() {
-    if(hasNext()) {
-      return getNext();
-    } else {
-      throw new java.util.NoSuchElementException();
-    }
-  }
-"
-// getNext() just allows C++ iterator access from Java-side next(), make it private
-%javamethodmodifiers CVC4::JavaIteratorAdapter<CVC4::Record>::getNext() "private";
-
-// map the types appropriately.  for records, the "payload" of the iterator is an Object[].
-// These Object arrays are always of two elements, the first is a String and the second a
-// Type.  (On the C++ side, it is a std::pair<std::string, SExpr>.)
-%typemap(jni) CVC4::Record::const_iterator::value_type = std::pair<std::string, CVC4::Type>;
-%typemap(jtype) CVC4::Record::const_iterator::value_type = std::pair<std::string, CVC4::Type>;
-%typemap(jstype) CVC4::Record::const_iterator::value_type = std::pair<std::string, CVC4::Type>;
-%typemap(javaout) CVC4::Record::const_iterator::value_type = std::pair<std::string, CVC4::Type>;
-%typemap(out) CVC4::Record::const_iterator::value_type = std::pair<std::string, CVC4::Type>;
 
 #endif /* SWIGJAVA */
 
@@ -105,6 +54,5 @@
 %include "bindings/java_iterator_adapter.h"
 %include "bindings/java_stream_adapters.h"
 
-%template(JavaIteratorAdapter_Record) CVC4::JavaIteratorAdapter<CVC4::Record>;
 
 #endif /* SWIGJAVA */

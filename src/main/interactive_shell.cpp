@@ -26,6 +26,9 @@
 #include <utility>
 #include <vector>
 
+//This must go before HAVE_LIBREADLINE.
+#include "cvc4autoconfig.h"
+
 #if HAVE_LIBREADLINE
 #  include <readline/readline.h>
 #  include <readline/history.h>
@@ -36,7 +39,6 @@
 
 
 #include "base/output.h"
-#include "cvc4autoconfig.h"
 #include "options/language.h"
 #include "options/main_options.h"
 #include "options/options.h"

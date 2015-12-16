@@ -29,7 +29,7 @@
 namespace CVC4 {
 // This forward delcartion is required to resolve a cicular dependency with
 // Record which is a referenced in a Kind file.
-class CVC4_PUBLIC Type;
+class Type;
 } /* namespace CVC4 */
 
 namespace CVC4 {
