@@ -85,13 +85,45 @@ bool QuantifiersRewriter::isCube( Node n ){
 }
 
 int QuantifiersRewriter::getPurifyId( Node n ){
-  if( inst::Trigger::isAtomicTriggerKind( n.getKind() ) ){
+  if( !TermDb::hasBoundVarAttr( n ) ){
+    return 0;
+  }else if( inst::Trigger::isAtomicTriggerKind( n.getKind() ) ){
     return 1;
-  }else if( TermDb::isBoolConnective( n.getKind() ) || n.getKind()==EQUAL || n.getKind()==BOUND_VARIABLE || !TermDb::hasBoundVarAttr( n ) ){
+  }else if( TermDb::isBoolConnective( n.getKind() ) || n.getKind()==EQUAL || n.getKind()==BOUND_VARIABLE ){
     return 0;
   }else{
     return -1;
   }
+}
+
+int QuantifiersRewriter::getPurifyIdLit2( Node n, std::map< Node, int >& visited ) {
+  std::map< Node, int >::iterator it = visited.find( n );
+  if( visited.find( n )==visited.end() ){
+    int ret = 0;
+    if( TermDb::hasBoundVarAttr( n ) ){
+      ret = getPurifyId( n );
+      for( unsigned i=0; i<n.getNumChildren(); i++ ){
+        int cid = getPurifyIdLit2( n[i], visited );
+        if( cid!=0 ){
+          if( ret==0 ){
+            ret = cid;
+          }else if( cid!=ret ){
+            ret = -2;
+            break;
+          }
+        }
+      }
+    }
+    visited[n] = ret;
+    return ret;
+  }else{
+    return it->second;
+  }
+}
+
+int QuantifiersRewriter::getPurifyIdLit( Node n ) {
+  std::map< Node, int > visited;
+  return getPurifyIdLit2( n, visited );
 }
 
 void QuantifiersRewriter::addNodeToOrBuilder( Node n, NodeBuilder<>& t ){
@@ -684,7 +716,7 @@ bool QuantifiersRewriter::isConditionalVariableElim( Node n, int pol ){
   return false;
 }
 
-Node QuantifiersRewriter::computeProcessIte( Node body, Node ipl ){
+Node QuantifiersRewriter::computeCondSplit( Node body, Node ipl ){
   if( options::iteDtTesterSplitQuant() && body.getKind()==ITE ){
     Trace("quantifiers-rewrite-ite-debug") << "DTT split : " << body << std::endl;
     std::map< Node, Node > pcons;
@@ -1408,7 +1440,7 @@ bool QuantifiersRewriter::doOperation( Node f, bool isNested, int computeOption 
   }else if( computeOption==COMPUTE_PROCESS_TERMS ){
     return true;
     //return options::iteLiftQuant()!=ITE_LIFT_QUANT_MODE_NONE || options::iteCondVarSplitQuant();
-  }else if( computeOption==COMPUTE_PROCESS_ITE ){
+  }else if( computeOption==COMPUTE_COND_SPLIT ){
     return options::iteDtTesterSplitQuant() || options::condVarSplitQuant();
   }else if( computeOption==COMPUTE_PRENEX ){
     return options::prenexQuant()!=PRENEX_NONE && !options::aggressiveMiniscopeQuant();
@@ -1416,6 +1448,8 @@ bool QuantifiersRewriter::doOperation( Node f, bool isNested, int computeOption 
     return options::varElimQuant() || options::dtVarExpandQuant() || options::purifyQuant();
   //}else if( computeOption==COMPUTE_CNF ){
   //  return options::cnfQuant();
+  }else if( computeOption==COMPUTE_PURIFY_EXPAND ){
+    return options::purifyQuant();
   }else{
     return false;
   }
@@ -1426,10 +1460,9 @@ Node QuantifiersRewriter::computeOperation( Node f, bool isNested, int computeOp
   if( f.getKind()==FORALL ){
     Trace("quantifiers-rewrite-debug") << "Compute operation " << computeOption << " on " << f << ", nested = " << isNested << std::endl;
     std::vector< Node > args;
-    for( int i=0; i<(int)f[0].getNumChildren(); i++ ){
+    for( unsigned i=0; i<f[0].getNumChildren(); i++ ){
       args.push_back( f[0][i] );
     }
-    NodeBuilder<> defs(kind::AND);
     Node n = f[1];
     Node ipl;
     if( f.getNumChildren()==3 ){
@@ -1454,8 +1487,8 @@ Node QuantifiersRewriter::computeOperation( Node f, bool isNested, int computeOp
         new_conds.push_back( n );
         n = NodeManager::currentNM()->mkNode( OR, new_conds );
       }
-    }else if( computeOption==COMPUTE_PROCESS_ITE ){
-      n = computeProcessIte( n, ipl );
+    }else if( computeOption==COMPUTE_COND_SPLIT ){
+      n = computeCondSplit( n, ipl );
     }else if( computeOption==COMPUTE_PRENEX ){
       n = computePrenex( n, args, true );
     }else if( computeOption==COMPUTE_VAR_ELIMINATION ){
@@ -1463,13 +1496,21 @@ Node QuantifiersRewriter::computeOperation( Node f, bool isNested, int computeOp
     //}else if( computeOption==COMPUTE_CNF ){
       //n = computeCNF( n, args, defs, false );
       //ipl = Node::null();
+    }else if( computeOption==COMPUTE_PURIFY_EXPAND ){
+      std::vector< Node > conj;
+      computePurifyExpand( n, conj, args, ipl );
+      if( !conj.empty() ){
+        return conj.size()==1 ? conj[0] : NodeManager::currentNM()->mkNode( AND, conj );
+      }else{
+        return f;
+      }
     }
     Trace("quantifiers-rewrite-debug") << "Compute Operation: return " << n << ", " << args.size() << std::endl;
     if( f[1]==n && args.size()==f[0].getNumChildren() ){
       return f;
     }else{
       if( args.empty() ){
-        defs << n;
+        return n;
       }else{
         std::vector< Node > children;
         children.push_back( NodeManager::currentNM()->mkNode(kind::BOUND_VAR_LIST, args ) );
@@ -1477,9 +1518,8 @@ Node QuantifiersRewriter::computeOperation( Node f, bool isNested, int computeOp
         if( !ipl.isNull() ){
           children.push_back( ipl );
         }
-        defs << NodeManager::currentNM()->mkNode(kind::FORALL, children );
+        return NodeManager::currentNM()->mkNode(kind::FORALL, children );
       }
-      return defs.getNumChildren()==1 ? defs.getChild( 0 ) : defs.constructNode();
     }
   }else{
     return f;
@@ -1768,5 +1808,20 @@ Node QuantifiersRewriter::computePurify( Node body, std::vector< Node >& args, s
     }
     Trace("quantifiers-rewrite-purify") << "Constructed : " << res << std::endl << std::endl;
     return res;
+  }
+}
+
+void QuantifiersRewriter::computePurifyExpand( Node body, std::vector< Node >& conj, std::vector< Node >& args, Node ipl ) {
+  if( body.getKind()==OR ){
+    Trace("quantifiers-rewrite-purify-exp") << "Purify expansion : " << body << std::endl;
+    std::map< int, std::vector< Node > > disj;
+    std::map< int, std::vector< Node > > fvs;
+    for( unsigned i=0; i<body.getNumChildren(); i++ ){
+      int pid = getPurifyIdLit( body[i] );
+      
+    }
+    //mark as an attribute
+    //Node attr = NodeManager::currentNM()->mkNode( INST_ATTRIBUTE, body );
+    
   }
 }

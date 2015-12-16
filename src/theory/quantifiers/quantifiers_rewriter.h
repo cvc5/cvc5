@@ -27,11 +27,14 @@ namespace theory {
 namespace quantifiers {
 
 class QuantifiersRewriter {
+private:
+  static int getPurifyIdLit2( Node n, std::map< Node, int >& visited );
 public:
   static bool isClause( Node n );
   static bool isLiteral( Node n );
   static bool isCube( Node n );
   static int getPurifyId( Node n );
+  static int getPurifyIdLit( Node n );
 private:
   static void addNodeToOrBuilder( Node n, NodeBuilder<>& t );
   static Node mkForAll( std::vector< Node >& args, Node body, Node ipl );
@@ -56,12 +59,13 @@ private:
   static Node computeProcessTerms( Node body, bool hasPol, bool pol, std::map< Node, bool >& currCond, int nCurrCond,
                                    std::map< Node, Node >& cache, std::map< Node, Node >& icache,
                                    std::vector< Node >& new_vars, std::vector< Node >& new_conds );
-  static Node computeProcessIte( Node body, Node ipl );
+  static Node computeCondSplit( Node body, Node ipl );
   static Node computeCNF( Node body, std::vector< Node >& args, NodeBuilder<>& defs, bool forcePred );
   static Node computePrenex( Node body, std::vector< Node >& args, bool pol );
   static Node computeSplit( Node f, std::vector< Node >& args, Node body );
   static Node computeVarElimination( Node body, std::vector< Node >& args, Node& ipl );
   static Node computePurify( Node body, std::vector< Node >& args, std::map< Node, std::vector< int > >& var_parent );
+  static void computePurifyExpand( Node body, std::vector< Node >& conj, std::vector< Node >& args, Node ipl );
 private:
   enum{
     COMPUTE_ELIM_SYMBOLS = 0,
@@ -71,7 +75,8 @@ private:
     COMPUTE_PROCESS_TERMS,
     COMPUTE_PRENEX,
     COMPUTE_VAR_ELIMINATION,
-    COMPUTE_PROCESS_ITE,
+    COMPUTE_COND_SPLIT,
+    COMPUTE_PURIFY_EXPAND,
     //COMPUTE_FLATTEN_ARGS_UF,
     //COMPUTE_CNF,
     COMPUTE_LAST
