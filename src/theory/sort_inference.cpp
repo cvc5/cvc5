@@ -116,13 +116,14 @@ void SortInference::reset() {
 
 void SortInference::simplify( std::vector< Node >& assertions, bool doSortInference, bool doMonotonicyInference ){
   if( doSortInference ){
-    Trace("sort-inference") << "Calculating sort inference..." << std::endl;
+    Trace("sort-inference-proc") << "Calculating sort inference..." << std::endl;
     //process all assertions
     for( unsigned i=0; i<assertions.size(); i++ ){
       Trace("sort-inference-debug") << "Process " << assertions[i] << std::endl;
       std::map< Node, Node > var_bound;
       process( assertions[i], var_bound );
     }
+    Trace("sort-inference-proc") << "...done" << std::endl;
     for( std::map< Node, int >::iterator it = d_op_return_types.begin(); it != d_op_return_types.end(); ++it ){
       Trace("sort-inference") << it->first << " : ";
       TypeNode retTn = it->first.getType();
@@ -153,12 +154,13 @@ void SortInference::simplify( std::vector< Node >& assertions, bool doSortInfere
     if( !options::ufssSymBreak() ){
       bool rewritten = false;
       //determine monotonicity of sorts
+      Trace("sort-inference-proc") << "Calculating monotonicty for subsorts..." << std::endl;
       for( unsigned i=0; i<assertions.size(); i++ ){
         Trace("sort-inference-debug") << "Process monotonicity for " << assertions[i] << std::endl;
         std::map< Node, Node > var_bound;
         processMonotonic( assertions[i], true, true, var_bound );
       }
-      //doMonotonicyInference = false;
+      Trace("sort-inference-proc") << "...done" << std::endl;
 
       Trace("sort-inference") << "We have " << d_sub_sorts.size() << " sub-sorts : " << std::endl;
       for( unsigned i=0; i<d_sub_sorts.size(); i++ ){
@@ -173,6 +175,7 @@ void SortInference::simplify( std::vector< Node >& assertions, bool doSortInfere
       }
 
       //simplify all assertions by introducing new symbols wherever necessary
+      Trace("sort-inference-proc") << "Perform simplification..." << std::endl;
       for( unsigned i=0; i<assertions.size(); i++ ){
         Node prev = assertions[i];
         std::map< Node, Node > var_bound;
@@ -188,6 +191,7 @@ void SortInference::simplify( std::vector< Node >& assertions, bool doSortInfere
           assertions[i] = curr;
         }
       }
+      Trace("sort-inference-proc") << "...done" << std::endl;
       //now, ensure constants are distinct
       for( std::map< TypeNode, std::map< Node, Node > >::iterator it = d_const_map.begin(); it != d_const_map.end(); ++it ){
         std::vector< Node > consts;
@@ -198,6 +202,7 @@ void SortInference::simplify( std::vector< Node >& assertions, bool doSortInfere
       }
 
       //enforce constraints based on monotonicity
+      Trace("sort-inference-proc") << "Enforce monotonicity..." << std::endl;
       for( std::map< TypeNode, std::vector< int > >::iterator it = d_type_sub_sorts.begin(); it != d_type_sub_sorts.end(); ++it ){
         int nmonSort = -1;
         for( unsigned i=0; i<it->second.size(); i++ ){
@@ -232,6 +237,7 @@ void SortInference::simplify( std::vector< Node >& assertions, bool doSortInfere
           }
         }
       }
+      Trace("sort-inference-proc") << "...done" << std::endl;
       //no sub-sort information is stored
       reset();
       Trace("sort-inference-debug") << "Finished sort inference, rewritten = " << rewritten << std::endl;
@@ -268,11 +274,13 @@ void SortInference::simplify( std::vector< Node >& assertions, bool doSortInfere
     initialSortCount = sortCount;
   }
   if( doMonotonicyInference ){
+    Trace("sort-inference-proc") << "Calculating monotonicty for types..." << std::endl;
     for( unsigned i=0; i<assertions.size(); i++ ){
       Trace("sort-inference-debug") << "Process type monotonicity for " << assertions[i] << std::endl;
       std::map< Node, Node > var_bound;
       processMonotonic( assertions[i], true, true, var_bound, true );
     }
+    Trace("sort-inference-proc") << "...done" << std::endl;
   }
 }
 
