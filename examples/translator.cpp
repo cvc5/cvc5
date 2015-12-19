@@ -24,6 +24,7 @@
 
 #include "expr/expr.h"
 #include "options/language.h"
+#include "options/set_language.h"
 #include "parser/parser.h"
 #include "parser/parser_builder.h"
 #include "smt/smt_engine.h"
@@ -97,7 +98,7 @@ static void readFile(const char* filename, InputLanguage fromLang, OutputLanguag
     toLang = toOutputLanguage(fromLang);
   }
 
-  *out << Expr::setlanguage(toLang);
+  *out << language::SetLanguage(toLang);
 
   Options opts;
   opts.set(options::inputLanguage, fromLang);

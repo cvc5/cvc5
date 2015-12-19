@@ -29,6 +29,7 @@
 #include "expr/sexpr.h"
 #include "options/expr_options.h"
 #include "options/parser_options.h"
+#include "options/set_language.h"
 #include "options/smt_options.h"
 #include "parser/parser.h"
 #include "parser/parser_builder.h"
@@ -1521,7 +1522,7 @@ void ValidityChecker::printExpr(const Expr& e) {
 void ValidityChecker::printExpr(const Expr& e, std::ostream& os) {
   Expr::setdepth::Scope sd(os, -1);
   Expr::printtypes::Scope pt(os, false);
-  Expr::setlanguage::Scope sl(os, d_em->getOptions()[CVC4::options::outputLanguage]);
+  CVC4::language::SetLanguage::Scope sl(os, d_em->getOptions()[CVC4::options::outputLanguage]);
   os << e;
 }
 

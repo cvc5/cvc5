@@ -56,6 +56,7 @@
 #include "options/printer_options.h"
 #include "options/prop_options.h"
 #include "options/quantifiers_options.h"
+#include "options/set_language.h"
 #include "options/smt_options.h"
 #include "options/strings_options.h"
 #include "options/theory_options.h"
@@ -1658,7 +1659,7 @@ void SmtEngine::setInfo(const std::string& key, const CVC4::SExpr& value)
       if(!options::outputLanguage.wasSetByUser() &&
          options::outputLanguage() == language::output::LANG_SMTLIB_V2_5) {
         options::outputLanguage.set(language::output::LANG_SMTLIB_V2_0);
-        *options::out() << Expr::setlanguage(language::output::LANG_SMTLIB_V2_0);
+        *options::out() << language::SetLanguage(language::output::LANG_SMTLIB_V2_0);
       }
       return;
     } else if( (value.isRational() && value.getRationalValue() == Rational(5, 2)) ||
@@ -1667,7 +1668,7 @@ void SmtEngine::setInfo(const std::string& key, const CVC4::SExpr& value)
       if(!options::outputLanguage.wasSetByUser() &&
          options::outputLanguage() == language::output::LANG_SMTLIB_V2_0) {
         options::outputLanguage.set(language::output::LANG_SMTLIB_V2_5);
-        *options::out() << Expr::setlanguage(language::output::LANG_SMTLIB_V2_5);
+        *options::out() << language::SetLanguage(language::output::LANG_SMTLIB_V2_5);
       }
       return;
     }
@@ -1774,7 +1775,7 @@ void SmtEngine::defineFunction(Expr func,
   }
 
   stringstream ss;
-  ss << Expr::setlanguage(Expr::setlanguage::getLanguage(Dump.getStream()))
+  ss << language::SetLanguage(language::SetLanguage::getLanguage(Dump.getStream()))
      << func;
   DefineFunctionCommand c(ss.str(), func, formals, formula);
   addToModelCommandAndDump(c, ExprManager::VAR_FLAG_DEFINED, true, "declarations");

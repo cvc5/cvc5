@@ -23,7 +23,9 @@
 #include <vector>
 
 #include "expr/expr.h"
+#include "options/language.h"
 #include "options/options.h"
+#include "options/set_language.h"
 #include "parser/parser.h"
 #include "parser/parser_builder.h"
 #include "smt/smt_engine.h"
@@ -35,18 +37,19 @@ using namespace CVC4::parser;
 using namespace CVC4::options;
 using namespace CVC4::theory;
 
-int main(int argc, char* argv[]) 
+int main(int argc, char* argv[])
 {
 
-  // Get the filename 
+  // Get the filename
   string input(argv[1]);
 
   // Create the expression manager
   Options options;
   options.set(inputLanguage, language::input::LANG_SMTLIB_V2);
   ExprManager exprManager(options);
-  
-  cout << Expr::setlanguage(language::output::LANG_SMTLIB_V2) << Expr::setdepth(-1);
+
+  cout << language::SetLanguage(language::output::LANG_SMTLIB_V2)
+       << Expr::setdepth(-1);
 
   // Create the parser
   ParserBuilder parserBuilder(&exprManager, input, options);
@@ -76,12 +79,11 @@ int main(int argc, char* argv[])
     }
 
     cout << *cmd << endl;
-    delete cmd;  
+    delete cmd;
   }
 
   cout << "(check-sat)" << endl;
-	
+
   // Get rid of the parser
   delete parser;
 }
-

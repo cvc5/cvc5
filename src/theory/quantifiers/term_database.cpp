@@ -579,7 +579,7 @@ Node TermDb::getModelBasisTerm( TypeNode tn, int i ){
     }else{
       if( options::fmfFreshDistConst() || d_type_map[ tn ].empty() ){
         std::stringstream ss;
-        ss << Expr::setlanguage(options::outputLanguage());
+        ss << language::SetLanguage(options::outputLanguage());
         ss << "e_" << tn;
         mbt = NodeManager::currentNM()->mkSkolem( ss.str(), tn, "is a model basis term" );
         Trace("mkVar") << "ModelBasis:: Make variable " << mbt << " : " << tn << std::endl;

@@ -30,6 +30,7 @@
 
 #include "base/cvc4_assert.h"
 #include "expr/expr.h"
+#include "options/set_language.h"
 #include "util/smt2_quote_string.h"
 
 
@@ -42,13 +43,151 @@ std::ostream& operator<<(std::ostream& out, PrettySExprs ps) {
   return out;
 }
 
+
+SExpr::~SExpr() {
+  if(d_children != NULL){
+    delete d_children;
+    d_children = NULL;
+  }
+  Assert(d_children == NULL);
+}
+
+SExpr& SExpr::operator=(const SExpr& other) {
+  d_sexprType = other.d_sexprType;
+  d_integerValue = other.d_integerValue;
+  d_rationalValue = other.d_rationalValue;
+  d_stringValue = other.d_stringValue;
+
+  if(d_children == NULL && other.d_children == NULL){
+    // Do nothing.
+  } else if(d_children == NULL){
+    d_children = new SExprVector(*other.d_children);
+  } else if(other.d_children == NULL){
+    delete d_children;
+    d_children = NULL;
+  } else {
+    (*d_children) = other.getChildren();
+  }
+  Assert( isAtom() == other.isAtom() );
+  Assert( (d_children == NULL) == isAtom() );
+  return *this;
+}
+
+SExpr::SExpr() :
+    d_sexprType(SEXPR_STRING),
+    d_integerValue(0),
+    d_rationalValue(0),
+    d_stringValue(""),
+    d_children(NULL) {
+}
+
+
+SExpr::SExpr(const SExpr& other) :
+    d_sexprType(other.d_sexprType),
+    d_integerValue(other.d_integerValue),
+    d_rationalValue(other.d_rationalValue),
+    d_stringValue(other.d_stringValue),
+    d_children(NULL)
+{
+  d_children = (other.d_children == NULL) ? NULL : new SExprVector(*other.d_children);
+  // d_children being NULL is equivalent to the node being an atom.
+  Assert( (d_children == NULL) == isAtom() );
+}
+
+
+SExpr::SExpr(const CVC4::Integer& value) :
+    d_sexprType(SEXPR_INTEGER),
+    d_integerValue(value),
+    d_rationalValue(0),
+    d_stringValue(""),
+    d_children(NULL) {
+  }
+
+SExpr::SExpr(int value) :
+    d_sexprType(SEXPR_INTEGER),
+    d_integerValue(value),
+    d_rationalValue(0),
+    d_stringValue(""),
+    d_children(NULL) {
+}
+
+SExpr::SExpr(long int value) :
+    d_sexprType(SEXPR_INTEGER),
+    d_integerValue(value),
+    d_rationalValue(0),
+    d_stringValue(""),
+    d_children(NULL) {
+}
+
+SExpr::SExpr(unsigned int value) :
+    d_sexprType(SEXPR_INTEGER),
+    d_integerValue(value),
+    d_rationalValue(0),
+    d_stringValue(""),
+    d_children(NULL) {
+}
+
+SExpr::SExpr(unsigned long int value) :
+    d_sexprType(SEXPR_INTEGER),
+    d_integerValue(value),
+    d_rationalValue(0),
+    d_stringValue(""),
+    d_children(NULL) {
+}
+
+SExpr::SExpr(const CVC4::Rational& value) :
+    d_sexprType(SEXPR_RATIONAL),
+    d_integerValue(0),
+    d_rationalValue(value),
+    d_stringValue(""),
+    d_children(NULL) {
+}
+
+SExpr::SExpr(const std::string& value) :
+    d_sexprType(SEXPR_STRING),
+    d_integerValue(0),
+    d_rationalValue(0),
+    d_stringValue(value),
+    d_children(NULL) {
+}
+
+  /**
+   * This constructs a string expression from a const char* value.
+   * This cannot be removed in order to support SExpr("foo").
+   * Given the other constructors this SExpr("foo") converts to bool.
+   * instead of SExpr(string("foo")).
+   */
+SExpr::SExpr(const char* value) :
+    d_sexprType(SEXPR_STRING),
+    d_integerValue(0),
+    d_rationalValue(0),
+    d_stringValue(value),
+    d_children(NULL) {
+}
+
 #warning "TODO: Discuss this change with Clark."
 SExpr::SExpr(bool value) :
     d_sexprType(SEXPR_KEYWORD),
     d_integerValue(0),
     d_rationalValue(0),
     d_stringValue(value ? "true" : "false"),
-    d_children() {
+    d_children(NULL) {
+}
+
+SExpr::SExpr(const Keyword& value) :
+    d_sexprType(SEXPR_KEYWORD),
+    d_integerValue(0),
+    d_rationalValue(0),
+    d_stringValue(value.getString()),
+    d_children(NULL) {
+}
+
+SExpr::SExpr(const std::vector<SExpr>& children) :
+    d_sexprType(SEXPR_NOT_ATOM),
+    d_integerValue(0),
+    d_rationalValue(0),
+    d_stringValue(""),
+    d_children(new SExprVector(children)) {
 }
 
 std::string SExpr::toString() const {
@@ -57,13 +196,39 @@ std::string SExpr::toString() const {
   return ss.str();
 }
 
+/** Is this S-expression an atom? */
+bool SExpr::isAtom() const {
+  return d_sexprType != SEXPR_NOT_ATOM;
+}
+
+/** Is this S-expression an integer? */
+bool SExpr::isInteger() const {
+  return d_sexprType == SEXPR_INTEGER;
+}
+
+/** Is this S-expression a rational? */
+bool SExpr::isRational() const {
+  return d_sexprType == SEXPR_RATIONAL;
+}
+
+/** Is this S-expression a string? */
+bool SExpr::isString() const {
+  return d_sexprType == SEXPR_STRING;
+}
+
+/** Is this S-expression a keyword? */
+bool SExpr::isKeyword() const {
+  return d_sexprType == SEXPR_KEYWORD;
+}
+
+
 std::ostream& operator<<(std::ostream& out, const SExpr& sexpr) {
   SExpr::toStream(out, sexpr);
   return out;
 }
 
 void SExpr::toStream(std::ostream& out, const SExpr& sexpr) throw() {
-  toStream(out, sexpr, Expr::setlanguage::getLanguage(out));
+  toStream(out, sexpr, language::SetLanguage::getLanguage(out));
 }
 
 void SExpr::toStream(std::ostream& out, const SExpr& sexpr, OutputLanguage language) throw() {
@@ -181,15 +346,22 @@ const CVC4::Rational& SExpr::getRationalValue() const {
 
 const std::vector<SExpr>& SExpr::getChildren() const {
   CheckArgument( !isAtom(), this );
-  return d_children;
+  Assert( d_children != NULL );
+  return *d_children;
 }
 
 bool SExpr::operator==(const SExpr& s) const {
-  return d_sexprType == s.d_sexprType &&
-         d_integerValue == s.d_integerValue &&
-         d_rationalValue == s.d_rationalValue &&
-         d_stringValue == s.d_stringValue &&
-         d_children == s.d_children;
+  if (d_sexprType == s.d_sexprType &&
+      d_integerValue == s.d_integerValue &&
+      d_rationalValue == s.d_rationalValue &&
+      d_stringValue == s.d_stringValue) {
+    if(d_children == NULL && s.d_children == NULL){
+      return true;
+    } else if(d_children != NULL && s.d_children != NULL){
+      return getChildren() == s.getChildren();
+    }
+  }
+  return false;
 }
 
 bool SExpr::operator!=(const SExpr& s) const {

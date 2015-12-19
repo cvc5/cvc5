@@ -227,6 +227,8 @@ liboptions_la_SOURCES = \
 	printer_modes.h \
 	quantifiers_modes.cpp \
 	quantifiers_modes.h \
+	set_language.cpp \
+	set_language.h \
 	simplification_mode.cpp \
 	simplification_mode.h \
 	theoryof_mode.cpp \

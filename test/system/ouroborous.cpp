@@ -29,6 +29,7 @@
 #include <string>
 
 #include "expr/expr.h"
+#include "options/set_language.h"
 #include "parser/parser.h"
 #include "parser/parser_builder.h"
 #include "smt_util/command.h"
@@ -69,7 +70,7 @@ string translate(string in, InputLanguage inlang, OutputLanguage outlang) {
   psr->setInput(Input::newStringInput(inlang, in, "internal-buffer"));
   Expr e = psr->nextExpression();
   stringstream ss;
-  ss << Expr::setlanguage(outlang) << Expr::setdepth(-1) << e;
+  ss << language::SetLanguage(outlang) << Expr::setdepth(-1) << e;
   assert(psr->nextExpression().isNull());// next expr should be null
   assert(psr->done());// parser should be done
   string s = ss.str();

@@ -111,6 +111,7 @@ namespace CVC4 {
 #include "expr/expr.h"
 #include "expr/kind.h"
 #include "expr/type.h"
+#include "options/set_language.h"
 #include "parser/antlr_input.h"
 #include "parser/parser.h"
 #include "parser/smt2/smt2.h"
@@ -1466,7 +1467,7 @@ simpleSymbolicExprNoKeyword[CVC4::SExpr& sexpr]
     { sexpr = SExpr(SExpr::Keyword(AntlrInput::tokenText($tok))); }
   | builtinOp[k]
     { std::stringstream ss;
-      ss << Expr::setlanguage(CVC4::language::output::LANG_SMTLIB_V2_5) << EXPR_MANAGER->mkConst(k);
+      ss << language::SetLanguage(CVC4::language::output::LANG_SMTLIB_V2_5) << EXPR_MANAGER->mkConst(k);
       sexpr = SExpr(ss.str());
     }
   ;

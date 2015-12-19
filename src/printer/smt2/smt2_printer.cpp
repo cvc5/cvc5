@@ -977,7 +977,7 @@ void Smt2Printer::toStream(std::ostream& out, const Command* c,
 static std::string quoteSymbol(TNode n) {
 #warning "check the old implementation. It seems off."
   std::stringstream ss;
-  ss << Expr::setlanguage(language::output::LANG_SMTLIB_V2_5);
+  ss << language::SetLanguage(language::output::LANG_SMTLIB_V2_5);
   return CVC4::quoteSymbol(ss.str());
 }
 

@@ -22,6 +22,7 @@
 #include "expr/node.h"
 #include "expr/node_manager.h"
 #include "options/language.h"
+#include "options/set_language.h"
 #include "smt_util/boolean_simplification.h"
 
 using namespace CVC4;
@@ -102,7 +103,7 @@ public:
       BooleanSimplification::DUPLICATE_REMOVAL_THRESHOLD);
 
     cout << Expr::setdepth(-1)
-         << Expr::setlanguage(language::output::LANG_CVC4);
+         << language::SetLanguage(language::output::LANG_CVC4);
   }
 
   void tearDown() {

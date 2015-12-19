@@ -27,7 +27,7 @@
 #define __CVC4__SEXPR_H
 
 #include <iomanip>
-#include <sstream>
+#include <iosfwd>
 #include <string>
 #include <vector>
 
@@ -50,94 +50,25 @@ public:
  * string value, or a list of other S-expressions.
  */
 class CVC4_PUBLIC SExpr {
-
-  enum SExprTypes {
-    SEXPR_STRING,
-    SEXPR_KEYWORD,
-    SEXPR_INTEGER,
-    SEXPR_RATIONAL,
-    SEXPR_NOT_ATOM
-  } d_sexprType;
-
-  /** The value of an atomic integer-valued S-expression. */
-  CVC4::Integer d_integerValue;
-
-  /** The value of an atomic rational-valued S-expression. */
-  CVC4::Rational d_rationalValue;
-
-  /** The value of an atomic S-expression. */
-  std::string d_stringValue;
-
-  /** The children of a list S-expression. */
-  std::vector<SExpr> d_children;
-
 public:
 
   typedef SExprKeyword Keyword;
 
-  SExpr() :
-    d_sexprType(SEXPR_STRING),
-    d_integerValue(0),
-    d_rationalValue(0),
-    d_stringValue(""),
-    d_children() {
-  }
+  SExpr();
+  SExpr(const SExpr&);
+  SExpr& operator=(const SExpr& other);
+  ~SExpr();
 
-  SExpr(const CVC4::Integer& value) :
-    d_sexprType(SEXPR_INTEGER),
-    d_integerValue(value),
-    d_rationalValue(0),
-    d_stringValue(""),
-    d_children() {
-  }
+  SExpr(const CVC4::Integer& value);
 
-  SExpr(int value) :
-    d_sexprType(SEXPR_INTEGER),
-    d_integerValue(value),
-    d_rationalValue(0),
-    d_stringValue(""),
-    d_children() {
-  }
+  SExpr(int value);
+  SExpr(long int value);
+  SExpr(unsigned int value);
+  SExpr(unsigned long int value);
 
-  SExpr(long int value) :
-    d_sexprType(SEXPR_INTEGER),
-    d_integerValue(value),
-    d_rationalValue(0),
-    d_stringValue(""),
-    d_children() {
-  }
+  SExpr(const CVC4::Rational& value);
 
-  SExpr(unsigned int value) :
-    d_sexprType(SEXPR_INTEGER),
-    d_integerValue(value),
-    d_rationalValue(0),
-    d_stringValue(""),
-    d_children() {
-  }
-
-  SExpr(unsigned long int value) :
-    d_sexprType(SEXPR_INTEGER),
-    d_integerValue(value),
-    d_rationalValue(0),
-    d_stringValue(""),
-    d_children() {
-  }
-
-  SExpr(const CVC4::Rational& value) :
-    d_sexprType(SEXPR_RATIONAL),
-    d_integerValue(0),
-    d_rationalValue(value),
-    d_stringValue(""),
-    d_children() {
-  }
-
-  SExpr(const std::string& value) :
-    d_sexprType(SEXPR_STRING),
-    d_integerValue(0),
-    d_rationalValue(0),
-    d_stringValue(value),
-    d_children() {
-  }
+  SExpr(const std::string& value);
 
   /**
    * This constructs a string expression from a const char* value.
@@ -145,60 +76,30 @@ public:
    * Given the other constructors this SExpr("foo") converts to bool.
    * instead of SExpr(string("foo")).
    */
-  SExpr(const char* value) :
-    d_sexprType(SEXPR_STRING),
-    d_integerValue(0),
-    d_rationalValue(0),
-    d_stringValue(value),
-    d_children() {
-  }
+  SExpr(const char* value);
 
   /**
    * This adds a convenience wrapper to SExpr to cast from bools.
    * This is internally handled as the strings "true" and "false"
    */
   SExpr(bool value);
-
-  SExpr(const Keyword& value) :
-    d_sexprType(SEXPR_KEYWORD),
-    d_integerValue(0),
-    d_rationalValue(0),
-    d_stringValue(value.getString()),
-    d_children() {
-  }
-
-  SExpr(const std::vector<SExpr>& children) :
-    d_sexprType(SEXPR_NOT_ATOM),
-    d_integerValue(0),
-    d_rationalValue(0),
-    d_stringValue(""),
-    d_children(children) {
-  }
+  SExpr(const Keyword& value);
+  SExpr(const std::vector<SExpr>& children);
 
   /** Is this S-expression an atom? */
-  bool isAtom() const {
-    return d_sexprType != SEXPR_NOT_ATOM;
-  }
+  bool isAtom() const;
 
   /** Is this S-expression an integer? */
-  bool isInteger() const {
-    return d_sexprType == SEXPR_INTEGER;
-  }
+  bool isInteger() const;
 
   /** Is this S-expression a rational? */
-  bool isRational() const {
-    return d_sexprType == SEXPR_RATIONAL;
-  }
+  bool isRational() const;
 
   /** Is this S-expression a string? */
-  bool isString() const {
-    return d_sexprType == SEXPR_STRING;
-  }
+  bool isString() const;
 
   /** Is this S-expression a keyword? */
-  bool isKeyword() const {
-    return d_sexprType == SEXPR_KEYWORD;
-  }
+  bool isKeyword() const;
 
   /**
    * This wraps the toStream() printer.
@@ -261,7 +162,7 @@ public:
 
   /**
    * Outputs the SExpr onto the ostream out. This version reads defaults to the
-   * OutputLanguage, Expr::setlanguage::getLanguage(out). The indent level is
+   * OutputLanguage, language::SetLanguage::getLanguage(out). The indent level is
    * set to 2 if PrettySExprs::getPrettySExprs() is on and is 0 otherwise.
    */
   static void toStream(std::ostream& out, const SExpr& sexpr) throw();
@@ -297,6 +198,34 @@ private:
   /** Returns true if this language quotes Keywords when printing. */
   static bool languageQuotesKeywords(OutputLanguage language);
 
+  enum SExprTypes {
+    SEXPR_STRING,
+    SEXPR_KEYWORD,
+    SEXPR_INTEGER,
+    SEXPR_RATIONAL,
+    SEXPR_NOT_ATOM
+  } d_sexprType;
+
+  /** The value of an atomic integer-valued S-expression. */
+  CVC4::Integer d_integerValue;
+
+  /** The value of an atomic rational-valued S-expression. */
+  CVC4::Rational d_rationalValue;
+
+  /** The value of an atomic S-expression. */
+  std::string d_stringValue;
+
+  typedef std::vector<SExpr> SExprVector;
+
+  /**
+   * The children of a list S-expression.
+   * Whenever the SExpr isAtom() holds, this points at NULL.
+   *
+   * This should be a pointer in case the implementation of vector<SExpr> ever
+   * directly contained or allocated an SExpr. If this happened this would trigger,
+   * either the size being infinite or SExpr() being an infinite loop.
+   */
+  SExprVector* d_children;
 };/* class SExpr */
 
 /** Prints an SExpr. */

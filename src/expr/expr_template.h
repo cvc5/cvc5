@@ -80,7 +80,6 @@ namespace expr {
   class CVC4_PUBLIC ExprSetDepth;
   class CVC4_PUBLIC ExprPrintTypes;
   class CVC4_PUBLIC ExprDag;
-  class CVC4_PUBLIC ExprSetLanguage;
 
   class ExportPrivate;
 }/* CVC4::expr namespace */
@@ -550,11 +549,6 @@ public:
   typedef expr::ExprDag dag;
 
   /**
-   * IOStream manipulator to set the output language for Exprs.
-   */
-  typedef expr::ExprSetLanguage setlanguage;
-
-  /**
    * Very basic pretty printer for Expr.
    * This is equivalent to calling e.getNode().printAst(...)
    * @param out output stream to print to.
@@ -847,90 +841,6 @@ public:
   };/* class ExprDag::Scope */
 
 };/* class ExprDag */
-
-/**
- * IOStream manipulator to set the output language for Exprs.
- */
-class CVC4_PUBLIC ExprSetLanguage {
-  /**
-   * The allocated index in ios_base for our depth setting.
-   */
-  static const int s_iosIndex;
-
-  /**
-   * The default language to use, for ostreams that haven't yet had a
-   * setlanguage() applied to them and where the current Options
-   * information isn't available.
-   */
-  static const int s_defaultOutputLanguage = language::output::LANG_AUTO;
-
-  /**
-   * When this manipulator is used, the setting is stored here.
-   */
-  OutputLanguage d_language;
-
-public:
-  /**
-   * Construct a ExprSetLanguage with the given setting.
-   */
-  ExprSetLanguage(OutputLanguage l) : d_language(l) {}
-
-  inline void applyLanguage(std::ostream& out) {
-    // (offset by one to detect whether default has been set yet)
-    out.iword(s_iosIndex) = int(d_language) + 1;
-  }
-
-  static inline OutputLanguage getLanguage(std::ostream& out) {
-    long& l = out.iword(s_iosIndex);
-    if(l == 0) {
-      // set the default language on this ostream
-      // (offset by one to detect whether default has been set yet)
-      if(not Options::isCurrentNull()) {
-        l = options::outputLanguage() + 1;
-      }
-      if(l <= 0 || l > language::output::LANG_MAX) {
-        // if called from outside the library, we may not have options
-        // available to us at this point (or perhaps the output language
-        // is not set in Options).  Default to something reasonable, but
-        // don't set "l" since that would make it "sticky" for this
-        // stream.
-        return OutputLanguage(s_defaultOutputLanguage);
-      }
-    }
-    return OutputLanguage(l - 1);
-  }
-
-  static inline void setLanguage(std::ostream& out, OutputLanguage l) {
-    // (offset by one to detect whether default has been set yet)
-    out.iword(s_iosIndex) = int(l) + 1;
-  }
-
-  /**
-   * Set a language on the output stream for the current stack scope.
-   * This makes sure the old language is reset on the stream after
-   * normal OR exceptional exit from the scope, using the RAII C++
-   * idiom.
-   */
-  class Scope {
-    std::ostream& d_out;
-    OutputLanguage d_oldLanguage;
-
-  public:
-
-    inline Scope(std::ostream& out, OutputLanguage language) :
-      d_out(out),
-      d_oldLanguage(ExprSetLanguage::getLanguage(out)) {
-      ExprSetLanguage::setLanguage(out, language);
-    }
-
-    inline ~Scope() {
-      ExprSetLanguage::setLanguage(d_out, d_oldLanguage);
-    }
-
-  };/* class ExprSetLanguage::Scope */
-
-};/* class ExprSetLanguage */
-
 }/* CVC4::expr namespace */
 
 ${getConst_instantiations}
@@ -978,20 +888,6 @@ inline std::ostream& operator<<(std::ostream& out, ExprPrintTypes pt) {
  */
 inline std::ostream& operator<<(std::ostream& out, ExprDag d) {
   d.applyDag(out);
-  return out;
-}
-
-/**
- * Sets the output language when pretty-printing a Expr to an ostream.
- * Use like this:
- *
- *   // let out be an ostream, e an Expr
- *   out << Expr::setlanguage(LANG_SMTLIB_V2_5) << e << endl;
- *
- * The setting stays permanently (until set again) with the stream.
- */
-inline std::ostream& operator<<(std::ostream& out, ExprSetLanguage l) {
-  l.applyLanguage(out);
   return out;
 }
 

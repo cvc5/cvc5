@@ -19,6 +19,7 @@
 #include <sstream>
 
 #include "expr/expr_manager.h"
+#include "options/set_language.h"
 #include "options/smt_options.h"
 #include "parser/parser.h"
 #include "parser/parser_builder.h"
@@ -36,7 +37,7 @@ int main() {
   opts.set(options::inputLanguage, language::input::LANG_SMTLIB_V2);
   opts.set(options::outputLanguage, language::output::LANG_SMTLIB_V2);
 
-  cout << Expr::setlanguage(language::output::LANG_SMTLIB_V2);
+  cout << language::SetLanguage(language::output::LANG_SMTLIB_V2);
 
   ExprManager em(opts);
   SmtEngine smt(&em);

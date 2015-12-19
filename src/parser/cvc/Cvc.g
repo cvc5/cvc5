@@ -434,7 +434,7 @@ Expr createPrecedenceTree(Parser* parser, ExprManager* em,
 
   Expr e = createPrecedenceTree(parser, em, expressions, operators, 0, expressions.size() - 1);
   if(Debug.isOn("prec") && operators.size() > 1) {
-    Expr::setlanguage::Scope ls(Debug("prec"), language::output::LANG_AST);
+    language::SetLanguage::Scope ls(Debug("prec"), language::output::LANG_AST);
     Debug("prec") << "=> " << e << std::endl;
   }
   return e;
@@ -487,6 +487,7 @@ Expr addNots(ExprManager* em, size_t n, Expr e) {
 
 #include <stdint.h>
 #include <cassert>
+#include "options/set_language.h"
 #include "parser/antlr_tracing.h"
 #include "parser/parser.h"
 #include "smt_util/command.h"
@@ -995,7 +996,7 @@ declareVariables[CVC4::Command*& cmd, CVC4::Type& t, const std::vector<std::stri
                             << "with type " << oldType << std::endl;
             if(oldType != t) {
               std::stringstream ss;
-              ss << Expr::setlanguage(language::output::LANG_CVC4)
+              ss << language::SetLanguage(language::output::LANG_CVC4)
                  << "incompatible type for `" << *i << "':" << std::endl
                  << "  old type: " << oldType << std::endl
                  << "  new type: " << t << std::endl;
@@ -1418,7 +1419,7 @@ letDecl
   std::string name;
 }
   : identifier[name,CHECK_NONE,SYM_VARIABLE] EQUAL_TOK formula[e]
-    { Debug("parser") << Expr::setlanguage(language::output::LANG_CVC4) << e.getType() << std::endl;
+    { Debug("parser") << language::SetLanguage(language::output::LANG_CVC4) << e.getType() << std::endl;
       PARSER_STATE->defineVar(name, e);
       Debug("parser") << "LET[" << PARSER_STATE->scopeLevel() << "]: "
                       << name << std::endl

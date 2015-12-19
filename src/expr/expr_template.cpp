@@ -45,7 +45,6 @@ namespace expr {
 const int ExprSetDepth::s_iosIndex = std::ios_base::xalloc();
 const int ExprPrintTypes::s_iosIndex = std::ios_base::xalloc();
 const int ExprDag::s_iosIndex = std::ios_base::xalloc();
-const int ExprSetLanguage::s_iosIndex = std::ios_base::xalloc();
 
 }/* CVC4::expr namespace */
 

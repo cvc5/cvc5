@@ -38,6 +38,7 @@
 #include "expr/metakind.h"
 #include "expr/expr.h"
 #include "options/language.h"
+#include "options/set_language.h"
 #include "util/configuration.h"
 #include "util/utility.h"
 #include "util/hash.h"
@@ -864,7 +865,7 @@ public:
   /**
    * IOStream manipulator to set the output language for Exprs.
    */
-  typedef expr::ExprSetLanguage setlanguage;
+  typedef language::SetLanguage setlanguage;
 
   /**
    * Very basic pretty printer for Node.

@@ -34,6 +34,7 @@
 #include "options/main_options.h"
 #include "options/options.h"
 #include "options/printer_options.h"
+#include "options/set_language.h"
 #include "options/smt_options.h"
 #include "smt_util/command.h"
 
@@ -143,7 +144,7 @@ void CommandExecutorPortfolio::lemmaSharingInit()
 
       // important even for muzzled builds (to get result output right)
       *d_threadOptions[i][options::out]
-        << Expr::setlanguage(d_threadOptions[i][options::outputLanguage]);
+        << language::SetLanguage(d_threadOptions[i][options::outputLanguage]);
     }
   }
 }/* CommandExecutorPortfolio::lemmaSharingInit() */

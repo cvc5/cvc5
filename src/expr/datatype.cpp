@@ -27,6 +27,7 @@
 #include "expr/node.h"
 #include "expr/node_manager.h"
 #include "expr/type.h"
+#include "options/set_language.h"
 
 using namespace std;
 
@@ -934,7 +935,7 @@ std::string DatatypeConstructorArg::getTypeName() const {
   // Unfortunately, in the case of complex selector types, we can
   // enter nontrivial recursion here.  Make sure that doesn't happen.
   stringstream ss;
-  ss << Expr::setlanguage(language::output::LANG_CVC4);
+  ss << language::SetLanguage(language::output::LANG_CVC4);
   ss.iword(s_printDatatypeNamesOnly) = 1;
   t.toStream(ss);
   return ss.str();
@@ -961,7 +962,7 @@ std::ostream& operator<<(std::ostream& os, const Datatype& dt) {
   Debug("datatypes-output") << "printNameOnly is now " << printNameOnly << std::endl;
 
   // can only output datatypes in the CVC4 native language
-  Expr::setlanguage::Scope ls(os, language::output::LANG_CVC4);
+  language::SetLanguage::Scope ls(os, language::output::LANG_CVC4);
 
   os << "DATATYPE " << dt.getName();
   if(dt.isParametric()) {
@@ -992,7 +993,7 @@ std::ostream& operator<<(std::ostream& os, const Datatype& dt) {
 
 std::ostream& operator<<(std::ostream& os, const DatatypeConstructor& ctor) {
   // can only output datatypes in the CVC4 native language
-  Expr::setlanguage::Scope ls(os, language::output::LANG_CVC4);
+  language::SetLanguage::Scope ls(os, language::output::LANG_CVC4);
 
   os << ctor.getName();
 
@@ -1013,7 +1014,7 @@ std::ostream& operator<<(std::ostream& os, const DatatypeConstructor& ctor) {
 
 std::ostream& operator<<(std::ostream& os, const DatatypeConstructorArg& arg) {
   // can only output datatypes in the CVC4 native language
-  Expr::setlanguage::Scope ls(os, language::output::LANG_CVC4);
+  language::SetLanguage::Scope ls(os, language::output::LANG_CVC4);
 
   os << arg.getName() << ": " << arg.getTypeName();
 

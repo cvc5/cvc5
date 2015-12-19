@@ -45,6 +45,7 @@
 #include "options/parser_options.h"
 #include "options/printer_modes.h"
 #include "options/quantifiers_modes.h"
+#include "options/set_language.h"
 #include "options/simplification_mode.h"
 #include "options/smt_options.h"
 #include "options/theory_options.h"
@@ -1216,12 +1217,12 @@ void SmtOptionsHandler::proofEnabledBuild(std::string option, bool value) throw(
     int dagSetting = expr::ExprDag::getDag(__channel_get); \
     size_t exprDepthSetting = expr::ExprSetDepth::getDepth(__channel_get); \
     bool printtypesSetting = expr::ExprPrintTypes::getPrintTypes(__channel_get); \
-    OutputLanguage languageSetting = expr::ExprSetLanguage::getLanguage(__channel_get); \
+    OutputLanguage languageSetting = language::SetLanguage::getLanguage(__channel_get); \
     __channel_set; \
     __channel_get << Expr::dag(dagSetting); \
     __channel_get << Expr::setdepth(exprDepthSetting); \
     __channel_get << Expr::printtypes(printtypesSetting); \
-    __channel_get << Expr::setlanguage(languageSetting); \
+    __channel_get << language::SetLanguage(languageSetting); \
   }
 
 void SmtOptionsHandler::dumpToFile(std::string option, std::string optarg) {

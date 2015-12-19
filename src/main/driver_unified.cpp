@@ -38,6 +38,7 @@
 #include "options/main_options.h"
 #include "options/options.h"
 #include "options/quantifiers_options.h"
+#include "options/set_language.h"
 #include "options/smt_options.h"
 #include "parser/parser.h"
 #include "parser/parser_builder.h"
@@ -231,7 +232,7 @@ int runCvc4(int argc, char* argv[], Options& opts) {
   }
 
   // important even for muzzled builds (to get result output right)
-  *opts[options::out] << Expr::setlanguage(opts[options::outputLanguage]);
+  *opts[options::out] << language::SetLanguage(opts[options::outputLanguage]);
 
   // Create the expression manager using appropriate options
   ExprManager* exprMgr;
@@ -283,7 +284,7 @@ int runCvc4(int argc, char* argv[], Options& opts) {
     opts.set(options::replayStream, new Parser::ExprStream(replayParser));
   }
   if( opts[options::replayLog] != NULL ) {
-    *opts[options::replayLog] << Expr::setlanguage(opts[options::outputLanguage]) << Expr::setdepth(-1);
+    *opts[options::replayLog] << language::SetLanguage(opts[options::outputLanguage]) << Expr::setdepth(-1);
   }
 
   int returnValue = 0;

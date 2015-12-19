@@ -17,12 +17,70 @@
 
 #include "expr/emptyset.h"
 
-#include <iostream>
+#include <iosfwd>
+
+#include "expr/expr.h"
+#include "expr/type.h"
 
 namespace CVC4 {
 
 std::ostream& operator<<(std::ostream& out, const EmptySet& asa) {
   return out << "emptyset(" << asa.getType() << ')';
 }
+
+size_t EmptySetHashFunction::operator()(const EmptySet& es) const {
+  return TypeHashFunction()(es.getType());
+}
+
+/**
+ * Constructs an emptyset of the specified type. Note that the argument
+ * is the type of the set itself, NOT the type of the elements.
+ */
+EmptySet::EmptySet(const SetType& setType)
+    : d_type(new SetType(setType))
+{ }
+
+EmptySet::EmptySet(const EmptySet& es)
+    : d_type(new SetType(es.getType()))
+{ }
+
+EmptySet& EmptySet::operator=(const EmptySet& es) {
+  (*d_type) = es.getType();
+  return *this;
+}
+
+
+EmptySet::~EmptySet() throw() {
+  delete d_type;
+}
+
+const SetType& EmptySet::getType() const {
+  return *d_type;
+}
+
+bool EmptySet::operator==(const EmptySet& es) const throw() {
+  return getType() == es.getType();
+}
+
+bool EmptySet::operator!=(const EmptySet& es) const throw() {
+  return !(*this == es);
+}
+
+bool EmptySet::operator<(const EmptySet& es) const throw() {
+  return getType() < es.getType();
+}
+
+bool EmptySet::operator<=(const EmptySet& es) const throw() {
+  return getType() <= es.getType();
+}
+
+bool EmptySet::operator>(const EmptySet& es) const throw() {
+  return !(*this <= es);
+}
+
+bool EmptySet::operator>=(const EmptySet& es) const throw() {
+  return !(*this < es);
+}
+
 
 }/* CVC4 namespace */
