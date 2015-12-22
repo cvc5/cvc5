@@ -213,7 +213,7 @@ private:
   Type doParametricSubstitution(Type range,
                                 const std::vector< SortConstructorType >& paramTypes,
                                 const std::vector< DatatypeType >& paramReplacements);
-  
+
   /** compute the cardinality of this datatype */
   Cardinality computeCardinality( std::vector< Type >& processing ) const throw(IllegalArgumentException);
   /** compute whether this datatype is well-founded */
@@ -236,7 +236,7 @@ public:
    * constructor and tester aren't created until resolution time.
    */
   DatatypeConstructor(std::string name, std::string tester);
-  
+
   /** set sygus */
   void setSygus( Expr op, Expr let_body, std::vector< Expr >& let_args, unsigned num_let_input_argus );
 
@@ -284,7 +284,7 @@ public:
    * Datatype must be resolved.
    */
   Expr getTester() const;
-  
+
   /** get sygus op */
   Expr getSygusOp() const;
   /** get sygus let body */
@@ -297,7 +297,7 @@ public:
   unsigned getNumSygusLetInputArgs() const;
   /** is this a sygus identity function */
   bool isSygusIdFunc() const;
-  
+
   /**
    * Get the tester name for this Datatype constructor.
    */
@@ -334,6 +334,13 @@ public:
    * only be called for resolved constructors.
    */
   bool isFinite() const throw(IllegalArgumentException);
+  /**
+   * Return true iff this constructor is finite (it is nullary or
+   * each of its argument types are finite) under assumption
+   * uninterpreted sorts are finite.  This function can
+   * only be called for resolved constructors.
+   */
+  bool isUFinite() const throw(IllegalArgumentException);
 
   /**
    * Returns true iff this Datatype constructor has already been
@@ -373,6 +380,7 @@ public:
    * then we will pose additional requirements for sharing.
    */
   bool involvesExternalType() const;
+  bool involvesUninterpretedType() const;
 
 };/* class DatatypeConstructor */
 
@@ -469,16 +477,17 @@ private:
   bool d_resolved;
   Type d_self;
   bool d_involvesExt;
+  bool d_involvesUt;
   /** information for sygus */
   Type d_sygus_type;
-  Expr d_sygus_bvl;  
+  Expr d_sygus_bvl;
   bool d_sygus_allow_const;
   bool d_sygus_allow_all;
 
   // "mutable" because computing the cardinality can be expensive,
   // and so it's computed just once, on demand---this is the cache
   mutable Cardinality d_card;
-  
+
   // is this type a recursive singleton type
   mutable int d_card_rec_singleton;
   // if d_card_rec_singleton is true,
@@ -555,7 +564,7 @@ public:
    *    allow_const : whether all constants are (implicitly) included in the grammar
    */
   void setSygus( Type st, Expr bvl, bool allow_const, bool allow_all );
-  
+
   /** Get the name of this Datatype. */
   inline std::string getName() const throw();
 
@@ -576,7 +585,7 @@ public:
 
   /** is this a co-datatype? */
   inline bool isCodatatype() const;
-  
+
   /** is this a sygus datatype? */
   inline bool isSygus() const;
 
@@ -594,6 +603,14 @@ public:
    * Datatype must be resolved or an exception is thrown.
    */
   bool isFinite() const throw(IllegalArgumentException);
+  /**
+   * Return  true iff this  Datatype is  finite (all  constructors are
+   * finite,  i.e., there  are finitely  many ground  terms) under the
+   * assumption unintepreted sorts are finite.   If the
+   * datatype is  not well-founded, this function  returns false.  The
+   * Datatype must be resolved or an exception is thrown.
+   */
+  bool isUFinite() const throw(IllegalArgumentException);
 
   /**
    * Return true iff this datatype is well-founded (there exist ground
@@ -601,16 +618,16 @@ public:
    */
   bool isWellFounded() const throw(IllegalArgumentException);
 
-  /** 
+  /**
    * Return true iff this datatype is a recursive singleton
    */
   bool isRecursiveSingleton() const throw(IllegalArgumentException);
-  
-  
+
+
   /** get number of recursive singleton argument types */
   unsigned getNumRecursiveSingletonArgTypes() const throw(IllegalArgumentException);
   Type getRecursiveSingletonArgType( unsigned i ) const throw(IllegalArgumentException);
-  
+
   /**
    * Construct and return a ground term of this Datatype.  The
    * Datatype must be both resolved and well-founded, or else an
@@ -678,7 +695,7 @@ public:
    * This Datatype must be resolved.
    */
   Expr getConstructor(std::string name) const;
-  
+
   /** get sygus type */
   Type getSygusType() const;
   /** get sygus var list */
@@ -693,6 +710,7 @@ public:
    * then we will pose additional requirements for sharing.
    */
   bool involvesExternalType() const;
+  bool involvesUninterpretedType() const;
 
 };/* class Datatype */
 
@@ -743,6 +761,7 @@ inline Datatype::Datatype(std::string name, bool isCo) :
   d_resolved(false),
   d_self(),
   d_involvesExt(false),
+  d_involvesUt(false),
   d_card(CardinalityUnknown()),
   d_card_rec_singleton(0),
   d_well_founded(0) {
@@ -756,6 +775,7 @@ inline Datatype::Datatype(std::string name, const std::vector<Type>& params, boo
   d_resolved(false),
   d_self(),
   d_involvesExt(false),
+  d_involvesUt(false),
   d_card(CardinalityUnknown()),
   d_card_rec_singleton(0),
   d_well_founded(0) {

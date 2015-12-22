@@ -41,7 +41,9 @@ TESTS =	\
 	fore19-exp2-core.smt2 \
 	with-ind-104-core.smt2 \
 	syn002-si-real-int.smt2 \
-	krs-sat.smt2
+	krs-sat.smt2 \
+	forall_unit_data2.smt2 \
+	sc_bad_model_1221.smt2
 
 
 EXTRA_DIST = $(TESTS)

@@ -244,7 +244,7 @@ void TheoryDatatypes::check(Effort e) {
                   if( consIndex==-1 ){
                     consIndex = j;
                   }
-                  if( !dt[ j ].isFinite() ) {
+                  if( !dt[ j ].isFinite() && ( !options::finiteModelFind() || !dt.involvesUninterpretedType() ) ) {
                     if( !eqc || !eqc->d_selectors ){
                       needSplit = false;
                     }

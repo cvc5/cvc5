@@ -1029,7 +1029,7 @@ Node TermDb::getEnumerateTerm( TypeNode tn, unsigned index ) {
 bool TermDb::isClosedEnumerableType( TypeNode tn ) {
   std::map< TypeNode, bool >::iterator it = d_typ_closed_enum.find( tn );
   if( it==d_typ_closed_enum.end() ){
-    d_typ_closed_enum[tn] = false;
+    d_typ_closed_enum[tn] = true;
     bool ret = true;
     if( tn.isArray() || tn.isSort() || tn.isCodatatype() ){
       ret = false;

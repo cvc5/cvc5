@@ -688,6 +688,7 @@ Node FirstOrderModelFmc::getFunctionValue(Node op, const char* argPrefix ) {
     }else{
       //make the condition
       Node cond = d_models[op]->d_cond[i];
+      Trace("fmc-model-func") << "...cond : " << cond << std::endl;
       std::vector< Node > children;
       for( unsigned j=0; j<cond.getNumChildren(); j++) {
         TypeNode tn = vars[j].getType();

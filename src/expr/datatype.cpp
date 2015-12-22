@@ -39,6 +39,8 @@ namespace expr {
     struct DatatypeConsIndexTag {};
     struct DatatypeFiniteTag {};
     struct DatatypeFiniteComputedTag {};
+    struct DatatypeUFiniteTag {};
+    struct DatatypeUFiniteComputedTag {};
   }/* CVC4::expr::attr namespace */
 }/* CVC4::expr namespace */
 
@@ -46,6 +48,8 @@ typedef expr::Attribute<expr::attr::DatatypeIndexTag, uint64_t> DatatypeIndexAtt
 typedef expr::Attribute<expr::attr::DatatypeConsIndexTag, uint64_t> DatatypeConsIndexAttr;
 typedef expr::Attribute<expr::attr::DatatypeFiniteTag, bool> DatatypeFiniteAttr;
 typedef expr::Attribute<expr::attr::DatatypeFiniteComputedTag, bool> DatatypeFiniteComputedAttr;
+typedef expr::Attribute<expr::attr::DatatypeUFiniteTag, bool> DatatypeUFiniteAttr;
+typedef expr::Attribute<expr::attr::DatatypeUFiniteComputedTag, bool> DatatypeUFiniteComputedAttr;
 
 const Datatype& Datatype::datatypeOf(Expr item) {
   ExprManagerScope ems(item);
@@ -120,10 +124,13 @@ void Datatype::resolve(ExprManager* em,
   d_self = self;
 
   d_involvesExt =  false;
+  d_involvesUt =  false;
   for(const_iterator i = begin(); i != end(); ++i) {
     if( (*i).involvesExternalType() ){
       d_involvesExt =  true;
-      break;
+    }
+    if( (*i).involvesUninterpretedType() ){
+      d_involvesUt =  true;
     }
   }
 }
@@ -245,18 +252,13 @@ bool Datatype::computeCardinalityRecSingleton( std::vector< Type >& processing, 
 
 bool Datatype::isFinite() const throw(IllegalArgumentException) {
   CheckArgument(isResolved(), this, "this datatype is not yet resolved");
-
   // we're using some internals, so we have to set up this library context
   ExprManagerScope ems(d_self);
-
   TypeNode self = TypeNode::fromType(d_self);
-
   // is this already in the cache ?
   if(self.getAttribute(DatatypeFiniteComputedAttr())) {
     return self.getAttribute(DatatypeFiniteAttr());
   }
-
-  Cardinality c = 0;
   for(const_iterator i = begin(), i_end = end(); i != i_end; ++i) {
     if(! (*i).isFinite()) {
       self.setAttribute(DatatypeFiniteComputedAttr(), true);
@@ -266,6 +268,27 @@ bool Datatype::isFinite() const throw(IllegalArgumentException) {
   }
   self.setAttribute(DatatypeFiniteComputedAttr(), true);
   self.setAttribute(DatatypeFiniteAttr(), true);
+  return true;
+}
+
+bool Datatype::isUFinite() const throw(IllegalArgumentException) {
+  CheckArgument(isResolved(), this, "this datatype is not yet resolved");
+  // we're using some internals, so we have to set up this library context
+  ExprManagerScope ems(d_self);
+  TypeNode self = TypeNode::fromType(d_self);
+  // is this already in the cache ?
+  if(self.getAttribute(DatatypeUFiniteComputedAttr())) {
+    return self.getAttribute(DatatypeUFiniteAttr());
+  }
+  for(const_iterator i = begin(), i_end = end(); i != i_end; ++i) {
+    if(! (*i).isUFinite()) {
+      self.setAttribute(DatatypeUFiniteComputedAttr(), true);
+      self.setAttribute(DatatypeUFiniteAttr(), false);
+      return false;
+    }
+  }
+  self.setAttribute(DatatypeUFiniteComputedAttr(), true);
+  self.setAttribute(DatatypeUFiniteAttr(), true);
   return true;
 }
 
@@ -505,6 +528,10 @@ bool Datatype::involvesExternalType() const{
   return d_involvesExt;
 }
 
+bool Datatype::involvesUninterpretedType() const{
+  return d_involvesUt;
+}
+
 void DatatypeConstructor::resolve(ExprManager* em, DatatypeType self,
                                   const std::map<std::string, DatatypeType>& resolutions,
                                   const std::vector<Type>& placeholders,
@@ -722,7 +749,7 @@ unsigned DatatypeConstructor::getNumSygusLetArgs() const {
 Expr DatatypeConstructor::getSygusLetArg( unsigned i ) const {
   CheckArgument(isResolved(), this, "this datatype constructor is not yet resolved");
   return d_sygus_let_args[i];
-} 
+}
 
 unsigned DatatypeConstructor::getNumSygusLetInputArgs() const {
   CheckArgument(isResolved(), this, "this datatype constructor is not yet resolved");
@@ -733,7 +760,7 @@ bool DatatypeConstructor::isSygusIdFunc() const {
   CheckArgument(isResolved(), this, "this datatype constructor is not yet resolved");
   return d_sygus_let_args.size()==1 && d_sygus_let_args[0]==d_sygus_let_body;
 }
-  
+
 Cardinality DatatypeConstructor::getCardinality() const throw(IllegalArgumentException) {
   CheckArgument(isResolved(), this, "this datatype constructor is not yet resolved");
 
@@ -777,17 +804,13 @@ bool DatatypeConstructor::computeWellFounded( std::vector< Type >& processing ) 
 
 bool DatatypeConstructor::isFinite() const throw(IllegalArgumentException) {
   CheckArgument(isResolved(), this, "this datatype constructor is not yet resolved");
-
   // we're using some internals, so we have to set up this library context
   ExprManagerScope ems(d_constructor);
-
   TNode self = Node::fromExpr(d_constructor);
-
   // is this already in the cache ?
   if(self.getAttribute(DatatypeFiniteComputedAttr())) {
     return self.getAttribute(DatatypeFiniteAttr());
   }
-
   for(const_iterator i = begin(), i_end = end(); i != i_end; ++i) {
     if(! SelectorType((*i).getSelector().getType()).getRangeType().getCardinality().isFinite()) {
       self.setAttribute(DatatypeFiniteComputedAttr(), true);
@@ -795,9 +818,29 @@ bool DatatypeConstructor::isFinite() const throw(IllegalArgumentException) {
       return false;
     }
   }
-
   self.setAttribute(DatatypeFiniteComputedAttr(), true);
   self.setAttribute(DatatypeFiniteAttr(), true);
+  return true;
+}
+bool DatatypeConstructor::isUFinite() const throw(IllegalArgumentException) {
+  CheckArgument(isResolved(), this, "this datatype constructor is not yet resolved");
+  // we're using some internals, so we have to set up this library context
+  ExprManagerScope ems(d_constructor);
+  TNode self = Node::fromExpr(d_constructor);
+  // is this already in the cache ?
+  if(self.getAttribute(DatatypeUFiniteComputedAttr())) {
+    return self.getAttribute(DatatypeUFiniteAttr());
+  }
+  for(const_iterator i = begin(), i_end = end(); i != i_end; ++i) {
+    Type t = SelectorType((*i).getSelector().getType()).getRangeType();
+    if(!t.isSort() && !t.getCardinality().isFinite()) {
+      self.setAttribute(DatatypeUFiniteComputedAttr(), true);
+      self.setAttribute(DatatypeUFiniteAttr(), false);
+      return false;
+    }
+  }
+  self.setAttribute(DatatypeUFiniteComputedAttr(), true);
+  self.setAttribute(DatatypeUFiniteAttr(), true);
   return true;
 }
 
@@ -876,6 +919,15 @@ Expr DatatypeConstructor::getSelector(std::string name) const {
 bool DatatypeConstructor::involvesExternalType() const{
   for(const_iterator i = begin(); i != end(); ++i) {
     if(! SelectorType((*i).getSelector().getType()).getRangeType().isDatatype()) {
+      return true;
+    }
+  }
+  return false;
+}
+
+bool DatatypeConstructor::involvesUninterpretedType() const{
+  for(const_iterator i = begin(); i != end(); ++i) {
+    if(SelectorType((*i).getSelector().getType()).getRangeType().isSort()) {
       return true;
     }
   }
