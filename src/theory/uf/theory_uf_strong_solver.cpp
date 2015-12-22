@@ -1013,6 +1013,7 @@ void StrongSolverTheoryUF::SortModel::allocateCardinality( OutputChannel* out ){
   if( d_aloc_cardinality>0 ){
     Trace("uf-ss-fmf") << "No model of size " << d_aloc_cardinality << " exists for type " << d_type << " in this branch" << std::endl;
   }
+  Trace("uf-ss-debug") << "Allocate cardinality " << d_aloc_cardinality << " for type " << d_type << std::endl;
   if( Trace.isOn("uf-ss-cliques") ){
     Trace("uf-ss-cliques") << "Cliques of size " << (d_aloc_cardinality+1) << " for " << d_type << " : " << std::endl;
     for( size_t i=0; i<d_cliques[ d_aloc_cardinality ].size(); i++ ){
@@ -1052,11 +1053,16 @@ void StrongSolverTheoryUF::SortModel::allocateCardinality( OutputChannel* out ){
         ss << "_c_" << d_aloc_cardinality;
         var = NodeManager::currentNM()->mkSkolem( ss.str(), d_type, "is a cardinality lemma term" );
       }
-      d_totality_terms[0].push_back( var );
+      if( d_aloc_cardinality-1<(int)d_totality_terms[0].size() ){
+        d_totality_terms[0][d_aloc_cardinality-1] = var;
+      }else{
+        d_totality_terms[0].push_back( var );
+      }
       Trace("mkVar") << "allocateCardinality, mkVar : " << var << " : " << d_type << std::endl;
       //must be distinct from all other cardinality terms
       for( int i=0; i<(int)(d_totality_terms[0].size()-1); i++ ){
         Node lem = NodeManager::currentNM()->mkNode( NOT, var.eqNode( d_totality_terms[0][i] ) );
+        Trace("uf-ss-lemma") << "Totality distinctness lemma : " << lem << std::endl;
         d_thss->getOutputChannel().lemma( lem );
       }
     }
@@ -1501,7 +1507,7 @@ Node StrongSolverTheoryUF::SortModel::getCardinalityLiteral( int c ) {
 }
 
 StrongSolverTheoryUF::StrongSolverTheoryUF(context::Context* c, context::UserContext* u, OutputChannel& out, TheoryUF* th) :
-d_out( &out ), d_th( th ), d_conflict( c, false ), d_rep_model(), d_aloc_com_card( u, 0 ), d_com_card_assertions( c ), d_min_pos_com_card( c, -1 ), 
+d_out( &out ), d_th( th ), d_conflict( c, false ), d_rep_model(), d_aloc_com_card( u, 0 ), d_com_card_assertions( c ), d_min_pos_com_card( c, -1 ),
 d_card_assertions_eqv_lemma( u ), d_min_pos_tn_master_card( c, -1 ), d_rel_eqc( c )
 {
   if( options::ufssDiseqPropagation() ){
@@ -1672,7 +1678,7 @@ void StrongSolverTheoryUF::assertNode( Node n, bool isDecision ){
   }else if( lit.getKind()==COMBINED_CARDINALITY_CONSTRAINT ){
     d_com_card_assertions[lit] = polarity;
     if( polarity ){
-      //safe to assume int here 
+      //safe to assume int here
       int nCard = lit[0].getConst<Rational>().getNumerator().getSignedInt();
       if( d_min_pos_com_card.get()==-1 || nCard<d_min_pos_com_card.get() ){
         d_min_pos_com_card.set( nCard );
