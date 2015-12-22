@@ -36,10 +36,11 @@ class InstStrategyCbqi : public QuantifiersModule {
   typedef context::CDHashSet<Node, NodeHashFunction> NodeSet;
 protected:
   bool d_cbqi_set_quant_inactive;
+  bool d_incomplete_check;
   /** whether we have added cbqi lemma */
   NodeSet d_added_cbqi_lemma;
   /** whether to do cbqi for this quantified formula */
-  std::map< Node, bool > d_do_cbqi;  
+  std::map< Node, bool > d_do_cbqi;
   /** register ce lemma */
   virtual void registerCounterexampleLemma( Node q, Node lem );
   /** has added cbqi lemma */
@@ -138,7 +139,7 @@ protected:
   void registerCounterexampleLemma( Node q, Node lem );
 public:
   InstStrategyCegqi( QuantifiersEngine * qe );
-  ~InstStrategyCegqi() throw(); 
+  ~InstStrategyCegqi() throw();
 
   bool addInstantiation( std::vector< Node >& subs );
   bool isEligibleForInstantiation( Node n );

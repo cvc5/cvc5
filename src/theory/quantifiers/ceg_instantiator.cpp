@@ -679,7 +679,7 @@ bool CegInstantiator::addInstantiation( SolvedForm& sf, SolvedForm& ssf, std::ve
 
     //[4] resort to using value in model
     // do so if we are in effort=1, or if the variable is boolean, or if we are solving for a subfield of a datatype
-    if( ( effort>0 || pvtn.isBoolean() || !curr_var.empty() ) && !pvtn.isSort() ){
+    if( ( effort>0 || pvtn.isBoolean() || !curr_var.empty() ) && d_qe->getTermDatabase()->isClosedEnumerableType( pvtn ) ){
       Node mv = getModelValue( pv );
       Node pv_coeff_m;
       Trace("cbqi-inst-debug") << "[4] " << i << "...try model value " << mv << std::endl;
@@ -1108,7 +1108,7 @@ Node CegInstantiator::getModelBasedProjectionValue( Node e, Node t, bool isLower
 
 bool CegInstantiator::check() {
   if( d_qe->getTheoryEngine()->needCheck() ){
-    Trace("cegqi-engine") << "  CEGQI instantiator : wait until all ground theories are finished." << std::endl;
+    Trace("cbqi-engine") << "  CEGQI instantiator : wait until all ground theories are finished." << std::endl;
     return false;
   }
   processAssertions();
@@ -1125,7 +1125,7 @@ bool CegInstantiator::check() {
       return true;
     }
   }
-  Trace("cegqi-engine") << "  WARNING : unable to find CEGQI single invocation instantiation." << std::endl;
+  Trace("cbqi-engine") << "  WARNING : unable to find CEGQI single invocation instantiation." << std::endl;
   return false;
 }
 

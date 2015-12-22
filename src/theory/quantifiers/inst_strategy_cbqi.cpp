@@ -56,6 +56,7 @@ unsigned InstStrategyCbqi::needsModel( Theory::Effort e ) {
 
 void InstStrategyCbqi::reset_round( Theory::Effort effort ) {
   d_cbqi_set_quant_inactive = false;
+  d_incomplete_check = false;
   //check if any cbqi lemma has not been added yet
   for( int i=0; i<d_quantEngine->getModel()->getNumAssertedQuantifiers(); i++ ){
     Node q = d_quantEngine->getModel()->getAssertedQuantifier( i );
@@ -133,7 +134,7 @@ void InstStrategyCbqi::check( Theory::Effort e, unsigned quant_e ) {
 }
 
 bool InstStrategyCbqi::checkComplete() {
-  if( !options::cbqiSat() && d_cbqi_set_quant_inactive ){
+  if( ( !options::cbqiSat() && d_cbqi_set_quant_inactive ) || d_incomplete_check ){
     return false;
   }else{
     return true;
@@ -590,7 +591,9 @@ void InstStrategyCegqi::process( Node f, Theory::Effort effort, int e ) {
     CegInstantiator * cinst = getInstantiator( f );
     Trace("inst-alg") << "-> Run cegqi for " << f << std::endl;
     d_curr_quant = f;
-    cinst->check();
+    if( !cinst->check() ){
+      d_incomplete_check = true;
+    }
     d_curr_quant = Node::null();
   }else if( e==1 ){
     //minimize the free delta heuristically on demand

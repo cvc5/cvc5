@@ -775,7 +775,7 @@ Node TermDb::getRemoveQuantifiers( Node n ) {
   return getRemoveQuantifiers2( n, visited );
 }
 
-//quantified simplify 
+//quantified simplify
 Node TermDb::getQuantSimplify( Node n ) {
   std::vector< Node > bvs;
   getBoundVars( n, bvs );
@@ -1029,11 +1029,28 @@ Node TermDb::getEnumerateTerm( TypeNode tn, unsigned index ) {
 bool TermDb::isClosedEnumerableType( TypeNode tn ) {
   std::map< TypeNode, bool >::iterator it = d_typ_closed_enum.find( tn );
   if( it==d_typ_closed_enum.end() ){
+    d_typ_closed_enum[tn] = false;
     bool ret = true;
     if( tn.isArray() || tn.isSort() || tn.isCodatatype() ){
       ret = false;
+    }else if( tn.isSet() ){
+      ret = isClosedEnumerableType( tn.getSetElementType() );
+    }else if( datatypes::DatatypesRewriter::isTypeDatatype(tn) ){
+      const Datatype& dt = ((DatatypeType)(tn).toType()).getDatatype();
+      for( unsigned i=0; i<dt.getNumConstructors(); i++ ){
+        for( unsigned j=0; j<dt[i].getNumArgs(); j++ ){
+          TypeNode ctn = TypeNode::fromType( ((SelectorType)dt[i][j].getSelector().getType()).getRangeType() );
+          if( tn!=ctn && !isClosedEnumerableType( ctn ) ){
+            ret = false;
+            break;
+          }
+        }
+        if( !ret ){
+          break;
+        }
+      }
     }else{
-      //TODO: all subfields must be closed enumerable?
+      //TODO: all subfields must be closed enumerable
     }
     d_typ_closed_enum[tn] = ret;
     return ret;
