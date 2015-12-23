@@ -2434,11 +2434,8 @@ void TheoryArrays::checkRowLemmas(TNode a, TNode b)
   Trace("arrays-crl")<<"Arrays::checkLemmas done.\n";
 }
 
-void TheoryArrays::queueRowLemma(RowLemmaType lem)
+void TheoryArrays::propagate(RowLemmaType lem)
 {
-  if (d_conflict || d_RowAlreadyAdded.contains(lem)) {
-    return;
-  }
   TNode a = lem.first;
   TNode b = lem.second;
   TNode i = lem.third;
@@ -2488,6 +2485,38 @@ void TheoryArrays::queueRowLemma(RowLemmaType lem)
       ++d_numProp;
       return;
     }
+  }
+}
+
+void TheoryArrays::queueRowLemma(RowLemmaType lem)
+{
+  if (d_conflict || d_RowAlreadyAdded.contains(lem)) {
+    return;
+  }
+  TNode a = lem.first;
+  TNode b = lem.second;
+  TNode i = lem.third;
+  TNode j = lem.fourth;
+
+  Assert(a.getType().isArray() && b.getType().isArray());
+  if (d_equalityEngine.areEqual(a,b) ||
+      d_equalityEngine.areEqual(i,j)) {
+    return;
+  }
+
+  NodeManager* nm = NodeManager::currentNM();
+  Node aj = nm->mkNode(kind::SELECT, a, j);
+  Node bj = nm->mkNode(kind::SELECT, b, j);
+
+  // Try to avoid introducing new read terms: track whether these already exist
+  bool ajExists = d_equalityEngine.hasTerm(aj);
+  bool bjExists = d_equalityEngine.hasTerm(bj);
+  bool bothExist = ajExists && bjExists;
+
+  // If propagating, check propagations
+  int prop = options::arraysPropagate();
+  if (prop > 0) {
+    propagate(lem);
   }
 
   // If equivalent lemma already exists, don't enqueue this one
@@ -2608,6 +2637,14 @@ bool TheoryArrays::dischargeLemmas()
         !d_equalityEngine.hasTerm(a) || !d_equalityEngine.hasTerm(b) || d_equalityEngine.areEqual(a,b) ||
         (ajExists && bjExists && d_equalityEngine.areEqual(aj,bj))) {
       continue;
+    }
+
+    int prop = options::arraysPropagate();
+    if (prop > 0) {
+      propagate(l);
+      if (d_conflict) {
+        return true;
+      }
     }
 
     // Make sure that any terms introduced by rewriting are appropriately stored in the equality database
