@@ -28,7 +28,7 @@ namespace CVC4 {
   // order to break the build cycle.
   // Uses of SetType need to be as an incomplete type throughout
   // this header.
-  class CVC4_PUBLIC SetType;
+  class SetType;
 }/* CVC4 namespace */
 
 namespace CVC4 {
