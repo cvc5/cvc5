@@ -36,11 +36,7 @@ class CVC4_PUBLIC CardinalityBeth {
   Integer d_index;
 
 public:
-  CardinalityBeth(const Integer& beth) : d_index(beth) {
-    CheckArgument(beth >= 0, beth,
-                  "Beth index must be a nonnegative integer, not %s.",
-                  beth.toString().c_str());
-  }
+  CardinalityBeth(const Integer& beth);
 
   const Integer& getNumber() const throw() {
     return d_index;
@@ -112,22 +108,13 @@ public:
    * "unsigned" argument to enforce the restriction, we mask some
    * errors that automatically convert, like "Cardinality(-1)".
    */
-  Cardinality(long card) : d_card(card) {
-    CheckArgument(card >= 0, card,
-                  "Cardinality must be a nonnegative integer, not %ld.", card);
-    d_card += 1;
-  }
+  Cardinality(long card);
 
   /**
    * Construct a finite cardinality equal to the integer argument.
    * The argument must be nonnegative.
    */
-  Cardinality(const Integer& card) : d_card(card) {
-    CheckArgument(card >= 0, card,
-                  "Cardinality must be a nonnegative integer, not %s.",
-                  card.toString().c_str());
-    d_card += 1;
-  }
+  Cardinality(const Integer& card);
 
   /**
    * Construct an infinite cardinality equal to the given Beth number.
@@ -187,22 +174,14 @@ public:
    * cardinality.  (If this cardinality is infinite, this function
    * throws an IllegalArgumentException.)
    */
-  Integer getFiniteCardinality() const throw(IllegalArgumentException) {
-    CheckArgument(isFinite(), *this, "This cardinality is not finite.");
-    CheckArgument(!isLargeFinite(), *this, "This cardinality is finite, but too large to represent.");
-    return d_card - 1;
-  }
+  Integer getFiniteCardinality() const throw(IllegalArgumentException);
 
   /**
    * In the case that this cardinality is infinite, return its Beth
    * number.  (If this cardinality is finite, this function throws an
    * IllegalArgumentException.)
    */
-  Integer getBethNumber() const throw(IllegalArgumentException) {
-    CheckArgument(!isFinite() && !isUnknown(), *this,
-                  "This cardinality is not infinite (or is unknown).");
-    return -d_card - 1;
-  }
+  Integer getBethNumber() const throw(IllegalArgumentException);
 
   /** Assigning addition of this cardinality with another. */
   Cardinality& operator+=(const Cardinality& c) throw();

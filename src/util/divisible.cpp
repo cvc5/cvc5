@@ -17,6 +17,7 @@
 
 #include "util/divisible.h"
 
+#include "base/cvc4_assert.h"
 #include "base/exception.h"
 
 using namespace std;
@@ -24,7 +25,7 @@ using namespace std;
 namespace CVC4 {
 
 Divisible::Divisible(const Integer& n) : k(n) {
-  CheckArgument(n > 0, n, "Divisible predicate must be constructed over positive N");
+  PrettyCheckArgument(n > 0, n, "Divisible predicate must be constructed over positive N");
 }
 
 }/* CVC4 namespace */

@@ -19,7 +19,7 @@
 #ifndef __CVC4__KIND_H
 #define __CVC4__KIND_H
 
-#include <iostream>
+#include <iosfwd>
 #include <sstream>
 
 #include "base/exception.h"

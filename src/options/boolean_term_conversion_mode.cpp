@@ -18,7 +18,6 @@
 
 #include <iostream>
 
-
 namespace CVC4 {
 
 std::ostream& operator<<(std::ostream& out, theory::booleans::BooleanTermConversionMode mode) {

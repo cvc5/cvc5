@@ -21,7 +21,7 @@
 #define __CVC4__INTEGER_H
 
 #include <string>
-#include <iostream>
+#include <iosfwd>
 #include <limits>
 
 #include "base/exception.h"
@@ -190,17 +190,7 @@ public:
    * Returns the integer with the binary representation of size bits
    * extended with amount 1's
    */
-  Integer oneExtend(uint32_t size, uint32_t amount) const {
-    // check that the size is accurate
-    DebugCheckArgument((*this) < Integer(1).multiplyByPow2(size), size);
-    mpz_class res = d_value;
-
-    for (unsigned i = size; i < size + amount; ++i) {
-      mpz_setbit(res.get_mpz_t(), i);
-    }
-
-    return Integer(res);
-  }
+  Integer oneExtend(uint32_t size, uint32_t amount) const;
 
   uint32_t toUnsignedInt() const {
     return  mpz_get_ui(d_value.get_mpz_t());
@@ -319,12 +309,7 @@ public:
   /**
    * If y divides *this, then exactQuotient returns (this/y)
    */
-  Integer exactQuotient(const Integer& y) const {
-    DebugCheckArgument(y.divides(*this), y);
-    mpz_class q;
-    mpz_divexact(q.get_mpz_t(), d_value.get_mpz_t(), y.d_value.get_mpz_t());
-    return Integer( q );
-  }
+  Integer exactQuotient(const Integer& y) const;
 
   /**
    * Returns y mod 2^exp
@@ -430,14 +415,15 @@ public:
     long si = d_value.get_si();
     // ensure there wasn't overflow
     CheckArgument(mpz_cmp_si(d_value.get_mpz_t(), si) == 0, this,
-                 "Overflow detected in Integer::getLong()");
+                 "Overflow detected in Integer::getLong().");
     return si;
   }
+
   unsigned long getUnsignedLong() const {
     unsigned long ui = d_value.get_ui();
     // ensure there wasn't overflow
     CheckArgument(mpz_cmp_ui(d_value.get_mpz_t(), ui) == 0, this,
-                  "Overflow detected in Integer::getUnsignedLong()");
+                  "Overflow detected in Integer::getUnsignedLong().");
     return ui;
   }
 

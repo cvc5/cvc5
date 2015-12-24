@@ -19,13 +19,14 @@
 #ifndef __CVC4__PROOF_MANAGER_H
 #define __CVC4__PROOF_MANAGER_H
 
-#include <iostream>
+#include <iosfwd>
 #include <map>
-#include "proof/proof.h"
-#include "util/proof.h"
+
 #include "expr/node.h"
+#include "proof/proof.h"
 #include "theory/logic_info.h"
 #include "theory/substitutions.h"
+#include "util/proof.h"
 
 
 namespace CVC4 {

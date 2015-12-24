@@ -29,6 +29,62 @@ using namespace std;
 
 namespace CVC4 {
 
+Result::Result()
+    : d_sat(SAT_UNKNOWN)
+    , d_validity(VALIDITY_UNKNOWN)
+    , d_which(TYPE_NONE)
+    , d_unknownExplanation(UNKNOWN_REASON)
+    , d_inputName("")
+{ }
+
+
+Result::Result(enum Sat s, std::string inputName)
+    : d_sat(s)
+    , d_validity(VALIDITY_UNKNOWN)
+    , d_which(TYPE_SAT)
+    , d_unknownExplanation(UNKNOWN_REASON)
+    , d_inputName(inputName)
+{
+  PrettyCheckArgument(s != SAT_UNKNOWN,
+                      "Must provide a reason for satisfiability being unknown");
+}
+
+Result::Result(enum Validity v, std::string inputName)
+    : d_sat(SAT_UNKNOWN)
+    , d_validity(v)
+    , d_which(TYPE_VALIDITY)
+    , d_unknownExplanation(UNKNOWN_REASON)
+    , d_inputName(inputName)
+{
+  PrettyCheckArgument(v != VALIDITY_UNKNOWN,
+                      "Must provide a reason for validity being unknown");
+}
+
+
+Result::Result(enum Sat s, enum UnknownExplanation unknownExplanation,
+               std::string inputName)
+    : d_sat(s)
+    , d_validity(VALIDITY_UNKNOWN)
+    , d_which(TYPE_SAT)
+    , d_unknownExplanation(unknownExplanation)
+    , d_inputName(inputName)
+{
+  PrettyCheckArgument(s == SAT_UNKNOWN,
+                      "improper use of unknown-result constructor");
+}
+
+Result::Result(enum Validity v, enum UnknownExplanation unknownExplanation,
+               std::string inputName)
+    : d_sat(SAT_UNKNOWN)
+    , d_validity(v)
+    , d_which(TYPE_VALIDITY)
+    , d_unknownExplanation(unknownExplanation)
+    , d_inputName(inputName)
+{
+  PrettyCheckArgument(v == VALIDITY_UNKNOWN,
+                      "improper use of unknown-result constructor");
+}
+
 Result::Result(const std::string& instr, std::string inputName) :
   d_sat(SAT_UNKNOWN),
   d_validity(VALIDITY_UNKNOWN),
@@ -76,6 +132,13 @@ Result::Result(const std::string& instr, std::string inputName) :
     IllegalArgument(s, "expected satisfiability/validity result, "
                     "instead got `%s'", s.c_str());
   }
+}
+
+Result::UnknownExplanation Result::whyUnknown() const {
+  PrettyCheckArgument( isUnknown(), this,
+                       "This result is not unknown, so the reason for "
+                       "being unknown cannot be inquired of it" );
+  return d_unknownExplanation;
 }
 
 bool Result::operator==(const Result& r) const throw() {

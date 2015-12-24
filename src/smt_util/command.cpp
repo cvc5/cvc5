@@ -23,6 +23,7 @@
 #include <utility>
 #include <vector>
 
+#include "base/cvc4_assert.h"
 #include "base/output.h"
 #include "expr/node.h"
 #include "expr/sexpr.h"
@@ -939,7 +940,8 @@ GetValueCommand::GetValueCommand(Expr term) throw() :
 
 GetValueCommand::GetValueCommand(const std::vector<Expr>& terms) throw() :
   d_terms(terms) {
-  CheckArgument(terms.size() >= 1, terms, "cannot get-value of an empty set of terms");
+  PrettyCheckArgument(terms.size() >= 1, terms,
+                      "cannot get-value of an empty set of terms");
 }
 
 const std::vector<Expr>& GetValueCommand::getTerms() const throw() {

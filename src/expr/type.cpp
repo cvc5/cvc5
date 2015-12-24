@@ -92,8 +92,8 @@ Type Type::getBaseType() const {
 }
 
 Type& Type::operator=(const Type& t) {
-  CheckArgument(d_typeNode != NULL, this, "Unexpected NULL typenode pointer!");
-  CheckArgument(t.d_typeNode != NULL, t, "Unexpected NULL typenode pointer!");
+  PrettyCheckArgument(d_typeNode != NULL, this, "Unexpected NULL typenode pointer!");
+  PrettyCheckArgument(t.d_typeNode != NULL, t, "Unexpected NULL typenode pointer!");
 
   if(this != &t) {
     if(d_nodeManager == t.d_nodeManager) {
@@ -354,7 +354,7 @@ vector<Type> FunctionType::getArgTypes() const {
 
 Type FunctionType::getRangeType() const {
   NodeManagerScope nms(d_nodeManager);
-  CheckArgument(isNull() || isFunction(), this);
+  PrettyCheckArgument(isNull() || isFunction(), this);
   return makeType(d_typeNode->getRangeType());
 }
 
@@ -430,112 +430,112 @@ SortType SortConstructorType::instantiate(const std::vector<Type>& params) const
 
 BooleanType::BooleanType(const Type& t) throw(IllegalArgumentException) :
   Type(t) {
-  CheckArgument(isNull() || isBoolean(), this);
+  PrettyCheckArgument(isNull() || isBoolean(), this);
 }
 
 IntegerType::IntegerType(const Type& t) throw(IllegalArgumentException) :
   Type(t) {
-  CheckArgument(isNull() || isInteger(), this);
+  PrettyCheckArgument(isNull() || isInteger(), this);
 }
 
 RealType::RealType(const Type& t) throw(IllegalArgumentException) :
   Type(t) {
-  CheckArgument(isNull() || isReal(), this);
+  PrettyCheckArgument(isNull() || isReal(), this);
 }
 
 StringType::StringType(const Type& t) throw(IllegalArgumentException) :
   Type(t) {
-  CheckArgument(isNull() || isString(), this);
+  PrettyCheckArgument(isNull() || isString(), this);
 }
 
 RoundingModeType::RoundingModeType(const Type& t) throw(IllegalArgumentException) :
   Type(t) {
-  CheckArgument(isNull() || isRoundingMode(), this);
+  PrettyCheckArgument(isNull() || isRoundingMode(), this);
 }
 
 BitVectorType::BitVectorType(const Type& t) throw(IllegalArgumentException) :
   Type(t) {
-  CheckArgument(isNull() || isBitVector(), this);
+  PrettyCheckArgument(isNull() || isBitVector(), this);
 }
 
 FloatingPointType::FloatingPointType(const Type& t) throw(IllegalArgumentException) :
   Type(t) {
-  CheckArgument(isNull() || isFloatingPoint(), this);
+  PrettyCheckArgument(isNull() || isFloatingPoint(), this);
 }
 
 DatatypeType::DatatypeType(const Type& t) throw(IllegalArgumentException) :
   Type(t) {
-  CheckArgument(isNull() || isDatatype(), this);
+  PrettyCheckArgument(isNull() || isDatatype(), this);
 }
 
 ConstructorType::ConstructorType(const Type& t) throw(IllegalArgumentException) :
   Type(t) {
-  CheckArgument(isNull() || isConstructor(), this);
+  PrettyCheckArgument(isNull() || isConstructor(), this);
 }
 
 SelectorType::SelectorType(const Type& t) throw(IllegalArgumentException) :
   Type(t) {
-  CheckArgument(isNull() || isSelector(), this);
+  PrettyCheckArgument(isNull() || isSelector(), this);
 }
 
-TesterType::TesterType(const Type& t) throw(IllegalArgumentException) :
-  Type(t) {
-  CheckArgument(isNull() || isTester(), this);
+TesterType::TesterType(const Type& t) throw(IllegalArgumentException)
+    : Type(t) {
+  PrettyCheckArgument(isNull() || isTester(), this);
 }
 
-FunctionType::FunctionType(const Type& t) throw(IllegalArgumentException) :
-  Type(t) {
-  CheckArgument(isNull() || isFunction(), this);
+FunctionType::FunctionType(const Type& t) throw(IllegalArgumentException)
+    : Type(t) {
+  PrettyCheckArgument(isNull() || isFunction(), this);
 }
 
-TupleType::TupleType(const Type& t) throw(IllegalArgumentException) :
-  Type(t) {
-  CheckArgument(isNull() || isTuple(), this);
+TupleType::TupleType(const Type& t) throw(IllegalArgumentException)
+    : Type(t) {
+  PrettyCheckArgument(isNull() || isTuple(), this);
 }
 
-RecordType::RecordType(const Type& t) throw(IllegalArgumentException) :
-  Type(t) {
-  CheckArgument(isNull() || isRecord(), this);
+RecordType::RecordType(const Type& t) throw(IllegalArgumentException)
+    : Type(t) {
+  PrettyCheckArgument(isNull() || isRecord(), this);
 }
 
-SExprType::SExprType(const Type& t) throw(IllegalArgumentException) :
-  Type(t) {
-  CheckArgument(isNull() || isSExpr(), this);
+SExprType::SExprType(const Type& t) throw(IllegalArgumentException)
+    : Type(t) {
+  PrettyCheckArgument(isNull() || isSExpr(), this);
 }
 
-ArrayType::ArrayType(const Type& t) throw(IllegalArgumentException) :
-  Type(t) {
-  CheckArgument(isNull() || isArray(), this);
+ArrayType::ArrayType(const Type& t) throw(IllegalArgumentException)
+    : Type(t) {
+  PrettyCheckArgument(isNull() || isArray(), this);
 }
 
-SetType::SetType(const Type& t) throw(IllegalArgumentException) :
-  Type(t) {
-  CheckArgument(isNull() || isSet(), this);
+SetType::SetType(const Type& t) throw(IllegalArgumentException)
+    : Type(t) {
+  PrettyCheckArgument(isNull() || isSet(), this);
 }
 
-SortType::SortType(const Type& t) throw(IllegalArgumentException) :
-  Type(t) {
-  CheckArgument(isNull() || isSort(), this);
+SortType::SortType(const Type& t) throw(IllegalArgumentException)
+    : Type(t) {
+  PrettyCheckArgument(isNull() || isSort(), this);
 }
 
 SortConstructorType::SortConstructorType(const Type& t)
-  throw(IllegalArgumentException) :
-  Type(t) {
-  CheckArgument(isNull() || isSortConstructor(), this);
+  throw(IllegalArgumentException)
+    : Type(t) {
+  PrettyCheckArgument(isNull() || isSortConstructor(), this);
 }
 
 /* - not in release 1.0
 PredicateSubtype::PredicateSubtype(const Type& t)
   throw(IllegalArgumentException) :
   Type(t) {
-  CheckArgument(isNull() || isPredicateSubtype(), this);
+  PrettyCheckArgument(isNull() || isPredicateSubtype(), this);
 }
 */
 
 SubrangeType::SubrangeType(const Type& t)
   throw(IllegalArgumentException) :
   Type(t) {
-  CheckArgument(isNull() || isSubrange(), this);
+  PrettyCheckArgument(isNull() || isSubrange(), this);
 }
 
 unsigned BitVectorType::getSize() const {
@@ -585,7 +585,7 @@ std::vector<Type> ConstructorType::getArgTypes() const {
 const Datatype& DatatypeType::getDatatype() const {
   NodeManagerScope nms(d_nodeManager);
   if( d_typeNode->isParametricDatatype() ) {
-    CheckArgument( (*d_typeNode)[0].getKind() == kind::DATATYPE_TYPE, this);
+    PrettyCheckArgument( (*d_typeNode)[0].getKind() == kind::DATATYPE_TYPE, this);
     const Datatype& dt = (*d_typeNode)[0].getConst<Datatype>();
     return dt;
   } else {

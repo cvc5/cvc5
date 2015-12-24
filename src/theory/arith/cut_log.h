@@ -234,7 +234,7 @@ std::ostream& operator<<(std::ostream& os, const NodeLog& nl);
 class ApproximateSimplex;
 class TreeLog {
 private:
-  ApproximateSimplex* d_generator;
+  ApproximateSimplex* d_generator CVC4_UNUSED;
 
   int next_exec_ord;
   typedef std::map<int, NodeLog> ToNodeMap;

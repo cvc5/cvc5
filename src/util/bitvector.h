@@ -20,7 +20,7 @@
 #ifndef __CVC4__BITVECTOR_H
 #define __CVC4__BITVECTOR_H
 
-#include <iostream>
+#include <iosfwd>
 
 #include "base/exception.h"
 #include "util/integer.h"
@@ -28,34 +28,13 @@
 namespace CVC4 {
 
 class CVC4_PUBLIC BitVector {
-
-private:
-
-  /*
-    Class invariants:
-    * no overflows: 2^d_size < d_value
-    * no negative numbers: d_value >= 0
-   */
-  unsigned d_size;
-  Integer d_value;
-
-  Integer toSignedInt() const {
-    // returns Integer corresponding to two's complement interpretation of bv 
-    unsigned size = d_size; 
-    Integer sign_bit = d_value.extractBitRange(1,size-1);
-    Integer val = d_value.extractBitRange(size-1, 0); 
-    Integer res = Integer(-1) * sign_bit.multiplyByPow2(size - 1) + val;
-    return res; 
-  }
-  
- 
 public:
 
   BitVector(unsigned size, const Integer& val):
     d_size(size),
     d_value(val.modByPow2(size))
       {}
-  
+
   BitVector(unsigned size = 0)
     : d_size(size), d_value(0) {}
 
@@ -63,7 +42,7 @@ public:
     : d_size(size), d_value(z) {
     d_value = d_value.modByPow2(size);
   }
-  
+
   BitVector(unsigned size, unsigned long int z)
     : d_size(size), d_value(z) {
     d_value = d_value.modByPow2(size);
@@ -71,7 +50,7 @@ public:
 
   BitVector(unsigned size, const BitVector& q)
     : d_size(size), d_value(q.d_value) {}
-  
+
   BitVector(const std::string& num, unsigned base = 2);
 
   ~BitVector() {}
@@ -79,7 +58,7 @@ public:
   Integer toInteger() const {
     return d_value;
   }
-  
+
   BitVector& operator =(const BitVector& x) {
     if(this == &x)
       return *this;
@@ -89,12 +68,12 @@ public:
   }
 
   bool operator ==(const BitVector& y) const {
-    if (d_size != y.d_size) return false; 
+    if (d_size != y.d_size) return false;
     return d_value == y.d_value;
   }
 
   bool operator !=(const BitVector& y) const {
-    if (d_size != y.d_size) return true; 
+    if (d_size != y.d_size) return true;
     return d_value != y.d_value;
   }
 
@@ -113,24 +92,24 @@ public:
   // xor
   BitVector operator ^(const BitVector& y) const {
     CheckArgument(d_size == y.d_size, y);
-    return BitVector(d_size, d_value.bitwiseXor(y.d_value)); 
+    return BitVector(d_size, d_value.bitwiseXor(y.d_value));
   }
-  
+
   // or
   BitVector operator |(const BitVector& y) const {
     CheckArgument(d_size == y.d_size, y);
-    return BitVector(d_size, d_value.bitwiseOr(y.d_value)); 
+    return BitVector(d_size, d_value.bitwiseOr(y.d_value));
   }
-  
+
   // and
   BitVector operator &(const BitVector& y) const {
     CheckArgument(d_size == y.d_size, y);
-    return BitVector(d_size, d_value.bitwiseAnd(y.d_value)); 
+    return BitVector(d_size, d_value.bitwiseAnd(y.d_value));
   }
 
   // not
   BitVector operator ~() const {
-    return BitVector(d_size, d_value.bitwiseNot()); 
+    return BitVector(d_size, d_value.bitwiseNot());
   }
 
   /*
@@ -139,7 +118,7 @@ public:
 
 
   bool operator <(const BitVector& y) const {
-    return d_value < y.d_value; 
+    return d_value < y.d_value;
   }
 
   bool operator >(const BitVector& y) const {
@@ -147,14 +126,14 @@ public:
   }
 
   bool operator <=(const BitVector& y) const {
-    return d_value <= y.d_value; 
+    return d_value <= y.d_value;
   }
-  
+
   bool operator >=(const BitVector& y) const {
     return d_value >= y.d_value ;
   }
 
-  
+
   BitVector operator +(const BitVector& y) const {
     CheckArgument(d_size == y.d_size, y);
     Integer sum = d_value +  y.d_value;
@@ -165,12 +144,12 @@ public:
     CheckArgument(d_size == y.d_size, y);
     // to maintain the invariant that we are only adding BitVectors of the
     // same size
-    BitVector one(d_size, Integer(1)); 
+    BitVector one(d_size, Integer(1));
     return *this + ~y + one;
   }
 
   BitVector operator -() const {
-    BitVector one(d_size, Integer(1)); 
+    BitVector one(d_size, Integer(1));
     return ~(*this) + one;
   }
 
@@ -183,16 +162,16 @@ public:
   BitVector setBit(uint32_t i) const {
     CheckArgument(i < d_size, i);
     Integer res = d_value.setBit(i);
-    return BitVector(d_size, res); 
+    return BitVector(d_size, res);
   }
 
   bool isBitSet(uint32_t i) const {
-    CheckArgument(i < d_size, i); 
-    return d_value.isBitSet(i); 
+    CheckArgument(i < d_size, i);
+    return d_value.isBitSet(i);
   }
-  
-  /** 
-   * Total division function that returns 0 when the denominator is 0.  
+
+  /**
+   * Total division function that returns 0 when the denominator is 0.
    */
   BitVector unsignedDivTotal (const BitVector& y) const {
 
@@ -203,11 +182,11 @@ public:
     }
     CheckArgument(d_value >= 0, this);
     CheckArgument(y.d_value > 0, y);
-    return BitVector(d_size, d_value.floorDivideQuotient(y.d_value)); 
+    return BitVector(d_size, d_value.floorDivideQuotient(y.d_value));
   }
-  
-  /** 
-   * Total division function that returns 0 when the denominator is 0.  
+
+  /**
+   * Total division function that returns 0 when the denominator is 0.
    */
   BitVector unsignedRemTotal(const BitVector& y) const {
     CheckArgument(d_size == y.d_size, y);
@@ -216,25 +195,25 @@ public:
     }
     CheckArgument(d_value >= 0, this);
     CheckArgument(y.d_value > 0, y);
-    return BitVector(d_size, d_value.floorDivideRemainder(y.d_value)); 
+    return BitVector(d_size, d_value.floorDivideRemainder(y.d_value));
   }
-  
-  
+
+
   bool signedLessThan(const BitVector& y) const {
     CheckArgument(d_size == y.d_size, y);
     CheckArgument(d_value >= 0, this);
     CheckArgument(y.d_value >= 0, y);
     Integer a = (*this).toSignedInt();
-    Integer b = y.toSignedInt(); 
-    
-    return a < b; 
+    Integer b = y.toSignedInt();
+
+    return a < b;
   }
 
   bool unsignedLessThan(const BitVector& y) const {
     CheckArgument(d_size == y.d_size, y);
     CheckArgument(d_value >= 0, this);
     CheckArgument(y.d_value >= 0, y);
-    return d_value < y.d_value; 
+    return d_value < y.d_value;
   }
 
   bool signedLessThanEq(const BitVector& y) const {
@@ -242,100 +221,98 @@ public:
     CheckArgument(d_value >= 0, this);
     CheckArgument(y.d_value >= 0, y);
     Integer a = (*this).toSignedInt();
-    Integer b = y.toSignedInt(); 
-    
-    return a <= b; 
+    Integer b = y.toSignedInt();
+
+    return a <= b;
   }
 
   bool unsignedLessThanEq(const BitVector& y) const {
     CheckArgument(d_size == y.d_size, this);
     CheckArgument(d_value >= 0, this);
     CheckArgument(y.d_value >= 0, y);
-    return d_value <= y.d_value; 
+    return d_value <= y.d_value;
   }
 
-  
+
   /*
     Extend operations
    */
-
   BitVector zeroExtend(unsigned amount) const {
-    return BitVector(d_size + amount, d_value); 
+    return BitVector(d_size + amount, d_value);
   }
 
   BitVector signExtend(unsigned amount) const {
     Integer sign_bit = d_value.extractBitRange(1, d_size -1);
     if(sign_bit == Integer(0)) {
-      return BitVector(d_size + amount, d_value); 
+      return BitVector(d_size + amount, d_value);
     } else {
       Integer val = d_value.oneExtend(d_size, amount);
       return BitVector(d_size+ amount, val);
     }
   }
-  
+
   /*
     Shifts on BitVectors
    */
-
   BitVector leftShift(const BitVector& y) const {
     if (y.d_value > Integer(d_size)) {
-      return BitVector(d_size, Integer(0)); 
+      return BitVector(d_size, Integer(0));
     }
     if (y.d_value == 0) {
-      return *this; 
+      return *this;
     }
 
     // making sure we don't lose information casting
     CheckArgument(y.d_value < Integer(1).multiplyByPow2(32), y);
-    uint32_t amount = y.d_value.toUnsignedInt(); 
+    uint32_t amount = y.d_value.toUnsignedInt();
     Integer res = d_value.multiplyByPow2(amount);
     return BitVector(d_size, res);
   }
 
   BitVector logicalRightShift(const BitVector& y) const {
     if(y.d_value > Integer(d_size)) {
-      return BitVector(d_size, Integer(0)); 
+      return BitVector(d_size, Integer(0));
     }
 
     // making sure we don't lose information casting
     CheckArgument(y.d_value < Integer(1).multiplyByPow2(32), y);
-    uint32_t amount = y.d_value.toUnsignedInt(); 
-    Integer res = d_value.divByPow2(amount); 
+    uint32_t amount = y.d_value.toUnsignedInt();
+    Integer res = d_value.divByPow2(amount);
     return BitVector(d_size, res);
   }
 
   BitVector arithRightShift(const BitVector& y) const {
-    Integer sign_bit = d_value.extractBitRange(1, d_size - 1); 
+    Integer sign_bit = d_value.extractBitRange(1, d_size - 1);
     if(y.d_value > Integer(d_size)) {
       if(sign_bit == Integer(0)) {
-        return BitVector(d_size, Integer(0)); 
+        return BitVector(d_size, Integer(0));
       } else {
-        return BitVector(d_size, Integer(d_size).multiplyByPow2(d_size) -1 ); 
+        return BitVector(d_size, Integer(d_size).multiplyByPow2(d_size) -1 );
       }
     }
-    
+
     if (y.d_value == 0) {
-      return *this; 
+      return *this;
     }
 
     // making sure we don't lose information casting
     CheckArgument(y.d_value < Integer(1).multiplyByPow2(32), y);
-   
+
     uint32_t amount  = y.d_value.toUnsignedInt();
     Integer rest = d_value.divByPow2(amount);
-    
+
     if(sign_bit == Integer(0)) {
-      return BitVector(d_size, rest); 
+      return BitVector(d_size, rest);
     }
     Integer res = rest.oneExtend(d_size - amount, amount);
     return BitVector(d_size, res);
   }
-  
+
 
   /*
     Convenience functions
    */
-  
+
   size_t hash() const {
     return d_value.hash() + d_size;
   }
@@ -367,9 +344,26 @@ public:
    @return k if the integer is equal to 2^{k-1} and zero otherwise
    */
   unsigned isPow2() {
-    return d_value.isPow2(); 
+    return d_value.isPow2();
   }
 
+private:
+  /*
+    Class invariants:
+    * no overflows: 2^d_size < d_value
+    * no negative numbers: d_value >= 0
+   */
+  unsigned d_size;
+  Integer d_value;
+
+  Integer toSignedInt() const {
+    // returns Integer corresponding to two's complement interpretation of bv
+    unsigned size = d_size;
+    Integer sign_bit = d_value.extractBitRange(1,size-1);
+    Integer val = d_value.extractBitRange(size-1, 0);
+    Integer res = Integer(-1) * sign_bit.multiplyByPow2(size - 1) + val;
+    return res;
+  }
 };/* class BitVector */
 
 
@@ -428,7 +422,7 @@ struct CVC4_PUBLIC BitVectorExtractHashFunction {
 
 
 /**
- * The structure representing the extraction of one Boolean bit. 
+ * The structure representing the extraction of one Boolean bit.
  */
 struct CVC4_PUBLIC BitVectorBitOf {
   /** The index of the bit */
@@ -437,7 +431,7 @@ struct CVC4_PUBLIC BitVectorBitOf {
     : bitIndex(i) {}
 
   bool operator == (const BitVectorBitOf& other) const {
-    return bitIndex == other.bitIndex; 
+    return bitIndex == other.bitIndex;
   }
 };/* struct BitVectorBitOf */
 

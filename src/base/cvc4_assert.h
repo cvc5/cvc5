@@ -282,11 +282,15 @@ void debugAssertionFailed(const AssertionException& thisException, const char* l
 #define InternalError(msg...) \
   throw ::CVC4::InternalErrorException(__PRETTY_FUNCTION__, __FILE__, __LINE__, ## msg)
 #define IllegalArgument(arg, msg...) \
-  throw ::CVC4::IllegalArgumentException("", #arg, __PRETTY_FUNCTION__, ## msg)
-#define CheckArgument(cond, arg, msg...)         \
+  throw ::CVC4::IllegalArgumentException("", #arg, __PRETTY_FUNCTION__, \
+                                         ::CVC4::IllegalArgumentException::formatVariadic(msg).c_str());
+// This cannot use check argument directly as this forces
+// CheckArgument to use a va_list. This is unsupported in Swig.
+#define PrettyCheckArgument(cond, arg, msg...)         \
   do { \
     if(__builtin_expect( ( ! (cond) ), false )) { \
-      throw ::CVC4::IllegalArgumentException(#cond, #arg, __PRETTY_FUNCTION__, ## msg); \
+      throw ::CVC4::IllegalArgumentException(#cond, #arg, __PRETTY_FUNCTION__, \
+                                             ::CVC4::IllegalArgumentException::formatVariadic(msg).c_str()); \
     } \
   } while(0)
 #define AlwaysAssertArgument(cond, arg, msg...)  \

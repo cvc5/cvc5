@@ -311,7 +311,7 @@ bool SExpr::languageQuotesKeywords(OutputLanguage language) {
 
 
 std::string SExpr::getValue() const {
-  CheckArgument( isAtom(), this );
+  PrettyCheckArgument( isAtom(), this );
   switch(d_sexprType) {
   case SEXPR_INTEGER:
     return d_integerValue.toString();
@@ -335,17 +335,17 @@ std::string SExpr::getValue() const {
 }
 
 const CVC4::Integer& SExpr::getIntegerValue() const {
-  CheckArgument( isInteger(), this );
+  PrettyCheckArgument( isInteger(), this );
   return d_integerValue;
 }
 
 const CVC4::Rational& SExpr::getRationalValue() const {
-  CheckArgument( isRational(), this );
+  PrettyCheckArgument( isRational(), this );
   return d_rationalValue;
 }
 
 const std::vector<SExpr>& SExpr::getChildren() const {
-  CheckArgument( !isAtom(), this );
+  PrettyCheckArgument( !isAtom(), this );
   Assert( d_children != NULL );
   return *d_children;
 }

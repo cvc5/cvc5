@@ -19,7 +19,7 @@
 #ifndef __CVC4__MATCHER_H
 #define __CVC4__MATCHER_H
 
-#include <iostream>
+#include <iosfwd>
 #include <string>
 #include <vector>
 #include <map>

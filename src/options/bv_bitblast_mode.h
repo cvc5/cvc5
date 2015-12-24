@@ -19,7 +19,7 @@
 #ifndef __CVC4__THEORY__BV__BITBLAST_MODE_H
 #define __CVC4__THEORY__BV__BITBLAST_MODE_H
 
-#include <iostream>
+#include <iosfwd>
 
 namespace CVC4 {
 namespace theory {

@@ -20,9 +20,19 @@
 #include <sstream>
 #include <string>
 
+#include "base/cvc4_assert.h"
+
 using namespace std;
 
 namespace CVC4 {
+
+UninterpretedConstant::UninterpretedConstant(Type type, Integer index) throw(IllegalArgumentException)
+    : d_type(type)
+    , d_index(index)
+{
+  //PrettyCheckArgument(type.isSort(), type, "uninterpreted constants can only be created for uninterpreted sorts, not `%s'", type.toString().c_str());
+  PrettyCheckArgument(index >= 0, index, "index >= 0 required for uninterpreted constant index, not `%s'", index.toString().c_str());
+}
 
 std::ostream& operator<<(std::ostream& out, const UninterpretedConstant& uc) {
   stringstream ss;

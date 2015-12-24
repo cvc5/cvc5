@@ -4001,18 +4001,20 @@ bool SmtEngine::addToAssignment(const Expr& ex) throw() {
   Expr e = d_private->substituteAbstractValues(Node::fromExpr(ex)).toExpr();
   Type type = e.getType(options::typeChecking());
   // must be Boolean
-  CheckArgument( type.isBoolean(), e,
-                 "expected Boolean-typed variable or function application "
-                 "in addToAssignment()" );
+  PrettyCheckArgument(
+      type.isBoolean(), e,
+      "expected Boolean-typed variable or function application "
+      "in addToAssignment()" );
   Node n = e.getNode();
   // must be an APPLY of a zero-ary defined function, or a variable
-  CheckArgument( ( ( n.getKind() == kind::APPLY &&
-                     ( d_definedFunctions->find(n.getOperator()) !=
-                       d_definedFunctions->end() ) &&
-                     n.getNumChildren() == 0 ) ||
-                   n.isVar() ), e,
-                 "expected variable or defined-function application "
-                 "in addToAssignment(),\ngot %s", e.toString().c_str() );
+  PrettyCheckArgument(
+      ( ( n.getKind() == kind::APPLY &&
+          ( d_definedFunctions->find(n.getOperator()) !=
+            d_definedFunctions->end() ) &&
+          n.getNumChildren() == 0 ) ||
+        n.isVar() ), e,
+      "expected variable or defined-function application "
+      "in addToAssignment(),\ngot %s", e.toString().c_str() );
   if(!options::produceAssignments()) {
     return false;
   }

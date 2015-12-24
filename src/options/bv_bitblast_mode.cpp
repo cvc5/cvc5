@@ -16,6 +16,8 @@
 
 #include "options/bv_bitblast_mode.h"
 
+#include <iostream>
+
 namespace CVC4 {
 
 std::ostream& operator<<(std::ostream& out, theory::bv::BitblastMode mode) {

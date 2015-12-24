@@ -17,6 +17,8 @@
 
 #include "options/simplification_mode.h"
 
+#include <iostream>
+
 namespace CVC4 {
 
 std::ostream& operator<<(std::ostream& out, SimplificationMode mode) {

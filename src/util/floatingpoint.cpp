@@ -19,20 +19,20 @@
 
 namespace CVC4 {
 
-  FloatingPointSize::FloatingPointSize (unsigned _e, unsigned _s) : e(_e), s(_s)
-  {
-    CheckArgument(validExponentSize(_e),_e,"Invalid exponent size : %d",_e);
-    CheckArgument(validSignificandSize(_s),_s,"Invalid significand size : %d",_s);
-  }
+FloatingPointSize::FloatingPointSize (unsigned _e, unsigned _s) : e(_e), s(_s)
+{
+  PrettyCheckArgument(validExponentSize(_e),_e,"Invalid exponent size : %d",_e);
+  PrettyCheckArgument(validSignificandSize(_s),_s,"Invalid significand size : %d",_s);
+}
 
-  FloatingPointSize::FloatingPointSize (const FloatingPointSize &old) : e(old.e), s(old.s)
-  {
-    CheckArgument(validExponentSize(e),e,"Invalid exponent size : %d",e);
-    CheckArgument(validSignificandSize(s),s,"Invalid significand size : %d",s);
-  }
+FloatingPointSize::FloatingPointSize (const FloatingPointSize &old) : e(old.e), s(old.s)
+{
+  PrettyCheckArgument(validExponentSize(e),e,"Invalid exponent size : %d",e);
+  PrettyCheckArgument(validSignificandSize(s),s,"Invalid significand size : %d",s);
+}
 
-  void FloatingPointLiteral::unfinished (void) const {
-    Unimplemented("Floating-point literals not yet implemented.");
-  }
+void FloatingPointLiteral::unfinished (void) const {
+  Unimplemented("Floating-point literals not yet implemented.");
+}
 
 }/* CVC4 namespace */

@@ -40,13 +40,13 @@ namespace std {
 namespace CVC4 {}
 using namespace CVC4;
 
-#include <iostream>
-#include <vector>
+#include <cassert>
+#include <ext/hash_map>
+#include <iosfwd>
 #include <set>
 #include <string>
-#include <ext/hash_map>
 #include <typeinfo>
-#include <cassert>
+#include <vector>
 
 #include "base/exception.h"
 #include "base/modal_exception.h"

@@ -34,9 +34,6 @@ namespace CVC4 {
  * has a lower bound of -5 and an infinite upper bound.
  */
 class CVC4_PUBLIC SubrangeBound {
-  bool d_nobound;
-  Integer d_bound;
-
 public:
 
   /** Construct an infinite SubrangeBound. */
@@ -55,10 +52,7 @@ public:
   }
 
   /** Get the finite SubrangeBound, failing an assertion if infinite. */
-  const Integer& getBound() const throw(IllegalArgumentException) {
-    CheckArgument(!d_nobound, this, "SubrangeBound is infinite");
-    return d_bound;
-  }
+  const Integer& getBound() const throw(IllegalArgumentException);
 
   /** Returns true iff this is a finite SubrangeBound. */
   bool hasBound() const throw() {
@@ -145,6 +139,9 @@ public:
     }
  }
 
+private:
+  bool d_nobound;
+  Integer d_bound;
 };/* class SubrangeBound */
 
 class CVC4_PUBLIC SubrangeBounds {
@@ -153,13 +150,7 @@ public:
   SubrangeBound lower;
   SubrangeBound upper;
 
-  SubrangeBounds(const SubrangeBound& l, const SubrangeBound& u) :
-    lower(l),
-    upper(u) {
-    CheckArgument(!l.hasBound() || !u.hasBound() ||
-                  l.getBound() <= u.getBound(),
-                  l, "Bad subrange bounds specified");
-  }
+  SubrangeBounds(const SubrangeBound& l, const SubrangeBound& u);
 
   bool operator==(const SubrangeBounds& bounds) const {
     return lower == bounds.lower && upper == bounds.upper;
@@ -210,21 +201,13 @@ public:
   /**
    * Returns true if the join of two subranges is not (- infinity, + infinity).
    */
-  static bool joinIsBounded(const SubrangeBounds& a, const SubrangeBounds& b){
-    return (a.lower.hasBound() && b.lower.hasBound()) ||
-      (a.upper.hasBound() && b.upper.hasBound());
-  }
+  static bool joinIsBounded(const SubrangeBounds& a, const SubrangeBounds& b);
 
   /**
    * Returns the join of two subranges, a and b.
    * precondition: joinIsBounded(a,b) is true
    */
-  static SubrangeBounds join(const SubrangeBounds& a, const SubrangeBounds& b){
-    DebugCheckArgument(joinIsBounded(a,b), a);
-    SubrangeBound newLower = SubrangeBound::min(a.lower, b.lower);
-    SubrangeBound newUpper = SubrangeBound::max(a.upper, b.upper);
-    return SubrangeBounds(newLower, newUpper);
-  }
+  static SubrangeBounds join(const SubrangeBounds& a, const SubrangeBounds& b);
 
 };/* class SubrangeBounds */
 
@@ -252,15 +235,8 @@ operator<<(std::ostream& out, const SubrangeBound& bound) throw() {
   return out;
 }
 
-inline std::ostream&
-operator<<(std::ostream& out, const SubrangeBounds& bounds) throw() CVC4_PUBLIC;
-
-inline std::ostream&
-operator<<(std::ostream& out, const SubrangeBounds& bounds) throw() {
-  out << bounds.lower << ".." << bounds.upper;
-
-  return out;
-}
+std::ostream& operator<<(std::ostream& out, const SubrangeBounds& bounds)
+throw() CVC4_PUBLIC;
 
 }/* CVC4 namespace */
 

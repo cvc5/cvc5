@@ -104,84 +104,43 @@ public:
   std::string getLogicString() const;
 
   /** Is sharing enabled for this logic? */
-  bool isSharingEnabled() const {
-    CheckArgument(d_locked, *this, "This LogicInfo isn't locked yet, and cannot be queried");
-    return d_sharingTheories > 1;
-  }
+  bool isSharingEnabled() const;
 
   /** Is the given theory module active in this logic? */
-  bool isTheoryEnabled(theory::TheoryId theory) const {
-    CheckArgument(d_locked, *this, "This LogicInfo isn't locked yet, and cannot be queried");
-    return d_theories[theory];
-  }
+  bool isTheoryEnabled(theory::TheoryId theory) const;
 
   /** Is this a quantified logic? */
-  bool isQuantified() const {
-    CheckArgument(d_locked, *this, "This LogicInfo isn't locked yet, and cannot be queried");
-    return isTheoryEnabled(theory::THEORY_QUANTIFIERS);
-  }
+  bool isQuantified() const;
 
   /** Is this the all-inclusive logic? */
-  bool hasEverything() const {
-    CheckArgument(d_locked, *this, "This LogicInfo isn't locked yet, and cannot be queried");
-    LogicInfo everything;
-    everything.lock();
-    return *this == everything;
-  }
+  bool hasEverything() const;
 
   /** Is this the all-exclusive logic?  (Here, that means propositional logic) */
-  bool hasNothing() const {
-    CheckArgument(d_locked, *this, "This LogicInfo isn't locked yet, and cannot be queried");
-    LogicInfo nothing("");
-    nothing.lock();
-    return *this == nothing;
-  }
+  bool hasNothing() const;
 
   /**
    * Is this a pure logic (only one "true" background theory).  Quantifiers
    * can exist in such logics though; to test for quantifier-free purity,
    * use "isPure(theory) && !isQuantified()".
    */
-  bool isPure(theory::TheoryId theory) const {
-    CheckArgument(d_locked, *this, "This LogicInfo isn't locked yet, and cannot be queried");
-    // the third and fourth conjucts are really just to rule out the misleading
-    // case where you ask isPure(THEORY_BOOL) and get true even in e.g. QF_LIA
-    return isTheoryEnabled(theory) && !isSharingEnabled() &&
-      ( !isTrueTheory(theory) || d_sharingTheories == 1 ) &&
-      ( isTrueTheory(theory) || d_sharingTheories == 0 );
-  }
+  bool isPure(theory::TheoryId theory) const;
 
   // these are for arithmetic
 
   /** Are integers in this logic? */
-  bool areIntegersUsed() const {
-    CheckArgument(d_locked, *this, "This LogicInfo isn't locked yet, and cannot be queried");
-    CheckArgument(isTheoryEnabled(theory::THEORY_ARITH), *this, "Arithmetic not used in this LogicInfo; cannot ask whether integers are used");
-    return d_integers;
-  }
+  bool areIntegersUsed() const;
+
   /** Are reals in this logic? */
-  bool areRealsUsed() const {
-    CheckArgument(d_locked, *this, "This LogicInfo isn't locked yet, and cannot be queried");
-    CheckArgument(isTheoryEnabled(theory::THEORY_ARITH), *this, "Arithmetic not used in this LogicInfo; cannot ask whether reals are used");
-    return d_reals;
-  }
+  bool areRealsUsed() const;
+
   /** Does this logic only linear arithmetic? */
-  bool isLinear() const {
-    CheckArgument(d_locked, *this, "This LogicInfo isn't locked yet, and cannot be queried");
-    CheckArgument(isTheoryEnabled(theory::THEORY_ARITH), *this, "Arithmetic not used in this LogicInfo; cannot ask whether it's linear");
-    return d_linear || d_differenceLogic;
-  }
+  bool isLinear() const;
+
   /** Does this logic only permit difference reasoning? (implies linear) */
-  bool isDifferenceLogic() const {
-    CheckArgument(d_locked, *this, "This LogicInfo isn't locked yet, and cannot be queried");
-    CheckArgument(isTheoryEnabled(theory::THEORY_ARITH), *this, "Arithmetic not used in this LogicInfo; cannot ask whether it's difference logic");
-    return d_differenceLogic;
-  }
+  bool isDifferenceLogic() const;
+
   /** Does this logic allow cardinality constraints? */
-  bool hasCardinalityConstraints() const {
-    CheckArgument(d_locked, *this, "This LogicInfo isn't locked yet, and cannot be queried");
-    return d_cardinalityConstraints;
-  }
+  bool hasCardinalityConstraints() const;
 
   // MUTATORS
 
@@ -258,74 +217,27 @@ public:
   // COMPARISON
 
   /** Are these two LogicInfos equal? */
-  bool operator==(const LogicInfo& other) const {
-    CheckArgument(isLocked() && other.isLocked(), *this, "This LogicInfo isn't locked yet, and cannot be queried");
-    for(theory::TheoryId id = theory::THEORY_FIRST; id < theory::THEORY_LAST; ++id) {
-      if(d_theories[id] != other.d_theories[id]) {
-        return false;
-      }
-    }
-    CheckArgument(d_sharingTheories == other.d_sharingTheories, *this, "LogicInfo internal inconsistency");
-    if(isTheoryEnabled(theory::THEORY_ARITH)) {
-      return
-        d_integers == other.d_integers &&
-        d_reals == other.d_reals &&
-        d_linear == other.d_linear &&
-        d_differenceLogic == other.d_differenceLogic;
-    } else {
-      return true;
-    }
-  }
+  bool operator==(const LogicInfo& other) const;
+
   /** Are these two LogicInfos disequal? */
   bool operator!=(const LogicInfo& other) const {
     return !(*this == other);
   }
+
   /** Is this LogicInfo "greater than" (does it contain everything and more) the other? */
   bool operator>(const LogicInfo& other) const {
     return *this >= other && *this != other;
   }
+
   /** Is this LogicInfo "less than" (does it contain strictly less) the other? */
   bool operator<(const LogicInfo& other) const {
     return *this <= other && *this != other;
   }
   /** Is this LogicInfo "less than or equal" the other? */
-  bool operator<=(const LogicInfo& other) const {
-    CheckArgument(isLocked() && other.isLocked(), *this, "This LogicInfo isn't locked yet, and cannot be queried");
-    for(theory::TheoryId id = theory::THEORY_FIRST; id < theory::THEORY_LAST; ++id) {
-      if(d_theories[id] && !other.d_theories[id]) {
-        return false;
-      }
-    }
-    CheckArgument(d_sharingTheories <= other.d_sharingTheories, *this, "LogicInfo internal inconsistency");
-    if(isTheoryEnabled(theory::THEORY_ARITH) && other.isTheoryEnabled(theory::THEORY_ARITH)) {
-      return
-        (!d_integers || other.d_integers) &&
-        (!d_reals || other.d_reals) &&
-        (d_linear || !other.d_linear) &&
-        (d_differenceLogic || !other.d_differenceLogic);
-    } else {
-      return true;
-    }
-  }
+  bool operator<=(const LogicInfo& other) const;
+
   /** Is this LogicInfo "greater than or equal" the other? */
-  bool operator>=(const LogicInfo& other) const {
-    CheckArgument(isLocked() && other.isLocked(), *this, "This LogicInfo isn't locked yet, and cannot be queried");
-    for(theory::TheoryId id = theory::THEORY_FIRST; id < theory::THEORY_LAST; ++id) {
-      if(!d_theories[id] && other.d_theories[id]) {
-        return false;
-      }
-    }
-    CheckArgument(d_sharingTheories >= other.d_sharingTheories, *this, "LogicInfo internal inconsistency");
-    if(isTheoryEnabled(theory::THEORY_ARITH) && other.isTheoryEnabled(theory::THEORY_ARITH)) {
-      return
-        (d_integers || !other.d_integers) &&
-        (d_reals || !other.d_reals) &&
-        (!d_linear || other.d_linear) &&
-        (!d_differenceLogic || other.d_differenceLogic);
-    } else {
-      return true;
-    }
-  }
+  bool operator>=(const LogicInfo& other) const;
 
   /** Are two LogicInfos comparable?  That is, is one of <= or > true? */
   bool isComparableTo(const LogicInfo& other) const {

@@ -1817,11 +1817,9 @@ void QuantifiersRewriter::computePurifyExpand( Node body, std::vector< Node >& c
     std::map< int, std::vector< Node > > disj;
     std::map< int, std::vector< Node > > fvs;
     for( unsigned i=0; i<body.getNumChildren(); i++ ){
-      int pid = getPurifyIdLit( body[i] );
-      
+      int pid CVC4_UNUSED = getPurifyIdLit( body[i] );
     }
     //mark as an attribute
     //Node attr = NodeManager::currentNM()->mkNode( INST_ATTRIBUTE, body );
-    
   }
 }

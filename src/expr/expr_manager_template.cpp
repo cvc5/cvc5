@@ -29,7 +29,7 @@ ${includes}
 // compiler directs the user to the template file instead of the
 // generated one.  We don't want the user to modify the generated one,
 // since it'll get overwritten on a later build.
-#line 32 "${template}"
+#line 33 "${template}"
 
 #ifdef CVC4_STATISTICS_ON
   #define INC_STAT(kind) \
@@ -164,16 +164,18 @@ RoundingModeType ExprManager::roundingModeType() const {
 Expr ExprManager::mkExpr(Kind kind, Expr child1) {
   const kind::MetaKind mk = kind::metaKindOf(kind);
   const unsigned n = 1 - (mk == kind::metakind::PARAMETERIZED ? 1 : 0);
-  CheckArgument(mk == kind::metakind::PARAMETERIZED ||
-                mk == kind::metakind::OPERATOR, kind,
-                "Only operator-style expressions are made with mkExpr(); "
-                "to make variables and constants, see mkVar(), mkBoundVar(), "
-                "and mkConst().");
-  CheckArgument(n >= minArity(kind) && n <= maxArity(kind), kind,
-                "Exprs with kind %s must have at least %u children and "
-                "at most %u children (the one under construction has %u)",
-                kind::kindToString(kind).c_str(),
-                minArity(kind), maxArity(kind), n);
+  PrettyCheckArgument(
+      mk == kind::metakind::PARAMETERIZED ||
+      mk == kind::metakind::OPERATOR, kind,
+      "Only operator-style expressions are made with mkExpr(); "
+      "to make variables and constants, see mkVar(), mkBoundVar(), "
+      "and mkConst().");
+  PrettyCheckArgument(
+      n >= minArity(kind) && n <= maxArity(kind), kind,
+      "Exprs with kind %s must have at least %u children and "
+      "at most %u children (the one under construction has %u)",
+      kind::kindToString(kind).c_str(),
+      minArity(kind), maxArity(kind), n);
   NodeManagerScope nms(d_nodeManager);
   try {
     INC_STAT(kind);
@@ -186,16 +188,18 @@ Expr ExprManager::mkExpr(Kind kind, Expr child1) {
 Expr ExprManager::mkExpr(Kind kind, Expr child1, Expr child2) {
   const kind::MetaKind mk = kind::metaKindOf(kind);
   const unsigned n = 2 - (mk == kind::metakind::PARAMETERIZED ? 1 : 0);
-  CheckArgument(mk == kind::metakind::PARAMETERIZED ||
-                mk == kind::metakind::OPERATOR, kind,
-                "Only operator-style expressions are made with mkExpr(); "
-                "to make variables and constants, see mkVar(), mkBoundVar(), "
-                "and mkConst().");
-  CheckArgument(n >= minArity(kind) && n <= maxArity(kind), kind,
-                "Exprs with kind %s must have at least %u children and "
-                "at most %u children (the one under construction has %u)",
-                kind::kindToString(kind).c_str(),
-                minArity(kind), maxArity(kind), n);
+  PrettyCheckArgument(
+      mk == kind::metakind::PARAMETERIZED ||
+      mk == kind::metakind::OPERATOR, kind,
+      "Only operator-style expressions are made with mkExpr(); "
+      "to make variables and constants, see mkVar(), mkBoundVar(), "
+      "and mkConst().");
+  PrettyCheckArgument(
+      n >= minArity(kind) && n <= maxArity(kind), kind,
+      "Exprs with kind %s must have at least %u children and "
+      "at most %u children (the one under construction has %u)",
+      kind::kindToString(kind).c_str(),
+      minArity(kind), maxArity(kind), n);
   NodeManagerScope nms(d_nodeManager);
   try {
     INC_STAT(kind);
@@ -210,16 +214,18 @@ Expr ExprManager::mkExpr(Kind kind, Expr child1, Expr child2) {
 Expr ExprManager::mkExpr(Kind kind, Expr child1, Expr child2, Expr child3) {
   const kind::MetaKind mk = kind::metaKindOf(kind);
   const unsigned n = 3 - (mk == kind::metakind::PARAMETERIZED ? 1 : 0);
-  CheckArgument(mk == kind::metakind::PARAMETERIZED ||
-                mk == kind::metakind::OPERATOR, kind,
-                "Only operator-style expressions are made with mkExpr(); "
-                "to make variables and constants, see mkVar(), mkBoundVar(), "
-                "and mkConst().");
-  CheckArgument(n >= minArity(kind) && n <= maxArity(kind), kind,
-                "Exprs with kind %s must have at least %u children and "
-                "at most %u children (the one under construction has %u)",
-                kind::kindToString(kind).c_str(),
-                minArity(kind), maxArity(kind), n);
+  PrettyCheckArgument(
+      mk == kind::metakind::PARAMETERIZED ||
+      mk == kind::metakind::OPERATOR, kind,
+      "Only operator-style expressions are made with mkExpr(); "
+      "to make variables and constants, see mkVar(), mkBoundVar(), "
+      "and mkConst().");
+  PrettyCheckArgument(
+      n >= minArity(kind) && n <= maxArity(kind), kind,
+      "Exprs with kind %s must have at least %u children and "
+      "at most %u children (the one under construction has %u)",
+      kind::kindToString(kind).c_str(),
+      minArity(kind), maxArity(kind), n);
   NodeManagerScope nms(d_nodeManager);
   try {
     INC_STAT(kind);
@@ -236,16 +242,18 @@ Expr ExprManager::mkExpr(Kind kind, Expr child1, Expr child2, Expr child3,
                          Expr child4) {
   const kind::MetaKind mk = kind::metaKindOf(kind);
   const unsigned n = 4 - (mk == kind::metakind::PARAMETERIZED ? 1 : 0);
-  CheckArgument(mk == kind::metakind::PARAMETERIZED ||
-                mk == kind::metakind::OPERATOR, kind,
-                "Only operator-style expressions are made with mkExpr(); "
-                "to make variables and constants, see mkVar(), mkBoundVar(), "
-                "and mkConst().");
-  CheckArgument(n >= minArity(kind) && n <= maxArity(kind), kind,
-                "Exprs with kind %s must have at least %u children and "
-                "at most %u children (the one under construction has %u)",
-                kind::kindToString(kind).c_str(),
-                minArity(kind), maxArity(kind), n);
+  PrettyCheckArgument(
+      mk == kind::metakind::PARAMETERIZED ||
+      mk == kind::metakind::OPERATOR, kind,
+      "Only operator-style expressions are made with mkExpr(); "
+      "to make variables and constants, see mkVar(), mkBoundVar(), "
+      "and mkConst().");
+  PrettyCheckArgument(
+      n >= minArity(kind) && n <= maxArity(kind), kind,
+      "Exprs with kind %s must have at least %u children and "
+      "at most %u children (the one under construction has %u)",
+      kind::kindToString(kind).c_str(),
+      minArity(kind), maxArity(kind), n);
   NodeManagerScope nms(d_nodeManager);
   try {
     INC_STAT(kind);
@@ -263,16 +271,18 @@ Expr ExprManager::mkExpr(Kind kind, Expr child1, Expr child2, Expr child3,
                          Expr child4, Expr child5) {
   const kind::MetaKind mk = kind::metaKindOf(kind);
   const unsigned n = 5 - (mk == kind::metakind::PARAMETERIZED ? 1 : 0);
-  CheckArgument(mk == kind::metakind::PARAMETERIZED ||
-                mk == kind::metakind::OPERATOR, kind,
-                "Only operator-style expressions are made with mkExpr(); "
-                "to make variables and constants, see mkVar(), mkBoundVar(), "
-                "and mkConst().");
-  CheckArgument(n >= minArity(kind) && n <= maxArity(kind), kind,
-                "Exprs with kind %s must have at least %u children and "
-                "at most %u children (the one under construction has %u)",
-                kind::kindToString(kind).c_str(),
-                minArity(kind), maxArity(kind), n);
+  PrettyCheckArgument(
+      mk == kind::metakind::PARAMETERIZED ||
+      mk == kind::metakind::OPERATOR, kind,
+      "Only operator-style expressions are made with mkExpr(); "
+      "to make variables and constants, see mkVar(), mkBoundVar(), "
+      "and mkConst().");
+  PrettyCheckArgument(
+      n >= minArity(kind) && n <= maxArity(kind), kind,
+      "Exprs with kind %s must have at least %u children and "
+      "at most %u children (the one under construction has %u)",
+      kind::kindToString(kind).c_str(),
+      minArity(kind), maxArity(kind), n);
   NodeManagerScope nms(d_nodeManager);
   try {
     INC_STAT(kind);
@@ -290,16 +300,18 @@ Expr ExprManager::mkExpr(Kind kind, Expr child1, Expr child2, Expr child3,
 Expr ExprManager::mkExpr(Kind kind, const std::vector<Expr>& children) {
   const kind::MetaKind mk = kind::metaKindOf(kind);
   const unsigned n = children.size() - (mk == kind::metakind::PARAMETERIZED ? 1 : 0);
-  CheckArgument(mk == kind::metakind::PARAMETERIZED ||
-                mk == kind::metakind::OPERATOR, kind,
-                "Only operator-style expressions are made with mkExpr(); "
-                "to make variables and constants, see mkVar(), mkBoundVar(), "
-                "and mkConst().");
-  CheckArgument(n >= minArity(kind) && n <= maxArity(kind), kind,
-                "Exprs with kind %s must have at least %u children and "
-                "at most %u children (the one under construction has %u)",
-                kind::kindToString(kind).c_str(),
-                minArity(kind), maxArity(kind), n);
+  PrettyCheckArgument(
+      mk == kind::metakind::PARAMETERIZED ||
+      mk == kind::metakind::OPERATOR, kind,
+      "Only operator-style expressions are made with mkExpr(); "
+      "to make variables and constants, see mkVar(), mkBoundVar(), "
+      "and mkConst().");
+  PrettyCheckArgument(
+      n >= minArity(kind) && n <= maxArity(kind), kind,
+      "Exprs with kind %s must have at least %u children and "
+      "at most %u children (the one under construction has %u)",
+      kind::kindToString(kind).c_str(),
+      minArity(kind), maxArity(kind), n);
 
   NodeManagerScope nms(d_nodeManager);
 
@@ -321,17 +333,20 @@ Expr ExprManager::mkExpr(Kind kind, const std::vector<Expr>& children) {
 Expr ExprManager::mkExpr(Kind kind, Expr child1,
                          const std::vector<Expr>& otherChildren) {
   const kind::MetaKind mk = kind::metaKindOf(kind);
-  const unsigned n = otherChildren.size() - (mk == kind::metakind::PARAMETERIZED ? 1 : 0) + 1;
-  CheckArgument(mk == kind::metakind::PARAMETERIZED ||
-                mk == kind::metakind::OPERATOR, kind,
-                "Only operator-style expressions are made with mkExpr(); "
-                "to make variables and constants, see mkVar(), mkBoundVar(), "
-                "and mkConst().");
-  CheckArgument(n >= minArity(kind) && n <= maxArity(kind), kind,
-                "Exprs with kind %s must have at least %u children and "
-                "at most %u children (the one under construction has %u)",
-                kind::kindToString(kind).c_str(),
-                minArity(kind), maxArity(kind), n);
+  const unsigned n =
+      otherChildren.size() - (mk == kind::metakind::PARAMETERIZED ? 1 : 0) + 1;
+  PrettyCheckArgument(
+      mk == kind::metakind::PARAMETERIZED ||
+      mk == kind::metakind::OPERATOR, kind,
+      "Only operator-style expressions are made with mkExpr(); "
+      "to make variables and constants, see mkVar(), mkBoundVar(), "
+      "and mkConst().");
+  PrettyCheckArgument(
+      n >= minArity(kind) && n <= maxArity(kind), kind,
+      "Exprs with kind %s must have at least %u children and "
+      "at most %u children (the one under construction has %u)",
+      kind::kindToString(kind).c_str(),
+      minArity(kind), maxArity(kind), n);
 
   NodeManagerScope nms(d_nodeManager);
 
@@ -355,13 +370,16 @@ Expr ExprManager::mkExpr(Kind kind, Expr child1,
 Expr ExprManager::mkExpr(Expr opExpr) {
   const unsigned n = 0;
   Kind kind = NodeManager::operatorToKind(opExpr.getNode());
-  CheckArgument(opExpr.getKind() == kind::BUILTIN || kind::metaKindOf(kind) == kind::metakind::PARAMETERIZED, opExpr,
-                "This Expr constructor is for parameterized kinds only");
-  CheckArgument(n >= minArity(kind) && n <= maxArity(kind), kind,
-                "Exprs with kind %s must have at least %u children and "
-                "at most %u children (the one under construction has %u)",
-                kind::kindToString(kind).c_str(),
-                minArity(kind), maxArity(kind), n);
+  PrettyCheckArgument(
+      opExpr.getKind() == kind::BUILTIN ||
+      kind::metaKindOf(kind) == kind::metakind::PARAMETERIZED, opExpr,
+      "This Expr constructor is for parameterized kinds only");
+  PrettyCheckArgument(
+      n >= minArity(kind) && n <= maxArity(kind), kind,
+      "Exprs with kind %s must have at least %u children and "
+      "at most %u children (the one under construction has %u)",
+      kind::kindToString(kind).c_str(),
+      minArity(kind), maxArity(kind), n);
   NodeManagerScope nms(d_nodeManager);
   try {
     INC_STAT(kind);
@@ -374,13 +392,16 @@ Expr ExprManager::mkExpr(Expr opExpr) {
 Expr ExprManager::mkExpr(Expr opExpr, Expr child1) {
   const unsigned n = 1;
   Kind kind = NodeManager::operatorToKind(opExpr.getNode());
-  CheckArgument(opExpr.getKind() == kind::BUILTIN || kind::metaKindOf(kind) == kind::metakind::PARAMETERIZED, opExpr,
-                "This Expr constructor is for parameterized kinds only");
-  CheckArgument(n >= minArity(kind) && n <= maxArity(kind), kind,
-                "Exprs with kind %s must have at least %u children and "
-                "at most %u children (the one under construction has %u)",
-                kind::kindToString(kind).c_str(),
-                minArity(kind), maxArity(kind), n);
+  PrettyCheckArgument(
+      (opExpr.getKind() == kind::BUILTIN ||
+       kind::metaKindOf(kind) == kind::metakind::PARAMETERIZED), opExpr,
+      "This Expr constructor is for parameterized kinds only");
+  PrettyCheckArgument(
+      n >= minArity(kind) && n <= maxArity(kind), kind,
+      "Exprs with kind %s must have at least %u children and "
+      "at most %u children (the one under construction has %u)",
+      kind::kindToString(kind).c_str(),
+      minArity(kind), maxArity(kind), n);
   NodeManagerScope nms(d_nodeManager);
   try {
     INC_STAT(kind);
@@ -393,13 +414,16 @@ Expr ExprManager::mkExpr(Expr opExpr, Expr child1) {
 Expr ExprManager::mkExpr(Expr opExpr, Expr child1, Expr child2) {
   const unsigned n = 2;
   Kind kind = NodeManager::operatorToKind(opExpr.getNode());
-  CheckArgument(opExpr.getKind() == kind::BUILTIN || kind::metaKindOf(kind) == kind::metakind::PARAMETERIZED, opExpr,
-                "This Expr constructor is for parameterized kinds only");
-  CheckArgument(n >= minArity(kind) && n <= maxArity(kind), kind,
-                "Exprs with kind %s must have at least %u children and "
-                "at most %u children (the one under construction has %u)",
-                kind::kindToString(kind).c_str(),
-                minArity(kind), maxArity(kind), n);
+  PrettyCheckArgument(
+      (opExpr.getKind() == kind::BUILTIN ||
+       kind::metaKindOf(kind) == kind::metakind::PARAMETERIZED), opExpr,
+      "This Expr constructor is for parameterized kinds only");
+  PrettyCheckArgument(
+      n >= minArity(kind) && n <= maxArity(kind), kind,
+      "Exprs with kind %s must have at least %u children and "
+      "at most %u children (the one under construction has %u)",
+      kind::kindToString(kind).c_str(),
+      minArity(kind), maxArity(kind), n);
   NodeManagerScope nms(d_nodeManager);
   try {
     INC_STAT(kind);
@@ -414,9 +438,11 @@ Expr ExprManager::mkExpr(Expr opExpr, Expr child1, Expr child2) {
 Expr ExprManager::mkExpr(Expr opExpr, Expr child1, Expr child2, Expr child3) {
   const unsigned n = 3;
   Kind kind = NodeManager::operatorToKind(opExpr.getNode());
-  CheckArgument(opExpr.getKind() == kind::BUILTIN || kind::metaKindOf(kind) == kind::metakind::PARAMETERIZED, opExpr,
+  PrettyCheckArgument(
+      (opExpr.getKind() == kind::BUILTIN ||
+       kind::metaKindOf(kind) == kind::metakind::PARAMETERIZED), opExpr,
                 "This Expr constructor is for parameterized kinds only");
-  CheckArgument(n >= minArity(kind) && n <= maxArity(kind), kind,
+  PrettyCheckArgument(n >= minArity(kind) && n <= maxArity(kind), kind,
                 "Exprs with kind %s must have at least %u children and "
                 "at most %u children (the one under construction has %u)",
                 kind::kindToString(kind).c_str(),
@@ -437,13 +463,18 @@ Expr ExprManager::mkExpr(Expr opExpr, Expr child1, Expr child2, Expr child3,
                          Expr child4) {
   const unsigned n = 4;
   Kind kind = NodeManager::operatorToKind(opExpr.getNode());
-  CheckArgument(opExpr.getKind() == kind::BUILTIN || kind::metaKindOf(kind) == kind::metakind::PARAMETERIZED, opExpr,
-                "This Expr constructor is for parameterized kinds only");
-  CheckArgument(n >= minArity(kind) && n <= maxArity(kind), kind,
-                "Exprs with kind %s must have at least %u children and "
-                "at most %u children (the one under construction has %u)",
-                kind::kindToString(kind).c_str(),
-                minArity(kind), maxArity(kind), n);
+  PrettyCheckArgument(
+      (opExpr.getKind() == kind::BUILTIN ||
+       kind::metaKindOf(kind) == kind::metakind::PARAMETERIZED), opExpr,
+      "This Expr constructor is for parameterized kinds only");
+
+  PrettyCheckArgument(
+      n >= minArity(kind) && n <= maxArity(kind), kind,
+      "Exprs with kind %s must have at least %u children and "
+      "at most %u children (the one under construction has %u)",
+      kind::kindToString(kind).c_str(),
+      minArity(kind), maxArity(kind), n);
+
   NodeManagerScope nms(d_nodeManager);
   try {
     INC_STAT(kind);
@@ -461,13 +492,16 @@ Expr ExprManager::mkExpr(Expr opExpr, Expr child1, Expr child2, Expr child3,
                          Expr child4, Expr child5) {
   const unsigned n = 5;
   Kind kind = NodeManager::operatorToKind(opExpr.getNode());
-  CheckArgument(opExpr.getKind() == kind::BUILTIN || kind::metaKindOf(kind) == kind::metakind::PARAMETERIZED, opExpr,
-                "This Expr constructor is for parameterized kinds only");
-  CheckArgument(n >= minArity(kind) && n <= maxArity(kind), kind,
-                "Exprs with kind %s must have at least %u children and "
-                "at most %u children (the one under construction has %u)",
-                kind::kindToString(kind).c_str(),
-                minArity(kind), maxArity(kind), n);
+  PrettyCheckArgument(
+      (opExpr.getKind() == kind::BUILTIN ||
+       kind::metaKindOf(kind) == kind::metakind::PARAMETERIZED), opExpr,
+      "This Expr constructor is for parameterized kinds only");
+  PrettyCheckArgument(
+      n >= minArity(kind) && n <= maxArity(kind), kind,
+      "Exprs with kind %s must have at least %u children and "
+      "at most %u children (the one under construction has %u)",
+      kind::kindToString(kind).c_str(),
+      minArity(kind), maxArity(kind), n);
   NodeManagerScope nms(d_nodeManager);
   try {
     INC_STAT(kind);
@@ -485,13 +519,16 @@ Expr ExprManager::mkExpr(Expr opExpr, Expr child1, Expr child2, Expr child3,
 Expr ExprManager::mkExpr(Expr opExpr, const std::vector<Expr>& children) {
   const unsigned n = children.size();
   Kind kind = NodeManager::operatorToKind(opExpr.getNode());
-  CheckArgument(opExpr.getKind() == kind::BUILTIN || kind::metaKindOf(kind) == kind::metakind::PARAMETERIZED, opExpr,
-                "This Expr constructor is for parameterized kinds only");
-  CheckArgument(n >= minArity(kind) && n <= maxArity(kind), kind,
-                "Exprs with kind %s must have at least %u children and "
-                "at most %u children (the one under construction has %u)",
-                kind::kindToString(kind).c_str(),
-                minArity(kind), maxArity(kind), n);
+  PrettyCheckArgument(
+      (opExpr.getKind() == kind::BUILTIN ||
+       kind::metaKindOf(kind) == kind::metakind::PARAMETERIZED), opExpr,
+      "This Expr constructor is for parameterized kinds only");
+  PrettyCheckArgument(
+      n >= minArity(kind) && n <= maxArity(kind), kind,
+      "Exprs with kind %s must have at least %u children and "
+      "at most %u children (the one under construction has %u)",
+      kind::kindToString(kind).c_str(),
+      minArity(kind), maxArity(kind), n);
 
   NodeManagerScope nms(d_nodeManager);
 
@@ -652,11 +689,12 @@ ExprManager::mkMutualDatatypeTypes(const std::vector<Datatype>& datatypes,
     }
     Type type(d_nodeManager, typeNode);
     DatatypeType dtt(type);
-    CheckArgument(nameResolutions.find((*i).getName()) == nameResolutions.end(),
-                  datatypes,
-                  "cannot construct two datatypes at the same time "
-                  "with the same name `%s'",
-                  (*i).getName().c_str());
+    PrettyCheckArgument(
+        nameResolutions.find((*i).getName()) == nameResolutions.end(),
+        datatypes,
+        "cannot construct two datatypes at the same time "
+        "with the same name `%s'",
+        (*i).getName().c_str());
     nameResolutions.insert(std::make_pair((*i).getName(), dtt));
     dtts.push_back(dtt);
   }
@@ -687,10 +725,11 @@ ExprManager::mkMutualDatatypeTypes(const std::vector<Datatype>& datatypes,
     }
     std::map<std::string, DatatypeType>::const_iterator resolver =
       nameResolutions.find(name);
-    CheckArgument(resolver != nameResolutions.end(),
-                  unresolvedTypes,
-                  "cannot resolve type `%s'; it's not among "
-                  "the datatypes being defined", name.c_str());
+    PrettyCheckArgument(
+        resolver != nameResolutions.end(),
+        unresolvedTypes,
+        "cannot resolve type `%s'; it's not among "
+        "the datatypes being defined", name.c_str());
     // We will instruct the Datatype to substitute "*i" (the
     // unresolved SortType used as a placeholder in complex types)
     // with "(*resolver).second" (the DatatypeType we created in the
@@ -902,9 +941,10 @@ Expr ExprManager::mkBoundVar(Type type) {
 
 Expr ExprManager::mkAssociative(Kind kind,
                                 const std::vector<Expr>& children) {
-  CheckArgument( kind::isAssociative(kind), kind,
-                 "Illegal kind in mkAssociative: %s",
-                 kind::kindToString(kind).c_str());
+  PrettyCheckArgument(
+      kind::isAssociative(kind), kind,
+      "Illegal kind in mkAssociative: %s",
+      kind::kindToString(kind).c_str());
 
   NodeManagerScope nms(d_nodeManager);
   const unsigned int max = maxArity(kind);

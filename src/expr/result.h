@@ -75,49 +75,20 @@ private:
   std::string d_inputName;
 
 public:
-  Result() :
-    d_sat(SAT_UNKNOWN),
-    d_validity(VALIDITY_UNKNOWN),
-    d_which(TYPE_NONE),
-    d_unknownExplanation(UNKNOWN_REASON),
-    d_inputName("") {
-  }
-  Result(enum Sat s, std::string inputName = "") :
-    d_sat(s),
-    d_validity(VALIDITY_UNKNOWN),
-    d_which(TYPE_SAT),
-    d_unknownExplanation(UNKNOWN_REASON),
-    d_inputName(inputName) {
-    CheckArgument(s != SAT_UNKNOWN,
-                  "Must provide a reason for satisfiability being unknown");
-  }
-  Result(enum Validity v, std::string inputName = "") :
-    d_sat(SAT_UNKNOWN),
-    d_validity(v),
-    d_which(TYPE_VALIDITY),
-    d_unknownExplanation(UNKNOWN_REASON),
-    d_inputName(inputName) {
-    CheckArgument(v != VALIDITY_UNKNOWN,
-                  "Must provide a reason for validity being unknown");
-  }
-  Result(enum Sat s, enum UnknownExplanation unknownExplanation, std::string inputName = "") :
-    d_sat(s),
-    d_validity(VALIDITY_UNKNOWN),
-    d_which(TYPE_SAT),
-    d_unknownExplanation(unknownExplanation),
-    d_inputName(inputName) {
-    CheckArgument(s == SAT_UNKNOWN,
-                  "improper use of unknown-result constructor");
-  }
-  Result(enum Validity v, enum UnknownExplanation unknownExplanation, std::string inputName = "") :
-    d_sat(SAT_UNKNOWN),
-    d_validity(v),
-    d_which(TYPE_VALIDITY),
-    d_unknownExplanation(unknownExplanation),
-    d_inputName(inputName) {
-    CheckArgument(v == VALIDITY_UNKNOWN,
-                  "improper use of unknown-result constructor");
-  }
+
+  Result();
+
+  Result(enum Sat s, std::string inputName = "");
+
+  Result(enum Validity v, std::string inputName = "");
+
+  Result(enum Sat s,
+         enum UnknownExplanation unknownExplanation,
+         std::string inputName = "");
+
+  Result(enum Validity v, enum UnknownExplanation unknownExplanation,
+         std::string inputName = "");
+
   Result(const std::string& s, std::string inputName = "");
 
   Result(const Result& r, std::string inputName) {
@@ -128,24 +99,24 @@ public:
   enum Sat isSat() const {
     return d_which == TYPE_SAT ? d_sat : SAT_UNKNOWN;
   }
+
   enum Validity isValid() const {
     return d_which == TYPE_VALIDITY ? d_validity : VALIDITY_UNKNOWN;
   }
+
   bool isUnknown() const {
     return isSat() == SAT_UNKNOWN && isValid() == VALIDITY_UNKNOWN;
   }
+
   Type getType() const {
     return d_which;
   }
+
   bool isNull() const {
     return d_which == TYPE_NONE;
   }
-  enum UnknownExplanation whyUnknown() const {
-    CheckArgument( isUnknown(), this,
-                   "This result is not unknown, so the reason for "
-                   "being unknown cannot be inquired of it" );
-    return d_unknownExplanation;
-  }
+
+  enum UnknownExplanation whyUnknown() const;
 
   bool operator==(const Result& r) const throw();
   inline bool operator!=(const Result& r) const throw();

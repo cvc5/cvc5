@@ -20,14 +20,13 @@
 #ifndef __CVC4__INTEGER_H
 #define __CVC4__INTEGER_H
 
-#include <string>
-#include <sstream>
-#include <iostream>
-
-#include <cln/integer.h>
 #include <cln/input.h>
+#include <cln/integer.h>
 #include <cln/integer_io.h>
+#include <iostream>
 #include <limits>
+#include <sstream>
+#include <string>
 
 #include "base/exception.h"
 
@@ -56,6 +55,17 @@ private:
   void readInt(const cln::cl_read_flags& flags, const std::string& s, unsigned base) throw(std::invalid_argument);
 
   void parseInt(const std::string& s, unsigned base) throw(std::invalid_argument);
+
+
+  // These constants are to help with CLN conversion in 32 bit.
+  // See http://www.ginac.de/CLN/cln.html#Conversions
+  static signed int s_fastSignedIntMax; /*  2^29 - 1 */
+  static signed int s_fastSignedIntMin; /* -2^29 */
+  static unsigned int s_fastUnsignedIntMax; /* 2^29 - 1 */
+
+  static signed long s_slowSignedIntMax; /*  std::numeric_limits<signed int>::max() */
+  static signed long s_slowSignedIntMin; /*  std::numeric_limits<signed int>::min() */
+  static unsigned long s_slowUnsignedIntMax; /*  std::numeric_limits<unsigned int>::max() */
 
 public:
 
@@ -186,14 +196,7 @@ public:
     return Integer(cln::logior(d_value, mask));
   }
 
-  Integer oneExtend(uint32_t size, uint32_t amount) const {
-    DebugCheckArgument((*this) < Integer(1).multiplyByPow2(size), size);
-    cln::cl_byte range(amount, size);
-    cln::cl_I allones = (cln::cl_I(1) << (size + amount))- 1; // 2^size - 1
-    Integer temp(allones);
-
-    return Integer(cln::deposit_field(allones, d_value, range));
-  }
+  Integer oneExtend(uint32_t size, uint32_t amount) const;
 
   uint32_t toUnsignedInt() const {
     return cln::cl_I_to_uint(d_value);
@@ -300,10 +303,7 @@ public:
   /**
    * If y divides *this, then exactQuotient returns (this/y)
    */
-  Integer exactQuotient(const Integer& y) const {
-    DebugCheckArgument(y.divides(*this), y);
-    return Integer( cln::exquo(d_value, y.d_value) );
-  }
+  Integer exactQuotient(const Integer& y) const;
 
   Integer modByPow2(uint32_t exp) const {
     cln::cl_byte range(exp, 0);

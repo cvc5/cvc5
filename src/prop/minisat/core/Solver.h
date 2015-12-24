@@ -23,7 +23,7 @@ OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWA
 
 #include "cvc4_private.h"
 
-#include <iostream>
+#include <iosfwd>
 
 #include "base/output.h"
 #include "context/context.h"

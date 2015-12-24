@@ -16,16 +16,17 @@
  **
  **/
 
+#include "cvc4_private.h"
+
 #ifndef __CVC4__CNF_PROOF_H
 #define __CVC4__CNF_PROOF_H
 
-#include "cvc4_private.h"
-#include "util/proof.h"
-#include "proof/sat_proof.h"
-
-#include <ext/hash_set>
 #include <ext/hash_map>
-#include <iostream>
+#include <ext/hash_set>
+#include <iosfwd>
+
+#include "proof/sat_proof.h"
+#include "util/proof.h"
 
 namespace CVC4 {
 namespace prop {

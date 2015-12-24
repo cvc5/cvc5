@@ -22,10 +22,11 @@
 #include "theory/uf/theory_uf_model.h"
 
 using namespace std;
-using namespace CVC4;
 using namespace CVC4::kind;
 using namespace CVC4::context;
-using namespace CVC4::theory;
+
+namespace CVC4 {
+namespace theory {
 
 TheoryModel::TheoryModel(context::Context* c, std::string name, bool enableFuncModels) :
   d_substitutions(c, false), d_modelBuilt(c, false), d_enableFuncModels(enableFuncModels)
@@ -963,3 +964,6 @@ void TheoryEngineModelBuilder::processBuildModel(TheoryModel* m, bool fullModel)
     }
   }
 }
+
+} /* namespace CVC4::theory */
+} /* namespace CVC4 */

@@ -21,15 +21,18 @@
 
 #include "cvc4autoconfig.h"
 
-#ifndef CVC4_GMP_IMP
+#ifndef CVC4_GMP_IMP // Make sure this comes after cvc4autoconfig.h
 #  error "This source should only ever be built if CVC4_GMP_IMP is on !"
 #endif /* CVC4_GMP_IMP */
 
-std::ostream& CVC4::operator<<(std::ostream& os, const Rational& q){
+#include "base/cvc4_assert.h"
+
+namespace CVC4 {
+
+std::ostream& operator<<(std::ostream& os, const Rational& q){
   return os << q.toString();
 }
 
-namespace CVC4 {
 
 /* Computes a rational given a decimal string. The rational
  * version of <code>xxx.yyy</code> is <code>xxxyyy/(10^3)</code>.

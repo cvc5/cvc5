@@ -34,9 +34,11 @@ Predicate::Predicate(const Expr& e) throw(IllegalArgumentException)
     : d_predicate(new Expr(e))
     , d_witness(new Expr())
 {
-  CheckArgument(! e.isNull(), e, "Predicate cannot be null");
-  CheckArgument(e.getType().isPredicate(), e, "Expression given is not predicate");
-  CheckArgument(FunctionType(e.getType()).getArgTypes().size() == 1, e, "Expression given is not predicate of a single argument");
+  PrettyCheckArgument(! e.isNull(), e, "Predicate cannot be null");
+  PrettyCheckArgument(e.getType().isPredicate(), e,
+                      "Expression given is not predicate");
+  PrettyCheckArgument(FunctionType(e.getType()).getArgTypes().size() == 1, e,
+                      "Expression given is not predicate of a single argument");
 }
 
 Predicate::Predicate(const Expr& e, const Expr& w)
@@ -44,9 +46,11 @@ Predicate::Predicate(const Expr& e, const Expr& w)
     : d_predicate(new Expr(e))
     , d_witness(new Expr(w))
 {
-  CheckArgument(! e.isNull(), e, "Predicate cannot be null");
-  CheckArgument(e.getType().isPredicate(), e, "Expression given is not predicate");
-  CheckArgument(FunctionType(e.getType()).getArgTypes().size() == 1, e, "Expression given is not predicate of a single argument");
+  PrettyCheckArgument(! e.isNull(), e, "Predicate cannot be null");
+  PrettyCheckArgument(e.getType().isPredicate(), e,
+                      "Expression given is not predicate");
+  PrettyCheckArgument(FunctionType(e.getType()).getArgTypes().size() == 1, e,
+                      "Expression given is not predicate of a single argument");
 }
 
 Predicate::~Predicate() {

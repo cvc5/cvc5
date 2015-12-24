@@ -798,13 +798,16 @@ inline size_t Datatype::getNumParameters() const throw() {
 }
 
 inline Type Datatype::getParameter( unsigned int i ) const {
-  CheckArgument(isParametric(), this, "cannot get type parameter of a non-parametric datatype");
-  CheckArgument(i < d_params.size(), i, "type parameter index out of range for datatype");
+  CheckArgument(isParametric(), this,
+                "Cannot get type parameter of a non-parametric datatype.");
+  CheckArgument(i < d_params.size(), i,
+                "Type parameter index out of range for datatype.");
   return d_params[i];
 }
 
 inline std::vector<Type> Datatype::getParameters() const {
-  CheckArgument(isParametric(), this, "cannot get type parameters of a non-parametric datatype");
+  CheckArgument(isParametric(), this,
+                "Cannot get type parameters of a non-parametric datatype.");
   return d_params;
 }
 

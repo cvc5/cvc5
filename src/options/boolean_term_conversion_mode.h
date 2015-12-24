@@ -20,7 +20,7 @@
 #ifndef __CVC4__THEORY__BOOLEANS__BOOLEAN_TERM_CONVERSION_MODE_H
 #define __CVC4__THEORY__BOOLEANS__BOOLEAN_TERM_CONVERSION_MODE_H
 
-#include <iostream>
+#include <iosfwd>
 
 namespace CVC4 {
 namespace theory {

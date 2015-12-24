@@ -21,10 +21,10 @@
 #include "main/command_executor.h"
 #include "main/portfolio_util.h"
 
-#include <vector>
-#include <string>
-#include <iostream>
+#include <iosfwd>
 #include <sstream>
+#include <string>
+#include <vector>
 
 namespace CVC4 {
 

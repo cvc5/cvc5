@@ -393,8 +393,8 @@ TypeNode NodeManager::mkConstructorType(const DatatypeConstructor& constructor,
     sorts.push_back(sort);
   }
   Debug("datatypes") << "ctor range: " << range << endl;
-  CheckArgument(!range.isFunctionLike(), range,
-                "cannot create higher-order function types");
+  PrettyCheckArgument(!range.isFunctionLike(), range,
+                      "cannot create higher-order function types");
   sorts.push_back(range);
   return mkTypeNode(kind::CONSTRUCTOR_TYPE, sorts);
 }

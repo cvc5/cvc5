@@ -17,6 +17,7 @@
 
 #include "expr/statistics_registry.h"
 
+#include "base/cvc4_assert.h"
 #include "expr/expr_manager.h"
 #include "lib/clock_gettime.h"
 #include "smt/smt_engine.h"
@@ -35,6 +36,19 @@
 #warning "TODO: Make TimerStat non-public again."
 
 namespace CVC4 {
+
+/** Construct a statistics registry */
+StatisticsRegistry::StatisticsRegistry(const std::string& name)
+  throw(CVC4::IllegalArgumentException) :
+  Stat(name) {
+
+  d_prefix = name;
+  if(__CVC4_USE_STATISTICS) {
+    PrettyCheckArgument(d_name.find(s_regDelim) == std::string::npos, name,
+                        "StatisticsRegistry names cannot contain the string \"%s\"",
+                    s_regDelim.c_str());
+  }
+}
 
 namespace stats {
 
@@ -60,9 +74,9 @@ StatisticsRegistry* StatisticsRegistry::current() {
 void StatisticsRegistry::registerStat(Stat* s) throw(CVC4::IllegalArgumentException) {
 #ifdef CVC4_STATISTICS_ON
   StatSet& stats = current()->d_stats;
-  CheckArgument(stats.find(s) == stats.end(), s,
-                "Statistic `%s' was already registered with this registry.",
-                s->getName().c_str());
+  PrettyCheckArgument(stats.find(s) == stats.end(), s,
+                      "Statistic `%s' was already registered with this registry.",
+                      s->getName().c_str());
   stats.insert(s);
 #endif /* CVC4_STATISTICS_ON */
 }/* StatisticsRegistry::registerStat() */
@@ -70,7 +84,7 @@ void StatisticsRegistry::registerStat(Stat* s) throw(CVC4::IllegalArgumentExcept
 void StatisticsRegistry::unregisterStat(Stat* s) throw(CVC4::IllegalArgumentException) {
 #ifdef CVC4_STATISTICS_ON
   StatSet& stats = current()->d_stats;
-  CheckArgument(stats.find(s) != stats.end(), s,
+  PrettyCheckArgument(stats.find(s) != stats.end(), s,
                 "Statistic `%s' was not registered with this registry.",
                 s->getName().c_str());
   stats.erase(s);
@@ -81,14 +95,14 @@ void StatisticsRegistry::unregisterStat(Stat* s) throw(CVC4::IllegalArgumentExce
 
 void StatisticsRegistry::registerStat_(Stat* s) throw(CVC4::IllegalArgumentException) {
 #ifdef CVC4_STATISTICS_ON
-  CheckArgument(d_stats.find(s) == d_stats.end(), s);
+  PrettyCheckArgument(d_stats.find(s) == d_stats.end(), s);
   d_stats.insert(s);
 #endif /* CVC4_STATISTICS_ON */
 }/* StatisticsRegistry::registerStat_() */
 
 void StatisticsRegistry::unregisterStat_(Stat* s) throw(CVC4::IllegalArgumentException) {
 #ifdef CVC4_STATISTICS_ON
-  CheckArgument(d_stats.find(s) != d_stats.end(), s);
+  PrettyCheckArgument(d_stats.find(s) != d_stats.end(), s);
   d_stats.erase(s);
 #endif /* CVC4_STATISTICS_ON */
 }/* StatisticsRegistry::unregisterStat_() */
@@ -107,7 +121,7 @@ void StatisticsRegistry::flushInformation(std::ostream &out) const {
 
 void TimerStat::start() {
   if(__CVC4_USE_STATISTICS) {
-    CheckArgument(!d_running, *this, "timer already running");
+    PrettyCheckArgument(!d_running, *this, "timer already running");
     clock_gettime(CLOCK_MONOTONIC, &d_start);
     d_running = true;
   }
@@ -115,7 +129,7 @@ void TimerStat::start() {
 
 void TimerStat::stop() {
   if(__CVC4_USE_STATISTICS) {
-    CheckArgument(d_running, *this, "timer not running");
+    PrettyCheckArgument(d_running, *this, "timer not running");
     ::timespec end;
     clock_gettime(CLOCK_MONOTONIC, &end);
     d_data += end - d_start;

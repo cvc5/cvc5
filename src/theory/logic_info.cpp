@@ -78,8 +78,167 @@ LogicInfo::LogicInfo(const char* logicString) throw(IllegalArgumentException) :
   lock();
 }
 
+/** Is sharing enabled for this logic? */
+bool LogicInfo::isSharingEnabled() const {
+  PrettyCheckArgument(d_locked, *this,
+                      "This LogicInfo isn't locked yet, and cannot be queried");
+  return d_sharingTheories > 1;
+}
+
+
+/** Is the given theory module active in this logic? */
+bool LogicInfo::isTheoryEnabled(theory::TheoryId theory) const {
+  PrettyCheckArgument(d_locked, *this,
+                      "This LogicInfo isn't locked yet, and cannot be queried");
+  return d_theories[theory];
+}
+
+/** Is this a quantified logic? */
+bool LogicInfo::isQuantified() const {
+  PrettyCheckArgument(d_locked, *this,
+                      "This LogicInfo isn't locked yet, and cannot be queried");
+  return isTheoryEnabled(theory::THEORY_QUANTIFIERS);
+}
+
+/** Is this the all-inclusive logic? */
+bool LogicInfo::hasEverything() const {
+  PrettyCheckArgument(d_locked, *this,
+                      "This LogicInfo isn't locked yet, and cannot be queried");
+  LogicInfo everything;
+  everything.lock();
+  return *this == everything;
+}
+
+/** Is this the all-exclusive logic?  (Here, that means propositional logic) */
+bool LogicInfo::hasNothing() const {
+  PrettyCheckArgument(d_locked, *this,
+                      "This LogicInfo isn't locked yet, and cannot be queried");
+  LogicInfo nothing("");
+  nothing.lock();
+  return *this == nothing;
+}
+
+bool LogicInfo::isPure(theory::TheoryId theory) const {
+  PrettyCheckArgument(d_locked, *this,
+                      "This LogicInfo isn't locked yet, and cannot be queried");
+  // the third and fourth conjucts are really just to rule out the misleading
+  // case where you ask isPure(THEORY_BOOL) and get true even in e.g. QF_LIA
+  return isTheoryEnabled(theory) && !isSharingEnabled() &&
+      ( !isTrueTheory(theory) || d_sharingTheories == 1 ) &&
+      ( isTrueTheory(theory) || d_sharingTheories == 0 );
+}
+
+bool LogicInfo::areIntegersUsed() const {
+  PrettyCheckArgument(d_locked, *this,
+                      "This LogicInfo isn't locked yet, and cannot be queried");
+  PrettyCheckArgument(
+      isTheoryEnabled(theory::THEORY_ARITH), *this,
+      "Arithmetic not used in this LogicInfo; cannot ask whether integers are used");
+  return d_integers;
+}
+
+bool LogicInfo::areRealsUsed() const {
+  PrettyCheckArgument(d_locked, *this,
+                      "This LogicInfo isn't locked yet, and cannot be queried");
+  PrettyCheckArgument(
+      isTheoryEnabled(theory::THEORY_ARITH), *this,
+      "Arithmetic not used in this LogicInfo; cannot ask whether reals are used");
+  return d_reals;
+}
+
+bool LogicInfo::isLinear() const {
+  PrettyCheckArgument(d_locked, *this,
+                      "This LogicInfo isn't locked yet, and cannot be queried");
+  PrettyCheckArgument(
+      isTheoryEnabled(theory::THEORY_ARITH), *this,
+      "Arithmetic not used in this LogicInfo; cannot ask whether it's linear");
+  return d_linear || d_differenceLogic;
+}
+
+bool LogicInfo::isDifferenceLogic() const {
+  PrettyCheckArgument(d_locked, *this,
+                      "This LogicInfo isn't locked yet, and cannot be queried");
+  PrettyCheckArgument(
+      isTheoryEnabled(theory::THEORY_ARITH), *this,
+      "Arithmetic not used in this LogicInfo; cannot ask whether it's difference logic");
+  return d_differenceLogic;
+}
+
+bool LogicInfo::hasCardinalityConstraints() const {
+  PrettyCheckArgument(d_locked, *this,
+                      "This LogicInfo isn't locked yet, and cannot be queried");
+  return d_cardinalityConstraints;
+}
+
+
+bool LogicInfo::operator==(const LogicInfo& other) const {
+  PrettyCheckArgument(isLocked() && other.isLocked(), *this,
+                      "This LogicInfo isn't locked yet, and cannot be queried");
+  for(theory::TheoryId id = theory::THEORY_FIRST; id < theory::THEORY_LAST; ++id) {
+    if(d_theories[id] != other.d_theories[id]) {
+      return false;
+    }
+  }
+
+  PrettyCheckArgument(d_sharingTheories == other.d_sharingTheories, *this,
+                      "LogicInfo internal inconsistency");
+  if(isTheoryEnabled(theory::THEORY_ARITH)) {
+    return
+        d_integers == other.d_integers &&
+        d_reals == other.d_reals &&
+        d_linear == other.d_linear &&
+        d_differenceLogic == other.d_differenceLogic;
+  } else {
+    return true;
+  }
+}
+
+bool LogicInfo::operator<=(const LogicInfo& other) const {
+  PrettyCheckArgument(isLocked() && other.isLocked(), *this,
+                      "This LogicInfo isn't locked yet, and cannot be queried");
+  for(theory::TheoryId id = theory::THEORY_FIRST; id < theory::THEORY_LAST; ++id) {
+    if(d_theories[id] && !other.d_theories[id]) {
+      return false;
+    }
+  }
+  PrettyCheckArgument(d_sharingTheories <= other.d_sharingTheories, *this,
+                      "LogicInfo internal inconsistency");
+  if(isTheoryEnabled(theory::THEORY_ARITH) && other.isTheoryEnabled(theory::THEORY_ARITH)) {
+    return
+        (!d_integers || other.d_integers) &&
+        (!d_reals || other.d_reals) &&
+        (d_linear || !other.d_linear) &&
+        (d_differenceLogic || !other.d_differenceLogic);
+  } else {
+    return true;
+  }
+}
+
+bool LogicInfo::operator>=(const LogicInfo& other) const {
+  PrettyCheckArgument(isLocked() && other.isLocked(), *this,
+                      "This LogicInfo isn't locked yet, and cannot be queried");
+  for(theory::TheoryId id = theory::THEORY_FIRST; id < theory::THEORY_LAST; ++id) {
+    if(!d_theories[id] && other.d_theories[id]) {
+      return false;
+    }
+  }
+  PrettyCheckArgument(d_sharingTheories >= other.d_sharingTheories, *this,
+                      "LogicInfo internal inconsistency");
+  if(isTheoryEnabled(theory::THEORY_ARITH) && other.isTheoryEnabled(theory::THEORY_ARITH)) {
+    return
+        (d_integers || !other.d_integers) &&
+        (d_reals || !other.d_reals) &&
+        (!d_linear || other.d_linear) &&
+        (!d_differenceLogic || other.d_differenceLogic);
+    } else {
+    return true;
+  }
+}
+
 std::string LogicInfo::getLogicString() const {
-  CheckArgument(d_locked, *this, "This LogicInfo isn't locked yet, and cannot be queried");
+  PrettyCheckArgument(
+      d_locked, *this,
+      "This LogicInfo isn't locked yet, and cannot be queried");
   if(d_logicString == "") {
     LogicInfo qf_all_supported;
     qf_all_supported.disableQuantifiers();
@@ -156,7 +315,8 @@ std::string LogicInfo::getLogicString() const {
 }
 
 void LogicInfo::setLogicString(std::string logicString) throw(IllegalArgumentException) {
-  CheckArgument(!d_locked, *this, "This LogicInfo is locked, and cannot be modified");
+  PrettyCheckArgument(!d_locked, *this,
+                      "This LogicInfo is locked, and cannot be modified");
   for(TheoryId id = THEORY_FIRST; id < THEORY_LAST; ++id) {
     d_theories[id] = false;// ensure it's cleared
   }
@@ -299,17 +459,17 @@ void LogicInfo::setLogicString(std::string logicString) throw(IllegalArgumentExc
 }
 
 void LogicInfo::enableEverything() {
-  CheckArgument(!d_locked, *this, "This LogicInfo is locked, and cannot be modified");
+  PrettyCheckArgument(!d_locked, *this, "This LogicInfo is locked, and cannot be modified");
   *this = LogicInfo();
 }
 
 void LogicInfo::disableEverything() {
-  CheckArgument(!d_locked, *this, "This LogicInfo is locked, and cannot be modified");
+  PrettyCheckArgument(!d_locked, *this, "This LogicInfo is locked, and cannot be modified");
   *this = LogicInfo("");
 }
 
 void LogicInfo::enableTheory(theory::TheoryId theory) {
-  CheckArgument(!d_locked, *this, "This LogicInfo is locked, and cannot be modified");
+  PrettyCheckArgument(!d_locked, *this, "This LogicInfo is locked, and cannot be modified");
   if(!d_theories[theory]) {
     if(isTrueTheory(theory)) {
       ++d_sharingTheories;
@@ -320,7 +480,7 @@ void LogicInfo::enableTheory(theory::TheoryId theory) {
 }
 
 void LogicInfo::disableTheory(theory::TheoryId theory) {
-  CheckArgument(!d_locked, *this, "This LogicInfo is locked, and cannot be modified");
+  PrettyCheckArgument(!d_locked, *this, "This LogicInfo is locked, and cannot be modified");
   if(d_theories[theory]) {
     if(isTrueTheory(theory)) {
       Assert(d_sharingTheories > 0);
@@ -336,14 +496,14 @@ void LogicInfo::disableTheory(theory::TheoryId theory) {
 }
 
 void LogicInfo::enableIntegers() {
-  CheckArgument(!d_locked, *this, "This LogicInfo is locked, and cannot be modified");
+  PrettyCheckArgument(!d_locked, *this, "This LogicInfo is locked, and cannot be modified");
   d_logicString = "";
   enableTheory(THEORY_ARITH);
   d_integers = true;
 }
 
 void LogicInfo::disableIntegers() {
-  CheckArgument(!d_locked, *this, "This LogicInfo is locked, and cannot be modified");
+  PrettyCheckArgument(!d_locked, *this, "This LogicInfo is locked, and cannot be modified");
   d_logicString = "";
   d_integers = false;
   if(!d_reals) {
@@ -352,14 +512,14 @@ void LogicInfo::disableIntegers() {
 }
 
 void LogicInfo::enableReals() {
-  CheckArgument(!d_locked, *this, "This LogicInfo is locked, and cannot be modified");
+  PrettyCheckArgument(!d_locked, *this, "This LogicInfo is locked, and cannot be modified");
   d_logicString = "";
   enableTheory(THEORY_ARITH);
   d_reals = true;
 }
 
 void LogicInfo::disableReals() {
-  CheckArgument(!d_locked, *this, "This LogicInfo is locked, and cannot be modified");
+  PrettyCheckArgument(!d_locked, *this, "This LogicInfo is locked, and cannot be modified");
   d_logicString = "";
   d_reals = false;
   if(!d_integers) {
@@ -368,21 +528,21 @@ void LogicInfo::disableReals() {
 }
 
 void LogicInfo::arithOnlyDifference() {
-  CheckArgument(!d_locked, *this, "This LogicInfo is locked, and cannot be modified");
+  PrettyCheckArgument(!d_locked, *this, "This LogicInfo is locked, and cannot be modified");
   d_logicString = "";
   d_linear = true;
   d_differenceLogic = true;
 }
 
 void LogicInfo::arithOnlyLinear() {
-  CheckArgument(!d_locked, *this, "This LogicInfo is locked, and cannot be modified");
+  PrettyCheckArgument(!d_locked, *this, "This LogicInfo is locked, and cannot be modified");
   d_logicString = "";
   d_linear = true;
   d_differenceLogic = false;
 }
 
 void LogicInfo::arithNonLinear() {
-  CheckArgument(!d_locked, *this, "This LogicInfo is locked, and cannot be modified");
+  PrettyCheckArgument(!d_locked, *this, "This LogicInfo is locked, and cannot be modified");
   d_logicString = "";
   d_linear = false;
   d_differenceLogic = false;

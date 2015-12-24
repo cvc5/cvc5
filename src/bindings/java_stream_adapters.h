@@ -33,7 +33,7 @@
 #include <sstream>
 #include <set>
 #include <cassert>
-#include <iostream>
+#include <iosfwd>
 #include <string>
 #include <jni.h>
 

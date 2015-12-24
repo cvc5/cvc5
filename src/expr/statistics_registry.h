@@ -607,15 +607,7 @@ public:
 
   /** Construct a statistics registry */
   StatisticsRegistry(const std::string& name)
-      throw(CVC4::IllegalArgumentException) :
-    Stat(name) {
-    d_prefix = name;
-    if(__CVC4_USE_STATISTICS) {
-      CheckArgument(d_name.find(s_regDelim) == std::string::npos, name,
-                    "StatisticsRegistry names cannot contain the string \"%s\"",
-                    s_regDelim.c_str());
-    }
-  }
+    throw(CVC4::IllegalArgumentException);
 
   /**
    * Set the name of this statistic registry, used as prefix during

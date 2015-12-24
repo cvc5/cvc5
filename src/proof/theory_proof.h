@@ -16,15 +16,16 @@
  **
  **/
 
+#include "cvc4_private.h"
 
 #ifndef __CVC4__THEORY_PROOF_H
 #define __CVC4__THEORY_PROOF_H
 
-#include "cvc4_private.h"
-#include "util/proof.h"
-#include "expr/expr.h"
 #include <ext/hash_set>
-#include <iostream>
+#include <iosfwd>
+
+#include "expr/expr.h"
+#include "util/proof.h"
 
 namespace CVC4 {
 

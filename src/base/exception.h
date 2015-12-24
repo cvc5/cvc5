@@ -19,13 +19,13 @@
 #ifndef __CVC4__EXCEPTION_H
 #define __CVC4__EXCEPTION_H
 
-#include <iostream>
-#include <string>
+#include <cstdarg>
+#include <cstdlib>
+#include <exception>
+#include <iosfwd>
 #include <sstream>
 #include <stdexcept>
-#include <exception>
-#include <cstdlib>
-#include <cstdarg>
+#include <string>
 
 namespace CVC4 {
 
@@ -81,44 +81,37 @@ protected:
   IllegalArgumentException() : Exception() {}
 
   void construct(const char* header, const char* extra,
-                 const char* function, const char* fmt, ...) {
-    va_list args;
-    va_start(args, fmt);
-    construct(header, extra, function, fmt, args);
-    va_end(args);
-  }
-
-  void construct(const char* header, const char* extra,
-                 const char* function, const char* fmt, va_list args);
+                 const char* function, const char* tail);
 
   void construct(const char* header, const char* extra,
                  const char* function);
 
+  static std::string format_extra(const char* condStr, const char* argDesc);
+
+  static char* s_header;
+
 public:
+
   IllegalArgumentException(const char* condStr, const char* argDesc,
-                           const char* function, const char* fmt, ...) :
+                           const char* function, const char* tail) :
     Exception() {
-    va_list args;
-    va_start(args, fmt);
-    construct("Illegal argument detected",
-              ( std::string("`") + argDesc + "' is a bad argument"
-                + (*condStr == '\0' ? std::string() :
-                    ( std::string("; expected ") +
-                        condStr + " to hold" )) ).c_str(),
-              function, fmt, args);
-    va_end(args);
+    construct(s_header, format_extra(condStr, argDesc).c_str(), function, tail);
   }
 
   IllegalArgumentException(const char* condStr, const char* argDesc,
                            const char* function) :
     Exception() {
-    construct("Illegal argument detected",
-              ( std::string("`") + argDesc + "' is a bad argument"
-                + (*condStr == '\0' ? std::string() :
-                    ( std::string("; expected ") +
-                        condStr + " to hold" )) ).c_str(),
-              function);
+    construct(s_header, format_extra(condStr, argDesc).c_str(), function);
   }
+
+  /**
+   * This is a convenience function for building usages that are variadic.
+   *
+   * Having IllegalArgumentException itself be variadic is problematic for
+   * making sure calls to IllegalArgumentException clean up memory.
+   */
+  static std::string formatVariadic();
+  static std::string formatVariadic(const char* format, ...);
 };/* class IllegalArgumentException */
 
 inline std::ostream& operator<<(std::ostream& os, const Exception& e) throw() CVC4_PUBLIC;
@@ -127,43 +120,22 @@ inline std::ostream& operator<<(std::ostream& os, const Exception& e) throw() {
   return os;
 }
 
-}/* CVC4 namespace */
-
-#if (defined(__BUILDING_CVC4LIB) || defined(__BUILDING_CVC4LIB_UNIT_TEST)) && !defined(__BUILDING_STATISTICS_FOR_EXPORT)
-#  include "base/cvc4_assert.h"
-#endif /* (__BUILDING_CVC4LIB || __BUILDING_CVC4LIB_UNIT_TEST) && !__BUILDING_STATISTICS_FOR_EXPORT */
-
-namespace CVC4 {
-
-#ifndef CheckArgument
-template <class T> inline void CheckArgument(bool cond, const T& arg, const char* fmt, ...) CVC4_PUBLIC;
-template <class T> inline void CheckArgument(bool cond, const T& arg, const char* fmt, ...) {
+template <class T> inline void CheckArgument(bool cond, const T& arg,
+                                             const char* tail) CVC4_PUBLIC;
+template <class T> inline void CheckArgument(bool cond, const T& arg,
+                                             const char* tail) {
   if(__builtin_expect( ( !cond ), false )) { \
     throw ::CVC4::IllegalArgumentException("", "", ""); \
   } \
 }
-template <class T> inline void CheckArgument(bool cond, const T& arg) CVC4_PUBLIC;
+template <class T> inline void CheckArgument(bool cond, const T& arg)
+  CVC4_PUBLIC;
 template <class T> inline void CheckArgument(bool cond, const T& arg) {
   if(__builtin_expect( ( !cond ), false )) { \
     throw ::CVC4::IllegalArgumentException("", "", ""); \
   } \
 }
-#endif /* CheckArgument */
 
-#ifndef DebugCheckArgument
-template <class T> inline void DebugCheckArgument(bool cond, const T& arg, const char* fmt, ...) CVC4_PUBLIC;
-template <class T> inline void DebugCheckArgument(bool cond, const T& arg, const char* fmt, ...) {
-  if(__builtin_expect( ( !cond ), false )) { \
-    throw ::CVC4::IllegalArgumentException("", "", ""); \
-  } \
-}
-template <class T> inline void DebugCheckArgument(bool cond, const T& arg) CVC4_PUBLIC;
-template <class T> inline void DebugCheckArgument(bool cond, const T& arg) {
-  if(__builtin_expect( ( !cond ), false )) { \
-    throw ::CVC4::IllegalArgumentException("", "", ""); \
-  } \
-}
-#endif /* DebugCheckArgument */
 
 }/* CVC4 namespace */
 

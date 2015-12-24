@@ -1098,7 +1098,8 @@ inline TypeNode NodeManager::mkArrayType(TypeNode indexType,
                 "cannot index arrays by a function-like type");
   CheckArgument(!constituentType.isFunctionLike(), constituentType,
                 "cannot store function-like types in arrays");
-  Debug("arrays") << "making array type " << indexType << " " << constituentType << std::endl;
+  Debug("arrays") << "making array type " << indexType << " "
+                  << constituentType << std::endl;
   return mkTypeNode(kind::ARRAY_TYPE, indexType, constituentType);
 }
 

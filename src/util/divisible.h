@@ -20,7 +20,7 @@
 #ifndef __CVC4__DIVISIBLE_H
 #define __CVC4__DIVISIBLE_H
 
-#include <iostream>
+#include <iosfwd>
 
 #include "base/exception.h"
 #include "util/integer.h"

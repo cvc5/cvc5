@@ -22,11 +22,11 @@
 #ifndef __CVC4__COMMAND_H
 #define __CVC4__COMMAND_H
 
-#include <iostream>
+#include <iosfwd>
+#include <map>
 #include <sstream>
 #include <string>
 #include <vector>
-#include <map>
 
 #include "expr/datatype.h"
 #include "expr/expr.h"

@@ -17,7 +17,7 @@
 #ifndef __CVC4__MODEL_H
 #define __CVC4__MODEL_H
 
-#include <iostream>
+#include <iosfwd>
 #include <vector>
 
 #include "expr/expr.h"

@@ -15,7 +15,7 @@
 #ifndef __CVC4__INTERACTIVE_SHELL_H
 #define __CVC4__INTERACTIVE_SHELL_H
 
-#include <iostream>
+#include <iosfwd>
 #include <string>
 
 #include "options/language.h"

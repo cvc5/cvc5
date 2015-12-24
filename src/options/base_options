@@ -81,9 +81,9 @@ module BASE "options/base_options.h" Base
 
 option binary_name std::string
 
-option in std::istream* :default &std::cin :include <iostream>
-option out std::ostream* :default &std::cout :include <iostream>
-option err std::ostream* :default &std::cerr :include <iostream>
+option in std::istream* :default &std::cin :include <iosfwd>
+option out std::ostream* :default &std::cout :include <iosfwd>
+option err std::ostream* :default &std::cerr :include <iosfwd>
 
 common-option inputLanguage input-language -L --lang=LANG InputLanguage :handler CVC4::options::stringToInputLanguage :include "options/language.h" :default language::input::LANG_AUTO :read-write
  force input language (default is "auto"; see --lang help)

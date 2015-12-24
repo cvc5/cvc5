@@ -15,7 +15,7 @@
 #ifndef __CVC4__MAIN__COMMAND_EXECUTOR_H
 #define __CVC4__MAIN__COMMAND_EXECUTOR_H
 
-#include <iostream>
+#include <iosfwd>
 #include <string>
 
 #include "expr/expr_manager.h"

@@ -45,6 +45,7 @@ libutil_la_SOURCES = \
 	regexp.h \
 	smt2_quote_string.cpp \
 	smt2_quote_string.h \
+	subrange_bound.cpp \
 	subrange_bound.h \
 	tuple.h \
 	unsafe_interrupt_exception.h \

@@ -15,9 +15,12 @@
  **/
 
 #include "util/abstract_value.h"
+
 #include <iostream>
 #include <sstream>
 #include <string>
+
+#include "base/cvc4_assert.h"
 
 using namespace std;
 
@@ -29,7 +32,7 @@ std::ostream& operator<<(std::ostream& out, const AbstractValue& val) {
 
 AbstractValue::AbstractValue(Integer index) throw(IllegalArgumentException) :
     d_index(index) {
-    CheckArgument(index >= 1, index, "index >= 1 required for abstract value, not `%s'", index.toString().c_str());
+    PrettyCheckArgument(index >= 1, index, "index >= 1 required for abstract value, not `%s'", index.toString().c_str());
 }
 
 }/* CVC4 namespace */

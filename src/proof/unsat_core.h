@@ -20,8 +20,9 @@
 #ifndef __CVC4__UNSAT_CORE_H
 #define __CVC4__UNSAT_CORE_H
 
-#include <iostream>
+#include <iosfwd>
 #include <vector>
+
 #include "expr/expr.h"
 
 namespace CVC4 {

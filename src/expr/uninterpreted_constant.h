@@ -18,26 +18,18 @@
 
 #pragma once
 
+#include <iosfwd>
+
 #include "expr/type.h"
-#include <iostream>
 
 namespace CVC4 {
 
 class CVC4_PUBLIC UninterpretedConstant {
-  const Type d_type;
-  const Integer d_index;
-
 public:
 
-  UninterpretedConstant(Type type, Integer index) throw(IllegalArgumentException) :
-    d_type(type),
-    d_index(index) {
-    //CheckArgument(type.isSort(), type, "uninterpreted constants can only be created for uninterpreted sorts, not `%s'", type.toString().c_str());
-    CheckArgument(index >= 0, index, "index >= 0 required for uninterpreted constant index, not `%s'", index.toString().c_str());
-  }
+  UninterpretedConstant(Type type, Integer index) throw(IllegalArgumentException);
 
-  ~UninterpretedConstant() throw() {
-  }
+  ~UninterpretedConstant() throw() { }
 
   Type getType() const throw() {
     return d_type;
@@ -68,6 +60,9 @@ public:
     return !(*this < uc);
   }
 
+private:
+  const Type d_type;
+  const Integer d_index;
 };/* class UninterpretedConstant */
 
 std::ostream& operator<<(std::ostream& out, const UninterpretedConstant& uc) CVC4_PUBLIC;

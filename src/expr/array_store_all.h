@@ -20,61 +20,43 @@
 
 #pragma once
 
+#include <iosfwd>
+
+#include "base/exception.h"
+
 namespace CVC4 {
   // messy; Expr needs ArrayStoreAll (because it's the payload of a
   // CONSTANT-kinded expression), and ArrayStoreAll needs Expr.
-  class CVC4_PUBLIC ArrayStoreAll;
+  class Expr;
+  class ArrayType;
 }/* CVC4 namespace */
 
-#include "expr/expr.h"
-#include "expr/type.h"
-#include <iostream>
 
 namespace CVC4 {
 
 class CVC4_PUBLIC ArrayStoreAll {
-  const ArrayType d_type;
-  const Expr d_expr;
-
 public:
+  ArrayStoreAll(const ArrayStoreAll& other);
 
-  ArrayStoreAll(ArrayType type, Expr expr) throw(IllegalArgumentException) :
-    d_type(type),
-    d_expr(expr) {
+  ArrayStoreAll& operator=(const ArrayStoreAll& other);
 
-    // this check is stronger than the assertion check in the expr manager that ArrayTypes are actually array types
-    // because this check is done in production builds too
-    CheckArgument(type.isArray(), type, "array store-all constants can only be created for array types, not `%s'", type.toString().c_str());
+  ArrayStoreAll(const ArrayType& type, const Expr& expr)
+      throw(IllegalArgumentException);
 
-    CheckArgument(expr.getType().isComparableTo(type.getConstituentType()), expr, "expr type `%s' does not match constituent type of array type `%s'", expr.getType().toString().c_str(), type.toString().c_str());
-    CheckArgument(expr.isConst(), expr, "ArrayStoreAll requires a constant expression");
-  }
+  ~ArrayStoreAll() throw();
 
-  ~ArrayStoreAll() throw() {
-  }
+  const ArrayType& getType() const throw();
 
-  ArrayType getType() const throw() {
-    return d_type;
-  }
-  Expr getExpr() const throw() {
-    return d_expr;
-  }
+  const Expr& getExpr() const throw();
 
-  bool operator==(const ArrayStoreAll& asa) const throw() {
-    return d_type == asa.d_type && d_expr == asa.d_expr;
-  }
+  bool operator==(const ArrayStoreAll& asa) const throw();
+
   bool operator!=(const ArrayStoreAll& asa) const throw() {
     return !(*this == asa);
   }
 
-  bool operator<(const ArrayStoreAll& asa) const throw() {
-    return d_type < asa.d_type ||
-           (d_type == asa.d_type && d_expr < asa.d_expr);
-  }
-  bool operator<=(const ArrayStoreAll& asa) const throw() {
-    return d_type < asa.d_type ||
-           (d_type == asa.d_type && d_expr <= asa.d_expr);
-  }
+  bool operator<(const ArrayStoreAll& asa) const throw();
+  bool operator<=(const ArrayStoreAll& asa) const throw();
   bool operator>(const ArrayStoreAll& asa) const throw() {
     return !(*this <= asa);
   }
@@ -82,6 +64,9 @@ public:
     return !(*this < asa);
   }
 
+private:
+  ArrayType* d_type;
+  Expr* d_expr;
 };/* class ArrayStoreAll */
 
 std::ostream& operator<<(std::ostream& out, const ArrayStoreAll& asa) CVC4_PUBLIC;
@@ -90,9 +75,7 @@ std::ostream& operator<<(std::ostream& out, const ArrayStoreAll& asa) CVC4_PUBLI
  * Hash function for the ArrayStoreAll constants.
  */
 struct CVC4_PUBLIC ArrayStoreAllHashFunction {
-  inline size_t operator()(const ArrayStoreAll& asa) const {
-    return TypeHashFunction()(asa.getType()) * ExprHashFunction()(asa.getExpr());
-  }
+  size_t operator()(const ArrayStoreAll& asa) const;
 };/* struct ArrayStoreAllHashFunction */
 
 }/* CVC4 namespace */
