@@ -40,6 +40,7 @@ ArrayStoreAll::~ArrayStoreAll() throw() {
 ArrayStoreAll& ArrayStoreAll::operator=(const ArrayStoreAll& other){
   (*d_type) = other.getType();
   (*d_expr) = other.getExpr();
+  return *this;
 }
 
 ArrayStoreAll::ArrayStoreAll(const ArrayType& type, const Expr& expr)
