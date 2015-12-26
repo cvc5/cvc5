@@ -26,6 +26,8 @@
 #include "smt/logic_exception.h"
 #include "proof/theory_proof.h"
 #include "proof/proof_manager.h"
+#include "proof/array_proof.h"
+#include "theory/arrays/proof_skolemization.h"
 
 using namespace std;
 
@@ -93,16 +95,16 @@ TheoryArrays::TheoryArrays(context::Context* c, context::UserContext* u, OutputC
   d_defValues(c),
   d_inCheckModel(false)
 {
-  StatisticsRegistry::registerStat(&d_numRow);
-  StatisticsRegistry::registerStat(&d_numExt);
-  StatisticsRegistry::registerStat(&d_numProp);
-  StatisticsRegistry::registerStat(&d_numExplain);
-  StatisticsRegistry::registerStat(&d_numNonLinear);
-  StatisticsRegistry::registerStat(&d_numSharedArrayVarSplits);
-  StatisticsRegistry::registerStat(&d_numGetModelValSplits);
-  StatisticsRegistry::registerStat(&d_numGetModelValConflicts);
-  StatisticsRegistry::registerStat(&d_numSetModelValSplits);
-  StatisticsRegistry::registerStat(&d_numSetModelValConflicts);
+  StatisticsRegistry::registerStatMultiple(&d_numRow);
+  StatisticsRegistry::registerStatMultiple(&d_numExt);
+  StatisticsRegistry::registerStatMultiple(&d_numProp);
+  StatisticsRegistry::registerStatMultiple(&d_numExplain);
+  StatisticsRegistry::registerStatMultiple(&d_numNonLinear);
+  StatisticsRegistry::registerStatMultiple(&d_numSharedArrayVarSplits);
+  StatisticsRegistry::registerStatMultiple(&d_numGetModelValSplits);
+  StatisticsRegistry::registerStatMultiple(&d_numGetModelValConflicts);
+  StatisticsRegistry::registerStatMultiple(&d_numSetModelValSplits);
+  StatisticsRegistry::registerStatMultiple(&d_numSetModelValConflicts);
 
   d_true = NodeManager::currentNM()->mkConst<bool>(true);
   d_false = NodeManager::currentNM()->mkConst<bool>(false);
@@ -375,20 +377,20 @@ bool TheoryArrays::propagate(TNode literal)
 }/* TheoryArrays::propagate(TNode) */
 
 
-void TheoryArrays::explain(TNode literal, std::vector<TNode>& assumptions) {
+void TheoryArrays::explain(TNode literal, std::vector<TNode>& assumptions, eq::EqProof *proof) {
   // Do the work
   bool polarity = literal.getKind() != kind::NOT;
   TNode atom = polarity ? literal : literal[0];
   //eq::EqProof * eqp = new eq::EqProof;
-  eq::EqProof * eqp = NULL;
+  // eq::EqProof * eqp = NULL;
   if (atom.getKind() == kind::EQUAL || atom.getKind() == kind::IFF) {
-    d_equalityEngine.explainEquality(atom[0], atom[1], polarity, assumptions, eqp);
+    d_equalityEngine.explainEquality(atom[0], atom[1], polarity, assumptions, proof);
   } else {
-    d_equalityEngine.explainPredicate(atom, polarity, assumptions);
+    d_equalityEngine.explainPredicate(atom, polarity, assumptions, proof);
   }
-  if( eqp ){
+  if(proof){
     Debug("array-pf") << " Proof is : " << std::endl;
-    eqp->debug_print("array-pf");
+    proof->debug_print("array-pf");
   }
 }
 
@@ -559,6 +561,7 @@ void TheoryArrays::preRegisterTermInternal(TNode node)
     break;
   }
   default:
+    // Debug("gk::proof") << "Kind: default case" << std::endl;
     // Variables etc
     if (node.getType().isArray()) {
       // The may equal needs the node
@@ -569,6 +572,8 @@ void TheoryArrays::preRegisterTermInternal(TNode node)
     else {
       d_equalityEngine.addTerm(node);
     }
+    // Debug("gk::proof") << "Kind: default case (DONE)" << std::endl;
+
     break;
   }
   // Invariant: preregistered terms are exactly the terms in the equality engine
@@ -589,12 +594,16 @@ void TheoryArrays::propagate(Effort e)
 }
 
 
-Node TheoryArrays::explain(TNode literal)
+Node TheoryArrays::explain(TNode literal) {
+  return explain(literal, NULL);
+}
+
+Node TheoryArrays::explain(TNode literal, eq::EqProof *proof)
 {
   ++d_numExplain;
   Debug("arrays") << spaces(getSatContext()->getLevel()) << "TheoryArrays::explain(" << literal << ")" << std::endl;
   std::vector<TNode> assumptions;
-  explain(literal, assumptions);
+  explain(literal, assumptions, proof);
   return mkAnd(assumptions);
 }
 
@@ -757,7 +766,7 @@ void TheoryArrays::computeCareGraph()
 
       // Get the model value of index and find all reads that read from that same model value: these are the pairs we have to check
       // Also, insert this read in the list at the proper index
-      
+
       if (!x_shared.isConst()) {
         x_shared = d_valuation.getModelValue(x_shared);
       }
@@ -1015,7 +1024,11 @@ Node TheoryArrays::getSkolem(TNode ref, const string& name, const TypeNode& type
       makeEqual = false;
     }
   }
+
+  Debug("gk::proof") << "Pregistering a Skolem" << std::endl;
   preRegisterTermInternal(skolem);
+  Debug("gk::proof") << "Pregistering a Skolem DONE" << std::endl;
+
   if (makeEqual) {
     Node d = skolem.eqNode(ref);
     Debug("arrays-model-based") << "Asserting skolem equality " << d << endl;
@@ -1024,6 +1037,8 @@ Node TheoryArrays::getSkolem(TNode ref, const string& name, const TypeNode& type
     d_skolemAssertions.push_back(d);
     d_skolemIndex = d_skolemIndex + 1;
   }
+
+  Debug("gk::proof") << "getSkolem DONE" << std::endl;
   return skolem;
 }
 
@@ -1071,6 +1086,18 @@ void TheoryArrays::check(Effort e) {
         d_modelConstraints.push_back(fact);
         break;
       case kind::NOT:
+        Debug("gk::proof") << "Check: kind::NOT" << std::endl;
+
+        // if(fact[0].getKind() == kind::LEMMA_EXISTS) {
+        //   Debug("gk::proof") << "HANDLING LEMMA_EXISTS";
+          // Assert(rule == RULE_ARRAYS_EXT);
+          // Debug("mgd") << "here I am: " << node << endl;
+          // Node v = NodeManager::currentNM()->mkSkolem(node[1][0][0].toString(), node[1][0][0].getType(), "is a skolemized lemma variable");
+          // Node n = node[0].orNode(node[1][1].substitute(node[1][0][0], v));
+          // Debug("mgd") << "skolemized to: " << n << endl;
+          // additionalLemmas.push_back(n);
+        // }
+        // else
         if (fact[0].getKind() == kind::SELECT) {
           d_equalityEngine.assertPredicate(fact[0], false, fact);
           d_modelConstraints.push_back(fact);
@@ -1080,18 +1107,70 @@ void TheoryArrays::check(Effort e) {
 
           // Apply ArrDiseq Rule if diseq is between arrays
           if(fact[0][0].getType().isArray() && !d_conflict) {
-            NodeManager* nm = NodeManager::currentNM();
-            TypeNode indexType = fact[0][0].getType()[0];
-            TNode k = getSkolem(fact,"array_ext_index", indexType, "an extensional lemma index variable from the theory of arrays", false);
 
-            Node ak = nm->mkNode(kind::SELECT, fact[0][0], k);
-            Node bk = nm->mkNode(kind::SELECT, fact[0][1], k);
-            Node eq = d_valuation.ensureLiteral(ak.eqNode(bk));
-            Assert(eq.getKind() == kind::EQUAL);
-            Node lemma = fact[0].orNode(eq.notNode());
-            Trace("arrays-lem")<<"Arrays::addExtLemma " << lemma <<"\n";
-            d_out->lemma(lemma);
-            ++d_numExt;
+            // NodeManager* nm = NodeManager::currentNM();
+            // TypeNode indexType = fact[0][0].getType()[0];
+            // Node k = nm->mkBoundVar("k", indexType);
+
+            // Node ak = nm->mkNode(kind::SELECT, fact[0][0], k);
+            // Node bk = nm->mkNode(kind::SELECT, fact[0][1], k);
+            // //Node eq = d_valuation.ensureLiteral(ak.eqNode(bk));
+            // Node eq = ak.eqNode(bk);
+            // Node ex = nm->mkNode(kind::LEMMA_EXISTS, nm->mkNode(kind::BOUND_VAR_LIST, k), eq.notNode());
+            // Node lemma = fact[0].orNode(ex);
+            // Trace("arrays-lem")<<"Arrays::addExtLemma " << lemma <<"\n";
+            // d_out->lemma(lemma, RULE_ARRAYS_EXT);
+            // ++d_numExt;
+
+            // Code BEFORE Morgan's changes:
+            // ////////////////////////////////
+              if (!d_proofsEnabled) {
+                NodeManager* nm = NodeManager::currentNM();
+                TypeNode indexType = fact[0][0].getType()[0];
+                TNode k = getSkolem(fact,"array_ext_index", indexType, "an extensional lemma index variable from the theory of arrays", false);
+
+                ProofSkolemization::registerSkolem(fact, k);
+
+                Node ak = nm->mkNode(kind::SELECT, fact[0][0], k);
+                Node bk = nm->mkNode(kind::SELECT, fact[0][1], k);
+
+                Node eq;
+
+                eq = d_valuation.ensureLiteral(ak.eqNode(bk));
+                Assert(eq.getKind() == kind::EQUAL);
+
+                Node lemma = fact[0].orNode(eq.notNode());
+                Trace("arrays-lem")<<"Arrays::addExtLemma " << lemma <<"\n";
+                d_out->lemma(lemma);
+                ++d_numExt;
+              } else {
+                Debug("gk::proof") << "In Array's Check (proof phase), handling fact = " << fact << std::endl;
+
+                NodeManager* nm = NodeManager::currentNM();
+                TypeNode indexType = fact[0][0].getType()[0];
+                //                TNode k = getSkolem(fact,"array_ext_index", indexType, "an extensional lemma index variable from the theory of arrays", false);
+
+                //                ProofSkolemization::registerSkolem(fact, k);
+                TNode k = ProofSkolemization::getSkolem(fact);
+
+                Debug("gk::proof") << "Skolem = " << k << std::endl;
+
+                Node ak = nm->mkNode(kind::SELECT, fact[0][0], k);
+                Node bk = nm->mkNode(kind::SELECT, fact[0][1], k);
+
+                Debug("gk::proof") << "ak = " << ak << ", bk = " << bk << std::endl;
+                Node eq = ak.eqNode(bk);
+
+                // eq = d_valuation.ensureLiteral(ak.eqNode(bk));
+                //                Assert(eq.getKind() == kind::EQUAL);
+
+                Node lemma = eq.notNode();
+                Debug("gk::proof") << "lemma = " << lemma << std::endl;
+
+                Trace("arrays-lem")<<"Arrays::addExtLemma " << lemma <<"\n";
+                d_out->lemma(lemma);
+                ++d_numExt;
+              }
           }
           else {
             d_modelConstraints.push_back(fact);
@@ -2430,11 +2509,8 @@ void TheoryArrays::checkRowLemmas(TNode a, TNode b)
   Trace("arrays-crl")<<"Arrays::checkLemmas done.\n";
 }
 
-void TheoryArrays::queueRowLemma(RowLemmaType lem)
+void TheoryArrays::propagate(RowLemmaType lem)
 {
-  if (d_conflict || d_RowAlreadyAdded.contains(lem)) {
-    return;
-  }
   TNode a = lem.first;
   TNode b = lem.second;
   TNode i = lem.third;
@@ -2485,6 +2561,38 @@ void TheoryArrays::queueRowLemma(RowLemmaType lem)
       return;
     }
   }
+}
+
+void TheoryArrays::queueRowLemma(RowLemmaType lem)
+{
+  if (d_conflict || d_RowAlreadyAdded.contains(lem)) {
+    return;
+  }
+  TNode a = lem.first;
+  TNode b = lem.second;
+  TNode i = lem.third;
+  TNode j = lem.fourth;
+
+  Assert(a.getType().isArray() && b.getType().isArray());
+  if (d_equalityEngine.areEqual(a,b) ||
+      d_equalityEngine.areEqual(i,j)) {
+    return;
+  }
+
+  NodeManager* nm = NodeManager::currentNM();
+  Node aj = nm->mkNode(kind::SELECT, a, j);
+  Node bj = nm->mkNode(kind::SELECT, b, j);
+
+  // Try to avoid introducing new read terms: track whether these already exist
+  bool ajExists = d_equalityEngine.hasTerm(aj);
+  bool bjExists = d_equalityEngine.hasTerm(bj);
+  bool bothExist = ajExists && bjExists;
+
+  // If propagating, check propagations
+  int prop = options::arraysPropagate();
+  if (prop > 0) {
+    propagate(lem);
+  }
 
   // If equivalent lemma already exists, don't enqueue this one
   if (d_useArrTable) {
@@ -2496,7 +2604,13 @@ void TheoryArrays::queueRowLemma(RowLemmaType lem)
 
   // Prefer equality between indexes so as not to introduce new read terms
   if (options::arraysEagerIndexSplitting() && !bothExist && !d_equalityEngine.areDisequal(i,j, false)) {
-    Node i_eq_j = d_valuation.ensureLiteral(i.eqNode(j));
+    Node i_eq_j;
+    if (!d_proofsEnabled) {
+      i_eq_j = d_valuation.ensureLiteral(i.eqNode(j)); // TODO: think about this
+    } else {
+      i_eq_j = i.eqNode(j);
+    }
+
     getOutputChannel().requirePhase(i_eq_j, true);
     d_decisionRequests.push(i_eq_j);
   }
@@ -2606,6 +2720,14 @@ bool TheoryArrays::dischargeLemmas()
       continue;
     }
 
+    int prop = options::arraysPropagate();
+    if (prop > 0) {
+      propagate(l);
+      if (d_conflict) {
+        return true;
+      }
+    }
+
     // Make sure that any terms introduced by rewriting are appropriately stored in the equality database
     Node aj2 = Rewriter::rewrite(aj);
     if (aj != aj2) {
@@ -2667,14 +2789,21 @@ bool TheoryArrays::dischargeLemmas()
 }
 
 void TheoryArrays::conflict(TNode a, TNode b) {
+  Debug("array-pf") << "TheoryArrays::Conflict called" << std::endl;
+  eq::EqProof* proof = d_proofsEnabled ? new eq::EqProof() : NULL;
   if (a.getKind() == kind::CONST_BOOLEAN) {
-    d_conflictNode = explain(a.iffNode(b));
+    d_conflictNode = explain(a.iffNode(b), proof);
   } else {
-    d_conflictNode = explain(a.eqNode(b));
+    d_conflictNode = explain(a.eqNode(b), proof);
   }
   if (!d_inCheckModel) {
-    d_out->conflict(d_conflictNode);
+    Debug("array-pf") << "Here" << std::endl;
+
+    proof->debug_print("array-pf");
+    ProofArray* proof_array = d_proofsEnabled ? new ProofArray( proof ) : NULL;
+    d_out->conflict(d_conflictNode, proof_array);
   }
+
   d_conflict = true;
 }
 

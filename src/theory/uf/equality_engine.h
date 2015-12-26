@@ -901,4 +901,3 @@ public:
 } // Namespace eq
 } // Namespace theory
 } // Namespace CVC4
-

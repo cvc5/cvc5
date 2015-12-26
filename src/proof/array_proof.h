@@ -21,8 +21,24 @@
 
 #include "expr/expr.h"
 #include "proof/proof_manager.h"
+#include "theory/uf/equality_engine.h"
 
 namespace CVC4 {
+
+//proof object outputted by TheoryARRAY
+class ProofArray : public Proof {
+private:
+  static Node toStreamRecLFSC(std::ostream& out, TheoryProof* tp,
+                              theory::eq::EqProof* pf,
+                              unsigned tb,
+                              const LetMap& map);
+public:
+  ProofArray(theory::eq::EqProof* pf) : d_proof(pf) {}
+  //it is simply an equality engine proof
+  theory::eq::EqProof *d_proof;
+  void toStream(std::ostream& out);
+  static void toStreamLFSC(std::ostream& out, TheoryProof* tp, theory::eq::EqProof* pf, const LetMap& map);
+};
 
 namespace theory {
 namespace arrays{
@@ -30,32 +46,32 @@ class TheoryArrays;
 }
 }
 
+typedef __gnu_cxx::hash_set<Type, TypeHashFunction > TypeSet;
+
 class ArrayProof : public TheoryProof {
   // TODO: whatever goes in this theory
+protected:
+  TypeSet d_sorts;        // all the uninterpreted sorts in this theory
+  ExprSet d_declarations; // all the variable/function declarations
+
 public:
   ArrayProof(theory::arrays::TheoryArrays* arrays, TheoryProofEngine* proofEngine);
-  
-  virtual void registerTerm(Expr term);
-  
-  virtual void printTerm(Expr term, std::ostream& os) = 0;
-  virtual void printSort(Type type, std::ostream& os) = 0;
-  /** 
-   * Print a proof for the theory lemma. Must prove
-   * clause representing lemma to be used in resolution proof.
-   * 
-   * @param lemma clausal form of lemma
-   * @param os output stream
-   */
-  virtual void printTheoryLemmaProof(std::vector<Expr>& lemma, std::ostream& os, std::ostream& paren) = 0;
-  /** 
-   * Print the variable/sorts declarations for this theory.
-   * 
-   * @param os 
-   * @param paren 
-   */
-  virtual void printDeclarations(std::ostream& os, std::ostream& paren) = 0;
 
+  virtual void registerTerm(Expr term);
 };
+
+class LFSCArrayProof : public ArrayProof {
+public:
+  LFSCArrayProof(theory::arrays::TheoryArrays* arrays, TheoryProofEngine* proofEngine)
+    : ArrayProof(arrays, proofEngine)
+  {}
+
+  virtual void printTerm(Expr term, std::ostream& os, const LetMap& map);
+  virtual void printSort(Type type, std::ostream& os);
+  virtual void printTheoryLemmaProof(std::vector<Expr>& lemma, std::ostream& os, std::ostream& paren);
+  virtual void printDeclarations(std::ostream& os, std::ostream& paren);
+};
+
 
 }/* CVC4 namespace */
 

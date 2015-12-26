@@ -181,7 +181,7 @@ class TheoryArrays : public Theory {
   bool propagate(TNode literal);
 
   /** Explain why this literal is true by adding assumptions */
-  void explain(TNode literal, std::vector<TNode>& assumptions);
+  void explain(TNode literal, std::vector<TNode>& assumptions, eq::EqProof *proof);
 
   /** For debugging only- checks invariants about when things are preregistered*/
   context::CDHashSet<Node, NodeHashFunction > d_isPreRegistered;
@@ -193,6 +193,7 @@ class TheoryArrays : public Theory {
 
   void preRegisterTerm(TNode n);
   void propagate(Effort e);
+  Node explain(TNode n, eq::EqProof *proof);
   Node explain(TNode n);
 
   /////////////////////////////////////////////////////////////////////////////
@@ -404,6 +405,7 @@ class TheoryArrays : public Theory {
   void checkStore(TNode a);
   void checkRowForIndex(TNode i, TNode a);
   void checkRowLemmas(TNode a, TNode b);
+  void propagate(RowLemmaType lem);
   void queueRowLemma(RowLemmaType lem);
   bool dischargeLemmas();
 

@@ -266,6 +266,7 @@ void TheoryUF::presolve() {
     for(vector<Node>::const_iterator i = newClauses.begin();
         i != newClauses.end();
         ++i) {
+      Debug("uf") << "uf: generating a lemma: " << *i << std::endl;
       d_out->lemma(*i);
     }
   }
@@ -514,7 +515,7 @@ void TheoryUF::conflict(TNode a, TNode b) {
   } else {
     d_conflictNode = explain(a.eqNode(b),pf);
   }
-  ProofUF * puf = d_proofsEnabled ? new ProofUF( pf ) : NULL;
+  ProofUF* puf = d_proofsEnabled ? new ProofUF( pf ) : NULL;
   d_out->conflict(d_conflictNode, puf);
   d_conflict = true;
 }
@@ -562,4 +563,3 @@ Node TheoryUF::ppRewrite(TNode node) {
     }
   }
 }
-

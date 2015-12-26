@@ -834,7 +834,9 @@ Node TheoryEngine::ppTheoryRewrite(TNode term) {
 
 void TheoryEngine::preprocessStart()
 {
+  Debug("gk::proof" ) << "TheoryEngine::preprocessStart";
   d_ppCache.clear();
+  Debug("gk::proof" ) << "--- DONE" << std::endl;
 }
 
 
@@ -863,13 +865,17 @@ Node TheoryEngine::preprocess(TNode assertion) {
 
     Debug("theory::internal") << "TheoryEngine::preprocess(" << assertion << "): processing " << current << endl;
 
+    // Debug("gk::proof") << "preprocess (1)" << std::endl;
+    // Debug("gk::proof") << "cache size is: " << d_ppCache.size() << std::endl;
     // If node already in the cache we're done, pop from the stack
     NodeMap::iterator find = d_ppCache.find(current);
+    // Debug("gk::proof") << "preprocess (1.5)" << std::endl;
     if (find != d_ppCache.end()) {
       toVisit.pop_back();
       continue;
     }
 
+    // Debug("gk::proof") << "preprocess (2)" << std::endl;
     if(! d_logicInfo.isTheoryEnabled(Theory::theoryOf(current)) &&
        Theory::theoryOf(current) != THEORY_SAT_SOLVER) {
       stringstream ss;
@@ -880,6 +886,7 @@ Node TheoryEngine::preprocess(TNode assertion) {
          << current;
       throw LogicException(ss.str());
     }
+    // Debug("gk::proof") << "preprocess (3)" << std::endl;
 
     // If this is an atom, we preprocess its terms with the theory ppRewriter
     if (Theory::theoryOf(current) != THEORY_BOOL) {
@@ -889,6 +896,7 @@ Node TheoryEngine::preprocess(TNode assertion) {
       continue;
     }
 
+    // Debug("gk::proof") << "preprocess (4)" << std::endl;
     // Not yet substituted, so process
     if (stackHead.children_added) {
       // Children have been processed, so substitute
@@ -1410,26 +1418,37 @@ theory::LemmaStatus TheoryEngine::lemma(TNode node,
     options::lemmaOutputChannel()->notifyNewLemma(node.toExpr());
   }
 
-  // Run theory preprocessing, maybe
-  Node ppNode = preprocess ? this->preprocess(node) : Node(node);
-
-  // Remove the ITEs
   std::vector<Node> additionalLemmas;
   IteSkolemMap iteSkolemMap;
-  additionalLemmas.push_back(ppNode);
-  d_iteRemover.run(additionalLemmas, iteSkolemMap);
-  additionalLemmas[0] = theory::Rewriter::rewrite(additionalLemmas[0]);
 
-  if(Debug.isOn("lemma-ites")) {
-    Debug("lemma-ites") << "removed ITEs from lemma: " << ppNode << endl;
-    Debug("lemma-ites") << " + now have the following "
-                        << additionalLemmas.size() << " lemma(s):" << endl;
-    for(std::vector<Node>::const_iterator i = additionalLemmas.begin();
-        i != additionalLemmas.end();
-        ++i) {
-      Debug("lemma-ites") << " + " << *i << endl;
+  // for now, this check is specific to extensional lemmas from arrays
+  if(node.getKind() == kind::OR && node.getNumChildren() == 2 && node[1].getKind() == kind::LEMMA_EXISTS) {
+    Assert(rule == RULE_ARRAYS_EXT);
+    Debug("mgd") << "here I am: " << node << endl;
+    Node v = NodeManager::currentNM()->mkSkolem(node[1][0][0].toString(), node[1][0][0].getType(), "is a skolemized lemma variable");
+    Node n = node[0].orNode(node[1][1].substitute(node[1][0][0], v));
+    Debug("mgd") << "skolemized to: " << n << endl;
+    additionalLemmas.push_back(n);
+  } else {
+    // Run theory preprocessing, maybe
+    Node ppNode = preprocess ? this->preprocess(node) : Node(node);
+
+    // Remove the ITEs
+    additionalLemmas.push_back(ppNode);
+    d_iteRemover.run(additionalLemmas, iteSkolemMap);
+    additionalLemmas[0] = theory::Rewriter::rewrite(additionalLemmas[0]);
+
+    if(Debug.isOn("lemma-ites")) {
+      Debug("lemma-ites") << "removed ITEs from lemma: " << ppNode << endl;
+      Debug("lemma-ites") << " + now have the following "
+                          << additionalLemmas.size() << " lemma(s):" << endl;
+      for(std::vector<Node>::const_iterator i = additionalLemmas.begin();
+          i != additionalLemmas.end();
+          ++i) {
+        Debug("lemma-ites") << " + " << *i << endl;
+      }
+      Debug("lemma-ites") << endl;
     }
-    Debug("lemma-ites") << endl;
   }
 
   // assert to prop engine

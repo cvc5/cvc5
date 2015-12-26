@@ -92,6 +92,7 @@ libcvc4_la_SOURCES = \
 	proof/uf_proof.h \
 	proof/uf_proof.cpp \
 	proof/array_proof.h \
+	proof/array_proof.cpp \
 	proof/bitvector_proof.h \
 	proof/bitvector_proof.cpp \
 	proof/proof_manager.h \
@@ -281,6 +282,8 @@ libcvc4_la_SOURCES = \
 	theory/arrays/array_info.cpp \
 	theory/arrays/static_fact_manager.h \
 	theory/arrays/static_fact_manager.cpp \
+	theory/arrays/proof_skolemization.h \
+	theory/arrays/proof_skolemization.cpp \
 	theory/quantifiers/theory_quantifiers_type_rules.h \
 	theory/quantifiers/theory_quantifiers.h \
 	theory/quantifiers/quantifiers_rewriter.h \

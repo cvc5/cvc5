@@ -68,8 +68,12 @@ ProofManager::~ProofManager() {
   delete d_satProof;
   delete d_cnfProof;
   //  delete d_rewriterProof;
+
+  Debug("gk::proof") << "About to destroy d_theoryProof" << std::endl;
   delete d_theoryProof;
+  Debug("gk::proof") << "About to destroy d_theoryProof : DONE!" << std::endl;
   delete d_fullProof;
+  Debug("gk::proof") << "About to destroy d_fullProof : DONE!" << std::endl;
 
   // for(IdToSatClause::iterator it = d_inputClauses.begin();
   //     it != d_inputClauses.end();
@@ -421,6 +425,19 @@ void LFSCProof::toStream(std::ostream& out) {
   d_satProof->collectClausesUsed(used_inputs,
                                  used_lemmas);
 
+  IdToSatClause::iterator it2;
+  Debug("gk::proof") << std::endl << "Used inputs: " << std::endl;
+  for (it2 = used_inputs.begin(); it2 != used_inputs.end(); ++it2) {
+    Debug("gk::proof") << "\t input = " << *(it2->second) << std::endl;
+  }
+  Debug("gk::proof") << std::endl;
+
+  Debug("gk::proof") << std::endl << "Used lemmas: " << std::endl;
+  for (it2 = used_lemmas.begin(); it2 != used_lemmas.end(); ++it2) {
+    Debug("gk::proof") << "\t input = " << *(it2->second) << std::endl;
+  }
+  Debug("gk::proof") << std::endl;
+
   // collecting assertions that lead to the clauses being asserted
   NodeSet used_assertions;
   d_cnfProof->collectAssertionsForClauses(used_inputs, used_assertions);
@@ -430,18 +447,26 @@ void LFSCProof::toStream(std::ostream& out) {
   d_cnfProof->collectAtomsForClauses(used_inputs, atoms);
   d_cnfProof->collectAtomsForClauses(used_lemmas, atoms);
 
+  NodeSet::iterator atomIt;
+  Debug("gk::proof") << std::endl << "Dumping atoms from lemmas and inputs: " << std::endl << std::endl;
+  for (atomIt = atoms.begin(); atomIt != atoms.end(); ++atomIt) {
+    Debug("gk::proof") << "\tAtom: " << *atomIt << std::endl;
+  }
+
   // collects the atoms in the assertions
   for (NodeSet::const_iterator it = used_assertions.begin();
        it != used_assertions.end(); ++it) {
     utils::collectAtoms(*it, atoms);
   }
 
-  if (Debug.isOn("proof:pm")) {
+  if (Debug.isOn("gk::proof")) {
     // std::cout << NodeManager::currentNM();
-    Debug("proof:pm") << "LFSCProof::Used assertions: "<< std::endl;
+    Debug("gk::proof") << std::endl << std::endl << "LFSCProof::Used assertions: " << std::endl;
     for(NodeSet::const_iterator it = used_assertions.begin(); it != used_assertions.end(); ++it) {
-      Debug("proof:pm") << "   " << *it << std::endl;
+      Debug("gk::proof") << "   " << *it << std::endl;
     }
+    Debug("gk::proof") << std::endl << std::endl;
+
 
     // NodeSet lemmas;
     // d_cnfProof->collectAssertionsForClauses(used_lemmas, lemmas);
@@ -451,10 +476,17 @@ void LFSCProof::toStream(std::ostream& out) {
     //   Debug("proof:pm") << "   " << *it << std::endl;
     // }
 
-    Debug("proof:pm") << "LFSCProof::Used atoms: "<< std::endl;
-    for(NodeSet::const_iterator it = atoms.begin(); it != atoms.end(); ++it) {
-      Debug("proof:pm") << "   " << *it << std::endl;
-    }
+    // Debug("proof:pm") << "LFSCProof::Used atoms: "<< std::endl;
+    // for(NodeSet::const_iterator it = atoms.begin(); it != atoms.end(); ++it) {
+    //   Debug("proof:pm") << "   " << *it << std::endl;
+    // }
+  }
+
+
+  Debug("gk::proof") << std::endl << "Dumping atoms from lemmas, inputs and used assertions: "
+                     << std::endl << std::endl;
+  for (atomIt = atoms.begin(); atomIt != atoms.end(); ++atomIt) {
+    Debug("gk::proof") << "\tAtom: " << *atomIt << std::endl;
   }
 
 
@@ -467,13 +499,20 @@ void LFSCProof::toStream(std::ostream& out) {
   // declare the theory atoms
   NodeSet::const_iterator it = atoms.begin();
   NodeSet::const_iterator end = atoms.end();
+
+  Debug("gk::proof") << "LFSCProof::toStream: registering terms:" << std::endl;
   for(; it != end; ++it) {
+    Debug("gk::proof") << "\tTerm: " << (*it).toExpr() << std::endl;
     d_theoryProof->registerTerm((*it).toExpr());
   }
+
+  Debug("gk::proof") << std::endl << "Term registration done!" << std::endl << std::endl;
+
   // print out all the original assertions
   d_theoryProof->printAssertions(out, paren);
   // d_rewriterProof->printRewrittenAssertios(out, paren);
 
+  Debug("gk::proof") << std::endl << "Assertion printing done!" << std::endl;
 
   out << "(: (holds cln)\n";
 
@@ -492,8 +531,10 @@ void LFSCProof::toStream(std::ostream& out) {
   // FIXME: for now assume all theory lemmas are in CNF form so
   // distinguish between them and inputs
   // print theory lemmas for resolution proof
-  d_theoryProof->printTheoryLemmas(used_lemmas, out, paren);
 
+  Debug("gk::proof") << "Proof manager: printing theory lemmas" << std::endl;
+  d_theoryProof->printTheoryLemmas(used_lemmas, out, paren);
+  Debug("gk::proof") << "Proof manager: printing theory lemmas DONE!" << std::endl;
 
   if (options::bitblastMode() == theory::bv::BITBLAST_MODE_EAGER && ProofManager::getBitVectorProof()) {
     // priunt actual resolution proof
@@ -577,17 +618,21 @@ Node ProofManager::lookupOp(TNode n) const {
 }
 
 Node ProofManager::mkOp(TNode n) {
-  Trace("ajr-temp") << "MkOp : " << n << " " << n.getKind() << std::endl;
+  Trace("mgd-pm-mkop") << "MkOp : " << n << " " << n.getKind() << std::endl;
   if(n.getKind() != kind::BUILTIN) {
     return n;
   }
+
   Node& op = d_ops[n];
   if(op.isNull()) {
-    Debug("mgd") << "making an op for " << n << "\n";
+    Assert((n.getConst<Kind>() == kind::SELECT) || (n.getConst<Kind>() == kind::STORE));
+
+    Debug("mgd-pm-mkop") << "making an op for " << n << "\n";
+
     std::stringstream ss;
     ss << n;
     std::string s = ss.str();
-    Debug("mgd") << " : " << s << std::endl;
+    Debug("mgd-pm-mkop") << " : " << s << std::endl;
     std::vector<TypeNode> v;
     v.push_back(NodeManager::currentNM()->integerType());
     if(n.getConst<Kind>() == kind::SELECT) {
@@ -599,9 +644,11 @@ Node ProofManager::mkOp(TNode n) {
       v.push_back(NodeManager::currentNM()->integerType());
     }
     TypeNode type = NodeManager::currentNM()->mkFunctionType(v);
+    Debug("mgd-pm-mkop") << "typenode is: " << type << "\n";
     op = NodeManager::currentNM()->mkSkolem(s, type, " ignore", NodeManager::SKOLEM_NO_NOTIFY);
     d_bops[op] = n;
   }
+  Debug("mgd-pm-mkop") << "returning the op: " << op << "\n";
   return op;
 }
 //---end from Morgan---

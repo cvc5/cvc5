@@ -170,14 +170,14 @@ public:
       d_tableSize("theory::arrays::infoTableSize", info_map) {
     emptyList = new(true) CTNodeList(ct);
     emptyInfo = new Info(ct, bck);
-    StatisticsRegistry::registerStat(&d_mergeInfoTimer);
-    StatisticsRegistry::registerStat(&d_avgIndexListLength);
-    StatisticsRegistry::registerStat(&d_avgStoresListLength);
-    StatisticsRegistry::registerStat(&d_avgInStoresListLength);
-    StatisticsRegistry::registerStat(&d_listsCount);
-    StatisticsRegistry::registerStat(&d_callsMergeInfo);
-    StatisticsRegistry::registerStat(&d_maxList);
-    StatisticsRegistry::registerStat(&d_tableSize);
+    StatisticsRegistry::registerStatMultiple(&d_mergeInfoTimer);
+    StatisticsRegistry::registerStatMultiple(&d_avgIndexListLength);
+    StatisticsRegistry::registerStatMultiple(&d_avgStoresListLength);
+    StatisticsRegistry::registerStatMultiple(&d_avgInStoresListLength);
+    StatisticsRegistry::registerStatMultiple(&d_listsCount);
+    StatisticsRegistry::registerStatMultiple(&d_callsMergeInfo);
+    StatisticsRegistry::registerStatMultiple(&d_maxList);
+    StatisticsRegistry::registerStatMultiple(&d_tableSize);
   }
 
   ~ArrayInfo() {

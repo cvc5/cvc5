@@ -58,6 +58,7 @@ public:
   ProofOutputChannel() : d_conflict(), d_proof(NULL) {}
 
   void conflict(TNode n, Proof* pf) throw() {
+    Debug("theory-proof-debug") << "ProofOutputChannel::conflict called" << std::endl;
     Trace("theory-proof-debug") << "; CONFLICT: " << n << std::endl;
     Assert(d_conflict.isNull());
     Assert(!n.isNull());
@@ -66,28 +67,34 @@ public:
     d_proof = pf;
   }
   bool propagate(TNode x) throw() {
+    Debug("theory-proof-debug") << "ProofOutputChannel::propagate called" << std::endl;
     Trace("theory-proof-debug") << "got a propagation: " << x << std::endl;
     return true;
   }
   theory::LemmaStatus lemma(TNode n, ProofRule rule, bool, bool) throw() {
+    Debug("theory-proof-debug") << "ProofOutputChannel::lemma called" << std::endl;
     //AlwaysAssert(false);
     Trace("theory-proof-debug") << "new lemma: " << n << std::endl;
     d_lemma = n;
     return theory::LemmaStatus(TNode::null(), 0);
   }
   theory::LemmaStatus splitLemma(TNode, bool) throw() {
+    Debug("theory-proof-debug") << "ProofOutputChannel::splitLemma called" << std::endl;
     AlwaysAssert(false);
     return theory::LemmaStatus(TNode::null(), 0);
   }
   void requirePhase(TNode n, bool b) throw() {
+    Debug("theory-proof-debug") << "ProofOutputChannel::requirePhase called" << std::endl;
     Trace("theory-proof-debug") << "requirePhase " << n << " " << b << std::endl;
     //AlwaysAssert(false);
   }
   bool flipDecision() throw() {
+    Debug("theory-proof-debug") << "ProofOutputChannel::flipDecision called" << std::endl;
     AlwaysAssert(false);
     return false;
   }
   void setIncomplete() throw() {
+    Debug("theory-proof-debug") << "ProofOutputChannel::setIncomplete called" << std::endl;
     AlwaysAssert(false);
   }
 };/* class ProofOutputChannel */
@@ -148,6 +155,12 @@ void TheoryProofEngine::registerTheory(theory::Theory* th) {
         ((theory::bv::TheoryBV*)th)->setProofLog( bvp );
         return;
       }
+
+      if (id == THEORY_ARRAY) {
+        d_theoryProofTable[id] = new LFSCArrayProof((arrays::TheoryArrays*)th, this);
+        return;
+      }
+
     // TODO Arrays and other theories
     }
   }
@@ -159,11 +172,16 @@ TheoryProof* TheoryProofEngine::getTheoryProof(TheoryId id) {
 }
 
 void TheoryProofEngine::registerTerm(Expr term) {
+  Debug("gk::proof") << "TheoryProofEngine::registerTerm called for term: " << term;
   if (d_registrationCache.count(term)) {
+    Debug("gk::proof") << ". Already cached!" << std::endl;
     return;
   }
+  Debug("gk::proof") << ". Registering..." << std::endl;
 
   TheoryId theory_id = Theory::theoryOf(term);
+
+  Debug("gk::proof") << "Term's theory: " << theory_id << std::endl;
 
   // don't need to register boolean terms
   if (theory_id == THEORY_BUILTIN ||
@@ -176,6 +194,7 @@ void TheoryProofEngine::registerTerm(Expr term) {
   }
 
   getTheoryProof(theory_id)->registerTerm(term);
+  Debug("gk::proof") << "REALLY registering term: " << term << std::endl;
   d_registrationCache.insert(term);
 }
 
@@ -186,7 +205,11 @@ theory::TheoryId TheoryProofEngine::getTheoryForLemma(ClauseId id) {
 
   if (pm->getLogic() == "QF_UF") return theory::THEORY_UF;
   if (pm->getLogic() == "QF_BV") return theory::THEORY_BV;
+  if (pm->getLogic() == "QF_AX") return theory::THEORY_ARRAY;
   if (pm->getLogic() == "ALL_SUPPORTED") return theory::THEORY_BV;
+
+  Debug("gk::proof") << "Unsupported logic (" << pm->getLogic() << ")" << std::endl;
+
   Unreachable();
 }
 
@@ -240,6 +263,8 @@ void LFSCTheoryProofEngine::printLetTerm(Expr term, std::ostream& os) {
 
 
 void LFSCTheoryProofEngine::printTheoryTerm(Expr term, std::ostream& os, const LetMap& map) {
+  Debug("gk::proof") << std::endl << "LFSCTheoryProofEngine::printTheoryTerm: term = " << term << std::endl;
+
   TheoryId theory_id = Theory::theoryOf(term);
   // boolean terms and ITEs are special because they
   // are common to all theories
@@ -271,6 +296,8 @@ void LFSCTheoryProofEngine::printSort(Type type, std::ostream& os) {
 }
 
 void LFSCTheoryProofEngine::printAssertions(std::ostream& os, std::ostream& paren) {
+  Debug("gk::proof") << "LFSCTheoryProofEngine::printAssertions starting" << std::endl;
+
   unsigned counter = 0;
   ProofManager::assertions_iterator it = ProofManager::currentPM()->begin_assertions();
   ProofManager::assertions_iterator end = ProofManager::currentPM()->end_assertions();
@@ -279,10 +306,16 @@ void LFSCTheoryProofEngine::printAssertions(std::ostream& os, std::ostream& pare
   for(; it != end; ++it) {
     registerTerm(*it);
   }
+
+  Debug("gk::proof") << "LFSCTheoryProofEngine::printAssertions now printing declarations" << std::endl << std::endl;
   printDeclarations(os, paren);
 
   it = ProofManager::currentPM()->begin_assertions();
+
+  Debug("gk::proof") << "LFSCTheoryProofEngine::printAssertions now printing assertions" << std::endl << std::endl;
   for (; it != end; ++it) {
+    Debug("gk::proof") << "printAssertions: assertion is: " << *it << std::endl;
+
     // FIXME: merge this with counter
     os << "(% A" << counter++ << " (th_holds ";
     printLetTerm(*it,  os);
@@ -291,6 +324,7 @@ void LFSCTheoryProofEngine::printAssertions(std::ostream& os, std::ostream& pare
   }
   //store map between assertion and counter
   // ProofManager::currentPM()->setAssertion( *it );
+  Debug("gk::proof") << "LFSCTheoryProofEngine::printAssertions done" << std::endl;
 }
 
 void LFSCTheoryProofEngine::printDeclarations(std::ostream& os, std::ostream& paren) {
@@ -349,13 +383,22 @@ void LFSCTheoryProofEngine::printTheoryLemmas(const IdToSatClause& lemmas,
 
   it = lemmas.begin();
 
+  Debug("gk::proof") << "LFSCTheoryProofEngine::printTheoryLemmas: printing lemmas..." << std::endl;
+
   for (; it != end; ++it) {
+    Debug("gk::proof") << "LFSCTheoryProofEngine::printTheoryLemmas: printing a new lemma!" << std::endl;
+
+    // Debug("gk::proof") << "\tLemma = " << it->first << ", " << *(it->second) << std::endl;
+
     ClauseId id = it->first;
     const prop::SatClause* clause = it->second;
     // printing clause as it appears in resolution proof
     os << "(satlem _ _ ";
     std::ostringstream clause_paren;
+
+    Debug("gk::proof") << "CnfProof printing clause..." << std::endl;
     pm->getCnfProof()->printClause(*clause, os, clause_paren);
+    Debug("gk::proof") << "CnfProof printing clause - Done!" << std::endl;
 
     std::vector<Expr> clause_expr;
     for(unsigned i = 0; i < clause->size(); ++i) {
@@ -369,10 +412,13 @@ void LFSCTheoryProofEngine::printTheoryLemmas(const IdToSatClause& lemmas,
       clause_expr.push_back(expr_lit);
     }
 
+    Debug("gk::proof") << "Expression printing done!" << std::endl;
+
     // query appropriate theory for proof of clause
     TheoryId theory_id = getTheoryForLemma(id);
-    Debug("ajr-temp") << "Get theory lemma from " << theory_id << "..." << std::endl;
+    Debug("gk::proof") << "Get theory lemma from " << theory_id << "..." << std::endl;
     getTheoryProof(theory_id)->printTheoryLemmaProof(clause_expr, os, paren);
+    Debug("gk::proof") << "Get theory lemma from " << theory_id << "... DONE!" << std::endl;
     // os << " (clausify_false trust)";
     os << clause_paren.str();
     os << "( \\ " << pm->getLemmaClauseName(id) <<"\n";
@@ -504,13 +550,23 @@ void TheoryProof::printTheoryLemmaProof(std::vector<Expr>& lemma, std::ostream& 
   if(d_theory->getId()==theory::THEORY_UF) {
     th = new theory::uf::TheoryUF(&fakeContext, &fakeContext, oc, v, ProofManager::currentPM()->getLogicInfo());
   } else if(d_theory->getId()==theory::THEORY_ARRAY) {
-    th = new theory::arrays::TheoryArrays(&fakeContext, &fakeContext, oc, v, ProofManager::currentPM()->getLogicInfo());
+    Debug("gk::proof") << "TheoryProof::printTheoryLemmaProof - creating array theory" << std::endl;
+    th = new theory::arrays::TheoryArrays(&fakeContext,
+                                          &fakeContext,
+                                          oc,
+                                          v,
+                                          ProofManager::currentPM()->getLogicInfo());
+    Debug("gk::proof") << "TheoryProof::printTheoryLemmaProof - creating array theory DONE" << std::endl;
+
   } else if(d_theory->getId()==theory::THEORY_BV) {
     th = new theory::bv::TheoryBV(&fakeContext, &fakeContext, oc, v, ProofManager::currentPM()->getLogicInfo());
   } else {
     InternalError(std::string("can't generate theory-proof for ") + ProofManager::currentPM()->getLogic());
   }
+  Debug("gk::proof") << "TheoryProof::printTheoryLemmaProof - calling th->ProduceProofs()" << std::endl;
   th->produceProofs();
+  Debug("gk::proof") << "TheoryProof::printTheoryLemmaProof - th->ProduceProofs() DONE" << std::endl;
+
   MyPreRegisterVisitor preRegVisitor(th);
   for( unsigned i=0; i<lemma.size(); i++ ){
     Node lit = Node::fromExpr( lemma[i] ).negate();
@@ -518,17 +574,27 @@ void TheoryProof::printTheoryLemmaProof(std::vector<Expr>& lemma, std::ostream& 
     NodeVisitor<MyPreRegisterVisitor>::run(preRegVisitor, lit);
     th->assertFact(lit, false);
   }
+
+  Debug("gk::proof") << "TheoryProof::printTheoryLemmaProof - calling th->check()" << std::endl;
   th->check(theory::Theory::EFFORT_FULL);
+  Debug("gk::proof") << "TheoryProof::printTheoryLemmaProof - th->check() DONE" << std::endl;
+
   if(oc.d_conflict.isNull()) {
     Trace("theory-proof-debug") << "; conflict is null" << std::endl;
     Assert(!oc.d_lemma.isNull());
+    // Assert that the new lemma has been proven. We're giving the inputs in a possibly different way.
     Trace("theory-proof-debug") << "; ++ but got lemma: " << oc.d_lemma << std::endl;
-    Trace("theory-proof-debug") << "; asserting " << oc.d_lemma[1].negate() << std::endl;
-    th->assertFact(oc.d_lemma[1].negate(), false);
+    // Trace("theory-proof-debug") << "; asserting " << oc.d_lemma[1].negate() << std::endl;
+    Trace("theory-proof-debug") << "; asserting " << oc.d_lemma << std::endl;
+    //    th->assertFact(oc.d_lemma[1].negate(), false);
+    th->assertFact(oc.d_lemma, false);
     th->check(theory::Theory::EFFORT_FULL);
   }
   oc.d_proof->toStream(os);
+
+  Debug("gk::proof") << "About to delete the theory solver used for proving the lemma... " << std::endl;
   delete th;
+  Debug("gk::proof") << "About to delete the theory solver used for proving the lemma: DONE! " << std::endl;
 }
 
 BooleanProof::BooleanProof(TheoryProofEngine* proofEngine)
