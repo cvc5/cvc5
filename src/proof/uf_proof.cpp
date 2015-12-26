@@ -617,6 +617,9 @@ Node ProofUF::toStreamRecLFSC(std::ostream& out, TheoryProof * tp, theory::eq::E
   }
 
   case eq::MERGED_ARRAYS_ROW: {
+    Debug("gk::proof") << "eq::MERGED_ARRAYS_ROW encountered in UF_PROOF" << std::endl;
+    Unreachable();
+
     Debug("mgd") << "row lemma: " << pf->d_node << std::endl;
     Assert(pf->d_node.getKind() == kind::EQUAL);
     TNode t1, t2, t3, t4;
@@ -658,6 +661,9 @@ Node ProofUF::toStreamRecLFSC(std::ostream& out, TheoryProof * tp, theory::eq::E
   }
 
   case eq::MERGED_ARRAYS_ROW1: {
+    Debug("gk::proof") << "eq::MERGED_ARRAYS_ROW1 encountered in UF_PROOF" << std::endl;
+    Unreachable();
+
     Debug("mgd") << "row1 lemma: " << pf->d_node << std::endl;
     Assert(pf->d_node.getKind() == kind::EQUAL);
     TNode t1, t2, t3;
