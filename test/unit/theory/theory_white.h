@@ -70,7 +70,7 @@ public:
     // ignore
   }
 
-  LemmaStatus lemma(TNode n, bool removable = false, bool preprocess = false)
+  LemmaStatus lemma(TNode n, bool removable = false, bool preprocess = false, bool sendAtoms = false)
     throw(AssertionException) {
     push(LEMMA, n);
     return LemmaStatus(Node::null(), 0);

@@ -192,7 +192,58 @@ void ArrayInfo::setConstArr(const TNode a, const TNode constArr) {
   } else {
     (*it).second->constArr = constArr;
   }
-  
+}
+
+void ArrayInfo::setWeakEquivPointer(const TNode a, const TNode pointer) {
+  Assert(a.getType().isArray());
+  Info* temp_info;
+  CNodeInfoMap::iterator it = info_map.find(a);
+  if(it == info_map.end()) {
+    temp_info = new Info(ct, bck);
+    temp_info->weakEquivPointer = pointer;
+    info_map[a] = temp_info;
+  } else {
+    (*it).second->weakEquivPointer = pointer;
+  }
+}
+
+void ArrayInfo::setWeakEquivIndex(const TNode a, const TNode index) {
+  Assert(a.getType().isArray());
+  Info* temp_info;
+  CNodeInfoMap::iterator it = info_map.find(a);
+  if(it == info_map.end()) {
+    temp_info = new Info(ct, bck);
+    temp_info->weakEquivIndex = index;
+    info_map[a] = temp_info;
+  } else {
+    (*it).second->weakEquivIndex = index;
+  }
+}
+
+void ArrayInfo::setWeakEquivSecondary(const TNode a, const TNode secondary) {
+  Assert(a.getType().isArray());
+  Info* temp_info;
+  CNodeInfoMap::iterator it = info_map.find(a);
+  if(it == info_map.end()) {
+    temp_info = new Info(ct, bck);
+    temp_info->weakEquivSecondary = secondary;
+    info_map[a] = temp_info;
+  } else {
+    (*it).second->weakEquivSecondary = secondary;
+  }
+}
+
+void ArrayInfo::setWeakEquivSecondaryReason(const TNode a, const TNode reason) {
+  Assert(a.getType().isArray());
+  Info* temp_info;
+  CNodeInfoMap::iterator it = info_map.find(a);
+  if(it == info_map.end()) {
+    temp_info = new Info(ct, bck);
+    temp_info->weakEquivSecondaryReason = reason;
+    info_map[a] = temp_info;
+  } else {
+    (*it).second->weakEquivSecondaryReason = reason;
+  }
 }
 
 /**
@@ -244,6 +295,46 @@ const TNode ArrayInfo::getConstArr(const TNode a) const
 
   if(it!= info_map.end()) {
     return (*it).second->constArr;
+  }
+  return TNode();
+}
+
+const TNode ArrayInfo::getWeakEquivPointer(const TNode a) const
+{
+  CNodeInfoMap::const_iterator it = info_map.find(a);
+
+  if(it!= info_map.end()) {
+    return (*it).second->weakEquivPointer;
+  }
+  return TNode();
+}
+
+const TNode ArrayInfo::getWeakEquivIndex(const TNode a) const
+{
+  CNodeInfoMap::const_iterator it = info_map.find(a);
+
+  if(it!= info_map.end()) {
+    return (*it).second->weakEquivIndex;
+  }
+  return TNode();
+}
+
+const TNode ArrayInfo::getWeakEquivSecondary(const TNode a) const
+{
+  CNodeInfoMap::const_iterator it = info_map.find(a);
+
+  if(it!= info_map.end()) {
+    return (*it).second->weakEquivSecondary;
+  }
+  return TNode();
+}
+
+const TNode ArrayInfo::getWeakEquivSecondaryReason(const TNode a) const
+{
+  CNodeInfoMap::const_iterator it = info_map.find(a);
+
+  if(it!= info_map.end()) {
+    return (*it).second->weakEquivSecondaryReason;
   }
   return TNode();
 }

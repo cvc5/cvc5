@@ -303,11 +303,11 @@ class TheoryEngine {
       return d_engine->propagate(literal, d_theory);
     }
 
-    theory::LemmaStatus lemma(TNode lemma, bool removable = false, bool preprocess = false) throw(TypeCheckingExceptionPrivate, AssertionException, UnsafeInterruptException, LogicException) {
+    theory::LemmaStatus lemma(TNode lemma, bool removable = false, bool preprocess = false, bool sendAtoms = false) throw(TypeCheckingExceptionPrivate, AssertionException, UnsafeInterruptException, LogicException) {
       Trace("theory::lemma") << "EngineOutputChannel<" << d_theory << ">::lemma(" << lemma << ")" << std::endl;
       ++ d_statistics.lemmas;
       d_engine->d_outputChannelUsed = true;
-      return d_engine->lemma(lemma, false, removable, preprocess, theory::THEORY_LAST);
+      return d_engine->lemma(lemma, false, removable, preprocess, sendAtoms ? d_theory : theory::THEORY_LAST);
     }
 
     theory::LemmaStatus splitLemma(TNode lemma, bool removable = false) throw(TypeCheckingExceptionPrivate, AssertionException, UnsafeInterruptException) {

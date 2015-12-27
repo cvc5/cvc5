@@ -87,7 +87,7 @@ public:
     push(PROPAGATE_AS_DECISION, n);
   }
 
-  LemmaStatus lemma(TNode n, bool removable, bool preprocess) throw(AssertionException, UnsafeInterruptException) {
+  LemmaStatus lemma(TNode n, bool removable, bool preprocess, bool sendAtoms) throw(AssertionException, UnsafeInterruptException) {
     push(LEMMA, n);
     return LemmaStatus(Node::null(), 0);
   }

@@ -10,9 +10,9 @@ world" examples, and do not fully demonstrate the interfaces, but
 function as a starting point to using simple expressions and solving
 functionality through each library.
 
-*** Targetted examples
+*** Targeted examples
 
-The "api" directory contains some more specifically-targetted
+The "api" directory contains some more specifically-targeted
 examples (for bitvectors, for arithmetic, etc.).  The "api/java"
 directory contains the same examples in Java.
 
