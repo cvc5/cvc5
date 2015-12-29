@@ -22,8 +22,11 @@
 #include <fstream>
 #include <string>
 
-#include "base/output.h"
+#warning "TODO: Why is lfsc's check.h being included like this?"
 #include "check.h"
+
+#include "base/cvc4_assert.h"
+#include "base/output.h"
 #include "expr/statistics_registry.h"
 #include "smt/smt_engine.h"
 #include "util/configuration_private.h"
