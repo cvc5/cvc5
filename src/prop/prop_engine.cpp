@@ -26,6 +26,7 @@
 #include "expr/expr.h"
 #include "expr/resource_manager.h"
 #include "expr/result.h"
+#include "options/base_options.h"
 #include "options/decision_options.h"
 #include "options/main_options.h"
 #include "options/options.h"

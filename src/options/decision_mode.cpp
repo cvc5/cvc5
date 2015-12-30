@@ -17,6 +17,8 @@
 
 #include "options/decision_mode.h"
 
+#include <iostream>
+
 namespace CVC4 {
 
 std::ostream& operator<<(std::ostream& out, decision::DecisionMode mode) {

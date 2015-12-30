@@ -26,7 +26,7 @@ namespace CVC4 {
 namespace theory {
 namespace booleans {
 
-typedef enum {
+enum BooleanTermConversionMode {
   /**
    * Convert Boolean terms to bitvectors of size 1.
    */
@@ -41,7 +41,7 @@ typedef enum {
    */
   BOOLEAN_TERM_CONVERT_NATIVE
 
-} BooleanTermConversionMode;
+};
 
 }/* CVC4::theory::booleans namespace */
 }/* CVC4::theory namespace */

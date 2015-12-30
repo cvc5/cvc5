@@ -29,6 +29,7 @@
 #include <string>
 
 #include "expr/expr.h"
+#include "expr/expr_iomanip.h"
 #include "options/set_language.h"
 #include "parser/parser.h"
 #include "parser/parser_builder.h"
@@ -70,7 +71,7 @@ string translate(string in, InputLanguage inlang, OutputLanguage outlang) {
   psr->setInput(Input::newStringInput(inlang, in, "internal-buffer"));
   Expr e = psr->nextExpression();
   stringstream ss;
-  ss << language::SetLanguage(outlang) << Expr::setdepth(-1) << e;
+  ss << language::SetLanguage(outlang) << expr::ExprSetDepth(-1) << e;
   assert(psr->nextExpression().isNull());// next expr should be null
   assert(psr->done());// parser should be done
   string s = ss.str();
@@ -122,7 +123,7 @@ int runTest() {
 
   assert(psr->done());// parser should be done
 
-  cout << Expr::setdepth(-1);
+  cout << expr::ExprSetDepth(-1);
 
   runTestString("(= (f (f y)) x)");
   runTestString("~BVPLUS(3, 0bin00, 0bin11)[2:1] = 0bin10", input::LANG_CVC4);

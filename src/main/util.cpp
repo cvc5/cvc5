@@ -34,6 +34,7 @@
 #include "expr/statistics.h"
 #include "main/command_executor.h"
 #include "main/main.h"
+#include "options/base_options.h"
 #include "options/options.h"
 #include "smt/smt_engine.h"
 

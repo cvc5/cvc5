@@ -23,6 +23,7 @@
 #include <vector>
 
 #include "expr/expr.h"
+#include "options/base_options.h"
 #include "options/options.h"
 #include "parser/parser.h"
 #include "parser/parser_builder.h"

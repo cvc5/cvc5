@@ -23,7 +23,9 @@
 #include <vector>
 
 #include "expr/expr.h"
+#include "expr/expr_iomanip.h"
 #include "options/language.h"
+#include "options/base_options.h"
 #include "options/options.h"
 #include "options/set_language.h"
 #include "parser/parser.h"
@@ -49,7 +51,7 @@ int main(int argc, char* argv[])
   ExprManager exprManager(options);
 
   cout << language::SetLanguage(language::output::LANG_SMTLIB_V2)
-       << Expr::setdepth(-1);
+       << expr::ExprSetDepth(-1);
 
   // Create the parser
   ParserBuilder parserBuilder(&exprManager, input, options);

@@ -40,14 +40,6 @@ namespace CVC4 {
 
 class ExprManager;
 
-namespace expr {
-
-const int ExprSetDepth::s_iosIndex = std::ios_base::xalloc();
-const int ExprPrintTypes::s_iosIndex = std::ios_base::xalloc();
-const int ExprDag::s_iosIndex = std::ios_base::xalloc();
-
-}/* CVC4::expr namespace */
-
 std::ostream& operator<<(std::ostream& out, const TypeCheckingException& e) {
   return out << e.getMessage() << ": " << e.getExpression();
 }

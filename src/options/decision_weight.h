@@ -21,7 +21,9 @@
 
 namespace CVC4 {
 namespace decision {
+
 typedef uint64_t DecisionWeight;
+
 }/* CVC4::decision namespace */
 }/* CVC4 namespace */
 

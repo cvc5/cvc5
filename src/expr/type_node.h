@@ -372,12 +372,7 @@ public:
    *
    * @return the string representation of this type.
    */
-  inline std::string toString() const {
-    std::stringstream ss;
-    OutputLanguage outlang = (this == &s_null) ? language::output::LANG_AUTO : options::outputLanguage();
-    d_nv->toStream(ss, -1, false, 0, outlang);
-    return ss.str();
-  }
+  std::string toString() const;
 
   /**
    * Converts this node into a string representation and sends it to the

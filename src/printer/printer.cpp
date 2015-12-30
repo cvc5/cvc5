@@ -17,6 +17,7 @@
 
 #include <string>
 
+#include "options/base_options.h"
 #include "options/language.h"
 #include "printer/ast/ast_printer.h"
 #include "printer/cvc/cvc_printer.h"
@@ -86,5 +87,30 @@ void Printer::toStream(std::ostream& out, const UnsatCore& core, const std::map<
     out << std::endl;
   }
 }/* Printer::toStream(UnsatCore, std::map<Expr, std::string>) */
+
+Printer* Printer::getPrinter(OutputLanguage lang) throw() {
+  if(lang == language::output::LANG_AUTO) {
+  // Infer the language to use for output.
+  //
+  // Options can be null in certain circumstances (e.g., when printing
+  // the singleton "null" expr.  So we guard against segfault
+  if(not Options::isCurrentNull()) {
+    if(options::outputLanguage.wasSetByUser()) {
+      lang = options::outputLanguage();
+    }
+    if(lang == language::output::LANG_AUTO && options::inputLanguage.wasSetByUser()) {
+      lang = language::toOutputLanguage(options::inputLanguage());
+     }
+   }
+   if(lang == language::output::LANG_AUTO) {
+      lang = language::output::LANG_CVC4; // default
+    }
+  }
+  if(d_printers[lang] == NULL) {
+    d_printers[lang] = makePrinter(lang);
+  }
+  return d_printers[lang];
+}
+
 
 }/* CVC4 namespace */

@@ -28,6 +28,7 @@
 #include <sstream>
 #include <string>
 
+#include "expr/expr_iomanip.h"
 #include "options/language.h"
 #include "options/set_language.h"
 #include "sha1.hpp"

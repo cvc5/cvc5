@@ -22,8 +22,11 @@
 #include <iostream>
 #include <new>
 
-#include "base/output.h"
+// This must come before PORTFOLIO_BUILD.
 #include "cvc4autoconfig.h"
+
+#include "base/output.h"
+#include "expr/expr_iomanip.h"
 #include "expr/expr_manager.h"
 #include "expr/result.h"
 #include "expr/statistics_registry.h"
@@ -35,6 +38,7 @@
 
 #include "main/interactive_shell.h"
 #include "main/main.h"
+#include "options/base_options.h"
 #include "options/main_options.h"
 #include "options/options.h"
 #include "options/quantifiers_options.h"
@@ -284,7 +288,8 @@ int runCvc4(int argc, char* argv[], Options& opts) {
     opts.set(options::replayStream, new Parser::ExprStream(replayParser));
   }
   if( opts[options::replayLog] != NULL ) {
-    *opts[options::replayLog] << language::SetLanguage(opts[options::outputLanguage]) << Expr::setdepth(-1);
+    *opts[options::replayLog] << language::SetLanguage(opts[options::outputLanguage])
+                              << expr::ExprSetDepth(-1);
   }
 
   int returnValue = 0;

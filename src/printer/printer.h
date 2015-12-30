@@ -56,29 +56,7 @@ protected:
 
 public:
   /** Get the Printer for a given OutputLanguage */
-  static Printer* getPrinter(OutputLanguage lang) throw() {
-    if(lang == language::output::LANG_AUTO) {
-      // Infer the language to use for output.
-      //
-      // Options can be null in certain circumstances (e.g., when printing
-      // the singleton "null" expr.  So we guard against segfault
-      if(not Options::isCurrentNull()) {
-        if(options::outputLanguage.wasSetByUser()) {
-          lang = options::outputLanguage();
-        }
-        if(lang == language::output::LANG_AUTO && options::inputLanguage.wasSetByUser()) {
-          lang = language::toOutputLanguage(options::inputLanguage());
-        }
-      }
-      if(lang == language::output::LANG_AUTO) {
-        lang = language::output::LANG_CVC4; // default
-      }
-    }
-    if(d_printers[lang] == NULL) {
-      d_printers[lang] = makePrinter(lang);
-    }
-    return d_printers[lang];
-  }
+  static Printer* getPrinter(OutputLanguage lang) throw();
 
   /** Write a Node out to a stream with this Printer. */
   virtual void toStream(std::ostream& out, TNode n,

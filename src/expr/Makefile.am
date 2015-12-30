@@ -32,6 +32,8 @@ libexpr_la_SOURCES = \
 	chain.h \
 	emptyset.cpp \
 	emptyset.h \
+	expr_iomanip.cpp \
+	expr_iomanip.h \
 	expr_manager_scope.h \
 	expr_stream.h \
 	kind_map.h \

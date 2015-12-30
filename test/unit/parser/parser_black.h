@@ -22,6 +22,7 @@
 #include "base/output.h"
 #include "expr/expr.h"
 #include "expr/expr_manager.h"
+#include "options/base_options.h"
 #include "options/language.h"
 #include "options/options.h"
 #include "parser/parser.h"

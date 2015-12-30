@@ -26,6 +26,7 @@
 
 #include "base/output.h"
 #include "expr/expr.h"
+#include "expr/expr_iomanip.h"
 #include "expr/kind.h"
 #include "expr/resource_manager.h"
 #include "expr/type.h"
@@ -331,7 +332,7 @@ Parser::mkMutualDatatypeTypes(const std::vector<Datatype>& datatypes) {
           j != j_end;
           ++j) {
         const DatatypeConstructor& ctor = *j;
-        Expr::printtypes::Scope pts(Debug("parser-idt"), true);
+        expr::ExprPrintTypes::Scope pts(Debug("parser-idt"), true);
         Expr constructor = ctor.getConstructor();
         Debug("parser-idt") << "+ define " << constructor << std::endl;
         string constructorName = ctor.getName();

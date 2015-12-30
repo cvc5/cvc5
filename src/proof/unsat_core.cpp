@@ -16,6 +16,8 @@
 
 #include "proof/unsat_core.h"
 
+#include "expr/expr_iomanip.h"
+#include "options/base_options.h"
 #include "printer/printer.h"
 #include "smt/smt_engine_scope.h"
 #include "smt_util/command.h"
@@ -36,13 +38,13 @@ UnsatCore::const_iterator UnsatCore::end() const {
 
 void UnsatCore::toStream(std::ostream& out) const {
   smt::SmtScope smts(d_smt);
-  Expr::dag::Scope scope(out, false);
+  expr::ExprDag::Scope scope(out, false);
   Printer::getPrinter(options::outputLanguage())->toStream(out, *this);
 }
 
 void UnsatCore::toStream(std::ostream& out, const std::map<Expr, std::string>& names) const {
   smt::SmtScope smts(d_smt);
-  Expr::dag::Scope scope(out, false);
+  expr::ExprDag::Scope scope(out, false);
   Printer::getPrinter(options::outputLanguage())->toStream(out, *this, names);
 }
 

@@ -24,6 +24,7 @@
 
 #include "expr/expr.h"
 #include "options/language.h"
+#include "options/base_options.h"
 #include "options/options.h"
 #include "options/set_language.h"
 #include "parser/parser.h"

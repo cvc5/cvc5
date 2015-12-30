@@ -13,12 +13,14 @@
  **
  ** Reference-counted encapsulation of a pointer to node information.
  **/
+#include "expr/type_node.h"
 
 #include <vector>
 
 #include "expr/node_manager_attributes.h"
-#include "expr/type_node.h"
 #include "expr/type_properties.h"
+#include "options/base_options.h"
+#include "options/expr_options.h"
 
 using namespace std;
 
@@ -563,5 +565,13 @@ bool TypeNode::isSort() const {
 bool TypeNode::isSortConstructor() const {
   return getKind() == kind::SORT_TYPE && hasAttribute(expr::SortArityAttr());
 }
+
+std::string TypeNode::toString() const {
+  std::stringstream ss;
+  OutputLanguage outlang = (this == &s_null) ? language::output::LANG_AUTO : options::outputLanguage();
+  d_nv->toStream(ss, -1, false, 0, outlang);
+  return ss.str();
+}
+
 
 }/* CVC4 namespace */

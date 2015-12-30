@@ -19,6 +19,7 @@
 #include <sstream>
 
 #include "expr/expr_manager.h"
+#include "options/base_options.h"
 #include "options/set_language.h"
 #include "options/smt_options.h"
 #include "parser/parser.h"

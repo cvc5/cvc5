@@ -164,6 +164,4 @@ public:
 
 }/* CVC4 namespace */
 
-#include "options/base_options.h"
-
 #endif /* __CVC4__OPTIONS__OPTIONS_H */

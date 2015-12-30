@@ -20,6 +20,7 @@
 #include "base/output.h"
 #include "expr/pickler.h"
 #include "options/main_options.h"
+#include "smt/smt_engine.h"
 #include "smt_util/lemma_input_channel.h"
 #include "smt_util/lemma_output_channel.h"
 #include "util/channel.h"
@@ -49,25 +50,7 @@ public:
 
   ~PortfolioLemmaOutputChannel() throw() { }
 
-  void notifyNewLemma(Expr lemma) {
-    if(int(lemma.getNumChildren()) > options::sharingFilterByLength()) {
-      return;
-    }
-    ++cnt;
-    Trace("sharing") << d_tag << ": " << lemma << std::endl;
-    expr::pickle::Pickle pkl;
-    try {
-      d_pickler.toPickle(lemma, pkl);
-      d_sharedChannel->push(pkl);
-      if(Trace.isOn("showSharing") && options::thread_id() == 0) {
-        *options::out() << "thread #0: notifyNewLemma: " << lemma
-                        << std::endl;
-      }
-    } catch(expr::pickle::PicklingException& p){
-      Trace("sharing::blocked") << lemma << std::endl;
-    }
-  }
-
+  void notifyNewLemma(Expr lemma);
 };/* class PortfolioLemmaOutputChannel */
 
 class PortfolioLemmaInputChannel : public LemmaInputChannel {
@@ -81,29 +64,12 @@ public:
                              SharedChannel<ChannelFormat>* c,
                              ExprManager* em,
                              VarMap& to,
-                             VarMap& from) :
-    d_tag(tag),
-    d_sharedChannel(c),
-    d_pickler(em, to, from){
-  }
+                               VarMap& from);
 
   ~PortfolioLemmaInputChannel() throw() { }
 
-  bool hasNewLemma(){
-    Debug("lemmaInputChannel") << d_tag << ": " << "hasNewLemma" << std::endl;
-    return !d_sharedChannel->empty();
-  }
-
-  Expr getNewLemma() {
-    Debug("lemmaInputChannel") << d_tag << ": " << "getNewLemma" << std::endl;
-    expr::pickle::Pickle pkl = d_sharedChannel->pop();
-
-    Expr e = d_pickler.fromPickle(pkl);
-    if(Trace.isOn("showSharing") && options::thread_id() == 0) {
-      *options::out() << "thread #0: getNewLemma: " << e << std::endl;
-    }
-    return e;
-  }
+  bool hasNewLemma();
+  Expr getNewLemma();
 
 };/* class PortfolioLemmaInputChannel */
 

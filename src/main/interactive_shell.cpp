@@ -40,6 +40,7 @@
 
 #include "base/output.h"
 #include "options/language.h"
+#include "options/base_options.h"
 #include "options/main_options.h"
 #include "options/options.h"
 #include "options/smt_options.h"

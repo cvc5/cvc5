@@ -25,6 +25,7 @@
 
 #include "base/cvc4_assert.h"
 #include "base/output.h"
+#include "expr/expr_iomanip.h"
 #include "expr/node.h"
 #include "expr/sexpr.h"
 #include "options/options.h"
@@ -984,7 +985,7 @@ void GetValueCommand::printResult(std::ostream& out, uint32_t verbosity) const t
   if(! ok()) {
     this->Command::printResult(out, verbosity);
   } else {
-    Expr::dag::Scope scope(out, false);
+    expr::ExprDag::Scope scope(out, false);
     out << d_result << endl;
   }
 }

@@ -22,6 +22,7 @@
 #include <string>
 
 #include "main/main.h"
+#include "options/base_options.h"
 #include "options/main_options.h"
 #include "options/printer_options.h"
 #include "options/smt_options.h"

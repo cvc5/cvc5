@@ -18,6 +18,7 @@
 #include <string>
 
 #include "expr/expr_manager.h"
+#include "options/base_options.h"
 #include "options/parser_options.h"
 #include "options/smt_options.h"
 #include "parser/input.h"

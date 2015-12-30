@@ -18,6 +18,7 @@
 #include <iosfwd>
 #include <iomanip>
 
+#include "options/base_options.h"
 #include "options/language.h"
 #include "options/options.h"
 

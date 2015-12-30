@@ -32,7 +32,6 @@
 
 #include "base/exception.h"
 #include "expr/statistics.h"
-#include "lib/clock_gettime.h"
 
 namespace CVC4 {
 
@@ -617,10 +616,10 @@ public:
     d_prefix = d_name = name;
   }
 
-#if (defined(__BUILDING_CVC4LIB) || defined(__BUILDING_CVC4LIB_UNIT_TEST)) && !defined(__BUILDING_STATISTICS_FOR_EXPORT)
+#if (defined(__BUILDING_CVC4LIB) || defined(__BUILDING_CVC4LIB_UNIT_TEST))
   /** Get a pointer to the current statistics registry */
   static StatisticsRegistry* current();
-#endif /* (__BUILDING_CVC4LIB || __BUILDING_CVC4LIB_UNIT_TEST) && ! __BUILDING_STATISTICS_FOR_EXPORT */
+#endif /* (__BUILDING_CVC4LIB || __BUILDING_CVC4LIB_UNIT_TEST) */
 
   /** Overridden to avoid the name being printed */
   void flushStat(std::ostream &out) const;
@@ -638,13 +637,13 @@ public:
     return SExpr(v);
   }
 
-#if (defined(__BUILDING_CVC4LIB) || defined(__BUILDING_CVC4LIB_UNIT_TEST)) && !defined(__BUILDING_STATISTICS_FOR_EXPORT)
+#if (defined(__BUILDING_CVC4LIB) || defined(__BUILDING_CVC4LIB_UNIT_TEST))
   /** Register a new statistic, making it active. */
   static void registerStat(Stat* s) throw(CVC4::IllegalArgumentException);
 
   /** Unregister an active statistic, making it inactive. */
   static void unregisterStat(Stat* s) throw(CVC4::IllegalArgumentException);
-#endif /* (__BUILDING_CVC4LIB || __BUILDING_CVC4LIB) && ! __BUILDING_STATISTICS_FOR_EXPORT */
+#endif /* (__BUILDING_CVC4LIB || __BUILDING_CVC4LIB) */
 
   /** Register a new statistic */
   void registerStat_(Stat* s) throw(CVC4::IllegalArgumentException);
@@ -887,7 +886,7 @@ class RegisterStatistic {
 
 public:
 
-#if (defined(__BUILDING_CVC4LIB) || defined(__BUILDING_CVC4LIB_UNIT_TEST)) && ! defined(__BUILDING_STATISTICS_FOR_EXPORT)
+#if (defined(__BUILDING_CVC4LIB) || defined(__BUILDING_CVC4LIB_UNIT_TEST))
   RegisterStatistic(Stat* stat) :
       d_reg(StatisticsRegistry::current()),
       d_stat(stat) {
@@ -896,7 +895,7 @@ public:
     }
     StatisticsRegistry::registerStat(d_stat);
   }
-#endif /* (__BUILDING_CVC4LIB || __BUILDING_CVC4LIB_UNIT_TEST) && ! __BUILDING_STATISTICS_FOR_EXPORT */
+#endif /* (__BUILDING_CVC4LIB || __BUILDING_CVC4LIB_UNIT_TEST) */
 
   RegisterStatistic(StatisticsRegistry* reg, Stat* stat) :
     d_reg(reg),

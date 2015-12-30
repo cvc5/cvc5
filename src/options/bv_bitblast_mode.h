@@ -64,8 +64,8 @@ enum BvSlicerMode {
 }/* CVC4::theory::bv namespace */
 }/* CVC4::theory namespace */
 
-std::ostream& operator<<(std::ostream& out, theory::bv::BitblastMode mode) CVC4_PUBLIC;
-std::ostream& operator<<(std::ostream& out, theory::bv::BvSlicerMode mode) CVC4_PUBLIC;
+std::ostream& operator<<(std::ostream& out, theory::bv::BitblastMode mode);
+std::ostream& operator<<(std::ostream& out, theory::bv::BvSlicerMode mode);
 
 }/* CVC4 namespace */
 

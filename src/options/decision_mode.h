@@ -20,7 +20,7 @@
 #ifndef __CVC4__SMT__DECISION_MODE_H
 #define __CVC4__SMT__DECISION_MODE_H
 
-#include <iostream>
+#include <iosfwd>
 
 namespace CVC4 {
 namespace decision {
@@ -57,7 +57,7 @@ enum DecisionWeightInternal {
 
 }/* CVC4::decision namespace */
 
-std::ostream& operator<<(std::ostream& out, decision::DecisionMode mode) CVC4_PUBLIC;
+std::ostream& operator<<(std::ostream& out, decision::DecisionMode mode);
 
 }/* CVC4 namespace */
 

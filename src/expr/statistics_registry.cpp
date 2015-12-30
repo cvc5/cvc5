@@ -21,10 +21,8 @@
 #include "expr/expr_manager.h"
 #include "lib/clock_gettime.h"
 #include "smt/smt_engine.h"
+#include "smt/smt_engine_scope.h"
 
-#ifndef __BUILDING_STATISTICS_FOR_EXPORT
-#  include "smt/smt_engine_scope.h"
-#endif /* ! __BUILDING_STATISTICS_FOR_EXPORT */
 
 #ifdef CVC4_STATISTICS_ON
 #  define __CVC4_USE_STATISTICS true
@@ -65,8 +63,6 @@ inline StatisticsRegistry* getStatisticsRegistry(ExprManager* em) {
 
 }/* CVC4::stats namespace */
 
-#ifndef __BUILDING_STATISTICS_FOR_EXPORT
-
 StatisticsRegistry* StatisticsRegistry::current() {
   return stats::getStatisticsRegistry(smt::currentSmtEngine());
 }
@@ -90,8 +86,6 @@ void StatisticsRegistry::unregisterStat(Stat* s) throw(CVC4::IllegalArgumentExce
   stats.erase(s);
 #endif /* CVC4_STATISTICS_ON */
 }/* StatisticsRegistry::unregisterStat() */
-
-#endif /* ! __BUILDING_STATISTICS_FOR_EXPORT */
 
 void StatisticsRegistry::registerStat_(Stat* s) throw(CVC4::IllegalArgumentException) {
 #ifdef CVC4_STATISTICS_ON

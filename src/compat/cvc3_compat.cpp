@@ -25,9 +25,11 @@
 
 #include "base/exception.h"
 #include "base/output.h"
+#include "expr/expr_iomanip.h"
 #include "expr/kind.h"
 #include "expr/predicate.h"
 #include "expr/sexpr.h"
+#include "options/base_options.h"
 #include "options/expr_options.h"
 #include "options/parser_options.h"
 #include "options/set_language.h"
@@ -1560,8 +1562,8 @@ void ValidityChecker::printExpr(const Expr& e) {
 }
 
 void ValidityChecker::printExpr(const Expr& e, std::ostream& os) {
-  Expr::setdepth::Scope sd(os, -1);
-  Expr::printtypes::Scope pt(os, false);
+  CVC4::expr::ExprSetDepth::Scope sd(os, -1);
+  CVC4::expr::ExprPrintTypes::Scope pt(os, false);
   CVC4::language::SetLanguage::Scope sl(os, d_em->getOptions()[CVC4::options::outputLanguage]);
   os << e;
 }

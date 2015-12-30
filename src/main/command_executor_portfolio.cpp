@@ -31,6 +31,7 @@
 #include "expr/pickler.h"
 #include "main/main.h"
 #include "main/portfolio.h"
+#include "options/base_options.h"
 #include "options/main_options.h"
 #include "options/options.h"
 #include "options/printer_options.h"

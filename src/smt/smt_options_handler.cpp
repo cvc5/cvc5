@@ -25,6 +25,7 @@
 #include "base/modal_exception.h"
 #include "base/output.h"
 #include "cvc4autoconfig.h"
+#include "expr/expr_iomanip.h"
 #include "expr/metakind.h"
 #include "expr/node_manager.h"
 #include "expr/resource_manager.h"
@@ -32,6 +33,7 @@
 #include "options/arith_heuristic_pivot_rule.h"
 #include "options/arith_propagation_mode.h"
 #include "options/arith_unate_lemma_mode.h"
+#include "options/base_options.h"
 #include "options/boolean_term_conversion_mode.h"
 #include "options/bv_bitblast_mode.h"
 #include "options/bv_options.h"
@@ -1219,9 +1221,9 @@ void SmtOptionsHandler::proofEnabledBuild(std::string option, bool value) throw(
     bool printtypesSetting = expr::ExprPrintTypes::getPrintTypes(__channel_get); \
     OutputLanguage languageSetting = language::SetLanguage::getLanguage(__channel_get); \
     __channel_set; \
-    __channel_get << Expr::dag(dagSetting); \
-    __channel_get << Expr::setdepth(exprDepthSetting); \
-    __channel_get << Expr::printtypes(printtypesSetting); \
+    __channel_get << expr::ExprDag(dagSetting);      \
+    __channel_get << expr::ExprSetDepth(exprDepthSetting); \
+    __channel_get << expr::ExprPrintTypes(printtypesSetting); \
     __channel_get << language::SetLanguage(languageSetting); \
   }
 
@@ -1418,12 +1420,12 @@ void SmtOptionsHandler::setDefaultExprDepth(std::string option, int depth) {
     throw OptionException("--default-expr-depth requires a positive argument, or -1.");
   }
 
-  Debug.getStream() << Expr::setdepth(depth);
-  Trace.getStream() << Expr::setdepth(depth);
-  Notice.getStream() << Expr::setdepth(depth);
-  Chat.getStream() << Expr::setdepth(depth);
-  Message.getStream() << Expr::setdepth(depth);
-  Warning.getStream() << Expr::setdepth(depth);
+  Debug.getStream() << expr::ExprSetDepth(depth);
+  Trace.getStream() << expr::ExprSetDepth(depth);
+  Notice.getStream() << expr::ExprSetDepth(depth);
+  Chat.getStream() << expr::ExprSetDepth(depth);
+  Message.getStream() << expr::ExprSetDepth(depth);
+  Warning.getStream() << expr::ExprSetDepth(depth);
   // intentionally exclude Dump stream from this list
 }
 
@@ -1432,22 +1434,22 @@ void SmtOptionsHandler::setDefaultDagThresh(std::string option, int dag) {
     throw OptionException("--default-dag-thresh requires a nonnegative argument.");
   }
 
-  Debug.getStream() << Expr::dag(dag);
-  Trace.getStream() << Expr::dag(dag);
-  Notice.getStream() << Expr::dag(dag);
-  Chat.getStream() << Expr::dag(dag);
-  Message.getStream() << Expr::dag(dag);
-  Warning.getStream() << Expr::dag(dag);
-  Dump.getStream() << Expr::dag(dag);
+  Debug.getStream() << expr::ExprDag(dag);
+  Trace.getStream() << expr::ExprDag(dag);
+  Notice.getStream() << expr::ExprDag(dag);
+  Chat.getStream() << expr::ExprDag(dag);
+  Message.getStream() << expr::ExprDag(dag);
+  Warning.getStream() << expr::ExprDag(dag);
+  Dump.getStream() << expr::ExprDag(dag);
 }
 
 void SmtOptionsHandler::setPrintExprTypes(std::string option) {
-  Debug.getStream() << Expr::printtypes(true);
-  Trace.getStream() << Expr::printtypes(true);
-  Notice.getStream() << Expr::printtypes(true);
-  Chat.getStream() << Expr::printtypes(true);
-  Message.getStream() << Expr::printtypes(true);
-  Warning.getStream() << Expr::printtypes(true);
+  Debug.getStream() << expr::ExprPrintTypes(true);
+  Trace.getStream() << expr::ExprPrintTypes(true);
+  Notice.getStream() << expr::ExprPrintTypes(true);
+  Chat.getStream() << expr::ExprPrintTypes(true);
+  Message.getStream() << expr::ExprPrintTypes(true);
+  Warning.getStream() << expr::ExprPrintTypes(true);
   // intentionally exclude Dump stream from this list
 }
 

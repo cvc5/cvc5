@@ -62,11 +62,11 @@ namespace CVC4 {
 
   }; /* class FloatingPointSize */
 
-
-
-#define ROLL(X,N) (((X) << (N)) | ((X) >> (8*sizeof((X)) - (N)) ))
-
   struct CVC4_PUBLIC FloatingPointSizeHashFunction {
+    static inline size_t ROLL(size_t X, size_t N) {
+      return (((X) << (N)) | ((X) >> (8*sizeof((X)) - (N)) ));
+    }
+
     inline size_t operator() (const FloatingPointSize& fpt) const {
       return size_t(ROLL(fpt.exponent(), 4*sizeof(unsigned)) |
 		    fpt.significand());

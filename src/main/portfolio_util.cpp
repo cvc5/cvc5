@@ -12,11 +12,14 @@
  ** \brief Code relevant only for portfolio builds
  **/
 
+#include "main/portfolio_util.h"
+
 #include <unistd.h>
 
 #include <cassert>
 #include <vector>
 
+#include "options/base_options.h"
 #include "options/main_options.h"
 #include "options/options.h"
 #include "options/prop_options.h"
@@ -94,6 +97,50 @@ vector<Options> parseThreadSpecificOptions(Options opts)
   assert(numThreads >= 1);      //do we need this?
 
   return threadOptions;
+}
+
+void PortfolioLemmaOutputChannel::notifyNewLemma(Expr lemma) {
+  if(int(lemma.getNumChildren()) > options::sharingFilterByLength()) {
+    return;
+  }
+  ++cnt;
+  Trace("sharing") << d_tag << ": " << lemma << std::endl;
+  expr::pickle::Pickle pkl;
+  try {
+    d_pickler.toPickle(lemma, pkl);
+    d_sharedChannel->push(pkl);
+    if(Trace.isOn("showSharing") && options::thread_id() == 0) {
+      *options::out() << "thread #0: notifyNewLemma: " << lemma
+                      << std::endl;
+    }
+  } catch(expr::pickle::PicklingException& p){
+    Trace("sharing::blocked") << lemma << std::endl;
+  }
+}
+
+
+PortfolioLemmaInputChannel::PortfolioLemmaInputChannel(std::string tag,
+    SharedChannel<ChannelFormat>* c,
+    ExprManager* em,
+    VarMap& to,
+    VarMap& from)
+    : d_tag(tag), d_sharedChannel(c), d_pickler(em, to, from)
+{}
+
+bool PortfolioLemmaInputChannel::hasNewLemma(){
+  Debug("lemmaInputChannel") << d_tag << ": " << "hasNewLemma" << std::endl;
+  return !d_sharedChannel->empty();
+}
+
+Expr PortfolioLemmaInputChannel::getNewLemma() {
+  Debug("lemmaInputChannel") << d_tag << ": " << "getNewLemma" << std::endl;
+  expr::pickle::Pickle pkl = d_sharedChannel->pop();
+
+  Expr e = d_pickler.fromPickle(pkl);
+  if(Trace.isOn("showSharing") && options::thread_id() == 0) {
+    *options::out() << "thread #0: getNewLemma: " << e << std::endl;
+  }
+  return e;
 }
 
 }/*CVC4 namespace */

@@ -28,6 +28,7 @@
 #include "expr/statistics.h"
 #include "main/command_executor.h"
 #include "main/interactive_shell.h"
+#include "options/base_options.h"
 #include "options/language.h"
 #include "options/main_options.h"
 #include "parser/parser.h"

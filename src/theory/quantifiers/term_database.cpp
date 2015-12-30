@@ -15,6 +15,7 @@
 #include "theory/quantifiers/term_database.h"
 
 #include "expr/datatype.h"
+#include "options/base_options.h"
 #include "options/quantifiers_options.h"
 #include "theory/datatypes/datatypes_rewriter.h"
 #include "theory/quantifiers/ce_guided_instantiation.h"

@@ -18,6 +18,7 @@
 
 #include "prop/minisat/minisat.h"
 
+#include "options/base_options.h"
 #include "options/decision_options.h"
 #include "options/prop_options.h"
 #include "options/smt_options.h"

@@ -16,10 +16,12 @@
 
 #include <vector>
 
-#include "smt_util/command.h"
-#include "smt/smt_engine_scope.h"
-#include "smt/command_list.h"
+#include "expr/expr_iomanip.h"
+#include "options/base_options.h"
 #include "printer/printer.h"
+#include "smt/command_list.h"
+#include "smt/smt_engine_scope.h"
+#include "smt_util/command.h"
 
 using namespace std;
 
@@ -27,7 +29,7 @@ namespace CVC4 {
 
 std::ostream& operator<<(std::ostream& out, const Model& m) {
   smt::SmtScope smts(&m.d_smt);
-  Expr::dag::Scope scope(out, false);
+  expr::ExprDag::Scope scope(out, false);
   Printer::getPrinter(options::outputLanguage())->toStream(out, m);
   return out;
 }
