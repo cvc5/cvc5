@@ -305,7 +305,7 @@ int runCvc4(int argc, char* argv[], Options& opts) {
     Command* cmd;
     bool status = true;
     if(opts[options::interactive] && inputFromStdin) {
-      if(opts[options::tearDownIncremental]) {
+      if(opts[options::tearDownIncremental] > 0) {
         throw OptionException("--tear-down-incremental doesn't work in interactive mode");
       }
 #ifndef PORTFOLIO_BUILD
@@ -351,16 +351,20 @@ int runCvc4(int argc, char* argv[], Options& opts) {
         }
         delete cmd;
       }
-    } else if(opts[options::tearDownIncremental]) {
-      if(opts[options::incrementalSolving]) {
-        if(opts.wasSetByUser(options::incrementalSolving)) {
-          throw OptionException("--tear-down-incremental incompatible with --incremental");
-        }
-
-        cmd = new SetOptionCommand("incremental", SExpr(false));
+    } else if(opts[options::tearDownIncremental] > 0) {
+      if(!opts[options::incrementalSolving]) {
+        cmd = new SetOptionCommand("incremental", SExpr(true));
         cmd->setMuted(true);
         pExecutor->doCommand(cmd);
         delete cmd;
+        // if(opts.wasSetByUser(options::incrementalSolving)) {
+        //   throw OptionException("--tear-down-incremental incompatible with --incremental");
+        // }
+
+        // cmd = new SetOptionCommand("incremental", SExpr(false));
+        // cmd->setMuted(true);
+        // pExecutor->doCommand(cmd);
+        // delete cmd;
       }
 
       ParserBuilder parserBuilder(exprMgr, filename, opts);
@@ -380,7 +384,7 @@ int runCvc4(int argc, char* argv[], Options& opts) {
         // have the replay parser use the file's declarations
         replayParser->useDeclarationsFrom(parser);
       }
-      bool needReset = false;
+      int needReset = 0;
       // true if one of the commands was interrupted
       bool interrupted = false;
       while (status || opts[options::continuedExecution]) {
@@ -398,7 +402,7 @@ int runCvc4(int argc, char* argv[], Options& opts) {
         }
 
         if(dynamic_cast<PushCommand*>(cmd) != NULL) {
-          if(needReset) {
+          if(needReset >= opts[options::tearDownIncremental]) {
             pExecutor->reset();
             for(size_t i = 0; i < allCommands.size() && !interrupted; ++i) {
               if (interrupted) break;
@@ -412,29 +416,19 @@ int runCvc4(int argc, char* argv[], Options& opts) {
                 delete cmd;
               }
             }
-            needReset = false;
+            needReset = 0;
           }
-          *opts[options::out] << CommandSuccess();
           allCommands.push_back(vector<Command*>());
+          Command* copy = cmd->clone();
+          allCommands.back().push_back(copy);
+          status = pExecutor->doCommand(cmd);
+          if(cmd->interrupted()) {
+            interrupted = true;
+            continue;
+          }
         } else if(dynamic_cast<PopCommand*>(cmd) != NULL) {
           allCommands.pop_back(); // fixme leaks cmds here
-          pExecutor->reset();
-          for(size_t i = 0; i < allCommands.size() && !interrupted; ++i) {
-            for(size_t j = 0; j < allCommands[i].size() && !interrupted; ++j) {
-              Command* cmd = allCommands[i][j]->clone();
-              cmd->setMuted(true);
-              pExecutor->doCommand(cmd);
-              if(cmd->interrupted()) {
-                interrupted = true;
-              }
-              delete cmd;
-            }
-          }
-          if (interrupted) continue;
-          *opts[options::out] << CommandSuccess();
-        } else if(dynamic_cast<CheckSatCommand*>(cmd) != NULL ||
-                  dynamic_cast<QueryCommand*>(cmd) != NULL) {
-          if(needReset) {
+          if (needReset >= opts[options::tearDownIncremental]) {
             pExecutor->reset();
             for(size_t i = 0; i < allCommands.size() && !interrupted; ++i) {
               for(size_t j = 0; j < allCommands[i].size() && !interrupted; ++j) {
@@ -447,6 +441,34 @@ int runCvc4(int argc, char* argv[], Options& opts) {
                 delete cmd;
               }
             }
+            if (interrupted) continue;
+            *opts[options::out] << CommandSuccess();
+            needReset = 0;
+          } else {
+            status = pExecutor->doCommand(cmd);
+            if(cmd->interrupted()) {
+              interrupted = true;
+              continue;
+            }
+          }
+        } else if(dynamic_cast<CheckSatCommand*>(cmd) != NULL ||
+                  dynamic_cast<QueryCommand*>(cmd) != NULL) {
+          if(needReset >= opts[options::tearDownIncremental]) {
+            pExecutor->reset();
+            for(size_t i = 0; i < allCommands.size() && !interrupted; ++i) {
+              for(size_t j = 0; j < allCommands[i].size() && !interrupted; ++j) {
+                Command* cmd = allCommands[i][j]->clone();
+                cmd->setMuted(true);
+                pExecutor->doCommand(cmd);
+                if(cmd->interrupted()) {
+                  interrupted = true;
+                }
+                delete cmd;
+              }
+            }
+            needReset = 0;
+          } else {
+            ++needReset;
           }
           if (interrupted) {
             continue;
@@ -457,7 +479,6 @@ int runCvc4(int argc, char* argv[], Options& opts) {
             interrupted = true;
             continue;
           }
-          needReset = true;
         } else if(dynamic_cast<ResetCommand*>(cmd) != NULL) {
           pExecutor->doCommand(cmd);
           allCommands.clear();
