@@ -1293,9 +1293,14 @@ void TheoryArrays::check(Effort e) {
 
             Node ak = nm->mkNode(kind::SELECT, fact[0][0], k);
             Node bk = nm->mkNode(kind::SELECT, fact[0][1], k);
-            Node eq = d_valuation.ensureLiteral(ak.eqNode(bk));
-            Assert(eq.getKind() == kind::EQUAL);
+            Node eq = ak.eqNode(bk);
             Node lemma = fact[0].orNode(eq.notNode());
+            if (options::arraysPropagate() > 0 && d_equalityEngine.hasTerm(ak) && d_equalityEngine.hasTerm(bk)) {
+              // Propagate witness disequality - might produce a conflict
+              d_permRef.push_back(lemma);
+              d_equalityEngine.assertEquality(eq, false, lemma, eq::MERGED_ARRAYS_EXT);
+              ++d_numProp;
+            }
             Trace("arrays-lem")<<"Arrays::addExtLemma " << lemma <<"\n";
             d_out->lemma(lemma);
             ++d_numExt;
@@ -1424,11 +1429,19 @@ Node TheoryArrays::mkAnd(std::vector<TNode>& conjunctions, bool invert, unsigned
       }
     }
     else if (t.getKind() == kind::OR) {
-      // Expand explanation resulting from propagating a ROW lemma
+      // Expand explanation resulting from propagating a ROW or EXT lemma
       if ((explained.find(t) == explained.end())) {
-        Assert(t[1].getKind() == kind::EQUAL);
-        d_equalityEngine.explainEquality(t[1][0], t[1][1], false, conjunctions);
-        explained.insert(t);
+        if (t[1].getKind() == kind::EQUAL) {
+          // ROW lemma
+          d_equalityEngine.explainEquality(t[1][0], t[1][1], false, conjunctions);
+          explained.insert(t);
+        } else {
+          // EXT lemma
+          Assert(t[1].getKind() == kind::NOT && t[1][0].getKind() == kind::EQUAL);
+          Assert(t[0].getKind() == kind::EQUAL);
+          all.insert(t[0].notNode());
+          explained.insert(t);
+        }
       }
     }
     else {
