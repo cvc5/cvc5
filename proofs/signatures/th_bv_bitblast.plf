@@ -17,6 +17,14 @@
 	 (! y bblt
 	    type))))
 
+; FIXME: for unsupported bit-blast terms
+(declare trust_bblast_term
+	 (! n mpz
+	 (! x (term (BitVec n))
+	 (! y bblt
+	    (bblast_term n x y)))))
+
+
 (declare decl_bblast
 	 (! n mpz
 	 (! b bblt

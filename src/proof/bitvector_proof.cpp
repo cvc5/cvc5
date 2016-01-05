@@ -92,7 +92,9 @@ void BitVectorProof::registerTermBB(Expr term) {
 }
 
 void BitVectorProof::registerAtomBB(Expr atom, Expr atom_bb) {
-  d_bbAtoms.insert(std::make_pair(atom, atom.iffExpr(atom_bb)));
+  Expr def = atom.iffExpr(atom_bb);
+   d_bbAtoms.insert(std::make_pair(atom, def));
+  registerTerm(atom);
 }
 
 void BitVectorProof::registerTerm(Expr term) {
@@ -442,16 +444,6 @@ void LFSCBitVectorProof::printTermBitblasting(Expr term, std::ostream& os) {
   case kind::BITVECTOR_MULT :
   case kind::BITVECTOR_PLUS :
   case kind::BITVECTOR_SUB :
-  case kind::BITVECTOR_UDIV :
-  case kind::BITVECTOR_UREM :
-  case kind::BITVECTOR_UDIV_TOTAL :
-  case kind::BITVECTOR_UREM_TOTAL :
-  case kind::BITVECTOR_SDIV :
-  case kind::BITVECTOR_SREM :
-  case kind::BITVECTOR_SMOD :
-  case kind::BITVECTOR_SHL :
-  case kind::BITVECTOR_LSHR :
-  case kind::BITVECTOR_ASHR :
   case kind::BITVECTOR_CONCAT : {
     for (unsigned i =0; i < term.getNumChildren() - 1; ++i) {
       os <<"(bv_bbl_"<< utils::toLFSCKind(kind);
@@ -511,6 +503,34 @@ void LFSCBitVectorProof::printTermBitblasting(Expr term, std::ostream& os) {
     os <<")";
     return;
   }
+  case kind::BITVECTOR_UDIV :
+  case kind::BITVECTOR_UREM :
+  case kind::BITVECTOR_UDIV_TOTAL :
+  case kind::BITVECTOR_UREM_TOTAL :
+  case kind::BITVECTOR_SDIV :
+  case kind::BITVECTOR_SREM :
+  case kind::BITVECTOR_SMOD :
+  case kind::BITVECTOR_SHL :
+  case kind::BITVECTOR_LSHR :
+  case kind::BITVECTOR_ASHR : {
+ 	// these are terms for which bit-blasting is not supported yet   
+    std::ostringstream paren;
+    os <<"(trust_bblast_term _ ";
+    paren <<")";
+    d_proofEngine->printLetTerm(term, os);
+    os <<" ";
+    std::vector<Node> bits;
+    d_bitblaster->bbTerm(term, bits);
+
+    for (int i = utils::getSize(term) - 1; i >= 0; --i) {
+      os << "(bbltc ";
+      d_proofEngine->printLetTerm((bits[i]).toExpr(), os);
+      paren << ")";
+    }
+    os << "bbltn" << paren.str();
+    return;
+  }
+
   default:
     Unreachable("LFSCBitVectorProof Unknown operator");
   }
@@ -541,8 +561,6 @@ void LFSCBitVectorProof::printAtomBitblasting(Expr atom, std::ostream& os) {
 
 
 void LFSCBitVectorProof::printBitblasting(std::ostream& os, std::ostream& paren) {
-  // //FIXMEEEEEEEEEE
-  // return ;
   // bit-blast terms
   std::vector<Expr>::const_iterator it = d_bbTerms.begin();
   std::vector<Expr>::const_iterator end = d_bbTerms.end();
