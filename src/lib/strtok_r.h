@@ -14,7 +14,7 @@
  ** Replacement for strtok_r() for systems without it (like Win32).
  **/
 
-#include "cvc4_public.h"
+#include "cvc4_private.h"
 
 #ifndef __CVC4__LIB__STRTOK_R_H
 #define __CVC4__LIB__STRTOK_R_H

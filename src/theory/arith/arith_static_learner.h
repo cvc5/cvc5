@@ -20,13 +20,12 @@
 #ifndef __CVC4__THEORY__ARITH__ARITH_STATIC_LEARNER_H
 #define __CVC4__THEORY__ARITH__ARITH_STATIC_LEARNER_H
 
-
-#include "util/statistics_registry.h"
-#include "theory/arith/arith_utilities.h"
-
-#include "context/context.h"
-#include "context/cdtrail_hashmap.h"
 #include <set>
+
+#include "context/cdtrail_hashmap.h"
+#include "context/context.h"
+#include "expr/statistics_registry.h"
+#include "theory/arith/arith_utilities.h"
 
 namespace CVC4 {
 namespace theory {

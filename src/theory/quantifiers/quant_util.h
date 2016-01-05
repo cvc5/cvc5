@@ -38,10 +38,11 @@ public:
   static bool getMonomialSumLit( Node lit, std::map< Node, Node >& msum );
   //return 1 : solved on LHS, return -1 : solved on RHS, return 0: failed
   static int isolate( Node v, std::map< Node, Node >& msum, Node & veq, Kind k, bool doCoeff = false );
+  static int isolate( Node v, std::map< Node, Node >& msum, Node & veq_c, Node & val, Kind k );
+  static Node solveEqualityFor( Node lit, Node v );
   static Node negate( Node t );
   static Node offset( Node t, int i );
   static void debugPrintMonomialSum( std::map< Node, Node >& msum, const char * c );
-  static bool solveEqualityFor( Node lit, Node v, Node & veq );
 };
 
 
@@ -77,8 +78,10 @@ private:
   /** helper functions compute phase requirements */
   void computePhaseReqs( Node n, bool polarity, std::map< Node, int >& phaseReqs );
 public:
+  QuantPhaseReq(){}
   QuantPhaseReq( Node n, bool computeEq = false );
   ~QuantPhaseReq(){}
+  void initialize( Node n, bool computeEq );
   /** is phase required */
   bool isPhaseReq( Node lit ) { return d_phase_reqs.find( lit )!=d_phase_reqs.end(); }
   /** get phase requirement */
@@ -110,8 +113,6 @@ public:
   virtual eq::EqualityEngine* getEngine() = 0;
   /** get the equivalence class of a */
   virtual void getEquivalenceClass( Node a, std::vector< Node >& eqc ) = 0;
-
-  virtual void setLiberal( bool l ) = 0;
 };/* class EqualityQuery */
 
 

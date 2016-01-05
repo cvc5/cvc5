@@ -18,7 +18,7 @@ properties check propagate
 constant EMPTYSET \
     ::CVC4::EmptySet \
     ::CVC4::EmptySetHashFunction \
-    "util/emptyset.h" \
+    "expr/emptyset.h" \
     "the empty set constant; payload is an instance of the CVC4::EmptySet class"
 
 # the type

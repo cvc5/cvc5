@@ -743,7 +743,7 @@ SymmetryBreaker::selectMostPromisingTerm(Terms& terms) {
 void SymmetryBreaker::insertUsedIn(Term term, const Permutation& p, set<Node>& cts) {
   // insert terms from p used in term into cts
   //Debug("ufsymm") << "UFSYMM usedIn(): " << term << " , " << p << endl;
-  if(find(p.begin(), p.end(), term) != p.end()) {
+  if (p.find(term) != p.end()) {
     cts.insert(term);
   } else {
     for(TNode::iterator i = term.begin(); i != term.end(); ++i) {

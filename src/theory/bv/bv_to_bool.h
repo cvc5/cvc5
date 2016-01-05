@@ -15,11 +15,12 @@
  **/
 
 #include "cvc4_private.h"
-#include "theory/bv/theory_bv_utils.h"
-#include "util/statistics_registry.h"
 
 #ifndef __CVC4__THEORY__BV__BV_TO_BOOL_H
 #define __CVC4__THEORY__BV__BV_TO_BOOL_H
+
+#include "expr/statistics_registry.h"
+#include "theory/bv/theory_bv_utils.h"
 
 namespace CVC4 {
 namespace theory {

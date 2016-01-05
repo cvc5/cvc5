@@ -19,15 +19,15 @@
 #ifndef __CVC4__THEORY__THEORY_TEST_UTILS_H
 #define __CVC4__THEORY__THEORY_TEST_UTILS_H
 
-#include "util/cvc4_assert.h"
-#include "expr/node.h"
-#include "theory/output_channel.h"
-#include "theory/interrupted.h"
-#include "util/unsafe_interrupt_exception.h"
-
-#include <vector>
-#include <utility>
 #include <iostream>
+#include <utility>
+#include <vector>
+
+#include "base/cvc4_assert.h"
+#include "expr/node.h"
+#include "theory/interrupted.h"
+#include "theory/output_channel.h"
+#include "util/unsafe_interrupt_exception.h"
 
 namespace CVC4 {
 namespace theory {
@@ -69,7 +69,7 @@ public:
 
   ~TestOutputChannel() {}
 
-  void safePoint()  throw(Interrupted, AssertionException) {}
+  void safePoint(uint64_t ammount)  throw(Interrupted, AssertionException) {}
 
   void conflict(TNode n)
     throw(AssertionException, UnsafeInterruptException) {
@@ -87,7 +87,7 @@ public:
     push(PROPAGATE_AS_DECISION, n);
   }
 
-  LemmaStatus lemma(TNode n, bool removable, bool preprocess) throw(AssertionException, UnsafeInterruptException) {
+  LemmaStatus lemma(TNode n, bool removable, bool preprocess, bool sendAtoms) throw(AssertionException, UnsafeInterruptException) {
     push(LEMMA, n);
     return LemmaStatus(Node::null(), 0);
   }

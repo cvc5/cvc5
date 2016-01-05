@@ -21,9 +21,10 @@ OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWA
 #include "utils/Options.h"
 #include "utils/ParseUtils.h"
 
-using namespace BVMinisat;
+namespace CVC4 {
+namespace BVMinisat {
 
-void Minisat::parseOptions(int& argc, char** argv, bool strict)
+void BVMinisat::parseOptions(int& argc, char** argv, bool strict)
 {
     int i, j;
     for (i = j = 1; i < argc; i++){
@@ -54,9 +55,9 @@ void Minisat::parseOptions(int& argc, char** argv, bool strict)
 }
 
 
-void Minisat::setUsageHelp      (const char* str){ Option::getUsageString() = str; }
-void Minisat::setHelpPrefixStr  (const char* str){ Option::getHelpPrefixString() = str; }
-void Minisat::printUsageAndExit (int argc, char** argv, bool verbose)
+void BVMinisat::setUsageHelp      (const char* str){ Option::getUsageString() = str; }
+void BVMinisat::setHelpPrefixStr  (const char* str){ Option::getHelpPrefixString() = str; }
+void BVMinisat::printUsageAndExit (int argc, char** argv, bool verbose)
 {
     const char* usage = Option::getUsageString();
     if (usage != NULL)
@@ -89,3 +90,6 @@ void Minisat::printUsageAndExit (int argc, char** argv, bool verbose)
     exit(0);
 }
 
+
+} /* CVC4::BVMinisat namespace */
+} /* CVC4 namespace */

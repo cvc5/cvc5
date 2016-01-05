@@ -9,20 +9,19 @@
  ** See the file COPYING in the top-level source directory for licensing
  ** information.\endverbatim
  **
- ** \brief instantiator_arith_instantiator
+ ** \brief counterexample-guided quantifier instantiation
  **/
 
 
 #include "cvc4_private.h"
 
-#ifndef __CVC4__INST_STRATEGT_CBQI_H
-#define __CVC4__INST_STRATEGT_CBQI_H
+#ifndef __CVC4__INST_STRATEGY_CBQI_H
+#define __CVC4__INST_STRATEGY_CBQI_H
 
-#include "theory/quantifiers/instantiation_engine.h"
+#include "expr/statistics_registry.h"
 #include "theory/arith/arithvar.h"
-
-#include "util/statistics_registry.h"
-#include "theory/quantifiers/ce_guided_single_inv.h"
+#include "theory/quantifiers/ceg_instantiator.h"
+#include "theory/quantifiers/instantiation_engine.h"
 
 namespace CVC4 {
 namespace theory {
@@ -31,15 +30,47 @@ namespace arith {
   class TheoryArith;
 }
 
-namespace datatypes {
-  class TheoryDatatypes;
-}
-
 namespace quantifiers {
 
+class InstStrategyCbqi : public QuantifiersModule {
+  typedef context::CDHashSet<Node, NodeHashFunction> NodeSet;
+protected:
+  bool d_cbqi_set_quant_inactive;
+  bool d_incomplete_check;
+  /** whether we have added cbqi lemma */
+  NodeSet d_added_cbqi_lemma;
+  /** whether to do cbqi for this quantified formula */
+  std::map< Node, bool > d_do_cbqi;
+  /** register ce lemma */
+  virtual void registerCounterexampleLemma( Node q, Node lem );
+  /** has added cbqi lemma */
+  bool hasAddedCbqiLemma( Node q ) { return d_added_cbqi_lemma.find( q )!=d_added_cbqi_lemma.end(); }
+  /** helper functions */
+  bool hasNonCbqiVariable( Node q );
+  bool hasNonCbqiOperator( Node n, std::map< Node, bool >& visited );
+  /** process functions */
+  virtual void processResetInstantiationRound( Theory::Effort effort ) = 0;
+  virtual void process( Node q, Theory::Effort effort, int e ) = 0;
+public:
+  InstStrategyCbqi( QuantifiersEngine * qe );
+  ~InstStrategyCbqi() throw();
+  /** whether to do CBQI for quantifier q */
+  bool doCbqi( Node q );
+  /** process functions */
+  bool needsCheck( Theory::Effort e );
+  unsigned needsModel( Theory::Effort e );
+  void reset_round( Theory::Effort e );
+  void check( Theory::Effort e, unsigned quant_e );
+  bool checkComplete();
+  void preRegisterQuantifier( Node q );
+  void registerQuantifier( Node q );
+  /** get next decision request */
+  Node getNextDecisionRequest();
+};
 
-class InstStrategySimplex : public InstStrategy{
-private:
+
+class InstStrategySimplex : public InstStrategyCbqi {
+protected:
   /** reference to theory arithmetic */
   arith::TheoryArith* d_th;
   /** quantifiers we should process */
@@ -72,7 +103,7 @@ private:
   Node d_negOne;
   /** process functions */
   void processResetInstantiationRound( Theory::Effort effort );
-  int process( Node f, Theory::Effort effort, int e );
+  void process( Node f, Theory::Effort effort, int e );
 public:
   InstStrategySimplex( arith::TheoryArith* th, QuantifiersEngine* ie );
   ~InstStrategySimplex() throw() {}
@@ -85,35 +116,43 @@ public:
 
 class InstStrategyCegqi;
 
-class CegqiOutputInstStrategy : public CegqiOutput
-{
+class CegqiOutputInstStrategy : public CegqiOutput {
 public:
   CegqiOutputInstStrategy( InstStrategyCegqi * out ) : d_out( out ){}
   InstStrategyCegqi * d_out;
-  bool addInstantiation( std::vector< Node >& subs, std::vector< int >& subs_typ );
+  bool addInstantiation( std::vector< Node >& subs );
   bool isEligibleForInstantiation( Node n );
   bool addLemma( Node lem );
 };
 
-class InstStrategyCegqi : public InstStrategy {
-private:
+class InstStrategyCegqi : public InstStrategyCbqi {
+protected:
   CegqiOutputInstStrategy * d_out;
   std::map< Node, CegInstantiator * > d_cinst;
-  Node d_n_delta;
+  Node d_small_const;
   Node d_curr_quant;
-  bool d_check_delta_lemma;
+  bool d_check_vts_lemma_lc;
   /** process functions */
   void processResetInstantiationRound( Theory::Effort effort );
-  int process( Node f, Theory::Effort effort, int e );
+  void process( Node f, Theory::Effort effort, int e );
+  /** register ce lemma */
+  void registerCounterexampleLemma( Node q, Node lem );
 public:
   InstStrategyCegqi( QuantifiersEngine * qe );
-  ~InstStrategyCegqi() throw() {}
-  
-  bool addInstantiation( std::vector< Node >& subs, std::vector< int >& subs_typ );
-  bool isEligibleForInstantiation( Node n );  
+  ~InstStrategyCegqi() throw();
+
+  bool addInstantiation( std::vector< Node >& subs );
+  bool isEligibleForInstantiation( Node n );
   bool addLemma( Node lem );
   /** identify */
   std::string identify() const { return std::string("Cegqi"); }
+
+  //get instantiator for quantifier
+  CegInstantiator * getInstantiator( Node q );
+  //register quantifier
+  void registerQuantifier( Node q );
+  //presolve
+  void presolve();
 };
 
 }

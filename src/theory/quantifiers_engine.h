@@ -17,17 +17,19 @@
 #ifndef __CVC4__THEORY__QUANTIFIERS_ENGINE_H
 #define __CVC4__THEORY__QUANTIFIERS_ENGINE_H
 
-#include "theory/theory.h"
-#include "util/hash.h"
-#include "theory/quantifiers/inst_match.h"
-#include "theory/quantifiers/quant_util.h"
-#include "expr/attribute.h"
-
-#include "util/statistics_registry.h"
-
 #include <ext/hash_set>
 #include <iostream>
 #include <map>
+
+#include "context/cdchunk_list.h"
+#include "context/cdhashset.h"
+#include "expr/attribute.h"
+#include "expr/statistics_registry.h"
+#include "options/quantifiers_modes.h"
+#include "theory/quantifiers/inst_match.h"
+#include "theory/quantifiers/quant_util.h"
+#include "theory/theory.h"
+#include "util/hash.h"
 
 namespace CVC4 {
 
@@ -50,8 +52,8 @@ public:
   virtual ~QuantifiersModule(){}
   //get quantifiers engine
   QuantifiersEngine* getQuantifiersEngine() { return d_quantEngine; }
-  /** initialize */
-  virtual void finishInit() {}
+  /** presolve */
+  virtual void presolve() {}
   /* whether this module needs to check this round */
   virtual bool needsCheck( Theory::Effort e ) { return e>=Theory::EFFORT_LAST_CALL; }
   /* whether this module needs a model built */
@@ -60,12 +62,15 @@ public:
   virtual void reset_round( Theory::Effort e ){}
   /* Call during quantifier engine's check */
   virtual void check( Theory::Effort e, unsigned quant_e ) = 0;
+  /* check was complete (e.g. no lemmas implies a model) */
+  virtual bool checkComplete() { return true; }
   /* Called for new quantifiers */
+  virtual void preRegisterQuantifier( Node q ) {}
+  /* Called for new quantifiers after owners are finalized */
   virtual void registerQuantifier( Node q ) = 0;
-  virtual void assertNode( Node n ) = 0;
+  virtual void assertNode( Node n ) {}
   virtual void propagate( Theory::Effort level ){}
   virtual Node getNextDecisionRequest() { return TNode::null(); }
-  virtual Node explain(TNode n) { return TNode::null(); }
   /** Identify this module (for debugging, dynamic configuration, etc..) */
   virtual std::string identify() const = 0;
 public:
@@ -89,6 +94,11 @@ namespace quantifiers {
   class ConjectureGenerator;
   class CegInstantiation;
   class LtePartialInst;
+  class AlphaEquivalence;
+  class FunDefEngine;
+  class QuantEqualityEngine;
+  class FullSaturation;
+  class InstStrategyCbqi;
 }/* CVC4::theory::quantifiers */
 
 namespace inst {
@@ -104,8 +114,11 @@ class QuantifiersEngine {
   friend class quantifiers::RewriteEngine;
   friend class quantifiers::QuantConflictFind;
   friend class inst::InstMatch;
-private:
   typedef context::CDHashMap< Node, bool, NodeHashFunction > BoolMap;
+  typedef context::CDChunkList<Node> NodeList;
+  typedef context::CDChunkList<bool> BoolList;
+  typedef context::CDHashSet<Node, NodeHashFunction> NodeSet;
+private:
   /** reference to theory engine object */
   TheoryEngine* d_te;
   /** vector of modules for quantifiers */
@@ -116,10 +129,10 @@ private:
   QuantRelevance * d_quant_rel;
   /** relevant domain */
   quantifiers::RelevantDomain* d_rel_dom;
+  /** alpha equivalence */
+  quantifiers::AlphaEquivalence * d_alpha_equiv;
   /** model builder */
   quantifiers::QModelBuilder* d_builder;
-  /** phase requirements for each quantifier for each instantiation literal */
-  std::map< Node, QuantPhaseReq* > d_phase_reqs;
   /** instantiation engine */
   quantifiers::InstantiationEngine* d_inst_engine;
   /** model engine */
@@ -136,17 +149,28 @@ private:
   quantifiers::CegInstantiation * d_ceg_inst;
   /** lte partial instantiation */
   quantifiers::LtePartialInst * d_lte_part_inst;
+  /** function definitions engine */
+  quantifiers::FunDefEngine * d_fun_def_engine;
+  /** quantifiers equality engine */
+  quantifiers::QuantEqualityEngine * d_uee;
+  /** full saturation */
+  quantifiers::FullSaturation * d_fs;
+  /** counterexample-based quantifier instantiation */
+  quantifiers::InstStrategyCbqi * d_i_cbqi;
 public: //effort levels
   enum {
     QEFFORT_CONFLICT,
     QEFFORT_STANDARD,
     QEFFORT_MODEL,
+    QEFFORT_LAST_CALL,
     //none
     QEFFORT_NONE,
   };
 private:
   /** list of all quantifiers seen */
   std::map< Node, bool > d_quants;
+  /** quantifiers reduced */
+  std::map< Node, bool > d_quants_red;
   /** list of all lemmas produced */
   //std::map< Node, bool > d_lemmas_produced;
   BoolMap d_lemmas_produced_c;
@@ -156,13 +180,11 @@ private:
   std::map< Node, bool > d_phase_req_waiting;
   /** has added lemma this round */
   bool d_hasAddedLemma;
-  /** has a conflict been found */
-  bool d_conflict;
   /** list of all instantiations produced for each quantifier */
   std::map< Node, inst::InstMatchTrie > d_inst_match_trie;
   std::map< Node, inst::CDInstMatchTrie* > d_c_inst_match_trie;
   /** quantifiers that have been skolemized */
-  std::map< Node, bool > d_skolemized;
+  BoolMap d_skolemized;
   /** term database */
   quantifiers::TermDb* d_term_db;
   /** all triggers will be stored in this trie */
@@ -176,6 +198,14 @@ private:
   /** inst round counters */
   int d_ierCounter;
   int d_ierCounter_lc;
+  int d_inst_when_phase;
+  /** has presolve been called */
+  context::CDO< bool > d_presolve;
+  /** presolve cache */
+  NodeSet d_presolve_in;
+  NodeList d_presolve_cache;
+  BoolList d_presolve_cache_wq;
+  BoolList d_presolve_cache_wic;
 private:
   KEEP_STATISTIC(TimerStat, d_time, "theory::QuantifiersEngine::time");
 public:
@@ -183,13 +213,12 @@ public:
   ~QuantifiersEngine();
   /** get theory engine */
   TheoryEngine* getTheoryEngine() { return d_te; }
-  /** get equality query object for the given type. The default is the
-      generic one */
+  /** get equality query */
   EqualityQueryQuantifiersEngine* getEqualityQuery();
   /** get default sat context for quantifiers engine */
   context::Context* getSatContext();
   /** get default sat context for quantifiers engine */
-  context::Context* getUserContext();
+  context::UserContext* getUserContext();
   /** get default output channel for the quantifiers engine */
   OutputChannel& getOutputChannel();
   /** get default valuation for the quantifiers engine */
@@ -200,10 +229,6 @@ public:
   QuantRelevance* getQuantifierRelevance() { return d_quant_rel; }
   /** get the model builder */
   quantifiers::QModelBuilder* getModelBuilder() { return d_builder; }
-  /** get phase requirement information */
-  QuantPhaseReq* getPhaseRequirements( Node f ) { return d_phase_reqs.find( f )==d_phase_reqs.end() ? NULL : d_phase_reqs[f]; }
-  /** get phase requirement terms */
-  void getPhaseReqTerms( Node f, std::vector< Node >& nodes );
 public:  //modules
   /** get instantiation engine */
   quantifiers::InstantiationEngine* getInstantiationEngine() { return d_inst_engine; }
@@ -221,6 +246,14 @@ public:  //modules
   quantifiers::CegInstantiation * getCegInstantiation() { return d_ceg_inst; }
   /** local theory ext partial inst */
   quantifiers::LtePartialInst * getLtePartialInst() { return d_lte_part_inst; }
+  /** function definition engine */
+  quantifiers::FunDefEngine * getFunDefEngine() { return d_fun_def_engine; }
+  /** quantifiers equality engine */
+  quantifiers::QuantEqualityEngine * getQuantEqualityEngine() { return d_uee; }
+  /** get full saturation */
+  quantifiers::FullSaturation * getFullSaturation() { return d_fs; }
+  /** get inst strategy cbqi */
+  quantifiers::InstStrategyCbqi * getInstStrategyCbqi() { return d_i_cbqi; }
 private:
   /** owner of quantified formulas */
   std::map< Node, QuantifiersModule * > d_owner;
@@ -234,6 +267,8 @@ public:
 public:
   /** initialize */
   void finishInit();
+  /** presolve */
+  void presolve();
   /** check at level */
   void check( Theory::Effort e );
   /** register quantifier */
@@ -247,33 +282,33 @@ public:
   /** get next decision request */
   Node getNextDecisionRequest();
 private:
+  /** reduce quantifier */
+  bool reduceQuantifier( Node q );
   /** compute term vector */
   void computeTermVector( Node f, InstMatch& m, std::vector< Node >& vars, std::vector< Node >& terms );
   /** instantiate f with arguments terms */
-  bool addInstantiation( Node f, std::vector< Node >& vars, std::vector< Node >& terms );
+  bool addInstantiationInternal( Node f, std::vector< Node >& vars, std::vector< Node >& terms, bool doVts = false );
   /** set instantiation level attr */
   static void setInstantiationLevelAttr( Node n, Node qn, uint64_t level );
   /** flush lemmas */
   void flushLemmas();
 public:
   /** get instantiation */
-  Node getInstantiation( Node f, std::vector< Node >& vars, std::vector< Node >& terms );
+  Node getInstantiation( Node q, std::vector< Node >& vars, std::vector< Node >& terms );
   /** get instantiation */
-  Node getInstantiation( Node f, InstMatch& m );
+  Node getInstantiation( Node q, InstMatch& m );
   /** get instantiation */
-  Node getInstantiation( Node f, std::vector< Node >& terms );
+  Node getInstantiation( Node q, std::vector< Node >& terms );
   /** do substitution */
   Node getSubstitute( Node n, std::vector< Node >& terms );
-  /** exist instantiation ? */
-  //bool existsInstantiation( Node f, InstMatch& m, bool modEq = true, bool modInst = false );
   /** add lemma lem */
   bool addLemma( Node lem, bool doCache = true );
   /** add require phase */
   void addRequirePhase( Node lit, bool req );
   /** do instantiation specified by m */
-  bool addInstantiation( Node f, InstMatch& m, bool mkRep = true, bool modEq = false, bool modInst = false );
+  bool addInstantiation( Node q, InstMatch& m, bool mkRep = true, bool modEq = false, bool modInst = false, bool doVts = false );
   /** add instantiation */
-  bool addInstantiation( Node f, std::vector< Node >& terms, bool mkRep = true, bool modEq = false, bool modInst = false );
+  bool addInstantiation( Node q, std::vector< Node >& terms, bool mkRep = true, bool modEq = false, bool modInst = false, bool doVts = false );
   /** split on node n */
   bool addSplit( Node n, bool reqPhase = false, bool reqPhasePol = true );
   /** add split equality */
@@ -281,9 +316,11 @@ public:
   /** has added lemma */
   bool hasAddedLemma() { return !d_lemmas_waiting.empty() || d_hasAddedLemma; }
   /** get number of waiting lemmas */
-  int getNumLemmasWaiting() { return (int)d_lemmas_waiting.size(); }
+  unsigned getNumLemmasWaiting() { return d_lemmas_waiting.size(); }
   /** get needs check */
   bool getInstWhenNeedsCheck( Theory::Effort e );
+  /** get user pat mode */
+  quantifiers::UserPatMode getInstUserPatMode();
   /** set instantiation level attr */
   static void setInstantiationLevelAttr( Node n, uint64_t level );
 public:
@@ -319,6 +356,12 @@ public:
     IntStat d_simple_triggers;
     IntStat d_multi_triggers;
     IntStat d_multi_trigger_instantiations;
+    IntStat d_red_alpha_equiv;
+    IntStat d_red_lte_partial_inst;
+    IntStat d_instantiations_user_patterns;
+    IntStat d_instantiations_auto_gen;
+    IntStat d_instantiations_guess;
+    IntStat d_instantiations_cbqi_arith;
     Statistics();
     ~Statistics();
   };/* class QuantifiersEngine::Statistics */
@@ -334,20 +377,18 @@ private:
   /** pointer to theory engine */
   QuantifiersEngine* d_qe;
   /** internal representatives */
-  std::map< Node, Node > d_int_rep;
+  std::map< TypeNode, std::map< Node, Node > > d_int_rep;
   /** rep score */
   std::map< Node, int > d_rep_score;
   /** reset count */
   int d_reset_count;
-
-  bool d_liberal;
 private:
   /** node contains */
   Node getInstance( Node n, const std::vector< Node >& eqc, std::hash_map<TNode, Node, TNodeHashFunction>& cache );
   /** get score */
-  int getRepScore( Node n, Node f, int index );
+  int getRepScore( Node n, Node f, int index, TypeNode v_tn );
 public:
-  EqualityQueryQuantifiersEngine( QuantifiersEngine* qe ) : d_qe( qe ), d_reset_count( 0 ), d_liberal( false ){}
+  EqualityQueryQuantifiersEngine( QuantifiersEngine* qe ) : d_qe( qe ), d_reset_count( 0 ){}
   ~EqualityQueryQuantifiersEngine(){}
   /** reset */
   void reset();
@@ -365,8 +406,6 @@ public:
   Node getInternalRepresentative( Node a, Node f, int index );
   /** flatten representatives */
   void flattenRepresentatives( std::map< TypeNode, std::vector< Node > >& reps );
-
-  void setLiberal( bool l ) { d_liberal = l; }
 }; /* EqualityQueryQuantifiersEngine */
 
 }/* CVC4::theory namespace */

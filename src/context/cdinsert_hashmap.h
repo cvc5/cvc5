@@ -33,16 +33,17 @@
 
 #include "cvc4_private.h"
 
+#include <boost/static_assert.hpp>
+#include <deque>
+#include <ext/hash_map>
+#include <utility>
+
+#include "base/cvc4_assert.h"
+#include "base/output.h"
 #include "context/context.h"
 #include "context/cdinsert_hashmap_forward.h"
-#include <utility>
-#include <ext/hash_map>
-#include <deque>
-#include "util/cvc4_assert.h"
-#include "util/output.h"
-
 #include "expr/node.h"
-#include <boost/static_assert.hpp>
+
 
 #pragma once
 

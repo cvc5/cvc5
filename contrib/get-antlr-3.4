@@ -27,11 +27,17 @@ function webget {
 
 if [ -z "${MACHINE_TYPE}" ]; then
   if ! [ -e config/config.guess ]; then
-   echo "$(basename $0): I need the file config/config.guess to tell MACHINE_TYPE" >&2
-   echo "Try running ./autogen.sh, or set the MACHINE_TYPE environment variable." >&2
-   exit 1
+    # Attempt to download once
+    webget 'http://git.savannah.gnu.org/gitweb/?p=config.git;a=blob_plain;f=config.guess;hb=HEAD' config/config.guess
+   if [ -e config/config.guess ]; then
+     chmod +x config/config.guess
+        else
+     echo "$(basename $0): I need the file config/config.guess to tell MACHINE_TYPE" >&2
+     echo "Try running ./autogen.sh, or set the MACHINE_TYPE environment variable" >&2
+     echo "(e.g., \"export MACHINE_TYPE=x86_64\")." >&2
+     exit 1
+    fi
   fi
-
   # get first nibble from config.guess (x86_64, i686, ...)
   MACHINE_TYPE=`config/config.guess | sed 's,-.*,,'`
 fi

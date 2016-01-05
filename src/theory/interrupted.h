@@ -29,7 +29,7 @@
 #ifndef __CVC4__THEORY__INTERRUPTED_H
 #define __CVC4__THEORY__INTERRUPTED_H
 
-#include "util/exception.h"
+#include "base/exception.h"
 
 namespace CVC4 {
 namespace theory {

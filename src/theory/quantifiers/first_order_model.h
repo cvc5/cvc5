@@ -47,8 +47,6 @@ class FirstOrderModel : public TheoryModel
 protected:
   /** quant engine */
   QuantifiersEngine * d_qe;
-  /** whether an axiom is asserted */
-  context::CDO< bool > d_axiom_asserted;
   /** list of quantifiers asserted in the current context */
   context::CDList<Node> d_forall_asserts;
   /** list of quantifiers that have been marked to reduce */
@@ -68,8 +66,6 @@ public: //for Theory Quantifiers:
   Node getAssertedQuantifier( int i ) { return d_forall_asserts[i]; }
   /** get number to reduce quantifiers */
   unsigned getNumToReduceQuantifiers() { return d_forall_to_reduce.size(); }
-  /** bool axiom asserted */
-  bool isAxiomAsserted() { return d_axiom_asserted; }
   /** initialize model for term */
   void initializeModelForTerm( Node n );
   virtual void processInitializeModelForTerm( Node n ) = 0;

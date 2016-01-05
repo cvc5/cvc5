@@ -13,17 +13,17 @@
  **
  ** Public-facing expression interface, implementation.
  **/
-
 #include "expr/expr.h"
+
+#include <iterator>
+#include <utility>
+#include <vector>
+
+#include "base/cvc4_assert.h"
 #include "expr/node.h"
 #include "expr/expr_manager_scope.h"
 #include "expr/variable_type_map.h"
-#include "util/cvc4_assert.h"
 #include "expr/node_manager_attributes.h"
-
-#include <vector>
-#include <iterator>
-#include <utility>
 
 ${includes}
 
@@ -39,15 +39,6 @@ using namespace std;
 namespace CVC4 {
 
 class ExprManager;
-
-namespace expr {
-
-const int ExprSetDepth::s_iosIndex = std::ios_base::xalloc();
-const int ExprPrintTypes::s_iosIndex = std::ios_base::xalloc();
-const int ExprDag::s_iosIndex = std::ios_base::xalloc();
-const int ExprSetLanguage::s_iosIndex = std::ios_base::xalloc();
-
-}/* CVC4::expr namespace */
 
 std::ostream& operator<<(std::ostream& out, const TypeCheckingException& e) {
   return out << e.getMessage() << ": " << e.getExpression();
@@ -327,15 +318,16 @@ bool Expr::hasOperator() const {
 Expr Expr::getOperator() const {
   ExprManagerScope ems(*this);
   Assert(d_node != NULL, "Unexpected NULL expression pointer!");
-  CheckArgument(d_node->hasOperator(), *this,
-                "Expr::getOperator() called on an Expr with no operator");
+  PrettyCheckArgument(d_node->hasOperator(), *this,
+                      "Expr::getOperator() called on an Expr with no operator");
   return Expr(d_exprManager, new Node(d_node->getOperator()));
 }
 
 Type Expr::getType(bool check) const throw (TypeCheckingException) {
   ExprManagerScope ems(*this);
   Assert(d_node != NULL, "Unexpected NULL expression pointer!");
-  CheckArgument(!d_node->isNull(), this, "Can't get type of null expression!");
+  PrettyCheckArgument(!d_node->isNull(), this,
+                      "Can't get type of null expression!");
   return d_exprManager->getType(*this, check);
 }
 
@@ -510,40 +502,40 @@ Expr Expr::notExpr() const {
 Expr Expr::andExpr(const Expr& e) const {
   Assert(d_exprManager != NULL,
          "Don't have an expression manager for this expression!");
-  CheckArgument(d_exprManager == e.d_exprManager, e,
-                "Different expression managers!");
+  PrettyCheckArgument(d_exprManager == e.d_exprManager, e,
+                      "Different expression managers!");
   return d_exprManager->mkExpr(AND, *this, e);
 }
 
 Expr Expr::orExpr(const Expr& e) const {
   Assert(d_exprManager != NULL,
          "Don't have an expression manager for this expression!");
-  CheckArgument(d_exprManager == e.d_exprManager, e,
-                "Different expression managers!");
+  PrettyCheckArgument(d_exprManager == e.d_exprManager, e,
+                      "Different expression managers!");
   return d_exprManager->mkExpr(OR, *this, e);
 }
 
 Expr Expr::xorExpr(const Expr& e) const {
   Assert(d_exprManager != NULL,
          "Don't have an expression manager for this expression!");
-  CheckArgument(d_exprManager == e.d_exprManager, e,
-                "Different expression managers!");
+  PrettyCheckArgument(d_exprManager == e.d_exprManager, e,
+                      "Different expression managers!");
   return d_exprManager->mkExpr(XOR, *this, e);
 }
 
 Expr Expr::iffExpr(const Expr& e) const {
   Assert(d_exprManager != NULL,
          "Don't have an expression manager for this expression!");
-  CheckArgument(d_exprManager == e.d_exprManager, e,
-                "Different expression managers!");
+  PrettyCheckArgument(d_exprManager == e.d_exprManager, e,
+                      "Different expression managers!");
   return d_exprManager->mkExpr(IFF, *this, e);
 }
 
 Expr Expr::impExpr(const Expr& e) const {
   Assert(d_exprManager != NULL,
          "Don't have an expression manager for this expression!");
-  CheckArgument(d_exprManager == e.d_exprManager, e,
-                "Different expression managers!");
+  PrettyCheckArgument(d_exprManager == e.d_exprManager, e,
+                      "Different expression managers!");
   return d_exprManager->mkExpr(IMPLIES, *this, e);
 }
 
@@ -551,10 +543,10 @@ Expr Expr::iteExpr(const Expr& then_e,
                            const Expr& else_e) const {
   Assert(d_exprManager != NULL,
          "Don't have an expression manager for this expression!");
-  CheckArgument(d_exprManager == then_e.d_exprManager, then_e,
-                "Different expression managers!");
-  CheckArgument(d_exprManager == else_e.d_exprManager, else_e,
-                "Different expression managers!");
+  PrettyCheckArgument(d_exprManager == then_e.d_exprManager, then_e,
+                      "Different expression managers!");
+  PrettyCheckArgument(d_exprManager == else_e.d_exprManager, else_e,
+                      "Different expression managers!");
   return d_exprManager->mkExpr(ITE, *this, then_e, else_e);
 }
 

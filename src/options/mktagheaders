@@ -1,0 +1,24 @@
+#!/bin/bash
+#
+# mktagheaders
+#
+# The purpose of this script is to generate the *_tag.h header file from the
+# *_tags file.
+#
+# Invocation:
+#
+#    mktagheaders <tag-name> <tag-file>
+#
+# <tag-name> will be the name of the generated array.
+# <tag-file> each line of this file is turned into a string in the generated
+#   array.
+
+TAG_NAME=$1
+TAG_FILE=$2
+
+echo 'static char const* const '$TAG_NAME'[] = {';
+for tag in `cat $TAG_FILE`; do
+  echo "\"$tag\",";
+done;
+echo 'NULL';
+echo '};'

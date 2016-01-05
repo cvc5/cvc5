@@ -48,11 +48,11 @@ private:
       d_notify->notify(satClause);
     }
 
-    void spendResource() {
-      d_notify->spendResource();
+    void spendResource(unsigned ammount) {
+      d_notify->spendResource(ammount);
     }
-    void safePoint() {
-      d_notify->safePoint();
+    void safePoint(unsigned ammount) {
+      d_notify->safePoint(ammount);
     }
   };
 
@@ -144,9 +144,5 @@ public:
   Statistics d_statistics;
 };
 
-}
-}
-
-
-
-
+} /* CVC4::prop namespace */
+} /* CVC4 namespace */

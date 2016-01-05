@@ -15,11 +15,13 @@
  **/
 
 #include "theory/theory.h"
-#include "util/cvc4_assert.h"
-#include "theory/quantifiers_engine.h"
-#include "theory/substitutions.h"
 
 #include <vector>
+
+#include "base/cvc4_assert.h"
+#include "theory/substitutions.h"
+#include "theory/quantifiers_engine.h"
+
 
 using namespace std;
 

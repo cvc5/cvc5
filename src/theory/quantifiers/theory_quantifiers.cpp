@@ -14,17 +14,18 @@
  ** Implementation of the theory of quantifiers.
  **/
 
-
 #include "theory/quantifiers/theory_quantifiers.h"
-#include "theory/valuation.h"
-#include "theory/quantifiers_engine.h"
+
+
+#include "base/cvc4_assert.h"
+#include "expr/kind.h"
+#include "options/quantifiers_options.h"
 #include "theory/quantifiers/instantiation_engine.h"
 #include "theory/quantifiers/model_engine.h"
-#include "expr/kind.h"
-#include "util/cvc4_assert.h"
-#include "theory/quantifiers/options.h"
-#include "theory/quantifiers/term_database.h"
 #include "theory/quantifiers/quantifiers_attributes.h"
+#include "theory/quantifiers/term_database.h"
+#include "theory/quantifiers_engine.h"
+#include "theory/valuation.h"
 
 using namespace std;
 using namespace CVC4;
@@ -77,6 +78,9 @@ void TheoryQuantifiers::preRegisterTerm(TNode n) {
 
 void TheoryQuantifiers::presolve() {
   Debug("quantifiers-presolve") << "TheoryQuantifiers::presolve()" << endl;
+  if( getQuantifiersEngine() ){
+    getQuantifiersEngine()->presolve();
+  }
 }
 
 Node TheoryQuantifiers::getValue(TNode n) {
@@ -169,7 +173,7 @@ Node TheoryQuantifiers::getNextDecisionRequest(){
 
 void TheoryQuantifiers::assertUniversal( Node n ){
   Assert( n.getKind()==FORALL );
-  if( options::recurseCbqi() || !TermDb::hasInstConstAttr(n) ){
+  if( !options::cbqi() || options::recurseCbqi() || !TermDb::hasInstConstAttr(n) ){
     getQuantifiersEngine()->assertQuantifier( n, true );
   }
 }

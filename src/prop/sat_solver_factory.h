@@ -14,12 +14,13 @@
  ** SAT Solver creation facility
  **/
 
-#pragma once
+#include "cvc4_private.h"
 
-#include "cvc4_public.h"
+#pragma once
 
 #include <string>
 #include <vector>
+
 #include "prop/sat_solver.h"
 
 namespace CVC4 {

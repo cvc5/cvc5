@@ -19,11 +19,11 @@
 #ifndef __CVC4__THEORY__ARITH__TYPE_ENUMERATOR_H
 #define __CVC4__THEORY__ARITH__TYPE_ENUMERATOR_H
 
+#include "expr/kind.h"
+#include "expr/type_node.h"
+#include "theory/type_enumerator.h"
 #include "util/integer.h"
 #include "util/rational.h"
-#include "theory/type_enumerator.h"
-#include "expr/type_node.h"
-#include "expr/kind.h"
 
 namespace CVC4 {
 namespace theory {

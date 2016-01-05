@@ -20,13 +20,13 @@
 #define __CVC4__PARSER__SMT2_INPUT_H
 
 #include "parser/antlr_input.h"
-#include "parser/smt2/generated/Smt2Lexer.h"
-#include "parser/smt2/generated/Smt2Parser.h"
+#include "parser/smt2/Smt2Lexer.h"
+#include "parser/smt2/Smt2Parser.h"
 
 // extern void Smt2ParserSetAntlrParser(CVC4::parser::AntlrParser* newAntlrParser);
 
 namespace CVC4 {
-
+  
 class Command;
 class Expr;
 class ExprManager;

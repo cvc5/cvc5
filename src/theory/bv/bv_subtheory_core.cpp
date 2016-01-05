@@ -16,11 +16,12 @@
 
 #include "theory/bv/bv_subtheory_core.h"
 
+#include "options/bv_options.h"
+#include "options/smt_options.h"
+#include "theory/bv/slicer.h"
 #include "theory/bv/theory_bv.h"
 #include "theory/bv/theory_bv_utils.h"
-#include "theory/bv/slicer.h"
 #include "theory/theory_model.h"
-#include "theory/bv/options.h"
 
 using namespace std;
 using namespace CVC4;
@@ -35,6 +36,7 @@ CoreSolver::CoreSolver(context::Context* c, TheoryBV* bv)
     d_equalityEngine(d_notify, c, "theory::bv::TheoryBV", true),
     d_slicer(new Slicer()),
     d_isComplete(c, true),
+    d_lemmaThreshold(16),
     d_useSlicer(false),
     d_preregisterCalled(false),
     d_checkCalled(false),
@@ -167,7 +169,7 @@ bool CoreSolver::decomposeFact(TNode fact) {
 bool CoreSolver::check(Theory::Effort e) {
   Trace("bitvector::core") << "CoreSolver::check \n";
 
-  d_bv->spendResource();
+  d_bv->spendResource(options::theoryCheckStep());
 
   d_checkCalled = true; 
   Assert (!d_bv->inConflict());
@@ -275,16 +277,28 @@ void CoreSolver::buildModel() {
           for (unsigned j = i + 1; j < representatives.size(); ++j) {
             TNode a = representatives[i];
             TNode b = representatives[j];
+            if (a.getKind() == kind::CONST_BITVECTOR &&
+                b.getKind() == kind::CONST_BITVECTOR) {
+              Assert (a != b);
+              continue;
+            }
             if (utils::getSize(a) == utils::getSize(b)) {
               equalities.push_back(utils::mkNode(kind::EQUAL, a, b));
             }
           }
         }
+        // better off letting the SAT solver split on values
+        if (equalities.size() > d_lemmaThreshold) {
+          d_isComplete = false;
+          return;
+        }
+
         Node lemma = utils::mkOr(equalities);
         d_bv->lemma(lemma);
         Debug("bv-core") << "  lemma: " << lemma << "\n";
         return;
       }
+    
       Debug("bv-core-model") << "   " << repr << " => " << val <<"\n" ;
       constants.insert(val);
       d_modelValues[repr] = val;

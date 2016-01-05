@@ -14,19 +14,19 @@
  ** Bitblaster for the lazy bv solver. 
  **/
 
-#include "cvc4_private.h"
 #include "bitblaster_template.h"
-#include "theory_bv_utils.h"
-#include "theory/rewriter.h"
+#include "cvc4_private.h"
+#include "options/bv_options.h"
 #include "prop/cnf_stream.h"
 #include "prop/sat_solver.h"
 #include "prop/sat_solver_factory.h"
-#include "theory/bv/theory_bv.h"
-#include "theory/bv/options.h"
-#include "theory/theory_model.h"
 #include "theory/bv/abstraction.h"
+#include "theory/bv/theory_bv.h"
+#include "theory/rewriter.h"
+#include "theory/theory_model.h"
 #include "proof/bitvector_proof.h"
 #include "proof/proof_manager.h"
+#include "theory/bv/theory_bv_utils.h"
 
 using namespace CVC4;
 using namespace CVC4::theory;
@@ -187,7 +187,7 @@ void TLazyBitblaster::bbTerm(TNode node, Bits& bits) {
     return;
   }
 
-  d_bv->spendResource();
+  d_bv->spendResource(options::bitblastStep());
   Debug("bitvector-bitblast") << "Bitblasting node " << node <<"\n";
   ++d_statistics.d_numTerms;
 
@@ -373,12 +373,12 @@ void TLazyBitblaster::MinisatNotify::notify(prop::SatClause& clause) {
   }
 }
 
-void TLazyBitblaster::MinisatNotify::spendResource() {
-  d_bv->spendResource();
+void TLazyBitblaster::MinisatNotify::spendResource(unsigned ammount) {
+  d_bv->spendResource(ammount);
 }
 
-void TLazyBitblaster::MinisatNotify::safePoint() {
-  d_bv->d_out->safePoint();
+void TLazyBitblaster::MinisatNotify::safePoint(unsigned ammount) {
+  d_bv->d_out->safePoint(ammount);
 }
 
 

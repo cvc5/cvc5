@@ -23,6 +23,7 @@ OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWA
 
 #include "prop/bvminisat/mtl/Vec.h"
 
+namespace CVC4 {
 namespace BVMinisat {
 
 //=================================================================================================
@@ -79,6 +80,7 @@ template<class T>
 static inline void append(const vec<T>& from, vec<T>& to){ copy(from, to, true); }
 
 //=================================================================================================
-}
+} /* CVC4::BVMinisat namespace */
+} /* CVC4 namespace */
 
 #endif

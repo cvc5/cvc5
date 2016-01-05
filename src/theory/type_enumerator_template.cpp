@@ -16,10 +16,10 @@
 
 #include <sstream>
 
+#include "base/cvc4_assert.h"
+#include "expr/kind.h"
 #include "theory/type_enumerator.h"
 
-#include "expr/kind.h"
-#include "util/cvc4_assert.h"
 
 ${type_enumerator_includes}
 #line 26 "${template}"

@@ -15,8 +15,9 @@
  **/
 
 #include <cxxtest/TestSuite.h>
-#include <sstream>
+
 #include <limits>
+#include <sstream>
 
 #include "util/integer.h"
 

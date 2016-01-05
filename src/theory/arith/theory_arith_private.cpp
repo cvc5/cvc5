@@ -17,71 +17,59 @@
 
 #include "theory/arith/theory_arith_private.h"
 
-#include "expr/node.h"
-#include "expr/kind.h"
-#include "expr/metakind.h"
-#include "expr/node_builder.h"
-
-#include "context/context.h"
-#include "context/cdlist.h"
-#include "context/cdhashset.h"
-#include "context/cdinsert_hashmap.h"
-#include "context/cdqueue.h"
-
-#include "theory/valuation.h"
-#include "theory/rewriter.h"
-
-#include "util/rational.h"
-#include "util/integer.h"
-#include "util/boolean_simplification.h"
-#include "util/dense_map.h"
-#include "util/statistics_registry.h"
-#include "util/result.h"
-
-#include "smt/logic_request.h"
-#include "smt/logic_exception.h"
-#include "smt/options.h"  // for incrementalSolving()
-
-#include "theory/arith/arithvar.h"
-#include "theory/arith/cut_log.h"
-#include "theory/arith/delta_rational.h"
-#include "theory/arith/matrix.h"
-#include "theory/arith/arith_rewriter.h"
-#include "theory/arith/partial_model.h"
-#include "theory/arith/linear_equality.h"
-#include "theory/arith/simplex.h"
-#include "theory/arith/arith_static_learner.h"
-#include "theory/arith/dio_solver.h"
-#include "theory/arith/congruence_manager.h"
-
-#include "theory/arith/approx_simplex.h"
-#include "theory/arith/constraint.h"
-
-#include "theory/ite_utilities.h"
-#include "theory/arith/arith_ite_utils.h"
-
-#include "theory/arith/arith_utilities.h"
-#include "theory/arith/delta_rational.h"
-#include "theory/arith/partial_model.h"
-#include "theory/arith/matrix.h"
-
-#include "theory/arith/arith_rewriter.h"
-#include "theory/arith/constraint.h"
-#include "theory/arith/theory_arith.h"
-#include "theory/arith/normal_form.h"
-#include "theory/theory_model.h"
-
-#include "theory/arith/options.h"
-#include "theory/quantifiers/options.h"
-
-
-#include "theory/quantifiers/bounded_integers.h"
-
 #include <stdint.h>
 
-#include <vector>
 #include <map>
 #include <queue>
+#include <vector>
+
+#include "base/output.h"
+#include "context/cdhashset.h"
+#include "context/cdinsert_hashmap.h"
+#include "context/cdlist.h"
+#include "context/cdqueue.h"
+#include "context/context.h"
+#include "expr/kind.h"
+#include "expr/metakind.h"
+#include "expr/node.h"
+#include "expr/node_builder.h"
+#include "expr/result.h"
+#include "expr/statistics_registry.h"
+#include "options/arith_options.h"
+#include "options/smt_options.h"  // for incrementalSolving()
+#include "smt/logic_exception.h"
+#include "smt/logic_request.h"
+#include "smt_util/boolean_simplification.h"
+#include "theory/arith/approx_simplex.h"
+#include "theory/arith/arith_ite_utils.h"
+#include "theory/arith/arith_rewriter.h"
+#include "theory/arith/arith_rewriter.h"
+#include "theory/arith/arith_static_learner.h"
+#include "theory/arith/arith_utilities.h"
+#include "theory/arith/arithvar.h"
+#include "theory/arith/congruence_manager.h"
+#include "theory/arith/constraint.h"
+#include "theory/arith/constraint.h"
+#include "theory/arith/cut_log.h"
+#include "theory/arith/delta_rational.h"
+#include "theory/arith/delta_rational.h"
+#include "theory/arith/dio_solver.h"
+#include "theory/arith/linear_equality.h"
+#include "theory/arith/matrix.h"
+#include "theory/arith/matrix.h"
+#include "theory/arith/normal_form.h"
+#include "theory/arith/partial_model.h"
+#include "theory/arith/partial_model.h"
+#include "theory/arith/simplex.h"
+#include "theory/arith/theory_arith.h"
+#include "theory/ite_utilities.h"
+#include "theory/quantifiers/bounded_integers.h"
+#include "theory/rewriter.h"
+#include "theory/theory_model.h"
+#include "theory/valuation.h"
+#include "util/dense_map.h"
+#include "util/integer.h"
+#include "util/rational.h"
 
 using namespace std;
 using namespace CVC4::kind;
@@ -331,7 +319,7 @@ TheoryArithPrivate::Statistics::Statistics()
   , d_cutsRejectedDuringLemmas("theory::arith::z::approx::external::cuts::rejected", 0)
   , d_satPivots("theory::arith::pivots::sat")
   , d_unsatPivots("theory::arith::pivots::unsat")
-  , d_unknownPivots("theory::arith::pivots::unkown")
+  , d_unknownPivots("theory::arith::pivots::unknown")
   , d_solveIntModelsAttempts("theory::arith::z::solveInt::models::attempts", 0)
   , d_solveIntModelsSuccessful("theory::arith::zzz::solveInt::models::successful", 0)
   , d_mipTimer("theory::arith::z::approx::mip::timer")
@@ -2258,10 +2246,32 @@ std::pair<ConstraintP, ArithVar> TheoryArithPrivate::replayGetConstraint(const D
   Node sum = toSumNode(d_partialModel, lhs);
   if(sum.isNull()){ return make_pair(NullConstraint, added); }
 
-  Node norm = Rewriter::rewrite(sum);
-  DeltaRational dr(rhs);
+  Debug("approx::constraint") << "replayGetConstraint " << sum
+                              << " " << k
+                              << " " << rhs
+                              << endl;
 
-  ConstraintType t = (k == kind::LEQ) ? UpperBound : LowerBound;
+  Assert( k == kind::LEQ || k == kind::GEQ );
+
+  Node comparison = NodeManager::currentNM()->mkNode(k, sum, mkRationalNode(rhs));
+  Node rewritten = Rewriter::rewrite(comparison);
+  if(!(Comparison::isNormalAtom(rewritten))){
+    return make_pair(NullConstraint, added);
+  }
+
+  Comparison cmp = Comparison::parseNormalForm(rewritten);
+  if(cmp.isBoolean()){ return make_pair(NullConstraint, added); }
+
+  Polynomial nvp =  cmp.normalizedVariablePart();
+  if(nvp.isZero()){ return make_pair(NullConstraint, added); }
+
+  Node norm = nvp.getNode();
+
+  ConstraintType t = Constraint::constraintTypeOfComparison(cmp);
+  DeltaRational dr = cmp.normalizedDeltaRational();
+
+  Debug("approx::constraint") << "rewriting " << rewritten << endl
+                              << " |-> " << norm << " " << t << " " << dr << endl;
 
   Assert(!branch || d_partialModel.hasArithVar(norm));
   ArithVar v = ARITHVAR_SENTINEL;
@@ -2299,6 +2309,8 @@ std::pair<ConstraintP, ArithVar> TheoryArithPrivate::replayGetConstraint(const D
       return make_pair(imp, added);
     }
   }
+  
+
   ConstraintP newc = d_constraintDatabase.getConstraint(v, t, dr);
   d_replayConstraints.push_back(newc);
   return make_pair(newc, added);
@@ -2342,6 +2354,7 @@ std::pair<ConstraintP, ArithVar> TheoryArithPrivate::replayGetConstraint(const C
 // }
 
 Node toSumNode(const ArithVariables& vars, const DenseMap<Rational>& sum){
+  Debug("arith::toSumNode") << "toSumNode() begin" << endl;
   NodeBuilder<> nb(kind::PLUS);
   NodeManager* nm = NodeManager::currentNM();
   DenseMap<Rational>::const_iterator iter, end;
@@ -2351,8 +2364,11 @@ Node toSumNode(const ArithVariables& vars, const DenseMap<Rational>& sum){
     if(!vars.hasNode(x)){ return Node::null(); }
     Node xNode = vars.asNode(x);
     const Rational& q = sum[x];
-    nb << nm->mkNode(kind::MULT, mkRationalNode(q), xNode);
+    Node mult = nm->mkNode(kind::MULT, mkRationalNode(q), xNode);
+    Debug("arith::toSumNode") << "toSumNode() " << x << " " << mult << endl;
+    nb << mult;
   }
+  Debug("arith::toSumNode") << "toSumNode() end" << endl;
   return safeConstructNary(nb);
 }
 
@@ -2360,8 +2376,15 @@ ConstraintCP TheoryArithPrivate::vectorToIntHoleConflict(const ConstraintCPVec& 
   Assert(conflict.size() >= 2);
   ConstraintCPVec exp(conflict.begin(), conflict.end()-1);
   ConstraintCP back = conflict.back();
+  Assert(back->hasProof());
   ConstraintP negBack = back->getNegation();
-  negBack->impliedByIntHole(exp, true);
+  // This can select negBack multiple times so we need to test if negBack has a proof.
+  if(negBack->hasProof()){
+    // back is in conflict already
+  } else {
+    negBack->impliedByIntHole(exp, true);
+  }
+
   return back;
 }
 
@@ -2604,13 +2627,16 @@ std::vector<ConstraintCPVec> TheoryArithPrivate::replayLogRec(ApproximateSimplex
 
             const ConstraintCPVec& exp = ci->getExplanation();
             // success
-            Assert(!con->negationHasProof());
             if(con->isTrue()){
               Debug("approx::replayLogRec") << "not asserted?" << endl;
-            }else{
+            }else if(!con->negationHasProof()){
               con->impliedByIntHole(exp, false);
               replayAssert(con);
               Debug("approx::replayLogRec") << "cut prop" << endl;
+            }else {
+              con->impliedByIntHole(exp, true);
+              Debug("approx::replayLogRec") << "cut into conflict " << con << endl;
+              raiseConflict(con);
             }
           }else{
             ++d_statistics.d_cutsProofFailed;
@@ -4173,6 +4199,9 @@ void TheoryArithPrivate::collectModelInfo( TheoryModel* m, bool fullModel ){
 
   Debug("arith::collectModelInfo") << "collectModelInfo() begin " << endl;
 
+  std::set<Node> termSet;
+  d_containing.computeRelevantTerms(termSet);
+ 
 
   // Delta lasts at least the duration of the function call
   const Rational& delta = d_partialModel.getDelta();
@@ -4187,7 +4216,9 @@ void TheoryArithPrivate::collectModelInfo( TheoryModel* m, bool fullModel ){
     if(!isAuxiliaryVariable(v)){
       Node term = d_partialModel.asNode(v);
 
-      if(theoryOf(term) == THEORY_ARITH || shared.find(term) != shared.end()){
+      if((theoryOf(term) == THEORY_ARITH || shared.find(term) != shared.end())
+         && termSet.find(term) != termSet.end()){
+
         const DeltaRational& mod = d_partialModel.getAssignment(v);
         Rational qmodel = mod.substituteDelta(delta);
 

@@ -21,11 +21,12 @@ OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWA
 #ifndef BVMinisat_SimpSolver_h
 #define BVMinisat_SimpSolver_h
 
-#include "prop/bvminisat/mtl/Queue.h"
-#include "prop/bvminisat/core/Solver.h"
-#include "util/statistics_registry.h"
 #include "context/context.h"
+#include "expr/statistics_registry.h"
+#include "prop/bvminisat/core/Solver.h"
+#include "prop/bvminisat/mtl/Queue.h"
 
+namespace CVC4 {
 namespace BVMinisat {
 
 //=================================================================================================
@@ -218,6 +219,8 @@ inline lbool SimpSolver::solveLimited (bool do_simp, bool turn_off_simp){
     return solve_(do_simp, turn_off_simp); }
 
 //=================================================================================================
-}
+} /* CVC4::BVMinisat namespace */
+} /* CVC4 namespace */
+
 
 #endif

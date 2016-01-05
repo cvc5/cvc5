@@ -21,8 +21,6 @@
 #include "expr/node.h"
 #include "util/unsafe_interrupt_exception.h"
 
-//#include "expr/attribute.h"
-
 namespace CVC4 {
 namespace theory {
 

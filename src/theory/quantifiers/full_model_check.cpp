@@ -12,9 +12,9 @@
  ** \brief Implementation of full model check class
  **/
 
-#include "theory/quantifiers/full_model_check.h"
+#include "options/quantifiers_options.h"
 #include "theory/quantifiers/first_order_model.h"
-#include "theory/quantifiers/options.h"
+#include "theory/quantifiers/full_model_check.h"
 #include "theory/quantifiers/term_database.h"
 
 using namespace std;

@@ -28,15 +28,15 @@
 
 #endif /* __WIN32__ */
 
-#include "util/exception.h"
-#include "options/options.h"
-#include "util/statistics.h"
-#include "util/tls.h"
-#include "smt/smt_engine.h"
-
+#include "base/exception.h"
+#include "base/tls.h"
 #include "cvc4autoconfig.h"
-#include "main/main.h"
+#include "expr/statistics.h"
 #include "main/command_executor.h"
+#include "main/main.h"
+#include "options/base_options.h"
+#include "options/options.h"
+#include "smt/smt_engine.h"
 
 using CVC4::Exception;
 using namespace std;
@@ -249,7 +249,7 @@ void cvc4_init() throw(Exception) {
     }
   }
   cvc4StackSize = limit.rlim_cur;
-  cvc4StackBase = &ss;
+  cvc4StackBase = ss.ss_sp;
 
   struct sigaction act1;
   act1.sa_sigaction = sigint_handler;
@@ -287,6 +287,14 @@ void cvc4_init() throw(Exception) {
 
   set_unexpected(cvc4unexpected);
   default_terminator = set_terminate(cvc4terminate);
+}
+
+void cvc4_shutdown() throw () {
+#ifndef __WIN32__
+  free(cvc4StackBase);
+  cvc4StackBase = NULL;
+  cvc4StackSize = 0;
+#endif /* __WIN32__ */
 }
 
 }/* CVC4::main namespace */

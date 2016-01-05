@@ -13,7 +13,8 @@
  **/
 
 #include "theory/quantifiers/quantifiers_attributes.h"
-#include "theory/quantifiers/options.h"
+
+#include "options/quantifiers_options.h"
 #include "theory/quantifiers/term_database.h"
 
 using namespace std;

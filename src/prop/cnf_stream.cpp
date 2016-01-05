@@ -15,24 +15,24 @@
  ** A CNF converter that takes in asserts and has the side effect
  ** of given an equisatisfiable stream of assertions to PropEngine.
  **/
+#include <queue>
 
-#include "prop/cnf_stream.h"
-#include "prop/prop_engine.h"
-#include "theory/theory_engine.h"
-#include "theory/theory.h"
-#include "expr/node.h"
-#include "util/cvc4_assert.h"
-#include "util/output.h"
-#include "expr/command.h"
+#include "base/cvc4_assert.h"
+#include "base/output.h"
 #include "expr/expr.h"
-#include "prop/theory_proxy.h"
-#include "theory/bv/options.h"
+#include "expr/node.h"
+#include "options/bv_options.h"
 #include "proof/proof_manager.h"
 #include "proof/sat_proof.h"
 #include "proof/cnf_proof.h"
+#include "prop/cnf_stream.h"
 #include "prop/minisat/minisat.h"
+#include "prop/prop_engine.h"
+#include "prop/theory_proxy.h"
 #include "smt/smt_engine_scope.h"
-#include <queue>
+#include "smt_util/command.h"
+#include "theory/theory.h"
+#include "theory/theory_engine.h"
 
 using namespace std;
 using namespace CVC4::kind;
@@ -694,7 +694,6 @@ void TseitinCnfStream::convertAndAssert(TNode node,
                << ", removable = " << (removable ? "true" : "false")
                << ", negated = " << (negated ? "true" : "false") << ")" << endl;
   d_removable = removable;
-
   PROOF
     (if (d_cnfProof) {
       Node assertion = negated ? node.notNode() : (Node)node;
@@ -719,7 +718,7 @@ void TseitinCnfStream::convertAndAssert(TNode node, bool negated) {
                << ", negated = " << (negated ? "true" : "false") << ")" << endl;
 
   if (d_convertAndAssertCounter % ResourceManager::getFrequencyCount() == 0) {
-    NodeManager::currentResourceManager()->spendResource();
+    NodeManager::currentResourceManager()->spendResource(options::cnfStep());
     d_convertAndAssertCounter = 0;
   }
   ++d_convertAndAssertCounter;

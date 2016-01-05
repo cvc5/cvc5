@@ -13,15 +13,16 @@
  **
  **/
 
+#include "theory/quantifiers/symmetry_breaking.h"
+
 #include <vector>
 
-#include "theory/quantifiers/symmetry_breaking.h"
-#include "theory/rewriter.h"
 #include "theory/quantifiers_engine.h"
+#include "theory/rewriter.h"
+#include "theory/sort_inference.h"
 #include "theory/theory_engine.h"
-#include "util/sort_inference.h"
-#include "theory/uf/theory_uf_strong_solver.h"
 #include "theory/uf/theory_uf.h"
+#include "theory/uf/theory_uf_strong_solver.h"
 
 using namespace CVC4;
 using namespace CVC4::kind;

@@ -1,5 +1,5 @@
 /*********************                                                        */
-/*! \file modal_exception.h
+/*! \file unsafe_interrupt_exception.h
  ** \verbatim
  ** Original author: Liana Hadarean
  ** Major contributors: none
@@ -18,7 +18,7 @@
 #ifndef __CVC4__UNSAFE_INTERRUPT_EXCEPTION_H
 #define __CVC4__UNSAFE_INTERRUPT_EXCEPTION_H
 
-#include "util/exception.h"
+#include "base/exception.h"
 
 namespace CVC4 {
 

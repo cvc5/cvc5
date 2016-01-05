@@ -16,14 +16,18 @@
  **/
 
 #include "theory/uf/theory_uf.h"
-#include "theory/uf/options.h"
-#include "theory/quantifiers/options.h"
-#include "theory/uf/theory_uf_strong_solver.h"
+
+#include "options/quantifiers_options.h"
+#include "options/smt_options.h"
+#include "options/uf_options.h"
 #include "theory/theory_model.h"
 #include "theory/type_enumerator.h"
 #include "proof/theory_proof.h"
 #include "proof/proof_manager.h"
 #include "proof/uf_proof.h"
+
+#include "theory/uf/theory_uf_strong_solver.h"
+
 
 using namespace std;
 using namespace CVC4;
@@ -49,12 +53,6 @@ TheoryUF::TheoryUF(context::Context* c, context::UserContext* u, OutputChannel& 
 }
 
 TheoryUF::~TheoryUF() {
-  // destruct all ppRewrite() callbacks
-  for(RegisterPpRewrites::iterator i = d_registeredPpRewrites.begin();
-      i != d_registeredPpRewrites.end();
-      ++i) {
-    delete i->second;
-  }
   delete d_thss;
 }
 
@@ -95,7 +93,7 @@ void TheoryUF::check(Effort level) {
   if (done() && !fullEffort(level)) {
     return;
   }
-
+  getOutputChannel().spendResource(options::theoryCheckStep());
   TimerStat::CodeTimer checkTimer(d_checkTime);
 
   while (!done() && !d_conflict)
@@ -125,6 +123,10 @@ void TheoryUF::check(Effort level) {
         ss << "Cardinality constraint " << atom << " was asserted, but the logic does not allow it." << std::endl;
         ss << "Try using a logic containing \"UFC\"." << std::endl;
         throw Exception( ss.str() );
+      }
+      //needed for models
+      if( options::produceModels() && atom.getKind() == kind::COMBINED_CARDINALITY_CONSTRAINT ){
+        d_equalityEngine.assertPredicate(atom, polarity, fact);
       }
     } else {
       d_equalityEngine.assertPredicate(atom, polarity, fact);
@@ -268,6 +270,9 @@ void TheoryUF::presolve() {
         ++i) {
       d_out->lemma(*i);
     }
+  }
+  if( d_thss ){
+    d_thss->presolve();
   }
   Debug("uf") << "uf: end presolve()" << endl;
 }
@@ -542,24 +547,3 @@ void TheoryUF::eqNotifyDisequal(TNode t1, TNode t2, TNode reason) {
     d_thss->assertDisequal(t1, t2, reason);
   }
 }
-
-Node TheoryUF::ppRewrite(TNode node) {
-
-  if (node.getKind() != kind::APPLY_UF) {
-    return node;
-  }
-
-  // perform the callbacks requested by TheoryUF::registerPpRewrite()
-  RegisterPpRewrites::iterator c = d_registeredPpRewrites.find(node.getOperator());
-  if (c == d_registeredPpRewrites.end()) {
-    return node;
-  } else {
-    Node res = c->second->ppRewrite(node);
-    if (res != node) {
-      return ppRewrite(res);
-    } else {
-      return res;
-    }
-  }
-}
-

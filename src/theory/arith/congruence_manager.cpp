@@ -14,10 +14,10 @@
  ** \todo document this file
  **/
 
-#include "theory/arith/congruence_manager.h"
-
-#include "theory/arith/constraint.h"
+#include "base/output.h"
 #include "theory/arith/arith_utilities.h"
+#include "theory/arith/congruence_manager.h"
+#include "theory/arith/constraint.h"
 
 namespace CVC4 {
 namespace theory {

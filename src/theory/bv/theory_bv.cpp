@@ -11,26 +11,28 @@
  **
  ** [[ Add lengthier description here ]]
  ** \todo document this file
-**/
+ **/
 
-#include "smt/options.h"
 #include "theory/bv/theory_bv.h"
-#include "theory/bv/theory_bv_utils.h"
-#include "theory/bv/slicer.h"
-#include "theory/valuation.h"
-#include "theory/bv/options.h"
-#include "theory/bv/theory_bv_rewrite_rules_normalization.h"
-#include "theory/bv/theory_bv_rewrite_rules_simplification.h"
-#include "theory/bv/bv_subtheory_core.h"
-#include "theory/bv/bv_subtheory_inequality.h"
+
+#include "options/bv_options.h"
+#include "options/smt_options.h"
+#include "theory/bv/abstraction.h"
+#include "theory/bv/bv_eager_solver.h"
 #include "theory/bv/bv_subtheory_algebraic.h"
 #include "theory/bv/bv_subtheory_bitblast.h"
-#include "theory/bv/bv_eager_solver.h"
+#include "theory/bv/bv_subtheory_core.h"
+#include "theory/bv/bv_subtheory_inequality.h"
+#include "theory/bv/slicer.h"
+#include "theory/bv/theory_bv_rewrite_rules_normalization.h"
+#include "theory/bv/theory_bv_rewrite_rules_simplification.h"
 #include "theory/bv/theory_bv_rewriter.h"
+#include "theory/bv/theory_bv_utils.h"
 #include "theory/theory_model.h"
-#include "theory/bv/abstraction.h"
 #include "proof/theory_proof.h"
 #include "proof/proof_manager.h"
+#include "theory/valuation.h"
+
 
 using namespace CVC4;
 using namespace CVC4::theory;
@@ -109,8 +111,8 @@ void TheoryBV::setMasterEqualityEngine(eq::EqualityEngine* eq) {
   }
 }
 
-void TheoryBV::spendResource() throw(UnsafeInterruptException) {
-  getOutputChannel().spendResource();
+void TheoryBV::spendResource(unsigned ammount) throw(UnsafeInterruptException) {
+  getOutputChannel().spendResource(ammount);
 }
 
 TheoryBV::Statistics::Statistics():

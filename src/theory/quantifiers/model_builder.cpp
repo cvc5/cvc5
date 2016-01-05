@@ -12,18 +12,19 @@
  ** \brief Implementation of model builder class
  **/
 
+#include "theory/quantifiers/model_builder.h"
+
+#include "options/quantifiers_options.h"
+#include "theory/quantifiers/first_order_model.h"
 #include "theory/quantifiers/model_engine.h"
+#include "theory/quantifiers/quantifiers_attributes.h"
+#include "theory/quantifiers/term_database.h"
+#include "theory/quantifiers/trigger.h"
 #include "theory/theory_engine.h"
 #include "theory/uf/equality_engine.h"
 #include "theory/uf/theory_uf.h"
 #include "theory/uf/theory_uf_model.h"
 #include "theory/uf/theory_uf_strong_solver.h"
-#include "theory/quantifiers/first_order_model.h"
-#include "theory/quantifiers/term_database.h"
-#include "theory/quantifiers/model_builder.h"
-#include "theory/quantifiers/quantifiers_attributes.h"
-#include "theory/quantifiers/trigger.h"
-#include "theory/quantifiers/options.h"
 
 using namespace std;
 using namespace CVC4;
@@ -176,7 +177,7 @@ void QModelBuilderIG::processBuildModel( TheoryModel* m, bool fullModel ) {
         }
 
         //if applicable, find exceptions to model via inst-gen
-        if( optInstGen() ){
+        if( options::fmfInstGen() ){
           d_didInstGen = true;
           d_instGenMatches = 0;
           d_numQuantSat = 0;
@@ -201,7 +202,7 @@ void QModelBuilderIG::processBuildModel( TheoryModel* m, bool fullModel ) {
               }else{
                 d_numQuantNoSelForm++;
               }
-              if( optOneQuantPerRoundInstGen() && lems>0 ){
+              if( options::fmfInstGenOneQuantPerRound() && lems>0 ){
                 break;
               }
             }else if( d_quant_sat.find( f )!=d_quant_sat.end() ){
@@ -339,14 +340,6 @@ bool QModelBuilderIG::hasConstantDefinition( Node n ){
     }
   }
   return false;
-}
-
-bool QModelBuilderIG::optInstGen(){
-  return options::fmfInstGen();
-}
-
-bool QModelBuilderIG::optOneQuantPerRoundInstGen(){
-  return options::fmfInstGenOneQuantPerRound();
 }
 
 QModelBuilderIG::Statistics::Statistics():
@@ -508,9 +501,11 @@ void QModelBuilderDefault::analyzeQuantifier( FirstOrderModel* fm, Node f ){
   //for each asserted quantifier f,
   // - determine selection literals
   // - check which function/predicates have good and bad definitions for satisfying f
+  if( d_phase_reqs.find( f )==d_phase_reqs.end() ){
+    d_phase_reqs[f].initialize( d_qe->getTermDatabase()->getInstConstantBody( f ), true );
+  }
   int selectLitScore = -1;
-  QuantPhaseReq* qpr = d_qe->getPhaseRequirements( f );
-  for( std::map< Node, bool >::iterator it = qpr->d_phase_reqs.begin(); it != qpr->d_phase_reqs.end(); ++it ){
+  for( std::map< Node, bool >::iterator it = d_phase_reqs[f].d_phase_reqs.begin(); it != d_phase_reqs[f].d_phase_reqs.end(); ++it ){
     //the literal n is phase-required for quantifier f
     Node n = it->first;
     Node gn = d_qe->getTermDatabase()->getModelBasis( f, n );
@@ -751,5 +746,3 @@ void QModelBuilderDefault::constructModelUf( FirstOrderModel* fm, Node op ){
     Debug("fmf-model-cons") << "  Finished constructing model for " << op << "." << std::endl;
   }
 }
-
-

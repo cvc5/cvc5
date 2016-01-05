@@ -14,52 +14,38 @@
  ** The theory engine.
  **/
 
-#include <vector>
-#include <list>
+#include "theory/theory_engine.h"
 
-#include "theory/arith/arith_ite_utils.h"
+#include <list>
+#include <vector>
 
 #include "decision/decision_engine.h"
-
 #include "expr/attribute.h"
 #include "expr/node.h"
 #include "expr/node_builder.h"
+#include "expr/resource_manager.h"
+#include "options/bv_options.h"
 #include "options/options.h"
-#include "util/lemma_output_channel.h"
-#include "util/resource_manager.h"
-
-#include "theory/theory.h"
-#include "theory/theory_engine.h"
-#include "theory/rewriter.h"
-#include "theory/theory_traits.h"
-
-#include "smt/logic_exception.h"
-
-#include "proof/proof_manager.h"
-
-#include "util/node_visitor.h"
-#include "util/ite_removal.h"
-
-//#include "theory/ite_simplifier.h"
-//#include "theory/ite_compressor.h"
-#include "theory/ite_utilities.h"
-#include "theory/unconstrained_simplifier.h"
-
-#include "theory/theory_model.h"
-
-#include "theory/quantifiers_engine.h"
-#include "theory/quantifiers/theory_quantifiers.h"
-#include "theory/quantifiers/options.h"
-#include "theory/quantifiers/model_engine.h"
-#include "theory/quantifiers/first_order_model.h"
-
-#include "theory/uf/equality_engine.h"
-//#include "theory/rewriterules/efficient_e_matching.h"
-#include "theory/bv/theory_bv_utils.h"
-#include "theory/bv/options.h"
-
+#include "options/quantifiers_options.h"
 #include "proof/proof_manager.h"
 #include "proof/theory_proof.h"
+#include "smt/logic_exception.h"
+#include "smt_util/ite_removal.h"
+#include "smt_util/lemma_output_channel.h"
+#include "smt_util/node_visitor.h"
+#include "theory/arith/arith_ite_utils.h"
+#include "theory/bv/theory_bv_utils.h"
+#include "theory/ite_utilities.h"
+#include "theory/quantifiers/first_order_model.h"
+#include "theory/quantifiers/model_engine.h"
+#include "theory/quantifiers/theory_quantifiers.h"
+#include "theory/quantifiers_engine.h"
+#include "theory/rewriter.h"
+#include "theory/theory.h"
+#include "theory/theory_model.h"
+#include "theory/theory_traits.h"
+#include "theory/uf/equality_engine.h"
+#include "theory/unconstrained_simplifier.h"
 
 using namespace std;
 
@@ -91,7 +77,9 @@ void TheoryEngine::finishInit() {
 }
 
 void TheoryEngine::eqNotifyNewClass(TNode t){
-  d_quantEngine->addTermToDatabase( t );
+  if( d_logicInfo.isQuantified() ){
+    d_quantEngine->addTermToDatabase( t );
+  }
 }
 
 void TheoryEngine::eqNotifyPreMerge(TNode t1, TNode t2){
@@ -429,7 +417,8 @@ void TheoryEngine::check(Theory::Effort effort) {
       }
     }
 
-    Debug("theory") << "TheoryEngine::check(" << effort << "): done, we are " << (d_inConflict ? "unsat" : "sat") << (d_lemmasAdded ? " with new lemmas" : " with no new lemmas") << endl;
+    Debug("theory") << "TheoryEngine::check(" << effort << "): done, we are " << (d_inConflict ? "unsat" : "sat") << (d_lemmasAdded ? " with new lemmas" : " with no new lemmas");
+    Debug("theory") << ", need check = " << needCheck() << endl;
 
     if(!d_inConflict && Theory::fullEffort(effort) && d_masterEqualityEngine != NULL && !d_lemmasAdded) {
       AlwaysAssert(d_masterEqualityEngine->consistent());
@@ -1535,7 +1524,12 @@ void TheoryEngine::mkAckermanizationAsssertions(std::vector<Node>& assertions) {
 
 Node TheoryEngine::ppSimpITE(TNode assertion)
 {
-  if(!d_iteRemover.containsTermITE(assertion)){
+  if(options::incrementalSolving()){
+    // disabling the d_iteUtilities->simpITE(assertion) pass for incremental solving.
+    // This is paranoia. We do not actually know of a bug coming from this.
+    // TODO re-enable
+    return assertion;
+  } else if(!d_iteRemover.containsTermITE(assertion)){
     return assertion;
   }else{
 
@@ -1557,6 +1551,12 @@ Node TheoryEngine::ppSimpITE(TNode assertion)
 }
 
 bool TheoryEngine::donePPSimpITE(std::vector<Node>& assertions){
+  // This pass does not support dependency tracking yet
+  // (learns substitutions from all assertions so just
+  // adding addDependence is not enough)
+  if (options::unsatCores()) {
+    return true;
+  }
   bool result = true;
   bool simpDidALotOfWork = d_iteUtilities->simpIteDidALotOfWorkHeuristic();
   if(simpDidALotOfWork){
@@ -1580,7 +1580,8 @@ bool TheoryEngine::donePPSimpITE(std::vector<Node>& assertions){
   }
 
   // Do theory specific preprocessing passes
-  if(d_logicInfo.isTheoryEnabled(theory::THEORY_ARITH)){
+  if(d_logicInfo.isTheoryEnabled(theory::THEORY_ARITH)
+     && !options::incrementalSolving() ){
     if(!simpDidALotOfWork){
       ContainsTermITEVisitor& contains = *d_iteRemover.getContainsVisitor();
       arith::ArithIteUtils aiteu(contains, d_userContext, getModel());
@@ -1594,7 +1595,7 @@ bool TheoryEngine::donePPSimpITE(std::vector<Node>& assertions){
           if(curr != res){
             Node more = aiteu.reduceConstantIteByGCD(res);
             Debug("arith::ite::red") << "  gcd->" << more << endl;
-            assertions[i] = more;
+            assertions[i] = Rewriter::rewrite(more);
           }
         }
       }
@@ -1761,6 +1762,6 @@ std::pair<bool, Node> TheoryEngine::entailmentCheck(theory::TheoryOfMode mode, T
   return th->entailmentCheck(lit, params, seffects);
 }
 
-void TheoryEngine::spendResource() {
-  d_resourceManager->spendResource();
+void TheoryEngine::spendResource(unsigned ammount) {
+  d_resourceManager->spendResource(ammount);
 }

@@ -24,13 +24,14 @@ OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWA
 #define Minisat_SolverTypes_h
 
 #include <assert.h>
-#include "util/output.h"
+#include "base/output.h"
 #include "prop/minisat/mtl/IntTypes.h"
 #include "prop/minisat/mtl/Alg.h"
 #include "prop/minisat/mtl/Vec.h"
 #include "prop/minisat/mtl/Map.h"
 #include "prop/minisat/mtl/Alloc.h"
 
+namespace CVC4 {
 namespace Minisat {
 
 //=================================================================================================
@@ -169,6 +170,7 @@ inline std::ostream& operator <<(std::ostream& out, Minisat::lbool val) {
 
 
 } /* Minisat */
+}
 
 namespace Minisat{
 class Solver;
@@ -187,6 +189,7 @@ template <class Solver> class ProofProxy;
 typedef ProofProxy<Minisat::Solver> CoreProofProxy;
 } 
 
+namespace CVC4 {
 namespace Minisat{
 
 
@@ -485,6 +488,7 @@ inline void Clause::strengthen(Lit p)
 }
 
 //=================================================================================================
+}
 }
 
 #endif

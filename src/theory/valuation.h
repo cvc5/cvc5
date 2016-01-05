@@ -22,7 +22,7 @@
 #define __CVC4__THEORY__VALUATION_H
 
 #include "expr/node.h"
-#include "theory/theoryof_mode.h"
+#include "options/theoryof_mode.h"
 
 namespace CVC4 {
 

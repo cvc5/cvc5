@@ -15,14 +15,15 @@
  ** \todo document this file
  **/
 
-#include "theory/theory.h"
-#include "theory/arith/normal_form.h"
-#include "theory/arith/arith_rewriter.h"
-#include "theory/arith/arith_utilities.h"
-
-#include <vector>
 #include <set>
 #include <stack>
+#include <vector>
+
+#include "base/output.h"
+#include "theory/arith/arith_rewriter.h"
+#include "theory/arith/arith_utilities.h"
+#include "theory/arith/normal_form.h"
+#include "theory/theory.h"
 
 namespace CVC4 {
 namespace theory {

@@ -14,11 +14,11 @@
  ** White-box testing of CVC4::SubrangeBound.
  **/
 
-#include "util/subrange_bound.h"
-#include "util/integer.h"
-
-#include <string>
 #include <sstream>
+#include <string>
+
+#include "util/integer.h"
+#include "util/subrange_bound.h"
 
 using namespace CVC4;
 using namespace std;
@@ -72,4 +72,3 @@ public:
   }
 
 };/* class SubrangeBoundWhite */
-

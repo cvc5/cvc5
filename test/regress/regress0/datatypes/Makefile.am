@@ -65,7 +65,10 @@ TESTS =	\
 	stream-singleton.smt2 \
 	is_test.smt2 \
 	manos-model.smt2 \
-	bug625.smt2
+	bug625.smt2 \
+	cdt-model-cade15.smt2 \
+	sc-cdt1.smt2  \
+	conqueue-dt-enum-iloop.smt2
 
 FAILING_TESTS = \
 	datatype-dump.cvc

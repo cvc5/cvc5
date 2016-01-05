@@ -22,10 +22,10 @@
 #include <vector>
 #include <ext/hash_map>
 
-#include "expr/node.h"
 #include "context/cdo.h"
+#include "expr/node.h"
+#include "expr/statistics_registry.h"
 #include "prop/sat_solver_types.h"
-#include "util/statistics_registry.h"
 #include "theory/bv/theory_bv_utils.h"
 
 namespace CVC4 {

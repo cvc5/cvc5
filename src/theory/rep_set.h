@@ -33,6 +33,7 @@ public:
   std::map< TypeNode, std::vector< Node > > d_type_reps;
   std::map< TypeNode, bool > d_type_complete;
   std::map< Node, int > d_tmap;
+  std::map< TypeNode, int > d_type_rlv_rep;
   // map from values to terms they were assigned for
   std::map< Node, Node > d_values_to_terms;
   /** clear the set */
@@ -48,7 +49,9 @@ public:
   /** returns index in d_type_reps for node n */
   int getIndexFor( Node n ) const;
   /** complete all values */
-  void complete( TypeNode t );
+  bool complete( TypeNode t );
+  /** get number of relevant ground representatives for type */
+  int getNumRelevantGroundReps( TypeNode t );
   /** debug print */
   void toStream(std::ostream& out);
 };/* class RepSet */

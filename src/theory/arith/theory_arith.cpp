@@ -16,8 +16,10 @@
  **/
 
 #include "theory/arith/theory_arith.h"
-#include "theory/arith/theory_arith_private.h"
+
+#include "options/smt_options.h"
 #include "theory/arith/infer_bounds.h"
+#include "theory/arith/theory_arith_private.h"
 
 using namespace std;
 using namespace CVC4::kind;
@@ -70,6 +72,7 @@ void TheoryArith::ppStaticLearn(TNode n, NodeBuilder<>& learned) {
 }
 
 void TheoryArith::check(Effort effortLevel){
+  getOutputChannel().spendResource(options::theoryCheckStep());
   d_internal->check(effortLevel);
 }
 

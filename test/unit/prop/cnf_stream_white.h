@@ -18,24 +18,21 @@
 /* #include <gmock/gmock.h> */
 /* #include <gtest/gtest.h> */
 
-#include "util/cvc4_assert.h"
-
+#include "base/cvc4_assert.h"
+#include "context/context.h"
 #include "expr/expr_manager.h"
 #include "expr/node_manager.h"
-#include "context/context.h"
 #include "prop/cnf_stream.h"
 #include "prop/prop_engine.h"
 #include "prop/theory_proxy.h"
 #include "smt/smt_engine.h"
 #include "smt/smt_engine_scope.h"
-
+#include "theory/arith/theory_arith.h"
+#include "theory/booleans/theory_bool.h"
+#include "theory/builtin/theory_builtin.h"
 #include "theory/theory.h"
 #include "theory/theory_engine.h"
 #include "theory/theory_registrar.h"
-
-#include "theory/builtin/theory_builtin.h"
-#include "theory/booleans/theory_bool.h"
-#include "theory/arith/theory_arith.h"
 
 using namespace CVC4;
 using namespace CVC4::context;

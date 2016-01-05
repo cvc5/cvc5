@@ -63,7 +63,7 @@ options {
 
 #include <stdint.h>
 
-#include "expr/command.h"
+#include "smt_util/command.h"
 #include "parser/parser.h"
 #include "parser/antlr_tracing.h"
 
@@ -101,6 +101,9 @@ namespace CVC4 {
 
 @parser::postinclude {
 
+#include <vector>
+
+#include "base/output.h"
 #include "expr/expr.h"
 #include "expr/kind.h"
 #include "expr/type.h"
@@ -108,9 +111,7 @@ namespace CVC4 {
 #include "parser/parser.h"
 #include "parser/smt1/smt1.h"
 #include "util/integer.h"
-#include "util/output.h"
 #include "util/rational.h"
-#include <vector>
 
 using namespace CVC4;
 using namespace CVC4::parser;
@@ -573,7 +574,7 @@ annotation[CVC4::Command*& smt_command]
     annotatedFormulas[pats,pat] '}'
   | attribute[key]
     ( userValue[value]
-      { smt_command = new SetInfoCommand(key.c_str() + 1, value); }
+      { smt_command = new SetInfoCommand(key.c_str() + 1, SExpr(value)); }
     | { smt_command = new EmptyCommand(std::string("annotation: ") + key); }
     )
   ;

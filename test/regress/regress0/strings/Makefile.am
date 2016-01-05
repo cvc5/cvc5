@@ -9,8 +9,8 @@ AM_LOG_FLAGS = $(RUN_REGRESSION_ARGS) @abs_top_builddir@/src/main/$(BINARY)$(EXE
 if AUTOMAKE_1_11
 # old-style (pre-automake 1.12) test harness
 TESTS_ENVIRONMENT = \
-	$(LOG_COMPILER) \
-	$(AM_LOG_FLAGS) $(LOG_FLAGS)
+  $(LOG_COMPILER) \
+  $(AM_LOG_FLAGS) $(LOG_FLAGS)
 endif
 
 MAKEFLAGS = -k
@@ -18,7 +18,7 @@ MAKEFLAGS = -k
 # These are run for all build profiles.
 # If a test shouldn't be run in e.g. competition mode,
 # put it below in "TESTS +="
-TESTS =	\
+TESTS = \
   at001.smt2 \
   bug001.smt2 \
   bug002.smt2 \
@@ -49,18 +49,36 @@ TESTS =	\
   loop007.smt2 \
   loop008.smt2 \
   loop009.smt2 \
-  reloop.smt2 
-
+  reloop.smt2 \
+  unsound-0908.smt2 \
+  ilc-like.smt2 \ 
+  ilc-l-nt.smt2 \ 
+  artemis-0512-nonterm.smt2 \
+  indexof-sym-simp.smt2 \
+  bug613.smt2 \
+  idof-triv.smt2 \
+  chapman150408.smt2 \
+  pierre150331.smt2 \
+  norn-360.smt2 \
+  norn-simp-rew.smt2 \
+  norn-simp-rew-sat.smt2 \
+  idof-nconst-index.smt2 \
+  idof-neg-index.smt2 \
+  bug612.smt2 \
+  bug615.smt2 \
+  kaluza-fl.smt2 \
+  norn-ab.smt2 \
+  idof-rewrites.smt2 \
+  bug682.smt2 \
+  bug686dd.smt2 \
+  idof-handg.smt2 \
+  fmf001.smt2 \
+  type002.smt2 \
+  crash-1019.smt2
 
 FAILING_TESTS =
 
-EXTRA_DIST = $(TESTS) \
-  artemis-0512-nonterm.smt2 \
-  fmf001.smt2 \
-  type002.smt2
-
-#   slow after changes on Nov 20 : artemis-0512-nonterm.smt2
-#   slow after decision engine respects requirePhase: type003.smt2  loop007.smt2 
+EXTRA_DIST = $(TESTS)
 
 # and make sure to distribute it
 EXTRA_DIST +=

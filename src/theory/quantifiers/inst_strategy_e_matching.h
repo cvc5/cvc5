@@ -17,14 +17,12 @@
 #ifndef __CVC4__INST_STRATEGY_E_MATCHING_H
 #define __CVC4__INST_STRATEGY_E_MATCHING_H
 
-#include "theory/quantifiers_engine.h"
-#include "theory/quantifiers/trigger.h"
-
 #include "context/context.h"
 #include "context/context_mm.h"
-
-#include "util/statistics_registry.h"
+#include "expr/statistics_registry.h"
 #include "theory/quantifiers/instantiation_engine.h"
+#include "theory/quantifiers/trigger.h"
+#include "theory/quantifiers_engine.h"
 
 namespace CVC4 {
 namespace theory {
@@ -49,11 +47,11 @@ public:
   ~InstStrategyUserPatterns(){}
 public:
   /** add pattern */
-  void addUserPattern( Node f, Node pat );
+  void addUserPattern( Node q, Node pat );
   /** get num patterns */
-  int getNumUserGenerators( Node f ) { return (int)d_user_gen[f].size(); }
+  int getNumUserGenerators( Node q ) { return (int)d_user_gen[q].size(); }
   /** get user pattern */
-  inst::Trigger* getUserGenerator( Node f, int i ) { return d_user_gen[f][ i ]; }
+  inst::Trigger* getUserGenerator( Node q, int i ) { return d_user_gen[q][ i ]; }
   /** identify */
   std::string identify() const { return std::string("UserPatterns"); }
 };/* class InstStrategyUserPatterns */
@@ -85,12 +83,12 @@ private:
 private:
   /** process functions */
   void processResetInstantiationRound( Theory::Effort effort );
-  int process( Node f, Theory::Effort effort, int e );
+  int process( Node q, Theory::Effort effort, int e );
   /** generate triggers */
-  void generateTriggers( Node f, Theory::Effort effort, int e, int& status );
+  void generateTriggers( Node q );
   //bool addTrigger( inst::Trigger * tr, Node f, unsigned r );
   /** has user patterns */
-  bool hasUserPatterns( Node f );
+  bool hasUserPatterns( Node q );
   /** has user patterns */
   std::map< Node, bool > d_hasUserPatterns;
 public:
@@ -98,47 +96,29 @@ public:
   ~InstStrategyAutoGenTriggers(){}
 public:
   /** get auto-generated trigger */
-  inst::Trigger* getAutoGenTrigger( Node f );
+  inst::Trigger* getAutoGenTrigger( Node q );
   /** identify */
   std::string identify() const { return std::string("AutoGenTriggers"); }
   /** add pattern */
-  void addUserNoPattern( Node f, Node pat );
+  void addUserNoPattern( Node q, Node pat );
 };/* class InstStrategyAutoGenTriggers */
 
-
-class InstStrategyLocalTheoryExt : public InstStrategy {
-private:
-  /** have we registered quantifier, value is whether it is an LTE term */
-  std::map< Node, bool > d_quant;
-  /** triggers for each quantifier */
-  std::map< Node, inst::Trigger* > d_lte_trigger;
-private:
-  /** process functions */
-  void processResetInstantiationRound( Theory::Effort effort );
-  int process( Node f, Theory::Effort effort, int e );
-public:
-  InstStrategyLocalTheoryExt( QuantifiersEngine* qe ) : InstStrategy( qe ){}
-  /** identify */
-  std::string identify() const { return std::string("LocalTheoryExt"); }
-  /** is local theory quantifier? */
-  bool isLocalTheoryExt( Node f );
-};
-
-
-class InstStrategyFreeVariable : public InstStrategy{
+class FullSaturation : public QuantifiersModule {
 private:
   /** guessed instantiations */
   std::map< Node, bool > d_guessed;
   /** process functions */
-  void processResetInstantiationRound( Theory::Effort effort );
-  int process( Node f, Theory::Effort effort, int e );
+  bool process( Node q, bool fullEffort );
 public:
-  InstStrategyFreeVariable( QuantifiersEngine* qe ) :
-      InstStrategy( qe ){}
-  ~InstStrategyFreeVariable(){}
+  FullSaturation( QuantifiersEngine* qe );
+  ~FullSaturation(){}
+  bool needsCheck( Theory::Effort e );
+  void reset_round( Theory::Effort e );
+  void check( Theory::Effort e, unsigned quant_e );
+  void registerQuantifier( Node q );
   /** identify */
-  std::string identify() const { return std::string("FreeVariable"); }
-};/* class InstStrategyFreeVariable */
+  std::string identify() const { return std::string("FullSaturation"); }
+};/* class FullSaturation */
 
 
 }

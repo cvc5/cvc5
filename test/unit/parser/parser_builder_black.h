@@ -15,18 +15,21 @@
  **/
 
 #include <cxxtest/TestSuite.h>
+
 #include <ext/stdio_filebuf.h>
-#include <fstream>
-#include <iostream>
 #include <stdio.h>
 #include <string.h>
 #include <sys/stat.h>
 #include <unistd.h>
 
-#include "expr/command.h"
+#include <fstream>
+#include <iostream>
+
+#include "options/language.h"
 #include "parser/parser.h"
 #include "parser/parser_builder.h"
-#include "util/language.h"
+#include "smt_util/command.h"
+
 
 typedef __gnu_cxx::stdio_filebuf<char> filebuf_gnu;
 

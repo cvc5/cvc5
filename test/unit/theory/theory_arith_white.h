@@ -15,23 +15,21 @@
  ** \todo document this file
  **/
 
-
 #include <cxxtest/TestSuite.h>
 
-#include "theory/theory.h"
-#include "theory/theory_engine.h"
-#include "theory/arith/theory_arith.h"
-#include "theory/quantifiers_engine.h"
+#include <vector>
+
+#include "context/context.h"
 #include "expr/node.h"
 #include "expr/node_manager.h"
-#include "context/context.h"
-#include "util/rational.h"
 #include "smt/smt_engine.h"
 #include "smt/smt_engine_scope.h"
-
+#include "theory/arith/theory_arith.h"
+#include "theory/quantifiers_engine.h"
+#include "theory/theory.h"
+#include "theory/theory_engine.h"
 #include "theory/theory_test_utils.h"
-
-#include <vector>
+#include "util/rational.h"
 
 using namespace CVC4;
 using namespace CVC4::theory;
@@ -103,7 +101,7 @@ public:
     d_em = new ExprManager();
     d_nm = NodeManager::fromExprManager(d_em);
     d_smt = new SmtEngine(d_em);
-    d_smt->setOption("incremental", false);
+    d_smt->setOption("incremental", CVC4::SExpr(false));
     d_ctxt = d_smt->d_context;
     d_uctxt = d_smt->d_userContext;
     d_scope = new SmtScope(d_smt);

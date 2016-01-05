@@ -12,18 +12,18 @@
  ** \brief utility for processing single invocation synthesis conjectures
  **
  **/
-
 #include "theory/quantifiers/ce_guided_single_inv_sol.h"
-#include "theory/quantifiers/ce_guided_single_inv.h"
-#include "theory/quantifiers/ce_guided_instantiation.h"
-#include "theory/theory_engine.h"
-#include "theory/quantifiers/options.h"
-#include "theory/quantifiers/term_database.h"
-#include "theory/quantifiers/first_order_model.h"
+
+#include "expr/datatype.h"
+#include "options/quantifiers_options.h"
 #include "theory/datatypes/datatypes_rewriter.h"
-#include "util/datatype.h"
+#include "theory/quantifiers/ce_guided_instantiation.h"
+#include "theory/quantifiers/ce_guided_single_inv.h"
+#include "theory/quantifiers/first_order_model.h"
 #include "theory/quantifiers/quant_util.h"
+#include "theory/quantifiers/term_database.h"
 #include "theory/quantifiers/trigger.h"
+#include "theory/theory_engine.h"
 
 using namespace CVC4;
 using namespace CVC4::kind;
@@ -86,8 +86,11 @@ Node CegConjectureSingleInvSol::pullITEs( Node s ) {
         Trace("csi-sol-debug") << "For " << s << ", can pull " << cond << " -> " << t << " with remainder " << rem << std::endl;
         t = pullITEs( t );
         rem = pullITEs( rem );
+        Trace("csi-pull-ite") << "PI: Rewrite : " << s << std::endl;
+        Node prev = s;
         s = NodeManager::currentNM()->mkNode( ITE, TermDb::simpleNegate( cond ), t, rem );
-        //Trace("csi-debug-sol") << "Now : " << s << std::endl;
+        Trace("csi-pull-ite") << "PI: Rewrite Now : " << s << std::endl;
+        Trace("csi-pull-ite") << "(= " << prev << " " << s << ")" << std::endl;
         success = true;
       }
     }while( success );
@@ -99,11 +102,13 @@ Node CegConjectureSingleInvSol::pullITEs( Node s ) {
 bool CegConjectureSingleInvSol::pullITECondition( Node root, Node n_ite, std::vector< Node >& conj, Node& t, Node& rem, int depth ) {
   Assert( n_ite.getKind()==ITE );
   std::vector< Node > curr_conj;
+  std::vector< Node > orig_conj;
   bool isAnd;
   if( n_ite[0].getKind()==AND || n_ite[0].getKind()==OR ){
     isAnd = n_ite[0].getKind()==AND;
     for( unsigned i=0; i<n_ite[0].getNumChildren(); i++ ){
       Node cond = n_ite[0][i];
+      orig_conj.push_back( cond );
       if( n_ite[0].getKind()==OR ){
         cond = TermDb::simpleNegate( cond );
       }
@@ -112,12 +117,15 @@ bool CegConjectureSingleInvSol::pullITECondition( Node root, Node n_ite, std::ve
   }else{
     Node neg = n_ite[0].negate();
     if( std::find( conj.begin(), conj.end(), neg )!=conj.end() ){
+      //if negation of condition exists, use it
       isAnd = false;
       curr_conj.push_back( neg );
     }else{
+      //otherwise, use condition
       isAnd = true;
       curr_conj.push_back( n_ite[0] );
     }
+    orig_conj.push_back( n_ite[0] );
   }
   // take intersection with current conditions
   std::vector< Node > new_conj;
@@ -162,13 +170,14 @@ bool CegConjectureSingleInvSol::pullITECondition( Node root, Node n_ite, std::ve
     //make remainder : strip out conditions in conj
     Assert( !conj.empty() );
     std::vector< Node > cond_c;
+    Assert( orig_conj.size()==curr_conj.size() );
     for( unsigned i=0; i<curr_conj.size(); i++ ){
       if( std::find( conj.begin(), conj.end(), curr_conj[i] )==conj.end() ){
-        cond_c.push_back( curr_conj[i] );
+        cond_c.push_back( orig_conj[i] );
       }
     }
     if( cond_c.empty() ){
-      rem = isAnd ? tval : rem;
+      rem = tval;
     }else{
       Node new_cond = cond_c.size()==1 ? cond_c[0] : NodeManager::currentNM()->mkNode( n_ite[0].getKind(), cond_c );
       rem = NodeManager::currentNM()->mkNode( ITE, new_cond, isAnd ? tval : rem, isAnd ? rem : tval );
@@ -309,7 +318,7 @@ Node CegConjectureSingleInvSol::simplifySolution( Node sol, TypeNode stn ){
   }
   Node sol0 = Rewriter::rewrite( sol );
   Trace("csi-sol") << "now : " << sol0 << std::endl;
-  
+
   Node curr_sol = sol0;
   Node prev_sol;
   do{
@@ -359,7 +368,7 @@ Node CegConjectureSingleInvSol::simplifySolution( Node sol, TypeNode stn ){
       curr_sol = sol4;
     }
   }while( curr_sol!=prev_sol );
-  
+
   return curr_sol;
 }
 
@@ -437,7 +446,7 @@ Node CegConjectureSingleInvSol::simplifySolutionNode( Node sol, TypeNode stn, st
               ret = NodeManager::currentNM()->mkNode( ITE, exp_c, ret[1], ret[2] );
             }
             if( !d_qe->getTermDatabaseSygus()->hasKind( stnc[0], ret[0].getKind() ) ){
-              Trace("csi-sol") << "Flatten based on " << ret[0] << "." << std::endl;
+              Trace("csi-simp-debug") << "Flatten based on " << ret[0] << "." << std::endl;
               ret = flattenITEs( ret, false );
             }
           }
@@ -510,7 +519,7 @@ Node CegConjectureSingleInvSol::simplifySolutionNode( Node sol, TypeNode stn, st
       }
       if( !new_vars.empty() ){
         if( !inc.empty() ){
-          Node ret = inc.size()==1 ? sol[0] : NodeManager::currentNM()->mkNode( sol.getKind(), inc );
+          Node ret = inc.size()==1 ? inc[0] : NodeManager::currentNM()->mkNode( sol.getKind(), inc );
           Trace("csi-simp") << "Base return is : " << ret << std::endl;
           // apply substitution
           ret = ret.substitute( new_vars.begin(), new_vars.end(), new_subs.begin(), new_subs.end() );
@@ -609,9 +618,27 @@ Node CegConjectureSingleInvSol::simplifySolutionNode( Node sol, TypeNode stn, st
 }
 
 
-
-
-
+void CegConjectureSingleInvSol::preregisterConjecture( Node q ) {
+  Trace("csi-sol") << "Preregister conjecture : " << q << std::endl;
+  Node n = q;
+  if( n.getKind()==FORALL ){
+    n = n[1];
+  }
+  if( n.getKind()==EXISTS ){
+    if( n[0].getNumChildren()==d_varList.size() ){
+      std::vector< Node > evars;
+      for( unsigned i=0; i<n[0].getNumChildren(); i++ ){
+        evars.push_back( n[0][i] );
+      }
+      n = n[1].substitute( evars.begin(), evars.end(), d_varList.begin(), d_varList.end() );
+    }else{
+      Trace("csi-sol") << "Not the same number of variables, return." << std::endl;
+      return;
+    }
+  }
+  Trace("csi-sol") << "Preregister node for solution reconstruction : " << n << std::endl;
+  registerEquivalentTerms( n );
+}
 
 Node CegConjectureSingleInvSol::reconstructSolution( Node sol, TypeNode stn, int& reconstructed ) {
   Trace("csi-rcons") << "Solution (pre-reconstruction) is : " << sol << std::endl;
@@ -717,7 +744,7 @@ int CegConjectureSingleInvSol::collectReconstructNodes( Node t, TypeNode stn, in
     //check if op is in syntax sort
     carg = d_qe->getTermDatabaseSygus()->getOpArg( stn, min_t );
     if( carg!=-1 ){
-      Trace("csi-rcons-debug") << "  Type has constant." << std::endl;
+      Trace("csi-rcons-debug") << "  Type has operator." << std::endl;
       d_reconstruct[id] = NodeManager::currentNM()->mkNode( APPLY_CONSTRUCTOR, Node::fromExpr( dt[carg].getConstructor() ) );
       status = 0;
     }else{
@@ -726,7 +753,7 @@ int CegConjectureSingleInvSol::collectReconstructNodes( Node t, TypeNode stn, in
       if( karg!=-1 ){
         //collect the children of min_t
         std::vector< Node > tchildren;
-        if( min_t.getNumChildren()>dt[karg].getNumArgs() && d_qe->getTermDatabaseSygus()->isAssoc( min_t.getKind() ) && dt[karg].getNumArgs()==2 ){
+        if( min_t.getNumChildren()>dt[karg].getNumArgs() && quantifiers::TermDb::isAssoc( min_t.getKind() ) && dt[karg].getNumArgs()==2 ){
           tchildren.push_back( min_t[0] );
           std::vector< Node > rem_children;
           for( unsigned i=1; i<min_t.getNumChildren(); i++ ){
@@ -754,117 +781,138 @@ int CegConjectureSingleInvSol::collectReconstructNodes( Node t, TypeNode stn, in
           Trace("csi-rcons-debug") << "Type for " << id << " has kind " << min_t.getKind() << ", but argument # mismatch." << std::endl;
         }
       }
-    }
-    if( status!=0 ){
-      if( min_t.isConst() ){
-        Node min_t_c = d_qe->getTermDatabaseSygus()->builtinToSygusConst( min_t, stn );
-        if( !min_t_c.isNull() ){
-          d_reconstruct[id] = min_t_c;
-          status = 0;
-        }
-      }
       if( status!=0 ){
-        Trace("csi-rcons-debug") << "Try matching for " << id << "." << std::endl;
-        //try other options
-        //match against other constructors
-        bool success;
-        int c_index = 0;
-        do{
-          success = false;
-          int index_found;
-          std::vector< Node > args;
-          if( d_qe->getTermDatabaseSygus()->getMatch( min_t, stn, index_found, args, karg, c_index ) ){
-            success = true;
+        //try constant reconstruction
+        if( min_t.isConst() ){
+          Trace("csi-rcons-debug") << "...try constant reconstruction." << std::endl;
+          Node min_t_c = d_qe->getTermDatabaseSygus()->builtinToSygusConst( min_t, stn );
+          if( !min_t_c.isNull() ){
+            Trace("csi-rcons-debug") << "   constant reconstruction success for " << id << ", result = " << min_t_c << std::endl;
+            d_reconstruct[id] = min_t_c;
             status = 0;
-            Node cons = Node::fromExpr( dt[index_found].getConstructor() );
-            Trace("csi-rcons-debug") << "Try alternative for " << id << ", matching " << dt[index_found].getName() << " with children : " << std::endl;
-            for( unsigned i=0; i<args.size(); i++ ){
-              Trace("csi-rcons-debug") << "  " << args[i] << std::endl;
-            }
-            if( !collectReconstructNodes( id, args, dt[index_found], d_reconstruct_op[id][cons], status ) ){
+          }
+        }
+        if( status!=0 ){
+          //try identity functions
+          for( unsigned i=0; i<d_qe->getTermDatabaseSygus()->getNumIdFuncs( stn ); i++ ){
+            unsigned ii = d_qe->getTermDatabaseSygus()->getIdFuncIndex( stn, i );
+            Assert( dt[ii].getNumArgs()==1 );
+            //try to directly reconstruct from single argument
+            std::vector< Node > tchildren;
+            tchildren.push_back( min_t );
+            TypeNode stnc = TypeNode::fromType( ((SelectorType)dt[ii][0].getType()).getRangeType() );
+            Trace("csi-rcons-debug") << "...try identity function " << dt[ii].getSygusOp() << ", child type is " << stnc << std::endl;
+            status = 0;
+            Node cons = Node::fromExpr( dt[ii].getConstructor() );
+            if( !collectReconstructNodes( id, tchildren, dt[ii], d_reconstruct_op[id][cons], status ) ){
               d_reconstruct_op[id].erase( cons );
               status = 1;
             }else{
-              c_index = index_found+1;
+              Trace("csi-rcons-debug") << "   identity function success for " << id << std::endl;
+              break;
             }
           }
-        }while( success && status!=0 );
-
-        if( status!=0 ){
-          // construct an equivalence class of terms that are equivalent to t
-          if( d_rep[id]==id ){
-            Trace("csi-rcons-debug") << "Try rewriting for " << id << "." << std::endl;
-            //get equivalence class of term
-            std::vector< Node > equiv;
-            if( tn.isBoolean() ){
-              Node curr = min_t;
-              Node new_t;
-              do{
-                new_t = Node::null();
-                if( curr.getKind()==EQUAL && ( curr[0].getType().isInteger() || curr[0].getType().isReal() ) ){
-                  new_t = NodeManager::currentNM()->mkNode( AND, NodeManager::currentNM()->mkNode( LEQ, curr[0], curr[1] ),
-                                                                NodeManager::currentNM()->mkNode( LEQ, curr[1], curr[0] ) );
-                }else if( curr.getKind()==ITE ){
-                  new_t = NodeManager::currentNM()->mkNode( OR, NodeManager::currentNM()->mkNode( AND, curr[0], curr[1] ),
-                                                                NodeManager::currentNM()->mkNode( AND, curr[0].negate(), curr[2] ) );
-                }else if( curr.getKind()==IFF ){
-                  new_t = NodeManager::currentNM()->mkNode( OR, NodeManager::currentNM()->mkNode( AND, curr[0], curr[1] ),
-                                                                NodeManager::currentNM()->mkNode( AND, curr[0].negate(), curr[1].negate() ) );
-                }else if( curr.getKind()==OR || curr.getKind()==AND ){
-                  new_t = TermDb::simpleNegate( curr ).negate();
-                }else if( curr.getKind()==NOT ){
-                  new_t = TermDb::simpleNegate( curr[0] );
-                }else{
-                  new_t = NodeManager::currentNM()->mkNode( NOT, NodeManager::currentNM()->mkNode( NOT, curr ) );
+          if( status!=0 ){
+            //try other options, such as matching against other constructors
+            Trace("csi-rcons-debug") << "Try matching for " << id << "." << std::endl;
+            bool success;
+            int c_index = 0;
+            do{
+              success = false;
+              int index_found;
+              std::vector< Node > args;
+              if( d_qe->getTermDatabaseSygus()->getMatch( min_t, stn, index_found, args, karg, c_index ) ){
+                success = true;
+                status = 0;
+                Node cons = Node::fromExpr( dt[index_found].getConstructor() );
+                Trace("csi-rcons-debug") << "Try alternative for " << id << ", matching " << dt[index_found].getName() << " with children : " << std::endl;
+                for( unsigned i=0; i<args.size(); i++ ){
+                  Trace("csi-rcons-debug") << "  " << args[i] << std::endl;
                 }
-                if( !new_t.isNull() ){
-                  if( new_t!=min_t && std::find( equiv.begin(), equiv.end(), new_t )==equiv.end() ){
-                    curr = new_t;
-                    equiv.push_back( new_t );
-                  }else{
+                if( !collectReconstructNodes( id, args, dt[index_found], d_reconstruct_op[id][cons], status ) ){
+                  d_reconstruct_op[id].erase( cons );
+                  status = 1;
+                }else{
+                  c_index = index_found+1;
+                }
+              }
+            }while( success && status!=0 );
+
+            if( status!=0 ){
+              // construct an equivalence class of terms that are equivalent to t
+              if( d_rep[id]==id ){
+                Trace("csi-rcons-debug") << "Try rewriting for " << id << "." << std::endl;
+                //get equivalence class of term
+                std::vector< Node > equiv;
+                if( tn.isBoolean() ){
+                  Node curr = min_t;
+                  Node new_t;
+                  do{
                     new_t = Node::null();
+                    if( curr.getKind()==EQUAL && ( curr[0].getType().isInteger() || curr[0].getType().isReal() ) ){
+                      new_t = NodeManager::currentNM()->mkNode( AND, NodeManager::currentNM()->mkNode( LEQ, curr[0], curr[1] ),
+                                                                    NodeManager::currentNM()->mkNode( LEQ, curr[1], curr[0] ) );
+                    }else if( curr.getKind()==ITE ){
+                      new_t = NodeManager::currentNM()->mkNode( OR, NodeManager::currentNM()->mkNode( AND, curr[0], curr[1] ),
+                                                                    NodeManager::currentNM()->mkNode( AND, curr[0].negate(), curr[2] ) );
+                    }else if( curr.getKind()==IFF ){
+                      new_t = NodeManager::currentNM()->mkNode( OR, NodeManager::currentNM()->mkNode( AND, curr[0], curr[1] ),
+                                                                    NodeManager::currentNM()->mkNode( AND, curr[0].negate(), curr[1].negate() ) );
+                    }else if( curr.getKind()==OR || curr.getKind()==AND ){
+                      new_t = TermDb::simpleNegate( curr ).negate();
+                    }else if( curr.getKind()==NOT ){
+                      new_t = TermDb::simpleNegate( curr[0] );
+                    }else{
+                      new_t = NodeManager::currentNM()->mkNode( NOT, NodeManager::currentNM()->mkNode( NOT, curr ) );
+                    }
+                    if( !new_t.isNull() ){
+                      if( new_t!=min_t && std::find( equiv.begin(), equiv.end(), new_t )==equiv.end() ){
+                        curr = new_t;
+                        equiv.push_back( new_t );
+                      }else{
+                        new_t = Node::null();
+                      }
+                    }
+                  }while( !new_t.isNull() );
+                }
+                //get decompositions
+                for( unsigned i=0; i<dt.getNumConstructors(); i++ ){
+                  Kind k = d_qe->getTermDatabaseSygus()->getArgKind( stn, i );
+                  getEquivalentTerms( k, min_t, equiv );
+                }
+                //assign ids to terms
+                Trace("csi-rcons-debug") << "Term " << id << " is equivalent to " << equiv.size() << " terms : " << std::endl;
+                std::vector< int > equiv_ids;
+                for( unsigned i=0; i<equiv.size(); i++ ){
+                  Trace("csi-rcons-debug") << "  " << equiv[i] << std::endl;
+                  if( d_rcons_to_id[stn].find( equiv[i] )==d_rcons_to_id[stn].end() ){
+                    int eq_id = allocate( equiv[i], stn );
+                    d_eqc.erase( eq_id );
+                    d_rep[eq_id] = id;
+                    d_eqc[id].push_back( eq_id );
+                    equiv_ids.push_back( eq_id );
+                  }else{
+                    equiv_ids.push_back( -1 );
                   }
                 }
-              }while( !new_t.isNull() );
-            }
-            for( unsigned i=0; i<dt.getNumConstructors(); i++ ){
-              Kind k = d_qe->getTermDatabaseSygus()->getArgKind( stn, i );
-              if( k==AND || k==OR ){
-                equiv.push_back( NodeManager::currentNM()->mkNode( k, min_t, min_t ) );
-                equiv.push_back( NodeManager::currentNM()->mkNode( k, min_t, NodeManager::currentNM()->mkConst( k==AND ) ) );
-              }
-            }
-            //assign ids to terms
-            Trace("csi-rcons-debug") << "Term " << id << " is equivalent to " << equiv.size() << " terms : " << std::endl;
-            std::vector< int > equiv_ids;
-            for( unsigned i=0; i<equiv.size(); i++ ){
-              Trace("csi-rcons-debug") << "  " << equiv[i] << std::endl;
-              if( d_rcons_to_id[stn].find( equiv[i] )==d_rcons_to_id[stn].end() ){
-                int eq_id = allocate( equiv[i], stn );
-                d_eqc.erase( eq_id );
-                d_rep[eq_id] = id;
-                d_eqc[id].push_back( eq_id );
-                equiv_ids.push_back( eq_id );
-              }else{
-                equiv_ids.push_back( -1 );
-              }
-            }
-            // now, try each of them
-            for( unsigned i=0; i<equiv.size(); i++ ){
-              if( equiv_ids[i]!=-1 ){
-                collectReconstructNodes( equiv[i], stn, status );
-                //if one succeeds
-                if( status==0 ){
-                  Node rsol = getReconstructedSolution( equiv_ids[i] );
-                  Assert( !rsol.isNull() );
-                  //set all members of the equivalence class that this is the reconstructed solution
-                  setReconstructed( id, rsol );
-                  break;
+                // now, try each of them
+                for( unsigned i=0; i<equiv.size(); i++ ){
+                  if( equiv_ids[i]!=-1 ){
+                    collectReconstructNodes( equiv[i], stn, status );
+                    //if one succeeds
+                    if( status==0 ){
+                      Node rsol = getReconstructedSolution( equiv_ids[i] );
+                      Assert( !rsol.isNull() );
+                      //set all members of the equivalence class that this is the reconstructed solution
+                      setReconstructed( id, rsol );
+                      break;
+                    }
+                  }
                 }
+              }else{
+                Trace("csi-rcons-debug") << "Do not try rewriting for " << id << ", rep = " << d_rep[id] << std::endl;
               }
             }
-          }else{
-            Trace("csi-rcons-debug") << "Do not try rewriting for " << id << ", rep = " << d_rep[id] << std::endl;
           }
         }
       }
@@ -880,6 +928,7 @@ int CegConjectureSingleInvSol::collectReconstructNodes( Node t, TypeNode stn, in
 }
 
 bool CegConjectureSingleInvSol::collectReconstructNodes( int pid, std::vector< Node >& ts, const DatatypeConstructor& dtc, std::vector< int >& ids, int& status ) {
+  Assert( dtc.getNumArgs()==ts.size() );
   for( unsigned i=0; i<ts.size(); i++ ){
     TypeNode cstn = d_qe->getTermDatabaseSygus()->getArgType( dtc, i );
     int cstatus;
@@ -1019,6 +1068,126 @@ void CegConjectureSingleInvSol::setReconstructed( int id, Node n ) {
   int rid = d_rep[id];
   for( unsigned i=0; i<d_eqc[rid].size(); i++ ){
     d_reconstruct[d_eqc[rid][i]] = n;
+  }
+}
+
+void CegConjectureSingleInvSol::getEquivalentTerms( Kind k, Node n, std::vector< Node >& equiv ) {
+  Assert( n.getKind()!=k ); //?
+  if( k==AND || k==OR ){
+    equiv.push_back( NodeManager::currentNM()->mkNode( k, n, n ) );
+    equiv.push_back( NodeManager::currentNM()->mkNode( k, n, NodeManager::currentNM()->mkConst( k==AND ) ) );
+  }
+  //multiplication for integers
+  //TODO for bitvectors
+  Kind mk = ( k==PLUS || k==MINUS ) ? MULT : UNDEFINED_KIND;
+  if( mk!=UNDEFINED_KIND ){
+    if( n.getKind()==mk && n[0].isConst() && n[0].getType().isInteger() ){
+      bool success = true;
+      for( unsigned i=0; i<2; i++ ){
+        Node eq;
+        if( k==PLUS || k==MINUS ){
+          Node oth = NodeManager::currentNM()->mkConst( Rational(i==0 ? 1000 : -1000) );
+          eq = i==0 ? NodeManager::currentNM()->mkNode( LEQ, n[0], oth ) : NodeManager::currentNM()->mkNode( GEQ, n[0], oth );
+        }
+        if( !eq.isNull() ){
+          eq = Rewriter::rewrite( eq );
+          if( eq!=d_qe->getTermDatabase()->d_true ){
+            success = false;
+            break;
+          }
+        }
+      }
+      if( success ){
+        Node var = n[1];
+        Node rem;
+        if( k==PLUS || k==MINUS ){
+          int rem_coeff = (int)n[0].getConst<Rational>().getNumerator().getSignedInt();
+          if( rem_coeff>0 && k==PLUS ){
+            rem_coeff--;
+          }else if( rem_coeff<0 && k==MINUS ){
+            rem_coeff++;
+          }else{
+            success = false;
+          }
+          if( success ){
+            rem = NodeManager::currentNM()->mkNode( MULT, NodeManager::currentNM()->mkConst( Rational(rem_coeff) ), var );
+            rem = Rewriter::rewrite( rem );
+          }
+        }
+        if( !rem.isNull() ){
+          equiv.push_back( NodeManager::currentNM()->mkNode( k, rem, var ) );
+        }
+      }
+    }
+  }
+  //negative constants
+  if( k==MINUS ){
+    if( n.isConst() && n.getType().isInteger() && n.getConst<Rational>().getNumerator().strictlyNegative() ){
+      Node nn = NodeManager::currentNM()->mkNode( UMINUS, n );
+      nn = Rewriter::rewrite( nn );
+      equiv.push_back( NodeManager::currentNM()->mkNode( MINUS, NodeManager::currentNM()->mkConst( Rational(0) ), nn ) );
+    }
+  }
+  //inequalities
+  if( k==GEQ || k==LEQ || k==LT || k==GT || k==NOT ){
+    Node atom = n.getKind()==NOT ? n[0] : n;
+    bool pol = n.getKind()!=NOT;
+    Kind ak = atom.getKind();
+    if( ( ak==GEQ || ak==LEQ || ak==LT || ak==GT ) && ( pol || k!=NOT ) ){
+      Node t1 = atom[0];
+      Node t2 = atom[1];
+      if( !pol ){
+        ak = ak==GEQ ? LT : ( ak==LEQ ? GT : ( ak==LT ? GEQ : LEQ ) );
+      }
+      if( k==NOT ){
+        equiv.push_back( NodeManager::currentNM()->mkNode( ak==GEQ ? LT : ( ak==LEQ ? GT : ( ak==LT ? GEQ : LEQ ) ), t1, t2 ).negate() );
+      }else if( k==ak ){
+        equiv.push_back( NodeManager::currentNM()->mkNode( k, t1, t2 ) );
+      }else if( (k==GEQ || k==LEQ)==(ak==GEQ || ak==LEQ) ){
+        equiv.push_back( NodeManager::currentNM()->mkNode( k, t2, t1 ) );
+      }else if( t1.getType().isInteger() && t2.getType().isInteger() ){
+        if( (k==GEQ || k==GT)!=(ak==GEQ || ak==GT) ){
+          Node ts = t1;
+          t1 = t2;
+          t2 = ts;
+          ak = ak==GEQ ? LEQ : ( ak==LEQ ? GEQ : ( ak==LT ? GT : LT ) );
+        }
+        t2 = NodeManager::currentNM()->mkNode( PLUS, t2, NodeManager::currentNM()->mkConst( Rational( (ak==GT || ak==LEQ) ? 1 : -1 ) ) );
+        t2 = Rewriter::rewrite( t2 );
+        equiv.push_back( NodeManager::currentNM()->mkNode( k, t1, t2 ) );
+      }
+    }
+  }
+
+  //based on eqt cache
+  std::map< Node, Node >::iterator itet = d_eqt_rep.find( n );
+  if( itet!=d_eqt_rep.end() ){
+    Node rn = itet->second;
+    for( unsigned i=0; i<d_eqt_eqc[rn].size(); i++ ){
+      if( d_eqt_eqc[rn][i]!=n && d_eqt_eqc[rn][i].getKind()==k ){
+        if( std::find( equiv.begin(), equiv.end(), d_eqt_eqc[rn][i] )==equiv.end() ){
+          equiv.push_back( d_eqt_eqc[rn][i] );
+        }
+      }
+    }
+  }
+}
+
+void CegConjectureSingleInvSol::registerEquivalentTerms( Node n ) {
+  for( unsigned i=0; i<n.getNumChildren(); i++ ){
+    registerEquivalentTerms( n[i] );
+  }
+  Node rn = Rewriter::rewrite( n );
+  if( rn!=n ){
+    Trace("csi-equiv") << "  eq terms : " << n << " " << rn << std::endl;
+    d_eqt_rep[n] = rn;
+    d_eqt_rep[rn] = rn;
+    if( std::find( d_eqt_eqc[rn].begin(), d_eqt_eqc[rn].end(), rn )==d_eqt_eqc[rn].end() ){
+      d_eqt_eqc[rn].push_back( rn );
+    }
+    if( std::find( d_eqt_eqc[rn].begin(), d_eqt_eqc[rn].end(), n )==d_eqt_eqc[rn].end() ){
+      d_eqt_eqc[rn].push_back( n );
+    }
   }
 }
 

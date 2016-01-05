@@ -22,7 +22,7 @@ int main() {
   Expr onePlusTwo = em.mkExpr(kind::PLUS,
                               em.mkConst(Rational(1)),
                               em.mkConst(Rational(2)));
-  std::cout << Expr::setlanguage(language::output::LANG_CVC4)
+  std::cout << language::SetLanguage(language::output::LANG_CVC4)
             << smt.getInfo("name")
             << " says that 1 + 2 = "
             << smt.simplify(onePlusTwo)

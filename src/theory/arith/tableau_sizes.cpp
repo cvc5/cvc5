@@ -15,6 +15,7 @@
  ** \todo document this file
  **/
 
+#include "base/output.h"
 #include "theory/arith/tableau_sizes.h"
 #include "theory/arith/tableau.h"
 

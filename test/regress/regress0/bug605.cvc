@@ -1,0 +1,30 @@
+% EXPECT: sat
+OPTION "produce-models";
+
+% GeoLocation
+GeoLocation: TYPE = [# longitude: INT, latitude: INT #];
+
+% Stationary object
+StationaryObject: TYPE = [# geoLoc: SET OF GeoLocation #];
+Facet: TYPE = [# base: StationaryObject #];
+
+Segment: TYPE = [# s_f: Facet #];
+A : TYPE = ARRAY INT OF Segment;
+a : A;
+
+p1: GeoLocation = (# longitude := 0, latitude := 0 #);
+
+s1: StationaryObject = (# geoLoc := {p1} #);
+
+
+f0: Facet = (# base := s1 #);
+
+
+init: (A, INT, Facet) -> BOOLEAN
+  = LAMBDA (v: A, i: INT, f: Facet): 
+    v[0].s_f = f;
+    
+    
+ASSERT (init(a, 2, f0));
+
+CHECKSAT TRUE;

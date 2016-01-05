@@ -14,18 +14,46 @@
  ** [[ Add lengthier description here ]]
  ** \todo document this file
  **/
+#include "util/integer.h"
+
+#include <sstream>
+#include <string>
 
 #include "cvc4autoconfig.h"
-#include "util/integer.h"
-#include <string>
-#include <sstream>
+
 
 #ifndef CVC4_CLN_IMP
 #  error "This source should only ever be built if CVC4_CLN_IMP is on !"
 #endif /* CVC4_CLN_IMP */
 
+#include "base/cvc4_assert.h"
+
 using namespace std;
-using namespace CVC4;
+
+namespace CVC4 {
+
+signed int Integer::s_fastSignedIntMin = -(1<<29);
+signed int Integer::s_fastSignedIntMax = (1<<29)-1;
+signed long Integer::s_slowSignedIntMin = (signed long) std::numeric_limits<signed int>::min();
+signed long Integer::s_slowSignedIntMax =  (signed long) std::numeric_limits<signed int>::max();
+
+unsigned int Integer::s_fastUnsignedIntMax = (1<<29)-1;
+unsigned long Integer::s_slowUnsignedIntMax =  (unsigned long) std::numeric_limits<unsigned int>::max();
+
+Integer Integer::oneExtend(uint32_t size, uint32_t amount) const {
+  DebugCheckArgument((*this) < Integer(1).multiplyByPow2(size), size);
+  cln::cl_byte range(amount, size);
+  cln::cl_I allones = (cln::cl_I(1) << (size + amount))- 1; // 2^size - 1
+  Integer temp(allones);
+
+  return Integer(cln::deposit_field(allones, d_value, range));
+}
+
+
+Integer Integer::exactQuotient(const Integer& y) const {
+  DebugCheckArgument(y.divides(*this), y);
+  return Integer( cln::exquo(d_value, y.d_value) );
+}
 
 
 void Integer::parseInt(const std::string& s, unsigned base) throw(std::invalid_argument) {
@@ -76,14 +104,21 @@ void Integer::readInt(const cln::cl_read_flags& flags, const std::string& s, uns
 }
 
 bool Integer::fitsSignedInt() const {
+  // http://www.ginac.de/CLN/cln.html#Conversions
   // TODO improve performance
-  return d_value <= std::numeric_limits<signed int>::max() &&
-    d_value >= std::numeric_limits<signed int>::min();
+  Assert(s_slowSignedIntMin <= s_fastSignedIntMin);
+  Assert(s_fastSignedIntMin <= s_fastSignedIntMax);
+  Assert(s_fastSignedIntMax <= s_slowSignedIntMax);
+
+  return (d_value <= s_fastSignedIntMax || d_value <= s_slowSignedIntMax) &&
+    (d_value >= s_fastSignedIntMin || d_value >= s_slowSignedIntMax);
 }
 
 bool Integer::fitsUnsignedInt() const {
   // TODO improve performance
-  return sgn() >= 0 && d_value <= std::numeric_limits<unsigned int>::max();
+  Assert(s_fastUnsignedIntMax <= s_slowUnsignedIntMax);
+  return sgn() >= 0 &&
+    (d_value <= s_fastUnsignedIntMax || d_value <= s_slowUnsignedIntMax);
 }
 
 signed int Integer::getSignedInt() const {
@@ -97,3 +132,5 @@ unsigned int Integer::getUnsignedInt() const {
   CheckArgument(fitsUnsignedInt(), this, "Overflow detected in Integer::getUnsignedInt()");
   return cln::cl_I_to_uint(d_value);
 }
+
+} /* namespace CVC4 */

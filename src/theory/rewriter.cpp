@@ -15,13 +15,14 @@
  ** \todo document this file
  **/
 
-#include "theory/theory.h"
 #include "theory/rewriter.h"
+
+#include "expr/resource_manager.h"
+#include "theory/theory.h"
 #include "theory/rewriter_tables.h"
 #include "proof/proof_manager.h"
 #include "proof/rewriter_proof.h"
 #include "smt/smt_engine_scope.h"
-#include "util/resource_manager.h"
 
 using namespace std;
 
@@ -120,7 +121,7 @@ Node Rewriter::rewriteTo(theory::TheoryId theoryId, Node node) {
 
     if (hasSmtEngine &&
 		d_iterationCount % ResourceManager::getFrequencyCount() == 0) {
-      rm->spendResource();
+      rm->spendResource(options::rewriteStep());
       d_iterationCount = 0;
     }
 

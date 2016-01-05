@@ -17,14 +17,12 @@
 #ifndef __CVC4__THEORY_UF_STRONG_SOLVER_H
 #define __CVC4__THEORY_UF_STRONG_SOLVER_H
 
-#include "theory/theory.h"
-
+#include "context/cdchunk_list.h"
+#include "context/cdhashmap.h"
 #include "context/context.h"
 #include "context/context_mm.h"
-#include "context/cdhashmap.h"
-#include "context/cdchunk_list.h"
-
-#include "util/statistics_registry.h"
+#include "expr/statistics_registry.h"
+#include "theory/theory.h"
 
 namespace CVC4 {
 
@@ -244,6 +242,8 @@ public:
     context::CDO< int > d_maxNegCard;
     /** list of fresh representatives allocated */
     std::vector< Node > d_fresh_aloc_reps;
+    /** whether we are initialized */
+    context::CDO< bool > d_initialized;
   private:
     /** apply totality */
     bool applyTotality( int cardinality );
@@ -266,6 +266,8 @@ public:
     bool areDisequal( Node a, Node b );
     /** check */
     void check( Theory::Effort level, OutputChannel* out );
+    /** presolve */
+    void presolve();
     /** propagate */
     void propagate( Theory::Effort level, OutputChannel* out );
     /** get next decision request */
@@ -312,8 +314,14 @@ private:
   std::map< int, Node > d_com_card_literal;
   /** combined cardinality assertions (indexed by cardinality literals ) */
   NodeBoolMap d_com_card_assertions;
+  /** minimum positive combined cardinality */
+  context::CDO< int > d_min_pos_com_card;
   /** cardinality literals for which we have added */
   NodeBoolMap d_card_assertions_eqv_lemma;
+  /** the master monotone type (if ufssFairnessMonotone enabled) */
+  TypeNode d_tn_mono_master;
+  std::map< TypeNode, bool > d_tn_mono_slave;
+  context::CDO< int > d_min_pos_tn_master_card;  
   /** initialize */
   void initializeCombinedCardinality();
   /** allocateCombinedCardinality */
@@ -363,6 +371,8 @@ public:
 public:
   /** check */
   void check( Theory::Effort level );
+  /** presolve */
+  void presolve();
   /** propagate */
   void propagate( Theory::Effort level );
   /** get next decision request */
@@ -370,7 +380,7 @@ public:
   /** preregister a term */
   void preRegisterTerm( TNode n );
   /** preregister a quantifier */
-  void registerQuantifier( Node f );
+  //void registerQuantifier( Node f );
   /** notify restart */
   void notifyRestart();
 public:

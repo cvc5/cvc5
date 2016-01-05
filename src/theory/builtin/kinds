@@ -266,7 +266,7 @@ well-founded SORT_TYPE \
 constant UNINTERPRETED_CONSTANT \
     ::CVC4::UninterpretedConstant \
     ::CVC4::UninterpretedConstantHashFunction \
-    "util/uninterpreted_constant.h" \
+    "expr/uninterpreted_constant.h" \
     "the kind of expressions representing uninterpreted constants; payload is an instance of the CVC4::UninterpretedConstant class (used in models)"
 typerule UNINTERPRETED_CONSTANT ::CVC4::theory::builtin::UninterpretedConstantTypeRule
 enumerator SORT_TYPE \
@@ -306,7 +306,7 @@ parameterized CHAIN CHAIN_OP 2: "chained operator (N-ary), turned into a conjuct
 constant CHAIN_OP \
     ::CVC4::Chain \
     ::CVC4::ChainHashFunction \
-    "util/chain.h" \
+    "expr/chain.h" \
     "the chained operator; payload is an instance of the CVC4::Chain class"
 
 constant TYPE_CONSTANT \
@@ -339,7 +339,7 @@ typerule CHAIN_OP ::CVC4::theory::builtin::ChainedOperatorTypeRule
 constant SUBTYPE_TYPE \
     ::CVC4::Predicate \
     ::CVC4::PredicateHashFunction \
-    "util/predicate.h" \
+    "expr/predicate.h" \
     "predicate subtype; payload is an instance of the CVC4::Predicate class"
 cardinality SUBTYPE_TYPE \
     "::CVC4::theory::builtin::SubtypeProperties::computeCardinality(%TYPE%)" \

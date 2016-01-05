@@ -13,16 +13,17 @@
  **/
 
 #include "theory/quantifiers/model_engine.h"
+
+#include "options/quantifiers_options.h"
+#include "theory/quantifiers/ambqi_builder.h"
+#include "theory/quantifiers/first_order_model.h"
+#include "theory/quantifiers/full_model_check.h"
+#include "theory/quantifiers/quantifiers_attributes.h"
+#include "theory/quantifiers/term_database.h"
 #include "theory/theory_engine.h"
 #include "theory/uf/equality_engine.h"
 #include "theory/uf/theory_uf.h"
 #include "theory/uf/theory_uf_strong_solver.h"
-#include "theory/quantifiers/options.h"
-#include "theory/quantifiers/first_order_model.h"
-#include "theory/quantifiers/term_database.h"
-#include "theory/quantifiers/quantifiers_attributes.h"
-#include "theory/quantifiers/full_model_check.h"
-#include "theory/quantifiers/ambqi_builder.h"
 
 using namespace std;
 using namespace CVC4;
@@ -35,7 +36,7 @@ using namespace CVC4::theory::inst;
 //Model Engine constructor
 ModelEngine::ModelEngine( context::Context* c, QuantifiersEngine* qe ) :
 QuantifiersModule( qe ),
-d_incomplete_check(false),
+d_incomplete_check(true),
 d_addedLemmas(0),
 d_triedLemmas(0),
 d_totalLemmas(0)
@@ -52,7 +53,11 @@ bool ModelEngine::needsCheck( Theory::Effort e ) {
 }
 
 unsigned ModelEngine::needsModel( Theory::Effort e ) {
-  return QuantifiersEngine::QEFFORT_MODEL;  
+  return QuantifiersEngine::QEFFORT_MODEL;
+}
+
+void ModelEngine::reset_round( Theory::Effort e ) {
+  d_incomplete_check = true;
 }
 
 void ModelEngine::check( Theory::Effort e, unsigned quant_e ){
@@ -60,7 +65,7 @@ void ModelEngine::check( Theory::Effort e, unsigned quant_e ){
     int addedLemmas = 0;
     FirstOrderModel* fm = d_quantEngine->getModel();
 
-    //the following will test that the model satisfies all asserted universal quantifiers by 
+    //the following will test that the model satisfies all asserted universal quantifiers by
     // (model-based) exhaustive instantiation.
     double clSet = 0;
     if( Trace.isOn("model-engine") ){
@@ -84,7 +89,7 @@ void ModelEngine::check( Theory::Effort e, unsigned quant_e ){
     }else{
       addedLemmas++;
     }
-      
+
     if( Trace.isOn("model-engine") ){
       double clSet2 = double(clock())/double(CLOCKS_PER_SEC);
       Trace("model-engine") << "Finished model engine, time = " << (clSet2-clSet) << std::endl;
@@ -95,14 +100,14 @@ void ModelEngine::check( Theory::Effort e, unsigned quant_e ){
       //CVC4 will answer SAT or unknown
       Trace("fmf-consistent") << std::endl;
       debugPrint("fmf-consistent");
-      //if the check was incomplete, we must set incomplete flag
-      if( d_incomplete_check ){
-        d_quantEngine->getOutputChannel().setIncomplete();
-      }
     }else{
       //otherwise, the search will continue
     }
   }
+}
+
+bool ModelEngine::checkComplete() {
+  return !d_incomplete_check;
 }
 
 void ModelEngine::registerQuantifier( Node f ){
@@ -139,8 +144,6 @@ bool ModelEngine::optOneQuantPerRound(){
 
 int ModelEngine::checkModel(){
   FirstOrderModel* fm = d_quantEngine->getModel();
-  quantifiers::QModelBuilder * mb = d_quantEngine->getModelBuilder();
-  Assert( mb!=NULL );
 
   //flatten the representatives
   //Trace("model-engine-debug") << "Flattening representatives...." << std::endl;
@@ -153,15 +156,19 @@ int ModelEngine::checkModel(){
       if( it->first.isSort() ){
         Trace("model-engine") << "Cardinality( " << it->first << " )" << " = " << it->second.size() << std::endl;
         if( Trace.isOn("model-engine-debug") ){
-          Trace("model-engine-debug") << "   ";
-          Node mbt = d_quantEngine->getTermDatabase()->getModelBasisTerm(it->first);
+          Trace("model-engine-debug") << "        Reps : ";
           for( size_t i=0; i<it->second.size(); i++ ){
-            //Trace("model-engine-debug") << it->second[i] << "  ";
+            Trace("model-engine-debug") << it->second[i] << "  ";
+          }
+          Trace("model-engine-debug") << std::endl;
+          Trace("model-engine-debug") << "   Term reps : ";
+          for( size_t i=0; i<it->second.size(); i++ ){
             Node r = d_quantEngine->getEqualityQuery()->getInternalRepresentative( it->second[i], Node::null(), 0 );
             Trace("model-engine-debug") << r << " ";
           }
           Trace("model-engine-debug") << std::endl;
-          Trace("model-engine-debug") << "  Model basis term : " << mbt << std::endl;
+          Node mbt = d_quantEngine->getTermDatabase()->getModelBasisTerm(it->first);
+          Trace("model-engine-debug") << "  Basis term : " << mbt << std::endl;
         }
       }
     }
@@ -184,49 +191,66 @@ int ModelEngine::checkModel(){
   }
 
   Trace("model-engine-debug") << "Do exhaustive instantiation..." << std::endl;
-  //default : 1 : conj,axiom
-  //priority : 0 : conj, 1 : axiom
-  //trust : 0 : conj
-  int startEffort = ( !fm->isAxiomAsserted() || options::axiomInstMode()==AXIOM_INST_MODE_DEFAULT ) ? 1 : 0;
-  for( int effort=startEffort; effort<2; effort++ ){
-    // FMC uses two sub-effort levels
-    int e_max = options::mbqiMode()==MBQI_FMC || options::mbqiMode()==MBQI_FMC_INTERVAL ? 2 : ( options::mbqiMode()==MBQI_TRUST ? 0 : 1 );
-    for( int e=0; e<e_max; e++) {
-      if (d_addedLemmas==0) {
-        for( int i=0; i<fm->getNumAssertedQuantifiers(); i++ ){
-          Node f = fm->getAssertedQuantifier( i );
-          bool isAx = getTermDatabase()->isQAttrAxiom( f );
-          //determine if we should check this quantifier
-          if( ( ( effort==1 && ( options::axiomInstMode()==AXIOM_INST_MODE_DEFAULT || isAx ) ) || ( effort==0 && !isAx ) ) && mb->isQuantifierActive( f ) ){
-            exhaustiveInstantiate( f, e );
-            if( Trace.isOn("model-engine-warn") ){
-              if( d_addedLemmas>10000 ){
-                Debug("fmf-exit") << std::endl;
-                debugPrint("fmf-exit");
-                exit( 0 );
-              }
+  // FMC uses two sub-effort levels
+  int e_max = options::mbqiMode()==MBQI_FMC || options::mbqiMode()==MBQI_FMC_INTERVAL ? 2 : ( options::mbqiMode()==MBQI_TRUST ? 0 : 1 );
+  for( int e=0; e<e_max; e++) {
+    if (d_addedLemmas==0) {
+      for( int i=0; i<fm->getNumAssertedQuantifiers(); i++ ){
+        Node f = fm->getAssertedQuantifier( i );
+        Trace("fmf-exh-inst") << "-> Exhaustive instantiate " << f << ", effort = " << e << "..." << std::endl;
+        //determine if we should check this quantifier
+        if( considerQuantifiedFormula( f ) ){
+          exhaustiveInstantiate( f, e );
+          if( Trace.isOn("model-engine-warn") ){
+            if( d_addedLemmas>10000 ){
+              Debug("fmf-exit") << std::endl;
+              debugPrint("fmf-exit");
+              exit( 0 );
             }
-            if( optOneQuantPerRound() && d_addedLemmas>0 ){
-              break;
-            }
-          }else{
-            Trace("inst-fmf-ei") << "-> Inactive : " << f << std::endl;
           }
+          if( optOneQuantPerRound() && d_addedLemmas>0 ){
+            break;
+          }
+        }else{
+          Trace("fmf-exh-inst") << "-> Inactive : " << f << std::endl;
         }
       }
     }
-    if( d_addedLemmas==0 && options::axiomInstMode()==AXIOM_INST_MODE_TRUST ){
-      //set incomplete
-      if( effort==0 ){
-        d_quantEngine->getOutputChannel().setIncomplete();
-      }
-      break;
-    }
   }
+
   //print debug information
   Trace("model-engine") << "Added Lemmas = " << d_addedLemmas << " / " << d_triedLemmas << " / ";
   Trace("model-engine") << d_totalLemmas << std::endl;
   return d_addedLemmas;
+}
+
+bool ModelEngine::considerQuantifiedFormula( Node q ) {
+  if( !d_quantEngine->getModelBuilder()->isQuantifierActive( q ) ){ //!d_quantEngine->getModel()->isQuantifierActive( q );
+    return false;
+  }else{
+    if( options::fmfEmptySorts() ){
+      for( unsigned i=0; i<q[0].getNumChildren(); i++ ){
+        TypeNode tn = q[0][i].getType();
+        //we are allowed to assume the type is empty
+        if( d_quantEngine->getModel()->d_rep_set.getNumRelevantGroundReps( tn )==0 ){
+          Trace("model-engine-debug") << "Empty domain quantified formula : " << q << std::endl;
+          return false;
+        }
+      }
+    }else if( options::fmfFunWellDefinedRelevant() ){
+      if( q[0].getNumChildren()==1 ){
+        TypeNode tn = q[0][0].getType();
+        if( tn.getAttribute(AbsTypeFunDefAttribute()) ){
+          //we are allowed to assume the introduced type is empty
+          if( d_quantEngine->getModel()->d_rep_set.getNumRelevantGroundReps( tn )==0 ){
+            Trace("model-engine-debug") << "Irrelevant function definition : " << q << std::endl;
+            return false;
+          }
+        }
+      }
+    }
+    return true;
+  }
 }
 
 void ModelEngine::exhaustiveInstantiate( Node f, int effort ){
@@ -236,43 +260,46 @@ void ModelEngine::exhaustiveInstantiate( Node f, int effort ){
   mb->d_addedLemmas = 0;
   mb->d_incomplete_check = false;
   if( mb->doExhaustiveInstantiation( d_quantEngine->getModel(), f, effort ) ){
-    Trace("inst-fmf-ei") << "-> Builder determined instantiation(s)." << std::endl;
+    Trace("fmf-exh-inst") << "-> Builder determined instantiation(s)." << std::endl;
     d_triedLemmas += mb->d_triedLemmas;
     d_addedLemmas += mb->d_addedLemmas;
     d_incomplete_check = d_incomplete_check || mb->d_incomplete_check;
     d_statistics.d_mbqi_inst_lemmas += mb->d_addedLemmas;
   }else{
-    Trace("inst-fmf-ei") << "-> Exhaustive instantiate " << f << ", effort = " << effort << "..." << std::endl;
-    Debug("inst-fmf-ei") << "   Instantiation Constants: ";
+    Trace("fmf-exh-inst-debug") << "   Instantiation Constants: ";
     for( size_t i=0; i<f[0].getNumChildren(); i++ ){
-      Debug("inst-fmf-ei") << d_quantEngine->getTermDatabase()->getInstantiationConstant( f, i ) << " ";
+      Trace("fmf-exh-inst-debug") << d_quantEngine->getTermDatabase()->getInstantiationConstant( f, i ) << " ";
     }
-    Debug("inst-fmf-ei") << std::endl;
+    Trace("fmf-exh-inst-debug") << std::endl;
     //create a rep set iterator and iterate over the (relevant) domain of the quantifier
     RepSetIterator riter( d_quantEngine, &(d_quantEngine->getModel()->d_rep_set) );
     if( riter.setQuantifier( f ) ){
-      Debug("inst-fmf-ei") << "Begin instantiation..." << std::endl;
-      int triedLemmas = 0;
-      int addedLemmas = 0;
-      while( !riter.isFinished() && ( addedLemmas==0 || !options::fmfOneInstPerRound() ) ){
-        //instantiation was not shown to be true, construct the match
-        InstMatch m( f );
-        for( int i=0; i<riter.getNumTerms(); i++ ){
-          m.set( d_quantEngine, riter.d_index_order[i], riter.getTerm( i ) );
+      Trace("fmf-exh-inst") << "...exhaustive instantiation incomplete=" << riter.d_incomplete << "..." << std::endl;
+      if( !riter.d_incomplete ){
+        int triedLemmas = 0;
+        int addedLemmas = 0;
+        while( !riter.isFinished() && ( addedLemmas==0 || !options::fmfOneInstPerRound() ) ){
+          //instantiation was not shown to be true, construct the match
+          InstMatch m( f );
+          for( int i=0; i<riter.getNumTerms(); i++ ){
+            m.set( d_quantEngine, riter.d_index_order[i], riter.getTerm( i ) );
+          }
+          Debug("fmf-model-eval") << "* Add instantiation " << m << std::endl;
+          triedLemmas++;
+          //add as instantiation
+          if( d_quantEngine->addInstantiation( f, m ) ){
+            addedLemmas++;
+          }else{
+            Debug("fmf-model-eval") << "* Failed Add instantiation " << m << std::endl;
+          }
+          riter.increment();
         }
-        Debug("fmf-model-eval") << "* Add instantiation " << m << std::endl;
-        triedLemmas++;
-        //add as instantiation
-        if( d_quantEngine->addInstantiation( f, m ) ){
-          addedLemmas++;
-        }else{
-          Debug("fmf-model-eval") << "* Failed Add instantiation " << m << std::endl;
-        }
-        riter.increment();
+        d_addedLemmas += addedLemmas;
+        d_triedLemmas += triedLemmas;
+        d_statistics.d_exh_inst_lemmas += addedLemmas;
       }
-      d_addedLemmas += addedLemmas;
-      d_triedLemmas += triedLemmas;
-      d_statistics.d_exh_inst_lemmas += addedLemmas;
+    }else{
+      Assert( riter.d_incomplete );
     }
     //if the iterator is incomplete, we will return unknown instead of sat if no instantiations are added this round
     d_incomplete_check = d_incomplete_check || riter.d_incomplete;
@@ -309,5 +336,3 @@ ModelEngine::Statistics::~Statistics(){
   StatisticsRegistry::unregisterStat(&d_exh_inst_lemmas);
   StatisticsRegistry::unregisterStat(&d_mbqi_inst_lemmas);
 }
-
-

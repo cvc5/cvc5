@@ -34,15 +34,9 @@ void RelevantDomain::RDomain::merge( RDomain * r ) {
   d_terms.clear();
 }
 
-void RelevantDomain::RDomain::addTerm( Node t, bool nonGround ) {
-  if( !nonGround ){
-    if( std::find( d_terms.begin(), d_terms.end(), t )==d_terms.end() ){
-      d_terms.push_back( t );
-    }
-  }else{
-    if( std::find( d_ng_terms.begin(), d_ng_terms.end(), t )==d_ng_terms.end() ){
-      d_ng_terms.push_back( t );
-    }
+void RelevantDomain::RDomain::addTerm( Node t ) {
+  if( std::find( d_terms.begin(), d_terms.end(), t )==d_terms.end() ){
+    d_terms.push_back( t );
   }
 }
 
@@ -56,12 +50,12 @@ RelevantDomain::RDomain * RelevantDomain::RDomain::getParent() {
   }
 }
 
-void RelevantDomain::RDomain::removeRedundantTerms( FirstOrderModel * fm ) {
+void RelevantDomain::RDomain::removeRedundantTerms( QuantifiersEngine * qe ) {
   std::map< Node, Node > rterms;
   for( unsigned i=0; i<d_terms.size(); i++ ){
     Node r = d_terms[i];
     if( !TermDb::hasInstConstAttr( d_terms[i] ) ){
-      r = fm->getRepresentative( d_terms[i] );
+      r = qe->getEqualityQuery()->getRepresentative( d_terms[i] );
     }
     if( rterms.find( r )==rterms.end() ){
       rterms[r] = d_terms[i];
@@ -79,13 +73,13 @@ RelevantDomain::RelevantDomain( QuantifiersEngine* qe, FirstOrderModel* m ) : d_
    d_is_computed = false;
 }
 
-RelevantDomain::RDomain * RelevantDomain::getRDomain( Node n, int i ) {
+RelevantDomain::RDomain * RelevantDomain::getRDomain( Node n, int i, bool getParent ) {
   if( d_rel_doms.find( n )==d_rel_doms.end() || d_rel_doms[n].find( i )==d_rel_doms[n].end() ){
     d_rel_doms[n][i] = new RDomain;
     d_rn_map[d_rel_doms[n][i]] = n;
     d_ri_map[d_rel_doms[n][i]] = i;
   }
-  return d_rel_doms[n][i]->getParent();
+  return getParent ? d_rel_doms[n][i]->getParent() : d_rel_doms[n][i];
 }
 
 void RelevantDomain::reset(){
@@ -100,11 +94,11 @@ void RelevantDomain::compute(){
         it2->second->reset();
       }
     }
-    for( int i=0; i<(int)d_model->getNumAssertedQuantifiers(); i++ ){
-      Node f = d_model->getAssertedQuantifier( i );
-      Node icf = d_qe->getTermDatabase()->getInstConstantBody( f );
+    for( int i=0; i<d_model->getNumAssertedQuantifiers(); i++ ){
+      Node q = d_model->getAssertedQuantifier( i );
+      Node icf = d_qe->getTermDatabase()->getInstConstantBody( q );
       Trace("rel-dom-debug") << "compute relevant domain for " << icf << std::endl;
-      computeRelevantDomain( icf, true, true );
+      computeRelevantDomain( q, icf, true, true );
     }
 
     Trace("rel-dom-debug") << "account for ground terms" << std::endl;
@@ -132,7 +126,7 @@ void RelevantDomain::compute(){
         RDomain * r = it2->second;
         RDomain * rp = r->getParent();
         if( r==rp ){
-          r->removeRedundantTerms( d_model );
+          r->removeRedundantTerms( d_qe );
           for( unsigned i=0; i<r->d_terms.size(); i++ ){
             Trace("rel-dom") << r->d_terms[i] << " ";
           }
@@ -145,7 +139,7 @@ void RelevantDomain::compute(){
   }
 }
 
-void RelevantDomain::computeRelevantDomain( Node n, bool hasPol, bool pol ) {
+void RelevantDomain::computeRelevantDomain( Node q, Node n, bool hasPol, bool pol ) {
   Node op = d_qe->getTermDatabase()->getOperator( n );
   for( unsigned i=0; i<n.getNumChildren(); i++ ){
     if( !op.isNull() ){
@@ -158,52 +152,29 @@ void RelevantDomain::computeRelevantDomain( Node n, bool hasPol, bool pol ) {
         computeRelevantDomainOpCh( rf, n[i] );
       }
     }
-    //TODO
     if( n[i].getKind()!=FORALL ){
       bool newHasPol;
       bool newPol;
       QuantPhaseReq::getPolarity( n, i, hasPol, pol, newHasPol, newPol );
-      computeRelevantDomain( n[i], newHasPol, newPol );
+      computeRelevantDomain( q, n[i], newHasPol, newPol );
     }
   }
 
-  if( n.getKind()==EQUAL || n.getKind()==GEQ ){
-    int varCount = 0;
-    std::vector< RDomain * > rds;
-    int varCh = -1;
-    for( unsigned i=0; i<n.getNumChildren(); i++ ){
-      if( n[i].getKind()==INST_CONSTANT ){
-        Node q = d_qe->getTermDatabase()->getInstConstAttr( n[i] );
-        unsigned id = n[i].getAttribute(InstVarNumAttribute());
-        rds.push_back( getRDomain( q, id ) );
-        varCount++;
-        varCh = i;
-      }else{
-        rds.push_back( NULL );
+  if( ( n.getKind()==EQUAL || n.getKind()==GEQ ) && TermDb::hasInstConstAttr( n ) ){
+    //compute the information for what this literal does
+    computeRelevantDomainLit( q, hasPol, pol, n );
+    if( d_rel_dom_lit[hasPol][pol][n].d_merge ){
+      Assert( d_rel_dom_lit[hasPol][pol][n].d_rd[0]!=NULL && d_rel_dom_lit[hasPol][pol][n].d_rd[1]!=NULL );
+      RDomain * rd1 = d_rel_dom_lit[hasPol][pol][n].d_rd[0]->getParent();
+      RDomain * rd2 = d_rel_dom_lit[hasPol][pol][n].d_rd[1]->getParent();
+      if( rd1!=rd2 ){
+        rd1->merge( rd2 );
       }
-    }
-    if( varCount==2 ){
-      //merge the two relevant domains
-      if( ( !hasPol || pol ) && rds[0]!=rds[1] ){
-        rds[0]->merge( rds[1] );
-      }
-    }else if( varCount==1 ){
-      int oCh = varCh==0 ? 1 : 0;
-      bool ng = d_qe->getTermDatabase()->hasInstConstAttr( n[oCh] );
-      Trace("rel-dom-debug") << "...add term " << n[oCh] << ", is ground = " << (!ng) << std::endl;
-      //the negative occurrence adds the term to the domain
-      if( !hasPol || !pol ){
-        rds[varCh]->addTerm( n[oCh], ng );
-      }
-      //the positive occurence adds other terms
-      if( ( !hasPol || pol ) && n[0].getType().isInteger() ){
-        if( n.getKind()==EQUAL ){
-          for( unsigned i=0; i<2; i++ ){
-            rds[varCh]->addTerm( QuantArith::offset( n[oCh], i==0 ? 1 : -1 ), ng  );
-          }
-        }else if( n.getKind()==GEQ ){
-          Node nt = QuantArith::offset( n[oCh], varCh==0 ? 1 : -1 );
-          rds[varCh]->addTerm( QuantArith::offset( n[oCh], varCh==0 ? 1 : -1 ), ng );
+    }else{
+      if( d_rel_dom_lit[hasPol][pol][n].d_rd[0]!=NULL ){
+        RDomain * rd = d_rel_dom_lit[hasPol][pol][n].d_rd[0]->getParent();
+        for( unsigned i=0; i<d_rel_dom_lit[hasPol][pol][n].d_val.size(); i++ ){
+          rd->addTerm( d_rel_dom_lit[hasPol][pol][n].d_val[i] );
         }
       }
     }
@@ -221,30 +192,107 @@ void RelevantDomain::computeRelevantDomainOpCh( RDomain * rf, Node n ) {
     if( rf!=rq ){
       rq->merge( rf );
     }
-  }else if( !d_qe->getTermDatabase()->hasInstConstAttr( n ) ){
+  }else if( !TermDb::hasInstConstAttr( n ) ){
     Trace("rel-dom-debug") << "...add ground term to rel dom " << n << std::endl;
     //term to add
     rf->addTerm( n );
   }
 }
 
-Node RelevantDomain::getRelevantTerm( Node f, int i, Node r ) {
-  RDomain * rf = getRDomain( f, i );
-  Trace("rel-dom-debug") << "Get relevant domain " << rf << " " << r << std::endl;
-  if( !d_qe->getEqualityQuery()->getEngine()->hasTerm( r ) || rf->hasTerm( r ) ){
-    return r;
-  }else{
-    Node rr = d_model->getRepresentative( r );
-    eq::EqClassIterator eqc( rr, d_qe->getEqualityQuery()->getEngine() );
-    while( !eqc.isFinished() ){
-      Node en = (*eqc);
-      if( rf->hasTerm( en ) ){
-        return en;
+void RelevantDomain::computeRelevantDomainLit( Node q, bool hasPol, bool pol, Node n ) {
+  if( d_rel_dom_lit[hasPol][pol].find( n )==d_rel_dom_lit[hasPol][pol].end() ){
+    d_rel_dom_lit[hasPol][pol][n].d_merge = false;
+    int varCount = 0;
+    int varCh = -1;
+    for( unsigned i=0; i<n.getNumChildren(); i++ ){
+      if( n[i].getKind()==INST_CONSTANT ){
+        d_rel_dom_lit[hasPol][pol][n].d_rd[i] = getRDomain( q, n[i].getAttribute(InstVarNumAttribute()), false );
+        varCount++;
+        varCh = i;
+      }else{
+        d_rel_dom_lit[hasPol][pol][n].d_rd[i] = NULL;
       }
-      ++eqc;
     }
-    //otherwise, may be equal to some non-ground term
-
-    return r;
+    
+    Node r_add;
+    bool varLhs = true;
+    if( varCount==2 ){
+      d_rel_dom_lit[hasPol][pol][n].d_merge = true;
+    }else{
+      if( varCount==1 ){
+        r_add = n[1-varCh];
+        varLhs = (varCh==0);
+        d_rel_dom_lit[hasPol][pol][n].d_rd[0] = d_rel_dom_lit[hasPol][pol][n].d_rd[varCh];
+        d_rel_dom_lit[hasPol][pol][n].d_rd[1] = NULL;
+      }else{
+        //solve the inequality for one/two variables, if possible
+        std::map< Node, Node > msum;
+        if( QuantArith::getMonomialSumLit( n, msum ) ){
+          Node var;
+          Node var2;
+          bool hasNonVar = false;
+          for( std::map< Node, Node >::iterator it = msum.begin(); it != msum.end(); ++it ){
+            if( !it->first.isNull() && it->first.getKind()==INST_CONSTANT ){
+              if( var.isNull() ){
+                var = it->first;
+              }else if( var2.isNull() ){
+                var2 = it->first;
+              }else{
+                hasNonVar = true;
+              }
+            }else{
+              hasNonVar = true;
+            }
+          }
+          if( !var.isNull() ){
+            if( var2.isNull() ){
+              //single variable solve
+              Node veq_c;
+              Node val;
+              int ires = QuantArith::isolate( var, msum, veq_c, val, n.getKind() );
+              if( ires!=0 ){
+                if( veq_c.isNull() ){
+                  r_add = val;
+                  varLhs = (ires==1);
+                  d_rel_dom_lit[hasPol][pol][n].d_rd[0] = getRDomain( q, var.getAttribute(InstVarNumAttribute()), false );
+                  d_rel_dom_lit[hasPol][pol][n].d_rd[1] = NULL;
+                }
+              }
+            }else if( !hasNonVar ){
+              //merge the domains
+              d_rel_dom_lit[hasPol][pol][n].d_rd[0] = getRDomain( q, var.getAttribute(InstVarNumAttribute()), false );
+              d_rel_dom_lit[hasPol][pol][n].d_rd[1] = getRDomain( q, var2.getAttribute(InstVarNumAttribute()), false );
+              d_rel_dom_lit[hasPol][pol][n].d_merge = true;
+            }
+          }
+        }
+      }
+    }
+    if( d_rel_dom_lit[hasPol][pol][n].d_merge ){
+      //do not merge if constant negative polarity
+      if( hasPol && !pol ){
+        d_rel_dom_lit[hasPol][pol][n].d_merge = false;
+      }
+    }else if( !r_add.isNull() && !TermDb::hasInstConstAttr( r_add ) ){
+      Trace("rel-dom-debug") << "...add term " << r_add << ", pol = " << pol << ", kind = " << n.getKind() << std::endl;
+      //the negative occurrence adds the term to the domain
+      if( !hasPol || !pol ){
+        d_rel_dom_lit[hasPol][pol][n].d_val.push_back( r_add );
+      }
+      //the positive occurence adds other terms
+      if( ( !hasPol || pol ) && n[0].getType().isInteger() ){
+        if( n.getKind()==EQUAL ){
+          for( unsigned i=0; i<2; i++ ){
+            d_rel_dom_lit[hasPol][pol][n].d_val.push_back( QuantArith::offset( r_add, i==0 ? 1 : -1 )  );
+          }
+        }else if( n.getKind()==GEQ ){
+          d_rel_dom_lit[hasPol][pol][n].d_val.push_back( QuantArith::offset( r_add, varLhs ? 1 : -1 ) );
+        }
+      }
+    }else{
+      d_rel_dom_lit[hasPol][pol][n].d_rd[0] = NULL;
+      d_rel_dom_lit[hasPol][pol][n].d_rd[1] = NULL;
+    }
   }
 }
+

@@ -32,11 +32,11 @@ OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWA
 #include <vector>
 
 namespace CVC4 {
-template <class Solver> class TSatProof;
-class BitVectorProof;
-} /* CVC4 namespace*/
 
 typedef unsigned ClauseId;
+
+template <class BVMinisat::Solver> class TSatProof;
+class BitVectorProof;
 
 namespace BVMinisat {
 
@@ -58,8 +58,8 @@ public:
    */
   virtual void notify(vec<Lit>& learnt) = 0;
 
-  virtual void spendResource() = 0;
-  virtual void safePoint() = 0;
+  virtual void spendResource(unsigned ammount) = 0;
+  virtual void safePoint(unsigned ammount) = 0;
 };
 
 //=================================================================================================
@@ -341,7 +341,7 @@ protected:
     CRef     reason           (Var x) const;
     int      level            (Var x) const;
     double   progressEstimate ()      const; // DELETE THIS ?? IT'S NOT VERY USEFUL ...
-    bool     withinBudget     ()      const;
+    bool     withinBudget     (uint64_t ammount)      const;
 
     // Static helpers:
     //
@@ -458,10 +458,10 @@ inline void     Solver::setPropBudget(int64_t x){ propagation_budget = propagati
 inline void     Solver::interrupt(){ asynch_interrupt = true; }
 inline void     Solver::clearInterrupt(){ asynch_interrupt = false; }
 inline void     Solver::budgetOff(){ conflict_budget = propagation_budget = -1; }
-inline bool     Solver::withinBudget() const {
+inline bool     Solver::withinBudget(uint64_t ammount) const {
     Assert (notify);
-    notify->spendResource();
-    notify->safePoint();
+    notify->spendResource(ammount);
+    notify->safePoint(0);
 
     return !asynch_interrupt &&
            (conflict_budget    < 0 || conflicts < (uint64_t)conflict_budget) &&
@@ -486,6 +486,8 @@ inline void     Solver::toDimacs     (const char* file, Lit p, Lit q, Lit r){ ve
 
 
 //=================================================================================================
-}
+} /* CVC4::BVMinisat namespace */
+} /* CVC4 namespace */
+
 
 #endif

@@ -15,15 +15,15 @@
  ** \todo document this file
  **/
 
-#include "cvc4_private.h"
-#include "theory/arith/constraint.h"
-#include "theory/arith/arith_utilities.h"
-#include "theory/arith/normal_form.h"
-
-#include "proof/proof.h"
-
 #include <ostream>
 #include <algorithm>
+
+#include "base/output.h"
+#include "proof/proof.h"
+#include "theory/arith/arith_utilities.h"
+#include "theory/arith/constraint.h"
+#include "theory/arith/normal_form.h"
+
 
 using namespace std;
 using namespace CVC4::kind;
@@ -34,7 +34,7 @@ namespace arith {
 
 /** Given a simplifiedKind this returns the corresponding ConstraintType. */
 //ConstraintType constraintTypeOfLiteral(Kind k);
-ConstraintType constraintTypeOfComparison(const Comparison& cmp){
+ConstraintType Constraint::constraintTypeOfComparison(const Comparison& cmp){
   Kind k = cmp.comparisonKind();
   switch(k){
   case LT:
@@ -615,10 +615,10 @@ bool Constraint::wellFormedFarkasProof() const {
   ConstraintCP antecedent = d_database->d_antecedents[p];
   if(antecedent  == NullConstraint) { return false; }
 
-#ifdef CVC4_PROOF
+#if IS_PROOFS_BUILD
   if(!PROOF_ON()){ return cr.d_farkasCoefficients == RationalVectorCPSentinel; }
   Assert(PROOF_ON());
-  
+
   if(cr.d_farkasCoefficients == RationalVectorCPSentinel){ return false; }
   if(cr.d_farkasCoefficients->size() < 2){ return false; }
 
@@ -717,9 +717,9 @@ bool Constraint::wellFormedFarkasProof() const {
     (lhs.isNull() || Constant::isMember(lhs) && Constant(lhs).isZero() ) &&
     rhs.sgn() < 0;
 
-#else
+#else  /* IS_PROOFS_BUILD */
   return true;
-#endif
+#endif /* IS_PROOFS_BUILD */
 }
 
 ConstraintP Constraint::makeNegation(ArithVar v, ConstraintType t, const DeltaRational& r){
@@ -989,7 +989,7 @@ ConstraintP ConstraintDatabase::addLiteral(TNode literal){
   Assert(!hasLiteral(negationNode));
   Comparison posCmp = Comparison::parseNormalForm(atomNode);
 
-  ConstraintType posType = constraintTypeOfComparison(posCmp);
+  ConstraintType posType = Constraint::constraintTypeOfComparison(posCmp);
 
   Polynomial nvp = posCmp.normalizedVariablePart();
   ArithVar v = d_avariables.asArithVar(nvp.getNode());
@@ -1024,7 +1024,7 @@ ConstraintP ConstraintDatabase::addLiteral(TNode literal){
   }else{
     Comparison negCmp = Comparison::parseNormalForm(negationNode);
     
-    ConstraintType negType = constraintTypeOfComparison(negCmp);
+    ConstraintType negType = Constraint::constraintTypeOfComparison(negCmp);
     DeltaRational negDR = negCmp.normalizedDeltaRational();
 
     ConstraintP negC = new Constraint(v, negType, negDR);
@@ -1346,7 +1346,7 @@ void Constraint::assertionFringe(ConstraintCPVec& v){
           v[writePos] = vi;
           writePos++;
         }else{
-          Assert(vi->hasFarkasProof() || vi->hasIntHoleProof() );
+          Assert(vi->hasTrichotomyProof() || vi->hasFarkasProof() || vi->hasIntHoleProof() );
           AntecedentId p = vi->getEndAntecedent();
 
           ConstraintCP antecedent = antecedents[p];

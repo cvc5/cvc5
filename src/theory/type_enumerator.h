@@ -19,10 +19,10 @@
 #ifndef __CVC4__THEORY__TYPE_ENUMERATOR_H
 #define __CVC4__THEORY__TYPE_ENUMERATOR_H
 
-#include "util/exception.h"
+#include "base/exception.h"
+#include "base/cvc4_assert.h"
 #include "expr/node.h"
 #include "expr/type_node.h"
-#include "util/cvc4_assert.h"
 
 namespace CVC4 {
 namespace theory {
@@ -88,6 +88,8 @@ public:
 
   TypeEnumerator(const TypeEnumerator& te) :
     d_te(te.d_te->clone()) {
+  }
+  TypeEnumerator(TypeEnumeratorInterface* te) : d_te(te){
   }
   TypeEnumerator& operator=(const TypeEnumerator& te) {
     delete d_te;

@@ -74,6 +74,7 @@ enum MergeReasonType {
   /** Theory specific proof rules */
   MERGED_ARRAYS_ROW,
   MERGED_ARRAYS_ROW1,
+  MERGED_ARRAYS_EXT
 };
 
 inline std::ostream& operator << (std::ostream& out, MergeReasonType reason) {

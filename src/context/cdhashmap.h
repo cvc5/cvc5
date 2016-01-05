@@ -95,12 +95,12 @@
 #ifndef __CVC4__CONTEXT__CDHASHMAP_H
 #define __CVC4__CONTEXT__CDHASHMAP_H
 
-#include <vector>
-#include <iterator>
 #include <ext/hash_map>
+#include <iterator>
+#include <vector>
 
+#include "base/cvc4_assert.h"
 #include "context/context.h"
-#include "util/cvc4_assert.h"
 #include "context/cdhashmap_forward.h"
 
 namespace CVC4 {
@@ -128,8 +128,8 @@ class CDOhash_map : public ContextObj {
   }
 
   virtual void restore(ContextObj* data) {
+    CDOhash_map* p = static_cast<CDOhash_map*>(data);
     if(d_map != NULL) {
-      CDOhash_map* p = static_cast<CDOhash_map*>(data);
       if(p->d_map == NULL) {
         Assert(d_map->d_map.find(d_key) != d_map->d_map.end() &&
                (*d_map->d_map.find(d_key)).second == this);
@@ -163,6 +163,10 @@ class CDOhash_map : public ContextObj {
         d_data = p->d_data;
       }
     }
+    // Explicitly call destructors fro the key and the date as they will not
+    // otherwise get called.
+    p->d_key.~Key();
+    p->d_data.~Data();
   }
 
   /** ensure copy ctor is only called by us */
@@ -188,6 +192,7 @@ public:
          bool allocatedInCMM = false) :
     ContextObj(allocatedInCMM, context),
     d_key(key),
+    d_data(),
     d_map(NULL),
     d_noTrash(allocatedInCMM) {
 

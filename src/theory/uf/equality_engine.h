@@ -19,20 +19,19 @@
 
 #pragma once
 
-#include <queue>
 #include <deque>
-#include <vector>
 #include <ext/hash_map>
+#include <queue>
+#include <vector>
 
-#include "expr/node.h"
-#include "expr/kind_map.h"
-#include "context/cdo.h"
+#include "base/output.h"
 #include "context/cdhashmap.h"
-#include "util/output.h"
-#include "util/statistics_registry.h"
+#include "context/cdo.h"
+#include "expr/kind_map.h"
+#include "expr/node.h"
+#include "expr/statistics_registry.h"
 #include "theory/rewriter.h"
 #include "theory/theory.h"
-
 #include "theory/uf/equality_engine_types.h"
 
 namespace CVC4 {

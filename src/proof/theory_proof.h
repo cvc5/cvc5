@@ -16,6 +16,7 @@
 **
 **/
 
+#include "cvc4_private.h"
 
 #ifndef __CVC4__THEORY_PROOF_H
 #define __CVC4__THEORY_PROOF_H
@@ -25,7 +26,8 @@
 #include "expr/expr.h"
 #include "prop/sat_solver_types.h"
 #include <ext/hash_set>
-#include <iostream>
+#include <iosfwd>
+
 
 namespace CVC4 {
 

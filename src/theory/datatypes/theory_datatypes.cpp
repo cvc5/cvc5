@@ -13,26 +13,24 @@
  **
  ** Implementation of the theory of datatypes.
  **/
-
-
 #include "theory/datatypes/theory_datatypes.h"
-#include "theory/valuation.h"
-#include "expr/kind.h"
-#include "util/datatype.h"
-#include "util/cvc4_assert.h"
-#include "theory/datatypes/datatypes_rewriter.h"
-#include "theory/datatypes/theory_datatypes_type_rules.h"
-#include "theory/theory_model.h"
-#include "smt/options.h"
-#include "smt/boolean_terms.h"
-#include "theory/datatypes/options.h"
-#include "theory/type_enumerator.h"
-
-#include "theory/quantifiers/options.h"
-#include "theory/quantifiers_engine.h"
-
 
 #include <map>
+
+#include "base/cvc4_assert.h"
+#include "expr/datatype.h"
+#include "expr/kind.h"
+#include "options/datatypes_options.h"
+#include "options/quantifiers_options.h"
+#include "options/smt_options.h"
+#include "smt/boolean_terms.h"
+#include "theory/datatypes/datatypes_rewriter.h"
+#include "theory/datatypes/theory_datatypes_type_rules.h"
+#include "theory/quantifiers_engine.h"
+#include "theory/theory_model.h"
+#include "theory/type_enumerator.h"
+#include "theory/valuation.h"
+
 
 using namespace std;
 using namespace CVC4;
@@ -190,6 +188,7 @@ void TheoryDatatypes::check(Effort e) {
             const Datatype& dt = ((DatatypeType)(tn).toType()).getDatatype();
             bool continueProc = true;
             if( dt.isRecursiveSingleton() ){
+              Trace("datatypes-debug") << "Check recursive singleton..." << std::endl;
               //handle recursive singleton case
               std::map< TypeNode, Node >::iterator itrs = rec_singletons.find( tn );
               if( itrs!=rec_singletons.end() ){
@@ -230,6 +229,7 @@ void TheoryDatatypes::check(Effort e) {
               continueProc = ( getQuantifiersEngine()!=NULL );
             }
             if( continueProc ){
+              Trace("datatypes-debug") << "Get possible cons..." << std::endl;
               //all other cases
               std::vector< bool > pcons;
               getPossibleCons( eqc, n, pcons );
@@ -237,32 +237,30 @@ void TheoryDatatypes::check(Effort e) {
               // this is if there are no selectors for this equivalence class, its possible values are infinite,
               //  and we are not producing a model, then do not split.
               int consIndex = -1;
+              int fconsIndex = -1;
               bool needSplit = true;
               for( unsigned int j=0; j<pcons.size(); j++ ) {
                 if( pcons[j] ) {
                   if( consIndex==-1 ){
                     consIndex = j;
                   }
-                  if( !dt[ j ].isFinite() && ( !eqc || !eqc->d_selectors ) ) {
-                    needSplit = false;
+                  if( !dt[ j ].isFinite() && ( !options::finiteModelFind() || !dt.isUFinite() ) ) {
+                    if( !eqc || !eqc->d_selectors ){
+                      needSplit = false;
+                    }
+                  }else{
+                    if( fconsIndex==-1 ){
+                      fconsIndex = j;
+                    }
                   }
                 }
               }
+              //if we want to force an assignment of constructors to all ground eqc
               //d_dtfCounter++;
               if( !needSplit && options::dtForceAssignment() && d_dtfCounter%2==0 ){
-                //for the sake of termination, we must choose the constructor of a ground term
-                //NEED GUARENTEE: groundTerm should not contain any subterms of the same type
-                // TODO: this is probably not good enough, actually need fair enumeration strategy
-                if( !n.getType().isRecord() ){ //FIXME
-                  Node groundTerm = n.getType().mkGroundTerm();
-                  if( groundTerm.getOperator().getType().isConstructor() ){ //FIXME
-                    int index = Datatype::indexOf( groundTerm.getOperator().toExpr() );
-                    if( pcons[index] ){
-                      consIndex = index;
-                    }
-                    needSplit = true;
-                  }
-                }
+                Trace("datatypes-force-assign") << "Force assignment for " << n << std::endl;
+                needSplit = true;
+                consIndex = fconsIndex!=-1 ? fconsIndex : consIndex;
               }
 
               if( needSplit && consIndex!=-1 ) {
@@ -1277,26 +1275,10 @@ void TheoryDatatypes::collectModelInfo( TheoryModel* m, bool fullModel ){
         Node c = ei->d_constructor.get();
         cons.push_back( c );
         eqc_cons[ eqc ] = c;
-        Trace("dt-cmi") << "Datatypes : assert representative " << c << " for " << eqc << std::endl;
-        m->assertRepresentative( c );
       }else{
         //if eqc contains a symbol known to datatypes (a selector), then we must assign
-#if 0
-        bool shouldConsider = false;
-        eq::EqClassIterator eqc_i = eq::EqClassIterator( eqc, &d_equalityEngine );
-        while( !eqc_i.isFinished() ){
-          Node n = *eqc_i;
-          Trace("dt-cmi-debug") << n << " has kind " << n.getKind() << ", isVar = " << n.isVar() << std::endl;
-          if( n.isVar() || n.getKind()==APPLY_SELECTOR_TOTAL ){
-            shouldConsider = true;
-            break;
-          }
-          ++eqc_i;
-        }
-#else
         //should assign constructors to EQC if they have a selector or a tester
         bool shouldConsider = ( ei && ei->d_selectors ) || hasTester( eqc );
-#endif
         if( shouldConsider ){
           nodes.push_back( eqc );
         }
@@ -1398,64 +1380,55 @@ void TheoryDatatypes::collectModelInfo( TheoryModel* m, bool fullModel ){
       Trace("dt-cmi") << "Assign : " << neqc << std::endl;
       m->assertEquality( eqc, neqc, true );
       eqc_cons[ eqc ] = neqc;
-      Trace("dt-cmi") << "Datatypes : assert representative " << neqc << " for " << eqc << std::endl;
-      m->assertRepresentative( neqc );
     }
-    //m->assertRepresentative( neqc );
     if( addCons ){
       cons.push_back( neqc );
     }
     ++index;
   }
 
-  //assign MU for each codatatype eqc
-  std::map< Node, Node > eqc_mu;
   for( std::map< Node, Node >::iterator it = eqc_cons.begin(); it != eqc_cons.end(); ++it ){
     Node eqc = it->first;
-    const Datatype& dt = ((DatatypeType)(eqc.getType()).toType()).getDatatype();
-    if( dt.isCodatatype() ){
-      std::map< Node, Node > vmap;
-      std::vector< Node > fv;
-      Node v = getCodatatypesValue( it->first, eqc_cons, eqc_mu, vmap, fv );
-      Trace("dt-cmi-cdt") << "  EQC(" << it->first << "), constructor is " << it->second << ", value is " << v << ", const = " << v.isConst() << std::endl;
-      //m->assertEquality( eqc, v, true );
+    if( eqc.getType().isCodatatype() ){
+      //until models are implemented for codatatypes
+      //throw Exception("Models for codatatypes are not supported in this version.");
+      //must proactive expand to avoid looping behavior in model builder
+      std::map< Node, int > vmap;
+      Node v = getCodatatypesValue( it->first, eqc_cons, vmap, 0 );
+      Trace("dt-cmi") << "  EQC(" << it->first << "), constructor is " << it->second << ", value is " << v << ", const = " << v.isConst() << std::endl;
+      m->assertEquality( eqc, v, true );
+      m->assertRepresentative( v );
+    }else{
+      Trace("dt-cmi") << "Datatypes : assert representative " << it->second << " for " << it->first << std::endl;
+      m->assertRepresentative( it->second );
     }
   }
 }
 
 
-Node TheoryDatatypes::getCodatatypesValue( Node n, std::map< Node, Node >& eqc_cons, std::map< Node, Node >& eqc_mu, std::map< Node, Node >& vmap, std::vector< Node >& fv ){
-  std::map< Node, Node >::iterator itv = vmap.find( n );
+Node TheoryDatatypes::getCodatatypesValue( Node n, std::map< Node, Node >& eqc_cons, std::map< Node, int >& vmap, int depth ){
+  std::map< Node, int >::iterator itv = vmap.find( n );
   if( itv!=vmap.end() ){
-    if( std::find( fv.begin(), fv.end(), itv->second )==fv.end() ){
-      fv.push_back( itv->second );
-    }
-    return itv->second;
+    int debruijn = depth - 1 - itv->second;
+    return NodeManager::currentNM()->mkConst(UninterpretedConstant(n.getType().toType(), debruijn));
   }else if( DatatypesRewriter::isTermDatatype( n ) ){
-    std::stringstream ss;
-    ss << "$x" << vmap.size();
-    Node nv = NodeManager::currentNM()->mkBoundVar( ss.str().c_str(), n.getType() );
-    vmap[n] = nv;
-    Trace("dt-cmi-cdt-debug") << "    map " << n << " -> " << nv << std::endl;
     Node nc = eqc_cons[n];
-    Assert( nc.getKind()==APPLY_CONSTRUCTOR );
-    std::vector< Node > children;
-    children.push_back( nc.getOperator() );
-    for( unsigned i=0; i<nc.getNumChildren(); i++ ){
-      Node r = getRepresentative( nc[i] );
-      Node rv = getCodatatypesValue( r, eqc_cons, eqc_mu, vmap, fv );
-      children.push_back( rv );
+    if( !nc.isNull() ){
+      vmap[n] = depth;
+      Trace("dt-cmi-cdt-debug") << "    map " << n << " -> " << depth << std::endl;
+      Assert( nc.getKind()==APPLY_CONSTRUCTOR );
+      std::vector< Node > children;
+      children.push_back( nc.getOperator() );
+      for( unsigned i=0; i<nc.getNumChildren(); i++ ){
+        Node r = getRepresentative( nc[i] );
+        Node rv = getCodatatypesValue( r, eqc_cons, vmap, depth+1 );
+        children.push_back( rv );
+      }
+      vmap.erase( n );
+      return NodeManager::currentNM()->mkNode( APPLY_CONSTRUCTOR, children );
     }
-    vmap.erase( n );
-    Node v = NodeManager::currentNM()->mkNode( APPLY_CONSTRUCTOR, children );
-    //add mu if we found a circular reference
-    if( std::find( fv.begin(), fv.end(), nv )!=fv.end() ){
-      v = NodeManager::currentNM()->mkNode( MU, nv, v );
-    }
-    return v;
-  }else{
-    return n;
   }
+  return n;
 }
 
 Node TheoryDatatypes::getSingletonLemma( TypeNode tn, bool pol ) {
@@ -1607,7 +1580,7 @@ void TheoryDatatypes::instantiate( EqcInfo* eqc, Node n ){
     int index = getLabelIndex( eqc, n );
     const Datatype& dt = ((DatatypeType)(tt.getType()).toType()).getDatatype();
     //must be finite or have a selector
-    //if( eqc->d_selectors || dt[ index ].isFinite() ){ // || mustSpecifyAssignment()
+    //if( eqc->d_selectors || dt[ index ].isFinite() ){
     //instantiate this equivalence class
     eqc->d_inst = true;
     Node tt_cons = getInstantiateCons( tt, dt, index );
@@ -1637,8 +1610,7 @@ void TheoryDatatypes::checkCycles() {
     Node eqc = (*eqcs_i);
     TypeNode tn = eqc.getType();
     if( DatatypesRewriter::isTypeDatatype( tn ) ) {
-      const Datatype& dt = ((DatatypeType)(tn).toType()).getDatatype();
-      if( !dt.isCodatatype() ){
+      if( !tn.isCodatatype() ){
         if( options::dtCyclic() ){
           //do cycle checks
           std::map< TNode, bool > visited;
@@ -1870,22 +1842,12 @@ Node TheoryDatatypes::searchForCycle( TNode n, TNode on,
   }else{
     TypeNode tn = nn.getType();
     if( DatatypesRewriter::isTypeDatatype( tn ) ) {
-      const Datatype& dt = ((DatatypeType)(tn).toType()).getDatatype();
-      if( !dt.isCodatatype() ){
+      if( !tn.isCodatatype() ){
         return nn;
       }
     }
     return Node::null();
   }
-}
-
-bool TheoryDatatypes::mustSpecifyAssignment(){
-  //FIXME: the condition finiteModelFind is an over-approximation in this function
-  //   we still may not want to specify assignments for datatypes that are truly infinite
-  //   the fix for this is to correctly compute the cardinality for datatypes containing uninterpered sorts in fmf (i.e. by assuming they are finite)
-  return options::finiteModelFind() || options::produceModels() || options::dtForceAssignment();
-  //return options::produceModels();
-  //return false;
 }
 
 bool TheoryDatatypes::mustCommunicateFact( Node n, Node exp ){

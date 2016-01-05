@@ -26,6 +26,12 @@
 
 #include <vector>
 
+#include "expr/expr.h"
+#include "expr/expr_iomanip.h"
+#include "options/base_options.h"
+#include "options/language.h"
+#include "options/options.h"
+
 using namespace std;
 using namespace hashsmt;
 using namespace CVC4;
@@ -66,7 +72,7 @@ Word Word::concat(const Word words[], unsigned size) {
 }
 
 void Word::print(ostream& out) const {
-  out << CVC4::Expr::setdepth(-1) << d_expr;
+  out << CVC4::expr::ExprSetDepth(-1) << d_expr;
 }
 
 Word::Word(unsigned newSize, unsigned value) {

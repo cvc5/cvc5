@@ -17,7 +17,7 @@
 #ifndef __CVC4__THEORY__THEORY_MODEL_H
 #define __CVC4__THEORY__THEORY_MODEL_H
 
-#include "util/model.h"
+#include "smt_util/model.h"
 #include "theory/uf/equality_engine.h"
 #include "theory/rep_set.h"
 #include "theory/substitutions.h"
@@ -72,17 +72,6 @@ public:
     *   This function returns a term in d_rep_set.d_type_reps[tn] but not in exclude
     */
   Node getDomainValue( TypeNode tn, std::vector< Node >& exclude );
-  /** get new domain value
-    *   This function returns a constant term of type tn that is not in d_rep_set.d_type_reps[tn]
-    *   If it cannot find such a node, it returns null.
-    */
-  Node getNewDomainValue( TypeNode tn );
-  /** complete all values for type
-    *   Calling this function ensures that all terms of type tn exist in d_rep_set.d_type_reps[tn]
-    */
-  void completeDomainValues( TypeNode tn ){
-    d_rep_set.complete( tn );
-  }
 public:
   /** Adds a substitution from x to t. */
   void addSubstitution(TNode x, TNode t, bool invalidateCache = true);
@@ -267,7 +256,10 @@ protected:
   Node normalize(TheoryModel* m, TNode r, std::map<Node, Node>& constantReps, bool evalOnly);
   bool isAssignable(TNode n);
   void checkTerms(TNode n, TheoryModel* tm, NodeSet& cache);
-
+  void assignConstantRep( TheoryModel* tm, std::map<Node, Node>& constantReps, Node eqc, Node const_rep, bool fullModel );
+  /** is v an excluded codatatype value */
+  bool isExcludedCdtValue( Node v, std::set<Node>* repSet, std::map< Node, Node >& assertedReps, Node eqc );
+  bool isCdtValueMatch( Node v, Node r, Node eqc, Node& eqc_m );
 public:
   TheoryEngineModelBuilder(TheoryEngine* te);
   virtual ~TheoryEngineModelBuilder(){}

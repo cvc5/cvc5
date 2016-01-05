@@ -18,26 +18,26 @@ DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE,
 OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 **************************************************************************************************/
 
+#include "core/Solver.h"
+
 #include <math.h>
 
-#include "mtl/Sort.h"
-#include "core/Solver.h"
 #include <vector>
 #include <iostream>
 
-#include "util/output.h"
-#include "util/utility.h"
-#include "util/exception.h"
-#include "theory/bv/options.h"
+#include "base/exception.h"
+#include "base/output.h"
+#include "mtl/Sort.h"
+#include "options/bv_options.h"
+#include "options/smt_options.h"
 #include "theory/interrupted.h"
-
 #include "proof/proof_manager.h"
 #include "proof/bitvector_proof.h"
 #include "proof/sat_proof.h"
 #include "proof/sat_proof_implementation.h"
+#include "util/utility.h"
 
-using namespace BVMinisat;
-using namespace CVC4;
+namespace CVC4 {
 namespace BVMinisat {
 
 #define OUTPUT_TAG "bvminisat: [a=" << assumptions.size() << ",l=" << decisionLevel() << "] "
@@ -57,7 +57,6 @@ std::ostream& operator << (std::ostream& out, const BVMinisat::Clause& c) {
   return out;
 }
 
-}
 
 //=================================================================================================
 // Options:
@@ -1081,7 +1080,7 @@ lbool Solver::search(int nof_conflicts, UIP uip)
             // NO CONFLICT
             bool isWithinBudget;
             try {
-              isWithinBudget = withinBudget(); 
+              isWithinBudget = withinBudget(CVC4::options::bvSatConflictStep()); 
             }
             catch (const CVC4::theory::Interrupted& e) {
               // do some clean-up and rethrow 
@@ -1234,7 +1233,7 @@ lbool Solver::solve_()
     while (status == l_Undef){
         double rest_base = luby_restart ? luby(restart_inc, curr_restarts) : pow(restart_inc, curr_restarts);
         status = search(rest_base * restart_first);
-        if (!withinBudget()) break;
+        if (!withinBudget(CVC4::options::bvSatConflictStep())) break;
         curr_restarts++;
     }
 
@@ -1478,3 +1477,6 @@ void ClauseAllocator::reloc(CRef& cr, ClauseAllocator& to, CVC4::BVProofProxy* p
   if (to[cr].learnt())         to[cr].activity() = c.activity();
   else if (to[cr].has_extra()) to[cr].calcAbstraction();
 }
+
+} /* CVC4::BVMinisat namespace */
+} /* CVC4 namespace */

@@ -20,7 +20,7 @@
 #ifndef __CVC4__PROOF_H
 #define __CVC4__PROOF_H
 
-#include <iostream>
+#include <iosfwd>
 
 namespace CVC4 {
 

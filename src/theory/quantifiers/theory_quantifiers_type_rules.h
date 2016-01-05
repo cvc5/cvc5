@@ -19,7 +19,7 @@
 #ifndef __CVC4__THEORY__QUANTIFIERS__THEORY_QUANTIFIERS_TYPE_RULES_H
 #define __CVC4__THEORY__QUANTIFIERS__THEORY_QUANTIFIERS_TYPE_RULES_H
 
-#include "util/matcher.h"
+#include "expr/matcher.h"
 
 namespace CVC4 {
 namespace theory {

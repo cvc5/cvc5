@@ -1,5 +1,5 @@
 ; EXPECT: unsat
-; COMMAND-LINE: --cegqi-si
+; COMMAND-LINE: --cegqi-si --no-dump-synth
 (set-logic BV)
 
 (define-fun parity ((a Bool) (b Bool) (c Bool) (d Bool)) Bool

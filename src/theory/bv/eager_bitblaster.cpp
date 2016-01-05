@@ -9,27 +9,31 @@
  ** See the file COPYING in the top-level source directory for licensing
  ** information.\endverbatim
  **
- ** \brief 
+ ** \brief
  **
- ** Bitblaster for the eager bv solver. 
+ ** Bitblaster for the eager bv solver.
  **/
 
 #include "cvc4_private.h"
 
-#include "theory/bv/bitblaster_template.h"
-#include "theory/bv/options.h"
-#include "theory/theory_model.h"
-#include "theory/bv/theory_bv.h"
+#include "options/bv_options.h"
 #include "prop/cnf_stream.h"
 #include "prop/sat_solver_factory.h"
 #include "proof/bitvector_proof.h"
+#include "theory/bv/bitblaster_template.h"
+#include "theory/bv/theory_bv.h"
+#include "theory/theory_model.h"
 
 using namespace CVC4;
 using namespace CVC4::theory;
-using namespace CVC4::theory::bv; 
+using namespace CVC4::theory::bv;
+
+namespace CVC4 {
+namespace theory {
+namespace bv {
 
 void BitblastingRegistrar::preRegister(Node n) {
-  d_bitblaster->bbAtom(n); 
+  d_bitblaster->bbAtom(n);
 };
 
 EagerBitblaster::EagerBitblaster(TheoryBV* theory_bv)
@@ -38,7 +42,7 @@ EagerBitblaster::EagerBitblaster(TheoryBV* theory_bv)
   , d_bbAtoms()
   , d_variables()
 {
-  d_bitblastingRegistrar = new BitblastingRegistrar(this); 
+  d_bitblastingRegistrar = new BitblastingRegistrar(this);
   d_nullContext = new context::Context();
 
   d_satSolver = prop::SatSolverFactory::createMinisat(d_nullContext, "EagerBitblaster");
@@ -73,7 +77,7 @@ void EagerBitblaster::bbFormula(TNode node) {
 void EagerBitblaster::bbAtom(TNode node) {
   node = node.getKind() == kind::NOT?  node[0] : node;
   if (node.getKind() == kind::BITVECTOR_BITOF)
-    return; 
+    return;
   if (hasBBAtom(node)) {
     return;
   }
@@ -99,7 +103,9 @@ void EagerBitblaster::bbAtom(TNode node) {
 }
 
 void EagerBitblaster::storeBBAtom(TNode atom, Node atom_bb) {
-  if( d_bvp ){ d_bvp->registerAtomBB(atom.toExpr(), atom_bb.toExpr()); }
+  if( d_bvp ){
+    d_bvp->registerAtomBB(atom.toExpr(), atom_bb.toExpr());
+  }
   d_bbAtoms.insert(atom); 
 }
 
@@ -110,7 +116,7 @@ void EagerBitblaster::storeBBTerm(TNode node, const Bits& bits) {
 
 
 bool EagerBitblaster::hasBBAtom(TNode atom) const {
-  return d_bbAtoms.find(atom) != d_bbAtoms.end(); 
+  return d_bbAtoms.find(atom) != d_bbAtoms.end();
 }
 
 void EagerBitblaster::bbTerm(TNode node, Bits& bits) {
@@ -119,7 +125,7 @@ void EagerBitblaster::bbTerm(TNode node, Bits& bits) {
     return;
   }
 
-  d_bv->spendResource();
+  d_bv->spendResource(options::bitblastStep());
   Debug("bitvector-bitblast") << "Bitblasting node " << node <<"\n";
 
   d_termBBStrategies[node.getKind()] (node, bits, this);
@@ -177,7 +183,7 @@ Node EagerBitblaster::getModelFromSatSolver(TNode a, bool fullModel) {
   if (!hasBBTerm(a)) {
     return fullModel? utils::mkConst(utils::getSize(a), 0u) : Node();
   }
-  
+
   Bits bits;
   getBBTerm(a, bits);
   Integer value(0);
@@ -203,12 +209,13 @@ void EagerBitblaster::collectModelInfo(TheoryModel* m, bool fullModel) {
   TNodeSet::iterator it = d_variables.begin();
   for (; it!= d_variables.end(); ++it) {
     TNode var = *it;
-    if (d_bv->isLeaf(var) || isSharedTerm(var))  {
+    if (d_bv->isLeaf(var) || isSharedTerm(var) ||
+        (var.isVar() && var.getType().isBoolean()))  {
       // only shared terms could not have been bit-blasted
       Assert (hasBBTerm(var) || isSharedTerm(var));
-      
+
       Node const_value = getModelFromSatSolver(var, fullModel);
-      
+
       if(const_value != Node()) {
         Debug("bitvector-model") << "EagerBitblaster::collectModelInfo (assert (= "
                                  << var << " "
@@ -229,3 +236,7 @@ void EagerBitblaster::setProofLog( BitVectorProof * bvp ) {
 bool EagerBitblaster::isSharedTerm(TNode node) {
   return d_bv->d_sharedTermsSet.find(node) != d_bv->d_sharedTermsSet.end();
 }
+
+} /* namespace CVC4::theory::bv; */
+} /* namespace CVC4::theory; */
+} /* namespace CVC4; */

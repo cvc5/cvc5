@@ -17,14 +17,16 @@
  **/
 
 #include "prop/minisat/minisat.h"
+
+#include "options/base_options.h"
+#include "options/decision_options.h"
+#include "options/prop_options.h"
+#include "options/smt_options.h"
 #include "prop/minisat/simp/SimpSolver.h"
-#include "prop/options.h"
-#include "smt/options.h"
-#include "decision/options.h"
 #include "proof/sat_proof.h"
 
-using namespace CVC4;
-using namespace CVC4::prop;
+namespace CVC4 {
+namespace prop {
 
 //// DPllMinisatSatSolver
 
@@ -275,6 +277,10 @@ void MinisatSatSolver::Statistics::init(Minisat::SimpSolver* d_minisat){
   d_statTotLiterals.setData(d_minisat->tot_literals);
 }
 
+} /* namespace CVC4::prop */
+} /* namespace CVC4 */
+
+
 namespace CVC4 {
 template<>
 prop::SatLiteral toSatLiteral< ::Minisat::Solver>(Minisat::Solver::TLit lit) {
@@ -288,3 +294,5 @@ void toSatClause< ::Minisat::Solver> (const Minisat::Solver::TClause& minisat_cl
 }
 
 }
+
+

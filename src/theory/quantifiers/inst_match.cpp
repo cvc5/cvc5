@@ -88,15 +88,6 @@ bool InstMatch::empty() {
   return true;
 }
 
-void InstMatch::makeComplete( Node f, QuantifiersEngine* qe ){
-  for( unsigned i=0; i<d_vals.size(); i++ ){
-    if( d_vals[i].isNull() ){
-      Node ic = qe->getTermDatabase()->getInstantiationConstant( f, i );
-      d_vals[i] = qe->getTermDatabase()->getFreeVariableForInstConstant( ic );
-    }
-  }
-}
-
 void InstMatch::makeRepresentative( QuantifiersEngine* qe ){
   for( unsigned i=0; i<d_vals.size(); i++ ){
     if( !d_vals[i].isNull() ){
@@ -127,14 +118,9 @@ Node InstMatch::get( int i ) {
   return d_vals[i];
 }
 
-void InstMatch::getTerms( QuantifiersEngine* qe, Node f, std::vector< Node >& inst ){
+void InstMatch::getTerms( Node f, std::vector< Node >& inst ){
   for( size_t i=0; i<f[0].getNumChildren(); i++ ){
-    Node val = get( i );
-    if( val.isNull() ){
-      Node ic =  qe->getTermDatabase()->getInstantiationConstant( f, i );
-      val = qe->getTermDatabase()->getFreeVariableForInstConstant( ic );
-    }
-    inst.push_back( val );
+    inst.push_back( d_vals[i] );
   }
 }
 

@@ -15,27 +15,30 @@
  ** threads.
  **/
 
-#include <boost/thread.hpp>
-#include <boost/thread/condition.hpp>
-#include <boost/exception_ptr.hpp>
-#include <boost/lexical_cast.hpp>
-#include <string>
-
-#include "expr/command.h"
-#include "expr/pickler.h"
 #include "main/command_executor_portfolio.h"
-#include "main/main.h"
-#include "main/options.h"
-#include "main/portfolio.h"
-#include "options/options.h"
-#include "smt/options.h"
-#include "printer/options.h"
-
-#include "cvc4autoconfig.h"
 
 #if HAVE_UNISTD_H
 #  include <unistd.h>
 #endif /* HAVE_UNISTD_H */
+
+#include <boost/exception_ptr.hpp>
+#include <boost/lexical_cast.hpp>
+#include <boost/thread.hpp>
+#include <boost/thread/condition.hpp>
+#include <string>
+
+#include "cvc4autoconfig.h"
+#include "expr/pickler.h"
+#include "main/main.h"
+#include "main/portfolio.h"
+#include "options/base_options.h"
+#include "options/main_options.h"
+#include "options/options.h"
+#include "options/printer_options.h"
+#include "options/set_language.h"
+#include "options/smt_options.h"
+#include "smt_util/command.h"
+
 
 using namespace std;
 
@@ -142,7 +145,7 @@ void CommandExecutorPortfolio::lemmaSharingInit()
 
       // important even for muzzled builds (to get result output right)
       *d_threadOptions[i][options::out]
-        << Expr::setlanguage(d_threadOptions[i][options::outputLanguage]);
+        << language::SetLanguage(d_threadOptions[i][options::outputLanguage]);
     }
   }
 }/* CommandExecutorPortfolio::lemmaSharingInit() */
@@ -318,9 +321,6 @@ bool CommandExecutorPortfolio::doCommandSingleton(Command* cmd)
     d_statWaitTime.stop();
 #endif /* CVC4_STATISTICS_ON */
 
-    delete d_seq;
-    d_seq = new CommandSequence();
-
     d_lastWinner = portfolioReturn.first;
     d_result = d_smts[d_lastWinner]->getStatusOfLastCommand();
 
@@ -346,14 +346,17 @@ bool CommandExecutorPortfolio::doCommandSingleton(Command* cmd)
         << std::flush;
 
 #ifdef CVC4_COMPETITION_MODE
-      // There's some hang-up in thread destruction?
-      // Anyway for SMT-COMP we don't care, just exit now.
+      // We use CVC4 in competition with --no-wait-to-join. If
+      // destructors run, they will destroy(!) us. So, just exit now.
       _exit(0);
 #endif /* CVC4_COMPETITION_MODE */
     }
 
     /* cleanup this check sat specific stuff */
     lemmaSharingCleanup();
+
+    delete d_seq;
+    d_seq = new CommandSequence();
 
     delete[] fns;
 

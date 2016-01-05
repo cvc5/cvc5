@@ -19,12 +19,14 @@
 #ifndef __CVC4__PROP__SAT_SOLVER_H
 #define __CVC4__PROP__SAT_SOLVER_H
 
-#include <string>
 #include <stdint.h>
-#include "util/statistics_registry.h"
+
+#include <string>
+
 #include "context/cdlist.h"
-#include "prop/sat_solver_types.h"
 #include "expr/node.h"
+#include "expr/statistics_registry.h"
+#include "prop/sat_solver_types.h"
 
 namespace CVC4 {
   
@@ -107,8 +109,8 @@ public:
      * Notify about a learnt clause.
      */
     virtual void notify(SatClause& clause) = 0;
-    virtual void spendResource() = 0;
-    virtual void safePoint() = 0;
+    virtual void spendResource(unsigned ammount) = 0;
+    virtual void safePoint(unsigned ammount) = 0;
     
   };/* class BVSatSolverInterface::Notify */
 

@@ -21,7 +21,7 @@
 
 #include <iterator>
 
-#include "util/cvc4_assert.h"
+#include "base/cvc4_assert.h"
 #include "expr/node.h"
 
 namespace CVC4 {

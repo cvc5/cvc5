@@ -19,9 +19,10 @@
 #include <vector>
 #include <deque>
 #include <new>
+
+#include "base/cvc4_assert.h"
+#include "base/output.h"
 #include "context/context_mm.h"
-#include "util/cvc4_assert.h"
-#include "util/output.h"
 
 namespace CVC4 {
 namespace context {

@@ -19,13 +19,14 @@
 #ifndef __CVC4__PARSER__TPTP_H
 #define __CVC4__PARSER__TPTP_H
 
-#include "parser/parser.h"
-#include "expr/command.h"
-#include "util/hash.h"
-#include <ext/hash_set>
 #include <cassert>
-#include "parser/options.h"
+#include <ext/hash_set>
+
+#include "options/parser_options.h"
 #include "parser/antlr_input.h"
+#include "parser/parser.h"
+#include "smt_util/command.h"
+#include "util/hash.h"
 
 namespace CVC4 {
 

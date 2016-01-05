@@ -19,28 +19,26 @@
 #ifndef __CVC4__THEORY__THEORY_H
 #define __CVC4__THEORY__THEORY_H
 
-#include "expr/node.h"
-//#include "expr/attribute.h"
-#include "expr/command.h"
-#include "smt/logic_request.h"
-#include "theory/valuation.h"
-#include "theory/output_channel.h"
-#include "theory/logic_info.h"
-#include "theory/options.h"
-#include "theory/theoryof_mode.h"
-#include "context/context.h"
+#include <ext/hash_set>
+#include <iostream>
+#include <string>
+#include <strings.h>
+
 #include "context/cdlist.h"
 #include "context/cdo.h"
-#include "options/options.h"
-#include "util/statistics_registry.h"
-#include "util/dump.h"
+#include "context/context.h"
+#include "expr/node.h"
+#include "expr/statistics_registry.h"
 #include "lib/ffs.h"
-
-#include <string>
-#include <iostream>
-
-#include <strings.h>
-#include <ext/hash_set>
+#include "options/options.h"
+#include "options/theory_options.h"
+#include "options/theoryof_mode.h"
+#include "smt/logic_request.h"
+#include "smt_util/command.h"
+#include "smt_util/dump.h"
+#include "theory/logic_info.h"
+#include "theory/output_channel.h"
+#include "theory/valuation.h"
 
 namespace CVC4 {
 

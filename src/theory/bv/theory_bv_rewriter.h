@@ -20,8 +20,8 @@
 #ifndef __CVC4__THEORY__BV__THEORY_BV_REWRITER_H
 #define __CVC4__THEORY__BV__THEORY_BV_REWRITER_H
 
+#include "expr/statistics_registry.h"
 #include "theory/rewriter.h"
-#include "util/statistics_registry.h"
 
 namespace CVC4 {
 namespace theory {
@@ -77,6 +77,8 @@ class TheoryBVRewriter {
   static RewriteResponse RewriteSignExtend(TNode node, bool prerewrite = false);
   static RewriteResponse RewriteRotateRight(TNode node, bool prerewrite = false);
   static RewriteResponse RewriteRotateLeft(TNode node, bool prerewrite = false);
+  static RewriteResponse RewriteRedor(TNode node, bool prerewrite = false);
+  static RewriteResponse RewriteRedand(TNode node, bool prerewrite = false);
 
   static RewriteResponse RewriteBVToNat(TNode node, bool prerewrite = false);
   static RewriteResponse RewriteIntToBV(TNode node, bool prerewrite = false);

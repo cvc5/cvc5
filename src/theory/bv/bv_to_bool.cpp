@@ -13,10 +13,9 @@
  **
  ** Preprocessing pass that lifts bit-vectors of size 1 to booleans. 
  **/
-
-
-#include "util/node_visitor.h"
 #include "theory/bv/bv_to_bool.h"
+
+#include "smt_util/node_visitor.h"
 
 using namespace std;
 using namespace CVC4;

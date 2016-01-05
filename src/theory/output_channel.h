@@ -19,9 +19,10 @@
 #ifndef __CVC4__THEORY__OUTPUT_CHANNEL_H
 #define __CVC4__THEORY__OUTPUT_CHANNEL_H
 
-#include "util/cvc4_assert.h"
+#include "base/cvc4_assert.h"
+#include "expr/resource_manager.h"
+#include "smt/logic_exception.h"
 #include "theory/interrupted.h"
-#include "util/resource_manager.h"
 #include "proof/proof_manager.h"
 
 namespace CVC4 {
@@ -86,7 +87,7 @@ public:
    * With safePoint(), the theory signals that it is at a safe point
    * and can be interrupted.
    */
-  virtual void safePoint() throw(Interrupted, UnsafeInterruptException, AssertionException) {
+  virtual void safePoint(uint64_t ammount) throw(Interrupted, UnsafeInterruptException, AssertionException) {
   }
 
   /**
@@ -116,12 +117,14 @@ public:
    * @param n - a theory lemma valid at decision level 0
    * @param removable - whether the lemma can be removed at any point
    * @param preprocess - whether to apply more aggressive preprocessing
+   * @param sendAtoms - whether to ensure atoms are sent to the theory
    * @return the "status" of the lemma, including user level at which
    * the lemma resides; the lemma will be removed when this user level pops
    */
   virtual LemmaStatus lemma(TNode n, ProofRule rule,
                             bool removable = false,
-                            bool preprocess = false)
+                            bool preprocess = false,
+                            bool sendAtoms = false)
     throw(TypeCheckingExceptionPrivate, AssertionException, UnsafeInterruptException) = 0;
 
   virtual LemmaStatus lemma(TNode n, 
@@ -222,7 +225,7 @@ public:
    * long-running operations, they cannot rely on resource() to break
    * out of infinite or intractable computations.
    */
-  virtual void spendResource() throw(UnsafeInterruptException) {}
+  virtual void spendResource(unsigned ammount) throw(UnsafeInterruptException) {}
 
   /**
    * Handle user attribute.

@@ -81,13 +81,13 @@ module BASE "options/base_options.h" Base
 
 option binary_name std::string
 
-option in std::istream* :default &std::cin :include <iostream>
-option out std::ostream* :default &std::cout :include <iostream>
-option err std::ostream* :default &std::cerr :include <iostream>
+option in std::istream* :default &std::cin :include <iosfwd>
+option out std::ostream* :default &std::cout :include <iosfwd>
+option err std::ostream* :default &std::cerr :include <iosfwd>
 
-common-option inputLanguage input-language -L --lang=LANG InputLanguage :handler CVC4::options::stringToInputLanguage :include "util/language.h" :default language::input::LANG_AUTO :read-write
+common-option inputLanguage input-language -L --lang=LANG InputLanguage :handler CVC4::options::stringToInputLanguage :include "options/language.h" :default language::input::LANG_AUTO :read-write
  force input language (default is "auto"; see --lang help)
-common-option outputLanguage output-language --output-lang=LANG OutputLanguage :handler CVC4::options::stringToOutputLanguage :include "util/language.h" :default language::output::LANG_AUTO :read-write
+common-option outputLanguage output-language --output-lang=LANG OutputLanguage :handler CVC4::options::stringToOutputLanguage :include "options/language.h" :default language::output::LANG_AUTO :read-write
  force output language (default is "auto"; see --output-lang help)
 option languageHelp bool
 
@@ -96,14 +96,14 @@ option languageHelp bool
 undocumented-alias --language=L = --lang=L
 undocumented-alias --output-language=L = --output-lang=L
 
-option verbosity verbosity int :read-write :default 0 :predicate CVC4::options::setVerbosity :predicate-include "options/base_options_handlers.h"
+option verbosity verbosity int :read-write :default 0 :predicate CVC4::options::setVerbosity :predicate-include "options/base_handlers.h"
  the verbosity level of CVC4
 common-option - -v --verbose void :handler CVC4::options::increaseVerbosity
  increase verbosity (may be repeated)
 common-option - -q --quiet void :handler CVC4::options::decreaseVerbosity
  decrease verbosity (may be repeated)
 
-common-option statistics statistics --stats bool :predicate CVC4::smt::statsEnabledBuild :predicate-include "smt/options_handlers.h"
+common-option statistics statistics --stats bool :predicate CVC4::options::statsEnabledBuild :predicate-include "options/options_handler_interface.h"
  give statistics on exit
 undocumented-alias --statistics = --stats
 undocumented-alias --no-statistics = --no-stats
@@ -128,7 +128,7 @@ option - trace -t --trace=TAG argument :handler CVC4::options::addTraceTag
 option - debug -d --debug=TAG argument :handler CVC4::options::addDebugTag
  debug something (e.g. -d arith), can repeat
 
-option printSuccess print-success --print-success bool :predicate CVC4::options::setPrintSuccess :predicate-include "options/base_options_handlers.h"
+option printSuccess print-success --print-success bool :predicate CVC4::options::setPrintSuccess :predicate-include "options/options_handler_interface.h"
  print the "success" output required of SMT-LIBv2
 
 alias --smtlib-strict = --lang=smt2 --output-lang=smt2 --strict-parsing --default-expr-depth=-1 --print-success --incremental --abstract-values

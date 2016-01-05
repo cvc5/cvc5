@@ -14,13 +14,12 @@
  ** [[ Add lengthier description here ]]
  ** \todo document this file
  **/
-
-
 #include "theory/arith/fc_simplex.h"
-#include "theory/arith/options.h"
-#include "theory/arith/constraint.h"
 
-#include "util/statistics_registry.h"
+#include "base/output.h"
+#include "expr/statistics_registry.h"
+#include "options/arith_options.h"
+#include "theory/arith/constraint.h"
 
 using namespace std;
 

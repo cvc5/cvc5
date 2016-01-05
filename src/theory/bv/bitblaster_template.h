@@ -23,12 +23,13 @@
 #include "expr/node.h"
 #include <vector>
 #include <ext/hash_map>
+
 #include "context/cdhashmap.h"
 #include "bitblast_strategies_template.h"
+#include "expr/resource_manager.h"
 #include "prop/sat_solver.h"
 #include "theory/valuation.h"
 #include "theory/theory_registrar.h"
-#include "util/resource_manager.h"
 
 class Abc_Obj_t_;
 typedef Abc_Obj_t_ Abc_Obj_t;
@@ -136,8 +137,8 @@ class TLazyBitblaster :  public TBitblaster<Node> {
     {}
     bool notify(prop::SatLiteral lit);
     void notify(prop::SatClause& clause);
-    void spendResource();
-    void safePoint();
+    void spendResource(unsigned ammount);
+    void safePoint(unsigned ammount);
   };
   
   TheoryBV *d_bv;
@@ -243,10 +244,10 @@ public:
   MinisatEmptyNotify() {}
   bool notify(prop::SatLiteral lit) { return true; }
   void notify(prop::SatClause& clause) { }
-  void spendResource() {
-    NodeManager::currentResourceManager()->spendResource();
+  void spendResource(unsigned ammount) {
+    NodeManager::currentResourceManager()->spendResource(ammount);
   }
-  void safePoint() {}
+  void safePoint(unsigned ammount) {}
 };
 
 

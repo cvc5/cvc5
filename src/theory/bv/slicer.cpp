@@ -14,10 +14,11 @@
  ** Bitvector theory.
  **/
 
+#include "options/bv_options.h"
 #include "theory/bv/slicer.h"
 #include "theory/bv/theory_bv_utils.h"
 #include "theory/rewriter.h"
-#include "theory/bv/options.h"
+
 using namespace CVC4;
 using namespace CVC4::theory;
 using namespace CVC4::theory::bv;

@@ -19,16 +19,16 @@
 #ifndef __CVC4__THEORY__DATATYPES__THEORY_DATATYPES_H
 #define __CVC4__THEORY__DATATYPES__THEORY_DATATYPES_H
 
-#include "theory/theory.h"
-#include "util/datatype.h"
-#include "util/hash.h"
-#include "theory/uf/equality_engine.h"
-#include "theory/datatypes/datatypes_sygus.h"
-
 #include <ext/hash_set>
 #include <iostream>
 #include <map>
+
 #include "context/cdchunk_list.h"
+#include "expr/datatype.h"
+#include "theory/datatypes/datatypes_sygus.h"
+#include "theory/theory.h"
+#include "theory/uf/equality_engine.h"
+#include "util/hash.h"
 
 namespace CVC4 {
 namespace theory {
@@ -266,7 +266,7 @@ private:
                           std::map< Node, Node >& cn,
                           std::map< Node, std::map< Node, int > >& dni, int dniLvl, bool mkExp );
   /** build model */
-  Node getCodatatypesValue( Node n, std::map< Node, Node >& eqc_cons, std::map< Node, Node >& eqc_mu, std::map< Node, Node >& vmap, std::vector< Node >& fv );
+  Node getCodatatypesValue( Node n, std::map< Node, Node >& eqc_cons, std::map< Node, int >& vmap, int depth );
   /** get singleton lemma */
   Node getSingletonLemma( TypeNode tn, bool pol );
   /** collect terms */
@@ -277,11 +277,6 @@ private:
   void processNewTerm( Node n );
   /** check instantiate */
   void instantiate( EqcInfo* eqc, Node n );
-  /** must specify model
-    *  This returns true when the datatypes theory is expected to specify the constructor
-    *  type for all equivalence classes.
-    */
-  bool mustSpecifyAssignment();
   /** must communicate fact */
   bool mustCommunicateFact( Node n, Node exp );
   /** check clash mod eq */

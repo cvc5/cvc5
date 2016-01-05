@@ -26,8 +26,8 @@
 #endif /* SWIG_VERSION */
 
 %import "cvc4_public.h"
-#warning Working around a SWIG segfault in C++ template parsing.
-//%import "util/tls.h"
+#warning "Working around a SWIG segfault in C++ template parsing."
+//%import "base/tls.h"
 #define CVC4_THREADLOCAL(__type...) __type
 #define CVC4_THREADLOCAL_PUBLIC(__type...) CVC4_PUBLIC __type
 #define CVC4_THREADLOCAL_TYPE(__type...) __type

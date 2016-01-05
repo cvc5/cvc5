@@ -19,7 +19,7 @@
 #ifndef __CVC4__THEORY__DATATYPES__THEORY_DATATYPES_TYPE_RULES_H
 #define __CVC4__THEORY__DATATYPES__THEORY_DATATYPES_TYPE_RULES_H
 
-#include "util/matcher.h"
+#include "expr/matcher.h"
 //#include "expr/attribute.h"
 
 namespace CVC4 {
@@ -34,6 +34,7 @@ namespace theory {
 namespace datatypes {
 
 typedef expr::Attribute<expr::attr::DatatypeConstructorTypeGroundTermTag, Node> GroundTermAttr;
+
 
 struct DatatypeConstructorTypeRule {
   inline static TypeNode computeType(NodeManager* nodeManager, TNode n, bool check)
@@ -401,12 +402,13 @@ struct RecordTypeRule {
     Assert(n.getKind() == kind::RECORD);
     NodeManagerScope nms(nodeManager);
     const Record& rec = n.getOperator().getConst<Record>();
+    const Record::FieldVector& fields = rec.getFields();
     if(check) {
-      Record::iterator i = rec.begin();
+      Record::FieldVector::const_iterator i = fields.begin();
       for(TNode::iterator child_it = n.begin(), child_it_end = n.end();
           child_it != child_it_end;
           ++child_it, ++i) {
-        if(i == rec.end()) {
+        if(i == fields.end()) {
           throw TypeCheckingExceptionPrivate(n, "record description has different length than record literal");
         }
         if(!(*child_it).getType(check).isComparableTo(TypeNode::fromType((*i).second))) {
@@ -415,7 +417,7 @@ struct RecordTypeRule {
           throw TypeCheckingExceptionPrivate(n, ss.str());
         }
       }
-      if(i != rec.end()) {
+      if(i != fields.end()) {
         throw TypeCheckingExceptionPrivate(n, "record description has different length than record literal");
       }
     }
@@ -424,6 +426,15 @@ struct RecordTypeRule {
 };/* struct RecordTypeRule */
 
 struct RecordSelectTypeRule {
+  inline static Record::FieldVector::const_iterator record_find(const Record::FieldVector& fields, std::string name){
+    for(Record::FieldVector::const_iterator i = fields.begin(), i_end = fields.end(); i != i_end; ++i){
+      if((*i).first == name) {
+        return i;
+      }
+    }
+    return fields.end();
+  }
+
   inline static TypeNode computeType(NodeManager* nodeManager, TNode n, bool check) {
     Assert(n.getKind() == kind::RECORD_SELECT);
     NodeManagerScope nms(nodeManager);
@@ -439,8 +450,9 @@ struct RecordSelectTypeRule {
       recordType = recordType.getAttribute(expr::DatatypeRecordAttr());
     }
     const Record& rec = recordType.getRecord();
-    Record::const_iterator field = rec.find(rs.getField());
-    if(field == rec.end()) {
+    const Record::FieldVector& fields = rec.getFields();
+    Record::FieldVector::const_iterator field = record_find(fields, rs.getField());
+    if(field == fields.end()) {
       std::stringstream ss;
       ss << "Record-select field `" << rs.getField()
          << "' is not a valid field name for the record type";
@@ -465,8 +477,7 @@ struct RecordUpdateTypeRule {
         recordType = recordType.getAttribute(expr::DatatypeRecordAttr());
       }
       const Record& rec = recordType.getRecord();
-      Record::const_iterator field = rec.find(ru.getField());
-      if(field == rec.end()) {
+      if(!rec.contains(ru.getField())) {
         std::stringstream ss;
         ss << "Record-update field `" << ru.getField()
            << "' is not a valid field name for the record type";
@@ -482,9 +493,10 @@ struct RecordProperties {
     Assert(type.getKind() == kind::RECORD_TYPE);
 
     const Record& rec = type.getRecord();
+    const Record::FieldVector& fields = rec.getFields();
     std::vector<Node> children;
-    for(Record::iterator i = rec.begin(),
-          i_end = rec.end();
+    for(Record::FieldVector::const_iterator i = fields.begin(),
+          i_end = fields.end();
         i != i_end;
         ++i) {
       children.push_back((*i).second.mkGroundTerm());

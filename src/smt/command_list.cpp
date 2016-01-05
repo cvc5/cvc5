@@ -17,8 +17,7 @@
 // we include both of these to make sure they agree on the typedef
 #include "smt/command_list.h"
 #include "smt/smt_engine.h"
-
-#include "expr/command.h"
+#include "smt_util/command.h"
 
 namespace CVC4 {
 namespace smt {

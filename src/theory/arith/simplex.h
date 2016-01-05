@@ -53,15 +53,14 @@
 
 #pragma once
 
+#include "expr/result.h"
 #include "theory/arith/arithvar.h"
-#include "theory/arith/error_set.h"
 #include "theory/arith/delta_rational.h"
-#include "theory/arith/tableau.h"
-#include "theory/arith/partial_model.h"
+#include "theory/arith/error_set.h"
 #include "theory/arith/linear_equality.h"
-
+#include "theory/arith/partial_model.h"
+#include "theory/arith/tableau.h"
 #include "util/dense_map.h"
-#include "util/result.h"
 
 namespace CVC4 {
 namespace theory {

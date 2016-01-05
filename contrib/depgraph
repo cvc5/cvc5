@@ -88,6 +88,7 @@ for path in $paths; do
     if [ -n "$target" -a "$target" != "$package" ]; then continue; fi
     for inc in $incs; do
       case "$inc" in
+        base/tls.h) inc=base/tls.h.in ;;
         expr/expr.h) inc=expr/expr_template.h ;;
         expr/expr_manager.h) inc=expr/expr_manager_template.h ;;
         expr/kind.h) inc=expr/kind_template.h ;;
@@ -95,7 +96,6 @@ for path in $paths; do
         theory/theoryof_table.h) inc=theory/theoryof_table_template.h ;;
         util/integer.h) inc=util/integer.h.in ;;
         util/rational.h) inc=util/rational.h.in ;;
-        util/tls.h) inc=util/tls.h.in ;;
         cvc4autoconfig.h) inc=cvc4autoconfig.h.in ;;
       esac
       incpath=

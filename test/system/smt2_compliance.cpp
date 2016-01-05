@@ -14,16 +14,18 @@
  ** A test of SMT-LIBv2 commands, checks for compliant output.
  **/
 
+#include <cassert>
 #include <iostream>
 #include <sstream>
-#include <cassert>
 
-#include "smt/options.h"
-#include "parser/parser.h"
 #include "expr/expr_manager.h"
-#include "expr/command.h"
-#include "smt/smt_engine.h"
+#include "options/base_options.h"
+#include "options/set_language.h"
+#include "options/smt_options.h"
+#include "parser/parser.h"
 #include "parser/parser_builder.h"
+#include "smt/smt_engine.h"
+#include "smt_util/command.h"
 
 using namespace CVC4;
 using namespace CVC4::parser;
@@ -36,7 +38,7 @@ int main() {
   opts.set(options::inputLanguage, language::input::LANG_SMTLIB_V2);
   opts.set(options::outputLanguage, language::output::LANG_SMTLIB_V2);
 
-  cout << Expr::setlanguage(language::output::LANG_SMTLIB_V2);
+  cout << language::SetLanguage(language::output::LANG_SMTLIB_V2);
 
   ExprManager em(opts);
   SmtEngine smt(&em);
@@ -67,6 +69,6 @@ void testGetInfo(SmtEngine& smt, const char* s) {
   c->invoke(&smt, ss);
   assert(p->nextCommand() == NULL);
   delete p;
-
+  delete c;
   cout << ss.str() << endl << endl;
 }

@@ -19,11 +19,12 @@
 #include <boost/thread/condition.hpp>
 #include <boost/exception_ptr.hpp>
 
-#include "smt/smt_engine.h"
-#include "util/output.h"
-#include "util/result.h"
-#include "util/statistics_registry.h"
+#include "base/output.h"
+#include "expr/result.h"
+#include "expr/statistics_registry.h"
 #include "options/options.h"
+#include "smt/smt_engine.h"
+
 
 
 namespace CVC4 {

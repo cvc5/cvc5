@@ -22,16 +22,18 @@
  *      Author: dejan
  */
 
-#include <string>
+#include <boost/uuid/sha1.hpp>
 #include <fstream>
 #include <iostream>
 #include <sstream>
+#include <string>
 
-#include "word.h"
+#include "expr/expr_iomanip.h"
+#include "options/language.h"
+#include "options/set_language.h"
 #include "sha1.hpp"
-#include "expr/command.h"
-
-#include <boost/uuid/sha1.hpp>
+#include "smt_util/command.h"
+#include "word.h"
 
 using namespace std;
 using namespace CVC4;
@@ -69,7 +71,7 @@ int main(int argc, char* argv[]) {
 
     // The output
     ofstream output(argv[3]);
-    output << expr::ExprSetDepth(-1) << expr::ExprSetLanguage(language::output::LANG_SMTLIB_V2);
+    output << expr::ExprSetDepth(-1) << language::SetLanguage(language::output::LANG_SMTLIB_V2);
     output << SetBenchmarkLogicCommand("QF_BV") << endl;
     output << SetBenchmarkStatusCommand(SMT_UNSATISFIABLE) << endl;
 
@@ -103,6 +105,3 @@ int main(int argc, char* argv[]) {
     cerr << e << endl;
   }
 }
-
-
-

@@ -18,6 +18,7 @@
 
 //#include <cvc4/cvc4.h> // use this after CVC4 is properly installed
 #include "smt/smt_engine.h"
+#include "options/set_language.h"
 
 using namespace CVC4;
 
@@ -35,8 +36,8 @@ int main() {
   smt.setOption("strings-exp", true);
 
   // Set output language to SMTLIB2
-  std::cout << Expr::setlanguage(language::output::LANG_SMTLIB_V2);
-  
+  std::cout << language::SetLanguage(language::output::LANG_SMTLIB_V2);
+
   // String type
   Type string = em.stringType();
 

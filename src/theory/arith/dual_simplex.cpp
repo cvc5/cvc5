@@ -15,10 +15,10 @@
  ** \todo document this file
  **/
 
-
-#include "theory/arith/dual_simplex.h"
-#include "theory/arith/options.h"
+#include "base/output.h"
+#include "options/arith_options.h"
 #include "theory/arith/constraint.h"
+#include "theory/arith/dual_simplex.h"
 
 using namespace std;
 

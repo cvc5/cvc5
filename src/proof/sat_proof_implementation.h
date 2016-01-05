@@ -228,6 +228,8 @@ TSatProof<Solver>::TSatProof(Solver* solver, const std::string& name, bool check
 
 template <class Solver> 
 TSatProof<Solver>::~TSatProof() {
+  delete d_proxy;
+  
   // FIXME: double free if deleted clause also appears in d_seenLemmas?
   IdToSatClause::iterator it = d_deletedTheoryLemmas.begin();
   IdToSatClause::iterator end = d_deletedTheoryLemmas.end();

@@ -23,32 +23,32 @@
 #include <vector>
 #include <utility>
 
-#include "expr/node.h"
-#include "expr/command.h"
-#include "prop/prop_engine.h"
+#include "base/cvc4_assert.h"
 #include "context/cdhashset.h"
-#include "theory/theory.h"
-#include "theory/rewriter.h"
-#include "theory/substitutions.h"
-#include "theory/shared_terms_database.h"
-#include "theory/term_registration_visitor.h"
-#include "theory/valuation.h"
-#include "theory/interrupted.h"
+#include "expr/node.h"
+#include "expr/statistics_registry.h"
 #include "options/options.h"
-#include "smt/options.h"
-#include "util/statistics_registry.h"
-#include "util/cvc4_assert.h"
-#include "util/sort_inference.h"
-#include "util/unsafe_interrupt_exception.h"
-#include "theory/quantifiers/quant_conflict_find.h"
-#include "theory/uf/equality_engine.h"
-#include "theory/bv/bv_to_bool.h"
+#include "options/smt_options.h"
+#include "prop/prop_engine.h"
+#include "smt_util/command.h"
 #include "theory/atom_requests.h"
+#include "theory/bv/bv_to_bool.h"
+#include "theory/interrupted.h"
+#include "theory/quantifiers/quant_conflict_find.h"
+#include "theory/rewriter.h"
+#include "theory/shared_terms_database.h"
+#include "theory/sort_inference.h"
+#include "theory/substitutions.h"
+#include "theory/term_registration_visitor.h"
+#include "theory/theory.h"
+#include "theory/uf/equality_engine.h"
+#include "theory/valuation.h"
+#include "util/unsafe_interrupt_exception.h"
 
 namespace CVC4 {
 
 class ResourceManager;
-  
+
 /**
  * A pair of a theory and a node. This is used to mark the flow of
  * propagations between theories.
@@ -282,8 +282,8 @@ class TheoryEngine {
     {
     }
 
-      void safePoint() throw(theory::Interrupted, UnsafeInterruptException, AssertionException) {
-      spendResource();
+      void safePoint(uint64_t ammount) throw(theory::Interrupted, UnsafeInterruptException, AssertionException) {
+      spendResource(ammount);
       if (d_engine->d_interrupted) {
         throw theory::Interrupted();
       }
@@ -307,12 +307,13 @@ class TheoryEngine {
     theory::LemmaStatus lemma(TNode lemma,
                               ProofRule rule,
                               bool removable = false,
-                              bool preprocess = false)
+                              bool preprocess = false,
+                              bool sendAtoms = false)
       throw(TypeCheckingExceptionPrivate, AssertionException, UnsafeInterruptException) {
       Trace("theory::lemma") << "EngineOutputChannel<" << d_theory << ">::lemma(" << lemma << ")" << std::endl;
       ++ d_statistics.lemmas;
       d_engine->d_outputChannelUsed = true;
-      return d_engine->lemma(lemma, rule, false, removable, preprocess, theory::THEORY_LAST);
+      return d_engine->lemma(lemma, rule, false, removable, preprocess, sendAtoms ? d_theory: theory::THEORY_LAST);
     }
 
     theory::LemmaStatus splitLemma(TNode lemma, bool removable = false) throw(TypeCheckingExceptionPrivate, AssertionException, UnsafeInterruptException) {
@@ -352,8 +353,8 @@ class TheoryEngine {
       d_engine->setIncomplete(d_theory);
     }
 
-    void spendResource() throw(UnsafeInterruptException) {
-      d_engine->spendResource();
+    void spendResource(unsigned ammount) throw(UnsafeInterruptException) {
+      d_engine->spendResource(ammount);
     }
 
     void handleUserAttribute( const char* attr, theory::Theory* t ){
@@ -498,7 +499,7 @@ public:
   /**
    * "Spend" a resource during a search or preprocessing.
    */
-  void spendResource();
+  void spendResource(unsigned ammount);
 
   /**
    * Adds a theory. Only one theory per TheoryId can be present, so if
@@ -808,9 +809,6 @@ private:
   /** Visitor for collecting shared terms */
   SharedTermsVisitor d_sharedTermsVisitor;
 
-  /** Prints the assertions to the debug stream */
-  void printAssertions(const char* tag);
-
   /** Dump the assertions to the dump */
   void dumpAssertions(const char* tag);
 
@@ -840,8 +838,14 @@ public:
   SharedTermsDatabase* getSharedTermsDatabase() { return &d_sharedTerms; }
 
   theory::eq::EqualityEngine* getMasterEqualityEngine() { return d_masterEqualityEngine; }
+  
+  RemoveITE* getIteRemover() { return &d_iteRemover; }
 
   SortInference* getSortInference() { return &d_sortInfer; }
+  
+  /** Prints the assertions to the debug stream */
+  void printAssertions(const char* tag);
+
 private:
   std::map< std::string, std::vector< theory::Theory* > > d_attr_handle;
 public:

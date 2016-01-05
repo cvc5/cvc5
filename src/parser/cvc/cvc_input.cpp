@@ -20,8 +20,8 @@
 #include "parser/antlr_input.h"
 #include "parser/parser_exception.h"
 #include "parser/cvc/cvc_input.h"
-#include "parser/cvc/generated/CvcLexer.h"
-#include "parser/cvc/generated/CvcParser.h"
+#include "parser/cvc/CvcLexer.h"
+#include "parser/cvc/CvcParser.h"
 
 namespace CVC4 {
 namespace parser {

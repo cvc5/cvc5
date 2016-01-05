@@ -19,12 +19,13 @@
 #ifndef __CVC4__SAT__PROOF_H
 #define __CVC4__SAT__PROOF_H
 
-#include <iostream>
-#include <vector>
-#include <set>
+#include <stdint.h>
 #include <ext/hash_map>
 #include <ext/hash_set>
+#include <iosfwd>
+#include <set>
 #include <sstream>
+#include <vector>
 #include "expr/expr.h"
 #include "proof/proof_manager.h"
 #include "util/proof.h"

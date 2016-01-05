@@ -15,25 +15,26 @@
  **/
 
 #include "printer/cvc/cvc_printer.h"
-#include "expr/expr.h" // for ExprSetDepth etc..
-#include "util/language.h" // for LANG_AST
-#include "expr/node_manager_attributes.h" // for VarNameAttr
-#include "expr/command.h"
-#include "theory/substitutions.h"
-#include "smt/smt_engine.h"
-#include "smt/options.h"
-#include "theory/theory_model.h"
-#include "theory/arrays/theory_arrays_rewriter.h"
-#include "printer/dagification_visitor.h"
-#include "util/node_visitor.h"
 
-#include <iostream>
-#include <vector>
-#include <string>
-#include <typeinfo>
 #include <algorithm>
+#include <iostream>
 #include <iterator>
 #include <stack>
+#include <string>
+#include <typeinfo>
+#include <vector>
+
+#include "expr/expr.h" // for ExprSetDepth etc..
+#include "expr/node_manager_attributes.h" // for VarNameAttr
+#include "options/language.h" // for LANG_AST
+#include "printer/dagification_visitor.h"
+#include "options/smt_options.h"
+#include "smt/smt_engine.h"
+#include "smt_util/command.h"
+#include "smt_util/node_visitor.h"
+#include "theory/arrays/theory_arrays_rewriter.h"
+#include "theory/substitutions.h"
+#include "theory/theory_model.h"
 
 using namespace std;
 
@@ -389,7 +390,8 @@ void CvcPrinter::toStream(std::ostream& out, TNode n, int depth, bool types, boo
       out << "(# ";
       TNode::iterator i = n.begin();
       bool first = true;
-      for(Record::const_iterator j = rec.begin(); j != rec.end(); ++i, ++j) {
+      const Record::FieldVector& fields = rec.getFields();
+      for(Record::FieldVector::const_iterator j = fields.begin(); j != fields.end(); ++i, ++j) {
         if(!first) {
           out << ", ";
         }
@@ -894,10 +896,6 @@ void CvcPrinter::toStream(std::ostream& out, const Command* c,
 
 }/* CvcPrinter::toStream(Command*) */
 
-static inline void toStream(std::ostream& out, const SExpr& sexpr) throw() {
-  Printer::getPrinter(language::output::LANG_CVC4)->toStream(out, sexpr);
-}
-
 template <class T>
 static bool tryToStream(std::ostream& out, const CommandStatus* s, bool cvc3Mode) throw();
 
@@ -1170,7 +1168,9 @@ static void toStream(std::ostream& out, const SetBenchmarkLogicCommand* c, bool 
 
 static void toStream(std::ostream& out, const SetInfoCommand* c, bool cvc3Mode) throw() {
   out << "% (set-info " << c->getFlag() << " ";
-  toStream(out, c->getSExpr());
+  OutputLanguage language =
+      cvc3Mode ? language::output::LANG_CVC3 : language::output::LANG_CVC4;
+  SExpr::toStream(out, c->getSExpr(), language);
   out << ")";
 }
 
@@ -1180,7 +1180,7 @@ static void toStream(std::ostream& out, const GetInfoCommand* c, bool cvc3Mode) 
 
 static void toStream(std::ostream& out, const SetOptionCommand* c, bool cvc3Mode) throw() {
   out << "OPTION \"" << c->getFlag() << "\" ";
-  toStream(out, c->getSExpr());
+  SExpr::toStream(out, c->getSExpr(), language::output::LANG_CVC4);
   out << ";";
 }
 

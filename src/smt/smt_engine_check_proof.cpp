@@ -15,15 +15,21 @@
  ** \todo document this file
  **/
 
-#include "smt/smt_engine.h"
-#include "util/statistics_registry.h"
-#include "check.h"
+#include <unistd.h>
 
 #include <cstdlib>
 #include <cstring>
 #include <fstream>
 #include <string>
-#include <unistd.h>
+
+#warning "TODO: Why is lfsc's check.h being included like this?"
+#include "check.h"
+
+#include "base/cvc4_assert.h"
+#include "base/output.h"
+#include "expr/statistics_registry.h"
+#include "smt/smt_engine.h"
+#include "util/configuration_private.h"
 
 using namespace CVC4;
 using namespace std;
@@ -49,7 +55,7 @@ public:
 
 void SmtEngine::checkProof() {
 
-#ifdef CVC4_PROOF
+#if IS_PROOFS_BUILD
 
   Chat() << "generating proof..." << endl;
 
@@ -89,10 +95,10 @@ void SmtEngine::checkProof() {
   check_file(pfFile, a);
   close(fd);
 
-#else /* CVC4_PROOF */
+#else /* IS_PROOFS_BUILD */
 
   Unreachable("This version of CVC4 was built without proof support; cannot check proofs.");
 
-#endif /* CVC4_PROOF */
+#endif /* IS_PROOFS_BUILD */
 
 }

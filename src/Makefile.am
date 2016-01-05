@@ -19,8 +19,9 @@ AM_CPPFLAGS = \
 	-I@builddir@ -I@srcdir@/include -I@srcdir@ -I@top_srcdir@/proofs/lfsc_checker
 AM_CXXFLAGS = -Wall -Wno-unknown-pragmas -Wno-parentheses $(FLAG_VISIBILITY_HIDDEN)
 
-SUBDIRS = lib options expr util prop/minisat prop/bvminisat . parser compat bindings main
-THEORIES = builtin booleans uf arith bv fp arrays datatypes sets strings quantifiers idl
+SUBDIRS = lib base options util expr smt_util prop/minisat prop/bvminisat . parser compat bindings main
+# The THEORIES list has been moved to Makefile.theories
+include @top_srcdir@/src/Makefile.theories
 
 lib_LTLIBRARIES = libcvc4.la
 
@@ -32,6 +33,7 @@ nodist_EXTRA_libcvc4_la_SOURCES = dummy.cpp
 libcvc4_la_SOURCES = \
 	git_versioninfo.cpp \
 	svn_versioninfo.cpp \
+	context/backtrackable.h \
 	context/context.cpp \
 	context/context.h \
 	context/context_mm.cpp \
@@ -55,20 +57,16 @@ libcvc4_la_SOURCES = \
 	context/stacking_map.h \
 	context/stacking_vector.h \
 	context/cddense_set.h \
-	decision/decision_mode.h \
-	decision/decision_mode.cpp \
+	decision/decision_attributes.h \
 	decision/decision_engine.h \
 	decision/decision_engine.cpp \
 	decision/decision_strategy.h \
 	decision/justification_heuristic.h \
 	decision/justification_heuristic.cpp \
-	decision/options_handlers.h \
 	printer/printer.h \
 	printer/printer.cpp \
 	printer/dagification_visitor.h \
 	printer/dagification_visitor.cpp \
-	printer/modes.h \
-	printer/modes.cpp \
 	printer/ast/ast_printer.h \
 	printer/ast/ast_printer.cpp \
 	printer/smt1/smt1_printer.h \
@@ -79,7 +77,6 @@ libcvc4_la_SOURCES = \
 	printer/cvc/cvc_printer.cpp \
 	printer/tptp/tptp_printer.h \
 	printer/tptp/tptp_printer.cpp \
-	printer/options_handlers.h \
 	proof/proof.h \
 	proof/sat_proof.h \
 	proof/sat_proof_implementation.h \
@@ -98,6 +95,8 @@ libcvc4_la_SOURCES = \
 	proof/proof_manager.cpp \
 	proof/proof_utils.h \
 	proof/proof_utils.cpp \
+	proof/unsat_core.cpp \
+	proof/unsat_core.h \
 	prop/registrar.h \
 	prop/prop_engine.cpp \
 	prop/prop_engine.h \
@@ -114,31 +113,29 @@ libcvc4_la_SOURCES = \
 	smt/smt_engine.h \
 	smt/model_postprocessor.cpp \
 	smt/model_postprocessor.h \
+	smt/smt_options_handler.cpp \
+	smt/smt_options_handler.h \
 	smt/smt_engine_scope.cpp \
 	smt/smt_engine_scope.h \
 	smt/command_list.cpp \
 	smt/command_list.h \
-	smt/modal_exception.h \
 	smt/boolean_terms.h \
 	smt/boolean_terms.cpp \
 	smt/logic_exception.h \
 	smt/logic_request.h \
 	smt/logic_request.cpp \
-	smt/simplification_mode.h \
-	smt/simplification_mode.cpp \
-	smt/options_handlers.h \
-	theory/decision_attributes.h \
 	theory/logic_info.h \
 	theory/logic_info.cpp \
 	theory/output_channel.h \
 	theory/interrupted.h \
+	theory/sort_inference.cpp \
+	theory/sort_inference.h \
 	theory/type_enumerator.h \
 	theory/theory_engine.h \
 	theory/theory_engine.cpp \
 	theory/theory_test_utils.h \
 	theory/theory.h \
 	theory/theory.cpp \
-	theory/theoryof_mode.h \
 	theory/theory_registrar.h \
 	theory/rewriter.h \
 	theory/rewriter_attributes.h \
@@ -163,7 +160,6 @@ libcvc4_la_SOURCES = \
 	theory/rep_set.cpp \
 	theory/atom_requests.h \
 	theory/atom_requests.cpp \
-	theory/options_handlers.h \
 	theory/uf/theory_uf.h \
 	theory/uf/theory_uf.cpp \
 	theory/uf/theory_uf_type_rules.h \
@@ -177,7 +173,6 @@ libcvc4_la_SOURCES = \
 	theory/uf/theory_uf_strong_solver.cpp \
 	theory/uf/theory_uf_model.h \
 	theory/uf/theory_uf_model.cpp \
-	theory/uf/options_handlers.h \
 	theory/bv/theory_bv_utils.h \
 	theory/bv/theory_bv_utils.cpp \
 	theory/bv/type_enumerator.h \
@@ -219,9 +214,6 @@ libcvc4_la_SOURCES = \
 	theory/bv/bv_quick_check.cpp \
 	theory/bv/bv_subtheory_algebraic.h \
 	theory/bv/bv_subtheory_algebraic.cpp \
-	theory/bv/options_handlers.h \
-	theory/bv/bitblast_mode.h \
-	theory/bv/bitblast_mode.cpp \
 	theory/bv/bitblast_utils.h \
 	theory/bv/bvintropow2.h \
 	theory/bv/bvintropow2.cpp \
@@ -241,6 +233,7 @@ libcvc4_la_SOURCES = \
 	theory/builtin/theory_builtin.cpp \
 	theory/datatypes/theory_datatypes_type_rules.h \
 	theory/datatypes/type_enumerator.h \
+	theory/datatypes/type_enumerator.cpp \
 	theory/datatypes/theory_datatypes.h \
 	theory/datatypes/datatypes_rewriter.h \
 	theory/datatypes/theory_datatypes.cpp \
@@ -248,7 +241,6 @@ libcvc4_la_SOURCES = \
 	theory/datatypes/datatypes_sygus.cpp \
 	theory/sets/expr_patterns.h \
 	theory/sets/normal_form.h \
-	theory/sets/options_handlers.h \
 	theory/sets/scrutinize.h \
 	theory/sets/term_info.h \
 	theory/sets/theory_sets.cpp \
@@ -296,8 +288,6 @@ libcvc4_la_SOURCES = \
 	theory/quantifiers/inst_match.cpp \
 	theory/quantifiers/model_engine.h \
 	theory/quantifiers/model_engine.cpp \
-	theory/quantifiers/modes.cpp \
-	theory/quantifiers/modes.h \
 	theory/quantifiers/term_database.h \
 	theory/quantifiers/term_database.cpp \
 	theory/quantifiers/first_order_model.h \
@@ -320,8 +310,8 @@ libcvc4_la_SOURCES = \
 	theory/quantifiers/full_model_check.cpp \
 	theory/quantifiers/bounded_integers.h \
 	theory/quantifiers/bounded_integers.cpp \
-	theory/quantifiers/first_order_reasoning.h \
-	theory/quantifiers/first_order_reasoning.cpp \
+	theory/quantifiers/alpha_equivalence.h \
+	theory/quantifiers/alpha_equivalence.cpp \
 	theory/quantifiers/rewrite_engine.h \
 	theory/quantifiers/rewrite_engine.cpp \
 	theory/quantifiers/relevant_domain.h \
@@ -340,11 +330,18 @@ libcvc4_la_SOURCES = \
 	theory/quantifiers/ce_guided_single_inv.cpp \
 	theory/quantifiers/ce_guided_single_inv_sol.h \
 	theory/quantifiers/ce_guided_single_inv_sol.cpp \
+	theory/quantifiers/ce_guided_single_inv_ei.h \
+	theory/quantifiers/ce_guided_single_inv_ei.cpp \
 	theory/quantifiers/local_theory_ext.h \
 	theory/quantifiers/local_theory_ext.cpp \
 	theory/quantifiers/fun_def_process.h \
 	theory/quantifiers/fun_def_process.cpp \
-	theory/quantifiers/options_handlers.h \
+	theory/quantifiers/fun_def_engine.h \
+	theory/quantifiers/fun_def_engine.cpp \
+	theory/quantifiers/quant_equality_engine.h \
+	theory/quantifiers/quant_equality_engine.cpp \
+	theory/quantifiers/ceg_instantiator.h \
+	theory/quantifiers/ceg_instantiator.cpp \
 	theory/arith/theory_arith_type_rules.h \
 	theory/arith/type_enumerator.h \
 	theory/arith/arithvar.h \
@@ -403,17 +400,10 @@ libcvc4_la_SOURCES = \
 	theory/arith/theory_arith_private.cpp \
 	theory/arith/dio_solver.h \
 	theory/arith/dio_solver.cpp \
-	theory/arith/arith_heuristic_pivot_rule.h \
-	theory/arith/arith_heuristic_pivot_rule.cpp \
-	theory/arith/arith_unate_lemma_mode.h \
-	theory/arith/arith_unate_lemma_mode.cpp \
-	theory/arith/arith_propagation_mode.h \
-	theory/arith/arith_propagation_mode.cpp \
 	theory/arith/pseudoboolean_proc.h \
 	theory/arith/pseudoboolean_proc.cpp \
 	theory/arith/cut_log.h \
 	theory/arith/cut_log.cpp \
-	theory/arith/options_handlers.h \
 	theory/booleans/type_enumerator.h \
 	theory/booleans/theory_bool.h \
 	theory/booleans/theory_bool.cpp \
@@ -422,9 +412,6 @@ libcvc4_la_SOURCES = \
 	theory/booleans/theory_bool_rewriter.cpp \
 	theory/booleans/circuit_propagator.h \
 	theory/booleans/circuit_propagator.cpp \
-	theory/booleans/boolean_term_conversion_mode.h \
-	theory/booleans/boolean_term_conversion_mode.cpp \
-	theory/booleans/options_handlers.h \
 	theory/fp/theory_fp.h \
 	theory/fp/theory_fp.cpp \
 	theory/fp/theory_fp_rewriter.h \
@@ -432,15 +419,16 @@ libcvc4_la_SOURCES = \
 	theory/fp/theory_fp_type_rules.h
 
 nodist_libcvc4_la_SOURCES = \
-	smt/smt_options.cpp \
 	theory/rewriter_tables.h \
 	theory/theory_traits.h \
 	theory/type_enumerator.cpp
 
 libcvc4_la_LIBADD = \
+	@builddir@/base/libbase.la \
 	@builddir@/options/liboptions.la \
 	@builddir@/util/libutil.la \
 	@builddir@/expr/libexpr.la \
+	@builddir@/smt_util/libsmtutil.la \
 	@builddir@/prop/minisat/libminisat.la \
 	@builddir@/prop/bvminisat/libbvminisat.la
 if CVC4_PROOF
@@ -467,7 +455,8 @@ endif
 BUILT_SOURCES = \
 	theory/rewriter_tables.h \
 	theory/theory_traits.h \
-	theory/type_enumerator.cpp
+	theory/type_enumerator.cpp \
+	$(top_builddir)/src/.subdirs
 
 CLEANFILES = \
 	svn_versioninfo.cpp \
@@ -478,44 +467,44 @@ CLEANFILES = \
 	gitinfo \
 	theory/rewriter_tables.h \
 	theory/theory_traits.h \
-	theory/type_enumerator.cpp
+	theory/type_enumerator.cpp \
+	$(top_builddir)/src/.subdirs
 
 EXTRA_DIST = \
+	Makefile.theories \
+	cvc4.i \
+	include/cvc4.h \
+	include/cvc4_private.h \
 	include/cvc4_private_library.h \
+	include/cvc4_public.h \
 	include/cvc4parser_private.h \
 	include/cvc4parser_public.h \
-	include/cvc4_private.h \
-	include/cvc4_public.h \
-	include/cvc4.h \
-	cvc4.i \
-	smt/smt_options_template.cpp \
-	smt/modal_exception.i \
+	mksubdirs \
 	smt/logic_exception.i \
 	smt/smt_engine.i \
-	theory/logic_info.i \
-	theory/rewriter_tables_template.h \
-	theory/theory_traits_template.h \
-	theory/type_enumerator_template.cpp \
-	theory/mktheorytraits \
-	theory/mkrewriter \
-	theory/Makefile.subdirs \
-	theory/uf/kinds \
-	theory/bv/kinds \
-	theory/idl/kinds \
+	proof/unsat_core.i \
+	theory/arith/kinds \
+	theory/arrays/kinds \
+	theory/booleans/kinds \
 	theory/builtin/kinds \
+	theory/bv/kinds \
 	theory/datatypes/kinds \
+	theory/example/ecdata.cpp \
+	theory/example/ecdata.h \
+	theory/example/theory_uf_tim.cpp \
+	theory/example/theory_uf_tim.h \
+	theory/fp/kinds \
+	theory/idl/kinds \
+	theory/logic_info.i \
+	theory/mkrewriter \
+	theory/mktheorytraits \
+	theory/quantifiers/kinds \
+	theory/rewriter_tables_template.h \
 	theory/sets/kinds \
 	theory/strings/kinds \
-	theory/arrays/kinds \
-	theory/quantifiers/kinds \
-	theory/arith/kinds \
-	theory/booleans/kinds \
-	theory/example/ecdata.h \
-	theory/example/ecdata.cpp \
-	theory/example/theory_uf_tim.h \
-	theory/example/theory_uf_tim.cpp \
-	theory/fp/kinds \
-	theory/fp/options_handlers.h
+	theory/theory_traits_template.h \
+	theory/type_enumerator_template.cpp \
+	theory/uf/kinds
 
 svn_versioninfo.cpp: svninfo
 	$(AM_V_GEN)( \
@@ -577,7 +566,7 @@ install-data-local:
 	(echo include/cvc4.h; \
 	 echo include/cvc4_public.h; \
 	 echo include/cvc4parser_public.h; \
-	 echo util/tls.h; \
+	 echo base/tls.h; \
 	 echo util/integer.h; \
 	 echo util/rational.h; \
 	 find * -name '*.h' | \
@@ -610,7 +599,7 @@ uninstall-local:
 	-(echo include/cvc4.h; \
 	  echo include/cvc4_public.h; \
 	  echo include/cvc4parser_public.h; \
-	  echo util/tls.h; \
+	  echo base/tls.h; \
 	  echo util/integer.h; \
 	  echo util/rational.h; \
 	  find * -name '*.h' | \
@@ -635,28 +624,39 @@ uninstall-local:
 # fails.
 %.Plo:; $(MKDIR_P) "$(dir $@)" && : > "$@"
 
-include @top_srcdir@/src/theory/Makefile.subdirs
+#include @top_srcdir@/src/theory/Makefile.subdirs
+$(top_builddir)/src/.subdirs: $(top_srcdir)/src/Makefile.theories  @top_srcdir@/src/mksubdirs
+	$(AM_V_at)test -d $(top_builddir)/src || mkdir $(top_builddir)/src
+	$(AM_V_at)chmod +x @top_srcdir@/src/mksubdirs
+	$(AM_V_at)( @top_srcdir@/src/mksubdirs "$(top_srcdir)" ) > $(top_builddir)/src/.subdirs.tmp
+	@if ! diff -q $(top_builddir)/src/.subdirs $(top_builddir)/src/.subdirs.tmp &>/dev/null; then \
+		echo "  GEN   " $@; \
+		$(am__mv) $(top_builddir)/src/.subdirs.tmp $(top_builddir)/src/.subdirs; \
+	fi
 
-theory/rewriter_tables.h: theory/rewriter_tables_template.h theory/mkrewriter @top_builddir@/src/theory/.subdirs @top_srcdir@/src/theory/*/kinds
+theory/rewriter_tables.h: theory/rewriter_tables_template.h theory/mkrewriter @top_builddir@/src/.subdirs @top_srcdir@/src/theory/*/kinds
+	$(AM_V_at)test -d $(top_builddir)/src/theory || mkdir -p @top_builddir@/src/theory
 	$(AM_V_at)chmod +x @srcdir@/theory/mkrewriter
 	$(AM_V_at)$(am__mv) $@ $@~ 2>/dev/null || true
 	$(AM_V_GEN)(@srcdir@/theory/mkrewriter \
 		$< \
-		`cat @top_builddir@/src/theory/.subdirs` \
+		`cat @top_builddir@/src/.subdirs` \
 	> $@) || (rm -f $@ && exit 1)
 
-theory/theory_traits.h: theory/theory_traits_template.h theory/mktheorytraits @top_builddir@/src/theory/.subdirs @top_srcdir@/src/theory/*/kinds
+theory/theory_traits.h: theory/theory_traits_template.h theory/mktheorytraits @top_builddir@/src/.subdirs @top_srcdir@/src/theory/*/kinds
+	$(AM_V_at)test -d $(top_builddir)/src/theory || mkdir -p @top_builddir@/src/theory
 	$(AM_V_at)chmod +x @srcdir@/theory/mktheorytraits
 	$(AM_V_at)$(am__mv) $@ $@~ 2>/dev/null || true
 	$(AM_V_GEN)(@srcdir@/theory/mktheorytraits \
 		$< \
-		`cat @top_builddir@/src/theory/.subdirs` \
+		`cat @top_builddir@/src/.subdirs` \
 	> $@) || (rm -f $@ && exit 1)
 
-theory/type_enumerator.cpp: theory/type_enumerator_template.cpp theory/mktheorytraits @top_builddir@/src/theory/.subdirs @top_srcdir@/src/theory/*/kinds
+theory/type_enumerator.cpp: theory/type_enumerator_template.cpp theory/mktheorytraits @top_builddir@/src/.subdirs @top_srcdir@/src/theory/*/kinds
+	$(AM_V_at)test -d $(top_builddir)/src/theory || mkdir -p @top_builddir@/src/theory
 	$(AM_V_at)chmod +x @srcdir@/theory/mktheorytraits
 	$(AM_V_at)$(am__mv) $@ $@~ 2>/dev/null || true
 	$(AM_V_GEN)(@srcdir@/theory/mktheorytraits \
 		$< \
-		`cat @top_builddir@/src/theory/.subdirs` \
+		`cat @top_builddir@/src/.subdirs` \
 	> $@) || (rm -f $@ && exit 1)

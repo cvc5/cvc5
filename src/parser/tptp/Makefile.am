@@ -15,14 +15,14 @@ ANTLR_OPTS =
 noinst_LTLIBRARIES = libparsertptp.la
 
 ANTLR_TOKEN_STUFF = \
-	generated/Tptp.tokens
+	@builddir@/Tptp.tokens
 ANTLR_LEXER_STUFF = \
-	generated/TptpLexer.h \
-	generated/TptpLexer.c \
+	@builddir@/TptpLexer.h \
+	@builddir@/TptpLexer.c \
 	$(ANTLR_TOKEN_STUFF)
 ANTLR_PARSER_STUFF = \
-	generated/TptpParser.h \
-	generated/TptpParser.c
+	@builddir@/TptpParser.h \
+	@builddir@/TptpParser.c
 ANTLR_STUFF = \
 	$(ANTLR_LEXER_STUFF) \
 	$(ANTLR_PARSER_STUFF)
@@ -36,11 +36,11 @@ libparsertptp_la_SOURCES = \
 	$(ANTLR_STUFF)
 
 BUILT_SOURCES = \
-	generated/Tptp.tokens \
-	generated/TptpLexer.h \
-	generated/TptpLexer.c \
-	generated/TptpParser.h \
-	generated/TptpParser.c \
+	@builddir@/Tptp.tokens \
+	@builddir@/TptpLexer.h \
+	@builddir@/TptpLexer.c \
+	@builddir@/TptpParser.h \
+	@builddir@/TptpParser.c \
 	stamp-generated
 
 EXTRA_DIST = \
@@ -56,13 +56,13 @@ stamp-generated:
 	$(AM_V_at)touch stamp-generated
 
 # antlr doesn't overwrite output files, it just leaves them.  So we have to delete them first.
-generated/TptpLexer.h: Tptp.g stamp-generated
+@builddir@/TptpLexer.h: Tptp.g stamp-generated
 	-$(AM_V_at)rm -f $(ANTLR_STUFF)
 	@if test -z "$(ANTLR)"; then echo "ERROR: antlr parser generator cannot be found, cannot generate the parser" >&2; exit 1; fi
-	$(AM_V_GEN)$(ANTLR) $(ANTLR_OPTS) -fo "generated" "@srcdir@/Tptp.g"
+	$(AM_V_GEN)$(ANTLR) $(ANTLR_OPTS) -fo "@builddir@" "@srcdir@/Tptp.g"
 
 # These don't actually depend on TptpLexer.h, but if we're doing parallel
 # make and the lexer needs to be rebuilt, we have to keep the rules
 # from running in parallel (since the token files will be deleted &
 # recreated)
-generated/TptpLexer.c generated/TptpParser.h generated/TptpParser.c $(ANTLR_TOKEN_STUFF): generated/TptpLexer.h
+@builddir@/TptpLexer.c @builddir@/TptpParser.h @builddir@/TptpParser.c $(ANTLR_TOKEN_STUFF): @builddir@/TptpLexer.h

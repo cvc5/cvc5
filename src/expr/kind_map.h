@@ -23,6 +23,7 @@
 #include <stdint.h>
 #include <iterator>
 
+#include "base/cvc4_assert.h"
 #include "expr/kind.h"
 
 namespace CVC4 {

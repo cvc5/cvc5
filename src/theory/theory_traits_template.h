@@ -21,8 +21,8 @@
 
 #pragma once
 
+#include "options/theory_options.h"
 #include "theory/theory.h"
-#include "theory/options.h"
 
 ${theory_includes}
 

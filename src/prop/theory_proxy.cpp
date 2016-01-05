@@ -14,20 +14,20 @@
  ** [[ Add lengthier description here ]]
  ** \todo document this file
  **/
+#include "prop/theory_proxy.h"
 
+#include "context/context.h"
+#include "decision/decision_engine.h"
+#include "expr/expr_stream.h"
+#include "expr/statistics_registry.h"
+#include "options/decision_options.h"
 #include "prop/cnf_stream.h"
 #include "prop/prop_engine.h"
-#include "prop/theory_proxy.h"
 #include "proof/cnf_proof.h"
-#include "context/context.h"
-#include "theory/theory_engine.h"
+#include "smt_util/lemma_input_channel.h"
+#include "smt_util/lemma_output_channel.h"
 #include "theory/rewriter.h"
-#include "expr/expr_stream.h"
-#include "decision/decision_engine.h"
-#include "decision/options.h"
-#include "util/lemma_input_channel.h"
-#include "util/lemma_output_channel.h"
-#include "util/statistics_registry.h"
+#include "theory/theory_engine.h"
 
 
 namespace CVC4 {
@@ -106,7 +106,7 @@ TNode TheoryProxy::getNode(SatLiteral lit) {
 }
 
 void TheoryProxy::notifyRestart() {
-  d_propEngine->spendResource();
+  d_propEngine->spendResource(options::restartStep());
   d_theoryEngine->notifyRestart();
 
   static uint32_t lemmaCount = 0;
@@ -182,8 +182,8 @@ void TheoryProxy::logDecision(SatLiteral lit) {
 #endif /* CVC4_REPLAY */
 }
 
-void TheoryProxy::spendResource() {
-  d_theoryEngine->spendResource();
+void TheoryProxy::spendResource(unsigned ammount) {
+  d_theoryEngine->spendResource(ammount);
 }
 
 bool TheoryProxy::isDecisionRelevant(SatVariable var) {

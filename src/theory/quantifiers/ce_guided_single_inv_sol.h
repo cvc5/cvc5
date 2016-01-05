@@ -65,6 +65,10 @@ private:
 
   std::map< int, std::vector< int > > d_eqc;
   std::map< int, int > d_rep;
+  
+  //equivalent terms
+  std::map< Node, Node > d_eqt_rep;
+  std::map< Node, std::vector< Node > > d_eqt_eqc;
 
   //cache when reconstructing solutions
   std::vector< int > d_tmp_fail;
@@ -78,8 +82,13 @@ private:
   bool collectReconstructNodes( int pid, std::vector< Node >& ts, const DatatypeConstructor& dtc, std::vector< int >& ids, int& status );
   bool getPathToRoot( int id );
   void setReconstructed( int id, Node n );
+  //get equivalent terms to n with top symbol k
+  void getEquivalentTerms( Kind k, Node n, std::vector< Node >& equiv );
+  //register equivalent terms
+  void registerEquivalentTerms( Node n );
 public:
   Node reconstructSolution( Node sol, TypeNode stn, int& reconstructed );
+  void preregisterConjecture( Node q );
 public:
   CegConjectureSingleInvSol( QuantifiersEngine * qe );
 };

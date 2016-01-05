@@ -20,12 +20,12 @@
 #include <limits.h>
 #include <sstream>
 
-#include "expr/node_builder.h"
+#include "base/cvc4_assert.h"
 #include "expr/convenience_node_builders.h"
-#include "expr/node_manager.h"
-#include "expr/node.h"
 #include "expr/kind.h"
-#include "util/cvc4_assert.h"
+#include "expr/node.h"
+#include "expr/node_builder.h"
+#include "expr/node_manager.h"
 #include "util/rational.h"
 
 using namespace CVC4;

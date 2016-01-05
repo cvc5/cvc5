@@ -15,28 +15,30 @@
  ** \todo document this file
  **/
 
+#include "context/context.h"
+
 #include "proof/proof_manager.h"
-#include "util/proof.h"
-#include "proof/sat_proof_implementation.h"
 #include "proof/cnf_proof.h"
 #include "proof/theory_proof.h"
 #include "proof/bitvector_proof.h"
 #include "proof/rewriter_proof.h"
 #include "proof/proof_utils.h"
+#include "proof/sat_proof_implementation.h"
 
-#include "util/cvc4_assert.h"
+#include "util/proof.h"
+#include "util/hash.h"
+
+#include "base/cvc4_assert.h"
 #include "smt/smt_engine.h"
 #include "smt/smt_engine_scope.h"
-#include "theory/output_channel.h"
-#include "theory/valuation.h"
-#include "util/node_visitor.h"
-#include "theory/term_registration_visitor.h"
-#include "theory/uf/theory_uf.h"
-#include "theory/uf/equality_engine.h"
+#include "smt_util/node_visitor.h"
 #include "theory/arrays/theory_arrays.h"
-#include "theory/bv/options.h"
-#include "context/context.h"
-#include "util/hash.h"
+#include "theory/output_channel.h"
+#include "theory/term_registration_visitor.h"
+#include "theory/uf/equality_engine.h"
+#include "theory/uf/theory_uf.h"
+#include "theory/valuation.h"
+
 
 namespace CVC4 {
 

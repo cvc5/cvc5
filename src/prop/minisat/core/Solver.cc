@@ -22,20 +22,22 @@ OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWA
 
 #include <iostream>
 
-#include "prop/minisat/mtl/Sort.h"
-#include "prop/minisat/core/Solver.h"
-
-#include "prop/theory_proxy.h"
-#include "prop/minisat/minisat.h"
-#include "prop/options.h"
-#include "util/output.h"
-#include "expr/command.h"
+#include "base/output.h"
+#include "options/prop_options.h"
 #include "proof/proof_manager.h"
 #include "proof/sat_proof_implementation.h"
+#include "proof/sat_proof.h"
+#include "prop/minisat/core/Solver.h"
+#include "prop/minisat/minisat.h"
+#include "prop/minisat/mtl/Sort.h"
+#include "prop/theory_proxy.h"
+#include "smt_util/command.h"
 
-using namespace Minisat;
-using namespace CVC4;
+
 using namespace CVC4::prop;
+
+namespace CVC4 {
+namespace Minisat {
 
 //=================================================================================================
 // Options:
@@ -405,8 +407,13 @@ bool Solver::addClause_(vec<Lit>& ps, bool removable, ClauseId& id)
           CRef confl = propagate(CHECK_WITHOUT_THEORY);
           if(! (ok = (confl == CRef_Undef)) ) {
             if(ca[confl].size() == 1) {
+<<<<<<< HEAD
               PROOF( id = ProofManager::getSatProof()->storeUnitConflict(ca[confl][0], LEARNT); );
               PROOF( ProofManager::getSatProof()->finalizeProof(::Minisat::CRef_Lazy); )
+=======
+              PROOF( ProofManager::getSatProof()->storeUnitConflict(ca[confl][0], LEARNT, proof_id); );
+              PROOF( ProofManager::getSatProof()->finalizeProof(CVC4::Minisat::CRef_Lazy); )
+>>>>>>> 541c88a37f0880d7ea42a1aaa3a8688fc86ac811
             } else {
               PROOF( ProofManager::getSatProof()->finalizeProof(confl); );
             }
@@ -1249,7 +1256,8 @@ lbool Solver::search(int nof_conflicts)
               check_type = CHECK_WITH_THEORY;
             }
 
-            if (nof_conflicts >= 0 && conflictC >= nof_conflicts || !withinBudget()) {
+            if (nof_conflicts >= 0 && conflictC >= nof_conflicts ||
+                !withinBudget(options::satConflictStep())) {
                 // Reached bound on number of conflicts:
                 progress_estimate = progressEstimate();
                 cancelUntil(0);
@@ -1387,11 +1395,11 @@ lbool Solver::solve_()
     while (status == l_Undef){
         double rest_base = luby_restart ? luby(restart_inc, curr_restarts) : pow(restart_inc, curr_restarts);
         status = search(rest_base * restart_first);
-        if (!withinBudget()) break;
+        if (!withinBudget(options::satConflictStep())) break; // FIXME add restart option?
         curr_restarts++;
     }
 
-    if(!withinBudget())
+    if(!withinBudget(options::satConflictStep()))
         status = l_Undef;
 
     if (verbosity >= 1)
@@ -1643,7 +1651,7 @@ CRef Solver::updateLemmas() {
   Debug("minisat::lemmas") << "Solver::updateLemmas() begin" << std::endl;
 
   // Avoid adding lemmas indefinitely without resource-out
-  proxy->spendResource();
+  proxy->spendResource(options::lemmaStep());
 
   CRef conflict = CRef_Undef;
 
@@ -1781,6 +1789,7 @@ CRef Solver::updateLemmas() {
   return conflict;
 }
 
+<<<<<<< HEAD
 void ClauseAllocator::reloc(CRef& cr, ClauseAllocator& to, CVC4::CoreProofProxy* proxy)
 {
  
@@ -1804,13 +1813,20 @@ void ClauseAllocator::reloc(CRef& cr, ClauseAllocator& to, CVC4::CoreProofProxy*
 }
 
 inline bool Solver::withinBudget() const {
+=======
+inline bool Solver::withinBudget(uint64_t ammount) const {
+>>>>>>> 541c88a37f0880d7ea42a1aaa3a8688fc86ac811
   Assert (proxy);
   // spendResource sets async_interrupt or throws UnsafeInterruptException
   // depending on whether hard-limit is enabled
-  proxy->spendResource();
+  proxy->spendResource(ammount);
 
   bool within_budget =  !asynch_interrupt &&
     (conflict_budget    < 0 || conflicts < (uint64_t)conflict_budget) &&
     (propagation_budget < 0 || propagations < (uint64_t)propagation_budget);
   return within_budget;
 }
+
+
+} /* CVC4::Minisat namespace */
+} /* CVC4 namespace */

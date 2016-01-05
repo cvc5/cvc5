@@ -19,14 +19,14 @@
 #ifndef __CVC4__THEORY__QUANTIFIERS__THEORY_QUANTIFIERS_H
 #define __CVC4__THEORY__QUANTIFIERS__THEORY_QUANTIFIERS_H
 
-#include "context/cdhashmap.h"
-#include "theory/theory.h"
-#include "util/hash.h"
-#include "util/statistics_registry.h"
-
 #include <ext/hash_set>
 #include <iostream>
 #include <map>
+
+#include "context/cdhashmap.h"
+#include "expr/statistics_registry.h"
+#include "theory/theory.h"
+#include "util/hash.h"
 
 namespace CVC4 {
 class TheoryEngine;

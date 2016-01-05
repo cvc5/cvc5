@@ -53,7 +53,7 @@
 
 #pragma once
 
-#include "util/statistics_registry.h"
+#include "expr/statistics_registry.h"
 #include "theory/arith/simplex.h"
 #include "theory/arith/approx_simplex.h"
 

@@ -21,9 +21,8 @@
 
 #include "expr/node_manager.h"
 #include "expr/node_manager_attributes.h"
-
-#include "util/rational.h"
 #include "util/integer.h"
+#include "util/rational.h"
 
 using namespace CVC4;
 using namespace CVC4::expr;

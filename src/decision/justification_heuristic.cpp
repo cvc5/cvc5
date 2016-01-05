@@ -16,17 +16,16 @@
  **
  ** It needs access to the simplified but non-clausal formula.
  **/
-
 #include "justification_heuristic.h"
 
-#include "expr/node_manager.h"
 #include "expr/kind.h"
+#include "expr/node_manager.h"
+#include "options/decision_options.h"
 #include "theory/rewriter.h"
-#include "decision/options.h"
-#include "util/ite_removal.h"
+#include "smt_util/ite_removal.h"
 
 
-using namespace CVC4;
+namespace CVC4 {
 
 JustificationHeuristic::JustificationHeuristic(CVC4::DecisionEngine* de,
                                                context::UserContext *uc,
@@ -297,7 +296,7 @@ DecisionWeight JustificationHeuristic::getWeightPolarized(TNode n, bool polarity
 }
 
 DecisionWeight JustificationHeuristic::getWeight(TNode n) {
-  if(!n.hasAttribute(theory::DecisionWeightAttr()) ) {
+  if(!n.hasAttribute(DecisionWeightAttr()) ) {
 
     DecisionWeightInternal combiningFn =
       options::decisionWeightInternal();
@@ -305,7 +304,7 @@ DecisionWeight JustificationHeuristic::getWeight(TNode n) {
     if(combiningFn == DECISION_WEIGHT_INTERNAL_OFF || n.getNumChildren() == 0) {
 
       if(options::decisionRandomWeight() != 0) {
-        n.setAttribute(theory::DecisionWeightAttr(), rand() % options::decisionRandomWeight());
+        n.setAttribute(DecisionWeightAttr(), rand() % options::decisionRandomWeight());
       }
 
     } else if(combiningFn == DECISION_WEIGHT_INTERNAL_MAX) {
@@ -313,21 +312,21 @@ DecisionWeight JustificationHeuristic::getWeight(TNode n) {
       DecisionWeight dW = 0;
       for(TNode::iterator i=n.begin(); i != n.end(); ++i)
         dW = max(dW, getWeight(*i));
-      n.setAttribute(theory::DecisionWeightAttr(), dW);
+      n.setAttribute(DecisionWeightAttr(), dW);
 
     } else if(combiningFn == DECISION_WEIGHT_INTERNAL_SUM ||
               combiningFn == DECISION_WEIGHT_INTERNAL_USR1) {
       DecisionWeight dW = 0;
       for(TNode::iterator i=n.begin(); i != n.end(); ++i)
         dW = max(dW, getWeight(*i));
-      n.setAttribute(theory::DecisionWeightAttr(), dW);
+      n.setAttribute(DecisionWeightAttr(), dW);
 
     } else {
       Unreachable();
     }
 
   }
-  return n.getAttribute(theory::DecisionWeightAttr());
+  return n.getAttribute(DecisionWeightAttr());
 }
 
 typedef vector<TNode> ChildList;
@@ -711,3 +710,5 @@ JustificationHeuristic::SearchResult JustificationHeuristic::handleEmbeddedITEs(
   }
   return noSplitter ? NO_SPLITTER : DONT_KNOW;
 }
+
+} /* namespace CVC4 */

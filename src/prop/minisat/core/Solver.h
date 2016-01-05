@@ -23,18 +23,18 @@ OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWA
 
 #include "cvc4_private.h"
 
-#include <iostream>
+#include <iosfwd>
 
-#include "prop/minisat/mtl/Vec.h"
-#include "prop/minisat/mtl/Heap.h"
-#include "prop/minisat/mtl/Alg.h"
-#include "prop/minisat/utils/Options.h"
-#include "prop/minisat/core/SolverTypes.h"
-
+#include "base/output.h"
 #include "context/context.h"
+#include "prop/minisat/core/SolverTypes.h"
+#include "prop/minisat/mtl/Alg.h"
+#include "prop/minisat/mtl/Heap.h"
+#include "prop/minisat/mtl/Vec.h"
+#include "prop/minisat/utils/Options.h"
+#include "smt_util/command.h"
 #include "theory/theory.h"
-#include "util/output.h"
-#include "expr/command.h"
+
 
 namespace CVC4 {
 template <class Solvar> class TSatProof;
@@ -44,9 +44,9 @@ namespace prop {
 }/* CVC4::prop namespace */
 }/* CVC4 namespace */
 
-
 typedef unsigned ClauseId;
 
+namespace CVC4 {
 namespace Minisat {
 
 //=================================================================================================
@@ -439,7 +439,7 @@ protected:
     int      trail_index      (Var x) const; // Index in the trail
     double   progressEstimate ()      const; // DELETE THIS ?? IT'S NOT VERY USEFUL ...
 public:
-    bool     withinBudget     ()      const;
+    bool     withinBudget     (uint64_t amount)      const;
 protected:
 
     // Static helpers:
@@ -572,6 +572,7 @@ inline void     Solver::toDimacs     (const char* file, Lit p, Lit q, Lit r){ ve
 
 
 //=================================================================================================
-}/* Minisat namespace */
+} /* CVC4::Minisat namespace */
+} /* CVC4 namespace */
 
 #endif

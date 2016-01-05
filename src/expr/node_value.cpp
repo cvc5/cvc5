@@ -17,15 +17,17 @@
  ** cvc4::Node rather than by pointer; cvc4::Node maintains the
  ** reference count on NodeValue instances and
  **/
-
 #include "expr/node_value.h"
-#include "expr/node.h"
+
+#include <sstream>
+
 #include "expr/kind.h"
 #include "expr/metakind.h"
-#include "util/language.h"
+#include "expr/node.h"
+#include "options/base_options.h"
+#include "options/language.h"
 #include "options/options.h"
 #include "printer/printer.h"
-#include <sstream>
 
 using namespace std;
 
