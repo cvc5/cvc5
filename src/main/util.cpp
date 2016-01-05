@@ -44,7 +44,7 @@ using namespace std;
 namespace CVC4 {
 
 #ifdef CVC4_DEBUG
-  extern CVC4_THREADLOCAL(const char*) s_debugLastException;
+//extern CVC4_THREADLOCAL(const char*) s_debugLastException;
 #endif /* CVC4_DEBUG */
 
 namespace main {
@@ -167,12 +167,14 @@ void cvc4unexpected() {
           "CVC4 threw an \"unexpected\" exception (one that wasn't properly "
           "specified\nin the throws() specifier for the throwing function)."
           "\n\n");
-  if(CVC4::s_debugLastException == NULL) {
+
+  const char* lastContents = LastExceptionBuffer::currentContents();
+
+  if(lastContents == NULL) {
     fprintf(stderr,
             "The exception is unknown (maybe it's not a CVC4::Exception).\n\n");
   } else {
-    fprintf(stderr, "The exception is:\n%s\n\n",
-            static_cast<const char*>(CVC4::s_debugLastException));
+    fprintf(stderr, "The exception is:\n%s\n\n", lastContents);
   }
   if(!segvSpin) {
     if((*pOptions)[options::statistics] && pExecutor != NULL) {
@@ -201,6 +203,10 @@ void cvc4unexpected() {
 void cvc4terminate() {
   set_terminate(default_terminator);
 #ifdef CVC4_DEBUG
+  LastExceptionBuffer* current = LastExceptionBuffer::getCurrent();
+   LastExceptionBuffer::setCurrent(NULL);
+  delete current;
+
   fprintf(stderr, "\n"
           "CVC4 was terminated by the C++ runtime.\n"
           "Perhaps an exception was thrown during stack unwinding.  "
@@ -224,6 +230,10 @@ void cvc4terminate() {
 
 /** Initialize the driver.  Sets signal handlers for SIGINT and SIGSEGV. */
 void cvc4_init() throw(Exception) {
+#ifdef CVC4_DEBUG
+  LastExceptionBuffer::setCurrent(new LastExceptionBuffer());
+#endif
+
 #ifndef __WIN32__
   stack_t ss;
   ss.ss_sp = malloc(SIGSTKSZ);

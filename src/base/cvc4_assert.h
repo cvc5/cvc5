@@ -235,8 +235,6 @@ public:
 
 #ifdef CVC4_DEBUG
 
-extern CVC4_THREADLOCAL(const char*) s_debugLastException;
-
 /**
  * Special assertion failure handling in debug mode; in non-debug
  * builds, the exception is thrown from the macro.  We factor out this
@@ -254,9 +252,12 @@ void debugAssertionFailed(const AssertionException& thisException, const char* l
 // details of the exception
 #  define AlwaysAssert(cond, msg...)                                    \
     do {                                                                \
-      if(__builtin_expect( ( ! (cond) ), false )) {                                    \
+      if(__builtin_expect( ( ! (cond) ), false )) {                     \
         /* save the last assertion failure */                           \
-        const char* lastException = ::CVC4::s_debugLastException;       \
+        ::CVC4::LastExceptionBuffer* buffer =                           \
+            ::CVC4::LastExceptionBuffer::getCurrent();                  \
+        const char* lastException = (buffer == NULL) ?                  \
+            NULL : buffer->getContents();                               \
         ::CVC4::AssertionException exception(#cond, __PRETTY_FUNCTION__, __FILE__, __LINE__, ## msg); \
         ::CVC4::debugAssertionFailed(exception, lastException);         \
       }                                                                 \

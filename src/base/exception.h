@@ -27,6 +27,8 @@
 #include <stdexcept>
 #include <string>
 
+#include "base/tls.h"
+
 namespace CVC4 {
 
 class CVC4_PUBLIC Exception : public std::exception {
@@ -136,6 +138,30 @@ template <class T> inline void CheckArgument(bool cond, const T& arg) {
   } \
 }
 
+class CVC4_PUBLIC LastExceptionBuffer {
+public:
+  LastExceptionBuffer();
+  ~LastExceptionBuffer();
+
+  void setContents(const char* string);
+  const char* getContents() const { return d_contents; }
+
+  static LastExceptionBuffer* getCurrent() { return s_currentBuffer; }
+  static void setCurrent(LastExceptionBuffer* buffer) { s_currentBuffer = buffer; }
+
+  static const char* currentContents() {
+    return (getCurrent() == NULL) ? NULL : getCurrent()->getContents();
+  }
+
+private:
+  /* Disallow copies */
+  LastExceptionBuffer(const LastExceptionBuffer&) CVC4_UNUSED;
+  LastExceptionBuffer& operator=(const LastExceptionBuffer&) CVC4_UNUSED;
+
+  char* d_contents;
+
+  static CVC4_THREADLOCAL(LastExceptionBuffer*) s_currentBuffer;
+}; /* class LastExceptionBuffer */
 
 }/* CVC4 namespace */
 

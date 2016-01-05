@@ -26,8 +26,9 @@ using namespace std;
 namespace CVC4 {
 
 #ifdef CVC4_DEBUG
-CVC4_THREADLOCAL(const char*) s_debugLastException = NULL;
+//CVC4_THREADLOCAL(const char*) s_debugLastException = NULL;
 #endif /* CVC4_DEBUG */
+
 
 void AssertionException::construct(const char* header, const char* extra,
                                    const char* function, const char* file,
@@ -71,13 +72,14 @@ void AssertionException::construct(const char* header, const char* extra,
   setMessage(string(buf));
 
 #ifdef CVC4_DEBUG
-  if(s_debugLastException == NULL) {
-    // we leak buf[] but only in debug mode with assertions failing
-    s_debugLastException = buf;
+  LastExceptionBuffer* buffer = LastExceptionBuffer::getCurrent();
+  if(buffer != NULL){
+    if(buffer->getContents() == NULL) {
+      buffer->setContents(buf);
+    }
   }
-#else /* CVC4_DEBUG */
-  delete [] buf;
 #endif /* CVC4_DEBUG */
+  delete [] buf;
 }
 
 void AssertionException::construct(const char* header, const char* extra,
@@ -111,14 +113,16 @@ void AssertionException::construct(const char* header, const char* extra,
 
   setMessage(string(buf));
 
+
 #ifdef CVC4_DEBUG
-  // we leak buf[] but only in debug mode with assertions failing
-  if(s_debugLastException == NULL) {
-    s_debugLastException = buf;
+  LastExceptionBuffer* buffer = LastExceptionBuffer::getCurrent();
+  if(buffer != NULL){
+    if(buffer->getContents() == NULL) {
+      buffer->setContents(buf);
+    }
   }
-#else /* CVC4_DEBUG */
-  delete [] buf;
 #endif /* CVC4_DEBUG */
+  delete [] buf;
 }
 
 #ifdef CVC4_DEBUG
