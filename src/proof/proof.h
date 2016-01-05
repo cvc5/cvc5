@@ -32,6 +32,9 @@
 #  define PROOF(x)
 #  define NULLPROOF(x) NULL
 #  define PROOF_ON() false
+#  define THEORY_PROOF(x) 
+#  define THEORY_NULLPROOF(x) NULL
+#  define THEORY_PROOF_ON() false
 #endif /* CVC4_PROOF */
 
 #ifdef CVC4_PROOF_STATS /* CVC4_PROOF_STATS */

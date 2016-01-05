@@ -41,68 +41,68 @@ RewriterProof::~RewriterProof() {
 void RewriterProof::finalizeRewrite(Expr from, Expr to) {
   //FIXME!!!!!
   return;
-  Debug("proof-rewrite") << "RewriterProof::finalizeRewriteProof: " << from <<" => " << to<<"\n"; 
-  Assert (from != to);
-  if (d_rewriteStack.empty()) {
-    // this means that we need to do an identity op rewrite
-    Assert (from.getNumChildren() == to.getNumChildren() &&
-            from.getKind() == to.getKind());
-    Assert (from.getNumChildren() > 0);
+  // Debug("proof-rewrite") << "RewriterProof::finalizeRewriteProof: " << from <<" => " << to<<"\n"; 
+  // Assert (from != to);
+  // if (d_rewriteStack.empty()) {
+  //   // this means that we need to do an identity op rewrite
+  //   Assert (from.getNumChildren() == to.getNumChildren() &&
+  //           from.getKind() == to.getKind());
+  //   Assert (from.getNumChildren() > 0);
 
-    // make sure we have the corresponding children proofs
-    for (unsigned i = 0; i < from.getNumChildren(); ++i) {
-      if (hasRewrite(from[i], to[i]))
-          continue;
+  //   // make sure we have the corresponding children proofs
+  //   for (unsigned i = 0; i < from.getNumChildren(); ++i) {
+  //     if (hasRewrite(from[i], to[i]))
+  //         continue;
 
-      Assert (from[i] == to[i]); // FIXME: use mkProof<IdentityRewrite> template that stores the proof
-      RewriteProof* pf = new IdentityRewriteProof(from[i]);
-    }
-    RewriteProof* pf = new IdentityOpRewriteProof(from, to);
-    return;
-  }
+  //     Assert (from[i] == to[i]); // FIXME: use mkProof<IdentityRewrite> template that stores the proof
+  //     RewriteProof* pf = new IdentityRewriteProof(from[i]);
+  //   }
+  //   RewriteProof* pf = new IdentityOpRewriteProof(from, to);
+  //   return;
+  // }
   
-  // we don't need to add a separate rewrite proof for this
-  if (d_rewriteStack.size() == 1) {
-    RewriteProof* rule = d_rewriteStack[0];
-    Assert (rule->from() == from && rule->to() == to);
-    return;
-  }
+  // // we don't need to add a separate rewrite proof for this
+  // if (d_rewriteStack.size() == 1) {
+  //   RewriteProof* rule = d_rewriteStack[0];
+  //   Assert (rule->from() == from && rule->to() == to);
+  //   return;
+  // }
 
-  RewriteProof* prev = d_rewriteStack[0];
-  Assert (prev->from() == from);
-  for (unsigned i = 1; i < d_rewriteStack.size(); ++i) {
-    RewriteProof* curr = d_rewriteStack[i];
-    RewriteProof* trans = new TransitivityRewriteProof(prev, curr);
-    prev = curr;
-  }
-  Assert (prev->to() == to);
+  // RewriteProof* prev = d_rewriteStack[0];
+  // Assert (prev->from() == from);
+  // for (unsigned i = 1; i < d_rewriteStack.size(); ++i) {
+  //   RewriteProof* curr = d_rewriteStack[i];
+  //   RewriteProof* trans = new TransitivityRewriteProof(prev, curr);
+  //   prev = curr;
+  // }
+  // Assert (prev->to() == to);
 }
 
 void RewriterProof::pushRewriteRule(Expr from, Expr to, RewriteTag tag) {
   //FIXME!!!!
   return;
 
-  Debug("proof-rewrite") << "RewriterProof::pushRewriteRule " << tag <<"\n";
-  Debug("proof-rewrite") << "      " << from <<" => " << to<<"\n"; 
-  RewriteProof* pf = NULL;
-  switch (tag) {
-  case BvXnorEliminate:
-  case BvXorZero:
-  case BvXorOne:
-  case EqReflexivity:
-    // FIXME will this always be identity?
-    // if yes can change the "leaf" rewrites
-    pf = new BvRewriteOp2Proof(tag, new IdentityRewriteProof(from[0]),
-                                    new IdentityRewriteProof(from[1]));
-    break;
-  case BvNotIdemp:
-    pf = new BvRewriteOp1Proof(tag, new IdentityRewriteProof(from[0]));
-    break;
-  default:
-    Unreachable("Should not push this rewrite rule: ", tag);
-  }
-  Assert (pf != NULL);
-  d_rewriteStack.push_back(pf);
+  // Debug("proof-rewrite") << "RewriterProof::pushRewriteRule " << tag <<"\n";
+  // Debug("proof-rewrite") << "      " << from <<" => " << to<<"\n"; 
+  // RewriteProof* pf = NULL;
+  // switch (tag) {
+  // case BvXnorEliminate:
+  // case BvXorZero:
+  // case BvXorOne:
+  // case EqReflexivity:
+  //   // FIXME will this always be identity?
+  //   // if yes can change the "leaf" rewrites
+  //   pf = new BvRewriteOp2Proof(tag, new IdentityRewriteProof(from[0]),
+  //                                   new IdentityRewriteProof(from[1]));
+  //   break;
+  // case BvNotIdemp:
+  //   pf = new BvRewriteOp1Proof(tag, new IdentityRewriteProof(from[0]));
+  //   break;
+  // default:
+  //   Unreachable("Should not push this rewrite rule: ", tag);
+  // }
+  // Assert (pf != NULL);
+  // d_rewriteStack.push_back(pf);
 }
 
 void RewriterProof::registerRewriteProof(RewriteProof* proof) {
