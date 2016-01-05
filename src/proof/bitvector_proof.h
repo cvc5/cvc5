@@ -49,10 +49,10 @@ template <class T> class TBitblaster;
 class CnfProof;
 
 template <class Solver> class TSatProof;
-typedef TSatProof< ::BVMinisat::Solver> BVSatProof;
+typedef TSatProof< CVC4::BVMinisat::Solver> BVSatProof;
 
 template <class Solver> class LFSCSatProof;
-typedef LFSCSatProof< ::BVMinisat::Solver> LFSCBVSatProof;
+typedef LFSCSatProof< CVC4::BVMinisat::Solver> LFSCBVSatProof;
 
 typedef __gnu_cxx::hash_set<Expr, ExprHashFunction> ExprSet;
 typedef __gnu_cxx::hash_map<Expr, ClauseId, ExprHashFunction> ExprToClauseId;
@@ -88,7 +88,7 @@ protected:
 public:
   BitVectorProof(theory::bv::TheoryBV* bv, TheoryProofEngine* proofEngine);
 
-  void initSatProof(::BVMinisat::Solver* solver);
+  void initSatProof(CVC4::BVMinisat::Solver* solver);
   void initCnfProof(prop::CnfStream* cnfStream, context::Context* ctx);
   void setBitblaster(theory::bv::TBitblaster<Node>* bb);
 
@@ -96,8 +96,8 @@ public:
   CnfProof* getCnfProof() {return d_cnfProof; }
   void finalizeConflicts(std::vector<Expr>& conflicts);
 
-  void startBVConflict(::BVMinisat::Solver::TCRef cr);
-  void startBVConflict(::BVMinisat::Solver::TLit lit);
+  void startBVConflict(CVC4::BVMinisat::Solver::TCRef cr);
+  void startBVConflict(CVC4::BVMinisat::Solver::TLit lit);
   /**
    * All the
    *

@@ -53,7 +53,7 @@ const ClauseId ClauseIdError(-3);
 
 class Proof;
 template <class Solver> class TSatProof; 
-typedef TSatProof< ::Minisat::Solver> CoreSatProof;
+typedef TSatProof< CVC4::Minisat::Solver> CoreSatProof;
 
 class CnfProof;
 class RewriterProof;
@@ -64,7 +64,7 @@ class ArrayProof;
 class BitVectorProof;
 
 template <class Solver> class LFSCSatProof; 
-typedef LFSCSatProof< ::Minisat::Solver> LFSCCoreSatProof;
+typedef LFSCSatProof< CVC4::Minisat::Solver> LFSCCoreSatProof;
 
 class LFSCCnfProof;
 class LFSCTheoryProofEngine;
@@ -73,8 +73,8 @@ class LFSCBitVectorProof;
 class LFSCRewriterProof;
 
 template <class Solver> class ProofProxy;
-typedef ProofProxy< ::Minisat::Solver> CoreProofProxy;
-typedef ProofProxy< ::BVMinisat::Solver> BVProofProxy; 
+typedef ProofProxy< CVC4::Minisat::Solver> CoreProofProxy;
+typedef ProofProxy< CVC4::BVMinisat::Solver> BVProofProxy; 
 
 namespace prop {
   typedef uint64_t SatVariable;

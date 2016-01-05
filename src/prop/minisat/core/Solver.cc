@@ -362,7 +362,7 @@ bool Solver::addClause_(vec<Lit>& ps, bool removable, ClauseId& id)
           // as the final conflict.
           if(falseLiteralsCount == 1) {
             PROOF( id = ProofManager::getSatProof()->storeUnitConflict(ps[0], INPUT); )
-            PROOF( ProofManager::getSatProof()->finalizeProof(::Minisat::CRef_Lazy); )
+            PROOF( ProofManager::getSatProof()->finalizeProof(CVC4::Minisat::CRef_Lazy); )
             return ok = false;
           }
         } else {
@@ -407,13 +407,8 @@ bool Solver::addClause_(vec<Lit>& ps, bool removable, ClauseId& id)
           CRef confl = propagate(CHECK_WITHOUT_THEORY);
           if(! (ok = (confl == CRef_Undef)) ) {
             if(ca[confl].size() == 1) {
-<<<<<<< HEAD
               PROOF( id = ProofManager::getSatProof()->storeUnitConflict(ca[confl][0], LEARNT); );
-              PROOF( ProofManager::getSatProof()->finalizeProof(::Minisat::CRef_Lazy); )
-=======
-              PROOF( ProofManager::getSatProof()->storeUnitConflict(ca[confl][0], LEARNT, proof_id); );
               PROOF( ProofManager::getSatProof()->finalizeProof(CVC4::Minisat::CRef_Lazy); )
->>>>>>> 541c88a37f0880d7ea42a1aaa3a8688fc86ac811
             } else {
               PROOF( ProofManager::getSatProof()->finalizeProof(confl); );
             }
@@ -1789,7 +1784,6 @@ CRef Solver::updateLemmas() {
   return conflict;
 }
 
-<<<<<<< HEAD
 void ClauseAllocator::reloc(CRef& cr, ClauseAllocator& to, CVC4::CoreProofProxy* proxy)
 {
  
@@ -1812,10 +1806,7 @@ void ClauseAllocator::reloc(CRef& cr, ClauseAllocator& to, CVC4::CoreProofProxy*
   else if (to[cr].has_extra()) to[cr].calcAbstraction();
 }
 
-inline bool Solver::withinBudget() const {
-=======
 inline bool Solver::withinBudget(uint64_t ammount) const {
->>>>>>> 541c88a37f0880d7ea42a1aaa3a8688fc86ac811
   Assert (proxy);
   // spendResource sets async_interrupt or throws UnsafeInterruptException
   // depending on whether hard-limit is enabled

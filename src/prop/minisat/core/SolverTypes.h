@@ -169,24 +169,20 @@ inline std::ostream& operator <<(std::ostream& out, Minisat::lbool val) {
 }
 
 
-} /* Minisat */
-}
-
-namespace Minisat{
 class Solver;
-}
 
-namespace CVC4 {
 class ProofProxyAbstract {
 public:
   virtual ~ProofProxyAbstract() {}
   virtual void updateCRef(Minisat::CRef oldref, Minisat::CRef newref) = 0; 
 };
 }
+}
+
 
 namespace CVC4 {
 template <class Solver> class ProofProxy;
-typedef ProofProxy<Minisat::Solver> CoreProofProxy;
+typedef ProofProxy<CVC4::Minisat::Solver> CoreProofProxy;
 } 
 
 namespace CVC4 {

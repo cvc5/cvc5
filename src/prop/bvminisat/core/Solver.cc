@@ -272,7 +272,7 @@ bool Solver::addClause_(vec<Lit>& ps, ClauseId& id)
       // we are in a conflicting state
       if (ps.size() == falseLiteralsCount && falseLiteralsCount == 1) {
         if(d_bvp){ id = d_bvp->getSatProof()->storeUnitConflict(ps[0], INPUT); }
-        if(d_bvp){ d_bvp->getSatProof()->finalizeProof(::BVMinisat::CRef_Lazy); }
+        if(d_bvp){ d_bvp->getSatProof()->finalizeProof(CVC4::BVMinisat::CRef_Lazy); }
         return ok = false;
       }
 
@@ -303,7 +303,7 @@ bool Solver::addClause_(vec<Lit>& ps, ClauseId& id)
           if(d_bvp){
             if(ca[confl].size() == 1) {
               id = d_bvp->getSatProof()->storeUnitConflict(ca[confl][0], LEARNT);
-              d_bvp->getSatProof()->finalizeProof(::BVMinisat::CRef_Lazy);
+              d_bvp->getSatProof()->finalizeProof(CVC4::BVMinisat::CRef_Lazy);
             } else {
               d_bvp->getSatProof()->finalizeProof(confl);
             }

@@ -23,6 +23,7 @@
 #include <ext/hash_map>
 #include <sstream>
 #include "expr/expr.h"
+#include "base/cvc4_assert.h"
 
 namespace CVC4 {
 

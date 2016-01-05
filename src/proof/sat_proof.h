@@ -29,7 +29,7 @@
 #include "expr/expr.h"
 #include "proof/proof_manager.h"
 #include "util/proof.h"
-#include "util/statistics_registry.h"
+#include "expr/statistics_registry.h"
 
 
 namespace CVC4 {

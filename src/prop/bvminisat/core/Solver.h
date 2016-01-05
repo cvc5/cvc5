@@ -27,6 +27,7 @@ OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWA
 #include "prop/bvminisat/mtl/Alg.h"
 #include "prop/bvminisat/utils/Options.h"
 #include "context/cdhashmap.h"
+#include "proof/sat_proof.h"
 
 #include <ext/hash_set>
 #include <vector>
@@ -34,8 +35,11 @@ OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWA
 namespace CVC4 {
 
 typedef unsigned ClauseId;
+namespace BVMinisat {
+class Solver;
+}
 
-template <class BVMinisat::Solver> class TSatProof;
+//template < CVC4::BVMinisat::Solver> class TSatProof;
 class BitVectorProof;
 
 namespace BVMinisat {
@@ -65,7 +69,7 @@ public:
 //=================================================================================================
 // Solver -- the main class:
 class Solver {
-    friend class CVC4::TSatProof< ::BVMinisat::Solver>;
+    friend class CVC4::TSatProof< CVC4::BVMinisat::Solver>;
 public:
     typedef Var TVar;
     typedef Lit TLit;

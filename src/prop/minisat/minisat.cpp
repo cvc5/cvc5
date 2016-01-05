@@ -283,12 +283,12 @@ void MinisatSatSolver::Statistics::init(Minisat::SimpSolver* d_minisat){
 
 namespace CVC4 {
 template<>
-prop::SatLiteral toSatLiteral< ::Minisat::Solver>(Minisat::Solver::TLit lit) {
+prop::SatLiteral toSatLiteral< CVC4::Minisat::Solver>(Minisat::Solver::TLit lit) {
   return prop::MinisatSatSolver::toSatLiteral(lit);
 } 
 
 template<>
-void toSatClause< ::Minisat::Solver> (const Minisat::Solver::TClause& minisat_cl,
+void toSatClause< CVC4::Minisat::Solver> (const CVC4::Minisat::Solver::TClause& minisat_cl,
                                       prop::SatClause& sat_cl) {
   prop::MinisatSatSolver::toSatClause(minisat_cl, sat_cl);
 }

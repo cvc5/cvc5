@@ -17,7 +17,7 @@
 
 #include "theory/bv/theory_bv.h"
 #include "theory/bv/bitblaster_template.h"
-#include "theory/bv/options.h"
+#include "options/bv_options.h"
 
 #include "proof/bitvector_proof.h"
 #include "proof/sat_proof_implementation.h"
