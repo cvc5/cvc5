@@ -310,21 +310,23 @@ std::set<JavaInputStreamAdapter*> CVC4::JavaInputStreamAdapter::s_adapters;
 
 %include "options/language.i"
 
+// Tim: "util/integer.i" must come before util/{rational.i,bitvector.i}.
+%include "util/integer.i"
+%include "util/rational.i"
 %include "util/bitvector.i"
+
+// Tim: The remainder of util/.
 %include "util/bool.i"
 %include "util/cardinality.i"
 %include "util/configuration.i"
 %include "util/hash.i"
-%include "util/integer.i"
 %include "util/proof.i"
-%include "util/rational.i"
 %include "util/regexp.i"
 %include "util/result.i"
 %include "util/sexpr.i"
 %include "util/subrange_bound.i"
 %include "util/tuple.i"
 %include "util/unsafe_interrupt_exception.i"
-//%include "util/floatingpoint.i"
 
 %include "expr/uninterpreted_constant.i"
 %include "expr/statistics.i"
@@ -355,6 +357,8 @@ std::set<JavaInputStreamAdapter*> CVC4::JavaInputStreamAdapter::s_adapters;
 %include "options/options.i"
 %include "parser/cvc4parser.i"
 %include "smt/logic_exception.i"
-%include "smt/smt_engine.i"
 %include "smt_util/command.i"
 %include "theory/logic_info.i"
+
+// Tim: This should come after "theory/logic_info.i".
+%include "smt/smt_engine.i"
