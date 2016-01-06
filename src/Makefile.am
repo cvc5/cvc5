@@ -54,7 +54,6 @@ libcvc4_la_SOURCES = \
 	context/cdhashset_forward.h \
 	context/cdvector.h \
 	context/cdmaybe.h \
-	context/stacking_map.h \
 	context/stacking_vector.h \
 	context/cddense_set.h \
 	decision/decision_attributes.h \
