@@ -32,6 +32,7 @@
 
 #include "base/exception.h"
 #include "expr/statistics.h"
+#include "lib/clock_gettime.h"
 
 namespace CVC4 {
 
