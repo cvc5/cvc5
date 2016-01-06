@@ -79,6 +79,7 @@ tokens {
   COUNTEREXAMPLE_TOK = 'COUNTEREXAMPLE';
   COUNTERMODEL_TOK = 'COUNTERMODEL';
   ARITH_VAR_ORDER_TOK = 'ARITH_VAR_ORDER';
+  CONTINUE_TOK = 'CONTINUE';
 
   /* operators */
 
@@ -830,6 +831,9 @@ mainCommand[CVC4::Command*& cmd]
 
   | ARITH_VAR_ORDER_TOK LPAREN formula[f] ( COMMA formula[f] )* RPAREN
     { UNSUPPORTED("ARITH_VAR_ORDER command"); }
+
+  | CONTINUE_TOK
+    { UNSUPPORTED("CONTINUE command"); }
 
   | toplevelDeclaration[cmd]
   ;
