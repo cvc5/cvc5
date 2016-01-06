@@ -54,8 +54,6 @@ libexpr_la_SOURCES = \
 	pickler.h \
 	resource_manager.cpp \
 	resource_manager.h \
-	sexpr.cpp \
-	sexpr.h \
 	symbol_table.cpp \
 	symbol_table.h \
 	type.cpp \
@@ -109,7 +107,6 @@ EXTRA_DIST = \
 	kind.i \
 	expr.i \
 	resource_manager.i \
-	sexpr.i \
 	record.i \
 	predicate.i \
 	variable_type_map.i \

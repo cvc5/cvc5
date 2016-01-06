@@ -28,7 +28,6 @@
 #include "context/cdlist_forward.h"
 #include "expr/expr.h"
 #include "expr/expr_manager.h"
-#include "expr/sexpr.h"
 #include "expr/statistics.h"
 #include "options/options.h"
 #include "proof/unsat_core.h"
@@ -38,6 +37,7 @@
 #include "util/hash.h"
 #include "util/proof.h"
 #include "util/result.h"
+#include "util/sexpr.h"
 #include "util/unsafe_interrupt_exception.h"
 
 // In terms of abstraction, this is below (and provides services to)

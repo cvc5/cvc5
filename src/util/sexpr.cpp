@@ -22,17 +22,15 @@
  ** handled in the SExpr class and the libexpr library.
  **/
 
-#include "expr/sexpr.h"
+#include "util/sexpr.h"
 
 #include <iostream>
 #include <sstream>
 #include <vector>
 
 #include "base/cvc4_assert.h"
-#include "expr/expr.h"
 #include "options/set_language.h"
 #include "util/smt2_quote_string.h"
-
 
 namespace CVC4 {
 

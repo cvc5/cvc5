@@ -27,7 +27,6 @@
 #include "base/output.h"
 #include "expr/expr_iomanip.h"
 #include "expr/node.h"
-#include "expr/sexpr.h"
 #include "options/options.h"
 #include "options/smt_options.h"
 #include "printer/printer.h"
@@ -35,6 +34,7 @@
 #include "smt/smt_engine_scope.h"
 #include "smt_util/dump.h"
 #include "smt_util/model.h"
+#include "util/sexpr.h"
 
 using namespace std;
 
