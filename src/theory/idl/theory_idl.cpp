@@ -26,15 +26,16 @@
 
 using namespace std;
 
-using namespace CVC4;
-using namespace theory;
-using namespace idl;
+namespace CVC4 {
+namespace theory {
+namespace idl {
 
-TheoryIdl::TheoryIdl(context::Context* c, context::UserContext* u, OutputChannel& out,
-                     Valuation valuation, const LogicInfo& logicInfo)
-: Theory(THEORY_ARITH, c, u, out, valuation, logicInfo)
-, d_model(c)
-, d_assertionsDB(c)
+TheoryIdl::TheoryIdl(context::Context* c, context::UserContext* u,
+                     OutputChannel& out, Valuation valuation,
+                     const LogicInfo& logicInfo, SmtGlobals* globals)
+    : Theory(THEORY_ARITH, c, u, out, valuation, logicInfo, globals)
+    , d_model(c)
+    , d_assertionsDB(c)
 {}
 
 Node TheoryIdl::ppRewrite(TNode atom) {
@@ -148,3 +149,7 @@ bool TheoryIdl::processAssertion(const IDLAssertion& assertion) {
   // Everything fine, no conflict
   return true;
 }
+
+} /* namepsace CVC4::theory::idl */
+} /* namepsace CVC4::theory */
+} /* namepsace CVC4 */

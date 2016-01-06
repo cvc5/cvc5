@@ -102,6 +102,8 @@ libcvc4_la_SOURCES = \
 	smt/smt_engine.cpp \
 	smt/smt_engine_check_proof.cpp \
 	smt/smt_engine.h \
+	smt/smt_globals.cpp \
+	smt/smt_globals.h \
 	smt/model_postprocessor.cpp \
 	smt/model_postprocessor.h \
 	smt/smt_options_handler.cpp \

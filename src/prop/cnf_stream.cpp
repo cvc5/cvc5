@@ -45,21 +45,26 @@ using namespace CVC4::kind;
 namespace CVC4 {
 namespace prop {
 
-CnfStream::CnfStream(SatSolver *satSolver, Registrar* registrar, context::Context* context, bool fullLitToNodeMap) :
-  d_satSolver(satSolver),
-  d_booleanVariables(context),
-  d_nodeToLiteralMap(context),
-  d_literalToNodeMap(context),
-  d_fullLitToNodeMap(fullLitToNodeMap),
-  d_convertAndAssertCounter(0),
-  d_registrar(registrar),
-  d_assertionTable(context),
-  d_removable(false) {
+CnfStream::CnfStream(SatSolver* satSolver, Registrar* registrar,
+                     context::Context* context, SmtGlobals* globals,
+                     bool fullLitToNodeMap)
+    : d_satSolver(satSolver),
+      d_booleanVariables(context),
+      d_nodeToLiteralMap(context),
+      d_literalToNodeMap(context),
+      d_fullLitToNodeMap(fullLitToNodeMap),
+      d_convertAndAssertCounter(0),
+      d_registrar(registrar),
+      d_assertionTable(context),
+      d_globals(globals),
+      d_removable(false) {
 }
 
-TseitinCnfStream::TseitinCnfStream(SatSolver* satSolver, Registrar* registrar, context::Context* context, bool fullLitToNodeMap) :
-  CnfStream(satSolver, registrar, context, fullLitToNodeMap) {
-}
+TseitinCnfStream::TseitinCnfStream(SatSolver* satSolver, Registrar* registrar,
+                                   context::Context* context,
+                                   SmtGlobals* globals, bool fullLitToNodeMap)
+    : CnfStream(satSolver, registrar, context, globals, fullLitToNodeMap)
+{}
 
 void CnfStream::assertClause(TNode node, SatClause& c, ProofRule proof_id) {
   Debug("cnf") << "Inserting into stream " << c << " node = " << node << ", proof id = " << proof_id << endl;
@@ -184,7 +189,7 @@ SatLiteral CnfStream::newLiteral(TNode node, bool isTheoryAtom, bool preRegister
 
   // If it's a theory literal, need to store it for back queries
   if ( isTheoryAtom || d_fullLitToNodeMap ||
-       ( CVC4_USE_REPLAY && options::replayLog() != NULL ) ||
+       ( CVC4_USE_REPLAY && d_globals->getReplayLog() != NULL ) ||
        (Dump.isOn("clauses")) ) {
 
     d_literalToNodeMap.insert_safe(lit, node);

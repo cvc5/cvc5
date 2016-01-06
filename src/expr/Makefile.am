@@ -70,8 +70,6 @@ libexpr_la_SOURCES = \
 	predicate.cpp \
 	record.cpp \
 	record.h \
-	result.cpp \
-	result.h \
 	uninterpreted_constant.cpp \
 	uninterpreted_constant.h
 
@@ -113,7 +111,6 @@ EXTRA_DIST = \
 	resource_manager.i \
 	sexpr.i \
 	record.i \
-	result.i \
 	predicate.i \
 	variable_type_map.i \
 	uninterpreted_constant.i

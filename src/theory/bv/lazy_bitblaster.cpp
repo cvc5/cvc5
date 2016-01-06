@@ -26,12 +26,13 @@
 #include "theory/theory_model.h"
 #include "theory_bv_utils.h"
 
-using namespace CVC4;
-using namespace CVC4::theory;
-using namespace CVC4::theory::bv; 
+namespace CVC4 {
+namespace theory {
+namespace bv {
 
 
-TLazyBitblaster::TLazyBitblaster(context::Context* c, bv::TheoryBV* bv, const std::string name, bool emptyNotify)
+TLazyBitblaster::TLazyBitblaster(context::Context* c, bv::TheoryBV* bv,
+                                 const std::string name, bool emptyNotify)
   : TBitblaster<Node>()
   , d_bv(bv)
   , d_ctx(c)
@@ -44,13 +45,13 @@ TLazyBitblaster::TLazyBitblaster(context::Context* c, bv::TheoryBV* bv, const st
   , d_satSolverFullModel(c, false)
   , d_name(name)
   , d_statistics(name) {
+
   d_satSolver = prop::SatSolverFactory::createMinisat(c, name);
   d_nullRegistrar = new prop::NullRegistrar();
   d_nullContext = new context::Context();
-  d_cnfStream = new prop::TseitinCnfStream(d_satSolver,
-                                           d_nullRegistrar,
-                                           d_nullContext);
-  
+  d_cnfStream = new prop::TseitinCnfStream(d_satSolver, d_nullRegistrar,
+                                           d_nullContext, d_bv->globals());
+
   d_satSolverNotify = d_emptyNotify ?
     (prop::BVSatSolverInterface::Notify*) new MinisatEmptyNotify() :
     (prop::BVSatSolverInterface::Notify*) new MinisatNotify(d_cnfStream, bv, this);
@@ -59,7 +60,7 @@ TLazyBitblaster::TLazyBitblaster(context::Context* c, bv::TheoryBV* bv, const st
 }
 
 void TLazyBitblaster::setAbstraction(AbstractionModule* abs) {
-  d_abstraction = abs; 
+  d_abstraction = abs;
 }
 
 TLazyBitblaster::~TLazyBitblaster() throw() {
@@ -103,8 +104,8 @@ void TLazyBitblaster::bbAtom(TNode node) {
     if (expansion.getKind() == kind::CONST_BOOLEAN) {
       atom_bb = expansion;
     } else {
-      Assert (expansion.getKind() == kind::AND); 
-      std::vector<Node> atoms; 
+      Assert (expansion.getKind() == kind::AND);
+      std::vector<Node> atoms;
       for (unsigned i = 0; i < expansion.getNumChildren(); ++i) {
         Node normalized_i = Rewriter::rewrite(expansion[i]);
         Node atom_i = normalized_i.getKind() != kind::CONST_BOOLEAN ?
@@ -481,7 +482,7 @@ void TLazyBitblaster::collectModelInfo(TheoryModel* m, bool fullModel) {
 }
 
 void TLazyBitblaster::clearSolver() {
-  Assert (d_ctx->getLevel() == 0); 
+  Assert (d_ctx->getLevel() == 0);
   delete d_satSolver;
   delete d_satSolverNotify;
   delete d_cnfStream;
@@ -492,16 +493,19 @@ void TLazyBitblaster::clearSolver() {
   d_bbAtoms.clear();
   d_variables.clear();
   d_termCache.clear();
-  
-  invalidateModelCache();  
+
+  invalidateModelCache();
   // recreate sat solver
   d_satSolver = prop::SatSolverFactory::createMinisat(d_ctx);
-  d_cnfStream = new prop::TseitinCnfStream(d_satSolver,
-                                           d_nullRegistrar,
-                                           d_nullContext);
+  d_cnfStream = new prop::TseitinCnfStream(d_satSolver, d_nullRegistrar,
+                                           d_nullContext, d_bv->globals());
 
   d_satSolverNotify = d_emptyNotify ?
     (prop::BVSatSolverInterface::Notify*) new MinisatEmptyNotify() :
     (prop::BVSatSolverInterface::Notify*) new MinisatNotify(d_cnfStream, d_bv, this);
   d_satSolver->setNotify(d_satSolverNotify);
 }
+
+} /* namespace CVC4::theory::bv */
+} /* namespace CVC4::theory */
+} /* namespace CVC4 */

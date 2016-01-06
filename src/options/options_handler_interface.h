@@ -131,7 +131,6 @@ public:
   virtual void setRegularOutputChannel(std::string option, std::string optarg) = 0;
   virtual void setDiagnosticOutputChannel(std::string option, std::string optarg) = 0;
   virtual std::string checkReplayFilename(std::string option, std::string optarg) = 0;
-  virtual std::ostream* checkReplayLogFilename(std::string option, std::string optarg) = 0;
   virtual void statsEnabledBuild(std::string option, bool value) throw(OptionException) = 0;
   virtual unsigned long tlimitHandler(std::string option, std::string optarg) throw(OptionException) = 0;
   virtual unsigned long tlimitPerHandler(std::string option, std::string optarg) throw(OptionException) = 0;
@@ -254,8 +253,6 @@ void setRegularOutputChannel(std::string option, std::string optarg, OptionsHand
 void setDiagnosticOutputChannel(std::string option, std::string optarg, OptionsHandler* handler);
 
 std::string checkReplayFilename(std::string option, std::string optarg, OptionsHandler* handler);
-
-std::ostream* checkReplayLogFilename(std::string option, std::string optarg, OptionsHandler* handler);
 
 // ensure we are a stats-enabled build of CVC4
 void statsEnabledBuild(std::string option, bool value, OptionsHandler* handler) throw(OptionException);

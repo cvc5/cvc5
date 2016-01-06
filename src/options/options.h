@@ -34,9 +34,6 @@ namespace options {
   class OptionsHandler;
 }/* CVC4::options namespace */
 
-// Forward declaration for smt_options
-class ExprStream;
-
 class CVC4_PUBLIC Options {
   /** The struct that holds all option values. */
   options::OptionsHolder* d_holder;

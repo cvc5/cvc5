@@ -86,8 +86,9 @@ public:
    * With safePoint(), the theory signals that it is at a safe point
    * and can be interrupted.
    */
-  virtual void safePoint(uint64_t ammount) throw(Interrupted, UnsafeInterruptException, AssertionException) {
-  }
+  virtual void safePoint(uint64_t amount)
+      throw(Interrupted, UnsafeInterruptException, AssertionException)
+  {}
 
   /**
    * Indicate a theory conflict has arisen.

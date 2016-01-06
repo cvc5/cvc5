@@ -250,15 +250,18 @@ public:
 };
 
 
-int main(int argc, char* argv[]) 
+int main(int argc, char* argv[])
 {
 
   try {
 
-    // Get the filename 
+    // Get the filename
     string input;
-    if(argc > 1) input = string(argv[1]);
-    else input = "<stdin>";
+    if(argc > 1){
+      input = string(argv[1]);
+    } else {
+      input = "<stdin>";
+    }
 
     // Create the expression manager
     Options options;
@@ -279,7 +282,7 @@ int main(int argc, char* argv[])
     vector<string> info_tags;
     vector<string> info_data;
     vector<Expr> assertions;
-  
+
     Command* cmd = NULL;
     CommandSequence commandsSequence;
     bool logicisset = false;

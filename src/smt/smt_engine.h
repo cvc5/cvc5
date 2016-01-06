@@ -28,15 +28,16 @@
 #include "context/cdlist_forward.h"
 #include "expr/expr.h"
 #include "expr/expr_manager.h"
-#include "expr/result.h"
 #include "expr/sexpr.h"
 #include "expr/statistics.h"
 #include "options/options.h"
 #include "proof/unsat_core.h"
 #include "smt/logic_exception.h"
+#include "smt/smt_globals.h"
 #include "theory/logic_info.h"
 #include "util/hash.h"
 #include "util/proof.h"
+#include "util/result.h"
 #include "util/unsafe_interrupt_exception.h"
 
 // In terms of abstraction, this is below (and provides services to)
@@ -385,6 +386,8 @@ class CVC4_PUBLIC SmtEngine {
 
   smt::SmtEngineStatistics* d_stats;
 
+  SmtGlobals* d_globals;
+
   /**
    * Add to Model command.  This is used for recording a command
    * that should be reported during a get-model call.
@@ -729,6 +732,8 @@ public:
    * Throws a ModalException if smt is non-null and the SmtEngine has not been fully initialized.
    */
   static void beforeSearch(SmtEngine* smt, const std::string& option) throw(ModalException);
+
+  SmtGlobals* globals() { return d_globals; }
 };/* class SmtEngine */
 
 }/* CVC4 namespace */

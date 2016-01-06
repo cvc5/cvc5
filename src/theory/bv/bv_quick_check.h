@@ -35,7 +35,7 @@ class TheoryModel;
 
 namespace bv {
 
-class TLazyBitblaster; 
+class TLazyBitblaster;
 class TheoryBV;
 
 class BVQuickCheck {

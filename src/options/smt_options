@@ -148,15 +148,7 @@ expert-option rewriteApplyToConst rewrite-apply-to-const --rewrite-apply-to-cons
 # --replay is currently broken; don't document it for 1.0
 undocumented-option replayFilename --replay=FILE std::string :handler CVC4::options::checkReplayFilename :handler-include "options/options_handler_interface.h"
  replay decisions from file
-undocumented-option replayLog --replay-log=FILE std::ostream* :handler CVC4::options::checkReplayLogFilename :handler-include "options/options_handler_interface.h"
- log decisions and propagations to file
-option replayStream ExprStream*
 
-# portfolio options
-option lemmaInputChannel LemmaInputChannel* :default NULL :include "base/lemma_input_channel_forward.h"
- The input channel to receive notfication events for new lemmas
-option lemmaOutputChannel LemmaOutputChannel* :default NULL :include "base/lemma_output_channel_forward.h"
- The output channel to receive notfication events for new lemmas
 
 option forceNoLimitCpuWhileDump --force-no-limit-cpu-while-dump bool :default false
  Force no CPU limit when dumping models and proofs

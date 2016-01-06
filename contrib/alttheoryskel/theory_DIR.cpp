@@ -11,8 +11,9 @@ Theory$camel::Theory$camel(context::Context* c,
                            context::UserContext* u,
                            OutputChannel& out,
                            Valuation valuation,
-                           const LogicInfo& logicInfo) :
-  Theory(THEORY_$alt_id, c, u, out, valuation, logicInfo) {
+                           const LogicInfo& logicInfo,
+                           SmtGlobals* globals) :
+    Theory(THEORY_$alt_id, c, u, out, valuation, logicInfo, globals) {
 }/* Theory$camel::Theory$camel() */
 
 void Theory$camel::check(Effort level) {

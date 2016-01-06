@@ -46,10 +46,14 @@ private:
   int d_baseDecLevel;
 
   eq::EqualityEngine* d_masterEqualityEngine;
+
 private:
-  void computeCareGraph();  
+  void computeCareGraph();
+
 public:
-  TheoryQuantifiers(context::Context* c, context::UserContext* u, OutputChannel& out, Valuation valuation, const LogicInfo& logicInfo);
+  TheoryQuantifiers(context::Context* c, context::UserContext* u,
+                    OutputChannel& out, Valuation valuation,
+                    const LogicInfo& logicInfo, SmtGlobals* globals);
   ~TheoryQuantifiers();
 
   void setMasterEqualityEngine(eq::EqualityEngine* eq);

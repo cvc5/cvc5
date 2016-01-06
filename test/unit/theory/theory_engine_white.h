@@ -120,13 +120,14 @@ class FakeTheory : public Theory {
   // static std::deque<RewriteItem> s_expected;
 
 public:
-  FakeTheory(context::Context* ctxt, context::UserContext* uctxt, OutputChannel& out, Valuation valuation, const LogicInfo& logicInfo) :
-    Theory(theoryId, ctxt, uctxt, out, valuation, logicInfo)
+  FakeTheory(context::Context* ctxt, context::UserContext* uctxt, OutputChannel& out, Valuation valuation, const LogicInfo& logicInfo, SmtGlobals* globals) :
+      Theory(theoryId, ctxt, uctxt, out, valuation, logicInfo, globals)
   { }
 
   /** Register an expected rewrite call */
-  static void expect(RewriteType type, FakeTheory* thy,
-                     TNode n, bool topLevel) throw() {
+  static void expect(RewriteType type, FakeTheory* thy, TNode n, bool topLevel)
+      throw()
+  {
     RewriteItem item = { type, thy, n, topLevel };
     //s_expected.push_back(item);
   }
@@ -224,7 +225,7 @@ public:
   void registerTerm(TNode) { Unimplemented(); }
   void check(Theory::Effort) { Unimplemented(); }
   void propagate(Theory::Effort) { Unimplemented(); }
-  void explain(TNode, Theory::Effort) { Unimplemented(); }
+  Node explain(TNode) { Unimplemented(); }
   Node getValue(TNode n) { return Node::null(); }
 };/* class FakeTheory */
 

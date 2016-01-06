@@ -19,8 +19,6 @@ libbase_la_SOURCES = \
 	cvc4_assert.h \
 	exception.cpp \
 	exception.h \
-	lemma_input_channel_forward.h \
-	lemma_output_channel_forward.h \
 	modal_exception.h \
 	output.cpp \
 	output.h

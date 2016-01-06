@@ -25,10 +25,11 @@
 
 #include "base/modal_exception.h"
 #include "expr/node.h"
-#include "expr/result.h"
 #include "options/options.h"
 #include "proof/proof_manager.h"
+#include "smt/smt_globals.h"
 #include "util/unsafe_interrupt_exception.h"
+#include "util/result.h"
 
 namespace CVC4 {
 
@@ -91,12 +92,15 @@ class PropEngine {
   /** Dump out the satisfying assignment (after SAT result) */
   void printSatisfyingAssignment();
 
+  /** Container for misc. globals. */
+  SmtGlobals* d_globals;
+
 public:
 
   /**
    * Create a PropEngine with a particular decision and theory engine.
    */
-  PropEngine(TheoryEngine*, DecisionEngine*, context::Context* satContext, context::Context* userContext);
+  PropEngine(TheoryEngine*, DecisionEngine*, context::Context* satContext, context::Context* userContext, SmtGlobals* global);
 
   /**
    * Destructor.

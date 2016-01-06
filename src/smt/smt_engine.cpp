@@ -724,7 +724,9 @@ SmtEngine::SmtEngine(ExprManager* em) throw() :
   d_private(NULL),
   d_smtAttributes(NULL),
   d_statisticsRegistry(NULL),
-  d_stats(NULL) {
+  d_stats(NULL),
+  d_globals(new SmtGlobals())
+{
 
   SmtScope smts(this);
   d_smtAttributes = new expr::attr::SmtAttributes(d_context);
@@ -734,7 +736,10 @@ SmtEngine::SmtEngine(ExprManager* em) throw() :
   d_stats->d_resourceUnitsUsed.setData(d_private->getResourceManager()->d_cumulativeResourceUsed);
   // We have mutual dependency here, so we add the prop engine to the theory
   // engine later (it is non-essential there)
-  d_theoryEngine = new TheoryEngine(d_context, d_userContext, d_private->d_iteRemover, const_cast<const LogicInfo&>(d_logic));
+  d_theoryEngine = new TheoryEngine(d_context, d_userContext,
+                                    d_private->d_iteRemover,
+                                    const_cast<const LogicInfo&>(d_logic),
+                                    d_globals);
 
   // Add the theories
   for(TheoryId id = theory::THEORY_FIRST; id < theory::THEORY_LAST; ++id) {
@@ -764,7 +769,8 @@ void SmtEngine::finishInit() {
   d_decisionEngine = new DecisionEngine(d_context, d_userContext);
   d_decisionEngine->init();   // enable appropriate strategies
 
-  d_propEngine = new PropEngine(d_theoryEngine, d_decisionEngine, d_context, d_userContext);
+  d_propEngine = new PropEngine(d_theoryEngine, d_decisionEngine, d_context,
+                                d_userContext, d_globals);
 
   d_theoryEngine->setPropEngine(d_propEngine);
   d_theoryEngine->setDecisionEngine(d_decisionEngine);
@@ -906,6 +912,9 @@ SmtEngine::~SmtEngine() throw() {
     d_userContext = NULL;
     delete d_context;
     d_context = NULL;
+
+    delete d_globals;
+    d_globals = NULL;
 
   } catch(Exception& e) {
     Warning() << "CVC4 threw an exception during cleanup." << endl

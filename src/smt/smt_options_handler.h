@@ -124,7 +124,6 @@ public:
   virtual void setRegularOutputChannel(std::string option, std::string optarg);
   virtual void setDiagnosticOutputChannel(std::string option, std::string optarg);
   virtual std::string checkReplayFilename(std::string option, std::string optarg);
-  virtual std::ostream* checkReplayLogFilename(std::string option, std::string optarg);
   virtual void statsEnabledBuild(std::string option, bool value) throw(OptionException);
   virtual unsigned long tlimitHandler(std::string option, std::string optarg) throw(OptionException);
   virtual unsigned long tlimitPerHandler(std::string option, std::string optarg) throw(OptionException);
@@ -152,13 +151,14 @@ public:
   virtual void addDebugTag(std::string option, std::string optarg);
   virtual void setPrintSuccess(std::string option, bool value);
 
+  static std::string __cvc4_errno_failreason();
+
 private:
   SmtEngine* d_smtEngine;
 
   /* Helper utilities */
   static std::string suggestTags(char const* const* validTags, std::string inputTag,
                                  char const* const* additionalTags = NULL);
-  static std::string __cvc4_errno_failreason();
 
   /* Help strings */
   static const std::string s_bitblastingModeHelp;

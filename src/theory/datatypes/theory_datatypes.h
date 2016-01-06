@@ -180,31 +180,40 @@ private:
   /** sygus utilities */
   SygusSplit * d_sygus_split;
   SygusSymBreak * d_sygus_sym_break;
+
 private:
   /** singleton lemmas (for degenerate co-datatype case) */
   std::map< TypeNode, Node > d_singleton_lemma[2];
+
   /** Cache for singleton equalities processed */
   BoolMap d_singleton_eq;
-private:
+
   /** assert fact */
   void assertFact( Node fact, Node exp );
+
   /** flush pending facts */
   void flushPendingFacts();
+
   /** do pending merged */
   void doPendingMerges();
+
   /** get or make eqc info */
   EqcInfo* getOrMakeEqcInfo( TNode n, bool doMake = false );
+
   /** has eqc info */
   bool hasEqcInfo( TNode n ) { return d_labels.find( n )!=d_labels.end(); }
+
   /** get eqc constructor */
   TNode getEqcConstructor( TNode r );
+
 protected:
   /** compute care graph */
   void computeCareGraph();
+
 public:
   TheoryDatatypes(context::Context* c, context::UserContext* u,
                   OutputChannel& out, Valuation valuation,
-                  const LogicInfo& logicInfo);
+                  const LogicInfo& logicInfo, SmtGlobals* globals);
   ~TheoryDatatypes();
 
   void setMasterEqualityEngine(eq::EqualityEngine* eq);

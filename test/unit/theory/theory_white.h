@@ -52,7 +52,9 @@ public:
 
   ~TestOutputChannel() {}
 
-  void safePoint() throw(Interrupted, AssertionException) {}
+  void safePoint(uint64_t amount)
+      throw(Interrupted, UnsafeInterruptException, AssertionException)
+  {}
 
   void conflict(TNode n)
     throw(AssertionException) {
@@ -119,9 +121,10 @@ public:
   set<Node> d_registered;
   vector<Node> d_getSequence;
 
-  DummyTheory(Context* ctxt, UserContext* uctxt, OutputChannel& out, Valuation valuation, const LogicInfo& logicInfo) :
-    Theory(theory::THEORY_BUILTIN, ctxt, uctxt, out, valuation, logicInfo) {
-  }
+  DummyTheory(Context* ctxt, UserContext* uctxt, OutputChannel& out,
+              Valuation valuation, const LogicInfo& logicInfo, SmtGlobals* globals)
+      : Theory(theory::THEORY_BUILTIN, ctxt, uctxt, out, valuation, logicInfo, globals)
+  {}
 
   void registerTerm(TNode n) {
     // check that we registerTerm() a term only once
@@ -156,7 +159,7 @@ public:
   }
   void preRegisterTerm(TNode n) {}
   void propagate(Effort level) {}
-  void explain(TNode n, Effort level) {}
+  Node explain(TNode n) { return Node::null(); }
   Node getValue(TNode n) { return Node::null(); }
   string identify() const { return "DummyTheory"; }
 };/* class DummyTheory */
@@ -196,7 +199,8 @@ public:
     d_smt->d_theoryEngine->d_theoryTable[THEORY_BUILTIN] = NULL;
     d_smt->d_theoryEngine->d_theoryOut[THEORY_BUILTIN] = NULL;
 
-    d_dummy = new DummyTheory(d_ctxt, d_uctxt, d_outputChannel, Valuation(NULL), *d_logicInfo);
+    d_dummy = new DummyTheory(d_ctxt, d_uctxt, d_outputChannel, Valuation(NULL),
+                              *d_logicInfo, d_smt->globals());
     d_outputChannel.clear();
     atom0 = d_nm->mkConst(true);
     atom1 = d_nm->mkConst(false);

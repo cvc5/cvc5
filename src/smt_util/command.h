@@ -30,12 +30,12 @@
 
 #include "expr/datatype.h"
 #include "expr/expr.h"
-#include "expr/result.h"
 #include "expr/sexpr.h"
 #include "expr/type.h"
 #include "expr/variable_type_map.h"
 #include "proof/unsat_core.h"
 #include "util/proof.h"
+#include "util/result.h"
 
 namespace CVC4 {
 

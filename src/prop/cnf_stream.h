@@ -25,14 +25,15 @@
 #ifndef __CVC4__PROP__CNF_STREAM_H
 #define __CVC4__PROP__CNF_STREAM_H
 
-#include "expr/node.h"
-#include "prop/theory_proxy.h"
-#include "prop/registrar.h"
-#include "proof/proof_manager.h"
-#include "context/cdlist.h"
-#include "context/cdinsert_hashmap.h"
-
 #include <ext/hash_map>
+
+#include "context/cdinsert_hashmap.h"
+#include "context/cdlist.h"
+#include "expr/node.h"
+#include "proof/proof_manager.h"
+#include "prop/registrar.h"
+#include "prop/theory_proxy.h"
+#include "smt/smt_globals.h"
 
 namespace CVC4 {
 namespace prop {
@@ -85,6 +86,9 @@ protected:
 
   /** A table of assertions, used for regenerating proofs. */
   context::CDList<Node> d_assertionTable;
+
+  /** Container for misc. globals. */
+  SmtGlobals* d_globals;
 
   /**
    * How many literals were already mapped at the top-level when we
@@ -191,7 +195,7 @@ public:
    * @param fullLitToNodeMap maintain a full SAT-literal-to-Node mapping,
    * even for non-theory literals
    */
-  CnfStream(SatSolver* satSolver, Registrar* registrar, context::Context* context, bool fullLitToNodeMap = false);
+  CnfStream(SatSolver* satSolver, Registrar* registrar, context::Context* context, SmtGlobals* globals, bool fullLitToNodeMap = false);
 
   /**
    * Destructs a CnfStream.  This implementation does nothing, but we
@@ -291,7 +295,7 @@ public:
    * @param fullLitToNodeMap maintain a full SAT-literal-to-Node mapping,
    * even for non-theory literals
    */
-  TseitinCnfStream(SatSolver* satSolver, Registrar* registrar, context::Context* context, bool fullLitToNodeMap = false);
+  TseitinCnfStream(SatSolver* satSolver, Registrar* registrar, context::Context* context, SmtGlobals* globals, bool fullLitToNodeMap = false);
 
 private:
 

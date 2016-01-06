@@ -28,9 +28,11 @@ namespace CVC4 {
 namespace theory {
 namespace arith {
 
-TheoryArith::TheoryArith(context::Context* c, context::UserContext* u, OutputChannel& out, Valuation valuation, const LogicInfo& logicInfo)
-  : Theory(THEORY_ARITH, c, u, out, valuation, logicInfo)
-  , d_internal(new TheoryArithPrivate(*this, c, u, out, valuation, logicInfo))
+TheoryArith::TheoryArith(context::Context* c, context::UserContext* u,
+                         OutputChannel& out, Valuation valuation,
+                         const LogicInfo& logicInfo, SmtGlobals* globals)
+    : Theory(THEORY_ARITH, c, u, out, valuation, logicInfo, globals)
+    , d_internal(new TheoryArithPrivate(*this, c, u, out, valuation, logicInfo))
 {}
 
 TheoryArith::~TheoryArith(){

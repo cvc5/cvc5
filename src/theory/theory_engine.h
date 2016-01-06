@@ -30,6 +30,7 @@
 #include "options/options.h"
 #include "options/smt_options.h"
 #include "prop/prop_engine.h"
+#include "smt/smt_globals.h"
 #include "smt_util/command.h"
 #include "theory/atom_requests.h"
 #include "theory/bv/bv_to_bool.h"
@@ -205,6 +206,7 @@ class TheoryEngine {
    * have been propagated.
    */
   context::CDHashSet<Node, NodeHashFunction> d_hasPropagated;
+
 
   /**
    * Statistics for a particular theory.
@@ -476,10 +478,14 @@ class TheoryEngine {
   bool d_interrupted;
   ResourceManager* d_resourceManager;
 
+  /** Container for misc. globals. */
+  SmtGlobals* d_globals;
+
 public:
 
   /** Constructs a theory engine */
-  TheoryEngine(context::Context* context, context::UserContext* userContext, RemoveITE& iteRemover, const LogicInfo& logic);
+  TheoryEngine(context::Context* context, context::UserContext* userContext,
+               RemoveITE& iteRemover, const LogicInfo& logic, SmtGlobals* globals);
 
   /** Destroys a theory engine */
   ~TheoryEngine();
@@ -498,7 +504,9 @@ public:
   inline void addTheory(theory::TheoryId theoryId) {
     Assert(d_theoryTable[theoryId] == NULL && d_theoryOut[theoryId] == NULL);
     d_theoryOut[theoryId] = new EngineOutputChannel(this, theoryId);
-    d_theoryTable[theoryId] = new TheoryClass(d_context, d_userContext, *d_theoryOut[theoryId], theory::Valuation(this), d_logicInfo);
+    d_theoryTable[theoryId] =
+        new TheoryClass(d_context, d_userContext, *d_theoryOut[theoryId],
+                        theory::Valuation(this), d_logicInfo, d_globals);
   }
 
   inline void setPropEngine(prop::PropEngine* propEngine) {

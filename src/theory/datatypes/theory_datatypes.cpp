@@ -31,32 +31,34 @@
 #include "theory/type_enumerator.h"
 #include "theory/valuation.h"
 
-
 using namespace std;
-using namespace CVC4;
 using namespace CVC4::kind;
 using namespace CVC4::context;
-using namespace CVC4::theory;
-using namespace CVC4::theory::datatypes;
 
+namespace CVC4 {
+namespace theory {
+namespace datatypes {
 
-TheoryDatatypes::TheoryDatatypes(Context* c, UserContext* u, OutputChannel& out, Valuation valuation, const LogicInfo& logicInfo) :
-  Theory(THEORY_DATATYPES, c, u, out, valuation, logicInfo),
-  //d_cycle_check(c),
-  d_hasSeenCycle(c, false),
-  d_infer(c),
-  d_infer_exp(c),
-  d_notify( *this ),
-  d_equalityEngine(d_notify, c, "theory::datatypes::TheoryDatatypes", true),
-  d_labels( c ),
-  d_selector_apps( c ),
-  //d_consEqc( c ),
-  d_conflict( c, false ),
-  d_collectTermsCache( c ),
-  d_consTerms( c ),
-  d_selTerms( c ),
-  d_singleton_eq( u ){
-
+TheoryDatatypes::TheoryDatatypes(Context* c, UserContext* u, OutputChannel& out,
+                                 Valuation valuation,
+                                 const LogicInfo& logicInfo,
+                                 SmtGlobals* globals)
+    : Theory(THEORY_DATATYPES, c, u, out, valuation, logicInfo, globals),
+      //d_cycle_check(c),
+      d_hasSeenCycle(c, false),
+      d_infer(c),
+      d_infer_exp(c),
+      d_notify( *this ),
+      d_equalityEngine(d_notify, c, "theory::datatypes::TheoryDatatypes", true),
+      d_labels( c ),
+      d_selector_apps( c ),
+      //d_consEqc( c ),
+      d_conflict( c, false ),
+      d_collectTermsCache( c ),
+      d_consTerms( c ),
+      d_selTerms( c ),
+      d_singleton_eq( u )
+{
   // The kinds we are treating as function application in congruence
   d_equalityEngine.addFunctionKind(kind::APPLY_CONSTRUCTOR);
   d_equalityEngine.addFunctionKind(kind::APPLY_SELECTOR_TOTAL);
@@ -2044,3 +2046,7 @@ bool TheoryDatatypes::checkClashModEq( TNode n1, TNode n2, std::vector< Node >& 
   }
   return false;
 }
+
+} /* namepsace CVC4::theory::datatypes */
+} /* namepsace CVC4::theory */
+} /* namepsace CVC4 */

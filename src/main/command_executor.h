@@ -65,6 +65,8 @@ public:
     d_stats.flushInformation(out);
   }
 
+  SmtGlobals* globals() { return d_smtEngine->globals(); }
+
 protected:
   /** Executes treating cmd as a singleton */
   virtual bool doCommandSingleton(CVC4::Command* cmd);
@@ -74,9 +76,7 @@ private:
 
 };/* class CommandExecutor */
 
-bool smtEngineInvoke(SmtEngine* smt,
-                     Command* cmd,
-                     std::ostream *out);
+bool smtEngineInvoke(SmtEngine* smt, Command* cmd, std::ostream *out);
 
 }/* CVC4::main namespace */
 }/* CVC4 namespace */

@@ -24,7 +24,6 @@
 
 #include "base/output.h"
 #include "expr/expr_manager.h"
-#include "expr/result.h"
 #include "expr/statistics.h"
 #include "main/command_executor.h"
 #include "main/interactive_shell.h"
@@ -37,6 +36,7 @@
 #include "smt/smt_engine.h"
 #include "smt_util/command.h"
 #include "util/configuration.h"
+#include "util/result.h"
 
 using namespace std;
 using namespace CVC4;

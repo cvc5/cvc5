@@ -33,15 +33,16 @@ class AigBitblaster;
  * BitblastSolver
  */
 class EagerBitblastSolver {
-  typedef __gnu_cxx::hash_set<TNode, TNodeHashFunction> AssertionSet; 
+  typedef __gnu_cxx::hash_set<TNode, TNodeHashFunction> AssertionSet;
   AssertionSet d_assertionSet;
   /** Bitblasters */
   EagerBitblaster* d_bitblaster;
   AigBitblaster* d_aigBitblaster;
   bool d_useAig;
-  TheoryBV* d_bv; 
+  TheoryBV* d_bv;
+
 public:
-  EagerBitblastSolver(theory::bv::TheoryBV* bv); 
+  EagerBitblastSolver(theory::bv::TheoryBV* bv);
   ~EagerBitblastSolver();
   bool checkSat();
   void assertFormula(TNode formula);
