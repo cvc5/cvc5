@@ -1383,7 +1383,8 @@ void TheoryArrays::check(Effort e) {
           weakEquivBuildCond(r[0], r[1], conjunctions);
           weakEquivBuildCond(r2[0], r[1], conjunctions);
           lemma = mkAnd(conjunctions, true);
-          d_out->lemma(lemma, false, false, true);
+          // LSH FIXME: which kind of arrays lemma is this
+          d_out->lemma(lemma, RULE_INVALID, false, false, true);
           d_readTableContext->pop();
           return;
         }

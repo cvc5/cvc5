@@ -24,6 +24,7 @@
 #include "proof/rewriter_proof.h"
 #include "proof/proof_utils.h"
 #include "proof/sat_proof_implementation.h"
+#include "options/bv_options.h"
 
 #include "util/proof.h"
 #include "util/hash.h"

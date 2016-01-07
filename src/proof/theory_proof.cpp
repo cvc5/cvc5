@@ -69,8 +69,7 @@ public:
     Trace("theory-proof-debug") << "got a propagation: " << x << std::endl;
     return true;
   }
-  theory::LemmaStatus lemma(TNode n, ProofRule rule, bool, bool) throw() {
-    //AlwaysAssert(false);
+  theory::LemmaStatus lemma(TNode n, ProofRule rule, bool, bool, bool) throw() {
     Trace("theory-proof-debug") << "new lemma: " << n << std::endl;
     d_lemma = n;
     return theory::LemmaStatus(TNode::null(), 0);
@@ -612,3 +611,10 @@ void LFSCBooleanProof::printDeclarations(std::ostream& os, std::ostream& paren) 
     paren <<")";
   }
 }
+
+void LFSCBooleanProof::printTheoryLemmaProof(std::vector<Expr>& lemma,
+                                             std::ostream& os,
+                                             std::ostream& paren) {
+  Unreachable("No boolean lemmas yet!");
+}
+
