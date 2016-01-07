@@ -99,6 +99,11 @@ protected:
   ExprSet d_registrationCache;
   TheoryProofTable d_theoryProofTable;
 
+  /**
+   * Returns whether the theory is currently supported in proof
+   * production mode.
+   */
+  bool supportedTheory(theory::TheoryId id);
 public:
   TheoryProofEngine();
   virtual ~TheoryProofEngine();

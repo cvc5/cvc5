@@ -69,7 +69,7 @@ void SmtEngine::checkProof() {
 	 ! d_logic.hasCardinalityConstraints())) ||
       d_logic.isQuantified()) {
     // no checking for these yet
-    Notice() << "Notice: no proof-checking for non-UF/Bool proofs yet" << endl;
+    Notice() << "Notice: no proof-checking for non-UF/Bool/BV proofs yet" << endl;
     return;
   }
 

@@ -105,16 +105,23 @@ void CnfProof::registerConvertedClause(ClauseId clause, bool explanation) {
 void CnfProof::setClauseAssertion(ClauseId clause, Node expr) {
   Debug("proof:cnf") << "CnfProof::setClauseAssertion "
                      << clause << " assertion " << expr << std::endl;
+  // We can add the same clause from different assertions.  In this
+  // case we keep the first assertion. For example asserting a /\ b
+  // and then b /\ c where b is an atom, would assert b twice (note
+  // that since b is top level, it is not cached by the CnfStream)
+  if (d_clauseToAssertion.find(clause) != d_clauseToAssertion.end())
+    return;
   
-  Assert (d_clauseToAssertion.find(clause) == d_clauseToAssertion.end());
   d_clauseToAssertion.insert (clause, expr);
 }
 
 void CnfProof::setClauseDefinition(ClauseId clause, Node definition) {
   Debug("proof:cnf") << "CnfProof::setClauseDefinition "
                      << clause << " definition " << definition << std::endl;
-  
-  Assert (d_clauseToDefinition.find(clause) == d_clauseToDefinition.end());
+  // We keep the first definition
+  if (d_clauseToDefinition.find(clause) != d_clauseToDefinition.end())
+    return;
+
   d_clauseToDefinition.insert(clause, definition);
   d_definitions.insert(definition);
 }
@@ -122,9 +129,12 @@ void CnfProof::setClauseDefinition(ClauseId clause, Node definition) {
 void CnfProof::registerAssertion(Node assertion, ProofRule reason) {
   Debug("proof:cnf") << "CnfProof::registerAssertion "
                      << assertion << " reason " << reason << std::endl;
-
+  // We can obtain the assertion from different reasons (e.g. if the
+  // assertion is a lemma over shared terms both theories can generate
+  // the same lemma) We only need to prove the lemma in one way, so we
+  // keep the first reason.
   if (isAssertion(assertion)) {
-    Assert (d_assertionToProofRule[assertion] == reason); 
+    return;
   }
   d_assertionToProofRule.insert(assertion, reason);
 }
@@ -135,8 +145,6 @@ void CnfProof::setCnfDependence(Node from, Node to) {
                      << "     to " << to << std::endl;
 
   Assert (from != to);
-  // Assert (d_cnfDeps.find(from) == d_cnfDeps.end() ||
-  //         d_cnfDeps[from] == to);
   d_cnfDeps.insert(std::make_pair(from, to));
 }
 

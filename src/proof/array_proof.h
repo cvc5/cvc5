@@ -21,7 +21,7 @@
 
 #include "expr/expr.h"
 #include "proof/proof_manager.h"
-
+#include "theory/arrays/theory_arrays.h"
 namespace CVC4 {
 
 namespace theory {
@@ -33,11 +33,12 @@ class TheoryArrays;
 class ArrayProof : public TheoryProof {
   // TODO: whatever goes in this theory
 public:
-  ArrayProof(theory::arrays::TheoryArrays* arrays, TheoryProofEngine* proofEngine);
+  ArrayProof(theory::arrays::TheoryArrays* arrays, TheoryProofEngine* proofEngine)
+    : TheoryProof(arrays, proofEngine)
+  {}
+  virtual void registerTerm(Expr term) {}
   
-  virtual void registerTerm(Expr term);
-  
-  virtual void printTerm(Expr term, std::ostream& os) = 0;
+  virtual void printTerm(Expr term, std::ostream& os, const LetMap& map) = 0;
   virtual void printSort(Type type, std::ostream& os) = 0;
   /** 
    * Print a proof for the theory lemma. Must prove
@@ -54,8 +55,21 @@ public:
    * @param paren 
    */
   virtual void printDeclarations(std::ostream& os, std::ostream& paren) = 0;
+};
+
+class LFSCArrayProof : public ArrayProof {
+public:
+  LFSCArrayProof(theory::arrays::TheoryArrays* uf, TheoryProofEngine* proofEngine)
+    : ArrayProof(uf, proofEngine)
+  {}
+  // TODO implement
+  virtual void printTerm(Expr term, std::ostream& os, const LetMap& map) {}
+  virtual void printSort(Type type, std::ostream& os) {}
+  virtual void printTheoryLemmaProof(std::vector<Expr>& lemma, std::ostream& os, std::ostream& paren) {}
+  virtual void printDeclarations(std::ostream& os, std::ostream& paren) {}
 
 };
+
 
 }/* CVC4 namespace */
 

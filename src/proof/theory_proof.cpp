@@ -147,7 +147,11 @@ void TheoryProofEngine::registerTheory(theory::Theory* th) {
         ((theory::bv::TheoryBV*)th)->setProofLog( bvp );
         return;
       }
-    // TODO Arrays and other theories
+      if (id == THEORY_ARRAY) {
+        d_theoryProofTable[id] = new LFSCArrayProof((arrays::TheoryArrays*)th, this);
+        return;
+      }
+    // TODO other theories
     }
   }
 }
@@ -174,6 +178,8 @@ void TheoryProofEngine::registerTerm(Expr term) {
     return;
   }
 
+  if (!supportedTheory(theory_id)) return;
+      
   getTheoryProof(theory_id)->registerTerm(term);
   d_registrationCache.insert(term);
 }
@@ -528,6 +534,13 @@ void TheoryProof::printTheoryLemmaProof(std::vector<Expr>& lemma, std::ostream& 
   }
   oc.d_proof->toStream(os);
   delete th;
+}
+
+bool TheoryProofEngine::supportedTheory(theory::TheoryId id) {
+  return (id == theory::THEORY_ARRAY ||
+          id == theory::THEORY_BV ||
+          id == theory::THEORY_UF ||
+          id == theory::THEORY_BOOL);
 }
 
 BooleanProof::BooleanProof(TheoryProofEngine* proofEngine)
