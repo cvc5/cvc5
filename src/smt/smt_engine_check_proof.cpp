@@ -86,9 +86,9 @@ void SmtEngine::checkProof() {
   args a;
   a.show_runs = false;
   a.no_tail_calls = false;
-  a.compile_scc = true;
+  a.compile_scc = false;
   a.compile_scc_debug = false;
-  a.run_scc = true;
+  a.run_scc = false;
   a.use_nested_app = false;
   a.compile_lib = false;
   init();

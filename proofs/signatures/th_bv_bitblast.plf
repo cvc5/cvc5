@@ -386,7 +386,9 @@
 (let ar (reverseb a) ;; reverse a and b so that we can build the circuit 
 (let br (reverseb b) ;; from the least significant bit up
 (let res (and_with_bit ar (k_bit br 0))
-     (mult_step ar br res n 1)))))
+     (mp_ifzero (mpz_sub n 1)     ;; if multiplying 1 bit numbers no need to call mult_step 
+     		res
+		(mult_step ar br res n 1))))))
      
 (declare bv_bbl_bvmul (! n mpz
                       (! x (term (BitVec n))
