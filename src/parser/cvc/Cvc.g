@@ -80,6 +80,7 @@ tokens {
   COUNTERMODEL_TOK = 'COUNTERMODEL';
   ARITH_VAR_ORDER_TOK = 'ARITH_VAR_ORDER';
   CONTINUE_TOK = 'CONTINUE';
+  RESTART_TOK = 'RESTART';
 
   /* operators */
 
@@ -834,7 +835,7 @@ mainCommand[CVC4::Command*& cmd]
 
   | CONTINUE_TOK
     { UNSUPPORTED("CONTINUE command"); }
-
+  | RESTART_TOK formula[f] { UNSUPPORTED("RESTART command"); }
   | toplevelDeclaration[cmd]
   ;
 
