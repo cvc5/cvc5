@@ -14,11 +14,13 @@
  ** [[ Add lengthier description here ]]
  ** \todo document this file
  **/
+#include "theory/arith/dual_simplex.h"
 
 #include "base/output.h"
 #include "options/arith_options.h"
+#include "smt/smt_statistics_registry.h"
 #include "theory/arith/constraint.h"
-#include "theory/arith/dual_simplex.h"
+
 
 using namespace std;
 
@@ -40,21 +42,21 @@ DualSimplexDecisionProcedure::Statistics::Statistics(uint32_t& pivots):
   d_searchTime("theory::arith::dual::searchTime"),
   d_finalCheckPivotCounter("theory::arith::dual::lastPivots", pivots)
 {
-  StatisticsRegistry::registerStat(&d_statUpdateConflicts);
-  StatisticsRegistry::registerStat(&d_processSignalsTime);
-  StatisticsRegistry::registerStat(&d_simplexConflicts);
-  StatisticsRegistry::registerStat(&d_recentViolationCatches);
-  StatisticsRegistry::registerStat(&d_searchTime);
-  StatisticsRegistry::registerStat(&d_finalCheckPivotCounter);
+  smtStatisticsRegistry()->registerStat(&d_statUpdateConflicts);
+  smtStatisticsRegistry()->registerStat(&d_processSignalsTime);
+  smtStatisticsRegistry()->registerStat(&d_simplexConflicts);
+  smtStatisticsRegistry()->registerStat(&d_recentViolationCatches);
+  smtStatisticsRegistry()->registerStat(&d_searchTime);
+  smtStatisticsRegistry()->registerStat(&d_finalCheckPivotCounter);
 }
 
 DualSimplexDecisionProcedure::Statistics::~Statistics(){
-  StatisticsRegistry::unregisterStat(&d_statUpdateConflicts);
-  StatisticsRegistry::unregisterStat(&d_processSignalsTime);
-  StatisticsRegistry::unregisterStat(&d_simplexConflicts);
-  StatisticsRegistry::unregisterStat(&d_recentViolationCatches);
-  StatisticsRegistry::unregisterStat(&d_searchTime);
-  StatisticsRegistry::unregisterStat(&d_finalCheckPivotCounter);
+  smtStatisticsRegistry()->unregisterStat(&d_statUpdateConflicts);
+  smtStatisticsRegistry()->unregisterStat(&d_processSignalsTime);
+  smtStatisticsRegistry()->unregisterStat(&d_simplexConflicts);
+  smtStatisticsRegistry()->unregisterStat(&d_recentViolationCatches);
+  smtStatisticsRegistry()->unregisterStat(&d_searchTime);
+  smtStatisticsRegistry()->unregisterStat(&d_finalCheckPivotCounter);
 }
 
 Result::Sat DualSimplexDecisionProcedure::dualFindModel(bool exactResult){

@@ -20,23 +20,15 @@
 
 #include "prop/sat_solver.h"
 #include "prop/minisat/simp/SimpSolver.h"
+#include "util/statistics_registry.h"
 
 namespace CVC4 {
 namespace prop {
 
 class MinisatSatSolver : public DPLLSatSolverInterface {
-
-  /** The SatSolver used */
-  Minisat::SimpSolver* d_minisat;
-
-  /** Context we will be using to synchronize the sat solver */
-  context::Context* d_context;
-
-  void setupOptions();
-
 public:
 
-  MinisatSatSolver();
+  MinisatSatSolver(StatisticsRegistry* registry);
   ~MinisatSatSolver() throw();
 ;
 
@@ -83,15 +75,26 @@ public:
 
   bool isDecision(SatVariable decn) const;
 
+private:
+
+  /** The SatSolver used */
+  Minisat::SimpSolver* d_minisat;
+
+  /** Context we will be using to synchronize the sat solver */
+  context::Context* d_context;
+
+  void setupOptions();
+
   class Statistics {
   private:
+    StatisticsRegistry* d_registry;
     ReferenceStat<uint64_t> d_statStarts, d_statDecisions;
     ReferenceStat<uint64_t> d_statRndDecisions, d_statPropagations;
     ReferenceStat<uint64_t> d_statConflicts, d_statClausesLiterals;
     ReferenceStat<uint64_t> d_statLearntsLiterals,  d_statMaxLiterals;
     ReferenceStat<uint64_t> d_statTotLiterals;
   public:
-    Statistics();
+    Statistics(StatisticsRegistry* registry);
     ~Statistics();
     void init(Minisat::SimpSolver* d_minisat);
   };/* class MinisatSatSolver::Statistics */

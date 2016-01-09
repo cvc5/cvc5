@@ -15,9 +15,10 @@
  **/
 
 #include "theory/bv/bv_quick_check.h"
-#include "theory/bv/theory_bv_utils.h"
 
+#include "smt/smt_statistics_registry.h"
 #include "theory/bv/bitblaster_template.h"
+#include "theory/bv/theory_bv_utils.h"
 
 using namespace CVC4;
 using namespace CVC4::theory;
@@ -357,22 +358,21 @@ QuickXPlain::Statistics::Statistics(const std::string& name)
   , d_finalPeriod("theory::bv::"+name+"::QuickXplain::FinalPeriod", 0)
   , d_avgMinimizationRatio("theory::bv::"+name+"::QuickXplain::AvgMinRatio")
 {
-  StatisticsRegistry::registerStat(&d_xplainTime);
-  StatisticsRegistry::registerStat(&d_numSolved);
-  StatisticsRegistry::registerStat(&d_numUnknown);
-  StatisticsRegistry::registerStat(&d_numUnknownWasUnsat);
-  StatisticsRegistry::registerStat(&d_numConflictsMinimized);
-  StatisticsRegistry::registerStat(&d_finalPeriod);
-  StatisticsRegistry::registerStat(&d_avgMinimizationRatio);  
+  smtStatisticsRegistry()->registerStat(&d_xplainTime);
+  smtStatisticsRegistry()->registerStat(&d_numSolved);
+  smtStatisticsRegistry()->registerStat(&d_numUnknown);
+  smtStatisticsRegistry()->registerStat(&d_numUnknownWasUnsat);
+  smtStatisticsRegistry()->registerStat(&d_numConflictsMinimized);
+  smtStatisticsRegistry()->registerStat(&d_finalPeriod);
+  smtStatisticsRegistry()->registerStat(&d_avgMinimizationRatio);
 }
 
 QuickXPlain::Statistics::~Statistics() {
-  StatisticsRegistry::unregisterStat(&d_xplainTime);
-  StatisticsRegistry::unregisterStat(&d_numSolved);
-  StatisticsRegistry::unregisterStat(&d_numUnknown);
-  StatisticsRegistry::unregisterStat(&d_numUnknownWasUnsat);
-  StatisticsRegistry::unregisterStat(&d_numConflictsMinimized);
-  StatisticsRegistry::unregisterStat(&d_finalPeriod);
-  StatisticsRegistry::unregisterStat(&d_avgMinimizationRatio);  
+  smtStatisticsRegistry()->unregisterStat(&d_xplainTime);
+  smtStatisticsRegistry()->unregisterStat(&d_numSolved);
+  smtStatisticsRegistry()->unregisterStat(&d_numUnknown);
+  smtStatisticsRegistry()->unregisterStat(&d_numUnknownWasUnsat);
+  smtStatisticsRegistry()->unregisterStat(&d_numConflictsMinimized);
+  smtStatisticsRegistry()->unregisterStat(&d_finalPeriod);
+  smtStatisticsRegistry()->unregisterStat(&d_avgMinimizationRatio);  
 }
-

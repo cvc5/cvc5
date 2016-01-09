@@ -352,25 +352,25 @@ QModelBuilderIG::Statistics::Statistics():
   d_eval_lits("QModelBuilderIG::Eval_Lits", 0 ),
   d_eval_lits_unknown("QModelBuilderIG::Eval_Lits_Unknown", 0 )
 {
-  StatisticsRegistry::registerStat(&d_num_quants_init);
-  StatisticsRegistry::registerStat(&d_num_partial_quants_init);
-  StatisticsRegistry::registerStat(&d_init_inst_gen_lemmas);
-  StatisticsRegistry::registerStat(&d_inst_gen_lemmas);
-  StatisticsRegistry::registerStat(&d_eval_formulas);
-  StatisticsRegistry::registerStat(&d_eval_uf_terms);
-  StatisticsRegistry::registerStat(&d_eval_lits);
-  StatisticsRegistry::registerStat(&d_eval_lits_unknown);
+  smtStatisticsRegistry()->registerStat(&d_num_quants_init);
+  smtStatisticsRegistry()->registerStat(&d_num_partial_quants_init);
+  smtStatisticsRegistry()->registerStat(&d_init_inst_gen_lemmas);
+  smtStatisticsRegistry()->registerStat(&d_inst_gen_lemmas);
+  smtStatisticsRegistry()->registerStat(&d_eval_formulas);
+  smtStatisticsRegistry()->registerStat(&d_eval_uf_terms);
+  smtStatisticsRegistry()->registerStat(&d_eval_lits);
+  smtStatisticsRegistry()->registerStat(&d_eval_lits_unknown);
 }
 
 QModelBuilderIG::Statistics::~Statistics(){
-  StatisticsRegistry::unregisterStat(&d_num_quants_init);
-  StatisticsRegistry::unregisterStat(&d_num_partial_quants_init);
-  StatisticsRegistry::unregisterStat(&d_init_inst_gen_lemmas);
-  StatisticsRegistry::unregisterStat(&d_inst_gen_lemmas);
-  StatisticsRegistry::unregisterStat(&d_eval_formulas);
-  StatisticsRegistry::unregisterStat(&d_eval_uf_terms);
-  StatisticsRegistry::unregisterStat(&d_eval_lits);
-  StatisticsRegistry::unregisterStat(&d_eval_lits_unknown);
+  smtStatisticsRegistry()->unregisterStat(&d_num_quants_init);
+  smtStatisticsRegistry()->unregisterStat(&d_num_partial_quants_init);
+  smtStatisticsRegistry()->unregisterStat(&d_init_inst_gen_lemmas);
+  smtStatisticsRegistry()->unregisterStat(&d_inst_gen_lemmas);
+  smtStatisticsRegistry()->unregisterStat(&d_eval_formulas);
+  smtStatisticsRegistry()->unregisterStat(&d_eval_uf_terms);
+  smtStatisticsRegistry()->unregisterStat(&d_eval_lits);
+  smtStatisticsRegistry()->unregisterStat(&d_eval_lits_unknown);
 }
 
 bool QModelBuilderIG::isQuantifierActive( Node f ){

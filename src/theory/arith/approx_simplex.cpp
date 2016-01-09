@@ -14,6 +14,7 @@
  ** [[ Add lengthier description here ]]
  ** \todo document this file
  **/
+#include "theory/arith/approx_simplex.h"
 
 #include <cfloat>
 #include <cmath>
@@ -22,7 +23,7 @@
 
 #include "base/output.h"
 #include "cvc4autoconfig.h"
-#include "theory/arith/approx_simplex.h"
+#include "smt/smt_statistics_registry.h"
 #include "theory/arith/constraint.h"
 #include "theory/arith/cut_log.h"
 #include "theory/arith/matrix.h"
@@ -169,67 +170,67 @@ ApproximateStatistics::ApproximateStatistics()
   ,  d_gaussianElimConstruct("z::approx::gaussianElimConstruct::calls",0)
   ,  d_averageGuesses("z::approx::averageGuesses")
 {
-  // StatisticsRegistry::registerStat(&d_relaxCalls);
-  // StatisticsRegistry::registerStat(&d_relaxUnknowns);
-  // StatisticsRegistry::registerStat(&d_relaxFeasible);
-  // StatisticsRegistry::registerStat(&d_relaxInfeasible);
-  // StatisticsRegistry::registerStat(&d_relaxPivotsExhausted);
+  // smtStatisticsRegistry()->registerStat(&d_relaxCalls);
+  // smtStatisticsRegistry()->registerStat(&d_relaxUnknowns);
+  // smtStatisticsRegistry()->registerStat(&d_relaxFeasible);
+  // smtStatisticsRegistry()->registerStat(&d_relaxInfeasible);
+  // smtStatisticsRegistry()->registerStat(&d_relaxPivotsExhausted);
 
-  // StatisticsRegistry::registerStat(&d_mipCalls);
-  // StatisticsRegistry::registerStat(&d_mipUnknowns);
-  // StatisticsRegistry::registerStat(&d_mipBingo);
-  // StatisticsRegistry::registerStat(&d_mipClosed);
-  // StatisticsRegistry::registerStat(&d_mipBranchesExhausted);
-  // StatisticsRegistry::registerStat(&d_mipPivotsExhausted);
-  // StatisticsRegistry::registerStat(&d_mipExecExhausted);
+  // smtStatisticsRegistry()->registerStat(&d_mipCalls);
+  // smtStatisticsRegistry()->registerStat(&d_mipUnknowns);
+  // smtStatisticsRegistry()->registerStat(&d_mipBingo);
+  // smtStatisticsRegistry()->registerStat(&d_mipClosed);
+  // smtStatisticsRegistry()->registerStat(&d_mipBranchesExhausted);
+  // smtStatisticsRegistry()->registerStat(&d_mipPivotsExhausted);
+  // smtStatisticsRegistry()->registerStat(&d_mipExecExhausted);
 
 
-  // StatisticsRegistry::registerStat(&d_gmiGen);
-  // StatisticsRegistry::registerStat(&d_gmiReplay);
-  // StatisticsRegistry::registerStat(&d_mipGen);
-  // StatisticsRegistry::registerStat(&d_mipReplay);
+  // smtStatisticsRegistry()->registerStat(&d_gmiGen);
+  // smtStatisticsRegistry()->registerStat(&d_gmiReplay);
+  // smtStatisticsRegistry()->registerStat(&d_mipGen);
+  // smtStatisticsRegistry()->registerStat(&d_mipReplay);
 
-  StatisticsRegistry::registerStat(&d_branchMaxDepth);
-  //StatisticsRegistry::registerStat(&d_branchTotal);
-  //StatisticsRegistry::registerStat(&d_branchCuts);
-  StatisticsRegistry::registerStat(&d_branchesMaxOnAVar);
+  smtStatisticsRegistry()->registerStat(&d_branchMaxDepth);
+  //smtStatisticsRegistry()->registerStat(&d_branchTotal);
+  //smtStatisticsRegistry()->registerStat(&d_branchCuts);
+  smtStatisticsRegistry()->registerStat(&d_branchesMaxOnAVar);
 
-  StatisticsRegistry::registerStat(&d_gaussianElimConstructTime);
-  StatisticsRegistry::registerStat(&d_gaussianElimConstruct);
+  smtStatisticsRegistry()->registerStat(&d_gaussianElimConstructTime);
+  smtStatisticsRegistry()->registerStat(&d_gaussianElimConstruct);
 
-  StatisticsRegistry::registerStat(&d_averageGuesses);
+  smtStatisticsRegistry()->registerStat(&d_averageGuesses);
 }
 
 ApproximateStatistics::~ApproximateStatistics(){
-  // StatisticsRegistry::unregisterStat(&d_relaxCalls);
-  // StatisticsRegistry::unregisterStat(&d_relaxUnknowns);
-  // StatisticsRegistry::unregisterStat(&d_relaxFeasible);
-  // StatisticsRegistry::unregisterStat(&d_relaxInfeasible);
-  // StatisticsRegistry::unregisterStat(&d_relaxPivotsExhausted);
+  // smtStatisticsRegistry()->unregisterStat(&d_relaxCalls);
+  // smtStatisticsRegistry()->unregisterStat(&d_relaxUnknowns);
+  // smtStatisticsRegistry()->unregisterStat(&d_relaxFeasible);
+  // smtStatisticsRegistry()->unregisterStat(&d_relaxInfeasible);
+  // smtStatisticsRegistry()->unregisterStat(&d_relaxPivotsExhausted);
 
-  // StatisticsRegistry::unregisterStat(&d_mipCalls);
-  // StatisticsRegistry::unregisterStat(&d_mipUnknowns);
-  // StatisticsRegistry::unregisterStat(&d_mipBingo);
-  // StatisticsRegistry::unregisterStat(&d_mipClosed);
-  // StatisticsRegistry::unregisterStat(&d_mipBranchesExhausted);
-  // StatisticsRegistry::unregisterStat(&d_mipPivotsExhausted);
-  // StatisticsRegistry::unregisterStat(&d_mipExecExhausted);
+  // smtStatisticsRegistry()->unregisterStat(&d_mipCalls);
+  // smtStatisticsRegistry()->unregisterStat(&d_mipUnknowns);
+  // smtStatisticsRegistry()->unregisterStat(&d_mipBingo);
+  // smtStatisticsRegistry()->unregisterStat(&d_mipClosed);
+  // smtStatisticsRegistry()->unregisterStat(&d_mipBranchesExhausted);
+  // smtStatisticsRegistry()->unregisterStat(&d_mipPivotsExhausted);
+  // smtStatisticsRegistry()->unregisterStat(&d_mipExecExhausted);
 
 
-  // StatisticsRegistry::unregisterStat(&d_gmiGen);
-  // StatisticsRegistry::unregisterStat(&d_gmiReplay);
-  // StatisticsRegistry::unregisterStat(&d_mipGen);
-  // StatisticsRegistry::unregisterStat(&d_mipReplay);
+  // smtStatisticsRegistry()->unregisterStat(&d_gmiGen);
+  // smtStatisticsRegistry()->unregisterStat(&d_gmiReplay);
+  // smtStatisticsRegistry()->unregisterStat(&d_mipGen);
+  // smtStatisticsRegistry()->unregisterStat(&d_mipReplay);
 
-  StatisticsRegistry::unregisterStat(&d_branchMaxDepth);
-  //StatisticsRegistry::unregisterStat(&d_branchTotal);
-  //StatisticsRegistry::unregisterStat(&d_branchCuts);
-  StatisticsRegistry::unregisterStat(&d_branchesMaxOnAVar);
+  smtStatisticsRegistry()->unregisterStat(&d_branchMaxDepth);
+  //smtStatisticsRegistry()->unregisterStat(&d_branchTotal);
+  //smtStatisticsRegistry()->unregisterStat(&d_branchCuts);
+  smtStatisticsRegistry()->unregisterStat(&d_branchesMaxOnAVar);
 
-  StatisticsRegistry::unregisterStat(&d_gaussianElimConstructTime);
-  StatisticsRegistry::unregisterStat(&d_gaussianElimConstruct);
+  smtStatisticsRegistry()->unregisterStat(&d_gaussianElimConstructTime);
+  smtStatisticsRegistry()->unregisterStat(&d_gaussianElimConstruct);
 
-  StatisticsRegistry::unregisterStat(&d_averageGuesses);
+  smtStatisticsRegistry()->unregisterStat(&d_averageGuesses);
 }
 
 Integer ApproximateSimplex::s_defaultMaxDenom(1<<26);

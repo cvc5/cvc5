@@ -49,8 +49,9 @@
 
 using namespace std;
 
-using namespace CVC4;
 using namespace CVC4::theory;
+
+namespace CVC4 {
 
 void TheoryEngine::finishInit() {
   PROOF (ProofManager::initTheoryProof(); );
@@ -152,13 +153,13 @@ TheoryEngine::TheoryEngine(context::Context* context,
   d_curr_model = new theory::TheoryModel(userContext, "DefaultModel", true);
   d_curr_model_builder = new theory::TheoryEngineModelBuilder(this);
 
-  StatisticsRegistry::registerStat(&d_combineTheoriesTime);
+  smtStatisticsRegistry()->registerStat(&d_combineTheoriesTime);
   d_true = NodeManager::currentNM()->mkConst<bool>(true);
   d_false = NodeManager::currentNM()->mkConst<bool>(false);
 
   d_iteUtilities = new ITEUtilities(d_iteRemover.getContainsVisitor());
 
-  StatisticsRegistry::registerStat(&d_arithSubstitutionsAdded);
+  smtStatisticsRegistry()->registerStat(&d_arithSubstitutionsAdded);
 }
 
 TheoryEngine::~TheoryEngine() {
@@ -178,13 +179,13 @@ TheoryEngine::~TheoryEngine() {
 
   delete d_masterEqualityEngine;
 
-  StatisticsRegistry::unregisterStat(&d_combineTheoriesTime);
+  smtStatisticsRegistry()->unregisterStat(&d_combineTheoriesTime);
 
   delete d_unconstrainedSimp;
 
   delete d_iteUtilities;
 
-  StatisticsRegistry::unregisterStat(&d_arithSubstitutionsAdded);
+  smtStatisticsRegistry()->unregisterStat(&d_arithSubstitutionsAdded);
 }
 
 void TheoryEngine::interrupt() throw(ModalException) {
@@ -1762,3 +1763,30 @@ std::pair<bool, Node> TheoryEngine::entailmentCheck(theory::TheoryOfMode mode, T
 void TheoryEngine::spendResource(unsigned ammount) {
   d_resourceManager->spendResource(ammount);
 }
+
+TheoryEngine::Statistics::Statistics(theory::TheoryId theory):
+    conflicts(mkName("theory<", theory, ">::conflicts"), 0),
+    propagations(mkName("theory<", theory, ">::propagations"), 0),
+    lemmas(mkName("theory<", theory, ">::lemmas"), 0),
+    requirePhase(mkName("theory<", theory, ">::requirePhase"), 0),
+    flipDecision(mkName("theory<", theory, ">::flipDecision"), 0),
+    restartDemands(mkName("theory<", theory, ">::restartDemands"), 0)
+{
+  smtStatisticsRegistry()->registerStat(&conflicts);
+  smtStatisticsRegistry()->registerStat(&propagations);
+  smtStatisticsRegistry()->registerStat(&lemmas);
+  smtStatisticsRegistry()->registerStat(&requirePhase);
+  smtStatisticsRegistry()->registerStat(&flipDecision);
+  smtStatisticsRegistry()->registerStat(&restartDemands);
+}
+
+TheoryEngine::Statistics::~Statistics() {
+  smtStatisticsRegistry()->unregisterStat(&conflicts);
+  smtStatisticsRegistry()->unregisterStat(&propagations);
+  smtStatisticsRegistry()->unregisterStat(&lemmas);
+  smtStatisticsRegistry()->unregisterStat(&requirePhase);
+  smtStatisticsRegistry()->unregisterStat(&flipDecision);
+  smtStatisticsRegistry()->unregisterStat(&restartDemands);
+}
+
+}/* CVC4 namespace */

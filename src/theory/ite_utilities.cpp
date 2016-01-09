@@ -16,10 +16,11 @@
  ** Kim, Somenzi, Jin.  Efficient Term-ITE Conversion for SMT.  FMCAD 2009.
  ** Burch, Jerry.  Techniques for Verifying Superscalar Microprocessors.  DAC '96
  **/
-
-
 #include "theory/ite_utilities.h"
+
 #include <utility>
+
+#include "smt/smt_statistics_registry.h"
 #include "theory/rewriter.h"
 #include "theory/theory.h"
 
@@ -276,13 +277,13 @@ ITECompressor::Statistics::Statistics():
   d_compressCalls("ite-simp::compressCalls", 0),
   d_skolemsAdded("ite-simp::skolems", 0)
 {
-  StatisticsRegistry::registerStat(&d_compressCalls);
-  StatisticsRegistry::registerStat(&d_skolemsAdded);
+  smtStatisticsRegistry()->registerStat(&d_compressCalls);
+  smtStatisticsRegistry()->registerStat(&d_skolemsAdded);
 
 }
 ITECompressor::Statistics::~Statistics(){
-  StatisticsRegistry::unregisterStat(&d_compressCalls);
-  StatisticsRegistry::unregisterStat(&d_skolemsAdded);
+  smtStatisticsRegistry()->unregisterStat(&d_compressCalls);
+  smtStatisticsRegistry()->unregisterStat(&d_skolemsAdded);
 }
 
 Node ITECompressor::push_back_boolean(Node original, Node compressed){
@@ -611,25 +612,25 @@ ITESimplifier::Statistics::Statistics():
   d_simpITEVisits("ite-simp::simpITE.visits", 0),
   d_inSmaller("ite-simp::inSmaller")
 {
-  StatisticsRegistry::registerStat(&d_maxNonConstantsFolded);
-  StatisticsRegistry::registerStat(&d_unexpected);
-  StatisticsRegistry::registerStat(&d_unsimplified);
-  StatisticsRegistry::registerStat(&d_exactMatchFold);
-  StatisticsRegistry::registerStat(&d_binaryPredFold);
-  StatisticsRegistry::registerStat(&d_specialEqualityFolds);
-  StatisticsRegistry::registerStat(&d_simpITEVisits);
-  StatisticsRegistry::registerStat(&d_inSmaller);
+  smtStatisticsRegistry()->registerStat(&d_maxNonConstantsFolded);
+  smtStatisticsRegistry()->registerStat(&d_unexpected);
+  smtStatisticsRegistry()->registerStat(&d_unsimplified);
+  smtStatisticsRegistry()->registerStat(&d_exactMatchFold);
+  smtStatisticsRegistry()->registerStat(&d_binaryPredFold);
+  smtStatisticsRegistry()->registerStat(&d_specialEqualityFolds);
+  smtStatisticsRegistry()->registerStat(&d_simpITEVisits);
+  smtStatisticsRegistry()->registerStat(&d_inSmaller);
 }
 
 ITESimplifier::Statistics::~Statistics(){
-  StatisticsRegistry::unregisterStat(&d_maxNonConstantsFolded);
-  StatisticsRegistry::unregisterStat(&d_unexpected);
-  StatisticsRegistry::unregisterStat(&d_unsimplified);
-  StatisticsRegistry::unregisterStat(&d_exactMatchFold);
-  StatisticsRegistry::unregisterStat(&d_binaryPredFold);
-  StatisticsRegistry::unregisterStat(&d_specialEqualityFolds);
-  StatisticsRegistry::unregisterStat(&d_simpITEVisits);
-  StatisticsRegistry::unregisterStat(&d_inSmaller);
+  smtStatisticsRegistry()->unregisterStat(&d_maxNonConstantsFolded);
+  smtStatisticsRegistry()->unregisterStat(&d_unexpected);
+  smtStatisticsRegistry()->unregisterStat(&d_unsimplified);
+  smtStatisticsRegistry()->unregisterStat(&d_exactMatchFold);
+  smtStatisticsRegistry()->unregisterStat(&d_binaryPredFold);
+  smtStatisticsRegistry()->unregisterStat(&d_specialEqualityFolds);
+  smtStatisticsRegistry()->unregisterStat(&d_simpITEVisits);
+  smtStatisticsRegistry()->unregisterStat(&d_inSmaller);
 }
 
 bool ITESimplifier::isConstantIte(TNode e){

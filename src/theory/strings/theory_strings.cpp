@@ -21,6 +21,7 @@
 #include "expr/kind.h"
 #include "options/strings_options.h"
 #include "smt/logic_exception.h"
+#include "smt/smt_statistics_registry.h"
 #include "smt_util/command.h"
 #include "theory/rewriter.h"
 #include "theory/strings/theory_strings_rewriter.h"
@@ -4416,19 +4417,19 @@ TheoryStrings::Statistics::Statistics():
   d_loop_lemmas("TheoryStrings::NumOfLoops", 0),
   d_new_skolems("TheoryStrings::NumOfNewSkolems", 0)
 {
-  StatisticsRegistry::registerStat(&d_splits);
-  StatisticsRegistry::registerStat(&d_eq_splits);
-  StatisticsRegistry::registerStat(&d_deq_splits);
-  StatisticsRegistry::registerStat(&d_loop_lemmas);
-  StatisticsRegistry::registerStat(&d_new_skolems);
+  smtStatisticsRegistry()->registerStat(&d_splits);
+  smtStatisticsRegistry()->registerStat(&d_eq_splits);
+  smtStatisticsRegistry()->registerStat(&d_deq_splits);
+  smtStatisticsRegistry()->registerStat(&d_loop_lemmas);
+  smtStatisticsRegistry()->registerStat(&d_new_skolems);
 }
 
 TheoryStrings::Statistics::~Statistics(){
-  StatisticsRegistry::unregisterStat(&d_splits);
-  StatisticsRegistry::unregisterStat(&d_eq_splits);
-  StatisticsRegistry::unregisterStat(&d_deq_splits);
-  StatisticsRegistry::unregisterStat(&d_loop_lemmas);
-  StatisticsRegistry::unregisterStat(&d_new_skolems);
+  smtStatisticsRegistry()->unregisterStat(&d_splits);
+  smtStatisticsRegistry()->unregisterStat(&d_eq_splits);
+  smtStatisticsRegistry()->unregisterStat(&d_deq_splits);
+  smtStatisticsRegistry()->unregisterStat(&d_loop_lemmas);
+  smtStatisticsRegistry()->unregisterStat(&d_new_skolems);
 }
 
 }/* CVC4::theory::strings namespace */

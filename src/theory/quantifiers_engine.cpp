@@ -16,6 +16,7 @@
 
 #include "options/quantifiers_options.h"
 #include "options/uf_options.h"
+#include "smt/smt_statistics_registry.h"
 #include "theory/arrays/theory_arrays.h"
 #include "theory/datatypes/theory_datatypes.h"
 #include "theory/quantifiers/alpha_equivalence.h"
@@ -82,14 +83,14 @@ quantifiers::TermDb * QuantifiersModule::getTermDatabase() {
 }
 
 QuantifiersEngine::QuantifiersEngine(context::Context* c, context::UserContext* u, TheoryEngine* te):
-d_te( te ),
-d_lemmas_produced_c(u),
-d_skolemized(u),
-d_presolve(u, true),
-d_presolve_in(u),
-d_presolve_cache(u),
-d_presolve_cache_wq(u),
-d_presolve_cache_wic(u){
+    d_te( te ),
+    d_lemmas_produced_c(u),
+    d_skolemized(u),
+    d_presolve(u, true),
+    d_presolve_in(u),
+    d_presolve_cache(u),
+    d_presolve_cache_wq(u),
+    d_presolve_cache_wic(u){
   d_eq_query = new EqualityQueryQuantifiersEngine( this );
   d_term_db = new quantifiers::TermDb( c, u, this );
   d_tr_trie = new inst::TriggerTrie;
@@ -315,7 +316,7 @@ void QuantifiersEngine::presolve() {
 }
 
 void QuantifiersEngine::check( Theory::Effort e ){
-  CodeTimer codeTimer(d_time);
+  CodeTimer codeTimer(d_statistics.d_time);
   if( !getMasterEqualityEngine()->consistent() ){
     Trace("quant-engine-debug") << "Master equality engine not consistent, return." << std::endl;
     return;
@@ -621,7 +622,7 @@ void QuantifiersEngine::assertQuantifier( Node f, bool pol ){
 }
 
 void QuantifiersEngine::propagate( Theory::Effort level ){
-  CodeTimer codeTimer(d_time);
+  CodeTimer codeTimer(d_statistics.d_time);
 
   for( int i=0; i<(int)d_modules.size(); i++ ){
     d_modules[i]->propagate( level );
@@ -1098,59 +1099,62 @@ void QuantifiersEngine::printSynthSolution( std::ostream& out ) {
   }
 }
 
-QuantifiersEngine::Statistics::Statistics():
-  d_num_quant("QuantifiersEngine::Num_Quantifiers", 0),
-  d_instantiation_rounds("QuantifiersEngine::Rounds_Instantiation_Full", 0),
-  d_instantiation_rounds_lc("QuantifiersEngine::Rounds_Instantiation_Last_Call", 0),
-  d_instantiations("QuantifiersEngine::Instantiations_Total", 0),
-  d_inst_duplicate("QuantifiersEngine::Duplicate_Inst", 0),
-  d_inst_duplicate_eq("QuantifiersEngine::Duplicate_Inst_Eq", 0),
-  d_triggers("QuantifiersEngine::Triggers", 0),
-  d_simple_triggers("QuantifiersEngine::Triggers_Simple", 0),
-  d_multi_triggers("QuantifiersEngine::Triggers_Multi", 0),
-  d_multi_trigger_instantiations("QuantifiersEngine::Multi_Trigger_Instantiations", 0),
-  d_red_alpha_equiv("QuantifiersEngine::Reductions_Alpha_Equivalence", 0),
-  d_red_lte_partial_inst("QuantifiersEngine::Reductions_Lte_Partial_Inst", 0),
-  d_instantiations_user_patterns("QuantifiersEngine::Instantiations_User_Patterns", 0),
-  d_instantiations_auto_gen("QuantifiersEngine::Instantiations_Auto_Gen", 0),
-  d_instantiations_guess("QuantifiersEngine::Instantiations_Guess", 0),
-  d_instantiations_cbqi_arith("QuantifiersEngine::Instantiations_Cbqi_Arith", 0)
+QuantifiersEngine::Statistics::Statistics()
+    : d_time("theory::QuantifiersEngine::time"),
+      d_num_quant("QuantifiersEngine::Num_Quantifiers", 0),
+      d_instantiation_rounds("QuantifiersEngine::Rounds_Instantiation_Full", 0),
+      d_instantiation_rounds_lc("QuantifiersEngine::Rounds_Instantiation_Last_Call", 0),
+      d_instantiations("QuantifiersEngine::Instantiations_Total", 0),
+      d_inst_duplicate("QuantifiersEngine::Duplicate_Inst", 0),
+      d_inst_duplicate_eq("QuantifiersEngine::Duplicate_Inst_Eq", 0),
+      d_triggers("QuantifiersEngine::Triggers", 0),
+      d_simple_triggers("QuantifiersEngine::Triggers_Simple", 0),
+      d_multi_triggers("QuantifiersEngine::Triggers_Multi", 0),
+      d_multi_trigger_instantiations("QuantifiersEngine::Multi_Trigger_Instantiations", 0),
+      d_red_alpha_equiv("QuantifiersEngine::Reductions_Alpha_Equivalence", 0),
+      d_red_lte_partial_inst("QuantifiersEngine::Reductions_Lte_Partial_Inst", 0),
+      d_instantiations_user_patterns("QuantifiersEngine::Instantiations_User_Patterns", 0),
+      d_instantiations_auto_gen("QuantifiersEngine::Instantiations_Auto_Gen", 0),
+      d_instantiations_guess("QuantifiersEngine::Instantiations_Guess", 0),
+      d_instantiations_cbqi_arith("QuantifiersEngine::Instantiations_Cbqi_Arith", 0)
 {
-  StatisticsRegistry::registerStat(&d_num_quant);
-  StatisticsRegistry::registerStat(&d_instantiation_rounds);
-  StatisticsRegistry::registerStat(&d_instantiation_rounds_lc);
-  StatisticsRegistry::registerStat(&d_instantiations);
-  StatisticsRegistry::registerStat(&d_inst_duplicate);
-  StatisticsRegistry::registerStat(&d_inst_duplicate_eq);
-  StatisticsRegistry::registerStat(&d_triggers);
-  StatisticsRegistry::registerStat(&d_simple_triggers);
-  StatisticsRegistry::registerStat(&d_multi_triggers);
-  StatisticsRegistry::registerStat(&d_multi_trigger_instantiations);
-  StatisticsRegistry::registerStat(&d_red_alpha_equiv);
-  StatisticsRegistry::registerStat(&d_red_lte_partial_inst);  
-  StatisticsRegistry::registerStat(&d_instantiations_user_patterns);
-  StatisticsRegistry::registerStat(&d_instantiations_auto_gen);
-  StatisticsRegistry::registerStat(&d_instantiations_guess);
-  StatisticsRegistry::registerStat(&d_instantiations_cbqi_arith);
+  smtStatisticsRegistry()->registerStat(&d_time);
+  smtStatisticsRegistry()->registerStat(&d_num_quant);
+  smtStatisticsRegistry()->registerStat(&d_instantiation_rounds);
+  smtStatisticsRegistry()->registerStat(&d_instantiation_rounds_lc);
+  smtStatisticsRegistry()->registerStat(&d_instantiations);
+  smtStatisticsRegistry()->registerStat(&d_inst_duplicate);
+  smtStatisticsRegistry()->registerStat(&d_inst_duplicate_eq);
+  smtStatisticsRegistry()->registerStat(&d_triggers);
+  smtStatisticsRegistry()->registerStat(&d_simple_triggers);
+  smtStatisticsRegistry()->registerStat(&d_multi_triggers);
+  smtStatisticsRegistry()->registerStat(&d_multi_trigger_instantiations);
+  smtStatisticsRegistry()->registerStat(&d_red_alpha_equiv);
+  smtStatisticsRegistry()->registerStat(&d_red_lte_partial_inst);
+  smtStatisticsRegistry()->registerStat(&d_instantiations_user_patterns);
+  smtStatisticsRegistry()->registerStat(&d_instantiations_auto_gen);
+  smtStatisticsRegistry()->registerStat(&d_instantiations_guess);
+  smtStatisticsRegistry()->registerStat(&d_instantiations_cbqi_arith);
 }
 
 QuantifiersEngine::Statistics::~Statistics(){
-  StatisticsRegistry::unregisterStat(&d_num_quant);
-  StatisticsRegistry::unregisterStat(&d_instantiation_rounds);
-  StatisticsRegistry::unregisterStat(&d_instantiation_rounds_lc);
-  StatisticsRegistry::unregisterStat(&d_instantiations);
-  StatisticsRegistry::unregisterStat(&d_inst_duplicate);
-  StatisticsRegistry::unregisterStat(&d_inst_duplicate_eq);
-  StatisticsRegistry::unregisterStat(&d_triggers);
-  StatisticsRegistry::unregisterStat(&d_simple_triggers);
-  StatisticsRegistry::unregisterStat(&d_multi_triggers);
-  StatisticsRegistry::unregisterStat(&d_multi_trigger_instantiations);
-  StatisticsRegistry::unregisterStat(&d_red_alpha_equiv);
-  StatisticsRegistry::unregisterStat(&d_red_lte_partial_inst);
-  StatisticsRegistry::unregisterStat(&d_instantiations_user_patterns);
-  StatisticsRegistry::unregisterStat(&d_instantiations_auto_gen);
-  StatisticsRegistry::unregisterStat(&d_instantiations_guess);
-  StatisticsRegistry::unregisterStat(&d_instantiations_cbqi_arith);
+  smtStatisticsRegistry()->unregisterStat(&d_time);
+  smtStatisticsRegistry()->unregisterStat(&d_num_quant);
+  smtStatisticsRegistry()->unregisterStat(&d_instantiation_rounds);
+  smtStatisticsRegistry()->unregisterStat(&d_instantiation_rounds_lc);
+  smtStatisticsRegistry()->unregisterStat(&d_instantiations);
+  smtStatisticsRegistry()->unregisterStat(&d_inst_duplicate);
+  smtStatisticsRegistry()->unregisterStat(&d_inst_duplicate_eq);
+  smtStatisticsRegistry()->unregisterStat(&d_triggers);
+  smtStatisticsRegistry()->unregisterStat(&d_simple_triggers);
+  smtStatisticsRegistry()->unregisterStat(&d_multi_triggers);
+  smtStatisticsRegistry()->unregisterStat(&d_multi_trigger_instantiations);
+  smtStatisticsRegistry()->unregisterStat(&d_red_alpha_equiv);
+  smtStatisticsRegistry()->unregisterStat(&d_red_lte_partial_inst);
+  smtStatisticsRegistry()->unregisterStat(&d_instantiations_user_patterns);
+  smtStatisticsRegistry()->unregisterStat(&d_instantiations_auto_gen);
+  smtStatisticsRegistry()->unregisterStat(&d_instantiations_guess);
+  smtStatisticsRegistry()->unregisterStat(&d_instantiations_cbqi_arith);
 }
 
 eq::EqualityEngine* QuantifiersEngine::getMasterEqualityEngine(){

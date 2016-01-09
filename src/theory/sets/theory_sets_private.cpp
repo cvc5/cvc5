@@ -20,6 +20,7 @@
 
 #include "expr/emptyset.h"
 #include "options/sets_options.h"
+#include "smt/smt_statistics_registry.h"
 #include "theory/sets/expr_patterns.h" // ONLY included here
 #include "theory/sets/scrutinize.h"
 #include "theory/sets/theory_sets.h"
@@ -924,16 +925,16 @@ TheorySetsPrivate::Statistics::Statistics() :
   , d_memberLemmas("theory::sets::lemmas::member", 0)
   , d_disequalityLemmas("theory::sets::lemmas::disequality", 0)
 {
-  StatisticsRegistry::registerStat(&d_getModelValueTime);
-  StatisticsRegistry::registerStat(&d_memberLemmas);
-  StatisticsRegistry::registerStat(&d_disequalityLemmas);
+  smtStatisticsRegistry()->registerStat(&d_getModelValueTime);
+  smtStatisticsRegistry()->registerStat(&d_memberLemmas);
+  smtStatisticsRegistry()->registerStat(&d_disequalityLemmas);
 }
 
 
 TheorySetsPrivate::Statistics::~Statistics() {
-  StatisticsRegistry::unregisterStat(&d_getModelValueTime);
-  StatisticsRegistry::unregisterStat(&d_memberLemmas);
-  StatisticsRegistry::unregisterStat(&d_disequalityLemmas);
+  smtStatisticsRegistry()->unregisterStat(&d_getModelValueTime);
+  smtStatisticsRegistry()->unregisterStat(&d_memberLemmas);
+  smtStatisticsRegistry()->unregisterStat(&d_disequalityLemmas);
 }
 
 

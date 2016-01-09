@@ -20,6 +20,7 @@
 #include "prop/cnf_stream.h"
 #include "prop/sat_solver.h"
 #include "prop/sat_solver_factory.h"
+#include "smt/smt_statistics_registry.h"
 #include "theory/bv/abstraction.h"
 #include "theory/bv/theory_bv.h"
 #include "theory/rewriter.h"
@@ -46,7 +47,8 @@ TLazyBitblaster::TLazyBitblaster(context::Context* c, bv::TheoryBV* bv,
   , d_name(name)
   , d_statistics(name) {
 
-  d_satSolver = prop::SatSolverFactory::createMinisat(c, name);
+  d_satSolver = prop::SatSolverFactory::createMinisat(
+      c, smtStatisticsRegistry(), name);
   d_nullRegistrar = new prop::NullRegistrar();
   d_nullContext = new context::Context();
   d_cnfStream = new prop::TseitinCnfStream(d_satSolver, d_nullRegistrar,
@@ -307,24 +309,24 @@ TLazyBitblaster::Statistics::Statistics(const std::string& prefix) :
   d_numBitblastingPropagations("theory::bv::"+prefix+"::NumberOfBitblastingPropagations", 0),
   d_bitblastTimer("theory::bv::"+prefix+"::BitblastTimer")
 {
-  StatisticsRegistry::registerStat(&d_numTermClauses);
-  StatisticsRegistry::registerStat(&d_numAtomClauses);
-  StatisticsRegistry::registerStat(&d_numTerms);
-  StatisticsRegistry::registerStat(&d_numAtoms);
-  StatisticsRegistry::registerStat(&d_numExplainedPropagations);
-  StatisticsRegistry::registerStat(&d_numBitblastingPropagations);
-  StatisticsRegistry::registerStat(&d_bitblastTimer);
+  smtStatisticsRegistry()->registerStat(&d_numTermClauses);
+  smtStatisticsRegistry()->registerStat(&d_numAtomClauses);
+  smtStatisticsRegistry()->registerStat(&d_numTerms);
+  smtStatisticsRegistry()->registerStat(&d_numAtoms);
+  smtStatisticsRegistry()->registerStat(&d_numExplainedPropagations);
+  smtStatisticsRegistry()->registerStat(&d_numBitblastingPropagations);
+  smtStatisticsRegistry()->registerStat(&d_bitblastTimer);
 }
 
 
 TLazyBitblaster::Statistics::~Statistics() {
-  StatisticsRegistry::unregisterStat(&d_numTermClauses);
-  StatisticsRegistry::unregisterStat(&d_numAtomClauses);
-  StatisticsRegistry::unregisterStat(&d_numTerms);
-  StatisticsRegistry::unregisterStat(&d_numAtoms);
-  StatisticsRegistry::unregisterStat(&d_numExplainedPropagations);
-  StatisticsRegistry::unregisterStat(&d_numBitblastingPropagations);
-  StatisticsRegistry::unregisterStat(&d_bitblastTimer);
+  smtStatisticsRegistry()->unregisterStat(&d_numTermClauses);
+  smtStatisticsRegistry()->unregisterStat(&d_numAtomClauses);
+  smtStatisticsRegistry()->unregisterStat(&d_numTerms);
+  smtStatisticsRegistry()->unregisterStat(&d_numAtoms);
+  smtStatisticsRegistry()->unregisterStat(&d_numExplainedPropagations);
+  smtStatisticsRegistry()->unregisterStat(&d_numBitblastingPropagations);
+  smtStatisticsRegistry()->unregisterStat(&d_bitblastTimer);
 }
 
 bool TLazyBitblaster::MinisatNotify::notify(prop::SatLiteral lit) {
@@ -496,7 +498,8 @@ void TLazyBitblaster::clearSolver() {
 
   invalidateModelCache();
   // recreate sat solver
-  d_satSolver = prop::SatSolverFactory::createMinisat(d_ctx);
+  d_satSolver = prop::SatSolverFactory::createMinisat(
+      d_ctx, smtStatisticsRegistry());
   d_cnfStream = new prop::TseitinCnfStream(d_satSolver, d_nullRegistrar,
                                            d_nullContext, d_bv->globals());
 

@@ -23,7 +23,7 @@
 #include "options/decision_options.h"
 #include "theory/rewriter.h"
 #include "smt_util/ite_removal.h"
-
+#include "smt/smt_statistics_registry.h"
 
 namespace CVC4 {
 
@@ -48,16 +48,16 @@ JustificationHeuristic::JustificationHeuristic(CVC4::DecisionEngine* de,
   d_childCache(uc),
   d_weightCache(uc),
   d_startIndexCache(c) {
-  StatisticsRegistry::registerStat(&d_helfulness);
-  StatisticsRegistry::registerStat(&d_giveup);
-  StatisticsRegistry::registerStat(&d_timestat);
+  smtStatisticsRegistry()->registerStat(&d_helfulness);
+  smtStatisticsRegistry()->registerStat(&d_giveup);
+  smtStatisticsRegistry()->registerStat(&d_timestat);
   Trace("decision") << "Justification heuristic enabled" << std::endl;
 }
 
 JustificationHeuristic::~JustificationHeuristic() throw() {
-  StatisticsRegistry::unregisterStat(&d_helfulness);
-  StatisticsRegistry::unregisterStat(&d_giveup);
-  StatisticsRegistry::unregisterStat(&d_timestat);
+  smtStatisticsRegistry()->unregisterStat(&d_helfulness);
+  smtStatisticsRegistry()->unregisterStat(&d_giveup);
+  smtStatisticsRegistry()->unregisterStat(&d_timestat);
 }
 
 CVC4::prop::SatLiteral JustificationHeuristic::getNext(bool &stopSearch)

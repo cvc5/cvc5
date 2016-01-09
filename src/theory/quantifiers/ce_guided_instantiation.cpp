@@ -16,6 +16,7 @@
 
 #include "expr/datatype.h"
 #include "options/quantifiers_options.h"
+#include "smt/smt_statistics_registry.h"
 #include "theory/datatypes/datatypes_rewriter.h"
 #include "theory/quantifiers/first_order_model.h"
 #include "theory/quantifiers/term_database.h"
@@ -696,15 +697,15 @@ CegInstantiation::Statistics::Statistics():
   d_cegqi_lemmas_refine("CegInstantiation::cegqi_lemmas_refine", 0),
   d_cegqi_si_lemmas("CegInstantiation::cegqi_lemmas_si", 0)
 {
-  StatisticsRegistry::registerStat(&d_cegqi_lemmas_ce);
-  StatisticsRegistry::registerStat(&d_cegqi_lemmas_refine);
-  StatisticsRegistry::registerStat(&d_cegqi_si_lemmas);
+  smtStatisticsRegistry()->registerStat(&d_cegqi_lemmas_ce);
+  smtStatisticsRegistry()->registerStat(&d_cegqi_lemmas_refine);
+  smtStatisticsRegistry()->registerStat(&d_cegqi_si_lemmas);
 }
 
 CegInstantiation::Statistics::~Statistics(){
-  StatisticsRegistry::unregisterStat(&d_cegqi_lemmas_ce);
-  StatisticsRegistry::unregisterStat(&d_cegqi_lemmas_refine);
-  StatisticsRegistry::unregisterStat(&d_cegqi_si_lemmas);
+  smtStatisticsRegistry()->unregisterStat(&d_cegqi_lemmas_ce);
+  smtStatisticsRegistry()->unregisterStat(&d_cegqi_lemmas_refine);
+  smtStatisticsRegistry()->unregisterStat(&d_cegqi_si_lemmas);
 }
 
 

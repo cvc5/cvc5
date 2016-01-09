@@ -24,9 +24,9 @@
 
 #include "context/cdo.h"
 #include "expr/node.h"
-#include "expr/statistics_registry.h"
 #include "prop/sat_solver_types.h"
 #include "theory/bv/theory_bv_utils.h"
+#include "util/statistics_registry.h"
 
 namespace CVC4 {
 namespace theory {

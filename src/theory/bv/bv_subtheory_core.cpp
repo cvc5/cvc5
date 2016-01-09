@@ -18,6 +18,7 @@
 
 #include "options/bv_options.h"
 #include "options/smt_options.h"
+#include "smt/smt_statistics_registry.h"
 #include "theory/bv/slicer.h"
 #include "theory/bv/theory_bv.h"
 #include "theory/bv/theory_bv_utils.h"
@@ -438,10 +439,10 @@ CoreSolver::Statistics::Statistics()
   : d_numCallstoCheck("theory::bv::CoreSolver::NumCallsToCheck", 0)
   , d_slicerEnabled("theory::bv::CoreSolver::SlicerEnabled", false)
 {
-  StatisticsRegistry::registerStat(&d_numCallstoCheck);
-  StatisticsRegistry::registerStat(&d_slicerEnabled);
+  smtStatisticsRegistry()->registerStat(&d_numCallstoCheck);
+  smtStatisticsRegistry()->registerStat(&d_slicerEnabled);
 }
 CoreSolver::Statistics::~Statistics() {
-  StatisticsRegistry::unregisterStat(&d_numCallstoCheck);
-  StatisticsRegistry::unregisterStat(&d_slicerEnabled);
+  smtStatisticsRegistry()->unregisterStat(&d_numCallstoCheck);
+  smtStatisticsRegistry()->unregisterStat(&d_slicerEnabled);
 }

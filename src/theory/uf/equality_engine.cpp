@@ -17,9 +17,31 @@
 
 #include "theory/uf/equality_engine.h"
 
+#include "smt/smt_statistics_registry.h"
+
 namespace CVC4 {
 namespace theory {
 namespace eq {
+
+EqualityEngine::Statistics::Statistics(std::string name)
+    : mergesCount(name + "::mergesCount", 0),
+      termsCount(name + "::termsCount", 0),
+      functionTermsCount(name + "::functionTermsCount", 0),
+      constantTermsCount(name + "::constantTermsCount", 0)
+{
+  smtStatisticsRegistry()->registerStat(&mergesCount);
+  smtStatisticsRegistry()->registerStat(&termsCount);
+  smtStatisticsRegistry()->registerStat(&functionTermsCount);
+  smtStatisticsRegistry()->registerStat(&constantTermsCount);
+}
+
+EqualityEngine::Statistics::~Statistics() {
+  smtStatisticsRegistry()->unregisterStat(&mergesCount);
+  smtStatisticsRegistry()->unregisterStat(&termsCount);
+  smtStatisticsRegistry()->unregisterStat(&functionTermsCount);
+  smtStatisticsRegistry()->unregisterStat(&constantTermsCount);
+}
+
 
 /**
  * Data used in the BFS search through the equality graph.
@@ -2058,4 +2080,3 @@ void EqProof::debug_print( const char * c, unsigned tb ){
 } // Namespace uf
 } // Namespace theory
 } // Namespace CVC4
-

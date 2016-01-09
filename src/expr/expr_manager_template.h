@@ -24,7 +24,7 @@
 #include "expr/expr.h"
 #include "expr/kind.h"
 #include "expr/type.h"
-#include "expr/statistics.h"
+#include "util/statistics.h"
 #include "util/subrange_bound.h"
 
 ${includes}
@@ -43,7 +43,6 @@ class NodeManager;
 class Options;
 class IntStat;
 struct ExprManagerMapCollection;
-class StatisticsRegistry;
 class ResourceManager;
 
 namespace expr {
@@ -51,10 +50,6 @@ namespace expr {
     class Pickler;
   }/* CVC4::expr::pickle namespace */
 }/* CVC4::expr namespace */
-
-namespace stats {
-  StatisticsRegistry* getStatisticsRegistry(ExprManager*);
-}/* CVC4::stats namespace */
 
 class CVC4_PUBLIC ExprManager {
 private:
@@ -87,12 +82,6 @@ private:
 
   /** NodeManager reaches in to get the NodeManager */
   friend class NodeManager;
-
-  /** Statistics reach in to get the StatisticsRegistry */
-  friend ::CVC4::StatisticsRegistry* ::CVC4::stats::getStatisticsRegistry(ExprManager*);
-
-  /** Get the underlying statistics registry. */
-  StatisticsRegistry* getStatisticsRegistry() throw();
 
   // undefined, private copy constructor and assignment op (disallow copy)
   ExprManager(const ExprManager&) CVC4_UNDEFINED;

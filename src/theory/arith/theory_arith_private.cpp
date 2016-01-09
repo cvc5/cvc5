@@ -33,11 +33,11 @@
 #include "expr/metakind.h"
 #include "expr/node.h"
 #include "expr/node_builder.h"
-#include "expr/statistics_registry.h"
 #include "options/arith_options.h"
 #include "options/smt_options.h"  // for incrementalSolving()
 #include "smt/logic_exception.h"
 #include "smt/logic_request.h"
+#include "smt/smt_statistics_registry.h"
 #include "smt_util/boolean_simplification.h"
 #include "theory/arith/approx_simplex.h"
 #include "theory/arith/arith_ite_utils.h"
@@ -70,6 +70,7 @@
 #include "util/integer.h"
 #include "util/rational.h"
 #include "util/result.h"
+#include "util/statistics_registry.h"
 
 using namespace std;
 using namespace CVC4::kind;
@@ -328,190 +329,190 @@ TheoryArithPrivate::Statistics::Statistics()
   , d_mipProofsSuccessful("theory::arith::z::mip::proofs::successful", 0)
   , d_numBranchesFailed("theory::arith::z::mip::branch::proof::failed", 0)
 {
-  StatisticsRegistry::registerStat(&d_statAssertUpperConflicts);
-  StatisticsRegistry::registerStat(&d_statAssertLowerConflicts);
+  smtStatisticsRegistry()->registerStat(&d_statAssertUpperConflicts);
+  smtStatisticsRegistry()->registerStat(&d_statAssertLowerConflicts);
 
-  StatisticsRegistry::registerStat(&d_statUserVariables);
-  StatisticsRegistry::registerStat(&d_statAuxiliaryVariables);
-  StatisticsRegistry::registerStat(&d_statDisequalitySplits);
-  StatisticsRegistry::registerStat(&d_statDisequalityConflicts);
-  StatisticsRegistry::registerStat(&d_simplifyTimer);
-  StatisticsRegistry::registerStat(&d_staticLearningTimer);
+  smtStatisticsRegistry()->registerStat(&d_statUserVariables);
+  smtStatisticsRegistry()->registerStat(&d_statAuxiliaryVariables);
+  smtStatisticsRegistry()->registerStat(&d_statDisequalitySplits);
+  smtStatisticsRegistry()->registerStat(&d_statDisequalityConflicts);
+  smtStatisticsRegistry()->registerStat(&d_simplifyTimer);
+  smtStatisticsRegistry()->registerStat(&d_staticLearningTimer);
 
-  StatisticsRegistry::registerStat(&d_presolveTime);
-  StatisticsRegistry::registerStat(&d_newPropTime);
+  smtStatisticsRegistry()->registerStat(&d_presolveTime);
+  smtStatisticsRegistry()->registerStat(&d_newPropTime);
 
-  StatisticsRegistry::registerStat(&d_externalBranchAndBounds);
+  smtStatisticsRegistry()->registerStat(&d_externalBranchAndBounds);
 
-  StatisticsRegistry::registerStat(&d_initialTableauSize);
-  StatisticsRegistry::registerStat(&d_currSetToSmaller);
-  StatisticsRegistry::registerStat(&d_smallerSetToCurr);
-  StatisticsRegistry::registerStat(&d_restartTimer);
+  smtStatisticsRegistry()->registerStat(&d_initialTableauSize);
+  smtStatisticsRegistry()->registerStat(&d_currSetToSmaller);
+  smtStatisticsRegistry()->registerStat(&d_smallerSetToCurr);
+  smtStatisticsRegistry()->registerStat(&d_restartTimer);
 
-  StatisticsRegistry::registerStat(&d_boundComputationTime);
-  StatisticsRegistry::registerStat(&d_boundComputations);
-  StatisticsRegistry::registerStat(&d_boundPropagations);
+  smtStatisticsRegistry()->registerStat(&d_boundComputationTime);
+  smtStatisticsRegistry()->registerStat(&d_boundComputations);
+  smtStatisticsRegistry()->registerStat(&d_boundPropagations);
 
-  StatisticsRegistry::registerStat(&d_unknownChecks);
-  StatisticsRegistry::registerStat(&d_maxUnknownsInARow);
-  StatisticsRegistry::registerStat(&d_avgUnknownsInARow);
-  StatisticsRegistry::registerStat(&d_revertsOnConflicts);
-  StatisticsRegistry::registerStat(&d_commitsOnConflicts);
-  StatisticsRegistry::registerStat(&d_nontrivialSatChecks);
+  smtStatisticsRegistry()->registerStat(&d_unknownChecks);
+  smtStatisticsRegistry()->registerStat(&d_maxUnknownsInARow);
+  smtStatisticsRegistry()->registerStat(&d_avgUnknownsInARow);
+  smtStatisticsRegistry()->registerStat(&d_revertsOnConflicts);
+  smtStatisticsRegistry()->registerStat(&d_commitsOnConflicts);
+  smtStatisticsRegistry()->registerStat(&d_nontrivialSatChecks);
 
 
-  StatisticsRegistry::registerStat(&d_satPivots);
-  StatisticsRegistry::registerStat(&d_unsatPivots);
-  StatisticsRegistry::registerStat(&d_unknownPivots);
+  smtStatisticsRegistry()->registerStat(&d_satPivots);
+  smtStatisticsRegistry()->registerStat(&d_unsatPivots);
+  smtStatisticsRegistry()->registerStat(&d_unknownPivots);
 
-  StatisticsRegistry::registerStat(&d_replayLogRecCount);
-  StatisticsRegistry::registerStat(&d_replayLogRecConflictEscalation);
-  StatisticsRegistry::registerStat(&d_replayLogRecEarlyExit);
-  StatisticsRegistry::registerStat(&d_replayBranchCloseFailures);
-  StatisticsRegistry::registerStat(&d_replayLeafCloseFailures);
-  StatisticsRegistry::registerStat(&d_replayBranchSkips);
-  StatisticsRegistry::registerStat(&d_mirCutsAttempted);
-  StatisticsRegistry::registerStat(&d_gmiCutsAttempted);
-  StatisticsRegistry::registerStat(&d_branchCutsAttempted);
-  StatisticsRegistry::registerStat(&d_cutsReconstructed);
-  StatisticsRegistry::registerStat(&d_cutsProven);
-  StatisticsRegistry::registerStat(&d_cutsProofFailed);
-  StatisticsRegistry::registerStat(&d_cutsReconstructionFailed);
-  StatisticsRegistry::registerStat(&d_mipReplayLemmaCalls);
-  StatisticsRegistry::registerStat(&d_mipExternalCuts);
-  StatisticsRegistry::registerStat(&d_mipExternalBranch);
+  smtStatisticsRegistry()->registerStat(&d_replayLogRecCount);
+  smtStatisticsRegistry()->registerStat(&d_replayLogRecConflictEscalation);
+  smtStatisticsRegistry()->registerStat(&d_replayLogRecEarlyExit);
+  smtStatisticsRegistry()->registerStat(&d_replayBranchCloseFailures);
+  smtStatisticsRegistry()->registerStat(&d_replayLeafCloseFailures);
+  smtStatisticsRegistry()->registerStat(&d_replayBranchSkips);
+  smtStatisticsRegistry()->registerStat(&d_mirCutsAttempted);
+  smtStatisticsRegistry()->registerStat(&d_gmiCutsAttempted);
+  smtStatisticsRegistry()->registerStat(&d_branchCutsAttempted);
+  smtStatisticsRegistry()->registerStat(&d_cutsReconstructed);
+  smtStatisticsRegistry()->registerStat(&d_cutsProven);
+  smtStatisticsRegistry()->registerStat(&d_cutsProofFailed);
+  smtStatisticsRegistry()->registerStat(&d_cutsReconstructionFailed);
+  smtStatisticsRegistry()->registerStat(&d_mipReplayLemmaCalls);
+  smtStatisticsRegistry()->registerStat(&d_mipExternalCuts);
+  smtStatisticsRegistry()->registerStat(&d_mipExternalBranch);
 
-  StatisticsRegistry::registerStat(&d_inSolveInteger);
-  StatisticsRegistry::registerStat(&d_branchesExhausted);
-  StatisticsRegistry::registerStat(&d_execExhausted);
-  StatisticsRegistry::registerStat(&d_pivotsExhausted);
-  StatisticsRegistry::registerStat(&d_panicBranches);
-  StatisticsRegistry::registerStat(&d_relaxCalls);
-  StatisticsRegistry::registerStat(&d_relaxLinFeas);
-  StatisticsRegistry::registerStat(&d_relaxLinFeasFailures);
-  StatisticsRegistry::registerStat(&d_relaxLinInfeas);
-  StatisticsRegistry::registerStat(&d_relaxLinInfeasFailures);
-  StatisticsRegistry::registerStat(&d_relaxLinExhausted);
-  StatisticsRegistry::registerStat(&d_relaxOthers);
+  smtStatisticsRegistry()->registerStat(&d_inSolveInteger);
+  smtStatisticsRegistry()->registerStat(&d_branchesExhausted);
+  smtStatisticsRegistry()->registerStat(&d_execExhausted);
+  smtStatisticsRegistry()->registerStat(&d_pivotsExhausted);
+  smtStatisticsRegistry()->registerStat(&d_panicBranches);
+  smtStatisticsRegistry()->registerStat(&d_relaxCalls);
+  smtStatisticsRegistry()->registerStat(&d_relaxLinFeas);
+  smtStatisticsRegistry()->registerStat(&d_relaxLinFeasFailures);
+  smtStatisticsRegistry()->registerStat(&d_relaxLinInfeas);
+  smtStatisticsRegistry()->registerStat(&d_relaxLinInfeasFailures);
+  smtStatisticsRegistry()->registerStat(&d_relaxLinExhausted);
+  smtStatisticsRegistry()->registerStat(&d_relaxOthers);
 
-  StatisticsRegistry::registerStat(&d_applyRowsDeleted);
+  smtStatisticsRegistry()->registerStat(&d_applyRowsDeleted);
 
-  StatisticsRegistry::registerStat(&d_replaySimplexTimer);
-  StatisticsRegistry::registerStat(&d_replayLogTimer);
-  StatisticsRegistry::registerStat(&d_solveIntTimer);
-  StatisticsRegistry::registerStat(&d_solveRealRelaxTimer);
+  smtStatisticsRegistry()->registerStat(&d_replaySimplexTimer);
+  smtStatisticsRegistry()->registerStat(&d_replayLogTimer);
+  smtStatisticsRegistry()->registerStat(&d_solveIntTimer);
+  smtStatisticsRegistry()->registerStat(&d_solveRealRelaxTimer);
 
-  StatisticsRegistry::registerStat(&d_solveIntCalls);
-  StatisticsRegistry::registerStat(&d_solveStandardEffort);
+  smtStatisticsRegistry()->registerStat(&d_solveIntCalls);
+  smtStatisticsRegistry()->registerStat(&d_solveStandardEffort);
 
-  StatisticsRegistry::registerStat(&d_approxDisabled);
+  smtStatisticsRegistry()->registerStat(&d_approxDisabled);
 
-  StatisticsRegistry::registerStat(&d_replayAttemptFailed);
+  smtStatisticsRegistry()->registerStat(&d_replayAttemptFailed);
 
-  StatisticsRegistry::registerStat(&d_cutsRejectedDuringReplay);
-  StatisticsRegistry::registerStat(&d_cutsRejectedDuringLemmas);
+  smtStatisticsRegistry()->registerStat(&d_cutsRejectedDuringReplay);
+  smtStatisticsRegistry()->registerStat(&d_cutsRejectedDuringLemmas);
 
-  StatisticsRegistry::registerStat(&d_solveIntModelsAttempts);
-  StatisticsRegistry::registerStat(&d_solveIntModelsSuccessful);
-  StatisticsRegistry::registerStat(&d_mipTimer);
-  StatisticsRegistry::registerStat(&d_lpTimer);
-  StatisticsRegistry::registerStat(&d_mipProofsAttempted);
-  StatisticsRegistry::registerStat(&d_mipProofsSuccessful);
-  StatisticsRegistry::registerStat(&d_numBranchesFailed);
+  smtStatisticsRegistry()->registerStat(&d_solveIntModelsAttempts);
+  smtStatisticsRegistry()->registerStat(&d_solveIntModelsSuccessful);
+  smtStatisticsRegistry()->registerStat(&d_mipTimer);
+  smtStatisticsRegistry()->registerStat(&d_lpTimer);
+  smtStatisticsRegistry()->registerStat(&d_mipProofsAttempted);
+  smtStatisticsRegistry()->registerStat(&d_mipProofsSuccessful);
+  smtStatisticsRegistry()->registerStat(&d_numBranchesFailed);
 }
 
 TheoryArithPrivate::Statistics::~Statistics(){
-  StatisticsRegistry::unregisterStat(&d_statAssertUpperConflicts);
-  StatisticsRegistry::unregisterStat(&d_statAssertLowerConflicts);
+  smtStatisticsRegistry()->unregisterStat(&d_statAssertUpperConflicts);
+  smtStatisticsRegistry()->unregisterStat(&d_statAssertLowerConflicts);
 
-  StatisticsRegistry::unregisterStat(&d_statUserVariables);
-  StatisticsRegistry::unregisterStat(&d_statAuxiliaryVariables);
-  StatisticsRegistry::unregisterStat(&d_statDisequalitySplits);
-  StatisticsRegistry::unregisterStat(&d_statDisequalityConflicts);
-  StatisticsRegistry::unregisterStat(&d_simplifyTimer);
-  StatisticsRegistry::unregisterStat(&d_staticLearningTimer);
+  smtStatisticsRegistry()->unregisterStat(&d_statUserVariables);
+  smtStatisticsRegistry()->unregisterStat(&d_statAuxiliaryVariables);
+  smtStatisticsRegistry()->unregisterStat(&d_statDisequalitySplits);
+  smtStatisticsRegistry()->unregisterStat(&d_statDisequalityConflicts);
+  smtStatisticsRegistry()->unregisterStat(&d_simplifyTimer);
+  smtStatisticsRegistry()->unregisterStat(&d_staticLearningTimer);
 
-  StatisticsRegistry::unregisterStat(&d_presolveTime);
-  StatisticsRegistry::unregisterStat(&d_newPropTime);
+  smtStatisticsRegistry()->unregisterStat(&d_presolveTime);
+  smtStatisticsRegistry()->unregisterStat(&d_newPropTime);
 
-  StatisticsRegistry::unregisterStat(&d_externalBranchAndBounds);
+  smtStatisticsRegistry()->unregisterStat(&d_externalBranchAndBounds);
 
-  StatisticsRegistry::unregisterStat(&d_initialTableauSize);
-  StatisticsRegistry::unregisterStat(&d_currSetToSmaller);
-  StatisticsRegistry::unregisterStat(&d_smallerSetToCurr);
-  StatisticsRegistry::unregisterStat(&d_restartTimer);
+  smtStatisticsRegistry()->unregisterStat(&d_initialTableauSize);
+  smtStatisticsRegistry()->unregisterStat(&d_currSetToSmaller);
+  smtStatisticsRegistry()->unregisterStat(&d_smallerSetToCurr);
+  smtStatisticsRegistry()->unregisterStat(&d_restartTimer);
 
-  StatisticsRegistry::unregisterStat(&d_boundComputationTime);
-  StatisticsRegistry::unregisterStat(&d_boundComputations);
-  StatisticsRegistry::unregisterStat(&d_boundPropagations);
+  smtStatisticsRegistry()->unregisterStat(&d_boundComputationTime);
+  smtStatisticsRegistry()->unregisterStat(&d_boundComputations);
+  smtStatisticsRegistry()->unregisterStat(&d_boundPropagations);
 
-  StatisticsRegistry::unregisterStat(&d_unknownChecks);
-  StatisticsRegistry::unregisterStat(&d_maxUnknownsInARow);
-  StatisticsRegistry::unregisterStat(&d_avgUnknownsInARow);
-  StatisticsRegistry::unregisterStat(&d_revertsOnConflicts);
-  StatisticsRegistry::unregisterStat(&d_commitsOnConflicts);
-  StatisticsRegistry::unregisterStat(&d_nontrivialSatChecks);
+  smtStatisticsRegistry()->unregisterStat(&d_unknownChecks);
+  smtStatisticsRegistry()->unregisterStat(&d_maxUnknownsInARow);
+  smtStatisticsRegistry()->unregisterStat(&d_avgUnknownsInARow);
+  smtStatisticsRegistry()->unregisterStat(&d_revertsOnConflicts);
+  smtStatisticsRegistry()->unregisterStat(&d_commitsOnConflicts);
+  smtStatisticsRegistry()->unregisterStat(&d_nontrivialSatChecks);
 
-  StatisticsRegistry::unregisterStat(&d_satPivots);
-  StatisticsRegistry::unregisterStat(&d_unsatPivots);
-  StatisticsRegistry::unregisterStat(&d_unknownPivots);
+  smtStatisticsRegistry()->unregisterStat(&d_satPivots);
+  smtStatisticsRegistry()->unregisterStat(&d_unsatPivots);
+  smtStatisticsRegistry()->unregisterStat(&d_unknownPivots);
 
-  StatisticsRegistry::unregisterStat(&d_replayLogRecCount);
-  StatisticsRegistry::unregisterStat(&d_replayLogRecConflictEscalation);
-  StatisticsRegistry::unregisterStat(&d_replayLogRecEarlyExit);
-  StatisticsRegistry::unregisterStat(&d_replayBranchCloseFailures);
-  StatisticsRegistry::unregisterStat(&d_replayLeafCloseFailures);
-  StatisticsRegistry::unregisterStat(&d_replayBranchSkips);
-  StatisticsRegistry::unregisterStat(&d_mirCutsAttempted);
-  StatisticsRegistry::unregisterStat(&d_gmiCutsAttempted);
-  StatisticsRegistry::unregisterStat(&d_branchCutsAttempted);
-  StatisticsRegistry::unregisterStat(&d_cutsReconstructed);
-  StatisticsRegistry::unregisterStat(&d_cutsProven);
-  StatisticsRegistry::unregisterStat(&d_cutsProofFailed);
-  StatisticsRegistry::unregisterStat(&d_cutsReconstructionFailed);
-  StatisticsRegistry::unregisterStat(&d_mipReplayLemmaCalls);
-  StatisticsRegistry::unregisterStat(&d_mipExternalCuts);
-  StatisticsRegistry::unregisterStat(&d_mipExternalBranch);
-
-
-  StatisticsRegistry::unregisterStat(&d_inSolveInteger);
-  StatisticsRegistry::unregisterStat(&d_branchesExhausted);
-  StatisticsRegistry::unregisterStat(&d_execExhausted);
-  StatisticsRegistry::unregisterStat(&d_pivotsExhausted);
-  StatisticsRegistry::unregisterStat(&d_panicBranches);
-  StatisticsRegistry::unregisterStat(&d_relaxCalls);
-  StatisticsRegistry::unregisterStat(&d_relaxLinFeas);
-  StatisticsRegistry::unregisterStat(&d_relaxLinFeasFailures);
-  StatisticsRegistry::unregisterStat(&d_relaxLinInfeas);
-  StatisticsRegistry::unregisterStat(&d_relaxLinInfeasFailures);
-  StatisticsRegistry::unregisterStat(&d_relaxLinExhausted);
-  StatisticsRegistry::unregisterStat(&d_relaxOthers);
-
-  StatisticsRegistry::unregisterStat(&d_applyRowsDeleted);
-
-  StatisticsRegistry::unregisterStat(&d_replaySimplexTimer);
-  StatisticsRegistry::unregisterStat(&d_replayLogTimer);
-  StatisticsRegistry::unregisterStat(&d_solveIntTimer);
-  StatisticsRegistry::unregisterStat(&d_solveRealRelaxTimer);
-
-  StatisticsRegistry::unregisterStat(&d_solveIntCalls);
-  StatisticsRegistry::unregisterStat(&d_solveStandardEffort);
-
-  StatisticsRegistry::unregisterStat(&d_approxDisabled);
-
-  StatisticsRegistry::unregisterStat(&d_replayAttemptFailed);
-
-  StatisticsRegistry::unregisterStat(&d_cutsRejectedDuringReplay);
-  StatisticsRegistry::unregisterStat(&d_cutsRejectedDuringLemmas);
+  smtStatisticsRegistry()->unregisterStat(&d_replayLogRecCount);
+  smtStatisticsRegistry()->unregisterStat(&d_replayLogRecConflictEscalation);
+  smtStatisticsRegistry()->unregisterStat(&d_replayLogRecEarlyExit);
+  smtStatisticsRegistry()->unregisterStat(&d_replayBranchCloseFailures);
+  smtStatisticsRegistry()->unregisterStat(&d_replayLeafCloseFailures);
+  smtStatisticsRegistry()->unregisterStat(&d_replayBranchSkips);
+  smtStatisticsRegistry()->unregisterStat(&d_mirCutsAttempted);
+  smtStatisticsRegistry()->unregisterStat(&d_gmiCutsAttempted);
+  smtStatisticsRegistry()->unregisterStat(&d_branchCutsAttempted);
+  smtStatisticsRegistry()->unregisterStat(&d_cutsReconstructed);
+  smtStatisticsRegistry()->unregisterStat(&d_cutsProven);
+  smtStatisticsRegistry()->unregisterStat(&d_cutsProofFailed);
+  smtStatisticsRegistry()->unregisterStat(&d_cutsReconstructionFailed);
+  smtStatisticsRegistry()->unregisterStat(&d_mipReplayLemmaCalls);
+  smtStatisticsRegistry()->unregisterStat(&d_mipExternalCuts);
+  smtStatisticsRegistry()->unregisterStat(&d_mipExternalBranch);
 
 
-  StatisticsRegistry::unregisterStat(&d_solveIntModelsAttempts);
-  StatisticsRegistry::unregisterStat(&d_solveIntModelsSuccessful);
-  StatisticsRegistry::unregisterStat(&d_mipTimer);
-  StatisticsRegistry::unregisterStat(&d_lpTimer);
-  StatisticsRegistry::unregisterStat(&d_mipProofsAttempted);
-  StatisticsRegistry::unregisterStat(&d_mipProofsSuccessful);
-  StatisticsRegistry::unregisterStat(&d_numBranchesFailed);
+  smtStatisticsRegistry()->unregisterStat(&d_inSolveInteger);
+  smtStatisticsRegistry()->unregisterStat(&d_branchesExhausted);
+  smtStatisticsRegistry()->unregisterStat(&d_execExhausted);
+  smtStatisticsRegistry()->unregisterStat(&d_pivotsExhausted);
+  smtStatisticsRegistry()->unregisterStat(&d_panicBranches);
+  smtStatisticsRegistry()->unregisterStat(&d_relaxCalls);
+  smtStatisticsRegistry()->unregisterStat(&d_relaxLinFeas);
+  smtStatisticsRegistry()->unregisterStat(&d_relaxLinFeasFailures);
+  smtStatisticsRegistry()->unregisterStat(&d_relaxLinInfeas);
+  smtStatisticsRegistry()->unregisterStat(&d_relaxLinInfeasFailures);
+  smtStatisticsRegistry()->unregisterStat(&d_relaxLinExhausted);
+  smtStatisticsRegistry()->unregisterStat(&d_relaxOthers);
+
+  smtStatisticsRegistry()->unregisterStat(&d_applyRowsDeleted);
+
+  smtStatisticsRegistry()->unregisterStat(&d_replaySimplexTimer);
+  smtStatisticsRegistry()->unregisterStat(&d_replayLogTimer);
+  smtStatisticsRegistry()->unregisterStat(&d_solveIntTimer);
+  smtStatisticsRegistry()->unregisterStat(&d_solveRealRelaxTimer);
+
+  smtStatisticsRegistry()->unregisterStat(&d_solveIntCalls);
+  smtStatisticsRegistry()->unregisterStat(&d_solveStandardEffort);
+
+  smtStatisticsRegistry()->unregisterStat(&d_approxDisabled);
+
+  smtStatisticsRegistry()->unregisterStat(&d_replayAttemptFailed);
+
+  smtStatisticsRegistry()->unregisterStat(&d_cutsRejectedDuringReplay);
+  smtStatisticsRegistry()->unregisterStat(&d_cutsRejectedDuringLemmas);
+
+
+  smtStatisticsRegistry()->unregisterStat(&d_solveIntModelsAttempts);
+  smtStatisticsRegistry()->unregisterStat(&d_solveIntModelsSuccessful);
+  smtStatisticsRegistry()->unregisterStat(&d_mipTimer);
+  smtStatisticsRegistry()->unregisterStat(&d_lpTimer);
+  smtStatisticsRegistry()->unregisterStat(&d_mipProofsAttempted);
+  smtStatisticsRegistry()->unregisterStat(&d_mipProofsSuccessful);
+  smtStatisticsRegistry()->unregisterStat(&d_numBranchesFailed);
 }
 
 bool complexityBelow(const DenseMap<Rational>& row, uint32_t cap){

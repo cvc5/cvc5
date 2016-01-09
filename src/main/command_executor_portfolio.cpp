@@ -63,8 +63,8 @@ CommandExecutorPortfolio::CommandExecutorPortfolio
   assert(d_threadOptions.size() == d_numThreads);
 
   d_statLastWinner.setData(d_lastWinner);
-  d_stats.registerStat_(&d_statLastWinner);
-  d_stats.registerStat_(&d_statWaitTime);
+  d_stats.registerStat(&d_statLastWinner);
+  d_stats.registerStat(&d_statWaitTime);
 
   /* Duplication, individualization */
   d_exprMgrs.push_back(&d_exprMgr);
@@ -99,8 +99,8 @@ CommandExecutorPortfolio::~CommandExecutorPortfolio()
   d_exprMgrs.clear();
   d_smts.clear();
 
-  d_stats.unregisterStat_(&d_statLastWinner);
-  d_stats.unregisterStat_(&d_statWaitTime);
+  d_stats.unregisterStat(&d_statLastWinner);
+  d_stats.unregisterStat(&d_statWaitTime);
 }
 
 void CommandExecutorPortfolio::lemmaSharingInit()

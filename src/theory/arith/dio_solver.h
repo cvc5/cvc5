@@ -28,10 +28,10 @@
 #include "context/cdo.h"
 #include "context/cdqueue.h"
 #include "context/context.h"
-#include "expr/statistics_registry.h"
 #include "theory/arith/normal_form.h"
 #include "theory/arith/partial_model.h"
 #include "util/rational.h"
+#include "util/statistics_registry.h"
 
 namespace CVC4 {
 namespace theory {

@@ -105,10 +105,12 @@ libcvc4_la_SOURCES = \
 	smt/smt_globals.h \
 	smt/model_postprocessor.cpp \
 	smt/model_postprocessor.h \
-	smt/smt_options_handler.cpp \
-	smt/smt_options_handler.h \
 	smt/smt_engine_scope.cpp \
 	smt/smt_engine_scope.h \
+	smt/smt_options_handler.cpp \
+	smt/smt_options_handler.h \
+	smt/smt_statistics_registry.cpp \
+	smt/smt_statistics_registry.h \
 	smt/command_list.cpp \
 	smt/command_list.h \
 	smt/boolean_terms.h \

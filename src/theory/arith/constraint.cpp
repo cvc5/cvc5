@@ -14,14 +14,15 @@
  ** [[ Add lengthier description here ]]
  ** \todo document this file
  **/
+#include "theory/arith/constraint.h"
 
 #include <ostream>
 #include <algorithm>
 
 #include "base/output.h"
 #include "proof/proof.h"
+#include "smt/smt_statistics_registry.h"
 #include "theory/arith/arith_utilities.h"
-#include "theory/arith/constraint.h"
 #include "theory/arith/normal_form.h"
 
 
@@ -893,13 +894,14 @@ ConstraintDatabase::Statistics::Statistics():
   d_unatePropagateCalls("theory::arith::cd::unatePropagateCalls", 0),
   d_unatePropagateImplications("theory::arith::cd::unatePropagateImplications", 0)
 {
-  StatisticsRegistry::registerStat(&d_unatePropagateCalls);
-  StatisticsRegistry::registerStat(&d_unatePropagateImplications);
+  smtStatisticsRegistry()->registerStat(&d_unatePropagateCalls);
+  smtStatisticsRegistry()->registerStat(&d_unatePropagateImplications);
 
 }
+
 ConstraintDatabase::Statistics::~Statistics(){
-  StatisticsRegistry::unregisterStat(&d_unatePropagateCalls);
-  StatisticsRegistry::unregisterStat(&d_unatePropagateImplications);
+  smtStatisticsRegistry()->unregisterStat(&d_unatePropagateCalls);
+  smtStatisticsRegistry()->unregisterStat(&d_unatePropagateImplications);
 }
 
 void ConstraintDatabase::deleteConstraintAndNegation(ConstraintP c){

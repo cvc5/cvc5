@@ -17,6 +17,7 @@
 #include "theory/bv/bv_subtheory_inequality.h"
 
 #include "options/smt_options.h"
+#include "smt/smt_statistics_registry.h"
 #include "theory/bv/theory_bv.h"
 #include "theory/bv/theory_bv_utils.h"
 #include "theory/theory_model.h"
@@ -228,8 +229,8 @@ bool InequalitySolver::addInequality(TNode a, TNode b, bool strict, TNode fact) 
 InequalitySolver::Statistics::Statistics()
   : d_numCallstoCheck("theory::bv::InequalitySolver::NumCallsToCheck", 0)
 {
-  StatisticsRegistry::registerStat(&d_numCallstoCheck);
+  smtStatisticsRegistry()->registerStat(&d_numCallstoCheck);
 }
 InequalitySolver::Statistics::~Statistics() {
-  StatisticsRegistry::unregisterStat(&d_numCallstoCheck);
+  smtStatisticsRegistry()->unregisterStat(&d_numCallstoCheck);
 }

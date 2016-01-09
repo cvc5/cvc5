@@ -326,13 +326,13 @@ ModelEngine::Statistics::Statistics():
   d_exh_inst_lemmas("ModelEngine::Instantiations_Exhaustive", 0 ),
   d_mbqi_inst_lemmas("ModelEngine::Instantiations_Mbqi", 0 )
 {
-  StatisticsRegistry::registerStat(&d_inst_rounds);
-  StatisticsRegistry::registerStat(&d_exh_inst_lemmas);
-  StatisticsRegistry::registerStat(&d_mbqi_inst_lemmas);
+  smtStatisticsRegistry()->registerStat(&d_inst_rounds);
+  smtStatisticsRegistry()->registerStat(&d_exh_inst_lemmas);
+  smtStatisticsRegistry()->registerStat(&d_mbqi_inst_lemmas);
 }
 
 ModelEngine::Statistics::~Statistics(){
-  StatisticsRegistry::unregisterStat(&d_inst_rounds);
-  StatisticsRegistry::unregisterStat(&d_exh_inst_lemmas);
-  StatisticsRegistry::unregisterStat(&d_mbqi_inst_lemmas);
+  smtStatisticsRegistry()->unregisterStat(&d_inst_rounds);
+  smtStatisticsRegistry()->unregisterStat(&d_exh_inst_lemmas);
+  smtStatisticsRegistry()->unregisterStat(&d_mbqi_inst_lemmas);
 }

@@ -22,9 +22,9 @@ OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWA
 #define BVMinisat_SimpSolver_h
 
 #include "context/context.h"
-#include "expr/statistics_registry.h"
 #include "prop/bvminisat/core/Solver.h"
 #include "prop/bvminisat/mtl/Queue.h"
+#include "util/statistics_registry.h"
 
 namespace CVC4 {
 namespace BVMinisat {

@@ -324,12 +324,12 @@ std::set<JavaInputStreamAdapter*> CVC4::JavaInputStreamAdapter::s_adapters;
 %include "util/regexp.i"
 %include "util/result.i"
 %include "util/sexpr.i"
+%include "util/statistics.i"
 %include "util/subrange_bound.i"
 %include "util/tuple.i"
 %include "util/unsafe_interrupt_exception.i"
 
 %include "expr/uninterpreted_constant.i"
-%include "expr/statistics.i"
 %include "expr/array_store_all.i"
 %include "expr/ascription_type.i"
 %include "expr/emptyset.i"

@@ -30,7 +30,7 @@
 #include "options/options.h"
 #include "options/smt_options.h"
 #include "expr/resource_manager.h"
-#include "expr/statistics_registry.h"
+#include "util/statistics_registry.h"
 
 
 using namespace std;

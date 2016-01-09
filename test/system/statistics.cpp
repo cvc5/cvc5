@@ -19,9 +19,9 @@
 #include <sstream>
 
 #include "expr/expr.h"
-#include "expr/statistics.h"
 #include "smt/smt_engine.h"
 #include "util/sexpr.h"
+#include "util/statistics.h"
 
 using namespace CVC4;
 using namespace std;

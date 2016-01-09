@@ -21,8 +21,8 @@
 #include "context/cdhashmap.h"
 #include "context/context.h"
 #include "context/context_mm.h"
-#include "expr/statistics_registry.h"
 #include "theory/theory.h"
+#include "util/statistics_registry.h"
 
 namespace CVC4 {
 

@@ -13,9 +13,10 @@
  **
  ** Bitvector theory.
  **/
+#include "theory/bv/slicer.h"
 
 #include "options/bv_options.h"
-#include "theory/bv/slicer.h"
+#include "smt/smt_statistics_registry.h"
 #include "theory/bv/theory_bv_utils.h"
 #include "theory/rewriter.h"
 
@@ -598,17 +599,17 @@ UnionFind::Statistics::Statistics():
   d_avgFindDepth("theory::bv::slicer::AverageFindDepth"),
   d_numAddedEqualities("theory::bv::slicer::NumberOfEqualitiesAdded", Slicer::d_numAddedEqualities)
 {
-  StatisticsRegistry::registerStat(&d_numRepresentatives);
-  StatisticsRegistry::registerStat(&d_numSplits);
-  StatisticsRegistry::registerStat(&d_numMerges);
-  StatisticsRegistry::registerStat(&d_avgFindDepth);
-  StatisticsRegistry::registerStat(&d_numAddedEqualities);
+  smtStatisticsRegistry()->registerStat(&d_numRepresentatives);
+  smtStatisticsRegistry()->registerStat(&d_numSplits);
+  smtStatisticsRegistry()->registerStat(&d_numMerges);
+  smtStatisticsRegistry()->registerStat(&d_avgFindDepth);
+  smtStatisticsRegistry()->registerStat(&d_numAddedEqualities);
 }
 
 UnionFind::Statistics::~Statistics() {
-  StatisticsRegistry::unregisterStat(&d_numRepresentatives);
-  StatisticsRegistry::unregisterStat(&d_numSplits);
-  StatisticsRegistry::unregisterStat(&d_numMerges);
-  StatisticsRegistry::unregisterStat(&d_avgFindDepth);
-  StatisticsRegistry::unregisterStat(&d_numAddedEqualities);
+  smtStatisticsRegistry()->unregisterStat(&d_numRepresentatives);
+  smtStatisticsRegistry()->unregisterStat(&d_numSplits);
+  smtStatisticsRegistry()->unregisterStat(&d_numMerges);
+  smtStatisticsRegistry()->unregisterStat(&d_avgFindDepth);
+  smtStatisticsRegistry()->unregisterStat(&d_numAddedEqualities);
 }

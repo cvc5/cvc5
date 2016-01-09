@@ -22,6 +22,7 @@
 #include "options/arrays_options.h"
 #include "options/smt_options.h"
 #include "smt/logic_exception.h"
+#include "smt/smt_statistics_registry.h"
 #include "smt_util/command.h"
 #include "theory/rewriter.h"
 #include "theory/theory_model.h"
@@ -98,16 +99,16 @@ TheoryArrays::TheoryArrays(context::Context* c, context::UserContext* u,
       d_arrayMerges(c),
       d_inCheckModel(false)
 {
-  StatisticsRegistry::registerStat(&d_numRow);
-  StatisticsRegistry::registerStat(&d_numExt);
-  StatisticsRegistry::registerStat(&d_numProp);
-  StatisticsRegistry::registerStat(&d_numExplain);
-  StatisticsRegistry::registerStat(&d_numNonLinear);
-  StatisticsRegistry::registerStat(&d_numSharedArrayVarSplits);
-  StatisticsRegistry::registerStat(&d_numGetModelValSplits);
-  StatisticsRegistry::registerStat(&d_numGetModelValConflicts);
-  StatisticsRegistry::registerStat(&d_numSetModelValSplits);
-  StatisticsRegistry::registerStat(&d_numSetModelValConflicts);
+  smtStatisticsRegistry()->registerStat(&d_numRow);
+  smtStatisticsRegistry()->registerStat(&d_numExt);
+  smtStatisticsRegistry()->registerStat(&d_numProp);
+  smtStatisticsRegistry()->registerStat(&d_numExplain);
+  smtStatisticsRegistry()->registerStat(&d_numNonLinear);
+  smtStatisticsRegistry()->registerStat(&d_numSharedArrayVarSplits);
+  smtStatisticsRegistry()->registerStat(&d_numGetModelValSplits);
+  smtStatisticsRegistry()->registerStat(&d_numGetModelValConflicts);
+  smtStatisticsRegistry()->registerStat(&d_numSetModelValSplits);
+  smtStatisticsRegistry()->registerStat(&d_numSetModelValConflicts);
 
   d_true = NodeManager::currentNM()->mkConst<bool>(true);
   d_false = NodeManager::currentNM()->mkConst<bool>(false);
@@ -137,16 +138,16 @@ TheoryArrays::~TheoryArrays() {
     it2->second->deleteSelf();
   }
   delete d_constReadsContext;
-  StatisticsRegistry::unregisterStat(&d_numRow);
-  StatisticsRegistry::unregisterStat(&d_numExt);
-  StatisticsRegistry::unregisterStat(&d_numProp);
-  StatisticsRegistry::unregisterStat(&d_numExplain);
-  StatisticsRegistry::unregisterStat(&d_numNonLinear);
-  StatisticsRegistry::unregisterStat(&d_numSharedArrayVarSplits);
-  StatisticsRegistry::unregisterStat(&d_numGetModelValSplits);
-  StatisticsRegistry::unregisterStat(&d_numGetModelValConflicts);
-  StatisticsRegistry::unregisterStat(&d_numSetModelValSplits);
-  StatisticsRegistry::unregisterStat(&d_numSetModelValConflicts);
+  smtStatisticsRegistry()->unregisterStat(&d_numRow);
+  smtStatisticsRegistry()->unregisterStat(&d_numExt);
+  smtStatisticsRegistry()->unregisterStat(&d_numProp);
+  smtStatisticsRegistry()->unregisterStat(&d_numExplain);
+  smtStatisticsRegistry()->unregisterStat(&d_numNonLinear);
+  smtStatisticsRegistry()->unregisterStat(&d_numSharedArrayVarSplits);
+  smtStatisticsRegistry()->unregisterStat(&d_numGetModelValSplits);
+  smtStatisticsRegistry()->unregisterStat(&d_numGetModelValConflicts);
+  smtStatisticsRegistry()->unregisterStat(&d_numSetModelValSplits);
+  smtStatisticsRegistry()->unregisterStat(&d_numSetModelValConflicts);
 }
 
 void TheoryArrays::setMasterEqualityEngine(eq::EqualityEngine* eq) {

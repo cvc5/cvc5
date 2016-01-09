@@ -49,6 +49,10 @@ libutil_la_SOURCES = \
 	sexpr.h \
 	smt2_quote_string.cpp \
 	smt2_quote_string.h \
+	statistics.cpp \
+	statistics.h \
+	statistics_registry.cpp \
+	statistics_registry.h \
 	subrange_bound.cpp \
 	subrange_bound.h \
 	tuple.h \
@@ -95,6 +99,7 @@ EXTRA_DIST = \
 	regexp.i \
 	result.i \
 	sexpr.i \
+	statistics.i \
 	subrange_bound.i \
 	tuple.i \
 	unsafe_interrupt_exception.i

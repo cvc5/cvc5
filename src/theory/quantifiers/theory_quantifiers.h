@@ -24,9 +24,9 @@
 #include <map>
 
 #include "context/cdhashmap.h"
-#include "expr/statistics_registry.h"
 #include "theory/theory.h"
 #include "util/hash.h"
+#include "util/statistics_registry.h"
 
 namespace CVC4 {
 class TheoryEngine;

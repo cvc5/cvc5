@@ -13,11 +13,12 @@
  **
  ** Algebraic solver.
  **/
+#include "theory/bv/bv_subtheory_algebraic.h"
 
 #include "options/bv_options.h"
 #include "smt_util/boolean_simplification.h"
+#include "smt/smt_statistics_registry.h"
 #include "theory/bv/bv_quick_check.h"
-#include "theory/bv/bv_subtheory_algebraic.h"
 #include "theory/bv/theory_bv.h"
 #include "theory/bv/theory_bv_utils.h"
 #include "theory/theory_model.h"
@@ -734,25 +735,25 @@ AlgebraicSolver::Statistics::Statistics()
   , d_solveTime("theory::bv::AlgebraicSolver::SolveTime")
   , d_useHeuristic("theory::bv::AlgebraicSolver::UseHeuristic", 0.2)
 {
-  StatisticsRegistry::registerStat(&d_numCallstoCheck);
-  StatisticsRegistry::registerStat(&d_numSimplifiesToTrue);
-  StatisticsRegistry::registerStat(&d_numSimplifiesToFalse);
-  StatisticsRegistry::registerStat(&d_numUnsat);
-  StatisticsRegistry::registerStat(&d_numSat);
-  StatisticsRegistry::registerStat(&d_numUnknown);
-  StatisticsRegistry::registerStat(&d_solveTime);
-  StatisticsRegistry::registerStat(&d_useHeuristic);
+  smtStatisticsRegistry()->registerStat(&d_numCallstoCheck);
+  smtStatisticsRegistry()->registerStat(&d_numSimplifiesToTrue);
+  smtStatisticsRegistry()->registerStat(&d_numSimplifiesToFalse);
+  smtStatisticsRegistry()->registerStat(&d_numUnsat);
+  smtStatisticsRegistry()->registerStat(&d_numSat);
+  smtStatisticsRegistry()->registerStat(&d_numUnknown);
+  smtStatisticsRegistry()->registerStat(&d_solveTime);
+  smtStatisticsRegistry()->registerStat(&d_useHeuristic);
 }
 
 AlgebraicSolver::Statistics::~Statistics() {
-  StatisticsRegistry::unregisterStat(&d_numCallstoCheck);
-  StatisticsRegistry::unregisterStat(&d_numSimplifiesToTrue);
-  StatisticsRegistry::unregisterStat(&d_numSimplifiesToFalse);
-  StatisticsRegistry::unregisterStat(&d_numUnsat);
-  StatisticsRegistry::unregisterStat(&d_numSat);
-  StatisticsRegistry::unregisterStat(&d_numUnknown);
-  StatisticsRegistry::unregisterStat(&d_solveTime);
-  StatisticsRegistry::unregisterStat(&d_useHeuristic);
+  smtStatisticsRegistry()->unregisterStat(&d_numCallstoCheck);
+  smtStatisticsRegistry()->unregisterStat(&d_numSimplifiesToTrue);
+  smtStatisticsRegistry()->unregisterStat(&d_numSimplifiesToFalse);
+  smtStatisticsRegistry()->unregisterStat(&d_numUnsat);
+  smtStatisticsRegistry()->unregisterStat(&d_numSat);
+  smtStatisticsRegistry()->unregisterStat(&d_numUnknown);
+  smtStatisticsRegistry()->unregisterStat(&d_solveTime);
+  smtStatisticsRegistry()->unregisterStat(&d_useHeuristic);
 }
 
 bool hasExpensiveBVOperatorsRec(TNode fact, TNodeSet& seen) {

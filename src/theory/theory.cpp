@@ -19,6 +19,7 @@
 #include <vector>
 
 #include "base/cvc4_assert.h"
+#include "smt/smt_statistics_registry.h"
 #include "theory/substitutions.h"
 #include "theory/quantifiers_engine.h"
 
@@ -47,9 +48,33 @@ std::ostream& operator<<(std::ostream& os, Theory::Effort level){
   return os;
 }/* ostream& operator<<(ostream&, Theory::Effort) */
 
+Theory::Theory(TheoryId id, context::Context* satContext, context::UserContext* userContext,
+               OutputChannel& out, Valuation valuation, const LogicInfo& logicInfo,
+               SmtGlobals* globals) throw()
+    : d_id(id)
+    , d_satContext(satContext)
+    , d_userContext(userContext)
+    , d_logicInfo(logicInfo)
+    , d_facts(satContext)
+    , d_factsHead(satContext, 0)
+    , d_sharedTermsIndex(satContext, 0)
+    , d_careGraph(NULL)
+    , d_quantEngine(NULL)
+    , d_checkTime(statName(id, "checkTime"))
+    , d_computeCareGraphTime(statName(id, "computeCareGraphTime"))
+    , d_sharedTerms(satContext)
+    , d_out(&out)
+    , d_valuation(valuation)
+    , d_proofEnabled(false)
+    , d_globals(globals)
+{
+  smtStatisticsRegistry()->registerStat(&d_checkTime);
+  smtStatisticsRegistry()->registerStat(&d_computeCareGraphTime);
+}
+
 Theory::~Theory() {
-  StatisticsRegistry::unregisterStat(&d_checkTime);
-  StatisticsRegistry::unregisterStat(&d_computeCareGraphTime);
+  smtStatisticsRegistry()->unregisterStat(&d_checkTime);
+  smtStatisticsRegistry()->unregisterStat(&d_computeCareGraphTime);
 }
 
 TheoryId Theory::theoryOf(TheoryOfMode mode, TNode node) {

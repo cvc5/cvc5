@@ -18,6 +18,7 @@
 #include "theory/arith/theory_arith.h"
 
 #include "options/smt_options.h"
+#include "smt/smt_statistics_registry.h"
 #include "theory/arith/infer_bounds.h"
 #include "theory/arith/theory_arith_private.h"
 
@@ -33,9 +34,13 @@ TheoryArith::TheoryArith(context::Context* c, context::UserContext* u,
                          const LogicInfo& logicInfo, SmtGlobals* globals)
     : Theory(THEORY_ARITH, c, u, out, valuation, logicInfo, globals)
     , d_internal(new TheoryArithPrivate(*this, c, u, out, valuation, logicInfo))
-{}
+    , d_ppRewriteTimer("theory::arith::ppRewriteTimer")
+{
+  smtStatisticsRegistry()->registerStat(&d_ppRewriteTimer);
+}
 
 TheoryArith::~TheoryArith(){
+  smtStatisticsRegistry()->unregisterStat(&d_ppRewriteTimer);
   delete d_internal;
 }
 

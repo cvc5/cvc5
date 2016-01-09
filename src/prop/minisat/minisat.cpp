@@ -23,15 +23,17 @@
 #include "options/prop_options.h"
 #include "options/smt_options.h"
 #include "prop/minisat/simp/SimpSolver.h"
+#include "util/statistics_registry.h"
 
 namespace CVC4 {
 namespace prop {
 
 //// DPllMinisatSatSolver
 
-MinisatSatSolver::MinisatSatSolver() :
+MinisatSatSolver::MinisatSatSolver(StatisticsRegistry* registry) :
   d_minisat(NULL),
-  d_context(NULL)
+  d_context(NULL),
+  d_statistics(registry)
 {}
 
 MinisatSatSolver::~MinisatSatSolver() throw()
@@ -229,38 +231,41 @@ void MinisatSatSolver::pop() {
 
 /// Statistics for MinisatSatSolver
 
-MinisatSatSolver::Statistics::Statistics() :
-  d_statStarts("sat::starts"),
-  d_statDecisions("sat::decisions"),
-  d_statRndDecisions("sat::rnd_decisions"),
-  d_statPropagations("sat::propagations"),
-  d_statConflicts("sat::conflicts"),
-  d_statClausesLiterals("sat::clauses_literals"),
-  d_statLearntsLiterals("sat::learnts_literals"),
-  d_statMaxLiterals("sat::max_literals"),
-  d_statTotLiterals("sat::tot_literals")
+MinisatSatSolver::Statistics::Statistics(StatisticsRegistry* registry) :
+    d_registry(registry),
+    d_statStarts("sat::starts"),
+    d_statDecisions("sat::decisions"),
+    d_statRndDecisions("sat::rnd_decisions"),
+    d_statPropagations("sat::propagations"),
+    d_statConflicts("sat::conflicts"),
+    d_statClausesLiterals("sat::clauses_literals"),
+    d_statLearntsLiterals("sat::learnts_literals"),
+    d_statMaxLiterals("sat::max_literals"),
+    d_statTotLiterals("sat::tot_literals")
 {
-  StatisticsRegistry::registerStat(&d_statStarts);
-  StatisticsRegistry::registerStat(&d_statDecisions);
-  StatisticsRegistry::registerStat(&d_statRndDecisions);
-  StatisticsRegistry::registerStat(&d_statPropagations);
-  StatisticsRegistry::registerStat(&d_statConflicts);
-  StatisticsRegistry::registerStat(&d_statClausesLiterals);
-  StatisticsRegistry::registerStat(&d_statLearntsLiterals);
-  StatisticsRegistry::registerStat(&d_statMaxLiterals);
-  StatisticsRegistry::registerStat(&d_statTotLiterals);
+  d_registry->registerStat(&d_statStarts);
+  d_registry->registerStat(&d_statDecisions);
+  d_registry->registerStat(&d_statRndDecisions);
+  d_registry->registerStat(&d_statPropagations);
+  d_registry->registerStat(&d_statConflicts);
+  d_registry->registerStat(&d_statClausesLiterals);
+  d_registry->registerStat(&d_statLearntsLiterals);
+  d_registry->registerStat(&d_statMaxLiterals);
+  d_registry->registerStat(&d_statTotLiterals);
 }
+
 MinisatSatSolver::Statistics::~Statistics() {
-  StatisticsRegistry::unregisterStat(&d_statStarts);
-  StatisticsRegistry::unregisterStat(&d_statDecisions);
-  StatisticsRegistry::unregisterStat(&d_statRndDecisions);
-  StatisticsRegistry::unregisterStat(&d_statPropagations);
-  StatisticsRegistry::unregisterStat(&d_statConflicts);
-  StatisticsRegistry::unregisterStat(&d_statClausesLiterals);
-  StatisticsRegistry::unregisterStat(&d_statLearntsLiterals);
-  StatisticsRegistry::unregisterStat(&d_statMaxLiterals);
-  StatisticsRegistry::unregisterStat(&d_statTotLiterals);
+  d_registry->unregisterStat(&d_statStarts);
+  d_registry->unregisterStat(&d_statDecisions);
+  d_registry->unregisterStat(&d_statRndDecisions);
+  d_registry->unregisterStat(&d_statPropagations);
+  d_registry->unregisterStat(&d_statConflicts);
+  d_registry->unregisterStat(&d_statClausesLiterals);
+  d_registry->unregisterStat(&d_statLearntsLiterals);
+  d_registry->unregisterStat(&d_statMaxLiterals);
+  d_registry->unregisterStat(&d_statTotLiterals);
 }
+
 void MinisatSatSolver::Statistics::init(Minisat::SimpSolver* d_minisat){
   d_statStarts.setData(d_minisat->starts);
   d_statDecisions.setData(d_minisat->decisions);

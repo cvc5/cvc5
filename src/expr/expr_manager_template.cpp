@@ -19,9 +19,9 @@
 #include <map>
 
 #include "expr/node_manager.h"
-#include "expr/statistics_registry.h"
 #include "expr/variable_type_map.h"
 #include "options/options.h"
+#include "util/statistics_registry.h"
 
 ${includes}
 
@@ -38,7 +38,7 @@ ${includes}
       stringstream statName; \
       statName << "expr::ExprManager::" << kind; \
       d_exprStatistics[kind] = new IntStat(statName.str(), 0); \
-      d_nodeManager->getStatisticsRegistry()->registerStat_(d_exprStatistics[kind]); \
+      d_nodeManager->getStatisticsRegistry()->registerStat(d_exprStatistics[kind]); \
     } \
     ++ *(d_exprStatistics[kind]); \
   }
@@ -54,7 +54,7 @@ ${includes}
         statName << "expr::ExprManager::" << ((bound_var) ? "BOUND_VARIABLE" : "VARIABLE") << ":" << type; \
       } \
       d_exprStatisticsVars[type] = new IntStat(statName.str(), 0); \
-      d_nodeManager->getStatisticsRegistry()->registerStat_(d_exprStatisticsVars[type]); \
+      d_nodeManager->getStatisticsRegistry()->registerStat(d_exprStatisticsVars[type]); \
     } \
     ++ *(d_exprStatisticsVars[type]); \
   }
@@ -100,14 +100,14 @@ ExprManager::~ExprManager() throw() {
 #ifdef CVC4_STATISTICS_ON
     for (unsigned i = 0; i < kind::LAST_KIND; ++ i) {
       if (d_exprStatistics[i] != NULL) {
-        d_nodeManager->getStatisticsRegistry()->unregisterStat_(d_exprStatistics[i]);
+        d_nodeManager->getStatisticsRegistry()->unregisterStat(d_exprStatistics[i]);
         delete d_exprStatistics[i];
         d_exprStatistics[i] = NULL;
       }
     }
     for (unsigned i = 0; i < LAST_TYPE; ++ i) {
       if (d_exprStatisticsVars[i] != NULL) {
-        d_nodeManager->getStatisticsRegistry()->unregisterStat_(d_exprStatisticsVars[i]);
+        d_nodeManager->getStatisticsRegistry()->unregisterStat(d_exprStatisticsVars[i]);
         delete d_exprStatisticsVars[i];
         d_exprStatisticsVars[i] = NULL;
       }
@@ -121,10 +121,6 @@ ExprManager::~ExprManager() throw() {
     Warning() << "CVC4 threw an exception during cleanup." << std::endl
               << e << std::endl;
   }
-}
-
-StatisticsRegistry* ExprManager::getStatisticsRegistry() throw() {
-  return d_nodeManager->getStatisticsRegistry();
 }
 
 const Options& ExprManager::getOptions() const {

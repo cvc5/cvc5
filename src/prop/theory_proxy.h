@@ -27,12 +27,12 @@
 
 #include "context/cdqueue.h"
 #include "expr/node.h"
-#include "expr/statistics_registry.h"
 #include "prop/sat_solver.h"
 #include "smt/smt_globals.h"
 #include "smt_util/lemma_output_channel.h"
 #include "smt_util/lemma_input_channel.h"
 #include "theory/theory.h"
+#include "util/statistics_registry.h"
 
 namespace CVC4 {
 
@@ -137,8 +137,8 @@ public:
   /**
    * Statistic: the number of replayed decisions (via --replay).
    */
-  KEEP_STATISTIC(IntStat, d_replayedDecisions,
-                 "prop::theoryproxy::replayedDecisions", 0);
+  IntStat d_replayedDecisions;
+
 };/* class SatSolver */
 
 }/* CVC4::prop namespace */

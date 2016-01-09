@@ -28,7 +28,6 @@
 #include "base/output.h"
 #include "expr/expr_iomanip.h"
 #include "expr/expr_manager.h"
-#include "expr/statistics_registry.h"
 #include "main/command_executor.h"
 
 #ifdef PORTFOLIO_BUILD
@@ -50,6 +49,7 @@
 #include "smt_util/command.h"
 #include "util/configuration.h"
 #include "util/result.h"
+#include "util/statistics_registry.h"
 
 using namespace std;
 using namespace CVC4;

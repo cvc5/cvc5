@@ -20,9 +20,10 @@
 
 #pragma once
 
-#include "prop/sat_solver.h"
-#include "prop/bvminisat/simp/SimpSolver.h"
 #include "context/cdo.h"
+#include "prop/bvminisat/simp/SimpSolver.h"
+#include "prop/sat_solver.h"
+#include "util/statistics_registry.h"
 
 namespace CVC4 {
 namespace prop {
@@ -67,13 +68,7 @@ protected:
 
 public:
 
-  BVMinisatSatSolver() :
-    ContextNotifyObj(NULL, false),
-    d_assertionsRealCount(NULL, (unsigned)0),
-    d_lastPropagation(NULL, (unsigned)0),
-    d_statistics("")
-  { Unreachable(); }
-  BVMinisatSatSolver(context::Context* mainSatContext, const std::string& name = "");
+  BVMinisatSatSolver(StatisticsRegistry* registry, context::Context* mainSatContext, const std::string& name = "");
   ~BVMinisatSatSolver() throw(AssertionException);
 
   void setNotify(Notify* notify);
@@ -90,7 +85,7 @@ public:
   void markUnremovable(SatLiteral lit);
 
   void interrupt();
-  
+
   SatValue solve();
   SatValue solve(long unsigned int&);
   void getUnsatCore(SatClause& unsatCore);
@@ -117,11 +112,16 @@ public:
   void explain(SatLiteral lit, std::vector<SatLiteral>& explanation);
 
   SatValue assertAssumption(SatLiteral lit, bool propagate);
-  
+
   void popAssumption();
+
+private:
+  /* Disable the default constructor. */
+  BVMinisatSatSolver() CVC4_UNUSED;
 
   class Statistics {
   public:
+    StatisticsRegistry* d_registry;
     ReferenceStat<uint64_t> d_statStarts, d_statDecisions;
     ReferenceStat<uint64_t> d_statRndDecisions, d_statPropagations;
     ReferenceStat<uint64_t> d_statConflicts, d_statClausesLiterals;
@@ -131,7 +131,7 @@ public:
     IntStat d_statCallsToSolve;
     BackedStat<double> d_statSolveTime;
     bool d_registerStats;
-    Statistics(const std::string& prefix);
+    Statistics(StatisticsRegistry* registry, const std::string& prefix);
     ~Statistics();
     void init(BVMinisat::SimpSolver* minisat);
   };

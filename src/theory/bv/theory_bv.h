@@ -22,12 +22,12 @@
 #include "context/cdhashset.h"
 #include "context/cdlist.h"
 #include "context/context.h"
-#include "expr/statistics_registry.h"
 #include "smt/smt_globals.h"
 #include "theory/bv/bv_subtheory.h"
 #include "theory/bv/theory_bv_utils.h"
 #include "theory/theory.h"
 #include "util/hash.h"
+#include "util/statistics_registry.h"
 
 namespace CVC4 {
 namespace theory {

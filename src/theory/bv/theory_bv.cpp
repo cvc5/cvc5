@@ -17,6 +17,7 @@
 
 #include "options/bv_options.h"
 #include "options/smt_options.h"
+#include "smt/smt_statistics_registry.h"
 #include "theory/bv/abstraction.h"
 #include "theory/bv/bv_eager_solver.h"
 #include "theory/bv/bv_subtheory_algebraic.h"
@@ -123,23 +124,23 @@ TheoryBV::Statistics::Statistics():
   d_weightComputationTimer("theory::bv::weightComputationTimer"),
   d_numMultSlice("theory::bv::NumMultSliceApplied", 0)
 {
-  StatisticsRegistry::registerStat(&d_avgConflictSize);
-  StatisticsRegistry::registerStat(&d_solveSubstitutions);
-  StatisticsRegistry::registerStat(&d_solveTimer);
-  StatisticsRegistry::registerStat(&d_numCallsToCheckFullEffort);
-  StatisticsRegistry::registerStat(&d_numCallsToCheckStandardEffort);
-  StatisticsRegistry::registerStat(&d_weightComputationTimer);
-  StatisticsRegistry::registerStat(&d_numMultSlice);
+  smtStatisticsRegistry()->registerStat(&d_avgConflictSize);
+  smtStatisticsRegistry()->registerStat(&d_solveSubstitutions);
+  smtStatisticsRegistry()->registerStat(&d_solveTimer);
+  smtStatisticsRegistry()->registerStat(&d_numCallsToCheckFullEffort);
+  smtStatisticsRegistry()->registerStat(&d_numCallsToCheckStandardEffort);
+  smtStatisticsRegistry()->registerStat(&d_weightComputationTimer);
+  smtStatisticsRegistry()->registerStat(&d_numMultSlice);
 }
 
 TheoryBV::Statistics::~Statistics() {
-  StatisticsRegistry::unregisterStat(&d_avgConflictSize);
-  StatisticsRegistry::unregisterStat(&d_solveSubstitutions);
-  StatisticsRegistry::unregisterStat(&d_solveTimer);
-  StatisticsRegistry::unregisterStat(&d_numCallsToCheckFullEffort);
-  StatisticsRegistry::unregisterStat(&d_numCallsToCheckStandardEffort);
-  StatisticsRegistry::unregisterStat(&d_weightComputationTimer);
-  StatisticsRegistry::unregisterStat(&d_numMultSlice);
+  smtStatisticsRegistry()->unregisterStat(&d_avgConflictSize);
+  smtStatisticsRegistry()->unregisterStat(&d_solveSubstitutions);
+  smtStatisticsRegistry()->unregisterStat(&d_solveTimer);
+  smtStatisticsRegistry()->unregisterStat(&d_numCallsToCheckFullEffort);
+  smtStatisticsRegistry()->unregisterStat(&d_numCallsToCheckStandardEffort);
+  smtStatisticsRegistry()->unregisterStat(&d_weightComputationTimer);
+  smtStatisticsRegistry()->unregisterStat(&d_numMultSlice);
 }
 
 Node TheoryBV::getBVDivByZero(Kind k, unsigned width) {

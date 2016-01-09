@@ -21,10 +21,10 @@
 #include "base/tls.h"
 #include "cvc4autoconfig.h"
 #include "expr/expr_manager.h"
-#include "expr/statistics.h"
-#include "expr/statistics_registry.h"
 #include "options/options.h"
 #include "smt/smt_engine.h"
+#include "util/statistics.h"
+#include "util/statistics_registry.h"
 
 #ifndef __CVC4__MAIN__MAIN_H
 #define __CVC4__MAIN__MAIN_H

@@ -23,11 +23,10 @@
 #include <ext/hash_map>
 
 #include "expr/node.h"
-#include "expr/statistics_registry.h"
 #include "theory/bv/theory_bv_utils.h"
 #include "util/bitvector.h"
 #include "util/index.h"
-
+#include "util/statistics_registry.h"
 
 #ifndef __CVC4__THEORY__BV__SLICER_BV_H
 #define __CVC4__THEORY__BV__SLICER_BV_H

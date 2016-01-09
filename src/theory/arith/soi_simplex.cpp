@@ -19,10 +19,10 @@
 #include <algorithm>
 
 #include "base/output.h"
-#include "expr/statistics_registry.h"
 #include "options/arith_options.h"
+#include "smt/smt_statistics_registry.h"
 #include "theory/arith/constraint.h"
-
+#include "util/statistics_registry.h"
 
 using namespace std;
 
@@ -56,46 +56,46 @@ SumOfInfeasibilitiesSPD::Statistics::Statistics(uint32_t& pivots):
   d_selectUpdateForSOI("theory::arith::SOI::selectSOI"),
   d_finalCheckPivotCounter("theory::arith::SOI::lastPivots", pivots)
 {
-  StatisticsRegistry::registerStat(&d_initialSignalsTime);
-  StatisticsRegistry::registerStat(&d_initialConflicts);
+  smtStatisticsRegistry()->registerStat(&d_initialSignalsTime);
+  smtStatisticsRegistry()->registerStat(&d_initialConflicts);
 
-  StatisticsRegistry::registerStat(&d_soiFoundUnsat);
-  StatisticsRegistry::registerStat(&d_soiFoundSat);
-  StatisticsRegistry::registerStat(&d_soiMissed);
+  smtStatisticsRegistry()->registerStat(&d_soiFoundUnsat);
+  smtStatisticsRegistry()->registerStat(&d_soiFoundSat);
+  smtStatisticsRegistry()->registerStat(&d_soiMissed);
 
-  StatisticsRegistry::registerStat(&d_soiConflicts);
-  StatisticsRegistry::registerStat(&d_hasToBeMinimal);
-  StatisticsRegistry::registerStat(&d_maybeNotMinimal);
+  smtStatisticsRegistry()->registerStat(&d_soiConflicts);
+  smtStatisticsRegistry()->registerStat(&d_hasToBeMinimal);
+  smtStatisticsRegistry()->registerStat(&d_maybeNotMinimal);
 
-  StatisticsRegistry::registerStat(&d_soiTimer);
-  StatisticsRegistry::registerStat(&d_soiFocusConstructionTimer);
+  smtStatisticsRegistry()->registerStat(&d_soiTimer);
+  smtStatisticsRegistry()->registerStat(&d_soiFocusConstructionTimer);
 
-  StatisticsRegistry::registerStat(&d_soiConflictMinimization);
+  smtStatisticsRegistry()->registerStat(&d_soiConflictMinimization);
 
-  StatisticsRegistry::registerStat(&d_selectUpdateForSOI);
+  smtStatisticsRegistry()->registerStat(&d_selectUpdateForSOI);
 
-  StatisticsRegistry::registerStat(&d_finalCheckPivotCounter);
+  smtStatisticsRegistry()->registerStat(&d_finalCheckPivotCounter);
 }
 
 SumOfInfeasibilitiesSPD::Statistics::~Statistics(){
-  StatisticsRegistry::unregisterStat(&d_initialSignalsTime);
-  StatisticsRegistry::unregisterStat(&d_initialConflicts);
+  smtStatisticsRegistry()->unregisterStat(&d_initialSignalsTime);
+  smtStatisticsRegistry()->unregisterStat(&d_initialConflicts);
 
-  StatisticsRegistry::unregisterStat(&d_soiFoundUnsat);
-  StatisticsRegistry::unregisterStat(&d_soiFoundSat);
-  StatisticsRegistry::unregisterStat(&d_soiMissed);
+  smtStatisticsRegistry()->unregisterStat(&d_soiFoundUnsat);
+  smtStatisticsRegistry()->unregisterStat(&d_soiFoundSat);
+  smtStatisticsRegistry()->unregisterStat(&d_soiMissed);
 
-  StatisticsRegistry::unregisterStat(&d_soiConflicts);
-  StatisticsRegistry::unregisterStat(&d_hasToBeMinimal);
-  StatisticsRegistry::unregisterStat(&d_maybeNotMinimal);
+  smtStatisticsRegistry()->unregisterStat(&d_soiConflicts);
+  smtStatisticsRegistry()->unregisterStat(&d_hasToBeMinimal);
+  smtStatisticsRegistry()->unregisterStat(&d_maybeNotMinimal);
 
-  StatisticsRegistry::unregisterStat(&d_soiTimer);
-  StatisticsRegistry::unregisterStat(&d_soiFocusConstructionTimer);
+  smtStatisticsRegistry()->unregisterStat(&d_soiTimer);
+  smtStatisticsRegistry()->unregisterStat(&d_soiFocusConstructionTimer);
 
-  StatisticsRegistry::unregisterStat(&d_soiConflictMinimization);
+  smtStatisticsRegistry()->unregisterStat(&d_soiConflictMinimization);
 
-  StatisticsRegistry::unregisterStat(&d_selectUpdateForSOI);
-  StatisticsRegistry::unregisterStat(&d_finalCheckPivotCounter);
+  smtStatisticsRegistry()->unregisterStat(&d_selectUpdateForSOI);
+  smtStatisticsRegistry()->unregisterStat(&d_finalCheckPivotCounter);
 }
 
 Result::Sat SumOfInfeasibilitiesSPD::findModel(bool exactResult){

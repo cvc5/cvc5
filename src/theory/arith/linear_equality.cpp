@@ -13,11 +13,12 @@
  **
  ** This implements the LinearEqualityModule.
  **/
-
+#include "theory/arith/linear_equality.h"
 
 #include "base/output.h"
+#include "smt/smt_statistics_registry.h"
 #include "theory/arith/constraint.h"
-#include "theory/arith/linear_equality.h"
+
 
 using namespace std;
 
@@ -76,31 +77,31 @@ LinearEqualityModule::Statistics::Statistics():
   d_weakenTime("theory::arith::weakening::time"),
   d_forceTime("theory::arith::forcing::time")
 {
-  StatisticsRegistry::registerStat(&d_statPivots);
-  StatisticsRegistry::registerStat(&d_statUpdates);
+  smtStatisticsRegistry()->registerStat(&d_statPivots);
+  smtStatisticsRegistry()->registerStat(&d_statUpdates);
 
-  StatisticsRegistry::registerStat(&d_pivotTime);
-  StatisticsRegistry::registerStat(&d_adjTime);
+  smtStatisticsRegistry()->registerStat(&d_pivotTime);
+  smtStatisticsRegistry()->registerStat(&d_adjTime);
 
-  StatisticsRegistry::registerStat(&d_weakeningAttempts);
-  StatisticsRegistry::registerStat(&d_weakeningSuccesses);
-  StatisticsRegistry::registerStat(&d_weakenings);
-  StatisticsRegistry::registerStat(&d_weakenTime);
-  StatisticsRegistry::registerStat(&d_forceTime);
+  smtStatisticsRegistry()->registerStat(&d_weakeningAttempts);
+  smtStatisticsRegistry()->registerStat(&d_weakeningSuccesses);
+  smtStatisticsRegistry()->registerStat(&d_weakenings);
+  smtStatisticsRegistry()->registerStat(&d_weakenTime);
+  smtStatisticsRegistry()->registerStat(&d_forceTime);
 }
 
 LinearEqualityModule::Statistics::~Statistics(){
-  StatisticsRegistry::unregisterStat(&d_statPivots);
-  StatisticsRegistry::unregisterStat(&d_statUpdates);
-  StatisticsRegistry::unregisterStat(&d_pivotTime);
-  StatisticsRegistry::unregisterStat(&d_adjTime);
+  smtStatisticsRegistry()->unregisterStat(&d_statPivots);
+  smtStatisticsRegistry()->unregisterStat(&d_statUpdates);
+  smtStatisticsRegistry()->unregisterStat(&d_pivotTime);
+  smtStatisticsRegistry()->unregisterStat(&d_adjTime);
 
 
-  StatisticsRegistry::unregisterStat(&d_weakeningAttempts);
-  StatisticsRegistry::unregisterStat(&d_weakeningSuccesses);
-  StatisticsRegistry::unregisterStat(&d_weakenings);
-  StatisticsRegistry::unregisterStat(&d_weakenTime);
-  StatisticsRegistry::unregisterStat(&d_forceTime);
+  smtStatisticsRegistry()->unregisterStat(&d_weakeningAttempts);
+  smtStatisticsRegistry()->unregisterStat(&d_weakeningSuccesses);
+  smtStatisticsRegistry()->unregisterStat(&d_weakenings);
+  smtStatisticsRegistry()->unregisterStat(&d_weakenTime);
+  smtStatisticsRegistry()->unregisterStat(&d_forceTime);
 }
 
 void LinearEqualityModule::includeBoundUpdate(ArithVar v, const BoundsInfo& prev){

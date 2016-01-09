@@ -17,6 +17,7 @@
 #include "decision/decision_attributes.h"
 #include "options/decision_options.h"
 #include "options/bv_options.h"
+#include "smt/smt_statistics_registry.h"
 #include "theory/bv/abstraction.h"
 #include "theory/bv/bitblaster_template.h"
 #include "theory/bv/bv_quick_check.h"
@@ -55,12 +56,12 @@ BitblastSolver::Statistics::Statistics()
   : d_numCallstoCheck("theory::bv::BitblastSolver::NumCallsToCheck", 0)
   , d_numBBLemmas("theory::bv::BitblastSolver::NumTimesLemmasBB", 0)
 {
-  StatisticsRegistry::registerStat(&d_numCallstoCheck);
-  StatisticsRegistry::registerStat(&d_numBBLemmas);
+  smtStatisticsRegistry()->registerStat(&d_numCallstoCheck);
+  smtStatisticsRegistry()->registerStat(&d_numBBLemmas);
 }
 BitblastSolver::Statistics::~Statistics() {
-  StatisticsRegistry::unregisterStat(&d_numCallstoCheck);
-  StatisticsRegistry::unregisterStat(&d_numBBLemmas);
+  smtStatisticsRegistry()->unregisterStat(&d_numCallstoCheck);
+  smtStatisticsRegistry()->unregisterStat(&d_numBBLemmas);
 }
 
 void BitblastSolver::setAbstraction(AbstractionModule* abs) {

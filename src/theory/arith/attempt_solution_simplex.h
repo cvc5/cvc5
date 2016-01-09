@@ -53,9 +53,9 @@
 
 #pragma once
 
-#include "expr/statistics_registry.h"
 #include "theory/arith/simplex.h"
 #include "theory/arith/approx_simplex.h"
+#include "util/statistics_registry.h"
 
 namespace CVC4 {
 namespace theory {
@@ -94,4 +94,3 @@ private:
 }/* CVC4::theory::arith namespace */
 }/* CVC4::theory namespace */
 }/* CVC4 namespace */
-

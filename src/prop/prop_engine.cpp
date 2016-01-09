@@ -36,6 +36,7 @@
 #include "prop/sat_solver.h"
 #include "prop/sat_solver_factory.h"
 #include "prop/theory_proxy.h"
+#include "smt/smt_statistics_registry.h"
 #include "smt_util/command.h"
 #include "theory/theory_engine.h"
 #include "theory/theory_registrar.h"
@@ -83,7 +84,7 @@ PropEngine::PropEngine(TheoryEngine* te, DecisionEngine *de, Context* satContext
 
   Debug("prop") << "Constructing the PropEngine" << endl;
 
-  d_satSolver = SatSolverFactory::createDPLLMinisat();
+  d_satSolver = SatSolverFactory::createDPLLMinisat(smtStatisticsRegistry());
 
   d_registrar = new theory::TheoryRegistrar(d_theoryEngine);
   d_cnfStream = new CVC4::prop::TseitinCnfStream

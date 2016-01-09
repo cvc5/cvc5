@@ -24,9 +24,10 @@
 #include <string>
 
 #include "context/cdlist.h"
+#include "context/context.h"
 #include "expr/node.h"
-#include "expr/statistics_registry.h"
 #include "prop/sat_solver_types.h"
+#include "util/statistics_registry.h"
 
 namespace CVC4 {
 namespace prop {
@@ -101,7 +102,7 @@ public:
     virtual void notify(SatClause& clause) = 0;
     virtual void spendResource(unsigned ammount) = 0;
     virtual void safePoint(unsigned ammount) = 0;
-    
+
   };/* class BVSatSolverInterface::Notify */
 
   virtual void setNotify(Notify* notify) = 0;

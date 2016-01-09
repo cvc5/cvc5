@@ -19,14 +19,15 @@
 #include "context/context.h"
 #include "decision/decision_engine.h"
 #include "expr/expr_stream.h"
-#include "expr/statistics_registry.h"
 #include "options/decision_options.h"
 #include "prop/cnf_stream.h"
 #include "prop/prop_engine.h"
 #include "smt_util/lemma_input_channel.h"
 #include "smt_util/lemma_output_channel.h"
+#include "smt/smt_statistics_registry.h"
 #include "theory/rewriter.h"
 #include "theory/theory_engine.h"
+#include "util/statistics_registry.h"
 
 namespace CVC4 {
 namespace prop {
@@ -42,11 +43,15 @@ TheoryProxy::TheoryProxy(PropEngine* propEngine,
       d_decisionEngine(decisionEngine),
       d_theoryEngine(theoryEngine),
       d_globals(globals),
-      d_queue(context)
-{}
+      d_queue(context),
+      d_replayedDecisions("prop::theoryproxy::replayedDecisions", 0)
+{
+  smtStatisticsRegistry()->registerStat(&d_replayedDecisions);
+}
 
 TheoryProxy::~TheoryProxy() {
   /* nothing to do for now */
+  smtStatisticsRegistry()->unregisterStat(&d_replayedDecisions);
 }
 
 /** The lemma input channel we are using. */

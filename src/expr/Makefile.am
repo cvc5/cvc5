@@ -3,23 +3,10 @@ AM_CPPFLAGS = \
 	-I@builddir@/.. -I@srcdir@/../include -I@srcdir@/..
 AM_CXXFLAGS = -Wall -Wno-unknown-pragmas $(FLAG_VISIBILITY_HIDDEN)
 
-#noinst_LTLIBRARIES = libexpr.la libstatistics.la
 noinst_LTLIBRARIES = libexpr.la
-
-# libstatistics_la_CPPFLAGS = $(CPPFLAGS) $(AM_CPPFLAGS) -D__BUILDING_STATISTICS_FOR_EXPORT
-# libstatistics_la_SOURCES = \
-# 	statistics_registry.h \
-# 	statistics_registry.cpp
-
-# EXTRA_libstatistics_la_DEPENDENCIES = \
-# 	builts
 
 # For some reason statistics were in libutil. No idea why though.
 libexpr_la_SOURCES = \
-	statistics.cpp \
-	statistics.h \
-	statistics_registry.cpp \
-	statistics_registry.h \
 	array.h \
 	array_store_all.cpp \
 	array_store_all.h \
@@ -102,7 +89,6 @@ EXTRA_DIST = \
 	expr_stream.i \
 	expr_manager.i \
 	symbol_table.i \
-	statistics.i \
 	type.i \
 	kind.i \
 	expr.i \

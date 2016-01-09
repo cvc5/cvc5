@@ -24,12 +24,12 @@
 #include "context/cdchunk_list.h"
 #include "context/cdhashset.h"
 #include "expr/attribute.h"
-#include "expr/statistics_registry.h"
 #include "options/quantifiers_modes.h"
 #include "theory/quantifiers/inst_match.h"
 #include "theory/quantifiers/quant_util.h"
 #include "theory/theory.h"
 #include "util/hash.h"
+#include "util/statistics_registry.h"
 
 namespace CVC4 {
 
@@ -206,8 +206,7 @@ private:
   NodeList d_presolve_cache;
   BoolList d_presolve_cache_wq;
   BoolList d_presolve_cache_wic;
-private:
-  KEEP_STATISTIC(TimerStat, d_time, "theory::QuantifiersEngine::time");
+
 public:
   QuantifiersEngine(context::Context* c, context::UserContext* u, TheoryEngine* te);
   ~QuantifiersEngine();
@@ -346,6 +345,7 @@ public:
   /** statistics class */
   class Statistics {
   public:
+    TimerStat d_time;
     IntStat d_num_quant;
     IntStat d_instantiation_rounds;
     IntStat d_instantiation_rounds_lc;
@@ -382,7 +382,7 @@ private:
   std::map< Node, int > d_rep_score;
   /** reset count */
   int d_reset_count;
-private:
+
   /** node contains */
   Node getInstance( Node n, const std::vector< Node >& eqc, std::hash_map<TNode, Node, TNodeHashFunction>& cache );
   /** get score */

@@ -18,6 +18,7 @@
 #include <vector>
 
 #include "options/quantifiers_options.h"
+#include "smt/smt_statistics_registry.h"
 #include "theory/quantifiers/quant_util.h"
 #include "theory/quantifiers/term_database.h"
 #include "theory/quantifiers/trigger.h"
@@ -2227,17 +2228,17 @@ QuantConflictFind::Statistics::Statistics():
   d_prop_inst("QuantConflictFind::Instantiations_Prop", 0 ),
   d_entailment_checks("QuantConflictFind::Entailment_Checks",0)
 {
-  StatisticsRegistry::registerStat(&d_inst_rounds);
-  StatisticsRegistry::registerStat(&d_conflict_inst);
-  StatisticsRegistry::registerStat(&d_prop_inst);
-  StatisticsRegistry::registerStat(&d_entailment_checks);
+  smtStatisticsRegistry()->registerStat(&d_inst_rounds);
+  smtStatisticsRegistry()->registerStat(&d_conflict_inst);
+  smtStatisticsRegistry()->registerStat(&d_prop_inst);
+  smtStatisticsRegistry()->registerStat(&d_entailment_checks);
 }
 
 QuantConflictFind::Statistics::~Statistics(){
-  StatisticsRegistry::unregisterStat(&d_inst_rounds);
-  StatisticsRegistry::unregisterStat(&d_conflict_inst);
-  StatisticsRegistry::unregisterStat(&d_prop_inst);
-  StatisticsRegistry::unregisterStat(&d_entailment_checks);
+  smtStatisticsRegistry()->unregisterStat(&d_inst_rounds);
+  smtStatisticsRegistry()->unregisterStat(&d_conflict_inst);
+  smtStatisticsRegistry()->unregisterStat(&d_prop_inst);
+  smtStatisticsRegistry()->unregisterStat(&d_entailment_checks);
 }
 
 TNode QuantConflictFind::getZero( Kind k ) {

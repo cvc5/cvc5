@@ -73,7 +73,18 @@ public:
     s_smtEngine_current = d_oldSmtEngine;
     Debug("current") << "smt scope: returning to " << s_smtEngine_current << std::endl;
   }
+
+  /**
+   * This returns the StatisticsRegistry attached to the currently in scope
+   * SmtEngine.
+   */
+  static StatisticsRegistry* currentStatisticsRegistry() {
+    Assert(smtEngineInScope());
+    return s_smtEngine_current->d_statisticsRegistry;
+  }
+
 };/* class SmtScope */
+
 
 }/* CVC4::smt namespace */
 }/* CVC4 namespace */

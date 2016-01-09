@@ -36,14 +36,14 @@ RewriteFunction TheoryBVRewriter::d_rewriteTable[kind::LAST_KIND];
 void TheoryBVRewriter::init() {
    // s_allRules = new AllRewriteRules;
    // d_rewriteTimer = new TimerStat("theory::bv::rewriteTimer");
-   // StatisticsRegistry::registerStat(d_rewriteTimer); 
+   // smtStatisticsRegistry()->registerStat(d_rewriteTimer); 
    initializeRewrites();
 
 }
 
 void TheoryBVRewriter::shutdown() {
    // delete s_allRules;
-   // StatisticsRegistry::unregisterStat(d_rewriteTimer); 
+   // smtStatisticsRegistry()->unregisterStat(d_rewriteTimer); 
    //delete d_rewriteTimer;
 }
 
