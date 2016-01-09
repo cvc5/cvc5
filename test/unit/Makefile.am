@@ -48,6 +48,7 @@ UNIT_TESTS += \
 	util/exception_black \
 	util/integer_black \
 	util/integer_white \
+	util/listener_black \
 	util/rational_black \
 	util/rational_white \
 	util/stats_black \

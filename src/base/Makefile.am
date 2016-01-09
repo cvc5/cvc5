@@ -19,6 +19,8 @@ libbase_la_SOURCES = \
 	cvc4_assert.h \
 	exception.cpp \
 	exception.h \
+	listener.cpp \
+	listener.h \
 	modal_exception.h \
 	output.cpp \
 	output.h

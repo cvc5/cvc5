@@ -23,7 +23,6 @@
 #include "expr/attribute.h"
 #include "expr/node.h"
 #include "expr/node_builder.h"
-#include "expr/resource_manager.h"
 #include "options/bv_options.h"
 #include "options/options.h"
 #include "options/quantifiers_options.h"
@@ -46,6 +45,7 @@
 #include "theory/theory_traits.h"
 #include "theory/uf/equality_engine.h"
 #include "theory/unconstrained_simplifier.h"
+#include "util/resource_manager.h"
 
 using namespace std;
 

@@ -23,6 +23,7 @@
 #include <sys/time.h>
 
 #include "base/exception.h"
+#include "base/listener.h"
 #include "util/unsafe_interrupt_exception.h"
 
 namespace CVC4 {
@@ -107,6 +108,12 @@ class CVC4_PUBLIC ResourceManager {
   /** Counter indicating how often to check resource manager in loops */
   static const uint64_t s_resourceCount;
 
+  /** Receives a notification on reaching a hard limit. */
+  ListenerCollection d_hardListeners;
+
+  /** Receives a notification on reaching a hard limit. */
+  ListenerCollection d_softListeners;
+
 public:
 
   ResourceManager();
@@ -119,7 +126,11 @@ public:
   bool outOfTime() const;
   bool out() const { return d_on && (outOfResources() || outOfTime()); }
 
-  uint64_t getResourceUsage() const;
+
+  /**
+   * This returns a const uint64_t& to support being used as a ReferenceStat.
+   */
+  const uint64_t& getResourceUsage() const;
   uint64_t getTimeUsage() const;
   uint64_t getResourceRemaining() const;
   uint64_t getTimeRemaining() const;
@@ -150,7 +161,12 @@ public:
   void endCall();
 
   static uint64_t getFrequencyCount() { return s_resourceCount; }
-  friend class SmtEngine;
+
+  /** Collection of listeners that are notified on a hard resource out. */
+  ListenerCollection* getHardListeners();
+
+  /** Collection of listeners that are notified on a soft resource out. */
+  ListenerCollection* getSoftListeners();
 };/* class ResourceManager */
 
 }/* CVC4 namespace */

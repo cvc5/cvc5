@@ -49,11 +49,14 @@ public:
   void setUp() {
     d_em = new ExprManager();
     d_smt = new SmtEngine(d_em);
-    d_nm = NodeManager::fromExprManager(d_em);
     d_scope = new SmtScope(d_smt);
+
+    d_nm = NodeManager::fromExprManager(d_em);
   }
 
   void tearDown() {
+    delete d_scope;
+    delete d_smt;
     delete d_em;
   }
 

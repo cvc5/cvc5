@@ -29,9 +29,8 @@
 #include "expr/type_checker.h"
 #include "options/options.h"
 #include "options/smt_options.h"
-#include "expr/resource_manager.h"
 #include "util/statistics_registry.h"
-
+#include "util/resource_manager.h"
 
 using namespace std;
 using namespace CVC4::expr;

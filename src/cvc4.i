@@ -322,6 +322,7 @@ std::set<JavaInputStreamAdapter*> CVC4::JavaInputStreamAdapter::s_adapters;
 %include "util/hash.i"
 %include "util/proof.i"
 %include "util/regexp.i"
+%include "util/resource_manager.i"
 %include "util/result.i"
 %include "util/sexpr.i"
 %include "util/statistics.i"
@@ -336,7 +337,6 @@ std::set<JavaInputStreamAdapter*> CVC4::JavaInputStreamAdapter::s_adapters;
 %include "expr/datatype.i"
 %include "expr/predicate.i"
 %include "expr/record.i"
-%include "expr/resource_manager.i"
 %include "proof/unsat_core.i"
 
 // TIM:

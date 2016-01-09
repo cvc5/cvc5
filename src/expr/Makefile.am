@@ -39,8 +39,6 @@ libexpr_la_SOURCES = \
 	pickle_data.h \
 	pickler.cpp \
 	pickler.h \
-	resource_manager.cpp \
-	resource_manager.h \
 	symbol_table.cpp \
 	symbol_table.h \
 	type.cpp \
@@ -92,7 +90,6 @@ EXTRA_DIST = \
 	type.i \
 	kind.i \
 	expr.i \
-	resource_manager.i \
 	record.i \
 	predicate.i \
 	variable_type_map.i \

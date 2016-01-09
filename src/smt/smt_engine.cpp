@@ -27,6 +27,7 @@
 #include <vector>
 
 #include "base/exception.h"
+#include "base/listener.h"
 #include "base/modal_exception.h"
 #include "base/output.h"
 #include "context/cdhashset.h"
@@ -40,7 +41,6 @@
 #include "expr/node.h"
 #include "expr/node_builder.h"
 #include "expr/node_self_iterator.h"
-#include "expr/resource_manager.h"
 #include "options/arith_options.h"
 #include "options/arrays_options.h"
 #include "options/base_options.h"
@@ -99,6 +99,7 @@
 #include "util/configuration_private.h"
 #include "util/hash.h"
 #include "util/proof.h"
+#include "util/resource_manager.h"
 
 using namespace std;
 using namespace CVC4;
@@ -296,6 +297,32 @@ struct SmtEngineStatistics {
   }
 };/* struct SmtEngineStatistics */
 
+
+class SoftResourceOutListener : public Listener {
+ public:
+  SoftResourceOutListener(SmtEngine& smt) : d_smt(&smt) {}
+  virtual void notify() {
+    SmtScope scope(d_smt);
+    Assert(smt::smtEngineInScope());
+    d_smt->interrupt();
+  }
+ private:
+  SmtEngine* d_smt;
+}; /* class SoftResourceOutListener */
+
+
+class HardResourceOutListener : public Listener {
+ public:
+  HardResourceOutListener(SmtEngine& smt) : d_smt(&smt) {}
+  virtual void notify() {
+    SmtScope scope(d_smt);
+    theory::Rewriter::clearCaches();
+  }
+ private:
+  SmtEngine* d_smt;
+}; /* class HardResourceOutListener */
+
+
 /**
  * This is an inelegant solution, but for the present, it will work.
  * The point of this is to separate the public and private portions of
@@ -317,6 +344,16 @@ class SmtEnginePrivate : public NodeManagerListener {
    * Manager for limiting time and abstract resource usage.
    */
   ResourceManager* d_resourceManager;
+
+  /**
+   * Listener for the when a soft resource out occurs.
+   */
+  RegisterListener* d_softResourceOutListener;
+
+  /**
+   * Listener for the when a hard resource out occurs.
+   */
+  RegisterListener* d_hardResourceOutListener;
 
   /** Learned literals */
   vector<Node> d_nonClausalLearnedLiterals;
@@ -465,6 +502,8 @@ public:
   SmtEnginePrivate(SmtEngine& smt) :
     d_smt(smt),
     d_resourceManager(NULL),
+    d_softResourceOutListener(NULL),
+    d_hardResourceOutListener(NULL),
     d_nonClausalLearnedLiterals(),
     d_realAssertionsEnd(0),
     d_booleanTermConverter(NULL),
@@ -485,9 +524,23 @@ public:
     d_smt.d_nodeManager->subscribeEvents(this);
     d_true = NodeManager::currentNM()->mkConst(true);
     d_resourceManager = NodeManager::currentResourceManager();
+
+    d_softResourceOutListener = new RegisterListener(
+        d_resourceManager->getSoftListeners(),
+        new SoftResourceOutListener(d_smt));
+
+    d_hardResourceOutListener = new RegisterListener(
+        d_resourceManager->getHardListeners(),
+        new HardResourceOutListener(d_smt));
+
   }
 
   ~SmtEnginePrivate() throw() {
+    delete d_hardResourceOutListener;
+    d_hardResourceOutListener = NULL;
+    delete d_softResourceOutListener;
+    d_softResourceOutListener = NULL;
+
     if(d_propagatorNeedsFinish) {
       d_propagator.finish();
       d_propagatorNeedsFinish = false;
@@ -733,7 +786,8 @@ SmtEngine::SmtEngine(ExprManager* em) throw() :
   d_private = new smt::SmtEnginePrivate(*this);
   d_statisticsRegistry = new StatisticsRegistry();
   d_stats = new SmtEngineStatistics();
-  d_stats->d_resourceUnitsUsed.setData(d_private->getResourceManager()->d_cumulativeResourceUsed);
+  d_stats->d_resourceUnitsUsed.setData(
+      d_private->getResourceManager()->getResourceUsage());
   // We have mutual dependency here, so we add the prop engine to the theory
   // engine later (it is non-essential there)
   d_theoryEngine = new TheoryEngine(d_context, d_userContext,

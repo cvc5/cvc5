@@ -24,7 +24,6 @@
 #include "base/output.h"
 #include "decision/decision_engine.h"
 #include "expr/expr.h"
-#include "expr/resource_manager.h"
 #include "options/base_options.h"
 #include "options/decision_options.h"
 #include "options/main_options.h"
@@ -40,6 +39,7 @@
 #include "smt_util/command.h"
 #include "theory/theory_engine.h"
 #include "theory/theory_registrar.h"
+#include "util/resource_manager.h"
 #include "util/result.h"
 
 using namespace std;

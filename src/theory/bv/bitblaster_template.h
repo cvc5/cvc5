@@ -25,11 +25,11 @@
 #include "bitblast_strategies_template.h"
 #include "context/cdhashmap.h"
 #include "expr/node.h"
-#include "expr/resource_manager.h"
 #include "prop/sat_solver.h"
 #include "smt/smt_globals.h"
 #include "theory/theory_registrar.h"
 #include "theory/valuation.h"
+#include "util/resource_manager.h"
 
 class Abc_Obj_t_;
 typedef Abc_Obj_t_ Abc_Obj_t;
