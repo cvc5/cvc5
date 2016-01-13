@@ -95,6 +95,8 @@ QuantifiersEngine::QuantifiersEngine(context::Context* c, context::UserContext* 
   d_term_db = new quantifiers::TermDb( c, u, this );
   d_tr_trie = new inst::TriggerTrie;
   d_hasAddedLemma = false;
+  //don't add true lemma
+  d_lemmas_produced_c[d_term_db->d_true] = true;
 
   Trace("quant-engine-debug") << "Initialize quantifiers engine." << std::endl;
   Trace("quant-engine-debug") << "Initialize model, mbqi : " << options::mbqiMode() << std::endl;

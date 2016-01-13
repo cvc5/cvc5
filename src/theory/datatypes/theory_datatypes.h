@@ -184,10 +184,11 @@ private:
 private:
   /** singleton lemmas (for degenerate co-datatype case) */
   std::map< TypeNode, Node > d_singleton_lemma[2];
-
   /** Cache for singleton equalities processed */
   BoolMap d_singleton_eq;
-
+  /** list of all lemmas produced */
+  BoolMap d_lemmas_produced_c;
+private:
   /** assert fact */
   void assertFact( Node fact, Node exp );
 
@@ -196,7 +197,8 @@ private:
 
   /** do pending merged */
   void doPendingMerges();
-
+  /** do send lemma */
+  void doSendLemma( Node lem );
   /** get or make eqc info */
   EqcInfo* getOrMakeEqcInfo( TNode n, bool doMake = false );
 

@@ -4023,6 +4023,7 @@ void TheoryStrings::checkExtendedFuncs() {
           addMembership( it->first ? it->second[i] : it->second[i].negate() );
         }
       }
+      Trace("strings-process") << "Checking memberships..." << std::endl;
       checkMemberships();
       Trace("strings-process") << "Done check memberships, addedLemma = " << !d_pending.empty() << " " << !d_lemma_cache.empty() << ", d_conflict = " << d_conflict << std::endl;
     }
