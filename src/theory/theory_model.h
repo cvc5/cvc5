@@ -260,6 +260,9 @@ protected:
   /** is v an excluded codatatype value */
   bool isExcludedCdtValue( Node v, std::set<Node>* repSet, std::map< Node, Node >& assertedReps, Node eqc );
   bool isCdtValueMatch( Node v, Node r, Node eqc, Node& eqc_m );
+  /** involves usort */
+  bool involvesUSort( TypeNode tn );
+  bool isExcludedUSortValue( std::map< TypeNode, unsigned >& eqc_usort_count, Node v, std::map< Node, bool >& visited );
 public:
   TheoryEngineModelBuilder(TheoryEngine* te);
   virtual ~TheoryEngineModelBuilder(){}
