@@ -46,7 +46,7 @@ static void printBvParameterizedOp(std::ostream& out, TNode n) throw();
 static void printFpParameterizedOp(std::ostream& out, TNode n) throw();
 
 static void toStreamRational(std::ostream& out, const Rational& r, bool decimal) throw();
-  
+
 void Smt2Printer::toStream(std::ostream& out, TNode n,
                            int toDepth, bool types, size_t dag) const throw() {
   if(dag != 0) {
@@ -357,6 +357,8 @@ void Smt2Printer::toStream(std::ostream& out, TNode n,
     // arrays theory
   case kind::SELECT:
   case kind::STORE:
+  case kind::PARTIAL_SELECT_0:
+  case kind::PARTIAL_SELECT_1:
   case kind::ARRAY_TYPE: out << smtKindString(k) << " "; break;
 
     // string theory
@@ -527,12 +529,12 @@ void Smt2Printer::toStream(std::ostream& out, TNode n,
         // Real-sorted are wrapped in a type ascription.  Handle that here.
 
 	// Note: This is Tim making a guess about Morgan's Code.
-	Assert(n[0].getKind() == kind::CONST_RATIONAL);	
+	Assert(n[0].getKind() == kind::CONST_RATIONAL);
 	toStreamRational(out, n[0].getConst<Rational>(), true);
 
         //toStream(out, n[0], -1, false);
         //out << ".0";
-	
+
         return;
       }
       out << "(as ";
@@ -690,6 +692,8 @@ static string smtKindString(Kind k) throw() {
   case kind::SELECT: return "select";
   case kind::STORE: return "store";
   case kind::ARRAY_TYPE: return "Array";
+  case kind::PARTIAL_SELECT_0: return "partial_select_0";
+  case kind::PARTIAL_SELECT_1: return "partial_select_1";
 
     // bv theory
   case kind::BITVECTOR_CONCAT: return "concat";
@@ -761,7 +765,7 @@ static string smtKindString(Kind k) throw() {
 
   case kind::FLOATINGPOINT_ISN: return "fp.isNormal";
   case kind::FLOATINGPOINT_ISSN: return "fp.isSubnormal";
-  case kind::FLOATINGPOINT_ISZ: return "fp.isZero";  
+  case kind::FLOATINGPOINT_ISZ: return "fp.isZero";
   case kind::FLOATINGPOINT_ISINF: return "fp.isInfinite";
   case kind::FLOATINGPOINT_ISNAN: return "fp.isNaN";
   case kind::FLOATINGPOINT_ISNEG: return "fp.isNegative";
@@ -1031,7 +1035,7 @@ void Smt2Printer::toStream(std::ostream& out, const Model& m, const Command* c) 
       }
     }
   } else if(dynamic_cast<const DeclareFunctionCommand*>(c) != NULL) {
-    const DeclareFunctionCommand* dfc = (const DeclareFunctionCommand*)c; 
+    const DeclareFunctionCommand* dfc = (const DeclareFunctionCommand*)c;
     Node n = Node::fromExpr( dfc->getFunction() );
     if(dfc->getPrintInModelSetByUser()) {
       if(!dfc->getPrintInModel()) {
@@ -1059,7 +1063,7 @@ void Smt2Printer::toStream(std::ostream& out, const Model& m, const Command* c) 
       if(val.getType().isInteger() && n.getType().isReal() && !n.getType().isInteger()) {
 	//toStreamReal(out, val, true);
 	toStreamRational(out, val.getConst<Rational>(), true);
-	//out << val << ".0";	
+	//out << val << ".0";
       } else {
         out << val;
       }
@@ -1214,16 +1218,16 @@ static void toStream(std::ostream& out, const DefineFunctionCommand* c) throw() 
 
 static void toStreamRational(std::ostream& out, const Rational& r, bool decimal) throw() {
   bool neg = r.sgn() < 0;
-  
+
   // TODO:
   // We are currently printing (- (/ 5 3))
   // instead of (/ (- 5) 3) which is what is in the SMT-LIB value in the theory definition.
   // Before switching, I'll keep to what was there and send an email.
 
   // Tim: Apologies for the ifs on one line but in this case they are cleaner.
-  
+
   if (neg) { out << "(- "; }
-  
+
   if(r.isIntegral()) {
     if (neg) {
       out << (-r);

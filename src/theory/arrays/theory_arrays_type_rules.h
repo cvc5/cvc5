@@ -218,7 +218,7 @@ struct ArraysProperties {
 struct ArrayPartialSelectTypeRule {
   inline static TypeNode computeType(NodeManager* nodeManager, TNode n, bool check)
     throw (TypeCheckingExceptionPrivate, AssertionException) {
-    Assert(n.getKind() == kind::PARTIAL_SELECT);
+    Assert(n.getKind() == kind::PARTIAL_SELECT_0 || n.getKind() == kind::PARTIAL_SELECT_1);
     return nodeManager->integerType();
   }
 };/* struct ArrayPartialSelectTypeRule */

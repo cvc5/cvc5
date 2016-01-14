@@ -54,8 +54,10 @@ typerule STORE_ALL ::CVC4::theory::arrays::ArrayStoreTypeRule
 typerule ARR_TABLE_FUN ::CVC4::theory::arrays::ArrayTableFunTypeRule
 typerule ARRAY_LAMBDA ::CVC4::theory::arrays::ArrayLambdaTypeRule
 
-operator PARTIAL_SELECT 0:2 "partial array select, for internal use only"
-typerule PARTIAL_SELECT ::CVC4::theory::arrays::ArrayPartialSelectTypeRule
+operator PARTIAL_SELECT_0 0:2 "partial array select, for internal use only"
+operator PARTIAL_SELECT_1 0:2 "partial array select, for internal use only"
+typerule PARTIAL_SELECT_0 ::CVC4::theory::arrays::ArrayPartialSelectTypeRule
+typerule PARTIAL_SELECT_1 ::CVC4::theory::arrays::ArrayPartialSelectTypeRule
 
 # store operations that are ordered (by index) over a store-all are constant
 construle STORE ::CVC4::theory::arrays::ArrayStoreTypeRule
