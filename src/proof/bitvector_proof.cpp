@@ -405,6 +405,10 @@ void LFSCBitVectorProof::printDeclarations(std::ostream& os, std::ostream& paren
   }
 }
 
+void LFSCBitVectorProof::printDeferredDeclarations(std::ostream& os, std::ostream& paren) {
+  // Nothing to do here at this point.
+}
+
 
 void LFSCBitVectorProof::printTermBitblasting(Expr term, std::ostream& os) {
   // TODO: once we have the operator elimination rules remove those that we
@@ -461,7 +465,7 @@ void LFSCBitVectorProof::printTermBitblasting(Expr term, std::ostream& os) {
       os <<" _ _ _ _ _ _ ";
     }
     os << getBBTermName(term[0]) <<" ";
-    
+
     for (unsigned i = 1; i < term.getNumChildren(); ++i) {
       os << getBBTermName(term[i]);
       os << ") ";
@@ -607,4 +611,3 @@ void LFSCBitVectorProof::printResolutionProof(std::ostream& os,
   os << ";; Bit-blasting learned clauses \n";
   d_resolutionProof->printResolutions(os, paren);
 }
-

@@ -32,12 +32,16 @@ private:
                               theory::eq::EqProof* pf,
                               unsigned tb,
                               const LetMap& map);
+
+  std::hash_map<Node, Node, NodeHashFunction> d_nodeToSkolem;
 public:
   ProofArray(theory::eq::EqProof* pf) : d_proof(pf) {}
   //it is simply an equality engine proof
   theory::eq::EqProof *d_proof;
   void toStream(std::ostream& out);
   static void toStreamLFSC(std::ostream& out, TheoryProof* tp, theory::eq::EqProof* pf, const LetMap& map);
+
+  void registerSkolem(Node equality, Node skolem);
 };
 
 namespace theory {
@@ -53,9 +57,13 @@ class ArrayProof : public TheoryProof {
 protected:
   TypeSet d_sorts;        // all the uninterpreted sorts in this theory
   ExprSet d_declarations; // all the variable/function declarations
+  ExprSet d_skolemDeclarations; // all the skolem variable declarations
+  std::map<Expr, std::string> d_skolemToLiteral;
 
 public:
   ArrayProof(theory::arrays::TheoryArrays* arrays, TheoryProofEngine* proofEngine);
+
+  std::string skolemToLiteral(Expr skolem);
 
   virtual void registerTerm(Expr term);
 };
@@ -70,6 +78,7 @@ public:
   virtual void printSort(Type type, std::ostream& os);
   virtual void printTheoryLemmaProof(std::vector<Expr>& lemma, std::ostream& os, std::ostream& paren);
   virtual void printDeclarations(std::ostream& os, std::ostream& paren);
+  virtual void printDeferredDeclarations(std::ostream& os, std::ostream& paren);
 };
 
 

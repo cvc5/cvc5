@@ -172,12 +172,11 @@ TheoryProof* TheoryProofEngine::getTheoryProof(TheoryId id) {
 }
 
 void TheoryProofEngine::registerTerm(Expr term) {
-  Debug("gk::proof") << "TheoryProofEngine::registerTerm called for term: " << term;
+  // Debug("gk::proof") << "TheoryProofEngine::registerTerm called for term: " << term;
   if (d_registrationCache.count(term)) {
-    Debug("gk::proof") << ". Already cached!" << std::endl;
     return;
   }
-  Debug("gk::proof") << ". Registering..." << std::endl;
+  Debug("gk::proof") << "TheoryProofEngine::registerTerm: registering new term: " << term << std::endl;
 
   TheoryId theory_id = Theory::theoryOf(term);
 
@@ -194,7 +193,6 @@ void TheoryProofEngine::registerTerm(Expr term) {
   }
 
   getTheoryProof(theory_id)->registerTerm(term);
-  Debug("gk::proof") << "REALLY registering term: " << term << std::endl;
   d_registrationCache.insert(term);
 }
 
@@ -296,8 +294,6 @@ void LFSCTheoryProofEngine::printSort(Type type, std::ostream& os) {
 }
 
 void LFSCTheoryProofEngine::printAssertions(std::ostream& os, std::ostream& paren) {
-  Debug("gk::proof") << "LFSCTheoryProofEngine::printAssertions starting" << std::endl;
-
   unsigned counter = 0;
   ProofManager::assertions_iterator it = ProofManager::currentPM()->begin_assertions();
   ProofManager::assertions_iterator end = ProofManager::currentPM()->end_assertions();
@@ -324,7 +320,6 @@ void LFSCTheoryProofEngine::printAssertions(std::ostream& os, std::ostream& pare
   }
   //store map between assertion and counter
   // ProofManager::currentPM()->setAssertion( *it );
-  Debug("gk::proof") << "LFSCTheoryProofEngine::printAssertions done" << std::endl;
 }
 
 void LFSCTheoryProofEngine::printDeclarations(std::ostream& os, std::ostream& paren) {
@@ -332,6 +327,16 @@ void LFSCTheoryProofEngine::printDeclarations(std::ostream& os, std::ostream& pa
   TheoryProofTable::const_iterator end = d_theoryProofTable.end();
   for (; it != end; ++it) {
     it->second->printDeclarations(os, paren);
+  }
+}
+
+void LFSCTheoryProofEngine::printDeferredDeclarations(std::ostream& os, std::ostream& paren) {
+  Debug("gk::proof") << "LFSCTheoryProofEngine::printDeferredDeclarations called" << std::endl;
+
+  TheoryProofTable::const_iterator it = d_theoryProofTable.begin();
+  TheoryProofTable::const_iterator end = d_theoryProofTable.end();
+  for (; it != end; ++it) {
+    it->second->printDeferredDeclarations(os, paren);
   }
 }
 
@@ -587,10 +592,28 @@ void TheoryProof::printTheoryLemmaProof(std::vector<Expr>& lemma, std::ostream& 
     // Trace("theory-proof-debug") << "; asserting " << oc.d_lemma[1].negate() << std::endl;
     Trace("theory-proof-debug") << "; asserting " << oc.d_lemma << std::endl;
     //    th->assertFact(oc.d_lemma[1].negate(), false);
-    th->assertFact(oc.d_lemma, false);
+
+    if (oc.d_lemma.getKind() == kind::OR) {
+      for (unsigned i = 0; i < oc.d_lemma.getNumChildren(); ++i) {
+        Trace("theory-proof-debug") << ";     asserting fact: " << oc.d_lemma[i].notNode() << std::endl;
+        if (oc.d_lemma[i].getKind() == kind::NOT) {
+          th->assertFact(oc.d_lemma[i][0], false);
+        }
+        else {
+          th->assertFact(oc.d_lemma[i].notNode(), false);
+        }
+      }
+    }
+    else {
+      // Assuming this is just a plain fact...
+      th->assertFact(oc.d_lemma, false);
+    }
+
     th->check(theory::Theory::EFFORT_FULL);
   }
+  Debug("gk::proof") << "Calling   oc.d_proof->toStream(os)" << std::endl;
   oc.d_proof->toStream(os);
+  Debug("gk::proof") << "Calling   oc.d_proof->toStream(os) -- DONE!" << std::endl;
 
   Debug("gk::proof") << "About to delete the theory solver used for proving the lemma... " << std::endl;
   delete th;
@@ -677,4 +700,8 @@ void LFSCBooleanProof::printDeclarations(std::ostream& os, std::ostream& paren) 
     os <<")\n";
     paren <<")";
   }
+}
+
+void LFSCBooleanProof::printDeferredDeclarations(std::ostream& os, std::ostream& paren) {
+  // Nothing to do here at this point.
 }

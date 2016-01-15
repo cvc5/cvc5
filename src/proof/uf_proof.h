@@ -37,7 +37,7 @@ public:
   static void toStreamLFSC(std::ostream& out, TheoryProof * tp, theory::eq::EqProof * pf, const LetMap& map);
 };
 
-  
+
 namespace theory {
 namespace uf {
 class TheoryUF;
@@ -51,7 +51,7 @@ class UFProof : public TheoryProof {
 protected:
   TypeSet d_sorts;        // all the uninterpreted sorts in this theory
   ExprSet d_declarations; // all the variable/function declarations
-  
+
 public:
   UFProof(theory::uf::TheoryUF* uf, TheoryProofEngine* proofEngine);
 
@@ -64,9 +64,10 @@ public:
     : UFProof(uf, proofEngine)
   {}
   virtual void printTerm(Expr term, std::ostream& os, const LetMap& map);
-  virtual void printSort(Type type, std::ostream& os); 
+  virtual void printSort(Type type, std::ostream& os);
   virtual void printTheoryLemmaProof(std::vector<Expr>& lemma, std::ostream& os, std::ostream& paren);
   virtual void printDeclarations(std::ostream& os, std::ostream& paren);
+  virtual void printDeferredDeclarations(std::ostream& os, std::ostream& paren);
 };
 
 

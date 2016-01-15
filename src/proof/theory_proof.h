@@ -39,14 +39,14 @@ struct LetCount {
   static unsigned counter;
   static void resetCounter() { counter = 0; }
   static unsigned newId() { return ++counter; }
-    
+
   unsigned count;
   unsigned id;
   LetCount()
     : count(0)
     , id(-1)
   {}
-    
+
   void increment() { ++count; }
   LetCount(unsigned i)
     : count(1)
@@ -65,7 +65,7 @@ struct LetCount {
     count = rhs.count;
     return *this;
   }
-}; 
+};
 
 struct LetOrderElement {
   Expr expr;
@@ -84,9 +84,9 @@ struct LetOrderElement {
 typedef __gnu_cxx::hash_map < ClauseId, prop::SatClause* > IdToSatClause;
 
 typedef __gnu_cxx::hash_map<Expr, LetCount, ExprHashFunction> LetMap;
-typedef std::vector<LetOrderElement> Bindings; 
+typedef std::vector<LetOrderElement> Bindings;
 
-class TheoryProof; 
+class TheoryProof;
 typedef unsigned ClauseId;
 
 typedef __gnu_cxx::hash_set<Expr, ExprHashFunction > ExprSet;
@@ -100,56 +100,65 @@ protected:
 public:
   TheoryProofEngine();
   virtual ~TheoryProofEngine();
-  /** 
+  /**
    * Print the theory term (could be atom) by delegating to the
    * proper theory
-   * 
-   * @param term 
-   * @param os 
-   * 
-   * @return 
+   *
+   * @param term
+   * @param os
+   *
+   * @return
    */
   virtual void printLetTerm(Expr term, std::ostream& os) = 0;
   virtual void printBoundTerm(Expr term, std::ostream& os, const LetMap& map) = 0;
-  /** 
+  /**
    * Print the proof representation of the given sort.
-   * 
-   * @param os 
+   *
+   * @param os
    */
-  virtual void printSort(Type type, std::ostream& os) = 0; 
-  /** 
+  virtual void printSort(Type type, std::ostream& os) = 0;
+  /**
    * Print the theory assertions (arbitrary formulas over
    * theory atoms)
-   * 
-   * @param os 
+   *
+   * @param os
    * @param paren closing parenthesis
    */
   virtual void printAssertions(std::ostream& os, std::ostream& paren) = 0;
-  /** 
+  /**
+   * Print variable declarations that need to appear within the proof,
+   * e.g. skolemized variables.
+   *
+   * @param os
+   * @param paren closing parenthesis
+   */
+  virtual void printDeferredDeclarations(std::ostream& os, std::ostream& paren) = 0;
+
+  /**
    * Print proofs of all the theory lemmas (must prove
    * actual clause used in resolution proof).
-   * 
-   * @param os 
-   * @param paren 
+   *
+   * @param os
+   * @param paren
    */
   virtual void printTheoryLemmas(const IdToSatClause& lemmas,
                                  std::ostream& os,
                                  std::ostream& paren) = 0;
-  /** 
-   * Register theory atom (ensures all terms and atoms are declared). 
-   * 
-   * @param atom 
+  /**
+   * Register theory atom (ensures all terms and atoms are declared).
+   *
+   * @param atom
    */
   void registerTerm(Expr atom);
-  /** 
+  /**
    * Ensures that a theory proof class for the given theory
    * is created.
-   * 
-   * @param theory 
+   *
+   * @param theory
    */
   void registerTheory(theory::Theory* theory);
   theory::TheoryId getTheoryForLemma(ClauseId id);
-  TheoryProof* getTheoryProof(theory::TheoryId id); 
+  TheoryProof* getTheoryProof(theory::TheoryId id);
 };
 
 class LFSCTheoryProofEngine : public TheoryProofEngine {
@@ -162,10 +171,11 @@ public:
   virtual void printLetTerm(Expr term, std::ostream& os);
   virtual void printBoundTerm(Expr term, std::ostream& os, const LetMap& map);
   virtual void printAssertions(std::ostream& os, std::ostream& paren);
+  virtual void printDeferredDeclarations(std::ostream& os, std::ostream& paren);
   virtual void printTheoryLemmas(const IdToSatClause& lemmas,
                                  std::ostream& os,
                                  std::ostream& paren);
-  virtual void printSort(Type type, std::ostream& os); 
+  virtual void printSort(Type type, std::ostream& os);
 };
 
 class TheoryProof {
@@ -178,41 +188,49 @@ public:
     : d_theory(th)
     , d_proofEngine(proofEngine)
   {}
-  virtual ~TheoryProof() {}; 
-  /** 
+  virtual ~TheoryProof() {};
+  /**
    * Print a term belonging to this theory.
-   * 
+   *
    * @param term expresion representing term
    * @param os output stream
    */
   virtual void printTerm(Expr term, std::ostream& os, const LetMap& map) = 0;
-  /** 
+  /**
    * Print the proof representation of the given type.
-   * 
-   * @param type 
-   * @param os 
+   *
+   * @param type
+   * @param os
    */
-  virtual void printSort(Type type, std::ostream& os) = 0; 
-  /** 
+  virtual void printSort(Type type, std::ostream& os) = 0;
+  /**
    * Print a proof for the theory lemmas. Must prove
    * clause representing lemmas to be used in resolution proof.
-   * 
+   *
    * @param os output stream
    */
   virtual void printTheoryLemmaProof(std::vector<Expr>& lemma, std::ostream& os, std::ostream& paren);
-  /** 
+  /**
    * Print the variable/sorts declarations for this theory.
-   * 
-   * @param os 
-   * @param paren 
+   *
+   * @param os
+   * @param paren
    */
   virtual void printDeclarations(std::ostream& os, std::ostream& paren) = 0;
-  /** 
-   * Register a term of this theory that appears in the proof.
-   * 
-   * @param term 
+  /**
+   * Print any deferred variable/sorts declarations for this theory
+   * (those that need to appear inside the actual proof).
+   *
+   * @param os
+   * @param paren
    */
-  virtual void registerTerm(Expr term) = 0; 
+  virtual void printDeferredDeclarations(std::ostream& os, std::ostream& paren) = 0;
+  /**
+   * Register a term of this theory that appears in the proof.
+   *
+   * @param term
+   */
+  virtual void registerTerm(Expr term) = 0;
 };
 
 class BooleanProof : public TheoryProof {
@@ -222,12 +240,13 @@ public:
   BooleanProof(TheoryProofEngine* proofEngine);
 
   virtual void registerTerm(Expr term);
-  
+
   virtual void printTerm(Expr term, std::ostream& os, const LetMap& map) = 0;
 
-  virtual void printSort(Type type, std::ostream& os) = 0; 
+  virtual void printSort(Type type, std::ostream& os) = 0;
   virtual void printTheoryLemmaProof(std::vector<Expr>& lemma, std::ostream& os, std::ostream& paren) = 0;
   virtual void printDeclarations(std::ostream& os, std::ostream& paren) = 0;
+  virtual void printDeferredDeclarations(std::ostream& os, std::ostream& paren) = 0;
 };
 
 class LFSCBooleanProof : public BooleanProof {
@@ -236,9 +255,10 @@ public:
     : BooleanProof(proofEngine)
   {}
   virtual void printTerm(Expr term, std::ostream& os, const LetMap& map);
-  virtual void printSort(Type type, std::ostream& os); 
+  virtual void printSort(Type type, std::ostream& os);
   virtual void printTheoryLemmaProof(std::vector<Expr>& lemma, std::ostream& os, std::ostream& paren) { Unreachable("No boolean lemmas yet!"); }
   virtual void printDeclarations(std::ostream& os, std::ostream& paren);
+  virtual void printDeferredDeclarations(std::ostream& os, std::ostream& paren);
 };
 
 

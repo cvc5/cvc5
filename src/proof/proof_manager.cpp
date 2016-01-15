@@ -38,6 +38,9 @@
 #include "context/context.h"
 #include "util/hash.h"
 
+// Remove at some point
+#include "theory/arrays/proof_skolemization.h"
+
 namespace CVC4 {
 
 std::string append(const std::string& str, uint64_t num) {
@@ -434,7 +437,7 @@ void LFSCProof::toStream(std::ostream& out) {
 
   Debug("gk::proof") << std::endl << "Used lemmas: " << std::endl;
   for (it2 = used_lemmas.begin(); it2 != used_lemmas.end(); ++it2) {
-    Debug("gk::proof") << "\t input = " << *(it2->second) << std::endl;
+    Debug("gk::proof") << "\t lemma = " << *(it2->second) << std::endl;
   }
   Debug("gk::proof") << std::endl;
 
@@ -442,16 +445,15 @@ void LFSCProof::toStream(std::ostream& out) {
   NodeSet used_assertions;
   d_cnfProof->collectAssertionsForClauses(used_inputs, used_assertions);
 
+  NodeSet::iterator it3;
+  Debug("gk::proof") << std::endl << "Used assertions: " << std::endl;
+  for (it3 = used_assertions.begin(); it3 != used_assertions.end(); ++it3)
+    Debug("gk::proof") << "\t assertion = " << *it3 << std::endl;
+
   NodeSet atoms;
   // collects the atoms in the clauses
   d_cnfProof->collectAtomsForClauses(used_inputs, atoms);
   d_cnfProof->collectAtomsForClauses(used_lemmas, atoms);
-
-  NodeSet::iterator atomIt;
-  Debug("gk::proof") << std::endl << "Dumping atoms from lemmas and inputs: " << std::endl << std::endl;
-  for (atomIt = atoms.begin(); atomIt != atoms.end(); ++atomIt) {
-    Debug("gk::proof") << "\tAtom: " << *atomIt << std::endl;
-  }
 
   // collects the atoms in the assertions
   for (NodeSet::const_iterator it = used_assertions.begin();
@@ -459,37 +461,11 @@ void LFSCProof::toStream(std::ostream& out) {
     utils::collectAtoms(*it, atoms);
   }
 
-  if (Debug.isOn("gk::proof")) {
-    // std::cout << NodeManager::currentNM();
-    Debug("gk::proof") << std::endl << std::endl << "LFSCProof::Used assertions: " << std::endl;
-    for(NodeSet::const_iterator it = used_assertions.begin(); it != used_assertions.end(); ++it) {
-      Debug("gk::proof") << "   " << *it << std::endl;
-    }
-    Debug("gk::proof") << std::endl << std::endl;
-
-
-    // NodeSet lemmas;
-    // d_cnfProof->collectAssertionsForClauses(used_lemmas, lemmas);
-
-    // Debug("proof:pm") << "LFSCProof::Used lemmas: "<< std::endl;
-    // for(NodeSet::const_iterator it = lemmas.begin(); it != lemmas.end(); ++it) {
-    //   Debug("proof:pm") << "   " << *it << std::endl;
-    // }
-
-    // Debug("proof:pm") << "LFSCProof::Used atoms: "<< std::endl;
-    // for(NodeSet::const_iterator it = atoms.begin(); it != atoms.end(); ++it) {
-    //   Debug("proof:pm") << "   " << *it << std::endl;
-    // }
-  }
-
-
-  Debug("gk::proof") << std::endl << "Dumping atoms from lemmas, inputs and used assertions: "
-                     << std::endl << std::endl;
+  NodeSet::iterator atomIt;
+  Debug("gk::proof") << std::endl << "Dumping atoms from lemmas, inputs and assertions: " << std::endl << std::endl;
   for (atomIt = atoms.begin(); atomIt != atoms.end(); ++atomIt) {
     Debug("gk::proof") << "\tAtom: " << *atomIt << std::endl;
   }
-
-
 
   smt::SmtScope scope(d_smtEngine);
   std::ostringstream paren;
@@ -508,25 +484,36 @@ void LFSCProof::toStream(std::ostream& out) {
 
   Debug("gk::proof") << std::endl << "Term registration done!" << std::endl << std::endl;
 
+  Debug("gk::proof") << std::endl << "LFSCProof::toStream: starting to print assertions" << std::endl;
+
   // print out all the original assertions
   d_theoryProof->printAssertions(out, paren);
   // d_rewriterProof->printRewrittenAssertios(out, paren);
 
-  Debug("gk::proof") << std::endl << "Assertion printing done!" << std::endl;
+  Debug("gk::proof") << std::endl << "LFSCProof::toStream: print assertions DONE" << std::endl;
 
-  out << "(: (holds cln)\n";
+  out << "(: (holds cln)\n\n";
+
+  // Have the theory proofs print deferred declarations, e.g. for skolem variables.
+  out << " ;; Printing deferred declarations \n";
+  d_theoryProof->printDeferredDeclarations(out, paren);
 
   // print trust that input assertions are their preprocessed form
   printPreprocessedAssertions(used_assertions, out, paren);
 
   // print mapping between theory atoms and internal SAT variables
+  out << ";; Printing mapping from preprocessed assertions into atoms \n";
   d_cnfProof->printAtomMapping(atoms, out, paren);
+
+  Debug("gk::proof") << std::endl << "Printing cnf proof for clauses" << std::endl;
 
   IdToSatClause::const_iterator cl_it = used_inputs.begin();
   // print CNF conversion proof for each clause
   for (; cl_it != used_inputs.end(); ++cl_it) {
     d_cnfProof->printCnfProofForClause(cl_it->first, cl_it->second, out, paren);
   }
+
+  Debug("gk::proof") << std::endl << "Printing cnf proof for clauses DONE" << std::endl;
 
   // FIXME: for now assume all theory lemmas are in CNF form so
   // distinguish between them and inputs
@@ -551,12 +538,15 @@ void LFSCProof::toStream(std::ostream& out) {
     out << paren.str();
     out << "\n";
   }
+
+  // Ugly, find a better solution at some point
+  theory::arrays::ProofSkolemization::clear();
 }
 
 void LFSCProof::printPreprocessedAssertions(const NodeSet& assertions,
                                             std::ostream& os,
                                             std::ostream& paren) {
-  os << " ;; Preprocessing \n";
+  os << "\n ;; In the preprocessor we trust \n";
   NodeSet::const_iterator it = assertions.begin();
   NodeSet::const_iterator end = assertions.end();
 
@@ -572,6 +562,8 @@ void LFSCProof::printPreprocessedAssertions(const NodeSet& assertions,
     paren << "))";
 
   }
+
+  os << "\n";
 }
 
 

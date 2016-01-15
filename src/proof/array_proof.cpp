@@ -17,14 +17,14 @@
 
 #include "proof/theory_proof.h"
 #include "proof/proof_manager.h"
-#include "proof/uf_proof.h"
-#include "theory/uf/theory_uf.h"
+#include "proof/array_proof.h"
+#include "theory/arrays/theory_arrays.h"
+#include "theory/arrays/proof_skolemization.h"
 #include <stack>
 
 using namespace CVC4;
 using namespace CVC4::theory;
-using namespace CVC4::theory::uf;
-
+using namespace CVC4::theory::arrays;
 
 inline static Node eqNode(TNode n1, TNode n2) {
   return NodeManager::currentNM()->mkNode(n1.getType().isBoolean() ? kind::IFF : kind::EQUAL, n1, n2);
@@ -40,9 +40,12 @@ inline static bool match(TNode n1, TNode n2) {
     n2 = ProofManager::currentPM()->lookupOp(n2);
   }
   Debug("mgd") << "+ match " << n1 << " " << n2 << std::endl;
+  Debug("gk::proof") << "+ match: step 1" << std::endl;
   if(n1 == n2) {
     return true;
   }
+
+  Debug("gk::proof") << "+ match: step 2" << std::endl;
   if(n1.getType().isFunction() && n2.hasOperator()) {
     if(ProofManager::currentPM()->hasOp(n2.getOperator())) {
       return n1 == ProofManager::currentPM()->lookupOp(n2.getOperator());
@@ -50,6 +53,8 @@ inline static bool match(TNode n1, TNode n2) {
       return n1 == n2.getOperator();
     }
   }
+
+  Debug("gk::proof") << "+ match: step 3" << std::endl;
   if(n2.getType().isFunction() && n1.hasOperator()) {
     if(ProofManager::currentPM()->hasOp(n1.getOperator())) {
       return n2 == ProofManager::currentPM()->lookupOp(n1.getOperator());
@@ -57,33 +62,60 @@ inline static bool match(TNode n1, TNode n2) {
       return n2 == n1.getOperator();
     }
   }
+
+  Debug("gk::proof") << "+ match: step 4" << std::endl;
   if(n1.hasOperator() && n2.hasOperator() && n1.getOperator() != n2.getOperator()) {
-    return false;
+    Debug("gk::proof") << "+ match: n1.getOperator() = " << n1.getOperator() << std::endl;
+    Debug("gk::proof") << "+ match: n2.getOperator() = " << n2.getOperator() << std::endl;
+
+    if (!((n1.getKind() == kind::SELECT && n2.getKind() == kind::PARTIAL_SELECT_0) ||
+          (n1.getKind() == kind::SELECT && n2.getKind() == kind::PARTIAL_SELECT_1) ||
+          (n1.getKind() == kind::PARTIAL_SELECT_1 && n2.getKind() == kind::SELECT) ||
+          (n1.getKind() == kind::PARTIAL_SELECT_1 && n2.getKind() == kind::PARTIAL_SELECT_0) ||
+          (n1.getKind() == kind::PARTIAL_SELECT_0 && n2.getKind() == kind::SELECT) ||
+          (n1.getKind() == kind::PARTIAL_SELECT_0 && n2.getKind() == kind::PARTIAL_SELECT_1)
+          )) {
+      return false;
+    }
   }
+
+  Debug("gk::proof") << "+ match: step 5" << std::endl;
   for(size_t i = 0; i < n1.getNumChildren() && i < n2.getNumChildren(); ++i) {
     if(n1[i] != n2[i]) {
       return false;
     }
   }
+
+  Debug("gk::proof") << "+ match: step 6" << std::endl;
   return true;
 }
 
-
-void ProofUF::toStream(std::ostream& out) {
-  Trace("theory-proof-debug") << "; Print UF proof..." << std::endl;
+void ProofArray::toStream(std::ostream& out) {
+  Trace("gk::proof") << "; Print Array proof..." << std::endl;
   //AJR : carry this further?
   LetMap map;
-  toStreamLFSC(out, ProofManager::getUfProof(), d_proof, map);
+  toStreamLFSC(out, ProofManager::getArrayProof(), d_proof, map);
+  Debug("gk::proof") << "; Print Array proof done!" << std::endl;
 }
 
-void ProofUF::toStreamLFSC(std::ostream& out, TheoryProof * tp, theory::eq::EqProof * pf, const LetMap& map) {
-  Debug("lfsc-uf") << "Printing uf proof in LFSC : " << std::endl;
-  pf->debug_print("lfsc-uf");
-  Debug("lfsc-uf") << std::endl;
+void ProofArray::toStreamLFSC(std::ostream& out, TheoryProof* tp, theory::eq::EqProof* pf, const LetMap& map) {
+  Debug("gk::proof") << "Printing array proof in LFSC : " << std::endl;
+  pf->debug_print("gk::proof");
+  Debug("gk::proof") << std::endl;
   toStreamRecLFSC( out, tp, pf, 0, map );
+  Debug("gk::proof") << "Printing array proof in LFSC DONE" << std::endl;
 }
 
-Node ProofUF::toStreamRecLFSC(std::ostream& out, TheoryProof * tp, theory::eq::EqProof * pf, unsigned tb, const LetMap& map) {
+void ProofArray::registerSkolem(Node equality, Node skolem) {
+  d_nodeToSkolem[equality] = skolem;
+}
+
+Node ProofArray::toStreamRecLFSC(std::ostream& out,
+                                 TheoryProof* tp,
+                                 theory::eq::EqProof* pf,
+                                 unsigned tb,
+                                 const LetMap& map) {
+
   Debug("gk::proof") << std::endl << std::endl << "toStreamRecLFSC called. tb = " << tb << " . proof:" << std::endl;
   pf->debug_print("gk::proof");
   Debug("gk::proof") << std::endl;
@@ -194,7 +226,7 @@ Node ProofUF::toStreamRecLFSC(std::ostream& out, TheoryProof * tp, theory::eq::E
     Assert(neg >= 0);
 
     Node n1;
-    std::stringstream ss;
+    std::stringstream ss, ss2;
     //Assert(subTrans.d_children.size() == pf->d_children.size() - 1);
     Debug("mgdx") << "\nsubtrans has " << subTrans.d_children.size() << " children\n";
     if(pf->d_children.size() > 2) {
@@ -206,27 +238,51 @@ Node ProofUF::toStreamRecLFSC(std::ostream& out, TheoryProof * tp, theory::eq::E
 
     Node n2 = pf->d_children[neg]->d_node;
     Assert(n2.getKind() == kind::NOT);
-    out << "(clausify_false (contra _ ";
     Debug("mgdx") << "\nhave proven: " << n1 << std::endl;
-    Debug("mgdx") << "n2 is " << n2[0] << std::endl;
+    Debug("mgdx") << "n2 is " << n2 << std::endl;
+    Debug("mgdx") << "n2->d_id is " << pf->d_children[neg]->d_id << std::endl;
+    Debug("mgdx") << "n2[0] is " << n2[0] << std::endl;
 
     if (n2[0].getNumChildren() > 0) { Debug("mgdx") << "\nn2[0]: " << n2[0][0] << std::endl; }
     if (n1.getNumChildren() > 1) { Debug("mgdx") << "n1[1]: " << n1[1] << std::endl; }
 
-    if(n2[0].getKind() == kind::APPLY_UF) {
-      out << "(trans _ _ _ _ ";
-      out << "(symm _ _ _ ";
+    if (pf->d_children[neg]->d_id == eq::MERGED_ARRAYS_EXT) {
+      // The negative node was created by an EXT rule; e.g. it is a[k]!=b[k], due to a!=b.
+
+      //      	    (clausify_false (contra _ .gl2 (or_elim_1 _ _ .gl1 FIXME))))))) (\ .glemc6
+
+      out << "(clausify_false (contra _ ";
       out << ss.str();
-      out << ") (pred_eq_f _ " << ProofManager::getLitName(n2[0]) << ")) t_t_neq_f))" << std::endl;
+
+      toStreamRecLFSC(ss2, tp, pf->d_children[neg], 1, map);
+
+      out << " ";
+      out << ss2.str();
+      out << "))";
+
     } else {
-      Assert((n1[0] == n2[0][0] && n1[1] == n2[0][1]) || (n1[1] == n2[0][0] && n1[0] == n2[0][1]));
-      if(n1[1] == n2[0][0]) {
-        out << "(symm _ _ _ " << ss.str() << ")";
-      } else {
+      // The negative node is, e.g., a pure equality
+      out << "(clausify_false (contra _ ";
+
+      if(n2[0].getKind() == kind::APPLY_UF) {
+        out << "(trans _ _ _ _ ";
+        out << "(symm _ _ _ ";
         out << ss.str();
+        out << ") (pred_eq_f _ " << ProofManager::getLitName(n2[0]) << ")) t_t_neq_f))" << std::endl;
+      } else {
+        Assert((n1[0] == n2[0][0] && n1[1] == n2[0][1]) || (n1[1] == n2[0][0] && n1[0] == n2[0][1]));
+        if(n1[1] == n2[0][0]) {
+          out << "(symm _ _ _ " << ss.str() << ")";
+        } else {
+          out << ss.str();
+        }
+        Debug("gk::proof") << "ArrayProof::toStream: getLitName( " << n2[0] << " ) = " <<
+          ProofManager::getLitName(n2[0]) << std::endl;
+
+        out << " " << ProofManager::getLitName(n2[0]) << "))" << std::endl;
       }
-      out << " " << ProofManager::getLitName(n2[0]) << "))" << std::endl;
     }
+
     return Node();
   }
 
@@ -237,13 +293,22 @@ Node ProofUF::toStreamRecLFSC(std::ostream& out, TheoryProof * tp, theory::eq::E
     std::stack<const theory::eq::EqProof*> stk;
     for(const theory::eq::EqProof* pf2 = pf; pf2->d_id == eq::MERGED_THROUGH_CONGRUENCE; pf2 = pf2->d_children[0]) {
       Assert(!pf2->d_node.isNull());
-      Assert(pf2->d_node.getKind() == kind::PARTIAL_APPLY_UF || pf2->d_node.getKind() == kind::BUILTIN || pf2->d_node.getKind() == kind::APPLY_UF || pf2->d_node.getKind() == kind::SELECT || pf2->d_node.getKind() == kind::STORE);
+      Assert(pf2->d_node.getKind() == kind::PARTIAL_APPLY_UF ||
+             pf2->d_node.getKind() == kind::BUILTIN ||
+             pf2->d_node.getKind() == kind::APPLY_UF ||
+             pf2->d_node.getKind() == kind::SELECT ||
+             pf2->d_node.getKind() == kind::PARTIAL_SELECT_0 ||
+             pf2->d_node.getKind() == kind::PARTIAL_SELECT_1 ||
+             pf2->d_node.getKind() == kind::STORE);
+
       Assert(pf2->d_children.size() == 2);
       out << "(cong _ _ _ _ _ _ ";
       stk.push(pf2);
     }
     Assert(stk.top()->d_children[0]->d_id != eq::MERGED_THROUGH_CONGRUENCE);
-    NodeBuilder<> b1(kind::PARTIAL_APPLY_UF), b2(kind::PARTIAL_APPLY_UF);
+    //    NodeBuilder<> b1(kind::PARTIAL_APPLY_UF), b2(kind::PARTIAL_APPLY_UF);
+    NodeBuilder<> b1, b2;
+
     const theory::eq::EqProof* pf2 = stk.top();
     stk.pop();
     Assert(pf2->d_id == eq::MERGED_THROUGH_CONGRUENCE);
@@ -256,16 +321,13 @@ Node ProofUF::toStreamRecLFSC(std::ostream& out, TheoryProof * tp, theory::eq::E
     Debug("mgd") << "looking at " << pf2->d_node << "\n";
     Debug("mgd") << "           " << n1 << "\n";
     Debug("mgd") << "           " << n2 << "\n";
+
     int side = 0;
     if(match(pf2->d_node, n1[0])) {
-      //if(tb == 1) {
       Debug("mgd") << "SIDE IS 0\n";
-      //}
       side = 0;
     } else {
-      //if(tb == 1) {
       Debug("mgd") << "SIDE IS 1\n";
-      //}
       if(!match(pf2->d_node, n1[1])) {
       Debug("mgd") << "IN BAD CASE, our first subproof is\n";
       pf2->d_children[0]->debug_print("mgd");
@@ -273,23 +335,49 @@ Node ProofUF::toStreamRecLFSC(std::ostream& out, TheoryProof * tp, theory::eq::E
       Assert(match(pf2->d_node, n1[1]));
       side = 1;
     }
-    if(n1[side].getKind() == kind::APPLY_UF || n1[side].getKind() == kind::PARTIAL_APPLY_UF || n1[side].getKind() == kind::SELECT || n1[side].getKind() == kind::STORE) {
+
+    if(n1[side].getKind() == kind::APPLY_UF ||
+       n1[side].getKind() == kind::PARTIAL_APPLY_UF ||
+       n1[side].getKind() == kind::SELECT ||
+       n1[side].getKind() == kind::PARTIAL_SELECT_1 ||
+       n1[side].getKind() == kind::STORE) {
       if(n1[side].getKind() == kind::APPLY_UF || n1[side].getKind() == kind::PARTIAL_APPLY_UF) {
+        b1 << kind::PARTIAL_APPLY_UF;
         b1 << n1[side].getOperator();
+      } else if (n1[side].getKind() == kind::SELECT || n1[side].getKind() == kind::PARTIAL_SELECT_1) {
+        // b1 << n1[side].getKind();
+        b1 << kind::SELECT;
       } else {
+        b1 << kind::PARTIAL_APPLY_UF;
         b1 << ProofManager::currentPM()->mkOp(n1[side].getOperator());
       }
       b1.append(n1[side].begin(), n1[side].end());
+    }
+    else if (n1[side].getKind() == kind::PARTIAL_SELECT_0) {
+      b1 << kind::PARTIAL_SELECT_1;
     } else {
       b1 << n1[side];
     }
-    if(n1[1-side].getKind() == kind::PARTIAL_APPLY_UF || n1[1-side].getKind() == kind::APPLY_UF || n1[side].getKind() == kind::SELECT || n1[side].getKind() == kind::STORE) {
-      if(n1[1-side].getKind() == kind::PARTIAL_APPLY_UF || n1[1-side].getKind() == kind::APPLY_UF) {
+
+    if(n1[1-side].getKind() == kind::PARTIAL_APPLY_UF ||
+       n1[1-side].getKind() == kind::APPLY_UF ||
+       n1[1-side].getKind() == kind::SELECT ||
+       n1[1-side].getKind() == kind::PARTIAL_SELECT_1 ||
+       n1[1-side].getKind() == kind::STORE) {
+      if(n1[1-side].getKind() == kind::APPLY_UF ||
+         n1[1-side].getKind() == kind::PARTIAL_APPLY_UF) {
+        b2 << kind::PARTIAL_APPLY_UF;
         b2 << n1[1-side].getOperator();
+      } else if (n1[1-side].getKind() == kind::SELECT || n1[1-side].getKind() == kind::PARTIAL_SELECT_1) {
+        // b2 << n1[1-side].getKind();
+        b2 << kind::SELECT;
       } else {
+        b2 << kind::PARTIAL_APPLY_UF;
         b2 << ProofManager::currentPM()->mkOp(n1[1-side].getOperator());
       }
-      b2.append(n1[1-side].begin(), n1[1-side].end());
+        b2.append(n1[1-side].begin(), n1[1-side].end());
+    } else if (n1[1-side].getKind() == kind::PARTIAL_SELECT_0) {
+      b2 << kind::PARTIAL_SELECT_1;
     } else {
       b2 << n1[1-side];
     }
@@ -297,28 +385,46 @@ Node ProofUF::toStreamRecLFSC(std::ostream& out, TheoryProof * tp, theory::eq::E
     Debug("mgd") << "b1.getNumChildren() " << b1.getNumChildren() << std::endl;
     Debug("mgd") << "n1 " << n1 << std::endl;
     Debug("mgd") << "n2 " << n2 << std::endl;
+    Debug("mgd") << "b1 " << b1 << std::endl;
+    Debug("mgd") << "b2 " << b2 << std::endl;
     Debug("mgd") << "side " << side << std::endl;
-    if(pf2->d_node[b1.getNumChildren() - (pf2->d_node.getMetaKind() == kind::metakind::PARAMETERIZED ? 0 : 1)] == n2[side]) {
+    Debug("mgd") << "pf2->d_node's number of children: " << pf2->d_node.getNumChildren() << std::endl;
+    Debug("mgd") << "pf2->d_node's meta kind: " << pf2->d_node.getMetaKind() << std::endl;
+    Debug("mgd") << "Is this meta kind considered parameterized? " << (pf2->d_node.getMetaKind() == kind::metakind::PARAMETERIZED) << std::endl;
+
+    if(pf2->d_node[b1.getNumChildren() +
+                   (n1[side].getKind() == kind::PARTIAL_SELECT_0 ? 1 : 0) +
+                   (n1[side].getKind() == kind::PARTIAL_SELECT_1 ? 1 : 0) -
+                   (pf2->d_node.getMetaKind() == kind::metakind::PARAMETERIZED ? 0 : 1)] == n2[side]) {
       b1 << n2[side];
       b2 << n2[1-side];
       out << ss.str();
     } else {
-      Assert(pf2->d_node[b1.getNumChildren() - (pf2->d_node.getMetaKind() == kind::metakind::PARAMETERIZED ? 0 : 1)] == n2[1-side]);
+      Assert(pf2->d_node[b1.getNumChildren() +
+                         (n1[side].getKind() == kind::PARTIAL_SELECT_0 ? 1 : 0) +
+                         (n1[side].getKind() == kind::PARTIAL_SELECT_1 ? 1 : 0) -
+                         (pf2->d_node.getMetaKind() == kind::metakind::PARAMETERIZED ? 0 : 1)] == n2[1-side]);
       b1 << n2[1-side];
       b2 << n2[side];
       out << "(symm _ _ _ " << ss.str() << ")";
     }
+
+    Debug("mgd") << "After first insertion:" << std::endl;
+    Debug("mgd") << "b1 " << b1 << std::endl;
+    Debug("mgd") << "b2 " << b2 << std::endl;
+
     out << ")";
     while(!stk.empty()) {
-      if(tb == 1) {
+
       Debug("mgd") << "\nMORE TO DO\n";
-      }
+
       pf2 = stk.top();
       stk.pop();
       Assert(pf2->d_id == eq::MERGED_THROUGH_CONGRUENCE);
       out << " ";
       ss.str("");
       n2 = toStreamRecLFSC(ss, tp, pf2->d_children[1], tb + 1, map);
+
       Debug("mgd") << "\nok, in cong[" << stk.size() << "]" << "\n";
       Debug("mgd") << "looking at " << pf2->d_node << "\n";
       Debug("mgd") << "           " << n1 << "\n";
@@ -339,11 +445,36 @@ Node ProofUF::toStreamRecLFSC(std::ostream& out, TheoryProof * tp, theory::eq::E
     }
     n1 = b1;
     n2 = b2;
-    Debug("mgd") << "at end assert, got " << pf2->d_node << "  and  " << n1 << std::endl;
+
+    Debug("mgd") << "at end assert!" << std::endl
+                 << "pf2->d_node = " << pf2->d_node << std::endl
+                 << "n1 (assigned from b1) = " << n1 << std::endl
+                 << "n2 (assigned from b2) = " << n2 << std::endl;
+
     if(pf2->d_node.getKind() == kind::PARTIAL_APPLY_UF) {
       Assert(n1 == pf2->d_node);
     }
-    if(n1.getOperator().getType().getNumChildren() == n1.getNumChildren() + 1) {
+
+    Debug("mgd") << "n1.getOperator().getType().getNumChildren() = "
+                 << n1.getOperator().getType().getNumChildren() << std::endl;
+    Debug("mgd") << "n1.getNumChildren() + 1 = "
+                 << n1.getNumChildren() + 1 << std::endl;
+
+    Assert(!((n1.getKind() == kind::PARTIAL_SELECT_0 && n1.getNumChildren() == 2)));
+    if (n1.getKind() == kind::PARTIAL_SELECT_1 && n1.getNumChildren() == 2) {
+      Debug("mgd") << "Finished a SELECT. Updating.." << std::endl;
+      b1.clear(kind::SELECT);
+      b1.append(n1.begin(), n1.end());
+      n1 = b1;
+      Debug("mgd") << "New n1: " << n1 << std::endl;
+    // } else if (n1.getKind() == kind::PARTIAL_SELECT_0 && n1.getNumChildren() == 1) {
+    //   Debug("mgd") << "Finished a PARTIAL_SELECT_1. Updating.." << std::endl;
+    //   b1.clear(kind::PARTIAL_SELECT_1);
+    //   b1.append(n1.begin(), n1.end());
+    //   n1 = b1;
+    //   Debug("mgd") << "New n1: " << n1 << std::endl;
+    // } else
+    } else if(n1.getOperator().getType().getNumChildren() == n1.getNumChildren() + 1) {
       if(ProofManager::currentPM()->hasOp(n1.getOperator())) {
         b1.clear(ProofManager::currentPM()->lookupOp(n2.getOperator()).getConst<Kind>());
       } else {
@@ -357,7 +488,27 @@ Node ProofUF::toStreamRecLFSC(std::ostream& out, TheoryProof * tp, theory::eq::E
         Assert(n1 == pf2->d_node);
       }
     }
-    if(n2.getOperator().getType().getNumChildren() == n2.getNumChildren() + 1) {
+
+    Debug("mgd") << "n2.getOperator().getType().getNumChildren() = "
+                 << n2.getOperator().getType().getNumChildren() << std::endl;
+    Debug("mgd") << "n2.getNumChildren() + 1 = "
+                 << n2.getNumChildren() + 1 << std::endl;
+
+    Assert(!((n2.getKind() == kind::PARTIAL_SELECT_0 && n2.getNumChildren() == 2)));
+    if (n2.getKind() == kind::PARTIAL_SELECT_1 && n2.getNumChildren() == 2) {
+      Debug("mgd") << "Finished a SELECT. Updating.." << std::endl;
+      b2.clear(kind::SELECT);
+      b2.append(n2.begin(), n2.end());
+      n2 = b2;
+      Debug("mgd") << "New n2: " << n2 << std::endl;
+    // } else if (n2.getKind() == kind::PARTIAL_SELECT_0 && n2.getNumChildren() == 1) {
+    //   Debug("mgd") << "Finished a PARTIAL_SELECT_1. Updating.." << std::endl;
+    //   b2.clear(kind::PARTIAL_SELECT_1);
+    //   b2.append(n2.begin(), n2.end());
+    //   n2 = b2;
+    //   Debug("mgd") << "New n2: " << n2 << std::endl;
+    // } else
+    } else if(n2.getOperator().getType().getNumChildren() == n2.getNumChildren() + 1) {
       if(ProofManager::currentPM()->hasOp(n2.getOperator())) {
         b2.clear(ProofManager::currentPM()->lookupOp(n2.getOperator()).getConst<Kind>());
       } else {
@@ -368,9 +519,8 @@ Node ProofUF::toStreamRecLFSC(std::ostream& out, TheoryProof * tp, theory::eq::E
       n2 = b2;
     }
     Node n = (side == 0 ? eqNode(n1, n2) : eqNode(n2, n1));
-    if(tb == 1) {
+
     Debug("mgdx") << "\ncong proved: " << n << "\n";
-    }
     return n;
   }
 
@@ -385,6 +535,8 @@ Node ProofUF::toStreamRecLFSC(std::ostream& out, TheoryProof * tp, theory::eq::E
   case eq::MERGED_THROUGH_EQUALITY:
     Assert(!pf->d_node.isNull());
     Assert(pf->d_children.empty());
+    Debug("gk::proof") << "ArrayProof::toStream: getLitName( " << pf->d_node.negate() << " ) = " <<
+      ProofManager::getLitName(pf->d_node.negate()) << std::endl;
     out << ProofManager::getLitName(pf->d_node.negate());
     return pf->d_node;
 
@@ -617,9 +769,6 @@ Node ProofUF::toStreamRecLFSC(std::ostream& out, TheoryProof * tp, theory::eq::E
   }
 
   case eq::MERGED_ARRAYS_ROW: {
-    Debug("gk::proof") << "eq::MERGED_ARRAYS_ROW encountered in UF_PROOF" << std::endl;
-    Unreachable();
-
     Debug("mgd") << "row lemma: " << pf->d_node << std::endl;
     Assert(pf->d_node.getKind() == kind::EQUAL);
     TNode t1, t2, t3, t4;
@@ -661,9 +810,6 @@ Node ProofUF::toStreamRecLFSC(std::ostream& out, TheoryProof * tp, theory::eq::E
   }
 
   case eq::MERGED_ARRAYS_ROW1: {
-    Debug("gk::proof") << "eq::MERGED_ARRAYS_ROW1 encountered in UF_PROOF" << std::endl;
-    Unreachable();
-
     Debug("mgd") << "row1 lemma: " << pf->d_node << std::endl;
     Assert(pf->d_node.getKind() == kind::EQUAL);
     TNode t1, t2, t3;
@@ -698,6 +844,35 @@ Node ProofUF::toStreamRecLFSC(std::ostream& out, TheoryProof * tp, theory::eq::E
     return ret;
   }
 
+  case eq::MERGED_ARRAYS_EXT: {
+    theory::eq::EqProof *child_proof;
+
+    Assert(pf->d_node.getKind() == kind::NOT);
+    Assert(pf->d_node[0].getKind() == kind::EQUAL);
+    Assert(pf->d_children.size() == 1);
+
+    child_proof = pf->d_children[0];
+    Assert(child_proof->d_node.getKind() == kind::NOT);
+    Assert(child_proof->d_node[0].getKind() == kind::EQUAL);
+
+    Debug("mgd") << "EXT lemma: " << pf->d_node << std::endl;
+
+    TNode t1, t2, t3;
+    t1 = child_proof->d_node[0][0];
+    t2 = child_proof->d_node[0][1];
+    t3 = pf->d_node[0][0][1];
+
+    Debug("mgd") << "t1 " << t1 << "\nt2 " << t2 << "\nt3 " << t3 << "\n";
+
+    out << "(or_elim_1 _ _ ";
+    out << ProofManager::getLitName(child_proof->d_node[0]);
+    out << " ";
+    out << ProofManager::getArrayProof()->skolemToLiteral(t3.toExpr());
+    out << ")";
+
+    return pf->d_node;
+  }
+
   default:
     Assert(!pf->d_node.isNull());
     Assert(pf->d_children.empty());
@@ -707,11 +882,14 @@ Node ProofUF::toStreamRecLFSC(std::ostream& out, TheoryProof * tp, theory::eq::E
   }
 }
 
-UFProof::UFProof(theory::uf::TheoryUF* uf, TheoryProofEngine* pe)
-  : TheoryProof(uf, pe)
+
+
+
+ArrayProof::ArrayProof(theory::arrays::TheoryArrays* arrays, TheoryProofEngine* pe)
+  : TheoryProof(arrays, pe)
 {}
 
-void UFProof::registerTerm(Expr term) {
+void ArrayProof::registerTerm(Expr term) {
   // already registered
   if (d_declarations.find(term) != d_declarations.end())
     return;
@@ -738,87 +916,192 @@ void UFProof::registerTerm(Expr term) {
   }
 }
 
-void LFSCUFProof::printTerm(Expr term, std::ostream& os, const LetMap& map) {
-  Assert (Theory::theoryOf(term) == THEORY_UF);
+std::string ArrayProof::skolemToLiteral(Expr skolem) {
+  Assert(d_skolemToLiteral.find(skolem) != d_skolemToLiteral.end());
+  return d_skolemToLiteral[skolem];
+}
 
-  if (term.getKind() == kind::VARIABLE ||
-      term.getKind() == kind::SKOLEM) {
+void LFSCArrayProof::printTerm(Expr term, std::ostream& os, const LetMap& map) {
+  Debug("gk::proof") << "LFSCArrayProof::printTerm: term = " << term << std::endl;
+
+  Assert (Theory::theoryOf(term) == THEORY_ARRAY);
+
+  if (term.getKind() == kind::VARIABLE || term.getKind() == kind::SKOLEM ) {
     os << term;
     return;
   }
 
-  Assert (term.getKind() == kind::APPLY_UF);
+  Assert ((term.getKind() == kind::SELECT) || (term.getKind() == kind::PARTIAL_SELECT_0) || (term.getKind() == kind::PARTIAL_SELECT_1) || (term.getKind() == kind::STORE));
 
-  if(term.getType().isBoolean()) {
-    os << "(p_app ";
-  }
-  Expr func = term.getOperator();
-  for (unsigned i = 0; i < term.getNumChildren(); ++i) {
-    os << "(apply _ _ ";
-  }
-  os << func << " ";
-  for (unsigned i = 0; i < term.getNumChildren(); ++i) {
-    printTerm(term[i], os, map);
+  switch (term.getKind()) {
+  case kind::SELECT:
+    Assert(term.getNumChildren() == 2);
+    os << "(apply _ _ (apply _ _ (read ";
+    printSort(ArrayType(term[0].getType()).getIndexType(), os);
+    os << " ";
+    printSort(ArrayType(term[0].getType()).getConstituentType(), os);
+    os << ") ";
+    printTerm(term[0], os, map);
+    os << ") ";
+    printTerm(term[1], os, map);
     os << ")";
-  }
-  if(term.getType().isBoolean()) {
+    return;
+
+  case kind::PARTIAL_SELECT_0:
+    Assert(term.getNumChildren() == 1);
+    os << "(read ";
+    printSort(ArrayType(term[0].getType()).getIndexType(), os);
+    os << " ";
+    printSort(ArrayType(term[0].getType()).getConstituentType(), os);
+    os << ") ";
+    return;
+
+  case kind::PARTIAL_SELECT_1:
+    Debug("gk::proof") << "This branch has not beed tested yet." << std::endl;
+    Unreachable();
+
+    Assert(term.getNumChildren() == 1);
+    os << "(apply _ _ (read ";
+    printSort(ArrayType(term[0].getType()).getIndexType(), os);
+    os << " ";
+    printSort(ArrayType(term[0].getType()).getConstituentType(), os);
+    os << ") ";
+    printTerm(term[0], os, map);
+    os << ") ";
+    return;
+
+  case kind::STORE:
+    os << "(apply _ _ (apply _ _ (apply _ _ (write ";
+    printSort(ArrayType(term[0].getType()).getIndexType(), os);
+    os << " ";
+    printSort(ArrayType(term[0].getType()).getConstituentType(), os);
+    os << ") ";
+    printTerm(term[0], os, map);
+    os << ") ";
+    printTerm(term[1], os, map);
+    os << ") ";
+    printTerm(term[2], os, map);
     os << ")";
+    return;
+
+  default:
+    Unreachable();
+    return;
   }
 }
 
-void LFSCUFProof::printSort(Type type, std::ostream& os) {
-  Assert (type.isSort());
+void LFSCArrayProof::printSort(Type type, std::ostream& os) {
+  Debug("gk::proof") << "LFSCArrayProof::printSort: type is: " << type << std::endl;
+  Assert (type.isArray() || type.isSort());
   os << type <<" ";
 }
 
-void LFSCUFProof::printTheoryLemmaProof(std::vector<Expr>& lemma, std::ostream& os, std::ostream& paren) {
-  os << " ;; UF Theory Lemma \n;;";
+void LFSCArrayProof::printTheoryLemmaProof(std::vector<Expr>& lemma, std::ostream& os, std::ostream& paren) {
+  os << " ;; Array Theory Lemma \n;;";
   for (unsigned i = 0; i < lemma.size(); ++i) {
     os << lemma[i] <<" ";
   }
   os <<"\n";
   //os << " (clausify_false trust)";
-  UFProof::printTheoryLemmaProof( lemma, os, paren );
+  ArrayProof::printTheoryLemmaProof(lemma, os, paren);
 }
 
-void LFSCUFProof::printDeclarations(std::ostream& os, std::ostream& paren) {
+void LFSCArrayProof::printDeclarations(std::ostream& os, std::ostream& paren) {
   // declaring the sorts
+  Debug("gk::proof") << "Declaring sorts..." << std::endl;
+
+  //
+  std::hash_map<Node, Node, NodeHashFunction>::const_iterator it;
+  for (it = ProofSkolemization::begin(); it != ProofSkolemization::end(); ++it) {
+    Debug("array-pf") << "In print declarations, found this skolem: " << it->first << " --> " << it->second << std::endl;
+    // proof_array->registerSkolem(it->first, it->second);
+  }
+  //
+
   for (TypeSet::const_iterator it = d_sorts.begin(); it != d_sorts.end(); ++it) {
+    Debug("gk::proof") << "LFSCArrayProof::printDeclarations: sort is: " << *it << std::endl;
     os << "(% " << *it << " sort\n";
     paren << ")";
   }
+
+  Debug("gk::proof") << "Declaring sorts done! Declaring terms..." << std::endl;
 
   // declaring the terms
   for (ExprSet::const_iterator it = d_declarations.begin(); it != d_declarations.end(); ++it) {
     Expr term = *it;
 
-    os << "(% " << ProofManager::sanitize(term) << " ";
-    os << "(term ";
+    Debug("gk::proof") << "LFSCArrayProof::printDeclarations: term is: " << *it << std::endl;
 
-    Type type = term.getType();
-    if (type.isFunction()) {
-      std::ostringstream fparen;
-      FunctionType ftype = (FunctionType)type;
-      std::vector<Type> args = ftype.getArgTypes();
-      args.push_back(ftype.getRangeType());
-      os << "(arrow";
-      for (unsigned i = 0; i < args.size(); i++) {
-        Type arg_type = args[i];
-        os << " " << arg_type;
-        if (i < args.size() - 2) {
-          os << " (arrow";
-          fparen << ")";
-        }
-      }
-      os << fparen.str() << "))\n";
+    if (ProofSkolemization::isSkolem(*it)) {
+      Debug("gk::proof") << "This term is a skoelm!" << std::endl;
+      d_skolemDeclarations.insert(*it);
     } else {
-      Assert (term.isVariable());
-      os << type << ")\n";
+      os << "(% " << ProofManager::sanitize(term) << " ";
+      os << "(term ";
+
+      Type type = term.getType();
+      if (type.isFunction()) {
+        std::ostringstream fparen;
+        FunctionType ftype = (FunctionType)type;
+        std::vector<Type> args = ftype.getArgTypes();
+        args.push_back(ftype.getRangeType());
+        os << "(arrow";
+        for (unsigned i = 0; i < args.size(); i++) {
+          Type arg_type = args[i];
+          os << " " << arg_type;
+          if (i < args.size() - 2) {
+            os << " (arrow";
+            fparen << ")";
+          }
+        }
+        os << fparen.str() << "))\n";
+      } else {
+        Assert (term.isVariable());
+        os << type << ")\n";
+      }
+      paren << ")";
     }
-    paren << ")";
   }
+
+  Debug("gk::proof") << "Declaring terms done!" << std::endl;
 }
 
-void LFSCUFProof::printDeferredDeclarations(std::ostream& os, std::ostream& paren) {
-  // Nothing to do here at this point.
+void LFSCArrayProof::printDeferredDeclarations(std::ostream& os, std::ostream& paren) {
+  Debug("gk::proof") << "Array: print deferred declarations called" << std::endl;
+
+  for (ExprSet::const_iterator it = d_skolemDeclarations.begin(); it != d_skolemDeclarations.end(); ++it) {
+    Expr term = *it;
+    Node equality = ProofSkolemization::getEquality(*it);
+
+    Debug("gk::proof") << "LFSCArrayProof::printDeferredDeclarations: term is: " << *it << std::endl
+                       << "It is a witness for: " << equality << std::endl;
+
+    std::ostringstream newSkolemLiteral;
+    newSkolemLiteral << ".sl" << d_skolemToLiteral.size();
+    std::string skolemLiteral = newSkolemLiteral.str();
+
+    d_skolemToLiteral[*it] = skolemLiteral;
+
+    Debug("gk::proof") << "LFSCArrayProof::printDeferredDeclarations: new skolem literal is: " << skolemLiteral << std::endl;
+
+    Assert(equality.getKind() == kind::NOT);
+    Assert(equality[0].getKind() == kind::EQUAL);
+
+    Node array_one = equality[0][0];
+    Node array_two = equality[0][1];
+
+    LetMap map;
+
+    os << "(ext _ _ ";
+    printTerm(array_one.toExpr(), os, map);
+    os << " ";
+    printTerm(array_two.toExpr(), os, map);
+    os << " (\\ ";
+    printTerm(*it, os, map);
+    os << " (\\ ";
+    os << skolemLiteral.c_str();
+    os << "\n";
+
+    paren << ")))";
+  }
 }
