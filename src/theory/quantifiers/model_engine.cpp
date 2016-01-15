@@ -232,7 +232,7 @@ bool ModelEngine::considerQuantifiedFormula( Node q ) {
       for( unsigned i=0; i<q[0].getNumChildren(); i++ ){
         TypeNode tn = q[0][i].getType();
         //we are allowed to assume the type is empty
-        if( d_quantEngine->getModel()->d_rep_set.getNumRelevantGroundReps( tn )==0 ){
+        if( tn.isSort() && d_quantEngine->getModel()->d_rep_set.getNumRelevantGroundReps( tn )==0 ){
           Trace("model-engine-debug") << "Empty domain quantified formula : " << q << std::endl;
           return false;
         }

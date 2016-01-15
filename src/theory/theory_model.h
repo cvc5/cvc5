@@ -130,8 +130,10 @@ public:
 private:
   TypeSetMap d_typeSet;
   TypeToTypeEnumMap d_teMap;
+  TypeEnumeratorProperties * d_tep;
 
   public:
+  TypeSet() : d_tep(NULL) {}
   ~TypeSet() {
     iterator it;
     for (it = d_typeSet.begin(); it != d_typeSet.end(); ++it) {
@@ -146,7 +148,7 @@ private:
       }
     }
   }
-
+  void setTypeEnumeratorProperties( TypeEnumeratorProperties * tep ) { d_tep = tep; }
   void add(TypeNode t, TNode n)
   {
     iterator it = d_typeSet.find(t);
@@ -175,7 +177,7 @@ private:
     TypeEnumerator* te;
     TypeToTypeEnumMap::iterator it = d_teMap.find(t);
     if (it == d_teMap.end()) {
-      te = new TypeEnumerator(t);
+      te = new TypeEnumerator(t, d_tep);
       d_teMap[t] = te;
     }
     else {

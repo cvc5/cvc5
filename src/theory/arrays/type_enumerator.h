@@ -3,7 +3,7 @@
  ** \verbatim
  ** Original author: Morgan Deters
  ** Major contributors: Clark Barrett
- ** Minor contributors (to current version): none
+ ** Minor contributors (to current version): Andrew Reynolds
  ** This file is part of the CVC4 project.
  ** Copyright (c) 2009-2014  New York University and The University of Iowa
  ** See the file COPYING in the top-level source directory for licensing
@@ -29,6 +29,8 @@ namespace theory {
 namespace arrays {
 
 class ArrayEnumerator : public TypeEnumeratorBase<ArrayEnumerator> {
+  /** type properties */
+  TypeEnumeratorProperties * d_tep;
   TypeEnumerator d_index;
   TypeNode d_constituentType;
   NodeManager* d_nm;
@@ -39,9 +41,10 @@ class ArrayEnumerator : public TypeEnumeratorBase<ArrayEnumerator> {
 
 public:
 
-  ArrayEnumerator(TypeNode type) throw(AssertionException) :
+  ArrayEnumerator(TypeNode type, TypeEnumeratorProperties * tep = NULL) throw(AssertionException) :
     TypeEnumeratorBase<ArrayEnumerator>(type),
-    d_index(type.getArrayIndexType()),
+    d_tep(tep),
+    d_index(type.getArrayIndexType(), tep),
     d_constituentType(type.getArrayConstituentType()),
     d_nm(NodeManager::currentNM()),
     d_indexVec(),
@@ -50,8 +53,9 @@ public:
     d_arrayConst()
   {
     d_indexVec.push_back(*d_index);
-    d_constituentVec.push_back(new TypeEnumerator(d_constituentType));
+    d_constituentVec.push_back(new TypeEnumerator(d_constituentType, d_tep));
     d_arrayConst = d_nm->mkConst(ArrayStoreAll(type.toType(), (*(*d_constituentVec.back())).toExpr()));
+    Trace("array-type-enum") << "Array const : " << d_arrayConst << std::endl;
   }
 
   // An array enumerator could be large, and generally you don't want to
@@ -59,6 +63,7 @@ public:
   // by the TypeEnumerator framework.
   ArrayEnumerator(const ArrayEnumerator& ae) throw() :
     TypeEnumeratorBase<ArrayEnumerator>(ae.d_nm->mkArrayType(ae.d_index.getType(), ae.d_constituentType)),
+    d_tep(ae.d_tep),
     d_index(ae.d_index),
     d_constituentType(ae.d_constituentType),
     d_nm(ae.d_nm),
@@ -122,7 +127,7 @@ public:
         return *this;
       }
       d_indexVec.push_back(*d_index);
-      d_constituentVec.push_back(new TypeEnumerator(d_constituentType));
+      d_constituentVec.push_back(new TypeEnumerator(d_constituentType, d_tep));
       ++(*d_constituentVec.back());
       if (d_constituentVec.back()->isFinished()) {
         Trace("array-type-enum") << "operator++ finished!" << std::endl;
@@ -132,7 +137,7 @@ public:
     }
 
     while (d_constituentVec.size() < d_indexVec.size()) {
-      d_constituentVec.push_back(new TypeEnumerator(d_constituentType));
+      d_constituentVec.push_back(new TypeEnumerator(d_constituentType, d_tep));
     }
 
     Trace("array-type-enum") << "operator++ returning, **this = " << **this << std::endl;

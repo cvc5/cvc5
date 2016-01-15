@@ -35,10 +35,10 @@ Node DatatypesEnumerator::getTermEnum( TypeNode tn, unsigned i ){
        d_te_index[tn] = tei;
        if( tn.isDatatype() && d_has_debruijn ){
          //must indicate that this is a child enumerator (do not normalize constants for it)
-         DatatypesEnumerator * dte = new DatatypesEnumerator( tn, true );
+         DatatypesEnumerator * dte = new DatatypesEnumerator( tn, true, d_tep );
          d_children.push_back( TypeEnumerator( dte ) );
        }else{
-         d_children.push_back( TypeEnumerator( tn ) );
+         d_children.push_back( TypeEnumerator( tn, d_tep ) );
        }
        d_terms[tn].push_back( *d_children[tei] );
      }else{

@@ -587,6 +587,14 @@ void TheoryEngineModelBuilder::buildModel(Model* m, bool fullModel)
   // Process all terms in the equality engine, store representatives for each EC
   std::map< Node, Node > assertedReps, constantReps;
   TypeSet typeConstSet, typeRepSet, typeNoRepSet;
+  TypeEnumeratorProperties tep;
+  if( options::finiteModelFind() ){
+    tep.d_fixed_usort_card = true;
+    for( std::map< TypeNode, unsigned >::iterator it = eqc_usort_count.begin(); it != eqc_usort_count.end(); ++it ){
+      tep.d_fixed_card[it->first] = Integer(it->second);
+    }
+    typeConstSet.setTypeEnumeratorProperties( &tep );
+  }
   std::set< TypeNode > allTypes;
   eqcs_i = eq::EqClassesIterator(tm->d_equalityEngine);
   for ( ; !eqcs_i.isFinished(); ++eqcs_i) {
@@ -810,14 +818,20 @@ void TheoryEngineModelBuilder::buildModel(Model* m, bool fullModel)
             do{
               n = typeConstSet.nextTypeEnum(t, true);
               //--- AJR: this code checks whether n is a legal value
+              Assert( !n.isNull() );
               success = true;
+              Trace("exc-value-debug") << "Check if excluded : " << n << std::endl;
               if( isUSortFiniteRestricted ){
+#ifdef CVC4_ASSERTIONS
                 //must not involve uninterpreted constants beyond cardinality bound (which assumed to coincide with #eqc)
+                //this is just an assertion now, since TypeEnumeratorProperties should ensure that only legal values are enumerated wrt this constraint.
                 std::map< Node, bool > visited;
                 success = !isExcludedUSortValue( eqc_usort_count, n, visited );
                 if( !success ){
                   Trace("exc-value") << "Excluded value for " << t << " : " << n << " due to out of range uninterpreted constant." << std::endl;
                 }
+                Assert( success );
+#endif
               }
               if( success && isCorecursive ){
                 if (repSet != NULL && !repSet->empty()) {
