@@ -1088,16 +1088,6 @@ void TheoryArrays::check(Effort e) {
       case kind::NOT:
         Debug("gk::proof") << "Check: kind::NOT" << std::endl;
 
-        // if(fact[0].getKind() == kind::LEMMA_EXISTS) {
-        //   Debug("gk::proof") << "HANDLING LEMMA_EXISTS";
-          // Assert(rule == RULE_ARRAYS_EXT);
-          // Debug("mgd") << "here I am: " << node << endl;
-          // Node v = NodeManager::currentNM()->mkSkolem(node[1][0][0].toString(), node[1][0][0].getType(), "is a skolemized lemma variable");
-          // Node n = node[0].orNode(node[1][1].substitute(node[1][0][0], v));
-          // Debug("mgd") << "skolemized to: " << n << endl;
-          // additionalLemmas.push_back(n);
-        // }
-        // else
         if (fact[0].getKind() == kind::SELECT) {
           d_equalityEngine.assertPredicate(fact[0], false, fact);
           d_modelConstraints.push_back(fact);
@@ -1124,61 +1114,88 @@ void TheoryArrays::check(Effort e) {
 
             // Code BEFORE Morgan's changes:
             // ////////////////////////////////
-              if (!d_proofsEnabled) {
-                NodeManager* nm = NodeManager::currentNM();
-                TypeNode indexType = fact[0][0].getType()[0];
-                TNode k = getSkolem(fact,"array_ext_index", indexType, "an extensional lemma index variable from the theory of arrays", false);
+            if (!d_proofsEnabled) {
+              NodeManager* nm = NodeManager::currentNM();
+              TypeNode indexType = fact[0][0].getType()[0];
+              TNode k = getSkolem(fact,"array_ext_index", indexType, "an extensional lemma index variable from the theory of arrays", false);
 
-                ProofSkolemization::registerSkolem(fact, k);
+              // Added
+              ProofSkolemization::registerSkolem(fact, k);
+              ////
 
-                Node ak = nm->mkNode(kind::SELECT, fact[0][0], k);
-                Node bk = nm->mkNode(kind::SELECT, fact[0][1], k);
+              Node ak = nm->mkNode(kind::SELECT, fact[0][0], k);
+              Node bk = nm->mkNode(kind::SELECT, fact[0][1], k);
 
-                Node eq;
+              Node eq;
 
-                eq = d_valuation.ensureLiteral(ak.eqNode(bk));
-                Assert(eq.getKind() == kind::EQUAL);
+              // Update from Clark, for EXT lemma propagation
+              //
+              // eq = d_valuation.ensureLiteral(ak.eqNode(bk));
+              // Assert(eq.getKind() == kind::EQUAL);
+              eq = ak.eqNode(bk);
+              // END changes from Clark
 
-                Node lemma = fact[0].orNode(eq.notNode());
-                Trace("arrays-lem")<<"Arrays::addExtLemma " << lemma <<"\n";
-                d_out->lemma(lemma);
-                ++d_numExt;
-              } else {
-                Debug("gk::proof") << "In Array's Check (proof phase), handling fact = " << fact << std::endl;
+              Node lemma = fact[0].orNode(eq.notNode());
 
-                NodeManager* nm = NodeManager::currentNM();
-                TypeNode indexType = fact[0][0].getType()[0];
-                //                TNode k = getSkolem(fact,"array_ext_index", indexType, "an extensional lemma index variable from the theory of arrays", false);
-
-                //                ProofSkolemization::registerSkolem(fact, k);
-                TNode k = ProofSkolemization::getSkolem(fact);
-
-                Debug("gk::proof") << "Skolem = " << k << std::endl;
-
-                Node ak = nm->mkNode(kind::SELECT, fact[0][0], k);
-                Node bk = nm->mkNode(kind::SELECT, fact[0][1], k);
-
-                Debug("gk::proof") << "ak = " << ak << ", bk = " << bk << std::endl;
-                Node eq = ak.eqNode(bk);
-
-                // eq = d_valuation.ensureLiteral(ak.eqNode(bk));
-                //                Assert(eq.getKind() == kind::EQUAL);
-
-                Node lemma = eq.notNode();
-                Debug("gk::proof") << "lemma = " << lemma << std::endl;
-
-                Trace("arrays-lem")<<"Arrays::addExtLemma " << lemma <<"\n";
-                d_out->lemma(lemma);
-                ++d_numExt;
+              // Also added from Clark for EXT lemma propagation:
+              if (options::arraysPropagate() > 0 && d_equalityEngine.hasTerm(ak) && d_equalityEngine.hasTerm(bk)) {
+                // Propagate witness disequality - might produce a conflict
+                d_permRef.push_back(lemma);
+                d_equalityEngine.assertEquality(eq, false, fact, eq::MERGED_ARRAYS_EXT);
+                ++d_numProp;
               }
+              // END changes from Clark
+
+              Trace("arrays-lem")<<"Arrays::addExtLemma " << lemma <<"\n";
+              d_out->lemma(lemma);
+              ++d_numExt;
+            } else {
+              Debug("gk::proof") << "In Array's Check (proof phase), handling fact = " << fact << std::endl;
+
+              NodeManager* nm = NodeManager::currentNM();
+              TypeNode indexType = fact[0][0].getType()[0];
+              TNode k = ProofSkolemization::getSkolem(fact);
+
+              Debug("gk::proof") << "Skolem = " << k << std::endl;
+
+              Node ak = nm->mkNode(kind::SELECT, fact[0][0], k);
+              Node bk = nm->mkNode(kind::SELECT, fact[0][1], k);
+
+              Debug("gk::proof") << "ak = " << ak << ", bk = " << bk << std::endl;
+              Node eq = ak.eqNode(bk);
+
+              // eq = d_valuation.ensureLiteral(ak.eqNode(bk));
+              //                Assert(eq.getKind() == kind::EQUAL);
+
+              Node lemma = fact[0].orNode(eq.notNode());
+
+              // Also added from Clark for EXT lemma propagation:
+              if (options::arraysPropagate() > 0 && d_equalityEngine.hasTerm(ak) && d_equalityEngine.hasTerm(bk)) {
+                // Propagate witness disequality - might produce a conflict
+                d_permRef.push_back(lemma);
+                Debug("gk::proof") << "Asserting to the equality engine:" << std::endl
+                                   << "\teq = " << eq << std::endl
+                                   << "\treason = " << fact << std::endl;
+
+                d_equalityEngine.assertEquality(eq, false, fact, eq::MERGED_ARRAYS_EXT);
+                ++d_numProp;
+              }
+              // END changes from Clark
+
+              Debug("gk::proof") << "lemma = " << lemma << std::endl;
+
+              Trace("arrays-lem")<<"Arrays::addExtLemma " << lemma <<"\n";
+              d_out->lemma(lemma);
+              ++d_numExt;
+            }
           }
           else {
             d_modelConstraints.push_back(fact);
           }
         }
         break;
-      default:
-        Unreachable();
+    default:
+      Unreachable();
     }
   }
 
@@ -2797,8 +2814,6 @@ void TheoryArrays::conflict(TNode a, TNode b) {
     d_conflictNode = explain(a.eqNode(b), proof);
   }
   if (!d_inCheckModel) {
-    Debug("array-pf") << "Here" << std::endl;
-
     proof->debug_print("array-pf");
     ProofArray* proof_array = d_proofsEnabled ? new ProofArray( proof ) : NULL;
     d_out->conflict(d_conflictNode, proof_array);
