@@ -1421,34 +1421,24 @@ theory::LemmaStatus TheoryEngine::lemma(TNode node,
   std::vector<Node> additionalLemmas;
   IteSkolemMap iteSkolemMap;
 
-  // for now, this check is specific to extensional lemmas from arrays
-  if(node.getKind() == kind::OR && node.getNumChildren() == 2 && node[1].getKind() == kind::LEMMA_EXISTS) {
-    Assert(rule == RULE_ARRAYS_EXT);
-    Debug("mgd") << "here I am: " << node << endl;
-    Node v = NodeManager::currentNM()->mkSkolem(node[1][0][0].toString(), node[1][0][0].getType(), "is a skolemized lemma variable");
-    Node n = node[0].orNode(node[1][1].substitute(node[1][0][0], v));
-    Debug("mgd") << "skolemized to: " << n << endl;
-    additionalLemmas.push_back(n);
-  } else {
-    // Run theory preprocessing, maybe
-    Node ppNode = preprocess ? this->preprocess(node) : Node(node);
+  // Run theory preprocessing, maybe
+  Node ppNode = preprocess ? this->preprocess(node) : Node(node);
 
-    // Remove the ITEs
-    additionalLemmas.push_back(ppNode);
-    d_iteRemover.run(additionalLemmas, iteSkolemMap);
-    additionalLemmas[0] = theory::Rewriter::rewrite(additionalLemmas[0]);
+  // Remove the ITEs
+  additionalLemmas.push_back(ppNode);
+  d_iteRemover.run(additionalLemmas, iteSkolemMap);
+  additionalLemmas[0] = theory::Rewriter::rewrite(additionalLemmas[0]);
 
-    if(Debug.isOn("lemma-ites")) {
-      Debug("lemma-ites") << "removed ITEs from lemma: " << ppNode << endl;
-      Debug("lemma-ites") << " + now have the following "
-                          << additionalLemmas.size() << " lemma(s):" << endl;
-      for(std::vector<Node>::const_iterator i = additionalLemmas.begin();
-          i != additionalLemmas.end();
-          ++i) {
-        Debug("lemma-ites") << " + " << *i << endl;
-      }
-      Debug("lemma-ites") << endl;
+  if(Debug.isOn("lemma-ites")) {
+    Debug("lemma-ites") << "removed ITEs from lemma: " << ppNode << endl;
+    Debug("lemma-ites") << " + now have the following "
+                        << additionalLemmas.size() << " lemma(s):" << endl;
+    for(std::vector<Node>::const_iterator i = additionalLemmas.begin();
+        i != additionalLemmas.end();
+        ++i) {
+      Debug("lemma-ites") << " + " << *i << endl;
     }
+    Debug("lemma-ites") << endl;
   }
 
   // assert to prop engine
