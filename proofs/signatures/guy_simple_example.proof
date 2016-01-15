@@ -1,0 +1,26 @@
+unsat
+(check
+ ;; Declarations
+(% a (term Bool)
+(% b (term Bool)
+(% A0 (th_holds (iff (p_app a) (p_app b)))
+(% A1 (th_holds (not (iff (p_app a) (p_app b))))
+(% A2 (th_holds true)
+(: (holds cln)
+ ;; Preprocessing 
+(th_let_pf _ (trust_f (iff (p_app a) (p_app b))) (\ .PA207
+(th_let_pf _ (trust_f (not (iff (p_app a) (p_app b)))) (\ .PA209
+(decl_atom (p_app a) (\ .v2 (\ .a2
+(decl_atom (p_app b) (\ .v3 (\ .a3
+(satlem _ _ (asf _ _ _ .a3 (\ .l6 (ast _ _ _ .a2 (\ .l5 (clausify_false (contra _ (or_elim_1 _ _ (not_not_intro _ .l5) (iff_elim_1 _ _ .PA207)) .l6)))))) (\ .pb4
+(satlem _ _ (ast _ _ _ .a3 (\ .l7 (asf _ _ _ .a2 (\ .l4 (clausify_false (contra _ (or_elim_1 _ _ .l4 (iff_elim_2 _ _ .PA207)) (not_not_intro _ .l7))))))) (\ .pb5
+(satlem _ _ (ast _ _ _ .a3 (\ .l7 (ast _ _ _ .a2 (\ .l5 (clausify_false (contra _ (or_elim_1 _ _ (not_not_intro _ .l5) (iff_elim_1 _ _ (not_iff_elim _ _ .PA209))) (not_not_intro _ .l7))))))) (\ .pb6
+(satlem _ _ (asf _ _ _ .a3 (\ .l6 (asf _ _ _ .a2 (\ .l4 (clausify_false (contra _ (not_not_elim _ (or_elim_1 _ _ .l4 (iff_elim_2 _ _ (not_iff_elim _ _ .PA209)))) .l6)))))) (\ .pb7
+ ;; Theory Lemmas 
+;; BB atom mapping
+;; Bit-blasting definitional clauses 
+;; Bit-blasting learned clauses 
+(satlem_simplify _ _ _ (R _ _ .pb7 .pb5 .v3)(\.cl8
+(satlem_simplify _ _ _ (Q _ _ .pb4 .cl8 .v2)(\.cl9
+(satlem_simplify _ _ _ (Q _ _ (Q _ _ .pb6 .cl9 .v3).cl8 .v2)(\empty empty)))))))))))))))))))))))))))))))
+;;

@@ -1,0 +1,1080 @@
+EqualityEdge::EqualityEngine(): id_null = 4294967295
+EqualityEdge::EqualityEngine(): edge_null = 4294967295
+EqualityEdge::EqualityEngine(): trigger_null = 4294967295
+FirstOrderModelFmc::eq::addTermInternal(true)
+FirstOrderModelFmc::eq::newNode(true)
+FirstOrderModelFmc::eq::newNode(true) => 0
+FirstOrderModelFmc::eq::propagate()
+FirstOrderModelFmc::eq::addTermInternal(true) => 0
+FirstOrderModelFmc::eq::addTermInternal(false)
+FirstOrderModelFmc::eq::newNode(false)
+FirstOrderModelFmc::eq::newNode(false) => 1
+FirstOrderModelFmc::eq::propagate()
+FirstOrderModelFmc::eq::addTermInternal(false) => 1
+theory::uf::TheoryUF::eq::addTermInternal(b1)
+theory::uf::TheoryUF::eq::newNode(b1)
+theory::uf::TheoryUF::eq::newNode(b1) => 2
+theory::uf::TheoryUF::eq::propagate()
+theory::uf::TheoryUF::eq::addTermInternal(b1) => 2
+theory::uf::TheoryUF::eq::addTermInternal(a1)
+theory::uf::TheoryUF::eq::newNode(a1)
+theory::uf::TheoryUF::eq::newNode(a1) => 3
+theory::uf::TheoryUF::eq::propagate()
+theory::uf::TheoryUF::eq::addTermInternal(a1) => 3
+theory::uf::TheoryUF::eq::addTermInternal(a1)
+theory::uf::TheoryUF::eq::addTermInternal(a1): already there
+theory::uf::TheoryUF::eq::addTermInternal(b1)
+theory::uf::TheoryUF::eq::addTermInternal(b1): already there
+theory::uf::TheoryUF::eq::areEqual(a1,b1)
+theory::uf::TheoryUF::eq::areDisequal(a1,b1)
+theory::uf::TheoryUF::eq::addTermInternal((= a1 b1))
+theory::uf::TheoryUF::eq::addTermInternal(a1)
+theory::uf::TheoryUF::eq::addTermInternal(a1): already there
+theory::uf::TheoryUF::eq::addTermInternal(b1)
+theory::uf::TheoryUF::eq::addTermInternal(b1): already there
+theory::uf::TheoryUF::eq::newApplicationNode((= a1 b1), 3, 2)
+theory::uf::TheoryUF::eq::newNode((= a1 b1))
+theory::uf::TheoryUF::eq::newNode((= a1 b1)) => 4
+theory::uf::TheoryUF::eq::newApplicationNode((= a1 b1), 3, 2): no lookup, setting up
+theory::uf::TheoryUF::eq::newApplicationNode((= a1 b1), 3, 2): adding (= a1 b1) to the uselist of a1
+theory::uf::TheoryUF::eq::newApplicationNode((= a1 b1), 3, 2): adding (= a1 b1) to the uselist of b1
+theory::uf::TheoryUF::eq::newApplicationNode((= a1 b1), 3, 2) => 4
+theory::uf::TheoryUF::eq::propagate()
+theory::uf::TheoryUF::eq::addTermInternal((= a1 b1)) => 4
+theory::uf::TheoryUF::eq::addTrigger(a1, b1, (= a1 b1))
+theory::uf::TheoryUF::eq::addTrigger((= a1 b1)): 3 (3) = 2 (2)
+true 0(0):
+false 1(1):
+b1 2(2):
+a1 3(3):
+(= a1 b1) 4(4):
+theory::uf::TheoryUF::eq::addTrigger(a1,b1) => (0, 1)
+theory::uf::TheoryUF::eq::addTrigger((= a1 b1), false, (= a1 b1))
+theory::uf::TheoryUF::eq::addTrigger((= a1 b1)): 4 (4) = 1 (1)
+true 0(0):
+false 1(1):
+b1 2(2):
+a1 3(3):
+(= a1 b1) 4(4):
+theory::uf::TheoryUF::eq::addTrigger((= a1 b1),false) => (2, 3)
+theory::uf::TheoryUF::eq::addTermInternal(b2)
+theory::uf::TheoryUF::eq::newNode(b2)
+theory::uf::TheoryUF::eq::newNode(b2) => 5
+theory::uf::TheoryUF::eq::propagate()
+theory::uf::TheoryUF::eq::addTermInternal(b2) => 5
+theory::uf::TheoryUF::eq::addTermInternal(a2)
+theory::uf::TheoryUF::eq::newNode(a2)
+theory::uf::TheoryUF::eq::newNode(a2) => 6
+theory::uf::TheoryUF::eq::propagate()
+theory::uf::TheoryUF::eq::addTermInternal(a2) => 6
+theory::uf::TheoryUF::eq::addTermInternal(a2)
+theory::uf::TheoryUF::eq::addTermInternal(a2): already there
+theory::uf::TheoryUF::eq::addTermInternal(b2)
+theory::uf::TheoryUF::eq::addTermInternal(b2): already there
+theory::uf::TheoryUF::eq::areEqual(a2,b2)
+theory::uf::TheoryUF::eq::areDisequal(a2,b2)
+theory::uf::TheoryUF::eq::addTermInternal((= a2 b2))
+theory::uf::TheoryUF::eq::addTermInternal(a2)
+theory::uf::TheoryUF::eq::addTermInternal(a2): already there
+theory::uf::TheoryUF::eq::addTermInternal(b2)
+theory::uf::TheoryUF::eq::addTermInternal(b2): already there
+theory::uf::TheoryUF::eq::newApplicationNode((= a2 b2), 6, 5)
+theory::uf::TheoryUF::eq::newNode((= a2 b2))
+theory::uf::TheoryUF::eq::newNode((= a2 b2)) => 7
+theory::uf::TheoryUF::eq::newApplicationNode((= a2 b2), 6, 5): no lookup, setting up
+theory::uf::TheoryUF::eq::newApplicationNode((= a2 b2), 6, 5): adding (= a2 b2) to the uselist of a2
+theory::uf::TheoryUF::eq::newApplicationNode((= a2 b2), 6, 5): adding (= a2 b2) to the uselist of b2
+theory::uf::TheoryUF::eq::newApplicationNode((= a2 b2), 6, 5) => 7
+theory::uf::TheoryUF::eq::propagate()
+theory::uf::TheoryUF::eq::addTermInternal((= a2 b2)) => 7
+theory::uf::TheoryUF::eq::addTrigger(a2, b2, (= a2 b2))
+theory::uf::TheoryUF::eq::addTrigger((= a2 b2)): 6 (6) = 5 (5)
+true 0(0):
+false 1(1):
+b1 2(2):
+a1 3(3):
+(= a1 b1) 4(4):
+b2 5(5):
+a2 6(6):
+(= a2 b2) 7(7):
+theory::uf::TheoryUF::eq::addTrigger(a2,b2) => (4, 5)
+theory::uf::TheoryUF::eq::addTrigger((= a2 b2), false, (= a2 b2))
+theory::uf::TheoryUF::eq::addTrigger((= a2 b2)): 7 (7) = 1 (1)
+true 0(0):
+false 1(1):
+b1 2(2):
+a1 3(3):
+(= a1 b1) 4(4):
+b2 5(5):
+a2 6(6):
+(= a2 b2) 7(7):
+theory::uf::TheoryUF::eq::addTrigger((= a2 b2),false) => (6, 7)
+theory::uf::TheoryUF::eq::addTermInternal((f b1 b2))
+theory::uf::TheoryUF::eq::addTermInternal(f)
+theory::uf::TheoryUF::eq::newNode(f)
+theory::uf::TheoryUF::eq::newNode(f) => 8
+theory::uf::TheoryUF::eq::propagate()
+theory::uf::TheoryUF::eq::addTermInternal(f) => 8
+theory::uf::TheoryUF::eq::addTermInternal(b1)
+theory::uf::TheoryUF::eq::addTermInternal(b1): already there
+theory::uf::TheoryUF::eq::newApplicationNode((f b1 b2), 8, 2)
+theory::uf::TheoryUF::eq::newNode((f b1 b2))
+theory::uf::TheoryUF::eq::newNode((f b1 b2)) => 9
+theory::uf::TheoryUF::eq::newApplicationNode((f b1 b2), 8, 2): no lookup, setting up
+theory::uf::TheoryUF::eq::newApplicationNode((f b1 b2), 8, 2): adding (f b1 b2) to the uselist of f
+theory::uf::TheoryUF::eq::newApplicationNode((f b1 b2), 8, 2): adding (f b1 b2) to the uselist of b1
+theory::uf::TheoryUF::eq::newApplicationNode((f b1 b2), 8, 2) => 9
+theory::uf::TheoryUF::eq::addTermInternal(b2)
+theory::uf::TheoryUF::eq::addTermInternal(b2): already there
+theory::uf::TheoryUF::eq::newApplicationNode((f b1 b2), 9, 5)
+theory::uf::TheoryUF::eq::newNode((f b1 b2))
+theory::uf::TheoryUF::eq::newNode((f b1 b2)) => 10
+theory::uf::TheoryUF::eq::newApplicationNode((f b1 b2), 9, 5): no lookup, setting up
+theory::uf::TheoryUF::eq::newApplicationNode((f b1 b2), 9, 5): adding (f b1 b2) to the uselist of (f b1 b2)
+theory::uf::TheoryUF::eq::newApplicationNode((f b1 b2), 9, 5): adding (f b1 b2) to the uselist of b2
+theory::uf::TheoryUF::eq::newApplicationNode((f b1 b2), 9, 5) => 10
+theory::uf::TheoryUF::eq::propagate()
+theory::uf::TheoryUF::eq::addTermInternal((f b1 b2)) => 10
+theory::uf::TheoryUF::eq::addTermInternal((f a1 a2))
+theory::uf::TheoryUF::eq::addTermInternal(f)
+theory::uf::TheoryUF::eq::addTermInternal(f): already there
+theory::uf::TheoryUF::eq::addTermInternal(a1)
+theory::uf::TheoryUF::eq::addTermInternal(a1): already there
+theory::uf::TheoryUF::eq::newApplicationNode((f a1 a2), 8, 3)
+theory::uf::TheoryUF::eq::newNode((f a1 a2))
+theory::uf::TheoryUF::eq::newNode((f a1 a2)) => 11
+theory::uf::TheoryUF::eq::newApplicationNode((f a1 a2), 8, 3): no lookup, setting up
+theory::uf::TheoryUF::eq::newApplicationNode((f a1 a2), 8, 3): adding (f a1 a2) to the uselist of f
+theory::uf::TheoryUF::eq::newApplicationNode((f a1 a2), 8, 3): adding (f a1 a2) to the uselist of a1
+theory::uf::TheoryUF::eq::newApplicationNode((f a1 a2), 8, 3) => 11
+theory::uf::TheoryUF::eq::addTermInternal(a2)
+theory::uf::TheoryUF::eq::addTermInternal(a2): already there
+theory::uf::TheoryUF::eq::newApplicationNode((f a1 a2), 11, 6)
+theory::uf::TheoryUF::eq::newNode((f a1 a2))
+theory::uf::TheoryUF::eq::newNode((f a1 a2)) => 12
+theory::uf::TheoryUF::eq::newApplicationNode((f a1 a2), 11, 6): no lookup, setting up
+theory::uf::TheoryUF::eq::newApplicationNode((f a1 a2), 11, 6): adding (f a1 a2) to the uselist of (f a1 a2)
+theory::uf::TheoryUF::eq::newApplicationNode((f a1 a2), 11, 6): adding (f a1 a2) to the uselist of a2
+theory::uf::TheoryUF::eq::newApplicationNode((f a1 a2), 11, 6) => 12
+theory::uf::TheoryUF::eq::propagate()
+theory::uf::TheoryUF::eq::addTermInternal((f a1 a2)) => 12
+theory::uf::TheoryUF::eq::addTermInternal((f a1 a2))
+theory::uf::TheoryUF::eq::addTermInternal((f a1 a2)): already there
+theory::uf::TheoryUF::eq::addTermInternal((f b1 b2))
+theory::uf::TheoryUF::eq::addTermInternal((f b1 b2)): already there
+theory::uf::TheoryUF::eq::areEqual((f a1 a2),(f b1 b2))
+theory::uf::TheoryUF::eq::areDisequal((f a1 a2),(f b1 b2))
+theory::uf::TheoryUF::eq::addTermInternal((= (f a1 a2) (f b1 b2)))
+theory::uf::TheoryUF::eq::addTermInternal((f a1 a2))
+theory::uf::TheoryUF::eq::addTermInternal((f a1 a2)): already there
+theory::uf::TheoryUF::eq::addTermInternal((f b1 b2))
+theory::uf::TheoryUF::eq::addTermInternal((f b1 b2)): already there
+theory::uf::TheoryUF::eq::newApplicationNode((= (f a1 a2) (f b1 b2)), 12, 10)
+theory::uf::TheoryUF::eq::newNode((= (f a1 a2) (f b1 b2)))
+theory::uf::TheoryUF::eq::newNode((= (f a1 a2) (f b1 b2))) => 13
+theory::uf::TheoryUF::eq::newApplicationNode((= (f a1 a2) (f b1 b2)), 12, 10): no lookup, setting up
+theory::uf::TheoryUF::eq::newApplicationNode((= (f a1 a2) (f b1 b2)), 12, 10): adding (= (f a1 a2) (f b1 b2)) to the uselist of (f a1 a2)
+theory::uf::TheoryUF::eq::newApplicationNode((= (f a1 a2) (f b1 b2)), 12, 10): adding (= (f a1 a2) (f b1 b2)) to the uselist of (f b1 b2)
+theory::uf::TheoryUF::eq::newApplicationNode((= (f a1 a2) (f b1 b2)), 12, 10) => 13
+theory::uf::TheoryUF::eq::propagate()
+theory::uf::TheoryUF::eq::addTermInternal((= (f a1 a2) (f b1 b2))) => 13
+theory::uf::TheoryUF::eq::addTrigger((f a1 a2), (f b1 b2), (= (f a1 a2) (f b1 b2)))
+theory::uf::TheoryUF::eq::addTrigger((= (f a1 a2) (f b1 b2))): 12 (12) = 10 (10)
+true 0(0):
+false 1(1):
+b1 2(2):
+a1 3(3):
+(= a1 b1) 4(4):
+b2 5(5):
+a2 6(6):
+(= a2 b2) 7(7):
+f 8(8):
+(f b1 b2) 9(9):
+(f b1 b2) 10(10):
+(f a1 a2) 11(11):
+(f a1 a2) 12(12):
+(= (f a1 a2) (f b1 b2)) 13(13):
+theory::uf::TheoryUF::eq::addTrigger((f a1 a2),(f b1 b2)) => (8, 9)
+theory::uf::TheoryUF::eq::addTrigger((= (f a1 a2) (f b1 b2)), false, (= (f a1 a2) (f b1 b2)))
+theory::uf::TheoryUF::eq::addTrigger((= (f a1 a2) (f b1 b2))): 13 (13) = 1 (1)
+true 0(0):
+false 1(1):
+b1 2(2):
+a1 3(3):
+(= a1 b1) 4(4):
+b2 5(5):
+a2 6(6):
+(= a2 b2) 7(7):
+f 8(8):
+(f b1 b2) 9(9):
+(f b1 b2) 10(10):
+(f a1 a2) 11(11):
+(f a1 a2) 12(12):
+(= (f a1 a2) (f b1 b2)) 13(13):
+theory::uf::TheoryUF::eq::addTrigger((= (f a1 a2) (f b1 b2)),false) => (10, 11)
+theory::uf::TheoryUF::eq::addEquality((= a1 b1),true)
+theory::uf::TheoryUF::eq::areEqual(a1,b1)
+theory::uf::TheoryUF::eq::addEqualityInternal(a1,b1), pid = pure equality
+theory::uf::TheoryUF::eq::addTermInternal(a1)
+theory::uf::TheoryUF::eq::addTermInternal(a1): already there
+theory::uf::TheoryUF::eq::addTermInternal(b1)
+theory::uf::TheoryUF::eq::addTermInternal(b1): already there
+theory::uf::TheoryUF::eq::enqueue(a1, b1, pure equality)
+theory::uf::TheoryUF::eq::propagate()
+theory::uf::TheoryUF::eq::propagate(): t1: proper
+theory::uf::TheoryUF::eq::propagate(): t2: proper
+theory::uf::TheoryUF::eq::addGraphEdge(a1,b1,(= a1 b1))
+true 0(0):
+false 1(1):
+b1 2(2): a1:(= a1 b1)
+a1 3(3): b1:(= a1 b1)
+(= a1 b1) 4(4):
+b2 5(5):
+a2 6(6):
+(= a2 b2) 7(7):
+f 8(8):
+(f b1 b2) 9(9):
+(f b1 b2) 10(10):
+(f a1 a2) 11(11):
+(f a1 a2) 12(12):
+(= (f a1 a2) (f b1 b2)) 13(13):
+theory::uf::TheoryUF::eq::propagate(): merging b1 into a1
+theory::uf::TheoryUF::eq::merge(3,2)
+theory::uf::TheoryUF::eq::merge(3,2): updating class 2
+theory::uf::TheoryUF::eq::merge(3,2): 2->3
+theory::uf::TheoryUF::eq::merge(3,3): updating lookups of 2
+theory::uf::TheoryUF::eq::merge(3,3): updating lookups of node 2
+theory::uf::TheoryUF::eq::merge(3,3): b1 in (f b1 b2)
+theory::uf::TheoryUF::eq::enqueue((f b1 b2), (f a1 a2), congruence)
+theory::uf::TheoryUF::eq::merge(3,3): b1 in (= a1 b1)
+theory::uf::TheoryUF::eq::enqueue((= a1 b1), true, reflexivity)
+theory::uf::TheoryUF::eq::propagate(): t1: internal
+theory::uf::TheoryUF::eq::propagate(): t2: internal
+theory::uf::TheoryUF::eq::addGraphEdge((f b1 b2),(f a1 a2),null)
+true 0(0):
+false 1(1):
+b1 2(3): a1:(= a1 b1)
+a1 3(3): b1:(= a1 b1)
+(= a1 b1) 4(4):
+b2 5(5):
+a2 6(6):
+(= a2 b2) 7(7):
+f 8(8):
+(f b1 b2) 9(9): (f a1 a2):null
+(f b1 b2) 10(10):
+(f a1 a2) 11(11): (f b1 b2):null
+(f a1 a2) 12(12):
+(= (f a1 a2) (f b1 b2)) 13(13):
+theory::uf::TheoryUF::eq::propagate(): merging (f a1 a2) into (f b1 b2)
+theory::uf::TheoryUF::eq::merge(9,11)
+theory::uf::TheoryUF::eq::merge(9,11): updating class 11
+theory::uf::TheoryUF::eq::merge(9,11): 11->9
+theory::uf::TheoryUF::eq::merge(9,9): updating lookups of 11
+theory::uf::TheoryUF::eq::merge(9,9): updating lookups of node 11
+theory::uf::TheoryUF::eq::merge(9,9): (f a1 a2) in (f a1 a2)
+theory::uf::TheoryUF::eq::propagate(): t1: proper
+theory::uf::TheoryUF::eq::propagate(): t2: proper
+theory::uf::TheoryUF::eq::addGraphEdge((= a1 b1),true,null)
+true 0(0): (= a1 b1):null
+false 1(1):
+b1 2(3): a1:(= a1 b1)
+a1 3(3): b1:(= a1 b1)
+(= a1 b1) 4(4): true:null
+b2 5(5):
+a2 6(6):
+(= a2 b2) 7(7):
+f 8(8):
+(f b1 b2) 9(9): (f a1 a2):null
+(f b1 b2) 10(10):
+(f a1 a2) 11(9): (f b1 b2):null
+(f a1 a2) 12(12):
+(= (f a1 a2) (f b1 b2)) 13(13):
+theory::uf::TheoryUF::eq::propagate(): merging (= a1 b1) into true
+theory::uf::TheoryUF::eq::merge(0,4)
+theory::uf::TheoryUF::eq::merge(0,4): updating class 4
+theory::uf::TheoryUF::eq::merge(0,4): 4->0
+theory::uf::TheoryUF::eq::addEquality((= a2 b2),true)
+theory::uf::TheoryUF::eq::areEqual(a2,b2)
+theory::uf::TheoryUF::eq::addEqualityInternal(a2,b2), pid = pure equality
+theory::uf::TheoryUF::eq::addTermInternal(a2)
+theory::uf::TheoryUF::eq::addTermInternal(a2): already there
+theory::uf::TheoryUF::eq::addTermInternal(b2)
+theory::uf::TheoryUF::eq::addTermInternal(b2): already there
+theory::uf::TheoryUF::eq::enqueue(a2, b2, pure equality)
+theory::uf::TheoryUF::eq::propagate()
+theory::uf::TheoryUF::eq::propagate(): t1: proper
+theory::uf::TheoryUF::eq::propagate(): t2: proper
+theory::uf::TheoryUF::eq::addGraphEdge(a2,b2,(= a2 b2))
+true 0(0): (= a1 b1):null
+false 1(1):
+b1 2(3): a1:(= a1 b1)
+a1 3(3): b1:(= a1 b1)
+(= a1 b1) 4(0): true:null
+b2 5(5): a2:(= a2 b2)
+a2 6(6): b2:(= a2 b2)
+(= a2 b2) 7(7):
+f 8(8):
+(f b1 b2) 9(9): (f a1 a2):null
+(f b1 b2) 10(10):
+(f a1 a2) 11(9): (f b1 b2):null
+(f a1 a2) 12(12):
+(= (f a1 a2) (f b1 b2)) 13(13):
+theory::uf::TheoryUF::eq::propagate(): merging b2 into a2
+theory::uf::TheoryUF::eq::merge(6,5)
+theory::uf::TheoryUF::eq::merge(6,5): updating class 5
+theory::uf::TheoryUF::eq::merge(6,5): 5->6
+theory::uf::TheoryUF::eq::merge(6,6): updating lookups of 5
+theory::uf::TheoryUF::eq::merge(6,6): updating lookups of node 5
+theory::uf::TheoryUF::eq::merge(6,6): b2 in (f b1 b2)
+theory::uf::TheoryUF::eq::enqueue((f b1 b2), (f a1 a2), congruence)
+theory::uf::TheoryUF::eq::merge(6,6): b2 in (= a2 b2)
+theory::uf::TheoryUF::eq::enqueue((= a2 b2), true, reflexivity)
+theory::uf::TheoryUF::eq::propagate(): t1: proper
+theory::uf::TheoryUF::eq::propagate(): t2: proper
+theory::uf::TheoryUF::eq::addGraphEdge((f b1 b2),(f a1 a2),null)
+true 0(0): (= a1 b1):null
+false 1(1):
+b1 2(3): a1:(= a1 b1)
+a1 3(3): b1:(= a1 b1)
+(= a1 b1) 4(0): true:null
+b2 5(6): a2:(= a2 b2)
+a2 6(6): b2:(= a2 b2)
+(= a2 b2) 7(7):
+f 8(8):
+(f b1 b2) 9(9): (f a1 a2):null
+(f b1 b2) 10(10): (f a1 a2):null
+(f a1 a2) 11(9): (f b1 b2):null
+(f a1 a2) 12(12): (f b1 b2):null
+(= (f a1 a2) (f b1 b2)) 13(13):
+theory::uf::TheoryUF::eq::propagate(): merging (f a1 a2) into (f b1 b2)
+theory::uf::TheoryUF::eq::merge(10,12)
+theory::uf::TheoryUF::eq::merge(10,12): updating class 12
+theory::uf::TheoryUF::eq::merge(10,12): 12->10
+theory::uf::TheoryUF::eq::merge(10,10): updating lookups of 12
+theory::uf::TheoryUF::eq::merge(10,10): updating lookups of node 12
+theory::uf::TheoryUF::eq::merge(10,10): (f a1 a2) in (= (f a1 a2) (f b1 b2))
+theory::uf::TheoryUF::eq::enqueue((= (f a1 a2) (f b1 b2)), true, reflexivity)
+theory::uf::TheoryUF::eq::explainEquality((f a1 a2), (f b1 b2), true)
+theory::uf::TheoryUF::eq::getExplanation((f a1 a2),(f b1 b2))
+true 0(0): (= a1 b1):null
+false 1(1):
+b1 2(3): a1:(= a1 b1)
+a1 3(3): b1:(= a1 b1)
+(= a1 b1) 4(0): true:null
+b2 5(6): a2:(= a2 b2)
+a2 6(6): b2:(= a2 b2)
+(= a2 b2) 7(7):
+f 8(8):
+(f b1 b2) 9(9): (f a1 a2):null
+(f b1 b2) 10(10): (f a1 a2):null
+(f a1 a2) 11(9): (f b1 b2):null
+(f a1 a2) 12(10): (f b1 b2):null
+(= (f a1 a2) (f b1 b2)) 13(13):
+theory::uf::TheoryUF::eq::getExplanation(): currentNode =  (f a1 a2)
+theory::uf::TheoryUF::eq::getExplanation(): edgesId =  9
+theory::uf::TheoryUF::eq::getExplanation(): edges =  (f b1 b2)
+theory::uf::TheoryUF::eq::getExplanation(): currentEdge = ((f a1 a2),(f b1 b2))
+theory::uf::TheoryUF::eq::getExplanation(): path found: 
+theory::uf::TheoryUF::eq::getExplanation(): currentEdge = 9, currentNode = 12
+theory::uf::TheoryUF                     in currentEdge = ((f a1 a2),(f b1 b2))
+theory::uf::TheoryUF::eq::getExplanation(): due to congruence, going deeper
+  theory::uf::TheoryUF::eq::getExplanation((f a1 a2),(f b1 b2))
+  true 0(0):   (= a1 b1):null
+  false 1(1):
+  b1 2(3):   a1:(= a1 b1)
+  a1 3(3):   b1:(= a1 b1)
+  (= a1 b1) 4(0):   true:null
+  b2 5(6):   a2:(= a2 b2)
+  a2 6(6):   b2:(= a2 b2)
+  (= a2 b2) 7(7):
+  f 8(8):
+  (f b1 b2) 9(9):   (f a1 a2):null
+  (f b1 b2) 10(10):   (f a1 a2):null
+  (f a1 a2) 11(9):   (f b1 b2):null
+  (f a1 a2) 12(10):   (f b1 b2):null
+  (= (f a1 a2) (f b1 b2)) 13(13):
+  theory::uf::TheoryUF::eq::getExplanation(): currentNode =  (f a1 a2)
+  theory::uf::TheoryUF::eq::getExplanation(): edgesId =  3
+  theory::uf::TheoryUF::eq::getExplanation(): edges =  (f b1 b2)
+  theory::uf::TheoryUF::eq::getExplanation(): currentEdge = ((f a1 a2),(f b1 b2))
+  theory::uf::TheoryUF::eq::getExplanation(): path found: 
+  theory::uf::TheoryUF::eq::getExplanation(): currentEdge = 3, currentNode = 11
+  theory::uf::TheoryUF                     in currentEdge = ((f a1 a2),(f b1 b2))
+  theory::uf::TheoryUF::eq::getExplanation(): due to congruence, going deeper
+    theory::uf::TheoryUF::eq::getExplanation(f,f)
+    theory::uf::TheoryUF::eq::getExplanation(a1,b1)
+    true 0(0):     (= a1 b1):null
+    false 1(1):
+    b1 2(3):     a1:(= a1 b1)
+    a1 3(3):     b1:(= a1 b1)
+    (= a1 b1) 4(0):     true:null
+    b2 5(6):     a2:(= a2 b2)
+    a2 6(6):     b2:(= a2 b2)
+    (= a2 b2) 7(7):
+    f 8(8):
+    (f b1 b2) 9(9):     (f a1 a2):null
+    (f b1 b2) 10(10):     (f a1 a2):null
+    (f a1 a2) 11(9):     (f b1 b2):null
+    (f a1 a2) 12(10):     (f b1 b2):null
+    (= (f a1 a2) (f b1 b2)) 13(13):
+    theory::uf::TheoryUF::eq::getExplanation(): currentNode =  a1
+    theory::uf::TheoryUF::eq::getExplanation(): edgesId =  0
+    theory::uf::TheoryUF::eq::getExplanation(): edges =  b1
+    theory::uf::TheoryUF::eq::getExplanation(): currentEdge = (a1,b1)
+    theory::uf::TheoryUF::eq::getExplanation(): path found: 
+    theory::uf::TheoryUF::eq::getExplanation(): currentEdge = 0, currentNode = 3
+    theory::uf::TheoryUF                     in currentEdge = (a1,b1)
+    theory::uf::TheoryUF::eq::getExplanation(): adding: (= a1 b1)
+  theory::uf::TheoryUF::eq::getExplanation(a2,b2)
+  true 0(0):   (= a1 b1):null
+  false 1(1):
+  b1 2(3):   a1:(= a1 b1)
+  a1 3(3):   b1:(= a1 b1)
+  (= a1 b1) 4(0):   true:null
+  b2 5(6):   a2:(= a2 b2)
+  a2 6(6):   b2:(= a2 b2)
+  (= a2 b2) 7(7):
+  f 8(8):
+  (f b1 b2) 9(9):   (f a1 a2):null
+  (f b1 b2) 10(10):   (f a1 a2):null
+  (f a1 a2) 11(9):   (f b1 b2):null
+  (f a1 a2) 12(10):   (f b1 b2):null
+  (= (f a1 a2) (f b1 b2)) 13(13):
+  theory::uf::TheoryUF::eq::getExplanation(): currentNode =  a2
+  theory::uf::TheoryUF::eq::getExplanation(): edgesId =  6
+  theory::uf::TheoryUF::eq::getExplanation(): edges =  b2
+  theory::uf::TheoryUF::eq::getExplanation(): currentEdge = (a2,b2)
+  theory::uf::TheoryUF::eq::getExplanation(): path found: 
+  theory::uf::TheoryUF::eq::getExplanation(): currentEdge = 6, currentNode = 6
+  theory::uf::TheoryUF                     in currentEdge = (a2,b2)
+  theory::uf::TheoryUF::eq::getExplanation(): adding: (= a2 b2)
+unsat
+(check
+ ;; Declarations
+(% s sort
+(% a1 (term s)
+(% b1 (term s)
+(% a2 (term s)
+(% b2 (term s)
+(% f (term (arrow s (arrow s s)))
+(% A0 (th_holds (= s a1 b1))
+(% A1 (th_holds (= s a2 b2))
+(% A2 (th_holds (not (= s (apply _ _ (apply _ _ f a1)a2) (apply _ _ (apply _ _ f b1)b2))))
+(% A3 (th_holds true)
+(: (holds cln)
+ ;; Preprocessing 
+(th_let_pf _ (trust_f (= s a1 b1)) (\ .PA213
+(th_let_pf _ (trust_f (= s a2 b2)) (\ .PA215
+(th_let_pf _ (trust_f (not (= s (apply _ _ (apply _ _ f a1)a2) (apply _ _ (apply _ _ f b1)b2)))) (\ .PA219
+(decl_atom (= s a1 b1) (\ .v2 (\ .a2
+(decl_atom (= s a2 b2) (\ .v3 (\ .a3
+(decl_atom (= s (apply _ _ (apply _ _ f a1)a2) (apply _ _ (apply _ _ f b1)b2)) (\ .v4 (\ .a4
+(satlem _ _ (asf _ _ _ .a2 (\ .l4 (clausify_false (contra _ .PA213 .l4)))) (\ .pb4
+(satlem _ _ (asf _ _ _ .a3 (\ .l6 (clausify_false (contra _ .PA215 .l6)))) (\ .pb5
+(satlem _ _ (ast _ _ _ .a4 (\ .l9 (clausify_false (contra _ .l9 .PA219)))) (\ .pb6
+ ;; Theory Lemmas 
+;; BB atom mapping
+;; Bit-blasting definitional clauses 
+;; Bit-blasting learned clauses 
+(satlem _ _ (asf _ _ _ .a4 (\ .l8 (ast _ _ _ .a3 (\ .l7 (ast _ _ _ .a2 (\ .l5  ;; UF Theory Lemma 
+;;(= (f a1 a2) (f b1 b2)) (not (= a2 b2)) (not (= a1 b1)) 
+EqualityEdge::EqualityEngine(): id_null = 4294967295
+EqualityEdge::EqualityEngine(): edge_null = 4294967295
+EqualityEdge::EqualityEngine(): trigger_null = 4294967295
+theory::uf::TheoryUF::eq::addTermInternal(true)
+theory::uf::TheoryUF::eq::newNode(true)
+theory::uf::TheoryUF::eq::newNode(true) => 0
+theory::uf::TheoryUF::eq::propagate()
+theory::uf::TheoryUF::eq::addTermInternal(true) => 0
+theory::uf::TheoryUF::eq::addTermInternal(false)
+theory::uf::TheoryUF::eq::newNode(false)
+theory::uf::TheoryUF::eq::newNode(false) => 1
+theory::uf::TheoryUF::eq::propagate()
+theory::uf::TheoryUF::eq::addTermInternal(false) => 1
+theory::uf::TheoryUF::eq::addTermInternal(b2)
+theory::uf::TheoryUF::eq::newNode(b2)
+theory::uf::TheoryUF::eq::newNode(b2) => 2
+theory::uf::TheoryUF::eq::propagate()
+theory::uf::TheoryUF::eq::addTermInternal(b2) => 2
+theory::uf::TheoryUF::eq::addTermInternal(b1)
+theory::uf::TheoryUF::eq::newNode(b1)
+theory::uf::TheoryUF::eq::newNode(b1) => 3
+theory::uf::TheoryUF::eq::propagate()
+theory::uf::TheoryUF::eq::addTermInternal(b1) => 3
+theory::uf::TheoryUF::eq::addTermInternal((f b1 b2))
+theory::uf::TheoryUF::eq::addTermInternal(f)
+theory::uf::TheoryUF::eq::newNode(f)
+theory::uf::TheoryUF::eq::newNode(f) => 4
+theory::uf::TheoryUF::eq::propagate()
+theory::uf::TheoryUF::eq::addTermInternal(f) => 4
+theory::uf::TheoryUF::eq::addTermInternal(b1)
+theory::uf::TheoryUF::eq::addTermInternal(b1): already there
+theory::uf::TheoryUF::eq::newApplicationNode((f b1 b2), 4, 3)
+theory::uf::TheoryUF::eq::newNode((f b1 b2))
+theory::uf::TheoryUF::eq::newNode((f b1 b2)) => 5
+theory::uf::TheoryUF::eq::newApplicationNode((f b1 b2), 4, 3): no lookup, setting up
+theory::uf::TheoryUF::eq::newApplicationNode((f b1 b2), 4, 3): adding (f b1 b2) to the uselist of f
+theory::uf::TheoryUF::eq::newApplicationNode((f b1 b2), 4, 3): adding (f b1 b2) to the uselist of b1
+theory::uf::TheoryUF::eq::newApplicationNode((f b1 b2), 4, 3) => 5
+theory::uf::TheoryUF::eq::addTermInternal(b2)
+theory::uf::TheoryUF::eq::addTermInternal(b2): already there
+theory::uf::TheoryUF::eq::newApplicationNode((f b1 b2), 5, 2)
+theory::uf::TheoryUF::eq::newNode((f b1 b2))
+theory::uf::TheoryUF::eq::newNode((f b1 b2)) => 6
+theory::uf::TheoryUF::eq::newApplicationNode((f b1 b2), 5, 2): no lookup, setting up
+theory::uf::TheoryUF::eq::newApplicationNode((f b1 b2), 5, 2): adding (f b1 b2) to the uselist of (f b1 b2)
+theory::uf::TheoryUF::eq::newApplicationNode((f b1 b2), 5, 2): adding (f b1 b2) to the uselist of b2
+theory::uf::TheoryUF::eq::newApplicationNode((f b1 b2), 5, 2) => 6
+theory::uf::TheoryUF::eq::propagate()
+theory::uf::TheoryUF::eq::addTermInternal((f b1 b2)) => 6
+theory::uf::TheoryUF::eq::addTermInternal(a2)
+theory::uf::TheoryUF::eq::newNode(a2)
+theory::uf::TheoryUF::eq::newNode(a2) => 7
+theory::uf::TheoryUF::eq::propagate()
+theory::uf::TheoryUF::eq::addTermInternal(a2) => 7
+theory::uf::TheoryUF::eq::addTermInternal(a1)
+theory::uf::TheoryUF::eq::newNode(a1)
+theory::uf::TheoryUF::eq::newNode(a1) => 8
+theory::uf::TheoryUF::eq::propagate()
+theory::uf::TheoryUF::eq::addTermInternal(a1) => 8
+theory::uf::TheoryUF::eq::addTermInternal((f a1 a2))
+theory::uf::TheoryUF::eq::addTermInternal(f)
+theory::uf::TheoryUF::eq::addTermInternal(f): already there
+theory::uf::TheoryUF::eq::addTermInternal(a1)
+theory::uf::TheoryUF::eq::addTermInternal(a1): already there
+theory::uf::TheoryUF::eq::newApplicationNode((f a1 a2), 4, 8)
+theory::uf::TheoryUF::eq::newNode((f a1 a2))
+theory::uf::TheoryUF::eq::newNode((f a1 a2)) => 9
+theory::uf::TheoryUF::eq::newApplicationNode((f a1 a2), 4, 8): no lookup, setting up
+theory::uf::TheoryUF::eq::newApplicationNode((f a1 a2), 4, 8): adding (f a1 a2) to the uselist of f
+theory::uf::TheoryUF::eq::newApplicationNode((f a1 a2), 4, 8): adding (f a1 a2) to the uselist of a1
+theory::uf::TheoryUF::eq::newApplicationNode((f a1 a2), 4, 8) => 9
+theory::uf::TheoryUF::eq::addTermInternal(a2)
+theory::uf::TheoryUF::eq::addTermInternal(a2): already there
+theory::uf::TheoryUF::eq::newApplicationNode((f a1 a2), 9, 7)
+theory::uf::TheoryUF::eq::newNode((f a1 a2))
+theory::uf::TheoryUF::eq::newNode((f a1 a2)) => 10
+theory::uf::TheoryUF::eq::newApplicationNode((f a1 a2), 9, 7): no lookup, setting up
+theory::uf::TheoryUF::eq::newApplicationNode((f a1 a2), 9, 7): adding (f a1 a2) to the uselist of (f a1 a2)
+theory::uf::TheoryUF::eq::newApplicationNode((f a1 a2), 9, 7): adding (f a1 a2) to the uselist of a2
+theory::uf::TheoryUF::eq::newApplicationNode((f a1 a2), 9, 7) => 10
+theory::uf::TheoryUF::eq::propagate()
+theory::uf::TheoryUF::eq::addTermInternal((f a1 a2)) => 10
+theory::uf::TheoryUF::eq::addTermInternal((f a1 a2))
+theory::uf::TheoryUF::eq::addTermInternal((f a1 a2)): already there
+theory::uf::TheoryUF::eq::addTermInternal((f b1 b2))
+theory::uf::TheoryUF::eq::addTermInternal((f b1 b2)): already there
+theory::uf::TheoryUF::eq::areEqual((f a1 a2),(f b1 b2))
+theory::uf::TheoryUF::eq::areDisequal((f a1 a2),(f b1 b2))
+theory::uf::TheoryUF::eq::addTermInternal((= (f a1 a2) (f b1 b2)))
+theory::uf::TheoryUF::eq::addTermInternal((f a1 a2))
+theory::uf::TheoryUF::eq::addTermInternal((f a1 a2)): already there
+theory::uf::TheoryUF::eq::addTermInternal((f b1 b2))
+theory::uf::TheoryUF::eq::addTermInternal((f b1 b2)): already there
+theory::uf::TheoryUF::eq::newApplicationNode((= (f a1 a2) (f b1 b2)), 10, 6)
+theory::uf::TheoryUF::eq::newNode((= (f a1 a2) (f b1 b2)))
+theory::uf::TheoryUF::eq::newNode((= (f a1 a2) (f b1 b2))) => 11
+theory::uf::TheoryUF::eq::newApplicationNode((= (f a1 a2) (f b1 b2)), 10, 6): no lookup, setting up
+theory::uf::TheoryUF::eq::newApplicationNode((= (f a1 a2) (f b1 b2)), 10, 6): adding (= (f a1 a2) (f b1 b2)) to the uselist of (f a1 a2)
+theory::uf::TheoryUF::eq::newApplicationNode((= (f a1 a2) (f b1 b2)), 10, 6): adding (= (f a1 a2) (f b1 b2)) to the uselist of (f b1 b2)
+theory::uf::TheoryUF::eq::newApplicationNode((= (f a1 a2) (f b1 b2)), 10, 6) => 11
+theory::uf::TheoryUF::eq::propagate()
+theory::uf::TheoryUF::eq::addTermInternal((= (f a1 a2) (f b1 b2))) => 11
+theory::uf::TheoryUF::eq::addTrigger((f a1 a2), (f b1 b2), (= (f a1 a2) (f b1 b2)))
+theory::uf::TheoryUF::eq::addTrigger((= (f a1 a2) (f b1 b2))): 10 (10) = 6 (6)
+true 0(0):
+false 1(1):
+b2 2(2):
+b1 3(3):
+f 4(4):
+(f b1 b2) 5(5):
+(f b1 b2) 6(6):
+a2 7(7):
+a1 8(8):
+(f a1 a2) 9(9):
+(f a1 a2) 10(10):
+(= (f a1 a2) (f b1 b2)) 11(11):
+theory::uf::TheoryUF::eq::addTrigger((f a1 a2),(f b1 b2)) => (0, 1)
+theory::uf::TheoryUF::eq::addTrigger((= (f a1 a2) (f b1 b2)), false, (= (f a1 a2) (f b1 b2)))
+theory::uf::TheoryUF::eq::addTrigger((= (f a1 a2) (f b1 b2))): 11 (11) = 1 (1)
+true 0(0):
+false 1(1):
+b2 2(2):
+b1 3(3):
+f 4(4):
+(f b1 b2) 5(5):
+(f b1 b2) 6(6):
+a2 7(7):
+a1 8(8):
+(f a1 a2) 9(9):
+(f a1 a2) 10(10):
+(= (f a1 a2) (f b1 b2)) 11(11):
+theory::uf::TheoryUF::eq::addTrigger((= (f a1 a2) (f b1 b2)),false) => (2, 3)
+theory::uf::TheoryUF::eq::addTermInternal(a2)
+theory::uf::TheoryUF::eq::addTermInternal(a2): already there
+theory::uf::TheoryUF::eq::addTermInternal(b2)
+theory::uf::TheoryUF::eq::addTermInternal(b2): already there
+theory::uf::TheoryUF::eq::areEqual(a2,b2)
+theory::uf::TheoryUF::eq::areDisequal(a2,b2)
+theory::uf::TheoryUF::eq::addTermInternal((= a2 b2))
+theory::uf::TheoryUF::eq::addTermInternal(a2)
+theory::uf::TheoryUF::eq::addTermInternal(a2): already there
+theory::uf::TheoryUF::eq::addTermInternal(b2)
+theory::uf::TheoryUF::eq::addTermInternal(b2): already there
+theory::uf::TheoryUF::eq::newApplicationNode((= a2 b2), 7, 2)
+theory::uf::TheoryUF::eq::newNode((= a2 b2))
+theory::uf::TheoryUF::eq::newNode((= a2 b2)) => 12
+theory::uf::TheoryUF::eq::newApplicationNode((= a2 b2), 7, 2): no lookup, setting up
+theory::uf::TheoryUF::eq::newApplicationNode((= a2 b2), 7, 2): adding (= a2 b2) to the uselist of a2
+theory::uf::TheoryUF::eq::newApplicationNode((= a2 b2), 7, 2): adding (= a2 b2) to the uselist of b2
+theory::uf::TheoryUF::eq::newApplicationNode((= a2 b2), 7, 2) => 12
+theory::uf::TheoryUF::eq::propagate()
+theory::uf::TheoryUF::eq::addTermInternal((= a2 b2)) => 12
+theory::uf::TheoryUF::eq::addTrigger(a2, b2, (= a2 b2))
+theory::uf::TheoryUF::eq::addTrigger((= a2 b2)): 7 (7) = 2 (2)
+true 0(0):
+false 1(1):
+b2 2(2):
+b1 3(3):
+f 4(4):
+(f b1 b2) 5(5):
+(f b1 b2) 6(6):
+a2 7(7):
+a1 8(8):
+(f a1 a2) 9(9):
+(f a1 a2) 10(10):
+(= (f a1 a2) (f b1 b2)) 11(11):
+(= a2 b2) 12(12):
+theory::uf::TheoryUF::eq::addTrigger(a2,b2) => (4, 5)
+theory::uf::TheoryUF::eq::addTrigger((= a2 b2), false, (= a2 b2))
+theory::uf::TheoryUF::eq::addTrigger((= a2 b2)): 12 (12) = 1 (1)
+true 0(0):
+false 1(1):
+b2 2(2):
+b1 3(3):
+f 4(4):
+(f b1 b2) 5(5):
+(f b1 b2) 6(6):
+a2 7(7):
+a1 8(8):
+(f a1 a2) 9(9):
+(f a1 a2) 10(10):
+(= (f a1 a2) (f b1 b2)) 11(11):
+(= a2 b2) 12(12):
+theory::uf::TheoryUF::eq::addTrigger((= a2 b2),false) => (6, 7)
+theory::uf::TheoryUF::eq::addTermInternal(a1)
+theory::uf::TheoryUF::eq::addTermInternal(a1): already there
+theory::uf::TheoryUF::eq::addTermInternal(b1)
+theory::uf::TheoryUF::eq::addTermInternal(b1): already there
+theory::uf::TheoryUF::eq::areEqual(a1,b1)
+theory::uf::TheoryUF::eq::areDisequal(a1,b1)
+theory::uf::TheoryUF::eq::addTermInternal((= a1 b1))
+theory::uf::TheoryUF::eq::addTermInternal(a1)
+theory::uf::TheoryUF::eq::addTermInternal(a1): already there
+theory::uf::TheoryUF::eq::addTermInternal(b1)
+theory::uf::TheoryUF::eq::addTermInternal(b1): already there
+theory::uf::TheoryUF::eq::newApplicationNode((= a1 b1), 8, 3)
+theory::uf::TheoryUF::eq::newNode((= a1 b1))
+theory::uf::TheoryUF::eq::newNode((= a1 b1)) => 13
+theory::uf::TheoryUF::eq::newApplicationNode((= a1 b1), 8, 3): no lookup, setting up
+theory::uf::TheoryUF::eq::newApplicationNode((= a1 b1), 8, 3): adding (= a1 b1) to the uselist of a1
+theory::uf::TheoryUF::eq::newApplicationNode((= a1 b1), 8, 3): adding (= a1 b1) to the uselist of b1
+theory::uf::TheoryUF::eq::newApplicationNode((= a1 b1), 8, 3) => 13
+theory::uf::TheoryUF::eq::propagate()
+theory::uf::TheoryUF::eq::addTermInternal((= a1 b1)) => 13
+theory::uf::TheoryUF::eq::addTrigger(a1, b1, (= a1 b1))
+theory::uf::TheoryUF::eq::addTrigger((= a1 b1)): 8 (8) = 3 (3)
+true 0(0):
+false 1(1):
+b2 2(2):
+b1 3(3):
+f 4(4):
+(f b1 b2) 5(5):
+(f b1 b2) 6(6):
+a2 7(7):
+a1 8(8):
+(f a1 a2) 9(9):
+(f a1 a2) 10(10):
+(= (f a1 a2) (f b1 b2)) 11(11):
+(= a2 b2) 12(12):
+(= a1 b1) 13(13):
+theory::uf::TheoryUF::eq::addTrigger(a1,b1) => (8, 9)
+theory::uf::TheoryUF::eq::addTrigger((= a1 b1), false, (= a1 b1))
+theory::uf::TheoryUF::eq::addTrigger((= a1 b1)): 13 (13) = 1 (1)
+true 0(0):
+false 1(1):
+b2 2(2):
+b1 3(3):
+f 4(4):
+(f b1 b2) 5(5):
+(f b1 b2) 6(6):
+a2 7(7):
+a1 8(8):
+(f a1 a2) 9(9):
+(f a1 a2) 10(10):
+(= (f a1 a2) (f b1 b2)) 11(11):
+(= a2 b2) 12(12):
+(= a1 b1) 13(13):
+theory::uf::TheoryUF::eq::addTrigger((= a1 b1),false) => (10, 11)
+theory::uf::TheoryUF::eq::addEquality((= (f a1 a2) (f b1 b2)),false)
+theory::uf::TheoryUF::eq::areDisequal((f a1 a2),(f b1 b2))
+theory::uf::TheoryUF::eq::addEqualityInternal((= (f a1 a2) (f b1 b2)),false), pid = pure equality
+theory::uf::TheoryUF::eq::addTermInternal((= (f a1 a2) (f b1 b2)))
+theory::uf::TheoryUF::eq::addTermInternal((= (f a1 a2) (f b1 b2))): already there
+theory::uf::TheoryUF::eq::addTermInternal(false)
+theory::uf::TheoryUF::eq::addTermInternal(false): already there
+theory::uf::TheoryUF::eq::enqueue((= (f a1 a2) (f b1 b2)), false, pure equality)
+theory::uf::TheoryUF::eq::propagate()
+theory::uf::TheoryUF::eq::propagate(): t1: proper
+theory::uf::TheoryUF::eq::propagate(): t2: proper
+theory::uf::TheoryUF::eq::addGraphEdge((= (f a1 a2) (f b1 b2)),false,(not (= (f a1 a2) (f b1 b2))))
+true 0(0):
+false 1(1): (= (f a1 a2) (f b1 b2)):(not (= (f a1 a2) (f b1 b2)))
+b2 2(2):
+b1 3(3):
+f 4(4):
+(f b1 b2) 5(5):
+(f b1 b2) 6(6):
+a2 7(7):
+a1 8(8):
+(f a1 a2) 9(9):
+(f a1 a2) 10(10):
+(= (f a1 a2) (f b1 b2)) 11(11): false:(not (= (f a1 a2) (f b1 b2)))
+(= a2 b2) 12(12):
+(= a1 b1) 13(13):
+theory::uf::TheoryUF::eq::propagate(): merging (= (f a1 a2) (f b1 b2)) into false
+theory::uf::TheoryUF::eq::merge(1,11)
+theory::uf::TheoryUF::eq::merge(1,11): updating class 11
+theory::uf::TheoryUF::eq::merge(1,11): 11->1
+theory::uf::TheoryUF::eq::addEquality((= a2 b2),true)
+theory::uf::TheoryUF::eq::areEqual(a2,b2)
+theory::uf::TheoryUF::eq::addEqualityInternal(a2,b2), pid = pure equality
+theory::uf::TheoryUF::eq::addTermInternal(a2)
+theory::uf::TheoryUF::eq::addTermInternal(a2): already there
+theory::uf::TheoryUF::eq::addTermInternal(b2)
+theory::uf::TheoryUF::eq::addTermInternal(b2): already there
+theory::uf::TheoryUF::eq::enqueue(a2, b2, pure equality)
+theory::uf::TheoryUF::eq::propagate()
+theory::uf::TheoryUF::eq::propagate(): t1: proper
+theory::uf::TheoryUF::eq::propagate(): t2: proper
+theory::uf::TheoryUF::eq::addGraphEdge(a2,b2,(= a2 b2))
+true 0(0):
+false 1(1): (= (f a1 a2) (f b1 b2)):(not (= (f a1 a2) (f b1 b2)))
+b2 2(2): a2:(= a2 b2)
+b1 3(3):
+f 4(4):
+(f b1 b2) 5(5):
+(f b1 b2) 6(6):
+a2 7(7): b2:(= a2 b2)
+a1 8(8):
+(f a1 a2) 9(9):
+(f a1 a2) 10(10):
+(= (f a1 a2) (f b1 b2)) 11(1): false:(not (= (f a1 a2) (f b1 b2)))
+(= a2 b2) 12(12):
+(= a1 b1) 13(13):
+theory::uf::TheoryUF::eq::propagate(): merging b2 into a2
+theory::uf::TheoryUF::eq::merge(7,2)
+theory::uf::TheoryUF::eq::merge(7,2): updating class 2
+theory::uf::TheoryUF::eq::merge(7,2): 2->7
+theory::uf::TheoryUF::eq::merge(7,7): updating lookups of 2
+theory::uf::TheoryUF::eq::merge(7,7): updating lookups of node 2
+theory::uf::TheoryUF::eq::merge(7,7): b2 in (= a2 b2)
+theory::uf::TheoryUF::eq::enqueue((= a2 b2), true, reflexivity)
+theory::uf::TheoryUF::eq::merge(7,7): b2 in (f b1 b2)
+theory::uf::TheoryUF::eq::propagate(): t1: proper
+theory::uf::TheoryUF::eq::propagate(): t2: proper
+theory::uf::TheoryUF::eq::addGraphEdge((= a2 b2),true,null)
+true 0(0): (= a2 b2):null
+false 1(1): (= (f a1 a2) (f b1 b2)):(not (= (f a1 a2) (f b1 b2)))
+b2 2(7): a2:(= a2 b2)
+b1 3(3):
+f 4(4):
+(f b1 b2) 5(5):
+(f b1 b2) 6(6):
+a2 7(7): b2:(= a2 b2)
+a1 8(8):
+(f a1 a2) 9(9):
+(f a1 a2) 10(10):
+(= (f a1 a2) (f b1 b2)) 11(1): false:(not (= (f a1 a2) (f b1 b2)))
+(= a2 b2) 12(12): true:null
+(= a1 b1) 13(13):
+theory::uf::TheoryUF::eq::propagate(): merging (= a2 b2) into true
+theory::uf::TheoryUF::eq::merge(0,12)
+theory::uf::TheoryUF::eq::merge(0,12): updating class 12
+theory::uf::TheoryUF::eq::merge(0,12): 12->0
+theory::uf::TheoryUF::eq::addEquality((= a1 b1),true)
+theory::uf::TheoryUF::eq::areEqual(a1,b1)
+theory::uf::TheoryUF::eq::addEqualityInternal(a1,b1), pid = pure equality
+theory::uf::TheoryUF::eq::addTermInternal(a1)
+theory::uf::TheoryUF::eq::addTermInternal(a1): already there
+theory::uf::TheoryUF::eq::addTermInternal(b1)
+theory::uf::TheoryUF::eq::addTermInternal(b1): already there
+theory::uf::TheoryUF::eq::enqueue(a1, b1, pure equality)
+theory::uf::TheoryUF::eq::propagate()
+theory::uf::TheoryUF::eq::propagate(): t1: proper
+theory::uf::TheoryUF::eq::propagate(): t2: proper
+theory::uf::TheoryUF::eq::addGraphEdge(a1,b1,(= a1 b1))
+true 0(0): (= a2 b2):null
+false 1(1): (= (f a1 a2) (f b1 b2)):(not (= (f a1 a2) (f b1 b2)))
+b2 2(7): a2:(= a2 b2)
+b1 3(3): a1:(= a1 b1)
+f 4(4):
+(f b1 b2) 5(5):
+(f b1 b2) 6(6):
+a2 7(7): b2:(= a2 b2)
+a1 8(8): b1:(= a1 b1)
+(f a1 a2) 9(9):
+(f a1 a2) 10(10):
+(= (f a1 a2) (f b1 b2)) 11(1): false:(not (= (f a1 a2) (f b1 b2)))
+(= a2 b2) 12(0): true:null
+(= a1 b1) 13(13):
+theory::uf::TheoryUF::eq::propagate(): merging b1 into a1
+theory::uf::TheoryUF::eq::merge(8,3)
+theory::uf::TheoryUF::eq::merge(8,3): updating class 3
+theory::uf::TheoryUF::eq::merge(8,3): 3->8
+theory::uf::TheoryUF::eq::merge(8,8): updating lookups of 3
+theory::uf::TheoryUF::eq::merge(8,8): updating lookups of node 3
+theory::uf::TheoryUF::eq::merge(8,8): b1 in (= a1 b1)
+theory::uf::TheoryUF::eq::enqueue((= a1 b1), true, reflexivity)
+theory::uf::TheoryUF::eq::merge(8,8): b1 in (f b1 b2)
+theory::uf::TheoryUF::eq::enqueue((f b1 b2), (f a1 a2), congruence)
+theory::uf::TheoryUF::eq::propagate(): t1: proper
+theory::uf::TheoryUF::eq::propagate(): t2: proper
+theory::uf::TheoryUF::eq::addGraphEdge((= a1 b1),true,null)
+true 0(0): (= a1 b1):null (= a2 b2):null
+false 1(1): (= (f a1 a2) (f b1 b2)):(not (= (f a1 a2) (f b1 b2)))
+b2 2(7): a2:(= a2 b2)
+b1 3(8): a1:(= a1 b1)
+f 4(4):
+(f b1 b2) 5(5):
+(f b1 b2) 6(6):
+a2 7(7): b2:(= a2 b2)
+a1 8(8): b1:(= a1 b1)
+(f a1 a2) 9(9):
+(f a1 a2) 10(10):
+(= (f a1 a2) (f b1 b2)) 11(1): false:(not (= (f a1 a2) (f b1 b2)))
+(= a2 b2) 12(0): true:null
+(= a1 b1) 13(13): true:null
+theory::uf::TheoryUF::eq::propagate(): merging (= a1 b1) into true
+theory::uf::TheoryUF::eq::merge(0,13)
+theory::uf::TheoryUF::eq::merge(0,13): updating class 13
+theory::uf::TheoryUF::eq::merge(0,13): 13->0
+theory::uf::TheoryUF::eq::propagate(): t1: internal
+theory::uf::TheoryUF::eq::propagate(): t2: internal
+theory::uf::TheoryUF::eq::addGraphEdge((f b1 b2),(f a1 a2),null)
+true 0(0): (= a1 b1):null (= a2 b2):null
+false 1(1): (= (f a1 a2) (f b1 b2)):(not (= (f a1 a2) (f b1 b2)))
+b2 2(7): a2:(= a2 b2)
+b1 3(8): a1:(= a1 b1)
+f 4(4):
+(f b1 b2) 5(5): (f a1 a2):null
+(f b1 b2) 6(6):
+a2 7(7): b2:(= a2 b2)
+a1 8(8): b1:(= a1 b1)
+(f a1 a2) 9(9): (f b1 b2):null
+(f a1 a2) 10(10):
+(= (f a1 a2) (f b1 b2)) 11(1): false:(not (= (f a1 a2) (f b1 b2)))
+(= a2 b2) 12(0): true:null
+(= a1 b1) 13(0): true:null
+theory::uf::TheoryUF::eq::propagate(): merging (f a1 a2) into (f b1 b2)
+theory::uf::TheoryUF::eq::merge(5,9)
+theory::uf::TheoryUF::eq::merge(5,9): updating class 9
+theory::uf::TheoryUF::eq::merge(5,9): 9->5
+theory::uf::TheoryUF::eq::merge(5,5): updating lookups of 9
+theory::uf::TheoryUF::eq::merge(5,5): updating lookups of node 9
+theory::uf::TheoryUF::eq::merge(5,5): (f a1 a2) in (f a1 a2)
+theory::uf::TheoryUF::eq::enqueue((f a1 a2), (f b1 b2), congruence)
+theory::uf::TheoryUF::eq::propagate(): t1: proper
+theory::uf::TheoryUF::eq::propagate(): t2: proper
+theory::uf::TheoryUF::eq::addGraphEdge((f a1 a2),(f b1 b2),null)
+true 0(0): (= a1 b1):null (= a2 b2):null
+false 1(1): (= (f a1 a2) (f b1 b2)):(not (= (f a1 a2) (f b1 b2)))
+b2 2(7): a2:(= a2 b2)
+b1 3(8): a1:(= a1 b1)
+f 4(4):
+(f b1 b2) 5(5): (f a1 a2):null
+(f b1 b2) 6(6): (f a1 a2):null
+a2 7(7): b2:(= a2 b2)
+a1 8(8): b1:(= a1 b1)
+(f a1 a2) 9(5): (f b1 b2):null
+(f a1 a2) 10(10): (f b1 b2):null
+(= (f a1 a2) (f b1 b2)) 11(1): false:(not (= (f a1 a2) (f b1 b2)))
+(= a2 b2) 12(0): true:null
+(= a1 b1) 13(0): true:null
+theory::uf::TheoryUF::eq::propagate(): merging (f b1 b2) into (f a1 a2)
+theory::uf::TheoryUF::eq::merge(10,6)
+theory::uf::TheoryUF::eq::merge(10,6): updating class 6
+theory::uf::TheoryUF::eq::merge(10,6): 6->10
+theory::uf::TheoryUF::eq::merge(10,10): updating lookups of 6
+theory::uf::TheoryUF::eq::merge(10,10): updating lookups of node 6
+theory::uf::TheoryUF::eq::merge(10,10): (f b1 b2) in (= (f a1 a2) (f b1 b2))
+theory::uf::TheoryUF::eq::enqueue((= (f a1 a2) (f b1 b2)), true, reflexivity)
+theory::uf::TheoryUF::eq::propagate(): t1: proper
+theory::uf::TheoryUF::eq::propagate(): t2: proper
+theory::uf::TheoryUF::eq::addGraphEdge((= (f a1 a2) (f b1 b2)),true,null)
+true 0(0): (= (f a1 a2) (f b1 b2)):null (= a1 b1):null (= a2 b2):null
+false 1(1): (= (f a1 a2) (f b1 b2)):(not (= (f a1 a2) (f b1 b2)))
+b2 2(7): a2:(= a2 b2)
+b1 3(8): a1:(= a1 b1)
+f 4(4):
+(f b1 b2) 5(5): (f a1 a2):null
+(f b1 b2) 6(10): (f a1 a2):null
+a2 7(7): b2:(= a2 b2)
+a1 8(8): b1:(= a1 b1)
+(f a1 a2) 9(5): (f b1 b2):null
+(f a1 a2) 10(10): (f b1 b2):null
+(= (f a1 a2) (f b1 b2)) 11(1): true:null false:(not (= (f a1 a2) (f b1 b2)))
+(= a2 b2) 12(0): true:null
+(= a1 b1) 13(0): true:null
+theory::uf::TheoryUF::eq::explainEquality(false, true, true)
+theory::uf::TheoryUF::eq::getExplanation(false,true)
+true 0(0): (= (f a1 a2) (f b1 b2)):null (= a1 b1):null (= a2 b2):null
+false 1(1): (= (f a1 a2) (f b1 b2)):(not (= (f a1 a2) (f b1 b2)))
+b2 2(7): a2:(= a2 b2)
+b1 3(8): a1:(= a1 b1)
+f 4(4):
+(f b1 b2) 5(5): (f a1 a2):null
+(f b1 b2) 6(10): (f a1 a2):null
+a2 7(7): b2:(= a2 b2)
+a1 8(8): b1:(= a1 b1)
+(f a1 a2) 9(5): (f b1 b2):null
+(f a1 a2) 10(10): (f b1 b2):null
+(= (f a1 a2) (f b1 b2)) 11(1): true:null false:(not (= (f a1 a2) (f b1 b2)))
+(= a2 b2) 12(0): true:null
+(= a1 b1) 13(0): true:null
+theory::uf::TheoryUF::eq::getExplanation(): currentNode =  false
+theory::uf::TheoryUF::eq::getExplanation(): edgesId =  1
+theory::uf::TheoryUF::eq::getExplanation(): edges =  (= (f a1 a2) (f b1 b2))
+theory::uf::TheoryUF::eq::getExplanation(): currentEdge = (false,(= (f a1 a2) (f b1 b2)))
+theory::uf::TheoryUF::eq::getExplanation(): currentNode =  (= (f a1 a2) (f b1 b2))
+theory::uf::TheoryUF::eq::getExplanation(): edgesId =  14
+theory::uf::TheoryUF::eq::getExplanation(): edges =  true,false
+theory::uf::TheoryUF::eq::getExplanation(): currentEdge = ((= (f a1 a2) (f b1 b2)),true)
+theory::uf::TheoryUF::eq::getExplanation(): path found: 
+theory::uf::TheoryUF::eq::getExplanation(): currentEdge = 14, currentNode = 11
+theory::uf::TheoryUF                     in currentEdge = ((= (f a1 a2) (f b1 b2)),true)
+theory::uf::TheoryUF::eq::getExplanation(): due to reflexivity, going deeper
+  theory::uf::TheoryUF::eq::getExplanation((f a1 a2),(f b1 b2))
+  true 0(0):   (= (f a1 a2) (f b1 b2)):null   (= a1 b1):null   (= a2 b2):null
+  false 1(1):   (= (f a1 a2) (f b1 b2)):(not (= (f a1 a2) (f b1 b2)))
+  b2 2(7):   a2:(= a2 b2)
+  b1 3(8):   a1:(= a1 b1)
+  f 4(4):
+  (f b1 b2) 5(5):   (f a1 a2):null
+  (f b1 b2) 6(10):   (f a1 a2):null
+  a2 7(7):   b2:(= a2 b2)
+  a1 8(8):   b1:(= a1 b1)
+  (f a1 a2) 9(5):   (f b1 b2):null
+  (f a1 a2) 10(10):   (f b1 b2):null
+  (= (f a1 a2) (f b1 b2)) 11(1):   true:null   false:(not (= (f a1 a2) (f b1 b2)))
+  (= a2 b2) 12(0):   true:null
+  (= a1 b1) 13(0):   true:null
+  theory::uf::TheoryUF::eq::getExplanation(): currentNode =  (f a1 a2)
+  theory::uf::TheoryUF::eq::getExplanation(): edgesId =  12
+  theory::uf::TheoryUF::eq::getExplanation(): edges =  (f b1 b2)
+  theory::uf::TheoryUF::eq::getExplanation(): currentEdge = ((f a1 a2),(f b1 b2))
+  theory::uf::TheoryUF::eq::getExplanation(): path found: 
+  theory::uf::TheoryUF::eq::getExplanation(): currentEdge = 12, currentNode = 10
+  theory::uf::TheoryUF                     in currentEdge = ((f a1 a2),(f b1 b2))
+  theory::uf::TheoryUF::eq::getExplanation(): due to congruence, going deeper
+    theory::uf::TheoryUF::eq::getExplanation((f a1 a2),(f b1 b2))
+    true 0(0):     (= (f a1 a2) (f b1 b2)):null     (= a1 b1):null     (= a2 b2):null
+    false 1(1):     (= (f a1 a2) (f b1 b2)):(not (= (f a1 a2) (f b1 b2)))
+    b2 2(7):     a2:(= a2 b2)
+    b1 3(8):     a1:(= a1 b1)
+    f 4(4):
+    (f b1 b2) 5(5):     (f a1 a2):null
+    (f b1 b2) 6(10):     (f a1 a2):null
+    a2 7(7):     b2:(= a2 b2)
+    a1 8(8):     b1:(= a1 b1)
+    (f a1 a2) 9(5):     (f b1 b2):null
+    (f a1 a2) 10(10):     (f b1 b2):null
+    (= (f a1 a2) (f b1 b2)) 11(1):     true:null     false:(not (= (f a1 a2) (f b1 b2)))
+    (= a2 b2) 12(0):     true:null
+    (= a1 b1) 13(0):     true:null
+    theory::uf::TheoryUF::eq::getExplanation(): currentNode =  (f a1 a2)
+    theory::uf::TheoryUF::eq::getExplanation(): edgesId =  11
+    theory::uf::TheoryUF::eq::getExplanation(): edges =  (f b1 b2)
+    theory::uf::TheoryUF::eq::getExplanation(): currentEdge = ((f a1 a2),(f b1 b2))
+    theory::uf::TheoryUF::eq::getExplanation(): path found: 
+    theory::uf::TheoryUF::eq::getExplanation(): currentEdge = 11, currentNode = 9
+    theory::uf::TheoryUF                     in currentEdge = ((f a1 a2),(f b1 b2))
+    theory::uf::TheoryUF::eq::getExplanation(): due to congruence, going deeper
+      theory::uf::TheoryUF::eq::getExplanation(f,f)
+      theory::uf::TheoryUF::eq::getExplanation(a1,b1)
+      true 0(0):       (= (f a1 a2) (f b1 b2)):null       (= a1 b1):null       (= a2 b2):null
+      false 1(1):       (= (f a1 a2) (f b1 b2)):(not (= (f a1 a2) (f b1 b2)))
+      b2 2(7):       a2:(= a2 b2)
+      b1 3(8):       a1:(= a1 b1)
+      f 4(4):
+      (f b1 b2) 5(5):       (f a1 a2):null
+      (f b1 b2) 6(10):       (f a1 a2):null
+      a2 7(7):       b2:(= a2 b2)
+      a1 8(8):       b1:(= a1 b1)
+      (f a1 a2) 9(5):       (f b1 b2):null
+      (f a1 a2) 10(10):       (f b1 b2):null
+      (= (f a1 a2) (f b1 b2)) 11(1):       true:null       false:(not (= (f a1 a2) (f b1 b2)))
+      (= a2 b2) 12(0):       true:null
+      (= a1 b1) 13(0):       true:null
+      theory::uf::TheoryUF::eq::getExplanation(): currentNode =  a1
+      theory::uf::TheoryUF::eq::getExplanation(): edgesId =  6
+      theory::uf::TheoryUF::eq::getExplanation(): edges =  b1
+      theory::uf::TheoryUF::eq::getExplanation(): currentEdge = (a1,b1)
+      theory::uf::TheoryUF::eq::getExplanation(): path found: 
+      theory::uf::TheoryUF::eq::getExplanation(): currentEdge = 6, currentNode = 8
+      theory::uf::TheoryUF                     in currentEdge = (a1,b1)
+      theory::uf::TheoryUF::eq::getExplanation(): adding: (= a1 b1)
+    theory::uf::TheoryUF::eq::getExplanation(a2,b2)
+    true 0(0):     (= (f a1 a2) (f b1 b2)):null     (= a1 b1):null     (= a2 b2):null
+    false 1(1):     (= (f a1 a2) (f b1 b2)):(not (= (f a1 a2) (f b1 b2)))
+    b2 2(7):     a2:(= a2 b2)
+    b1 3(8):     a1:(= a1 b1)
+    f 4(4):
+    (f b1 b2) 5(5):     (f a1 a2):null
+    (f b1 b2) 6(10):     (f a1 a2):null
+    a2 7(7):     b2:(= a2 b2)
+    a1 8(8):     b1:(= a1 b1)
+    (f a1 a2) 9(5):     (f b1 b2):null
+    (f a1 a2) 10(10):     (f b1 b2):null
+    (= (f a1 a2) (f b1 b2)) 11(1):     true:null     false:(not (= (f a1 a2) (f b1 b2)))
+    (= a2 b2) 12(0):     true:null
+    (= a1 b1) 13(0):     true:null
+    theory::uf::TheoryUF::eq::getExplanation(): currentNode =  a2
+    theory::uf::TheoryUF::eq::getExplanation(): edgesId =  2
+    theory::uf::TheoryUF::eq::getExplanation(): edges =  b2
+    theory::uf::TheoryUF::eq::getExplanation(): currentEdge = (a2,b2)
+    theory::uf::TheoryUF::eq::getExplanation(): path found: 
+    theory::uf::TheoryUF::eq::getExplanation(): currentEdge = 2, currentNode = 7
+    theory::uf::TheoryUF                     in currentEdge = (a2,b2)
+    theory::uf::TheoryUF::eq::getExplanation(): adding: (= a2 b2)
+theory::uf::TheoryUF::eq::getExplanation(): currentEdge = 1, currentNode = 1
+theory::uf::TheoryUF                     in currentEdge = (false,true)
+theory::uf::TheoryUF::eq::getExplanation(): adding: (not (= (f a1 a2) (f b1 b2)))
+(clausify_false (contra _ (cong _ _ _ _ _ _ (cong _ _ _ _ _ _ (refl _ f) .l5) .l7) .l8))
+))))))( \ .lemc7
+(satlem_simplify _ _ _ (Q _ _ (Q _ _ (R _ _ .lemc7 .pb6 .v4).pb5 .v3).pb4 .v2)(\empty empty)))))))))))))))))))))))))))))))))))))
+;;
+theory::uf::TheoryUF::eq::backtrack(): nodes
+theory::uf::TheoryUF::eq::undoMerge(10,12)
+theory::uf::TheoryUF::eq::undoMerge(10,12): undoing representative info
+theory::uf::TheoryUF::eq::undoMerge(6,5)
+theory::uf::TheoryUF::eq::undoMerge(6,5): undoing representative info
+theory::uf::TheoryUF::eq::undoMerge(0,4)
+theory::uf::TheoryUF::eq::undoMerge(0,4): undoing representative info
+theory::uf::TheoryUF::eq::undoMerge(9,11)
+theory::uf::TheoryUF::eq::undoMerge(9,11): undoing representative info
+theory::uf::TheoryUF::eq::undoMerge(3,2)
+theory::uf::TheoryUF::eq::undoMerge(3,2): undoing representative info
+theory::uf::TheoryUF::eq::backtrack(): edges
+theory::uf::TheoryUF::eq::backtrack(): removing node (= (f a1 a2) (f b1 b2))
+theory::uf::TheoryUF::eq::backtrack(): removing node (f a1 a2)
+theory::uf::TheoryUF::eq::backtrack(): removing node (f a1 a2)
+theory::uf::TheoryUF::eq::backtrack(): removing node (f b1 b2)
+theory::uf::TheoryUF::eq::backtrack(): removing node (f b1 b2)
+theory::uf::TheoryUF::eq::backtrack(): removing node f
+theory::uf::TheoryUF::eq::backtrack(): removing node (= a2 b2)
+theory::uf::TheoryUF::eq::backtrack(): removing node a2
+theory::uf::TheoryUF::eq::backtrack(): removing node b2
+theory::uf::TheoryUF::eq::backtrack(): removing node (= a1 b1)
+theory::uf::TheoryUF::eq::backtrack(): removing node a1
+theory::uf::TheoryUF::eq::backtrack(): removing node b1
