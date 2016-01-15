@@ -1085,10 +1085,11 @@ void EqualityEngine::getExplanation(EqualityNodeId t1Id, EqualityNodeId t2Id, st
                   } else {
 
                     Debug("gk::proof") << "f1.a is: " << d_nodes[f1.a]
-                                       << ". kind is: " << d_nodes[f1.a].getKind()
-                                       << ". getConst<kind> is: " << d_nodes[f1.a].getConst<Kind>() << std::endl;
+                                       << ". kind is: " << d_nodes[f1.a].getKind() << std::endl;
 
-                    if (d_nodes[f1.a].getConst<Kind>() == kind::SELECT) {
+                    if (d_nodes[f1.a].getKind() == kind::BUILTIN && d_nodes[f1.a].getConst<Kind>() == kind::SELECT) {
+                      Debug("gk::proof") << "f1.a getConst<kind> is: " << d_nodes[f1.a].getConst<Kind>() << std::endl;
+
                       eqpc->d_node = NodeManager::currentNM()->mkNode(kind::PARTIAL_SELECT_1, d_nodes[f1.b]);
                       // The first child is a PARTIAL_SELECT_0. Give it a child so that we know what kind of (read) it is, when we dump to LFSC.
                       Debug("gk::proof") << "eqpc->d_children[0]->d_node.getKind() == " << eqpc->d_children[0]->d_node.getKind() << std::endl;
