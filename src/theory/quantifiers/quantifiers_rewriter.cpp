@@ -557,15 +557,33 @@ void setEntailedCond( Node n, bool pol, std::map< Node, bool >& currCond, std::v
   }
 }
 
-Node QuantifiersRewriter::computeProcessTerms( Node body, bool hasPol, bool pol, std::map< Node, bool >& currCond, int nCurrCond,
-                                               std::map< Node, Node >& cache, std::map< Node, Node >& icache,
-                                               std::vector< Node >& new_vars, std::vector< Node >& new_conds ) {
+Node QuantifiersRewriter::computeProcessTerms( Node body, std::vector< Node >& new_vars, std::vector< Node >& new_conds, Node q ){
+  std::map< Node, bool > curr_cond;
+  std::map< Node, Node > cache;
+  std::map< Node, Node > icache;
+  Node h = TermDb::getFunDefHead( q );
+  if( !h.isNull() ){
+    // if it is a function definition, rewrite the body independently
+    Node fbody = TermDb::getFunDefBody( q );
+    Assert( !body.isNull() );
+    Trace("quantifiers-rewrite-debug") << "Decompose " << h << " / " << fbody << " as function definition for " << q << "." << std::endl;
+    Node r = computeProcessTerms2( fbody, true, true, curr_cond, 0, cache, icache, new_vars, new_conds );
+    return Rewriter::rewrite( NodeManager::currentNM()->mkNode( h.getType().isBoolean() ? IFF : EQUAL, h, r ) );
+  }else{
+    return computeProcessTerms2( body, true, true, curr_cond, 0, cache, icache, new_vars, new_conds );
+  }
+}
+
+Node QuantifiersRewriter::computeProcessTerms2( Node body, bool hasPol, bool pol, std::map< Node, bool >& currCond, int nCurrCond,
+                                                std::map< Node, Node >& cache, std::map< Node, Node >& icache,
+                                                std::vector< Node >& new_vars, std::vector< Node >& new_conds ) {
   Node ret;
   std::map< Node, Node >::iterator iti = cache.find( body );
   if( iti!=cache.end() ){
     ret = iti->second;
   }else{
     bool do_ite = false;
+    //only do context dependent processing up to ITE depth 8
     if( body.getKind()==ITE && nCurrCond<8 ){
       do_ite = true;
       nCurrCond = nCurrCond + 1;
@@ -581,15 +599,15 @@ Node QuantifiersRewriter::computeProcessTerms( Node body, bool hasPol, bool pol,
       bool newHasPol;
       bool newPol;
       QuantPhaseReq::getPolarity( body, i, hasPol, pol, newHasPol, newPol );
-      Node nn = computeProcessTerms( body[i], newHasPol, newPol, currCond, nCurrCond, cache, icache, new_vars, new_conds );
+      Node nn = computeProcessTerms2( body[i], newHasPol, newPol, currCond, nCurrCond, cache, icache, new_vars, new_conds );
       if( body.getKind()==ITE ){
         if( i==0 ){
           int res = getEntailedCond( nn, currCond );
           if( res==1 ){
-            ret = computeProcessTerms( body[1], hasPol, pol, currCond, nCurrCond, cache, icache, new_vars, new_conds );
+            ret = computeProcessTerms2( body[1], hasPol, pol, currCond, nCurrCond, cache, icache, new_vars, new_conds );
             break;
           }else if( res==-1 ){
-            ret = computeProcessTerms( body[2], hasPol, pol, currCond, nCurrCond, cache, icache, new_vars, new_conds );
+            ret = computeProcessTerms2( body[2], hasPol, pol, currCond, nCurrCond, cache, icache, new_vars, new_conds );
             break;
           }
         }else{
@@ -1478,11 +1496,8 @@ Node QuantifiersRewriter::computeOperation( Node f, bool isNested, int computeOp
     }else if( computeOption==COMPUTE_NNF ){
       n = computeNNF( n );
     }else if( computeOption==COMPUTE_PROCESS_TERMS ){
-      std::map< Node, bool > curr_cond;
-      std::map< Node, Node > cache;
-      std::map< Node, Node > icache;
       std::vector< Node > new_conds;
-      n = computeProcessTerms( n, true, true, curr_cond, 0, cache, icache, args, new_conds );
+      n = computeProcessTerms( n, args, new_conds, f );
       if( !new_conds.empty() ){
         new_conds.push_back( n );
         n = NodeManager::currentNM()->mkNode( OR, new_conds );
@@ -1823,3 +1838,4 @@ void QuantifiersRewriter::computePurifyExpand( Node body, std::vector< Node >& c
     //Node attr = NodeManager::currentNM()->mkNode( INST_ATTRIBUTE, body );
   }
 }
+

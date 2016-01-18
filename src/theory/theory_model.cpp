@@ -591,6 +591,7 @@ void TheoryEngineModelBuilder::buildModel(Model* m, bool fullModel)
   if( options::finiteModelFind() ){
     tep.d_fixed_usort_card = true;
     for( std::map< TypeNode, unsigned >::iterator it = eqc_usort_count.begin(); it != eqc_usort_count.end(); ++it ){
+      Trace("model-builder") << "Fixed bound (#eqc) for " << it->first << " : " << it->second << std::endl;
       tep.d_fixed_card[it->first] = Integer(it->second);
     }
     typeConstSet.setTypeEnumeratorProperties( &tep );
