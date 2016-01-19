@@ -190,6 +190,7 @@ void TheoryDatatypes::check(Effort e) {
           if( !hasLabel( eqc, n ) ){
             Trace("datatypes-debug") << "No constructor..." << std::endl;
             const Datatype& dt = ((DatatypeType)(tn).toType()).getDatatype();
+            Trace("datatypes-debug") << "Datatype " << dt << " is " << dt.isFinite() << " " << dt.isUFinite() << " " << dt.isRecursiveSingleton() << std::endl;
             bool continueProc = true;
             if( dt.isRecursiveSingleton() ){
               Trace("datatypes-debug") << "Check recursive singleton..." << std::endl;
@@ -1410,11 +1411,13 @@ void TheoryDatatypes::collectModelInfo( TheoryModel* m, bool fullModel ){
       //until models are implemented for codatatypes
       //throw Exception("Models for codatatypes are not supported in this version.");
       //must proactive expand to avoid looping behavior in model builder
-      std::map< Node, int > vmap;
-      Node v = getCodatatypesValue( it->first, eqc_cons, vmap, 0 );
-      Trace("dt-cmi") << "  EQC(" << it->first << "), constructor is " << it->second << ", value is " << v << ", const = " << v.isConst() << std::endl;
-      m->assertEquality( eqc, v, true );
-      m->assertRepresentative( v );
+      if( !it->second.isNull() ){
+        std::map< Node, int > vmap;
+        Node v = getCodatatypesValue( it->first, eqc_cons, vmap, 0 );
+        Trace("dt-cmi") << "  EQC(" << it->first << "), constructor is " << it->second << ", value is " << v << ", const = " << v.isConst() << std::endl;
+        m->assertEquality( eqc, v, true );
+        m->assertRepresentative( v );
+      }
     }else{
       Trace("dt-cmi") << "Datatypes : assert representative " << it->second << " for " << it->first << std::endl;
       m->assertRepresentative( it->second );

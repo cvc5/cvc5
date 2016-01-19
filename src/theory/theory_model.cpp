@@ -467,17 +467,19 @@ void TheoryEngineModelBuilder::assignConstantRep( TheoryModel* tm, std::map<Node
 }
 
 bool TheoryEngineModelBuilder::isExcludedCdtValue( Node val, std::set<Node>* repSet, std::map< Node, Node >& assertedReps, Node eqc ) {
-  Trace("model-builder-cdt") << "Is " << val << " and excluded codatatype value for " << eqc << "? " << std::endl;
+  Trace("model-builder-debug") << "Is " << val << " and excluded codatatype value for " << eqc << "? " << std::endl;
   for (set<Node>::iterator i = repSet->begin(); i != repSet->end(); ++i ) {
     Assert(assertedReps.find(*i) != assertedReps.end());
     Node rep = assertedReps[*i];
-    Trace("model-builder-cdt") << "  Rep : " << rep << std::endl;
+    Trace("model-builder-debug") << "  Rep : " << rep << std::endl;
     //check matching val to rep with eqc as a free variable
     Node eqc_m;
     if( isCdtValueMatch( val, rep, eqc, eqc_m ) ){
-      Trace("model-builder-cdt") << "  ...matches with " << eqc << " -> " << eqc_m << std::endl;
-      Trace("model-builder-cdt") << "*** " << val << " is excluded datatype for " << eqc << std::endl;
-      return true;
+      Trace("model-builder-debug") << "  ...matches with " << eqc << " -> " << eqc_m << std::endl;
+      if( eqc_m.getKind()==kind::UNINTERPRETED_CONSTANT ){
+        Trace("model-builder-debug") << "*** " << val << " is excluded datatype for " << eqc << std::endl;
+        return true;
+      }
     }
   }
   return false;
@@ -528,11 +530,11 @@ bool TheoryEngineModelBuilder::isExcludedUSortValue( std::map< TypeNode, unsigne
     visited[v] = true;
     TypeNode tn = v.getType();
     if( tn.isSort() ){
-      Trace("exc-value-debug") << "Is excluded usort value : " << v << " " << tn << std::endl;
+      Trace("model-builder-debug") << "Is excluded usort value : " << v << " " << tn << std::endl;
       unsigned card = eqc_usort_count[tn];
-      Trace("exc-value-debug") << "  Cardinality is " << card << std::endl;
+      Trace("model-builder-debug") << "  Cardinality is " << card << std::endl;
       unsigned index = v.getConst<UninterpretedConstant>().getIndex().toUnsignedInt();
-      Trace("exc-value-debug") << "  Index is " << index << std::endl;
+      Trace("model-builder-debug") << "  Index is " << index << std::endl;
       return index>0 && index>=card;
     }
     for( unsigned i=0; i<v.getNumChildren(); i++ ){
@@ -772,6 +774,7 @@ void TheoryEngineModelBuilder::buildModel(Model* m, bool fullModel)
       if(t.isTuple() || t.isRecord()) {
         t = NodeManager::currentNM()->getDatatypeForTupleRecord(t);
       }
+      
       //get properties of this type
       bool isCorecursive = false;
       bool isUSortFiniteRestricted = false;
@@ -782,6 +785,7 @@ void TheoryEngineModelBuilder::buildModel(Model* m, bool fullModel)
       if( options::finiteModelFind() ){
         isUSortFiniteRestricted = !t.isSort() && involvesUSort( t );
       }
+      
       set<Node>* repSet = typeRepSet.getSet(t);
       TypeNode tb = t.getBaseType();
       if (!assignOne) {
@@ -810,6 +814,7 @@ void TheoryEngineModelBuilder::buildModel(Model* m, bool fullModel)
             evaluable = true;
           }
         }
+        Trace("model-builder-debug") << "    eqc " << *i2 << " is assignable=" << assignable << ", evaluable=" << evaluable << std::endl;
         if (assignable) {
           Assert(!evaluable || assignOne);
           Assert(!t.isBoolean() || (*i2).getKind() == kind::APPLY_UF);
@@ -821,7 +826,7 @@ void TheoryEngineModelBuilder::buildModel(Model* m, bool fullModel)
               //--- AJR: this code checks whether n is a legal value
               Assert( !n.isNull() );
               success = true;
-              Trace("exc-value-debug") << "Check if excluded : " << n << std::endl;
+              Trace("model-builder-debug") << "Check if excluded : " << n << std::endl;
               if( isUSortFiniteRestricted ){
 #ifdef CVC4_ASSERTIONS
                 //must not involve uninterpreted constants beyond cardinality bound (which assumed to coincide with #eqc)
@@ -829,7 +834,7 @@ void TheoryEngineModelBuilder::buildModel(Model* m, bool fullModel)
                 std::map< Node, bool > visited;
                 success = !isExcludedUSortValue( eqc_usort_count, n, visited );
                 if( !success ){
-                  Trace("exc-value") << "Excluded value for " << t << " : " << n << " due to out of range uninterpreted constant." << std::endl;
+                  Trace("model-builder") << "Excluded value for " << t << " : " << n << " due to out of range uninterpreted constant." << std::endl;
                 }
                 Assert( success );
 #endif
@@ -840,7 +845,7 @@ void TheoryEngineModelBuilder::buildModel(Model* m, bool fullModel)
                   // this will check whether n \not\in V^x_I from page 9 of Reynolds/Blanchette CADE 2015
                   success = !isExcludedCdtValue( n, repSet, assertedReps, *i2 );
                   if( !success ){
-                    Trace("exc-value") << "Excluded value : " << n << " due to alpha-equivalent codatatype expression." << std::endl;
+                    Trace("model-builder") << "Excluded value : " << n << " due to alpha-equivalent codatatype expression." << std::endl;
                   }
                 }
               }

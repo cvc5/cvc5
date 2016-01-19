@@ -45,7 +45,9 @@ TESTS =	\
 	sc_bad_model_1221.smt2 \
  	dt-proper-model.smt2 \
 	fd-false.smt2 \
-	tail_rec.smt2
+	tail_rec.smt2 \
+	jasmin-cdt-crash.smt2 \
+	loopy_coda.smt2
 
 
 EXTRA_DIST = $(TESTS)
