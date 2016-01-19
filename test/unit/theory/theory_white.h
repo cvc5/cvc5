@@ -54,7 +54,7 @@ public:
 
   void safePoint() throw(Interrupted, AssertionException) {}
 
-  void conflict(TNode n)
+  void conflict(TNode n, Proof* pf = NULL)
     throw(AssertionException) {
     push(CONFLICT, n);
   }
@@ -70,7 +70,10 @@ public:
     // ignore
   }
 
-  LemmaStatus lemma(TNode n, bool removable = false, bool preprocess = false, bool sendAtoms = false)
+  LemmaStatus lemma(TNode n, ProofRule rule,
+                    bool removable = false,
+                    bool preprocess = false,
+                    bool sendAtoms = false)
     throw(AssertionException) {
     push(LEMMA, n);
     return LemmaStatus(Node::null(), 0);
@@ -301,7 +304,7 @@ public:
 
   void testOutputChannel() {
     Node n = atom0.orNode(atom1);
-    d_outputChannel.lemma(n);
+    d_outputChannel.lemma(n, RULE_INVALID);
     d_outputChannel.split(atom0);
     Node s = atom0.orNode(atom0.notNode());
     TS_ASSERT_EQUALS(d_outputChannel.d_callHistory.size(), 2u);

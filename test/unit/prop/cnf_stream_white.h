@@ -64,8 +64,9 @@ public:
     return d_nextVar++;
   }
 
-  void addClause(SatClause& c, bool lemma, uint64_t) {
+  ClauseId addClause(SatClause& c, bool lemma) {
     d_addClauseCalled = true;
+    return ClauseIdUndef;
   }
 
   void reset() {
@@ -116,6 +117,8 @@ public:
   bool properExplanation(SatLiteral lit, SatLiteral expl) const {
     return true;
   }
+
+  bool ok() const { return true; }
 
 };/* class FakeSatSolver */
 
