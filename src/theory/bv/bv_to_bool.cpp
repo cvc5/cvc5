@@ -11,11 +11,12 @@
  **
  ** \brief Preprocessing pass that lifts bit-vectors of size 1 to booleans.
  **
- ** Preprocessing pass that lifts bit-vectors of size 1 to booleans. 
+ ** Preprocessing pass that lifts bit-vectors of size 1 to booleans.
  **/
 #include "theory/bv/bv_to_bool.h"
 
 #include "smt_util/node_visitor.h"
+#include "smt/smt_statistics_registry.h"
 
 using namespace std;
 using namespace CVC4;
@@ -31,7 +32,7 @@ BvToBoolPreprocessor::BvToBoolPreprocessor()
 {}
 
 void BvToBoolPreprocessor::addToLiftCache(TNode term, Node new_term) {
-  Assert (new_term != Node()); 
+  Assert (new_term != Node());
   Assert (!hasLiftCache(term));
   Assert (term.getType() == new_term.getType());
   d_liftCache[term] = new_term; 
@@ -239,13 +240,13 @@ BvToBoolPreprocessor::Statistics::Statistics()
   , d_numAtomsLifted("theory::bv::BvToBoolPreprocess::NumberOfAtomsLifted", 0)
   , d_numTermsForcedLifted("theory::bv::BvToBoolPreprocess::NumberOfTermsForcedLifted", 0)
 {
-  StatisticsRegistry::registerStat(&d_numTermsLifted);
-  StatisticsRegistry::registerStat(&d_numAtomsLifted);
-  StatisticsRegistry::registerStat(&d_numTermsForcedLifted);
+  smtStatisticsRegistry()->registerStat(&d_numTermsLifted);
+  smtStatisticsRegistry()->registerStat(&d_numAtomsLifted);
+  smtStatisticsRegistry()->registerStat(&d_numTermsForcedLifted);
 }
 
 BvToBoolPreprocessor::Statistics::~Statistics() {
-  StatisticsRegistry::unregisterStat(&d_numTermsLifted);
-  StatisticsRegistry::unregisterStat(&d_numAtomsLifted);
-  StatisticsRegistry::unregisterStat(&d_numTermsForcedLifted);
+  smtStatisticsRegistry()->unregisterStat(&d_numTermsLifted);
+  smtStatisticsRegistry()->unregisterStat(&d_numAtomsLifted);
+  smtStatisticsRegistry()->unregisterStat(&d_numTermsForcedLifted);
 }

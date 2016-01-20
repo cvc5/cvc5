@@ -16,16 +16,39 @@
 
 #include "base/exception.h"
 
-#include <string>
+#include <cstdarg>
 #include <cstdio>
 #include <cstdlib>
-#include <cstdarg>
+#include <cstring>
+#include <string>
 
 #include "base/cvc4_assert.h"
 
 using namespace std;
 
 namespace CVC4 {
+
+CVC4_THREADLOCAL(LastExceptionBuffer*) LastExceptionBuffer::s_currentBuffer = NULL;
+
+LastExceptionBuffer::LastExceptionBuffer() : d_contents(NULL) {}
+
+LastExceptionBuffer::~LastExceptionBuffer() {
+  if(d_contents != NULL){
+    free(d_contents);
+    d_contents = NULL;
+  }
+}
+
+void LastExceptionBuffer::setContents(const char* string) {
+  if(d_contents != NULL){
+    free(d_contents);
+    d_contents = NULL;
+  }
+
+  if(string != NULL){
+    d_contents = strdup(string);
+  }
+}
 
 char* IllegalArgumentException::s_header = "Illegal argument detected";
 
@@ -107,13 +130,14 @@ void IllegalArgumentException::construct(const char* header, const char* extra,
   setMessage(string(buf));
 
 #ifdef CVC4_DEBUG
-  if(s_debugLastException == NULL) {
-    // we leak buf[] but only in debug mode with assertions failing
-    s_debugLastException = buf;
+  LastExceptionBuffer* buffer = LastExceptionBuffer::getCurrent();
+  if(buffer != NULL){
+    if(buffer->getContents() == NULL) {
+      buffer->setContents(buf);
+    }
   }
-#else /* CVC4_DEBUG */
-  delete [] buf;
 #endif /* CVC4_DEBUG */
+  delete [] buf;
 }
 
 void IllegalArgumentException::construct(const char* header, const char* extra,
@@ -147,13 +171,14 @@ void IllegalArgumentException::construct(const char* header, const char* extra,
   setMessage(string(buf));
 
 #ifdef CVC4_DEBUG
-  if(s_debugLastException == NULL) {
-    // we leak buf[] but only in debug mode with assertions failing
-    s_debugLastException = buf;
+  LastExceptionBuffer* buffer = LastExceptionBuffer::getCurrent();
+  if(buffer != NULL){
+    if(buffer->getContents() == NULL) {
+      buffer->setContents(buf);
+    }
   }
-#else /* CVC4_DEBUG */
-  delete [] buf;
 #endif /* CVC4_DEBUG */
+  delete [] buf;
 }
 
 } /* namespace CVC4 */

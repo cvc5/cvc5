@@ -22,6 +22,7 @@
 #include "options/arrays_options.h"
 #include "options/smt_options.h"
 #include "smt/logic_exception.h"
+#include "smt/smt_statistics_registry.h"
 #include "smt_util/command.h"
 #include "theory/rewriter.h"
 #include "theory/theory_model.h"
@@ -52,61 +53,63 @@ const bool d_solveWrite2 = false;
   //bool d_lazyRIntro1 = true;
   //bool d_eagerIndexSplitting = false;
 
-TheoryArrays::TheoryArrays(context::Context* c, context::UserContext* u, OutputChannel& out, Valuation valuation, const LogicInfo& logicInfo) :
-  Theory(THEORY_ARRAY, c, u, out, valuation, logicInfo),
-  d_numRow("theory::arrays::number of Row lemmas", 0),
-  d_numExt("theory::arrays::number of Ext lemmas", 0),
-  d_numProp("theory::arrays::number of propagations", 0),
-  d_numExplain("theory::arrays::number of explanations", 0),
-  d_numNonLinear("theory::arrays::number of calls to setNonLinear", 0),
-  d_numSharedArrayVarSplits("theory::arrays::number of shared array var splits", 0),
-  d_numGetModelValSplits("theory::arrays::number of getModelVal splits", 0),
-  d_numGetModelValConflicts("theory::arrays::number of getModelVal conflicts", 0),
-  d_numSetModelValSplits("theory::arrays::number of setModelVal splits", 0),
-  d_numSetModelValConflicts("theory::arrays::number of setModelVal conflicts", 0),
-  d_ppEqualityEngine(u, "theory::arrays::TheoryArraysPP" , true),
-  d_ppFacts(u),
-  //  d_ppCache(u),
-  d_literalsToPropagate(c),
-  d_literalsToPropagateIndex(c, 0),
-  d_isPreRegistered(c),
-  d_mayEqualEqualityEngine(c, "theory::arrays::TheoryArraysMayEqual", true),
-  d_notify(*this),
-  d_equalityEngine(d_notify, c, "theory::arrays::TheoryArrays", true),
-  d_conflict(c, false),
-  d_backtracker(c),
-  d_infoMap(c, &d_backtracker),
-  d_mergeQueue(c),
-  d_mergeInProgress(false),
-  d_RowQueue(c),
-  d_RowAlreadyAdded(u),
-  d_sharedArrays(c),
-  d_sharedOther(c),
-  d_sharedTerms(c, false),
-  d_reads(c),
-  d_constReadsList(c),
-  d_constReadsContext(new context::Context()),
-  d_contextPopper(c, d_constReadsContext),
-  d_skolemIndex(c, 0),
-  d_decisionRequests(c),
-  d_permRef(c),
-  d_modelConstraints(c),
-  d_lemmasSaved(c),
-  d_defValues(c),
-  d_readTableContext(new context::Context()),
-  d_arrayMerges(c),
-  d_inCheckModel(false)
+TheoryArrays::TheoryArrays(context::Context* c, context::UserContext* u,
+                           OutputChannel& out, Valuation valuation,
+                           const LogicInfo& logicInfo, SmtGlobals* globals)
+    : Theory(THEORY_ARRAY, c, u, out, valuation, logicInfo, globals),
+      d_numRow("theory::arrays::number of Row lemmas", 0),
+      d_numExt("theory::arrays::number of Ext lemmas", 0),
+      d_numProp("theory::arrays::number of propagations", 0),
+      d_numExplain("theory::arrays::number of explanations", 0),
+      d_numNonLinear("theory::arrays::number of calls to setNonLinear", 0),
+      d_numSharedArrayVarSplits("theory::arrays::number of shared array var splits", 0),
+      d_numGetModelValSplits("theory::arrays::number of getModelVal splits", 0),
+      d_numGetModelValConflicts("theory::arrays::number of getModelVal conflicts", 0),
+      d_numSetModelValSplits("theory::arrays::number of setModelVal splits", 0),
+      d_numSetModelValConflicts("theory::arrays::number of setModelVal conflicts", 0),
+      d_ppEqualityEngine(u, "theory::arrays::TheoryArraysPP" , true),
+      d_ppFacts(u),
+      //      d_ppCache(u),
+      d_literalsToPropagate(c),
+      d_literalsToPropagateIndex(c, 0),
+      d_isPreRegistered(c),
+      d_mayEqualEqualityEngine(c, "theory::arrays::TheoryArraysMayEqual", true),
+      d_notify(*this),
+      d_equalityEngine(d_notify, c, "theory::arrays::TheoryArrays", true),
+      d_conflict(c, false),
+      d_backtracker(c),
+      d_infoMap(c, &d_backtracker),
+      d_mergeQueue(c),
+      d_mergeInProgress(false),
+      d_RowQueue(c),
+      d_RowAlreadyAdded(u),
+      d_sharedArrays(c),
+      d_sharedOther(c),
+      d_sharedTerms(c, false),
+      d_reads(c),
+      d_constReadsList(c),
+      d_constReadsContext(new context::Context()),
+      d_contextPopper(c, d_constReadsContext),
+      d_skolemIndex(c, 0),
+      d_decisionRequests(c),
+      d_permRef(c),
+      d_modelConstraints(c),
+      d_lemmasSaved(c),
+      d_defValues(c),
+      d_readTableContext(new context::Context()),
+      d_arrayMerges(c),
+      d_inCheckModel(false)
 {
-  StatisticsRegistry::registerStat(&d_numRow);
-  StatisticsRegistry::registerStat(&d_numExt);
-  StatisticsRegistry::registerStat(&d_numProp);
-  StatisticsRegistry::registerStat(&d_numExplain);
-  StatisticsRegistry::registerStat(&d_numNonLinear);
-  StatisticsRegistry::registerStat(&d_numSharedArrayVarSplits);
-  StatisticsRegistry::registerStat(&d_numGetModelValSplits);
-  StatisticsRegistry::registerStat(&d_numGetModelValConflicts);
-  StatisticsRegistry::registerStat(&d_numSetModelValSplits);
-  StatisticsRegistry::registerStat(&d_numSetModelValConflicts);
+  smtStatisticsRegistry()->registerStat(&d_numRow);
+  smtStatisticsRegistry()->registerStat(&d_numExt);
+  smtStatisticsRegistry()->registerStat(&d_numProp);
+  smtStatisticsRegistry()->registerStat(&d_numExplain);
+  smtStatisticsRegistry()->registerStat(&d_numNonLinear);
+  smtStatisticsRegistry()->registerStat(&d_numSharedArrayVarSplits);
+  smtStatisticsRegistry()->registerStat(&d_numGetModelValSplits);
+  smtStatisticsRegistry()->registerStat(&d_numGetModelValConflicts);
+  smtStatisticsRegistry()->registerStat(&d_numSetModelValSplits);
+  smtStatisticsRegistry()->registerStat(&d_numSetModelValConflicts);
 
   d_true = NodeManager::currentNM()->mkConst<bool>(true);
   d_false = NodeManager::currentNM()->mkConst<bool>(false);
@@ -136,16 +139,16 @@ TheoryArrays::~TheoryArrays() {
     it2->second->deleteSelf();
   }
   delete d_constReadsContext;
-  StatisticsRegistry::unregisterStat(&d_numRow);
-  StatisticsRegistry::unregisterStat(&d_numExt);
-  StatisticsRegistry::unregisterStat(&d_numProp);
-  StatisticsRegistry::unregisterStat(&d_numExplain);
-  StatisticsRegistry::unregisterStat(&d_numNonLinear);
-  StatisticsRegistry::unregisterStat(&d_numSharedArrayVarSplits);
-  StatisticsRegistry::unregisterStat(&d_numGetModelValSplits);
-  StatisticsRegistry::unregisterStat(&d_numGetModelValConflicts);
-  StatisticsRegistry::unregisterStat(&d_numSetModelValSplits);
-  StatisticsRegistry::unregisterStat(&d_numSetModelValConflicts);
+  smtStatisticsRegistry()->unregisterStat(&d_numRow);
+  smtStatisticsRegistry()->unregisterStat(&d_numExt);
+  smtStatisticsRegistry()->unregisterStat(&d_numProp);
+  smtStatisticsRegistry()->unregisterStat(&d_numExplain);
+  smtStatisticsRegistry()->unregisterStat(&d_numNonLinear);
+  smtStatisticsRegistry()->unregisterStat(&d_numSharedArrayVarSplits);
+  smtStatisticsRegistry()->unregisterStat(&d_numGetModelValSplits);
+  smtStatisticsRegistry()->unregisterStat(&d_numGetModelValConflicts);
+  smtStatisticsRegistry()->unregisterStat(&d_numSetModelValSplits);
+  smtStatisticsRegistry()->unregisterStat(&d_numSetModelValConflicts);
 }
 
 void TheoryArrays::setMasterEqualityEngine(eq::EqualityEngine* eq) {

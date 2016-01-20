@@ -1,5 +1,5 @@
 %{
-#include "expr/result.h"
+#include "util/result.h"
 %}
 
 %ignore CVC4::operator<<(std::ostream&, const Result& r);
@@ -17,4 +17,4 @@
 %ignore CVC4::operator==(enum Result::Validity, const Result&);
 %ignore CVC4::operator!=(enum Result::Validity, const Result&);
 
-%include "expr/result.h"
+%include "util/result.h"

@@ -18,8 +18,8 @@
 
 #pragma once
 
-#include "theory/bv/bv_subtheory.h"
 #include "theory/bv/bitblaster_template.h"
+#include "theory/bv/bv_subtheory.h"
 
 namespace CVC4 {
 namespace theory {
@@ -58,7 +58,7 @@ class BitblastSolver : public SubtheorySolver {
   BVQuickCheck* d_quickCheck;
   QuickXPlain* d_quickXplain;
   //  Node getModelValueRec(TNode node);
-  void setConflict(TNode conflict); 
+  void setConflict(TNode conflict);
 public:
   BitblastSolver(context::Context* c, TheoryBV* bv);
   ~BitblastSolver();

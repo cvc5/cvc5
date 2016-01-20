@@ -3,7 +3,7 @@
  ** \verbatim
  ** Original author: Morgan Deters
  ** Major contributors: none
- ** Minor contributors (to current version): none
+ ** Minor contributors (to current version): Andrew Reynolds
  ** This file is part of the CVC4 project.
  ** Copyright (c) 2009-2014  New York University and The University of Iowa
  ** See the file COPYING in the top-level source directory for licensing
@@ -32,7 +32,7 @@ class BooleanEnumerator : public TypeEnumeratorBase<BooleanEnumerator> {
 
 public:
 
-  BooleanEnumerator(TypeNode type) :
+  BooleanEnumerator(TypeNode type, TypeEnumeratorProperties * tep = NULL) :
     TypeEnumeratorBase<BooleanEnumerator>(type),
     d_value(FALSE) {
     Assert(type.getKind() == kind::TYPE_CONSTANT &&

@@ -113,9 +113,10 @@ public:
   void done(TNode node) { }
 };
 
-TheoryProofEngine::TheoryProofEngine()
+TheoryProofEngine::TheoryProofEngine(SmtGlobals* globals)
   : d_registrationCache()
   , d_theoryProofTable()
+  , d_globals(globals)
 {
   d_theoryProofTable[theory::THEORY_BOOL] = new LFSCBooleanProof(this);
 }
@@ -507,11 +508,13 @@ void TheoryProof::printTheoryLemmaProof(std::vector<Expr>& lemma, std::ostream& 
   theory::Theory* th;
   Trace("theory-proof-debug") << ";; Print theory lemma proof, theory id = " << d_theory->getId() << std::endl;
   if(d_theory->getId()==theory::THEORY_UF) {
-    th = new theory::uf::TheoryUF(&fakeContext, &fakeContext, oc, v, ProofManager::currentPM()->getLogicInfo());
+    th = new theory::uf::TheoryUF(&fakeContext, &fakeContext, oc, v,
+                                  ProofManager::currentPM()->getLogicInfo(),
+                                  ProofManager::currentPM()->getTheoryProofEngine()->d_globals);
   } else if(d_theory->getId()==theory::THEORY_ARRAY) {
-    th = new theory::arrays::TheoryArrays(&fakeContext, &fakeContext, oc, v, ProofManager::currentPM()->getLogicInfo());
-  } else if(d_theory->getId()==theory::THEORY_BV) {
-    th = new theory::bv::TheoryBV(&fakeContext, &fakeContext, oc, v, ProofManager::currentPM()->getLogicInfo());
+    th = new theory::arrays::TheoryArrays(&fakeContext, &fakeContext, oc, v,
+                                          ProofManager::currentPM()->getLogicInfo(),
+                                          ProofManager::currentPM()->getTheoryProofEngine()->d_globals);
   } else {
     InternalError(std::string("can't generate theory-proof for ") + ProofManager::currentPM()->getLogic());
   }

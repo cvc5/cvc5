@@ -3,7 +3,7 @@
  ** \verbatim
  ** Original author: Morgan Deters
  ** Major contributors: none
- ** Minor contributors (to current version): none
+ ** Minor contributors (to current version): Andrew Reynolds
  ** This file is part of the CVC4 project.
  ** Copyright (c) 2009-2014  New York University and The University of Iowa
  ** See the file COPYING in the top-level source directory for licensing
@@ -31,16 +31,32 @@ namespace builtin {
 
 class UninterpretedSortEnumerator : public TypeEnumeratorBase<UninterpretedSortEnumerator> {
   Integer d_count;
-
+  bool d_has_fixed_bound;
+  Integer d_fixed_bound;
 public:
 
-  UninterpretedSortEnumerator(TypeNode type) throw(AssertionException) :
+  UninterpretedSortEnumerator(TypeNode type, TypeEnumeratorProperties * tep = NULL) throw(AssertionException) :
     TypeEnumeratorBase<UninterpretedSortEnumerator>(type),
     d_count(0) {
     Assert(type.getKind() == kind::SORT_TYPE);
+    d_has_fixed_bound = false;
+    Trace("uf-type-enum") << "UF enum " << type << ", tep = " << tep << std::endl;
+    if( tep && tep->d_fixed_usort_card ){
+      d_has_fixed_bound = true;
+      std::map< TypeNode, Integer >::iterator it = tep->d_fixed_card.find( type );
+      if( it!=tep->d_fixed_card.end() ){
+        d_fixed_bound = it->second;
+      }else{
+        d_fixed_bound = Integer(1);
+      }
+      Trace("uf-type-enum") << "...fixed bound : " << d_fixed_bound << std::endl;
+    }
   }
 
-  Node operator*() throw() {
+  Node operator*() throw(NoMoreValuesException) {
+    if(isFinished()) {
+      throw NoMoreValuesException(getType());
+    }
     return NodeManager::currentNM()->mkConst(UninterpretedConstant(getType().toType(), d_count));
   }
 
@@ -50,7 +66,11 @@ public:
   }
 
   bool isFinished() throw() {
-    return false;
+    if( d_has_fixed_bound ){
+      return d_count>=d_fixed_bound;
+    }else{
+      return false;
+    }
   }
 
 };/* class UninterpretedSortEnumerator */

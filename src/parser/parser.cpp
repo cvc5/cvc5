@@ -28,13 +28,13 @@
 #include "expr/expr.h"
 #include "expr/expr_iomanip.h"
 #include "expr/kind.h"
-#include "expr/resource_manager.h"
 #include "expr/type.h"
 #include "options/options.h"
 #include "options/smt_options.h"
 #include "parser/input.h"
 #include "parser/parser_exception.h"
 #include "smt_util/command.h"
+#include "util/resource_manager.h"
 
 using namespace std;
 using namespace CVC4::kind;

@@ -41,6 +41,9 @@ private:
   static void computeArgs( std::vector< Node >& args, std::map< Node, bool >& activeMap, Node n, std::map< Node, bool >& visited );
   static void computeArgVec( std::vector< Node >& args, std::vector< Node >& activeArgs, Node n );
   static void computeArgVec2( std::vector< Node >& args, std::vector< Node >& activeArgs, Node n, Node ipl );
+  static Node computeProcessTerms2( Node body, bool hasPol, bool pol, std::map< Node, bool >& currCond, int nCurrCond,
+                                    std::map< Node, Node >& cache, std::map< Node, Node >& icache,
+                                    std::vector< Node >& new_vars, std::vector< Node >& new_conds );
   static Node computeClause( Node n );
   static void computeDtTesterIteSplit( Node n, std::map< Node, Node >& pcons, std::map< Node, std::map< int, Node > >& ncons, std::vector< Node >& conj );
   static bool isConditionalVariableElim( Node n, int pol=0 );
@@ -56,9 +59,7 @@ private:
   static Node computeAggressiveMiniscoping( std::vector< Node >& args, Node body );
   static Node computeNNF( Node body );
   //cache is dependent upon currCond, icache is not, new_conds are negated conditions
-  static Node computeProcessTerms( Node body, bool hasPol, bool pol, std::map< Node, bool >& currCond, int nCurrCond,
-                                   std::map< Node, Node >& cache, std::map< Node, Node >& icache,
-                                   std::vector< Node >& new_vars, std::vector< Node >& new_conds );
+  static Node computeProcessTerms( Node body, std::vector< Node >& new_vars, std::vector< Node >& new_conds, Node q );
   static Node computeCondSplit( Node body, Node ipl );
   static Node computeCNF( Node body, std::vector< Node >& args, NodeBuilder<>& defs, bool forcePred );
   static Node computePrenex( Node body, std::vector< Node >& args, bool pol );
@@ -101,4 +102,5 @@ public:
 }/* CVC4 namespace */
 
 #endif /* __CVC4__THEORY__QUANTIFIERS__QUANTIFIERS_REWRITER_H */
+
 

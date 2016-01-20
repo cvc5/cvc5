@@ -14,6 +14,21 @@
  ** Statistics utility classes, including classes for holding (and referring
  ** to) statistics, the statistics registry, and some other associated
  ** classes.
+ **
+ ** This file is somewhat unique in that it is a "cvc4_private_library.h"
+ ** header. Because of this, most classes need to be marked as CVC4_PUBLIC.
+ ** This is because CVC4_PUBLIC is connected to the visibility of the linkage
+ ** in the object files for the class. It does not dictate what headers are
+ ** installed.
+ ** Because the StatisticsRegistry and associated classes are built into
+ ** libutil, which is used by libcvc4, and then later used by the libmain
+ ** without referring to libutil as well. Thus the without marking these as
+ ** CVC4_PUBLIC the symbols would be external in libutil, internal in libcvc4,
+ ** and not be visible to libmain and linking would fail.
+ ** You can debug this using "nm" on the .so and .o files in the builds/
+ ** directory. See
+ ** http://eli.thegreenplace.net/2013/07/09/library-order-in-static-linking
+ ** for a longer discussion on symbol visibility.
  **/
 
 #include "cvc4_private_library.h"
@@ -31,9 +46,18 @@
 #include <vector>
 
 #include "base/exception.h"
-#include "expr/statistics.h"
+#include "lib/clock_gettime.h"
+#include "util/statistics.h"
 
 namespace CVC4 {
+
+/**
+ * Prints a timespec.
+ *
+ * This is used in the implementation of TimerStat. This needs to be available
+ * before Stat due to ordering constraints in clang for TimerStat.
+ */
+std::ostream& operator<<(std::ostream& os, const timespec& t) CVC4_PUBLIC;
 
 #ifdef CVC4_STATISTICS_ON
 #  define __CVC4_USE_STATISTICS true
@@ -41,9 +65,6 @@ namespace CVC4 {
 #  define __CVC4_USE_STATISTICS false
 #endif
 
-class ExprManager;
-class SmtEngine;
-class StatisticsRegistry;
 
 /**
  * The base class for all statistics.
@@ -620,11 +641,6 @@ public:
     d_prefix = d_name = name;
   }
 
-#if (defined(__BUILDING_CVC4LIB) || defined(__BUILDING_CVC4LIB_UNIT_TEST))
-  /** Get a pointer to the current statistics registry */
-  static StatisticsRegistry* current();
-#endif /* (__BUILDING_CVC4LIB || __BUILDING_CVC4LIB_UNIT_TEST) */
-
   /** Overridden to avoid the name being printed */
   void flushStat(std::ostream &out) const;
 
@@ -641,139 +657,16 @@ public:
     return SExpr(v);
   }
 
-#if (defined(__BUILDING_CVC4LIB) || defined(__BUILDING_CVC4LIB_UNIT_TEST))
-  /** Register a new statistic, making it active. */
-  static void registerStat(Stat* s) throw(CVC4::IllegalArgumentException);
-
-  /** Register a new statistic, making it active; changes name to be unique if necessary. */
-  static void registerStatMultiple(Stat* s) throw();
-  
-  /** Unregister an active statistic, making it inactive. */
-  static void unregisterStat(Stat* s) throw(CVC4::IllegalArgumentException);
-#endif /* (__BUILDING_CVC4LIB || __BUILDING_CVC4LIB) */
-
   /** Register a new statistic */
-  void registerStat_(Stat* s) throw(CVC4::IllegalArgumentException);
+  void registerStat(Stat* s) throw(CVC4::IllegalArgumentException);
 
   /** Register a new statistic */
   void registerStatMultiple_(Stat* s) throw();
   
   /** Unregister a new statistic */
-  void unregisterStat_(Stat* s) throw(CVC4::IllegalArgumentException);
+  void unregisterStat(Stat* s) throw(CVC4::IllegalArgumentException);
 
 };/* class StatisticsRegistry */
-
-}/* CVC4 namespace */
-
-/****************************************************************************/
-/* Some utility functions for timespec                                    */
-/****************************************************************************/
-
-inline std::ostream& operator<<(std::ostream& os, const timespec& t);
-
-/** Compute the sum of two timespecs. */
-inline timespec& operator+=(timespec& a, const timespec& b) {
-  using namespace CVC4;
-  // assumes a.tv_nsec and b.tv_nsec are in range
-  const long nsec_per_sec = 1000000000L; // one thousand million
-  CheckArgument(a.tv_nsec >= 0 && a.tv_nsec < nsec_per_sec, a);
-  CheckArgument(b.tv_nsec >= 0 && b.tv_nsec < nsec_per_sec, b);
-  a.tv_sec += b.tv_sec;
-  long nsec = a.tv_nsec + b.tv_nsec;
-  assert(nsec >= 0);
-  if(nsec < 0) {
-    nsec += nsec_per_sec;
-    --a.tv_sec;
-  }
-  if(nsec >= nsec_per_sec) {
-    nsec -= nsec_per_sec;
-    ++a.tv_sec;
-  }
-  assert(nsec >= 0 && nsec < nsec_per_sec);
-  a.tv_nsec = nsec;
-  return a;
-}
-
-/** Compute the difference of two timespecs. */
-inline timespec& operator-=(timespec& a, const timespec& b) {
-  using namespace CVC4;
-  // assumes a.tv_nsec and b.tv_nsec are in range
-  const long nsec_per_sec = 1000000000L; // one thousand million
-  CheckArgument(a.tv_nsec >= 0 && a.tv_nsec < nsec_per_sec, a);
-  CheckArgument(b.tv_nsec >= 0 && b.tv_nsec < nsec_per_sec, b);
-  a.tv_sec -= b.tv_sec;
-  long nsec = a.tv_nsec - b.tv_nsec;
-  if(nsec < 0) {
-    nsec += nsec_per_sec;
-    --a.tv_sec;
-  }
-  if(nsec >= nsec_per_sec) {
-    nsec -= nsec_per_sec;
-    ++a.tv_sec;
-  }
-  assert(nsec >= 0 && nsec < nsec_per_sec);
-  a.tv_nsec = nsec;
-  return a;
-}
-
-/** Add two timespecs. */
-inline timespec operator+(const timespec& a, const timespec& b) {
-  timespec result = a;
-  return result += b;
-}
-
-/** Subtract two timespecs. */
-inline timespec operator-(const timespec& a, const timespec& b) {
-  timespec result = a;
-  return result -= b;
-}
-
-/** Compare two timespecs for equality. */
-inline bool operator==(const timespec& a, const timespec& b) {
-  // assumes a.tv_nsec and b.tv_nsec are in range
-  return a.tv_sec == b.tv_sec && a.tv_nsec == b.tv_nsec;
-}
-
-/** Compare two timespecs for disequality. */
-inline bool operator!=(const timespec& a, const timespec& b) {
-  // assumes a.tv_nsec and b.tv_nsec are in range
-  return !(a == b);
-}
-
-/** Compare two timespecs, returning true iff a < b. */
-inline bool operator<(const timespec& a, const timespec& b) {
-  // assumes a.tv_nsec and b.tv_nsec are in range
-  return a.tv_sec < b.tv_sec ||
-    (a.tv_sec == b.tv_sec && a.tv_nsec < b.tv_nsec);
-}
-
-/** Compare two timespecs, returning true iff a > b. */
-inline bool operator>(const timespec& a, const timespec& b) {
-  // assumes a.tv_nsec and b.tv_nsec are in range
-  return a.tv_sec > b.tv_sec ||
-    (a.tv_sec == b.tv_sec && a.tv_nsec > b.tv_nsec);
-}
-
-/** Compare two timespecs, returning true iff a <= b. */
-inline bool operator<=(const timespec& a, const timespec& b) {
-  // assumes a.tv_nsec and b.tv_nsec are in range
-  return !(a > b);
-}
-
-/** Compare two timespecs, returning true iff a >= b. */
-inline bool operator>=(const timespec& a, const timespec& b) {
-  // assumes a.tv_nsec and b.tv_nsec are in range
-  return !(a < b);
-}
-
-/** Output a timespec on an output stream. */
-inline std::ostream& operator<<(std::ostream& os, const timespec& t) {
-  // assumes t.tv_nsec is in range
-  return os << t.tv_sec << "."
-            << std::setfill('0') << std::setw(9) << std::right << t.tv_nsec;
-}
-
-namespace CVC4 {
 
 class CodeTimer;
 
@@ -853,34 +746,6 @@ public:
 };/* class CodeTimer */
 
 /**
- * To use a statistic, you need to declare it, initialize it in your
- * constructor, register it in your constructor, and deregister it in
- * your destructor.  Instead, this macro does it all for you (and
- * therefore also keeps the statistic type, field name, and output
- * string all in the same place in your class's header.  Its use is
- * like in this example, which takes the place of the declaration of a
- * statistics field "d_checkTimer":
- *
- *   KEEP_STATISTIC(TimerStat, d_checkTimer, "theory::uf::checkTime");
- *
- * If any args need to be passed to the constructor, you can specify
- * them after the string.
- *
- * The macro works by creating a nested class type, derived from the
- * statistic type you give it, which declares a registry-aware
- * constructor/destructor pair.
- */
-#define KEEP_STATISTIC(_StatType, _StatField, _StatName, _CtorArgs...)  \
-  struct Statistic_##_StatField : public _StatType {                    \
-    Statistic_##_StatField() : _StatType(_StatName, ## _CtorArgs) {     \
-      StatisticsRegistry::registerStatMultiple(this);                           \
-    }                                                                   \
-    ~Statistic_##_StatField() {                                         \
-      StatisticsRegistry::unregisterStat(this);                         \
-    }                                                                   \
-  } _StatField
-
-/**
  * Resource-acquisition-is-initialization idiom for statistics
  * registry.  Useful for stack-based statistics (like in the driver).
  * Generally, for statistics kept in a member field of class, it's
@@ -889,40 +754,14 @@ public:
  * registration/unregistration.  This RAII class only does
  * registration and unregistration.
  */
-class RegisterStatistic {
+class CVC4_PUBLIC RegisterStatistic {
+public:
+  RegisterStatistic(StatisticsRegistry* reg, Stat* stat);
+  ~RegisterStatistic();
 
+private:
   StatisticsRegistry* d_reg;
   Stat* d_stat;
-
-public:
-
-#if (defined(__BUILDING_CVC4LIB) || defined(__BUILDING_CVC4LIB_UNIT_TEST))
-  RegisterStatistic(Stat* stat) :
-      d_reg(StatisticsRegistry::current()),
-      d_stat(stat) {
-    if(d_reg != NULL) {
-      throw CVC4::Exception("There is no current statistics registry!");
-    }
-    StatisticsRegistry::registerStat(d_stat);
-  }
-#endif /* (__BUILDING_CVC4LIB || __BUILDING_CVC4LIB_UNIT_TEST) */
-
-  RegisterStatistic(StatisticsRegistry* reg, Stat* stat) :
-    d_reg(reg),
-    d_stat(stat) {
-    CheckArgument(reg != NULL, reg,
-                  "You need to specify a statistics registry"
-                  "on which to set the statistic");
-    d_reg->registerStat_(d_stat);
-  }
-
-  RegisterStatistic(ExprManager& em, Stat* stat);
-
-  RegisterStatistic(SmtEngine& smt, Stat* stat);
-
-  ~RegisterStatistic() {
-    d_reg->unregisterStat_(d_stat);
-  }
 
 };/* class RegisterStatistic */
 

@@ -30,6 +30,8 @@ namespace datatypes {
 
 
 class DatatypesEnumerator : public TypeEnumeratorBase<DatatypesEnumerator> {
+  /** type properties */
+  TypeEnumeratorProperties * d_tep;
   /** The datatype we're enumerating */
   const Datatype& d_datatype;
   /** extra cons */
@@ -78,15 +80,17 @@ class DatatypesEnumerator : public TypeEnumeratorBase<DatatypesEnumerator> {
   void init();
 public:
 
-  DatatypesEnumerator(TypeNode type) throw() :
+  DatatypesEnumerator(TypeNode type, TypeEnumeratorProperties * tep = NULL) throw() :
     TypeEnumeratorBase<DatatypesEnumerator>(type),
+    d_tep(tep),
     d_datatype(DatatypeType(type.toType()).getDatatype()),
     d_type(type) {
     d_child_enum = false;
     init();
   }
-  DatatypesEnumerator(TypeNode type, bool childEnum) throw() :
+  DatatypesEnumerator(TypeNode type, bool childEnum, TypeEnumeratorProperties * tep = NULL) throw() :
     TypeEnumeratorBase<DatatypesEnumerator>(type),
+    d_tep(tep),
     d_datatype(DatatypeType(type.toType()).getDatatype()),
     d_type(type) {
     d_child_enum = childEnum;
@@ -94,6 +98,7 @@ public:
   }
   DatatypesEnumerator(const DatatypesEnumerator& de) throw() :
     TypeEnumeratorBase<DatatypesEnumerator>(de.getType()),
+    d_tep(de.d_tep),
     d_datatype(de.d_datatype),
     d_type(de.d_type),
     d_ctor(de.d_ctor),
@@ -172,13 +177,14 @@ public:
 };/* DatatypesEnumerator */
 
 class TupleEnumerator : public TypeEnumeratorBase<TupleEnumerator> {
+  TypeEnumeratorProperties * d_tep;
   TypeEnumerator** d_enumerators;
 
   /** Allocate and initialize the delegate enumerators */
   void newEnumerators() {
     d_enumerators = new TypeEnumerator*[getType().getNumChildren()];
     for(size_t i = 0; i < getType().getNumChildren(); ++i) {
-      d_enumerators[i] = new TypeEnumerator(getType()[i]);
+      d_enumerators[i] = new TypeEnumerator(getType()[i], d_tep);
     }
   }
 
@@ -194,14 +200,15 @@ class TupleEnumerator : public TypeEnumeratorBase<TupleEnumerator> {
 
 public:
 
-  TupleEnumerator(TypeNode type) throw() :
-    TypeEnumeratorBase<TupleEnumerator>(type) {
+  TupleEnumerator(TypeNode type, TypeEnumeratorProperties * tep = NULL) throw() :
+    TypeEnumeratorBase<TupleEnumerator>(type), d_tep(tep) {
     Assert(type.isTuple());
     newEnumerators();
   }
 
   TupleEnumerator(const TupleEnumerator& te) throw() :
     TypeEnumeratorBase<TupleEnumerator>(te.getType()),
+    d_tep(te.d_tep),
     d_enumerators(NULL) {
 
     if(te.d_enumerators != NULL) {
@@ -236,7 +243,7 @@ public:
     size_t i;
     for(i = 0; i < getType().getNumChildren(); ++i) {
       if(d_enumerators[i]->isFinished()) {
-        *d_enumerators[i] = TypeEnumerator(getType()[i]);
+        *d_enumerators[i] = TypeEnumerator(getType()[i], d_tep);
       } else {
         ++*d_enumerators[i];
         return *this;
@@ -255,6 +262,7 @@ public:
 };/* TupleEnumerator */
 
 class RecordEnumerator : public TypeEnumeratorBase<RecordEnumerator> {
+  TypeEnumeratorProperties * d_tep;
   TypeEnumerator** d_enumerators;
 
   /** Allocate and initialize the delegate enumerators */
@@ -279,14 +287,15 @@ class RecordEnumerator : public TypeEnumeratorBase<RecordEnumerator> {
 
 public:
 
-  RecordEnumerator(TypeNode type) throw() :
-    TypeEnumeratorBase<RecordEnumerator>(type) {
+  RecordEnumerator(TypeNode type, TypeEnumeratorProperties * tep = NULL) throw() :
+    TypeEnumeratorBase<RecordEnumerator>(type), d_tep(tep) {
     Assert(type.isRecord());
     newEnumerators();
   }
 
   RecordEnumerator(const RecordEnumerator& re) throw() :
     TypeEnumeratorBase<RecordEnumerator>(re.getType()),
+    d_tep(re.d_tep),
     d_enumerators(NULL) {
 
     if(re.d_enumerators != NULL) {

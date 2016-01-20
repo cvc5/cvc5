@@ -18,8 +18,8 @@
 #ifndef __CVC4__CEG_INSTANTIATOR_H
 #define __CVC4__CEG_INSTANTIATOR_H
 
-#include "expr/statistics_registry.h"
 #include "theory/quantifiers_engine.h"
+#include "util/statistics_registry.h"
 
 namespace CVC4 {
 namespace theory {

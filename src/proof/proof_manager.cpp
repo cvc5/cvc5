@@ -187,10 +187,10 @@ void ProofManager::initCnfProof(prop::CnfStream* cnfStream,
 
 }
 
-void ProofManager::initTheoryProofEngine() {
+void ProofManager::initTheoryProofEngine(SmtGlobals* globals) {
   Assert (currentPM()->d_theoryProof == NULL);
   Assert (currentPM()->d_format == LFSC);
-  currentPM()->d_theoryProof = new LFSCTheoryProofEngine();
+  currentPM()->d_theoryProof = new LFSCTheoryProofEngine(globals);
 }
 
 std::string ProofManager::getInputClauseName(ClauseId id,

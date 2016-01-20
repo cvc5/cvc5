@@ -24,8 +24,6 @@
 #include "base/output.h"
 #include "decision/decision_engine.h"
 #include "expr/expr.h"
-#include "expr/resource_manager.h"
-#include "expr/result.h"
 #include "options/base_options.h"
 #include "options/decision_options.h"
 #include "options/main_options.h"
@@ -37,10 +35,12 @@
 #include "prop/sat_solver.h"
 #include "prop/sat_solver_factory.h"
 #include "prop/theory_proxy.h"
+#include "smt/smt_statistics_registry.h"
 #include "smt_util/command.h"
 #include "theory/theory_engine.h"
 #include "theory/theory_registrar.h"
-
+#include "util/resource_manager.h"
+#include "util/result.h"
 
 using namespace std;
 using namespace CVC4::context;
@@ -68,7 +68,7 @@ public:
   }
 };
 
-PropEngine::PropEngine(TheoryEngine* te, DecisionEngine *de, Context* satContext, Context* userContext) :
+PropEngine::PropEngine(TheoryEngine* te, DecisionEngine *de, Context* satContext, Context* userContext, SmtGlobals* globals) :
   d_inCheckSat(false),
   d_theoryEngine(te),
   d_decisionEngine(de),
@@ -78,22 +78,23 @@ PropEngine::PropEngine(TheoryEngine* te, DecisionEngine *de, Context* satContext
   d_registrar(NULL),
   d_cnfStream(NULL),
   d_interrupted(false),
-  d_resourceManager(NodeManager::currentResourceManager()) {
+  d_resourceManager(NodeManager::currentResourceManager()),
+  d_globals(globals)
+{
 
   Debug("prop") << "Constructing the PropEngine" << endl;
 
-  d_satSolver = SatSolverFactory::createDPLLMinisat();
+  d_satSolver = SatSolverFactory::createDPLLMinisat(smtStatisticsRegistry());
 
   d_registrar = new theory::TheoryRegistrar(d_theoryEngine);
   d_cnfStream = new CVC4::prop::TseitinCnfStream
-    (d_satSolver, d_registrar,
-     userContext,
+    (d_satSolver, d_registrar, userContext, d_globals,
      // fullLitToNode Map =
      options::threads() > 1 ||
      options::decisionMode() == decision::DECISION_STRATEGY_RELEVANCY
      );
 
-  d_theoryProxy = new TheoryProxy(this, d_theoryEngine, d_decisionEngine, d_context, d_cnfStream);
+  d_theoryProxy = new TheoryProxy(this, d_theoryEngine, d_decisionEngine, d_context, d_cnfStream, d_globals);
   d_satSolver->initialize(d_context, d_theoryProxy);
 
   d_decisionEngine->setSatSolver(d_satSolver);

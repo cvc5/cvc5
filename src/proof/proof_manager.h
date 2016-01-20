@@ -31,6 +31,8 @@
 
 namespace CVC4 {
 
+class SmtGlobals;
+
 // forward declarations
 namespace Minisat {
   class Solver;
@@ -137,14 +139,6 @@ class ProofManager {
   // trace dependences back to unsat core
   void traceDeps(TNode n);
 
-  // Node d_registering_assertion;
-  // ProofRule d_registering_rule;
-  // std::map< ClauseId, Expr > d_clause_id_to_assertion; // clause to top-level assertion 
-  // std::map< ClauseId, ProofRule > d_clause_id_to_rule;
-  // std::map< Expr, Expr > d_cnf_dep; // dependence of cnf top-level things
-  //LFSC number for assertions
-  // unsigned d_assertion_counter;
-  // std::map< Expr, unsigned > d_assertion_to_id; // unsat core deps and preprocessed things
 protected:
   LogicInfo d_logic;
 
@@ -158,7 +152,7 @@ public:
   static void         initSatProof(Minisat::Solver* solver);
   static void         initCnfProof(CVC4::prop::CnfStream* cnfStream,
                                    context::Context* ctx);
-  static void         initTheoryProofEngine();
+  static void         initTheoryProofEngine(SmtGlobals* globals);
 
   // getting various proofs
   static Proof*         getProof(SmtEngine* smt);
@@ -177,18 +171,6 @@ public:
   typedef ExprSet::const_iterator assertions_iterator;
 
 
-  // NodeToNodes::const_iterator begin_deps() const { return d_deps.begin(); }
-  // NodeToNodes::const_iterator end_deps() const { return d_deps.end(); }
-
-  // clause_iterator begin_input_clauses() const { return d_inputClauses.begin(); }
-  // clause_iterator end_input_clauses() const { return d_inputClauses.end(); }
-  // size_t num_input_clauses() const { return d_inputClauses.size(); }
-
-  // iterate over theory lemmas (these are SAT clauses)
-  // ordered_clause_iterator begin_lemmas() const { return d_theoryLemmas.begin(); }
-  // ordered_clause_iterator end_lemmas() const { return d_theoryLemmas.end(); }
-  // size_t num_lemmas() const { return d_theoryLemmas.size(); }
-
   // iterate over the assertions (these are arbitrary boolean formulas)
   assertions_iterator begin_assertions() const { return d_inputFormulas.begin(); }
   assertions_iterator end_assertions() const { return d_inputFormulas.end(); }
@@ -203,8 +185,6 @@ public:
   std::map<Node, Node> d_bops;
 //---end from Morgan---
   
-  // void addTheoryLemma(ClauseId id, const prop::SatClause* clause, ClauseKind kind);
-  //void addClause(ClauseId id, const prop::SatClause* clause, ClauseKind kind);
   
   // variable prefixes
   static std::string getInputClauseName(ClauseId id, const std::string& prefix = "");
@@ -245,28 +225,14 @@ public:
   const std::string getLogic() const { return d_logic.getLogicString(); }
   LogicInfo & getLogicInfo() { return d_logic; }
 
-  // void setCnfDep(Expr child, Expr parent );
-  // Expr getFormulaForClauseId(ClauseId id );
-  // ProofRule getProofRuleForClauseId( ClauseId id );
-  // unsigned getAssertionCounter() { return d_assertion_counter; }
-  // void setAssertion( Expr e );
-  // bool isInputAssertion( Expr e, std::ostream& out );
-
-public:  // AJR : FIXME this is hacky
-  //currently, to map between ClauseId and Expr, requires:
-  // (1) CnfStream::assertClause(...) to call setRegisteringFormula,
-  // (2) SatProof::registerClause(...)/registerUnitClause(...) to call setRegisteredClauseId.
-  //this is under the assumption that the first call at (2) is invoked for the clause corresponding to the Expr at (1).
-  // void setRegisteringFormula( Node n, ProofRule proof_id );
-  // void setRegisteredClauseId( ClauseId id );
 };/* class ProofManager */
 
 class LFSCProof : public Proof {
   LFSCCoreSatProof* d_satProof;
   LFSCCnfProof* d_cnfProof;
-  //  LFSCRewriterProof* d_rewriterProof;
   LFSCTheoryProofEngine* d_theoryProof;
   SmtEngine* d_smtEngine;
+
   // FIXME: hack until we get preprocessing
   void printPreprocessedAssertions(const NodeSet& assertions,
                                    std::ostream& os,

@@ -14,10 +14,11 @@
  ** [[ Add lengthier description here ]]
  ** \todo document this file
  **/
+#include "theory/arith/attempt_solution_simplex.h"
 
 #include "base/output.h"
 #include "options/arith_options.h"
-#include "theory/arith/attempt_solution_simplex.h"
+#include "smt/smt_statistics_registry.h"
 #include "theory/arith/constraint.h"
 
 using namespace std;
@@ -36,15 +37,15 @@ AttemptSolutionSDP::Statistics::Statistics():
   d_queueTime("theory::arith::attempt::queueTime"),
   d_conflicts("theory::arith::attempt::conflicts", 0)
 {
-  StatisticsRegistry::registerStat(&d_searchTime);
-  StatisticsRegistry::registerStat(&d_queueTime);
-  StatisticsRegistry::registerStat(&d_conflicts);
+  smtStatisticsRegistry()->registerStat(&d_searchTime);
+  smtStatisticsRegistry()->registerStat(&d_queueTime);
+  smtStatisticsRegistry()->registerStat(&d_conflicts);
 }
 
 AttemptSolutionSDP::Statistics::~Statistics(){
-  StatisticsRegistry::unregisterStat(&d_searchTime);
-  StatisticsRegistry::unregisterStat(&d_queueTime);
-  StatisticsRegistry::unregisterStat(&d_conflicts);
+  smtStatisticsRegistry()->unregisterStat(&d_searchTime);
+  smtStatisticsRegistry()->unregisterStat(&d_queueTime);
+  smtStatisticsRegistry()->unregisterStat(&d_conflicts);
 }
 
 bool AttemptSolutionSDP::matchesNewValue(const DenseMap<DeltaRational>& nv, ArithVar v) const{

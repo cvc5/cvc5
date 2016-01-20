@@ -455,19 +455,19 @@ AigBitblaster::Statistics::Statistics()
   , d_cnfConversionTime("theory::bv::AigBitblaster::cnfConversionTime")
   , d_solveTime("theory::bv::AigBitblaster::solveTime")
 {
-  StatisticsRegistry::registerStat(&d_numClauses); 
-  StatisticsRegistry::registerStat(&d_numVariables);
-  StatisticsRegistry::registerStat(&d_simplificationTime); 
-  StatisticsRegistry::registerStat(&d_cnfConversionTime);
-  StatisticsRegistry::registerStat(&d_solveTime); 
+  smtStatisticsRegistry()->registerStat(&d_numClauses); 
+  smtStatisticsRegistry()->registerStat(&d_numVariables);
+  smtStatisticsRegistry()->registerStat(&d_simplificationTime); 
+  smtStatisticsRegistry()->registerStat(&d_cnfConversionTime);
+  smtStatisticsRegistry()->registerStat(&d_solveTime); 
 }
 
 AigBitblaster::Statistics::~Statistics() {
-  StatisticsRegistry::unregisterStat(&d_numClauses); 
-  StatisticsRegistry::unregisterStat(&d_numVariables);
-  StatisticsRegistry::unregisterStat(&d_simplificationTime); 
-  StatisticsRegistry::unregisterStat(&d_cnfConversionTime);
-  StatisticsRegistry::unregisterStat(&d_solveTime); 
+  smtStatisticsRegistry()->unregisterStat(&d_numClauses); 
+  smtStatisticsRegistry()->unregisterStat(&d_numVariables);
+  smtStatisticsRegistry()->unregisterStat(&d_simplificationTime); 
+  smtStatisticsRegistry()->unregisterStat(&d_cnfConversionTime);
+  smtStatisticsRegistry()->unregisterStat(&d_solveTime); 
 }
 
 #else // CVC4_USE_ABC

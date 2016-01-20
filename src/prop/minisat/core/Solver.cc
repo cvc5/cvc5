@@ -1696,7 +1696,7 @@ CRef Solver::updateLemmas() {
   // Last index in the trail
   int backtrack_index = trail.size();
 
-  PROOF(Assert (lemmas.size() == lemmas_cnf_assertion.size()););
+  PROOF(Assert (lemmas.size() == (int)lemmas_cnf_assertion.size()););
   
   // Attach all the clauses and enqueue all the propagations
   for (int i = 0; i < lemmas.size(); ++ i)
@@ -1768,7 +1768,7 @@ CRef Solver::updateLemmas() {
     }
   }
 
-  PROOF(Assert (lemmas.size() == lemmas_cnf_assertion.size()););
+  PROOF(Assert (lemmas.size() == (int)lemmas_cnf_assertion.size()););
   // Clear the lemmas
   lemmas.clear();
   lemmas_cnf_assertion.clear();

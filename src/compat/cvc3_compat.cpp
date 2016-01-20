@@ -28,7 +28,6 @@
 #include "expr/expr_iomanip.h"
 #include "expr/kind.h"
 #include "expr/predicate.h"
-#include "expr/sexpr.h"
 #include "options/base_options.h"
 #include "options/expr_options.h"
 #include "options/parser_options.h"
@@ -41,8 +40,8 @@
 #include "util/hash.h"
 #include "util/integer.h"
 #include "util/rational.h"
+#include "util/sexpr.h"
 #include "util/subrange_bound.h"
-
 
 using namespace std;
 

@@ -28,7 +28,6 @@
 #include "expr/expr_iomanip.h"
 #include "expr/metakind.h"
 #include "expr/node_manager.h"
-#include "expr/resource_manager.h"
 #include "lib/strtok_r.h"
 #include "options/arith_heuristic_pivot_rule.h"
 #include "options/arith_propagation_mode.h"
@@ -59,6 +58,7 @@
 #include "theory/logic_info.h"
 #include "util/configuration.h"
 #include "util/configuration_private.h"
+#include "util/resource_manager.h"
 
 
 #warning "TODO: Make SmtOptionsHandler non-public and refactor driver unified."
@@ -1308,7 +1308,7 @@ void SmtOptionsHandler::setDiagnosticOutputChannel(std::string option, std::stri
 std::string SmtOptionsHandler::checkReplayFilename(std::string option, std::string optarg) {
 #ifdef CVC4_REPLAY
   if(optarg == "") {
-    throw OptionException(std::string("Bad file name for --replay"));
+    throw OptionException (std::string("Bad file name for --replay"));
   } else {
     return optarg;
   }
@@ -1317,28 +1317,6 @@ std::string SmtOptionsHandler::checkReplayFilename(std::string option, std::stri
 #endif /* CVC4_REPLAY */
 }
 
-std::ostream* SmtOptionsHandler::checkReplayLogFilename(std::string option, std::string optarg) {
-#ifdef CVC4_REPLAY
-  if(optarg == "") {
-    throw OptionException(std::string("Bad file name for --replay-log"));
-  } else if(optarg == "-") {
-    return &std::cout;
-  } else if(!options::filesystemAccess()) {
-    throw OptionException(std::string("Filesystem access not permitted"));
-  } else {
-    errno = 0;
-    std::ostream* replayLog = new std::ofstream(optarg.c_str(), std::ofstream::out | std::ofstream::trunc);
-    if(replayLog == NULL || !*replayLog) {
-      std::stringstream ss;
-      ss << "Cannot open replay-log file: `" << optarg << "': " << __cvc4_errno_failreason();
-      throw OptionException(ss.str());
-    }
-    return replayLog;
-  }
-#else /* CVC4_REPLAY */
-  throw OptionException("The replay feature was disabled in this build of CVC4.");
-#endif /* CVC4_REPLAY */
-}
 
 void SmtOptionsHandler::statsEnabledBuild(std::string option, bool value) throw(OptionException) {
 #ifndef CVC4_STATISTICS_ON

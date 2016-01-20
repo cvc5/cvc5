@@ -26,6 +26,7 @@
 #include "prop/minisat/core/Solver.h"
 #include "prop/bvminisat/core/Solver.h"
 #include "prop/sat_solver_types.h"
+#include "smt/smt_statistics_registry.h"
 
 namespace CVC4 {
 
@@ -1001,26 +1002,26 @@ TSatProof<Solver>::Statistics::Statistics(const std::string& prefix)
   , d_usedResChainLengths("satproof::"+prefix+"::UsedResChainLengthsHist")
   , d_clauseGlue("satproof::"+prefix+"::ClauseGlueHist")
   , d_usedClauseGlue("satproof::"+prefix+"::UsedClauseGlueHist") {
-  StatisticsRegistry::registerStat(&d_numLearnedClauses);
-  StatisticsRegistry::registerStat(&d_numLearnedInProof);
-  StatisticsRegistry::registerStat(&d_numLemmasInProof);
-  StatisticsRegistry::registerStat(&d_avgChainLength);
-  StatisticsRegistry::registerStat(&d_resChainLengths);
-  StatisticsRegistry::registerStat(&d_usedResChainLengths);
-  StatisticsRegistry::registerStat(&d_clauseGlue);
-  StatisticsRegistry::registerStat(&d_usedClauseGlue);
+  smtStatisticsRegistry()->registerStat(&d_numLearnedClauses);
+  smtStatisticsRegistry()->registerStat(&d_numLearnedInProof);
+  smtStatisticsRegistry()->registerStat(&d_numLemmasInProof);
+  smtStatisticsRegistry()->registerStat(&d_avgChainLength);
+  smtStatisticsRegistry()->registerStat(&d_resChainLengths);
+  smtStatisticsRegistry()->registerStat(&d_usedResChainLengths);
+  smtStatisticsRegistry()->registerStat(&d_clauseGlue);
+  smtStatisticsRegistry()->registerStat(&d_usedClauseGlue);
 }
 
 template <class Solver> 
 TSatProof<Solver>::Statistics::~Statistics() {
-  StatisticsRegistry::unregisterStat(&d_numLearnedClauses);
-  StatisticsRegistry::unregisterStat(&d_numLearnedInProof);
-  StatisticsRegistry::unregisterStat(&d_numLemmasInProof);
-  StatisticsRegistry::unregisterStat(&d_avgChainLength);
-  StatisticsRegistry::unregisterStat(&d_resChainLengths);
-  StatisticsRegistry::unregisterStat(&d_usedResChainLengths);
-  StatisticsRegistry::unregisterStat(&d_clauseGlue);
-  StatisticsRegistry::unregisterStat(&d_usedClauseGlue);
+  smtStatisticsRegistry()->unregisterStat(&d_numLearnedClauses);
+  smtStatisticsRegistry()->unregisterStat(&d_numLearnedInProof);
+  smtStatisticsRegistry()->unregisterStat(&d_numLemmasInProof);
+  smtStatisticsRegistry()->unregisterStat(&d_avgChainLength);
+  smtStatisticsRegistry()->unregisterStat(&d_resChainLengths);
+  smtStatisticsRegistry()->unregisterStat(&d_usedResChainLengths);
+  smtStatisticsRegistry()->unregisterStat(&d_clauseGlue);
+  smtStatisticsRegistry()->unregisterStat(&d_usedClauseGlue);
 }
 
 

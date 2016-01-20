@@ -15,6 +15,7 @@
 
 #include "options/smt_options.h"
 #include "options/uf_options.h"
+#include "options/quantifiers_options.h"
 #include "smt/smt_engine.h"
 #include "theory/quantifiers_engine.h"
 #include "theory/theory_engine.h"
@@ -466,17 +467,19 @@ void TheoryEngineModelBuilder::assignConstantRep( TheoryModel* tm, std::map<Node
 }
 
 bool TheoryEngineModelBuilder::isExcludedCdtValue( Node val, std::set<Node>* repSet, std::map< Node, Node >& assertedReps, Node eqc ) {
-  Trace("model-builder-cdt") << "Is " << val << " and excluded codatatype value for " << eqc << "? " << std::endl;
+  Trace("model-builder-debug") << "Is " << val << " and excluded codatatype value for " << eqc << "? " << std::endl;
   for (set<Node>::iterator i = repSet->begin(); i != repSet->end(); ++i ) {
     Assert(assertedReps.find(*i) != assertedReps.end());
     Node rep = assertedReps[*i];
-    Trace("model-builder-cdt") << "  Rep : " << rep << std::endl;
+    Trace("model-builder-debug") << "  Rep : " << rep << std::endl;
     //check matching val to rep with eqc as a free variable
     Node eqc_m;
     if( isCdtValueMatch( val, rep, eqc, eqc_m ) ){
-      Trace("model-builder-cdt") << "  ...matches with " << eqc << " -> " << eqc_m << std::endl;
-      Trace("model-builder-cdt") << "*** " << val << " is excluded datatype for " << eqc << std::endl;
-      return true;
+      Trace("model-builder-debug") << "  ...matches with " << eqc << " -> " << eqc_m << std::endl;
+      if( eqc_m.getKind()==kind::UNINTERPRETED_CONSTANT ){
+        Trace("model-builder-debug") << "*** " << val << " is excluded datatype for " << eqc << std::endl;
+        return true;
+      }
     }
   }
   return false;
@@ -506,6 +509,43 @@ bool TheoryEngineModelBuilder::isCdtValueMatch( Node v, Node r, Node eqc, Node& 
   return false;
 }
 
+bool TheoryEngineModelBuilder::involvesUSort( TypeNode tn ) {
+  if( tn.isSort() ){
+    return true;
+  }else if( tn.isArray() ){
+    return involvesUSort( tn.getArrayIndexType() ) || involvesUSort( tn.getArrayConstituentType() );
+  }else if( tn.isSet() ){
+    return involvesUSort( tn.getSetElementType() );
+  }else if( tn.isDatatype() ){
+    const Datatype& dt = ((DatatypeType)(tn).toType()).getDatatype();
+    return dt.involvesUninterpretedType();
+  }else{
+    return false;
+  }
+}
+
+bool TheoryEngineModelBuilder::isExcludedUSortValue( std::map< TypeNode, unsigned >& eqc_usort_count, Node v, std::map< Node, bool >& visited ) {
+  Assert( v.isConst() );
+  if( visited.find( v )==visited.end() ){
+    visited[v] = true;
+    TypeNode tn = v.getType();
+    if( tn.isSort() ){
+      Trace("model-builder-debug") << "Is excluded usort value : " << v << " " << tn << std::endl;
+      unsigned card = eqc_usort_count[tn];
+      Trace("model-builder-debug") << "  Cardinality is " << card << std::endl;
+      unsigned index = v.getConst<UninterpretedConstant>().getIndex().toUnsignedInt();
+      Trace("model-builder-debug") << "  Index is " << index << std::endl;
+      return index>0 && index>=card;
+    }
+    for( unsigned i=0; i<v.getNumChildren(); i++ ){
+      if( isExcludedUSortValue( eqc_usort_count, v[i], visited ) ){
+        return true;
+      }
+    }
+  }
+  return false;
+}
+
 void TheoryEngineModelBuilder::buildModel(Model* m, bool fullModel)
 {
   Trace("model-builder") << "TheoryEngineModelBuilder: buildModel, fullModel = " << fullModel << std::endl;
@@ -523,6 +563,8 @@ void TheoryEngineModelBuilder::buildModel(Model* m, bool fullModel)
   d_te->collectModelInfo(tm, fullModel);
 
   // Loop through all terms and make sure that assignable sub-terms are in the equality engine
+  // Also, record #eqc per type (for finite model finding)
+  std::map< TypeNode, unsigned > eqc_usort_count;
   eq::EqClassesIterator eqcs_i = eq::EqClassesIterator( tm->d_equalityEngine );
   {
     NodeSet cache;
@@ -530,6 +572,14 @@ void TheoryEngineModelBuilder::buildModel(Model* m, bool fullModel)
       eq::EqClassIterator eqc_i = eq::EqClassIterator((*eqcs_i),tm->d_equalityEngine);
       for ( ; !eqc_i.isFinished(); ++eqc_i) {
         checkTerms(*eqc_i, tm, cache);
+      }
+      TypeNode tn = (*eqcs_i).getType();
+      if( tn.isSort() ){
+        if( eqc_usort_count.find( tn )==eqc_usort_count.end() ){
+          eqc_usort_count[tn] = 1;
+        }else{
+          eqc_usort_count[tn]++;
+        }
       }
     }
   }
@@ -539,6 +589,15 @@ void TheoryEngineModelBuilder::buildModel(Model* m, bool fullModel)
   // Process all terms in the equality engine, store representatives for each EC
   std::map< Node, Node > assertedReps, constantReps;
   TypeSet typeConstSet, typeRepSet, typeNoRepSet;
+  TypeEnumeratorProperties tep;
+  if( options::finiteModelFind() ){
+    tep.d_fixed_usort_card = true;
+    for( std::map< TypeNode, unsigned >::iterator it = eqc_usort_count.begin(); it != eqc_usort_count.end(); ++it ){
+      Trace("model-builder") << "Fixed bound (#eqc) for " << it->first << " : " << it->second << std::endl;
+      tep.d_fixed_card[it->first] = Integer(it->second);
+    }
+    typeConstSet.setTypeEnumeratorProperties( &tep );
+  }
   std::set< TypeNode > allTypes;
   eqcs_i = eq::EqClassesIterator(tm->d_equalityEngine);
   for ( ; !eqcs_i.isFinished(); ++eqcs_i) {
@@ -715,11 +774,18 @@ void TheoryEngineModelBuilder::buildModel(Model* m, bool fullModel)
       if(t.isTuple() || t.isRecord()) {
         t = NodeManager::currentNM()->getDatatypeForTupleRecord(t);
       }
+      
+      //get properties of this type
       bool isCorecursive = false;
+      bool isUSortFiniteRestricted = false;
       if( t.isDatatype() ){
         const Datatype& dt = ((DatatypeType)(t).toType()).getDatatype();
         isCorecursive = dt.isCodatatype() && ( !dt.isFinite() || dt.isRecursiveSingleton() );
       }
+      if( options::finiteModelFind() ){
+        isUSortFiniteRestricted = !t.isSort() && involvesUSort( t );
+      }
+      
       set<Node>* repSet = typeRepSet.getSet(t);
       TypeNode tb = t.getBaseType();
       if (!assignOne) {
@@ -748,6 +814,7 @@ void TheoryEngineModelBuilder::buildModel(Model* m, bool fullModel)
             evaluable = true;
           }
         }
+        Trace("model-builder-debug") << "    eqc " << *i2 << " is assignable=" << assignable << ", evaluable=" << evaluable << std::endl;
         if (assignable) {
           Assert(!evaluable || assignOne);
           Assert(!t.isBoolean() || (*i2).getKind() == kind::APPLY_UF);
@@ -756,14 +823,33 @@ void TheoryEngineModelBuilder::buildModel(Model* m, bool fullModel)
             bool success;
             do{
               n = typeConstSet.nextTypeEnum(t, true);
+              //--- AJR: this code checks whether n is a legal value
+              Assert( !n.isNull() );
               success = true;
-              if( isCorecursive ){
+              Trace("model-builder-debug") << "Check if excluded : " << n << std::endl;
+              if( isUSortFiniteRestricted ){
+#ifdef CVC4_ASSERTIONS
+                //must not involve uninterpreted constants beyond cardinality bound (which assumed to coincide with #eqc)
+                //this is just an assertion now, since TypeEnumeratorProperties should ensure that only legal values are enumerated wrt this constraint.
+                std::map< Node, bool > visited;
+                success = !isExcludedUSortValue( eqc_usort_count, n, visited );
+                if( !success ){
+                  Trace("model-builder") << "Excluded value for " << t << " : " << n << " due to out of range uninterpreted constant." << std::endl;
+                }
+                Assert( success );
+#endif
+              }
+              if( success && isCorecursive ){
                 if (repSet != NULL && !repSet->empty()) {
                   // in the case of codatatypes, check if it is in the set of values that we cannot assign
                   // this will check whether n \not\in V^x_I from page 9 of Reynolds/Blanchette CADE 2015
                   success = !isExcludedCdtValue( n, repSet, assertedReps, *i2 );
+                  if( !success ){
+                    Trace("model-builder") << "Excluded value : " << n << " due to alpha-equivalent codatatype expression." << std::endl;
+                  }
                 }
               }
+              //---
             }while( !success );
           }
           else {

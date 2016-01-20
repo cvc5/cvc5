@@ -31,6 +31,8 @@
 
 namespace CVC4 {
 
+class SmtGlobals;
+
 namespace theory {
 class Theory;
 }
@@ -98,14 +100,16 @@ class TheoryProofEngine {
 protected:
   ExprSet d_registrationCache;
   TheoryProofTable d_theoryProofTable;
-
+  
   /**
    * Returns whether the theory is currently supported in proof
    * production mode.
    */
   bool supportedTheory(theory::TheoryId id);
 public:
-  TheoryProofEngine();
+  SmtGlobals* d_globals;
+  
+  TheoryProofEngine(SmtGlobals* globals);
   virtual ~TheoryProofEngine();
   /** 
    * Print the theory term (could be atom) by delegating to the
@@ -164,6 +168,9 @@ class LFSCTheoryProofEngine : public TheoryProofEngine {
   void printTheoryTerm(Expr term, std::ostream& os, const LetMap& map);
   void bind(Expr term, LetMap& map, Bindings& let_order);
 public:
+  LFSCTheoryProofEngine(SmtGlobals* globals)
+    : TheoryProofEngine(globals) {}
+  
   void printDeclarations(std::ostream& os, std::ostream& paren);
   virtual void printCoreTerm(Expr term, std::ostream& os, const LetMap& map);
   virtual void printLetTerm(Expr term, std::ostream& os);

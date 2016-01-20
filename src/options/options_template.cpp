@@ -14,8 +14,6 @@
  ** Contains code for handling command-line options
  **/
 
-#warning "TODO: Remove ExprStream forward declaration from options.h."
-
 #if !defined(_BSD_SOURCE) && defined(__MINGW32__) && !defined(__MINGW64__)
 // force use of optreset; mingw32 croaks on argv-switching otherwise
 #  include "cvc4autoconfig.h"

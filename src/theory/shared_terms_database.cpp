@@ -13,8 +13,9 @@
  ** \todo document this file
  **/
 
-
 #include "theory/shared_terms_database.h"
+
+#include "smt/smt_statistics_registry.h"
 #include "theory/theory_engine.h"
 
 using namespace std;
@@ -33,12 +34,12 @@ SharedTermsDatabase::SharedTermsDatabase(TheoryEngine* theoryEngine, context::Co
 , d_theoryEngine(theoryEngine)
 , d_inConflict(context, false)
 {
-  StatisticsRegistry::registerStat(&d_statSharedTerms);
+  smtStatisticsRegistry()->registerStat(&d_statSharedTerms);
 }
 
 SharedTermsDatabase::~SharedTermsDatabase() throw(AssertionException)
 {
-  StatisticsRegistry::unregisterStat(&d_statSharedTerms);
+  smtStatisticsRegistry()->unregisterStat(&d_statSharedTerms);
 }
 
 void SharedTermsDatabase::addEqualityToPropagate(TNode equality) {

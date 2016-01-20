@@ -13,10 +13,11 @@
  ** [[ Add lengthier description here ]]
  ** \todo document this file
  **/
+#include "theory/arith/congruence_manager.h"
 
 #include "base/output.h"
+#include "smt/smt_statistics_registry.h"
 #include "theory/arith/arith_utilities.h"
-#include "theory/arith/congruence_manager.h"
 #include "theory/arith/constraint.h"
 
 namespace CVC4 {
@@ -45,23 +46,23 @@ ArithCongruenceManager::Statistics::Statistics():
   d_propagateConstraints("theory::arith::congruence::propagateConstraints", 0),
   d_conflicts("theory::arith::congruence::conflicts", 0)
 {
-  StatisticsRegistry::registerStat(&d_watchedVariables);
-  StatisticsRegistry::registerStat(&d_watchedVariableIsZero);
-  StatisticsRegistry::registerStat(&d_watchedVariableIsNotZero);
-  StatisticsRegistry::registerStat(&d_equalsConstantCalls);
-  StatisticsRegistry::registerStat(&d_propagations);
-  StatisticsRegistry::registerStat(&d_propagateConstraints);
-  StatisticsRegistry::registerStat(&d_conflicts);
+  smtStatisticsRegistry()->registerStat(&d_watchedVariables);
+  smtStatisticsRegistry()->registerStat(&d_watchedVariableIsZero);
+  smtStatisticsRegistry()->registerStat(&d_watchedVariableIsNotZero);
+  smtStatisticsRegistry()->registerStat(&d_equalsConstantCalls);
+  smtStatisticsRegistry()->registerStat(&d_propagations);
+  smtStatisticsRegistry()->registerStat(&d_propagateConstraints);
+  smtStatisticsRegistry()->registerStat(&d_conflicts);
 }
 
 ArithCongruenceManager::Statistics::~Statistics(){
-  StatisticsRegistry::unregisterStat(&d_watchedVariables);
-  StatisticsRegistry::unregisterStat(&d_watchedVariableIsZero);
-  StatisticsRegistry::unregisterStat(&d_watchedVariableIsNotZero);
-  StatisticsRegistry::unregisterStat(&d_equalsConstantCalls);
-  StatisticsRegistry::unregisterStat(&d_propagations);
-  StatisticsRegistry::unregisterStat(&d_propagateConstraints);
-  StatisticsRegistry::unregisterStat(&d_conflicts);
+  smtStatisticsRegistry()->unregisterStat(&d_watchedVariables);
+  smtStatisticsRegistry()->unregisterStat(&d_watchedVariableIsZero);
+  smtStatisticsRegistry()->unregisterStat(&d_watchedVariableIsNotZero);
+  smtStatisticsRegistry()->unregisterStat(&d_equalsConstantCalls);
+  smtStatisticsRegistry()->unregisterStat(&d_propagations);
+  smtStatisticsRegistry()->unregisterStat(&d_propagateConstraints);
+  smtStatisticsRegistry()->unregisterStat(&d_conflicts);
 }
 
 ArithCongruenceManager::ArithCongruenceNotify::ArithCongruenceNotify(ArithCongruenceManager& acm)

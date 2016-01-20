@@ -26,10 +26,10 @@
 #include "base/cvc4_assert.h"
 #include "context/cdhashset.h"
 #include "expr/node.h"
-#include "expr/statistics_registry.h"
 #include "options/options.h"
 #include "options/smt_options.h"
 #include "prop/prop_engine.h"
+#include "smt/smt_globals.h"
 #include "smt_util/command.h"
 #include "theory/atom_requests.h"
 #include "theory/bv/bv_to_bool.h"
@@ -43,6 +43,7 @@
 #include "theory/theory.h"
 #include "theory/uf/equality_engine.h"
 #include "theory/valuation.h"
+#include "util/statistics_registry.h"
 #include "util/unsafe_interrupt_exception.h"
 
 namespace CVC4 {
@@ -206,6 +207,7 @@ class TheoryEngine {
    */
   context::CDHashSet<Node, NodeHashFunction> d_hasPropagated;
 
+
   /**
    * Statistics for a particular theory.
    */
@@ -223,30 +225,8 @@ class TheoryEngine {
 
     IntStat conflicts, propagations, lemmas, requirePhase, flipDecision, restartDemands;
 
-    Statistics(theory::TheoryId theory):
-      conflicts(mkName("theory<", theory, ">::conflicts"), 0),
-      propagations(mkName("theory<", theory, ">::propagations"), 0),
-      lemmas(mkName("theory<", theory, ">::lemmas"), 0),
-      requirePhase(mkName("theory<", theory, ">::requirePhase"), 0),
-      flipDecision(mkName("theory<", theory, ">::flipDecision"), 0),
-      restartDemands(mkName("theory<", theory, ">::restartDemands"), 0)
-    {
-      StatisticsRegistry::registerStat(&conflicts);
-      StatisticsRegistry::registerStat(&propagations);
-      StatisticsRegistry::registerStat(&lemmas);
-      StatisticsRegistry::registerStat(&requirePhase);
-      StatisticsRegistry::registerStat(&flipDecision);
-      StatisticsRegistry::registerStat(&restartDemands);
-    }
-
-    ~Statistics() {
-      StatisticsRegistry::unregisterStat(&conflicts);
-      StatisticsRegistry::unregisterStat(&propagations);
-      StatisticsRegistry::unregisterStat(&lemmas);
-      StatisticsRegistry::unregisterStat(&requirePhase);
-      StatisticsRegistry::unregisterStat(&flipDecision);
-      StatisticsRegistry::unregisterStat(&restartDemands);
-    }
+    Statistics(theory::TheoryId theory);
+    ~Statistics();
   };/* class TheoryEngine::Statistics */
 
 
@@ -487,10 +467,14 @@ class TheoryEngine {
   bool d_interrupted;
   ResourceManager* d_resourceManager;
 
+  /** Container for misc. globals. */
+  SmtGlobals* d_globals;
+
 public:
 
   /** Constructs a theory engine */
-  TheoryEngine(context::Context* context, context::UserContext* userContext, RemoveITE& iteRemover, const LogicInfo& logic);
+  TheoryEngine(context::Context* context, context::UserContext* userContext,
+               RemoveITE& iteRemover, const LogicInfo& logic, SmtGlobals* globals);
 
   /** Destroys a theory engine */
   ~TheoryEngine();
@@ -509,7 +493,9 @@ public:
   inline void addTheory(theory::TheoryId theoryId) {
     Assert(d_theoryTable[theoryId] == NULL && d_theoryOut[theoryId] == NULL);
     d_theoryOut[theoryId] = new EngineOutputChannel(this, theoryId);
-    d_theoryTable[theoryId] = new TheoryClass(d_context, d_userContext, *d_theoryOut[theoryId], theory::Valuation(this), d_logicInfo);
+    d_theoryTable[theoryId] =
+        new TheoryClass(d_context, d_userContext, *d_theoryOut[theoryId],
+                        theory::Valuation(this), d_logicInfo, d_globals);
   }
 
   inline void setPropEngine(prop::PropEngine* propEngine) {
@@ -767,7 +753,7 @@ public:
   inline bool isTheoryEnabled(theory::TheoryId theoryId) const {
     return d_logicInfo.isTheoryEnabled(theoryId);
   }
-  
+
   /**
    * Returns the equality status of the two terms, from the theory
    * that owns the domain type.  The types of a and b must be the same.
@@ -794,7 +780,7 @@ public:
    * Print solution for synthesis conjectures found by ce_guided_instantiation module
    */
   void printSynthSolution( std::ostream& out );
-  
+
   /**
    * Forwards an entailment check according to the given theoryOfMode.
    * See theory.h for documentation on entailmentCheck().
@@ -838,11 +824,11 @@ public:
   SharedTermsDatabase* getSharedTermsDatabase() { return &d_sharedTerms; }
 
   theory::eq::EqualityEngine* getMasterEqualityEngine() { return d_masterEqualityEngine; }
-  
+
   RemoveITE* getIteRemover() { return &d_iteRemover; }
 
   SortInference* getSortInference() { return &d_sortInfer; }
-  
+
   /** Prints the assertions to the debug stream */
   void printAssertions(const char* tag);
 

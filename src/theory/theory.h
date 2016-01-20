@@ -28,17 +28,18 @@
 #include "context/cdo.h"
 #include "context/context.h"
 #include "expr/node.h"
-#include "expr/statistics_registry.h"
 #include "lib/ffs.h"
 #include "options/options.h"
 #include "options/theory_options.h"
 #include "options/theoryof_mode.h"
 #include "smt/logic_request.h"
+#include "smt/smt_globals.h"
 #include "smt_util/command.h"
 #include "smt_util/dump.h"
 #include "theory/logic_info.h"
 #include "theory/output_channel.h"
 #include "theory/valuation.h"
+#include "util/statistics_registry.h"
 
 namespace CVC4 {
 
@@ -245,26 +246,8 @@ protected:
    * Construct a Theory.
    */
   Theory(TheoryId id, context::Context* satContext, context::UserContext* userContext,
-         OutputChannel& out, Valuation valuation, const LogicInfo& logicInfo) throw()
-  : d_id(id)
-  , d_satContext(satContext)
-  , d_userContext(userContext)
-  , d_logicInfo(logicInfo)
-  , d_facts(satContext)
-  , d_factsHead(satContext, 0)
-  , d_sharedTermsIndex(satContext, 0)
-  , d_careGraph(NULL)
-  , d_quantEngine(NULL)
-  , d_checkTime(statName(id, "checkTime"))
-  , d_computeCareGraphTime(statName(id, "computeCareGraphTime"))
-  , d_sharedTerms(satContext)
-  , d_out(&out)
-  , d_valuation(valuation)
-  , d_proofsEnabled(false)
-  {
-    StatisticsRegistry::registerStatMultiple(&d_checkTime);
-    StatisticsRegistry::registerStatMultiple(&d_computeCareGraphTime);
-  }
+         OutputChannel& out, Valuation valuation, const LogicInfo& logicInfo,
+         SmtGlobals* globals) throw();
 
   /**
    * This is called at shutdown time by the TheoryEngine, just before
@@ -312,6 +295,8 @@ protected:
 
   void printFacts(std::ostream& os) const;
   void debugPrintFacts() const;
+
+  SmtGlobals* d_globals;
 
 public:
 
@@ -875,6 +860,9 @@ public:
    */
   void produceProofs() { d_proofsEnabled = true; }
   
+  /** Returns a pointer to the globals copy the theory is using. */
+  SmtGlobals* globals() { return d_globals; }
+
 };/* class Theory */
 
 std::ostream& operator<<(std::ostream& os, theory::Theory::Effort level);

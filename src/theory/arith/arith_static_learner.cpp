@@ -21,6 +21,7 @@
 #include "expr/convenience_node_builders.h"
 #include "expr/expr.h"
 #include "options/arith_options.h"
+#include "smt/smt_statistics_registry.h"
 #include "theory/arith/arith_static_learner.h"
 #include "theory/arith/arith_utilities.h"
 #include "theory/arith/normal_form.h"
@@ -48,13 +49,13 @@ ArithStaticLearner::Statistics::Statistics():
   d_iteMinMaxApplications("theory::arith::iteMinMaxApplications", 0),
   d_iteConstantApplications("theory::arith::iteConstantApplications", 0)
 {
-  StatisticsRegistry::registerStat(&d_iteMinMaxApplications);
-  StatisticsRegistry::registerStat(&d_iteConstantApplications);
+  smtStatisticsRegistry()->registerStat(&d_iteMinMaxApplications);
+  smtStatisticsRegistry()->registerStat(&d_iteConstantApplications);
 }
 
 ArithStaticLearner::Statistics::~Statistics(){
-  StatisticsRegistry::unregisterStat(&d_iteMinMaxApplications);
-  StatisticsRegistry::unregisterStat(&d_iteConstantApplications);
+  smtStatisticsRegistry()->unregisterStat(&d_iteMinMaxApplications);
+  smtStatisticsRegistry()->unregisterStat(&d_iteConstantApplications);
 }
 
 void ArithStaticLearner::staticLearning(TNode n, NodeBuilder<>& learned){

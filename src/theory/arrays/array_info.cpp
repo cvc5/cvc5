@@ -17,9 +17,52 @@
 
 #include "theory/arrays/array_info.h"
 
+#include "smt/smt_statistics_registry.h"
+
 namespace CVC4 {
 namespace theory {
 namespace arrays {
+
+ArrayInfo::ArrayInfo(context::Context* c, Backtracker<TNode>* b)
+    : ct(c), bck(b), info_map(),
+      d_mergeInfoTimer("theory::arrays::mergeInfoTimer"),
+      d_avgIndexListLength("theory::arrays::avgIndexListLength"),
+      d_avgStoresListLength("theory::arrays::avgStoresListLength"),
+      d_avgInStoresListLength("theory::arrays::avgInStoresListLength"),
+      d_listsCount("theory::arrays::listsCount",0),
+      d_callsMergeInfo("theory::arrays::callsMergeInfo",0),
+      d_maxList("theory::arrays::maxList",0),
+      d_tableSize("theory::arrays::infoTableSize", info_map) {
+  emptyList = new(true) CTNodeList(ct);
+  emptyInfo = new Info(ct, bck);
+  smtStatisticsRegistry()->registerStat(&d_mergeInfoTimer);
+  smtStatisticsRegistry()->registerStat(&d_avgIndexListLength);
+  smtStatisticsRegistry()->registerStat(&d_avgStoresListLength);
+  smtStatisticsRegistry()->registerStat(&d_avgInStoresListLength);
+  smtStatisticsRegistry()->registerStat(&d_listsCount);
+  smtStatisticsRegistry()->registerStat(&d_callsMergeInfo);
+  smtStatisticsRegistry()->registerStat(&d_maxList);
+  smtStatisticsRegistry()->registerStat(&d_tableSize);
+}
+
+ArrayInfo::~ArrayInfo() {
+  CNodeInfoMap::iterator it = info_map.begin();
+  for( ; it != info_map.end(); it++ ) {
+    if((*it).second!= emptyInfo) {
+      delete (*it).second;
+    }
+  }
+  emptyList->deleteSelf();
+  delete emptyInfo;
+  smtStatisticsRegistry()->unregisterStat(&d_mergeInfoTimer);
+  smtStatisticsRegistry()->unregisterStat(&d_avgIndexListLength);
+  smtStatisticsRegistry()->unregisterStat(&d_avgStoresListLength);
+  smtStatisticsRegistry()->unregisterStat(&d_avgInStoresListLength);
+  smtStatisticsRegistry()->unregisterStat(&d_listsCount);
+  smtStatisticsRegistry()->unregisterStat(&d_callsMergeInfo);
+  smtStatisticsRegistry()->unregisterStat(&d_maxList);
+  smtStatisticsRegistry()->unregisterStat(&d_tableSize);
+}
 
 bool inList(const CTNodeList* l, const TNode el) {
   CTNodeList::const_iterator it = l->begin();

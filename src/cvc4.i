@@ -52,12 +52,12 @@ using namespace CVC4;
 #include "base/modal_exception.h"
 #include "expr/datatype.h"
 #include "expr/expr.h"
-#include "expr/sexpr.h"
 #include "expr/type.h"
 #include "options/option_exception.h"
 #include "smt_util/command.h"
-#include "util/integer.h"
 #include "util/bitvector.h"
+#include "util/integer.h"
+#include "util/sexpr.h"
 #include "util/unsafe_interrupt_exception.h"
 
 #ifdef SWIGJAVA
@@ -306,36 +306,37 @@ std::set<JavaInputStreamAdapter*> CVC4::JavaInputStreamAdapter::s_adapters;
 // At the moment, the header includes seem to need to follow a special order.
 // I don't know why. I am following the build order 
 %include "base/exception.i"
-%include "util/unsafe_interrupt_exception.i"
+%include "base/modal_exception.i"
+
+%include "options/language.i"
+
+// Tim: "util/integer.i" must come before util/{rational.i,bitvector.i}.
 %include "util/integer.i"
 %include "util/rational.i"
-%include "options/language.i"
-%include "util/configuration.i"
-%include "util/bool.i"
-%include "util/cardinality.i"
-%include "base/modal_exception.i"
-%include "expr/sexpr.i"
-
 %include "util/bitvector.i"
 
-
+// Tim: The remainder of util/.
+%include "util/bool.i"
+%include "util/cardinality.i"
+%include "util/configuration.i"
 %include "util/hash.i"
 %include "util/proof.i"
 %include "util/regexp.i"
+%include "util/resource_manager.i"
+%include "util/result.i"
+%include "util/sexpr.i"
+%include "util/statistics.i"
 %include "util/subrange_bound.i"
 %include "util/tuple.i"
-//%include "util/floatingpoint.i"
+%include "util/unsafe_interrupt_exception.i"
 
 %include "expr/uninterpreted_constant.i"
-%include "expr/statistics.i"
 %include "expr/array_store_all.i"
 %include "expr/ascription_type.i"
 %include "expr/emptyset.i"
 %include "expr/datatype.i"
 %include "expr/predicate.i"
 %include "expr/record.i"
-%include "expr/resource_manager.i"
-%include "expr/result.i"
 %include "proof/unsat_core.i"
 
 // TIM:
@@ -356,6 +357,8 @@ std::set<JavaInputStreamAdapter*> CVC4::JavaInputStreamAdapter::s_adapters;
 %include "options/options.i"
 %include "parser/cvc4parser.i"
 %include "smt/logic_exception.i"
-%include "smt/smt_engine.i"
 %include "smt_util/command.i"
 %include "theory/logic_info.i"
+
+// Tim: This should come after "theory/logic_info.i".
+%include "smt/smt_engine.i"

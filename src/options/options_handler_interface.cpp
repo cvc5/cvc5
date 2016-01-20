@@ -323,10 +323,6 @@ std::string checkReplayFilename(std::string option, std::string optarg, OptionsH
   return handler->checkReplayFilename(option, optarg);
 }
 
-std::ostream* checkReplayLogFilename(std::string option, std::string optarg, OptionsHandler* handler) {
-  PrettyCheckArgument(handler != NULL, handler, s_third_argument_warning);
-  return handler->checkReplayLogFilename(option, optarg);
-}
 
 // ensure we are a stats-enabled build of CVC4
 void statsEnabledBuild(std::string option, bool value, OptionsHandler* handler) throw(OptionException) {

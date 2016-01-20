@@ -23,7 +23,6 @@
 #include "expr/attribute.h"
 #include "expr/node.h"
 #include "expr/node_builder.h"
-#include "expr/resource_manager.h"
 #include "options/bv_options.h"
 #include "options/options.h"
 #include "options/quantifiers_options.h"
@@ -46,11 +45,13 @@
 #include "theory/theory_traits.h"
 #include "theory/uf/equality_engine.h"
 #include "theory/unconstrained_simplifier.h"
+#include "util/resource_manager.h"
 
 using namespace std;
 
-using namespace CVC4;
 using namespace CVC4::theory;
+
+namespace CVC4 {
 
 void TheoryEngine::finishInit() {
   // initialize the quantifiers engine
@@ -102,7 +103,8 @@ void TheoryEngine::eqNotifyDisequal(TNode t1, TNode t2, TNode reason){
 TheoryEngine::TheoryEngine(context::Context* context,
                            context::UserContext* userContext,
                            RemoveITE& iteRemover,
-                           const LogicInfo& logicInfo)
+                           const LogicInfo& logicInfo,
+                           SmtGlobals* globals)
 : d_propEngine(NULL),
   d_decisionEngine(NULL),
   d_context(context),
@@ -131,6 +133,7 @@ TheoryEngine::TheoryEngine(context::Context* context,
   d_false(),
   d_interrupted(false),
   d_resourceManager(NodeManager::currentResourceManager()),
+  d_globals(globals),
   d_inPreregister(false),
   d_factsAsserted(context, false),
   d_preRegistrationVisitor(this, context),
@@ -148,15 +151,15 @@ TheoryEngine::TheoryEngine(context::Context* context,
   d_curr_model = new theory::TheoryModel(userContext, "DefaultModel", true);
   d_curr_model_builder = new theory::TheoryEngineModelBuilder(this);
 
-  StatisticsRegistry::registerStat(&d_combineTheoriesTime);
+  smtStatisticsRegistry()->registerStat(&d_combineTheoriesTime);
   d_true = NodeManager::currentNM()->mkConst<bool>(true);
   d_false = NodeManager::currentNM()->mkConst<bool>(false);
 
-  PROOF (ProofManager::currentPM()->initTheoryProofEngine(); );
+  PROOF (ProofManager::currentPM()->initTheoryProofEngine(d_globals); );
 
   d_iteUtilities = new ITEUtilities(d_iteRemover.getContainsVisitor());
 
-  StatisticsRegistry::registerStat(&d_arithSubstitutionsAdded);
+  smtStatisticsRegistry()->registerStat(&d_arithSubstitutionsAdded);
 }
 
 TheoryEngine::~TheoryEngine() {
@@ -176,13 +179,13 @@ TheoryEngine::~TheoryEngine() {
 
   delete d_masterEqualityEngine;
 
-  StatisticsRegistry::unregisterStat(&d_combineTheoriesTime);
+  smtStatisticsRegistry()->unregisterStat(&d_combineTheoriesTime);
 
   delete d_unconstrainedSimp;
 
   delete d_iteUtilities;
 
-  StatisticsRegistry::unregisterStat(&d_arithSubstitutionsAdded);
+  smtStatisticsRegistry()->unregisterStat(&d_arithSubstitutionsAdded);
 }
 
 void TheoryEngine::interrupt() throw(ModalException) {
@@ -1395,8 +1398,8 @@ theory::LemmaStatus TheoryEngine::lemma(TNode node,
   }
 
   // Share with other portfolio threads
-  if(options::lemmaOutputChannel() != NULL) {
-    options::lemmaOutputChannel()->notifyNewLemma(node.toExpr());
+  if(d_globals->getLemmaOutputChannel() != NULL) {
+    d_globals->getLemmaOutputChannel()->notifyNewLemma(node.toExpr());
   }
 
   // Run theory preprocessing, maybe
@@ -1765,3 +1768,30 @@ std::pair<bool, Node> TheoryEngine::entailmentCheck(theory::TheoryOfMode mode, T
 void TheoryEngine::spendResource(unsigned ammount) {
   d_resourceManager->spendResource(ammount);
 }
+
+TheoryEngine::Statistics::Statistics(theory::TheoryId theory):
+    conflicts(mkName("theory<", theory, ">::conflicts"), 0),
+    propagations(mkName("theory<", theory, ">::propagations"), 0),
+    lemmas(mkName("theory<", theory, ">::lemmas"), 0),
+    requirePhase(mkName("theory<", theory, ">::requirePhase"), 0),
+    flipDecision(mkName("theory<", theory, ">::flipDecision"), 0),
+    restartDemands(mkName("theory<", theory, ">::restartDemands"), 0)
+{
+  smtStatisticsRegistry()->registerStat(&conflicts);
+  smtStatisticsRegistry()->registerStat(&propagations);
+  smtStatisticsRegistry()->registerStat(&lemmas);
+  smtStatisticsRegistry()->registerStat(&requirePhase);
+  smtStatisticsRegistry()->registerStat(&flipDecision);
+  smtStatisticsRegistry()->registerStat(&restartDemands);
+}
+
+TheoryEngine::Statistics::~Statistics() {
+  smtStatisticsRegistry()->unregisterStat(&conflicts);
+  smtStatisticsRegistry()->unregisterStat(&propagations);
+  smtStatisticsRegistry()->unregisterStat(&lemmas);
+  smtStatisticsRegistry()->unregisterStat(&requirePhase);
+  smtStatisticsRegistry()->unregisterStat(&flipDecision);
+  smtStatisticsRegistry()->unregisterStat(&restartDemands);
+}
+
+}/* CVC4 namespace */

@@ -63,8 +63,8 @@ CommandExecutorPortfolio::CommandExecutorPortfolio
   assert(d_threadOptions.size() == d_numThreads);
 
   d_statLastWinner.setData(d_lastWinner);
-  d_stats.registerStat_(&d_statLastWinner);
-  d_stats.registerStat_(&d_statWaitTime);
+  d_stats.registerStat(&d_statLastWinner);
+  d_stats.registerStat(&d_statWaitTime);
 
   /* Duplication, individualization */
   d_exprMgrs.push_back(&d_exprMgr);
@@ -99,8 +99,8 @@ CommandExecutorPortfolio::~CommandExecutorPortfolio()
   d_exprMgrs.clear();
   d_smts.clear();
 
-  d_stats.unregisterStat_(&d_statLastWinner);
-  d_stats.unregisterStat_(&d_statWaitTime);
+  d_stats.unregisterStat(&d_statLastWinner);
+  d_stats.unregisterStat(&d_statWaitTime);
 }
 
 void CommandExecutorPortfolio::lemmaSharingInit()
@@ -117,24 +117,24 @@ void CommandExecutorPortfolio::lemmaSharingInit()
     const unsigned int sharingChannelSize = 1000000;
 
     for(unsigned i = 0; i < d_numThreads; ++i){
-      d_channelsOut.push_back
-        (new SynchronizedSharedChannel<ChannelFormat>(sharingChannelSize));
-      d_channelsIn.push_back
-        (new SynchronizedSharedChannel<ChannelFormat>(sharingChannelSize));
+      d_channelsOut.push_back(
+          new SynchronizedSharedChannel<ChannelFormat>(sharingChannelSize));
+      d_channelsIn.push_back(
+          new SynchronizedSharedChannel<ChannelFormat>(sharingChannelSize));
     }
 
     /* Lemma I/O channels */
     for(unsigned i = 0; i < d_numThreads; ++i) {
       string tag = "thread #" +
         boost::lexical_cast<string>(d_threadOptions[i][options::thread_id]);
-      d_threadOptions[i].set
-        (options::lemmaOutputChannel,
-         new PortfolioLemmaOutputChannel(tag, d_channelsOut[i], d_exprMgrs[i],
-                                         d_vmaps[i]->d_from, d_vmaps[i]->d_to));
-      d_threadOptions[i].set
-        (options::lemmaInputChannel,
-         new PortfolioLemmaInputChannel(tag, d_channelsIn[i], d_exprMgrs[i],
-                                        d_vmaps[i]->d_from, d_vmaps[i]->d_to));
+      LemmaOutputChannel* outputChannel =
+          new PortfolioLemmaOutputChannel(tag, d_channelsOut[i], d_exprMgrs[i],
+                                          d_vmaps[i]->d_from, d_vmaps[i]->d_to);
+      LemmaInputChannel* inputChannel =
+          new PortfolioLemmaInputChannel(tag, d_channelsIn[i], d_exprMgrs[i],
+                                         d_vmaps[i]->d_from, d_vmaps[i]->d_to);
+      d_smts[i]->globals()->setLemmaInputChannel(inputChannel);
+      d_smts[i]->globals()->setLemmaOutputChannel(outputChannel);
     }
 
     /* Output to string stream  */
@@ -163,8 +163,10 @@ void CommandExecutorPortfolio::lemmaSharingCleanup()
   for(unsigned i = 0; i < d_numThreads; ++i) {
     delete d_channelsIn[i];
     delete d_channelsOut[i];
-    d_threadOptions[i].set(options::lemmaInputChannel, NULL);
-    d_threadOptions[i].set(options::lemmaOutputChannel, NULL);
+    delete d_smts[i]->globals()->getLemmaInputChannel();
+    d_smts[i]->globals()->setLemmaInputChannel(NULL);
+    delete d_smts[i]->globals()->getLemmaOutputChannel();
+    d_smts[i]->globals()->setLemmaOutputChannel(NULL);
   }
   d_channelsIn.clear();
   d_channelsOut.clear();

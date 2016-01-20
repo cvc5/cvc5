@@ -13,7 +13,7 @@
  **
  ** Encapsulation of the result of a query.
  **/
-#include "expr/result.h"
+#include "util/result.h"
 
 #include <algorithm>
 #include <cctype>
@@ -21,11 +21,9 @@
 #include <string>
 
 #include "base/cvc4_assert.h"
-#include "expr/node.h"
+#include "options/set_language.h"
 
 using namespace std;
-
-#warning "TODO: Move Node::setLanguage out of Node and into util/. Then move Result back into util/."
 
 namespace CVC4 {
 
@@ -268,7 +266,7 @@ ostream& operator<<(ostream& out, enum Result::UnknownExplanation e) {
 }
 
 ostream& operator<<(ostream& out, const Result& r) {
-  r.toStream(out, Node::setlanguage::getLanguage(out));
+  r.toStream(out, language::SetLanguage::getLanguage(out));
   return out;
 }/* operator<<(ostream&, const Result&) */
 

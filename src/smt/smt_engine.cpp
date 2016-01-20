@@ -27,6 +27,7 @@
 #include <vector>
 
 #include "base/exception.h"
+#include "base/listener.h"
 #include "base/modal_exception.h"
 #include "base/output.h"
 #include "context/cdhashset.h"
@@ -40,7 +41,6 @@
 #include "expr/node.h"
 #include "expr/node_builder.h"
 #include "expr/node_self_iterator.h"
-#include "expr/resource_manager.h"
 #include "options/arith_options.h"
 #include "options/arrays_options.h"
 #include "options/base_options.h"
@@ -99,6 +99,7 @@
 #include "util/configuration_private.h"
 #include "util/hash.h"
 #include "util/proof.h"
+#include "util/resource_manager.h"
 
 using namespace std;
 using namespace CVC4;
@@ -244,57 +245,83 @@ struct SmtEngineStatistics {
     d_resourceUnitsUsed("smt::SmtEngine::resourceUnitsUsed")
  {
 
-    StatisticsRegistry::registerStat(&d_definitionExpansionTime);
-    StatisticsRegistry::registerStat(&d_rewriteBooleanTermsTime);
-    StatisticsRegistry::registerStat(&d_nonclausalSimplificationTime);
-    StatisticsRegistry::registerStat(&d_miplibPassTime);
-    StatisticsRegistry::registerStat(&d_numMiplibAssertionsRemoved);
-    StatisticsRegistry::registerStat(&d_numConstantProps);
-    StatisticsRegistry::registerStat(&d_staticLearningTime);
-    StatisticsRegistry::registerStat(&d_simpITETime);
-    StatisticsRegistry::registerStat(&d_unconstrainedSimpTime);
-    StatisticsRegistry::registerStat(&d_iteRemovalTime);
-    StatisticsRegistry::registerStat(&d_theoryPreprocessTime);
-    StatisticsRegistry::registerStat(&d_rewriteApplyToConstTime);
-    StatisticsRegistry::registerStat(&d_cnfConversionTime);
-    StatisticsRegistry::registerStat(&d_numAssertionsPre);
-    StatisticsRegistry::registerStat(&d_numAssertionsPost);
-    StatisticsRegistry::registerStat(&d_checkModelTime);
-    StatisticsRegistry::registerStat(&d_checkProofTime);
-    StatisticsRegistry::registerStat(&d_checkUnsatCoreTime);
-    StatisticsRegistry::registerStat(&d_solveTime);
-    StatisticsRegistry::registerStat(&d_pushPopTime);
-    StatisticsRegistry::registerStat(&d_processAssertionsTime);
-    StatisticsRegistry::registerStat(&d_simplifiedToFalse);
-    StatisticsRegistry::registerStat(&d_resourceUnitsUsed);
+    smtStatisticsRegistry()->registerStat(&d_definitionExpansionTime);
+    smtStatisticsRegistry()->registerStat(&d_rewriteBooleanTermsTime);
+    smtStatisticsRegistry()->registerStat(&d_nonclausalSimplificationTime);
+    smtStatisticsRegistry()->registerStat(&d_miplibPassTime);
+    smtStatisticsRegistry()->registerStat(&d_numMiplibAssertionsRemoved);
+    smtStatisticsRegistry()->registerStat(&d_numConstantProps);
+    smtStatisticsRegistry()->registerStat(&d_staticLearningTime);
+    smtStatisticsRegistry()->registerStat(&d_simpITETime);
+    smtStatisticsRegistry()->registerStat(&d_unconstrainedSimpTime);
+    smtStatisticsRegistry()->registerStat(&d_iteRemovalTime);
+    smtStatisticsRegistry()->registerStat(&d_theoryPreprocessTime);
+    smtStatisticsRegistry()->registerStat(&d_rewriteApplyToConstTime);
+    smtStatisticsRegistry()->registerStat(&d_cnfConversionTime);
+    smtStatisticsRegistry()->registerStat(&d_numAssertionsPre);
+    smtStatisticsRegistry()->registerStat(&d_numAssertionsPost);
+    smtStatisticsRegistry()->registerStat(&d_checkModelTime);
+    smtStatisticsRegistry()->registerStat(&d_checkProofTime);
+    smtStatisticsRegistry()->registerStat(&d_checkUnsatCoreTime);
+    smtStatisticsRegistry()->registerStat(&d_solveTime);
+    smtStatisticsRegistry()->registerStat(&d_pushPopTime);
+    smtStatisticsRegistry()->registerStat(&d_processAssertionsTime);
+    smtStatisticsRegistry()->registerStat(&d_simplifiedToFalse);
+    smtStatisticsRegistry()->registerStat(&d_resourceUnitsUsed);
   }
 
   ~SmtEngineStatistics() {
-    StatisticsRegistry::unregisterStat(&d_definitionExpansionTime);
-    StatisticsRegistry::unregisterStat(&d_rewriteBooleanTermsTime);
-    StatisticsRegistry::unregisterStat(&d_nonclausalSimplificationTime);
-    StatisticsRegistry::unregisterStat(&d_miplibPassTime);
-    StatisticsRegistry::unregisterStat(&d_numMiplibAssertionsRemoved);
-    StatisticsRegistry::unregisterStat(&d_numConstantProps);
-    StatisticsRegistry::unregisterStat(&d_staticLearningTime);
-    StatisticsRegistry::unregisterStat(&d_simpITETime);
-    StatisticsRegistry::unregisterStat(&d_unconstrainedSimpTime);
-    StatisticsRegistry::unregisterStat(&d_iteRemovalTime);
-    StatisticsRegistry::unregisterStat(&d_theoryPreprocessTime);
-    StatisticsRegistry::unregisterStat(&d_rewriteApplyToConstTime);
-    StatisticsRegistry::unregisterStat(&d_cnfConversionTime);
-    StatisticsRegistry::unregisterStat(&d_numAssertionsPre);
-    StatisticsRegistry::unregisterStat(&d_numAssertionsPost);
-    StatisticsRegistry::unregisterStat(&d_checkModelTime);
-    StatisticsRegistry::unregisterStat(&d_checkProofTime);
-    StatisticsRegistry::unregisterStat(&d_checkUnsatCoreTime);
-    StatisticsRegistry::unregisterStat(&d_solveTime);
-    StatisticsRegistry::unregisterStat(&d_pushPopTime);
-    StatisticsRegistry::unregisterStat(&d_processAssertionsTime);
-    StatisticsRegistry::unregisterStat(&d_simplifiedToFalse);
-    StatisticsRegistry::unregisterStat(&d_resourceUnitsUsed);
+    smtStatisticsRegistry()->unregisterStat(&d_definitionExpansionTime);
+    smtStatisticsRegistry()->unregisterStat(&d_rewriteBooleanTermsTime);
+    smtStatisticsRegistry()->unregisterStat(&d_nonclausalSimplificationTime);
+    smtStatisticsRegistry()->unregisterStat(&d_miplibPassTime);
+    smtStatisticsRegistry()->unregisterStat(&d_numMiplibAssertionsRemoved);
+    smtStatisticsRegistry()->unregisterStat(&d_numConstantProps);
+    smtStatisticsRegistry()->unregisterStat(&d_staticLearningTime);
+    smtStatisticsRegistry()->unregisterStat(&d_simpITETime);
+    smtStatisticsRegistry()->unregisterStat(&d_unconstrainedSimpTime);
+    smtStatisticsRegistry()->unregisterStat(&d_iteRemovalTime);
+    smtStatisticsRegistry()->unregisterStat(&d_theoryPreprocessTime);
+    smtStatisticsRegistry()->unregisterStat(&d_rewriteApplyToConstTime);
+    smtStatisticsRegistry()->unregisterStat(&d_cnfConversionTime);
+    smtStatisticsRegistry()->unregisterStat(&d_numAssertionsPre);
+    smtStatisticsRegistry()->unregisterStat(&d_numAssertionsPost);
+    smtStatisticsRegistry()->unregisterStat(&d_checkModelTime);
+    smtStatisticsRegistry()->unregisterStat(&d_checkProofTime);
+    smtStatisticsRegistry()->unregisterStat(&d_checkUnsatCoreTime);
+    smtStatisticsRegistry()->unregisterStat(&d_solveTime);
+    smtStatisticsRegistry()->unregisterStat(&d_pushPopTime);
+    smtStatisticsRegistry()->unregisterStat(&d_processAssertionsTime);
+    smtStatisticsRegistry()->unregisterStat(&d_simplifiedToFalse);
+    smtStatisticsRegistry()->unregisterStat(&d_resourceUnitsUsed);
   }
 };/* struct SmtEngineStatistics */
+
+
+class SoftResourceOutListener : public Listener {
+ public:
+  SoftResourceOutListener(SmtEngine& smt) : d_smt(&smt) {}
+  virtual void notify() {
+    SmtScope scope(d_smt);
+    Assert(smt::smtEngineInScope());
+    d_smt->interrupt();
+  }
+ private:
+  SmtEngine* d_smt;
+}; /* class SoftResourceOutListener */
+
+
+class HardResourceOutListener : public Listener {
+ public:
+  HardResourceOutListener(SmtEngine& smt) : d_smt(&smt) {}
+  virtual void notify() {
+    SmtScope scope(d_smt);
+    theory::Rewriter::clearCaches();
+  }
+ private:
+  SmtEngine* d_smt;
+}; /* class HardResourceOutListener */
+
 
 /**
  * This is an inelegant solution, but for the present, it will work.
@@ -317,6 +344,16 @@ class SmtEnginePrivate : public NodeManagerListener {
    * Manager for limiting time and abstract resource usage.
    */
   ResourceManager* d_resourceManager;
+
+  /**
+   * Listener for the when a soft resource out occurs.
+   */
+  RegisterListener* d_softResourceOutListener;
+
+  /**
+   * Listener for the when a hard resource out occurs.
+   */
+  RegisterListener* d_hardResourceOutListener;
 
   /** Learned literals */
   vector<Node> d_nonClausalLearnedLiterals;
@@ -465,6 +502,8 @@ public:
   SmtEnginePrivate(SmtEngine& smt) :
     d_smt(smt),
     d_resourceManager(NULL),
+    d_softResourceOutListener(NULL),
+    d_hardResourceOutListener(NULL),
     d_nonClausalLearnedLiterals(),
     d_realAssertionsEnd(0),
     d_booleanTermConverter(NULL),
@@ -485,9 +524,23 @@ public:
     d_smt.d_nodeManager->subscribeEvents(this);
     d_true = NodeManager::currentNM()->mkConst(true);
     d_resourceManager = NodeManager::currentResourceManager();
+
+    d_softResourceOutListener = new RegisterListener(
+        d_resourceManager->getSoftListeners(),
+        new SoftResourceOutListener(d_smt));
+
+    d_hardResourceOutListener = new RegisterListener(
+        d_resourceManager->getHardListeners(),
+        new HardResourceOutListener(d_smt));
+
   }
 
   ~SmtEnginePrivate() throw() {
+    delete d_hardResourceOutListener;
+    d_hardResourceOutListener = NULL;
+    delete d_softResourceOutListener;
+    d_softResourceOutListener = NULL;
+
     if(d_propagatorNeedsFinish) {
       d_propagator.finish();
       d_propagatorNeedsFinish = false;
@@ -724,22 +777,27 @@ SmtEngine::SmtEngine(ExprManager* em) throw() :
   d_private(NULL),
   d_smtAttributes(NULL),
   d_statisticsRegistry(NULL),
-  d_stats(NULL) {
+  d_stats(NULL),
+  d_globals(new SmtGlobals())
+{
 
   SmtScope smts(this);
   d_smtAttributes = new expr::attr::SmtAttributes(d_context);
   d_private = new smt::SmtEnginePrivate(*this);
   d_statisticsRegistry = new StatisticsRegistry();
   d_stats = new SmtEngineStatistics();
-
-  d_stats->d_resourceUnitsUsed.setData(d_private->getResourceManager()->d_cumulativeResourceUsed);
+  d_stats->d_resourceUnitsUsed.setData(
+      d_private->getResourceManager()->getResourceUsage());
 
   Assert(d_proofManager == NULL);
   PROOF( d_proofManager = new ProofManager(); );
 
   // We have mutual dependency here, so we add the prop engine to the theory
   // engine later (it is non-essential there)
-  d_theoryEngine = new TheoryEngine(d_context, d_userContext, d_private->d_iteRemover, const_cast<const LogicInfo&>(d_logic));
+  d_theoryEngine = new TheoryEngine(d_context, d_userContext,
+                                    d_private->d_iteRemover,
+                                    const_cast<const LogicInfo&>(d_logic),
+                                    d_globals);
 
   // Add the theories
   for(TheoryId id = theory::THEORY_FIRST; id < theory::THEORY_LAST; ++id) {
@@ -770,7 +828,8 @@ void SmtEngine::finishInit() {
   d_decisionEngine = new DecisionEngine(d_context, d_userContext);
   d_decisionEngine->init();   // enable appropriate strategies
 
-  d_propEngine = new PropEngine(d_theoryEngine, d_decisionEngine, d_context, d_userContext);
+  d_propEngine = new PropEngine(d_theoryEngine, d_decisionEngine, d_context,
+                                d_userContext, d_globals);
 
   d_theoryEngine->setPropEngine(d_propEngine);
   d_theoryEngine->setDecisionEngine(d_decisionEngine);
@@ -912,6 +971,9 @@ SmtEngine::~SmtEngine() throw() {
     d_userContext = NULL;
     delete d_context;
     d_context = NULL;
+
+    delete d_globals;
+    d_globals = NULL;
 
   } catch(Exception& e) {
     Warning() << "CVC4 threw an exception during cleanup." << endl

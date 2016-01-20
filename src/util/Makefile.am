@@ -43,8 +43,18 @@ libutil_la_SOURCES = \
 	proof.h \
 	regexp.cpp \
 	regexp.h \
+	resource_manager.cpp \
+	resource_manager.h \
+	result.cpp \
+	result.h \
+	sexpr.cpp \
+	sexpr.h \
 	smt2_quote_string.cpp \
 	smt2_quote_string.h \
+	statistics.cpp \
+	statistics.h \
+	statistics_registry.cpp \
+	statistics_registry.h \
 	subrange_bound.cpp \
 	subrange_bound.h \
 	tuple.h \
@@ -89,6 +99,10 @@ EXTRA_DIST = \
 	rational_gmp_imp.cpp \
 	rational_gmp_imp.h \
 	regexp.i \
+	resource_manager.i \
+	result.i \
+	sexpr.i \
+	statistics.i \
 	subrange_bound.i \
 	tuple.i \
 	unsafe_interrupt_exception.i

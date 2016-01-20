@@ -15,8 +15,9 @@
  ** \todo document this file
  **/
 
-
 #include "theory/arith/error_set.h"
+
+#include "smt/smt_statistics_registry.h"
 #include "theory/arith/constraint.h"
 
 using namespace std;
@@ -134,21 +135,21 @@ ErrorSet::Statistics::Statistics():
   d_enqueuesCollectionDuplicates("theory::arith::pqueue::enqueuesCollectionDuplicates", 0),
   d_enqueuesVarOrderModeDuplicates("theory::arith::pqueue::enqueuesVarOrderModeDuplicates", 0)
 {
-  StatisticsRegistry::registerStat(&d_enqueues);
-  StatisticsRegistry::registerStat(&d_enqueuesCollection);
-  StatisticsRegistry::registerStat(&d_enqueuesDiffMode);
-  StatisticsRegistry::registerStat(&d_enqueuesVarOrderMode);
-  StatisticsRegistry::registerStat(&d_enqueuesCollectionDuplicates);
-  StatisticsRegistry::registerStat(&d_enqueuesVarOrderModeDuplicates);
+  smtStatisticsRegistry()->registerStat(&d_enqueues);
+  smtStatisticsRegistry()->registerStat(&d_enqueuesCollection);
+  smtStatisticsRegistry()->registerStat(&d_enqueuesDiffMode);
+  smtStatisticsRegistry()->registerStat(&d_enqueuesVarOrderMode);
+  smtStatisticsRegistry()->registerStat(&d_enqueuesCollectionDuplicates);
+  smtStatisticsRegistry()->registerStat(&d_enqueuesVarOrderModeDuplicates);
 }
 
 ErrorSet::Statistics::~Statistics(){
-  StatisticsRegistry::unregisterStat(&d_enqueues);
-  StatisticsRegistry::unregisterStat(&d_enqueuesCollection);
-  StatisticsRegistry::unregisterStat(&d_enqueuesDiffMode);
-  StatisticsRegistry::unregisterStat(&d_enqueuesVarOrderMode);
-  StatisticsRegistry::unregisterStat(&d_enqueuesCollectionDuplicates);
-  StatisticsRegistry::unregisterStat(&d_enqueuesVarOrderModeDuplicates);
+  smtStatisticsRegistry()->unregisterStat(&d_enqueues);
+  smtStatisticsRegistry()->unregisterStat(&d_enqueuesCollection);
+  smtStatisticsRegistry()->unregisterStat(&d_enqueuesDiffMode);
+  smtStatisticsRegistry()->unregisterStat(&d_enqueuesVarOrderMode);
+  smtStatisticsRegistry()->unregisterStat(&d_enqueuesCollectionDuplicates);
+  smtStatisticsRegistry()->unregisterStat(&d_enqueuesVarOrderModeDuplicates);
 }
 
 ErrorSet::ErrorSet(ArithVariables& vars, TableauSizes tabSizes, BoundCountingLookup lookups):

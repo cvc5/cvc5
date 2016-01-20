@@ -26,10 +26,10 @@
 #include <vector>
 
 #include "expr/kind.h"
-#include "expr/statistics_registry.h"
 #include "theory/arith/arithvar.h"
 #include "theory/arith/constraint_forward.h"
 #include "util/dense_map.h"
+#include "util/statistics_registry.h"
 
 namespace CVC4 {
 namespace theory {

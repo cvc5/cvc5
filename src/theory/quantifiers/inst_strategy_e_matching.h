@@ -19,10 +19,10 @@
 
 #include "context/context.h"
 #include "context/context_mm.h"
-#include "expr/statistics_registry.h"
 #include "theory/quantifiers/instantiation_engine.h"
 #include "theory/quantifiers/trigger.h"
 #include "theory/quantifiers_engine.h"
+#include "util/statistics_registry.h"
 
 namespace CVC4 {
 namespace theory {

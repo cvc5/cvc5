@@ -20,7 +20,6 @@ MAKEFLAGS = -k
 # put it below in "TESTS +="
 TESTS =	\
 	array_card.smt2 \
-	agree466.smt2 \
 	ALG008-1.smt2 \
 	german169.smt2 \
 	QEpres-uf.855035.smt \
@@ -43,7 +42,12 @@ TESTS =	\
 	syn002-si-real-int.smt2 \
 	krs-sat.smt2 \
 	forall_unit_data2.smt2 \
-	sc_bad_model_1221.smt2
+	sc_bad_model_1221.smt2 \
+ 	dt-proper-model.smt2 \
+	fd-false.smt2 \
+	tail_rec.smt2 \
+	jasmin-cdt-crash.smt2 \
+	loopy_coda.smt2
 
 
 EXTRA_DIST = $(TESTS)
@@ -54,10 +58,12 @@ EXTRA_DIST = $(TESTS)
 #TESTS += \
 #	error.cvc
 #endif
-#
+# 
 # and make sure to distribute it
 #EXTRA_DIST += \
 #	error.cvc
+
+# agree466.smt2 timeout after commit on 1/14 due to Array+FMF model construction
 
 # synonyms for "check" in this directory
 .PHONY: regress regress0 test

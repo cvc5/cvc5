@@ -20,6 +20,7 @@
 #include "prop/cnf_stream.h"
 #include "prop/sat_solver_factory.h"
 #include "proof/bitvector_proof.h"
+#include "smt/smt_statistics_registry.h"
 #include "theory/bv/bitblaster_template.h"
 #include "theory/bv/theory_bv.h"
 #include "theory/theory_model.h"
@@ -45,10 +46,13 @@ EagerBitblaster::EagerBitblaster(TheoryBV* theory_bv)
   d_bitblastingRegistrar = new BitblastingRegistrar(this);
   d_nullContext = new context::Context();
 
-  d_satSolver = prop::SatSolverFactory::createMinisat(d_nullContext, "EagerBitblaster");
+  d_satSolver = prop::SatSolverFactory::createMinisat(d_nullContext,
+                                                      smtStatisticsRegistry(),
+                                                      "EagerBitblaster");
   d_cnfStream = new prop::TseitinCnfStream(d_satSolver,
                                            d_bitblastingRegistrar,
                                            d_nullContext,
+                                           d_bv->globals(),
                                            options::proof(),
                                            "EagerBitblaster");
   

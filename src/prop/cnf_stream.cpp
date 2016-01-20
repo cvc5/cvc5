@@ -46,25 +46,28 @@ using namespace CVC4::kind;
 namespace CVC4 {
 namespace prop {
 
-CnfStream::CnfStream(SatSolver *satSolver, Registrar* registrar, context::Context* context, bool fullLitToNodeMap, std::string name) :
-  d_satSolver(satSolver),
-  d_booleanVariables(context),
-  d_nodeToLiteralMap(context),
-  d_literalToNodeMap(context),
-  d_fullLitToNodeMap(fullLitToNodeMap),
-  d_convertAndAssertCounter(0),
-  d_registrar(registrar),
-  d_name(name),
-  d_cnfProof(NULL),
-  d_removable(false) {
+CnfStream::CnfStream(SatSolver* satSolver, Registrar* registrar,
+                     context::Context* context, SmtGlobals* globals,
+                     bool fullLitToNodeMap, std::string name)
+    : d_satSolver(satSolver),
+      d_booleanVariables(context),
+      d_nodeToLiteralMap(context),
+      d_literalToNodeMap(context),
+      d_fullLitToNodeMap(fullLitToNodeMap),
+      d_convertAndAssertCounter(0),
+      d_registrar(registrar),
+      d_name(name),
+      d_cnfProof(NULL),
+      d_globals(globals),
+      d_removable(false) {
 }
 
-TseitinCnfStream::TseitinCnfStream(SatSolver* satSolver,
-                                   Registrar* registrar,
+TseitinCnfStream::TseitinCnfStream(SatSolver* satSolver, Registrar* registrar,
                                    context::Context* context,
-                                   bool fullLitToNodeMap, std::string name) :
-  CnfStream(satSolver, registrar, context, fullLitToNodeMap, name) {
-}
+                                   SmtGlobals* globals, bool fullLitToNodeMap,
+                                   std::string name)
+  : CnfStream(satSolver, registrar, context, globals, fullLitToNodeMap, name)
+{}
 
 void CnfStream::assertClause(TNode node, SatClause& c) {
   Debug("cnf") << "Inserting into stream " << c << " node = " << node << endl;
@@ -204,7 +207,7 @@ SatLiteral CnfStream::newLiteral(TNode node, bool isTheoryAtom, bool preRegister
 
   // If it's a theory literal, need to store it for back queries
   if ( isTheoryAtom || d_fullLitToNodeMap ||
-       ( CVC4_USE_REPLAY && options::replayLog() != NULL ) ||
+       ( CVC4_USE_REPLAY && d_globals->getReplayLog() != NULL ) ||
        (Dump.isOn("clauses")) ) {
 
     d_literalToNodeMap.insert_safe(lit, node);

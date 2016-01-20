@@ -3,7 +3,7 @@
  ** \verbatim
  ** Original author: Morgan Deters
  ** Major contributors: none
- ** Minor contributors (to current version): none
+ ** Minor contributors (to current version): Andrew Reynolds
  ** This file is part of the CVC4 project.
  ** Copyright (c) 2009-2014  New York University and The University of Iowa
  ** See the file COPYING in the top-level source directory for licensing
@@ -29,7 +29,7 @@ using namespace std;
 namespace CVC4 {
 namespace theory {
 
-TypeEnumeratorInterface* TypeEnumerator::mkTypeEnumerator(TypeNode type) throw(AssertionException) {
+TypeEnumeratorInterface* TypeEnumerator::mkTypeEnumerator(TypeNode type, TypeEnumeratorProperties * tep) throw(AssertionException) {
   switch(type.getKind()) {
   case kind::TYPE_CONSTANT:
     switch(type.getConst<TypeConstant>()) {

@@ -2058,23 +2058,23 @@ StrongSolverTheoryUF::Statistics::Statistics():
   d_totality_lemmas("StrongSolverTheoryUF::Totality_Lemmas", 0),
   d_max_model_size("StrongSolverTheoryUF::Max_Model_Size", 1)
 {
-  StatisticsRegistry::registerStat(&d_clique_conflicts);
-  StatisticsRegistry::registerStat(&d_clique_lemmas);
-  StatisticsRegistry::registerStat(&d_split_lemmas);
-  StatisticsRegistry::registerStat(&d_disamb_term_lemmas);
-  StatisticsRegistry::registerStat(&d_sym_break_lemmas);
-  StatisticsRegistry::registerStat(&d_totality_lemmas);
-  StatisticsRegistry::registerStat(&d_max_model_size);
+  smtStatisticsRegistry()->registerStat(&d_clique_conflicts);
+  smtStatisticsRegistry()->registerStat(&d_clique_lemmas);
+  smtStatisticsRegistry()->registerStat(&d_split_lemmas);
+  smtStatisticsRegistry()->registerStat(&d_disamb_term_lemmas);
+  smtStatisticsRegistry()->registerStat(&d_sym_break_lemmas);
+  smtStatisticsRegistry()->registerStat(&d_totality_lemmas);
+  smtStatisticsRegistry()->registerStat(&d_max_model_size);
 }
 
 StrongSolverTheoryUF::Statistics::~Statistics(){
-  StatisticsRegistry::unregisterStat(&d_clique_conflicts);
-  StatisticsRegistry::unregisterStat(&d_clique_lemmas);
-  StatisticsRegistry::unregisterStat(&d_split_lemmas);
-  StatisticsRegistry::unregisterStat(&d_disamb_term_lemmas);
-  StatisticsRegistry::unregisterStat(&d_sym_break_lemmas);
-  StatisticsRegistry::unregisterStat(&d_totality_lemmas);
-  StatisticsRegistry::unregisterStat(&d_max_model_size);
+  smtStatisticsRegistry()->unregisterStat(&d_clique_conflicts);
+  smtStatisticsRegistry()->unregisterStat(&d_clique_lemmas);
+  smtStatisticsRegistry()->unregisterStat(&d_split_lemmas);
+  smtStatisticsRegistry()->unregisterStat(&d_disamb_term_lemmas);
+  smtStatisticsRegistry()->unregisterStat(&d_sym_break_lemmas);
+  smtStatisticsRegistry()->unregisterStat(&d_totality_lemmas);
+  smtStatisticsRegistry()->unregisterStat(&d_max_model_size);
 }
 
 
@@ -2141,9 +2141,9 @@ void DisequalityPropagator::assertPredicate( Node p, bool polarity ) {
 DisequalityPropagator::Statistics::Statistics():
    d_propagations("StrongSolverTheoryUF::Disequality_Propagations", 0)
 {
-  StatisticsRegistry::registerStat(& d_propagations);
+  smtStatisticsRegistry()->registerStat(& d_propagations);
 }
 
 DisequalityPropagator::Statistics::~Statistics(){
-  StatisticsRegistry::unregisterStat(& d_propagations);
+  smtStatisticsRegistry()->unregisterStat(& d_propagations);
 }

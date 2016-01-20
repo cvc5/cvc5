@@ -20,10 +20,10 @@
 #define __CVC4__THEORY__OUTPUT_CHANNEL_H
 
 #include "base/cvc4_assert.h"
-#include "expr/resource_manager.h"
 #include "smt/logic_exception.h"
 #include "theory/interrupted.h"
 #include "proof/proof_manager.h"
+#include "util/resource_manager.h"
 
 namespace CVC4 {
 namespace theory {
@@ -87,8 +87,9 @@ public:
    * With safePoint(), the theory signals that it is at a safe point
    * and can be interrupted.
    */
-  virtual void safePoint(uint64_t ammount) throw(Interrupted, UnsafeInterruptException, AssertionException) {
-  }
+  virtual void safePoint(uint64_t amount)
+      throw(Interrupted, UnsafeInterruptException, AssertionException)
+  {}
 
   /**
    * Indicate a theory conflict has arisen.

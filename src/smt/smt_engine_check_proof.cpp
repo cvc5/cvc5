@@ -27,9 +27,9 @@
 
 #include "base/cvc4_assert.h"
 #include "base/output.h"
-#include "expr/statistics_registry.h"
 #include "smt/smt_engine.h"
 #include "util/configuration_private.h"
+#include "util/statistics_registry.h"
 
 using namespace CVC4;
 using namespace std;

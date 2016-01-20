@@ -14,10 +14,11 @@ public:
 
   /** Constructs a new instance of TheoryFp w.r.t. the provided contexts. */
   TheoryFp(context::Context* c,
-               context::UserContext* u,
-               OutputChannel& out,
-               Valuation valuation,
-               const LogicInfo& logicInfo);
+           context::UserContext* u,
+           OutputChannel& out,
+           Valuation valuation,
+           const LogicInfo& logicInfo,
+           SmtGlobals* globals);
 
   Node expandDefinition(LogicRequest &, Node node);
 

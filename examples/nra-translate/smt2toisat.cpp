@@ -39,20 +39,20 @@ void translate_to_isat(
         string input,
         const vector<string>& info_tags,
         const vector<string>& info_data,
-	const map<Expr, unsigned>& variables, 
+	const map<Expr, unsigned>& variables,
 	const vector<Expr>& assertions);
 
-int main(int argc, char* argv[]) 
+int main(int argc, char* argv[])
 {
 
-  // Get the filename 
+  // Get the filename
   string input(argv[1]);
 
   // Create the expression manager
   Options options;
   options.set(inputLanguage, language::input::LANG_SMTLIB_V2);
   ExprManager exprManager(options);
-  
+
   // Create the parser
   ParserBuilder parserBuilder(&exprManager, input, options);
   Parser* parser = parserBuilder.build();
@@ -310,4 +310,3 @@ void translate_to_isat(
   }
 
 }
-

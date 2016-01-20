@@ -16,6 +16,7 @@
 
 #include "options/bv_options.h"
 #include "smt_util/dump.h"
+#include "smt/smt_statistics_registry.h"
 #include "theory/bv/theory_bv_utils.h"
 #include "theory/rewriter.h"
 
@@ -1047,13 +1048,13 @@ AbstractionModule::Statistics::Statistics()
   , d_numArgsSkolemized("theory::bv::AbstractioModule::NumArgsSkolemized", 0)
   , d_abstractionTime("theory::bv::AbstractioModule::AbstractionTime")
 {
-  StatisticsRegistry::registerStat(&d_numFunctionsAbstracted);
-  StatisticsRegistry::registerStat(&d_numArgsSkolemized);
-  StatisticsRegistry::registerStat(&d_abstractionTime);
+  smtStatisticsRegistry()->registerStat(&d_numFunctionsAbstracted);
+  smtStatisticsRegistry()->registerStat(&d_numArgsSkolemized);
+  smtStatisticsRegistry()->registerStat(&d_abstractionTime);
 }
 
 AbstractionModule::Statistics::~Statistics() {
-  StatisticsRegistry::unregisterStat(&d_numFunctionsAbstracted);
-  StatisticsRegistry::unregisterStat(&d_numArgsSkolemized);
-  StatisticsRegistry::unregisterStat(&d_abstractionTime);
+  smtStatisticsRegistry()->unregisterStat(&d_numFunctionsAbstracted);
+  smtStatisticsRegistry()->unregisterStat(&d_numArgsSkolemized);
+  smtStatisticsRegistry()->unregisterStat(&d_abstractionTime);
 }

@@ -24,9 +24,9 @@
 #include <map>
 
 #include "context/cdhashmap.h"
-#include "expr/statistics_registry.h"
 #include "theory/theory.h"
 #include "util/hash.h"
+#include "util/statistics_registry.h"
 
 namespace CVC4 {
 class TheoryEngine;
@@ -46,10 +46,14 @@ private:
   int d_baseDecLevel;
 
   eq::EqualityEngine* d_masterEqualityEngine;
+
 private:
-  void computeCareGraph();  
+  void computeCareGraph();
+
 public:
-  TheoryQuantifiers(context::Context* c, context::UserContext* u, OutputChannel& out, Valuation valuation, const LogicInfo& logicInfo);
+  TheoryQuantifiers(context::Context* c, context::UserContext* u,
+                    OutputChannel& out, Valuation valuation,
+                    const LogicInfo& logicInfo, SmtGlobals* globals);
   ~TheoryQuantifiers();
 
   void setMasterEqualityEngine(eq::EqualityEngine* eq);

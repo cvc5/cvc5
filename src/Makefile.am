@@ -54,7 +54,6 @@ libcvc4_la_SOURCES = \
 	context/cdhashset_forward.h \
 	context/cdvector.h \
 	context/cdmaybe.h \
-	context/stacking_map.h \
 	context/stacking_vector.h \
 	context/cddense_set.h \
 	decision/decision_attributes.h \
@@ -111,12 +110,16 @@ libcvc4_la_SOURCES = \
 	smt/smt_engine.cpp \
 	smt/smt_engine_check_proof.cpp \
 	smt/smt_engine.h \
+	smt/smt_globals.cpp \
+	smt/smt_globals.h \
 	smt/model_postprocessor.cpp \
 	smt/model_postprocessor.h \
-	smt/smt_options_handler.cpp \
-	smt/smt_options_handler.h \
 	smt/smt_engine_scope.cpp \
 	smt/smt_engine_scope.h \
+	smt/smt_options_handler.cpp \
+	smt/smt_options_handler.h \
+	smt/smt_statistics_registry.cpp \
+	smt/smt_statistics_registry.h \
 	smt/command_list.cpp \
 	smt/command_list.h \
 	smt/boolean_terms.h \

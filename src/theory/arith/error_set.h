@@ -22,7 +22,6 @@
 
 #include <vector>
 
-#include "expr/statistics_registry.h"
 #include "options/arith_heuristic_pivot_rule.h"
 #include "theory/arith/arithvar.h"
 #include "theory/arith/bound_counts.h"
@@ -31,6 +30,7 @@
 #include "theory/arith/partial_model.h"
 #include "theory/arith/tableau_sizes.h"
 #include "util/bin_heap.h"
+#include "util/statistics_registry.h"
 
 namespace CVC4 {
 namespace theory {

@@ -21,6 +21,7 @@
 #include "expr/kind.h"
 #include "options/strings_options.h"
 #include "smt/logic_exception.h"
+#include "smt/smt_statistics_registry.h"
 #include "smt_util/command.h"
 #include "theory/rewriter.h"
 #include "theory/strings/theory_strings_rewriter.h"
@@ -55,42 +56,44 @@ Node TheoryStrings::TermIndex::add( Node n, unsigned index, TheoryStrings* t, No
 }
 
 
-TheoryStrings::TheoryStrings(context::Context* c, context::UserContext* u, OutputChannel& out, Valuation valuation, const LogicInfo& logicInfo)
-  : Theory(THEORY_STRINGS, c, u, out, valuation, logicInfo),
-  RMAXINT(LONG_MAX),
-  d_notify( *this ),
-  d_equalityEngine(d_notify, c, "theory::strings::TheoryStrings", true),
-  d_conflict(c, false),
-  d_infer(c),
-  d_infer_exp(c),
-  d_nf_pairs(c),
-  d_loop_antec(u),
-  d_length_intro_vars(u),
-  d_pregistered_terms_cache(u),
-  d_registered_terms_cache(u),
-  d_preproc(u),
-  d_preproc_cache(u),
-  d_extf_infer_cache(c),
-  d_congruent(c),
-  d_proxy_var(u),
-  d_proxy_var_to_length(u),
-  d_neg_ctn_eqlen(c),
-  d_neg_ctn_ulen(c),
-  d_neg_ctn_cached(u),
-  d_ext_func_terms(c),
-  d_regexp_memberships(c),
-  d_regexp_ucached(u),
-  d_regexp_ccached(c),
-  d_pos_memberships(c),
-  d_neg_memberships(c),
-  d_inter_cache(c),
-  d_inter_index(c),
-  d_processed_memberships(c),
-  d_regexp_ant(c),
-  d_input_vars(u),
-  d_input_var_lsum(u),
-  d_cardinality_lits(u),
-  d_curr_cardinality(c, 0)
+TheoryStrings::TheoryStrings(context::Context* c, context::UserContext* u,
+                             OutputChannel& out, Valuation valuation,
+                             const LogicInfo& logicInfo, SmtGlobals* globals)
+    : Theory(THEORY_STRINGS, c, u, out, valuation, logicInfo, globals),
+      RMAXINT(LONG_MAX),
+      d_notify( *this ),
+      d_equalityEngine(d_notify, c, "theory::strings::TheoryStrings", true),
+      d_conflict(c, false),
+      d_infer(c),
+      d_infer_exp(c),
+      d_nf_pairs(c),
+      d_loop_antec(u),
+      d_length_intro_vars(u),
+      d_pregistered_terms_cache(u),
+      d_registered_terms_cache(u),
+      d_preproc(u),
+      d_preproc_cache(u),
+      d_extf_infer_cache(c),
+      d_congruent(c),
+      d_proxy_var(u),
+      d_proxy_var_to_length(u),
+      d_neg_ctn_eqlen(c),
+      d_neg_ctn_ulen(c),
+      d_neg_ctn_cached(u),
+      d_ext_func_terms(c),
+      d_regexp_memberships(c),
+      d_regexp_ucached(u),
+      d_regexp_ccached(c),
+      d_pos_memberships(c),
+      d_neg_memberships(c),
+      d_inter_cache(c),
+      d_inter_index(c),
+      d_processed_memberships(c),
+      d_regexp_ant(c),
+      d_input_vars(u),
+      d_input_var_lsum(u),
+      d_cardinality_lits(u),
+      d_curr_cardinality(c, 0)
 {
   // The kinds we are treating as function application in congruence
   d_equalityEngine.addFunctionKind(kind::STRING_IN_REGEXP);
@@ -4020,6 +4023,7 @@ void TheoryStrings::checkExtendedFuncs() {
           addMembership( it->first ? it->second[i] : it->second[i].negate() );
         }
       }
+      Trace("strings-process") << "Checking memberships..." << std::endl;
       checkMemberships();
       Trace("strings-process") << "Done check memberships, addedLemma = " << !d_pending.empty() << " " << !d_lemma_cache.empty() << ", d_conflict = " << d_conflict << std::endl;
     }
@@ -4414,19 +4418,19 @@ TheoryStrings::Statistics::Statistics():
   d_loop_lemmas("TheoryStrings::NumOfLoops", 0),
   d_new_skolems("TheoryStrings::NumOfNewSkolems", 0)
 {
-  StatisticsRegistry::registerStat(&d_splits);
-  StatisticsRegistry::registerStat(&d_eq_splits);
-  StatisticsRegistry::registerStat(&d_deq_splits);
-  StatisticsRegistry::registerStat(&d_loop_lemmas);
-  StatisticsRegistry::registerStat(&d_new_skolems);
+  smtStatisticsRegistry()->registerStat(&d_splits);
+  smtStatisticsRegistry()->registerStat(&d_eq_splits);
+  smtStatisticsRegistry()->registerStat(&d_deq_splits);
+  smtStatisticsRegistry()->registerStat(&d_loop_lemmas);
+  smtStatisticsRegistry()->registerStat(&d_new_skolems);
 }
 
 TheoryStrings::Statistics::~Statistics(){
-  StatisticsRegistry::unregisterStat(&d_splits);
-  StatisticsRegistry::unregisterStat(&d_eq_splits);
-  StatisticsRegistry::unregisterStat(&d_deq_splits);
-  StatisticsRegistry::unregisterStat(&d_loop_lemmas);
-  StatisticsRegistry::unregisterStat(&d_new_skolems);
+  smtStatisticsRegistry()->unregisterStat(&d_splits);
+  smtStatisticsRegistry()->unregisterStat(&d_eq_splits);
+  smtStatisticsRegistry()->unregisterStat(&d_deq_splits);
+  smtStatisticsRegistry()->unregisterStat(&d_loop_lemmas);
+  smtStatisticsRegistry()->unregisterStat(&d_new_skolems);
 }
 
 }/* CVC4::theory::strings namespace */

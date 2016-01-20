@@ -3,23 +3,10 @@ AM_CPPFLAGS = \
 	-I@builddir@/.. -I@srcdir@/../include -I@srcdir@/..
 AM_CXXFLAGS = -Wall -Wno-unknown-pragmas $(FLAG_VISIBILITY_HIDDEN)
 
-#noinst_LTLIBRARIES = libexpr.la libstatistics.la
 noinst_LTLIBRARIES = libexpr.la
-
-# libstatistics_la_CPPFLAGS = $(CPPFLAGS) $(AM_CPPFLAGS) -D__BUILDING_STATISTICS_FOR_EXPORT
-# libstatistics_la_SOURCES = \
-# 	statistics_registry.h \
-# 	statistics_registry.cpp
-
-# EXTRA_libstatistics_la_DEPENDENCIES = \
-# 	builts
 
 # For some reason statistics were in libutil. No idea why though.
 libexpr_la_SOURCES = \
-	statistics.cpp \
-	statistics.h \
-	statistics_registry.cpp \
-	statistics_registry.h \
 	array.h \
 	array_store_all.cpp \
 	array_store_all.h \
@@ -52,10 +39,6 @@ libexpr_la_SOURCES = \
 	pickle_data.h \
 	pickler.cpp \
 	pickler.h \
-	resource_manager.cpp \
-	resource_manager.h \
-	sexpr.cpp \
-	sexpr.h \
 	symbol_table.cpp \
 	symbol_table.h \
 	type.cpp \
@@ -70,8 +53,6 @@ libexpr_la_SOURCES = \
 	predicate.cpp \
 	record.cpp \
 	record.h \
-	result.cpp \
-	result.h \
 	uninterpreted_constant.cpp \
 	uninterpreted_constant.h
 
@@ -106,14 +87,10 @@ EXTRA_DIST = \
 	expr_stream.i \
 	expr_manager.i \
 	symbol_table.i \
-	statistics.i \
 	type.i \
 	kind.i \
 	expr.i \
-	resource_manager.i \
-	sexpr.i \
 	record.i \
-	result.i \
 	predicate.i \
 	variable_type_map.i \
 	uninterpreted_constant.i

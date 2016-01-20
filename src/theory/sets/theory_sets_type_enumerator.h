@@ -3,7 +3,7 @@
  ** \verbatim
  ** Original author: Kshitij Bansal
  ** Major contributors: none
- ** Minor contributors (to current version): none
+ ** Minor contributors (to current version): Andrew Reynolds
  ** This file is part of the CVC4 project.
  ** Copyright (c) 2009-2014  New York University and The University of Iowa
  ** See the file COPYING in the top-level source directory for licensing
@@ -32,6 +32,8 @@ namespace theory {
 namespace sets {
 
 class SetEnumerator : public TypeEnumeratorBase<SetEnumerator> {
+  /** type properties */
+  TypeEnumeratorProperties * d_tep;
   unsigned d_index;
   TypeNode d_constituentType;
   NodeManager* d_nm;
@@ -42,8 +44,9 @@ class SetEnumerator : public TypeEnumeratorBase<SetEnumerator> {
 
 public:
 
-  SetEnumerator(TypeNode type) throw(AssertionException) :
+  SetEnumerator(TypeNode type, TypeEnumeratorProperties * tep = NULL) throw(AssertionException) :
     TypeEnumeratorBase<SetEnumerator>(type),
+    d_tep(tep),
     d_index(0),
     d_constituentType(type.getSetElementType()),
     d_nm(NodeManager::currentNM()),
@@ -62,6 +65,7 @@ public:
   // by the TypeEnumerator framework.
   SetEnumerator(const SetEnumerator& ae) throw() :
     TypeEnumeratorBase<SetEnumerator>(ae.d_nm->mkSetType(ae.d_constituentType)),
+    d_tep(ae.d_tep),
     d_index(ae.d_index),
     d_constituentType(ae.d_constituentType),
     d_nm(ae.d_nm),
@@ -145,7 +149,7 @@ public:
 
     if (d_constituentVec.empty()) {
       ++d_index;
-      d_constituentVec.push_back(new TypeEnumerator(d_constituentType));
+      d_constituentVec.push_back(new TypeEnumerator(d_constituentType, d_tep));
     }
 
     while (d_constituentVec.size() < d_index) {
