@@ -230,6 +230,9 @@ protected:
    */
   context::CDList<TNode> d_sharedTerms;
 
+  /** Name of this theory instance */
+  std::string d_name;
+  
   /**
    * Helper function for computeRelevantTerms
    */
@@ -247,7 +250,7 @@ protected:
    */
   Theory(TheoryId id, context::Context* satContext, context::UserContext* userContext,
          OutputChannel& out, Valuation valuation, const LogicInfo& logicInfo,
-         SmtGlobals* globals) throw();
+         SmtGlobals* globals, std::string = "") throw();
 
   /**
    * This is called at shutdown time by the TheoryEngine, just before

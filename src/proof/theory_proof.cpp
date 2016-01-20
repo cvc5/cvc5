@@ -510,11 +510,13 @@ void TheoryProof::printTheoryLemmaProof(std::vector<Expr>& lemma, std::ostream& 
   if(d_theory->getId()==theory::THEORY_UF) {
     th = new theory::uf::TheoryUF(&fakeContext, &fakeContext, oc, v,
                                   ProofManager::currentPM()->getLogicInfo(),
-                                  ProofManager::currentPM()->getTheoryProofEngine()->d_globals);
+                                  ProofManager::currentPM()->getTheoryProofEngine()->d_globals,
+                                  "replay::");
   } else if(d_theory->getId()==theory::THEORY_ARRAY) {
     th = new theory::arrays::TheoryArrays(&fakeContext, &fakeContext, oc, v,
                                           ProofManager::currentPM()->getLogicInfo(),
-                                          ProofManager::currentPM()->getTheoryProofEngine()->d_globals);
+                                          ProofManager::currentPM()->getTheoryProofEngine()->d_globals,
+                                          "replay::");
   } else {
     InternalError(std::string("can't generate theory-proof for ") + ProofManager::currentPM()->getLogic());
   }

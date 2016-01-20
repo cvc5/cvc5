@@ -37,18 +37,18 @@ using namespace CVC4::theory::uf;
 /** Constructs a new instance of TheoryUF w.r.t. the provided context.*/
 TheoryUF::TheoryUF(context::Context* c, context::UserContext* u,
                    OutputChannel& out, Valuation valuation,
-                   const LogicInfo& logicInfo, SmtGlobals* globals)
-    : Theory(THEORY_UF, c, u, out, valuation, logicInfo, globals),
+                   const LogicInfo& logicInfo, SmtGlobals* globals, std::string name)
+    : Theory(THEORY_UF, c, u, out, valuation, logicInfo, globals, name),
       d_notify(*this),
       /* The strong theory solver can be notified by EqualityEngine::init(),
        * so make sure it's initialized first. */
       d_thss(NULL),
-      d_equalityEngine(d_notify, c, "theory::uf::TheoryUF", true),
+      d_equalityEngine(d_notify, c, name + "theory::uf::TheoryUF", true),
       d_conflict(c, false),
       d_literalsToPropagate(c),
       d_literalsToPropagateIndex(c, 0),
       d_functionsTerms(c),
-      d_symb(u)
+      d_symb(u, name)
 {
   // The kinds we are treating as function application in congruence
   d_equalityEngine.addFunctionKind(kind::APPLY_UF);

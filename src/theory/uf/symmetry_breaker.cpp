@@ -167,7 +167,8 @@ void SymmetryBreaker::Template::reset() {
   d_reps.clear();
 }
 
-SymmetryBreaker::SymmetryBreaker(context::Context* context) :
+SymmetryBreaker::SymmetryBreaker(context::Context* context,
+                                 std::string name) :
   ContextNotifyObj(context),
   d_assertionsToRerun(context),
   d_rerunningAssertions(false),
@@ -178,7 +179,10 @@ SymmetryBreaker::SymmetryBreaker(context::Context* context) :
   d_template(),
   d_normalizationCache(),
   d_termEqs(),
-  d_termEqsOnly() {
+  d_termEqsOnly(),
+  d_name(name),
+  d_stats(d_name)
+{
 }
 
 class SBGuard {
@@ -461,7 +465,7 @@ void SymmetryBreaker::apply(std::vector<Node>& newClauses) {
   Debug("ufsymm") << "UFSYMM =====================================================" << endl
                   << "UFSYMM have " << d_permutations.size() << " permutation sets" << endl;
   if(!d_permutations.empty()) {
-    { TimerStat::CodeTimer codeTimer(d_initNormalizationTimer);
+    { TimerStat::CodeTimer codeTimer(d_stats.d_initNormalizationTimer);
       // normalize d_phi
 
       for(vector<Node>::iterator i = d_phi.begin(); i != d_phi.end(); ++i) {
@@ -476,12 +480,12 @@ void SymmetryBreaker::apply(std::vector<Node>& newClauses) {
     for(Permutations::iterator i = d_permutations.begin();
         i != d_permutations.end();
         ++i) {
-      ++d_permutationSetsConsidered;
+      ++(d_stats.d_permutationSetsConsidered);
       const Permutation& p = *i;
       Debug("ufsymm") << "UFSYMM looking at permutation: " << p << endl;
       size_t n = p.size() - 1;
       if(invariantByPermutations(p)) {
-        ++d_permutationSetsInvariant;
+        ++(d_stats.d_permutationSetsInvariant);
         selectTerms(p);
         set<Node> cts;
         while(!d_terms.empty() && cts.size() <= n) {
@@ -539,11 +543,11 @@ void SymmetryBreaker::apply(std::vector<Node>& newClauses) {
             Node d;
             if(disj.getNumChildren() > 1) {
               d = disj;
-              ++d_clauses;
+              ++(d_stats.d_clauses);
             } else {
               d = disj[0];
               disj.clear();
-              ++d_units;
+              ++(d_stats.d_units);
             }
             if(Debug.isOn("ufsymm")) {
               Debug("ufsymm") << "UFSYMM symmetry-breaking clause: " << d << endl;
@@ -569,7 +573,7 @@ void SymmetryBreaker::guessPermutations() {
 }
 
 bool SymmetryBreaker::invariantByPermutations(const Permutation& p) {
-  TimerStat::CodeTimer codeTimer(d_invariantByPermutationsTimer);
+  TimerStat::CodeTimer codeTimer(d_stats.d_invariantByPermutationsTimer);
 
   // use d_phi
   Debug("ufsymm") << "UFSYMM invariantByPermutations()? " << p << endl;
@@ -681,7 +685,7 @@ static bool isSubset(const T1& s, const T2& t) {
 }
 
 void SymmetryBreaker::selectTerms(const Permutation& p) {
-  TimerStat::CodeTimer codeTimer(d_selectTermsTimer);
+  TimerStat::CodeTimer codeTimer(d_stats.d_selectTermsTimer);
 
   // use d_phi, put into d_terms
   Debug("ufsymm") << "UFSYMM selectTerms(): " << p << endl;
@@ -731,6 +735,35 @@ void SymmetryBreaker::selectTerms(const Permutation& p) {
       Debug("ufsymm") << "UFSYMM selectTerms() returning: " << *i << endl;
     }
   }
+}
+
+SymmetryBreaker::Statistics::Statistics(std::string name)
+  : d_clauses(name + "theory::uf::symmetry_breaker::clauses", 0)
+  , d_units(name + "theory::uf::symmetry_breaker::units", 0)
+  , d_permutationSetsConsidered(name + "theory::uf::symmetry_breaker::permutationSetsConsidered", 0)
+  , d_permutationSetsInvariant(name + "theory::uf::symmetry_breaker::permutationSetsInvariant", 0)
+  , d_invariantByPermutationsTimer(name + "theory::uf::symmetry_breaker::timers::invariantByPermutations")
+  , d_selectTermsTimer(name + "theory::uf::symmetry_breaker::timers::selectTerms")
+  , d_initNormalizationTimer(name + "theory::uf::symmetry_breaker::timers::initNormalization")
+{
+  smtStatisticsRegistry()->registerStat(&d_clauses);
+  smtStatisticsRegistry()->registerStat(&d_units);
+  smtStatisticsRegistry()->registerStat(&d_permutationSetsConsidered);
+  smtStatisticsRegistry()->registerStat(&d_permutationSetsInvariant);
+  smtStatisticsRegistry()->registerStat(&d_invariantByPermutationsTimer);
+  smtStatisticsRegistry()->registerStat(&d_selectTermsTimer);
+  smtStatisticsRegistry()->registerStat(&d_initNormalizationTimer);
+}
+
+SymmetryBreaker::Statistics::~Statistics()
+{
+  smtStatisticsRegistry()->unregisterStat(&d_clauses);
+  smtStatisticsRegistry()->unregisterStat(&d_units);
+  smtStatisticsRegistry()->unregisterStat(&d_permutationSetsConsidered);
+  smtStatisticsRegistry()->unregisterStat(&d_permutationSetsInvariant);
+  smtStatisticsRegistry()->unregisterStat(&d_invariantByPermutationsTimer);
+  smtStatisticsRegistry()->unregisterStat(&d_selectTermsTimer);
+  smtStatisticsRegistry()->unregisterStat(&d_initNormalizationTimer);
 }
 
 SymmetryBreaker::Terms::iterator
