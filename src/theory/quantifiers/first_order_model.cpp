@@ -574,6 +574,7 @@ Node FirstOrderModelFmc::getUsedRepresentative(Node n, bool strict) {
         Trace("fmc-warn") << "WARNING : no representative for " << n << std::endl;
       }
     }
+/*
     Node r = getRepresentative(n);
     if( d_model_basis_rep.find(tn)!=d_model_basis_rep.end() ){
       if (r==d_model_basis_rep[tn]) {
@@ -581,6 +582,8 @@ Node FirstOrderModelFmc::getUsedRepresentative(Node n, bool strict) {
       }
     }
     return r;
+*/
+    return getRepresentative(n);
   }
 }
 

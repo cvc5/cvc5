@@ -47,7 +47,8 @@ TESTS =	\
 	fd-false.smt2 \
 	tail_rec.smt2 \
 	jasmin-cdt-crash.smt2 \
-	loopy_coda.smt2
+	loopy_coda.smt2 \
+	fmc_unsound_model.smt2
 
 
 EXTRA_DIST = $(TESTS)
