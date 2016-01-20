@@ -926,13 +926,43 @@ void EqualityEngine::explainEquality(TNode t1, TNode t2, bool polarity, std::vec
     // Get the explanation
     getExplanation(t1Id, t2Id, equalities, eqp);
   } else {
+    if (eqp) {
+      eqp->d_id = eq::MERGED_THROUGH_TRANS;
+      eqp->d_node = d_nodes[t1Id].eqNode(d_nodes[t2Id]).notNode();
+    }
+
     // Get the reason for this disequality
     EqualityPair pair(t1Id, t2Id);
     Assert(d_disequalityReasonsMap.find(pair) != d_disequalityReasonsMap.end(), "Don't ask for stuff I didn't notify you about");
     DisequalityReasonRef reasonRef = d_disequalityReasonsMap.find(pair)->second;
     for (unsigned i = reasonRef.mergesStart; i < reasonRef.mergesEnd; ++ i) {
+
       EqualityPair toExplain = d_deducedDisequalityReasons[i];
-      getExplanation(toExplain.first, toExplain.second, equalities, eqp);
+      EqProof* eqpc = NULL;
+
+      // If we're constructing a (transitivity) proof, we don't need to include an explanation for x=x.
+      if (eqp && toExplain.first != toExplain.second) {
+        eqpc = new EqProof;
+      }
+
+      getExplanation(toExplain.first, toExplain.second, equalities, eqpc);
+
+      if (eqpc) {
+        eqp->d_children.push_back(eqpc);
+      }
+    }
+
+    if (eqp) {
+      if(eqp->d_children.size() == 1) {
+        // The transitivity proof has just one child. Simplify.
+        EqProof* temp = eqp->d_children[0];
+        eqp->d_children.clear();
+        *eqp = *temp;
+        delete temp;
+      }
+
+      Debug("gk::proof") << "Disequality explanation final proof: " << std::endl;
+      eqp->debug_print("gk::proof", 1);
     }
   }
 }
@@ -1169,6 +1199,9 @@ void EqualityEngine::getExplanation(EqualityNodeId t1Id, EqualityNodeId t2Id, st
                 Node a = d_nodes[d_equalityEdges[currentEdge].getNodeId()];
                 Node b = d_nodes[currentNode];
 
+                // GK: todo: here we assume that a=b is an assertion. We should probably call explain()
+                // recursively, to explain this.
+
                 if (a == NodeManager::currentNM()->mkConst(false)) {
                   eqpc->d_node = b.notNode();
                 } else if (b == NodeManager::currentNM()->mkConst(false)) {
@@ -1185,8 +1218,63 @@ void EqualityEngine::getExplanation(EqualityNodeId t1Id, EqualityNodeId t2Id, st
                 eqpc->debug_print("gk::proof", 1);
               }
 
+              // We push the reason into "equalities" because that's what the theory of arrays expects.
               equalities.push_back(d_equalityEdges[currentEdge].getReason());
               break;
+
+            case MERGED_ARRAYS_ROW: {
+              Debug("equality") << d_name << "::eq::getExplanation(): MERGED_ARRAYS_ROW" << std::endl;
+
+              // The edge is ((a[i]:=t)[k], a[k]), or (a[k], (a[i]:=t)[k]). This flag should be
+              // false in the first case and true in the second case.
+              bool currentNodeIsUnchangedArray;
+
+              Assert(d_nodes[currentNode].getNumChildren() == 2);
+              Assert(d_nodes[edgeNode].getNumChildren() == 2);
+
+              if (d_nodes[currentNode][0].getKind() == kind::VARIABLE) {
+                currentNodeIsUnchangedArray = true;
+              } else if (d_nodes[edgeNode][0].getKind() == kind::VARIABLE) {
+                currentNodeIsUnchangedArray = false;
+              } else {
+                Assert(d_nodes[currentNode][0].getKind() == kind::STORE);
+                Assert(d_nodes[edgeNode][0].getKind() == kind::STORE);
+
+                if (d_nodes[currentNode][0][0] == d_nodes[edgeNode][0]) {
+                  currentNodeIsUnchangedArray = false;
+                } else if (d_nodes[edgeNode][0][0] == d_nodes[currentNode][0]) {
+                  currentNodeIsUnchangedArray = true;
+                } else {
+                  Unreachable();
+                }
+              }
+
+              Node indexOne =
+                currentNodeIsUnchangedArray ? d_nodes[currentNode][1] : d_nodes[currentNode][0][1];
+              Node indexTwo =
+                currentNodeIsUnchangedArray ? d_nodes[edgeNode][0][1] : d_nodes[edgeNode][1];
+
+              // Some assertions to ensure that the theory of arrays behaves as expected
+              Assert(d_nodes[currentNode][1] == d_nodes[edgeNode][1]);
+              if (currentNodeIsUnchangedArray) {
+                Assert(d_nodes[currentNode][0] == d_nodes[edgeNode][0][0]);
+              } else {
+                Assert(d_nodes[currentNode][0][0] == d_nodes[edgeNode][0]);
+              }
+
+              EqProof* eqpcc = eqpc ? new EqProof : NULL;
+              explainEquality(indexOne, indexTwo, false, equalities, eqpcc);
+
+              if (eqpc) {
+                Debug("gk::proof") << "The two indices are: " << indexOne << ", " << indexTwo << std::endl;
+                Debug("gk::proof") << "And the explanation of their disequality is: " << std::endl;
+                eqpcc->debug_print("gk::proof", 1);
+                eqpc->d_children.push_back(eqpcc);
+              }
+
+              // We push the reason into "equalities" because that's what the theory of arrays expects.
+              equalities.push_back(d_equalityEdges[currentEdge].getReason());
+            }
 
             default: {
               // Construct the equality

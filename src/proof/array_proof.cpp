@@ -701,7 +701,25 @@ Node ProofArray::toStreamRecLFSC(std::ostream& out,
           Debug("mgdx") << (n1[1] == n2[0]) << "\n";
         }
       }
-      ss << "(trans _ _ _ _ ";
+
+      // We can hadnle one of the equalities being negative, but not both
+      Assert((n1.getKind() != kind::NOT) || (n2.getKind() != kind::NOT));
+
+      bool firstNeg = false;
+      bool secondNeg = false;
+      if (n1.getKind() == kind::NOT) {
+        Debug("mgdx") << "n1 is negative" << std::endl;
+        firstNeg = true;
+        ss << "(negtrans1 _ _ _ _ ";
+        n1 = n1[0];
+      } else if (n2.getKind() == kind::NOT) {
+        Debug("mgdx") << "n2 is negative" << std::endl;
+        secondNeg = true;
+        ss << "(negtrans2 _ _ _ _ ";
+        n2 = n2[0];
+      } else {
+        ss << "(trans _ _ _ _ ";
+      }
 
       if((n2.getKind() == kind::EQUAL || n2.getKind() == kind::IFF) &&
          (n1.getKind() == kind::EQUAL || n1.getKind() == kind::IFF))
@@ -710,11 +728,11 @@ Node ProofArray::toStreamRecLFSC(std::ostream& out,
         if(n1[0] == n2[0]) {
             if(tb == 1) { Debug("mgdx") << "case 1\n"; }
             n1 = eqNode(n1[1], n2[1]);
-            ss << "(symm _ _ _ " << ss1.str() << ") " << ss2.str();
+            ss << (firstNeg ? "(negsymm _ _ _ " : "(symm _ _ _ ") << ss1.str() << ") " << ss2.str();
         } else if(n1[1] == n2[1]) {
           if(tb == 1) { Debug("mgdx") << "case 2\n"; }
           n1 = eqNode(n1[0], n2[0]);
-          ss << ss1.str() << " (symm _ _ _ " << ss2.str() << ")";
+          ss << ss1.str() << (secondNeg ? " (negsymm _ _ _ " : " (symm _ _ _ " ) << ss2.str() << ")";
         } else if(n1[0] == n2[1]) {
             if(tb == 1) { Debug("mgdx") << "case 3\n"; }
             n1 = eqNode(n2[0], n1[1]);
@@ -738,7 +756,8 @@ Node ProofArray::toStreamRecLFSC(std::ostream& out,
         // n1 is an equality/iff, but n2 is a predicate
         if(n1[0] == n2) {
           n1 = n1[1];
-          ss << "(symm _ _ _ " << ss1.str() << ") (pred_eq_t _ " << ss2.str() << ")";
+          ss << (firstNeg ? "(negsymm _ _ _ " : "(symm _ _ _ ")
+             << ss1.str() << ") (pred_eq_t _ " << ss2.str() << ")";
         } else if(n1[1] == n2) {
           n1 = n1[0];
           ss << ss1.str() << " (pred_eq_t _ " << ss2.str() << ")";
@@ -749,7 +768,8 @@ Node ProofArray::toStreamRecLFSC(std::ostream& out,
         // n2 is an equality/iff, but n1 is a predicate
         if(n2[0] == n1) {
           n1 = n2[1];
-          ss << "(symm _ _ _ " << ss2.str() << ") (pred_eq_t _ " << ss1.str() << ")";
+          ss << (secondNeg ? "(negsymm _ _ _ " : "(symm _ _ _ ")
+             << ss2.str() << ") (pred_eq_t _ " << ss1.str() << ")";
         } else if(n2[1] == n1) {
           n1 = n2[0];
           ss << ss2.str() << " (pred_eq_t _ " << ss1.str() << ")";
@@ -797,6 +817,11 @@ Node ProofArray::toStreamRecLFSC(std::ostream& out,
       ret = pf->d_node;
       Debug("mgd") << "t1 " << t1 << "\nt2 " << t2 << "\nt3 " << t3 << "\nt4 " << t4 << "\n";
     }
+
+    Assert(pf->d_children.size() == 1);
+    std::stringstream ss;
+    toStreamRecLFSC(ss, tp, pf->d_children[0], tb + 1, map);
+
     out << "(row _ _ ";
     tp->printTerm(t2.toExpr(), out, map);
     out << " ";
@@ -805,7 +830,8 @@ Node ProofArray::toStreamRecLFSC(std::ostream& out,
     tp->printTerm(t1.toExpr(), out, map);
     out << " ";
     tp->printTerm(t4.toExpr(), out, map);
-    out << " " << ProofManager::getLitName(t2.eqNode(t3)) << ")";
+    out << ss.str() << ")";
+
     return ret;
   }
 
@@ -944,7 +970,7 @@ void LFSCArrayProof::printTerm(Expr term, std::ostream& os, const LetMap& map) {
     printTerm(term[0], os, map);
     os << ") ";
     printTerm(term[1], os, map);
-    os << ")";
+    os << ") ";
     return;
 
   case kind::PARTIAL_SELECT_0:
@@ -981,7 +1007,7 @@ void LFSCArrayProof::printTerm(Expr term, std::ostream& os, const LetMap& map) {
     printTerm(term[1], os, map);
     os << ") ";
     printTerm(term[2], os, map);
-    os << ")";
+    os << ") ";
     return;
 
   default:
