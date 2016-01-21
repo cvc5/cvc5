@@ -1232,9 +1232,11 @@ void EqualityEngine::getExplanation(EqualityNodeId t1Id, EqualityNodeId t2Id, st
               Assert(d_nodes[currentNode].getNumChildren() == 2);
               Assert(d_nodes[edgeNode].getNumChildren() == 2);
 
-              if (d_nodes[currentNode][0].getKind() == kind::VARIABLE) {
+              if (d_nodes[currentNode][0].getKind() == kind::VARIABLE ||
+                  d_nodes[currentNode][0].getKind() == kind::SKOLEM) {
                 currentNodeIsUnchangedArray = true;
-              } else if (d_nodes[edgeNode][0].getKind() == kind::VARIABLE) {
+              } else if (d_nodes[edgeNode][0].getKind() == kind::VARIABLE ||
+                         d_nodes[edgeNode][0].getKind() == kind::SKOLEM) {
                 currentNodeIsUnchangedArray = false;
               } else {
                 Assert(d_nodes[currentNode][0].getKind() == kind::STORE);
