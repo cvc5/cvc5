@@ -21,7 +21,6 @@
 
 #include "theory/bv/theory_bv_rewrite_rules.h"
 #include "theory/bv/theory_bv_utils.h"
-#include "proof/rewriter_proof.h"
 #include "proof/proof_manager.h"
 #include "expr/expr.h"
 
@@ -280,12 +279,6 @@ template<> inline
 Node RewriteRule<ReflexivityEq>::apply(TNode node) {
   Debug("bv-rewrite") << "RewriteRule<ReflexivityEq>(" << node << ")" << std::endl;
   Node res = node[1].eqNode(node[0]);
-  // THEORY_PROOF(
-  // Expr from = node.toExpr();
-  // Expr to = res.toExpr();
-  // ProofManager::currentPM()->getRewriterProof()->pushRewriteRule(from, to, EqReflexivity);
-  // );
-
   return res;
 }
 

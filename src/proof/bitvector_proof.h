@@ -30,9 +30,6 @@
 #include "proof/theory_proof.h"
 #include "prop/bvminisat/core/Solver.h"
 
-// namespace BVMinisat {
-// class Solver;
-// }
 
 namespace CVC4 {
 
@@ -63,9 +60,6 @@ class BitVectorProof : public TheoryProof {
 protected:
   ExprSet d_declarations;
 
-  // ExprToId d_terms; // bit-vector terms appearing in the problem
-  // ExprToId d_atoms; // bit-vector atoms appearing in the problem
-
   ExprSet d_usedBB; // terms and formulas that are actually relevant to the proof
 
   ExprSet d_seenBBTerms; // terms that need to be bit-blasted
@@ -82,8 +76,6 @@ protected:
 
   bool d_isAssumptionConflict;
   theory::bv::TBitblaster<Node>* d_bitblaster;
-  // unsigned newBBId();
-  // unsigned getBBId(Expr expr);
   std::string getBBTermName(Expr expr);
 public:
   BitVectorProof(theory::bv::TheoryBV* bv, TheoryProofEngine* proofEngine);

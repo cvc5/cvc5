@@ -139,7 +139,6 @@ Node Rewriter::rewriteTo(theory::TheoryId theoryId, Node node) {
         for(;;) {
           // Perform the pre-rewrite
           RewriteResponse response = Rewriter::callPreRewrite((TheoryId) rewriteStackTop.theoryId, rewriteStackTop.node);
-
           // Put the rewritten node to the top of the stack
           rewriteStackTop.node = response.node;
           TheoryId newTheory = theoryOf(rewriteStackTop.node);

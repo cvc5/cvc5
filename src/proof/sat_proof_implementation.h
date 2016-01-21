@@ -921,27 +921,6 @@ prop::SatClause* TSatProof<Solver>::buildClause(ClauseId id) {
   return clause;
 }
 
-// template<class Solver>
-// void TSatProof<Solver>::addToCnfProof(ClauseId id) {
-//   if (isUnit(id)) {
-//     typename Solver::TLit lit = getUnit(id);
-//     prop::SatLiteral sat_lit = toSatLiteral<Solver>(lit);
-//     prop::SatClause* clause = new prop::SatClause();
-//     clause->push_back(sat_lit);
-//     d_cnfProof->addInputClause(id, clause);
-//     return;
-//   }
-
-//   Assert (!isDeleted(id)); 
-
-//   typename Solver::TCRef ref = getClauseRef(id);
-//   const typename Solver::TClause& minisat_cl = getClause(ref);
-//   prop::SatClause* clause = new prop::SatClause();
-//   toSatClause<Solver>(minisat_cl, *clause);
-//   d_cnfProof->addInputClause(id, clause);
-// }
-
-
 template <class Solver> 
 void TSatProof<Solver>::collectClauses(ClauseId id) {
   if (d_seenInputs.find(id) != d_seenInputs.end() ||
@@ -1039,10 +1018,6 @@ void LFSCSatProof<Solver>::printResolution(ClauseId id, std::ostream& out, std::
   }
 
   ClauseId start_id = res->getStart();
-  // WHY DID WE NEED THIS?
-  // if(isInputClause(start_id)) {
-  //   d_seenInput.insert(start_id);
-  // }
   out << this->clauseName(start_id) << " ";
 
   for(unsigned i = 0; i < steps.size(); i++) {

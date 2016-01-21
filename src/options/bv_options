@@ -19,19 +19,19 @@ expert-option bitvectorAigSimplifications --bv-aig-simp=COMMAND std::string :def
 
 # Options for lazy bit-blasting
 
-option bitvectorPropagate --bv-propagate bool :default true :read-write 
+option bitvectorPropagate --bv-propagate bool :default true :read-write :link --bitblast=lazy 
  use bit-vector propagation in the bit-blaster
 
-option bitvectorEqualitySolver --bv-eq-solver bool :default true :read-write 
+option bitvectorEqualitySolver --bv-eq-solver bool :default true :read-write :link --bitblast=lazy
  use the equality engine for the bit-vector theory (only if --bitblast=lazy)
 
 option bitvectorEqualitySlicer --bv-eq-slicer=MODE CVC4::theory::bv::BvSlicerMode :handler CVC4::options::stringToBvSlicerMode :default CVC4::theory::bv::BITVECTOR_SLICER_OFF :read-write :include "options/bv_bitblast_mode.h" :handler-include "options/options_handler_interface.h" :read-write :link --bv-eq-solver
  turn on the slicing equality solver for the bit-vector theory (only if --bitblast=lazy)
 
-option bitvectorInequalitySolver --bv-inequality-solver bool :default true :read-write 
+option bitvectorInequalitySolver --bv-inequality-solver bool :default true :read-write :link --bitblast=lazy
  turn on the inequality solver for the bit-vector theory (only if --bitblast=lazy)
 
-option bitvectorAlgebraicSolver --bv-algebraic-solver bool :default true :read-write 
+option bitvectorAlgebraicSolver --bv-algebraic-solver bool :default true :read-write :link --bitblast=lazy
  turn on the algebraic solver for the bit-vector theory (only if --bitblast=lazy)
  
 expert-option bitvectorAlgebraicBudget --bv-algebraic-budget unsigned :default 1500 :read-write :link --bv-algebraic-solver

@@ -100,8 +100,6 @@ protected:
 
   /** Nodes being converted to CNF */
   std::vector<std::pair<CVC4::Node, CVC4::Node > >lemmas_cnf_assertion;
-  /** Proof IDs for lemmas */
-  //  vec<uint64_t> lemmas_proof_id;
 
   /** Do a another check if FULL_EFFORT was the last one */
   bool recheck;

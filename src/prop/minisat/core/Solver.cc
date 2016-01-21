@@ -279,7 +279,6 @@ CRef Solver::reason(Var x) {
     PROOF (ClauseId id = ProofManager::getSatProof()->registerClause(real_reason, THEORY_LEMMA);
            ProofManager::getCnfProof()->registerConvertedClause(id, true);
            // no need to pop current assertion as this is not converted to cnf
-           // ProofManager::getCnfProof()->popCurrentAssertion();
            );
     vardata[x] = VarData(real_reason, level(x), user_level(x), intro_level(x), trail_index(x));
     clauses_removable.push(real_reason);

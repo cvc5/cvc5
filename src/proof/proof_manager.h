@@ -118,17 +118,12 @@ enum ProofRule {
 class ProofManager {
   CoreSatProof*  d_satProof;
   CnfProof*      d_cnfProof;
-  //  RewriterProof* d_rewriterProof;
   TheoryProofEngine* d_theoryProof;
 
   // information that will need to be shared across proofs
-  IdToSatClause d_inputClauses;
-  //  OrderedIdToSatClause d_theoryLemmas;
-  //  IdToSatClause d_theoryPropagations;
   ExprSet    d_inputFormulas;
   ExprSet    d_inputCoreFormulas;
   ExprSet    d_outputCoreFormulas;
-  //VarSet     d_propVars;
 
   int d_nextId;
 
@@ -159,7 +154,6 @@ public:
   static CoreSatProof*  getSatProof();
   static CnfProof*      getCnfProof();
   static TheoryProofEngine* getTheoryProofEngine();
-  static RewriterProof* getRewriterProof();
   static TheoryProof* getTheoryProof( theory::TheoryId id );
   static UFProof* getUfProof();
   static BitVectorProof* getBitVectorProof();
@@ -203,7 +197,6 @@ public:
   // for SMT variable names that have spaces and other things
   static std::string sanitize(TNode var);
   
-  //  void printProof(std::ostream& os, TNode n);
 
   /** Add proof assertion - unlinke addCoreAssertion this is post definition expansion **/
   void addAssertion(Expr formula);
@@ -241,7 +234,6 @@ public:
   LFSCProof(SmtEngine* smtEngine,
             LFSCCoreSatProof* sat,
             LFSCCnfProof* cnf,
-            //      LFSCRewriterProof* rwr,
             LFSCTheoryProofEngine* theory);
   virtual void toStream(std::ostream& out);
   virtual ~LFSCProof() {}

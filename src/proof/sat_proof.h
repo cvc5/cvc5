@@ -156,7 +156,6 @@ protected:
   void printRes(ResChain<Solver>* res);
 
   bool isInputClause(ClauseId id);
-  //  bool isTheoryConflict(ClauseId id);
   bool isLemmaClause(ClauseId id);
   bool isAssumptionConflict(ClauseId id);
   bool isUnit(ClauseId id);
@@ -297,7 +296,6 @@ public:
   virtual void printResolutionEmptyClause(std::ostream& out, std::ostream& paren) = 0;
   virtual void printAssumptionsResolution(ClauseId id, std::ostream& out, std::ostream& paren) = 0;
 
-  //typedef IdHashSet::const_iterator clause_iterator;
 
   void collectClausesUsed(IdToSatClause& inputs,
                           IdToSatClause& lemmas);

@@ -219,11 +219,8 @@ SatLiteral CnfStream::newLiteral(TNode node, bool isTheoryAtom, bool preRegister
     // In case we are re-entered due to lemmas, save our state
     bool backupRemovable = d_removable;
     // Should be fine since cnfProof current assertion is stack based
-    // PROOF(Node backupCurrentAssertion = d_cnfProof->getCurrentAssertion(););
-    // PROOF(resetCurrentAssertion(););
     d_registrar->preRegister(node);
     d_removable = backupRemovable;
-    // PROOF(d_cnfProof->setCurrentAssertion(backupCurrentAssertion););
   }
 
   // Here, you can have it

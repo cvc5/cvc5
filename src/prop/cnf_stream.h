@@ -188,7 +188,7 @@ public:
    * @param registrar the entity that takes care of preregistration of Nodes
    * @param context the context that the CNF should respect
    * @param fullLitToNodeMap maintain a full SAT-literal-to-Node mapping,
-   * @param name string identifier to distinguish between different instantiations
+   * @param name string identifier to distinguish between different instances
    * even for non-theory literals
    */
   CnfStream(SatSolver* satSolver,

@@ -31,12 +31,9 @@ using namespace CVC4::theory::bv;
 BitVectorProof::BitVectorProof(theory::bv::TheoryBV* bv, TheoryProofEngine* proofEngine)
   : TheoryProof(bv, proofEngine)
   , d_declarations()
-    // , d_terms()
-    // , d_atoms()
   , d_seenBBTerms()
   , d_bbTerms()
   , d_bbAtoms()
-    // , d_bbIdCount(0)
   , d_resolutionProof(NULL)
   , d_cnfProof(NULL)
   , d_bitblaster(NULL)
@@ -61,14 +58,12 @@ void BitVectorProof::initCnfProof(prop::CnfStream* cnfStream,
   d_cnfProof->pushCurrentAssertion(true_node);
   d_cnfProof->pushCurrentDefinition(true_node);
   d_cnfProof->registerConvertedClause(d_resolutionProof->getTrueUnit());
-  //d_cnfProof->setClauseFact(d_resolutionProof->getTrueUnit(), true_node);
   d_cnfProof->popCurrentAssertion();
   d_cnfProof->popCurrentDefinition();
 
   d_cnfProof->pushCurrentAssertion(false_node);
   d_cnfProof->pushCurrentDefinition(false_node);
   d_cnfProof->registerConvertedClause(d_resolutionProof->getFalseUnit());
-  //d_cnfProof->setClauseFact(d_resolutionProof->getFalseUnit(), false_node);
   d_cnfProof->popCurrentAssertion();
   d_cnfProof->popCurrentDefinition();
 }
@@ -105,31 +100,11 @@ void BitVectorProof::registerTerm(Expr term) {
     d_declarations.insert(term);
   }
 
-  // if (Theory::theoryOf(term) == theory::THEORY_BV) {
-  //   if (term.getType().isBoolean()) {
-  //     if (d_atoms.find(term) == d_atoms.end())
-  //       d_atoms[term] = newBBId();
-
-  //     if (d_bitblaster->hasBBAtom(term) && d_bbAtoms.find(term) == d_bbAtoms.end())
-  //       d_bbAtoms[term] = newBBId();
-
-  //   }
-  //   if (term.getType().isBitVector()) {
-  //     if (d_terms.find(term) == d_terms.end())
-  //       d_terms[term] = newBBId();
-
-  //     if (d_bitblaster->hasBBTerm(term) && d_bbTerms.find(term) == d_bbTerms.end())
-  //       d_bbTerms[term] = newBBId();
-  //   }
-  // }
-
   // don't care about parametric operators for bv?
   for (unsigned i = 0; i < term.getNumChildren(); ++i) {
      d_proofEngine->registerTerm(term[i]);
   }
 }
-
-// unsigned BitVectorProof::newBBId() { return d_bbIdCount++; }
 
 std::string BitVectorProof::getBBTermName(Expr expr) {
   std::ostringstream os;
@@ -392,7 +367,6 @@ void LFSCBitVectorProof::printTheoryLemmaProof(std::vector<Expr>& lemma, std::os
     ClauseId lemma_id = d_bbConflictMap[lem];
     d_resolutionProof->printAssumptionsResolution(lemma_id, os, lemma_paren);
     os <<lemma_paren.str();
-    // os << "(clausify_false trust)\n";
   }else{
     Debug("bv-proof") << std::endl << "; Print non-bitblast theory conflict " << conflict << std::endl;
     BitVectorProof::printTheoryLemmaProof( lemma, os, paren );
@@ -608,8 +582,6 @@ void LFSCBitVectorProof::printResolutionProof(std::ostream& os,
 
   NodeSet atoms;
   d_cnfProof->collectAtomsForClauses(used_inputs,atoms);
-  // NodeSet assertions;
-  // d_cnfProof->collectAssertionsUsed(assertions, used_inputs);
 
   // first print bit-blasting
   printBitblasting(os, paren);

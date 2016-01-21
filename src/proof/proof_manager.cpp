@@ -21,7 +21,6 @@
 #include "proof/cnf_proof.h"
 #include "proof/theory_proof.h"
 #include "proof/bitvector_proof.h"
-#include "proof/rewriter_proof.h"
 #include "proof/proof_utils.h"
 #include "proof/sat_proof_implementation.h"
 #include "options/bv_options.h"
@@ -53,41 +52,20 @@ ProofManager::ProofManager(ProofFormat format):
   d_satProof(NULL),
   d_cnfProof(NULL),
   d_theoryProof(NULL),
-  //  d_inputClauses(),
-  //  d_theoryLemmas(),
-  //  d_theoryPropagations(),
   d_inputFormulas(),
   d_inputCoreFormulas(),
   d_outputCoreFormulas(),
-  //  d_nextId(0),
   d_fullProof(NULL),
   d_format(format),
   d_deps()
-  //  d_assertion_counter(1)
 {
 }
 
 ProofManager::~ProofManager() {
   delete d_satProof;
   delete d_cnfProof;
-  //  delete d_rewriterProof;
   delete d_theoryProof;
   delete d_fullProof;
-
-  // for(IdToSatClause::iterator it = d_inputClauses.begin();
-  //     it != d_inputClauses.end();
-  //     ++it) {
-  //   delete it->second;
-  // }
-
-  // for(OrderedIdToSatClause::iterator it = d_theoryLemmas.begin();
-  //     it != d_theoryLemmas.end();
-  //     ++it) {
-  //   delete it->second;
-  // }
-
-  // FIXME: memory leak because there are deleted theory lemmas that
-  // were not used in the SatProof
 }
 
 ProofManager* ProofManager::currentPM() {
@@ -103,7 +81,6 @@ Proof* ProofManager::getProof(SmtEngine* smt) {
   currentPM()->d_fullProof = new LFSCProof(smt,
                                            (LFSCCoreSatProof*)getSatProof(),
                                            (LFSCCnfProof*)getCnfProof(),
-                                           //                                           (LFSCRewriterProof*)getRewriterProof(),
                                            (LFSCTheoryProofEngine*)getTheoryProofEngine());
   return currentPM()->d_fullProof;
 }
@@ -116,16 +93,6 @@ CoreSatProof* ProofManager::getSatProof() {
 CnfProof* ProofManager::getCnfProof() {
   Assert (currentPM()->d_cnfProof);
   return currentPM()->d_cnfProof;
-}
-RewriterProof* ProofManager::getRewriterProof() {
-  Unreachable();
-  return NULL;
-  // Assert (options::proof());
-  // if (currentPM()->d_rewriterProof == NULL) {
-  //   Assert (currentPM()->d_format == LFSC);
-  //   currentPM()->d_rewriterProof = new LFSCRewriterProof();
-  // }
-  // return currentPM()->d_rewriterProof;
 }
 
 TheoryProofEngine* ProofManager::getTheoryProofEngine() {
@@ -174,14 +141,12 @@ void ProofManager::initCnfProof(prop::CnfStream* cnfStream,
   pm->d_cnfProof->pushCurrentAssertion(true_node);
   pm->d_cnfProof->pushCurrentDefinition(true_node);
   pm->d_cnfProof->registerConvertedClause(pm->d_satProof->getTrueUnit());
-  //pm->d_cnfProof->setClauseFact(pm->d_satProof->getTrueUnit(), true_node);
   pm->d_cnfProof->popCurrentAssertion();
   pm->d_cnfProof->popCurrentDefinition();
 
   pm->d_cnfProof->pushCurrentAssertion(false_node);
   pm->d_cnfProof->pushCurrentDefinition(false_node);
   pm->d_cnfProof->registerConvertedClause(pm->d_satProof->getFalseUnit());
-  //pm->d_cnfProof->setClauseFact(pm->d_satProof->getFalseUnit(), false_node);
   pm->d_cnfProof->popCurrentAssertion();
   pm->d_cnfProof->popCurrentDefinition();
 
@@ -233,14 +198,6 @@ std::string ProofManager::getAssertionName(Node node,
                                            const std::string& prefix) {
   return append(prefix+".A", node.getId());
 }
-
-// void ProofManager::addTheoryLemma(ClauseId id,
-//                                   const prop::SatClause* clause,
-//                                   ClauseKind kind) {
-//   Assert (d_theoryLemmas.find(id) == d_theoryLemmas.end());
-//   d_theoryLemmas.insert(std::make_pair(id, clause));
-//   d_cnfProof->collectAtoms(clause);
-// }
 
 std::string ProofManager::getAtomName(TNode atom,
                                       const std::string& prefix) {
@@ -341,75 +298,14 @@ void ProofManager::setLogic(const LogicInfo& logic) {
   d_logic = logic;
 }
 
-// void ProofManager::addTheoryLemma(ClauseId id,
-//                                   const prop::SatClause* clause,
-//                                   ClauseKind kind) {
-//   Assert (d_theoryLemmas.find(id) == d_theoryLemmas.end());
-//   d_theoryLemmas.insert(std::make_pair(id, clause));
-//   d_cnfProof->collectAtoms(clause);
-// }
 
-
-// void ProofManager::printProof(std::ostream& os, TNode n) {
-//   // no proofs here yet
-// }
-
-// void ProofManager::setCnfDep( Expr child, Expr parent ) {
-//   Debug("cores") << "CNF dep : " << child << " : " << parent << std::endl;
-//   d_cnf_dep[child] = parent;
-// }
-
-// Expr ProofManager::getFormulaForClauseId( ClauseId id ) {
-//   std::map< ClauseId, Expr >::const_iterator it = d_clause_id_to_assertion.find( id );
-//   if( it!=d_clause_id_to_assertion.end() ){
-//     return it->second;
-//   }else{
-//     Node ret;
-//     return ret.toExpr();
-//   }
-// }
-
-// ProofRule ProofManager::getProofRuleForClauseId( ClauseId id ) {
-//   std::map< ClauseId, ProofRule >::const_iterator it = d_clause_id_to_rule.find( id );
-//   if( it!=d_clause_id_to_rule.end() ){
-//     return it->second;
-//   }else{
-//     return RULE_INVALID;
-//   }
-// }
-
-// void ProofManager::setAssertion( Expr e ) {
-//   d_assertion_to_id[e] = d_assertion_counter;
-//   d_assertion_counter++;
-// }
-// this is the case when the cnf stream asserts a top-level fact and converts it (convertAndAssert)
-// the expression e is a top-level fact that has been proven from other assertions e.g. the assertion
-// was a ^ b and e is a (similarly negation over disjunction)
-
-// if this function returns true, writes to out a proof of e based on input assertions
-
-// void ProofManager::setRegisteringFormula( Node n, ProofRule proof_id ) {
-//   d_registering_assertion = n;
-//   d_registering_rule = proof_id;
-// }
-
-// void ProofManager::setRegisteredClauseId( ClauseId id ) {
-//   Trace("cnf-pf-debug") << "set register clause id " << id << " " << d_registering_assertion << std::endl;
-//   if( !d_registering_assertion.isNull() ){
-//      d_clause_id_to_assertion[id] = d_registering_assertion.toExpr();
-//      d_clause_id_to_rule[id] = d_registering_rule;
-//      setRegisteringFormula( Node::null(), RULE_INVALID );
-//   }
-// }
 
 LFSCProof::LFSCProof(SmtEngine* smtEngine,
                      LFSCCoreSatProof* sat,
                      LFSCCnfProof* cnf,
-                     //               LFSCRewriterProof* rwr,
                      LFSCTheoryProofEngine* theory)
   : d_satProof(sat)
   , d_cnfProof(cnf)
-    //  , d_rewriterProof(rwr)
   , d_theoryProof(theory)
   , d_smtEngine(smtEngine)
 {}
@@ -445,14 +341,6 @@ void LFSCProof::toStream(std::ostream& out) {
       Debug("proof:pm") << "   " << *it << std::endl;
     }
 
-    // NodeSet lemmas;
-    // d_cnfProof->collectAssertionsForClauses(used_lemmas, lemmas);
-
-    // Debug("proof:pm") << "LFSCProof::Used lemmas: "<< std::endl;
-    // for(NodeSet::const_iterator it = lemmas.begin(); it != lemmas.end(); ++it) {
-    //   Debug("proof:pm") << "   " << *it << std::endl;
-    // }
-
     Debug("proof:pm") << "LFSCProof::Used atoms: "<< std::endl;
     for(NodeSet::const_iterator it = atoms.begin(); it != atoms.end(); ++it) {
       Debug("proof:pm") << "   " << *it << std::endl;
@@ -474,7 +362,6 @@ void LFSCProof::toStream(std::ostream& out) {
   }
   // print out all the original assertions
   d_theoryProof->printAssertions(out, paren);
-  // d_rewriterProof->printRewrittenAssertios(out, paren);
 
 
   out << "(: (holds cln)\n";
@@ -498,7 +385,7 @@ void LFSCProof::toStream(std::ostream& out) {
 
 
   if (options::bitblastMode() == theory::bv::BITBLAST_MODE_EAGER && ProofManager::getBitVectorProof()) {
-    // priunt actual resolution proof
+    // print actual resolution proof
     // d_satProof->printResolutions(out, paren);
     ProofManager::getBitVectorProof()->getSatProof()->printResolutionEmptyClause(out, paren);
     paren <<")))\n;;";
@@ -535,36 +422,6 @@ void LFSCProof::printPreprocessedAssertions(const NodeSet& assertions,
   }
 }
 
-
-// void LFSCProof::toStream(std::ostream& out) {
-//   smt::SmtScope scope(d_smtEngine);
-//   std::ostringstream paren;
-//   out << "(check\n";
-//   out << " ;; Declarations\n";
-
-//   // declare the theory atoms
-//   CnfProof::atom_iterator begin = d_cnfProof->begin_atoms();
-//   CnfProof::atom_iterator end = d_cnfProof->end_atoms();
-//   for(CnfProof::atom_iterator it = begin; it != end; ++it) {
-//     d_theoryProof->registerTerm(it->first);
-//   }
-//   // print out the assertions
-//   d_theoryProof->printAssertions(out, paren);
-//   // d_rewriterProof->printRewrittenAssertios(out, paren);
-
-//   out << "(: (holds cln)\n";
-//   // print mapping between theory atoms and internal SAT variables
-//   d_cnfProof->printAtomMapping(out, paren);
-//   d_cnfProof->printClauses(out, paren);
-//   // print theory lemmas for resolution proof
-//   d_theoryProof->printTheoryLemmas(out, paren);
-//   // priunt actual resolution proof
-//   d_satProof->printResolutions(out, paren);
-//   d_satProof->printResolutionEmptyClause(out, paren);
-//   paren <<")))\n;;";
-//   out << paren.str();
-//   out << "\n";
-// }
 
 
 //---from Morgan---

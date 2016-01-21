@@ -39,7 +39,6 @@ namespace BVMinisat {
 class Solver;
 }
 
-//template < CVC4::BVMinisat::Solver> class TSatProof;
 class BitVectorProof;
 
 namespace BVMinisat {

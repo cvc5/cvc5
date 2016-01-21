@@ -80,7 +80,6 @@ public:
   }
   void requirePhase(TNode n, bool b) throw() {
     Trace("theory-proof-debug") << "requirePhase " << n << " " << b << std::endl;
-    //AlwaysAssert(false);
   }
   bool flipDecision() throw() {
     AlwaysAssert(false);

@@ -621,9 +621,7 @@ private:
 
   /** Private copy constructor undefined (no copy permitted). */
   StatisticsRegistry(const StatisticsRegistry&) CVC4_UNDEFINED;
-  
-  /** For registering multiple stats with the same name. */
-  std::map<std::string, unsigned> d_sequenceNumber;
+
 public:
 
   /** Construct an nameless statistics registry */
@@ -660,9 +658,6 @@ public:
   /** Register a new statistic */
   void registerStat(Stat* s) throw(CVC4::IllegalArgumentException);
 
-  /** Register a new statistic */
-  void registerStatMultiple_(Stat* s) throw();
-  
   /** Unregister a new statistic */
   void unregisterStat(Stat* s) throw(CVC4::IllegalArgumentException);
 
