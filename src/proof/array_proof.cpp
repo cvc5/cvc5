@@ -950,9 +950,14 @@ std::string ArrayProof::skolemToLiteral(Expr skolem) {
 void LFSCArrayProof::printTerm(Expr term, std::ostream& os, const LetMap& map) {
   Debug("gk::proof") << "LFSCArrayProof::printTerm: term = " << term << std::endl;
 
-  Assert (Theory::theoryOf(term) == THEORY_ARRAY);
+  if (Theory::theoryOf(term) != THEORY_ARRAY) {
+    // We can get here, for instance, if there's a (select ite ...), e.g. a non-array term
+    // hiding as a subterm of an array term. In that case, send it back to the dispatcher.
+    d_proofEngine->printBoundTerm(term, os, map);
+    return;
+  }
 
-  if (term.getKind() == kind::VARIABLE || term.getKind() == kind::SKOLEM ) {
+  if (term.getKind() == kind::VARIABLE || term.getKind() == kind::SKOLEM) {
     os << term;
     return;
   }
