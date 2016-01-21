@@ -1119,7 +1119,9 @@ void TheoryArrays::check(Effort e) {
               TNode k = getSkolem(fact,"array_ext_index", indexType, "an extensional lemma index variable from the theory of arrays", false);
 
               // Added
-              ProofManager::getSkolemizationManager()->registerSkolem(fact, k);
+              if (options::proof()) {
+                ProofManager::getSkolemizationManager()->registerSkolem(fact, k);
+              }
               ////
 
               Node ak = nm->mkNode(kind::SELECT, fact[0][0], k);
