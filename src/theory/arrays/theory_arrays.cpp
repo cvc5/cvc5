@@ -27,7 +27,6 @@
 #include "proof/theory_proof.h"
 #include "proof/proof_manager.h"
 #include "proof/array_proof.h"
-#include "theory/arrays/proof_skolemization.h"
 
 using namespace std;
 
@@ -1120,7 +1119,7 @@ void TheoryArrays::check(Effort e) {
               TNode k = getSkolem(fact,"array_ext_index", indexType, "an extensional lemma index variable from the theory of arrays", false);
 
               // Added
-              ProofSkolemization::registerSkolem(fact, k);
+              ProofManager::getSkolemizationManager()->registerSkolem(fact, k);
               ////
 
               Node ak = nm->mkNode(kind::SELECT, fact[0][0], k);
@@ -1154,7 +1153,16 @@ void TheoryArrays::check(Effort e) {
 
               NodeManager* nm = NodeManager::currentNM();
               TypeNode indexType = fact[0][0].getType()[0];
-              TNode k = ProofSkolemization::getSkolem(fact);
+
+              TNode k;
+              if (ProofManager::getSkolemizationManager()->hasSkolem(fact)) {
+                k = ProofManager::getSkolemizationManager()->getSkolem(fact);
+              } else {
+                Unreachable();
+                // Debug("gk::proof") << "New skolem getting registered at proof checking phase!" << std::endl;
+                // k = getSkolem(fact,"array_ext_index", indexType, "an extensional lemma index variable from the theory of arrays", false);
+                // ProofSkolemization::registerSkolem(fact, k);
+              }
 
               Debug("gk::proof") << "Skolem = " << k << std::endl;
 

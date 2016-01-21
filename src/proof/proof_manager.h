@@ -22,6 +22,7 @@
 #include <iostream>
 #include <map>
 #include "proof/proof.h"
+#include "proof/skolemization_manager.h"
 #include "util/proof.h"
 #include "expr/node.h"
 #include "theory/logic_info.h"
@@ -47,11 +48,11 @@ class SmtEngine;
 
 typedef unsigned ClauseId;
 const ClauseId ClauseIdEmpty(-1);
-const ClauseId ClauseIdUndef(-2);  
+const ClauseId ClauseIdUndef(-2);
 const ClauseId ClauseIdError(-3);
 
 class Proof;
-template <class Solver> class TSatProof; 
+template <class Solver> class TSatProof;
 typedef TSatProof< ::Minisat::Solver> CoreSatProof;
 
 class CnfProof;
@@ -62,7 +63,7 @@ class UFProof;
 class ArrayProof;
 class BitVectorProof;
 
-template <class Solver> class LFSCSatProof; 
+template <class Solver> class LFSCSatProof;
 typedef LFSCSatProof< ::Minisat::Solver> LFSCCoreSatProof;
 
 class LFSCCnfProof;
@@ -73,7 +74,7 @@ class LFSCRewriterProof;
 
 template <class Solver> class ProofProxy;
 typedef ProofProxy< ::Minisat::Solver> CoreProofProxy;
-typedef ProofProxy< ::BVMinisat::Solver> BVProofProxy; 
+typedef ProofProxy< ::BVMinisat::Solver> BVProofProxy;
 
 namespace prop {
   typedef uint64_t SatVariable;
@@ -107,7 +108,7 @@ enum ProofRule {
   RULE_CONFLICT,    /* re-construct as a conflict */
   RULE_TSEITIN,     /* Tseitin CNF transformation */
   RULE_SPLIT,       /* A splitting lemma of the form a v ~ a*/
-  
+
   RULE_ARRAYS_EXT,  /* arrays, extensional */
   RULE_ARRAYS_ROW,  /* arrays, read-over-write */
 };/* enum ProofRules */
@@ -127,6 +128,8 @@ class ProofManager {
   ExprSet    d_outputCoreFormulas;
   //VarSet     d_propVars;
 
+  SkolemizationManager d_skolemizationManager;
+
   int d_nextId;
 
   Proof* d_fullProof;
@@ -138,7 +141,7 @@ class ProofManager {
 
   // Node d_registering_assertion;
   // ProofRule d_registering_rule;
-  // std::map< ClauseId, Expr > d_clause_id_to_assertion; // clause to top-level assertion 
+  // std::map< ClauseId, Expr > d_clause_id_to_assertion; // clause to top-level assertion
   // std::map< ClauseId, ProofRule > d_clause_id_to_rule;
   // std::map< Expr, Expr > d_cnf_dep; // dependence of cnf top-level things
   //LFSC number for assertions
@@ -169,7 +172,8 @@ public:
   static UFProof* getUfProof();
   static BitVectorProof* getBitVectorProof();
   static ArrayProof* getArrayProof();
-  
+  static SkolemizationManager *getSkolemizationManager();
+
   // iterators over data shared by proofs
   typedef IdToSatClause::const_iterator clause_iterator;
   typedef OrderedIdToClause::const_iterator ordered_clause_iterator;
@@ -192,19 +196,19 @@ public:
   assertions_iterator begin_assertions() const { return d_inputFormulas.begin(); }
   assertions_iterator end_assertions() const { return d_inputFormulas.end(); }
   size_t num_assertions() const { return d_inputFormulas.size(); }
-  
+
 //---from Morgan---
   Node mkOp(TNode n);
   Node lookupOp(TNode n) const;
   bool hasOp(TNode n) const;
-  
+
   std::map<Node, Node> d_ops;
   std::map<Node, Node> d_bops;
 //---end from Morgan---
-  
+
   // void addTheoryLemma(ClauseId id, const prop::SatClause* clause, ClauseKind kind);
   //void addClause(ClauseId id, const prop::SatClause* clause, ClauseKind kind);
-  
+
   // variable prefixes
   static std::string getInputClauseName(ClauseId id, const std::string& prefix = "");
   static std::string getLemmaClauseName(ClauseId id, const std::string& prefix = "");
@@ -212,7 +216,7 @@ public:
   static std::string getLearntClauseName(ClauseId id, const std::string& prefix = "");
   static std::string getPreprocessedAssertionName(Node node, const std::string& prefix = "");
   static std::string getAssertionName(Node node, const std::string& prefix = "");
-  
+
   static std::string getVarName(prop::SatVariable var, const std::string& prefix = "");
   static std::string getAtomName(prop::SatVariable var, const std::string& prefix = "");
   static std::string getAtomName(TNode atom, const std::string& prefix = "");
@@ -221,15 +225,15 @@ public:
 
   // for SMT variable names that have spaces and other things
   static std::string sanitize(TNode var);
-  
+
   //  void printProof(std::ostream& os, TNode n);
 
   /** Add proof assertion - unlinke addCoreAssertion this is post definition expansion **/
   void addAssertion(Expr formula);
-  
+
   /** Public unsat core methods **/
   void addCoreAssertion(Expr formula);
-  
+
   void addDependence(TNode n, TNode dep);
   void addUnsatCore(Expr formula);
 
@@ -283,34 +287,34 @@ public:
 inline std::ostream& operator<<(std::ostream& out, CVC4::ProofRule k) {
   switch(k) {
   case RULE_GIVEN:
-    out << "RULE_GIVEN"; 
+    out << "RULE_GIVEN";
     break;
   case RULE_DERIVED:
-    out << "RULE_DERIVED"; 
+    out << "RULE_DERIVED";
     break;
   case RULE_RECONSTRUCT:
-    out << "RULE_RECONSTRUCT"; 
+    out << "RULE_RECONSTRUCT";
     break;
   case RULE_TRUST:
-    out << "RULE_TRUST"; 
+    out << "RULE_TRUST";
     break;
   case RULE_INVALID:
-    out << "RULE_INVALID"; 
+    out << "RULE_INVALID";
     break;
   case RULE_CONFLICT:
-    out << "RULE_CONFLICT"; 
+    out << "RULE_CONFLICT";
     break;
   case RULE_TSEITIN:
-    out << "RULE_TSEITIN"; 
+    out << "RULE_TSEITIN";
     break;
   case RULE_SPLIT:
-    out << "RULE_SPLIT"; 
+    out << "RULE_SPLIT";
     break;
   case RULE_ARRAYS_EXT:
-    out << "RULE_ARRAYS"; 
+    out << "RULE_ARRAYS";
     break;
   case RULE_ARRAYS_ROW:
-    out << "RULE_ARRAYS"; 
+    out << "RULE_ARRAYS";
     break;
   default:
     out << "ProofRule Unknown! [" << unsigned(k) << "]";

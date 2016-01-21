@@ -1073,9 +1073,9 @@ void EqualityEngine::getExplanation(EqualityNodeId t1Id, EqualityNodeId t2Id, st
             // rawDump(d_nodes[edge.getNodeId()]);
             // //// END Raw dumping
 
-            EqProof * eqpc = NULL;
-            //make child proof if a proof is being constructed
-            if( eqp ){
+            EqProof* eqpc = NULL;
+            // Make child proof if a proof is being constructed
+            if (eqp) {
               eqpc = new EqProof;
               eqpc->d_id = reasonType;
             }

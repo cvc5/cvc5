@@ -19,7 +19,6 @@
 #include "proof/proof_manager.h"
 #include "proof/array_proof.h"
 #include "theory/arrays/theory_arrays.h"
-#include "theory/arrays/proof_skolemization.h"
 #include <stack>
 
 using namespace CVC4;
@@ -1043,7 +1042,9 @@ void LFSCArrayProof::printDeclarations(std::ostream& os, std::ostream& paren) {
 
   //
   std::hash_map<Node, Node, NodeHashFunction>::const_iterator it;
-  for (it = ProofSkolemization::begin(); it != ProofSkolemization::end(); ++it) {
+  for (it = ProofManager::getSkolemizationManager()->begin();
+       it != ProofManager::getSkolemizationManager()->end();
+       ++it) {
     Debug("array-pf") << "In print declarations, found this skolem: " << it->first << " --> " << it->second << std::endl;
     // proof_array->registerSkolem(it->first, it->second);
   }
@@ -1063,7 +1064,7 @@ void LFSCArrayProof::printDeclarations(std::ostream& os, std::ostream& paren) {
 
     Debug("gk::proof") << "LFSCArrayProof::printDeclarations: term is: " << *it << std::endl;
 
-    if (ProofSkolemization::isSkolem(*it)) {
+    if (ProofManager::getSkolemizationManager()->isSkolem(*it)) {
       Debug("gk::proof") << "This term is a skoelm!" << std::endl;
       d_skolemDeclarations.insert(*it);
     } else {
@@ -1102,7 +1103,7 @@ void LFSCArrayProof::printDeferredDeclarations(std::ostream& os, std::ostream& p
 
   for (ExprSet::const_iterator it = d_skolemDeclarations.begin(); it != d_skolemDeclarations.end(); ++it) {
     Expr term = *it;
-    Node equality = ProofSkolemization::getEquality(*it);
+    Node equality = ProofManager::getSkolemizationManager()->getDisequality(*it);
 
     Debug("gk::proof") << "LFSCArrayProof::printDeferredDeclarations: term is: " << *it << std::endl
                        << "It is a witness for: " << equality << std::endl;

@@ -38,9 +38,6 @@
 #include "context/context.h"
 #include "util/hash.h"
 
-// Remove at some point
-#include "theory/arrays/proof_skolemization.h"
-
 namespace CVC4 {
 
 std::string append(const std::string& str, uint64_t num) {
@@ -153,6 +150,11 @@ ArrayProof* ProofManager::getArrayProof() {
   Assert (options::proof());
   TheoryProof* pf = getTheoryProofEngine()->getTheoryProof(theory::THEORY_ARRAY);
   return (ArrayProof*)pf;
+}
+
+SkolemizationManager* ProofManager::getSkolemizationManager() {
+  Assert (options::proof());
+  return &(currentPM()->d_skolemizationManager);
 }
 
 void ProofManager::initSatProof(Minisat::Solver* solver) {
@@ -538,9 +540,6 @@ void LFSCProof::toStream(std::ostream& out) {
     out << paren.str();
     out << "\n";
   }
-
-  // Ugly, find a better solution at some point
-  theory::arrays::ProofSkolemization::clear();
 }
 
 void LFSCProof::printPreprocessedAssertions(const NodeSet& assertions,
