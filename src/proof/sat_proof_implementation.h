@@ -1,5 +1,5 @@
 /*********************                                                        */
-/*! \file sat_proof.h
+/*! \file sat_proof_implementation.h
  ** \verbatim
  ** Original author: Liana Hadarean
  ** Major contributors: Morgan Deters
@@ -262,12 +262,6 @@ void TSatProof<Solver>::setCnfProof(CnfProof* cnf_proof) {
   Assert (d_cnfProof == NULL);
   d_cnfProof = cnf_proof;
 }
-
-// template <class Solver> 
-// CnfProof* TSatProof<Solver>::getCnfProof() {
-//   Assert (d_cnfProof != NULL);
-//   return d_cnfProof;
-// }
 
 /**
  * Returns true if the resolution chain corresponding to id

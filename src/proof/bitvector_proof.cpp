@@ -19,11 +19,12 @@
 #include "theory/bv/bitblaster_template.h"
 #include "options/bv_options.h"
 
-#include "proof/bitvector_proof.h"
+#include "proof/bitvector_proof.h" // taking: Beginning ans sorted
 #include "proof/sat_proof_implementation.h"
 #include "proof/proof_utils.h"
 #include "prop/bvminisat/bvminisat.h"
 
+// taking: Open namespace
 using namespace CVC4;
 using namespace CVC4::theory;
 using namespace CVC4::theory::bv;

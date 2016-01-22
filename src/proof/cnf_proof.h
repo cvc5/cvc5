@@ -21,12 +21,11 @@
 #ifndef __CVC4__CNF_PROOF_H
 #define __CVC4__CNF_PROOF_H
 
-#include "cvc4_private.h"
 #include "util/proof.h"
 #include "proof/sat_proof.h"
 #include "context/cdhashmap.h"
 
-#include <ext/hash_map>
+#include <ext/hash_map> // taking: Libraries first.
 #include <ext/hash_set>
 #include <iosfwd>
 
@@ -84,7 +83,7 @@ public:
   CnfProof(CVC4::prop::CnfStream* cnfStream,
            context::Context* ctx,
            const std::string& name);
-  
+
 
   Node getAtom(prop::SatVariable var);
   prop::SatLiteral getLiteral(TNode node);

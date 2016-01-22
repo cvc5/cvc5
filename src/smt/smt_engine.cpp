@@ -789,8 +789,9 @@ SmtEngine::SmtEngine(ExprManager* em) throw() :
   d_stats->d_resourceUnitsUsed.setData(
       d_private->getResourceManager()->getResourceUsage());
 
+  // taking : Add comment explaining ordering issues.
   Assert(d_proofManager == NULL);
-  PROOF( d_proofManager = new ProofManager(); );
+  PROOF( d_proofManager = new ProofManager(); ); // taking: Maybe move into SmtEnginePrivate to avoid forward declaration of cvc4_private class.
 
   // We have mutual dependency here, so we add the prop engine to the theory
   // engine later (it is non-essential there)

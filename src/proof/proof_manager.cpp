@@ -59,6 +59,8 @@ ProofManager::ProofManager(ProofFormat format):
   d_format(format),
   d_deps()
 {
+  // taking : Add comment explaining what is assumed to be initialized w.r.t. SmtEngineScope
+  // and what is assumed to not be initialized.
 }
 
 ProofManager::~ProofManager() {

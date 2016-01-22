@@ -195,11 +195,6 @@ Node CnfProof::getAtom(prop::SatVariable var) {
   return node;
 }
 
-// void CnfProof::addInputClause(ClauseId id, const prop::SatClause* clause) {
-//   Assert (d_inputClauses.find(id) == d_inputClauses.end());
-//   d_inputClauses[id] = clause;
-//   collectAtoms(clause);
-// }
 
 void CnfProof::collectAtoms(const prop::SatClause* clause,
                             NodeSet& atoms) {

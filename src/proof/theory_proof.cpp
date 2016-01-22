@@ -91,7 +91,7 @@ public:
 };/* class ProofOutputChannel */
 
 //for proof replay
-class MyPreRegisterVisitor {
+class MyPreRegisterVisitor { // taking : Wrap in CVC4 namespace.
   theory::Theory* d_theory;
   __gnu_cxx::hash_set<TNode, TNodeHashFunction> d_visited;
 public:

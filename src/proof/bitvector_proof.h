@@ -20,7 +20,7 @@
 #define __CVC4__BITVECTOR__PROOF_H
 
 #include <iostream>
-#include <stdint.h>
+#include <stdint.h> // taking: Use cstdint, sort libraries
 #include <vector>
 #include <set>
 #include <ext/hash_map>
@@ -40,10 +40,10 @@ namespace theory {
 namespace bv{
 class TheoryBV;
 template <class T> class TBitblaster;
-}
+} // taking: close namespace
 }
 
-class CnfProof;
+class CnfProof; // taking: Comment why forward declared, and have all forward declarations in a namespace closed before reopening for the class.
 
 template <class Solver> class TSatProof;
 typedef TSatProof< CVC4::BVMinisat::Solver> BVSatProof;
@@ -65,8 +65,6 @@ protected:
   ExprSet d_seenBBTerms; // terms that need to be bit-blasted
   std::vector<Expr> d_bbTerms; // order of bit-blasting
   ExprToExpr d_bbAtoms; // atoms that need to be bit-blasted
-
-  //  unsigned d_bbIdCount;
 
   // map from Expr representing normalized lemma to ClauseId in SAT solver
   ExprToClauseId d_bbConflictMap;

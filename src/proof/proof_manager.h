@@ -92,7 +92,6 @@ enum ProofFormat {
 
 std::string append(const std::string& str, uint64_t num);
 
-typedef std::map < ClauseId, const prop::SatClause* > OrderedIdToClause;
 typedef __gnu_cxx::hash_map < ClauseId, prop::SatClause* > IdToSatClause;
 typedef __gnu_cxx::hash_set<Expr, ExprHashFunction > ExprSet;
 typedef __gnu_cxx::hash_set<Node, NodeHashFunction > NodeSet;
@@ -141,6 +140,7 @@ public:
   ProofManager(ProofFormat format = LFSC);
   ~ProofManager();
 
+  // taking: This is current in the SmtEngineScope.
   static ProofManager* currentPM();
 
   // initialization
@@ -160,10 +160,7 @@ public:
   static ArrayProof* getArrayProof();
   
   // iterators over data shared by proofs
-  typedef IdToSatClause::const_iterator clause_iterator;
-  typedef OrderedIdToClause::const_iterator ordered_clause_iterator;
   typedef ExprSet::const_iterator assertions_iterator;
-
 
   // iterate over the assertions (these are arbitrary boolean formulas)
   assertions_iterator begin_assertions() const { return d_inputFormulas.begin(); }
@@ -239,6 +236,7 @@ public:
   virtual ~LFSCProof() {}
 };/* class LFSCProof */
 
+// taking: Move implementation into cpp
 inline std::ostream& operator<<(std::ostream& out, CVC4::ProofRule k) {
   switch(k) {
   case RULE_GIVEN:

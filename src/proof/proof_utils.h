@@ -31,6 +31,7 @@ typedef __gnu_cxx::hash_set<Node, NodeHashFunction> NodeSet;
   
 namespace utils {
 
+  // taking: Move into cpp
   inline std::string toLFSCKind(Kind kind) {
     switch(kind) {
       // core kinds
