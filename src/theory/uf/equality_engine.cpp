@@ -1050,7 +1050,7 @@ void EqualityEngine::getExplanation(EqualityNodeId t1Id, EqualityNodeId t2Id, st
 
           Debug("equality") << d_name << "::eq::getExplanation(): path found: " << std::endl;
 
-          std::vector< EqProof * > eqp_trans;
+          std::vector<EqProof *> eqp_trans;
 
           // Reconstruct the path
           do {
@@ -1283,7 +1283,7 @@ void EqualityEngine::getExplanation(EqualityNodeId t1Id, EqualityNodeId t2Id, st
               Debug("equality") << d_name << "::eq::getExplanation(): adding: " << d_equalityEdges[currentEdge].getReason() << std::endl;
               Debug("equality") << d_name << "::eq::getExplanation(): reason type = " << reasonType << std::endl;
 
-              if( eqpc ){
+              if (eqpc) {
                 if (reasonType == MERGED_THROUGH_EQUALITY) {
                   eqpc->d_node = d_equalityEdges[currentEdge].getReason();
                 } else {
@@ -1299,7 +1299,6 @@ void EqualityEngine::getExplanation(EqualityNodeId t1Id, EqualityNodeId t2Id, st
                   } else {
                     eqpc->d_node = a.eqNode(b);
                   }
-
                   Debug("equality-pf") << "theory eq : " << eqpc->d_node << std::endl;
                 }
                 eqpc->d_id = reasonType;
@@ -1314,7 +1313,7 @@ void EqualityEngine::getExplanation(EqualityNodeId t1Id, EqualityNodeId t2Id, st
             currentIndex = bfsQueue[currentIndex].previousIndex;
 
             //---from Morgan---
-            if(eqpc != NULL && eqpc->d_id == MERGED_THROUGH_REFLEXIVITY) {
+            if (eqpc != NULL && eqpc->d_id == MERGED_THROUGH_REFLEXIVITY) {
               if(eqpc->d_node.isNull()) {
                 Assert(eqpc->d_children.size() == 1);
                 EqProof *p = eqpc;
@@ -1326,11 +1325,10 @@ void EqualityEngine::getExplanation(EqualityNodeId t1Id, EqualityNodeId t2Id, st
             }
             //---end from Morgan---
 
-            eqp_trans.push_back( eqpc );
-
+            eqp_trans.push_back(eqpc);
           } while (currentEdge != null_id);
 
-          if(eqp) {
+          if (eqp) {
             if(eqp_trans.size() == 1) {
               *eqp = *eqp_trans[0];
               delete eqp_trans[0];
@@ -1340,7 +1338,6 @@ void EqualityEngine::getExplanation(EqualityNodeId t1Id, EqualityNodeId t2Id, st
               eqp->d_node = NodeManager::currentNM()->mkNode(d_nodes[t1Id].getType().isBoolean() ? kind::IFF : kind::EQUAL, d_nodes[t1Id], d_nodes[t2Id]);
             }
 
-            Debug( "equality-proof-debug" ) << "Calling debug print" << std::endl;
             eqp->debug_print("equality-proof-debug", 1);
           }
 
