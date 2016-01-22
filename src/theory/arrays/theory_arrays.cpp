@@ -1114,6 +1114,8 @@ void TheoryArrays::check(Effort e) {
             // Code BEFORE Morgan's changes:
             // ////////////////////////////////
             if (!d_proofsEnabled) {
+              Debug("gk::proof") << "Check: kind::NOT: array theory making a skolem" << std::endl;
+
               NodeManager* nm = NodeManager::currentNM();
               TypeNode indexType = fact[0][0].getType()[0];
               TNode k = getSkolem(fact,"array_ext_index", indexType, "an extensional lemma index variable from the theory of arrays", false);
@@ -1200,6 +1202,7 @@ void TheoryArrays::check(Effort e) {
             }
           }
           else {
+            Debug("gk::proof") << "Check: kind::NOT: array theory NOT making a skolem" << std::endl;
             d_modelConstraints.push_back(fact);
           }
         }
@@ -2823,8 +2826,9 @@ void TheoryArrays::conflict(TNode a, TNode b) {
   } else {
     d_conflictNode = explain(a.eqNode(b), proof);
   }
+
   if (!d_inCheckModel) {
-    proof->debug_print("array-pf");
+    if (proof) { proof->debug_print("array-pf"); }
     ProofArray* proof_array = d_proofsEnabled ? new ProofArray( proof ) : NULL;
     d_out->conflict(d_conflictNode, proof_array);
   }
