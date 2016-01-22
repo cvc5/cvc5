@@ -587,28 +587,9 @@ void TheoryProof::printTheoryLemmaProof(std::vector<Expr>& lemma, std::ostream& 
   if(oc.d_conflict.isNull()) {
     Trace("theory-proof-debug") << "; conflict is null" << std::endl;
     Assert(!oc.d_lemma.isNull());
-    // Assert that the new lemma has been proven. We're giving the inputs in a possibly different way.
     Trace("theory-proof-debug") << "; ++ but got lemma: " << oc.d_lemma << std::endl;
-    // Trace("theory-proof-debug") << "; asserting " << oc.d_lemma[1].negate() << std::endl;
-    Trace("theory-proof-debug") << "; asserting " << oc.d_lemma << std::endl;
-    //    th->assertFact(oc.d_lemma[1].negate(), false);
-
-    if (oc.d_lemma.getKind() == kind::OR) {
-      for (unsigned i = 0; i < oc.d_lemma.getNumChildren(); ++i) {
-        Trace("theory-proof-debug") << ";     asserting fact: " << oc.d_lemma[i].notNode() << std::endl;
-        if (oc.d_lemma[i].getKind() == kind::NOT) {
-          th->assertFact(oc.d_lemma[i][0], false);
-        }
-        else {
-          th->assertFact(oc.d_lemma[i].notNode(), false);
-        }
-      }
-    }
-    else {
-      // Assuming this is just a plain fact...
-      th->assertFact(oc.d_lemma, false);
-    }
-
+    Trace("theory-proof-debug") << "; asserting " << oc.d_lemma[1].negate() << std::endl;
+    th->assertFact(oc.d_lemma[1].negate(), false);
     th->check(theory::Theory::EFFORT_FULL);
   }
   Debug("gk::proof") << "Calling   oc.d_proof->toStream(os)" << std::endl;
