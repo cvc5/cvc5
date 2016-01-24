@@ -314,10 +314,10 @@ void EqualityEngine::addTermInternal(TNode t, bool isOperator) {
       // How many children are not constants yet
       d_subtermsToEvaluate[result] = t.getNumChildren();
       for (unsigned i = 0; i < t.getNumChildren(); ++ i) {
-  if (isConstant(getNodeId(t[i]))) {
-    Debug("equality::evaluation") << d_name << "::eq::addTermInternal(" << t << "): evaluates " << t[i] << std::endl;
-    subtermEvaluates(result);
-  }
+        if (isConstant(getNodeId(t[i]))) {
+          Debug("equality::evaluation") << d_name << "::eq::addTermInternal(" << t << "): evaluates " << t[i] << std::endl;
+          subtermEvaluates(result);
+        }
       }
     }
   } else {

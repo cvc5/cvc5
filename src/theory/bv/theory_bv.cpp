@@ -34,9 +34,6 @@
 #include "proof/proof_manager.h"
 #include "theory/valuation.h"
 
-using namespace CVC4;
-using namespace CVC4::theory;
-using namespace CVC4::theory::bv;
 using namespace CVC4::context;
 using namespace CVC4::theory::bv::utils;
 using namespace std;
@@ -67,6 +64,7 @@ TheoryBV::TheoryBV(context::Context* c, context::UserContext* u,
       d_isCoreTheory(false),
       d_calledPreregister(false)
 {
+
   if (options::bitblastMode() == theory::bv::BITBLAST_MODE_EAGER) {
     d_eagerSolver = new EagerBitblastSolver(this);
     return;
@@ -96,7 +94,6 @@ TheoryBV::TheoryBV(context::Context* c, context::UserContext* u,
   }
   d_subtheories.push_back(bb_solver);
   d_subtheoryMap[SUB_BITBLAST] = bb_solver;
-
 }
 
 
@@ -578,6 +575,7 @@ Node TheoryBV::ppRewrite(TNode t)
     std::vector<Node> equalities;
     Slicer::splitEqualities(t, equalities);
     res = utils::mkAnd(equalities);
+// taking: uncomment?
   // } else if (RewriteRule<UltPlusOne>::applies(t)) {
   //   Node result = RewriteRule<UltPlusOne>::run<false>(t);
   //   res = Rewriter::rewrite(result);

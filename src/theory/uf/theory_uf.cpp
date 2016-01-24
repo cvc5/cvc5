@@ -20,16 +20,16 @@
 #include "options/quantifiers_options.h"
 #include "options/smt_options.h"
 #include "options/uf_options.h"
+#include "proof/proof_manager.h"
+#include "proof/theory_proof.h"
+#include "proof/uf_proof.h"
 #include "theory/theory_model.h"
 #include "theory/type_enumerator.h"
-#include "proof/theory_proof.h"
-#include "proof/proof_manager.h"
-#include "proof/uf_proof.h"
-
 #include "theory/uf/theory_uf_strong_solver.h"
 
-
 using namespace std;
+
+// taking : namespaces
 using namespace CVC4;
 using namespace CVC4::theory;
 using namespace CVC4::theory::uf;

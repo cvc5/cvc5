@@ -177,7 +177,7 @@ void TseitinCnfStream::ensureLiteral(TNode n) {
 }
 
 SatLiteral CnfStream::newLiteral(TNode node, bool isTheoryAtom, bool preRegister, bool canEliminate) {
-  Debug("cnf") << d_name<<"::newLiteral(" << node << ", " << isTheoryAtom << ")" << endl;
+  Debug("cnf") << d_name << "::newLiteral(" << node << ", " << isTheoryAtom << ")" << endl;
   Assert(node.getKind() != kind::NOT);
 
   // Get the literal for this node
@@ -195,12 +195,6 @@ SatLiteral CnfStream::newLiteral(TNode node, bool isTheoryAtom, bool preRegister
     }
     d_nodeToLiteralMap.insert(node, lit);
     d_nodeToLiteralMap.insert(node.notNode(), ~lit);
-    // PROOF (
-    //        if (isTheoryAtom && d_name.compare("") == 0) {
-    //          ProofManager::currentPM()->registerTheoryAtom(node.toExpr(), lit.getSatVariable());
-    //        }
-    //        // TODO: register for bit-vector theory
-    //        );
   } else {
     lit = getLiteral(node);
   }
@@ -218,7 +212,7 @@ SatLiteral CnfStream::newLiteral(TNode node, bool isTheoryAtom, bool preRegister
   if (preRegister) {
     // In case we are re-entered due to lemmas, save our state
     bool backupRemovable = d_removable;
-    // Should be fine since cnfProof current assertion is stack based
+    // Should be fine since cnfProof current assertion is stack based.
     d_registrar->preRegister(node);
     d_removable = backupRemovable;
   }

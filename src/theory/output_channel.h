@@ -101,6 +101,7 @@ public:
    * unit conflict) which is assigned TRUE (and T-conflicting) in the
    * current assignment.
    */
+  // taking : Update documentation.
   virtual void conflict(TNode n, Proof* pf = NULL) throw(AssertionException, UnsafeInterruptException) = 0;
 
   /**
@@ -128,6 +129,7 @@ public:
                             bool sendAtoms = false)
     throw(TypeCheckingExceptionPrivate, AssertionException, UnsafeInterruptException) = 0;
 
+  // taking : Why two lemma calls? Document the differences or merge.
   virtual LemmaStatus lemma(TNode n, 
                             bool removable = false,
                             bool preprocess = false)

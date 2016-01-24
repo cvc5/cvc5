@@ -1703,8 +1703,6 @@ CRef Solver::updateLemmas() {
     // The current lemma
     vec<Lit>& lemma = lemmas[i];
     bool removable = lemmas_removable[i];
-    // uint64_t proof_id = lemmas_proof_id[i];
-    // Debug("cores") << "pulled lemma proof id " << proof_id << " " << (proof_id & 0xffffffff) << std::endl;
 
     // Attach it if non-unit
     CRef lemma_ref = CRef_Undef;
@@ -1772,7 +1770,6 @@ CRef Solver::updateLemmas() {
   lemmas.clear();
   lemmas_cnf_assertion.clear();
   lemmas_removable.clear();
-  //  lemmas_proof_id.clear();
 
   if (conflict != CRef_Undef) {
     theoryConflict = true;

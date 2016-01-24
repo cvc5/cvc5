@@ -37,7 +37,7 @@ OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWA
 
 
 namespace CVC4 {
-template <class Solvar> class TSatProof;
+template <class Solver> class TSatProof;
 
 namespace prop {
   class TheoryProxy;
@@ -99,7 +99,7 @@ protected:
   vec<bool> lemmas_removable;
 
   /** Nodes being converted to CNF */
-  std::vector<std::pair<CVC4::Node, CVC4::Node > >lemmas_cnf_assertion;
+  std::vector< std::pair<CVC4::Node, CVC4::Node > >lemmas_cnf_assertion;
 
   /** Do a another check if FULL_EFFORT was the last one */
   bool recheck;

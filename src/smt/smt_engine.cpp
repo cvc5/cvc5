@@ -802,6 +802,7 @@ SmtEngine::SmtEngine(ExprManager* em) throw() :
 
   // Add the theories
   for(TheoryId id = theory::THEORY_FIRST; id < theory::THEORY_LAST; ++id) {
+    // taking : better Debug name
     Debug("ajr-temp") << "Add theory " << id << std::endl;
     TheoryConstructor::addTheory(d_theoryEngine, id);
     Debug("ajr-temp") << "Done add theory " << id << std::endl;
@@ -3841,7 +3842,6 @@ void SmtEnginePrivate::processAssertions() {
           d_iteSkolemMap.erase(toErase.back());
           toErase.pop_back();
         }
-
         d_assertions[d_realAssertionsEnd - 1] = Rewriter::rewrite(Node(builder));
       }
       // For some reason this is needed for some benchmarks, such as

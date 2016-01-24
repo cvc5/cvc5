@@ -21,7 +21,7 @@ MAKEFLAGS = -k
 # If a test shouldn't be run in e.g. competition mode,
 # put it below in "TESTS +="
 
-# FIXME: add it back
+# FIXME: Proof checking takes too long. Add this back.
 # 	fuzz15.delta01.smt 
 
 # Regression tests for SMT inputs

@@ -146,8 +146,8 @@ void TLazyBitblaster::bbAtom(TNode node) {
 }
 
 void TLazyBitblaster::storeBBAtom(TNode atom, Node atom_bb) {
-  // no need to store the definition for the lazy bit-blaster (unless proofs)
-  if( d_bvp ){
+  // No need to store the definition for the lazy bit-blaster (unless proofs are enabled).
+  if( d_bvp != NULL ){
     d_bvp->registerAtomBB(atom.toExpr(), atom_bb.toExpr());
   }
   d_bbAtoms.insert(atom); 

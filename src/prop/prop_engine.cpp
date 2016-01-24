@@ -102,6 +102,7 @@ PropEngine::PropEngine(TheoryEngine* te, DecisionEngine *de, Context* satContext
   PROOF (
          ProofManager::currentPM()->initCnfProof(d_cnfStream, userContext);
          d_cnfStream->setProof(ProofManager::getCnfProof());
+		  // taking : Maybe move into constructor?
          );
 }
 

@@ -21,7 +21,6 @@
 
 #include "theory/bv/theory_bv_rewrite_rules.h"
 #include "theory/bv/theory_bv_utils.h"
-#include "proof/proof_manager.h"
 
 namespace CVC4 {
 namespace theory {

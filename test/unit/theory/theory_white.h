@@ -15,16 +15,17 @@
  **/
 
 #include <cxxtest/TestSuite.h>
+#include <vector>
 
-#include "theory/theory.h"
-#include "theory/theory_engine.h"
+// taking: Add include for Proof*.
+#include "context/context.h"
 #include "expr/node.h"
 #include "expr/node_manager.h"
-#include "context/context.h"
 #include "smt/smt_engine.h"
 #include "smt/smt_engine_scope.h"
+#include "theory/theory.h"
+#include "theory/theory_engine.h"
 
-#include <vector>
 
 using namespace CVC4;
 using namespace CVC4::theory;

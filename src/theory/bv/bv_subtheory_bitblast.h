@@ -76,6 +76,7 @@ public:
   void setProofLog( BitVectorProof * bvp );
 };
 
+// taking : namespaces
 }
 }
 }

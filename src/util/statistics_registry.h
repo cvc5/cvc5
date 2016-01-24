@@ -81,7 +81,6 @@ protected:
   /** The name of this statistic */
   std::string d_name;
 
-  friend class StatisticsRegistry;
 public:
 
   /** Nullary constructor, does nothing */

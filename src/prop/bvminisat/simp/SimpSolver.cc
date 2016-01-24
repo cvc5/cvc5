@@ -63,7 +63,7 @@ SimpSolver::SimpSolver(CVC4::context::Context* c) :
   , asymm_lits         (0)
   , eliminated_vars    (0)
   , elimorder          (1)
-  , use_simplification (true && !PROOF_ON())
+  , use_simplification (!PROOF_ON())
   , occurs             (ClauseDeleted(ca))
   , elim_heap          (ElimLt(n_occ))
   , bwdsub_assigns     (0)
@@ -174,7 +174,7 @@ bool SimpSolver::addClause_(vec<Lit>& ps, ClauseId& id)
 
     if (use_rcheck && implied(ps))
         return true;
-    
+
     if (!Solver::addClause_(ps, id))
         return false;
 

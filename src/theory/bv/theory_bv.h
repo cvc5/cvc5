@@ -215,7 +215,7 @@ private:
   void lemma(TNode node) { d_out->lemma(node, RULE_CONFLICT); d_lemmasAdded = true; }
 
   void checkForLemma(TNode node); 
-  
+
   friend class LazyBitblaster;
   friend class TLazyBitblaster;
   friend class EagerBitblaster;

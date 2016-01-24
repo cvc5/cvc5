@@ -298,6 +298,6 @@ void toSatClause< CVC4::Minisat::Solver> (const CVC4::Minisat::Solver::TClause& 
   prop::MinisatSatSolver::toSatClause(minisat_cl, sat_cl);
 }
 
-}
+} /* namespace CVC4 */
 
 

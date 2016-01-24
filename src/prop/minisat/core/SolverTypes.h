@@ -176,6 +176,8 @@ public:
   virtual ~ProofProxyAbstract() {}
   virtual void updateCRef(Minisat::CRef oldref, Minisat::CRef newref) = 0; 
 };
+
+// taking: namespace?
 }
 }
 
@@ -187,7 +189,6 @@ typedef ProofProxy<CVC4::Minisat::Solver> CoreProofProxy;
 
 namespace CVC4 {
 namespace Minisat{
-
 
 //=================================================================================================
 // Clause -- a simple class for representing a clause:
@@ -308,7 +309,7 @@ class ClauseAllocator : public RegionAllocator<uint32_t>
     }
 
   void reloc(CRef& cr, ClauseAllocator& to, CVC4::CoreProofProxy* proxy = NULL);
-  // moved to Solver.cc
+  // Implementation moved to Solver.cc.
 };
 
 

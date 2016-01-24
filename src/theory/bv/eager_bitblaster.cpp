@@ -25,9 +25,6 @@
 #include "theory/bv/theory_bv.h"
 #include "theory/theory_model.h"
 
-using namespace CVC4;
-using namespace CVC4::theory;
-using namespace CVC4::theory::bv;
 
 namespace CVC4 {
 namespace theory {

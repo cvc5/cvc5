@@ -107,7 +107,7 @@ public:
     Var     falseVar() const { return varFalse; }
 
 
-  bool    addClause (const vec<Lit>& ps, ClauseId& id);                     // Add a clause to the solver. 
+    bool    addClause (const vec<Lit>& ps, ClauseId& id);                     // Add a clause to the solver. 
     bool    addEmptyClause();                                   // Add the empty clause, making the solver contradictory.
     bool    addClause (Lit p, ClauseId& id);                                  // Add a unit clause to the solver. 
     bool    addClause (Lit p, Lit q, ClauseId& id);                           // Add a binary clause to the solver. 
@@ -359,8 +359,8 @@ protected:
     // Returns a random integer 0 <= x < size. Seed must never be 0.
     static inline int irand(double& seed, int size) {
         return (int)(drand(seed) * size); }
-
-  // Less than for literals in an added clause when proofs are on
+  // taking: Comment why this is in the header.
+  // Less than for literals in an added clause when proofs are on.
   struct assign_lt {
     Solver& solver;
     assign_lt(Solver& solver) : solver(solver) {}

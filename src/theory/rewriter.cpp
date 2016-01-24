@@ -203,7 +203,6 @@ Node Rewriter::rewriteTo(theory::TheoryId theoryId, Node node) {
         RewriteResponse response = Rewriter::callPostRewrite((TheoryId) rewriteStackTop.theoryId, rewriteStackTop.node);
         // We continue with the response we got
         TheoryId newTheoryId = theoryOf(response.node);
-
         if (newTheoryId != (TheoryId) rewriteStackTop.theoryId || response.status == REWRITE_AGAIN_FULL) {
           // In the post rewrite if we've changed theories, we must do a full rewrite
           Assert(response.node != rewriteStackTop.node);

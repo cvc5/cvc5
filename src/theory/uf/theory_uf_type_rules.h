@@ -111,10 +111,11 @@ class PartialTypeRule {
 public:
   inline static TypeNode computeType(NodeManager* nodeManager, TNode n, bool check)
       throw (TypeCheckingExceptionPrivate, AssertionException) {
+    // taking: rename Trace.
     Trace("ajr-temp") << "Partial UF type : " << n.getOperator() << " " << n.getOperator().getType() << std::endl;
     return n.getOperator().getType().getRangeType();
   }
-};
+};/* class PartialTypeRule */
 
 class CardinalityValueTypeRule {
 public:
