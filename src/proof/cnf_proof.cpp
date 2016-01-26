@@ -39,8 +39,8 @@ CnfProof::CnfProof(CnfStream* stream,
   , d_cnfDeps()
   , d_name(name)
 {
-  // taking: d_cnfStream->setCnfProof(this);
-
+  // Setting the proof object for the CnfStream
+  d_cnfStream->setProof(this);
 }
 
 CnfProof::~CnfProof() {}

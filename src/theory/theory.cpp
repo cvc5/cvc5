@@ -52,6 +52,7 @@ Theory::Theory(TheoryId id, context::Context* satContext, context::UserContext* 
                OutputChannel& out, Valuation valuation, const LogicInfo& logicInfo,
                SmtGlobals* globals, std::string name) throw()
     : d_id(id)
+    , d_instanceName(name)
     , d_satContext(satContext)
     , d_userContext(userContext)
     , d_logicInfo(logicInfo)
@@ -60,14 +61,13 @@ Theory::Theory(TheoryId id, context::Context* satContext, context::UserContext* 
     , d_sharedTermsIndex(satContext, 0)
     , d_careGraph(NULL)
     , d_quantEngine(NULL)
-    , d_checkTime(name + statName(id, "checkTime"))
-    , d_computeCareGraphTime(name + statName(id, "computeCareGraphTime"))
+    , d_checkTime(getFullInstanceName() + "::checkTime")
+    , d_computeCareGraphTime(getFullInstanceName() + "::computeCareGraphTime")
     , d_sharedTerms(satContext)
     , d_out(&out)
     , d_valuation(valuation)
     , d_proofsEnabled(false)
     , d_globals(globals)
-    , d_name(name)
 {
   smtStatisticsRegistry()->registerStat(&d_checkTime);
   smtStatisticsRegistry()->registerStat(&d_computeCareGraphTime);

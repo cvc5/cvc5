@@ -177,9 +177,8 @@ public:
   virtual void updateCRef(Minisat::CRef oldref, Minisat::CRef newref) = 0; 
 };
 
-// taking: namespace?
-}
-}
+} /* namespace CVC4::Minisat */
+} /* namespace CVC4 */
 
 
 namespace CVC4 {

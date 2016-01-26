@@ -541,7 +541,7 @@ bool SimpSolver::eliminateVar(Var v)
     for (int i = 0; i < cls.size(); i++)
         removeClause(cls[i]); 
 
-    ClauseId id = -1; // taking: named constant?
+    ClauseId id = ClauseIdUndef; 
     // Produce clauses in cross product:
     vec<Lit>& resolvent = add_tmp;
     for (int i = 0; i < pos.size(); i++)
@@ -587,7 +587,7 @@ bool SimpSolver::substitute(Var v, Lit x)
         }
 
         removeClause(cls[i]);
-        ClauseId id = -1; // taking: same
+        ClauseId id = ClauseIdUndef;
         if (!addClause_(subst_clause, c.removable(), id)) {
             return ok = false;
         }

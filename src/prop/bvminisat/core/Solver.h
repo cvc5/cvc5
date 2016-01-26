@@ -359,7 +359,7 @@ protected:
     // Returns a random integer 0 <= x < size. Seed must never be 0.
     static inline int irand(double& seed, int size) {
         return (int)(drand(seed) * size); }
-  // taking: Comment why this is in the header.
+
   // Less than for literals in an added clause when proofs are on.
   struct assign_lt {
     Solver& solver;

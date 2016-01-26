@@ -100,8 +100,9 @@ public:
    * assigned false), or else a literal by itself (in the case of a
    * unit conflict) which is assigned TRUE (and T-conflicting) in the
    * current assignment.
+   * @param pf - a proof of the conflict. This is only non-null if proofs
+   * are enabled. 
    */
-  // taking : Update documentation.
   virtual void conflict(TNode n, Proof* pf = NULL) throw(AssertionException, UnsafeInterruptException) = 0;
 
   /**
@@ -117,6 +118,7 @@ public:
    * been detected.  (This requests a split.)
    *
    * @param n - a theory lemma valid at decision level 0
+   * @param rule - the proof rule for this lemma
    * @param removable - whether the lemma can be removed at any point
    * @param preprocess - whether to apply more aggressive preprocessing
    * @param sendAtoms - whether to ensure atoms are sent to the theory
@@ -129,12 +131,15 @@ public:
                             bool sendAtoms = false)
     throw(TypeCheckingExceptionPrivate, AssertionException, UnsafeInterruptException) = 0;
 
-  // taking : Why two lemma calls? Document the differences or merge.
+  /**
+   * Variant of the lemma function that does not require providing a proof rule.
+   */
   virtual LemmaStatus lemma(TNode n, 
                             bool removable = false,
-                            bool preprocess = false)
+                            bool preprocess = false,
+                            bool sendAtoms = false)
     throw(TypeCheckingExceptionPrivate, AssertionException, UnsafeInterruptException) {
-    return lemma(n, RULE_INVALID, removable, preprocess);
+    return lemma(n, RULE_INVALID, removable, preprocess, sendAtoms);
   }
 
   

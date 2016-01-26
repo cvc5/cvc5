@@ -128,8 +128,7 @@ class TheoryArrays : public Theory {
 
   TheoryArrays(context::Context* c, context::UserContext* u, OutputChannel& out,
                Valuation valuation, const LogicInfo& logicInfo,
-               SmtGlobals* globals, std::string name = ""); // taking: name should likely be non-empty.
-			   // taking: Names should be explicitly given if there are names.
+               SmtGlobals* globals, std::string name = ""); 
   ~TheoryArrays();
 
   void setMasterEqualityEngine(eq::EqualityEngine* eq);

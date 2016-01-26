@@ -789,10 +789,12 @@ SmtEngine::SmtEngine(ExprManager* em) throw() :
   d_stats->d_resourceUnitsUsed.setData(
       d_private->getResourceManager()->getResourceUsage());
 
-  // taking : Add comment explaining ordering issues.
+  // The ProofManager is constructed before any other proof objects such as
+  // SatProof and TheoryProofs. The TheoryProofEngine and the SatProof are
+  // initialized in TheoryEngine and PropEngine respectively. 
   Assert(d_proofManager == NULL);
-  PROOF( d_proofManager = new ProofManager(); ); // taking: Maybe move into SmtEnginePrivate to avoid forward declaration of cvc4_private class.
-
+  PROOF( d_proofManager = new ProofManager(); ); 
+  
   // We have mutual dependency here, so we add the prop engine to the theory
   // engine later (it is non-essential there)
   d_theoryEngine = new TheoryEngine(d_context, d_userContext,

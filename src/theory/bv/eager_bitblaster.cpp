@@ -231,7 +231,6 @@ void EagerBitblaster::setProofLog( BitVectorProof * bvp ) {
   d_bvp = bvp;
   d_satSolver->setProofLog(bvp);
   bvp->initCnfProof(d_cnfStream, d_nullContext);
-  d_cnfStream->setProof(bvp->getCnfProof());
 }
 
 bool EagerBitblaster::isSharedTerm(TNode node) {

@@ -140,7 +140,6 @@ public:
   ProofManager(ProofFormat format = LFSC);
   ~ProofManager();
 
-  // taking: This is current in the SmtEngineScope.
   static ProofManager* currentPM();
 
   // initialization
@@ -236,46 +235,7 @@ public:
   virtual ~LFSCProof() {}
 };/* class LFSCProof */
 
-// taking: Move implementation into cpp
-inline std::ostream& operator<<(std::ostream& out, CVC4::ProofRule k) {
-  switch(k) {
-  case RULE_GIVEN:
-    out << "RULE_GIVEN"; 
-    break;
-  case RULE_DERIVED:
-    out << "RULE_DERIVED"; 
-    break;
-  case RULE_RECONSTRUCT:
-    out << "RULE_RECONSTRUCT"; 
-    break;
-  case RULE_TRUST:
-    out << "RULE_TRUST"; 
-    break;
-  case RULE_INVALID:
-    out << "RULE_INVALID"; 
-    break;
-  case RULE_CONFLICT:
-    out << "RULE_CONFLICT"; 
-    break;
-  case RULE_TSEITIN:
-    out << "RULE_TSEITIN"; 
-    break;
-  case RULE_SPLIT:
-    out << "RULE_SPLIT"; 
-    break;
-  case RULE_ARRAYS_EXT:
-    out << "RULE_ARRAYS"; 
-    break;
-  case RULE_ARRAYS_ROW:
-    out << "RULE_ARRAYS"; 
-    break;
-  default:
-    out << "ProofRule Unknown! [" << unsigned(k) << "]";
-  }
-
-  return out;
-}
-
+std::ostream& operator<<(std::ostream& out, CVC4::ProofRule k);
 }/* CVC4 namespace */
 
 

@@ -46,7 +46,7 @@ inline bool smtEngineInScope() {
   return s_smtEngine_current != NULL;
 }
 
-// taking: Maybe move into cpp? Move into SmtScope?
+// FIXME: Maybe move into SmtScope?
 inline ProofManager* currentProofManager() {
 #if IS_PROOFS_BUILD
   Assert(options::proof() || options::unsatCores());

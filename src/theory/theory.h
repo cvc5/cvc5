@@ -149,6 +149,11 @@ private:
    */
   TheoryId d_id;
 
+  /** Name of this theory instance. Along with the TheoryId this should provide
+   * an unique string identifier for each instance of a Theory class. We need
+   * this to ensure unique statistics names over multiple theory instances. */
+  std::string d_instanceName;
+  
   /**
    * The SAT search context for the Theory.
    */
@@ -204,12 +209,6 @@ protected:
   /** time spent in theory combination */
   TimerStat d_computeCareGraphTime;
 
-  static std::string statName(TheoryId id, const char* statName) {
-    std::stringstream ss;
-    ss << "theory<" << id << ">::" << statName;
-    return ss.str();
-  }
-
   /**
    * The only method to add suff to the care graph.
    */
@@ -230,16 +229,6 @@ protected:
    */
   context::CDList<TNode> d_sharedTerms;
 
-  /** Name of this theory instance */
-  std::string d_name;
-  // taking: instance name
-  // taking: Document uniqueness
-
-  //public:
-  //std::string fullInstanceName() const {
-  //  return d_id + d_instanceName;
-  //}
-  
   /**
    * Helper function for computeRelevantTerms
    */
@@ -426,6 +415,13 @@ public:
     return d_id;
   }
 
+  std::string getFullInstanceName() const {
+    std::stringstream ss;
+    ss << "theory<" << d_id << ">" << d_instanceName;
+    return ss.str();
+  }
+
+  
   /**
    * Get the SAT context associated to this Theory.
    */

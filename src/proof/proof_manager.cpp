@@ -60,8 +60,6 @@ ProofManager::ProofManager(ProofFormat format):
   d_format(format),
   d_deps()
 {
-  // taking : Add comment explaining what is assumed to be initialized w.r.t. SmtEngineScope
-  // and what is assumed to not be initialized.
 }
 
 ProofManager::~ProofManager() {
@@ -466,5 +464,45 @@ Node ProofManager::mkOp(TNode n) {
   return op;
 }
 //---end from Morgan---
+
+std::ostream& operator<<(std::ostream& out, CVC4::ProofRule k) {
+  switch(k) {
+  case RULE_GIVEN:
+    out << "RULE_GIVEN"; 
+    break;
+  case RULE_DERIVED:
+    out << "RULE_DERIVED"; 
+    break;
+  case RULE_RECONSTRUCT:
+    out << "RULE_RECONSTRUCT"; 
+    break;
+  case RULE_TRUST:
+    out << "RULE_TRUST"; 
+    break;
+  case RULE_INVALID:
+    out << "RULE_INVALID"; 
+    break;
+  case RULE_CONFLICT:
+    out << "RULE_CONFLICT"; 
+    break;
+  case RULE_TSEITIN:
+    out << "RULE_TSEITIN"; 
+    break;
+  case RULE_SPLIT:
+    out << "RULE_SPLIT"; 
+    break;
+  case RULE_ARRAYS_EXT:
+    out << "RULE_ARRAYS"; 
+    break;
+  case RULE_ARRAYS_ROW:
+    out << "RULE_ARRAYS"; 
+    break;
+  default:
+    out << "ProofRule Unknown! [" << unsigned(k) << "]";
+  }
+
+  return out;
+}
+
 
 } /* CVC4  namespace */
