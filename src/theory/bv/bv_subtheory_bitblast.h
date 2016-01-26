@@ -76,7 +76,6 @@ public:
   void setProofLog( BitVectorProof * bvp );
 };
 
-// taking : namespaces
-}
-}
-}
+} /* namespace CVC4::theory::bv */
+} /* namespace CVC4::theory */
+} /* namespace CVC4 */

@@ -19,13 +19,14 @@
 #ifndef __CVC4__BITVECTOR__PROOF_H
 #define __CVC4__BITVECTOR__PROOF_H
 
-#include <iostream>
-#include <stdint.h> // taking: Use cstdint, sort libraries
-#include <vector>
-#include <set>
+//#include <cstdint> 
 #include <ext/hash_map>
 #include <ext/hash_set>
+#include <iostream>
+#include <set>
 #include <sstream>
+#include <vector>
+
 #include "expr/expr.h"
 #include "proof/theory_proof.h"
 #include "prop/bvminisat/core/Solver.h"
@@ -35,15 +36,19 @@ namespace CVC4 {
 
 namespace prop {
 class CnfStream;
-}
+} /* namespace CVC4::prop */
+
 namespace theory {
-namespace bv{
+namespace bv {
 class TheoryBV;
 template <class T> class TBitblaster;
-} // taking: close namespace
-}
+} /* namespace CVC4::theory::bv */
+} /* namespace CVC4::theory */
 
-class CnfProof; // taking: Comment why forward declared, and have all forward declarations in a namespace closed before reopening for the class.
+class CnfProof; 
+} /* namespace CVC4 */
+
+namespace CVC4 {
 
 template <class Solver> class TSatProof;
 typedef TSatProof< CVC4::BVMinisat::Solver> BVSatProof;

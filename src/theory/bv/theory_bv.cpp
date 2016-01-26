@@ -575,10 +575,9 @@ Node TheoryBV::ppRewrite(TNode t)
     std::vector<Node> equalities;
     Slicer::splitEqualities(t, equalities);
     res = utils::mkAnd(equalities);
-// taking: uncomment?
-  // } else if (RewriteRule<UltPlusOne>::applies(t)) {
-  //   Node result = RewriteRule<UltPlusOne>::run<false>(t);
-  //   res = Rewriter::rewrite(result);
+  } else if (RewriteRule<UltPlusOne>::applies(t)) {
+    Node result = RewriteRule<UltPlusOne>::run<false>(t);
+    res = Rewriter::rewrite(result);
   } else if( res.getKind() == kind::EQUAL &&
       ((res[0].getKind() == kind::BITVECTOR_PLUS &&
         RewriteRule<ConcatToMult>::applies(res[1])) ||

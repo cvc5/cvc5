@@ -21,15 +21,14 @@
 #ifndef __CVC4__CNF_PROOF_H
 #define __CVC4__CNF_PROOF_H
 
-#include "util/proof.h"
-#include "proof/sat_proof.h"
-#include "context/cdhashmap.h"
-
-#include <ext/hash_map> // taking: Libraries first.
+#include <ext/hash_map> 
 #include <ext/hash_set>
 #include <iosfwd>
 
+#include "context/cdhashmap.h"
 #include "proof/sat_proof.h"
+#include "proof/sat_proof.h"
+#include "util/proof.h"
 #include "util/proof.h"
 
 namespace CVC4 {

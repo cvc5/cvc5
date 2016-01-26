@@ -15,19 +15,19 @@
 ** \todo document this file
 **/
 
-#include "theory/bv/theory_bv.h"
-#include "theory/bv/bitblaster_template.h"
+
+#include "proof/bitvector_proof.h" 
 #include "options/bv_options.h"
-
-#include "proof/bitvector_proof.h" // taking: Beginning ans sorted
-#include "proof/sat_proof_implementation.h"
 #include "proof/proof_utils.h"
+#include "proof/sat_proof_implementation.h"
 #include "prop/bvminisat/bvminisat.h"
+#include "theory/bv/bitblaster_template.h"
+#include "theory/bv/theory_bv.h"
 
-// taking: Open namespace
-using namespace CVC4;
 using namespace CVC4::theory;
 using namespace CVC4::theory::bv;
+
+namespace CVC4 {
 
 BitVectorProof::BitVectorProof(theory::bv::TheoryBV* bv, TheoryProofEngine* proofEngine)
   : TheoryProof(bv, proofEngine)
@@ -40,7 +40,7 @@ BitVectorProof::BitVectorProof(theory::bv::TheoryBV* bv, TheoryProofEngine* proo
   , d_bitblaster(NULL)
 {}
 
-void BitVectorProof::initSatProof(::BVMinisat::Solver* solver) {
+void BitVectorProof::initSatProof(CVC4::BVMinisat::Solver* solver) {
   Assert (d_resolutionProof == NULL);
   d_resolutionProof = new LFSCBVSatProof(solver, "bb", true);
 }
@@ -113,15 +113,15 @@ std::string BitVectorProof::getBBTermName(Expr expr) {
   return os.str();
 }
 
-void BitVectorProof::startBVConflict(::BVMinisat::Solver::TCRef cr) {
+void BitVectorProof::startBVConflict(CVC4::BVMinisat::Solver::TCRef cr) {
   d_resolutionProof->startResChain(cr);
 }
 
-void BitVectorProof::startBVConflict(::BVMinisat::Solver::TLit lit) {
+void BitVectorProof::startBVConflict(CVC4::BVMinisat::Solver::TLit lit) {
   d_resolutionProof->startResChain(lit);
 }
 
-void BitVectorProof::endBVConflict(const BVMinisat::Solver::TLitVec& confl) {
+void BitVectorProof::endBVConflict(const CVC4::BVMinisat::Solver::TLitVec& confl) {
   std::vector<Expr> expr_confl;
   for (int i = 0; i < confl.size(); ++i) {
     prop::SatLiteral lit = prop::BVMinisatSatSolver::toSatLiteral(confl[i]);
@@ -344,7 +344,7 @@ void LFSCBitVectorProof::printTheoryLemmaProof(std::vector<Expr>& lemma, std::os
     std::ostringstream lemma_paren;
     for (unsigned i = 0; i < lemma.size(); ++i) {
       Expr lit = lemma[i];
-      Debug("ajr-temp") << "   child " << i << " : " << lit << std::endl;
+
       if (lit.getKind() == kind::NOT) {
         os << "(intro_assump_t _ _ _ ";
       } else {
@@ -599,3 +599,4 @@ void LFSCBitVectorProof::printResolutionProof(std::ostream& os,
   d_resolutionProof->printResolutions(os, paren);
 }
 
+} /* namespace CVC4 */

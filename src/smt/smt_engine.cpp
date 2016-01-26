@@ -802,10 +802,7 @@ SmtEngine::SmtEngine(ExprManager* em) throw() :
 
   // Add the theories
   for(TheoryId id = theory::THEORY_FIRST; id < theory::THEORY_LAST; ++id) {
-    // taking : better Debug name
-    Debug("ajr-temp") << "Add theory " << id << std::endl;
     TheoryConstructor::addTheory(d_theoryEngine, id);
-    Debug("ajr-temp") << "Done add theory " << id << std::endl;
     //register with proof engine if applicable
     THEORY_PROOF(ProofManager::currentPM()->getTheoryProofEngine()->registerTheory(d_theoryEngine->theoryOf(id)); );
   }

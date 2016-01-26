@@ -21,14 +21,16 @@
 
 #include "expr/expr.h"
 #include "proof/proof_manager.h"
+#include "proof/theory_proof.h"
 #include "theory/arrays/theory_arrays.h"
+
 namespace CVC4 {
 
 namespace theory {
 namespace arrays{
 class TheoryArrays;
-}
-}
+} /* namespace CVC4::theory::arrays */
+} /* namespace CVC4::theory */
 
 class ArrayProof : public TheoryProof {
   // TODO: whatever goes in this theory

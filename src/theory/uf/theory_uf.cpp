@@ -29,10 +29,9 @@
 
 using namespace std;
 
-// taking : namespaces
-using namespace CVC4;
-using namespace CVC4::theory;
-using namespace CVC4::theory::uf;
+namespace CVC4 {
+namespace theory {
+namespace uf {
 
 /** Constructs a new instance of TheoryUF w.r.t. the provided context.*/
 TheoryUF::TheoryUF(context::Context* c, context::UserContext* u,
@@ -549,3 +548,8 @@ void TheoryUF::eqNotifyDisequal(TNode t1, TNode t2, TNode reason) {
     d_thss->assertDisequal(t1, t2, reason);
   }
 }
+
+
+} /* namespace CVC4::theory::uf */
+} /* namespace CVC4::theory */
+} /* namespace CVC4 */

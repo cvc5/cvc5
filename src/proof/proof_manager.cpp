@@ -55,6 +55,7 @@ ProofManager::ProofManager(ProofFormat format):
   d_inputFormulas(),
   d_inputCoreFormulas(),
   d_outputCoreFormulas(),
+  d_nextId(0),
   d_fullProof(NULL),
   d_format(format),
   d_deps()
@@ -438,7 +439,6 @@ Node ProofManager::lookupOp(TNode n) const {
 }
 
 Node ProofManager::mkOp(TNode n) {
-  Trace("ajr-temp") << "MkOp : " << n << " " << n.getKind() << std::endl;
   if(n.getKind() != kind::BUILTIN) {
     return n;
   }
