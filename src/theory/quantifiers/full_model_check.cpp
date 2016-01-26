@@ -436,6 +436,7 @@ void FullModelChecker::processBuildModel(TheoryModel* m, bool fullModel){
           Node ri = fm->getUsedRepresentative( c[i]);
           if( !ri.getType().isSort() && !ri.isConst() ){
             Trace("fmc-warn") << "Warning : model has non-constant argument in model " << ri << std::endl;
+            Assert( false );
           }
           children.push_back(ri);
           if( options::mbqiMode()!=quantifiers::MBQI_FMC_INTERVAL || !ri.getType().isInteger() ){
@@ -451,6 +452,7 @@ void FullModelChecker::processBuildModel(TheoryModel* m, bool fullModel){
         Node nv = fm->getUsedRepresentative( v );
         if( !nv.getType().isSort() && !nv.isConst() ){
           Trace("fmc-warn") << "Warning : model has non-constant value in model " << nv << std::endl;
+          Assert( false );
         }
         Node en = (useSimpleModels() && hasNonStar) ? n : NodeManager::currentNM()->mkNode( APPLY_UF, entry_children );
         if( std::find(conds.begin(), conds.end(), n )==conds.end() ){
