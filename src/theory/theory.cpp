@@ -50,8 +50,9 @@ std::ostream& operator<<(std::ostream& os, Theory::Effort level){
 
 Theory::Theory(TheoryId id, context::Context* satContext, context::UserContext* userContext,
                OutputChannel& out, Valuation valuation, const LogicInfo& logicInfo,
-               SmtGlobals* globals) throw()
+               SmtGlobals* globals, std::string name) throw()
     : d_id(id)
+    , d_instanceName(name)
     , d_satContext(satContext)
     , d_userContext(userContext)
     , d_logicInfo(logicInfo)
@@ -60,12 +61,12 @@ Theory::Theory(TheoryId id, context::Context* satContext, context::UserContext* 
     , d_sharedTermsIndex(satContext, 0)
     , d_careGraph(NULL)
     , d_quantEngine(NULL)
-    , d_checkTime(statName(id, "checkTime"))
-    , d_computeCareGraphTime(statName(id, "computeCareGraphTime"))
+    , d_checkTime(getFullInstanceName() + "::checkTime")
+    , d_computeCareGraphTime(getFullInstanceName() + "::computeCareGraphTime")
     , d_sharedTerms(satContext)
     , d_out(&out)
     , d_valuation(valuation)
-    , d_proofEnabled(false)
+    , d_proofsEnabled(false)
     , d_globals(globals)
 {
   smtStatisticsRegistry()->registerStat(&d_checkTime);

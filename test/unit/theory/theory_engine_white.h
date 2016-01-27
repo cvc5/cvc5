@@ -49,7 +49,7 @@ using namespace CVC4::smt;
 using namespace std;
 
 class FakeOutputChannel : public OutputChannel {
-  void conflict(TNode n) throw(AssertionException) {
+  void conflict(TNode n, Proof* pf = NULL) throw(AssertionException) {
     Unimplemented();
   }
   bool propagate(TNode n) throw(AssertionException) {
@@ -58,7 +58,10 @@ class FakeOutputChannel : public OutputChannel {
   void propagateAsDecision(TNode n) throw(AssertionException) {
     Unimplemented();
   }
-  LemmaStatus lemma(TNode n, bool removable, bool preprocess, bool sendAtoms) throw(AssertionException) {
+  LemmaStatus lemma(TNode n, ProofRule rule,
+                    bool removable,
+                    bool preprocess,
+                    bool sendAtoms) throw(AssertionException) {
     Unimplemented();
   }
   void requirePhase(TNode, bool) throw(AssertionException) {

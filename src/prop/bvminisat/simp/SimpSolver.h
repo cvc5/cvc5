@@ -42,12 +42,12 @@ class SimpSolver : public Solver {
     // Problem specification:
     //
     Var     newVar    (bool polarity = true, bool dvar = true, bool freeze = false);
-    bool    addClause (const vec<Lit>& ps);
+    bool    addClause (const vec<Lit>& ps, ClauseId& id);
     bool    addEmptyClause();                // Add the empty clause to the solver.
-    bool    addClause (Lit p);               // Add a unit clause to the solver.
-    bool    addClause (Lit p, Lit q);        // Add a binary clause to the solver.
-    bool    addClause (Lit p, Lit q, Lit r); // Add a ternary clause to the solver.
-    bool    addClause_(      vec<Lit>& ps);
+    bool    addClause (Lit p, ClauseId& id);               // Add a unit clause to the solver.
+    bool    addClause (Lit p, Lit q, ClauseId& id);        // Add a binary clause to the solver.
+    bool    addClause (Lit p, Lit q, Lit r, ClauseId& id); // Add a ternary clause to the solver.
+    bool    addClause_( vec<Lit>& ps, ClauseId& id);
     bool    substitute(Var v, Lit x);  // Replace all occurences of v with x (may cause a contradiction).
 
     // Variable mode:
@@ -178,11 +178,11 @@ inline void SimpSolver::updateElimHeap(Var v) {
         elim_heap.update(v); }
 
 
-inline bool SimpSolver::addClause    (const vec<Lit>& ps)    { ps.copyTo(add_tmp); return addClause_(add_tmp); }
-inline bool SimpSolver::addEmptyClause()                     { add_tmp.clear(); return addClause_(add_tmp); }
-inline bool SimpSolver::addClause    (Lit p)                 { add_tmp.clear(); add_tmp.push(p); return addClause_(add_tmp); }
-inline bool SimpSolver::addClause    (Lit p, Lit q)          { add_tmp.clear(); add_tmp.push(p); add_tmp.push(q); return addClause_(add_tmp); }
-inline bool SimpSolver::addClause    (Lit p, Lit q, Lit r)   { add_tmp.clear(); add_tmp.push(p); add_tmp.push(q); add_tmp.push(r); return addClause_(add_tmp); }
+inline bool SimpSolver::addClause    (const vec<Lit>& ps, ClauseId& id)    { ps.copyTo(add_tmp); return addClause_(add_tmp, id); }
+inline bool SimpSolver::addEmptyClause()                     { add_tmp.clear(); ClauseId id; return addClause_(add_tmp, id); }
+inline bool SimpSolver::addClause    (Lit p, ClauseId& id)                 { add_tmp.clear(); add_tmp.push(p); return addClause_(add_tmp, id); }
+inline bool SimpSolver::addClause    (Lit p, Lit q, ClauseId& id)          { add_tmp.clear(); add_tmp.push(p); add_tmp.push(q); return addClause_(add_tmp, id); }
+inline bool SimpSolver::addClause    (Lit p, Lit q, Lit r, ClauseId& id)   { add_tmp.clear(); add_tmp.push(p); add_tmp.push(q); add_tmp.push(r); return addClause_(add_tmp, id); }
 inline void SimpSolver::setFrozen    (Var v, bool b) { frozen[v] = (char)b; if (use_simplification && !b) { updateElimHeap(v); } }
 
 inline lbool SimpSolver::solve        (                     bool do_simp, bool turn_off_simp)  {

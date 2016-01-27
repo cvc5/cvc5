@@ -71,7 +71,7 @@ public:
 
   void safePoint(uint64_t ammount)  throw(Interrupted, AssertionException) {}
 
-  void conflict(TNode n)
+  void conflict(TNode n, Proof* pf = NULL)
     throw(AssertionException, UnsafeInterruptException) {
     push(CONFLICT, n);
   }
@@ -87,7 +87,10 @@ public:
     push(PROPAGATE_AS_DECISION, n);
   }
 
-  LemmaStatus lemma(TNode n, bool removable, bool preprocess, bool sendAtoms) throw(AssertionException, UnsafeInterruptException) {
+  LemmaStatus lemma(TNode n, ProofRule rule,
+                    bool removable = false,
+                    bool preprocess = false,
+                    bool sendAtoms = false) throw(AssertionException, UnsafeInterruptException) {
     push(LEMMA, n);
     return LemmaStatus(Node::null(), 0);
   }

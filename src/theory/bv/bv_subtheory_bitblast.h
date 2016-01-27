@@ -73,8 +73,9 @@ public:
   void bitblastQueue();
   void setAbstraction(AbstractionModule* module); 
   uint64_t computeAtomWeight(TNode atom); 
+  void setProofLog( BitVectorProof * bvp );
 };
 
-}
-}
-}
+} /* namespace CVC4::theory::bv */
+} /* namespace CVC4::theory */
+} /* namespace CVC4 */

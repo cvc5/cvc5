@@ -40,11 +40,10 @@ public:
   //(Commented because not in use) static bool            tobool(SatValue val);
 
   static void  toMinisatClause(SatClause& clause, Minisat::vec<Minisat::Lit>& minisat_clause);
-  static void  toSatClause    (Minisat::vec<Minisat::Lit>& clause, SatClause& sat_clause);
   static void  toSatClause    (const Minisat::Clause& clause, SatClause& sat_clause);
   void initialize(context::Context* context, TheoryProxy* theoryProxy);
 
-  void addClause(SatClause& clause, bool removable, uint64_t proof_id);
+  ClauseId addClause(SatClause& clause, bool removable);
 
   SatVariable newVar(bool isTheoryAtom, bool preRegister, bool canErase);
   SatVariable trueVar() { return d_minisat->trueVar(); }
@@ -53,6 +52,8 @@ public:
   SatValue solve();
   SatValue solve(long unsigned int&);
 
+  bool ok() const;
+  
   void interrupt();
 
   SatValue value(SatLiteral l);

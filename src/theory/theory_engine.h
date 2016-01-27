@@ -269,8 +269,9 @@ class TheoryEngine {
       }
     }
 
-    void conflict(TNode conflictNode) throw(AssertionException, UnsafeInterruptException) {
+    void conflict(TNode conflictNode, Proof* pf = NULL) throw(AssertionException, UnsafeInterruptException) {
       Trace("theory::conflict") << "EngineOutputChannel<" << d_theory << ">::conflict(" << conflictNode << ")" << std::endl;
+      Assert(pf == NULL); // theory shouldn't be producing proofs yet
       ++ d_statistics.conflicts;
       d_engine->d_outputChannelUsed = true;
       d_engine->conflict(conflictNode, d_theory);
@@ -283,18 +284,23 @@ class TheoryEngine {
       return d_engine->propagate(literal, d_theory);
     }
 
-    theory::LemmaStatus lemma(TNode lemma, bool removable = false, bool preprocess = false, bool sendAtoms = false) throw(TypeCheckingExceptionPrivate, AssertionException, UnsafeInterruptException, LogicException) {
+    theory::LemmaStatus lemma(TNode lemma,
+                              ProofRule rule,
+                              bool removable = false,
+                              bool preprocess = false,
+                              bool sendAtoms = false)
+      throw(TypeCheckingExceptionPrivate, AssertionException, UnsafeInterruptException) {
       Trace("theory::lemma") << "EngineOutputChannel<" << d_theory << ">::lemma(" << lemma << ")" << std::endl;
       ++ d_statistics.lemmas;
       d_engine->d_outputChannelUsed = true;
-      return d_engine->lemma(lemma, false, removable, preprocess, sendAtoms ? d_theory : theory::THEORY_LAST);
+      return d_engine->lemma(lemma, rule, false, removable, preprocess, sendAtoms ? d_theory: theory::THEORY_LAST);
     }
 
     theory::LemmaStatus splitLemma(TNode lemma, bool removable = false) throw(TypeCheckingExceptionPrivate, AssertionException, UnsafeInterruptException) {
       Trace("theory::lemma") << "EngineOutputChannel<" << d_theory << ">::lemma(" << lemma << ")" << std::endl;
       ++ d_statistics.lemmas;
       d_engine->d_outputChannelUsed = true;
-      return d_engine->lemma(lemma, false, removable, false, d_theory);
+      return d_engine->lemma(lemma, RULE_SPLIT, false, removable, false, d_theory);
     }
 
     void demandRestart() throw(TypeCheckingExceptionPrivate, AssertionException, UnsafeInterruptException) {
@@ -304,7 +310,7 @@ class TheoryEngine {
                                         "A boolean variable asserted to be true to force a restart");
       Trace("theory::restart") << "EngineOutputChannel<" << d_theory << ">::restart(" << restartVar << ")" << std::endl;
       ++ d_statistics.restartDemands;
-      lemma(restartVar, true);
+      lemma(restartVar, RULE_INVALID, true);
     }
 
     void requirePhase(TNode n, bool phase)
@@ -436,7 +442,12 @@ class TheoryEngine {
    * @param removable can the lemma be remove (restrictions apply)
    * @param needAtoms if not THEORY_LAST, then
    */
-  theory::LemmaStatus lemma(TNode node, bool negated, bool removable, bool preprocess, theory::TheoryId atomsTo);
+  theory::LemmaStatus lemma(TNode node,
+                            ProofRule rule,
+                            bool negated,
+                            bool removable,
+                            bool preprocess,
+                            theory::TheoryId atomsTo);
 
   /** Enusre that the given atoms are send to the given theory */
   void ensureLemmaAtoms(const std::vector<TNode>& atoms, theory::TheoryId theory);

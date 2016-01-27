@@ -24,6 +24,8 @@
 #include "theory/bv/bv_subtheory_bitblast.h"
 #include "theory/bv/theory_bv.h"
 #include "theory/bv/theory_bv_utils.h"
+#include "proof/proof_manager.h"
+#include "proof/bitvector_proof.h"
 
 using namespace std;
 using namespace CVC4::context;
@@ -44,7 +46,8 @@ BitblastSolver::BitblastSolver(context::Context* c, TheoryBV* bv)
     d_abstractionModule(NULL),
     d_quickCheck(options::bitvectorQuickXplain() ? new BVQuickCheck("bb", bv) : NULL),
     d_quickXplain(options::bitvectorQuickXplain() ? new QuickXPlain("bb", d_quickCheck) :  NULL)
-{}
+{
+}
 
 BitblastSolver::~BitblastSolver() {
   delete d_quickXplain;
@@ -232,40 +235,6 @@ Node BitblastSolver::getModelValue(TNode node)
   return val;
 }
 
-// Node BitblastSolver::getModelValueRec(TNode node)
-// {
-//   Node val;
-//   if (node.isConst()) {
-//     return node;
-//   }
-//   NodeMap::iterator it = d_modelCache.find(node);
-//   if (it != d_modelCache.end()) {
-//     val = (*it).second;
-//     Debug("bitvector-model") << node << " => (cached) " << val <<"\n";
-//     return val;
-//   }
-//   if (d_bv->isLeaf(node)) {
-//     val = d_bitblaster->getVarValue(node);
-//     if (val == Node()) {
-//       // If no value in model, just set to 0
-//       val = utils::mkConst(utils::getSize(node), (unsigned)0);
-//     }
-//   } else {
-//     NodeBuilder<> valBuilder(node.getKind());
-//     if (node.getMetaKind() == kind::metakind::PARAMETERIZED) {
-//       valBuilder << node.getOperator();
-//     }
-//     for (unsigned i = 0; i < node.getNumChildren(); ++i) {
-//       valBuilder << getModelValueRec(node[i]);
-//     }
-//     val = valBuilder;
-//     val = Rewriter::rewrite(val);
-//   }
-//   Assert(val.isConst());
-//   d_modelCache[node] = val;
-//   Debug("bitvector-model") << node << " => " << val <<"\n";
-//   return val;
-// }
 
 
 void BitblastSolver::setConflict(TNode conflict) {
@@ -279,6 +248,12 @@ void BitblastSolver::setConflict(TNode conflict) {
   d_bv->setConflict(final_conflict);
 }
 
+void BitblastSolver::setProofLog( BitVectorProof * bvp ) {
+  d_bitblaster->setProofLog( bvp );
+  bvp->setBitblaster(d_bitblaster);
+}
+
 }/* namespace CVC4::theory::bv */
 }/* namespace CVC4::theory */
 }/* namespace CVC4 */
+

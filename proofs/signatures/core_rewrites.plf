@@ -1,0 +1,123 @@
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;;;;;;;;;;;; Rewrite rules
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+;; t rewrites to t'
+(declare rw_term
+	 (! s sort
+	 (! t (term s)
+	 (! t' (term s)
+	 type))))
+
+(declare rw_formula
+	 (! f formula
+	 (! f' formula
+	 type)))
+
+ 
+(declare apply_rw_formula
+	 (! f formula
+	 (! f' formula
+	 (! rw (rw_formula f f')
+	 (! fh (th_holds f)
+	 (th_holds f'))))))
+	 
+     
+;; Identity rewrite rules	 
+(declare rw_term_id
+	 (! s sort
+	 (! t (term s)
+	 (rw_term s t t))))
+
+(declare rw_term_trans
+	 (! s sort
+	 (! t1 (term s)
+	 (! t2 (term s)
+	 (! t3 (term s)
+	 (! rw12 (rw_term _ t1 t2)
+	 (! rw23 (rw_term _ t2 t3)
+	 (rw_term s t1 t3))))))))
+	 
+;; rw_symmetry
+	 
+(declare rw_formula_trans
+	 (! f1 formula
+ 	 (! f2 formula
+	 (! f3 formula
+	 (! rw1 (rw_formula f1 f2)
+	 (! rw2 (rw_formula f2 f3)
+	 (rw_formula f1 f3)))))))
+
+	 
+(declare rw_op1_id
+	 (! s sort
+	 (! a (term s)
+	 (! a' (term s)
+	 (! rw (rw_term _ a a')
+	 (! op term_op1
+	    (rw_term _ (op _ a) (op _ a'))))))))
+
+(declare rw_op2_id
+	 (! s sort
+	 (! a (term s)
+	 (! a' (term s)
+	 (! b (term s)
+	 (! b' (term s)
+	 (! rw (rw_term _ a a')
+	 (! rw (rw_term _ b b')
+	 (! op term_op2
+	    (rw_term _ (op _ a b) (op _ a' b')))))))))))
+
+(declare rw_pred1_id
+	 (! s sort
+	 (! a (term s)
+	 (! a' (term s)
+	 (! rw (rw_term _ a a')
+	 (! op op_pred1
+	    (rw_formula (op _ a) (op _ a'))))))))
+	    
+(declare rw_pred2_id
+	 (! s sort
+	 (! a (term s)
+	 (! a' (term s)
+	 (! b (term s)
+	 (! b' (term s)
+	 (! rw (rw_term _ a a')
+	 (! rw (rw_term _ b b')
+	 (! op op_pred2
+	    (rw_formula (op _ a b) (op _ a' b')))))))))))
+
+(declare rw_eq_id
+	 (! s sort
+	 (! a (term s)
+	 (! a' (term s)
+	 (! b (term s)
+	 (! b' (term s)
+	 (! rw (rw_term _ a a')
+	 (! rw (rw_term _ b b')
+	    (rw_formula (= s a b) (= s a' b'))))))))))
+
+(declare rw_formula_op1_id
+	 (! f formula
+	 (! f' formula
+	 (! frw (rw_formula f f')
+	 (! op formula_op1
+	    (rw_formula (op f) (op f')))))))
+
+(declare rw_formula_op2_id
+	 (! f1 formula
+	 (! f1' formula
+	 (! f2 formula
+	 (! f2' formula
+	 (! frw1 (rw_formula f1 f1')
+ 	 (! frw2 (rw_formula f2 f2')	
+	 (! op formula_op2
+	    (rw_formula (op f1 f2) (op f1' f2'))))))))))
+
+
+(apply_rw_formula
+	(! f formula
+	(! f' formula
+	(! r (rw_formula f f')
+	(! h (th_holds f)
+	   (th_holds f'))))))

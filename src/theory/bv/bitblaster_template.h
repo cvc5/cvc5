@@ -85,6 +85,8 @@ protected:
   TermDefMap d_termCache;
   ModelCache d_modelCache;
 
+  BitVectorProof * d_bvp;
+
   void initAtomBBStrategies();
   void initTermBBStrategies();
 protected:
@@ -105,7 +107,7 @@ public:
 
   bool hasBBTerm(TNode node) const;
   void getBBTerm(TNode node, Bits& bits) const;
-  void storeBBTerm(TNode term, const Bits& bits);
+  virtual void storeBBTerm(TNode term, const Bits& bits);
   /**
    * Return a constant representing the value of a in the  model.
    * If fullModel is true set unconstrained bits to 0. If not return
@@ -171,7 +173,9 @@ public:
   void bbAtom(TNode node);
   Node getBBAtom(TNode atom) const;
   void storeBBAtom(TNode atom, Node atom_bb);
-  bool hasBBAtom(TNode atom) const;
+  void storeBBTerm(TNode node, const Bits& bits);
+  bool hasBBAtom(TNode atom) const; 
+
   TLazyBitblaster(context::Context* c, bv::TheoryBV* bv, const std::string name="", bool emptyNotify = false);
   ~TLazyBitblaster() throw();
   /**
@@ -201,6 +205,7 @@ public:
    * constants to equivalence classes that don't already have them
    */
   void collectModelInfo(TheoryModel* m, bool fullModel);
+  void setProofLog( BitVectorProof * bvp );
 
   typedef TNodeSet::const_iterator vars_iterator;
   vars_iterator beginVars() { return d_variables.begin(); }
@@ -277,9 +282,12 @@ public:
   bool hasBBAtom(TNode atom) const;
   void bbFormula(TNode formula);
   void storeBBAtom(TNode atom, Node atom_bb);
+  void storeBBTerm(TNode node, const Bits& bits);
+
   bool assertToSat(TNode node, bool propagate = true);
   bool solve();
   void collectModelInfo(TheoryModel* m, bool fullModel);
+  void setProofLog( BitVectorProof * bvp );
 };
 
 class BitblastingRegistrar: public prop::Registrar {
@@ -406,6 +414,7 @@ template <class T>
 TBitblaster<T>::TBitblaster()
   : d_termCache()
   , d_modelCache()
+  , d_bvp( NULL )
 {
   initAtomBBStrategies();
   initTermBBStrategies(); 

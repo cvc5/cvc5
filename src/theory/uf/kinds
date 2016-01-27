@@ -21,6 +21,9 @@ typerule CARDINALITY_CONSTRAINT ::CVC4::theory::uf::CardinalityConstraintTypeRul
 operator COMBINED_CARDINALITY_CONSTRAINT 1 "combined cardinality constraint; parameter is a positive integer constant k that bounds the sum of the cardinalities of all sorts in the signature"
 typerule COMBINED_CARDINALITY_CONSTRAINT ::CVC4::theory::uf::CombinedCardinalityConstraintTypeRule
 
+parameterized PARTIAL_APPLY_UF APPLY_UF 1: "partial uninterpreted function application"
+typerule PARTIAL_APPLY_UF ::CVC4::theory::uf::PartialTypeRule
+
 operator CARDINALITY_VALUE 1 "cardinality value of sort S: first parameter is (any) term of sort S"
 typerule CARDINALITY_VALUE ::CVC4::theory::uf::CardinalityValueTypeRule
 

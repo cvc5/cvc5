@@ -78,13 +78,20 @@ libcvc4_la_SOURCES = \
 	printer/tptp/tptp_printer.cpp \
 	proof/proof.h \
 	proof/sat_proof.h \
-	proof/sat_proof.cpp \
+	proof/sat_proof_implementation.h \
 	proof/cnf_proof.h \
 	proof/cnf_proof.cpp \
 	proof/theory_proof.h \
 	proof/theory_proof.cpp \
+	proof/uf_proof.h \
+	proof/uf_proof.cpp \
+	proof/array_proof.h \
+	proof/bitvector_proof.h \
+	proof/bitvector_proof.cpp \
 	proof/proof_manager.h \
 	proof/proof_manager.cpp \
+	proof/proof_utils.h \
+	proof/proof_utils.cpp \
 	proof/unsat_core.cpp \
 	proof/unsat_core.h \
 	prop/registrar.h \

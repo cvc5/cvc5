@@ -879,8 +879,8 @@ public:
   MergeReasonType d_id;
   Node d_node;
   std::vector< EqProof * > d_children;
-  void debug_print( const char * c, unsigned tb = 0 );
-};
+  void debug_print( const char * c, unsigned tb = 0 ) const;
+};/* class EqProof */
 
 } // Namespace eq
 } // Namespace theory

@@ -30,6 +30,8 @@
 #include "theory/bv/theory_bv_rewriter.h"
 #include "theory/bv/theory_bv_utils.h"
 #include "theory/theory_model.h"
+#include "proof/theory_proof.h"
+#include "proof/proof_manager.h"
 #include "theory/valuation.h"
 
 using namespace CVC4::context;
@@ -362,7 +364,6 @@ void TheoryBV::checkForLemma(TNode fact) {
     }
   }
 }
-
 
 void TheoryBV::check(Effort e)
 {
@@ -706,6 +707,7 @@ Node TheoryBV::explain(TNode node) {
   // return the explanation
   Node explanation = utils::mkAnd(assumptions);
   Debug("bitvector::explain") << "TheoryBV::explain(" << node << ") => " << explanation << std::endl;
+  Debug("bitvector::explain") << "TheoryBV::explain done. \n"; 
   return explanation;
 }
 
@@ -794,6 +796,16 @@ bool TheoryBV::applyAbstraction(const std::vector<Node>& assertions, std::vector
     d_eagerSolver->initialize();
   }
   return changed;
+}
+
+void TheoryBV::setProofLog( BitVectorProof * bvp ) {
+  if( options::bitblastMode() == theory::bv::BITBLAST_MODE_EAGER ){
+    d_eagerSolver->setProofLog( bvp );
+  }else{
+    for( unsigned i=0; i< d_subtheories.size(); i++ ){
+      d_subtheories[i]->setProofLog( bvp );
+    }
+  }
 }
 
 void TheoryBV::setConflict(Node conflict) {

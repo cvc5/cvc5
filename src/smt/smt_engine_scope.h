@@ -23,6 +23,8 @@
 #include "base/output.h"
 #include "base/tls.h"
 #include "expr/node_manager.h"
+#include "proof/proof.h"
+#include "proof/proof_manager.h"
 #include "options/smt_options.h"
 #include "smt/smt_engine.h"
 #include "util/configuration_private.h"
@@ -44,6 +46,7 @@ inline bool smtEngineInScope() {
   return s_smtEngine_current != NULL;
 }
 
+// FIXME: Maybe move into SmtScope?
 inline ProofManager* currentProofManager() {
 #if IS_PROOFS_BUILD
   Assert(options::proof() || options::unsatCores());

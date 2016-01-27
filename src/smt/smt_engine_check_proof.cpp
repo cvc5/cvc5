@@ -64,11 +64,12 @@ void SmtEngine::checkProof() {
   Chat() << "checking proof..." << endl;
 
   if( !(d_logic.isPure(theory::THEORY_BOOL) ||
+        d_logic.isPure(theory::THEORY_BV) ||
 	(d_logic.isPure(theory::THEORY_UF) &&
 	 ! d_logic.hasCardinalityConstraints())) ||
       d_logic.isQuantified()) {
     // no checking for these yet
-    Notice() << "Notice: no proof-checking for non-UF/Bool proofs yet" << endl;
+    Notice() << "Notice: no proof-checking for non-UF/Bool/BV proofs yet" << endl;
     return;
   }
 
@@ -91,7 +92,7 @@ void SmtEngine::checkProof() {
   a.use_nested_app = false;
   a.compile_lib = false;
   init();
-  check_file(pfFile, args());
+  check_file(pfFile, a);
   close(fd);
 
 #else /* IS_PROOFS_BUILD */

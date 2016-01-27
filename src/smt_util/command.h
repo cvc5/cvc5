@@ -584,6 +584,7 @@ public:
 class CVC4_PUBLIC GetProofCommand : public Command {
 protected:
   Proof* d_result;
+  SmtEngine* d_smtEngine;
 public:
   GetProofCommand() throw();
   ~GetProofCommand() throw() {}

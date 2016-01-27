@@ -788,6 +788,13 @@ SmtEngine::SmtEngine(ExprManager* em) throw() :
   d_stats = new SmtEngineStatistics();
   d_stats->d_resourceUnitsUsed.setData(
       d_private->getResourceManager()->getResourceUsage());
+
+  // The ProofManager is constructed before any other proof objects such as
+  // SatProof and TheoryProofs. The TheoryProofEngine and the SatProof are
+  // initialized in TheoryEngine and PropEngine respectively. 
+  Assert(d_proofManager == NULL);
+  PROOF( d_proofManager = new ProofManager(); ); 
+  
   // We have mutual dependency here, so we add the prop engine to the theory
   // engine later (it is non-essential there)
   d_theoryEngine = new TheoryEngine(d_context, d_userContext,
@@ -798,6 +805,8 @@ SmtEngine::SmtEngine(ExprManager* em) throw() :
   // Add the theories
   for(TheoryId id = theory::THEORY_FIRST; id < theory::THEORY_LAST; ++id) {
     TheoryConstructor::addTheory(d_theoryEngine, id);
+    //register with proof engine if applicable
+    THEORY_PROOF(ProofManager::currentPM()->getTheoryProofEngine()->registerTheory(d_theoryEngine->theoryOf(id)); );
   }
 
   // global push/pop around everything, to ensure proper destruction
@@ -816,9 +825,6 @@ SmtEngine::SmtEngine(ExprManager* em) throw() :
 void SmtEngine::finishInit() {
   // ensure that our heuristics are properly set up
   setDefaults();
-
-  Assert(d_proofManager == NULL);
-  PROOF( d_proofManager = new ProofManager(); );
 
   d_decisionEngine = new DecisionEngine(d_context, d_userContext);
   d_decisionEngine->init();   // enable appropriate strategies
@@ -857,7 +863,7 @@ void SmtEngine::finishInit() {
   }
   d_dumpCommands.clear();
 
-  PROOF( ProofManager::currentPM()->setLogic(d_logic.getLogicString()); );
+  PROOF( ProofManager::currentPM()->setLogic(d_logic); );
 }
 
 void SmtEngine::finalOptionsAreSet() {
@@ -3515,6 +3521,14 @@ void SmtEnginePrivate::processAssertions() {
   Trace("smt-proc") << "SmtEnginePrivate::processAssertions() : post-definition-expansion" << endl;
   dumpAssertions("post-definition-expansion", d_assertions);
 
+  // save the assertions now
+  THEORY_PROOF
+    (
+     for (unsigned i = 0; i < d_assertions.size(); ++i) {
+       ProofManager::currentPM()->addAssertion(d_assertions[i].toExpr());
+     }
+     );
+  
   Debug("smt") << " d_assertions     : " << d_assertions.size() << endl;
 
   if( options::ceGuidedInst() ){
@@ -3936,7 +3950,8 @@ void SmtEnginePrivate::addFormula(TNode n, bool inUnsatCore, bool inInput)
   PROOF(
     if( inInput ){
       // n is an input assertion
-      ProofManager::currentPM()->addAssertion(n.toExpr(), inUnsatCore);
+      if (inUnsatCore || options::dumpUnsatCores() || options::checkUnsatCores())
+        ProofManager::currentPM()->addCoreAssertion(n.toExpr());
     }else{
       // n is the result of an unknown preprocessing step, add it to dependency map to null
       ProofManager::currentPM()->addDependence(n, Node::null());
@@ -4724,7 +4739,7 @@ UnsatCore SmtEngine::getUnsatCore() throw(ModalException, UnsafeInterruptExcepti
     throw ModalException("Cannot get an unsat core unless immediately preceded by UNSAT/VALID response.");
   }
 
-  d_proofManager->getProof(this);// just to trigger core creation
+  d_proofManager->traceUnsatCore();// just to trigger core creation
   return UnsatCore(this, d_proofManager->begin_unsat_core(), d_proofManager->end_unsat_core());
 #else /* IS_PROOFS_BUILD */
   throw ModalException("This build of CVC4 doesn't have proof support (required for unsat cores).");

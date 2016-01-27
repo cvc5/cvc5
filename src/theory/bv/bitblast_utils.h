@@ -221,7 +221,7 @@ inline void shiftAddMultiplier(const std::vector<T>&a, const std::vector<T>&b, s
   T carry_in = mkFalse<T>();
   T carry_out;
     for(unsigned j = 0; j < res.size() -k; ++j) {
-      T aj = mkAnd(a[j], b[k]);
+      T aj = mkAnd(b[k], a[j]);
       carry_out = mkOr(mkAnd(res[j+k], aj),
                        mkAnd( mkXor(res[j+k], aj), carry_in));
       res[j+k] = mkXor(mkXor(res[j+k], aj), carry_in);

@@ -26,13 +26,21 @@ OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWA
 #include "prop/bvminisat/mtl/Heap.h"
 #include "prop/bvminisat/mtl/Alg.h"
 #include "prop/bvminisat/utils/Options.h"
-
 #include "context/cdhashmap.h"
+#include "proof/sat_proof.h"
 
 #include <ext/hash_set>
 #include <vector>
 
 namespace CVC4 {
+
+typedef unsigned ClauseId;
+namespace BVMinisat {
+class Solver;
+}
+
+class BitVectorProof;
+
 namespace BVMinisat {
 
 /** Interface for minisat callbacks */
@@ -60,7 +68,17 @@ public:
 //=================================================================================================
 // Solver -- the main class:
 class Solver {
+    friend class CVC4::TSatProof< CVC4::BVMinisat::Solver>;
+public:
+    typedef Var TVar;
+    typedef Lit TLit;
+    typedef Clause TClause; 
+    typedef CRef TCRef;
+    typedef vec<Lit> TLitVec;
 
+    static CRef TCRef_Undef;
+    static CRef TCRef_Lazy;
+private:
     /** To notify */
     Notify* notify;
 
@@ -89,12 +107,12 @@ public:
     Var     falseVar() const { return varFalse; }
 
 
-    bool    addClause (const vec<Lit>& ps);                     // Add a clause to the solver. 
+    bool    addClause (const vec<Lit>& ps, ClauseId& id);                     // Add a clause to the solver. 
     bool    addEmptyClause();                                   // Add the empty clause, making the solver contradictory.
-    bool    addClause (Lit p);                                  // Add a unit clause to the solver. 
-    bool    addClause (Lit p, Lit q);                           // Add a binary clause to the solver. 
-    bool    addClause (Lit p, Lit q, Lit r);                    // Add a ternary clause to the solver. 
-    bool    addClause_(      vec<Lit>& ps);                     // Add a clause to the solver without making superflous internal copy. Will
+    bool    addClause (Lit p, ClauseId& id);                                  // Add a unit clause to the solver. 
+    bool    addClause (Lit p, Lit q, ClauseId& id);                           // Add a binary clause to the solver. 
+    bool    addClause (Lit p, Lit q, Lit r, ClauseId& id);                    // Add a ternary clause to the solver. 
+    bool    addClause_(      vec<Lit>& ps, ClauseId& id);                     // Add a clause to the solver without making superflous internal copy. Will
                                                                 // change the passed vector 'ps'.
 
     // Solving:
@@ -188,16 +206,14 @@ public:
     // Bitvector Propagations
     //
 
-    void addMarkerLiteral(Var var) {
-      // make sure it wasn't already marked 
-      Assert(marker[var] == 0); 
-      marker[var] = 1;
-    }
+    void addMarkerLiteral(Var var);
 
     bool need_to_propagate;             // true if we added new clauses, set to true in propagation 
     bool only_bcp;                      // solving mode in which only boolean constraint propagation is done
     void setOnlyBCP (bool val) { only_bcp = val;}
     void explain(Lit l, std::vector<Lit>& explanation);
+    
+    void setProofLog( CVC4::BitVectorProof * bvp );
 
 protected:
 
@@ -274,6 +290,9 @@ protected:
     int64_t             conflict_budget;    // -1 means no budget.
     int64_t             propagation_budget; // -1 means no budget.
     bool                asynch_interrupt;
+    
+    //proof log
+    CVC4::BitVectorProof * d_bvp;
 
     // Main internal methods:
     //
@@ -340,6 +359,35 @@ protected:
     // Returns a random integer 0 <= x < size. Seed must never be 0.
     static inline int irand(double& seed, int size) {
         return (int)(drand(seed) * size); }
+
+  // Less than for literals in an added clause when proofs are on.
+  struct assign_lt {
+    Solver& solver;
+    assign_lt(Solver& solver) : solver(solver) {}
+    bool operator () (Lit x, Lit y) {
+      lbool x_value = solver.value(x);
+      lbool y_value = solver.value(y);
+      // Two unassigned literals are sorted arbitrarily
+      if (x_value == l_Undef && y_value == l_Undef) {
+        return x < y;
+      }
+      // Unassigned literals are put to front
+      if (x_value == l_Undef) return true;
+      if (y_value == l_Undef) return false;
+      // Literals of the same value are sorted by decreasing levels
+      if (x_value == y_value) {
+        return solver.level(var(x)) > solver.level(var(y));
+      } else {
+        // True literals go up front
+        if (x_value == l_True) {
+          return true;
+        } else {
+          return false;
+        }
+      }
+    }
+  };
+
 };
 
 
@@ -380,11 +428,11 @@ inline void Solver::checkGarbage(double gf){
 
 // NOTE: enqueue does not set the ok flag! (only public methods do)
 inline bool     Solver::enqueue         (Lit p, CRef from)      { return value(p) != l_Undef ? value(p) != l_False : (uncheckedEnqueue(p, from), true); }
-inline bool     Solver::addClause       (const vec<Lit>& ps)    { ps.copyTo(add_tmp); return addClause_(add_tmp); }
-inline bool     Solver::addEmptyClause  ()                      { add_tmp.clear(); return addClause_(add_tmp); }
-inline bool     Solver::addClause       (Lit p)                 { add_tmp.clear(); add_tmp.push(p); return addClause_(add_tmp); }
-inline bool     Solver::addClause       (Lit p, Lit q)          { add_tmp.clear(); add_tmp.push(p); add_tmp.push(q); return addClause_(add_tmp); }
-inline bool     Solver::addClause       (Lit p, Lit q, Lit r)   { add_tmp.clear(); add_tmp.push(p); add_tmp.push(q); add_tmp.push(r); return addClause_(add_tmp); }
+inline bool     Solver::addClause       (const vec<Lit>& ps, ClauseId& id)    { ps.copyTo(add_tmp); return addClause_(add_tmp, id); }
+inline bool     Solver::addEmptyClause  ()                      { add_tmp.clear(); ClauseId tmp; return addClause_(add_tmp, tmp); }
+inline bool     Solver::addClause       (Lit p, ClauseId& id)                 { add_tmp.clear(); add_tmp.push(p); return addClause_(add_tmp, id); }
+inline bool     Solver::addClause       (Lit p, Lit q, ClauseId& id)          { add_tmp.clear(); add_tmp.push(p); add_tmp.push(q); return addClause_(add_tmp, id); }
+inline bool     Solver::addClause       (Lit p, Lit q, Lit r, ClauseId& id)   { add_tmp.clear(); add_tmp.push(p); add_tmp.push(q); add_tmp.push(r); return addClause_(add_tmp, id); }
 inline bool     Solver::locked          (const Clause& c) const { return value(c[0]) == l_True && reason(var(c[0])) != CRef_Undef && ca.lea(reason(var(c[0]))) == &c; }
 inline void     Solver::newDecisionLevel()                      { trail_lim.push(trail.size()); }
 

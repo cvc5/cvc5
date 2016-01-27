@@ -43,7 +43,9 @@ private:
     }
     void notify(BVMinisat::vec<BVMinisat::Lit>& clause) {
       SatClause satClause;
-      toSatClause(clause, satClause);
+      for (int i = 0; i < clause.size(); ++i) {
+        satClause.push_back(toSatLiteral(clause[i])); 
+      }
       d_notify->notify(satClause);
     }
 
@@ -73,7 +75,7 @@ public:
 
   void setNotify(Notify* notify);
 
-  void addClause(SatClause& clause, bool removable, uint64_t proof_id);
+  ClauseId addClause(SatClause& clause, bool removable);
 
   SatValue propagate();
 
@@ -88,6 +90,7 @@ public:
 
   SatValue solve();
   SatValue solve(long unsigned int&);
+  bool ok() const; 
   void getUnsatCore(SatClause& unsatCore);
 
   SatValue value(SatLiteral l);
@@ -106,7 +109,7 @@ public:
   static SatValue toSatLiteralValue(BVMinisat::lbool res);
 
   static void  toMinisatClause(SatClause& clause, BVMinisat::vec<BVMinisat::Lit>& minisat_clause);
-  static void  toSatClause    (BVMinisat::vec<BVMinisat::Lit>& clause, SatClause& sat_clause);
+  static void  toSatClause    (const BVMinisat::Clause& clause, SatClause& sat_clause);
   void addMarkerLiteral(SatLiteral lit);
 
   void explain(SatLiteral lit, std::vector<SatLiteral>& explanation);
@@ -114,6 +117,8 @@ public:
   SatValue assertAssumption(SatLiteral lit, bool propagate);
 
   void popAssumption();
+  
+  void setProofLog( BitVectorProof * bvp );
 
 private:
   /* Disable the default constructor. */

@@ -379,8 +379,8 @@ Node RewriteRule<XorZero>::apply(TNode node) {
       children.push_back(node[i]); 
     }
   }
-
-  return utils::mkNode(kind::BITVECTOR_XOR, children); 
+  Node res = utils::mkNode(kind::BITVECTOR_XOR, children); 
+  return res;
 }
 
 
@@ -488,7 +488,7 @@ bool RewriteRule<NotIdemp>::applies(TNode node) {
 
 template<> inline
 Node RewriteRule<NotIdemp>::apply(TNode node) {
-  Debug("bv-rewrite") << "RewriteRule<XorIdemp>(" << node << ")" << std::endl;
+  Debug("bv-rewrite") << "RewriteRule<NotIdemp>(" << node << ")" << std::endl;
   return node[0][0];
 }
 

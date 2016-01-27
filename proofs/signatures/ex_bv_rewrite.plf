@@ -1,0 +1,41 @@
+(check
+(% x var_bv
+(% y var_bv
+(% a var_bv
+(% A0 (th_holds true)
+(% A1 (th_holds
+      (= (BitVec 1) (a_var_bv 1 x)
+      	 	    (bvnot 1  (bvxnor 1 (bvxor 1 (a_var_bv 1 a) (a_bv 1 (bvc b1 bvn)))
+					(bvxor 1 (a_var_bv 1 a) (a_bv 1 (bvc b0 bvn))) ))))
+(: (th_holds
+      (= (BitVec 1) (a_var_bv 1 x)
+      	 	    (bvxor 1 (bvnot 1 (a_var_bv 1 a)) (a_var_bv 1 a))))
+
+;; print rewritten assertions
+
+(@ ones (a_bv 1 (bvc b1 bvn))
+(@ zero (a_bv 1 (bvc b0 bvn))
+(@ xorone (bvxor 1 (a_var_bv 1 a) ones)
+(@ xorzero (bvxor 1 (a_var_bv 1 a) zero)
+(@ t1 (bvxor 1 xorone xorzero)
+(@ t2 (bvxnor 1 xorone xorzero)
+(@ t3 (bvnot 1 t2)
+(@ t4 (bvnot 1 t1)
+(@ t5 (bvxor 1 (bvnot 1 (a_var_bv 1 a)) (a_var_bv 1 a))
+;; adding identity rewrite proofs
+(@ xor_onerw (rw_term_id 1 xorone)
+(@ xor_zerorw (rw_term_id 1 xorzero)
+(@ rw1 (xnor_elim 1 _ _ _ _ xor_onerw xor_zerorw) ;; bvxnor t1 t2 -> bvnot (bvxor t1 t2)
+(@ rw2 (xor_zero 1 _ _ _ _ (rw_term_id 1 (a_var_bv 1 a)) (rw_term_id 1 zero))
+(@ rw3 (xor_one 1  _ _ _ _ (rw_term_id 1 (a_var_bv 1 a)) (rw_term_id 1 ones))
+(@ rw4 (rw_bvop2_id 1 _ _ _ _ rw3 rw2 bvxor) ;; bvxor t1 t2 -> bvxor t1' t2'
+(@ rw5 (rw_bvop1_id 1 _ _ rw4 bvnot) ;; bvnot (bvxor t1 t2) -> bvnot (bvxor t1' t2')
+(@ rw6 (rw_term_trans 1  _ _ _ rw1 rw5) ;; bvxnor t1 t2 -> bvnot (bvxor t1' t2')
+(@ rw7 (rw_bvop1_id 1 _ _ rw6 bvnot) ;; (bvnot (bvxnor t1 t2)) ->(bvnot (bvnot (bvxor t1' t2')))
+(@ rw8 (not_idemp 1 _ _ (rw_term_id 1 t5)) ;; (bvnot (bvnot (bvxor t1' t2'))) -> bvxor t1' t2'
+(@ rw9 (rw_term_trans 1 _ _ _ rw7 rw8) ;; (bvnot (bvxnor t1 t2)) -> (bvxor t1' t2')
+(@ rw10 (rw_term_id 1 (a_var_bv 1 x))
+(@ rw11 (rw_eq_id 1 _ _ _ _ rw10 rw9) ;;  x = t1 => x = t'
+(apply_rw_formula _ _ rw11 A1)
+
+)))))))))))))))))))))))))))))

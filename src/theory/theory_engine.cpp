@@ -27,7 +27,7 @@
 #include "options/options.h"
 #include "options/quantifiers_options.h"
 #include "proof/proof_manager.h"
-#include "proof/proof_manager.h"
+#include "proof/theory_proof.h"
 #include "smt/logic_exception.h"
 #include "smt_util/ite_removal.h"
 #include "smt_util/lemma_output_channel.h"
@@ -54,8 +54,6 @@ using namespace CVC4::theory;
 namespace CVC4 {
 
 void TheoryEngine::finishInit() {
-  PROOF (ProofManager::initTheoryProof(); );
-
   // initialize the quantifiers engine
   d_quantEngine = new QuantifiersEngine(d_context, d_userContext, this);
 
@@ -156,6 +154,8 @@ TheoryEngine::TheoryEngine(context::Context* context,
   smtStatisticsRegistry()->registerStat(&d_combineTheoriesTime);
   d_true = NodeManager::currentNM()->mkConst<bool>(true);
   d_false = NodeManager::currentNM()->mkConst<bool>(false);
+
+  PROOF (ProofManager::currentPM()->initTheoryProofEngine(d_globals); );
 
   d_iteUtilities = new ITEUtilities(d_iteRemover.getContainsVisitor());
 
@@ -377,7 +377,7 @@ void TheoryEngine::check(Theory::Effort effort) {
           printAssertions("theory::assertions::fulleffort");
         }
       }
-        
+
       // Note that we've discharged all the facts
       d_factsAsserted = false;
 
@@ -414,7 +414,7 @@ void TheoryEngine::check(Theory::Effort effort) {
         // must build model at this point
         d_curr_model_builder->buildModel(d_curr_model, true);
       }
-	  Trace("theory::assertions-model") << endl;
+    Trace("theory::assertions-model") << endl;
       if (Trace.isOn("theory::assertions-model")) {
         printAssertions("theory::assertions-model");
       }
@@ -486,7 +486,7 @@ void TheoryEngine::combineTheories() {
 
     // We need to split on it
     Debug("combineTheories") << "TheoryEngine::combineTheories(): requesting a split " << endl;
-    lemma(equality.orNode(equality.notNode()), false, false, false, carePair.theory);
+    lemma(equality.orNode(equality.notNode()), RULE_INVALID, false, false, false, carePair.theory);
     // This code is supposed to force preference to follow what the theory models already have
     // but it doesn't seem to make a big difference - need to explore more -Clark
     // if (true) {
@@ -1371,7 +1371,12 @@ void TheoryEngine::ensureLemmaAtoms(const std::vector<TNode>& atoms, theory::The
   }
 }
 
-theory::LemmaStatus TheoryEngine::lemma(TNode node, bool negated, bool removable, bool preprocess, theory::TheoryId atomsTo) {
+theory::LemmaStatus TheoryEngine::lemma(TNode node,
+                                        ProofRule rule,
+                                        bool negated,
+                                        bool removable,
+                                        bool preprocess,
+                                        theory::TheoryId atomsTo) {
   // For resource-limiting (also does a time check).
   // spendResource();
 
@@ -1420,10 +1425,10 @@ theory::LemmaStatus TheoryEngine::lemma(TNode node, bool negated, bool removable
   }
 
   // assert to prop engine
-  d_propEngine->assertLemma(additionalLemmas[0], negated, removable, RULE_INVALID, node);
+  d_propEngine->assertLemma(additionalLemmas[0], negated, removable, rule, node);
   for (unsigned i = 1; i < additionalLemmas.size(); ++ i) {
     additionalLemmas[i] = theory::Rewriter::rewrite(additionalLemmas[i]);
-    d_propEngine->assertLemma(additionalLemmas[i], false, removable, RULE_INVALID, node);
+    d_propEngine->assertLemma(additionalLemmas[i], false, removable, rule, node);
   }
 
   // WARNING: Below this point don't assume additionalLemmas[0] to be not negated.
@@ -1467,11 +1472,11 @@ void TheoryEngine::conflict(TNode conflict, TheoryId theoryId) {
     Node fullConflict = mkExplanation(explanationVector);
     Debug("theory::conflict") << "TheoryEngine::conflict(" << conflict << ", " << theoryId << "): full = " << fullConflict << endl;
     Assert(properConflict(fullConflict));
-    lemma(fullConflict, true, true, false, THEORY_LAST);
+    lemma(fullConflict, RULE_CONFLICT, true, true, false, THEORY_LAST);
   } else {
     // When only one theory, the conflict should need no processing
     Assert(properConflict(conflict));
-    lemma(conflict, true, true, false, THEORY_LAST);
+    lemma(conflict, RULE_CONFLICT, true, true, false, THEORY_LAST);
   }
 }
 
@@ -1483,27 +1488,27 @@ void TheoryEngine::staticInitializeBVOptions(const std::vector<Node>& assertions
     if (options::produceModels())
       throw ModalException("Slicer does not currently support model generation. Use --bv-eq-slicer=off");
     useSlicer = true;
-    
+
   } else if (options::bitvectorEqualitySlicer() == bv::BITVECTOR_SLICER_OFF) {
     return;
-    
+
   } else if (options::bitvectorEqualitySlicer() == bv::BITVECTOR_SLICER_AUTO) {
     if (options::incrementalSolving() ||
         options::produceModels())
       return;
 
-    useSlicer = true; 
+    useSlicer = true;
     bv::utils::TNodeBoolMap cache;
     for (unsigned i = 0; i < assertions.size(); ++i) {
-      useSlicer = useSlicer && bv::utils::isCoreTerm(assertions[i], cache); 
+      useSlicer = useSlicer && bv::utils::isCoreTerm(assertions[i], cache);
     }
   }
-  
+
   if (useSlicer) {
-    bv::TheoryBV* bv_theory = (bv::TheoryBV*)d_theoryTable[THEORY_BV]; 
+    bv::TheoryBV* bv_theory = (bv::TheoryBV*)d_theoryTable[THEORY_BV];
     bv_theory->enableCoreTheorySlicer();
   }
-  
+
 }
 
 void TheoryEngine::ppBvToBool(const std::vector<Node>& assertions, std::vector<Node>& new_assertions) {
@@ -1511,12 +1516,12 @@ void TheoryEngine::ppBvToBool(const std::vector<Node>& assertions, std::vector<N
 }
 
 bool  TheoryEngine::ppBvAbstraction(const std::vector<Node>& assertions, std::vector<Node>& new_assertions) {
-  bv::TheoryBV* bv_theory = (bv::TheoryBV*)d_theoryTable[THEORY_BV]; 
-  return bv_theory->applyAbstraction(assertions, new_assertions); 
+  bv::TheoryBV* bv_theory = (bv::TheoryBV*)d_theoryTable[THEORY_BV];
+  return bv_theory->applyAbstraction(assertions, new_assertions);
 }
 
 void TheoryEngine::mkAckermanizationAsssertions(std::vector<Node>& assertions) {
-  bv::TheoryBV* bv_theory = (bv::TheoryBV*)d_theoryTable[THEORY_BV]; 
+  bv::TheoryBV* bv_theory = (bv::TheoryBV*)d_theoryTable[THEORY_BV];
   bv_theory->mkAckermanizationAsssertions(assertions);
 }
 

@@ -335,7 +335,8 @@ if $check_models || $check_proofs || $check_unsat_cores; then
     check_cmdline="$check_cmdline --check-models"
   fi
   if $check_proofs; then
-    check_cmdline="$check_cmdline --check-proofs"
+    # taking: Make the extra flags part of --check-proofs.
+    check_cmdline="$check_cmdline --check-proofs --no-bv-eq --no-bv-ineq --no-bv-algebraic"
   fi
   if $check_unsat_cores; then
     check_cmdline="$check_cmdline --check-unsat-cores"

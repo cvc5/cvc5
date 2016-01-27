@@ -253,17 +253,17 @@ void DefaultAndBB (TNode node, std::vector<T>& bits, TBitblaster<T>* bb) {
   
   Assert(node.getKind() == kind::BITVECTOR_AND &&
          bits.size() == 0);
-  
-  for(unsigned j = 0; j < utils::getSize(node); ++j) {
-    std::vector<T> and_j; 
-    for (unsigned i = 0; i < node.getNumChildren(); ++i) {
-      std::vector<T> current;
-      bb->bbTerm(node[i], current);
-      and_j.push_back(current[j]); 
-      Assert(utils::getSize(node) == current.size());
+
+  bb->bbTerm(node[0], bits);
+  std::vector<T> current;
+  for(unsigned j = 1; j < node.getNumChildren(); ++j) {
+    bb->bbTerm(node[j], current);
+    for (unsigned i = 0; i < utils::getSize(node); ++i) {
+      bits[i] = mkAnd(bits[i], current[i]);
     }
-    bits.push_back(mkAnd(and_j)); 
+    current.clear();
   }
+  Assert (bits.size() == utils::getSize(node));
 }
 
 template <class T>
@@ -272,17 +272,17 @@ void DefaultOrBB (TNode node, std::vector<T>& bits, TBitblaster<T>* bb) {
 
   Assert(node.getKind() == kind::BITVECTOR_OR &&
          bits.size() == 0);
-  
-  for(unsigned j = 0; j < utils::getSize(node); ++j) {
-    std::vector<T> or_j;
-    for (unsigned i = 0; i < node.getNumChildren(); ++i) {
-      std::vector<T> current;
-      bb->bbTerm(node[i], current);
-      or_j.push_back(current[j]); 
-      Assert(utils::getSize(node) == current.size());
+
+  bb->bbTerm(node[0], bits);
+  std::vector<T> current;
+  for(unsigned j = 1; j < node.getNumChildren(); ++j) {
+    bb->bbTerm(node[j], current);
+    for (unsigned i = 0; i < utils::getSize(node); ++i) {
+      bits[i] = mkOr(bits[i], current[i]);
     }
-    bits.push_back(mkOr(or_j)); 
+    current.clear();
   }
+  Assert (bits.size() == utils::getSize(node));
 }
 
 template <class T>
@@ -291,20 +291,17 @@ void DefaultXorBB (TNode node, std::vector<T>& bits, TBitblaster<T>* bb) {
 
   Assert(node.getKind() == kind::BITVECTOR_XOR &&
          bits.size() == 0);
-  
-  for(unsigned j = 0; j < utils::getSize(node); ++j) {
-    std::vector<T> first;
-    bb->bbTerm(node[0], first); 
-    T bitj = first[j];
-    
-    for (unsigned i = 1; i < node.getNumChildren(); ++i) {
-      std::vector<T> current;
-      bb->bbTerm(node[i], current);
-      bitj = mkXor(bitj, current[j]);
-      Assert(utils::getSize(node) == current.size());
+
+  bb->bbTerm(node[0], bits);
+  std::vector<T> current;
+  for(unsigned j = 1; j < node.getNumChildren(); ++j) {
+    bb->bbTerm(node[j], current);
+    for (unsigned i = 0; i < utils::getSize(node); ++i) {
+      bits[i] = mkXor(bits[i], current[i]);
     }
-    bits.push_back(bitj); 
+    current.clear();
   }
+  Assert (bits.size() == utils::getSize(node));
 }
 
 template <class T>

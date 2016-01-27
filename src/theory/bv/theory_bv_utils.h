@@ -51,11 +51,11 @@ inline unsigned getSize(TNode node) {
   return node.getType().getBitVectorSize();
 }
 
-// this seems to behave strangely
-inline const Integer& getBit(TNode node, unsigned i) {
-  Assert (0); 
-  Assert (node.getKind() == kind::CONST_BITVECTOR);
-  return node.getConst<BitVector>().extract(i, i).getValue();
+inline const bool getBit(TNode node, unsigned i) {
+  Assert (i < utils::getSize(node) && 
+          node.getKind() == kind::CONST_BITVECTOR);
+  Integer bit = node.getConst<BitVector>().extract(i, i).getValue();
+  return (bit == 1u); 
 }
 
 inline Node mkTrue() {

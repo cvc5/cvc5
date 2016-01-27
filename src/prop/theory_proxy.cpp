@@ -22,12 +22,14 @@
 #include "options/decision_options.h"
 #include "prop/cnf_stream.h"
 #include "prop/prop_engine.h"
+#include "proof/cnf_proof.h"
 #include "smt_util/lemma_input_channel.h"
 #include "smt_util/lemma_output_channel.h"
 #include "smt/smt_statistics_registry.h"
 #include "theory/rewriter.h"
 #include "theory/theory_engine.h"
 #include "util/statistics_registry.h"
+
 
 namespace CVC4 {
 namespace prop {
@@ -100,6 +102,7 @@ void TheoryProxy::explainPropagation(SatLiteral l, SatClause& explanation) {
   TNode lNode = d_cnfStream->getNode(l);
   Debug("prop-explain") << "explainPropagation(" << lNode << ")" << std::endl;
   Node theoryExplanation = d_theoryEngine->getExplanation(lNode);
+  PROOF(ProofManager::getCnfProof()->pushCurrentAssertion(theoryExplanation); );
   Debug("prop-explain") << "explainPropagation() => " <<  theoryExplanation << std::endl;
   if (theoryExplanation.getKind() == kind::AND) {
     Node::const_iterator it = theoryExplanation.begin();

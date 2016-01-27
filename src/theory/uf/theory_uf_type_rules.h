@@ -107,6 +107,14 @@ public:
   }
 };/* class CardinalityConstraintTypeRule */
 
+class PartialTypeRule {
+public:
+  inline static TypeNode computeType(NodeManager* nodeManager, TNode n, bool check)
+      throw (TypeCheckingExceptionPrivate, AssertionException) {
+    return n.getOperator().getType().getRangeType();
+  }
+};/* class PartialTypeRule */
+
 class CardinalityValueTypeRule {
 public:
   inline static TypeNode computeType(NodeManager* nodeManager, TNode n, bool check)

@@ -149,6 +149,11 @@ private:
    */
   TheoryId d_id;
 
+  /** Name of this theory instance. Along with the TheoryId this should provide
+   * an unique string identifier for each instance of a Theory class. We need
+   * this to ensure unique statistics names over multiple theory instances. */
+  std::string d_instanceName;
+  
   /**
    * The SAT search context for the Theory.
    */
@@ -204,12 +209,6 @@ protected:
   /** time spent in theory combination */
   TimerStat d_computeCareGraphTime;
 
-  static std::string statName(TheoryId id, const char* statName) {
-    std::stringstream ss;
-    ss << "theory<" << id << ">::" << statName;
-    return ss.str();
-  }
-
   /**
    * The only method to add suff to the care graph.
    */
@@ -247,7 +246,7 @@ protected:
    */
   Theory(TheoryId id, context::Context* satContext, context::UserContext* userContext,
          OutputChannel& out, Valuation valuation, const LogicInfo& logicInfo,
-         SmtGlobals* globals) throw();
+         SmtGlobals* globals, std::string name = "") throw(); // taking : No default.
 
   /**
    * This is called at shutdown time by the TheoryEngine, just before
@@ -272,6 +271,12 @@ protected:
   Valuation d_valuation;
 
   /**
+   * Whether proofs are enabled
+   *
+   */
+  bool d_proofsEnabled;
+  
+  /**
    * Returns the next assertion in the assertFact() queue.
    *
    * @return the next assertion in the assertFact() queue
@@ -289,12 +294,6 @@ protected:
 
   void printFacts(std::ostream& os) const;
   void debugPrintFacts() const;
-
-  /**
-   * Whether proofs are enabled
-   *
-   */
-  bool d_proofEnabled;
 
   SmtGlobals* d_globals;
 
@@ -416,6 +415,13 @@ public:
     return d_id;
   }
 
+  std::string getFullInstanceName() const {
+    std::stringstream ss;
+    ss << "theory<" << d_id << ">" << d_instanceName;
+    return ss.str();
+  }
+
+  
   /**
    * Get the SAT context associated to this Theory.
    */
@@ -855,7 +861,11 @@ public:
    */
   virtual std::pair<bool, Node> entailmentCheck(TNode lit, const EntailmentCheckParameters* params = NULL, EntailmentCheckSideEffects* out = NULL);
 
-
+  /**
+   * Turn on proof-production mode.
+   */
+  void produceProofs() { d_proofsEnabled = true; }
+  
   /** Returns a pointer to the globals copy the theory is using. */
   SmtGlobals* globals() { return d_globals; }
 

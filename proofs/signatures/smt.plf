@@ -11,13 +11,29 @@
 ; standard logic definitions
 (declare true formula)
 (declare false formula)
-(declare not (! f formula formula))
-(declare and (! f1 formula (! f2 formula formula)))
-(declare or (! f1 formula (! f2 formula formula)))
-(declare impl (! f1 formula (! f2 formula formula)))
-(declare iff (! f1 formula (! f2 formula formula)))
-(declare xor (! f1 formula (! f2 formula formula)))
-(declare ifte (! b formula (! f1 formula (! f2 formula formula))))
+
+(define formula_op1
+	(! f formula
+	formula))
+
+(define formula_op2
+	(! f1 formula
+	(! f2 formula
+	   formula)))
+	
+(define formula_op3
+	(! f1 formula
+	(! f2 formula
+	(! f3 formula
+	   formula))))
+	   
+(declare not formula_op1)
+(declare and formula_op2)
+(declare or formula_op2)
+(declare impl formula_op2)
+(declare iff formula_op2)
+(declare xor formula_op2)
+(declare ifte formula_op3)
 
 ; terms
 (declare sort type)
@@ -46,6 +62,19 @@
 (declare Bool sort)				; the special sort for predicates
 (declare p_app (! x (term Bool) formula))	; propositional application of term
 
+; boolean terms
+(declare t_true (term Bool))
+(declare t_false (term Bool))
+(declare t_t_neq_f
+ (th_holds (not (= Bool t_true t_false))))
+(declare pred_eq_t
+ (! x (term Bool)
+ (! u (th_holds (p_app x))
+   (th_holds (= Bool x t_true)))))
+(declare pred_eq_f
+ (! x (term Bool)
+ (! u (th_holds (not (p_app x)))
+   (th_holds (= Bool x t_false)))))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;
@@ -54,7 +83,11 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 ; binding between an LF var and an (atomic) formula
+
 (declare atom (! v var (! p formula type)))
+
+; binding between two LF vars
+(declare bvatom (! sat_v var (! bv_v var type)))
 
 (declare decl_atom
   (! f formula
@@ -63,6 +96,19 @@
          (holds cln)))
     (holds cln))))
 
+;; declare atom enhanced with mapping
+;; between SAT prop variable and BVSAT prop variable
+(declare decl_bvatom
+  (! f formula
+  (! u (! v var
+       (! bv_v var
+       (! a (atom v f)
+       (! bva (atom bv_v f)
+       (! vbv (bvatom v bv_v)
+         (holds cln))))))
+    (holds cln))))
+    
+    
 ; clausify a formula directly
 (declare clausify_form
   (! f formula
@@ -88,12 +134,17 @@
   (! u2 (! v (th_holds f) (holds cln))
     (holds cln)))))
 
-
+  
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;
 ; Natural deduction rules : used for CNF
 ;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+;; for eager bit-blasting
+(declare iff_symm
+	(! f formula
+	   (th_holds (iff f f))))
 
 
 ;; contradiction
@@ -291,8 +342,33 @@
   (! u (! o (th_holds (not f))
          (holds C))
     (holds (clc (pos v) C))))))))
-    
 
+;; Bitvector lemma constructors to assume
+;; the unit clause containing the assumptions
+;; it also requires the mapping between bv_v and v
+;; The resolution proof proving false will use bv_v as the definition clauses use bv_v
+;; but the Problem clauses in the main SAT solver will use v so the learned clause is in terms of v
+(declare bv_asf
+  (! v var
+  (! bv_v var
+  (! f formula
+  (! C clause
+  (! r (atom v f) ;; passed in
+  (! x (bvatom v bv_v) ; establishes the equivalence of v to bv_
+  (! u (! o (holds (clc (neg bv_v) cln)) ;; l binding to be used in proof
+         (holds C))
+    (holds (clc (pos v) C))))))))))
+    
+(declare bv_ast
+  (! v var
+  (! bv_v var	
+  (! f formula
+  (! C clause
+  (! r (atom v f)       ; this is specified
+  (! x (bvatom v bv_v) ; establishes the equivalence of v to bv_v
+  (! u (! o (holds (clc (pos bv_v) cln))
+         (holds C))
+    (holds (clc (neg v) C))))))))))
 
 
 ;; Example:

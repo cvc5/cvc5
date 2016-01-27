@@ -25,7 +25,9 @@
 #include "theory/bv/theory_bv.h"
 #include "theory/rewriter.h"
 #include "theory/theory_model.h"
-#include "theory_bv_utils.h"
+#include "proof/bitvector_proof.h"
+#include "proof/proof_manager.h"
+#include "theory/bv/theory_bv_utils.h"
 
 namespace CVC4 {
 namespace theory {
@@ -51,8 +53,12 @@ TLazyBitblaster::TLazyBitblaster(context::Context* c, bv::TheoryBV* bv,
       c, smtStatisticsRegistry(), name);
   d_nullRegistrar = new prop::NullRegistrar();
   d_nullContext = new context::Context();
-  d_cnfStream = new prop::TseitinCnfStream(d_satSolver, d_nullRegistrar,
-                                           d_nullContext, d_bv->globals());
+  d_cnfStream = new prop::TseitinCnfStream(d_satSolver,
+                                           d_nullRegistrar,
+                                           d_nullContext,
+                                           d_bv->globals(),
+                                           options::proof(),
+                                           "LazyBitblaster");
 
   d_satSolverNotify = d_emptyNotify ?
     (prop::BVSatSolverInterface::Notify*) new MinisatEmptyNotify() :
@@ -127,8 +133,12 @@ void TLazyBitblaster::bbAtom(TNode node) {
   // the bitblasted definition of the atom
   Node normalized = Rewriter::rewrite(node);
   Node atom_bb = normalized.getKind() != kind::CONST_BOOLEAN ?
-    Rewriter::rewrite(d_atomBBStrategies[normalized.getKind()](normalized, this)) :
-    normalized;
+                 d_atomBBStrategies[normalized.getKind()](normalized, this) : normalized;
+
+  if (!options::proof()) {
+    atom_bb = Rewriter::rewrite(atom_bb);
+  }
+      
   // asserting that the atom is true iff the definition holds
   Node atom_definition = utils::mkNode(kind::IFF, node, atom_bb);
   storeBBAtom(node, atom_bb);
@@ -136,9 +146,18 @@ void TLazyBitblaster::bbAtom(TNode node) {
 }
 
 void TLazyBitblaster::storeBBAtom(TNode atom, Node atom_bb) {
-  // no need to store the definition for the lazy bit-blaster
+  // No need to store the definition for the lazy bit-blaster (unless proofs are enabled).
+  if( d_bvp != NULL ){
+    d_bvp->registerAtomBB(atom.toExpr(), atom_bb.toExpr());
+  }
   d_bbAtoms.insert(atom); 
 }
+
+void TLazyBitblaster::storeBBTerm(TNode node, const Bits& bits) {
+  if( d_bvp ){ d_bvp->registerTermBB(node.toExpr()); }
+  d_termCache.insert(std::make_pair(node, bits));
+}
+
 
 bool TLazyBitblaster::hasBBAtom(TNode atom) const {
   return d_bbAtoms.find(atom) != d_bbAtoms.end(); 
@@ -481,6 +500,12 @@ void TLazyBitblaster::collectModelInfo(TheoryModel* m, bool fullModel) {
         m->assertEquality(var, const_value, true);
     }
   }
+}
+
+void TLazyBitblaster::setProofLog( BitVectorProof * bvp ){
+  d_bvp = bvp;
+  d_satSolver->setProofLog( bvp );
+  bvp->initCnfProof(d_cnfStream, d_nullContext);
 }
 
 void TLazyBitblaster::clearSolver() {

@@ -31,7 +31,9 @@ namespace prop {
 class SatSolverFactory {
 public:
 
-  static BVSatSolverInterface* createMinisat(context::Context* mainSatContext, StatisticsRegistry* registry, const std::string& name = "");
+  static BVSatSolverInterface* createMinisat(context::Context* mainSatContext,
+                                             StatisticsRegistry* registry,
+                                             const std::string& name = "");
   static DPLLSatSolverInterface* createDPLLMinisat(StatisticsRegistry* registry);
 
 };/* class SatSolverFactory */

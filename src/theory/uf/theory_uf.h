@@ -128,9 +128,15 @@ private:
 
   /**
    * Explain why this literal is true by adding assumptions
+   * with proof (if "pf" is non-NULL).
    */
-  void explain(TNode literal, std::vector<TNode>& assumptions);
+  void explain(TNode literal, std::vector<TNode>& assumptions, eq::EqProof* pf);
 
+  /**
+   * Explain a literal, with proof (if "pf" is non-NULL).
+   */
+  Node explain(TNode literal, eq::EqProof* pf);
+  
   /** Literals to propagate */
   context::CDList<Node> d_literalsToPropagate;
 
@@ -163,7 +169,7 @@ public:
   /** Constructs a new instance of TheoryUF w.r.t. the provided context.*/
   TheoryUF(context::Context* c, context::UserContext* u, OutputChannel& out,
            Valuation valuation, const LogicInfo& logicInfo,
-           SmtGlobals* globals);
+           SmtGlobals* globals, std::string name = "");
 
   ~TheoryUF();
 

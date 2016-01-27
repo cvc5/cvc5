@@ -23,6 +23,7 @@
 #include "options/prop_options.h"
 #include "options/smt_options.h"
 #include "prop/minisat/simp/SimpSolver.h"
+#include "proof/sat_proof.h"
 #include "util/statistics_registry.h"
 
 namespace CVC4 {
@@ -94,14 +95,6 @@ void MinisatSatSolver::toMinisatClause(SatClause& clause,
   Assert(clause.size() == (unsigned)minisat_clause.size());
 }
 
-void MinisatSatSolver::toSatClause(Minisat::vec<Minisat::Lit>& clause,
-                                       SatClause& sat_clause) {
-  for (int i = 0; i < clause.size(); ++i) {
-    sat_clause.push_back(toSatLiteral(clause[i]));
-  }
-  Assert((unsigned)clause.size() == sat_clause.size());
-}
-
 void MinisatSatSolver::toSatClause(const Minisat::Clause& clause,
                                        SatClause& sat_clause) {
   for (int i = 0; i < clause.size(); ++i) {
@@ -149,10 +142,18 @@ void MinisatSatSolver::setupOptions() {
   d_minisat->restart_inc = options::satRestartInc();
 }
 
-void MinisatSatSolver::addClause(SatClause& clause, bool removable, uint64_t proof_id) {
+ClauseId MinisatSatSolver::addClause(SatClause& clause, bool removable) {
   Minisat::vec<Minisat::Lit> minisat_clause;
   toMinisatClause(clause, minisat_clause);
-  d_minisat->addClause(minisat_clause, removable, proof_id);
+  ClauseId clause_id = ClauseIdError;
+  // FIXME: This relies on the invariant that when ok() is false
+  // the SAT solver does not add the clause (which is what Minisat currently does)
+  if (!ok()) {
+    return ClauseIdUndef; 
+  }
+  d_minisat->addClause(minisat_clause, removable, clause_id);
+  PROOF( Assert (clause_id != ClauseIdError););
+  return clause_id;
 }
 
 SatVariable MinisatSatSolver::newVar(bool isTheoryAtom, bool preRegister, bool canErase) {
@@ -182,6 +183,9 @@ SatValue MinisatSatSolver::solve() {
   return toSatLiteralValue(d_minisat->solve());
 }
 
+bool MinisatSatSolver::ok() const {
+  return d_minisat->okay(); 
+}
 
 void MinisatSatSolver::interrupt() {
   d_minisat->interrupt();
@@ -280,3 +284,20 @@ void MinisatSatSolver::Statistics::init(Minisat::SimpSolver* d_minisat){
 
 } /* namespace CVC4::prop */
 } /* namespace CVC4 */
+
+
+namespace CVC4 {
+template<>
+prop::SatLiteral toSatLiteral< CVC4::Minisat::Solver>(Minisat::Solver::TLit lit) {
+  return prop::MinisatSatSolver::toSatLiteral(lit);
+} 
+
+template<>
+void toSatClause< CVC4::Minisat::Solver> (const CVC4::Minisat::Solver::TClause& minisat_cl,
+                                      prop::SatClause& sat_cl) {
+  prop::MinisatSatSolver::toSatClause(minisat_cl, sat_cl);
+}
+
+} /* namespace CVC4 */
+
+

@@ -325,7 +325,8 @@ Node RewriteRule<XnorEliminate>::apply(TNode node) {
   TNode a = node[0];
   TNode b = node[1]; 
   Node xorNode = utils::mkNode(kind::BITVECTOR_XOR, a, b);
-  return utils::mkNode(kind::BITVECTOR_NOT, xorNode); 
+  Node result = utils::mkNode(kind::BITVECTOR_NOT, xorNode);
+  return result;
 }
 
 

@@ -31,6 +31,10 @@ OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWA
 #include "options/bv_options.h"
 #include "options/smt_options.h"
 #include "theory/interrupted.h"
+#include "proof/proof_manager.h"
+#include "proof/bitvector_proof.h"
+#include "proof/sat_proof.h"
+#include "proof/sat_proof_implementation.h"
 #include "util/utility.h"
 
 namespace CVC4 {
@@ -60,19 +64,6 @@ std::ostream& operator << (std::ostream& out, const BVMinisat::Clause& c) {
 
 static const char* _cat = "CORE";
 
-// static DoubleOption  opt_var_decay         (_cat, "var-decay",   "The variable activity decay factor",            0.95,     DoubleRange(0, false, 1, false));
-// static DoubleOption  opt_clause_decay      (_cat, "cla-decay",   "The clause activity decay factor",              0.999,    DoubleRange(0, false, 1, false));
-// static DoubleOption  opt_random_var_freq   (_cat, "rnd-freq",    "The frequency with which the decision heuristic tries to choose a random variable", 0.0, DoubleRange(0, true, 1, true));
-// static DoubleOption  opt_random_seed       (_cat, "rnd-seed",    "Used by the random variable selection",         91648253, DoubleRange(0, false, HUGE_VAL, false));
-// static IntOption     opt_ccmin_mode        (_cat, "ccmin-mode",  "Controls conflict clause minimization (0=none, 1=basic, 2=deep)", 0, IntRange(0, 2));
-// static IntOption     opt_phase_saving      (_cat, "phase-saving", "Controls the level of phase saving (0=none, 1=limited, 2=full)", 2, IntRange(0, 2));
-// static BoolOption    opt_rnd_init_act      (_cat, "rnd-init",    "Randomize the initial activity", false);
-// static BoolOption    opt_luby_restart      (_cat, "luby",        "Use the Luby restart sequence", true);
-// static IntOption     opt_restart_first     (_cat, "rfirst",      "The base restart interval", 100, IntRange(1, INT32_MAX)); 
-// static DoubleOption  opt_restart_inc       (_cat, "rinc",        "Restart interval increase factor", 1.5, DoubleRange(1, false, HUGE_VAL, false));
-// static DoubleOption  opt_garbage_frac      (_cat, "gc-frac",     "The fraction of wasted memory allowed before a garbage collection is triggered",  0.20, DoubleRange(0, false, HUGE_VAL, false));
-
-
 static DoubleOption  opt_var_decay         (_cat, "var-decay",   "The variable activity decay factor",            0.95,     DoubleRange(0, false, 1, false));
 static DoubleOption  opt_clause_decay      (_cat, "cla-decay",   "The clause activity decay factor",              0.999,    DoubleRange(0, false, 1, false));
 static DoubleOption  opt_random_var_freq   (_cat, "rnd-freq",    "The frequency with which the decision heuristic tries to choose a random variable", 0, DoubleRange(0, true, 1, true));
@@ -84,6 +75,12 @@ static BoolOption    opt_luby_restart      (_cat, "luby",        "Use the Luby r
 static IntOption     opt_restart_first     (_cat, "rfirst",      "The base restart interval", 25, IntRange(1, INT32_MAX));
 static DoubleOption  opt_restart_inc       (_cat, "rinc",        "Restart interval increase factor", 3, DoubleRange(1, false, HUGE_VAL, false));
 static DoubleOption  opt_garbage_frac      (_cat, "gc-frac",     "The fraction of wasted memory allowed before a garbage collection is triggered",  0.20, DoubleRange(0, false, HUGE_VAL, false));
+
+//=================================================================================================
+// Proof declarations
+CRef Solver::TCRef_Undef = CRef_Undef;
+CRef Solver::TCRef_Lazy = CRef_Undef - 1; // no real lazy ref here
+
 
 //=================================================================================================
 // Constructor/Destructor:
@@ -150,6 +147,7 @@ Solver::Solver(CVC4::context::Context* c) :
   , conflict_budget    (-1)
   , propagation_budget (-1)
   , asynch_interrupt   (false)
+  , d_bvp              (NULL)
 {
   // Create the constant variables
   varTrue = newVar(true, false);
@@ -193,37 +191,114 @@ Var Solver::newVar(bool sign, bool dvar)
 }
 
 
-bool Solver::addClause_(vec<Lit>& ps)
+bool Solver::addClause_(vec<Lit>& ps, ClauseId& id)
 {
     if (decisionLevel() > 0) {
       cancelUntil(0);
     }
     
-    if (!ok) return false;
+    if (!ok) {
+      id = ClauseIdUndef;
+      return false;
+    }
 
     // Check if clause is satisfied and remove false/duplicate literals:
+    // TODO proof for duplicate literals removal?
     sort(ps);
     Lit p; int i, j;
-    for (i = j = 0, p = lit_Undef; i < ps.size(); i++)
-        if (value(ps[i]) == l_True || ps[i] == ~p)
-            return true;
-        else if (value(ps[i]) != l_False && ps[i] != p)
-            ps[j++] = p = ps[i];
+    int falseLiteralsCount = 0;
+    
+    for (i = j = 0, p = lit_Undef; i < ps.size(); i++) {
+      // tautologies are ignored
+      if (value(ps[i]) == l_True || ps[i] == ~p) {
+        id = ClauseIdUndef;
+        return true;
+      }
+
+      // Ignore repeated literals
+      if (ps[i] == p) {
+        continue;
+      }
+
+      if (value(ps[i]) == l_False) {
+        if (!THEORY_PROOF_ON())
+          continue;
+        ++falseLiteralsCount;
+      }
+      ps[j++] = p = ps[i];
+    }
+    
     ps.shrink(i - j);
 
     clause_added = true;
 
-    if (ps.size() == 0)
+    Assert(falseLiteralsCount == 0 || THEORY_PROOF_ON());
+    
+    if(falseLiteralsCount == 0) {
+      if (ps.size() == 0) {
+        Assert (!THEORY_PROOF_ON());
         return ok = false;
-    else if (ps.size() == 1){
+      }
+      else if (ps.size() == 1){
+        if(d_bvp){ id = d_bvp->getSatProof()->registerUnitClause(ps[0], INPUT);}
         uncheckedEnqueue(ps[0]);
-        return ok = (propagate() == CRef_Undef);
-    } else {
+        CRef confl_ref = propagate();
+        ok = (confl_ref == CRef_Undef);
+        if(d_bvp){ if (!ok) d_bvp->getSatProof()->finalizeProof(confl_ref); }
+        return ok;
+      } else {
         CRef cr = ca.alloc(ps, false);
         clauses.push(cr);
         attachClause(cr);
+        if(d_bvp){ id = d_bvp->getSatProof()->registerClause(cr, INPUT);}
+      }
+      return ok; 
     }
-    return ok; 
+    
+    if (falseLiteralsCount != 0 && THEORY_PROOF_ON()) {
+      // we are in a conflicting state
+      if (ps.size() == falseLiteralsCount && falseLiteralsCount == 1) {
+        if(d_bvp){ id = d_bvp->getSatProof()->storeUnitConflict(ps[0], INPUT); }
+        if(d_bvp){ d_bvp->getSatProof()->finalizeProof(CVC4::BVMinisat::CRef_Lazy); }
+        return ok = false;
+      }
+
+      assign_lt lt(*this);
+      sort(ps, lt);
+      
+      CRef cr = ca.alloc(ps, false);
+      clauses.push(cr);
+      attachClause(cr);
+      
+      if(d_bvp){id = d_bvp->getSatProof()->registerClause(cr, INPUT);}
+
+      if(ps.size() == falseLiteralsCount) {
+        if(d_bvp){ d_bvp->getSatProof()->finalizeProof(cr); }
+        return ok = false;
+      }
+      
+      // Check if it propagates
+      if (ps.size() == falseLiteralsCount + 1) {
+        Clause& cl = ca[cr];
+        
+        Assert (value(cl[0]) == l_Undef);
+        uncheckedEnqueue(cl[0], cr);
+        Assert (cl.size() > 1);
+        CRef confl = propagate();
+        ok = (confl == CRef_Undef);
+        if(!ok) {
+          if(d_bvp){
+            if(ca[confl].size() == 1) {
+              id = d_bvp->getSatProof()->storeUnitConflict(ca[confl][0], LEARNT);
+              d_bvp->getSatProof()->finalizeProof(CVC4::BVMinisat::CRef_Lazy);
+            } else {
+              d_bvp->getSatProof()->finalizeProof(confl);
+            }
+          }
+        }
+      }
+    }
+    return ok;
 }
 
 void Solver::attachClause(CRef cr) {
@@ -237,6 +312,8 @@ void Solver::attachClause(CRef cr) {
 
 void Solver::detachClause(CRef cr, bool strict) {
     const Clause& c = ca[cr];
+    if(d_bvp){ d_bvp->getSatProof()->markDeleted(cr); }
+    
     assert(c.size() > 1);
     
     if (strict){
@@ -342,6 +419,9 @@ void Solver::analyze(CRef confl, vec<Lit>& out_learnt, int& out_btlevel, UIP uip
     int index   = trail.size() - 1;
 
     bool done = false;
+    
+    if(d_bvp){ d_bvp->getSatProof()->startResChain(confl); }
+
     do{
         assert(confl != CRef_Undef); // (otherwise should be UIP)
         Clause& c = ca[confl];
@@ -352,13 +432,17 @@ void Solver::analyze(CRef confl, vec<Lit>& out_learnt, int& out_btlevel, UIP uip
         for (int j = (p == lit_Undef) ? 0 : 1; j < c.size(); j++){
             Lit q = c[j];
 
-            if (!seen[var(q)] && level(var(q)) > 0){
+            if (!seen[var(q)] && level(var(q)) > 0) {
                 varBumpActivity(var(q));
                 seen[var(q)] = 1;
                 if (level(var(q)) >= decisionLevel())
                     pathC++;
                 else
                     out_learnt.push(q);
+            }
+            
+            if (level(var(q)) == 0) {
+              if(d_bvp){ d_bvp->getSatProof()->resolveOutUnit(q); }
             }
         }
         
@@ -368,6 +452,10 @@ void Solver::analyze(CRef confl, vec<Lit>& out_learnt, int& out_btlevel, UIP uip
         confl = reason(var(p));
         seen[var(p)] = 0;
         pathC--;
+
+        if ( pathC > 0 && confl != CRef_Undef ) {
+          if(d_bvp){ d_bvp->getSatProof()->addResolutionStep(p, confl, sign(p));}
+        }
 
         switch (uip) {
         case UIP_FIRST:
@@ -392,11 +480,22 @@ void Solver::analyze(CRef confl, vec<Lit>& out_learnt, int& out_btlevel, UIP uip
         for (i = 1; i < out_learnt.size(); i++)
             abstract_level |= abstractLevel(var(out_learnt[i])); // (maintain an abstraction of levels involved in conflict)
 
-        for (i = j = 1; i < out_learnt.size(); i++)
-            if (reason(var(out_learnt[i])) == CRef_Undef || !litRedundant(out_learnt[i], abstract_level))
+        for (i = j = 1; i < out_learnt.size(); i++) {
+            if (reason(var(out_learnt[i])) == CRef_Undef) {
                 out_learnt[j++] = out_learnt[i];
+            } else {
+              // Check if the literal is redundant
+              if (!litRedundant(out_learnt[i], abstract_level)) {
+                // Literal is not redundant
+                out_learnt[j++] = out_learnt[i];
+              } else {
+                if(d_bvp){ d_bvp->getSatProof()->storeLitRedundant(out_learnt[i]); }
+              }
+            }
+        }
         
     }else if (ccmin_mode == 1){
+        Unreachable();
         for (i = j = 1; i < out_learnt.size(); i++){
             Var x = var(out_learnt[i]);
 
@@ -452,10 +551,13 @@ bool Solver::litRedundant(Lit p, uint32_t abstract_levels)
     analyze_stack.clear(); analyze_stack.push(p);
     int top = analyze_toclear.size();
     while (analyze_stack.size() > 0){
-        assert(reason(var(analyze_stack.last())) != CRef_Undef);
-        Clause& c = ca[reason(var(analyze_stack.last()))]; analyze_stack.pop();
+        CRef c_reason = reason(var(analyze_stack.last()));
+        assert(c_reason != CRef_Undef);
+        Clause& c = ca[c_reason];
+        int c_size = c.size();
+        analyze_stack.pop();
 
-        for (int i = 1; i < c.size(); i++){
+        for (int i = 1; i < c_size; i++){
             Lit p  = c[i];
             if (!seen[var(p)] && level(var(p)) > 0){
                 if (reason(var(p)) != CRef_Undef && (abstractLevel(var(p)) & abstract_levels) != 0){
@@ -495,21 +597,36 @@ void Solver::analyzeFinal2(Lit p, CRef confl_clause, vec<Lit>& out_conflict) {
     seen[var(cl[i])] = 1;
   }
 
-  for (int i = trail.size() - 1; i >= trail_lim[0]; i--) {
+  int end = options::proof() ? 0 :  trail_lim[0];
+  for (int i = trail.size() - 1; i >= end; i--) {
     Var x = var(trail[i]);
     if (seen[x]) {
       if (reason(x) == CRef_Undef) {
         // we skip p if was a learnt unit
         if (x != var(p)) {
-          assert (marker[x] == 2);
-          assert (level(x) > 0);
-          out_conflict.push(~trail[i]);
+          if (marker[x] == 2) {
+            assert (level(x) > 0);
+            out_conflict.push(~trail[i]);
+          } else {
+            if(d_bvp){d_bvp->getSatProof()->resolveOutUnit(~(trail[i])); }
+          }
+        } else {
+          if(d_bvp){d_bvp->getSatProof()->resolveOutUnit(~p);} 
         }
       } else {
         Clause& c = ca[reason(x)];
-        for (int j = 1; j < c.size(); j++)
+        if(d_bvp){d_bvp->getSatProof()->addResolutionStep(trail[i],reason(x), sign(trail[i]));}
+
+        for (int j = 1; j < c.size(); j++) {
           if (level(var(c[j])) > 0)
             seen[var(c[j])] = 1;
+          if(d_bvp){
+            if (level(var(c[j])) == 0) {
+              d_bvp->getSatProof()->resolveOutUnit(c[j]);
+              seen[var(c[j])] = 0; // we don't need to resolve it out again
+            }
+          }
+        }
       }
       seen[x] = 0;
     }
@@ -534,12 +651,23 @@ void Solver::analyzeFinal(Lit p, vec<Lit>& out_conflict)
       out_conflict.push(p);
     }
 
-    if (decisionLevel() == 0)
-        return;
+    if(d_bvp){
+      if (level(var(p)) == 0 && d_bvp->isAssumptionConflict()) {
+        Assert ( marker[var(p)] == 2);
+        if (reason(var(p)) == CRef_Undef) {
+          d_bvp->startBVConflict(p);
+        }
+      }
+    }
+    
+    if (decisionLevel() == 0 && !options::proof()) {
+      return;
+    }
 
     seen[var(p)] = 1;
-
-    for (int i = trail.size()-1; i >= trail_lim[0]; i--){
+    int end = options::proof() ? 0 : trail_lim[0];
+    
+    for (int i = trail.size()-1; i >= end; i--){
         Var x = var(trail[i]);
         if (seen[x]) {
             if (reason(x) == CRef_Undef) {
@@ -548,9 +676,24 @@ void Solver::analyzeFinal(Lit p, vec<Lit>& out_conflict)
               out_conflict.push(~trail[i]);
             } else {
               Clause& c = ca[reason(x)];
-              for (int j = 1; j < c.size(); j++)
-                if (level(var(c[j])) > 0)
+              if(d_bvp){
+                    if (d_bvp->isAssumptionConflict() &&
+                        trail[i] == p) {
+                      d_bvp->startBVConflict(reason(x));
+                    } else {
+                      d_bvp->getSatProof()->addResolutionStep(trail[i], reason(x), sign(trail[i]));
+                    }
+              }
+              for (int j = 1; j < c.size(); j++) {
+                if (level(var(c[j])) > 0) {
                   seen[var(c[j])] = 1;
+                }
+                if(d_bvp){
+                  if (level(var(c[j])) == 0) {
+                    d_bvp->getSatProof()->resolveOutUnit(c[j]);
+                  }
+                }
+              }
             }
             seen[x] = 0;
         }
@@ -588,9 +731,12 @@ lbool Solver::propagateAssumptions() {
 }
 
 lbool Solver::assertAssumption(Lit p, bool propagate) {
+  // TODO need to somehow mark the assumption as unit in the current context?
+  // it's not always unit though, but this would be useful for debugging
   
   // assert(marker[var(p)] == 1);
 
+ 
   if (decisionLevel() > assumptions.size()) {
     cancelUntil(assumptions.size());
   }
@@ -601,7 +747,8 @@ lbool Solver::assertAssumption(Lit p, bool propagate) {
   if (c->getLevel() > 0) {
     assumptions.push(p);
   } else {
-    if (!addClause(p)) {
+    ClauseId id;
+    if (!addClause(p, id)) {
       conflict.push(~p);
       return l_False;
     }
@@ -617,6 +764,14 @@ lbool Solver::assertAssumption(Lit p, bool propagate) {
     return l_True;
   }
 }
+
+void Solver::addMarkerLiteral(Var var) {
+  // make sure it wasn't already marked 
+  Assert(marker[var] == 0); 
+  marker[var] = 1;
+  if(d_bvp){d_bvp->getSatProof()->registerAssumption(var);}
+}
+
 
 /*_________________________________________________________________________________________________
 |
@@ -730,8 +885,13 @@ void Solver::removeSatisfied(vec<CRef>& cs)
     int i, j;
     for (i = j = 0; i < cs.size(); i++){
         Clause& c = ca[cs[i]];
-        if (satisfied(c))
+        if (satisfied(c)) {
+          if (locked(c)) {
+            // store a resolution of the literal c propagated
+            if(d_bvp){ d_bvp->getSatProof()->storeUnitResolution(c[0]); }
+          }
             removeClause(cs[i]);
+        }
         else
             cs[j++] = cs[i];
     }
@@ -807,7 +967,12 @@ lbool Solver::search(int nof_conflicts, UIP uip)
         if (confl != CRef_Undef){
             // CONFLICT
             conflicts++; conflictC++;
-            if (decisionLevel() == 0) return l_False;
+
+            if (decisionLevel() == 0) {
+              // can this happen for bv?
+              if(d_bvp){ d_bvp->getSatProof()->finalizeProof(confl);}
+              return l_False;
+            }
 
             learnt_clause.clear();
             analyze(confl, learnt_clause, backtrack_level, uip);
@@ -821,15 +986,42 @@ lbool Solver::search(int nof_conflicts, UIP uip)
               learnts.push(cr);
               attachClause(cr);
               claBumpActivity(ca[cr]);
+              if(d_bvp){
+                 ClauseId id = d_bvp->getSatProof()->registerClause(cr, LEARNT);
+                 PSTATS(
+                 __gnu_cxx::hash_set<int> cl_levels;
+                 for (int i = 0; i < learnt_clause.size(); ++i) {
+                   cl_levels.insert(level(var(learnt_clause[i])));
+                 }
+                 if( d_bvp ){ d_bvp->getSatProof()->storeClauseGlue(id, cl_levels.size()); }
+                       )
+                 d_bvp->getSatProof()->endResChain(id);
+              }
             }
-
+            
+            if (learnt_clause.size() == 1) {
+              // learning a unit clause
+              if(d_bvp){ d_bvp->getSatProof()->endResChain(learnt_clause[0]);}
+            }
+            
             //  if the uip was an assumption we are unsat
             if (level(var(p)) <= assumptions.size()) {
               for (int i = 0; i < learnt_clause.size(); ++i) {
                 assert (level(var(learnt_clause[i])) <= decisionLevel()); 
                 seen[var(learnt_clause[i])] = 1;
               }
+
+              // Starting new resolution chain for bit-vector proof
+              if( d_bvp ){
+                if (cr == CRef_Undef) {
+                  d_bvp->startBVConflict(learnt_clause[0]);
+                }
+                else { 
+                  d_bvp->startBVConflict(cr);
+                }
+              }
               analyzeFinal(p, conflict);
+              if(d_bvp){ d_bvp->endBVConflict(conflict); }
               Debug("bvminisat::search") << OUTPUT_TAG << " conflict on assumptions " << std::endl;
               return l_False;
             }
@@ -843,7 +1035,10 @@ lbool Solver::search(int nof_conflicts, UIP uip)
                 CRef new_confl = propagate();
                 if (new_confl != CRef_Undef) {
                   // we have a conflict we now need to explain it
-                  analyzeFinal2(p, new_confl, conflict); 
+                  // TODO: proof for analyzeFinal2
+                  if(d_bvp){ d_bvp->startBVConflict(new_confl); }
+                  analyzeFinal2(p, new_confl, conflict);
+                  if(d_bvp){ d_bvp->endBVConflict(conflict); }
                   return l_False;
                 }
               }
@@ -912,7 +1107,10 @@ lbool Solver::search(int nof_conflicts, UIP uip)
                     newDecisionLevel();
                 }else if (value(p) == l_False){
                     marker[var(p)] = 2;
+                    
+                    if(d_bvp){  d_bvp->markAssumptionConflict(); }
                     analyzeFinal(~p, conflict);
+                    if(d_bvp){ d_bvp->endBVConflict(conflict); }
                     Debug("bvminisat::search") << OUTPUT_TAG << " assumption false, we're unsat" << std::endl;
                     return l_False;
                 }else{
@@ -1044,39 +1242,76 @@ lbool Solver::solve_()
 // 
 
 void Solver::explain(Lit p, std::vector<Lit>& explanation) {
-  vec<Lit> queue;
-  queue.push(p);
-
   Debug("bvminisat::explain") << OUTPUT_TAG << "starting explain of " << p << std::endl;
 
-   __gnu_cxx::hash_set<Var> visited;
-  visited.insert(var(p));
+  // top level fact, no explanation necessary
+  if (level(var(p)) == 0) {
+    if(d_bvp){
+          // the only way a marker variable is 
+       if (reason(var(p)) == CRef_Undef) {
+          d_bvp->startBVConflict(p);
+          vec<Lit> confl;
+          confl.push(p);
+          d_bvp->endBVConflict(confl);
+          return;
+       }
+    }
+    if (!THEORY_PROOF_ON())
+      return;
+  }
   
-  while(queue.size() > 0) {
-    Lit l = queue.last();
+  seen[var(p)] = 1;
 
-    Debug("bvminisat::explain") << OUTPUT_TAG << "processing " << l << std::endl;
-
-    assert(value(l) == l_True);
-    queue.pop();
-    if (reason(var(l)) == CRef_Undef) {
-      if (level(var(l)) == 0) continue;
-      Assert(marker[var(l)] == 2);
-      explanation.push_back(l);
-      visited.insert(var(l));
-    } else {
-      Clause& c = ca[reason(var(l))];
-      for (int i = 1; i < c.size(); ++i) {
-        if (level(var(c[i])) > 0 && visited.count(var(c[i])) == 0) {
-          queue.push(~c[i]);
-          visited.insert(var(c[i]));
+  // if we are called at decisionLevel = 0 trail_lim is empty
+  int bottom = options::proof() ? 0 : trail_lim[0];
+  for (int i = trail.size()-1; i >= bottom; i--){
+    Var x = var(trail[i]);
+    if (seen[x]) {
+      if (reason(x) == CRef_Undef) {
+        if (marker[x] == 2) {
+          assert(level(x) > 0);
+          explanation.push_back(trail[i]);
+        } else {
+          Assert (level(x) == 0);
+          if(d_bvp){ d_bvp->getSatProof()->resolveOutUnit(~(trail[i])); }
+         }
+        
+      } else {
+        Clause& c = ca[reason(x)];
+        if(d_bvp){
+          if (p == trail[i]) {
+            d_bvp->startBVConflict(reason(var(p)));
+          } else {
+            d_bvp->getSatProof()->addResolutionStep(trail[i], reason(x), sign(trail[i]));
+          }
+        }
+        for (int j = 1; j < c.size(); j++) {
+          if (level(var(c[j])) > 0 || options::proof()) {
+            seen[var(c[j])] = 1;
+          }
         }
       }
+      seen[x] = 0;
     }
+  }
+  seen[var(p)] = 0;
+
+  if(d_bvp){
+    vec<Lit> conflict_clause;
+    conflict_clause.push(p);
+    for(unsigned i = 0; i < explanation.size(); ++i) {
+      conflict_clause.push(~explanation[i]);
+    }
+    d_bvp->endBVConflict(conflict_clause);
   }
 }
 
-  
+void Solver::setProofLog( BitVectorProof * bvp ) {
+  d_bvp = bvp;
+  d_bvp->initSatProof(this);
+  d_bvp->getSatProof()->registerTrueLit(mkLit(varTrue, false));
+  d_bvp->getSatProof()->registerFalseLit(mkLit(varFalse, true));
+}
 
 //=================================================================================================
 // Writing CNF to DIMACS:
@@ -1171,7 +1406,7 @@ void Solver::relocAll(ClauseAllocator& to)
             // printf(" >>> RELOCING: %s%d\n", sign(p)?"-":"", var(p)+1);
             vec<Watcher>& ws = watches[p];
             for (int j = 0; j < ws.size(); j++)
-                ca.reloc(ws[j].cref, to);
+              ca.reloc(ws[j].cref, to, d_bvp ?  d_bvp->getSatProof()->getProxy() : NULL);
         }
 
     // All reasons:
@@ -1180,18 +1415,20 @@ void Solver::relocAll(ClauseAllocator& to)
         Var v = var(trail[i]);
 
         if (reason(v) != CRef_Undef && (ca[reason(v)].reloced() || locked(ca[reason(v)])))
-            ca.reloc(vardata[v].reason, to);
+            ca.reloc(vardata[v].reason, to, d_bvp ?  d_bvp->getSatProof()->getProxy() : NULL);
     }
 
     // All learnt:
     //
     for (int i = 0; i < learnts.size(); i++)
-        ca.reloc(learnts[i], to);
+        ca.reloc(learnts[i], to, d_bvp ?  d_bvp->getSatProof()->getProxy() : NULL);
 
     // All original:
     //
     for (int i = 0; i < clauses.size(); i++)
-        ca.reloc(clauses[i], to);
+        ca.reloc(clauses[i], to, d_bvp ?  d_bvp->getSatProof()->getProxy() : NULL);
+	
+    if(d_bvp){ d_bvp->getSatProof()->finishUpdateCRef(); }
 }
 
 
@@ -1206,6 +1443,26 @@ void Solver::garbageCollect()
         printf("|  Garbage collection:   %12d bytes => %12d bytes             |\n", 
                ca.size()*ClauseAllocator::Unit_Size, to.size()*ClauseAllocator::Unit_Size);
     to.moveTo(ca);
+}
+
+void ClauseAllocator::reloc(CRef& cr, ClauseAllocator& to, CVC4::BVProofProxy* proxy)
+{
+  CRef old = cr;  // save the old reference
+
+  Clause& c = operator[](cr);
+  if (c.reloced()) { cr = c.relocation(); return; }
+  
+  cr = to.alloc(c, c.learnt());
+  c.relocate(cr);
+  if (proxy) {
+    proxy->updateCRef(old, cr); 
+  }
+  
+  // Copy extra data-fields: 
+  // (This could be cleaned-up. Generalize Clause-constructor to be applicable here instead?)
+  to[cr].mark(c.mark());
+  if (to[cr].learnt())         to[cr].activity() = c.activity();
+  else if (to[cr].has_extra()) to[cr].calcAbstraction();
 }
 
 } /* CVC4::BVMinisat namespace */

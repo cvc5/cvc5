@@ -14,7 +14,7 @@
 
 ; constructs for general clauses for R, Q, satlem
 
-(declare concat (! c1 clause (! c2 clause clause)))
+(declare concat_cl (! c1 clause (! c2 clause clause)))
 (declare clr (! l lit (! c clause clause)))
 
 ; code to check resolutions
@@ -49,7 +49,7 @@
             (match m
               (tt (do (ifmarked4 v v (markvar4 v)) c'))
               (ff (do (ifmarked4 v (markvar4 v) v) (markvar2 v) (clc l c')))))))))
-    ((concat c1 c2) (append (simplify_clause c1) (simplify_clause c2)))
+    ((concat_cl c1 c2) (append (simplify_clause c1) (simplify_clause c2)))
     ((clr l c1)
       (match l
         ; set mark 1 to indicate we should remove v, and fail if
@@ -81,14 +81,14 @@
            (! u1 (holds c1)
            (! u2 (holds c2)
            (! n var
-            (holds (concat (clr (pos n) c1)
+            (holds (concat_cl (clr (pos n) c1)
                      (clr (neg n) c2)))))))))
 
 (declare Q (! c1 clause (! c2 clause
            (! u1 (holds c1)
            (! u2 (holds c2)
            (! n var
-            (holds (concat (clr (neg n) c1)
+            (holds (concat_cl (clr (neg n) c1)
                      (clr (pos n) c2)))))))))
 
 (declare satlem_simplify
@@ -115,13 +115,13 @@
 ;
 ; (check
 ;   (% v1 var
-;   (% u1 (holds (concat (clr (neg v1) (clr (pos v1) (clc (pos v1) (clr (pos v1) (clc (pos v1) (clc (neg v1) cln))))))
+;   (% u1 (holds (concat_cl (clr (neg v1) (clr (pos v1) (clc (pos v1) (clr (pos v1) (clc (pos v1) (clc (neg v1) cln))))))
 ;                    (clc (pos v1) (clc (pos v1) cln))))
 ;    (satlem _ _ _ u1 (\ x x))))))
 
 
 ;(check
 ;   (% v1 var
-;   (% u1 (holds (clr (neg v1) (concat (clc (neg v1) cln)
+;   (% u1 (holds (clr (neg v1) (concat_cl (clc (neg v1) cln)
 ;                                      (clr (neg v1) (clc (neg v1) cln)))))
 ;    (satlem _ _ _ u1 (\ x x))))))

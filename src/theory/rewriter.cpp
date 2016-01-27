@@ -40,7 +40,9 @@ static CVC4_THREADLOCAL(std::hash_set<Node, NodeHashFunction>*) s_rewriteStack =
 
 class RewriterInitializer {
   static RewriterInitializer s_rewriterInitializer;
-  RewriterInitializer() { Rewriter::init(); }
+  RewriterInitializer() {
+    Rewriter::init();
+  }
   ~RewriterInitializer() { Rewriter::shutdown(); }
 };/* class RewriterInitializer */
 
@@ -190,7 +192,8 @@ Node Rewriter::rewriteTo(theory::TheoryId theoryId, Node node) {
 
       // Incorporate the children if necessary
       if (rewriteStackTop.node.getNumChildren() > 0) {
-        rewriteStackTop.node = rewriteStackTop.builder;
+        Node rewritten = rewriteStackTop.builder;
+        rewriteStackTop.node = rewritten;
         rewriteStackTop.theoryId = theoryOf(rewriteStackTop.node);
       }
 
@@ -208,7 +211,8 @@ Node Rewriter::rewriteTo(theory::TheoryId theoryId, Node node) {
           Assert(s_rewriteStack->find(response.node) == s_rewriteStack->end());
           s_rewriteStack->insert(response.node);
 #endif
-          rewriteStackTop.node = rewriteTo(newTheoryId, response.node);
+          Node rewritten = rewriteTo(newTheoryId, response.node);
+          rewriteStackTop.node = rewritten;
 #ifdef CVC4_ASSERTIONS
           s_rewriteStack->erase(response.node);
 #endif

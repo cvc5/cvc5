@@ -87,7 +87,10 @@ public:
   void ppStaticLearn(TNode in, NodeBuilder<>& learned);
 
   void presolve();
-  bool applyAbstraction(const std::vector<Node>& assertions, std::vector<Node>& new_assertions);
+
+  bool applyAbstraction(const std::vector<Node>& assertions, std::vector<Node>& new_assertions); 
+  
+  void setProofLog( BitVectorProof * bvp );
 
 private:
 
@@ -209,11 +212,10 @@ private:
 
   void sendConflict();
 
-  void lemma(TNode node) { d_out->lemma(node); d_lemmasAdded = true; }
+  void lemma(TNode node) { d_out->lemma(node, RULE_CONFLICT); d_lemmasAdded = true; }
 
   void checkForLemma(TNode node); 
 
- 
   friend class LazyBitblaster;
   friend class TLazyBitblaster;
   friend class EagerBitblaster;
