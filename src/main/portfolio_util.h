@@ -19,7 +19,6 @@
 
 #include "base/output.h"
 #include "expr/pickler.h"
-#include "options/main_options.h"
 #include "smt/smt_engine.h"
 #include "smt_util/lemma_input_channel.h"
 #include "smt_util/lemma_output_channel.h"
@@ -73,7 +72,26 @@ public:
 
 };/* class PortfolioLemmaInputChannel */
 
-std::vector<Options> parseThreadSpecificOptions(Options opts);
+class OptionsList {
+ public:
+  OptionsList();
+  ~OptionsList();
+
+  void push_back_copy(const Options& options);
+
+  Options& operator[](size_t position);
+  const Options& operator[](size_t position) const;
+
+  Options& back();
+
+  size_t size() const;
+ private:
+  OptionsList(const OptionsList&) CVC4_UNDEFINED;
+  OptionsList& operator=(const OptionsList&) CVC4_UNDEFINED;
+  std::vector<Options*> d_options;
+};
+
+void parseThreadSpecificOptions(OptionsList& list, const Options& opts);
 
 template<typename T>
 void sharingManager(unsigned numThreads,

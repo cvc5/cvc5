@@ -16,7 +16,7 @@
  ** OS X).
  **/
 
-#include "cvc4_private.h"
+#warning "TODO: make lib/clock_gettime.h cvc4_private.h again."
 
 #include "lib/clock_gettime.h"
 

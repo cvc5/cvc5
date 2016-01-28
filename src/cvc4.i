@@ -305,6 +305,7 @@ std::set<JavaInputStreamAdapter*> CVC4::JavaInputStreamAdapter::s_adapters;
 // TIM:
 // At the moment, the header includes seem to need to follow a special order.
 // I don't know why. I am following the build order 
+%include "base/configuration.i"
 %include "base/exception.i"
 %include "base/modal_exception.i"
 
@@ -318,7 +319,6 @@ std::set<JavaInputStreamAdapter*> CVC4::JavaInputStreamAdapter::s_adapters;
 // Tim: The remainder of util/.
 %include "util/bool.i"
 %include "util/cardinality.i"
-%include "util/configuration.i"
 %include "util/hash.i"
 %include "util/proof.i"
 %include "util/regexp.i"

@@ -56,13 +56,13 @@ TLazyBitblaster::TLazyBitblaster(context::Context* c, bv::TheoryBV* bv,
   d_cnfStream = new prop::TseitinCnfStream(d_satSolver,
                                            d_nullRegistrar,
                                            d_nullContext,
-                                           d_bv->globals(),
                                            options::proof(),
                                            "LazyBitblaster");
 
   d_satSolverNotify = d_emptyNotify ?
     (prop::BVSatSolverInterface::Notify*) new MinisatEmptyNotify() :
-    (prop::BVSatSolverInterface::Notify*) new MinisatNotify(d_cnfStream, bv, this);
+    (prop::BVSatSolverInterface::Notify*) new MinisatNotify(d_cnfStream, bv,
+                                                            this);
 
   d_satSolver->setNotify(d_satSolverNotify);
 }
@@ -526,11 +526,12 @@ void TLazyBitblaster::clearSolver() {
   d_satSolver = prop::SatSolverFactory::createMinisat(
       d_ctx, smtStatisticsRegistry());
   d_cnfStream = new prop::TseitinCnfStream(d_satSolver, d_nullRegistrar,
-                                           d_nullContext, d_bv->globals());
+                                           d_nullContext);
 
   d_satSolverNotify = d_emptyNotify ?
     (prop::BVSatSolverInterface::Notify*) new MinisatEmptyNotify() :
-    (prop::BVSatSolverInterface::Notify*) new MinisatNotify(d_cnfStream, d_bv, this);
+    (prop::BVSatSolverInterface::Notify*) new MinisatNotify(d_cnfStream, d_bv,
+                                                            this);
   d_satSolver->setNotify(d_satSolverNotify);
 }
 

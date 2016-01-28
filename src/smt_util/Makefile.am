@@ -12,12 +12,14 @@ libsmtutil_la_SOURCES = \
 	boolean_simplification.h \
 	command.cpp \
 	command.h \
-	dump.h \
 	dump.cpp \
-	lemma_input_channel.h \
-	lemma_output_channel.h \
+	dump.h \
 	ite_removal.cpp \
 	ite_removal.h \
+	lemma_channels.cpp \
+	lemma_channels.h \
+	lemma_input_channel.h \
+	lemma_output_channel.h \
 	model.cpp \
 	model.h \
 	nary_builder.cpp \

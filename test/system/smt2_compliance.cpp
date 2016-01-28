@@ -19,9 +19,8 @@
 #include <sstream>
 
 #include "expr/expr_manager.h"
-#include "options/base_options.h"
+#include "options/options.h"
 #include "options/set_language.h"
-#include "options/smt_options.h"
 #include "parser/parser.h"
 #include "parser/parser_builder.h"
 #include "smt/smt_engine.h"
@@ -35,8 +34,8 @@ void testGetInfo(SmtEngine& smt, const char* s);
 
 int main() {
   Options opts;
-  opts.set(options::inputLanguage, language::input::LANG_SMTLIB_V2);
-  opts.set(options::outputLanguage, language::output::LANG_SMTLIB_V2);
+  opts.setInputLanguage(language::input::LANG_SMTLIB_V2);
+  opts.setOutputLanguage(language::output::LANG_SMTLIB_V2);
 
   cout << language::SetLanguage(language::output::LANG_SMTLIB_V2);
 
@@ -59,7 +58,8 @@ int main() {
 }
 
 void testGetInfo(SmtEngine& smt, const char* s) {
-  ParserBuilder pb(smt.getExprManager(), "<internal>", smt.getExprManager()->getOptions());
+  ParserBuilder pb(smt.getExprManager(), "<internal>",
+                   smt.getExprManager()->getOptions());
   Parser* p = pb.withStringInput(string("(get-info ") + s + ")").build();
   assert(p != NULL);
   Command* c = p->nextCommand();

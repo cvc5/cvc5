@@ -14,7 +14,7 @@
  ** Replacement for clock_gettime() for systems without it (like Mac OS X).
  **/
 
-#include "cvc4_private.h"
+#include "cvc4_private_library.h"
 
 #ifndef __CVC4__LIB__CLOCK_GETTIME_H
 #define __CVC4__LIB__CLOCK_GETTIME_H

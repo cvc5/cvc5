@@ -24,6 +24,8 @@
 #include <string>
 #include <sstream>
 
+#include "options/option_exception.h"
+
 namespace CVC4 {
 namespace options {
 
@@ -39,7 +41,7 @@ public:
   comparator(double d) throw() : d_lbound(0), d_dbound(d), d_hasLbound(false) {}
 
   template <class T>
-  void operator()(std::string option, const T& value, OptionsHandler* handler) {
+  void operator()(std::string option, const T& value) {
     if((d_hasLbound && !(Cmp<T>()(value, T(d_lbound)))) ||
        (!d_hasLbound && !(Cmp<T>()(value, T(d_dbound))))) {
       std::stringstream ss;

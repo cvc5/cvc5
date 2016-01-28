@@ -51,7 +51,13 @@
 // (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
 // THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
+
+
+// These headers must be the first two included.
+// See the documentation in "parser/antlr_undefines.h" for more details.
 #include <antlr3.h>
+#include "parser/antlr_undefines.h"
+
 #include <sstream>
 
 #include "parser/antlr_input.h"

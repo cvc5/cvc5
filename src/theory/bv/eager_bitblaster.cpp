@@ -43,16 +43,13 @@ EagerBitblaster::EagerBitblaster(TheoryBV* theory_bv)
   d_bitblastingRegistrar = new BitblastingRegistrar(this);
   d_nullContext = new context::Context();
 
-  d_satSolver = prop::SatSolverFactory::createMinisat(d_nullContext,
-                                                      smtStatisticsRegistry(),
-                                                      "EagerBitblaster");
-  d_cnfStream = new prop::TseitinCnfStream(d_satSolver,
-                                           d_bitblastingRegistrar,
-                                           d_nullContext,
-                                           d_bv->globals(),
-                                           options::proof(),
-                                           "EagerBitblaster");
-  
+  d_satSolver = prop::SatSolverFactory::createMinisat(
+      d_nullContext, smtStatisticsRegistry(), "EagerBitblaster");
+
+  d_cnfStream = new prop::TseitinCnfStream(
+      d_satSolver, d_bitblastingRegistrar, d_nullContext, options::proof(),
+      "EagerBitblaster");
+
   MinisatEmptyNotify* notify = new MinisatEmptyNotify();
   d_satSolver->setNotify(notify);
   d_bvp = NULL;

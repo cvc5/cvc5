@@ -31,8 +31,6 @@
 
 namespace CVC4 {
 
-class SmtGlobals;
-
 // forward declarations
 namespace Minisat {
   class Solver;
@@ -146,7 +144,7 @@ public:
   static void         initSatProof(Minisat::Solver* solver);
   static void         initCnfProof(CVC4::prop::CnfStream* cnfStream,
                                    context::Context* ctx);
-  static void         initTheoryProofEngine(SmtGlobals* globals);
+  static void         initTheoryProofEngine();
 
   // getting various proofs
   static Proof*         getProof(SmtEngine* smt);
@@ -157,12 +155,14 @@ public:
   static UFProof* getUfProof();
   static BitVectorProof* getBitVectorProof();
   static ArrayProof* getArrayProof();
-  
+
   // iterators over data shared by proofs
   typedef ExprSet::const_iterator assertions_iterator;
 
   // iterate over the assertions (these are arbitrary boolean formulas)
-  assertions_iterator begin_assertions() const { return d_inputFormulas.begin(); }
+  assertions_iterator begin_assertions() const {
+    return d_inputFormulas.begin();
+  }
   assertions_iterator end_assertions() const { return d_inputFormulas.end(); }
   size_t num_assertions() const { return d_inputFormulas.size(); }
   

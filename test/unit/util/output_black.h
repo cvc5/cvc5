@@ -36,12 +36,12 @@ class OutputBlack : public CxxTest::TestSuite {
 public:
 
   void setUp() {
-    DebugChannel.setStream(d_debugStream);
-    TraceChannel.setStream(d_traceStream);
-    NoticeChannel.setStream(d_noticeStream);
-    ChatChannel.setStream(d_chatStream);
-    MessageChannel.setStream(d_messageStream);
-    WarningChannel.setStream(d_warningStream);
+    DebugChannel.setStream(&d_debugStream);
+    TraceChannel.setStream(&d_traceStream);
+    NoticeChannel.setStream(&d_noticeStream);
+    ChatChannel.setStream(&d_chatStream);
+    MessageChannel.setStream(&d_messageStream);
+    WarningChannel.setStream(&d_warningStream);
 
     d_debugStream.str("");
     d_traceStream.str("");

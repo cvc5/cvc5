@@ -94,8 +94,8 @@ class CVC4_PUBLIC Input {
    * copy construction and assignment.  Mark them private and do not define
    * them.
    */
-  Input(const Input& input) CVC4_UNUSED;
-  Input& operator=(const Input& input) CVC4_UNUSED;
+  Input(const Input& input) CVC4_UNDEFINED;
+  Input& operator=(const Input& input) CVC4_UNDEFINED;
 
 public:
 

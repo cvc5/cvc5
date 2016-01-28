@@ -38,8 +38,8 @@ class Printer {
   static Printer* makePrinter(OutputLanguage lang) throw();
 
   // disallow copy, assignment
-  Printer(const Printer&) CVC4_UNUSED;
-  Printer& operator=(const Printer&) CVC4_UNUSED;
+  Printer(const Printer&) CVC4_UNDEFINED;
+  Printer& operator=(const Printer&) CVC4_UNDEFINED;
 
 protected:
   // derived classes can construct, but no one else.

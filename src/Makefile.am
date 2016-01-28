@@ -105,26 +105,25 @@ libcvc4_la_SOURCES = \
 	prop/sat_solver_types.h \
 	prop/sat_solver_factory.h \
 	prop/sat_solver_factory.cpp \
-	smt/smt_engine.cpp \
-	smt/smt_engine_check_proof.cpp \
-	smt/smt_engine.h \
-	smt/smt_globals.cpp \
-	smt/smt_globals.h \
-	smt/model_postprocessor.cpp \
-	smt/model_postprocessor.h \
-	smt/smt_engine_scope.cpp \
-	smt/smt_engine_scope.h \
-	smt/smt_options_handler.cpp \
-	smt/smt_options_handler.h \
-	smt/smt_statistics_registry.cpp \
-	smt/smt_statistics_registry.h \
+	smt/boolean_terms.cpp \
+	smt/boolean_terms.h \
 	smt/command_list.cpp \
 	smt/command_list.h \
-	smt/boolean_terms.h \
-	smt/boolean_terms.cpp \
 	smt/logic_exception.h \
-	smt/logic_request.h \
 	smt/logic_request.cpp \
+	smt/logic_request.h \
+	smt/managed_ostreams.cpp \
+	smt/managed_ostreams.h \
+	smt/model_postprocessor.cpp \
+	smt/model_postprocessor.h \
+	smt/smt_engine.cpp \
+	smt/smt_engine.h \
+	smt/smt_engine_check_proof.cpp \
+	smt/smt_engine_scope.cpp \
+	smt/smt_engine_scope.h \
+	smt/smt_statistics_registry.cpp \
+	smt/smt_statistics_registry.h \
+	smt/update_ostream.h \
 	theory/logic_info.h \
 	theory/logic_info.cpp \
 	theory/output_channel.h \
@@ -520,7 +519,7 @@ svn_versioninfo.cpp: svninfo
 	    rev=0; \
 	    mods=false; \
 	  fi; \
-	  echo "#include \"util/configuration.h\""; \
+	  echo "#include \"base/configuration.h\""; \
 	  echo "const bool ::CVC4::Configuration::IS_SUBVERSION_BUILD = $$issvn;"; \
 	  echo "const char* const ::CVC4::Configuration::SUBVERSION_BRANCH_NAME = \"$$branch\";"; \
 	  echo "const unsigned ::CVC4::Configuration::SUBVERSION_REVISION = $$rev;"; \
@@ -548,7 +547,7 @@ git_versioninfo.cpp: gitinfo
 	    rev=unknown; \
 	    mods=false; \
 	  fi; \
-	  echo "#include \"util/configuration.h\""; \
+	  echo "#include \"base/configuration.h\""; \
 	  echo "const bool ::CVC4::Configuration::IS_GIT_BUILD = $$isgit;"; \
 	  echo "const char* const ::CVC4::Configuration::GIT_BRANCH_NAME = \"$$branch\";"; \
 	  echo "const char* const ::CVC4::Configuration::GIT_COMMIT = \"$$rev\";"; \

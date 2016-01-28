@@ -40,10 +40,8 @@ namespace theory {
 namespace datatypes {
 
 TheoryDatatypes::TheoryDatatypes(Context* c, UserContext* u, OutputChannel& out,
-                                 Valuation valuation,
-                                 const LogicInfo& logicInfo,
-                                 SmtGlobals* globals)
-    : Theory(THEORY_DATATYPES, c, u, out, valuation, logicInfo, globals),
+                                 Valuation valuation, const LogicInfo& logicInfo)
+    : Theory(THEORY_DATATYPES, c, u, out, valuation, logicInfo),
       //d_cycle_check(c),
       d_hasSeenCycle(c, false),
       d_infer(c),

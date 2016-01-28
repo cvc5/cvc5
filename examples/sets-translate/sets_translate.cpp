@@ -24,7 +24,6 @@
 
 #include "expr/expr.h"
 #include "options/language.h"
-#include "options/base_options.h"
 #include "options/options.h"
 #include "options/set_language.h"
 #include "parser/parser.h"
@@ -265,7 +264,7 @@ int main(int argc, char* argv[])
 
     // Create the expression manager
     Options options;
-    options.set(inputLanguage, language::input::LANG_SMTLIB_V2);
+    options.setInputLanguage(language::input::LANG_SMTLIB_V2);
     cout << language::SetLanguage(language::output::LANG_SMTLIB_V2);
     // cout << Expr::dag(0);
     ExprManager exprManager(options);

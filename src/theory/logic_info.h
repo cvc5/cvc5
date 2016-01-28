@@ -24,7 +24,6 @@
 #include <string>
 #include <vector>
 #include "expr/kind.h"
-#include "options/logic_info_forward.h"
 
 namespace CVC4 {
 

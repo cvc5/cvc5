@@ -14,13 +14,17 @@
  ** A super-class for ANTLR-generated input language parsers
  **/
 
+#include "parser/antlr_input.h"
+// We rely on the inclusion of #include <antlr3.h> in "parser/antlr_input.h".
+// This is avoid having to undefine the symbols in <antlr3.h>.
+// See the documentation in "parser/antlr_undefines.h" for more
+// details.
+
 #include <limits.h>
-#include <antlr3.h>
 #include <stdint.h>
 
 #include "base/output.h"
 #include "expr/type.h"
-#include "parser/antlr_input.h"
 #include "parser/antlr_line_buffered_input.h"
 #include "parser/bounded_token_buffer.h"
 #include "parser/bounded_token_factory.h"

@@ -30,7 +30,6 @@
 #include "expr/kind.h"
 #include "expr/type.h"
 #include "options/options.h"
-#include "options/smt_options.h"
 #include "parser/input.h"
 #include "parser/parser_exception.h"
 #include "smt_util/command.h"
@@ -500,17 +499,20 @@ Command* Parser::nextCommand() throw(ParserException, UnsafeInterruptException) 
   Debug("parser") << "nextCommand() => " << cmd << std::endl;
   if (cmd != NULL &&
       dynamic_cast<SetOptionCommand*>(cmd) == NULL &&
-      dynamic_cast<QuitCommand*>(cmd) == NULL) {
+      dynamic_cast<QuitCommand*>(cmd) == NULL)
+  {
     // don't count set-option commands as to not get stuck in an infinite
     // loop of resourcing out
-    d_resourceManager->spendResource(d_exprManager->getOptions()[options::parseStep]);
+    const Options& options = d_exprManager->getOptions();
+    d_resourceManager->spendResource(options.getParseStep());
   }
   return cmd;
 }
 
 Expr Parser::nextExpression() throw(ParserException, UnsafeInterruptException) {
   Debug("parser") << "nextExpression()" << std::endl;
-  d_resourceManager->spendResource(d_exprManager->getOptions()[options::parseStep]);
+  const Options& options = d_exprManager->getOptions();
+  d_resourceManager->spendResource(options.getParseStep());
   Expr result;
   if(!done()) {
     try {

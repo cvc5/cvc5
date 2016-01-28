@@ -14,14 +14,16 @@
  ** A super-class for input language parsers
  **/
 
+// This must be included first.
+#include "parser/antlr_input.h"
+
 #include "parser/input.h"
-#include "parser/parser_exception.h"
-#include "parser/parser.h"
 
 #include "base/output.h"
-#include "smt_util/command.h"
 #include "expr/type.h"
-#include "parser/antlr_input.h"
+#include "parser/parser.h"
+#include "parser/parser_exception.h"
+#include "smt_util/command.h"
 
 
 using namespace std;

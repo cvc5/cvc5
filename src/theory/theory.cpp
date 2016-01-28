@@ -17,6 +17,9 @@
 #include "theory/theory.h"
 
 #include <vector>
+#include <sstream>
+#include <iostream>
+#include <string>
 
 #include "base/cvc4_assert.h"
 #include "smt/smt_statistics_registry.h"
@@ -48,9 +51,11 @@ std::ostream& operator<<(std::ostream& os, Theory::Effort level){
   return os;
 }/* ostream& operator<<(ostream&, Theory::Effort) */
 
-Theory::Theory(TheoryId id, context::Context* satContext, context::UserContext* userContext,
-               OutputChannel& out, Valuation valuation, const LogicInfo& logicInfo,
-               SmtGlobals* globals, std::string name) throw()
+
+Theory::Theory(TheoryId id, context::Context* satContext,
+               context::UserContext* userContext, OutputChannel& out,
+               Valuation valuation, const LogicInfo& logicInfo,
+               std::string name) throw()
     : d_id(id)
     , d_instanceName(name)
     , d_satContext(satContext)
@@ -67,7 +72,6 @@ Theory::Theory(TheoryId id, context::Context* satContext, context::UserContext* 
     , d_out(&out)
     , d_valuation(valuation)
     , d_proofsEnabled(false)
-    , d_globals(globals)
 {
   smtStatisticsRegistry()->registerStat(&d_checkTime);
   smtStatisticsRegistry()->registerStat(&d_computeCareGraphTime);
@@ -204,7 +208,8 @@ void Theory::debugPrintFacts() const{
 
 std::hash_set<TNode, TNodeHashFunction> Theory::currentlySharedTerms() const{
   std::hash_set<TNode, TNodeHashFunction> currentlyShared;
-  for(shared_terms_iterator i = shared_terms_begin(), i_end = shared_terms_end(); i != i_end; ++i){
+  for (shared_terms_iterator i = shared_terms_begin(),
+           i_end = shared_terms_end(); i != i_end; ++i) {
     currentlyShared.insert (*i);
   }
   return currentlyShared;
@@ -242,18 +247,21 @@ void Theory::computeRelevantTerms(set<Node>& termSet) const
 }
 
 
-Theory::PPAssertStatus Theory::ppAssert(TNode in, SubstitutionMap& outSubstitutions)
+Theory::PPAssertStatus Theory::ppAssert(TNode in,
+                                        SubstitutionMap& outSubstitutions)
 {
   if (in.getKind() == kind::EQUAL) {
     // (and (= x t) phi) can be replaced by phi[x/t] if
     // 1) x is a variable
     // 2) x is not in the term t
     // 3) x : T and t : S, then S <: T
-    if (in[0].isVar() && !in[1].hasSubterm(in[0]) && (in[1].getType()).isSubtypeOf(in[0].getType()) ){
+    if (in[0].isVar() && !in[1].hasSubterm(in[0]) &&
+        (in[1].getType()).isSubtypeOf(in[0].getType()) ){
       outSubstitutions.addSubstitution(in[0], in[1]);
       return PP_ASSERT_STATUS_SOLVED;
     }
-    if (in[1].isVar() && !in[0].hasSubterm(in[1]) && (in[0].getType()).isSubtypeOf(in[1].getType())){
+    if (in[1].isVar() && !in[0].hasSubterm(in[1]) &&
+        (in[0].getType()).isSubtypeOf(in[1].getType())){
       outSubstitutions.addSubstitution(in[1], in[0]);
       return PP_ASSERT_STATUS_SOLVED;
     }
@@ -267,14 +275,21 @@ Theory::PPAssertStatus Theory::ppAssert(TNode in, SubstitutionMap& outSubstituti
   return PP_ASSERT_STATUS_UNSOLVED;
 }
 
-std::pair<bool, Node> Theory::entailmentCheck(TNode lit,
-                                              const EntailmentCheckParameters* params,
-                                              EntailmentCheckSideEffects* out){
+std::pair<bool, Node> Theory::entailmentCheck(
+    TNode lit,
+    const EntailmentCheckParameters* params,
+    EntailmentCheckSideEffects* out) {
   return make_pair(false, Node::null());
 }
 
 EntailmentCheckParameters::EntailmentCheckParameters(TheoryId tid)
   : d_tid(tid) {
+}
+
+std::string Theory::getFullInstanceName() const {
+  std::stringstream ss;
+  ss << "theory<" << d_id << ">" << d_instanceName;
+  return ss.str();
 }
 
 EntailmentCheckParameters::~EntailmentCheckParameters(){}

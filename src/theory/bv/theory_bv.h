@@ -22,7 +22,6 @@
 #include "context/cdhashset.h"
 #include "context/cdlist.h"
 #include "context/context.h"
-#include "smt/smt_globals.h"
 #include "theory/bv/bv_subtheory.h"
 #include "theory/bv/theory_bv_utils.h"
 #include "theory/theory.h"
@@ -56,7 +55,8 @@ class TheoryBV : public Theory {
 
 public:
 
-  TheoryBV(context::Context* c, context::UserContext* u, OutputChannel& out, Valuation valuation, const LogicInfo& logicInfo, SmtGlobals* globals);
+  TheoryBV(context::Context* c, context::UserContext* u, OutputChannel& out,
+           Valuation valuation, const LogicInfo& logicInfo);
 
   ~TheoryBV();
 

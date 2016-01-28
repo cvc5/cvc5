@@ -23,7 +23,6 @@
 #include <vector>
 
 #include "expr/expr.h"
-#include "options/base_options.h"
 #include "options/options.h"
 #include "parser/parser.h"
 #include "parser/parser_builder.h"
@@ -32,26 +31,25 @@
 using namespace std;
 using namespace CVC4;
 using namespace CVC4::parser;
-using namespace CVC4::options;
 
 void translate_to_mathematica(
         string input,
         const vector<string>& info_tags,
         const vector<string>& info_data,
-	const map<Expr, unsigned>& variables, 
+	const map<Expr, unsigned>& variables,
 	const vector<Expr>& assertions);
 
-int main(int argc, char* argv[]) 
+int main(int argc, char* argv[])
 {
 
-  // Get the filename 
+  // Get the filename
   string input(argv[1]);
 
   // Create the expression manager
   Options options;
-  options.set(inputLanguage, language::input::LANG_SMTLIB_V2);
+  options.setInputLanguage(language::input::LANG_SMTLIB_V2);
   ExprManager exprManager(options);
-  
+
   // Create the parser
   ParserBuilder parserBuilder(&exprManager, input, options);
   Parser* parser = parserBuilder.build();
@@ -325,4 +323,3 @@ void translate_to_mathematica(
   // End resolve
   cout << ", Reals]" << endl;
 }
-

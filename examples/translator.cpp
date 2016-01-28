@@ -24,8 +24,8 @@
 
 #include "expr/expr.h"
 #include "expr/expr_iomanip.h"
-#include "options/base_options.h"
 #include "options/language.h"
+#include "options/options.h"
 #include "options/set_language.h"
 #include "parser/parser.h"
 #include "parser/parser_builder.h"
@@ -103,7 +103,7 @@ static void readFile(const char* filename, InputLanguage fromLang, OutputLanguag
   *out << language::SetLanguage(toLang);
 
   Options opts;
-  opts.set(options::inputLanguage, fromLang);
+  opts.setInputLanguage(fromLang);
   ExprManager exprMgr(opts);
   ParserBuilder parserBuilder(&exprMgr, filename, opts);
   if(!strcmp(filename, "-")) {

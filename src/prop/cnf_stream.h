@@ -33,7 +33,7 @@
 #include "proof/proof_manager.h"
 #include "prop/registrar.h"
 #include "prop/theory_proxy.h"
-#include "smt/smt_globals.h"
+#include "smt_util/lemma_channels.h"
 
 namespace CVC4 {
 namespace prop {
@@ -89,9 +89,6 @@ protected:
 
   /** Pointer to the proof corresponding to this CnfStream */
   CnfProof* d_cnfProof;
-
-  /** Container for misc. globals. */
-  SmtGlobals* d_globals;
 
   /**
    * How many literals were already mapped at the top-level when we
@@ -194,7 +191,6 @@ public:
   CnfStream(SatSolver* satSolver,
             Registrar* registrar,
             context::Context* context,
-            SmtGlobals* globals,
             bool fullLitToNodeMap = false,
             std::string name="");
 
@@ -291,7 +287,9 @@ public:
    * @param fullLitToNodeMap maintain a full SAT-literal-to-Node mapping,
    * even for non-theory literals
    */
-  TseitinCnfStream(SatSolver* satSolver, Registrar* registrar, context::Context* context, SmtGlobals* globals, bool fullLitToNodeMap = false, std::string name = "");
+  TseitinCnfStream(SatSolver* satSolver, Registrar* registrar,
+                   context::Context* context, bool fullLitToNodeMap = false,
+                   std::string name = "");
 
 private:
 

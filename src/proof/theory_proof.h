@@ -30,8 +30,6 @@
 
 namespace CVC4 {
 
-class SmtGlobals;
-
 namespace theory {
 class Theory;
 }
@@ -89,7 +87,7 @@ typedef __gnu_cxx::hash_map < ClauseId, prop::SatClause* > IdToSatClause;
 typedef __gnu_cxx::hash_map<Expr, LetCount, ExprHashFunction> LetMap;
 typedef std::vector<LetOrderElement> Bindings; 
 
-class TheoryProof; 
+class TheoryProof;
 typedef unsigned ClauseId;
 
 typedef __gnu_cxx::hash_set<Expr, ExprHashFunction > ExprSet;
@@ -99,67 +97,69 @@ class TheoryProofEngine {
 protected:
   ExprSet d_registrationCache;
   TheoryProofTable d_theoryProofTable;
-  
+
   /**
    * Returns whether the theory is currently supported in proof
    * production mode.
    */
   bool supportedTheory(theory::TheoryId id);
 public:
-  SmtGlobals* d_globals;
-  
-  TheoryProofEngine(SmtGlobals* globals);
+
+  TheoryProofEngine();
   virtual ~TheoryProofEngine();
-  /** 
-   * Print the theory term (could be atom) by delegating to the
-   * proper theory
-   * 
-   * @param term 
-   * @param os 
-   * 
-   * @return 
+
+  /**
+   * Print the theory term (could be an atom) by delegating to the proper theory.
+   *
+   * @param term
+   * @param os
    */
   virtual void printLetTerm(Expr term, std::ostream& os) = 0;
-  virtual void printBoundTerm(Expr term, std::ostream& os, const LetMap& map) = 0;
-  /** 
+  virtual void printBoundTerm(Expr term, std::ostream& os,
+                              const LetMap& map) = 0;
+
+  /**
    * Print the proof representation of the given sort.
-   * 
-   * @param os 
+   *
+   * @param os
    */
-  virtual void printSort(Type type, std::ostream& os) = 0; 
-  /** 
+  virtual void printSort(Type type, std::ostream& os) = 0;
+
+  /**
    * Print the theory assertions (arbitrary formulas over
    * theory atoms)
-   * 
-   * @param os 
+   *
+   * @param os
    * @param paren closing parenthesis
    */
   virtual void printAssertions(std::ostream& os, std::ostream& paren) = 0;
-  /** 
+
+  /**
    * Print proofs of all the theory lemmas (must prove
    * actual clause used in resolution proof).
-   * 
-   * @param os 
-   * @param paren 
+   *
+   * @param os
+   * @param paren
    */
-  virtual void printTheoryLemmas(const IdToSatClause& lemmas,
-                                 std::ostream& os,
+  virtual void printTheoryLemmas(const IdToSatClause& lemmas, std::ostream& os,
                                  std::ostream& paren) = 0;
-  /** 
-   * Register theory atom (ensures all terms and atoms are declared). 
-   * 
-   * @param atom 
+
+  /**
+   * Register theory atom (ensures all terms and atoms are declared).
+   *
+   * @param atom
    */
   void registerTerm(Expr atom);
-  /** 
-   * Ensures that a theory proof class for the given theory
-   * is created.
-   * 
-   * @param theory 
+
+  /**
+   * Ensures that a theory proof class for the given theory is created.
+   *
+   * @param theory
    */
   void registerTheory(theory::Theory* theory);
+
   theory::TheoryId getTheoryForLemma(ClauseId id);
-  TheoryProof* getTheoryProof(theory::TheoryId id); 
+  TheoryProof* getTheoryProof(theory::TheoryId id);
 };
 
 class LFSCTheoryProofEngine : public TheoryProofEngine {
@@ -167,9 +167,9 @@ class LFSCTheoryProofEngine : public TheoryProofEngine {
   void printTheoryTerm(Expr term, std::ostream& os, const LetMap& map);
   void bind(Expr term, LetMap& map, Bindings& let_order);
 public:
-  LFSCTheoryProofEngine(SmtGlobals* globals)
-    : TheoryProofEngine(globals) {}
-  
+  LFSCTheoryProofEngine()
+    : TheoryProofEngine() {}
+
   void printDeclarations(std::ostream& os, std::ostream& paren);
   virtual void printCoreTerm(Expr term, std::ostream& os, const LetMap& map);
   virtual void printLetTerm(Expr term, std::ostream& os);
@@ -178,7 +178,7 @@ public:
   virtual void printTheoryLemmas(const IdToSatClause& lemmas,
                                  std::ostream& os,
                                  std::ostream& paren);
-  virtual void printSort(Type type, std::ostream& os); 
+  virtual void printSort(Type type, std::ostream& os);
 };
 
 class TheoryProof {

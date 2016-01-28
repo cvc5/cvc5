@@ -19,7 +19,8 @@
 #define __CVC4__CONFIGURATION_PRIVATE_H
 
 #include <string>
-#include "util/configuration.h"
+
+#include "base/configuration.h"
 
 namespace CVC4 {
 

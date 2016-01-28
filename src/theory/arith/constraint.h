@@ -75,25 +75,22 @@
 #ifndef __CVC4__THEORY__ARITH__CONSTRAINT_H
 #define __CVC4__THEORY__ARITH__CONSTRAINT_H
 
-#include "expr/node.h"
-#include "proof/proof.h"
-
-#include "context/context.h"
-#include "context/cdlist.h"
-#include "context/cdqueue.h"
-
-#include "theory/arith/arithvar.h"
-#include "theory/arith/delta_rational.h"
-#include "theory/arith/congruence_manager.h"
-#include "theory/arith/constraint_forward.h"
-#include "theory/arith/callbacks.h"
-
-#include "util/configuration_private.h"
-
-#include <vector>
+#include <ext/hash_map>
 #include <list>
 #include <set>
-#include <ext/hash_map>
+#include <vector>
+
+#include "base/configuration_private.h"
+#include "context/cdlist.h"
+#include "context/cdqueue.h"
+#include "context/context.h"
+#include "expr/node.h"
+#include "proof/proof.h"
+#include "theory/arith/arithvar.h"
+#include "theory/arith/callbacks.h"
+#include "theory/arith/congruence_manager.h"
+#include "theory/arith/constraint_forward.h"
+#include "theory/arith/delta_rational.h"
 
 namespace CVC4 {
 namespace theory {
@@ -107,7 +104,7 @@ namespace theory {
 namespace arith {
 
 /**
- * Logs the types of different proofs. 
+ * Logs the types of different proofs.
  * Current, proof types:
  * - NoAP             : This constraint is not known to be true.
  * - AssumeAP         : This is an input assertion. There is no proof.

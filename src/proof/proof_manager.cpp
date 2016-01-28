@@ -153,22 +153,23 @@ void ProofManager::initCnfProof(prop::CnfStream* cnfStream,
 
 }
 
-void ProofManager::initTheoryProofEngine(SmtGlobals* globals) {
+void ProofManager::initTheoryProofEngine() {
   Assert (currentPM()->d_theoryProof == NULL);
   Assert (currentPM()->d_format == LFSC);
-  currentPM()->d_theoryProof = new LFSCTheoryProofEngine(globals);
+  currentPM()->d_theoryProof = new LFSCTheoryProofEngine();
 }
 
 std::string ProofManager::getInputClauseName(ClauseId id,
                                              const std::string& prefix) {
   return append(prefix+".pb", id);
 }
+
 std::string ProofManager::getLemmaClauseName(ClauseId id,
                                              const std::string& prefix) {
   return append(prefix+".lemc", id);
 }
-  std::string ProofManager::getLemmaName(ClauseId id,
-           const std::string& prefix) {
+
+std::string ProofManager::getLemmaName(ClauseId id, const std::string& prefix) {
   return append(prefix+"lem", id);
 }
 

@@ -20,6 +20,7 @@
 #include "parser/antlr_input.h"
 #include "parser/parser.h"
 #include "parser/smt1/smt1.h"
+#include "parser/smt2/smt2_input.h"
 #include "smt_util/command.h"
 #include "util/bitvector.h"
 
@@ -38,6 +39,10 @@ Smt2::Smt2(ExprManager* exprManager, Input* input, bool strictMode, bool parseOn
   if( !strictModeEnabled() ) {
     addTheory(Smt2::THEORY_CORE);
   }
+}
+
+void Smt2::setLanguage(InputLanguage lang) {
+  ((Smt2Input*) getInput())->setLanguage(lang);
 }
 
 void Smt2::addArithmeticOperators() {

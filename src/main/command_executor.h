@@ -37,12 +37,16 @@ protected:
   Options& d_options;
   StatisticsRegistry d_stats;
   Result d_result;
+  ExprStream* d_replayStream;
 
 public:
   CommandExecutor(ExprManager &exprMgr, Options &options);
 
   virtual ~CommandExecutor() {
     delete d_smtEngine;
+    if(d_replayStream != NULL){
+      delete d_replayStream;
+    }
   }
 
   /**
@@ -65,7 +69,13 @@ public:
     d_stats.flushInformation(out);
   }
 
-  SmtGlobals* globals() { return d_smtEngine->globals(); }
+  static void printStatsFilterZeros(std::ostream& out,
+                                    const std::string& statsString);
+
+  LemmaChannels* channels() { return d_smtEngine->channels(); }
+  void flushOutputStreams();
+
+  void setReplayStream(ExprStream* replayStream);
 
 protected:
   /** Executes treating cmd as a singleton */

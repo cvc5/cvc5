@@ -58,8 +58,8 @@ Node TheoryStrings::TermIndex::add( Node n, unsigned index, TheoryStrings* t, No
 
 TheoryStrings::TheoryStrings(context::Context* c, context::UserContext* u,
                              OutputChannel& out, Valuation valuation,
-                             const LogicInfo& logicInfo, SmtGlobals* globals)
-    : Theory(THEORY_STRINGS, c, u, out, valuation, logicInfo, globals),
+                             const LogicInfo& logicInfo)
+    : Theory(THEORY_STRINGS, c, u, out, valuation, logicInfo),
       RMAXINT(LONG_MAX),
       d_notify( *this ),
       d_equalityEngine(d_notify, c, "theory::strings::TheoryStrings", true),

@@ -17,8 +17,7 @@ public:
            context::UserContext* u,
            OutputChannel& out,
            Valuation valuation,
-           const LogicInfo& logicInfo,
-           SmtGlobals* globals);
+           const LogicInfo& logicInfo);
 
   Node expandDefinition(LogicRequest &, Node node);
 

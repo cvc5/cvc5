@@ -5,10 +5,10 @@
 
 module PRINTER "options/printer_options.h" Printing
 
-option modelFormatMode --model-format=MODE ModelFormatMode :handler CVC4::options::stringToModelFormatMode :default MODEL_FORMAT_MODE_DEFAULT :read-write :include "options/printer_modes.h" :handler-include "options/options_handler_interface.h"
+option modelFormatMode --model-format=MODE ModelFormatMode :handler stringToModelFormatMode :default MODEL_FORMAT_MODE_DEFAULT :read-write :include "options/printer_modes.h"
  print format mode for models, see --model-format=help
 
-option instFormatMode --inst-format=MODE InstFormatMode :handler CVC4::options::stringToInstFormatMode :default INST_FORMAT_MODE_DEFAULT :read-write :include "options/printer_modes.h" :handler-include "options/options_handler_interface.h"
+option instFormatMode --inst-format=MODE InstFormatMode :handler stringToInstFormatMode :default INST_FORMAT_MODE_DEFAULT :read-write :include "options/printer_modes.h"
  print format mode for instantiations, see --inst-format=help
 
 endmodule

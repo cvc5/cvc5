@@ -128,7 +128,7 @@ function alternate {
 "
 
   eval "alternate_for_$1=\"\${alternate_for_$1}
-      if(options::theoryAlternates()[\\\"$2\\\"]) {
+      if(engine->useTheoryAlternative(\\\"$2\\\")) {
         engine->addTheory< $3 >($1);
         return;
       }\""

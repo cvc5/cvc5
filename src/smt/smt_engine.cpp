@@ -26,6 +26,8 @@
 #include <utility>
 #include <vector>
 
+#include "base/configuration.h"
+#include "base/configuration_private.h"
 #include "base/exception.h"
 #include "base/listener.h"
 #include "base/modal_exception.h"
@@ -52,8 +54,8 @@
 #include "options/decision_mode.h"
 #include "options/decision_options.h"
 #include "options/main_options.h"
+#include "options/open_ostream.h"
 #include "options/option_exception.h"
-#include "options/options_handler_interface.h"
 #include "options/printer_options.h"
 #include "options/prop_options.h"
 #include "options/quantifiers_options.h"
@@ -72,9 +74,10 @@
 #include "smt/boolean_terms.h"
 #include "smt/command_list.h"
 #include "smt/logic_request.h"
+#include "smt/managed_ostreams.h"
 #include "smt/model_postprocessor.h"
 #include "smt/smt_engine_scope.h"
-#include "smt/smt_options_handler.h"
+#include "smt/update_ostream.h"
 #include "smt_util/boolean_simplification.h"
 #include "smt_util/command.h"
 #include "smt_util/ite_removal.h"
@@ -95,8 +98,6 @@
 #include "theory/theory_engine.h"
 #include "theory/theory_model.h"
 #include "theory/theory_traits.h"
-#include "util/configuration.h"
-#include "util/configuration_private.h"
 #include "util/hash.h"
 #include "util/proof.h"
 #include "util/resource_manager.h"
@@ -322,6 +323,125 @@ class HardResourceOutListener : public Listener {
   SmtEngine* d_smt;
 }; /* class HardResourceOutListener */
 
+class SetLogicListener : public Listener {
+ public:
+  SetLogicListener(SmtEngine& smt) : d_smt(&smt) {}
+  virtual void notify() {
+    LogicInfo inOptions(options::forceLogicString());
+    d_smt->setLogic(inOptions);
+  }
+ private:
+  SmtEngine* d_smt;
+}; /* class SetLogicListener */
+
+class BeforeSearchListener : public Listener {
+ public:
+  BeforeSearchListener(SmtEngine& smt) : d_smt(&smt) {}
+  virtual void notify() {
+    d_smt->beforeSearch();
+  }
+ private:
+  SmtEngine* d_smt;
+}; /* class BeforeSearchListener */
+
+class UseTheoryListListener : public Listener {
+ public:
+  UseTheoryListListener(TheoryEngine* theoryEngine)
+      : d_theoryEngine(theoryEngine)
+  {}
+
+  void notify() {
+    std::stringstream commaList(options::useTheoryList());
+    std::string token;
+
+    Debug("UseTheoryListListener") << "UseTheoryListListener::notify() "
+                                   << options::useTheoryList() << std::endl;
+
+    while(std::getline(commaList, token, ',')){
+      if(token == "help") {
+        puts(theory::useTheoryHelp);
+        exit(1);
+      }
+      if(theory::useTheoryValidate(token)) {
+        d_theoryEngine->enableTheoryAlternative(token);
+      } else {
+        throw OptionException(
+            std::string("unknown option for --use-theory : `") + token +
+            "'.  Try --use-theory=help.");
+      }
+    }
+  }
+
+ private:
+  TheoryEngine* d_theoryEngine;
+}; /* class UseTheoryListListener */
+
+
+class SetDefaultExprDepthListener : public Listener {
+ public:
+  virtual void notify() {
+    int depth = options::defaultExprDepth();
+    Debug.getStream() << expr::ExprSetDepth(depth);
+    Trace.getStream() << expr::ExprSetDepth(depth);
+    Notice.getStream() << expr::ExprSetDepth(depth);
+    Chat.getStream() << expr::ExprSetDepth(depth);
+    Message.getStream() << expr::ExprSetDepth(depth);
+    Warning.getStream() << expr::ExprSetDepth(depth);
+    // intentionally exclude Dump stream from this list
+  }
+};
+
+class SetDefaultExprDagListener : public Listener {
+ public:
+  virtual void notify() {
+    int dag = options::defaultDagThresh();
+    Debug.getStream() << expr::ExprDag(dag);
+    Trace.getStream() << expr::ExprDag(dag);
+    Notice.getStream() << expr::ExprDag(dag);
+    Chat.getStream() << expr::ExprDag(dag);
+    Message.getStream() << expr::ExprDag(dag);
+    Warning.getStream() << expr::ExprDag(dag);
+    Dump.getStream() << expr::ExprDag(dag);
+  }
+};
+
+class SetPrintExprTypesListener : public Listener {
+ public:
+  virtual void notify() {
+    bool value = options::printExprTypes();
+    Debug.getStream() << expr::ExprPrintTypes(value);
+    Trace.getStream() << expr::ExprPrintTypes(value);
+    Notice.getStream() << expr::ExprPrintTypes(value);
+    Chat.getStream() << expr::ExprPrintTypes(value);
+    Message.getStream() << expr::ExprPrintTypes(value);
+    Warning.getStream() << expr::ExprPrintTypes(value);
+    // intentionally exclude Dump stream from this list
+  }
+};
+
+class DumpModeListener : public Listener {
+ public:
+  virtual void notify() {
+    const std::string& value = options::dumpModeString();
+    Dump.setDumpFromString(value);
+  }
+};
+
+class PrintSuccessListener : public Listener {
+ public:
+  virtual void notify() {
+    bool value = options::printSuccess();
+    Debug.getStream() << Command::printsuccess(value);
+    Trace.getStream() << Command::printsuccess(value);
+    Notice.getStream() << Command::printsuccess(value);
+    Chat.getStream() << Command::printsuccess(value);
+    Message.getStream() << Command::printsuccess(value);
+    Warning.getStream() << Command::printsuccess(value);
+    *options::out() << Command::printsuccess(value);
+  }
+};
+
+
 
 /**
  * This is an inelegant solution, but for the present, it will work.
@@ -340,20 +460,38 @@ class HardResourceOutListener : public Listener {
 class SmtEnginePrivate : public NodeManagerListener {
   SmtEngine& d_smt;
 
+  typedef hash_map<Node, Node, NodeHashFunction> NodeToNodeHashMap;
+  typedef hash_map<Node, bool, NodeHashFunction> NodeToBoolHashMap;
+
   /**
    * Manager for limiting time and abstract resource usage.
    */
   ResourceManager* d_resourceManager;
 
-  /**
-   * Listener for the when a soft resource out occurs.
-   */
-  RegisterListener* d_softResourceOutListener;
+  /** Manager for the memory of regular-output-channel. */
+  ManagedRegularOutputChannel d_managedRegularChannel;
+
+  /** Manager for the memory of diagnostic-output-channel. */
+  ManagedDiagnosticOutputChannel d_managedDiagnosticChannel;
+
+  /** Manager for the memory of --dump-to. */
+  ManagedDumpOStream d_managedDumpChannel;
+
+  /** Manager for --replay-log. */
+  ManagedReplayLogOstream d_managedReplayLog;
 
   /**
-   * Listener for the when a hard resource out occurs.
+   * This list contains:
+   *  softResourceOut
+   *  hardResourceOut
+   *  setForceLogic
+   *  beforeSearchListener
+   *  UseTheoryListListener
+   *
+   * This needs to be deleted before both NodeManager's Options,
+   * SmtEngine, d_resourceManager, and TheoryEngine.
    */
-  RegisterListener* d_hardResourceOutListener;
+  ListenerRegistrationList* d_listenerRegistrations;
 
   /** Learned literals */
   vector<Node> d_nonClausalLearnedLiterals;
@@ -399,7 +537,7 @@ class SmtEnginePrivate : public NodeManagerListener {
    * same AbstractValues for the same real constants.  Only used if
    * options::abstractValues() is on.
    */
-  hash_map<Node, Node, NodeHashFunction> d_abstractValues;
+  NodeToNodeHashMap d_abstractValues;
 
   /** Number of calls of simplify assertions active.
    */
@@ -442,18 +580,20 @@ private:
    */
   void removeITEs();
 
-  Node intToBV(TNode n, std::hash_map<Node, Node, NodeHashFunction>& cache);
-  Node intToBVMakeBinary(TNode n, std::hash_map<Node, Node, NodeHashFunction>& cache);
+  Node intToBV(TNode n, NodeToNodeHashMap& cache);
+  Node intToBVMakeBinary(TNode n, NodeToNodeHashMap& cache);
 
   /**
-   * Helper function to fix up assertion list to restore invariants needed after ite removal
+   * Helper function to fix up assertion list to restore invariants needed after
+   * ite removal.
    */
-  void collectSkolems(TNode n, set<TNode>& skolemSet, hash_map<Node, bool, NodeHashFunction>& cache);
+  void collectSkolems(TNode n, set<TNode>& skolemSet, NodeToBoolHashMap& cache);
 
   /**
-   * Helper function to fix up assertion list to restore invariants needed after ite removal
+   * Helper function to fix up assertion list to restore invariants needed after
+   * ite removal.
    */
-  bool checkForBadSkolems(TNode n, TNode skolem, hash_map<Node, bool, NodeHashFunction>& cache);
+  bool checkForBadSkolems(TNode n, TNode skolem, NodeToBoolHashMap& cache);
 
   // Lift bit-vectors of size 1 to booleans
   void bvToBool();
@@ -468,8 +608,10 @@ private:
   // Simplify based on unconstrained values
   void unconstrainedSimp();
 
-  // Ensures the assertions asserted after before now
-  // effectively come before d_realAssertionsEnd
+  /**
+   * Ensures the assertions asserted after before now effectively come before
+   * d_realAssertionsEnd.
+   */
   void compressBeforeRealAssertions(size_t before);
 
   /**
@@ -480,12 +622,21 @@ private:
   void constrainSubtypes(TNode n, AssertionPipeline& assertions)
     throw();
 
-  // trace nodes back to their assertions using CircuitPropagator's BackEdgesMap
-  void traceBackToAssertions(const std::vector<Node>& nodes, std::vector<TNode>& assertions);
-  // remove conjuncts in toRemove from conjunction n; return # of removed conjuncts
-  size_t removeFromConjunction(Node& n, const std::hash_set<unsigned long>& toRemove);
+  /**
+   * Trace nodes back to their assertions using CircuitPropagator's
+   * BackEdgesMap.
+   */
+  void traceBackToAssertions(const std::vector<Node>& nodes,
+                             std::vector<TNode>& assertions);
 
-  // scrub miplib encodings
+  /**
+   * Remove conjuncts in toRemove from conjunction n. Return # of removed
+   * conjuncts.
+   */
+  size_t removeFromConjunction(Node& n,
+                               const std::hash_set<unsigned long>& toRemove);
+
+  /** Scrub miplib encodings. */
   void doMiplibTrick();
 
   /**
@@ -495,15 +646,18 @@ private:
    *
    * Returns false if the formula simplifies to "false"
    */
-  bool simplifyAssertions() throw(TypeCheckingException, LogicException, UnsafeInterruptException);
+  bool simplifyAssertions() throw(TypeCheckingException, LogicException,
+                                  UnsafeInterruptException);
 
 public:
 
   SmtEnginePrivate(SmtEngine& smt) :
     d_smt(smt),
-    d_resourceManager(NULL),
-    d_softResourceOutListener(NULL),
-    d_hardResourceOutListener(NULL),
+    d_managedRegularChannel(),
+    d_managedDiagnosticChannel(),
+    d_managedDumpChannel(),
+    d_managedReplayLog(),
+    d_listenerRegistrations(new ListenerRegistrationList()),
     d_nonClausalLearnedLiterals(),
     d_realAssertionsEnd(0),
     d_booleanTermConverter(NULL),
@@ -525,21 +679,59 @@ public:
     d_true = NodeManager::currentNM()->mkConst(true);
     d_resourceManager = NodeManager::currentResourceManager();
 
-    d_softResourceOutListener = new RegisterListener(
-        d_resourceManager->getSoftListeners(),
-        new SoftResourceOutListener(d_smt));
+    d_listenerRegistrations->add(d_resourceManager->registerSoftListener(
+        new SoftResourceOutListener(d_smt)));
 
-    d_hardResourceOutListener = new RegisterListener(
-        d_resourceManager->getHardListeners(),
-        new HardResourceOutListener(d_smt));
+    d_listenerRegistrations->add(d_resourceManager->registerHardListener(
+        new HardResourceOutListener(d_smt)));
 
+    Options& nodeManagerOptions = NodeManager::currentNM()->getOptions();
+    d_listenerRegistrations->add(
+        nodeManagerOptions.registerForceLogicListener(
+            new SetLogicListener(d_smt), true));
+
+    // Multiple options reuse BeforeSearchListener so registration requires an
+    // extra bit of care.
+    // We can safely not call notify on this before search listener at
+    // registration time. This d_smt cannot be beforeSearch at construction
+    // time. Therefore the BeforeSearchListener is a no-op. Therefore it does
+    // not have to be called.
+    d_listenerRegistrations->add(
+        nodeManagerOptions.registerBeforeSearchListener(
+            new BeforeSearchListener(d_smt)));
+
+    // These do need registration calls.
+    d_listenerRegistrations->add(
+        nodeManagerOptions.registerSetDefaultExprDepthListener(
+            new SetDefaultExprDepthListener(), true));
+    d_listenerRegistrations->add(
+        nodeManagerOptions.registerSetDefaultExprDagListener(
+            new SetDefaultExprDagListener(), true));
+    d_listenerRegistrations->add(
+        nodeManagerOptions.registerSetPrintExprTypesListener(
+            new SetPrintExprTypesListener(), true));
+    d_listenerRegistrations->add(
+        nodeManagerOptions.registerSetDumpModeListener(
+            new DumpModeListener(), true));
+    d_listenerRegistrations->add(
+        nodeManagerOptions.registerSetPrintSuccessListener(
+            new PrintSuccessListener(), true));
+    d_listenerRegistrations->add(
+        nodeManagerOptions.registerSetRegularOutputChannelListener(
+            new SetToDefaultSourceListener(&d_managedRegularChannel), true));
+    d_listenerRegistrations->add(
+        nodeManagerOptions.registerSetDiagnosticOutputChannelListener(
+            new SetToDefaultSourceListener(&d_managedDiagnosticChannel), true));
+    d_listenerRegistrations->add(
+        nodeManagerOptions.registerDumpToFileNameListener(
+            new SetToDefaultSourceListener(&d_managedDumpChannel), true));
+    d_listenerRegistrations->add(
+        nodeManagerOptions.registerSetReplayLogFilename(
+            new SetToDefaultSourceListener(&d_managedReplayLog), true));
   }
 
   ~SmtEnginePrivate() throw() {
-    delete d_hardResourceOutListener;
-    d_hardResourceOutListener = NULL;
-    delete d_softResourceOutListener;
-    d_softResourceOutListener = NULL;
+    delete d_listenerRegistrations;
 
     if(d_propagatorNeedsFinish) {
       d_propagator.finish();
@@ -642,11 +834,10 @@ public:
   void addFormula(TNode n, bool inUnsatCore, bool inInput = true)
     throw(TypeCheckingException, LogicException);
 
-  /**
-   * Expand definitions in n.
-   */
-  Node expandDefinitions(TNode n, hash_map<Node, Node, NodeHashFunction>& cache, bool expandOnly = false)
-    throw(TypeCheckingException, LogicException, UnsafeInterruptException);
+  /** Expand definitions in n. */
+  Node expandDefinitions(TNode n, NodeToNodeHashMap& cache,
+                         bool expandOnly = false)
+      throw(TypeCheckingException, LogicException, UnsafeInterruptException);
 
   /**
    * Rewrite Boolean terms in a Node.
@@ -660,7 +851,7 @@ public:
   Node simplify(TNode in) {
     // Substitute out any abstract values in ex.
     // Expand definitions.
-    hash_map<Node, Node, NodeHashFunction> cache;
+    NodeToNodeHashMap cache;
     Node n = expandDefinitions(in, cache).toExpr();
     // Make sure we've done all preprocessing, etc.
     Assert(d_assertions.size() == 0);
@@ -689,24 +880,33 @@ public:
       d_abstractValueMap.addSubstitution(val, n);
     }
     // We are supposed to ascribe types to all abstract values that go out.
-    Node retval = d_smt.d_nodeManager->mkNode(kind::APPLY_TYPE_ASCRIPTION, d_smt.d_nodeManager->mkConst(AscriptionType(n.getType().toType())), val);
+    NodeManager* current = d_smt.d_nodeManager;
+    Node ascription = current->mkConst(AscriptionType(n.getType().toType()));
+    Node retval = current->mkNode(kind::APPLY_TYPE_ASCRIPTION, ascription, val);
     return retval;
   }
 
-  std::hash_map<Node, Node, NodeHashFunction> rewriteApplyToConstCache;
+  NodeToNodeHashMap d_rewriteApplyToConstCache;
   Node rewriteApplyToConst(TNode n) {
     Trace("rewriteApplyToConst") << "rewriteApplyToConst :: " << n << std::endl;
 
-    if(n.getMetaKind() == kind::metakind::CONSTANT || n.getMetaKind() == kind::metakind::VARIABLE) {
+    if(n.getMetaKind() == kind::metakind::CONSTANT ||
+       n.getMetaKind() == kind::metakind::VARIABLE)
+    {
       return n;
     }
 
-    if(rewriteApplyToConstCache.find(n) != rewriteApplyToConstCache.end()) {
-      Trace("rewriteApplyToConst") << "in cache :: " << rewriteApplyToConstCache[n] << std::endl;
-      return rewriteApplyToConstCache[n];
+    if(d_rewriteApplyToConstCache.find(n) != d_rewriteApplyToConstCache.end()) {
+      Trace("rewriteApplyToConst") << "in cache :: "
+                                   << d_rewriteApplyToConstCache[n]
+                                   << std::endl;
+      return d_rewriteApplyToConstCache[n];
     }
+
     if(n.getKind() == kind::APPLY_UF) {
-      if(n.getNumChildren() == 1 && n[0].isConst() && n[0].getType().isInteger()) {
+      if(n.getNumChildren() == 1 && n[0].isConst() &&
+         n[0].getType().isInteger())
+      {
         stringstream ss;
         ss << n.getOperator() << "_";
         if(n[0].getConst<Rational>() < 0) {
@@ -714,15 +914,19 @@ public:
         } else {
           ss << n[0];
         }
-        Node newvar = NodeManager::currentNM()->mkSkolem(ss.str(), n.getType(), "rewriteApplyToConst skolem", NodeManager::SKOLEM_EXACT_NAME);
-        rewriteApplyToConstCache[n] = newvar;
+        Node newvar = NodeManager::currentNM()->mkSkolem(
+            ss.str(), n.getType(), "rewriteApplyToConst skolem",
+            NodeManager::SKOLEM_EXACT_NAME);
+        d_rewriteApplyToConstCache[n] = newvar;
         Trace("rewriteApplyToConst") << "made :: " << newvar << std::endl;
         return newvar;
       } else {
         stringstream ss;
-        ss << "The rewrite-apply-to-const preprocessor is currently limited;\n"
-           << "it only works if all function symbols are unary and with Integer\n"
-           << "domain, and all applications are to integer values.\n"
+        ss << "The rewrite-apply-to-const preprocessor is currently limited;"
+           << std::endl
+           << "it only works if all function symbols are unary and with Integer"
+           << std::endl
+           << "domain, and all applications are to integer values." << std::endl
            << "Found application: " << n;
         Unhandled(ss.str());
       }
@@ -736,11 +940,21 @@ public:
       builder << rewriteApplyToConst(n[i]);
     }
     Node rewr = builder;
-    rewriteApplyToConstCache[n] = rewr;
+    d_rewriteApplyToConstCache[n] = rewr;
     Trace("rewriteApplyToConst") << "built :: " << rewr << std::endl;
     return rewr;
   }
 
+  void addUseTheoryListListener(TheoryEngine* theoryEngine){
+    Options& nodeManagerOptions = NodeManager::currentNM()->getOptions();
+    d_listenerRegistrations->add(
+        nodeManagerOptions.registerUseTheoryListListener(
+            new UseTheoryListListener(theoryEngine), true));
+  }
+
+  std::ostream* getReplayLog() const {
+    return d_managedReplayLog.getReplayLog();
+  }
 };/* class SmtEnginePrivate */
 
 }/* namespace CVC4::smt */
@@ -765,7 +979,7 @@ SmtEngine::SmtEngine(ExprManager* em) throw() :
   d_dumpCommands(),
   d_defineCommands(),
   d_logic(),
-  d_originalOptions(em->getOptions()),
+  d_originalOptions(),
   d_pendingPops(0),
   d_fullyInited(false),
   d_problemExtended(false),
@@ -773,15 +987,15 @@ SmtEngine::SmtEngine(ExprManager* em) throw() :
   d_needPostsolve(false),
   d_earlyTheoryPP(true),
   d_status(),
-  d_optionsHandler(new SmtOptionsHandler(this)),
+  d_replayStream(NULL),
   d_private(NULL),
   d_smtAttributes(NULL),
   d_statisticsRegistry(NULL),
   d_stats(NULL),
-  d_globals(new SmtGlobals())
+  d_channels(new LemmaChannels())
 {
-
   SmtScope smts(this);
+  d_originalOptions.copyValues(em->getOptions());
   d_smtAttributes = new expr::attr::SmtAttributes(d_context);
   d_private = new smt::SmtEnginePrivate(*this);
   d_statisticsRegistry = new StatisticsRegistry();
@@ -800,7 +1014,7 @@ SmtEngine::SmtEngine(ExprManager* em) throw() :
   d_theoryEngine = new TheoryEngine(d_context, d_userContext,
                                     d_private->d_iteRemover,
                                     const_cast<const LogicInfo&>(d_logic),
-                                    d_globals);
+                                    d_channels);
 
   // Add the theories
   for(TheoryId id = theory::THEORY_FIRST; id < theory::THEORY_LAST; ++id) {
@@ -808,6 +1022,8 @@ SmtEngine::SmtEngine(ExprManager* em) throw() :
     //register with proof engine if applicable
     THEORY_PROOF(ProofManager::currentPM()->getTheoryProofEngine()->registerTheory(d_theoryEngine->theoryOf(id)); );
   }
+
+  d_private->addUseTheoryListListener(d_theoryEngine);
 
   // global push/pop around everything, to ensure proper destruction
   // of context-dependent data structures
@@ -830,7 +1046,8 @@ void SmtEngine::finishInit() {
   d_decisionEngine->init();   // enable appropriate strategies
 
   d_propEngine = new PropEngine(d_theoryEngine, d_decisionEngine, d_context,
-                                d_userContext, d_globals);
+                                d_userContext, d_private->getReplayLog(),
+                                d_replayStream, d_channels);
 
   d_theoryEngine->setPropEngine(d_propEngine);
   d_theoryEngine->setDecisionEngine(d_decisionEngine);
@@ -959,9 +1176,6 @@ SmtEngine::~SmtEngine() throw() {
     delete d_statisticsRegistry;
     d_statisticsRegistry = NULL;
 
-    delete d_optionsHandler;
-    d_optionsHandler = NULL;
-
     delete d_private;
     d_private = NULL;
 
@@ -973,8 +1187,8 @@ SmtEngine::~SmtEngine() throw() {
     delete d_context;
     d_context = NULL;
 
-    delete d_globals;
-    d_globals = NULL;
+    delete d_channels;
+    d_channels = NULL;
 
   } catch(Exception& e) {
     Warning() << "CVC4 threw an exception during cleanup." << endl
@@ -985,13 +1199,15 @@ SmtEngine::~SmtEngine() throw() {
 void SmtEngine::setLogic(const LogicInfo& logic) throw(ModalException) {
   SmtScope smts(this);
   if(d_fullyInited) {
-    throw ModalException("Cannot set logic in SmtEngine after the engine has finished initializing");
+    throw ModalException("Cannot set logic in SmtEngine after the engine has "
+                         "finished initializing.");
   }
   d_logic = logic;
   setLogicInternal();
 }
 
-void SmtEngine::setLogic(const std::string& s) throw(ModalException, LogicException) {
+void SmtEngine::setLogic(const std::string& s)
+    throw(ModalException, LogicException) {
   SmtScope smts(this);
   try {
     setLogic(LogicInfo(s));
@@ -1000,7 +1216,8 @@ void SmtEngine::setLogic(const std::string& s) throw(ModalException, LogicExcept
   }
 }
 
-void SmtEngine::setLogic(const char* logic) throw(ModalException, LogicException) {
+void SmtEngine::setLogic(const char* logic)
+    throw(ModalException, LogicException) {
   setLogic(string(logic));
 }
 
@@ -1009,13 +1226,14 @@ LogicInfo SmtEngine::getLogicInfo() const {
 }
 
 void SmtEngine::setLogicInternal() throw() {
-  Assert(!d_fullyInited, "setting logic in SmtEngine but the engine has already finished initializing for this run");
+  Assert(!d_fullyInited, "setting logic in SmtEngine but the engine has already"
+         " finished initializing for this run");
   d_logic.lock();
 }
 
 void SmtEngine::setDefaults() {
-  if(options::forceLogic.wasSetByUser()) {
-    d_logic = *(options::forceLogic());
+  if(options::forceLogicString.wasSetByUser()) {
+    d_logic = LogicInfo(options::forceLogicString());
   }
   else if (options::solveIntAsBV() > 0) {
     d_logic = LogicInfo("QF_BV");
@@ -1039,11 +1257,13 @@ void SmtEngine::setDefaults() {
       d_logic = d_logic.getUnlockedCopy();
       d_logic.enableQuantifiers();
       d_logic.lock();
-      Trace("smt") << "turning on quantifier logic, for strings-exp" << std::endl;
+      Trace("smt") << "turning on quantifier logic, for strings-exp"
+                   << std::endl;
     }
     if(! options::finiteModelFind.wasSetByUser()) {
       options::finiteModelFind.set( true );
-      Trace("smt") << "turning on finite-model-find, for strings-exp" << std::endl;
+      Trace("smt") << "turning on finite-model-find, for strings-exp"
+                   << std::endl;
     }
     if(! options::fmfBoundInt.wasSetByUser()) {
       if(! options::fmfBoundIntLazy.wasSetByUser()) {
@@ -1067,7 +1287,8 @@ void SmtEngine::setDefaults() {
 
   if(options::checkModels()) {
     if(! options::produceAssertions()) {
-      Notice() << "SmtEngine: turning on produce-assertions to support check-models" << endl;
+      Notice() << "SmtEngine: turning on produce-assertions to support "
+               << "check-models." << endl;
       setOption("produce-assertions", SExpr("true"));
     }
   }
@@ -1077,7 +1298,8 @@ void SmtEngine::setDefaults() {
       if(options::simplificationMode.wasSetByUser()) {
         throw OptionException("simplification not supported with unsat cores");
       }
-      Notice() << "SmtEngine: turning off simplification to support unsat-cores" << endl;
+      Notice() << "SmtEngine: turning off simplification to support unsat-cores"
+               << endl;
       options::simplificationMode.set(SIMPLIFICATION_MODE_NONE);
     }
 
@@ -4923,9 +5145,10 @@ void SmtEngine::reset() throw() {
   if(Dump.isOn("benchmark")) {
     Dump("benchmark") << ResetCommand();
   }
-  Options opts = d_originalOptions;
+  Options opts;
+  opts.copyValues(d_originalOptions);
   this->~SmtEngine();
-  NodeManager::fromExprManager(em)->getOptions() = opts;
+  NodeManager::fromExprManager(em)->getOptions().copyValues(opts);
   new(this) SmtEngine(em);
 }
 
@@ -5022,11 +5245,10 @@ void SmtEngine::setPrintFuncInModel(Expr f, bool p) {
 
 
 
-void SmtEngine::beforeSearch(SmtEngine* smt, const std::string& option) throw(ModalException) {
-  if(smt != NULL && smt->d_fullyInited) {
-    std::stringstream ss;
-    ss << "cannot change option `" << option << "' after final initialization (i.e., after logic has been set)";
-    throw ModalException(ss.str());
+void SmtEngine::beforeSearch() throw(ModalException) {
+  if(d_fullyInited) {
+    throw ModalException(
+        "SmtEngine::beforeSearch called after initialization.");
   }
 }
 
@@ -5064,8 +5286,8 @@ void SmtEngine::setOption(const std::string& key, const CVC4::SExpr& value)
   }
 
   string optionarg = value.getValue();
-
-  d_optionsHandler->setOption(key, optionarg);
+  Options& nodeManagerOptions = NodeManager::currentNM()->getOptions();
+  nodeManagerOptions.setOption(key, optionarg);
 }
 
 CVC4::SExpr SmtEngine::getOption(const std::string& key) const
@@ -5121,7 +5343,14 @@ CVC4::SExpr SmtEngine::getOption(const std::string& key) const
     return SExpr(result);
   }
 
-  return SExpr::parseAtom(d_optionsHandler->getOption(key));
+  Options& nodeManagerOptions = NodeManager::currentNM()->getOptions();
+  return SExpr::parseAtom(nodeManagerOptions.getOption(key));
+}
+
+void SmtEngine::setReplayStream(ExprStream* replayStream) {
+  AlwaysAssert(!d_fullyInited,
+               "Cannot set replay stream once fully initialized");
+  d_replayStream = replayStream;
 }
 
 }/* CVC4 namespace */

@@ -25,7 +25,6 @@
 #include "expr/expr.h"
 #include "expr/expr_iomanip.h"
 #include "options/language.h"
-#include "options/base_options.h"
 #include "options/options.h"
 #include "options/set_language.h"
 #include "parser/parser.h"
@@ -36,7 +35,6 @@
 using namespace std;
 using namespace CVC4;
 using namespace CVC4::parser;
-using namespace CVC4::options;
 using namespace CVC4::theory;
 
 int main(int argc, char* argv[])
@@ -47,7 +45,7 @@ int main(int argc, char* argv[])
 
   // Create the expression manager
   Options options;
-  options.set(inputLanguage, language::input::LANG_SMTLIB_V2);
+  options.setInputLanguage(language::input::LANG_SMTLIB_V2);
   ExprManager exprManager(options);
 
   cout << language::SetLanguage(language::output::LANG_SMTLIB_V2)

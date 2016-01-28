@@ -212,11 +212,12 @@ public:
   bool off(std::string tag) { d_tags.erase (tag); return false; }
   bool off()                { d_tags.clear(); return false; }
 
-  bool isOn(const char* tag) { return d_tags.find(std::string(tag)) != d_tags.end(); }
+ bool isOn(const char* tag) { return d_tags.find(std::string(tag)) != d_tags.end(); }
   bool isOn(std::string tag) { return d_tags.find(tag) != d_tags.end(); }
 
-  std::ostream& setStream(std::ostream& os) { d_os = &os; return os; }
+  std::ostream& setStream(std::ostream* os) { d_os = os; return *os; }
   std::ostream& getStream() { return *d_os; }
+  std::ostream* getStreamPointer() { return d_os; }
 };/* class DebugC */
 
 /** The warning output class */
@@ -231,8 +232,9 @@ public:
 
   CVC4ostream operator()() { return CVC4ostream(d_os); }
 
-  std::ostream& setStream(std::ostream& os) { d_os = &os; return os; }
+  std::ostream& setStream(std::ostream* os) { d_os = os; return *d_os; }
   std::ostream& getStream() { return *d_os; }
+  std::ostream* getStreamPointer() { return d_os; }
 
   bool isOn() const { return d_os != &null_os; }
 
@@ -264,8 +266,9 @@ public:
 
   CVC4ostream operator()() { return CVC4ostream(d_os); }
 
-  std::ostream& setStream(std::ostream& os) { d_os = &os; return os; }
+  std::ostream& setStream(std::ostream* os) { d_os = os; return *d_os; }
   std::ostream& getStream() { return *d_os; }
+  std::ostream* getStreamPointer() { return d_os; }
 
   bool isOn() const { return d_os != &null_os; }
 };/* class MessageC */
@@ -281,8 +284,9 @@ public:
 
   CVC4ostream operator()() { return CVC4ostream(d_os); }
 
-  std::ostream& setStream(std::ostream& os) { d_os = &os; return os; }
+  std::ostream& setStream(std::ostream* os) { d_os = os; return *d_os; }
   std::ostream& getStream() { return *d_os; }
+  std::ostream* getStreamPointer() { return d_os; }
 
   bool isOn() const { return d_os != &null_os; }
 };/* class NoticeC */
@@ -298,8 +302,9 @@ public:
 
   CVC4ostream operator()() { return CVC4ostream(d_os); }
 
-  std::ostream& setStream(std::ostream& os) { d_os = &os; return os; }
+  std::ostream& setStream(std::ostream* os) { d_os = os; return *d_os; }
   std::ostream& getStream() { return *d_os; }
+  std::ostream* getStreamPointer() { return d_os; }
 
   bool isOn() const { return d_os != &null_os; }
 };/* class ChatC */
@@ -340,8 +345,10 @@ public:
   bool isOn(const char* tag) { return d_tags.find(std::string(tag)) != d_tags.end(); }
   bool isOn(std::string tag) { return d_tags.find(tag) != d_tags.end(); }
 
-  std::ostream& setStream(std::ostream& os) { d_os = &os; return os; }
+  std::ostream& setStream(std::ostream* os) { d_os = os; return *d_os; }
   std::ostream& getStream() { return *d_os; }
+  std::ostream* getStreamPointer() { return d_os; }
+
 };/* class TraceC */
 
 /** The dump output class */
@@ -385,8 +392,9 @@ public:
   bool isOn(const char* tag) { return d_tags.find(std::string(tag)) != d_tags.end(); }
   bool isOn(std::string tag) { return d_tags.find(tag) != d_tags.end(); }
 
-  std::ostream& setStream(std::ostream& os) { d_os = &os; return os; }
+  std::ostream& setStream(std::ostream* os) { d_os = os; return *d_os; }
   std::ostream& getStream() { return *d_os; }
+  std::ostream* getStreamPointer() { return d_os; }
 };/* class DumpOutC */
 
 /** The debug output singleton */

@@ -19,45 +19,68 @@
 #include <cassert>
 #include <vector>
 
-#include "options/base_options.h"
-#include "options/main_options.h"
 #include "options/options.h"
-#include "options/prop_options.h"
-#include "options/smt_options.h"
-#include "smt/smt_options_handler.h"
 
 using namespace std;
 
 namespace CVC4 {
 
-vector<Options> parseThreadSpecificOptions(Options opts)
+OptionsList::OptionsList() : d_options() {}
+
+OptionsList::~OptionsList(){
+  for(std::vector<Options*>::iterator i = d_options.begin(),
+          iend = d_options.end(); i != iend; ++i)
+  {
+    Options* current = *i;
+    delete current;
+  }
+  d_options.clear();
+}
+
+void OptionsList::push_back_copy(const Options& opts) {
+  Options* copy = new Options;
+  copy->copyValues(opts);
+  d_options.push_back(copy);
+}
+
+Options& OptionsList::operator[](size_t position){
+  return *(d_options[position]);
+}
+
+const Options& OptionsList::operator[](size_t position) const {
+  return *(d_options[position]);
+}
+
+Options& OptionsList::back() {
+  return *(d_options.back());
+}
+
+size_t OptionsList::size() const {
+  return d_options.size();
+}
+
+void parseThreadSpecificOptions(OptionsList& threadOptions, const Options& opts)
 {
-  vector<Options> threadOptions;
 
-#warning "TODO: Check that the SmtEngine pointer should be NULL with Kshitij."
-  smt::SmtOptionsHandler optionsHandler(NULL);
-
-  unsigned numThreads = opts[options::threads];
+  unsigned numThreads = opts.getThreads();
 
   for(unsigned i = 0; i < numThreads; ++i) {
-    threadOptions.push_back(opts);
+    threadOptions.push_back_copy(opts);
     Options& tOpts = threadOptions.back();
 
     // Set thread identifier
-    tOpts.set(options::thread_id, i);
-
-    if(i < opts[options::threadArgv].size() &&
-       !opts[options::threadArgv][i].empty()) {
-
+    tOpts.setThreadId(i);
+    const std::vector<std::string>& optThreadArgvs = opts.getThreadArgv();
+    if(i < optThreadArgvs.size() && (! optThreadArgvs[i].empty())) {
       // separate out the thread's individual configuration string
       stringstream optidss;
       optidss << "--thread" << i;
       string optid = optidss.str();
       int targc = 1;
-      char* tbuf = strdup(opts[options::threadArgv][i].c_str());
+      char* tbuf = strdup(optThreadArgvs[i].c_str());
       char* p = tbuf;
       // string length is certainly an upper bound on size needed
-      char** targv = new char*[opts[options::threadArgv][i].size()];
+      char** targv = new char*[optThreadArgvs[i].size()];
       char** vp = targv;
       *vp++ = strdup(optid.c_str());
       p = strtok(p, " ");
@@ -69,7 +92,7 @@ vector<Options> parseThreadSpecificOptions(Options opts)
       *vp++ = NULL;
       if(targc > 1) { // this is necessary in case you do e.g. --thread0="  "
         try {
-          tOpts.parseOptions(targc, targv, &optionsHandler);
+          tOpts.parseOptions(targc, targv);
         } catch(OptionException& e) {
           stringstream ss;
           ss << optid << ": " << e.getMessage();
@@ -81,8 +104,8 @@ vector<Options> parseThreadSpecificOptions(Options opts)
              << "' in thread configuration " << optid << " !";
           throw OptionException(ss.str());
         }
-        if(tOpts[options::threads] != numThreads
-           || tOpts[options::threadArgv] != opts[options::threadArgv]) {
+        if(tOpts.getThreads() != numThreads ||
+           tOpts.getThreadArgv() != opts.getThreadArgv()) {
           stringstream ss;
           ss << "not allowed to set thread options in " << optid << " !";
           throw OptionException(ss.str());
@@ -95,12 +118,10 @@ vector<Options> parseThreadSpecificOptions(Options opts)
   }
 
   assert(numThreads >= 1);      //do we need this?
-
-  return threadOptions;
 }
 
 void PortfolioLemmaOutputChannel::notifyNewLemma(Expr lemma) {
-  if(int(lemma.getNumChildren()) > options::sharingFilterByLength()) {
+  if(int(lemma.getNumChildren()) > Options::currentGetSharingFilterByLength()) {
     return;
   }
   ++cnt;
@@ -109,9 +130,9 @@ void PortfolioLemmaOutputChannel::notifyNewLemma(Expr lemma) {
   try {
     d_pickler.toPickle(lemma, pkl);
     d_sharedChannel->push(pkl);
-    if(Trace.isOn("showSharing") && options::thread_id() == 0) {
-      *options::out() << "thread #0: notifyNewLemma: " << lemma
-                      << std::endl;
+    if(Trace.isOn("showSharing") && Options::currentGetThreadId() == 0) {
+      (*(Options::currentGetOut()))
+          << "thread #0: notifyNewLemma: " << lemma << std::endl;
     }
   } catch(expr::pickle::PicklingException& p){
     Trace("sharing::blocked") << lemma << std::endl;
@@ -137,8 +158,8 @@ Expr PortfolioLemmaInputChannel::getNewLemma() {
   expr::pickle::Pickle pkl = d_sharedChannel->pop();
 
   Expr e = d_pickler.fromPickle(pkl);
-  if(Trace.isOn("showSharing") && options::thread_id() == 0) {
-    *options::out() << "thread #0: getNewLemma: " << e << std::endl;
+  if(Trace.isOn("showSharing") && Options::currentGetThreadId() == 0) {
+    (*Options::currentGetOut()) << "thread #0: getNewLemma: " << e << std::endl;
   }
   return e;
 }

@@ -29,7 +29,7 @@
  * ...
  * #endif
  *
- * The macro IS_PROOFS_BUILD is defined in util/configuration_private.h
+ * The macro IS_PROOFS_BUILD is defined in base/configuration_private.h
  *
  * This has the effect of forcing that location to have included this header
  * *before* performing this test. This includes C preprocessing expansion.
@@ -42,7 +42,7 @@
  * and should list the exceptions here:
  * - Makefile.am
  * - proof/proofs.h
- * - util/configuration_private.h
+ * - base/configuration_private.h
  */
 
 #ifdef CVC4_PROOF

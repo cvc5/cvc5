@@ -25,10 +25,10 @@
 #warning "TODO: Why is lfsc's check.h being included like this?"
 #include "check.h"
 
+#include "base/configuration_private.h"
 #include "base/cvc4_assert.h"
 #include "base/output.h"
 #include "smt/smt_engine.h"
-#include "util/configuration_private.h"
 #include "util/statistics_registry.h"
 
 using namespace CVC4;

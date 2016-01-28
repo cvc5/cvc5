@@ -55,9 +55,8 @@ const bool d_solveWrite2 = false;
 
 TheoryArrays::TheoryArrays(context::Context* c, context::UserContext* u,
                            OutputChannel& out, Valuation valuation,
-                           const LogicInfo& logicInfo, SmtGlobals* globals,
-                           std::string name)
-  : Theory(THEORY_ARRAY, c, u, out, valuation, logicInfo, globals, name),
+                           const LogicInfo& logicInfo, std::string name)
+    : Theory(THEORY_ARRAY, c, u, out, valuation, logicInfo, name),
       d_numRow(name + "theory::arrays::number of Row lemmas", 0),
       d_numExt(name + "theory::arrays::number of Ext lemmas", 0),
       d_numProp(name + "theory::arrays::number of propagations", 0),

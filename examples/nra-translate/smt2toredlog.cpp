@@ -23,7 +23,6 @@
 #include <vector>
 
 #include "expr/expr.h"
-#include "options/base_options.h"
 #include "options/options.h"
 #include "parser/parser.h"
 #include "parser/parser_builder.h"
@@ -40,22 +39,22 @@ void translate_to_redlog(
         string command,
         const vector<string>& info_tags,
         const vector<string>& info_data,
-	const map<Expr, unsigned>& variables, 
+	const map<Expr, unsigned>& variables,
 	const vector<Expr>& assertions);
 
-int main(int argc, char* argv[]) 
+int main(int argc, char* argv[])
 {
 
-  // Get the filename 
+  // Get the filename
   string input(argv[1]);
   // Get the redlog command
   string command(argv[2]);
 
   // Create the expression manager
   Options options;
-  options.set(inputLanguage, language::input::LANG_SMTLIB_V2);
+  options.setInputLanguage(language::input::LANG_SMTLIB_V2);
   ExprManager exprManager(options);
-  
+
   // Create the parser
   ParserBuilder parserBuilder(&exprManager, input, options);
   Parser* parser = parserBuilder.build();
@@ -169,14 +168,14 @@ void translate_to_redlog_term(const map<Expr, unsigned>& variables, const Expr& 
         assert(false);
         break;
     }
-  }  
+  }
 }
 
 void translate_to_redlog(const map<Expr, unsigned>& variables, const Expr& assertion) {
   bool first;
-  
+
   unsigned n = assertion.getNumChildren();
-  
+
   if (n == 0) {
     if (assertion.isConst()) {
       if (assertion.getConst<bool>()) {
@@ -188,13 +187,13 @@ void translate_to_redlog(const map<Expr, unsigned>& variables, const Expr& asser
       assert(false);
     }
   } else {
-    
+
     std::string op;
     bool binary = false;
     bool theory = false;
-    
+
     switch (assertion.getKind()) {
-      case kind::NOT: 
+      case kind::NOT:
         cout << "(not ";
         translate_to_redlog(variables, assertion[0]);
         cout << ")";
@@ -326,4 +325,3 @@ void translate_to_redlog(
   cout << "quit;" << endl;
 
 }
-

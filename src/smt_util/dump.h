@@ -75,6 +75,8 @@ class CVC4_PUBLIC DumpC {
   std::set<std::string> d_tags;
   CommandSequence d_commands;
 
+  static const std::string s_dumpHelp;
+
 public:
   CVC4dumpstream operator()(const char* tag) {
     if(!d_tags.empty() && d_tags.find(std::string(tag)) != d_tags.end()) {
@@ -83,6 +85,7 @@ public:
       return CVC4dumpstream();
     }
   }
+
   CVC4dumpstream operator()(std::string tag) {
     if(!d_tags.empty() && d_tags.find(tag) != d_tags.end()) {
       return CVC4dumpstream(getStream(), d_commands);
@@ -103,8 +106,11 @@ public:
   bool isOn(const char* tag) { return d_tags.find(std::string(tag)) != d_tags.end(); }
   bool isOn(std::string tag) { return d_tags.find(tag) != d_tags.end(); }
 
-  std::ostream& setStream(std::ostream& os) { DumpOut.setStream(os); return os; }
-  std::ostream& getStream() { return DumpOut.getStream(); }
+  std::ostream& setStream(std::ostream* os);
+  std::ostream& getStream();
+  std::ostream* getStreamPointer();
+
+  void setDumpFromString(const std::string& optarg);
 };/* class DumpC */
 
 /** The dump singleton */

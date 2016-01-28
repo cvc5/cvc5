@@ -36,18 +36,19 @@ namespace uf {
 /** Constructs a new instance of TheoryUF w.r.t. the provided context.*/
 TheoryUF::TheoryUF(context::Context* c, context::UserContext* u,
                    OutputChannel& out, Valuation valuation,
-                   const LogicInfo& logicInfo, SmtGlobals* globals, std::string name)
-    : Theory(THEORY_UF, c, u, out, valuation, logicInfo, globals, name),
+                   const LogicInfo& logicInfo, std::string instanceName)
+    : Theory(THEORY_UF, c, u, out, valuation, logicInfo, instanceName),
       d_notify(*this),
       /* The strong theory solver can be notified by EqualityEngine::init(),
        * so make sure it's initialized first. */
       d_thss(NULL),
-      d_equalityEngine(d_notify, c, name + "theory::uf::TheoryUF", true),
+      d_equalityEngine(d_notify, c, instanceName + "theory::uf::TheoryUF",
+                       true),
       d_conflict(c, false),
       d_literalsToPropagate(c),
       d_literalsToPropagateIndex(c, 0),
       d_functionsTerms(c),
-      d_symb(u, name)
+      d_symb(u, instanceName)
 {
   // The kinds we are treating as function application in congruence
   d_equalityEngine.addFunctionKind(kind::APPLY_UF);

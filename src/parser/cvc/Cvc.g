@@ -463,6 +463,10 @@ Expr addNots(ExprManager* em, size_t n, Expr e) {
 
 @lexer::includes {
 
+// This should come immediately after #include <antlr3.h> in the generated
+// files. See the documentation in "parser/antlr_undefines.h" for more details.
+#include "parser/antlr_undefines.h"
+
 /** This suppresses warnings about the redefinition of token symbols between different
   * parsers. The redefinitions should be harmless as long as no client: (a) #include's
   * the lexer headers for two grammars AND (b) uses the token symbol definitions. */
@@ -486,6 +490,10 @@ Expr addNots(ExprManager* em, size_t n, Expr e) {
 }/* @lexer::includes */
 
 @parser::includes {
+
+// This should come immediately after #include <antlr3.h> in the generated
+// files. See the documentation in "parser/antlr_undefines.h" for more details.
+#include "parser/antlr_undefines.h"
 
 #include <stdint.h>
 #include <cassert>

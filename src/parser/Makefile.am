@@ -37,25 +37,26 @@ libcvc4parser_la_LIBADD += \
 endif
 
 libcvc4parser_la_SOURCES = \
-	antlr_input.h \
 	antlr_input.cpp \
+	antlr_input.h \
 	antlr_input_imports.cpp \
-	antlr_line_buffered_input.h \
 	antlr_line_buffered_input.cpp \
-	bounded_token_buffer.h \
+	antlr_line_buffered_input.h \
+	antlr_tracing.h \
+	antlr_undefines.h \
 	bounded_token_buffer.cpp \
-	bounded_token_factory.h \
+	bounded_token_buffer.h \
 	bounded_token_factory.cpp \
-	input.h \
+	bounded_token_factory.h \
 	input.cpp \
-	memory_mapped_input_buffer.h \
+	input.h \
 	memory_mapped_input_buffer.cpp \
-	parser.h \
+	memory_mapped_input_buffer.h \
 	parser.cpp \
-	parser_builder.h \
+	parser.h \
 	parser_builder.cpp \
-	parser_exception.h \
-	antlr_tracing.h
+	parser_builder.h \
+	parser_exception.h
 
 EXTRA_DIST = \
 	Makefile.antlr_tracing \

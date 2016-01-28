@@ -22,19 +22,18 @@
 #include <stdio.h>
 #include <unistd.h>
 
+#include "base/configuration.h"
 #include "base/output.h"
 #include "expr/expr_manager.h"
 #include "main/command_executor.h"
 #include "main/interactive_shell.h"
-#include "options/base_options.h"
 #include "options/language.h"
-#include "options/main_options.h"
+#include "options/options.h"
 #include "parser/parser.h"
 #include "parser/parser_builder.h"
 #include "parser/parser_exception.h"
 #include "smt/smt_engine.h"
 #include "smt_util/command.h"
-#include "util/configuration.h"
 #include "util/result.h"
 #include "util/statistics.h"
 
@@ -56,24 +55,24 @@ int main(int argc, char* argv[]) {
     return runCvc4(argc, argv, opts);
   } catch(OptionException& e) {
 #ifdef CVC4_COMPETITION_MODE
-    *opts[options::out] << "unknown" << endl;
+    *opts.getOut() << "unknown" << endl;
 #endif
     cerr << "CVC4 Error:" << endl << e << endl << endl
          << "Please use --help to get help on command-line options."
          << endl;
   } catch(Exception& e) {
 #ifdef CVC4_COMPETITION_MODE
-    *opts[options::out] << "unknown" << endl;
+    *opts.getOut() << "unknown" << endl;
 #endif
-    if(opts[options::outputLanguage] == output::LANG_SMTLIB_V2_0 ||
-       opts[options::outputLanguage] == output::LANG_SMTLIB_V2_5) {
-      *opts[options::out] << "(error \"" << e << "\")" << endl;
+    if(opts.getOutputLanguage() == output::LANG_SMTLIB_V2_0 ||
+       opts.getOutputLanguage() == output::LANG_SMTLIB_V2_5) {
+      *opts.getOut() << "(error \"" << e << "\")" << endl;
     } else {
-      *opts[options::err] << "CVC4 Error:" << endl << e << endl;
+      *opts.getErr() << "CVC4 Error:" << endl << e << endl;
     }
-    if(opts[options::statistics] && pExecutor != NULL) {
+    if(opts.getStatistics() && pExecutor != NULL) {
       pTotalTime->stop();
-      pExecutor->flushStatistics(*opts[options::err]);
+      pExecutor->flushStatistics(*opts.getErr());
     }
   }
   exit(1);

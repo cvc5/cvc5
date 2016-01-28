@@ -24,7 +24,6 @@
 
 #include "expr/expr.h"
 #include "expr/expr_iomanip.h"
-#include "options/base_options.h"
 #include "options/options.h"
 #include "parser/parser.h"
 #include "parser/parser_builder.h"
@@ -36,20 +35,20 @@ using namespace CVC4;
 using namespace CVC4::parser;
 using namespace CVC4::options;
 
-int main(int argc, char* argv[]) 
+int main(int argc, char* argv[])
 {
 
-  // Get the filename 
+  // Get the filename
   string input(argv[1]);
 
   // Create the expression manager
   Options options;
-  options.set(inputLanguage, language::input::LANG_SMTLIB_V2);
-  options.set(outputLanguage, language::output::LANG_SMTLIB_V2);
+  options.setInputLanguage(language::input::LANG_SMTLIB_V2);
+  options.setOutputLanguage(language::output::LANG_SMTLIB_V2);
   ExprManager exprManager(options);
 
   cout << expr::ExprDag(0) << expr::ExprSetDepth(-1);
-  
+
   // Create the parser
   ParserBuilder parserBuilder(&exprManager, input, options);
   Parser* parser = parserBuilder.build();
@@ -82,5 +81,3 @@ int main(int argc, char* argv[])
   // Get rid of the parser
   delete parser;
 }
-
-

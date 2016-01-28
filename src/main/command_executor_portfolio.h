@@ -40,7 +40,7 @@ class CommandExecutorPortfolio : public CommandExecutor {
                                  // not too hard to support this changing
   std::vector<SmtEngine*> d_smts;
   CommandSequence* d_seq;
-  std::vector<Options>& d_threadOptions;
+  OptionsList& d_threadOptions;
   std::vector<ExprManagerMapCollection*> d_vmaps;
 
   int d_lastWinner;
@@ -57,7 +57,7 @@ class CommandExecutorPortfolio : public CommandExecutor {
 public:
   CommandExecutorPortfolio(ExprManager &exprMgr,
                            Options &options,
-                           std::vector<Options>& tOpts);
+                           OptionsList& tOpts);
 
   ~CommandExecutorPortfolio();
 

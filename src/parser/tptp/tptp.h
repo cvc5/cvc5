@@ -14,6 +14,8 @@
  ** Definitions of TPTP constants.
  **/
 
+#include "parser/antlr_input.h" // Needs to go first.
+
 #include "cvc4parser_private.h"
 
 #ifndef __CVC4__PARSER__TPTP_H
@@ -22,8 +24,6 @@
 #include <cassert>
 #include <ext/hash_set>
 
-#include "options/parser_options.h"
-#include "parser/antlr_input.h"
 #include "parser/parser.h"
 #include "smt_util/command.h"
 #include "util/hash.h"

@@ -17,6 +17,7 @@
 
 #include "base/cvc4_assert.h"
 #include "base/output.h"
+#include "options/smt_options.h"
 
 using namespace std;
 
@@ -180,9 +181,10 @@ void ResourceManager::spendResource(unsigned ammount) throw (UnsafeInterruptExce
   d_thisCallResourceUsed += ammount;
   if(out()) {
     Trace("limit") << "ResourceManager::spendResource: interrupt!" << std::endl;
-	Trace("limit") << "                 on call " << d_spendResourceCalls << std::endl;
+    Trace("limit") << "          on call " << d_spendResourceCalls << std::endl;
     if (outOfTime()) {
-      Trace("limit") << "ResourceManager::spendResource: elapsed time" << d_cumulativeTimer.elapsed() << std::endl;
+      Trace("limit") << "ResourceManager::spendResource: elapsed time"
+                     << d_cumulativeTimer.elapsed() << std::endl;
     }
 
     if (d_isHardLimit) {
@@ -281,12 +283,16 @@ void ResourceManager::enable(bool on) {
   d_on = on;
 }
 
-ListenerCollection* ResourceManager::getHardListeners() {
-  return &d_hardListeners;
+ListenerCollection::Registration* ResourceManager::registerHardListener(
+    Listener* listener)
+{
+  return d_hardListeners.registerListener(listener);
 }
 
-ListenerCollection* ResourceManager::getSoftListeners() {
-  return &d_softListeners;
+ListenerCollection::Registration* ResourceManager::registerSoftListener(
+    Listener* listener)
+{
+  return d_softListeners.registerListener(listener);
 }
 
 } /* namespace CVC4 */

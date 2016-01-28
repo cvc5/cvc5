@@ -25,9 +25,6 @@ libutil_la_SOURCES = \
 	cardinality.cpp \
 	cardinality.h \
 	channel.h \
-	configuration.cpp \
-	configuration.h \
-	configuration_private.h \
 	debug.h \
 	dense_map.h \
 	divisible.cpp \
@@ -81,7 +78,6 @@ EXTRA_DIST = \
 	bitvector.i \
 	bool.i \
 	cardinality.i \
-	configuration.i \
 	divisible.i \
 	floatingpoint.i \
 	hash.i \
