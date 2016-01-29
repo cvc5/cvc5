@@ -1086,6 +1086,7 @@ void TheoryArrays::check(Effort e) {
         break;
       case kind::NOT:
         Debug("gk::proof") << "Check: kind::NOT" << std::endl;
+        Debug("gk::proof") << "Array theory conflicted? (1): " << ( d_conflict ? "YES" : "NO" ) << std::endl;
 
         if (fact[0].getKind() == kind::SELECT) {
           d_equalityEngine.assertPredicate(fact[0], false, fact);
@@ -1094,8 +1095,11 @@ void TheoryArrays::check(Effort e) {
           // Assert the dis-equality
           d_equalityEngine.assertEquality(fact[0], false, fact);
 
+          Debug("gk::proof") << "Array theory conflicted? (2): " << ( d_conflict ? "YES" : "NO" ) << std::endl;
+
           // Apply ArrDiseq Rule if diseq is between arrays
           if(fact[0][0].getType().isArray() && !d_conflict) {
+            if (d_conflict) { Debug("gk::proof") << "Entering the skolemization branch" << std::endl; }
 
             // NodeManager* nm = NodeManager::currentNM();
             // TypeNode indexType = fact[0][0].getType()[0];
@@ -1161,44 +1165,61 @@ void TheoryArrays::check(Effort e) {
               TNode k;
               if (ProofManager::getSkolemizationManager()->hasSkolem(fact)) {
                 k = ProofManager::getSkolemizationManager()->getSkolem(fact);
-              } else {
-                Unreachable();
-                // Debug("gk::proof") << "New skolem getting registered at proof checking phase!" << std::endl;
-                // k = getSkolem(fact,"array_ext_index", indexType, "an extensional lemma index variable from the theory of arrays", false);
-                // ProofSkolemization::registerSkolem(fact, k);
+                // } else {
+                //   Unreachable();
+                //   // Debug("gk::proof") << "New skolem getting registered at proof checking phase!" << std::endl;
+                //   // k = getSkolem(fact,"array_ext_index", indexType, "an extensional lemma index variable from the theory of arrays", false);
+                //   // ProofSkolemization::registerSkolem(fact, k);
+                // }
+
+                // Do we really need to generate the lemma again? Or just assert the disequality?
+                Debug("gk::proof") << "Skolem = " << k << std::endl;
+
+                Node ak = nm->mkNode(kind::SELECT, fact[0][0], k);
+                Node bk = nm->mkNode(kind::SELECT, fact[0][1], k);
+
+                Debug("gk::proof") << "ak = " << ak << ", bk = " << bk << std::endl;
+                Debug("gk::proof") << "Equality engine has ak? " <<
+                  ( d_equalityEngine.hasTerm(ak) ? "YES" : "NO" ) << std::endl;
+                Debug("gk::proof") << "Equality engine has bk? " <<
+                  ( d_equalityEngine.hasTerm(bk) ? "YES" : "NO" ) << std::endl;
+
+                Node eq = ak.eqNode(bk);
+
+                // eq = d_valuation.ensureLiteral(ak.eqNode(bk));
+                //                Assert(eq.getKind() == kind::EQUAL);
+
+                Node lemma = fact[0].orNode(eq.notNode());
+
+                // ONLY IN PROOF MODE, if the terms ak and bk are not yet registered, we'd like to register them.
+                // Keep this is mind in future refactoring
+                if (!d_equalityEngine.hasTerm(ak)) {
+                  preRegisterTermInternal(ak);
+                }
+                if (!d_equalityEngine.hasTerm(bk)) {
+                  preRegisterTermInternal(bk);
+                }
+                // END ONLY IF PROOF MODE
+
+                // Also added from Clark for EXT lemma propagation:
+                if (options::arraysPropagate() > 0 && d_equalityEngine.hasTerm(ak) && d_equalityEngine.hasTerm(bk)) {
+                  // Propagate witness disequality - might produce a conflict
+                  d_permRef.push_back(lemma);
+                  Debug("gk::proof") << "Asserting to the equality engine:" << std::endl
+                                     << "\teq = " << eq << std::endl
+                                     << "\treason = " << fact << std::endl;
+
+                  d_equalityEngine.assertEquality(eq, false, fact, eq::MERGED_ARRAYS_EXT);
+                  ++d_numProp;
+                }
+                // END changes from Clark
+
+                // Debug("gk::proof") << "lemma = " << lemma << std::endl;
+
+                // Trace("arrays-lem")<<"Arrays::addExtLemma " << lemma <<"\n";
+                // d_out->lemma(lemma);
+                // ++d_numExt;
               }
-
-              Debug("gk::proof") << "Skolem = " << k << std::endl;
-
-              Node ak = nm->mkNode(kind::SELECT, fact[0][0], k);
-              Node bk = nm->mkNode(kind::SELECT, fact[0][1], k);
-
-              Debug("gk::proof") << "ak = " << ak << ", bk = " << bk << std::endl;
-              Node eq = ak.eqNode(bk);
-
-              // eq = d_valuation.ensureLiteral(ak.eqNode(bk));
-              //                Assert(eq.getKind() == kind::EQUAL);
-
-              Node lemma = fact[0].orNode(eq.notNode());
-
-              // Also added from Clark for EXT lemma propagation:
-              if (options::arraysPropagate() > 0 && d_equalityEngine.hasTerm(ak) && d_equalityEngine.hasTerm(bk)) {
-                // Propagate witness disequality - might produce a conflict
-                d_permRef.push_back(lemma);
-                Debug("gk::proof") << "Asserting to the equality engine:" << std::endl
-                                   << "\teq = " << eq << std::endl
-                                   << "\treason = " << fact << std::endl;
-
-                d_equalityEngine.assertEquality(eq, false, fact, eq::MERGED_ARRAYS_EXT);
-                ++d_numProp;
-              }
-              // END changes from Clark
-
-              Debug("gk::proof") << "lemma = " << lemma << std::endl;
-
-              Trace("arrays-lem")<<"Arrays::addExtLemma " << lemma <<"\n";
-              d_out->lemma(lemma);
-              ++d_numExt;
             }
           }
           else {
@@ -2541,6 +2562,9 @@ void TheoryArrays::checkRowLemmas(TNode a, TNode b)
 
 void TheoryArrays::propagate(RowLemmaType lem)
 {
+  Debug("gk::proof") << "TheoryArrays: RowLemma Propagate called. options::arraysPropagate() = "
+                     << options::arraysPropagate() << std::endl;
+
   TNode a = lem.first;
   TNode b = lem.second;
   TNode i = lem.third;
@@ -2595,6 +2619,8 @@ void TheoryArrays::propagate(RowLemmaType lem)
 
 void TheoryArrays::queueRowLemma(RowLemmaType lem)
 {
+  Debug("gk::proof") << "Array solver: queue row lemma called" << std::endl;
+
   if (d_conflict || d_RowAlreadyAdded.contains(lem)) {
     return;
   }
@@ -2647,7 +2673,7 @@ void TheoryArrays::queueRowLemma(RowLemmaType lem)
 
   // TODO: maybe add triggers here
 
-  if (options::arraysEagerLemmas() || bothExist) {
+  if ((options::arraysEagerLemmas() || bothExist) && !d_proofsEnabled) {
 
     // Make sure that any terms introduced by rewriting are appropriately stored in the equality database
     Node aj2 = Rewriter::rewrite(aj);
@@ -2750,12 +2776,16 @@ bool TheoryArrays::dischargeLemmas()
       continue;
     }
 
+    Debug("gk::proof") << "Array solver: Checking if we should propagate" << std::endl;
     int prop = options::arraysPropagate();
     if (prop > 0) {
+      Debug("gk::proof") << "Array solver: Checking if we should propagate (1)" << std::endl;
       propagate(l);
       if (d_conflict) {
+        Debug("gk::proof") << "Array solver: Checking if we should propagate (2)" << std::endl;
         return true;
       }
+      Debug("gk::proof") << "Array solver: Checking if we should propagate (3)" << std::endl;
     }
 
     // Make sure that any terms introduced by rewriting are appropriately stored in the equality database
