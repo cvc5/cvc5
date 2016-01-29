@@ -575,7 +575,7 @@ void TheoryProof::printTheoryLemmaProof(std::vector<Expr>& lemma, std::ostream& 
   MyPreRegisterVisitor preRegVisitor(th);
   for( unsigned i=0; i<lemma.size(); i++ ){
     Node lit = Node::fromExpr( lemma[i] ).negate();
-    Trace("theory-proof-debug") << "; preregistering and asserting " << lit << std::endl;
+    Trace("gk::proof") << "; preregistering and asserting " << lit << std::endl;
     NodeVisitor<MyPreRegisterVisitor>::run(preRegVisitor, lit);
     th->assertFact(lit, false);
   }
@@ -585,11 +585,44 @@ void TheoryProof::printTheoryLemmaProof(std::vector<Expr>& lemma, std::ostream& 
   Debug("gk::proof") << "TheoryProof::printTheoryLemmaProof - th->check() DONE" << std::endl;
 
   if(oc.d_conflict.isNull()) {
-    Trace("theory-proof-debug") << "; conflict is null" << std::endl;
+    Trace("gk::proof") << "; conflict is null" << std::endl;
     Assert(!oc.d_lemma.isNull());
-    Trace("theory-proof-debug") << "; ++ but got lemma: " << oc.d_lemma << std::endl;
-    Trace("theory-proof-debug") << "; asserting " << oc.d_lemma[1].negate() << std::endl;
-    th->assertFact(oc.d_lemma[1].negate(), false);
+    Trace("gk::proof") << "; ++ but got lemma: " << oc.d_lemma << std::endl;
+
+    // Original, as in Liana's branch
+    // Trace("gk::proof") << "; asserting " << oc.d_lemma[1].negate() << std::endl;
+    // th->assertFact(oc.d_lemma[1].negate(), false);
+    // th->check(theory::Theory::EFFORT_FULL);
+
+    // Altered version, to handle OR lemmas
+
+    if (oc.d_lemma.getKind() == kind::OR) {
+      Debug("gk::proof") << "OR lemma. Negating each child separately" << std::endl;
+      for (unsigned i = 0; i < oc.d_lemma.getNumChildren(); ++i) {
+        if (oc.d_lemma[i].getKind() == kind::NOT) {
+          Trace("gk::proof") << ";     asserting fact: " << oc.d_lemma[i][0] << std::endl;
+          th->assertFact(oc.d_lemma[i][0], false);
+        }
+        else {
+          Trace("gk::proof") << ";     asserting fact: " << oc.d_lemma[i].notNode() << std::endl;
+          th->assertFact(oc.d_lemma[i].notNode(), false);
+        }
+      }
+    }
+    else {
+      Unreachable();
+
+      Assert(oc.d_lemma.getKind() == kind::NOT);
+      Debug("gk::proof") << "NOT lemma" << std::endl;
+      Trace("gk::proof") << ";     asserting fact: " << oc.d_lemma[0] << std::endl;
+      th->assertFact(oc.d_lemma[0], false);
+    }
+
+    // Trace("gk::proof") << "; ++ but got lemma: " << oc.d_lemma << std::endl;
+    // Trace("gk::proof") << "; asserting " << oc.d_lemma[1].negate() << std::endl;
+    // th->assertFact(oc.d_lemma[1].negate(), false);
+
+    //
     th->check(theory::Theory::EFFORT_FULL);
   }
   Debug("gk::proof") << "Calling   oc.d_proof->toStream(os)" << std::endl;
