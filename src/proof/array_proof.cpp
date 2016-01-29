@@ -195,7 +195,7 @@ Node ProofArray::toStreamRecLFSC(std::ostream& out,
             if (pf->d_children[i + j]->d_children[0]->d_id != eq::MERGED_THROUGH_REFLEXIVITY)
               orderedEqualities.insert(orderedEqualities.begin(), pf->d_children[i + j]->d_children[0]);
             if (pf->d_children[i + j]->d_children[1]->d_id != eq::MERGED_THROUGH_REFLEXIVITY)
-            orderedEqualities.insert(orderedEqualities.end(), pf->d_children[i + j]->d_children[1]);
+              orderedEqualities.insert(orderedEqualities.end(), pf->d_children[i + j]->d_children[1]);
           }
         } else {
           for (unsigned j = 0; j < count; ++j) {
@@ -315,8 +315,14 @@ Node ProofArray::toStreamRecLFSC(std::ostream& out,
     out << " ";
     std::stringstream ss;
     Node n2 = toStreamRecLFSC(ss, tp, pf2->d_children[1], tb + 1, map);
+
+
     Debug("mgd") << "\nok, in FIRST cong[" << stk.size() << "]" << "\n";
     pf2->debug_print("mgd");
+    // Temp
+    Debug("mgd") << "n1 is a proof for: " << pf2->d_children[0]->d_node << ". It is: " << n1 << std::endl;
+    Debug("mgd") << "n2 is a proof for: " << pf2->d_children[1]->d_node << ". It is: " << n2 << std::endl;
+    //
     Debug("mgd") << "looking at " << pf2->d_node << "\n";
     Debug("mgd") << "           " << n1 << "\n";
     Debug("mgd") << "           " << n2 << "\n";
@@ -384,8 +390,10 @@ Node ProofArray::toStreamRecLFSC(std::ostream& out,
     Debug("mgd") << "b1.getNumChildren() " << b1.getNumChildren() << std::endl;
     Debug("mgd") << "n1 " << n1 << std::endl;
     Debug("mgd") << "n2 " << n2 << std::endl;
-    Debug("mgd") << "b1 " << b1 << std::endl;
-    Debug("mgd") << "b2 " << b2 << std::endl;
+    // These debug prints can cause a problem if we're constructing a SELECT node and it doesn't have enough
+    // children yet.
+    // Debug("mgd") << "b1 " << b1 << std::endl;
+    // Debug("mgd") << "b2 " << b2 << std::endl;
     Debug("mgd") << "side " << side << std::endl;
     Debug("mgd") << "pf2->d_node's number of children: " << pf2->d_node.getNumChildren() << std::endl;
     Debug("mgd") << "pf2->d_node's meta kind: " << pf2->d_node.getMetaKind() << std::endl;
@@ -540,6 +548,9 @@ Node ProofArray::toStreamRecLFSC(std::ostream& out,
     return pf->d_node;
 
   case eq::MERGED_THROUGH_TRANS: {
+    bool firstNeg = false;
+    bool secondNeg = false;
+
     Assert(!pf->d_node.isNull());
     Assert(pf->d_children.size() >= 2);
     std::stringstream ss;
@@ -571,6 +582,8 @@ Node ProofArray::toStreamRecLFSC(std::ostream& out,
         n2 = toStreamRecLFSC(ss2, tp, pf->d_children[i], tb + 1, map);
         childToStream[i] = n2;
       }
+
+      Debug("mgd") << "\ndoing trans proof, got (first) n2 " << n2 << "\n";
 
       // The following branch is dedicated to handling sequences of identical equalities,
       // i.e. trans[ a=b, a=b, a=b ].
@@ -639,6 +652,9 @@ Node ProofArray::toStreamRecLFSC(std::ostream& out,
                 }
               } else {
                 // We have a "next node". Use it to guide us.
+                if (nodeAfterEqualitySequence.getKind() == kind::NOT) {
+                  nodeAfterEqualitySequence = nodeAfterEqualitySequence[0];
+                }
 
                 Assert(nodeAfterEqualitySequence.getKind() == kind::EQUAL ||
                        nodeAfterEqualitySequence.getKind() == kind::IFF);
@@ -704,15 +720,18 @@ Node ProofArray::toStreamRecLFSC(std::ostream& out,
       // We can hadnle one of the equalities being negative, but not both
       Assert((n1.getKind() != kind::NOT) || (n2.getKind() != kind::NOT));
 
-      bool firstNeg = false;
-      bool secondNeg = false;
+      firstNeg = false;
+      secondNeg = false;
+
       if (n1.getKind() == kind::NOT) {
         Debug("mgdx") << "n1 is negative" << std::endl;
+        Debug("gk::proof") << "n1 = " << n1 << ", n2 = " << n2 << std::endl;
         firstNeg = true;
         ss << "(negtrans1 _ _ _ _ ";
         n1 = n1[0];
       } else if (n2.getKind() == kind::NOT) {
         Debug("mgdx") << "n2 is negative" << std::endl;
+        Debug("gk::proof") << "n1 = " << n1 << ", n2 = " << n2 << std::endl;
         secondNeg = true;
         ss << "(negtrans2 _ _ _ _ ";
         n2 = n2[0];
@@ -734,8 +753,17 @@ Node ProofArray::toStreamRecLFSC(std::ostream& out,
           ss << ss1.str() << (secondNeg ? " (negsymm _ _ _ " : " (symm _ _ _ " ) << ss2.str() << ")";
         } else if(n1[0] == n2[1]) {
             if(tb == 1) { Debug("mgdx") << "case 3\n"; }
-            n1 = eqNode(n2[0], n1[1]);
-            ss << ss2.str() << " " << ss1.str();
+            if(!firstNeg && !secondNeg) {
+              n1 = eqNode(n2[0], n1[1]);
+              ss << ss2.str() << " " << ss1.str();
+            } else if (firstNeg) {
+              n1 = eqNode(n1[1], n2[0]);
+              ss << " (negsymm _ _ _ " << ss1.str() << ") (symm _ _ _ " << ss2.str() << ")";
+            } else {
+              Assert(secondNeg);
+              n1 = eqNode(n1[1], n2[0]);
+              ss << " (symm _ _ _ " << ss1.str() << ") (negsymm _ _ _ " << ss2.str() << ")";
+            }
             if(tb == 1) { Debug("mgdx") << "++ proved " << n1 << "\n"; }
         } else if(n1[1] == n2[0]) {
           if(tb == 1) { Debug("mgdx") << "case 4\n"; }
@@ -781,9 +809,15 @@ Node ProofArray::toStreamRecLFSC(std::ostream& out,
       }
 
       ss << ")";
+
+      if (firstNeg || secondNeg) {
+        n1 = (n1.getKind() == kind::NOT) ? n1[0] : n1.notNode();
+      }
     }
+
     out << ss.str();
     Debug("mgd") << "\n++ trans proof done, have proven " << n1 << std::endl;
+    //return (firstNeg || secondNeg) ? n1.notNode() : n1;
     return n1;
   }
 
@@ -817,9 +851,13 @@ Node ProofArray::toStreamRecLFSC(std::ostream& out,
       Debug("mgd") << "t1 " << t1 << "\nt2 " << t2 << "\nt3 " << t3 << "\nt4 " << t4 << "\n";
     }
 
+    // inner index != outer index
+    // t3 is the outer index
+
+
     Assert(pf->d_children.size() == 1);
     std::stringstream ss;
-    toStreamRecLFSC(ss, tp, pf->d_children[0], tb + 1, map);
+    Node subproof = toStreamRecLFSC(ss, tp, pf->d_children[0], tb + 1, map);
 
     out << "(row _ _ ";
     tp->printTerm(t2.toExpr(), out, map);
@@ -829,7 +867,23 @@ Node ProofArray::toStreamRecLFSC(std::ostream& out,
     tp->printTerm(t1.toExpr(), out, map);
     out << " ";
     tp->printTerm(t4.toExpr(), out, map);
-    out << ss.str() << ")";
+    out << " ";
+
+    Debug("gk::proof") << "pf->d_children[0]->d_node is: " << pf->d_children[0]->d_node
+                       << ". t3 is: " << t3 << std::endl
+                       << "subproof is: " << subproof << std::endl;
+
+    Debug("gk::proof") << "Subproof is: " << ss.str() << std::endl;
+
+    if (subproof[0][1] == t3) {
+      Debug("gk::proof") << "Dont need symmetry!" << std::endl;
+      out << ss.str();
+    } else {
+      Debug("gk::proof") << "Need symmetry!" << std::endl;
+      out << "(negsymm _ _ _ " << ss.str() << ")";
+    }
+
+    out << ")";
 
     return ret;
   }
