@@ -1278,50 +1278,89 @@ void EqualityEngine::getExplanation(EqualityNodeId t1Id, EqualityNodeId t2Id, st
             case MERGED_ARRAYS_ROW: {
               Debug("equality") << d_name << "::eq::getExplanation(): MERGED_ARRAYS_ROW" << std::endl;
 
-              // The edge is ((a[i]:=t)[k], a[k]), or (a[k], (a[i]:=t)[k]). This flag should be
-              // false in the first case and true in the second case.
-              bool currentNodeIsUnchangedArray;
+              // ROW rules mean that (i==k) OR ((a[i]:=t)[k] == a[k])
+              // The equality here will be either (i == k) because ((a[i]:=t)[k] != a[k]),
+              // or ((a[i]:=t)[k] == a[k]) because (i != k).
 
-              Assert(d_nodes[currentNode].getNumChildren() == 2);
-              Assert(d_nodes[edgeNode].getNumChildren() == 2);
+              if (d_nodes[currentNode].getNumChildren() == 2) {
+                // This is the case of ((a[i]:=t)[k] == a[k]) because (i != k).
 
-              if (d_nodes[currentNode][0].getKind() == kind::VARIABLE ||
-                  d_nodes[currentNode][0].getKind() == kind::SKOLEM) {
-                currentNodeIsUnchangedArray = true;
-              } else if (d_nodes[edgeNode][0].getKind() == kind::VARIABLE ||
-                         d_nodes[edgeNode][0].getKind() == kind::SKOLEM) {
-                currentNodeIsUnchangedArray = false;
-              } else {
-                Assert(d_nodes[currentNode][0].getKind() == kind::STORE);
-                Assert(d_nodes[edgeNode][0].getKind() == kind::STORE);
+                // The edge is ((a[i]:=t)[k], a[k]), or (a[k], (a[i]:=t)[k]). This flag should be
+                // false in the first case and true in the second case.
+                bool currentNodeIsUnchangedArray;
 
-                if (d_nodes[currentNode][0][0] == d_nodes[edgeNode][0]) {
-                  currentNodeIsUnchangedArray = false;
-                } else if (d_nodes[edgeNode][0][0] == d_nodes[currentNode][0]) {
+                Assert(d_nodes[currentNode].getNumChildren() == 2);
+                Assert(d_nodes[edgeNode].getNumChildren() == 2);
+
+                if (d_nodes[currentNode][0].getKind() == kind::VARIABLE ||
+                    d_nodes[currentNode][0].getKind() == kind::SKOLEM) {
                   currentNodeIsUnchangedArray = true;
+                } else if (d_nodes[edgeNode][0].getKind() == kind::VARIABLE ||
+                           d_nodes[edgeNode][0].getKind() == kind::SKOLEM) {
+                  currentNodeIsUnchangedArray = false;
                 } else {
-                  Unreachable();
+                  Assert(d_nodes[currentNode][0].getKind() == kind::STORE);
+                  Assert(d_nodes[edgeNode][0].getKind() == kind::STORE);
+
+                  if (d_nodes[currentNode][0][0] == d_nodes[edgeNode][0]) {
+                    currentNodeIsUnchangedArray = false;
+                  } else if (d_nodes[edgeNode][0][0] == d_nodes[currentNode][0]) {
+                    currentNodeIsUnchangedArray = true;
+                  } else {
+                    Unreachable();
+                  }
+                }
+
+                Node indexOne =
+                  currentNodeIsUnchangedArray ? d_nodes[currentNode][1] : d_nodes[currentNode][0][1];
+                Node indexTwo =
+                  currentNodeIsUnchangedArray ? d_nodes[edgeNode][0][1] : d_nodes[edgeNode][1];
+
+                // Some assertions to ensure that the theory of arrays behaves as expected
+                Assert(d_nodes[currentNode][1] == d_nodes[edgeNode][1]);
+                if (currentNodeIsUnchangedArray) {
+                  Assert(d_nodes[currentNode][0] == d_nodes[edgeNode][0][0]);
+                } else {
+                  Assert(d_nodes[currentNode][0][0] == d_nodes[edgeNode][0]);
+                }
+
+                Debug("gk::proof") << "Getting explanation for ROW guard: "
+                                   << indexOne << " != " << indexTwo << std::endl;
+
+                EqProof* eqpcc = eqpc ? new EqProof : NULL;
+                explainEquality(indexOne, indexTwo, false, equalities, eqpcc);
+
+                if (eqpc) {
+                  Debug("gk::proof") << "The two indices are: " << indexOne << ", " << indexTwo << std::endl;
+                  Debug("gk::proof") << "And the explanation of their disequality is: " << std::endl;
+                  eqpcc->debug_print("gk::proof", 1);
+                  eqpc->d_children.push_back(eqpcc);
+                }
+              } else {
+                // This is the case of  (i == k) because ((a[i]:=t)[k] != a[k]),
+
+                Debug("gk::proof") << "In the new case of ROW!" << std::endl;
+
+                Node indexOne = d_nodes[currentNode];
+                Node indexTwo = d_nodes[edgeNode];
+
+                Debug("gk::proof") << "The two indices are: " << indexOne << ", " << indexTwo << std::endl;
+                Debug("gk::proof") << "The reason for the edge is: " << d_equalityEdges[currentEdge].getReason()
+                                   << std::endl;
+
+                Assert(d_equalityEdges[currentEdge].getReason().getNumChildren() == 2);
+                Node reason = d_equalityEdges[currentEdge].getReason()[1];
+                Debug("gk::proof") << "Getting explanation for ROW guard: " << reason << std::endl;
+
+                EqProof* eqpcc = eqpc ? new EqProof : NULL;
+                explainEquality(reason[0], reason[1], false, equalities, eqpcc);
+
+                if (eqpc) {
+                  Debug("gk::proof") << "The guard's explanation is: " << std::endl;
+                  eqpcc->debug_print("gk::proof", 1);
+                  eqpc->d_children.push_back(eqpcc);
                 }
               }
-
-              Node indexOne =
-                currentNodeIsUnchangedArray ? d_nodes[currentNode][1] : d_nodes[currentNode][0][1];
-              Node indexTwo =
-                currentNodeIsUnchangedArray ? d_nodes[edgeNode][0][1] : d_nodes[edgeNode][1];
-
-              // Some assertions to ensure that the theory of arrays behaves as expected
-              Assert(d_nodes[currentNode][1] == d_nodes[edgeNode][1]);
-              if (currentNodeIsUnchangedArray) {
-                Assert(d_nodes[currentNode][0] == d_nodes[edgeNode][0][0]);
-              } else {
-                Assert(d_nodes[currentNode][0][0] == d_nodes[edgeNode][0]);
-              }
-
-              Debug("gk::proof") << "Getting explanation for ROW guard: "
-                                 << indexOne << " != " << indexTwo << std::endl;
-
-              EqProof* eqpcc = eqpc ? new EqProof : NULL;
-              explainEquality(indexOne, indexTwo, false, equalities, eqpcc);
 
               if (eqpc) {
                 Node a = d_nodes[d_equalityEdges[currentEdge].getNodeId()];
@@ -1334,11 +1373,6 @@ void EqualityEngine::getExplanation(EqualityNodeId t1Id, EqualityNodeId t2Id, st
                 } else {
                   eqpc->d_node = a.eqNode(b);
                 }
-
-                Debug("gk::proof") << "The two indices are: " << indexOne << ", " << indexTwo << std::endl;
-                Debug("gk::proof") << "And the explanation of their disequality is: " << std::endl;
-                eqpcc->debug_print("gk::proof", 1);
-                eqpc->d_children.push_back(eqpcc);
               }
 
               // We push the reason into "equalities" because that's what the theory of arrays expects.
