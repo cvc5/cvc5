@@ -55,6 +55,7 @@ public:
   Node d_lemma;
 
   ProofOutputChannel() : d_conflict(), d_proof(NULL) {}
+  virtual ~ProofOutputChannel() throw() {}
 
   void conflict(TNode n, Proof* pf) throw() {
     Trace("theory-proof-debug") << "; CONFLICT: " << n << std::endl;
@@ -90,7 +91,7 @@ public:
 };/* class ProofOutputChannel */
 
 //for proof replay
-class MyPreRegisterVisitor { 
+class MyPreRegisterVisitor {
   theory::Theory* d_theory;
   __gnu_cxx::hash_set<TNode, TNodeHashFunction> d_visited;
 public:
