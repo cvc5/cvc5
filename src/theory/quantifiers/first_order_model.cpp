@@ -669,6 +669,8 @@ Node FirstOrderModelFmc::getFunctionValue(Node op, const char* argPrefix ) {
   for( int i=(d_models[op]->d_cond.size()-1); i>=0; i--) {
     Node v = d_models[op]->d_value[i];
     Trace("fmc-model-func") << "Value is : " << v << std::endl;
+    Assert( v.isConst() );
+    /*
     if( !hasTerm( v ) ){
       //can happen when the model basis term does not exist in ground assignment
       TypeNode tn = v.getType();
@@ -685,6 +687,7 @@ Node FirstOrderModelFmc::getFunctionValue(Node op, const char* argPrefix ) {
       }
     }
     v = getRepresentative( v );
+    */
     if( curr.isNull() ){
       Trace("fmc-model-func") << "base : " << v << std::endl;
       curr = v;
