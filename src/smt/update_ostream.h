@@ -57,6 +57,8 @@ class ChannelSettings {
 
 class OstreamUpdate {
 public:
+  virtual ~OstreamUpdate(){}
+
   virtual std::ostream& get() = 0;
   virtual void set(std::ostream* setTo) = 0;
 
