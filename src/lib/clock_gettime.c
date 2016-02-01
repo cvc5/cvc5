@@ -16,17 +16,13 @@
  ** OS X).
  **/
 
-#warning "TODO: make lib/clock_gettime.h cvc4_private.h again."
+#warning "TODO(taking): Make lib/clock_gettime.h cvc4_private.h again."
 
 #include "lib/clock_gettime.h"
 
 #ifdef __cplusplus
 extern "C" {
 #endif /* __cplusplus */
-
-#if !(defined(__APPLE__) || defined(__WIN32__))
-#  warning "This code assumes you're on Mac OS X or Win32, and you don't seem to be.  You'll likely have problems."
-#endif /* !(__APPLE__ || __WIN32__) */
 
 #ifdef __APPLE__
 
@@ -64,7 +60,8 @@ long clock_gettime(clockid_t which_clock, struct timespec* tp) {
   return 0;
 }
 
-#else /* else we're __WIN32__ */
+#else /* not defined __APPLE__ */
+#ifdef __WIN32__
 
 #include <time.h>
 #include <windows.h>
@@ -80,7 +77,8 @@ long clock_gettime(clockid_t which_clock, struct timespec* tp) {
   return 0;
 }
 
-#endif /* __APPLE__ / __WIN32__ */
+#endif /* closing #ifdef __WIN32__ */
+#endif /* closing #else for #ifdef __APPLE__ / __WIN32__ */
 
 #ifdef __cplusplus
 }/* extern "C" */
