@@ -96,7 +96,7 @@ protected:
   typedef std::hash_map < ClauseId, typename Solver::TCRef > IdCRefMap;
   typedef std::hash_map < typename Solver::TCRef, ClauseId > ClauseIdMap;
   typedef std::hash_map < ClauseId, typename Solver::TLit>   IdUnitMap;
-  typedef std::hash_map < int, ClauseId>            UnitIdMap; 
+  typedef std::hash_map < int, ClauseId>            UnitIdMap;
   typedef std::hash_map < ClauseId, ResChain<Solver>* >      IdResMap;
   typedef std::hash_map < ClauseId, uint64_t >      IdProofRuleMap;
   typedef std::vector   < ResChain<Solver>* >       ResStack;
@@ -105,10 +105,10 @@ protected:
   typedef std::vector < typename Solver::TLit > LitVector;
   typedef __gnu_cxx::hash_map<ClauseId, typename Solver::TClause& > IdToMinisatClause;
   typedef __gnu_cxx::hash_map<ClauseId, LitVector* > IdToConflicts;
-  
+
   typename Solver::Solver*    d_solver;
-  CnfProof* d_cnfProof; 
-  
+  CnfProof* d_cnfProof;
+
   // clauses
   IdCRefMap           d_idClause;
   ClauseIdMap         d_clauseId;
@@ -144,7 +144,7 @@ protected:
 
   ClauseId d_trueLit;
   ClauseId d_falseLit;
-  
+
   std::string d_name;
 public:
   TSatProof(Solver* solver, const std::string& name, bool checkRes = false);
@@ -204,9 +204,9 @@ public:
   //void endResChain(typename Solver::TCRef clause);
   void endResChain(typename Solver::TLit lit);
   void endResChain(ClauseId id);
-  /** 
-   * Pops the current resolution of the stack *without* storing it. 
-   * 
+
+  /**
+   * Pops the current resolution of the stack *without* storing it.
    */
   void cancelResChain();
 
@@ -303,7 +303,7 @@ public:
   void storeClauseGlue(ClauseId clause, int glue);
 
 private:
-  __gnu_cxx::hash_map<ClauseId, int> d_glueMap; 
+  __gnu_cxx::hash_map<ClauseId, int> d_glueMap;
   struct Statistics {
     IntStat d_numLearnedClauses;
     IntStat d_numLearnedInProof;
@@ -331,7 +331,7 @@ public:
 };/* class ProofProxy */
 
 
-template <class SatSolver> 
+template <class SatSolver>
 class LFSCSatProof : public TSatProof<SatSolver> {
 private:
 
@@ -348,15 +348,15 @@ public:
 
 
 template<class Solver>
-prop::SatLiteral toSatLiteral(typename Solver::TLit lit); 
+prop::SatLiteral toSatLiteral(typename Solver::TLit lit);
 
 
-/** 
-* Convert from minisat clause to SatClause
-* 
-* @param minisat_cl 
-* @param sat_cl 
-*/
+/**
+ * Convert from minisat clause to SatClause
+ *
+ * @param minisat_cl
+ * @param sat_cl
+ */
 template<class Solver>
 void toSatClause(const typename Solver::TClause& minisat_cl,
                  prop::SatClause& sat_cl);
