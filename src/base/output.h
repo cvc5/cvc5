@@ -110,6 +110,8 @@ public:
   bool isConnected() { return d_os != NULL; }
   operator std::ostream&() { return isConnected() ? *d_os : null_os; }
 
+  std::ostream* getStreamPointer() { return d_os; }
+
   template <class T>
   CVC4ostream& operator<<(T const& t) CVC4_PUBLIC;
 
