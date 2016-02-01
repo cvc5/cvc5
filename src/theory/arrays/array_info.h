@@ -74,25 +74,8 @@ public:
   CTNodeList* stores;
   CTNodeList* in_stores;
 
-  Info(context::Context* c, Backtracker<TNode>* bck)
-    : isNonLinear(c, false),
-      rIntro1Applied(c, false),
-      modelRep(c,TNode()),
-      constArr(c,TNode()),
-      weakEquivPointer(c,TNode()),
-      weakEquivIndex(c,TNode()),
-      weakEquivSecondary(c,TNode()),
-      weakEquivSecondaryReason(c,TNode()) {
-    indices = new(true)CTNodeList(c);
-    stores = new(true)CTNodeList(c);
-    in_stores = new(true)CTNodeList(c);
-  }
-
-  ~Info() {
-    indices->deleteSelf();
-    stores->deleteSelf();
-    in_stores->deleteSelf();
-  }
+  Info(context::Context* c, Backtracker<TNode>* bck);
+  ~Info();
 
   /**
    * prints the information
