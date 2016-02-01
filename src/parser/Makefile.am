@@ -29,12 +29,8 @@ libcvc4parser_la_LIBADD = \
 	@builddir@/smt2/libparsersmt2.la \
 	@builddir@/tptp/libparsertptp.la \
 	@builddir@/cvc/libparsercvc.la \
-	@builddir@/../libcvc4.la
-
-if CVC4_NEEDS_REPLACEMENT_FUNCTIONS
-libcvc4parser_la_LIBADD += \
+	@builddir@/../libcvc4.la \
 	@builddir@/../lib/libreplacements.la
-endif
 
 libcvc4parser_la_SOURCES = \
 	antlr_input.cpp \

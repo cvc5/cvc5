@@ -437,10 +437,8 @@ libcvc4_la_LIBADD += \
 	@top_builddir@/proofs/signatures/libsignatures.la
 endif
 
-if CVC4_NEEDS_REPLACEMENT_FUNCTIONS
 libcvc4_la_LIBADD += \
 	@builddir@/lib/libreplacements.la
-endif
 
 if CVC4_USE_GLPK
 libcvc4_la_LIBADD += $(GLPK_LIBS)
