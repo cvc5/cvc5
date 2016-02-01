@@ -38,7 +38,7 @@ struct CVC4_PUBLIC ExprManagerMapCollection;
 class CVC4_PUBLIC SmtEngine;
 
 class CVC4_PUBLIC Datatype;
-class CVC4_PUBLIC Record;
+class Record;
 
 template <bool ref_count>
 class NodeTemplate;
