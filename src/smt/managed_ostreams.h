@@ -48,7 +48,7 @@ class ManagedOstream {
   void set(const std::string& filename);
 
   /** If this is associated with an option, return the string value. */
-  virtual std::string defaultSource() { return ""; }
+  virtual std::string defaultSource() const { return ""; }
 
  protected:
 
