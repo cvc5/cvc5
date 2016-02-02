@@ -824,68 +824,147 @@ Node ProofArray::toStreamRecLFSC(std::ostream& out,
   case eq::MERGED_ARRAYS_ROW: {
     Debug("mgd") << "row lemma: " << pf->d_node << std::endl;
     Assert(pf->d_node.getKind() == kind::EQUAL);
-    TNode t1, t2, t3, t4;
-    Node ret;
-    if(pf->d_node[1].getKind() == kind::SELECT &&
-       pf->d_node[1][0].getKind() == kind::STORE &&
-       pf->d_node[0].getKind() == kind::SELECT &&
-       pf->d_node[0][0] == pf->d_node[1][0][0] &&
-       pf->d_node[0][1] == pf->d_node[1][1]) {
-      t2 = pf->d_node[1][0][1];
-      t3 = pf->d_node[1][1];
-      t1 = pf->d_node[0][0];
-      t4 = pf->d_node[1][0][2];
-      ret = pf->d_node[1].eqNode(pf->d_node[0]);
-      Debug("mgd") << "t1 " << t1 << "\nt2 " << t2 << "\nt3 " << t3 << "\nt4 " << t4 << "\n";
+
+
+    if (pf->d_node[1].getKind() == kind::SELECT) {
+      // This is the case where ((a[i]:=t)[k] == a[k]), and the sub-proof explains why (i != k).
+      TNode t1, t2, t3, t4;
+      Node ret;
+      if(pf->d_node[1].getKind() == kind::SELECT &&
+         pf->d_node[1][0].getKind() == kind::STORE &&
+         pf->d_node[0].getKind() == kind::SELECT &&
+         pf->d_node[0][0] == pf->d_node[1][0][0] &&
+         pf->d_node[0][1] == pf->d_node[1][1]) {
+        t2 = pf->d_node[1][0][1];
+        t3 = pf->d_node[1][1];
+        t1 = pf->d_node[0][0];
+        t4 = pf->d_node[1][0][2];
+        ret = pf->d_node[1].eqNode(pf->d_node[0]);
+        Debug("mgd") << "t1 " << t1 << "\nt2 " << t2 << "\nt3 " << t3 << "\nt4 " << t4 << "\n";
+      } else {
+        Assert(pf->d_node[0].getKind() == kind::SELECT &&
+               pf->d_node[0][0].getKind() == kind::STORE &&
+               pf->d_node[1].getKind() == kind::SELECT &&
+               pf->d_node[1][0] == pf->d_node[0][0][0] &&
+               pf->d_node[1][1] == pf->d_node[0][1]);
+        t2 = pf->d_node[0][0][1];
+        t3 = pf->d_node[0][1];
+        t1 = pf->d_node[1][0];
+        t4 = pf->d_node[0][0][2];
+        ret = pf->d_node;
+        Debug("mgd") << "t1 " << t1 << "\nt2 " << t2 << "\nt3 " << t3 << "\nt4 " << t4 << "\n";
+      }
+
+      // inner index != outer index
+      // t3 is the outer index
+
+
+      Assert(pf->d_children.size() == 1);
+      std::stringstream ss;
+      Node subproof = toStreamRecLFSC(ss, tp, pf->d_children[0], tb + 1, map);
+
+      out << "(row _ _ ";
+      tp->printTerm(t2.toExpr(), out, map);
+      out << " ";
+      tp->printTerm(t3.toExpr(), out, map);
+      out << " ";
+      tp->printTerm(t1.toExpr(), out, map);
+      out << " ";
+      tp->printTerm(t4.toExpr(), out, map);
+      out << " ";
+
+      Debug("gk::proof") << "pf->d_children[0]->d_node is: " << pf->d_children[0]->d_node
+                         << ". t3 is: " << t3 << std::endl
+                         << "subproof is: " << subproof << std::endl;
+
+      Debug("gk::proof") << "Subproof is: " << ss.str() << std::endl;
+
+      if (subproof[0][1] == t3) {
+        Debug("gk::proof") << "Dont need symmetry!" << std::endl;
+        out << ss.str();
+      } else {
+        Debug("gk::proof") << "Need symmetry!" << std::endl;
+        out << "(negsymm _ _ _ " << ss.str() << ")";
+      }
+
+      out << ")";
+
+      return ret;
     } else {
-      Assert(pf->d_node[0].getKind() == kind::SELECT &&
-             pf->d_node[0][0].getKind() == kind::STORE &&
-             pf->d_node[1].getKind() == kind::SELECT &&
-             pf->d_node[1][0] == pf->d_node[0][0][0] &&
-             pf->d_node[1][1] == pf->d_node[0][1]);
-      t2 = pf->d_node[0][0][1];
-      t3 = pf->d_node[0][1];
-      t1 = pf->d_node[1][0];
-      t4 = pf->d_node[0][0][2];
+      Debug("gk::proof") << "In the case of NEGATIVE ROW" << std::endl;
+
+      Debug("gk::proof") << "pf->d_children[0]->d_node is: " << pf->d_children[0]->d_node << std::endl;
+
+      // This is the case where (i == k), and the sub-proof explains why ((a[i]:=t)[k] != a[k])
+
+      // If we wanted to remove the need for "negativerow", we would need to prove i==k using a new satlem. We would:
+      // 1. Create a new satlem.
+      // 2. Assume that i != k
+      // 3. Apply ROW to show that ((a[i]:=t)[k] == a[k])
+      // 4. Contradict this with the fact that ((a[i]:=t)[k] != a[k]), obtaining our contradiction
+
+      TNode t1, t2, t3, t4;
+      Node ret;
+
+      // pf->d_node is an equality, i==k.
+      t1 = pf->d_node[0];
+      t2 = pf->d_node[1];
+
+      // pf->d_children[0]->d_node will have the form: (not (= (select (store a_565 i7 e_566) i1) (select a_565 i1))),
+      // or its symmetrical version.
+
+      unsigned side;
+      if (pf->d_children[0]->d_node[0][0].getKind() == kind::SELECT &&
+          pf->d_children[0]->d_node[0][0][0].getKind() == kind::STORE) {
+        side = 0;
+      } else if (pf->d_children[0]->d_node[0][1].getKind() == kind::SELECT &&
+                 pf->d_children[0]->d_node[0][1][0].getKind() == kind::STORE) {
+        side = 1;
+      }
+      else {
+        Unreachable();
+      }
+
+      Debug("gk::proof") << "Side is: " << side << std::endl;
+
+      // The array's index and element types will come from the subproof...
+      t3 = pf->d_children[0]->d_node[0][side][0][0];
+      t4 = pf->d_children[0]->d_node[0][side][0][2];
       ret = pf->d_node;
+
       Debug("mgd") << "t1 " << t1 << "\nt2 " << t2 << "\nt3 " << t3 << "\nt4 " << t4 << "\n";
+
+      Assert(pf->d_children.size() == 1);
+      std::stringstream ss;
+      Node subproof = toStreamRecLFSC(ss, tp, pf->d_children[0], tb + 1, map);
+
+      Debug("gk::proof") << "Subproof is: " << ss.str() << std::endl;
+
+      out << "(negativerow _ _ ";
+      tp->printTerm(t1.toExpr(), out, map);
+      out << " ";
+      tp->printTerm(t2.toExpr(), out, map);
+      out << " ";
+      tp->printTerm(t3.toExpr(), out, map);
+      out << " ";
+      tp->printTerm(t4.toExpr(), out, map);
+      out << " ";
+
+
+      // if (subproof[0][1] == t3) {
+        Debug("gk::proof") << "Dont need symmetry!" << std::endl;
+        out << ss.str();
+      // } else {
+      //   Debug("gk::proof") << "Need symmetry!" << std::endl;
+      //   out << "(negsymm _ _ _ " << ss.str() << ")";
+      // }
+
+      out << ")";
+
+      // Unreachable();
+
+      return ret;
     }
-
-    // inner index != outer index
-    // t3 is the outer index
-
-
-    Assert(pf->d_children.size() == 1);
-    std::stringstream ss;
-    Node subproof = toStreamRecLFSC(ss, tp, pf->d_children[0], tb + 1, map);
-
-    out << "(row _ _ ";
-    tp->printTerm(t2.toExpr(), out, map);
-    out << " ";
-    tp->printTerm(t3.toExpr(), out, map);
-    out << " ";
-    tp->printTerm(t1.toExpr(), out, map);
-    out << " ";
-    tp->printTerm(t4.toExpr(), out, map);
-    out << " ";
-
-    Debug("gk::proof") << "pf->d_children[0]->d_node is: " << pf->d_children[0]->d_node
-                       << ". t3 is: " << t3 << std::endl
-                       << "subproof is: " << subproof << std::endl;
-
-    Debug("gk::proof") << "Subproof is: " << ss.str() << std::endl;
-
-    if (subproof[0][1] == t3) {
-      Debug("gk::proof") << "Dont need symmetry!" << std::endl;
-      out << ss.str();
-    } else {
-      Debug("gk::proof") << "Need symmetry!" << std::endl;
-      out << "(negsymm _ _ _ " << ss.str() << ")";
-    }
-
-    out << ")";
-
-    return ret;
   }
 
   case eq::MERGED_ARRAYS_ROW1: {
