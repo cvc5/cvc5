@@ -72,7 +72,7 @@ options {
 
 #include <stdint.h>
 
-#include "smt_util/command.h"
+#include "smt/command.h"
 #include "parser/parser.h"
 #include "parser/antlr_tracing.h"
 

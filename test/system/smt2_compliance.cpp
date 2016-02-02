@@ -23,8 +23,8 @@
 #include "options/set_language.h"
 #include "parser/parser.h"
 #include "parser/parser_builder.h"
+#include "smt/command.h"
 #include "smt/smt_engine.h"
-#include "smt_util/command.h"
 
 using namespace CVC4;
 using namespace CVC4::parser;

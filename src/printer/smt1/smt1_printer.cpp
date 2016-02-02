@@ -23,7 +23,7 @@
 #include "expr/expr.h" // for ExprSetDepth etc..
 #include "expr/node_manager.h" // for VarNameAttr
 #include "options/language.h" // for LANG_AST
-#include "smt_util/command.h"
+#include "smt/command.h"
 
 using namespace std;
 

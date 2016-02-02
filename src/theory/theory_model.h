@@ -17,7 +17,7 @@
 #ifndef __CVC4__THEORY__THEORY_MODEL_H
 #define __CVC4__THEORY__THEORY_MODEL_H
 
-#include "smt_util/model.h"
+#include "smt/model.h"
 #include "theory/uf/equality_engine.h"
 #include "theory/rep_set.h"
 #include "theory/substitutions.h"

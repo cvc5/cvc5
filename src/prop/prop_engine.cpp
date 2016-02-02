@@ -36,7 +36,7 @@
 #include "prop/sat_solver_factory.h"
 #include "prop/theory_proxy.h"
 #include "smt/smt_statistics_registry.h"
-#include "smt_util/command.h"
+#include "smt/command.h"
 #include "theory/theory_engine.h"
 #include "theory/theory_registrar.h"
 #include "util/resource_manager.h"

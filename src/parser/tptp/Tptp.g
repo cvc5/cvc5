@@ -92,7 +92,7 @@ using namespace CVC4::parser;
 // files. See the documentation in "parser/antlr_undefines.h" for more details.
 #include "parser/antlr_undefines.h"
 
-#include "smt_util/command.h"
+#include "smt/command.h"
 #include "parser/parser.h"
 #include "parser/tptp/tptp.h"
 #include "parser/antlr_tracing.h"

@@ -21,7 +21,7 @@
 #include "parser/parser.h"
 #include "parser/smt1/smt1.h"
 #include "parser/smt2/smt2_input.h"
-#include "smt_util/command.h"
+#include "smt/command.h"
 #include "util/bitvector.h"
 
 // ANTLR defines these, which is really bad!

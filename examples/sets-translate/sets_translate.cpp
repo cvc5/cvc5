@@ -28,7 +28,7 @@
 #include "options/set_language.h"
 #include "parser/parser.h"
 #include "parser/parser_builder.h"
-#include "smt_util/command.h"
+#include "smt/command.h"
 #include "theory/logic_info.h"
 
 using namespace std;

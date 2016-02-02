@@ -12,16 +12,16 @@
  ** \brief implementation of Model class
  **/
 
-#include "smt_util/model.h"
+#include "smt/model.h"
 
 #include <vector>
 
 #include "expr/expr_iomanip.h"
 #include "options/base_options.h"
 #include "printer/printer.h"
+#include "smt/command.h"
 #include "smt/command_list.h"
 #include "smt/smt_engine_scope.h"
-#include "smt_util/command.h"
 
 using namespace std;
 

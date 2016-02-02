@@ -32,7 +32,7 @@
 #include "options/options.h"
 #include "parser/input.h"
 #include "parser/parser_exception.h"
-#include "smt_util/command.h"
+#include "smt/command.h"
 #include "util/resource_manager.h"
 
 using namespace std;

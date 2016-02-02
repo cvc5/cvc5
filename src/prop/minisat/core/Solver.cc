@@ -31,7 +31,6 @@ OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWA
 #include "prop/minisat/minisat.h"
 #include "prop/minisat/mtl/Sort.h"
 #include "prop/theory_proxy.h"
-#include "smt_util/command.h"
 
 
 using namespace CVC4::prop;
@@ -479,15 +478,18 @@ void Solver::cancelUntil(int level) {
         for (int l = trail_lim.size() - level; l > 0; --l) {
           context->pop();
           if(Dump.isOn("state")) {
-            Dump("state") << PopCommand();
+            proxy->dumpStatePop();
           }
         }
         for (int c = trail.size()-1; c >= trail_lim[level]; c--){
             Var      x  = var(trail[c]);
             assigns [x] = l_Undef;
             vardata[x].trail_index = -1;
-            if ((phase_saving > 1 || (phase_saving == 1) && c > trail_lim.last()) && (polarity[x] & 0x2) == 0)
+            if ((phase_saving > 1 ||
+                 ((phase_saving == 1) && c > trail_lim.last())
+                 ) && ((polarity[x] & 0x2) == 0)) {
               polarity[x] = sign(trail[c]);
+            }
             insertVarOrder(x);
         }
         qhead = trail_lim[level];

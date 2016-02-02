@@ -22,7 +22,7 @@
 #include "options/strings_options.h"
 #include "smt/logic_exception.h"
 #include "smt/smt_statistics_registry.h"
-#include "smt_util/command.h"
+#include "smt/command.h"
 #include "theory/rewriter.h"
 #include "theory/strings/theory_strings_rewriter.h"
 #include "theory/strings/type_enumerator.h"

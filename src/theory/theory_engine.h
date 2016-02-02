@@ -30,7 +30,7 @@
 #include "options/options.h"
 #include "options/smt_options.h"
 #include "prop/prop_engine.h"
-#include "smt_util/command.h"
+#include "smt/command.h"
 #include "smt_util/lemma_channels.h"
 #include "theory/atom_requests.h"
 #include "theory/bv/bv_to_bool.h"

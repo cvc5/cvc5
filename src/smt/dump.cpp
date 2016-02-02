@@ -13,7 +13,7 @@
  **
  ** Dump utility classes and functions.
  **/
-#include "smt_util/dump.h"
+#include "smt/dump.h"
 
 #include "base/output.h"
 

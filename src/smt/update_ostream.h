@@ -28,7 +28,7 @@
 #include "options/language.h"
 #include "options/set_language.h"
 #include "options/base_options.h"
-#include "smt_util/dump.h"
+#include "smt/dump.h"
 
 namespace CVC4 {
 

@@ -86,7 +86,7 @@ using namespace CVC4::parser;
 
 #include "parser/parser.h"
 #include "parser/antlr_tracing.h"
-#include "smt_util/command.h"
+#include "smt/command.h"
 
 namespace CVC4 {
   class Expr;

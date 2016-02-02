@@ -23,7 +23,7 @@
 #include "expr/type.h"
 #include "parser/parser.h"
 #include "parser/parser_exception.h"
-#include "smt_util/command.h"
+#include "smt/command.h"
 
 
 using namespace std;

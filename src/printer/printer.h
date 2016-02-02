@@ -24,8 +24,8 @@
 
 #include "expr/node.h"
 #include "options/language.h"
-#include "smt_util/command.h"
-#include "smt_util/model.h"
+#include "smt/command.h"
+#include "smt/model.h"
 #include "util/sexpr.h"
 
 namespace CVC4 {

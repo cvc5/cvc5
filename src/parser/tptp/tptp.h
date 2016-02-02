@@ -25,7 +25,7 @@
 #include <ext/hash_set>
 
 #include "parser/parser.h"
-#include "smt_util/command.h"
+#include "smt/command.h"
 #include "util/hash.h"
 
 namespace CVC4 {

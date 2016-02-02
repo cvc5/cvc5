@@ -32,7 +32,7 @@
 #include "options/set_language.h"
 #include "parser/parser.h"
 #include "parser/parser_builder.h"
-#include "smt_util/command.h"
+#include "smt/command.h"
 #include "util/bitvector.h"
 #include "util/hash.h"
 #include "util/integer.h"

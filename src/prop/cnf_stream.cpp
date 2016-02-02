@@ -29,8 +29,8 @@
 #include "prop/minisat/minisat.h"
 #include "prop/prop_engine.h"
 #include "prop/theory_proxy.h"
+#include "smt/command.h"
 #include "smt/smt_engine_scope.h"
-#include "smt_util/command.h"
 #include "theory/theory.h"
 #include "theory/theory_engine.h"
 

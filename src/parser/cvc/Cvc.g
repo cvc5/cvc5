@@ -500,7 +500,7 @@ Expr addNots(ExprManager* em, size_t n, Expr e) {
 #include "options/set_language.h"
 #include "parser/antlr_tracing.h"
 #include "parser/parser.h"
-#include "smt_util/command.h"
+#include "smt/command.h"
 #include "util/subrange_bound.h"
 
 namespace CVC4 {

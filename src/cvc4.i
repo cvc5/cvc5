@@ -54,7 +54,7 @@ using namespace CVC4;
 #include "expr/expr.h"
 #include "expr/type.h"
 #include "options/option_exception.h"
-#include "smt_util/command.h"
+#include "smt/command.h"
 #include "util/bitvector.h"
 #include "util/integer.h"
 #include "util/sexpr.h"
@@ -356,8 +356,8 @@ std::set<JavaInputStreamAdapter*> CVC4::JavaInputStreamAdapter::s_adapters;
 %include "options/option_exception.i"
 %include "options/options.i"
 %include "parser/cvc4parser.i"
+%include "smt/command.i"
 %include "smt/logic_exception.i"
-%include "smt_util/command.i"
 %include "theory/logic_info.i"
 
 // Tim: This should come after "theory/logic_info.i".

@@ -22,7 +22,7 @@
 #include <string>
 
 #include "main/main.h"
-#include "smt_util/command.h"
+#include "smt/command.h"
 
 
 namespace CVC4 {

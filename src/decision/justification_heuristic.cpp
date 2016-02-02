@@ -22,7 +22,7 @@
 #include "expr/node_manager.h"
 #include "options/decision_options.h"
 #include "theory/rewriter.h"
-#include "smt_util/ite_removal.h"
+#include "smt/ite_removal.h"
 #include "smt/smt_statistics_registry.h"
 
 namespace CVC4 {

@@ -26,8 +26,8 @@
 #include <cvc4/options/options.h>
 #include <cvc4/parser/parser.h>
 #include <cvc4/parser/parser_builder.h>
+#include <cvc4/smt/command.h>
 #include <cvc4/smt/smt_engine.h>
-#include <cvc4/smt_util/command.h>
 #include <cvc4/util/integer.h>
 #include <cvc4/util/rational.h>
 

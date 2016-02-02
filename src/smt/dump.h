@@ -20,7 +20,7 @@
 #define __CVC4__DUMP_H
 
 #include "base/output.h"
-#include "smt_util/command.h"
+#include "smt/command.h"
 
 namespace CVC4 {
 

@@ -42,7 +42,7 @@
 #include "parser/parser.h"
 #include "parser/parser_builder.h"
 #include "parser/parser_exception.h"
-#include "smt_util/command.h"
+#include "smt/command.h"
 #include "util/result.h"
 #include "util/statistics_registry.h"
 

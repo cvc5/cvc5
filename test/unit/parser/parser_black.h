@@ -28,7 +28,7 @@
 #include "parser/parser.h"
 #include "parser/parser_builder.h"
 #include "parser/smt2/smt2.h"
-#include "smt_util/command.h"
+#include "smt/command.h"
 
 
 using namespace CVC4;

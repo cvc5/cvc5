@@ -32,7 +32,6 @@ OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWA
 #include "prop/minisat/mtl/Heap.h"
 #include "prop/minisat/mtl/Vec.h"
 #include "prop/minisat/utils/Options.h"
-#include "smt_util/command.h"
 #include "theory/theory.h"
 
 

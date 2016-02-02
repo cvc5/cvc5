@@ -33,7 +33,7 @@
 #include "main/portfolio.h"
 #include "options/options.h"
 #include "options/set_language.h"
-#include "smt_util/command.h"
+#include "smt/command.h"
 
 
 using namespace std;

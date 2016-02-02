@@ -23,9 +23,10 @@
 #include "prop/cnf_stream.h"
 #include "prop/prop_engine.h"
 #include "proof/cnf_proof.h"
+#include "smt/command.h"
+#include "smt/smt_statistics_registry.h"
 #include "smt_util/lemma_input_channel.h"
 #include "smt_util/lemma_output_channel.h"
-#include "smt/smt_statistics_registry.h"
 #include "theory/rewriter.h"
 #include "theory/theory_engine.h"
 #include "util/statistics_registry.h"
@@ -234,6 +235,12 @@ bool TheoryProxy::isDecisionEngineDone() {
 
 SatValue TheoryProxy::getDecisionPolarity(SatVariable var) {
   return d_decisionEngine->getPolarity(var);
+}
+
+void TheoryProxy::dumpStatePop() {
+  if(Dump.isOn("state")) {
+    Dump("state") << PopCommand();
+  }
 }
 
 }/* CVC4::prop namespace */
