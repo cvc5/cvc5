@@ -29,6 +29,8 @@ option checkModels check-models --check-models bool :link --produce-models --pro
  after SAT/INVALID/UNKNOWN, check that the generated model satisfies user assertions
 option dumpModels --dump-models bool :default false :link --produce-models :link-smt produce-models
  output models after every SAT/INVALID/UNKNOWN response
+option omitDontCares --omit-dont-cares bool :default false
+ When producing a model, omit variables whose value does not matter
 option proof produce-proofs --proof bool :default false :predicate proofEnabledBuild :notify notifyBeforeSearch
  turn on proof generation
 option checkProofs check-proofs --check-proofs bool :link --proof :link-smt produce-proofs :notify notifyBeforeSearch :read-write

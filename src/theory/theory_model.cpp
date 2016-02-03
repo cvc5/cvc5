@@ -64,11 +64,12 @@ void TheoryModel::reset(){
   d_eeContext->push();
 }
 
-Node TheoryModel::getValue(TNode n) const {
+Node TheoryModel::getValue(TNode n, bool useDontCares) const {
   //apply substitutions
   Node nn = d_substitutions.apply(n);
   //get value in model
-  nn = getModelValue(nn);
+  nn = getModelValue(nn, false, useDontCares);
+  if (nn.isNull()) return nn;
   if(options::condenseFunctionValues() || nn.getKind() != kind::LAMBDA) {
     //normalize
     nn = Rewriter::rewrite(nn);
@@ -76,6 +77,10 @@ Node TheoryModel::getValue(TNode n) const {
   Debug("model-getvalue") << "[model-getvalue] getValue( " << n << " ): " << std::endl
                           << "[model-getvalue] returning " << nn << std::endl;
   return nn;
+}
+
+bool TheoryModel::isDontCare(Expr expr) const {
+  return getValue(Node::fromExpr(expr), true).isNull();
 }
 
 Expr TheoryModel::getValue( Expr expr ) const{
@@ -102,7 +107,7 @@ Cardinality TheoryModel::getCardinality( Type t ) const{
   }
 }
 
-Node TheoryModel::getModelValue(TNode n, bool hasBoundVars) const
+Node TheoryModel::getModelValue(TNode n, bool hasBoundVars, bool useDontCares) const
 {
   std::hash_map<Node, Node, NodeHashFunction>::iterator it = d_modelCache.find(n);
   if (it != d_modelCache.end()) {
@@ -210,6 +215,9 @@ Node TheoryModel::getModelValue(TNode n, bool hasBoundVars) const
       if(n.getType().isRegExp()) {
         ret = Rewriter::rewrite(ret);
       } else {
+        if (options::omitDontCares() && useDontCares) {
+          return Node();
+        }
         // Unknown term - return first enumerated value for this type
         TypeEnumerator te(n.getType());
         ret = *te;

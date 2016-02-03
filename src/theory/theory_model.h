@@ -60,13 +60,13 @@ protected:
   /**
    * Get model value function.  This function is called by getValue
    */
-  Node getModelValue(TNode n, bool hasBoundVars = false) const;
+  Node getModelValue(TNode n, bool hasBoundVars = false, bool useDontCares = false) const;
 public:
   /**
    * Get value function.  This should be called only after a ModelBuilder has called buildModel(...)
    * on this model.
    */
-  Node getValue( TNode n ) const;
+  Node getValue( TNode n, bool useDontCares = false ) const;
 
   /** get existing domain value, with possible exclusions
     *   This function returns a term in d_rep_set.d_type_reps[tn] but not in exclude
@@ -101,6 +101,8 @@ public:
   bool areEqual(TNode a, TNode b);
   bool areDisequal(TNode a, TNode b);
 public:
+  /** return whether this node is a don't-care */
+  bool isDontCare(Expr expr) const;
   /** get value function for Exprs. */
   Expr getValue( Expr expr ) const;
   /** get cardinality for sort */
