@@ -929,6 +929,9 @@ bool QuantifiersEngine::addInstantiation( Node q, std::vector< Node >& terms, bo
     }
     Trace("inst-add-debug") << " -> " << terms[i] << std::endl;
     Assert( !terms[i].isNull() );
+#ifdef CVC4_ASSERTIONS
+    Assert( !quantifiers::TermDb::containsUninterpretedConstant( terms[i] ) );
+#endif
   }
 
   //check based on instantiation level

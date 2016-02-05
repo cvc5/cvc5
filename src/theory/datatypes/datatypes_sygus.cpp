@@ -643,10 +643,10 @@ SygusSymBreak::SygusSymBreak( quantifiers::TermDbSygus * tds, context::Context* 
 
 }
 
-void SygusSymBreak::addTester( Node tst ) {
+void SygusSymBreak::addTester( int tindex, Node n, Node exp ) {
   if( options::sygusNormalFormGlobal() ){
-    Node a = getAnchor( tst[0] );
-    Trace("sygus-sym-break-debug") << "Add tester " << tst << " for " << a << std::endl;
+    Node a = getAnchor( n );
+    Trace("sygus-sym-break-debug") << "Add tester " << tindex << " " << n << " for " << a << std::endl;
     std::map< Node, ProgSearch * >::iterator it = d_prog_search.find( a );
     ProgSearch * ps;
     if( it==d_prog_search.end() ){
@@ -664,7 +664,7 @@ void SygusSymBreak::addTester( Node tst ) {
       ps = it->second;
     }
     if( ps ){
-      ps->addTester( tst );
+      ps->addTester( tindex, n, exp );
     }
   }
 }
@@ -677,34 +677,39 @@ Node SygusSymBreak::getAnchor( Node n ) {
   }
 }
 
-void SygusSymBreak::ProgSearch::addTester( Node tst ) {
-  NodeMap::const_iterator it = d_testers.find( tst[0] );
+void SygusSymBreak::ProgSearch::addTester( int tindex, Node n, Node exp ) {
+#ifdef CVC4_ASSERTIONS
+  Node a;
+  int teindex = DatatypesRewriter::isTester( exp, a );
+  Assert( teindex==tindex );
+  Assert( a==n );
+#endif
+  NodeMap::const_iterator it = d_testers.find( n );
   if( it==d_testers.end() ){
-    d_testers[tst[0]] = tst;
-    if( tst[0]==d_anchor ){
-      assignTester( tst, 0 );
+    d_testers[n] = exp;
+    if( n==d_anchor ){
+      assignTester( tindex, n, 0 );
     }else{
-      IntMap::const_iterator it = d_watched_terms.find( tst[0] );
+      IntMap::const_iterator it = d_watched_terms.find( n );
       if( it!=d_watched_terms.end() ){
-        assignTester( tst, (*it).second );
+        assignTester( tindex, n, (*it).second );
       }else{
-        Trace("sygus-sym-break-debug2") << "...add to wait list " << tst << " for " << d_anchor << std::endl;
+        Trace("sygus-sym-break-debug2") << "...add to wait list " << tindex << " " << n << " for " << d_anchor << std::endl;
       }
     }
   }else{
-    Trace("sygus-sym-break-debug2") << "...already seen " << tst << " for " << d_anchor << std::endl;
+    Trace("sygus-sym-break-debug2") << "...already seen " << tindex << " " << n << " for " << d_anchor << std::endl;
   }
 }
 
-bool SygusSymBreak::ProgSearch::assignTester( Node tst, int depth ) {
-  Trace("sygus-sym-break-debug") << "SymBreak : Assign tester : " << tst << ", depth = " << depth << " of " << d_anchor << std::endl;
-  int tindex = Datatype::indexOf( tst.getOperator().toExpr() );
-  TypeNode tn = tst[0].getType();
+bool SygusSymBreak::ProgSearch::assignTester( int tindex, Node n, int depth ) {
+  Trace("sygus-sym-break-debug") << "SymBreak : Assign tester : " << tindex << " " << n << ", depth = " << depth << " of " << d_anchor << std::endl;
+  TypeNode tn = n.getType();
   Assert( DatatypesRewriter::isTypeDatatype( tn ) );
   const Datatype& dt = ((DatatypeType)(tn).toType()).getDatatype();
   std::vector< Node > tst_waiting;
   for( unsigned i=0; i<dt[tindex].getNumArgs(); i++ ){
-    Node sel = NodeManager::currentNM()->mkNode( kind::APPLY_SELECTOR_TOTAL, Node::fromExpr( dt[tindex][i].getSelector() ), tst[0] );
+    Node sel = NodeManager::currentNM()->mkNode( kind::APPLY_SELECTOR_TOTAL, Node::fromExpr( dt[tindex][i].getSelector() ), n );
     NodeMap::const_iterator it = d_testers.find( sel );
     if( it!=d_testers.end() ){
       tst_waiting.push_back( (*it).second );
@@ -727,11 +732,14 @@ bool SygusSymBreak::ProgSearch::assignTester( Node tst, int depth ) {
     d_watched_count[depth] = d_watched_count[depth] - 1;
   }
   //determine if any subprograms on the current path are redundant
-  if( processSubprograms( tst[0], depth, depth ) ){
+  if( processSubprograms( n, depth, depth ) ){
     if( processProgramDepth( depth ) ){
       //assign preexisting testers
       for( unsigned i=0; i<tst_waiting.size(); i++ ){
-        if( !assignTester( tst_waiting[i], depth+1 ) ){
+        Node nw;
+        int tindexw = DatatypesRewriter::isTester( tst_waiting[i], nw );
+        Assert( tindexw!=-1 );
+        if( !assignTester( tindexw, nw, depth+1 ) ){
           return false;
         }
       }
@@ -797,8 +805,9 @@ Node SygusSymBreak::ProgSearch::getCandidateProgramAtDepth( int depth, Node prog
     Node tst = (*it).second;
     testers.push_back( tst );
     testers_u[parent].push_back( tst );
-    Assert( tst[0]==prog );
-    int tindex = Datatype::indexOf( tst.getOperator().toExpr() );
+    //Assert( tst[0]==prog );
+    int tindex = DatatypesRewriter::isTester( tst );//Datatype::indexOf( tst.getOperator().toExpr() );
+    Assert( tindex!=-1 );
     TypeNode tn = prog.getType();
     Assert( DatatypesRewriter::isTypeDatatype( tn ) );
     const Datatype& dt = ((DatatypeType)(tn).toType()).getDatatype();
@@ -910,7 +919,8 @@ bool SygusSymBreak::processCurrentProgram( Node a, TypeNode at, int depth, Node 
           if( testers_u[a].size()>1 ){
             bool finished = false;
             const Datatype & pdt = ((DatatypeType)(at).toType()).getDatatype();
-            int pc = Datatype::indexOf( testers[0].getOperator().toExpr() );
+            int pc = DatatypesRewriter::isTester( testers[0] );//Datatype::indexOf( testers[0].getOperator().toExpr() );
+            Assert( pc!=-1 );
             // [1] determine a minimal subset of the arguments that the rewriting depended on
             //quick checks based on constants
             for( unsigned i=0; i<nchildren.size(); i++ ){
@@ -1129,7 +1139,9 @@ bool SygusSymBreak::isSeparation( Node rep_prog, Node tst_curr, std::map< Node, 
   Node rop = rep_prog.getNumChildren()==0 ? rep_prog : rep_prog.getOperator();
   //we can continue if the tester in question is relevant
   if( std::find( rlv_testers.begin(), rlv_testers.end(), tst_curr )!=rlv_testers.end() ){
-    unsigned tindex = Datatype::indexOf( tst_curr.getOperator().toExpr() );
+    int tindex = DatatypesRewriter::isTester( tst_curr );
+    Assert( tindex!=-1 );
+    //unsigned tindex = Datatype::indexOf( tst_curr.getOperator().toExpr() );
     d_tds->registerSygusType( tn );
     Node op = d_tds->getArgOp( tn, tindex );
     if( op!=rop ){
