@@ -24,8 +24,8 @@
 
 #include "expr/node.h"
 #include "options/language.h"
-#include "smt_util/command.h"
-#include "smt_util/model.h"
+#include "smt/command.h"
+#include "smt/model.h"
 #include "util/sexpr.h"
 
 namespace CVC4 {
@@ -38,8 +38,8 @@ class Printer {
   static Printer* makePrinter(OutputLanguage lang) throw();
 
   // disallow copy, assignment
-  Printer(const Printer&) CVC4_UNUSED;
-  Printer& operator=(const Printer&) CVC4_UNUSED;
+  Printer(const Printer&) CVC4_UNDEFINED;
+  Printer& operator=(const Printer&) CVC4_UNDEFINED;
 
 protected:
   // derived classes can construct, but no one else.

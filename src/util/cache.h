@@ -39,8 +39,8 @@ class Cache {
   typename Map::iterator d_result;
 
   // disallow copy/assignment
-  Cache(const Cache&) CVC4_UNUSED;
-  Cache& operator=(const Cache&) CVC4_UNUSED;
+  Cache(const Cache&) CVC4_UNDEFINED;
+  Cache& operator=(const Cache&) CVC4_UNDEFINED;
 
 public:
 

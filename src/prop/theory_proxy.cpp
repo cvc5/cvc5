@@ -23,9 +23,10 @@
 #include "prop/cnf_stream.h"
 #include "prop/prop_engine.h"
 #include "proof/cnf_proof.h"
+#include "smt/command.h"
+#include "smt/smt_statistics_registry.h"
 #include "smt_util/lemma_input_channel.h"
 #include "smt_util/lemma_output_channel.h"
-#include "smt/smt_statistics_registry.h"
 #include "theory/rewriter.h"
 #include "theory/theory_engine.h"
 #include "util/statistics_registry.h"
@@ -39,12 +40,16 @@ TheoryProxy::TheoryProxy(PropEngine* propEngine,
                          DecisionEngine* decisionEngine,
                          context::Context* context,
                          CnfStream* cnfStream,
-                         SmtGlobals* globals)
+                         std::ostream* replayLog,
+                         ExprStream* replayStream,
+                         LemmaChannels* channels)
     : d_propEngine(propEngine),
       d_cnfStream(cnfStream),
       d_decisionEngine(decisionEngine),
       d_theoryEngine(theoryEngine),
-      d_globals(globals),
+      d_channels(channels),
+      d_replayLog(replayLog),
+      d_replayStream(replayStream),
       d_queue(context),
       d_replayedDecisions("prop::theoryproxy::replayedDecisions", 0)
 {
@@ -58,20 +63,12 @@ TheoryProxy::~TheoryProxy() {
 
 /** The lemma input channel we are using. */
 LemmaInputChannel* TheoryProxy::inputChannel() {
-  return d_globals->getLemmaInputChannel();
+  return d_channels->getLemmaInputChannel();
 }
 
 /** The lemma output channel we are using. */
 LemmaOutputChannel* TheoryProxy::outputChannel() {
-  return d_globals->getLemmaOutputChannel();
-}
-
-std::ostream* TheoryProxy::replayLog() {
-  return d_globals->getReplayLog();
-}
-
-ExprStream* TheoryProxy::replayStream() {
-  return d_globals->getReplayStream();
+  return d_channels->getLemmaOutputChannel();
 }
 
 
@@ -203,8 +200,8 @@ void TheoryProxy::notifyNewLemma(SatClause& lemma) {
 
 SatLiteral TheoryProxy::getNextReplayDecision() {
 #ifdef CVC4_REPLAY
-  if(replayStream() != NULL) {
-    Expr e = replayStream()->nextExpr();
+  if(d_replayStream != NULL) {
+    Expr e = d_replayStream->nextExpr();
     if(!e.isNull()) { // we get null node when out of decisions to replay
       // convert & return
       ++d_replayedDecisions;
@@ -217,9 +214,9 @@ SatLiteral TheoryProxy::getNextReplayDecision() {
 
 void TheoryProxy::logDecision(SatLiteral lit) {
 #ifdef CVC4_REPLAY
-  if(replayLog() != NULL) {
+  if(d_replayLog != NULL) {
     Assert(lit != undefSatLiteral, "logging an `undef' decision ?!");
-    (*replayLog()) << d_cnfStream->getNode(lit) << std::endl;
+    (*d_replayLog) << d_cnfStream->getNode(lit) << std::endl;
   }
 #endif /* CVC4_REPLAY */
 }
@@ -238,6 +235,12 @@ bool TheoryProxy::isDecisionEngineDone() {
 
 SatValue TheoryProxy::getDecisionPolarity(SatVariable var) {
   return d_decisionEngine->getPolarity(var);
+}
+
+void TheoryProxy::dumpStatePop() {
+  if(Dump.isOn("state")) {
+    Dump("state") << PopCommand();
+  }
 }
 
 }/* CVC4::prop namespace */

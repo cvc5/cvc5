@@ -18,36 +18,35 @@
  ** first generate options/summary.sed.
  **/
 
+
 #include <string>
 #include <sstream>
 
-#include "base/output.h"
 #include "base/modal_exception.h"
+#include "base/output.h"
 #include "options/option_exception.h"
-#include "options/options_handler_interface.h"
-
+#include "options/options.h"
+#include "options/options_handler.h"
 
 ${include_all_option_headers}
 ${option_handler_includes}
 
-#line 31 "${template}"
+#line 35 "${template}"
 
 using namespace std;
 
 namespace CVC4 {
-namespace options {
 
-void OptionsHandler::setOption(const std::string& key, const std::string& optionarg)
+void Options::setOption(const std::string& key, const std::string& optionarg)
   throw(OptionException, ModalException) {
-  options::OptionsHandler* const handler = this;
+  options::OptionsHandler* handler = d_handler;
   Trace("options") << "SMT setOption(" << key << ", " << optionarg << ")" << endl;
 
   ${smt_setoption_handlers}
 
-#line 44 "${template}"
+#line 48 "${template}"
 
   throw UnrecognizedOptionException(key);
 }
 
-}/* options namespace */
 }/* CVC4 namespace */

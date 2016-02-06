@@ -15,6 +15,10 @@ option dtForceAssignment --dt-force-assignment bool :default false :read-write
  force the datatypes solver to give specific values to all datatypes terms before answering sat
 option dtBinarySplit --dt-binary-split bool :default false
  do binary splits for datatype constructor types
+option dtRefIntro --dt-ref-sk-intro bool :default false
+ introduce reference skolems for shorter explanations
+option dtUseTesters --dt-use-testers bool :default true
+ do not preprocess away tester predicates
 option cdtBisimilar --cdt-bisimilar bool :default true
  do bisimilarity check for co-datatypes
 option dtCyclic --dt-cyclic bool :default true

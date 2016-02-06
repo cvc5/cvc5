@@ -114,6 +114,18 @@ class CVC4_PUBLIC ResourceManager {
   /** Receives a notification on reaching a hard limit. */
   ListenerCollection d_softListeners;
 
+  /**
+   * ResourceManagers cannot be copied as they are given an explicit
+   * list of Listeners to respond to.
+   */
+  ResourceManager(const ResourceManager&) CVC4_UNDEFINED;
+
+  /**
+   * ResourceManagers cannot be assigned as they are given an explicit
+   * list of Listeners to respond to.
+   */
+  ResourceManager& operator=(const ResourceManager&) CVC4_UNDEFINED;
+
 public:
 
   ResourceManager();
@@ -162,12 +174,24 @@ public:
 
   static uint64_t getFrequencyCount() { return s_resourceCount; }
 
-  /** Collection of listeners that are notified on a hard resource out. */
-  ListenerCollection* getHardListeners();
+  /**
+   * Registers a listener that is notified on a hard resource out.
+   *
+   * This Registration must be destroyed by the user before this
+   * ResourceManager.
+   */
+  ListenerCollection::Registration* registerHardListener(Listener* listener);
 
-  /** Collection of listeners that are notified on a soft resource out. */
-  ListenerCollection* getSoftListeners();
+  /**
+   * Registers a listener that is notified on a soft resource out.
+   *
+   * This Registration must be destroyed by the user before this
+   * ResourceManager.
+   */
+  ListenerCollection::Registration* registerSoftListener(Listener* listener);
+
 };/* class ResourceManager */
+
 
 }/* CVC4 namespace */
 

@@ -60,6 +60,8 @@ public:
   std::string getInputName() const { return d_inputName; }
 
 public:
+  /** Check whether this expr is a don't-care in the model */
+  virtual bool isDontCare(Expr expr) const { return false; }
   /** get value for expression */
   virtual Expr getValue(Expr expr) const = 0;
   /** get cardinality for sort */

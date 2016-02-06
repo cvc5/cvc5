@@ -20,9 +20,8 @@
 #define __CVC4__THEORY__THEORY_H
 
 #include <ext/hash_set>
-#include <iostream>
+#include <iosfwd>
 #include <string>
-#include <strings.h>
 
 #include "context/cdlist.h"
 #include "context/cdo.h"
@@ -32,10 +31,9 @@
 #include "options/options.h"
 #include "options/theory_options.h"
 #include "options/theoryof_mode.h"
+#include "smt/command.h"
+#include "smt/dump.h"
 #include "smt/logic_request.h"
-#include "smt/smt_globals.h"
-#include "smt_util/command.h"
-#include "smt_util/dump.h"
 #include "theory/logic_info.h"
 #include "theory/output_channel.h"
 #include "theory/valuation.h"
@@ -140,9 +138,9 @@ private:
   friend class ::CVC4::TheoryEngine;
 
   // Disallow default construction, copy, assignment.
-  Theory() CVC4_UNUSED;
-  Theory(const Theory&) CVC4_UNUSED;
-  Theory& operator=(const Theory&) CVC4_UNUSED;
+  Theory() CVC4_UNDEFINED;
+  Theory(const Theory&) CVC4_UNDEFINED;
+  Theory& operator=(const Theory&) CVC4_UNDEFINED;
 
   /**
    * An integer identifying the type of the theory
@@ -153,7 +151,7 @@ private:
    * an unique string identifier for each instance of a Theory class. We need
    * this to ensure unique statistics names over multiple theory instances. */
   std::string d_instanceName;
-  
+
   /**
    * The SAT search context for the Theory.
    */
@@ -243,10 +241,14 @@ protected:
 
   /**
    * Construct a Theory.
+   *
+   * The pair <id, instance> is assumed to uniquely identify this Theory
+   * w.r.t. the SmtEngine.
    */
-  Theory(TheoryId id, context::Context* satContext, context::UserContext* userContext,
-         OutputChannel& out, Valuation valuation, const LogicInfo& logicInfo,
-         SmtGlobals* globals, std::string name = "") throw(); // taking : No default.
+  Theory(TheoryId id, context::Context* satContext,
+         context::UserContext* userContext, OutputChannel& out,
+         Valuation valuation, const LogicInfo& logicInfo,
+         std::string instance = "") throw();  // taking : No default.
 
   /**
    * This is called at shutdown time by the TheoryEngine, just before
@@ -275,7 +277,7 @@ protected:
    *
    */
   bool d_proofsEnabled;
-  
+
   /**
    * Returns the next assertion in the assertFact() queue.
    *
@@ -295,7 +297,11 @@ protected:
   void printFacts(std::ostream& os) const;
   void debugPrintFacts() const;
 
-  SmtGlobals* d_globals;
+  /**
+   * Whether proofs are enabled
+   *
+   */
+  bool d_proofEnabled;
 
 public:
 
@@ -421,7 +427,14 @@ public:
     return ss.str();
   }
 
-  
+
+  /**
+   * Returns a string that uniquely identifies this theory solver w.r.t. the
+   * SmtEngine.
+   */
+  std::string getFullInstanceName() const;
+
+
   /**
    * Get the SAT context associated to this Theory.
    */
@@ -865,9 +878,6 @@ public:
    * Turn on proof-production mode.
    */
   void produceProofs() { d_proofsEnabled = true; }
-  
-  /** Returns a pointer to the globals copy the theory is using. */
-  SmtGlobals* globals() { return d_globals; }
 
 };/* class Theory */
 

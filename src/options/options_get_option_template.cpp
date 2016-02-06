@@ -26,29 +26,28 @@
 #include "base/output.h"
 #include "base/modal_exception.h"
 #include "options/option_exception.h"
-#include "options/options_handler_interface.h"
+#include "options/options.h"
+#include "options/options_handler.h"
 
 
 ${include_all_option_headers}
 ${option_handler_includes}
 
-#line 31 "${template}"
+#line 37 "${template}"
 
 using namespace std;
 
 namespace CVC4 {
-namespace options {
 
-std::string OptionsHandler::getOption(const std::string& key) const
+std::string Options::getOption(const std::string& key) const
   throw(OptionException) {
   Trace("options") << "SMT getOption(" << key << ")" << endl;
 
   ${smt_getoption_handlers}
 
-#line 57 "${template}"
+#line 49 "${template}"
 
   throw UnrecognizedOptionException(key);
 }
 
-}/* options namespace */
 }/* CVC4 namespace */

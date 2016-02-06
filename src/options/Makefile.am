@@ -162,16 +162,16 @@ CPP_TEMPLATE_FILES = \
 	base_options_template.cpp \
 	options_holder_template.h \
 	options_template.cpp \
-	options_handler_get_option_template.cpp \
-	options_handler_set_option_template.cpp
+	options_get_option_template.cpp \
+	options_set_option_template.cpp
 
 CPP_TEMPLATE_SEDS = \
 	base_options_template.h.sed \
 	base_options_template.cpp.sed \
 	options_holder_template.h.sed \
 	options_template.cpp.sed \
-	options_handler_get_option_template.cpp.sed \
-	options_handler_set_option_template.cpp.sed
+	options_get_option_template.cpp.sed \
+	options_set_option_template.cpp.sed
 
 
 DOCUMENTATION_FILES = \
@@ -206,6 +206,8 @@ liboptions_la_SOURCES = \
 	arith_propagation_mode.h \
 	arith_unate_lemma_mode.cpp \
 	arith_unate_lemma_mode.h \
+	argument_extender.cpp \
+	argument_extender.h \
 	base_handlers.h \
 	boolean_term_conversion_mode.cpp \
 	boolean_term_conversion_mode.h \
@@ -218,11 +220,13 @@ liboptions_la_SOURCES = \
 	didyoumean.h \
 	language.cpp \
 	language.h \
-	logic_info_forward.h \
+	open_ostream.cpp \
+	open_ostream.h \
 	option_exception.h \
 	options.h \
-	options_handler_interface.cpp \
-	options_handler_interface.h \
+	options_handler.cpp \
+	options_handler.h \
+	options_public_functions.cpp \
 	printer_modes.cpp \
 	printer_modes.h \
 	quantifiers_modes.cpp \
@@ -241,8 +245,8 @@ nodist_liboptions_la_SOURCES = \
 	options_holder.h \
 	$(OPTIONS_HEADS) \
 	$(OPTIONS_CPPS) \
-	options_handler_get_option.cpp \
-	options_handler_set_option.cpp
+	options_get_option.cpp \
+	options_set_option.cpp
 
 
 BUILT_SOURCES = \
@@ -254,20 +258,11 @@ BUILT_SOURCES = \
 	$(OPTIONS_OPTIONS_FILES) \
 	$(OPTIONS_SEDS) \
 	options.cpp \
-	options_handler_get_option.cpp \
-	options_handler_set_option.cpp \
+	options_get_option.cpp \
+	options_set_option.cpp \
 	options_holder.h \
 	summary.sed
 
-# listing {Debug,Trace}_tags too ensures that make doesn't auto-remove it
-# after building (if it does, we don't get the "cached" effect with
-# the .tmp files below, and we have to re-compile and re-link each
-# time, even when there are no changes).
-BUILT_SOURCES += \
-	Debug_tags.h \
-	Debug_tags \
-	Trace_tags.h \
-	Trace_tags
 
 CLEANFILES = \
 	$(BUILT_SOURCES) \
@@ -283,47 +278,19 @@ EXTRA_DIST = \
 	base_options_template.h \
 	language.i \
 	mkoptions \
-	mktagheaders \
-	mktags \
 	option_exception.i \
 	options.i \
-	options_handler_get_option_template.cpp \
-	options_handler_interface.i \
-	options_handler_set_option_template.cpp \
+	options_get_option_template.cpp \
 	options_holder_template.h \
+	options_set_option_template.cpp \
 	options_template.cpp
 
 
-%_tags.h: %_tags mktagheaders
-	$(AM_V_at)chmod +x @srcdir@/mktagheaders
-	$(AM_V_GEN)( @srcdir@/mktagheaders "$<" "$<" ) >"$@"
 
-# This .tmp business is to keep from having to re-compile options.cpp
-# (and then re-link the libraries) if nothing has changed.
-%_tags: %_tags.tmp
-	$(AM_V_GEN)\
-	diff -q "$^" "$@" &>/dev/null || mv "$^" "$@" || true
-# .PHONY ensures the .tmp version is always rebuilt (to check for any changes)
-.PHONY: Debug_tags.tmp Trace_tags.tmp
-# The "sed" invocation below is particularly obnoxious, but it works around
-# inconsistencies in REs on different platforms, using only a basic regular
-# expression (no |, no \<, ...).
-Debug_tags.tmp Trace_tags.tmp: mktags
-	$(AM_V_at)chmod +x @srcdir@/mktags
-	$(AM_V_GEN)(@srcdir@/mktags \
-    '$(@:_tags.tmp=)' \
-    "$$(find @srcdir@/../ -name '*.cpp' -o -name '*.h' -o -name '*.cc' -o -name '*.g')") >"$@"
 
-MOSTLYCLEANFILES = \
-	Debug_tags \
-	Trace_tags \
-	Debug_tags.tmp \
-	Trace_tags.tmp \
-	Debug_tags.h \
-	Trace_tags.h
 
 # Make sure the implicit rules never mistake a _template.cpp or _template.h file for source file.
-options_holder_template.h options_template.cpp options_handler_get_option_template.cpp options_handler_set_option_template.cpp base_options_template.h base_options_template.cpp :;
+options_holder_template.h options_template.cpp options_get_option_template.cpp options_set_option_template.cpp base_options_template.h base_options_template.cpp :;
 
 # Make sure the implicit rules never mistake X_options for the -o file for a
 # CPP file.
@@ -418,19 +385,19 @@ options.cpp : options_template.cpp options_template.cpp.sed mkoptions summary.se
 
 
 #   mkoptions apply-sed-to-template sed-file template-file
-options_handler_get_option.cpp : options_handler_get_option_template.cpp options_handler_get_option_template.cpp.sed mkoptions summary.sed $(OPTIONS_HEADS)
+options_get_option.cpp : options_get_option_template.cpp options_get_option_template.cpp.sed mkoptions summary.sed $(OPTIONS_HEADS)
 	$(AM_V_at)chmod +x @srcdir@/mkoptions
 	$(AM_V_GEN)(@srcdir@/mkoptions apply-sed-files-to-template \
-		@srcdir@/options_handler_get_option_template.cpp \
-		@builddir@/options_handler_get_option_template.cpp.sed \
+		@srcdir@/options_get_option_template.cpp \
+		@builddir@/options_get_option_template.cpp.sed \
 		summary.sed \
 	) > "$@"
 
-options_handler_set_option.cpp : options_handler_set_option_template.cpp options_handler_set_option_template.cpp.sed mkoptions summary.sed $(OPTIONS_HEADS)
+options_set_option.cpp : options_set_option_template.cpp options_set_option_template.cpp.sed mkoptions summary.sed $(OPTIONS_HEADS)
 	$(AM_V_at)chmod +x @srcdir@/mkoptions
 	$(AM_V_GEN)(@srcdir@/mkoptions apply-sed-files-to-template \
-		@srcdir@/options_handler_set_option_template.cpp \
-		@builddir@/options_handler_set_option_template.cpp.sed \
+		@srcdir@/options_set_option_template.cpp \
+		@builddir@/options_set_option_template.cpp.sed \
 		summary.sed \
 	) > "$@"
 

@@ -5,16 +5,16 @@
 
 module EXPR "options/expr_options.h" Expression package
 
-option defaultExprDepth --default-expr-depth=N int :default 0 :predicate CVC4::options::setDefaultExprDepth :predicate-include "options/options_handler_interface.h"
+option defaultExprDepth --default-expr-depth=N int :default 0 :predicate setDefaultExprDepthPredicate :notify notifySetDefaultExprDepth
  print exprs to depth N (0 == default, -1 == no limit)
 undocumented-alias --expr-depth=N = --default-expr-depth=N
 
-option defaultDagThresh default-dag-thresh --default-dag-thresh=N int :default 1 :predicate CVC4::options::setDefaultDagThresh :predicate-include "options/options_handler_interface.h"
+option defaultDagThresh default-dag-thresh --default-dag-thresh=N int :default 1 :predicate setDefaultDagThreshPredicate :notify notifySetDefaultDagThresh
  dagify common subexprs appearing > N times (1 == default, 0 == don't dagify)
 undocumented-alias --dag-thresh=N = --default-dag-thresh=N
 undocumented-alias --dag-threshold=N = --default-dag-thresh=N
 
-option - --print-expr-types void :handler CVC4::options::setPrintExprTypes :handler-include "options/options_handler_interface.h"
+option printExprTypes --print-expr-types bool :default false :notify notifySetPrintExprTypes
  print types with variables when printing exprs
 
 option earlyTypeChecking --eager-type-checking/--lazy-type-checking bool :default USE_EARLY_TYPE_CHECKING_BY_DEFAULT
@@ -23,7 +23,7 @@ option earlyTypeChecking --eager-type-checking/--lazy-type-checking bool :defaul
 
 # --no-type-checking will override any --early-type-checking or --lazy-type-checking option
 # --lazy-type-checking is linked because earlyTypeChecking should be set false too
-option typeChecking /--no-type-checking bool :default DO_SEMANTIC_CHECKS_BY_DEFAULT :link /--lazy-type-checking
+option typeChecking type-checking /--no-type-checking bool :default DO_SEMANTIC_CHECKS_BY_DEFAULT :link /--lazy-type-checking
  never type check expressions
 
 option biasedITERemoval --biased-ites bool :default false

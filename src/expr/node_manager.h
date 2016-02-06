@@ -102,7 +102,14 @@ class NodeManager {
 
   Options* d_options;
   StatisticsRegistry* d_statisticsRegistry;
+
   ResourceManager* d_resourceManager;
+
+  /**
+   * A list of registrations on d_options to that call into d_resourceManager.
+   * These must be garbage collected before d_options and d_resourceManager.
+   */
+  ListenerRegistrationList* d_registrations;
 
   NodeValuePool d_nodeValuePool;
 
@@ -294,6 +301,8 @@ class NodeManager {
 
   // undefined private copy constructor (disallow copy)
   NodeManager(const NodeManager&) CVC4_UNDEFINED;
+
+  NodeManager& operator=(const NodeManager&) CVC4_UNDEFINED;
 
   void init();
 

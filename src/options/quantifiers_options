@@ -19,7 +19,7 @@ option miniscopeQuantFreeVar --miniscope-quant-fv bool :default true :read-write
  miniscope quantifiers for ground subformulas
 option quantSplit --quant-split bool :default true
  apply splitting to quantified formulas based on variable disjoint disjuncts
-option prenexQuant --prenex-quant=MODE CVC4::theory::quantifiers::PrenexQuantMode :default CVC4::theory::quantifiers::PRENEX_NO_USER_PAT :include "options/quantifiers_modes.h" :read-write :handler CVC4::options::stringToPrenexQuantMode :handler-include "options/options_handler_interface.h"
+option prenexQuant --prenex-quant=MODE CVC4::theory::quantifiers::PrenexQuantMode :default CVC4::theory::quantifiers::PRENEX_NO_USER_PAT :include "options/quantifiers_modes.h" :read-write :handler stringToPrenexQuantMode
  prenex mode for quantified formulas
 # Whether to variable-eliminate quantifiers.
 # For example, forall x y. ( P( x, y ) V x != c ) will be rewritten to
@@ -29,7 +29,7 @@ option varElimQuant --var-elim-quant bool :default true
 option dtVarExpandQuant --dt-var-exp-quant bool :default true
  expand datatype variables bound to one constructor in quantifiers
 #ite lift mode for quantified formulas
-option iteLiftQuant --ite-lift-quant=MODE CVC4::theory::quantifiers::IteLiftQuantMode :default CVC4::theory::quantifiers::ITE_LIFT_QUANT_MODE_SIMPLE :include "options/quantifiers_modes.h" :read-write :handler CVC4::options::stringToIteLiftQuantMode :handler-include "options/options_handler_interface.h"
+option iteLiftQuant --ite-lift-quant=MODE CVC4::theory::quantifiers::IteLiftQuantMode :default CVC4::theory::quantifiers::ITE_LIFT_QUANT_MODE_SIMPLE :include "options/quantifiers_modes.h" :read-write :handler stringToIteLiftQuantMode
  ite lifting mode for quantified formulas
 option condVarSplitQuant --cond-var-split-quant bool :default true
  split quantified formulas that lead to variable eliminations
@@ -63,7 +63,7 @@ option purifyQuant --purify-quant bool :default false
 option eMatching --e-matching bool :read-write :default true
  whether to do heuristic E-matching
 
-option termDbMode --term-db-mode CVC4::theory::quantifiers::TermDbMode :default CVC4::theory::quantifiers::TERM_DB_ALL :read-write :include "options/quantifiers_modes.h" :handler  CVC4::options::stringToTermDbMode :handler-include "options/options_handler_interface.h"
+option termDbMode --term-db-mode CVC4::theory::quantifiers::TermDbMode :default CVC4::theory::quantifiers::TERM_DB_ALL :read-write :include "options/quantifiers_modes.h" :handler  stringToTermDbMode
  which ground terms to consider for instantiation
 option registerQuantBodyTerms --register-quant-body-terms bool :default false
  consider ground terms within bodies of quantified formulas for matching
@@ -86,14 +86,14 @@ option multiTriggerWhenSingle --multi-trigger-when-single bool :default false
  select multi triggers when single triggers exist
 option multiTriggerPriority --multi-trigger-priority bool :default false
  only try multi triggers if single triggers give no instantiations
-option triggerSelMode --trigger-sel CVC4::theory::quantifiers::TriggerSelMode :default CVC4::theory::quantifiers::TRIGGER_SEL_DEFAULT :read-write :include "options/quantifiers_modes.h" :handler  CVC4::options::stringToTriggerSelMode :handler-include "options/options_handler_interface.h"
+option triggerSelMode --trigger-sel CVC4::theory::quantifiers::TriggerSelMode :default CVC4::theory::quantifiers::TRIGGER_SEL_DEFAULT :read-write :include "options/quantifiers_modes.h" :handler  stringToTriggerSelMode
  selection mode for triggers
-option userPatternsQuant --user-pat=MODE CVC4::theory::quantifiers::UserPatMode :default CVC4::theory::quantifiers::USER_PAT_MODE_TRUST :include "options/quantifiers_modes.h" :handler CVC4::options::stringToUserPatMode :handler-include "options/options_handler_interface.h"
+option userPatternsQuant --user-pat=MODE CVC4::theory::quantifiers::UserPatMode :default CVC4::theory::quantifiers::USER_PAT_MODE_TRUST :include "options/quantifiers_modes.h" :handler stringToUserPatMode
  policy for handling user-provided patterns for quantifier instantiation
 option incrementTriggers --increment-triggers bool :default true
  generate additional triggers as needed during search
  
-option instWhenMode --inst-when=MODE CVC4::theory::quantifiers::InstWhenMode :default CVC4::theory::quantifiers::INST_WHEN_FULL_LAST_CALL :read-write :include "options/quantifiers_modes.h" :handler CVC4::options::stringToInstWhenMode :handler-include "options/options_handler_interface.h" :predicate CVC4::options::checkInstWhenMode :predicate-include "options/options_handler_interface.h"
+option instWhenMode --inst-when=MODE CVC4::theory::quantifiers::InstWhenMode :default CVC4::theory::quantifiers::INST_WHEN_FULL_LAST_CALL :read-write :include "options/quantifiers_modes.h" :handler stringToInstWhenMode :predicate checkInstWhenMode
  when to apply instantiation
  
 option instMaxLevel --inst-max-level=N int :read-write :default -1
@@ -113,7 +113,7 @@ option fullSaturateQuantRd --full-saturate-quant-rd bool :default true
 option fullSaturateInst --fs-inst bool :default false
  interleave full saturate instantiation with other techniques
 
-option literalMatchMode --literal-matching=MODE CVC4::theory::quantifiers::LiteralMatchMode :default CVC4::theory::quantifiers::LITERAL_MATCH_NONE :include "options/quantifiers_modes.h" :handler CVC4::options::stringToLiteralMatchMode :handler-include "options/options_handler_interface.h" :predicate CVC4::options::checkLiteralMatchMode :predicate-include "options/options_handler_interface.h"
+option literalMatchMode --literal-matching=MODE CVC4::theory::quantifiers::LiteralMatchMode :default CVC4::theory::quantifiers::LITERAL_MATCH_NONE :include "options/quantifiers_modes.h" :handler stringToLiteralMatchMode :predicate checkLiteralMatchMode
  choose literal matching mode
 
 ### finite model finding options
@@ -130,7 +130,7 @@ option fmfFunWellDefinedRelevant --fmf-fun-rlv bool :default false
 option fmfEmptySorts --fmf-empty-sorts bool :default false
  allow finite model finding to assume sorts that do not occur in ground assertions are empty
  
-option mbqiMode --mbqi=MODE CVC4::theory::quantifiers::MbqiMode :read-write :default CVC4::theory::quantifiers::MBQI_FMC :include "options/quantifiers_modes.h" :handler CVC4::options::stringToMbqiMode :handler-include "options/options_handler_interface.h" :predicate CVC4::options::checkMbqiMode :predicate-include "options/options_handler_interface.h"
+option mbqiMode --mbqi=MODE CVC4::theory::quantifiers::MbqiMode :read-write :default CVC4::theory::quantifiers::MBQI_FMC :include "options/quantifiers_modes.h" :handler stringToMbqiMode :predicate checkMbqiMode
  choose mode for model-based quantifier instantiation
 option fmfOneInstPerRound --mbqi-one-inst-per-round bool :read-write :default false
  only add one instantiation per quantifier per round for mbqi
@@ -156,9 +156,9 @@ option fmfBoundIntLazy --fmf-bound-int-lazy bool :default false :read-write
  
 option quantConflictFind --quant-cf bool :read-write :default true
  enable conflict find mechanism for quantifiers
-option qcfMode --quant-cf-mode=MODE CVC4::theory::quantifiers::QcfMode :default CVC4::theory::quantifiers::QCF_PROP_EQ :include "options/quantifiers_modes.h" :handler CVC4::options::stringToQcfMode :handler-include "options/options_handler_interface.h"
+option qcfMode --quant-cf-mode=MODE CVC4::theory::quantifiers::QcfMode :default CVC4::theory::quantifiers::QCF_PROP_EQ :include "options/quantifiers_modes.h" :handler stringToQcfMode
  what effort to apply conflict find mechanism
-option qcfWhenMode --quant-cf-when=MODE CVC4::theory::quantifiers::QcfWhenMode :default CVC4::theory::quantifiers::QCF_WHEN_MODE_DEFAULT :include "options/quantifiers_modes.h" :handler CVC4::options::stringToQcfWhenMode :handler-include "options/options_handler_interface.h"
+option qcfWhenMode --quant-cf-when=MODE CVC4::theory::quantifiers::QcfWhenMode :default CVC4::theory::quantifiers::QCF_WHEN_MODE_DEFAULT :include "options/quantifiers_modes.h" :handler stringToQcfWhenMode
  when to invoke conflict find mechanism for quantifiers
 option qcfTConstraint --qcf-tconstraint bool :read-write :default false
  enable entailment checks for t-constraints in qcf algorithm
@@ -205,7 +205,7 @@ option conjectureUeeIntro --conjecture-gen-uee-intro bool :default false
 
 option ceGuidedInst --cegqi bool :default false :read-write
   counterexample-guided quantifier instantiation
-option ceGuidedInstFair --cegqi-fair=MODE CVC4::theory::quantifiers::CegqiFairMode :default CVC4::theory::quantifiers::CEGQI_FAIR_DT_SIZE :include "options/quantifiers_modes.h" :handler CVC4::options::stringToCegqiFairMode :handler-include "options/options_handler_interface.h"
+option ceGuidedInstFair --cegqi-fair=MODE CVC4::theory::quantifiers::CegqiFairMode :default CVC4::theory::quantifiers::CEGQI_FAIR_DT_SIZE :include "options/quantifiers_modes.h" :handler stringToCegqiFairMode
   if and how to apply fairness for cegqi
 option cegqiSingleInv --cegqi-si bool :default false :read-write
   process single invocation synthesis conjectures
@@ -233,7 +233,7 @@ option sygusNormalFormGlobalArg --sygus-nf-sym-arg bool :default true
 option sygusNormalFormGlobalContent --sygus-nf-sym-content bool :default true
   generalize based on content in global search space narrowing
   
-option sygusInvTemplMode --sygus-inv-templ=MODE CVC4::theory::quantifiers::SygusInvTemplMode :default CVC4::theory::quantifiers::SYGUS_INV_TEMPL_MODE_NONE :include "options/quantifiers_modes.h" :handler CVC4::options::stringToSygusInvTemplMode :handler-include "options/options_handler_interface.h"
+option sygusInvTemplMode --sygus-inv-templ=MODE CVC4::theory::quantifiers::SygusInvTemplMode :default CVC4::theory::quantifiers::SYGUS_INV_TEMPL_MODE_NONE :include "options/quantifiers_modes.h" :handler stringToSygusInvTemplMode
   template mode for sygus invariant synthesis
 
 # approach applied to general quantified formulas
@@ -281,7 +281,7 @@ option quantAlphaEquiv --quant-alpha-equiv bool :default true
   infer alpha equivalence between quantified formulas
 option macrosQuant --macros-quant bool :read-write :default false
  perform quantifiers macro expansion
-option macrosQuantMode --macros-quant-mode=MODE CVC4::theory::quantifiers::MacrosQuantMode :default CVC4::theory::quantifiers::MACROS_QUANT_MODE_GROUND_UF :include "options/quantifiers_modes.h" :handler CVC4::options::stringToMacrosQuantMode :handler-include "options/options_handler_interface.h"
+option macrosQuantMode --macros-quant-mode=MODE CVC4::theory::quantifiers::MacrosQuantMode :default CVC4::theory::quantifiers::MACROS_QUANT_MODE_GROUND_UF :include "options/quantifiers_modes.h" :handler stringToMacrosQuantMode
  mode for quantifiers macro expansion
 
 ### recursive function options

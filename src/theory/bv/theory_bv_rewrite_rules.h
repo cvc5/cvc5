@@ -22,7 +22,7 @@
 #include <sstream>
 
 #include "context/context.h"
-#include "smt_util/command.h"
+#include "smt/command.h"
 #include "theory/bv/theory_bv_utils.h"
 #include "theory/theory.h"
 #include "util/statistics_registry.h"

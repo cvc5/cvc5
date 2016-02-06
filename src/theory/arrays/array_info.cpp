@@ -23,6 +23,27 @@ namespace CVC4 {
 namespace theory {
 namespace arrays {
 
+Info::Info(context::Context* c, Backtracker<TNode>* bck)
+    : isNonLinear(c, false),
+      rIntro1Applied(c, false),
+      modelRep(c,TNode()),
+      constArr(c,TNode()),
+      weakEquivPointer(c,TNode()),
+      weakEquivIndex(c,TNode()),
+      weakEquivSecondary(c,TNode()),
+      weakEquivSecondaryReason(c,TNode())
+{
+  indices = new(true)CTNodeList(c);
+  stores = new(true)CTNodeList(c);
+  in_stores = new(true)CTNodeList(c);
+}
+
+Info::~Info() {
+  indices->deleteSelf();
+  stores->deleteSelf();
+  in_stores->deleteSelf();
+}
+
 ArrayInfo::ArrayInfo(context::Context* c, Backtracker<TNode>* b, std::string name)
     : ct(c), bck(b), info_map(),
       d_mergeInfoTimer(name + "theory::arrays::mergeInfoTimer"),
@@ -115,11 +136,9 @@ void ArrayInfo::addIndex(const Node a, const TNode i) {
 
   CNodeInfoMap::iterator it = info_map.find(a);
   if(it == info_map.end()) {
-    temp_indices = new(true) CTNodeList(ct);
-    temp_indices->push_back(i);
-
     temp_info = new Info(ct, bck);
-    temp_info->indices = temp_indices;
+    temp_indices = temp_info->indices;
+    temp_indices->push_back(i);
     info_map[a] = temp_info;
   } else {
     temp_indices = (*it).second->indices;
@@ -142,11 +161,9 @@ void ArrayInfo::addStore(const Node a, const TNode st){
 
   CNodeInfoMap::iterator it = info_map.find(a);
   if(it == info_map.end()) {
-    temp_store = new(true) CTNodeList(ct);
-    temp_store->push_back(st);
-
     temp_info = new Info(ct, bck);
-    temp_info->stores = temp_store;
+    temp_store = temp_info->stores;
+    temp_store->push_back(st);
     info_map[a]=temp_info;
   } else {
     temp_store = (*it).second->stores;
@@ -167,11 +184,9 @@ void ArrayInfo::addInStore(const TNode a, const TNode b){
 
   CNodeInfoMap::iterator it = info_map.find(a);
   if(it == info_map.end()) {
-    temp_inst = new(true) CTNodeList(ct);
-    temp_inst->push_back(b);
-
     temp_info = new Info(ct, bck);
-    temp_info->in_stores = temp_inst;
+    temp_inst = temp_info->in_stores;
+    temp_inst->push_back(b);
     info_map[a] = temp_info;
   } else {
     temp_inst = (*it).second->in_stores;

@@ -32,7 +32,7 @@
 #include "options/language.h"
 #include "options/set_language.h"
 #include "sha1.hpp"
-#include "smt_util/command.h"
+#include "smt/command.h"
 #include "word.h"
 
 using namespace std;

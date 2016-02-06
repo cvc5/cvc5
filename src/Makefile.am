@@ -108,26 +108,33 @@ libcvc4_la_SOURCES = \
 	prop/sat_solver_types.h \
 	prop/sat_solver_factory.h \
 	prop/sat_solver_factory.cpp \
-	smt/smt_engine.cpp \
-	smt/smt_engine_check_proof.cpp \
-	smt/smt_engine.h \
-	smt/smt_globals.cpp \
-	smt/smt_globals.h \
-	smt/model_postprocessor.cpp \
-	smt/model_postprocessor.h \
-	smt/smt_engine_scope.cpp \
-	smt/smt_engine_scope.h \
-	smt/smt_options_handler.cpp \
-	smt/smt_options_handler.h \
-	smt/smt_statistics_registry.cpp \
-	smt/smt_statistics_registry.h \
+	smt/boolean_terms.cpp \
+	smt/boolean_terms.h \
+	smt/command.cpp \
+	smt/command.h \
 	smt/command_list.cpp \
 	smt/command_list.h \
-	smt/boolean_terms.h \
-	smt/boolean_terms.cpp \
+	smt/dump.cpp \
+	smt/dump.h \
+	smt/ite_removal.cpp \
+	smt/ite_removal.h \
 	smt/logic_exception.h \
-	smt/logic_request.h \
 	smt/logic_request.cpp \
+	smt/logic_request.h \
+	smt/managed_ostreams.cpp \
+	smt/managed_ostreams.h \
+	smt/model.cpp \
+	smt/model.h \
+	smt/model_postprocessor.cpp \
+	smt/model_postprocessor.h \
+	smt/smt_engine.cpp \
+	smt/smt_engine.h \
+	smt/smt_engine_check_proof.cpp \
+	smt/smt_engine_scope.cpp \
+	smt/smt_engine_scope.h \
+	smt/smt_statistics_registry.cpp \
+	smt/smt_statistics_registry.h \
+	smt/update_ostream.h \
 	theory/logic_info.h \
 	theory/logic_info.cpp \
 	theory/output_channel.h \
@@ -441,10 +448,8 @@ libcvc4_la_LIBADD += \
 	@top_builddir@/proofs/signatures/libsignatures.la
 endif
 
-if CVC4_NEEDS_REPLACEMENT_FUNCTIONS
 libcvc4_la_LIBADD += \
 	@builddir@/lib/libreplacements.la
-endif
 
 if CVC4_USE_GLPK
 libcvc4_la_LIBADD += $(GLPK_LIBS)
@@ -484,6 +489,7 @@ EXTRA_DIST = \
 	include/cvc4parser_private.h \
 	include/cvc4parser_public.h \
 	mksubdirs \
+	smt/command.i \
 	smt/logic_exception.i \
 	smt/smt_engine.i \
 	proof/unsat_core.i \
@@ -523,7 +529,7 @@ svn_versioninfo.cpp: svninfo
 	    rev=0; \
 	    mods=false; \
 	  fi; \
-	  echo "#include \"util/configuration.h\""; \
+	  echo "#include \"base/configuration.h\""; \
 	  echo "const bool ::CVC4::Configuration::IS_SUBVERSION_BUILD = $$issvn;"; \
 	  echo "const char* const ::CVC4::Configuration::SUBVERSION_BRANCH_NAME = \"$$branch\";"; \
 	  echo "const unsigned ::CVC4::Configuration::SUBVERSION_REVISION = $$rev;"; \
@@ -551,7 +557,7 @@ git_versioninfo.cpp: gitinfo
 	    rev=unknown; \
 	    mods=false; \
 	  fi; \
-	  echo "#include \"util/configuration.h\""; \
+	  echo "#include \"base/configuration.h\""; \
 	  echo "const bool ::CVC4::Configuration::IS_GIT_BUILD = $$isgit;"; \
 	  echo "const char* const ::CVC4::Configuration::GIT_BRANCH_NAME = \"$$branch\";"; \
 	  echo "const char* const ::CVC4::Configuration::GIT_COMMIT = \"$$rev\";"; \

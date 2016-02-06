@@ -29,26 +29,20 @@
 #include "prop/minisat/minisat.h"
 #include "prop/prop_engine.h"
 #include "prop/theory_proxy.h"
+#include "smt/command.h"
 #include "smt/smt_engine_scope.h"
-#include "smt_util/command.h"
 #include "theory/theory.h"
 #include "theory/theory_engine.h"
 
 using namespace std;
 using namespace CVC4::kind;
 
-#ifdef CVC4_REPLAY
-#  define CVC4_USE_REPLAY true
-#else /* CVC4_REPLAY */
-#  define CVC4_USE_REPLAY false
-#endif /* CVC4_REPLAY */
-
 namespace CVC4 {
 namespace prop {
 
 CnfStream::CnfStream(SatSolver* satSolver, Registrar* registrar,
-                     context::Context* context, SmtGlobals* globals,
-                     bool fullLitToNodeMap, std::string name)
+                     context::Context* context, bool fullLitToNodeMap,
+                     std::string name)
     : d_satSolver(satSolver),
       d_booleanVariables(context),
       d_nodeToLiteralMap(context),
@@ -58,15 +52,13 @@ CnfStream::CnfStream(SatSolver* satSolver, Registrar* registrar,
       d_registrar(registrar),
       d_name(name),
       d_cnfProof(NULL),
-      d_globals(globals),
       d_removable(false) {
 }
 
 TseitinCnfStream::TseitinCnfStream(SatSolver* satSolver, Registrar* registrar,
                                    context::Context* context,
-                                   SmtGlobals* globals, bool fullLitToNodeMap,
-                                   std::string name)
-  : CnfStream(satSolver, registrar, context, globals, fullLitToNodeMap, name)
+                                   bool fullLitToNodeMap, std::string name)
+  : CnfStream(satSolver, registrar, context, fullLitToNodeMap, name)
 {}
 
 void CnfStream::assertClause(TNode node, SatClause& c) {
@@ -200,10 +192,7 @@ SatLiteral CnfStream::newLiteral(TNode node, bool isTheoryAtom, bool preRegister
   }
 
   // If it's a theory literal, need to store it for back queries
-  if ( isTheoryAtom || d_fullLitToNodeMap ||
-       ( CVC4_USE_REPLAY && d_globals->getReplayLog() != NULL ) ||
-       (Dump.isOn("clauses")) ) {
-
+  if ( isTheoryAtom || d_fullLitToNodeMap || (Dump.isOn("clauses")) ) {
     d_literalToNodeMap.insert_safe(lit, node);
     d_literalToNodeMap.insert_safe(~lit, node.notNode());
   }

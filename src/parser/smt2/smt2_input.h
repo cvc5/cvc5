@@ -26,7 +26,7 @@
 // extern void Smt2ParserSetAntlrParser(CVC4::parser::AntlrParser* newAntlrParser);
 
 namespace CVC4 {
-  
+
 class Command;
 class Expr;
 class ExprManager;

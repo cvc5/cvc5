@@ -150,7 +150,7 @@ public:
   static void         initSatProof(Minisat::Solver* solver);
   static void         initCnfProof(CVC4::prop::CnfStream* cnfStream,
                                    context::Context* ctx);
-  static void         initTheoryProofEngine(SmtGlobals* globals);
+  static void         initTheoryProofEngine();
 
   // getting various proofs
   static Proof*         getProof(SmtEngine* smt);
@@ -161,13 +161,16 @@ public:
   static UFProof* getUfProof();
   static BitVectorProof* getBitVectorProof();
   static ArrayProof* getArrayProof();
+
   static SkolemizationManager *getSkolemizationManager();
 
   // iterators over data shared by proofs
   typedef ExprSet::const_iterator assertions_iterator;
 
   // iterate over the assertions (these are arbitrary boolean formulas)
-  assertions_iterator begin_assertions() const { return d_inputFormulas.begin(); }
+  assertions_iterator begin_assertions() const {
+    return d_inputFormulas.begin();
+  }
   assertions_iterator end_assertions() const { return d_inputFormulas.end(); }
   size_t num_assertions() const { return d_inputFormulas.size(); }
 
@@ -198,7 +201,7 @@ public:
   // for SMT variable names that have spaces and other things
   static std::string sanitize(TNode var);
 
-  /** Add proof assertion - unlinke addCoreAssertion this is post definition expansion **/
+  /** Add proof assertion - unline addCoreAssertion this is post definition expansion **/
   void addAssertion(Expr formula);
 
   /** Public unsat core methods **/

@@ -26,7 +26,6 @@
 #include "context/cdhashmap.h"
 #include "expr/node.h"
 #include "prop/sat_solver.h"
-#include "smt/smt_globals.h"
 #include "theory/theory_registrar.h"
 #include "theory/valuation.h"
 #include "util/resource_manager.h"

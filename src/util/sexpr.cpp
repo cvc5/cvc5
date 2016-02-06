@@ -149,12 +149,12 @@ SExpr::SExpr(const std::string& value) :
     d_children(NULL) {
 }
 
-  /**
-   * This constructs a string expression from a const char* value.
-   * This cannot be removed in order to support SExpr("foo").
-   * Given the other constructors this SExpr("foo") converts to bool.
-   * instead of SExpr(string("foo")).
-   */
+/**
+ * This constructs a string expression from a const char* value.
+ * This cannot be removed in order to support SExpr("foo").
+ * Given the other constructors this SExpr("foo") converts to bool.
+ * instead of SExpr(string("foo")).
+ */
 SExpr::SExpr(const char* value) :
     d_sexprType(SEXPR_STRING),
     d_integerValue(0),
@@ -163,7 +163,6 @@ SExpr::SExpr(const char* value) :
     d_children(NULL) {
 }
 
-#warning "TODO: Discuss this change with Clark."
 SExpr::SExpr(bool value) :
     d_sexprType(SEXPR_KEYWORD),
     d_integerValue(0),

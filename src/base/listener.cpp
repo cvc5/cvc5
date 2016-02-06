@@ -49,8 +49,8 @@ void ListenerCollection::notify() {
 bool ListenerCollection::empty() const { return d_listeners.empty(); }
 
 
-RegisterListener::RegisterListener(ListenerCollection* collection,
-                                   Listener* listener)
+ListenerCollection::Registration::Registration(
+    ListenerCollection* collection, Listener* listener)
     : d_listener(listener)
     , d_position()
     , d_collection(collection)
@@ -58,9 +58,42 @@ RegisterListener::RegisterListener(ListenerCollection* collection,
   d_position = d_collection->addListener(d_listener);
 }
 
-RegisterListener::~RegisterListener() {
+ListenerCollection::Registration::~Registration() {
   d_collection->removeListener(d_position);
   delete d_listener;
 }
+
+ ListenerCollection::Registration* ListenerCollection::registerListener(
+     Listener* listener)
+{
+  return new Registration(this, listener);
+}
+
+
+ListenerRegistrationList::ListenerRegistrationList()
+    : d_registrations()
+{}
+
+ListenerRegistrationList::~ListenerRegistrationList() {
+  clear();
+}
+
+void ListenerRegistrationList::add(
+    ListenerCollection::Registration* registration)
+{
+  d_registrations.push_back(registration);
+}
+
+void ListenerRegistrationList::clear(){
+  typedef std::list<ListenerCollection::Registration*>::iterator iterator;
+  for(iterator i = d_registrations.begin(), iend = d_registrations.end();
+      i != iend; ++i)
+  {
+    ListenerCollection::Registration* current = *i;
+    delete current;
+  }
+  d_registrations.clear();
+}
+
 
 }/* CVC4 namespace */

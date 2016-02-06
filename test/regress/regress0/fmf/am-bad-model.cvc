@@ -1,0 +1,22 @@
+% EXPECT: sat
+OPTION "produce-models";
+OPTION "finite-model-find";
+
+f     : (BITVECTOR(2),BITVECTOR(2)) ->ARRAY INT OF INT;
+f0    : BITVECTOR(2) -> ARRAY INT OF INT;
+
+td,td1,td2: ARRAY INT OF INT;
+ASSERT td1 = td WITH[0]:= 1;
+ASSERT td2 = td WITH[0]:= 2;
+ASSERT f(0bin01,0bin00)=td1;
+ASSERT f(0bin10,0bin00)=td2;
+%ASSERT FORALL(i:BITVECTOR(2)) : f0(i)=f(0bin00,i) ;
+%Artificial bypass of quantifier for f0 definition
+ASSERT f0(0bin00) = f(0bin00,0bin00);
+ASSERT f0(0bin01) = f(0bin00,0bin01);
+ASSERT f0(0bin10) = f(0bin00,0bin10);
+ASSERT f0(0bin11) = f(0bin00,0bin11);
+ASSERT FORALL(i:BITVECTOR(2)) : f0(i)=td2 ;
+
+CHECKSAT;
+

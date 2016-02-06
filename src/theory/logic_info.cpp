@@ -24,8 +24,6 @@
 #include "base/cvc4_assert.h"
 #include "expr/kind.h"
 
-#warning "TODO: Remove logic_info_forward.h"
-
 
 using namespace std;
 using namespace CVC4::theory;

@@ -19,8 +19,8 @@
 #include "expr/expr_iomanip.h"
 #include "options/base_options.h"
 #include "printer/printer.h"
+#include "smt/command.h"
 #include "smt/smt_engine_scope.h"
-#include "smt_util/command.h"
 
 namespace CVC4 {
 

@@ -48,7 +48,8 @@ TESTS =	\
 	tail_rec.smt2 \
 	jasmin-cdt-crash.smt2 \
 	loopy_coda.smt2 \
-	fmc_unsound_model.smt2
+	fmc_unsound_model.smt2 \
+	am-bad-model.cvc
 
 
 EXTRA_DIST = $(TESTS)

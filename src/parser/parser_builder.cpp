@@ -13,16 +13,18 @@
  **
  ** A builder for parsers.
  **/
+
+// This must be included first.
+#include "parser/antlr_input.h"
+
 #include "parser/parser_builder.h"
 
 #include <string>
 
 #include "expr/expr_manager.h"
-#include "options/base_options.h"
-#include "options/parser_options.h"
-#include "options/smt_options.h"
 #include "parser/input.h"
 #include "parser/parser.h"
+#include "options/options.h"
 #include "smt1/smt1.h"
 #include "smt2/smt2.h"
 #include "tptp/tptp.h"
@@ -161,14 +163,15 @@ ParserBuilder& ParserBuilder::withParseOnly(bool flag) {
 ParserBuilder& ParserBuilder::withOptions(const Options& options) {
   ParserBuilder& retval = *this;
   retval =
-    retval.withInputLanguage(options[options::inputLanguage])
-      .withMmap(options[options::memoryMap])
-      .withChecks(options[options::semanticChecks])
-      .withStrictMode(options[options::strictParsing])
-      .withParseOnly(options[options::parseOnly])
-      .withIncludeFile(options[options::filesystemAccess]);
-  if(options.wasSetByUser(options::forceLogic)) {
-    retval = retval.withForcedLogic(options[options::forceLogic]->getLogicString());
+      retval.withInputLanguage(options.getInputLanguage())
+      .withMmap(options.getMemoryMap())
+      .withChecks(options.getSemanticChecks())
+      .withStrictMode(options.getStrictParsing())
+      .withParseOnly(options.getParseOnly())
+      .withIncludeFile(options.getFilesystemAccess());
+  if(options.wasSetByUserForceLogicString()) {
+    LogicInfo tmp(options.getForceLogicString());
+    retval = retval.withForcedLogic(tmp.getLogicString());
   }
   return retval;
 }

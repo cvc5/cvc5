@@ -20,9 +20,11 @@
 #include <stdio.h>
 #include <string.h>
 
+
 #ifdef __cplusplus
 extern "C" {
 #endif /* __cplusplus */
+#ifndef HAVE_STRTOK_R
 
 char* strtok_r(char *str, const char *delim, char **saveptr) {
   if(str == NULL) {
@@ -36,6 +38,7 @@ char* strtok_r(char *str, const char *delim, char **saveptr) {
   }
 }
 
+#endif /* ifndef HAVE_STRTOK_R */
 #ifdef __cplusplus
 }/* extern "C" */
 #endif /* __cplusplus */

@@ -10,21 +10,11 @@ libsmtutil_la_SOURCES = \
 	Makefile.in \
 	boolean_simplification.cpp \
 	boolean_simplification.h \
-	command.cpp \
-	command.h \
-	dump.h \
-	dump.cpp \
+	lemma_channels.cpp \
+	lemma_channels.h \
 	lemma_input_channel.h \
 	lemma_output_channel.h \
-	ite_removal.cpp \
-	ite_removal.h \
-	model.cpp \
-	model.h \
 	nary_builder.cpp \
 	nary_builder.h \
 	node_visitor.h
-
-
-EXTRA_DIST = \
-	command.i
 

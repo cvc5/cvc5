@@ -55,9 +55,9 @@ public:
   Node d_lemma;
 
   ProofOutputChannel() : d_conflict(), d_proof(NULL) {}
+  virtual ~ProofOutputChannel() throw() {}
 
   void conflict(TNode n, Proof* pf) throw() {
-    Debug("theory-proof-debug") << "ProofOutputChannel::conflict called" << std::endl;
     Trace("theory-proof-debug") << "; CONFLICT: " << n << std::endl;
     Assert(d_conflict.isNull());
     Assert(!n.isNull());
@@ -66,19 +66,15 @@ public:
     d_proof = pf;
   }
   bool propagate(TNode x) throw() {
-    Debug("theory-proof-debug") << "ProofOutputChannel::propagate called" << std::endl;
     Trace("theory-proof-debug") << "got a propagation: " << x << std::endl;
     return true;
   }
-
   theory::LemmaStatus lemma(TNode n, ProofRule rule, bool, bool, bool) throw() {
-    Debug("theory-proof-debug") << "ProofOutputChannel::lemma called" << std::endl;
     Trace("theory-proof-debug") << "new lemma: " << n << std::endl;
     d_lemma = n;
     return theory::LemmaStatus(TNode::null(), 0);
   }
   theory::LemmaStatus splitLemma(TNode, bool) throw() {
-    Debug("theory-proof-debug") << "ProofOutputChannel::splitLemma called" << std::endl;
     AlwaysAssert(false);
     return theory::LemmaStatus(TNode::null(), 0);
   }
@@ -119,10 +115,9 @@ public:
   void done(TNode node) { }
 }; /* class MyPreRegisterVisitor */
 
-TheoryProofEngine::TheoryProofEngine(SmtGlobals* globals)
+TheoryProofEngine::TheoryProofEngine()
   : d_registrationCache()
   , d_theoryProofTable()
-  , d_globals(globals)
 {
   d_theoryProofTable[theory::THEORY_BOOL] = new LFSCBooleanProof(this);
 }
@@ -171,7 +166,6 @@ TheoryProof* TheoryProofEngine::getTheoryProof(theory::TheoryId id) {
 }
 
 void TheoryProofEngine::registerTerm(Expr term) {
-  // Debug("gk::proof") << "TheoryProofEngine::registerTerm called for term: " << term;
   if (d_registrationCache.count(term)) {
     return;
   }
@@ -311,7 +305,6 @@ void LFSCTheoryProofEngine::printAssertions(std::ostream& os, std::ostream& pare
   Debug("gk::proof") << "LFSCTheoryProofEngine::printAssertions now printing assertions" << std::endl << std::endl;
   for (; it != end; ++it) {
     Debug("gk::proof") << "printAssertions: assertion is: " << *it << std::endl;
-
     // FIXME: merge this with counter
     os << "(% A" << counter++ << " (th_holds ";
     printLetTerm(*it,  os);
@@ -394,7 +387,6 @@ void LFSCTheoryProofEngine::printTheoryLemmas(const IdToSatClause& lemmas,
     Debug("gk::proof") << "LFSCTheoryProofEngine::printTheoryLemmas: printing a new lemma!" << std::endl;
 
     // Debug("gk::proof") << "\tLemma = " << it->first << ", " << *(it->second) << std::endl;
-
     ClauseId id = it->first;
     const prop::SatClause* clause = it->second;
     // printing clause as it appears in resolution proof
@@ -556,18 +548,15 @@ void TheoryProof::printTheoryLemmaProof(std::vector<Expr>& lemma, std::ostream& 
   if(d_theory->getId()==theory::THEORY_UF) {
     th = new theory::uf::TheoryUF(&fakeContext, &fakeContext, oc, v,
                                   ProofManager::currentPM()->getLogicInfo(),
-                                  ProofManager::currentPM()->getTheoryProofEngine()->d_globals,
                                   "replay::");
   } else if(d_theory->getId()==theory::THEORY_ARRAY) {
-    Debug("gk::proof") << "TheoryProof::printTheoryLemmaProof - creating array theory" << std::endl;
-
     th = new theory::arrays::TheoryArrays(&fakeContext, &fakeContext, oc, v,
                                           ProofManager::currentPM()->getLogicInfo(),
-                                          ProofManager::currentPM()->getTheoryProofEngine()->d_globals,
                                           "replay::");
   } else {
     InternalError(std::string("can't generate theory-proof for ") + ProofManager::currentPM()->getLogic());
   }
+
   Debug("gk::proof") << "TheoryProof::printTheoryLemmaProof - calling th->ProduceProofs()" << std::endl;
   th->produceProofs();
   Debug("gk::proof") << "TheoryProof::printTheoryLemmaProof - th->ProduceProofs() DONE" << std::endl;

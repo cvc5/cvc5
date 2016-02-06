@@ -14,7 +14,7 @@
 #include "theory/quantifiers/ceg_instantiator.h"
 
 #include "options/quantifiers_options.h"
-#include "smt_util/ite_removal.h"
+#include "smt/ite_removal.h"
 #include "theory/arith/partial_model.h"
 #include "theory/arith/theory_arith.h"
 #include "theory/arith/theory_arith_private.h"

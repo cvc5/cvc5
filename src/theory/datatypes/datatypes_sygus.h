@@ -91,7 +91,7 @@ private:
                                      std::vector< Node >& testers, std::map< Node, std::vector< Node > >& testers_u );
     bool processProgramDepth( int depth );
     bool processSubprograms( Node n, int depth, int odepth );
-    bool assignTester( Node tst, int depth );
+    bool assignTester( int tindex, Node n, int depth );
   public:
     ProgSearch( SygusSymBreak * p, Node a, context::Context* c ) :
       d_parent( p ), d_anchor( a ), d_testers( c ), d_watched_terms( c ), d_watched_count( c ), d_prog_depth( c, 0 ) {
@@ -103,7 +103,7 @@ private:
     IntIntMap d_watched_count;
     TypeNode d_anchor_type;
     context::CDO<int> d_prog_depth;
-    void addTester( Node tst );
+    void addTester( int tindex, Node n, Node exp );
   };
   std::map< Node, ProgSearch * > d_prog_search;
   std::map< TypeNode, std::map< Node, Node > > d_normalized_to_orig;
@@ -130,7 +130,7 @@ private:
 public:
   SygusSymBreak( quantifiers::TermDbSygus * tds, context::Context* c );
   /** add tester */
-  void addTester( Node tst );
+  void addTester( int tindex, Node n, Node exp );
   /** lemmas we have generated */
   std::vector< Node > d_lemmas;
 };

@@ -78,8 +78,7 @@ public:
         Trace("datatypes-rewrite") << "DatatypesRewriter::postRewrite: "
                                    << "Rewrite trivial tester " << in
                                    << " " << result << std::endl;
-        return RewriteResponse(REWRITE_DONE,
-                               NodeManager::currentNM()->mkConst(result));
+        return RewriteResponse(REWRITE_DONE, NodeManager::currentNM()->mkConst(result));
       } else {
         const Datatype& dt = DatatypeType(in[0].getType().toType()).getDatatype();
         if(dt.getNumConstructors() == 1) {
@@ -88,8 +87,16 @@ public:
                                      << "only one ctor for " << dt.getName()
                                      << " and that is " << dt[0].getName()
                                      << std::endl;
-          return RewriteResponse(REWRITE_DONE,
-                                 NodeManager::currentNM()->mkConst(true));
+          return RewriteResponse(REWRITE_DONE, NodeManager::currentNM()->mkConst(true));
+        }
+        //TODO : else if( dt.getNumConstructors()==2 && Datatype::indexOf(in.getOperator())==1 ){
+        else if( !options::dtUseTesters() ){
+          unsigned tindex = Datatype::indexOf(in.getOperator().toExpr());
+          Trace("datatypes-rewrite-debug") << "Convert " << in << " to equality " << in[0] << " " << tindex << std::endl;
+          Node neq = mkTester( in[0], tindex, dt );
+          Assert( neq!=in );
+          Trace("datatypes-rewrite") << "DatatypesRewriter::postRewrite: Rewrite tester " << in << " to " << neq << std::endl;
+          return RewriteResponse(REWRITE_AGAIN_FULL, neq);
         }
       }
     }
@@ -130,8 +137,7 @@ public:
       Debug("tuprec") << "==> returning " << in[0][selectorIndex] << std::endl;
       return RewriteResponse(REWRITE_DONE, in[0][selectorIndex]);
     }
-    if(in.getKind() == kind::APPLY_SELECTOR_TOTAL &&
-       in[0].getKind() == kind::APPLY_CONSTRUCTOR) {
+    if(in.getKind() == kind::APPLY_SELECTOR_TOTAL && in[0].getKind() == kind::APPLY_CONSTRUCTOR) {
       // Have to be careful not to rewrite well-typed expressions
       // where the selector doesn't match the constructor,
       // e.g. "pred(zero)".
@@ -143,12 +149,20 @@ public:
       size_t constructorIndex = Datatype::indexOf(constructorExpr);
       const Datatype& dt = Datatype::datatypeOf(constructorExpr);
       const DatatypeConstructor& c = dt[constructorIndex];
-      if(c.getNumArgs() > selectorIndex &&
-         c[selectorIndex].getSelector() == selectorExpr) {
-        Trace("datatypes-rewrite") << "DatatypesRewriter::postRewrite: "
-                                   << "Rewrite trivial selector " << in
-                                   << std::endl;
-        return RewriteResponse(REWRITE_DONE, in[0][selectorIndex]);
+      if(c.getNumArgs() > selectorIndex && c[selectorIndex].getSelector() == selectorExpr) {
+        if( dt.isCodatatype() && in[0][selectorIndex].isConst() ){
+          //must replace all debruijn indices with self  
+          Node sub = replaceDebruijn( in[0][selectorIndex], in[0], in[0].getType(), 0 );
+          Trace("datatypes-rewrite") << "DatatypesRewriter::postRewrite: "
+                                     << "Rewrite trivial codatatype selector " << in << " to " << sub << std::endl;
+          if( sub!=in ){
+            return RewriteResponse(REWRITE_AGAIN_FULL, sub );
+          }
+        }else{
+          Trace("datatypes-rewrite") << "DatatypesRewriter::postRewrite: "
+                                   << "Rewrite trivial selector " << in << std::endl;
+          return RewriteResponse(REWRITE_DONE, in[0][selectorIndex]);
+        }
       }else{
         //typically should not be called
         TypeNode tn = in.getType();
@@ -320,6 +334,7 @@ public:
   }
   /** get instantiate cons */
   static Node getInstCons( Node n, const Datatype& dt, int index ) {
+    Assert( index>=0 && index<(int)dt.getNumConstructors() );
     Type tspec;
     if( dt.isParametric() ){
       tspec = dt[index].getSpecializedConstructorType(n.getType().toType());
@@ -343,30 +358,85 @@ public:
       n_ic = NodeManager::currentNM()->mkNode( kind::APPLY_CONSTRUCTOR, children );
       Assert( n_ic.getType()==n.getType() );
     }
-    Assert( isInstCons( n_ic, dt, index ) );
+    Assert( isInstCons( n, n_ic, dt )==index );
     //n_ic = Rewriter::rewrite( n_ic );
     return n_ic;
   }
-  static bool isInstCons( Node n, const Datatype& dt, int index ){
+
+  static int isInstCons( Node t, Node n, const Datatype& dt ){
     if( n.getKind()==kind::APPLY_CONSTRUCTOR ){
+      int index = Datatype::indexOf( n.getOperator().toExpr() );
       const DatatypeConstructor& c = dt[index];
-      if( n.getOperator()==Node::fromExpr( c.getConstructor() ) ){
-        for( unsigned i=0; i<n.getNumChildren(); i++ ){
-          if( n[i].getKind()!=kind::APPLY_SELECTOR_TOTAL ||
-              n[i].getOperator()!=Node::fromExpr( c[i].getSelector() ) ){
-            return false;
+      for( unsigned i=0; i<n.getNumChildren(); i++ ){
+        if( n[i].getKind()!=kind::APPLY_SELECTOR_TOTAL ||
+            n[i].getOperator()!=Node::fromExpr( c[i].getSelector() ) ||
+            n[i][0]!=t ){
+          return -1;
+        }
+      }
+      return index;
+    }
+    return -1;
+  }
+
+  static int isTester( Node n, Node& a ) {
+    if( options::dtUseTesters() ){
+      if( n.getKind()==kind::APPLY_TESTER ){
+        a = n[0];
+        return Datatype::indexOf( n.getOperator().toExpr() );
+      }
+    }else{
+      if( n.getKind()==kind::EQUAL ){
+        for( int i=1; i>=0; i-- ){
+          if( n[i].getKind()==kind::APPLY_CONSTRUCTOR ){
+            const Datatype& dt = Datatype::datatypeOf(n[i].getOperator().toExpr());
+            int ic = isInstCons( n[1-i], n[i], dt );
+            if( ic!=-1 ){
+              a = n[1-i];
+              return ic;
+            }
           }
         }
-        return true;
       }
     }
-    return false;
+    return -1;
   }
+  static int isTester( Node n ) {
+    if( options::dtUseTesters() ){
+      if( n.getKind()==kind::APPLY_TESTER ){
+        return Datatype::indexOf( n.getOperator().toExpr() );
+      }
+    }else{
+      if( n.getKind()==kind::EQUAL ){
+        for( int i=1; i>=0; i-- ){
+          if( n[i].getKind()==kind::APPLY_CONSTRUCTOR ){
+            const Datatype& dt = Datatype::datatypeOf(n[i].getOperator().toExpr());
+            int ic = isInstCons( n[1-i], n[i], dt );
+            if( ic!=-1 ){
+              return ic;
+            }
+          }
+        }
+      }
+    }
+    return -1;
+  }
+
   static Node mkTester( Node n, int i, const Datatype& dt ){
-    //Node ret = n.eqNode( DatatypesRewriter::getInstCons( n, dt, i ) );
-    //Assert( isTester( ret )==i );
-    Node ret = NodeManager::currentNM()->mkNode( kind::APPLY_TESTER, Node::fromExpr( dt[i].getTester() ), n );
-    return ret;
+    if( options::dtUseTesters() ){
+      return NodeManager::currentNM()->mkNode( kind::APPLY_TESTER, Node::fromExpr( dt[i].getTester() ), n );
+    }else{
+#ifdef CVC4_ASSERTIONS
+      Node ret = n.eqNode( DatatypesRewriter::getInstCons( n, dt, i ) );
+      Node a;
+      int ii = isTester( ret, a );
+      Assert( ii==i );
+      Assert( a==n );
+      return ret;
+#else
+      return n.eqNode( DatatypesRewriter::getInstCons( n, dt, i ) );
+#endif
+    }
   }
   static bool isNullaryApplyConstructor( Node n ){
     Assert( n.getKind()==kind::APPLY_CONSTRUCTOR );
@@ -485,6 +555,29 @@ private:
         return n;
       }
     }
+  }
+  static Node replaceDebruijn( Node n, Node orig, TypeNode orig_tn, unsigned depth ) {
+    if( n.getKind()==kind::UNINTERPRETED_CONSTANT && n.getType()==orig_tn ){
+      unsigned index = n.getConst<UninterpretedConstant>().getIndex().toUnsignedInt();
+      if( index==depth ){
+        return orig;
+      }
+    }else if( n.getNumChildren()>0 ){
+      std::vector< Node > children;
+      bool childChanged = false;
+      for( unsigned i=0; i<n.getNumChildren(); i++ ){
+        Node nc = replaceDebruijn( n[i], orig, orig_tn, depth+1 );
+        children.push_back( nc );
+        childChanged = childChanged || nc!=n[i];
+      }
+      if( childChanged ){
+        if( n.hasOperator() ){
+          children.insert( children.begin(), n.getOperator() );
+        }
+        return NodeManager::currentNM()->mkNode( n.getKind(), children );
+      }
+    }
+    return n;
   }
 public:
   static Node normalizeCodatatypeConstant( Node n ){

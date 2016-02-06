@@ -64,7 +64,7 @@ public:
     ListenerCollection collection;
     std::string expected[1] = {"a"};
     {
-      RegisterListener a(&collection, new EventListener(d_events, "a"));
+      ListenerCollection::Registration a(&collection, new EventListener(d_events, "a"));
       collection.notify();
       TS_ASSERT(not collection.empty());
     }
@@ -77,7 +77,7 @@ public:
     // registering a single event.
     ListenerCollection* collection = new ListenerCollection;
     {
-      RegisterListener a(collection, new EventListener(d_events, "a"));
+      ListenerCollection::Registration a(collection, new EventListener(d_events, "a"));
       TS_ASSERT(not collection->empty());
       // The destructor for a now runs.
     }
@@ -88,11 +88,11 @@ public:
   void testMultipleCollection() {
     ListenerCollection* collection = new ListenerCollection;
     {
-      RegisterListener c(collection, new EventListener(d_events, "c"));
+      ListenerCollection::Registration c(collection, new EventListener(d_events, "c"));
       collection->notify();
       // d_events == {"c"}
-      RegisterListener b(collection, new EventListener(d_events, "b"));
-      RegisterListener a(collection, new EventListener(d_events, "a"));
+      ListenerCollection::Registration b(collection, new EventListener(d_events, "b"));
+      ListenerCollection::Registration a(collection, new EventListener(d_events, "a"));
       collection->notify();
       // d_events == {"a", "b", "c", "c"}
       TS_ASSERT(not collection->empty());
@@ -107,10 +107,10 @@ public:
     // registering several events.
     ListenerCollection* collection = new ListenerCollection;
     {
-      RegisterListener a(collection, new EventListener(d_events, "a"));
-      RegisterListener* b =
-          new RegisterListener(collection, new EventListener(d_events, "b"));
-      RegisterListener c(collection, new EventListener(d_events, "c"));
+      ListenerCollection::Registration a(collection, new EventListener(d_events, "a"));
+      ListenerCollection::Registration* b =
+          new ListenerCollection::Registration(collection, new EventListener(d_events, "b"));
+      ListenerCollection::Registration c(collection, new EventListener(d_events, "c"));
 
       collection->notify();
       delete b;
@@ -128,17 +128,17 @@ public:
     // This tests adds and notify multiple times.
     ListenerCollection collection;
 
-    std::vector<RegisterListener*> listeners;
+    std::vector<ListenerCollection::Registration*> listeners;
     for(int i = 0; i < 4 ; ++i){
       stringstream ss; ss << i;
       Listener* listener = new EventListener(d_events, ss.str());
-      listeners.push_back(new RegisterListener(&collection, listener));
+      listeners.push_back(new ListenerCollection::Registration(&collection, listener));
       collection.notify();
     }
 
     TS_ASSERT(not collection.empty());
     for(int i=0; i < listeners.size(); ++i){
-      RegisterListener* at_i = listeners[i];
+      ListenerCollection::Registration* at_i = listeners[i];
       delete at_i;
     }
     listeners.clear();

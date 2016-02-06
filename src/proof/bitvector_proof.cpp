@@ -386,7 +386,6 @@ void LFSCBitVectorProof::printDeferredDeclarations(std::ostream& os, std::ostrea
   // Nothing to do here at this point.
 }
 
-
 void LFSCBitVectorProof::printTermBitblasting(Expr term, std::ostream& os) {
   // TODO: once we have the operator elimination rules remove those that we
   // eliminated

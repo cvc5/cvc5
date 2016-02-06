@@ -15,22 +15,19 @@
  ** \todo document this file
  **/
 
-#include <antlr3.h>
+// We rely on the inclusion of #include <antlr3.h> in
+//   "parser/antlr_line_buffered_input.h".
+// This is avoid having to undefine the symbols in <antlr3.h>.
+// See the documentation in "parser/antlr_undefines.h" for more
+// details.
 
-// ANTLR3 headers define these in our space :(
-// undef them so that we don't get multiple-definition warnings
-#undef PACKAGE_BUGREPORT
-#undef PACKAGE_NAME
-#undef PACKAGE_STRING
-#undef PACKAGE_TARNAME
-#undef PACKAGE_VERSION
+#include "parser/antlr_line_buffered_input.h"
 
 #include <iostream>
 #include <string>
 #include <cassert>
 
 #include "base/output.h"
-#include "parser/antlr_line_buffered_input.h"
 
 namespace CVC4 {
 namespace parser {
@@ -380,4 +377,3 @@ antlr3CreateLineBufferedStream(std::istream& in)
 
 }/* CVC4::parser namespace */
 }/* CVC4 namespace */
-

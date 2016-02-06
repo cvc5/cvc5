@@ -5,11 +5,10 @@
 
 module THEORY "options/theory_options.h" Theory layer
 
-expert-option theoryOfMode theoryof-mode --theoryof-mode=MODE CVC4::theory::TheoryOfMode :handler CVC4::options::stringToTheoryOfMode :handler-include "options/options_handler_interface.h" :default CVC4::theory::THEORY_OF_TYPE_BASED :include "options/theoryof_mode.h" :read-write
+expert-option theoryOfMode theoryof-mode --theoryof-mode=MODE CVC4::theory::TheoryOfMode :handler stringToTheoryOfMode :default CVC4::theory::THEORY_OF_TYPE_BASED :include "options/theoryof_mode.h" :read-write
  mode for Theory::theoryof()
 
-option - use-theory --use-theory=NAME argument :handler CVC4::options::useTheory :handler-include "options/options_handler_interface.h"
- use alternate theory implementation NAME (--use-theory=help for a list)
-option theoryAlternates ::std::map<std::string,bool> :include <map> :read-write
+option useTheoryList use-theory --use-theory=NAME std::string :handler handleUseTheoryList :notify notifyUseTheoryList
+ use alternate theory implementation NAME (--use-theory=help for a list). This option may be repeated or a comma separated list.
 
 endmodule

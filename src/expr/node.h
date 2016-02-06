@@ -30,6 +30,7 @@
 #include <functional>
 #include <stdint.h>
 
+#include "base/configuration.h"
 #include "base/cvc4_assert.h"
 #include "base/exception.h"
 #include "base/output.h"
@@ -40,7 +41,6 @@
 #include "expr/expr_iomanip.h"
 #include "options/language.h"
 #include "options/set_language.h"
-#include "util/configuration.h"
 #include "util/utility.h"
 #include "util/hash.h"
 

@@ -5,10 +5,10 @@
 
 module ARITH "options/arith_options.h" Arithmetic theory
 
-option arithUnateLemmaMode --unate-lemmas=MODE ArithUnateLemmaMode :handler CVC4::options::stringToArithUnateLemmaMode :default ALL_PRESOLVE_LEMMAS :handler-include "options/options_handler_interface.h" :include "options/arith_unate_lemma_mode.h"
+option arithUnateLemmaMode --unate-lemmas=MODE ArithUnateLemmaMode :handler stringToArithUnateLemmaMode :default ALL_PRESOLVE_LEMMAS :include "options/arith_unate_lemma_mode.h"
  determines which lemmas to add before solving (default is 'all', see --unate-lemmas=help)
 
-option arithPropagationMode --arith-prop=MODE ArithPropagationMode :handler CVC4::options::stringToArithPropagationMode :default BOTH_PROP :handler-include "options/options_handler_interface.h" :include "options/arith_propagation_mode.h"
+option arithPropagationMode --arith-prop=MODE ArithPropagationMode :handler stringToArithPropagationMode :default BOTH_PROP :include "options/arith_propagation_mode.h"
  turns on arithmetic propagation (default is 'old', see --arith-prop=help)
 
 # The maximum number of difference pivots to do per invocation of simplex.
@@ -25,7 +25,7 @@ option arithHeuristicPivots --heuristic-pivots=N int16_t :default 0 :read-write
 expert-option arithStandardCheckVarOrderPivots --standard-effort-variable-order-pivots=N int16_t :default -1 :read-write
  limits the number of pivots in a single invocation of check() at a non-full effort level using Bland's pivot rule
 
-option arithErrorSelectionRule --error-selection-rule=RULE ErrorSelectionRule :handler CVC4::options::stringToErrorSelectionRule :default MINIMUM_AMOUNT :handler-include "options/options_handler_interface.h" :include "options/arith_heuristic_pivot_rule.h"
+option arithErrorSelectionRule --error-selection-rule=RULE ErrorSelectionRule :handler stringToErrorSelectionRule :default MINIMUM_AMOUNT :include "options/arith_heuristic_pivot_rule.h"
  change the pivot rule for the basic variable (default is 'min', see --pivot-rule help)
 
 # The number of pivots before simplex rechecks every basic variable for a conflict
@@ -42,8 +42,9 @@ option arithPivotThreshold --pivot-threshold=N uint16_t :default 2 :read-write
 option arithPropagateMaxLength --prop-row-length=N uint16_t :default 16
  sets the maximum row length to be used in propagation
 
-option arithDioSolver /--disable-dio-solver bool :default true
- turns off Linear Diophantine Equation solver (Griggio, JSAT 2012)
+option arithDioSolver --enable-dio-solver/--disable-dio-solver bool :default true
+ turns on Linear Diophantine Equation solver (Griggio, JSAT 2012)
+/turns off Linear Diophantine Equation solver (Griggio, JSAT 2012)
 
 # Whether to split (= x y) into (and (<= x y) (>= x y)) in
 # arithmetic preprocessing.

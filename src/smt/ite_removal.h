@@ -23,7 +23,7 @@
 #include "context/cdinsert_hashmap.h"
 #include "context/context.h"
 #include "expr/node.h"
-#include "smt_util/dump.h"
+#include "smt/dump.h"
 #include "util/bool.h"
 #include "util/hash.h"
 

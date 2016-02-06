@@ -34,8 +34,8 @@ using namespace CVC4::context;
 using namespace CVC4::theory;
 using namespace CVC4::theory::quantifiers;
 
-TheoryQuantifiers::TheoryQuantifiers(Context* c, context::UserContext* u, OutputChannel& out, Valuation valuation, const LogicInfo& logicInfo, SmtGlobals* globals) :
-    Theory(THEORY_QUANTIFIERS, c, u, out, valuation, logicInfo, globals),
+TheoryQuantifiers::TheoryQuantifiers(Context* c, context::UserContext* u, OutputChannel& out, Valuation valuation, const LogicInfo& logicInfo) :
+    Theory(THEORY_QUANTIFIERS, c, u, out, valuation, logicInfo),
   d_masterEqualityEngine(0)
 {
   d_numInstantiations = 0;

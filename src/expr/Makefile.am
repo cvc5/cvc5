@@ -31,7 +31,8 @@ libexpr_la_SOURCES = \
 	node_manager.cpp \
 	node_manager.h \
 	node_manager_attributes.h \
-	node_self_iterator.h \
+	node_manager_listeners.cpp \
+	node_manager_listeners.h \
 	node_self_iterator.h \
 	node_value.cpp \
 	node_value.h \

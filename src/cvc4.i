@@ -54,7 +54,7 @@ using namespace CVC4;
 #include "expr/expr.h"
 #include "expr/type.h"
 #include "options/option_exception.h"
-#include "smt_util/command.h"
+#include "smt/command.h"
 #include "util/bitvector.h"
 #include "util/integer.h"
 #include "util/sexpr.h"
@@ -305,6 +305,7 @@ std::set<JavaInputStreamAdapter*> CVC4::JavaInputStreamAdapter::s_adapters;
 // TIM:
 // At the moment, the header includes seem to need to follow a special order.
 // I don't know why. I am following the build order 
+%include "base/configuration.i"
 %include "base/exception.i"
 %include "base/modal_exception.i"
 
@@ -318,7 +319,6 @@ std::set<JavaInputStreamAdapter*> CVC4::JavaInputStreamAdapter::s_adapters;
 // Tim: The remainder of util/.
 %include "util/bool.i"
 %include "util/cardinality.i"
-%include "util/configuration.i"
 %include "util/hash.i"
 %include "util/proof.i"
 %include "util/regexp.i"
@@ -356,8 +356,8 @@ std::set<JavaInputStreamAdapter*> CVC4::JavaInputStreamAdapter::s_adapters;
 %include "options/option_exception.i"
 %include "options/options.i"
 %include "parser/cvc4parser.i"
+%include "smt/command.i"
 %include "smt/logic_exception.i"
-%include "smt_util/command.i"
 %include "theory/logic_info.i"
 
 // Tim: This should come after "theory/logic_info.i".

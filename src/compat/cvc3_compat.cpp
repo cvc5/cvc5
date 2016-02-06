@@ -28,14 +28,11 @@
 #include "expr/expr_iomanip.h"
 #include "expr/kind.h"
 #include "expr/predicate.h"
-#include "options/base_options.h"
-#include "options/expr_options.h"
-#include "options/parser_options.h"
+#include "options/options.h"
 #include "options/set_language.h"
-#include "options/smt_options.h"
 #include "parser/parser.h"
 #include "parser/parser_builder.h"
-#include "smt_util/command.h"
+#include "smt/command.h"
 #include "util/bitvector.h"
 #include "util/hash.h"
 #include "util/integer.h"
@@ -655,11 +652,11 @@ std::string ExprManager::getKindName(int kind) {
 }
 
 InputLanguage ExprManager::getInputLang() const {
-  return getOptions()[CVC4::options::inputLanguage];
+  return getOptions().getInputLanguage();
 }
 
 InputLanguage ExprManager::getOutputLang() const {
-  return CVC4::language::toInputLanguage(getOptions()[CVC4::options::outputLanguage]);
+  return CVC4::language::toInputLanguage(getOptions().getOutputLanguage());
 }
 
 Expr Expr::operator[](int i) const {
@@ -927,7 +924,7 @@ void ValidityChecker::setUpOptions(CVC4::Options& options, const CLFlags& clflag
   d_smt->setOption("input-language", clflags["lang"].getString());
   if(clflags["output-lang"].getString() == "") {
     stringstream langss;
-    langss << CVC4::language::toOutputLanguage(options[CVC4::options::inputLanguage]);
+    langss << CVC4::language::toOutputLanguage(options.getInputLanguage());
     d_smt->setOption("output-language", langss.str());
   } else {
     d_smt->setOption("output-language", clflags["output-lang"].getString());
@@ -1563,7 +1560,8 @@ void ValidityChecker::printExpr(const Expr& e) {
 void ValidityChecker::printExpr(const Expr& e, std::ostream& os) {
   CVC4::expr::ExprSetDepth::Scope sd(os, -1);
   CVC4::expr::ExprPrintTypes::Scope pt(os, false);
-  CVC4::language::SetLanguage::Scope sl(os, d_em->getOptions()[CVC4::options::outputLanguage]);
+  CVC4::language::SetLanguage::Scope sl(
+      os, d_em->getOptions().getOutputLanguage());
   os << e;
 }
 
@@ -2561,8 +2559,8 @@ void ValidityChecker::logAnnotation(const Expr& annot) {
 
 static void doCommands(CVC4::parser::Parser* parser, CVC4::SmtEngine* smt, CVC4::Options& opts) {
   while(CVC4::Command* cmd = parser->nextCommand()) {
-    if(opts[CVC4::options::verbosity] >= 0) {
-      cmd->invoke(smt, *opts[CVC4::options::out]);
+    if(opts.getVerbosity() >= 0) {
+      cmd->invoke(smt, *opts.getOut());
     } else {
       cmd->invoke(smt);
     }
@@ -2574,7 +2572,8 @@ void ValidityChecker::loadFile(const std::string& fileName,
                                InputLanguage lang,
                                bool interactive,
                                bool calledFromParser) {
-  CVC4::Options opts = d_em->getOptions();
+  CVC4::Options opts;
+  opts.copyValues(d_em->getOptions());
   stringstream langss;
   langss << lang;
   d_smt->setOption("input-language", CVC4::SExpr(langss.str()));
@@ -2589,7 +2588,9 @@ void ValidityChecker::loadFile(const std::string& fileName,
 void ValidityChecker::loadFile(std::istream& is,
                                InputLanguage lang,
                                bool interactive) {
-  CVC4::Options opts = d_em->getOptions();
+  CVC4::Options opts;
+  opts.copyValues(d_em->getOptions());
+
   stringstream langss;
   langss << lang;
   d_smt->setOption("input-language", CVC4::SExpr(langss.str()));
