@@ -15,18 +15,19 @@
  **/
 
 #include "prop/sat_solver_factory.h"
+
 #include "prop/minisat/minisat.h"
 #include "prop/bvminisat/bvminisat.h"
 
 namespace CVC4 {
 namespace prop {
 
-BVSatSolverInterface* SatSolverFactory::createMinisat(context::Context* mainSatContext, const std::string& name) {
-  return new BVMinisatSatSolver(mainSatContext, name);
+BVSatSolverInterface* SatSolverFactory::createMinisat(context::Context* mainSatContext, StatisticsRegistry* registry, const std::string& name) {
+  return new BVMinisatSatSolver(registry, mainSatContext, name);
 }
 
-DPLLSatSolverInterface* SatSolverFactory::createDPLLMinisat() {
-  return new MinisatSatSolver();
+DPLLSatSolverInterface* SatSolverFactory::createDPLLMinisat(StatisticsRegistry* registry) {
+  return new MinisatSatSolver(registry);
 }
 
 } /* CVC4::prop namespace */

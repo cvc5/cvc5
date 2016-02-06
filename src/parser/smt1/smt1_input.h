@@ -20,8 +20,8 @@
 #define __CVC4__PARSER__SMT1_INPUT_H
 
 #include "parser/antlr_input.h"
-#include "parser/smt1/generated/Smt1Lexer.h"
-#include "parser/smt1/generated/Smt1Parser.h"
+#include "parser/smt1/Smt1Lexer.h"
+#include "parser/smt1/Smt1Parser.h"
 
 // extern void Smt1ParserSetAntlrParser(CVC4::parser::AntlrParser* newAntlrParser);
 

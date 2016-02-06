@@ -13,12 +13,14 @@
  **
  ** Reference-counted encapsulation of a pointer to node information.
  **/
+#include "expr/type_node.h"
 
 #include <vector>
 
 #include "expr/node_manager_attributes.h"
-#include "expr/type_node.h"
 #include "expr/type_properties.h"
+#include "options/base_options.h"
+#include "options/expr_options.h"
 
 using namespace std;
 
@@ -114,9 +116,11 @@ bool TypeNode::isSubtypeOf(TypeNode t) const {
       if(r1.getNumFields() != r2.getNumFields()) {
         return false;
       }
+      const Record::FieldVector& fields1 = r1.getFields();
+      const Record::FieldVector& fields2 = r2.getFields();
       // r1's fields must be subtypes of r2's, in order
       // names must match also
-      for(Record::const_iterator i = r1.begin(), j = r2.begin(); i != r1.end(); ++i, ++j) {
+      for(Record::FieldVector::const_iterator i = fields1.begin(), j = fields2.begin(); i != fields1.end(); ++i, ++j) {
         if((*i).first != (*j).first || !(*i).second.isSubtypeOf((*j).second)) {
           return false;
         }
@@ -125,7 +129,7 @@ bool TypeNode::isSubtypeOf(TypeNode t) const {
     return true;
   }
   if(isFunction()) {
-    // A function is a subtype of another if the args are the same type, and 
+    // A function is a subtype of another if the args are the same type, and
     // the return type is a subtype of the other's.  This is enough for now
     // (and it's necessary for model generation, since a Real-valued function
     // might return a constant Int and thus the model value is typed differently).
@@ -189,7 +193,9 @@ bool TypeNode::isComparableTo(TypeNode t) const {
         }
         // r1's fields must be comparable to r2's, in order
         // names must match also
-        for(Record::const_iterator i = r1.begin(), j = r2.begin(); i != r1.end(); ++i, ++j) {
+        const Record::FieldVector& fields1 = r1.getFields();
+        const Record::FieldVector& fields2 = r2.getFields();
+        for(Record::FieldVector::const_iterator i = fields1.begin(), j = fields2.begin(); i != fields1.end(); ++i, ++j) {
           if((*i).first != (*j).first || !(*i).second.isComparableTo((*j).second)) {
             return false;
           }
@@ -214,6 +220,8 @@ bool TypeNode::isComparableTo(TypeNode t) const {
       }
     }
     return true;
+  } else if(isSet() && t.isSet()) {
+    return getSetElementType().isComparableTo(t.getSetElementType());
   }
 
   if(isPredicateSubtype()) {
@@ -224,7 +232,7 @@ bool TypeNode::isComparableTo(TypeNode t) const {
 
 Node TypeNode::getSubtypePredicate() const {
   Assert(isPredicateSubtype());
-  return Node::fromExpr(getConst<Predicate>());
+  return Node::fromExpr(getConst<Predicate>().getExpression());
 }
 
 TypeNode TypeNode::getSubtypeParentType() const {
@@ -472,8 +480,10 @@ TypeNode TypeNode::leastCommonTypeNode(TypeNode t0, TypeNode t1){
     }
     std::vector< std::pair<std::string, Type> > fields;
     const Record& r1 = t1.getConst<Record>();
+    const Record::FieldVector& fields0 = r0.getFields();
+    const Record::FieldVector& fields1 = r1.getFields();
     // construct childwise leastCommonType, if one exists
-    for(Record::const_iterator i = r0.begin(), j = r1.begin(); i != r0.end(); ++i, ++j) {
+    for(Record::FieldVector::const_iterator i = fields0.begin(), j = fields1.begin(); i != fields0.end(); ++i, ++j) {
       TypeNode kid = leastCommonTypeNode(TypeNode::fromType((*i).second), TypeNode::fromType((*j).second));
       if((*i).first != (*j).first || kid.isNull()) {
         // if field names differ, or no common supertype, then
@@ -555,5 +565,13 @@ bool TypeNode::isSort() const {
 bool TypeNode::isSortConstructor() const {
   return getKind() == kind::SORT_TYPE && hasAttribute(expr::SortArityAttr());
 }
+
+std::string TypeNode::toString() const {
+  std::stringstream ss;
+  OutputLanguage outlang = (this == &s_null) ? language::output::LANG_AUTO : options::outputLanguage();
+  d_nv->toStream(ss, -1, false, 0, outlang);
+  return ss.str();
+}
+
 
 }/* CVC4 namespace */

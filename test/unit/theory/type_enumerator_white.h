@@ -17,13 +17,13 @@
 
 #include <cxxtest/TestSuite.h>
 
-#include "expr/node_manager.h"
+#include "expr/array_store_all.h"
 #include "expr/expr_manager.h"
-#include "expr/type_node.h"
 #include "expr/kind.h"
+#include "expr/node_manager.h"
+#include "expr/type_node.h"
+#include "options/language.h"
 #include "theory/type_enumerator.h"
-#include "util/language.h"
-#include "util/array_store_all.h"
 
 using namespace CVC4;
 using namespace CVC4::theory;

@@ -15,34 +15,32 @@
 ** \todo document this file
 **/
 
-#include "theory/bv/theory_bv.h"
-#include "theory/bv/bitblaster_template.h"
-#include "theory/bv/options.h"
 
 #include "proof/bitvector_proof.h"
-#include "proof/sat_proof_implementation.h"
+#include "options/bv_options.h"
 #include "proof/proof_utils.h"
+#include "proof/sat_proof_implementation.h"
 #include "prop/bvminisat/bvminisat.h"
+#include "theory/bv/bitblaster_template.h"
+#include "theory/bv/theory_bv.h"
 
-using namespace CVC4;
 using namespace CVC4::theory;
 using namespace CVC4::theory::bv;
+
+namespace CVC4 {
 
 BitVectorProof::BitVectorProof(theory::bv::TheoryBV* bv, TheoryProofEngine* proofEngine)
   : TheoryProof(bv, proofEngine)
   , d_declarations()
-    // , d_terms()
-    // , d_atoms()
   , d_seenBBTerms()
   , d_bbTerms()
   , d_bbAtoms()
-    // , d_bbIdCount(0)
   , d_resolutionProof(NULL)
   , d_cnfProof(NULL)
   , d_bitblaster(NULL)
 {}
 
-void BitVectorProof::initSatProof(::BVMinisat::Solver* solver) {
+void BitVectorProof::initSatProof(CVC4::BVMinisat::Solver* solver) {
   Assert (d_resolutionProof == NULL);
   d_resolutionProof = new LFSCBVSatProof(solver, "bb", true);
 }
@@ -61,14 +59,12 @@ void BitVectorProof::initCnfProof(prop::CnfStream* cnfStream,
   d_cnfProof->pushCurrentAssertion(true_node);
   d_cnfProof->pushCurrentDefinition(true_node);
   d_cnfProof->registerConvertedClause(d_resolutionProof->getTrueUnit());
-  //d_cnfProof->setClauseFact(d_resolutionProof->getTrueUnit(), true_node);
   d_cnfProof->popCurrentAssertion();
   d_cnfProof->popCurrentDefinition();
 
   d_cnfProof->pushCurrentAssertion(false_node);
   d_cnfProof->pushCurrentDefinition(false_node);
   d_cnfProof->registerConvertedClause(d_resolutionProof->getFalseUnit());
-  //d_cnfProof->setClauseFact(d_resolutionProof->getFalseUnit(), false_node);
   d_cnfProof->popCurrentAssertion();
   d_cnfProof->popCurrentDefinition();
 }
@@ -92,7 +88,9 @@ void BitVectorProof::registerTermBB(Expr term) {
 }
 
 void BitVectorProof::registerAtomBB(Expr atom, Expr atom_bb) {
-  d_bbAtoms.insert(std::make_pair(atom, atom.iffExpr(atom_bb)));
+  Expr def = atom.iffExpr(atom_bb);
+   d_bbAtoms.insert(std::make_pair(atom, def));
+  registerTerm(atom);
 }
 
 void BitVectorProof::registerTerm(Expr term) {
@@ -103,31 +101,11 @@ void BitVectorProof::registerTerm(Expr term) {
     d_declarations.insert(term);
   }
 
-  // if (Theory::theoryOf(term) == theory::THEORY_BV) {
-  //   if (term.getType().isBoolean()) {
-  //     if (d_atoms.find(term) == d_atoms.end())
-  //       d_atoms[term] = newBBId();
-
-  //     if (d_bitblaster->hasBBAtom(term) && d_bbAtoms.find(term) == d_bbAtoms.end())
-  //       d_bbAtoms[term] = newBBId();
-
-  //   }
-  //   if (term.getType().isBitVector()) {
-  //     if (d_terms.find(term) == d_terms.end())
-  //       d_terms[term] = newBBId();
-
-  //     if (d_bitblaster->hasBBTerm(term) && d_bbTerms.find(term) == d_bbTerms.end())
-  //       d_bbTerms[term] = newBBId();
-  //   }
-  // }
-
   // don't care about parametric operators for bv?
   for (unsigned i = 0; i < term.getNumChildren(); ++i) {
      d_proofEngine->registerTerm(term[i]);
   }
 }
-
-// unsigned BitVectorProof::newBBId() { return d_bbIdCount++; }
 
 std::string BitVectorProof::getBBTermName(Expr expr) {
   std::ostringstream os;
@@ -135,15 +113,15 @@ std::string BitVectorProof::getBBTermName(Expr expr) {
   return os.str();
 }
 
-void BitVectorProof::startBVConflict(::BVMinisat::Solver::TCRef cr) {
+void BitVectorProof::startBVConflict(CVC4::BVMinisat::Solver::TCRef cr) {
   d_resolutionProof->startResChain(cr);
 }
 
-void BitVectorProof::startBVConflict(::BVMinisat::Solver::TLit lit) {
+void BitVectorProof::startBVConflict(CVC4::BVMinisat::Solver::TLit lit) {
   d_resolutionProof->startResChain(lit);
 }
 
-void BitVectorProof::endBVConflict(const BVMinisat::Solver::TLitVec& confl) {
+void BitVectorProof::endBVConflict(const CVC4::BVMinisat::Solver::TLitVec& confl) {
   std::vector<Expr> expr_confl;
   for (int i = 0; i < confl.size(); ++i) {
     prop::SatLiteral lit = prop::BVMinisatSatSolver::toSatLiteral(confl[i]);
@@ -366,7 +344,7 @@ void LFSCBitVectorProof::printTheoryLemmaProof(std::vector<Expr>& lemma, std::os
     std::ostringstream lemma_paren;
     for (unsigned i = 0; i < lemma.size(); ++i) {
       Expr lit = lemma[i];
-      Debug("ajr-temp") << "   child " << i << " : " << lit << std::endl;
+
       if (lit.getKind() == kind::NOT) {
         os << "(intro_assump_t _ _ _ ";
       } else {
@@ -390,7 +368,6 @@ void LFSCBitVectorProof::printTheoryLemmaProof(std::vector<Expr>& lemma, std::os
     ClauseId lemma_id = d_bbConflictMap[lem];
     d_resolutionProof->printAssumptionsResolution(lemma_id, os, lemma_paren);
     os <<lemma_paren.str();
-    // os << "(clausify_false trust)\n";
   }else{
     Debug("bv-proof") << std::endl << "; Print non-bitblast theory conflict " << conflict << std::endl;
     BitVectorProof::printTheoryLemmaProof( lemma, os, paren );
@@ -446,16 +423,6 @@ void LFSCBitVectorProof::printTermBitblasting(Expr term, std::ostream& os) {
   case kind::BITVECTOR_MULT :
   case kind::BITVECTOR_PLUS :
   case kind::BITVECTOR_SUB :
-  case kind::BITVECTOR_UDIV :
-  case kind::BITVECTOR_UREM :
-  case kind::BITVECTOR_UDIV_TOTAL :
-  case kind::BITVECTOR_UREM_TOTAL :
-  case kind::BITVECTOR_SDIV :
-  case kind::BITVECTOR_SREM :
-  case kind::BITVECTOR_SMOD :
-  case kind::BITVECTOR_SHL :
-  case kind::BITVECTOR_LSHR :
-  case kind::BITVECTOR_ASHR :
   case kind::BITVECTOR_CONCAT : {
     for (unsigned i =0; i < term.getNumChildren() - 1; ++i) {
       os <<"(bv_bbl_"<< utils::toLFSCKind(kind);
@@ -515,6 +482,34 @@ void LFSCBitVectorProof::printTermBitblasting(Expr term, std::ostream& os) {
     os <<")";
     return;
   }
+  case kind::BITVECTOR_UDIV :
+  case kind::BITVECTOR_UREM :
+  case kind::BITVECTOR_UDIV_TOTAL :
+  case kind::BITVECTOR_UREM_TOTAL :
+  case kind::BITVECTOR_SDIV :
+  case kind::BITVECTOR_SREM :
+  case kind::BITVECTOR_SMOD :
+  case kind::BITVECTOR_SHL :
+  case kind::BITVECTOR_LSHR :
+  case kind::BITVECTOR_ASHR : {
+ 	// these are terms for which bit-blasting is not supported yet
+    std::ostringstream paren;
+    os <<"(trust_bblast_term _ ";
+    paren <<")";
+    d_proofEngine->printLetTerm(term, os);
+    os <<" ";
+    std::vector<Node> bits;
+    d_bitblaster->bbTerm(term, bits);
+
+    for (int i = utils::getSize(term) - 1; i >= 0; --i) {
+      os << "(bbltc ";
+      d_proofEngine->printLetTerm((bits[i]).toExpr(), os);
+      paren << ")";
+    }
+    os << "bbltn" << paren.str();
+    return;
+  }
+
   default:
     Unreachable("LFSCBitVectorProof Unknown operator");
   }
@@ -545,8 +540,6 @@ void LFSCBitVectorProof::printAtomBitblasting(Expr atom, std::ostream& os) {
 
 
 void LFSCBitVectorProof::printBitblasting(std::ostream& os, std::ostream& paren) {
-  // //FIXMEEEEEEEEEE
-  // return ;
   // bit-blast terms
   std::vector<Expr>::const_iterator it = d_bbTerms.begin();
   std::vector<Expr>::const_iterator end = d_bbTerms.end();
@@ -594,8 +587,6 @@ void LFSCBitVectorProof::printResolutionProof(std::ostream& os,
 
   NodeSet atoms;
   d_cnfProof->collectAtomsForClauses(used_inputs,atoms);
-  // NodeSet assertions;
-  // d_cnfProof->collectAssertionsUsed(assertions, used_inputs);
 
   // first print bit-blasting
   printBitblasting(os, paren);
@@ -611,3 +602,5 @@ void LFSCBitVectorProof::printResolutionProof(std::ostream& os,
   os << ";; Bit-blasting learned clauses \n";
   d_resolutionProof->printResolutions(os, paren);
 }
+
+} /* namespace CVC4 */

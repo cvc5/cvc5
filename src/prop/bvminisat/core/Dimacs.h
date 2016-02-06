@@ -26,6 +26,7 @@ OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWA
 #include "utils/ParseUtils.h"
 #include "core/SolverTypes.h"
 
+namespace CVC4 {
 namespace BVMinisat {
 
 //=================================================================================================
@@ -84,6 +85,7 @@ static void parse_DIMACS(gzFile input_stream, Solver& S) {
     parse_DIMACS_main(in, S); }
 
 //=================================================================================================
-}
+} /* CVC4::BVMinisat namespace */
+} /* CVC4 namespace */
 
 #endif

@@ -34,32 +34,35 @@ extern int optreset;
 #  undef _BSD_SOURCE
 #endif /* CVC4_IS_NOT_REALLY_BSD */
 
-#include <cstdio>
-#include <cstdlib>
-#include <new>
-#include <string>
-#include <sstream>
-#include <limits>
 #include <unistd.h>
 #include <string.h>
 #include <stdint.h>
 #include <time.h>
 
-#include "expr/expr.h"
-#include "util/configuration.h"
-#include "util/didyoumean.h"
-#include "util/exception.h"
-#include "util/language.h"
-#include "util/tls.h"
+#include <cstdio>
+#include <cstdlib>
+#include <cstring>
+#include <iomanip>
+#include <new>
+#include <string>
+#include <sstream>
+#include <limits>
+
+#include "base/cvc4_assert.h"
+#include "base/exception.h"
+#include "base/output.h"
+#include "base/tls.h"
+#include "options/didyoumean.h"
+#include "options/language.h"
+#include "options/options_handler_interface.h"
 
 ${include_all_option_headers}
 
 #line 58 "${template}"
 
-#include "util/output.h"
 #include "options/options_holder.h"
 #include "cvc4autoconfig.h"
-#include "options/base_options_handlers.h"
+#include "options/base_handlers.h"
 
 ${option_handler_includes}
 
@@ -90,11 +93,29 @@ struct OptionHandler {
 /** Variant for integral C++ types */
 template <class T>
 struct OptionHandler<T, true, true> {
-  static T handle(std::string option, std::string optionarg) {
-    try {
-      Integer i(optionarg, 10);
+  static bool stringToInt(T& t, const std::string& str) {
+    std::istringstream ss(str);
+    ss >> t;
+    char tmp;
+    return !(ss.fail() || ss.get(tmp));
+  }
 
-      if(! std::numeric_limits<T>::is_signed && i < 0) {
+  static bool containsMinus(const std::string& str) {
+    return str.find('-') != std::string::npos;
+  }
+
+  static T handle(const std::string& option, const std::string& optionarg) {
+    try {
+      T i;
+      bool success = stringToInt(i, optionarg);
+
+      if(!success){
+        throw OptionException(option + ": failed to parse "+ optionarg +" as an integer of the appropraite type.");
+      }
+
+      // Depending in the platform unsigned numbers with '-' signs may parse.
+      // Reject these by looking for any minus if it is not signed.
+      if( (! std::numeric_limits<T>::is_signed) && containsMinus(optionarg) ) {
         // unsigned type but user gave negative argument
         throw OptionException(option + " requires a nonnegative argument");
       } else if(i < std::numeric_limits<T>::min()) {
@@ -109,11 +130,13 @@ struct OptionHandler<T, true, true> {
         throw OptionException(ss.str());
       }
 
-      if(std::numeric_limits<T>::is_signed) {
-        return T(i.getLong());
-      } else {
-        return T(i.getUnsignedLong());
-      }
+      return i;
+
+      // if(std::numeric_limits<T>::is_signed) {
+      //   return T(i.getLong());
+      // } else {
+      //   return T(i.getUnsignedLong());
+      // }
     } catch(std::invalid_argument&) {
       // user gave something other than an integer
       throw OptionException(option + " requires an integer argument");
@@ -183,7 +206,7 @@ std::string handleOption<std::string>(std::string option, std::string optionarg)
  * If a user specifies a :handler or :predicates, it overrides this.
  */
 template <class T>
-typename T::type runHandlerAndPredicates(T, std::string option, std::string optionarg, SmtEngine* smt) {
+typename T::type runHandlerAndPredicates(T, std::string option, std::string optionarg, options::OptionsHandler* handler) {
   // By default, parse the option argument in a way appropriate for its type.
   // E.g., for "unsigned int" options, ensure that the provided argument is
   // a nonnegative integer that fits in the unsigned int type.
@@ -192,7 +215,7 @@ typename T::type runHandlerAndPredicates(T, std::string option, std::string opti
 }
 
 template <class T>
-void runBoolPredicates(T, std::string option, bool b, SmtEngine* smt) {
+void runBoolPredicates(T, std::string option, bool b, options::OptionsHandler* handler) {
   // By default, nothing to do for bool.  Users add things with
   // :predicate in options files to provide custom checking routines
   // that can throw exceptions.
@@ -380,11 +403,10 @@ public:
  * The return value is what's left of the command line (that is, the
  * non-option arguments).
  */
-std::vector<std::string> Options::parseOptions(int argc, char* main_argv[]) throw(OptionException) {
+std::vector<std::string> Options::parseOptions(int argc, char* main_argv[], options::OptionsHandler* const handler) throw(OptionException) {
   options::OptionsGuard guard(&s_current, this);
 
   const char *progName = main_argv[0];
-  SmtEngine* const smt = NULL;
 
   Debug("options") << "main_argv == " << main_argv << std::endl;
 
@@ -606,14 +628,14 @@ std::vector<std::string> Options::suggestSmtOptions(const std::string& optionNam
   return suggestions;
 }
 
-SExpr Options::getOptions() const throw() {
-  std::vector<SExpr> opts;
+std::vector< std::vector<std::string> > Options::getOptions() const throw() {
+  std::vector< std::vector<std::string> > opts;
 
   ${all_modules_get_options}
 
 #line 614 "${template}"
 
-  return SExpr(opts);
+  return opts;
 }
 
 #undef USE_EARLY_TYPE_CHECKING_BY_DEFAULT

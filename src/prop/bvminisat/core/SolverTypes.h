@@ -29,16 +29,15 @@ OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWA
 #include "prop/bvminisat/mtl/Map.h"
 #include "prop/bvminisat/mtl/Alloc.h"
 
-
+namespace CVC4 {
 namespace BVMinisat {
 class Solver;
 }
-
-namespace CVC4 {
 template <class Solver> class ProofProxy;
 typedef ProofProxy<BVMinisat::Solver> BVProofProxy;
 }
 
+namespace CVC4 {
 
 namespace BVMinisat {
 
@@ -416,6 +415,7 @@ inline void Clause::strengthen(Lit p)
 
 
 //=================================================================================================
-}
+} /* CVC4::BVMinisat namespace */
+} /* CVC4 namespace */
 
 #endif

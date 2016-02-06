@@ -15,27 +15,29 @@
  ** \todo document this file
  **/
 
-#include <string>
-#include <iostream>
-#include <typeinfo>
-#include <cassert>
-#include <vector>
 #include <boost/algorithm/string.hpp> // include Boost, a C++ library
+#include <cassert>
+#include <iostream>
+#include <string>
+#include <typeinfo>
+#include <vector>
 
-
-#include "options/options.h"
 #include "expr/expr.h"
-#include "theory/logic_info.h"
-#include "expr/command.h"
+#include "options/language.h"
+#include "options/base_options.h"
+#include "options/options.h"
+#include "options/set_language.h"
 #include "parser/parser.h"
 #include "parser/parser_builder.h"
+#include "smt_util/command.h"
+#include "theory/logic_info.h"
 
 using namespace std;
 using namespace CVC4;
 using namespace CVC4::parser;
 using namespace CVC4::options;
 
-bool nonsense(char c) { return !isalnum(c); } 
+bool nonsense(char c) { return !isalnum(c); }
 
 #ifdef ENABLE_AXIOMS
 const bool enableAxioms = true;
@@ -94,12 +96,17 @@ class Mapper {
       setTypes.insert(t);
 
       Type elementType = t.getElementType();
-      string elementTypeAsString = elementType.toString();
-      remove_if(elementTypeAsString.begin(), elementTypeAsString.end(), nonsense);
+      ostringstream oss_type;
+      oss_type << language::SetLanguage(language::output::LANG_SMTLIB_V2)
+               << elementType;
+      string elementTypeAsString = oss_type.str();
+      elementTypeAsString.erase(
+        remove_if(elementTypeAsString.begin(), elementTypeAsString.end(), nonsense),
+        elementTypeAsString.end());
 
       // define-sort
       ostringstream oss_name;
-      oss_name << Expr::setlanguage(language::output::LANG_SMTLIB_V2)
+      oss_name << language::SetLanguage(language::output::LANG_SMTLIB_V2)
                << "(Set " << elementType << ")";
       string name = oss_name.str();
       Type newt = em->mkArrayType(t.getElementType(), em->booleanType());
@@ -180,7 +187,8 @@ class Mapper {
         int N = sizeof(setaxioms) / sizeof(setaxioms[0]);
         for(int i = 0; i < N; ++i) {
           string s = setaxioms[i];
-          ostringstream oss; oss << Expr::setlanguage(language::output::LANG_SMTLIB_V2) << elementType;
+          ostringstream oss;
+          oss << language::SetLanguage(language::output::LANG_SMTLIB_V2) << elementType;
           boost::replace_all(s, "HOLDA", elementTypeAsString);
           boost::replace_all(s, "HOLDB", oss.str());
           if( s == "" ) continue;
@@ -203,7 +211,7 @@ class Mapper {
 
 public:
   Mapper(ExprManager* e) : em(e),depth(0) {
-    sout << Expr::setlanguage(language::output::LANG_SMTLIB_V2);
+    sout << language::SetLanguage(language::output::LANG_SMTLIB_V2);
   }
 
   void defineSetSort() {
@@ -242,36 +250,39 @@ public:
 };
 
 
-int main(int argc, char* argv[]) 
+int main(int argc, char* argv[])
 {
 
   try {
 
-    // Get the filename 
+    // Get the filename
     string input;
-    if(argc > 1) input = string(argv[1]);
-    else input = "<stdin>";
+    if(argc > 1){
+      input = string(argv[1]);
+    } else {
+      input = "<stdin>";
+    }
 
     // Create the expression manager
     Options options;
     options.set(inputLanguage, language::input::LANG_SMTLIB_V2);
-    cout << Expr::setlanguage(language::output::LANG_SMTLIB_V2);
+    cout << language::SetLanguage(language::output::LANG_SMTLIB_V2);
     // cout << Expr::dag(0);
     ExprManager exprManager(options);
 
     Mapper m(&exprManager);
-  
+
     // Create the parser
     ParserBuilder parserBuilder(&exprManager, input, options);
     if(input == "<stdin>") parserBuilder.withStreamInput(cin);
     Parser* parser = parserBuilder.build();
-  
+
     // Variables and assertions
     vector<string> variables;
     vector<string> info_tags;
     vector<string> info_data;
     vector<Expr> assertions;
-  
+
     Command* cmd = NULL;
     CommandSequence commandsSequence;
     bool logicisset = false;

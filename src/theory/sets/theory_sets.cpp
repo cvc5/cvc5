@@ -25,10 +25,11 @@ TheorySets::TheorySets(context::Context* c,
                        context::UserContext* u,
                        OutputChannel& out,
                        Valuation valuation,
-                       const LogicInfo& logicInfo) :
-  Theory(THEORY_SETS, c, u, out, valuation, logicInfo),
-  d_internal(new TheorySetsPrivate(*this, c, u)) {
-}
+                       const LogicInfo& logicInfo,
+                       SmtGlobals* globals)
+    : Theory(THEORY_SETS, c, u, out, valuation, logicInfo, globals),
+      d_internal(new TheorySetsPrivate(*this, c, u))
+{}
 
 TheorySets::~TheorySets() {
   delete d_internal;

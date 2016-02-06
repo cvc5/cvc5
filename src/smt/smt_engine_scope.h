@@ -17,15 +17,18 @@
 
 #include "cvc4_private.h"
 
-#include "smt/smt_engine.h"
-#include "util/tls.h"
-#include "util/cvc4_assert.h"
+#pragma once
+
+#include "base/cvc4_assert.h"
+#include "base/output.h"
+#include "base/tls.h"
 #include "expr/node_manager.h"
-#include "util/output.h"
 #include "proof/proof.h"
 #include "proof/proof_manager.h"
+#include "options/smt_options.h"
+#include "smt/smt_engine.h"
+#include "util/configuration_private.h"
 
-#pragma once
 
 namespace CVC4 {
 
@@ -43,15 +46,16 @@ inline bool smtEngineInScope() {
   return s_smtEngine_current != NULL;
 }
 
+// FIXME: Maybe move into SmtScope?
 inline ProofManager* currentProofManager() {
-#ifdef CVC4_PROOF
+#if IS_PROOFS_BUILD
   Assert(options::proof() || options::unsatCores());
   Assert(s_smtEngine_current != NULL);
   return s_smtEngine_current->d_proofManager;
-#else /* CVC4_PROOF */
+#else /* IS_PROOFS_BUILD */
   InternalError("proofs/unsat cores are not on, but ProofManager requested");
   return NULL;
-#endif /* CVC4_PROOF */
+#endif /* IS_PROOFS_BUILD */
 }
 
 class SmtScope : public NodeManagerScope {
@@ -72,7 +76,18 @@ public:
     s_smtEngine_current = d_oldSmtEngine;
     Debug("current") << "smt scope: returning to " << s_smtEngine_current << std::endl;
   }
+
+  /**
+   * This returns the StatisticsRegistry attached to the currently in scope
+   * SmtEngine.
+   */
+  static StatisticsRegistry* currentStatisticsRegistry() {
+    Assert(smtEngineInScope());
+    return s_smtEngine_current->d_statisticsRegistry;
+  }
+
 };/* class SmtScope */
+
 
 }/* CVC4::smt namespace */
 }/* CVC4 namespace */

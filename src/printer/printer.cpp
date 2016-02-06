@@ -13,25 +13,23 @@
  **
  ** Base of the pretty-printer interface.
  **/
-
 #include "printer/printer.h"
 
-#include "util/language.h"
+#include <string>
 
+#include "options/base_options.h"
+#include "options/language.h"
+#include "printer/ast/ast_printer.h"
+#include "printer/cvc/cvc_printer.h"
 #include "printer/smt1/smt1_printer.h"
 #include "printer/smt2/smt2_printer.h"
 #include "printer/tptp/tptp_printer.h"
-#include "printer/cvc/cvc_printer.h"
-#include "printer/ast/ast_printer.h"
-
-#include <string>
 
 using namespace std;
 
 namespace CVC4 {
 
 Printer* Printer::d_printers[language::output::LANG_MAX];
-const int PrettySExprs::s_iosIndex = std::ios_base::xalloc();
 
 Printer* Printer::makePrinter(OutputLanguage lang) throw() {
   using namespace CVC4::language::output;
@@ -55,6 +53,9 @@ Printer* Printer::makePrinter(OutputLanguage lang) throw() {
   case LANG_Z3STR:
     return new printer::smt2::Smt2Printer(printer::smt2::z3str_variant);
 
+  case LANG_SYGUS:
+    return new printer::smt2::Smt2Printer(printer::smt2::sygus_variant);
+
   case LANG_AST:
     return new printer::ast::AstPrinter();
 
@@ -66,89 +67,7 @@ Printer* Printer::makePrinter(OutputLanguage lang) throw() {
   }
 }/* Printer::makePrinter() */
 
-void Printer::toStream(std::ostream& out, const Result& r) const throw() {
-  if(r.getType() == Result::TYPE_SAT) {
-    switch(r.isSat()) {
-    case Result::UNSAT:
-      out << "unsat";
-      break;
-    case Result::SAT:
-      out << "sat";
-      break;
-    case Result::SAT_UNKNOWN:
-      out << "unknown";
-      if(r.whyUnknown() != Result::UNKNOWN_REASON) {
-        out << " (" << r.whyUnknown() << ")";
-      }
-      break;
-    }
-  } else {
-    switch(r.isValid()) {
-    case Result::INVALID:
-      out << "invalid";
-      break;
-    case Result::VALID:
-      out << "valid";
-      break;
-    case Result::VALIDITY_UNKNOWN:
-      out << "unknown";
-      if(r.whyUnknown() != Result::UNKNOWN_REASON) {
-        out << " (" << r.whyUnknown() << ")";
-      }
-      break;
-    }
-  }
-}/* Printer::toStream() */
 
-static void toStreamRec(std::ostream& out, const SExpr& sexpr, int indent) throw() {
-  if(sexpr.isInteger()) {
-    out << sexpr.getIntegerValue();
-  } else if(sexpr.isRational()) {
-    out << fixed << sexpr.getRationalValue().getDouble();
-  } else if(sexpr.isKeyword()) {
-    out << sexpr.getValue();
-  } else if(sexpr.isString()) {
-    string s = sexpr.getValue();
-    // escape backslash and quote
-    for(size_t i = 0; i < s.length(); ++i) {
-      if(s[i] == '"') {
-        s.replace(i, 1, "\\\"");
-        ++i;
-      } else if(s[i] == '\\') {
-        s.replace(i, 1, "\\\\");
-        ++i;
-      }
-    }
-    out << "\"" << s << "\"";
-  } else {
-    const vector<SExpr>& kids = sexpr.getChildren();
-    out << (indent > 0 && kids.size() > 1 ? "( " : "(");
-    bool first = true;
-    for(vector<SExpr>::const_iterator i = kids.begin(); i != kids.end(); ++i) {
-      if(first) {
-        first = false;
-      } else {
-        if(indent > 0) {
-          out << "\n" << string(indent, ' ');
-        } else {
-          out << ' ';
-        }
-      }
-      toStreamRec(out, *i, indent <= 0 || indent > 2 ? 0 : indent + 2);
-    }
-    if(indent > 0 && kids.size() > 1) {
-      out << '\n';
-      if(indent > 2) {
-        out << string(indent - 2, ' ');
-      }
-    }
-    out << ')';
-  }
-}/* toStreamRec() */
-
-void Printer::toStream(std::ostream& out, const SExpr& sexpr) const throw() {
-  toStreamRec(out, sexpr, PrettySExprs::getPrettySExprs(out) ? 2 : 0);
-}/* Printer::toStream(SExpr) */
 
 void Printer::toStream(std::ostream& out, const Model& m) const throw() {
   for(size_t i = 0; i < m.getNumCommands(); ++i) {
@@ -168,5 +87,30 @@ void Printer::toStream(std::ostream& out, const UnsatCore& core, const std::map<
     out << std::endl;
   }
 }/* Printer::toStream(UnsatCore, std::map<Expr, std::string>) */
+
+Printer* Printer::getPrinter(OutputLanguage lang) throw() {
+  if(lang == language::output::LANG_AUTO) {
+  // Infer the language to use for output.
+  //
+  // Options can be null in certain circumstances (e.g., when printing
+  // the singleton "null" expr.  So we guard against segfault
+  if(not Options::isCurrentNull()) {
+    if(options::outputLanguage.wasSetByUser()) {
+      lang = options::outputLanguage();
+    }
+    if(lang == language::output::LANG_AUTO && options::inputLanguage.wasSetByUser()) {
+      lang = language::toOutputLanguage(options::inputLanguage());
+     }
+   }
+   if(lang == language::output::LANG_AUTO) {
+      lang = language::output::LANG_CVC4; // default
+    }
+  }
+  if(d_printers[lang] == NULL) {
+    d_printers[lang] = makePrinter(lang);
+  }
+  return d_printers[lang];
+}
+
 
 }/* CVC4 namespace */

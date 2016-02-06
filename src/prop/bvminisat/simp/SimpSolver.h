@@ -21,11 +21,12 @@ OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWA
 #ifndef BVMinisat_SimpSolver_h
 #define BVMinisat_SimpSolver_h
 
-#include "prop/bvminisat/mtl/Queue.h"
-#include "prop/bvminisat/core/Solver.h"
-#include "util/statistics_registry.h"
 #include "context/context.h"
+#include "prop/bvminisat/core/Solver.h"
+#include "prop/bvminisat/mtl/Queue.h"
+#include "util/statistics_registry.h"
 
+namespace CVC4 {
 namespace BVMinisat {
 
 //=================================================================================================
@@ -41,7 +42,7 @@ class SimpSolver : public Solver {
     // Problem specification:
     //
     Var     newVar    (bool polarity = true, bool dvar = true, bool freeze = false);
-  bool    addClause (const vec<Lit>& ps, ClauseId& id);
+    bool    addClause (const vec<Lit>& ps, ClauseId& id);
     bool    addEmptyClause();                // Add the empty clause to the solver.
     bool    addClause (Lit p, ClauseId& id);               // Add a unit clause to the solver.
     bool    addClause (Lit p, Lit q, ClauseId& id);        // Add a binary clause to the solver.
@@ -218,6 +219,8 @@ inline lbool SimpSolver::solveLimited (bool do_simp, bool turn_off_simp){
     return solve_(do_simp, turn_off_simp); }
 
 //=================================================================================================
-}
+} /* CVC4::BVMinisat namespace */
+} /* CVC4 namespace */
+
 
 #endif

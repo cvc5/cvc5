@@ -112,6 +112,20 @@ public:
   }
 };/* class BitVectorPredicateTypeRule */
 
+class BitVectorUnaryPredicateTypeRule {
+public:
+  inline static TypeNode computeType(NodeManager* nodeManager, TNode n, bool check)
+      throw (TypeCheckingExceptionPrivate, AssertionException) {
+    if( check ) {
+      TypeNode type = n[0].getType(check);
+      if (!type.isBitVector()) {
+        throw TypeCheckingExceptionPrivate(n, "expecting bit-vector terms");
+      }
+    }
+    return nodeManager->booleanType();
+  }
+};/* class BitVectorUnaryPredicateTypeRule */
+
 class BitVectorEagerAtomTypeRule {
 public:
   inline static TypeNode computeType(NodeManager* nodeManager, TNode n, bool check)

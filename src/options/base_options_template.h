@@ -14,7 +14,7 @@
  ** Contains code for handling command-line options
  **/
 
-#include "cvc4_public.h"
+#include "cvc4_private.h"
 
 #ifndef __CVC4__OPTIONS__${module_id}_H
 #define __CVC4__OPTIONS__${module_id}_H

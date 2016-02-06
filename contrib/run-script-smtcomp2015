@@ -48,32 +48,29 @@ ALIA|AUFLIA|AUFLIRA|AUFNIRA|BV|UF|UFBV|UFIDL|UFLIA|UFLRA|UFNIA)
   trywith 10 --qcf-tconstraint --full-saturate-quant
   # medium runs 5min
   trywith 30 --no-quant-cf --full-saturate-quant
-  trywith 30 --finite-model-find --fmf-inst-engine --sort-inference --uf-ss-fair --mbqi=gen-ev
+  trywith 30 --finite-model-find --fmf-inst-engine --mbqi=gen-ev
   trywith 30 --no-e-matching --no-quant-cf --full-saturate-quant
   trywith 30 --pre-skolem-quant --full-saturate-quant
   trywith 30 --no-inst-no-entail --no-quant-cf --full-saturate-quant
   trywith 30 --finite-model-find --mbqi=gen-ev --uf-ss-totality
   trywith 30 --inst-when=full --full-saturate-quant
-  trywith 30 --fmf-bound-int --macros-quant
-  trywith 30 --no-inst-no-entail --decision=internal --simplification=none --no-inst-no-entail --no-quant-cf --full-saturate-quant
+  #trywith 30 --fmf-bound-int --macros-quant   # recently bug fixed
+  trywith 30 --decision=internal --simplification=none --no-inst-no-entail --no-quant-cf --full-saturate-quant
   trywith 30 --decision=justification-stoponly --full-saturate-quant
   # large runs 3min
   trywith 60 --term-db-mode=relevant --full-saturate-quant
   trywith 60 --finite-model-find --mbqi=none
   trywith 60 --decision=internal --full-saturate-quant
   # last call runs 20min
-  trywith 300 --finite-model-find --fmf-inst-engine --quant-cf --sort-inference --uf-ss-fair 
+  trywith 300 --finite-model-find --fmf-inst-engine --quant-cf
   trywith 300 --no-inst-no-entail --full-saturate-quant
   finishwith --full-saturate-quant
   ;;
 LIA|LRA|NIA|NRA)
-  trywith 20 --enable-cbqi --full-saturate-quant
-  trywith 20 --full-saturate-quant
-  trywith 20 --cbqi-recurse --full-saturate-quant
-  trywith 30 --quant-cf --full-saturate-quant
-  trywith 60 --quant-cf --qcf-tconstraint --full-saturate-quant
-  trywith 120 --cbqi-recurse --disable-prenex-quant --full-saturate-quant
-  finishwith --cbqi-recurse --pre-skolem-quant --full-saturate-quant
+  trywith 180 --cbqi --no-cbqi-sat --full-saturate-quant
+  trywith 60 --full-saturate-quant
+  trywith 180 --qcf-tconstraint --full-saturate-quant
+  finishwith --cbqi --no-cbqi-sat --cbqi-recurse --full-saturate-quant
   ;;
 QF_AUFBV)
   trywith 600
@@ -83,7 +80,7 @@ QF_ABV)
   finishwith --ite-simp --simp-with-care --repeat-simp
   ;;
 QF_BV)
-  exec ./pcvc4 -L smt2 --no-incremental --no-checking --no-interactive \
+  exec ./pcvc4 -L smt2 --no-incremental --no-checking --no-interactive --thread-stack=1024 \
          --threads 2 \
          --thread0 '--unconstrained-simp --bv-div-zero-const --bv-intro-pow2 --bitblast=eager --no-bv-abstraction' \
          --thread1 '--unconstrained-simp --bv-div-zero-const --bv-intro-pow2 --bv-eq-slicer=auto ' \
@@ -93,6 +90,9 @@ QF_BV)
   #trywith 60 --decision=justification
   #trywith 600 --decision=internal --bitblast-eager
   #finishwith --decision=justification --decision-use-weight --decision-weight-internal=usr1
+  ;;
+QF_AUFNIA)
+  finishwith --decision=justification --no-arrays-eager-index --arrays-eager-lemmas
   ;;
 QF_AUFLIA|QF_AX)
   finishwith --no-arrays-eager-index --arrays-eager-lemmas

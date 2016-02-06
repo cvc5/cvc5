@@ -18,13 +18,14 @@ DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE,
 OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 **************************************************************************************************/
 
+#include "options/prop_options.h"
+#include "proof/proof.h"
 #include "prop/minisat/mtl/Sort.h"
 #include "prop/minisat/simp/SimpSolver.h"
 #include "prop/minisat/utils/System.h"
-#include "prop/options.h"
-#include "proof/proof.h"
-using namespace Minisat;
+
 using namespace CVC4;
+using namespace CVC4::Minisat;
 
 //=================================================================================================
 // Options:
@@ -540,7 +541,7 @@ bool SimpSolver::eliminateVar(Var v)
     for (int i = 0; i < cls.size(); i++)
         removeClause(cls[i]); 
 
-    ClauseId id = -1;
+    ClauseId id = ClauseIdUndef; 
     // Produce clauses in cross product:
     vec<Lit>& resolvent = add_tmp;
     for (int i = 0; i < pos.size(); i++)
@@ -586,7 +587,7 @@ bool SimpSolver::substitute(Var v, Lit x)
         }
 
         removeClause(cls[i]);
-        ClauseId id = -1;
+        ClauseId id = ClauseIdUndef;
         if (!addClause_(subst_clause, c.removable(), id)) {
             return ok = false;
         }

@@ -14,24 +14,26 @@
  ** Algebraic solver.
  **/
 
+#include "decision/decision_attributes.h"
+#include "options/decision_options.h"
+#include "options/bv_options.h"
+#include "smt/smt_statistics_registry.h"
+#include "theory/bv/abstraction.h"
+#include "theory/bv/bitblaster_template.h"
+#include "theory/bv/bv_quick_check.h"
 #include "theory/bv/bv_subtheory_bitblast.h"
 #include "theory/bv/theory_bv.h"
 #include "theory/bv/theory_bv_utils.h"
-#include "theory/bv/bitblaster_template.h"
-#include "theory/bv/bv_quick_check.h"
-#include "theory/bv/options.h"
-#include "theory/bv/abstraction.h"
-#include "theory/decision_attributes.h"
-#include "decision/options.h"
 #include "proof/proof_manager.h"
 #include "proof/bitvector_proof.h"
 
 using namespace std;
-using namespace CVC4;
 using namespace CVC4::context;
-using namespace CVC4::theory;
-using namespace CVC4::theory::bv;
 using namespace CVC4::theory::bv::utils;
+
+namespace CVC4 {
+namespace theory {
+namespace bv {
 
 BitblastSolver::BitblastSolver(context::Context* c, TheoryBV* bv)
   : SubtheorySolver(c, bv),
@@ -57,12 +59,12 @@ BitblastSolver::Statistics::Statistics()
   : d_numCallstoCheck("theory::bv::BitblastSolver::NumCallsToCheck", 0)
   , d_numBBLemmas("theory::bv::BitblastSolver::NumTimesLemmasBB", 0)
 {
-  StatisticsRegistry::registerStat(&d_numCallstoCheck);
-  StatisticsRegistry::registerStat(&d_numBBLemmas);
+  smtStatisticsRegistry()->registerStat(&d_numCallstoCheck);
+  smtStatisticsRegistry()->registerStat(&d_numBBLemmas);
 }
 BitblastSolver::Statistics::~Statistics() {
-  StatisticsRegistry::unregisterStat(&d_numCallstoCheck);
-  StatisticsRegistry::unregisterStat(&d_numBBLemmas);
+  smtStatisticsRegistry()->unregisterStat(&d_numCallstoCheck);
+  smtStatisticsRegistry()->unregisterStat(&d_numBBLemmas);
 }
 
 void BitblastSolver::setAbstraction(AbstractionModule* abs) {
@@ -80,8 +82,8 @@ void BitblastSolver::preRegister(TNode node) {
     CodeTimer weightComputationTime(d_bv->d_statistics.d_weightComputationTimer);
     d_bitblastQueue.push_back(node);
     if ((options::decisionUseWeight() || options::decisionThreshold() != 0) &&
-        !node.hasAttribute(theory::DecisionWeightAttr())) {
-      node.setAttribute(theory::DecisionWeightAttr(),computeAtomWeight(node));
+        !node.hasAttribute(decision::DecisionWeightAttr())) {
+      node.setAttribute(decision::DecisionWeightAttr(),computeAtomWeight(node));
     }
   }
 }
@@ -154,7 +156,7 @@ bool BitblastSolver::check(Theory::Effort e) {
 
   // We need to ensure we are fully propagated, so propagate now
   if (d_useSatPropagation) {
-    d_bv->spendResource();
+    d_bv->spendResource(1);
     bool ok = d_bitblaster->propagate();
     if (!ok) {
       std::vector<TNode> conflictAtoms;
@@ -233,40 +235,6 @@ Node BitblastSolver::getModelValue(TNode node)
   return val;
 }
 
-// Node BitblastSolver::getModelValueRec(TNode node)
-// {
-//   Node val;
-//   if (node.isConst()) {
-//     return node;
-//   }
-//   NodeMap::iterator it = d_modelCache.find(node);
-//   if (it != d_modelCache.end()) {
-//     val = (*it).second;
-//     Debug("bitvector-model") << node << " => (cached) " << val <<"\n";
-//     return val;
-//   }
-//   if (d_bv->isLeaf(node)) {
-//     val = d_bitblaster->getVarValue(node);
-//     if (val == Node()) {
-//       // If no value in model, just set to 0
-//       val = utils::mkConst(utils::getSize(node), (unsigned)0);
-//     }
-//   } else {
-//     NodeBuilder<> valBuilder(node.getKind());
-//     if (node.getMetaKind() == kind::metakind::PARAMETERIZED) {
-//       valBuilder << node.getOperator();
-//     }
-//     for (unsigned i = 0; i < node.getNumChildren(); ++i) {
-//       valBuilder << getModelValueRec(node[i]);
-//     }
-//     val = valBuilder;
-//     val = Rewriter::rewrite(val);
-//   }
-//   Assert(val.isConst());
-//   d_modelCache[node] = val;
-//   Debug("bitvector-model") << node << " => " << val <<"\n";
-//   return val;
-// }
 
 
 void BitblastSolver::setConflict(TNode conflict) {
@@ -284,3 +252,8 @@ void BitblastSolver::setProofLog( BitVectorProof * bvp ) {
   d_bitblaster->setProofLog( bvp );
   bvp->setBitblaster(d_bitblaster);
 }
+
+}/* namespace CVC4::theory::bv */
+}/* namespace CVC4::theory */
+}/* namespace CVC4 */
+

@@ -18,16 +18,17 @@
 #ifndef __CVC4__THEORY__ARRAYS__ARRAY_INFO_H
 #define __CVC4__THEORY__ARRAYS__ARRAY_INFO_H
 
-#include "util/backtrackable.h"
-#include "context/cdlist.h"
-#include "context/cdhashmap.h"
-#include "expr/node.h"
-#include "util/statistics_registry.h"
-#include "util/ntuple.h"
 #include <ext/hash_set>
 #include <ext/hash_map>
 #include <iostream>
 #include <map>
+
+#include "context/backtrackable.h"
+#include "context/cdlist.h"
+#include "context/cdhashmap.h"
+#include "expr/node.h"
+#include "util/ntuple.h"
+#include "util/statistics_registry.h"
 
 namespace CVC4 {
 namespace theory {
@@ -65,11 +66,23 @@ public:
   context::CDO<bool> rIntro1Applied;
   context::CDO<TNode> modelRep;
   context::CDO<TNode> constArr;
+  context::CDO<TNode> weakEquivPointer;
+  context::CDO<TNode> weakEquivIndex;
+  context::CDO<TNode> weakEquivSecondary;
+  context::CDO<TNode> weakEquivSecondaryReason;
   CTNodeList* indices;
   CTNodeList* stores;
   CTNodeList* in_stores;
 
-  Info(context::Context* c, Backtracker<TNode>* bck) : isNonLinear(c, false), rIntro1Applied(c, false), modelRep(c,TNode()), constArr(c,TNode()) {
+  Info(context::Context* c, Backtracker<TNode>* bck)
+    : isNonLinear(c, false),
+      rIntro1Applied(c, false),
+      modelRep(c,TNode()),
+      constArr(c,TNode()),
+      weakEquivPointer(c,TNode()),
+      weakEquivIndex(c,TNode()),
+      weakEquivSecondary(c,TNode()),
+      weakEquivSecondaryReason(c,TNode()) {
     indices = new(true)CTNodeList(c);
     stores = new(true)CTNodeList(c);
     in_stores = new(true)CTNodeList(c);
@@ -150,54 +163,18 @@ public:
     d_callsMergeInfo("theory::arrays::callsMergeInfo",0),
     d_maxList("theory::arrays::maxList",0),
     d_tableSize("theory::arrays::infoTableSize", info_map) {
-  StatisticsRegistry::registerStat(&d_mergeInfoTimer);
-  StatisticsRegistry::registerStat(&d_avgIndexListLength);
-  StatisticsRegistry::registerStat(&d_avgStoresListLength);
-  StatisticsRegistry::registerStat(&d_avgInStoresListLength);
-  StatisticsRegistry::registerStat(&d_listsCount);
-  StatisticsRegistry::registerStat(&d_callsMergeInfo);
-  StatisticsRegistry::registerStat(&d_maxList);
-  StatisticsRegistry::registerStat(&d_tableSize);
+  currentStatisticsRegistry()->registerStat(&d_mergeInfoTimer);
+  currentStatisticsRegistry()->registerStat(&d_avgIndexListLength);
+  currentStatisticsRegistry()->registerStat(&d_avgStoresListLength);
+  currentStatisticsRegistry()->registerStat(&d_avgInStoresListLength);
+  currentStatisticsRegistry()->registerStat(&d_listsCount);
+  currentStatisticsRegistry()->registerStat(&d_callsMergeInfo);
+  currentStatisticsRegistry()->registerStat(&d_maxList);
+  currentStatisticsRegistry()->registerStat(&d_tableSize);
   }*/
-  ArrayInfo(context::Context* c, Backtracker<TNode>* b): ct(c), bck(b), info_map(),
-      d_mergeInfoTimer("theory::arrays::mergeInfoTimer"),
-      d_avgIndexListLength("theory::arrays::avgIndexListLength"),
-      d_avgStoresListLength("theory::arrays::avgStoresListLength"),
-      d_avgInStoresListLength("theory::arrays::avgInStoresListLength"),
-      d_listsCount("theory::arrays::listsCount",0),
-      d_callsMergeInfo("theory::arrays::callsMergeInfo",0),
-      d_maxList("theory::arrays::maxList",0),
-      d_tableSize("theory::arrays::infoTableSize", info_map) {
-    emptyList = new(true) CTNodeList(ct);
-    emptyInfo = new Info(ct, bck);
-    StatisticsRegistry::registerStatMultiple(&d_mergeInfoTimer);
-    StatisticsRegistry::registerStatMultiple(&d_avgIndexListLength);
-    StatisticsRegistry::registerStatMultiple(&d_avgStoresListLength);
-    StatisticsRegistry::registerStatMultiple(&d_avgInStoresListLength);
-    StatisticsRegistry::registerStatMultiple(&d_listsCount);
-    StatisticsRegistry::registerStatMultiple(&d_callsMergeInfo);
-    StatisticsRegistry::registerStatMultiple(&d_maxList);
-    StatisticsRegistry::registerStatMultiple(&d_tableSize);
-  }
+  ArrayInfo(context::Context* c, Backtracker<TNode>* b);
 
-  ~ArrayInfo() {
-    CNodeInfoMap::iterator it = info_map.begin();
-    for( ; it != info_map.end(); it++ ) {
-      if((*it).second!= emptyInfo) {
-        delete (*it).second;
-      }
-    }
-    emptyList->deleteSelf();
-    delete emptyInfo;
-    StatisticsRegistry::unregisterStat(&d_mergeInfoTimer);
-    StatisticsRegistry::unregisterStat(&d_avgIndexListLength);
-    StatisticsRegistry::unregisterStat(&d_avgStoresListLength);
-    StatisticsRegistry::unregisterStat(&d_avgInStoresListLength);
-    StatisticsRegistry::unregisterStat(&d_listsCount);
-    StatisticsRegistry::unregisterStat(&d_callsMergeInfo);
-    StatisticsRegistry::unregisterStat(&d_maxList);
-    StatisticsRegistry::unregisterStat(&d_tableSize);
-  };
+  ~ArrayInfo();
 
   /**
    * adds the node a to the map if it does not exist
@@ -212,6 +189,10 @@ public:
   void setModelRep(const TNode a, const TNode rep);
 
   void setConstArr(const TNode a, const TNode constArr);
+  void setWeakEquivPointer(const TNode a, const TNode pointer);
+  void setWeakEquivIndex(const TNode a, const TNode index);
+  void setWeakEquivSecondary(const TNode a, const TNode secondary);
+  void setWeakEquivSecondaryReason(const TNode a, const TNode reason);
   /**
    * Returns the information associated with TNode a
    */
@@ -225,6 +206,10 @@ public:
   const TNode getModelRep(const TNode a) const;
 
   const TNode getConstArr(const TNode a) const;
+  const TNode getWeakEquivPointer(const TNode a) const;
+  const TNode getWeakEquivIndex(const TNode a) const;
+  const TNode getWeakEquivSecondary(const TNode a) const;
+  const TNode getWeakEquivSecondaryReason(const TNode a) const;
 
   const CTNodeList* getIndices(const TNode a) const;
 

@@ -33,7 +33,7 @@
 #include <cln/dfloat.h>
 #include <cln/real.h>
 
-#include "util/exception.h"
+#include "base/exception.h"
 #include "util/integer.h"
 
 namespace CVC4 {
@@ -369,4 +369,3 @@ CVC4_PUBLIC std::ostream& operator<<(std::ostream& os, const Rational& n);
 }/* CVC4 namespace */
 
 #endif /* __CVC4__RATIONAL_H */
-

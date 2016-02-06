@@ -15,15 +15,21 @@
  ** \todo document this file
  **/
 
-#include "smt/smt_engine.h"
-#include "util/statistics_registry.h"
-#include "check.h"
+#include <unistd.h>
 
 #include <cstdlib>
 #include <cstring>
 #include <fstream>
 #include <string>
-#include <unistd.h>
+
+#warning "TODO: Why is lfsc's check.h being included like this?"
+#include "check.h"
+
+#include "base/cvc4_assert.h"
+#include "base/output.h"
+#include "smt/smt_engine.h"
+#include "util/configuration_private.h"
+#include "util/statistics_registry.h"
 
 using namespace CVC4;
 using namespace std;
@@ -49,7 +55,7 @@ public:
 
 void SmtEngine::checkProof() {
 
-#ifdef CVC4_PROOF
+#if IS_PROOFS_BUILD
 
   Chat() << "generating proof..." << endl;
 
@@ -64,7 +70,7 @@ void SmtEngine::checkProof() {
          ! d_logic.hasCardinalityConstraints())) ||
       d_logic.isQuantified()) {
     // no checking for these yet
-    Notice() << "Notice: no proof-checking for non-UF/Bool proofs yet" << endl;
+    Notice() << "Notice: no proof-checking for non-UF/Bool/BV proofs yet" << endl;
     return;
   }
 
@@ -81,19 +87,19 @@ void SmtEngine::checkProof() {
   args a;
   a.show_runs = false;
   a.no_tail_calls = false;
-  a.compile_scc = true;
+  a.compile_scc = false;
   a.compile_scc_debug = false;
-  a.run_scc = true;
+  a.run_scc = false;
   a.use_nested_app = false;
   a.compile_lib = false;
   init();
   check_file(pfFile, a);
   close(fd);
 
-#else /* CVC4_PROOF */
+#else /* IS_PROOFS_BUILD */
 
   Unreachable("This version of CVC4 was built without proof support; cannot check proofs.");
 
-#endif /* CVC4_PROOF */
+#endif /* IS_PROOFS_BUILD */
 
 }

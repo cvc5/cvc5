@@ -29,14 +29,13 @@
 
 #pragma once
 
-#include "theory/arith/delta_rational.h"
+#include "options/arith_options.h"
 #include "theory/arith/arithvar.h"
-#include "theory/arith/partial_model.h"
-#include "theory/arith/tableau.h"
 #include "theory/arith/constraint_forward.h"
+#include "theory/arith/delta_rational.h"
+#include "theory/arith/partial_model.h"
 #include "theory/arith/simplex_update.h"
-#include "theory/arith/options.h"
-
+#include "theory/arith/tableau.h"
 #include "util/maybe.h"
 #include "util/statistics_registry.h"
 

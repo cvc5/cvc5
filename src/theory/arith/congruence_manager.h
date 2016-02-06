@@ -19,20 +19,17 @@
 
 #pragma once
 
+#include "context/cdlist.h"
+#include "context/cdmaybe.h"
+#include "context/cdo.h"
+#include "context/cdtrail_queue.h"
+#include "context/context.h"
 #include "theory/arith/arithvar.h"
 #include "theory/arith/constraint_forward.h"
 #include "theory/arith/partial_model.h"
-
 #include "theory/uf/equality_engine.h"
-
-#include "context/cdo.h"
-#include "context/cdlist.h"
-#include "context/context.h"
-#include "context/cdtrail_queue.h"
-#include "context/cdmaybe.h"
-
-#include "util/statistics_registry.h"
 #include "util/dense_map.h"
+#include "util/statistics_registry.h"
 
 namespace CVC4 {
 namespace theory {

@@ -145,7 +145,7 @@ public:
   }
 
   class Foo {
-    int blah;
+    int blah CVC4_UNUSED;
   public:
     Foo(int b) : blah(b) {}
   };

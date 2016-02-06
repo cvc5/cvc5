@@ -1,0 +1,3 @@
+
+
+THEORIES = builtin booleans uf arith bv fp arrays datatypes sets strings quantifiers idl

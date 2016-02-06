@@ -18,6 +18,7 @@
 
 //#include <cvc4/cvc4.h> // use this after CVC4 is properly installed
 #include "smt/smt_engine.h"
+#include "options/set_language.h"
 
 using namespace std;
 using namespace CVC4;
@@ -34,8 +35,8 @@ int main() {
   smt.setOption("produce-models", true);
 
   // Set output language to SMTLIB2
-  cout << Expr::setlanguage(language::output::LANG_SMTLIB_V2);
-  
+  cout << language::SetLanguage(language::output::LANG_SMTLIB_V2);
+
   Type integer = em.integerType();
   Type set = em.mkSetType(integer);
 

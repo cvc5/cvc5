@@ -12,21 +12,22 @@
  ** \brief An additional layer between commands and invoking them.
  **/
 
-#include <iostream>
-#include <string>
-
 #include "main/command_executor.h"
-#include "expr/command.h"
-
-#include "main/main.h"
-
-#include "main/options.h"
-#include "smt/options.h"
-#include "printer/options.h"
 
 #ifndef __WIN32__
 #  include <sys/resource.h>
 #endif /* ! __WIN32__ */
+
+#include <iostream>
+#include <string>
+
+#include "main/main.h"
+#include "options/base_options.h"
+#include "options/main_options.h"
+#include "options/printer_options.h"
+#include "options/smt_options.h"
+#include "smt_util/command.h"
+
 
 namespace CVC4 {
 namespace main {

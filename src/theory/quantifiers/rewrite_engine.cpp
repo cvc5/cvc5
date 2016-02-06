@@ -15,13 +15,14 @@
  **/
 
 #include "theory/quantifiers/rewrite_engine.h"
-#include "theory/quantifiers/quant_util.h"
+
+#include "options/quantifiers_options.h"
 #include "theory/quantifiers/first_order_model.h"
-#include "theory/quantifiers/model_engine.h"
-#include "theory/quantifiers/options.h"
 #include "theory/quantifiers/inst_match_generator.h"
-#include "theory/theory_engine.h"
+#include "theory/quantifiers/model_engine.h"
+#include "theory/quantifiers/quant_util.h"
 #include "theory/quantifiers/term_database.h"
+#include "theory/theory_engine.h"
 
 using namespace CVC4;
 using namespace std;
@@ -38,7 +39,6 @@ struct PrioritySort {
 
 
 RewriteEngine::RewriteEngine( context::Context* c, QuantifiersEngine* qe ) : QuantifiersModule(qe) {
-  d_true = NodeManager::currentNM()->mkConst( true );
   d_needsSort = false;
 }
 
@@ -277,7 +277,7 @@ void RewriteEngine::registerQuantifier( Node f ) {
             body_c.push_back( d_rr[f][1][j].negate() );
           }
         }
-      }else if( d_rr[f][1]!=d_true ){
+      }else if( d_rr[f][1]!=d_quantEngine->getTermDatabase()->d_true ){
         if( MatchGen::isHandled( d_rr[f][1] ) ){
           body_c.push_back( d_rr[f][1].negate() );
         }

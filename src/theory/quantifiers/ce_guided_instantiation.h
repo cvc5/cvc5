@@ -17,10 +17,11 @@
 #ifndef __CVC4__THEORY__QUANTIFIERS__CE_GUIDED_INSTANTIATION_H
 #define __CVC4__THEORY__QUANTIFIERS__CE_GUIDED_INSTANTIATION_H
 
-#include "context/cdhashmap.h"
 #include "context/cdchunk_list.h"
-#include "theory/quantifiers_engine.h"
+#include "context/cdhashmap.h"
+#include "options/quantifiers_modes.h"
 #include "theory/quantifiers/ce_guided_single_inv.h"
+#include "theory/quantifiers_engine.h"
 
 namespace CVC4 {
 namespace theory {
@@ -28,47 +29,39 @@ namespace quantifiers {
 
 /** a synthesis conjecture */
 class CegConjecture {
+private:
+  QuantifiersEngine * d_qe;
 public:
-  CegConjecture( context::Context* c );
-  /** is conjecture active */
-  context::CDO< bool > d_active;
-  /** is conjecture infeasible */
-  context::CDO< bool > d_infeasible;
-  /** quantified formula */
+  CegConjecture( QuantifiersEngine * qe, context::Context* c );
+  /** quantified formula asserted */
+  Node d_assert_quant;
+  /** quantified formula (after processing) */
   Node d_quant;
-  /** guard */
-  Node d_guard;
   /** base instantiation */
   Node d_base_inst;
   /** expand base inst to disjuncts */
   std::vector< Node > d_base_disj;
-  /** guard split */
-  Node d_guard_split;
-  /** is syntax-guided */
-  bool d_syntax_guided;
   /** list of constants for quantified formula */
   std::vector< Node > d_candidates;
   /** list of variables on inner quantification */
-  std::vector< Node > d_inner_vars;    
+  std::vector< Node > d_inner_vars;
   std::vector< std::vector< Node > > d_inner_vars_disj;
   /** list of terms we have instantiated candidates with */
   std::map< int, std::vector< Node > > d_candidate_inst;
-  /** initialize guard */
-  void initializeGuard( QuantifiersEngine * qe );
   /** measure term */
   Node d_measure_term;
   /** measure sum size */
   int d_measure_term_size;
   /** refine count */
   unsigned d_refine_count;
-  /** assign */
-  void assign( QuantifiersEngine * qe, Node q );
-  /** is assigned */
-  bool isAssigned() { return !d_quant.isNull(); }
   /** current extential quantifeirs whose couterexamples we must refine */
   std::vector< std::vector< Node > > d_ce_sk;
   /** single invocation utility */
   CegConjectureSingleInv * d_ceg_si;
+public: //non-syntax guided (deprecated)
+  /** guard */
+  bool d_syntax_guided;
+  Node d_nsg_guard;  
 public:  //for fairness
   /** the cardinality literals */
   std::map< int, Node > d_lits;
@@ -76,11 +69,29 @@ public:  //for fairness
   context::CDO< int > d_curr_lit;
   /** allocate literal */
   Node getLiteral( QuantifiersEngine * qe, int i );
+  /** get guard */
+  Node getGuard();
   /** is ground */
   bool isGround() { return d_inner_vars.empty(); }
+  /** fairness */
+  CegqiFairMode getCegqiFairMode();
+  /** is single invocation */
+  bool isSingleInvocation();
+  /** is single invocation */
+  bool isFullySingleInvocation();
+  /** needs check */
+  bool needsCheck( std::vector< Node >& lem );
+  /** preregister conjecture */
+  void preregisterConjecture( Node q );
+  /** initialize guard */
+  void initializeGuard( QuantifiersEngine * qe );
+  /** assign */
+  void assign( Node q );
+  /** is assigned */
+  bool isAssigned() { return !d_quant.isNull(); }
 };
-  
-  
+
+
 class CegInstantiation : public QuantifiersModule
 {
   typedef context::CDHashMap<Node, bool, NodeHashFunction> NodeBoolMap;
@@ -111,9 +122,6 @@ private:
   Node getModelValue( Node n );
   /** get model term */
   Node getModelTerm( Node n );
-private:
-  /** print sygus term */
-  void printSygusTerm( std::ostream& out, Node n );
 public:
   CegInstantiation( QuantifiersEngine * qe, context::Context* c );
 public:
@@ -128,9 +136,11 @@ public:
   /** Identify this module (for debugging, dynamic configuration, etc..) */
   std::string identify() const { return "CegInstantiation"; }
   /** print solution for synthesis conjectures */
-  void printSynthSolution( std::ostream& out );  
+  void printSynthSolution( std::ostream& out );
   /** collect disjuncts */
   static void collectDisjuncts( Node n, std::vector< Node >& ex );
+  /** preregister assertion (before rewrite) */
+  void preregisterAssertion( Node n );
 public:
   class Statistics {
   public:
@@ -139,7 +149,7 @@ public:
     IntStat d_cegqi_si_lemmas;
     Statistics();
     ~Statistics();
-  };/* class CegInstantiation::Statistics */  
+  };/* class CegInstantiation::Statistics */
   Statistics d_statistics;
 };
 

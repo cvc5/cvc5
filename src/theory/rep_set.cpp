@@ -15,6 +15,8 @@
 #include "theory/rep_set.h"
 #include "theory/type_enumerator.h"
 #include "theory/quantifiers/bounded_integers.h"
+#include "theory/quantifiers/term_database.h"
+#include "theory/quantifiers/first_order_model.h"
 
 using namespace std;
 using namespace CVC4;
@@ -27,6 +29,7 @@ void RepSet::clear(){
   d_type_complete.clear();
   d_tmap.clear();
   d_values_to_terms.clear();
+  d_type_rlv_rep.clear();
 }
 
 bool RepSet::hasRep( TypeNode tn, Node n ) {
@@ -47,7 +50,30 @@ int RepSet::getNumRepresentatives( TypeNode tn ) const{
   }
 }
 
+bool containsStoreAll( Node n, std::vector< Node >& cache ){
+  if( std::find( cache.begin(), cache.end(), n )==cache.end() ){
+    cache.push_back( n );
+    if( n.getKind()==STORE_ALL ){
+      return true;
+    }else{
+      for( unsigned i=0; i<n.getNumChildren(); i++ ){
+        if( containsStoreAll( n[i], cache ) ){
+          return true;
+        }
+      }
+    }
+  }
+  return false;
+}
+
 void RepSet::add( TypeNode tn, Node n ){
+  //for now, do not add array constants FIXME
+  if( tn.isArray() ){
+    std::vector< Node > cache;
+    if( containsStoreAll( n, cache ) ){
+      return;
+    }
+  }
   Trace("rsi-debug") << "Add rep #" << d_type_reps[tn].size() << " for " << tn << " : " << n << std::endl;
   Assert( n.getType().isSubtypeOf( tn ) );
   d_tmap[ n ] = (int)d_type_reps[tn].size();
@@ -63,8 +89,15 @@ int RepSet::getIndexFor( Node n ) const {
   }
 }
 
-void RepSet::complete( TypeNode t ){
-  if( d_type_complete.find( t )==d_type_complete.end() ){
+bool RepSet::complete( TypeNode t ){
+  std::map< TypeNode, bool >::iterator it = d_type_complete.find( t );
+  if( it==d_type_complete.end() ){
+    //remove all previous
+    for( unsigned i=0; i<d_type_reps[t].size(); i++ ){
+      d_tmap.erase( d_type_reps[t][i] );
+    }
+    d_type_reps[t].clear();
+    //now complete the type
     d_type_complete[t] = true;
     TypeEnumerator te(t);
     while( !te.isFinished() ){
@@ -78,6 +111,18 @@ void RepSet::complete( TypeNode t ){
       Trace("reps-complete") << d_type_reps[t][i] << " ";
     }
     Trace("reps-complete") << std::endl;
+    return true;
+  }else{
+    return it->second;
+  }
+}
+
+int RepSet::getNumRelevantGroundReps( TypeNode t ) {
+  std::map< TypeNode, int >::iterator it = d_type_rlv_rep.find( t );
+  if( it==d_type_rlv_rep.end() ){
+    return 0;
+  }else{
+    return it->second;
   }
 }
 
@@ -142,6 +187,7 @@ bool RepSetIterator::setFunctionDomain( Node op ){
 }
 
 bool RepSetIterator::initialize(){
+  Trace("rsi") << "Initialize rep set iterator..." << std::endl;
   for( size_t i=0; i<d_types.size(); i++ ){
     d_index.push_back( 0 );
     //store default index order
@@ -150,9 +196,16 @@ bool RepSetIterator::initialize(){
     //store default domain
     d_domain.push_back( RepDomain() );
     TypeNode tn = d_types[i];
+    Trace("rsi") << "Var #" << i << " is type " << tn << "..." << std::endl;
     if( tn.isSort() ){
+      //must ensure uninterpreted type is non-empty.
       if( !d_rep_set->hasType( tn ) ){
-        Node var = NodeManager::currentNM()->mkSkolem( "repSet", tn, "is a variable created by the RepSetIterator" );
+        //FIXME:
+        // terms in rep_set are now constants which mapped to terms through TheoryModel
+        // thus, should introduce a constant and a term.  for now, just a term.
+
+        //Node c = d_qe->getTermDatabase()->getEnumerateTerm( tn, 0 );
+        Node var = d_qe->getModel()->getSomeDomainElement( tn );
         Trace("mkVar") << "RepSetIterator:: Make variable " << var << " : " << tn << std::endl;
         d_rep_set->add( tn, var );
       }
@@ -161,7 +214,7 @@ bool RepSetIterator::initialize(){
       //check if it is bound
       if( d_owner.getKind()==FORALL && d_qe && d_qe->getBoundedIntegers() ){
         if( d_qe->getBoundedIntegers()->isBoundVar( d_owner, d_owner[0][i] ) ){
-          Trace("bound-int-rsi") << "Rep set iterator: variable #" << i << " is bounded integer." << std::endl;
+          Trace("rsi") << "  variable is bounded integer." << std::endl;
           d_enum_type.push_back( ENUM_RANGE );
         }else{
           inc = true;
@@ -172,21 +225,26 @@ bool RepSetIterator::initialize(){
       if( inc ){
         //check if it is otherwise bound
         if( d_bounds[0].find(i)!=d_bounds[0].end() && d_bounds[1].find(i)!=d_bounds[1].end() ){
-          Trace("bound-int-rsi") << "Rep set iterator: variable #" << i << " is bounded." << std::endl;
+          Trace("rsi") << "  variable is bounded." << std::endl;
           d_enum_type.push_back( ENUM_RANGE );
         }else{
+          Trace("rsi") << "  variable cannot be bounded." << std::endl;
           Trace("fmf-incomplete") << "Incomplete because of integer quantification of " << d_owner[0][i] << "." << std::endl;
           d_incomplete = true;
         }
       }
-    //enumerate if the sort is reasonably small, the upper bound of 1000 is chosen arbitrarily for now
-    }else if( tn.getCardinality().isFinite() && !tn.getCardinality().isLargeFinite() &&
-              tn.getCardinality().getFiniteCardinality().toUnsignedInt()<=1000 ){
+    //enumerate if the sort is reasonably small
+    }else if( d_qe->getTermDatabase()->mayComplete( tn ) ){
+      Trace("rsi") << "  do complete, since cardinality is small (" << tn.getCardinality() << ")..." << std::endl;
       d_rep_set->complete( tn );
+      //must have succeeded
+      Assert( d_rep_set->hasType( tn ) );
     }else{
+      Trace("rsi") << "  variable cannot be bounded." << std::endl;
       Trace("fmf-incomplete") << "Incomplete because of quantification of type " << tn << std::endl;
       d_incomplete = true;
     }
+    //if we have yet to determine the type of enumeration
     if( d_enum_type.size()<=i ){
       d_enum_type.push_back( ENUM_DOMAIN_ELEMENTS );
       if( d_rep_set->hasType( tn ) ){
@@ -370,7 +428,9 @@ bool RepSetIterator::isFinished(){
 }
 
 Node RepSetIterator::getTerm( int i ){
-  int index = d_index_order[i];
+  Trace("rsi-debug") << "rsi : get term " << i << ", index order = " << d_index_order[i] << std::endl;
+  //int index = d_index_order[i];
+  int index = i;
   if( d_enum_type[index]==ENUM_DOMAIN_ELEMENTS ){
     TypeNode tn = d_types[index];
     Assert( d_rep_set->d_type_reps.find( tn )!=d_rep_set->d_type_reps.end() );

@@ -28,15 +28,15 @@
 
 #endif /* __WIN32__ */
 
-#include "util/exception.h"
-#include "options/options.h"
-#include "util/statistics.h"
-#include "util/tls.h"
-#include "smt/smt_engine.h"
-
+#include "base/exception.h"
+#include "base/tls.h"
 #include "cvc4autoconfig.h"
-#include "main/main.h"
 #include "main/command_executor.h"
+#include "main/main.h"
+#include "options/base_options.h"
+#include "options/options.h"
+#include "smt/smt_engine.h"
+#include "util/statistics.h"
 
 using CVC4::Exception;
 using namespace std;
@@ -44,7 +44,7 @@ using namespace std;
 namespace CVC4 {
 
 #ifdef CVC4_DEBUG
-  extern CVC4_THREADLOCAL(const char*) s_debugLastException;
+//extern CVC4_THREADLOCAL(const char*) s_debugLastException;
 #endif /* CVC4_DEBUG */
 
 namespace main {
@@ -167,12 +167,14 @@ void cvc4unexpected() {
           "CVC4 threw an \"unexpected\" exception (one that wasn't properly "
           "specified\nin the throws() specifier for the throwing function)."
           "\n\n");
-  if(CVC4::s_debugLastException == NULL) {
+
+  const char* lastContents = LastExceptionBuffer::currentContents();
+
+  if(lastContents == NULL) {
     fprintf(stderr,
             "The exception is unknown (maybe it's not a CVC4::Exception).\n\n");
   } else {
-    fprintf(stderr, "The exception is:\n%s\n\n",
-            static_cast<const char*>(CVC4::s_debugLastException));
+    fprintf(stderr, "The exception is:\n%s\n\n", lastContents);
   }
   if(!segvSpin) {
     if((*pOptions)[options::statistics] && pExecutor != NULL) {
@@ -201,6 +203,10 @@ void cvc4unexpected() {
 void cvc4terminate() {
   set_terminate(default_terminator);
 #ifdef CVC4_DEBUG
+  LastExceptionBuffer* current = LastExceptionBuffer::getCurrent();
+   LastExceptionBuffer::setCurrent(NULL);
+  delete current;
+
   fprintf(stderr, "\n"
           "CVC4 was terminated by the C++ runtime.\n"
           "Perhaps an exception was thrown during stack unwinding.  "
@@ -224,6 +230,10 @@ void cvc4terminate() {
 
 /** Initialize the driver.  Sets signal handlers for SIGINT and SIGSEGV. */
 void cvc4_init() throw(Exception) {
+#ifdef CVC4_DEBUG
+  LastExceptionBuffer::setCurrent(new LastExceptionBuffer());
+#endif
+
 #ifndef __WIN32__
   stack_t ss;
   ss.ss_sp = malloc(SIGSTKSZ);
@@ -249,7 +259,7 @@ void cvc4_init() throw(Exception) {
     }
   }
   cvc4StackSize = limit.rlim_cur;
-  cvc4StackBase = &ss;
+  cvc4StackBase = ss.ss_sp;
 
   struct sigaction act1;
   act1.sa_sigaction = sigint_handler;
@@ -287,6 +297,14 @@ void cvc4_init() throw(Exception) {
 
   set_unexpected(cvc4unexpected);
   default_terminator = set_terminate(cvc4terminate);
+}
+
+void cvc4_shutdown() throw () {
+#ifndef __WIN32__
+  free(cvc4StackBase);
+  cvc4StackBase = NULL;
+  cvc4StackSize = 0;
+#endif /* __WIN32__ */
 }
 
 }/* CVC4::main namespace */

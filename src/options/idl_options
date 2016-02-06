@@ -1,0 +1,12 @@
+#
+# Option specification file for CVC4
+# See src/options/base_options for a description of this file format
+#
+
+module IDL "options/idl_options.h" Idl
+
+option idlRewriteEq --enable-idl-rewrite-equalities/--disable-idl-rewrite-equalities bool :default false :read-write
+ enable rewriting equalities into two inequalities in IDL solver (default is disabled)
+/disable rewriting equalities into two inequalities in IDL solver (default is disabled)
+
+endmodule

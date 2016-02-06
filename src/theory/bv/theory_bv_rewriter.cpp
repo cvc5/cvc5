@@ -15,15 +15,15 @@
  ** \todo document this file
  **/
 
-#include "theory/theory.h"
-#include "theory/bv/options.h"
-#include "theory/bv/theory_bv_rewriter.h"
+#include "options/bv_options.h"
 #include "theory/bv/theory_bv_rewrite_rules.h"
-#include "theory/bv/theory_bv_rewrite_rules_core.h"
-#include "theory/bv/theory_bv_rewrite_rules_operator_elimination.h"
 #include "theory/bv/theory_bv_rewrite_rules_constant_evaluation.h"
-#include "theory/bv/theory_bv_rewrite_rules_simplification.h"
+#include "theory/bv/theory_bv_rewrite_rules_core.h"
 #include "theory/bv/theory_bv_rewrite_rules_normalization.h"
+#include "theory/bv/theory_bv_rewrite_rules_operator_elimination.h"
+#include "theory/bv/theory_bv_rewrite_rules_simplification.h"
+#include "theory/bv/theory_bv_rewriter.h"
+#include "theory/theory.h"
 
 using namespace CVC4;
 using namespace CVC4::theory;
@@ -36,14 +36,14 @@ RewriteFunction TheoryBVRewriter::d_rewriteTable[kind::LAST_KIND];
 void TheoryBVRewriter::init() {
    // s_allRules = new AllRewriteRules;
    // d_rewriteTimer = new TimerStat("theory::bv::rewriteTimer");
-   // StatisticsRegistry::registerStat(d_rewriteTimer); 
+   // smtStatisticsRegistry()->registerStat(d_rewriteTimer); 
    initializeRewrites();
 
 }
 
 void TheoryBVRewriter::shutdown() {
    // delete s_allRules;
-   // StatisticsRegistry::unregisterStat(d_rewriteTimer); 
+   // smtStatisticsRegistry()->unregisterStat(d_rewriteTimer); 
    //delete d_rewriteTimer;
 }
 
@@ -553,6 +553,22 @@ RewriteResponse TheoryBVRewriter::RewriteRotateLeft(TNode node, bool prerewrite)
   return RewriteResponse(REWRITE_AGAIN_FULL, resultNode); 
 }
 
+RewriteResponse TheoryBVRewriter::RewriteRedor(TNode node, bool prerewrite){
+  Node resultNode = LinearRewriteStrategy
+    < RewriteRule<RedorEliminate>
+    >::apply(node);
+  
+  return RewriteResponse(REWRITE_AGAIN_FULL, resultNode); 
+}
+
+RewriteResponse TheoryBVRewriter::RewriteRedand(TNode node, bool prerewrite){
+  Node resultNode = LinearRewriteStrategy
+    < RewriteRule<RedandEliminate>
+    >::apply(node);
+  
+  return RewriteResponse(REWRITE_AGAIN_FULL, resultNode); 
+}
+
 RewriteResponse TheoryBVRewriter::RewriteBVToNat(TNode node, bool prerewrite) {
   Node resultNode = LinearRewriteStrategy
     < RewriteRule<BVToNatEliminate>
@@ -651,6 +667,8 @@ void TheoryBVRewriter::initializeRewrites() {
   d_rewriteTable [ kind::BITVECTOR_SIGN_EXTEND ] = RewriteSignExtend;
   d_rewriteTable [ kind::BITVECTOR_ROTATE_RIGHT ] = RewriteRotateRight;
   d_rewriteTable [ kind::BITVECTOR_ROTATE_LEFT ] = RewriteRotateLeft;
+  d_rewriteTable [ kind::BITVECTOR_REDOR ] = RewriteRedor;
+  d_rewriteTable [ kind::BITVECTOR_REDAND ] = RewriteRedand;
 
   d_rewriteTable [ kind::BITVECTOR_TO_NAT ] = RewriteBVToNat;
   d_rewriteTable [ kind::INT_TO_BITVECTOR ] = RewriteIntToBV;
@@ -664,6 +682,3 @@ Node TheoryBVRewriter::eliminateBVSDiv(TNode node) {
     >::apply(node);
   return result; 
 }
-
-
-

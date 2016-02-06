@@ -17,20 +17,19 @@
 #ifndef __CVC4__QUANT_SYMMETRY_BREAKING_H
 #define __CVC4__QUANT_SYMMETRY_BREAKING_H
 
-#include "theory/theory.h"
-
 #include <iostream>
+#include <map>
 #include <string>
 #include <vector>
-#include <map>
-#include "expr/node.h"
-#include "expr/type_node.h"
 
-#include "util/sort_inference.h"
+#include "context/cdchunk_list.h"
+#include "context/cdhashmap.h"
 #include "context/context.h"
 #include "context/context_mm.h"
-#include "context/cdhashmap.h"
-#include "context/cdchunk_list.h"
+#include "expr/node.h"
+#include "expr/type_node.h"
+#include "theory/sort_inference.h"
+#include "theory/theory.h"
 
 namespace CVC4 {
 namespace theory {

@@ -15,14 +15,14 @@
 #ifndef __CVC4__MAIN__COMMAND_EXECUTOR_H
 #define __CVC4__MAIN__COMMAND_EXECUTOR_H
 
-#include "expr/expr_manager.h"
-#include "smt/smt_engine.h"
-#include "util/statistics_registry.h"
-#include "options/options.h"
-#include "expr/command.h"
-
+#include <iosfwd>
 #include <string>
-#include <iostream>
+
+#include "expr/expr_manager.h"
+#include "options/options.h"
+#include "smt/smt_engine.h"
+#include "smt_util/command.h"
+#include "util/statistics_registry.h"
 
 namespace CVC4 {
 namespace main {
@@ -65,6 +65,8 @@ public:
     d_stats.flushInformation(out);
   }
 
+  SmtGlobals* globals() { return d_smtEngine->globals(); }
+
 protected:
   /** Executes treating cmd as a singleton */
   virtual bool doCommandSingleton(CVC4::Command* cmd);
@@ -74,9 +76,7 @@ private:
 
 };/* class CommandExecutor */
 
-bool smtEngineInvoke(SmtEngine* smt,
-                     Command* cmd,
-                     std::ostream *out);
+bool smtEngineInvoke(SmtEngine* smt, Command* cmd, std::ostream *out);
 
 }/* CVC4::main namespace */
 }/* CVC4 namespace */

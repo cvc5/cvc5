@@ -13,13 +13,12 @@
  **
  ** AttributeManager implementation.
  **/
+#include <utility>
 
+#include "base/output.h"
 #include "expr/attribute.h"
 #include "expr/node_value.h"
-#include "util/output.h"
 #include "smt/smt_engine.h"
-
-#include <utility>
 
 using namespace std;
 

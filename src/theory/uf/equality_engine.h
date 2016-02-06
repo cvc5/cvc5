@@ -19,21 +19,20 @@
 
 #pragma once
 
-#include <queue>
 #include <deque>
-#include <vector>
 #include <ext/hash_map>
+#include <queue>
+#include <vector>
 
-#include "expr/node.h"
-#include "expr/kind_map.h"
-#include "context/cdo.h"
+#include "base/output.h"
 #include "context/cdhashmap.h"
-#include "util/output.h"
-#include "util/statistics_registry.h"
+#include "context/cdo.h"
+#include "expr/kind_map.h"
+#include "expr/node.h"
 #include "theory/rewriter.h"
 #include "theory/theory.h"
-
 #include "theory/uf/equality_engine_types.h"
+#include "util/statistics_registry.h"
 
 namespace CVC4 {
 namespace theory {
@@ -194,24 +193,9 @@ public:
     /** Number of constant terms managed by the system */
     IntStat constantTermsCount;
 
-    Statistics(std::string name)
-    : mergesCount(name + "::mergesCount", 0),
-      termsCount(name + "::termsCount", 0),
-      functionTermsCount(name + "::functionTermsCount", 0),
-      constantTermsCount(name + "::constantTermsCount", 0)
-    {
-      StatisticsRegistry::registerStatMultiple(&mergesCount);
-      StatisticsRegistry::registerStatMultiple(&termsCount);
-      StatisticsRegistry::registerStatMultiple(&functionTermsCount);
-      StatisticsRegistry::registerStatMultiple(&constantTermsCount);
-    }
+    Statistics(std::string name);
 
-    ~Statistics() {
-      StatisticsRegistry::unregisterStat(&mergesCount);
-      StatisticsRegistry::unregisterStat(&termsCount);
-      StatisticsRegistry::unregisterStat(&functionTermsCount);
-      StatisticsRegistry::unregisterStat(&constantTermsCount);
-    }
+    ~Statistics();
   };/* struct EqualityEngine::statistics */
 
 private:
@@ -896,7 +880,7 @@ public:
   Node d_node;
   std::vector< EqProof * > d_children;
   void debug_print( const char * c, unsigned tb = 0 ) const;
-};
+};/* class EqProof */
 
 } // Namespace eq
 } // Namespace theory

@@ -239,7 +239,7 @@ template <> $2 const & Expr::getConst< $2 >() const;
 #line $lineno \"$kf\"
 template <> $2 const & Expr::getConst() const {
 #line $lineno \"$kf\"
-  CheckArgument(getKind() == ::CVC4::kind::$1, *this, \"Improper kind for getConst<$2>()\");
+  PrettyCheckArgument(getKind() == ::CVC4::kind::$1, *this, \"Improper kind for getConst<$2>()\");
 #line $lineno \"$kf\"
   return d_node->getConst< $2 >();
 }

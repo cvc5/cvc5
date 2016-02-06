@@ -17,8 +17,10 @@
 
 
 #include "theory/unconstrained_simplifier.h"
+
 #include "theory/rewriter.h"
 #include "theory/logic_info.h"
+#include "smt/smt_statistics_registry.h"
 
 using namespace std;
 using namespace CVC4;
@@ -30,13 +32,13 @@ UnconstrainedSimplifier::UnconstrainedSimplifier(context::Context* context,
   : d_numUnconstrainedElim("preprocessor::number of unconstrained elims", 0),
     d_context(context), d_substitutions(context), d_logicInfo(logicInfo)
 {
-  StatisticsRegistry::registerStat(&d_numUnconstrainedElim);
+  smtStatisticsRegistry()->registerStat(&d_numUnconstrainedElim);
 }
 
 
 UnconstrainedSimplifier::~UnconstrainedSimplifier()
 {
-  StatisticsRegistry::unregisterStat(&d_numUnconstrainedElim);    
+  smtStatisticsRegistry()->unregisterStat(&d_numUnconstrainedElim);
 }
 
 
@@ -57,9 +59,9 @@ void UnconstrainedSimplifier::visitAll(TNode assertion)
   while (!toVisit.empty())
   {
     // The current node we are processing
-    unc_preprocess_stack_element& stackHead = toVisit.back();
+    TNode current = toVisit.back().node;
+    TNode parent = toVisit.back().parent;
     toVisit.pop_back();
-    TNode current = stackHead.node;
 
     TNodeCountMap::iterator find = d_visited.find(current);
     if (find != d_visited.end()) {
@@ -74,7 +76,7 @@ void UnconstrainedSimplifier::visitAll(TNode assertion)
     }
 
     d_visited[current] = 1;
-    d_visitedOnce[current] = stackHead.parent;
+    d_visitedOnce[current] = parent;
 
     if (current.getNumChildren() == 0) {
       if (current.isVar()) {

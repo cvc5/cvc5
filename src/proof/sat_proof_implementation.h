@@ -1,5 +1,5 @@
 /*********************                                                        */
-/*! \file sat_proof.h
+/*! \file sat_proof_implementation.h
  ** \verbatim
  ** Original author: Liana Hadarean
  ** Major contributors: Morgan Deters
@@ -26,6 +26,7 @@
 #include "prop/minisat/core/Solver.h"
 #include "prop/bvminisat/core/Solver.h"
 #include "prop/sat_solver_types.h"
+#include "smt/smt_statistics_registry.h"
 
 namespace CVC4 {
 
@@ -228,6 +229,8 @@ TSatProof<Solver>::TSatProof(Solver* solver, const std::string& name, bool check
 
 template <class Solver> 
 TSatProof<Solver>::~TSatProof() {
+  delete d_proxy;
+  
   // FIXME: double free if deleted clause also appears in d_seenLemmas?
   IdToSatClause::iterator it = d_deletedTheoryLemmas.begin();
   IdToSatClause::iterator end = d_deletedTheoryLemmas.end();
@@ -259,12 +262,6 @@ void TSatProof<Solver>::setCnfProof(CnfProof* cnf_proof) {
   Assert (d_cnfProof == NULL);
   d_cnfProof = cnf_proof;
 }
-
-// template <class Solver> 
-// CnfProof* TSatProof<Solver>::getCnfProof() {
-//   Assert (d_cnfProof != NULL);
-//   return d_cnfProof;
-// }
 
 /**
  * Returns true if the resolution chain corresponding to id
@@ -918,27 +915,6 @@ prop::SatClause* TSatProof<Solver>::buildClause(ClauseId id) {
   return clause;
 }
 
-// template<class Solver>
-// void TSatProof<Solver>::addToCnfProof(ClauseId id) {
-//   if (isUnit(id)) {
-//     typename Solver::TLit lit = getUnit(id);
-//     prop::SatLiteral sat_lit = toSatLiteral<Solver>(lit);
-//     prop::SatClause* clause = new prop::SatClause();
-//     clause->push_back(sat_lit);
-//     d_cnfProof->addInputClause(id, clause);
-//     return;
-//   }
-
-//   Assert (!isDeleted(id)); 
-
-//   typename Solver::TCRef ref = getClauseRef(id);
-//   const typename Solver::TClause& minisat_cl = getClause(ref);
-//   prop::SatClause* clause = new prop::SatClause();
-//   toSatClause<Solver>(minisat_cl, *clause);
-//   d_cnfProof->addInputClause(id, clause);
-// }
-
-
 template <class Solver> 
 void TSatProof<Solver>::collectClauses(ClauseId id) {
   if (d_seenInputs.find(id) != d_seenInputs.end() ||
@@ -999,26 +975,26 @@ TSatProof<Solver>::Statistics::Statistics(const std::string& prefix)
   , d_usedResChainLengths("satproof::"+prefix+"::UsedResChainLengthsHist")
   , d_clauseGlue("satproof::"+prefix+"::ClauseGlueHist")
   , d_usedClauseGlue("satproof::"+prefix+"::UsedClauseGlueHist") {
-  StatisticsRegistry::registerStat(&d_numLearnedClauses);
-  StatisticsRegistry::registerStat(&d_numLearnedInProof);
-  StatisticsRegistry::registerStat(&d_numLemmasInProof);
-  StatisticsRegistry::registerStat(&d_avgChainLength);
-  StatisticsRegistry::registerStat(&d_resChainLengths);
-  StatisticsRegistry::registerStat(&d_usedResChainLengths);
-  StatisticsRegistry::registerStat(&d_clauseGlue);
-  StatisticsRegistry::registerStat(&d_usedClauseGlue);
+  smtStatisticsRegistry()->registerStat(&d_numLearnedClauses);
+  smtStatisticsRegistry()->registerStat(&d_numLearnedInProof);
+  smtStatisticsRegistry()->registerStat(&d_numLemmasInProof);
+  smtStatisticsRegistry()->registerStat(&d_avgChainLength);
+  smtStatisticsRegistry()->registerStat(&d_resChainLengths);
+  smtStatisticsRegistry()->registerStat(&d_usedResChainLengths);
+  smtStatisticsRegistry()->registerStat(&d_clauseGlue);
+  smtStatisticsRegistry()->registerStat(&d_usedClauseGlue);
 }
 
 template <class Solver> 
 TSatProof<Solver>::Statistics::~Statistics() {
-  StatisticsRegistry::unregisterStat(&d_numLearnedClauses);
-  StatisticsRegistry::unregisterStat(&d_numLearnedInProof);
-  StatisticsRegistry::unregisterStat(&d_numLemmasInProof);
-  StatisticsRegistry::unregisterStat(&d_avgChainLength);
-  StatisticsRegistry::unregisterStat(&d_resChainLengths);
-  StatisticsRegistry::unregisterStat(&d_usedResChainLengths);
-  StatisticsRegistry::unregisterStat(&d_clauseGlue);
-  StatisticsRegistry::unregisterStat(&d_usedClauseGlue);
+  smtStatisticsRegistry()->unregisterStat(&d_numLearnedClauses);
+  smtStatisticsRegistry()->unregisterStat(&d_numLearnedInProof);
+  smtStatisticsRegistry()->unregisterStat(&d_numLemmasInProof);
+  smtStatisticsRegistry()->unregisterStat(&d_avgChainLength);
+  smtStatisticsRegistry()->unregisterStat(&d_resChainLengths);
+  smtStatisticsRegistry()->unregisterStat(&d_usedResChainLengths);
+  smtStatisticsRegistry()->unregisterStat(&d_clauseGlue);
+  smtStatisticsRegistry()->unregisterStat(&d_usedClauseGlue);
 }
 
 
@@ -1036,10 +1012,6 @@ void LFSCSatProof<Solver>::printResolution(ClauseId id, std::ostream& out, std::
   }
 
   ClauseId start_id = res->getStart();
-  // WHY DID WE NEED THIS?
-  // if(isInputClause(start_id)) {
-  //   d_seenInput.insert(start_id);
-  // }
   out << this->clauseName(start_id) << " ";
 
   for(unsigned i = 0; i < steps.size(); i++) {

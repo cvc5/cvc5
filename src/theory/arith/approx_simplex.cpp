@@ -14,18 +14,20 @@
  ** [[ Add lengthier description here ]]
  ** \todo document this file
  **/
-
-#include "cvc4autoconfig.h"
-
 #include "theory/arith/approx_simplex.h"
-#include "theory/arith/normal_form.h"
+
+#include <cfloat>
+#include <cmath>
+#include <map>
+#include <math.h>
+
+#include "base/output.h"
+#include "cvc4autoconfig.h"
+#include "smt/smt_statistics_registry.h"
 #include "theory/arith/constraint.h"
 #include "theory/arith/cut_log.h"
 #include "theory/arith/matrix.h"
-#include <math.h>
-#include <cmath>
-#include <cfloat>
-#include <map>
+#include "theory/arith/normal_form.h"
 
 using namespace std;
 
@@ -168,67 +170,67 @@ ApproximateStatistics::ApproximateStatistics()
   ,  d_gaussianElimConstruct("z::approx::gaussianElimConstruct::calls",0)
   ,  d_averageGuesses("z::approx::averageGuesses")
 {
-  // StatisticsRegistry::registerStat(&d_relaxCalls);
-  // StatisticsRegistry::registerStat(&d_relaxUnknowns);
-  // StatisticsRegistry::registerStat(&d_relaxFeasible);
-  // StatisticsRegistry::registerStat(&d_relaxInfeasible);
-  // StatisticsRegistry::registerStat(&d_relaxPivotsExhausted);
+  // smtStatisticsRegistry()->registerStat(&d_relaxCalls);
+  // smtStatisticsRegistry()->registerStat(&d_relaxUnknowns);
+  // smtStatisticsRegistry()->registerStat(&d_relaxFeasible);
+  // smtStatisticsRegistry()->registerStat(&d_relaxInfeasible);
+  // smtStatisticsRegistry()->registerStat(&d_relaxPivotsExhausted);
 
-  // StatisticsRegistry::registerStat(&d_mipCalls);
-  // StatisticsRegistry::registerStat(&d_mipUnknowns);
-  // StatisticsRegistry::registerStat(&d_mipBingo);
-  // StatisticsRegistry::registerStat(&d_mipClosed);
-  // StatisticsRegistry::registerStat(&d_mipBranchesExhausted);
-  // StatisticsRegistry::registerStat(&d_mipPivotsExhausted);
-  // StatisticsRegistry::registerStat(&d_mipExecExhausted);
+  // smtStatisticsRegistry()->registerStat(&d_mipCalls);
+  // smtStatisticsRegistry()->registerStat(&d_mipUnknowns);
+  // smtStatisticsRegistry()->registerStat(&d_mipBingo);
+  // smtStatisticsRegistry()->registerStat(&d_mipClosed);
+  // smtStatisticsRegistry()->registerStat(&d_mipBranchesExhausted);
+  // smtStatisticsRegistry()->registerStat(&d_mipPivotsExhausted);
+  // smtStatisticsRegistry()->registerStat(&d_mipExecExhausted);
 
 
-  // StatisticsRegistry::registerStat(&d_gmiGen);
-  // StatisticsRegistry::registerStat(&d_gmiReplay);
-  // StatisticsRegistry::registerStat(&d_mipGen);
-  // StatisticsRegistry::registerStat(&d_mipReplay);
+  // smtStatisticsRegistry()->registerStat(&d_gmiGen);
+  // smtStatisticsRegistry()->registerStat(&d_gmiReplay);
+  // smtStatisticsRegistry()->registerStat(&d_mipGen);
+  // smtStatisticsRegistry()->registerStat(&d_mipReplay);
 
-  StatisticsRegistry::registerStat(&d_branchMaxDepth);
-  //StatisticsRegistry::registerStat(&d_branchTotal);
-  //StatisticsRegistry::registerStat(&d_branchCuts);
-  StatisticsRegistry::registerStat(&d_branchesMaxOnAVar);
+  smtStatisticsRegistry()->registerStat(&d_branchMaxDepth);
+  //smtStatisticsRegistry()->registerStat(&d_branchTotal);
+  //smtStatisticsRegistry()->registerStat(&d_branchCuts);
+  smtStatisticsRegistry()->registerStat(&d_branchesMaxOnAVar);
 
-  StatisticsRegistry::registerStat(&d_gaussianElimConstructTime);
-  StatisticsRegistry::registerStat(&d_gaussianElimConstruct);
+  smtStatisticsRegistry()->registerStat(&d_gaussianElimConstructTime);
+  smtStatisticsRegistry()->registerStat(&d_gaussianElimConstruct);
 
-  StatisticsRegistry::registerStat(&d_averageGuesses);
+  smtStatisticsRegistry()->registerStat(&d_averageGuesses);
 }
 
 ApproximateStatistics::~ApproximateStatistics(){
-  // StatisticsRegistry::unregisterStat(&d_relaxCalls);
-  // StatisticsRegistry::unregisterStat(&d_relaxUnknowns);
-  // StatisticsRegistry::unregisterStat(&d_relaxFeasible);
-  // StatisticsRegistry::unregisterStat(&d_relaxInfeasible);
-  // StatisticsRegistry::unregisterStat(&d_relaxPivotsExhausted);
+  // smtStatisticsRegistry()->unregisterStat(&d_relaxCalls);
+  // smtStatisticsRegistry()->unregisterStat(&d_relaxUnknowns);
+  // smtStatisticsRegistry()->unregisterStat(&d_relaxFeasible);
+  // smtStatisticsRegistry()->unregisterStat(&d_relaxInfeasible);
+  // smtStatisticsRegistry()->unregisterStat(&d_relaxPivotsExhausted);
 
-  // StatisticsRegistry::unregisterStat(&d_mipCalls);
-  // StatisticsRegistry::unregisterStat(&d_mipUnknowns);
-  // StatisticsRegistry::unregisterStat(&d_mipBingo);
-  // StatisticsRegistry::unregisterStat(&d_mipClosed);
-  // StatisticsRegistry::unregisterStat(&d_mipBranchesExhausted);
-  // StatisticsRegistry::unregisterStat(&d_mipPivotsExhausted);
-  // StatisticsRegistry::unregisterStat(&d_mipExecExhausted);
+  // smtStatisticsRegistry()->unregisterStat(&d_mipCalls);
+  // smtStatisticsRegistry()->unregisterStat(&d_mipUnknowns);
+  // smtStatisticsRegistry()->unregisterStat(&d_mipBingo);
+  // smtStatisticsRegistry()->unregisterStat(&d_mipClosed);
+  // smtStatisticsRegistry()->unregisterStat(&d_mipBranchesExhausted);
+  // smtStatisticsRegistry()->unregisterStat(&d_mipPivotsExhausted);
+  // smtStatisticsRegistry()->unregisterStat(&d_mipExecExhausted);
 
 
-  // StatisticsRegistry::unregisterStat(&d_gmiGen);
-  // StatisticsRegistry::unregisterStat(&d_gmiReplay);
-  // StatisticsRegistry::unregisterStat(&d_mipGen);
-  // StatisticsRegistry::unregisterStat(&d_mipReplay);
+  // smtStatisticsRegistry()->unregisterStat(&d_gmiGen);
+  // smtStatisticsRegistry()->unregisterStat(&d_gmiReplay);
+  // smtStatisticsRegistry()->unregisterStat(&d_mipGen);
+  // smtStatisticsRegistry()->unregisterStat(&d_mipReplay);
 
-  StatisticsRegistry::unregisterStat(&d_branchMaxDepth);
-  //StatisticsRegistry::unregisterStat(&d_branchTotal);
-  //StatisticsRegistry::unregisterStat(&d_branchCuts);
-  StatisticsRegistry::unregisterStat(&d_branchesMaxOnAVar);
+  smtStatisticsRegistry()->unregisterStat(&d_branchMaxDepth);
+  //smtStatisticsRegistry()->unregisterStat(&d_branchTotal);
+  //smtStatisticsRegistry()->unregisterStat(&d_branchCuts);
+  smtStatisticsRegistry()->unregisterStat(&d_branchesMaxOnAVar);
 
-  StatisticsRegistry::unregisterStat(&d_gaussianElimConstructTime);
-  StatisticsRegistry::unregisterStat(&d_gaussianElimConstruct);
+  smtStatisticsRegistry()->unregisterStat(&d_gaussianElimConstructTime);
+  smtStatisticsRegistry()->unregisterStat(&d_gaussianElimConstruct);
 
-  StatisticsRegistry::unregisterStat(&d_averageGuesses);
+  smtStatisticsRegistry()->unregisterStat(&d_averageGuesses);
 }
 
 Integer ApproximateSimplex::s_defaultMaxDenom(1<<26);
@@ -2281,6 +2283,7 @@ bool ApproxGLPK::attemptMir(int nid, const MirInfo& mir){
   //return makeCutNodes(nid, mir);
 }
 
+/** Returns true on failure. */
 bool ApproxGLPK::loadVB(int nid, int M, int j, int ri, bool wantUb, VirtualBound& tmp){
   if(ri <= 0) { return true; }
 
@@ -2290,26 +2293,61 @@ bool ApproxGLPK::loadVB(int nid, int M, int j, int ri, bool wantUb, VirtualBound
 
   ArithVar rowVar = _getArithVar(nid, M, ri);
   ArithVar contVar = _getArithVar(nid, M, j);
-  if(rowVar == ARITHVAR_SENTINEL){ return true; }
-  if(contVar == ARITHVAR_SENTINEL){ return true; }
+  if(rowVar == ARITHVAR_SENTINEL){
+    Debug("glpk::loadVB") << "loadVB() " << instance
+                          << " rowVar is ARITHVAR_SENTINEL " << rowVar << endl;
+    return true;
+  }
+  if(contVar == ARITHVAR_SENTINEL){
+    Debug("glpk::loadVB") << "loadVB() " << instance
+                          << " contVar is ARITHVAR_SENTINEL " << contVar << endl;        
+    return true; }
 
-  if(!d_vars.isAuxiliary(rowVar)){ return true; }
+  if(!d_vars.isAuxiliary(rowVar)){
+    Debug("glpk::loadVB") << "loadVB() " << instance
+                          << " rowVar is not auxilliary " << rowVar << endl;    
+    return true;
+  }
   // is integer is correct here
-  if(d_vars.isInteger(contVar)){ return true; }
+  if(d_vars.isInteger(contVar)){
+    Debug("glpk::loadVB") << "loadVB() " << instance
+                          << " contVar is integer " << contVar << endl;    
+    return true;
+  }
 
   ConstraintP lb = d_vars.getLowerBoundConstraint(rowVar);
   ConstraintP ub = d_vars.getUpperBoundConstraint(rowVar);
 
-  if(lb != NullConstraint && ub != NullConstraint){ return true; }
+  if(lb != NullConstraint && ub != NullConstraint){
+    Debug("glpk::loadVB") << "loadVB() " << instance
+                          << " lb and ub are both NULL " << lb << " " << ub << endl;    
+    return true;
+  }
 
   ConstraintP rcon = lb == NullConstraint ? ub : lb;
-  if(rcon == NullConstraint) { return true; }
+  if(rcon == NullConstraint) {
+    Debug("glpk::loadVB") << "loadVB() " << instance
+                          << " rcon is NULL " << rcon << endl;    
+    return true;
+  }
 
-  if(!rcon->getValue().isZero()){ return true; }
+  if(!rcon->getValue().isZero()){
+    Debug("glpk::loadVB") << "loadVB() " << instance
+                          << " rcon value is not 0 " << rcon->getValue() << endl;
+    return true;
+  }
 
-  if(!d_vars.hasNode(rowVar)){ return true; }
+  if(!d_vars.hasNode(rowVar)){
+    Debug("glpk::loadVB") << "loadVB() " << instance
+                          << " does not have node " << rowVar << endl;
+    return true;
+  }
+
   Polynomial p = Polynomial::parsePolynomial(d_vars.asNode(rowVar));
-  if(p.size() != 2) { return false; }
+  if(p.size() != 2) {  
+    Debug("glpk::loadVB") << "loadVB() " << instance << " polynomial is not binary: " << p.getNode() << endl;
+    return true;
+  }
 
   Monomial first = p.getHead(), second = p.getTail().getHead();
   Rational c1 = first.getConstant().getValue();
@@ -2317,8 +2355,16 @@ bool ApproxGLPK::loadVB(int nid, int M, int j, int ri, bool wantUb, VirtualBound
   Node nx1 = first.getVarList().getNode();
   Node nx2 = second.getVarList().getNode();
 
-  if(!d_vars.hasArithVar(nx1)) { return true; }
-  if(!d_vars.hasArithVar(nx2)) { return true; }
+  if(!d_vars.hasArithVar(nx1)) {
+    Debug("glpk::loadVB") << "loadVB() " << instance
+                          << " does not have a variable for nx1: " << nx1 << endl;
+    return true;
+  }
+  if(!d_vars.hasArithVar(nx2)) {
+    Debug("glpk::loadVB") << "loadVB() " << instance
+                          << " does not have a variable for nx2 " << nx2 << endl;
+    return true;
+  }
   ArithVar x1 = d_vars.asArithVar(nx1), x2 = d_vars.asArithVar(nx2);
 
   Assert(x1 != x2);
@@ -2344,7 +2390,11 @@ bool ApproxGLPK::loadVB(int nid, int M, int j, int ri, bool wantUb, VirtualBound
     << " iv " << iv
     << " c2 " << ic << endl;
 
-  if(!d_vars.isIntegerInput(iv)){ return true; }
+  if(!d_vars.isIntegerInput(iv)){
+    Debug("glpk::loadVB") << "loadVB() " << instance
+                          << " iv is not an integer input variable " << iv << endl;    
+    return true;
+  }
   // cc * cv + ic * iv <= 0 or
   // cc * cv + ic * iv <= 0
 
@@ -2366,11 +2416,17 @@ bool ApproxGLPK::loadVB(int nid, int M, int j, int ri, bool wantUb, VirtualBound
   Rational d = -ic/cc;
   Debug("glpk::loadVB") << d << " " << cc.sgn() << endl;
   bool nowUb = cc.sgn() < 0;
-  if(wantUb != nowUb) { return true; }
+  if(wantUb != nowUb) {
+    Debug("glpk::loadVB") << "loadVB() " << instance
+                          << " wantUb is not nowUb " << wantUb << " " << nowUb << endl;    
+    
+    return true;
+  }
 
   Kind rel = wantUb ? kind::LEQ : kind::GEQ;
 
   tmp = VirtualBound(contVar, rel, d, iv, rcon);
+    Debug("glpk::loadVB") << "loadVB() " << instance << " was successful" << endl;    
   return false;
 }
 

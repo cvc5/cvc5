@@ -103,13 +103,6 @@ public:
 
   };/* class TheoryUF::NotifyClass */
 
-  /** A callback class for ppRewrite().  See registerPpRewrite(), below. */
-  class PpRewrite {
-  public:
-    virtual Node ppRewrite(TNode node) = 0;
-    virtual ~PpRewrite() {}
-  };/* class TheoryUF::PpRewrite */
-
 private:
 
   /** The notify class */
@@ -171,16 +164,12 @@ private:
   /** called when two equivalence classes are made disequal */
   void eqNotifyDisequal(TNode t1, TNode t2, TNode reason);
 
-  /** a registry type for keeping Node-specific callbacks for ppRewrite() */
-  typedef std::hash_map<Node, PpRewrite*, NodeHashFunction> RegisterPpRewrites;
-
-  /** a collection of callbacks to issue while doing a ppRewrite() */
-  RegisterPpRewrites d_registeredPpRewrites;
-
 public:
 
   /** Constructs a new instance of TheoryUF w.r.t. the provided context.*/
-  TheoryUF(context::Context* c, context::UserContext* u, OutputChannel& out, Valuation valuation, const LogicInfo& logicInfo);
+  TheoryUF(context::Context* c, context::UserContext* u, OutputChannel& out,
+           Valuation valuation, const LogicInfo& logicInfo,
+           SmtGlobals* globals, std::string name = "");
 
   ~TheoryUF();
 
@@ -214,16 +203,6 @@ public:
 
   StrongSolverTheoryUF* getStrongSolver() {
     return d_thss;
-  }
-
-  Node ppRewrite(TNode node);
-
-  /**
-   * Register a ppRewrite() callback on "op."  TheoryUF owns
-   * the callback, and will delete it when it is destructed.
-   */
-  void registerPpRewrite(TNode op, PpRewrite* callback) {
-    d_registeredPpRewrites.insert(std::make_pair(op, callback));
   }
 };/* class TheoryUF */
 

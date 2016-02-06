@@ -20,11 +20,11 @@
 #ifndef __CVC4__CONTEXT__CDVECTOR_H
 #define __CVC4__CONTEXT__CDVECTOR_H
 
-#include "context/context.h"
-#include "context/cdlist.h"
-#include "util/cvc4_assert.h"
 #include <vector>
 
+#include "base/cvc4_assert.h"
+#include "context/context.h"
+#include "context/cdlist.h"
 
 namespace CVC4 {
 namespace context {

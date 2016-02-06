@@ -17,7 +17,8 @@ public:
                context::UserContext* u,
                OutputChannel& out,
                Valuation valuation,
-               const LogicInfo& logicInfo);
+               const LogicInfo& logicInfo,
+               SmtGlobals* globals);
 
   void check(Effort);
 

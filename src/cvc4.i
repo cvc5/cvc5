@@ -40,20 +40,25 @@ namespace std {
 namespace CVC4 {}
 using namespace CVC4;
 
-#include <iostream>
-#include <vector>
+#include <cassert>
+#include <ext/hash_map>
+#include <iosfwd>
 #include <set>
 #include <string>
-#include <ext/hash_map>
 #include <typeinfo>
-#include <cassert>
+#include <vector>
 
-#include "util/sexpr.h"
-#include "util/exception.h"
-#include "expr/type.h"
+#include "base/exception.h"
+#include "base/modal_exception.h"
+#include "expr/datatype.h"
 #include "expr/expr.h"
-#include "util/datatype.h"
-#include "expr/command.h"
+#include "expr/type.h"
+#include "options/option_exception.h"
+#include "smt_util/command.h"
+#include "util/bitvector.h"
+#include "util/integer.h"
+#include "util/sexpr.h"
+#include "util/unsafe_interrupt_exception.h"
 
 #ifdef SWIGJAVA
 #include "bindings/java_stream_adapters.h"
@@ -143,17 +148,21 @@ std::set<JavaInputStreamAdapter*> CVC4::JavaInputStreamAdapter::s_adapters;
   assert(status == 0);
 %}
 
-%typemap(throws) ModalException = Exception;
-%typemap(throws) LogicException = Exception;
-%typemap(throws) OptionException = Exception;
-%typemap(throws) IllegalArgumentException = Exception;
-%typemap(throws) AssertionException = Exception;
+%typemap(throws) CVC4::ModalException = CVC4::Exception;
+%typemap(throws) CVC4::LogicException = CVC4::Exception;
+%typemap(throws) CVC4::OptionException = CVC4::Exception;
+%typemap(throws) CVC4::IllegalArgumentException = CVC4::Exception;
+%typemap(throws) CVC4::AssertionException = CVC4::Exception;
 
 %typemap(throws) CVC4::TypeCheckingException = CVC4::Exception;
 %typemap(throws) CVC4::ScopeException = CVC4::Exception;
 %typemap(throws) CVC4::IllegalArgumentException = CVC4::Exception;
+%typemap(throws) IllegalArgumentException = Exception;
 %typemap(throws) CVC4::AssertionException = CVC4::Exception;
+
+// TIM: Really unclear why both of these are required
 %typemap(throws) CVC4::UnsafeInterruptException = CVC4::Exception;
+%typemap(throws) UnsafeInterruptException = CVC4::Exception;
 %typemap(throws) CVC4::parser::InputStreamException = CVC4::Exception;
 %typemap(throws) CVC4::parser::ParserException = CVC4::Exception;
 
@@ -293,53 +302,63 @@ std::set<JavaInputStreamAdapter*> CVC4::JavaInputStreamAdapter::s_adapters;
 
 #endif /* SWIGJAVA */
 
-%include "util/exception.i"
-%include "util/unsafe_interrupt_exception.i"
+// TIM:
+// At the moment, the header includes seem to need to follow a special order.
+// I don't know why. I am following the build order 
+%include "base/exception.i"
+%include "base/modal_exception.i"
+
+%include "options/language.i"
+
+// Tim: "util/integer.i" must come before util/{rational.i,bitvector.i}.
 %include "util/integer.i"
 %include "util/rational.i"
-//%include "util/floatingpoint.i"
-%include "util/language.i"
-%include "util/cardinality.i"
-%include "util/bool.i"
-%include "util/sexpr.i"
-%include "options/options.i"
-%include "util/statistics.i"
-%include "util/result.i"
-%include "util/configuration.i"
 %include "util/bitvector.i"
-%include "util/subrange_bound.i"
-%include "util/array.i"
-%include "util/array_store_all.i"
-%include "util/predicate.i"
+
+// Tim: The remainder of util/.
+%include "util/bool.i"
+%include "util/cardinality.i"
+%include "util/configuration.i"
 %include "util/hash.i"
-
-%include "expr/type.i"
-%include "util/ascription_type.i"
-%include "util/emptyset.i"
-%include "util/datatype.i"
-%include "util/tuple.i"
-%include "util/record.i"
-%include "util/regexp.i"
-%include "util/uninterpreted_constant.i"
 %include "util/proof.i"
+%include "util/regexp.i"
 %include "util/resource_manager.i"
-%include "util/unsat_core.i"
+%include "util/result.i"
+%include "util/sexpr.i"
+%include "util/statistics.i"
+%include "util/subrange_bound.i"
+%include "util/tuple.i"
+%include "util/unsafe_interrupt_exception.i"
 
+%include "expr/uninterpreted_constant.i"
+%include "expr/array_store_all.i"
+%include "expr/ascription_type.i"
+%include "expr/emptyset.i"
+%include "expr/datatype.i"
+%include "expr/predicate.i"
+%include "expr/record.i"
+%include "proof/unsat_core.i"
+
+// TIM:
+// Have these before the rest of expr/.
+// Again, no clue why.
+%include "expr/array.i"
 %include "expr/kind.i"
+%include "expr/type.i"
+
+// TIM:
+// The remainder of the includes:
 %include "expr/expr.i"
-%include "expr/command.i"
-%include "expr/symbol_table.i"
 %include "expr/expr_manager.i"
 %include "expr/expr_stream.i"
+%include "expr/symbol_table.i"
 %include "expr/variable_type_map.i"
-
+%include "options/option_exception.i"
+%include "options/options.i"
+%include "parser/cvc4parser.i"
+%include "smt/logic_exception.i"
+%include "smt_util/command.i"
 %include "theory/logic_info.i"
 
+// Tim: This should come after "theory/logic_info.i".
 %include "smt/smt_engine.i"
-%include "smt/modal_exception.i"
-%include "smt/logic_exception.i"
-
-%include "options/options.i"
-%include "options/option_exception.i"
-
-%include "parser/cvc4parser.i"

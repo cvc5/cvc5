@@ -22,11 +22,11 @@
 #include <map>
 #include <string>
 
-#include "util/language.h"
-#include "util/sexpr.h"
-#include "util/model.h"
 #include "expr/node.h"
-#include "expr/command.h"
+#include "options/language.h"
+#include "smt_util/command.h"
+#include "smt_util/model.h"
+#include "util/sexpr.h"
 
 namespace CVC4 {
 
@@ -56,29 +56,7 @@ protected:
 
 public:
   /** Get the Printer for a given OutputLanguage */
-  static Printer* getPrinter(OutputLanguage lang) throw() {
-    if(lang == language::output::LANG_AUTO) {
-      // Infer the language to use for output.
-      //
-      // Options can be null in certain circumstances (e.g., when printing
-      // the singleton "null" expr.  So we guard against segfault
-      if(&Options::current() != NULL) {
-        if(options::outputLanguage.wasSetByUser()) {
-          lang = options::outputLanguage();
-        }
-        if(lang == language::output::LANG_AUTO && options::inputLanguage.wasSetByUser()) {
-          lang = language::toOutputLanguage(options::inputLanguage());
-        }
-      }
-      if(lang == language::output::LANG_AUTO) {
-        lang = language::output::LANG_CVC4; // default
-      }
-    }
-    if(d_printers[lang] == NULL) {
-      d_printers[lang] = makePrinter(lang);
-    }
-    return d_printers[lang];
-  }
+  static Printer* getPrinter(OutputLanguage lang) throw();
 
   /** Write a Node out to a stream with this Printer. */
   virtual void toStream(std::ostream& out, TNode n,
@@ -91,18 +69,7 @@ public:
   /** Write a CommandStatus out to a stream with this Printer. */
   virtual void toStream(std::ostream& out, const CommandStatus* s) const throw() = 0;
 
-  /** Write an SExpr out to a stream with this Printer. */
-  virtual void toStream(std::ostream& out, const SExpr& sexpr) const throw();
 
-  /**
-   * Write a Result out to a stream with this Printer.
-   *
-   * The default implementation writes a reasonable string in lowercase
-   * for sat, unsat, valid, invalid, or unknown results.  This behavior
-   * is overridable by each Printer, since sometimes an output language
-   * has a particular preference for how results should appear.
-   */
-  virtual void toStream(std::ostream& out, const Result& r) const throw();
 
   /** Write a Model out to a stream with this Printer. */
   virtual void toStream(std::ostream& out, const Model& m) const throw();
@@ -115,78 +82,6 @@ public:
 
 };/* class Printer */
 
-/**
- * IOStream manipulator to pretty-print SExprs.
- */
-class PrettySExprs {
-  /**
-   * The allocated index in ios_base for our setting.
-   */
-  static const int s_iosIndex;
-
-  /**
-   * When this manipulator is used, the setting is stored here.
-   */
-  bool d_prettySExprs;
-
-public:
-  /**
-   * Construct a PrettySExprs with the given setting.
-   */
-  PrettySExprs(bool prettySExprs) : d_prettySExprs(prettySExprs) {}
-
-  inline void applyPrettySExprs(std::ostream& out) {
-    out.iword(s_iosIndex) = d_prettySExprs;
-  }
-
-  static inline bool getPrettySExprs(std::ostream& out) {
-    return out.iword(s_iosIndex);
-  }
-
-  static inline void setPrettySExprs(std::ostream& out, bool prettySExprs) {
-    out.iword(s_iosIndex) = prettySExprs;
-  }
-
-  /**
-   * Set the pretty-sexprs state on the output stream for the current
-   * stack scope.  This makes sure the old state is reset on the
-   * stream after normal OR exceptional exit from the scope, using the
-   * RAII C++ idiom.
-   */
-  class Scope {
-    std::ostream& d_out;
-    bool d_oldPrettySExprs;
-
-  public:
-
-    inline Scope(std::ostream& out, bool prettySExprs) :
-      d_out(out),
-      d_oldPrettySExprs(PrettySExprs::getPrettySExprs(out)) {
-      PrettySExprs::setPrettySExprs(out, prettySExprs);
-    }
-
-    inline ~Scope() {
-      PrettySExprs::setPrettySExprs(d_out, d_oldPrettySExprs);
-    }
-
-  };/* class PrettySExprs::Scope */
-
-};/* class PrettySExprs */
-
-/**
- * Sets the default pretty-sexprs setting for an ostream.  Use like this:
- *
- *   // let out be an ostream, s an SExpr
- *   out << PrettySExprs(true) << s << endl;
- *
- * The setting stays permanently (until set again) with the stream.
- */
-inline std::ostream& operator<<(std::ostream& out, PrettySExprs ps) {
-  ps.applyPrettySExprs(out);
-  return out;
-}
-
 }/* CVC4 namespace */
 
 #endif /* __CVC4__PRINTER__PRINTER_H */
-

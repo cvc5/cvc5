@@ -16,22 +16,22 @@
 
 #include "cvc4_private.h"
 
+
 #ifndef __CVC4__THEORY__ARITH__DIO_SOLVER_H
 #define __CVC4__THEORY__ARITH__DIO_SOLVER_H
 
-#include "context/context.h"
-#include "context/cdo.h"
-#include "context/cdlist.h"
-#include "context/cdqueue.h"
+#include <utility>
+#include <vector>
 
+#include "base/output.h"
+#include "context/cdlist.h"
+#include "context/cdo.h"
+#include "context/cdqueue.h"
+#include "context/context.h"
+#include "theory/arith/normal_form.h"
 #include "theory/arith/partial_model.h"
 #include "util/rational.h"
-#include "theory/arith/normal_form.h"
-
 #include "util/statistics_registry.h"
-
-#include <vector>
-#include <utility>
 
 namespace CVC4 {
 namespace theory {

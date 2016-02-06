@@ -14,13 +14,14 @@
  ** Bitvector theory.
  **/
 
+#include "cvc4_private.h"
 
 #ifndef __CVC4__THEORY__BV__ABSTRACTION_H
 #define __CVC4__THEORY__BV__ABSTRACTION_H
 
-#include "cvc4_private.h"
 #include <ext/hash_map>
 #include <ext/hash_set>
+
 #include "expr/node.h"
 #include "theory/substitutions.h"
 #include "util/statistics_registry.h"
@@ -28,7 +29,6 @@
 namespace CVC4 {
 namespace theory {
 namespace bv {
-
 
 typedef std::vector<TNode> ArgsVec;
 

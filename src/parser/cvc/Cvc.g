@@ -79,6 +79,8 @@ tokens {
   COUNTEREXAMPLE_TOK = 'COUNTEREXAMPLE';
   COUNTERMODEL_TOK = 'COUNTERMODEL';
   ARITH_VAR_ORDER_TOK = 'ARITH_VAR_ORDER';
+  CONTINUE_TOK = 'CONTINUE';
+  RESTART_TOK = 'RESTART';
 
   /* operators */
 
@@ -434,7 +436,7 @@ Expr createPrecedenceTree(Parser* parser, ExprManager* em,
 
   Expr e = createPrecedenceTree(parser, em, expressions, operators, 0, expressions.size() - 1);
   if(Debug.isOn("prec") && operators.size() > 1) {
-    Expr::setlanguage::Scope ls(Debug("prec"), language::output::LANG_AST);
+    language::SetLanguage::Scope ls(Debug("prec"), language::output::LANG_AST);
     Debug("prec") << "=> " << e << std::endl;
   }
   return e;
@@ -476,10 +478,10 @@ Expr addNots(ExprManager* em, size_t n, Expr e) {
 #  define ANTLR3_INLINE_INPUT_8BIT
 #endif /* CVC4_COMPETITION_MODE && !CVC4_SMTCOMP_APPLICATION_TRACK */
 
-#include "parser/antlr_tracing.h"
-#include "util/integer.h"
 #include "parser/antlr_input.h"
+#include "parser/antlr_tracing.h"
 #include "parser/parser.h"
+#include "util/integer.h"
 
 }/* @lexer::includes */
 
@@ -487,10 +489,11 @@ Expr addNots(ExprManager* em, size_t n, Expr e) {
 
 #include <stdint.h>
 #include <cassert>
-#include "expr/command.h"
-#include "parser/parser.h"
-#include "util/subrange_bound.h"
+#include "options/set_language.h"
 #include "parser/antlr_tracing.h"
+#include "parser/parser.h"
+#include "smt_util/command.h"
+#include "util/subrange_bound.h"
 
 namespace CVC4 {
   class Expr;
@@ -541,16 +544,17 @@ namespace CVC4 {
 
 @parser::postinclude {
 
+#include <sstream>
+#include <string>
+#include <vector>
+
+#include "base/output.h"
 #include "expr/expr.h"
 #include "expr/kind.h"
 #include "expr/type.h"
 #include "parser/antlr_input.h"
 #include "parser/parser.h"
-#include "util/output.h"
 
-#include <vector>
-#include <string>
-#include <sstream>
 
 #define REPEAT_COMMAND(k, CommandCtor)                      \
   ({                                                        \
@@ -829,6 +833,9 @@ mainCommand[CVC4::Command*& cmd]
   | ARITH_VAR_ORDER_TOK LPAREN formula[f] ( COMMA formula[f] )* RPAREN
     { UNSUPPORTED("ARITH_VAR_ORDER command"); }
 
+  | CONTINUE_TOK
+    { UNSUPPORTED("CONTINUE command"); }
+  | RESTART_TOK formula[f] { UNSUPPORTED("RESTART command"); }
   | toplevelDeclaration[cmd]
   ;
 
@@ -994,7 +1001,7 @@ declareVariables[CVC4::Command*& cmd, CVC4::Type& t, const std::vector<std::stri
                             << "with type " << oldType << std::endl;
             if(oldType != t) {
               std::stringstream ss;
-              ss << Expr::setlanguage(language::output::LANG_CVC4)
+              ss << language::SetLanguage(language::output::LANG_CVC4)
                  << "incompatible type for `" << *i << "':" << std::endl
                  << "  old type: " << oldType << std::endl
                  << "  new type: " << t << std::endl;
@@ -1417,7 +1424,7 @@ letDecl
   std::string name;
 }
   : identifier[name,CHECK_NONE,SYM_VARIABLE] EQUAL_TOK formula[e]
-    { Debug("parser") << Expr::setlanguage(language::output::LANG_CVC4) << e.getType() << std::endl;
+    { Debug("parser") << language::SetLanguage(language::output::LANG_CVC4) << e.getType() << std::endl;
       PARSER_STATE->defineVar(name, e);
       Debug("parser") << "LET[" << PARSER_STATE->scopeLevel() << "]: "
                       << name << std::endl
@@ -1558,8 +1565,7 @@ recordStore[CVC4::Expr& f]
         PARSER_STATE->parseError(ss.str());
       }
       const Record& rec = RecordType(t).getRecord();
-      Record::const_iterator fld = rec.find(id);
-      if(fld == rec.end()) {
+      if(! rec.contains(id)) {
         PARSER_STATE->parseError(std::string("no such field `") + id + "' in record");
       }
       f2 = MK_EXPR(MK_CONST(RecordSelect(id)), f);
@@ -1686,8 +1692,7 @@ postfixTerm[CVC4::Expr& f]
             PARSER_STATE->parseError("record-select applied to non-record");
           }
           const Record& rec = RecordType(t).getRecord();
-          Record::const_iterator fld = rec.find(id);
-          if(fld == rec.end()) {
+          if(!rec.contains(id)){
             PARSER_STATE->parseError(std::string("no such field `") + id + "' in record");
           }
           f = MK_EXPR(MK_CONST(RecordSelect(id)), f);

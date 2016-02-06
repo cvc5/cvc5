@@ -20,17 +20,16 @@
 #ifndef __CVC4__CONTEXT__CDLIST_H
 #define __CVC4__CONTEXT__CDLIST_H
 
+#include <boost/static_assert.hpp>
 #include <iterator>
 #include <memory>
 #include <string>
 #include <sstream>
 
+#include "base/cvc4_assert.h"
 #include "context/context.h"
 #include "context/context_mm.h"
 #include "context/cdlist_forward.h"
-#include "util/cvc4_assert.h"
-
-#include <boost/static_assert.hpp>
 
 namespace CVC4 {
 namespace context {

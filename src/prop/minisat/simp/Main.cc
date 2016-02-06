@@ -30,10 +30,11 @@ OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWA
 #include "prop/minisat/core/Dimacs.h"
 #include "prop/minisat/simp/SimpSolver.h"
 
-using namespace Minisat;
-
 //=================================================================================================
 
+
+namespace CVC4 {
+namespace Minisat {
 
 void printStats(Solver& solver)
 {
@@ -47,6 +48,8 @@ void printStats(Solver& solver)
     if (mem_used != 0) printf("Memory used           : %.2f MB\n", mem_used);
     printf("CPU time              : %g s\n", cpu_time);
 }
+
+
 
 
 static Solver* solver;
@@ -64,12 +67,16 @@ static void SIGINT_exit(int signum) {
         printf("\n"); printf("*** INTERRUPTED ***\n"); }
     _exit(1); }
 
+} /* CVC4::Minisat namespace */
+} /* CVC4 namespace */
 
 //=================================================================================================
 // Main:
 
 int main(int argc, char** argv)
 {
+  using namespace CVC4;
+  using namespace CVC4::Minisat;
     try {
         setUsageHelp("USAGE: %s [options] <input-file> <result-output-file>\n\n  where input may be either in plain or gzipped DIMACS.\n");
         // printf("This is MiniSat 2.0 beta\n");

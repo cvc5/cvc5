@@ -28,8 +28,8 @@
 
 #endif /* _WIN32 */
 
+#include "base/exception.h"
 #include "parser/memory_mapped_input_buffer.h"
-#include "util/exception.h"
 
 namespace CVC4 {
 namespace parser {

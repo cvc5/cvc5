@@ -44,16 +44,19 @@ void FunDefFmf::simplify( std::vector< Node >& assertions, bool doRewrite ) {
         Message() << "Cannot define function " << f << " more than once." << std::endl;
         exit( 0 );
       }
-      
+
       Node bd = TermDb::getFunDefBody( assertions[i] );
       Trace("fmf-fun-def-debug") << "Process function " << n << ", body = " << bd << std::endl;
       if( !bd.isNull() ){
+        d_funcs.push_back( f );
         bd = NodeManager::currentNM()->mkNode( n.getType().isBoolean() ? IFF : EQUAL, n, bd );
 
         //create a sort S that represents the inputs of the function
         std::stringstream ss;
         ss << "I_" << f;
         TypeNode iType = NodeManager::currentNM()->mkSort( ss.str() );
+        AbsTypeFunDefAttribute atfda;
+        iType.setAttribute(atfda,true);
         d_sorts[f] = iType;
 
         //create functions f1...fn mapping from this sort to concrete elements
@@ -116,6 +119,11 @@ Node FunDefFmf::simplifyFormula( Node n, bool pol, bool hasPol, std::vector< Nod
   Trace("fmf-fun-def-debug") << "Simplify " << n << " " << pol << " " << hasPol << " " << is_fun_def << std::endl;
   if( n.getKind()==FORALL ){
     Node c = simplifyFormula( n[1], pol, hasPol, constraints, hd, is_fun_def );
+    //append prenex to constraints
+    for( unsigned i=0; i<constraints.size(); i++ ){
+      constraints[i] = NodeManager::currentNM()->mkNode( FORALL, n[0], constraints[i] );
+      constraints[i] = Rewriter::rewrite( constraints[i] );
+    }
     if( c!=n[1] ){
       return NodeManager::currentNM()->mkNode( FORALL, n[0], c );
     }else{

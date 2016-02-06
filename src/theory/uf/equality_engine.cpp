@@ -17,16 +17,29 @@
 
 #include "theory/uf/equality_engine.h"
 
+#include "smt/smt_statistics_registry.h"
+
 namespace CVC4 {
 namespace theory {
 namespace eq {
 
-static void rawDump(Node node)
+EqualityEngine::Statistics::Statistics(std::string name)
+    : mergesCount(name + "::mergesCount", 0),
+      termsCount(name + "::termsCount", 0),
+      functionTermsCount(name + "::functionTermsCount", 0),
+      constantTermsCount(name + "::constantTermsCount", 0)
 {
-  Debug("gk::proof") << "Raw dumping node: " << node << std::endl;
-  std::stringstream out;
-  node.printAst(out);
-  Debug("gk::proof") << out.str() << std::endl;
+  smtStatisticsRegistry()->registerStat(&mergesCount);
+  smtStatisticsRegistry()->registerStat(&termsCount);
+  smtStatisticsRegistry()->registerStat(&functionTermsCount);
+  smtStatisticsRegistry()->registerStat(&constantTermsCount);
+}
+
+EqualityEngine::Statistics::~Statistics() {
+  smtStatisticsRegistry()->unregisterStat(&mergesCount);
+  smtStatisticsRegistry()->unregisterStat(&termsCount);
+  smtStatisticsRegistry()->unregisterStat(&functionTermsCount);
+  smtStatisticsRegistry()->unregisterStat(&constantTermsCount);
 }
 
 /**
@@ -1116,15 +1129,6 @@ void EqualityEngine::getExplanation(EqualityNodeId t1Id, EqualityNodeId t2Id, st
             Debug("equality") << d_name << "                     targetNode = " << d_nodes[edgeNode] << std::endl;
             Debug("equality") << d_name << "                     in currentEdge = (" << d_nodes[currentNode] << "," << d_nodes[edge.getNodeId()] << ")" << std::endl;
             Debug("equality") << d_name << "                     reason type = " << reasonType << std::endl;
-
-            // // Raw dumping
-            // Debug("gk::proof") << "Raw dumping the two nodes." << std::endl;
-            // Debug("gk::proof") << "Node1: " << std::endl;
-            // rawDump(d_nodes[currentNode]);
-
-            // Debug("gk::proof") << "Node2: " << std::endl;
-            // rawDump(d_nodes[edge.getNodeId()]);
-            // //// END Raw dumping
 
             EqProof* eqpc = NULL;
             // Make child proof if a proof is being constructed

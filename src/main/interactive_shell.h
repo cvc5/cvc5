@@ -15,12 +15,12 @@
 #ifndef __CVC4__INTERACTIVE_SHELL_H
 #define __CVC4__INTERACTIVE_SHELL_H
 
-#include <iostream>
+#include <iosfwd>
 #include <string>
 
-#include "util/language.h"
-#include "util/unsafe_interrupt_exception.h"
+#include "options/language.h"
 #include "options/options.h"
+#include "util/unsafe_interrupt_exception.h"
 
 namespace CVC4 {
 

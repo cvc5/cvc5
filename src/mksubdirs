@@ -1,0 +1,16 @@
+#!/bin/bash
+#
+# The purpose of this file is to generate a .subdirs file in the build process.
+# This file contains a file of relative paths to all of the theories relative
+# to the current directory. Each Makefile.am should thus build its own .subdirs file.
+# This assumes it is passed the equivalent of the $top_srcdir configure variable.
+#
+# Invocation:
+#
+#    mksubdirs <top_srcdir>
+
+TOP_SRCDIR=$1
+
+grep '^THEORIES = ' $TOP_SRCDIR/src/Makefile.theories | \
+  cut -d' ' -f3- | tr ' ' "\n" | \
+  xargs -I__D__ echo "$TOP_SRCDIR/src/theory/__D__/kinds"

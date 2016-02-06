@@ -29,7 +29,7 @@ namespace CVC4 {
  * Represents the (static) configuration of CVC4.
  */
 class CVC4_PUBLIC Configuration {
-
+private:
   /** Private default ctor: Disallow construction of this class */
   Configuration();
 
@@ -61,8 +61,8 @@ public:
 
   static bool isAssertionBuild();
 
-  static bool isProofBuild(); 
-  
+  static bool isProofBuild();
+
   static bool isCoverageBuild();
 
   static bool isProfilingBuild();

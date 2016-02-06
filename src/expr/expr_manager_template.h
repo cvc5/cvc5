@@ -21,12 +21,11 @@
 
 #include <vector>
 
+#include "expr/expr.h"
 #include "expr/kind.h"
 #include "expr/type.h"
-#include "expr/expr.h"
-#include "util/subrange_bound.h"
 #include "util/statistics.h"
-#include "util/sexpr.h"
+#include "util/subrange_bound.h"
 
 ${includes}
 
@@ -34,7 +33,7 @@ ${includes}
 // compiler directs the user to the template file instead of the
 // generated one.  We don't want the user to modify the generated one,
 // since it'll get overwritten on a later build.
-#line 38 "${template}"
+#line 37 "${template}"
 
 namespace CVC4 {
 
@@ -44,7 +43,6 @@ class NodeManager;
 class Options;
 class IntStat;
 struct ExprManagerMapCollection;
-class StatisticsRegistry;
 class ResourceManager;
 
 namespace expr {
@@ -52,10 +50,6 @@ namespace expr {
     class Pickler;
   }/* CVC4::expr::pickle namespace */
 }/* CVC4::expr namespace */
-
-namespace stats {
-  StatisticsRegistry* getStatisticsRegistry(ExprManager*);
-}/* CVC4::stats namespace */
 
 class CVC4_PUBLIC ExprManager {
 private:
@@ -88,12 +82,6 @@ private:
 
   /** NodeManager reaches in to get the NodeManager */
   friend class NodeManager;
-
-  /** Statistics reach in to get the StatisticsRegistry */
-  friend ::CVC4::StatisticsRegistry* ::CVC4::stats::getStatisticsRegistry(ExprManager*);
-
-  /** Get the underlying statistics registry. */
-  StatisticsRegistry* getStatisticsRegistry() throw();
 
   // undefined, private copy constructor and assignment op (disallow copy)
   ExprManager(const ExprManager&) CVC4_UNDEFINED;
@@ -319,7 +307,10 @@ public:
    * e.getConst<CVC4::Kind>() will yield k.
    */
   Expr operatorOf(Kind k);
-
+  
+  /** Get a Kind from an operator expression */
+  Kind operatorToKind(Expr e);
+  
   /** Make a function type from domain to range. */
   FunctionType mkFunctionType(Type domain, Type range);
 

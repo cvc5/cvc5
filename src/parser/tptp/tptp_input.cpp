@@ -22,8 +22,8 @@
 #include "parser/parser.h"
 #include "parser/parser_exception.h"
 #include "parser/tptp/tptp.h"
-#include "parser/tptp/generated/TptpLexer.h"
-#include "parser/tptp/generated/TptpParser.h"
+#include "parser/tptp/TptpLexer.h"
+#include "parser/tptp/TptpParser.h"
 
 namespace CVC4 {
 namespace parser {

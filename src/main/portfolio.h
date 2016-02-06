@@ -19,9 +19,9 @@
 #include <boost/function.hpp>
 #include <utility>
 
-#include "smt/smt_engine.h"
-#include "expr/command.h"
 #include "options/options.h"
+#include "smt/smt_engine.h"
+#include "smt_util/command.h"
 #include "util/statistics_registry.h"
 
 namespace CVC4 {

@@ -25,7 +25,8 @@ OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWA
 #include <stdio.h>
 #include <stdlib.h>
 
-using namespace BVMinisat;
+namespace CVC4 {
+namespace BVMinisat {
 
 // TODO: split the memory reading functions into two: one for reading high-watermark of RSS, and
 // one for reading the current virtual memory size.
@@ -67,14 +68,14 @@ static inline int memReadPeak(void)
     return peak_kb;
 }
 
-double Minisat::memUsed() { return (double)memReadStat(0) * (double)getpagesize() / (1024*1024); }
-double Minisat::memUsedPeak() { 
+double BVMinisat::memUsed() { return (double)memReadStat(0) * (double)getpagesize() / (1024*1024); }
+double BVMinisat::memUsedPeak() { 
     double peak = memReadPeak() / 1024;
     return peak == 0 ? memUsed() : peak; }
 
 #elif defined(__FreeBSD__)
 
-double Minisat::memUsed(void) {
+double BVMinisat::memUsed(void) {
     struct rusage ru;
     getrusage(RUSAGE_SELF, &ru);
     return (double)ru.ru_maxrss / 1024; }
@@ -84,12 +85,16 @@ double MiniSat::memUsedPeak(void) { return memUsed(); }
 #elif defined(__APPLE__)
 #include <malloc/malloc.h>
 
-double Minisat::memUsed(void) {
+double BVMinisat::memUsed(void) {
     malloc_statistics_t t;
     malloc_zone_statistics(NULL, &t);
     return (double)t.max_size_in_use / (1024*1024); }
 
 #else
-double Minisat::memUsed() { 
+double BVMinisat::memUsed() { 
     return 0; }
 #endif
+
+
+} /* CVC4::BVMinisat namespace */
+} /* CVC4 namespace */

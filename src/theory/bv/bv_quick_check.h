@@ -22,11 +22,11 @@
 #include <vector>
 #include <ext/hash_map>
 
-#include "expr/node.h"
 #include "context/cdo.h"
+#include "expr/node.h"
 #include "prop/sat_solver_types.h"
-#include "util/statistics_registry.h"
 #include "theory/bv/theory_bv_utils.h"
+#include "util/statistics_registry.h"
 
 namespace CVC4 {
 namespace theory {
@@ -35,7 +35,7 @@ class TheoryModel;
 
 namespace bv {
 
-class TLazyBitblaster; 
+class TLazyBitblaster;
 class TheoryBV;
 
 class BVQuickCheck {

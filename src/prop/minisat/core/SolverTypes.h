@@ -24,13 +24,14 @@ OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWA
 #define Minisat_SolverTypes_h
 
 #include <assert.h>
-#include "util/output.h"
+#include "base/output.h"
 #include "prop/minisat/mtl/IntTypes.h"
 #include "prop/minisat/mtl/Alg.h"
 #include "prop/minisat/mtl/Vec.h"
 #include "prop/minisat/mtl/Map.h"
 #include "prop/minisat/mtl/Alloc.h"
 
+namespace CVC4 {
 namespace Minisat {
 
 //=================================================================================================
@@ -168,27 +169,25 @@ inline std::ostream& operator <<(std::ostream& out, Minisat::lbool val) {
 }
 
 
-} /* Minisat */
-
-namespace Minisat{
 class Solver;
-}
 
-namespace CVC4 {
 class ProofProxyAbstract {
 public:
   virtual ~ProofProxyAbstract() {}
   virtual void updateCRef(Minisat::CRef oldref, Minisat::CRef newref) = 0; 
 };
-}
+
+} /* namespace CVC4::Minisat */
+} /* namespace CVC4 */
+
 
 namespace CVC4 {
 template <class Solver> class ProofProxy;
-typedef ProofProxy<Minisat::Solver> CoreProofProxy;
+typedef ProofProxy<CVC4::Minisat::Solver> CoreProofProxy;
 } 
 
+namespace CVC4 {
 namespace Minisat{
-
 
 //=================================================================================================
 // Clause -- a simple class for representing a clause:
@@ -309,7 +308,7 @@ class ClauseAllocator : public RegionAllocator<uint32_t>
     }
 
   void reloc(CRef& cr, ClauseAllocator& to, CVC4::CoreProofProxy* proxy = NULL);
-  // moved to Solver.cc
+  // Implementation moved to Solver.cc.
 };
 
 
@@ -485,6 +484,7 @@ inline void Clause::strengthen(Lit p)
 }
 
 //=================================================================================================
+}
 }
 
 #endif

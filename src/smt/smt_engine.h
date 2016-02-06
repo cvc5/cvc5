@@ -22,22 +22,23 @@
 #include <string>
 #include <vector>
 
-#include "context/cdlist_forward.h"
+#include "base/modal_exception.h"
 #include "context/cdhashmap_forward.h"
 #include "context/cdhashset_forward.h"
+#include "context/cdlist_forward.h"
 #include "expr/expr.h"
 #include "expr/expr_manager.h"
-#include "util/proof.h"
-#include "util/unsat_core.h"
-#include "smt/modal_exception.h"
-#include "smt/logic_exception.h"
 #include "options/options.h"
+#include "proof/unsat_core.h"
+#include "smt/logic_exception.h"
+#include "smt/smt_globals.h"
+#include "theory/logic_info.h"
+#include "util/hash.h"
+#include "util/proof.h"
 #include "util/result.h"
 #include "util/sexpr.h"
-#include "util/hash.h"
-#include "util/unsafe_interrupt_exception.h"
 #include "util/statistics.h"
-#include "theory/logic_info.h"
+#include "util/unsafe_interrupt_exception.h"
 
 // In terms of abstraction, this is below (and provides services to)
 // ValidityChecker and above (and requires the services of)
@@ -72,6 +73,10 @@ namespace prop {
   class PropEngine;
 }/* CVC4::prop namespace */
 
+namespace options {
+  class OptionsHandler;
+}/* CVC4::prop namespace */
+
 namespace expr {
   namespace attr {
     class AttributeManager;
@@ -93,7 +98,6 @@ namespace smt {
   class SmtScope;
   class BooleanTermConverter;
 
-  void beforeSearch(std::string, bool, SmtEngine*) throw(ModalException);
   ProofManager* currentProofManager();
 
   struct CommandCleanup;
@@ -128,6 +132,10 @@ class CVC4_PUBLIC SmtEngine {
   typedef context::CDList<Expr> AssertionList;
   /** The type of our internal assignment set */
   typedef context::CDHashSet<Node, NodeHashFunction> AssignmentSet;
+  /** The types for the recursive function definitions */
+  typedef context::CDHashMap< Node, TypeNode, NodeHashFunction > TypeNodeMap;
+  typedef context::CDList<Node> NodeList;
+  typedef context::CDHashMap<Node, NodeList*, NodeHashFunction> NodeListMap;
 
   /** Expr manager context */
   context::Context* d_context;
@@ -151,6 +159,9 @@ class CVC4_PUBLIC SmtEngine {
   ProofManager* d_proofManager;
   /** An index of our defined functions */
   DefinedFunctionMap* d_definedFunctions;
+  /** recursive function definition abstractions for --fmf-fun */
+  TypeNodeMap* d_fmfRecFunctionsAbs;
+  NodeListMap* d_fmfRecFunctionsConcrete;
 
   /**
    * The assertion list (before any conversion) for supporting
@@ -189,9 +200,8 @@ class CVC4_PUBLIC SmtEngine {
    *A vector of command definitions to be imported in the new
    *SmtEngine when checking unsat-cores.
    */
-#ifdef CVC4_PROOF  
   std::vector<Command*> d_defineCommands;
-#endif   
+
   /**
    * The logic we're in.
    */
@@ -256,6 +266,11 @@ class CVC4_PUBLIC SmtEngine {
    * Verbosity of various commands.
    */
   std::map<std::string, Integer> d_commandVerbosity;
+
+  /**
+   * This responds to requests to set options.
+   */
+  options::OptionsHandler* d_optionsHandler;
 
   /**
    * A private utility class to SmtEngine.
@@ -348,7 +363,6 @@ class CVC4_PUBLIC SmtEngine {
   friend class ::CVC4::smt::SmtScope;
   friend class ::CVC4::smt::BooleanTermConverter;
   friend ::CVC4::StatisticsRegistry* ::CVC4::stats::getStatisticsRegistry(SmtEngine*);
-  friend void ::CVC4::smt::beforeSearch(std::string, bool, SmtEngine*) throw(ModalException);
   friend ProofManager* ::CVC4::smt::currentProofManager();
   friend class ::CVC4::LogicRequest;
   // to access d_modelCommands
@@ -371,6 +385,8 @@ class CVC4_PUBLIC SmtEngine {
   StatisticsRegistry* d_statisticsRegistry;
 
   smt::SmtEngineStatistics* d_stats;
+
+  SmtGlobals* d_globals;
 
   /**
    * Add to Model command.  This is used for recording a command
@@ -455,6 +471,9 @@ public:
                       const std::vector<Expr>& formals,
                       Expr formula);
 
+  /** is defined function */
+  bool isDefinedFunction(Expr func);
+
   /**
    * Add a formula to the current context: preprocess, do per-theory
    * setup, use processAssertionList(), asserting to T-solver for
@@ -536,7 +555,7 @@ public:
    * Print solution for synthesis conjectures found by ce_guided_instantiation module
    */
   void printSynthSolution( std::ostream& out );
-  
+
   /**
    * Get an unsatisfiable core (only if immediately preceded by an
    * UNSAT or VALID query).  Only permitted if CVC4 was built with
@@ -707,7 +726,14 @@ public:
    * Set print function in model
    */
   void setPrintFuncInModel(Expr f, bool p);
-  
+
+
+  /**
+   * Throws a ModalException if smt is non-null and the SmtEngine has not been fully initialized.
+   */
+  static void beforeSearch(SmtEngine* smt, const std::string& option) throw(ModalException);
+
+  SmtGlobals* globals() { return d_globals; }
 };/* class SmtEngine */
 
 }/* CVC4 namespace */

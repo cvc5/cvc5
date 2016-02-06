@@ -15,27 +15,30 @@
  ** threads.
  **/
 
-#include <boost/thread.hpp>
-#include <boost/thread/condition.hpp>
-#include <boost/exception_ptr.hpp>
-#include <boost/lexical_cast.hpp>
-#include <string>
-
-#include "expr/command.h"
-#include "expr/pickler.h"
 #include "main/command_executor_portfolio.h"
-#include "main/main.h"
-#include "main/options.h"
-#include "main/portfolio.h"
-#include "options/options.h"
-#include "smt/options.h"
-#include "printer/options.h"
-
-#include "cvc4autoconfig.h"
 
 #if HAVE_UNISTD_H
 #  include <unistd.h>
 #endif /* HAVE_UNISTD_H */
+
+#include <boost/exception_ptr.hpp>
+#include <boost/lexical_cast.hpp>
+#include <boost/thread.hpp>
+#include <boost/thread/condition.hpp>
+#include <string>
+
+#include "cvc4autoconfig.h"
+#include "expr/pickler.h"
+#include "main/main.h"
+#include "main/portfolio.h"
+#include "options/base_options.h"
+#include "options/main_options.h"
+#include "options/options.h"
+#include "options/printer_options.h"
+#include "options/set_language.h"
+#include "options/smt_options.h"
+#include "smt_util/command.h"
+
 
 using namespace std;
 
@@ -60,8 +63,8 @@ CommandExecutorPortfolio::CommandExecutorPortfolio
   assert(d_threadOptions.size() == d_numThreads);
 
   d_statLastWinner.setData(d_lastWinner);
-  d_stats.registerStat_(&d_statLastWinner);
-  d_stats.registerStat_(&d_statWaitTime);
+  d_stats.registerStat(&d_statLastWinner);
+  d_stats.registerStat(&d_statWaitTime);
 
   /* Duplication, individualization */
   d_exprMgrs.push_back(&d_exprMgr);
@@ -96,8 +99,8 @@ CommandExecutorPortfolio::~CommandExecutorPortfolio()
   d_exprMgrs.clear();
   d_smts.clear();
 
-  d_stats.unregisterStat_(&d_statLastWinner);
-  d_stats.unregisterStat_(&d_statWaitTime);
+  d_stats.unregisterStat(&d_statLastWinner);
+  d_stats.unregisterStat(&d_statWaitTime);
 }
 
 void CommandExecutorPortfolio::lemmaSharingInit()
@@ -114,24 +117,24 @@ void CommandExecutorPortfolio::lemmaSharingInit()
     const unsigned int sharingChannelSize = 1000000;
 
     for(unsigned i = 0; i < d_numThreads; ++i){
-      d_channelsOut.push_back
-        (new SynchronizedSharedChannel<ChannelFormat>(sharingChannelSize));
-      d_channelsIn.push_back
-        (new SynchronizedSharedChannel<ChannelFormat>(sharingChannelSize));
+      d_channelsOut.push_back(
+          new SynchronizedSharedChannel<ChannelFormat>(sharingChannelSize));
+      d_channelsIn.push_back(
+          new SynchronizedSharedChannel<ChannelFormat>(sharingChannelSize));
     }
 
     /* Lemma I/O channels */
     for(unsigned i = 0; i < d_numThreads; ++i) {
       string tag = "thread #" +
         boost::lexical_cast<string>(d_threadOptions[i][options::thread_id]);
-      d_threadOptions[i].set
-        (options::lemmaOutputChannel,
-         new PortfolioLemmaOutputChannel(tag, d_channelsOut[i], d_exprMgrs[i],
-                                         d_vmaps[i]->d_from, d_vmaps[i]->d_to));
-      d_threadOptions[i].set
-        (options::lemmaInputChannel,
-         new PortfolioLemmaInputChannel(tag, d_channelsIn[i], d_exprMgrs[i],
-                                        d_vmaps[i]->d_from, d_vmaps[i]->d_to));
+      LemmaOutputChannel* outputChannel =
+          new PortfolioLemmaOutputChannel(tag, d_channelsOut[i], d_exprMgrs[i],
+                                          d_vmaps[i]->d_from, d_vmaps[i]->d_to);
+      LemmaInputChannel* inputChannel =
+          new PortfolioLemmaInputChannel(tag, d_channelsIn[i], d_exprMgrs[i],
+                                         d_vmaps[i]->d_from, d_vmaps[i]->d_to);
+      d_smts[i]->globals()->setLemmaInputChannel(inputChannel);
+      d_smts[i]->globals()->setLemmaOutputChannel(outputChannel);
     }
 
     /* Output to string stream  */
@@ -142,7 +145,7 @@ void CommandExecutorPortfolio::lemmaSharingInit()
 
       // important even for muzzled builds (to get result output right)
       *d_threadOptions[i][options::out]
-        << Expr::setlanguage(d_threadOptions[i][options::outputLanguage]);
+        << language::SetLanguage(d_threadOptions[i][options::outputLanguage]);
     }
   }
 }/* CommandExecutorPortfolio::lemmaSharingInit() */
@@ -160,8 +163,10 @@ void CommandExecutorPortfolio::lemmaSharingCleanup()
   for(unsigned i = 0; i < d_numThreads; ++i) {
     delete d_channelsIn[i];
     delete d_channelsOut[i];
-    d_threadOptions[i].set(options::lemmaInputChannel, NULL);
-    d_threadOptions[i].set(options::lemmaOutputChannel, NULL);
+    delete d_smts[i]->globals()->getLemmaInputChannel();
+    d_smts[i]->globals()->setLemmaInputChannel(NULL);
+    delete d_smts[i]->globals()->getLemmaOutputChannel();
+    d_smts[i]->globals()->setLemmaOutputChannel(NULL);
   }
   d_channelsIn.clear();
   d_channelsOut.clear();
@@ -318,9 +323,6 @@ bool CommandExecutorPortfolio::doCommandSingleton(Command* cmd)
     d_statWaitTime.stop();
 #endif /* CVC4_STATISTICS_ON */
 
-    delete d_seq;
-    d_seq = new CommandSequence();
-
     d_lastWinner = portfolioReturn.first;
     d_result = d_smts[d_lastWinner]->getStatusOfLastCommand();
 
@@ -346,14 +348,17 @@ bool CommandExecutorPortfolio::doCommandSingleton(Command* cmd)
         << std::flush;
 
 #ifdef CVC4_COMPETITION_MODE
-      // There's some hang-up in thread destruction?
-      // Anyway for SMT-COMP we don't care, just exit now.
+      // We use CVC4 in competition with --no-wait-to-join. If
+      // destructors run, they will destroy(!) us. So, just exit now.
       _exit(0);
 #endif /* CVC4_COMPETITION_MODE */
     }
 
     /* cleanup this check sat specific stuff */
     lemmaSharingCleanup();
+
+    delete d_seq;
+    d_seq = new CommandSequence();
 
     delete[] fns;
 

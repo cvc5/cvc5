@@ -16,16 +16,14 @@
 
 #include <cxxtest/TestSuite.h>
 
-#include <vector>
 #include <iostream>
-
 #include <limits.h>
+#include <vector>
 
-#include "memory.h"
-
-#include "util/exception.h"
+#include "base/exception.h"
 #include "context/context.h"
 #include "context/cdlist.h"
+#include "memory.h"
 
 using namespace std;
 using namespace CVC4::context;

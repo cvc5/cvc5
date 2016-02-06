@@ -53,8 +53,6 @@ public:
   void debugPrint( const char* c );
   /** is complete? */
   bool isComplete();
-  /** make complete */
-  void makeComplete( Node f, QuantifiersEngine* qe );
   /** make representative */
   void makeRepresentative( QuantifiersEngine* qe );
   /** empty */
@@ -78,7 +76,7 @@ public:
   void applyRewrite();
   /** get */
   Node get( int i );
-  void getTerms( QuantifiersEngine* qe, Node f, std::vector< Node >& inst );
+  void getTerms( Node f, std::vector< Node >& inst );
   /** set */
   void setValue( int i, TNode n );
   bool set( QuantifiersEngine* qe, int i, TNode n );
@@ -133,6 +131,7 @@ public:
     std::vector< TNode > terms;
     print( out, q, terms );
   }
+  void clear() { d_data.clear(); }
 };/* class InstMatchTrie */
 
 /** trie for InstMatch objects */

@@ -19,10 +19,10 @@
 #ifndef __CVC4__KIND_H
 #define __CVC4__KIND_H
 
-#include <iostream>
+#include <iosfwd>
 #include <sstream>
 
-#include "util/exception.h"
+#include "base/exception.h"
 
 namespace CVC4 {
 namespace kind {

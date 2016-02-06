@@ -36,14 +36,14 @@
 #include <vector>
 #include <cassert>
 
+#include "base/output.h"
 #include "parser/bounded_token_buffer.h"
-#include "parser/parser_exception.h"
 #include "parser/input.h"
-
+#include "parser/parser_exception.h"
 #include "util/bitvector.h"
 #include "util/integer.h"
 #include "util/rational.h"
-#include "util/output.h"
+
 
 namespace CVC4 {
 
@@ -55,11 +55,21 @@ namespace parser {
 
 /** Wrapper around an ANTLR3 input stream. */
 class AntlrInputStream : public InputStream {
+private:
   pANTLR3_INPUT_STREAM d_input;
+
+  /**
+   * If the AntlrInputStream corresponds to reading from a string,
+   * this is the string literal. The memory is owned by the Antlr3Input. It is
+   * assumed to be copied from malloc, and can be free'd at destruction time.
+   * It is otherwise NULL.
+   */
+  pANTLR3_UINT8 d_inputString;
 
   AntlrInputStream(std::string name,
                    pANTLR3_INPUT_STREAM input,
-                   bool fileIsTemporary = false);
+                   bool fileIsTemporary,
+                   pANTLR3_UINT8 inputString);
 
   /* This is private and unimplemented, because you should never use it. */
   AntlrInputStream(const AntlrInputStream& inputStream) CVC4_UNUSED;
@@ -79,22 +89,24 @@ public:
    * @param useMmap <code>true</code> if the input should use memory-mapped I/O; otherwise, the
    * input will use the standard ANTLR3 I/O implementation.
    */
-  static AntlrInputStream* newFileInputStream(const std::string& name, 
+  static AntlrInputStream* newFileInputStream(const std::string& name,
                                               bool useMmap = false)
     throw (InputStreamException);
 
   /** Create an input from an istream. */
-  static AntlrInputStream* newStreamInputStream(std::istream& input, 
+  static AntlrInputStream* newStreamInputStream(std::istream& input,
                                                 const std::string& name,
                                                 bool lineBuffered = false)
     throw (InputStreamException);
 
   /** Create a string input.
+   * NOTE: the new AntlrInputStream will take ownership of input over
+   * and free it at destruction time.
    *
    * @param input the string to read
    * @param name the "filename" to use when reporting errors
    */
-  static AntlrInputStream* newStringInputStream(const std::string& input, 
+  static AntlrInputStream* newStringInputStream(const std::string& input,
                                                 const std::string& name)
     throw (InputStreamException);
 };/* class AntlrInputStream */
@@ -156,8 +168,9 @@ public:
   /** Destructor. Frees the token stream and closes the input. */
   virtual ~AntlrInput();
 
-  /** Create an input for the given AntlrInputStream. NOTE: the new Input
-   * will take ownership of the input stream and delete it at destruction time.
+  /** Create an input for the given AntlrInputStream.
+   * NOTE: the new Input will take ownership of the input stream and delete it
+   * at destruction time.
    *
    * @param lang the input language
    * @param inputStream the input stream

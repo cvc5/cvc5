@@ -20,24 +20,24 @@
 
 #include <cxxtest/TestSuite.h>
 
+#include <deque>
 #include <iostream>
 #include <string>
-#include <deque>
 
+#include "base/cvc4_assert.h"
+#include "context/context.h"
+#include "expr/kind.h"
+#include "expr/node.h"
+#include "expr/node_manager.h"
+#include "options/options.h"
+#include "smt/smt_engine.h"
+#include "smt/smt_engine_scope.h"
+#include "theory/rewriter.h"
 #include "theory/theory.h"
 #include "theory/theory_engine.h"
 #include "theory/valuation.h"
-#include "theory/rewriter.h"
-#include "expr/node.h"
-#include "expr/node_manager.h"
-#include "expr/kind.h"
-#include "context/context.h"
-#include "smt/smt_engine.h"
-#include "smt/smt_engine_scope.h"
-#include "util/rational.h"
 #include "util/integer.h"
-#include "options/options.h"
-#include "util/cvc4_assert.h"
+#include "util/rational.h"
 
 using namespace CVC4;
 using namespace CVC4::theory;
@@ -49,7 +49,7 @@ using namespace CVC4::smt;
 using namespace std;
 
 class FakeOutputChannel : public OutputChannel {
-  void conflict(TNode n) throw(AssertionException) {
+  void conflict(TNode n, Proof* pf = NULL) throw(AssertionException) {
     Unimplemented();
   }
   bool propagate(TNode n) throw(AssertionException) {
@@ -58,7 +58,10 @@ class FakeOutputChannel : public OutputChannel {
   void propagateAsDecision(TNode n) throw(AssertionException) {
     Unimplemented();
   }
-  LemmaStatus lemma(TNode n, bool removable, bool preprocess) throw(AssertionException) {
+  LemmaStatus lemma(TNode n, ProofRule rule,
+                    bool removable,
+                    bool preprocess,
+                    bool sendAtoms) throw(AssertionException) {
     Unimplemented();
   }
   void requirePhase(TNode, bool) throw(AssertionException) {
@@ -120,13 +123,14 @@ class FakeTheory : public Theory {
   // static std::deque<RewriteItem> s_expected;
 
 public:
-  FakeTheory(context::Context* ctxt, context::UserContext* uctxt, OutputChannel& out, Valuation valuation, const LogicInfo& logicInfo) :
-    Theory(theoryId, ctxt, uctxt, out, valuation, logicInfo)
+  FakeTheory(context::Context* ctxt, context::UserContext* uctxt, OutputChannel& out, Valuation valuation, const LogicInfo& logicInfo, SmtGlobals* globals) :
+      Theory(theoryId, ctxt, uctxt, out, valuation, logicInfo, globals)
   { }
 
   /** Register an expected rewrite call */
-  static void expect(RewriteType type, FakeTheory* thy,
-                     TNode n, bool topLevel) throw() {
+  static void expect(RewriteType type, FakeTheory* thy, TNode n, bool topLevel)
+      throw()
+  {
     RewriteItem item = { type, thy, n, topLevel };
     //s_expected.push_back(item);
   }
@@ -224,7 +228,7 @@ public:
   void registerTerm(TNode) { Unimplemented(); }
   void check(Theory::Effort) { Unimplemented(); }
   void propagate(Theory::Effort) { Unimplemented(); }
-  void explain(TNode, Theory::Effort) { Unimplemented(); }
+  Node explain(TNode) { Unimplemented(); }
   Node getValue(TNode n) { return Node::null(); }
 };/* class FakeTheory */
 

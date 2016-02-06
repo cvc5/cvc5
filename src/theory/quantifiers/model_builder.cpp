@@ -12,18 +12,19 @@
  ** \brief Implementation of model builder class
  **/
 
+#include "theory/quantifiers/model_builder.h"
+
+#include "options/quantifiers_options.h"
+#include "theory/quantifiers/first_order_model.h"
 #include "theory/quantifiers/model_engine.h"
+#include "theory/quantifiers/quantifiers_attributes.h"
+#include "theory/quantifiers/term_database.h"
+#include "theory/quantifiers/trigger.h"
 #include "theory/theory_engine.h"
 #include "theory/uf/equality_engine.h"
 #include "theory/uf/theory_uf.h"
 #include "theory/uf/theory_uf_model.h"
 #include "theory/uf/theory_uf_strong_solver.h"
-#include "theory/quantifiers/first_order_model.h"
-#include "theory/quantifiers/term_database.h"
-#include "theory/quantifiers/model_builder.h"
-#include "theory/quantifiers/quantifiers_attributes.h"
-#include "theory/quantifiers/trigger.h"
-#include "theory/quantifiers/options.h"
 
 using namespace std;
 using namespace CVC4;
@@ -176,7 +177,7 @@ void QModelBuilderIG::processBuildModel( TheoryModel* m, bool fullModel ) {
         }
 
         //if applicable, find exceptions to model via inst-gen
-        if( optInstGen() ){
+        if( options::fmfInstGen() ){
           d_didInstGen = true;
           d_instGenMatches = 0;
           d_numQuantSat = 0;
@@ -201,7 +202,7 @@ void QModelBuilderIG::processBuildModel( TheoryModel* m, bool fullModel ) {
               }else{
                 d_numQuantNoSelForm++;
               }
-              if( optOneQuantPerRoundInstGen() && lems>0 ){
+              if( options::fmfInstGenOneQuantPerRound() && lems>0 ){
                 break;
               }
             }else if( d_quant_sat.find( f )!=d_quant_sat.end() ){
@@ -341,14 +342,6 @@ bool QModelBuilderIG::hasConstantDefinition( Node n ){
   return false;
 }
 
-bool QModelBuilderIG::optInstGen(){
-  return options::fmfInstGen();
-}
-
-bool QModelBuilderIG::optOneQuantPerRoundInstGen(){
-  return options::fmfInstGenOneQuantPerRound();
-}
-
 QModelBuilderIG::Statistics::Statistics():
   d_num_quants_init("QModelBuilderIG::Number_Quantifiers", 0),
   d_num_partial_quants_init("QModelBuilderIG::Number_Partial_Quantifiers", 0),
@@ -359,25 +352,25 @@ QModelBuilderIG::Statistics::Statistics():
   d_eval_lits("QModelBuilderIG::Eval_Lits", 0 ),
   d_eval_lits_unknown("QModelBuilderIG::Eval_Lits_Unknown", 0 )
 {
-  StatisticsRegistry::registerStat(&d_num_quants_init);
-  StatisticsRegistry::registerStat(&d_num_partial_quants_init);
-  StatisticsRegistry::registerStat(&d_init_inst_gen_lemmas);
-  StatisticsRegistry::registerStat(&d_inst_gen_lemmas);
-  StatisticsRegistry::registerStat(&d_eval_formulas);
-  StatisticsRegistry::registerStat(&d_eval_uf_terms);
-  StatisticsRegistry::registerStat(&d_eval_lits);
-  StatisticsRegistry::registerStat(&d_eval_lits_unknown);
+  smtStatisticsRegistry()->registerStat(&d_num_quants_init);
+  smtStatisticsRegistry()->registerStat(&d_num_partial_quants_init);
+  smtStatisticsRegistry()->registerStat(&d_init_inst_gen_lemmas);
+  smtStatisticsRegistry()->registerStat(&d_inst_gen_lemmas);
+  smtStatisticsRegistry()->registerStat(&d_eval_formulas);
+  smtStatisticsRegistry()->registerStat(&d_eval_uf_terms);
+  smtStatisticsRegistry()->registerStat(&d_eval_lits);
+  smtStatisticsRegistry()->registerStat(&d_eval_lits_unknown);
 }
 
 QModelBuilderIG::Statistics::~Statistics(){
-  StatisticsRegistry::unregisterStat(&d_num_quants_init);
-  StatisticsRegistry::unregisterStat(&d_num_partial_quants_init);
-  StatisticsRegistry::unregisterStat(&d_init_inst_gen_lemmas);
-  StatisticsRegistry::unregisterStat(&d_inst_gen_lemmas);
-  StatisticsRegistry::unregisterStat(&d_eval_formulas);
-  StatisticsRegistry::unregisterStat(&d_eval_uf_terms);
-  StatisticsRegistry::unregisterStat(&d_eval_lits);
-  StatisticsRegistry::unregisterStat(&d_eval_lits_unknown);
+  smtStatisticsRegistry()->unregisterStat(&d_num_quants_init);
+  smtStatisticsRegistry()->unregisterStat(&d_num_partial_quants_init);
+  smtStatisticsRegistry()->unregisterStat(&d_init_inst_gen_lemmas);
+  smtStatisticsRegistry()->unregisterStat(&d_inst_gen_lemmas);
+  smtStatisticsRegistry()->unregisterStat(&d_eval_formulas);
+  smtStatisticsRegistry()->unregisterStat(&d_eval_uf_terms);
+  smtStatisticsRegistry()->unregisterStat(&d_eval_lits);
+  smtStatisticsRegistry()->unregisterStat(&d_eval_lits_unknown);
 }
 
 bool QModelBuilderIG::isQuantifierActive( Node f ){
@@ -508,9 +501,11 @@ void QModelBuilderDefault::analyzeQuantifier( FirstOrderModel* fm, Node f ){
   //for each asserted quantifier f,
   // - determine selection literals
   // - check which function/predicates have good and bad definitions for satisfying f
+  if( d_phase_reqs.find( f )==d_phase_reqs.end() ){
+    d_phase_reqs[f].initialize( d_qe->getTermDatabase()->getInstConstantBody( f ), true );
+  }
   int selectLitScore = -1;
-  QuantPhaseReq* qpr = d_qe->getPhaseRequirements( f );
-  for( std::map< Node, bool >::iterator it = qpr->d_phase_reqs.begin(); it != qpr->d_phase_reqs.end(); ++it ){
+  for( std::map< Node, bool >::iterator it = d_phase_reqs[f].d_phase_reqs.begin(); it != d_phase_reqs[f].d_phase_reqs.end(); ++it ){
     //the literal n is phase-required for quantifier f
     Node n = it->first;
     Node gn = d_qe->getTermDatabase()->getModelBasis( f, n );
@@ -751,5 +746,3 @@ void QModelBuilderDefault::constructModelUf( FirstOrderModel* fm, Node op ){
     Debug("fmf-model-cons") << "  Finished constructing model for " << op << "." << std::endl;
   }
 }
-
-

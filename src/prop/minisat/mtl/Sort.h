@@ -27,6 +27,7 @@ OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWA
 // Some sorting algorithms for vec's
 
 
+namespace CVC4 {
 namespace Minisat {
 
 template<class T>
@@ -93,6 +94,7 @@ template <class T> void sort(vec<T>& v) {
 
 
 //=================================================================================================
+}
 }
 
 #endif

@@ -16,8 +16,11 @@
  **/
 
 #include "theory/arith/theory_arith.h"
-#include "theory/arith/theory_arith_private.h"
+
+#include "options/smt_options.h"
+#include "smt/smt_statistics_registry.h"
 #include "theory/arith/infer_bounds.h"
+#include "theory/arith/theory_arith_private.h"
 
 using namespace std;
 using namespace CVC4::kind;
@@ -26,12 +29,18 @@ namespace CVC4 {
 namespace theory {
 namespace arith {
 
-TheoryArith::TheoryArith(context::Context* c, context::UserContext* u, OutputChannel& out, Valuation valuation, const LogicInfo& logicInfo)
-  : Theory(THEORY_ARITH, c, u, out, valuation, logicInfo)
-  , d_internal(new TheoryArithPrivate(*this, c, u, out, valuation, logicInfo))
-{}
+TheoryArith::TheoryArith(context::Context* c, context::UserContext* u,
+                         OutputChannel& out, Valuation valuation,
+                         const LogicInfo& logicInfo, SmtGlobals* globals)
+    : Theory(THEORY_ARITH, c, u, out, valuation, logicInfo, globals)
+    , d_internal(new TheoryArithPrivate(*this, c, u, out, valuation, logicInfo))
+    , d_ppRewriteTimer("theory::arith::ppRewriteTimer")
+{
+  smtStatisticsRegistry()->registerStat(&d_ppRewriteTimer);
+}
 
 TheoryArith::~TheoryArith(){
+  smtStatisticsRegistry()->unregisterStat(&d_ppRewriteTimer);
   delete d_internal;
 }
 
@@ -70,6 +79,7 @@ void TheoryArith::ppStaticLearn(TNode n, NodeBuilder<>& learned) {
 }
 
 void TheoryArith::check(Effort effortLevel){
+  getOutputChannel().spendResource(options::theoryCheckStep());
   d_internal->check(effortLevel);
 }
 

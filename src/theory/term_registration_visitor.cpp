@@ -14,8 +14,9 @@
  **/
 
 #include "theory/term_registration_visitor.h"
+
+#include "options/quantifiers_options.h"
 #include "theory/theory_engine.h"
-#include "theory/quantifiers/options.h"
 
 using namespace std;
 using namespace CVC4;

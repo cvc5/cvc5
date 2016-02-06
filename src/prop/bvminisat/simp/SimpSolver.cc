@@ -18,13 +18,16 @@ DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE,
 OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 **************************************************************************************************/
 
-#include "mtl/Sort.h"
 #include "simp/SimpSolver.h"
+
+#include "mtl/Sort.h"
+#include "options/bv_options.h"
+#include "options/smt_options.h"
 #include "utils/System.h"
-#include "theory/bv/options.h"
-#include "smt/options.h"
 #include "proof/proof.h"
-using namespace BVMinisat;
+
+namespace CVC4 {
+namespace BVMinisat {
 
 //=================================================================================================
 // Options:
@@ -60,7 +63,7 @@ SimpSolver::SimpSolver(CVC4::context::Context* c) :
   , asymm_lits         (0)
   , eliminated_vars    (0)
   , elimorder          (1)
-  , use_simplification (true && !PROOF_ON())
+  , use_simplification (!PROOF_ON())
   , occurs             (ClauseDeleted(ca))
   , elim_heap          (ElimLt(n_occ))
   , bwdsub_assigns     (0)
@@ -171,7 +174,7 @@ bool SimpSolver::addClause_(vec<Lit>& ps, ClauseId& id)
 
     if (use_rcheck && implied(ps))
         return true;
-    
+
     if (!Solver::addClause_(ps, id))
         return false;
 
@@ -753,3 +756,6 @@ void SimpSolver::garbageCollect()
                ca.size()*ClauseAllocator::Unit_Size, to.size()*ClauseAllocator::Unit_Size);
     to.moveTo(ca);
 }
+
+} /* CVC4::BVMinisat namespace */
+} /* CVC4 namespace */

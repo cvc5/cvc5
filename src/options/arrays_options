@@ -1,0 +1,35 @@
+#
+# Option specification file for CVC4
+# See src/options/base_options for a description of this file format
+#
+
+module ARRAYS "options/arrays_options.h" Arrays theory
+
+option arraysOptimizeLinear --arrays-optimize-linear bool :default true :read-write
+ turn on optimization for linear array terms (see de Moura FMCAD 09 arrays paper)
+
+option arraysLazyRIntro1 --arrays-lazy-rintro1 bool :default true :read-write
+ turn on optimization to only perform RIntro1 rule lazily (see Jovanovic/Barrett 2012: Being Careful with Theory Combination)
+
+option arraysWeakEquivalence --arrays-weak-equiv bool :default false :read-write
+ use algorithm from Christ/Hoenicke (SMT 2014)
+
+option arraysModelBased --arrays-model-based bool :default false :read-write
+ turn on model-based array solver
+
+option arraysEagerIndexSplitting --arrays-eager-index bool :default true :read-write
+ turn on eager index splitting for generated array lemmas
+
+option arraysEagerLemmas --arrays-eager-lemmas bool :default false :read-write
+ turn on eager lemma generation for arrays
+
+option arraysConfig --arrays-config int :default 0 :read-write
+ set different array option configurations - for developers only
+
+option arraysReduceSharing --arrays-reduce-sharing bool :default false :read-write
+ use model information to reduce size of care graph for arrays
+
+option arraysPropagate --arrays-prop int :default 2 :read-write
+ propagation effort for arrays: 0 is none, 1 is some, 2 is full
+
+endmodule

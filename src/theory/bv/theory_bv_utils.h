@@ -51,7 +51,6 @@ inline unsigned getSize(TNode node) {
   return node.getType().getBitVectorSize();
 }
 
-// this seems to behave strangely
 inline const bool getBit(TNode node, unsigned i) {
   Assert (i < utils::getSize(node) && 
           node.getKind() == kind::CONST_BITVECTOR);
@@ -386,6 +385,8 @@ inline bool isBVPredicate(TNode node) {
       node.getKind() == kind::BITVECTOR_SGE ||
       node.getKind() == kind::BITVECTOR_ULE || 
       node.getKind() == kind::BITVECTOR_SLE ||
+      node.getKind() == kind::BITVECTOR_REDOR ||
+      node.getKind() == kind::BITVECTOR_REDAND ||
       ( node.getKind() == kind::NOT && (node[0].getKind() == kind::EQUAL ||
                                         node[0].getKind() == kind::BITVECTOR_ULT ||
                                         node[0].getKind() == kind::BITVECTOR_SLT ||
@@ -394,7 +395,9 @@ inline bool isBVPredicate(TNode node) {
                                         node[0].getKind() == kind::BITVECTOR_SGT ||
                                         node[0].getKind() == kind::BITVECTOR_SGE ||
                                         node[0].getKind() == kind::BITVECTOR_ULE || 
-                                        node[0].getKind() == kind::BITVECTOR_SLE)))
+                                        node[0].getKind() == kind::BITVECTOR_SLE ||
+                                        node[0].getKind() == kind::BITVECTOR_REDOR ||
+                                        node[0].getKind() == kind::BITVECTOR_REDAND)))
     {
       return true; 
     }
@@ -509,6 +512,8 @@ bool isEqualityTerm(TNode term, TNodeBoolMap& cache);
 typedef __gnu_cxx::hash_set<Node, NodeHashFunction> NodeSet;
 
 uint64_t numNodes(TNode node, NodeSet& seen);
+
+void collectVariables(TNode node, NodeSet& vars);
 
 }
 }

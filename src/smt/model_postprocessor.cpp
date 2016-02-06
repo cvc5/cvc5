@@ -15,12 +15,15 @@
  **/
 
 #include "smt/model_postprocessor.h"
-#include "smt/boolean_terms.h"
+
 #include "expr/node_manager_attributes.h"
+#include "expr/record.h"
+#include "smt/boolean_terms.h"
 
 using namespace std;
-using namespace CVC4;
-using namespace CVC4::smt;
+
+namespace CVC4 {
+namespace smt {
 
 Node ModelPostprocessor::rewriteAs(TNode n, TypeNode asType) {
   if(n.getType().isSubtypeOf(asType)) {
@@ -97,6 +100,15 @@ Node ModelPostprocessor::rewriteAs(TNode n, TypeNode asType) {
     Node val = rewriteAs(asa.getExpr(), asType[1]);
     return NodeManager::currentNM()->mkConst(ArrayStoreAll(asType.toType(), val.toExpr()));
   }
+  if( n.getType().isSet() ){
+    if( n.getKind()==kind::UNION ){
+      std::vector< Node > children;
+      for( unsigned i=0; i<n.getNumChildren(); i++ ){
+        children.push_back( rewriteAs( n[i], asType ) );
+      }
+      return NodeManager::currentNM()->mkNode(kind::UNION,children);
+    }
+  }
   if(n.getType().isParametricDatatype() &&
      n.getType().isInstantiatedDatatype() &&
      asType.isParametricDatatype() &&
@@ -171,7 +183,7 @@ void ModelPostprocessor::visit(TNode current, TNode parent) {
     }
     Assert(t == expectType.end());
     d_nodes[current] = b;
-    Debug("tuprec") << "returning " << d_nodes[current] << endl;
+    Debug("tuprec") << "returning " << d_nodes[current] << ", operator = " << d_nodes[current].getOperator() << endl;
     // The assert below is too strong---we might be returning a model value but
     // expect a type that still uses datatypes for tuples/records.  If it's
     // really not the right type we should catch it in SmtEngine anyway.
@@ -182,10 +194,11 @@ void ModelPostprocessor::visit(TNode current, TNode parent) {
     const Record& expectRec = expectType.getConst<Record>();
     NodeBuilder<> b(kind::RECORD);
     b << current.getType().getAttribute(expr::DatatypeRecordAttr());
-    Record::const_iterator t = expectRec.begin();
+    const Record::FieldVector& fields = expectRec.getFields();
+    Record::FieldVector::const_iterator t = fields.begin();
     for(TNode::iterator i = current.begin(); i != current.end(); ++i, ++t) {
       Assert(alreadyVisited(*i, TNode::null()));
-      Assert(t != expectRec.end());
+      Assert(t != fields.end());
       TNode n = d_nodes[*i];
       n = n.isNull() ? *i : n;
       if(!n.getType().isSubtypeOf(TypeNode::fromType((*t).second))) {
@@ -203,9 +216,9 @@ void ModelPostprocessor::visit(TNode current, TNode parent) {
         b << n;
       }
     }
-    Assert(t == expectRec.end());
+    Assert(t == fields.end());
     d_nodes[current] = b;
-    Debug("tuprec") << "returning " << d_nodes[current] << endl;
+    Debug("tuprec") << "returning " << d_nodes[current] << ", operator = " << d_nodes[current].getOperator() << endl;
     Assert(d_nodes[current].getType() == expectType);
   } else if(current.getKind() == kind::APPLY_CONSTRUCTOR &&
             ( current.getOperator().hasAttribute(BooleanTermAttr()) ||
@@ -244,7 +257,9 @@ void ModelPostprocessor::visit(TNode current, TNode parent) {
     Debug("boolean-terms") << "model-post: " << current << endl
                            << "- returning " << n << endl;
     d_nodes[current] = n;
-  } else if(current.getKind() == kind::LAMBDA) {
+  //all kinds with children that can occur in nodes in a model go here
+  } else if(current.getKind() == kind::LAMBDA || current.getKind() == kind::SINGLETON || current.getKind() == kind::UNION || 
+            current.getKind()==kind::STORE || current.getKind()==kind::STORE_ALL || current.getKind()==kind::APPLY_CONSTRUCTOR ) {
     // rewrite based on children
     bool self = true;
     for(size_t i = 0; i < current.getNumChildren(); ++i) {
@@ -279,7 +294,7 @@ void ModelPostprocessor::visit(TNode current, TNode parent) {
         nb << rw;
       }
       d_nodes[current] = nb;
-      Debug("tuprec") << "rewrote children for kind " << current.getKind() << " got " << d_nodes[current] << endl;
+      Debug("tuprec") << "rewrote children for kind " << current.getKind() << " got " << d_nodes[current] << ", operator = " << d_nodes[current].getOperator() << endl;
     }
   } else {
     Debug("tuprec") << "returning self for kind " << current.getKind() << endl;
@@ -287,3 +302,6 @@ void ModelPostprocessor::visit(TNode current, TNode parent) {
     d_nodes[current] = Node::null();
   }
 }/* ModelPostprocessor::visit() */
+
+} /* namespace smt */
+} /* namespace CVC4 */

@@ -14,23 +14,27 @@
  ** Parser state implementation.
  **/
 
-#include <iostream>
-#include <fstream>
-#include <sstream>
-#include <iterator>
-#include <stdint.h>
-#include <cassert>
-
-#include "parser/input.h"
 #include "parser/parser.h"
-#include "parser/parser_exception.h"
-#include "expr/command.h"
+
+#include <stdint.h>
+
+#include <cassert>
+#include <fstream>
+#include <iostream>
+#include <iterator>
+#include <sstream>
+
+#include "base/output.h"
 #include "expr/expr.h"
+#include "expr/expr_iomanip.h"
 #include "expr/kind.h"
 #include "expr/type.h"
-#include "util/output.h"
-#include "util/resource_manager.h"
 #include "options/options.h"
+#include "options/smt_options.h"
+#include "parser/input.h"
+#include "parser/parser_exception.h"
+#include "smt_util/command.h"
+#include "util/resource_manager.h"
 
 using namespace std;
 using namespace CVC4::kind;
@@ -328,7 +332,7 @@ Parser::mkMutualDatatypeTypes(const std::vector<Datatype>& datatypes) {
           j != j_end;
           ++j) {
         const DatatypeConstructor& ctor = *j;
-        Expr::printtypes::Scope pts(Debug("parser-idt"), true);
+        expr::ExprPrintTypes::Scope pts(Debug("parser-idt"), true);
         Expr constructor = ctor.getConstructor();
         Debug("parser-idt") << "+ define " << constructor << std::endl;
         string constructorName = ctor.getName();
@@ -499,14 +503,14 @@ Command* Parser::nextCommand() throw(ParserException, UnsafeInterruptException) 
       dynamic_cast<QuitCommand*>(cmd) == NULL) {
     // don't count set-option commands as to not get stuck in an infinite
     // loop of resourcing out
-    d_resourceManager->spendResource();
+    d_resourceManager->spendResource(d_exprManager->getOptions()[options::parseStep]);
   }
   return cmd;
 }
 
 Expr Parser::nextExpression() throw(ParserException, UnsafeInterruptException) {
   Debug("parser") << "nextExpression()" << std::endl;
-  d_resourceManager->spendResource();
+  d_resourceManager->spendResource(d_exprManager->getOptions()[options::parseStep]);
   Expr result;
   if(!done()) {
     try {

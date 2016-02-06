@@ -14,15 +14,17 @@
  ** Black box testing of CVC4::BooleanSimplification.
  **/
 
-#include "util/language.h"
-#include "expr/node.h"
-#include "expr/kind.h"
-#include "expr/node_manager.h"
-#include "util/boolean_simplification.h"
-
 #include <algorithm>
-#include <vector>
 #include <set>
+#include <vector>
+
+#include "expr/expr_iomanip.h"
+#include "expr/kind.h"
+#include "expr/node.h"
+#include "expr/node_manager.h"
+#include "options/language.h"
+#include "options/set_language.h"
+#include "smt_util/boolean_simplification.h"
 
 using namespace CVC4;
 using namespace std;
@@ -101,8 +103,8 @@ public:
     TS_ASSERT_LESS_THAN_EQUALS(10u,
       BooleanSimplification::DUPLICATE_REMOVAL_THRESHOLD);
 
-    cout << Expr::setdepth(-1)
-         << Expr::setlanguage(language::output::LANG_CVC4);
+    cout << expr::ExprSetDepth(-1)
+         << language::SetLanguage(language::output::LANG_CVC4);
   }
 
   void tearDown() {
@@ -214,4 +216,3 @@ public:
   }
 
 };/* class BooleanSimplificationBlack */
-

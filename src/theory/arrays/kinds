@@ -35,7 +35,7 @@ operator STORE 3 "array store; first parameter is an array term, second is the s
 constant STORE_ALL \
     ::CVC4::ArrayStoreAll \
     ::CVC4::ArrayStoreAllHashFunction \
-    "util/array_store_all.h" \
+    "expr/array_store_all.h" \
     "array store-all; payload is an instance of the CVC4::ArrayStoreAll class (this is not supported by arrays decision procedure yet, but it is used for returned array models)"
 
 # used internally by array theory

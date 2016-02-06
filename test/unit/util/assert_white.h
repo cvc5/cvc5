@@ -19,7 +19,7 @@
 #include <string>
 #include <cstring>
 
-#include "util/cvc4_assert.h"
+#include "base/cvc4_assert.h"
 
 using namespace CVC4;
 using namespace std;

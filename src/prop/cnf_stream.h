@@ -25,14 +25,15 @@
 #ifndef __CVC4__PROP__CNF_STREAM_H
 #define __CVC4__PROP__CNF_STREAM_H
 
-#include "expr/node.h"
-#include "prop/theory_proxy.h"
-#include "prop/registrar.h"
-#include "proof/proof_manager.h"
-#include "context/cdlist.h"
-#include "context/cdinsert_hashmap.h"
-
 #include <ext/hash_map>
+
+#include "context/cdinsert_hashmap.h"
+#include "context/cdlist.h"
+#include "expr/node.h"
+#include "proof/proof_manager.h"
+#include "prop/registrar.h"
+#include "prop/theory_proxy.h"
+#include "smt/smt_globals.h"
 
 namespace CVC4 {
 namespace prop {
@@ -86,7 +87,12 @@ protected:
   /** The name of this CNF stream*/
   std::string d_name;
 
+  /** Pointer to the proof corresponding to this CnfStream */
   CnfProof* d_cnfProof;
+
+  /** Container for misc. globals. */
+  SmtGlobals* d_globals;
+
   /**
    * How many literals were already mapped at the top-level when we
    * tried to convertAndAssert() something.  This
@@ -182,9 +188,15 @@ public:
    * @param registrar the entity that takes care of preregistration of Nodes
    * @param context the context that the CNF should respect
    * @param fullLitToNodeMap maintain a full SAT-literal-to-Node mapping,
+   * @param name string identifier to distinguish between different instances
    * even for non-theory literals
    */
-  CnfStream(SatSolver* satSolver, Registrar* registrar, context::Context* context, bool fullLitToNodeMap = false, std::string name="");
+  CnfStream(SatSolver* satSolver,
+            Registrar* registrar,
+            context::Context* context,
+            SmtGlobals* globals,
+            bool fullLitToNodeMap = false,
+            std::string name="");
 
   /**
    * Destructs a CnfStream.  This implementation does nothing, but we
@@ -233,13 +245,6 @@ public:
   SatLiteral getLiteral(TNode node);
 
   /**
-   * Get the assertion with a given ID.  (Used for reconstructing proofs.)
-   */
-  // TNode getAssertion(uint64_t id) {
-  //   return d_assertionTable[id];
-  // }
-
-  /**
    * Returns the Boolean variables from the input problem.
    */
   void getBooleanVariables(std::vector<TNode>& outputVariables) const;
@@ -286,7 +291,7 @@ public:
    * @param fullLitToNodeMap maintain a full SAT-literal-to-Node mapping,
    * even for non-theory literals
    */
-  TseitinCnfStream(SatSolver* satSolver, Registrar* registrar, context::Context* context, bool fullLitToNodeMap = false, std::string name = "");
+  TseitinCnfStream(SatSolver* satSolver, Registrar* registrar, context::Context* context, SmtGlobals* globals, bool fullLitToNodeMap = false, std::string name = "");
 
 private:
 
