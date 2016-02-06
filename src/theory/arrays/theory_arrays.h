@@ -93,7 +93,7 @@ class TheoryArrays : public Theory {
   // MISC
   /////////////////////////////////////////////////////////////////////////////
 
-  private:
+ private:
 
   /** True node for predicates = true */
   Node d_true;
@@ -124,11 +124,11 @@ class TheoryArrays : public Theory {
   /** conflicts in setModelVal */
   IntStat d_numSetModelValConflicts;
 
-  public:
+ public:
 
   TheoryArrays(context::Context* c, context::UserContext* u, OutputChannel& out,
                Valuation valuation, const LogicInfo& logicInfo,
-               SmtGlobals* globals, std::string name = ""); 
+               std::string name = "");
   ~TheoryArrays();
 
   void setMasterEqualityEngine(eq::EqualityEngine* eq);
@@ -139,7 +139,7 @@ class TheoryArrays : public Theory {
   // PREPROCESSING
   /////////////////////////////////////////////////////////////////////////////
 
-  private:
+ private:
 
   // PPNotifyClass: dummy template class for d_ppEqualityEngine - notifications not used
   class PPNotifyClass {

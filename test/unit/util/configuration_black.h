@@ -16,7 +16,7 @@
 
 #include <cxxtest/TestSuite.h>
 
-#include "util/configuration.h"
+#include "base/configuration.h"
 
 using namespace CVC4;
 using namespace std;

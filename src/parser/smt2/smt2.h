@@ -19,16 +19,15 @@
 #ifndef __CVC4__PARSER__SMT2_H
 #define __CVC4__PARSER__SMT2_H
 
+#include <sstream>
+#include <stack>
+#include <string>
+#include <utility>
+
 #include "parser/parser.h"
 #include "parser/smt1/smt1.h"
 #include "theory/logic_info.h"
 #include "util/abstract_value.h"
-#include "parser/smt2/smt2_input.h"
-
-#include <string>
-#include <sstream>
-#include <utility>
-#include <stack>
 
 namespace CVC4 {
 
@@ -115,9 +114,7 @@ public:
     return getInput()->getLanguage() == language::input::LANG_SYGUS;
   }
 
-  void setLanguage(InputLanguage lang) {
-    ((Smt2Input*) getInput())->setLanguage(lang);
-  }
+  void setLanguage(InputLanguage lang);
 
   void setInfo(const std::string& flag, const SExpr& sexpr);
 

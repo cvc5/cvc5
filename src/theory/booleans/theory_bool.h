@@ -29,9 +29,8 @@ namespace booleans {
 class TheoryBool : public Theory {
 public:
   TheoryBool(context::Context* c, context::UserContext* u, OutputChannel& out,
-             Valuation valuation, const LogicInfo& logicInfo,
-             SmtGlobals* globals)
-      : Theory(THEORY_BOOL, c, u, out, valuation, logicInfo, globals)
+             Valuation valuation, const LogicInfo& logicInfo)
+      : Theory(THEORY_BOOL, c, u, out, valuation, logicInfo)
   {}
 
   PPAssertStatus ppAssert(TNode in, SubstitutionMap& outSubstitutions);

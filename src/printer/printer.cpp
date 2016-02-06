@@ -71,7 +71,12 @@ Printer* Printer::makePrinter(OutputLanguage lang) throw() {
 
 void Printer::toStream(std::ostream& out, const Model& m) const throw() {
   for(size_t i = 0; i < m.getNumCommands(); ++i) {
-    toStream(out, m, m.getCommand(i));
+    const Command* cmd = m.getCommand(i);
+    const DeclareFunctionCommand* dfc = dynamic_cast<const DeclareFunctionCommand*>(cmd);
+    if (dfc != NULL && m.isDontCare(dfc->getFunction())) {
+      continue;
+    }
+    toStream(out, m, cmd);
   }
 }/* Printer::toStream(Model) */
 

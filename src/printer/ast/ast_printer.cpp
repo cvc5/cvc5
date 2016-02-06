@@ -24,7 +24,7 @@
 #include "expr/node_manager_attributes.h" // for VarNameAttr
 #include "options/language.h" // for LANG_AST
 #include "printer/dagification_visitor.h"
-#include "smt_util/command.h"
+#include "smt/command.h"
 #include "smt_util/node_visitor.h"
 #include "theory/substitutions.h"
 

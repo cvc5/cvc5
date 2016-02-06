@@ -35,8 +35,8 @@ namespace CVC4 {
  */
 class BooleanSimplification {
   // cannot construct one of these
-  BooleanSimplification() CVC4_UNUSED;
-  BooleanSimplification(const BooleanSimplification&) CVC4_UNUSED;
+  BooleanSimplification() CVC4_UNDEFINED;
+  BooleanSimplification(const BooleanSimplification&) CVC4_UNDEFINED;
 
   static bool push_back_associative_commute_recursive
     (Node n, std::vector<Node>& buffer, Kind k, Kind notK, bool negateNode)

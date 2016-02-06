@@ -149,6 +149,7 @@ Node ProofUF::toStreamRecLFSC(std::ostream& out, TheoryProof * tp, theory::eq::E
         // Begin breaking up the congruences and ordering the equalities correctly.
         std::vector<theory::eq::EqProof *> orderedEqualities;
 
+
         // Insert target clause first.
         if (targetAppearsBefore) {
           orderedEqualities.push_back(pf->d_children[i - 1]);

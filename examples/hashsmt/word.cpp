@@ -28,7 +28,6 @@
 
 #include "expr/expr.h"
 #include "expr/expr_iomanip.h"
-#include "options/base_options.h"
 #include "options/language.h"
 #include "options/options.h"
 
@@ -43,7 +42,7 @@ Expr Word::extendToSize(unsigned newSize) const {
   } else {
     // 0-extend to size
     Expr extendOp = em()->mkConst(BitVectorZeroExtend(newSize - size()));
-    return em()->mkExpr(extendOp, d_expr);    
+    return em()->mkExpr(extendOp, d_expr);
   }
 }
 
@@ -52,8 +51,8 @@ ExprManager* Word::s_manager = 0;
 ExprManager* Word::em() {
   if (s_manager == 0) {
     CVC4::Options options;
-    options.set(inputLanguage, language::input::LANG_SMTLIB_V2);
-    options.set(outputLanguage, language::output::LANG_SMTLIB_V2);
+    options.setInputLanguage(language::input::LANG_SMTLIB_V2);
+    options.setOutputLanguage(language::output::LANG_SMTLIB_V2);
     s_manager = new CVC4::ExprManager(options);
   }
   return s_manager;
@@ -173,5 +172,3 @@ cvc4_uchar8::cvc4_uchar8(const Word& b) {
     d_expr = b.getExpr();
   }
 }
-
-

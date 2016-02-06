@@ -44,8 +44,8 @@ namespace bv {
 
 TheoryBV::TheoryBV(context::Context* c, context::UserContext* u,
                    OutputChannel& out, Valuation valuation,
-                   const LogicInfo& logicInfo, SmtGlobals* globals)
-    : Theory(THEORY_BV, c, u, out, valuation, logicInfo, globals),
+                   const LogicInfo& logicInfo)
+    : Theory(THEORY_BV, c, u, out, valuation, logicInfo),
       d_context(c),
       d_alreadyPropagatedSet(c),
       d_sharedTermsSet(c),

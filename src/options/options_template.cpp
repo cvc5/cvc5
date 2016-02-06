@@ -52,13 +52,14 @@ extern int optreset;
 #include "base/exception.h"
 #include "base/output.h"
 #include "base/tls.h"
+#include "options/argument_extender.h"
 #include "options/didyoumean.h"
 #include "options/language.h"
-#include "options/options_handler_interface.h"
+#include "options/options_handler.h"
 
 ${include_all_option_headers}
 
-#line 58 "${template}"
+#line 63 "${template}"
 
 #include "options/options_holder.h"
 #include "cvc4autoconfig.h"
@@ -66,7 +67,7 @@ ${include_all_option_headers}
 
 ${option_handler_includes}
 
-#line 67 "${template}"
+#line 71 "${template}"
 
 using namespace CVC4;
 using namespace CVC4::options;
@@ -74,6 +75,8 @@ using namespace CVC4::options;
 namespace CVC4 {
 
 CVC4_THREADLOCAL(Options*) Options::s_current = NULL;
+
+
 
 /**
  * This is a default handler for options of built-in C++ type.  This
@@ -110,7 +113,8 @@ struct OptionHandler<T, true, true> {
       bool success = stringToInt(i, optionarg);
 
       if(!success){
-        throw OptionException(option + ": failed to parse "+ optionarg +" as an integer of the appropraite type.");
+        throw OptionException(option + ": failed to parse "+ optionarg +
+                              " as an integer of the appropraite type.");
       }
 
       // Depending in the platform unsigned numbers with '-' signs may parse.
@@ -121,12 +125,14 @@ struct OptionHandler<T, true, true> {
       } else if(i < std::numeric_limits<T>::min()) {
         // negative overflow for type
         std::stringstream ss;
-        ss << option << " requires an argument >= " << std::numeric_limits<T>::min();
+        ss << option << " requires an argument >= "
+           << std::numeric_limits<T>::min();
         throw OptionException(ss.str());
       } else if(i > std::numeric_limits<T>::max()) {
         // positive overflow for type
         std::stringstream ss;
-        ss << option << " requires an argument <= " << std::numeric_limits<T>::max();
+        ss << option << " requires an argument <= "
+           << std::numeric_limits<T>::max();
         throw OptionException(ss.str());
       }
 
@@ -162,12 +168,14 @@ struct OptionHandler<T, true, false> {
     } else if(r < -std::numeric_limits<T>::max()) {
       // negative overflow for type
       std::stringstream ss;
-      ss << option << " requires an argument >= " << -std::numeric_limits<T>::max();
+      ss << option << " requires an argument >= "
+         << -std::numeric_limits<T>::max();
       throw OptionException(ss.str());
     } else if(r > std::numeric_limits<T>::max()) {
       // positive overflow for type
       std::stringstream ss;
-      ss << option << " requires an argument <= " << std::numeric_limits<T>::max();
+      ss << option << " requires an argument <= "
+         << std::numeric_limits<T>::max();
       throw OptionException(ss.str());
     }
 
@@ -221,9 +229,167 @@ void runBoolPredicates(T, std::string option, bool b, options::OptionsHandler* h
   // that can throw exceptions.
 }
 
+
+Options::Options()
+    : d_holder(new options::OptionsHolder())
+    , d_handler(new options::OptionsHandler(this))
+    , d_forceLogicListeners()
+    , d_beforeSearchListeners()
+    , d_tlimitListeners()
+    , d_tlimitPerListeners()
+    , d_rlimitListeners()
+    , d_rlimitPerListeners()
+{}
+
+Options::~Options() {
+  delete d_handler;
+  delete d_holder;
+}
+
+void Options::copyValues(const Options& options){
+  if(this != &options) {
+    delete d_holder;
+    d_holder = new options::OptionsHolder(*options.d_holder);
+  }
+}
+
+std::string Options::formatThreadOptionException(const std::string& option) {
+  std::stringstream ss;
+  ss << "can't understand option `" << option
+     << "': expected something like --threadN=\"--option1 --option2\","
+     << " where N is a nonnegative integer";
+  return ss.str();
+}
+
+ListenerCollection::Registration* Options::registerAndNotify(
+    ListenerCollection& collection, Listener* listener, bool notify)
+{
+  ListenerCollection::Registration* registration =
+      collection.registerListener(listener);
+  if(notify) {
+    listener->notify();
+  }
+  return registration;
+}
+
+ListenerCollection::Registration* Options::registerForceLogicListener(
+    Listener* listener, bool notifyIfSet)
+{
+  bool notify = notifyIfSet && wasSetByUser(options::forceLogicString);
+  return registerAndNotify(d_forceLogicListeners, listener, notify);
+}
+
+ListenerCollection::Registration* Options::registerBeforeSearchListener(
+   Listener* listener)
+{
+  return d_beforeSearchListeners.registerListener(listener);
+}
+
+ListenerCollection::Registration* Options::registerTlimitListener(
+   Listener* listener, bool notifyIfSet)
+{
+  bool notify = notifyIfSet &&
+      wasSetByUser(options::cumulativeMillisecondLimit);
+  return registerAndNotify(d_tlimitListeners, listener, notify);
+}
+
+ListenerCollection::Registration* Options::registerTlimitPerListener(
+   Listener* listener, bool notifyIfSet)
+{
+  bool notify = notifyIfSet && wasSetByUser(options::perCallMillisecondLimit);
+  return registerAndNotify(d_tlimitPerListeners, listener, notify);
+}
+
+ListenerCollection::Registration* Options::registerRlimitListener(
+   Listener* listener, bool notifyIfSet)
+{
+  bool notify = notifyIfSet && wasSetByUser(options::cumulativeResourceLimit);
+  return registerAndNotify(d_rlimitListeners, listener, notify);
+}
+
+ListenerCollection::Registration* Options::registerRlimitPerListener(
+   Listener* listener, bool notifyIfSet)
+{
+  bool notify = notifyIfSet && wasSetByUser(options::perCallResourceLimit);
+  return registerAndNotify(d_rlimitPerListeners, listener, notify);
+}
+
+ListenerCollection::Registration* Options::registerUseTheoryListListener(
+   Listener* listener, bool notifyIfSet)
+{
+  bool notify = notifyIfSet && wasSetByUser(options::useTheoryList);
+  return registerAndNotify(d_useTheoryListListeners, listener, notify);
+}
+
+ListenerCollection::Registration* Options::registerSetDefaultExprDepthListener(
+    Listener* listener, bool notifyIfSet)
+{
+  bool notify = notifyIfSet && wasSetByUser(options::defaultExprDepth);
+  return registerAndNotify(d_setDefaultExprDepthListeners, listener, notify);
+}
+
+ListenerCollection::Registration* Options::registerSetDefaultExprDagListener(
+    Listener* listener, bool notifyIfSet)
+{
+  bool notify = notifyIfSet && wasSetByUser(options::defaultDagThresh);
+  return registerAndNotify(d_setDefaultDagThreshListeners, listener, notify);
+}
+
+ListenerCollection::Registration* Options::registerSetPrintExprTypesListener(
+    Listener* listener, bool notifyIfSet)
+{
+  bool notify = notifyIfSet && wasSetByUser(options::printExprTypes);
+  return registerAndNotify(d_setPrintExprTypesListeners, listener, notify);
+}
+
+ListenerCollection::Registration* Options::registerSetDumpModeListener(
+    Listener* listener, bool notifyIfSet)
+{
+  bool notify = notifyIfSet && wasSetByUser(options::dumpModeString);
+  return registerAndNotify(d_setDumpModeListeners, listener, notify);
+}
+
+ListenerCollection::Registration* Options::registerSetPrintSuccessListener(
+    Listener* listener, bool notifyIfSet)
+{
+  bool notify = notifyIfSet && wasSetByUser(options::printSuccess);
+  return registerAndNotify(d_setPrintSuccessListeners, listener, notify);
+}
+
+ListenerCollection::Registration* Options::registerDumpToFileNameListener(
+    Listener* listener, bool notifyIfSet)
+{
+  bool notify = notifyIfSet && wasSetByUser(options::dumpToFileName);
+  return registerAndNotify(d_dumpToFileListeners, listener, notify);
+}
+
+ListenerCollection::Registration*
+Options::registerSetRegularOutputChannelListener(
+    Listener* listener, bool notifyIfSet)
+{
+  bool notify = notifyIfSet && wasSetByUser(options::regularChannelName);
+  return registerAndNotify(d_setRegularChannelListeners, listener, notify);
+}
+
+ListenerCollection::Registration*
+Options::registerSetDiagnosticOutputChannelListener(
+    Listener* listener, bool notifyIfSet)
+{
+  bool notify = notifyIfSet && wasSetByUser(options::diagnosticChannelName);
+  return registerAndNotify(d_setDiagnosticChannelListeners, listener, notify);
+}
+
+ListenerCollection::Registration*
+Options::registerSetReplayLogFilename(
+    Listener* listener, bool notifyIfSet)
+{
+  bool notify = notifyIfSet && wasSetByUser(options::replayLogFilename);
+  return registerAndNotify(d_setReplayFilenameListeners, listener, notify);
+}
+
 ${all_custom_handlers}
 
-#line 204 "${template}"
+#line 393 "${template}"
 
 #ifdef CVC4_DEBUG
 #  define USE_EARLY_TYPE_CHECKING_BY_DEFAULT true
@@ -237,42 +403,22 @@ ${all_custom_handlers}
 #  define DO_SEMANTIC_CHECKS_BY_DEFAULT true
 #endif /* CVC4_MUZZLED || CVC4_COMPETITION_MODE */
 
-Options::Options() :
-  d_holder(new options::OptionsHolder()) {
-}
-
-Options::Options(const Options& options) :
-  d_holder(new options::OptionsHolder(*options.d_holder)) {
-}
-
-Options::~Options() {
-  delete d_holder;
-}
-
-Options& Options::operator=(const Options& options) {
-  if(this != &options) {
-    delete d_holder;
-    d_holder = new options::OptionsHolder(*options.d_holder);
-  }
-  return *this;
-}
-
 options::OptionsHolder::OptionsHolder() : ${all_modules_defaults}
 {
 }
 
-#line 242 "${template}"
+#line 411 "${template}"
 
 static const std::string mostCommonOptionsDescription = "\
 Most commonly-used CVC4 options:${common_documentation}";
 
-#line 247 "${template}"
+#line 416 "${template}"
 
 static const std::string optionsDescription = mostCommonOptionsDescription + "\n\
 \n\
 Additional CVC4 options:${remaining_documentation}";
 
-#line 253 "${template}"
+#line 422 "${template}"
 
 static const std::string optionsFootnote = "\n\
 [*] Each of these options has a --no-OPTIONNAME variant, which reverses the\n\
@@ -315,7 +461,8 @@ void Options::printUsage(const std::string msg, std::ostream& out) {
 void Options::printShortUsage(const std::string msg, std::ostream& out) {
   out << msg << mostCommonOptionsDescription << std::endl
       << optionsFootnote << std::endl
-      << "For full usage, please use --help." << std::endl << std::endl << std::flush;
+      << "For full usage, please use --help."
+      << std::endl << std::endl << std::flush;
 }
 
 void Options::printLanguageHelp(std::ostream& out) {
@@ -350,34 +497,33 @@ static struct option cmdlineOptions[] = {${all_modules_long_options}
   { NULL, no_argument, NULL, '\0' }
 };/* cmdlineOptions */
 
-#line 330 "${template}"
+#line 501 "${template}"
 
-static void preemptGetopt(int& argc, char**& argv, const char* opt) {
-  const size_t maxoptlen = 128;
+// static void preemptGetopt(int& argc, char**& argv, const char* opt) {
 
-  Debug("preemptGetopt") << "preempting getopt() with " << opt << std::endl;
+//   Debug("preemptGetopt") << "preempting getopt() with " << opt << std::endl;
 
-  AlwaysAssert(opt != NULL && *opt != '\0');
-  AlwaysAssert(strlen(opt) <= maxoptlen);
+//   AlwaysAssert(opt != NULL && *opt != '\0');
+//   AlwaysAssert(strlen(opt) <= maxoptlen);
 
-  ++argc;
-  unsigned i = 1;
-  while(argv[i] != NULL && argv[i][0] != '\0') {
-    ++i;
-  }
+//   ++argc;
+//   unsigned i = 1;
+//   while(argv[i] != NULL && argv[i][0] != '\0') {
+//     ++i;
+//   }
 
-  if(argv[i] == NULL) {
-    argv = (char**) realloc(argv, (i + 6) * sizeof(char*));
-    for(unsigned j = i; j < i + 5; ++j) {
-      argv[j] = (char*) malloc(sizeof(char) * maxoptlen);
-      argv[j][0] = '\0';
-    }
-    argv[i + 5] = NULL;
-  }
+//   if(argv[i] == NULL) {
+//     argv = (char**) realloc(argv, (i + 6) * sizeof(char*));
+//     for(unsigned j = i; j < i + 5; ++j) {
+//       argv[j] = (char*) malloc(sizeof(char) * maxoptlen);
+//       argv[j][0] = '\0';
+//     }
+//     argv[i + 5] = NULL;
+//   }
 
-  strncpy(argv[i], opt, maxoptlen - 1);
-  argv[i][maxoptlen - 1] = '\0'; // ensure NUL-termination even on overflow
-}
+//   strncpy(argv[i], opt, maxoptlen - 1);
+//   argv[i][maxoptlen - 1] = '\0'; // ensure NUL-termination even on overflow
+// }
 
 namespace options {
 
@@ -403,10 +549,16 @@ public:
  * The return value is what's left of the command line (that is, the
  * non-option arguments).
  */
-std::vector<std::string> Options::parseOptions(int argc, char* main_argv[], options::OptionsHandler* const handler) throw(OptionException) {
+std::vector<std::string> Options::parseOptions(int argc, char* main_argv[]) throw(OptionException) {
   options::OptionsGuard guard(&s_current, this);
 
+  // Having this synonym simplifies the generation code in mkoptions.
+  options::OptionsHandler* handler = d_handler;
+
   const char *progName = main_argv[0];
+
+  ArgumentExtender argumentExtender(s_preemptAdditional, s_maxoptlen);
+  std::vector<char*> allocated;
 
   Debug("options") << "main_argv == " << main_argv << std::endl;
 
@@ -441,7 +593,8 @@ std::vector<std::string> Options::parseOptions(int argc, char* main_argv[], opti
     int c = -1;
     optopt = 0;
     std::string option, optionarg;
-    Debug("preemptGetopt") << "top of loop, extra_optind == " << extra_optind << ", extra_argc == " << extra_argc << std::endl;
+    Debug("preemptGetopt") << "top of loop, extra_optind == " << extra_optind
+                           << ", extra_argc == " << extra_argc << std::endl;
     if((extra_optind == 0 ? 1 : extra_optind) < extra_argc) {
 #if HAVE_DECL_OPTRESET
       if(optind_ref != &extra_optind) {
@@ -451,14 +604,20 @@ std::vector<std::string> Options::parseOptions(int argc, char* main_argv[], opti
       old_optind = optind = extra_optind;
       optind_ref = &extra_optind;
       argv = extra_argv;
-      Debug("preemptGetopt") << "in preempt code, next arg is " << extra_argv[optind == 0 ? 1 : optind] << std::endl;
+      Debug("preemptGetopt") << "in preempt code, next arg is "
+                             << extra_argv[optind == 0 ? 1 : optind]
+                             << std::endl;
       if(extra_argv[extra_optind == 0 ? 1 : extra_optind][0] != '-') {
-        InternalError("preempted args cannot give non-options command-line args (found `%s')", extra_argv[extra_optind == 0 ? 1 : extra_optind]);
+        InternalError(
+            "preempted args cannot give non-options command-line args (found `%s')",
+            extra_argv[extra_optind == 0 ? 1 : extra_optind]);
       }
       c = getopt_long(extra_argc, extra_argv,
                       "+:${all_modules_short_options}",
                       cmdlineOptions, NULL);
-      Debug("preemptGetopt") << "in preempt code, c == " << c << " (`" << char(c) << "') optind == " << optind << std::endl;
+      Debug("preemptGetopt") << "in preempt code"
+                             << ", c == " << c << " (`" << char(c) << "')"
+                             << " optind == " << optind << std::endl;
       if(optopt == 0 ||
          ( optopt >= ${long_option_value_begin} && optopt <= ${long_option_value_end} )) {
         // long option
@@ -522,13 +681,16 @@ std::vector<std::string> Options::parseOptions(int argc, char* main_argv[], opti
         Debug("options") << "I restored optind to " << optind << std::endl;*/
       }
 #endif /* __MINGW32__ || __MINGW64__ */
-      Debug("options") << "[ argc == " << argc << ", main_argv == " << main_argv << " ]" << std::endl;
+      Debug("options") << "[ argc == " << argc
+                       << ", main_argv == " << main_argv << " ]" << std::endl;
       c = getopt_long(argc, main_argv,
                       "+:${all_modules_short_options}",
                       cmdlineOptions, NULL);
       main_optind = optind;
-      Debug("options") << "[ got " << int(c) << " (" << char(c) << ") ]" << std::endl;
-      Debug("options") << "[ next option will be at pos: " << optind << " ]" << std::endl;
+      Debug("options") << "[ got " << int(c) << " (" << char(c) << ") ]"
+                       << std::endl;
+      Debug("options") << "[ next option will be at pos: " << optind << " ]"
+                       << std::endl;
       if(c == -1) {
         Debug("options") << "done with option parsing" << std::endl;
         break;
@@ -537,12 +699,13 @@ std::vector<std::string> Options::parseOptions(int argc, char* main_argv[], opti
       optionarg = (optarg == NULL) ? "" : optarg;
     }
 
-    Debug("preemptGetopt") << "processing option " << c << " (`" << char(c) << "'), " << option << std::endl;
+    Debug("preemptGetopt") << "processing option " << c
+                           << " (`" << char(c) << "'), " << option << std::endl;
 
     switch(c) {
 ${all_modules_option_handlers}
 
-#line 523 "${template}"
+#line 709 "${template}"
 
     case ':':
       // This can be a long or short option, and the way to get at the
@@ -555,13 +718,13 @@ ${all_modules_option_handlers}
           !strncmp(argv[optind - 1], "--thread", 8) &&
           strlen(argv[optind - 1]) > 8 ) {
         if(! isdigit(argv[optind - 1][8])) {
-          throw OptionException(std::string("can't understand option `") + option + "': expected something like --threadN=\"--option1 --option2\", where N is a nonnegative integer");
+          throw OptionException(formatThreadOptionException(option));
         }
         std::vector<std::string>& threadArgv = d_holder->threadArgv;
         char *end;
         long tnum = strtol(argv[optind - 1] + 8, &end, 10);
         if(tnum < 0 || (*end != '\0' && *end != '=')) {
-          throw OptionException(std::string("can't understand option `") + option + "': expected something like --threadN=\"--option1 --option2\", where N is a nonnegative integer");
+          throw OptionException(formatThreadOptionException(option));
         }
         if(threadArgv.size() <= size_t(tnum)) {
           threadArgv.resize(tnum + 1);
@@ -571,29 +734,42 @@ ${all_modules_option_handlers}
         }
         if(*end == '\0') { // e.g., we have --thread0 "foo"
           if(argc <= optind) {
-            throw OptionException(std::string("option `") + option + "' missing its required argument");
+            throw OptionException(std::string("option `") + option
+                                  + "' missing its required argument");
           }
-          Debug("options") << "thread " << tnum << " gets option " << argv[optind] << std::endl;
+          Debug("options") << "thread " << tnum << " gets option "
+                           << argv[optind] << std::endl;
           threadArgv[tnum] += argv[(*optind_ref)++];
         } else { // e.g., we have --thread0="foo"
           if(end[1] == '\0') {
-            throw OptionException(std::string("option `") + option + "' missing its required argument");
+            throw OptionException(std::string("option `") + option +
+                                  "' missing its required argument");
           }
-          Debug("options") << "thread " << tnum << " gets option " << (end + 1) << std::endl;
+          Debug("options") << "thread " << tnum << " gets option " << (end + 1)
+                           << std::endl;
           threadArgv[tnum] += end + 1;
         }
-        Debug("options") << "thread " << tnum << " now has " << threadArgv[tnum] << std::endl;
+        Debug("options") << "thread " << tnum << " now has " << threadArgv[tnum]
+                         << std::endl;
         break;
       }
 
-      throw OptionException(std::string("can't understand option `") + option + "'"
-                            + suggestCommandLineOptions(option));
+      throw OptionException(std::string("can't understand option `") + option +
+                            "'" + suggestCommandLineOptions(option));
     }
   }
 
   Debug("options") << "returning " << nonOptions.size() << " non-option arguments." << std::endl;
 
   free(extra_argv);
+  for(std::vector<char*>::iterator i = allocated.begin(), iend = allocated.end();
+      i != iend; ++i)
+  {
+    char* current = *i;
+    #warning "TODO: Unit tests fail if garbage collection is done here."
+    //free(current);
+  }
+  allocated.clear();
 
   return nonOptions;
 }
@@ -611,7 +787,7 @@ std::string Options::suggestCommandLineOptions(const std::string& optionName) th
 
 static const char* smtOptions[] = {
   ${all_modules_smt_options},
-#line 592 "${template}"
+#line 790 "${template}"
   NULL
 };/* smtOptions[] */
 
@@ -633,10 +809,11 @@ std::vector< std::vector<std::string> > Options::getOptions() const throw() {
 
   ${all_modules_get_options}
 
-#line 614 "${template}"
+#line 813 "${template}"
 
   return opts;
 }
+
 
 #undef USE_EARLY_TYPE_CHECKING_BY_DEFAULT
 #undef DO_SEMANTIC_CHECKS_BY_DEFAULT

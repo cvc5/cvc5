@@ -22,7 +22,7 @@
 namespace CVC4 {
 namespace theory {
 namespace uf {
-  
+
 enum UfssMode{
   /** default, use uf strong solver to find minimal models for uninterpreted sorts */
   UF_SS_FULL,
@@ -37,4 +37,3 @@ enum UfssMode{
 }/* CVC4 namespace */
 
 #endif /* __CVC4__BASE__UFSS_MODE_H */
-

@@ -28,8 +28,8 @@
 #include "options/quantifiers_options.h"
 #include "proof/proof_manager.h"
 #include "proof/theory_proof.h"
+#include "smt/ite_removal.h"
 #include "smt/logic_exception.h"
-#include "smt_util/ite_removal.h"
 #include "smt_util/lemma_output_channel.h"
 #include "smt_util/node_visitor.h"
 #include "theory/arith/arith_ite_utils.h"
@@ -104,7 +104,7 @@ TheoryEngine::TheoryEngine(context::Context* context,
                            context::UserContext* userContext,
                            RemoveITE& iteRemover,
                            const LogicInfo& logicInfo,
-                           SmtGlobals* globals)
+                           LemmaChannels* channels)
 : d_propEngine(NULL),
   d_decisionEngine(NULL),
   d_context(context),
@@ -133,16 +133,20 @@ TheoryEngine::TheoryEngine(context::Context* context,
   d_false(),
   d_interrupted(false),
   d_resourceManager(NodeManager::currentResourceManager()),
-  d_globals(globals),
+  d_channels(channels),
   d_inPreregister(false),
   d_factsAsserted(context, false),
   d_preRegistrationVisitor(this, context),
   d_sharedTermsVisitor(d_sharedTerms),
   d_unconstrainedSimp(new UnconstrainedSimplifier(context, logicInfo)),
   d_bvToBoolPreprocessor(),
+  d_theoryAlternatives(),
+  d_attr_handle(),
   d_arithSubstitutionsAdded("theory::arith::zzz::arith::substitutions", 0)
 {
-  for(TheoryId theoryId = theory::THEORY_FIRST; theoryId != theory::THEORY_LAST; ++ theoryId) {
+  for(TheoryId theoryId = theory::THEORY_FIRST; theoryId != theory::THEORY_LAST;
+      ++ theoryId)
+  {
     d_theoryTable[theoryId] = NULL;
     d_theoryOut[theoryId] = NULL;
   }
@@ -155,7 +159,7 @@ TheoryEngine::TheoryEngine(context::Context* context,
   d_true = NodeManager::currentNM()->mkConst<bool>(true);
   d_false = NodeManager::currentNM()->mkConst<bool>(false);
 
-  PROOF (ProofManager::currentPM()->initTheoryProofEngine(d_globals); );
+  PROOF (ProofManager::currentPM()->initTheoryProofEngine(); );
 
   d_iteUtilities = new ITEUtilities(d_iteRemover.getContainsVisitor());
 
@@ -1406,8 +1410,8 @@ theory::LemmaStatus TheoryEngine::lemma(TNode node,
   }
 
   // Share with other portfolio threads
-  if(d_globals->getLemmaOutputChannel() != NULL) {
-    d_globals->getLemmaOutputChannel()->notifyNewLemma(node.toExpr());
+  if(d_channels->getLemmaOutputChannel() != NULL) {
+    d_channels->getLemmaOutputChannel()->notifyNewLemma(node.toExpr());
   }
 
   std::vector<Node> additionalLemmas;
@@ -1777,6 +1781,18 @@ std::pair<bool, Node> TheoryEngine::entailmentCheck(theory::TheoryOfMode mode, T
 void TheoryEngine::spendResource(unsigned ammount) {
   d_resourceManager->spendResource(ammount);
 }
+
+void TheoryEngine::enableTheoryAlternative(const std::string& name){
+  Debug("TheoryEngine::enableTheoryAlternative")
+      << "TheoryEngine::enableTheoryAlternative(" << name << ")" << std::endl;
+
+  d_theoryAlternatives.insert(name);
+}
+
+bool TheoryEngine::useTheoryAlternative(const std::string& name) {
+  return d_theoryAlternatives.find(name) != d_theoryAlternatives.end();
+}
+
 
 TheoryEngine::Statistics::Statistics(theory::TheoryId theory):
     conflicts(mkName("theory<", theory, ">::conflicts"), 0),

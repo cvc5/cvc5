@@ -20,20 +20,22 @@
 #include "options/didyoumean.h"
 
 #include <iostream>
+#include <set>
 #include <sstream>
+#include <string>
+#include <vector>
 
-using namespace std;
 namespace CVC4 {
 
-vector<string> DidYouMean::getMatch(string input) {
+std::vector<std::string> DidYouMean::getMatch(std::string input) {
   /** Magic numbers */
   const int similarityThreshold = 7;
   const unsigned numMatchesThreshold = 10;
 
-  set< pair<int, string> > scores;
-  vector<string> ret;
+  std::set< std::pair<int, std::string> > scores;
+  std::vector<std::string> ret;
   for(typeof(d_words.begin()) it = d_words.begin(); it != d_words.end(); ++it) {
-    string s = (*it);
+    std::string s = (*it);
     if( s == input ) {
       // if input matches AS-IS just return that
       ret.push_back(s);
@@ -60,7 +62,9 @@ vector<string> DidYouMean::getMatch(string input) {
 #endif
     }
   }
-  if(ret.size() > numMatchesThreshold ) ret.resize(numMatchesThreshold);;
+  if(ret.size() > numMatchesThreshold ){
+    ret.resize(numMatchesThreshold);
+  }
   return ret;
 }
 
@@ -137,11 +141,11 @@ int DidYouMean::editDistance(const std::string& a, const std::string& b)
   return result;
 }
 
-string DidYouMean::getMatchAsString(string input, int prefixNewLines, int suffixNewLines) {
-  vector<string> matches = getMatch(input);
-  ostringstream oss;
+std::string DidYouMean::getMatchAsString(std::string input, int prefixNewLines, int suffixNewLines) {
+  std::vector<std::string> matches = getMatch(input);
+  std::ostringstream oss;
   if(matches.size() > 0) {
-    while(prefixNewLines --> 0) { oss << endl; }
+    while(prefixNewLines --> 0) { oss << std::endl; }
     if(matches.size() == 1) {
       oss << "Did you mean this?";
     } else {
@@ -150,8 +154,9 @@ string DidYouMean::getMatchAsString(string input, int prefixNewLines, int suffix
     for(unsigned i = 0; i < matches.size(); ++i) {
       oss << "\n        " << matches[i];
     }
-    while(suffixNewLines --> 0) { oss << endl; }
+    while(suffixNewLines --> 0) { oss << std::endl; }
   }
   return oss.str();
 }
+
 }/* CVC4 namespace */

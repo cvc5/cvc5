@@ -22,11 +22,10 @@
 #include <vector>
 
 #include "expr/expr.h"
-#include "options/base_options.h"
 #include "options/options.h"
 #include "parser/parser.h"
 #include "parser/parser_builder.h"
-#include "smt_util/command.h"
+#include "smt/command.h"
 
 using namespace std;
 using namespace CVC4;
@@ -78,13 +77,13 @@ int main(int argc, char* argv[])
 
     // Create the expression manager
     Options options;
-    options.set(inputLanguage, language::input::LANG_SMTLIB_V2);
+    options.setInputLanguage(language::input::LANG_SMTLIB_V2);
     ExprManager exprManager(options);
-  
+
     // Create the parser
     ParserBuilder parserBuilder(&exprManager, input, options);
     Parser* parser = parserBuilder.build();
-  
+
     // Variables and assertions
     vector<string> variables;
     vector<string> info_tags;

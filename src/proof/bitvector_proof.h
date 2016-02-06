@@ -19,7 +19,7 @@
 #ifndef __CVC4__BITVECTOR__PROOF_H
 #define __CVC4__BITVECTOR__PROOF_H
 
-//#include <cstdint> 
+//#include <cstdint>
 #include <ext/hash_map>
 #include <ext/hash_set>
 #include <iostream>
@@ -45,7 +45,7 @@ template <class T> class TBitblaster;
 } /* namespace CVC4::theory::bv */
 } /* namespace CVC4::theory */
 
-class CnfProof; 
+class CnfProof;
 } /* namespace CVC4 */
 
 namespace CVC4 {

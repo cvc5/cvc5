@@ -1431,6 +1431,8 @@ void EqualityEngine::getExplanation(EqualityNodeId t1Id, EqualityNodeId t2Id, st
             }
             //---end from Morgan---
 
+            eqp_trans.push_back( eqpc );
+
             eqp_trans.push_back(eqpc);
           } while (currentEdge != null_id);
 
@@ -1864,9 +1866,6 @@ bool EqualityEngine::areDisequal(TNode t1, TNode t2, bool ensureProof) const
         Debug("equality") << "areDisequal: case 2" << std::endl;
         const FunctionApplication original = d_applications[find->second].original;
         nonConst->d_deducedDisequalityReasons.push_back(EqualityPair(t1Id, original.a));
-
-        // nonConst->d_deducedDisequalityReasons.push_back(EqualityPair(original.a, t1ClassId));
-        // nonConst->d_deducedDisequalityReasons.push_back(EqualityPair(original.b, t2ClassId));
         nonConst->d_deducedDisequalityReasons.push_back(EqualityPair(find->second, d_falseId));
         nonConst->d_deducedDisequalityReasons.push_back(EqualityPair(t2Id, original.b));
         nonConst->storePropagatedDisequality(THEORY_LAST, t1Id, t2Id);
@@ -1885,9 +1884,6 @@ bool EqualityEngine::areDisequal(TNode t1, TNode t2, bool ensureProof) const
         Debug("equality") << "areDisequal: case 3" << std::endl;
         const FunctionApplication original = d_applications[find->second].original;
         nonConst->d_deducedDisequalityReasons.push_back(EqualityPair(t2Id, original.a));
-
-        // nonConst->d_deducedDisequalityReasons.push_back(EqualityPair(original.a, t2ClassId));
-        // nonConst->d_deducedDisequalityReasons.push_back(EqualityPair(original.b, t1ClassId));
         nonConst->d_deducedDisequalityReasons.push_back(EqualityPair(find->second, d_falseId));
         nonConst->d_deducedDisequalityReasons.push_back(EqualityPair(t1Id, original.b));
         nonConst->storePropagatedDisequality(THEORY_LAST, t1Id, t2Id);
@@ -2397,8 +2393,6 @@ bool EqClassIterator::isFinished() const {
 }
 
 void EqProof::debug_print( const char * c, unsigned tb ) const{
-  //  Debug( "equality-proof-debug" ) << "EqProof::debug_print called" << std::endl;
-
   for( unsigned i=0; i<tb; i++ ) { Debug( c ) << "  "; }
   Debug( c ) << d_id << "(";
   if( !d_children.empty() || !d_node.isNull() ){

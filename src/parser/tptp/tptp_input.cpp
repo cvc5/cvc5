@@ -14,7 +14,11 @@
  ** [[ Add file-specific comments here ]]
  **/
 
+// These headers should be the first two included.
+// See the documentation in "parser/antlr_undefines.h" for more details.
 #include <antlr3.h>
+#include "parser/antlr_undefines.h"
+
 
 #include "parser/tptp/tptp_input.h"
 #include "expr/expr_manager.h"

@@ -161,22 +161,23 @@ void ProofManager::initCnfProof(prop::CnfStream* cnfStream,
 
 }
 
-void ProofManager::initTheoryProofEngine(SmtGlobals* globals) {
+void ProofManager::initTheoryProofEngine() {
   Assert (currentPM()->d_theoryProof == NULL);
   Assert (currentPM()->d_format == LFSC);
-  currentPM()->d_theoryProof = new LFSCTheoryProofEngine(globals);
+  currentPM()->d_theoryProof = new LFSCTheoryProofEngine();
 }
 
 std::string ProofManager::getInputClauseName(ClauseId id,
                                              const std::string& prefix) {
   return append(prefix+".pb", id);
 }
+
 std::string ProofManager::getLemmaClauseName(ClauseId id,
                                              const std::string& prefix) {
   return append(prefix+".lemc", id);
 }
-std::string ProofManager::getLemmaName(ClauseId id,
-                                       const std::string& prefix) {
+
+std::string ProofManager::getLemmaName(ClauseId id, const std::string& prefix) {
   return append(prefix+"lem", id);
 }
 
@@ -475,9 +476,32 @@ void LFSCProof::printPreprocessedAssertions(const NodeSet& assertions,
   os << "\n";
 }
 
+void LFSCProof::printPreprocessedAssertions(const NodeSet& assertions,
+                                            std::ostream& os,
+                                            std::ostream& paren) {
+  os << " ;; Preprocessing \n";
+  NodeSet::const_iterator it = assertions.begin();
+  NodeSet::const_iterator end = assertions.end();
+
+  for (; it != end; ++it) {
+    os << "(th_let_pf _ ";
+
+    //TODO
+    os << "(trust_f ";
+    ProofManager::currentPM()->getTheoryProofEngine()->printLetTerm((*it).toExpr(), os);
+    os << ") ";
+
+    os << "(\\ "<< ProofManager::getPreprocessedAssertionName(*it, "") << "\n";
+    paren << "))";
+
+  }
+}
+
+>>>>>>> 3c4c4420ebae4d27d53084453591363942eb4d2e
 
 
 //---from Morgan---
+
 bool ProofManager::hasOp(TNode n) const {
   return d_bops.find(n) != d_bops.end();
 }
@@ -555,6 +579,7 @@ std::ostream& operator<<(std::ostream& out, CVC4::ProofRule k) {
     break;
   case RULE_ARRAYS_ROW:
     out << "RULE_ARRAYS";
+>>>>>>> 3c4c4420ebae4d27d53084453591363942eb4d2e
     break;
   default:
     out << "ProofRule Unknown! [" << unsigned(k) << "]";

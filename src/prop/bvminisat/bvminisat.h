@@ -122,7 +122,7 @@ public:
 
 private:
   /* Disable the default constructor. */
-  BVMinisatSatSolver() CVC4_UNUSED;
+  BVMinisatSatSolver() CVC4_UNDEFINED;
 
   class Statistics {
   public:

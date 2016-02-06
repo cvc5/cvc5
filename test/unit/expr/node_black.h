@@ -25,7 +25,6 @@
 #include "expr/node_builder.h"
 #include "expr/node_manager.h"
 #include "expr/node.h"
-#include "smt/smt_options_handler.h"
 
 using namespace CVC4;
 using namespace CVC4::kind;
@@ -35,7 +34,6 @@ class NodeBlack : public CxxTest::TestSuite {
 private:
 
   Options opts;
-  smt::SmtOptionsHandler* d_handler;
   NodeManager* d_nodeManager;
   NodeManagerScope* d_scope;
   TypeNode* d_booleanType;
@@ -44,13 +42,10 @@ private:
 public:
 
   void setUp() {
-#warning "TODO: Discuss the effects of this change with Clark."
-    d_handler = new smt::SmtOptionsHandler(NULL);
-
     char *argv[2];
     argv[0] = strdup("");
     argv[1] = strdup("--output-language=ast");
-    opts.parseOptions(2, argv, d_handler);
+    opts.parseOptions(2, argv);
     free(argv[0]);
     free(argv[1]);
 
@@ -64,7 +59,6 @@ public:
     delete d_booleanType;
     delete d_scope;
     delete d_nodeManager;
-    delete d_handler;
   }
 
   bool imp(bool a, bool b) const {

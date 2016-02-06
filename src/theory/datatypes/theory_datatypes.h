@@ -39,6 +39,7 @@ private:
   typedef context::CDChunkList<Node> NodeList;
   typedef context::CDHashMap<Node, NodeList*, NodeHashFunction> NodeListMap;
   typedef context::CDHashMap< Node, bool, NodeHashFunction > BoolMap;
+  typedef context::CDHashMap< Node, Node, NodeHashFunction > NodeMap;
 
   /** transitive closure to record equivalence/subterm relation.  */
   //TransitiveClosureNode d_cycle_check;
@@ -131,7 +132,10 @@ private:
   /** get the possible constructors for n */
   void getPossibleCons( EqcInfo* eqc, Node n, std::vector< bool >& cons );
   /** mkExpDefSkolem */
-  void mkExpDefSkolem( Node sel, TypeNode dt, TypeNode rt );
+  void mkExpDefSkolem( Node sel, TypeNode dt, TypeNode rt );  
+  /** skolems for terms */  
+  NodeMap d_term_sk;
+  Node getTermSkolemFor( Node n );
 private:
   /** The notify class */
   NotifyClass d_notify;
@@ -166,6 +170,7 @@ private:
   /** cache for which terms we have called collectTerms(...) on */
   BoolMap d_collectTermsCache;
   /** pending assertions/merges */
+  std::vector< Node > d_pending_lem;
   std::vector< Node > d_pending;
   std::map< Node, Node > d_pending_exp;
   std::vector< Node > d_pending_merge;
@@ -215,7 +220,7 @@ protected:
 public:
   TheoryDatatypes(context::Context* c, context::UserContext* u,
                   OutputChannel& out, Valuation valuation,
-                  const LogicInfo& logicInfo, SmtGlobals* globals);
+                  const LogicInfo& logicInfo);
   ~TheoryDatatypes();
 
   void setMasterEqualityEngine(eq::EqualityEngine* eq);
@@ -257,7 +262,7 @@ public:
   void printModelDebug( const char* c );
 private:
   /** add tester to equivalence class info */
-  void addTester( Node t, EqcInfo* eqc, Node n );
+  void addTester( int ttindex, Node t, EqcInfo* eqc, Node n, Node t_arg );
   /** add selector to equivalence class info */
   void addSelector( Node s, EqcInfo* eqc, Node n, bool assertFacts = true );
   /** add constructor */

@@ -20,6 +20,7 @@
 #define __CVC4__THEORY_ENGINE_H
 
 #include <deque>
+#include <set>
 #include <vector>
 #include <utility>
 
@@ -29,8 +30,8 @@
 #include "options/options.h"
 #include "options/smt_options.h"
 #include "prop/prop_engine.h"
-#include "smt/smt_globals.h"
-#include "smt_util/command.h"
+#include "smt/command.h"
+#include "smt_util/lemma_channels.h"
 #include "theory/atom_requests.h"
 #include "theory/bv/bv_to_bool.h"
 #include "theory/interrupted.h"
@@ -467,14 +468,15 @@ class TheoryEngine {
   bool d_interrupted;
   ResourceManager* d_resourceManager;
 
-  /** Container for misc. globals. */
-  SmtGlobals* d_globals;
+  /** Container for lemma input and output channels. */
+  LemmaChannels* d_channels;
 
 public:
 
   /** Constructs a theory engine */
   TheoryEngine(context::Context* context, context::UserContext* userContext,
-               RemoveITE& iteRemover, const LogicInfo& logic, SmtGlobals* globals);
+               RemoveITE& iteRemover, const LogicInfo& logic,
+               LemmaChannels* channels);
 
   /** Destroys a theory engine */
   ~TheoryEngine();
@@ -495,7 +497,7 @@ public:
     d_theoryOut[theoryId] = new EngineOutputChannel(this, theoryId);
     d_theoryTable[theoryId] =
         new TheoryClass(d_context, d_userContext, *d_theoryOut[theoryId],
-                        theory::Valuation(this), d_logicInfo, d_globals);
+                        theory::Valuation(this), d_logicInfo);
   }
 
   inline void setPropEngine(prop::PropEngine* propEngine) {
@@ -832,7 +834,15 @@ public:
   /** Prints the assertions to the debug stream */
   void printAssertions(const char* tag);
 
+  /** Theory alternative is in use. */
+  bool useTheoryAlternative(const std::string& name);
+
+  /** Enables using a theory alternative by name. */
+  void enableTheoryAlternative(const std::string& name);
+
 private:
+  std::set< std::string > d_theoryAlternatives;
+
   std::map< std::string, std::vector< theory::Theory* > > d_attr_handle;
 public:
 

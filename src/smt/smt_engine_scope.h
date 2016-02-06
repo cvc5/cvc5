@@ -19,6 +19,7 @@
 
 #pragma once
 
+#include "base/configuration_private.h"
 #include "base/cvc4_assert.h"
 #include "base/output.h"
 #include "base/tls.h"
@@ -27,7 +28,6 @@
 #include "proof/proof_manager.h"
 #include "options/smt_options.h"
 #include "smt/smt_engine.h"
-#include "util/configuration_private.h"
 
 
 namespace CVC4 {

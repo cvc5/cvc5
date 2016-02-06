@@ -13,15 +13,13 @@
  **
  ** Removal of term ITEs.
  **/
-#include "smt_util/ite_removal.h"
+#include "smt/ite_removal.h"
 
 #include <vector>
 
 #include "proof/proof_manager.h"
-#include "smt_util/command.h"
 #include "theory/ite_utilities.h"
 
-using namespace CVC4;
 using namespace std;
 
 namespace CVC4 {

@@ -15,12 +15,17 @@
  ** \todo document this file
  **/
 
+// These headers should be the first two included.
+// See the documentation in "parser/antlr_undefines.h" for more details.
+#include <antlr3.h>
+#include "parser/antlr_undefines.h"
+
 #include "cvc4parser_private.h"
 
 #ifndef __CVC4__PARSER__ANTLR_LINE_BUFFERED_INPUT_H
 #define __CVC4__PARSER__ANTLR_LINE_BUFFERED_INPUT_H
 
-#include <antlr3.h>
+#include <istream>
 
 namespace CVC4 {
 namespace parser {

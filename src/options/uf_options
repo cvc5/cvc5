@@ -11,7 +11,7 @@ option ufSymmetryBreaker uf-symmetry-breaker --symmetry-breaker bool :read-write
 option condenseFunctionValues condense-function-values --condense-function-values bool :default true
  condense models for functions rather than explicitly representing them
 
-option ufssRegions /--disable-uf-ss-regions bool :default true
+option ufssRegions --uf-ss-regions bool :default true
  disable region-based method for discovering cliques and splits in uf strong solver
 option ufssEagerSplits --uf-ss-eager-split bool :default false
  add splits eagerly for uf strong solver
@@ -29,7 +29,7 @@ option ufssSimpleCliques --uf-ss-simple-cliques bool :default true
  always use simple clique lemmas for uf strong solver
 option ufssDiseqPropagation --uf-ss-deq-prop bool :default false
  eagerly propagate disequalities for uf strong solver
-option ufssMode --uf-ss=MODE CVC4::theory::uf::UfssMode :default CVC4::theory::uf::UF_SS_FULL :include "options/options_handler_interface.h" :handler CVC4::options::stringToUfssMode :handler-include "options/options_handler_interface.h"
+option ufssMode --uf-ss=MODE CVC4::theory::uf::UfssMode :default CVC4::theory::uf::UF_SS_FULL :include "options/ufss_mode.h" :handler stringToUfssMode
  mode of operation for uf strong solver.
 option ufssCliqueSplits --uf-ss-clique-splits bool :default false
  use cliques instead of splitting on demand to shrink model

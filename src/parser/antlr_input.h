@@ -14,20 +14,16 @@
  ** Base for ANTLR parser classes.
  **/
 
-#include <antlr3.h>
-
-// ANTLR3 headers define these in our space :(
-// undef them so that we don't get multiple-definition warnings
-#undef PACKAGE_BUGREPORT
-#undef PACKAGE_NAME
-#undef PACKAGE_STRING
-#undef PACKAGE_TARNAME
-#undef PACKAGE_VERSION
-
-#include "cvc4parser_private.h"
-
 #ifndef __CVC4__PARSER__ANTLR_INPUT_H
 #define __CVC4__PARSER__ANTLR_INPUT_H
+
+// These headers must be included first. See the documentation
+// in parser/antlr_undefines.h for an explanation.
+// Also while unusual this must also be within the #ifdef guard.
+#include <antlr3.h>
+#include "parser/antlr_undefines.h"
+
+#include "cvc4parser_private.h"
 
 #include <iostream>
 #include <sstream>
@@ -72,10 +68,11 @@ private:
                    pANTLR3_UINT8 inputString);
 
   /* This is private and unimplemented, because you should never use it. */
-  AntlrInputStream(const AntlrInputStream& inputStream) CVC4_UNUSED;
+  AntlrInputStream(const AntlrInputStream& inputStream) CVC4_UNDEFINED;
 
   /* This is private and unimplemented, because you should never use it. */
-  AntlrInputStream& operator=(const AntlrInputStream& inputStream) CVC4_UNUSED;
+  AntlrInputStream& operator=(const AntlrInputStream& inputStream)
+    CVC4_UNDEFINED;
 
 public:
 

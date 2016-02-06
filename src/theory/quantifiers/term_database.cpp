@@ -1605,10 +1605,10 @@ bool TermDb::containsTerm2( Node n, Node t, std::map< Node, bool >& visited ) {
 }
 
 bool TermDb::containsTerms2( Node n, std::vector< Node >& t, std::map< Node, bool >& visited ) {
-  if( std::find( t.begin(), t.end(), n )!=t.end() ){
-    return true;
-  }else{
-    if( visited.find( n )==visited.end() ){
+  if( visited.find( n )==visited.end() ){
+    if( std::find( t.begin(), t.end(), n )!=t.end() ){
+      return true;
+    }else{
       visited[n] = true;
       for( unsigned i=0; i<n.getNumChildren(); i++ ){
         if( containsTerms2( n[i], t, visited ) ){
@@ -1616,8 +1616,22 @@ bool TermDb::containsTerms2( Node n, std::vector< Node >& t, std::map< Node, boo
         }
       }
     }
-    return false;
   }
+  return false;
+}
+
+bool TermDb::containsUninterpretedConstant2( Node n, std::map< Node, bool >& visited ) {
+  if( n.getKind()==UNINTERPRETED_CONSTANT ){
+    return true;
+  }else if( visited.find( n )==visited.end() ){
+    visited[n] = true;
+    for( unsigned i=0; i<n.getNumChildren(); i++ ){
+      if( containsUninterpretedConstant2( n[i], visited ) ){
+        return true;
+      }
+    }
+  }
+  return false;
 }
 
 bool TermDb::containsTerm( Node n, Node t ) {
@@ -1632,6 +1646,11 @@ bool TermDb::containsTerms( Node n, std::vector< Node >& t ) {
     std::map< Node, bool > visited;
     return containsTerms2( n, t, visited );
   }
+}
+
+bool TermDb::containsUninterpretedConstant( Node n ) {
+  std::map< Node, bool > visited;
+  return containsUninterpretedConstant2( n, visited );
 }
 
 Node TermDb::simpleNegate( Node n ){

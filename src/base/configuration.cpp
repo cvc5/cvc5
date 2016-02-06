@@ -15,7 +15,7 @@
  ** Implementation of Configuration class, which provides compile-time
  ** configuration information about the CVC4 library.
  **/
-#include "util/configuration.h"
+#include "base/configuration.h"
 
 #include <stdlib.h>
 #include <string.h>
@@ -24,14 +24,14 @@
 #include <string>
 
 #include "cvc4autoconfig.h"
-#include "util/configuration_private.h"
+#include "base/configuration_private.h"
 
 #if defined(CVC4_DEBUG) && defined(CVC4_TRACING)
-#  include "options/Debug_tags.h"
+#  include "base/Debug_tags.h"
 #endif /* CVC4_DEBUG && CVC4_TRACING */
 
 #ifdef CVC4_TRACING
-#  include "options/Trace_tags.h"
+#  include "base/Trace_tags.h"
 #endif /* CVC4_TRACING */
 
 using namespace std;

@@ -28,10 +28,11 @@
 #include "context/cdlist_forward.h"
 #include "expr/expr.h"
 #include "expr/expr_manager.h"
+#include "expr/expr_stream.h"
 #include "options/options.h"
 #include "proof/unsat_core.h"
 #include "smt/logic_exception.h"
-#include "smt/smt_globals.h"
+#include "smt_util/lemma_channels.h"
 #include "theory/logic_info.h"
 #include "util/hash.h"
 #include "util/proof.h"
@@ -71,10 +72,6 @@ namespace context {
 
 namespace prop {
   class PropEngine;
-}/* CVC4::prop namespace */
-
-namespace options {
-  class OptionsHandler;
 }/* CVC4::prop namespace */
 
 namespace expr {
@@ -267,10 +264,8 @@ class CVC4_PUBLIC SmtEngine {
    */
   std::map<std::string, Integer> d_commandVerbosity;
 
-  /**
-   * This responds to requests to set options.
-   */
-  options::OptionsHandler* d_optionsHandler;
+  /** ReplayStream for the solver. */
+  ExprStream* d_replayStream;
 
   /**
    * A private utility class to SmtEngine.
@@ -386,7 +381,8 @@ class CVC4_PUBLIC SmtEngine {
 
   smt::SmtEngineStatistics* d_stats;
 
-  SmtGlobals* d_globals;
+  /** Container for the lemma input and output channels for this SmtEngine.*/
+  LemmaChannels* d_channels;
 
   /**
    * Add to Model command.  This is used for recording a command
@@ -728,12 +724,19 @@ public:
   void setPrintFuncInModel(Expr f, bool p);
 
 
-  /**
-   * Throws a ModalException if smt is non-null and the SmtEngine has not been fully initialized.
-   */
-  static void beforeSearch(SmtEngine* smt, const std::string& option) throw(ModalException);
+  /** Throws a ModalException if the SmtEngine has been fully initialized. */
+  void beforeSearch() throw(ModalException);
 
-  SmtGlobals* globals() { return d_globals; }
+  LemmaChannels* channels() { return d_channels; }
+
+
+  /**
+   * Expermintal feature: Sets the sequence of decisions.
+   * This currently requires very fine grained knowledge about literal
+   * translation.
+   */
+  void setReplayStream(ExprStream* exprStream);
+
 };/* class SmtEngine */
 
 }/* CVC4 namespace */

@@ -33,7 +33,6 @@
 #include "cvc4autoconfig.h"
 #include "main/command_executor.h"
 #include "main/main.h"
-#include "options/base_options.h"
 #include "options/options.h"
 #include "smt/smt_engine.h"
 #include "util/statistics.h"
@@ -42,11 +41,6 @@ using CVC4::Exception;
 using namespace std;
 
 namespace CVC4 {
-
-#ifdef CVC4_DEBUG
-//extern CVC4_THREADLOCAL(const char*) s_debugLastException;
-#endif /* CVC4_DEBUG */
-
 namespace main {
 
 /**
@@ -64,7 +58,7 @@ void* cvc4StackBase;
 /** Handler for SIGXCPU, i.e., timeout. */
 void timeout_handler(int sig, siginfo_t* info, void*) {
   fprintf(stderr, "CVC4 interrupted by timeout.\n");
-  if((*pOptions)[options::statistics] && pExecutor != NULL) {
+  if(pOptions->getStatistics() && pExecutor != NULL) {
     pTotalTime->stop();
     pExecutor->flushStatistics(cerr);
   }
@@ -74,7 +68,7 @@ void timeout_handler(int sig, siginfo_t* info, void*) {
 /** Handler for SIGINT, i.e., when the user hits control C. */
 void sigint_handler(int sig, siginfo_t* info, void*) {
   fprintf(stderr, "CVC4 interrupted by user.\n");
-  if((*pOptions)[options::statistics] && pExecutor != NULL) {
+  if(pOptions->getStatistics() && pExecutor != NULL) {
     pTotalTime->stop();
     pExecutor->flushStatistics(cerr);
   }
@@ -99,7 +93,7 @@ void segv_handler(int sig, siginfo_t* info, void* c) {
   }
 
   if(!segvSpin) {
-    if((*pOptions)[options::statistics] && pExecutor != NULL) {
+    if(pOptions->getStatistics() && pExecutor != NULL) {
       pTotalTime->stop();
       pExecutor->flushStatistics(cerr);
     }
@@ -121,7 +115,7 @@ void segv_handler(int sig, siginfo_t* info, void* c) {
   } else if(addr < 10*1024) {
     cerr << "Looks like a NULL pointer was dereferenced." << endl;
   }
-  if((*pOptions)[options::statistics] && pExecutor != NULL) {
+  if(pOptions->getStatistics() && pExecutor != NULL) {
     pTotalTime->stop();
     pExecutor->flushStatistics(cerr);
   }
@@ -134,7 +128,7 @@ void ill_handler(int sig, siginfo_t* info, void*) {
 #ifdef CVC4_DEBUG
   fprintf(stderr, "CVC4 executed an illegal instruction in DEBUG mode.\n");
   if(!segvSpin) {
-    if((*pOptions)[options::statistics] && pExecutor != NULL) {
+    if(pOptions->getStatistics() && pExecutor != NULL) {
       pTotalTime->stop();
       pExecutor->flushStatistics(cerr);
     }
@@ -149,7 +143,7 @@ void ill_handler(int sig, siginfo_t* info, void*) {
   }
 #else /* CVC4_DEBUG */
   fprintf(stderr, "CVC4 executed an illegal instruction.\n");
-  if((*pOptions)[options::statistics] && pExecutor != NULL) {
+  if(pOptions->getStatistics() && pExecutor != NULL) {
     pTotalTime->stop();
     pExecutor->flushStatistics(cerr);
   }
@@ -177,7 +171,7 @@ void cvc4unexpected() {
     fprintf(stderr, "The exception is:\n%s\n\n", lastContents);
   }
   if(!segvSpin) {
-    if((*pOptions)[options::statistics] && pExecutor != NULL) {
+    if(pOptions->getStatistics() && pExecutor != NULL) {
       pTotalTime->stop();
       pExecutor->flushStatistics(cerr);
     }
@@ -192,7 +186,7 @@ void cvc4unexpected() {
   }
 #else /* CVC4_DEBUG */
   fprintf(stderr, "CVC4 threw an \"unexpected\" exception.\n");
-  if((*pOptions)[options::statistics] && pExecutor != NULL) {
+  if(pOptions->getStatistics() && pExecutor != NULL) {
     pTotalTime->stop();
     pExecutor->flushStatistics(cerr);
   }
@@ -211,7 +205,7 @@ void cvc4terminate() {
           "CVC4 was terminated by the C++ runtime.\n"
           "Perhaps an exception was thrown during stack unwinding.  "
           "(Don't do that.)\n");
-  if((*pOptions)[options::statistics] && pExecutor != NULL) {
+  if(pOptions->getStatistics() && pExecutor != NULL) {
     pTotalTime->stop();
     pExecutor->flushStatistics(cerr);
   }
@@ -220,7 +214,7 @@ void cvc4terminate() {
   fprintf(stderr,
           "CVC4 was terminated by the C++ runtime.\n"
           "Perhaps an exception was thrown during stack unwinding.\n");
-  if((*pOptions)[options::statistics] && pExecutor != NULL) {
+  if(pOptions->getStatistics() && pExecutor != NULL) {
     pTotalTime->stop();
     pExecutor->flushStatistics(cerr);
   }

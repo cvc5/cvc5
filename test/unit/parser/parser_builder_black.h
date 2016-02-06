@@ -28,7 +28,7 @@
 #include "options/language.h"
 #include "parser/parser.h"
 #include "parser/parser_builder.h"
-#include "smt_util/command.h"
+#include "smt/command.h"
 
 
 typedef __gnu_cxx::stdio_filebuf<char> filebuf_gnu;

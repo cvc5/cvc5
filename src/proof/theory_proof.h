@@ -30,8 +30,6 @@
 
 namespace CVC4 {
 
-class SmtGlobals;
-
 namespace theory {
 class Theory;
 }
@@ -106,27 +104,27 @@ protected:
    */
   bool supportedTheory(theory::TheoryId id);
 public:
-  SmtGlobals* d_globals;
 
-  TheoryProofEngine(SmtGlobals* globals);
+  TheoryProofEngine();
   virtual ~TheoryProofEngine();
+
   /**
-   * Print the theory term (could be atom) by delegating to the
-   * proper theory
+   * Print the theory term (could be an atom) by delegating to the proper theory.
    *
    * @param term
    * @param os
-   *
-   * @return
    */
   virtual void printLetTerm(Expr term, std::ostream& os) = 0;
-  virtual void printBoundTerm(Expr term, std::ostream& os, const LetMap& map) = 0;
+  virtual void printBoundTerm(Expr term, std::ostream& os,
+                              const LetMap& map) = 0;
+
   /**
    * Print the proof representation of the given sort.
    *
    * @param os
    */
   virtual void printSort(Type type, std::ostream& os) = 0;
+
   /**
    * Print the theory assertions (arbitrary formulas over
    * theory atoms)
@@ -151,22 +149,23 @@ public:
    * @param os
    * @param paren
    */
-  virtual void printTheoryLemmas(const IdToSatClause& lemmas,
-                                 std::ostream& os,
+  virtual void printTheoryLemmas(const IdToSatClause& lemmas, std::ostream& os,
                                  std::ostream& paren) = 0;
+
   /**
    * Register theory atom (ensures all terms and atoms are declared).
    *
    * @param atom
    */
   void registerTerm(Expr atom);
+
   /**
-   * Ensures that a theory proof class for the given theory
-   * is created.
+   * Ensures that a theory proof class for the given theory is created.
    *
    * @param theory
    */
   void registerTheory(theory::Theory* theory);
+
   theory::TheoryId getTheoryForLemma(ClauseId id);
   TheoryProof* getTheoryProof(theory::TheoryId id);
 };
@@ -176,8 +175,8 @@ class LFSCTheoryProofEngine : public TheoryProofEngine {
   void printTheoryTerm(Expr term, std::ostream& os, const LetMap& map);
   void bind(Expr term, LetMap& map, Bindings& let_order);
 public:
-  LFSCTheoryProofEngine(SmtGlobals* globals)
-    : TheoryProofEngine(globals) {}
+  LFSCTheoryProofEngine()
+    : TheoryProofEngine() {}
 
   void printDeclarations(std::ostream& os, std::ostream& paren);
   virtual void printCoreTerm(Expr term, std::ostream& os, const LetMap& map);

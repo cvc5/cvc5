@@ -1,5 +1,5 @@
 %{
-#include "smt_util/command.h"
+#include "smt/command.h"
 
 #ifdef SWIGJAVA
 
@@ -65,7 +65,7 @@
 
 #endif /* SWIGJAVA */
 
-%include "smt_util/command.h"
+%include "smt/command.h"
 
 #ifdef SWIGJAVA
 
