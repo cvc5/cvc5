@@ -23,16 +23,16 @@ namespace CVC4 {
 namespace theory {
 namespace arrays {
 
-ArrayInfo::ArrayInfo(context::Context* c, Backtracker<TNode>* b)
+ArrayInfo::ArrayInfo(context::Context* c, Backtracker<TNode>* b, std::string name)
     : ct(c), bck(b), info_map(),
-      d_mergeInfoTimer("theory::arrays::mergeInfoTimer"),
-      d_avgIndexListLength("theory::arrays::avgIndexListLength"),
-      d_avgStoresListLength("theory::arrays::avgStoresListLength"),
-      d_avgInStoresListLength("theory::arrays::avgInStoresListLength"),
-      d_listsCount("theory::arrays::listsCount",0),
-      d_callsMergeInfo("theory::arrays::callsMergeInfo",0),
-      d_maxList("theory::arrays::maxList",0),
-      d_tableSize("theory::arrays::infoTableSize", info_map) {
+      d_mergeInfoTimer(name + "theory::arrays::mergeInfoTimer"),
+      d_avgIndexListLength(name + "theory::arrays::avgIndexListLength"),
+      d_avgStoresListLength(name + "theory::arrays::avgStoresListLength"),
+      d_avgInStoresListLength(name + "theory::arrays::avgInStoresListLength"),
+      d_listsCount(name + "theory::arrays::listsCount",0),
+      d_callsMergeInfo(name + "theory::arrays::callsMergeInfo",0),
+      d_maxList(name + "theory::arrays::maxList",0),
+      d_tableSize(name + "theory::arrays::infoTableSize", info_map) {
   emptyList = new(true) CTNodeList(ct);
   emptyInfo = new Info(ct, bck);
   smtStatisticsRegistry()->registerStat(&d_mergeInfoTimer);
@@ -193,7 +193,7 @@ void ArrayInfo::setNonLinear(const TNode a) {
   } else {
     (*it).second->isNonLinear = true;
   }
-  
+
 }
 
 void ArrayInfo::setRIntro1Applied(const TNode a) {
@@ -207,7 +207,7 @@ void ArrayInfo::setRIntro1Applied(const TNode a) {
   } else {
     (*it).second->rIntro1Applied = true;
   }
-  
+
 }
 
 void ArrayInfo::setModelRep(const TNode a, const TNode b) {
@@ -221,7 +221,7 @@ void ArrayInfo::setModelRep(const TNode a, const TNode b) {
   } else {
     (*it).second->modelRep = b;
   }
-  
+
 }
 
 void ArrayInfo::setConstArr(const TNode a, const TNode constArr) {

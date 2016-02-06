@@ -21,6 +21,7 @@
 
 #include "expr/expr.h"
 #include "proof/proof_manager.h"
+#include "proof/theory_proof.h"
 #include "theory/uf/equality_engine.h"
 
 namespace CVC4 {

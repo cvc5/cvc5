@@ -1,19 +1,19 @@
 /*********************                                                        */
 /*! \file proof_manager.cpp
- ** \verbatim
- ** Original author: Liana Hadarean
- ** Major contributors: Morgan Deters
- ** Minor contributors (to current version): Andrew Reynolds
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2014  New York University and The University of Iowa
- ** See the file COPYING in the top-level source directory for licensing
- ** information.\endverbatim
- **
- ** \brief [[ Add one-line brief description here ]]
- **
- ** [[ Add lengthier description here ]]
- ** \todo document this file
- **/
+** \verbatim
+** Original author: Liana Hadarean
+** Major contributors: Morgan Deters
+** Minor contributors (to current version): Andrew Reynolds
+** This file is part of the CVC4 project.
+** Copyright (c) 2009-2014  New York University and The University of Iowa
+** See the file COPYING in the top-level source directory for licensing
+** information.\endverbatim
+**
+** \brief [[ Add one-line brief description here ]]
+**
+** [[ Add lengthier description here ]]
+** \todo document this file
+**/
 
 #include "context/context.h"
 
@@ -175,8 +175,8 @@ std::string ProofManager::getLemmaClauseName(ClauseId id,
                                              const std::string& prefix) {
   return append(prefix+".lemc", id);
 }
-  std::string ProofManager::getLemmaName(ClauseId id,
-           const std::string& prefix) {
+std::string ProofManager::getLemmaName(ClauseId id,
+                                       const std::string& prefix) {
   return append(prefix+"lem", id);
 }
 
@@ -377,6 +377,7 @@ void LFSCProof::toStream(std::ostream& out) {
       for(NodeSet::const_iterator it = atoms.begin(); it != atoms.end(); ++it) {
         Debug("proof:pm") << "   " << *it << std::endl;
       }
+    }
   }
 
   smt::SmtScope scope(d_smtEngine);

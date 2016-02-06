@@ -172,7 +172,7 @@ public:
   currentStatisticsRegistry()->registerStat(&d_maxList);
   currentStatisticsRegistry()->registerStat(&d_tableSize);
   }*/
-  ArrayInfo(context::Context* c, Backtracker<TNode>* b);
+  ArrayInfo(context::Context* c, Backtracker<TNode>* b, std::string name = "");
 
   ~ArrayInfo();
 
