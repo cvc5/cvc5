@@ -1431,8 +1431,6 @@ void EqualityEngine::getExplanation(EqualityNodeId t1Id, EqualityNodeId t2Id, st
             }
             //---end from Morgan---
 
-            eqp_trans.push_back( eqpc );
-
             eqp_trans.push_back(eqpc);
           } while (currentEdge != null_id);
 
