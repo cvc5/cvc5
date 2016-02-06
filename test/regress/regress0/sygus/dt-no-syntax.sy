@@ -1,0 +1,12 @@
+; COMMAND-LINE: --cegqi --no-dump-synth
+; EXPECT: unsat
+(set-logic LIA)
+
+(declare-datatypes () ((List (cons (head Int) (tail List)) (nil))))
+
+(synth-fun f ((x Int)) List)
+
+(declare-var x Int)
+
+(constraint (= (f x) (cons (+ x 1) nil)))
+(check-synth)

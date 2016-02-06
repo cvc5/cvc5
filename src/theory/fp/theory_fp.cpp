@@ -51,13 +51,11 @@ namespace removeToFPGeneric {
 
 
 /** Constructs a new instance of TheoryFp w.r.t. the provided contexts. */
-TheoryFp::TheoryFp(context::Context* c,
-                           context::UserContext* u,
-                           OutputChannel& out,
-                           Valuation valuation,
-                           const LogicInfo& logicInfo) :
-  Theory(THEORY_FP, c, u, out, valuation, logicInfo) {
-}/* TheoryFp::TheoryFp() */
+TheoryFp::TheoryFp(context::Context* c, context::UserContext* u,
+                   OutputChannel& out, Valuation valuation,
+                   const LogicInfo& logicInfo, SmtGlobals* globals)
+    : Theory(THEORY_FP, c, u, out, valuation, logicInfo, globals)
+{}/* TheoryFp::TheoryFp() */
 
 
 Node TheoryFp::expandDefinition(LogicRequest &, Node node) {

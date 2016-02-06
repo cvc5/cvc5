@@ -49,15 +49,15 @@ public:
 
   /* Removes an element from the channel */
   virtual T pop() = 0;
-  
+
   /* */
-  virtual bool empty() = 0; 
-  
+  virtual bool empty() = 0;
+
   /* */
   virtual bool full() = 0;
 };/* class SharedChannel<T> */
 
-/* 
+/*
 This code is from
 
 http://live.boost.org/doc/libs/1_46_1/libs/circular_buffer/doc/circular_buffer.html#boundedbuffer
@@ -76,7 +76,7 @@ public:
 
   bool push(param_type item){
   // param_type represents the "best" way to pass a parameter of type value_type to a method
-  
+
     boost::mutex::scoped_lock lock(m_mutex);
     m_not_full.wait(lock, boost::bind(&SynchronizedSharedChannel<value_type>::is_not_full, this));
     m_container.push_front(item);

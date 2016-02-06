@@ -19,28 +19,27 @@
 #ifndef __CVC4__THEORY__THEORY_H
 #define __CVC4__THEORY__THEORY_H
 
-#include "expr/node.h"
-//#include "expr/attribute.h"
-#include "expr/command.h"
-#include "smt/logic_request.h"
-#include "theory/valuation.h"
-#include "theory/output_channel.h"
-#include "theory/logic_info.h"
-#include "theory/options.h"
-#include "theory/theoryof_mode.h"
-#include "context/context.h"
+#include <ext/hash_set>
+#include <iostream>
+#include <string>
+#include <strings.h>
+
 #include "context/cdlist.h"
 #include "context/cdo.h"
-#include "options/options.h"
-#include "util/statistics_registry.h"
-#include "util/dump.h"
+#include "context/context.h"
+#include "expr/node.h"
 #include "lib/ffs.h"
-
-#include <string>
-#include <iostream>
-
-#include <strings.h>
-#include <ext/hash_set>
+#include "options/options.h"
+#include "options/theory_options.h"
+#include "options/theoryof_mode.h"
+#include "smt/logic_request.h"
+#include "smt/smt_globals.h"
+#include "smt_util/command.h"
+#include "smt_util/dump.h"
+#include "theory/logic_info.h"
+#include "theory/output_channel.h"
+#include "theory/valuation.h"
+#include "util/statistics_registry.h"
 
 namespace CVC4 {
 
@@ -150,6 +149,11 @@ private:
    */
   TheoryId d_id;
 
+  /** Name of this theory instance. Along with the TheoryId this should provide
+   * an unique string identifier for each instance of a Theory class. We need
+   * this to ensure unique statistics names over multiple theory instances. */
+  std::string d_instanceName;
+  
   /**
    * The SAT search context for the Theory.
    */
@@ -205,12 +209,6 @@ protected:
   /** time spent in theory combination */
   TimerStat d_computeCareGraphTime;
 
-  static std::string statName(TheoryId id, const char* statName) {
-    std::stringstream ss;
-    ss << "theory<" << id << ">::" << statName;
-    return ss.str();
-  }
-
   /**
    * The only method to add suff to the care graph.
    */
@@ -247,26 +245,8 @@ protected:
    * Construct a Theory.
    */
   Theory(TheoryId id, context::Context* satContext, context::UserContext* userContext,
-         OutputChannel& out, Valuation valuation, const LogicInfo& logicInfo) throw()
-  : d_id(id)
-  , d_satContext(satContext)
-  , d_userContext(userContext)
-  , d_logicInfo(logicInfo)
-  , d_facts(satContext)
-  , d_factsHead(satContext, 0)
-  , d_sharedTermsIndex(satContext, 0)
-  , d_careGraph(NULL)
-  , d_quantEngine(NULL)
-  , d_checkTime(statName(id, "checkTime"))
-  , d_computeCareGraphTime(statName(id, "computeCareGraphTime"))
-  , d_sharedTerms(satContext)
-  , d_out(&out)
-  , d_valuation(valuation)
-  , d_proofsEnabled(false)
-  {
-    StatisticsRegistry::registerStatMultiple(&d_checkTime);
-    StatisticsRegistry::registerStatMultiple(&d_computeCareGraphTime);
-  }
+         OutputChannel& out, Valuation valuation, const LogicInfo& logicInfo,
+         SmtGlobals* globals, std::string name = "") throw(); // taking : No default.
 
   /**
    * This is called at shutdown time by the TheoryEngine, just before
@@ -314,6 +294,8 @@ protected:
 
   void printFacts(std::ostream& os) const;
   void debugPrintFacts() const;
+
+  SmtGlobals* d_globals;
 
 public:
 
@@ -433,6 +415,13 @@ public:
     return d_id;
   }
 
+  std::string getFullInstanceName() const {
+    std::stringstream ss;
+    ss << "theory<" << d_id << ">" << d_instanceName;
+    return ss.str();
+  }
+
+  
   /**
    * Get the SAT context associated to this Theory.
    */
@@ -877,6 +866,9 @@ public:
    */
   void produceProofs() { d_proofsEnabled = true; }
   
+  /** Returns a pointer to the globals copy the theory is using. */
+  SmtGlobals* globals() { return d_globals; }
+
 };/* class Theory */
 
 std::ostream& operator<<(std::ostream& os, theory::Theory::Effort level);

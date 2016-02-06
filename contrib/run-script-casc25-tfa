@@ -1,0 +1,41 @@
+#!/bin/bash
+
+cvc4=./cvc4
+bench="$1"
+
+file=${bench##*/}
+filename=${file%.*}
+
+echo "------- cvc4-tfa casc 25 : $bench at $2..."
+
+# use: trywith [params..]
+# to attempt a run.  If an SZS ontology result is printed, then
+# the run script terminates immediately.  Otherwise, this
+# function returns normally.
+function trywith {
+  limit=$1; shift;
+  echo "--- Run $@ at $limit...";
+  (ulimit -S -t "$limit";$cvc4 --lang=tptp --no-checking --no-interactive --force-logic="UFNIRA" --dump-instantiations --inst-format=szs --force-no-limit-cpu-while-dump "$@" $bench) 2>/dev/null |
+  (read w1 w2 w3 result w4 w5;
+  case "$result" in
+  Unsatisfiable) echo "$w1 $w2 $w3 $result $w4 $w5";cat;exit 0;;
+  Theorem) echo "$w1 $w2 $w3 $result $w4 $w5";cat;exit 0;;
+  esac; exit 1)
+  if [ ${PIPESTATUS[1]} -eq 0 ]; then exit 0; fi
+}
+function finishwith {
+  echo "--- Run $@...";
+  $cvc4 --lang=tptp --no-checking --no-interactive --force-logic="UFNIRA" --dump-instantiations --inst-format=szs --force-no-limit-cpu-while-dump "$@" $bench
+}
+
+trywith 10 --cbqi2 --decision=internal --full-saturate-quant
+trywith 10 --relevant-triggers --full-saturate-quant --partial-triggers --purify-triggers
+trywith 10 --cbqi --full-saturate-quant
+trywith 10 --cbqi2 --e-matching  --partial-triggers --purify-triggers
+trywith 30 --qcf-tconstraint --full-saturate-quant
+trywith 60 --cbqi --cbqi-recurse --full-saturate-quant
+trywith 10 --full-saturate-quant --partial-triggers --purify-triggers
+trywith 10 --no-e-matching --full-saturate-quant
+trywith 10 --fmf-bound-int
+finishwith --cbqi2 --cbqi-recurse --full-saturate-quant
+# echo "% SZS status" "GaveUp for $filename"

@@ -1,5 +1,5 @@
-; COMMAND-LINE: -mi --tlimit-per 1000
-; EXPECT: unknown
+; COMMAND-LINE: -mi
+; EXPECT: sat
 ; EXPECT: unsat
 
 (set-logic ALL_SUPPORTED)

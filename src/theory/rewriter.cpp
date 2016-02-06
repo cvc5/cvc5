@@ -15,12 +15,12 @@
  ** \todo document this file
  **/
 
-#include "theory/theory.h"
 #include "theory/rewriter.h"
-#include "theory/rewriter_tables.h"
-#include "proof/proof_manager.h"
-#include "proof/rewriter_proof.h"
+
+#include "theory/theory.h"
 #include "smt/smt_engine_scope.h"
+#include "smt/smt_statistics_registry.h"
+#include "theory/rewriter_tables.h"
 #include "util/resource_manager.h"
 
 using namespace std;
@@ -120,7 +120,7 @@ Node Rewriter::rewriteTo(theory::TheoryId theoryId, Node node) {
 
     if (hasSmtEngine &&
 		d_iterationCount % ResourceManager::getFrequencyCount() == 0) {
-      rm->spendResource();
+      rm->spendResource(options::rewriteStep());
       d_iterationCount = 0;
     }
 
@@ -139,14 +139,6 @@ Node Rewriter::rewriteTo(theory::TheoryId theoryId, Node node) {
         for(;;) {
           // Perform the pre-rewrite
           RewriteResponse response = Rewriter::callPreRewrite((TheoryId) rewriteStackTop.theoryId, rewriteStackTop.node);
-          // THEORY_PROOF(
-          //       if(rewriteStackTop.node != response.node) {
-          //         Expr from = rewriteStackTop.node.toExpr();
-          //         Expr to = response.node.toExpr();
-          //         ProofManager::currentPM()->getRewriterProof()->finalizeRewrite(from, to);
-          //       }
-          //       );
-
           // Put the rewritten node to the top of the stack
           rewriteStackTop.node = response.node;
           TheoryId newTheory = theoryOf(rewriteStackTop.node);
@@ -201,13 +193,6 @@ Node Rewriter::rewriteTo(theory::TheoryId theoryId, Node node) {
       // Incorporate the children if necessary
       if (rewriteStackTop.node.getNumChildren() > 0) {
         Node rewritten = rewriteStackTop.builder;
-        // THEORY_PROOF(
-        //       if (rewritten != rewriteStackTop.node) {
-        //         Expr from = rewriteStackTop.node.toExpr();
-        //         Expr to = rewritten.toExpr();
-        //         ProofManager::currentPM()->getRewriterProof()->finalizeRewrite(from, to);
-        //       }
-        //       );
         rewriteStackTop.node = rewritten;
         rewriteStackTop.theoryId = theoryOf(rewriteStackTop.node);
       }
@@ -218,14 +203,6 @@ Node Rewriter::rewriteTo(theory::TheoryId theoryId, Node node) {
         RewriteResponse response = Rewriter::callPostRewrite((TheoryId) rewriteStackTop.theoryId, rewriteStackTop.node);
         // We continue with the response we got
         TheoryId newTheoryId = theoryOf(response.node);
-        // THEORY_PROOF(
-        //       if (rewriteStackTop.node != response.node) {
-        //         Expr from = rewriteStackTop.node.toExpr();
-        //         Expr to = response.node.toExpr();
-        //         ProofManager::currentPM()->getRewriterProof()->finalizeRewrite(from, to);
-        //       }
-        //       );
-
         if (newTheoryId != (TheoryId) rewriteStackTop.theoryId || response.status == REWRITE_AGAIN_FULL) {
           // In the post rewrite if we've changed theories, we must do a full rewrite
           Assert(response.node != rewriteStackTop.node);
@@ -235,13 +212,6 @@ Node Rewriter::rewriteTo(theory::TheoryId theoryId, Node node) {
           s_rewriteStack->insert(response.node);
 #endif
           Node rewritten = rewriteTo(newTheoryId, response.node);
-          // THEORY_PROOF (
-          //        if (rewriteStackTop.node != rewritten) {
-          //          Expr from = rewriteStackTop.node.toExpr();
-          //          Expr to = rewritten.toExpr();
-          //          ProofManager::currentPM()->getRewriterProof()->finalizeRewrite(from, to);
-          //        }
-          //        );
           rewriteStackTop.node = rewritten;
 #ifdef CVC4_ASSERTIONS
           s_rewriteStack->erase(response.node);

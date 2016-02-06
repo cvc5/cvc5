@@ -19,12 +19,13 @@
 #ifndef __CVC4__SAT__PROOF_H
 #define __CVC4__SAT__PROOF_H
 
-#include <iostream>
-#include <vector>
-#include <set>
+#include <stdint.h>
 #include <ext/hash_map>
 #include <ext/hash_set>
+#include <iosfwd>
+#include <set>
 #include <sstream>
+#include <vector>
 #include "expr/expr.h"
 #include "proof/proof_manager.h"
 #include "util/proof.h"
@@ -155,7 +156,6 @@ protected:
   void printRes(ResChain<Solver>* res);
 
   bool isInputClause(ClauseId id);
-  //  bool isTheoryConflict(ClauseId id);
   bool isLemmaClause(ClauseId id);
   bool isAssumptionConflict(ClauseId id);
   bool isUnit(ClauseId id);
@@ -296,7 +296,6 @@ public:
   virtual void printResolutionEmptyClause(std::ostream& out, std::ostream& paren) = 0;
   virtual void printAssumptionsResolution(ClauseId id, std::ostream& out, std::ostream& paren) = 0;
 
-  //typedef IdHashSet::const_iterator clause_iterator;
 
   void collectClausesUsed(IdToSatClause& inputs,
                           IdToSatClause& lemmas);

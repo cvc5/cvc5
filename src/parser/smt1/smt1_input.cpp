@@ -21,8 +21,8 @@
 #include "parser/input.h"
 #include "parser/parser.h"
 #include "parser/parser_exception.h"
-#include "parser/smt1/generated/Smt1Lexer.h"
-#include "parser/smt1/generated/Smt1Parser.h"
+#include "parser/smt1/Smt1Lexer.h"
+#include "parser/smt1/Smt1Parser.h"
 
 namespace CVC4 {
 namespace parser {

@@ -1,0 +1,8 @@
+#
+# Option specification file for CVC4
+# See src/options/base_options for a description of this file format
+#
+
+module BUILTIN "options/builtin_options.h" Builtin theory
+
+endmodule

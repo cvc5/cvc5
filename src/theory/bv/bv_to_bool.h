@@ -11,21 +11,22 @@
  **
  ** \brief Preprocessing pass that lifts bit-vectors of size 1 to booleans.
  **
- ** Preprocessing pass that lifts bit-vectors of size 1 to booleans. 
+ ** Preprocessing pass that lifts bit-vectors of size 1 to booleans.
  **/
 
 #include "cvc4_private.h"
-#include "theory/bv/theory_bv_utils.h"
-#include "util/statistics_registry.h"
 
 #ifndef __CVC4__THEORY__BV__BV_TO_BOOL_H
 #define __CVC4__THEORY__BV__BV_TO_BOOL_H
+
+#include "theory/bv/theory_bv_utils.h"
+#include "util/statistics_registry.h"
 
 namespace CVC4 {
 namespace theory {
 namespace bv {
 
-typedef __gnu_cxx::hash_map<Node, Node, NodeHashFunction> NodeNodeMap; 
+typedef __gnu_cxx::hash_map<Node, Node, NodeHashFunction> NodeNodeMap;
 
 class BvToBoolPreprocessor {
 

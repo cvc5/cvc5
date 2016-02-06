@@ -14,17 +14,17 @@
  ** Sets theory implementation.
  **/
 
-#include <boost/foreach.hpp>
-
-#include "theory/theory_model.h"
-#include "theory/sets/scrutinize.h"
-#include "theory/sets/theory_sets.h"
 #include "theory/sets/theory_sets_private.h"
 
-#include "theory/sets/options.h"
-#include "theory/sets/expr_patterns.h" // ONLY included here
+#include <boost/foreach.hpp>
 
-#include "util/emptyset.h"
+#include "expr/emptyset.h"
+#include "options/sets_options.h"
+#include "smt/smt_statistics_registry.h"
+#include "theory/sets/expr_patterns.h" // ONLY included here
+#include "theory/sets/scrutinize.h"
+#include "theory/sets/theory_sets.h"
+#include "theory/theory_model.h"
 #include "util/result.h"
 
 using namespace std;
@@ -593,11 +593,16 @@ EqualityStatus TheorySetsPrivate::getEqualityStatus(TNode a, TNode b) {
     // The terms are implied to be dis-equal
     return EQUALITY_FALSE;
   }
-  if( d_external.d_valuation.getModelValue(a) == d_external.d_valuation.getModelValue(b) ) {
-    // Ther term are true in current model
+  Node aModelValue = d_external.d_valuation.getModelValue(a);
+  if(aModelValue.isNull()) { return EQUALITY_UNKNOWN; }
+  Node bModelValue = d_external.d_valuation.getModelValue(b);
+  if(bModelValue.isNull()) { return EQUALITY_UNKNOWN; }
+  if( aModelValue == bModelValue ) {
+    // The term are true in current model
     return EQUALITY_TRUE_IN_MODEL;
+  } else {
+    return EQUALITY_FALSE_IN_MODEL;
   }
-  return EQUALITY_FALSE_IN_MODEL;
   // }
   // //TODO: can we be more precise sometimes?
   // return EQUALITY_UNKNOWN;
@@ -920,16 +925,16 @@ TheorySetsPrivate::Statistics::Statistics() :
   , d_memberLemmas("theory::sets::lemmas::member", 0)
   , d_disequalityLemmas("theory::sets::lemmas::disequality", 0)
 {
-  StatisticsRegistry::registerStat(&d_getModelValueTime);
-  StatisticsRegistry::registerStat(&d_memberLemmas);
-  StatisticsRegistry::registerStat(&d_disequalityLemmas);
+  smtStatisticsRegistry()->registerStat(&d_getModelValueTime);
+  smtStatisticsRegistry()->registerStat(&d_memberLemmas);
+  smtStatisticsRegistry()->registerStat(&d_disequalityLemmas);
 }
 
 
 TheorySetsPrivate::Statistics::~Statistics() {
-  StatisticsRegistry::unregisterStat(&d_getModelValueTime);
-  StatisticsRegistry::unregisterStat(&d_memberLemmas);
-  StatisticsRegistry::unregisterStat(&d_disequalityLemmas);
+  smtStatisticsRegistry()->unregisterStat(&d_getModelValueTime);
+  smtStatisticsRegistry()->unregisterStat(&d_memberLemmas);
+  smtStatisticsRegistry()->unregisterStat(&d_disequalityLemmas);
 }
 
 
@@ -1561,7 +1566,9 @@ Node TheorySetsPrivate::TermInfoManager::getModelValue(TNode n)
     if(e.isConst()) {
       elements_const.insert(e);
     } else {
-      elements_const.insert(d_theory.d_external.d_valuation.getModelValue(e));
+      Node eModelValue = d_theory.d_external.d_valuation.getModelValue(e);
+      if( eModelValue.isNull() ) return eModelValue;
+      elements_const.insert(eModelValue);
     }
   }
   Node v = d_theory.elementsToShape(elements_const, n.getType());

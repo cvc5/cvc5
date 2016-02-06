@@ -33,11 +33,10 @@ private:
     void reset() { d_parent = NULL; d_terms.clear(); }
     RDomain * d_parent;
     std::vector< Node > d_terms;
-    std::vector< Node > d_ng_terms;
     void merge( RDomain * r );
-    void addTerm( Node t, bool nonGround = false );
+    void addTerm( Node t );
     RDomain * getParent();
-    void removeRedundantTerms( FirstOrderModel * fm );
+    void removeRedundantTerms( QuantifiersEngine * qe );
     bool hasTerm( Node n ) { return std::find( d_terms.begin(), d_terms.end(), n )!=d_terms.end(); }
   };
   std::map< Node, std::map< int, RDomain * > > d_rel_doms;
@@ -45,9 +44,21 @@ private:
   std::map< RDomain *, int > d_ri_map;
   QuantifiersEngine* d_qe;
   FirstOrderModel* d_model;
-  void computeRelevantDomain( Node n, bool hasPol, bool pol );
+  void computeRelevantDomain( Node q, Node n, bool hasPol, bool pol );
   void computeRelevantDomainOpCh( RDomain * rf, Node n );
   bool d_is_computed;
+  
+  //what each literal does
+  class RDomainLit {
+  public:
+    RDomainLit() : d_merge(false){}
+    ~RDomainLit(){}
+    bool d_merge;
+    RDomain * d_rd[2];
+    std::vector< Node > d_val;
+  };
+  std::map< bool, std::map< bool, std::map< Node, RDomainLit > > > d_rel_dom_lit;
+  void computeRelevantDomainLit( Node q, bool hasPol, bool pol, Node n );
 public:
   RelevantDomain( QuantifiersEngine* qe, FirstOrderModel* m );
   virtual ~RelevantDomain(){}
@@ -55,8 +66,7 @@ public:
   //compute the relevant domain
   void compute();
 
-  RDomain * getRDomain( Node n, int i );
-  Node getRelevantTerm( Node f, int i, Node r );
+  RDomain * getRDomain( Node n, int i, bool getParent = true );
 };/* class RelevantDomain */
 
 }/* CVC4::theory::quantifiers namespace */

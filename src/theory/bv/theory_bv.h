@@ -14,18 +14,20 @@
  ** Bitvector theory.
  **/
 
+#include "cvc4_private.h"
+
 #ifndef __CVC4__THEORY__BV__THEORY_BV_H
 #define __CVC4__THEORY__BV__THEORY_BV_H
 
-#include "cvc4_private.h"
-#include "theory/theory.h"
-#include "context/context.h"
-#include "context/cdlist.h"
 #include "context/cdhashset.h"
-#include "theory/bv/theory_bv_utils.h"
-#include "util/statistics_registry.h"
-#include "util/hash.h"
+#include "context/cdlist.h"
+#include "context/context.h"
+#include "smt/smt_globals.h"
 #include "theory/bv/bv_subtheory.h"
+#include "theory/bv/theory_bv_utils.h"
+#include "theory/theory.h"
+#include "util/hash.h"
+#include "util/statistics_registry.h"
 
 namespace CVC4 {
 namespace theory {
@@ -34,10 +36,10 @@ namespace bv {
 class CoreSolver;
 class InequalitySolver;
 class AlgebraicSolver;
-class BitblastSolver; 
+class BitblastSolver;
 
 class EagerBitblastSolver;
-  
+
 class AbstractionModule;
 
 class TheoryBV : public Theory {
@@ -48,14 +50,14 @@ class TheoryBV : public Theory {
   /** Context dependent set of atoms we already propagated */
   context::CDHashSet<Node, NodeHashFunction> d_alreadyPropagatedSet;
   context::CDHashSet<Node, NodeHashFunction> d_sharedTermsSet;
-  
-  std::vector<SubtheorySolver*> d_subtheories;
-  __gnu_cxx::hash_map<SubTheory, SubtheorySolver*, std::hash<int> > d_subtheoryMap; 
 
+  std::vector<SubtheorySolver*> d_subtheories;
+  __gnu_cxx::hash_map<SubTheory, SubtheorySolver*, std::hash<int> > d_subtheoryMap;
 
 public:
 
-  TheoryBV(context::Context* c, context::UserContext* u, OutputChannel& out, Valuation valuation, const LogicInfo& logicInfo);
+  TheoryBV(context::Context* c, context::UserContext* u, OutputChannel& out, Valuation valuation, const LogicInfo& logicInfo, SmtGlobals* globals);
+
   ~TheoryBV();
 
   void setMasterEqualityEngine(eq::EqualityEngine* eq);
@@ -79,15 +81,17 @@ public:
   PPAssertStatus ppAssert(TNode in, SubstitutionMap& outSubstitutions);
 
   void enableCoreTheorySlicer();
-  
+
   Node ppRewrite(TNode t);
 
   void ppStaticLearn(TNode in, NodeBuilder<>& learned);
-  
+
   void presolve();
+
   bool applyAbstraction(const std::vector<Node>& assertions, std::vector<Node>& new_assertions); 
   
   void setProofLog( BitVectorProof * bvp );
+
 private:
 
   class Statistics {
@@ -105,7 +109,7 @@ private:
 
   Statistics d_statistics;
 
-  void spendResource() throw(UnsafeInterruptException);
+  void spendResource(unsigned ammount) throw(UnsafeInterruptException);
 
   /**
    * Return the uninterpreted function symbol corresponding to division-by-zero
@@ -211,7 +215,7 @@ private:
   void lemma(TNode node) { d_out->lemma(node, RULE_CONFLICT); d_lemmasAdded = true; }
 
   void checkForLemma(TNode node); 
-  
+
   friend class LazyBitblaster;
   friend class TLazyBitblaster;
   friend class EagerBitblaster;

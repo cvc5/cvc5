@@ -15,24 +15,24 @@
  ** A CNF converter that takes in asserts and has the side effect
  ** of given an equisatisfiable stream of assertions to PropEngine.
  **/
+#include <queue>
 
-#include "prop/cnf_stream.h"
-#include "prop/prop_engine.h"
-#include "theory/theory_engine.h"
-#include "theory/theory.h"
-#include "expr/node.h"
-#include "util/cvc4_assert.h"
-#include "util/output.h"
-#include "expr/command.h"
+#include "base/cvc4_assert.h"
+#include "base/output.h"
 #include "expr/expr.h"
-#include "prop/theory_proxy.h"
-#include "theory/bv/options.h"
+#include "expr/node.h"
+#include "options/bv_options.h"
 #include "proof/proof_manager.h"
 #include "proof/sat_proof.h"
 #include "proof/cnf_proof.h"
+#include "prop/cnf_stream.h"
 #include "prop/minisat/minisat.h"
+#include "prop/prop_engine.h"
+#include "prop/theory_proxy.h"
 #include "smt/smt_engine_scope.h"
-#include <queue>
+#include "smt_util/command.h"
+#include "theory/theory.h"
+#include "theory/theory_engine.h"
 
 using namespace std;
 using namespace CVC4::kind;
@@ -46,25 +46,28 @@ using namespace CVC4::kind;
 namespace CVC4 {
 namespace prop {
 
-CnfStream::CnfStream(SatSolver *satSolver, Registrar* registrar, context::Context* context, bool fullLitToNodeMap, std::string name) :
-  d_satSolver(satSolver),
-  d_booleanVariables(context),
-  d_nodeToLiteralMap(context),
-  d_literalToNodeMap(context),
-  d_fullLitToNodeMap(fullLitToNodeMap),
-  d_convertAndAssertCounter(0),
-  d_registrar(registrar),
-  d_name(name),
-  d_cnfProof(NULL),
-  d_removable(false) {
+CnfStream::CnfStream(SatSolver* satSolver, Registrar* registrar,
+                     context::Context* context, SmtGlobals* globals,
+                     bool fullLitToNodeMap, std::string name)
+    : d_satSolver(satSolver),
+      d_booleanVariables(context),
+      d_nodeToLiteralMap(context),
+      d_literalToNodeMap(context),
+      d_fullLitToNodeMap(fullLitToNodeMap),
+      d_convertAndAssertCounter(0),
+      d_registrar(registrar),
+      d_name(name),
+      d_cnfProof(NULL),
+      d_globals(globals),
+      d_removable(false) {
 }
 
-TseitinCnfStream::TseitinCnfStream(SatSolver* satSolver,
-                                   Registrar* registrar,
+TseitinCnfStream::TseitinCnfStream(SatSolver* satSolver, Registrar* registrar,
                                    context::Context* context,
-                                   bool fullLitToNodeMap, std::string name) :
-  CnfStream(satSolver, registrar, context, fullLitToNodeMap, name) {
-}
+                                   SmtGlobals* globals, bool fullLitToNodeMap,
+                                   std::string name)
+  : CnfStream(satSolver, registrar, context, globals, fullLitToNodeMap, name)
+{}
 
 void CnfStream::assertClause(TNode node, SatClause& c) {
   Debug("cnf") << "Inserting into stream " << c << " node = " << node << endl;
@@ -174,7 +177,7 @@ void TseitinCnfStream::ensureLiteral(TNode n) {
 }
 
 SatLiteral CnfStream::newLiteral(TNode node, bool isTheoryAtom, bool preRegister, bool canEliminate) {
-  Debug("cnf") << d_name<<"::newLiteral(" << node << ", " << isTheoryAtom << ")" << endl;
+  Debug("cnf") << d_name << "::newLiteral(" << node << ", " << isTheoryAtom << ")" << endl;
   Assert(node.getKind() != kind::NOT);
 
   // Get the literal for this node
@@ -192,19 +195,13 @@ SatLiteral CnfStream::newLiteral(TNode node, bool isTheoryAtom, bool preRegister
     }
     d_nodeToLiteralMap.insert(node, lit);
     d_nodeToLiteralMap.insert(node.notNode(), ~lit);
-    // PROOF (
-    //        if (isTheoryAtom && d_name.compare("") == 0) {
-    //          ProofManager::currentPM()->registerTheoryAtom(node.toExpr(), lit.getSatVariable());
-    //        }
-    //        // TODO: register for bit-vector theory
-    //        );
   } else {
     lit = getLiteral(node);
   }
 
   // If it's a theory literal, need to store it for back queries
   if ( isTheoryAtom || d_fullLitToNodeMap ||
-       ( CVC4_USE_REPLAY && options::replayLog() != NULL ) ||
+       ( CVC4_USE_REPLAY && d_globals->getReplayLog() != NULL ) ||
        (Dump.isOn("clauses")) ) {
 
     d_literalToNodeMap.insert_safe(lit, node);
@@ -215,12 +212,9 @@ SatLiteral CnfStream::newLiteral(TNode node, bool isTheoryAtom, bool preRegister
   if (preRegister) {
     // In case we are re-entered due to lemmas, save our state
     bool backupRemovable = d_removable;
-    // Should be fine since cnfProof current assertion is stack based
-    // PROOF(Node backupCurrentAssertion = d_cnfProof->getCurrentAssertion(););
-    // PROOF(resetCurrentAssertion(););
+    // Should be fine since cnfProof current assertion is stack based.
     d_registrar->preRegister(node);
     d_removable = backupRemovable;
-    // PROOF(d_cnfProof->setCurrentAssertion(backupCurrentAssertion););
   }
 
   // Here, you can have it
@@ -694,7 +688,6 @@ void TseitinCnfStream::convertAndAssert(TNode node,
                << ", removable = " << (removable ? "true" : "false")
                << ", negated = " << (negated ? "true" : "false") << ")" << endl;
   d_removable = removable;
-
   PROOF
     (if (d_cnfProof) {
       Node assertion = negated ? node.notNode() : (Node)node;
@@ -719,7 +712,7 @@ void TseitinCnfStream::convertAndAssert(TNode node, bool negated) {
                << ", negated = " << (negated ? "true" : "false") << ")" << endl;
 
   if (d_convertAndAssertCounter % ResourceManager::getFrequencyCount() == 0) {
-    NodeManager::currentResourceManager()->spendResource();
+    NodeManager::currentResourceManager()->spendResource(options::cnfStep());
     d_convertAndAssertCounter = 0;
   }
   ++d_convertAndAssertCounter;

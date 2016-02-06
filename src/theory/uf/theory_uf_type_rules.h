@@ -71,6 +71,10 @@ public:
       if( n[1].getKind()!=kind::CONST_RATIONAL ){
         throw TypeCheckingExceptionPrivate(n, "cardinality constraint must be a constant");
       }
+      CVC4::Rational r(INT_MAX);
+      if( n[1].getConst<Rational>()>r ){
+        throw TypeCheckingExceptionPrivate(n, "Exceeded INT_MAX in cardinality constraint");
+      }
       if( n[1].getConst<Rational>().getNumerator().sgn()!=1 ){
         throw TypeCheckingExceptionPrivate(n, "cardinality constraint must be positive");
       }
@@ -91,6 +95,10 @@ public:
       if( n[0].getKind()!=kind::CONST_RATIONAL ){
         throw TypeCheckingExceptionPrivate(n, "combined cardinality constraint must be a constant");
       }
+      CVC4::Rational r(INT_MAX);
+      if( n[0].getConst<Rational>()>r ){
+        throw TypeCheckingExceptionPrivate(n, "Exceeded INT_MAX in combined cardinality constraint");
+      }
       if( n[0].getConst<Rational>().getNumerator().sgn()==-1 ){
         throw TypeCheckingExceptionPrivate(n, "combined cardinality constraint must be non-negative");
       }
@@ -103,10 +111,20 @@ class PartialTypeRule {
 public:
   inline static TypeNode computeType(NodeManager* nodeManager, TNode n, bool check)
       throw (TypeCheckingExceptionPrivate, AssertionException) {
-    Trace("ajr-temp") << "Partial UF type : " << n.getOperator() << " " << n.getOperator().getType() << std::endl;
     return n.getOperator().getType().getRangeType();
   }
-};
+};/* class PartialTypeRule */
+
+class CardinalityValueTypeRule {
+public:
+  inline static TypeNode computeType(NodeManager* nodeManager, TNode n, bool check)
+      throw(TypeCheckingExceptionPrivate) {
+    if( check ) {
+      n[0].getType(check);
+    }
+    return nodeManager->integerType();
+  }
+};/* class CardinalityValueTypeRule */
 
 }/* CVC4::theory::uf namespace */
 }/* CVC4::theory namespace */

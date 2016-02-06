@@ -18,26 +18,26 @@ DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE,
 OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 **************************************************************************************************/
 
+#include "core/Solver.h"
+
 #include <math.h>
 
-#include "mtl/Sort.h"
-#include "core/Solver.h"
 #include <vector>
 #include <iostream>
 
-#include "util/output.h"
-#include "util/utility.h"
-#include "util/exception.h"
-#include "theory/bv/options.h"
+#include "base/exception.h"
+#include "base/output.h"
+#include "mtl/Sort.h"
+#include "options/bv_options.h"
+#include "options/smt_options.h"
 #include "theory/interrupted.h"
-
 #include "proof/proof_manager.h"
 #include "proof/bitvector_proof.h"
 #include "proof/sat_proof.h"
 #include "proof/sat_proof_implementation.h"
+#include "util/utility.h"
 
-using namespace BVMinisat;
-using namespace CVC4;
+namespace CVC4 {
 namespace BVMinisat {
 
 #define OUTPUT_TAG "bvminisat: [a=" << assumptions.size() << ",l=" << decisionLevel() << "] "
@@ -57,26 +57,12 @@ std::ostream& operator << (std::ostream& out, const BVMinisat::Clause& c) {
   return out;
 }
 
-}
 
 //=================================================================================================
 // Options:
 
 
 static const char* _cat = "CORE";
-
-// static DoubleOption  opt_var_decay         (_cat, "var-decay",   "The variable activity decay factor",            0.95,     DoubleRange(0, false, 1, false));
-// static DoubleOption  opt_clause_decay      (_cat, "cla-decay",   "The clause activity decay factor",              0.999,    DoubleRange(0, false, 1, false));
-// static DoubleOption  opt_random_var_freq   (_cat, "rnd-freq",    "The frequency with which the decision heuristic tries to choose a random variable", 0.0, DoubleRange(0, true, 1, true));
-// static DoubleOption  opt_random_seed       (_cat, "rnd-seed",    "Used by the random variable selection",         91648253, DoubleRange(0, false, HUGE_VAL, false));
-// static IntOption     opt_ccmin_mode        (_cat, "ccmin-mode",  "Controls conflict clause minimization (0=none, 1=basic, 2=deep)", 0, IntRange(0, 2));
-// static IntOption     opt_phase_saving      (_cat, "phase-saving", "Controls the level of phase saving (0=none, 1=limited, 2=full)", 2, IntRange(0, 2));
-// static BoolOption    opt_rnd_init_act      (_cat, "rnd-init",    "Randomize the initial activity", false);
-// static BoolOption    opt_luby_restart      (_cat, "luby",        "Use the Luby restart sequence", true);
-// static IntOption     opt_restart_first     (_cat, "rfirst",      "The base restart interval", 100, IntRange(1, INT32_MAX)); 
-// static DoubleOption  opt_restart_inc       (_cat, "rinc",        "Restart interval increase factor", 1.5, DoubleRange(1, false, HUGE_VAL, false));
-// static DoubleOption  opt_garbage_frac      (_cat, "gc-frac",     "The fraction of wasted memory allowed before a garbage collection is triggered",  0.20, DoubleRange(0, false, HUGE_VAL, false));
-
 
 static DoubleOption  opt_var_decay         (_cat, "var-decay",   "The variable activity decay factor",            0.95,     DoubleRange(0, false, 1, false));
 static DoubleOption  opt_clause_decay      (_cat, "cla-decay",   "The clause activity decay factor",              0.999,    DoubleRange(0, false, 1, false));
@@ -273,7 +259,7 @@ bool Solver::addClause_(vec<Lit>& ps, ClauseId& id)
       // we are in a conflicting state
       if (ps.size() == falseLiteralsCount && falseLiteralsCount == 1) {
         if(d_bvp){ id = d_bvp->getSatProof()->storeUnitConflict(ps[0], INPUT); }
-        if(d_bvp){ d_bvp->getSatProof()->finalizeProof(::BVMinisat::CRef_Lazy); }
+        if(d_bvp){ d_bvp->getSatProof()->finalizeProof(CVC4::BVMinisat::CRef_Lazy); }
         return ok = false;
       }
 
@@ -304,7 +290,7 @@ bool Solver::addClause_(vec<Lit>& ps, ClauseId& id)
           if(d_bvp){
             if(ca[confl].size() == 1) {
               id = d_bvp->getSatProof()->storeUnitConflict(ca[confl][0], LEARNT);
-              d_bvp->getSatProof()->finalizeProof(::BVMinisat::CRef_Lazy);
+              d_bvp->getSatProof()->finalizeProof(CVC4::BVMinisat::CRef_Lazy);
             } else {
               d_bvp->getSatProof()->finalizeProof(confl);
             }
@@ -1081,7 +1067,7 @@ lbool Solver::search(int nof_conflicts, UIP uip)
             // NO CONFLICT
             bool isWithinBudget;
             try {
-              isWithinBudget = withinBudget(); 
+              isWithinBudget = withinBudget(CVC4::options::bvSatConflictStep()); 
             }
             catch (const CVC4::theory::Interrupted& e) {
               // do some clean-up and rethrow 
@@ -1234,7 +1220,7 @@ lbool Solver::solve_()
     while (status == l_Undef){
         double rest_base = luby_restart ? luby(restart_inc, curr_restarts) : pow(restart_inc, curr_restarts);
         status = search(rest_base * restart_first);
-        if (!withinBudget()) break;
+        if (!withinBudget(CVC4::options::bvSatConflictStep())) break;
         curr_restarts++;
     }
 
@@ -1478,3 +1464,6 @@ void ClauseAllocator::reloc(CRef& cr, ClauseAllocator& to, CVC4::BVProofProxy* p
   if (to[cr].learnt())         to[cr].activity() = c.activity();
   else if (to[cr].has_extra()) to[cr].calcAbstraction();
 }
+
+} /* CVC4::BVMinisat namespace */
+} /* CVC4 namespace */

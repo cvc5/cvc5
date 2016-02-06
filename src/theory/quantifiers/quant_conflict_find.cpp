@@ -13,14 +13,16 @@
  **
  **/
 
+#include "theory/quantifiers/quant_conflict_find.h"
+
 #include <vector>
 
-#include "theory/quantifiers/quant_conflict_find.h"
+#include "options/quantifiers_options.h"
+#include "smt/smt_statistics_registry.h"
 #include "theory/quantifiers/quant_util.h"
-#include "theory/theory_engine.h"
-#include "theory/quantifiers/options.h"
 #include "theory/quantifiers/term_database.h"
 #include "theory/quantifiers/trigger.h"
+#include "theory/theory_engine.h"
 
 using namespace CVC4;
 using namespace CVC4::kind;
@@ -458,9 +460,7 @@ bool QuantInfo::isTConstraintSpurious( QuantConflictFind * p, std::vector< Node 
     //check constraints
     for( std::map< Node, bool >::iterator it = d_tconstraints.begin(); it != d_tconstraints.end(); ++it ){
       //apply substitution to the tconstraint
-      Node cons = it->first.substitute( p->getTermDatabase()->d_vars[d_q].begin(),
-                                        p->getTermDatabase()->d_vars[d_q].end(),
-                                        terms.begin(), terms.end() );
+      Node cons = p->getTermDatabase()->getInstantiatedNode( it->first, d_q, terms );
       cons = it->second ? cons : cons.negate();
       if( !entailmentTest( p, cons, p->d_effort==QuantConflictFind::effort_conflict ) ){
         return true;
@@ -626,7 +626,7 @@ bool QuantInfo::completeMatch( QuantConflictFind * p, std::vector< int >& assign
   }
 
   if( !d_unassigned.empty() && ( success || doContinue ) ){
-    Trace("qcf-check") << "Assign to unassigned..." << std::endl;
+    Trace("qcf-check") << "Assign to unassigned (" << d_unassigned.size() << ")..." << std::endl;
     do {
       if( doFail ){
         Trace("qcf-check-unassign") << "Failure, try again..." << std::endl;
@@ -704,6 +704,7 @@ bool QuantInfo::completeMatch( QuantConflictFind * p, std::vector< int >& assign
         }
       }
     }while( success && isMatchSpurious( p ) );
+    Trace("qcf-check") << "done assigning." << std::endl;
   }
   if( success ){
     for( unsigned i=0; i<d_unassigned.size(); i++ ){
@@ -772,7 +773,28 @@ void QuantInfo::debugPrintMatch( const char * c ) {
   }
 }
 
-MatchGen::MatchGen( QuantInfo * qi, Node n, bool isVar ){
+MatchGen::MatchGen()
+  : d_matched_basis(),
+    d_binding(),
+    d_tgt(),
+    d_tgt_orig(),
+    d_wasSet(),
+    d_n(),
+    d_type( typ_invalid ),
+    d_type_not()
+{}
+
+
+MatchGen::MatchGen( QuantInfo * qi, Node n, bool isVar )
+  : d_matched_basis(),
+    d_binding(),
+    d_tgt(),
+    d_tgt_orig(),
+    d_wasSet(),
+    d_n(),
+    d_type(),
+    d_type_not()
+{
   Trace("qcf-qregister-debug") << "Make match gen for " << n << ", isVar = " << isVar << std::endl;
   std::vector< Node > qni_apps;
   d_qni_size = 0;
@@ -1526,7 +1548,7 @@ bool MatchGen::doMatching( QuantConflictFind * p, QuantInfo * qi ) {
               if( it != d_qn[index]->d_data.end() ) {
                 d_qni.push_back( it );
                 //set the match
-                if( it->first.getType().isSubtypeOf( qi->d_var_types[repVar] ) && qi->setMatch( p, d_qni_bound[index], it->first ) ){
+                if( it->first.getType().isComparableTo( qi->d_var_types[repVar] ) && qi->setMatch( p, d_qni_bound[index], it->first ) ){
                   Debug("qcf-match-debug") << "       Binding variable" << std::endl;
                   if( d_qn.size()<d_qni_size ){
                     d_qn.push_back( &it->second );
@@ -1651,7 +1673,7 @@ void MatchGen::setInvalid() {
 }
 
 bool MatchGen::isHandledBoolConnective( TNode n ) {
-  return n.getType().isBoolean() && ( n.getKind()==OR || n.getKind()==AND || n.getKind()==IFF || n.getKind()==ITE || n.getKind()==FORALL || n.getKind()==NOT );
+  return n.getType().isBoolean() && TermDb::isBoolConnective( n.getKind() );
 }
 
 bool MatchGen::isHandledUfTerm( TNode n ) {
@@ -1971,6 +1993,7 @@ void QuantConflictFind::check( Theory::Effort level, unsigned quant_e ) {
         Trace("qcf-debug") << std::endl;
       }
       short end_e = getMaxQcfEffort();
+      bool isConflict = false;
       for( short e = effort_conflict; e<=end_e; e++ ){
         d_effort = e;
         Trace("qcf-check") << "Checking quantified formulas at effort " << e << "..." << std::endl;
@@ -2014,8 +2037,12 @@ void QuantConflictFind::check( Theory::Effort level, unsigned quant_e ) {
                       ++addedLemmas;
                       if( e==effort_conflict ){
                         d_quant_order.insert( d_quant_order.begin(), q );
-                        d_conflict.set( true );
                         ++(d_statistics.d_conflict_inst);
+                        if( options::qcfAllConflict() ){
+                          isConflict = true;
+                        }else{
+                          d_conflict.set( true );
+                        }
                         break;
                       }else if( e==effort_prop_eq ){
                         ++(d_statistics.d_prop_inst);
@@ -2043,6 +2070,9 @@ void QuantConflictFind::check( Theory::Effort level, unsigned quant_e ) {
         if( addedLemmas>0 ){
           break;
         }
+      }
+      if( isConflict ){
+        d_conflict.set( true );
       }
       if( Trace.isOn("qcf-engine") ){
         double clSet2 = double(clock())/double(CLOCKS_PER_SEC);
@@ -2107,7 +2137,9 @@ void QuantConflictFind::computeRelevantEqr() {
             itt->second.push_back( r );
           }
         }else{
-          d_eqcs[rtn].push_back( r );
+          if( !options::cbqi() || !TermDb::hasInstConstAttr( r ) ){
+            d_eqcs[rtn].push_back( r );
+          }
         }
       }
       ++eqcs_i;
@@ -2196,17 +2228,17 @@ QuantConflictFind::Statistics::Statistics():
   d_prop_inst("QuantConflictFind::Instantiations_Prop", 0 ),
   d_entailment_checks("QuantConflictFind::Entailment_Checks",0)
 {
-  StatisticsRegistry::registerStat(&d_inst_rounds);
-  StatisticsRegistry::registerStat(&d_conflict_inst);
-  StatisticsRegistry::registerStat(&d_prop_inst);
-  StatisticsRegistry::registerStat(&d_entailment_checks);
+  smtStatisticsRegistry()->registerStat(&d_inst_rounds);
+  smtStatisticsRegistry()->registerStat(&d_conflict_inst);
+  smtStatisticsRegistry()->registerStat(&d_prop_inst);
+  smtStatisticsRegistry()->registerStat(&d_entailment_checks);
 }
 
 QuantConflictFind::Statistics::~Statistics(){
-  StatisticsRegistry::unregisterStat(&d_inst_rounds);
-  StatisticsRegistry::unregisterStat(&d_conflict_inst);
-  StatisticsRegistry::unregisterStat(&d_prop_inst);
-  StatisticsRegistry::unregisterStat(&d_entailment_checks);
+  smtStatisticsRegistry()->unregisterStat(&d_inst_rounds);
+  smtStatisticsRegistry()->unregisterStat(&d_conflict_inst);
+  smtStatisticsRegistry()->unregisterStat(&d_prop_inst);
+  smtStatisticsRegistry()->unregisterStat(&d_entailment_checks);
 }
 
 TNode QuantConflictFind::getZero( Kind k ) {

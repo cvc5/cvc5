@@ -21,16 +21,14 @@
 
 #include <vector>
 
+#include "base/output.h"
 #include "decision/decision_strategy.h"
-
 #include "expr/node.h"
 #include "prop/cnf_stream.h"
 #include "prop/prop_engine.h"
 #include "prop/sat_solver_types.h"
-#include "theory/decision_attributes.h"
-#include "util/ite_removal.h"
-#include "util/output.h"
 #include "smt/smt_engine_scope.h"
+#include "smt_util/ite_removal.h"
 
 using namespace std;
 using namespace CVC4::prop;
@@ -118,7 +116,7 @@ public:
 
   /** Gets the next decision based on strategies that are enabled */
   SatLiteral getNext(bool &stopSearch) {
-    NodeManager::currentResourceManager()->spendResource();
+    NodeManager::currentResourceManager()->spendResource(options::decisionStep());
     Assert(d_cnfStream != NULL,
            "Forgot to set cnfStream for decision engine?");
     Assert(d_satSolver != NULL,

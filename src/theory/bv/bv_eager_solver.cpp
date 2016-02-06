@@ -14,10 +14,10 @@
  ** Eager bit-blasting solver.
  **/
 
-#include "theory/bv/bv_eager_solver.h"
+#include "options/bv_options.h"
 #include "theory/bv/bitblaster_template.h"
-#include "theory/bv/options.h"
 #include "proof/bitvector_proof.h"
+#include "theory/bv/bv_eager_solver.h"
 
 using namespace std;
 using namespace CVC4;
@@ -74,7 +74,7 @@ bool EagerBitblastSolver::isInitialized() {
 }
 
 void EagerBitblastSolver::assertFormula(TNode formula) {
-  d_bv->spendResource();
+  d_bv->spendResource(1);
   Assert (isInitialized());
   Debug("bitvector-eager") << "EagerBitblastSolver::assertFormula "<< formula <<"\n"; 
   d_assertionSet.insert(formula);

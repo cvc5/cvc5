@@ -15,24 +15,22 @@
  **
  ** Reviewed by Chris Conway, Apr 5 2010 (bug #65).
  **/
-
 #include "expr/node_manager.h"
-#include "expr/node_manager_attributes.h"
-
-#include "expr/attribute.h"
-#include "util/cvc4_assert.h"
-#include "options/options.h"
-#include "smt/options.h"
-#include "util/statistics_registry.h"
-#include "util/resource_manager.h"
-#include "util/tls.h"
-
-#include "expr/type_checker.h"
 
 #include <algorithm>
+#include <ext/hash_set>
 #include <stack>
 #include <utility>
-#include <ext/hash_set>
+
+#include "base/cvc4_assert.h"
+#include "base/tls.h"
+#include "expr/attribute.h"
+#include "expr/node_manager_attributes.h"
+#include "expr/type_checker.h"
+#include "options/options.h"
+#include "options/smt_options.h"
+#include "util/statistics_registry.h"
+#include "util/resource_manager.h"
 
 using namespace std;
 using namespace CVC4::expr;
@@ -394,8 +392,8 @@ TypeNode NodeManager::mkConstructorType(const DatatypeConstructor& constructor,
     sorts.push_back(sort);
   }
   Debug("datatypes") << "ctor range: " << range << endl;
-  CheckArgument(!range.isFunctionLike(), range,
-                "cannot create higher-order function types");
+  PrettyCheckArgument(!range.isFunctionLike(), range,
+                      "cannot create higher-order function types");
   sorts.push_back(range);
   return mkTypeNode(kind::CONSTRUCTOR_TYPE, sorts);
 }
@@ -448,6 +446,9 @@ TypeNode NodeManager::mkSubrangeType(const SubrangeBounds& bounds)
 TypeNode NodeManager::getDatatypeForTupleRecord(TypeNode t) {
   Assert(t.isTuple() || t.isRecord());
 
+  //AJR: not sure why .getBaseType() was used in two cases below,
+  //     disabling this, which is necessary to fix bug 605/667,
+  //     which involves records of INT which were mapped to records of REAL below.
   TypeNode tOrig = t;
   if(t.isTuple()) {
     vector<TypeNode> v;
@@ -458,7 +459,7 @@ TypeNode NodeManager::getDatatypeForTupleRecord(TypeNode t) {
       if(tn.isTuple() || tn.isRecord()) {
         base = getDatatypeForTupleRecord(tn);
       } else {
-        base = tn.getBaseType();
+        base = tn;//.getBaseType();
       }
       changed = changed || (tn != base);
       v.push_back(base);
@@ -470,13 +471,14 @@ TypeNode NodeManager::getDatatypeForTupleRecord(TypeNode t) {
     const Record& r = t.getRecord();
     std::vector< std::pair<std::string, Type> > v;
     bool changed = false;
-    for(Record::iterator i = r.begin(); i != r.end(); ++i) {
+    const Record::FieldVector& fields = r.getFields();
+    for(Record::FieldVector::const_iterator i = fields.begin(); i != fields.end(); ++i) {
       Type tn = (*i).second;
       Type base;
       if(tn.isTuple() || tn.isRecord()) {
         base = getDatatypeForTupleRecord(TypeNode::fromType(tn)).toType();
       } else {
-        base = tn.getBaseType();
+        base = tn;//.getBaseType();
       }
       changed = changed || (tn != base);
       v.push_back(std::make_pair((*i).first, base));
@@ -498,18 +500,19 @@ TypeNode NodeManager::getDatatypeForTupleRecord(TypeNode t) {
       dt.addConstructor(c);
       dtt = TypeNode::fromType(toExprManager()->mkDatatypeType(dt));
       Debug("tuprec") << "REWROTE " << t << " to " << dtt << std::endl;
-      dtt.setAttribute(DatatypeTupleAttr(), t);
+      dtt.setAttribute(DatatypeTupleAttr(), tOrig);
     } else {
       const Record& rec = t.getRecord();
+      const Record::FieldVector& fields = rec.getFields();
       Datatype dt("__cvc4_record");
       DatatypeConstructor c("__cvc4_record_ctor");
-      for(Record::const_iterator i = rec.begin(); i != rec.end(); ++i) {
+      for(Record::FieldVector::const_iterator i = fields.begin(); i != fields.end(); ++i) {
         c.addArg((*i).first, (*i).second);
       }
       dt.addConstructor(c);
       dtt = TypeNode::fromType(toExprManager()->mkDatatypeType(dt));
       Debug("tuprec") << "REWROTE " << t << " to " << dtt << std::endl;
-      dtt.setAttribute(DatatypeRecordAttr(), t);
+      dtt.setAttribute(DatatypeRecordAttr(), tOrig);
     }
   } else {
     Debug("tuprec") << "REUSING cached " << t << ": " << dtt << std::endl;

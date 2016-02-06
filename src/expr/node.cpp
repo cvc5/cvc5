@@ -13,13 +13,15 @@
  **
  ** Reference-counted encapsulation of a pointer to node information.
  **/
-
 #include "expr/node.h"
-#include "expr/attribute.h"
-#include "util/output.h"
 
 #include <iostream>
 #include <cstring>
+
+#include "base/exception.h"
+#include "base/output.h"
+#include "expr/attribute.h"
+
 
 using namespace std;
 
@@ -30,8 +32,10 @@ TypeCheckingExceptionPrivate::TypeCheckingExceptionPrivate(TNode node,
   Exception(message),
   d_node(new Node(node)) {
 #ifdef CVC4_DEBUG
-  // yes, this leaks memory, but only in debug modes with exceptions occurring
-  s_debugLastException = strdup(toString().c_str());
+  LastExceptionBuffer* current = LastExceptionBuffer::getCurrent();
+  if(current != NULL){
+    current->setContents(toString().c_str());
+  }
 #endif /* CVC4_DEBUG */
 }
 

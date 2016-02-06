@@ -3,7 +3,7 @@
  ** \verbatim
  ** Original author: Morgan Deters
  ** Major contributors: none
- ** Minor contributors (to current version): none
+ ** Minor contributors (to current version): Andrew Reynolds
  ** This file is part of the CVC4 project.
  ** Copyright (c) 2009-2014  New York University and The University of Iowa
  ** See the file COPYING in the top-level source directory for licensing
@@ -19,10 +19,10 @@
 #ifndef __CVC4__THEORY__TYPE_ENUMERATOR_H
 #define __CVC4__THEORY__TYPE_ENUMERATOR_H
 
-#include "util/exception.h"
+#include "base/exception.h"
+#include "base/cvc4_assert.h"
 #include "expr/node.h"
 #include "expr/type_node.h"
-#include "util/cvc4_assert.h"
 
 namespace CVC4 {
 namespace theory {
@@ -62,6 +62,18 @@ public:
 
 };/* class TypeEnumeratorInterface */
 
+// AJR: This class stores particular information that is relevant to type enumeration.
+//      For finite model finding, we set d_fixed_usort=true,
+//      and store the finite cardinality bounds for each uninterpreted sort encountered in the model.
+class TypeEnumeratorProperties
+{
+public:
+  TypeEnumeratorProperties() : d_fixed_usort_card(false){}
+  Integer getFixedCardinality( TypeNode tn ) { return d_fixed_card[tn]; }
+  bool d_fixed_usort_card;
+  std::map< TypeNode, Integer > d_fixed_card;
+};
+
 template <class T>
 class TypeEnumeratorBase : public TypeEnumeratorInterface {
 public:
@@ -77,17 +89,19 @@ public:
 class TypeEnumerator {
   TypeEnumeratorInterface* d_te;
 
-  static TypeEnumeratorInterface* mkTypeEnumerator(TypeNode type)
+  static TypeEnumeratorInterface* mkTypeEnumerator(TypeNode type, TypeEnumeratorProperties * tep)
     throw(AssertionException);
 
 public:
 
-  TypeEnumerator(TypeNode type) throw() :
-    d_te(mkTypeEnumerator(type)) {
+  TypeEnumerator(TypeNode type, TypeEnumeratorProperties * tep = NULL) throw() :
+    d_te(mkTypeEnumerator(type, tep)) {
   }
 
   TypeEnumerator(const TypeEnumerator& te) :
     d_te(te.d_te->clone()) {
+  }
+  TypeEnumerator(TypeEnumeratorInterface* te) : d_te(te){
   }
   TypeEnumerator& operator=(const TypeEnumerator& te) {
     delete d_te;

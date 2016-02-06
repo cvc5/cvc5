@@ -15,9 +15,11 @@
  ** \todo document this file
  **/
 
+#include <list>
+
+#include "base/output.h"
 #include "theory/arith/normal_form.h"
 #include "theory/arith/arith_utilities.h"
-#include <list>
 #include "theory/theory.h"
 
 using namespace std;

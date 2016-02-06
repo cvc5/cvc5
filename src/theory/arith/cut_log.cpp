@@ -15,17 +15,17 @@
  ** \todo document this file
  **/
 
-#include "cvc4autoconfig.h"
-
-
-#include "theory/arith/cut_log.h"
-#include "theory/arith/approx_simplex.h"
-#include "theory/arith/normal_form.h"
-#include "theory/arith/constraint.h"
-#include <math.h>
 #include <cmath>
-#include <map>
 #include <limits.h>
+#include <map>
+#include <math.h>
+
+#include "base/output.h"
+#include "cvc4autoconfig.h"
+#include "theory/arith/approx_simplex.h"
+#include "theory/arith/constraint.h"
+#include "theory/arith/cut_log.h"
+#include "theory/arith/normal_form.h"
 
 using namespace std;
 

@@ -74,9 +74,10 @@ class CoreSolver : public SubtheorySolver {
 
   Slicer* d_slicer;
   context::CDO<bool> d_isComplete;
+  unsigned d_lemmaThreshold;
   
   /** Used to ensure that the core slicer is used properly*/
-  bool d_useSlicer; 
+  bool d_useSlicer;
   bool d_preregisterCalled;
   bool d_checkCalled;
   

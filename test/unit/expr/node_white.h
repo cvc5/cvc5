@@ -18,11 +18,11 @@
 
 #include <string>
 
-#include "expr/node_value.h"
+#include "base/cvc4_assert.h"
+#include "expr/node.h"
 #include "expr/node_builder.h"
 #include "expr/node_manager.h"
-#include "expr/node.h"
-#include "util/cvc4_assert.h"
+#include "expr/node_value.h"
 
 using namespace CVC4;
 using namespace CVC4::kind;

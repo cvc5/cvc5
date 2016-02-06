@@ -2,7 +2,7 @@
 /*! \file theory_strings_rewriter.h
  ** \verbatim
  ** Original author: Tianyi Liang
- ** Major contributors: none
+ ** Major contributors: Andrew Reynolds
  ** Minor contributors (to current version): none
  ** This file is part of the CVC4 project.
  ** Copyright (c) 2009-2014  New York University and The University of Iowa
@@ -30,14 +30,13 @@ namespace theory {
 namespace strings {
 
 class TheoryStringsRewriter {
-public:
-  static bool checkConstRegExp( TNode t );
+private:
+  static Node simpleRegexpConsume( std::vector< Node >& mchildren, std::vector< Node >& children, int dir = -1 );
+  static bool isConstRegExp( TNode t );
   static bool testConstStringInRegExp( CVC4::String &s, unsigned int index_start, TNode r );
 
   static Node rewriteConcatString(TNode node);
-  
-  static Node concatTwoNodes(TNode n1, TNode n2);
-  static void unionAndConcat(std::vector<Node> &vec_nodes, Node node);
+
   static void mergeInto(std::vector<Node> &t, const std::vector<Node> &s);
   static void shrinkConVec(std::vector<Node> &vec);
   static Node applyAX( TNode node );
@@ -47,14 +46,21 @@ public:
   static Node prerewriteAndRegExp(TNode node);
   static Node rewriteMembership(TNode node);
 
-  static RewriteResponse postRewrite(TNode node);
-
   static bool hasEpsilonNode(TNode node);
+public:
+  static RewriteResponse postRewrite(TNode node);
   static RewriteResponse preRewrite(TNode node);
 
   static inline void init() {}
   static inline void shutdown() {}
 
+  static Node rewriteContains( Node n );
+  static Node rewriteIndexof( Node n );
+  static Node rewriteReplace( Node n );
+  
+  static void getConcat( Node n, std::vector< Node >& c );
+  static Node mkConcat( Kind k, std::vector< Node >& c );
+  static Node splitConstant( Node a, Node b, int& index, bool isRev );
 };/* class TheoryStringsRewriter */
 
 }/* CVC4::theory::strings namespace */

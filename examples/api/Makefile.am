@@ -10,6 +10,7 @@ noinst_PROGRAMS = \
 	bitvectors_and_arrays \
 	combination \
 	datatypes \
+        extract \
 	helloworld \
 	linear_arith \
 	sets \
@@ -35,6 +36,11 @@ combination_LDADD = \
 datatypes_SOURCES = \
 	datatypes.cpp
 datatypes_LDADD = \
+	@builddir@/../../src/libcvc4.la
+
+extract_SOURCES = \
+	extract.cpp
+extract_LDADD = \
 	@builddir@/../../src/libcvc4.la
 
 helloworld_SOURCES = \

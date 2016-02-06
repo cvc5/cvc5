@@ -3,7 +3,7 @@
  ** \verbatim
  ** Original author: Tianyi Liang
  ** Major contributors: none
- ** Minor contributors (to current version): none
+ ** Minor contributors (to current version): Andrew Reynolds
  ** This file is part of the CVC4 project.
  ** Copyright (c) 2009-2014  New York University and The University of Iowa
  ** See the file COPYING in the top-level source directory for licensing
@@ -40,7 +40,7 @@ class StringEnumerator : public TypeEnumeratorBase<StringEnumerator> {
   }
 public:
 
-  StringEnumerator(TypeNode type) throw(AssertionException) :
+  StringEnumerator(TypeNode type, TypeEnumeratorProperties * tep = NULL) throw(AssertionException) :
     TypeEnumeratorBase<StringEnumerator>(type) {
     Assert(type.getKind() == kind::TYPE_CONSTANT &&
            type.getConst<TypeConstant>() == STRING_TYPE);

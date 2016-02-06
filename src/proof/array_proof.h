@@ -47,8 +47,8 @@ public:
 namespace theory {
 namespace arrays{
 class TheoryArrays;
-}
-}
+} /* namespace CVC4::theory::arrays */
+} /* namespace CVC4::theory */
 
 typedef __gnu_cxx::hash_set<Type, TypeHashFunction > TypeSet;
 

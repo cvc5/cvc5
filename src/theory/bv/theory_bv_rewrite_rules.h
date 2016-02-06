@@ -15,15 +15,17 @@
  ** \todo document this file
  **/
 
-#pragma once 
-
 #include "cvc4_private.h"
-#include "theory/theory.h"
-#include "context/context.h"
-#include "util/statistics_registry.h"
-#include "theory/bv/theory_bv_utils.h"
-#include "expr/command.h"
+
+#pragma once
+
 #include <sstream>
+
+#include "context/context.h"
+#include "smt_util/command.h"
+#include "theory/bv/theory_bv_utils.h"
+#include "theory/theory.h"
+#include "util/statistics_registry.h"
 
 namespace CVC4 {
 namespace theory {
@@ -49,6 +51,8 @@ enum RewriteRuleId {
   UgeEliminate,
   SgeEliminate,
   SgtEliminate,
+  RedorEliminate,
+  RedandEliminate,
   SubEliminate,
   SltEliminate,
   SleEliminate,
@@ -188,6 +192,8 @@ inline std::ostream& operator << (std::ostream& out, RewriteRuleId ruleId) {
   case SgtEliminate:        out << "SgtEliminate";        return out;
   case UgeEliminate:        out << "UgeEliminate";        return out;
   case SgeEliminate:        out << "SgeEliminate";        return out;
+  case RedorEliminate:      out << "RedorEliminate";      return out;
+  case RedandEliminate:     out << "RedandEliminate";     return out;
   case RepeatEliminate:     out << "RepeatEliminate";     return out;
   case RotateLeftEliminate: out << "RotateLeftEliminate"; return out;
   case RotateRightEliminate:out << "RotateRightEliminate";return out;
@@ -322,7 +328,7 @@ class RewriteRule {
   //   /** Constructor */
   //   RuleStatistics()
   //   : d_ruleApplications(getStatName("theory::bv::RewriteRules::count"), 0) {
-  //     StatisticsRegistry::registerStat(&d_ruleApplications);
+  //     currentStatisticsRegistry()->registerStat(&d_ruleApplications);
   //   }
 
   //   /** Destructor */
@@ -522,6 +528,8 @@ struct AllRewriteRules {
   RewriteRule<UltPlusOne> rule119;
   RewriteRule<ConcatToMult> rule120;
   RewriteRule<IsPowerOfTwo> rule121;
+  RewriteRule<RedorEliminate> rule122;
+  RewriteRule<RedandEliminate> rule123;
 };
 
 template<> inline

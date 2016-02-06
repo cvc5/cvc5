@@ -39,7 +39,6 @@ class RewriteEngine : public QuantifiersModule
   std::vector< Node > d_rr_quant;
   std::vector< Node > d_priority_order;
   std::map< Node, Node > d_rr;
-  Node d_true;
   /** explicitly provided patterns */
   std::map< Node, std::vector< inst::Trigger* > > d_rr_triggers;
   /** get the quantifer info object */

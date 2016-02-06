@@ -15,35 +15,34 @@
  ** \todo document this file
  **/
 
-#include "proof/proof_manager.h"
-#include "util/proof.h"
-#include "proof/sat_proof.h"
-#include "proof/cnf_proof.h"
-#include "proof/theory_proof.h"
-#include "util/cvc4_assert.h"
-#include "smt/smt_engine.h"
-#include "smt/smt_engine_scope.h"
-#include "theory/output_channel.h"
-#include "theory/valuation.h"
-#include "util/node_visitor.h"
-#include "theory/term_registration_visitor.h"
-#include "theory/uf/equality_engine.h"
+#include "base/cvc4_assert.h"
 #include "context/context.h"
-#include "util/hash.h"
-#include "theory/bv/options.h"
-#include "proof/uf_proof.h"
+#include "options/bv_options.h"
 #include "proof/array_proof.h"
 #include "proof/bitvector_proof.h"
 #include "proof/cnf_proof.h"
+#include "proof/cnf_proof.h"
+#include "proof/proof_manager.h"
 #include "proof/proof_utils.h"
+#include "proof/sat_proof.h"
+#include "proof/theory_proof.h"
+#include "proof/uf_proof.h"
 #include "prop/sat_solver_types.h"
-#include "theory/uf/theory_uf.h"
+#include "smt/smt_engine.h"
+#include "smt/smt_engine_scope.h"
+#include "smt_util/node_visitor.h"
 #include "theory/arrays/theory_arrays.h"
 #include "theory/bv/theory_bv.h"
+#include "theory/output_channel.h"
+#include "theory/term_registration_visitor.h"
+#include "theory/uf/equality_engine.h"
+#include "theory/uf/theory_uf.h"
+#include "theory/valuation.h"
+#include "util/hash.h"
+#include "util/proof.h"
 
 
-using namespace CVC4;
-using namespace CVC4::theory;
+namespace CVC4 {
 
 unsigned CVC4::LetCount::counter = 0;
 static unsigned LET_COUNT = 1;
@@ -71,9 +70,9 @@ public:
     Trace("theory-proof-debug") << "got a propagation: " << x << std::endl;
     return true;
   }
-  theory::LemmaStatus lemma(TNode n, ProofRule rule, bool, bool) throw() {
+
+  theory::LemmaStatus lemma(TNode n, ProofRule rule, bool, bool, bool) throw() {
     Debug("theory-proof-debug") << "ProofOutputChannel::lemma called" << std::endl;
-    //AlwaysAssert(false);
     Trace("theory-proof-debug") << "new lemma: " << n << std::endl;
     d_lemma = n;
     return theory::LemmaStatus(TNode::null(), 0);
@@ -86,7 +85,6 @@ public:
   void requirePhase(TNode n, bool b) throw() {
     Debug("theory-proof-debug") << "ProofOutputChannel::requirePhase called" << std::endl;
     Trace("theory-proof-debug") << "requirePhase " << n << " " << b << std::endl;
-    //AlwaysAssert(false);
   }
   bool flipDecision() throw() {
     Debug("theory-proof-debug") << "ProofOutputChannel::flipDecision called" << std::endl;
@@ -119,11 +117,12 @@ public:
   }
   void start(TNode node) { }
   void done(TNode node) { }
-};
+}; /* class MyPreRegisterVisitor */
 
-TheoryProofEngine::TheoryProofEngine()
+TheoryProofEngine::TheoryProofEngine(SmtGlobals* globals)
   : d_registrationCache()
   , d_theoryProofTable()
+  , d_globals(globals)
 {
   d_theoryProofTable[theory::THEORY_BOOL] = new LFSCBooleanProof(this);
 }
@@ -139,34 +138,34 @@ TheoryProofEngine::~TheoryProofEngine() {
 
 void TheoryProofEngine::registerTheory(theory::Theory* th) {
   if( th ){
-    TheoryId id = th->getId();
+    theory::TheoryId id = th->getId();
     if(d_theoryProofTable.find(id) == d_theoryProofTable.end()) {
 
       Trace("theory-proof-debug") << "; register theory " << id << std::endl;
 
-      if (id == THEORY_UF) {
-        d_theoryProofTable[id] = new LFSCUFProof((uf::TheoryUF*)th, this);
+      if (id == theory::THEORY_UF) {
+        d_theoryProofTable[id] = new LFSCUFProof((theory::uf::TheoryUF*)th, this);
         return;
       }
 
-      if (id == THEORY_BV) {
-        BitVectorProof * bvp = new LFSCBitVectorProof((bv::TheoryBV*)th, this);
+      if (id == theory::THEORY_BV) {
+        BitVectorProof * bvp = new LFSCBitVectorProof((theory::bv::TheoryBV*)th, this);
         d_theoryProofTable[id] = bvp;
         ((theory::bv::TheoryBV*)th)->setProofLog( bvp );
         return;
       }
 
-      if (id == THEORY_ARRAY) {
-        d_theoryProofTable[id] = new LFSCArrayProof((arrays::TheoryArrays*)th, this);
+      if (id == theory::THEORY_ARRAY) {
+        d_theoryProofTable[id] = new LFSCArrayProof((theory::arrays::TheoryArrays*)th, this);
         return;
       }
 
-    // TODO Arrays and other theories
+      // TODO other theories
     }
   }
 }
 
-TheoryProof* TheoryProofEngine::getTheoryProof(TheoryId id) {
+TheoryProof* TheoryProofEngine::getTheoryProof(theory::TheoryId id) {
   Assert (d_theoryProofTable.find(id) != d_theoryProofTable.end());
   return d_theoryProofTable[id];
 }
@@ -178,12 +177,12 @@ void TheoryProofEngine::registerTerm(Expr term) {
   }
   Debug("gk::proof") << "TheoryProofEngine::registerTerm: registering new term: " << term << std::endl;
 
-  TheoryId theory_id = Theory::theoryOf(term);
+  theory::TheoryId theory_id = theory::Theory::theoryOf(term);
 
   Debug("gk::proof") << "Term's theory: " << theory_id << std::endl;
 
   // don't need to register boolean terms
-  if (theory_id == THEORY_BUILTIN ||
+  if (theory_id == theory::THEORY_BUILTIN ||
       term.getKind() == kind::ITE) {
     for (unsigned i = 0; i < term.getNumChildren(); ++i) {
       registerTerm(term[i]);
@@ -191,6 +190,8 @@ void TheoryProofEngine::registerTerm(Expr term) {
     d_registrationCache.insert(term);
     return;
   }
+
+  if (!supportedTheory(theory_id)) return;
 
   getTheoryProof(theory_id)->registerTerm(term);
   d_registrationCache.insert(term);
@@ -262,11 +263,10 @@ void LFSCTheoryProofEngine::printLetTerm(Expr term, std::ostream& os) {
 
 void LFSCTheoryProofEngine::printTheoryTerm(Expr term, std::ostream& os, const LetMap& map) {
   Debug("gk::proof") << std::endl << "LFSCTheoryProofEngine::printTheoryTerm: term = " << term << std::endl;
-
-  TheoryId theory_id = Theory::theoryOf(term);
+  theory::TheoryId theory_id = theory::Theory::theoryOf(term);
   // boolean terms and ITEs are special because they
   // are common to all theories
-  if (theory_id == THEORY_BUILTIN ||
+  if (theory_id == theory::THEORY_BUILTIN ||
       term.getKind() == kind::ITE ||
       term.getKind() == kind::EQUAL) {
     printCoreTerm(term, os, map);
@@ -278,16 +278,16 @@ void LFSCTheoryProofEngine::printTheoryTerm(Expr term, std::ostream& os, const L
 
 void LFSCTheoryProofEngine::printSort(Type type, std::ostream& os) {
   if (type.isSort()) {
-    getTheoryProof(THEORY_UF)->printSort(type, os);
+    getTheoryProof(theory::THEORY_UF)->printSort(type, os);
     return;
   }
   if (type.isBitVector()) {
-    getTheoryProof(THEORY_BV)->printSort(type, os);
+    getTheoryProof(theory::THEORY_BV)->printSort(type, os);
     return;
   }
 
   if (type.isArray()) {
-    getTheoryProof(THEORY_ARRAY)->printSort(type, os);
+    getTheoryProof(theory::THEORY_ARRAY)->printSort(type, os);
     return;
   }
   Unreachable();
@@ -356,8 +356,8 @@ void LFSCTheoryProofEngine::printTheoryLemmas(const IdToSatClause& lemmas,
     ClauseId id = it->first;
     const prop::SatClause* clause = it->second;
 
-    TheoryId theory_id = getTheoryForLemma(id);
-    if (theory_id != THEORY_BV) continue;
+    theory::TheoryId theory_id = getTheoryForLemma(id);
+    if (theory_id != theory::THEORY_BV) continue;
 
     std::vector<Expr> conflict;
     for(unsigned i = 0; i < clause->size(); ++i) {
@@ -420,8 +420,9 @@ void LFSCTheoryProofEngine::printTheoryLemmas(const IdToSatClause& lemmas,
     Debug("gk::proof") << "Expression printing done!" << std::endl;
 
     // query appropriate theory for proof of clause
-    TheoryId theory_id = getTheoryForLemma(id);
+    theory::TheoryId theory_id = getTheoryForLemma(id);
     Debug("gk::proof") << "Get theory lemma from " << theory_id << "..." << std::endl;
+    Debug("theory-proof-debug") << ";; Get theory lemma from " << theory_id << "..." << std::endl;
     getTheoryProof(theory_id)->printTheoryLemmaProof(clause_expr, os, paren);
     Debug("gk::proof") << "Get theory lemma from " << theory_id << "... DONE!" << std::endl;
     // os << " (clausify_false trust)";
@@ -553,18 +554,17 @@ void TheoryProof::printTheoryLemmaProof(std::vector<Expr>& lemma, std::ostream& 
   theory::Theory* th;
   Trace("theory-proof-debug") << ";; Print theory lemma proof, theory id = " << d_theory->getId() << std::endl;
   if(d_theory->getId()==theory::THEORY_UF) {
-    th = new theory::uf::TheoryUF(&fakeContext, &fakeContext, oc, v, ProofManager::currentPM()->getLogicInfo());
+    th = new theory::uf::TheoryUF(&fakeContext, &fakeContext, oc, v,
+                                  ProofManager::currentPM()->getLogicInfo(),
+                                  ProofManager::currentPM()->getTheoryProofEngine()->d_globals,
+                                  "replay::");
   } else if(d_theory->getId()==theory::THEORY_ARRAY) {
     Debug("gk::proof") << "TheoryProof::printTheoryLemmaProof - creating array theory" << std::endl;
-    th = new theory::arrays::TheoryArrays(&fakeContext,
-                                          &fakeContext,
-                                          oc,
-                                          v,
-                                          ProofManager::currentPM()->getLogicInfo());
-    Debug("gk::proof") << "TheoryProof::printTheoryLemmaProof - creating array theory DONE" << std::endl;
 
-  } else if(d_theory->getId()==theory::THEORY_BV) {
-    th = new theory::bv::TheoryBV(&fakeContext, &fakeContext, oc, v, ProofManager::currentPM()->getLogicInfo());
+    th = new theory::arrays::TheoryArrays(&fakeContext, &fakeContext, oc, v,
+                                          ProofManager::currentPM()->getLogicInfo(),
+                                          ProofManager::currentPM()->getTheoryProofEngine()->d_globals,
+                                          "replay::");
   } else {
     InternalError(std::string("can't generate theory-proof for ") + ProofManager::currentPM()->getLogic());
   }
@@ -632,6 +632,13 @@ void TheoryProof::printTheoryLemmaProof(std::vector<Expr>& lemma, std::ostream& 
   Debug("gk::proof") << "About to delete the theory solver used for proving the lemma... " << std::endl;
   delete th;
   Debug("gk::proof") << "About to delete the theory solver used for proving the lemma: DONE! " << std::endl;
+}
+
+bool TheoryProofEngine::supportedTheory(theory::TheoryId id) {
+  return (id == theory::THEORY_ARRAY ||
+          id == theory::THEORY_BV ||
+          id == theory::THEORY_UF ||
+          id == theory::THEORY_BOOL);
 }
 
 BooleanProof::BooleanProof(TheoryProofEngine* proofEngine)
@@ -719,3 +726,11 @@ void LFSCBooleanProof::printDeclarations(std::ostream& os, std::ostream& paren) 
 void LFSCBooleanProof::printDeferredDeclarations(std::ostream& os, std::ostream& paren) {
   // Nothing to do here at this point.
 }
+
+void LFSCBooleanProof::printTheoryLemmaProof(std::vector<Expr>& lemma,
+                                             std::ostream& os,
+                                             std::ostream& paren) {
+  Unreachable("No boolean lemmas yet!");
+}
+
+} /* namespace CVC4 */

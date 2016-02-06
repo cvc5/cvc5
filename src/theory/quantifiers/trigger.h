@@ -91,10 +91,10 @@ public:
                              bool smartTriggers = false );
 private:
   /** is subterm of trigger usable */
-  static bool isUsable( Node n, Node f );
+  static bool isUsable( Node n, Node q );
   static Node getIsUsableTrigger( Node n, Node f, bool pol = true, bool hasPol = false );
   /** collect all APPLY_UF pattern terms for f in n */
-  static bool collectPatTerms2( QuantifiersEngine* qe, Node f, Node n, std::map< Node, bool >& patMap, int tstrt, std::vector< Node >& exclude, bool pol, bool hasPol );
+  static bool collectPatTerms2( Node f, Node n, std::map< Node, bool >& patMap, int tstrt, std::vector< Node >& exclude, bool pol, bool hasPol );
 public:
   //different strategies for choosing trigger terms
   enum {
@@ -105,28 +105,21 @@ public:
   static void collectPatTerms( QuantifiersEngine* qe, Node f, Node n, std::vector< Node >& patTerms, int tstrt, std::vector< Node >& exclude, bool filterInst = false );
 public:
   /** is usable trigger */
-  static bool isUsableTrigger( Node n, Node f );
+  static bool isUsableTrigger( Node n, Node q );
   static bool isAtomicTrigger( Node n );
   static bool isAtomicTriggerKind( Kind k );
+  static bool isCbqiKind( Kind k );
   static bool isSimpleTrigger( Node n );
   static bool isBooleanTermTrigger( Node n );
   static bool isPureTheoryTrigger( Node n );
   static bool isLocalTheoryExt( Node n, std::vector< Node >& vars, std::vector< Node >& patTerms );
   /** return data structure for producing matches for this trigger. */
-  static InstMatchGenerator* getInstMatchGenerator( Node n );
+  static InstMatchGenerator* getInstMatchGenerator( Node q, Node n );
   static Node getInversionVariable( Node n );
   static Node getInversion( Node n, Node x );
+  /** get all variables that E-matching can possibly handle */
+  static void getTriggerVariables( QuantifiersEngine* qe, Node icn, Node f, std::vector< Node >& t_vars );
 
-  inline void toStream(std::ostream& out) const {
-    /*
-    out << "TRIGGER( ";
-    for( int i=0; i<(int)d_nodes.size(); i++ ){
-      if( i>0 ){ out << ", "; }
-      out << d_nodes[i];
-    }
-    out << " )";
-    */
-  }
   void debugPrint( const char * c ) {
     Trace(c) << "TRIGGER( ";
     for( int i=0; i<(int)d_nodes.size(); i++ ){
@@ -136,12 +129,6 @@ public:
     Trace(c) << " )";
   }
 };
-
-inline std::ostream& operator<<(std::ostream& out, const Trigger & tr) {
-  tr.toStream(out);
-  return out;
-}
-
 
 /** a trie of triggers */
 class TriggerTrie {

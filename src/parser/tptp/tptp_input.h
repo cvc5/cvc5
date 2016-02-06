@@ -20,8 +20,8 @@
 #define __CVC4__PARSER__TPTP_INPUT_H
 
 #include "parser/antlr_input.h"
-#include "parser/tptp/generated/TptpLexer.h"
-#include "parser/tptp/generated/TptpParser.h"
+#include "parser/tptp/TptpLexer.h"
+#include "parser/tptp/TptpParser.h"
 
 // extern void TptpParserSetAntlrParser(CVC4::parser::AntlrParser* newAntlrParser);
 

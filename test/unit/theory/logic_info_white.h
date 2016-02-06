@@ -28,6 +28,8 @@ class LogicInfoWhite : public CxxTest::TestSuite {
 
 public:
 
+#warning "This test is of questionable compatiblity with contrib/new-theory. Is the new theory id handled correctly by the Logic info."
+
   void testSmtlibLogics() {
     LogicInfo info("QF_SAT");
     TS_ASSERT( info.isLocked() );
@@ -1300,4 +1302,3 @@ public:
   }
 
 };/* class LogicInfoWhite */
-

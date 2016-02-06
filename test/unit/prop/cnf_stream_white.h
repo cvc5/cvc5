@@ -18,24 +18,21 @@
 /* #include <gmock/gmock.h> */
 /* #include <gtest/gtest.h> */
 
-#include "util/cvc4_assert.h"
-
+#include "base/cvc4_assert.h"
+#include "context/context.h"
 #include "expr/expr_manager.h"
 #include "expr/node_manager.h"
-#include "context/context.h"
 #include "prop/cnf_stream.h"
 #include "prop/prop_engine.h"
 #include "prop/theory_proxy.h"
 #include "smt/smt_engine.h"
 #include "smt/smt_engine_scope.h"
-
+#include "theory/arith/theory_arith.h"
+#include "theory/booleans/theory_bool.h"
+#include "theory/builtin/theory_builtin.h"
 #include "theory/theory.h"
 #include "theory/theory_engine.h"
 #include "theory/theory_registrar.h"
-
-#include "theory/builtin/theory_builtin.h"
-#include "theory/booleans/theory_bool.h"
-#include "theory/arith/theory_arith.h"
 
 using namespace CVC4;
 using namespace CVC4::context;
@@ -67,8 +64,9 @@ public:
     return d_nextVar++;
   }
 
-  void addClause(SatClause& c, bool lemma, uint64_t) {
+  ClauseId addClause(SatClause& c, bool lemma) {
     d_addClauseCalled = true;
+    return ClauseIdUndef;
   }
 
   void reset() {
@@ -120,6 +118,8 @@ public:
     return true;
   }
 
+  bool ok() const { return true; }
+
 };/* class FakeSatSolver */
 
 class CnfStreamWhite : public CxxTest::TestSuite {
@@ -158,7 +158,9 @@ class CnfStreamWhite : public CxxTest::TestSuite {
     d_theoryEngine = d_smt->d_theoryEngine;
 
     d_satSolver = new FakeSatSolver();
-    d_cnfStream = new CVC4::prop::TseitinCnfStream(d_satSolver, new theory::TheoryRegistrar(d_theoryEngine), new context::Context());
+    d_cnfStream = new CVC4::prop::TseitinCnfStream(
+        d_satSolver, new theory::TheoryRegistrar(d_theoryEngine),
+        new context::Context(), d_smt->globals());
   }
 
   void tearDown() {

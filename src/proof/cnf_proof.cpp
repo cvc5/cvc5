@@ -30,8 +30,6 @@ CnfProof::CnfProof(CnfStream* stream,
                    context::Context* ctx,
                    const std::string& name)
   : d_cnfStream(stream)
-  // , d_atomToSatVar()
-  // , d_satVarToAtom()
   , d_clauseToAssertion(ctx)
   , d_assertionToProofRule(ctx)
   , d_currentAssertionStack()
@@ -40,7 +38,10 @@ CnfProof::CnfProof(CnfStream* stream,
   , d_definitions()
   , d_cnfDeps()
   , d_name(name)
-{}
+{
+  // Setting the proof object for the CnfStream
+  d_cnfStream->setProof(this);
+}
 
 CnfProof::~CnfProof() {}
 
@@ -105,16 +106,23 @@ void CnfProof::registerConvertedClause(ClauseId clause, bool explanation) {
 void CnfProof::setClauseAssertion(ClauseId clause, Node expr) {
   Debug("proof:cnf") << "CnfProof::setClauseAssertion "
                      << clause << " assertion " << expr << std::endl;
+  // We can add the same clause from different assertions.  In this
+  // case we keep the first assertion. For example asserting a /\ b
+  // and then b /\ c where b is an atom, would assert b twice (note
+  // that since b is top level, it is not cached by the CnfStream)
+  if (d_clauseToAssertion.find(clause) != d_clauseToAssertion.end())
+    return;
 
-  Assert (d_clauseToAssertion.find(clause) == d_clauseToAssertion.end());
   d_clauseToAssertion.insert (clause, expr);
 }
 
 void CnfProof::setClauseDefinition(ClauseId clause, Node definition) {
   Debug("proof:cnf") << "CnfProof::setClauseDefinition "
                      << clause << " definition " << definition << std::endl;
+  // We keep the first definition
+  if (d_clauseToDefinition.find(clause) != d_clauseToDefinition.end())
+    return;
 
-  Assert (d_clauseToDefinition.find(clause) == d_clauseToDefinition.end());
   d_clauseToDefinition.insert(clause, definition);
   d_definitions.insert(definition);
 }
@@ -122,9 +130,12 @@ void CnfProof::setClauseDefinition(ClauseId clause, Node definition) {
 void CnfProof::registerAssertion(Node assertion, ProofRule reason) {
   Debug("proof:cnf") << "CnfProof::registerAssertion "
                      << assertion << " reason " << reason << std::endl;
-
+  // We can obtain the assertion from different reasons (e.g. if the
+  // assertion is a lemma over shared terms both theories can generate
+  // the same lemma) We only need to prove the lemma in one way, so we
+  // keep the first reason.
   if (isAssertion(assertion)) {
-    Assert (d_assertionToProofRule[assertion] == reason);
+    return;
   }
   d_assertionToProofRule.insert(assertion, reason);
 }
@@ -135,8 +146,6 @@ void CnfProof::setCnfDependence(Node from, Node to) {
                      << "     to " << to << std::endl;
 
   Assert (from != to);
-  // Assert (d_cnfDeps.find(from) == d_cnfDeps.end() ||
-  //         d_cnfDeps[from] == to);
   d_cnfDeps.insert(std::make_pair(from, to));
 }
 
@@ -189,11 +198,6 @@ Node CnfProof::getAtom(prop::SatVariable var) {
   return node;
 }
 
-// void CnfProof::addInputClause(ClauseId id, const prop::SatClause* clause) {
-//   Assert (d_inputClauses.find(id) == d_inputClauses.end());
-//   d_inputClauses[id] = clause;
-//   collectAtoms(clause);
-// }
 
 void CnfProof::collectAtoms(const prop::SatClause* clause,
                             NodeSet& atoms) {
@@ -211,10 +215,6 @@ void CnfProof::collectAtoms(const prop::SatClause* clause,
 prop::SatLiteral CnfProof::getLiteral(TNode atom) {
   return d_cnfStream->getLiteral(atom);
 }
-
-// Expr CnfProof::getAssertion(uint64_t id) {
-//   return d_cnfStream->getAssertion(id).toExpr();
-// }
 
 void CnfProof::collectAtomsForClauses(const IdToSatClause& clauses,
                                        NodeSet& atom_map) {
@@ -736,85 +736,6 @@ bool LFSCCnfProof::printProofTopLevel(Node e, std::ostream& out) {
   }
 }
 
-
-// void LFSCCnfProof::printTheoryLemmas(std::ostream& os, std::ostream& paren) {
-//   os << " ;; Theory Lemmas\n";
-//   ProofManager::ordered_clause_iterator it = ProofManager::currentPM()->begin_lemmas();
-//   ProofManager::ordered_clause_iterator end = ProofManager::currentPM()->end_lemmas();
-
-//   for(size_t n = 0; it != end; ++it, ++n) {
-//     if(n % 100 == 0) {
-//       Chat() << "proving theory conflicts...(" << n << "/" << ProofManager::currentPM()->num_lemmas() << ")" << std::endl;
-//     }
-
-//     ClauseId id = it->first;
-//     const prop::SatClause* clause = it->second;
-//     NodeBuilder<> c(kind::AND);
-//     for(unsigned i = 0; i < clause->size(); ++i) {
-//       prop::SatLiteral lit = (*clause)[i];
-//       prop::SatVariable var = lit.getSatVariable();
-//       if(lit.isNegated()) {
-//         c << Node::fromExpr(getAtom(var));
-//       } else {
-//         c << Node::fromExpr(getAtom(var)).notNode();
-//       }
-//     }
-//     Node cl = c;
-//     if(ProofManager::getSatProof()->d_lemmaClauses.find(id) !=
-//        ProofManager::getSatProof()->d_lemmaClauses.end()) {
-//       uint64_t proof_id = ProofManager::getSatProof()->d_lemmaClauses[id];
-//       TNode orig = d_cnfStream->getAssertion(proof_id & 0xffffffff);
-//       if(((proof_id >> 32) & 0xffffffff) == RULE_ARRAYS_EXT) {
-//         Debug("cores") << "; extensional lemma!" << std::endl;
-//         Assert(cl.getKind() == kind::AND &&
-// 	       cl.getNumChildren() == 2 &&
-// 	       cl[0].getKind() == kind::EQUAL &&
-// 	       cl[0][0].getKind() == kind::SELECT);
-//         TNode myk = cl[0][0][1];
-//         Debug("cores") << "; so my skolemized k is " << myk << std::endl;
-//         os << "(ext _ _ " << orig[0][0] << " " << orig[0][1]
-// 	   << " (\\ " << myk << " (\\ " << ProofManager::getLemmaName(id) << "\n";
-//         paren << ")))";
-//       }
-//     }
-//     os << "(satlem _ _ ";
-//     std::ostringstream clause_paren;
-//     printClause(*clause, os, clause_paren);
-
-//     Debug("cores") << "\n;id is " << id << std::endl;
-//     if(ProofManager::getSatProof()->d_lemmaClauses.find(id) !=
-//        ProofManager::getSatProof()->d_lemmaClauses.end()) {
-//       uint64_t proof_id = ProofManager::getSatProof()->d_lemmaClauses[id];
-//       Debug("cores") << ";getting id " << int32_t(proof_id & 0xffffffff) << std::endl;
-//       Assert(int32_t(proof_id & 0xffffffff) != -1);
-//       TNode orig = d_cnfStream->getAssertion(proof_id & 0xffffffff);
-//       Debug("cores") << "; ID is " << id << " and that's a lemma with " << ((proof_id >> 32) & 0xffffffff) << " / " << (proof_id & 0xffffffff) << std::endl;
-//       Debug("cores") << "; that means the lemma was " << orig << std::endl;
-//       if(((proof_id >> 32) & 0xffffffff) == RULE_ARRAYS_EXT) {
-//         Debug("cores") << "; extensional" << std::endl;
-//         os << "(clausify_false trust)\n";
-//       } else if(proof_id == 0) {
-//         // theory propagation caused conflict
-//         //ProofManager::currentPM()->printProof(os, cl);
-//         os << "(clausify_false trust)\n";
-//       } else if(((proof_id >> 32) & 0xffffffff) == RULE_CONFLICT) {
-//         os << "\n;; need to generate a (conflict) proof of " << cl << "\n";
-//         //ProofManager::currentPM()->printProof(os, cl);
-//         os << "(clausify_false trust)\n";
-//       } else {
-//         os << "\n;; need to generate a (lemma) proof of " << cl;
-//         os << "\n;; DON'T KNOW HOW !!\n";
-//         os << "(clausify_false trust)\n";
-//       }
-//     } else {
-//       os << "\n;; need to generate a (conflict) proof of " << cl << "\n";
-//       ProofManager::currentPM()->printProof(os, cl);
-//     }
-//     os << clause_paren.str()
-//        << " (\\ " << ProofManager::getLemmaClauseName(id, d_name) << "\n";
-//     paren << "))";
-//   }
-// }
 
 
 } /* CVC4 namespace */

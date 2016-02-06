@@ -18,6 +18,8 @@
 
 #pragma once
 
+#include "expr/node.h"
+
 namespace CVC4 {
 namespace expr {
 namespace pattern {

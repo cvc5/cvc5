@@ -26,10 +26,12 @@
 
 #pragma once
 
-#include <vector>
 #include <boost/integer_traits.hpp>
+#include <vector>
+
+#include "base/cvc4_assert.h"
 #include "util/index.h"
-#include "util/cvc4_assert.h"
+
 
 namespace CVC4 {
 

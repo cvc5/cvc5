@@ -17,14 +17,14 @@
 
 #include "cvc4_private.h"
 
-#include "util/integer.h"
-#include "util/rational.h"
-#include "util/exception.h"
-
-
-#include <ostream>
 #pragma once
 
+#include <ostream>
+
+#include "base/exception.h"
+#include "base/cvc4_assert.h"
+#include "util/integer.h"
+#include "util/rational.h"
 
 namespace CVC4 {
 

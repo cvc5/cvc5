@@ -29,7 +29,7 @@
 #include <sys/time.h>
 #include <sys/resource.h>
 
-#include "util/cvc4_assert.h"
+#include "base/cvc4_assert.h"
 
 namespace CVC4 {
 namespace test {

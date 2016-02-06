@@ -16,45 +16,44 @@
  **/
 
 #include "theory/uf/theory_uf.h"
-#include "theory/uf/options.h"
-#include "theory/quantifiers/options.h"
-#include "theory/uf/theory_uf_strong_solver.h"
+
+#include "options/quantifiers_options.h"
+#include "options/smt_options.h"
+#include "options/uf_options.h"
+#include "proof/proof_manager.h"
+#include "proof/theory_proof.h"
+#include "proof/uf_proof.h"
 #include "theory/theory_model.h"
 #include "theory/type_enumerator.h"
-#include "proof/theory_proof.h"
-#include "proof/proof_manager.h"
-#include "proof/uf_proof.h"
+#include "theory/uf/theory_uf_strong_solver.h"
 
 using namespace std;
-using namespace CVC4;
-using namespace CVC4::theory;
-using namespace CVC4::theory::uf;
+
+namespace CVC4 {
+namespace theory {
+namespace uf {
 
 /** Constructs a new instance of TheoryUF w.r.t. the provided context.*/
-TheoryUF::TheoryUF(context::Context* c, context::UserContext* u, OutputChannel& out, Valuation valuation, const LogicInfo& logicInfo) :
-  Theory(THEORY_UF, c, u, out, valuation, logicInfo),
-  d_notify(*this),
-  /* The strong theory solver can be notified by EqualityEngine::init(),
-   * so make sure it's initialized first. */
-  d_thss(NULL),
-  d_equalityEngine(d_notify, c, "theory::uf::TheoryUF", true),
-  d_conflict(c, false),
-  d_literalsToPropagate(c),
-  d_literalsToPropagateIndex(c, 0),
-  d_functionsTerms(c),
-  d_symb(u)
+TheoryUF::TheoryUF(context::Context* c, context::UserContext* u,
+                   OutputChannel& out, Valuation valuation,
+                   const LogicInfo& logicInfo, SmtGlobals* globals, std::string name)
+    : Theory(THEORY_UF, c, u, out, valuation, logicInfo, globals, name),
+      d_notify(*this),
+      /* The strong theory solver can be notified by EqualityEngine::init(),
+       * so make sure it's initialized first. */
+      d_thss(NULL),
+      d_equalityEngine(d_notify, c, name + "theory::uf::TheoryUF", true),
+      d_conflict(c, false),
+      d_literalsToPropagate(c),
+      d_literalsToPropagateIndex(c, 0),
+      d_functionsTerms(c),
+      d_symb(u, name)
 {
   // The kinds we are treating as function application in congruence
   d_equalityEngine.addFunctionKind(kind::APPLY_UF);
 }
 
 TheoryUF::~TheoryUF() {
-  // destruct all ppRewrite() callbacks
-  for(RegisterPpRewrites::iterator i = d_registeredPpRewrites.begin();
-      i != d_registeredPpRewrites.end();
-      ++i) {
-    delete i->second;
-  }
   delete d_thss;
 }
 
@@ -95,7 +94,7 @@ void TheoryUF::check(Effort level) {
   if (done() && !fullEffort(level)) {
     return;
   }
-
+  getOutputChannel().spendResource(options::theoryCheckStep());
   TimerStat::CodeTimer checkTimer(d_checkTime);
 
   while (!done() && !d_conflict)
@@ -125,6 +124,10 @@ void TheoryUF::check(Effort level) {
         ss << "Cardinality constraint " << atom << " was asserted, but the logic does not allow it." << std::endl;
         ss << "Try using a logic containing \"UFC\"." << std::endl;
         throw Exception( ss.str() );
+      }
+      //needed for models
+      if( options::produceModels() && atom.getKind() == kind::COMBINED_CARDINALITY_CONSTRAINT ){
+        d_equalityEngine.assertPredicate(atom, polarity, fact);
       }
     } else {
       d_equalityEngine.assertPredicate(atom, polarity, fact);
@@ -269,6 +272,9 @@ void TheoryUF::presolve() {
       Debug("uf") << "uf: generating a lemma: " << *i << std::endl;
       d_out->lemma(*i);
     }
+  }
+  if( d_thss ){
+    d_thss->presolve();
   }
   Debug("uf") << "uf: end presolve()" << endl;
 }
@@ -544,22 +550,7 @@ void TheoryUF::eqNotifyDisequal(TNode t1, TNode t2, TNode reason) {
   }
 }
 
-Node TheoryUF::ppRewrite(TNode node) {
 
-  if (node.getKind() != kind::APPLY_UF) {
-    return node;
-  }
-
-  // perform the callbacks requested by TheoryUF::registerPpRewrite()
-  RegisterPpRewrites::iterator c = d_registeredPpRewrites.find(node.getOperator());
-  if (c == d_registeredPpRewrites.end()) {
-    return node;
-  } else {
-    Node res = c->second->ppRewrite(node);
-    if (res != node) {
-      return ppRewrite(res);
-    } else {
-      return res;
-    }
-  }
-}
+} /* namespace CVC4::theory::uf */
+} /* namespace CVC4::theory */
+} /* namespace CVC4 */

@@ -13,18 +13,22 @@
  **
  ** A multi-precision rational constant.
  **/
+#include "util/rational.h"
+
+#include <sstream>
+#include <string>
 
 #include "cvc4autoconfig.h"
-#include "util/rational.h"
-#include <string>
-#include <sstream>
 
 #ifndef CVC4_CLN_IMP
 #  error "This source should only ever be built if CVC4_CLN_IMP is on !"
 #endif /* CVC4_CLN_IMP */
 
+#include "base/cvc4_assert.h"
+
 using namespace std;
-using namespace CVC4;
+
+namespace CVC4 {
 
 /* Computes a rational given a decimal string. The rational
  * version of <code>xxx.yyy</code> is <code>xxxyyy/(10^3)</code>.
@@ -47,7 +51,7 @@ Rational Rational::fromDecimal(const std::string& dec) {
   }
 }
 
-std::ostream& CVC4::operator<<(std::ostream& os, const Rational& q){
+std::ostream& operator<<(std::ostream& os, const Rational& q){
   return os << q.toString();
 }
 
@@ -104,3 +108,5 @@ RationalFromDoubleException::RationalFromDoubleException(double d) throw()
   ss << ")";
   setMessage(ss.str());
 }
+
+} /* namespace CVC4 */

@@ -72,7 +72,7 @@ class BooleanTermConverter {
   /** A (reverse) cache for Boolean term datatype conversion */
   BooleanTermDatatypeCache d_datatypeReverseCache;
 
-  Node rewriteAs(TNode in, TypeNode as) throw();
+  Node rewriteAs(TNode in, TypeNode as, std::map< TypeNode, bool >& processing) throw();
 
   /**
    * Scan a datatype for and convert as necessary.

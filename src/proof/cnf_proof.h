@@ -16,17 +16,20 @@
  **
  **/
 
+#include "cvc4_private.h"
+
 #ifndef __CVC4__CNF_PROOF_H
 #define __CVC4__CNF_PROOF_H
 
-#include "cvc4_private.h"
-#include "util/proof.h"
-#include "proof/sat_proof.h"
-#include "context/cdhashmap.h"
-
+#include <ext/hash_map> 
 #include <ext/hash_set>
-#include <ext/hash_map>
-#include <iostream>
+#include <iosfwd>
+
+#include "context/cdhashmap.h"
+#include "proof/sat_proof.h"
+#include "proof/sat_proof.h"
+#include "util/proof.h"
+#include "util/proof.h"
 
 namespace CVC4 {
 namespace prop {
@@ -35,8 +38,6 @@ namespace prop {
 
 class CnfProof;
 
-// typedef __gnu_cxx::hash_map < ClauseId, const prop::SatClause* > IdToSatClause;
-// typedef __gnu_cxx::hash_map<Expr, prop::SatVariable, ExprHashFunction > ExprToSatVar;
 typedef __gnu_cxx::hash_map<prop::SatVariable, Expr> SatVarToExpr;
 typedef __gnu_cxx::hash_map<Node, Node, NodeHashFunction> NodeToNode;
 typedef __gnu_cxx::hash_set<ClauseId> ClauseIdSet;
@@ -47,9 +48,6 @@ typedef context::CDHashMap<Node, ProofRule, NodeHashFunction> NodeToProofRule;
 class CnfProof {
 protected:
   CVC4::prop::CnfStream* d_cnfStream;
-  // ExprToSatVar d_atomToSatVar;
-  // SatVarToExpr d_satVarToAtom;
-  // IdToSatClause d_inputClauses;   
 
   /** Map from ClauseId to the assertion that lead to adding this clause **/
   ClauseIdToNode d_clauseToAssertion;
@@ -84,16 +82,10 @@ public:
   CnfProof(CVC4::prop::CnfStream* cnfStream,
            context::Context* ctx,
            const std::string& name);
-  
-  // typedef IdToSatClause::const_iterator clause_iterator;
-  // clause_iterator begin_input_clauses() const { return d_inputClauses.begin(); }
-  // clause_iterator end_input_clauses() const { return d_inputClauses.end(); }
-  //void addInputClause(ClauseId id, const prop::SatClause* clause); 
-  
+
 
   Node getAtom(prop::SatVariable var);
   prop::SatLiteral getLiteral(TNode node);
-  // Node getAssertion(ClauseId id);
   void collectAtoms(const prop::SatClause* clause,
                     NodeSet& atoms);
   void collectAtomsForClauses(const IdToSatClause& clauses,
@@ -136,7 +128,7 @@ public:
   virtual void printAtomMapping(const NodeSet& atoms,
                                 std::ostream& os,
                                 std::ostream& paren) = 0;
-  // virtual void printClauses(std::ostream& os, std::ostream& paren) = 0;
+
   virtual void printClause(const prop::SatClause& clause,
                            std::ostream& os,
                            std::ostream& paren) = 0;
@@ -148,10 +140,6 @@ public:
 };/* class CnfProof */
 
 class LFSCCnfProof : public CnfProof {
-  // void printPreprocess(std::ostream& os, std::ostream& paren);
-  // void printInputClauses(std::ostream& os, std::ostream& paren);
-  // void printTheoryLemmas(std::ostream& os, std::ostream& paren);
-
   Node clauseToNode( const prop::SatClause& clause,
                      std::map<Node, unsigned>& childIndex,
                      std::map<Node, bool>& childPol );

@@ -20,15 +20,16 @@
 
 #pragma once
 
+#include <ext/hash_map>
+#include <map>
+#include <set>
+#include <vector>
+
 #include "expr/kind.h"
-#include "util/statistics_registry.h"
 #include "theory/arith/arithvar.h"
 #include "theory/arith/constraint_forward.h"
 #include "util/dense_map.h"
-#include <vector>
-#include <map>
-#include <set>
-#include <ext/hash_map>
+#include "util/statistics_registry.h"
 
 namespace CVC4 {
 namespace theory {
@@ -233,7 +234,7 @@ std::ostream& operator<<(std::ostream& os, const NodeLog& nl);
 class ApproximateSimplex;
 class TreeLog {
 private:
-  ApproximateSimplex* d_generator;
+  ApproximateSimplex* d_generator CVC4_UNUSED;
 
   int next_exec_ord;
   typedef std::map<int, NodeLog> ToNodeMap;

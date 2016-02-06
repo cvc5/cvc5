@@ -126,6 +126,8 @@ private:
   eq::EqClassIterator d_eqc_false;
   //equality you are trying to match disequalities for
   Node d_match_pattern;
+  //type of disequality
+  TypeNode d_match_pattern_type;
   //einstantiator pointer
   QuantifiersEngine* d_qe;
 public:

@@ -15,8 +15,8 @@
  **/
 
 #include <iostream>
+#include "options/language.h" // for use with make examples
 #include "smt/smt_engine.h" // for use with make examples
-#include "util/language.h" // for use with make examples
 //#include <cvc4/cvc4.h> // To follow the wiki
 
 using namespace CVC4;

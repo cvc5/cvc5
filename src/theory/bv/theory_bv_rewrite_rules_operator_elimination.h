@@ -21,9 +21,6 @@
 
 #include "theory/bv/theory_bv_rewrite_rules.h"
 #include "theory/bv/theory_bv_utils.h"
-#include "expr/expr.h"
-#include "proof/proof_manager.h"
-#include "proof/rewriter_proof.h"
 
 namespace CVC4 {
 namespace theory {
@@ -329,11 +326,6 @@ Node RewriteRule<XnorEliminate>::apply(TNode node) {
   TNode b = node[1]; 
   Node xorNode = utils::mkNode(kind::BITVECTOR_XOR, a, b);
   Node result = utils::mkNode(kind::BITVECTOR_NOT, xorNode);
-  // THEORY_PROOF(
-  //       Expr from = node.toExpr();
-  //       Expr to = result.toExpr();
-  //       ProofManager::currentPM()->getRewriterProof()->pushRewriteRule(from, to, BvXnorEliminate);
-  //       );
   return result;
 }
 
@@ -488,6 +480,33 @@ Node RewriteRule<SignExtendEliminate>::apply(TNode node) {
   return utils::mkConcat(extension, node[0]);
 }
 
+template<>
+bool RewriteRule<RedorEliminate>::applies(TNode node) {
+  return (node.getKind() == kind::BITVECTOR_REDOR);
+}
+
+template<>
+Node RewriteRule<RedorEliminate>::apply(TNode node) {
+  Debug("bv-rewrite") << "RewriteRule<RedorEliminate>(" << node << ")" << std::endl;
+  TNode a = node[0];
+  unsigned size = utils::getSize(node[0]); 
+  Node result = NodeManager::currentNM()->mkNode(kind::EQUAL, a, utils::mkConst( size, 0 ) );
+  return result.negate();
+}
+
+template<>
+bool RewriteRule<RedandEliminate>::applies(TNode node) {
+  return (node.getKind() == kind::BITVECTOR_REDAND);
+}
+
+template<>
+Node RewriteRule<RedandEliminate>::apply(TNode node) {
+  Debug("bv-rewrite") << "RewriteRule<RedandEliminate>(" << node << ")" << std::endl;
+  TNode a = node[0];
+  unsigned size = utils::getSize(node[0]); 
+  Node result = NodeManager::currentNM()->mkNode(kind::EQUAL, a, utils::mkOnes( size ) );
+  return result;
+}
 
 }
 }

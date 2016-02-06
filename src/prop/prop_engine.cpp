@@ -14,30 +14,33 @@
  ** Implementation of the propositional engine of CVC4.
  **/
 
-#include "prop/cnf_stream.h"
 #include "prop/prop_engine.h"
-#include "prop/theory_proxy.h"
+
+#include <iomanip>
+#include <map>
+#include <utility>
+
+#include "base/cvc4_assert.h"
+#include "base/output.h"
+#include "decision/decision_engine.h"
+#include "expr/expr.h"
+#include "options/base_options.h"
+#include "options/decision_options.h"
+#include "options/main_options.h"
+#include "options/options.h"
+#include "options/smt_options.h"
+#include "proof/proof_manager.h"
+#include "proof/proof_manager.h"
+#include "prop/cnf_stream.h"
 #include "prop/sat_solver.h"
 #include "prop/sat_solver_factory.h"
-#include "proof/proof_manager.h"
-
-#include "decision/decision_engine.h"
-#include "decision/options.h"
+#include "prop/theory_proxy.h"
+#include "smt/smt_statistics_registry.h"
+#include "smt_util/command.h"
 #include "theory/theory_engine.h"
 #include "theory/theory_registrar.h"
-#include "util/cvc4_assert.h"
-#include "options/options.h"
-#include "smt/options.h"
-#include "main/options.h"
-#include "util/output.h"
-#include "util/result.h"
 #include "util/resource_manager.h"
-#include "expr/expr.h"
-#include "expr/command.h"
-
-#include <utility>
-#include <map>
-#include <iomanip>
+#include "util/result.h"
 
 using namespace std;
 using namespace CVC4::context;
@@ -65,7 +68,7 @@ public:
   }
 };
 
-PropEngine::PropEngine(TheoryEngine* te, DecisionEngine *de, Context* satContext, Context* userContext) :
+PropEngine::PropEngine(TheoryEngine* te, DecisionEngine *de, Context* satContext, Context* userContext, SmtGlobals* globals) :
   d_inCheckSat(false),
   d_theoryEngine(te),
   d_decisionEngine(de),
@@ -75,29 +78,29 @@ PropEngine::PropEngine(TheoryEngine* te, DecisionEngine *de, Context* satContext
   d_registrar(NULL),
   d_cnfStream(NULL),
   d_interrupted(false),
-  d_resourceManager(NodeManager::currentResourceManager()) {
+  d_resourceManager(NodeManager::currentResourceManager()),
+  d_globals(globals)
+{
 
   Debug("prop") << "Constructing the PropEngine" << endl;
 
-  d_satSolver = SatSolverFactory::createDPLLMinisat();
+  d_satSolver = SatSolverFactory::createDPLLMinisat(smtStatisticsRegistry());
 
   d_registrar = new theory::TheoryRegistrar(d_theoryEngine);
   d_cnfStream = new CVC4::prop::TseitinCnfStream
-    (d_satSolver, d_registrar,
-     userContext,
+    (d_satSolver, d_registrar, userContext, d_globals,
      // fullLitToNode Map =
      options::threads() > 1 ||
      options::decisionMode() == decision::DECISION_STRATEGY_RELEVANCY
      );
 
-  d_theoryProxy = new TheoryProxy(this, d_theoryEngine, d_decisionEngine, d_context, d_cnfStream);
+  d_theoryProxy = new TheoryProxy(this, d_theoryEngine, d_decisionEngine, d_context, d_cnfStream, d_globals);
   d_satSolver->initialize(d_context, d_theoryProxy);
 
   d_decisionEngine->setSatSolver(d_satSolver);
   d_decisionEngine->setCnfStream(d_cnfStream);
   PROOF (
          ProofManager::currentPM()->initCnfProof(d_cnfStream, userContext);
-         d_cnfStream->setProof(ProofManager::getCnfProof());
          );
 }
 
@@ -286,8 +289,8 @@ void PropEngine::interrupt() throw(ModalException) {
   Debug("prop") << "interrupt()" << endl;
 }
 
-void PropEngine::spendResource() throw (UnsafeInterruptException) {
-  d_resourceManager->spendResource();
+void PropEngine::spendResource(unsigned ammount) throw (UnsafeInterruptException) {
+  d_resourceManager->spendResource(ammount);
 }
 
 bool PropEngine::properExplanation(TNode node, TNode expl) const {

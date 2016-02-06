@@ -15,18 +15,22 @@
  ** CVC4's input languages to one of its output languages.
  **/
 
-#include <iostream>
+#include <cerrno>
+#include <cstdlib>
+#include <cstring>
 #include <fstream>
 #include <getopt.h>
-#include <cstring>
-#include <cstdlib>
-#include <cerrno>
-#include "smt/smt_engine.h"
-#include "util/language.h"
-#include "expr/command.h"
+#include <iostream>
+
 #include "expr/expr.h"
-#include "parser/parser_builder.h"
+#include "expr/expr_iomanip.h"
+#include "options/base_options.h"
+#include "options/language.h"
+#include "options/set_language.h"
 #include "parser/parser.h"
+#include "parser/parser_builder.h"
+#include "smt/smt_engine.h"
+#include "smt_util/command.h"
 
 using namespace std;
 using namespace CVC4;
@@ -96,7 +100,7 @@ static void readFile(const char* filename, InputLanguage fromLang, OutputLanguag
     toLang = toOutputLanguage(fromLang);
   }
 
-  *out << Expr::setlanguage(toLang);
+  *out << language::SetLanguage(toLang);
 
   Options opts;
   opts.set(options::inputLanguage, fromLang);
@@ -209,7 +213,7 @@ int main(int argc, char* argv[]) {
       switch(c) {
       case 1:
         ++files;
-        *out << Expr::dag(dag_thresh);
+        *out << expr::ExprDag(dag_thresh);
         readFile(optarg, (!strcmp(optarg, "-") && fromLang == input::LANG_AUTO) ? input::LANG_CVC4 : fromLang, toLang, expand_definitions, combine_assertions, out);
         break;
       case INPUT_LANG:
@@ -274,7 +278,7 @@ int main(int argc, char* argv[]) {
     }
 
     if(files == 0) {
-      *out << Expr::dag(dag_thresh);
+      *out << expr::ExprDag(dag_thresh);
       readFile("-", fromLang == input::LANG_AUTO ? input::LANG_CVC4 : fromLang, toLang, expand_definitions, combine_assertions, out);
       exit(0);
     }

@@ -19,16 +19,16 @@
 #ifndef __CVC4__THEORY__DATATYPES__THEORY_DATATYPES_H
 #define __CVC4__THEORY__DATATYPES__THEORY_DATATYPES_H
 
-#include "theory/theory.h"
-#include "util/datatype.h"
-#include "util/hash.h"
-#include "theory/uf/equality_engine.h"
-#include "theory/datatypes/datatypes_sygus.h"
-
 #include <ext/hash_set>
 #include <iostream>
 #include <map>
+
 #include "context/cdchunk_list.h"
+#include "expr/datatype.h"
+#include "theory/datatypes/datatypes_sygus.h"
+#include "theory/theory.h"
+#include "theory/uf/equality_engine.h"
+#include "util/hash.h"
 
 namespace CVC4 {
 namespace theory {
@@ -180,31 +180,42 @@ private:
   /** sygus utilities */
   SygusSplit * d_sygus_split;
   SygusSymBreak * d_sygus_sym_break;
+
 private:
   /** singleton lemmas (for degenerate co-datatype case) */
   std::map< TypeNode, Node > d_singleton_lemma[2];
   /** Cache for singleton equalities processed */
   BoolMap d_singleton_eq;
+  /** list of all lemmas produced */
+  BoolMap d_lemmas_produced_c;
 private:
   /** assert fact */
   void assertFact( Node fact, Node exp );
+
   /** flush pending facts */
   void flushPendingFacts();
+
   /** do pending merged */
   void doPendingMerges();
+  /** do send lemma */
+  void doSendLemma( Node lem );
   /** get or make eqc info */
   EqcInfo* getOrMakeEqcInfo( TNode n, bool doMake = false );
+
   /** has eqc info */
   bool hasEqcInfo( TNode n ) { return d_labels.find( n )!=d_labels.end(); }
+
   /** get eqc constructor */
   TNode getEqcConstructor( TNode r );
+
 protected:
   /** compute care graph */
   void computeCareGraph();
+
 public:
   TheoryDatatypes(context::Context* c, context::UserContext* u,
                   OutputChannel& out, Valuation valuation,
-                  const LogicInfo& logicInfo);
+                  const LogicInfo& logicInfo, SmtGlobals* globals);
   ~TheoryDatatypes();
 
   void setMasterEqualityEngine(eq::EqualityEngine* eq);
@@ -266,7 +277,7 @@ private:
                           std::map< Node, Node >& cn,
                           std::map< Node, std::map< Node, int > >& dni, int dniLvl, bool mkExp );
   /** build model */
-  Node getCodatatypesValue( Node n, std::map< Node, Node >& eqc_cons, std::map< Node, Node >& eqc_mu, std::map< Node, Node >& vmap, std::vector< Node >& fv );
+  Node getCodatatypesValue( Node n, std::map< Node, Node >& eqc_cons, std::map< Node, int >& vmap, int depth );
   /** get singleton lemma */
   Node getSingletonLemma( TypeNode tn, bool pol );
   /** collect terms */
@@ -277,11 +288,6 @@ private:
   void processNewTerm( Node n );
   /** check instantiate */
   void instantiate( EqcInfo* eqc, Node n );
-  /** must specify model
-    *  This returns true when the datatypes theory is expected to specify the constructor
-    *  type for all equivalence classes.
-    */
-  bool mustSpecifyAssignment();
   /** must communicate fact */
   bool mustCommunicateFact( Node n, Node exp );
   /** check clash mod eq */

@@ -48,13 +48,12 @@
  **   These are theory valid and are currently turned into lemmas
  **/
 
-
 #include "cvc4_private.h"
 
 #pragma once
 
-#include "util/statistics_registry.h"
 #include "theory/arith/simplex.h"
+#include "util/statistics_registry.h"
 
 namespace CVC4 {
 namespace theory {
@@ -112,4 +111,3 @@ private:
 }/* CVC4::theory::arith namespace */
 }/* CVC4::theory namespace */
 }/* CVC4 namespace */
-

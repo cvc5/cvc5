@@ -27,16 +27,19 @@ OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWA
 #include "prop/bvminisat/mtl/Alg.h"
 #include "prop/bvminisat/utils/Options.h"
 #include "context/cdhashmap.h"
+#include "proof/sat_proof.h"
 
 #include <ext/hash_set>
 #include <vector>
 
 namespace CVC4 {
-template <class Solver> class TSatProof;
-class BitVectorProof;
-} /* CVC4 namespace*/
 
 typedef unsigned ClauseId;
+namespace BVMinisat {
+class Solver;
+}
+
+class BitVectorProof;
 
 namespace BVMinisat {
 
@@ -58,14 +61,14 @@ public:
    */
   virtual void notify(vec<Lit>& learnt) = 0;
 
-  virtual void spendResource() = 0;
-  virtual void safePoint() = 0;
+  virtual void spendResource(unsigned ammount) = 0;
+  virtual void safePoint(unsigned ammount) = 0;
 };
 
 //=================================================================================================
 // Solver -- the main class:
 class Solver {
-    friend class CVC4::TSatProof< ::BVMinisat::Solver>;
+    friend class CVC4::TSatProof< CVC4::BVMinisat::Solver>;
 public:
     typedef Var TVar;
     typedef Lit TLit;
@@ -104,7 +107,7 @@ public:
     Var     falseVar() const { return varFalse; }
 
 
-  bool    addClause (const vec<Lit>& ps, ClauseId& id);                     // Add a clause to the solver. 
+    bool    addClause (const vec<Lit>& ps, ClauseId& id);                     // Add a clause to the solver. 
     bool    addEmptyClause();                                   // Add the empty clause, making the solver contradictory.
     bool    addClause (Lit p, ClauseId& id);                                  // Add a unit clause to the solver. 
     bool    addClause (Lit p, Lit q, ClauseId& id);                           // Add a binary clause to the solver. 
@@ -341,7 +344,7 @@ protected:
     CRef     reason           (Var x) const;
     int      level            (Var x) const;
     double   progressEstimate ()      const; // DELETE THIS ?? IT'S NOT VERY USEFUL ...
-    bool     withinBudget     ()      const;
+    bool     withinBudget     (uint64_t ammount)      const;
 
     // Static helpers:
     //
@@ -357,7 +360,7 @@ protected:
     static inline int irand(double& seed, int size) {
         return (int)(drand(seed) * size); }
 
-  // Less than for literals in an added clause when proofs are on
+  // Less than for literals in an added clause when proofs are on.
   struct assign_lt {
     Solver& solver;
     assign_lt(Solver& solver) : solver(solver) {}
@@ -458,10 +461,10 @@ inline void     Solver::setPropBudget(int64_t x){ propagation_budget = propagati
 inline void     Solver::interrupt(){ asynch_interrupt = true; }
 inline void     Solver::clearInterrupt(){ asynch_interrupt = false; }
 inline void     Solver::budgetOff(){ conflict_budget = propagation_budget = -1; }
-inline bool     Solver::withinBudget() const {
+inline bool     Solver::withinBudget(uint64_t ammount) const {
     Assert (notify);
-    notify->spendResource();
-    notify->safePoint();
+    notify->spendResource(ammount);
+    notify->safePoint(0);
 
     return !asynch_interrupt &&
            (conflict_budget    < 0 || conflicts < (uint64_t)conflict_budget) &&
@@ -486,6 +489,8 @@ inline void     Solver::toDimacs     (const char* file, Lit p, Lit q, Lit r){ ve
 
 
 //=================================================================================================
-}
+} /* CVC4::BVMinisat namespace */
+} /* CVC4 namespace */
+
 
 #endif

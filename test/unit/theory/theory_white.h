@@ -15,16 +15,17 @@
  **/
 
 #include <cxxtest/TestSuite.h>
+#include <vector>
 
-#include "theory/theory.h"
-#include "theory/theory_engine.h"
+// taking: Add include for Proof*.
+#include "context/context.h"
 #include "expr/node.h"
 #include "expr/node_manager.h"
-#include "context/context.h"
 #include "smt/smt_engine.h"
 #include "smt/smt_engine_scope.h"
+#include "theory/theory.h"
+#include "theory/theory_engine.h"
 
-#include <vector>
 
 using namespace CVC4;
 using namespace CVC4::theory;
@@ -52,9 +53,11 @@ public:
 
   ~TestOutputChannel() {}
 
-  void safePoint() throw(Interrupted, AssertionException) {}
+  void safePoint(uint64_t amount)
+      throw(Interrupted, UnsafeInterruptException, AssertionException)
+  {}
 
-  void conflict(TNode n)
+  void conflict(TNode n, Proof* pf = NULL)
     throw(AssertionException) {
     push(CONFLICT, n);
   }
@@ -70,7 +73,10 @@ public:
     // ignore
   }
 
-  LemmaStatus lemma(TNode n, bool removable = false, bool preprocess = false)
+  LemmaStatus lemma(TNode n, ProofRule rule,
+                    bool removable = false,
+                    bool preprocess = false,
+                    bool sendAtoms = false)
     throw(AssertionException) {
     push(LEMMA, n);
     return LemmaStatus(Node::null(), 0);
@@ -119,9 +125,10 @@ public:
   set<Node> d_registered;
   vector<Node> d_getSequence;
 
-  DummyTheory(Context* ctxt, UserContext* uctxt, OutputChannel& out, Valuation valuation, const LogicInfo& logicInfo) :
-    Theory(theory::THEORY_BUILTIN, ctxt, uctxt, out, valuation, logicInfo) {
-  }
+  DummyTheory(Context* ctxt, UserContext* uctxt, OutputChannel& out,
+              Valuation valuation, const LogicInfo& logicInfo, SmtGlobals* globals)
+      : Theory(theory::THEORY_BUILTIN, ctxt, uctxt, out, valuation, logicInfo, globals)
+  {}
 
   void registerTerm(TNode n) {
     // check that we registerTerm() a term only once
@@ -156,7 +163,7 @@ public:
   }
   void preRegisterTerm(TNode n) {}
   void propagate(Effort level) {}
-  void explain(TNode n, Effort level) {}
+  Node explain(TNode n) { return Node::null(); }
   Node getValue(TNode n) { return Node::null(); }
   string identify() const { return "DummyTheory"; }
 };/* class DummyTheory */
@@ -196,7 +203,8 @@ public:
     d_smt->d_theoryEngine->d_theoryTable[THEORY_BUILTIN] = NULL;
     d_smt->d_theoryEngine->d_theoryOut[THEORY_BUILTIN] = NULL;
 
-    d_dummy = new DummyTheory(d_ctxt, d_uctxt, d_outputChannel, Valuation(NULL), *d_logicInfo);
+    d_dummy = new DummyTheory(d_ctxt, d_uctxt, d_outputChannel, Valuation(NULL),
+                              *d_logicInfo, d_smt->globals());
     d_outputChannel.clear();
     atom0 = d_nm->mkConst(true);
     atom1 = d_nm->mkConst(false);
@@ -301,7 +309,7 @@ public:
 
   void testOutputChannel() {
     Node n = atom0.orNode(atom1);
-    d_outputChannel.lemma(n);
+    d_outputChannel.lemma(n, RULE_INVALID);
     d_outputChannel.split(atom0);
     Node s = atom0.orNode(atom0.notNode());
     TS_ASSERT_EQUALS(d_outputChannel.d_callHistory.size(), 2u);

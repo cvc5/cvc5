@@ -41,15 +41,15 @@ parameterized APPLY_TESTER TESTER_TYPE 1 "tester application; first parameter is
 constant DATATYPE_TYPE \
     ::CVC4::Datatype \
     "::CVC4::DatatypeHashFunction" \
-    "util/datatype.h" \
+    "expr/datatype.h" \
     "a datatype type"
 cardinality DATATYPE_TYPE \
     "%TYPE%.getConst<Datatype>().getCardinality()" \
-    "util/datatype.h"
+    "expr/datatype.h"
 well-founded DATATYPE_TYPE \
     "%TYPE%.getConst<Datatype>().isWellFounded()" \
     "%TYPE%.getConst<Datatype>().mkGroundTerm(%TYPE%.toType())" \
-    "util/datatype.h"
+    "expr/datatype.h"
 
 enumerator DATATYPE_TYPE \
     "::CVC4::theory::datatypes::DatatypesEnumerator" \
@@ -58,11 +58,11 @@ enumerator DATATYPE_TYPE \
 operator PARAMETRIC_DATATYPE 1: "parametric datatype"
 cardinality PARAMETRIC_DATATYPE \
     "DatatypeType(%TYPE%.toType()).getDatatype().getCardinality()" \
-    "util/datatype.h"
+    "expr/datatype.h"
 well-founded PARAMETRIC_DATATYPE \
     "DatatypeType(%TYPE%.toType()).getDatatype().isWellFounded()" \
     "DatatypeType(%TYPE%.toType()).getDatatype().mkGroundTerm(%TYPE%.toType())" \
-    "util/datatype.h"
+    "expr/datatype.h"
 
 enumerator PARAMETRIC_DATATYPE \
     "::CVC4::theory::datatypes::DatatypesEnumerator" \
@@ -73,7 +73,7 @@ parameterized APPLY_TYPE_ASCRIPTION ASCRIPTION_TYPE 1 \
 constant ASCRIPTION_TYPE \
     ::CVC4::AscriptionType \
     ::CVC4::AscriptionTypeHashFunction \
-    "util/ascription_type.h" \
+    "expr/ascription_type.h" \
     "a type parameter for type ascription; payload is an instance of the CVC4::AscriptionType class"
 
 typerule APPLY_CONSTRUCTOR ::CVC4::theory::datatypes::DatatypeConstructorTypeRule
@@ -126,7 +126,7 @@ typerule TUPLE_UPDATE ::CVC4::theory::datatypes::TupleUpdateTypeRule
 constant RECORD_TYPE \
     ::CVC4::Record \
     ::CVC4::RecordHashFunction \
-    "util/record.h" \
+    "expr/record.h" \
     "record type"
 cardinality RECORD_TYPE \
     "::CVC4::theory::datatypes::TupleProperties::computeCardinality(%TYPE%)" \
@@ -146,7 +146,7 @@ construle RECORD ::CVC4::theory::datatypes::RecordProperties
 constant RECORD_SELECT_OP \
         ::CVC4::RecordSelect \
         ::CVC4::RecordSelectHashFunction \
-        "util/record.h" \
+        "expr/record.h" \
         "operator for a record select; payload is an instance CVC4::RecordSelect class"
 parameterized RECORD_SELECT RECORD_SELECT_OP 1 "record select; first parameter is a RECORD_SELECT_OP, second is a record term to select from"
 typerule RECORD_SELECT ::CVC4::theory::datatypes::RecordSelectTypeRule
@@ -154,7 +154,7 @@ typerule RECORD_SELECT ::CVC4::theory::datatypes::RecordSelectTypeRule
 constant RECORD_UPDATE_OP \
         ::CVC4::RecordUpdate \
         ::CVC4::RecordUpdateHashFunction \
-        "util/record.h" \
+        "expr/record.h" \
         "operator for a record update; payload is an instance CVC4::RecordSelect class"
 parameterized RECORD_UPDATE RECORD_UPDATE_OP 2 "record update; first parameter is a RECORD_UPDATE_OP (which references a field), second is a record term to update, third is the element to store in the record in the given field"
 typerule RECORD_UPDATE ::CVC4::theory::datatypes::RecordUpdateTypeRule

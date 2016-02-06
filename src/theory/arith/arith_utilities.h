@@ -19,15 +19,16 @@
 #ifndef __CVC4__THEORY__ARITH__ARITH_UTILITIES_H
 #define __CVC4__THEORY__ARITH__ARITH_UTILITIES_H
 
-#include "util/rational.h"
-#include "util/integer.h"
-#include "util/dense_map.h"
-#include "expr/node.h"
-#include "theory/arith/delta_rational.h"
-#include "theory/arith/arithvar.h"
-#include "context/cdhashset.h"
 #include <ext/hash_map>
 #include <vector>
+
+#include "context/cdhashset.h"
+#include "expr/node.h"
+#include "theory/arith/arithvar.h"
+#include "theory/arith/delta_rational.h"
+#include "util/dense_map.h"
+#include "util/integer.h"
+#include "util/rational.h"
 
 namespace CVC4 {
 namespace theory {

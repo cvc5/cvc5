@@ -1,0 +1,108 @@
+#!/bin/bash
+
+cvc4=./cvc4-assertions
+# Attempt to run each benchmark 1-5 min depending on numconfigs
+# quanitifers get 5 min / benchmark
+# quantifier free uf, arith, arrays get 1 min / benchmark
+# qf_bv gets 1 min wall (2 min user) / benchmark
+
+bench="$1"
+
+logic=$(expr "$(grep -m1 '^[^;]*set-logic' "$bench")" : ' *(set-logic  *\([A-Z_]*\) *) *$')
+
+# use: trywith [params..]
+# to attempt a run.  Only thing printed on stdout is "sat" or "unsat", in
+# which case this run script terminates immediately.  Otherwise, this
+# function returns normally.
+function trywith {
+  limit=$1; shift;
+  result="$(ulimit -S -t "$limit";$cvc4 -L smt2 --no-incremental --no-checking --no-interactive "$@" $bench)"
+  case "$result" in
+    sat|unsat) echo "$result"; exit 0;;
+  esac
+}
+
+# use: finishwith [params..]
+# to run cvc4 and let it output whatever it will to stdout.
+function finishwith {
+  $cvc4 -L smt2 --no-incremental --no-checking --no-interactive "$@" $bench
+}
+
+case "$logic" in
+
+QF_LRA)
+  trywith 30 --enable-miplib-trick --miplib-trick-subs=4 --use-approx --lemmas-on-replay-failure --replay-early-close-depth=4 --replay-lemma-reject-cut=128 --replay-reject-cut=512 --unconstrained-simp --use-soi
+  finishwith --no-restrict-pivots --use-soi --new-prop --unconstrained-simp
+  ;;
+QF_LIA)
+  # same as QF_LRA but add --pb-rewrites
+  finishwith --enable-miplib-trick --miplib-trick-subs=4 --use-approx --lemmas-on-replay-failure --replay-early-close-depth=4 --replay-lemma-reject-cut=128 --replay-reject-cut=512 --unconstrained-simp --use-soi --pb-rewrites
+  ;;
+ALIA|AUFLIA|AUFLIRA|AUFNIRA|BV|UF|UFBV|UFIDL|UFLIA|UFLRA|UFNIA)
+  # the following is designed for a run time of 1800s.
+  # initial runs 1min (30)
+  trywith 10 --simplification=none --full-saturate-quant
+  trywith 10 --finite-model-find
+  trywith 10 --no-e-matching --full-saturate-quant
+  # trigger selections/special 1min (60)
+  trywith 10 --multi-trigger-when-single --full-saturate-quant
+  trywith 10 --trigger-sel=max --full-saturate-quant
+  trywith 10 --relevant-triggers --full-saturate-quant
+  trywith 10 --multi-trigger-when-single --multi-trigger-priority --full-saturate-quant
+  trywith 10 --trigger-sel=min --full-saturate-quant
+  trywith 10 --qcf-tconstraint --full-saturate-quant
+  # medium runs 5min (20*10 = 200)
+  trywith 10 --no-quant-cf --full-saturate-quant
+  trywith 10 --finite-model-find --fmf-inst-engine --sort-inference --uf-ss-fair --mbqi=gen-ev
+  trywith 10 --no-e-matching --no-quant-cf --full-saturate-quant
+  trywith 10 --pre-skolem-quant --full-saturate-quant
+  trywith 10 --no-inst-no-entail --no-quant-cf --full-saturate-quant
+  trywith 10 --finite-model-find --mbqi=gen-ev --uf-ss-totality
+  trywith 10 --inst-when=full --full-saturate-quant
+  #trywith 10 --fmf-bound-int --macros-quant   # recently bug fixed
+  trywith 10 --decision=internal --simplification=none --no-inst-no-entail --no-quant-cf --full-saturate-quant
+  trywith 10 --decision=justification-stoponly --full-saturate-quant
+  # large runs 3min
+  trywith 10 --term-db-mode=relevant --full-saturate-quant
+  trywith 10 --finite-model-find --mbqi=none
+  trywith 10 --decision=internal --full-saturate-quant
+  # last call runs 20min
+  trywith 20 --finite-model-find --fmf-inst-engine --quant-cf --sort-inference --uf-ss-fair 
+  trywith 20 --no-inst-no-entail --full-saturate-quant
+  finishwith --full-saturate-quant
+  ;;
+LIA|LRA|NIA|NRA)
+  trywith 30 --cbqi --no-cbqi-sat --full-saturate-quant
+  trywith 30 --full-saturate-quant
+  trywith 30 --qcf-tconstraint --full-saturate-quant
+  finishwith --cbqi --no-cbqi-sat --cbqi-recurse --full-saturate-quant
+  ;;
+QF_AUFBV)
+  trywith 30
+  finishwith --decision=justification-stoponly
+  ;;
+QF_ABV)
+  finishwith --ite-simp --simp-with-care --repeat-simp
+  ;;
+QF_BV)
+  exec ./pcvc4-assertions -L smt2 --no-incremental --no-checking --no-interactive --thread-stack=1024 \
+         --threads 2 \
+         --thread0 '--unconstrained-simp --bv-div-zero-const --bv-intro-pow2 --bitblast=eager --no-bv-abstraction' \
+         --thread1 '--unconstrained-simp --bv-div-zero-const --bv-intro-pow2 --bv-eq-slicer=auto ' \
+         --no-wait-to-join \
+         "$bench"
+  #trywith 10 --bv-eq-slicer=auto --decision=justification
+  #trywith 60 --decision=justification
+  #trywith 600 --decision=internal --bitblast-eager
+  #finishwith --decision=justification --decision-use-weight --decision-weight-internal=usr1
+  ;;
+QF_AUFLIA|QF_AX)
+  finishwith --no-arrays-eager-index --arrays-eager-lemmas
+  ;;
+*)
+  # just run the default
+  finishwith
+  ;;
+
+esac
+

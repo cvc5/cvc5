@@ -44,17 +44,16 @@
 
 #pragma once
 
-#include "context/context.h"
-#include "context/cdtrail_hashmap_forward.h"
-#include <utility>
+#include <boost/static_assert.hpp>
 #include <ext/hash_map>
 #include <deque>
-#include "util/cvc4_assert.h"
-#include "util/output.h"
+#include <utility>
 
+#include "base/cvc4_assert.h"
+#include "base/output.h"
+#include "context/context.h"
+#include "context/cdtrail_hashmap_forward.h"
 #include "expr/node.h"
-#include <boost/static_assert.hpp>
-
 
 namespace CVC4 {
 namespace context {

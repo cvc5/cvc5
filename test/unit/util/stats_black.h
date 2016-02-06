@@ -19,10 +19,23 @@
 #include <string>
 #include <ctime>
 
+#include "lib/clock_gettime.h"
 #include "util/statistics_registry.h"
 
 using namespace CVC4;
 using namespace std;
+
+/**
+ * This is a duplicate of operator== in statistics_registry.h.
+ * This is duplicated here to try to avoid polluting top namepsace.
+ *
+ * If operator== is in the CVC4 namespace, there are some circumstances
+ * where clang does not find this operator.
+ */
+bool operator==(const timespec& a, const timespec& b) {
+  // assumes a.tv_nsec and b.tv_nsec are in range
+  return a.tv_sec == b.tv_sec && a.tv_nsec == b.tv_nsec;
+}
 
 class StatsBlack : public CxxTest::TestSuite {
 public:

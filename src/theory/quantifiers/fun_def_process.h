@@ -31,10 +31,6 @@ namespace quantifiers {
 //find finite models for well-defined functions
 class FunDefFmf {
 private:
-  //defined functions to input sort
-  std::map< Node, TypeNode > d_sorts;
-  //defined functions to injections input -> argument elements
-  std::map< Node, std::vector< Node > > d_input_arg_inj;
   //simplify
   Node simplifyFormula( Node n, bool pol, bool hasPol, std::vector< Node >& constraints, Node hd, int is_fun_def = 0 );
   //simplify term
@@ -42,7 +38,13 @@ private:
 public:
   FunDefFmf(){}
   ~FunDefFmf(){}
-
+  //defined functions to input sort (alpha)
+  std::map< Node, TypeNode > d_sorts;
+  //defined functions to injections input -> argument elements (gamma)
+  std::map< Node, std::vector< Node > > d_input_arg_inj;
+  // (newly) defined functions
+  std::vector< Node > d_funcs;
+  //simplify
   void simplify( std::vector< Node >& assertions, bool doRewrite = false );
 };
 

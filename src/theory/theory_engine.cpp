@@ -14,57 +14,44 @@
  ** The theory engine.
  **/
 
-#include <vector>
-#include <list>
+#include "theory/theory_engine.h"
 
-#include "theory/arith/arith_ite_utils.h"
+#include <list>
+#include <vector>
 
 #include "decision/decision_engine.h"
-
 #include "expr/attribute.h"
 #include "expr/node.h"
 #include "expr/node_builder.h"
+#include "options/bv_options.h"
 #include "options/options.h"
-#include "util/lemma_output_channel.h"
-#include "util/resource_manager.h"
-
-#include "theory/theory.h"
-#include "theory/theory_engine.h"
-#include "theory/rewriter.h"
-#include "theory/theory_traits.h"
-
-#include "smt/logic_exception.h"
-
-#include "proof/proof_manager.h"
-
-#include "util/node_visitor.h"
-#include "util/ite_removal.h"
-
-//#include "theory/ite_simplifier.h"
-//#include "theory/ite_compressor.h"
-#include "theory/ite_utilities.h"
-#include "theory/unconstrained_simplifier.h"
-
-#include "theory/theory_model.h"
-
-#include "theory/quantifiers_engine.h"
-#include "theory/quantifiers/theory_quantifiers.h"
-#include "theory/quantifiers/options.h"
-#include "theory/quantifiers/model_engine.h"
-#include "theory/quantifiers/first_order_model.h"
-
-#include "theory/uf/equality_engine.h"
-//#include "theory/rewriterules/efficient_e_matching.h"
-#include "theory/bv/theory_bv_utils.h"
-#include "theory/bv/options.h"
-
+#include "options/quantifiers_options.h"
 #include "proof/proof_manager.h"
 #include "proof/theory_proof.h"
+#include "smt/logic_exception.h"
+#include "smt_util/ite_removal.h"
+#include "smt_util/lemma_output_channel.h"
+#include "smt_util/node_visitor.h"
+#include "theory/arith/arith_ite_utils.h"
+#include "theory/bv/theory_bv_utils.h"
+#include "theory/ite_utilities.h"
+#include "theory/quantifiers/first_order_model.h"
+#include "theory/quantifiers/model_engine.h"
+#include "theory/quantifiers/theory_quantifiers.h"
+#include "theory/quantifiers_engine.h"
+#include "theory/rewriter.h"
+#include "theory/theory.h"
+#include "theory/theory_model.h"
+#include "theory/theory_traits.h"
+#include "theory/uf/equality_engine.h"
+#include "theory/unconstrained_simplifier.h"
+#include "util/resource_manager.h"
 
 using namespace std;
 
-using namespace CVC4;
 using namespace CVC4::theory;
+
+namespace CVC4 {
 
 void TheoryEngine::finishInit() {
   // initialize the quantifiers engine
@@ -91,7 +78,9 @@ void TheoryEngine::finishInit() {
 }
 
 void TheoryEngine::eqNotifyNewClass(TNode t){
-  d_quantEngine->addTermToDatabase( t );
+  if( d_logicInfo.isQuantified() ){
+    d_quantEngine->addTermToDatabase( t );
+  }
 }
 
 void TheoryEngine::eqNotifyPreMerge(TNode t1, TNode t2){
@@ -114,7 +103,8 @@ void TheoryEngine::eqNotifyDisequal(TNode t1, TNode t2, TNode reason){
 TheoryEngine::TheoryEngine(context::Context* context,
                            context::UserContext* userContext,
                            RemoveITE& iteRemover,
-                           const LogicInfo& logicInfo)
+                           const LogicInfo& logicInfo,
+                           SmtGlobals* globals)
 : d_propEngine(NULL),
   d_decisionEngine(NULL),
   d_context(context),
@@ -143,6 +133,7 @@ TheoryEngine::TheoryEngine(context::Context* context,
   d_false(),
   d_interrupted(false),
   d_resourceManager(NodeManager::currentResourceManager()),
+  d_globals(globals),
   d_inPreregister(false),
   d_factsAsserted(context, false),
   d_preRegistrationVisitor(this, context),
@@ -160,15 +151,15 @@ TheoryEngine::TheoryEngine(context::Context* context,
   d_curr_model = new theory::TheoryModel(userContext, "DefaultModel", true);
   d_curr_model_builder = new theory::TheoryEngineModelBuilder(this);
 
-  StatisticsRegistry::registerStat(&d_combineTheoriesTime);
+  smtStatisticsRegistry()->registerStat(&d_combineTheoriesTime);
   d_true = NodeManager::currentNM()->mkConst<bool>(true);
   d_false = NodeManager::currentNM()->mkConst<bool>(false);
 
-  PROOF (ProofManager::currentPM()->initTheoryProofEngine(); );
+  PROOF (ProofManager::currentPM()->initTheoryProofEngine(d_globals); );
 
   d_iteUtilities = new ITEUtilities(d_iteRemover.getContainsVisitor());
 
-  StatisticsRegistry::registerStat(&d_arithSubstitutionsAdded);
+  smtStatisticsRegistry()->registerStat(&d_arithSubstitutionsAdded);
 }
 
 TheoryEngine::~TheoryEngine() {
@@ -188,13 +179,13 @@ TheoryEngine::~TheoryEngine() {
 
   delete d_masterEqualityEngine;
 
-  StatisticsRegistry::unregisterStat(&d_combineTheoriesTime);
+  smtStatisticsRegistry()->unregisterStat(&d_combineTheoriesTime);
 
   delete d_unconstrainedSimp;
 
   delete d_iteUtilities;
 
-  StatisticsRegistry::unregisterStat(&d_arithSubstitutionsAdded);
+  smtStatisticsRegistry()->unregisterStat(&d_arithSubstitutionsAdded);
 }
 
 void TheoryEngine::interrupt() throw(ModalException) {
@@ -429,7 +420,8 @@ void TheoryEngine::check(Theory::Effort effort) {
       }
     }
 
-    Debug("theory") << "TheoryEngine::check(" << effort << "): done, we are " << (d_inConflict ? "unsat" : "sat") << (d_lemmasAdded ? " with new lemmas" : " with no new lemmas") << endl;
+    Debug("theory") << "TheoryEngine::check(" << effort << "): done, we are " << (d_inConflict ? "unsat" : "sat") << (d_lemmasAdded ? " with new lemmas" : " with no new lemmas");
+    Debug("theory") << ", need check = " << needCheck() << endl;
 
     if(!d_inConflict && Theory::fullEffort(effort) && d_masterEqualityEngine != NULL && !d_lemmasAdded) {
       AlwaysAssert(d_masterEqualityEngine->consistent());
@@ -1414,8 +1406,8 @@ theory::LemmaStatus TheoryEngine::lemma(TNode node,
   }
 
   // Share with other portfolio threads
-  if(options::lemmaOutputChannel() != NULL) {
-    options::lemmaOutputChannel()->notifyNewLemma(node.toExpr());
+  if(d_globals->getLemmaOutputChannel() != NULL) {
+    d_globals->getLemmaOutputChannel()->notifyNewLemma(node.toExpr());
   }
 
   std::vector<Node> additionalLemmas;
@@ -1544,7 +1536,12 @@ void TheoryEngine::mkAckermanizationAsssertions(std::vector<Node>& assertions) {
 
 Node TheoryEngine::ppSimpITE(TNode assertion)
 {
-  if(!d_iteRemover.containsTermITE(assertion)){
+  if(options::incrementalSolving()){
+    // disabling the d_iteUtilities->simpITE(assertion) pass for incremental solving.
+    // This is paranoia. We do not actually know of a bug coming from this.
+    // TODO re-enable
+    return assertion;
+  } else if(!d_iteRemover.containsTermITE(assertion)){
     return assertion;
   }else{
 
@@ -1566,6 +1563,12 @@ Node TheoryEngine::ppSimpITE(TNode assertion)
 }
 
 bool TheoryEngine::donePPSimpITE(std::vector<Node>& assertions){
+  // This pass does not support dependency tracking yet
+  // (learns substitutions from all assertions so just
+  // adding addDependence is not enough)
+  if (options::unsatCores()) {
+    return true;
+  }
   bool result = true;
   bool simpDidALotOfWork = d_iteUtilities->simpIteDidALotOfWorkHeuristic();
   if(simpDidALotOfWork){
@@ -1589,7 +1592,8 @@ bool TheoryEngine::donePPSimpITE(std::vector<Node>& assertions){
   }
 
   // Do theory specific preprocessing passes
-  if(d_logicInfo.isTheoryEnabled(theory::THEORY_ARITH)){
+  if(d_logicInfo.isTheoryEnabled(theory::THEORY_ARITH)
+     && !options::incrementalSolving() ){
     if(!simpDidALotOfWork){
       ContainsTermITEVisitor& contains = *d_iteRemover.getContainsVisitor();
       arith::ArithIteUtils aiteu(contains, d_userContext, getModel());
@@ -1603,7 +1607,7 @@ bool TheoryEngine::donePPSimpITE(std::vector<Node>& assertions){
           if(curr != res){
             Node more = aiteu.reduceConstantIteByGCD(res);
             Debug("arith::ite::red") << "  gcd->" << more << endl;
-            assertions[i] = more;
+            assertions[i] = Rewriter::rewrite(more);
           }
         }
       }
@@ -1770,6 +1774,33 @@ std::pair<bool, Node> TheoryEngine::entailmentCheck(theory::TheoryOfMode mode, T
   return th->entailmentCheck(lit, params, seffects);
 }
 
-void TheoryEngine::spendResource() {
-  d_resourceManager->spendResource();
+void TheoryEngine::spendResource(unsigned ammount) {
+  d_resourceManager->spendResource(ammount);
 }
+
+TheoryEngine::Statistics::Statistics(theory::TheoryId theory):
+    conflicts(mkName("theory<", theory, ">::conflicts"), 0),
+    propagations(mkName("theory<", theory, ">::propagations"), 0),
+    lemmas(mkName("theory<", theory, ">::lemmas"), 0),
+    requirePhase(mkName("theory<", theory, ">::requirePhase"), 0),
+    flipDecision(mkName("theory<", theory, ">::flipDecision"), 0),
+    restartDemands(mkName("theory<", theory, ">::restartDemands"), 0)
+{
+  smtStatisticsRegistry()->registerStat(&conflicts);
+  smtStatisticsRegistry()->registerStat(&propagations);
+  smtStatisticsRegistry()->registerStat(&lemmas);
+  smtStatisticsRegistry()->registerStat(&requirePhase);
+  smtStatisticsRegistry()->registerStat(&flipDecision);
+  smtStatisticsRegistry()->registerStat(&restartDemands);
+}
+
+TheoryEngine::Statistics::~Statistics() {
+  smtStatisticsRegistry()->unregisterStat(&conflicts);
+  smtStatisticsRegistry()->unregisterStat(&propagations);
+  smtStatisticsRegistry()->unregisterStat(&lemmas);
+  smtStatisticsRegistry()->unregisterStat(&requirePhase);
+  smtStatisticsRegistry()->unregisterStat(&flipDecision);
+  smtStatisticsRegistry()->unregisterStat(&restartDemands);
+}
+
+}/* CVC4 namespace */

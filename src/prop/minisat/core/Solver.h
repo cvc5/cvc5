@@ -23,30 +23,30 @@ OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWA
 
 #include "cvc4_private.h"
 
-#include <iostream>
+#include <iosfwd>
 
-#include "prop/minisat/mtl/Vec.h"
-#include "prop/minisat/mtl/Heap.h"
-#include "prop/minisat/mtl/Alg.h"
-#include "prop/minisat/utils/Options.h"
-#include "prop/minisat/core/SolverTypes.h"
-
+#include "base/output.h"
 #include "context/context.h"
+#include "prop/minisat/core/SolverTypes.h"
+#include "prop/minisat/mtl/Alg.h"
+#include "prop/minisat/mtl/Heap.h"
+#include "prop/minisat/mtl/Vec.h"
+#include "prop/minisat/utils/Options.h"
+#include "smt_util/command.h"
 #include "theory/theory.h"
-#include "util/output.h"
-#include "expr/command.h"
+
 
 namespace CVC4 {
-template <class Solvar> class TSatProof;
+template <class Solver> class TSatProof;
 
 namespace prop {
   class TheoryProxy;
 }/* CVC4::prop namespace */
 }/* CVC4 namespace */
 
-
 typedef unsigned ClauseId;
 
+namespace CVC4 {
 namespace Minisat {
 
 //=================================================================================================
@@ -99,9 +99,7 @@ protected:
   vec<bool> lemmas_removable;
 
   /** Nodes being converted to CNF */
-  std::vector<std::pair<CVC4::Node, CVC4::Node > >lemmas_cnf_assertion;
-  /** Proof IDs for lemmas */
-  //  vec<uint64_t> lemmas_proof_id;
+  std::vector< std::pair<CVC4::Node, CVC4::Node > >lemmas_cnf_assertion;
 
   /** Do a another check if FULL_EFFORT was the last one */
   bool recheck;
@@ -439,7 +437,7 @@ protected:
     int      trail_index      (Var x) const; // Index in the trail
     double   progressEstimate ()      const; // DELETE THIS ?? IT'S NOT VERY USEFUL ...
 public:
-    bool     withinBudget     ()      const;
+    bool     withinBudget     (uint64_t amount)      const;
 protected:
 
     // Static helpers:
@@ -572,6 +570,7 @@ inline void     Solver::toDimacs     (const char* file, Lit p, Lit q, Lit r){ ve
 
 
 //=================================================================================================
-}/* Minisat namespace */
+} /* CVC4::Minisat namespace */
+} /* CVC4 namespace */
 
 #endif

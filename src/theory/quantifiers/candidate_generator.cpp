@@ -12,13 +12,13 @@
  ** \brief Implementation of theory uf candidate generator class
  **/
 
+#include "options/quantifiers_options.h"
 #include "theory/quantifiers/candidate_generator.h"
+#include "theory/quantifiers/inst_match.h"
+#include "theory/quantifiers/term_database.h"
+#include "theory/quantifiers_engine.h"
 #include "theory/theory_engine.h"
 #include "theory/uf/theory_uf.h"
-#include "theory/quantifiers/term_database.h"
-#include "theory/quantifiers/inst_match.h"
-#include "theory/quantifiers_engine.h"
-#include "theory/quantifiers/options.h"
 
 using namespace std;
 using namespace CVC4;
@@ -100,7 +100,7 @@ Node CandidateGeneratorQE::getNextCandidate(){
   if( d_mode==cand_term_db ){
     //get next candidate term in the uf term database
     while( d_term_iter<d_term_iter_limit ){
-      Node n = d_qe->getTermDatabase()->d_op_map[d_op][d_term_iter];
+      Node n = d_qe->getTermDatabase()->getGroundTerm( d_op, d_term_iter );
       d_term_iter++;
       if( isLegalCandidate( n ) ){
         if( d_qe->getTermDatabase()->hasTermCurrent( n ) ){
@@ -142,7 +142,7 @@ Node CandidateGeneratorQELitEq::getNextCandidate(){
   while( !d_eq.isFinished() ){
     Node n = (*d_eq);
     ++d_eq;
-    if( n.getType().isSubtypeOf( d_match_pattern[0].getType() ) ){
+    if( n.getType().isComparableTo( d_match_pattern[0].getType() ) ){
       //an equivalence class with the same type as the pattern, return reflexive equality
       return NodeManager::currentNM()->mkNode( d_match_pattern.getKind(), n, n );
     }
@@ -154,24 +154,31 @@ Node CandidateGeneratorQELitEq::getNextCandidate(){
 CandidateGeneratorQELitDeq::CandidateGeneratorQELitDeq( QuantifiersEngine* qe, Node mpat ) :
   d_match_pattern( mpat ), d_qe( qe ){
 
+  Assert( d_match_pattern.getKind()==EQUAL || d_match_pattern.getKind()==IFF );
+  d_match_pattern_type = d_match_pattern[0].getType();
 }
+
 void CandidateGeneratorQELitDeq::resetInstantiationRound(){
 
 }
+
 void CandidateGeneratorQELitDeq::reset( Node eqc ){
   Node false_term = d_qe->getEqualityQuery()->getEngine()->getRepresentative( NodeManager::currentNM()->mkConst<bool>(false) );
   d_eqc_false = eq::EqClassIterator( false_term, d_qe->getEqualityQuery()->getEngine() );
 }
+
 Node CandidateGeneratorQELitDeq::getNextCandidate(){
   //get next candidate term in equivalence class
   while( !d_eqc_false.isFinished() ){
     Node n = (*d_eqc_false);
     ++d_eqc_false;
     if( n.getKind()==d_match_pattern.getKind() ){
-      //found an iff or equality, try to match it
-      //DO_THIS: cache to avoid redundancies?
-      //DO_THIS: do we need to try the symmetric equality for n?  or will it also exist in the eq class of false?
-      return n;
+      if( n[0].getType().isComparableTo( d_match_pattern_type ) ){
+        //found an iff or equality, try to match it
+        //DO_THIS: cache to avoid redundancies?
+        //DO_THIS: do we need to try the symmetric equality for n?  or will it also exist in the eq class of false?
+        return n;
+      }
     }
   }
   return Node::null();
@@ -199,7 +206,7 @@ Node CandidateGeneratorQEAll::getNextCandidate() {
   while( !d_eq.isFinished() ){
     TNode n = (*d_eq);
     ++d_eq;
-    if( n.getType().isSubtypeOf( d_match_pattern_type ) ){
+    if( n.getType().isComparableTo( d_match_pattern_type ) ){
       TNode nh = d_qe->getTermDatabase()->getEligibleTermInEqc( n );
       if( !nh.isNull() ){
         if( options::instMaxLevel()!=-1 || options::lteRestrictInstClosure() ){
@@ -221,7 +228,7 @@ Node CandidateGeneratorQEAll::getNextCandidate() {
     Assert( d_qe->getTermDatabase()->d_type_map[d_match_pattern_type].empty() );
     //must return something
     d_firstTime = false;
-    return d_qe->getTermDatabase()->getFreeVariableForType( d_match_pattern_type );
+    return d_qe->getTermDatabase()->getModelBasisTerm( d_match_pattern_type );
   }
   return Node::null();
 }

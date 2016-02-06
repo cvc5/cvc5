@@ -14,22 +14,16 @@
  ** [[ This file contains the data structures used by the constant and
  **    parametric types of the floating point theory. ]]
  **/
-
-#include <fenv.h>
-
 #include "cvc4_public.h"
-
-#include "util/bitvector.h"
-
 
 #ifndef __CVC4__FLOATINGPOINT_H
 #define __CVC4__FLOATINGPOINT_H
 
+#include <fenv.h>
 
+#include "util/bitvector.h"
 
 namespace CVC4 {
-
-
   // Inline these!
   inline bool CVC4_PUBLIC validExponentSize (unsigned e) { return e >= 2; }
   inline bool CVC4_PUBLIC validSignificandSize (unsigned s) { return s >= 2; }
@@ -68,24 +62,16 @@ namespace CVC4 {
 
   }; /* class FloatingPointSize */
 
-
-
-#define ROLL(X,N) (((X) << (N)) | ((X) >> (8*sizeof((X)) - (N)) ))
-
   struct CVC4_PUBLIC FloatingPointSizeHashFunction {
+    static inline size_t ROLL(size_t X, size_t N) {
+      return (((X) << (N)) | ((X) >> (8*sizeof((X)) - (N)) ));
+    }
+
     inline size_t operator() (const FloatingPointSize& fpt) const {
       return size_t(ROLL(fpt.exponent(), 4*sizeof(unsigned)) |
 		    fpt.significand());
     }
   }; /* struct FloatingPointSizeHashFunction */
-
-
-
-
-
-
-
-
 
 
   /**
@@ -104,14 +90,6 @@ namespace CVC4 {
       return size_t(rm);
     }
   }; /* struct RoundingModeHashFunction */
-
-
-
-
-
-
-
-
 
 
   /**
@@ -167,12 +145,6 @@ namespace CVC4 {
       return h(fp.t) ^ fp.getLiteral().hash();
     }
   }; /* struct FloatingPointHashFunction */
-
-
-
-
-
-
 
   /**
    * The parameter type for the conversions to floating point.
@@ -261,9 +233,6 @@ namespace CVC4 {
 
 
 
-
-
-
   inline std::ostream& operator <<(std::ostream& os, const FloatingPointLiteral& fp) CVC4_PUBLIC;
   inline std::ostream& operator <<(std::ostream& os, const FloatingPointLiteral& fp) {
     fp.unfinished();
@@ -284,9 +253,6 @@ namespace CVC4 {
   inline std::ostream& operator <<(std::ostream& os, const FloatingPointConvertSort& fpcs) {
     return os << "(_ to_fp " << fpcs.t.exponent() << " " << fpcs.t.significand() << ")";
   }
-
-
-
 
 }/* CVC4 namespace */
 

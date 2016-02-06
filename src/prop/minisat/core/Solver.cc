@@ -22,20 +22,22 @@ OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWA
 
 #include <iostream>
 
-#include "prop/minisat/mtl/Sort.h"
-#include "prop/minisat/core/Solver.h"
-
-#include "prop/theory_proxy.h"
-#include "prop/minisat/minisat.h"
-#include "prop/options.h"
-#include "util/output.h"
-#include "expr/command.h"
+#include "base/output.h"
+#include "options/prop_options.h"
 #include "proof/proof_manager.h"
 #include "proof/sat_proof_implementation.h"
+#include "proof/sat_proof.h"
+#include "prop/minisat/core/Solver.h"
+#include "prop/minisat/minisat.h"
+#include "prop/minisat/mtl/Sort.h"
+#include "prop/theory_proxy.h"
+#include "smt_util/command.h"
 
-using namespace Minisat;
-using namespace CVC4;
+
 using namespace CVC4::prop;
+
+namespace CVC4 {
+namespace Minisat {
 
 //=================================================================================================
 // Options:
@@ -277,7 +279,6 @@ CRef Solver::reason(Var x) {
     PROOF (ClauseId id = ProofManager::getSatProof()->registerClause(real_reason, THEORY_LEMMA);
            ProofManager::getCnfProof()->registerConvertedClause(id, true);
            // no need to pop current assertion as this is not converted to cnf
-           // ProofManager::getCnfProof()->popCurrentAssertion();
            );
     vardata[x] = VarData(real_reason, level(x), user_level(x), intro_level(x), trail_index(x));
     clauses_removable.push(real_reason);
@@ -360,7 +361,7 @@ bool Solver::addClause_(vec<Lit>& ps, bool removable, ClauseId& id)
           // as the final conflict.
           if(falseLiteralsCount == 1) {
             PROOF( id = ProofManager::getSatProof()->storeUnitConflict(ps[0], INPUT); )
-            PROOF( ProofManager::getSatProof()->finalizeProof(::Minisat::CRef_Lazy); )
+            PROOF( ProofManager::getSatProof()->finalizeProof(CVC4::Minisat::CRef_Lazy); )
             return ok = false;
           }
         } else {
@@ -406,7 +407,7 @@ bool Solver::addClause_(vec<Lit>& ps, bool removable, ClauseId& id)
           if(! (ok = (confl == CRef_Undef)) ) {
             if(ca[confl].size() == 1) {
               PROOF( id = ProofManager::getSatProof()->storeUnitConflict(ca[confl][0], LEARNT); );
-              PROOF( ProofManager::getSatProof()->finalizeProof(::Minisat::CRef_Lazy); )
+              PROOF( ProofManager::getSatProof()->finalizeProof(CVC4::Minisat::CRef_Lazy); )
             } else {
               PROOF( ProofManager::getSatProof()->finalizeProof(confl); );
             }
@@ -1249,7 +1250,8 @@ lbool Solver::search(int nof_conflicts)
               check_type = CHECK_WITH_THEORY;
             }
 
-            if (nof_conflicts >= 0 && conflictC >= nof_conflicts || !withinBudget()) {
+            if (nof_conflicts >= 0 && conflictC >= nof_conflicts ||
+                !withinBudget(options::satConflictStep())) {
                 // Reached bound on number of conflicts:
                 progress_estimate = progressEstimate();
                 cancelUntil(0);
@@ -1387,11 +1389,11 @@ lbool Solver::solve_()
     while (status == l_Undef){
         double rest_base = luby_restart ? luby(restart_inc, curr_restarts) : pow(restart_inc, curr_restarts);
         status = search(rest_base * restart_first);
-        if (!withinBudget()) break;
+        if (!withinBudget(options::satConflictStep())) break; // FIXME add restart option?
         curr_restarts++;
     }
 
-    if(!withinBudget())
+    if(!withinBudget(options::satConflictStep()))
         status = l_Undef;
 
     if (verbosity >= 1)
@@ -1643,7 +1645,7 @@ CRef Solver::updateLemmas() {
   Debug("minisat::lemmas") << "Solver::updateLemmas() begin" << std::endl;
 
   // Avoid adding lemmas indefinitely without resource-out
-  proxy->spendResource();
+  proxy->spendResource(options::lemmaStep());
 
   CRef conflict = CRef_Undef;
 
@@ -1693,7 +1695,7 @@ CRef Solver::updateLemmas() {
   // Last index in the trail
   int backtrack_index = trail.size();
 
-  PROOF(Assert (lemmas.size() == lemmas_cnf_assertion.size()););
+  PROOF(Assert (lemmas.size() == (int)lemmas_cnf_assertion.size()););
   
   // Attach all the clauses and enqueue all the propagations
   for (int i = 0; i < lemmas.size(); ++ i)
@@ -1701,8 +1703,6 @@ CRef Solver::updateLemmas() {
     // The current lemma
     vec<Lit>& lemma = lemmas[i];
     bool removable = lemmas_removable[i];
-    // uint64_t proof_id = lemmas_proof_id[i];
-    // Debug("cores") << "pulled lemma proof id " << proof_id << " " << (proof_id & 0xffffffff) << std::endl;
 
     // Attach it if non-unit
     CRef lemma_ref = CRef_Undef;
@@ -1765,12 +1765,11 @@ CRef Solver::updateLemmas() {
     }
   }
 
-  PROOF(Assert (lemmas.size() == lemmas_cnf_assertion.size()););
+  PROOF(Assert (lemmas.size() == (int)lemmas_cnf_assertion.size()););
   // Clear the lemmas
   lemmas.clear();
   lemmas_cnf_assertion.clear();
   lemmas_removable.clear();
-  //  lemmas_proof_id.clear();
 
   if (conflict != CRef_Undef) {
     theoryConflict = true;
@@ -1803,14 +1802,18 @@ void ClauseAllocator::reloc(CRef& cr, ClauseAllocator& to, CVC4::CoreProofProxy*
   else if (to[cr].has_extra()) to[cr].calcAbstraction();
 }
 
-inline bool Solver::withinBudget() const {
+inline bool Solver::withinBudget(uint64_t ammount) const {
   Assert (proxy);
   // spendResource sets async_interrupt or throws UnsafeInterruptException
   // depending on whether hard-limit is enabled
-  proxy->spendResource();
+  proxy->spendResource(ammount);
 
   bool within_budget =  !asynch_interrupt &&
     (conflict_budget    < 0 || conflicts < (uint64_t)conflict_budget) &&
     (propagation_budget < 0 || propagations < (uint64_t)propagation_budget);
   return within_budget;
 }
+
+
+} /* CVC4::Minisat namespace */
+} /* CVC4 namespace */

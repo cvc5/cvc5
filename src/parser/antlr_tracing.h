@@ -23,7 +23,8 @@
 
 #include <iostream>
 #include <string>
-#include "util/output.h"
+
+#include "base/output.h"
 
 /* The ANTLR lexer generator, as of v3.2, puts Java trace commands
  * into our beautiful generated C lexer!  How awful!  This is clearly

@@ -15,9 +15,10 @@
  ** \todo document this file
  **/
 
-#include "theory/arith/pseudoboolean_proc.h"
-#include "theory/arith/normal_form.h"
+#include "base/output.h"
 #include "theory/arith/arith_utilities.h"
+#include "theory/arith/normal_form.h"
+#include "theory/arith/pseudoboolean_proc.h"
 #include "theory/rewriter.h"
 
 namespace CVC4 {

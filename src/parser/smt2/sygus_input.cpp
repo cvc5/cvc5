@@ -22,8 +22,8 @@
 #include "parser/parser.h"
 #include "parser/parser_exception.h"
 #include "parser/smt2/sygus_input.h"
-#include "parser/smt2/generated/Smt2Lexer.h"
-#include "parser/smt2/generated/Smt2Parser.h"
+#include "parser/smt2/Smt2Lexer.h"
+#include "parser/smt2/Smt2Parser.h"
 
 namespace CVC4 {
 namespace parser {

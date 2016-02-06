@@ -14,24 +14,66 @@
  ** [[ Add lengthier description here ]]
  ** \todo document this file
  **/
+#include "prop/theory_proxy.h"
 
+#include "context/context.h"
+#include "decision/decision_engine.h"
+#include "expr/expr_stream.h"
+#include "options/decision_options.h"
 #include "prop/cnf_stream.h"
 #include "prop/prop_engine.h"
-#include "prop/theory_proxy.h"
 #include "proof/cnf_proof.h"
-#include "context/context.h"
-#include "theory/theory_engine.h"
+#include "smt_util/lemma_input_channel.h"
+#include "smt_util/lemma_output_channel.h"
+#include "smt/smt_statistics_registry.h"
 #include "theory/rewriter.h"
-#include "expr/expr_stream.h"
-#include "decision/decision_engine.h"
-#include "decision/options.h"
-#include "util/lemma_input_channel.h"
-#include "util/lemma_output_channel.h"
+#include "theory/theory_engine.h"
 #include "util/statistics_registry.h"
 
 
 namespace CVC4 {
 namespace prop {
+
+TheoryProxy::TheoryProxy(PropEngine* propEngine,
+                         TheoryEngine* theoryEngine,
+                         DecisionEngine* decisionEngine,
+                         context::Context* context,
+                         CnfStream* cnfStream,
+                         SmtGlobals* globals)
+    : d_propEngine(propEngine),
+      d_cnfStream(cnfStream),
+      d_decisionEngine(decisionEngine),
+      d_theoryEngine(theoryEngine),
+      d_globals(globals),
+      d_queue(context),
+      d_replayedDecisions("prop::theoryproxy::replayedDecisions", 0)
+{
+  smtStatisticsRegistry()->registerStat(&d_replayedDecisions);
+}
+
+TheoryProxy::~TheoryProxy() {
+  /* nothing to do for now */
+  smtStatisticsRegistry()->unregisterStat(&d_replayedDecisions);
+}
+
+/** The lemma input channel we are using. */
+LemmaInputChannel* TheoryProxy::inputChannel() {
+  return d_globals->getLemmaInputChannel();
+}
+
+/** The lemma output channel we are using. */
+LemmaOutputChannel* TheoryProxy::outputChannel() {
+  return d_globals->getLemmaOutputChannel();
+}
+
+std::ostream* TheoryProxy::replayLog() {
+  return d_globals->getReplayLog();
+}
+
+ExprStream* TheoryProxy::replayStream() {
+  return d_globals->getReplayStream();
+}
+
 
 void TheoryProxy::variableNotify(SatVariable var) {
   d_theoryEngine->preRegister(getNode(SatLiteral(var)));
@@ -106,15 +148,15 @@ TNode TheoryProxy::getNode(SatLiteral lit) {
 }
 
 void TheoryProxy::notifyRestart() {
-  d_propEngine->spendResource();
+  d_propEngine->spendResource(options::restartStep());
   d_theoryEngine->notifyRestart();
 
   static uint32_t lemmaCount = 0;
 
-  if(options::lemmaInputChannel() != NULL) {
-    while(options::lemmaInputChannel()->hasNewLemma()) {
+  if(inputChannel() != NULL) {
+    while(inputChannel()->hasNewLemma()) {
       Debug("shared") << "shared" << std::endl;
-      Expr lemma = options::lemmaInputChannel()->getNewLemma();
+      Expr lemma = inputChannel()->getNewLemma();
       Node asNode = lemma.getNode();
       asNode = theory::Rewriter::rewrite(asNode);
 
@@ -138,7 +180,7 @@ void TheoryProxy::notifyRestart() {
 
 void TheoryProxy::notifyNewLemma(SatClause& lemma) {
   Assert(lemma.size() > 0);
-  if(options::lemmaOutputChannel() != NULL) {
+  if(outputChannel() != NULL) {
     if(lemma.size() == 1) {
       // cannot share units yet
       //options::lemmaOutputChannel()->notifyNewLemma(d_cnfStream->getNode(lemma[0]).toExpr());
@@ -151,7 +193,7 @@ void TheoryProxy::notifyNewLemma(SatClause& lemma) {
 
       if(d_shared.find(n) == d_shared.end()) {
         d_shared.insert(n);
-        options::lemmaOutputChannel()->notifyNewLemma(n.toExpr());
+        outputChannel()->notifyNewLemma(n.toExpr());
       } else {
         Debug("shared") <<"drop new " << n << std::endl;
       }
@@ -161,8 +203,8 @@ void TheoryProxy::notifyNewLemma(SatClause& lemma) {
 
 SatLiteral TheoryProxy::getNextReplayDecision() {
 #ifdef CVC4_REPLAY
-  if(options::replayStream() != NULL) {
-    Expr e = options::replayStream()->nextExpr();
+  if(replayStream() != NULL) {
+    Expr e = replayStream()->nextExpr();
     if(!e.isNull()) { // we get null node when out of decisions to replay
       // convert & return
       ++d_replayedDecisions;
@@ -175,15 +217,15 @@ SatLiteral TheoryProxy::getNextReplayDecision() {
 
 void TheoryProxy::logDecision(SatLiteral lit) {
 #ifdef CVC4_REPLAY
-  if(options::replayLog() != NULL) {
+  if(replayLog() != NULL) {
     Assert(lit != undefSatLiteral, "logging an `undef' decision ?!");
-    *options::replayLog() << d_cnfStream->getNode(lit) << std::endl;
+    (*replayLog()) << d_cnfStream->getNode(lit) << std::endl;
   }
 #endif /* CVC4_REPLAY */
 }
 
-void TheoryProxy::spendResource() {
-  d_theoryEngine->spendResource();
+void TheoryProxy::spendResource(unsigned ammount) {
+  d_theoryEngine->spendResource(ammount);
 }
 
 bool TheoryProxy::isDecisionRelevant(SatVariable var) {

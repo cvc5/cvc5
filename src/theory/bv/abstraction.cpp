@@ -12,12 +12,14 @@
  ** [[ Add lengthier description here ]]
  ** \todo document this file
  **/
-
 #include "theory/bv/abstraction.h"
+
+#include "options/bv_options.h"
+#include "smt_util/dump.h"
+#include "smt/smt_statistics_registry.h"
 #include "theory/bv/theory_bv_utils.h"
 #include "theory/rewriter.h"
-#include "theory/bv/options.h"
-#include "util/dump.h"
+
 
 using namespace CVC4;
 using namespace CVC4::theory;
@@ -28,10 +30,10 @@ using namespace std;
 using namespace CVC4::theory::bv::utils;
 
 bool AbstractionModule::applyAbstraction(const std::vector<Node>& assertions, std::vector<Node>& new_assertions) {
-  Debug("bv-abstraction") << "AbstractionModule::applyAbstraction\n"; 
+  Debug("bv-abstraction") << "AbstractionModule::applyAbstraction\n";
 
   TimerStat::CodeTimer abstractionTimer(d_statistics.d_abstractionTime);
-    
+
   for (unsigned i = 0; i < assertions.size(); ++i) {
     if (assertions[i].getKind() == kind::OR) {
       for (unsigned j = 0; j < assertions[i].getNumChildren(); ++j) {
@@ -1046,13 +1048,13 @@ AbstractionModule::Statistics::Statistics()
   , d_numArgsSkolemized("theory::bv::AbstractioModule::NumArgsSkolemized", 0)
   , d_abstractionTime("theory::bv::AbstractioModule::AbstractionTime")
 {
-  StatisticsRegistry::registerStat(&d_numFunctionsAbstracted);
-  StatisticsRegistry::registerStat(&d_numArgsSkolemized);
-  StatisticsRegistry::registerStat(&d_abstractionTime);
+  smtStatisticsRegistry()->registerStat(&d_numFunctionsAbstracted);
+  smtStatisticsRegistry()->registerStat(&d_numArgsSkolemized);
+  smtStatisticsRegistry()->registerStat(&d_abstractionTime);
 }
 
 AbstractionModule::Statistics::~Statistics() {
-  StatisticsRegistry::unregisterStat(&d_numFunctionsAbstracted);
-  StatisticsRegistry::unregisterStat(&d_numArgsSkolemized);
-  StatisticsRegistry::unregisterStat(&d_abstractionTime);
+  smtStatisticsRegistry()->unregisterStat(&d_numFunctionsAbstracted);
+  smtStatisticsRegistry()->unregisterStat(&d_numArgsSkolemized);
+  smtStatisticsRegistry()->unregisterStat(&d_abstractionTime);
 }

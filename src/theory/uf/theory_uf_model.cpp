@@ -12,16 +12,18 @@
  ** \brief Implementation of Theory UF Model
  **/
 
-#include "expr/attribute.h"
-#include "theory/theory_engine.h"
 #include "theory/uf/theory_uf_model.h"
+
+#include <stack>
+#include <vector>
+
+#include "expr/attribute.h"
+#include "options/quantifiers_options.h"
+#include "theory/quantifiers/term_database.h"
+#include "theory/theory_engine.h"
 #include "theory/uf/equality_engine.h"
 #include "theory/uf/theory_uf.h"
-#include "theory/quantifiers/term_database.h"
-#include "theory/quantifiers/options.h"
 
-#include <vector>
-#include <stack>
 
 #define RECONSIDER_FUNC_DEFAULT_VALUE
 #define USE_PARTIAL_DEFAULT_VALUES

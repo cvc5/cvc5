@@ -19,8 +19,9 @@
 #pragma once
 
 #include <stdint.h>
+
+#include "base/cvc4_assert.h"
 #include "theory/arith/arithvar.h"
-#include "util/cvc4_assert.h"
 #include "util/dense_map.h"
 
 namespace CVC4 {

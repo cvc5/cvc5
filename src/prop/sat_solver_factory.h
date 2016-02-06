@@ -14,13 +14,16 @@
  ** SAT Solver creation facility
  **/
 
-#pragma once
+#include "cvc4_private.h"
 
-#include "cvc4_public.h"
+#pragma once
 
 #include <string>
 #include <vector>
+
+#include "context/context.h"
 #include "prop/sat_solver.h"
+#include "util/statistics_registry.h"
 
 namespace CVC4 {
 namespace prop {
@@ -28,8 +31,10 @@ namespace prop {
 class SatSolverFactory {
 public:
 
-  static BVSatSolverInterface* createMinisat(context::Context* mainSatContext, const std::string& name = "");
-  static DPLLSatSolverInterface* createDPLLMinisat();
+  static BVSatSolverInterface* createMinisat(context::Context* mainSatContext,
+                                             StatisticsRegistry* registry,
+                                             const std::string& name = "");
+  static DPLLSatSolverInterface* createDPLLMinisat(StatisticsRegistry* registry);
 
 };/* class SatSolverFactory */
 

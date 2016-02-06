@@ -18,7 +18,7 @@
 #include "theory/booleans/theory_bool.h"
 #include "theory/booleans/circuit_propagator.h"
 #include "theory/valuation.h"
-#include "util/boolean_simplification.h"
+#include "smt_util/boolean_simplification.h"
 #include "theory/substitutions.h"
 
 #include <vector>

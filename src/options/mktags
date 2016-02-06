@@ -1,0 +1,35 @@
+#!/bin/bash
+#
+# mktags
+#
+# The purpose of this script is to create Debug_tags and Trace_tags files.
+# Note that in the Makefile workflow these are first stored in a *_tags.tmp
+# file. This file contains a list of all of the strings that occur in things
+# like Debug("foo") or Debug.isOn("bar") in a given directory. The list is
+# seperated by newlines.  The expected Debug_tags file for the previous two
+# tags would be:
+# bar
+# foo
+#
+# Invocation:
+#
+#    mktags {Debug,Trace} <input-files>
+#
+# <input-files> is expected to be passed a single space separated list of files.
+#  One can use quotes to achieve this. This is one reason to use "$(...)"
+#  instead of back ticks `...`.
+
+DebugOrTrace=$1
+InputFiles=$2
+
+grep -h '\<'$DebugOrTrace'\(\.isOn\)* *( *\".*\" *)' \
+  $InputFiles | \
+  sed 's/\/\/.*//;s/^'$DebugOrTrace'\(\.isOn\)* *( *\"\([^"]*\)\".*/\2/;s/.*[^a-zA-Z0-9_]'$DebugOrTrace'\(\.isOn\)* *( *\"\([^"]*\)\".*/\2/' | \
+  LC_ALL=C sort | \
+  uniq
+
+
+# Reference copy of what this is replacing.
+# 	grep -h '\<$(@:_tags.tmp=)\(\.isOn\)* *( *\".*\" *)' \
+#		`find @srcdir@/../ -name "*.cpp" -o -name "*.h" -o -name "*.cc" -o -name "*.g"` | \
+#	sed 's/\/\/.*//;s/^$(@:_tags.tmp=)\(\.isOn\)* *( *\"\([^"]*\)\".*/\2/;s/.*[^a-zA-Z0-9_]$(@:_tags.tmp=)\(\.isOn\)* *( *\"\([^"]*\)\".*/\2/' | LC_ALL=C sort | uniq 

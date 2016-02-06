@@ -19,14 +19,13 @@
 #include "cvc4_private.h"
 
 #pragma once
-
-#include "util/statistics_registry.h"
-#include "theory/arith/arithvar.h"
-#include "util/rational.h"
-#include "theory/arith/delta_rational.h"
-//#include "theory/arith/linear_equality.h"
-#include "util/dense_map.h"
 #include <vector>
+
+#include "theory/arith/arithvar.h"
+#include "theory/arith/delta_rational.h"
+#include "util/dense_map.h"
+#include "util/rational.h"
+#include "util/statistics_registry.h"
 
 namespace CVC4 {
 namespace theory {

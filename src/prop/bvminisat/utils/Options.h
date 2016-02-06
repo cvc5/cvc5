@@ -29,6 +29,7 @@ OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWA
 #include "prop/bvminisat/mtl/Vec.h"
 #include "prop/bvminisat/utils/ParseUtils.h"
 
+namespace CVC4 {
 namespace BVMinisat {
 
 //==================================================================================================
@@ -381,6 +382,7 @@ class BoolOption : public Option
 };
 
 //=================================================================================================
-}
+} /* CVC4::BVMinisat namespace */
+} /* CVC4 namespace */
 
 #endif

@@ -48,10 +48,11 @@
 #include <list>
 #include <vector>
 
+#include "context/cdlist.h"
+#include "context/context.h"
 #include "expr/node.h"
 #include "expr/node_builder.h"
-#include "context/context.h"
-#include "context/cdlist.h"
+#include "smt/smt_statistics_registry.h"
 #include "util/statistics_registry.h"
 
 namespace CVC4 {
@@ -127,35 +128,30 @@ private:
   Node normInternal(TNode phi, size_t level);
   Node norm(TNode n);
 
+  std::string d_name;
+  
   // === STATISTICS ===
   /** number of new clauses that come from the SymmetryBreaker */
-  KEEP_STATISTIC(IntStat,
-                 d_clauses,
-                 "theory::uf::symmetry_breaker::clauses", 0);
-  /** number of new clauses that come from the SymmetryBreaker */
-  KEEP_STATISTIC(IntStat,
-                 d_units,
-                 "theory::uf::symmetry_breaker::units", 0);
-  /** number of potential permutation sets we found */
-  KEEP_STATISTIC(IntStat,
-                 d_permutationSetsConsidered,
-                 "theory::uf::symmetry_breaker::permutationSetsConsidered", 0);
-  /** number of invariant permutation sets we found */
-  KEEP_STATISTIC(IntStat,
-                 d_permutationSetsInvariant,
-                 "theory::uf::symmetry_breaker::permutationSetsInvariant", 0);
-  /** time spent in invariantByPermutations() */
-  KEEP_STATISTIC(TimerStat,
-                 d_invariantByPermutationsTimer,
-                 "theory::uf::symmetry_breaker::timers::invariantByPermutations");
-  /** time spent in selectTerms() */
-  KEEP_STATISTIC(TimerStat,
-                 d_selectTermsTimer,
-                 "theory::uf::symmetry_breaker::timers::selectTerms");
-  /** time spent in initial round of normalization */
-  KEEP_STATISTIC(TimerStat,
-                 d_initNormalizationTimer,
-                 "theory::uf::symmetry_breaker::timers::initNormalization");
+  struct Statistics {
+    /** number of new clauses that come from the SymmetryBreaker */
+    IntStat d_clauses;
+    IntStat d_units;
+    /** number of potential permutation sets we found */
+    IntStat d_permutationSetsConsidered;
+    /** number of invariant permutation sets we found */
+    IntStat d_permutationSetsInvariant;
+    /** time spent in invariantByPermutations() */
+    TimerStat d_invariantByPermutationsTimer;
+    /** time spent in selectTerms() */
+    TimerStat d_selectTermsTimer;
+    /** time spent in initial round of normalization */
+    TimerStat d_initNormalizationTimer;
+
+    Statistics(std::string name);
+    ~Statistics();
+  };
+
+  Statistics d_stats;
 
 protected:
 
@@ -166,7 +162,7 @@ protected:
 
 public:
 
-  SymmetryBreaker(context::Context* context);
+  SymmetryBreaker(context::Context* context, std::string name = "");
   ~SymmetryBreaker() throw() {}
   void assertFormula(TNode phi);
   void apply(std::vector<Node>& newClauses);

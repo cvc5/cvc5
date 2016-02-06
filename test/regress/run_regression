@@ -239,6 +239,7 @@ if [ "$proof" = yes ]; then
        ! expr "$CVC4_REGRESSION_ARGS $command_line" : '.*--incremental' &>/dev/null &&
        ! expr "$CVC4_REGRESSION_ARGS $command_line" : '.*--unconstrained-simp' &>/dev/null &&
        ! expr " $CVC4_REGRESSION_ARGS $command_line" : '.* -[a-zA-Z]*i' &>/dev/null &&
+       ! expr "$BINARY" : '.*pcvc4' &>/dev/null &&
        ! expr "$benchmark" : '.*\.sy$' &>/dev/null; then
       # later on, we'll run another test with --check-proofs on
       check_proofs=true
@@ -248,6 +249,7 @@ if [ "$proof" = yes ]; then
        ! expr "$CVC4_REGRESSION_ARGS $command_line" : '.*--incremental' &>/dev/null &&
        ! expr "$CVC4_REGRESSION_ARGS $command_line" : '.*--unconstrained-simp' &>/dev/null &&
        ! expr " $CVC4_REGRESSION_ARGS $command_line" : '.* -[a-zA-Z]*i' &>/dev/null &&
+       ! expr "$BINARY" : '.*pcvc4' &>/dev/null &&
        ! expr "$benchmark" : '.*\.sy$' &>/dev/null; then
       # later on, we'll run another test with --check-unsat-cores on
       check_unsat_cores=true
@@ -333,6 +335,7 @@ if $check_models || $check_proofs || $check_unsat_cores; then
     check_cmdline="$check_cmdline --check-models"
   fi
   if $check_proofs; then
+    # taking: Make the extra flags part of --check-proofs.
     check_cmdline="$check_cmdline --check-proofs --no-bv-eq --no-bv-ineq --no-bv-algebraic"
   fi
   if $check_unsat_cores; then

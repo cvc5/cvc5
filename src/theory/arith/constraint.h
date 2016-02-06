@@ -88,11 +88,20 @@
 #include "theory/arith/constraint_forward.h"
 #include "theory/arith/callbacks.h"
 
+#include "util/configuration_private.h"
+
 #include <vector>
 #include <list>
 #include <set>
 #include <ext/hash_map>
 
+namespace CVC4 {
+namespace theory {
+namespace arith {
+class Comparison;
+}
+}
+}
 namespace CVC4 {
 namespace theory {
 namespace arith {
@@ -292,17 +301,17 @@ struct ConstraintRule {
    * There is no requirement that the proof is minimal.
    * We do however use all of the constraints by requiring non-zero coefficients.
    */
-#ifdef CVC4_PROOF
+#if IS_PROOFS_BUILD
   RationalVectorCP d_farkasCoefficients;
-#endif
+#endif /* IS_PROOFS_BUILD */
   ConstraintRule()
     : d_constraint(NullConstraint)
     , d_proofType(NoAP)
     , d_antecedentEnd(AntecedentIdSentinel)
   {
-#ifdef CVC4_PROOF
+#if IS_PROOFS_BUILD
     d_farkasCoefficients = RationalVectorCPSentinel;
-#endif
+#endif /* IS_PROOFS_BUILD */
   }
 
   ConstraintRule(ConstraintP con, ArithProofType pt)
@@ -310,18 +319,18 @@ struct ConstraintRule {
     , d_proofType(pt)
     , d_antecedentEnd(AntecedentIdSentinel)
   {
-#ifdef CVC4_PROOF
+#if IS_PROOFS_BUILD
     d_farkasCoefficients = RationalVectorCPSentinel;
-#endif
+#endif /* IS_PROOFS_BUILD */
   }
   ConstraintRule(ConstraintP con, ArithProofType pt, AntecedentId antecedentEnd)
     : d_constraint(con)
     , d_proofType(pt)
     , d_antecedentEnd(antecedentEnd)
   {
-#ifdef CVC4_PROOF
+#if IS_PROOFS_BUILD
     d_farkasCoefficients = RationalVectorCPSentinel;
-#endif
+#endif /* IS_PROOFS_BUILD */
   }
 
   ConstraintRule(ConstraintP con, ArithProofType pt, AntecedentId antecedentEnd, RationalVectorCP coeffs)
@@ -330,11 +339,11 @@ struct ConstraintRule {
     , d_antecedentEnd(antecedentEnd)
   {
     Assert(PROOF_ON() || coeffs == RationalVectorCPSentinel);
-#ifdef CVC4_PROOF
+#if IS_PROOFS_BUILD
     d_farkasCoefficients = coeffs;
-#endif
+#endif /* IS_PROOFS_BUILD */
   }
-  
+
   void print(std::ostream& out) const;
   void debugPrint() const;
 }; /* class ConstraintRule */
@@ -448,6 +457,7 @@ private:
   void initialize(ConstraintDatabase* db, SortedConstraintMapIterator v, ConstraintP negation);
 
 
+
   class ConstraintRuleCleanup {
   public:
     inline void operator()(ConstraintRule* crp){
@@ -516,6 +526,8 @@ private:
 
 
 public:
+
+  static ConstraintType constraintTypeOfComparison(const Comparison& cmp);
 
   inline ConstraintType getType() const {
     return d_type;

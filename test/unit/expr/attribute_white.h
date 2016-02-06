@@ -18,18 +18,18 @@
 
 #include <string>
 
-#include "expr/node_value.h"
+#include "base/cvc4_assert.h"
+#include "expr/attribute.h"
+#include "expr/node.h"
 #include "expr/node_builder.h"
 #include "expr/node_manager.h"
-#include "expr/attribute.h"
 #include "expr/node_manager_attributes.h"
-#include "expr/node.h"
+#include "expr/node_value.h"
+#include "smt/smt_engine.h"
+#include "smt/smt_engine_scope.h"
 #include "theory/theory.h"
 #include "theory/theory_engine.h"
 #include "theory/uf/theory_uf.h"
-#include "util/cvc4_assert.h"
-#include "smt/smt_engine.h"
-#include "smt/smt_engine_scope.h"
 
 using namespace CVC4;
 using namespace CVC4::kind;

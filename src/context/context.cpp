@@ -18,8 +18,9 @@
 #include <iostream>
 #include <vector>
 
+#include "base/cvc4_assert.h"
 #include "context/context.h"
-#include "util/cvc4_assert.h"
+
 
 namespace CVC4 {
 namespace context {

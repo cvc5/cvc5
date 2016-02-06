@@ -13,30 +13,30 @@
  **
  ** Main driver for CVC4 executable.
  **/
+#include "main/main.h"
 
 #include <cstdlib>
 #include <cstring>
 #include <fstream>
 #include <iostream>
-
 #include <stdio.h>
 #include <unistd.h>
 
-#include "main/main.h"
-#include "main/interactive_shell.h"
+#include "base/output.h"
+#include "expr/expr_manager.h"
 #include "main/command_executor.h"
+#include "main/interactive_shell.h"
+#include "options/base_options.h"
+#include "options/language.h"
+#include "options/main_options.h"
 #include "parser/parser.h"
 #include "parser/parser_builder.h"
 #include "parser/parser_exception.h"
-#include "expr/expr_manager.h"
 #include "smt/smt_engine.h"
-#include "expr/command.h"
+#include "smt_util/command.h"
 #include "util/configuration.h"
-#include "main/options.h"
-#include "util/output.h"
 #include "util/result.h"
 #include "util/statistics.h"
-#include "util/language.h"
 
 using namespace std;
 using namespace CVC4;
@@ -67,7 +67,7 @@ int main(int argc, char* argv[]) {
 #endif
     if(opts[options::outputLanguage] == output::LANG_SMTLIB_V2_0 ||
        opts[options::outputLanguage] == output::LANG_SMTLIB_V2_5) {
-      *opts[options::err] << "(error \"" << e << "\")" << endl;
+      *opts[options::out] << "(error \"" << e << "\")" << endl;
     } else {
       *opts[options::err] << "CVC4 Error:" << endl << e << endl;
     }

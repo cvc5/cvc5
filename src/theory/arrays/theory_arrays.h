@@ -19,13 +19,13 @@
 #ifndef __CVC4__THEORY__ARRAYS__THEORY_ARRAYS_H
 #define __CVC4__THEORY__ARRAYS__THEORY_ARRAYS_H
 
-#include "theory/theory.h"
-#include "theory/arrays/array_info.h"
-#include "util/statistics_registry.h"
-#include "theory/uf/equality_engine.h"
 #include "context/cdhashmap.h"
 #include "context/cdhashset.h"
 #include "context/cdqueue.h"
+#include "theory/arrays/array_info.h"
+#include "theory/theory.h"
+#include "theory/uf/equality_engine.h"
+#include "util/statistics_registry.h"
 
 namespace CVC4 {
 namespace theory {
@@ -126,7 +126,9 @@ class TheoryArrays : public Theory {
 
   public:
 
-  TheoryArrays(context::Context* c, context::UserContext* u, OutputChannel& out, Valuation valuation, const LogicInfo& logicInfo);
+  TheoryArrays(context::Context* c, context::UserContext* u, OutputChannel& out,
+               Valuation valuation, const LogicInfo& logicInfo,
+               SmtGlobals* globals, std::string name = ""); 
   ~TheoryArrays();
 
   void setMasterEqualityEngine(eq::EqualityEngine* eq);
@@ -257,6 +259,15 @@ class TheoryArrays : public Theory {
   void check(Effort e);
 
   private:
+
+  TNode weakEquivGetRep(TNode node);
+  TNode weakEquivGetRepIndex(TNode node, TNode index);
+  void visitAllLeaves(TNode reason, std::vector<TNode>& conjunctions);
+  void weakEquivBuildCond(TNode node, TNode index, std::vector<TNode>& conjunctions);
+  void weakEquivMakeRep(TNode node);
+  void weakEquivMakeRepIndex(TNode node);
+  void weakEquivAddSecondary(TNode index, TNode arrayFrom, TNode arrayTo, TNode reason);
+  void checkWeakEquiv(bool arraysMerged);
 
   // NotifyClass: template helper class for d_equalityEngine - handles call-back from congruence closure module
   class NotifyClass : public eq::EqualityEngineNotify {
@@ -395,6 +406,12 @@ class TheoryArrays : public Theory {
   typedef context::CDHashMap<Node,Node,NodeHashFunction> DefValMap;
   DefValMap d_defValues;
 
+  typedef std::hash_map<std::pair<TNode, TNode>, CTNodeList*, TNodePairHashFunction> ReadBucketMap;
+  ReadBucketMap d_readBucketTable;
+  context::Context* d_readTableContext;
+  context::CDList<Node> d_arrayMerges;
+  std::vector<CTNodeList*> d_readBucketAllocations;
+
   Node getSkolem(TNode ref, const std::string& name, const TypeNode& type, const std::string& comment, bool makeEqual = true);
   Node mkAnd(std::vector<TNode>& conjunctions, bool invert = false, unsigned startIndex = 0);
   void setNonLinear(TNode a);
@@ -412,17 +429,6 @@ class TheoryArrays : public Theory {
   std::vector<Node> d_decisions;
   bool d_inCheckModel;
   int d_topLevel;
-  void convertNodeToAssumptions(TNode node, std::vector<TNode>& assumptions, TNode nodeSkip);
-  void preRegisterStores(TNode s);
-  void checkModel(Effort e);
-  bool hasLoop(TNode node, TNode target);
-  typedef std::hash_map<Node, Node, NodeHashFunction> NodeMap;
-  NodeMap d_getModelValCache;
-  NodeMap d_lastVal;
-  Node getModelVal(TNode node);
-  Node getModelValRec(TNode node);
-  bool setModelVal(TNode node, TNode val, bool invert,
-                   bool explain, std::vector<TNode>& assumptions);
 
   public:
 

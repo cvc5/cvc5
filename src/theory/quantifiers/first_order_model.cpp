@@ -12,13 +12,13 @@
  ** \brief Implementation of model engine model class
  **/
 
-#include "theory/quantifiers/first_order_model.h"
-#include "theory/quantifiers/model_engine.h"
-#include "theory/quantifiers/term_database.h"
-#include "theory/quantifiers/quantifiers_attributes.h"
-#include "theory/quantifiers/full_model_check.h"
+#include "options/quantifiers_options.h"
 #include "theory/quantifiers/ambqi_builder.h"
-#include "theory/quantifiers/options.h"
+#include "theory/quantifiers/first_order_model.h"
+#include "theory/quantifiers/full_model_check.h"
+#include "theory/quantifiers/model_engine.h"
+#include "theory/quantifiers/quantifiers_attributes.h"
+#include "theory/quantifiers/term_database.h"
 
 #define USE_INDEX_ORDERING
 
@@ -32,7 +32,7 @@ using namespace CVC4::theory::quantifiers::fmcheck;
 
 FirstOrderModel::FirstOrderModel(QuantifiersEngine * qe, context::Context* c, std::string name ) :
 TheoryModel( c, name, true ),
-d_qe( qe ), d_axiom_asserted( c, false ), d_forall_asserts( c ), d_isModelSet( c, false ){
+d_qe( qe ), d_forall_asserts( c ), d_isModelSet( c, false ){
 
 }
 
@@ -40,9 +40,6 @@ void FirstOrderModel::assertQuantifier( Node n, bool reduced ){
   if( !reduced ){
     if( n.getKind()==FORALL ){
       d_forall_asserts.push_back( n );
-      if( n.getAttribute(AxiomAttribute()) ){
-        d_axiom_asserted = true;
-      }
     }else if( n.getKind()==NOT ){
       Assert( n[0].getKind()==FORALL );
     }
@@ -577,6 +574,7 @@ Node FirstOrderModelFmc::getUsedRepresentative(Node n, bool strict) {
         Trace("fmc-warn") << "WARNING : no representative for " << n << std::endl;
       }
     }
+/*
     Node r = getRepresentative(n);
     if( d_model_basis_rep.find(tn)!=d_model_basis_rep.end() ){
       if (r==d_model_basis_rep[tn]) {
@@ -584,6 +582,8 @@ Node FirstOrderModelFmc::getUsedRepresentative(Node n, bool strict) {
       }
     }
     return r;
+*/
+    return getRepresentative(n);
   }
 }
 
@@ -675,10 +675,11 @@ Node FirstOrderModelFmc::getFunctionValue(Node op, const char* argPrefix ) {
       //check if it is a constant introduced as a representative not existing in the model's equality engine
       if( !d_rep_set.hasRep( tn, v ) ){
         if( d_rep_set.d_type_reps.find( tn )!=d_rep_set.d_type_reps.end() && !d_rep_set.d_type_reps[ tn ].empty() ){
-          //see full_model_check.cpp line 366
           v = d_rep_set.d_type_reps[tn][ d_rep_set.d_type_reps[tn].size()-1 ];
         }else{
-          Assert( false );
+          //can happen for types not involved in quantified formulas
+          Trace("fmc-model-func") << "No type rep for " << tn << std::endl;
+          v = d_qe->getTermDatabase()->getEnumerateTerm( tn, 0 );
         }
         Trace("fmc-model-func") << "No term, assign " << v << std::endl;
       }
@@ -690,6 +691,7 @@ Node FirstOrderModelFmc::getFunctionValue(Node op, const char* argPrefix ) {
     }else{
       //make the condition
       Node cond = d_models[op]->d_cond[i];
+      Trace("fmc-model-func") << "...cond : " << cond << std::endl;
       std::vector< Node > children;
       for( unsigned j=0; j<cond.getNumChildren(); j++) {
         TypeNode tn = vars[j].getType();

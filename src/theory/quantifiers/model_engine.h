@@ -34,6 +34,8 @@ private:
 private:
   //check model
   int checkModel();
+  //consider quantified formula
+  bool considerQuantifiedFormula( Node q );
   //exhaustively instantiate quantifier (possibly using mbqi)
   void exhaustiveInstantiate( Node f, int effort = 0 );
 private:
@@ -49,7 +51,9 @@ public:
 public:
   bool needsCheck( Theory::Effort e );
   unsigned needsModel( Theory::Effort e );
+  void reset_round( Theory::Effort e );
   void check( Theory::Effort e, unsigned quant_e );
+  bool checkComplete();
   void registerQuantifier( Node f );
   void assertNode( Node f );
   Node explain(TNode n){ return Node::null(); }

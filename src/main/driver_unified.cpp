@@ -13,37 +13,41 @@
  ** sequential and portfolio versions
  **/
 
+#include <stdio.h>
+#include <unistd.h>
+
 #include <cstdlib>
 #include <cstring>
 #include <fstream>
 #include <iostream>
 #include <new>
-#include <unistd.h>
 
-#include <stdio.h>
-#include <unistd.h>
-
+// This must come before PORTFOLIO_BUILD.
 #include "cvc4autoconfig.h"
-#include "main/main.h"
-#include "main/interactive_shell.h"
-#include "main/options.h"
-#include "parser/parser.h"
-#include "parser/parser_builder.h"
-#include "parser/parser_exception.h"
+
+#include "base/output.h"
+#include "expr/expr_iomanip.h"
 #include "expr/expr_manager.h"
-#include "expr/command.h"
-#include "util/configuration.h"
-#include "options/options.h"
-#include "theory/quantifiers/options.h"
 #include "main/command_executor.h"
 
 #ifdef PORTFOLIO_BUILD
 #  include "main/command_executor_portfolio.h"
 #endif
 
-#include "main/options.h"
-#include "smt/options.h"
-#include "util/output.h"
+#include "main/interactive_shell.h"
+#include "main/main.h"
+#include "options/base_options.h"
+#include "options/main_options.h"
+#include "options/options.h"
+#include "options/quantifiers_options.h"
+#include "options/set_language.h"
+#include "options/smt_options.h"
+#include "parser/parser.h"
+#include "parser/parser_builder.h"
+#include "parser/parser_exception.h"
+#include "smt/smt_options_handler.h"
+#include "smt_util/command.h"
+#include "util/configuration.h"
 #include "util/result.h"
 #include "util/statistics_registry.h"
 
@@ -130,18 +134,17 @@ int runCvc4(int argc, char* argv[], Options& opts) {
 
   progPath = argv[0];
 
+#warning "TODO: Check that the SmtEngine pointer should be NULL with Kshitij."
+  smt::SmtOptionsHandler optionsHandler(NULL);
+
   // Parse the options
-  vector<string> filenames = opts.parseOptions(argc, argv);
+  vector<string> filenames = opts.parseOptions(argc, argv, &optionsHandler);
 
 # ifndef PORTFOLIO_BUILD
   if( opts.wasSetByUser(options::threads) ||
       opts.wasSetByUser(options::threadStackSize) ||
       ! opts[options::threadArgv].empty() ) {
     throw OptionException("Thread options cannot be used with sequential CVC4.  Please build and use the portfolio binary `pcvc4'.");
-  }
-# else
-  if( opts[options::checkProofs] ) {
-    throw OptionException("Cannot run portfolio in check-proofs mode.");
   }
 # endif
 
@@ -203,7 +206,7 @@ int runCvc4(int argc, char* argv[], Options& opts) {
                 || (len >= 3 && !strcmp(".sl", filename + len - 3))) {
         opts.set(options::inputLanguage, language::input::LANG_SYGUS);
         //since there is no sygus output language, set this to SMT lib 2
-        opts.set(options::outputLanguage, language::output::LANG_SMTLIB_V2_0);
+        //opts.set(options::outputLanguage, language::output::LANG_SMTLIB_V2_0);
       }
     }
   }
@@ -213,9 +216,13 @@ int runCvc4(int argc, char* argv[], Options& opts) {
   }
 
   // if doing sygus, turn on CEGQI by default
-  if(opts[options::inputLanguage] == language::input::LANG_SYGUS &&
-     !opts.wasSetByUser(options::ceGuidedInst)) {
-    opts.set(options::ceGuidedInst, true);
+  if(opts[options::inputLanguage] == language::input::LANG_SYGUS ){
+    if( !opts.wasSetByUser(options::ceGuidedInst)) {
+      opts.set(options::ceGuidedInst, true);
+    }
+    if( !opts.wasSetByUser(options::dumpSynth)) {
+      opts.set(options::dumpSynth, true);
+    }
   }
 
   // Determine which messages to show based on smtcomp_mode and verbosity
@@ -229,7 +236,7 @@ int runCvc4(int argc, char* argv[], Options& opts) {
   }
 
   // important even for muzzled builds (to get result output right)
-  *opts[options::out] << Expr::setlanguage(opts[options::outputLanguage]);
+  *opts[options::out] << language::SetLanguage(opts[options::outputLanguage]);
 
   // Create the expression manager using appropriate options
   ExprManager* exprMgr;
@@ -238,16 +245,32 @@ int runCvc4(int argc, char* argv[], Options& opts) {
   pExecutor = new CommandExecutor(*exprMgr, opts);
 # else
   vector<Options> threadOpts = parseThreadSpecificOptions(opts);
+  bool useParallelExecutor = true;
+  // incremental?
   if(opts.wasSetByUser(options::incrementalSolving) &&
      opts[options::incrementalSolving] &&
      !opts[options::incrementalParallel]) {
     Notice() << "Notice: In --incremental mode, using the sequential solver unless forced by...\n"
              << "Notice: ...the experimental --incremental-parallel option.\n";
-    exprMgr = new ExprManager(opts);
-    pExecutor = new CommandExecutor(*exprMgr, opts);
-  } else {
+    useParallelExecutor = false;
+  }
+  // proofs?
+  if(opts[options::checkProofs]) {
+    if(opts[options::fallbackSequential]) {
+      Warning() << "Warning: Falling back to sequential mode, as cannot run portfolio in check-proofs mode.\n";
+      useParallelExecutor = false;
+    }
+    else {
+      throw OptionException("Cannot run portfolio in check-proofs mode.");
+    }
+  }
+  // pick appropriate one
+  if(useParallelExecutor) {
     exprMgr = new ExprManager(threadOpts[0]);
     pExecutor = new CommandExecutorPortfolio(*exprMgr, opts, threadOpts);
+  } else {
+    exprMgr = new ExprManager(opts);
+    pExecutor = new CommandExecutor(*exprMgr, opts);
   }
 # endif
 
@@ -262,10 +285,11 @@ int runCvc4(int argc, char* argv[], Options& opts) {
       replayParserBuilder.withStreamInput(cin);
     }
     replayParser = replayParserBuilder.build();
-    opts.set(options::replayStream, new Parser::ExprStream(replayParser));
+    pExecutor->globals()->setReplayStream(new Parser::ExprStream(replayParser));
   }
-  if( opts[options::replayLog] != NULL ) {
-    *opts[options::replayLog] << Expr::setlanguage(opts[options::outputLanguage]) << Expr::setdepth(-1);
+  if( pExecutor->globals()->getReplayLog() != NULL ) {
+    *(pExecutor->globals()->getReplayLog()) <<
+        language::SetLanguage(opts[options::outputLanguage]) << expr::ExprSetDepth(-1);
   }
 
   int returnValue = 0;
@@ -281,12 +305,12 @@ int runCvc4(int argc, char* argv[], Options& opts) {
     Command* cmd;
     bool status = true;
     if(opts[options::interactive] && inputFromStdin) {
-      if(opts[options::tearDownIncremental]) {
+      if(opts[options::tearDownIncremental] > 0) {
         throw OptionException("--tear-down-incremental doesn't work in interactive mode");
       }
 #ifndef PORTFOLIO_BUILD
       if(!opts.wasSetByUser(options::incrementalSolving)) {
-        cmd = new SetOptionCommand("incremental", true);
+        cmd = new SetOptionCommand("incremental", SExpr(true));
         cmd->setMuted(true);
         pExecutor->doCommand(cmd);
         delete cmd;
@@ -327,16 +351,20 @@ int runCvc4(int argc, char* argv[], Options& opts) {
         }
         delete cmd;
       }
-    } else if(opts[options::tearDownIncremental]) {
-      if(opts[options::incrementalSolving]) {
-        if(opts.wasSetByUser(options::incrementalSolving)) {
-          throw OptionException("--tear-down-incremental incompatible with --incremental");
-        }
-
-        cmd = new SetOptionCommand("incremental", false);
+    } else if(opts[options::tearDownIncremental] > 0) {
+      if(!opts[options::incrementalSolving]) {
+        cmd = new SetOptionCommand("incremental", SExpr(true));
         cmd->setMuted(true);
         pExecutor->doCommand(cmd);
         delete cmd;
+        // if(opts.wasSetByUser(options::incrementalSolving)) {
+        //   throw OptionException("--tear-down-incremental incompatible with --incremental");
+        // }
+
+        // cmd = new SetOptionCommand("incremental", SExpr(false));
+        // cmd->setMuted(true);
+        // pExecutor->doCommand(cmd);
+        // delete cmd;
       }
 
       ParserBuilder parserBuilder(exprMgr, filename, opts);
@@ -356,7 +384,7 @@ int runCvc4(int argc, char* argv[], Options& opts) {
         // have the replay parser use the file's declarations
         replayParser->useDeclarationsFrom(parser);
       }
-      bool needReset = false;
+      int needReset = 0;
       // true if one of the commands was interrupted
       bool interrupted = false;
       while (status || opts[options::continuedExecution]) {
@@ -374,7 +402,7 @@ int runCvc4(int argc, char* argv[], Options& opts) {
         }
 
         if(dynamic_cast<PushCommand*>(cmd) != NULL) {
-          if(needReset) {
+          if(needReset >= opts[options::tearDownIncremental]) {
             pExecutor->reset();
             for(size_t i = 0; i < allCommands.size() && !interrupted; ++i) {
               if (interrupted) break;
@@ -388,29 +416,19 @@ int runCvc4(int argc, char* argv[], Options& opts) {
                 delete cmd;
               }
             }
-            needReset = false;
+            needReset = 0;
           }
-          *opts[options::out] << CommandSuccess();
           allCommands.push_back(vector<Command*>());
+          Command* copy = cmd->clone();
+          allCommands.back().push_back(copy);
+          status = pExecutor->doCommand(cmd);
+          if(cmd->interrupted()) {
+            interrupted = true;
+            continue;
+          }
         } else if(dynamic_cast<PopCommand*>(cmd) != NULL) {
           allCommands.pop_back(); // fixme leaks cmds here
-          pExecutor->reset();
-          for(size_t i = 0; i < allCommands.size() && !interrupted; ++i) {
-            for(size_t j = 0; j < allCommands[i].size() && !interrupted; ++j) {
-              Command* cmd = allCommands[i][j]->clone();
-              cmd->setMuted(true);
-              pExecutor->doCommand(cmd);
-              if(cmd->interrupted()) {
-                interrupted = true;
-              }
-              delete cmd;
-            }
-          }
-          if (interrupted) continue;
-          *opts[options::out] << CommandSuccess();
-        } else if(dynamic_cast<CheckSatCommand*>(cmd) != NULL ||
-                  dynamic_cast<QueryCommand*>(cmd) != NULL) {
-          if(needReset) {
+          if (needReset >= opts[options::tearDownIncremental]) {
             pExecutor->reset();
             for(size_t i = 0; i < allCommands.size() && !interrupted; ++i) {
               for(size_t j = 0; j < allCommands[i].size() && !interrupted; ++j) {
@@ -423,6 +441,34 @@ int runCvc4(int argc, char* argv[], Options& opts) {
                 delete cmd;
               }
             }
+            if (interrupted) continue;
+            *opts[options::out] << CommandSuccess();
+            needReset = 0;
+          } else {
+            status = pExecutor->doCommand(cmd);
+            if(cmd->interrupted()) {
+              interrupted = true;
+              continue;
+            }
+          }
+        } else if(dynamic_cast<CheckSatCommand*>(cmd) != NULL ||
+                  dynamic_cast<QueryCommand*>(cmd) != NULL) {
+          if(needReset >= opts[options::tearDownIncremental]) {
+            pExecutor->reset();
+            for(size_t i = 0; i < allCommands.size() && !interrupted; ++i) {
+              for(size_t j = 0; j < allCommands[i].size() && !interrupted; ++j) {
+                Command* cmd = allCommands[i][j]->clone();
+                cmd->setMuted(true);
+                pExecutor->doCommand(cmd);
+                if(cmd->interrupted()) {
+                  interrupted = true;
+                }
+                delete cmd;
+              }
+            }
+            needReset = 0;
+          } else {
+            ++needReset;
           }
           if (interrupted) {
             continue;
@@ -433,7 +479,6 @@ int runCvc4(int argc, char* argv[], Options& opts) {
             interrupted = true;
             continue;
           }
-          needReset = true;
         } else if(dynamic_cast<ResetCommand*>(cmd) != NULL) {
           pExecutor->doCommand(cmd);
           allCommands.clear();
@@ -472,7 +517,7 @@ int runCvc4(int argc, char* argv[], Options& opts) {
       delete parser;
     } else {
       if(!opts.wasSetByUser(options::incrementalSolving)) {
-        cmd = new SetOptionCommand("incremental", false);
+        cmd = new SetOptionCommand("incremental", SExpr(false));
         cmd->setMuted(true);
         pExecutor->doCommand(cmd);
         delete cmd;
@@ -524,10 +569,11 @@ int runCvc4(int argc, char* argv[], Options& opts) {
       delete parser;
     }
 
-    if( opts[options::replayStream] != NULL ) {
+    if( pExecutor->globals()->getReplayStream() != NULL ) {
+      ExprStream* replayStream = pExecutor->globals()->getReplayStream();
+      pExecutor->globals()->setReplayStream(NULL);
       // this deletes the expression parser too
-      delete opts[options::replayStream];
-      opts.set(options::replayStream, NULL);
+      delete replayStream;
     }
 
     Result result;
@@ -565,14 +611,14 @@ int runCvc4(int argc, char* argv[], Options& opts) {
     }
 
     // make sure to flush replay output log before early-exit
-    if( opts[options::replayLog] != NULL ) {
-      *opts[options::replayLog] << flush;
+    if( pExecutor->globals()->getReplayLog() != NULL ) {
+      *(pExecutor->globals()->getReplayLog()) << flush;
     }
 
     // make sure out and err streams are flushed too
     *opts[options::out] << flush;
     *opts[options::err] << flush;
- 
+
 #ifdef CVC4_DEBUG
     if(opts[options::earlyExit] && opts.wasSetByUser(options::earlyExit)) {
       _exit(returnValue);
@@ -592,6 +638,8 @@ int runCvc4(int argc, char* argv[], Options& opts) {
 
   pTotalTime = NULL;
   pExecutor = NULL;
+
+  cvc4_shutdown();
 
   return returnValue;
 }
