@@ -421,13 +421,6 @@ public:
     return d_id;
   }
 
-  std::string getFullInstanceName() const {
-    std::stringstream ss;
-    ss << "theory<" << d_id << ">" << d_instanceName;
-    return ss.str();
-  }
-
-
   /**
    * Returns a string that uniquely identifies this theory solver w.r.t. the
    * SmtEngine.

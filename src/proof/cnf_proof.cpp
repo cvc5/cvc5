@@ -481,9 +481,6 @@ void LFSCCnfProof::printCnfProofForClause(ClauseId id,
           }
           break;
         }
-        os_paren << ")";
-      }else{
-        success = false;
       }
       if( success ){
         os << "(contra _ ";
