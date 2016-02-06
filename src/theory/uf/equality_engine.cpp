@@ -1567,10 +1567,8 @@ bool EqualityEngine::areDisequal(TNode t1, TNode t2, bool ensureProof) const
       if (ensureProof) {
         const FunctionApplication original = d_applications[find->second].original;
         nonConst->d_deducedDisequalityReasons.push_back(EqualityPair(t1Id, original.a));
-        nonConst->d_deducedDisequalityReasons.push_back(EqualityPair(t2Id, original.b));
-        nonConst->d_deducedDisequalityReasons.push_back(EqualityPair(original.a, t1ClassId));
-        nonConst->d_deducedDisequalityReasons.push_back(EqualityPair(original.b, t2ClassId));
         nonConst->d_deducedDisequalityReasons.push_back(EqualityPair(find->second, d_falseId));
+        nonConst->d_deducedDisequalityReasons.push_back(EqualityPair(t2Id, original.b));
         nonConst->storePropagatedDisequality(THEORY_LAST, t1Id, t2Id);
       }
       return true;
@@ -1585,10 +1583,8 @@ bool EqualityEngine::areDisequal(TNode t1, TNode t2, bool ensureProof) const
       if (ensureProof) {
         const FunctionApplication original = d_applications[find->second].original;
         nonConst->d_deducedDisequalityReasons.push_back(EqualityPair(t2Id, original.a));
-        nonConst->d_deducedDisequalityReasons.push_back(EqualityPair(t1Id, original.b));
-        nonConst->d_deducedDisequalityReasons.push_back(EqualityPair(original.a, t2ClassId));
-        nonConst->d_deducedDisequalityReasons.push_back(EqualityPair(original.b, t1ClassId));
         nonConst->d_deducedDisequalityReasons.push_back(EqualityPair(find->second, d_falseId));
+        nonConst->d_deducedDisequalityReasons.push_back(EqualityPair(t1Id, original.b));
         nonConst->storePropagatedDisequality(THEORY_LAST, t1Id, t2Id);
       }
       return true;
