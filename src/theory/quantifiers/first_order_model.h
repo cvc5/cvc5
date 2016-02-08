@@ -67,7 +67,7 @@ public: //for Theory Quantifiers:
   /** get number to reduce quantifiers */
   unsigned getNumToReduceQuantifiers() { return d_forall_to_reduce.size(); }
   /** initialize model for term */
-  void initializeModelForTerm( Node n );
+  void initializeModelForTerm( Node n, std::map< Node, bool >& visited );
   virtual void processInitializeModelForTerm( Node n ) = 0;
   virtual void processInitializeQuantifier( Node q ) {}
 public:
@@ -169,7 +169,6 @@ class FirstOrderModelFmc : public FirstOrderModel
 private:
   /** models for UF */
   std::map<Node, Def * > d_models;
-  std::map<TypeNode, Node > d_model_basis_rep;
   std::map<TypeNode, Node > d_type_star;
   Node intervalOp;
   Node getUsedRepresentative(Node n, bool strict = false);

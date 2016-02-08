@@ -203,7 +203,7 @@ private:
   /** do pending merged */
   void doPendingMerges();
   /** do send lemma */
-  void doSendLemma( Node lem );
+  bool doSendLemma( Node lem );
   /** get or make eqc info */
   EqcInfo* getOrMakeEqcInfo( TNode n, bool doMake = false );
 

@@ -114,7 +114,8 @@ Node TheoryModel::getModelValue(TNode n, bool hasBoundVars, bool useDontCares) c
     return (*it).second;
   }
   Node ret = n;
-  if(n.getKind() == kind::EXISTS || n.getKind() == kind::FORALL || n.getKind() == kind::COMBINED_CARDINALITY_CONSTRAINT) {
+  if(n.getKind() == kind::EXISTS || n.getKind() == kind::FORALL || n.getKind() == kind::COMBINED_CARDINALITY_CONSTRAINT ||
+     ( n.getKind() == kind::CARDINALITY_CONSTRAINT && options::ufssMode()!=theory::uf::UF_SS_FULL ) ) {
     // We should have terms, thanks to TheoryQuantifiers::collectModelInfo().
     // However, if the Decision Engine stops us early, there might be a
     // quantifier that isn't assigned.  In conjunction with miniscoping, this
@@ -570,6 +571,10 @@ void TheoryEngineModelBuilder::buildModel(Model* m, bool fullModel)
   Trace("model-builder") << "TheoryEngineModelBuilder: Collect model info..." << std::endl;
   d_te->collectModelInfo(tm, fullModel);
 
+  // model-builder specific initialization
+  preProcessBuildModel(tm, fullModel);
+
+
   // Loop through all terms and make sure that assignable sub-terms are in the equality engine
   // Also, record #eqc per type (for finite model finding)
   std::map< TypeNode, unsigned > eqc_usort_count;
@@ -830,6 +835,7 @@ void TheoryEngineModelBuilder::buildModel(Model* m, bool fullModel)
           if (t.getCardinality().isInfinite()) {
             bool success;
             do{
+              Trace("model-builder-debug") << "Enumerate term of type " << t << std::endl;
               n = typeConstSet.nextTypeEnum(t, true);
               //--- AJR: this code checks whether n is a legal value
               Assert( !n.isNull() );
@@ -1016,6 +1022,9 @@ Node TheoryEngineModelBuilder::normalize(TheoryModel* m, TNode r, std::map< Node
   return retNode;
 }
 
+void TheoryEngineModelBuilder::preProcessBuildModel(TheoryModel* m, bool fullModel) {
+  
+}
 
 void TheoryEngineModelBuilder::processBuildModel(TheoryModel* m, bool fullModel)
 {

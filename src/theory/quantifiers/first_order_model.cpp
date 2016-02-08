@@ -90,15 +90,19 @@ void FirstOrderModel::initialize() {
     }
     processInitializeQuantifier( f );
     //initialize relevant models within bodies of all quantifiers
-    initializeModelForTerm( f[1] );
+    std::map< Node, bool > visited;
+    initializeModelForTerm( f[1], visited );
   }
   processInitialize( false );
 }
 
-void FirstOrderModel::initializeModelForTerm( Node n ){
-  processInitializeModelForTerm( n );
-  for( int i=0; i<(int)n.getNumChildren(); i++ ){
-    initializeModelForTerm( n[i] );
+void FirstOrderModel::initializeModelForTerm( Node n, std::map< Node, bool >& visited ){
+  if( visited.find( n )==visited.end() ){
+    visited[n] = true;
+    processInitializeModelForTerm( n );
+    for( int i=0; i<(int)n.getNumChildren(); i++ ){
+      initializeModelForTerm( n[i], visited );
+    }
   }
 }
 
@@ -574,15 +578,6 @@ Node FirstOrderModelFmc::getUsedRepresentative(Node n, bool strict) {
         Trace("fmc-warn") << "WARNING : no representative for " << n << std::endl;
       }
     }
-/*
-    Node r = getRepresentative(n);
-    if( d_model_basis_rep.find(tn)!=d_model_basis_rep.end() ){
-      if (r==d_model_basis_rep[tn]) {
-        r = d_qe->getTermDatabase()->getModelBasisTerm(tn);
-      }
-    }
-    return r;
-*/
     return getRepresentative(n);
   }
 }
@@ -609,7 +604,6 @@ void FirstOrderModelFmc::processInitialize( bool ispre ) {
     for( std::map<Node, Def * >::iterator it = d_models.begin(); it != d_models.end(); ++it ){
       it->second->reset();
     }
-    d_model_basis_rep.clear();
   }
 }
 

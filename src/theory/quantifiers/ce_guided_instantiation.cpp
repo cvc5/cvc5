@@ -463,9 +463,13 @@ void CegInstantiation::checkCegConjecture( CegConjecture * conj ) {
         lem = Rewriter::rewrite( lem );
         Trace("cegqi-lemma") << "Cegqi::Lemma : candidate refinement : " << lem << std::endl;
         Trace("cegqi-engine") << "  ...refine candidate." << std::endl;
-        d_quantEngine->addLemma( lem );
-        ++(d_statistics.d_cegqi_lemmas_refine);
-        conj->d_refine_count++;
+        bool res = d_quantEngine->addLemma( lem );
+        if( res ){
+          ++(d_statistics.d_cegqi_lemmas_refine);
+          conj->d_refine_count++;
+        }else{
+          Trace("cegqi-engine") << "  ...FAILED to add refinement!" << std::endl;
+        }
       }
     }
     conj->d_ce_sk.clear();

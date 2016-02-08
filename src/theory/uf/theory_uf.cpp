@@ -127,7 +127,7 @@ void TheoryUF::check(Effort level) {
         throw Exception( ss.str() );
       }
       //needed for models
-      if( options::produceModels() && atom.getKind() == kind::COMBINED_CARDINALITY_CONSTRAINT ){
+      if( options::produceModels() && ( atom.getKind() == kind::COMBINED_CARDINALITY_CONSTRAINT || options::ufssMode()!=UF_SS_FULL ) ){
         d_equalityEngine.assertPredicate(atom, polarity, fact);
       }
     } else {

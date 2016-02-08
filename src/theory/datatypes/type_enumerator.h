@@ -23,6 +23,7 @@
 #include "expr/type_node.h"
 #include "expr/type.h"
 #include "expr/kind.h"
+#include "options/quantifiers_options.h"
 
 namespace CVC4 {
 namespace theory {
@@ -158,7 +159,7 @@ public:
       }
       if( d_ctor>=d_has_debruijn+d_datatype.getNumConstructors() ){
         //try next size limit as long as new terms were generated at last size, or other cases
-        if( prevSize==d_size_limit || ( d_size_limit==0 && d_datatype.isCodatatype() ) || !d_datatype.isFinite() ){
+        if( prevSize==d_size_limit || ( d_size_limit==0 && d_datatype.isCodatatype() ) || ( options::finiteModelFind() ? !d_datatype.isUFinite() : !d_datatype.isFinite() ) ){
           d_size_limit++;
           d_ctor = d_zeroCtor;
           for( unsigned i=0; i<d_sel_sum.size(); i++ ){

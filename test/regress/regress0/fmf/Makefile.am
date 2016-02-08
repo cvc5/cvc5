@@ -49,7 +49,8 @@ TESTS =	\
 	jasmin-cdt-crash.smt2 \
 	loopy_coda.smt2 \
 	fmc_unsound_model.smt2 \
-	am-bad-model.cvc
+	am-bad-model.cvc \
+	nun-0208-to.cvc
 
 
 EXTRA_DIST = $(TESTS)

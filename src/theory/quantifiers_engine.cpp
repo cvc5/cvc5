@@ -602,9 +602,9 @@ void QuantifiersEngine::assertQuantifier( Node f, bool pol ){
         NodeBuilder<> nb(kind::OR);
         nb << f << body.notNode();
         Node lem = nb;
-        if( Trace.isOn("quantifiers-sk") ){
+        if( Trace.isOn("quantifiers-sk-debug") ){
           Node slem = Rewriter::rewrite( lem );
-          Trace("quantifiers-sk") << "Skolemize lemma : " << slem << std::endl;
+          Trace("quantifiers-sk-debug") << "Skolemize lemma : " << slem << std::endl;
         }
         getOutputChannel().lemma( lem, false, true );
         d_skolemized[f] = true;

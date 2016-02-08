@@ -167,19 +167,19 @@ public:
         //typically should not be called
         TypeNode tn = in.getType();
         Node gt;
-        if( tn.isSort() ){
+        bool useTe = true;
+        //if( !tn.isSort() ){
+        //  useTe = false;
+        //}
+        if( isTypeDatatype( tn ) ){
+          const Datatype& dta = ((DatatypeType)(tn).toType()).getDatatype();
+          useTe = !dta.isCodatatype();
+        }
+        if( useTe ){
           TypeEnumerator te(tn);
           gt = *te;
         }else{
-          //check whether well-founded
-          //bool isWf = true;
-          //if( isTypeDatatype( tn ) ){
-          //  const Datatype& dta = ((DatatypeType)(tn).toType()).getDatatype();
-          //  isWf = dta.isWellFounded();
-          //}
-          //if( isWf || in[0].isConst() ){
           gt = tn.mkGroundTerm();
-          //}
         }
         if( !gt.isNull() ){
           //Assert( gtt.isDatatype() || gtt.isParametricDatatype() );
@@ -531,28 +531,32 @@ private:
   }
   //eqc_stack stores depth
   static Node normalizeCodatatypeConstantEqc( Node n, std::map< int, int >& eqc_stack, std::map< Node, int >& eqc, int depth ){
-    Assert( eqc.find( n )!=eqc.end() );
-    int e = eqc[n];
-    std::map< int, int >::iterator it = eqc_stack.find( e );
-    if( it!=eqc_stack.end() ){
-      int debruijn = depth - it->second - 1;
-      return NodeManager::currentNM()->mkConst(UninterpretedConstant(n.getType().toType(), debruijn));
+    Trace("dt-nconst-debug") << "normalizeCodatatypeConstantEqc: " << n << " depth=" << depth << std::endl;
+    if( eqc.find( n )==eqc.end() ){
+      return n;
     }else{
-      std::vector< Node > children;
-      bool childChanged = false;
-      eqc_stack[e] = depth;
-      for( unsigned i=0; i<n.getNumChildren(); i++ ){
-        Node nc = normalizeCodatatypeConstantEqc( n[i], eqc_stack, eqc, depth+1 );
-        children.push_back( nc );
-        childChanged = childChanged || nc!=n[i];
-      }
-      eqc_stack.erase(e);
-      if( childChanged ){
-        Assert( n.getKind()==kind::APPLY_CONSTRUCTOR );
-        children.insert( children.begin(), n.getOperator() );
-        return NodeManager::currentNM()->mkNode( n.getKind(), children );
+      int e = eqc[n];
+      std::map< int, int >::iterator it = eqc_stack.find( e );
+      if( it!=eqc_stack.end() ){
+        int debruijn = depth - it->second - 1;
+        return NodeManager::currentNM()->mkConst(UninterpretedConstant(n.getType().toType(), debruijn));
       }else{
-        return n;
+        std::vector< Node > children;
+        bool childChanged = false;
+        eqc_stack[e] = depth;
+        for( unsigned i=0; i<n.getNumChildren(); i++ ){
+          Node nc = normalizeCodatatypeConstantEqc( n[i], eqc_stack, eqc, depth+1 );
+          children.push_back( nc );
+          childChanged = childChanged || nc!=n[i];
+        }
+        eqc_stack.erase(e);
+        if( childChanged ){
+          Assert( n.getKind()==kind::APPLY_CONSTRUCTOR );
+          children.insert( children.begin(), n.getOperator() );
+          return NodeManager::currentNM()->mkNode( n.getKind(), children );
+        }else{
+          return n;
+        }
       }
     }
   }
@@ -675,7 +679,7 @@ public:
         eqc[it->first] = eqc[it->second];
       }
       //we now have a partition of equivalent terms
-      Trace("dt-nconst") << "Equivalence classes ids : " << std::endl;
+      Trace("dt-nconst") << "Computed equivalence classes ids : " << std::endl;
       for( std::map< Node, int >::iterator it = eqc.begin(); it != eqc.end(); ++it ){
         Trace("dt-nconst") << "  " << it->first << " -> " << it->second << std::endl;
       }

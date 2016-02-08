@@ -255,6 +255,7 @@ protected:
   typedef std::hash_set<Node, NodeHashFunction> NodeSet;
 
   /** process build model */
+  virtual void preProcessBuildModel(TheoryModel* m, bool fullModel);
   virtual void processBuildModel(TheoryModel* m, bool fullModel);
   /** normalize representative */
   Node normalize(TheoryModel* m, TNode r, std::map<Node, Node>& constantReps, bool evalOnly);

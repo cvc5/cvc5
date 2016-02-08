@@ -325,11 +325,46 @@ QModelBuilder( c, qe ){
   d_false = NodeManager::currentNM()->mkConst(false);
 }
 
+void FullModelChecker::preProcessBuildModel(TheoryModel* m, bool fullModel) {
+  FirstOrderModelFmc * fm = ((FirstOrderModelFmc*)m)->asFirstOrderModelFmc();
+  if( !fullModel ){
+    Trace("fmc") << "---Full Model Check preprocess() " << std::endl;
+    d_preinitialized_types.clear();
+    //traverse equality engine
+    eq::EqClassesIterator eqcs_i = eq::EqClassesIterator( fm->d_equalityEngine );
+    std::map< TypeNode, int > typ_num;
+    while( !eqcs_i.isFinished() ){
+      TypeNode tr = (*eqcs_i).getType();
+      d_preinitialized_types[tr] = true;
+      ++eqcs_i;
+    }
+
+    //must ensure model basis terms exists in model for each relevant type
+    fm->initialize();
+    for( std::map<Node, Def * >::iterator it = fm->d_models.begin(); it != fm->d_models.end(); ++it ) {
+      Node op = it->first;
+      TypeNode tno = op.getType();
+      for( unsigned i=0; i<tno.getNumChildren(); i++) {
+        preInitializeType( fm, tno[i] );
+      }
+    }
+    //do not have to introduce terms for sorts of domains of quantified formulas if we are allowed to assume empty sorts
+    if( !options::fmfEmptySorts() ){
+      for( int i=0; i<fm->getNumAssertedQuantifiers(); i++ ){
+        Node q = fm->getAssertedQuantifier( i );
+        //make sure all types are set
+        for( unsigned i=0; i<q[0].getNumChildren(); i++ ){
+          preInitializeType( fm, q[0][i].getType() );
+        }
+      }
+    }
+  }
+}
+
 void FullModelChecker::processBuildModel(TheoryModel* m, bool fullModel){
   FirstOrderModelFmc * fm = ((FirstOrderModelFmc*)m)->asFirstOrderModelFmc();
   if( !fullModel ){
     Trace("fmc") << "---Full Model Check reset() " << std::endl;
-    fm->initialize();
     d_quant_models.clear();
     d_rep_ids.clear();
     d_star_insts.clear();
@@ -338,50 +373,26 @@ void FullModelChecker::processBuildModel(TheoryModel* m, bool fullModel){
          it != fm->d_rep_set.d_type_reps.end(); ++it ){
       if( it->first.isSort() ){
         Trace("fmc") << "Cardinality( " << it->first << " )" << " = " << it->second.size() << std::endl;
-        Node mbt = d_qe->getTermDatabase()->getModelBasisTerm(it->first);
-        Node rmbt = fm->getUsedRepresentative( mbt);
-        int mbt_index = -1;
-        Trace("fmc") << "  Model basis term : " << mbt << std::endl;
         for( size_t a=0; a<it->second.size(); a++ ){
           Node r = fm->getUsedRepresentative( it->second[a] );
-          std::vector< Node > eqc;
-          ((EqualityQueryQuantifiersEngine*)d_qe->getEqualityQuery())->getEquivalenceClass( r, eqc );
-          Trace("fmc-model-debug") << "   " << (it->second[a]==r) << (r==mbt);
-          Trace("fmc-model-debug") << " : " << it->second[a] << " : " << r << " : ";
-          //Trace("fmc-model-debug") << r2 << " : " << ir << " : ";
-          Trace("fmc-model-debug") << " {";
-          //find best selection for representative
-          for( size_t i=0; i<eqc.size(); i++ ){
-            Trace("fmc-model-debug") << eqc[i] << ", ";
-          }
-          Trace("fmc-model-debug") << "}" << std::endl;
-
-          //if this is the model basis eqc, replace with actual model basis term
-          if (r==rmbt || (mbt_index==-1 && a==(it->second.size()-1))) {
-            fm->d_model_basis_rep[it->first] = r;
-            r = mbt;
-            mbt_index = a;
+          if( Trace.isOn("fmc-model-debug") ){
+            std::vector< Node > eqc;
+            ((EqualityQueryQuantifiersEngine*)d_qe->getEqualityQuery())->getEquivalenceClass( r, eqc );
+            Trace("fmc-model-debug") << "   " << (it->second[a]==r);
+            Trace("fmc-model-debug") << " : " << it->second[a] << " : " << r << " : ";
+            //Trace("fmc-model-debug") << r2 << " : " << ir << " : ";
+            Trace("fmc-model-debug") << " {";
+            for( size_t i=0; i<eqc.size(); i++ ){
+              Trace("fmc-model-debug") << eqc[i] << ", ";
+            }
+            Trace("fmc-model-debug") << "}" << std::endl;
           }
           d_rep_ids[it->first][r] = (int)a;
         }
         Trace("fmc-model-debug") << std::endl;
+      }
+    }
 
-        if (mbt_index==-1) {
-          std::cout << "   WARNING: model basis term is not a representative!" << std::endl;
-          exit(0);
-        }else{
-          Trace("fmc") << "Star index for " << it->first << " is " << mbt_index << std::endl;
-        }
-      }
-    }
-    //also process non-rep set sorts
-    for( std::map<Node, Def * >::iterator it = fm->d_models.begin(); it != fm->d_models.end(); ++it ) {
-      Node op = it->first;
-      TypeNode tno = op.getType();
-      for( unsigned i=0; i<tno.getNumChildren(); i++) {
-        initializeType( fm, tno[i] );
-      }
-    }
     //now, make models
     for( std::map<Node, Def * >::iterator it = fm->d_models.begin(); it != fm->d_models.end(); ++it ) {
       Node op = it->first;
@@ -433,24 +444,26 @@ void FullModelChecker::processBuildModel(TheoryModel* m, bool fullModel){
         entry_children.push_back(op);
         bool hasNonStar = false;
         for( unsigned i=0; i<c.getNumChildren(); i++) {
-          Node ri = fm->getUsedRepresentative( c[i]);
-          if( !ri.getType().isSort() && !ri.isConst() ){
-            Trace("fmc-warn") << "Warning : model has non-constant argument in model " << ri << std::endl;
-            Assert( false );
-          }
+          Node ri = fm->getUsedRepresentative( c[i] );
           children.push_back(ri);
+          bool isStar = false;
           if( options::mbqiMode()!=quantifiers::MBQI_FMC_INTERVAL || !ri.getType().isInteger() ){
             if (fm->isModelBasisTerm(ri) ) {
               ri = fm->getStar( ri.getType() );
+              isStar = true;
             }else{
               hasNonStar = true;
             }
+          }
+          if( !isStar && !ri.isConst() ){
+            Trace("fmc-warn") << "Warning : model has non-constant argument in model " << ri << " (from " << c[i] << ")" << std::endl;
+            Assert( false );
           }
           entry_children.push_back(ri);
         }
         Node n = NodeManager::currentNM()->mkNode( APPLY_UF, children );
         Node nv = fm->getUsedRepresentative( v );
-        if( !nv.getType().isSort() && !nv.isConst() ){
+        if( !nv.isConst() ){
           Trace("fmc-warn") << "Warning : model has non-constant value in model " << nv << std::endl;
           Assert( false );
         }
@@ -523,20 +536,15 @@ void FullModelChecker::processBuildModel(TheoryModel* m, bool fullModel){
   }
 }
 
-void FullModelChecker::initializeType( FirstOrderModelFmc * fm, TypeNode tn ){
-  if( fm->d_model_basis_rep.find( tn )==fm->d_model_basis_rep.end() ){
-    Trace("fmc") << "Initialize type " << tn << " hasType = " << fm->d_rep_set.hasType(tn) << std::endl;
-    Node mbn;
-    if (!fm->d_rep_set.hasType(tn)) {
-      mbn = fm->getSomeDomainElement(tn);
-    }else{
-      mbn = d_qe->getTermDatabase()->getModelBasisTerm(tn);
+void FullModelChecker::preInitializeType( FirstOrderModelFmc * fm, TypeNode tn ){
+  if( d_preinitialized_types.find( tn )==d_preinitialized_types.end() ){
+    d_preinitialized_types[tn] = true;
+    Node mb = d_qe->getTermDatabase()->getModelBasisTerm(tn);
+    if( !mb.isConst() ){
+      Trace("fmc") << "...add model basis term to EE of model " << mb << " " << tn << std::endl;
+      fm->d_equalityEngine->addTerm( mb );
+      fm->addTerm( mb );
     }
-    Trace("fmc") << "Get used rep for " << mbn << std::endl;
-    Node mbnr = fm->getUsedRepresentative( mbn );
-    Trace("fmc") << "...got  " << mbnr << std::endl;
-    fm->d_model_basis_rep[tn] = mbnr;
-    Trace("fmc") << "Add model basis for type " << tn << " : " << mbn << " " << mbnr << std::endl;
   }
 }
 
@@ -591,10 +599,6 @@ bool FullModelChecker::doExhaustiveInstantiation( FirstOrderModel * fm, Node f, 
         Node op = NodeManager::currentNM()->mkSkolem( "qfmc", typ, "op created for full-model checking" );
         d_quant_cond[f] = op;
       }
-      //make sure all types are set
-      for( unsigned i=0; i<f[0].getNumChildren(); i++ ){
-        initializeType( fmfmc, f[0][i].getType() );
-      }
 
       if( options::mbqiMode()==MBQI_NONE ){
         //just exhaustive instantiate
@@ -643,6 +647,7 @@ bool FullModelChecker::doExhaustiveInstantiation( FirstOrderModel * fm, Node f, 
               Node ev = d_quant_models[f].evaluate(fmfmc, inst);
               if (ev==d_true) {
                 addInst = false;
+                Trace("fmc-debug") << "...do not instantiate, evaluation was " << ev << std::endl;
               }
             }else{
               //for debugging
