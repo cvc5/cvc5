@@ -3895,14 +3895,11 @@ void SmtEnginePrivate::processAssertions() {
       //apply pre-skolemization to existential quantifiers
       for (unsigned i = 0; i < d_assertions.size(); ++ i) {
         Node prev = d_assertions[i];
-        Trace("quantifiers-rewrite-debug") << "Pre-skolemize " << prev << "..." << std::endl;
-        vector< TypeNode > fvTypes;
-        vector< TNode > fvs;
-        d_assertions.replace(i, quantifiers::QuantifiersRewriter::preSkolemizeQuantifiers( prev, true, fvTypes, fvs ));
-        if( prev!=d_assertions[i] ){
-          d_assertions.replace(i, Rewriter::rewrite( d_assertions[i] ));
-          Trace("quantifiers-rewrite") << "*** Pre-skolemize " << prev << endl;
-          Trace("quantifiers-rewrite") << "   ...got " << d_assertions[i] << endl;
+        Node next = quantifiers::QuantifiersRewriter::preprocess( prev );
+        if( next!=prev ){
+          d_assertions.replace(i, Rewriter::rewrite( next ));
+          Trace("quantifiers-preprocess") << "*** Pre-skolemize " << prev << endl;
+          Trace("quantifiers-preprocess") << "   ...got " << d_assertions[i] << endl;
         }
       }
     }

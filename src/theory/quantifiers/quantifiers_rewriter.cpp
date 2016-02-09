@@ -1737,6 +1737,18 @@ Node QuantifiersRewriter::preSkolemizeQuantifiers( Node n, bool polarity, std::v
   return n;
 }
 
+Node QuantifiersRewriter::preprocess( Node n, bool isInst ) {
+  if( options::preSkolemQuant() ){
+    if( !isInst || !options::preSkolemQuantNested() ){
+      //apply pre-skolemization to existential quantifiers
+      Trace("quantifiers-preprocess-debug") << "Pre-skolemize " << n << "..." << std::endl;
+      std::vector< TypeNode > fvTypes;
+      std::vector< TNode > fvs;
+      n = quantifiers::QuantifiersRewriter::preSkolemizeQuantifiers( n, true, fvTypes, fvs );
+    }
+  }
+  return n;
+}
 
 Node QuantifiersRewriter::computePurify2( Node body, std::vector< Node >& args, std::map< Node, Node >& visited, std::map< Node, Node >& var_to_term,
                                           std::map< Node, std::vector< int > >& var_parent, int parentId ){
