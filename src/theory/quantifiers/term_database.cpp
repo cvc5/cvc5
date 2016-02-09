@@ -976,6 +976,16 @@ Node TermDb::mkSkolemizedBody( Node f, Node n, std::vector< TypeNode >& argTypes
   if( f.hasAttribute(InstLevelAttribute()) ){
     theory::QuantifiersEngine::setInstantiationLevelAttr( ret, f.getAttribute(InstLevelAttribute()) );
   }
+
+  if( Trace.isOn("quantifiers-sk") ){
+    Trace("quantifiers-sk") << "Skolemize : ";
+    for( unsigned i=0; i<sk.size(); i++ ){
+      Trace("quantifiers-sk") << sk[i] << " ";
+    }
+    Trace("quantifiers-sk") << "for " << std::endl;
+    Trace("quantifiers-sk") << "   " << f << std::endl;
+  }
+
   return ret;
 }
 
@@ -1001,14 +1011,6 @@ Node TermDb::getSkolemizedBody( Node f ){
         //carry information for sort inference
         d_quantEngine->getTheoryEngine()->getSortInference()->setSkolemVar( f, f[0][i], d_skolem_constants[f][i] );
       }
-    }
-    if( Trace.isOn("quantifiers-sk") ){
-      Trace("quantifiers-sk") << "Skolemize : ";
-      for( unsigned i=0; i<d_skolem_constants[f].size(); i++ ){
-        Trace("quantifiers-sk") << d_skolem_constants[f][i] << " ";
-      }
-      Trace("quantifiers-sk") << "for " << std::endl;
-      Trace("quantifiers-sk") << "   " << f << std::endl;
     }
   }
   return d_skolem_body[ f ];
