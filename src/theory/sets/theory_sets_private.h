@@ -25,6 +25,7 @@
 #include "theory/theory.h"
 #include "theory/uf/equality_engine.h"
 #include "theory/sets/term_info.h"
+#include "theory/sets/theory_sets_rels.h"
 
 namespace CVC4 {
 namespace theory {
@@ -70,6 +71,7 @@ public:
 
 private:
   TheorySets& d_external;
+  TheorySetsRels* d_rels;
 
   class Statistics {
   public:

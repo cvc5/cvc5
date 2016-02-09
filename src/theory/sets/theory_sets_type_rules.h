@@ -164,6 +164,80 @@ struct InsertTypeRule {
   }
 };/* struct InsertTypeRule */
 
+struct RelBinaryOperatorTypeRule {
+  inline static TypeNode computeType(NodeManager* nodeManager, TNode n, bool check)
+    throw (TypeCheckingExceptionPrivate, AssertionException) {
+    Assert(n.getKind() == kind::PRODUCT ||
+           n.getKind() == kind::JOIN);
+
+    TypeNode firstRelType = n[0].getType(check);
+    TypeNode secondRelType = n[1].getType(check);
+
+    if(check) {
+      if(!firstRelType.isSet() || !secondRelType.isSet()) {
+        throw TypeCheckingExceptionPrivate(n, " set operator operates on non-sets");
+      }
+      if(!firstRelType[0].isTuple() || !secondRelType[0].isTuple()) {
+        throw TypeCheckingExceptionPrivate(n, " set operator operates on non-relations (sets of tuples)");
+      }
+      // JOIN is applied on two sets of tuples that are not both unary
+      if(n.getKind() == kind::JOIN) {
+        if((firstRelType[0].getNumChildren() == 1) && (secondRelType[0].getNumChildren() == 1)) {
+          throw TypeCheckingExceptionPrivate(n, " Join operates on two unary relations");
+        }
+      }
+    }
+
+    Assert(firstRelType == secondRelType);
+    return firstRelType;
+  }
+
+  inline static bool computeIsConst(NodeManager* nodeManager, TNode n) {
+    Assert(n.getKind() == kind::JOIN ||
+           n.getKind() == kind::PRODUCT);
+    return false;
+  }
+};/* struct RelBinaryOperatorTypeRule */
+
+struct RelTransposeTypeRule {
+  inline static TypeNode computeType(NodeManager* nodeManager, TNode n, bool check)
+    throw (TypeCheckingExceptionPrivate, AssertionException) {
+    Assert(n.getKind() == kind::TRANSPOSE);
+    TypeNode setType = n[0].getType(check);
+    if(check && !setType.isSet()) {
+        throw TypeCheckingExceptionPrivate(n, "relation transpose operats on non-rel");
+    }
+    return setType;
+  }
+
+  inline static bool computeIsConst(NodeManager* nodeManager, TNode n) {
+      //Assert(n.getKind() == kind::TRANSCLOSURE);
+      return false;
+    }
+};/* struct RelTransposeTypeRule */
+
+struct RelTransClosureTypeRule {
+  inline static TypeNode computeType(NodeManager* nodeManager, TNode n, bool check)
+    throw (TypeCheckingExceptionPrivate, AssertionException) {
+    Assert(n.getKind() == kind::TRANSCLOSURE);
+    TypeNode setType = n[0].getType(check);
+    if(check) {
+      if(!setType.isSet()) {
+        throw TypeCheckingExceptionPrivate(n, " transitive closure operates on non-rel");
+      }
+      if(setType[0].getNumChildren() != 2) {
+        throw TypeCheckingExceptionPrivate(n, " transitive closure operates on non-binary relations");
+      }
+    }
+    return setType;
+  }
+
+  inline static bool computeIsConst(NodeManager* nodeManager, TNode n) {
+      Assert(n.getKind() == kind::TRANSCLOSURE);
+      return true;
+    }
+};/* struct RelTransClosureTypeRule */
+
 
 struct SetsProperties {
   inline static Cardinality computeCardinality(TypeNode type) {

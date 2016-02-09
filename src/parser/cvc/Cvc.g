@@ -201,6 +201,12 @@ tokens {
   BVSGT_TOK = 'BVSGT';
   BVSLE_TOK = 'BVSLE';
   BVSGE_TOK = 'BVSGE';
+  
+  // Relations
+  JOIN_TOK = 'JOIN';
+  TRANSPOSE_TOK = 'TRANSPOSE';
+  PRODUCT_TOK = 'PRODUCT';
+  TRANSCLOSURE_TOK = 'TRANSCLOSURE';
 
   // Strings
 
@@ -290,7 +296,11 @@ int getOperatorPrecedence(int type) {
   case DIV_TOK:
   case MOD_TOK: return 23;
   case PLUS_TOK:
-  case MINUS_TOK: return 24;
+  case MINUS_TOK:
+  case JOIN_TOK:
+  case TRANSPOSE_TOK:
+  case PRODUCT_TOK:
+  case TRANSCLOSURE_TOK: return 24;
   case LEQ_TOK:
   case LT_TOK:
   case GEQ_TOK:
@@ -327,6 +337,9 @@ Kind getOperatorKind(int type, bool& negate) {
   case OR_TOK: return kind::OR;
   case XOR_TOK: return kind::XOR;
   case AND_TOK: return kind::AND;
+  
+  case PRODUCT_TOK: return kind::PRODUCT;
+  case JOIN_TOK: return kind::JOIN;
 
     // comparisonBinop
   case EQUAL_TOK: return kind::EQUAL;
@@ -1449,6 +1462,8 @@ booleanBinop[unsigned& op]
   | OR_TOK
   | XOR_TOK
   | AND_TOK
+  | JOIN_TOK
+  | PRODUCT_TOK
   ;
 
 comparison[CVC4::Expr& f]
@@ -1620,6 +1635,10 @@ bvNegTerm[CVC4::Expr& f]
     /* BV neg */
   : BVNEG_TOK bvNegTerm[f]
     { f = MK_EXPR(CVC4::kind::BITVECTOR_NOT, f); }
+  | TRANSPOSE_TOK bvNegTerm[f]
+    { f = MK_EXPR(CVC4::kind::TRANSPOSE, f); }
+  | TRANSCLOSURE_TOK bvNegTerm[f]
+    { f = MK_EXPR(CVC4::kind::TRANSCLOSURE, f); }      
   | postfixTerm[f]
   ;
 

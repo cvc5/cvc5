@@ -93,6 +93,8 @@ void TheorySetsPrivate::check(Theory::Effort level) {
     // and that leads to conflict (externally).
     if(d_conflict) { return; }
     Debug("sets") << "[sets]  is complete = " << isComplete() << std::endl;
+
+    d_rels->check(level);
   }
 
   if( (level == Theory::EFFORT_FULL || options::setsEagerLemmas() ) && !isComplete()) {
@@ -1105,9 +1107,11 @@ TheorySetsPrivate::TheorySetsPrivate(TheorySets& external,
   d_modelCache(c),
   d_ccg_i(c),
   d_ccg_j(c),
-  d_scrutinize(NULL)
+  d_scrutinize(NULL),
+  d_rels(NULL)
 {
   d_termInfoManager = new TermInfoManager(*this, c, &d_equalityEngine);
+  d_rels = new TheorySetsRels(&d_equalityEngine);
 
   d_equalityEngine.addFunctionKind(kind::UNION);
   d_equalityEngine.addFunctionKind(kind::INTERSECTION);
@@ -1125,6 +1129,7 @@ TheorySetsPrivate::TheorySetsPrivate(TheorySets& external,
 TheorySetsPrivate::~TheorySetsPrivate()
 {
   delete d_termInfoManager;
+  delete d_rels;
   if( Debug.isOn("sets-scrutinize") ) {
     Assert(d_scrutinize != NULL);
     delete d_scrutinize;

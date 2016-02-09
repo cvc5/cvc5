@@ -43,6 +43,11 @@ operator MEMBER        2  "set membership predicate; first parameter a member of
 operator SINGLETON     1  "the set of the single element given as a parameter"
 operator INSERT        2: "set obtained by inserting elements (first N-1 parameters) into a set (the last parameter)"
 
+operator JOIN 		   2  "set join"
+operator PRODUCT 	   2  "set cartesian product"
+operator TRANSPOSE 	   1  "set transpose"
+operator TRANSCLOSURE  1  "set transitive closure"
+
 typerule UNION          ::CVC4::theory::sets::SetsBinaryOperatorTypeRule
 typerule INTERSECTION   ::CVC4::theory::sets::SetsBinaryOperatorTypeRule
 typerule SETMINUS       ::CVC4::theory::sets::SetsBinaryOperatorTypeRule
@@ -52,10 +57,20 @@ typerule SINGLETON      ::CVC4::theory::sets::SingletonTypeRule
 typerule EMPTYSET       ::CVC4::theory::sets::EmptySetTypeRule
 typerule INSERT         ::CVC4::theory::sets::InsertTypeRule
 
+typerule JOIN 			::CVC4::theory::sets::RelBinaryOperatorTypeRule
+typerule PRODUCT 		::CVC4::theory::sets::RelBinaryOperatorTypeRule
+typerule TRANSPOSE 		::CVC4::theory::sets::RelTransposeTypeRule
+typerule TRANSCLOSURE 	::CVC4::theory::sets::RelTransClosureTypeRule
+
 construle UNION         ::CVC4::theory::sets::SetsBinaryOperatorTypeRule
 construle INTERSECTION  ::CVC4::theory::sets::SetsBinaryOperatorTypeRule
 construle SETMINUS      ::CVC4::theory::sets::SetsBinaryOperatorTypeRule
 construle SINGLETON     ::CVC4::theory::sets::SingletonTypeRule
 construle INSERT        ::CVC4::theory::sets::InsertTypeRule
+
+construle JOIN 			::CVC4::theory::sets::RelBinaryOperatorTypeRule
+construle PRODUCT 		::CVC4::theory::sets::RelBinaryOperatorTypeRule
+construle TRANSPOSE 	::CVC4::theory::sets::RelTransposeTypeRule
+construle TRANSCLOSURE 	::CVC4::theory::sets::RelTransClosureTypeRule
 
 endtheory

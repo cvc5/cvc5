@@ -738,6 +738,22 @@ void CvcPrinter::toStream(std::ostream& out, TNode n, int depth, bool types, boo
       op << "IS_IN";
       opType = INFIX;
       break;
+    case kind::PRODUCT:
+      op << "PRODUCT";
+      opType = INFIX;
+      break;
+    case kind::JOIN:
+      op << "JOIN";
+      opType = INFIX;
+      break;
+    case kind::TRANSPOSE:
+      op << "TRANSPOSE";
+      opType = PREFIX;
+      break;
+    case kind::TRANSCLOSURE:
+      op << "TRANSCLOSURE";
+      opType = PREFIX;
+      break;
     case kind::SINGLETON:
       out << "{";
       toStream(out, n[0], depth, types, false);
