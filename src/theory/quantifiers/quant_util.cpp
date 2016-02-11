@@ -349,6 +349,9 @@ void QuantPhaseReq::getPolarity( Node n, int child, bool hasPol, bool pol, bool&
   }else if( n.getKind()==ITE ){
     newHasPol = (child!=0) && hasPol;
     newPol = pol;
+  }else if( n.getKind()==FORALL ){
+    newHasPol = (child==1) && hasPol;
+    newPol = pol;
   }else{
     newHasPol = false;
     newPol = pol;

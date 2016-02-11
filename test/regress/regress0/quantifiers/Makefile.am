@@ -65,7 +65,12 @@ TESTS =	\
 	ext-ex-deq-trigger.smt2 \
 	matching-lia-1arg.smt2 \
 	RND_4_16.smt2 \
-  cdt-0208-to.smt2
+  cdt-0208-to.smt2 \
+  psyco-196.smt2 \
+  agg-rew-test.smt2 \
+  agg-rew-test-cf.smt2 \
+  rew-to-0211-dd.smt2 \
+  rew-to-scala.smt2
 
 
 # regression can be solved with --finite-model-find --fmf-inst-engine

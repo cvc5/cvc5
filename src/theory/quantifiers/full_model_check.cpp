@@ -819,8 +819,8 @@ bool FullModelChecker::exhaustiveInstantiate(FirstOrderModelFmc * fm, Node f, No
       }
     }
     d_addedLemmas += addedLemmas;
-    Trace("fmc-exh") << "----Finished Exhaustive instantiate, lemmas = " << addedLemmas << std::endl;
-    return true;
+    Trace("fmc-exh") << "----Finished Exhaustive instantiate, lemmas = " << addedLemmas << ", incomplete=" << riter.d_incomplete << std::endl;
+    return addedLemmas>0 || !riter.d_incomplete;
   }else{
     Trace("fmc-exh") << "----Finished Exhaustive instantiate, failed." << std::endl;
     return false;
