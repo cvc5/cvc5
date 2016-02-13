@@ -110,6 +110,7 @@ UFProof* ProofManager::getUfProof() {
   TheoryProof* pf = getTheoryProofEngine()->getTheoryProof(theory::THEORY_UF);
   return (UFProof*)pf;
 }
+
 BitVectorProof* ProofManager::getBitVectorProof() {
   Assert (options::proof());
   TheoryProof* pf = getTheoryProofEngine()->getTheoryProof(theory::THEORY_BV);
@@ -120,6 +121,12 @@ ArrayProof* ProofManager::getArrayProof() {
   Assert (options::proof());
   TheoryProof* pf = getTheoryProofEngine()->getTheoryProof(theory::THEORY_ARRAY);
   return (ArrayProof*)pf;
+}
+
+ArithProof* ProofManager::getArithProof() {
+  Assert (options::proof());
+  TheoryProof* pf = getTheoryProofEngine()->getTheoryProof(theory::THEORY_ARITH);
+  return (ArithProof*)pf;
 }
 
 SkolemizationManager* ProofManager::getSkolemizationManager() {
@@ -220,13 +227,21 @@ std::string ProofManager::getLitName(TNode lit,
   return getLitName(currentPM()->d_cnfProof->getLiteral(lit), prefix);
 }
 
-std::string ProofManager::sanitize(TNode var) {
-  Assert (var.isVar());
-  std::string name = var.toString();
-  std::replace(name.begin(), name.end(), ' ', '_');
+std::string ProofManager::sanitize(TNode node) {
+  Assert (node.isVar() || node.isConst());
+
+  std::string name = node.toString();
+  if (node.isVar()) {
+    std::replace(name.begin(), name.end(), ' ', '_');
+  } else if (node.isConst()) {
+    name.erase(std::remove(name.begin(), name.end(), '('), name.end());
+    name.erase(std::remove(name.begin(), name.end(), ')'), name.end());
+    name.erase(std::remove(name.begin(), name.end(), ' '), name.end());
+    name = "const" + name;
+  }
+
   return name;
 }
-
 
 void ProofManager::traceDeps(TNode n) {
   Debug("cores") << "trace deps " << n << std::endl;

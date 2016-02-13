@@ -85,6 +85,8 @@ libcvc4_la_SOURCES = \
 	proof/theory_proof.cpp \
 	proof/uf_proof.h \
 	proof/uf_proof.cpp \
+	proof/arith_proof.h \
+	proof/arith_proof.cpp \
 	proof/array_proof.h \
 	proof/array_proof.cpp \
 	proof/bitvector_proof.h \

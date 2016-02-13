@@ -64,6 +64,7 @@ class RewriterProof;
 class TheoryProofEngine;
 class TheoryProof;
 class UFProof;
+class ArithProof;
 class ArrayProof;
 class BitVectorProof;
 
@@ -161,6 +162,7 @@ public:
   static UFProof* getUfProof();
   static BitVectorProof* getBitVectorProof();
   static ArrayProof* getArrayProof();
+  static ArithProof* getArithProof();
 
   static SkolemizationManager *getSkolemizationManager();
 

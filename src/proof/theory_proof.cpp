@@ -18,6 +18,7 @@
 #include "base/cvc4_assert.h"
 #include "context/context.h"
 #include "options/bv_options.h"
+#include "proof/arith_proof.h"
 #include "proof/array_proof.h"
 #include "proof/bitvector_proof.h"
 #include "proof/cnf_proof.h"
@@ -155,6 +156,11 @@ void TheoryProofEngine::registerTheory(theory::Theory* th) {
         return;
       }
 
+      if (id == theory::THEORY_ARITH) {
+        d_theoryProofTable[id] = new LFSCArithProof((theory::arith::TheoryArith*)th, this);
+        return;
+      }
+
       // TODO other theories
     }
   }
@@ -199,6 +205,8 @@ theory::TheoryId TheoryProofEngine::getTheoryForLemma(ClauseId id) {
   if (pm->getLogic() == "QF_UF") return theory::THEORY_UF;
   if (pm->getLogic() == "QF_BV") return theory::THEORY_BV;
   if (pm->getLogic() == "QF_AX") return theory::THEORY_ARRAY;
+  if (pm->getLogic() == "QF_UFLIA") return theory::THEORY_ARITH;
+  if (pm->getLogic() == "QF_UFLRA") return theory::THEORY_ARITH;
   if (pm->getLogic() == "ALL_SUPPORTED") return theory::THEORY_BV;
 
   Debug("gk::proof") << "Unsupported logic (" << pm->getLogic() << ")" << std::endl;
@@ -256,8 +264,10 @@ void LFSCTheoryProofEngine::printLetTerm(Expr term, std::ostream& os) {
 
 
 void LFSCTheoryProofEngine::printTheoryTerm(Expr term, std::ostream& os, const LetMap& map) {
-  Debug("gk::proof") << std::endl << "LFSCTheoryProofEngine::printTheoryTerm: term = " << term << std::endl;
   theory::TheoryId theory_id = theory::Theory::theoryOf(term);
+  Debug("gk::proof") << std::endl << "LFSCTheoryProofEngine::printTheoryTerm: term = " << term
+                     << ", theory_id = " << theory_id << std::endl;
+
   // boolean terms and ITEs are special because they
   // are common to all theories
   if (theory_id == theory::THEORY_BUILTIN ||
@@ -284,6 +294,12 @@ void LFSCTheoryProofEngine::printSort(Type type, std::ostream& os) {
     getTheoryProof(theory::THEORY_ARRAY)->printSort(type, os);
     return;
   }
+
+  if (type.isInteger() || type.isReal()) {
+    getTheoryProof(theory::THEORY_ARITH)->printSort(type, os);
+    return;
+  }
+
   Unreachable();
 }
 
@@ -553,6 +569,10 @@ void TheoryProof::printTheoryLemmaProof(std::vector<Expr>& lemma, std::ostream& 
     th = new theory::arrays::TheoryArrays(&fakeContext, &fakeContext, oc, v,
                                           ProofManager::currentPM()->getLogicInfo(),
                                           "replay::");
+  } else if (d_theory->getId() == theory::THEORY_ARITH) {
+    Trace("theory-proof-debug") << "Arith proofs currently not supported. Use 'trust'" << std::endl;
+    os << " (clausify_false trust)";
+    return;
   } else {
     InternalError(std::string("can't generate theory-proof for ") + ProofManager::currentPM()->getLogic());
   }
@@ -625,6 +645,7 @@ void TheoryProof::printTheoryLemmaProof(std::vector<Expr>& lemma, std::ostream& 
 
 bool TheoryProofEngine::supportedTheory(theory::TheoryId id) {
   return (id == theory::THEORY_ARRAY ||
+          id == theory::THEORY_ARITH ||
           id == theory::THEORY_BV ||
           id == theory::THEORY_UF ||
           id == theory::THEORY_BOOL);

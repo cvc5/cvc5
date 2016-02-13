@@ -1,0 +1,159 @@
+(declare Real sort)
+
+(define arithpred_Real (! x (term Real) 
+                       (! y (term Real) 
+                         formula)))
+                    
+(declare >_Real arithpred_Real)
+(declare >=_Real arithpred_Real)
+(declare <_Real  arithpred_Real)
+(declare <=_Real arithpred_Real)
+
+(define arithterm_Real (! x (term Real) 
+                       (! y (term Real) 
+                         (term Real))))
+(declare +_Real arithterm_Real)
+(declare -_Real arithterm_Real)
+(declare *_Real arithterm_Real)  ; is * ok to use?
+(declare /_Real arithterm_Real)  ; is / ok to use?
+
+; a constant term
+(declare a_real (! x mpq (term Real)))
+
+; unary negation ?
+(declare u-_Real (! t (term Real) (term Real)))
+
+;; normalization to >=, >
+
+(declare <_to_>_Real
+  (! x (term Real)
+  (! y (term Real)
+  (! u (th_holds (<_Real x y))
+   (th_holds (>_Real y x))))))
+
+(declare <=_to_>=_Real
+  (! x (term Real)
+  (! y (term Real)
+  (! u (th_holds (<=_Real x y))
+    (th_holds (>=_Real y x))))))
+   
+(declare not_<_to_>=_Real
+  (! x (term Real)
+  (! y (term Real)
+  (! u (th_holds (not (<_Real x y)))
+   (th_holds (>=_Real x y))))))
+
+(declare not_<=_to_>_Real
+  (! x (term Real)
+  (! y (term Real)
+  (! u (th_holds (not (<=_Real x y)))
+   (th_holds (>_Real x y))))))
+   
+(declare not_>_to_>=_Real 
+  (! x (term Real)
+  (! y (term Real)
+  (! u (th_holds (not (>_Real x y)))
+   (th_holds (>=_Real y x))))))
+
+(declare not_>=_to_>_Real
+  (! x (term Real)
+  (! y (term Real)
+  (! u (th_holds (not (>=_Real x y)))
+   (th_holds (>_Real y x))))))
+
+(declare not_=_to_>=_=<_Real
+  (! x (term Real)
+  (! y (term Real)
+  (! u (th_holds (not (= Real x y)))
+    (th_holds (or (not (>=_Real x y)) (not (<=_Real x y))))))))
+  
+;; transitivity for >=, >
+
+(declare trans_>=_>=_Real
+  (! x (term Real)
+  (! y (term Real)
+  (! z (term Real)
+  (! u1 (th_holds (>=_Real x y))
+  (! u2 (th_holds (>=_Real y z))
+    (th_holds (>=_Real x z))))))))
+    
+(declare trans_>=_>_Real
+  (! x (term Real)
+  (! y (term Real)
+  (! z (term Real)
+  (! u1 (th_holds (>=_Real x y))
+  (! u2 (th_holds (>_Real y z))
+    (th_holds (>_Real x z))))))))
+    
+(declare trans_>_>=_Real
+  (! x (term Real)
+  (! y (term Real)
+  (! z (term Real)
+  (! u1 (th_holds (>_Real x y))
+  (! u2 (th_holds (>=_Real y z))
+    (th_holds (>_Real x z))))))))
+    
+(declare trans_>_>_Real
+  (! x (term Real)
+  (! y (term Real)
+  (! z (term Real)
+  (! u1 (th_holds (>_Real x y))
+  (! u2 (th_holds (>_Real y z))
+    (th_holds (>_Real x z))))))))
+    
+; predicate with 0 assumed for the RHS
+
+(define arithpred0_Real (! x (term Real) 
+                           formula))
+                    
+(declare >0_Real arithpred0_Real)
+(declare >=0_Real arithpred0_Real)
+(declare <0_Real arithpred0_Real)
+(declare <=0_Real arithpred0_Real)
+(declare =0_Real arithpred0_Real)
+(declare distinct0_Real arithpred0_Real)
+
+;; conversion between arithpred0_Real and arithpred_Real
+
+(declare norm_>_Real
+  (! x (term Real)
+  (! y (term Real)
+  (! t (th_holds (>_Real x y))
+    (th_holds (>0_Real (-_Real x y)))))))
+    
+(declare norm_>=_Real
+  (! x (term Real)
+  (! y (term Real)
+  (! t (th_holds (>=_Real x y))
+    (th_holds (>=0_Real (-_Real x y)))))))
+    
+(declare norm_<_Real
+  (! x (term Real)
+  (! y (term Real)
+  (! t (th_holds (<_Real x y))
+    (th_holds (<0_Real (-_Real x y)))))))
+    
+(declare norm_<=_Real
+  (! x (term Real)
+  (! y (term Real)
+  (! t (th_holds (<=_Real x y))
+    (th_holds (<=0_Real (-_Real x y)))))))
+    
+(declare norm_=_Real
+  (! x (term Real)
+  (! y (term Real)
+  (! t (th_holds (= Real x y))
+    (th_holds (=0_Real (-_Real x y)))))))
+    
+(declare norm_distinct_Real
+  (! x (term Real)
+  (! y (term Real)
+  (! t (th_holds (not (= Real x y)))
+    (th_holds (distinct0_Real (-_Real x y)))))))
+    
+;; weaken to non-strict inequality
+
+(declare >0_to_>=0_Real
+  (! x (term Real)
+  (! u (th_holds (>0_Real x))
+   (th_holds (>=0_Real x)))))
