@@ -292,29 +292,6 @@ bool Type::isRecord() const {
   return d_typeNode->isRecord();
 }
 
-/** Get the length of a tuple type */
-size_t Type::getTupleLength() const {
-  NodeManagerScope nms(d_nodeManager);
-  return d_typeNode->getTupleLength();
-}
-
-/** Get the constituent types of a tuple type */
-std::vector<Type> Type::getTupleTypes() const {
-  NodeManagerScope nms(d_nodeManager);
-  std::vector< TypeNode > vec = d_typeNode->getTupleTypes();
-  std::vector< Type > vect;
-  for( unsigned i=0; i<vec.size(); i++ ){
-    vect.push_back( vec[i].toType() );
-  }
-  return vect;
-}
-
-/** Get the description of the record type */
-const Record& Type::getRecord() const {
-  NodeManagerScope nms(d_nodeManager);
-  return d_typeNode->getRecord();
-}
-
 /** Is this a symbolic expression type? */
 bool Type::isSExpr() const {
   NodeManagerScope nms(d_nodeManager);
@@ -630,6 +607,29 @@ DatatypeType DatatypeType::instantiate(const std::vector<Type>& params) const {
     paramsNodes.push_back(*getTypeNode(*i));
   }
   return DatatypeType(makeType(d_nodeManager->mkTypeNode(kind::PARAMETRIC_DATATYPE, paramsNodes)));
+}
+
+/** Get the length of a tuple type */
+size_t DatatypeType::getTupleLength() const {
+  NodeManagerScope nms(d_nodeManager);
+  return d_typeNode->getTupleLength();
+}
+
+/** Get the constituent types of a tuple type */
+std::vector<Type> DatatypeType::getTupleTypes() const {
+  NodeManagerScope nms(d_nodeManager);
+  std::vector< TypeNode > vec = d_typeNode->getTupleTypes();
+  std::vector< Type > vect;
+  for( unsigned i=0; i<vec.size(); i++ ){
+    vect.push_back( vec[i].toType() );
+  }
+  return vect;
+}
+
+/** Get the description of the record type */
+const Record& DatatypeType::getRecord() const {
+  NodeManagerScope nms(d_nodeManager);
+  return d_typeNode->getRecord();
 }
 
 DatatypeType SelectorType::getDomain() const {

@@ -300,15 +300,6 @@ public:
    */
   bool isRecord() const;
 
-  /** Get the length of a tuple type */
-  size_t getTupleLength() const;
-
-  /** Get the constituent types of a tuple type */
-  std::vector<Type> getTupleTypes() const;
-
-  /** Get the description of the record type */
-  const Record& getRecord() const;
-
   /**
    * Is this a symbolic expression type?
    * @return true if the type is a symbolic expression type
@@ -678,6 +669,15 @@ public:
 
   /** Instantiate a datatype using this datatype constructor */
   DatatypeType instantiate(const std::vector<Type>& params) const;
+
+  /** Get the length of a tuple type */
+  size_t getTupleLength() const;
+
+  /** Get the constituent types of a tuple type */
+  std::vector<Type> getTupleTypes() const;
+
+  /** Get the description of the record type */
+  const Record& getRecord() const;
 
 };/* class DatatypeType */
 

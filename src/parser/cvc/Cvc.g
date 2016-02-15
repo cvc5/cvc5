@@ -1103,7 +1103,7 @@ type[CVC4::Type& t,
   : restrictedTypePossiblyFunctionLHS[t,check,lhs]
     { if(lhs) {
         assert(t.isTuple());
-        args = t.getTupleTypes();
+        args = ((DatatypeType)t).getTupleTypes();
       } else {
         args.push_back(t);
       }
@@ -1539,7 +1539,7 @@ tupleStore[CVC4::Expr& f]
       if(! t.isTuple()) {
         PARSER_STATE->parseError("tuple-update applied to non-tuple");
       }
-      size_t length = t.getTupleLength();
+      size_t length = ((DatatypeType)t).getTupleLength();
       if(k >= length) {
         std::stringstream ss;
         ss << "tuple is of length " << length << "; cannot update index " << k;
@@ -1576,7 +1576,7 @@ recordStore[CVC4::Expr& f]
            << "its type: " << t;
         PARSER_STATE->parseError(ss.str());
       }
-      const Record& rec = t.getRecord();
+      const Record& rec = ((DatatypeType)t).getRecord();
       if(! rec.contains(id)) {
         PARSER_STATE->parseError(std::string("no such field `") + id + "' in record");
       }
@@ -1707,7 +1707,7 @@ postfixTerm[CVC4::Expr& f]
           if(! t.isRecord()) {
             PARSER_STATE->parseError("record-select applied to non-record");
           }
-          const Record& rec = t.getRecord();
+          const Record& rec = ((DatatypeType)t).getRecord();
           if(!rec.contains(id)){
             PARSER_STATE->parseError(std::string("no such field `") + id + "' in record");
           }
@@ -1722,7 +1722,7 @@ postfixTerm[CVC4::Expr& f]
           if(! t.isTuple()) {
             PARSER_STATE->parseError("tuple-select applied to non-tuple");
           }
-          size_t length = t.getTupleLength();
+          size_t length = ((DatatypeType)t).getTupleLength();
           if(k >= length) {
             std::stringstream ss;
             ss << "tuple is of length " << length << "; cannot access index " << k;

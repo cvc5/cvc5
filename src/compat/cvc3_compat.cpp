@@ -1818,7 +1818,7 @@ Expr ValidityChecker::recordExpr(const std::vector<std::string>& fields,
 Expr ValidityChecker::recSelectExpr(const Expr& record, const std::string& field) {
   Type t = record.getType();
   const CVC4::Datatype& dt = ((CVC4::DatatypeType)t).getDatatype();
-  const CVC4::Record& rec = t.getRecord();
+  const CVC4::Record& rec = ((CVC4::DatatypeType)t).getRecord();
   unsigned index = rec.getIndex(field);
   return d_em->mkExpr(CVC4::kind::APPLY_SELECTOR_TOTAL, dt[0][index].getSelector(), record);
 }
@@ -2221,7 +2221,7 @@ Expr ValidityChecker::tupleExpr(const std::vector<Expr>& exprs) {
 }
 
 Expr ValidityChecker::tupleSelectExpr(const Expr& tuple, int index) {
-  CompatCheckArgument(index >= 0 && index < tuple.getType().getTupleLength(),
+  CompatCheckArgument(index >= 0 && index < ((CVC4::DatatypeType)tuple.getType()).getTupleLength(),
                       "invalid index in tuple select");
   const CVC4::Datatype& dt = ((CVC4::DatatypeType)tuple.getType()).getDatatype();
   return d_em->mkExpr(CVC4::kind::APPLY_SELECTOR_TOTAL, dt[0][index].getSelector(), tuple);
