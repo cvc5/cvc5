@@ -39,6 +39,7 @@ TESTS =	\
 	mar2014/smaller.smt2 \
 	mar2014/UniqueZipper.hs.1030minimized2.cvc4.smt2 \
 	mar2014/UniqueZipper.hs.1030minimized.cvc4.smt2 \
+	rels/rel.cvc \
 	copy_check_heap_access_33_4.smt2 \
 	cvc-sample.cvc \
 	emptyset.smt2 \

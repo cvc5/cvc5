@@ -506,6 +506,10 @@ void Smt2Printer::toStream(std::ostream& out, TNode n,
   case kind::SUBSET:
   case kind::MEMBER:
   case kind::SET_TYPE:
+  case kind::TRANSCLOSURE:
+  case kind::TRANSPOSE:
+  case kind::JOIN:
+  case kind::PRODUCT:
   case kind::SINGLETON: out << smtKindString(k) << " "; break;
 
     // fp theory
@@ -784,6 +788,10 @@ static string smtKindString(Kind k) throw() {
   case kind::SET_TYPE: return "Set";
   case kind::SINGLETON: return "singleton";
   case kind::INSERT: return "insert";
+  case kind::TRANSCLOSURE: return "transclosure";
+  case kind::TRANSPOSE: return "transpose";
+  case kind::PRODUCT: return "product";
+  case kind::JOIN: return "join";
 
     // fp theory
   case kind::FLOATINGPOINT_FP: return "fp";

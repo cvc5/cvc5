@@ -19,6 +19,7 @@
 
 #include "theory/theory.h"
 #include "theory/uf/equality_engine.h"
+#include "context/cdhashset.h"
 
 namespace CVC4 {
 namespace theory {
@@ -27,7 +28,9 @@ namespace sets {
 class TheorySetsRels {
 
 public:
-  TheorySetsRels(eq::EqualityEngine*);
+  TheorySetsRels(context::Context* c,
+                 context::UserContext* u,
+                 eq::EqualityEngine*);
 
   ~TheorySetsRels();
 
@@ -35,7 +38,18 @@ public:
 
 private:
 
+  /** True and false constant nodes */
+  Node d_trueNode;
+  Node d_falseNode;
+
   eq::EqualityEngine *d_eqEngine;
+
+  // save all the relational terms seen so far
+  context::CDHashSet <Node, NodeHashFunction> d_relsSaver;
+
+  void assertMembership(TNode fact, TNode reason, bool polarity);
+
+  Node reverseTuple(TNode tuple);
 };
 
 }/* CVC4::theory::sets namespace */
