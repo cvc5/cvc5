@@ -50,7 +50,7 @@ typedef __gnu_cxx::hash_set<Type, TypeHashFunction > TypeSet;
 
 class ArithProof : public TheoryProof {
 protected:
-  std::map<Expr, std::string> d_constRationalString; // all the variable/function declarations
+  // std::map<Expr, std::string> d_constRationalString; // all the variable/function declarations
 
   //   TypeSet d_sorts;        // all the uninterpreted sorts in this theory
   // ExprSet d_declarations; // all the variable/function declarations

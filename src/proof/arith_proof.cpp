@@ -717,13 +717,13 @@ void ArithProof::registerTerm(Expr term) {
                             << ". Type: " << term.getType() << std::endl;
 
     // already registered
-  if (d_constRationalString.find(term) != d_constRationalString.end())
-    return;
+  // if (d_constRationalString.find(term) != d_constRationalString.end())
+  //   return;
 
-  if (term.getKind() == kind::CONST_RATIONAL) {
-    Debug("gk::proof::arith") << "Const rational found: " << term << std::endl;
-    d_constRationalString[term] = ProofManager::sanitize(term);
-  }
+  // if (term.getKind() == kind::CONST_RATIONAL) {
+  //   Debug("gk::proof::arith") << "Const rational found: " << term << std::endl;
+  //   d_constRationalString[term] = ProofManager::sanitize(term);
+  // }
 
 
   // Type type = term.getType();
@@ -756,12 +756,23 @@ void LFSCArithProof::printTerm(Expr term, std::ostream& os, const LetMap& map) {
     Assert (term.getNumChildren() == 0);
 
     const Rational& r = term.getConst<Rational>();
-    if (r < 0) {
-      Debug("gk::proof::arith") << "Negative rational" << std::endl;
-    }
+    bool neg = (r < 0);
 
     os << "(a_real ";
-    os << d_constRationalString[term];
+
+    if (neg) {
+      Debug("gk::proof::arith") << "Negative rational" << std::endl;
+      os << "(~ ";
+    }
+
+    os << r.abs().getNumerator();
+    os << "/";
+    os << r.getDenominator();
+
+    if (neg) {
+      os << ") ";
+    }
+
     os << ") ";
     return;
   }
@@ -775,9 +786,27 @@ void LFSCArithProof::printTerm(Expr term, std::ostream& os, const LetMap& map) {
     os << ") ";
     return;
 
+  case kind::MINUS:
+    Assert (term.getNumChildren() == 2);
+    os << "(-_Real ";
+    d_proofEngine->printBoundTerm(term[0], os, map);
+    os << " ";
+    d_proofEngine->printBoundTerm(term[1], os, map);
+    os << ") ";
+    return;
+
   case kind::MULT:
     Assert (term.getNumChildren() == 2);
     os << "(*_Real ";
+    d_proofEngine->printBoundTerm(term[0], os, map);
+    os << " ";
+    d_proofEngine->printBoundTerm(term[1], os, map);
+    os << ") ";
+    return;
+
+  case kind::DIVISION:
+    Assert (term.getNumChildren() == 2);
+    os << "(/_Real ";
     d_proofEngine->printBoundTerm(term[0], os, map);
     os << " ";
     d_proofEngine->printBoundTerm(term[1], os, map);
@@ -796,6 +825,24 @@ void LFSCArithProof::printTerm(Expr term, std::ostream& os, const LetMap& map) {
   case kind::GEQ:
     Assert (term.getNumChildren() == 2);
     os << "(>=_Real ";
+    d_proofEngine->printBoundTerm(term[0], os, map);
+    os << " ";
+    d_proofEngine->printBoundTerm(term[1], os, map);
+    os << ") ";
+    return;
+
+  case kind::LT:
+    Assert (term.getNumChildren() == 2);
+    os << "(<_Real ";
+    d_proofEngine->printBoundTerm(term[0], os, map);
+    os << " ";
+    d_proofEngine->printBoundTerm(term[1], os, map);
+    os << ") ";
+    return;
+
+  case kind::LEQ:
+    Assert (term.getNumChildren() == 2);
+    os << "(<=_Real ";
     d_proofEngine->printBoundTerm(term[0], os, map);
     os << " ";
     d_proofEngine->printBoundTerm(term[1], os, map);
@@ -827,12 +874,12 @@ void LFSCArithProof::printTheoryLemmaProof(std::vector<Expr>& lemma, std::ostrea
 
 void LFSCArithProof::printDeclarations(std::ostream& os, std::ostream& paren) {
   // declaring the consts
-  std::map<Expr, std::string>::const_iterator it;
+  //  std::map<Expr, std::string>::const_iterator it;
 
-  for (it = d_constRationalString.begin(); it != d_constRationalString.end(); ++it) {
-    os << "(% " << it->second << " mpq\n";
-    paren << ")";
-  }
+  // for (it = d_constRationalString.begin(); it != d_constRationalString.end(); ++it) {
+  //   os << "(% " << it->second << " mpq\n";
+  //   paren << ")";
+  // }
 
 
   // declaring the sorts
