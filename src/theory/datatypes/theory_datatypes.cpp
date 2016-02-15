@@ -147,12 +147,8 @@ void TheoryDatatypes::check(Effort e) {
 
     // extra debug check to make sure that the rewriter did its job correctly
     Assert( atom.getKind() != kind::EQUAL ||
-            ( atom[0].getKind() != kind::TUPLE && atom[1].getKind() != kind::TUPLE &&
-              atom[0].getKind() != kind::RECORD && atom[1].getKind() != kind::RECORD &&
-              atom[0].getKind() != kind::TUPLE_UPDATE && atom[1].getKind() != kind::TUPLE_UPDATE &&
-              atom[0].getKind() != kind::RECORD_UPDATE && atom[1].getKind() != kind::RECORD_UPDATE &&
-              atom[0].getKind() != kind::TUPLE_SELECT && atom[1].getKind() != kind::TUPLE_SELECT &&
-              atom[0].getKind() != kind::RECORD_SELECT && atom[1].getKind() != kind::RECORD_SELECT ),
+            ( atom[0].getKind() != kind::TUPLE_UPDATE && atom[1].getKind() != kind::TUPLE_UPDATE &&
+              atom[0].getKind() != kind::RECORD_UPDATE && atom[1].getKind() != kind::RECORD_UPDATE),
             "tuple/record escaped into datatypes decision procedure; should have been rewritten away" );
 
     //assert the fact
@@ -550,86 +546,21 @@ void TheoryDatatypes::presolve() {
 Node TheoryDatatypes::ppRewrite(TNode in) {
   Debug("tuprec") << "TheoryDatatypes::ppRewrite(" << in << ")" << endl;
 
-  if(in.getKind() == kind::TUPLE_SELECT) {
-    TypeNode t = in[0].getType();
-    if(t.hasAttribute(expr::DatatypeTupleAttr())) {
-      t = t.getAttribute(expr::DatatypeTupleAttr());
-    }
-    TypeNode dtt = NodeManager::currentNM()->getDatatypeForTupleRecord(t);
-    const Datatype& dt = DatatypeType(dtt.toType()).getDatatype();
-    return NodeManager::currentNM()->mkNode(kind::APPLY_SELECTOR_TOTAL, Node::fromExpr(dt[0][in.getOperator().getConst<TupleSelect>().getIndex()].getSelector()), in[0]);
-  } else if(in.getKind() == kind::RECORD_SELECT) {
-    TypeNode t = in[0].getType();
-    if(t.hasAttribute(expr::DatatypeRecordAttr())) {
-      t = t.getAttribute(expr::DatatypeRecordAttr());
-    }
-    TypeNode dtt = NodeManager::currentNM()->getDatatypeForTupleRecord(t);
-    const Datatype& dt = DatatypeType(dtt.toType()).getDatatype();
-    return NodeManager::currentNM()->mkNode(kind::APPLY_SELECTOR_TOTAL, Node::fromExpr(dt[0][in.getOperator().getConst<RecordSelect>().getField()].getSelector()), in[0]);
-  }
-
   TypeNode t = in.getType();
 
-  // we only care about tuples and records here
-  if(in.getKind() != kind::TUPLE && in.getKind() != kind::TUPLE_UPDATE &&
-     in.getKind() != kind::RECORD && in.getKind() != kind::RECORD_UPDATE) {
-    if((t.isTuple() || t.isRecord()) && in.hasAttribute(smt::BooleanTermAttr())) {
-      Debug("tuprec") << "should map " << in << " of type " << t << " back to " << in.getAttribute(smt::BooleanTermAttr()).getType() << endl;
-      Debug("tuprec") << "so " << NodeManager::currentNM()->getDatatypeForTupleRecord(t).getDatatype() << " goes to " << NodeManager::currentNM()->getDatatypeForTupleRecord(in.getAttribute(smt::BooleanTermAttr()).getType()).getDatatype() << endl;
-      if(t.isTuple()) {
-        Debug("tuprec") << "current datatype-tuple-attr is " << NodeManager::currentNM()->getDatatypeForTupleRecord(t).getAttribute(expr::DatatypeTupleAttr()) << endl;
-        Debug("tuprec") << "setting to " << NodeManager::currentNM()->getDatatypeForTupleRecord(in.getAttribute(smt::BooleanTermAttr()).getType()).getAttribute(expr::DatatypeTupleAttr()) << endl;
-        NodeManager::currentNM()->getDatatypeForTupleRecord(t).setAttribute(expr::DatatypeTupleAttr(), NodeManager::currentNM()->getDatatypeForTupleRecord(in.getAttribute(smt::BooleanTermAttr()).getType()).getAttribute(expr::DatatypeTupleAttr()));
-      } else {
-        Debug("tuprec") << "current datatype-record-attr is " << NodeManager::currentNM()->getDatatypeForTupleRecord(t).getAttribute(expr::DatatypeRecordAttr()) << endl;
-        Debug("tuprec") << "setting to " << NodeManager::currentNM()->getDatatypeForTupleRecord(in.getAttribute(smt::BooleanTermAttr()).getType()).getAttribute(expr::DatatypeRecordAttr()) << endl;
-        NodeManager::currentNM()->getDatatypeForTupleRecord(t).setAttribute(expr::DatatypeRecordAttr(), NodeManager::currentNM()->getDatatypeForTupleRecord(in.getAttribute(smt::BooleanTermAttr()).getType()).getAttribute(expr::DatatypeRecordAttr()));
-      }
-    }
-
-    if( in.getKind()==EQUAL ){
-      Node nn;
-      std::vector< Node > rew;
-      if( DatatypesRewriter::checkClash(in[0], in[1], rew) ){
-        nn = NodeManager::currentNM()->mkConst(false);
-      }else{
-        nn = rew.size()==0 ? d_true :
-                  ( rew.size()==1 ? rew[0] : NodeManager::currentNM()->mkNode( kind::AND, rew ) );
-      }
-      return nn;
-    }
-
-    // nothing to do
-    return in;
-  }
-
-  if(t.hasAttribute(expr::DatatypeTupleAttr())) {
-    t = t.getAttribute(expr::DatatypeTupleAttr());
-  } else if(t.hasAttribute(expr::DatatypeRecordAttr())) {
-    t = t.getAttribute(expr::DatatypeRecordAttr());
-  }
-
-  // if the type doesn't have an associated datatype, then make one for it
-  TypeNode dtt = (t.isTuple() || t.isRecord()) ? NodeManager::currentNM()->getDatatypeForTupleRecord(t) : t;
-
-  const Datatype& dt = DatatypeType(dtt.toType()).getDatatype();
-
-  // now rewrite the expression
-  Node n;
-  if(in.getKind() == kind::TUPLE || in.getKind() == kind::RECORD) {
-    NodeBuilder<> b(kind::APPLY_CONSTRUCTOR);
-    b << Node::fromExpr(dt[0].getConstructor());
-    b.append(in.begin(), in.end());
-    n = b;
-  } else if(in.getKind() == kind::TUPLE_UPDATE || in.getKind() == kind::RECORD_UPDATE) {
+  if(in.getKind() == kind::TUPLE_UPDATE || in.getKind() == kind::RECORD_UPDATE) {
+    Assert( t.isDatatype() );
+    const Datatype& dt = DatatypeType(t.toType()).getDatatype();
     NodeBuilder<> b(kind::APPLY_CONSTRUCTOR);
     b << Node::fromExpr(dt[0].getConstructor());
     size_t size, updateIndex;
     if(in.getKind() == kind::TUPLE_UPDATE) {
-      size = t.getNumChildren();
+      Assert( t.isTuple() );
+      size = t.getTupleLength();
       updateIndex = in.getOperator().getConst<TupleUpdate>().getIndex();
     } else { // kind::RECORD_UPDATE
-      const Record& record = t.getConst<Record>();
+      Assert( t.isRecord() );
+      const Record& record = t.getRecord();
       size = record.getNumFields();
       updateIndex = record.getIndex(in.getOperator().getConst<RecordUpdate>().getField());
     }
@@ -647,15 +578,39 @@ Node TheoryDatatypes::ppRewrite(TNode in) {
       }
     }
     Debug("tuprec") << "builder says " << b << std::endl;
-    n = b;
+    Node n = b;
+    return n;
   }
 
-  Assert(!n.isNull());
+  if((t.isTuple() || t.isRecord()) && in.hasAttribute(smt::BooleanTermAttr())) {
+    Debug("tuprec") << "should map " << in << " of type " << t << " back to " << in.getAttribute(smt::BooleanTermAttr()).getType() << endl;
+    Debug("tuprec") << "so " << t.getDatatype() << " goes to " << in.getAttribute(smt::BooleanTermAttr()).getType().getDatatype() << endl;
+    if(t.isTuple()) {
+      Debug("tuprec") << "current datatype-tuple-attr is " << t.getAttribute(expr::DatatypeTupleAttr()) << endl;
+      Debug("tuprec") << "setting to " << in.getAttribute(smt::BooleanTermAttr()).getType().getAttribute(expr::DatatypeTupleAttr()) << endl;
+      t.setAttribute(expr::DatatypeTupleAttr(), in.getAttribute(smt::BooleanTermAttr()).getType().getAttribute(expr::DatatypeTupleAttr()));
+    } else {
+      Debug("tuprec") << "current datatype-record-attr is " << t.getAttribute(expr::DatatypeRecordAttr()) << endl;
+      Debug("tuprec") << "setting to " << in.getAttribute(smt::BooleanTermAttr()).getType().getAttribute(expr::DatatypeRecordAttr()) << endl;
+      t.setAttribute(expr::DatatypeRecordAttr(), in.getAttribute(smt::BooleanTermAttr()).getType().getAttribute(expr::DatatypeRecordAttr()));
+    }
+  }
 
+  if( in.getKind()==EQUAL ){
+    Node nn;
+    std::vector< Node > rew;
+    if( DatatypesRewriter::checkClash(in[0], in[1], rew) ){
+      nn = NodeManager::currentNM()->mkConst(false);
+    }else{
+      nn = rew.size()==0 ? d_true :
+                ( rew.size()==1 ? rew[0] : NodeManager::currentNM()->mkNode( kind::AND, rew ) );
+    }
+    return nn;
+  }
 
-  Debug("tuprec") << "REWROTE " << in << " to " << n << std::endl;
+  // nothing to do
+  return in;
 
-  return n;
 }
 
 void TheoryDatatypes::addSharedTerm(TNode t) {
@@ -2123,9 +2078,7 @@ Node TheoryDatatypes::mkAnd( std::vector< TNode >& assumptions ) {
 }
 
 bool TheoryDatatypes::checkClashModEq( TNode n1, TNode n2, std::vector< Node >& exp, std::vector< std::pair< TNode, TNode > >& deq_cand ) {
-  if( (n1.getKind() == kind::APPLY_CONSTRUCTOR && n2.getKind() == kind::APPLY_CONSTRUCTOR) ||
-      (n1.getKind() == kind::TUPLE && n2.getKind() == kind::TUPLE) ||
-      (n1.getKind() == kind::RECORD && n2.getKind() == kind::RECORD) ) {
+  if( n1.getKind() == kind::APPLY_CONSTRUCTOR && n2.getKind() == kind::APPLY_CONSTRUCTOR ) {
     if( n1.getOperator() != n2.getOperator() ) {
       return true;
     } else {

@@ -177,90 +177,6 @@ public:
 
 };/* DatatypesEnumerator */
 
-class TupleEnumerator : public TypeEnumeratorBase<TupleEnumerator> {
-  TypeEnumeratorProperties * d_tep;
-  TypeEnumerator** d_enumerators;
-
-  /** Allocate and initialize the delegate enumerators */
-  void newEnumerators() {
-    d_enumerators = new TypeEnumerator*[getType().getNumChildren()];
-    for(size_t i = 0; i < getType().getNumChildren(); ++i) {
-      d_enumerators[i] = new TypeEnumerator(getType()[i], d_tep);
-    }
-  }
-
-  void deleteEnumerators() throw() {
-    if(d_enumerators != NULL) {
-      for(size_t i = 0; i < getType().getNumChildren(); ++i) {
-        delete d_enumerators[i];
-      }
-      delete [] d_enumerators;
-      d_enumerators = NULL;
-    }
-  }
-
-public:
-
-  TupleEnumerator(TypeNode type, TypeEnumeratorProperties * tep = NULL) throw() :
-    TypeEnumeratorBase<TupleEnumerator>(type), d_tep(tep) {
-    Assert(type.isTuple());
-    newEnumerators();
-  }
-
-  TupleEnumerator(const TupleEnumerator& te) throw() :
-    TypeEnumeratorBase<TupleEnumerator>(te.getType()),
-    d_tep(te.d_tep),
-    d_enumerators(NULL) {
-
-    if(te.d_enumerators != NULL) {
-      newEnumerators();
-      for(size_t i = 0; i < getType().getNumChildren(); ++i) {
-        *d_enumerators[i] = TypeEnumerator(*te.d_enumerators[i]);
-      }
-    }
-  }
-
-  virtual ~TupleEnumerator() throw() {
-    deleteEnumerators();
-  }
-
-  Node operator*() throw(NoMoreValuesException) {
-    if(isFinished()) {
-      throw NoMoreValuesException(getType());
-    }
-
-    NodeBuilder<> nb(kind::TUPLE);
-    for(size_t i = 0; i < getType().getNumChildren(); ++i) {
-      nb << **d_enumerators[i];
-    }
-    return Node(nb);
-  }
-
-  TupleEnumerator& operator++() throw() {
-    if(isFinished()) {
-      return *this;
-    }
-
-    size_t i;
-    for(i = 0; i < getType().getNumChildren(); ++i) {
-      if(d_enumerators[i]->isFinished()) {
-        *d_enumerators[i] = TypeEnumerator(getType()[i], d_tep);
-      } else {
-        ++*d_enumerators[i];
-        return *this;
-      }
-    }
-
-    deleteEnumerators();
-
-    return *this;
-  }
-
-  bool isFinished() throw() {
-    return d_enumerators == NULL;
-  }
-
-};/* TupleEnumerator */
 
 class RecordEnumerator : public TypeEnumeratorBase<RecordEnumerator> {
   TypeEnumeratorProperties * d_tep;
@@ -316,15 +232,8 @@ public:
       throw NoMoreValuesException(getType());
     }
 
-    NodeBuilder<> nb(kind::RECORD);
-    Debug("te") << "record enumerator: creating record of type " << getType() << std::endl;
-    nb << getType();
-    const Record& rec = getType().getConst<Record>();
-    for(size_t i = 0; i < rec.getNumFields(); ++i) {
-      Debug("te") << " - " << i << " " << std::flush << "=> " << **d_enumerators[i] << std::endl;
-      nb << **d_enumerators[i];
-    }
-    return Node(nb);
+
+    return Node::null();
   }
 
   RecordEnumerator& operator++() throw() {

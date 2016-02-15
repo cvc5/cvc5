@@ -267,44 +267,6 @@ struct ConstructorProperties {
   }
 };/* struct ConstructorProperties */
 
-struct TupleTypeRule {
-  inline static TypeNode computeType(NodeManager* nodeManager, TNode n, bool check) {
-    Assert(n.getKind() == kind::TUPLE);
-    std::vector<TypeNode> types;
-    for(TNode::iterator child_it = n.begin(), child_it_end = n.end();
-        child_it != child_it_end;
-        ++child_it) {
-      types.push_back((*child_it).getType(check));
-    }
-    return nodeManager->mkTupleType(types);
-  }
-};/* struct TupleTypeRule */
-
-struct TupleSelectTypeRule {
-  inline static TypeNode computeType(NodeManager* nodeManager, TNode n, bool check) {
-    Assert(n.getKind() == kind::TUPLE_SELECT);
-    if(n.getOperator().getKind() != kind::TUPLE_SELECT_OP) {
-      throw TypeCheckingExceptionPrivate(n, "Tuple-select expression requires TupleSelect operator");
-    }
-    const TupleSelect& ts = n.getOperator().getConst<TupleSelect>();
-    TypeNode tupleType = n[0].getType(check);
-    if(!tupleType.isTuple()) {
-      if(!tupleType.hasAttribute(expr::DatatypeTupleAttr())) {
-        throw TypeCheckingExceptionPrivate(n, "Tuple-select expression formed over non-tuple");
-      }
-      tupleType = tupleType.getAttribute(expr::DatatypeTupleAttr());
-    }
-    if(ts.getIndex() >= tupleType.getNumChildren()) {
-      std::stringstream ss;
-      ss << "Tuple-select expression index `" << ts.getIndex()
-         << "' is not a valid index; tuple type only has "
-         << tupleType.getNumChildren() << " fields";
-      throw TypeCheckingExceptionPrivate(n, ss.str().c_str());
-    }
-    return tupleType[ts.getIndex()];
-  }
-};/* struct TupleSelectTypeRule */
-
 struct TupleUpdateTypeRule {
   inline static TypeNode computeType(NodeManager* nodeManager, TNode n, bool check) {
     Assert(n.getKind() == kind::TUPLE_UPDATE);
@@ -313,154 +275,20 @@ struct TupleUpdateTypeRule {
     TypeNode newValue = n[1].getType(check);
     if(check) {
       if(!tupleType.isTuple()) {
-        if(!tupleType.hasAttribute(expr::DatatypeTupleAttr())) {
-          throw TypeCheckingExceptionPrivate(n, "Tuple-update expression formed over non-tuple");
-        }
+        throw TypeCheckingExceptionPrivate(n, "Tuple-update expression formed over non-tuple");
         tupleType = tupleType.getAttribute(expr::DatatypeTupleAttr());
       }
-      if(tu.getIndex() >= tupleType.getNumChildren()) {
+      if(tu.getIndex() >= tupleType.getTupleLength()) {
         std::stringstream ss;
         ss << "Tuple-update expression index `" << tu.getIndex()
            << "' is not a valid index; tuple type only has "
-           << tupleType.getNumChildren() << " fields";
+           << tupleType.getTupleLength() << " fields";
         throw TypeCheckingExceptionPrivate(n, ss.str().c_str());
       }
     }
     return tupleType;
   }
 };/* struct TupleUpdateTypeRule */
-
-struct TupleProperties {
-  inline static Cardinality computeCardinality(TypeNode type) {
-    // Don't assert this; allow other theories to use this cardinality
-    // computation.
-    //
-    // Assert(type.getKind() == kind::TUPLE_TYPE);
-
-    Cardinality card(1);
-    for(TypeNode::iterator i = type.begin(),
-          i_end = type.end();
-        i != i_end;
-        ++i) {
-      card *= (*i).getCardinality();
-    }
-
-    return card;
-  }
-
-  inline static bool isWellFounded(TypeNode type) {
-    // Don't assert this; allow other theories to use this
-    // wellfoundedness computation.
-    //
-    // Assert(type.getKind() == kind::TUPLE_TYPE);
-
-    for(TypeNode::iterator i = type.begin(),
-          i_end = type.end();
-        i != i_end;
-        ++i) {
-      if(! (*i).isWellFounded()) {
-        return false;
-      }
-    }
-
-    return true;
-  }
-
-  inline static Node mkGroundTerm(TypeNode type) {
-    Assert(type.getKind() == kind::TUPLE_TYPE);
-
-    std::vector<Node> children;
-    for(TypeNode::iterator i = type.begin(),
-          i_end = type.end();
-        i != i_end;
-        ++i) {
-      children.push_back((*i).mkGroundTerm());
-    }
-
-    return NodeManager::currentNM()->mkNode(kind::TUPLE, children);
-  }
-
-  inline static bool computeIsConst(NodeManager* nodeManager, TNode n) {
-    Assert(n.getKind() == kind::TUPLE);
-    NodeManagerScope nms(nodeManager);
-
-    for(TNode::iterator i = n.begin(),
-          i_end = n.end();
-        i != i_end;
-        ++i) {
-      if(! (*i).isConst()) {
-        return false;
-      }
-    }
-
-    return true;
-  }
-};/* struct TupleProperties */
-
-struct RecordTypeRule {
-  inline static TypeNode computeType(NodeManager* nodeManager, TNode n, bool check) {
-    Assert(n.getKind() == kind::RECORD);
-    NodeManagerScope nms(nodeManager);
-    const Record& rec = n.getOperator().getConst<Record>();
-    const Record::FieldVector& fields = rec.getFields();
-    if(check) {
-      Record::FieldVector::const_iterator i = fields.begin();
-      for(TNode::iterator child_it = n.begin(), child_it_end = n.end();
-          child_it != child_it_end;
-          ++child_it, ++i) {
-        if(i == fields.end()) {
-          throw TypeCheckingExceptionPrivate(n, "record description has different length than record literal");
-        }
-        if(!(*child_it).getType(check).isComparableTo(TypeNode::fromType((*i).second))) {
-          std::stringstream ss;
-          ss << "record description types differ from record literal types\nDescription type: " << (*child_it).getType() << "\nLiteral type: " << (*i).second;
-          throw TypeCheckingExceptionPrivate(n, ss.str());
-        }
-      }
-      if(i != fields.end()) {
-        throw TypeCheckingExceptionPrivate(n, "record description has different length than record literal");
-      }
-    }
-    return nodeManager->mkRecordType(rec);
-  }
-};/* struct RecordTypeRule */
-
-struct RecordSelectTypeRule {
-  inline static Record::FieldVector::const_iterator record_find(const Record::FieldVector& fields, std::string name){
-    for(Record::FieldVector::const_iterator i = fields.begin(), i_end = fields.end(); i != i_end; ++i){
-      if((*i).first == name) {
-        return i;
-      }
-    }
-    return fields.end();
-  }
-
-  inline static TypeNode computeType(NodeManager* nodeManager, TNode n, bool check) {
-    Assert(n.getKind() == kind::RECORD_SELECT);
-    NodeManagerScope nms(nodeManager);
-    if(n.getOperator().getKind() != kind::RECORD_SELECT_OP) {
-      throw TypeCheckingExceptionPrivate(n, "Tuple-select expression requires TupleSelect operator");
-    }
-    const RecordSelect& rs = n.getOperator().getConst<RecordSelect>();
-    TypeNode recordType = n[0].getType(check);
-    if(!recordType.isRecord()) {
-      if(!recordType.hasAttribute(expr::DatatypeRecordAttr())) {
-        throw TypeCheckingExceptionPrivate(n, "Record-select expression formed over non-record");
-      }
-      recordType = recordType.getAttribute(expr::DatatypeRecordAttr());
-    }
-    const Record& rec = recordType.getRecord();
-    const Record::FieldVector& fields = rec.getFields();
-    Record::FieldVector::const_iterator field = record_find(fields, rs.getField());
-    if(field == fields.end()) {
-      std::stringstream ss;
-      ss << "Record-select field `" << rs.getField()
-         << "' is not a valid field name for the record type";
-      throw TypeCheckingExceptionPrivate(n, ss.str().c_str());
-    }
-    return TypeNode::fromType((*field).second);
-  }
-};/* struct RecordSelectTypeRule */
 
 struct RecordUpdateTypeRule {
   inline static TypeNode computeType(NodeManager* nodeManager, TNode n, bool check) {
@@ -471,10 +299,7 @@ struct RecordUpdateTypeRule {
     TypeNode newValue = n[1].getType(check);
     if(check) {
       if(!recordType.isRecord()) {
-        if(!recordType.hasAttribute(expr::DatatypeRecordAttr())) {
-          throw TypeCheckingExceptionPrivate(n, "Record-update expression formed over non-record");
-        }
-        recordType = recordType.getAttribute(expr::DatatypeRecordAttr());
+        throw TypeCheckingExceptionPrivate(n, "Record-update expression formed over non-record");
       }
       const Record& rec = recordType.getRecord();
       if(!rec.contains(ru.getField())) {
@@ -491,33 +316,16 @@ struct RecordUpdateTypeRule {
 struct RecordProperties {
   inline static Node mkGroundTerm(TypeNode type) {
     Assert(type.getKind() == kind::RECORD_TYPE);
-
-    const Record& rec = type.getRecord();
-    const Record::FieldVector& fields = rec.getFields();
-    std::vector<Node> children;
-    for(Record::FieldVector::const_iterator i = fields.begin(),
-          i_end = fields.end();
-        i != i_end;
-        ++i) {
-      children.push_back((*i).second.mkGroundTerm());
-    }
-
-    return NodeManager::currentNM()->mkNode(NodeManager::currentNM()->mkConst(rec), children);
+    return Node::null();
   }
-
   inline static bool computeIsConst(NodeManager* nodeManager, TNode n) {
-    Assert(n.getKind() == kind::RECORD);
-    NodeManagerScope nms(nodeManager);
-
-    for(TNode::iterator i = n.begin(),
-          i_end = n.end();
-        i != i_end;
-        ++i) {
-      if(! (*i).isConst()) {
-        return false;
-      }
-    }
-
+    return true;
+  }
+  inline static Cardinality computeCardinality(TypeNode type) {
+    Cardinality card(1);
+    return card;
+  }
+  inline static bool isWellFounded(TypeNode type) {
     return true;
   }
 };/* struct RecordProperties */

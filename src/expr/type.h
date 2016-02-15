@@ -56,8 +56,6 @@ class ConstructorType;
 class SelectorType;
 class TesterType;
 class FunctionType;
-class TupleType;
-class RecordType;
 class SExprType;
 class SortType;
 class SortConstructorType;
@@ -302,6 +300,15 @@ public:
    */
   bool isRecord() const;
 
+  /** Get the length of a tuple type */
+  size_t getTupleLength() const;
+
+  /** Get the constituent types of a tuple type */
+  std::vector<Type> getTupleTypes() const;
+
+  /** Get the description of the record type */
+  const Record& getRecord() const;
+
   /**
    * Is this a symbolic expression type?
    * @return true if the type is a symbolic expression type
@@ -459,39 +466,7 @@ public:
 };/* class FunctionType */
 
 /**
- * Class encapsulating a tuple type.
- */
-class CVC4_PUBLIC TupleType : public Type {
-
-public:
-
-  /** Construct from the base type */
-  TupleType(const Type& type = Type()) throw(IllegalArgumentException);
-
-  /** Get the length of the tuple.  The same as getTypes().size(). */
-  size_t getLength() const;
-
-  /** Get the constituent types */
-  std::vector<Type> getTypes() const;
-
-};/* class TupleType */
-
-/**
- * Class encapsulating a record type.
- */
-class CVC4_PUBLIC RecordType : public Type {
-
-public:
-
-  /** Construct from the base type */
-  RecordType(const Type& type = Type()) throw(IllegalArgumentException);
-
-  /** Get the constituent types */
-  const Record& getRecord() const;
-};/* class RecordType */
-
-/**
- * Class encapsulating a tuple type.
+ * Class encapsulating a sexpr type.
  */
 class CVC4_PUBLIC SExprType : public Type {
 

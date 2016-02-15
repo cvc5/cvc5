@@ -2587,6 +2587,9 @@ bool SmtEnginePrivate::nonClausalSimplify() {
   TimerStat::CodeTimer nonclausalTimer(d_smt.d_stats->d_nonclausalSimplificationTime);
 
   Trace("simplify") << "SmtEnginePrivate::nonClausalSimplify()" << endl;
+  for (unsigned i = 0; i < d_assertions.size(); ++ i) {
+    Trace("simplify") << "Assertion #" << i << " : " << d_assertions[i] << std::endl;
+  }
 
   if(d_propagatorNeedsFinish) {
     d_propagator.finish();
@@ -2622,6 +2625,8 @@ bool SmtEnginePrivate::nonClausalSimplify() {
     return false;
   }
 
+
+  Trace("simplify") << "Iterate through " << d_nonClausalLearnedLiterals.size() << " learned literals." << std::endl;
   // No conflict, go through the literals and solve them
   SubstitutionMap constantPropagations(d_smt.d_context);
   SubstitutionMap newSubstitutions(d_smt.d_context);
@@ -2632,10 +2637,12 @@ bool SmtEnginePrivate::nonClausalSimplify() {
     Node learnedLiteral = d_nonClausalLearnedLiterals[i];
     Assert(Rewriter::rewrite(learnedLiteral) == learnedLiteral);
     Assert(d_topLevelSubstitutions.apply(learnedLiteral) == learnedLiteral);
+    Trace("simplify") << "Process learnedLiteral : " << learnedLiteral << std::endl;
     Node learnedLiteralNew = newSubstitutions.apply(learnedLiteral);
     if (learnedLiteral != learnedLiteralNew) {
       learnedLiteral = Rewriter::rewrite(learnedLiteralNew);
     }
+    Trace("simplify") << "Process learnedLiteral, after newSubs : " << learnedLiteral << std::endl;
     for (;;) {
       learnedLiteralNew = constantPropagations.apply(learnedLiteral);
       if (learnedLiteralNew == learnedLiteral) {
@@ -2644,6 +2651,7 @@ bool SmtEnginePrivate::nonClausalSimplify() {
       ++d_smt.d_stats->d_numConstantProps;
       learnedLiteral = Rewriter::rewrite(learnedLiteralNew);
     }
+    Trace("simplify") << "Process learnedLiteral, after constProp : " << learnedLiteral << std::endl;
     // It might just simplify to a constant
     if (learnedLiteral.isConst()) {
       if (learnedLiteral.getConst<bool>()) {
@@ -2763,6 +2771,7 @@ bool SmtEnginePrivate::nonClausalSimplify() {
 #endif /* CVC4_ASSERTIONS */
   }
   // Resize the learnt
+  Trace("simplify") << "Resize non-clausal learned literals to " << j << std::endl;
   d_nonClausalLearnedLiterals.resize(j);
 
   hash_set<TNode, TNodeHashFunction> s;

@@ -71,21 +71,6 @@ Node ModelPostprocessor::rewriteAs(TNode n, TypeNode asType) {
       return NodeManager::currentNM()->mkNode(kind::APPLY_CONSTRUCTOR, (tf ? asDatatype[0] : asDatatype[1]).getConstructor());
     }
   }
-  if(n.getType().isRecord() && asType.isRecord()) {
-    Debug("boolean-terms") << "+++ got a record - rewriteAs " << n << " : " << asType << endl;
-    const Record& rec CVC4_UNUSED = n.getType().getConst<Record>();
-    const Record& asRec = asType.getConst<Record>();
-    Assert(rec.getNumFields() == asRec.getNumFields());
-    Assert(n.getNumChildren() == asRec.getNumFields());
-    NodeBuilder<> b(n.getKind());
-    b << asType;
-    for(size_t i = 0; i < n.getNumChildren(); ++i) {
-      b << rewriteAs(n[i], TypeNode::fromType(asRec[i].second));
-    }
-    Node out = b;
-    Debug("boolean-terms") << "+++ returning record " << out << endl;
-    return out;
-  }
   Debug("boolean-terms") << "+++ rewriteAs " << n << " : " << asType << endl;
   if(n.getType().isArray()) {
     Assert(asType.isArray());
@@ -157,80 +142,7 @@ void ModelPostprocessor::visit(TNode current, TNode parent) {
   Debug("tuprec") << "visiting " << current << endl;
   Assert(!alreadyVisited(current, TNode::null()));
   bool rewriteChildren = false;
-  if(current.getType().hasAttribute(expr::DatatypeTupleAttr())) {
-    if(current.getKind() == kind::APPLY_CONSTRUCTOR){
-      TypeNode expectType = current.getType().getAttribute(expr::DatatypeTupleAttr());
-      NodeBuilder<> b(kind::TUPLE);
-      TypeNode::iterator t = expectType.begin();
-      for(TNode::iterator i = current.begin(); i != current.end(); ++i, ++t) {
-        Assert(alreadyVisited(*i, TNode::null()));
-        Assert(t != expectType.end());
-        TNode n = d_nodes[*i];
-        n = n.isNull() ? *i : n;
-        if(!n.getType().isSubtypeOf(*t)) {
-          Assert(n.getType().isBitVector(1u) ||
-                 (n.getType().isDatatype() && n.getType().hasAttribute(BooleanTermAttr())));
-          Assert(n.isConst());
-          Assert((*t).isBoolean());
-          if(n.getType().isBitVector(1u)) {
-            b << NodeManager::currentNM()->mkConst(bool(n.getConst<BitVector>().getValue() == 1));
-          } else {
-            // we assume (by construction) false is first; see boolean_terms.cpp
-            b << NodeManager::currentNM()->mkConst(bool(Datatype::indexOf(n.getOperator().toExpr()) == 1));
-          }
-        } else {
-          b << n;
-        }
-      }
-      Assert(t == expectType.end());
-      d_nodes[current] = b;
-      Debug("tuprec") << "returning " << d_nodes[current] << ", operator = " << d_nodes[current].getOperator() << endl;
-      // The assert below is too strong---we might be returning a model value but
-      // expect a type that still uses datatypes for tuples/records.  If it's
-      // really not the right type we should catch it in SmtEngine anyway.
-      // Assert(d_nodes[current].getType() == expectType);
-      return;
-    }else{
-      rewriteChildren = true;
-    }
-  } else if(current.getType().hasAttribute(expr::DatatypeRecordAttr())) {
-    if(current.getKind() == kind::APPLY_CONSTRUCTOR){
-      //Assert(current.getKind() == kind::APPLY_CONSTRUCTOR);
-      TypeNode expectType = current.getType().getAttribute(expr::DatatypeRecordAttr());
-      const Record& expectRec = expectType.getConst<Record>();
-      NodeBuilder<> b(kind::RECORD);
-      b << current.getType().getAttribute(expr::DatatypeRecordAttr());
-      const Record::FieldVector& fields = expectRec.getFields();
-      Record::FieldVector::const_iterator t = fields.begin();
-      for(TNode::iterator i = current.begin(); i != current.end(); ++i, ++t) {
-        Assert(alreadyVisited(*i, TNode::null()));
-        Assert(t != fields.end());
-        TNode n = d_nodes[*i];
-        n = n.isNull() ? *i : n;
-        if(!n.getType().isSubtypeOf(TypeNode::fromType((*t).second))) {
-          Assert(n.getType().isBitVector(1u) ||
-                 (n.getType().isDatatype() && n.getType().hasAttribute(BooleanTermAttr())));
-          Assert(n.isConst());
-          Assert((*t).second.isBoolean());
-          if(n.getType().isBitVector(1u)) {
-            b << NodeManager::currentNM()->mkConst(bool(n.getConst<BitVector>().getValue() == 1));
-          } else {
-            // we assume (by construction) false is first; see boolean_terms.cpp
-            b << NodeManager::currentNM()->mkConst(bool(Datatype::indexOf(n.getOperator().toExpr()) == 1));
-          }
-        } else {
-          b << n;
-        }
-      }
-      Assert(t == fields.end());
-      d_nodes[current] = b;
-      Debug("tuprec") << "returning " << d_nodes[current] << ", operator = " << d_nodes[current].getOperator() << endl;
-      Assert(d_nodes[current].getType() == expectType);
-      return;
-    }else{
-      rewriteChildren = true;
-    }
-  } else if(current.getKind() == kind::APPLY_CONSTRUCTOR &&
+  if(current.getKind() == kind::APPLY_CONSTRUCTOR &&
             ( current.getOperator().hasAttribute(BooleanTermAttr()) ||
               ( current.getOperator().getKind() == kind::APPLY_TYPE_ASCRIPTION &&
                 current.getOperator()[0].hasAttribute(BooleanTermAttr()) ) )) {

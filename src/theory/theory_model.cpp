@@ -784,9 +784,6 @@ void TheoryEngineModelBuilder::buildModel(Model* m, bool fullModel)
         continue;
       }
       TypeNode t = TypeSet::getType(it);
-      if(t.isTuple() || t.isRecord()) {
-        t = NodeManager::currentNM()->getDatatypeForTupleRecord(t);
-      }
       
       //get properties of this type
       bool isCorecursive = false;
