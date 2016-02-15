@@ -139,31 +139,17 @@ Node BooleanTermConverter::rewriteAs(TNode in, TypeNode as, std::map< TypeNode, 
     processing[in_t] = true;
     if(in.getType().isRecord()) {
       Assert(as.isRecord());
-      const Record& inRec = in.getType().getConst<Record>();
-      const Record& asRec = as.getConst<Record>();
+      const Record& inRec = in.getType().getRecord();
+      const Record& asRec = as.getRecord();
       Assert(inRec.getNumFields() == asRec.getNumFields());
-      NodeBuilder<> nb(kind::RECORD);
+      const Datatype & dt = ((DatatypeType)in.getType().toType()).getDatatype();
+      NodeBuilder<> nb(kind::APPLY_CONSTRUCTOR);
       nb << NodeManager::currentNM()->mkConst(asRec);
       for(size_t i = 0; i < asRec.getNumFields(); ++i) {
         Assert(inRec[i].first == asRec[i].first);
-        Node arg = NodeManager::currentNM()->mkNode(NodeManager::currentNM()->mkConst(RecordSelect(inRec[i].first)), in);
+        Node arg = NodeManager::currentNM()->mkNode(kind::APPLY_SELECTOR_TOTAL, dt[0][i].getSelector(), in);
         if(inRec[i].second != asRec[i].second) {
           arg = rewriteAs(arg, TypeNode::fromType(asRec[i].second), processing);
-        }
-        nb << arg;
-      }
-      Node out = nb;
-      processing.erase( in_t );
-      return out;
-    }
-    if(in.getType().isTuple()) {
-      Assert(as.isTuple());
-      Assert(in.getType().getNumChildren() == as.getNumChildren());
-      NodeBuilder<> nb(kind::TUPLE);
-      for(size_t i = 0; i < as.getNumChildren(); ++i) {
-        Node arg = NodeManager::currentNM()->mkNode(NodeManager::currentNM()->mkConst(TupleSelect(i)), in);
-        if(in.getType()[i] != as[i]) {
-          arg = rewriteAs(arg, as[i], processing);
         }
         nb << arg;
       }
@@ -387,25 +373,6 @@ TypeNode BooleanTermConverter::convertType(TypeNode type, bool datatypesContext)
     } else Debug("boolean-terms") << "OUT is DIFFERENT FROM TYPE" << endl;
     return out;
   }
-  if(type.isRecord()) {
-    const Record& rec = type.getConst<Record>();
-    const Record::FieldVector& fields = rec.getFields();
-    vector< pair<string, Type> > flds;
-    for(Record::FieldVector::const_iterator i = fields.begin(); i != fields.end(); ++i) {
-      TypeNode converted = convertType(TypeNode::fromType((*i).second), true);
-      if(TypeNode::fromType((*i).second) != converted) {
-        flds.push_back(make_pair((*i).first, converted.toType()));
-      } else {
-        flds.push_back(*i);
-      }
-    }
-    TypeNode newRec = NodeManager::currentNM()->mkRecordType(Record(flds));
-    Debug("tuprec") << "converted " << type << " to " << newRec << endl;
-    if(newRec != type) {
-      outNode = newRec;// cache it
-    }
-    return newRec;
-  }
   if(!type.isSort() && type.getNumChildren() > 0) {
     Debug("boolean-terms") << "here at A for " << type << ":" << type.getId() << endl;
     // This should handle tuples and arrays ok.
@@ -460,7 +427,9 @@ Node BooleanTermConverter::rewriteBooleanTermsRec(TNode top, theory::TheoryId pa
   stack< triple<TNode, theory::TheoryId, bool> > worklist;
   worklist.push(triple<TNode, theory::TheoryId, bool>(top, parentTheory, false));
   stack< NodeBuilder<> > result;
-  result.push(NodeBuilder<>(kind::TUPLE));
+  //AJR: not sure what the significance of "TUPLE" is here, seems to be a placeholder.  Since TUPLE is no longer a kind, replacing this with "AND".
+  //result.push(NodeBuilder<>(kind::TUPLE));
+  result.push(NodeBuilder<>(kind::AND));
 
   NodeManager* nm = NodeManager::currentNM();
 
@@ -670,26 +639,6 @@ Node BooleanTermConverter::rewriteBooleanTermsRec(TNode top, theory::TheoryId pa
           result.top() << top;
           worklist.pop();
           goto next_worklist;
-        } else if(t.isTuple() || t.isRecord()) {
-          TypeNode newType = convertType(t, true);
-          if(t != newType) {
-            Node n = nm->mkSkolem(top.getAttribute(expr::VarNameAttr()) + "'",
-                                  newType, "a tuple/record variable introduced by Boolean-term conversion",
-                                  NodeManager::SKOLEM_EXACT_NAME);
-            top.setAttribute(BooleanTermAttr(), n);
-            n.setAttribute(BooleanTermAttr(), top);
-            Debug("boolean-terms") << "adding subs: " << top << " :=> " << n << endl;
-            d_smt.d_theoryEngine->getModel()->addSubstitution(top, n);
-            Debug("boolean-terms") << "constructed: " << n << " of type " << newType << endl;
-            d_varCache[top] = n;
-            result.top() << n;
-            worklist.pop();
-            goto next_worklist;
-          }
-          d_varCache[top] = Node::null();
-          result.top() << top;
-          worklist.pop();
-          goto next_worklist;
         } else if(t.isDatatype() || t.isParametricDatatype()) {
           Debug("boolean-terms") << "found a var of datatype type" << endl;
           TypeNode newT = convertType(t, parentTheory == theory::THEORY_DATATYPES);
@@ -857,17 +806,13 @@ Node BooleanTermConverter::rewriteBooleanTermsRec(TNode top, theory::TheoryId pa
         Debug("bt") << "looking at: " << top << endl;
         // rewrite the operator, as necessary
         if(mk == kind::metakind::PARAMETERIZED) {
-          if(k == kind::RECORD) {
-            result.top() << convertType(top.getType(), parentTheory == theory::THEORY_DATATYPES);
-          } else if(k == kind::APPLY_TYPE_ASCRIPTION) {
+          if(k == kind::APPLY_TYPE_ASCRIPTION) {
             Node asc = nm->mkConst(AscriptionType(convertType(TypeNode::fromType(top.getOperator().getConst<AscriptionType>().getType()), parentTheory == theory::THEORY_DATATYPES).toType()));
             result.top() << asc;
             Debug("boolean-terms") << "setting " << top.getOperator() << ":" << top.getOperator().getId() << " to point to " << asc << ":" << asc.getId() << endl;
             asc.setAttribute(BooleanTermAttr(), top.getOperator());
           } else if(kindToTheoryId(k) != THEORY_BV &&
-                    k != kind::TUPLE_SELECT &&
                     k != kind::TUPLE_UPDATE &&
-                    k != kind::RECORD_SELECT &&
                     k != kind::RECORD_UPDATE &&
                     k != kind::DIVISIBLE &&
         // Theory parametric functions go here
@@ -899,7 +844,7 @@ Node BooleanTermConverter::rewriteBooleanTermsRec(TNode top, theory::TheoryId pa
     } else {
       Node n = result.top();
       result.pop();
-      Debug("boolean-terms") << "constructed: " << n << endl;
+      Debug("boolean-terms") << "constructed: " << n << " of type " << n.getType() << endl;
       if(parentTheory == theory::THEORY_BOOL) {
         if(n.getType().isBitVector() &&
            n.getType().getBitVectorSize() == 1) {

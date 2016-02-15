@@ -221,3 +221,4 @@ Node DatatypesEnumerator::getTermEnum( TypeNode tn, unsigned i ){
    ++*this; //increment( d_ctor );
    AlwaysAssert( !isFinished() );
 }
+

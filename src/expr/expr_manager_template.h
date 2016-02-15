@@ -341,12 +341,12 @@ public:
    * <code>types[0..types.size()-1]</code>.  <code>types</code> must
    * have at least one element.
    */
-  TupleType mkTupleType(const std::vector<Type>& types);
+  DatatypeType mkTupleType(const std::vector<Type>& types);
 
   /**
    * Make a record type with types from the rec parameter.
    */
-  RecordType mkRecordType(const Record& rec);
+  DatatypeType mkRecordType(const Record& rec);
 
   /**
    * Make a symbolic expressiontype with types from

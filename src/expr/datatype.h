@@ -237,9 +237,6 @@ public:
    */
   DatatypeConstructor(std::string name, std::string tester);
 
-  /** set sygus */
-  void setSygus( Expr op, Expr let_body, std::vector< Expr >& let_args, unsigned num_let_input_argus );
-
   /**
    * Add an argument (i.e., a data field) of the given name and type
    * to this Datatype constructor.  Selector names need not be unique;
@@ -382,6 +379,8 @@ public:
   bool involvesExternalType() const;
   bool involvesUninterpretedType() const;
 
+  /** set sygus */
+  void setSygus( Expr op, Expr let_body, std::vector< Expr >& let_args, unsigned num_let_input_argus );
 };/* class DatatypeConstructor */
 
 /**
@@ -473,6 +472,8 @@ private:
   std::string d_name;
   std::vector<Type> d_params;
   bool d_isCo;
+  bool d_isTuple;
+  bool d_isRecord;
   std::vector<DatatypeConstructor> d_constructors;
   bool d_resolved;
   Type d_self;
@@ -565,6 +566,12 @@ public:
    */
   void setSygus( Type st, Expr bvl, bool allow_const, bool allow_all );
 
+  /** set tuple */
+  void setTuple();
+
+  /** set tuple */
+  void setRecord();
+
   /** Get the name of this Datatype. */
   inline std::string getName() const throw();
 
@@ -588,6 +595,12 @@ public:
 
   /** is this a sygus datatype? */
   inline bool isSygus() const;
+
+  /** is this a tuple datatype? */
+  inline bool isTuple() const;
+
+  /** is this a record datatype? */
+  inline bool isRecord() const;
 
   /**
    * Return the cardinality of this datatype (the sum of the
@@ -757,6 +770,8 @@ inline Datatype::Datatype(std::string name, bool isCo) :
   d_name(name),
   d_params(),
   d_isCo(isCo),
+  d_isTuple(false),
+  d_isRecord(false),
   d_constructors(),
   d_resolved(false),
   d_self(),
@@ -771,6 +786,8 @@ inline Datatype::Datatype(std::string name, const std::vector<Type>& params, boo
   d_name(name),
   d_params(params),
   d_isCo(isCo),
+  d_isTuple(false),
+  d_isRecord(false),
   d_constructors(),
   d_resolved(false),
   d_self(),
@@ -817,6 +834,14 @@ inline bool Datatype::isCodatatype() const {
 
 inline bool Datatype::isSygus() const {
   return !d_sygus_type.isNull();
+}
+
+inline bool Datatype::isTuple() const {
+  return d_isTuple;
+}
+
+inline bool Datatype::isRecord() const {
+  return d_isRecord;
 }
 
 inline bool Datatype::operator!=(const Datatype& other) const throw() {

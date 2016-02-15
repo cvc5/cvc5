@@ -151,6 +151,13 @@ void Datatype::setSygus( Type st, Expr bvl, bool allow_const, bool allow_all ){
   d_sygus_allow_all = allow_all;
 }
 
+void Datatype::setTuple() {
+  d_isTuple = true;
+}
+
+void Datatype::setRecord() {
+  d_isRecord = true;
+}
 
 Cardinality Datatype::getCardinality() const throw(IllegalArgumentException) {
   PrettyCheckArgument(isResolved(), this, "this datatype is not yet resolved");
@@ -662,7 +669,6 @@ void DatatypeConstructor::setSygus( Expr op, Expr let_body, std::vector< Expr >&
   d_sygus_let_args.insert( d_sygus_let_args.end(), let_args.begin(), let_args.end() );
   d_sygus_num_let_input_args = num_let_input_args;
 }
-
 
 void DatatypeConstructor::addArg(std::string selectorName, Type selectorType) {
   // We don't want to introduce a new data member, because eventually

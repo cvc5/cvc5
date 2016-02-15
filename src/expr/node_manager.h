@@ -756,7 +756,7 @@ public:
    * @param types a vector of types
    * @returns the tuple type (types[0], ..., types[n])
    */
-  inline TypeNode mkTupleType(const std::vector<TypeNode>& types);
+  TypeNode mkTupleType(const std::vector<TypeNode>& types);
 
   /**
    * Make a record type with the description from rec.
@@ -764,7 +764,7 @@ public:
    * @param rec a description of the record
    * @returns the record type
    */
-  inline TypeNode mkRecordType(const Record& rec);
+  TypeNode mkRecordType(const Record& rec);
 
   /**
    * Make a symbolic expression type with types from
@@ -837,12 +837,6 @@ public:
    */
   TypeNode mkSubrangeType(const SubrangeBounds& bounds)
     throw(TypeCheckingExceptionPrivate);
-
-  /**
-   * Given a tuple or record type, get the internal datatype used for
-   * it.  Makes the DatatypeType if necessary.
-   */
-  TypeNode getDatatypeForTupleRecord(TypeNode tupleRecordType);
 
   /**
    * Get the type for the given node and optionally do type checking.
@@ -1061,20 +1055,6 @@ NodeManager::mkPredicateType(const std::vector<TypeNode>& sorts) {
   }
   sortNodes.push_back(booleanType());
   return mkTypeNode(kind::FUNCTION_TYPE, sortNodes);
-}
-
-inline TypeNode NodeManager::mkTupleType(const std::vector<TypeNode>& types) {
-  std::vector<TypeNode> typeNodes;
-  for (unsigned i = 0; i < types.size(); ++ i) {
-    CheckArgument(!types[i].isFunctionLike(), types,
-                  "cannot put function-like types in tuples");
-    typeNodes.push_back(types[i]);
-  }
-  return mkTypeNode(kind::TUPLE_TYPE, typeNodes);
-}
-
-inline TypeNode NodeManager::mkRecordType(const Record& rec) {
-  return mkTypeConst(rec);
 }
 
 inline TypeNode NodeManager::mkSExprType(const std::vector<TypeNode>& types) {

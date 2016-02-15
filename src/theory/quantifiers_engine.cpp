@@ -695,6 +695,8 @@ bool QuantifiersEngine::addInstantiationInternal( Node f, std::vector< Node >& v
     Trace("quant-vts-debug") << "            ...result: " << body_r << std::endl;
     body = body_r;
   }
+  body = quantifiers::QuantifiersRewriter::preprocess( body, true );
+  Trace("inst-debug") << "...preprocess to " << body << std::endl;
   Trace("inst-assert") << "(assert " << body << ")" << std::endl;
   //make the lemma
   Node lem = NodeManager::currentNM()->mkNode( kind::OR, f.negate(), body );

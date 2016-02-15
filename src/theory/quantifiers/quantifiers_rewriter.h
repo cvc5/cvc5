@@ -91,10 +91,12 @@ public:
 private:
   /** options */
   static bool doOperation( Node f, bool isNested, int computeOption );
+private:
+  static Node preSkolemizeQuantifiers(Node n, bool polarity, std::vector< TypeNode >& fvTypes, std::vector<TNode>& fvs);
 public:
   static Node rewriteRewriteRule( Node r );
   static bool containsQuantifiers(Node n);
-  static Node preSkolemizeQuantifiers(Node n, bool polarity, std::vector< TypeNode >& fvTypes, std::vector<TNode>& fvs);
+  static Node preprocess( Node n, bool isInst = false );
 };/* class QuantifiersRewriter */
 
 }/* CVC4::theory::quantifiers namespace */

@@ -94,9 +94,6 @@ bool TypeNode::isSubtypeOf(TypeNode t) const {
     }
   }
   if(isTuple() || isRecord()) {
-    if(t == NodeManager::currentNM()->getDatatypeForTupleRecord(*this)) {
-      return true;
-    }
     if(isTuple() != t.isTuple() || isRecord() != t.isRecord()) {
       return false;
     }
@@ -111,8 +108,8 @@ bool TypeNode::isSubtypeOf(TypeNode t) const {
         }
       }
     } else {
-      const Record& r1 = getConst<Record>();
-      const Record& r2 = t.getConst<Record>();
+      const Record& r1 = getRecord();
+      const Record& r2 = t.getRecord();
       if(r1.getNumFields() != r2.getNumFields()) {
         return false;
       }
@@ -166,12 +163,8 @@ bool TypeNode::isComparableTo(TypeNode t) const {
   if(isSubtypeOf(NodeManager::currentNM()->realType())) {
     return t.isSubtypeOf(NodeManager::currentNM()->realType());
   }
-  if(t.isDatatype() && (isTuple() || isRecord())) {
+  if(isTuple() || isRecord()) {
     if(t.isTuple() || t.isRecord()) {
-      if(NodeManager::currentNM()->getDatatypeForTupleRecord(t) ==
-         NodeManager::currentNM()->getDatatypeForTupleRecord(*this)) {
-        return true;
-      }
       if(isTuple() != t.isTuple() || isRecord() != t.isRecord()) {
         return false;
       }
@@ -186,8 +179,8 @@ bool TypeNode::isComparableTo(TypeNode t) const {
           }
         }
       } else {
-        const Record& r1 = getConst<Record>();
-        const Record& r2 = t.getConst<Record>();
+        const Record& r1 = getRecord();
+        const Record& r2 = t.getRecord();
         if(r1.getNumFields() != r2.getNumFields()) {
           return false;
         }
@@ -202,12 +195,7 @@ bool TypeNode::isComparableTo(TypeNode t) const {
         }
       }
       return true;
-    } else {
-      return t == NodeManager::currentNM()->getDatatypeForTupleRecord(*this);
     }
-  } else if(isDatatype() && (t.isTuple() || t.isRecord())) {
-    Assert(!isTuple() && !isRecord());// should have been handled above
-    return *this == NodeManager::currentNM()->getDatatypeForTupleRecord(t);
   } else if(isParametricDatatype() && t.isParametricDatatype()) {
     Assert(getKind() == kind::PARAMETRIC_DATATYPE);
     Assert(t.getKind() == kind::PARAMETRIC_DATATYPE);
@@ -244,8 +232,6 @@ TypeNode TypeNode::getBaseType() const {
   TypeNode realt = NodeManager::currentNM()->realType();
   if (isSubtypeOf(realt)) {
     return realt;
-  } else if (isTuple() || isRecord()) {
-    return NodeManager::currentNM()->getDatatypeForTupleRecord(*this);
   } else if (isPredicateSubtype()) {
     return getSubtypeParentType().getBaseType();
   } else if (isParametricDatatype()) {
@@ -282,23 +268,40 @@ std::vector<TypeNode> TypeNode::getParamTypes() const {
   return params;
 }
 
+
+/** Is this a tuple type? */
+bool TypeNode::isTuple() const {
+  return ( getKind() == kind::DATATYPE_TYPE && hasAttribute(expr::DatatypeTupleAttr()) ) ||
+    ( isPredicateSubtype() && getSubtypeParentType().isTuple() );
+}
+
+/** Is this a record type? */
+bool TypeNode::isRecord() const {
+  return ( getKind() == kind::DATATYPE_TYPE && hasAttribute(expr::DatatypeRecordAttr()) )  ||
+    ( isPredicateSubtype() && getSubtypeParentType().isRecord() );
+}
+
 size_t TypeNode::getTupleLength() const {
   Assert(isTuple());
-  return getNumChildren();
+  const Datatype& dt = getConst<Datatype>();
+  Assert(dt.getNumConstructors()==1);
+  return dt[0].getNumArgs();
 }
 
 vector<TypeNode> TypeNode::getTupleTypes() const {
   Assert(isTuple());
+  const Datatype& dt = getConst<Datatype>();
+  Assert(dt.getNumConstructors()==1);
   vector<TypeNode> types;
-  for(unsigned i = 0, i_end = getNumChildren(); i < i_end; ++i) {
-    types.push_back((*this)[i]);
+  for(unsigned i = 0; i < dt[0].getNumArgs(); ++i) {
+    types.push_back(TypeNode::fromType(((SelectorType)dt[0][i].getSelector().getType()).getRangeType()));
   }
   return types;
 }
 
 const Record& TypeNode::getRecord() const {
   Assert(isRecord());
-  return getConst<Record>();
+  return getAttribute(expr::DatatypeRecordAttr()).getConst<Record>();
 }
 
 vector<TypeNode> TypeNode::getSExprTypes() const {
@@ -446,6 +449,7 @@ TypeNode TypeNode::leastCommonTypeNode(TypeNode t0, TypeNode t1){
       Assert(t1.isInteger());
       return TypeNode();
     }
+/*
   case kind::TUPLE_TYPE: {
     // if the other == this one, we returned already, above
     if(t0.getBaseType() == t1) {
@@ -495,6 +499,7 @@ TypeNode TypeNode::leastCommonTypeNode(TypeNode t0, TypeNode t1){
     // if we make it here, we constructed the least common type
     return NodeManager::currentNM()->mkRecordType(Record(fields));
   }
+*/
   case kind::DATATYPE_TYPE:
     // t1 might be a subtype tuple or record
     if(t1.getBaseType() == t0) {
