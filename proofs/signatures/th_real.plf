@@ -12,6 +12,7 @@
 (define arithterm_Real (! x (term Real)
                        (! y (term Real)
                          (term Real))))
+
 (declare +_Real arithterm_Real)
 (declare -_Real arithterm_Real)
 (declare *_Real arithterm_Real)  ; is * ok to use?

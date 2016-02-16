@@ -55,6 +55,8 @@ protected:
   //   TypeSet d_sorts;        // all the uninterpreted sorts in this theory
   // ExprSet d_declarations; // all the variable/function declarations
 
+  bool d_realMode;
+
 public:
   ArithProof(theory::arith::TheoryArith* arith, TheoryProofEngine* proofEngine);
 

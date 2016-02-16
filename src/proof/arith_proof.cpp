@@ -709,12 +709,17 @@ Node ProofArith::toStreamRecLFSC(std::ostream& out, TheoryProof * tp, theory::eq
 }
 
 ArithProof::ArithProof(theory::arith::TheoryArith* arith, TheoryProofEngine* pe)
-  : TheoryProof(arith, pe)
+  : TheoryProof(arith, pe), d_realMode(false)
 {}
 
 void ArithProof::registerTerm(Expr term) {
   Debug("gk::proof::arith") << "Arith register term: " << term << ". Kind: " << term.getKind()
                             << ". Type: " << term.getType() << std::endl;
+
+  if (term.getType().isReal() && !term.getType().isInteger()) {
+    Debug("gk::proof::arith") << "Entering real mode" << std::endl;
+    d_realMode = true;
+  }
 
     // already registered
   // if (d_constRationalString.find(term) != d_constRationalString.end())
@@ -747,27 +752,34 @@ void ArithProof::registerTerm(Expr term) {
 
 void LFSCArithProof::printTerm(Expr term, std::ostream& os, const LetMap& map) {
   Debug("gk::proof::arith") << "Arith print term: " << term << ". Kind: " << term.getKind()
+                            << ". Type: " << term.getType()
                             << ". Number of children: " << term.getNumChildren() << std::endl;
+
+  // !d_realMode <--> term.getType().isInteger()
 
   Assert (Theory::theoryOf(term) == THEORY_ARITH);
   switch (term.getKind()) {
 
   case kind::CONST_RATIONAL: {
     Assert (term.getNumChildren() == 0);
+    Assert (term.getType().isInteger() || term.getType().isReal());
 
     const Rational& r = term.getConst<Rational>();
     bool neg = (r < 0);
 
-    os << "(a_real ";
+    os << (!d_realMode ? "(a_int " : "(a_real ");
 
     if (neg) {
-      Debug("gk::proof::arith") << "Negative rational" << std::endl;
       os << "(~ ";
     }
 
-    os << r.abs().getNumerator();
-    os << "/";
-    os << r.getDenominator();
+    if (!d_realMode) {
+      os << r.abs();
+    } else {
+      os << r.abs().getNumerator();
+      os << "/";
+      os << r.getDenominator();
+    }
 
     if (neg) {
       os << ") ";
@@ -777,9 +789,29 @@ void LFSCArithProof::printTerm(Expr term, std::ostream& os, const LetMap& map) {
     return;
   }
 
+  case kind::UMINUS: {
+    Assert (term.getNumChildren() == 1);
+    Assert (term.getType().isInteger() || term.getType().isReal());
+
+    const Rational& r = term[0].getConst<Rational>();
+
+    os << (!d_realMode ? "(a_int " : "(a_real ");
+    os << "(~ ";
+
+    if (!d_realMode) {
+      os << r.abs();
+    } else {
+      os << r.abs().getNumerator();
+      os << "/";
+      os << r.getDenominator();
+    }
+    os << ") ) ";
+    return;
+  }
+
   case kind::PLUS:
     Assert (term.getNumChildren() == 2);
-    os << "(+_Real ";
+    os << (!d_realMode ? "(+_Int " : "(+_Real ");
     d_proofEngine->printBoundTerm(term[0], os, map);
     os << " ";
     d_proofEngine->printBoundTerm(term[1], os, map);
@@ -788,7 +820,7 @@ void LFSCArithProof::printTerm(Expr term, std::ostream& os, const LetMap& map) {
 
   case kind::MINUS:
     Assert (term.getNumChildren() == 2);
-    os << "(-_Real ";
+    os << (!d_realMode ? "(-_Int " : "(-_Real ");
     d_proofEngine->printBoundTerm(term[0], os, map);
     os << " ";
     d_proofEngine->printBoundTerm(term[1], os, map);
@@ -797,7 +829,7 @@ void LFSCArithProof::printTerm(Expr term, std::ostream& os, const LetMap& map) {
 
   case kind::MULT:
     Assert (term.getNumChildren() == 2);
-    os << "(*_Real ";
+    os << (!d_realMode ? "(*_Int " : "(*_Real ");
     d_proofEngine->printBoundTerm(term[0], os, map);
     os << " ";
     d_proofEngine->printBoundTerm(term[1], os, map);
@@ -806,7 +838,7 @@ void LFSCArithProof::printTerm(Expr term, std::ostream& os, const LetMap& map) {
 
   case kind::DIVISION:
     Assert (term.getNumChildren() == 2);
-    os << "(/_Real ";
+    os << (!d_realMode ? "(/_Int " : "(/_Real ");
     d_proofEngine->printBoundTerm(term[0], os, map);
     os << " ";
     d_proofEngine->printBoundTerm(term[1], os, map);
@@ -815,7 +847,7 @@ void LFSCArithProof::printTerm(Expr term, std::ostream& os, const LetMap& map) {
 
   case kind::GT:
     Assert (term.getNumChildren() == 2);
-    os << "(>_Real ";
+    os << (!d_realMode ? "(>_Int " : "(>_Real ");
     d_proofEngine->printBoundTerm(term[0], os, map);
     os << " ";
     d_proofEngine->printBoundTerm(term[1], os, map);
@@ -824,7 +856,7 @@ void LFSCArithProof::printTerm(Expr term, std::ostream& os, const LetMap& map) {
 
   case kind::GEQ:
     Assert (term.getNumChildren() == 2);
-    os << "(>=_Real ";
+    os << (!d_realMode ? "(>=_Int " : "(>=_Real ");
     d_proofEngine->printBoundTerm(term[0], os, map);
     os << " ";
     d_proofEngine->printBoundTerm(term[1], os, map);
@@ -833,7 +865,7 @@ void LFSCArithProof::printTerm(Expr term, std::ostream& os, const LetMap& map) {
 
   case kind::LT:
     Assert (term.getNumChildren() == 2);
-    os << "(<_Real ";
+    os << (!d_realMode ? "(<_Int " : "(<_Real ");
     d_proofEngine->printBoundTerm(term[0], os, map);
     os << " ";
     d_proofEngine->printBoundTerm(term[1], os, map);
@@ -842,7 +874,7 @@ void LFSCArithProof::printTerm(Expr term, std::ostream& os, const LetMap& map) {
 
   case kind::LEQ:
     Assert (term.getNumChildren() == 2);
-    os << "(<=_Real ";
+    os << (!d_realMode ? "(<=_Int " : "(<=_Real ");
     d_proofEngine->printBoundTerm(term[0], os, map);
     os << " ";
     d_proofEngine->printBoundTerm(term[1], os, map);
@@ -850,6 +882,7 @@ void LFSCArithProof::printTerm(Expr term, std::ostream& os, const LetMap& map) {
     return;
 
   default:
+    Debug("gk::proof") << "Default printing of term: " << term << std::endl;
     os << term;
     return;
   }

@@ -63,6 +63,8 @@ void SmtEngine::checkProof() {
 
   Chat() << "checking proof..." << endl;
 
+  Debug("gk::proof") << "Logic string is: " << d_logic.getLogicString() << std::endl;
+
   if ( ( !(d_logic.isPure(theory::THEORY_BOOL) ||
            d_logic.isPure(theory::THEORY_BV) ||
            d_logic.isPure(theory::THEORY_ARRAY) ||
@@ -70,13 +72,15 @@ void SmtEngine::checkProof() {
             ! d_logic.hasCardinalityConstraints())) ||
          d_logic.isQuantified())
        // Override for Arith proofs with holds
-       ||
-       d_logic.getLogicString() == "QF_UFLRA" || d_logic.getLogicString() == "QF_UFLIA" )
+       && (! (d_logic.getLogicString() == "QF_UFLRA" || d_logic.getLogicString() == "QF_UFLIA" )))
   {
     // no checking for these yet
     Notice() << "Notice: no proof-checking for non-UF/Bool/BV proofs yet" << endl;
+    Debug("gk::proof") << "No proof checking" << std::endl;
     return;
   }
+
+  Debug("gk::proof") << "Checking proof" << std::endl;
 
   char* pfFile = strdup("/tmp/cvc4_proof.XXXXXX");
   int fd = mkstemp(pfFile);
