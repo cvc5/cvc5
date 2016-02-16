@@ -582,20 +582,6 @@ Node TheoryDatatypes::ppRewrite(TNode in) {
     return n;
   }
 
-  if((t.isTuple() || t.isRecord()) && in.hasAttribute(smt::BooleanTermAttr())) {
-    Debug("tuprec") << "should map " << in << " of type " << t << " back to " << in.getAttribute(smt::BooleanTermAttr()).getType() << endl;
-    Debug("tuprec") << "so " << t.getDatatype() << " goes to " << in.getAttribute(smt::BooleanTermAttr()).getType().getDatatype() << endl;
-    if(t.isTuple()) {
-      Debug("tuprec") << "current datatype-tuple-attr is " << t.getAttribute(expr::DatatypeTupleAttr()) << endl;
-      Debug("tuprec") << "setting to " << in.getAttribute(smt::BooleanTermAttr()).getType().getAttribute(expr::DatatypeTupleAttr()) << endl;
-      t.setAttribute(expr::DatatypeTupleAttr(), in.getAttribute(smt::BooleanTermAttr()).getType().getAttribute(expr::DatatypeTupleAttr()));
-    } else {
-      Debug("tuprec") << "current datatype-record-attr is " << t.getAttribute(expr::DatatypeRecordAttr()) << endl;
-      Debug("tuprec") << "setting to " << in.getAttribute(smt::BooleanTermAttr()).getType().getAttribute(expr::DatatypeRecordAttr()) << endl;
-      t.setAttribute(expr::DatatypeRecordAttr(), in.getAttribute(smt::BooleanTermAttr()).getType().getAttribute(expr::DatatypeRecordAttr()));
-    }
-  }
-
   if( in.getKind()==EQUAL ){
     Node nn;
     std::vector< Node > rew;

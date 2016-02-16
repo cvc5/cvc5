@@ -210,49 +210,6 @@ struct DatatypeAscriptionTypeRule {
   }
 };/* struct DatatypeAscriptionTypeRule */
 
-/* For co-datatypes */
-class DatatypeMuTypeRule {
-private:
-  //a Mu-expression is constant iff its body is composed of constructors applied to constant expr and bound variables only
-  inline static bool computeIsConstNode(TNode n, std::vector< TNode >& fv ){
-    if( n.getKind()==kind::MU ){
-      fv.push_back( n[0] );
-      bool ret = computeIsConstNode( n[1], fv );
-      fv.pop_back();
-      return ret;
-    }else if( n.isConst() || std::find( fv.begin(), fv.end(), n )!=fv.end() ){
-      return true;
-    }else if( n.getKind()==kind::APPLY_CONSTRUCTOR ){
-      for( unsigned i=0; i<n.getNumChildren(); i++ ){
-        if( !computeIsConstNode( n[i], fv ) ){
-          return false;
-        }
-      }
-      return true; 
-    }else{
-      return false;
-    }
-  }
-public:
-  inline static TypeNode computeType(NodeManager* nodeManager, TNode n, bool check) {
-    if( n[0].getKind()!=kind::BOUND_VARIABLE  ) {
-      std::stringstream ss;
-      ss << "expected a bound var for MU expression, got `"
-         << n[0] << "'";
-      throw TypeCheckingExceptionPrivate(n, ss.str());
-    }
-    return n[1].getType(check);
-  }
-  inline static bool computeIsConst(NodeManager* nodeManager, TNode n)
-    throw(AssertionException) {
-    Assert(n.getKind() == kind::MU);
-    NodeManagerScope nms(nodeManager);
-    std::vector< TNode > fv;
-    return computeIsConstNode( n, fv );
-  }
-};
-
-
 struct ConstructorProperties {
   inline static Cardinality computeCardinality(TypeNode type) {
     // Constructors aren't exactly functions, they're like
@@ -276,7 +233,6 @@ struct TupleUpdateTypeRule {
     if(check) {
       if(!tupleType.isTuple()) {
         throw TypeCheckingExceptionPrivate(n, "Tuple-update expression formed over non-tuple");
-        tupleType = tupleType.getAttribute(expr::DatatypeTupleAttr());
       }
       if(tu.getIndex() >= tupleType.getTupleLength()) {
         std::stringstream ss;
@@ -312,23 +268,6 @@ struct RecordUpdateTypeRule {
     return recordType;
   }
 };/* struct RecordUpdateTypeRule */
-
-struct RecordProperties {
-  inline static Node mkGroundTerm(TypeNode type) {
-    Assert(type.getKind() == kind::RECORD_TYPE);
-    return Node::null();
-  }
-  inline static bool computeIsConst(NodeManager* nodeManager, TNode n) {
-    return true;
-  }
-  inline static Cardinality computeCardinality(TypeNode type) {
-    Cardinality card(1);
-    return card;
-  }
-  inline static bool isWellFounded(TypeNode type) {
-    return true;
-  }
-};/* struct RecordProperties */
 
 class DtSizeTypeRule {
 public:

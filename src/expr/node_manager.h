@@ -166,7 +166,20 @@ class NodeManager {
   /**
    * A map of tuple and record types to their corresponding datatype.
    */
-  std::hash_map<TypeNode, TypeNode, TypeNodeHashFunction> d_tupleAndRecordTypes;
+  class TupleTypeCache {
+  public:
+    std::map< TypeNode, TupleTypeCache > d_children;
+    TypeNode d_data;
+    TypeNode getTupleType( NodeManager * nm, std::vector< TypeNode >& types, unsigned index = 0 );
+  };
+  class RecTypeCache {
+  public:
+    std::map< TypeNode, std::map< std::string, RecTypeCache > > d_children;
+    TypeNode d_data;
+    TypeNode getRecordType( NodeManager * nm, const Record& rec, unsigned index = 0 );
+  };
+  TupleTypeCache d_tt_cache;
+  RecTypeCache d_rt_cache;
 
   /**
    * Keep a count of all abstract values produced by this NodeManager.

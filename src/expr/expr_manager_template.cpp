@@ -791,7 +791,7 @@ void ExprManager::checkResolvedDatatype(DatatypeType dtt) const {
         j != j_end;
         ++j) {
       const DatatypeConstructorArg& a = *j;
-      Type selectorType = a.getSelector().getType();
+      Type selectorType = a.getType();
       Assert(a.isResolved() &&
              selectorType.isSelector() &&
              SelectorType(selectorType).getDomain() == dtt,

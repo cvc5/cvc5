@@ -93,37 +93,21 @@ bool TypeNode::isSubtypeOf(TypeNode t) const {
           t.getConst<TypeConstant>() == REAL_TYPE );
     }
   }
-  if(isTuple() || isRecord()) {
-    if(isTuple() != t.isTuple() || isRecord() != t.isRecord()) {
+  if(isTuple() && t.isTuple()) {
+    const Datatype& dt1 = getDatatype();
+    const Datatype& dt2 = t.getDatatype();
+    if( dt1[0].getNumArgs()!=dt2[0].getNumArgs() ){
       return false;
     }
-    if(isTuple()) {
-      if(getNumChildren() != t.getNumChildren()) {
+    // r1's fields must be subtypes of r2's, in order
+    for( unsigned i=0; i<dt1[0].getNumArgs(); i++ ){
+      if( !dt1[0][i].getRangeType().isSubtypeOf( dt2[0][i].getRangeType() ) ){
         return false;
-      }
-      // children must be subtypes of t's, in order
-      for(const_iterator i = begin(), j = t.begin(); i != end(); ++i, ++j) {
-        if(!(*i).isSubtypeOf(*j)) {
-          return false;
-        }
-      }
-    } else {
-      const Record& r1 = getRecord();
-      const Record& r2 = t.getRecord();
-      if(r1.getNumFields() != r2.getNumFields()) {
-        return false;
-      }
-      const Record::FieldVector& fields1 = r1.getFields();
-      const Record::FieldVector& fields2 = r2.getFields();
-      // r1's fields must be subtypes of r2's, in order
-      // names must match also
-      for(Record::FieldVector::const_iterator i = fields1.begin(), j = fields2.begin(); i != fields1.end(); ++i, ++j) {
-        if((*i).first != (*j).first || !(*i).second.isSubtypeOf((*j).second)) {
-          return false;
-        }
       }
     }
     return true;
+  }else if( t.isRecord() && t.isRecord() ){
+    //TBD
   }
   if(isFunction()) {
     // A function is a subtype of another if the args are the same type, and
@@ -163,39 +147,21 @@ bool TypeNode::isComparableTo(TypeNode t) const {
   if(isSubtypeOf(NodeManager::currentNM()->realType())) {
     return t.isSubtypeOf(NodeManager::currentNM()->realType());
   }
-  if(isTuple() || isRecord()) {
-    if(t.isTuple() || t.isRecord()) {
-      if(isTuple() != t.isTuple() || isRecord() != t.isRecord()) {
+  if(isTuple() && t.isTuple()) {
+    const Datatype& dt1 = getDatatype();
+    const Datatype& dt2 = t.getDatatype();
+    if( dt1[0].getNumArgs()!=dt2[0].getNumArgs() ){
+      return false;
+    }
+    // r1's fields must be subtypes of r2's, in order
+    for( unsigned i=0; i<dt1[0].getNumArgs(); i++ ){
+      if( !dt1[0][i].getRangeType().isComparableTo( dt2[0][i].getRangeType() ) ){
         return false;
       }
-      if(isTuple()) {
-        if(getNumChildren() != t.getNumChildren()) {
-          return false;
-        }
-        // children must be comparable to t's, in order
-        for(const_iterator i = begin(), j = t.begin(); i != end(); ++i, ++j) {
-          if(!(*i).isComparableTo(*j)) {
-            return false;
-          }
-        }
-      } else {
-        const Record& r1 = getRecord();
-        const Record& r2 = t.getRecord();
-        if(r1.getNumFields() != r2.getNumFields()) {
-          return false;
-        }
-        // r1's fields must be comparable to r2's, in order
-        // names must match also
-        const Record::FieldVector& fields1 = r1.getFields();
-        const Record::FieldVector& fields2 = r2.getFields();
-        for(Record::FieldVector::const_iterator i = fields1.begin(), j = fields2.begin(); i != fields1.end(); ++i, ++j) {
-          if((*i).first != (*j).first || !(*i).second.isComparableTo((*j).second)) {
-            return false;
-          }
-        }
-      }
-      return true;
     }
+    return true;
+  }else if( isRecord() && t.isRecord() ){
+    //TBD
   } else if(isParametricDatatype() && t.isParametricDatatype()) {
     Assert(getKind() == kind::PARAMETRIC_DATATYPE);
     Assert(t.getKind() == kind::PARAMETRIC_DATATYPE);
@@ -271,13 +237,13 @@ std::vector<TypeNode> TypeNode::getParamTypes() const {
 
 /** Is this a tuple type? */
 bool TypeNode::isTuple() const {
-  return ( getKind() == kind::DATATYPE_TYPE && hasAttribute(expr::DatatypeTupleAttr()) ) ||
+  return ( getKind() == kind::DATATYPE_TYPE && getDatatype().isTuple() ) ||
     ( isPredicateSubtype() && getSubtypeParentType().isTuple() );
 }
 
 /** Is this a record type? */
 bool TypeNode::isRecord() const {
-  return ( getKind() == kind::DATATYPE_TYPE && hasAttribute(expr::DatatypeRecordAttr()) )  ||
+  return ( getKind() == kind::DATATYPE_TYPE && getDatatype().isRecord() )  ||
     ( isPredicateSubtype() && getSubtypeParentType().isRecord() );
 }
 
@@ -294,14 +260,16 @@ vector<TypeNode> TypeNode::getTupleTypes() const {
   Assert(dt.getNumConstructors()==1);
   vector<TypeNode> types;
   for(unsigned i = 0; i < dt[0].getNumArgs(); ++i) {
-    types.push_back(TypeNode::fromType(((SelectorType)dt[0][i].getSelector().getType()).getRangeType()));
+    types.push_back(TypeNode::fromType(dt[0][i].getRangeType()));
   }
   return types;
 }
 
 const Record& TypeNode::getRecord() const {
   Assert(isRecord());
-  return getAttribute(expr::DatatypeRecordAttr()).getConst<Record>();
+  const Datatype & dt = getDatatype();
+  return *(dt.getRecord());
+  //return getAttribute(expr::DatatypeRecordAttr()).getConst<Record>();
 }
 
 vector<TypeNode> TypeNode::getSExprTypes() const {
@@ -449,61 +417,24 @@ TypeNode TypeNode::leastCommonTypeNode(TypeNode t0, TypeNode t1){
       Assert(t1.isInteger());
       return TypeNode();
     }
-/*
-  case kind::TUPLE_TYPE: {
-    // if the other == this one, we returned already, above
-    if(t0.getBaseType() == t1) {
-      return t1;
-    }
-    if(!t1.isTuple() || t0.getNumChildren() != t1.getNumChildren()) {
-      // no compatibility between t0, t1
-      return TypeNode();
-    }
-    std::vector<TypeNode> types;
-    // construct childwise leastCommonType, if one exists
-    for(const_iterator i = t0.begin(), j = t1.begin(); i != t0.end(); ++i, ++j) {
-      TypeNode kid = leastCommonTypeNode(*i, *j);
-      if(kid.isNull()) {
-        // no common supertype: types t0, t1 not compatible
-        return TypeNode();
-      }
-      types.push_back(kid);
-    }
-    // if we make it here, we constructed the least common type
-    return NodeManager::currentNM()->mkTupleType(types);
-  }
-  case kind::RECORD_TYPE: {
-    // if the other == this one, we returned already, above
-    if(t0.getBaseType() == t1) {
-      return t1;
-    }
-    const Record& r0 = t0.getConst<Record>();
-    if(!t1.isRecord() || r0.getNumFields() != t1.getConst<Record>().getNumFields()) {
-      // no compatibility between t0, t1
-      return TypeNode();
-    }
-    std::vector< std::pair<std::string, Type> > fields;
-    const Record& r1 = t1.getConst<Record>();
-    const Record::FieldVector& fields0 = r0.getFields();
-    const Record::FieldVector& fields1 = r1.getFields();
-    // construct childwise leastCommonType, if one exists
-    for(Record::FieldVector::const_iterator i = fields0.begin(), j = fields1.begin(); i != fields0.end(); ++i, ++j) {
-      TypeNode kid = leastCommonTypeNode(TypeNode::fromType((*i).second), TypeNode::fromType((*j).second));
-      if((*i).first != (*j).first || kid.isNull()) {
-        // if field names differ, or no common supertype, then
-        // types t0, t1 not compatible
-        return TypeNode();
-      }
-      fields.push_back(std::make_pair((*i).first, kid.toType()));
-    }
-    // if we make it here, we constructed the least common type
-    return NodeManager::currentNM()->mkRecordType(Record(fields));
-  }
-*/
   case kind::DATATYPE_TYPE:
-    // t1 might be a subtype tuple or record
-    if(t1.getBaseType() == t0) {
-      return t0;
+    if( t0.isTuple() && t1.isTuple() ){
+      const Datatype& dt1 = t0.getDatatype();
+      const Datatype& dt2 = t1.getDatatype();
+      if( dt1[0].getNumArgs()==dt2[0].getNumArgs() ){
+        std::vector< TypeNode > lc_types;
+        for( unsigned i=0; i<dt1[0].getNumArgs(); i++ ){
+          TypeNode tc = leastCommonTypeNode( TypeNode::fromType( dt1[0][i].getRangeType() ), TypeNode::fromType( dt2[0][i].getRangeType() ) );
+          if( tc.isNull() ){
+            return tc;
+          }else{
+            lc_types.push_back( tc );
+          }
+        }
+        return NodeManager::currentNM()->mkTupleType( lc_types );
+      }
+    }else if( t0.isRecord() && t1.isRecord() ){
+      //TBD
     }
     // otherwise no common ancestor
     return TypeNode();

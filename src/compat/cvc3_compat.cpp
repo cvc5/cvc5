@@ -1818,8 +1818,7 @@ Expr ValidityChecker::recordExpr(const std::vector<std::string>& fields,
 Expr ValidityChecker::recSelectExpr(const Expr& record, const std::string& field) {
   Type t = record.getType();
   const CVC4::Datatype& dt = ((CVC4::DatatypeType)t).getDatatype();
-  const CVC4::Record& rec = ((CVC4::DatatypeType)t).getRecord();
-  unsigned index = rec.getIndex(field);
+  unsigned index = CVC4::Datatype::indexOf( dt[0].getSelector(field) );
   return d_em->mkExpr(CVC4::kind::APPLY_SELECTOR_TOTAL, dt[0][index].getSelector(), record);
 }
 

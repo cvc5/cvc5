@@ -855,7 +855,7 @@ Node TermDb::getInstantiatedNode( Node n, Node q, std::vector< Node >& terms ) {
 
 void getSelfSel( const DatatypeConstructor& dc, Node n, TypeNode ntn, std::vector< Node >& selfSel ){
   for( unsigned j=0; j<dc.getNumArgs(); j++ ){
-    TypeNode tn = TypeNode::fromType( ((SelectorType)dc[j].getSelector().getType()).getRangeType() );
+    TypeNode tn = TypeNode::fromType( dc[j].getRangeType() );
     std::vector< Node > ssc;
     if( tn==ntn ){
       ssc.push_back( n );
@@ -1050,7 +1050,7 @@ bool TermDb::isClosedEnumerableType( TypeNode tn ) {
       const Datatype& dt = ((DatatypeType)(tn).toType()).getDatatype();
       for( unsigned i=0; i<dt.getNumConstructors(); i++ ){
         for( unsigned j=0; j<dt[i].getNumArgs(); j++ ){
-          TypeNode ctn = TypeNode::fromType( ((SelectorType)dt[i][j].getSelector().getType()).getRangeType() );
+          TypeNode ctn = TypeNode::fromType( dt[i][j].getRangeType() );
           if( tn!=ctn && !isClosedEnumerableType( ctn ) ){
             ret = false;
             break;

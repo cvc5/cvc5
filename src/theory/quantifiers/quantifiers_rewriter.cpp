@@ -932,8 +932,7 @@ bool QuantifiersRewriter::computeVariableElimLit( Node lit, bool pol, std::vecto
       newChildren.push_back( Node::fromExpr( c.getConstructor() ) );
       std::vector< Node > newVars;
       for( unsigned j=0; j<c.getNumArgs(); j++ ){
-        TypeNode tn = TypeNode::fromType( c[j].getSelector().getType() );
-        tn = tn[1];
+        TypeNode tn = TypeNode::fromType( c[j].getRangeType() );
         Node v = NodeManager::currentNM()->mkBoundVar( tn );
         newChildren.push_back( v );
         newVars.push_back( v );

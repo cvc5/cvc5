@@ -51,6 +51,10 @@ typedef expr::Attribute<expr::attr::DatatypeFiniteComputedTag, bool> DatatypeFin
 typedef expr::Attribute<expr::attr::DatatypeUFiniteTag, bool> DatatypeUFiniteAttr;
 typedef expr::Attribute<expr::attr::DatatypeUFiniteComputedTag, bool> DatatypeUFiniteComputedAttr;
 
+Datatype::~Datatype(){
+  delete d_record;
+}
+
 const Datatype& Datatype::datatypeOf(Expr item) {
   ExprManagerScope ems(item);
   TypeNode t = Node::fromExpr(item).getType();
@@ -133,6 +137,14 @@ void Datatype::resolve(ExprManager* em,
       d_involvesUt =  true;
     }
   }
+
+  if( d_isRecord ){
+    std::vector< std::pair<std::string, Type> > fields;
+    for( unsigned i=0; i<(*this)[0].getNumArgs(); i++ ){
+      fields.push_back( std::pair<std::string, Type>( (*this)[0][i].getName(), (*this)[0][i].getRangeType() ) );
+    }
+    d_record = new Record(fields);
+  }
 }
 
 void Datatype::addConstructor(const DatatypeConstructor& c) {
@@ -152,10 +164,12 @@ void Datatype::setSygus( Type st, Expr bvl, bool allow_const, bool allow_all ){
 }
 
 void Datatype::setTuple() {
+  PrettyCheckArgument(!d_resolved, this, "cannot set tuple to a finalized Datatype");
   d_isTuple = true;
 }
 
 void Datatype::setRecord() {
+  PrettyCheckArgument(!d_resolved, this, "cannot set record to a finalized Datatype");
   d_isRecord = true;
 }
 
@@ -972,6 +986,10 @@ Expr DatatypeConstructorArg::getConstructor() const {
 
 SelectorType DatatypeConstructorArg::getType() const {
   return getSelector().getType();
+}
+
+Type DatatypeConstructorArg::getRangeType() const {
+  return getType().getRangeType();
 }
 
 bool DatatypeConstructorArg::isUnresolvedSelf() const throw() {
