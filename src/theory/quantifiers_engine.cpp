@@ -1106,6 +1106,18 @@ void QuantifiersEngine::printSynthSolution( std::ostream& out ) {
   }
 }
 
+void QuantifiersEngine::getInstantiations( std::map< Node, std::vector< Node > >& insts ) {
+  if( options::incrementalSolving() ){
+    for( std::map< Node, inst::CDInstMatchTrie* >::iterator it = d_c_inst_match_trie.begin(); it != d_c_inst_match_trie.end(); ++it ){
+      it->second->getInstantiations( insts[it->first], it->first );
+    }
+  }else{
+    for( std::map< Node, inst::InstMatchTrie >::iterator it = d_inst_match_trie.begin(); it != d_inst_match_trie.end(); ++it ){
+      it->second.getInstantiations( insts[it->first], it->first );
+    }
+  }
+}
+
 QuantifiersEngine::Statistics::Statistics()
     : d_time("theory::QuantifiersEngine::time"),
       d_num_quant("QuantifiersEngine::Num_Quantifiers", 0),

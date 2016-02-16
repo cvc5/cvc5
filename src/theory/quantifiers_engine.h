@@ -342,6 +342,8 @@ public:
   void printInstantiations( std::ostream& out );
   /** print solution for synthesis conjectures */
   void printSynthSolution( std::ostream& out );
+  /** get instantiations */
+  void getInstantiations( std::map< Node, std::vector< Node > >& insts );
   /** statistics class */
   class Statistics {
   public:

@@ -101,6 +101,7 @@ public:
   std::map< Node, InstMatchTrie > d_data;
 private:
   void print( std::ostream& out, Node q, std::vector< TNode >& terms ) const;
+  void getInstantiations( std::vector< Node >& insts, Node q, std::vector< TNode >& vars, std::vector< TNode >& terms ) const;
 public:
   InstMatchTrie(){}
   ~InstMatchTrie(){}
@@ -131,6 +132,14 @@ public:
     std::vector< TNode > terms;
     print( out, q, terms );
   }
+  void getInstantiations( std::vector< Node >& insts, Node q ) {
+    std::vector< TNode > terms;
+    std::vector< TNode > vars;
+    for( unsigned i=0; i<q[0].getNumChildren(); i++ ){
+      vars.push_back( q[0][i] );
+    }
+    getInstantiations( insts, q, vars, terms );
+  }
   void clear() { d_data.clear(); }
 };/* class InstMatchTrie */
 
@@ -143,6 +152,7 @@ public:
   context::CDO< bool > d_valid;
 private:
   void print( std::ostream& out, Node q, std::vector< TNode >& terms ) const;
+  void getInstantiations( std::vector< Node >& insts, Node q, std::vector< TNode >& vars, std::vector< TNode >& terms ) const;
 public:
   CDInstMatchTrie( context::Context* c ) : d_valid( c, false ){}
   ~CDInstMatchTrie(){}
@@ -172,6 +182,14 @@ public:
   void print( std::ostream& out, Node q ) const{
     std::vector< TNode > terms;
     print( out, q, terms );
+  }
+  void getInstantiations( std::vector< Node >& insts, Node q ) {
+    std::vector< TNode > terms;
+    std::vector< TNode > vars;
+    for( unsigned i=0; i<q[0].getNumChildren(); i++ ){
+      vars.push_back( q[0][i] );
+    }
+    getInstantiations( insts, q, vars, terms );
   }
 };/* class CDInstMatchTrie */
 

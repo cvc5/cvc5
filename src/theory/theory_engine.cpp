@@ -1212,6 +1212,8 @@ Node TheoryEngine::ensureLiteral(TNode n) {
 void TheoryEngine::printInstantiations( std::ostream& out ) {
   if( d_quantEngine ){
     d_quantEngine->printInstantiations( out );
+  }else{
+    out << "Internal error : instantiations not available when quantifiers are not present." << std::endl;
   }
 }
 
@@ -1222,6 +1224,15 @@ void TheoryEngine::printSynthSolution( std::ostream& out ) {
     out << "Internal error : synth solution not available when quantifiers are not present." << std::endl;
   }
 }
+
+void TheoryEngine::getInstantiations( std::map< Node, std::vector< Node > >& insts ) {
+  if( d_quantEngine ){
+    d_quantEngine->getInstantiations( insts );
+  }else{
+    Assert( false );
+  }
+}
+
 
 static Node mkExplanation(const std::vector<NodeTheoryPair>& explanation) {
 

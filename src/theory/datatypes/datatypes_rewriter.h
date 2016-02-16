@@ -200,20 +200,24 @@ public:
       }
     }
 
-    if(in.getKind() == kind::EQUAL && in[0] == in[1]) {
-      return RewriteResponse(REWRITE_DONE,
-                             NodeManager::currentNM()->mkConst(true));
-    }
     if(in.getKind() == kind::EQUAL ) {
-      std::vector< Node > rew;
-      if( checkClash(in[0], in[1], rew) ){
-        Trace("datatypes-rewrite") << "Rewrite clashing equality " << in << " to false" << std::endl;
-        return RewriteResponse(REWRITE_DONE, NodeManager::currentNM()->mkConst(false));
-      }else if( rew.size()==1 && rew[0]!=in ){
-        Trace("datatypes-rewrite") << "Rewrite equality " << in << " to " << rew[0] << std::endl;
-        return RewriteResponse(REWRITE_AGAIN_FULL, rew[0] );
+      if(in[0] == in[1]) {
+        return RewriteResponse(REWRITE_DONE, NodeManager::currentNM()->mkConst(true));
       }else{
-        Trace("datatypes-rewrite-debug") << "Did not rewrite equality " << in << " " << in[0].getKind() << " " << in[1].getKind() << std::endl;
+        std::vector< Node > rew;
+        if( checkClash(in[0], in[1], rew) ){
+          Trace("datatypes-rewrite") << "Rewrite clashing equality " << in << " to false" << std::endl;
+          return RewriteResponse(REWRITE_DONE, NodeManager::currentNM()->mkConst(false));
+        }else if( rew.size()==1 && rew[0]!=in ){
+          Trace("datatypes-rewrite") << "Rewrite equality " << in << " to " << rew[0] << std::endl;
+          return RewriteResponse(REWRITE_AGAIN_FULL, rew[0] );
+        }else if( in[1]<in[0] ){
+          Node ins = NodeManager::currentNM()->mkNode(in.getKind(), in[1], in[0]);
+          Trace("datatypes-rewrite") << "Swap equality " << in << " to " << ins << std::endl;
+          return RewriteResponse(REWRITE_DONE, ins);
+        }else{
+          Trace("datatypes-rewrite-debug") << "Did not rewrite equality " << in << " " << in[0].getKind() << " " << in[1].getKind() << std::endl;
+        }
       }
     }
 

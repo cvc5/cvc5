@@ -783,6 +783,11 @@ public:
    */
   void printSynthSolution( std::ostream& out );
 
+  /** 
+   * Get instantiations 
+   */
+  void getInstantiations( std::map< Node, std::vector< Node > >& insts );
+
   /**
    * Forwards an entailment check according to the given theoryOfMode.
    * See theory.h for documentation on entailmentCheck().
