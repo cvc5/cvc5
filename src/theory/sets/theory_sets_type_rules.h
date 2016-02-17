@@ -209,8 +209,6 @@ struct RelBinaryOperatorTypeRule {
       }
       resultType = nodeManager->mkSetType(nodeManager->mkTupleType(newTupleTypes));
     }
-
-    Debug("rels") << "The resulting Type is " << resultType << std::endl;
     return resultType;
   }
 
@@ -263,7 +261,7 @@ struct RelTransClosureTypeRule {
 
   inline static bool computeIsConst(NodeManager* nodeManager, TNode n) {
       Assert(n.getKind() == kind::TRANSCLOSURE);
-      return true;
+      return false;
     }
 };/* struct RelTransClosureTypeRule */
 

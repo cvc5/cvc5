@@ -30,7 +30,8 @@ class TheorySetsRels {
 public:
   TheorySetsRels(context::Context* c,
                  context::UserContext* u,
-                 eq::EqualityEngine*);
+                 eq::EqualityEngine*,
+                 context::CDO<bool>* );
 
   ~TheorySetsRels();
 
@@ -42,14 +43,31 @@ private:
   Node d_trueNode;
   Node d_falseNode;
 
+  // Facts and lemmas to be sent to EE
+  std::map< Node, Node> d_pending_facts;
+  std::vector< Node > d_lemma_cache;
+
+  // Relation pairs to be joined
+//  std::map<TNode, TNode> d_rel_pairs;
+//  std::hash_set<TNode> d_rels;
+
   eq::EqualityEngine *d_eqEngine;
+  context::CDO<bool> *d_conflict;
 
   // save all the relational terms seen so far
   context::CDHashSet <Node, NodeHashFunction> d_relsSaver;
 
   void assertMembership(TNode fact, TNode reason, bool polarity);
 
-  Node reverseTuple(TNode tuple);
+  void joinRelations(TNode, TNode, TypeNode);
+  void joinTuples(TNode, TNode, std::vector<Node>&, std::vector<Node>&, TypeNode tn);
+
+  Node reverseTuple(TNode);
+
+  void sendLemma(TNode fact, TNode reason, bool polarity);
+  void doPendingLemmas();
+  void doPendingFacts();
+
 };
 
 }/* CVC4::theory::sets namespace */

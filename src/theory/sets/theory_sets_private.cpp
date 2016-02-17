@@ -1111,7 +1111,7 @@ TheorySetsPrivate::TheorySetsPrivate(TheorySets& external,
   d_rels(NULL)
 {
   d_termInfoManager = new TermInfoManager(*this, c, &d_equalityEngine);
-  d_rels = new TheorySetsRels(c, u, &d_equalityEngine);
+  d_rels = new TheorySetsRels(c, u, &d_equalityEngine, &d_conflict);
 
   d_equalityEngine.addFunctionKind(kind::UNION);
   d_equalityEngine.addFunctionKind(kind::INTERSECTION);
