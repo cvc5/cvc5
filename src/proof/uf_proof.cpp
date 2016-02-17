@@ -759,7 +759,7 @@ void LFSCUFProof::printTerm(Expr term, std::ostream& os, const LetMap& map) {
   }
   os << func << " ";
   for (unsigned i = 0; i < term.getNumChildren(); ++i) {
-    printTerm(term[i], os, map);
+    d_proofEngine->printBoundTerm(term[i], os, map);
     os << ")";
   }
   if(term.getType().isBoolean()) {
