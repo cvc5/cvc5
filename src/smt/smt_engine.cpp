@@ -5056,34 +5056,74 @@ void SmtEngine::printSynthSolution( std::ostream& out ) {
   }
 }
 
-Expr SmtEngine::doQuantifierElimination(const Expr& e, bool doFull) {
+Expr SmtEngine::doQuantifierElimination(const Expr& e, bool doFull) throw(TypeCheckingException, ModalException, LogicException) {
   SmtScope smts(this);
+  if(!d_logic.isPure(THEORY_ARITH)){
+    Warning() << "Unexpected logic for quantifier elimination." << endl;
+  }
   Trace("smt-qe") << "Do quantifier elimination " << e << std::endl;
-  Result r = query(e);
+  Node n_e = Node::fromExpr( e );  
+  if( n_e.getKind()!=kind::EXISTS ){
+    throw ModalException("Expecting an existentially quantified formula as argument to get-qe.");
+  }
+  //tag the quantified formula with the quant-elim attribute
+  TypeNode t = NodeManager::currentNM()->booleanType();
+  Node n_attr = NodeManager::currentNM()->mkSkolem("qe", t, "Auxiliary variable for qe attr.");
+  std::vector< Node > node_values;
+  d_theoryEngine->setUserAttribute( doFull ? "quant-elim" : "quant-elim-partial", n_attr, node_values, "");
+  n_attr = NodeManager::currentNM()->mkNode(kind::INST_ATTRIBUTE, n_attr);
+  n_attr = NodeManager::currentNM()->mkNode(kind::INST_PATTERN_LIST, n_attr);
+  std::vector< Node > e_children;
+  e_children.push_back( n_e[0] );
+  e_children.push_back( n_e[1] );
+  e_children.push_back( n_attr );
+  Node nn_e = NodeManager::currentNM()->mkNode( kind::EXISTS, e_children );
+  Trace("smt-qe-debug") << "Query : " << nn_e << std::endl;
+  Assert( nn_e.getNumChildren()==3 );
+  Result r = query(nn_e.toExpr());
   Trace("smt-qe") << "Query returned " << r << std::endl;
-  if(r.asSatisfiabilityResult().isSat() == Result::SAT) {
-    Node input = Node::fromExpr( e );
-    input = Rewriter::rewrite( input );
-    Trace("smt-qe") << "Replace instances in rewritten input: " << input << std::endl;
+  if(r.asSatisfiabilityResult().isSat() == Result::SAT || ( !doFull && r.asSatisfiabilityResult().isSat() != Result::UNSAT ) ) {
+    //get the instantiations for all quantified formulas
     std::map< Node, std::vector< Node > > insts;    
     d_theoryEngine->getInstantiations( insts );
+    //find the quantified formula that corresponds to the input
+    Node top_q;
+    for( std::map< Node, std::vector< Node > >::iterator it = insts.begin(); it != insts.end(); ++it ){
+      Trace("smt-qe-debug") << "* quantifier " << it->first << " had " << it->second.size() << " instances." << std::endl;
+      if( it->first.getNumChildren()==3 && it->first[2]==n_attr ){
+        top_q = it->first;
+      }
+    }
     std::map< Node, Node > visited;
-    Node en = d_private->replaceQuantifiersWithInstantiations( input, insts, visited );
+    Node ret_n;
+    if( top_q.isNull() ){
+      //no instances needed
+      ret_n = NodeManager::currentNM()->mkConst(true);
+      visited[top_q] = ret_n;
+    }else{
+      //replace by a conjunction of instances
+      ret_n = d_private->replaceQuantifiersWithInstantiations( top_q, insts, visited );
+    }
 
     //ensure all instantiations were accounted for
     for( std::map< Node, std::vector< Node > >::iterator it = insts.begin(); it != insts.end(); ++it ){
       if( visited.find( it->first )==visited.end() ){
         stringstream ss;
         ss << "While performing quantifier elimination, processed a quantified formula : " << it->first;
-        ss << " that was not related to the query.  Try option --simplification=none." << std::endl;
+        ss << " that was not related to the query.  Try option --simplification=none.";
         InternalError(ss.str().c_str());
       }
     }
-    Trace("smt-qe") << "Returned : " << en << std::endl;
-    en = Rewriter::rewrite( en );
-    return en.toExpr();
-  }else{
-    return NodeManager::currentNM()->mkConst(false).toExpr();
+    Trace("smt-qe") << "Returned : " << ret_n << std::endl;
+    ret_n = Rewriter::rewrite( ret_n.negate() );
+    return ret_n.toExpr();
+  }else {
+    if(r.asSatisfiabilityResult().isSat() != Result::UNSAT){
+      stringstream ss;
+      ss << "While performing quantifier elimination, unexpected result : " << r << " for query.";
+      InternalError(ss.str().c_str());
+    }
+    return NodeManager::currentNM()->mkConst(true).toExpr();
   }
 }
 

@@ -26,6 +26,8 @@ namespace CVC4 {
 namespace theory {
 namespace quantifiers {
 
+class QAttributes;
+
 class QuantifiersRewriter {
 private:
   static int getPurifyIdLit2( Node n, std::map< Node, int >& visited );
@@ -37,7 +39,7 @@ public:
   static int getPurifyIdLit( Node n );
 private:
   static void addNodeToOrBuilder( Node n, NodeBuilder<>& t );
-  static Node mkForAll( std::vector< Node >& args, Node body, Node ipl );
+  static Node mkForAll( std::vector< Node >& args, Node body, QAttributes& qa );
   static void computeArgs( std::vector< Node >& args, std::map< Node, bool >& activeMap, Node n, std::map< Node, bool >& visited );
   static void computeArgVec( std::vector< Node >& args, std::vector< Node >& activeArgs, Node n );
   static void computeArgVec2( std::vector< Node >& args, std::vector< Node >& activeArgs, Node n, Node ipl );
@@ -52,21 +54,21 @@ private:
                                       std::map< Node, std::vector< int > >& var_parent );
   static Node computePurify2( Node body, std::vector< Node >& args, std::map< Node, Node >& visited, std::map< Node, Node >& var_to_term,
                               std::map< Node, std::vector< int > >& var_parent, int parentId );
-  static Node computeVarElimination2( Node body, std::vector< Node >& args, Node& ipl, std::map< Node, std::vector< int > >& var_parent );
+  static Node computeVarElimination2( Node body, std::vector< Node >& args, QAttributes& qa, std::map< Node, std::vector< int > >& var_parent );
 private:
   static Node computeElimSymbols( Node body );
-  static Node computeMiniscoping( Node f, std::vector< Node >& args, Node body, Node ipl );
+  static Node computeMiniscoping( Node f, std::vector< Node >& args, Node body, QAttributes& qa );
   static Node computeAggressiveMiniscoping( std::vector< Node >& args, Node body );
   static Node computeNNF( Node body );
   //cache is dependent upon currCond, icache is not, new_conds are negated conditions
-  static Node computeProcessTerms( Node body, std::vector< Node >& new_vars, std::vector< Node >& new_conds, Node q );
-  static Node computeCondSplit( Node body, Node ipl );
+  static Node computeProcessTerms( Node body, std::vector< Node >& new_vars, std::vector< Node >& new_conds, Node q, QAttributes& qa );
+  static Node computeCondSplit( Node body, QAttributes& qa );
   static Node computeCNF( Node body, std::vector< Node >& args, NodeBuilder<>& defs, bool forcePred );
   static Node computePrenex( Node body, std::vector< Node >& args, bool pol );
   static Node computeSplit( Node f, std::vector< Node >& args, Node body );
-  static Node computeVarElimination( Node body, std::vector< Node >& args, Node& ipl );
+  static Node computeVarElimination( Node body, std::vector< Node >& args, QAttributes& qa );
   static Node computePurify( Node body, std::vector< Node >& args, std::map< Node, std::vector< int > >& var_parent );
-  static void computePurifyExpand( Node body, std::vector< Node >& conj, std::vector< Node >& args, Node ipl );
+  static void computePurifyExpand( Node body, std::vector< Node >& conj, std::vector< Node >& args, QAttributes& qa );
 private:
   enum{
     COMPUTE_ELIM_SYMBOLS = 0,
@@ -82,7 +84,7 @@ private:
     //COMPUTE_CNF,
     COMPUTE_LAST
   };
-  static Node computeOperation( Node f, bool isNested, int computeOption );
+  static Node computeOperation( Node f, int computeOption, QAttributes& qa );
 public:
   static RewriteResponse preRewrite(TNode in);
   static RewriteResponse postRewrite(TNode in);
@@ -90,7 +92,7 @@ public:
   static inline void shutdown() {}
 private:
   /** options */
-  static bool doOperation( Node f, bool isNested, int computeOption );
+  static bool doOperation( Node f, int computeOption, QAttributes& qa );
 private:
   static Node preSkolemizeQuantifiers(Node n, bool polarity, std::vector< TypeNode >& fvTypes, std::vector<TNode>& fvs);
 public:

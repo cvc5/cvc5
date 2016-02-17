@@ -555,7 +555,7 @@ public:
   /**
    * Do quantifier elimination, doFull false means just output one disjunct
    */
-  Expr doQuantifierElimination(const Expr& e, bool doFull);
+  Expr doQuantifierElimination(const Expr& e, bool doFull) throw(TypeCheckingException, ModalException, LogicException);
 
   /**
    * Get an unsatisfiable core (only if immediately preceded by an

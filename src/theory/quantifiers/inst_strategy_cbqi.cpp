@@ -34,8 +34,7 @@ using namespace CVC4::theory::arith;
 #define ARITH_INSTANTIATOR_USE_MINUS_DELTA
 
 InstStrategyCbqi::InstStrategyCbqi( QuantifiersEngine * qe )
-  : QuantifiersModule( qe )
-  , d_added_cbqi_lemma( qe->getUserContext() ){
+  : QuantifiersModule( qe ), d_added_cbqi_lemma( qe->getUserContext() ), d_added_inst( qe->getUserContext() ) {
 }
 
 InstStrategyCbqi::~InstStrategyCbqi() throw(){}
@@ -97,6 +96,14 @@ void InstStrategyCbqi::reset_round( Theory::Effort effort ) {
           }
         }else{
           Debug("cbqi-debug") << "...CE Literal does not have value " << std::endl;
+        }
+        //if doing partial quantifier elimination, do not process this if already processed once
+        if( d_quantEngine->getTermDatabase()->isQAttrQuantElimPartial( q ) ){
+          if( d_added_inst.find( q )!=d_added_inst.end() ){
+            d_quantEngine->getModel()->setQuantifierActive( q, false );
+            d_cbqi_set_quant_inactive = true;
+            d_incomplete_check = true;
+          }
         }
       }
     }
@@ -201,20 +208,25 @@ bool InstStrategyCbqi::doCbqi( Node q ){
   std::map< Node, bool >::iterator it = d_do_cbqi.find( q );
   if( it==d_do_cbqi.end() ){
     bool ret = false;
-    //if has an instantiation pattern, don't do it
-    if( q.getNumChildren()==3 && options::eMatching() && options::userPatternsQuant()!=USER_PAT_MODE_IGNORE ){
-      ret = false;
+    if( d_quantEngine->getTermDatabase()->isQAttrQuantElim( q ) ){
+      ret = true;
     }else{
-      if( options::cbqiAll() ){
-        ret = true;
+      //if has an instantiation pattern, don't do it
+      if( q.getNumChildren()==3 && options::eMatching() && options::userPatternsQuant()!=USER_PAT_MODE_IGNORE ){
+        ret = false;
       }else{
-        //if quantifier has a non-arithmetic variable, then do not use cbqi
-        //if quantifier has an APPLY_UF term, then do not use cbqi
-        Node cb = d_quantEngine->getTermDatabase()->getInstConstantBody( q );
-        std::map< Node, bool > visited;
-        ret = !hasNonCbqiVariable( q ) && !hasNonCbqiOperator( cb, visited );
+        if( options::cbqiAll() ){
+          ret = true;
+        }else{
+          //if quantifier has a non-arithmetic variable, then do not use cbqi
+          //if quantifier has an APPLY_UF term, then do not use cbqi
+          Node cb = d_quantEngine->getTermDatabase()->getInstConstantBody( q );
+          std::map< Node, bool > visited;
+          ret = !hasNonCbqiVariable( q ) && !hasNonCbqiOperator( cb, visited );
+        }
       }
     }
+    Trace("cbqi") << "doCbqi " << q << " returned " << ret << std::endl;
     d_do_cbqi[q] = ret;
     return ret;
   }else{
@@ -623,7 +635,12 @@ bool InstStrategyCegqi::addInstantiation( std::vector< Node >& subs ) {
   Assert( !d_curr_quant.isNull() );
   //check if we need virtual term substitution (if used delta or infinity)
   bool used_vts = d_quantEngine->getTermDatabase()->containsVtsTerm( subs, false );
-  return d_quantEngine->addInstantiation( d_curr_quant, subs, false, false, false, used_vts );
+  if( d_quantEngine->addInstantiation( d_curr_quant, subs, false, false, false, used_vts ) ){
+    d_added_inst.insert( d_curr_quant );
+    return true;
+  }else{
+    return false;
+  }
 }
 
 bool InstStrategyCegqi::addLemma( Node lem ) {

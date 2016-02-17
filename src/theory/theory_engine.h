@@ -856,7 +856,7 @@ public:
    * This function is called when an attribute is set by a user.  In SMT-LIBv2 this is done
    * via the syntax (! n :attr)
    */
-  void setUserAttribute(const std::string& attr, Node n, std::vector<Node> node_values, std::string str_value);
+  void setUserAttribute(const std::string& attr, Node n, std::vector<Node>& node_values, std::string str_value);
 
   /**
    * Handle user attribute.

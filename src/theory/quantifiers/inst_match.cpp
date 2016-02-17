@@ -212,13 +212,14 @@ void InstMatchTrie::print( std::ostream& out, Node q, std::vector< TNode >& term
   }
 }
 
-void InstMatchTrie::getInstantiations( std::vector< Node >& insts, Node q, std::vector< TNode >& vars, std::vector< TNode >& terms ) const {
+void InstMatchTrie::getInstantiations( std::vector< Node >& insts, Node q, std::vector< Node >& terms, QuantifiersEngine * qe ) const {
   if( terms.size()==q[0].getNumChildren() ){
-    insts.push_back( q[1].substitute( vars.begin(), vars.end(), terms.begin(), terms.end() ) );
+    //insts.push_back( q[1].substitute( vars.begin(), vars.end(), terms.begin(), terms.end() ) );
+    insts.push_back( qe->getInstantiation( q, terms, true ) );
   }else{
     for( std::map< Node, InstMatchTrie >::const_iterator it = d_data.begin(); it != d_data.end(); ++it ){
       terms.push_back( it->first );
-      it->second.getInstantiations( insts, q, vars, terms );
+      it->second.getInstantiations( insts, q, terms, qe );
       terms.pop_back();
     }
   }
@@ -310,14 +311,15 @@ void CDInstMatchTrie::print( std::ostream& out, Node q, std::vector< TNode >& te
   }
 }
 
-void CDInstMatchTrie::getInstantiations( std::vector< Node >& insts, Node q, std::vector< TNode >& vars, std::vector< TNode >& terms ) const{
+void CDInstMatchTrie::getInstantiations( std::vector< Node >& insts, Node q, std::vector< Node >& terms, QuantifiersEngine * qe ) const{
   if( d_valid.get() ){
     if( terms.size()==q[0].getNumChildren() ){
-      insts.push_back( q[1].substitute( vars.begin(), vars.end(), terms.begin(), terms.end() ) );
+      //insts.push_back( q[1].substitute( vars.begin(), vars.end(), terms.begin(), terms.end() ) );
+      insts.push_back( qe->getInstantiation( q, terms, true ) );
     }else{
       for( std::map< Node, CDInstMatchTrie* >::const_iterator it = d_data.begin(); it != d_data.end(); ++it ){
         terms.push_back( it->first );
-        it->second->getInstantiations( insts, q, vars, terms );
+        it->second->getInstantiations( insts, q, terms, qe );
         terms.pop_back();
       }
     }

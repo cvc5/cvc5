@@ -293,11 +293,11 @@ private:
   void flushLemmas();
 public:
   /** get instantiation */
-  Node getInstantiation( Node q, std::vector< Node >& vars, std::vector< Node >& terms );
+  Node getInstantiation( Node q, std::vector< Node >& vars, std::vector< Node >& terms, bool doVts = false );
   /** get instantiation */
-  Node getInstantiation( Node q, InstMatch& m );
+  Node getInstantiation( Node q, InstMatch& m, bool doVts = false );
   /** get instantiation */
-  Node getInstantiation( Node q, std::vector< Node >& terms );
+  Node getInstantiation( Node q, std::vector< Node >& terms, bool doVts = false );
   /** do substitution */
   Node getSubstitute( Node n, std::vector< Node >& terms );
   /** add lemma lem */

@@ -686,8 +686,7 @@ void QuantifiersEngine::computeTermVector( Node f, InstMatch& m, std::vector< No
 bool QuantifiersEngine::addInstantiationInternal( Node f, std::vector< Node >& vars, std::vector< Node >& terms, bool doVts ){
   Assert( f.getKind()==FORALL );
   Assert( vars.size()==terms.size() );
-  Node body = getInstantiation( f, vars, terms );
-  //do virtual term substitution
+  Node body = getInstantiation( f, vars, terms, doVts );  //do virtual term substitution
   if( doVts ){
     body = Rewriter::rewrite( body );
     Trace("quant-vts-debug") << "Rewrite vts symbols in " << body << std::endl;
@@ -811,7 +810,7 @@ Node QuantifiersEngine::getSubstitute( Node n, std::vector< Node >& terms ){
 }
 
 
-Node QuantifiersEngine::getInstantiation( Node q, std::vector< Node >& vars, std::vector< Node >& terms ){
+Node QuantifiersEngine::getInstantiation( Node q, std::vector< Node >& vars, std::vector< Node >& terms, bool doVts ){
   Node body;
   //process partial instantiation if necessary
   if( d_term_db->d_vars[q].size()!=vars.size() ){
@@ -842,18 +841,26 @@ Node QuantifiersEngine::getInstantiation( Node q, std::vector< Node >& vars, std
       }
     }
   }
+  if( doVts ){
+    //do virtual term substitution
+    body = Rewriter::rewrite( body );
+    Trace("quant-vts-debug") << "Rewrite vts symbols in " << body << std::endl;
+    Node body_r = d_term_db->rewriteVtsSymbols( body );
+    Trace("quant-vts-debug") << "            ...result: " << body_r << std::endl;
+    body = body_r;
+  }
   return body;
 }
 
-Node QuantifiersEngine::getInstantiation( Node q, InstMatch& m ){
+Node QuantifiersEngine::getInstantiation( Node q, InstMatch& m, bool doVts ){
   std::vector< Node > vars;
   std::vector< Node > terms;
   computeTermVector( q, m, vars, terms );
-  return getInstantiation( q, vars, terms );
+  return getInstantiation( q, vars, terms, doVts );
 }
 
-Node QuantifiersEngine::getInstantiation( Node q, std::vector< Node >& terms ) {
-  return getInstantiation( q, d_term_db->d_vars[q], terms );
+Node QuantifiersEngine::getInstantiation( Node q, std::vector< Node >& terms, bool doVts ) {
+  return getInstantiation( q, d_term_db->d_vars[q], terms, doVts );
 }
 
 /*
@@ -1109,11 +1116,11 @@ void QuantifiersEngine::printSynthSolution( std::ostream& out ) {
 void QuantifiersEngine::getInstantiations( std::map< Node, std::vector< Node > >& insts ) {
   if( options::incrementalSolving() ){
     for( std::map< Node, inst::CDInstMatchTrie* >::iterator it = d_c_inst_match_trie.begin(); it != d_c_inst_match_trie.end(); ++it ){
-      it->second->getInstantiations( insts[it->first], it->first );
+      it->second->getInstantiations( insts[it->first], it->first, this );
     }
   }else{
     for( std::map< Node, inst::InstMatchTrie >::iterator it = d_inst_match_trie.begin(); it != d_inst_match_trie.end(); ++it ){
-      it->second.getInstantiations( insts[it->first], it->first );
+      it->second.getInstantiations( insts[it->first], it->first, this );
     }
   }
 }

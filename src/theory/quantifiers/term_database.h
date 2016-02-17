@@ -99,6 +99,14 @@ typedef expr::Attribute<SygusProxyAttributeId, Node> SygusProxyAttribute;
 struct AbsTypeFunDefAttributeId {};
 typedef expr::Attribute<AbsTypeFunDefAttributeId, bool> AbsTypeFunDefAttribute;
 
+/** Attribute true for quantifiers that we are doing quantifier elimination on */
+struct QuantElimAttributeId {};
+typedef expr::Attribute< QuantElimAttributeId, bool > QuantElimAttribute;
+
+/** Attribute true for quantifiers that we are doing partial quantifier elimination on */
+struct QuantElimPartialAttributeId {};
+typedef expr::Attribute< QuantElimPartialAttributeId, bool > QuantElimPartialAttribute;
+
 class QuantifiersEngine;
 
 namespace inst{
@@ -118,6 +126,26 @@ public:
   void clear() { d_data.clear(); }
 };/* class TermArgTrie */
 
+
+class QAttributes{
+public:
+  QAttributes() : d_conjecture(false), d_axiom(false), d_sygus(false),
+                  d_synthesis(false), d_rr_priority(-1), d_qinstLevel(-1), d_quant_elim(false), d_quant_elim_partial(false){}
+  ~QAttributes(){}
+  Node d_rr;
+  bool d_conjecture;
+  bool d_axiom;
+  Node d_fundef_f;
+  bool d_sygus;
+  bool d_synthesis;
+  int d_rr_priority;
+  int d_qinstLevel;
+  bool d_quant_elim;
+  bool d_quant_elim_partial;
+  Node d_ipl;
+  bool isRewriteRule() { return !d_rr.isNull(); }
+  bool isFunDef() { return !d_fundef_f.isNull(); }
+};
 
 namespace fmcheck {
   class FullModelChecker;
@@ -440,15 +468,11 @@ public: //general queries concerning quantified formulas wrt modules
   static Node getFunDefHead( Node q );
   /** get fun def body */
   static Node getFunDefBody( Node q );
+  /** is quant elim annotation */
+  static bool isQuantElimAnnotation( Node ipl );
 //attributes
 private:
-  std::map< Node, bool > d_qattr_conjecture;
-  std::map< Node, bool > d_qattr_axiom;
-  std::map< Node, bool > d_qattr_fundef;
-  std::map< Node, bool > d_qattr_sygus;
-  std::map< Node, bool > d_qattr_synthesis;
-  std::map< Node, int > d_qattr_rr_priority;
-  std::map< Node, int > d_qattr_qinstLevel;
+  std::map< Node, QAttributes > d_qattr;
   //record attributes
   void computeAttributes( Node q );
 public:
@@ -466,7 +490,12 @@ public:
   int getQAttrQuantInstLevel( Node q );
   /** get rewrite rule priority */
   int getQAttrRewriteRulePriority( Node q );
-
+  /** is quant elim */
+  bool isQAttrQuantElim( Node q );
+  /** is quant elim partial */
+  bool isQAttrQuantElimPartial( Node q );
+  /** compute quantifier attributes */
+  static void computeQuantAttributes( Node q, QAttributes& qa );
 };/* class TermDb */
 
 class TermDbSygus {
