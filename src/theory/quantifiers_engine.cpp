@@ -687,13 +687,6 @@ bool QuantifiersEngine::addInstantiationInternal( Node f, std::vector< Node >& v
   Assert( f.getKind()==FORALL );
   Assert( vars.size()==terms.size() );
   Node body = getInstantiation( f, vars, terms, doVts );  //do virtual term substitution
-  if( doVts ){
-    body = Rewriter::rewrite( body );
-    Trace("quant-vts-debug") << "Rewrite vts symbols in " << body << std::endl;
-    Node body_r = d_term_db->rewriteVtsSymbols( body );
-    Trace("quant-vts-debug") << "            ...result: " << body_r << std::endl;
-    body = body_r;
-  }
   body = quantifiers::QuantifiersRewriter::preprocess( body, true );
   Trace("inst-debug") << "...preprocess to " << body << std::endl;
   Trace("inst-assert") << "(assert " << body << ")" << std::endl;
@@ -934,10 +927,13 @@ bool QuantifiersEngine::addInstantiation( Node q, std::vector< Node >& terms, bo
       terms[i] = d_eq_query->getInternalRepresentative( terms[i], q, i );
     }else{
       //ensure the type is correct
-      terms[i] = quantifiers::TermDb::mkNodeType( terms[i], q[0][i].getType() );
+      terms[i] = quantifiers::TermDb::ensureType( terms[i], q[0][i].getType() );
     }
     Trace("inst-add-debug") << " -> " << terms[i] << std::endl;
-    Assert( !terms[i].isNull() );
+    if( terms[i].isNull() ){
+      Trace("inst-add-debug") << " -> Failed to make term vector, due to term/type restrictions." << std::endl;
+      return false;
+    }
 #ifdef CVC4_ASSERTIONS
     Assert( !quantifiers::TermDb::containsUninterpretedConstant( terms[i] ) );
 #endif

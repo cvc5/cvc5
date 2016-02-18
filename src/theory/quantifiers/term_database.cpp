@@ -1585,7 +1585,7 @@ bool TermDb::containsVtsInfinity( Node n, bool isFree ) {
   return containsTerms( n, t );
 }
 
-Node TermDb::mkNodeType( Node n, TypeNode tn ) {
+Node TermDb::ensureType( Node n, TypeNode tn ) {
   TypeNode ntn = n.getType();
   Assert( ntn.isComparableTo( tn ) );
   if( ntn.isSubtypeOf( tn ) ){
@@ -1595,6 +1595,20 @@ Node TermDb::mkNodeType( Node n, TypeNode tn ) {
       return NodeManager::currentNM()->mkNode( TO_INTEGER, n );
     }
     return Node::null();
+  }
+}
+
+bool TermDb::getEnsureTypeCondition( Node n, TypeNode tn, std::vector< Node >& cond ) {
+  TypeNode ntn = n.getType();
+  Assert( ntn.isComparableTo( tn ) );
+  if( !ntn.isSubtypeOf( tn ) ){
+    if( tn.isInteger() ){
+      cond.push_back( NodeManager::currentNM()->mkNode( IS_INTEGER, n ) );
+      return true;
+    }
+    return false;
+  }else{
+    return true;
   }
 }
 

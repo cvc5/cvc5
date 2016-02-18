@@ -418,9 +418,10 @@ public:
   bool containsVtsTerm( std::vector< Node >& n, bool isFree = false );
   /** simple check for contains term */
   bool containsVtsInfinity( Node n, bool isFree = false );
-  /** make type */
-  static Node mkNodeType( Node n, TypeNode tn );
-
+  /** ensure type */
+  static Node ensureType( Node n, TypeNode tn );
+  /** get ensure type condition */
+  static bool getEnsureTypeCondition( Node n, TypeNode tn, std::vector< Node >& cond );
 private:
   //helper for contains term
   static bool containsTerm2( Node n, Node t, std::map< Node, bool >& visited );

@@ -642,8 +642,10 @@ public:
    * For more information see: http://cvc4.cs.nyu.edu/wiki/Cvc4_Type_Lattice
    */
   static TypeNode leastCommonTypeNode(TypeNode t0, TypeNode t1);
+  static TypeNode mostCommonTypeNode(TypeNode t0, TypeNode t1);
 
 private:
+  static TypeNode commonTypeNode(TypeNode t0, TypeNode t1, bool isLeast);
 
   /**
    * Returns the leastUpperBound in the extended type lattice of two

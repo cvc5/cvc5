@@ -107,16 +107,14 @@ bool TypeNode::isSubtypeOf(TypeNode t) const {
     }
     return true;
   }else if( t.isRecord() && t.isRecord() ){
-    //TBD
+    //records are not subtypes of each other in current implementation
   }
   if(isFunction()) {
     // A function is a subtype of another if the args are the same type, and
     // the return type is a subtype of the other's.  This is enough for now
     // (and it's necessary for model generation, since a Real-valued function
     // might return a constant Int and thus the model value is typed differently).
-    return t.isFunction() &&
-           getArgTypes() == t.getArgTypes() &&
-           getRangeType().isSubtypeOf(t.getRangeType());
+    return t.isFunction() && getArgTypes() == t.getArgTypes() && getRangeType().isSubtypeOf(t.getRangeType());
   }
   if(isParametricDatatype() && t.isParametricDatatype()) {
     Assert(getKind() == kind::PARAMETRIC_DATATYPE);
@@ -136,6 +134,11 @@ bool TypeNode::isSubtypeOf(TypeNode t) const {
   }
   if(isSet() && t.isSet()) {
     return getSetElementType().isSubtypeOf(t.getSetElementType());
+  }
+  if(isArray() && t.isArray()) {
+    //reverse for index type
+    return t.getArrayIndexType().isSubtypeOf(getArrayIndexType()) && 
+           getArrayConstituentType().isSubtypeOf(t.getArrayConstituentType());
   }
   return false;
 }
@@ -160,8 +163,8 @@ bool TypeNode::isComparableTo(TypeNode t) const {
       }
     }
     return true;
-  }else if( isRecord() && t.isRecord() ){
-    //TBD
+  //}else if( isRecord() && t.isRecord() ){
+    //record types are incomparable in current implementation
   } else if(isParametricDatatype() && t.isParametricDatatype()) {
     Assert(getKind() == kind::PARAMETRIC_DATATYPE);
     Assert(t.getKind() == kind::PARAMETRIC_DATATYPE);
@@ -177,10 +180,12 @@ bool TypeNode::isComparableTo(TypeNode t) const {
   } else if(isSet() && t.isSet()) {
     return getSetElementType().isComparableTo(t.getSetElementType());
   }
-
-  if(isPredicateSubtype()) {
-    return t.isComparableTo(getSubtypeParentType());
+  if(isArray() && t.isArray()) {
+    return getArrayIndexType().isComparableTo(t.getArrayIndexType()) && getArrayConstituentType().isComparableTo(t.getArrayConstituentType());
   }
+  //if(isPredicateSubtype()) {
+  //  return t.isComparableTo(getSubtypeParentType());
+  //}
   return false;
 }
 
@@ -309,6 +314,14 @@ bool TypeNode::isParameterInstantiatedDatatype(unsigned n) const {
 }
 
 TypeNode TypeNode::leastCommonTypeNode(TypeNode t0, TypeNode t1){
+  return commonTypeNode( t0, t1, true );
+}
+
+TypeNode TypeNode::mostCommonTypeNode(TypeNode t0, TypeNode t1){
+  return commonTypeNode( t0, t1, false );
+}
+
+TypeNode TypeNode::commonTypeNode(TypeNode t0, TypeNode t1, bool isLeast) {
   Assert( NodeManager::currentNM() != NULL,
           "There is no current CVC4::NodeManager associated to this thread.\n"
           "Perhaps a public-facing function is missing a NodeManagerScope ?" );
@@ -329,50 +342,58 @@ TypeNode TypeNode::leastCommonTypeNode(TypeNode t0, TypeNode t1){
         return t0; //IntegerType
       } else if(t1.isReal()) {
         // t0 == IntegerType && t1.isReal() && !t1.isInteger()
-        return NodeManager::currentNM()->realType(); // RealType
+        return isLeast ? t1 : t0; // RealType
       } else {
         return TypeNode(); // null type
       }
     case REAL_TYPE:
       if(t1.isReal()) {
-        return t0; // RealType
+        return isLeast ? t0 : t1; // RealType
       } else {
         return TypeNode(); // null type
       }
     default:
-      if(t1.isPredicateSubtype() && t1.getSubtypeParentType().isSubtypeOf(t0)) {
-        return t0; // t0 is a constant type
-      } else {
+      //if(t1.isPredicateSubtype() && t1.getSubtypeParentType().isSubtypeOf(t0)) {
+      //  return t0; // t0 is a constant type
+      //} else {
         return TypeNode(); // null type
-      }
+      //}
     }
   } else if(t1.getKind() == kind::TYPE_CONSTANT) {
-    return leastCommonTypeNode(t1, t0); // decrease the number of special cases
+    return commonTypeNode(t1, t0, isLeast); // decrease the number of special cases
   }
 
   // t0 != t1 &&
   // t0.getKind() == kind::TYPE_CONSTANT &&
   // t1.getKind() == kind::TYPE_CONSTANT
   switch(t0.getKind()) {
-  case kind::ARRAY_TYPE:
   case kind::BITVECTOR_TYPE:
   case kind::SORT_TYPE:
   case kind::CONSTRUCTOR_TYPE:
   case kind::SELECTOR_TYPE:
   case kind::TESTER_TYPE:
-    if(t1.isPredicateSubtype() && t1.getSubtypeParentType().isSubtypeOf(t0)) {
-      return t0;
-    } else {
+    //if( t1.isPredicateSubtype() && t1.getSubtypeParentType().isSubtypeOf(t0)) {
+    //  return t0;
+    //} else {
       return TypeNode();
-    }
+    //}
   case kind::FUNCTION_TYPE:
     return TypeNode(); // Not sure if this is right
   case kind::SET_TYPE: {
     // take the least common subtype of element types
     TypeNode elementType;
-    if(t1.isSet() &&
-       ! (elementType = leastCommonTypeNode(t0[0], t1[0])).isNull() ) {
+    if(t1.isSet() && !(elementType = commonTypeNode(t0[0], t1[0], isLeast)).isNull() ) {
       return NodeManager::currentNM()->mkSetType(elementType);
+    } else {
+      return TypeNode();
+    }
+  }
+  case kind::ARRAY_TYPE: {
+    TypeNode indexType, elementType;
+    if(t1.isArray() &&
+       ! (indexType = commonTypeNode(t0[0], t1[0], !isLeast)).isNull() && 
+       ! (elementType = commonTypeNode(t0[1], t1[1], isLeast)).isNull() ) {
+      return NodeManager::currentNM()->mkArrayType(indexType, elementType);
     } else {
       return TypeNode();
     }
@@ -381,13 +402,15 @@ TypeNode TypeNode::leastCommonTypeNode(TypeNode t0, TypeNode t1){
     Unimplemented("haven't implemented leastCommonType for symbolic expressions yet");
     return TypeNode();
   case kind::SUBTYPE_TYPE:
-    if(t1.isPredicateSubtype()){
-      // This is the case where both t0 and t1 are predicate subtypes.
-      return leastCommonPredicateSubtype(t0, t1);
-    }else{ // t0 is a predicate subtype and t1 is not
-      return leastCommonTypeNode(t1, t0); //decrease the number of special cases
-    }
+    //if(t1.isPredicateSubtype()){
+    //  // This is the case where both t0 and t1 are predicate subtypes.
+    //  return leastCommonPredicateSubtype(t0, t1);
+    //}else{ // t0 is a predicate subtype and t1 is not
+    //  return commonTypeNode(t1, t0, isLeast); //decrease the number of special cases
+    //}
+    return TypeNode();
   case kind::SUBRANGE_TYPE:
+    /*
     if(t1.isSubrange()) {
       const SubrangeBounds& t0SR = t0.getSubrangeBounds();
       const SubrangeBounds& t1SR = t1.getSubrangeBounds();
@@ -417,6 +440,8 @@ TypeNode TypeNode::leastCommonTypeNode(TypeNode t0, TypeNode t1){
       Assert(t1.isInteger());
       return TypeNode();
     }
+*/
+    return TypeNode();
   case kind::DATATYPE_TYPE:
     if( t0.isTuple() && t1.isTuple() ){
       const Datatype& dt1 = t0.getDatatype();
@@ -424,7 +449,7 @@ TypeNode TypeNode::leastCommonTypeNode(TypeNode t0, TypeNode t1){
       if( dt1[0].getNumArgs()==dt2[0].getNumArgs() ){
         std::vector< TypeNode > lc_types;
         for( unsigned i=0; i<dt1[0].getNumArgs(); i++ ){
-          TypeNode tc = leastCommonTypeNode( TypeNode::fromType( dt1[0][i].getRangeType() ), TypeNode::fromType( dt2[0][i].getRangeType() ) );
+          TypeNode tc = commonTypeNode( TypeNode::fromType( dt1[0][i].getRangeType() ), TypeNode::fromType( dt2[0][i].getRangeType() ), isLeast );
           if( tc.isNull() ){
             return tc;
           }else{
@@ -433,9 +458,10 @@ TypeNode TypeNode::leastCommonTypeNode(TypeNode t0, TypeNode t1){
         }
         return NodeManager::currentNM()->mkTupleType( lc_types );
       }
-    }else if( t0.isRecord() && t1.isRecord() ){
-      //TBD
     }
+    //else if( t0.isRecord() && t1.isRecord() ){
+      //record types are not related in current implementation
+    //}
     // otherwise no common ancestor
     return TypeNode();
   case kind::PARAMETRIC_DATATYPE: {
@@ -450,12 +476,12 @@ TypeNode TypeNode::leastCommonTypeNode(TypeNode t0, TypeNode t1){
     }
     vector<Type> v;
     for(size_t i = 1; i < t0.getNumChildren(); ++i) {
-      v.push_back(leastCommonTypeNode(t0[i], t1[i]).toType());
+      v.push_back(commonTypeNode(t0[i], t1[i], isLeast).toType());
     }
     return TypeNode::fromType(t0[0].getDatatype().getDatatypeType(v));
   }
   default:
-    Unimplemented("don't have a leastCommonType for types `%s' and `%s'", t0.toString().c_str(), t1.toString().c_str());
+    Unimplemented("don't have a commonType for types `%s' and `%s'", t0.toString().c_str(), t1.toString().c_str());
     return TypeNode();
   }
 }

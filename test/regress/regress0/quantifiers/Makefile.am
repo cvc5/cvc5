@@ -70,7 +70,11 @@ TESTS =	\
   agg-rew-test.smt2 \
   agg-rew-test-cf.smt2 \
   rew-to-0211-dd.smt2 \
-  rew-to-scala.smt2
+  rew-to-scala.smt2 \
+  macro-subtype-param.smt2 \
+  macros-real-arg.smt2 \
+  subtype-param-unk.smt2 \
+  subtype-param.smt2
 
 
 # regression can be solved with --finite-model-find --fmf-inst-engine
