@@ -792,58 +792,76 @@ void LFSCArithProof::printTerm(Expr term, std::ostream& os, const LetMap& map) {
   case kind::UMINUS: {
     Assert (term.getNumChildren() == 1);
     Assert (term.getType().isInteger() || term.getType().isReal());
-
-    const Rational& r = term[0].getConst<Rational>();
-
-    os << (!d_realMode ? "(a_int " : "(a_real ");
-    os << "(~ ";
-
-    if (!d_realMode) {
-      os << r.abs();
-    } else {
-      os << r.abs().getNumerator();
-      os << "/";
-      os << r.getDenominator();
-    }
-    os << ") ) ";
+    os << (!d_realMode ? "(u-_Int " : "(u-_Real ");
+    d_proofEngine->printBoundTerm(term[0], os, map);
+    os << ") ";
     return;
   }
 
-  case kind::PLUS:
-    Assert (term.getNumChildren() == 2);
-    os << (!d_realMode ? "(+_Int " : "(+_Real ");
-    d_proofEngine->printBoundTerm(term[0], os, map);
-    os << " ";
-    d_proofEngine->printBoundTerm(term[1], os, map);
-    os << ") ";
-    return;
+  case kind::PLUS: {
+    Assert (term.getNumChildren() >= 2);
 
-  case kind::MINUS:
-    Assert (term.getNumChildren() == 2);
-    os << (!d_realMode ? "(-_Int " : "(-_Real ");
-    d_proofEngine->printBoundTerm(term[0], os, map);
-    os << " ";
-    d_proofEngine->printBoundTerm(term[1], os, map);
-    os << ") ";
-    return;
+    std::stringstream paren;
+    for (unsigned i = 0; i < term.getNumChildren() - 1; ++i) {
+      os << (!d_realMode ? "(+_Int " : "(+_Real ");
+      d_proofEngine->printBoundTerm(term[i], os, map);
+      os << " ";
+      paren << ") ";
+    }
 
-  case kind::MULT:
-    Assert (term.getNumChildren() == 2);
-    os << (!d_realMode ? "(*_Int " : "(*_Real ");
-    d_proofEngine->printBoundTerm(term[0], os, map);
-    os << " ";
-    d_proofEngine->printBoundTerm(term[1], os, map);
-    os << ") ";
+    d_proofEngine->printBoundTerm(term[term.getNumChildren() - 1], os, map);
+    os << paren.str();
     return;
+  }
+
+  case kind::MINUS: {
+    Assert (term.getNumChildren() >= 2);
+
+    std::stringstream paren;
+    for (unsigned i = 0; i < term.getNumChildren() - 1; ++i) {
+      os << (!d_realMode ? "(-_Int " : "(-_Real ");
+      d_proofEngine->printBoundTerm(term[i], os, map);
+      os << " ";
+      paren << ") ";
+    }
+
+    d_proofEngine->printBoundTerm(term[term.getNumChildren() - 1], os, map);
+    os << paren.str();
+    return;
+  }
+
+  case kind::MULT: {
+    Assert (term.getNumChildren() >= 2);
+
+    std::stringstream paren;
+    for (unsigned i = 0; i < term.getNumChildren() - 1; ++i) {
+      os << (!d_realMode ? "(*_Int " : "(*_Real ");
+      d_proofEngine->printBoundTerm(term[i], os, map);
+      os << " ";
+      paren << ") ";
+    }
+
+    d_proofEngine->printBoundTerm(term[term.getNumChildren() - 1], os, map);
+    os << paren.str();
+    return;
+  }
 
   case kind::DIVISION:
-    Assert (term.getNumChildren() == 2);
-    os << (!d_realMode ? "(/_Int " : "(/_Real ");
-    d_proofEngine->printBoundTerm(term[0], os, map);
-    os << " ";
-    d_proofEngine->printBoundTerm(term[1], os, map);
-    os << ") ";
+  case kind::DIVISION_TOTAL: {
+    Assert (term.getNumChildren() >= 2);
+
+    std::stringstream paren;
+    for (unsigned i = 0; i < term.getNumChildren() - 1; ++i) {
+      os << (!d_realMode ? "(/_Int " : "(/_Real ");
+      d_proofEngine->printBoundTerm(term[i], os, map);
+      os << " ";
+      paren << ") ";
+    }
+
+    d_proofEngine->printBoundTerm(term[term.getNumChildren() - 1], os, map);
+    os << paren.str();
     return;
+  }
 
   case kind::GT:
     Assert (term.getNumChildren() == 2);
@@ -891,8 +909,12 @@ void LFSCArithProof::printTerm(Expr term, std::ostream& os, const LetMap& map) {
 void LFSCArithProof::printSort(Type type, std::ostream& os) {
   Debug("gk::proof::arith") << "Arith print sort: " << type << std::endl;
 
-  // Assert (type.isSort());
-  os << type <<" ";
+  if (type.isInteger() && d_realMode) {
+    // If in "real mode", don't use type Int for, e.g., equality.
+    os << "Real ";
+  } else {
+    os << type << " ";
+  }
 }
 
 void LFSCArithProof::printTheoryLemmaProof(std::vector<Expr>& lemma, std::ostream& os, std::ostream& paren) {

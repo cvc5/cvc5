@@ -20,3 +20,6 @@
 
 ; a constant term
 (declare a_real (! x mpq (term Real)))
+
+; unary negation
+(declare u-_Real (! t (term Real) (term Real)))

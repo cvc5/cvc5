@@ -20,3 +20,6 @@
 
 ; a constant term
 (declare a_int (! x mpz (term Int)))
+
+; unary negation
+(declare u-_Int (! t (term Int) (term Int)))
