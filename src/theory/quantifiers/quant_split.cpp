@@ -48,11 +48,11 @@ void QuantDSplit::preRegisterQuantifier( Node q ) {
       }else{
         int score = -1;
         if( options::quantDynamicSplit()==quantifiers::QUANT_DSPLIT_MODE_AGG ){
-          score = dt.isFinite() ? 1 : -1;
-        }else if(  options::quantDynamicSplit()==quantifiers::QUANT_DSPLIT_MODE_DEFAULT ){
+          score = dt.isUFinite() ? 1 : -1;
+        }else if( options::quantDynamicSplit()==quantifiers::QUANT_DSPLIT_MODE_DEFAULT ){
           score = dt.isUFinite() ? 1 : -1;
         }
-        Trace("quant-dsplit-debug") << "Datatype " << dt.getName() << " is score " << score << std::endl;
+        Trace("quant-dsplit-debug") << "Datatype " << dt.getName() << " is score " << score << " (" << dt.isUFinite() << " " << dt.isFinite() << ")" << std::endl;
         if( score>max_score ){
           max_index = i;
           max_score = score;
@@ -70,11 +70,12 @@ void QuantDSplit::preRegisterQuantifier( Node q ) {
 
 /* whether this module needs to check this round */
 bool QuantDSplit::needsCheck( Theory::Effort e ) {
-  return e>=Theory::EFFORT_FULL;
+  return e>=Theory::EFFORT_FULL && !d_quant_to_reduce.empty();
 }
+
 /* Call during quantifier engine's check */
 void QuantDSplit::check( Theory::Effort e, unsigned quant_e ) {
-  //flush lemmas ASAP (they are a reduction)
+  //add lemmas ASAP (they are a reduction)
   if( quant_e==QuantifiersEngine::QEFFORT_CONFLICT ){
     std::vector< Node > lemmas;
     for(std::map< Node, int >::iterator it = d_quant_to_reduce.begin(); it != d_quant_to_reduce.end(); ++it) {
@@ -92,6 +93,7 @@ void QuantDSplit::check( Theory::Effort e, unsigned quant_e ) {
         TNode svar = q[0][it->second];
         TypeNode tn = svar.getType();
         if( tn.isDatatype() ){
+          std::vector< Node > cons;
           const Datatype& dt = ((DatatypeType)(tn).toType()).getDatatype();
           for( unsigned j=0; j<dt.getNumConstructors(); j++ ){
             std::vector< Node > vars;
@@ -110,8 +112,10 @@ void QuantDSplit::check( Theory::Effort e, unsigned quant_e ) {
             if( !bvs_cmb.empty() ){
               body = NodeManager::currentNM()->mkNode( kind::FORALL, NodeManager::currentNM()->mkNode( kind::BOUND_VAR_LIST, bvs_cmb ), body );
             }
-            disj.push_back( body );
+            cons.push_back( body );
           }
+          Node conc = cons.size()==1 ? cons[0] : NodeManager::currentNM()->mkNode( kind::AND, cons );
+          disj.push_back( conc );
         }else{
           Assert( false );
         }
@@ -124,6 +128,7 @@ void QuantDSplit::check( Theory::Effort e, unsigned quant_e ) {
       Trace("quant-dsplit") << "QuantDSplit lemma : " << lemmas[i] << std::endl;
       d_quantEngine->addLemma( lemmas[i], false );
     }
+    d_quant_to_reduce.clear();
   }
 }
 

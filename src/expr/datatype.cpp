@@ -306,10 +306,11 @@ bool Datatype::isUFinite() const throw(IllegalArgumentException) {
   if(self.getAttribute(DatatypeUFiniteComputedAttr())) {
     return self.getAttribute(DatatypeUFiniteAttr());
   }
+  //start by assuming it is not
+  self.setAttribute(DatatypeUFiniteComputedAttr(), true);
+  self.setAttribute(DatatypeUFiniteAttr(), false);
   for(const_iterator i = begin(), i_end = end(); i != i_end; ++i) {
     if(! (*i).isUFinite()) {
-      self.setAttribute(DatatypeUFiniteComputedAttr(), true);
-      self.setAttribute(DatatypeUFiniteAttr(), false);
       return false;
     }
   }
@@ -838,7 +839,7 @@ bool DatatypeConstructor::isFinite() const throw(IllegalArgumentException) {
     return self.getAttribute(DatatypeFiniteAttr());
   }
   for(const_iterator i = begin(), i_end = end(); i != i_end; ++i) {
-    if(! SelectorType((*i).getSelector().getType()).getRangeType().getCardinality().isFinite()) {
+    if(! (*i).getRangeType().getCardinality().isFinite()) {
       self.setAttribute(DatatypeFiniteComputedAttr(), true);
       self.setAttribute(DatatypeFiniteAttr(), false);
       return false;
@@ -858,9 +859,18 @@ bool DatatypeConstructor::isUFinite() const throw(IllegalArgumentException) {
   if(self.getAttribute(DatatypeUFiniteComputedAttr())) {
     return self.getAttribute(DatatypeUFiniteAttr());
   }
+  bool success = true;
   for(const_iterator i = begin(), i_end = end(); i != i_end; ++i) {
-    Type t = SelectorType((*i).getSelector().getType()).getRangeType();
-    if(!t.isSort() && !t.getCardinality().isFinite()) {
+    Type t = (*i).getRangeType();
+    if( t.isDatatype() ){
+      const Datatype& dt = ((DatatypeType)t).getDatatype();
+      if( !dt.isUFinite() ){
+        success = false;
+      }
+    }else if(!t.isSort() && !t.getCardinality().isFinite()) {
+      success = false;
+    }
+    if(!success ){
       self.setAttribute(DatatypeUFiniteComputedAttr(), true);
       self.setAttribute(DatatypeUFiniteAttr(), false);
       return false;

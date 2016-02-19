@@ -241,7 +241,7 @@ void QuantifiersEngine::finishInit(){
     d_modules.push_back( d_lte_part_inst );
   }
   if( ( options::finiteModelFind() && options::quantDynamicSplit()!=quantifiers::QUANT_DSPLIT_MODE_NONE ) || 
-      options::quantDynamicSplit()!=quantifiers::QUANT_DSPLIT_MODE_AGG ){
+      options::quantDynamicSplit()==quantifiers::QUANT_DSPLIT_MODE_AGG ){
     d_qsplit = new quantifiers::QuantDSplit( this, c );
     d_modules.push_back( d_qsplit );
   }
@@ -365,10 +365,10 @@ void QuantifiersEngine::check( Theory::Effort e ){
   }
   bool usedModelBuilder = false;
 
-  Trace("quant-engine-debug") << "Quantifiers Engine call to check, level = " << e << std::endl;
+  Trace("quant-engine-debug2") << "Quantifiers Engine call to check, level = " << e << ", needsCheck=" << needsCheck << std::endl;
   if( needsCheck ){
-    Trace("quant-engine") << "Quantifiers Engine check, level = " << e << std::endl;
     if( Trace.isOn("quant-engine-debug") ){
+      Trace("quant-engine-debug") << "Quantifiers Engine check, level = " << e << std::endl;
       Trace("quant-engine-debug") << "  modules to check : ";
       for( unsigned i=0; i<qm.size(); i++ ){
         Trace("quant-engine-debug") << qm[i]->identify() << " ";
@@ -484,9 +484,9 @@ void QuantifiersEngine::check( Theory::Effort e ){
         }
       }
     }
-    Trace("quant-engine") << "Finished quantifiers engine check." << std::endl;
+    Trace("quant-engine-debug2") << "Finished quantifiers engine check." << std::endl;
   }else{
-    Trace("quant-engine") << "Quantifiers Engine does not need check." << std::endl;
+    Trace("quant-engine-debug2") << "Quantifiers Engine does not need check." << std::endl;
   }
 
   //SAT case
