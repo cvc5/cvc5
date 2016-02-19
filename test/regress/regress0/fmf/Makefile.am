@@ -50,7 +50,8 @@ TESTS =	\
 	loopy_coda.smt2 \
 	fmc_unsound_model.smt2 \
 	am-bad-model.cvc \
-	nun-0208-to.smt2
+	nun-0208-to.smt2 \
+	datatypes-ufinite.smt2
 
 
 EXTRA_DIST = $(TESTS)

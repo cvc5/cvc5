@@ -49,8 +49,6 @@ protected:
   QuantifiersEngine * d_qe;
   /** list of quantifiers asserted in the current context */
   context::CDList<Node> d_forall_asserts;
-  /** list of quantifiers that have been marked to reduce */
-  std::map< Node, bool > d_forall_to_reduce;
   /** is model set */
   context::CDO< bool > d_isModelSet;
   /** get variable id */
@@ -59,13 +57,11 @@ protected:
   virtual Node getCurrentUfModelValue( Node n, std::vector< Node > & args, bool partial ) = 0;
 public: //for Theory Quantifiers:
   /** assert quantifier */
-  void assertQuantifier( Node n, bool reduced = false );
+  void assertQuantifier( Node n );
   /** get number of asserted quantifiers */
   int getNumAssertedQuantifiers() { return (int)d_forall_asserts.size(); }
   /** get asserted quantifier */
   Node getAssertedQuantifier( int i ) { return d_forall_asserts[i]; }
-  /** get number to reduce quantifiers */
-  unsigned getNumToReduceQuantifiers() { return d_forall_to_reduce.size(); }
   /** initialize model for term */
   void initializeModelForTerm( Node n, std::map< Node, bool >& visited );
   virtual void processInitializeModelForTerm( Node n ) = 0;
@@ -94,14 +90,14 @@ public:
   Node getSomeDomainElement(TypeNode tn);
   /** do we need to do any work? */
   bool checkNeeded();
-  /** mark reduced */
-  void markQuantifierReduced( Node q );
 private:
   //list of inactive quantified formulas
   std::map< TNode, bool > d_quant_active;
 public:
   /** reset round */
   void reset_round();
+  /** is quantified formula asserted */
+  //bool isQuantifierAsserted( TNode q );
   /** set quantified formula active/inactive 
    * a quantified formula may be set inactive if for instance:
    *   - it is entailed by other quantified formulas

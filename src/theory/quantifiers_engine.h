@@ -64,8 +64,8 @@ public:
   virtual void check( Theory::Effort e, unsigned quant_e ) = 0;
   /* check was complete (e.g. no lemmas implies a model) */
   virtual bool checkComplete() { return true; }
-  /* Called for new quantifiers */
-  virtual void preRegisterQuantifier( Node q ) {}
+  /* Called for new quantified formulas */
+  virtual void preRegisterQuantifier( Node q ) { }
   /* Called for new quantifiers after owners are finalized */
   virtual void registerQuantifier( Node q ) = 0;
   virtual void assertNode( Node n ) {}
@@ -99,6 +99,7 @@ namespace quantifiers {
   class QuantEqualityEngine;
   class FullSaturation;
   class InstStrategyCbqi;
+  class QuantDSplit;
 }/* CVC4::theory::quantifiers */
 
 namespace inst {
@@ -157,6 +158,8 @@ private:
   quantifiers::FullSaturation * d_fs;
   /** counterexample-based quantifier instantiation */
   quantifiers::InstStrategyCbqi * d_i_cbqi;
+  /** quantifiers splitting */
+  quantifiers::QuantDSplit * d_qsplit;
 public: //effort levels
   enum {
     QEFFORT_CONFLICT,
@@ -253,6 +256,8 @@ public:  //modules
   quantifiers::FullSaturation * getFullSaturation() { return d_fs; }
   /** get inst strategy cbqi */
   quantifiers::InstStrategyCbqi * getInstStrategyCbqi() { return d_i_cbqi; }
+  /** get quantifiers splitting */
+  quantifiers::QuantDSplit * getQuantDSplit() { return d_qsplit; }
 private:
   /** owner of quantified formulas */
   std::map< Node, QuantifiersModule * > d_owner;
@@ -281,7 +286,7 @@ public:
   /** get next decision request */
   Node getNextDecisionRequest();
 private:
-  /** reduce quantifier */
+  /** reduceQuantifier, return true if reduced */
   bool reduceQuantifier( Node q );
   /** compute term vector */
   void computeTermVector( Node f, InstMatch& m, std::vector< Node >& vars, std::vector< Node >& terms );

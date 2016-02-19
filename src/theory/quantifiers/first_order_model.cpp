@@ -36,18 +36,11 @@ d_qe( qe ), d_forall_asserts( c ), d_isModelSet( c, false ){
 
 }
 
-void FirstOrderModel::assertQuantifier( Node n, bool reduced ){
-  if( !reduced ){
-    if( n.getKind()==FORALL ){
-      d_forall_asserts.push_back( n );
-    }else if( n.getKind()==NOT ){
-      Assert( n[0].getKind()==FORALL );
-    }
-  }else{
-    Assert( n.getKind()==FORALL );
-    Assert( d_forall_to_reduce.find( n )==d_forall_to_reduce.end() );
-    d_forall_to_reduce[n] = true;
-    Trace("quant") << "Mark to reduce : " << n << std::endl;
+void FirstOrderModel::assertQuantifier( Node n ){
+  if( n.getKind()==FORALL ){
+    d_forall_asserts.push_back( n );
+  }else if( n.getKind()==NOT ){
+    Assert( n[0].getKind()==FORALL );
   }
 }
 
@@ -122,19 +115,16 @@ Node FirstOrderModel::getSomeDomainElement(TypeNode tn){
 
 /** needs check */
 bool FirstOrderModel::checkNeeded() {
-  return d_forall_asserts.size()>0 || !d_forall_to_reduce.empty();
-}
-
-/** mark reduced */
-void FirstOrderModel::markQuantifierReduced( Node q ) {
-  Assert( d_forall_to_reduce.find( q )!=d_forall_to_reduce.end() );
-  d_forall_to_reduce.erase( q );
-  Trace("quant") << "Mark reduced : " << q << std::endl;
+  return d_forall_asserts.size()>0;
 }
 
 void FirstOrderModel::reset_round() {
   d_quant_active.clear();
 }
+
+//bool FirstOrderModel::isQuantifierAsserted( TNode q ) {
+//  return d_forall_asserts.find( q )!=d_forall_asserts.end();
+//}
 
 void FirstOrderModel::setQuantifierActive( TNode q, bool active ) {
   d_quant_active[q] = active;

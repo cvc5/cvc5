@@ -169,13 +169,15 @@ void InstStrategyCbqi::registerCounterexampleLemma( Node q, Node lem ){
 bool InstStrategyCbqi::hasNonCbqiOperator( Node n, std::map< Node, bool >& visited ){
   if( visited.find( n )==visited.end() ){
     visited[n] = true;
-    if( n.getKind()!=INST_CONSTANT && TermDb::hasInstConstAttr( n ) ){
+    if( n.getKind()!=BOUND_VARIABLE && TermDb::hasBoundVarAttr( n ) ){
       if( !inst::Trigger::isCbqiKind( n.getKind() ) ){
         Trace("cbqi-debug2") << "Non-cbqi kind : " << n.getKind() << " in " << n  << std::endl;
         return true;
       }else if( n.getKind()==MULT && ( n.getNumChildren()!=2 || !n[0].isConst() ) ){
         Trace("cbqi-debug2") << "Non-linear arithmetic : " << n << std::endl;
         return true;
+      }else if( n.getKind()==FORALL ){
+        return hasNonCbqiOperator( n[1], visited );
       }else{
         for( unsigned i=0; i<n.getNumChildren(); i++ ){
           if( hasNonCbqiOperator( n[i], visited ) ){
@@ -220,9 +222,9 @@ bool InstStrategyCbqi::doCbqi( Node q ){
         }else{
           //if quantifier has a non-arithmetic variable, then do not use cbqi
           //if quantifier has an APPLY_UF term, then do not use cbqi
-          Node cb = d_quantEngine->getTermDatabase()->getInstConstantBody( q );
+          //Node cb = d_quantEngine->getTermDatabase()->getInstConstantBody( q );
           std::map< Node, bool > visited;
-          ret = !hasNonCbqiVariable( q ) && !hasNonCbqiOperator( cb, visited );
+          ret = !hasNonCbqiVariable( q ) && !hasNonCbqiOperator( q[1], visited );
         }
       }
     }

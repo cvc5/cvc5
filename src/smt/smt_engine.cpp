@@ -1882,6 +1882,9 @@ void SmtEngine::setDefaults() {
       options::preSkolemQuantNested.set( false );
     }
   }
+  if( !d_logic.isTheoryEnabled(THEORY_DATATYPES) ){
+    options::quantDynamicSplit.set( quantifiers::QUANT_DSPLIT_MODE_NONE );
+  }
 
   //until bugs 371,431 are fixed
   if( ! options::minisatUseElim.wasSetByUser()){

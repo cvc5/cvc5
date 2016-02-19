@@ -39,6 +39,7 @@
 #include "theory/quantifiers/rewrite_engine.h"
 #include "theory/quantifiers/term_database.h"
 #include "theory/quantifiers/trigger.h"
+#include "theory/quantifiers/quant_split.h"
 #include "theory/theory_engine.h"
 #include "theory/uf/equality_engine.h"
 #include "theory/uf/theory_uf.h"
@@ -121,6 +122,7 @@ QuantifiersEngine::QuantifiersEngine(context::Context* c, context::UserContext* 
   d_sg_gen = NULL;
   d_inst_engine = NULL;
   d_i_cbqi = NULL;
+  d_qsplit = NULL;
   d_model_engine = NULL;
   d_bint = NULL;
   d_rr_engine = NULL;
@@ -161,6 +163,7 @@ QuantifiersEngine::~QuantifiersEngine(){
   delete d_uee;
   delete d_fs;
   delete d_i_cbqi;
+  delete d_qsplit;
 }
 
 EqualityQueryQuantifiersEngine* QuantifiersEngine::getEqualityQuery() {
@@ -236,6 +239,11 @@ void QuantifiersEngine::finishInit(){
   if( options::ltePartialInst() ){
     d_lte_part_inst = new quantifiers::LtePartialInst( this, c );
     d_modules.push_back( d_lte_part_inst );
+  }
+  if( ( options::finiteModelFind() && options::quantDynamicSplit()!=quantifiers::QUANT_DSPLIT_MODE_NONE ) || 
+      options::quantDynamicSplit()!=quantifiers::QUANT_DSPLIT_MODE_AGG ){
+    d_qsplit = new quantifiers::QuantDSplit( this, c );
+    d_modules.push_back( d_qsplit );
   }
   if( options::quantAlphaEquiv() ){
     d_alpha_equiv = new quantifiers::AlphaEquivalence( this );
@@ -367,9 +375,9 @@ void QuantifiersEngine::check( Theory::Effort e ){
       }
       Trace("quant-engine-debug") << std::endl;
       Trace("quant-engine-debug") << "  # quantified formulas = " << d_model->getNumAssertedQuantifiers() << std::endl;
-      if( d_model->getNumToReduceQuantifiers()>0 ){
-        Trace("quant-engine-debug") << "  # quantified formulas to reduce = " << d_model->getNumToReduceQuantifiers() << std::endl;
-      }
+      //if( d_model->getNumToReduceQuantifiers()>0 ){
+      //  Trace("quant-engine-debug") << "  # quantified formulas to reduce = " << d_model->getNumToReduceQuantifiers() << std::endl;
+      //}
       if( !d_lemmas_waiting.empty() ){
         Trace("quant-engine-debug") << "  lemmas waiting = " << d_lemmas_waiting.size() << std::endl;
       }
@@ -513,21 +521,9 @@ bool QuantifiersEngine::reduceQuantifier( Node q ) {
     if( d_alpha_equiv ){
       Trace("quant-engine-red") << "Alpha equivalence " << q << "?" << std::endl;
       //add equivalence with another quantified formula
-      if( !d_alpha_equiv->registerQuantifier( q ) ){
+      if( d_alpha_equiv->reduceQuantifier( q ) ){
         Trace("quant-engine-red") << "...alpha equivalence success." << std::endl;
         ++(d_statistics.d_red_alpha_equiv);
-        d_quants_red[q] = true;
-        return true;
-      }
-    }
-    if( d_lte_part_inst && !q.getAttribute(LtePartialInstAttribute()) ){
-      //will partially instantiate
-      Trace("quant-engine-red") << "LTE: Partially instantiate " << q << "?" << std::endl;
-      if( d_lte_part_inst->addQuantifier( q ) ){
-        Trace("quant-engine-red") << "...LTE partially instantiate success." << std::endl;
-        //delayed reduction : assert to model
-        d_model->assertQuantifier( q, true );
-        ++(d_statistics.d_red_lte_partial_inst);
         d_quants_red[q] = true;
         return true;
       }

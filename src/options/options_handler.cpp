@@ -441,6 +441,20 @@ ground-uf \n\
 \n\
 ";
 
+const std::string OptionsHandler::s_quantDSplitHelp = "\
+Template modes for quantifiers splitting, supported by --quant-split:\n\
+\n\
+none \n\
++ Never split quantified formulas.\n\
+\n\
+default \n\
++ Split quantified formulas over some finite datatypes when finite model finding is enabled.\n\
+\n\
+agg \n\
++ Aggressively split quantified formulas.\n\
+\n\
+";
+
 theory::quantifiers::InstWhenMode OptionsHandler::stringToInstWhenMode(std::string option, std::string optarg) throw(OptionException) {
   if(optarg == "pre-full") {
     return theory::quantifiers::INST_WHEN_PRE_FULL;
@@ -686,6 +700,21 @@ theory::quantifiers::MacrosQuantMode OptionsHandler::stringToMacrosQuantMode(std
   }
 }
 
+theory::quantifiers::QuantDSplitMode OptionsHandler::stringToQuantDSplitMode(std::string option, std::string optarg) throw(OptionException) {
+  if(optarg == "none" ) {
+    return theory::quantifiers::QUANT_DSPLIT_MODE_NONE;
+  } else if(optarg == "default") {
+    return theory::quantifiers::QUANT_DSPLIT_MODE_DEFAULT;
+  } else if(optarg == "agg") {
+    return theory::quantifiers::QUANT_DSPLIT_MODE_AGG;
+  } else if(optarg ==  "help") {
+    puts(s_quantDSplitHelp.c_str());
+    exit(1);
+  } else {
+    throw OptionException(std::string("unknown option for --quant-dsplit-mode: `") +
+                          optarg + "'.  Try --quant-dsplit-mode help.");
+  }
+}
 
 // theory/bv/options_handlers.h
 void OptionsHandler::abcEnabledBuild(std::string option, bool value) throw(OptionException) {

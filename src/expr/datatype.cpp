@@ -199,19 +199,23 @@ Cardinality Datatype::computeCardinality( std::vector< Type >& processing ) cons
 bool Datatype::isRecursiveSingleton() const throw(IllegalArgumentException) {
   PrettyCheckArgument(isResolved(), this, "this datatype is not yet resolved");
   if( d_card_rec_singleton==0 ){
-    Assert( d_card_u_assume.empty() );
-    std::vector< Type > processing;
-    if( computeCardinalityRecSingleton( processing, d_card_u_assume ) ){
-      d_card_rec_singleton = 1;
+    if( isCodatatype() ){
+      Assert( d_card_u_assume.empty() );
+      std::vector< Type > processing;
+      if( computeCardinalityRecSingleton( processing, d_card_u_assume ) ){
+        d_card_rec_singleton = 1;
+      }else{
+        d_card_rec_singleton = -1;
+      }
+      if( d_card_rec_singleton==1 ){
+        Trace("dt-card") << "Datatype " << getName() << " is recursive singleton, dependent upon " << d_card_u_assume.size() << " uninterpreted sorts: " << std::endl;
+        for( unsigned i=0; i<d_card_u_assume.size(); i++ ){
+          Trace("dt-card") << "  " << d_card_u_assume [i] << std::endl;
+        }
+        Trace("dt-card") << std::endl;
+      }
     }else{
       d_card_rec_singleton = -1;
-    }
-    if( d_card_rec_singleton==1 ){
-      Trace("dt-card") << "Datatype " << getName() << " is recursive singleton, dependent upon " << d_card_u_assume.size() << " uninterpreted sorts: " << std::endl;
-      for( unsigned i=0; i<d_card_u_assume.size(); i++ ){
-        Trace("dt-card") << "  " << d_card_u_assume [i] << std::endl;
-      }
-      Trace("dt-card") << std::endl;
     }
   }
   return d_card_rec_singleton==1;

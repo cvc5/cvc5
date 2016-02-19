@@ -163,6 +163,16 @@ enum MacrosQuantMode {
   MACROS_QUANT_MODE_GROUND_UF,
 };
 
+enum QuantDSplitMode {
+  /** never do quantifiers splitting */
+  QUANT_DSPLIT_MODE_NONE,
+  /** default */
+  QUANT_DSPLIT_MODE_DEFAULT,
+  /** do quantifiers splitting aggressively */
+  QUANT_DSPLIT_MODE_AGG,
+};
+
+
 }/* CVC4::theory::quantifiers namespace */
 }/* CVC4::theory namespace */
 
