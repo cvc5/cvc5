@@ -1739,31 +1739,29 @@ Node QuantifiersRewriter::preSkolemizeQuantifiers( Node n, bool polarity, std::v
     //check if it contains a quantifier as a subterm
     //if so, we will write this node
     if( containsQuantifiers( n ) ){
-      if( n.getType().isBoolean() ){
-        if( n.getKind()==kind::ITE || n.getKind()==kind::IFF || n.getKind()==kind::XOR || n.getKind()==kind::IMPLIES ){
-          if( options::preSkolemQuantAgg() ){
-            Node nn;
-            //must remove structure
-            if( n.getKind()==kind::ITE ){
-              nn = NodeManager::currentNM()->mkNode( kind::AND,
-                    NodeManager::currentNM()->mkNode( kind::OR, n[0].notNode(), n[1] ),
-                    NodeManager::currentNM()->mkNode( kind::OR, n[0], n[2] ) );
-            }else if( n.getKind()==kind::IFF || n.getKind()==kind::XOR ){
-              nn = NodeManager::currentNM()->mkNode( kind::AND,
-                    NodeManager::currentNM()->mkNode( kind::OR, n[0].notNode(), n.getKind()==kind::XOR ? n[1].notNode() : n[1] ),
-                    NodeManager::currentNM()->mkNode( kind::OR, n[0], n.getKind()==kind::XOR ? n[1] : n[1].notNode() ) );
-            }else if( n.getKind()==kind::IMPLIES ){
-              nn = NodeManager::currentNM()->mkNode( kind::OR, n[0].notNode(), n[1] );
-            }
-            return preSkolemizeQuantifiers( nn, polarity, fvTypes, fvs );
+      if( ( n.getKind()==kind::ITE && n.getType().isBoolean() ) || n.getKind()==kind::IFF ){
+        if( options::preSkolemQuantAgg() ){
+          Node nn;
+          //must remove structure
+          if( n.getKind()==kind::ITE ){
+            nn = NodeManager::currentNM()->mkNode( kind::AND,
+                  NodeManager::currentNM()->mkNode( kind::OR, n[0].notNode(), n[1] ),
+                  NodeManager::currentNM()->mkNode( kind::OR, n[0], n[2] ) );
+          }else if( n.getKind()==kind::IFF || n.getKind()==kind::XOR ){
+            nn = NodeManager::currentNM()->mkNode( kind::AND,
+                  NodeManager::currentNM()->mkNode( kind::OR, n[0].notNode(), n.getKind()==kind::XOR ? n[1].notNode() : n[1] ),
+                  NodeManager::currentNM()->mkNode( kind::OR, n[0], n.getKind()==kind::XOR ? n[1] : n[1].notNode() ) );
+          }else if( n.getKind()==kind::IMPLIES ){
+            nn = NodeManager::currentNM()->mkNode( kind::OR, n[0].notNode(), n[1] );
           }
-        }else if( n.getKind()==kind::AND || n.getKind()==kind::OR ){
-          vector< Node > children;
-          for( int i=0; i<(int)n.getNumChildren(); i++ ){
-            children.push_back( preSkolemizeQuantifiers( n[i], polarity, fvTypes, fvs ) );
-          }
-          return NodeManager::currentNM()->mkNode( n.getKind(), children );
+          return preSkolemizeQuantifiers( nn, polarity, fvTypes, fvs );
         }
+      }else if( n.getKind()==kind::AND || n.getKind()==kind::OR ){
+        vector< Node > children;
+        for( int i=0; i<(int)n.getNumChildren(); i++ ){
+          children.push_back( preSkolemizeQuantifiers( n[i], polarity, fvTypes, fvs ) );
+        }
+        return NodeManager::currentNM()->mkNode( n.getKind(), children );
       }
     }
   }
@@ -1771,14 +1769,19 @@ Node QuantifiersRewriter::preSkolemizeQuantifiers( Node n, bool polarity, std::v
 }
 
 Node QuantifiersRewriter::preprocess( Node n, bool isInst ) {
+  Node prev = n;
   if( options::preSkolemQuant() ){
     if( !isInst || !options::preSkolemQuantNested() ){
-      //apply pre-skolemization to existential quantifiers
       Trace("quantifiers-preprocess-debug") << "Pre-skolemize " << n << "..." << std::endl;
+      //apply pre-skolemization to existential quantifiers
       std::vector< TypeNode > fvTypes;
       std::vector< TNode > fvs;
-      n = quantifiers::QuantifiersRewriter::preSkolemizeQuantifiers( n, true, fvTypes, fvs );
+      n = quantifiers::QuantifiersRewriter::preSkolemizeQuantifiers( prev, true, fvTypes, fvs );
     }
+  }
+  if( n!=prev ){       
+    Trace("quantifiers-preprocess") << "Preprocess " << prev<< std::endl;
+    Trace("quantifiers-preprocess") << "..returned " << n << std::endl;
   }
   return n;
 }

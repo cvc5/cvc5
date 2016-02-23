@@ -59,16 +59,20 @@ TNode TermArgTrie::existsTerm( std::vector< TNode >& reps, int argIndex ) {
 }
 
 bool TermArgTrie::addTerm( TNode n, std::vector< TNode >& reps, int argIndex ){
+  return addOrGetTerm( n, reps, argIndex )==n;
+}
+
+TNode TermArgTrie::addOrGetTerm( TNode n, std::vector< TNode >& reps, int argIndex ) {
   if( argIndex==(int)reps.size() ){
     if( d_data.empty() ){
       //store n in d_data (this should be interpretted as the "data" and not as a reference to a child)
       d_data[n].clear();
-      return true;
+      return n;
     }else{
-      return false;
+      return d_data.begin()->first;
     }
   }else{
-    return d_data[reps[argIndex]].addTerm( n, reps, argIndex+1 );
+    return d_data[reps[argIndex]].addOrGetTerm( n, reps, argIndex+1 );
   }
 }
 
@@ -502,9 +506,12 @@ void TermDb::reset( Theory::Effort effort ){
               Trace("term-db-debug") << d_arg_reps[n] << " ";
             }
             Trace("term-db-debug") << std::endl;
+            if( ee->hasTerm( n ) ){
+              Trace("term-db-debug") << "  and value : " << ee->getRepresentative( n ) << std::endl;
+            }
           }
-
-          if( !d_func_map_trie[ it->first ].addTerm( n, d_arg_reps[n] ) ){
+          Node at = d_func_map_trie[ it->first ].addOrGetTerm( n, d_arg_reps[n] );
+          if( at!=n && ee->areEqual( at, n ) ){
             NoMatchAttribute nma;
             n.setAttribute(nma,true);
             Trace("term-db-debug") << n << " is redundant." << std::endl;
@@ -514,6 +521,7 @@ void TermDb::reset( Theory::Effort effort ){
             d_op_nonred_count[ it->first ]++;
           }
         }else{
+          Trace("term-db-debug") << n << " is already redundant." << std::endl;
           congruentCount++;
           alreadyCongruentCount++;
         }

@@ -411,6 +411,11 @@ void FullModelChecker::processBuildModel(TheoryModel* m, bool fullModel){
           Node r = fm->getUsedRepresentative(n);
           Trace("fmc-model-debug") << n << " -> " << r << std::endl;
           //AlwaysAssert( fm->areEqual( fm->d_uf_terms[op][i], r ) );
+        }else{
+          if( Trace.isOn("fmc-model-debug") ){
+            Node r = fm->getUsedRepresentative(n);
+            Trace("fmc-model-debug") << "[redundant] " << n << " -> " << r << std::endl;
+          }
         }
       }
       Trace("fmc-model-debug") << std::endl;
@@ -614,7 +619,7 @@ bool FullModelChecker::doExhaustiveInstantiation( FirstOrderModel * fm, Node f, 
 
         //consider all entries going to non-true
         for (unsigned i=0; i<d_quant_models[f].d_cond.size(); i++) {
-          if( d_quant_models[f].d_value[i]!=d_true) {
+          if( d_quant_models[f].d_value[i]!=d_true ) {
             Trace("fmc-inst") << "Instantiate based on " << d_quant_models[f].d_cond[i] << "..." << std::endl;
             bool hasStar = false;
             std::vector< Node > inst;
@@ -684,7 +689,11 @@ bool FullModelChecker::doExhaustiveInstantiation( FirstOrderModel * fm, Node f, 
                   }
                 }else{
                   Trace("fmc-debug-inst") << "** Instantiation was duplicate." << std::endl;
-                  //this can happen if evaluation is unknown
+                  //this can happen if evaluation is unknown, or if we are generalizing a star that already has a value
+                  if( !hasStar && d_quant_models[f].d_value[i]==d_false ){
+                    Trace("fmc-warn") << "**** FMC warning: inconsistent duplicate instantiation." << std::endl;
+                  }
+                  Assert( hasStar || d_quant_models[f].d_value[i]!=d_false );
                   //might try it next effort level
                   d_star_insts[f].push_back(i);
                 }
@@ -780,11 +789,11 @@ bool FullModelChecker::exhaustiveInstantiate(FirstOrderModelFmc * fm, Node f, No
       for( int i=0; i<riter.getNumTerms(); i++ ){
         Node rr = riter.getTerm( i );
         Node r = rr;
-        if( r.getType().isSort() ){
-          r = fm->getUsedRepresentative( r );
-        }else{
-          r = fm->getCurrentModelValue( r );
-        }
+        //if( r.getType().isSort() ){
+        r = fm->getUsedRepresentative( r );
+        //}else{
+        //  r = fm->getCurrentModelValue( r );
+        //}
         debugPrint("fmc-exh-debug", r);
         Trace("fmc-exh-debug") << " (term : " << rr << ")";
         ev_inst.push_back( r );
@@ -846,38 +855,12 @@ void FullModelChecker::doCheck(FirstOrderModelFmc * fm, Node f, Def & d, Node n 
     d.addEntry(fm, mkCondDefault(fm, f), Node::null());
   }
   else if( n.getType().isArray() ){
-    //make the definition
-    bool success = false;
-    /*
-    Node r = fm->getRepresentative(n);
-    Trace("fmc-debug") << "Representative for array is " << r << std::endl;
-    while( r.getKind() == kind::STORE ){
-      Node i = fm->getUsedRepresentative( r[1] );
-      Node e = fm->getUsedRepresentative( r[2] );
-      d.addEntry(fm, mkArrayCond(i), e );
-      r = fm->getRepresentative( r[0] );
-    }
-    Node defC = mkArrayCond(fm->getStar(n.getType().getArrayIndexType()));
-    bool success = false;
-    Node odefaultValue;
-    if( r.getKind() == kind::STORE_ALL ){
-      ArrayStoreAll storeAll = r.getConst<ArrayStoreAll>();
-      odefaultValue = Node::fromExpr(storeAll.getExpr());
-      Node defaultValue = fm->getUsedRepresentative( odefaultValue, true );
-      if( !defaultValue.isNull() ){
-        d.addEntry(fm, defC, defaultValue);
-        success = true;
-      }
-    }
-    */
-    if( !success ){
-      //Trace("fmc-warn") << "WARNING : ARRAYS : Can't process base array " << r << std::endl;
-      //Trace("fmc-warn") << "          Default value was : " << odefaultValue << std::endl;
-      //Trace("fmc-debug") << "Can't process base array " << r << std::endl;
-      //can't process this array
-      d.reset();
-      d.addEntry(fm, mkCondDefault(fm, f), Node::null());
-    }
+    //Trace("fmc-warn") << "WARNING : ARRAYS : Can't process base array " << r << std::endl;
+    //Trace("fmc-warn") << "          Default value was : " << odefaultValue << std::endl;
+    //Trace("fmc-debug") << "Can't process base array " << r << std::endl;
+    //can't process this array
+    d.reset();
+    d.addEntry(fm, mkCondDefault(fm, f), Node::null());
   }
   else if( n.getNumChildren()==0 ){
     Node r = n;

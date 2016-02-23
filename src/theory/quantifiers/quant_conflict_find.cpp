@@ -801,6 +801,7 @@ MatchGen::MatchGen( QuantInfo * qi, Node n, bool isVar )
   if( isVar ){
     Assert( qi->d_var_num.find( n )!=qi->d_var_num.end() );
     if( n.getKind()==ITE ){
+  /*
       d_type = typ_ite_var;
       d_type_not = false;
       d_n = n;
@@ -817,8 +818,9 @@ MatchGen::MatchGen( QuantInfo * qi, Node n, bool isVar )
           }
         }
       }else{
+*/
         d_type = typ_invalid;
-      }
+     //}
     }else{
       d_type = isHandledUfTerm( n ) ? typ_var : typ_tsym;
       d_qni_var_num[0] = qi->getVarNum( n );

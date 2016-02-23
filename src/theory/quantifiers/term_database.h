@@ -121,6 +121,7 @@ public:
   std::map< TNode, TermArgTrie > d_data;
 public:
   TNode existsTerm( std::vector< TNode >& reps, int argIndex = 0 );
+  TNode addOrGetTerm( TNode n, std::vector< TNode >& reps, int argIndex = 0 );
   bool addTerm( TNode n, std::vector< TNode >& reps, int argIndex = 0 );
   void debugPrint( const char * c, Node n, unsigned depth = 0 );
   void clear() { d_data.clear(); }

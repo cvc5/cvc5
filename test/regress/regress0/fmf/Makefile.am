@@ -52,8 +52,8 @@ TESTS =	\
 	am-bad-model.cvc \
 	nun-0208-to.smt2 \
 	datatypes-ufinite.smt2 \
-	datatypes-ufinite-nested.smt2
-
+	datatypes-ufinite-nested.smt2 \
+	ForElimination-scala-9.smt2
 
 EXTRA_DIST = $(TESTS)
 
