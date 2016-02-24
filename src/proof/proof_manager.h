@@ -23,6 +23,7 @@
 #include <map>
 
 #include "expr/node.h"
+#include "proof/clause_id.h"
 #include "proof/proof.h"
 #include "theory/logic_info.h"
 #include "theory/substitutions.h"
@@ -46,7 +47,6 @@ namespace prop {
 
 class SmtEngine;
 
-typedef unsigned ClauseId;
 const ClauseId ClauseIdEmpty(-1);
 const ClauseId ClauseIdUndef(-2);  
 const ClauseId ClauseIdError(-3);
@@ -95,8 +95,6 @@ typedef __gnu_cxx::hash_set<Expr, ExprHashFunction > ExprSet;
 typedef __gnu_cxx::hash_set<Node, NodeHashFunction > NodeSet;
 typedef __gnu_cxx::hash_map<Node, std::vector<Node>, NodeHashFunction > NodeToNodes;
 typedef std::hash_set<ClauseId> IdHashSet;
-
-typedef unsigned ClauseId;
 
 enum ProofRule {
   RULE_GIVEN,       /* input assertion */

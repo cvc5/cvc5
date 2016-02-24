@@ -14,18 +14,18 @@
  ** [[ Add lengthier description here ]]
  ** \todo document this file
  **/
+#include "proof/theory_proof.h"
 
 #include "base/cvc4_assert.h"
 #include "context/context.h"
 #include "options/bv_options.h"
 #include "proof/array_proof.h"
 #include "proof/bitvector_proof.h"
-#include "proof/cnf_proof.h"
+#include "proof/clause_id.h"
 #include "proof/cnf_proof.h"
 #include "proof/proof_manager.h"
 #include "proof/proof_utils.h"
 #include "proof/sat_proof.h"
-#include "proof/theory_proof.h"
 #include "proof/uf_proof.h"
 #include "prop/sat_solver_types.h"
 #include "smt/smt_engine.h"

@@ -18,10 +18,12 @@ DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE,
 OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 **************************************************************************************************/
 
+#include "prop/minisat/simp/SimpSolver.h"
+
 #include "options/prop_options.h"
+#include "proof/clause_id.h"
 #include "proof/proof.h"
 #include "prop/minisat/mtl/Sort.h"
-#include "prop/minisat/simp/SimpSolver.h"
 #include "prop/minisat/utils/System.h"
 
 using namespace CVC4;

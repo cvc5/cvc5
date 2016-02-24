@@ -21,20 +21,19 @@
 #ifndef __CVC4__THEORY_PROOF_H
 #define __CVC4__THEORY_PROOF_H
 
-#include "util/proof.h"
-#include "expr/expr.h"
-#include "prop/sat_solver_types.h"
 #include <ext/hash_set>
 #include <iosfwd>
 
+#include "expr/expr.h"
+#include "proof/clause_id.h"
+#include "prop/sat_solver_types.h"
+#include "util/proof.h"
 
 namespace CVC4 {
 
 namespace theory {
 class Theory;
-}
-
-typedef unsigned ClauseId;
+} /* namespace CVC4::theory */
 
 struct LetCount {
   static unsigned counter;
@@ -88,7 +87,6 @@ typedef __gnu_cxx::hash_map<Expr, LetCount, ExprHashFunction> LetMap;
 typedef std::vector<LetOrderElement> Bindings; 
 
 class TheoryProof;
-typedef unsigned ClauseId;
 
 typedef __gnu_cxx::hash_set<Expr, ExprHashFunction > ExprSet;
 typedef std::map<theory::TheoryId, TheoryProof* > TheoryProofTable;

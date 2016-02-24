@@ -15,9 +15,10 @@
 ** \todo document this file
 **/
 
-
 #include "proof/bitvector_proof.h" 
+
 #include "options/bv_options.h"
+#include "proof/clause_id.h"
 #include "proof/proof_utils.h"
 #include "proof/sat_proof_implementation.h"
 #include "prop/bvminisat/bvminisat.h"

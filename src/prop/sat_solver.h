@@ -26,6 +26,7 @@
 #include "context/cdlist.h"
 #include "context/context.h"
 #include "expr/node.h"
+#include "proof/clause_id.h"
 #include "prop/sat_solver_types.h"
 #include "util/statistics_registry.h"
 
@@ -36,8 +37,6 @@ class BitVectorProof;
 namespace prop {
 
 class TheoryProxy;
-
-typedef unsigned ClauseId;
 
 class SatSolver {
 

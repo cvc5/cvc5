@@ -27,6 +27,7 @@ OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWA
 
 #include "base/output.h"
 #include "context/context.h"
+#include "proof/clause_id.h"
 #include "prop/minisat/core/SolverTypes.h"
 #include "prop/minisat/mtl/Alg.h"
 #include "prop/minisat/mtl/Heap.h"
@@ -43,7 +44,6 @@ namespace prop {
 }/* CVC4::prop namespace */
 }/* CVC4 namespace */
 
-typedef unsigned ClauseId;
 
 namespace CVC4 {
 namespace Minisat {

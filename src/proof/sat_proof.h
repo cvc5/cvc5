@@ -20,20 +20,21 @@
 #define __CVC4__SAT__PROOF_H
 
 #include <stdint.h>
+
 #include <ext/hash_map>
 #include <ext/hash_set>
 #include <iosfwd>
 #include <set>
 #include <sstream>
 #include <vector>
+
 #include "expr/expr.h"
+#include "proof/clause_id.h"
 #include "proof/proof_manager.h"
 #include "util/proof.h"
 #include "util/statistics_registry.h"
 
-
 namespace CVC4 {
-
 
 class CnfProof;
 
