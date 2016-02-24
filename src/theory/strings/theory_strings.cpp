@@ -2012,11 +2012,28 @@ bool TheoryStrings::processNEqc( std::vector< std::vector< Node > > &normal_form
                       antec_new_lits.push_back( xgtz );
                     }
                   }
-
                   Node sk = mkSkolemCached( normal_forms[i][index_i], normal_forms[j][index_j], sk_id_v_spt, "v_spt", 1 );
                   Node eq1 = normal_forms[i][index_i].eqNode( mkConcat(normal_forms[j][index_j], sk) );
                   Node eq2 = normal_forms[j][index_j].eqNode( mkConcat(normal_forms[i][index_i], sk) );
-                  conc = Rewriter::rewrite(NodeManager::currentNM()->mkNode( kind::OR, eq1, eq2 ));
+                  if( options::stringCheckEntailLen() ){
+                    //check entailment
+                    for( unsigned e=0; e<2; e++ ){
+                      Node lt1 = e==0 ? length_term_i : length_term_j;
+                      Node lt2 = e==0 ? length_term_j : length_term_i;
+                      Node ent_lit = Rewriter::rewrite( NodeManager::currentNM()->mkNode( kind::GT, lt1, lt2 ) );
+                      std::pair<bool, Node> et = d_valuation.entailmentCheck(THEORY_OF_TYPE_BASED, ent_lit );
+                      if( et.first ){
+                        Trace("strings-entail") << "Strings entailment : " << ent_lit << " is entailed in the current context." << std::endl;
+                        Trace("strings-entail") << "  explanation was : " << et.second << std::endl;
+                        conc = e==0 ? eq1 : eq2;
+                        antec_new_lits.push_back( et.second );
+                      }
+                    }
+                  }
+                  if( conc.isNull() ){
+                    conc = Rewriter::rewrite(NodeManager::currentNM()->mkNode( kind::OR, eq1, eq2 ));
+                  }
+
 
                   Node ant = mkExplain( antec, antec_new_lits );
                   sendLemma( ant, conc, "S-Split(VAR)" );

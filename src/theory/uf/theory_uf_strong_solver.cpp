@@ -1346,7 +1346,7 @@ void StrongSolverTheoryUF::SortModel::addTotalityAxiom( Node n, int cardinality,
               for( unsigned j=0; j<(d_sym_break_terms[n.getType()][sort_id].size()-1); j++ ){
                 eqs.push_back( d_sym_break_terms[n.getType()][sort_id][j].eqNode( getTotalityLemmaTerm( cardinality, i-1 ) ) );
               }
-              Node ax = NodeManager::currentNM()->mkNode( OR, eqs );
+              Node ax = eqs.size()==1 ? eqs[0] : NodeManager::currentNM()->mkNode( OR, eqs );
               Node lem = NodeManager::currentNM()->mkNode( IMPLIES, eq, ax );
               Trace("uf-ss-lemma") << "*** Add (canonicity) totality axiom " << lem << std::endl;
               d_thss->getOutputChannel().lemma( lem );

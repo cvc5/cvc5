@@ -477,7 +477,22 @@ bool QuantInfo::entailmentTest( QuantConflictFind * p, Node lit, bool chEnt ) {
     Trace("qcf-tconstraint-debug") << "...constraint " << lit << " is disentailed (rewrites to false)." << std::endl;
     return false;
   }else if( rew!=p->d_true ){
-    //if checking for conflicts, we must be sure that the constraint is entailed
+    //if checking for conflicts, we must be sure that the (negation of) constraint is (not) entailed 
+    if( !chEnt ){
+      rew = Rewriter::rewrite( rew.negate() );
+    }
+    //check if it is entailed
+    Trace("qcf-tconstraint-debug") << "Check entailment of " << rew << "..." << std::endl;
+    std::pair<bool, Node> et = p->getQuantifiersEngine()->getTheoryEngine()->entailmentCheck(THEORY_OF_TYPE_BASED, rew );
+    ++(p->d_statistics.d_entailment_checks);
+    Trace("qcf-tconstraint-debug") << "ET result : " << et.first << " " << et.second << std::endl;
+    if( !et.first ){
+      Trace("qcf-tconstraint-debug") << "...cannot show entailment of " << rew << "." << std::endl;
+      return !chEnt;
+    }else{
+      return chEnt;
+    }
+/*
     if( chEnt ){
       //check if it is entailed
       Trace("qcf-tconstraint-debug") << "Check entailment of " << rew << "..." << std::endl;
@@ -494,6 +509,7 @@ bool QuantInfo::entailmentTest( QuantConflictFind * p, Node lit, bool chEnt ) {
       Trace("qcf-tconstraint-debug") << "...does not need to be entailed." << std::endl;
       return true;
     }
+*/
   }else{
     Trace("qcf-tconstraint-debug") << "...rewrites to true." << std::endl;
     return true;
@@ -1681,6 +1697,8 @@ bool MatchGen::isHandledBoolConnective( TNode n ) {
 bool MatchGen::isHandledUfTerm( TNode n ) {
   //return n.getKind()==APPLY_UF || n.getKind()==STORE || n.getKind()==SELECT ||
   //       n.getKind()==APPLY_CONSTRUCTOR || n.getKind()==APPLY_SELECTOR_TOTAL || n.getKind()==APPLY_TESTER;
+  //TODO : treat APPLY_TESTER as a T-constraint instead of matching (currently leads to overabundance of instantiations)
+  //return inst::Trigger::isAtomicTriggerKind( n.getKind() ) && ( !options::qcfTConstraint() || n.getKind()!=APPLY_TESTER );
   return inst::Trigger::isAtomicTriggerKind( n.getKind() );
 }
 

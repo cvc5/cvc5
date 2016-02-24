@@ -131,6 +131,7 @@ private:
   bool hasTester( Node n );
   /** get the possible constructors for n */
   void getPossibleCons( EqcInfo* eqc, Node n, std::vector< bool >& cons );
+  void getSelectorsForCons( Node r, std::map< int, bool >& sels );
   /** mkExpDefSkolem */
   void mkExpDefSkolem( Node sel, TypeNode dt, TypeNode rt );  
   /** skolems for terms */  
@@ -260,6 +261,8 @@ public:
   std::string identify() const { return std::string("TheoryDatatypes"); }
   /** debug print */
   void printModelDebug( const char* c );
+  /** entailment check */
+  virtual std::pair<bool, Node> entailmentCheck(TNode lit, const EntailmentCheckParameters* params = NULL, EntailmentCheckSideEffects* out = NULL);
 private:
   /** add tester to equivalence class info */
   void addTester( int ttindex, Node t, EqcInfo* eqc, Node n, Node t_arg );

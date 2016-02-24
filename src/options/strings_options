@@ -53,6 +53,8 @@ option stringInferSym strings-infer-sym --strings-infer-sym bool :default true
  strings split on empty string
 option stringEagerLen strings-eager-len --strings-eager-len bool :default true
  strings eager length lemmas
+option stringCheckEntailLen strings-check-entail-len --strings-check-entail-len bool :default true
+ check entailment between length terms to reduce splitting
 
 
 endmodule

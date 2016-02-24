@@ -233,9 +233,11 @@ void TheoryDatatypes::check(Effort e) {
               //all other cases
               std::vector< bool > pcons;
               getPossibleCons( eqc, n, pcons );
+              //std::map< int, bool > sel_apps;
+              //getSelectorsForCons( n, sel_apps );
               //check if we do not need to resolve the constructor type for this equivalence class.
-              // this is if there are no selectors for this equivalence class, its possible values are infinite,
-              //  and we are not producing a model, then do not split.
+              // this is if there are no selectors for this equivalence class, and its possible values are infinite,
+              //  then do not split.
               int consIndex = -1;
               int fconsIndex = -1;
               bool needSplit = true;
@@ -955,6 +957,17 @@ void TheoryDatatypes::getPossibleCons( EqcInfo* eqc, Node n, std::vector< bool >
         Assert( tindex!=-1 );
         pcons[ tindex ] = false;
       }
+    }
+  }
+}
+
+void TheoryDatatypes::getSelectorsForCons( Node r, std::map< int, bool >& sels ) {
+  NodeListMap::iterator sel_i = d_selector_apps.find( r );
+  if( sel_i != d_selector_apps.end() ){
+    NodeList* sel = (*sel_i).second;
+    for( NodeList::const_iterator j = sel->begin(); j != sel->end(); j++ ){
+      int sindex = Datatype::indexOf( (*j).getOperator().toExpr() );
+      sels[sindex] = true;
     }
   }
 }
@@ -2093,6 +2106,40 @@ bool TheoryDatatypes::checkClashModEq( TNode n1, TNode n2, std::vector< Node >& 
     }
   }
   return false;
+}
+
+std::pair<bool, Node> TheoryDatatypes::entailmentCheck(TNode lit, const EntailmentCheckParameters* params, EntailmentCheckSideEffects* out) {
+  Trace("dt-entail") << "Check entailed : " << lit << std::endl;
+  Node atom = lit.getKind()==NOT ? lit[0] : lit;
+  bool pol = lit.getKind()!=NOT;
+  if( atom.getKind()==APPLY_TESTER ){
+    Node n = atom[0];
+    if( hasTerm( n ) ){
+      Node r = d_equalityEngine.getRepresentative( n );
+      EqcInfo * ei = getOrMakeEqcInfo( r, false );
+      int l_index = getLabelIndex( ei, r );
+      int t_index = (int)Datatype::indexOf( atom.getOperator().toExpr() );
+      Trace("dt-entail") << "  Tester indices are " << t_index << " and " << l_index << std::endl;
+      if( l_index!=-1 && (l_index==t_index)==pol ){
+        std::vector< TNode > exp_c;
+        if( ei && !ei->d_constructor.get().isNull() ){
+          explainEquality( n, ei->d_constructor.get(), true, exp_c );
+        }else{
+          Node lbl = getLabel( n );
+          Assert( !lbl.isNull() );
+          exp_c.push_back( lbl );
+          Assert( areEqual( n, lbl[0] ) );
+          explainEquality( n, lbl[0], true, exp_c );
+        }
+        Node exp = mkAnd( exp_c );
+        Trace("dt-entail") << "  entailed, explanation is " << exp << std::endl;
+        return make_pair(true, exp);
+      }
+    }
+  }else{
+
+  }
+  return make_pair(false, Node::null());
 }
 
 } /* namepsace CVC4::theory::datatypes */
