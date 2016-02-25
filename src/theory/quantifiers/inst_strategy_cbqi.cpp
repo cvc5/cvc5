@@ -34,7 +34,9 @@ using namespace CVC4::theory::arith;
 #define ARITH_INSTANTIATOR_USE_MINUS_DELTA
 
 InstStrategyCbqi::InstStrategyCbqi( QuantifiersEngine * qe )
-  : QuantifiersModule( qe ), d_added_cbqi_lemma( qe->getUserContext() ), d_added_inst( qe->getUserContext() ) {
+  : QuantifiersModule( qe ), d_added_cbqi_lemma( qe->getUserContext() )
+//, d_added_inst( qe->getUserContext() ) 
+{
 }
 
 InstStrategyCbqi::~InstStrategyCbqi() throw(){}
@@ -96,14 +98,6 @@ void InstStrategyCbqi::reset_round( Theory::Effort effort ) {
           }
         }else{
           Debug("cbqi-debug") << "...CE Literal does not have value " << std::endl;
-        }
-        //if doing partial quantifier elimination, do not process this if already processed once
-        if( d_quantEngine->getTermDatabase()->isQAttrQuantElimPartial( q ) ){
-          if( d_added_inst.find( q )!=d_added_inst.end() ){
-            d_quantEngine->getModel()->setQuantifierActive( q, false );
-            d_cbqi_set_quant_inactive = true;
-            d_incomplete_check = true;
-          }
         }
       }
     }
@@ -597,21 +591,23 @@ InstStrategyCegqi::~InstStrategyCegqi() throw () {
 }
 
 void InstStrategyCegqi::processResetInstantiationRound( Theory::Effort effort ) {
-  d_check_vts_lemma_lc = true;
+  d_check_vts_lemma_lc = false;
 }
 
-void InstStrategyCegqi::process( Node f, Theory::Effort effort, int e ) {
+void InstStrategyCegqi::process( Node q, Theory::Effort effort, int e ) {
   if( e==0 ){
-    CegInstantiator * cinst = getInstantiator( f );
-    Trace("inst-alg") << "-> Run cegqi for " << f << std::endl;
-    d_curr_quant = f;
+    CegInstantiator * cinst = getInstantiator( q );
+    Trace("inst-alg") << "-> Run cegqi for " << q << std::endl;
+    d_curr_quant = q;
     if( !cinst->check() ){
       d_incomplete_check = true;
+      d_check_vts_lemma_lc = true;
     }
     d_curr_quant = Node::null();
   }else if( e==1 ){
     //minimize the free delta heuristically on demand
     if( d_check_vts_lemma_lc ){
+      Trace("inst-alg") << "-> Minimize delta heuristic, for " << q << std::endl;
       d_check_vts_lemma_lc = false;
       d_small_const = NodeManager::currentNM()->mkNode( MULT, d_small_const, d_small_const );
       d_small_const = Rewriter::rewrite( d_small_const );
@@ -635,13 +631,21 @@ void InstStrategyCegqi::process( Node f, Theory::Effort effort, int e ) {
 
 bool InstStrategyCegqi::addInstantiation( std::vector< Node >& subs ) {
   Assert( !d_curr_quant.isNull() );
-  //check if we need virtual term substitution (if used delta or infinity)
-  bool used_vts = d_quantEngine->getTermDatabase()->containsVtsTerm( subs, false );
-  if( d_quantEngine->addInstantiation( d_curr_quant, subs, false, false, false, used_vts ) ){
-    d_added_inst.insert( d_curr_quant );
+  //if doing partial quantifier elimination, record the instantiation and set the incomplete flag instead of sending instantiation lemma
+  if( d_quantEngine->getTermDatabase()->isQAttrQuantElimPartial( d_curr_quant ) ){
+    d_cbqi_set_quant_inactive = true;
+    d_incomplete_check = true;
+    d_quantEngine->recordInstantiationInternal( d_curr_quant, subs, false, false );
     return true;
   }else{
-    return false;
+    //check if we need virtual term substitution (if used delta or infinity)
+    bool used_vts = d_quantEngine->getTermDatabase()->containsVtsTerm( subs, false );
+    if( d_quantEngine->addInstantiation( d_curr_quant, subs, false, false, false, used_vts ) ){
+      //d_added_inst.insert( d_curr_quant );
+      return true;
+    }else{
+      return false;
+    }
   }
 }
 

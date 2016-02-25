@@ -2027,6 +2027,7 @@ bool TheoryStrings::processNEqc( std::vector< std::vector< Node > > &normal_form
                         Trace("strings-entail") << "  explanation was : " << et.second << std::endl;
                         conc = e==0 ? eq1 : eq2;
                         antec_new_lits.push_back( et.second );
+                        break;
                       }
                     }
                   }

@@ -40,7 +40,7 @@ protected:
   /** whether we have added cbqi lemma */
   NodeSet d_added_cbqi_lemma;
   /** whether we have instantiated quantified formulas */
-  NodeSet d_added_inst;
+  //NodeSet d_added_inst;
   /** whether to do cbqi for this quantified formula */
   std::map< Node, bool > d_do_cbqi;
   /** register ce lemma */

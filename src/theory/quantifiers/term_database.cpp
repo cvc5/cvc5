@@ -1680,6 +1680,21 @@ bool TermDb::containsTerms( Node n, std::vector< Node >& t ) {
   }
 }
 
+int TermDb::getTermDepth( Node n ) {
+  if (!n.hasAttribute(TermDepthAttribute()) ){
+    int maxDepth = -1;
+    for( unsigned i=0; i<n.getNumChildren(); i++ ){
+      int depth = getTermDepth( n[i] );
+      if( depth>maxDepth ){
+        maxDepth = depth;
+      }
+    }
+    TermDepthAttribute tda;
+    n.setAttribute(tda,1+maxDepth);
+  }
+  return n.getAttribute(TermDepthAttribute());
+}
+
 bool TermDb::containsUninterpretedConstant( Node n ) {
   std::map< Node, bool > visited;
   return containsUninterpretedConstant2( n, visited );

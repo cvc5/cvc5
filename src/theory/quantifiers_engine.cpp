@@ -741,6 +741,24 @@ bool QuantifiersEngine::addInstantiationInternal( Node f, std::vector< Node >& v
   }
 }
 
+bool QuantifiersEngine::recordInstantiationInternal( Node q, std::vector< Node >& terms, bool modEq, bool modInst ) {
+  if( options::incrementalSolving() ){
+    Trace("inst-add-debug") << "Adding into context-dependent inst trie, modEq = " << modEq << ", modInst = " << modInst << std::endl;
+    inst::CDInstMatchTrie* imt;
+    std::map< Node, inst::CDInstMatchTrie* >::iterator it = d_c_inst_match_trie.find( q );
+    if( it!=d_c_inst_match_trie.end() ){
+      imt = it->second;
+    }else{
+      imt = new CDInstMatchTrie( getUserContext() );
+      d_c_inst_match_trie[q] = imt;
+    }
+    return imt->addInstMatch( this, q, terms, getUserContext(), modEq, modInst );
+  }else{
+    Trace("inst-add-debug") << "Adding into inst trie" << std::endl;
+    return d_inst_match_trie[q].addInstMatch( this, q, terms, modEq, modInst );
+  }
+}
+
 void QuantifiersEngine::setInstantiationLevelAttr( Node n, Node qn, uint64_t level ){
   Trace("inst-level-debug2") << "IL : " << n << " " << qn << " " << level << std::endl;
   //if not from the vector of terms we instantiatied
@@ -956,22 +974,7 @@ bool QuantifiersEngine::addInstantiation( Node q, std::vector< Node >& terms, bo
   }
 
   //check for duplication
-  bool alreadyExists = false;
-  if( options::incrementalSolving() ){
-    Trace("inst-add-debug") << "Adding into context-dependent inst trie, modEq = " << modEq << ", modInst = " << modInst << std::endl;
-    inst::CDInstMatchTrie* imt;
-    std::map< Node, inst::CDInstMatchTrie* >::iterator it = d_c_inst_match_trie.find( q );
-    if( it!=d_c_inst_match_trie.end() ){
-      imt = it->second;
-    }else{
-      imt = new CDInstMatchTrie( getUserContext() );
-      d_c_inst_match_trie[q] = imt;
-    }
-    alreadyExists = !imt->addInstMatch( this, q, terms, getUserContext(), modEq, modInst );
-  }else{
-    Trace("inst-add-debug") << "Adding into inst trie" << std::endl;
-    alreadyExists = !d_inst_match_trie[q].addInstMatch( this, q, terms, modEq, modInst );
-  }
+  bool alreadyExists = !recordInstantiationInternal( q, terms, modEq, modInst );
   if( alreadyExists ){
     Trace("inst-add-debug") << " -> Already exists." << std::endl;
     ++(d_statistics.d_inst_duplicate_eq);
@@ -1260,27 +1263,27 @@ bool EqualityQueryQuantifiersEngine::areDisequal( Node a, Node b ){
 Node EqualityQueryQuantifiersEngine::getInternalRepresentative( Node a, Node f, int index ){
   Assert( f.isNull() || f.getKind()==FORALL );
   Node r = getRepresentative( a );
-  if( !options::internalReps() ){
-    return r;
-  }else{
-    if( options::finiteModelFind() ){
-      if( r.isConst() ){
-        //map back from values assigned by model, if any
-        if( d_qe->getModel() ){
-          std::map< Node, Node >::iterator it = d_qe->getModel()->d_rep_set.d_values_to_terms.find( r );
-          if( it!=d_qe->getModel()->d_rep_set.d_values_to_terms.end() ){
-            r = it->second;
-            r = getRepresentative( r );
-          }else{
-            if( r.getType().isSort() ){
-              Trace("internal-rep-warn") << "No representative for UF constant." << std::endl;
-              //should never happen : UF constants should never escape model
-              Assert( false );
-            }
+  if( options::finiteModelFind() ){
+    if( r.isConst() ){
+      //map back from values assigned by model, if any
+      if( d_qe->getModel() ){
+        std::map< Node, Node >::iterator it = d_qe->getModel()->d_rep_set.d_values_to_terms.find( r );
+        if( it!=d_qe->getModel()->d_rep_set.d_values_to_terms.end() ){
+          r = it->second;
+          r = getRepresentative( r );
+        }else{
+          if( r.getType().isSort() ){
+            Trace("internal-rep-warn") << "No representative for UF constant." << std::endl;
+            //should never happen : UF constants should never escape model
+            Assert( false );
           }
         }
       }
     }
+  }
+  if( options::quantRepMode()==quantifiers::QUANT_REP_MODE_EE ){
+    return r;
+  }else{
     TypeNode v_tn = f.isNull() ? a.getType() : f[0][index].getType();
     std::map< Node, Node >::iterator itir = d_int_rep[v_tn].find( r );
     if( itir==d_int_rep[v_tn].end() ){
@@ -1320,7 +1323,7 @@ Node EqualityQueryQuantifiersEngine::getInternalRepresentative( Node a, Node f, 
       if( d_rep_score.find( r_best )==d_rep_score.end() ){
         d_rep_score[ r_best ] = d_reset_count;
       }
-      Trace("internal-rep-select") << "...Choose " << r_best << std::endl;
+      Trace("internal-rep-select") << "...Choose " << r_best << " with score " << r_best_score << std::endl;
       Assert( r_best.getType().isSubtypeOf( v_tn ) );
       d_int_rep[v_tn][r] = r_best;
       if( r_best!=a ){
@@ -1446,23 +1449,6 @@ Node EqualityQueryQuantifiersEngine::getInstance( Node n, const std::vector< Nod
   }
 }
 
-/*
-int getDepth( Node n ){
-  if( n.getNumChildren()==0 ){
-    return 0;
-  }else{
-    int maxDepth = -1;
-    for( int i=0; i<(int)n.getNumChildren(); i++ ){
-      int depth = getDepth( n[i] );
-      if( depth>maxDepth ){
-        maxDepth = depth;
-      }
-    }
-    return maxDepth;
-  }
-}
-*/
-
 //-2 : invalid, -1 : undesired, otherwise : smaller the score, the better
 int EqualityQueryQuantifiersEngine::getRepScore( Node n, Node f, int index, TypeNode v_tn ){
   if( options::cbqi() && quantifiers::TermDb::hasInstConstAttr(n) ){  //reject
@@ -1479,8 +1465,12 @@ int EqualityQueryQuantifiersEngine::getRepScore( Node n, Node f, int index, Type
       return options::instLevelInputOnly() ? -1 : 0;
     }
   }else{
-    //score prefers earliest use of this term as a representative
-    return d_rep_score.find( n )==d_rep_score.end() ? -1 : d_rep_score[n];
+    if( options::quantRepMode()==quantifiers::QUANT_REP_MODE_FIRST ){
+      //score prefers earliest use of this term as a representative
+      return d_rep_score.find( n )==d_rep_score.end() ? -1 : d_rep_score[n];
+    }else{
+      Assert( options::quantRepMode()==quantifiers::QUANT_REP_MODE_DEPTH );
+      return quantifiers::TermDb::getTermDepth( n );
+    }
   }
-  //return ( d_rep_score.find( n )==d_rep_score.end() ? 100 : 0 ) + getDepth( n );    //term depth
 }

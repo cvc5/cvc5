@@ -99,6 +99,7 @@ namespace quantifiers {
   class QuantEqualityEngine;
   class FullSaturation;
   class InstStrategyCbqi;
+  class InstStrategyCegqi;
   class QuantDSplit;
 }/* CVC4::theory::quantifiers */
 
@@ -111,6 +112,7 @@ class EqualityQueryQuantifiersEngine;
 
 class QuantifiersEngine {
   friend class quantifiers::InstantiationEngine;
+  friend class quantifiers::InstStrategyCegqi;
   friend class quantifiers::ModelEngine;
   friend class quantifiers::RewriteEngine;
   friend class quantifiers::QuantConflictFind;
@@ -292,6 +294,8 @@ private:
   void computeTermVector( Node f, InstMatch& m, std::vector< Node >& vars, std::vector< Node >& terms );
   /** instantiate f with arguments terms */
   bool addInstantiationInternal( Node f, std::vector< Node >& vars, std::vector< Node >& terms, bool doVts = false );
+  /** record instantiation, return true if it was non-duplicate */
+  bool recordInstantiationInternal( Node q, std::vector< Node >& terms, bool modEq = false, bool modInst = false );
   /** set instantiation level attr */
   static void setInstantiationLevelAttr( Node n, Node qn, uint64_t level );
   /** flush lemmas */

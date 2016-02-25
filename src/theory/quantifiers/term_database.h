@@ -68,6 +68,9 @@ typedef expr::Attribute<InstLevelAttributeId, uint64_t> InstLevelAttribute;
 struct InstVarNumAttributeId {};
 typedef expr::Attribute<InstVarNumAttributeId, uint64_t> InstVarNumAttribute;
 
+struct TermDepthAttributeId {};
+typedef expr::Attribute<TermDepthAttributeId, uint64_t> TermDepthAttribute;
+
 struct ModelBasisAttributeId {};
 typedef expr::Attribute<ModelBasisAttributeId, bool> ModelBasisAttribute;
 //for APPLY_UF terms, 1 : term has direct child with model basis attribute,
@@ -436,6 +439,8 @@ public:
   static bool containsTerms( Node n, std::vector< Node >& t );
   /** contains uninterpreted constant */
   static bool containsUninterpretedConstant( Node n );
+  /** get the term depth of n */
+  static int getTermDepth( Node n );
   /** simple negate */
   static Node simpleNegate( Node n );
   /** is assoc */

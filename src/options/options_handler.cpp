@@ -428,7 +428,7 @@ post \n\
 ";
 
 const std::string OptionsHandler::s_macrosQuantHelp = "\
-Template modes for quantifiers macro expansion, supported by --macros-quant-mode:\n\
+Modes for quantifiers macro expansion, supported by --macros-quant-mode:\n\
 \n\
 all \n\
 + Infer definitions for functions, including those containing quantified formulas.\n\
@@ -442,7 +442,7 @@ ground-uf \n\
 ";
 
 const std::string OptionsHandler::s_quantDSplitHelp = "\
-Template modes for quantifiers splitting, supported by --quant-split:\n\
+Modes for quantifiers splitting, supported by --quant-dsplit-mode:\n\
 \n\
 none \n\
 + Never split quantified formulas.\n\
@@ -452,6 +452,20 @@ default \n\
 \n\
 agg \n\
 + Aggressively split quantified formulas.\n\
+\n\
+";
+
+const std::string OptionsHandler::s_quantRepHelp = "\
+Modes for quantifiers representative selection, supported by --quant-rep-mode:\n\
+\n\
+ee \n\
++ Let equality engine choose representatives.\n\
+\n\
+first (default) \n\
++ Choose terms that appear first.\n\
+\n\
+depth \n\
++ Choose terms that are of minimal depth.\n\
 \n\
 ";
 
@@ -713,6 +727,22 @@ theory::quantifiers::QuantDSplitMode OptionsHandler::stringToQuantDSplitMode(std
   } else {
     throw OptionException(std::string("unknown option for --quant-dsplit-mode: `") +
                           optarg + "'.  Try --quant-dsplit-mode help.");
+  }
+}
+
+theory::quantifiers::QuantRepMode OptionsHandler::stringToQuantRepMode(std::string option, std::string optarg) throw(OptionException) {
+  if(optarg == "none" ) {
+    return theory::quantifiers::QUANT_REP_MODE_EE;
+  } else if(optarg == "first" || optarg == "default") {
+    return theory::quantifiers::QUANT_REP_MODE_FIRST;
+  } else if(optarg == "depth") {
+    return theory::quantifiers::QUANT_REP_MODE_DEPTH;
+  } else if(optarg ==  "help") {
+    puts(s_quantRepHelp.c_str());
+    exit(1);
+  } else {
+    throw OptionException(std::string("unknown option for --quant-rep-mode: `") +
+                          optarg + "'.  Try --quant-rep-mode help.");
   }
 }
 
