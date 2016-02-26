@@ -55,6 +55,14 @@ option stringEagerLen strings-eager-len --strings-eager-len bool :default true
  strings eager length lemmas
 option stringCheckEntailLen strings-check-entail-len --strings-check-entail-len bool :default true
  check entailment between length terms to reduce splitting
+option stringProcessLoop strings-process-loop --strings-process-loop bool :default true
+ reduce looping word equations to regular expressions
+option stringAbortLoop strings-abort-loop --strings-abort-loop bool :default false
+ abort when a looping word equation is encountered
+option stringInferAsLemmas strings-infer-as-lemmas --strings-infer-as-lemmas bool :default false
+ always send lemmas out instead of making internal inferences
+option stringRExplainLemmas strings-rexplain-lemmas --strings-rexplain-lemmas bool :default true
+ regression explanations for string lemmas
 
 
 endmodule

@@ -1039,9 +1039,8 @@ void StrongSolverTheoryUF::SortModel::allocateCardinality( OutputChannel* out ){
 
   //check for abort case
   if( options::ufssAbortCardinality()==d_aloc_cardinality ){
-    //abort here DO_THIS
     Message() << "Maximum cardinality reached." << std::endl;
-    exit( 0 );
+    exit( 1 );
   }else{
     if( applyTotality( d_aloc_cardinality ) ){
       //must generate new cardinality lemma term

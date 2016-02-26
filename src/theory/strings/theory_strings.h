@@ -174,7 +174,7 @@ private:
   NodeBoolMap d_preproc_cache;
   // extended functions inferences cache
   NodeSet d_extf_infer_cache;
-
+  std::vector< Node > d_empty_vec;
 private:
   NodeSet d_congruent;
   std::map< Node, Node > d_eqc_to_const;
@@ -337,6 +337,8 @@ protected:
   //register term
   void registerTerm( Node n, int effort );
   //send lemma
+  void sendInference( std::vector< Node >& exp, std::vector< Node >& exp_n, Node eq, const char * c, bool asLemma = false );
+  void sendInference( std::vector< Node >& exp, Node eq, const char * c, bool asLemma = false );
   void sendLemma( Node ant, Node conc, const char * c );
   void sendInfer( Node eq_exp, Node eq, const char * c );
   void sendSplit( Node a, Node b, const char * c, bool preq = true );
