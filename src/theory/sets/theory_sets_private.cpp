@@ -94,9 +94,11 @@ void TheorySetsPrivate::check(Theory::Effort level) {
     if(d_conflict) { return; }
     Debug("sets") << "[sets]  is complete = " << isComplete() << std::endl;
 
-    d_rels->check(level);
   }
-
+  d_rels->check(level);
+//  if( level == Theory::EFFORT_FULL ) {
+//    d_rels->doPendingLemmas();
+//  }
   if( (level == Theory::EFFORT_FULL || options::setsEagerLemmas() ) && !isComplete()) {
     d_external.d_out->lemma(getLemma());
     return;
@@ -1111,7 +1113,7 @@ TheorySetsPrivate::TheorySetsPrivate(TheorySets& external,
   d_rels(NULL)
 {
   d_termInfoManager = new TermInfoManager(*this, c, &d_equalityEngine);
-  d_rels = new TheorySetsRels(c, u, &d_equalityEngine, &d_conflict);
+  d_rels = new TheorySetsRels(c, u, &d_equalityEngine, &d_conflict, external);
 
   d_equalityEngine.addFunctionKind(kind::UNION);
   d_equalityEngine.addFunctionKind(kind::INTERSECTION);

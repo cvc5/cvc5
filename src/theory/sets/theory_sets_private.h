@@ -71,7 +71,6 @@ public:
 
 private:
   TheorySets& d_external;
-  TheorySetsRels* d_rels;
 
   class Statistics {
   public:
@@ -200,6 +199,7 @@ private:
   // more debugging stuff
   friend class TheorySetsScrutinize;
   TheorySetsScrutinize* d_scrutinize;
+  TheorySetsRels* d_rels;
   void dumpAssertionsHumanified() const;  /** do some formatting to make them more readable */
 };/* class TheorySetsPrivate */
 

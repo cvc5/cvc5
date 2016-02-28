@@ -33,6 +33,7 @@ class TheorySets : public Theory {
 private:
   friend class TheorySetsPrivate;
   friend class TheorySetsScrutinize;
+  friend class TheorySetsRels;
   TheorySetsPrivate* d_internal;
 public:
 
