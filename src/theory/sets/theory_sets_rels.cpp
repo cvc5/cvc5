@@ -43,7 +43,7 @@ typedef std::map<Node, std::vector<Node> >::iterator mem_it;
     Trace("rels-debug") << "[sets-rels] Start the relational solver..." << std::endl;
     collectRelationalInfo();
     check();
-//    doPendingFacts();
+    doPendingSplitFacts();
     doPendingLemmas();
     Assert(d_lemma_cache.empty());
     Assert(d_pending_facts.empty());
@@ -189,6 +189,28 @@ typedef std::map<Node, std::vector<Node> >::iterator mem_it;
     d_terms_cache.clear();
   }
 
+  void TheorySetsRels::doPendingSplitFacts() {
+      std::map<Node, Node>::iterator map_it = d_pending_split_facts.begin();
+      while( !(*d_conflict) && map_it != d_pending_split_facts.end()) {
+
+        Node fact = map_it->first;
+        Node exp = d_pending_split_facts[ fact ];
+        if(fact.getKind() == kind::AND) {
+          for(size_t j=0; j<fact.getNumChildren(); j++) {
+            bool polarity = fact[j].getKind() != kind::NOT;
+            Node atom = polarity ? fact[j] : fact[j][0];
+            assertMembership(atom, exp, polarity);
+          }
+        } else {
+          bool polarity = fact.getKind() != kind::NOT;
+          Node atom = polarity ? fact : fact[0];
+          assertMembership(atom, exp, polarity);
+        }
+        map_it++;
+      }
+      d_pending_split_facts.clear();
+    }
+
   void TheorySetsRels::applyProductRule(Node exp, Node rel_rep, Node product_term) {
     Trace("rels-debug") << "\n[sets-rels] Apply PRODUCT rule on term: " << product_term
                         << " with explaination: " << exp << std::endl;
@@ -266,11 +288,17 @@ typedef std::map<Node, std::vector<Node> >::iterator mem_it;
     if(!polarity) {
       if(d_terms_cache[getRepresentative(fact[1])].find(kind::JOIN)
          != d_terms_cache[getRepresentative(fact[1])].end()) {
-        computeJoinOrProductRelations(fact[1]);
+        std::vector<Node> join_terms = d_terms_cache[getRepresentative(fact[1])][kind::JOIN];
+        for(unsigned int i = 0; i < join_terms.size(); i++) {
+          computeJoinOrProductRelations(join_terms[i]);
+        }
       }
       if(d_terms_cache[getRepresentative(fact[1])].find(kind::PRODUCT)
          != d_terms_cache[getRepresentative(fact[1])].end()) {
-        computeJoinOrProductRelations(fact[1]);
+        std::vector<Node> product_terms = d_terms_cache[getRepresentative(fact[1])][kind::PRODUCT];
+        for(unsigned int i = 0; i < product_terms.size(); i++) {
+          computeJoinOrProductRelations(product_terms[i]);
+        }
       }
       fact = fact.negate();
     }
@@ -278,13 +306,12 @@ typedef std::map<Node, std::vector<Node> >::iterator mem_it;
   }
 
   void TheorySetsRels::computeJoinOrProductRelations(Node n) {
+    Trace("rels-debug") << "\n[sets-rels] computeJoinOrProductRelations for relation  " << n << std::endl;
     switch(n[0].getKind()) {
-    case kind::JOIN:
-      computeJoinOrProductRelations(n[0]);
-      break;
     case kind::TRANSPOSE:
       computeTransposeRelations(n[0]);
       break;
+    case kind::JOIN:
     case kind::PRODUCT:
       computeJoinOrProductRelations(n[0]);
       break;
@@ -293,12 +320,10 @@ typedef std::map<Node, std::vector<Node> >::iterator mem_it;
     }
 
     switch(n[1].getKind()) {
-    case kind::JOIN:
-      computeJoinOrProductRelations(n[1]);
-      break;
     case kind::TRANSPOSE:
       computeTransposeRelations(n[1]);
       break;
+    case kind::JOIN:
     case kind::PRODUCT:
       computeJoinOrProductRelations(n[1]);
       break;
@@ -349,9 +374,6 @@ typedef std::map<Node, std::vector<Node> >::iterator mem_it;
       rev_tuples.push_back(rev_tup);
       rev_exps.push_back(Rewriter::rewrite(reason));
       sendInfer(MEMBER(rev_tup, n_rep), Rewriter::rewrite(reason), "transpose-rule");
-//      if(std::find(rev_tuples.begin(), rev_tuples.end(), reverseTuple(tuples[i])) == rev_tuples.end()) {
-//
-//      }
     }
     d_membership_cache[n_rep] = rev_tuples;
     d_membership_exp_cache[n_rep] = rev_exps;
@@ -364,7 +386,7 @@ typedef std::map<Node, std::vector<Node> >::iterator mem_it;
     Node r2 = n[1];
     Node r1_rep = getRepresentative(r1);
     Node r2_rep = getRepresentative(r2);
-    Trace("rels-debug") << "[sets-rels] start joining tuples in "
+    Trace("rels-debug") << "[sets-rels] start composing tuples in relations "
                        << r1 << " and " << r2
                        << "\n r1_rep: " << r1_rep
                        << "\n r2_rep: " << r2_rep << std::endl;
@@ -390,10 +412,6 @@ typedef std::map<Node, std::vector<Node> >::iterator mem_it;
       for(unsigned int j = 0; j < r2_elements.size(); j++) {
         std::vector<Node> joinedTuple;
         joinedTuple.push_back(Node::fromExpr(dt[0].getConstructor()));
-        Debug("rels-debug") << "areEqual(r1_elements[i][t1_len-1], r2_elements[j][0]):\n"
-                            << "   r1_elements[i][t1_len-1] = " << r1_elements[i][t1_len-1]
-                            << "   r2_elements[j][0]) = " << r2_elements[j][0]
-                            << "   are equal? " << areEqual(r1_elements[i][t1_len-1], r2_elements[j][0]) << std::endl;
         if((areEqual(r1_elements[i][t1_len-1], r2_elements[j][0]) && n.getKind() == kind::JOIN) ||
             n.getKind() == kind::PRODUCT) {
           unsigned int k = 0;
@@ -434,7 +452,7 @@ typedef std::map<Node, std::vector<Node> >::iterator mem_it;
           if(kind::JOIN == n.getKind())
             sendInfer(fact, reason, "join-compose");
           else if(kind::PRODUCT == n.getKind())
-            sendInfer(fact, reason, "product-compose");
+            sendInfer( fact, reason, "product-compose" );
         }
       }
     }
@@ -454,13 +472,18 @@ typedef std::map<Node, std::vector<Node> >::iterator mem_it;
   }
 
   void TheorySetsRels::doPendingLemmas() {
-    if( !(*d_conflict) && !d_lemma_cache.empty() ){
+    if( !(*d_conflict) && (!d_lemma_cache.empty() || !d_pending_facts.empty())){
       for( unsigned i=0; i < d_lemma_cache.size(); i++ ){
         Trace("rels-debug") << "[sets-rels] Process pending lemma : " << d_lemma_cache[i] << std::endl;
         d_sets.d_out->lemma( d_lemma_cache[i] );
       }
       for( std::map<Node, Node>::iterator child_it = d_pending_facts.begin();
            child_it != d_pending_facts.end(); child_it++ ) {
+        if(holds(child_it->first)) {
+          Trace("rels-debug") << "[sets-rels] Skip the already processed fact,: " << child_it->first << std::endl;
+          continue;
+        }
+
         Trace("rels-debug") << "[sets-rels] Process pending fact as lemma : " << child_it->first << std::endl;
         d_sets.d_out->lemma(child_it->first);
       }
@@ -483,6 +506,10 @@ typedef std::map<Node, std::vector<Node> >::iterator mem_it;
 
   void TheorySetsRels::sendInfer( Node fact, Node exp, const char * c ) {
     Trace("rels-lemma") << "[sets-rels] Infer " << fact << " from " << exp << " by " << c << std::endl;
+    if( std::strcmp( c, "join-split" ) == 0 ) {
+      d_pending_split_facts[fact] = exp;
+      return;
+    }
     d_pending_facts[fact] = exp;
     d_infer.push_back( fact );
     d_infer_exp.push_back( exp );
@@ -522,12 +549,44 @@ typedef std::map<Node, std::vector<Node> >::iterator mem_it;
 
   bool TheorySetsRels::areEqual( Node a, Node b ){
     if( hasTerm( a ) && hasTerm( b ) ){
-//      Trace("rels-debug") << "has a and b " << a << " " << b << " are equal? "<<  d_eqEngine->areEqual( a, b ) << std::endl;
+      if( d_eqEngine->isTriggerTerm(a, THEORY_SETS) &&
+          d_eqEngine->isTriggerTerm(b, THEORY_SETS) ) {
+        // Get representative trigger terms
+          TNode x_shared = d_eqEngine->getTriggerTermRepresentative(a, THEORY_SETS);
+          TNode y_shared = d_eqEngine->getTriggerTermRepresentative(b, THEORY_SETS);
+          EqualityStatus eqStatusDomain = d_sets.d_valuation.getEqualityStatus(x_shared, y_shared);
+          switch (eqStatusDomain) {
+            case EQUALITY_TRUE_AND_PROPAGATED:
+              // Should have been propagated to us
+              Trace("rels-debug") << "EQUALITY_TRUE_AND_PROPAGATED ****  equality( a, b ) = true" << std::endl;
+              return true;
+              break;
+            case EQUALITY_TRUE:
+              // Missed propagation - need to add the pair so that theory engine can force propagation
+              Trace("rels-debug") << "EQUALITY_TRUE **** equality( a, b ) = true" << std::endl;
+              return true;
+              break;
+            case EQUALITY_FALSE_AND_PROPAGATED:
+              // Should have been propagated to us
+              Trace("rels-debug") << "EQUALITY_FALSE_AND_PROPAGATED ******** equality( a, b ) = false" << std::endl;
+              return false;
+              break;
+            case EQUALITY_FALSE:
+              Trace("rels-debug") << "EQUALITY_FALSE **** equality( a, b ) = false" << std::endl;
+              return false;
+              break;
+
+            default:
+              // Covers EQUALITY_TRUE_IN_MODEL (common case) and EQUALITY_UNKNOWN
+              break;
+          }
+      }
+      Trace("rels-debug") << "has a and b " << a << " " << b << " are equal? "<<  d_eqEngine->areEqual( a, b ) << std::endl;
       return d_eqEngine->areEqual( a, b );
     }else if( a.isConst() && b.isConst() ){
       return a == b;
     }else {
-//      Trace("rels-debug") << "to split a and b " << a << " " << b << std::endl;
+      Trace("rels-debug") << "to split a and b " << a << " " << b << std::endl;
       addSharedTerm(a);
       addSharedTerm(b);
       sendSplit(a, b, "tuple-element-equality");
@@ -543,6 +602,16 @@ typedef std::map<Node, std::vector<Node> >::iterator mem_it;
 
   bool TheorySetsRels::exists( std::vector<Node>& v, Node n ){
     return std::find(v.begin(), v.end(), n) != v.end();
+  }
+
+  bool TheorySetsRels::holds(Node node) {
+    bool polarity = node.getKind() != kind::NOT;
+    Node atom = polarity ? node : node[0];
+    Node polarity_atom = polarity ? d_trueNode : d_falseNode;
+    Node atom_mod = NodeManager::currentNM()->mkNode(atom.getKind(), getRepresentative(atom[0]),
+                                                      getRepresentative(atom[1]) );
+    d_eqEngine->addTerm(atom_mod);
+    return areEqual(atom_mod, polarity_atom);
   }
 
   TheorySetsRels::TheorySetsRels(context::Context* c,

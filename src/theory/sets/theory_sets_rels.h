@@ -54,6 +54,7 @@ private:
 
   // Facts and lemmas to be sent to EE
   std::map< Node, Node > d_pending_facts;
+  std::map< Node, Node > d_pending_split_facts;
   std::vector< Node > d_lemma_cache;
 
   /** inferences: maintained to ensure ref count for internally introduced nodes */
@@ -84,6 +85,7 @@ private:
   void sendLemma( Node fact, Node reason, bool polarity );
   void sendSplit( Node a, Node b, const char * c );
   void doPendingFacts();
+  void doPendingSplitFacts();
   void addSharedTerm( TNode n );
 
   // Helper functions
@@ -91,6 +93,7 @@ private:
   bool hasTerm( Node a );
   bool areEqual( Node a, Node b );
   bool exists( std::vector<Node>&, Node );
+  bool holds(Node);
 
 };
 
