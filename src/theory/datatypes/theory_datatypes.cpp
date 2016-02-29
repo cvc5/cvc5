@@ -159,20 +159,19 @@ void TheoryDatatypes::check(Effort e) {
   if( e == EFFORT_FULL && !d_conflict && !d_addedLemma && !d_valuation.needCheck() ) {
     //check for cycles
     Assert( d_pending.empty() && d_pending_merge.empty() );
-    bool addedFact;
     do {
+      d_addedFact = false;
       checkCycles();
-      addedFact = !d_pending.empty() || !d_pending_merge.empty();
       flushPendingFacts();
       if( d_conflict || d_addedLemma ){
         return;
       }
-    }while( addedFact );
+    }while( d_addedFact );
 
     //check for splits
     Trace("datatypes-debug") << "Check for splits " << e << endl;
-    addedFact = false;
     do {
+      d_addedFact = false;
       std::map< TypeNode, Node > rec_singletons;
       eq::EqClassesIterator eqcs_i = eq::EqClassesIterator( &d_equalityEngine );
       while( !eqcs_i.isFinished() ){
@@ -319,7 +318,6 @@ void TheoryDatatypes::check(Effort e) {
         ++eqcs_i;
       }
       Trace("datatypes-debug") << "Flush pending facts..."  << std::endl;
-      addedFact = !d_pending.empty() || !d_pending_merge.empty();
       flushPendingFacts();
       /*
       if( !d_conflict ){
@@ -333,8 +331,8 @@ void TheoryDatatypes::check(Effort e) {
         }
       }
       */
-    }while( !d_conflict && !d_addedLemma && addedFact );
-    Trace("datatypes-debug") << "Finished. " << d_conflict << std::endl;
+    }while( !d_conflict && !d_addedLemma && d_addedFact );
+    Trace("datatypes-debug") << "Finished, conflict=" << d_conflict << ", lemmas=" << d_addedLemma << std::endl;
     if( !d_conflict ){
       Trace("dt-model-debug") << std::endl;
       printModelDebug("dt-model-debug");
@@ -349,6 +347,7 @@ void TheoryDatatypes::check(Effort e) {
 
 void TheoryDatatypes::flushPendingFacts(){
   doPendingMerges();
+  //pending lemmas: used infrequently, only for definitional lemmas
   if( !d_pending_lem.empty() ){
     int i = 0;
     while( i<(int)d_pending_lem.size() ){
@@ -370,16 +369,23 @@ void TheoryDatatypes::flushPendingFacts(){
         Trace("dt-lemma-debug") << "Trivial explanation." << std::endl;
       }else{
         Trace("dt-lemma-debug") << "Get explanation..." << std::endl;
-        Node ee_exp = explain( exp );
+        Node ee_exp;
+        //if( options::dtRExplainLemmas() ){
+          ee_exp = explain( exp );
+        //}else{
+        //  ee_exp = exp;
+        //}
         Trace("dt-lemma-debug") << "Explanation : " << ee_exp << std::endl;
         lem = NodeManager::currentNM()->mkNode( OR, ee_exp.negate(), fact );
         lem = Rewriter::rewrite( lem );
       }
       Trace("dt-lemma") << "Datatypes lemma : " << lem << std::endl;
-      doSendLemma( lem );
-      d_addedLemma = true;
+      if( doSendLemma( lem ) ){
+        d_addedLemma = true;
+      }
     }else{
       assertFact( fact, exp );
+      d_addedFact = true;
     }
     Trace("datatypes-debug") << "Finished fact " << fact << ", now = " << d_conflict << " " << d_pending.size() << std::endl;
     i++;
@@ -1926,7 +1932,9 @@ bool TheoryDatatypes::mustCommunicateFact( Node n, Node exp ){
   //We may need to communicate outwards if the conclusions involve other theories.  Also communicate (6) and OR conclusions.
   Trace("dt-lemma-debug") << "Compute for " << exp << " => " << n << std::endl;
   bool addLemma = false;
-  if( n.getKind()==EQUAL || n.getKind()==IFF ){
+  if( options::dtInferAsLemmas() && exp!=d_true ){
+    addLemma = true;    
+  }else if( n.getKind()==EQUAL || n.getKind()==IFF ){
     /*
     for( unsigned i=0; i<2; i++ ){
       if( !n[i].isVar() && n[i].getKind()!=APPLY_SELECTOR_TOTAL && n[i].getKind()!=APPLY_CONSTRUCTOR ){
@@ -1953,23 +1961,12 @@ bool TheoryDatatypes::mustCommunicateFact( Node n, Node exp ){
     addLemma = true;
   }
   if( addLemma ){
-    //check if we have already added this lemma
-    //if( std::find( d_inst_lemmas[ n[0] ].begin(), d_inst_lemmas[ n[0] ].end(), n[1] )==d_inst_lemmas[ n[0] ].end() ){
-    //  d_inst_lemmas[ n[0] ].push_back( n[1] );
     Trace("dt-lemma-debug") << "Communicate " << n << std::endl;
     return true;
-    //}else{
-    //  Trace("dt-lemma-debug") << "Already communicated " << n << std::endl;
-    //  return false;
-    //}
+  }else{
+    Trace("dt-lemma-debug") << "Do not need to communicate " << n << std::endl;
+    return false;
   }
-  //else if( exp.getKind()==APPLY_TESTER ){
-    //if( n.getKind()==EQUAL && !DatatypesRewriter::isTermDatatype( n[0] ) ){
-    //  return true;
-    //}
-  //}
-  Trace("dt-lemma-debug") << "Do not need to communicate " << n << std::endl;
-  return false;
 }
 
 bool TheoryDatatypes::hasTerm( TNode a ){

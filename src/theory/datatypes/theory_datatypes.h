@@ -166,6 +166,7 @@ private:
   context::CDO<bool> d_conflict;
   /** Added lemma ? */
   bool d_addedLemma;
+  bool d_addedFact;
   /** The conflict node */
   Node d_conflictNode;
   /** cache for which terms we have called collectTerms(...) on */
