@@ -73,7 +73,7 @@ private:
   void assertMembership( Node fact, Node reason, bool polarity );
   void composeProductRelations( Node );
   void composeJoinRelations( Node );
-  void composeRelations( Node );
+  void composeTuplesForRels( Node );
   void applyTransposeRule( Node, Node, Node );
   void applyJoinRule( Node, Node, Node );
   void applyProductRule( Node, Node, Node );
