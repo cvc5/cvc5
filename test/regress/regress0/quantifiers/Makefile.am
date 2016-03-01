@@ -74,7 +74,8 @@ TESTS =	\
   macro-subtype-param.smt2 \
   macros-real-arg.smt2 \
   subtype-param-unk.smt2 \
-  subtype-param.smt2
+  subtype-param.smt2 \
+  anti-sk-simp.smt2
 
 
 # regression can be solved with --finite-model-find --fmf-inst-engine

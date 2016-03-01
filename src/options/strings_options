@@ -63,6 +63,8 @@ option stringInferAsLemmas strings-infer-as-lemmas --strings-infer-as-lemmas boo
  always send lemmas out instead of making internal inferences
 option stringRExplainLemmas strings-rexplain-lemmas --strings-rexplain-lemmas bool :default true
  regression explanations for string lemmas
+option stringMinPrefixExplain strings-min-prefix-explain --strings-min-prefix-explain bool :default true
+ minimize explanations for prefix of normal forms in strings
 
 
 endmodule

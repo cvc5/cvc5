@@ -101,6 +101,7 @@ namespace quantifiers {
   class InstStrategyCbqi;
   class InstStrategyCegqi;
   class QuantDSplit;
+  class QuantAntiSkolem;
 }/* CVC4::theory::quantifiers */
 
 namespace inst {
@@ -162,6 +163,8 @@ private:
   quantifiers::InstStrategyCbqi * d_i_cbqi;
   /** quantifiers splitting */
   quantifiers::QuantDSplit * d_qsplit;
+  /** quantifiers anti-skolemization */
+  quantifiers::QuantAntiSkolem * d_anti_skolem;
 public: //effort levels
   enum {
     QEFFORT_CONFLICT,
@@ -260,6 +263,8 @@ public:  //modules
   quantifiers::InstStrategyCbqi * getInstStrategyCbqi() { return d_i_cbqi; }
   /** get quantifiers splitting */
   quantifiers::QuantDSplit * getQuantDSplit() { return d_qsplit; }
+  /** get quantifiers anti-skolemization */
+  quantifiers::QuantAntiSkolem * getQuantAntiSkolem() { return d_anti_skolem; }
 private:
   /** owner of quantified formulas */
   std::map< Node, QuantifiersModule * > d_owner;

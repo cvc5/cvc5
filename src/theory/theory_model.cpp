@@ -631,7 +631,9 @@ void TheoryEngineModelBuilder::buildModel(Model* m, bool fullModel)
       Trace("model-builder") << "  Processing Term: " << n << endl;
       // Record as rep if this node was specified as a representative
       if (tm->d_reps.find(n) != tm->d_reps.end()){
-        Assert(rep.isNull());
+        //AJR: I believe this assertion is too strict, 
+        // e.g. datatypes may assert representative for two constructor terms that are not in the care graph and are merged during collectModelInfo.
+        //Assert(rep.isNull());
         rep = tm->d_reps[n];
         Assert(!rep.isNull() );
         Trace("model-builder") << "  Rep( " << eqc << " ) = " << rep << std::endl;

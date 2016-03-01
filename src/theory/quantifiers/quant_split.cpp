@@ -9,7 +9,7 @@
  ** See the file COPYING in the top-level source directory for licensing
  ** information.\endverbatim
  **
- ** \brief Implementation of local theory ext utilities
+ ** \brief Implementation of dynamic quantifiers splitting
  **/
 
 #include "theory/quantifiers/quant_split.h"

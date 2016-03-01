@@ -353,6 +353,8 @@ libcvc4_la_SOURCES = \
 	theory/quantifiers/ceg_instantiator.cpp \
 	theory/quantifiers/quant_split.h \
 	theory/quantifiers/quant_split.cpp \
+	theory/quantifiers/anti_skolem.h \
+	theory/quantifiers/anti_skolem.cpp \
 	theory/arith/theory_arith_type_rules.h \
 	theory/arith/type_enumerator.h \
 	theory/arith/arithvar.h \

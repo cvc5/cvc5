@@ -40,6 +40,7 @@
 #include "theory/quantifiers/term_database.h"
 #include "theory/quantifiers/trigger.h"
 #include "theory/quantifiers/quant_split.h"
+#include "theory/quantifiers/anti_skolem.h"
 #include "theory/theory_engine.h"
 #include "theory/uf/equality_engine.h"
 #include "theory/uf/theory_uf.h"
@@ -123,6 +124,7 @@ QuantifiersEngine::QuantifiersEngine(context::Context* c, context::UserContext* 
   d_inst_engine = NULL;
   d_i_cbqi = NULL;
   d_qsplit = NULL;
+  d_anti_skolem = NULL;
   d_model_engine = NULL;
   d_bint = NULL;
   d_rr_engine = NULL;
@@ -164,6 +166,7 @@ QuantifiersEngine::~QuantifiersEngine(){
   delete d_fs;
   delete d_i_cbqi;
   delete d_qsplit;
+  delete d_anti_skolem;
 }
 
 EqualityQueryQuantifiersEngine* QuantifiersEngine::getEqualityQuery() {
@@ -244,6 +247,10 @@ void QuantifiersEngine::finishInit(){
       options::quantDynamicSplit()==quantifiers::QUANT_DSPLIT_MODE_AGG ){
     d_qsplit = new quantifiers::QuantDSplit( this, c );
     d_modules.push_back( d_qsplit );
+  }
+  if( options::quantAntiSkolem() ){
+    d_anti_skolem = new quantifiers::QuantAntiSkolem( this );
+    d_modules.push_back( d_anti_skolem );
   }
   if( options::quantAlphaEquiv() ){
     d_alpha_equiv = new quantifiers::AlphaEquivalence( this );

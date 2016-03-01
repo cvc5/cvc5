@@ -208,9 +208,9 @@ public:
         if( checkClash(in[0], in[1], rew) ){
           Trace("datatypes-rewrite") << "Rewrite clashing equality " << in << " to false" << std::endl;
           return RewriteResponse(REWRITE_DONE, NodeManager::currentNM()->mkConst(false));
-        }else if( rew.size()==1 && rew[0]!=in ){
-          Trace("datatypes-rewrite") << "Rewrite equality " << in << " to " << rew[0] << std::endl;
-          return RewriteResponse(REWRITE_AGAIN_FULL, rew[0] );
+        //}else if( rew.size()==1 && rew[0]!=in ){
+        //  Trace("datatypes-rewrite") << "Rewrite equality " << in << " to " << rew[0] << std::endl;
+        //  return RewriteResponse(REWRITE_AGAIN_FULL, rew[0] );
         }else if( in[1]<in[0] ){
           Node ins = NodeManager::currentNM()->mkNode(in.getKind(), in[1], in[0]);
           Trace("datatypes-rewrite") << "Swap equality " << in << " to " << ins << std::endl;

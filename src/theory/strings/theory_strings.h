@@ -158,6 +158,7 @@ private:
   std::map< Node, Node > d_normal_forms_base;
   std::map< Node, std::vector< Node > > d_normal_forms;
   std::map< Node, std::vector< Node > > d_normal_forms_exp;
+  std::map< Node, std::map< Node, std::map< bool, int > > > d_normal_forms_exp_depend;
   //map of pairs of terms that have the same normal form
   NodeListMap d_nf_pairs;
   void addNormalFormPair( Node n1, Node n2 );
@@ -236,7 +237,6 @@ private:
   NodeNodeMap d_proxy_var;
   NodeNodeMap d_proxy_var_to_length;
 private:
-
   //initial check
   void checkInit();
   void checkConstantEquivalenceClasses( TermIndex* ti, std::vector< Node >& vecc );
@@ -254,30 +254,31 @@ private:
   //normal forms check
   void checkNormalForms();
   bool normalizeEquivalenceClass( Node n, std::vector< Node > & nf, std::vector< Node > & nf_exp );
-  bool getNormalForms( Node &eqc, std::vector< Node > & nf,
-                       std::vector< std::vector< Node > > &normal_forms,
-                       std::vector< std::vector< Node > > &normal_forms_exp,
-                       std::vector< Node > &normal_form_src);
+  bool getNormalForms( Node &eqc, std::vector< std::vector< Node > > &normal_forms, std::vector< Node > &normal_form_src,
+                       std::vector< std::vector< Node > > &normal_forms_exp, std::vector< std::map< Node, std::map< bool, int > > >& normal_forms_exp_depend);
   bool detectLoop(std::vector< std::vector< Node > > &normal_forms,
-        int i, int j, int index_i, int index_j,
-        int &loop_in_i, int &loop_in_j);
+        int i, int j, int index, int &loop_in_i, int &loop_in_j);
   bool processLoop(std::vector< Node > &antec,
         std::vector< std::vector< Node > > &normal_forms,
         std::vector< Node > &normal_form_src,
         int i, int j, int loop_n_index, int other_n_index,
-        int loop_index, int index, int other_index);
-  bool processNEqc(std::vector< std::vector< Node > > &normal_forms,
-        std::vector< std::vector< Node > > &normal_forms_exp,
-        std::vector< Node > &normal_form_src);
-  bool processReverseNEq(std::vector< std::vector< Node > > &normal_forms,
-        std::vector< Node > &normal_form_src, std::vector< Node > &curr_exp, unsigned i, unsigned j );
-  bool processSimpleNEq( std::vector< std::vector< Node > > &normal_forms,
-        std::vector< Node > &normal_form_src, std::vector< Node > &curr_exp, unsigned i, unsigned j,
-        unsigned& index_i, unsigned& index_j, bool isRev );
+        int loop_index, int index);
+  bool processNEqc( std::vector< std::vector< Node > > &normal_forms, std::vector< Node > &normal_form_src,
+                    std::vector< std::vector< Node > > &normal_forms_exp, std::vector< std::map< Node, std::map< bool, int > > >& normal_forms_exp_depend );
+  bool processReverseNEq( std::vector< std::vector< Node > > &normal_forms, std::vector< Node > &normal_form_src, 
+                          std::vector< std::vector< Node > > &normal_forms_exp, std::vector< std::map< Node, std::map< bool, int > > >& normal_forms_exp_depend, 
+                          unsigned i, unsigned j );
+  bool processSimpleNEq( std::vector< std::vector< Node > > &normal_forms, std::vector< Node > &normal_form_src, 
+                         std::vector< std::vector< Node > > &normal_forms_exp, std::vector< std::map< Node, std::map< bool, int > > >& normal_forms_exp_depend, 
+                         unsigned i, unsigned j, unsigned& index, bool isRev );
   bool processDeq( Node n1, Node n2 );
   int processReverseDeq( std::vector< Node >& nfi, std::vector< Node >& nfj, Node ni, Node nj );
   int processSimpleDeq( std::vector< Node >& nfi, std::vector< Node >& nfj, Node ni, Node nj, unsigned& index, bool isRev );
   void checkDeqNF();
+  
+  void getExplanationVectorForPrefix( std::vector< std::vector< Node > > &normal_forms, std::vector< Node > &normal_form_src,
+                                      std::vector< std::vector< Node > > &normal_forms_exp, std::vector< std::map< Node, std::map< bool, int > > >& normal_forms_exp_depend,
+                                      unsigned i, unsigned j, int index, bool isRev, std::vector< Node >& curr_exp );
 
   //check for extended functions
   void checkExtendedFuncs();
