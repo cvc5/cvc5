@@ -69,7 +69,7 @@ private:
   context::CDO<bool> *d_conflict;
 
   void check();
-  void collectRelationalInfo();
+  void collectRelsInfo();
   void assertMembership( Node fact, Node reason, bool polarity );
   void composeTuplesForRels( Node );
   void applyTransposeRule( Node, Node, Node );

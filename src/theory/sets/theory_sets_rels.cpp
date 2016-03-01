@@ -41,7 +41,7 @@ typedef std::map<Node, std::vector<Node> >::iterator mem_it;
 
   void TheorySetsRels::check(Theory::Effort level) {
     Trace("rels-debug") << "[sets-rels] Start the relational solver..." << std::endl;
-    collectRelationalInfo();
+    collectRelsInfo();
     check();
     doPendingSplitFacts();
     doPendingLemmas();
@@ -97,7 +97,7 @@ typedef std::map<Node, std::vector<Node> >::iterator mem_it;
    * Polulate the relational terms data structure
    */
 
-  void TheorySetsRels::collectRelationalInfo() {
+  void TheorySetsRels::collectRelsInfo() {
     Trace("rels-debug") << "[sets-rels] Start collecting relational terms..." << std::endl;
     eq::EqClassesIterator eqcs_i = eq::EqClassesIterator( d_eqEngine );
     while( !eqcs_i.isFinished() ){
@@ -447,6 +447,7 @@ typedef std::map<Node, std::vector<Node> >::iterator mem_it;
     std::vector<Node> r2_exps = d_membership_exp_cache[r2_rep];
     Node new_rel = n.getKind() == kind::JOIN ? NodeManager::currentNM()->mkNode(kind::JOIN, r1_rep, r2_rep)
                                              : NodeManager::currentNM()->mkNode(kind::PRODUCT, r1_rep, r2_rep);
+    Node new_rel_rep = getRepresentative(new_rel);
     unsigned int t1_len = 1;
     unsigned int t2_len = 1;
     if(r1_elements.front().getType().isTuple())
@@ -489,7 +490,7 @@ typedef std::map<Node, std::vector<Node> >::iterator mem_it;
             fact = composedTuple[0];
           }
           new_tups.push_back(fact);
-          fact = MEMBER(fact, new_rel);
+          fact = MEMBER(fact, new_rel_rep);
           std::vector<Node> reasons;
           reasons.push_back(r1_exps[i]);
           reasons.push_back(r2_exps[j]);
@@ -518,7 +519,6 @@ typedef std::map<Node, std::vector<Node> >::iterator mem_it;
       }
     }
 
-    Node new_rel_rep = getRepresentative( new_rel );
     if(d_membership_cache.find( new_rel_rep ) != d_membership_cache.end()) {
       std::vector<Node> tups = d_membership_cache[new_rel_rep];
       std::vector<Node> exps = d_membership_exp_cache[new_rel_rep];
