@@ -82,7 +82,7 @@ private:
   Node reverseTuple( Node );
 
   void sendInfer( Node fact, Node exp, const char * c );
-  void sendLemma( Node fact, Node reason, bool polarity );
+  void sendLemma( Node fact, Node reason, const char * c );
   void sendSplit( Node a, Node b, const char * c );
   void doPendingFacts();
   void doPendingSplitFacts();

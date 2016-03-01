@@ -64,6 +64,16 @@ RewriteResponse TheorySetsRewriter::postRewrite(TNode node) {
     }
     if(node[1].getKind() == kind::TRANSPOSE) {
       // only work for node[0] is an actual tuple like (a, b), won't work for tuple variables
+      if(node[0].getType().isSet() && !node[0].getType().getSetElementType().isTuple()) {
+        Node atom = node;
+        bool polarity = node.getKind() != kind::NOT;
+        if( !polarity )
+          atom = atom[0];
+        Node new_node = NodeManager::currentNM()->mkNode(kind::MEMBER, atom[0], atom[1][0]);
+        if(!polarity)
+          new_node = new_node.negate();
+        return RewriteResponse(REWRITE_AGAIN, new_node);
+      }
       if(node[0].isVar())
         return RewriteResponse(REWRITE_DONE, node);
       std::vector<Node> elements;
@@ -198,6 +208,8 @@ RewriteResponse TheorySetsRewriter::postRewrite(TNode node) {
   }//kind::UNION
 
   case kind::TRANSPOSE: {
+    if(node[0].getType().isSet() && !node[0].getType().getSetElementType().isTuple())
+      return RewriteResponse(REWRITE_AGAIN, node[0]);
     if(node[0].getKind() != kind::TRANSPOSE) {
       Trace("sets-postrewrite") << "Sets::postRewrite returning " << node << std::endl;
       return RewriteResponse(REWRITE_DONE, node);

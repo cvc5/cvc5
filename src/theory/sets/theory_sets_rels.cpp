@@ -108,11 +108,11 @@ typedef std::map<Node, std::vector<Node> >::iterator mem_it;
         if(getRepresentative(r) == getRepresentative(d_trueNode) ||
            getRepresentative(r) == getRepresentative(d_falseNode)) {
           // collect membership info
-          if(n.getKind() == kind::MEMBER && n[0].getType().isTuple()) {
+          if(n.getKind() == kind::MEMBER) {
             Node tup_rep = getRepresentative(n[0]);
             Node rel_rep = getRepresentative(n[1]);
             // No rel_rep is found
-            if(d_membership_cache.find(rel_rep) == d_membership_cache.end()) {
+            if( d_membership_cache.find(rel_rep) == d_membership_cache.end() ) {
               std::vector<Node> tups;
               tups.push_back(tup_rep);
               d_membership_cache[rel_rep] = tups;
@@ -122,9 +122,9 @@ typedef std::map<Node, std::vector<Node> >::iterator mem_it;
               tups.clear();
               tups.push_back(exp);
               d_membership_exp_cache[rel_rep] = tups;
-            } else if(std::find(d_membership_cache.at(rel_rep).begin(),
-                                d_membership_cache.at(rel_rep).end(), tup_rep)
-                      == d_membership_cache.at(rel_rep).end()) {
+            } else if( std::find(d_membership_cache[rel_rep].begin(),
+                                 d_membership_cache[rel_rep].end(), tup_rep)
+                       == d_membership_cache[rel_rep].end() ) {
               d_membership_cache[rel_rep].push_back(tup_rep);
               Node exp = n;
               if(getRepresentative(r) == getRepresentative(d_falseNode))
@@ -133,22 +133,22 @@ typedef std::map<Node, std::vector<Node> >::iterator mem_it;
             }
           }
         // collect term info
-        } else if(r.getType().isSet() && r.getType().getSetElementType().isTuple()) {
-          if(n.getKind() == kind::TRANSPOSE ||
-             n.getKind() == kind::JOIN ||
-             n.getKind() == kind::PRODUCT ||
-             n.getKind() == kind::TRANSCLOSURE) {
+        } else if( r.getType().isSet() ) {
+          if( n.getKind() == kind::TRANSPOSE ||
+              n.getKind() == kind::JOIN ||
+              n.getKind() == kind::PRODUCT ||
+              n.getKind() == kind::TRANSCLOSURE ) {
             std::map<kind::Kind_t, std::vector<Node> > rel_terms;
             std::vector<Node> terms;
             // No r record is found
-            if(d_terms_cache.find(r) == d_terms_cache.end()) {
+            if( d_terms_cache.find(r) == d_terms_cache.end() ) {
               terms.push_back(n);
               rel_terms[n.getKind()] = terms;
               d_terms_cache[r] = rel_terms;
             } else {
               rel_terms = d_terms_cache[r];
               // No n's kind record is found
-              if(rel_terms.find(n.getKind()) == rel_terms.end()) {
+              if( rel_terms.find(n.getKind()) == rel_terms.end() ) {
                 terms.push_back(n);
                 rel_terms[n.getKind()] = terms;
               } else {
@@ -228,8 +228,8 @@ typedef std::map<Node, std::vector<Node> >::iterator mem_it;
     Node r1 = join_term[0];
     Node r2 = join_term[1];
 
-    // case: (a, b) IS_IN (X JOIN Y)
-    //      => (a, z) IS_IN X  && (z, b) IS_IN Y
+    // join-split rule: (a, b) IS_IN (X JOIN Y)
+    //               => (a, z) IS_IN X  && (z, b) IS_IN Y
     if(polarity) {
       Debug("rels-join") << "[sets-rels] Join rules (a, b) IS_IN (X JOIN Y) => "
                             "((a, z) IS_IN X  && (z, b) IS_IN Y)"<< std::endl;
@@ -386,6 +386,7 @@ typedef std::map<Node, std::vector<Node> >::iterator mem_it;
     Node r2 = n[1];
     Node r1_rep = getRepresentative(r1);
     Node r2_rep = getRepresentative(r2);
+    NodeManager* nm = NodeManager::currentNM();
     Trace("rels-debug") << "[sets-rels] start composing tuples in relations "
                        << r1 << " and " << r2
                        << "\n r1_rep: " << r1_rep
@@ -395,8 +396,6 @@ typedef std::map<Node, std::vector<Node> >::iterator mem_it;
        d_membership_cache.find(r2_rep) == d_membership_cache.end())
     return;
 
-    TypeNode tn = n.getType().getSetElementType();
-    Datatype dt = tn.getDatatype();
     std::vector<Node> new_tups;
     std::vector<Node> new_exps;
     std::vector<Node> r1_elements = d_membership_cache[r1_rep];
@@ -405,28 +404,47 @@ typedef std::map<Node, std::vector<Node> >::iterator mem_it;
     std::vector<Node> r2_exps = d_membership_exp_cache[r2_rep];
     Node new_rel = n.getKind() == kind::JOIN ? NodeManager::currentNM()->mkNode(kind::JOIN, r1_rep, r2_rep)
                                              : NodeManager::currentNM()->mkNode(kind::PRODUCT, r1_rep, r2_rep);
-    unsigned int t1_len = r1_elements.front().getType().getTupleLength();
-    unsigned int t2_len = r2_elements.front().getType().getTupleLength();
-
+    unsigned int t1_len = 1;
+    unsigned int t2_len = 1;
+    if(r1_elements.front().getType().isTuple())
+      t1_len = r1_elements.front().getType().getTupleLength();
+    if(r2_elements.front().getType().isTuple())
+      t2_len = r2_elements.front().getType().getTupleLength();
     for(unsigned int i = 0; i < r1_elements.size(); i++) {
       for(unsigned int j = 0; j < r2_elements.size(); j++) {
-        std::vector<Node> joinedTuple;
-        joinedTuple.push_back(Node::fromExpr(dt[0].getConstructor()));
-        if((areEqual(r1_elements[i][t1_len-1], r2_elements[j][0]) && n.getKind() == kind::JOIN) ||
-            n.getKind() == kind::PRODUCT) {
+
+        std::vector<Node> composedTuple;
+        TypeNode tn = n.getType().getSetElementType();
+        if(tn.isTuple()) {
+          composedTuple.push_back(Node::fromExpr(tn.getDatatype()[0].getConstructor()));
+        }
+        Node r1_e = r1_elements[i];
+        Node r2_e = r2_elements[j];
+        if(r1_e.getType().isTuple())
+          r1_e = r1_elements[i][t1_len-1];
+        if(r2_e.getType().isTuple())
+          r2_e = r2_elements[j][0];
+
+        if((areEqual(r1_e, r2_e) && n.getKind() == kind::JOIN) ||
+           n.getKind() == kind::PRODUCT) {
           unsigned int k = 0;
           unsigned int l = 1;
           for(; k < t1_len - 1; ++k) {
-            joinedTuple.push_back(r1_elements[i][k]);
+            composedTuple.push_back(r1_elements[i][k]);
           }
           if(kind::PRODUCT == n.getKind()) {
-            joinedTuple.push_back(r1_elements[i][k]);
-            joinedTuple.push_back(r1_elements[j][0]);
+            composedTuple.push_back(r1_elements[i][k]);
+            composedTuple.push_back(r1_elements[j][0]);
           }
           for(; l < t2_len; ++l) {
-            joinedTuple.push_back(r2_elements[j][l]);
+            composedTuple.push_back(r2_elements[j][l]);
           }
-          Node fact = NodeManager::currentNM()->mkNode(kind::APPLY_CONSTRUCTOR, joinedTuple);
+          Node fact;
+          if(tn.isTuple()) {
+            fact = nm->mkNode(kind::APPLY_CONSTRUCTOR, composedTuple);
+          } else {
+            fact = composedTuple[0];
+          }
           new_tups.push_back(fact);
           fact = MEMBER(fact, new_rel);
           std::vector<Node> reasons;
@@ -435,7 +453,7 @@ typedef std::map<Node, std::vector<Node> >::iterator mem_it;
 
           //Todo: think about how to deal with shared terms(?)
           if(n.getKind() == kind::JOIN)
-            reasons.push_back(EQUAL(r1_elements[i][t1_len-1], r2_elements[j][0]));
+            reasons.push_back(EQUAL(r1_e, r2_e));
 
           if(r1 != r1_rep) {
             reasons.push_back(EQUAL(r1, r1_rep));
@@ -500,8 +518,9 @@ typedef std::map<Node, std::vector<Node> >::iterator mem_it;
     d_lemma_cache.push_back( lemma_or );
   }
 
-  void TheorySetsRels::sendLemma(Node fact, Node reason, bool polarity) {
-
+  void TheorySetsRels::sendLemma(Node conc, Node ant, const char * c) {
+    Trace("rels-lemma") << "[sets-rels] Infer " << conc << " from " << ant << " by " << c << std::endl;
+    d_lemma_cache.push_back(conc);
   }
 
   void TheorySetsRels::sendInfer( Node fact, Node exp, const char * c ) {
@@ -549,47 +568,55 @@ typedef std::map<Node, std::vector<Node> >::iterator mem_it;
 
   bool TheorySetsRels::areEqual( Node a, Node b ){
     if( hasTerm( a ) && hasTerm( b ) ){
-      if( d_eqEngine->isTriggerTerm(a, THEORY_SETS) &&
-          d_eqEngine->isTriggerTerm(b, THEORY_SETS) ) {
-        // Get representative trigger terms
-          TNode x_shared = d_eqEngine->getTriggerTermRepresentative(a, THEORY_SETS);
-          TNode y_shared = d_eqEngine->getTriggerTermRepresentative(b, THEORY_SETS);
-          EqualityStatus eqStatusDomain = d_sets.d_valuation.getEqualityStatus(x_shared, y_shared);
-          switch (eqStatusDomain) {
-            case EQUALITY_TRUE_AND_PROPAGATED:
-              // Should have been propagated to us
-              Trace("rels-debug") << "EQUALITY_TRUE_AND_PROPAGATED ****  equality( a, b ) = true" << std::endl;
-              return true;
-              break;
-            case EQUALITY_TRUE:
-              // Missed propagation - need to add the pair so that theory engine can force propagation
-              Trace("rels-debug") << "EQUALITY_TRUE **** equality( a, b ) = true" << std::endl;
-              return true;
-              break;
-            case EQUALITY_FALSE_AND_PROPAGATED:
-              // Should have been propagated to us
-              Trace("rels-debug") << "EQUALITY_FALSE_AND_PROPAGATED ******** equality( a, b ) = false" << std::endl;
-              return false;
-              break;
-            case EQUALITY_FALSE:
-              Trace("rels-debug") << "EQUALITY_FALSE **** equality( a, b ) = false" << std::endl;
-              return false;
-              break;
-
-            default:
-              // Covers EQUALITY_TRUE_IN_MODEL (common case) and EQUALITY_UNKNOWN
-              break;
-          }
-      }
+//      if( d_eqEngine->isTriggerTerm(a, THEORY_SETS) &&
+//          d_eqEngine->isTriggerTerm(b, THEORY_SETS) ) {
+//        // Get representative trigger terms
+//          TNode x_shared = d_eqEngine->getTriggerTermRepresentative(a, THEORY_SETS);
+//          TNode y_shared = d_eqEngine->getTriggerTermRepresentative(b, THEORY_SETS);
+//          EqualityStatus eqStatusDomain = d_sets.d_valuation.getEqualityStatus(x_shared, y_shared);
+//          switch (eqStatusDomain) {
+//            case EQUALITY_TRUE_AND_PROPAGATED:
+//              // Should have been propagated to us
+//              Trace("rels-debug") << "EQUALITY_TRUE_AND_PROPAGATED ****  equality( a, b ) = true" << std::endl;
+//              return true;
+//              break;
+//            case EQUALITY_TRUE:
+//              // Missed propagation - need to add the pair so that theory engine can force propagation
+//              Trace("rels-debug") << "EQUALITY_TRUE **** equality( a, b ) = true" << std::endl;
+//              return true;
+//              break;
+//            case EQUALITY_FALSE_AND_PROPAGATED:
+//              // Should have been propagated to us
+//              Trace("rels-debug") << "EQUALITY_FALSE_AND_PROPAGATED ******** equality( a, b ) = false" << std::endl;
+//              return false;
+//              break;
+//            case EQUALITY_FALSE:
+//              Trace("rels-debug") << "EQUALITY_FALSE **** equality( a, b ) = false" << std::endl;
+//              return false;
+//              break;
+//
+//            default:
+//              // Covers EQUALITY_TRUE_IN_MODEL (common case) and EQUALITY_UNKNOWN
+//              break;
+//          }
+//      }
       Trace("rels-debug") << "has a and b " << a << " " << b << " are equal? "<<  d_eqEngine->areEqual( a, b ) << std::endl;
       return d_eqEngine->areEqual( a, b );
     }else if( a.isConst() && b.isConst() ){
       return a == b;
     }else {
       Trace("rels-debug") << "to split a and b " << a << " " << b << std::endl;
+      Node x = NodeManager::currentNM()->mkSkolem( "sde", a.getType() );
+      Node y = NodeManager::currentNM()->mkSkolem( "sde", b.getType() );
+      Node set_a = NodeManager::currentNM()->mkNode( kind::SINGLETON, a );
+      Node set_b = NodeManager::currentNM()->mkNode( kind::SINGLETON, b );
+      Node dummy_lemma_1 = NodeManager::currentNM()->mkNode( kind::MEMBER, x, set_a );
+      Node dummy_lemma_2 = NodeManager::currentNM()->mkNode( kind::MEMBER, y, set_b );
+      sendLemma( dummy_lemma_1, d_trueNode, "dummy-lemma" );
+      sendLemma( dummy_lemma_2, d_trueNode, "dummy-lemma" );
       addSharedTerm(a);
       addSharedTerm(b);
-      sendSplit(a, b, "tuple-element-equality");
+//      sendSplit(a, b, "tuple-element-equality");
       return false;
     }
   }
