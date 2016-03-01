@@ -230,7 +230,7 @@ typedef std::map<Node, std::vector<Node> >::iterator mem_it;
       sendInfer(f2, reason, "product-split");
     } else {
       // ONLY need to explicitly compute joins if there are negative literals involving PRODUCT
-      computeJoinOrProductRelations(product_term);
+      computeRels(product_term);
     }
   }
 
@@ -307,7 +307,7 @@ typedef std::map<Node, std::vector<Node> >::iterator mem_it;
       sendInfer(f2, reason, "join-split");
     } else {
       // ONLY need to explicitly compute joins if there are negative literals involving JOIN
-      computeJoinOrProductRelations(join_term);
+      computeRels(join_term);
     }
   }
 
@@ -332,14 +332,14 @@ typedef std::map<Node, std::vector<Node> >::iterator mem_it;
          != d_terms_cache[getRepresentative(fact[1])].end()) {
         std::vector<Node> join_terms = d_terms_cache[getRepresentative(fact[1])][kind::JOIN];
         for(unsigned int i = 0; i < join_terms.size(); i++) {
-          computeJoinOrProductRelations(join_terms[i]);
+          computeRels(join_terms[i]);
         }
       }
       if(d_terms_cache[getRepresentative(fact[1])].find(kind::PRODUCT)
          != d_terms_cache[getRepresentative(fact[1])].end()) {
         std::vector<Node> product_terms = d_terms_cache[getRepresentative(fact[1])][kind::PRODUCT];
         for(unsigned int i = 0; i < product_terms.size(); i++) {
-          computeJoinOrProductRelations(product_terms[i]);
+          computeRels(product_terms[i]);
         }
       }
       fact = fact.negate();
@@ -347,7 +347,7 @@ typedef std::map<Node, std::vector<Node> >::iterator mem_it;
     sendInfer(fact, exp, "transpose-rule");
   }
 
-  void TheorySetsRels::computeJoinOrProductRelations(Node n) {
+  void TheorySetsRels::computeRels(Node n) {
     Trace("rels-debug") << "\n[sets-rels] computeJoinOrProductRelations for relation  " << n << std::endl;
     switch(n[0].getKind()) {
     case kind::TRANSPOSE:
@@ -355,7 +355,7 @@ typedef std::map<Node, std::vector<Node> >::iterator mem_it;
       break;
     case kind::JOIN:
     case kind::PRODUCT:
-      computeJoinOrProductRelations(n[0]);
+      computeRels(n[0]);
       break;
     default:
       break;
@@ -367,7 +367,7 @@ typedef std::map<Node, std::vector<Node> >::iterator mem_it;
       break;
     case kind::JOIN:
     case kind::PRODUCT:
-      computeJoinOrProductRelations(n[1]);
+      computeRels(n[1]);
       break;
     default:
       break;
@@ -382,13 +382,13 @@ typedef std::map<Node, std::vector<Node> >::iterator mem_it;
   void TheorySetsRels::computeTransposeRelations(Node n) {
     switch(n[0].getKind()) {
     case kind::JOIN:
-      computeJoinOrProductRelations(n[0]);
+      computeRels(n[0]);
       break;
     case kind::TRANSPOSE:
       computeTransposeRelations(n[0]);
       break;
     case kind::PRODUCT:
-      computeJoinOrProductRelations(n[0]);
+      computeRels(n[0]);
       break;
     default:
       break;
