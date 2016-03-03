@@ -1747,10 +1747,18 @@ bool TheoryStrings::normalizeEquivalenceClass( Node eqc, std::vector< Node > & n
         Trace("strings-solve-debug2") << "take normal form ... done" << std::endl;
         d_normal_forms_base[eqc] = normal_form_src[nf_index];
         //*/
+        //track dependencies 
+        for( unsigned i=0; i<normal_forms_exp[nf_index].size(); i++ ){
+          Node exp = normal_forms_exp[nf_index][i];
+          for( unsigned r=0; r<2; r++ ){
+            d_normal_forms_exp_depend[eqc][exp][r==0] = normal_forms_exp_depend[nf_index][exp][r==0];
+          }
+        }
       }
 
       d_normal_forms[eqc].insert( d_normal_forms[eqc].end(), nf.begin(), nf.end() );
       d_normal_forms_exp[eqc].insert( d_normal_forms_exp[eqc].end(), nf_exp.begin(), nf_exp.end() );
+      
       Trace("strings-process-debug") << "Return process equivalence class " << eqc << " : returned, size = " << nf.size() << std::endl;
     }else{
       Trace("strings-process-debug") << "Return process equivalence class " << eqc << " : already computed, size = " << d_normal_forms[eqc].size() << std::endl;
@@ -1811,7 +1819,7 @@ bool TheoryStrings::getNormalForms( Node &eqc, std::vector< std::vector< Node > 
                 if( k==0 ){
                   nf_exp_depend_n[exp][false] = orig_size + prev_dep;
                 }else if( k==1 ){
-                  //store forward index (restored to reverse index below)
+                  //store forward index (converted back to reverse index below)
                   nf_exp_depend_n[exp][true] = orig_size + ( add_size - prev_dep );
                 }
               }
