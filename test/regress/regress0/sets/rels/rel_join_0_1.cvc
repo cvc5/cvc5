@@ -15,6 +15,7 @@ a : IntPair;
 ASSERT a = (1,5);
 
 ASSERT (1, 7) IS_IN x;
+ASSERT (4, 3) IS_IN x;
 ASSERT (7, 5) IS_IN y;
 
 ASSERT z IS_IN x;

@@ -1,0 +1,21 @@
+% EXPECT: unsat
+OPTION "logic" "ALL_SUPPORTED";
+IntPair: TYPE = [INT, INT];
+x : SET OF IntPair;
+y : SET OF IntPair;
+r : SET OF IntPair;
+f : INT;
+d : IntPair;
+ASSERT d = (f,3);
+ASSERT d IS_IN y;
+e : IntPair;
+ASSERT e = (4, f);
+ASSERT e IS_IN x;
+
+a : IntPair;
+ASSERT a = (4,3);
+
+ASSERT r = (x JOIN y);
+
+ASSERT NOT (a IS_IN r);
+CHECKSAT;

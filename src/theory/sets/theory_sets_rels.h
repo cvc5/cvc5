@@ -28,9 +28,22 @@ namespace sets {
 
 class TheorySets;
 
+
+class TupleTrie {
+public:
+  /** the data */
+  std::map< Node, TupleTrie > d_data;
+public:
+  std::vector<Node> existsTerm( std::vector< Node >& reps, int argIndex = 0 );
+  bool addTerm( Node n, std::vector< Node >& reps, int argIndex = 0 );
+  void debugPrint( const char * c, Node n, unsigned depth = 0 );
+  void clear() { d_data.clear(); }
+};/* class TupleTrie */
+
 class TheorySetsRels {
 
   typedef context::CDChunkList<Node> NodeList;
+  typedef context::CDHashSet<Node, NodeHashFunction> NodeSet;
 
 public:
   TheorySetsRels(context::Context* c,
@@ -60,8 +73,14 @@ private:
   /** inferences: maintained to ensure ref count for internally introduced nodes */
   NodeList d_infer;
   NodeList d_infer_exp;
+//  NodeList d_lemma;
 
+  std::map< Node, std::vector<Node> > d_tuple_reps;
+  std::map< Node, TupleTrie > d_membership_trie;
+  std::hash_set< Node, NodeHashFunction > d_shared_terms;
+  std::hash_set< Node, NodeHashFunction > d_symbolic_tuples;
   std::map< Node, std::vector<Node> > d_membership_cache;
+  std::map< Node, std::vector<Node> > d_membership_db;
   std::map< Node, std::vector<Node> > d_membership_exp_cache;
   std::map< Node, std::map<kind::Kind_t, std::vector<Node> > > d_terms_cache;
 
@@ -87,13 +106,20 @@ private:
   void addSharedTerm( TNode n );
 
   // Helper functions
+  inline Node selectElement( Node, int);
+  bool safeAddToMap( std::map< Node, std::vector<Node> >&, Node, Node );
+  void addToMap( std::map< Node, std::vector<Node> >&, Node, Node );
+  bool hasTuple( Node, Node );
   Node getRepresentative( Node t );
   bool hasTerm( Node a );
   bool areEqual( Node a, Node b );
   bool exists( std::vector<Node>&, Node );
-  bool holds(Node);
+  bool holds( Node );
+  void computeTupleReps( Node );
+  void makeSharedTerm( Node );
 
 };
+
 
 }/* CVC4::theory::sets namespace */
 }/* CVC4::theory namespace */

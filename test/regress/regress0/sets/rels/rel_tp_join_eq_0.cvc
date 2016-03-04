@@ -6,12 +6,8 @@ y : SET OF IntPair;
 z : SET OF IntPair;
 r : SET OF IntPair;
 
-b : IntPair;
-ASSERT b = (1,7);
-c : IntPair;
-ASSERT c = (2,3);
-ASSERT b IS_IN x;
-ASSERT c IS_IN x;
+
+ASSERT x = {(1,7), (2,3)};
 
 d : IntPair;
 ASSERT d = (7,3);

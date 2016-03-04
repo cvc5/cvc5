@@ -179,60 +179,28 @@ struct RelBinaryOperatorTypeRule {
       if(!firstRelType.isSet() || !secondRelType.isSet()) {
         throw TypeCheckingExceptionPrivate(n, " set operator operates on non-sets");
       }
-//      if(!firstRelType[0].isTuple() || !secondRelType[0].isTuple()) {
-//        throw TypeCheckingExceptionPrivate(n, " set operator operates on non-relations (sets of tuples)");
-//      }
+      if(!firstRelType[0].isTuple() || !secondRelType[0].isTuple()) {
+        throw TypeCheckingExceptionPrivate(n, " set operator operates on non-relations (sets of tuples)");
+      }
 
       std::vector<TypeNode> newTupleTypes;
-      TypeNode set_element_type_1 = firstRelType.getSetElementType();
-      TypeNode set_element_type_2 = secondRelType.getSetElementType();
-      std::vector<TypeNode> firstTupleTypes;
-      std::vector<TypeNode> secondTupleTypes;
+      std::vector<TypeNode> firstTupleTypes = firstRelType[0].getTupleTypes();
+      std::vector<TypeNode> secondTupleTypes = secondRelType[0].getTupleTypes();
 
       // JOIN is not allowed to apply on two unary sets
       if( n.getKind() == kind::JOIN ) {
-        if( !set_element_type_1.isTuple() && !set_element_type_2.isTuple()) {
+        if((firstTupleTypes.size() == 1) && (secondTupleTypes.size() == 1)) {
           throw TypeCheckingExceptionPrivate(n, " Join operates on two unary relations");
-        } else if ( !set_element_type_1.isTuple() ) {
-          secondTupleTypes = set_element_type_2.getTupleTypes();
-          if(set_element_type_1 != secondTupleTypes.front()) {
-            throw TypeCheckingExceptionPrivate(n, " Join operates on two non-joinable relations");
-          }
-          newTupleTypes.insert(newTupleTypes.end(), secondTupleTypes.begin()+1, secondTupleTypes.end());
-        } else if ( !set_element_type_2.isTuple() ) {
-          firstTupleTypes = set_element_type_1.getTupleTypes();
-          if(set_element_type_2 != firstTupleTypes.front()) {
-            throw TypeCheckingExceptionPrivate(n, " Join operates on two non-joinable relations");
-          }
-          newTupleTypes.insert(newTupleTypes.end(), firstTupleTypes.begin(), firstTupleTypes.end()-1);
-        } else {
-          firstTupleTypes = set_element_type_1.getTupleTypes();
-          secondTupleTypes = set_element_type_2.getTupleTypes();
-          if(firstTupleTypes.back() != secondTupleTypes.front()) {
-            throw TypeCheckingExceptionPrivate(n, " Join operates on two non-joinable relations");
-          }
-          newTupleTypes.insert(newTupleTypes.end(), firstTupleTypes.begin(), firstTupleTypes.end()-1);
-          newTupleTypes.insert(newTupleTypes.end(), secondTupleTypes.begin()+1, secondTupleTypes.end());
+        } else if(firstTupleTypes.back() != secondTupleTypes.front()) {
+          throw TypeCheckingExceptionPrivate(n, " Join operates on two non-joinable relations");
         }
+        newTupleTypes.insert(newTupleTypes.end(), firstTupleTypes.begin(), firstTupleTypes.end()-1);
+        newTupleTypes.insert(newTupleTypes.end(), secondTupleTypes.begin()+1, secondTupleTypes.end());
       }else if( n.getKind() == kind::PRODUCT ) {
-        if( !set_element_type_1.isTuple() ) {
-          firstTupleTypes.push_back(set_element_type_1);
-        } else {
-          firstTupleTypes = set_element_type_1.getTupleTypes();
-        }
-        if( !set_element_type_2.isTuple() ) {
-          secondTupleTypes.push_back(set_element_type_2);
-        } else {
-          secondTupleTypes = set_element_type_2.getTupleTypes();
-        }
         newTupleTypes.insert(newTupleTypes.end(), firstTupleTypes.begin(), firstTupleTypes.end());
         newTupleTypes.insert(newTupleTypes.end(), secondTupleTypes.begin(), secondTupleTypes.end());
       }
-      Assert(newTupleTypes.size() >= 1);
-      if(newTupleTypes.size() > 1)
-        resultType = nodeManager->mkSetType(nodeManager->mkTupleType(newTupleTypes));
-      else
-        resultType = nodeManager->mkSetType(newTupleTypes[0]);
+      resultType = nodeManager->mkSetType(nodeManager->mkTupleType(newTupleTypes));
     }
     return resultType;
   }
@@ -248,25 +216,16 @@ struct RelTransposeTypeRule {
   inline static TypeNode computeType(NodeManager* nodeManager, TNode n, bool check)
     throw (TypeCheckingExceptionPrivate, AssertionException) {
     Assert(n.getKind() == kind::TRANSPOSE);
-
-
     TypeNode setType = n[0].getType(check);
-    if(check && !setType.isSet()) {
+    if(check && !setType.isSet() && !setType.getSetElementType().isTuple()) {
         throw TypeCheckingExceptionPrivate(n, "relation transpose operats on non-relation");
     }
-    if(!setType.getSetElementType().isTuple())
-      return setType;
-
-    std::vector<TypeNode> tupleTypes;
-    std::vector<TypeNode> originalTupleTypes = setType[0].getTupleTypes();
-    for(std::vector<TypeNode>::reverse_iterator it = originalTupleTypes.rbegin(); it != originalTupleTypes.rend(); ++it) {
-      tupleTypes.push_back(*it);
-    }
+    std::vector<TypeNode> tupleTypes = setType[0].getTupleTypes();
+    std::reverse(tupleTypes.begin(), tupleTypes.end());
     return nodeManager->mkSetType(nodeManager->mkTupleType(tupleTypes));
   }
 
   inline static bool computeIsConst(NodeManager* nodeManager, TNode n) {
-      //Assert(n.getKind() == kind::TRANSCLOSURE);
       return false;
     }
 };/* struct RelTransposeTypeRule */
