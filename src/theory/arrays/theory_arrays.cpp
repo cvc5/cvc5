@@ -399,6 +399,12 @@ void TheoryArrays::explain(TNode literal, std::vector<TNode>& assumptions, eq::E
     Debug("array-pf") << " Proof is : " << std::endl;
     proof->debug_print("array-pf");
   }
+
+  Debug("gk::duplemma") << "Array: explain( " << literal << " ):" << std::endl << "\t";
+  for (unsigned i = 0; i < assumptions.size(); ++i) {
+    Debug("gk::duplemma") << assumptions[i] << " ";
+  }
+  Debug("gk::duplemma") << std::endl;
 }
 
 TNode TheoryArrays::weakEquivGetRep(TNode node) {
