@@ -1302,6 +1302,12 @@ extendedCommand[CVC4::Command*& cmd]
   | SIMPLIFY_TOK { PARSER_STATE->checkThatLogicIsSet(); }
     term[e,e2]
     { cmd = new SimplifyCommand(e); }
+  | GET_QE_TOK { PARSER_STATE->checkThatLogicIsSet(); }
+    term[e,e2]
+    { cmd = new GetQuantifierEliminationCommand(e, true); }
+  | GET_QE_DISJUNCT_TOK { PARSER_STATE->checkThatLogicIsSet(); }
+    term[e,e2]
+    { cmd = new GetQuantifierEliminationCommand(e, false); }
   ;
 
 
@@ -2562,6 +2568,8 @@ DECLARE_CONST_TOK : 'declare-const';
 DEFINE_CONST_TOK : 'define-const';
 SIMPLIFY_TOK : 'simplify';
 INCLUDE_TOK : 'include';
+GET_QE_TOK : 'get-qe';
+GET_QE_DISJUNCT_TOK : 'get-qe-disjunct';
 
 // SyGuS commands
 SYNTH_FUN_TOK : 'synth-fun';

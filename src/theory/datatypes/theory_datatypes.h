@@ -131,6 +131,7 @@ private:
   bool hasTester( Node n );
   /** get the possible constructors for n */
   void getPossibleCons( EqcInfo* eqc, Node n, std::vector< bool >& cons );
+  void getSelectorsForCons( Node r, std::map< int, bool >& sels );
   /** mkExpDefSkolem */
   void mkExpDefSkolem( Node sel, TypeNode dt, TypeNode rt );  
   /** skolems for terms */  
@@ -165,6 +166,7 @@ private:
   context::CDO<bool> d_conflict;
   /** Added lemma ? */
   bool d_addedLemma;
+  bool d_addedFact;
   /** The conflict node */
   Node d_conflictNode;
   /** cache for which terms we have called collectTerms(...) on */
@@ -203,7 +205,7 @@ private:
   /** do pending merged */
   void doPendingMerges();
   /** do send lemma */
-  void doSendLemma( Node lem );
+  bool doSendLemma( Node lem );
   /** get or make eqc info */
   EqcInfo* getOrMakeEqcInfo( TNode n, bool doMake = false );
 
@@ -260,6 +262,8 @@ public:
   std::string identify() const { return std::string("TheoryDatatypes"); }
   /** debug print */
   void printModelDebug( const char* c );
+  /** entailment check */
+  virtual std::pair<bool, Node> entailmentCheck(TNode lit, const EntailmentCheckParameters* params = NULL, EntailmentCheckSideEffects* out = NULL);
 private:
   /** add tester to equivalence class info */
   void addTester( int ttindex, Node t, EqcInfo* eqc, Node n, Node t_arg );

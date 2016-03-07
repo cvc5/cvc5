@@ -123,7 +123,7 @@ public:
 
   void testMkAssociativeBadKind() {
     std::vector<Expr> vars = mkVars(d_exprManager->integerType(), 10);
-    TS_ASSERT_THROWS( d_exprManager->mkAssociative(TUPLE,vars), IllegalArgumentException);
+    TS_ASSERT_THROWS( d_exprManager->mkAssociative(LEQ,vars), IllegalArgumentException);
   }
 
 };

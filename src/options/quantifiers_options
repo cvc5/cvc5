@@ -100,8 +100,8 @@ option instMaxLevel --inst-max-level=N int :read-write :default -1
  maximum inst level of terms used to instantiate quantified formulas with (-1 == no limit, default)
 option instLevelInputOnly --inst-level-input-only bool :default true
  only input terms are assigned instantiation level zero
-option internalReps --quant-internal-reps bool :default true
- instantiate with representatives chosen by quantifiers engine
+option quantRepMode --quant-rep-mode=MODE  CVC4::theory::quantifiers::QuantRepMode :default CVC4::theory::quantifiers::QUANT_REP_MODE_FIRST :read-write :include "options/quantifiers_modes.h" :handler stringToQuantRepMode
+ selection mode for representatives in quantifiers engine
  
 option eagerInstQuant --eager-inst-quant bool :default false
  apply quantifier instantiation eagerly
@@ -283,6 +283,10 @@ option macrosQuant --macros-quant bool :read-write :default false
  perform quantifiers macro expansion
 option macrosQuantMode --macros-quant-mode=MODE CVC4::theory::quantifiers::MacrosQuantMode :default CVC4::theory::quantifiers::MACROS_QUANT_MODE_GROUND_UF :include "options/quantifiers_modes.h" :handler stringToMacrosQuantMode
  mode for quantifiers macro expansion
+option quantDynamicSplit --quant-dsplit-mode=MODE CVC4::theory::quantifiers::QuantDSplitMode :read-write :default CVC4::theory::quantifiers::QUANT_DSPLIT_MODE_DEFAULT :include "options/quantifiers_modes.h" :handler stringToQuantDSplitMode
+ mode for dynamic quantifiers splitting
+option quantAntiSkolem --quant-anti-skolem bool :read-write :default false
+ perform anti-skolemization for quantified formulas
 
 ### recursive function options
 

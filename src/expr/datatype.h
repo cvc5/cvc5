@@ -155,6 +155,11 @@ public:
   SelectorType getType() const;
 
   /**
+   * Get the range type of this argument.
+   */
+  Type getRangeType() const;
+
+  /**
    * Get the name of the type of this constructor argument
    * (Datatype field).  Can be used for not-yet-resolved Datatypes
    * (in which case the name of the unresolved type, or "[self]"
@@ -236,9 +241,6 @@ public:
    * constructor and tester aren't created until resolution time.
    */
   DatatypeConstructor(std::string name, std::string tester);
-
-  /** set sygus */
-  void setSygus( Expr op, Expr let_body, std::vector< Expr >& let_args, unsigned num_let_input_argus );
 
   /**
    * Add an argument (i.e., a data field) of the given name and type
@@ -382,6 +384,8 @@ public:
   bool involvesExternalType() const;
   bool involvesUninterpretedType() const;
 
+  /** set sygus */
+  void setSygus( Expr op, Expr let_body, std::vector< Expr >& let_args, unsigned num_let_input_argus );
 };/* class DatatypeConstructor */
 
 /**
@@ -473,6 +477,9 @@ private:
   std::string d_name;
   std::vector<Type> d_params;
   bool d_isCo;
+  bool d_isTuple;
+  bool d_isRecord;
+  Record * d_record;
   std::vector<DatatypeConstructor> d_constructors;
   bool d_resolved;
   Type d_self;
@@ -552,6 +559,8 @@ public:
    */
   inline Datatype(std::string name, const std::vector<Type>& params, bool isCo = false);
 
+  ~Datatype();
+
   /**
    * Add a constructor to this Datatype.  Constructor names need not
    * be unique; they are for convenience and pretty-printing only.
@@ -564,6 +573,12 @@ public:
    *    allow_const : whether all constants are (implicitly) included in the grammar
    */
   void setSygus( Type st, Expr bvl, bool allow_const, bool allow_all );
+
+  /** set tuple */
+  void setTuple();
+
+  /** set tuple */
+  void setRecord();
 
   /** Get the name of this Datatype. */
   inline std::string getName() const throw();
@@ -588,6 +603,15 @@ public:
 
   /** is this a sygus datatype? */
   inline bool isSygus() const;
+
+  /** is this a tuple datatype? */
+  inline bool isTuple() const;
+
+  /** is this a record datatype? */
+  inline bool isRecord() const;
+
+  /** get the record representation for this datatype */
+  inline Record * getRecord() const;
 
   /**
    * Return the cardinality of this datatype (the sum of the
@@ -757,6 +781,9 @@ inline Datatype::Datatype(std::string name, bool isCo) :
   d_name(name),
   d_params(),
   d_isCo(isCo),
+  d_isTuple(false),
+  d_isRecord(false),
+  d_record(NULL),
   d_constructors(),
   d_resolved(false),
   d_self(),
@@ -771,6 +798,9 @@ inline Datatype::Datatype(std::string name, const std::vector<Type>& params, boo
   d_name(name),
   d_params(params),
   d_isCo(isCo),
+  d_isTuple(false),
+  d_isRecord(false),
+  d_record(NULL),
   d_constructors(),
   d_resolved(false),
   d_self(),
@@ -817,6 +847,18 @@ inline bool Datatype::isCodatatype() const {
 
 inline bool Datatype::isSygus() const {
   return !d_sygus_type.isNull();
+}
+
+inline bool Datatype::isTuple() const {
+  return d_isTuple;
+}
+
+inline bool Datatype::isRecord() const {
+  return d_isRecord;
+}
+
+inline Record * Datatype::getRecord() const {
+  return d_record;
 }
 
 inline bool Datatype::operator!=(const Datatype& other) const throw() {

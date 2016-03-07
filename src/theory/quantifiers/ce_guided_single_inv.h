@@ -153,18 +153,19 @@ public:
 class SingleInvocationPartition
 {
 private:
+  bool inferArgTypes( Node n, std::vector< TypeNode >& typs, std::map< Node, bool >& visited );
+  void process( Node n );
   bool collectConjuncts( Node n, bool pol, std::vector< Node >& conj );
   bool processConjunct( Node n, std::map< Node, bool >& visited, std::vector< Node >& args,
                         std::vector< Node >& terms, std::vector< Node >& subs );
   Node getSpecificationInst( Node n, std::map< Node, Node >& lam, std::map< Node, Node >& visited );
   void extractInvariant2( Node n, Node& func, int& pol, std::vector< Node >& disjuncts, bool hasPol, std::map< Node, bool >& visited );
 public:
-  void init( std::vector< TypeNode >& typs );
-  //inputs
-  void process( Node n );
-  std::vector< TypeNode > d_arg_types;
+  bool init( Node n );
+  bool init( std::vector< TypeNode >& typs, Node n );
 
   //outputs (everything is with bound var)
+  std::vector< TypeNode > d_arg_types;
   std::map< Node, bool > d_funcs;
   std::map< Node, Node > d_func_inv;
   std::map< Node, Node > d_inv_to_func;
@@ -186,6 +187,8 @@ public:
   Node getSpecificationInst( int index, std::map< Node, Node >& lam );
 
   void extractInvariant( Node n, Node& func, int& pol, std::vector< Node >& disjuncts );
+
+  bool isPurelySingleInvocation() { return d_conjuncts[1].empty(); }
 
   void debugPrint( const char * c );
 };

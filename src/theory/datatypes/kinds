@@ -85,36 +85,6 @@ typerule APPLY_TYPE_ASCRIPTION ::CVC4::theory::datatypes::DatatypeAscriptionType
 # constructor applications are constant if they are applied only to constants
 construle APPLY_CONSTRUCTOR ::CVC4::theory::datatypes::DatatypeConstructorTypeRule
 
-## for co-datatypes
-operator MU 2 "a mu operator, first argument is a bound variable, second argument is body"
-typerule MU ::CVC4::theory::datatypes::DatatypeMuTypeRule
-# mu applications are constant expressions
-construle MU ::CVC4::theory::datatypes::DatatypeMuTypeRule
-
-operator TUPLE_TYPE 0: "tuple type"
-cardinality TUPLE_TYPE \
-    "::CVC4::theory::datatypes::TupleProperties::computeCardinality(%TYPE%)" \
-    "theory/datatypes/theory_datatypes_type_rules.h"
-well-founded TUPLE_TYPE \
-    "::CVC4::theory::datatypes::TupleProperties::isWellFounded(%TYPE%)" \
-    "::CVC4::theory::datatypes::TupleProperties::mkGroundTerm(%TYPE%)" \
-    "theory/datatypes/theory_datatypes_type_rules.h"
-enumerator TUPLE_TYPE \
-    "::CVC4::theory::datatypes::TupleEnumerator" \
-    "theory/datatypes/type_enumerator.h"
-
-operator TUPLE 0: "a tuple (N-ary)"
-typerule TUPLE ::CVC4::theory::datatypes::TupleTypeRule
-construle TUPLE ::CVC4::theory::datatypes::TupleProperties
-
-constant TUPLE_SELECT_OP \
-        ::CVC4::TupleSelect \
-        ::CVC4::TupleSelectHashFunction \
-        "util/tuple.h" \
-        "operator for a tuple select; payload is an instance of the CVC4::TupleSelect class"
-parameterized TUPLE_SELECT TUPLE_SELECT_OP 1 "tuple select; first parameter is a TUPLE_SELECT_OP, second is the tuple"
-typerule TUPLE_SELECT ::CVC4::theory::datatypes::TupleSelectTypeRule
-
 constant TUPLE_UPDATE_OP \
         ::CVC4::TupleUpdate \
         ::CVC4::TupleUpdateHashFunction \
@@ -123,39 +93,11 @@ constant TUPLE_UPDATE_OP \
 parameterized TUPLE_UPDATE TUPLE_UPDATE_OP 2 "tuple update; first parameter is a TUPLE_UPDATE_OP (which references an index), second is the tuple, third is the element to store in the tuple at the given index"
 typerule TUPLE_UPDATE ::CVC4::theory::datatypes::TupleUpdateTypeRule
 
-constant RECORD_TYPE \
-    ::CVC4::Record \
-    ::CVC4::RecordHashFunction \
-    "expr/record.h" \
-    "record type"
-cardinality RECORD_TYPE \
-    "::CVC4::theory::datatypes::TupleProperties::computeCardinality(%TYPE%)" \
-    "theory/datatypes/theory_datatypes_type_rules.h"
-well-founded RECORD_TYPE \
-    "::CVC4::theory::datatypes::TupleProperties::isWellFounded(%TYPE%)" \
-    "::CVC4::theory::datatypes::RecordProperties::mkGroundTerm(%TYPE%)" \
-    "theory/datatypes/theory_datatypes_type_rules.h"
-enumerator RECORD_TYPE \
-    "::CVC4::theory::datatypes::RecordEnumerator" \
-    "theory/datatypes/type_enumerator.h"
-
-parameterized RECORD RECORD_TYPE 0: "a record; first parameter is a RECORD_TYPE; remaining parameters (if any) are the individual values for fields, in order"
-typerule RECORD ::CVC4::theory::datatypes::RecordTypeRule
-construle RECORD ::CVC4::theory::datatypes::RecordProperties
-
-constant RECORD_SELECT_OP \
-        ::CVC4::RecordSelect \
-        ::CVC4::RecordSelectHashFunction \
-        "expr/record.h" \
-        "operator for a record select; payload is an instance CVC4::RecordSelect class"
-parameterized RECORD_SELECT RECORD_SELECT_OP 1 "record select; first parameter is a RECORD_SELECT_OP, second is a record term to select from"
-typerule RECORD_SELECT ::CVC4::theory::datatypes::RecordSelectTypeRule
-
 constant RECORD_UPDATE_OP \
         ::CVC4::RecordUpdate \
         ::CVC4::RecordUpdateHashFunction \
         "expr/record.h" \
-        "operator for a record update; payload is an instance CVC4::RecordSelect class"
+        "operator for a record update; payload is an instance CVC4::RecordUpdate class"
 parameterized RECORD_UPDATE RECORD_UPDATE_OP 2 "record update; first parameter is a RECORD_UPDATE_OP (which references a field), second is a record term to update, third is the element to store in the record in the given field"
 typerule RECORD_UPDATE ::CVC4::theory::datatypes::RecordUpdateTypeRule
 

@@ -69,7 +69,8 @@ TESTS =	\
 	cdt-model-cade15.smt2 \
 	sc-cdt1.smt2  \
 	conqueue-dt-enum-iloop.smt2 \
-	coda_simp_model.smt2
+	coda_simp_model.smt2 \
+	Test1-tup-mp.cvc
 
 FAILING_TESTS = \
 	datatype-dump.cvc

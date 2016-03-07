@@ -130,7 +130,8 @@ private:
   //get model value
   Node getModelValue( Node n );
 private:
-  int isolate( Node v, Node atom, Node & veq_c, Node & val, Node& vts_coeff_inf, Node& vts_coeff_delta );
+  int solve_arith( Node v, Node atom, Node & veq_c, Node & val, Node& vts_coeff_inf, Node& vts_coeff_delta );
+  Node solve_dt( Node v, Node a, Node b, Node sa, Node sb );
 public:
   CegInstantiator( QuantifiersEngine * qe, CegqiOutput * out, bool use_vts_delta = true, bool use_vts_inf = true );
   //check : add instantiations based on valuation of d_vars

@@ -28,8 +28,6 @@ namespace attr {
   struct VarNameTag { };
   struct GlobalVarTag { };
   struct SortArityTag { };
-  struct DatatypeTupleTag { };
-  struct DatatypeRecordTag { };
   struct TypeTag { };
   struct TypeCheckedTag { };
 }/* CVC4::expr::attr namespace */
@@ -37,10 +35,6 @@ namespace attr {
 typedef Attribute<attr::VarNameTag, std::string> VarNameAttr;
 typedef Attribute<attr::GlobalVarTag(), bool> GlobalVarAttr;
 typedef Attribute<attr::SortArityTag, uint64_t> SortArityAttr;
-/** Attribute true for datatype types that are replacements for tuple types */
-typedef expr::Attribute<expr::attr::DatatypeTupleTag, TypeNode> DatatypeTupleAttr;
-/** Attribute true for datatype types that are replacements for record types */
-typedef expr::Attribute<expr::attr::DatatypeRecordTag, TypeNode> DatatypeRecordAttr;
 typedef expr::Attribute<expr::attr::TypeTag, TypeNode> TypeAttr;
 typedef expr::Attribute<expr::attr::TypeCheckedTag, bool> TypeCheckedAttr;
 

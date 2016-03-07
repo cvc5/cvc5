@@ -50,8 +50,8 @@ bool QModelBuilder::optUseModel() {
 
 void QModelBuilder::debugModel( FirstOrderModel* fm ){
   //debug the model: cycle through all instantiations for all quantifiers, report ones that are not true
-  if( Trace.isOn("quant-model-warn") ){
-    Trace("quant-model-warn") << "Testing quantifier instantiations..." << std::endl;
+  if( Trace.isOn("quant-check-model") ){
+    Trace("quant-check-model") << "Testing quantifier instantiations..." << std::endl;
     int tests = 0;
     int bad = 0;
     for( int i=0; i<fm->getNumAssertedQuantifiers(); i++ ){
@@ -71,20 +71,20 @@ void QModelBuilder::debugModel( FirstOrderModel* fm ){
           Node n = d_qe->getInstantiation( f, vars, terms );
           Node val = fm->getValue( n );
           if( val!=fm->d_true ){
-            Trace("quant-model-warn") << "*******  Instantiation " << n << " for " << std::endl;
-            Trace("quant-model-warn") << "         " << f << std::endl;
-            Trace("quant-model-warn") << "         Evaluates to " << val << std::endl;
+            Trace("quant-check-model") << "*******  Instantiation " << n << " for " << std::endl;
+            Trace("quant-check-model") << "         " << f << std::endl;
+            Trace("quant-check-model") << "         Evaluates to " << val << std::endl;
             bad++;
           }
           riter.increment();
         }
-        Trace("quant-model-warn") << "Tested " << tests << " instantiations";
+        Trace("quant-check-model") << "Tested " << tests << " instantiations";
         if( bad>0 ){
-          Trace("quant-model-warn") << ", " << bad << " failed" << std::endl;
+          Trace("quant-check-model") << ", " << bad << " failed" << std::endl;
         }
-        Trace("quant-model-warn") << "." << std::endl;
+        Trace("quant-check-model") << "." << std::endl;
       }else{
-        Trace("quant-model-warn") << "Warning: Could not test quantifier " << f << std::endl;
+        Trace("quant-check-model") << "Warning: Could not test quantifier " << f << std::endl;
       }
     }
   }

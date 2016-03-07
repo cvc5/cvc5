@@ -59,16 +59,20 @@ TNode TermArgTrie::existsTerm( std::vector< TNode >& reps, int argIndex ) {
 }
 
 bool TermArgTrie::addTerm( TNode n, std::vector< TNode >& reps, int argIndex ){
+  return addOrGetTerm( n, reps, argIndex )==n;
+}
+
+TNode TermArgTrie::addOrGetTerm( TNode n, std::vector< TNode >& reps, int argIndex ) {
   if( argIndex==(int)reps.size() ){
     if( d_data.empty() ){
       //store n in d_data (this should be interpretted as the "data" and not as a reference to a child)
       d_data[n].clear();
-      return true;
+      return n;
     }else{
-      return false;
+      return d_data.begin()->first;
     }
   }else{
-    return d_data[reps[argIndex]].addTerm( n, reps, argIndex+1 );
+    return d_data[reps[argIndex]].addOrGetTerm( n, reps, argIndex+1 );
   }
 }
 
@@ -502,9 +506,12 @@ void TermDb::reset( Theory::Effort effort ){
               Trace("term-db-debug") << d_arg_reps[n] << " ";
             }
             Trace("term-db-debug") << std::endl;
+            if( ee->hasTerm( n ) ){
+              Trace("term-db-debug") << "  and value : " << ee->getRepresentative( n ) << std::endl;
+            }
           }
-
-          if( !d_func_map_trie[ it->first ].addTerm( n, d_arg_reps[n] ) ){
+          Node at = d_func_map_trie[ it->first ].addOrGetTerm( n, d_arg_reps[n] );
+          if( at!=n && ee->areEqual( at, n ) ){
             NoMatchAttribute nma;
             n.setAttribute(nma,true);
             Trace("term-db-debug") << n << " is redundant." << std::endl;
@@ -514,6 +521,7 @@ void TermDb::reset( Theory::Effort effort ){
             d_op_nonred_count[ it->first ]++;
           }
         }else{
+          Trace("term-db-debug") << n << " is already redundant." << std::endl;
           congruentCount++;
           alreadyCongruentCount++;
         }
@@ -855,7 +863,7 @@ Node TermDb::getInstantiatedNode( Node n, Node q, std::vector< Node >& terms ) {
 
 void getSelfSel( const DatatypeConstructor& dc, Node n, TypeNode ntn, std::vector< Node >& selfSel ){
   for( unsigned j=0; j<dc.getNumArgs(); j++ ){
-    TypeNode tn = TypeNode::fromType( ((SelectorType)dc[j].getSelector().getType()).getRangeType() );
+    TypeNode tn = TypeNode::fromType( dc[j].getRangeType() );
     std::vector< Node > ssc;
     if( tn==ntn ){
       ssc.push_back( n );
@@ -971,11 +979,21 @@ Node TermDb::mkSkolemizedBody( Node f, Node n, std::vector< TypeNode >& argTypes
     }
     ret = NodeManager::currentNM()->mkNode( OR, nret, n_str_ind );
   }
-  Trace("quantifiers-sk") << "mkSkolem body for " << f << " returns : " << ret << std::endl;
+  Trace("quantifiers-sk-debug") << "mkSkolem body for " << f << " returns : " << ret << std::endl;
   //if it has an instantiation level, set the skolemized body to that level
   if( f.hasAttribute(InstLevelAttribute()) ){
     theory::QuantifiersEngine::setInstantiationLevelAttr( ret, f.getAttribute(InstLevelAttribute()) );
   }
+
+  if( Trace.isOn("quantifiers-sk") ){
+    Trace("quantifiers-sk") << "Skolemize : ";
+    for( unsigned i=0; i<sk.size(); i++ ){
+      Trace("quantifiers-sk") << sk[i] << " ";
+    }
+    Trace("quantifiers-sk") << "for " << std::endl;
+    Trace("quantifiers-sk") << "   " << f << std::endl;
+  }
+
   return ret;
 }
 
@@ -1040,7 +1058,7 @@ bool TermDb::isClosedEnumerableType( TypeNode tn ) {
       const Datatype& dt = ((DatatypeType)(tn).toType()).getDatatype();
       for( unsigned i=0; i<dt.getNumConstructors(); i++ ){
         for( unsigned j=0; j<dt[i].getNumArgs(); j++ ){
-          TypeNode ctn = TypeNode::fromType( ((SelectorType)dt[i][j].getSelector().getType()).getRangeType() );
+          TypeNode ctn = TypeNode::fromType( dt[i][j].getRangeType() );
           if( tn!=ctn && !isClosedEnumerableType( ctn ) ){
             ret = false;
             break;
@@ -1575,7 +1593,7 @@ bool TermDb::containsVtsInfinity( Node n, bool isFree ) {
   return containsTerms( n, t );
 }
 
-Node TermDb::mkNodeType( Node n, TypeNode tn ) {
+Node TermDb::ensureType( Node n, TypeNode tn ) {
   TypeNode ntn = n.getType();
   Assert( ntn.isComparableTo( tn ) );
   if( ntn.isSubtypeOf( tn ) ){
@@ -1585,6 +1603,20 @@ Node TermDb::mkNodeType( Node n, TypeNode tn ) {
       return NodeManager::currentNM()->mkNode( TO_INTEGER, n );
     }
     return Node::null();
+  }
+}
+
+bool TermDb::getEnsureTypeCondition( Node n, TypeNode tn, std::vector< Node >& cond ) {
+  TypeNode ntn = n.getType();
+  Assert( ntn.isComparableTo( tn ) );
+  if( !ntn.isSubtypeOf( tn ) ){
+    if( tn.isInteger() ){
+      cond.push_back( NodeManager::currentNM()->mkNode( IS_INTEGER, n ) );
+      return true;
+    }
+    return false;
+  }else{
+    return true;
   }
 }
 
@@ -1646,6 +1678,21 @@ bool TermDb::containsTerms( Node n, std::vector< Node >& t ) {
     std::map< Node, bool > visited;
     return containsTerms2( n, t, visited );
   }
+}
+
+int TermDb::getTermDepth( Node n ) {
+  if (!n.hasAttribute(TermDepthAttribute()) ){
+    int maxDepth = -1;
+    for( unsigned i=0; i<n.getNumChildren(); i++ ){
+      int depth = getTermDepth( n[i] );
+      if( depth>maxDepth ){
+        maxDepth = depth;
+      }
+    }
+    TermDepthAttribute tda;
+    n.setAttribute(tda,1+maxDepth);
+  }
+  return n.getAttribute(TermDepthAttribute());
 }
 
 bool TermDb::containsUninterpretedConstant( Node n ) {
@@ -1777,69 +1824,107 @@ bool TermDb::isSygusConjectureAnnotation( Node ipl ){
   return false;
 }
 
+bool TermDb::isQuantElimAnnotation( Node ipl ) {
+  if( !ipl.isNull() ){
+    for( unsigned i=0; i<ipl.getNumChildren(); i++ ){
+      if( ipl[i].getKind()==INST_ATTRIBUTE ){
+        Node avar = ipl[i][0];
+        if( avar.getAttribute(QuantElimAttribute()) ){
+          return true;
+        }
+      }
+    }
+  }
+  return false;
+}
+
 void TermDb::computeAttributes( Node q ) {
+  computeQuantAttributes( q, d_qattr[q] );
+  if( !d_qattr[q].d_rr.isNull() ){
+    if( d_quantEngine->getRewriteEngine()==NULL ){
+      Trace("quant-warn") << "WARNING : rewrite engine is null, and we have : " << q << std::endl;
+    }
+    //set rewrite engine as owner
+    d_quantEngine->setOwner( q, d_quantEngine->getRewriteEngine() );
+  }
+  if( d_qattr[q].isFunDef() ){
+    Node f = d_qattr[q].d_fundef_f;
+    if( d_fun_defs.find( f )!=d_fun_defs.end() ){
+      Message() << "Cannot define function " << f << " more than once." << std::endl;
+      exit( 1 );
+    }
+    d_fun_defs[f] = true;
+    d_quantEngine->setOwner( q, d_quantEngine->getFunDefEngine() );
+  }
+  if( d_qattr[q].d_sygus ){
+    if( d_quantEngine->getCegInstantiation()==NULL ){
+      Trace("quant-warn") << "WARNING : ceg instantiation is null, and we have : " << q << std::endl;
+    }
+    d_quantEngine->setOwner( q, d_quantEngine->getCegInstantiation() );
+  }
+  if( d_qattr[q].d_synthesis ){
+    if( d_quantEngine->getCegInstantiation()==NULL ){
+      Trace("quant-warn") << "WARNING : ceg instantiation is null, and we have : " << q << std::endl;
+    }
+    d_quantEngine->setOwner( q, d_quantEngine->getCegInstantiation() );
+  }
+}
+
+void TermDb::computeQuantAttributes( Node q, QAttributes& qa ){
   Trace("quant-attr-debug") << "Compute attributes for " << q << std::endl;
   if( q.getNumChildren()==3 ){
+    qa.d_ipl = q[2];
     for( unsigned i=0; i<q[2].getNumChildren(); i++ ){
       Trace("quant-attr-debug") << "Check : " << q[2][i] << " " << q[2][i].getKind() << std::endl;
       if( q[2][i].getKind()==INST_ATTRIBUTE ){
         Node avar = q[2][i][0];
         if( avar.getAttribute(AxiomAttribute()) ){
           Trace("quant-attr") << "Attribute : axiom : " << q << std::endl;
-          d_qattr_axiom[q] = true;
+          qa.d_axiom = true;
         }
         if( avar.getAttribute(ConjectureAttribute()) ){
           Trace("quant-attr") << "Attribute : conjecture : " << q << std::endl;
-          d_qattr_conjecture[q] = true;
+          qa.d_conjecture = true;
         }
         if( avar.getAttribute(FunDefAttribute()) ){
           Trace("quant-attr") << "Attribute : function definition : " << q << std::endl;
-          d_qattr_fundef[q] = true;
           //get operator directly from pattern
-          Node f = q[2][i][0].getOperator();
-          if( d_fun_defs.find( f )!=d_fun_defs.end() ){
-            Message() << "Cannot define function " << f << " more than once." << std::endl;
-            exit( 0 );
-          }
-          d_fun_defs[f] = true;
-          d_quantEngine->setOwner( q, d_quantEngine->getFunDefEngine() );
+          qa.d_fundef_f = q[2][i][0].getOperator();
         }
         if( avar.getAttribute(SygusAttribute()) ){
           //not necessarily nested existential
           //Assert( q[1].getKind()==NOT );
           //Assert( q[1][0].getKind()==FORALL );
-
           Trace("quant-attr") << "Attribute : sygus : " << q << std::endl;
-          d_qattr_sygus[q] = true;
-          if( d_quantEngine->getCegInstantiation()==NULL ){
-            Trace("quant-warn") << "WARNING : ceg instantiation is null, and we have : " << q << std::endl;
-          }
-          d_quantEngine->setOwner( q, d_quantEngine->getCegInstantiation() );
+          qa.d_sygus = true;
         }
         if( avar.getAttribute(SynthesisAttribute()) ){
           Trace("quant-attr") << "Attribute : synthesis : " << q << std::endl;
-          d_qattr_synthesis[q] = true;
-          if( d_quantEngine->getCegInstantiation()==NULL ){
-            Trace("quant-warn") << "WARNING : ceg instantiation is null, and we have : " << q << std::endl;
-          }
-          d_quantEngine->setOwner( q, d_quantEngine->getCegInstantiation() );
+          qa.d_synthesis = true;
         }
         if( avar.hasAttribute(QuantInstLevelAttribute()) ){
-          d_qattr_qinstLevel[q] = avar.getAttribute(QuantInstLevelAttribute());
-          Trace("quant-attr") << "Attribute : quant inst level " << d_qattr_qinstLevel[q] << " : " << q << std::endl;
+          qa.d_qinstLevel = avar.getAttribute(QuantInstLevelAttribute());
+          Trace("quant-attr") << "Attribute : quant inst level " << qa.d_qinstLevel << " : " << q << std::endl;
         }
         if( avar.hasAttribute(RrPriorityAttribute()) ){
-          d_qattr_rr_priority[q] = avar.getAttribute(RrPriorityAttribute());
-          Trace("quant-attr") << "Attribute : rr priority " << d_qattr_rr_priority[q] << " : " << q << std::endl;
+          qa.d_rr_priority = avar.getAttribute(RrPriorityAttribute());
+          Trace("quant-attr") << "Attribute : rr priority " << qa.d_rr_priority << " : " << q << std::endl;
         }
+        if( avar.getAttribute(QuantElimAttribute()) ){
+          Trace("quant-attr") << "Attribute : quantifier elimination : " << q << std::endl;
+          qa.d_quant_elim = true;
+          //don't set owner, should happen naturally
+        } 
+        if( avar.getAttribute(QuantElimPartialAttribute()) ){
+          Trace("quant-attr") << "Attribute : quantifier elimination partial : " << q << std::endl;
+          qa.d_quant_elim = true;
+          qa.d_quant_elim_partial = true;
+          //don't set owner, should happen naturally
+        } 
         if( avar.getKind()==REWRITE_RULE ){
           Trace("quant-attr") << "Attribute : rewrite rule : " << q << std::endl;
           Assert( i==0 );
-          if( d_quantEngine->getRewriteEngine()==NULL ){
-            Trace("quant-warn") << "WARNING : rewrite engine is null, and we have : " << q << std::endl;
-          }
-          //set rewrite engine as owner
-          d_quantEngine->setOwner( q, d_quantEngine->getRewriteEngine() );
+          qa.d_rr = avar;
         }
       }
     }
@@ -1847,69 +1932,85 @@ void TermDb::computeAttributes( Node q ) {
 }
 
 bool TermDb::isQAttrConjecture( Node q ) {
-  std::map< Node, bool >::iterator it = d_qattr_conjecture.find( q );
-  if( it==d_qattr_conjecture.end() ){
+  std::map< Node, QAttributes >::iterator it = d_qattr.find( q );
+  if( it==d_qattr.end() ){
     return false;
   }else{
-    return it->second;
+    return it->second.d_conjecture;
   }
 }
 
 bool TermDb::isQAttrAxiom( Node q ) {
-  std::map< Node, bool >::iterator it = d_qattr_axiom.find( q );
-  if( it==d_qattr_axiom.end() ){
+  std::map< Node, QAttributes >::iterator it = d_qattr.find( q );
+  if( it==d_qattr.end() ){
     return false;
   }else{
-    return it->second;
+    return it->second.d_axiom;
   }
 }
 
 bool TermDb::isQAttrFunDef( Node q ) {
-  std::map< Node, bool >::iterator it = d_qattr_fundef.find( q );
-  if( it==d_qattr_fundef.end() ){
+  std::map< Node, QAttributes >::iterator it = d_qattr.find( q );
+  if( it==d_qattr.end() ){
     return false;
   }else{
-    return it->second;
+    return it->second.isFunDef();
   }
 }
 
 bool TermDb::isQAttrSygus( Node q ) {
-  std::map< Node, bool >::iterator it = d_qattr_sygus.find( q );
-  if( it==d_qattr_sygus.end() ){
+  std::map< Node, QAttributes >::iterator it = d_qattr.find( q );
+  if( it==d_qattr.end() ){
     return false;
   }else{
-    return it->second;
+    return it->second.d_sygus;
   }
 }
 
 bool TermDb::isQAttrSynthesis( Node q ) {
-  std::map< Node, bool >::iterator it = d_qattr_synthesis.find( q );
-  if( it==d_qattr_synthesis.end() ){
+  std::map< Node, QAttributes >::iterator it = d_qattr.find( q );
+  if( it==d_qattr.end() ){
     return false;
   }else{
-    return it->second;
+    return it->second.d_synthesis;
   }
 }
 
 int TermDb::getQAttrQuantInstLevel( Node q ) {
-  std::map< Node, int >::iterator it = d_qattr_qinstLevel.find( q );
-  if( it==d_qattr_qinstLevel.end() ){
+  std::map< Node, QAttributes >::iterator it = d_qattr.find( q );
+  if( it==d_qattr.end() ){
     return -1;
   }else{
-    return it->second;
+    return it->second.d_qinstLevel;
   }
 }
 
 int TermDb::getQAttrRewriteRulePriority( Node q ) {
-  std::map< Node, int >::iterator it = d_qattr_rr_priority.find( q );
-  if( it==d_qattr_rr_priority.end() ){
+  std::map< Node, QAttributes >::iterator it = d_qattr.find( q );
+  if( it==d_qattr.end() ){
     return -1;
   }else{
-    return it->second;
+    return it->second.d_rr_priority;
   }
 }
 
+bool TermDb::isQAttrQuantElim( Node q ) {
+  std::map< Node, QAttributes >::iterator it = d_qattr.find( q );
+  if( it==d_qattr.end() ){
+    return false;
+  }else{
+    return it->second.d_quant_elim;
+  }
+}
 
+bool TermDb::isQAttrQuantElimPartial( Node q ) {
+  std::map< Node, QAttributes >::iterator it = d_qattr.find( q );
+  if( it==d_qattr.end() ){
+    return false;
+  }else{
+    return it->second.d_quant_elim_partial;
+  }
+}
 
 TermDbSygus::TermDbSygus(){
   d_true = NodeManager::currentNM()->mkConst( true );

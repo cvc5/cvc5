@@ -1,0 +1,10 @@
+% EXPECT: sat
+TEST : TYPE = INT -> [INT, INT];
+
+test: TEST;
+
+ASSERT test(5) = (2, 3);
+ASSERT test(7) = (3, 4);
+
+CHECKSAT;
+

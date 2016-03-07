@@ -16,11 +16,13 @@
  **/
 
 #include "proof/cnf_proof.h"
-#include "proof/theory_proof.h"
+
+#include "proof/clause_id.h"
 #include "proof/proof_manager.h"
-#include "prop/sat_solver_types.h"
-#include "prop/minisat/minisat.h"
+#include "proof/theory_proof.h"
 #include "prop/cnf_stream.h"
+#include "prop/minisat/minisat.h"
+#include "prop/sat_solver_types.h"
 
 using namespace CVC4::prop;
 

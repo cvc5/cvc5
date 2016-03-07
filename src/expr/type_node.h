@@ -642,8 +642,10 @@ public:
    * For more information see: http://cvc4.cs.nyu.edu/wiki/Cvc4_Type_Lattice
    */
   static TypeNode leastCommonTypeNode(TypeNode t0, TypeNode t1);
+  static TypeNode mostCommonTypeNode(TypeNode t0, TypeNode t1);
 
 private:
+  static TypeNode commonTypeNode(TypeNode t0, TypeNode t1, bool isLeast);
 
   /**
    * Returns the leastUpperBound in the extended type lattice of two
@@ -929,18 +931,6 @@ inline TypeNode TypeNode::getRangeType() const {
   return (*this)[getNumChildren() - 1];
 }
 
-/** Is this a tuple type? */
-inline bool TypeNode::isTuple() const {
-  return getKind() == kind::TUPLE_TYPE ||
-    ( isPredicateSubtype() && getSubtypeParentType().isTuple() );
-}
-
-/** Is this a record type? */
-inline bool TypeNode::isRecord() const {
-  return getKind() == kind::RECORD_TYPE ||
-    ( isPredicateSubtype() && getSubtypeParentType().isRecord() );
-}
-
 /** Is this a symbolic expression type? */
 inline bool TypeNode::isSExpr() const {
   return getKind() == kind::SEXPR_TYPE ||
@@ -973,7 +963,6 @@ inline bool TypeNode::isBitVector() const {
 /** Is this a datatype type */
 inline bool TypeNode::isDatatype() const {
   return getKind() == kind::DATATYPE_TYPE ||
-    getKind() == kind::TUPLE_TYPE || getKind() == kind::RECORD_TYPE ||
     ( isPredicateSubtype() && getSubtypeParentType().isDatatype() );
 }
 
@@ -1027,11 +1016,7 @@ inline bool TypeNode::isBitVector(unsigned size) const {
 /** Get the datatype specification from a datatype type */
 inline const Datatype& TypeNode::getDatatype() const {
   Assert(isDatatype());
-  if(getKind() == kind::DATATYPE_TYPE) {
-    return getConst<Datatype>();
-  } else {
-    return NodeManager::currentNM()->getDatatypeForTupleRecord(*this).getConst<Datatype>();
-  }
+  return getConst<Datatype>();
 }
 
 /** Get the exponent size of this floating-point type */

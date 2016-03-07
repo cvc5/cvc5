@@ -15,6 +15,8 @@
  ** A CNF converter that takes in asserts and has the side effect
  ** of given an equisatisfiable stream of assertions to PropEngine.
  **/
+#include "prop/cnf_stream.h"
+
 #include <queue>
 
 #include "base/cvc4_assert.h"
@@ -22,10 +24,10 @@
 #include "expr/expr.h"
 #include "expr/node.h"
 #include "options/bv_options.h"
+#include "proof/clause_id.h"
+#include "proof/cnf_proof.h"
 #include "proof/proof_manager.h"
 #include "proof/sat_proof.h"
-#include "proof/cnf_proof.h"
-#include "prop/cnf_stream.h"
 #include "prop/minisat/minisat.h"
 #include "prop/prop_engine.h"
 #include "prop/theory_proxy.h"

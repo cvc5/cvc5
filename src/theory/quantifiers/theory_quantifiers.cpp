@@ -47,6 +47,8 @@ TheoryQuantifiers::TheoryQuantifiers(Context* c, context::UserContext* u, Output
   out.handleUserAttribute( "synthesis", this );
   out.handleUserAttribute( "quant-inst-max-level", this );
   out.handleUserAttribute( "rr-priority", this );
+  out.handleUserAttribute( "quant-elim", this );
+  out.handleUserAttribute( "quant-elim-partial", this );
 }
 
 TheoryQuantifiers::~TheoryQuantifiers() {

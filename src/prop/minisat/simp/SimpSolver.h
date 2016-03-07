@@ -23,6 +23,7 @@ OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWA
 
 #include "cvc4_private.h"
 
+#include "proof/clause_id.h"
 #include "prop/minisat/mtl/Queue.h"
 #include "prop/minisat/core/Solver.h"
 

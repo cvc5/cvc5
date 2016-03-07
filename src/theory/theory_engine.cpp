@@ -1221,6 +1221,8 @@ Node TheoryEngine::ensureLiteral(TNode n) {
 void TheoryEngine::printInstantiations( std::ostream& out ) {
   if( d_quantEngine ){
     d_quantEngine->printInstantiations( out );
+  }else{
+    out << "Internal error : instantiations not available when quantifiers are not present." << std::endl;
   }
 }
 
@@ -1231,6 +1233,15 @@ void TheoryEngine::printSynthSolution( std::ostream& out ) {
     out << "Internal error : synth solution not available when quantifiers are not present." << std::endl;
   }
 }
+
+void TheoryEngine::getInstantiations( std::map< Node, std::vector< Node > >& insts ) {
+  if( d_quantEngine ){
+    d_quantEngine->getInstantiations( insts );
+  }else{
+    Assert( false );
+  }
+}
+
 
 static Node mkExplanation(const std::vector<NodeTheoryPair>& explanation) {
 
@@ -1731,7 +1742,7 @@ void TheoryEngine::ppUnconstrainedSimp(vector<Node>& assertions)
 }
 
 
-void TheoryEngine::setUserAttribute(const std::string& attr, Node n, std::vector<Node> node_values, std::string str_value) {
+void TheoryEngine::setUserAttribute(const std::string& attr, Node n, std::vector<Node>& node_values, std::string str_value) {
   Trace("te-attr") << "set user attribute " << attr << " " << n << endl;
   if( d_attr_handle.find( attr )!=d_attr_handle.end() ){
     for( size_t i=0; i<d_attr_handle[attr].size(); i++ ){

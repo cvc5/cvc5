@@ -48,7 +48,7 @@ public:
   AlphaEquivalence( QuantifiersEngine* qe ) : d_qe( qe ){}
   ~AlphaEquivalence(){}
 
-  bool registerQuantifier( Node q );
+  bool reduceQuantifier( Node q );
 };
 
 }

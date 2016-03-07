@@ -1141,7 +1141,7 @@ void TheoryArrays::collectModelInfo( TheoryModel* m, bool fullModel )
   TypeSet defaultValuesSet;
 
   // Compute all default values already in use
-  if (fullModel) {
+  //if (fullModel) {
     for (size_t i=0; i<arrays.size(); ++i) {
       TNode nrep = d_equalityEngine.getRepresentative(arrays[i]);
       d_mayEqualEqualityEngine.addTerm(nrep); // add the term in case it isn't there already
@@ -1151,14 +1151,14 @@ void TheoryArrays::collectModelInfo( TheoryModel* m, bool fullModel )
         defaultValuesSet.add(nrep.getType().getArrayConstituentType(), (*it).second);
       }
     }
-  }
+  //}
 
   // Loop through all array equivalence classes that need a representative computed
   for (size_t i=0; i<arrays.size(); ++i) {
     TNode n = arrays[i];
     TNode nrep = d_equalityEngine.getRepresentative(n);
 
-    if (fullModel) {
+    //if (fullModel) {
       // Compute default value for this array - there is one default value for every mayEqual equivalence class
       TNode mayRep = d_mayEqualEqualityEngine.getRepresentative(nrep);
       it = d_defValues.find(mayRep);
@@ -1179,6 +1179,7 @@ void TheoryArrays::collectModelInfo( TheoryModel* m, bool fullModel )
 
       // Build the STORE_ALL term with the default value
       rep = nm->mkConst(ArrayStoreAll(nrep.getType().toType(), rep.toExpr()));
+      /*
     }
     else {
       std::hash_map<Node, Node, NodeHashFunction>::iterator it = d_skolemCache.find(n);
@@ -1190,6 +1191,7 @@ void TheoryArrays::collectModelInfo( TheoryModel* m, bool fullModel )
         rep = (*it).second;
       }
     }
+*/
 
     // For each read, require that the rep stores the right value
     vector<Node>& reads = selects[nrep];

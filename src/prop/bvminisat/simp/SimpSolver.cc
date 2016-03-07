@@ -23,8 +23,9 @@ OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWA
 #include "mtl/Sort.h"
 #include "options/bv_options.h"
 #include "options/smt_options.h"
-#include "utils/System.h"
+#include "proof/clause_id.h"
 #include "proof/proof.h"
+#include "utils/System.h"
 
 namespace CVC4 {
 namespace BVMinisat {

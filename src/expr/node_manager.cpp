@@ -170,7 +170,9 @@ NodeManager::~NodeManager() {
     d_operators[i] = Node::null();
   }
 
-  d_tupleAndRecordTypes.clear();
+  //d_tupleAndRecordTypes.clear();
+  d_tt_cache.d_children.clear();
+  d_rt_cache.d_children.clear();
 
   Assert(!d_attrManager->inGarbageCollection() );
   while(!d_zombies.empty()) {
@@ -461,82 +463,61 @@ TypeNode NodeManager::mkSubrangeType(const SubrangeBounds& bounds)
   return TypeNode(mkTypeConst(bounds));
 }
 
-TypeNode NodeManager::getDatatypeForTupleRecord(TypeNode t) {
-  Assert(t.isTuple() || t.isRecord());
-
-  //AJR: not sure why .getBaseType() was used in two cases below,
-  //     disabling this, which is necessary to fix bug 605/667,
-  //     which involves records of INT which were mapped to records of REAL below.
-  TypeNode tOrig = t;
-  if(t.isTuple()) {
-    vector<TypeNode> v;
-    bool changed = false;
-    for(size_t i = 0; i < t.getNumChildren(); ++i) {
-      TypeNode tn = t[i];
-      TypeNode base;
-      if(tn.isTuple() || tn.isRecord()) {
-        base = getDatatypeForTupleRecord(tn);
-      } else {
-        base = tn;//.getBaseType();
-      }
-      changed = changed || (tn != base);
-      v.push_back(base);
-    }
-    if(changed) {
-      t = mkTupleType(v);
-    }
-  } else {
-    const Record& r = t.getRecord();
-    std::vector< std::pair<std::string, Type> > v;
-    bool changed = false;
-    const Record::FieldVector& fields = r.getFields();
-    for(Record::FieldVector::const_iterator i = fields.begin(); i != fields.end(); ++i) {
-      Type tn = (*i).second;
-      Type base;
-      if(tn.isTuple() || tn.isRecord()) {
-        base = getDatatypeForTupleRecord(TypeNode::fromType(tn)).toType();
-      } else {
-        base = tn;//.getBaseType();
-      }
-      changed = changed || (tn != base);
-      v.push_back(std::make_pair((*i).first, base));
-    }
-    if(changed) {
-      t = mkRecordType(Record(v));
-    }
-  }
-
-  // if the type doesn't have an associated datatype, then make one for it
-  TypeNode& dtt = d_tupleAndRecordTypes[t];
-  if(dtt.isNull()) {
-    if(t.isTuple()) {
+TypeNode NodeManager::TupleTypeCache::getTupleType( NodeManager * nm, std::vector< TypeNode >& types, unsigned index ) {
+  if( index==types.size() ){
+    if( d_data.isNull() ){
       Datatype dt("__cvc4_tuple");
+      dt.setTuple();
       DatatypeConstructor c("__cvc4_tuple_ctor");
-      for(TypeNode::const_iterator i = t.begin(); i != t.end(); ++i) {
-        c.addArg("__cvc4_tuple_stor", (*i).toType());
+      for (unsigned i = 0; i < types.size(); ++ i) {
+        std::stringstream ss;
+        ss << "__cvc4_tuple_stor_" << i;
+        c.addArg(ss.str().c_str(), types[i].toType());
       }
       dt.addConstructor(c);
-      dtt = TypeNode::fromType(toExprManager()->mkDatatypeType(dt));
-      Debug("tuprec") << "REWROTE " << t << " to " << dtt << std::endl;
-      dtt.setAttribute(DatatypeTupleAttr(), tOrig);
-    } else {
-      const Record& rec = t.getRecord();
+      d_data = TypeNode::fromType(nm->toExprManager()->mkDatatypeType(dt));
+      Debug("tuprec-debug") << "Return type : " << d_data << std::endl;
+    }
+    return d_data;
+  }else{
+    return d_children[types[index]].getTupleType( nm, types, index+1 );
+  }
+}
+
+TypeNode NodeManager::RecTypeCache::getRecordType( NodeManager * nm, const Record& rec, unsigned index ) {
+  if( index==rec.getNumFields() ){
+    if( d_data.isNull() ){
       const Record::FieldVector& fields = rec.getFields();
       Datatype dt("__cvc4_record");
+      dt.setRecord();
       DatatypeConstructor c("__cvc4_record_ctor");
       for(Record::FieldVector::const_iterator i = fields.begin(); i != fields.end(); ++i) {
         c.addArg((*i).first, (*i).second);
       }
       dt.addConstructor(c);
-      dtt = TypeNode::fromType(toExprManager()->mkDatatypeType(dt));
-      Debug("tuprec") << "REWROTE " << t << " to " << dtt << std::endl;
-      dtt.setAttribute(DatatypeRecordAttr(), tOrig);
+      d_data = TypeNode::fromType(nm->toExprManager()->mkDatatypeType(dt));
+      Debug("tuprec-debug") << "Return type : " << d_data << std::endl;
     }
-  } else {
-    Debug("tuprec") << "REUSING cached " << t << ": " << dtt << std::endl;
+    return d_data;
+  }else{
+    return d_children[TypeNode::fromType( rec[index].second )][rec[index].first].getRecordType( nm, rec, index+1 );
   }
-  Assert(!dtt.isNull());
-  return dtt;
+}
+
+TypeNode NodeManager::mkTupleType(const std::vector<TypeNode>& types) {
+  std::vector< TypeNode > ts;
+  Debug("tuprec-debug") << "Make tuple type : ";
+  for (unsigned i = 0; i < types.size(); ++ i) {
+    CheckArgument(!types[i].isFunctionLike(), types, "cannot put function-like types in tuples");
+    ts.push_back( types[i] );
+    Debug("tuprec-debug") << types[i] << " ";
+  }
+  Debug("tuprec-debug") << std::endl;
+  return d_tt_cache.getTupleType( this, ts );
+}
+
+TypeNode NodeManager::mkRecordType(const Record& rec) {
+  return d_rt_cache.getRecordType( this, rec );
 }
 
 void NodeManager::reclaimAllZombies(){
