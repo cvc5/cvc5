@@ -55,8 +55,8 @@ private:
   bool addVariableToPatternList( Node v, std::vector< int >& pat_var_order, std::map< Node, int >& var_order );
 public:
   LtePartialInst( QuantifiersEngine * qe, context::Context* c );
-  /** add quantifier : special form of registration */
-  bool addQuantifier( Node q );
+  /** determine whether this quantified formula will be reduced */
+  void preRegisterQuantifier( Node q );
   /** was invoked */
   bool wasInvoked() { return d_wasInvoked; }
   

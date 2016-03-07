@@ -1782,14 +1782,16 @@ Expr ValidityChecker::geExpr(const Expr& left, const Expr& right) {
 
 Expr ValidityChecker::recordExpr(const std::string& field, const Expr& expr) {
   CVC4::Type t = recordType(field, expr.getType());
-  return d_em->mkExpr(CVC4::kind::RECORD, d_em->mkConst(CVC4::RecordType(t).getRecord()), expr);
+  const CVC4::Datatype& dt = ((CVC4::DatatypeType)t).getDatatype();
+  return d_em->mkExpr(CVC4::kind::APPLY_CONSTRUCTOR, dt[0].getConstructor(), expr);
 }
 
 Expr ValidityChecker::recordExpr(const std::string& field0, const Expr& expr0,
                                  const std::string& field1, const Expr& expr1) {
   CVC4::Type t = recordType(field0, expr0.getType(),
                             field1, expr1.getType());
-  return d_em->mkExpr(CVC4::kind::RECORD, d_em->mkConst(CVC4::RecordType(t).getRecord()), expr0, expr1);
+  const CVC4::Datatype& dt = ((CVC4::DatatypeType)t).getDatatype();
+  return d_em->mkExpr(CVC4::kind::APPLY_CONSTRUCTOR, dt[0].getConstructor(), expr0, expr1);
 }
 
 Expr ValidityChecker::recordExpr(const std::string& field0, const Expr& expr0,
@@ -1798,7 +1800,8 @@ Expr ValidityChecker::recordExpr(const std::string& field0, const Expr& expr0,
   CVC4::Type t = recordType(field0, expr0.getType(),
                             field1, expr1.getType(),
                             field2, expr2.getType());
-  return d_em->mkExpr(CVC4::kind::RECORD, d_em->mkConst(CVC4::RecordType(t).getRecord()), expr0, expr1, expr2);
+  const CVC4::Datatype& dt = ((CVC4::DatatypeType)t).getDatatype();
+  return d_em->mkExpr(CVC4::kind::APPLY_CONSTRUCTOR, dt[0].getConstructor(), expr0, expr1, expr2);
 }
 
 Expr ValidityChecker::recordExpr(const std::vector<std::string>& fields,
@@ -1808,11 +1811,15 @@ Expr ValidityChecker::recordExpr(const std::vector<std::string>& fields,
     types.push_back(exprs[i].getType());
   }
   CVC4::Type t = recordType(fields, types);
-  return d_em->mkExpr(d_em->mkConst(CVC4::RecordType(t).getRecord()), *reinterpret_cast<const vector<CVC4::Expr>*>(&exprs));
+  const CVC4::Datatype& dt = ((CVC4::DatatypeType)t).getDatatype();
+  return d_em->mkExpr(CVC4::kind::APPLY_CONSTRUCTOR, dt[0].getConstructor(), *reinterpret_cast<const vector<CVC4::Expr>*>(&exprs));
 }
 
 Expr ValidityChecker::recSelectExpr(const Expr& record, const std::string& field) {
-  return d_em->mkExpr(d_em->mkConst(CVC4::RecordSelect(field)), record);
+  Type t = record.getType();
+  const CVC4::Datatype& dt = ((CVC4::DatatypeType)t).getDatatype();
+  unsigned index = CVC4::Datatype::indexOf( dt[0].getSelector(field) );
+  return d_em->mkExpr(CVC4::kind::APPLY_SELECTOR_TOTAL, dt[0][index].getSelector(), record);
 }
 
 Expr ValidityChecker::recUpdateExpr(const Expr& record, const std::string& field,
@@ -2200,15 +2207,23 @@ Rational ValidityChecker::computeBVConst(const Expr& e) {
 }
 
 Expr ValidityChecker::tupleExpr(const std::vector<Expr>& exprs) {
-  const vector<CVC4::Expr>& v =
-    *reinterpret_cast<const vector<CVC4::Expr>*>(&exprs);
-  return d_em->mkExpr(CVC4::kind::TUPLE, v);
+  std::vector< Type > types;
+  std::vector<CVC4::Expr> v;
+  for( unsigned i=0; i<exprs.size(); i++ ){
+    types.push_back( exprs[i].getType() );  
+    v.push_back( exprs[i] );
+  }
+  Type t = tupleType( types );
+  const CVC4::Datatype& dt = ((CVC4::DatatypeType)t).getDatatype();
+  v.insert( v.begin(), dt[0].getConstructor() );
+  return d_em->mkExpr(CVC4::kind::APPLY_CONSTRUCTOR, v);
 }
 
 Expr ValidityChecker::tupleSelectExpr(const Expr& tuple, int index) {
-  CompatCheckArgument(index >= 0 && index < tuple.getNumChildren(),
+  CompatCheckArgument(index >= 0 && index < ((CVC4::DatatypeType)tuple.getType()).getTupleLength(),
                       "invalid index in tuple select");
-  return d_em->mkExpr(d_em->mkConst(CVC4::TupleSelect(index)), tuple);
+  const CVC4::Datatype& dt = ((CVC4::DatatypeType)tuple.getType()).getDatatype();
+  return d_em->mkExpr(CVC4::kind::APPLY_SELECTOR_TOTAL, dt[0][index].getSelector(), tuple);
 }
 
 Expr ValidityChecker::tupleUpdateExpr(const Expr& tuple, int index,

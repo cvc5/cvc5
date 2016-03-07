@@ -624,6 +624,25 @@ public:
   std::string getCommandName() const throw();
 };/* class GetSynthSolutionCommand */
 
+class CVC4_PUBLIC GetQuantifierEliminationCommand : public Command {
+protected:
+  Expr d_expr;
+  bool d_doFull;
+  Expr d_result;
+public:
+  GetQuantifierEliminationCommand() throw();
+  GetQuantifierEliminationCommand(const Expr& expr, bool doFull) throw();
+  ~GetQuantifierEliminationCommand() throw() {}
+  Expr getExpr() const throw();
+  bool getDoFull() const throw();
+  void invoke(SmtEngine* smtEngine) throw();
+  Expr getResult() const throw();
+  void printResult(std::ostream& out, uint32_t verbosity = 2) const throw();
+  Command* exportTo(ExprManager* exprManager, ExprManagerMapCollection& variableMap);
+  Command* clone() const;
+  std::string getCommandName() const throw();
+};/* class GetQuantifierEliminationCommand */
+
 class CVC4_PUBLIC GetUnsatCoreCommand : public Command {
 protected:
   UnsatCore d_result;

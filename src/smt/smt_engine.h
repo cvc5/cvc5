@@ -553,6 +553,11 @@ public:
   void printSynthSolution( std::ostream& out );
 
   /**
+   * Do quantifier elimination, doFull false means just output one disjunct
+   */
+  Expr doQuantifierElimination(const Expr& e, bool doFull) throw(TypeCheckingException, ModalException, LogicException);
+
+  /**
    * Get an unsatisfiable core (only if immediately preceded by an
    * UNSAT or VALID query).  Only permitted if CVC4 was built with
    * unsat-core support and produce-unsat-cores is on.

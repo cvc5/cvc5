@@ -358,27 +358,6 @@ Type FunctionType::getRangeType() const {
   return makeType(d_typeNode->getRangeType());
 }
 
-size_t TupleType::getLength() const {
-  return d_typeNode->getTupleLength();
-}
-
-vector<Type> TupleType::getTypes() const {
-  NodeManagerScope nms(d_nodeManager);
-  vector<Type> types;
-  vector<TypeNode> typeNodes = d_typeNode->getTupleTypes();
-  vector<TypeNode>::iterator it = typeNodes.begin();
-  vector<TypeNode>::iterator it_end = typeNodes.end();
-  for(; it != it_end; ++ it) {
-    types.push_back(makeType(*it));
-  }
-  return types;
-}
-
-const Record& RecordType::getRecord() const {
-  NodeManagerScope nms(d_nodeManager);
-  return d_typeNode->getRecord();
-}
-
 vector<Type> SExprType::getTypes() const {
   NodeManagerScope nms(d_nodeManager);
   vector<Type> types;
@@ -486,16 +465,6 @@ TesterType::TesterType(const Type& t) throw(IllegalArgumentException)
 FunctionType::FunctionType(const Type& t) throw(IllegalArgumentException)
     : Type(t) {
   PrettyCheckArgument(isNull() || isFunction(), this);
-}
-
-TupleType::TupleType(const Type& t) throw(IllegalArgumentException)
-    : Type(t) {
-  PrettyCheckArgument(isNull() || isTuple(), this);
-}
-
-RecordType::RecordType(const Type& t) throw(IllegalArgumentException)
-    : Type(t) {
-  PrettyCheckArgument(isNull() || isRecord(), this);
 }
 
 SExprType::SExprType(const Type& t) throw(IllegalArgumentException)
@@ -638,6 +607,29 @@ DatatypeType DatatypeType::instantiate(const std::vector<Type>& params) const {
     paramsNodes.push_back(*getTypeNode(*i));
   }
   return DatatypeType(makeType(d_nodeManager->mkTypeNode(kind::PARAMETRIC_DATATYPE, paramsNodes)));
+}
+
+/** Get the length of a tuple type */
+size_t DatatypeType::getTupleLength() const {
+  NodeManagerScope nms(d_nodeManager);
+  return d_typeNode->getTupleLength();
+}
+
+/** Get the constituent types of a tuple type */
+std::vector<Type> DatatypeType::getTupleTypes() const {
+  NodeManagerScope nms(d_nodeManager);
+  std::vector< TypeNode > vec = d_typeNode->getTupleTypes();
+  std::vector< Type > vect;
+  for( unsigned i=0; i<vec.size(); i++ ){
+    vect.push_back( vec[i].toType() );
+  }
+  return vect;
+}
+
+/** Get the description of the record type */
+const Record& DatatypeType::getRecord() const {
+  NodeManagerScope nms(d_nodeManager);
+  return d_typeNode->getRecord();
 }
 
 DatatypeType SelectorType::getDomain() const {

@@ -100,43 +100,6 @@ public:
         }
       }
     }
-    if(in.getKind() == kind::TUPLE_SELECT && in[0].getKind() == kind::APPLY_CONSTRUCTOR) {
-      return RewriteResponse(REWRITE_DONE, in[0][in.getOperator().getConst<TupleSelect>().getIndex()]);
-    }
-    if(in.getKind() == kind::RECORD_SELECT && in[0].getKind() == kind::APPLY_CONSTRUCTOR) {
-      const Record& rec = in[0].getType().getAttribute(expr::DatatypeRecordAttr()).getConst<Record>();
-      return RewriteResponse(REWRITE_DONE, in[0][rec.getIndex(in.getOperator().getConst<RecordSelect>().getField())]);
-    }
-    if(in.getKind() == kind::APPLY_SELECTOR_TOTAL &&
-       (in[0].getKind() == kind::TUPLE || in[0].getKind() == kind::RECORD)) {
-      // These strange (half-tuple-converted) terms can be created by
-      // the system if you have something like "foo.1" for a tuple
-      // term foo.  The select is rewritten to "select_1(foo)".  If
-      // foo gets a value in the model from the TypeEnumerator, you
-      // then have a select of a tuple, and we should flatten that
-      // here.  Ditto for records, below.
-      Expr selectorExpr = in.getOperator().toExpr();
-      const Datatype& dt CVC4_UNUSED = Datatype::datatypeOf(selectorExpr);
-      TypeNode dtt CVC4_UNUSED = TypeNode::fromType(dt.getDatatypeType());
-      size_t selectorIndex = Datatype::indexOf(selectorExpr);
-      Debug("tuprec") << "looking at " << in << ", got selector index " << selectorIndex << std::endl;
-#ifdef CVC4_ASSERTIONS
-      // sanity checks: tuple- and record-converted datatypes should have one constructor
-      Assert(NodeManager::currentNM()->getDatatypeForTupleRecord(in[0].getType()) == dtt);
-      if(in[0].getKind() == kind::TUPLE) {
-        Assert(dtt.hasAttribute(expr::DatatypeTupleAttr()));
-        Assert(dtt.getAttribute(expr::DatatypeTupleAttr()) == in[0].getType());
-      } else {
-        Assert(dtt.hasAttribute(expr::DatatypeRecordAttr()));
-        Assert(dtt.getAttribute(expr::DatatypeRecordAttr()) == in[0].getType());
-      }
-      Assert(dt.getNumConstructors() == 1);
-      Assert(dt[0].getNumArgs() > selectorIndex);
-      Assert(dt[0][selectorIndex].getSelector() == selectorExpr);
-#endif /* CVC4_ASSERTIONS */
-      Debug("tuprec") << "==> returning " << in[0][selectorIndex] << std::endl;
-      return RewriteResponse(REWRITE_DONE, in[0][selectorIndex]);
-    }
     if(in.getKind() == kind::APPLY_SELECTOR_TOTAL && in[0].getKind() == kind::APPLY_CONSTRUCTOR) {
       // Have to be careful not to rewrite well-typed expressions
       // where the selector doesn't match the constructor,
@@ -167,19 +130,19 @@ public:
         //typically should not be called
         TypeNode tn = in.getType();
         Node gt;
-        if( tn.isSort() ){
+        bool useTe = true;
+        //if( !tn.isSort() ){
+        //  useTe = false;
+        //}
+        if( isTypeDatatype( tn ) ){
+          const Datatype& dta = ((DatatypeType)(tn).toType()).getDatatype();
+          useTe = !dta.isCodatatype();
+        }
+        if( useTe ){
           TypeEnumerator te(tn);
           gt = *te;
         }else{
-          //check whether well-founded
-          //bool isWf = true;
-          //if( isTypeDatatype( tn ) ){
-          //  const Datatype& dta = ((DatatypeType)(tn).toType()).getDatatype();
-          //  isWf = dta.isWellFounded();
-          //}
-          //if( isWf || in[0].isConst() ){
           gt = tn.mkGroundTerm();
-          //}
         }
         if( !gt.isNull() ){
           //Assert( gtt.isDatatype() || gtt.isParametricDatatype() );
@@ -236,60 +199,25 @@ public:
         return RewriteResponse(REWRITE_AGAIN_FULL, res );
       }
     }
-    if(in.getKind() == kind::TUPLE_SELECT &&
-       in[0].getKind() == kind::TUPLE) {
-      return RewriteResponse(REWRITE_DONE, in[0][in.getOperator().getConst<TupleSelect>().getIndex()]);
-    }
-    if(in.getKind() == kind::TUPLE_UPDATE &&
-       in[0].getKind() == kind::TUPLE) {
-      size_t ix = in.getOperator().getConst<TupleUpdate>().getIndex();
-      NodeBuilder<> b(kind::TUPLE);
-      for(TNode::const_iterator i = in[0].begin(); i != in[0].end(); ++i, --ix) {
-        if(ix == 0) {
-          b << in[1];
-        } else {
-          b << *i;
-        }
-      }
-      Node n = b;
-      Assert(n.getType().isSubtypeOf(in.getType()));
-      return RewriteResponse(REWRITE_DONE, n);
-    }
-    if(in.getKind() == kind::RECORD_SELECT &&
-       in[0].getKind() == kind::RECORD) {
-      return RewriteResponse(REWRITE_DONE, in[0][in[0].getOperator().getConst<Record>().getIndex(in.getOperator().getConst<RecordSelect>().getField())]);
-    }
-    if(in.getKind() == kind::RECORD_UPDATE &&
-       in[0].getKind() == kind::RECORD) {
-      size_t ix = in[0].getOperator().getConst<Record>().getIndex(in.getOperator().getConst<RecordUpdate>().getField());
-      NodeBuilder<> b(kind::RECORD);
-      b << in[0].getOperator();
-      for(TNode::const_iterator i = in[0].begin(); i != in[0].end(); ++i, --ix) {
-        if(ix == 0) {
-          b << in[1];
-        } else {
-          b << *i;
-        }
-      }
-      Node n = b;
-      Assert(n.getType().isSubtypeOf(in.getType()));
-      return RewriteResponse(REWRITE_DONE, n);
-    }
 
-    if(in.getKind() == kind::EQUAL && in[0] == in[1]) {
-      return RewriteResponse(REWRITE_DONE,
-                             NodeManager::currentNM()->mkConst(true));
-    }
     if(in.getKind() == kind::EQUAL ) {
-      std::vector< Node > rew;
-      if( checkClash(in[0], in[1], rew) ){
-        Trace("datatypes-rewrite") << "Rewrite clashing equality " << in << " to false" << std::endl;
-        return RewriteResponse(REWRITE_DONE, NodeManager::currentNM()->mkConst(false));
-      }else if( rew.size()==1 && rew[0]!=in ){
-        Trace("datatypes-rewrite") << "Rewrite equality " << in << " to " << rew[0] << std::endl;
-        return RewriteResponse(REWRITE_AGAIN_FULL, rew[0] );
+      if(in[0] == in[1]) {
+        return RewriteResponse(REWRITE_DONE, NodeManager::currentNM()->mkConst(true));
       }else{
-        Trace("datatypes-rewrite-debug") << "Did not rewrite equality " << in << " " << in[0].getKind() << " " << in[1].getKind() << std::endl;
+        std::vector< Node > rew;
+        if( checkClash(in[0], in[1], rew) ){
+          Trace("datatypes-rewrite") << "Rewrite clashing equality " << in << " to false" << std::endl;
+          return RewriteResponse(REWRITE_DONE, NodeManager::currentNM()->mkConst(false));
+        //}else if( rew.size()==1 && rew[0]!=in ){
+        //  Trace("datatypes-rewrite") << "Rewrite equality " << in << " to " << rew[0] << std::endl;
+        //  return RewriteResponse(REWRITE_AGAIN_FULL, rew[0] );
+        }else if( in[1]<in[0] ){
+          Node ins = NodeManager::currentNM()->mkNode(in.getKind(), in[1], in[0]);
+          Trace("datatypes-rewrite") << "Swap equality " << in << " to " << ins << std::endl;
+          return RewriteResponse(REWRITE_DONE, ins);
+        }else{
+          Trace("datatypes-rewrite-debug") << "Did not rewrite equality " << in << " " << in[0].getKind() << " " << in[1].getKind() << std::endl;
+        }
       }
     }
 
@@ -306,10 +234,7 @@ public:
 
   static bool checkClash( Node n1, Node n2, std::vector< Node >& rew ) {
     Trace("datatypes-rewrite-debug") << "Check clash : " << n1 << " " << n2 << std::endl;
-    if( (n1.getKind() == kind::APPLY_CONSTRUCTOR && n2.getKind() == kind::APPLY_CONSTRUCTOR) ||
-        (n1.getKind() == kind::TUPLE && n2.getKind() == kind::TUPLE) ||
-        (n1.getKind() == kind::RECORD && n2.getKind() == kind::RECORD) ) {
-      //n1.getKind()==kind::APPLY_CONSTRUCTOR
+    if( n1.getKind() == kind::APPLY_CONSTRUCTOR && n2.getKind() == kind::APPLY_CONSTRUCTOR ) {
       if( n1.getOperator() != n2.getOperator() ) {
         Trace("datatypes-rewrite-debug") << "Clash operators : " << n1 << " " << n2 << " " << n1.getOperator() << " " << n2.getOperator() << std::endl;
         return true;
@@ -459,12 +384,10 @@ public:
   /** is this term a datatype */
   static bool isTermDatatype( TNode n ){
     TypeNode tn = n.getType();
-    return tn.isDatatype() || tn.isParametricDatatype() ||
-           tn.isTuple() || tn.isRecord();
+    return tn.isDatatype() || tn.isParametricDatatype();
   }
   static bool isTypeDatatype( TypeNode tn ){
-    return tn.isDatatype() || tn.isParametricDatatype() ||
-           tn.isTuple() || tn.isRecord();
+    return tn.isDatatype() || tn.isParametricDatatype();
   }
 private:
   static Node collectRef( Node n, std::vector< Node >& sk, std::map< Node, Node >& rf, std::vector< Node >& rf_pending,
@@ -531,28 +454,32 @@ private:
   }
   //eqc_stack stores depth
   static Node normalizeCodatatypeConstantEqc( Node n, std::map< int, int >& eqc_stack, std::map< Node, int >& eqc, int depth ){
-    Assert( eqc.find( n )!=eqc.end() );
-    int e = eqc[n];
-    std::map< int, int >::iterator it = eqc_stack.find( e );
-    if( it!=eqc_stack.end() ){
-      int debruijn = depth - it->second - 1;
-      return NodeManager::currentNM()->mkConst(UninterpretedConstant(n.getType().toType(), debruijn));
+    Trace("dt-nconst-debug") << "normalizeCodatatypeConstantEqc: " << n << " depth=" << depth << std::endl;
+    if( eqc.find( n )==eqc.end() ){
+      return n;
     }else{
-      std::vector< Node > children;
-      bool childChanged = false;
-      eqc_stack[e] = depth;
-      for( unsigned i=0; i<n.getNumChildren(); i++ ){
-        Node nc = normalizeCodatatypeConstantEqc( n[i], eqc_stack, eqc, depth+1 );
-        children.push_back( nc );
-        childChanged = childChanged || nc!=n[i];
-      }
-      eqc_stack.erase(e);
-      if( childChanged ){
-        Assert( n.getKind()==kind::APPLY_CONSTRUCTOR );
-        children.insert( children.begin(), n.getOperator() );
-        return NodeManager::currentNM()->mkNode( n.getKind(), children );
+      int e = eqc[n];
+      std::map< int, int >::iterator it = eqc_stack.find( e );
+      if( it!=eqc_stack.end() ){
+        int debruijn = depth - it->second - 1;
+        return NodeManager::currentNM()->mkConst(UninterpretedConstant(n.getType().toType(), debruijn));
       }else{
-        return n;
+        std::vector< Node > children;
+        bool childChanged = false;
+        eqc_stack[e] = depth;
+        for( unsigned i=0; i<n.getNumChildren(); i++ ){
+          Node nc = normalizeCodatatypeConstantEqc( n[i], eqc_stack, eqc, depth+1 );
+          children.push_back( nc );
+          childChanged = childChanged || nc!=n[i];
+        }
+        eqc_stack.erase(e);
+        if( childChanged ){
+          Assert( n.getKind()==kind::APPLY_CONSTRUCTOR );
+          children.insert( children.begin(), n.getOperator() );
+          return NodeManager::currentNM()->mkNode( n.getKind(), children );
+        }else{
+          return n;
+        }
       }
     }
   }
@@ -675,7 +602,7 @@ public:
         eqc[it->first] = eqc[it->second];
       }
       //we now have a partition of equivalent terms
-      Trace("dt-nconst") << "Equivalence classes ids : " << std::endl;
+      Trace("dt-nconst") << "Computed equivalence classes ids : " << std::endl;
       for( std::map< Node, int >::iterator it = eqc.begin(); it != eqc.end(); ++it ){
         Trace("dt-nconst") << "  " << it->first << " -> " << it->second << std::endl;
       }

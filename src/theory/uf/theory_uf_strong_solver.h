@@ -232,8 +232,6 @@ public:
     std::map< int, Node > d_cardinality_literal;
     /** cardinality lemmas */
     std::map< int, Node > d_cardinality_lemma;
-    /** cardinality assertions (indexed by cardinality literals ) */
-    NodeBoolMap d_cardinality_assertions;
     /** whether a positive cardinality constraint has been asserted */
     context::CDO< bool > d_hasCard;
     /** clique lemmas that have been asserted */
@@ -244,6 +242,8 @@ public:
     std::vector< Node > d_fresh_aloc_reps;
     /** whether we are initialized */
     context::CDO< bool > d_initialized;
+    /** cache for lemmas */
+    NodeBoolMap d_lemma_cache;
   private:
     /** apply totality */
     bool applyTotality( int cardinality );
@@ -251,6 +251,8 @@ public:
     Node getTotalityLemmaTerm( int cardinality, int i );
     /** simple check cardinality */
     void simpleCheckCardinality();
+  private:
+    bool doSendLemma( Node lem );
   public:
     SortModel( Node n, context::Context* c, context::UserContext* u, StrongSolverTheoryUF* thss );
     virtual ~SortModel(){}

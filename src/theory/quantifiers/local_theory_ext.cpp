@@ -1,5 +1,5 @@
 /*********************                                                        */
-/*! \file quant_util.cpp
+/*! \file local_theory_ext.cpp
  ** \verbatim
  ** Original author: Andrew Reynolds
  ** Major contributors: none
@@ -31,69 +31,69 @@ QuantifiersModule( qe ), d_wasInvoked( false ), d_needsCheck( false ){
 }
 
 /** add quantifier */
-bool LtePartialInst::addQuantifier( Node q ) {
-  if( d_do_inst.find( q )!=d_do_inst.end() ){
-    if( d_do_inst[q] ){
-      d_lte_asserts.push_back( q );
-      return true;
+void LtePartialInst::preRegisterQuantifier( Node q ) {
+  if( !q.getAttribute(LtePartialInstAttribute()) ){
+    if( d_do_inst.find( q )!=d_do_inst.end() ){
+      if( d_do_inst[q] ){
+        d_lte_asserts.push_back( q );
+        d_quantEngine->setOwner( q, this );
+      }
     }else{
-      return false;
-    }
-  }else{
-    d_vars[q].clear();
-    d_pat_var_order[q].clear();
-    //check if this quantified formula is eligible for partial instantiation
-    std::map< Node, bool > vars;
-    for( unsigned i=0; i<q[0].getNumChildren(); i++ ){
-      vars[q[0][i]] = false;
-    }
-    getEligibleInstVars( q[1], vars );
+      d_vars[q].clear();
+      d_pat_var_order[q].clear();
+      //check if this quantified formula is eligible for partial instantiation
+      std::map< Node, bool > vars;
+      for( unsigned i=0; i<q[0].getNumChildren(); i++ ){
+        vars[q[0][i]] = false;
+      }
+      getEligibleInstVars( q[1], vars );
 
-    //instantiate only if we would force ground instances
-    std::map< Node, int > var_order;
-    bool doInst = true;
-    for( unsigned i=0; i<q[0].getNumChildren(); i++ ){
-      if( vars[q[0][i]] ){
-        d_vars[q].push_back( q[0][i] );
-        var_order[q[0][i]] = i;
-      }else{
-        Trace("lte-partial-inst-debug") << "...do not consider, variable " << q[0][i] << " was not found in correct position in body." << std::endl;
-        doInst = false;
-        break;
-      }
-    }
-    if( doInst ){
-      //also needs patterns
-      if( q.getNumChildren()==3 && q[2].getNumChildren()==1 ){
-        for( unsigned i=0; i<q[2][0].getNumChildren(); i++ ){
-          Node pat = q[2][0][i];
-          if( pat.getKind()==APPLY_UF ){
-            for( unsigned j=0; j<pat.getNumChildren(); j++ ){
-              if( !addVariableToPatternList( pat[j], d_pat_var_order[q], var_order ) ){
-                doInst = false;
-              }
-            }
-          }else if( !addVariableToPatternList( pat, d_pat_var_order[q], var_order ) ){
-            doInst = false;
-          }
-          if( !doInst ){
-            Trace("lte-partial-inst-debug") << "...do not consider, cannot resolve pattern : " << pat << std::endl;
-            break;
-          }
+      //instantiate only if we would force ground instances
+      std::map< Node, int > var_order;
+      bool doInst = true;
+      for( unsigned i=0; i<q[0].getNumChildren(); i++ ){
+        if( vars[q[0][i]] ){
+          d_vars[q].push_back( q[0][i] );
+          var_order[q[0][i]] = i;
+        }else{
+          Trace("lte-partial-inst-debug") << "...do not consider, variable " << q[0][i] << " was not found in correct position in body." << std::endl;
+          doInst = false;
+          break;
         }
-      }else{
-        Trace("lte-partial-inst-debug") << "...do not consider (must have exactly one pattern)." << std::endl;
+      }
+      if( doInst ){
+        //also needs patterns
+        if( q.getNumChildren()==3 && q[2].getNumChildren()==1 ){
+          for( unsigned i=0; i<q[2][0].getNumChildren(); i++ ){
+            Node pat = q[2][0][i];
+            if( pat.getKind()==APPLY_UF ){
+              for( unsigned j=0; j<pat.getNumChildren(); j++ ){
+                if( !addVariableToPatternList( pat[j], d_pat_var_order[q], var_order ) ){
+                  doInst = false;
+                }
+              }
+            }else if( !addVariableToPatternList( pat, d_pat_var_order[q], var_order ) ){
+              doInst = false;
+            }
+            if( !doInst ){
+              Trace("lte-partial-inst-debug") << "...do not consider, cannot resolve pattern : " << pat << std::endl;
+              break;
+            }
+          }
+        }else{
+          Trace("lte-partial-inst-debug") << "...do not consider (must have exactly one pattern)." << std::endl;
+        }
+      }
+      
+      
+      Trace("lte-partial-inst") << "LTE: ...will " << ( doInst ? "" : "not ") << "instantiate " << q << std::endl;
+      d_do_inst[q] = doInst;
+      if( doInst ){
+        d_lte_asserts.push_back( q );
+        d_needsCheck = true;
+        d_quantEngine->setOwner( q, this );
       }
     }
-    
-    
-    Trace("lte-partial-inst") << "LTE: ...will " << ( doInst ? "" : "not ") << "instantiate " << q << std::endl;
-    d_do_inst[q] = doInst;
-    if( doInst ){
-      d_lte_asserts.push_back( q );
-      d_needsCheck = true;
-    }
-    return doInst;
   }
 }
 
@@ -188,7 +188,6 @@ void LtePartialInst::getInstantiations( std::vector< Node >& lemmas ) {
       Assert( !conj.empty() );
       lemmas.push_back( NodeManager::currentNM()->mkNode( OR, q.negate(), conj.size()==1 ? conj[0] : NodeManager::currentNM()->mkNode( AND, conj ) ) );
       d_wasInvoked = true;
-      d_quantEngine->getModel()->markQuantifierReduced( q );
     }
   }
 }

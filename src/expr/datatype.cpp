@@ -51,6 +51,10 @@ typedef expr::Attribute<expr::attr::DatatypeFiniteComputedTag, bool> DatatypeFin
 typedef expr::Attribute<expr::attr::DatatypeUFiniteTag, bool> DatatypeUFiniteAttr;
 typedef expr::Attribute<expr::attr::DatatypeUFiniteComputedTag, bool> DatatypeUFiniteComputedAttr;
 
+Datatype::~Datatype(){
+  delete d_record;
+}
+
 const Datatype& Datatype::datatypeOf(Expr item) {
   ExprManagerScope ems(item);
   TypeNode t = Node::fromExpr(item).getType();
@@ -133,6 +137,14 @@ void Datatype::resolve(ExprManager* em,
       d_involvesUt =  true;
     }
   }
+
+  if( d_isRecord ){
+    std::vector< std::pair<std::string, Type> > fields;
+    for( unsigned i=0; i<(*this)[0].getNumArgs(); i++ ){
+      fields.push_back( std::pair<std::string, Type>( (*this)[0][i].getName(), (*this)[0][i].getRangeType() ) );
+    }
+    d_record = new Record(fields);
+  }
 }
 
 void Datatype::addConstructor(const DatatypeConstructor& c) {
@@ -151,6 +163,15 @@ void Datatype::setSygus( Type st, Expr bvl, bool allow_const, bool allow_all ){
   d_sygus_allow_all = allow_all;
 }
 
+void Datatype::setTuple() {
+  PrettyCheckArgument(!d_resolved, this, "cannot set tuple to a finalized Datatype");
+  d_isTuple = true;
+}
+
+void Datatype::setRecord() {
+  PrettyCheckArgument(!d_resolved, this, "cannot set record to a finalized Datatype");
+  d_isRecord = true;
+}
 
 Cardinality Datatype::getCardinality() const throw(IllegalArgumentException) {
   PrettyCheckArgument(isResolved(), this, "this datatype is not yet resolved");
@@ -178,19 +199,23 @@ Cardinality Datatype::computeCardinality( std::vector< Type >& processing ) cons
 bool Datatype::isRecursiveSingleton() const throw(IllegalArgumentException) {
   PrettyCheckArgument(isResolved(), this, "this datatype is not yet resolved");
   if( d_card_rec_singleton==0 ){
-    Assert( d_card_u_assume.empty() );
-    std::vector< Type > processing;
-    if( computeCardinalityRecSingleton( processing, d_card_u_assume ) ){
-      d_card_rec_singleton = 1;
+    if( isCodatatype() ){
+      Assert( d_card_u_assume.empty() );
+      std::vector< Type > processing;
+      if( computeCardinalityRecSingleton( processing, d_card_u_assume ) ){
+        d_card_rec_singleton = 1;
+      }else{
+        d_card_rec_singleton = -1;
+      }
+      if( d_card_rec_singleton==1 ){
+        Trace("dt-card") << "Datatype " << getName() << " is recursive singleton, dependent upon " << d_card_u_assume.size() << " uninterpreted sorts: " << std::endl;
+        for( unsigned i=0; i<d_card_u_assume.size(); i++ ){
+          Trace("dt-card") << "  " << d_card_u_assume [i] << std::endl;
+        }
+        Trace("dt-card") << std::endl;
+      }
     }else{
       d_card_rec_singleton = -1;
-    }
-    if( d_card_rec_singleton==1 ){
-      Trace("dt-card") << "Datatype " << getName() << " is recursive singleton, dependent upon " << d_card_u_assume.size() << " uninterpreted sorts: " << std::endl;
-      for( unsigned i=0; i<d_card_u_assume.size(); i++ ){
-        Trace("dt-card") << "  " << d_card_u_assume [i] << std::endl;
-      }
-      Trace("dt-card") << std::endl;
     }
   }
   return d_card_rec_singleton==1;
@@ -281,10 +306,11 @@ bool Datatype::isUFinite() const throw(IllegalArgumentException) {
   if(self.getAttribute(DatatypeUFiniteComputedAttr())) {
     return self.getAttribute(DatatypeUFiniteAttr());
   }
+  //start by assuming it is not
+  self.setAttribute(DatatypeUFiniteComputedAttr(), true);
+  self.setAttribute(DatatypeUFiniteAttr(), false);
   for(const_iterator i = begin(), i_end = end(); i != i_end; ++i) {
     if(! (*i).isUFinite()) {
-      self.setAttribute(DatatypeUFiniteComputedAttr(), true);
-      self.setAttribute(DatatypeUFiniteAttr(), false);
       return false;
     }
   }
@@ -663,7 +689,6 @@ void DatatypeConstructor::setSygus( Expr op, Expr let_body, std::vector< Expr >&
   d_sygus_num_let_input_args = num_let_input_args;
 }
 
-
 void DatatypeConstructor::addArg(std::string selectorName, Type selectorType) {
   // We don't want to introduce a new data member, because eventually
   // we're going to be a constant stuffed inside a node.  So we stow
@@ -814,7 +839,7 @@ bool DatatypeConstructor::isFinite() const throw(IllegalArgumentException) {
     return self.getAttribute(DatatypeFiniteAttr());
   }
   for(const_iterator i = begin(), i_end = end(); i != i_end; ++i) {
-    if(! SelectorType((*i).getSelector().getType()).getRangeType().getCardinality().isFinite()) {
+    if(! (*i).getRangeType().getCardinality().isFinite()) {
       self.setAttribute(DatatypeFiniteComputedAttr(), true);
       self.setAttribute(DatatypeFiniteAttr(), false);
       return false;
@@ -834,9 +859,18 @@ bool DatatypeConstructor::isUFinite() const throw(IllegalArgumentException) {
   if(self.getAttribute(DatatypeUFiniteComputedAttr())) {
     return self.getAttribute(DatatypeUFiniteAttr());
   }
+  bool success = true;
   for(const_iterator i = begin(), i_end = end(); i != i_end; ++i) {
-    Type t = SelectorType((*i).getSelector().getType()).getRangeType();
-    if(!t.isSort() && !t.getCardinality().isFinite()) {
+    Type t = (*i).getRangeType();
+    if( t.isDatatype() ){
+      const Datatype& dt = ((DatatypeType)t).getDatatype();
+      if( !dt.isUFinite() ){
+        success = false;
+      }
+    }else if(!t.isSort() && !t.getCardinality().isFinite()) {
+      success = false;
+    }
+    if(!success ){
       self.setAttribute(DatatypeUFiniteComputedAttr(), true);
       self.setAttribute(DatatypeUFiniteAttr(), false);
       return false;
@@ -966,6 +1000,10 @@ Expr DatatypeConstructorArg::getConstructor() const {
 
 SelectorType DatatypeConstructorArg::getType() const {
   return getSelector().getType();
+}
+
+Type DatatypeConstructorArg::getRangeType() const {
+  return getType().getRangeType();
 }
 
 bool DatatypeConstructorArg::isUnresolvedSelf() const throw() {

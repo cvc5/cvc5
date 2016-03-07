@@ -19,12 +19,13 @@
 #ifndef __CVC4__SAT__PROOF_IMPLEMENTATION_H
 #define __CVC4__SAT__PROOF_IMPLEMENTATION_H
 
-#include "proof/sat_proof.h"
+#include "proof/clause_id.h"
 #include "proof/cnf_proof.h"
-#include "prop/minisat/minisat.h"
+#include "proof/sat_proof.h"
 #include "prop/bvminisat/bvminisat.h"
-#include "prop/minisat/core/Solver.h"
 #include "prop/bvminisat/core/Solver.h"
+#include "prop/minisat/core/Solver.h"
+#include "prop/minisat/minisat.h"
 #include "prop/sat_solver_types.h"
 #include "smt/smt_statistics_registry.h"
 

@@ -3,7 +3,7 @@
  ** \verbatim
  ** Original author: Tim King
  ** Major contributors: none
- ** Minor contributors (to current version): none
+ ** Minor contributors (to current version): Andrew Reynolds
  ** This file is part of the CVC4 project.
  ** Copyright (c) 2009-2014  New York University and The University of Iowa
  ** See the file COPYING in the top-level source directory for licensing
@@ -100,6 +100,8 @@ public:
   theory::quantifiers::IteLiftQuantMode stringToIteLiftQuantMode(std::string option, std::string optarg) throw(OptionException);
   theory::quantifiers::SygusInvTemplMode stringToSygusInvTemplMode(std::string option, std::string optarg) throw(OptionException);
   theory::quantifiers::MacrosQuantMode stringToMacrosQuantMode(std::string option, std::string optarg) throw(OptionException);
+  theory::quantifiers::QuantDSplitMode stringToQuantDSplitMode(std::string option, std::string optarg) throw(OptionException);
+  theory::quantifiers::QuantRepMode stringToQuantRepMode(std::string option, std::string optarg) throw(OptionException);
 
   // theory/bv/options_handlers.h
   void abcEnabledBuild(std::string option, bool value) throw(OptionException);
@@ -199,6 +201,8 @@ public:
   static const std::string s_iteLiftQuantHelp;
   static const std::string s_literalMatchHelp;
   static const std::string s_macrosQuantHelp;
+  static const std::string s_quantDSplitHelp;
+  static const std::string s_quantRepHelp;
   static const std::string s_mbqiModeHelp;
   static const std::string s_modelFormatHelp;
   static const std::string s_prenexQuantModeHelp;

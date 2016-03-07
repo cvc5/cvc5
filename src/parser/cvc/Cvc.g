@@ -1103,7 +1103,7 @@ type[CVC4::Type& t,
   : restrictedTypePossiblyFunctionLHS[t,check,lhs]
     { if(lhs) {
         assert(t.isTuple());
-        args = TupleType(t).getTypes();
+        args = ((DatatypeType)t).getTupleTypes();
       } else {
         args.push_back(t);
       }
@@ -1539,13 +1539,17 @@ tupleStore[CVC4::Expr& f]
       if(! t.isTuple()) {
         PARSER_STATE->parseError("tuple-update applied to non-tuple");
       }
-      size_t length = TupleType(t).getLength();
+      size_t length = ((DatatypeType)t).getTupleLength();
       if(k >= length) {
         std::stringstream ss;
         ss << "tuple is of length " << length << "; cannot update index " << k;
         PARSER_STATE->parseError(ss.str());
       }
-      f2 = MK_EXPR(MK_CONST(TupleSelect(k)), f);
+      std::vector<Expr> args;
+      const Datatype & dt = ((DatatypeType)t).getDatatype();
+      args.push_back( dt[0][k].getSelector() );
+      args.push_back( f );
+      f2 = MK_EXPR(CVC4::kind::APPLY_SELECTOR_TOTAL,args);
     }
     ( ( arrayStore[f2]
       | DOT ( tupleStore[f2]
@@ -1572,11 +1576,15 @@ recordStore[CVC4::Expr& f]
            << "its type: " << t;
         PARSER_STATE->parseError(ss.str());
       }
-      const Record& rec = RecordType(t).getRecord();
+      const Record& rec = ((DatatypeType)t).getRecord();
       if(! rec.contains(id)) {
         PARSER_STATE->parseError(std::string("no such field `") + id + "' in record");
       }
-      f2 = MK_EXPR(MK_CONST(RecordSelect(id)), f);
+      std::vector<Expr> args;
+      const Datatype & dt = ((DatatypeType)t).getDatatype();
+      args.push_back( dt[0][id].getSelector() );
+      args.push_back( f );
+      f2 = MK_EXPR(CVC4::kind::APPLY_SELECTOR_TOTAL,args);
     }
     ( ( arrayStore[f2]
       | DOT ( tupleStore[f2]
@@ -1699,24 +1707,32 @@ postfixTerm[CVC4::Expr& f]
           if(! t.isRecord()) {
             PARSER_STATE->parseError("record-select applied to non-record");
           }
-          const Record& rec = RecordType(t).getRecord();
+          const Record& rec = ((DatatypeType)t).getRecord();
           if(!rec.contains(id)){
             PARSER_STATE->parseError(std::string("no such field `") + id + "' in record");
           }
-          f = MK_EXPR(MK_CONST(RecordSelect(id)), f);
+          const Datatype & dt = ((DatatypeType)t).getDatatype();
+          std::vector<Expr> sargs;
+          sargs.push_back( dt[0][id].getSelector() );
+          sargs.push_back( f );
+          f = MK_EXPR(CVC4::kind::APPLY_SELECTOR_TOTAL,sargs);
         }
       | k=numeral
         { Type t = f.getType();
           if(! t.isTuple()) {
             PARSER_STATE->parseError("tuple-select applied to non-tuple");
           }
-          size_t length = TupleType(t).getLength();
+          size_t length = ((DatatypeType)t).getTupleLength();
           if(k >= length) {
             std::stringstream ss;
             ss << "tuple is of length " << length << "; cannot access index " << k;
             PARSER_STATE->parseError(ss.str());
           }
-          f = MK_EXPR(MK_CONST(TupleSelect(k)), f);
+          const Datatype & dt = ((DatatypeType)t).getDatatype();
+          std::vector<Expr> sargs;
+          sargs.push_back( dt[0][k].getSelector() );
+          sargs.push_back( f );
+          f = MK_EXPR(CVC4::kind::APPLY_SELECTOR_TOTAL,sargs);
         }
       )
     )*
@@ -1937,20 +1953,25 @@ simpleTerm[CVC4::Expr& f]
         for(std::vector<Expr>::const_iterator i = args.begin(); i != args.end(); ++i) {
           types.push_back((*i).getType());
         }
-        TupleType t = EXPR_MANAGER->mkTupleType(types);
-        f = MK_EXPR(kind::TUPLE, args);
+        DatatypeType t = EXPR_MANAGER->mkTupleType(types);
+        const Datatype& dt = t.getDatatype();
+        args.insert( args.begin(), dt[0].getConstructor() );
+        f = MK_EXPR(kind::APPLY_CONSTRUCTOR, args);
       }
     }
 
     /* empty tuple literal */
   | LPAREN RPAREN
-    { f = MK_EXPR(kind::TUPLE, std::vector<Expr>()); }
+    { std::vector<Type> types;
+      DatatypeType t = EXPR_MANAGER->mkTupleType(types);
+      const Datatype& dt = t.getDatatype();
+      f = MK_EXPR(kind::APPLY_CONSTRUCTOR, dt[0].getConstructor()); }
     /* empty record literal */
   | PARENHASH HASHPAREN
-    { RecordType t = EXPR_MANAGER->mkRecordType(std::vector< std::pair<std::string, Type> >());
-      f = MK_EXPR(kind::RECORD, MK_CONST(t.getRecord()), std::vector<Expr>());
+    { DatatypeType t = EXPR_MANAGER->mkRecordType(std::vector< std::pair<std::string, Type> >());
+      const Datatype& dt = t.getDatatype();
+      f = MK_EXPR(kind::APPLY_CONSTRUCTOR, dt[0].getConstructor());
     }
-
     /* empty set literal */
   | LBRACE RBRACE
     { f = MK_CONST(EmptySet(Type())); }
@@ -2016,8 +2037,10 @@ simpleTerm[CVC4::Expr& f]
       for(unsigned i = 0; i < names.size(); ++i) {
         typeIds.push_back(std::make_pair(names[i], args[i].getType()));
       }
-      RecordType t = EXPR_MANAGER->mkRecordType(typeIds);
-      f = MK_EXPR(kind::RECORD, MK_CONST(t.getRecord()), args);
+      DatatypeType t = EXPR_MANAGER->mkRecordType(typeIds);
+      const Datatype& dt = t.getDatatype();
+      args.insert( args.begin(), dt[0].getConstructor() );
+      f = MK_EXPR(kind::APPLY_CONSTRUCTOR, args);
     }
 
     /* variable / zero-ary constructor application */

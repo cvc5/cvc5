@@ -34,8 +34,9 @@ using namespace CVC4::theory::arith;
 #define ARITH_INSTANTIATOR_USE_MINUS_DELTA
 
 InstStrategyCbqi::InstStrategyCbqi( QuantifiersEngine * qe )
-  : QuantifiersModule( qe )
-  , d_added_cbqi_lemma( qe->getUserContext() ){
+  : QuantifiersModule( qe ), d_added_cbqi_lemma( qe->getUserContext() )
+//, d_added_inst( qe->getUserContext() ) 
+{
 }
 
 InstStrategyCbqi::~InstStrategyCbqi() throw(){}
@@ -162,13 +163,15 @@ void InstStrategyCbqi::registerCounterexampleLemma( Node q, Node lem ){
 bool InstStrategyCbqi::hasNonCbqiOperator( Node n, std::map< Node, bool >& visited ){
   if( visited.find( n )==visited.end() ){
     visited[n] = true;
-    if( n.getKind()!=INST_CONSTANT && TermDb::hasInstConstAttr( n ) ){
+    if( n.getKind()!=BOUND_VARIABLE && TermDb::hasBoundVarAttr( n ) ){
       if( !inst::Trigger::isCbqiKind( n.getKind() ) ){
         Trace("cbqi-debug2") << "Non-cbqi kind : " << n.getKind() << " in " << n  << std::endl;
         return true;
       }else if( n.getKind()==MULT && ( n.getNumChildren()!=2 || !n[0].isConst() ) ){
         Trace("cbqi-debug2") << "Non-linear arithmetic : " << n << std::endl;
         return true;
+      }else if( n.getKind()==FORALL ){
+        return hasNonCbqiOperator( n[1], visited );
       }else{
         for( unsigned i=0; i<n.getNumChildren(); i++ ){
           if( hasNonCbqiOperator( n[i], visited ) ){
@@ -201,20 +204,25 @@ bool InstStrategyCbqi::doCbqi( Node q ){
   std::map< Node, bool >::iterator it = d_do_cbqi.find( q );
   if( it==d_do_cbqi.end() ){
     bool ret = false;
-    //if has an instantiation pattern, don't do it
-    if( q.getNumChildren()==3 && options::eMatching() && options::userPatternsQuant()!=USER_PAT_MODE_IGNORE ){
-      ret = false;
+    if( d_quantEngine->getTermDatabase()->isQAttrQuantElim( q ) ){
+      ret = true;
     }else{
-      if( options::cbqiAll() ){
-        ret = true;
+      //if has an instantiation pattern, don't do it
+      if( q.getNumChildren()==3 && options::eMatching() && options::userPatternsQuant()!=USER_PAT_MODE_IGNORE ){
+        ret = false;
       }else{
-        //if quantifier has a non-arithmetic variable, then do not use cbqi
-        //if quantifier has an APPLY_UF term, then do not use cbqi
-        Node cb = d_quantEngine->getTermDatabase()->getInstConstantBody( q );
-        std::map< Node, bool > visited;
-        ret = !hasNonCbqiVariable( q ) && !hasNonCbqiOperator( cb, visited );
+        if( options::cbqiAll() ){
+          ret = true;
+        }else{
+          //if quantifier has a non-arithmetic variable, then do not use cbqi
+          //if quantifier has an APPLY_UF term, then do not use cbqi
+          //Node cb = d_quantEngine->getTermDatabase()->getInstConstantBody( q );
+          std::map< Node, bool > visited;
+          ret = !hasNonCbqiVariable( q ) && !hasNonCbqiOperator( q[1], visited );
+        }
       }
     }
+    Trace("cbqi") << "doCbqi " << q << " returned " << ret << std::endl;
     d_do_cbqi[q] = ret;
     return ret;
   }else{
@@ -583,21 +591,23 @@ InstStrategyCegqi::~InstStrategyCegqi() throw () {
 }
 
 void InstStrategyCegqi::processResetInstantiationRound( Theory::Effort effort ) {
-  d_check_vts_lemma_lc = true;
+  d_check_vts_lemma_lc = false;
 }
 
-void InstStrategyCegqi::process( Node f, Theory::Effort effort, int e ) {
+void InstStrategyCegqi::process( Node q, Theory::Effort effort, int e ) {
   if( e==0 ){
-    CegInstantiator * cinst = getInstantiator( f );
-    Trace("inst-alg") << "-> Run cegqi for " << f << std::endl;
-    d_curr_quant = f;
+    CegInstantiator * cinst = getInstantiator( q );
+    Trace("inst-alg") << "-> Run cegqi for " << q << std::endl;
+    d_curr_quant = q;
     if( !cinst->check() ){
       d_incomplete_check = true;
+      d_check_vts_lemma_lc = true;
     }
     d_curr_quant = Node::null();
   }else if( e==1 ){
     //minimize the free delta heuristically on demand
     if( d_check_vts_lemma_lc ){
+      Trace("inst-alg") << "-> Minimize delta heuristic, for " << q << std::endl;
       d_check_vts_lemma_lc = false;
       d_small_const = NodeManager::currentNM()->mkNode( MULT, d_small_const, d_small_const );
       d_small_const = Rewriter::rewrite( d_small_const );
@@ -621,9 +631,22 @@ void InstStrategyCegqi::process( Node f, Theory::Effort effort, int e ) {
 
 bool InstStrategyCegqi::addInstantiation( std::vector< Node >& subs ) {
   Assert( !d_curr_quant.isNull() );
-  //check if we need virtual term substitution (if used delta or infinity)
-  bool used_vts = d_quantEngine->getTermDatabase()->containsVtsTerm( subs, false );
-  return d_quantEngine->addInstantiation( d_curr_quant, subs, false, false, false, used_vts );
+  //if doing partial quantifier elimination, record the instantiation and set the incomplete flag instead of sending instantiation lemma
+  if( d_quantEngine->getTermDatabase()->isQAttrQuantElimPartial( d_curr_quant ) ){
+    d_cbqi_set_quant_inactive = true;
+    d_incomplete_check = true;
+    d_quantEngine->recordInstantiationInternal( d_curr_quant, subs, false, false );
+    return true;
+  }else{
+    //check if we need virtual term substitution (if used delta or infinity)
+    bool used_vts = d_quantEngine->getTermDatabase()->containsVtsTerm( subs, false );
+    if( d_quantEngine->addInstantiation( d_curr_quant, subs, false, false, false, used_vts ) ){
+      //d_added_inst.insert( d_curr_quant );
+      return true;
+    }else{
+      return false;
+    }
+  }
 }
 
 bool InstStrategyCegqi::addLemma( Node lem ) {

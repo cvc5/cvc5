@@ -1233,6 +1233,60 @@ std::string GetSynthSolutionCommand::getCommandName() const throw() {
   return "get-instantiations";
 }
 
+/* class GetQuantifierEliminationCommand */
+
+GetQuantifierEliminationCommand::GetQuantifierEliminationCommand() throw() :
+  d_expr() {
+}
+
+GetQuantifierEliminationCommand::GetQuantifierEliminationCommand(const Expr& expr, bool doFull) throw() :
+  d_expr(expr), d_doFull(doFull) {
+}
+
+Expr GetQuantifierEliminationCommand::getExpr() const throw() {
+  return d_expr;
+}
+bool GetQuantifierEliminationCommand::getDoFull() const throw() {
+  return d_doFull;
+}
+
+void GetQuantifierEliminationCommand::invoke(SmtEngine* smtEngine) throw() {
+  try {
+    d_result = smtEngine->doQuantifierElimination(d_expr, d_doFull);
+    d_commandStatus = CommandSuccess::instance();
+  } catch(exception& e) {
+    d_commandStatus = new CommandFailure(e.what());
+  }
+}
+
+Expr GetQuantifierEliminationCommand::getResult() const throw() {
+  return d_result;
+}
+
+void GetQuantifierEliminationCommand::printResult(std::ostream& out, uint32_t verbosity) const throw() {
+  if(! ok()) {
+    this->Command::printResult(out, verbosity);
+  } else {
+    out << d_result << endl;
+  }
+}
+
+Command* GetQuantifierEliminationCommand::exportTo(ExprManager* exprManager, ExprManagerMapCollection& variableMap) {
+  GetQuantifierEliminationCommand* c = new GetQuantifierEliminationCommand(d_expr.exportTo(exprManager, variableMap), d_doFull);
+  c->d_result = d_result;
+  return c;
+}
+
+Command* GetQuantifierEliminationCommand::clone() const {
+  GetQuantifierEliminationCommand* c = new GetQuantifierEliminationCommand(d_expr, d_doFull);
+  c->d_result = d_result;
+  return c;
+}
+
+std::string GetQuantifierEliminationCommand::getCommandName() const throw() {
+  return d_doFull ? "get-qe" : "get-qe-disjunct";
+}
+
 /* class GetUnsatCoreCommand */
 
 GetUnsatCoreCommand::GetUnsatCoreCommand() throw() {

@@ -20,6 +20,7 @@
 
 #include "expr/node_manager.h"
 #include "expr/variable_type_map.h"
+#include "expr/node_manager_attributes.h"
 #include "options/options.h"
 #include "util/statistics_registry.h"
 
@@ -596,18 +597,18 @@ FunctionType ExprManager::mkPredicateType(const std::vector<Type>& sorts) {
   return FunctionType(Type(d_nodeManager, new TypeNode(d_nodeManager->mkPredicateType(sortNodes))));
 }
 
-TupleType ExprManager::mkTupleType(const std::vector<Type>& types) {
+DatatypeType ExprManager::mkTupleType(const std::vector<Type>& types) {
   NodeManagerScope nms(d_nodeManager);
   std::vector<TypeNode> typeNodes;
   for (unsigned i = 0, i_end = types.size(); i < i_end; ++ i) {
      typeNodes.push_back(*types[i].d_typeNode);
   }
-  return TupleType(Type(d_nodeManager, new TypeNode(d_nodeManager->mkTupleType(typeNodes))));
+  return DatatypeType(Type(d_nodeManager, new TypeNode(d_nodeManager->mkTupleType(typeNodes))));
 }
 
-RecordType ExprManager::mkRecordType(const Record& rec) {
+DatatypeType ExprManager::mkRecordType(const Record& rec) {
   NodeManagerScope nms(d_nodeManager);
-  return RecordType(Type(d_nodeManager, new TypeNode(d_nodeManager->mkRecordType(rec))));
+  return DatatypeType(Type(d_nodeManager, new TypeNode(d_nodeManager->mkRecordType(rec))));
 }
 
 SExprType ExprManager::mkSExprType(const std::vector<Type>& types) {
@@ -790,7 +791,7 @@ void ExprManager::checkResolvedDatatype(DatatypeType dtt) const {
         j != j_end;
         ++j) {
       const DatatypeConstructorArg& a = *j;
-      Type selectorType = a.getSelector().getType();
+      Type selectorType = a.getType();
       Assert(a.isResolved() &&
              selectorType.isSelector() &&
              SelectorType(selectorType).getDomain() == dtt,

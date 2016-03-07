@@ -26,9 +26,8 @@
 #include <iosfwd>
 
 #include "context/cdhashmap.h"
+#include "proof/clause_id.h"
 #include "proof/sat_proof.h"
-#include "proof/sat_proof.h"
-#include "util/proof.h"
 #include "util/proof.h"
 
 namespace CVC4 {

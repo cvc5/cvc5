@@ -149,8 +149,7 @@ void CegConjectureSingleInv::initialize( Node q ) {
   bool singleInvocation = true;
   if( type_valid==0 ){
     //process the single invocation-ness of the property
-    d_sip->init( types );
-    d_sip->process( qq );
+    d_sip->init( types, qq );
     Trace("cegqi-si") << "- Partitioned to single invocation parts : " << std::endl;
     d_sip->debugPrint( "cegqi-si" );
     //map from program to bound variables
@@ -839,7 +838,41 @@ void CegConjectureSingleInv::preregisterConjecture( Node q ) {
   d_orig_conjecture = q;
 }
 
-void SingleInvocationPartition::init( std::vector< TypeNode >& typs ){
+bool SingleInvocationPartition::init( Node n ) {
+  //first, get types of arguments for functions
+  std::vector< TypeNode > typs;
+  std::map< Node, bool > visited;
+  if( inferArgTypes( n, typs, visited ) ){
+    return init( typs, n );  
+  }else{
+    return false;
+  }
+}
+
+bool SingleInvocationPartition::inferArgTypes( Node n, std::vector< TypeNode >& typs, std::map< Node, bool >& visited ) {
+  if( visited.find( n )==visited.end() ){
+    visited[n] = true;
+    if( n.getKind()!=FORALL ){
+    //if( TermDb::hasBoundVarAttr( n ) ){
+      if( n.getKind()==APPLY_UF ){
+        for( unsigned i=0; i<n.getNumChildren(); i++ ){
+          typs.push_back( n[i].getType() );
+        }
+        return true;
+      }else{
+        for( unsigned i=0; i<n.getNumChildren(); i++ ){
+          if( inferArgTypes( n[i], typs, visited ) ){
+            return true;
+          }
+        }
+      }
+    //}
+    }
+  }
+  return false;
+}
+
+bool SingleInvocationPartition::init( std::vector< TypeNode >& typs, Node n ){
   Assert( d_arg_types.empty() );
   Assert( d_si_vars.empty() );
   d_arg_types.insert( d_arg_types.end(), typs.begin(), typs.end() );
@@ -849,6 +882,8 @@ void SingleInvocationPartition::init( std::vector< TypeNode >& typs ){
     Node si_v = NodeManager::currentNM()->mkBoundVar( ss.str(), d_arg_types[j] );
     d_si_vars.push_back( si_v );
   }
+  process( n );
+  return true;
 }
 
 
@@ -984,43 +1019,45 @@ bool SingleInvocationPartition::processConjunct( Node n, std::map< Node, bool >&
     return true;
   }else{
     bool ret = true;
-    for( unsigned i=0; i<n.getNumChildren(); i++ ){
-      if( !processConjunct( n[i], visited, args, terms, subs ) ){
-        ret = false;
+    //if( TermDb::hasBoundVarAttr( n ) ){
+      for( unsigned i=0; i<n.getNumChildren(); i++ ){
+        if( !processConjunct( n[i], visited, args, terms, subs ) ){
+          ret = false;
+        }
       }
-    }
-    if( ret ){
-      if( n.getKind()==APPLY_UF ){
-        if( std::find( terms.begin(), terms.end(), n )==terms.end() ){
-          Node f = n.getOperator();
-          //check if it matches the type requirement
-          if( isAntiSkolemizableType( f ) ){
-            if( args.empty() ){
-              //record arguments
-              for( unsigned i=0; i<n.getNumChildren(); i++ ){
-                args.push_back( n[i] );
-              }
-            }else{
-              //arguments must be the same as those already recorded
-              for( unsigned i=0; i<n.getNumChildren(); i++ ){
-                if( args[i]!=n[i] ){
-                  Trace("si-prt-debug") << "...bad invocation : " << n << " at arg " << i << "." << std::endl;
-                  ret = false;
-                  break;
+      if( ret ){
+        if( n.getKind()==APPLY_UF ){
+          if( std::find( terms.begin(), terms.end(), n )==terms.end() ){
+            Node f = n.getOperator();
+            //check if it matches the type requirement
+            if( isAntiSkolemizableType( f ) ){
+              if( args.empty() ){
+                //record arguments
+                for( unsigned i=0; i<n.getNumChildren(); i++ ){
+                  args.push_back( n[i] );
+                }
+              }else{
+                //arguments must be the same as those already recorded
+                for( unsigned i=0; i<n.getNumChildren(); i++ ){
+                  if( args[i]!=n[i] ){
+                    Trace("si-prt-debug") << "...bad invocation : " << n << " at arg " << i << "." << std::endl;
+                    ret = false;
+                    break;
+                  }
                 }
               }
+              if( ret ){
+                terms.push_back( n );
+                subs.push_back( d_func_inv[f] );
+              }
+            }else{
+              Trace("si-prt-debug") << "... " << f << " is a bad operator." << std::endl;
+              ret = false;
             }
-            if( ret ){
-              terms.push_back( n );
-              subs.push_back( d_func_inv[f] );
-            }
-          }else{
-            Trace("si-prt-debug") << "... " << f << " is a bad operator." << std::endl;
-            ret = false;
           }
         }
       }
-    }
+    //}
     visited[n] = ret;
     return ret;
   }
@@ -1037,6 +1074,7 @@ bool SingleInvocationPartition::isAntiSkolemizableType( Node f ) {
       ret = true;
       std::vector< Node > children;
       children.push_back( f );
+      //TODO: permutations of arguments
       for( unsigned i=0; i<d_arg_types.size(); i++ ){
         children.push_back( d_si_vars[i] );
         if( tn[i]!=d_arg_types[i] ){

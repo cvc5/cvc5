@@ -13,8 +13,9 @@
  **
  ** Dump utility classes and functions.
  **/
-#include "smt/dump.h"
 
+#include "smt/dump.h"
+#include "lib/strtok_r.h"
 #include "base/output.h"
 
 namespace CVC4 {

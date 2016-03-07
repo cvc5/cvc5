@@ -101,6 +101,7 @@ public:
   std::map< Node, InstMatchTrie > d_data;
 private:
   void print( std::ostream& out, Node q, std::vector< TNode >& terms ) const;
+  void getInstantiations( std::vector< Node >& insts, Node q, std::vector< Node >& terms, QuantifiersEngine * qe ) const;
 public:
   InstMatchTrie(){}
   ~InstMatchTrie(){}
@@ -131,6 +132,10 @@ public:
     std::vector< TNode > terms;
     print( out, q, terms );
   }
+  void getInstantiations( std::vector< Node >& insts, Node q, QuantifiersEngine * qe ) {
+    std::vector< Node > terms;
+    getInstantiations( insts, q, terms, qe );
+  }
   void clear() { d_data.clear(); }
 };/* class InstMatchTrie */
 
@@ -143,6 +148,7 @@ public:
   context::CDO< bool > d_valid;
 private:
   void print( std::ostream& out, Node q, std::vector< TNode >& terms ) const;
+  void getInstantiations( std::vector< Node >& insts, Node q, std::vector< Node >& terms, QuantifiersEngine * qe ) const;
 public:
   CDInstMatchTrie( context::Context* c ) : d_valid( c, false ){}
   ~CDInstMatchTrie(){}
@@ -172,6 +178,10 @@ public:
   void print( std::ostream& out, Node q ) const{
     std::vector< TNode > terms;
     print( out, q, terms );
+  }
+  void getInstantiations( std::vector< Node >& insts, Node q, QuantifiersEngine * qe ) {
+    std::vector< Node > terms;
+    getInstantiations( insts, q, terms, qe );
   }
 };/* class CDInstMatchTrie */
 

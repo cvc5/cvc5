@@ -163,6 +163,24 @@ enum MacrosQuantMode {
   MACROS_QUANT_MODE_GROUND_UF,
 };
 
+enum QuantDSplitMode {
+  /** never do quantifiers splitting */
+  QUANT_DSPLIT_MODE_NONE,
+  /** default */
+  QUANT_DSPLIT_MODE_DEFAULT,
+  /** do quantifiers splitting aggressively */
+  QUANT_DSPLIT_MODE_AGG,
+};
+
+enum QuantRepMode {
+  /** let equality engine choose representatives */
+  QUANT_REP_MODE_EE,
+  /** default, choose representatives that appear first */
+  QUANT_REP_MODE_FIRST,
+  /** choose representatives that have minimal depth */
+  QUANT_REP_MODE_DEPTH,
+};
+
 }/* CVC4::theory::quantifiers namespace */
 }/* CVC4::theory namespace */
 

@@ -955,6 +955,45 @@ public:
   std::ostream* getReplayLog() const {
     return d_managedReplayLog.getReplayLog();
   }
+
+  Node replaceQuantifiersWithInstantiations( Node n, std::map< Node, std::vector< Node > >& insts, std::map< Node, Node >& visited ){
+    std::map< Node, Node >::iterator itv = visited.find( n );
+    if( itv!=visited.end() ){
+      return itv->second;
+    }else{
+      Node ret = n;
+      if( n.getKind()==kind::FORALL ){
+        std::map< Node, std::vector< Node > >::iterator it = insts.find( n );
+        if( it==insts.end() ){
+          Trace("smt-qe-debug") << "* " << n << " has no instances" << std::endl;
+          ret = NodeManager::currentNM()->mkConst(true);
+        }else{
+          Trace("smt-qe-debug") << "* " << n << " has " << it->second.size() << " instances" << std::endl;
+          Node reti = it->second.empty() ? NodeManager::currentNM()->mkConst(true) : ( it->second.size()==1 ? it->second[0] : NodeManager::currentNM()->mkNode( kind::AND, it->second ) );
+          Trace("smt-qe-debug") << "   return : " << ret << std::endl;
+          //recursive (for nested quantification)
+          ret = replaceQuantifiersWithInstantiations( reti, insts, visited );
+        }     
+      }else if( n.getNumChildren()>0 ){
+        bool childChanged = false;
+        std::vector< Node > children;
+        if( n.getMetaKind() == kind::metakind::PARAMETERIZED ){
+          children.push_back( n.getOperator() );
+        }
+        for( unsigned i=0; i<n.getNumChildren(); i++ ){
+          Node r = replaceQuantifiersWithInstantiations( n[i], insts, visited );
+          children.push_back( r );
+          childChanged = childChanged || r!=n[i];
+        }
+        if( childChanged ){
+          ret = NodeManager::currentNM()->mkNode( n.getKind(), children );
+        }
+      }
+      visited[n] = ret;
+      return ret;
+    }
+  }
+
 };/* class SmtEnginePrivate */
 
 }/* namespace CVC4::smt */
@@ -1843,6 +1882,9 @@ void SmtEngine::setDefaults() {
       options::preSkolemQuantNested.set( false );
     }
   }
+  if( !d_logic.isTheoryEnabled(THEORY_DATATYPES) ){
+    options::quantDynamicSplit.set( quantifiers::QUANT_DSPLIT_MODE_NONE );
+  }
 
   //until bugs 371,431 are fixed
   if( ! options::minisatUseElim.wasSetByUser()){
@@ -2587,6 +2629,9 @@ bool SmtEnginePrivate::nonClausalSimplify() {
   TimerStat::CodeTimer nonclausalTimer(d_smt.d_stats->d_nonclausalSimplificationTime);
 
   Trace("simplify") << "SmtEnginePrivate::nonClausalSimplify()" << endl;
+  for (unsigned i = 0; i < d_assertions.size(); ++ i) {
+    Trace("simplify") << "Assertion #" << i << " : " << d_assertions[i] << std::endl;
+  }
 
   if(d_propagatorNeedsFinish) {
     d_propagator.finish();
@@ -2622,6 +2667,8 @@ bool SmtEnginePrivate::nonClausalSimplify() {
     return false;
   }
 
+
+  Trace("simplify") << "Iterate through " << d_nonClausalLearnedLiterals.size() << " learned literals." << std::endl;
   // No conflict, go through the literals and solve them
   SubstitutionMap constantPropagations(d_smt.d_context);
   SubstitutionMap newSubstitutions(d_smt.d_context);
@@ -2632,10 +2679,12 @@ bool SmtEnginePrivate::nonClausalSimplify() {
     Node learnedLiteral = d_nonClausalLearnedLiterals[i];
     Assert(Rewriter::rewrite(learnedLiteral) == learnedLiteral);
     Assert(d_topLevelSubstitutions.apply(learnedLiteral) == learnedLiteral);
+    Trace("simplify") << "Process learnedLiteral : " << learnedLiteral << std::endl;
     Node learnedLiteralNew = newSubstitutions.apply(learnedLiteral);
     if (learnedLiteral != learnedLiteralNew) {
       learnedLiteral = Rewriter::rewrite(learnedLiteralNew);
     }
+    Trace("simplify") << "Process learnedLiteral, after newSubs : " << learnedLiteral << std::endl;
     for (;;) {
       learnedLiteralNew = constantPropagations.apply(learnedLiteral);
       if (learnedLiteralNew == learnedLiteral) {
@@ -2644,6 +2693,7 @@ bool SmtEnginePrivate::nonClausalSimplify() {
       ++d_smt.d_stats->d_numConstantProps;
       learnedLiteral = Rewriter::rewrite(learnedLiteralNew);
     }
+    Trace("simplify") << "Process learnedLiteral, after constProp : " << learnedLiteral << std::endl;
     // It might just simplify to a constant
     if (learnedLiteral.isConst()) {
       if (learnedLiteral.getConst<bool>()) {
@@ -2763,6 +2813,7 @@ bool SmtEnginePrivate::nonClausalSimplify() {
 #endif /* CVC4_ASSERTIONS */
   }
   // Resize the learnt
+  Trace("simplify") << "Resize non-clausal learned literals to " << j << std::endl;
   d_nonClausalLearnedLiterals.resize(j);
 
   hash_set<TNode, TNodeHashFunction> s;
@@ -3895,14 +3946,11 @@ void SmtEnginePrivate::processAssertions() {
       //apply pre-skolemization to existential quantifiers
       for (unsigned i = 0; i < d_assertions.size(); ++ i) {
         Node prev = d_assertions[i];
-        Trace("quantifiers-rewrite-debug") << "Pre-skolemize " << prev << "..." << std::endl;
-        vector< TypeNode > fvTypes;
-        vector< TNode > fvs;
-        d_assertions.replace(i, quantifiers::QuantifiersRewriter::preSkolemizeQuantifiers( prev, true, fvTypes, fvs ));
-        if( prev!=d_assertions[i] ){
-          d_assertions.replace(i, Rewriter::rewrite( d_assertions[i] ));
-          Trace("quantifiers-rewrite") << "*** Pre-skolemize " << prev << endl;
-          Trace("quantifiers-rewrite") << "   ...got " << d_assertions[i] << endl;
+        Node next = quantifiers::QuantifiersRewriter::preprocess( prev );
+        if( next!=prev ){
+          d_assertions.replace(i, Rewriter::rewrite( next ));
+          Trace("quantifiers-preprocess") << "*** Pre-skolemize " << prev << endl;
+          Trace("quantifiers-preprocess") << "   ...got " << d_assertions[i] << endl;
         }
       }
     }
@@ -4312,80 +4360,80 @@ Result SmtEngine::query(const Expr& ex, bool inUnsatCore) throw(TypeCheckingExce
   Trace("smt") << "SMT query(" << ex << ")" << endl;
 
   try {
-  if(d_queryMade && !options::incrementalSolving()) {
-    throw ModalException("Cannot make multiple queries unless "
-                         "incremental solving is enabled "
-                         "(try --incremental)");
-  }
-
-  // Substitute out any abstract values in ex
-  Expr e = d_private->substituteAbstractValues(Node::fromExpr(ex)).toExpr();
-  // Ensure that the expression is type-checked at this point, and Boolean
-  ensureBoolean(e);
-
-  // check to see if a postsolve() is pending
-  if(d_needPostsolve) {
-    d_theoryEngine->postsolve();
-    d_needPostsolve = false;
-  }
-
-  // Push the context
-  internalPush();
-
-  // Note that a query has been made
-  d_queryMade = true;
-
-  // Add the formula
-  d_problemExtended = true;
-  if(d_assertionList != NULL) {
-    d_assertionList->push_back(e.notExpr());
-  }
-  d_private->addFormula(e.getNode().notNode(), inUnsatCore);
-
-  // Run the check
-  Result r(Result::SAT_UNKNOWN, Result::UNKNOWN_REASON);
-  r = check().asValidityResult();
-  d_needPostsolve = true;
-
-  // Dump the query if requested
-  if(Dump.isOn("benchmark")) {
-    // the expr already got dumped out if assertion-dumping is on
-    Dump("benchmark") << QueryCommand(ex);
-  }
-
-  // Pop the context
-  internalPop();
-
-  // Remember the status
-  d_status = r;
-
-  d_problemExtended = false;
-
-  Trace("smt") << "SMT query(" << e << ") ==> " << r << endl;
-
-  // Check that SAT results generate a model correctly.
-  if(options::checkModels()) {
-    if(r.asSatisfiabilityResult().isSat() == Result::SAT ||
-       (r.isUnknown() && r.whyUnknown() == Result::INCOMPLETE) ){
-      checkModel(/* hard failure iff */ ! r.isUnknown());
+    if(d_queryMade && !options::incrementalSolving()) {
+      throw ModalException("Cannot make multiple queries unless "
+                           "incremental solving is enabled "
+                           "(try --incremental)");
     }
-  }
-  // Check that UNSAT results generate a proof correctly.
-  if(options::checkProofs()) {
-    if(r.asSatisfiabilityResult().isSat() == Result::UNSAT) {
-      TimerStat::CodeTimer checkProofTimer(d_stats->d_checkProofTime);
-      checkProof();
-    }
-  }
-  // Check that UNSAT results generate an unsat core correctly.
-  if(options::checkUnsatCores()) {
-    if(r.asSatisfiabilityResult().isSat() == Result::UNSAT) {
-      TimerStat::CodeTimer checkUnsatCoreTimer(d_stats->d_checkUnsatCoreTime);
-      checkUnsatCore();
-    }
-  }
 
-  return r;
+    // Substitute out any abstract values in ex
+    Expr e = d_private->substituteAbstractValues(Node::fromExpr(ex)).toExpr();
+    // Ensure that the expression is type-checked at this point, and Boolean
+    ensureBoolean(e);
+
+    // check to see if a postsolve() is pending
+    if(d_needPostsolve) {
+      d_theoryEngine->postsolve();
+      d_needPostsolve = false;
+    }
+
+    // Push the context
+    internalPush();
+
+    // Note that a query has been made
+    d_queryMade = true;
+
+    // Add the formula
+    d_problemExtended = true;
+    if(d_assertionList != NULL) {
+      d_assertionList->push_back(e.notExpr());
+    }
+    d_private->addFormula(e.getNode().notNode(), inUnsatCore);
+
+    // Run the check
+    Result r(Result::SAT_UNKNOWN, Result::UNKNOWN_REASON);
+    r = check().asValidityResult();
+    d_needPostsolve = true;
+
+    // Dump the query if requested
+    if(Dump.isOn("benchmark")) {
+      // the expr already got dumped out if assertion-dumping is on
+      Dump("benchmark") << QueryCommand(ex);
+    }
+
+    // Pop the context
+    internalPop();
+
+    // Remember the status
+    d_status = r;
+
+    d_problemExtended = false;
+
+    Trace("smt") << "SMT query(" << e << ") ==> " << r << endl;
+
+    // Check that SAT results generate a model correctly.
+    if(options::checkModels()) {
+      if(r.asSatisfiabilityResult().isSat() == Result::SAT ||
+         (r.isUnknown() && r.whyUnknown() == Result::INCOMPLETE) ){
+        checkModel(/* hard failure iff */ ! r.isUnknown());
+      }
+    }
+    // Check that UNSAT results generate a proof correctly.
+    if(options::checkProofs()) {
+      if(r.asSatisfiabilityResult().isSat() == Result::UNSAT) {
+        TimerStat::CodeTimer checkProofTimer(d_stats->d_checkProofTime);
+        checkProof();
+      }
+    }
+    // Check that UNSAT results generate an unsat core correctly.
+    if(options::checkUnsatCores()) {
+      if(r.asSatisfiabilityResult().isSat() == Result::UNSAT) {
+        TimerStat::CodeTimer checkUnsatCoreTimer(d_stats->d_checkUnsatCoreTime);
+        checkUnsatCore();
+      }
+    }
+
+    return r;
   } catch (UnsafeInterruptException& e) {
     AlwaysAssert(d_private->getResourceManager()->out());
     Result::UnknownExplanation why = d_private->getResourceManager()->outOfResources() ?
@@ -5008,6 +5056,77 @@ void SmtEngine::printSynthSolution( std::ostream& out ) {
   SmtScope smts(this);
   if( d_theoryEngine ){
     d_theoryEngine->printSynthSolution( out );
+  }
+}
+
+Expr SmtEngine::doQuantifierElimination(const Expr& e, bool doFull) throw(TypeCheckingException, ModalException, LogicException) {
+  SmtScope smts(this);
+  if(!d_logic.isPure(THEORY_ARITH)){
+    Warning() << "Unexpected logic for quantifier elimination." << endl;
+  }
+  Trace("smt-qe") << "Do quantifier elimination " << e << std::endl;
+  Node n_e = Node::fromExpr( e );  
+  if( n_e.getKind()!=kind::EXISTS ){
+    throw ModalException("Expecting an existentially quantified formula as argument to get-qe.");
+  }
+  //tag the quantified formula with the quant-elim attribute
+  TypeNode t = NodeManager::currentNM()->booleanType();
+  Node n_attr = NodeManager::currentNM()->mkSkolem("qe", t, "Auxiliary variable for qe attr.");
+  std::vector< Node > node_values;
+  d_theoryEngine->setUserAttribute( doFull ? "quant-elim" : "quant-elim-partial", n_attr, node_values, "");
+  n_attr = NodeManager::currentNM()->mkNode(kind::INST_ATTRIBUTE, n_attr);
+  n_attr = NodeManager::currentNM()->mkNode(kind::INST_PATTERN_LIST, n_attr);
+  std::vector< Node > e_children;
+  e_children.push_back( n_e[0] );
+  e_children.push_back( n_e[1] );
+  e_children.push_back( n_attr );
+  Node nn_e = NodeManager::currentNM()->mkNode( kind::EXISTS, e_children );
+  Trace("smt-qe-debug") << "Query : " << nn_e << std::endl;
+  Assert( nn_e.getNumChildren()==3 );
+  Result r = query(nn_e.toExpr());
+  Trace("smt-qe") << "Query returned " << r << std::endl;
+  if(r.asSatisfiabilityResult().isSat() == Result::SAT || ( !doFull && r.asSatisfiabilityResult().isSat() != Result::UNSAT ) ) {
+    //get the instantiations for all quantified formulas
+    std::map< Node, std::vector< Node > > insts;    
+    d_theoryEngine->getInstantiations( insts );
+    //find the quantified formula that corresponds to the input
+    Node top_q;
+    for( std::map< Node, std::vector< Node > >::iterator it = insts.begin(); it != insts.end(); ++it ){
+      Trace("smt-qe-debug") << "* quantifier " << it->first << " had " << it->second.size() << " instances." << std::endl;
+      if( it->first.getNumChildren()==3 && it->first[2]==n_attr ){
+        top_q = it->first;
+      }
+    }
+    std::map< Node, Node > visited;
+    Node ret_n;
+    if( top_q.isNull() ){
+      //no instances needed
+      ret_n = NodeManager::currentNM()->mkConst(true);
+      visited[top_q] = ret_n;
+    }else{
+      //replace by a conjunction of instances
+      ret_n = d_private->replaceQuantifiersWithInstantiations( top_q, insts, visited );
+    }
+
+    //ensure all instantiations were accounted for
+    for( std::map< Node, std::vector< Node > >::iterator it = insts.begin(); it != insts.end(); ++it ){
+      if( visited.find( it->first )==visited.end() ){
+        stringstream ss;
+        ss << "While performing quantifier elimination, processed a quantified formula : " << it->first;
+        ss << " that was not related to the query.  Try option --simplification=none.";
+        InternalError(ss.str().c_str());
+      }
+    }
+    Trace("smt-qe") << "Returned : " << ret_n << std::endl;
+    ret_n = Rewriter::rewrite( ret_n.negate() );
+    return ret_n.toExpr();
+  }else {
+    if(r.asSatisfiabilityResult().isSat() != Result::UNSAT){
+      stringstream ss;
+      ss << "While performing quantifier elimination, unexpected result : " << r << " for query.";
+      InternalError(ss.str().c_str());
+    }
+    return NodeManager::currentNM()->mkConst(true).toExpr();
   }
 }
 
