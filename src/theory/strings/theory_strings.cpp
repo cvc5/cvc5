@@ -1417,8 +1417,9 @@ void TheoryStrings::checkFlatForms() {
               }else{
                 Node curr = d_flat_form[a][count];
                 Node curr_c = d_eqc_to_const[curr];
+                Node ac = a[d_flat_form_index[a][count]];
                 std::vector< Node > lexp;
-                Node lcurr = getLength( curr, lexp );
+                Node lcurr = getLength( ac, lexp );
                 for( unsigned i=1; i<it->second.size(); i++ ){
                   b = it->second[i];
                   if( std::find( inelig.begin(), inelig.end(), b )==inelig.end() ){
@@ -1438,7 +1439,6 @@ void TheoryStrings::checkFlatForms() {
                     }else{
                       Node cc = d_flat_form[b][count];
                       if( cc!=curr ){
-                        Node ac = a[d_flat_form_index[a][count]];
                         Node bc = b[d_flat_form_index[b][count]];
                         inelig.push_back( b );
                         Assert( !areEqual( curr, cc ) );
@@ -1463,10 +1463,14 @@ void TheoryStrings::checkFlatForms() {
                         }else{
                           //if lengths are the same, apply LengthEq
                           std::vector< Node > lexp2;
-                          Node lcc = getLength( cc, lexp2 );
+                          Node lcc = getLength( bc, lexp2 );
                           if( areEqual( lcurr, lcc ) ){
                             Trace("strings-ff-debug") << "Infer " << ac << " == " << bc << " since " << lcurr << " == " << lcc << std::endl;
                             //exp_n.push_back( getLength( curr, true ).eqNode( getLength( cc, true ) ) );
+                            Trace("strings-ff-debug") << "Explanation for " << lcurr << " is ";
+                            for( unsigned j=0; j<lexp.size(); j++ ) { Trace("strings-ff-debug") << lexp[j] << std::endl; }
+                            Trace("strings-ff-debug") << "Explanation for " << lcc << " is ";
+                            for( unsigned j=0; j<lexp2.size(); j++ ) { Trace("strings-ff-debug") << lexp2[j] << std::endl; }
                             exp.insert( exp.end(), lexp.begin(), lexp.end() );
                             exp.insert( exp.end(), lexp2.begin(), lexp2.end() );
                             addToExplanation( lcurr, lcc, exp );
@@ -2755,6 +2759,7 @@ void TheoryStrings::sendInference( std::vector< Node >& exp, std::vector< Node >
       for( unsigned i=0; i<exp_n.size(); i++ ){
         Trace("strings-infer-debug")  << "  N:" << exp_n[i] << std::endl;
       }
+      //Trace("strings-infer-debug") << "as lemma : " << asLemma << std::endl;
     }
     bool doSendLemma = ( asLemma || eq==d_false || eq.getKind()==kind::OR || options::stringInferAsLemmas() );
     if( doSendLemma ){  

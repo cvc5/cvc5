@@ -461,7 +461,7 @@ void FullModelChecker::processBuildModel(TheoryModel* m, bool fullModel){
             }
           }
           if( !isStar && !ri.isConst() ){
-            Trace("fmc-warn") << "Warning : model has non-constant argument in model " << ri << " (from " << c[i] << ")" << std::endl;
+            Trace("fmc-warn") << "Warning : model for " << op << " has non-constant argument in model " << ri << " (from " << c[i] << ")" << std::endl;
             Assert( false );
           }
           entry_children.push_back(ri);
@@ -469,7 +469,7 @@ void FullModelChecker::processBuildModel(TheoryModel* m, bool fullModel){
         Node n = NodeManager::currentNM()->mkNode( APPLY_UF, children );
         Node nv = fm->getUsedRepresentative( v );
         if( !nv.isConst() ){
-          Trace("fmc-warn") << "Warning : model has non-constant value in model " << nv << std::endl;
+          Trace("fmc-warn") << "Warning : model for " << op << " has non-constant value in model " << nv << std::endl;
           Assert( false );
         }
         Node en = (useSimpleModels() && hasNonStar) ? n : NodeManager::currentNM()->mkNode( APPLY_UF, entry_children );
@@ -690,10 +690,12 @@ bool FullModelChecker::doExhaustiveInstantiation( FirstOrderModel * fm, Node f, 
                 }else{
                   Trace("fmc-debug-inst") << "** Instantiation was duplicate." << std::endl;
                   //this can happen if evaluation is unknown, or if we are generalizing a star that already has a value
-                  if( !hasStar && d_quant_models[f].d_value[i]==d_false ){
-                    Trace("fmc-warn") << "**** FMC warning: inconsistent duplicate instantiation." << std::endl;
-                  }
-                  Assert( hasStar || d_quant_models[f].d_value[i]!=d_false );
+                  //if( !hasStar && d_quant_models[f].d_value[i]==d_false ){
+                  //  Trace("fmc-warn") << "**** FMC warning: inconsistent duplicate instantiation." << std::endl;
+                  //}
+                  //this assertion can happen if two instantiations from this round are identical
+                  // (0,1)->false (1,0)->false   for   forall xy. f( x, y ) = f( y, x )
+                  //Assert( hasStar || d_quant_models[f].d_value[i]!=d_false );
                   //might try it next effort level
                   d_star_insts[f].push_back(i);
                 }

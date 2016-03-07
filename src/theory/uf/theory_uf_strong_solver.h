@@ -232,8 +232,6 @@ public:
     std::map< int, Node > d_cardinality_literal;
     /** cardinality lemmas */
     std::map< int, Node > d_cardinality_lemma;
-    /** cardinality assertions (indexed by cardinality literals ) */
-    NodeBoolMap d_cardinality_assertions;
     /** whether a positive cardinality constraint has been asserted */
     context::CDO< bool > d_hasCard;
     /** clique lemmas that have been asserted */

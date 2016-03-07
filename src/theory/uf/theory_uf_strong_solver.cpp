@@ -407,7 +407,7 @@ void StrongSolverTheoryUF::SortModel::Region::debugPrint( const char* c, bool in
 StrongSolverTheoryUF::SortModel::SortModel( Node n, context::Context* c, context::UserContext* u, StrongSolverTheoryUF* thss ) : d_type( n.getType() ),
           d_thss( thss ), d_regions_index( c, 0 ), d_regions_map( c ), d_split_score( c ), d_disequalities_index( c, 0 ),
           d_reps( c, 0 ), d_conflict( c, false ), d_cardinality( c, 1 ), d_aloc_cardinality( u, 0 ),
-          d_cardinality_assertions( c ), d_hasCard( c, false ), d_maxNegCard( c, 0 ), d_initialized( u, false ), d_lemma_cache( u ){
+          d_hasCard( c, false ), d_maxNegCard( c, 0 ), d_initialized( u, false ), d_lemma_cache( u ){
   d_cardinality_term = n;
   //if( d_type.isSort() ){
   //  TypeEnumerator te(tn);
@@ -723,11 +723,13 @@ Node StrongSolverTheoryUF::SortModel::getNextDecisionRequest(){
     if( !d_hasCard || i<d_cardinality ){
       Node cn = d_cardinality_literal[ i ];
       Assert( !cn.isNull() );
-      if( d_cardinality_assertions.find( cn )==d_cardinality_assertions.end() ){
+      bool value;
+      if( !d_thss->getTheory()->d_valuation.hasSatValue( cn, value ) ){
         Trace("uf-ss-dec") << "UFSS : Get next decision " << d_type << " " << i << std::endl;
         return cn;
       }else{
-        Trace("uf-ss-dec-debug") << "  dec : " << cn << " already asserted " << d_cardinality_assertions[cn].get() << std::endl;
+        Trace("uf-ss-dec-debug") << "  dec : " << cn << " already asserted " << value << std::endl;
+        Assert( !value );
       }
     }
   }
@@ -846,7 +848,6 @@ void StrongSolverTheoryUF::SortModel::assertCardinality( OutputChannel* out, int
     Trace("uf-ss-assert") << d_thss->getTheory()->d_valuation.getAssertionLevel() << std::endl;
     Assert( c>0 );
     Node cl = getCardinalityLiteral( c );
-    d_cardinality_assertions[ cl ] = val;
     if( val ){
       bool doCheckRegions = !d_hasCard;
       bool prevHasCard = d_hasCard;
@@ -890,8 +891,9 @@ void StrongSolverTheoryUF::SortModel::assertCardinality( OutputChannel* out, int
         bool needsCard = true;
         for( std::map< int, Node >::iterator it = d_cardinality_literal.begin(); it!=d_cardinality_literal.end(); ++it ){
           if( it->first<=d_aloc_cardinality.get() ){
-            if( d_cardinality_assertions.find( it->second )==d_cardinality_assertions.end() ){
-              Debug("fmf-card-debug") << "..does not need allocate because of " << it->second << std::endl;
+            bool value;
+            if( !d_thss->getTheory()->d_valuation.hasSatValue( it->second, value ) ){
+              Debug("fmf-card-debug") << "..does not need allocate because we are waiting for " << it->second << std::endl;
               needsCard = false;
               break;
             }
@@ -1028,14 +1030,21 @@ void StrongSolverTheoryUF::SortModel::allocateCardinality( OutputChannel* out ){
 
   //allocate the lowest such that it is not asserted
   Node cl;
+  bool increment;
   do {
+    increment = false;
     d_aloc_cardinality = d_aloc_cardinality + 1;
     cl = getCardinalityLiteral( d_aloc_cardinality );
-  }while( d_cardinality_assertions.find( cl )!=d_cardinality_assertions.end() && !d_cardinality_assertions[cl] );
-  //if one is already asserted postively, abort
-  if( d_cardinality_assertions.find( cl )!=d_cardinality_assertions.end() ){
-    return;
-  }
+    bool value;
+    if( d_thss->getTheory()->d_valuation.hasSatValue( cl, value ) ){
+      if( value ){
+        //if one is already asserted postively, abort
+        return;
+      }else{
+        increment = true;
+      }
+    }
+  }while( increment );
 
   //check for abort case
   if( options::ufssAbortCardinality()==d_aloc_cardinality ){
