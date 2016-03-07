@@ -105,6 +105,8 @@ void TheoryUF::check(Effort level) {
     TNode fact = assertion.assertion;
 
     Debug("uf") << "TheoryUF::check(): processing " << fact << std::endl;
+    Debug("uf") << "Term's theory: " << theory::Theory::theoryOf(fact.toExpr()) << std::endl;
+
     if (d_thss != NULL) {
       bool isDecision = d_valuation.isSatLiteral(fact) && d_valuation.isDecision(fact);
       d_thss->assertNode(fact, isDecision);
@@ -222,6 +224,12 @@ void TheoryUF::explain(TNode literal, std::vector<TNode>& assumptions, eq::EqPro
     Debug("uf-pf") << std::endl;
     pf->debug_print("uf-pf");
   }
+
+  Debug("gk::proof") << "UF: explain( " << literal << " ):" << std::endl << "\t";
+  for (unsigned i = 0; i < assumptions.size(); ++i) {
+    Debug("gk::proof") << assumptions[i] << " ";
+  }
+  Debug("gk::proof") << std::endl;
 }
 
 Node TheoryUF::explain(TNode literal) {

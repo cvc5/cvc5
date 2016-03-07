@@ -122,7 +122,7 @@ Theory::Set SharedTermsDatabase::getNotifiedTheories(TNode term) const {
 
 bool SharedTermsDatabase::propagateSharedEquality(TheoryId theory, TNode a, TNode b, bool value)
 {
-  Debug("shared-terms-database") << "SharedTermsDatabase::newEquality(" << theory << a << "," << b << ", " << (value ? "true" : "false") << ")" << endl;
+  Debug("shared-terms-database") << "SharedTermsDatabase::newEquality(" << theory << "," << a << "," << b << ", " << (value ? "true" : "false") << ")" << endl;
 
   if (d_inConflict) {
     return false;

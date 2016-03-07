@@ -198,6 +198,7 @@ void TheoryEngine::interrupt() throw(ModalException) {
 
 void TheoryEngine::preRegister(TNode preprocessed) {
 
+  Debug("theory") << "TheoryEngine::preRegister( " << preprocessed << ")" << std::endl;
   if(Dump.isOn("missed-t-propagations")) {
     d_possiblePropagations.push_back(preprocessed);
   }
@@ -425,7 +426,7 @@ void TheoryEngine::check(Theory::Effort effort) {
     }
 
     Debug("theory") << "TheoryEngine::check(" << effort << "): done, we are " << (d_inConflict ? "unsat" : "sat") << (d_lemmasAdded ? " with new lemmas" : " with no new lemmas");
-    Debug("theory") << ", need check = " << needCheck() << endl;
+    Debug("theory") << ", need check = " << (needCheck() ? "YES" : "NO") << endl;
 
     if(!d_inConflict && Theory::fullEffort(effort) && d_masterEqualityEngine != NULL && !d_lemmasAdded) {
       AlwaysAssert(d_masterEqualityEngine->consistent());
@@ -1269,10 +1270,13 @@ Node TheoryEngine::getExplanation(TNode node) {
 
   // If we're not in shared mode, explanations are simple
   if (!d_logicInfo.isSharingEnabled()) {
+    Debug("theory::gk") << "TheoryEngine::getExplanation: Sharing is NOT enabled" << std::endl;
     Node explanation = theoryOf(atom)->explain(node);
     Debug("theory::explain") << "TheoryEngine::getExplanation(" << node << ") => " << explanation << endl;
     return explanation;
   }
+
+  Debug("theory::gk") << "TheoryEngine::getExplanation: Sharing IS enabled" << std::endl;
 
   // Initial thing to explain
   NodeTheoryPair toExplain(node, THEORY_SAT_SOLVER, d_propagationMapTimestamp);

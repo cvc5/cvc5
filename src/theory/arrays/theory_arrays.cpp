@@ -1515,8 +1515,10 @@ void TheoryArrays::check(Effort e) {
           weakEquivBuildCond(r2[0], r[1], conjunctions);
           lemma = mkAnd(conjunctions, true);
           // LSH FIXME: which kind of arrays lemma is this
+          Trace("arrays-lem") << "Arrays::addExtLemma " << lemma <<"\n";
           d_out->lemma(lemma, RULE_INVALID, false, false, true);
           d_readTableContext->pop();
+          Trace("arrays") << spaces(getSatContext()->getLevel()) << "Arrays::check(): done" << endl;
           return;
         }
       }
@@ -1527,7 +1529,7 @@ void TheoryArrays::check(Effort e) {
 
   if(!options::arraysEagerLemmas() && fullEffort(e) && !d_conflict && !options::arraysWeakEquivalence()) {
     // generate the lemmas on the worklist
-    Trace("arrays-lem")<<"Arrays::discharging lemmas: "<<d_RowQueue.size()<<"\n";
+    Trace("arrays-lem")<< "Arrays::discharging lemmas. Number of queued lemmas: " << d_RowQueue.size() << "\n";
     while (d_RowQueue.size() > 0 && !d_conflict) {
       if (dischargeLemmas()) {
         break;
