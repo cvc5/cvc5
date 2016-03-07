@@ -73,7 +73,7 @@ private:
   /** inferences: maintained to ensure ref count for internally introduced nodes */
   NodeList d_infer;
   NodeList d_infer_exp;
-//  NodeList d_lemma;
+  NodeList d_lemma;
 
   std::map< Node, std::vector<Node> > d_tuple_reps;
   std::map< Node, TupleTrie > d_membership_trie;

@@ -109,6 +109,8 @@ tokens {
 
   SUBTYPE_TOK = 'SUBTYPE';
   SET_TOK = 'SET';
+  
+  TUPLE_TOK = 'TUPLE';
 
   FORALL_TOK = 'FORALL';
   EXISTS_TOK = 'EXISTS';
@@ -294,6 +296,7 @@ int getOperatorPrecedence(int type) {
   case STAR_TOK:
   case INTDIV_TOK:
   case DIV_TOK:
+  case TUPLE_TOK:
   case MOD_TOK: return 23;
   case PLUS_TOK:
   case MINUS_TOK:
@@ -1212,8 +1215,8 @@ restrictedTypePossiblyFunctionLHS[CVC4::Type& t,
   | ARRAY_TOK restrictedType[t,check] OF_TOK restrictedType[t2,check]
     { t = EXPR_MANAGER->mkArrayType(t, t2); }
   | SET_TOK OF_TOK restrictedType[t,check]
-    { t = EXPR_MANAGER->mkSetType(t); }
-
+    { t = EXPR_MANAGER->mkSetType(t); } 
+  
     /* subtypes */
   | SUBTYPE_TOK LPAREN
     /* A bit tricky: this LAMBDA expression cannot refer to constants
@@ -1644,9 +1647,19 @@ bvNegTerm[CVC4::Expr& f]
   : BVNEG_TOK bvNegTerm[f]
     { f = MK_EXPR(CVC4::kind::BITVECTOR_NOT, f); }
   | TRANSPOSE_TOK bvNegTerm[f]
-    { f = MK_EXPR(CVC4::kind::TRANSPOSE, f); }
+    { f = MK_EXPR(CVC4::kind::TRANSPOSE, f); } 
   | TRANSCLOSURE_TOK bvNegTerm[f]
-    { f = MK_EXPR(CVC4::kind::TRANSCLOSURE, f); }      
+    { f = MK_EXPR(CVC4::kind::TRANSCLOSURE, f); }
+  | TUPLE_TOK LPAREN bvNegTerm[f] RPAREN
+    { std::vector<Type> types;
+      std::vector<Expr> args;
+      args.push_back(f);
+	  types.push_back(f.getType());
+      DatatypeType t = EXPR_MANAGER->mkTupleType(types);
+      const Datatype& dt = t.getDatatype();
+      args.insert( args.begin(), dt[0].getConstructor() );
+      f = MK_EXPR(kind::APPLY_CONSTRUCTOR, args);
+    }             
   | postfixTerm[f]
   ;
 
@@ -1959,8 +1972,8 @@ simpleTerm[CVC4::Expr& f]
   Type t, t2;
 }
     /* if-then-else */
-  : iteTerm[f]
-
+  : iteTerm[f] 
+        
     /* parenthesized sub-formula / tuple literals */
   | LPAREN formula[f] { args.push_back(f); }
     ( COMMA formula[f] { args.push_back(f); } )* RPAREN
@@ -1977,14 +1990,15 @@ simpleTerm[CVC4::Expr& f]
         args.insert( args.begin(), dt[0].getConstructor() );
         f = MK_EXPR(kind::APPLY_CONSTRUCTOR, args);
       }
-    }
+    }    
 
     /* empty tuple literal */
   | LPAREN RPAREN
     { std::vector<Type> types;
       DatatypeType t = EXPR_MANAGER->mkTupleType(types);
       const Datatype& dt = t.getDatatype();
-      f = MK_EXPR(kind::APPLY_CONSTRUCTOR, dt[0].getConstructor()); }
+      f = MK_EXPR(kind::APPLY_CONSTRUCTOR, dt[0].getConstructor()); }       
+                  
     /* empty record literal */
   | PARENHASH HASHPAREN
     { DatatypeType t = EXPR_MANAGER->mkRecordType(std::vector< std::pair<std::string, Type> >());

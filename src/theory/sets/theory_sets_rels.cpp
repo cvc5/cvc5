@@ -114,7 +114,7 @@ typedef std::map<Node, std::vector<Node> >::iterator mem_it;
             Node tup_rep = getRepresentative(n[0]);
             Node rel_rep = getRepresentative(n[1]);
 
-            // Todo: check n[0] or n[0] rep is a var??
+            // Todo: check n[0] or n[0]'s rep is a var??
             if(tup_rep.isVar() && d_symbolic_tuples.find(tup_rep) == d_symbolic_tuples.end()) {
               std::vector<Node> tuple_elements;
               tuple_elements.push_back(Node::fromExpr((n[0].getType().getDatatype())[0].getConstructor()));
@@ -123,7 +123,7 @@ typedef std::map<Node, std::vector<Node> >::iterator mem_it;
               }
               Node unfold_membership = MEMBER(NodeManager::currentNM()->mkNode(kind::APPLY_CONSTRUCTOR, tuple_elements), n[1]);
               Node tuple_unfold_lemma = NodeManager::currentNM()->mkNode(kind::IFF, n, unfold_membership);
-              sendLemma(tuple_unfold_lemma, d_trueNode, "tuple-unfold");
+              sendLemma(tuple_unfold_lemma, d_trueNode, "tuple-instantiate");
               d_symbolic_tuples.insert(tup_rep);
             }
             computeTupleReps(tup_rep);
@@ -190,21 +190,22 @@ typedef std::map<Node, std::vector<Node> >::iterator mem_it;
                           << " with explaination: " << exp << std::endl;
       std::vector<Node> r1_element;
       std::vector<Node> r2_element;
-      Node::iterator child_it = atom[0].begin();
+
       NodeManager *nm = NodeManager::currentNM();
       Datatype dt = r1_rep.getType().getSetElementType().getDatatype();
+      unsigned int i = 0;
       unsigned int s1_len = r1_rep.getType().getSetElementType().getTupleLength();
+      unsigned int tup_len = product_term.getType().getSetElementType().getTupleLength();
 
       r1_element.push_back(Node::fromExpr(dt[0].getConstructor()));
-      for(unsigned int i = 0; i < s1_len; ++child_it) {
-        r1_element.push_back(*child_it);
-        ++i;
+      for(; i < s1_len; ++i) {
+        r1_element.push_back(selectElement(atom[0], i));
       }
 
       dt = r2_rep.getType().getSetElementType().getDatatype();
       r2_element.push_back(Node::fromExpr(dt[0].getConstructor()));
-      for(; child_it != atom[0].end(); ++child_it) {
-        r2_element.push_back(*child_it);
+      for(; i < tup_len; ++i) {
+        r2_element.push_back(selectElement(atom[0], i));
       }
 
       Node fact;
@@ -260,25 +261,26 @@ typedef std::map<Node, std::vector<Node> >::iterator mem_it;
 
       std::vector<Node> r1_element;
       std::vector<Node> r2_element;
-      Node::iterator child_it = atom[0].begin();
       NodeManager *nm = NodeManager::currentNM();
       TypeNode shared_type = r2_rep.getType().getSetElementType().getTupleTypes()[0];
       Node shared_x = nm->mkSkolem("sde_", shared_type);
       Datatype dt = r1_rep.getType().getSetElementType().getDatatype();
+      unsigned int i = 0;
       unsigned int s1_len = r1_rep.getType().getSetElementType().getTupleLength();
+      unsigned int tup_len = join_term.getType().getSetElementType().getTupleLength();
 
       r1_element.push_back(Node::fromExpr(dt[0].getConstructor()));
-      for(unsigned int i = 0; i < s1_len-1; ++child_it, ++i) {
-        r1_element.push_back(*child_it);
+      for(; i < s1_len-1; ++i) {
+        r1_element.push_back(selectElement(atom[0], i));
       }
       r1_element.push_back(shared_x);
+
       dt = r2_rep.getType().getSetElementType().getDatatype();
       r2_element.push_back(Node::fromExpr(dt[0].getConstructor()));
       r2_element.push_back(shared_x);
-      for(; child_it != atom[0].end(); ++child_it) {
-        r2_element.push_back(*child_it);
+      for(; i < tup_len; ++i) {
+        r2_element.push_back(selectElement(atom[0], i));
       }
-
 
       Node t1 = nm->mkNode(kind::APPLY_CONSTRUCTOR, r1_element);
       Node t2 = nm->mkNode(kind::APPLY_CONSTRUCTOR, r2_element);
@@ -347,7 +349,7 @@ typedef std::map<Node, std::vector<Node> >::iterator mem_it;
     Node fact = MEMBER(reversedTuple, tp_t0_rep);
 
     if(!polarity) {
-      // tp_term is a nested term
+      // tp_term is a nested term and we eagerly compute its subterms' members
       if(d_terms_cache[tp_t0_rep].find(kind::JOIN)
          != d_terms_cache[tp_t0_rep].end()) {
         std::vector<Node> join_terms = d_terms_cache[tp_t0_rep][kind::JOIN];
@@ -473,9 +475,6 @@ typedef std::map<Node, std::vector<Node> >::iterator mem_it;
     std::vector<Node> r2_exps = d_membership_exp_cache[r2_rep];
     Node new_rel = n.getKind() == kind::JOIN ? nm->mkNode(kind::JOIN, r1_rep, r2_rep)
                                              : nm->mkNode(kind::PRODUCT, r1_rep, r2_rep);
-    Trace("rels-debug") << "[sets-rels] elements sizes: "
-                            << r1_elements.size() << " and " << r2_elements.size()
-                            << "  " << r1_elements[0] << " and " << r2_elements[0]<< std::endl;
 
     Node new_rel_rep = getRepresentative(new_rel);
     unsigned int t1_len = r1_elements.front().getType().getTupleLength();
@@ -488,9 +487,7 @@ typedef std::map<Node, std::vector<Node> >::iterator mem_it;
         Node r2_lmost = selectElement(r2_elements[j], 0);
         Node r1_rmost = selectElement(r1_elements[i], t1_len-1);
         composed_tuple.push_back(Node::fromExpr(tn.getDatatype()[0].getConstructor()));
-        Trace("rels-debug") << "[sets-rels$$$$$$] r2_elements[j] = "<< r2_elements[j] << " is const? " << r2_elements[j].isConst()
-                            << " is Var? " << r2_elements[j].isVar()
-                            << " r1_element equal to r2_element? " << areEqual(r1_rmost, r2_lmost) << std::endl;
+
         if((areEqual(r1_rmost, r2_lmost) && n.getKind() == kind::JOIN) ||
             n.getKind() == kind::PRODUCT) {
           unsigned int k = 0;
@@ -525,7 +522,7 @@ typedef std::map<Node, std::vector<Node> >::iterator mem_it;
           }
           Node reason = Rewriter::rewrite(nm->mkNode(kind::AND, reasons));
           if(safeAddToMap(d_membership_db, new_rel_rep, composed_tuple_node)) {
-            safeAddToMap(d_membership_exp_cache, new_rel_rep, reason);
+            addToMap(d_membership_exp_cache, new_rel_rep, reason);
           }
           Trace("rels-debug") << "[sets-rels] compose tuples: " << r1_elements[i]
                              << " and " << r2_elements[j]
@@ -549,7 +546,7 @@ typedef std::map<Node, std::vector<Node> >::iterator mem_it;
       d_membership_db[new_rel_rep] = new_tups;
       d_membership_exp_cache[new_rel_rep] = new_exps;
     }
-    Trace("rels-debug") << "[sets-rels] Done with joining tuples !" << std::endl;
+    Trace("rels-debug") << "[sets-rels] Done with composing tuples !" << std::endl;
   }
 
   void TheorySetsRels::doPendingLemmas() {
@@ -596,7 +593,7 @@ typedef std::map<Node, std::vector<Node> >::iterator mem_it;
   void TheorySetsRels::sendLemma(Node conc, Node ant, const char * c) {
     Trace("rels-lemma") << "[sets-lemma] Infer " << conc << " from " << ant << " by " << c << std::endl;
     d_lemma_cache.push_back(conc);
-//    d_lemma.push_back(conc);
+    d_lemma.push_back(conc);
   }
 
   void TheorySetsRels::sendInfer( Node fact, Node exp, const char * c ) {
@@ -688,11 +685,7 @@ typedef std::map<Node, std::vector<Node> >::iterator mem_it;
   }
 
   bool TheorySetsRels::areEqual( Node a, Node b ){
-    Trace("rels-debug") << "[sets-rel] compare the equality of a = " << a
-                        << " and b = " << b << std::endl;
     if( hasTerm( a ) && hasTerm( b ) ){
-      Trace("rels-debug") << "[sets-rel] ********* has term a = " << a
-                              << " and b = " << b << std::endl;
 //      if( d_eqEngine->isTriggerTerm(a, THEORY_SETS) &&
 //          d_eqEngine->isTriggerTerm(b, THEORY_SETS) ) {
 //        // Get representative trigger terms
@@ -791,11 +784,16 @@ typedef std::map<Node, std::vector<Node> >::iterator mem_it;
     bool polarity = node.getKind() != kind::NOT;
     Node atom = polarity ? node : node[0];
     Node polarity_atom = polarity ? d_trueNode : d_falseNode;
-    Node atom_mod = NodeManager::currentNM()->mkNode(atom.getKind(), getRepresentative(atom[0]),
-                                                     getRepresentative(atom[1]) );
-    //Trace("rels-lemma-compare-element") << "[sets-rels*******] atom_mod = " << atom_mod << std::endl;
-    d_eqEngine->addTerm(atom_mod);
-    return areEqual(atom_mod, polarity_atom);
+    if(d_eqEngine->hasTerm(node)) {
+      return areEqual(node, polarity_atom);
+    } else {
+      Node atom_mod = NodeManager::currentNM()->mkNode(atom.getKind(), getRepresentative(atom[0]),
+                                                       getRepresentative(atom[1]) );
+      if(d_eqEngine->hasTerm(atom_mod)) {
+        return areEqual(node, polarity_atom);
+      }
+    }
+    return false;
   }
 
   void TheorySetsRels::computeTupleReps( Node n ) {
@@ -816,6 +814,7 @@ typedef std::map<Node, std::vector<Node> >::iterator mem_it;
     d_falseNode(NodeManager::currentNM()->mkConst<bool>(false)),
     d_infer(c),
     d_infer_exp(c),
+    d_lemma(c),
     d_eqEngine(eq),
     d_conflict(conflict)
   {
