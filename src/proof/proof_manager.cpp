@@ -351,9 +351,32 @@ void LFSCProof::toStream(std::ostream& out) {
   }
   Debug("gk::proof") << std::endl;
 
+  // Debug("gk::proof") << std::endl << "Used lemmas: " << std::endl;
+  // for (it2 = used_lemmas.begin(); it2 != used_lemmas.end(); ++it2) {
+  //   Debug("gk::proof") << "\t lemma = " << *(it2->second) << std::endl;
+  // }
+  // Debug("gk::proof") << std::endl;
   Debug("gk::proof") << std::endl << "Used lemmas: " << std::endl;
   for (it2 = used_lemmas.begin(); it2 != used_lemmas.end(); ++it2) {
-    Debug("gk::proof") << "\t lemma = " << *(it2->second) << std::endl;
+
+    std::vector<Expr> clause_expr;
+    for(unsigned i = 0; i < it2->second->size(); ++i) {
+      prop::SatLiteral lit = (*(it2->second))[i];
+      Expr atom = d_cnfProof->getAtom(lit.getSatVariable()).toExpr();
+      if (atom.isConst()) {
+        Assert (atom == utils::mkTrue());
+        continue;
+      }
+      Expr expr_lit = lit.isNegated() ? atom.notExpr(): atom;
+      clause_expr.push_back(expr_lit);
+    }
+
+    Debug("gk::proof") << "\t lemma " << it2->first << " = " << *(it2->second) << std::endl;
+    Debug("gk::proof") << "\t";
+    for (unsigned i = 0; i < clause_expr.size(); ++i) {
+      Debug("gk::proof") << clause_expr[i] << " ";
+    }
+    Debug("gk::proof") << std::endl;
   }
   Debug("gk::proof") << std::endl;
 
