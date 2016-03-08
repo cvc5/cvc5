@@ -56,12 +56,21 @@ private:
   context::CDList<Node> d_quant_red;
   /** unprocessed quantifiers in current context */
   NodeBoolMap d_quant_unproc;
+  // map predicates to functions over int
+  TypeNode d_intType;
+  std::map< Node, Node > d_pred_to_func;
+  Node getFunctionForPredicate( Node f );
+  Node getFunctionAppForPredicateApp( Node n );
 private:
   void conflict(TNode t1, TNode t2);
   void eqNotifyNewClass(TNode t);
   void eqNotifyPreMerge(TNode t1, TNode t2);
   void eqNotifyPostMerge(TNode t1, TNode t2);
   void eqNotifyDisequal(TNode t1, TNode t2, TNode reason);
+  //queries
+  bool areUnivDisequalInternal( TNode n1, TNode n2 );
+  bool areUnivEqualInternal( TNode n1, TNode n2 );  
+  TNode getUnivRepresentativeInternal( TNode n );
 public:
   QuantEqualityEngine( QuantifiersEngine * qe, context::Context* c );
   virtual ~QuantEqualityEngine() throw (){}

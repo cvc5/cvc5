@@ -153,6 +153,8 @@ public:
 class SingleInvocationPartition
 {
 private:
+  //options
+  Kind d_checkKind;
   bool inferArgTypes( Node n, std::vector< TypeNode >& typs, std::map< Node, bool >& visited );
   void process( Node n );
   bool collectConjuncts( Node n, bool pol, std::vector< Node >& conj );
@@ -161,6 +163,8 @@ private:
   Node getSpecificationInst( Node n, std::map< Node, Node >& lam, std::map< Node, Node >& visited );
   void extractInvariant2( Node n, Node& func, int& pol, std::vector< Node >& disjuncts, bool hasPol, std::map< Node, bool >& visited );
 public:
+  SingleInvocationPartition( Kind checkKind = kind::APPLY_UF ) : d_checkKind( checkKind ){}
+  ~SingleInvocationPartition(){}
   bool init( Node n );
   bool init( std::vector< TypeNode >& typs, Node n );
 
@@ -174,8 +178,8 @@ public:
   std::vector< Node > d_func_vars; //the first-order variables corresponding to all functions
   std::vector< Node > d_si_vars;   //the arguments that we based the anti-skolemization on
   std::vector< Node > d_all_vars;  //every free variable of conjuncts[2]
-  // si, nsi, all
-  std::vector< Node > d_conjuncts[3];
+  // si, nsi, all, non-ground si
+  std::vector< Node > d_conjuncts[4];
 
   bool isAntiSkolemizableType( Node f );
 
@@ -189,6 +193,7 @@ public:
   void extractInvariant( Node n, Node& func, int& pol, std::vector< Node >& disjuncts );
 
   bool isPurelySingleInvocation() { return d_conjuncts[1].empty(); }
+  bool isNonGroundSingleInvocation() { return d_conjuncts[3].size()==d_conjuncts[1].size(); }
 
   void debugPrint( const char * c );
 };

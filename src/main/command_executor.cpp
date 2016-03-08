@@ -115,6 +115,10 @@ bool CommandExecutor::doCommandSingleton(Command* cmd)
   if(q != NULL) {
     d_result = res = q->getResult();
   }
+  CheckSynthCommand* csy = dynamic_cast<CheckSynthCommand*>(cmd);
+  if(csy != NULL) {
+    d_result = res = csy->getResult();
+  }
 
   if((cs != NULL || q != NULL) && d_options.getStatsEveryQuery()) {
     std::ostringstream ossCurStats;
