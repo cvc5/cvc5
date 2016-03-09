@@ -62,37 +62,37 @@ RewriteResponse TheorySetsRewriter::postRewrite(TNode node) {
       bool isMember = checkConstantMembership(node[0], S);
       return RewriteResponse(REWRITE_DONE, nm->mkConst(isMember));
     }
-    if(node[1].getKind() == kind::TRANSPOSE) {
-      // only work for node[0] is an actual tuple like (a, b), won't work for tuple variables
-      if(node[0].getType().isSet() && !node[0].getType().getSetElementType().isTuple()) {
-        Node atom = node;
-        bool polarity = node.getKind() != kind::NOT;
-        if( !polarity )
-          atom = atom[0];
-        Node new_node = NodeManager::currentNM()->mkNode(kind::MEMBER, atom[0], atom[1][0]);
-        if(!polarity)
-          new_node = new_node.negate();
-        return RewriteResponse(REWRITE_AGAIN, new_node);
-      }
-      if(node[0].isVar())
-        return RewriteResponse(REWRITE_DONE, node);
-      std::vector<Node> elements;
-      std::vector<TypeNode> tuple_types = node[0].getType().getTupleTypes();
-      std::reverse(tuple_types.begin(), tuple_types.end());
-      TypeNode tn = NodeManager::currentNM()->mkTupleType(tuple_types);
-      Datatype dt = tn.getDatatype();
-      elements.push_back(Node::fromExpr(dt[0].getConstructor()));
-      for(Node::iterator child_it = node[0].end()-1;
-                child_it != node[0].begin()-1; --child_it) {
-        elements.push_back(*child_it);
-      }
-      Node new_node = NodeManager::currentNM()->mkNode(kind::MEMBER,
-                                                       NodeManager::currentNM()->mkNode(kind::APPLY_CONSTRUCTOR, elements),
-                                                       node[1][0]);
-      if(node.getKind() == kind::NOT)
-        new_node = NodeManager::currentNM()->mkNode(kind::NOT, new_node);
-      return RewriteResponse(REWRITE_AGAIN, new_node);
-    }
+//    if(node[1].getKind() == kind::TRANSPOSE) {
+//      // only work for node[0] is an actual tuple like (a, b), won't work for tuple variables
+//      if(node[0].getType().isSet() && !node[0].getType().getSetElementType().isTuple()) {
+//        Node atom = node;
+//        bool polarity = node.getKind() != kind::NOT;
+//        if( !polarity )
+//          atom = atom[0];
+//        Node new_node = NodeManager::currentNM()->mkNode(kind::MEMBER, atom[0], atom[1][0]);
+//        if(!polarity)
+//          new_node = new_node.negate();
+//        return RewriteResponse(REWRITE_AGAIN, new_node);
+//      }
+//      if(node[0].isVar())
+//        return RewriteResponse(REWRITE_DONE, node);
+//      std::vector<Node> elements;
+//      std::vector<TypeNode> tuple_types = node[0].getType().getTupleTypes();
+//      std::reverse(tuple_types.begin(), tuple_types.end());
+//      TypeNode tn = NodeManager::currentNM()->mkTupleType(tuple_types);
+//      Datatype dt = tn.getDatatype();
+//      elements.push_back(Node::fromExpr(dt[0].getConstructor()));
+//      for(Node::iterator child_it = node[0].end()-1;
+//                child_it != node[0].begin()-1; --child_it) {
+//        elements.push_back(*child_it);
+//      }
+//      Node new_node = NodeManager::currentNM()->mkNode(kind::MEMBER,
+//                                                       NodeManager::currentNM()->mkNode(kind::APPLY_CONSTRUCTOR, elements),
+//                                                       node[1][0]);
+//      if(node.getKind() == kind::NOT)
+//        new_node = NodeManager::currentNM()->mkNode(kind::NOT, new_node);
+//      return RewriteResponse(REWRITE_AGAIN, new_node);
+//    }
     break;
   }//kind::MEMBER
 

@@ -34,7 +34,8 @@ public:
   /** the data */
   std::map< Node, TupleTrie > d_data;
 public:
-  std::vector<Node> existsTerm( std::vector< Node >& reps, int argIndex = 0 );
+  Node existsTerm( std::vector< Node >& reps, int argIndex = 0 );
+  std::vector<Node> findTerms( std::vector< Node >& reps, int argIndex = 0 );
   bool addTerm( Node n, std::vector< Node >& reps, int argIndex = 0 );
   void debugPrint( const char * c, Node n, unsigned depth = 0 );
   void clear() { d_data.clear(); }
@@ -81,6 +82,7 @@ private:
   std::hash_set< Node, NodeHashFunction > d_symbolic_tuples;
   std::map< Node, std::vector<Node> > d_membership_cache;
   std::map< Node, std::vector<Node> > d_membership_db;
+  std::map< Node, std::vector<Node> > d_membership_exp_db;
   std::map< Node, std::vector<Node> > d_membership_exp_cache;
   std::map< Node, std::map<kind::Kind_t, std::vector<Node> > > d_terms_cache;
 
@@ -117,6 +119,7 @@ private:
   bool holds( Node );
   void computeTupleReps( Node );
   void makeSharedTerm( Node );
+  inline void produceNewMembership( Node, Node, Node  );
 
 };
 

@@ -1,0 +1,34 @@
+% EXPECT: unsat
+OPTION "logic" "ALL_SUPPORTED";
+IntPair: TYPE = [INT, INT];
+IntTup: TYPE = [INT];
+x : SET OF IntPair;
+y : SET OF IntPair;
+r : SET OF IntPair;
+
+w : SET OF IntTup;
+z : SET OF IntTup;
+r2 : SET OF IntPair;
+
+a : IntPair;
+ASSERT a = (3,1);
+ASSERT a IS_IN x;
+
+d : IntPair;
+ASSERT d = (1,3);
+ASSERT d IS_IN y;
+
+e : IntPair;
+ASSERT e = (4,3);
+ASSERT r = (x JOIN y);
+
+ASSERT TUPLE(1) IS_IN w;
+ASSERT TUPLE(2) IS_IN z;
+ASSERT r2 = (w PRODUCT z);
+
+ASSERT NOT (e IS_IN r);
+%ASSERT e IS_IN r2;
+ASSERT (r <= r2);
+ASSERT NOT ((3,3) IS_IN r2);
+
+CHECKSAT;
