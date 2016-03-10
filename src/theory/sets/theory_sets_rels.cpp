@@ -61,8 +61,7 @@ typedef std::map<Node, std::vector<Node> >::iterator mem_it;
         Node tp_rel = NodeManager::currentNM()->mkNode(kind::TRANSPOSE, rel_rep);
         Node tp_rel_rep = getRepresentative(tp_rel);
         if(d_terms_cache.find(tp_rel_rep) != d_terms_cache.end()) {
-          std::vector<Node> tuples = m_it->second;
-          for(unsigned int i = 0; i < tuples.size(); i++) {
+          for(unsigned int i = 0; i < m_it->second.size(); i++) {
             Node exp = tp_rel == tp_rel_rep ? d_membership_exp_cache[rel_rep][i]
                                             : AND(d_membership_exp_cache[rel_rep][i], EQUAL(tp_rel, tp_rel_rep));
             // Lazily apply transpose-occur rule.
@@ -74,8 +73,7 @@ typedef std::map<Node, std::vector<Node> >::iterator mem_it;
         continue;
       }
 
-      std::vector<Node> tuples = m_it->second;
-      for(unsigned int i = 0; i < tuples.size(); i++) {
+      for(unsigned int i = 0; i < m_it->second.size(); i++) {
         Node exp = d_membership_exp_cache[rel_rep][i];
         std::map<kind::Kind_t, std::vector<Node> > kind_terms = d_terms_cache[rel_rep];
 
@@ -337,7 +335,7 @@ typedef std::map<Node, std::vector<Node> >::iterator mem_it;
   }
 
   /*
-   * transpose-occur rule:   [NOT] (a, b) IS_IN X   [NOT] (t, u) IS_IN (TRANSPOSE X)
+   * transpose-occur rule:   [NOT] (a, b) IS_IN X   (TRANSPOSE X) occurs
    *                         -------------------------------------------------------
    *                                   [NOT] (b, a) IS_IN (TRANSPOSE X)
    *
@@ -345,13 +343,14 @@ typedef std::map<Node, std::vector<Node> >::iterator mem_it;
    *                ------------------------------------------------
    *                            [NOT] (b, a) IS_IN X
    */
-  void TheorySetsRels::applyTransposeRule(Node exp, Node tp_term, bool tp_occur_rule) {
+  void TheorySetsRels::applyTransposeRule(Node exp, Node tp_term, bool tp_occur) {
     Trace("rels-debug") << "\n[sets-rels] Apply transpose rule on term: " << tp_term
                         << " with explaination: " << exp << std::endl;
     bool polarity = exp.getKind() != kind::NOT;
     Node atom = polarity ? exp : exp[0];
     Node reversedTuple = getRepresentative(reverseTuple(atom[0]));
-    if(tp_occur_rule) {
+
+    if(tp_occur) {
       Node fact = polarity ? MEMBER(reversedTuple, tp_term) : MEMBER(reversedTuple, tp_term).negate();
       if(holds(fact)) {
         Trace("rels-debug") << "[sets-rels] New fact: " << fact << " already holds. Skip...." << std::endl;
@@ -363,6 +362,7 @@ typedef std::map<Node, std::vector<Node> >::iterator mem_it;
       }
       return;
     }
+
     Node tp_t0_rep = getRepresentative(tp_term[0]);
     Node reason = atom[1] == tp_term ? exp : Rewriter::rewrite(AND(exp, EQUAL(atom[1], tp_term)));
     Node fact = MEMBER(reversedTuple, tp_t0_rep);
@@ -573,7 +573,6 @@ typedef std::map<Node, std::vector<Node> >::iterator mem_it;
         }
         Trace("rels-lemma") << "[sets-rels-fact-lemma] Process pending fact as lemma : "
                             << child_it->first << " with reason " << child_it->second << std::endl;
-        // Todo: send facts as implications???
         d_sets.d_out->lemma(NodeManager::currentNM()->mkNode(kind::IMPLIES, child_it->second, child_it->first));
       }
     }
@@ -879,26 +878,6 @@ typedef std::map<Node, std::vector<Node> >::iterator mem_it;
       }
     }
   }
-
-//  void TupleTrie::findTerms( std::vector< Node >& reps, std::vector< Node >& elements, int argIndex ) {
-//    std::map< Node, TupleTrie >::iterator it;
-//    if( argIndex==(int)reps.size()-1 ){
-//      if(reps[argIndex].getKind() == kind::SKOLEM) {
-//        it = d_data.begin();
-//        while(it != d_data.end()) {
-//          elements.push_back(it->first);
-//          it++;
-//        }
-//      }
-//    }else{
-//      it = d_data.find( reps[argIndex] );
-//      if( it==d_data.end() ){
-//        return ;
-//      }else{
-//        it->second.findTerms( reps, argIndex+1 );
-//      }
-//    }
-//  }
 
   Node TupleTrie::existsTerm( std::vector< Node >& reps, int argIndex ) {
     if( argIndex==(int)reps.size() ){
