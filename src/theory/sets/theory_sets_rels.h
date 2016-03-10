@@ -36,6 +36,7 @@ public:
 public:
   Node existsTerm( std::vector< Node >& reps, int argIndex = 0 );
   std::vector<Node> findTerms( std::vector< Node >& reps, int argIndex = 0 );
+//  void findTerms( std::vector< Node >& reps, std::vector< Node >& elements, int argIndex = 0 );
   bool addTerm( Node n, std::vector< Node >& reps, int argIndex = 0 );
   void debugPrint( const char * c, Node n, unsigned depth = 0 );
   void clear() { d_data.clear(); }
@@ -74,7 +75,7 @@ private:
   /** inferences: maintained to ensure ref count for internally introduced nodes */
   NodeList d_infer;
   NodeList d_infer_exp;
-  NodeList d_lemma;
+  NodeSet d_lemma;
 
   std::map< Node, std::vector<Node> > d_tuple_reps;
   std::map< Node, TupleTrie > d_membership_trie;
@@ -93,9 +94,9 @@ private:
   void collectRelsInfo();
   void assertMembership( Node fact, Node reason, bool polarity );
   void composeTuplesForRels( Node );
-  void applyTransposeRule( Node, Node, Node );
-  void applyJoinRule( Node, Node, Node );
-  void applyProductRule( Node, Node, Node );
+  void applyTransposeRule( Node, Node, bool tp_occur_rule = false );
+  void applyJoinRule( Node, Node );
+  void applyProductRule( Node, Node );
   void computeRels( Node );
   void computeTransposeRelations( Node );
   Node reverseTuple( Node );
@@ -119,7 +120,8 @@ private:
   bool holds( Node );
   void computeTupleReps( Node );
   void makeSharedTerm( Node );
-  inline void produceNewMembership( Node, Node, Node  );
+  void reduceTupleVar( Node );
+  inline void addToMembershipDB( Node, Node, Node  );
 
 };
 
