@@ -485,7 +485,10 @@ template <class Solver>
       Assert(d_lemmaClauses.find(newId) == d_lemmaClauses.end());
       d_lemmaClauses.insert(newId);
       Debug("gk::duplemma") << "TSatProof::registerClause registering a new lemma clause: "
-                            << newId << " = " << *buildClause(newId) << std::endl;
+                            << newId << " = " << *buildClause(newId)
+                            << ". Explainer theory: " << d_cnfProof->getExplainerTheory()
+                            << std::endl;
+      d_cnfProof->registerExplanationLemma(newId);
     }
   }
 

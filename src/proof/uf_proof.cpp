@@ -740,7 +740,7 @@ void UFProof::registerTerm(Expr term) {
 }
 
 void LFSCUFProof::printTerm(Expr term, std::ostream& os, const LetMap& map) {
-  Assert (Theory::theoryOf(term) == THEORY_UF);
+  //  Assert (Theory::theoryOf(term) == THEORY_UF);
 
   if (term.getKind() == kind::VARIABLE ||
       term.getKind() == kind::SKOLEM) {

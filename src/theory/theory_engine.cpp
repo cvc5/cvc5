@@ -491,7 +491,7 @@ void TheoryEngine::combineTheories() {
 
     // We need to split on it
     Debug("combineTheories") << "TheoryEngine::combineTheories(): requesting a split " << endl;
-    lemma(equality.orNode(equality.notNode()), RULE_INVALID, false, false, false, carePair.theory);
+    lemma(equality.orNode(equality.notNode()), RULE_INVALID, false, false, false, carePair.theory, carePair.theory);
     // This code is supposed to force preference to follow what the theory models already have
     // but it doesn't seem to make a big difference - need to explore more -Clark
     // if (true) {
@@ -1272,8 +1272,9 @@ static Node mkExplanation(const std::vector<NodeTheoryPair>& explanation) {
   return conjunction;
 }
 
+NodeTheoryPair TheoryEngine::getExplanationAndExplainer(TNode node) {
+  Debug("gk::explain") << "TheoryEngine::getExplanation( " << node << " ) called" << std::endl;
 
-Node TheoryEngine::getExplanation(TNode node) {
   Debug("theory::explain") << "TheoryEngine::getExplanation(" << node << "): current propagation index = " << d_propagationMapTimestamp << endl;
 
   bool polarity = node.getKind() != kind::NOT;
@@ -1281,17 +1282,24 @@ Node TheoryEngine::getExplanation(TNode node) {
 
   // If we're not in shared mode, explanations are simple
   if (!d_logicInfo.isSharingEnabled()) {
-    Debug("theory::gk") << "TheoryEngine::getExplanation: Sharing is NOT enabled" << std::endl;
+    Debug("gk::explain") << "TheoryEngine::getExplanation: sharing is NOT enabled. Responsible theory is: "
+                         << theoryOf(atom) << std::endl;
     Node explanation = theoryOf(atom)->explain(node);
     Debug("theory::explain") << "TheoryEngine::getExplanation(" << node << ") => " << explanation << endl;
-    return explanation;
+    return NodeTheoryPair(explanation, theoryOf(atom)->getId());
   }
 
-  Debug("theory::gk") << "TheoryEngine::getExplanation: Sharing IS enabled" << std::endl;
+  Debug("gk::explain") << "TheoryEngine::getExplanation: sharing IS enabled" << std::endl;
 
   // Initial thing to explain
   NodeTheoryPair toExplain(node, THEORY_SAT_SOLVER, d_propagationMapTimestamp);
   Assert(d_propagationMap.find(toExplain) != d_propagationMap.end());
+
+  NodeTheoryPair nodeExplainerPair = d_propagationMap[toExplain];
+  Debug("gk::explain") << "TheoryEngine::getExplanation: explainer for node " << nodeExplainerPair.node
+                       << " is theory: " << nodeExplainerPair.theory << std::endl;
+  TheoryId explainer = nodeExplainerPair.theory;
+
   // Create the workplace for explanations
   std::vector<NodeTheoryPair> explanationVector;
   explanationVector.push_back(d_propagationMap[toExplain]);
@@ -1301,7 +1309,11 @@ Node TheoryEngine::getExplanation(TNode node) {
 
   Debug("theory::explain") << "TheoryEngine::getExplanation(" << node << ") => " << explanation << endl;
 
-  return explanation;
+  return NodeTheoryPair(explanation, explainer);
+}
+
+Node TheoryEngine::getExplanation(TNode node) {
+  return getExplanationAndExplainer(node).node;
 }
 
 struct AtomsCollect {
@@ -1403,7 +1415,8 @@ theory::LemmaStatus TheoryEngine::lemma(TNode node,
                                         bool negated,
                                         bool removable,
                                         bool preprocess,
-                                        theory::TheoryId atomsTo) {
+                                        theory::TheoryId atomsTo,
+                                        theory::TheoryId ownerTheory) {
   // For resource-limiting (also does a time check).
   // spendResource();
 
@@ -1453,10 +1466,10 @@ theory::LemmaStatus TheoryEngine::lemma(TNode node,
   }
 
   // assert to prop engine
-  d_propEngine->assertLemma(additionalLemmas[0], negated, removable, rule, node);
+  d_propEngine->assertLemma(additionalLemmas[0], negated, removable, rule, ownerTheory, node);
   for (unsigned i = 1; i < additionalLemmas.size(); ++ i) {
     additionalLemmas[i] = theory::Rewriter::rewrite(additionalLemmas[i]);
-    d_propEngine->assertLemma(additionalLemmas[i], false, removable, rule, node);
+    d_propEngine->assertLemma(additionalLemmas[i], false, removable, rule, ownerTheory, node);
   }
 
   // WARNING: Below this point don't assume additionalLemmas[0] to be not negated.
@@ -1500,11 +1513,11 @@ void TheoryEngine::conflict(TNode conflict, TheoryId theoryId) {
     Node fullConflict = mkExplanation(explanationVector);
     Debug("theory::conflict") << "TheoryEngine::conflict(" << conflict << ", " << theoryId << "): full = " << fullConflict << endl;
     Assert(properConflict(fullConflict));
-    lemma(fullConflict, RULE_CONFLICT, true, true, false, THEORY_LAST);
+    lemma(fullConflict, RULE_CONFLICT, true, true, false, THEORY_LAST, THEORY_LAST);
   } else {
     // When only one theory, the conflict should need no processing
     Assert(properConflict(conflict));
-    lemma(conflict, RULE_CONFLICT, true, true, false, THEORY_LAST);
+    lemma(conflict, RULE_CONFLICT, true, true, false, THEORY_LAST, THEORY_LAST);
   }
 }
 

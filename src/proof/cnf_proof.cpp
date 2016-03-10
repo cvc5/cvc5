@@ -34,6 +34,7 @@ CnfProof::CnfProof(CnfStream* stream,
   : d_cnfStream(stream)
   , d_clauseToAssertion(ctx)
   , d_assertionToProofRule(ctx)
+  , d_clauseIdToOwnerTheory(ctx)
   , d_currentAssertionStack()
   , d_currentDefinitionStack()
   , d_clauseToDefinition(ctx)
@@ -62,6 +63,7 @@ ProofRule CnfProof::getProofRule(Node node) {
   NodeToProofRule::iterator it = d_assertionToProofRule.find(node);
   return (*it).second;
 }
+
 ProofRule CnfProof::getProofRule(ClauseId clause) {
   TNode assertion = getAssertionForClause(clause);
   return getProofRule(assertion);
@@ -103,6 +105,7 @@ void CnfProof::registerConvertedClause(ClauseId clause, bool explanation) {
 
   setClauseAssertion(clause, current_assertion);
   setClauseDefinition(clause, current_expr);
+  registerExplanationLemma(clause);
 }
 
 void CnfProof::setClauseAssertion(ClauseId clause, Node expr) {
@@ -142,6 +145,16 @@ void CnfProof::registerAssertion(Node assertion, ProofRule reason) {
   d_assertionToProofRule.insert(assertion, reason);
 }
 
+void CnfProof::registerExplanationLemma(ClauseId clauseId) {
+  d_clauseIdToOwnerTheory.insert(clauseId, getExplainerTheory());
+}
+
+theory::TheoryId CnfProof::getOwnerTheory(ClauseId clause) {
+  Assert(d_clauseIdToOwnerTheory.find(clause) != d_clauseIdToOwnerTheory.end());
+  return d_clauseIdToOwnerTheory[clause];
+}
+
+
 void CnfProof::setCnfDependence(Node from, Node to) {
   Debug("proof:cnf") << "CnfProof::setCnfDependence "
                      << "from " << from  << std::endl
@@ -170,6 +183,14 @@ void CnfProof::popCurrentAssertion() {
 Node CnfProof::getCurrentAssertion() {
   Assert (d_currentAssertionStack.size());
   return d_currentAssertionStack.back();
+}
+
+void CnfProof::setExplainerTheory(theory::TheoryId theory) {
+  d_explainerTheory = theory;
+}
+
+theory::TheoryId CnfProof::getExplainerTheory() {
+  return d_explainerTheory;
 }
 
 void CnfProof::pushCurrentDefinition(Node definition) {

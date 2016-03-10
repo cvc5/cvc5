@@ -198,20 +198,22 @@ void TheoryProofEngine::registerTerm(Expr term) {
 }
 
 theory::TheoryId TheoryProofEngine::getTheoryForLemma(ClauseId id) {
-  // TODO: now CNF proof has a map from formula to proof rule
-  // that should be checked to figure out what theory is responsible for this
   ProofManager* pm = ProofManager::currentPM();
 
-  if (pm->getLogic() == "QF_UF") return theory::THEORY_UF;
-  if (pm->getLogic() == "QF_BV") return theory::THEORY_BV;
-  if (pm->getLogic() == "QF_AX") return theory::THEORY_ARRAY;
-  if (pm->getLogic() == "QF_UFLIA") return theory::THEORY_ARITH;
-  if (pm->getLogic() == "QF_UFLRA") return theory::THEORY_ARITH;
-  if (pm->getLogic() == "ALL_SUPPORTED") return theory::THEORY_BV;
+  Debug("gk::proof") << "TheoryProofEngine::getTheoryForLemma( " << id << " )"
+                     << " = " << pm->getCnfProof()->getOwnerTheory(id) << std::endl;
+  return pm->getCnfProof()->getOwnerTheory(id);
 
-  Debug("gk::proof") << "Unsupported logic (" << pm->getLogic() << ")" << std::endl;
+  // if (pm->getLogic() == "QF_UF") return theory::THEORY_UF;
+  // if (pm->getLogic() == "QF_BV") return theory::THEORY_BV;
+  // if (pm->getLogic() == "QF_AX") return theory::THEORY_ARRAY;
+  // if (pm->getLogic() == "QF_UFLIA") return theory::THEORY_ARITH;
+  // if (pm->getLogic() == "QF_UFLRA") return theory::THEORY_ARITH;
+  // if (pm->getLogic() == "ALL_SUPPORTED") return theory::THEORY_BV;
 
-  Unreachable();
+  // Debug("gk::proof") << "Unsupported logic (" << pm->getLogic() << ")" << std::endl;
+
+  // Unreachable();
 }
 
 void LFSCTheoryProofEngine::bind(Expr term, LetMap& map, Bindings& let_order) {
@@ -357,6 +359,16 @@ void LFSCTheoryProofEngine::printTheoryLemmas(const IdToSatClause& lemmas,
   IdToSatClause::const_iterator it = lemmas.begin();
   IdToSatClause::const_iterator end = lemmas.end();
 
+  Debug("gk::proof") << "LFSCTheoryProofEngine::printTheoryLemmas: checking lemma owners..." << std::endl;
+
+  for (; it != end; ++it) {
+    Debug("gk::proof") << "LFSCTheoryProofEngine::printTheoryLemmas: new lemma" << std::endl;
+    ClauseId id = it->first;
+    Debug("gk::proof") << "\tLemma = " << id
+                       << ". Owner theory: " << pm->getCnfProof()->getOwnerTheory(id) << std::endl;
+  }
+  it = lemmas.begin();
+
   // BitVector theory is special case: must know all
   // conflicts needed ahead of time for resolution
   // proof lemmas
@@ -404,6 +416,7 @@ void LFSCTheoryProofEngine::printTheoryLemmas(const IdToSatClause& lemmas,
 
     // Debug("gk::proof") << "\tLemma = " << it->first << ", " << *(it->second) << std::endl;
     ClauseId id = it->first;
+    Debug("gk::proof") << "Owner theory:" << pm->getCnfProof()->getOwnerTheory(id) << std::endl;
     const prop::SatClause* clause = it->second;
     // printing clause as it appears in resolution proof
     os << "(satlem _ _ ";

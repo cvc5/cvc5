@@ -208,7 +208,7 @@ public:
    * @param removable whether the sat solver can choose to remove the clauses
    * @param negated whether we are asserting the node negated
    */
-  virtual void convertAndAssert(TNode node, bool removable, bool negated, ProofRule proof_id, TNode from = TNode::null()) = 0;
+  virtual void convertAndAssert(TNode node, bool removable, bool negated, ProofRule proof_id, TNode from = TNode::null(), theory::TheoryId ownerTheory = theory::THEORY_LAST) = 0;
 
   /**
    * Get the node that is represented by the given SatLiteral.
@@ -278,7 +278,8 @@ public:
    * @param negated true if negated
    */
   void convertAndAssert(TNode node, bool removable,
-                        bool negated, ProofRule rule, TNode from = TNode::null());
+                        bool negated, ProofRule rule, TNode from = TNode::null(),
+                        theory::TheoryId ownerTheory = theory::THEORY_LAST);
 
   /**
    * Constructs the stream to use the given sat solver.

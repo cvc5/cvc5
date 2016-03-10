@@ -59,7 +59,7 @@ struct NodeTheoryPair {
   Node node;
   theory::TheoryId theory;
   size_t timestamp;
-  NodeTheoryPair(TNode node, theory::TheoryId theory, size_t timestamp)
+  NodeTheoryPair(TNode node, theory::TheoryId theory, size_t timestamp = 0)
   : node(node), theory(theory), timestamp(timestamp) {}
   NodeTheoryPair()
   : theory(theory::THEORY_LAST) {}
@@ -294,14 +294,14 @@ class TheoryEngine {
       Trace("theory::lemma") << "EngineOutputChannel<" << d_theory << ">::lemma(" << lemma << ")" << std::endl;
       ++ d_statistics.lemmas;
       d_engine->d_outputChannelUsed = true;
-      return d_engine->lemma(lemma, rule, false, removable, preprocess, sendAtoms ? d_theory: theory::THEORY_LAST);
+      return d_engine->lemma(lemma, rule, false, removable, preprocess, sendAtoms ? d_theory : theory::THEORY_LAST, d_theory);
     }
 
     theory::LemmaStatus splitLemma(TNode lemma, bool removable = false) throw(TypeCheckingExceptionPrivate, AssertionException, UnsafeInterruptException) {
       Trace("theory::lemma") << "EngineOutputChannel<" << d_theory << ">::lemma(" << lemma << ")" << std::endl;
       ++ d_statistics.lemmas;
       d_engine->d_outputChannelUsed = true;
-      return d_engine->lemma(lemma, RULE_SPLIT, false, removable, false, d_theory);
+      return d_engine->lemma(lemma, RULE_SPLIT, false, removable, false, d_theory, d_theory);
     }
 
     void demandRestart() throw(TypeCheckingExceptionPrivate, AssertionException, UnsafeInterruptException) {
@@ -448,7 +448,8 @@ class TheoryEngine {
                             bool negated,
                             bool removable,
                             bool preprocess,
-                            theory::TheoryId atomsTo);
+                            theory::TheoryId atomsTo,
+                            theory::TheoryId ownerTheory);
 
   /** Enusre that the given atoms are send to the given theory */
   void ensureLemmaAtoms(const std::vector<TNode>& atoms, theory::TheoryId theory);
@@ -719,6 +720,12 @@ public:
   Node getExplanation(TNode node);
 
   /**
+   * Returns an explanation of the node propagated to the SAT solver and the theory
+   * that propagated it.
+   */
+  NodeTheoryPair getExplanationAndExplainer(TNode node);
+
+  /**
    * collect model info
    */
   void collectModelInfo( theory::TheoryModel* m, bool fullModel );
@@ -783,8 +790,8 @@ public:
    */
   void printSynthSolution( std::ostream& out );
 
-  /** 
-   * Get instantiations 
+  /**
+   * Get instantiations
    */
   void getInstantiations( std::map< Node, std::vector< Node > >& insts );
 

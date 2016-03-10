@@ -98,19 +98,24 @@ void TheoryProxy::theoryPropagate(std::vector<SatLiteral>& output) {
 void TheoryProxy::explainPropagation(SatLiteral l, SatClause& explanation) {
   TNode lNode = d_cnfStream->getNode(l);
   Debug("prop-explain") << "explainPropagation(" << lNode << ")" << std::endl;
-  Node theoryExplanation = d_theoryEngine->getExplanation(lNode);
-  PROOF(ProofManager::getCnfProof()->pushCurrentAssertion(theoryExplanation); );
-  Debug("prop-explain") << "explainPropagation() => " <<  theoryExplanation << std::endl;
-  if (theoryExplanation.getKind() == kind::AND) {
-    Node::const_iterator it = theoryExplanation.begin();
-    Node::const_iterator it_end = theoryExplanation.end();
+  NodeTheoryPair theoryExplanation = d_theoryEngine->getExplanationAndExplainer(lNode);
+
+  PROOF({
+      ProofManager::getCnfProof()->pushCurrentAssertion(theoryExplanation.node);
+      ProofManager::getCnfProof()->setExplainerTheory(theoryExplanation.theory);
+    });
+
+  Debug("prop-explain") << "explainPropagation() => " << theoryExplanation.node << std::endl;
+  if (theoryExplanation.node.getKind() == kind::AND) {
+    Node::const_iterator it = theoryExplanation.node.begin();
+    Node::const_iterator it_end = theoryExplanation.node.end();
     explanation.push_back(l);
     for (; it != it_end; ++ it) {
       explanation.push_back(~d_cnfStream->getLiteral(*it));
     }
   } else {
     explanation.push_back(l);
-    explanation.push_back(~d_cnfStream->getLiteral(theoryExplanation));
+    explanation.push_back(~d_cnfStream->getLiteral(theoryExplanation.node));
   }
 }
 
@@ -164,7 +169,7 @@ void TheoryProxy::notifyRestart() {
           if(lemmaCount % 1 == 0) {
             Debug("shared") << "=) " << asNode << std::endl;
           }
-          d_propEngine->assertLemma(d_theoryEngine->preprocess(asNode), false, true, RULE_INVALID);
+          d_propEngine->assertLemma(d_theoryEngine->preprocess(asNode), false, true, RULE_INVALID, theory::THEORY_LAST);
         } else {
           Debug("shared") << "=(" << asNode << std::endl;
         }
