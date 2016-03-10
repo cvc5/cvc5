@@ -140,7 +140,7 @@ void RelevantDomain::compute(){
 }
 
 void RelevantDomain::computeRelevantDomain( Node q, Node n, bool hasPol, bool pol ) {
-  Node op = d_qe->getTermDatabase()->getOperator( n );
+  Node op = d_qe->getTermDatabase()->getMatchOperator( n );
   for( unsigned i=0; i<n.getNumChildren(); i++ ){
     if( !op.isNull() ){
       RDomain * rf = getRDomain( op, i );

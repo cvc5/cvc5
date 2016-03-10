@@ -97,11 +97,11 @@ void InstMatchGenerator::initialize( Node q, QuantifiersEngine* qe, std::vector<
     }
     d_match_pattern_type = d_match_pattern.getType();
     Trace("inst-match-gen") << "Pattern is " << d_pattern << ", match pattern is " << d_match_pattern << std::endl;
-    d_match_pattern_op = qe->getTermDatabase()->getOperator( d_match_pattern );
+    d_match_pattern_op = qe->getTermDatabase()->getMatchOperator( d_match_pattern );
 
     //now, collect children of d_match_pattern
     //int childMatchPolicy = MATCH_GEN_DEFAULT;
-    for( int i=0; i<(int)d_match_pattern.getNumChildren(); i++ ){
+    for( unsigned i=0; i<d_match_pattern.getNumChildren(); i++ ){
       Node qa = quantifiers::TermDb::getInstConstAttr(d_match_pattern[i]);
       if( !qa.isNull() ){
         InstMatchGenerator * cimg = Trigger::getInstMatchGenerator( q, d_match_pattern[i] );
@@ -129,7 +129,7 @@ void InstMatchGenerator::initialize( Node q, QuantifiersEngine* qe, std::vector<
     //create candidate generator
     if( d_match_pattern.getKind()==INST_CONSTANT ){
       if( d_pattern.getKind()==APPLY_SELECTOR_TOTAL ){
-        Expr selectorExpr = qe->getTermDatabase()->getOperator( d_pattern ).toExpr();
+        Expr selectorExpr = qe->getTermDatabase()->getMatchOperator( d_pattern ).toExpr();
         size_t selectorIndex = Datatype::cindexOf(selectorExpr);
         const Datatype& dt = Datatype::datatypeOf(selectorExpr);
         const DatatypeConstructor& c = dt[selectorIndex];
@@ -197,7 +197,7 @@ bool InstMatchGenerator::getMatch( Node f, Node t, InstMatch& m, QuantifiersEngi
     Assert( !Trigger::isAtomicTrigger( d_match_pattern ) || t.getOperator()==d_match_pattern.getOperator() );
     //first, check if ground arguments are not equal, or a match is in conflict
     Trace("matching-debug2") << "Setting immediate matches..." << std::endl;
-    for( int i=0; i<(int)d_match_pattern.getNumChildren(); i++ ){
+    for( unsigned i=0; i<d_match_pattern.getNumChildren(); i++ ){
       if( d_children_types[i]==0 ){
         Trace("matching-debug2") << "Setting " << d_var_num[i] << " to " << t[i] << "..." << std::endl;
         bool addToPrev = m.get( d_var_num[i] ).isNull();
@@ -683,7 +683,7 @@ int InstMatchGeneratorMulti::addTerm( Node q, Node t, QuantifiersEngine* qe ){
   Assert( options::eagerInstQuant() );
   int addedLemmas = 0;
   for( int i=0; i<(int)d_children.size(); i++ ){
-    Node t_op = qe->getTermDatabase()->getOperator( t );
+    Node t_op = qe->getTermDatabase()->getMatchOperator( t );
     if( ((InstMatchGenerator*)d_children[i])->d_match_pattern_op==t_op ){
       InstMatch m( q );
       //if it produces a match, then process it with the rest
@@ -709,7 +709,7 @@ InstMatchGeneratorSimple::InstMatchGeneratorSimple( Node q, Node pat ) : d_f( q 
 }
 
 void InstMatchGeneratorSimple::resetInstantiationRound( QuantifiersEngine* qe ) {
-  d_op = qe->getTermDatabase()->getOperator( d_match_pattern );
+  d_op = qe->getTermDatabase()->getMatchOperator( d_match_pattern );
 }
 
 int InstMatchGeneratorSimple::addInstantiations( Node q, InstMatch& baseMatch, QuantifiersEngine* qe ){
@@ -763,9 +763,10 @@ void InstMatchGeneratorSimple::addInstantiations( InstMatch& m, QuantifiersEngin
 }
 
 int InstMatchGeneratorSimple::addTerm( Node q, Node t, QuantifiersEngine* qe ){
+  //for eager instantiation only
   Assert( options::eagerInstQuant() );
   InstMatch m( q );
-  for( int i=0; i<(int)t.getNumChildren(); i++ ){
+  for( unsigned i=0; i<t.getNumChildren(); i++ ){
     if( d_match_pattern[i].getKind()==INST_CONSTANT ){
       m.setValue(d_var_num[i], t[i]);
     }else if( !qe->getEqualityQuery()->areEqual( d_match_pattern[i], t[i] ) ){

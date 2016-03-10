@@ -206,6 +206,7 @@ private:
   /** inst round counters */
   int d_ierCounter;
   int d_ierCounter_lc;
+  int d_ierCounterLastLc;
   int d_inst_when_phase;
   /** has presolve been called */
   context::CDO< bool > d_presolve;
@@ -399,6 +400,8 @@ private:
   /** reset count */
   int d_reset_count;
 
+  /** processInferences : will merge equivalence classes in master equality engine, if possible */
+  void processInferences( Theory::Effort e );
   /** node contains */
   Node getInstance( Node n, const std::vector< Node >& eqc, std::hash_map<TNode, Node, TNodeHashFunction>& cache );
   /** get score */
@@ -407,7 +410,7 @@ public:
   EqualityQueryQuantifiersEngine( QuantifiersEngine* qe ) : d_qe( qe ), d_reset_count( 0 ){}
   ~EqualityQueryQuantifiersEngine(){}
   /** reset */
-  void reset();
+  void reset( Theory::Effort e );
   /** general queries about equality */
   bool hasTerm( Node a );
   Node getRepresentative( Node a );

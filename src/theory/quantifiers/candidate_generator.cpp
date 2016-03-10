@@ -90,7 +90,7 @@ void CandidateGeneratorQE::reset( Node eqc ){
 bool CandidateGeneratorQE::isLegalOpCandidate( Node n ) {
   if( n.hasOperator() ){
     if( isLegalCandidate( n ) ){
-      return d_qe->getTermDatabase()->getOperator( n )==d_op;
+      return d_qe->getTermDatabase()->getMatchOperator( n )==d_op;
     }
   }
   return false;

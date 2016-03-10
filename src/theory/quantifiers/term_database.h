@@ -188,7 +188,6 @@ public:
   /** map from type nodes to terms of that type */
   std::map< TypeNode, std::vector< Node > > d_type_map;
 
-
   /** count number of non-redundant ground terms per operator */
   std::map< Node, int > d_op_nonred_count;
   /**mapping from UF terms to representatives of their arguments */
@@ -212,8 +211,8 @@ public:
   void presolve();
   /** reset (calculate which terms are active) */
   void reset( Theory::Effort effort );
-  /** get operator*/
-  Node getOperator( Node n );
+  /** get match operator */
+  Node getMatchOperator( Node n );
   /** get term arg index */
   TermArgTrie * getTermArgTrie( Node f );
   TermArgTrie * getTermArgTrie( Node eqc, Node f );

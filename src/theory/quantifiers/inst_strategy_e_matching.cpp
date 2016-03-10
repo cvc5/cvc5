@@ -257,9 +257,8 @@ void InstStrategyAutoGenTriggers::generateTriggers( Node f ){
       Node bd = d_quantEngine->getTermDatabase()->getInstConstantBody( f );
       Trigger::collectPatTerms( d_quantEngine, f, bd, patTermsF, d_tr_strategy, d_user_no_gen[f], true );
       Trace("auto-gen-trigger-debug") << "Collected pat terms for " << bd << ", no-patterns : " << d_user_no_gen[f].size() << std::endl;
-      Trace("auto-gen-trigger-debug") << "   ";
       for( int i=0; i<(int)patTermsF.size(); i++ ){
-        Trace("auto-gen-trigger-debug") << patTermsF[i] << " ";
+        Trace("auto-gen-trigger-debug") << "   " << patTermsF[i] << std::endl;
       }
       Trace("auto-gen-trigger-debug") << std::endl;
       if( ntrivTriggers ){

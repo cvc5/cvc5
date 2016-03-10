@@ -1809,23 +1809,22 @@ void SmtEngine::setDefaults() {
     if( !options::rewriteDivk.wasSetByUser()) {
       options::rewriteDivk.set( true );
     }
-  }
-  if( options::cbqi() && d_logic.isPure(THEORY_ARITH) ){
-    options::cbqiAll.set( false );
-    if( !options::quantConflictFind.wasSetByUser() ){
-      options::quantConflictFind.set( false );
-    }
-    if( !options::instNoEntail.wasSetByUser() ){
-      options::instNoEntail.set( false );
-    }
-    if( !options::instWhenMode.wasSetByUser() && options::cbqiModel() ){
-      //only instantiation should happen at last call when model is avaiable
-      if( !options::instWhenMode.wasSetByUser() ){
-        options::instWhenMode.set( quantifiers::INST_WHEN_LAST_CALL );
+    if( d_logic.isPure(THEORY_ARITH) ){
+      options::cbqiAll.set( false );
+      if( !options::quantConflictFind.wasSetByUser() ){
+        options::quantConflictFind.set( false );
+      }
+      if( !options::instNoEntail.wasSetByUser() ){
+        options::instNoEntail.set( false );
+      }
+      if( !options::instWhenMode.wasSetByUser() && options::cbqiModel() ){
+        //only instantiation should happen at last call when model is avaiable
+        if( !options::instWhenMode.wasSetByUser() ){
+          options::instWhenMode.set( quantifiers::INST_WHEN_LAST_CALL );
+        }
       }
     }
   }
-
   //implied options...
   if( options::qcfMode.wasSetByUser() || options::qcfTConstraint() ){
     options::quantConflictFind.set( true );

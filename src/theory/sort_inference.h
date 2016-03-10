@@ -61,6 +61,7 @@ private:
   //for apply uf operators
   std::map< Node, int > d_op_return_types;
   std::map< Node, std::vector< int > > d_op_arg_types;
+  std::map< Node, int > d_equality_types;
   //for bound variables
   std::map< Node, std::map< Node, int > > d_var_types;
   //get representative
@@ -68,10 +69,10 @@ private:
   int getIdForType( TypeNode tn );
   void printSort( const char* c, int t );
   //process
-  int process( Node n, std::map< Node, Node >& var_bound );
+  int process( Node n, std::map< Node, Node >& var_bound, std::map< Node, int >& visited );
 //for monotonicity inference
 private:
-  void processMonotonic( Node n, bool pol, bool hasPol, std::map< Node, Node >& var_bound, bool typeMode = false );
+  void processMonotonic( Node n, bool pol, bool hasPol, std::map< Node, Node >& var_bound, std::map< Node, std::map< int, bool > >& visited, bool typeMode = false );
 
 //for rewriting
 private:
@@ -84,7 +85,7 @@ private:
   TypeNode getTypeForId( int t );
   Node getNewSymbol( Node old, TypeNode tn );
   //simplify
-  Node simplify( Node n, std::map< Node, Node >& var_bound );
+  Node simplifyNode( Node n, std::map< Node, Node >& var_bound, TypeNode tnn, std::map< Node, std::map< TypeNode, Node > >& visited );
   //make injection
   Node mkInjection( TypeNode tn1, TypeNode tn2 );
   //reset
