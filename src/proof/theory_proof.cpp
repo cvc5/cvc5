@@ -306,6 +306,8 @@ void LFSCTheoryProofEngine::printSort(Type type, std::ostream& os) {
 }
 
 void LFSCTheoryProofEngine::printAssertions(std::ostream& os, std::ostream& paren) {
+  Debug("gk::proof") << "LFSCTheoryProofEngine::printAssertions called" << std::endl << std::endl;
+
   unsigned counter = 0;
   ProofManager::assertions_iterator it = ProofManager::currentPM()->begin_assertions();
   ProofManager::assertions_iterator end = ProofManager::currentPM()->end_assertions();
@@ -315,12 +317,8 @@ void LFSCTheoryProofEngine::printAssertions(std::ostream& os, std::ostream& pare
     registerTerm(*it);
   }
 
-  Debug("gk::proof") << "LFSCTheoryProofEngine::printAssertions now printing declarations" << std::endl << std::endl;
-  printDeclarations(os, paren);
-
   it = ProofManager::currentPM()->begin_assertions();
 
-  Debug("gk::proof") << "LFSCTheoryProofEngine::printAssertions now printing assertions" << std::endl << std::endl;
   for (; it != end; ++it) {
     Debug("gk::proof") << "printAssertions: assertion is: " << *it << std::endl;
     // FIXME: merge this with counter
@@ -331,14 +329,31 @@ void LFSCTheoryProofEngine::printAssertions(std::ostream& os, std::ostream& pare
   }
   //store map between assertion and counter
   // ProofManager::currentPM()->setAssertion( *it );
+  Debug("gk::proof") << "LFSCTheoryProofEngine::printAssertions done" << std::endl << std::endl;
 }
 
-void LFSCTheoryProofEngine::printDeclarations(std::ostream& os, std::ostream& paren) {
+void LFSCTheoryProofEngine::printSortDeclarations(std::ostream& os, std::ostream& paren) {
+  Debug("gk::proof") << "LFSCTheoryProofEngine::printSortDeclarations called" << std::endl << std::endl;
+
   TheoryProofTable::const_iterator it = d_theoryProofTable.begin();
   TheoryProofTable::const_iterator end = d_theoryProofTable.end();
   for (; it != end; ++it) {
-    it->second->printDeclarations(os, paren);
+    it->second->printSortDeclarations(os, paren);
   }
+
+  Debug("gk::proof") << "LFSCTheoryProofEngine::printSortDeclarations done" << std::endl << std::endl;
+}
+
+void LFSCTheoryProofEngine::printTermDeclarations(std::ostream& os, std::ostream& paren) {
+  Debug("gk::proof") << "LFSCTheoryProofEngine::printTermDeclarations called" << std::endl << std::endl;
+
+  TheoryProofTable::const_iterator it = d_theoryProofTable.begin();
+  TheoryProofTable::const_iterator end = d_theoryProofTable.end();
+  for (; it != end; ++it) {
+    it->second->printTermDeclarations(os, paren);
+  }
+
+  Debug("gk::proof") << "LFSCTheoryProofEngine::printTermDeclarations done" << std::endl << std::endl;
 }
 
 void LFSCTheoryProofEngine::printDeferredDeclarations(std::ostream& os, std::ostream& paren) {
@@ -735,7 +750,12 @@ void LFSCBooleanProof::printSort(Type type, std::ostream& os) {
   Assert (type.isBoolean());
   os << "Bool";
 }
-void LFSCBooleanProof::printDeclarations(std::ostream& os, std::ostream& paren) {
+
+void LFSCBooleanProof::printSortDeclarations(std::ostream& os, std::ostream& paren) {
+  // Nothing to do here at this point.
+}
+
+void LFSCBooleanProof::printTermDeclarations(std::ostream& os, std::ostream& paren) {
   for (ExprSet::const_iterator it = d_declarations.begin(); it != d_declarations.end(); ++it) {
     Expr term = *it;
 

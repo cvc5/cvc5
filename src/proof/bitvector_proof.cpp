@@ -373,7 +373,12 @@ void LFSCBitVectorProof::printTheoryLemmaProof(std::vector<Expr>& lemma, std::os
     BitVectorProof::printTheoryLemmaProof( lemma, os, paren );
   }
 }
-void LFSCBitVectorProof::printDeclarations(std::ostream& os, std::ostream& paren) {
+
+void LFSCBitVectorProof::printSortDeclarations(std::ostream& os, std::ostream& paren) {
+  // Nothing to do here at this point.
+}
+
+void LFSCBitVectorProof::printTermDeclarations(std::ostream& os, std::ostream& paren) {
   ExprSet::const_iterator it = d_declarations.begin();
   ExprSet::const_iterator end = d_declarations.end();
   for (; it != end; ++it) {

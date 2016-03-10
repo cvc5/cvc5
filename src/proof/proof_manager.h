@@ -136,6 +136,8 @@ class ProofManager {
   // trace dependences back to unsat core
   void traceDeps(TNode n);
 
+  std::set<Type> d_printedTypes;
+
 protected:
   LogicInfo d_logic;
 
@@ -220,6 +222,9 @@ public:
   void setLogic(const LogicInfo& logic);
   const std::string getLogic() const { return d_logic.getLogicString(); }
   LogicInfo & getLogicInfo() { return d_logic; }
+
+  void markPrinted(const Type& type);
+  bool wasPrinted(const Type& type) const;
 
 };/* class ProofManager */
 

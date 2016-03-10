@@ -1169,27 +1169,21 @@ void LFSCArrayProof::printTheoryLemmaProof(std::vector<Expr>& lemma, std::ostrea
   ArrayProof::printTheoryLemmaProof(lemma, os, paren);
 }
 
-void LFSCArrayProof::printDeclarations(std::ostream& os, std::ostream& paren) {
+void LFSCArrayProof::printSortDeclarations(std::ostream& os, std::ostream& paren) {
   // declaring the sorts
-  Debug("gk::proof") << "Declaring sorts..." << std::endl;
-
-  //
-  std::hash_map<Node, Node, NodeHashFunction>::const_iterator it;
-  for (it = ProofManager::getSkolemizationManager()->begin();
-       it != ProofManager::getSkolemizationManager()->end();
-       ++it) {
-    Debug("array-pf") << "In print declarations, found this skolem: " << it->first << " --> " << it->second << std::endl;
-    // proof_array->registerSkolem(it->first, it->second);
-  }
-  //
+  Debug("gk::proof") << "Arrays declaring sorts..." << std::endl;
 
   for (TypeSet::const_iterator it = d_sorts.begin(); it != d_sorts.end(); ++it) {
-    Debug("gk::proof") << "LFSCArrayProof::printDeclarations: sort is: " << *it << std::endl;
-    os << "(% " << *it << " sort\n";
-    paren << ")";
+    if (!ProofManager::currentPM()->wasPrinted(*it)) {
+      os << "(% " << *it << " sort\n";
+      paren << ")";
+      ProofManager::currentPM()->markPrinted(*it);
+    }
   }
+}
 
-  Debug("gk::proof") << "Declaring sorts done! Declaring terms..." << std::endl;
+void LFSCArrayProof::printTermDeclarations(std::ostream& os, std::ostream& paren) {
+  Debug("gk::proof") << "Arrays declaring terms..." << std::endl;
 
   // declaring the terms
   for (ExprSet::const_iterator it = d_declarations.begin(); it != d_declarations.end(); ++it) {

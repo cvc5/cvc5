@@ -437,6 +437,8 @@ void LFSCProof::toStream(std::ostream& out) {
   Debug("gk::proof") << std::endl << "LFSCProof::toStream: starting to print assertions" << std::endl;
 
   // print out all the original assertions
+  d_theoryProof->printSortDeclarations(out, paren);
+  d_theoryProof->printTermDeclarations(out, paren);
   d_theoryProof->printAssertions(out, paren);
 
   Debug("gk::proof") << std::endl << "LFSCProof::toStream: print assertions DONE" << std::endl;
@@ -559,6 +561,14 @@ Node ProofManager::mkOp(TNode n) {
   return op;
 }
 //---end from Morgan---
+
+bool ProofManager::wasPrinted(const Type& type) const {
+  return d_printedTypes.find(type) != d_printedTypes.end();
+}
+
+void ProofManager::markPrinted(const Type& type) {
+  d_printedTypes.insert(type);
+}
 
 std::ostream& operator<<(std::ostream& out, CVC4::ProofRule k) {
   switch(k) {

@@ -176,7 +176,8 @@ public:
   LFSCTheoryProofEngine()
     : TheoryProofEngine() {}
 
-  void printDeclarations(std::ostream& os, std::ostream& paren);
+  void printSortDeclarations(std::ostream& os, std::ostream& paren);
+  void printTermDeclarations(std::ostream& os, std::ostream& paren);
   virtual void printCoreTerm(Expr term, std::ostream& os, const LetMap& map);
   virtual void printLetTerm(Expr term, std::ostream& os);
   virtual void printBoundTerm(Expr term, std::ostream& os, const LetMap& map);
@@ -221,12 +222,19 @@ public:
    */
   virtual void printTheoryLemmaProof(std::vector<Expr>& lemma, std::ostream& os, std::ostream& paren);
   /**
-   * Print the variable/sorts declarations for this theory.
+   * Print the sorts declarations for this theory.
    *
    * @param os
    * @param paren
    */
-  virtual void printDeclarations(std::ostream& os, std::ostream& paren) = 0;
+  virtual void printSortDeclarations(std::ostream& os, std::ostream& paren) = 0;
+  /**
+   * Print the term declarations for this theory.
+   *
+   * @param os
+   * @param paren
+   */
+  virtual void printTermDeclarations(std::ostream& os, std::ostream& paren) = 0;
   /**
    * Print any deferred variable/sorts declarations for this theory
    * (those that need to appear inside the actual proof).
@@ -255,7 +263,8 @@ public:
 
   virtual void printSort(Type type, std::ostream& os) = 0;
   virtual void printTheoryLemmaProof(std::vector<Expr>& lemma, std::ostream& os, std::ostream& paren) = 0;
-  virtual void printDeclarations(std::ostream& os, std::ostream& paren) = 0;
+  virtual void printSortDeclarations(std::ostream& os, std::ostream& paren) = 0;
+  virtual void printTermDeclarations(std::ostream& os, std::ostream& paren) = 0;
   virtual void printDeferredDeclarations(std::ostream& os, std::ostream& paren) = 0;
 };
 
@@ -267,10 +276,10 @@ public:
   virtual void printTerm(Expr term, std::ostream& os, const LetMap& map);
   virtual void printSort(Type type, std::ostream& os);
   virtual void printTheoryLemmaProof(std::vector<Expr>& lemma, std::ostream& os, std::ostream& paren);
-  virtual void printDeclarations(std::ostream& os, std::ostream& paren);
+  virtual void printSortDeclarations(std::ostream& os, std::ostream& paren);
+  virtual void printTermDeclarations(std::ostream& os, std::ostream& paren);
   virtual void printDeferredDeclarations(std::ostream& os, std::ostream& paren);
 };
-
 
 } /* CVC4 namespace */
 

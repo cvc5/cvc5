@@ -927,7 +927,10 @@ void LFSCArithProof::printTheoryLemmaProof(std::vector<Expr>& lemma, std::ostrea
   ArithProof::printTheoryLemmaProof( lemma, os, paren );
 }
 
-void LFSCArithProof::printDeclarations(std::ostream& os, std::ostream& paren) {
+void LFSCArithProof::printSortDeclarations(std::ostream& os, std::ostream& paren) {
+}
+
+void LFSCArithProof::printTermDeclarations(std::ostream& os, std::ostream& paren) {
   // declaring the consts
   //  std::map<Expr, std::string>::const_iterator it;
 

@@ -782,13 +782,17 @@ void LFSCUFProof::printTheoryLemmaProof(std::vector<Expr>& lemma, std::ostream& 
   UFProof::printTheoryLemmaProof( lemma, os, paren );
 }
 
-void LFSCUFProof::printDeclarations(std::ostream& os, std::ostream& paren) {
-  // declaring the sorts
+void LFSCUFProof::printSortDeclarations(std::ostream& os, std::ostream& paren) {
   for (TypeSet::const_iterator it = d_sorts.begin(); it != d_sorts.end(); ++it) {
-    os << "(% " << *it << " sort\n";
-    paren << ")";
+    if (!ProofManager::currentPM()->wasPrinted(*it)) {
+      os << "(% " << *it << " sort\n";
+      paren << ")";
+      ProofManager::currentPM()->markPrinted(*it);
+    }
   }
+}
 
+void LFSCUFProof::printTermDeclarations(std::ostream& os, std::ostream& paren) {
   // declaring the terms
   for (ExprSet::const_iterator it = d_declarations.begin(); it != d_declarations.end(); ++it) {
     Expr term = *it;
