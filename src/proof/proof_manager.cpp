@@ -437,6 +437,7 @@ void LFSCProof::toStream(std::ostream& out) {
   Debug("gk::proof") << std::endl << "LFSCProof::toStream: starting to print assertions" << std::endl;
 
   // print out all the original assertions
+  d_theoryProof->registerTermsFromAssertions();
   d_theoryProof->printSortDeclarations(out, paren);
   d_theoryProof->printTermDeclarations(out, paren);
   d_theoryProof->printAssertions(out, paren);

@@ -305,19 +305,21 @@ void LFSCTheoryProofEngine::printSort(Type type, std::ostream& os) {
   Unreachable();
 }
 
+void LFSCTheoryProofEngine::registerTermsFromAssertions() {
+  ProofManager::assertions_iterator it = ProofManager::currentPM()->begin_assertions();
+  ProofManager::assertions_iterator end = ProofManager::currentPM()->end_assertions();
+
+  for(; it != end; ++it) {
+    registerTerm(*it);
+  }
+}
+
 void LFSCTheoryProofEngine::printAssertions(std::ostream& os, std::ostream& paren) {
   Debug("gk::proof") << "LFSCTheoryProofEngine::printAssertions called" << std::endl << std::endl;
 
   unsigned counter = 0;
   ProofManager::assertions_iterator it = ProofManager::currentPM()->begin_assertions();
   ProofManager::assertions_iterator end = ProofManager::currentPM()->end_assertions();
-
-  // collect declarations first
-  for(; it != end; ++it) {
-    registerTerm(*it);
-  }
-
-  it = ProofManager::currentPM()->begin_assertions();
 
   for (; it != end; ++it) {
     Debug("gk::proof") << "printAssertions: assertion is: " << *it << std::endl;

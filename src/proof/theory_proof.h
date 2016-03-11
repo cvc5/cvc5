@@ -124,6 +124,14 @@ public:
   virtual void printSort(Type type, std::ostream& os) = 0;
 
   /**
+   * Go over the assertions and register all terms with the theories.
+   *
+   * @param os
+   * @param paren closing parenthesis
+   */
+  virtual void registerTermsFromAssertions() = 0;
+
+  /**
    * Print the theory assertions (arbitrary formulas over
    * theory atoms)
    *
@@ -176,6 +184,7 @@ public:
   LFSCTheoryProofEngine()
     : TheoryProofEngine() {}
 
+  void registerTermsFromAssertions();
   void printSortDeclarations(std::ostream& os, std::ostream& paren);
   void printTermDeclarations(std::ostream& os, std::ostream& paren);
   virtual void printCoreTerm(Expr term, std::ostream& os, const LetMap& map);
