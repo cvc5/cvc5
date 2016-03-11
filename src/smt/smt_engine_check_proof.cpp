@@ -82,7 +82,15 @@ void SmtEngine::checkProof() {
 
   Debug("gk::proof") << "Checking proof" << std::endl;
 
-  char* pfFile = strdup("/tmp/cvc4_proof.XXXXXX");
+  char* tempDir = getenv("TMPDIR");
+  if (!tempDir) {
+    tempDir = "/tmp";
+  }
+
+  stringstream pfPath;
+  pfPath << tempDir << "/cvc4_proof.XXXXXX";
+
+  char* pfFile = strdup(pfPath.str().c_str());
   int fd = mkstemp(pfFile);
 
   // ensure this temp file is removed after
