@@ -43,7 +43,6 @@ typedef std::map<Node, std::vector<Node> >::iterator mem_it;
     Trace("rels") << "\n[sets-rels] ******************************* Start the relational solver *******************************\n" << std::endl;
     collectRelsInfo();
     check();
-//    doPendingFacts();
     doPendingLemmas();
     Assert(d_lemma_cache.empty());
     Assert(d_pending_facts.empty());
@@ -53,8 +52,8 @@ typedef std::map<Node, std::vector<Node> >::iterator mem_it;
   void TheorySetsRels::check() {
     mem_it m_it = d_membership_cache.begin();
     while(m_it != d_membership_cache.end()) {
-
       Node rel_rep = m_it->first;
+
       // No relational terms found with rel_rep as its representative
       if(d_terms_cache.find(rel_rep) == d_terms_cache.end()) {
         // TRANSPOSE(rel_rep) may occur in the context
@@ -69,34 +68,32 @@ typedef std::map<Node, std::vector<Node> >::iterator mem_it;
             applyTransposeRule(exp, tp_rel_rep, true);
           }
         }
-        m_it++;
-        continue;
-      }
+      } else {
+        for(unsigned int i = 0; i < m_it->second.size(); i++) {
+          Node exp = d_membership_exp_cache[rel_rep][i];
+          std::map<kind::Kind_t, std::vector<Node> > kind_terms = d_terms_cache[rel_rep];
 
-      for(unsigned int i = 0; i < m_it->second.size(); i++) {
-        Node exp = d_membership_exp_cache[rel_rep][i];
-        std::map<kind::Kind_t, std::vector<Node> > kind_terms = d_terms_cache[rel_rep];
-
-        if(kind_terms.find(kind::TRANSPOSE) != kind_terms.end()) {
-          std::vector<Node> tp_terms = kind_terms[kind::TRANSPOSE];
-          // exp is a membership term and tp_terms contains all
-          // transposed terms that are equal to the right hand side of exp
-          for(unsigned int j = 0; j < tp_terms.size(); j++) {
-            applyTransposeRule(exp, tp_terms[j]);
+          if(kind_terms.find(kind::TRANSPOSE) != kind_terms.end()) {
+            std::vector<Node> tp_terms = kind_terms[kind::TRANSPOSE];
+            // exp is a membership term and tp_terms contains all
+            // transposed terms that are equal to the right hand side of exp
+            for(unsigned int j = 0; j < tp_terms.size(); j++) {
+              applyTransposeRule(exp, tp_terms[j]);
+            }
           }
-        }
-        if(kind_terms.find(kind::JOIN) != kind_terms.end()) {
-          std::vector<Node> join_terms = kind_terms[kind::JOIN];
-          // exp is a membership term and join_terms contains all
-          // terms involving "join" operator that are in the same equivalence class with the right hand side of exp
-          for(unsigned int j = 0; j < join_terms.size(); j++) {
-            applyJoinRule(exp, join_terms[j]);
+          if(kind_terms.find(kind::JOIN) != kind_terms.end()) {
+            std::vector<Node> join_terms = kind_terms[kind::JOIN];
+            // exp is a membership term and join_terms contains all
+            // terms involving "join" operator that are in the same equivalence class with the right hand side of exp
+            for(unsigned int j = 0; j < join_terms.size(); j++) {
+              applyJoinRule(exp, join_terms[j]);
+            }
           }
-        }
-        if(kind_terms.find(kind::PRODUCT) != kind_terms.end()) {
-          std::vector<Node> product_terms = kind_terms[kind::PRODUCT];
-          for(unsigned int j = 0; j < product_terms.size(); j++) {
-            applyProductRule(exp, product_terms[j]);
+          if(kind_terms.find(kind::PRODUCT) != kind_terms.end()) {
+            std::vector<Node> product_terms = kind_terms[kind::PRODUCT];
+            for(unsigned int j = 0; j < product_terms.size(); j++) {
+              applyProductRule(exp, product_terms[j]);
+            }
           }
         }
       }
@@ -131,12 +128,10 @@ typedef std::map<Node, std::vector<Node> >::iterator mem_it;
               if(safeAddToMap(d_membership_cache, rel_rep, tup_rep)) {
                 bool true_eq = areEqual(r, d_trueNode);
                 Node reason = true_eq ? n : n.negate();
-                if(true_eq && safeAddToMap(d_membership_db, rel_rep, tup_rep)) {
-                  computeTupleReps(n[0]);
-                  d_membership_trie[rel_rep].addTerm(n[0], d_tuple_reps[n[0]]);
-                  addToMap(d_membership_exp_db, rel_rep, reason);
-                }
                 addToMap(d_membership_exp_cache, rel_rep, reason);
+                if(true_eq) {
+                  addToMembershipDB(rel_rep, tup_rep, reason);
+                }
               }
             }
           }
@@ -294,14 +289,13 @@ typedef std::map<Node, std::vector<Node> >::iterator mem_it;
       Node t2 = nm->mkNode(kind::APPLY_CONSTRUCTOR, r2_element);
       computeTupleReps(t1);
       computeTupleReps(t2);
-      d_membership_trie[r1_rep].debugPrint("rels-trie", r1_rep);
       std::vector<Node> elements = d_membership_trie[r1_rep].findTerms(d_tuple_reps[t1]);
+
       if(elements.size() != 0) {
         for(unsigned int j = 0; j < elements.size(); j++) {
           std::vector<Node> new_tup;
           new_tup.push_back(elements[j]);
           new_tup.insert(new_tup.end(), d_tuple_reps[t2].begin()+1, d_tuple_reps[t2].end());
-          d_membership_trie[r2_rep].debugPrint("rels-trie", r2_rep);
           if(d_membership_trie[r2_rep].existsTerm(new_tup) != Node::null()) {
             return;
           }
@@ -734,6 +728,10 @@ typedef std::map<Node, std::vector<Node> >::iterator mem_it;
     }
   }
 
+  bool TheorySetsRels::checkCycles(Node join_term) {
+    return false;
+  }
+
   bool TheorySetsRels::safeAddToMap(std::map< Node, std::vector<Node> >& map, Node rel_rep, Node member) {
     if(map.find(rel_rep) == map.end()) {
       std::vector<Node> members;
@@ -785,7 +783,6 @@ typedef std::map<Node, std::vector<Node> >::iterator mem_it;
     }
   }
 
-  // Todo: change this
   bool TheorySetsRels::holds(Node node) {
     bool polarity = node.getKind() != kind::NOT;
     Node atom = polarity ? node : node[0];
@@ -818,7 +815,7 @@ typedef std::map<Node, std::vector<Node> >::iterator mem_it;
   }
 
   void TheorySetsRels::reduceTupleVar(Node n) {
-    if(d_symbolic_tuples.find(n[0]) == d_symbolic_tuples.end()) {
+    if(d_symbolic_tuples.find(n) == d_symbolic_tuples.end()) {
       Trace("rels-debug") << "Reduce tuple var: " << n[0] << " to concrete one " << std::endl;
       std::vector<Node> tuple_elements;
       tuple_elements.push_back(Node::fromExpr((n[0].getType().getDatatype())[0].getConstructor()));
@@ -831,7 +828,7 @@ typedef std::map<Node, std::vector<Node> >::iterator mem_it;
       tuple_reduct = MEMBER(tuple_reduct, n[1]);
       Node tuple_reduction_lemma = NodeManager::currentNM()->mkNode(kind::IFF, n, tuple_reduct);
       sendLemma(tuple_reduction_lemma, d_trueNode, "tuple-reduction");
-      d_symbolic_tuples.insert(n[0]);
+      d_symbolic_tuples.insert(n);
     }
   }
 
@@ -846,6 +843,7 @@ typedef std::map<Node, std::vector<Node> >::iterator mem_it;
     d_infer(c),
     d_infer_exp(c),
     d_lemma(u),
+    d_shared_terms(u),
     d_eqEngine(eq),
     d_conflict(conflict)
   {

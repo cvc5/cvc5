@@ -76,10 +76,10 @@ private:
   NodeList d_infer;
   NodeList d_infer_exp;
   NodeSet d_lemma;
+  NodeSet d_shared_terms;
 
   std::map< Node, std::vector<Node> > d_tuple_reps;
   std::map< Node, TupleTrie > d_membership_trie;
-  std::hash_set< Node, NodeHashFunction > d_shared_terms;
   std::hash_set< Node, NodeHashFunction > d_symbolic_tuples;
   std::map< Node, std::vector<Node> > d_membership_cache;
   std::map< Node, std::vector<Node> > d_membership_db;
@@ -107,6 +107,7 @@ private:
   void doPendingFacts();
   void doPendingSplitFacts();
   void addSharedTerm( TNode n );
+  bool checkCycles( Node );
 
   // Helper functions
   inline Node selectElement( Node, int);
