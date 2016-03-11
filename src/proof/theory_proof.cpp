@@ -48,6 +48,16 @@ namespace CVC4 {
 unsigned CVC4::LetCount::counter = 0;
 static unsigned LET_COUNT = 1;
 
+void dumpLetMap(const LetMap &map) {
+  Debug("gk::proof") << "Dumping let map:" << std::endl;
+  LetMap::const_iterator it;
+  for (it = map.begin(); it != map.end(); ++it) {
+    Debug("gk::proof") << "\t" << it->first << "\t-->\t" << "("
+                       << it->second.id << ", " << it->second.count << ")" << std::endl;
+  }
+  Debug("gk::proof") << "Dumping let map done." << std::endl << std::endl;
+}
+
 //for proof replay
 class ProofOutputChannel : public theory::OutputChannel {
 public:
@@ -202,13 +212,18 @@ theory::TheoryId TheoryProofEngine::getTheoryForLemma(ClauseId id) {
 
   Debug("gk::proof") << "TheoryProofEngine::getTheoryForLemma( " << id << " )"
                      << " = " << pm->getCnfProof()->getOwnerTheory(id) << std::endl;
+
+  if ((pm->getLogic() == "QF_UFLIA") || (pm->getLogic() == "QF_UFLRA")) {
+    Debug("gk::proof") << "TheoryProofEngine::getTheoryForLemma: special hack for Arithmetic-with-holes support. "
+                       << "Returning THEORY_ARITH" << std::endl;
+    return theory::THEORY_ARITH;
+  }
+
   return pm->getCnfProof()->getOwnerTheory(id);
 
   // if (pm->getLogic() == "QF_UF") return theory::THEORY_UF;
   // if (pm->getLogic() == "QF_BV") return theory::THEORY_BV;
   // if (pm->getLogic() == "QF_AX") return theory::THEORY_ARRAY;
-  // if (pm->getLogic() == "QF_UFLIA") return theory::THEORY_ARITH;
-  // if (pm->getLogic() == "QF_UFLRA") return theory::THEORY_ARITH;
   // if (pm->getLogic() == "ALL_SUPPORTED") return theory::THEORY_BV;
 
   // Debug("gk::proof") << "Unsupported logic (" << pm->getLogic() << ")" << std::endl;
@@ -471,15 +486,20 @@ void LFSCTheoryProofEngine::printTheoryLemmas(const IdToSatClause& lemmas,
 }
 
 void LFSCTheoryProofEngine::printBoundTerm(Expr term, std::ostream& os, const LetMap& map) {
+  // Debug("gk::proof") << "LFSCTheoryProofEngine::printBoundTerm( " << term << " ) " << std::endl;
+  // dumpLetMap(map);
+
   LetMap::const_iterator it = map.find(term);
-  Assert (it != map.end());
-  unsigned id = it->second.id;
-  unsigned count = it->second.count;
-  if (count > LET_COUNT) {
-    os <<"let"<<id;
-    return;
+  if (it != map.end()) {
+    unsigned id = it->second.id;
+    unsigned count = it->second.count;
+    if (count > LET_COUNT) {
+      os <<"let"<<id;
+      return;
+    }
   }
-  printTheoryTerm(term, os,  map);
+
+  printTheoryTerm(term, os, map);
 }
 
 void LFSCTheoryProofEngine::printCoreTerm(Expr term, std::ostream& os, const LetMap& map) {

@@ -77,6 +77,7 @@ void ProofUF::toStream(std::ostream& out) {
 }
 
 void ProofUF::toStreamLFSC(std::ostream& out, TheoryProof * tp, theory::eq::EqProof * pf, const LetMap& map) {
+  Debug("gk::proof") << "ProofUF::toStreamLFSC starting" << std::endl;
   Debug("lfsc-uf") << "Printing uf proof in LFSC : " << std::endl;
   pf->debug_print("lfsc-uf");
   Debug("lfsc-uf") << std::endl;

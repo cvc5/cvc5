@@ -103,6 +103,9 @@ void TheoryProxy::explainPropagation(SatLiteral l, SatClause& explanation) {
   PROOF({
       ProofManager::getCnfProof()->pushCurrentAssertion(theoryExplanation.node);
       ProofManager::getCnfProof()->setExplainerTheory(theoryExplanation.theory);
+
+      Debug("duplemma") << "TheoryProxy::explainPropagation: setting explainer theory to: "
+                        << theoryExplanation.theory << std::endl;
     });
 
   Debug("prop-explain") << "explainPropagation() => " << theoryExplanation.node << std::endl;
