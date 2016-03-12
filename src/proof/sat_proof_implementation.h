@@ -518,9 +518,12 @@ ClauseId TSatProof<Solver>::registerUnitClause(typename Solver::TLit lit,
     }
     if (kind == THEORY_LEMMA) {
       Assert(d_lemmaClauses.find(newId) == d_lemmaClauses.end());
-      Debug("gk::duplemma") << "TSatProof::registerUnitClause: registering a new lemma unit clause: "
-                            << lit << std::endl;
+      Debug("gk::duplemma") << "TSatProof::registerUnitClause: registering a new lemma (UNIT CLAUSE): "
+                            << lit
+                            << ". Explainer theory: " << d_cnfProof->getExplainerTheory()
+                            << std::endl;
       d_lemmaClauses.insert(newId);
+      d_cnfProof->registerExplanationLemma(newId);
     }
   }
   ClauseId id = d_unitId[toInt(lit)];
