@@ -1683,16 +1683,25 @@ void SmtEngine::setDefaults() {
     options::sortInference.set( false );
     options::ufssFairnessMonotone.set( false );
   }
+  if( d_logic.hasCardinalityConstraints() ){
+    //must have finite model finding on
+    options::finiteModelFind.set( true );
+  }
+  
+  //if it contains a theory with non-termination, do not strictly enforce that quantifiers and theory combination must be interleaved
+  if( d_logic.isTheoryEnabled(THEORY_STRINGS) || (d_logic.isTheoryEnabled(THEORY_ARITH) && !d_logic.isLinear()) ){
+    if( !options::instWhenStrictInterleave.wasSetByUser() ){
+      options::instWhenStrictInterleave.set( false );
+    }
+  }
+  
   //local theory extensions
   if( options::localTheoryExt() ){
     if( !options::instMaxLevel.wasSetByUser() ){
       options::instMaxLevel.set( 0 );
     }
   }
-  if( d_logic.hasCardinalityConstraints() ){
-    //must have finite model finding on
-    options::finiteModelFind.set( true );
-  }
+
   if(options::fmfBoundIntLazy.wasSetByUser() && options::fmfBoundIntLazy()) {
     options::fmfBoundInt.set( true );
   }

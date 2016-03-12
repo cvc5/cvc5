@@ -138,12 +138,11 @@ QuantifiersEngine::QuantifiersEngine(context::Context* c, context::UserContext* 
   d_builder = NULL;
 
   d_total_inst_count_debug = 0;
-  //allow theory combination to go first, once initially, when instWhenDelayIncrement = true
-  d_ierCounter = options::instWhenDelayIncrement() ? 1 : 0;
-  d_ierCounter_lc = options::instWhenDelayIncrement() ? 1 : 0;
-  d_ierCounterLastLc = -1;
-  //if any strategy called only on last call, use phase 3
-  d_inst_when_phase = options::cbqi() ? 3 : 2;
+  //allow theory combination to go first, once initially
+  d_ierCounter = options::instWhenTcFirst() ? 0 : 1;
+  d_ierCounter_lc = 0;
+  d_ierCounterLastLc = d_ierCounter_lc;
+  d_inst_when_phase = 1 + ( options::instWhenPhase()<1 ? 1 : options::instWhenPhase() );
 }
 
 QuantifiersEngine::~QuantifiersEngine(){
@@ -340,13 +339,6 @@ void QuantifiersEngine::check( Theory::Effort e ){
     Trace("quant-engine-debug") << "Master equality engine not consistent, return." << std::endl;
     return;
   }
-  if( !options::instWhenDelayIncrement() ){
-    if( e==Theory::EFFORT_FULL ){
-      d_ierCounter++;
-    }else if( e==Theory::EFFORT_LAST_CALL ){
-      d_ierCounter_lc++;
-    }
-  }
   bool needsCheck = !d_lemmas_waiting.empty();
   unsigned needsModelE = QEFFORT_NONE;
   std::vector< QuantifiersModule* > qm;
@@ -470,16 +462,14 @@ void QuantifiersEngine::check( Theory::Effort e ){
         break;
       }else{
         if( quant_e==QEFFORT_CONFLICT ){
-          if( options::instWhenDelayIncrement() ){
-            if( e==Theory::EFFORT_FULL ){
-              //increment if a last call happened, or if we already were in phase
-              if( d_ierCounterLastLc!=d_ierCounter_lc || d_ierCounter%d_inst_when_phase==0 ){
-                d_ierCounter++;
-                d_ierCounterLastLc = d_ierCounter_lc;
-              }
-            }else if( e==Theory::EFFORT_LAST_CALL ){
-              d_ierCounter_lc++;
+          if( e==Theory::EFFORT_FULL ){
+            //increment if a last call happened, we are not strictly enforcing interleaving, or already were in phase
+            if( d_ierCounterLastLc!=d_ierCounter_lc || !options::instWhenStrictInterleave() || d_ierCounter%d_inst_when_phase!=0 ){
+              d_ierCounter++;
+              d_ierCounterLastLc = d_ierCounter_lc;
             }
+          }else if( e==Theory::EFFORT_LAST_CALL ){
+            d_ierCounter_lc++;
           }
         }else if( quant_e==QEFFORT_MODEL ){
           if( e==Theory::EFFORT_LAST_CALL ){
@@ -1052,9 +1042,9 @@ bool QuantifiersEngine::getInstWhenNeedsCheck( Theory::Effort e ) {
   }else if( options::instWhenMode()==quantifiers::INST_WHEN_FULL_DELAY ){
     performCheck = ( e >= Theory::EFFORT_FULL ) && !getTheoryEngine()->needCheck();
   }else if( options::instWhenMode()==quantifiers::INST_WHEN_FULL_LAST_CALL ){
-    performCheck = ( ( e==Theory::EFFORT_FULL && d_ierCounter%d_inst_when_phase==0 ) || e==Theory::EFFORT_LAST_CALL );
+    performCheck = ( ( e==Theory::EFFORT_FULL && d_ierCounter%d_inst_when_phase!=0 ) || e==Theory::EFFORT_LAST_CALL );
   }else if( options::instWhenMode()==quantifiers::INST_WHEN_FULL_DELAY_LAST_CALL ){
-    performCheck = ( ( e==Theory::EFFORT_FULL && !getTheoryEngine()->needCheck() && d_ierCounter%d_inst_when_phase==0 ) || e==Theory::EFFORT_LAST_CALL );
+    performCheck = ( ( e==Theory::EFFORT_FULL && !getTheoryEngine()->needCheck() && d_ierCounter%d_inst_when_phase!=0 ) || e==Theory::EFFORT_LAST_CALL );
   }else if( options::instWhenMode()==quantifiers::INST_WHEN_LAST_CALL ){
     performCheck = ( e >= Theory::EFFORT_LAST_CALL );
   }else{

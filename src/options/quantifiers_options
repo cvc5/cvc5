@@ -99,8 +99,12 @@ option incrementTriggers --increment-triggers bool :default true
  
 option instWhenMode --inst-when=MODE CVC4::theory::quantifiers::InstWhenMode :default CVC4::theory::quantifiers::INST_WHEN_FULL_LAST_CALL :read-write :include "options/quantifiers_modes.h" :handler stringToInstWhenMode :predicate checkInstWhenMode
  when to apply instantiation
-option instWhenDelayIncrement --inst-when-delay-increment bool :default false
- delay incrementing counters for inst-when mode to ensure theory combination and standard quantifier effort strategies take turns
+option instWhenStrictInterleave --inst-when-strict-interleave bool :default true :read-write
+ ensure theory combination and standard quantifier effort strategies take turns 
+option instWhenPhase --inst-when-phase=N int :read-write :default 2 :read-write
+ instantiation rounds quantifiers takes (>=1) before allowing theory combination to happen
+option instWhenTcFirst --inst-when-tc-first bool :default true :read-write
+ allow theory combination to happen once initially, before quantifier strategies are run
  
 option instMaxLevel --inst-max-level=N int :read-write :default -1
  maximum inst level of terms used to instantiate quantified formulas with (-1 == no limit, default)
