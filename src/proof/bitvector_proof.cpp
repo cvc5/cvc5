@@ -369,6 +369,9 @@ void LFSCBitVectorProof::printTheoryLemmaProof(std::vector<Expr>& lemma, std::os
     d_resolutionProof->printAssumptionsResolution(lemma_id, os, lemma_paren);
     os <<lemma_paren.str();
   }else{
+    Unreachable(); // If we were to reach here, we would crash because BV replay is currently not supported
+                   // in TheoryProof::printTheoryLemmaProof()
+
     Debug("bv-proof") << std::endl << "; Print non-bitblast theory conflict " << conflict << std::endl;
     BitVectorProof::printTheoryLemmaProof( lemma, os, paren );
   }
