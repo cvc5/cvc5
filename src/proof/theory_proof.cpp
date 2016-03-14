@@ -317,6 +317,11 @@ void LFSCTheoryProofEngine::printSort(Type type, std::ostream& os) {
     return;
   }
 
+  if (type.isBoolean()) {
+    getTheoryProof(theory::THEORY_BOOL)->printOwnedSort(type, os);
+    return;
+  }
+
   Unreachable();
 }
 
