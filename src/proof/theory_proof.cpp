@@ -294,7 +294,7 @@ void LFSCTheoryProofEngine::printTheoryTerm(Expr term, std::ostream& os, const L
     return;
   }
   // dispatch to proper theory
-  getTheoryProof(theory_id)->printTerm(term, os, map);
+  getTheoryProof(theory_id)->printOwnedTerm(term, os, map);
 }
 
 void LFSCTheoryProofEngine::printSort(Type type, std::ostream& os) {
@@ -717,7 +717,7 @@ void BooleanProof::registerTerm(Expr term) {
   }
 }
 
-void LFSCBooleanProof::printTerm(Expr term, std::ostream& os, const LetMap& map) {
+void LFSCBooleanProof::printOwnedTerm(Expr term, std::ostream& os, const LetMap& map) {
   Assert (term.getType().isBoolean());
   if (term.isVariable()) {
     os << "(p_app " << ProofManager::sanitize(term) <<")";

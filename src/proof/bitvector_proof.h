@@ -127,7 +127,7 @@ public:
   LFSCBitVectorProof(theory::bv::TheoryBV* bv, TheoryProofEngine* proofEngine)
     :BitVectorProof(bv, proofEngine)
   {}
-  virtual void printTerm(Expr term, std::ostream& os, const LetMap& map);
+  virtual void printOwnedTerm(Expr term, std::ostream& os, const LetMap& map);
   virtual void printSort(Type type, std::ostream& os);
   virtual void printTermBitblasting(Expr term, std::ostream& os);
   virtual void printAtomBitblasting(Expr term, std::ostream& os);

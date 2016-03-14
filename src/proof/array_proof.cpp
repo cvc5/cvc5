@@ -1068,8 +1068,10 @@ std::string ArrayProof::skolemToLiteral(Expr skolem) {
   return d_skolemToLiteral[skolem];
 }
 
-void LFSCArrayProof::printTerm(Expr term, std::ostream& os, const LetMap& map) {
-  Debug("pf::array") << std::endl << "(pf::array) LFSCArrayProof::printTerm: term = " << term << std::endl;
+void LFSCArrayProof::printOwnedTerm(Expr term, std::ostream& os, const LetMap& map) {
+  Debug("pf::array") << std::endl << "(pf::array) LFSCArrayProof::printOwnedTerm: term = " << term << std::endl;
+
+  Assert (Theory::theoryOf(term) == THEORY_ARRAY);
 
   if (Theory::theoryOf(term) != THEORY_ARRAY) {
     // We can get here, for instance, if there's a (select ite ...), e.g. a non-array term

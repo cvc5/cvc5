@@ -167,8 +167,8 @@ void BitVectorProof::finalizeConflicts(std::vector<Expr>& conflicts) {
   }
 }
 
-void LFSCBitVectorProof::printTerm(Expr term, std::ostream& os, const LetMap& map) {
-  Debug("pf::bv") << std::endl << "(pf::bv) LFSCBitVectorProof::printTerm( " << term << " ), theory is: "
+void LFSCBitVectorProof::printOwnedTerm(Expr term, std::ostream& os, const LetMap& map) {
+  Debug("pf::bv") << std::endl << "(pf::bv) LFSCBitVectorProof::printOwnedTerm( " << term << " ), theory is: "
                   << Theory::theoryOf(term) << std::endl;
 
   Assert (Theory::theoryOf(term) == THEORY_BV);

@@ -210,12 +210,21 @@ public:
   {}
   virtual ~TheoryProof() {};
   /**
-   * Print a term belonging to this theory.
+   * Print a term belonging some theory, not neccessarily this one.
    *
    * @param term expresion representing term
    * @param os output stream
    */
-  virtual void printTerm(Expr term, std::ostream& os, const LetMap& map) = 0;
+  void printTerm(Expr term, std::ostream& os, const LetMap& map) {
+    d_proofEngine->printBoundTerm(term, os, map);
+  }
+  /**
+   * Print a term belonging to THIS theory.
+   *
+   * @param term expresion representing term
+   * @param os output stream
+   */
+  virtual void printOwnedTerm(Expr term, std::ostream& os, const LetMap& map) = 0;
   /**
    * Print the proof representation of the given type.
    *
@@ -268,7 +277,7 @@ public:
 
   virtual void registerTerm(Expr term);
 
-  virtual void printTerm(Expr term, std::ostream& os, const LetMap& map) = 0;
+  virtual void printOwnedTerm(Expr term, std::ostream& os, const LetMap& map) = 0;
 
   virtual void printSort(Type type, std::ostream& os) = 0;
   virtual void printTheoryLemmaProof(std::vector<Expr>& lemma, std::ostream& os, std::ostream& paren) = 0;
@@ -282,7 +291,7 @@ public:
   LFSCBooleanProof(TheoryProofEngine* proofEngine)
     : BooleanProof(proofEngine)
   {}
-  virtual void printTerm(Expr term, std::ostream& os, const LetMap& map);
+  virtual void printOwnedTerm(Expr term, std::ostream& os, const LetMap& map);
   virtual void printSort(Type type, std::ostream& os);
   virtual void printTheoryLemmaProof(std::vector<Expr>& lemma, std::ostream& os, std::ostream& paren);
   virtual void printSortDeclarations(std::ostream& os, std::ostream& paren);

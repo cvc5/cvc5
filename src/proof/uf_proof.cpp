@@ -740,10 +740,10 @@ void UFProof::registerTerm(Expr term) {
   }
 }
 
-void LFSCUFProof::printTerm(Expr term, std::ostream& os, const LetMap& map) {
-  Debug("pf::uf") << std::endl << "(pf::uf) LFSCUfProof::printTerm: term = " << term << std::endl;
+void LFSCUFProof::printOwnedTerm(Expr term, std::ostream& os, const LetMap& map) {
+  Debug("pf::uf") << std::endl << "(pf::uf) LFSCUfProof::printOwnedTerm: term = " << term << std::endl;
 
-  //  Assert (Theory::theoryOf(term) == THEORY_UF);
+  Assert (Theory::theoryOf(term) == THEORY_UF);
 
   if (term.getKind() == kind::VARIABLE ||
       term.getKind() == kind::SKOLEM) {

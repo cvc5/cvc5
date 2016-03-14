@@ -76,7 +76,7 @@ public:
     : ArrayProof(arrays, proofEngine)
   {}
 
-  virtual void printTerm(Expr term, std::ostream& os, const LetMap& map);
+  virtual void printOwnedTerm(Expr term, std::ostream& os, const LetMap& map);
   virtual void printSort(Type type, std::ostream& os);
   virtual void printTheoryLemmaProof(std::vector<Expr>& lemma, std::ostream& os, std::ostream& paren);
   virtual void printSortDeclarations(std::ostream& os, std::ostream& paren);
