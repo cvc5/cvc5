@@ -299,21 +299,21 @@ void LFSCTheoryProofEngine::printTheoryTerm(Expr term, std::ostream& os, const L
 
 void LFSCTheoryProofEngine::printSort(Type type, std::ostream& os) {
   if (type.isSort()) {
-    getTheoryProof(theory::THEORY_UF)->printSort(type, os);
+    getTheoryProof(theory::THEORY_UF)->printOwnedSort(type, os);
     return;
   }
   if (type.isBitVector()) {
-    getTheoryProof(theory::THEORY_BV)->printSort(type, os);
+    getTheoryProof(theory::THEORY_BV)->printOwnedSort(type, os);
     return;
   }
 
   if (type.isArray()) {
-    getTheoryProof(theory::THEORY_ARRAY)->printSort(type, os);
+    getTheoryProof(theory::THEORY_ARRAY)->printOwnedSort(type, os);
     return;
   }
 
   if (type.isInteger() || type.isReal()) {
-    getTheoryProof(theory::THEORY_ARITH)->printSort(type, os);
+    getTheoryProof(theory::THEORY_ARITH)->printOwnedSort(type, os);
     return;
   }
 
@@ -768,7 +768,7 @@ void LFSCBooleanProof::printOwnedTerm(Expr term, std::ostream& os, const LetMap&
 
 }
 
-void LFSCBooleanProof::printSort(Type type, std::ostream& os) {
+void LFSCBooleanProof::printOwnedSort(Type type, std::ostream& os) {
   Assert (type.isBoolean());
   os << "Bool";
 }

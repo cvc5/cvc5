@@ -1144,8 +1144,8 @@ void LFSCArrayProof::printOwnedTerm(Expr term, std::ostream& os, const LetMap& m
   }
 }
 
-void LFSCArrayProof::printSort(Type type, std::ostream& os) {
-  Debug("pf::array") << std::endl << "(pf::array) LFSCArrayProof::printSort: type is: " << type << std::endl;
+void LFSCArrayProof::printOwnedSort(Type type, std::ostream& os) {
+  Debug("pf::array") << std::endl << "(pf::array) LFSCArrayProof::printOwnedSort: type is: " << type << std::endl;
   Assert (type.isArray() || type.isSort());
   os << type <<" ";
 }

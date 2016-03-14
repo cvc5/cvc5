@@ -226,12 +226,21 @@ public:
    */
   virtual void printOwnedTerm(Expr term, std::ostream& os, const LetMap& map) = 0;
   /**
-   * Print the proof representation of the given type.
+   * Print the proof representation of the given type that belongs to some theory.
    *
    * @param type
    * @param os
    */
-  virtual void printSort(Type type, std::ostream& os) = 0;
+  void printSort(Type type, std::ostream& os) {
+    d_proofEngine->printSort(type, os);
+  }
+  /**
+   * Print the proof representation of the given type that belongs to THIS theory.
+   *
+   * @param type
+   * @param os
+   */
+  virtual void printOwnedSort(Type type, std::ostream& os) = 0;
   /**
    * Print a proof for the theory lemmas. Must prove
    * clause representing lemmas to be used in resolution proof.
@@ -279,7 +288,7 @@ public:
 
   virtual void printOwnedTerm(Expr term, std::ostream& os, const LetMap& map) = 0;
 
-  virtual void printSort(Type type, std::ostream& os) = 0;
+  virtual void printOwnedSort(Type type, std::ostream& os) = 0;
   virtual void printTheoryLemmaProof(std::vector<Expr>& lemma, std::ostream& os, std::ostream& paren) = 0;
   virtual void printSortDeclarations(std::ostream& os, std::ostream& paren) = 0;
   virtual void printTermDeclarations(std::ostream& os, std::ostream& paren) = 0;
@@ -292,7 +301,7 @@ public:
     : BooleanProof(proofEngine)
   {}
   virtual void printOwnedTerm(Expr term, std::ostream& os, const LetMap& map);
-  virtual void printSort(Type type, std::ostream& os);
+  virtual void printOwnedSort(Type type, std::ostream& os);
   virtual void printTheoryLemmaProof(std::vector<Expr>& lemma, std::ostream& os, std::ostream& paren);
   virtual void printSortDeclarations(std::ostream& os, std::ostream& paren);
   virtual void printTermDeclarations(std::ostream& os, std::ostream& paren);

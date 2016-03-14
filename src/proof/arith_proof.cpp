@@ -906,7 +906,7 @@ void LFSCArithProof::printOwnedTerm(Expr term, std::ostream& os, const LetMap& m
   }
 }
 
-void LFSCArithProof::printSort(Type type, std::ostream& os) {
+void LFSCArithProof::printOwnedSort(Type type, std::ostream& os) {
   Debug("pf::arith") << "Arith print sort: " << type << std::endl;
 
   if (type.isInteger() && d_realMode) {

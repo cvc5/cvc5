@@ -335,8 +335,8 @@ void LFSCBitVectorProof::printOperatorParametric(Expr term, std::ostream& os, co
   os <<")";
 }
 
-void LFSCBitVectorProof::printSort(Type type, std::ostream& os) {
-  Debug("pf::bv") << std::endl << "(pf::bv) LFSCBitVectorProof::printSort( " << type << " )" << std::endl;
+void LFSCBitVectorProof::printOwnedSort(Type type, std::ostream& os) {
+  Debug("pf::bv") << std::endl << "(pf::bv) LFSCBitVectorProof::printOwnedSort( " << type << " )" << std::endl;
 
   Assert (type.isBitVector());
   unsigned width = utils::getSize(type);

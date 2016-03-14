@@ -770,8 +770,8 @@ void LFSCUFProof::printOwnedTerm(Expr term, std::ostream& os, const LetMap& map)
   }
 }
 
-void LFSCUFProof::printSort(Type type, std::ostream& os) {
-  Debug("pf::uf") << std::endl << "(pf::uf) LFSCArrayProof::printSort: type is: " << type << std::endl;
+void LFSCUFProof::printOwnedSort(Type type, std::ostream& os) {
+  Debug("pf::uf") << std::endl << "(pf::uf) LFSCArrayProof::printOwnedSort: type is: " << type << std::endl;
 
   Assert (type.isSort());
   os << type <<" ";

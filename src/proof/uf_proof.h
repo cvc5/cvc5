@@ -64,7 +64,7 @@ public:
     : UFProof(uf, proofEngine)
   {}
   virtual void printOwnedTerm(Expr term, std::ostream& os, const LetMap& map);
-  virtual void printSort(Type type, std::ostream& os);
+  virtual void printOwnedSort(Type type, std::ostream& os);
   virtual void printTheoryLemmaProof(std::vector<Expr>& lemma, std::ostream& os, std::ostream& paren);
   virtual void printSortDeclarations(std::ostream& os, std::ostream& paren);
   virtual void printTermDeclarations(std::ostream& os, std::ostream& paren);
