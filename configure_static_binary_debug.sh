@@ -1,0 +1,15 @@
+./configure \
+    --with-antlr-dir=`pwd`/antlr-3.4 \
+    ANTLR=`pwd`/antlr-3.4/bin/antlr3 \
+    --prefix=`pwd`/installed \
+    --exec-prefix=`pwd`/installed \
+    --enable-static=yes \
+    --enable-shared=no \
+    --with-build=debug \
+    --with-compat=no \
+    --with-google-perftools=no \
+    --disable-doxygen-doc \
+    --enable-proof \
+    --enable-static-binary \
+    --disable-shared \
+    --program-prefix="se_" \
