@@ -39,12 +39,11 @@ inline static bool match(TNode n1, TNode n2) {
     n2 = ProofManager::currentPM()->lookupOp(n2);
   }
   Debug("mgd") << "+ match " << n1 << " " << n2 << std::endl;
-  Debug("gk::proof") << "+ match: step 1" << std::endl;
+  Debug("pf::array") << "+ match: step 1" << std::endl;
   if(n1 == n2) {
     return true;
   }
 
-  Debug("gk::proof") << "+ match: step 2" << std::endl;
   if(n1.getType().isFunction() && n2.hasOperator()) {
     if(ProofManager::currentPM()->hasOp(n2.getOperator())) {
       return n1 == ProofManager::currentPM()->lookupOp(n2.getOperator());
@@ -53,7 +52,6 @@ inline static bool match(TNode n1, TNode n2) {
     }
   }
 
-  Debug("gk::proof") << "+ match: step 3" << std::endl;
   if(n2.getType().isFunction() && n1.hasOperator()) {
     if(ProofManager::currentPM()->hasOp(n1.getOperator())) {
       return n2 == ProofManager::currentPM()->lookupOp(n1.getOperator());
@@ -62,11 +60,7 @@ inline static bool match(TNode n1, TNode n2) {
     }
   }
 
-  Debug("gk::proof") << "+ match: step 4" << std::endl;
   if(n1.hasOperator() && n2.hasOperator() && n1.getOperator() != n2.getOperator()) {
-    Debug("gk::proof") << "+ match: n1.getOperator() = " << n1.getOperator() << std::endl;
-    Debug("gk::proof") << "+ match: n2.getOperator() = " << n2.getOperator() << std::endl;
-
     if (!((n1.getKind() == kind::SELECT && n2.getKind() == kind::PARTIAL_SELECT_0) ||
           (n1.getKind() == kind::SELECT && n2.getKind() == kind::PARTIAL_SELECT_1) ||
           (n1.getKind() == kind::PARTIAL_SELECT_1 && n2.getKind() == kind::SELECT) ||
@@ -78,31 +72,29 @@ inline static bool match(TNode n1, TNode n2) {
     }
   }
 
-  Debug("gk::proof") << "+ match: step 5" << std::endl;
   for(size_t i = 0; i < n1.getNumChildren() && i < n2.getNumChildren(); ++i) {
     if(n1[i] != n2[i]) {
       return false;
     }
   }
 
-  Debug("gk::proof") << "+ match: step 6" << std::endl;
   return true;
 }
 
 void ProofArray::toStream(std::ostream& out) {
-  Trace("gk::proof") << "; Print Array proof..." << std::endl;
+  Trace("pf::array") << "; Print Array proof..." << std::endl;
   //AJR : carry this further?
   LetMap map;
   toStreamLFSC(out, ProofManager::getArrayProof(), d_proof, map);
-  Debug("gk::proof") << "; Print Array proof done!" << std::endl;
+  Debug("pf::array") << "; Print Array proof done!" << std::endl;
 }
 
 void ProofArray::toStreamLFSC(std::ostream& out, TheoryProof* tp, theory::eq::EqProof* pf, const LetMap& map) {
-  Debug("gk::proof") << "Printing array proof in LFSC : " << std::endl;
-  pf->debug_print("gk::proof");
-  Debug("gk::proof") << std::endl;
+  Debug("pf::array") << "Printing array proof in LFSC : " << std::endl;
+  pf->debug_print("pf::array");
+  Debug("pf::array") << std::endl;
   toStreamRecLFSC( out, tp, pf, 0, map );
-  Debug("gk::proof") << "Printing array proof in LFSC DONE" << std::endl;
+  Debug("pf::array") << "Printing array proof in LFSC DONE" << std::endl;
 }
 
 void ProofArray::registerSkolem(Node equality, Node skolem) {
@@ -115,9 +107,9 @@ Node ProofArray::toStreamRecLFSC(std::ostream& out,
                                  unsigned tb,
                                  const LetMap& map) {
 
-  Debug("gk::proof") << std::endl << std::endl << "toStreamRecLFSC called. tb = " << tb << " . proof:" << std::endl;
-  pf->debug_print("gk::proof");
-  Debug("gk::proof") << std::endl;
+  Debug("pf::array") << std::endl << std::endl << "toStreamRecLFSC called. tb = " << tb << " . proof:" << std::endl;
+  pf->debug_print("pf::array");
+  Debug("pf::array") << std::endl;
 
   if(tb == 0) {
     Assert(pf->d_id == eq::MERGED_THROUGH_TRANS);
@@ -140,37 +132,37 @@ Node ProofArray::toStreamRecLFSC(std::ostream& out,
 
       // Handle congruence closures over equalities.
       else if (pf->d_children[i]->d_id==eq::MERGED_THROUGH_CONGRUENCE && pf->d_children[i]->d_node.isNull()) {
-        Debug("gk::proof") << "Handling congruence over equalities" << std::endl;
+        Debug("pf::array") << "Handling congruence over equalities" << std::endl;
 
         // Gather the sequence of consecutive congruence closures.
         std::vector<const theory::eq::EqProof *> congruenceClosures;
         unsigned count;
-        Debug("gk::proof") << "Collecting congruence sequence" << std::endl;
+        Debug("pf::array") << "Collecting congruence sequence" << std::endl;
         for (count = 0;
              i + count < pf->d_children.size() &&
              pf->d_children[i + count]->d_id==eq::MERGED_THROUGH_CONGRUENCE &&
              pf->d_children[i + count]->d_node.isNull();
              ++count) {
-          Debug("gk::proof") << "Found a congruence: " << std::endl;
-          pf->d_children[i+count]->debug_print("gk::proof");
+          Debug("pf::array") << "Found a congruence: " << std::endl;
+          pf->d_children[i+count]->debug_print("pf::array");
           congruenceClosures.push_back(pf->d_children[i+count]);
         }
 
-        Debug("gk::proof") << "Total number of congruences found: " << congruenceClosures.size() << std::endl;
+        Debug("pf::array") << "Total number of congruences found: " << congruenceClosures.size() << std::endl;
 
         // Determine if the "target" of the congruence sequence appears right before or right after the sequence.
         bool targetAppearsBefore = true;
         bool targetAppearsAfter = true;
 
         if ((i == 0) || (i == 1 && neg == 0)) {
-          Debug("gk::proof") << "Target does not appear before" << std::endl;
+          Debug("pf::array") << "Target does not appear before" << std::endl;
           targetAppearsBefore = false;
         }
 
         if ((i + count >= pf->d_children.size()) ||
             (!pf->d_children[i + count]->d_node.isNull() &&
              pf->d_children[i + count]->d_node.getKind() == kind::NOT)) {
-          Debug("gk::proof") << "Target does not appear after" << std::endl;
+          Debug("pf::array") << "Target does not appear after" << std::endl;
           targetAppearsAfter = false;
         }
 
@@ -275,7 +267,7 @@ Node ProofArray::toStreamRecLFSC(std::ostream& out,
         } else {
           out << ss.str();
         }
-        Debug("gk::proof") << "ArrayProof::toStream: getLitName( " << n2[0] << " ) = " <<
+        Debug("pf::array") << "ArrayProof::toStream: getLitName( " << n2[0] << " ) = " <<
           ProofManager::getLitName(n2[0]) << std::endl;
 
         out << " " << ProofManager::getLitName(n2[0]) << "))" << std::endl;
@@ -542,7 +534,7 @@ Node ProofArray::toStreamRecLFSC(std::ostream& out,
   case eq::MERGED_THROUGH_EQUALITY:
     Assert(!pf->d_node.isNull());
     Assert(pf->d_children.empty());
-    Debug("gk::proof") << "ArrayProof::toStream: getLitName( " << pf->d_node.negate() << " ) = " <<
+    Debug("pf::array") << "ArrayProof::toStream: getLitName( " << pf->d_node.negate() << " ) = " <<
       ProofManager::getLitName(pf->d_node.negate()) << std::endl;
     out << ProofManager::getLitName(pf->d_node.negate());
     return pf->d_node;
@@ -599,13 +591,13 @@ Node ProofArray::toStreamRecLFSC(std::ostream& out,
         if (((n1[0] == n2[0]) && (n1[1] == n2[1])) || ((n1[0] == n2[1]) && (n1[1] == n2[0]))) {
           // We are in a sequence of identical equalities
 
-          Debug("gk::proof") << "Detected identical equalities: " << std::endl << "\t" << n1 << std::endl;
+          Debug("pf::array") << "Detected identical equalities: " << std::endl << "\t" << n1 << std::endl;
 
           if (!identicalEqualities) {
             // The sequence of identical equalities has started just now
             identicalEqualities = true;
 
-            Debug("gk::proof") << "The sequence is just beginning. Determining length..." << std::endl;
+            Debug("pf::array") << "The sequence is just beginning. Determining length..." << std::endl;
 
             // Determine whether the length of this sequence is odd or even.
             evenLengthSequence = true;
@@ -629,11 +621,11 @@ Node ProofArray::toStreamRecLFSC(std::ostream& out,
             if (evenLengthSequence) {
               // If the length is even, we need to apply transitivity for the "correct" hand of the equality.
 
-              Debug("gk::proof") << "Equality sequence of even length" << std::endl;
-              Debug("gk::proof") << "n1 is: " << n1 << std::endl;
-              Debug("gk::proof") << "n2 is: " << n2 << std::endl;
-              Debug("gk::proof") << "pf-d_node is: " << pf->d_node << std::endl;
-              Debug("gk::proof") << "Next node is: " << nodeAfterEqualitySequence << std::endl;
+              Debug("pf::array") << "Equality sequence of even length" << std::endl;
+              Debug("pf::array") << "n1 is: " << n1 << std::endl;
+              Debug("pf::array") << "n2 is: " << n2 << std::endl;
+              Debug("pf::array") << "pf-d_node is: " << pf->d_node << std::endl;
+              Debug("pf::array") << "Next node is: " << nodeAfterEqualitySequence << std::endl;
 
               ss << "(trans _ _ _ _ ";
 
@@ -646,7 +638,7 @@ Node ProofArray::toStreamRecLFSC(std::ostream& out,
                   n1 = eqNode(n1[1], n1[1]);
                   ss << " (symm _ _ _ " << ss1.str() << ")" << ss1.str();
                 } else {
-                  Debug("gk::proof") << "Error: identical equalities over, but hands don't match what we're proving."
+                  Debug("pf::array") << "Error: identical equalities over, but hands don't match what we're proving."
                                      << std::endl;
                   Assert(false);
                 }
@@ -672,7 +664,7 @@ Node ProofArray::toStreamRecLFSC(std::ostream& out,
                   n1 = eqNode(n1[1], n1[1]);
 
                 } else {
-                  Debug("gk::proof") << "Error: even length sequence, but I don't know which hand to keep!" << std::endl;
+                  Debug("pf::array") << "Error: even length sequence, but I don't know which hand to keep!" << std::endl;
                   Assert(false);
                 }
               }
@@ -680,11 +672,11 @@ Node ProofArray::toStreamRecLFSC(std::ostream& out,
               ss << ")";
 
             } else {
-              Debug("gk::proof") << "Equality sequence length is odd!" << std::endl;
+              Debug("pf::array") << "Equality sequence length is odd!" << std::endl;
               ss.str(ss1.str());
             }
 
-            Debug("gk::proof") << "Have proven: " << n1 << std::endl;
+            Debug("pf::array") << "Have proven: " << n1 << std::endl;
           } else {
             ss.str(ss1.str());
           }
@@ -725,13 +717,13 @@ Node ProofArray::toStreamRecLFSC(std::ostream& out,
 
       if (n1.getKind() == kind::NOT) {
         Debug("mgdx") << "n1 is negative" << std::endl;
-        Debug("gk::proof") << "n1 = " << n1 << ", n2 = " << n2 << std::endl;
+        Debug("pf::array") << "n1 = " << n1 << ", n2 = " << n2 << std::endl;
         firstNeg = true;
         ss << "(negtrans1 _ _ _ _ ";
         n1 = n1[0];
       } else if (n2.getKind() == kind::NOT) {
         Debug("mgdx") << "n2 is negative" << std::endl;
-        Debug("gk::proof") << "n1 = " << n1 << ", n2 = " << n2 << std::endl;
+        Debug("pf::array") << "n1 = " << n1 << ", n2 = " << n2 << std::endl;
         secondNeg = true;
         ss << "(negtrans2 _ _ _ _ ";
         n2 = n2[0];
@@ -873,17 +865,17 @@ Node ProofArray::toStreamRecLFSC(std::ostream& out,
       tp->printTerm(t4.toExpr(), out, map);
       out << " ";
 
-      Debug("gk::proof") << "pf->d_children[0]->d_node is: " << pf->d_children[0]->d_node
+      Debug("pf::array") << "pf->d_children[0]->d_node is: " << pf->d_children[0]->d_node
                          << ". t3 is: " << t3 << std::endl
                          << "subproof is: " << subproof << std::endl;
 
-      Debug("gk::proof") << "Subproof is: " << ss.str() << std::endl;
+      Debug("pf::array") << "Subproof is: " << ss.str() << std::endl;
 
       if (subproof[0][1] == t3) {
-        Debug("gk::proof") << "Dont need symmetry!" << std::endl;
+        Debug("pf::array") << "Dont need symmetry!" << std::endl;
         out << ss.str();
       } else {
-        Debug("gk::proof") << "Need symmetry!" << std::endl;
+        Debug("pf::array") << "Need symmetry!" << std::endl;
         out << "(negsymm _ _ _ " << ss.str() << ")";
       }
 
@@ -891,9 +883,9 @@ Node ProofArray::toStreamRecLFSC(std::ostream& out,
 
       return ret;
     } else {
-      Debug("gk::proof") << "In the case of NEGATIVE ROW" << std::endl;
+      Debug("pf::array") << "In the case of NEGATIVE ROW" << std::endl;
 
-      Debug("gk::proof") << "pf->d_children[0]->d_node is: " << pf->d_children[0]->d_node << std::endl;
+      Debug("pf::array") << "pf->d_children[0]->d_node is: " << pf->d_children[0]->d_node << std::endl;
 
       // This is the case where (i == k), and the sub-proof explains why ((a[i]:=t)[k] != a[k])
 
@@ -925,7 +917,7 @@ Node ProofArray::toStreamRecLFSC(std::ostream& out,
         Unreachable();
       }
 
-      Debug("gk::proof") << "Side is: " << side << std::endl;
+      Debug("pf::array") << "Side is: " << side << std::endl;
 
       // The array's index and element types will come from the subproof...
       t3 = pf->d_children[0]->d_node[0][side][0][0];
@@ -938,7 +930,7 @@ Node ProofArray::toStreamRecLFSC(std::ostream& out,
       std::stringstream ss;
       Node subproof = toStreamRecLFSC(ss, tp, pf->d_children[0], tb + 1, map);
 
-      Debug("gk::proof") << "Subproof is: " << ss.str() << std::endl;
+      Debug("pf::array") << "Subproof is: " << ss.str() << std::endl;
 
       out << "(negativerow _ _ ";
       tp->printTerm(t1.toExpr(), out, map);
@@ -952,10 +944,10 @@ Node ProofArray::toStreamRecLFSC(std::ostream& out,
 
 
       // if (subproof[0][1] == t3) {
-        Debug("gk::proof") << "Dont need symmetry!" << std::endl;
+        Debug("pf::array") << "Dont need symmetry!" << std::endl;
         out << ss.str();
       // } else {
-      //   Debug("gk::proof") << "Need symmetry!" << std::endl;
+      //   Debug("pf::array") << "Need symmetry!" << std::endl;
       //   out << "(negsymm _ _ _ " << ss.str() << ")";
       // }
 
@@ -1040,9 +1032,6 @@ Node ProofArray::toStreamRecLFSC(std::ostream& out,
   }
 }
 
-
-
-
 ArrayProof::ArrayProof(theory::arrays::TheoryArrays* arrays, TheoryProofEngine* pe)
   : TheoryProof(arrays, pe)
 {}
@@ -1080,7 +1069,7 @@ std::string ArrayProof::skolemToLiteral(Expr skolem) {
 }
 
 void LFSCArrayProof::printTerm(Expr term, std::ostream& os, const LetMap& map) {
-  Debug("gk::proof") << "LFSCArrayProof::printTerm: term = " << term << std::endl;
+  Debug("pf::array") << std::endl << "(pf::array) LFSCArrayProof::printTerm: term = " << term << std::endl;
 
   if (Theory::theoryOf(term) != THEORY_ARRAY) {
     // We can get here, for instance, if there's a (select ite ...), e.g. a non-array term
@@ -1120,7 +1109,7 @@ void LFSCArrayProof::printTerm(Expr term, std::ostream& os, const LetMap& map) {
     return;
 
   case kind::PARTIAL_SELECT_1:
-    Debug("gk::proof") << "This branch has not beed tested yet." << std::endl;
+    Debug("pf::array") << "This branch has not beed tested yet." << std::endl;
     Unreachable();
 
     Assert(term.getNumChildren() == 1);
@@ -1154,7 +1143,7 @@ void LFSCArrayProof::printTerm(Expr term, std::ostream& os, const LetMap& map) {
 }
 
 void LFSCArrayProof::printSort(Type type, std::ostream& os) {
-  Debug("gk::proof") << "LFSCArrayProof::printSort: type is: " << type << std::endl;
+  Debug("pf::array") << std::endl << "(pf::array) LFSCArrayProof::printSort: type is: " << type << std::endl;
   Assert (type.isArray() || type.isSort());
   os << type <<" ";
 }
@@ -1171,7 +1160,7 @@ void LFSCArrayProof::printTheoryLemmaProof(std::vector<Expr>& lemma, std::ostrea
 
 void LFSCArrayProof::printSortDeclarations(std::ostream& os, std::ostream& paren) {
   // declaring the sorts
-  Debug("gk::proof") << "Arrays declaring sorts..." << std::endl;
+  Debug("pf::array") << "Arrays declaring sorts..." << std::endl;
 
   for (TypeSet::const_iterator it = d_sorts.begin(); it != d_sorts.end(); ++it) {
     if (!ProofManager::currentPM()->wasPrinted(*it)) {
@@ -1183,16 +1172,16 @@ void LFSCArrayProof::printSortDeclarations(std::ostream& os, std::ostream& paren
 }
 
 void LFSCArrayProof::printTermDeclarations(std::ostream& os, std::ostream& paren) {
-  Debug("gk::proof") << "Arrays declaring terms..." << std::endl;
+  Debug("pf::array") << "Arrays declaring terms..." << std::endl;
 
   // declaring the terms
   for (ExprSet::const_iterator it = d_declarations.begin(); it != d_declarations.end(); ++it) {
     Expr term = *it;
 
-    Debug("gk::proof") << "LFSCArrayProof::printDeclarations: term is: " << *it << std::endl;
+    Debug("pf::array") << "LFSCArrayProof::printDeclarations: term is: " << *it << std::endl;
 
     if (ProofManager::getSkolemizationManager()->isSkolem(*it)) {
-      Debug("gk::proof") << "This term is a skoelm!" << std::endl;
+      Debug("pf::array") << "This term is a skoelm!" << std::endl;
       d_skolemDeclarations.insert(*it);
     } else {
       os << "(% " << ProofManager::sanitize(term) << " ";
@@ -1222,17 +1211,17 @@ void LFSCArrayProof::printTermDeclarations(std::ostream& os, std::ostream& paren
     }
   }
 
-  Debug("gk::proof") << "Declaring terms done!" << std::endl;
+  Debug("pf::array") << "Declaring terms done!" << std::endl;
 }
 
 void LFSCArrayProof::printDeferredDeclarations(std::ostream& os, std::ostream& paren) {
-  Debug("gk::proof") << "Array: print deferred declarations called" << std::endl;
+  Debug("pf::array") << "Array: print deferred declarations called" << std::endl;
 
   for (ExprSet::const_iterator it = d_skolemDeclarations.begin(); it != d_skolemDeclarations.end(); ++it) {
     Expr term = *it;
     Node equality = ProofManager::getSkolemizationManager()->getDisequality(*it);
 
-    Debug("gk::proof") << "LFSCArrayProof::printDeferredDeclarations: term is: " << *it << std::endl
+    Debug("pf::array") << "LFSCArrayProof::printDeferredDeclarations: term is: " << *it << std::endl
                        << "It is a witness for: " << equality << std::endl;
 
     std::ostringstream newSkolemLiteral;
@@ -1241,7 +1230,7 @@ void LFSCArrayProof::printDeferredDeclarations(std::ostream& os, std::ostream& p
 
     d_skolemToLiteral[*it] = skolemLiteral;
 
-    Debug("gk::proof") << "LFSCArrayProof::printDeferredDeclarations: new skolem literal is: " << skolemLiteral << std::endl;
+    Debug("pf::array") << "LFSCArrayProof::printDeferredDeclarations: new skolem literal is: " << skolemLiteral << std::endl;
 
     Assert(equality.getKind() == kind::NOT);
     Assert(equality[0].getKind() == kind::EQUAL);

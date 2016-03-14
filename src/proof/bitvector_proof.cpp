@@ -130,10 +130,10 @@ void BitVectorProof::endBVConflict(const CVC4::BVMinisat::Solver::TLitVec& confl
     expr_confl.push_back(expr_lit);
   }
   Expr conflict = utils::mkSortedExpr(kind::OR, expr_confl);
-  Debug("bv-proof") << "Make conflict for " << conflict << std::endl;
+  Debug("pf::bv") << "Make conflict for " << conflict << std::endl;
 
   if (d_bbConflictMap.find(conflict) != d_bbConflictMap.end()) {
-    Debug("bv-proof") << "Abort...already conflict for " << conflict << std::endl;
+    Debug("pf::bv") << "Abort...already conflict for " << conflict << std::endl;
     // This can only happen when we have eager explanations in the bv solver
     // if we don't get to propagate p before ~p is already asserted
     d_resolutionProof->cancelResChain();
@@ -144,30 +144,33 @@ void BitVectorProof::endBVConflict(const CVC4::BVMinisat::Solver::TLitVec& confl
   ClauseId clause_id = d_resolutionProof->registerAssumptionConflict(confl);
   d_bbConflictMap[conflict] = clause_id;
   d_resolutionProof->endResChain(clause_id);
-  Debug("bv-proof") << "BitVectorProof::endBVConflict id"<<clause_id<< " => " << conflict << "\n";
+  Debug("pf::bv") << "BitVectorProof::endBVConflict id"<<clause_id<< " => " << conflict << "\n";
   d_isAssumptionConflict = false;
 }
 
 void BitVectorProof::finalizeConflicts(std::vector<Expr>& conflicts) {
   if (options::bitblastMode() == theory::bv::BITBLAST_MODE_EAGER) {
-    Debug("bv-proof") << "Construct full proof." << std::endl;
+    Debug("pf::bv") << "Construct full proof." << std::endl;
     d_resolutionProof->constructProof();
     return;
   }
   for(unsigned i = 0; i < conflicts.size(); ++i) {
     Expr confl = conflicts[i];
-    Debug("bv-proof") << "Finalize conflict " << confl << std::endl;
+    Debug("pf::bv") << "Finalize conflict " << confl << std::endl;
     //Assert (d_bbConflictMap.find(confl) != d_bbConflictMap.end());
     if(d_bbConflictMap.find(confl) != d_bbConflictMap.end()){
       ClauseId id = d_bbConflictMap[confl];
       d_resolutionProof->collectClauses(id);
     }else{
-      Debug("bv-proof") << "Do not collect clauses for " << confl << std::endl;
+      Debug("pf::bv") << "Do not collect clauses for " << confl << std::endl;
     }
   }
 }
 
 void LFSCBitVectorProof::printTerm(Expr term, std::ostream& os, const LetMap& map) {
+  Debug("pf::bv") << std::endl << "(pf::bv) LFSCBitVectorProof::printTerm( " << term << " ), theory is: "
+                  << Theory::theoryOf(term) << std::endl;
+
   Assert (Theory::theoryOf(term) == THEORY_BV);
 
   // peel off eager bit-blasting trick
@@ -333,6 +336,8 @@ void LFSCBitVectorProof::printOperatorParametric(Expr term, std::ostream& os, co
 }
 
 void LFSCBitVectorProof::printSort(Type type, std::ostream& os) {
+  Debug("pf::bv") << std::endl << "(pf::bv) LFSCBitVectorProof::printSort( " << type << " )" << std::endl;
+
   Assert (type.isBitVector());
   unsigned width = utils::getSize(type);
   os << "(BitVec "<<width<<")";
@@ -372,7 +377,7 @@ void LFSCBitVectorProof::printTheoryLemmaProof(std::vector<Expr>& lemma, std::os
     Unreachable(); // If we were to reach here, we would crash because BV replay is currently not supported
                    // in TheoryProof::printTheoryLemmaProof()
 
-    Debug("bv-proof") << std::endl << "; Print non-bitblast theory conflict " << conflict << std::endl;
+    Debug("pf::bv") << std::endl << "; Print non-bitblast theory conflict " << conflict << std::endl;
     BitVectorProof::printTheoryLemmaProof( lemma, os, paren );
   }
 }
