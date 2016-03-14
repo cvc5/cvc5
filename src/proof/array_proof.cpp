@@ -1176,41 +1176,43 @@ void LFSCArrayProof::printSortDeclarations(std::ostream& os, std::ostream& paren
 void LFSCArrayProof::printTermDeclarations(std::ostream& os, std::ostream& paren) {
   Debug("pf::array") << "Arrays declaring terms..." << std::endl;
 
-  // declaring the terms
   for (ExprSet::const_iterator it = d_declarations.begin(); it != d_declarations.end(); ++it) {
     Expr term = *it;
 
-    Debug("pf::array") << "LFSCArrayProof::printDeclarations: term is: " << *it << std::endl;
+    Assert(term.getType().isArray() || term.isVariable());
 
-    if (ProofManager::getSkolemizationManager()->isSkolem(*it)) {
-      Debug("pf::array") << "This term is a skoelm!" << std::endl;
-      d_skolemDeclarations.insert(*it);
-    } else {
+    Debug("pf::array") << "LFSCArrayProof::printDeclarations: term is: " << term
+                       << ". It's type is: " << term.getType()
+                       << std::endl;
+
+    if (term.getType().isArray()){
+      ArrayType array_type(term.getType());
+
+      Debug("pf::array") << "LFSCArrayProof::printDeclarations: term is an array. Index type: "
+                         << array_type.getIndexType()
+                         << ", element type: " << array_type.getConstituentType() << std::endl;
+
       os << "(% " << ProofManager::sanitize(term) << " ";
       os << "(term ";
+      os << "(Array ";
 
-      Type type = term.getType();
-      if (type.isFunction()) {
-        std::ostringstream fparen;
-        FunctionType ftype = (FunctionType)type;
-        std::vector<Type> args = ftype.getArgTypes();
-        args.push_back(ftype.getRangeType());
-        os << "(arrow";
-        for (unsigned i = 0; i < args.size(); i++) {
-          Type arg_type = args[i];
-          os << " " << arg_type;
-          if (i < args.size() - 2) {
-            os << " (arrow";
-            fparen << ")";
-          }
-        }
-        os << fparen.str() << "))\n";
+      printSort(array_type.getIndexType(), os);
+      printSort(array_type.getConstituentType(), os);
+
+      os << "))\n";
+    } else {
+      Assert(term.isVariable());
+      if (ProofManager::getSkolemizationManager()->isSkolem(*it)) {
+        Debug("pf::array") << "This term is a skoelm!" << std::endl;
+        d_skolemDeclarations.insert(*it);
       } else {
-        Assert (term.isVariable());
-        os << type << ")\n";
+        os << "(% " << ProofManager::sanitize(term) << " ";
+        os << "(term ";
+        os << term.getType() << ")\n";
       }
-      paren << ")";
     }
+
+    paren << ")";
   }
 
   Debug("pf::array") << "Declaring terms done!" << std::endl;
