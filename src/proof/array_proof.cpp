@@ -1197,6 +1197,7 @@ void LFSCArrayProof::printTermDeclarations(std::ostream& os, std::ostream& paren
       os << "(Array ";
 
       printSort(array_type.getIndexType(), os);
+      os << " ";
       printSort(array_type.getConstituentType(), os);
 
       os << "))\n";

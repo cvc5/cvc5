@@ -373,7 +373,7 @@ void LFSCBitVectorProof::printTheoryLemmaProof(std::vector<Expr>& lemma, std::os
     ClauseId lemma_id = d_bbConflictMap[lem];
     d_resolutionProof->printAssumptionsResolution(lemma_id, os, lemma_paren);
     os <<lemma_paren.str();
-  }else{
+  } else {
     Unreachable(); // If we were to reach here, we would crash because BV replay is currently not supported
                    // in TheoryProof::printTheoryLemmaProof()
 
