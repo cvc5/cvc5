@@ -235,7 +235,7 @@ void LFSCBitVectorProof::printOwnedTerm(Expr term, std::ostream& os, const LetMa
     return;
   }
   case kind::BITVECTOR_BITOF : {
-    printBitOf(term, os);
+    printBitOf(term, os, map);
     return;
   }
   case kind::VARIABLE:
@@ -248,13 +248,25 @@ void LFSCBitVectorProof::printOwnedTerm(Expr term, std::ostream& os, const LetMa
   }
 }
 
-void LFSCBitVectorProof::printBitOf(Expr term, std::ostream& os) {
+void LFSCBitVectorProof::printBitOf(Expr term, std::ostream& os, const LetMap& map) {
   Assert (term.getKind() == kind::BITVECTOR_BITOF);
   unsigned bit = term.getOperator().getConst<BitVectorBitOf>().bitIndex;
   Expr var = term[0];
-  Assert (var.getKind() == kind::VARIABLE ||
-          var.getKind() == kind::SKOLEM);
-  os << "(bitof " << ProofManager::sanitize(var) <<" " << bit <<")";
+
+  Debug("pf::bv") << "LFSCBitVectorProof::printBitOf( " << term << " ), "
+                  << "bit = " << bit
+                  << ", var = " << var << std::endl;
+
+  os << "(bitof ";
+  if (var.getKind() == kind::VARIABLE || var.getKind() == kind::SKOLEM) {
+    // If var is "simple", we can just sanitize and print
+    os << ProofManager::sanitize(var);
+  } else {
+    // If var is "complex", it can belong to another theory. Therefore, dispatch again.
+    d_proofEngine->printBoundTerm(var, os, map);
+  }
+
+  os << " " << bit << ")";
 }
 
 void LFSCBitVectorProof::printConstant(Expr term, std::ostream& os) {

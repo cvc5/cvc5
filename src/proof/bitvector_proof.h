@@ -122,7 +122,7 @@ class LFSCBitVectorProof: public BitVectorProof {
   void printOperatorUnary(Expr term, std::ostream& os, const LetMap& map);
   void printPredicate(Expr term, std::ostream& os, const LetMap& map);
   void printOperatorParametric(Expr term, std::ostream& os, const LetMap& map);
-  void printBitOf(Expr term, std::ostream& os);
+  void printBitOf(Expr term, std::ostream& os, const LetMap& map);
 public:
   LFSCBitVectorProof(theory::bv::TheoryBV* bv, TheoryProofEngine* proofEngine)
     :BitVectorProof(bv, proofEngine)
