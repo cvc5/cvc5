@@ -88,6 +88,9 @@ QuantifiersEngine::QuantifiersEngine(context::Context* c, context::UserContext* 
     d_te( te ),
     d_lemmas_produced_c(u),
     d_skolemized(u),
+    //d_ierCounter(c),
+    //d_ierCounter_lc(c),
+    //d_ierCounterLastLc(c),
     d_presolve(u, true),
     d_presolve_in(u),
     d_presolve_cache(u),
@@ -141,7 +144,7 @@ QuantifiersEngine::QuantifiersEngine(context::Context* c, context::UserContext* 
   //allow theory combination to go first, once initially
   d_ierCounter = options::instWhenTcFirst() ? 0 : 1;
   d_ierCounter_lc = 0;
-  d_ierCounterLastLc = d_ierCounter_lc;
+  d_ierCounterLastLc = 0;
   d_inst_when_phase = 1 + ( options::instWhenPhase()<1 ? 1 : options::instWhenPhase() );
 }
 
@@ -465,11 +468,11 @@ void QuantifiersEngine::check( Theory::Effort e ){
           if( e==Theory::EFFORT_FULL ){
             //increment if a last call happened, we are not strictly enforcing interleaving, or already were in phase
             if( d_ierCounterLastLc!=d_ierCounter_lc || !options::instWhenStrictInterleave() || d_ierCounter%d_inst_when_phase!=0 ){
-              d_ierCounter++;
+              d_ierCounter = d_ierCounter + 1;
               d_ierCounterLastLc = d_ierCounter_lc;
             }
           }else if( e==Theory::EFFORT_LAST_CALL ){
-            d_ierCounter_lc++;
+            d_ierCounter_lc = d_ierCounter_lc + 1;
           }
         }else if( quant_e==QEFFORT_MODEL ){
           if( e==Theory::EFFORT_LAST_CALL ){
@@ -1339,7 +1342,7 @@ Node EqualityQueryQuantifiersEngine::getInternalRepresentative( Node a, Node f, 
   Assert( f.isNull() || f.getKind()==FORALL );
   Node r = getRepresentative( a );
   if( options::finiteModelFind() ){
-    if( r.isConst() ){
+    if( r.isConst() && quantifiers::TermDb::containsUninterpretedConstant( r ) ){
       //map back from values assigned by model, if any
       if( d_qe->getModel() ){
         std::map< Node, Node >::iterator it = d_qe->getModel()->d_rep_set.d_values_to_terms.find( r );

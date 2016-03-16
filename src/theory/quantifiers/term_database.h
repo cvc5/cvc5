@@ -71,6 +71,9 @@ typedef expr::Attribute<InstVarNumAttributeId, uint64_t> InstVarNumAttribute;
 struct TermDepthAttributeId {};
 typedef expr::Attribute<TermDepthAttributeId, uint64_t> TermDepthAttribute;
 
+struct ContainsUConstAttributeId {};
+typedef expr::Attribute<ContainsUConstAttributeId, uint64_t> ContainsUConstAttribute;
+
 struct ModelBasisAttributeId {};
 typedef expr::Attribute<ModelBasisAttributeId, bool> ModelBasisAttribute;
 //for APPLY_UF terms, 1 : term has direct child with model basis attribute,
@@ -429,7 +432,6 @@ private:
   //helper for contains term
   static bool containsTerm2( Node n, Node t, std::map< Node, bool >& visited );
   static bool containsTerms2( Node n, std::vector< Node >& t, std::map< Node, bool >& visited );
-  static bool containsUninterpretedConstant2( Node n, std::map< Node, bool >& visited );
 //general utilities
 public:
   /** simple check for whether n contains t as subterm */
