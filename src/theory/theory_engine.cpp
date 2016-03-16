@@ -1265,8 +1265,6 @@ static Node mkExplanation(const std::vector<NodeTheoryPair>& explanation) {
 }
 
 NodeTheoryPair TheoryEngine::getExplanationAndExplainer(TNode node) {
-  Debug("gk::explain") << "TheoryEngine::getExplanation( " << node << " ) called" << std::endl;
-
   Debug("theory::explain") << "TheoryEngine::getExplanation(" << node << "): current propagation index = " << d_propagationMapTimestamp << endl;
 
   bool polarity = node.getKind() != kind::NOT;
@@ -1274,22 +1272,16 @@ NodeTheoryPair TheoryEngine::getExplanationAndExplainer(TNode node) {
 
   // If we're not in shared mode, explanations are simple
   if (!d_logicInfo.isSharingEnabled()) {
-    Debug("gk::explain") << "TheoryEngine::getExplanation: sharing is NOT enabled. Responsible theory is: "
-                         << theoryOf(atom) << std::endl;
     Node explanation = theoryOf(atom)->explain(node);
     Debug("theory::explain") << "TheoryEngine::getExplanation(" << node << ") => " << explanation << endl;
     return NodeTheoryPair(explanation, theoryOf(atom)->getId());
   }
-
-  Debug("gk::explain") << "TheoryEngine::getExplanation: sharing IS enabled" << std::endl;
 
   // Initial thing to explain
   NodeTheoryPair toExplain(node, THEORY_SAT_SOLVER, d_propagationMapTimestamp);
   Assert(d_propagationMap.find(toExplain) != d_propagationMap.end());
 
   NodeTheoryPair nodeExplainerPair = d_propagationMap[toExplain];
-  Debug("gk::explain") << "TheoryEngine::getExplanation: explainer for node " << nodeExplainerPair.node
-                       << " is theory: " << nodeExplainerPair.theory << std::endl;
   TheoryId explainer = nodeExplainerPair.theory;
 
   // Create the workplace for explanations

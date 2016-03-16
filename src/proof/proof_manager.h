@@ -34,8 +34,6 @@
 
 namespace CVC4 {
 
-class SmtGlobals;
-
 // forward declarations
 namespace Minisat {
   class Solver;
@@ -203,7 +201,7 @@ public:
   // for SMT variable names that have spaces and other things
   static std::string sanitize(TNode var);
 
-  /** Add proof assertion - unline addCoreAssertion this is post definition expansion **/
+  /** Add proof assertion - unlike addCoreAssertion this is post definition expansion **/
   void addAssertion(Expr formula);
 
   /** Public unsat core methods **/

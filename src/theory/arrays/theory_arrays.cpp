@@ -1318,57 +1318,31 @@ void TheoryArrays::check(Effort e) {
           if(fact[0][0].getType().isArray() && !d_conflict) {
             if (d_conflict) { Debug("pf::array") << "Entering the skolemization branch" << std::endl; }
 
-            // NodeManager* nm = NodeManager::currentNM();
-            // TypeNode indexType = fact[0][0].getType()[0];
-            // Node k = nm->mkBoundVar("k", indexType);
+            NodeManager* nm = NodeManager::currentNM();
+            TypeNode indexType = fact[0][0].getType()[0];
 
-            // Node ak = nm->mkNode(kind::SELECT, fact[0][0], k);
-            // Node bk = nm->mkNode(kind::SELECT, fact[0][1], k);
-            // //Node eq = d_valuation.ensureLiteral(ak.eqNode(bk));
-            // Node eq = ak.eqNode(bk);
-            // Node ex = nm->mkNode(kind::LEMMA_EXISTS, nm->mkNode(kind::BOUND_VAR_LIST, k), eq.notNode());
-            // Node lemma = fact[0].orNode(ex);
-            // Trace("arrays-lem")<<"Arrays::addExtLemma " << lemma <<"\n";
-            // d_out->lemma(lemma, RULE_ARRAYS_EXT);
-            // ++d_numExt;
-
-            // Code BEFORE Morgan's changes:
-            // ////////////////////////////////
             if (!d_proofsEnabled) {
               Debug("pf::array") << "Check: kind::NOT: array theory making a skolem" << std::endl;
 
-              NodeManager* nm = NodeManager::currentNM();
-              TypeNode indexType = fact[0][0].getType()[0];
               TNode k = getSkolem(fact,"array_ext_index", indexType, "an extensional lemma index variable from the theory of arrays", false);
 
-              // Added
               if (options::proof()) {
                 ProofManager::getSkolemizationManager()->registerSkolem(fact, k);
               }
-              ////
 
               Node ak = nm->mkNode(kind::SELECT, fact[0][0], k);
               Node bk = nm->mkNode(kind::SELECT, fact[0][1], k);
 
               Node eq;
-
-              // Update from Clark, for EXT lemma propagation
-              //
-              // eq = d_valuation.ensureLiteral(ak.eqNode(bk));
-              // Assert(eq.getKind() == kind::EQUAL);
               eq = ak.eqNode(bk);
-              // END changes from Clark
-
               Node lemma = fact[0].orNode(eq.notNode());
 
-              // Also added from Clark for EXT lemma propagation:
               if (options::arraysPropagate() > 0 && d_equalityEngine.hasTerm(ak) && d_equalityEngine.hasTerm(bk)) {
                 // Propagate witness disequality - might produce a conflict
                 d_permRef.push_back(lemma);
                 d_equalityEngine.assertEquality(eq, false, fact, eq::MERGED_ARRAYS_EXT);
                 ++d_numProp;
               }
-              // END changes from Clark
 
               Trace("arrays-lem")<<"Arrays::addExtLemma " << lemma <<"\n";
               d_out->lemma(lemma);
@@ -1376,49 +1350,24 @@ void TheoryArrays::check(Effort e) {
             } else {
               Debug("pf::array") << "In Array's Check (proof phase), handling fact = " << fact << std::endl;
 
-              NodeManager* nm = NodeManager::currentNM();
-              TypeNode indexType = fact[0][0].getType()[0];
-
               TNode k;
               if (ProofManager::getSkolemizationManager()->hasSkolem(fact)) {
                 k = ProofManager::getSkolemizationManager()->getSkolem(fact);
-                // } else {
-                //   Unreachable();
-                //   // Debug("pf::array") << "New skolem getting registered at proof checking phase!" << std::endl;
-                //   // k = getSkolem(fact,"array_ext_index", indexType, "an extensional lemma index variable from the theory of arrays", false);
-                //   // ProofSkolemization::registerSkolem(fact, k);
-                // }
-
-                // Do we really need to generate the lemma again? Or just assert the disequality?
                 Debug("pf::array") << "Skolem = " << k << std::endl;
 
                 Node ak = nm->mkNode(kind::SELECT, fact[0][0], k);
                 Node bk = nm->mkNode(kind::SELECT, fact[0][1], k);
-
-                Debug("pf::array") << "ak = " << ak << ", bk = " << bk << std::endl;
-                Debug("pf::array") << "Equality engine has ak? " <<
-                  ( d_equalityEngine.hasTerm(ak) ? "YES" : "NO" ) << std::endl;
-                Debug("pf::array") << "Equality engine has bk? " <<
-                  ( d_equalityEngine.hasTerm(bk) ? "YES" : "NO" ) << std::endl;
-
                 Node eq = ak.eqNode(bk);
-
-                // eq = d_valuation.ensureLiteral(ak.eqNode(bk));
-                //                Assert(eq.getKind() == kind::EQUAL);
-
                 Node lemma = fact[0].orNode(eq.notNode());
 
-                // ONLY IN PROOF MODE, if the terms ak and bk are not yet registered, we'd like to register them.
-                // Keep this is mind in future refactoring
+                // Only in proof mode, if the terms ak and bk are not yet registered, we'd like to register them.
                 if (!d_equalityEngine.hasTerm(ak)) {
                   preRegisterTermInternal(ak);
                 }
                 if (!d_equalityEngine.hasTerm(bk)) {
                   preRegisterTermInternal(bk);
                 }
-                // END ONLY IF PROOF MODE
 
-                // Also added from Clark for EXT lemma propagation:
                 if (options::arraysPropagate() > 0 && d_equalityEngine.hasTerm(ak) && d_equalityEngine.hasTerm(bk)) {
                   // Propagate witness disequality - might produce a conflict
                   d_permRef.push_back(lemma);
@@ -1429,13 +1378,6 @@ void TheoryArrays::check(Effort e) {
                   d_equalityEngine.assertEquality(eq, false, fact, eq::MERGED_ARRAYS_EXT);
                   ++d_numProp;
                 }
-                // END changes from Clark
-
-                // Debug("pf::array") << "lemma = " << lemma << std::endl;
-
-                // Trace("arrays-lem")<<"Arrays::addExtLemma " << lemma <<"\n";
-                // d_out->lemma(lemma);
-                // ++d_numExt;
               }
             }
           }

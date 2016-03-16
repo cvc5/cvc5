@@ -484,7 +484,7 @@ template <class Solver>
     if (kind == THEORY_LEMMA) {
       Assert(d_lemmaClauses.find(newId) == d_lemmaClauses.end());
       d_lemmaClauses.insert(newId);
-      Debug("gk::duplemma") << "TSatProof::registerClause registering a new lemma clause: "
+      Debug("pf::sat") << "TSatProof::registerClause registering a new lemma clause: "
                             << newId << " = " << *buildClause(newId)
                             << ". Explainer theory: " << d_cnfProof->getExplainerTheory()
                             << std::endl;
@@ -518,7 +518,7 @@ ClauseId TSatProof<Solver>::registerUnitClause(typename Solver::TLit lit,
     }
     if (kind == THEORY_LEMMA) {
       Assert(d_lemmaClauses.find(newId) == d_lemmaClauses.end());
-      Debug("gk::duplemma") << "TSatProof::registerUnitClause: registering a new lemma (UNIT CLAUSE): "
+      Debug("pf::sat") << "TSatProof::registerUnitClause: registering a new lemma (UNIT CLAUSE): "
                             << lit
                             << ". Explainer theory: " << d_cnfProof->getExplainerTheory()
                             << std::endl;
