@@ -48,16 +48,6 @@ namespace CVC4 {
 unsigned CVC4::LetCount::counter = 0;
 static unsigned LET_COUNT = 1;
 
-void dumpLetMap(const LetMap &map) {
-  Debug("gk::proof") << "Dumping let map:" << std::endl;
-  LetMap::const_iterator it;
-  for (it = map.begin(); it != map.end(); ++it) {
-    Debug("gk::proof") << "\t" << it->first << "\t-->\t" << "("
-                       << it->second.id << ", " << it->second.count << ")" << std::endl;
-  }
-  Debug("gk::proof") << "Dumping let map done." << std::endl << std::endl;
-}
-
 //for proof replay
 class ProofOutputChannel : public theory::OutputChannel {
 public:
@@ -185,11 +175,11 @@ void TheoryProofEngine::registerTerm(Expr term) {
   if (d_registrationCache.count(term)) {
     return;
   }
-  Debug("gk::proof") << "TheoryProofEngine::registerTerm: registering new term: " << term << std::endl;
+  Debug("pf::tp") << "TheoryProofEngine::registerTerm: registering new term: " << term << std::endl;
 
   theory::TheoryId theory_id = theory::Theory::theoryOf(term);
 
-  Debug("gk::proof") << "Term's theory: " << theory_id << std::endl;
+  Debug("pf::tp") << "Term's theory: " << theory_id << std::endl;
 
   // don't need to register boolean terms
   if (theory_id == theory::THEORY_BUILTIN ||
@@ -210,11 +200,11 @@ void TheoryProofEngine::registerTerm(Expr term) {
 theory::TheoryId TheoryProofEngine::getTheoryForLemma(ClauseId id) {
   ProofManager* pm = ProofManager::currentPM();
 
-  Debug("gk::proof") << "TheoryProofEngine::getTheoryForLemma( " << id << " )"
+  Debug("pf::tp") << "TheoryProofEngine::getTheoryForLemma( " << id << " )"
                      << " = " << pm->getCnfProof()->getOwnerTheory(id) << std::endl;
 
   if ((pm->getLogic() == "QF_UFLIA") || (pm->getLogic() == "QF_UFLRA")) {
-    Debug("gk::proof") << "TheoryProofEngine::getTheoryForLemma: special hack for Arithmetic-with-holes support. "
+    Debug("pf::tp") << "TheoryProofEngine::getTheoryForLemma: special hack for Arithmetic-with-holes support. "
                        << "Returning THEORY_ARITH" << std::endl;
     return theory::THEORY_ARITH;
   }
@@ -226,7 +216,7 @@ theory::TheoryId TheoryProofEngine::getTheoryForLemma(ClauseId id) {
   // if (pm->getLogic() == "QF_AX") return theory::THEORY_ARRAY;
   // if (pm->getLogic() == "ALL_SUPPORTED") return theory::THEORY_BV;
 
-  // Debug("gk::proof") << "Unsupported logic (" << pm->getLogic() << ")" << std::endl;
+  // Debug("pf::tp") << "Unsupported logic (" << pm->getLogic() << ")" << std::endl;
 
   // Unreachable();
 }
@@ -282,7 +272,7 @@ void LFSCTheoryProofEngine::printLetTerm(Expr term, std::ostream& os) {
 
 void LFSCTheoryProofEngine::printTheoryTerm(Expr term, std::ostream& os, const LetMap& map) {
   theory::TheoryId theory_id = theory::Theory::theoryOf(term);
-  Debug("gk::proof") << std::endl << "LFSCTheoryProofEngine::printTheoryTerm: term = " << term
+  Debug("pf::tp") << std::endl << "LFSCTheoryProofEngine::printTheoryTerm: term = " << term
                      << ", theory_id = " << theory_id << std::endl;
 
   // boolean terms and ITEs are special because they
@@ -335,14 +325,14 @@ void LFSCTheoryProofEngine::registerTermsFromAssertions() {
 }
 
 void LFSCTheoryProofEngine::printAssertions(std::ostream& os, std::ostream& paren) {
-  Debug("gk::proof") << "LFSCTheoryProofEngine::printAssertions called" << std::endl << std::endl;
+  Debug("pf::tp") << "LFSCTheoryProofEngine::printAssertions called" << std::endl << std::endl;
 
   unsigned counter = 0;
   ProofManager::assertions_iterator it = ProofManager::currentPM()->begin_assertions();
   ProofManager::assertions_iterator end = ProofManager::currentPM()->end_assertions();
 
   for (; it != end; ++it) {
-    Debug("gk::proof") << "printAssertions: assertion is: " << *it << std::endl;
+    Debug("pf::tp") << "printAssertions: assertion is: " << *it << std::endl;
     // FIXME: merge this with counter
     os << "(% A" << counter++ << " (th_holds ";
     printLetTerm(*it,  os);
@@ -351,11 +341,11 @@ void LFSCTheoryProofEngine::printAssertions(std::ostream& os, std::ostream& pare
   }
   //store map between assertion and counter
   // ProofManager::currentPM()->setAssertion( *it );
-  Debug("gk::proof") << "LFSCTheoryProofEngine::printAssertions done" << std::endl << std::endl;
+  Debug("pf::tp") << "LFSCTheoryProofEngine::printAssertions done" << std::endl << std::endl;
 }
 
 void LFSCTheoryProofEngine::printSortDeclarations(std::ostream& os, std::ostream& paren) {
-  Debug("gk::proof") << "LFSCTheoryProofEngine::printSortDeclarations called" << std::endl << std::endl;
+  Debug("pf::tp") << "LFSCTheoryProofEngine::printSortDeclarations called" << std::endl << std::endl;
 
   TheoryProofTable::const_iterator it = d_theoryProofTable.begin();
   TheoryProofTable::const_iterator end = d_theoryProofTable.end();
@@ -363,11 +353,11 @@ void LFSCTheoryProofEngine::printSortDeclarations(std::ostream& os, std::ostream
     it->second->printSortDeclarations(os, paren);
   }
 
-  Debug("gk::proof") << "LFSCTheoryProofEngine::printSortDeclarations done" << std::endl << std::endl;
+  Debug("pf::tp") << "LFSCTheoryProofEngine::printSortDeclarations done" << std::endl << std::endl;
 }
 
 void LFSCTheoryProofEngine::printTermDeclarations(std::ostream& os, std::ostream& paren) {
-  Debug("gk::proof") << "LFSCTheoryProofEngine::printTermDeclarations called" << std::endl << std::endl;
+  Debug("pf::tp") << "LFSCTheoryProofEngine::printTermDeclarations called" << std::endl << std::endl;
 
   TheoryProofTable::const_iterator it = d_theoryProofTable.begin();
   TheoryProofTable::const_iterator end = d_theoryProofTable.end();
@@ -375,11 +365,11 @@ void LFSCTheoryProofEngine::printTermDeclarations(std::ostream& os, std::ostream
     it->second->printTermDeclarations(os, paren);
   }
 
-  Debug("gk::proof") << "LFSCTheoryProofEngine::printTermDeclarations done" << std::endl << std::endl;
+  Debug("pf::tp") << "LFSCTheoryProofEngine::printTermDeclarations done" << std::endl << std::endl;
 }
 
 void LFSCTheoryProofEngine::printDeferredDeclarations(std::ostream& os, std::ostream& paren) {
-  Debug("gk::proof") << "LFSCTheoryProofEngine::printDeferredDeclarations called" << std::endl;
+  Debug("pf::tp") << "LFSCTheoryProofEngine::printDeferredDeclarations called" << std::endl;
 
   TheoryProofTable::const_iterator it = d_theoryProofTable.begin();
   TheoryProofTable::const_iterator end = d_theoryProofTable.end();
@@ -396,12 +386,12 @@ void LFSCTheoryProofEngine::printTheoryLemmas(const IdToSatClause& lemmas,
   IdToSatClause::const_iterator it = lemmas.begin();
   IdToSatClause::const_iterator end = lemmas.end();
 
-  Debug("gk::proof") << "LFSCTheoryProofEngine::printTheoryLemmas: checking lemma owners..." << std::endl;
+  Debug("pf::tp") << "LFSCTheoryProofEngine::printTheoryLemmas: checking lemma owners..." << std::endl;
 
   for (; it != end; ++it) {
-    Debug("gk::proof") << "LFSCTheoryProofEngine::printTheoryLemmas: new lemma" << std::endl;
+    Debug("pf::tp") << "LFSCTheoryProofEngine::printTheoryLemmas: new lemma" << std::endl;
     ClauseId id = it->first;
-    Debug("gk::proof") << "\tLemma = " << id
+    Debug("pf::tp") << "\tLemma = " << id
                        << ". Owner theory: " << pm->getCnfProof()->getOwnerTheory(id) << std::endl;
   }
   it = lemmas.begin();
@@ -446,22 +436,22 @@ void LFSCTheoryProofEngine::printTheoryLemmas(const IdToSatClause& lemmas,
 
   it = lemmas.begin();
 
-  Debug("gk::proof") << "LFSCTheoryProofEngine::printTheoryLemmas: printing lemmas..." << std::endl;
+  Debug("pf::tp") << "LFSCTheoryProofEngine::printTheoryLemmas: printing lemmas..." << std::endl;
 
   for (; it != end; ++it) {
-    Debug("gk::proof") << "LFSCTheoryProofEngine::printTheoryLemmas: printing a new lemma!" << std::endl;
+    Debug("pf::tp") << "LFSCTheoryProofEngine::printTheoryLemmas: printing a new lemma!" << std::endl;
 
-    // Debug("gk::proof") << "\tLemma = " << it->first << ", " << *(it->second) << std::endl;
+    // Debug("pf::tp") << "\tLemma = " << it->first << ", " << *(it->second) << std::endl;
     ClauseId id = it->first;
-    Debug("gk::proof") << "Owner theory:" << pm->getCnfProof()->getOwnerTheory(id) << std::endl;
+    Debug("pf::tp") << "Owner theory:" << pm->getCnfProof()->getOwnerTheory(id) << std::endl;
     const prop::SatClause* clause = it->second;
     // printing clause as it appears in resolution proof
     os << "(satlem _ _ ";
     std::ostringstream clause_paren;
 
-    Debug("gk::proof") << "CnfProof printing clause..." << std::endl;
+    Debug("pf::tp") << "CnfProof printing clause..." << std::endl;
     pm->getCnfProof()->printClause(*clause, os, clause_paren);
-    Debug("gk::proof") << "CnfProof printing clause - Done!" << std::endl;
+    Debug("pf::tp") << "CnfProof printing clause - Done!" << std::endl;
 
     std::vector<Expr> clause_expr;
     for(unsigned i = 0; i < clause->size(); ++i) {
@@ -475,14 +465,14 @@ void LFSCTheoryProofEngine::printTheoryLemmas(const IdToSatClause& lemmas,
       clause_expr.push_back(expr_lit);
     }
 
-    Debug("gk::proof") << "Expression printing done!" << std::endl;
+    Debug("pf::tp") << "Expression printing done!" << std::endl;
 
     // query appropriate theory for proof of clause
     theory::TheoryId theory_id = getTheoryForLemma(id);
-    Debug("gk::proof") << "Get theory lemma from " << theory_id << "..." << std::endl;
+    Debug("pf::tp") << "Get theory lemma from " << theory_id << "..." << std::endl;
     Debug("theory-proof-debug") << ";; Get theory lemma from " << theory_id << "..." << std::endl;
     getTheoryProof(theory_id)->printTheoryLemmaProof(clause_expr, os, paren);
-    Debug("gk::proof") << "Get theory lemma from " << theory_id << "... DONE!" << std::endl;
+    Debug("pf::tp") << "Get theory lemma from " << theory_id << "... DONE!" << std::endl;
     // os << " (clausify_false trust)";
     os << clause_paren.str();
     os << "( \\ " << pm->getLemmaClauseName(id) <<"\n";
@@ -491,8 +481,7 @@ void LFSCTheoryProofEngine::printTheoryLemmas(const IdToSatClause& lemmas,
 }
 
 void LFSCTheoryProofEngine::printBoundTerm(Expr term, std::ostream& os, const LetMap& map) {
-  // Debug("gk::proof") << "LFSCTheoryProofEngine::printBoundTerm( " << term << " ) " << std::endl;
-  // dumpLetMap(map);
+  // Debug("pf::tp") << "LFSCTheoryProofEngine::printBoundTerm( " << term << " ) " << std::endl;
 
   LetMap::const_iterator it = map.find(term);
   if (it != map.end()) {
@@ -632,43 +621,43 @@ void TheoryProof::printTheoryLemmaProof(std::vector<Expr>& lemma, std::ostream& 
     InternalError(std::string("can't generate theory-proof for ") + ProofManager::currentPM()->getLogic());
   }
 
-  Debug("gk::proof") << "TheoryProof::printTheoryLemmaProof - calling th->ProduceProofs()" << std::endl;
+  Debug("pf::tp") << "TheoryProof::printTheoryLemmaProof - calling th->ProduceProofs()" << std::endl;
   th->produceProofs();
-  Debug("gk::proof") << "TheoryProof::printTheoryLemmaProof - th->ProduceProofs() DONE" << std::endl;
+  Debug("pf::tp") << "TheoryProof::printTheoryLemmaProof - th->ProduceProofs() DONE" << std::endl;
 
   MyPreRegisterVisitor preRegVisitor(th);
   for( unsigned i=0; i<lemma.size(); i++ ){
     Node lit = Node::fromExpr( lemma[i] ).negate();
-    Trace("gk::proof") << "; preregistering and asserting " << lit << std::endl;
+    Trace("pf::tp") << "; preregistering and asserting " << lit << std::endl;
     NodeVisitor<MyPreRegisterVisitor>::run(preRegVisitor, lit);
     th->assertFact(lit, false);
   }
 
-  Debug("gk::proof") << "TheoryProof::printTheoryLemmaProof - calling th->check()" << std::endl;
+  Debug("pf::tp") << "TheoryProof::printTheoryLemmaProof - calling th->check()" << std::endl;
   th->check(theory::Theory::EFFORT_FULL);
-  Debug("gk::proof") << "TheoryProof::printTheoryLemmaProof - th->check() DONE" << std::endl;
+  Debug("pf::tp") << "TheoryProof::printTheoryLemmaProof - th->check() DONE" << std::endl;
 
   if(oc.d_conflict.isNull()) {
-    Trace("gk::proof") << "; conflict is null" << std::endl;
+    Trace("pf::tp") << "; conflict is null" << std::endl;
     Assert(!oc.d_lemma.isNull());
-    Trace("gk::proof") << "; ++ but got lemma: " << oc.d_lemma << std::endl;
+    Trace("pf::tp") << "; ++ but got lemma: " << oc.d_lemma << std::endl;
 
     // Original, as in Liana's branch
-    // Trace("gk::proof") << "; asserting " << oc.d_lemma[1].negate() << std::endl;
+    // Trace("pf::tp") << "; asserting " << oc.d_lemma[1].negate() << std::endl;
     // th->assertFact(oc.d_lemma[1].negate(), false);
     // th->check(theory::Theory::EFFORT_FULL);
 
     // Altered version, to handle OR lemmas
 
     if (oc.d_lemma.getKind() == kind::OR) {
-      Debug("gk::proof") << "OR lemma. Negating each child separately" << std::endl;
+      Debug("pf::tp") << "OR lemma. Negating each child separately" << std::endl;
       for (unsigned i = 0; i < oc.d_lemma.getNumChildren(); ++i) {
         if (oc.d_lemma[i].getKind() == kind::NOT) {
-          Trace("gk::proof") << ";     asserting fact: " << oc.d_lemma[i][0] << std::endl;
+          Trace("pf::tp") << ";     asserting fact: " << oc.d_lemma[i][0] << std::endl;
           th->assertFact(oc.d_lemma[i][0], false);
         }
         else {
-          Trace("gk::proof") << ";     asserting fact: " << oc.d_lemma[i].notNode() << std::endl;
+          Trace("pf::tp") << ";     asserting fact: " << oc.d_lemma[i].notNode() << std::endl;
           th->assertFact(oc.d_lemma[i].notNode(), false);
         }
       }
@@ -677,25 +666,25 @@ void TheoryProof::printTheoryLemmaProof(std::vector<Expr>& lemma, std::ostream& 
       Unreachable();
 
       Assert(oc.d_lemma.getKind() == kind::NOT);
-      Debug("gk::proof") << "NOT lemma" << std::endl;
-      Trace("gk::proof") << ";     asserting fact: " << oc.d_lemma[0] << std::endl;
+      Debug("pf::tp") << "NOT lemma" << std::endl;
+      Trace("pf::tp") << ";     asserting fact: " << oc.d_lemma[0] << std::endl;
       th->assertFact(oc.d_lemma[0], false);
     }
 
-    // Trace("gk::proof") << "; ++ but got lemma: " << oc.d_lemma << std::endl;
-    // Trace("gk::proof") << "; asserting " << oc.d_lemma[1].negate() << std::endl;
+    // Trace("pf::tp") << "; ++ but got lemma: " << oc.d_lemma << std::endl;
+    // Trace("pf::tp") << "; asserting " << oc.d_lemma[1].negate() << std::endl;
     // th->assertFact(oc.d_lemma[1].negate(), false);
 
     //
     th->check(theory::Theory::EFFORT_FULL);
   }
-  Debug("gk::proof") << "Calling   oc.d_proof->toStream(os)" << std::endl;
+  Debug("pf::tp") << "Calling   oc.d_proof->toStream(os)" << std::endl;
   oc.d_proof->toStream(os);
-  Debug("gk::proof") << "Calling   oc.d_proof->toStream(os) -- DONE!" << std::endl;
+  Debug("pf::tp") << "Calling   oc.d_proof->toStream(os) -- DONE!" << std::endl;
 
-  Debug("gk::proof") << "About to delete the theory solver used for proving the lemma... " << std::endl;
+  Debug("pf::tp") << "About to delete the theory solver used for proving the lemma... " << std::endl;
   delete th;
-  Debug("gk::proof") << "About to delete the theory solver used for proving the lemma: DONE! " << std::endl;
+  Debug("pf::tp") << "About to delete the theory solver used for proving the lemma: DONE! " << std::endl;
 }
 
 bool TheoryProofEngine::supportedTheory(theory::TheoryId id) {
