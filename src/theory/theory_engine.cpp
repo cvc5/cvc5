@@ -831,9 +831,7 @@ Node TheoryEngine::ppTheoryRewrite(TNode term) {
 
 void TheoryEngine::preprocessStart()
 {
-  Debug("gk::proof" ) << "TheoryEngine::preprocessStart";
   d_ppCache.clear();
-  Debug("gk::proof" ) << "--- DONE" << std::endl;
 }
 
 
@@ -862,17 +860,13 @@ Node TheoryEngine::preprocess(TNode assertion) {
 
     Debug("theory::internal") << "TheoryEngine::preprocess(" << assertion << "): processing " << current << endl;
 
-    // Debug("gk::proof") << "preprocess (1)" << std::endl;
-    // Debug("gk::proof") << "cache size is: " << d_ppCache.size() << std::endl;
     // If node already in the cache we're done, pop from the stack
     NodeMap::iterator find = d_ppCache.find(current);
-    // Debug("gk::proof") << "preprocess (1.5)" << std::endl;
     if (find != d_ppCache.end()) {
       toVisit.pop_back();
       continue;
     }
 
-    // Debug("gk::proof") << "preprocess (2)" << std::endl;
     if(! d_logicInfo.isTheoryEnabled(Theory::theoryOf(current)) &&
        Theory::theoryOf(current) != THEORY_SAT_SOLVER) {
       stringstream ss;
@@ -883,7 +877,6 @@ Node TheoryEngine::preprocess(TNode assertion) {
          << current;
       throw LogicException(ss.str());
     }
-    // Debug("gk::proof") << "preprocess (3)" << std::endl;
 
     // If this is an atom, we preprocess its terms with the theory ppRewriter
     if (Theory::theoryOf(current) != THEORY_BOOL) {
@@ -893,7 +886,6 @@ Node TheoryEngine::preprocess(TNode assertion) {
       continue;
     }
 
-    // Debug("gk::proof") << "preprocess (4)" << std::endl;
     // Not yet substituted, so process
     if (stackHead.children_added) {
       // Children have been processed, so substitute

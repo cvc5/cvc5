@@ -178,7 +178,6 @@ EqualityNodeId EqualityEngine::newApplicationNode(TNode original, EqualityNodeId
   FunctionApplication funNormalized(type, t1ClassId, t2ClassId);
 
   // We add the original version
-  Debug("gk::proof") << d_name << "::eq::newApplicationNode: " << "Populating d_applications[" << funId << "]" << std::endl;
   d_applications[funId] = FunctionApplicationPair(funOriginal, funNormalized);
 
   // Add the lookup data, if it's not already there
@@ -250,8 +249,6 @@ EqualityNodeId EqualityEngine::newNode(TNode node) {
 }
 
 void EqualityEngine::addFunctionKind(Kind fun, bool interpreted) {
-  Debug("gk::proof") << "EqualityEngine::addFunctionKind( " << fun << ", " << interpreted << " )" << std::endl;
-
   d_congruenceKinds |= fun;
   if (interpreted && fun != kind::EQUAL) {
     Debug("equality::evaluation") << d_name << "::eq::addFunctionKind(): " << fun << " is interpreted " << std::endl;
@@ -296,7 +293,6 @@ void EqualityEngine::addTermInternal(TNode t, bool isOperator) {
     d_isInternal[result] = false;
     d_isConstant[result] = false;
   } else if (t.getNumChildren() > 0 && d_congruenceKinds[t.getKind()]) {
-    // Debug("gk::proof") << "EqualityEngine::addTermInternal: Curryfying. Term: " << t << ". kind: " << t.getKind() << std::endl;
     TNode tOp = t.getOperator();
     // Add the operator
     addTermInternal(tOp, true);
@@ -304,15 +300,12 @@ void EqualityEngine::addTermInternal(TNode t, bool isOperator) {
     // Add all the children and Curryfy
     bool isInterpreted = isInterpretedFunctionKind(t.getKind());
     for (unsigned i = 0; i < t.getNumChildren(); ++ i) {
-      // Debug("gk::proof") << "EqualityEngine::addTermInternal: Curryfying. Term: " << t << ". Result at iteration " << i << ": " << result << std::endl;
       // Add the child
       addTermInternal(t[i]);
       EqualityNodeId tiId = getNodeId(t[i]);
       // Add the application
       result = newApplicationNode(t, result, tiId, isInterpreted ? APP_INTERPRETED : APP_UNINTERPRETED);
     }
-    // Debug("gk::proof") << "EqualityEngine::addTermInternal: Curryfying. Term: " << t << ". Final result: "<< result << std::endl;
-
     d_isInternal[result] = false;
     d_isConstant[result] = t.isConst();
     // If interpreted, set the number of non-interpreted children
@@ -950,22 +943,14 @@ void EqualityEngine::explainEquality(TNode t1, TNode t2, bool polarity, std::vec
     Assert(d_disequalityReasonsMap.find(pair) != d_disequalityReasonsMap.end(), "Don't ask for stuff I didn't notify you about");
     DisequalityReasonRef reasonRef = d_disequalityReasonsMap.find(pair)->second;
 
-    Debug("gk::proof") << "Number of disquality reasons: " << reasonRef.mergesEnd - reasonRef.mergesStart << std::endl;
     for (unsigned i = reasonRef.mergesStart; i < reasonRef.mergesEnd; ++ i) {
       EqualityPair toExplain = d_deducedDisequalityReasons[i];
-      EqProof* eqpc = NULL;
-
-      Debug("gk::proof") << "     Equality pair #" << i + 1 - reasonRef.mergesStart << ": " << d_nodes[toExplain.first]
-                         << " == " << d_nodes[toExplain.second] << std::endl;
     }
 
     for (unsigned i = reasonRef.mergesStart; i < reasonRef.mergesEnd; ++ i) {
 
       EqualityPair toExplain = d_deducedDisequalityReasons[i];
       EqProof* eqpc = NULL;
-
-      Debug("gk::proof") << "explainEquality: Equality pair #" << i  + 1 - reasonRef.mergesStart<< ": " << d_nodes[toExplain.first]
-                         << " == " << d_nodes[toExplain.second] << std::endl;
 
       // If we're constructing a (transitivity) proof, we don't need to include an explanation for x=x.
       if (eqp && toExplain.first != toExplain.second) {
@@ -975,10 +960,6 @@ void EqualityEngine::explainEquality(TNode t1, TNode t2, bool polarity, std::vec
       // Some edges have the form ((a == b) == false). Translate this into (not (a == b)).
       // Assert(d_nodes[toExplain.first] != NodeManager::currentNM()->mkConst(false));
 
-      if (eqp && d_nodes[toExplain.second] == NodeManager::currentNM()->mkConst(false)) {
-        Debug("gk::proof") << "explainEquality: (a==b)==false case!" << std::endl;
-      }
-
       getExplanation(toExplain.first, toExplain.second, equalities, eqpc);
 
       // if (eqpc) {
@@ -986,8 +967,8 @@ void EqualityEngine::explainEquality(TNode t1, TNode t2, bool polarity, std::vec
       // }
 
       if (eqpc) {
-        Debug("gk::proof") << "Child proof is:" << std::endl;
-        eqpc->debug_print("gk::proof", 1);
+        Debug("pf::ee") << "Child proof is:" << std::endl;
+        eqpc->debug_print("pf::ee", 1);
 
         if (eqpc->d_id == eq::MERGED_THROUGH_TRANS) {
           std::vector<EqProof *> orderedChildren;
@@ -999,7 +980,7 @@ void EqualityEngine::explainEquality(TNode t1, TNode t2, bool polarity, std::vec
               Assert(!nullCongruenceFound);
               nullCongruenceFound = true;
 
-              Debug("gk::proof") << "Have congruence with empty d_node. Splitting..." << std::endl;
+              Debug("pf::ee") << "Have congruence with empty d_node. Splitting..." << std::endl;
               orderedChildren.insert(orderedChildren.begin(), eqpc->d_children[i]->d_children[0]);
               orderedChildren.push_back(eqpc->d_children[i]->d_children[1]);
             } else {
@@ -1009,8 +990,8 @@ void EqualityEngine::explainEquality(TNode t1, TNode t2, bool polarity, std::vec
 
           if (nullCongruenceFound) {
             eqpc->d_children = orderedChildren;
-            Debug("gk::proof") << "Child proof's children have been reordered. It is now:" << std::endl;
-            eqpc->debug_print("gk::proof", 1);
+            Debug("pf::ee") << "Child proof's children have been reordered. It is now:" << std::endl;
+            eqpc->debug_print("pf::ee", 1);
           }
         }
 
@@ -1027,8 +1008,8 @@ void EqualityEngine::explainEquality(TNode t1, TNode t2, bool polarity, std::vec
         delete temp;
       }
 
-      Debug("gk::proof") << "Disequality explanation final proof: " << std::endl;
-      eqp->debug_print("gk::proof", 1);
+      Debug("pf::ee") << "Disequality explanation final proof: " << std::endl;
+      eqp->debug_print("pf::ee", 1);
     }
   }
 }
@@ -1061,15 +1042,12 @@ void EqualityEngine::getExplanation(EqualityNodeId t1Id, EqualityNodeId t2Id, st
   // If the nodes are the same, we're done
   if (t1Id == t2Id){
     if( eqp ) {
-      Debug("gk::proof") << "Other mkOp called (t1Id = " << d_nodes[t1Id] << ")" << std::endl;
       if ((d_nodes[t1Id].getKind() == kind::BUILTIN) && (d_nodes[t1Id].getConst<Kind>() == kind::SELECT)) {
         std::vector<Node> no_children;
         eqp->d_node = NodeManager::currentNM()->mkNode(kind::PARTIAL_SELECT_0, no_children);
-        Debug("gk::proof") << "Node id: " << eqp->d_node.getId();
       } else {
         eqp->d_node = ProofManager::currentPM()->mkOp(d_nodes[t1Id]);
       }
-      Debug("gk::proof") << "New d_node is: " << eqp->d_node << std::endl;
     }
     return;
   }
@@ -1144,9 +1122,9 @@ void EqualityEngine::getExplanation(EqualityNodeId t1Id, EqualityNodeId t2Id, st
               const FunctionApplication& f1 = d_applications[currentNode].original;
               const FunctionApplication& f2 = d_applications[edgeNode].original;
 
-              Debug("gk::proof") << "We need to prove two equalities:" << std::endl;
-              Debug("gk::proof") << "\tLHS: " << d_nodes[f1.a] << " = " << d_nodes[f2.a] << std::endl;
-              Debug("gk::proof") << "\tRHS: " << d_nodes[f1.b] << " = " << d_nodes[f2.b] << std::endl;
+              Debug("pf::ee") << "We need to prove two equalities:" << std::endl;
+              Debug("pf::ee") << "\tLHS: " << d_nodes[f1.a] << " = " << d_nodes[f2.a] << std::endl;
+              Debug("pf::ee") << "\tRHS: " << d_nodes[f1.b] << " = " << d_nodes[f2.b] << std::endl;
 
               Debug("equality") << push;
               Debug("equality") << "Explaining left hand side equalities" << std::endl;
@@ -1158,38 +1136,37 @@ void EqualityEngine::getExplanation(EqualityNodeId t1Id, EqualityNodeId t2Id, st
               if( eqpc ){
                 eqpc->d_children.push_back( eqpc1 );
                 eqpc->d_children.push_back( eqpc2 );
-                Debug("equality-pf") << "Congruence : " << d_nodes[currentNode] << " " << d_nodes[edgeNode] << std::endl;
+                Debug("pf::ee") << "Congruence : " << d_nodes[currentNode] << " " << d_nodes[edgeNode] << std::endl;
                 if( d_nodes[currentNode].getKind()==kind::EQUAL ){
                   //leave node null for now
                   eqpc->d_node = Node::null();
                 }else{
-                  Debug("equality-pf") << d_nodes[f1.a] << " / " << d_nodes[f2.a] << ", " << d_nodes[f1.b] << " / " << d_nodes[f2.b] << std::endl;
+                  Debug("pf::ee") << d_nodes[f1.a] << " / " << d_nodes[f2.a] << ", " << d_nodes[f1.b] << " / " << d_nodes[f2.b] << std::endl;
                   if(d_nodes[f1.a].getKind() == kind::APPLY_UF ||
                      d_nodes[f1.a].getKind() == kind::SELECT ||
                      d_nodes[f1.a].getKind() == kind::STORE) {
-                    Debug("gk::proof") << "HERE!!!!!!!. Kind is: " << d_nodes[f1.a].getKind() << std::endl;
                     eqpc->d_node = d_nodes[f1.a];
                   } else {
 
-                    Debug("gk::proof") << "f1.a is: " << d_nodes[f1.a]
-                                       << ". kind is: " << d_nodes[f1.a].getKind() << std::endl;
+                    Debug("pf::ee") << "f1.a is: " << d_nodes[f1.a]
+                                    << ". kind is: " << d_nodes[f1.a].getKind() << std::endl;
 
                     if (d_nodes[f1.a].getKind() == kind::BUILTIN && d_nodes[f1.a].getConst<Kind>() == kind::SELECT) {
-                      Debug("gk::proof") << "f1.a getConst<kind> is: " << d_nodes[f1.a].getConst<Kind>() << std::endl;
+                      Debug("pf::ee") << "f1.a getConst<kind> is: " << d_nodes[f1.a].getConst<Kind>() << std::endl;
 
                       eqpc->d_node = NodeManager::currentNM()->mkNode(kind::PARTIAL_SELECT_1, d_nodes[f1.b]);
                       // The first child is a PARTIAL_SELECT_0. Give it a child so that we know what kind of (read) it is, when we dump to LFSC.
-                      Debug("gk::proof") << "eqpc->d_children[0]->d_node.getKind() == " << eqpc->d_children[0]->d_node.getKind() << std::endl;
+                      Debug("pf::ee") << "eqpc->d_children[0]->d_node.getKind() == " << eqpc->d_children[0]->d_node.getKind() << std::endl;
                       Assert(eqpc->d_children[0]->d_node.getKind() == kind::PARTIAL_SELECT_0);
                       Assert(eqpc->d_children[0]->d_children.size() == 0);
 
-                      Debug("gk::proof") << "Dumping the equality proof before:" << std::endl;
-                      eqpc->debug_print("gk::proof", 1);
+                      Debug("pf::ee") << "Dumping the equality proof before:" << std::endl;
+                      eqpc->debug_print("pf::ee", 1);
 
                       eqpc->d_children[0]->d_node = NodeManager::currentNM()->mkNode(kind::PARTIAL_SELECT_0, d_nodes[f1.b]);
 
-                      Debug("gk::proof") << "Dumping the equality proof after:" << std::endl;
-                      eqpc->debug_print("gk::proof", 1);
+                      Debug("pf::ee") << "Dumping the equality proof after:" << std::endl;
+                      eqpc->debug_print("pf::ee", 1);
 
                       //eqpc->d_children[0]->d_node.append(d_nodes[f1.b]);
                     } else {
@@ -1197,7 +1174,7 @@ void EqualityEngine::getExplanation(EqualityNodeId t1Id, EqualityNodeId t2Id, st
                                                                       ProofManager::currentPM()->mkOp(d_nodes[f1.a]),
                                                                       d_nodes[f1.b]);
                     }
-                    Debug("gk::proof") << "New d_node is: " << eqpc->d_node << std::endl;
+                    Debug("pf::ee") << "New d_node is: " << eqpc->d_node << std::endl;
                   }
                 }
               }
@@ -1271,8 +1248,8 @@ void EqualityEngine::getExplanation(EqualityNodeId t1Id, EqualityNodeId t2Id, st
                 eqpc1->d_node = d_equalityEdges[currentEdge].getReason();
                 eqpc->d_children.push_back( eqpc1 );
 
-                eqpc1->debug_print("gk::proof", 1);
-                eqpc->debug_print("gk::proof", 1);
+                eqpc1->debug_print("pf::ee", 1);
+                eqpc->debug_print("pf::ee", 1);
               }
 
               // We push the reason into "equalities" because that's what the theory of arrays expects.
@@ -1329,38 +1306,38 @@ void EqualityEngine::getExplanation(EqualityNodeId t1Id, EqualityNodeId t2Id, st
                     Assert(d_nodes[currentNode][0][0] == d_nodes[edgeNode][0]);
                   }
 
-                  Debug("gk::proof") << "Getting explanation for ROW guard: "
+                  Debug("pf::ee") << "Getting explanation for ROW guard: "
                                      << indexOne << " != " << indexTwo << std::endl;
 
                   EqProof* eqpcc = eqpc ? new EqProof : NULL;
                   explainEquality(indexOne, indexTwo, false, equalities, eqpcc);
 
-                  Debug("gk::proof") << "The two indices are: " << indexOne << ", " << indexTwo << std::endl;
-                  Debug("gk::proof") << "And the explanation of their disequality is: " << std::endl;
-                  eqpcc->debug_print("gk::proof", 1);
+                  Debug("pf::ee") << "The two indices are: " << indexOne << ", " << indexTwo << std::endl;
+                  Debug("pf::ee") << "And the explanation of their disequality is: " << std::endl;
+                  eqpcc->debug_print("pf::ee", 1);
                   eqpc->d_children.push_back(eqpcc);
                 } else {
                   // This is the case of  (i == k) because ((a[i]:=t)[k] != a[k]),
 
-                  Debug("gk::proof") << "In the new case of ROW!" << std::endl;
+                  Debug("pf::ee") << "In the new case of ROW!" << std::endl;
 
                   Node indexOne = d_nodes[currentNode];
                   Node indexTwo = d_nodes[edgeNode];
 
-                  Debug("gk::proof") << "The two indices are: " << indexOne << ", " << indexTwo << std::endl;
-                  Debug("gk::proof") << "The reason for the edge is: " << d_equalityEdges[currentEdge].getReason()
+                  Debug("pf::ee") << "The two indices are: " << indexOne << ", " << indexTwo << std::endl;
+                  Debug("pf::ee") << "The reason for the edge is: " << d_equalityEdges[currentEdge].getReason()
                                      << std::endl;
 
                   Assert(d_equalityEdges[currentEdge].getReason().getNumChildren() == 2);
                   Node reason = d_equalityEdges[currentEdge].getReason()[1];
-                  Debug("gk::proof") << "Getting explanation for ROW guard: " << reason << std::endl;
+                  Debug("pf::ee") << "Getting explanation for ROW guard: " << reason << std::endl;
 
                   EqProof* eqpcc = eqpc ? new EqProof : NULL;
                   explainEquality(reason[0], reason[1], false, equalities, eqpcc);
 
                   if (eqpc) {
-                    Debug("gk::proof") << "The guard's explanation is: " << std::endl;
-                    eqpcc->debug_print("gk::proof", 1);
+                    Debug("pf::ee") << "The guard's explanation is: " << std::endl;
+                    eqpcc->debug_print("pf::ee", 1);
                     eqpc->d_children.push_back(eqpcc);
                   }
                 }
@@ -1403,7 +1380,7 @@ void EqualityEngine::getExplanation(EqualityNodeId t1Id, EqualityNodeId t2Id, st
                   } else {
                     eqpc->d_node = a.eqNode(b);
                   }
-                  Debug("equality-pf") << "theory eq : " << eqpc->d_node << std::endl;
+                  Debug("pf::ee") << "theory eq : " << eqpc->d_node << std::endl;
                 }
                 eqpc->d_id = reasonType;
               }

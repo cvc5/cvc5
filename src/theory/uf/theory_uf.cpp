@@ -221,15 +221,15 @@ void TheoryUF::explain(TNode literal, std::vector<TNode>& assumptions, eq::EqPro
     d_equalityEngine.explainPredicate(atom, polarity, assumptions, pf);
   }
   if( pf ){
-    Debug("uf-pf") << std::endl;
-    pf->debug_print("uf-pf");
+    Debug("pf::uf") << std::endl;
+    pf->debug_print("pf::uf");
   }
 
-  Debug("gk::proof") << "UF: explain( " << literal << " ):" << std::endl << "\t";
+  Debug("pf::uf") << "UF: explain( " << literal << " ):" << std::endl << "\t";
   for (unsigned i = 0; i < assumptions.size(); ++i) {
-    Debug("gk::proof") << assumptions[i] << " ";
+    Debug("pf::uf") << assumptions[i] << " ";
   }
-  Debug("gk::proof") << std::endl;
+  Debug("pf::uf") << std::endl;
 }
 
 Node TheoryUF::explain(TNode literal) {
