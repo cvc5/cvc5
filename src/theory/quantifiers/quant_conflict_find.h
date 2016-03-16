@@ -98,7 +98,7 @@ public:
   // is this term treated as UF application?
   static bool isHandledBoolConnective( TNode n );
   static bool isHandledUfTerm( TNode n );
-  static Node getOperator( QuantConflictFind * p, Node n );
+  static Node getMatchOperator( QuantConflictFind * p, Node n );
   //can this node be handled by the algorithm
   static bool isHandled( TNode n );
 };

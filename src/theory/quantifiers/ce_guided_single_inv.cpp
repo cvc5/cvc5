@@ -845,6 +845,7 @@ bool SingleInvocationPartition::init( Node n ) {
   if( inferArgTypes( n, typs, visited ) ){
     return init( typs, n );  
   }else{
+    Trace("si-prt") << "Could not infer argument types." << std::endl;
     return false;
   }
 }
@@ -854,7 +855,7 @@ bool SingleInvocationPartition::inferArgTypes( Node n, std::vector< TypeNode >& 
     visited[n] = true;
     if( n.getKind()!=FORALL ){
     //if( TermDb::hasBoundVarAttr( n ) ){
-      if( n.getKind()==APPLY_UF ){
+      if( n.getKind()==d_checkKind ){
         for( unsigned i=0; i<n.getNumChildren(); i++ ){
           typs.push_back( n[i].getType() );
         }
@@ -882,6 +883,7 @@ bool SingleInvocationPartition::init( std::vector< TypeNode >& typs, Node n ){
     Node si_v = NodeManager::currentNM()->mkBoundVar( ss.str(), d_arg_types[j] );
     d_si_vars.push_back( si_v );
   }
+  Trace("si-prt") << "Process the formula..." << std::endl;
   process( n );
   return true;
 }
@@ -909,6 +911,7 @@ void SingleInvocationPartition::process( Node n ) {
       std::vector< Node > terms;
       std::vector< Node > subs;
       bool singleInvocation = true;
+      bool ngroundSingleInvocation = false;
       if( processConjunct( cr, visited, args, terms, subs ) ){
         for( unsigned j=0; j<terms.size(); j++ ){
           si_terms.push_back( subs[j] );
@@ -944,6 +947,7 @@ void SingleInvocationPartition::process( Node n ) {
         TermDb::getBoundVars( cr, bvs );
         if( bvs.size()>d_si_vars.size() ){
           Trace("si-prt") << "...not ground single invocation." << std::endl;
+          ngroundSingleInvocation = true;
           singleInvocation = false;
         }else{
           Trace("si-prt") << "...ground single invocation : success." << std::endl;
@@ -984,6 +988,9 @@ void SingleInvocationPartition::process( Node n ) {
         d_conjuncts[0].push_back( cr );
       }else{
         d_conjuncts[1].push_back( cr );
+        if( ngroundSingleInvocation ){
+          d_conjuncts[3].push_back( cr );
+        }
       }
     }
   }else{
@@ -1026,7 +1033,7 @@ bool SingleInvocationPartition::processConjunct( Node n, std::map< Node, bool >&
         }
       }
       if( ret ){
-        if( n.getKind()==APPLY_UF ){
+        if( n.getKind()==d_checkKind ){
           if( std::find( terms.begin(), terms.end(), n )==terms.end() ){
             Node f = n.getOperator();
             //check if it matches the type requirement
@@ -1083,7 +1090,7 @@ bool SingleInvocationPartition::isAntiSkolemizableType( Node f ) {
         }
       }
       if( ret ){
-        Node t = NodeManager::currentNM()->mkNode( APPLY_UF, children );
+        Node t = NodeManager::currentNM()->mkNode( d_checkKind, children );
         d_func_inv[f] = t;
         d_inv_to_func[t] = f;
         std::stringstream ss;
@@ -1117,7 +1124,7 @@ Node SingleInvocationPartition::getSpecificationInst( Node n, std::map< Node, No
       childChanged = childChanged || ( nn!=n[i] );
     }
     Node ret;
-    if( n.getKind()==APPLY_UF ){
+    if( n.getKind()==d_checkKind ){
       std::map< Node, Node >::iterator itl = lam.find( n.getOperator() );
       if( itl!=lam.end() ){
         Assert( itl->second[0].getNumChildren()==children.size() );
@@ -1214,8 +1221,8 @@ void SingleInvocationPartition::debugPrint( const char * c ) {
       Trace(c) << "not incorporated." << std::endl;
     }
   }
-  for( unsigned i=0; i<3; i++ ){
-    Trace(c) << ( i==0 ? "Single invocation" : ( i==1 ? "Non-single invocation" : "All" ) );
+  for( unsigned i=0; i<4; i++ ){
+    Trace(c) << ( i==0 ? "Single invocation" : ( i==1 ? "Non-single invocation" : ( i==2 ? "All" : "Non-ground single invocation" ) ) );
     Trace(c) << " conjuncts: " << std::endl;
     for( unsigned j=0; j<d_conjuncts[i].size(); j++ ){
       Trace(c) << "  " << (j+1) << " : " << d_conjuncts[i][j] << std::endl;

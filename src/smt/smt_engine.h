@@ -401,6 +401,8 @@ class CVC4_PUBLIC SmtEngine {
   SmtEngine(const SmtEngine&) CVC4_UNDEFINED;
   SmtEngine& operator=(const SmtEngine&) CVC4_UNDEFINED;
 
+  //check satisfiability (for query and check-sat)
+  Result checkSatisfiability(const Expr& e, bool inUnsatCore, bool isQuery);
 public:
 
   /**
@@ -494,6 +496,12 @@ public:
   Result checkSat(const Expr& e = Expr(), bool inUnsatCore = true) throw(TypeCheckingException, ModalException, LogicException);
 
   /**
+   * Assert a synthesis conjecture to the current context and call
+   * check().  Returns sat, unsat, or unknown result.
+   */
+  Result checkSynth(const Expr& e) throw(TypeCheckingException, ModalException, LogicException);
+
+  /**
    * Simplify a formula without doing "much" work.  Does not involve
    * the SAT Engine in the simplification, but uses the current
    * definitions, assertions, and the current partial model, if one
@@ -553,9 +561,9 @@ public:
   void printSynthSolution( std::ostream& out );
 
   /**
-   * Do quantifier elimination, doFull false means just output one disjunct
+   * Do quantifier elimination, doFull false means just output one disjunct, strict is whether to output warnings.
    */
-  Expr doQuantifierElimination(const Expr& e, bool doFull) throw(TypeCheckingException, ModalException, LogicException);
+  Expr doQuantifierElimination(const Expr& e, bool doFull, bool strict=true) throw(TypeCheckingException, ModalException, LogicException);
 
   /**
    * Get an unsatisfiable core (only if immediately preceded by an

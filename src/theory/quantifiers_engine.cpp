@@ -138,10 +138,11 @@ QuantifiersEngine::QuantifiersEngine(context::Context* c, context::UserContext* 
   d_builder = NULL;
 
   d_total_inst_count_debug = 0;
-  d_ierCounter = 0;
+  //allow theory combination to go first, once initially
+  d_ierCounter = options::instWhenTcFirst() ? 0 : 1;
   d_ierCounter_lc = 0;
-  //if any strategy called only on last call, use phase 3
-  d_inst_when_phase = options::cbqi() ? 3 : 2;
+  d_ierCounterLastLc = d_ierCounter_lc;
+  d_inst_when_phase = 1 + ( options::instWhenPhase()<1 ? 1 : options::instWhenPhase() );
 }
 
 QuantifiersEngine::~QuantifiersEngine(){
@@ -338,11 +339,6 @@ void QuantifiersEngine::check( Theory::Effort e ){
     Trace("quant-engine-debug") << "Master equality engine not consistent, return." << std::endl;
     return;
   }
-  if( e==Theory::EFFORT_FULL ){
-    d_ierCounter++;
-  }else if( e==Theory::EFFORT_LAST_CALL ){
-    d_ierCounter_lc++;
-  }
   bool needsCheck = !d_lemmas_waiting.empty();
   unsigned needsModelE = QEFFORT_NONE;
   std::vector< QuantifiersModule* > qm;
@@ -392,14 +388,6 @@ void QuantifiersEngine::check( Theory::Effort e ){
       Trace("quant-engine-debug") << "  Needs model effort : " << needsModelE << std::endl;
       Trace("quant-engine-debug") << "Resetting all modules..." << std::endl;
     }
-    if( Trace.isOn("quant-engine-ee") ){
-      Trace("quant-engine-ee") << "Equality engine : " << std::endl;
-      debugPrintEqualityEngine( "quant-engine-ee" );
-    }
-    if( Trace.isOn("quant-engine-assert") ){
-      Trace("quant-engine-assert") << "Assertions : " << std::endl;
-      getTheoryEngine()->printAssertions("quant-engine-assert");
-    }
 
     //reset relevant information
 
@@ -410,12 +398,22 @@ void QuantifiersEngine::check( Theory::Effort e ){
     }
 
     Trace("quant-engine-debug2") << "Reset term db..." << std::endl;
+    d_eq_query->reset( e );
     d_term_db->reset( e );
-    d_eq_query->reset();
     if( d_rel_dom ){
       d_rel_dom->reset();
     }
     d_model->reset_round();
+    
+    if( Trace.isOn("quant-engine-ee") ){
+      Trace("quant-engine-ee") << "Equality engine : " << std::endl;
+      debugPrintEqualityEngine( "quant-engine-ee" );
+    }
+    if( Trace.isOn("quant-engine-assert") ){
+      Trace("quant-engine-assert") << "Assertions : " << std::endl;
+      getTheoryEngine()->printAssertions("quant-engine-assert");
+    }
+    
     for( unsigned i=0; i<d_modules.size(); i++ ){
       Trace("quant-engine-debug2") << "Reset " << d_modules[i]->identify().c_str() << std::endl;
       d_modules[i]->reset_round( e );
@@ -462,22 +460,36 @@ void QuantifiersEngine::check( Theory::Effort e ){
       //if we have added one, stop
       if( d_hasAddedLemma ){
         break;
-      }else if( e==Theory::EFFORT_LAST_CALL && quant_e==QEFFORT_MODEL ){
-        //if we have a chance not to set incomplete
-        if( !setIncomplete ){
-          setIncomplete = false;
-          //check if we should set the incomplete flag
-          for( unsigned i=0; i<qm.size(); i++ ){
-            if( !qm[i]->checkComplete() ){
-              Trace("quant-engine-debug") << "Set incomplete because " << qm[i]->identify().c_str() << " was incomplete." << std::endl;
-              setIncomplete = true;
+      }else{
+        if( quant_e==QEFFORT_CONFLICT ){
+          if( e==Theory::EFFORT_FULL ){
+            //increment if a last call happened, we are not strictly enforcing interleaving, or already were in phase
+            if( d_ierCounterLastLc!=d_ierCounter_lc || !options::instWhenStrictInterleave() || d_ierCounter%d_inst_when_phase!=0 ){
+              d_ierCounter++;
+              d_ierCounterLastLc = d_ierCounter_lc;
+            }
+          }else if( e==Theory::EFFORT_LAST_CALL ){
+            d_ierCounter_lc++;
+          }
+        }else if( quant_e==QEFFORT_MODEL ){
+          if( e==Theory::EFFORT_LAST_CALL ){
+            //if we have a chance not to set incomplete
+            if( !setIncomplete ){
+              setIncomplete = false;
+              //check if we should set the incomplete flag
+              for( unsigned i=0; i<qm.size(); i++ ){
+                if( !qm[i]->checkComplete() ){
+                  Trace("quant-engine-debug") << "Set incomplete because " << qm[i]->identify().c_str() << " was incomplete." << std::endl;
+                  setIncomplete = true;
+                  break;
+                }
+              }
+            }
+            //if setIncomplete = false, we will answer SAT, otherwise we will run at quant_e QEFFORT_LAST_CALL
+            if( !setIncomplete ){
               break;
             }
           }
-        }
-        //if setIncomplete = false, we will answer SAT, otherwise we will run at quant_e QEFFORT_LAST_CALL
-        if( !setIncomplete ){
-          break;
         }
       }
     }
@@ -1022,6 +1034,7 @@ bool QuantifiersEngine::addSplitEquality( Node n1, Node n2, bool reqPhase, bool 
 }
 
 bool QuantifiersEngine::getInstWhenNeedsCheck( Theory::Effort e ) {
+  Trace("quant-engine-debug2") << "Get inst when needs check, counts=" << d_ierCounter << ", " << d_ierCounter_lc << std::endl;
   //determine if we should perform check, based on instWhenMode
   bool performCheck = false;
   if( options::instWhenMode()==quantifiers::INST_WHEN_FULL ){
@@ -1029,9 +1042,9 @@ bool QuantifiersEngine::getInstWhenNeedsCheck( Theory::Effort e ) {
   }else if( options::instWhenMode()==quantifiers::INST_WHEN_FULL_DELAY ){
     performCheck = ( e >= Theory::EFFORT_FULL ) && !getTheoryEngine()->needCheck();
   }else if( options::instWhenMode()==quantifiers::INST_WHEN_FULL_LAST_CALL ){
-    performCheck = ( ( e==Theory::EFFORT_FULL && d_ierCounter%d_inst_when_phase==0 ) || e==Theory::EFFORT_LAST_CALL );
+    performCheck = ( ( e==Theory::EFFORT_FULL && d_ierCounter%d_inst_when_phase!=0 ) || e==Theory::EFFORT_LAST_CALL );
   }else if( options::instWhenMode()==quantifiers::INST_WHEN_FULL_DELAY_LAST_CALL ){
-    performCheck = ( ( e==Theory::EFFORT_FULL && !getTheoryEngine()->needCheck() && d_ierCounter%d_inst_when_phase==0 ) || e==Theory::EFFORT_LAST_CALL );
+    performCheck = ( ( e==Theory::EFFORT_FULL && !getTheoryEngine()->needCheck() && d_ierCounter%d_inst_when_phase!=0 ) || e==Theory::EFFORT_LAST_CALL );
   }else if( options::instWhenMode()==quantifiers::INST_WHEN_LAST_CALL ){
     performCheck = ( e >= Theory::EFFORT_LAST_CALL );
   }else{
@@ -1225,9 +1238,64 @@ void QuantifiersEngine::debugPrintEqualityEngine( const char * c ) {
   }
 }
 
-void EqualityQueryQuantifiersEngine::reset(){
+void EqualityQueryQuantifiersEngine::reset( Theory::Effort e ){
   d_int_rep.clear();
   d_reset_count++;
+  processInferences( e );
+}
+
+void EqualityQueryQuantifiersEngine::processInferences( Theory::Effort e ) {
+  if( options::inferArithTriggerEq() ){
+    std::vector< Node > infer;
+    std::vector< Node > infer_exp;
+    eq::EqualityEngine* ee = getEngine();
+    eq::EqClassesIterator eqcs_i = eq::EqClassesIterator( ee );
+    while( !eqcs_i.isFinished() ){
+      TNode r = (*eqcs_i);
+      TypeNode tr = r.getType();
+      if( tr.isReal() ){
+        std::vector< Node > eqc;
+        eq::EqClassIterator eqc_i = eq::EqClassIterator( r, ee );
+        while( !eqc_i.isFinished() ){
+          TNode n = (*eqc_i);
+          //accumulate equivalence class
+          eqc.push_back( n );
+          ++eqc_i;
+        }
+        for( unsigned i=0; i<eqc.size(); i++ ){
+          Node n = eqc[i];
+          if( n.getKind()==PLUS ){
+            std::map< Node, Node > msum;
+            QuantArith::getMonomialSum( n, msum );
+            for( std::map< Node, Node >::iterator it = msum.begin(); it != msum.end(); ++it ){
+              //if the term is a trigger
+              Node t = it->first;
+              if( inst::Trigger::isAtomicTrigger( t ) ){
+                for( unsigned j=0; j<eqc.size(); j++ ){
+                  if( i!=j ){
+                    Node eq = n.eqNode( eqc[j] );
+                    Node v = QuantArith::solveEqualityFor( eq, t );
+                    Trace("quant-engine-ee-proc-debug") << "processInferences : Can infer : " << t << " == " << v << std::endl;
+                    if( ee->hasTerm( v ) && ee->getRepresentative( v )!=r ){
+                      Trace("quant-engine-ee-proc") << "processInferences : Infer : " << t << " == " << v << " from " << n << " == " << eqc[j] << std::endl;
+                      infer.push_back( t.eqNode( v ) );
+                      infer_exp.push_back( n.eqNode( eqc[j] ) );
+                    }
+                  }
+                }
+              }
+            }
+          } 
+        }
+      }
+      ++eqcs_i;
+    }
+    for( unsigned i=0; i<infer.size(); i++ ){
+      Trace("quant-engine-ee-proc-debug") << "Asserting equality " << infer[i] << std::endl;
+      ee->assertEquality( infer[i], true, infer_exp[i] );
+    }
+    Assert( ee->consistent() );
+  }
 }
 
 bool EqualityQueryQuantifiersEngine::hasTerm( Node a ){

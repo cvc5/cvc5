@@ -73,7 +73,7 @@ d_quantEngine( qe ), d_f( f ){
   //Notice() << "Trigger : " << (*this) << "  for " << f << std::endl;
   if( options::eagerInstQuant() ){
     for( int i=0; i<(int)d_nodes.size(); i++ ){
-      Node op = qe->getTermDatabase()->getOperator( d_nodes[i] );
+      Node op = qe->getTermDatabase()->getMatchOperator( d_nodes[i] );
       qe->getTermDatabase()->registerTrigger( this, op );
     }
   }
