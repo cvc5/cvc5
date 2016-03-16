@@ -170,21 +170,3 @@ submission-parallel:
 	chmod 755 cvc4-smtcomp-parallel-$(YEAR)/bin/starexec_run_default
 	echo "CVC4 for SMT_COMP parallel track `builds-smtcomp/parallel/src/main/pcvc4 --version | head -1 | sed 's,.*version ,,;s,-,_,g;s,[^a-zA-Z0-9. _],,g'`" > cvc4-smtcomp-parallel-$(YEAR)/starexec_description.txt
 	cd cvc4-smtcomp-parallel-$(YEAR) && zip -r ../cvc4-smtcomp-parallel-$(YEAR).zip *
-
-
-#### Generate a TAGS table
-
-.PHONY: TAGS
-
-FINDARGS = -iname Makefile \
-		-or -iname \*.mk \
-		-or -iname \*.h \
-		-or -iname \*.cpp \
-		-or -iname \*.c | \
-		grep -v TestRunner | \
-		xargs etags
-
-TAGS:
-	find test $(FINDARGS)
-	find src $(FINDARGS) -a
-	etags -a Makefile
