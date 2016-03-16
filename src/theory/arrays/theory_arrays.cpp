@@ -396,15 +396,15 @@ void TheoryArrays::explain(TNode literal, std::vector<TNode>& assumptions, eq::E
     d_equalityEngine.explainPredicate(atom, polarity, assumptions, proof);
   }
   if(proof){
-    Debug("array-pf") << " Proof is : " << std::endl;
-    proof->debug_print("array-pf");
+    Debug("pf::array") << " Proof is : " << std::endl;
+    proof->debug_print("pf::array");
   }
 
-  Debug("gk::duplemma") << "Array: explain( " << literal << " ):" << std::endl << "\t";
+  Debug("pf::array") << "Array: explain( " << literal << " ):" << std::endl << "\t";
   for (unsigned i = 0; i < assumptions.size(); ++i) {
-    Debug("gk::duplemma") << assumptions[i] << " ";
+    Debug("pf::array") << assumptions[i] << " ";
   }
-  Debug("gk::duplemma") << std::endl;
+  Debug("pf::array") << std::endl;
 }
 
 TNode TheoryArrays::weakEquivGetRep(TNode node) {
@@ -784,7 +784,6 @@ void TheoryArrays::preRegisterTermInternal(TNode node)
     break;
   }
   default:
-    // Debug("gk::proof") << "Kind: default case" << std::endl;
     // Variables etc
     if (node.getType().isArray()) {
       // The may equal needs the node
@@ -795,7 +794,6 @@ void TheoryArrays::preRegisterTermInternal(TNode node)
     else {
       d_equalityEngine.addTerm(node);
     }
-    // Debug("gk::proof") << "Kind: default case (DONE)" << std::endl;
 
     break;
   }
@@ -1245,9 +1243,9 @@ Node TheoryArrays::getSkolem(TNode ref, const string& name, const TypeNode& type
     }
   }
 
-  Debug("gk::proof") << "Pregistering a Skolem" << std::endl;
+  Debug("pf::array") << "Pregistering a Skolem" << std::endl;
   preRegisterTermInternal(skolem);
-  Debug("gk::proof") << "Pregistering a Skolem DONE" << std::endl;
+  Debug("pf::array") << "Pregistering a Skolem DONE" << std::endl;
 
   if (makeEqual) {
     Node d = skolem.eqNode(ref);
@@ -1258,7 +1256,7 @@ Node TheoryArrays::getSkolem(TNode ref, const string& name, const TypeNode& type
     d_skolemIndex = d_skolemIndex + 1;
   }
 
-  Debug("gk::proof") << "getSkolem DONE" << std::endl;
+  Debug("pf::array") << "getSkolem DONE" << std::endl;
   return skolem;
 }
 
@@ -1305,8 +1303,8 @@ void TheoryArrays::check(Effort e) {
         d_equalityEngine.assertPredicate(fact, true, fact);
         break;
       case kind::NOT:
-        Debug("gk::proof") << "Check: kind::NOT" << std::endl;
-        Debug("gk::proof") << "Array theory conflicted? (1): " << ( d_conflict ? "YES" : "NO" ) << std::endl;
+        Debug("pf::array") << "Check: kind::NOT" << std::endl;
+        Debug("pf::array") << "Array theory conflicted? (1): " << ( d_conflict ? "YES" : "NO" ) << std::endl;
 
         if (fact[0].getKind() == kind::SELECT) {
           d_equalityEngine.assertPredicate(fact[0], false, fact);
@@ -1314,11 +1312,11 @@ void TheoryArrays::check(Effort e) {
           // Assert the dis-equality
           d_equalityEngine.assertEquality(fact[0], false, fact);
 
-          Debug("gk::proof") << "Array theory conflicted? (2): " << ( d_conflict ? "YES" : "NO" ) << std::endl;
+          Debug("pf::array") << "Array theory conflicted? (2): " << ( d_conflict ? "YES" : "NO" ) << std::endl;
 
           // Apply ArrDiseq Rule if diseq is between arrays
           if(fact[0][0].getType().isArray() && !d_conflict) {
-            if (d_conflict) { Debug("gk::proof") << "Entering the skolemization branch" << std::endl; }
+            if (d_conflict) { Debug("pf::array") << "Entering the skolemization branch" << std::endl; }
 
             // NodeManager* nm = NodeManager::currentNM();
             // TypeNode indexType = fact[0][0].getType()[0];
@@ -1337,7 +1335,7 @@ void TheoryArrays::check(Effort e) {
             // Code BEFORE Morgan's changes:
             // ////////////////////////////////
             if (!d_proofsEnabled) {
-              Debug("gk::proof") << "Check: kind::NOT: array theory making a skolem" << std::endl;
+              Debug("pf::array") << "Check: kind::NOT: array theory making a skolem" << std::endl;
 
               NodeManager* nm = NodeManager::currentNM();
               TypeNode indexType = fact[0][0].getType()[0];
@@ -1376,7 +1374,7 @@ void TheoryArrays::check(Effort e) {
               d_out->lemma(lemma);
               ++d_numExt;
             } else {
-              Debug("gk::proof") << "In Array's Check (proof phase), handling fact = " << fact << std::endl;
+              Debug("pf::array") << "In Array's Check (proof phase), handling fact = " << fact << std::endl;
 
               NodeManager* nm = NodeManager::currentNM();
               TypeNode indexType = fact[0][0].getType()[0];
@@ -1386,21 +1384,21 @@ void TheoryArrays::check(Effort e) {
                 k = ProofManager::getSkolemizationManager()->getSkolem(fact);
                 // } else {
                 //   Unreachable();
-                //   // Debug("gk::proof") << "New skolem getting registered at proof checking phase!" << std::endl;
+                //   // Debug("pf::array") << "New skolem getting registered at proof checking phase!" << std::endl;
                 //   // k = getSkolem(fact,"array_ext_index", indexType, "an extensional lemma index variable from the theory of arrays", false);
                 //   // ProofSkolemization::registerSkolem(fact, k);
                 // }
 
                 // Do we really need to generate the lemma again? Or just assert the disequality?
-                Debug("gk::proof") << "Skolem = " << k << std::endl;
+                Debug("pf::array") << "Skolem = " << k << std::endl;
 
                 Node ak = nm->mkNode(kind::SELECT, fact[0][0], k);
                 Node bk = nm->mkNode(kind::SELECT, fact[0][1], k);
 
-                Debug("gk::proof") << "ak = " << ak << ", bk = " << bk << std::endl;
-                Debug("gk::proof") << "Equality engine has ak? " <<
+                Debug("pf::array") << "ak = " << ak << ", bk = " << bk << std::endl;
+                Debug("pf::array") << "Equality engine has ak? " <<
                   ( d_equalityEngine.hasTerm(ak) ? "YES" : "NO" ) << std::endl;
-                Debug("gk::proof") << "Equality engine has bk? " <<
+                Debug("pf::array") << "Equality engine has bk? " <<
                   ( d_equalityEngine.hasTerm(bk) ? "YES" : "NO" ) << std::endl;
 
                 Node eq = ak.eqNode(bk);
@@ -1424,7 +1422,7 @@ void TheoryArrays::check(Effort e) {
                 if (options::arraysPropagate() > 0 && d_equalityEngine.hasTerm(ak) && d_equalityEngine.hasTerm(bk)) {
                   // Propagate witness disequality - might produce a conflict
                   d_permRef.push_back(lemma);
-                  Debug("gk::proof") << "Asserting to the equality engine:" << std::endl
+                  Debug("pf::array") << "Asserting to the equality engine:" << std::endl
                                      << "\teq = " << eq << std::endl
                                      << "\treason = " << fact << std::endl;
 
@@ -1433,7 +1431,7 @@ void TheoryArrays::check(Effort e) {
                 }
                 // END changes from Clark
 
-                // Debug("gk::proof") << "lemma = " << lemma << std::endl;
+                // Debug("pf::array") << "lemma = " << lemma << std::endl;
 
                 // Trace("arrays-lem")<<"Arrays::addExtLemma " << lemma <<"\n";
                 // d_out->lemma(lemma);
@@ -1442,7 +1440,7 @@ void TheoryArrays::check(Effort e) {
             }
           }
           else {
-            Debug("gk::proof") << "Check: kind::NOT: array theory NOT making a skolem" << std::endl;
+            Debug("pf::array") << "Check: kind::NOT: array theory NOT making a skolem" << std::endl;
             d_modelConstraints.push_back(fact);
           }
         }
@@ -2001,7 +1999,7 @@ void TheoryArrays::checkRowLemmas(TNode a, TNode b)
 
 void TheoryArrays::propagate(RowLemmaType lem)
 {
-  Debug("gk::proof") << "TheoryArrays: RowLemma Propagate called. options::arraysPropagate() = "
+  Debug("pf::array") << "TheoryArrays: RowLemma Propagate called. options::arraysPropagate() = "
                      << options::arraysPropagate() << std::endl;
 
   TNode a = lem.first;
@@ -2058,7 +2056,7 @@ void TheoryArrays::propagate(RowLemmaType lem)
 
 void TheoryArrays::queueRowLemma(RowLemmaType lem)
 {
-  Debug("gk::proof") << "Array solver: queue row lemma called" << std::endl;
+  Debug("pf::array") << "Array solver: queue row lemma called" << std::endl;
 
   if (d_conflict || d_RowAlreadyAdded.contains(lem)) {
     return;
@@ -2215,16 +2213,12 @@ bool TheoryArrays::dischargeLemmas()
       continue;
     }
 
-    Debug("gk::proof") << "Array solver: Checking if we should propagate" << std::endl;
     int prop = options::arraysPropagate();
     if (prop > 0) {
-      Debug("gk::proof") << "Array solver: Checking if we should propagate (1)" << std::endl;
       propagate(l);
       if (d_conflict) {
-        Debug("gk::proof") << "Array solver: Checking if we should propagate (2)" << std::endl;
         return true;
       }
-      Debug("gk::proof") << "Array solver: Checking if we should propagate (3)" << std::endl;
     }
 
     // Make sure that any terms introduced by rewriting are appropriately stored in the equality database
@@ -2288,7 +2282,7 @@ bool TheoryArrays::dischargeLemmas()
 }
 
 void TheoryArrays::conflict(TNode a, TNode b) {
-  Debug("array-pf") << "TheoryArrays::Conflict called" << std::endl;
+  Debug("pf::array") << "TheoryArrays::Conflict called" << std::endl;
   eq::EqProof* proof = d_proofsEnabled ? new eq::EqProof() : NULL;
   if (a.getKind() == kind::CONST_BOOLEAN) {
     d_conflictNode = explain(a.iffNode(b), proof);
@@ -2297,7 +2291,7 @@ void TheoryArrays::conflict(TNode a, TNode b) {
   }
 
   if (!d_inCheckModel) {
-    if (proof) { proof->debug_print("array-pf"); }
+    if (proof) { proof->debug_print("pf::array"); }
     ProofArray* proof_array = d_proofsEnabled ? new ProofArray( proof ) : NULL;
     d_out->conflict(d_conflictNode, proof_array);
   }
