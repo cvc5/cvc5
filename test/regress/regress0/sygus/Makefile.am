@@ -47,7 +47,8 @@ TESTS = commutative.sy \
         list-head-x.sy \
         clock-inc-tuple.sy \
         dt-test-ns.sy \
-        no-mention.sy
+        no-mention.sy \
+        max2-univ.sy
 
 # sygus tests currently taking too long for make regress
 EXTRA_DIST = $(TESTS) \

@@ -99,8 +99,6 @@ class EqualityQuery {
 public:
   EqualityQuery(){}
   virtual ~EqualityQuery(){};
-  /** reset */
-  virtual void reset() = 0;
   /** contains term */
   virtual bool hasTerm( Node a ) = 0;
   /** get the representative of the equivalence class of a */

@@ -843,7 +843,7 @@ MatchGen::MatchGen( QuantInfo * qi, Node n, bool isVar )
       d_qni_size++;
       d_type_not = false;
       d_n = n;
-      //Node f = getOperator( n );
+      //Node f = getMatchOperator( n );
       for( unsigned j=0; j<d_n.getNumChildren(); j++ ){
         Node nn = d_n[j];
         Trace("qcf-qregister-debug") << "  " << d_qni_size;
@@ -1106,7 +1106,7 @@ void MatchGen::reset( QuantConflictFind * p, bool tgt, QuantInfo * qi ) {
     }
   }else if( d_type==typ_var ){
     Assert( isHandledUfTerm( d_n ) );
-    Node f = getOperator( p, d_n );
+    Node f = getMatchOperator( p, d_n );
     Debug("qcf-match-debug") << "       reset: Var will match operators of " << f << std::endl;
     TermArgTrie * qni = p->getTermDatabase()->getTermArgTrie( Node::null(), f );
     if( qni!=NULL ){
@@ -1339,7 +1339,7 @@ bool MatchGen::getNextMatch( QuantConflictFind * p, QuantInfo * qi ) {
       /*
       if( d_type==typ_var && p->d_effort==QuantConflictFind::effort_mc && !d_matched_basis ){
         d_matched_basis = true;
-        Node f = getOperator( d_n );
+        Node f = getMatchOperator( d_n );
         TNode mbo = p->getTermDatabase()->getModelBasisOpTerm( f );
         if( qi->setMatch( p, d_qni_var_num[0], mbo ) ){
           success = true;
@@ -1702,9 +1702,9 @@ bool MatchGen::isHandledUfTerm( TNode n ) {
   return inst::Trigger::isAtomicTriggerKind( n.getKind() );
 }
 
-Node MatchGen::getOperator( QuantConflictFind * p, Node n ) {
+Node MatchGen::getMatchOperator( QuantConflictFind * p, Node n ) {
   if( isHandledUfTerm( n ) ){
-    return p->getTermDatabase()->getOperator( n );
+    return p->getTermDatabase()->getMatchOperator( n );
   }else{
     return Node::null();
   }
@@ -1896,7 +1896,7 @@ void QuantConflictFind::assertNode( Node q ) {
 
 Node QuantConflictFind::evaluateTerm( Node n ) {
   if( MatchGen::isHandledUfTerm( n ) ){
-    Node f = MatchGen::getOperator( this, n );
+    Node f = MatchGen::getMatchOperator( this, n );
     Node nn;
     if( getEqualityEngine()->hasTerm( n ) ){
       nn = getTermDatabase()->existsTerm( f, n );

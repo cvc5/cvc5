@@ -765,9 +765,7 @@ sygusCommand returns [CVC4::Command* cmd = NULL]
       Command* c = new SetUserAttributeCommand("sygus", sygusVar);
       c->setMuted(true);
       PARSER_STATE->preemptCommand(c);
-      c = new AssertCommand(body);
-      PARSER_STATE->preemptCommand(c);
-      $cmd = new CheckSatCommand();
+      $cmd = new CheckSynthCommand(body);
     }
   | c = command { $cmd = c; }
  //   /* error handling */

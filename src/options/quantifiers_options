@@ -57,6 +57,8 @@ option elimTautQuant --elim-taut-quant bool :default true
  eliminate tautological disjuncts of quantified formulas
 option purifyQuant --purify-quant bool :default false
  purify quantified formulas
+option elimExtArithQuant --elim-ext-arith-quant bool :default true
+ eliminate extended arithmetic symbols in quantified formulas
  
 #### E-matching options
  
@@ -67,6 +69,8 @@ option termDbMode --term-db-mode CVC4::theory::quantifiers::TermDbMode :default 
  which ground terms to consider for instantiation
 option registerQuantBodyTerms --register-quant-body-terms bool :default false
  consider ground terms within bodies of quantified formulas for matching
+option inferArithTriggerEq --infer-arith-trigger-eq bool :default false
+ infer equalities for trigger terms based on solving arithmetic equalities
  
 option smartTriggers --smart-triggers bool :default true
  enable smart triggers
@@ -95,6 +99,12 @@ option incrementTriggers --increment-triggers bool :default true
  
 option instWhenMode --inst-when=MODE CVC4::theory::quantifiers::InstWhenMode :default CVC4::theory::quantifiers::INST_WHEN_FULL_LAST_CALL :read-write :include "options/quantifiers_modes.h" :handler stringToInstWhenMode :predicate checkInstWhenMode
  when to apply instantiation
+option instWhenStrictInterleave --inst-when-strict-interleave bool :default true :read-write
+ ensure theory combination and standard quantifier effort strategies take turns 
+option instWhenPhase --inst-when-phase=N int :read-write :default 2 :read-write
+ instantiation rounds quantifiers takes (>=1) before allowing theory combination to happen
+option instWhenTcFirst --inst-when-tc-first bool :default true :read-write
+ allow theory combination to happen once initially, before quantifier strategies are run
  
 option instMaxLevel --inst-max-level=N int :read-write :default -1
  maximum inst level of terms used to instantiate quantified formulas with (-1 == no limit, default)

@@ -501,6 +501,24 @@ public:
   std::string getCommandName() const throw();
 };/* class QueryCommand */
 
+class CVC4_PUBLIC CheckSynthCommand : public Command {
+protected:
+  Expr d_expr;
+  Result d_result;
+  bool d_inUnsatCore;
+public:
+  CheckSynthCommand() throw();
+  CheckSynthCommand(const Expr& expr, bool inUnsatCore = true) throw();
+  ~CheckSynthCommand() throw() {}
+  Expr getExpr() const throw();
+  void invoke(SmtEngine* smtEngine) throw();
+  Result getResult() const throw();
+  void printResult(std::ostream& out, uint32_t verbosity = 2) const throw();
+  Command* exportTo(ExprManager* exprManager, ExprManagerMapCollection& variableMap);
+  Command* clone() const;
+  std::string getCommandName() const throw();
+};/* class CheckSynthCommand */
+
 // this is TRANSFORM in the CVC presentation language
 class CVC4_PUBLIC SimplifyCommand : public Command {
 protected:

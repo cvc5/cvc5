@@ -111,7 +111,7 @@ Node TermDb::getGroundTerm( Node f, unsigned i ) {
   return d_op_map[f][i];
 }
 
-Node TermDb::getOperator( Node n ) {
+Node TermDb::getMatchOperator( Node n ) {
   //return n.getOperator();
   Kind k = n.getKind();
   if( k==SELECT || k==STORE || k==UNION || k==INTERSECTION || k==SUBSET || k==SETMINUS || k==MEMBER || k==SINGLETON ){
@@ -148,10 +148,10 @@ void TermDb::addTerm( Node n, std::set< Node >& added, bool withinQuant, bool wi
         //if this is an atomic trigger, consider adding it
         if( inst::Trigger::isAtomicTrigger( n ) ){
           Trace("term-db") << "register term in db " << n << std::endl;
-          Node op = getOperator( n );
+          Node op = getMatchOperator( n );
           d_op_map[op].push_back( n );
           added.insert( n );
-
+          
           if( options::eagerInstQuant() ){
             for( unsigned i=0; i<n.getNumChildren(); i++ ){
               if( !n.hasAttribute(InstLevelAttribute()) && n.getAttribute(InstLevelAttribute())==0 ){
@@ -223,7 +223,7 @@ TNode TermDb::evaluateTerm( TNode n, std::map< TNode, TNode >& subs, bool subsRe
     }
   }else{
     if( n.hasOperator() ){
-      TNode f = getOperator( n );
+      TNode f = getMatchOperator( n );
       if( !f.isNull() ){
         std::vector< TNode > args;
         for( unsigned i=0; i<n.getNumChildren(); i++ ){
@@ -257,7 +257,7 @@ TNode TermDb::evaluateTerm( TNode n ) {
     return ee->getRepresentative( n );
   }else if( n.getKind()!=BOUND_VARIABLE ){
     if( n.hasOperator() ){
-      TNode f = getOperator( n );
+      TNode f = getMatchOperator( n );
       if( !f.isNull() ){
         std::vector< TNode > args;
         for( unsigned i=0; i<n.getNumChildren(); i++ ){
@@ -503,7 +503,7 @@ void TermDb::reset( Theory::Effort effort ){
           if( Trace.isOn("term-db-debug") ){
             Trace("term-db-debug") << "Adding term " << n << " with arg reps : ";
             for( unsigned i=0; i<d_arg_reps[n].size(); i++ ){
-              Trace("term-db-debug") << d_arg_reps[n] << " ";
+              Trace("term-db-debug") << d_arg_reps[n][i] << " ";
             }
             Trace("term-db-debug") << std::endl;
             if( ee->hasTerm( n ) ){

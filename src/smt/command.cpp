@@ -376,6 +376,59 @@ std::string QueryCommand::getCommandName() const throw() {
   return "query";
 }
 
+
+/* class CheckSynthCommand */
+
+CheckSynthCommand::CheckSynthCommand() throw() :
+  d_expr() {
+}
+
+CheckSynthCommand::CheckSynthCommand(const Expr& expr, bool inUnsatCore) throw() :
+  d_expr(expr), d_inUnsatCore(inUnsatCore) {
+}
+
+Expr CheckSynthCommand::getExpr() const throw() {
+  return d_expr;
+}
+
+void CheckSynthCommand::invoke(SmtEngine* smtEngine) throw() {
+  try {
+    d_result = smtEngine->checkSynth(d_expr);
+    d_commandStatus = CommandSuccess::instance();
+  } catch(exception& e) {
+    d_commandStatus = new CommandFailure(e.what());
+  }
+}
+
+Result CheckSynthCommand::getResult() const throw() {
+  return d_result;
+}
+
+void CheckSynthCommand::printResult(std::ostream& out, uint32_t verbosity) const throw() {
+  if(! ok()) {
+    this->Command::printResult(out, verbosity);
+  } else {
+    out << d_result << endl;
+  }
+}
+
+Command* CheckSynthCommand::exportTo(ExprManager* exprManager, ExprManagerMapCollection& variableMap) {
+  CheckSynthCommand* c = new CheckSynthCommand(d_expr.exportTo(exprManager, variableMap), d_inUnsatCore);
+  c->d_result = d_result;
+  return c;
+}
+
+Command* CheckSynthCommand::clone() const {
+  CheckSynthCommand* c = new CheckSynthCommand(d_expr, d_inUnsatCore);
+  c->d_result = d_result;
+  return c;
+}
+
+std::string CheckSynthCommand::getCommandName() const throw() {
+  return "check-synth";
+}
+
+
 /* class ResetCommand */
 
 void ResetCommand::invoke(SmtEngine* smtEngine) throw() {
