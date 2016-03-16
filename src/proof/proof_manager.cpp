@@ -63,11 +63,8 @@ ProofManager::ProofManager(ProofFormat format):
 ProofManager::~ProofManager() {
   delete d_satProof;
   delete d_cnfProof;
-  Debug("gk::proof") << "About to destroy d_theoryProof" << std::endl;
   delete d_theoryProof;
-  Debug("gk::proof") << "About to destroy d_theoryProof : DONE!" << std::endl;
   delete d_fullProof;
-  Debug("gk::proof") << "About to destroy d_fullProof : DONE!" << std::endl;
 }
 
 ProofManager* ProofManager::currentPM() {
@@ -343,18 +340,18 @@ void LFSCProof::toStream(std::ostream& out) {
                                  used_lemmas);
 
   IdToSatClause::iterator it2;
-  Debug("gk::proof") << std::endl << "Used inputs: " << std::endl;
+  Debug("pf::pm") << std::endl << "Used inputs: " << std::endl;
   for (it2 = used_inputs.begin(); it2 != used_inputs.end(); ++it2) {
-    Debug("gk::proof") << "\t input = " << *(it2->second) << std::endl;
+    Debug("pf::pm") << "\t input = " << *(it2->second) << std::endl;
   }
-  Debug("gk::proof") << std::endl;
+  Debug("pf::pm") << std::endl;
 
-  // Debug("gk::proof") << std::endl << "Used lemmas: " << std::endl;
+  // Debug("pf::pm") << std::endl << "Used lemmas: " << std::endl;
   // for (it2 = used_lemmas.begin(); it2 != used_lemmas.end(); ++it2) {
-  //   Debug("gk::proof") << "\t lemma = " << *(it2->second) << std::endl;
+  //   Debug("pf::pm") << "\t lemma = " << *(it2->second) << std::endl;
   // }
-  // Debug("gk::proof") << std::endl;
-  Debug("gk::proof") << std::endl << "Used lemmas: " << std::endl;
+  // Debug("pf::pm") << std::endl;
+  Debug("pf::pm") << std::endl << "Used lemmas: " << std::endl;
   for (it2 = used_lemmas.begin(); it2 != used_lemmas.end(); ++it2) {
 
     std::vector<Expr> clause_expr;
@@ -369,23 +366,23 @@ void LFSCProof::toStream(std::ostream& out) {
       clause_expr.push_back(expr_lit);
     }
 
-    Debug("gk::proof") << "\t lemma " << it2->first << " = " << *(it2->second) << std::endl;
-    Debug("gk::proof") << "\t";
+    Debug("pf::pm") << "\t lemma " << it2->first << " = " << *(it2->second) << std::endl;
+    Debug("pf::pm") << "\t";
     for (unsigned i = 0; i < clause_expr.size(); ++i) {
-      Debug("gk::proof") << clause_expr[i] << " ";
+      Debug("pf::pm") << clause_expr[i] << " ";
     }
-    Debug("gk::proof") << std::endl;
+    Debug("pf::pm") << std::endl;
   }
-  Debug("gk::proof") << std::endl;
+  Debug("pf::pm") << std::endl;
 
   // collecting assertions that lead to the clauses being asserted
   NodeSet used_assertions;
   d_cnfProof->collectAssertionsForClauses(used_inputs, used_assertions);
 
   NodeSet::iterator it3;
-  Debug("gk::proof") << std::endl << "Used assertions: " << std::endl;
+  Debug("pf::pm") << std::endl << "Used assertions: " << std::endl;
   for (it3 = used_assertions.begin(); it3 != used_assertions.end(); ++it3)
-    Debug("gk::proof") << "\t assertion = " << *it3 << std::endl;
+    Debug("pf::pm") << "\t assertion = " << *it3 << std::endl;
 
   NodeSet atoms;
   // collects the atoms in the clauses
@@ -399,9 +396,9 @@ void LFSCProof::toStream(std::ostream& out) {
   }
 
   NodeSet::iterator atomIt;
-  Debug("gk::proof") << std::endl << "Dumping atoms from lemmas, inputs and assertions: " << std::endl << std::endl;
+  Debug("pf::pm") << std::endl << "Dumping atoms from lemmas, inputs and assertions: " << std::endl << std::endl;
   for (atomIt = atoms.begin(); atomIt != atoms.end(); ++atomIt) {
-    Debug("gk::proof") << "\tAtom: " << *atomIt << std::endl;
+    Debug("pf::pm") << "\tAtom: " << *atomIt << std::endl;
 
     if (Debug.isOn("proof:pm")) {
       // std::cout << NodeManager::currentNM();
@@ -426,15 +423,15 @@ void LFSCProof::toStream(std::ostream& out) {
   NodeSet::const_iterator it = atoms.begin();
   NodeSet::const_iterator end = atoms.end();
 
-  Debug("gk::proof") << "LFSCProof::toStream: registering terms:" << std::endl;
+  Debug("pf::pm") << "LFSCProof::toStream: registering terms:" << std::endl;
   for(; it != end; ++it) {
-    Debug("gk::proof") << "\tTerm: " << (*it).toExpr() << std::endl;
+    Debug("pf::pm") << "\tTerm: " << (*it).toExpr() << std::endl;
     d_theoryProof->registerTerm((*it).toExpr());
   }
 
-  Debug("gk::proof") << std::endl << "Term registration done!" << std::endl << std::endl;
+  Debug("pf::pm") << std::endl << "Term registration done!" << std::endl << std::endl;
 
-  Debug("gk::proof") << std::endl << "LFSCProof::toStream: starting to print assertions" << std::endl;
+  Debug("pf::pm") << std::endl << "LFSCProof::toStream: starting to print assertions" << std::endl;
 
   // print out all the original assertions
   d_theoryProof->registerTermsFromAssertions();
@@ -442,7 +439,7 @@ void LFSCProof::toStream(std::ostream& out) {
   d_theoryProof->printTermDeclarations(out, paren);
   d_theoryProof->printAssertions(out, paren);
 
-  Debug("gk::proof") << std::endl << "LFSCProof::toStream: print assertions DONE" << std::endl;
+  Debug("pf::pm") << std::endl << "LFSCProof::toStream: print assertions DONE" << std::endl;
 
   out << "(: (holds cln)\n\n";
 
@@ -457,7 +454,7 @@ void LFSCProof::toStream(std::ostream& out) {
   out << ";; Printing mapping from preprocessed assertions into atoms \n";
   d_cnfProof->printAtomMapping(atoms, out, paren);
 
-  Debug("gk::proof") << std::endl << "Printing cnf proof for clauses" << std::endl;
+  Debug("pf::pm") << std::endl << "Printing cnf proof for clauses" << std::endl;
 
   IdToSatClause::const_iterator cl_it = used_inputs.begin();
   // print CNF conversion proof for each clause
@@ -465,15 +462,15 @@ void LFSCProof::toStream(std::ostream& out) {
     d_cnfProof->printCnfProofForClause(cl_it->first, cl_it->second, out, paren);
   }
 
-  Debug("gk::proof") << std::endl << "Printing cnf proof for clauses DONE" << std::endl;
+  Debug("pf::pm") << std::endl << "Printing cnf proof for clauses DONE" << std::endl;
 
   // FIXME: for now assume all theory lemmas are in CNF form so
   // distinguish between them and inputs
   // print theory lemmas for resolution proof
 
-  Debug("gk::proof") << "Proof manager: printing theory lemmas" << std::endl;
+  Debug("pf::pm") << "Proof manager: printing theory lemmas" << std::endl;
   d_theoryProof->printTheoryLemmas(used_lemmas, out, paren);
-  Debug("gk::proof") << "Proof manager: printing theory lemmas DONE!" << std::endl;
+  Debug("pf::pm") << "Proof manager: printing theory lemmas DONE!" << std::endl;
 
   if (options::bitblastMode() == theory::bv::BITBLAST_MODE_EAGER && ProofManager::getBitVectorProof()) {
     // print actual resolution proof
