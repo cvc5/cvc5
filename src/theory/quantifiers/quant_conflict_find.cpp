@@ -2069,7 +2069,9 @@ void QuantConflictFind::check( Theory::Effort level, unsigned quant_e ) {
                       }
                     }else{
                       Trace("qcf-inst") << "   ... Failed to add instantiation" << std::endl;
-                      //Assert( false );
+                      //this should only happen if the algorithm generates the same propagating instance twice this round
+                      //in this case, break to avoid exponential behavior
+                      break;
                     }
                   }
                   //clean up assigned
@@ -2082,6 +2084,7 @@ void QuantConflictFind::check( Theory::Effort level, unsigned quant_e ) {
                 Trace("qcf-inst") << "   ... Spurious instantiation (match is inconsistent)" << std::endl;
               }
             }
+            Trace("qcf-check") << "Done, conflict = " << d_conflict << std::endl;
             if( d_conflict ){
               break;
             }

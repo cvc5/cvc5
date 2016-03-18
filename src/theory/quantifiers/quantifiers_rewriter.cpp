@@ -305,6 +305,10 @@ Node QuantifiersRewriter::computeElimSymbols( Node body ) {
       }
       childrenChanged = childrenChanged || c!=body[i];
     }
+    //if( body.getKind()==ITE && isLiteral( body[0] ) ){
+    //  ret = NodeManager::currentNM()->mkNode( AND, NodeManager::currentNM()->mkNode( OR, body[0].negate(), body[1] ), 
+    //                                               NodeManager::currentNM()->mkNode( OR, body[0], body[2] ) );
+    //}
     if( childrenChanged ){
       return ( children.size()==1 && k!=NOT ) ? children[0] : NodeManager::currentNM()->mkNode( k, children );
     }else{
