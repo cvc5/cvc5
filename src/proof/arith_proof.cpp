@@ -617,88 +617,6 @@ Node ProofArith::toStreamRecLFSC(std::ostream& out, TheoryProof * tp, theory::eq
     return n1;
   }
 
-  case eq::MERGED_ARRAYS_ROW: {
-    Debug("pf::arith") << "eq::MERGED_ARRAYS_ROW encountered in Arith_PROOF" << std::endl;
-    Unreachable();
-
-    Debug("pf::arith") << "row lemma: " << pf->d_node << std::endl;
-    Assert(pf->d_node.getKind() == kind::EQUAL);
-    TNode t1, t2, t3, t4;
-    Node ret;
-    if(pf->d_node[1].getKind() == kind::SELECT &&
-       pf->d_node[1][0].getKind() == kind::STORE &&
-       pf->d_node[0].getKind() == kind::SELECT &&
-       pf->d_node[0][0] == pf->d_node[1][0][0] &&
-       pf->d_node[0][1] == pf->d_node[1][1]) {
-      t2 = pf->d_node[1][0][1];
-      t3 = pf->d_node[1][1];
-      t1 = pf->d_node[0][0];
-      t4 = pf->d_node[1][0][2];
-      ret = pf->d_node[1].eqNode(pf->d_node[0]);
-      Debug("pf::arith") << "t1 " << t1 << "\nt2 " << t2 << "\nt3 " << t3 << "\nt4 " << t4 << "\n";
-    } else {
-      Assert(pf->d_node[0].getKind() == kind::SELECT &&
-             pf->d_node[0][0].getKind() == kind::STORE &&
-             pf->d_node[1].getKind() == kind::SELECT &&
-             pf->d_node[1][0] == pf->d_node[0][0][0] &&
-             pf->d_node[1][1] == pf->d_node[0][1]);
-      t2 = pf->d_node[0][0][1];
-      t3 = pf->d_node[0][1];
-      t1 = pf->d_node[1][0];
-      t4 = pf->d_node[0][0][2];
-      ret = pf->d_node;
-      Debug("pf::arith") << "t1 " << t1 << "\nt2 " << t2 << "\nt3 " << t3 << "\nt4 " << t4 << "\n";
-    }
-    out << "(row _ _ ";
-    tp->printTerm(t2.toExpr(), out, map);
-    out << " ";
-    tp->printTerm(t3.toExpr(), out, map);
-    out << " ";
-    tp->printTerm(t1.toExpr(), out, map);
-    out << " ";
-    tp->printTerm(t4.toExpr(), out, map);
-    out << " " << ProofManager::getLitName(t2.eqNode(t3)) << ")";
-    return ret;
-  }
-
-  case eq::MERGED_ARRAYS_ROW1: {
-    Debug("pf::arith") << "eq::MERGED_ARRAYS_ROW1 encountered in Arith_PROOF" << std::endl;
-    Unreachable();
-
-    Debug("pf::arith") << "row1 lemma: " << pf->d_node << std::endl;
-    Assert(pf->d_node.getKind() == kind::EQUAL);
-    TNode t1, t2, t3;
-    Node ret;
-    if(pf->d_node[1].getKind() == kind::SELECT &&
-       pf->d_node[1][0].getKind() == kind::STORE &&
-       pf->d_node[1][0][1] == pf->d_node[1][1] &&
-       pf->d_node[1][0][2] == pf->d_node[0]) {
-      t1 = pf->d_node[1][0][0];
-      t2 = pf->d_node[1][0][1];
-      t3 = pf->d_node[0];
-      ret = pf->d_node[1].eqNode(pf->d_node[0]);
-      Debug("pf::arith") << "t1 " << t1 << "\nt2 " << t2 << "\nt3 " << t3 << "\n";
-    } else {
-      Assert(pf->d_node[0].getKind() == kind::SELECT &&
-             pf->d_node[0][0].getKind() == kind::STORE &&
-             pf->d_node[0][0][1] == pf->d_node[0][1] &&
-             pf->d_node[0][0][2] == pf->d_node[1]);
-      t1 = pf->d_node[0][0][0];
-      t2 = pf->d_node[0][0][1];
-      t3 = pf->d_node[1];
-      ret = pf->d_node;
-      Debug("pf::arith") << "t1 " << t1 << "\nt2 " << t2 << "\nt3 " << t3 << "\n";
-    }
-    out << "(row1 _ _ ";
-    tp->printTerm(t1.toExpr(), out, map);
-    out << " ";
-    tp->printTerm(t2.toExpr(), out, map);
-    out << " ";
-    tp->printTerm(t3.toExpr(), out, map);
-    out << ")";
-    return ret;
-  }
-
   default:
     Assert(!pf->d_node.isNull());
     Assert(pf->d_children.empty());
@@ -720,28 +638,6 @@ void ArithProof::registerTerm(Expr term) {
     Debug("pf::arith") << "Entering real mode" << std::endl;
     d_realMode = true;
   }
-
-    // already registered
-  // if (d_constRationalString.find(term) != d_constRationalString.end())
-  //   return;
-
-  // if (term.getKind() == kind::CONST_RATIONAL) {
-  //   Debug("pf::arith") << "Const rational found: " << term << std::endl;
-  //   d_constRationalString[term] = ProofManager::sanitize(term);
-  // }
-
-
-  // Type type = term.getType();
-  // if (type.isSort()) {
-  //   Debug("pf::arith") << "Sort found: " << type << std::endl;
-  //   // declare uninterpreted sorts
-  //   d_sorts.insert(type);
-  // }
-
-  // if (term.isVariable()) {
-  //   Debug("pf::arith") << "Variable found: " << term << std::endl;
-  //   d_declarations.insert(term);
-  // }
 
   // recursively declare all other terms
   for (unsigned i = 0; i < term.getNumChildren(); ++i) {
@@ -931,50 +827,6 @@ void LFSCArithProof::printSortDeclarations(std::ostream& os, std::ostream& paren
 }
 
 void LFSCArithProof::printTermDeclarations(std::ostream& os, std::ostream& paren) {
-  // declaring the consts
-  //  std::map<Expr, std::string>::const_iterator it;
-
-  // for (it = d_constRationalString.begin(); it != d_constRationalString.end(); ++it) {
-  //   os << "(% " << it->second << " mpq\n";
-  //   paren << ")";
-  // }
-
-
-  // declaring the sorts
-  // for (TypeSet::const_iterator it = d_sorts.begin(); it != d_sorts.end(); ++it) {
-  //   os << "(% " << *it << " sort\n";
-  //   paren << ")";
-  // }
-
-  // declaring the terms
-  // for (ExprSet::const_iterator it = d_declarations.begin(); it != d_declarations.end(); ++it) {
-  //   Expr term = *it;
-
-  //   os << "(% " << ProofManager::sanitize(term) << " ";
-  //   os << "(term ";
-
-  //   Type type = term.getType();
-  //   if (type.isFunction()) {
-  //     std::ostringstream fparen;
-  //     FunctionType ftype = (FunctionType)type;
-  //     std::vector<Type> args = ftype.getArgTypes();
-  //     args.push_back(ftype.getRangeType());
-  //     os << "(arrow";
-  //     for (unsigned i = 0; i < args.size(); i++) {
-  //       Type arg_type = args[i];
-  //       os << " " << arg_type;
-  //       if (i < args.size() - 2) {
-  //         os << " (arrow";
-  //         fparen << ")";
-  //       }
-  //     }
-  //     os << fparen.str() << "))\n";
-  //   } else {
-  //     Assert (term.isVariable());
-  //     os << type << ")\n";
-  //   }
-  //   paren << ")";
-  // }
 }
 
 void LFSCArithProof::printDeferredDeclarations(std::ostream& os, std::ostream& paren) {
