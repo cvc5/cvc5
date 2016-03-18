@@ -100,25 +100,28 @@ void TheoryProxy::explainPropagation(SatLiteral l, SatClause& explanation) {
   Debug("prop-explain") << "explainPropagation(" << lNode << ")" << std::endl;
   NodeTheoryPair theoryExplanation = d_theoryEngine->getExplanationAndExplainer(lNode);
 
+  Node explanation = theoryExplanation.node;
+  theory::TheoryId explainer = theoryExplanation.theory;
+
   PROOF({
-      ProofManager::getCnfProof()->pushCurrentAssertion(theoryExplanation.node);
-      ProofManager::getCnfProof()->setExplainerTheory(theoryExplanation.theory);
+      ProofManager::getCnfProof()->pushCurrentAssertion(explain);
+      ProofManager::getCnfProof()->setExplainerTheory(explain);
 
       Debug("pf::sat") << "TheoryProxy::explainPropagation: setting explainer theory to: "
-                        << theoryExplanation.theory << std::endl;
+                        << explainer << std::endl;
     });
 
-  Debug("prop-explain") << "explainPropagation() => " << theoryExplanation.node << std::endl;
-  if (theoryExplanation.node.getKind() == kind::AND) {
-    Node::const_iterator it = theoryExplanation.node.begin();
-    Node::const_iterator it_end = theoryExplanation.node.end();
+  Debug("prop-explain") << "explainPropagation() => " << explain << std::endl;
+  if (explain.getKind() == kind::AND) {
+    Node::const_iterator it = explain.begin();
+    Node::const_iterator it_end = explain.end();
     explanation.push_back(l);
     for (; it != it_end; ++ it) {
       explanation.push_back(~d_cnfStream->getLiteral(*it));
     }
   } else {
     explanation.push_back(l);
-    explanation.push_back(~d_cnfStream->getLiteral(theoryExplanation.node));
+    explanation.push_back(~d_cnfStream->getLiteral(explain));
   }
 }
 
