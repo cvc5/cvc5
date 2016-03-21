@@ -1321,14 +1321,14 @@ void TheoryArrays::check(Effort e) {
             if (!d_proofsEnabled) {
               Debug("pf::array") << "Check: kind::NOT: array theory making a skolem" << std::endl;
 
-              // If not in prove mode, generating a fresh skolem variable
+              // If not in replay mode, generate a fresh skolem variable
               k = getSkolem(fact,
                             "array_ext_index",
                             indexType,
                             "an extensional lemma index variable from the theory of arrays",
                             false);
 
-              // Registering this skolem for the proof replay phase
+              // Register this skolem for the proof replay phase
               PROOF(ProofManager::getSkolemizationManager()->registerSkolem(fact, k));
             } else {
               if (!ProofManager::getSkolemizationManager()->hasSkolem(fact)) {
