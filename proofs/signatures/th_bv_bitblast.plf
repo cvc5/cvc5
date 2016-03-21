@@ -134,6 +134,23 @@
                                (! c (^ (bblast_concat xb yb) rb)
                                    (bblast_term n (concat n m m1 x a) rb)))))))))))))))
 
+(declare bv_bbl_concat_alias_1_2 (! n mpz
+     	    	                 (! m mpz
+		                 (! m1 mpz
+                                 (! x (term (BitVec m))
+		                 (! y (term (BitVec m1))
+		                 (! xb bblt
+		                 (! yb bblt
+		                 (! rb bblt
+       		                 (! a1 (term (BitVec m))
+		                 (! e (th_holds (= _ x a1))
+		                 (! xbb (bblast_term m x xb)
+       		                 (! a2 (term (BitVec m1))
+		                 (! e (th_holds (= _ y a2))
+		                 (! ybb (bblast_term m1 y yb)
+                                 (! c (^ (bblast_concat xb yb) rb)
+                                     (bblast_term n (concat n m m1 a1 a2) rb)))))))))))))))))
+
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; BITBLAST EXTRACT
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;

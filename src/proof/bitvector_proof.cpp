@@ -427,7 +427,8 @@ void LFSCBitVectorProof::printTermDeclarations(std::ostream& os, std::ostream& p
     } else {
       d_exprToVariableName[*it] = assignAlias(*it);
     }
-    os << "(% " << d_exprToVariableName[*it] <<" var_bv\t\t; " << *it << "\n";
+    os << "(% " << d_exprToVariableName[*it] <<" var_bv" << "\n";
+    //    os << "(% " << d_exprToVariableName[*it] <<" var_bv\t\t; " << *it << "\n";
     paren <<")";
   }
 }
@@ -496,14 +497,20 @@ void LFSCBitVectorProof::printTermBitblasting(Expr term, std::ostream& os) {
   case kind::BITVECTOR_PLUS :
   case kind::BITVECTOR_SUB :
   case kind::BITVECTOR_CONCAT : {
-    for (unsigned i =0; i < term.getNumChildren() - 1; ++i) {
+    Debug("pf::bv") << "Bitblasing kind = " << kind << std::endl;
+
+    for (int i = term.getNumChildren() - 1; i > 0; --i) {
       os <<"(bv_bbl_"<< utils::toLFSCKind(kind);
 
-      // Currently we assuem at most one term has an alias
-      Assert(!(hasAlias(term[i]) && hasAlias(term[i+1])));
-
-      if (hasAlias(term[i])) {os << "_alias_1";}
-      if (hasAlias(term[i+1])) {os << "_alias_2";}
+      if (i > 1) {
+        // This is not the inner-most operation; only child i+1 can be aliased
+        if (hasAlias(term[i])) {os << "_alias_2";}
+      } else {
+        // This is the inner-most operation; both children can be aliased
+        if (hasAlias(term[i-1]) || hasAlias(term[i])) {os << "_alias";}
+        if (hasAlias(term[i-1])) {os << "_1";}
+        if (hasAlias(term[i])) {os << "_2";}
+      }
 
       if (kind == kind::BITVECTOR_CONCAT) {
         os << " " << utils::getSize(term) << " _";
