@@ -171,11 +171,16 @@ TheoryProof* TheoryProofEngine::getTheoryProof(theory::TheoryId id) {
   return d_theoryProofTable[id];
 }
 
+void TheoryProofEngine::markTermForFutureRegistration(Expr term, theory::TheoryId id) {
+  d_exprToTheoryIds[term].insert(id);
+}
+
 void TheoryProofEngine::registerTerm(Expr term) {
+  Debug("pf::tp") << "TheoryProofEngine::registerTerm: registering new term: " << term << std::endl;
+
   if (d_registrationCache.count(term)) {
     return;
   }
-  Debug("pf::tp") << "TheoryProofEngine::registerTerm: registering new term: " << term << std::endl;
 
   theory::TheoryId theory_id = theory::Theory::theoryOf(term);
 
@@ -193,7 +198,9 @@ void TheoryProofEngine::registerTerm(Expr term) {
 
   if (!supportedTheory(theory_id)) return;
 
+  // Register the term with its owner theory
   getTheoryProof(theory_id)->registerTerm(term);
+
   d_registrationCache.insert(term);
 }
 
@@ -315,6 +322,20 @@ void LFSCTheoryProofEngine::printSort(Type type, std::ostream& os) {
   Unreachable();
 }
 
+void LFSCTheoryProofEngine::performExtraRegistrations() {
+  ExprToTheoryIds::const_iterator it;
+  for (it = d_exprToTheoryIds.begin(); it != d_exprToTheoryIds.end(); ++it) {
+    if (d_registrationCache.count(it->first)) { // Only register if the term appeared
+      TheoryIdSet::const_iterator theoryIt;
+      for (theoryIt = it->second.begin(); theoryIt != it->second.end(); ++theoryIt) {
+        Debug("pf::tp") << "\tExtra registration of term " << it->first << " with theory: " << *theoryIt << std::endl;
+        Assert(supportedTheory(*theoryIt));
+        getTheoryProof(*theoryIt)->registerTerm(it->first);
+      }
+    }
+  }
+}
+
 void LFSCTheoryProofEngine::registerTermsFromAssertions() {
   ProofManager::assertions_iterator it = ProofManager::currentPM()->begin_assertions();
   ProofManager::assertions_iterator end = ProofManager::currentPM()->end_assertions();
@@ -322,6 +343,8 @@ void LFSCTheoryProofEngine::registerTermsFromAssertions() {
   for(; it != end; ++it) {
     registerTerm(*it);
   }
+
+  performExtraRegistrations();
 }
 
 void LFSCTheoryProofEngine::printAssertions(std::ostream& os, std::ostream& paren) {

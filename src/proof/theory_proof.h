@@ -91,10 +91,14 @@ class TheoryProof;
 typedef __gnu_cxx::hash_set<Expr, ExprHashFunction > ExprSet;
 typedef std::map<theory::TheoryId, TheoryProof* > TheoryProofTable;
 
+typedef std::set<theory::TheoryId> TheoryIdSet;
+typedef std::map<Expr, TheoryIdSet> ExprToTheoryIds;
+
 class TheoryProofEngine {
 protected:
   ExprSet d_registrationCache;
   TheoryProofTable d_theoryProofTable;
+  ExprToTheoryIds d_exprToTheoryIds;
 
   /**
    * Returns whether the theory is currently supported in proof
@@ -174,6 +178,8 @@ public:
 
   theory::TheoryId getTheoryForLemma(ClauseId id);
   TheoryProof* getTheoryProof(theory::TheoryId id);
+
+  void markTermForFutureRegistration(Expr term, theory::TheoryId id);
 };
 
 class LFSCTheoryProofEngine : public TheoryProofEngine {
@@ -196,6 +202,8 @@ public:
                                  std::ostream& os,
                                  std::ostream& paren);
   virtual void printSort(Type type, std::ostream& os);
+
+  void performExtraRegistrations();
 };
 
 class TheoryProof {

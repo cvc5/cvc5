@@ -60,6 +60,7 @@ typedef __gnu_cxx::hash_set<Expr, ExprHashFunction> ExprSet;
 typedef __gnu_cxx::hash_map<Expr, ClauseId, ExprHashFunction> ExprToClauseId;
 typedef __gnu_cxx::hash_map<Expr, unsigned, ExprHashFunction> ExprToId;
 typedef __gnu_cxx::hash_map<Expr, Expr, ExprHashFunction> ExprToExpr;
+typedef __gnu_cxx::hash_map<Expr, std::string, ExprHashFunction> ExprToString;
 
 class BitVectorProof : public TheoryProof {
 protected:
@@ -123,6 +124,12 @@ class LFSCBitVectorProof: public BitVectorProof {
   void printPredicate(Expr term, std::ostream& os, const LetMap& map);
   void printOperatorParametric(Expr term, std::ostream& os, const LetMap& map);
   void printBitOf(Expr term, std::ostream& os, const LetMap& map);
+
+  ExprToString d_exprToVariableName;
+  ExprToString d_assignedAliases;
+  std::map<std::string, std::string> d_aliasToBindDeclaration;
+  std::string assignAlias(Expr expr);
+  bool hasAlias(Expr expr);
 public:
   LFSCBitVectorProof(theory::bv::TheoryBV* bv, TheoryProofEngine* proofEngine)
     :BitVectorProof(bv, proofEngine)

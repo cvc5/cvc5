@@ -80,25 +80,46 @@ BVSatProof* BitVectorProof::getSatProof() {
 }
 
 void BitVectorProof::registerTermBB(Expr term) {
+  Debug("pf::bv") << "BitVectorProof::registerTermBB( " << term << " )" << std::endl;
+
   if (d_seenBBTerms.find(term) != d_seenBBTerms.end())
     return;
 
   d_seenBBTerms.insert(term);
   d_bbTerms.push_back(term);
+
+  // If this term gets used in the final proof, we will want to register it. However,
+  // we don't know this at this point; and when the theory proof engine sees it, if it belongs
+  // to another theory, it won't register it with this proof. So, we need to tell the
+  // engine to inform us.
+
+  if (theory::Theory::theoryOf(term) != theory::THEORY_BV) {
+    Debug("pf::bv") << "\tMarking term " << term << " for future BV registration" << std::endl;
+    d_proofEngine->markTermForFutureRegistration(term, theory::THEORY_BV);
+  }
 }
 
 void BitVectorProof::registerAtomBB(Expr atom, Expr atom_bb) {
+  Debug("pf::bv") << "BitVectorProof::registerAtomBB( " << atom << ", " << atom_bb << " )" << std::endl;
+
   Expr def = atom.iffExpr(atom_bb);
-   d_bbAtoms.insert(std::make_pair(atom, def));
+  d_bbAtoms.insert(std::make_pair(atom, def));
   registerTerm(atom);
 }
 
 void BitVectorProof::registerTerm(Expr term) {
+  Debug("pf::bv") << "BitVectorProof::registerTerm( " << term << " )" << std::endl;
+
   d_usedBB.insert(term);
 
   if (Theory::isLeafOf(term, theory::THEORY_BV) &&
       !term.isConst()) {
     d_declarations.insert(term);
+  }
+
+  Debug("pf::bv") << "Going to register children: " << std::endl;
+  for (unsigned i = 0; i < term.getNumChildren(); ++i) {
+    Debug("pf::bv") << "\t" << term[i] << std::endl;
   }
 
   // don't care about parametric operators for bv?
@@ -108,6 +129,7 @@ void BitVectorProof::registerTerm(Expr term) {
 }
 
 std::string BitVectorProof::getBBTermName(Expr expr) {
+  Debug("pf::bv") << "BitVectorProof::getBBTermName( " << expr << " ) = bt" << expr.getId() << std::endl;
   std::ostringstream os;
   os << "bt"<< expr.getId();
   return os.str();
@@ -122,6 +144,8 @@ void BitVectorProof::startBVConflict(CVC4::BVMinisat::Solver::TLit lit) {
 }
 
 void BitVectorProof::endBVConflict(const CVC4::BVMinisat::Solver::TLitVec& confl) {
+  Debug("pf::bv") << "BitVectorProof::endBVConflict called" << std::endl;
+
   std::vector<Expr> expr_confl;
   for (int i = 0; i < confl.size(); ++i) {
     prop::SatLiteral lit = prop::BVMinisatSatSolver::toSatLiteral(confl[i]);
@@ -240,7 +264,7 @@ void LFSCBitVectorProof::printOwnedTerm(Expr term, std::ostream& os, const LetMa
   }
   case kind::VARIABLE:
   case kind::SKOLEM: {
-    os << "(a_var_bv " << utils::getSize(term)<<" " << ProofManager::sanitize(term) <<")";
+    os << "(a_var_bv " << utils::getSize(term)<< " " << ProofManager::sanitize(term) <<")";
     return;
   }
   default:
@@ -258,14 +282,7 @@ void LFSCBitVectorProof::printBitOf(Expr term, std::ostream& os, const LetMap& m
                   << ", var = " << var << std::endl;
 
   os << "(bitof ";
-  if (var.getKind() == kind::VARIABLE || var.getKind() == kind::SKOLEM) {
-    // If var is "simple", we can just sanitize and print
-    os << ProofManager::sanitize(var);
-  } else {
-    // If var is "complex", it can belong to another theory. Therefore, dispatch again.
-    d_proofEngine->printBoundTerm(var, os, map);
-  }
-
+  os << d_exprToVariableName[var];
   os << " " << bit << ")";
 }
 
@@ -356,7 +373,10 @@ void LFSCBitVectorProof::printOwnedSort(Type type, std::ostream& os) {
 }
 
 void LFSCBitVectorProof::printTheoryLemmaProof(std::vector<Expr>& lemma, std::ostream& os, std::ostream& paren) {
+  Debug("pf::bv") << "(pf::bv) LFSCBitVectorProof::printTheoryLemmaProof called" << std::endl;
   Expr conflict = utils::mkSortedExpr(kind::OR, lemma);
+  Debug("pf::bv") << "\tconflict = " << conflict << std::endl;
+
   if (d_bbConflictMap.find(conflict) != d_bbConflictMap.end()) {
     std::ostringstream lemma_paren;
     for (unsigned i = 0; i < lemma.size(); ++i) {
@@ -402,13 +422,40 @@ void LFSCBitVectorProof::printTermDeclarations(std::ostream& os, std::ostream& p
   ExprSet::const_iterator it = d_declarations.begin();
   ExprSet::const_iterator end = d_declarations.end();
   for (; it != end; ++it) {
-    os << "(% " << ProofManager::sanitize(*it) <<" var_bv\n";
+    if (it->isVariable() || it->isConst()) {
+      d_exprToVariableName[*it] = ProofManager::sanitize(*it);
+    } else {
+      d_exprToVariableName[*it] = assignAlias(*it);
+    }
+    os << "(% " << d_exprToVariableName[*it] <<" var_bv\t\t; " << *it << "\n";
     paren <<")";
   }
 }
 
 void LFSCBitVectorProof::printDeferredDeclarations(std::ostream& os, std::ostream& paren) {
-  // Nothing to do here at this point.
+  // Print "trust" statements to bind complex bv variables to their associated terms
+
+  ExprToString::const_iterator it = d_assignedAliases.begin();
+  ExprToString::const_iterator end = d_assignedAliases.end();
+
+  for (; it != end; ++it) {
+    std::stringstream declaration;
+    declaration << ".fbvd" << d_aliasToBindDeclaration.size();
+    d_aliasToBindDeclaration[it->second] = declaration.str();
+
+    os << "(th_let_pf _ ";
+
+    os << "(trust_f ";
+    os << "(= (BitVec " << utils::getSize(it->first) << ") ";
+    os << "(a_var_bv " << utils::getSize(it->first) << " " << it->second << ") ";
+    LetMap emptyMap;
+    d_proofEngine->printBoundTerm(it->first, os, emptyMap);
+    os << ")) ";
+    os << "(\\ "<< d_aliasToBindDeclaration[it->second] << "\n";
+    paren << "))";
+  }
+
+  os << "\n";
 }
 
 void LFSCBitVectorProof::printTermBitblasting(Expr term, std::ostream& os) {
@@ -417,9 +464,10 @@ void LFSCBitVectorProof::printTermBitblasting(Expr term, std::ostream& os) {
   Assert (term.getType().isBitVector());
   Kind kind = term.getKind();
 
-  if (Theory::isLeafOf(term, theory::THEORY_BV) &&
-      !term.isConst()) {
-    os << "(bv_bbl_var "<<utils::getSize(term) << " " << ProofManager::sanitize(term) <<" _ )";
+  if (Theory::isLeafOf(term, theory::THEORY_BV) && !term.isConst()) {
+    // A term is a leaf if it has no children, or if it belongs to another theory
+    os << "(bv_bbl_var " << utils::getSize(term) << " " << d_exprToVariableName[term];
+    os << " _ )";
     return;
   }
 
@@ -450,19 +498,30 @@ void LFSCBitVectorProof::printTermBitblasting(Expr term, std::ostream& os) {
   case kind::BITVECTOR_CONCAT : {
     for (unsigned i =0; i < term.getNumChildren() - 1; ++i) {
       os <<"(bv_bbl_"<< utils::toLFSCKind(kind);
+
+      // Currently we assuem at most one term has an alias
+      Assert(!(hasAlias(term[i]) && hasAlias(term[i+1])));
+
+      if (hasAlias(term[i])) {os << "_alias_1";}
+      if (hasAlias(term[i+1])) {os << "_alias_2";}
+
       if (kind == kind::BITVECTOR_CONCAT) {
-        os << " " << utils::getSize(term) <<" _ ";
+        os << " " << utils::getSize(term) << " _";
       }
       os <<" _ _ _ _ _ _ ";
     }
-    os << getBBTermName(term[0]) <<" ";
+
+    if (hasAlias(term[0])) {os << "_ " << d_aliasToBindDeclaration[d_assignedAliases[term[0]]] << " ";}
+    os << getBBTermName(term[0]) << " ";
 
     for (unsigned i = 1; i < term.getNumChildren(); ++i) {
+      if (hasAlias(term[i])) {os << "_ " << d_aliasToBindDeclaration[d_assignedAliases[term[i]]] << " ";}
       os << getBBTermName(term[i]);
       os << ") ";
     }
     return;
   }
+
   case kind::BITVECTOR_NEG :
   case kind::BITVECTOR_NOT :
   case kind::BITVECTOR_ROTATE_LEFT :
@@ -486,7 +545,7 @@ void LFSCBitVectorProof::printTermBitblasting(Expr term, std::ostream& os) {
   case kind::BITVECTOR_REPEAT :
   case kind::BITVECTOR_ZERO_EXTEND :
   case kind::BITVECTOR_SIGN_EXTEND : {
-    os <<"(bv_bbl_"<<utils::toLFSCKind(kind) <<" ";
+    os <<"(bv_bbl_" <<utils::toLFSCKind(kind) << (hasAlias(term[0]) ? "_alias " : " ");
     os << utils::getSize(term) <<" ";
     if (term.getKind() == kind::BITVECTOR_REPEAT) {
       unsigned amount = term.getOperator().getConst<BitVectorRepeat>().repeatAmount;
@@ -501,7 +560,9 @@ void LFSCBitVectorProof::printTermBitblasting(Expr term, std::ostream& os) {
       unsigned amount = term.getOperator().getConst<BitVectorZeroExtend>().zeroExtendAmount;
       os << amount;
     }
+
     os <<" _ _ _ _ ";
+    if (hasAlias(term[0])) {os << "_ " << d_aliasToBindDeclaration[d_assignedAliases[term[0]]] << " ";}
     os << getBBTermName(term[0]);
     os <<")";
     return;
@@ -550,11 +611,21 @@ void LFSCBitVectorProof::printAtomBitblasting(Expr atom, std::ostream& os) {
   case kind::BITVECTOR_SLE :
   case kind::BITVECTOR_SGT :
   case kind::BITVECTOR_SGE :
-  case kind::EQUAL:
-    {
-    os <<"(bv_bbl_" << utils::toLFSCKind(atom.getKind());
+  case kind::EQUAL: {
+
+    // Currently we assuem at most one term has an alias
+    Assert(!(hasAlias(atom[0]) && hasAlias(atom[1])));
+
+    os << "(bv_bbl_" << utils::toLFSCKind(atom.getKind());
+    if (hasAlias(atom[0])) {os << "_alias_1";}
+    if (hasAlias(atom[1])) {os << "_alias_2";}
+
     os << " _ _ _ _ _ _ ";
-    os << getBBTermName(atom[0])<<" " << getBBTermName(atom[1]) <<")";
+
+    if (hasAlias(atom[0])) {os << "_ " << d_aliasToBindDeclaration[d_assignedAliases[atom[0]]] << " ";}
+    if (hasAlias(atom[1])) {os << "_ " << d_aliasToBindDeclaration[d_assignedAliases[atom[1]]] << " ";}
+
+    os << getBBTermName(atom[0]) << " " << getBBTermName(atom[1]) << ")";
     return;
   }
   default:
@@ -562,19 +633,38 @@ void LFSCBitVectorProof::printAtomBitblasting(Expr atom, std::ostream& os) {
   }
 }
 
-
 void LFSCBitVectorProof::printBitblasting(std::ostream& os, std::ostream& paren) {
   // bit-blast terms
+  {
+    Debug("pf::bv") << "LFSCBitVectorProof::printBitblasting: the bitblasted terms are: " << std::endl;
+    std::vector<Expr>::const_iterator it = d_bbTerms.begin();
+    std::vector<Expr>::const_iterator end = d_bbTerms.end();
+
+    Assert(options::bitblastMode() != theory::bv::BITBLAST_MODE_EAGER);
+
+    for (; it != end; ++it) {
+      if (d_usedBB.find(*it) == d_usedBB.end()) {
+        Debug("pf::bv") << "\t" << *it << "\t(UNUSED)" << std::endl;
+      } else {
+        Debug("pf::bv") << "\t" << *it << std::endl;
+      }
+    }
+
+    Debug("pf::bv") << std::endl;
+  }
+
   std::vector<Expr>::const_iterator it = d_bbTerms.begin();
   std::vector<Expr>::const_iterator end = d_bbTerms.end();
   for (; it != end; ++it) {
     if (d_usedBB.find(*it) == d_usedBB.end() &&
         options::bitblastMode() != theory::bv::BITBLAST_MODE_EAGER)
       continue;
-    os <<"(decl_bblast _ _ _ ";
+
+    os << "(decl_bblast _ _ _ ";
     printTermBitblasting(*it, os);
     os << "(\\ "<< getBBTermName(*it);
-    paren <<"\n))";
+    os << "\n";
+    paren <<"))";
   }
   // bit-blast atoms
   ExprToExpr::const_iterator ait = d_bbAtoms.begin();
@@ -606,25 +696,53 @@ void LFSCBitVectorProof::printResolutionProof(std::ostream& os,
                                         used_lemmas);
   Assert (used_lemmas.empty());
 
+  IdToSatClause::iterator it2;
+  Debug("pf::bv") << std::endl << "BV Used inputs: " << std::endl;
+  for (it2 = used_inputs.begin(); it2 != used_inputs.end(); ++it2) {
+    Debug("pf::bv") << "\t input = " << *(it2->second) << std::endl;
+  }
+  Debug("pf::bv") << std::endl;
+
   // print mapping between theory atoms and internal SAT variables
-  os << ";; BB atom mapping\n";
+  os << std::endl << ";; BB atom mapping\n" << std::endl;
 
   NodeSet atoms;
   d_cnfProof->collectAtomsForClauses(used_inputs,atoms);
+
+  NodeSet::iterator atomIt;
+  Debug("pf::bv") << std::endl << "BV Dumping atoms from inputs: " << std::endl << std::endl;
+  for (atomIt = atoms.begin(); atomIt != atoms.end(); ++atomIt) {
+    Debug("pf::bv") << "\tAtom: " << *atomIt << std::endl;
+  }
+  Debug("pf::bv") << std::endl;
 
   // first print bit-blasting
   printBitblasting(os, paren);
 
   // print CNF conversion proof for bit-blasted facts
   d_cnfProof->printAtomMapping(atoms, os, paren);
-  os << ";; Bit-blasting definitional clauses \n";
+  os << std::endl << ";; Bit-blasting definitional clauses \n" << std::endl;
   for (IdToSatClause::iterator it = used_inputs.begin();
        it != used_inputs.end(); ++it) {
     d_cnfProof->printCnfProofForClause(it->first, it->second, os, paren);
   }
 
-  os << ";; Bit-blasting learned clauses \n";
+  os << std::endl << " ;; Bit-blasting learned clauses \n" << std::endl;
   d_resolutionProof->printResolutions(os, paren);
+}
+
+std::string LFSCBitVectorProof::assignAlias(Expr expr) {
+  static unsigned counter = 0;
+  Assert(d_exprToVariableName.find(expr) == d_exprToVariableName.end());
+  std::stringstream ss;
+  ss << "fbv" << counter++;
+  Debug("pf::bv") << "assignAlias( " << expr << ") = " << ss.str() << std::endl;
+  d_assignedAliases[expr] = ss.str();
+  return ss.str();
+}
+
+bool LFSCBitVectorProof::hasAlias(Expr expr) {
+  return d_assignedAliases.find(expr) != d_assignedAliases.end();
 }
 
 } /* namespace CVC4 */
