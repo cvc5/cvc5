@@ -1347,7 +1347,9 @@ void TheoryArrays::check(Effort e) {
             Node eq = ak.eqNode(bk);
             Node lemma = fact[0].orNode(eq.notNode());
 
-            // In replay pass, if the terms ak and bk are not yet registered, we'd like to register them.
+            // In solve mode we don't care if ak and bk are registered. If they aren't, they'll be registered
+            // when we output the lemma. However, in replay need the lemma to be propagated, and so we
+            // preregister manually.
             if (d_proofsEnabled) {
               if (!d_equalityEngine.hasTerm(ak)) { preRegisterTermInternal(ak); }
               if (!d_equalityEngine.hasTerm(bk)) { preRegisterTermInternal(bk); }
