@@ -110,8 +110,17 @@ using namespace CVC4::context;
 using namespace CVC4::theory;
 
 namespace CVC4 {
-
 namespace smt {
+
+struct DeleteCommandFunction : public std::unary_function<const Command*, void>
+{
+  void operator()(const Command* command) { delete command; }
+};
+
+void DeleteAndClearCommandVector(std::vector<Command*>& commands) {
+  std::for_each(commands.begin(), commands.end(), DeleteCommandFunction());
+  commands.clear();
+}
 
 /** Useful for counting the number of recursive calls. */
 class ScopeCounter {
@@ -1193,6 +1202,8 @@ SmtEngine::~SmtEngine() throw() {
       d_dumpCommands[i] = NULL;
     }
     d_dumpCommands.clear();
+
+    DeleteAndClearCommandVector(d_modelGlobalCommands);
 
     if(d_modelCommands != NULL) {
       d_modelCommands->deleteSelf();
@@ -5295,7 +5306,7 @@ void SmtEngine::resetAssertions() throw() {
   Assert(d_userLevels.size() == 0 && d_userContext->getLevel() == 1);
   d_context->popto(0);
   d_userContext->popto(0);
-  d_modelGlobalCommands.clear();
+  DeleteAndClearCommandVector(d_modelGlobalCommands);
   d_userContext->push();
   d_context->push();
 }
