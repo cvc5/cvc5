@@ -259,7 +259,7 @@ typedef std::map<Node, std::vector<Node> >::iterator mem_it;
     Node r1_rep = getRepresentative(join_term[0]);
     Node r2_rep = getRepresentative(join_term[1]);
 
-    if(polarity && d_lemma.find(exp) != d_lemma.end()) {
+    if(polarity && d_lemma.find(exp) == d_lemma.end()) {
       Trace("rels-debug") <<  "\n[sets-rels] Apply JOIN-SPLIT rule on term: " << join_term
                           << " with explaination: " << exp << std::endl;
 
@@ -292,16 +292,15 @@ typedef std::map<Node, std::vector<Node> >::iterator mem_it;
       computeTupleReps(t2);
       std::vector<Node> elements = d_membership_trie[r1_rep].findTerms(d_tuple_reps[t1]);
 
-      if(elements.size() != 0) {
-        for(unsigned int j = 0; j < elements.size(); j++) {
-          std::vector<Node> new_tup;
-          new_tup.push_back(elements[j]);
-          new_tup.insert(new_tup.end(), d_tuple_reps[t2].begin()+1, d_tuple_reps[t2].end());
-          if(d_membership_trie[r2_rep].existsTerm(new_tup) != Node::null()) {
-            return;
-          }
+      for(unsigned int j = 0; j < elements.size(); j++) {
+        std::vector<Node> new_tup;
+        new_tup.push_back(elements[j]);
+        new_tup.insert(new_tup.end(), d_tuple_reps[t2].begin()+1, d_tuple_reps[t2].end());
+        if(d_membership_trie[r2_rep].existsTerm(new_tup) != Node::null()) {
+          return;
         }
       }
+
       Node fact;
       Node reason = atom[1] == join_term ? exp : AND(exp, EQUAL(atom[1], join_term));
       Node reasons = reason;
