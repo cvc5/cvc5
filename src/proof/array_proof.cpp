@@ -1081,6 +1081,7 @@ void LFSCArrayProof::printOwnedTerm(Expr term, std::ostream& os, const LetMap& m
   }
 
   if (term.getKind() == kind::VARIABLE || term.getKind() == kind::SKOLEM) {
+    Debug("pf::array") << "(pf::array) Term is variable or skolem. Printing: " << term << std::endl;
     os << term;
     return;
   }
@@ -1147,7 +1148,22 @@ void LFSCArrayProof::printOwnedTerm(Expr term, std::ostream& os, const LetMap& m
 void LFSCArrayProof::printOwnedSort(Type type, std::ostream& os) {
   Debug("pf::array") << std::endl << "(pf::array) LFSCArrayProof::printOwnedSort: type is: " << type << std::endl;
   Assert (type.isArray() || type.isSort());
-  os << type <<" ";
+
+  if (type.isArray()){
+    ArrayType array_type(type);
+
+    Debug("pf::array") << "LFSCArrayProof::printOwnedSort: type is an array. Index type: "
+                       << array_type.getIndexType()
+                       << ", element type: " << array_type.getConstituentType() << std::endl;
+
+    os << "(Array ";
+    printSort(array_type.getIndexType(), os);
+    os << " ";
+    printSort(array_type.getConstituentType(), os);
+    os << ")";
+  } else {
+    os << type <<" ";
+  }
 }
 
 void LFSCArrayProof::printTheoryLemmaProof(std::vector<Expr>& lemma, std::ostream& os, std::ostream& paren) {

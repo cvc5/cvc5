@@ -512,12 +512,28 @@
          (! bx bblt
          (! by bblt
          (! f formula
+         (! bbx (bblast_term n x bx)
  	 (! a (term (BitVec n))
  	 (! e (th_holds (= _ y a))
-         (! bbx (bblast_term n x bx)
          (! bby (bblast_term n y by)
          (! c (^ (bblast_eq bx by) f)
-            (th_holds (iff (= (BitVec n) y a) f))))))))))))))
+            (th_holds (iff (= (BitVec n) x a) f))))))))))))))
+
+(declare bv_bbl_=_alias_1_2
+	 (! n mpz
+	 (! x (term (BitVec n))
+         (! y (term (BitVec n))
+         (! bx bblt
+         (! by bblt
+         (! f formula
+ 	 (! a1 (term (BitVec n))
+ 	 (! e1 (th_holds (= _ x a1))
+         (! bbx (bblast_term n x bx)
+ 	 (! a2 (term (BitVec n))
+ 	 (! e2 (th_holds (= _ y a2))
+         (! bby (bblast_term n y by)
+         (! c (^ (bblast_eq bx by) f)
+            (th_holds (iff (= (BitVec n) a1 a2) f))))))))))))))))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; BITBLAST BVULT

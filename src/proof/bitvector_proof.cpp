@@ -619,20 +619,29 @@ void LFSCBitVectorProof::printAtomBitblasting(Expr atom, std::ostream& os) {
   case kind::BITVECTOR_SGT :
   case kind::BITVECTOR_SGE :
   case kind::EQUAL: {
+    Debug("pf::bv") << "Bitblasing kind = " << kind << std::endl;
 
     // Currently we assuem at most one term has an alias
-    Assert(!(hasAlias(atom[0]) && hasAlias(atom[1])));
+    // Assert(!(hasAlias(atom[0]) && hasAlias(atom[1])));
 
     os << "(bv_bbl_" << utils::toLFSCKind(atom.getKind());
-    if (hasAlias(atom[0])) {os << "_alias_1";}
-    if (hasAlias(atom[1])) {os << "_alias_2";}
+
+    if (hasAlias(atom[0]) || hasAlias(atom[1])) {os << "_alias";}
+    if (hasAlias(atom[0])) {os << "_1";}
+    if (hasAlias(atom[1])) {os << "_2";}
 
     os << " _ _ _ _ _ _ ";
 
     if (hasAlias(atom[0])) {os << "_ " << d_aliasToBindDeclaration[d_assignedAliases[atom[0]]] << " ";}
-    if (hasAlias(atom[1])) {os << "_ " << d_aliasToBindDeclaration[d_assignedAliases[atom[1]]] << " ";}
+    os << getBBTermName(atom[0]);
 
-    os << getBBTermName(atom[0]) << " " << getBBTermName(atom[1]) << ")";
+    os << " ";
+
+    if (hasAlias(atom[1])) {os << "_ " << d_aliasToBindDeclaration[d_assignedAliases[atom[1]]] << " ";}
+    os << getBBTermName(atom[1]);
+
+    os << ")";
+    // os << getBBTermName(atom[0]) << " " << getBBTermName(atom[1]) << ")";
     return;
   }
   default:
