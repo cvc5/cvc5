@@ -83,9 +83,11 @@ typedef std::map<Node, std::vector<Node> >::iterator mem_it;
           }
           if(kind_terms.find(kind::JOIN) != kind_terms.end()) {
             std::vector<Node> join_terms = kind_terms[kind::JOIN];
+            Trace("rels-debug") << "[sets-rels] apply join rules on join terms with size = " << join_terms.size() << std::endl;
             // exp is a membership term and join_terms contains all
             // terms involving "join" operator that are in the same equivalence class with the right hand side of exp
             for(unsigned int j = 0; j < join_terms.size(); j++) {
+              Trace("rels-debug") << "[sets-rels] join term = " << join_terms[j] << std::endl;
               applyJoinRule(exp, join_terms[j]);
             }
           }
@@ -149,13 +151,12 @@ typedef std::map<Node, std::vector<Node> >::iterator mem_it;
               rel_terms[n.getKind()] = terms;
               d_terms_cache[r] = rel_terms;
             } else {
-              rel_terms = d_terms_cache[r];
               // No n's kind record is found
-              if( rel_terms.find(n.getKind()) == rel_terms.end() ) {
+              if( d_terms_cache[r].find(n.getKind()) == d_terms_cache[r].end() ) {
                 terms.push_back(n);
-                rel_terms[n.getKind()] = terms;
+                d_terms_cache[r][n.getKind()] = terms;
               } else {
-                rel_terms[n.getKind()].push_back(n);
+                d_terms_cache[r][n.getKind()].push_back(n);
               }
             }
           }
