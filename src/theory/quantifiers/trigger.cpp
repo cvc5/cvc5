@@ -242,7 +242,7 @@ bool Trigger::isUsable( Node n, Node q ){
 }
 
 Node Trigger::getIsUsableTrigger( Node n, Node f, bool pol, bool hasPol ) {
-  Trace("trigger-debug") << "Is " << n << " a usable trigger?" << std::endl;
+  Trace("trigger-debug") << "Is " << n << " a usable trigger? pol/hasPol=" << pol << "/" << hasPol << std::endl;
   if( n.getKind()==NOT ){
     pol = !pol;
     n = n[0];
@@ -254,7 +254,8 @@ Node Trigger::getIsUsableTrigger( Node n, Node f, bool pol, bool hasPol ) {
       bool is_arith = n[0].getType().isReal();
       for( unsigned i=0; i<2; i++) {
         if( n[1-i].getKind()==INST_CONSTANT ){
-          if( isUsableTrigger( n[i], f ) && !quantifiers::TermDb::containsTerm( n[i], n[1-i] ) && ( !do_negate || is_arith ) ){
+          if( ( ( isUsableTrigger( n[i], f ) && !quantifiers::TermDb::containsTerm( n[i], n[1-i] ) ) || !quantifiers::TermDb::hasInstConstAttr(n[i]) ) && 
+              ( !do_negate || is_arith ) ){
             rtr = n;
             break;
           }
@@ -274,7 +275,7 @@ Node Trigger::getIsUsableTrigger( Node n, Node f, bool pol, bool hasPol ) {
               Node veq;
               if( QuantArith::isolate( it->first, m, veq, n.getKind() )!=0 ){
                 int vti = veq[0]==it->first ? 1 : 0;
-                if( isUsableTrigger( veq[vti], f ) && !quantifiers::TermDb::containsTerm( veq[vti], veq[1-vti] ) ){
+                if( ( isUsableTrigger( veq[vti], f ) && !quantifiers::TermDb::containsTerm( veq[vti], veq[1-vti] ) ) || !quantifiers::TermDb::hasInstConstAttr(veq[vti]) ){
                   rtr = veq;
                 }
               }
@@ -431,6 +432,23 @@ bool Trigger::isPureTheoryTrigger( Node n ) {
       }
     }
     return true;
+  }
+}
+
+int Trigger::getTriggerWeight( Node n ) {
+  if( isAtomicTrigger( n ) ){
+    return 0;
+  }else{
+    if( options::relationalTriggers() ){
+      if( n.getKind()==EQUAL || n.getKind()==IFF || n.getKind()==GEQ ){
+        for( unsigned i=0; i<2; i++ ){
+          if( n[i].getKind()==INST_CONSTANT && !quantifiers::TermDb::hasInstConstAttr( n[1-i] ) ){
+            return 0;
+          }
+        }
+      }
+    }
+    return 1;
   }
 }
 

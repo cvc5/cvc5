@@ -88,6 +88,7 @@ QuantifiersEngine::QuantifiersEngine(context::Context* c, context::UserContext* 
     d_te( te ),
     d_lemmas_produced_c(u),
     d_skolemized(u),
+    d_ierCounter_c(c),
     //d_ierCounter(c),
     //d_ierCounter_lc(c),
     //d_ierCounterLastLc(c),
@@ -143,6 +144,7 @@ QuantifiersEngine::QuantifiersEngine(context::Context* c, context::UserContext* 
   d_total_inst_count_debug = 0;
   //allow theory combination to go first, once initially
   d_ierCounter = options::instWhenTcFirst() ? 0 : 1;
+  d_ierCounter_c = d_ierCounter;
   d_ierCounter_lc = 0;
   d_ierCounterLastLc = 0;
   d_inst_when_phase = 1 + ( options::instWhenPhase()<1 ? 1 : options::instWhenPhase() );
@@ -375,6 +377,7 @@ void QuantifiersEngine::check( Theory::Effort e ){
   if( needsCheck ){
     if( Trace.isOn("quant-engine-debug") ){
       Trace("quant-engine-debug") << "Quantifiers Engine check, level = " << e << std::endl;
+      Trace("quant-engine-debug") << "  depth : " << d_ierCounter_c << std::endl;
       Trace("quant-engine-debug") << "  modules to check : ";
       for( unsigned i=0; i<qm.size(); i++ ){
         Trace("quant-engine-debug") << qm[i]->identify() << " ";
@@ -470,6 +473,7 @@ void QuantifiersEngine::check( Theory::Effort e ){
             if( d_ierCounterLastLc!=d_ierCounter_lc || !options::instWhenStrictInterleave() || d_ierCounter%d_inst_when_phase!=0 ){
               d_ierCounter = d_ierCounter + 1;
               d_ierCounterLastLc = d_ierCounter_lc;
+              d_ierCounter_c = d_ierCounter_c.get() + 1;
             }
           }else if( e==Theory::EFFORT_LAST_CALL ){
             d_ierCounter_lc = d_ierCounter_lc + 1;

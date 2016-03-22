@@ -2123,6 +2123,8 @@ CVC4::SExpr SmtEngine::getInfo(const std::string& key) const
 void SmtEngine::defineFunction(Expr func,
                                const std::vector<Expr>& formals,
                                Expr formula) {
+  SmtScope smts(this);
+  doPendingPops();
   Trace("smt") << "SMT defineFunction(" << func << ")" << endl;
   for(std::vector<Expr>::const_iterator i = formals.begin(); i != formals.end(); ++i) {
     if((*i).getKind() != kind::BOUND_VARIABLE) {
@@ -2141,7 +2143,6 @@ void SmtEngine::defineFunction(Expr func,
   DefineFunctionCommand c(ss.str(), func, formals, formula);
   addToModelCommandAndDump(c, ExprManager::VAR_FLAG_DEFINED, true, "declarations");
 
-  SmtScope smts(this);
 
   PROOF( if (options::checkUnsatCores()) {
       d_defineCommands.push_back(c.clone());
