@@ -137,7 +137,7 @@ public:
     }
 
     TS_ASSERT(not collection.empty());
-    for(int i=0; i < listeners.size(); ++i){
+    for(unsigned i=0; i < listeners.size(); ++i){
       ListenerCollection::Registration* at_i = listeners[i];
       delete at_i;
     }
