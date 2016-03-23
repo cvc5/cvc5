@@ -1,5 +1,5 @@
 /*********************                                                        */
-/*! \file uf_proof.cpp
+/*! \file arith_proof.cpp
 ** \verbatim
 ** Original author: Liana Hadarean
 ** Major contributors: none
@@ -17,8 +17,8 @@
 
 #include "proof/theory_proof.h"
 #include "proof/proof_manager.h"
-#include "proof/uf_proof.h"
-#include "theory/uf/theory_uf.h"
+#include "proof/arith_proof.h"
+#include "theory/arith/theory_arith.h"
 #include <stack>
 
 namespace CVC4 {
@@ -29,14 +29,14 @@ inline static Node eqNode(TNode n1, TNode n2) {
 
 // congrence matching term helper
 inline static bool match(TNode n1, TNode n2) {
-  Debug("pf::uf") << "match " << n1 << " " << n2 << std::endl;
+  Debug("pf::arith") << "match " << n1 << " " << n2 << std::endl;
   if(ProofManager::currentPM()->hasOp(n1)) {
     n1 = ProofManager::currentPM()->lookupOp(n1);
   }
   if(ProofManager::currentPM()->hasOp(n2)) {
     n2 = ProofManager::currentPM()->lookupOp(n2);
   }
-  Debug("pf::uf") << "+ match " << n1 << " " << n2 << std::endl;
+  Debug("pf::arith") << "+ match " << n1 << " " << n2 << std::endl;
   if(n1 == n2) {
     return true;
   }
@@ -66,25 +66,24 @@ inline static bool match(TNode n1, TNode n2) {
 }
 
 
-void ProofUF::toStream(std::ostream& out) {
-  Trace("theory-proof-debug") << "; Print UF proof..." << std::endl;
+void ProofArith::toStream(std::ostream& out) {
+  Trace("theory-proof-debug") << "; Print Arith proof..." << std::endl;
   //AJR : carry this further?
   LetMap map;
-  toStreamLFSC(out, ProofManager::getUfProof(), d_proof, map);
+  toStreamLFSC(out, ProofManager::getArithProof(), d_proof, map);
 }
 
-void ProofUF::toStreamLFSC(std::ostream& out, TheoryProof * tp, theory::eq::EqProof * pf, const LetMap& map) {
-  Debug("pf::uf") << "ProofUF::toStreamLFSC starting" << std::endl;
-  Debug("lfsc-uf") << "Printing uf proof in LFSC : " << std::endl;
-  pf->debug_print("lfsc-uf");
-  Debug("lfsc-uf") << std::endl;
+void ProofArith::toStreamLFSC(std::ostream& out, TheoryProof * tp, theory::eq::EqProof * pf, const LetMap& map) {
+  Debug("lfsc-arith") << "Printing arith proof in LFSC : " << std::endl;
+  pf->debug_print("lfsc-arith");
+  Debug("lfsc-arith") << std::endl;
   toStreamRecLFSC( out, tp, pf, 0, map );
 }
 
-Node ProofUF::toStreamRecLFSC(std::ostream& out, TheoryProof * tp, theory::eq::EqProof * pf, unsigned tb, const LetMap& map) {
-  Debug("pf::uf") << std::endl << std::endl << "toStreamRecLFSC called. tb = " << tb << " . proof:" << std::endl;
-  pf->debug_print("pf::uf");
-  Debug("pf::uf") << std::endl;
+Node ProofArith::toStreamRecLFSC(std::ostream& out, TheoryProof * tp, theory::eq::EqProof * pf, unsigned tb, const LetMap& map) {
+  Debug("pf::arith") << std::endl << std::endl << "toStreamRecLFSC called. tb = " << tb << " . proof:" << std::endl;
+  pf->debug_print("pf::arith");
+  Debug("pf::arith") << std::endl;
 
   if(tb == 0) {
     Assert(pf->d_id == theory::eq::MERGED_THROUGH_TRANS);
@@ -107,37 +106,37 @@ Node ProofUF::toStreamRecLFSC(std::ostream& out, TheoryProof * tp, theory::eq::E
 
       // Handle congruence closures over equalities.
       else if (pf->d_children[i]->d_id==theory::eq::MERGED_THROUGH_CONGRUENCE && pf->d_children[i]->d_node.isNull()) {
-        Debug("pf::uf") << "Handling congruence over equalities" << std::endl;
+        Debug("pf::arith") << "Handling congruence over equalities" << std::endl;
 
         // Gather the sequence of consecutive congruence closures.
         std::vector<const theory::eq::EqProof *> congruenceClosures;
         unsigned count;
-        Debug("pf::uf") << "Collecting congruence sequence" << std::endl;
+        Debug("pf::arith") << "Collecting congruence sequence" << std::endl;
         for (count = 0;
              i + count < pf->d_children.size() &&
              pf->d_children[i + count]->d_id==theory::eq::MERGED_THROUGH_CONGRUENCE &&
              pf->d_children[i + count]->d_node.isNull();
              ++count) {
-          Debug("pf::uf") << "Found a congruence: " << std::endl;
-          pf->d_children[i+count]->debug_print("pf::uf");
+          Debug("pf::arith") << "Found a congruence: " << std::endl;
+          pf->d_children[i+count]->debug_print("pf::arith");
           congruenceClosures.push_back(pf->d_children[i+count]);
         }
 
-        Debug("pf::uf") << "Total number of congruences found: " << congruenceClosures.size() << std::endl;
+        Debug("pf::arith") << "Total number of congruences found: " << congruenceClosures.size() << std::endl;
 
         // Determine if the "target" of the congruence sequence appears right before or right after the sequence.
         bool targetAppearsBefore = true;
         bool targetAppearsAfter = true;
 
         if ((i == 0) || (i == 1 && neg == 0)) {
-          Debug("pf::uf") << "Target does not appear before" << std::endl;
+          Debug("pf::arith") << "Target does not appear before" << std::endl;
           targetAppearsBefore = false;
         }
 
         if ((i + count >= pf->d_children.size()) ||
             (!pf->d_children[i + count]->d_node.isNull() &&
              pf->d_children[i + count]->d_node.getKind() == kind::NOT)) {
-          Debug("pf::uf") << "Target does not appear after" << std::endl;
+          Debug("pf::arith") << "Target does not appear after" << std::endl;
           targetAppearsAfter = false;
         }
 
@@ -195,22 +194,22 @@ Node ProofUF::toStreamRecLFSC(std::ostream& out, TheoryProof * tp, theory::eq::E
     Node n1;
     std::stringstream ss;
     //Assert(subTrans.d_children.size() == pf->d_children.size() - 1);
-    Debug("pf::uf") << "\nsubtrans has " << subTrans.d_children.size() << " children\n";
+    Debug("pf::arith") << "\nsubtrans has " << subTrans.d_children.size() << " children\n";
     if(pf->d_children.size() > 2) {
       n1 = toStreamRecLFSC(ss, tp, &subTrans, 1, map);
     } else {
       n1 = toStreamRecLFSC(ss, tp, subTrans.d_children[0], 1, map);
-      Debug("pf::uf") << "\nsubTrans unique child " << subTrans.d_children[0]->d_id << " was proven\ngot: " << n1 << std::endl;
+      Debug("pf::arith") << "\nsubTrans unique child " << subTrans.d_children[0]->d_id << " was proven\ngot: " << n1 << std::endl;
     }
 
     Node n2 = pf->d_children[neg]->d_node;
     Assert(n2.getKind() == kind::NOT);
     out << "(clausify_false (contra _ ";
-    Debug("pf::uf") << "\nhave proven: " << n1 << std::endl;
-    Debug("pf::uf") << "n2 is " << n2[0] << std::endl;
+    Debug("pf::arith") << "\nhave proven: " << n1 << std::endl;
+    Debug("pf::arith") << "n2 is " << n2[0] << std::endl;
 
-    if (n2[0].getNumChildren() > 0) { Debug("pf::uf") << "\nn2[0]: " << n2[0][0] << std::endl; }
-    if (n1.getNumChildren() > 1) { Debug("pf::uf") << "n1[1]: " << n1[1] << std::endl; }
+    if (n2[0].getNumChildren() > 0) { Debug("pf::arith") << "\nn2[0]: " << n2[0][0] << std::endl; }
+    if (n1.getNumChildren() > 1) { Debug("pf::arith") << "n1[1]: " << n1[1] << std::endl; }
 
     if(n2[0].getKind() == kind::APPLY_UF) {
       out << "(trans _ _ _ _ ";
@@ -231,8 +230,8 @@ Node ProofUF::toStreamRecLFSC(std::ostream& out, TheoryProof * tp, theory::eq::E
 
   switch(pf->d_id) {
   case theory::eq::MERGED_THROUGH_CONGRUENCE: {
-    Debug("pf::uf") << "\nok, looking at congruence:\n";
-    pf->debug_print("pf::uf");
+    Debug("pf::arith") << "\nok, looking at congruence:\n";
+    pf->debug_print("pf::arith");
     std::stack<const theory::eq::EqProof*> stk;
     for(const theory::eq::EqProof* pf2 = pf; pf2->d_id == theory::eq::MERGED_THROUGH_CONGRUENCE; pf2 = pf2->d_children[0]) {
       Assert(!pf2->d_node.isNull());
@@ -250,24 +249,24 @@ Node ProofUF::toStreamRecLFSC(std::ostream& out, TheoryProof * tp, theory::eq::E
     out << " ";
     std::stringstream ss;
     Node n2 = toStreamRecLFSC(ss, tp, pf2->d_children[1], tb + 1, map);
-    Debug("pf::uf") << "\nok, in FIRST cong[" << stk.size() << "]" << "\n";
-    pf2->debug_print("pf::uf");
-    Debug("pf::uf") << "looking at " << pf2->d_node << "\n";
-    Debug("pf::uf") << "           " << n1 << "\n";
-    Debug("pf::uf") << "           " << n2 << "\n";
+    Debug("pf::arith") << "\nok, in FIRST cong[" << stk.size() << "]" << "\n";
+    pf2->debug_print("pf::arith");
+    Debug("pf::arith") << "looking at " << pf2->d_node << "\n";
+    Debug("pf::arith") << "           " << n1 << "\n";
+    Debug("pf::arith") << "           " << n2 << "\n";
     int side = 0;
     if(match(pf2->d_node, n1[0])) {
       //if(tb == 1) {
-      Debug("pf::uf") << "SIDE IS 0\n";
+      Debug("pf::arith") << "SIDE IS 0\n";
       //}
       side = 0;
     } else {
       //if(tb == 1) {
-      Debug("pf::uf") << "SIDE IS 1\n";
+      Debug("pf::arith") << "SIDE IS 1\n";
       //}
       if(!match(pf2->d_node, n1[1])) {
-      Debug("pf::uf") << "IN BAD CASE, our first subproof is\n";
-      pf2->d_children[0]->debug_print("pf::uf");
+      Debug("pf::arith") << "IN BAD CASE, our first subproof is\n";
+      pf2->d_children[0]->debug_print("pf::arith");
       }
       Assert(match(pf2->d_node, n1[1]));
       side = 1;
@@ -292,11 +291,11 @@ Node ProofUF::toStreamRecLFSC(std::ostream& out, TheoryProof * tp, theory::eq::E
     } else {
       b2 << n1[1-side];
     }
-    Debug("pf::uf") << "pf2->d_node " << pf2->d_node << std::endl;
-    Debug("pf::uf") << "b1.getNumChildren() " << b1.getNumChildren() << std::endl;
-    Debug("pf::uf") << "n1 " << n1 << std::endl;
-    Debug("pf::uf") << "n2 " << n2 << std::endl;
-    Debug("pf::uf") << "side " << side << std::endl;
+    Debug("pf::arith") << "pf2->d_node " << pf2->d_node << std::endl;
+    Debug("pf::arith") << "b1.getNumChildren() " << b1.getNumChildren() << std::endl;
+    Debug("pf::arith") << "n1 " << n1 << std::endl;
+    Debug("pf::arith") << "n2 " << n2 << std::endl;
+    Debug("pf::arith") << "side " << side << std::endl;
     if(pf2->d_node[b1.getNumChildren() - (pf2->d_node.getMetaKind() == kind::metakind::PARAMETERIZED ? 0 : 1)] == n2[side]) {
       b1 << n2[side];
       b2 << n2[1-side];
@@ -310,7 +309,7 @@ Node ProofUF::toStreamRecLFSC(std::ostream& out, TheoryProof * tp, theory::eq::E
     out << ")";
     while(!stk.empty()) {
       if(tb == 1) {
-      Debug("pf::uf") << "\nMORE TO DO\n";
+      Debug("pf::arith") << "\nMORE TO DO\n";
       }
       pf2 = stk.top();
       stk.pop();
@@ -318,12 +317,12 @@ Node ProofUF::toStreamRecLFSC(std::ostream& out, TheoryProof * tp, theory::eq::E
       out << " ";
       ss.str("");
       n2 = toStreamRecLFSC(ss, tp, pf2->d_children[1], tb + 1, map);
-      Debug("pf::uf") << "\nok, in cong[" << stk.size() << "]" << "\n";
-      Debug("pf::uf") << "looking at " << pf2->d_node << "\n";
-      Debug("pf::uf") << "           " << n1 << "\n";
-      Debug("pf::uf") << "           " << n2 << "\n";
-      Debug("pf::uf") << "           " << b1 << "\n";
-      Debug("pf::uf") << "           " << b2 << "\n";
+      Debug("pf::arith") << "\nok, in cong[" << stk.size() << "]" << "\n";
+      Debug("pf::arith") << "looking at " << pf2->d_node << "\n";
+      Debug("pf::arith") << "           " << n1 << "\n";
+      Debug("pf::arith") << "           " << n2 << "\n";
+      Debug("pf::arith") << "           " << b1 << "\n";
+      Debug("pf::arith") << "           " << b2 << "\n";
       if(pf2->d_node[b1.getNumChildren()] == n2[side]) {
         b1 << n2[side];
         b2 << n2[1-side];
@@ -338,7 +337,7 @@ Node ProofUF::toStreamRecLFSC(std::ostream& out, TheoryProof * tp, theory::eq::E
     }
     n1 = b1;
     n2 = b2;
-    Debug("pf::uf") << "at end assert, got " << pf2->d_node << "  and  " << n1 << std::endl;
+    Debug("pf::arith") << "at end assert, got " << pf2->d_node << "  and  " << n1 << std::endl;
     if(pf2->d_node.getKind() == kind::PARTIAL_APPLY_UF) {
       Assert(n1 == pf2->d_node);
     }
@@ -351,7 +350,7 @@ Node ProofUF::toStreamRecLFSC(std::ostream& out, TheoryProof * tp, theory::eq::E
       }
       b1.append(n1.begin(), n1.end());
       n1 = b1;
-      Debug("pf::uf") << "at[2] end assert, got " << pf2->d_node << "  and  " << n1 << std::endl;
+      Debug("pf::arith") << "at[2] end assert, got " << pf2->d_node << "  and  " << n1 << std::endl;
       if(pf2->d_node.getKind() == kind::APPLY_UF) {
         Assert(n1 == pf2->d_node);
       }
@@ -368,7 +367,7 @@ Node ProofUF::toStreamRecLFSC(std::ostream& out, TheoryProof * tp, theory::eq::E
     }
     Node n = (side == 0 ? eqNode(n1, n2) : eqNode(n2, n1));
     if(tb == 1) {
-    Debug("pf::uf") << "\ncong proved: " << n << "\n";
+    Debug("pf::arith") << "\ncong proved: " << n << "\n";
     }
     return n;
   }
@@ -391,13 +390,13 @@ Node ProofUF::toStreamRecLFSC(std::ostream& out, TheoryProof * tp, theory::eq::E
     Assert(!pf->d_node.isNull());
     Assert(pf->d_children.size() >= 2);
     std::stringstream ss;
-    Debug("pf::uf") << "\ndoing trans proof[[\n";
-    pf->debug_print("pf::uf");
-    Debug("pf::uf") << "\n";
+    Debug("pf::arith") << "\ndoing trans proof[[\n";
+    pf->debug_print("pf::arith");
+    Debug("pf::arith") << "\n";
     Node n1 = toStreamRecLFSC(ss, tp, pf->d_children[0], tb + 1, map);
-    Debug("pf::uf") << "\ndoing trans proof, got n1 " << n1 << "\n";
+    Debug("pf::arith") << "\ndoing trans proof, got n1 " << n1 << "\n";
     if(tb == 1) {
-      Debug("pf::uf") << "\ntrans proof[0], got n1 " << n1 << "\n";
+      Debug("pf::arith") << "\ntrans proof[0], got n1 " << n1 << "\n";
     }
 
     bool identicalEqualities = false;
@@ -434,13 +433,13 @@ Node ProofUF::toStreamRecLFSC(std::ostream& out, TheoryProof * tp, theory::eq::E
         if (((n1[0] == n2[0]) && (n1[1] == n2[1])) || ((n1[0] == n2[1]) && (n1[1] == n2[0]))) {
           // We are in a sequence of identical equalities
 
-          Debug("pf::uf") << "Detected identical equalities: " << std::endl << "\t" << n1 << std::endl;
+          Debug("pf::arith") << "Detected identical equalities: " << std::endl << "\t" << n1 << std::endl;
 
           if (!identicalEqualities) {
             // The sequence of identical equalities has started just now
             identicalEqualities = true;
 
-            Debug("pf::uf") << "The sequence is just beginning. Determining length..." << std::endl;
+            Debug("pf::arith") << "The sequence is just beginning. Determining length..." << std::endl;
 
             // Determine whether the length of this sequence is odd or even.
             evenLengthSequence = true;
@@ -464,11 +463,11 @@ Node ProofUF::toStreamRecLFSC(std::ostream& out, TheoryProof * tp, theory::eq::E
             if (evenLengthSequence) {
               // If the length is even, we need to apply transitivity for the "correct" hand of the equality.
 
-              Debug("pf::uf") << "Equality sequence of even length" << std::endl;
-              Debug("pf::uf") << "n1 is: " << n1 << std::endl;
-              Debug("pf::uf") << "n2 is: " << n2 << std::endl;
-              Debug("pf::uf") << "pf-d_node is: " << pf->d_node << std::endl;
-              Debug("pf::uf") << "Next node is: " << nodeAfterEqualitySequence << std::endl;
+              Debug("pf::arith") << "Equality sequence of even length" << std::endl;
+              Debug("pf::arith") << "n1 is: " << n1 << std::endl;
+              Debug("pf::arith") << "n2 is: " << n2 << std::endl;
+              Debug("pf::arith") << "pf-d_node is: " << pf->d_node << std::endl;
+              Debug("pf::arith") << "Next node is: " << nodeAfterEqualitySequence << std::endl;
 
               ss << "(trans _ _ _ _ ";
 
@@ -481,7 +480,7 @@ Node ProofUF::toStreamRecLFSC(std::ostream& out, TheoryProof * tp, theory::eq::E
                   n1 = eqNode(n1[1], n1[1]);
                   ss << " (symm _ _ _ " << ss1.str() << ")" << ss1.str();
                 } else {
-                  Debug("pf::uf") << "Error: identical equalities over, but hands don't match what we're proving."
+                  Debug("pf::arith") << "Error: identical equalities over, but hands don't match what we're proving."
                                      << std::endl;
                   Assert(false);
                 }
@@ -504,7 +503,7 @@ Node ProofUF::toStreamRecLFSC(std::ostream& out, TheoryProof * tp, theory::eq::E
                   n1 = eqNode(n1[1], n1[1]);
 
                 } else {
-                  Debug("pf::uf") << "Error: even length sequence, but I don't know which hand to keep!" << std::endl;
+                  Debug("pf::arith") << "Error: even length sequence, but I don't know which hand to keep!" << std::endl;
                   Assert(false);
                 }
               }
@@ -512,11 +511,11 @@ Node ProofUF::toStreamRecLFSC(std::ostream& out, TheoryProof * tp, theory::eq::E
               ss << ")";
 
             } else {
-              Debug("pf::uf") << "Equality sequence length is odd!" << std::endl;
+              Debug("pf::arith") << "Equality sequence length is odd!" << std::endl;
               ss.str(ss1.str());
             }
 
-            Debug("pf::uf") << "Have proven: " << n1 << std::endl;
+            Debug("pf::arith") << "Have proven: " << n1 << std::endl;
           } else {
             ss.str(ss1.str());
           }
@@ -531,21 +530,21 @@ Node ProofUF::toStreamRecLFSC(std::ostream& out, TheoryProof * tp, theory::eq::E
         identicalEqualities = false;
       }
 
-      Debug("pf::uf") << "\ndoing trans proof, got n2 " << n2 << "\n";
+      Debug("pf::arith") << "\ndoing trans proof, got n2 " << n2 << "\n";
       if(tb == 1) {
-        Debug("pf::uf") << "\ntrans proof[" << i << "], got n2 " << n2 << "\n";
-        Debug("pf::uf") << (n2.getKind() == kind::EQUAL || n2.getKind() == kind::IFF) << "\n";
+        Debug("pf::arith") << "\ntrans proof[" << i << "], got n2 " << n2 << "\n";
+        Debug("pf::arith") << (n2.getKind() == kind::EQUAL || n2.getKind() == kind::IFF) << "\n";
 
         if ((n1.getNumChildren() >= 2) && (n2.getNumChildren() >= 2)) {
-          Debug("pf::uf") << n1[0].getId() << " " << n1[1].getId() << " / " << n2[0].getId() << " " << n2[1].getId() << "\n";
-          Debug("pf::uf") << n1[0].getId() << " " << n1[0] << "\n";
-          Debug("pf::uf") << n1[1].getId() << " " << n1[1] << "\n";
-          Debug("pf::uf") << n2[0].getId() << " " << n2[0] << "\n";
-          Debug("pf::uf") << n2[1].getId() << " " << n2[1] << "\n";
-          Debug("pf::uf") << (n1[0] == n2[0]) << "\n";
-          Debug("pf::uf") << (n1[1] == n2[1]) << "\n";
-          Debug("pf::uf") << (n1[0] == n2[1]) << "\n";
-          Debug("pf::uf") << (n1[1] == n2[0]) << "\n";
+          Debug("pf::arith") << n1[0].getId() << " " << n1[1].getId() << " / " << n2[0].getId() << " " << n2[1].getId() << "\n";
+          Debug("pf::arith") << n1[0].getId() << " " << n1[0] << "\n";
+          Debug("pf::arith") << n1[1].getId() << " " << n1[1] << "\n";
+          Debug("pf::arith") << n2[0].getId() << " " << n2[0] << "\n";
+          Debug("pf::arith") << n2[1].getId() << " " << n2[1] << "\n";
+          Debug("pf::arith") << (n1[0] == n2[0]) << "\n";
+          Debug("pf::arith") << (n1[1] == n2[1]) << "\n";
+          Debug("pf::arith") << (n1[0] == n2[1]) << "\n";
+          Debug("pf::arith") << (n1[1] == n2[0]) << "\n";
         }
       }
       ss << "(trans _ _ _ _ ";
@@ -555,32 +554,32 @@ Node ProofUF::toStreamRecLFSC(std::ostream& out, TheoryProof * tp, theory::eq::E
         // Both elements of the transitivity rule are equalities/iffs
       {
         if(n1[0] == n2[0]) {
-            if(tb == 1) { Debug("pf::uf") << "case 1\n"; }
+            if(tb == 1) { Debug("pf::arith") << "case 1\n"; }
             n1 = eqNode(n1[1], n2[1]);
             ss << "(symm _ _ _ " << ss1.str() << ") " << ss2.str();
         } else if(n1[1] == n2[1]) {
-          if(tb == 1) { Debug("pf::uf") << "case 2\n"; }
+          if(tb == 1) { Debug("pf::arith") << "case 2\n"; }
           n1 = eqNode(n1[0], n2[0]);
           ss << ss1.str() << " (symm _ _ _ " << ss2.str() << ")";
         } else if(n1[0] == n2[1]) {
-            if(tb == 1) { Debug("pf::uf") << "case 3\n"; }
+            if(tb == 1) { Debug("pf::arith") << "case 3\n"; }
             n1 = eqNode(n2[0], n1[1]);
             ss << ss2.str() << " " << ss1.str();
-            if(tb == 1) { Debug("pf::uf") << "++ proved " << n1 << "\n"; }
+            if(tb == 1) { Debug("pf::arith") << "++ proved " << n1 << "\n"; }
         } else if(n1[1] == n2[0]) {
-          if(tb == 1) { Debug("pf::uf") << "case 4\n"; }
+          if(tb == 1) { Debug("pf::arith") << "case 4\n"; }
           n1 = eqNode(n1[0], n2[1]);
           ss << ss1.str() << " " << ss2.str();
         } else {
           Warning() << "\n\ntrans proof failure at step " << i << "\n\n";
           Warning() << "0 proves " << n1 << "\n";
           Warning() << "1 proves " << n2 << "\n\n";
-          pf->debug_print("pf::uf",0);
+          pf->debug_print("pf::arith",0);
           //toStreamRec(Warning.getStream(), pf, 0);
           Warning() << "\n\n";
           Unreachable();
         }
-        Debug("pf::uf") << "++ trans proof[" << i << "], now have " << n1 << std::endl;
+        Debug("pf::arith") << "++ trans proof[" << i << "], now have " << n1 << std::endl;
       } else if(n1.getKind() == kind::EQUAL || n1.getKind() == kind::IFF) {
         // n1 is an equality/iff, but n2 is a predicate
         if(n1[0] == n2) {
@@ -611,123 +610,30 @@ Node ProofUF::toStreamRecLFSC(std::ostream& out, TheoryProof * tp, theory::eq::E
       ss << ")";
     }
     out << ss.str();
-    Debug("pf::uf") << "\n++ trans proof done, have proven " << n1 << std::endl;
+    Debug("pf::arith") << "\n++ trans proof done, have proven " << n1 << std::endl;
     return n1;
-  }
-
-  case theory::eq::MERGED_ARRAYS_ROW: {
-    Debug("pf::uf") << "eq::MERGED_ARRAYS_ROW encountered in UF_PROOF" << std::endl;
-    Unreachable();
-
-    Debug("pf::uf") << "row lemma: " << pf->d_node << std::endl;
-    Assert(pf->d_node.getKind() == kind::EQUAL);
-    TNode t1, t2, t3, t4;
-    Node ret;
-    if(pf->d_node[1].getKind() == kind::SELECT &&
-       pf->d_node[1][0].getKind() == kind::STORE &&
-       pf->d_node[0].getKind() == kind::SELECT &&
-       pf->d_node[0][0] == pf->d_node[1][0][0] &&
-       pf->d_node[0][1] == pf->d_node[1][1]) {
-      t2 = pf->d_node[1][0][1];
-      t3 = pf->d_node[1][1];
-      t1 = pf->d_node[0][0];
-      t4 = pf->d_node[1][0][2];
-      ret = pf->d_node[1].eqNode(pf->d_node[0]);
-      Debug("pf::uf") << "t1 " << t1 << "\nt2 " << t2 << "\nt3 " << t3 << "\nt4 " << t4 << "\n";
-    } else {
-      Assert(pf->d_node[0].getKind() == kind::SELECT &&
-             pf->d_node[0][0].getKind() == kind::STORE &&
-             pf->d_node[1].getKind() == kind::SELECT &&
-             pf->d_node[1][0] == pf->d_node[0][0][0] &&
-             pf->d_node[1][1] == pf->d_node[0][1]);
-      t2 = pf->d_node[0][0][1];
-      t3 = pf->d_node[0][1];
-      t1 = pf->d_node[1][0];
-      t4 = pf->d_node[0][0][2];
-      ret = pf->d_node;
-      Debug("pf::uf") << "t1 " << t1 << "\nt2 " << t2 << "\nt3 " << t3 << "\nt4 " << t4 << "\n";
-    }
-    out << "(row _ _ ";
-    tp->printTerm(t2.toExpr(), out, map);
-    out << " ";
-    tp->printTerm(t3.toExpr(), out, map);
-    out << " ";
-    tp->printTerm(t1.toExpr(), out, map);
-    out << " ";
-    tp->printTerm(t4.toExpr(), out, map);
-    out << " " << ProofManager::getLitName(t2.eqNode(t3)) << ")";
-    return ret;
-  }
-
-  case theory::eq::MERGED_ARRAYS_ROW1: {
-    Debug("pf::uf") << "eq::MERGED_ARRAYS_ROW1 encountered in UF_PROOF" << std::endl;
-    Unreachable();
-
-    Debug("pf::uf") << "row1 lemma: " << pf->d_node << std::endl;
-    Assert(pf->d_node.getKind() == kind::EQUAL);
-    TNode t1, t2, t3;
-    Node ret;
-    if(pf->d_node[1].getKind() == kind::SELECT &&
-       pf->d_node[1][0].getKind() == kind::STORE &&
-       pf->d_node[1][0][1] == pf->d_node[1][1] &&
-       pf->d_node[1][0][2] == pf->d_node[0]) {
-      t1 = pf->d_node[1][0][0];
-      t2 = pf->d_node[1][0][1];
-      t3 = pf->d_node[0];
-      ret = pf->d_node[1].eqNode(pf->d_node[0]);
-      Debug("pf::uf") << "t1 " << t1 << "\nt2 " << t2 << "\nt3 " << t3 << "\n";
-    } else {
-      Assert(pf->d_node[0].getKind() == kind::SELECT &&
-             pf->d_node[0][0].getKind() == kind::STORE &&
-             pf->d_node[0][0][1] == pf->d_node[0][1] &&
-             pf->d_node[0][0][2] == pf->d_node[1]);
-      t1 = pf->d_node[0][0][0];
-      t2 = pf->d_node[0][0][1];
-      t3 = pf->d_node[1];
-      ret = pf->d_node;
-      Debug("pf::uf") << "t1 " << t1 << "\nt2 " << t2 << "\nt3 " << t3 << "\n";
-    }
-    out << "(row1 _ _ ";
-    tp->printTerm(t1.toExpr(), out, map);
-    out << " ";
-    tp->printTerm(t2.toExpr(), out, map);
-    out << " ";
-    tp->printTerm(t3.toExpr(), out, map);
-    out << ")";
-    return ret;
   }
 
   default:
     Assert(!pf->d_node.isNull());
     Assert(pf->d_children.empty());
-    Debug("pf::uf") << "theory proof: " << pf->d_node << " by rule " << int(pf->d_id) << std::endl;
+    Debug("pf::arith") << "theory proof: " << pf->d_node << " by rule " << int(pf->d_id) << std::endl;
     AlwaysAssert(false);
     return pf->d_node;
   }
 }
 
-UFProof::UFProof(theory::uf::TheoryUF* uf, TheoryProofEngine* pe)
-  : TheoryProof(uf, pe)
+ArithProof::ArithProof(theory::arith::TheoryArith* arith, TheoryProofEngine* pe)
+  : TheoryProof(arith, pe), d_realMode(false)
 {}
 
-void UFProof::registerTerm(Expr term) {
-  // already registered
-  if (d_declarations.find(term) != d_declarations.end())
-    return;
+void ArithProof::registerTerm(Expr term) {
+  Debug("pf::arith") << "Arith register term: " << term << ". Kind: " << term.getKind()
+                            << ". Type: " << term.getType() << std::endl;
 
-  Type type = term.getType();
-  if (type.isSort()) {
-    // declare uninterpreted sorts
-    d_sorts.insert(type);
-  }
-
-  if (term.getKind() == kind::APPLY_UF) {
-    Expr function = term.getOperator();
-    d_declarations.insert(function);
-  }
-
-  if (term.isVariable()) {
-    d_declarations.insert(term);
+  if (term.getType().isReal() && !term.getType().isInteger()) {
+    Debug("pf::arith") << "Entering real mode" << std::endl;
+    d_realMode = true;
   }
 
   // recursively declare all other terms
@@ -737,97 +643,191 @@ void UFProof::registerTerm(Expr term) {
   }
 }
 
-void LFSCUFProof::printOwnedTerm(Expr term, std::ostream& os, const LetMap& map) {
-  Debug("pf::uf") << std::endl << "(pf::uf) LFSCUfProof::printOwnedTerm: term = " << term << std::endl;
+void LFSCArithProof::printOwnedTerm(Expr term, std::ostream& os, const LetMap& map) {
+  Debug("pf::arith") << "Arith print term: " << term << ". Kind: " << term.getKind()
+                     << ". Type: " << term.getType()
+                     << ". Number of children: " << term.getNumChildren() << std::endl;
 
-  Assert (theory::Theory::theoryOf(term) == theory::THEORY_UF);
+  // !d_realMode <--> term.getType().isInteger()
 
-  if (term.getKind() == kind::VARIABLE ||
-      term.getKind() == kind::SKOLEM) {
-    os << term;
+  Assert (theory::Theory::theoryOf(term) == theory::THEORY_ARITH);
+  switch (term.getKind()) {
+
+  case kind::CONST_RATIONAL: {
+    Assert (term.getNumChildren() == 0);
+    Assert (term.getType().isInteger() || term.getType().isReal());
+
+    const Rational& r = term.getConst<Rational>();
+    bool neg = (r < 0);
+
+    os << (!d_realMode ? "(a_int " : "(a_real ");
+
+    if (neg) {
+      os << "(~ ";
+    }
+
+    if (!d_realMode) {
+      os << r.abs();
+    } else {
+      os << r.abs().getNumerator();
+      os << "/";
+      os << r.getDenominator();
+    }
+
+    if (neg) {
+      os << ") ";
+    }
+
+    os << ") ";
     return;
   }
 
-  Assert (term.getKind() == kind::APPLY_UF);
+  case kind::UMINUS: {
+    Assert (term.getNumChildren() == 1);
+    Assert (term.getType().isInteger() || term.getType().isReal());
+    os << (!d_realMode ? "(u-_Int " : "(u-_Real ");
+    d_proofEngine->printBoundTerm(term[0], os, map);
+    os << ") ";
+    return;
+  }
 
-  if(term.getType().isBoolean()) {
-    os << "(p_app ";
+  case kind::PLUS: {
+    Assert (term.getNumChildren() >= 2);
+
+    std::stringstream paren;
+    for (unsigned i = 0; i < term.getNumChildren() - 1; ++i) {
+      os << (!d_realMode ? "(+_Int " : "(+_Real ");
+      d_proofEngine->printBoundTerm(term[i], os, map);
+      os << " ";
+      paren << ") ";
+    }
+
+    d_proofEngine->printBoundTerm(term[term.getNumChildren() - 1], os, map);
+    os << paren.str();
+    return;
   }
-  Expr func = term.getOperator();
-  for (unsigned i = 0; i < term.getNumChildren(); ++i) {
-    os << "(apply _ _ ";
+
+  case kind::MINUS: {
+    Assert (term.getNumChildren() >= 2);
+
+    std::stringstream paren;
+    for (unsigned i = 0; i < term.getNumChildren() - 1; ++i) {
+      os << (!d_realMode ? "(-_Int " : "(-_Real ");
+      d_proofEngine->printBoundTerm(term[i], os, map);
+      os << " ";
+      paren << ") ";
+    }
+
+    d_proofEngine->printBoundTerm(term[term.getNumChildren() - 1], os, map);
+    os << paren.str();
+    return;
   }
-  os << func << " ";
-  for (unsigned i = 0; i < term.getNumChildren(); ++i) {
-    d_proofEngine->printBoundTerm(term[i], os, map);
-    os << ")";
+
+  case kind::MULT: {
+    Assert (term.getNumChildren() >= 2);
+
+    std::stringstream paren;
+    for (unsigned i = 0; i < term.getNumChildren() - 1; ++i) {
+      os << (!d_realMode ? "(*_Int " : "(*_Real ");
+      d_proofEngine->printBoundTerm(term[i], os, map);
+      os << " ";
+      paren << ") ";
+    }
+
+    d_proofEngine->printBoundTerm(term[term.getNumChildren() - 1], os, map);
+    os << paren.str();
+    return;
   }
-  if(term.getType().isBoolean()) {
-    os << ")";
+
+  case kind::DIVISION:
+  case kind::DIVISION_TOTAL: {
+    Assert (term.getNumChildren() >= 2);
+
+    std::stringstream paren;
+    for (unsigned i = 0; i < term.getNumChildren() - 1; ++i) {
+      os << (!d_realMode ? "(/_Int " : "(/_Real ");
+      d_proofEngine->printBoundTerm(term[i], os, map);
+      os << " ";
+      paren << ") ";
+    }
+
+    d_proofEngine->printBoundTerm(term[term.getNumChildren() - 1], os, map);
+    os << paren.str();
+    return;
+  }
+
+  case kind::GT:
+    Assert (term.getNumChildren() == 2);
+    os << (!d_realMode ? "(>_Int " : "(>_Real ");
+    d_proofEngine->printBoundTerm(term[0], os, map);
+    os << " ";
+    d_proofEngine->printBoundTerm(term[1], os, map);
+    os << ") ";
+    return;
+
+  case kind::GEQ:
+    Assert (term.getNumChildren() == 2);
+    os << (!d_realMode ? "(>=_Int " : "(>=_Real ");
+    d_proofEngine->printBoundTerm(term[0], os, map);
+    os << " ";
+    d_proofEngine->printBoundTerm(term[1], os, map);
+    os << ") ";
+    return;
+
+  case kind::LT:
+    Assert (term.getNumChildren() == 2);
+    os << (!d_realMode ? "(<_Int " : "(<_Real ");
+    d_proofEngine->printBoundTerm(term[0], os, map);
+    os << " ";
+    d_proofEngine->printBoundTerm(term[1], os, map);
+    os << ") ";
+    return;
+
+  case kind::LEQ:
+    Assert (term.getNumChildren() == 2);
+    os << (!d_realMode ? "(<=_Int " : "(<=_Real ");
+    d_proofEngine->printBoundTerm(term[0], os, map);
+    os << " ";
+    d_proofEngine->printBoundTerm(term[1], os, map);
+    os << ") ";
+    return;
+
+  default:
+    Debug("pf::arith") << "Default printing of term: " << term << std::endl;
+    os << term;
+    return;
   }
 }
 
-void LFSCUFProof::printOwnedSort(Type type, std::ostream& os) {
-  Debug("pf::uf") << std::endl << "(pf::uf) LFSCArrayProof::printOwnedSort: type is: " << type << std::endl;
+void LFSCArithProof::printOwnedSort(Type type, std::ostream& os) {
+  Debug("pf::arith") << "Arith print sort: " << type << std::endl;
 
-  Assert (type.isSort());
-  os << type <<" ";
+  if (type.isInteger() && d_realMode) {
+    // If in "real mode", don't use type Int for, e.g., equality.
+    os << "Real ";
+  } else {
+    os << type << " ";
+  }
 }
 
-void LFSCUFProof::printTheoryLemmaProof(std::vector<Expr>& lemma, std::ostream& os, std::ostream& paren) {
-  os << " ;; UF Theory Lemma \n;;";
+void LFSCArithProof::printTheoryLemmaProof(std::vector<Expr>& lemma, std::ostream& os, std::ostream& paren) {
+  os << " ;; Arith Theory Lemma \n;;";
   for (unsigned i = 0; i < lemma.size(); ++i) {
     os << lemma[i] <<" ";
   }
   os <<"\n";
   //os << " (clausify_false trust)";
-  UFProof::printTheoryLemmaProof( lemma, os, paren );
+  ArithProof::printTheoryLemmaProof( lemma, os, paren );
 }
 
-void LFSCUFProof::printSortDeclarations(std::ostream& os, std::ostream& paren) {
-  for (TypeSet::const_iterator it = d_sorts.begin(); it != d_sorts.end(); ++it) {
-    if (!ProofManager::currentPM()->wasPrinted(*it)) {
-      os << "(% " << *it << " sort\n";
-      paren << ")";
-      ProofManager::currentPM()->markPrinted(*it);
-    }
-  }
+void LFSCArithProof::printSortDeclarations(std::ostream& os, std::ostream& paren) {
 }
 
-void LFSCUFProof::printTermDeclarations(std::ostream& os, std::ostream& paren) {
-  // declaring the terms
-  for (ExprSet::const_iterator it = d_declarations.begin(); it != d_declarations.end(); ++it) {
-    Expr term = *it;
-
-    os << "(% " << ProofManager::sanitize(term) << " ";
-    os << "(term ";
-
-    Type type = term.getType();
-    if (type.isFunction()) {
-      std::ostringstream fparen;
-      FunctionType ftype = (FunctionType)type;
-      std::vector<Type> args = ftype.getArgTypes();
-      args.push_back(ftype.getRangeType());
-      os << "(arrow";
-      for (unsigned i = 0; i < args.size(); i++) {
-        Type arg_type = args[i];
-        os << " " << arg_type;
-        if (i < args.size() - 2) {
-          os << " (arrow";
-          fparen << ")";
-        }
-      }
-      os << fparen.str() << "))\n";
-    } else {
-      Assert (term.isVariable());
-      os << type << ")\n";
-    }
-    paren << ")";
-  }
+void LFSCArithProof::printTermDeclarations(std::ostream& os, std::ostream& paren) {
 }
 
-void LFSCUFProof::printDeferredDeclarations(std::ostream& os, std::ostream& paren) {
+void LFSCArithProof::printDeferredDeclarations(std::ostream& os, std::ostream& paren) {
   // Nothing to do here at this point.
 }
 
-} /* namespace CVC4 */
+} /* CVC4  namespace */

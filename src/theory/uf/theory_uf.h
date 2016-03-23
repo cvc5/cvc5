@@ -136,7 +136,7 @@ private:
    * Explain a literal, with proof (if "pf" is non-NULL).
    */
   Node explain(TNode literal, eq::EqProof* pf);
-  
+
   /** Literals to propagate */
   context::CDList<Node> d_literalsToPropagate;
 

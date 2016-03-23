@@ -63,17 +63,26 @@ void SmtEngine::checkProof() {
 
   Chat() << "checking proof..." << endl;
 
-  if( !(d_logic.isPure(theory::THEORY_BOOL) ||
-        d_logic.isPure(theory::THEORY_BV) ||
-	(d_logic.isPure(theory::THEORY_UF) &&
-	 ! d_logic.hasCardinalityConstraints())) ||
-      d_logic.isQuantified()) {
+  if ( !(d_logic.isPure(theory::THEORY_BOOL) ||
+           d_logic.isPure(theory::THEORY_BV) ||
+           d_logic.isPure(theory::THEORY_ARRAY) ||
+           (d_logic.isPure(theory::THEORY_UF) &&
+            ! d_logic.hasCardinalityConstraints())) ||
+       d_logic.isQuantified()) {
     // no checking for these yet
     Notice() << "Notice: no proof-checking for non-UF/Bool/BV proofs yet" << endl;
     return;
   }
 
-  char* pfFile = strdup("/tmp/cvc4_proof.XXXXXX");
+  char const* tempDir = getenv("TMPDIR");
+  if (!tempDir) {
+    tempDir = "/tmp";
+  }
+
+  stringstream pfPath;
+  pfPath << tempDir << "/cvc4_proof.XXXXXX";
+
+  char* pfFile = strdup(pfPath.str().c_str());
   int fd = mkstemp(pfFile);
 
   // ensure this temp file is removed after

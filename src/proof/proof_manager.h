@@ -21,7 +21,9 @@
 
 #include <iosfwd>
 #include <map>
-
+#include "proof/proof.h"
+#include "proof/skolemization_manager.h"
+#include "util/proof.h"
 #include "expr/node.h"
 #include "proof/clause_id.h"
 #include "proof/proof.h"
@@ -48,11 +50,11 @@ namespace prop {
 class SmtEngine;
 
 const ClauseId ClauseIdEmpty(-1);
-const ClauseId ClauseIdUndef(-2);  
+const ClauseId ClauseIdUndef(-2);
 const ClauseId ClauseIdError(-3);
 
 class Proof;
-template <class Solver> class TSatProof; 
+template <class Solver> class TSatProof;
 typedef TSatProof< CVC4::Minisat::Solver> CoreSatProof;
 
 class CnfProof;
@@ -60,10 +62,11 @@ class RewriterProof;
 class TheoryProofEngine;
 class TheoryProof;
 class UFProof;
+class ArithProof;
 class ArrayProof;
 class BitVectorProof;
 
-template <class Solver> class LFSCSatProof; 
+template <class Solver> class LFSCSatProof;
 typedef LFSCSatProof< CVC4::Minisat::Solver> LFSCCoreSatProof;
 
 class LFSCCnfProof;
@@ -74,7 +77,7 @@ class LFSCRewriterProof;
 
 template <class Solver> class ProofProxy;
 typedef ProofProxy< CVC4::Minisat::Solver> CoreProofProxy;
-typedef ProofProxy< CVC4::BVMinisat::Solver> BVProofProxy; 
+typedef ProofProxy< CVC4::BVMinisat::Solver> BVProofProxy;
 
 namespace prop {
   typedef uint64_t SatVariable;
@@ -105,7 +108,7 @@ enum ProofRule {
   RULE_CONFLICT,    /* re-construct as a conflict */
   RULE_TSEITIN,     /* Tseitin CNF transformation */
   RULE_SPLIT,       /* A splitting lemma of the form a v ~ a*/
-  
+
   RULE_ARRAYS_EXT,  /* arrays, extensional */
   RULE_ARRAYS_ROW,  /* arrays, read-over-write */
 };/* enum ProofRules */
@@ -120,6 +123,8 @@ class ProofManager {
   ExprSet    d_inputCoreFormulas;
   ExprSet    d_outputCoreFormulas;
 
+  SkolemizationManager d_skolemizationManager;
+
   int d_nextId;
 
   Proof* d_fullProof;
@@ -128,6 +133,8 @@ class ProofManager {
   NodeToNodes d_deps;
   // trace dependences back to unsat core
   void traceDeps(TNode n);
+
+  std::set<Type> d_printedTypes;
 
 protected:
   LogicInfo d_logic;
@@ -153,6 +160,9 @@ public:
   static UFProof* getUfProof();
   static BitVectorProof* getBitVectorProof();
   static ArrayProof* getArrayProof();
+  static ArithProof* getArithProof();
+
+  static SkolemizationManager *getSkolemizationManager();
 
   // iterators over data shared by proofs
   typedef ExprSet::const_iterator assertions_iterator;
@@ -163,17 +173,17 @@ public:
   }
   assertions_iterator end_assertions() const { return d_inputFormulas.end(); }
   size_t num_assertions() const { return d_inputFormulas.size(); }
-  
+
 //---from Morgan---
   Node mkOp(TNode n);
   Node lookupOp(TNode n) const;
   bool hasOp(TNode n) const;
-  
+
   std::map<Node, Node> d_ops;
   std::map<Node, Node> d_bops;
 //---end from Morgan---
-  
-  
+
+
   // variable prefixes
   static std::string getInputClauseName(ClauseId id, const std::string& prefix = "");
   static std::string getLemmaClauseName(ClauseId id, const std::string& prefix = "");
@@ -181,7 +191,7 @@ public:
   static std::string getLearntClauseName(ClauseId id, const std::string& prefix = "");
   static std::string getPreprocessedAssertionName(Node node, const std::string& prefix = "");
   static std::string getAssertionName(Node node, const std::string& prefix = "");
-  
+
   static std::string getVarName(prop::SatVariable var, const std::string& prefix = "");
   static std::string getAtomName(prop::SatVariable var, const std::string& prefix = "");
   static std::string getAtomName(TNode atom, const std::string& prefix = "");
@@ -190,14 +200,13 @@ public:
 
   // for SMT variable names that have spaces and other things
   static std::string sanitize(TNode var);
-  
 
-  /** Add proof assertion - unlinke addCoreAssertion this is post definition expansion **/
+  /** Add proof assertion - unlike addCoreAssertion this is post definition expansion **/
   void addAssertion(Expr formula);
-  
+
   /** Public unsat core methods **/
   void addCoreAssertion(Expr formula);
-  
+
   void addDependence(TNode n, TNode dep);
   void addUnsatCore(Expr formula);
 
@@ -211,6 +220,9 @@ public:
   void setLogic(const LogicInfo& logic);
   const std::string getLogic() const { return d_logic.getLogicString(); }
   LogicInfo & getLogicInfo() { return d_logic; }
+
+  void markPrinted(const Type& type);
+  bool wasPrinted(const Type& type) const;
 
 };/* class ProofManager */
 

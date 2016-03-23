@@ -214,6 +214,15 @@ struct ArraysProperties {
   }
 };/* struct ArraysProperties */
 
+
+struct ArrayPartialSelectTypeRule {
+  inline static TypeNode computeType(NodeManager* nodeManager, TNode n, bool check)
+    throw (TypeCheckingExceptionPrivate, AssertionException) {
+    Assert(n.getKind() == kind::PARTIAL_SELECT_0 || n.getKind() == kind::PARTIAL_SELECT_1);
+    return nodeManager->integerType();
+  }
+};/* struct ArrayPartialSelectTypeRule */
+
 }/* CVC4::theory::arrays namespace */
 }/* CVC4::theory namespace */
 }/* CVC4 namespace */

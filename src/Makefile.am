@@ -76,6 +76,9 @@ libcvc4_la_SOURCES = \
 	printer/cvc/cvc_printer.cpp \
 	printer/tptp/tptp_printer.h \
 	printer/tptp/tptp_printer.cpp \
+	proof/arith_proof.cpp \
+	proof/arith_proof.h \
+	proof/array_proof.cpp \
 	proof/array_proof.h \
 	proof/bitvector_proof.cpp \
 	proof/bitvector_proof.h \
@@ -89,6 +92,8 @@ libcvc4_la_SOURCES = \
 	proof/proof_utils.h \
 	proof/sat_proof.h \
 	proof/sat_proof_implementation.h \
+	proof/skolemization_manager.cpp \
+	proof/skolemization_manager.h \
 	proof/theory_proof.cpp \
 	proof/theory_proof.h \
 	proof/uf_proof.cpp \

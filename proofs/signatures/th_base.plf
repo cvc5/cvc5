@@ -18,8 +18,8 @@
                (! t1 (term (arrow s1 s2))
                (! t2 (term s1)
                 (term s2))))))
-                
-                
+
+
 ; inference rules :
 
 (declare trust (th_holds false))	; temporary
@@ -43,6 +43,28 @@
                (! u (th_holds (= _ x y))
                (! u (th_holds (= _ y z))
                  (th_holds (= _ x z)))))))))
+
+(declare negsymm (! s sort
+              	 (! x (term s)
+              	 (! y (term s)
+              	 (! u (th_holds (not (= _ x y)))
+                   (th_holds (not (= _ y x))))))))
+
+(declare negtrans1 (! s sort
+                   (! x (term s)
+              	   (! y (term s)
+               	   (! z (term s)
+               	   (! u (th_holds (not (= _ x y)))
+               	   (! u (th_holds (= _ y z))
+                     (th_holds (not (= _ x z))))))))))
+
+(declare negtrans2 (! s sort
+                   (! x (term s)
+              	   (! y (term s)
+               	   (! z (term s)
+               	   (! u (th_holds (= _ x y))
+               	   (! u (th_holds (not (= _ y z)))
+                     (th_holds (not (= _ x z))))))))))
 
 (declare cong (! s1 sort
               (! s2 sort
