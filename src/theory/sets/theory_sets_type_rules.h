@@ -236,11 +236,15 @@ struct RelTransClosureTypeRule {
     Assert(n.getKind() == kind::TRANSCLOSURE);
     TypeNode setType = n[0].getType(check);
     if(check) {
-      if(!setType.isSet()) {
-        throw TypeCheckingExceptionPrivate(n, " transitive closure operates on non-rel");
+      if(!setType.isSet() && !setType.getSetElementType().isTuple()) {
+        throw TypeCheckingExceptionPrivate(n, " transitive closure operates on non-relation");
       }
-      if(setType[0].getNumChildren() != 2) {
+      std::vector<TypeNode> tupleTypes = setType[0].getTupleTypes();
+      if(tupleTypes.size() != 2) {
         throw TypeCheckingExceptionPrivate(n, " transitive closure operates on non-binary relations");
+      }
+      if(tupleTypes[0] != tupleTypes[1]) {
+        throw TypeCheckingExceptionPrivate(n, " transitive closure operates on non-homogeneous binary relations");
       }
     }
     return setType;

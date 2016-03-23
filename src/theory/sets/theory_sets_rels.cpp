@@ -83,11 +83,9 @@ typedef std::map<Node, std::vector<Node> >::iterator mem_it;
           }
           if(kind_terms.find(kind::JOIN) != kind_terms.end()) {
             std::vector<Node> join_terms = kind_terms[kind::JOIN];
-            Trace("rels-debug") << "[sets-rels] apply join rules on join terms with size = " << join_terms.size() << std::endl;
             // exp is a membership term and join_terms contains all
             // terms involving "join" operator that are in the same equivalence class with the right hand side of exp
             for(unsigned int j = 0; j < join_terms.size(); j++) {
-              Trace("rels-debug") << "[sets-rels] join term = " << join_terms[j] << std::endl;
               applyJoinRule(exp, join_terms[j]);
             }
           }
@@ -193,7 +191,7 @@ typedef std::map<Node, std::vector<Node> >::iterator mem_it;
 
     if(polarity & d_lemma.find(exp) != d_lemma.end()) {
       Trace("rels-debug") << "\n[sets-rels] Apply PRODUCT-SPLIT rule on term: " << product_term
-                          << " with explaination: " << exp << std::endl;
+                          << " with explanation: " << exp << std::endl;
       std::vector<Node> r1_element;
       std::vector<Node> r2_element;
 
@@ -239,7 +237,7 @@ typedef std::map<Node, std::vector<Node> >::iterator mem_it;
     } else {
       // ONLY need to explicitly compute joins if there are negative literals involving PRODUCT
       Trace("rels-debug") << "\n[sets-rels] Apply PRODUCT-COMPOSE rule on term: " << product_term
-                          << " with explaination: " << exp << std::endl;
+                          << " with explanation: " << exp << std::endl;
       computeRels(product_term);
     }
   }
@@ -261,7 +259,7 @@ typedef std::map<Node, std::vector<Node> >::iterator mem_it;
 
     if(polarity && d_lemma.find(exp) == d_lemma.end()) {
       Trace("rels-debug") <<  "\n[sets-rels] Apply JOIN-SPLIT rule on term: " << join_term
-                          << " with explaination: " << exp << std::endl;
+                          << " with explanation: " << exp << std::endl;
 
       std::vector<Node> r1_element;
       std::vector<Node> r2_element;
@@ -323,7 +321,7 @@ typedef std::map<Node, std::vector<Node> >::iterator mem_it;
     } else {
       // ONLY need to explicitly compute joins if there are negative literals involving JOIN
       Trace("rels-debug") <<  "\n[sets-rels] Apply JOIN-COMPOSE rule on term: " << join_term
-                          << " with explaination: " << exp << std::endl;
+                          << " with explanation: " << exp << std::endl;
       computeRels(join_term);
     }
   }
@@ -339,7 +337,7 @@ typedef std::map<Node, std::vector<Node> >::iterator mem_it;
    */
   void TheorySetsRels::applyTransposeRule(Node exp, Node tp_term, bool tp_occur) {
     Trace("rels-debug") << "\n[sets-rels] Apply transpose rule on term: " << tp_term
-                        << " with explaination: " << exp << std::endl;
+                        << " with explanation: " << exp << std::endl;
     bool polarity = exp.getKind() != kind::NOT;
     Node atom = polarity ? exp : exp[0];
     Node reversedTuple = getRepresentative(reverseTuple(atom[0]));
