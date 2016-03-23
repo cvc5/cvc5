@@ -21,17 +21,22 @@
 #include "theory/quantifiers_engine.h"
 #include "theory/theory_engine.h"
 #include "theory/uf/equality_engine.h"
+#include "util/hash.h"
+
 
 using namespace std;
-using namespace CVC4;
 using namespace CVC4::kind;
 using namespace CVC4::context;
-using namespace CVC4::theory;
-using namespace CVC4::theory::inst;
+
+namespace CVC4 {
+namespace theory {
+namespace inst {
 
 /** trigger class constructor */
-Trigger::Trigger( QuantifiersEngine* qe, Node f, std::vector< Node >& nodes, int matchOption, bool smartTriggers ) :
-d_quantEngine( qe ), d_f( f ){
+Trigger::Trigger( QuantifiersEngine* qe, Node f, std::vector< Node >& nodes,
+                  int matchOption, bool smartTriggers )
+    : d_quantEngine( qe ), d_f( f )
+{
   d_nodes.insert( d_nodes.begin(), nodes.begin(), nodes.end() );
   Trace("trigger") << "Trigger for " << f << ": " << std::endl;
   for( int i=0; i<(int)d_nodes.size(); i++ ){
@@ -78,6 +83,10 @@ d_quantEngine( qe ), d_f( f ){
     }
   }
   Trace("trigger-debug") << "Finished making trigger." << std::endl;
+}
+
+Trigger::~Trigger() {
+  if(d_mg != NULL) { delete d_mg; }
 }
 
 void Trigger::resetInstantiationRound(){
@@ -653,6 +662,12 @@ Trigger* TriggerTrie::getTrigger2( std::vector< Node >& nodes ){
 
 void TriggerTrie::addTrigger2( std::vector< Node >& nodes, Trigger* t ){
   if( nodes.empty() ){
+    if(d_tr != NULL){
+      // TODO: Andy can you look at fmf/QEpres-uf.855035.smt?
+      delete d_tr;
+      d_tr = NULL;
+    }
+    Assert(d_tr == NULL);
     d_tr = t;
   }else{
     Node n = nodes.back();
@@ -663,3 +678,23 @@ void TriggerTrie::addTrigger2( std::vector< Node >& nodes, Trigger* t ){
     d_children[n]->addTrigger2( nodes, t );
   }
 }
+
+
+TriggerTrie::TriggerTrie()
+    : d_tr( NULL )
+{}
+
+TriggerTrie::~TriggerTrie() {
+  for(std::map< TNode, TriggerTrie* >::iterator i = d_children.begin(), iend = d_children.end();
+      i != iend; ++i) {
+    TriggerTrie* current = (*i).second;
+    delete current;
+  }
+  d_children.clear();
+
+  if(d_tr != NULL) { delete d_tr; }
+}
+
+}/* CVC4::theory::inst namespace */
+}/* CVC4::theory namespace */
+}/* CVC4 namespace */
