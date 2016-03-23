@@ -151,6 +151,14 @@ QuantifiersEngine::QuantifiersEngine(context::Context* c, context::UserContext* 
 }
 
 QuantifiersEngine::~QuantifiersEngine(){
+  for(std::map< Node, inst::CDInstMatchTrie* >::iterator
+      i = d_c_inst_match_trie.begin(), iend = d_c_inst_match_trie.end();
+      i != iend; ++i)
+  {
+    delete (*i).second;
+  }
+  d_c_inst_match_trie.clear();
+
   delete d_alpha_equiv;
   delete d_builder;
   delete d_rr_engine;
