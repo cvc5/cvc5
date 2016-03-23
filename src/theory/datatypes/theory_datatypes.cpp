@@ -75,6 +75,12 @@ TheoryDatatypes::TheoryDatatypes(Context* c, UserContext* u, OutputChannel& out,
 }
 
 TheoryDatatypes::~TheoryDatatypes() {
+  for(std::map< Node, EqcInfo* >::iterator i = d_eqc_info.begin(), iend = d_eqc_info.end();
+      i != iend; ++i){
+    EqcInfo* current = (*i).second;
+    Assert(current != NULL);
+    delete current;
+  }
 }
 
 void TheoryDatatypes::setMasterEqualityEngine(eq::EqualityEngine* eq) {
@@ -91,7 +97,7 @@ TheoryDatatypes::EqcInfo* TheoryDatatypes::getOrMakeEqcInfo( TNode n, bool doMak
 
       std::map< Node, EqcInfo* >::iterator eqc_i = d_eqc_info.find( n );
       EqcInfo* ei;
-      if( eqc_i!=d_eqc_info.end() ){
+      if( eqc_i != d_eqc_info.end() ){
         ei = eqc_i->second;
       }else{
         ei = new EqcInfo( getSatContext() );
@@ -901,10 +907,11 @@ void TheoryDatatypes::eqNotifyDisequal(TNode t1, TNode t2, TNode reason){
 
 }
 
-TheoryDatatypes::EqcInfo::EqcInfo( context::Context* c ) :
-d_inst( c, false ), d_constructor( c, Node::null() ), d_selectors( c, false ){
-
-}
+TheoryDatatypes::EqcInfo::EqcInfo( context::Context* c )
+    : d_inst( c, false )
+    , d_constructor( c, Node::null() )
+    , d_selectors( c, false )
+{}
 
 bool TheoryDatatypes::hasLabel( EqcInfo* eqc, Node n ){
   return ( eqc && !eqc->d_constructor.get().isNull() ) || !getLabel( n ).isNull();

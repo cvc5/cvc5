@@ -133,8 +133,8 @@ private:
   void getPossibleCons( EqcInfo* eqc, Node n, std::vector< bool >& cons );
   void getSelectorsForCons( Node r, std::map< int, bool >& sels );
   /** mkExpDefSkolem */
-  void mkExpDefSkolem( Node sel, TypeNode dt, TypeNode rt );  
-  /** skolems for terms */  
+  void mkExpDefSkolem( Node sel, TypeNode dt, TypeNode rt );
+  /** skolems for terms */
   NodeMap d_term_sk;
   Node getTermSkolemFor( Node n );
 private:
