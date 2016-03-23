@@ -21,10 +21,7 @@
 #include "theory/arith/theory_arith.h"
 #include <stack>
 
-using namespace CVC4;
-using namespace CVC4::theory;
-using namespace CVC4::theory::arith;
-
+namespace CVC4 {
 
 inline static Node eqNode(TNode n1, TNode n2) {
   return NodeManager::currentNM()->mkNode(n1.getType().isBoolean() ? kind::IFF : kind::EQUAL, n1, n2);
@@ -89,13 +86,13 @@ Node ProofArith::toStreamRecLFSC(std::ostream& out, TheoryProof * tp, theory::eq
   Debug("pf::arith") << std::endl;
 
   if(tb == 0) {
-    Assert(pf->d_id == eq::MERGED_THROUGH_TRANS);
+    Assert(pf->d_id == theory::eq::MERGED_THROUGH_TRANS);
     Assert(!pf->d_node.isNull());
     Assert(pf->d_children.size() >= 2);
 
     int neg = -1;
     theory::eq::EqProof subTrans;
-    subTrans.d_id = eq::MERGED_THROUGH_TRANS;
+    subTrans.d_id = theory::eq::MERGED_THROUGH_TRANS;
     subTrans.d_node = pf->d_node;
 
     size_t i = 0;
@@ -108,7 +105,7 @@ Node ProofArith::toStreamRecLFSC(std::ostream& out, TheoryProof * tp, theory::eq
       }
 
       // Handle congruence closures over equalities.
-      else if (pf->d_children[i]->d_id==eq::MERGED_THROUGH_CONGRUENCE && pf->d_children[i]->d_node.isNull()) {
+      else if (pf->d_children[i]->d_id==theory::eq::MERGED_THROUGH_CONGRUENCE && pf->d_children[i]->d_node.isNull()) {
         Debug("pf::arith") << "Handling congruence over equalities" << std::endl;
 
         // Gather the sequence of consecutive congruence closures.
@@ -117,7 +114,7 @@ Node ProofArith::toStreamRecLFSC(std::ostream& out, TheoryProof * tp, theory::eq
         Debug("pf::arith") << "Collecting congruence sequence" << std::endl;
         for (count = 0;
              i + count < pf->d_children.size() &&
-             pf->d_children[i + count]->d_id==eq::MERGED_THROUGH_CONGRUENCE &&
+             pf->d_children[i + count]->d_id==theory::eq::MERGED_THROUGH_CONGRUENCE &&
              pf->d_children[i + count]->d_node.isNull();
              ++count) {
           Debug("pf::arith") << "Found a congruence: " << std::endl;
@@ -162,16 +159,16 @@ Node ProofArith::toStreamRecLFSC(std::ostream& out, TheoryProof * tp, theory::eq
         // Start with the congruence closure closest to the target clause, and work our way back/forward.
         if (targetAppearsBefore) {
           for (unsigned j = 0; j < count; ++j) {
-            if (pf->d_children[i + j]->d_children[0]->d_id != eq::MERGED_THROUGH_REFLEXIVITY)
+            if (pf->d_children[i + j]->d_children[0]->d_id != theory::eq::MERGED_THROUGH_REFLEXIVITY)
               orderedEqualities.insert(orderedEqualities.begin(), pf->d_children[i + j]->d_children[0]);
-            if (pf->d_children[i + j]->d_children[1]->d_id != eq::MERGED_THROUGH_REFLEXIVITY)
+            if (pf->d_children[i + j]->d_children[1]->d_id != theory::eq::MERGED_THROUGH_REFLEXIVITY)
             orderedEqualities.insert(orderedEqualities.end(), pf->d_children[i + j]->d_children[1]);
           }
         } else {
           for (unsigned j = 0; j < count; ++j) {
-            if (pf->d_children[i + count - 1 - j]->d_children[0]->d_id != eq::MERGED_THROUGH_REFLEXIVITY)
+            if (pf->d_children[i + count - 1 - j]->d_children[0]->d_id != theory::eq::MERGED_THROUGH_REFLEXIVITY)
               orderedEqualities.insert(orderedEqualities.begin(), pf->d_children[i + count - 1 - j]->d_children[0]);
-            if (pf->d_children[i + count - 1 - j]->d_children[1]->d_id != eq::MERGED_THROUGH_REFLEXIVITY)
+            if (pf->d_children[i + count - 1 - j]->d_children[1]->d_id != theory::eq::MERGED_THROUGH_REFLEXIVITY)
               orderedEqualities.insert(orderedEqualities.end(), pf->d_children[i + count - 1 - j]->d_children[1]);
           }
         }
@@ -232,22 +229,22 @@ Node ProofArith::toStreamRecLFSC(std::ostream& out, TheoryProof * tp, theory::eq
   }
 
   switch(pf->d_id) {
-  case eq::MERGED_THROUGH_CONGRUENCE: {
+  case theory::eq::MERGED_THROUGH_CONGRUENCE: {
     Debug("pf::arith") << "\nok, looking at congruence:\n";
     pf->debug_print("pf::arith");
     std::stack<const theory::eq::EqProof*> stk;
-    for(const theory::eq::EqProof* pf2 = pf; pf2->d_id == eq::MERGED_THROUGH_CONGRUENCE; pf2 = pf2->d_children[0]) {
+    for(const theory::eq::EqProof* pf2 = pf; pf2->d_id == theory::eq::MERGED_THROUGH_CONGRUENCE; pf2 = pf2->d_children[0]) {
       Assert(!pf2->d_node.isNull());
       Assert(pf2->d_node.getKind() == kind::PARTIAL_APPLY_UF || pf2->d_node.getKind() == kind::BUILTIN || pf2->d_node.getKind() == kind::APPLY_UF || pf2->d_node.getKind() == kind::SELECT || pf2->d_node.getKind() == kind::STORE);
       Assert(pf2->d_children.size() == 2);
       out << "(cong _ _ _ _ _ _ ";
       stk.push(pf2);
     }
-    Assert(stk.top()->d_children[0]->d_id != eq::MERGED_THROUGH_CONGRUENCE);
+    Assert(stk.top()->d_children[0]->d_id != theory::eq::MERGED_THROUGH_CONGRUENCE);
     NodeBuilder<> b1(kind::PARTIAL_APPLY_UF), b2(kind::PARTIAL_APPLY_UF);
     const theory::eq::EqProof* pf2 = stk.top();
     stk.pop();
-    Assert(pf2->d_id == eq::MERGED_THROUGH_CONGRUENCE);
+    Assert(pf2->d_id == theory::eq::MERGED_THROUGH_CONGRUENCE);
     Node n1 = toStreamRecLFSC(out, tp, pf2->d_children[0], tb + 1, map);
     out << " ";
     std::stringstream ss;
@@ -316,7 +313,7 @@ Node ProofArith::toStreamRecLFSC(std::ostream& out, TheoryProof * tp, theory::eq
       }
       pf2 = stk.top();
       stk.pop();
-      Assert(pf2->d_id == eq::MERGED_THROUGH_CONGRUENCE);
+      Assert(pf2->d_id == theory::eq::MERGED_THROUGH_CONGRUENCE);
       out << " ";
       ss.str("");
       n2 = toStreamRecLFSC(ss, tp, pf2->d_children[1], tb + 1, map);
@@ -375,7 +372,7 @@ Node ProofArith::toStreamRecLFSC(std::ostream& out, TheoryProof * tp, theory::eq
     return n;
   }
 
-  case eq::MERGED_THROUGH_REFLEXIVITY:
+  case theory::eq::MERGED_THROUGH_REFLEXIVITY:
     Assert(!pf->d_node.isNull());
     Assert(pf->d_children.empty());
     out << "(refl _ ";
@@ -383,13 +380,13 @@ Node ProofArith::toStreamRecLFSC(std::ostream& out, TheoryProof * tp, theory::eq
     out << ")";
     return eqNode(pf->d_node, pf->d_node);
 
-  case eq::MERGED_THROUGH_EQUALITY:
+  case theory::eq::MERGED_THROUGH_EQUALITY:
     Assert(!pf->d_node.isNull());
     Assert(pf->d_children.empty());
     out << ProofManager::getLitName(pf->d_node.negate());
     return pf->d_node;
 
-  case eq::MERGED_THROUGH_TRANS: {
+  case theory::eq::MERGED_THROUGH_TRANS: {
     Assert(!pf->d_node.isNull());
     Assert(pf->d_children.size() >= 2);
     std::stringstream ss;
@@ -653,7 +650,7 @@ void LFSCArithProof::printOwnedTerm(Expr term, std::ostream& os, const LetMap& m
 
   // !d_realMode <--> term.getType().isInteger()
 
-  Assert (Theory::theoryOf(term) == THEORY_ARITH);
+  Assert (theory::Theory::theoryOf(term) == theory::THEORY_ARITH);
   switch (term.getKind()) {
 
   case kind::CONST_RATIONAL: {
@@ -832,3 +829,5 @@ void LFSCArithProof::printTermDeclarations(std::ostream& os, std::ostream& paren
 void LFSCArithProof::printDeferredDeclarations(std::ostream& os, std::ostream& paren) {
   // Nothing to do here at this point.
 }
+
+} /* CVC4  namespace */

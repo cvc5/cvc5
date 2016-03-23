@@ -21,9 +21,7 @@
 #include "theory/arrays/theory_arrays.h"
 #include <stack>
 
-using namespace CVC4;
-using namespace CVC4::theory;
-using namespace CVC4::theory::arrays;
+namespace CVC4 {
 
 inline static Node eqNode(TNode n1, TNode n2) {
   return NodeManager::currentNM()->mkNode(n1.getType().isBoolean() ? kind::IFF : kind::EQUAL, n1, n2);
@@ -112,13 +110,13 @@ Node ProofArray::toStreamRecLFSC(std::ostream& out,
   Debug("pf::array") << std::endl;
 
   if(tb == 0) {
-    Assert(pf->d_id == eq::MERGED_THROUGH_TRANS);
+    Assert(pf->d_id == theory::eq::MERGED_THROUGH_TRANS);
     Assert(!pf->d_node.isNull());
     Assert(pf->d_children.size() >= 2);
 
     int neg = -1;
     theory::eq::EqProof subTrans;
-    subTrans.d_id = eq::MERGED_THROUGH_TRANS;
+    subTrans.d_id = theory::eq::MERGED_THROUGH_TRANS;
     subTrans.d_node = pf->d_node;
 
     size_t i = 0;
@@ -131,7 +129,7 @@ Node ProofArray::toStreamRecLFSC(std::ostream& out,
       }
 
       // Handle congruence closures over equalities.
-      else if (pf->d_children[i]->d_id==eq::MERGED_THROUGH_CONGRUENCE && pf->d_children[i]->d_node.isNull()) {
+      else if (pf->d_children[i]->d_id==theory::eq::MERGED_THROUGH_CONGRUENCE && pf->d_children[i]->d_node.isNull()) {
         Debug("pf::array") << "Handling congruence over equalities" << std::endl;
 
         // Gather the sequence of consecutive congruence closures.
@@ -140,7 +138,7 @@ Node ProofArray::toStreamRecLFSC(std::ostream& out,
         Debug("pf::array") << "Collecting congruence sequence" << std::endl;
         for (count = 0;
              i + count < pf->d_children.size() &&
-             pf->d_children[i + count]->d_id==eq::MERGED_THROUGH_CONGRUENCE &&
+             pf->d_children[i + count]->d_id==theory::eq::MERGED_THROUGH_CONGRUENCE &&
              pf->d_children[i + count]->d_node.isNull();
              ++count) {
           Debug("pf::array") << "Found a congruence: " << std::endl;
@@ -184,16 +182,16 @@ Node ProofArray::toStreamRecLFSC(std::ostream& out,
         // Start with the congruence closure closest to the target clause, and work our way back/forward.
         if (targetAppearsBefore) {
           for (unsigned j = 0; j < count; ++j) {
-            if (pf->d_children[i + j]->d_children[0]->d_id != eq::MERGED_THROUGH_REFLEXIVITY)
+            if (pf->d_children[i + j]->d_children[0]->d_id != theory::eq::MERGED_THROUGH_REFLEXIVITY)
               orderedEqualities.insert(orderedEqualities.begin(), pf->d_children[i + j]->d_children[0]);
-            if (pf->d_children[i + j]->d_children[1]->d_id != eq::MERGED_THROUGH_REFLEXIVITY)
+            if (pf->d_children[i + j]->d_children[1]->d_id != theory::eq::MERGED_THROUGH_REFLEXIVITY)
               orderedEqualities.insert(orderedEqualities.end(), pf->d_children[i + j]->d_children[1]);
           }
         } else {
           for (unsigned j = 0; j < count; ++j) {
-            if (pf->d_children[i + count - 1 - j]->d_children[0]->d_id != eq::MERGED_THROUGH_REFLEXIVITY)
+            if (pf->d_children[i + count - 1 - j]->d_children[0]->d_id != theory::eq::MERGED_THROUGH_REFLEXIVITY)
               orderedEqualities.insert(orderedEqualities.begin(), pf->d_children[i + count - 1 - j]->d_children[0]);
-            if (pf->d_children[i + count - 1 - j]->d_children[1]->d_id != eq::MERGED_THROUGH_REFLEXIVITY)
+            if (pf->d_children[i + count - 1 - j]->d_children[1]->d_id != theory::eq::MERGED_THROUGH_REFLEXIVITY)
               orderedEqualities.insert(orderedEqualities.end(), pf->d_children[i + count - 1 - j]->d_children[1]);
           }
         }
@@ -237,7 +235,7 @@ Node ProofArray::toStreamRecLFSC(std::ostream& out,
     if (n2[0].getNumChildren() > 0) { Debug("mgdx") << "\nn2[0]: " << n2[0][0] << std::endl; }
     if (n1.getNumChildren() > 1) { Debug("mgdx") << "n1[1]: " << n1[1] << std::endl; }
 
-    if (pf->d_children[neg]->d_id == eq::MERGED_ARRAYS_EXT) {
+    if (pf->d_children[neg]->d_id == theory::eq::MERGED_ARRAYS_EXT) {
       // The negative node was created by an EXT rule; e.g. it is a[k]!=b[k], due to a!=b.
 
       //      	    (clausify_false (contra _ .gl2 (or_elim_1 _ _ .gl1 FIXME))))))) (\ .glemc6
@@ -278,11 +276,11 @@ Node ProofArray::toStreamRecLFSC(std::ostream& out,
   }
 
   switch(pf->d_id) {
-  case eq::MERGED_THROUGH_CONGRUENCE: {
+  case theory::eq::MERGED_THROUGH_CONGRUENCE: {
     Debug("mgd") << "\nok, looking at congruence:\n";
     pf->debug_print("mgd");
     std::stack<const theory::eq::EqProof*> stk;
-    for(const theory::eq::EqProof* pf2 = pf; pf2->d_id == eq::MERGED_THROUGH_CONGRUENCE; pf2 = pf2->d_children[0]) {
+    for(const theory::eq::EqProof* pf2 = pf; pf2->d_id == theory::eq::MERGED_THROUGH_CONGRUENCE; pf2 = pf2->d_children[0]) {
       Assert(!pf2->d_node.isNull());
       Assert(pf2->d_node.getKind() == kind::PARTIAL_APPLY_UF ||
              pf2->d_node.getKind() == kind::BUILTIN ||
@@ -296,13 +294,13 @@ Node ProofArray::toStreamRecLFSC(std::ostream& out,
       out << "(cong _ _ _ _ _ _ ";
       stk.push(pf2);
     }
-    Assert(stk.top()->d_children[0]->d_id != eq::MERGED_THROUGH_CONGRUENCE);
+    Assert(stk.top()->d_children[0]->d_id != theory::eq::MERGED_THROUGH_CONGRUENCE);
     //    NodeBuilder<> b1(kind::PARTIAL_APPLY_UF), b2(kind::PARTIAL_APPLY_UF);
     NodeBuilder<> b1, b2;
 
     const theory::eq::EqProof* pf2 = stk.top();
     stk.pop();
-    Assert(pf2->d_id == eq::MERGED_THROUGH_CONGRUENCE);
+    Assert(pf2->d_id == theory::eq::MERGED_THROUGH_CONGRUENCE);
     Node n1 = toStreamRecLFSC(out, tp, pf2->d_children[0], tb + 1, map);
     out << " ";
     std::stringstream ss;
@@ -419,7 +417,7 @@ Node ProofArray::toStreamRecLFSC(std::ostream& out,
 
       pf2 = stk.top();
       stk.pop();
-      Assert(pf2->d_id == eq::MERGED_THROUGH_CONGRUENCE);
+      Assert(pf2->d_id == theory::eq::MERGED_THROUGH_CONGRUENCE);
       out << " ";
       ss.str("");
       n2 = toStreamRecLFSC(ss, tp, pf2->d_children[1], tb + 1, map);
@@ -523,7 +521,7 @@ Node ProofArray::toStreamRecLFSC(std::ostream& out,
     return n;
   }
 
-  case eq::MERGED_THROUGH_REFLEXIVITY:
+  case theory::eq::MERGED_THROUGH_REFLEXIVITY:
     Assert(!pf->d_node.isNull());
     Assert(pf->d_children.empty());
     out << "(refl _ ";
@@ -531,7 +529,7 @@ Node ProofArray::toStreamRecLFSC(std::ostream& out,
     out << ")";
     return eqNode(pf->d_node, pf->d_node);
 
-  case eq::MERGED_THROUGH_EQUALITY:
+  case theory::eq::MERGED_THROUGH_EQUALITY:
     Assert(!pf->d_node.isNull());
     Assert(pf->d_children.empty());
     Debug("pf::array") << "ArrayProof::toStream: getLitName( " << pf->d_node.negate() << " ) = " <<
@@ -539,7 +537,7 @@ Node ProofArray::toStreamRecLFSC(std::ostream& out,
     out << ProofManager::getLitName(pf->d_node.negate());
     return pf->d_node;
 
-  case eq::MERGED_THROUGH_TRANS: {
+  case theory::eq::MERGED_THROUGH_TRANS: {
     bool firstNeg = false;
     bool secondNeg = false;
 
@@ -813,7 +811,7 @@ Node ProofArray::toStreamRecLFSC(std::ostream& out,
     return n1;
   }
 
-  case eq::MERGED_ARRAYS_ROW: {
+  case theory::eq::MERGED_ARRAYS_ROW: {
     Debug("mgd") << "row lemma: " << pf->d_node << std::endl;
     Assert(pf->d_node.getKind() == kind::EQUAL);
 
@@ -959,7 +957,7 @@ Node ProofArray::toStreamRecLFSC(std::ostream& out,
     }
   }
 
-  case eq::MERGED_ARRAYS_ROW1: {
+  case theory::eq::MERGED_ARRAYS_ROW1: {
     Debug("mgd") << "row1 lemma: " << pf->d_node << std::endl;
     Assert(pf->d_node.getKind() == kind::EQUAL);
     TNode t1, t2, t3;
@@ -994,7 +992,7 @@ Node ProofArray::toStreamRecLFSC(std::ostream& out,
     return ret;
   }
 
-  case eq::MERGED_ARRAYS_EXT: {
+  case theory::eq::MERGED_ARRAYS_EXT: {
     theory::eq::EqProof *child_proof;
 
     Assert(pf->d_node.getKind() == kind::NOT);
@@ -1071,9 +1069,9 @@ std::string ArrayProof::skolemToLiteral(Expr skolem) {
 void LFSCArrayProof::printOwnedTerm(Expr term, std::ostream& os, const LetMap& map) {
   Debug("pf::array") << std::endl << "(pf::array) LFSCArrayProof::printOwnedTerm: term = " << term << std::endl;
 
-  Assert (Theory::theoryOf(term) == THEORY_ARRAY);
+  Assert (theory::Theory::theoryOf(term) == theory::THEORY_ARRAY);
 
-  if (Theory::theoryOf(term) != THEORY_ARRAY) {
+  if (theory::Theory::theoryOf(term) != theory::THEORY_ARRAY) {
     // We can get here, for instance, if there's a (select ite ...), e.g. a non-array term
     // hiding as a subterm of an array term. In that case, send it back to the dispatcher.
     d_proofEngine->printBoundTerm(term, os, map);
@@ -1258,3 +1256,5 @@ void LFSCArrayProof::printDeferredDeclarations(std::ostream& os, std::ostream& p
     paren << ")))";
   }
 }
+
+} /* CVC4  namespace */

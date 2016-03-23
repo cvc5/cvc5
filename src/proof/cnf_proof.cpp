@@ -24,11 +24,9 @@
 #include "prop/minisat/minisat.h"
 #include "prop/sat_solver_types.h"
 
-using namespace CVC4::prop;
-
 namespace CVC4 {
 
-CnfProof::CnfProof(CnfStream* stream,
+CnfProof::CnfProof(prop::CnfStream* stream,
                    context::Context* ctx,
                    const std::string& name)
   : d_cnfStream(stream)
@@ -225,8 +223,8 @@ Node CnfProof::getAtom(prop::SatVariable var) {
 void CnfProof::collectAtoms(const prop::SatClause* clause,
                             NodeSet& atoms) {
   for (unsigned i = 0; i < clause->size(); ++i) {
-    SatLiteral lit = clause->operator[](i);
-    SatVariable var = lit.getSatVariable();
+    prop::SatLiteral lit = clause->operator[](i);
+    prop::SatVariable var = lit.getSatVariable();
     TNode atom = getAtom(var);
     if (atoms.find(atom) == atoms.end()) {
       Assert (atoms.find(atom) == atoms.end());
@@ -758,7 +756,5 @@ bool LFSCCnfProof::printProofTopLevel(Node e, std::ostream& out) {
     return true;
   }
 }
-
-
 
 } /* CVC4 namespace */
