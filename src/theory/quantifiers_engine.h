@@ -203,7 +203,8 @@ private:
   std::map< Node, int > d_total_inst_debug;
   std::map< Node, int > d_temp_inst_debug;
   int d_total_inst_count_debug;
-  /** inst round counters */
+  /** inst round counters TODO: make context-dependent? */
+  context::CDO< int > d_ierCounter_c;
   int d_ierCounter;
   int d_ierCounter_lc;
   int d_ierCounterLastLc;

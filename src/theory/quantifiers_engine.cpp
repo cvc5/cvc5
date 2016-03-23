@@ -88,6 +88,10 @@ QuantifiersEngine::QuantifiersEngine(context::Context* c, context::UserContext* 
     d_te( te ),
     d_lemmas_produced_c(u),
     d_skolemized(u),
+    d_ierCounter_c(c),
+    //d_ierCounter(c),
+    //d_ierCounter_lc(c),
+    //d_ierCounterLastLc(c),
     d_presolve(u, true),
     d_presolve_in(u),
     d_presolve_cache(u),
@@ -140,12 +144,21 @@ QuantifiersEngine::QuantifiersEngine(context::Context* c, context::UserContext* 
   d_total_inst_count_debug = 0;
   //allow theory combination to go first, once initially
   d_ierCounter = options::instWhenTcFirst() ? 0 : 1;
+  d_ierCounter_c = d_ierCounter;
   d_ierCounter_lc = 0;
-  d_ierCounterLastLc = d_ierCounter_lc;
+  d_ierCounterLastLc = 0;
   d_inst_when_phase = 1 + ( options::instWhenPhase()<1 ? 1 : options::instWhenPhase() );
 }
 
 QuantifiersEngine::~QuantifiersEngine(){
+  for(std::map< Node, inst::CDInstMatchTrie* >::iterator
+      i = d_c_inst_match_trie.begin(), iend = d_c_inst_match_trie.end();
+      i != iend; ++i)
+  {
+    delete (*i).second;
+  }
+  d_c_inst_match_trie.clear();
+
   delete d_alpha_equiv;
   delete d_builder;
   delete d_rr_engine;
@@ -372,6 +385,7 @@ void QuantifiersEngine::check( Theory::Effort e ){
   if( needsCheck ){
     if( Trace.isOn("quant-engine-debug") ){
       Trace("quant-engine-debug") << "Quantifiers Engine check, level = " << e << std::endl;
+      Trace("quant-engine-debug") << "  depth : " << d_ierCounter_c << std::endl;
       Trace("quant-engine-debug") << "  modules to check : ";
       for( unsigned i=0; i<qm.size(); i++ ){
         Trace("quant-engine-debug") << qm[i]->identify() << " ";
@@ -465,11 +479,12 @@ void QuantifiersEngine::check( Theory::Effort e ){
           if( e==Theory::EFFORT_FULL ){
             //increment if a last call happened, we are not strictly enforcing interleaving, or already were in phase
             if( d_ierCounterLastLc!=d_ierCounter_lc || !options::instWhenStrictInterleave() || d_ierCounter%d_inst_when_phase!=0 ){
-              d_ierCounter++;
+              d_ierCounter = d_ierCounter + 1;
               d_ierCounterLastLc = d_ierCounter_lc;
+              d_ierCounter_c = d_ierCounter_c.get() + 1;
             }
           }else if( e==Theory::EFFORT_LAST_CALL ){
-            d_ierCounter_lc++;
+            d_ierCounter_lc = d_ierCounter_lc + 1;
           }
         }else if( quant_e==QEFFORT_MODEL ){
           if( e==Theory::EFFORT_LAST_CALL ){
@@ -1339,7 +1354,7 @@ Node EqualityQueryQuantifiersEngine::getInternalRepresentative( Node a, Node f, 
   Assert( f.isNull() || f.getKind()==FORALL );
   Node r = getRepresentative( a );
   if( options::finiteModelFind() ){
-    if( r.isConst() ){
+    if( r.isConst() && quantifiers::TermDb::containsUninterpretedConstant( r ) ){
       //map back from values assigned by model, if any
       if( d_qe->getModel() ){
         std::map< Node, Node >::iterator it = d_qe->getModel()->d_rep_set.d_values_to_terms.find( r );

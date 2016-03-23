@@ -1652,20 +1652,6 @@ bool TermDb::containsTerms2( Node n, std::vector< Node >& t, std::map< Node, boo
   return false;
 }
 
-bool TermDb::containsUninterpretedConstant2( Node n, std::map< Node, bool >& visited ) {
-  if( n.getKind()==UNINTERPRETED_CONSTANT ){
-    return true;
-  }else if( visited.find( n )==visited.end() ){
-    visited[n] = true;
-    for( unsigned i=0; i<n.getNumChildren(); i++ ){
-      if( containsUninterpretedConstant2( n[i], visited ) ){
-        return true;
-      }
-    }
-  }
-  return false;
-}
-
 bool TermDb::containsTerm( Node n, Node t ) {
   std::map< Node, bool > visited;
   return containsTerm2( n, t, visited );
@@ -1696,8 +1682,22 @@ int TermDb::getTermDepth( Node n ) {
 }
 
 bool TermDb::containsUninterpretedConstant( Node n ) {
-  std::map< Node, bool > visited;
-  return containsUninterpretedConstant2( n, visited );
+  if (!n.hasAttribute(ContainsUConstAttribute()) ){
+    bool ret = false;
+    if( n.getKind()==UNINTERPRETED_CONSTANT ){
+      ret = true;
+    }else{
+      for( unsigned i=0; i<n.getNumChildren(); i++ ){
+        if( containsUninterpretedConstant( n[i] ) ){
+          ret = true;
+          break;
+        }
+      }
+    }
+    ContainsUConstAttribute cuca;
+    n.setAttribute(cuca, ret ? 1 : 0);
+  }
+  return n.getAttribute(ContainsUConstAttribute())!=0;
 }
 
 Node TermDb::simpleNegate( Node n ){

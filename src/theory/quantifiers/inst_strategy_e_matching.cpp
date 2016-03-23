@@ -51,10 +51,12 @@ struct sortQuantifiersForSymbol {
 
 struct sortTriggers {
   bool operator() (Node i, Node j) {
-    if( Trigger::isAtomicTrigger( i ) ){
-      return i<j || !Trigger::isAtomicTrigger( j );
+    int wi = Trigger::getTriggerWeight( i );
+    int wj = Trigger::getTriggerWeight( j );
+    if( wi==wj ){
+      return i<j;
     }else{
-      return i<j && !Trigger::isAtomicTrigger( j );
+      return wi<wj;
     }
   }
 };
@@ -257,19 +259,20 @@ void InstStrategyAutoGenTriggers::generateTriggers( Node f ){
       Node bd = d_quantEngine->getTermDatabase()->getInstConstantBody( f );
       Trigger::collectPatTerms( d_quantEngine, f, bd, patTermsF, d_tr_strategy, d_user_no_gen[f], true );
       Trace("auto-gen-trigger-debug") << "Collected pat terms for " << bd << ", no-patterns : " << d_user_no_gen[f].size() << std::endl;
-      for( int i=0; i<(int)patTermsF.size(); i++ ){
-        Trace("auto-gen-trigger-debug") << "   " << patTermsF[i] << std::endl;
-      }
-      Trace("auto-gen-trigger-debug") << std::endl;
       if( ntrivTriggers ){
         sortTriggers st;
         std::sort( patTermsF.begin(), patTermsF.end(), st );
       }
+      for( unsigned i=0; i<patTermsF.size(); i++ ){
+        Trace("auto-gen-trigger-debug") << "   " << patTermsF[i] << std::endl;
+      }
+      Trace("auto-gen-trigger-debug") << std::endl;
     }
     //sort into single/multi triggers
     std::map< Node, std::vector< Node > > varContains;
     std::map< Node, bool > vcMap;
     std::map< Node, bool > rmPatTermsF;
+    int last_weight = -1;
     for( unsigned i=0; i<patTermsF.size(); i++ ){
       d_quantEngine->getTermDatabase()->getVarContainsNode( f, patTermsF[i], varContains[ patTermsF[i] ] );
       bool newVar = false;
@@ -279,9 +282,12 @@ void InstStrategyAutoGenTriggers::generateTriggers( Node f ){
           newVar = true;
         }
       }
-      if( ntrivTriggers && !newVar && !Trigger::isAtomicTrigger( patTermsF[i] ) ){
+      int curr_w = Trigger::getTriggerWeight( patTermsF[i] );
+      if( ntrivTriggers && !newVar && last_weight!=-1 && curr_w>last_weight ){
         Trace("auto-gen-trigger-debug") << "Exclude expendible non-trivial trigger : " << patTermsF[i] << std::endl;
         rmPatTermsF[patTermsF[i]] = true;
+      }else{
+        last_weight = curr_w;
       }
     }
     for( std::map< Node, std::vector< Node > >::iterator it = varContains.begin(); it != varContains.end(); ++it ){

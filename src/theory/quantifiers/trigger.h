@@ -112,6 +112,7 @@ public:
   static bool isSimpleTrigger( Node n );
   static bool isBooleanTermTrigger( Node n );
   static bool isPureTheoryTrigger( Node n );
+  static int getTriggerWeight( Node n );
   static bool isLocalTheoryExt( Node n, std::vector< Node >& vars, std::vector< Node >& patTerms );
   /** return data structure for producing matches for this trigger. */
   static InstMatchGenerator* getInstMatchGenerator( Node q, Node n );
