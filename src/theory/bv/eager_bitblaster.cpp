@@ -99,7 +99,7 @@ void EagerBitblaster::bbAtom(TNode node) {
   // asserting that the atom is true iff the definition holds
   Node atom_definition = utils::mkNode(kind::IFF, node, atom_bb);
 
-  AlwaysAssert (options::bitblastMode() == theory::bv::BITBLAST_MODE_EAGER); 
+  AlwaysAssert (options::bitblastMode() == theory::bv::BITBLAST_MODE_EAGER);
   storeBBAtom(node, atom_bb);
   d_cnfStream->convertAndAssert(atom_definition, false, false, RULE_INVALID, TNode::null());
 }
@@ -108,7 +108,7 @@ void EagerBitblaster::storeBBAtom(TNode atom, Node atom_bb) {
   if( d_bvp ){
     d_bvp->registerAtomBB(atom.toExpr(), atom_bb.toExpr());
   }
-  d_bbAtoms.insert(atom); 
+  d_bbAtoms.insert(atom);
 }
 
 void EagerBitblaster::storeBBTerm(TNode node, const Bits& bits) {
@@ -140,13 +140,13 @@ void EagerBitblaster::bbTerm(TNode node, Bits& bits) {
 void EagerBitblaster::makeVariable(TNode var, Bits& bits) {
   Assert(bits.size() == 0);
   for (unsigned i = 0; i < utils::getSize(var); ++i) {
-    bits.push_back(utils::mkBitOf(var, i)); 
+    bits.push_back(utils::mkBitOf(var, i));
   }
-  d_variables.insert(var); 
+  d_variables.insert(var);
 }
 
 Node EagerBitblaster::getBBAtom(TNode node) const {
-  return node; 
+  return node;
 }
 
 

@@ -105,6 +105,8 @@ void TheoryUF::check(Effort level) {
     TNode fact = assertion.assertion;
 
     Debug("uf") << "TheoryUF::check(): processing " << fact << std::endl;
+    Debug("uf") << "Term's theory: " << theory::Theory::theoryOf(fact.toExpr()) << std::endl;
+
     if (d_thss != NULL) {
       bool isDecision = d_valuation.isSatLiteral(fact) && d_valuation.isDecision(fact);
       d_thss->assertNode(fact, isDecision);
@@ -219,9 +221,15 @@ void TheoryUF::explain(TNode literal, std::vector<TNode>& assumptions, eq::EqPro
     d_equalityEngine.explainPredicate(atom, polarity, assumptions, pf);
   }
   if( pf ){
-    Debug("uf-pf") << std::endl;
-    pf->debug_print("uf-pf");
+    Debug("pf::uf") << std::endl;
+    pf->debug_print("pf::uf");
   }
+
+  Debug("pf::uf") << "UF: explain( " << literal << " ):" << std::endl << "\t";
+  for (unsigned i = 0; i < assumptions.size(); ++i) {
+    Debug("pf::uf") << assumptions[i] << " ";
+  }
+  Debug("pf::uf") << std::endl;
 }
 
 Node TheoryUF::explain(TNode literal) {
@@ -270,6 +278,7 @@ void TheoryUF::presolve() {
     for(vector<Node>::const_iterator i = newClauses.begin();
         i != newClauses.end();
         ++i) {
+      Debug("uf") << "uf: generating a lemma: " << *i << std::endl;
       d_out->lemma(*i);
     }
   }
@@ -521,7 +530,7 @@ void TheoryUF::conflict(TNode a, TNode b) {
   } else {
     d_conflictNode = explain(a.eqNode(b),pf);
   }
-  ProofUF * puf = d_proofsEnabled ? new ProofUF( pf ) : NULL;
+  ProofUF* puf = d_proofsEnabled ? new ProofUF( pf ) : NULL;
   d_out->conflict(d_conflictNode, puf);
   d_conflict = true;
 }

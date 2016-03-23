@@ -1,5 +1,5 @@
 /*********************                                                        */
-/*! \file uf_proof.h
+/*! \file arith_proof.h
  ** \verbatim
  ** Original author: Liana Hadarean
  ** Major contributors: none
@@ -9,28 +9,29 @@
  ** See the file COPYING in the top-level source directory for licensing
  ** information.\endverbatim
  **
- ** \brief UF proof
+ ** \brief Arith proof
  **
- ** UF proof
+ ** Arith proof
  **/
 
 #include "cvc4_private.h"
 
-#ifndef __CVC4__UF__PROOF_H
-#define __CVC4__UF__PROOF_H
+#ifndef __CVC4__ARITH__PROOF_H
+#define __CVC4__ARITH__PROOF_H
 
 #include "expr/expr.h"
 #include "proof/proof_manager.h"
+#include "proof/theory_proof.h"
 #include "theory/uf/equality_engine.h"
 
 namespace CVC4 {
 
-//proof object outputted by TheoryUF
-class ProofUF : public Proof {
+//proof object outputted by TheoryArith
+class ProofArith : public Proof {
 private:
   static Node toStreamRecLFSC(std::ostream& out, TheoryProof * tp, theory::eq::EqProof * pf, unsigned tb, const LetMap& map);
 public:
-  ProofUF( theory::eq::EqProof * pf ) : d_proof( pf ) {}
+  ProofArith( theory::eq::EqProof * pf ) : d_proof( pf ) {}
   //it is simply an equality engine proof
   theory::eq::EqProof * d_proof;
   void toStream(std::ostream& out);
@@ -39,29 +40,33 @@ public:
 
 
 namespace theory {
-namespace uf {
-class TheoryUF;
+namespace arith {
+class TheoryArith;
 }
 }
 
 typedef __gnu_cxx::hash_set<Type, TypeHashFunction > TypeSet;
 
 
-class UFProof : public TheoryProof {
+class ArithProof : public TheoryProof {
 protected:
-  TypeSet d_sorts;        // all the uninterpreted sorts in this theory
-  ExprSet d_declarations; // all the variable/function declarations
+  // std::map<Expr, std::string> d_constRationalString; // all the variable/function declarations
+
+  //   TypeSet d_sorts;        // all the uninterpreted sorts in this theory
+  // ExprSet d_declarations; // all the variable/function declarations
+
+  bool d_realMode;
 
 public:
-  UFProof(theory::uf::TheoryUF* uf, TheoryProofEngine* proofEngine);
+  ArithProof(theory::arith::TheoryArith* arith, TheoryProofEngine* proofEngine);
 
   virtual void registerTerm(Expr term);
 };
 
-class LFSCUFProof : public UFProof {
+class LFSCArithProof : public ArithProof {
 public:
-  LFSCUFProof(theory::uf::TheoryUF* uf, TheoryProofEngine* proofEngine)
-    : UFProof(uf, proofEngine)
+  LFSCArithProof(theory::arith::TheoryArith* arith, TheoryProofEngine* proofEngine)
+    : ArithProof(arith, proofEngine)
   {}
   virtual void printOwnedTerm(Expr term, std::ostream& os, const LetMap& map);
   virtual void printOwnedSort(Type type, std::ostream& os);
@@ -74,4 +79,4 @@ public:
 
 }/* CVC4 namespace */
 
-#endif /* __CVC4__UF__PROOF_H */
+#endif /* __CVC4__ARITH__PROOF_H */

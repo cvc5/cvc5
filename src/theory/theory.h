@@ -277,7 +277,7 @@ protected:
    *
    */
   bool d_proofsEnabled;
-  
+
   /**
    * Returns the next assertion in the assertFact() queue.
    *

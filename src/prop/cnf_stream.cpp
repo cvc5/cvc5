@@ -674,7 +674,8 @@ void TseitinCnfStream::convertAndAssert(TNode node,
                                         bool removable,
                                         bool negated,
                                         ProofRule proof_id,
-                                        TNode from) {
+                                        TNode from,
+                                        theory::TheoryId ownerTheory) {
   Debug("cnf") << "convertAndAssert(" << node
                << ", removable = " << (removable ? "true" : "false")
                << ", negated = " << (negated ? "true" : "false") << ")" << endl;
@@ -684,6 +685,7 @@ void TseitinCnfStream::convertAndAssert(TNode node,
       Node assertion = negated ? node.notNode() : (Node)node;
       Node from_assertion = negated? from.notNode() : (Node) from;
 
+      d_cnfProof->setExplainerTheory(ownerTheory);
       if (proof_id != RULE_INVALID) {
         d_cnfProof->pushCurrentAssertion(from.isNull() ? assertion : from_assertion);
         d_cnfProof->registerAssertion(from.isNull() ? assertion : from_assertion, proof_id);
@@ -695,7 +697,10 @@ void TseitinCnfStream::convertAndAssert(TNode node,
     });
 
   convertAndAssert(node, negated);
-  PROOF(if (d_cnfProof) d_cnfProof->popCurrentAssertion(); );
+  PROOF
+    (if (d_cnfProof) {
+      d_cnfProof->popCurrentAssertion();
+    });
 }
 
 void TseitinCnfStream::convertAndAssert(TNode node, bool negated) {

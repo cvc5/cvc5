@@ -124,7 +124,7 @@ protected:
   VarSet              d_assumptions; // assumption literals for bv solver
   IdHashSet           d_assumptionConflicts; // assumption conflicts not actually added to SAT solver
   IdToConflicts       d_assumptionConflictsDebug;
-  
+
   // resolutions
   IdResMap            d_resChains;
   ResStack            d_resStack;
@@ -241,13 +241,13 @@ public:
   ClauseId getTrueUnit() const;
   ClauseId getFalseUnit() const;
 
-  
+
   void registerAssumption(const typename Solver::TVar var);
   ClauseId registerAssumptionConflict(const typename Solver::TLitVec& confl);
-  
+
   ClauseId storeUnitConflict(typename Solver::TLit lit,
                              ClauseKind kind);
- 
+
   /**
    * Marks the deleted clauses as deleted. Note we may still use them in the final
    * resolution.
@@ -297,11 +297,12 @@ public:
   virtual void printResolutionEmptyClause(std::ostream& out, std::ostream& paren) = 0;
   virtual void printAssumptionsResolution(ClauseId id, std::ostream& out, std::ostream& paren) = 0;
 
-
   void collectClausesUsed(IdToSatClause& inputs,
                           IdToSatClause& lemmas);
 
   void storeClauseGlue(ClauseId clause, int glue);
+
+
 
 private:
   __gnu_cxx::hash_map<ClauseId, int> d_glueMap;
@@ -320,7 +321,6 @@ private:
 
   Statistics d_statistics;
 };/* class TSatProof */
-
 
 template <class S>
 class ProofProxy {

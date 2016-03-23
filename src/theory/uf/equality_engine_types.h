@@ -95,7 +95,16 @@ inline std::ostream& operator << (std::ostream& out, MergeReasonType reason) {
   case MERGED_THROUGH_TRANS:
     out << "transitivity";
     break;
-  default:
+  case MERGED_ARRAYS_ROW:
+    out << "arrays ROW";
+    break;
+  case MERGED_ARRAYS_ROW1:
+    out << "arrays ROW1";
+    break;
+  case MERGED_ARRAYS_EXT:
+    out << "arrays EXT";
+    break;
+default:
     out << "[theory]";
     break;
   }
@@ -365,4 +374,3 @@ struct TriggerInfo {
 } // namespace eq
 } // namespace theory
 } // namespace CVC4
-
