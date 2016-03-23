@@ -36,9 +36,14 @@ void BitblastingRegistrar::preRegister(Node n) {
 
 EagerBitblaster::EagerBitblaster(TheoryBV* theory_bv)
   : TBitblaster<Node>()
+  , d_satSolver(NULL)
+  , d_bitblastingRegistrar(NULL)
+  , d_nullContext(NULL)
+  , d_cnfStream(NULL)
   , d_bv(theory_bv)
   , d_bbAtoms()
   , d_variables()
+  , d_notify()
 {
   d_bitblastingRegistrar = new BitblastingRegistrar(this);
   d_nullContext = new context::Context();
@@ -50,8 +55,7 @@ EagerBitblaster::EagerBitblaster(TheoryBV* theory_bv)
       d_satSolver, d_bitblastingRegistrar, d_nullContext, options::proof(),
       "EagerBitblaster");
 
-  MinisatEmptyNotify* notify = new MinisatEmptyNotify();
-  d_satSolver->setNotify(notify);
+  d_satSolver->setNotify(&d_notify);
   d_bvp = NULL;
 }
 
