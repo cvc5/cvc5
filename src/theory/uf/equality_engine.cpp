@@ -1218,6 +1218,9 @@ void EqualityEngine::getExplanation(EqualityNodeId t1Id, EqualityNodeId t2Id, st
                 getExplanation(childId, getEqualityNode(childId).getFind(), equalities, eqpcc);
                 if( eqpc ) {
                   eqpc->d_children.push_back( eqpcc );
+
+                  Debug("pf::ee") << "MERGED_THROUGH_CONSTANTS. Dumping the child proof" << std::endl;
+                  eqpc->debug_print("pf::ee", 1);
                 }
               }
 

@@ -1265,7 +1265,7 @@ static Node mkExplanation(const std::vector<NodeTheoryPair>& explanation) {
 }
 
 NodeTheoryPair TheoryEngine::getExplanationAndExplainer(TNode node) {
-  Debug("gk::explain") << "TheoryEngine::getExplanation( " << node << " ) called" << std::endl;
+  Debug("pf::explain") << "TheoryEngine::getExplanation( " << node << " ) called" << std::endl;
 
   Debug("theory::explain") << "TheoryEngine::getExplanation(" << node << "): current propagation index = " << d_propagationMapTimestamp << endl;
 
@@ -1274,21 +1274,21 @@ NodeTheoryPair TheoryEngine::getExplanationAndExplainer(TNode node) {
 
   // If we're not in shared mode, explanations are simple
   if (!d_logicInfo.isSharingEnabled()) {
-    Debug("gk::explain") << "TheoryEngine::getExplanation: sharing is NOT enabled. Responsible theory is: "
+    Debug("pf::explain") << "TheoryEngine::getExplanation: sharing is NOT enabled. Responsible theory is: "
                          << theoryOf(atom) << std::endl;
     Node explanation = theoryOf(atom)->explain(node);
     Debug("theory::explain") << "TheoryEngine::getExplanation(" << node << ") => " << explanation << endl;
     return NodeTheoryPair(explanation, theoryOf(atom)->getId());
   }
 
-  Debug("gk::explain") << "TheoryEngine::getExplanation: sharing IS enabled" << std::endl;
+  Debug("pf::explain") << "TheoryEngine::getExplanation: sharing IS enabled" << std::endl;
 
   // Initial thing to explain
   NodeTheoryPair toExplain(node, THEORY_SAT_SOLVER, d_propagationMapTimestamp);
   Assert(d_propagationMap.find(toExplain) != d_propagationMap.end());
 
   NodeTheoryPair nodeExplainerPair = d_propagationMap[toExplain];
-  Debug("gk::explain") << "TheoryEngine::getExplanation: explainer for node " << nodeExplainerPair.node
+  Debug("pf::explain") << "TheoryEngine::getExplanation: explainer for node " << nodeExplainerPair.node
                        << " is theory: " << nodeExplainerPair.theory << std::endl;
   TheoryId explainer = nodeExplainerPair.theory;
 
@@ -1682,6 +1682,7 @@ void TheoryEngine::getExplanation(std::vector<NodeTheoryPair>& explanationVector
     NodeTheoryPair toExplain = explanationVector[i];
 
     Debug("theory::explain") << "TheoryEngine::explain(): processing [" << toExplain.timestamp << "] " << toExplain.node << " sent from " << toExplain.theory << endl;
+    Debug("pf::explain") << "TheoryEngine::explain(): processing [" << toExplain.timestamp << "] " << toExplain.node << " sent from " << toExplain.theory << endl;
 
     // If a true constant or a negation of a false constant we can ignore it
     if (toExplain.node.isConst() && toExplain.node.getConst<bool>()) {
@@ -1713,8 +1714,10 @@ void TheoryEngine::getExplanation(std::vector<NodeTheoryPair>& explanationVector
     // See if it was sent to the theory by another theory
     PropagationMap::const_iterator find = d_propagationMap.find(toExplain);
     if (find != d_propagationMap.end()) {
+      Debug("pf::explain") << "\tTerm was propagated by another theory" << std::endl;
       // There is some propagation, check if its a timely one
       if ((*find).second.timestamp < toExplain.timestamp) {
+        Debug("pf::explain") << "\tTerm was propagated by another theory" << std::endl;
         explanationVector.push_back((*find).second);
         ++ i;
         continue;
@@ -1725,9 +1728,13 @@ void TheoryEngine::getExplanation(std::vector<NodeTheoryPair>& explanationVector
     Node explanation;
     if (toExplain.theory == THEORY_BUILTIN) {
       explanation = d_sharedTerms.explain(toExplain.node);
+      Debug("pf::explain") << "\tTerm was propagated by THEORY_BUILTIN. Explanation: " << explanation << std::endl;
     } else {
       explanation = theoryOf(toExplain.theory)->explain(toExplain.node);
+      Debug("pf::explain") << "\tTerm was propagated by owner theory: " << theoryOf(toExplain.theory)
+                           << ". Explanation: " << explanation << std::endl;
     }
+
     Debug("theory::explain") << "TheoryEngine::explain(): got explanation " << explanation << " got from " << toExplain.theory << endl;
     Assert(explanation != toExplain.node, "wasn't sent to you, so why are you explaining it trivially");
     // Mark the explanation
