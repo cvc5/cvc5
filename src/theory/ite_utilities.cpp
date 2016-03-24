@@ -657,6 +657,8 @@ ITESimplifier::NodeVec* ITESimplifier::computeConstantLeaves(TNode ite){
   // special case 2 constant children
   if(thenB.isConst() && elseB.isConst()){
     NodeVec* pair = new NodeVec(2);
+    d_allocatedConstantLeaves.push_back(pair);
+
     (*pair)[0] = std::min(thenB, elseB);
     (*pair)[1] = std::max(thenB, elseB);
     d_constantLeaves[ite] = pair;
@@ -694,6 +696,7 @@ ITESimplifier::NodeVec* ITESimplifier::computeConstantLeaves(TNode ite){
   }
 
   NodeVec* both = new NodeVec(defChildren->size()+maybeChildren->size());
+  d_allocatedConstantLeaves.push_back(both);
   NodeVec::iterator newEnd;
   newEnd = std::set_union(defChildren->begin(), defChildren->end(),
                           maybeChildren->begin(), maybeChildren->end(),
@@ -1399,25 +1402,32 @@ Node ITESimplifier::simpITE(TNode assertion)
 }
 
 ITECareSimplifier::ITECareSimplifier()
-  : d_usedSets()
+    : d_careSetsOutstanding(0)
+    , d_usedSets()
 {
   d_true = NodeManager::currentNM()->mkConst<bool>(true);
   d_false = NodeManager::currentNM()->mkConst<bool>(false);
 }
 
-ITECareSimplifier::~ITECareSimplifier(){}
+ITECareSimplifier::~ITECareSimplifier(){
+  Assert(d_usedSets.empty());
+  Assert(d_careSetsOutstanding == 0);
+}
 
 void ITECareSimplifier::clear(){
-  d_usedSets.clear();
+  Assert(d_usedSets.empty());
+  Assert(d_careSetsOutstanding == 0);
 }
 
 ITECareSimplifier::CareSetPtr ITECareSimplifier::getNewSet()
 {
   if (d_usedSets.empty()) {
+    d_careSetsOutstanding++;
     return ITECareSimplifier::CareSetPtr::mkNew(*this);
   }
   else {
-    ITECareSimplifier::CareSetPtr cs = ITECareSimplifier::CareSetPtr::recycle(d_usedSets.back());
+    ITECareSimplifier::CareSetPtr cs =
+        ITECareSimplifier::CareSetPtr::recycle(d_usedSets.back());
     cs.getCareSet().clear();
     d_usedSets.pop_back();
     return cs;
@@ -1488,125 +1498,144 @@ Node ITECareSimplifier::substitute(TNode e, TNodeMap& substTable, TNodeMap& cach
 Node ITECareSimplifier::simplifyWithCare(TNode e)
 {
   TNodeMap substTable;
-  CareMap queue;
-  CareMap::iterator it;
-  ITECareSimplifier::CareSetPtr cs = getNewSet();
-  ITECareSimplifier::CareSetPtr cs2;
-  queue[e] = cs;
 
-  TNode v;
-  bool done;
-  unsigned i;
+  /* This extra block is to trigger the destructors for cs and cs2
+   * before starting garbage collection.
+   */
+  {
+    CareMap queue;
+    CareMap::iterator it;
+    ITECareSimplifier::CareSetPtr cs = getNewSet();
+    ITECareSimplifier::CareSetPtr cs2;
+    queue[e] = cs;
 
-  while (!queue.empty()) {
-    it = queue.end();
-    --it;
-    v = it->first;
-    cs = it->second;
-    set<Node>& css = cs.getCareSet();
-    queue.erase(v);
+    TNode v;
+    bool done;
+    unsigned i;
 
-    done = false;
-    set<Node>::iterator iCare, iCareEnd = css.end();
+    while (!queue.empty()) {
+      it = queue.end();
+      --it;
+      v = it->first;
+      cs = it->second;
+      set<Node>& css = cs.getCareSet();
+      queue.erase(v);
 
-    switch (v.getKind()) {
-      case kind::ITE: {
-        iCare = css.find(v[0]);
-        if (iCare != iCareEnd) {
-          Assert(substTable.find(v) == substTable.end());
-          substTable[v] = v[1];
-          updateQueue(queue, v[1], cs);
+      done = false;
+      set<Node>::iterator iCare, iCareEnd = css.end();
+
+      switch (v.getKind()) {
+        case kind::ITE: {
+          iCare = css.find(v[0]);
+          if (iCare != iCareEnd) {
+            Assert(substTable.find(v) == substTable.end());
+            substTable[v] = v[1];
+            updateQueue(queue, v[1], cs);
+            done = true;
+            break;
+          }
+          else {
+            iCare = css.find(v[0].negate());
+            if (iCare != iCareEnd) {
+              Assert(substTable.find(v) == substTable.end());
+              substTable[v] = v[2];
+              updateQueue(queue, v[2], cs);
+              done = true;
+              break;
+            }
+          }
+          updateQueue(queue, v[0], cs);
+          cs2 = getNewSet();
+          cs2.getCareSet() = css;
+          cs2.getCareSet().insert(v[0]);
+          updateQueue(queue, v[1], cs2);
+          cs2 = getNewSet();
+          cs2.getCareSet() = css;
+          cs2.getCareSet().insert(v[0].negate());
+          updateQueue(queue, v[2], cs2);
           done = true;
           break;
         }
-        else {
-          iCare = css.find(v[0].negate());
-          if (iCare != iCareEnd) {
-            Assert(substTable.find(v) == substTable.end());
-            substTable[v] = v[2];
-            updateQueue(queue, v[2], cs);
-            done = true;
-            break;
+        case kind::AND: {
+          for (i = 0; i < v.getNumChildren(); ++i) {
+            iCare = css.find(v[i].negate());
+            if (iCare != iCareEnd) {
+              Assert(substTable.find(v) == substTable.end());
+              substTable[v] = d_false;
+              done = true;
+              break;
+            }
           }
-        }
-        updateQueue(queue, v[0], cs);
-        cs2 = getNewSet();
-        cs2.getCareSet() = css;
-        cs2.getCareSet().insert(v[0]);
-        updateQueue(queue, v[1], cs2);
-        cs2 = getNewSet();
-        cs2.getCareSet() = css;
-        cs2.getCareSet().insert(v[0].negate());
-        updateQueue(queue, v[2], cs2);
-        done = true;
-        break;
-      }
-      case kind::AND: {
-        for (i = 0; i < v.getNumChildren(); ++i) {
-          iCare = css.find(v[i].negate());
-          if (iCare != iCareEnd) {
-            Assert(substTable.find(v) == substTable.end());
-            substTable[v] = d_false;
-            done = true;
-            break;
+          if (done) break;
+
+          Assert(v.getNumChildren() > 1);
+          updateQueue(queue, v[0], cs);
+          cs2 = getNewSet();
+          cs2.getCareSet() = css;
+          cs2.getCareSet().insert(v[0]);
+          for (i = 1; i < v.getNumChildren(); ++i) {
+            updateQueue(queue, v[i], cs2);
           }
+          done = true;
+          break;
         }
-        if (done) break;
-
-        Assert(v.getNumChildren() > 1);
-        updateQueue(queue, v[0], cs);
-        cs2 = getNewSet();
-        cs2.getCareSet() = css;
-        cs2.getCareSet().insert(v[0]);
-        for (i = 1; i < v.getNumChildren(); ++i) {
-          updateQueue(queue, v[i], cs2);
-        }
-        done = true;
-        break;
-      }
-      case kind::OR: {
-        for (i = 0; i < v.getNumChildren(); ++i) {
-          iCare = css.find(v[i]);
-          if (iCare != iCareEnd) {
-            Assert(substTable.find(v) == substTable.end());
-            substTable[v] = d_true;
-            done = true;
-            break;
+        case kind::OR: {
+          for (i = 0; i < v.getNumChildren(); ++i) {
+            iCare = css.find(v[i]);
+            if (iCare != iCareEnd) {
+              Assert(substTable.find(v) == substTable.end());
+              substTable[v] = d_true;
+              done = true;
+              break;
+            }
           }
-        }
-        if (done) break;
+          if (done) break;
 
-        Assert(v.getNumChildren() > 1);
-        updateQueue(queue, v[0], cs);
-        cs2 = getNewSet();
-        cs2.getCareSet() = css;
-        cs2.getCareSet().insert(v[0].negate());
-        for (i = 1; i < v.getNumChildren(); ++i) {
-          updateQueue(queue, v[i], cs2);
+          Assert(v.getNumChildren() > 1);
+          updateQueue(queue, v[0], cs);
+          cs2 = getNewSet();
+          cs2.getCareSet() = css;
+          cs2.getCareSet().insert(v[0].negate());
+          for (i = 1; i < v.getNumChildren(); ++i) {
+            updateQueue(queue, v[i], cs2);
+          }
+          done = true;
+          break;
         }
-        done = true;
-        break;
+        default:
+          break;
       }
-      default:
-        break;
-    }
 
-    if (done) {
-      continue;
-    }
+      if (done) {
+        continue;
+      }
 
-    for (unsigned i = 0; i < v.getNumChildren(); ++i) {
-      updateQueue(queue, v[i], cs);
+      for (unsigned i = 0; i < v.getNumChildren(); ++i) {
+        updateQueue(queue, v[i], cs);
+      }
     }
   }
+  /* Perform garbage collection. */
   while (!d_usedSets.empty()) {
-    delete d_usedSets.back();
+    CareSetPtrVal* used = d_usedSets.back();
     d_usedSets.pop_back();
+    Assert(used->safeToGarbageCollect());
+    delete used;
+    Assert(d_careSetsOutstanding > 0);
+    d_careSetsOutstanding--;
   }
 
   TNodeMap cache;
   return substitute(e, substTable, cache);
 }
+
+ITECareSimplifier::CareSetPtr ITECareSimplifier::CareSetPtr::mkNew(
+    ITECareSimplifier& simp) {
+  CareSetPtrVal* val = new CareSetPtrVal(simp);
+  return CareSetPtr(val);
+}
+
+
 
 } /* namespace theory */
 } /* namespace CVC4 */
