@@ -657,6 +657,7 @@ ITESimplifier::NodeVec* ITESimplifier::computeConstantLeaves(TNode ite){
   // special case 2 constant children
   if(thenB.isConst() && elseB.isConst()){
     NodeVec* pair = new NodeVec(2);
+    d_allocatedConstantLeaves.push_back(pair);
     (*pair)[0] = std::min(thenB, elseB);
     (*pair)[1] = std::max(thenB, elseB);
     d_constantLeaves[ite] = pair;
@@ -694,6 +695,7 @@ ITESimplifier::NodeVec* ITESimplifier::computeConstantLeaves(TNode ite){
   }
 
   NodeVec* both = new NodeVec(defChildren->size()+maybeChildren->size());
+  d_allocatedConstantLeaves.push_back(both);
   NodeVec::iterator newEnd;
   newEnd = std::set_union(defChildren->begin(), defChildren->end(),
                           maybeChildren->begin(), maybeChildren->end(),
