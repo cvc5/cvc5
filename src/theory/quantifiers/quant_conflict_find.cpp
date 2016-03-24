@@ -24,14 +24,26 @@
 #include "theory/quantifiers/trigger.h"
 #include "theory/theory_engine.h"
 
-using namespace CVC4;
 using namespace CVC4::kind;
-using namespace CVC4::theory;
-using namespace CVC4::theory::quantifiers;
 using namespace std;
 
 namespace CVC4 {
+namespace theory {
+namespace quantifiers {
 
+QuantInfo::QuantInfo()
+    : d_mg( NULL )
+{}
+
+QuantInfo::~QuantInfo() {
+  delete d_mg;
+  for(std::map< int, MatchGen * >::iterator i = d_var_mg.begin(),
+          iend=d_var_mg.end(); i != iend; ++i) {
+    MatchGen* currentMatchGenerator = (*i).second;
+    delete currentMatchGenerator;
+  }
+  d_var_mg.clear();
+}
 
 
 void QuantInfo::initialize( Node q, Node qn ) {
@@ -1260,12 +1272,12 @@ bool MatchGen::getNextMatch( QuantConflictFind * p, QuantInfo * qi ) {
         Debug("qcf-match-debug") << "..." << std::endl;
 
         while( ( success && d_binding_it!=d_qni_bound.end() ) || doFail ){
-          std::map< int, MatchGen * >::iterator itm;
+          QuantInfo::VarMgMap::const_iterator itm;
           if( !doFail ){
             Debug("qcf-match-debug") << "       check variable " << d_binding_it->second << std::endl;
-            itm = qi->d_var_mg.find( d_binding_it->second );
+            itm = qi->var_mg_find( d_binding_it->second );
           }
-          if( doFail || ( d_binding_it->first!=0 && itm!=qi->d_var_mg.end() ) ){
+          if( doFail || ( d_binding_it->first!=0 && itm != qi->var_mg_end() ) ){
             Debug("qcf-match-debug") << "       we had bound variable " << d_binding_it->second << ", reset = " << doReset << std::endl;
             if( doReset ){
               itm->second->reset( p, true, qi );
@@ -1279,7 +1291,9 @@ bool MatchGen::getNextMatch( QuantConflictFind * p, QuantInfo * qi ) {
                   --d_binding_it;
                   Debug("qcf-match-debug") << "       decrement..." << std::endl;
                 }
-              }while( success && ( d_binding_it->first==0 || qi->d_var_mg.find( d_binding_it->second )==qi->d_var_mg.end() ) );
+              }while( success &&
+                      ( d_binding_it->first==0 ||
+                        (!qi->containsVarMg(d_binding_it->second))));
               doReset = false;
               doFail = false;
             }else{
@@ -2022,7 +2036,7 @@ void QuantConflictFind::check( Theory::Effort level, unsigned quant_e ) {
           QuantInfo * qi = &d_qinfo[q];
 
           Assert( d_qinfo.find( q )!=d_qinfo.end() );
-          if( qi->d_mg->isValid() ){
+          if( qi->matchGeneratorIsValid() ){
             Trace("qcf-check") << "Check quantified formula ";
             debugPrintQuant("qcf-check", q);
             Trace("qcf-check") << " : " << q << "..." << std::endl;
@@ -2031,7 +2045,7 @@ void QuantConflictFind::check( Theory::Effort level, unsigned quant_e ) {
             qi->reset_round( this );
             //try to make a matches making the body false
             Trace("qcf-check-debug") << "Get next match..." << std::endl;
-            while( qi->d_mg->getNextMatch( this, qi ) ){
+            while( qi->getNextMatch( this ) ){
               Trace("qcf-inst") << "*** Produced match at effort " << e << " : " << std::endl;
               qi->debugPrintMatch("qcf-inst");
               Trace("qcf-inst") << std::endl;
@@ -2278,5 +2292,6 @@ TNode QuantConflictFind::getZero( Kind k ) {
   }
 }
 
-
-}
+} /* namespace CVC4::theory::quantifiers */
+} /* namespace CVC4::theory */
+} /* namespace CVC4 */
