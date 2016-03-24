@@ -197,6 +197,8 @@ std::string ProofManager::getAtomName(prop::SatVariable var,
 }
 std::string ProofManager::getLitName(prop::SatLiteral lit,
                                      const std::string& prefix) {
+  Debug("pf::pm") << std::endl << "ProofManager::getLitName( " << lit << ", " << prefix << " ) = "
+                  << append(prefix+".l", lit.toInt()) << std::endl;
   return append(prefix+".l", lit.toInt());
 }
 
@@ -217,6 +219,7 @@ std::string ProofManager::getAtomName(TNode atom,
   Assert(!lit.isNegated());
   return getAtomName(lit.getSatVariable(), prefix);
 }
+
 std::string ProofManager::getLitName(TNode lit,
                                      const std::string& prefix) {
   return getLitName(currentPM()->d_cnfProof->getLiteral(lit), prefix);
@@ -331,6 +334,9 @@ LFSCProof::LFSCProof(SmtEngine* smtEngine,
 {}
 
 void LFSCProof::toStream(std::ostream& out) {
+
+  Assert(options::bitblastMode() != theory::bv::BITBLAST_MODE_EAGER);
+
   d_satProof->constructProof();
 
   // collecting leaf clauses in resolution proof
@@ -399,19 +405,6 @@ void LFSCProof::toStream(std::ostream& out) {
   Debug("pf::pm") << std::endl << "Dumping atoms from lemmas, inputs and assertions: " << std::endl << std::endl;
   for (atomIt = atoms.begin(); atomIt != atoms.end(); ++atomIt) {
     Debug("pf::pm") << "\tAtom: " << *atomIt << std::endl;
-
-    if (Debug.isOn("proof:pm")) {
-      // std::cout << NodeManager::currentNM();
-      Debug("proof:pm") << "LFSCProof::Used assertions: "<< std::endl;
-      for(NodeSet::const_iterator it = used_assertions.begin(); it != used_assertions.end(); ++it) {
-        Debug("proof:pm") << "   " << *it << std::endl;
-      }
-
-      Debug("proof:pm") << "LFSCProof::Used atoms: "<< std::endl;
-      for(NodeSet::const_iterator it = atoms.begin(); it != atoms.end(); ++it) {
-        Debug("proof:pm") << "   " << *it << std::endl;
-      }
-    }
   }
 
   smt::SmtScope scope(d_smtEngine);
@@ -444,7 +437,7 @@ void LFSCProof::toStream(std::ostream& out) {
   out << "(: (holds cln)\n\n";
 
   // Have the theory proofs print deferred declarations, e.g. for skolem variables.
-  out << " ;; Printing deferred declarations \n";
+  out << " ;; Printing deferred declarations \n\n";
   d_theoryProof->printDeferredDeclarations(out, paren);
 
   // print trust that input assertions are their preprocessed form

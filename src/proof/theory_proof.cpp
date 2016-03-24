@@ -133,11 +133,11 @@ TheoryProofEngine::~TheoryProofEngine() {
 
 
 void TheoryProofEngine::registerTheory(theory::Theory* th) {
-  if( th ){
+  if (th) {
     theory::TheoryId id = th->getId();
     if(d_theoryProofTable.find(id) == d_theoryProofTable.end()) {
 
-      Trace("theory-proof-debug") << "; register theory " << id << std::endl;
+      Trace("pf::tp") << "TheoryProofEngine::registerTheory: " << id << std::endl;
 
       if (id == theory::THEORY_UF) {
         d_theoryProofTable[id] = new LFSCUFProof((theory::uf::TheoryUF*)th, this);
@@ -167,12 +167,28 @@ void TheoryProofEngine::registerTheory(theory::Theory* th) {
 }
 
 TheoryProof* TheoryProofEngine::getTheoryProof(theory::TheoryId id) {
+  // The UF theory handles queries for the Builtin theory.
+  if (id == theory::THEORY_BUILTIN) {
+    Trace("pf::tp") << "TheoryProofEngine::getTheoryProof: BUILTIN --> UF" << std::endl;
+    id = theory::THEORY_UF;
+  }
+
   Assert (d_theoryProofTable.find(id) != d_theoryProofTable.end());
   return d_theoryProofTable[id];
 }
 
 void TheoryProofEngine::markTermForFutureRegistration(Expr term, theory::TheoryId id) {
   d_exprToTheoryIds[term].insert(id);
+}
+
+void TheoryProofEngine::printConstantDisequalityProof(std::ostream& os, Expr c1, Expr c2) {
+  LetMap emptyMap;
+
+  os << "(trust_f (not (= _ ";
+  printBoundTerm(c1, os, emptyMap);
+  os << " ";
+  printBoundTerm(c2, os, emptyMap);
+  os << ")))";
 }
 
 void TheoryProofEngine::registerTerm(Expr term) {
@@ -464,7 +480,6 @@ void LFSCTheoryProofEngine::printTheoryLemmas(const IdToSatClause& lemmas,
   for (; it != end; ++it) {
     Debug("pf::tp") << "LFSCTheoryProofEngine::printTheoryLemmas: printing a new lemma!" << std::endl;
 
-    // Debug("pf::tp") << "\tLemma = " << it->first << ", " << *(it->second) << std::endl;
     ClauseId id = it->first;
     Debug("pf::tp") << "Owner theory:" << pm->getCnfProof()->getOwnerTheory(id) << std::endl;
     const prop::SatClause* clause = it->second;
@@ -489,6 +504,12 @@ void LFSCTheoryProofEngine::printTheoryLemmas(const IdToSatClause& lemmas,
     }
 
     Debug("pf::tp") << "Expression printing done!" << std::endl;
+
+    Debug("pf::tp") << "Lemma " << id << ":" << std::endl;
+    for (unsigned i = 0; i < clause_expr.size(); ++i) {
+      Debug("pf::tp") << clause_expr[i] << " ";
+    }
+    Debug("pf::tp") << std::endl;
 
     // query appropriate theory for proof of clause
     theory::TheoryId theory_id = getTheoryForLemma(id);

@@ -566,6 +566,7 @@ void LFSCCnfProof::printCnfProofForClause(ClauseId id,
       if( !pols[0] || num_nots_1==1 ){
         os_base_n << "(not_not_intro _ " << ProofManager::getLitName(lit1, d_name) << ") ";
       }else{
+        Trace("cnf-pf-debug") << "CALLING getlitname" << std::endl;
         os_base_n << ProofManager::getLitName(lit1, d_name) << " ";
       }
       Assert( elimNum!=0 );

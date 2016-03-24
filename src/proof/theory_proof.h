@@ -180,6 +180,8 @@ public:
   TheoryProof* getTheoryProof(theory::TheoryId id);
 
   void markTermForFutureRegistration(Expr term, theory::TheoryId id);
+
+  void printConstantDisequalityProof(std::ostream& os, Expr c1, Expr c2);
 };
 
 class LFSCTheoryProofEngine : public TheoryProofEngine {

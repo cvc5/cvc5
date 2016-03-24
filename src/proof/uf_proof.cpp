@@ -193,42 +193,78 @@ Node ProofUF::toStreamRecLFSC(std::ostream& out, TheoryProof * tp, theory::eq::E
         ++i;
       }
     }
-    Assert(neg >= 0);
+
+    bool disequalityFound = (neg >= 0);
+    if (disequalityFound) {
+      Debug("pf::uf") << "A disequality was found. UNSAT due to input assertion" << std::endl;
+      Debug("pf::uf") << "Proof for: " << pf->d_node << std::endl;
+      Assert(pf->d_node.getKind() == kind::IFF);
+      Assert(pf->d_node.getNumChildren() == 2);
+      Assert((pf->d_node[0] == NodeManager::currentNM()->mkConst(true) &&
+              pf->d_node[1] == NodeManager::currentNM()->mkConst(false)) ||
+             (pf->d_node[0] == NodeManager::currentNM()->mkConst(false) &&
+              pf->d_node[1] == NodeManager::currentNM()->mkConst(true)));
+    } else {
+      Debug("pf::uf") << "A disequality was NOT found. UNSAT due to merged constants" << std::endl;
+      Debug("pf::uf") << "Proof for: " << pf->d_node << std::endl;
+
+      Assert(pf->d_node.getKind() == kind::EQUAL);
+      Assert(pf->d_node.getNumChildren() == 2);
+
+      Assert(pf->d_node[0].isConst());
+      Assert(pf->d_node[1].isConst());
+    }
+
+    //    Assert(neg >= 0);
 
     Node n1;
     std::stringstream ss;
     //Assert(subTrans.d_children.size() == pf->d_children.size() - 1);
     Debug("pf::uf") << "\nsubtrans has " << subTrans.d_children.size() << " children\n";
-    if(pf->d_children.size() > 2) {
+    if(!disequalityFound || pf->d_children.size() > 2) {
       n1 = toStreamRecLFSC(ss, tp, &subTrans, 1, map);
     } else {
       n1 = toStreamRecLFSC(ss, tp, subTrans.d_children[0], 1, map);
       Debug("pf::uf") << "\nsubTrans unique child " << subTrans.d_children[0]->d_id << " was proven\ngot: " << n1 << std::endl;
     }
 
-    Node n2 = pf->d_children[neg]->d_node;
-    Assert(n2.getKind() == kind::NOT);
-    out << "(clausify_false (contra _ ";
     Debug("pf::uf") << "\nhave proven: " << n1 << std::endl;
-    Debug("pf::uf") << "n2 is " << n2[0] << std::endl;
 
-    if (n2[0].getNumChildren() > 0) { Debug("pf::uf") << "\nn2[0]: " << n2[0][0] << std::endl; }
-    if (n1.getNumChildren() > 1) { Debug("pf::uf") << "n1[1]: " << n1[1] << std::endl; }
+    out << "(clausify_false (contra _ ";
 
-    if(n2[0].getKind() == kind::APPLY_UF) {
-      out << "(trans _ _ _ _ ";
-      out << "(symm _ _ _ ";
-      out << ss.str();
-      out << ") (pred_eq_f _ " << ProofManager::getLitName(n2[0]) << ")) t_t_neq_f))" << std::endl;
-    } else {
-      Assert((n1[0] == n2[0][0] && n1[1] == n2[0][1]) || (n1[1] == n2[0][0] && n1[0] == n2[0][1]));
-      if(n1[1] == n2[0][0]) {
-        out << "(symm _ _ _ " << ss.str() << ")";
-      } else {
+    if (disequalityFound) {
+      Node n2 = pf->d_children[neg]->d_node;
+      Assert(n2.getKind() == kind::NOT);
+      Debug("pf::uf") << "n2 is " << n2[0] << std::endl;
+
+      if (n2[0].getNumChildren() > 0) { Debug("pf::uf") << "\nn2[0]: " << n2[0][0] << std::endl; }
+      if (n1.getNumChildren() > 1) { Debug("pf::uf") << "n1[1]: " << n1[1] << std::endl; }
+
+      if(n2[0].getKind() == kind::APPLY_UF) {
+        out << "(trans _ _ _ _ ";
+        out << "(symm _ _ _ ";
         out << ss.str();
+        out << ") (pred_eq_f _ " << ProofManager::getLitName(n2[0]) << ")) t_t_neq_f))" << std::endl;
+      } else {
+        Assert((n1[0] == n2[0][0] && n1[1] == n2[0][1]) || (n1[1] == n2[0][0] && n1[0] == n2[0][1]));
+        if(n1[1] == n2[0][0]) {
+          out << "(symm _ _ _ " << ss.str() << ")";
+        } else {
+          out << ss.str();
+        }
+        out << " " << ProofManager::getLitName(n2[0]) << "))" << std::endl;
       }
-      out << " " << ProofManager::getLitName(n2[0]) << "))" << std::endl;
+    } else {
+      Node n2 = pf->d_node;
+      Assert(n2.getKind() == kind::EQUAL);
+      Assert((n1[0] == n2[0] && n1[1] == n2[1]) || (n1[1] == n2[0] && n1[0] == n2[1]));
+
+      out << ss.str();
+      out << " ";
+      ProofManager::getTheoryProofEngine()->printConstantDisequalityProof(out, n1[0].toExpr(), n1[1].toExpr());
+      out << "))" << std::endl;
     }
+
     return Node();
   }
 
