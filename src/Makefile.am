@@ -287,6 +287,8 @@ libcvc4_la_SOURCES = \
 	theory/arrays/array_info.cpp \
 	theory/arrays/static_fact_manager.h \
 	theory/arrays/static_fact_manager.cpp \
+	theory/arrays/array_proof_reconstruction.cpp \
+	theory/arrays/array_proof_reconstruction.h \
 	theory/quantifiers/theory_quantifiers_type_rules.h \
 	theory/quantifiers/theory_quantifiers.h \
 	theory/quantifiers/quantifiers_rewriter.h \

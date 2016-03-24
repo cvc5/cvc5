@@ -23,6 +23,7 @@
 #include "context/cdhashset.h"
 #include "context/cdqueue.h"
 #include "theory/arrays/array_info.h"
+#include "theory/arrays/array_proof_reconstruction.h"
 #include "theory/theory.h"
 #include "theory/uf/equality_engine.h"
 #include "util/statistics_registry.h"
@@ -429,6 +430,9 @@ class TheoryArrays : public Theory {
   std::vector<Node> d_decisions;
   bool d_inCheckModel;
   int d_topLevel;
+
+  /** An equality-engine callback for proof reconstruction */
+  ArrayProofReconstruction d_proofReconstruction;
 
   public:
 

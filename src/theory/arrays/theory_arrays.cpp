@@ -99,7 +99,8 @@ TheoryArrays::TheoryArrays(context::Context* c, context::UserContext* u,
       d_defValues(c),
       d_readTableContext(new context::Context()),
       d_arrayMerges(c),
-      d_inCheckModel(false)
+      d_inCheckModel(false),
+      d_proofReconstruction(&d_equalityEngine)
 {
   smtStatisticsRegistry()->registerStat(&d_numRow);
   smtStatisticsRegistry()->registerStat(&d_numExt);
@@ -127,6 +128,10 @@ TheoryArrays::TheoryArrays(context::Context* c, context::UserContext* u,
   if (d_useArrTable) {
     d_equalityEngine.addFunctionKind(kind::ARR_TABLE_FUN);
   }
+
+  d_equalityEngine.addPathReconstructionTrigger(eq::MERGED_ARRAYS_ROW, &d_proofReconstruction);
+  d_equalityEngine.addPathReconstructionTrigger(eq::MERGED_ARRAYS_ROW1, &d_proofReconstruction);
+  d_equalityEngine.addPathReconstructionTrigger(eq::MERGED_ARRAYS_EXT, &d_proofReconstruction);
 }
 
 TheoryArrays::~TheoryArrays() {
