@@ -102,6 +102,7 @@ namespace quantifiers {
   class InstStrategyCegqi;
   class QuantDSplit;
   class QuantAntiSkolem;
+  class EqualityInference;
 }/* CVC4::theory::quantifiers */
 
 namespace inst {
@@ -284,6 +285,8 @@ public:
   void presolve();
   /** check at level */
   void check( Theory::Effort e );
+  /** notify that theories were combined */
+  void notifyCombineTheories();
   /** register quantifier */
   bool registerQuantifier( Node f );
   /** register quantifier */
@@ -348,7 +351,12 @@ public:
   /** get trigger database */
   inst::TriggerTrie* getTriggerDatabase() { return d_tr_trie; }
   /** add term to database */
-  void addTermToDatabase( Node n, bool withinQuant = false, bool withinInstClosure = false );
+  void addTermToDatabase( Node n, bool withinQuant = false, bool withinInstClosure = false );  
+  /** notification when master equality engine is updated */
+  void eqNotifyNewClass(TNode t);
+  void eqNotifyPreMerge(TNode t1, TNode t2);
+  void eqNotifyPostMerge(TNode t1, TNode t2);
+  void eqNotifyDisequal(TNode t1, TNode t2, TNode reason);
   /** get the master equality engine */
   eq::EqualityEngine* getMasterEqualityEngine() ;
   /** debug print equality engine */
@@ -394,6 +402,9 @@ class EqualityQueryQuantifiersEngine : public EqualityQuery
 private:
   /** pointer to theory engine */
   QuantifiersEngine* d_qe;
+  /** quantifiers equality inference */
+  quantifiers::EqualityInference * d_eq_inference;
+  context::CDO< unsigned > d_eqi_counter;
   /** internal representatives */
   std::map< TypeNode, std::map< Node, Node > > d_int_rep;
   /** rep score */
@@ -408,8 +419,8 @@ private:
   /** get score */
   int getRepScore( Node n, Node f, int index, TypeNode v_tn );
 public:
-  EqualityQueryQuantifiersEngine( QuantifiersEngine* qe ) : d_qe( qe ), d_reset_count( 0 ){}
-  ~EqualityQueryQuantifiersEngine(){}
+  EqualityQueryQuantifiersEngine( context::Context* c, QuantifiersEngine* qe );
+  virtual ~EqualityQueryQuantifiersEngine();
   /** reset */
   void reset( Theory::Effort e );
   /** general queries about equality */
@@ -426,6 +437,8 @@ public:
   Node getInternalRepresentative( Node a, Node f, int index );
   /** flatten representatives */
   void flattenRepresentatives( std::map< TypeNode, std::vector< Node > >& reps );
+  /** get quantifiers equality inference */
+  quantifiers::EqualityInference * getEqualityInference() { return d_eq_inference; }
 }; /* EqualityQueryQuantifiersEngine */
 
 }/* CVC4::theory namespace */
