@@ -1317,59 +1317,9 @@ void EqualityQueryQuantifiersEngine::reset( Theory::Effort e ){
 void EqualityQueryQuantifiersEngine::processInferences( Theory::Effort e ) {
   if( options::inferArithTriggerEq() ){
     eq::EqualityEngine* ee = getEngine();
-    //naive implementation
-    /*
-    std::vector< Node > infer;
-    std::vector< Node > infer_exp;
-    eq::EqClassesIterator eqcs_i = eq::EqClassesIterator( ee );
-    while( !eqcs_i.isFinished() ){
-      TNode r = (*eqcs_i);
-      TypeNode tr = r.getType();
-      if( tr.isReal() ){
-        std::vector< Node > eqc;
-        eq::EqClassIterator eqc_i = eq::EqClassIterator( r, ee );
-        while( !eqc_i.isFinished() ){
-          TNode n = (*eqc_i);
-          //accumulate equivalence class
-          eqc.push_back( n );
-          ++eqc_i;
-        }
-        for( unsigned i=0; i<eqc.size(); i++ ){
-          Node n = eqc[i];
-          if( n.getKind()==PLUS ){
-            std::map< Node, Node > msum;
-            QuantArith::getMonomialSum( n, msum );
-            for( std::map< Node, Node >::iterator it = msum.begin(); it != msum.end(); ++it ){
-              //if the term is a trigger
-              Node t = it->first;
-              if( inst::Trigger::isAtomicTrigger( t ) ){
-                for( unsigned j=0; j<eqc.size(); j++ ){
-                  if( i!=j ){
-                    Node eq = n.eqNode( eqc[j] );
-                    Node v = QuantArith::solveEqualityFor( eq, t );
-                    Trace("quant-engine-ee-proc-debug") << "processInferences : Can infer : " << t << " == " << v << std::endl;
-                    if( ee->hasTerm( v ) && ee->getRepresentative( v )!=r ){
-                      Trace("quant-engine-ee-proc") << "processInferences : Infer : " << t << " == " << v << " from " << n << " == " << eqc[j] << std::endl;
-                      infer.push_back( t.eqNode( v ) );
-                      infer_exp.push_back( n.eqNode( eqc[j] ) );
-                    }
-                  }
-                }
-              }
-            }
-          } 
-        }
-      }
-      ++eqcs_i;
-    }
-    for( unsigned i=0; i<infer.size(); i++ ){
-      Trace("quant-engine-ee-proc-debug") << "Asserting equality " << infer[i] << std::endl;
-      ee->assertEquality( infer[i], true, infer_exp[i] );
-    }
-    */
     //updated implementation
-    while( d_eqi_counter.get()<d_eq_inference->d_pending_merges.size() ){
-      Node eq = d_eq_inference->d_pending_merges[d_eqi_counter.get()];
+    while( d_eqi_counter.get()<d_eq_inference->getNumPendingMerges() ){
+      Node eq = d_eq_inference->getPendingMerge( d_eqi_counter.get() );
       Trace("quant-engine-ee-proc") << "processInferences : Infer : " << eq << std::endl;
       Assert( ee->hasTerm( eq[0] ) );
       Assert( ee->hasTerm( eq[1] ) );

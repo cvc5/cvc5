@@ -319,14 +319,6 @@ TNode TermDb::evaluateTerm2( TNode n, std::map< TNode, TNode >& subs, bool subsR
         TNode nn = d_func_map_trie[f].existsTerm( args );
         Trace("term-db-eval") << "Got term " << nn << std::endl;
         return nn;
-        if( !nn.isNull() ){
-          if( ee->hasTerm( nn ) ){
-            Trace("term-db-eval") << "return rep " << std::endl;
-            return ee->getRepresentative( nn );
-          }else{
-            //Assert( false );
-          }
-        }
       }
     }
   }

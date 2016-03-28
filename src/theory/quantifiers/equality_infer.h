@@ -14,8 +14,8 @@
 
 #include "cvc4_private.h"
 
-#ifndef EQUALITY_INFER_H
-#define EQUALITY_INFER_H
+#ifndef __CVC4__THEORY__QUANTIFIERS__EQUALITY_INFER_H
+#define __CVC4__THEORY__QUANTIFIERS__EQUALITY_INFER_H
 
 #include <ext/hash_set>
 #include <iostream>
@@ -60,14 +60,17 @@ private:
   /** use list */
   NodeListMap d_uselist;
   void addToUseList( Node used, Node eqc );
+  /** pending merges */
+  NodeList d_pending_merges;
 public:
   EqualityInference(context::Context* c);
   virtual ~EqualityInference();
-  /** notification when equality engine is updated */
+  /** input : notification when equality engine is updated */
   void eqNotifyNewClass(TNode t);
   void eqNotifyMerge(TNode t1, TNode t2);
-  
-  NodeList d_pending_merges;
+  /** output : inferred equalities */
+  unsigned getNumPendingMerges() { return d_pending_merges.size(); }
+  Node getPendingMerge( unsigned i ) { return d_pending_merges[i]; }  
 };
 
 }

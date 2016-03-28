@@ -1206,12 +1206,12 @@ void EqualityEngine::getExplanation(EqualityNodeId t1Id, EqualityNodeId t2Id, st
               Node a = d_nodes[currentNode];
               Node b = d_nodes[d_equalityEdges[currentEdge].getNodeId()];
 
-              if (d_pathReconstructionTriggers.find(reasonType) != d_pathReconstructionTriggers.end()) {
-                d_pathReconstructionTriggers.find(reasonType)->second->notify(reasonType, reason, a, b,
-                                                                              equalities, eqpc);
-              }
-
               if (eqpc) {
+                //apply proof reconstruction processing (when eqpc is non-null)
+                if (d_pathReconstructionTriggers.find(reasonType) != d_pathReconstructionTriggers.end()) {
+                  d_pathReconstructionTriggers.find(reasonType)->second->notify(reasonType, reason, a, b,
+                                                                                equalities, eqpc);
+                }
                 if (reasonType == MERGED_THROUGH_EQUALITY) {
                   eqpc->d_node = reason;
                 } else {

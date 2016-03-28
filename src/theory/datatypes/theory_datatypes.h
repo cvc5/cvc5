@@ -87,19 +87,19 @@ private:
       d_dt.conflict(t1, t2);
     }
     void eqNotifyNewClass(TNode t) {
-      Debug("dt") << "NotifyClass::eqNotifyNewClass(" << t << std::endl;
+      Debug("dt") << "NotifyClass::eqNotifyNewClass(" << t << ")" << std::endl;
       d_dt.eqNotifyNewClass(t);
     }
     void eqNotifyPreMerge(TNode t1, TNode t2) {
-      Debug("dt") << "NotifyClass::eqNotifyPreMerge(" << t1 << ", " << t2 << std::endl;
+      Debug("dt") << "NotifyClass::eqNotifyPreMerge(" << t1 << ", " << t2 << ")" << std::endl;
       d_dt.eqNotifyPreMerge(t1, t2);
     }
     void eqNotifyPostMerge(TNode t1, TNode t2) {
-      Debug("dt") << "NotifyClass::eqNotifyPostMerge(" << t1 << ", " << t2 << std::endl;
+      Debug("dt") << "NotifyClass::eqNotifyPostMerge(" << t1 << ", " << t2 << ")" << std::endl;
       d_dt.eqNotifyPostMerge(t1, t2);
     }
     void eqNotifyDisequal(TNode t1, TNode t2, TNode reason) {
-      Debug("dt") << "NotifyClass::eqNotifyDisequal(" << t1 << ", " << t2 << ", " << reason << std::endl;
+      Debug("dt") << "NotifyClass::eqNotifyDisequal(" << t1 << ", " << t2 << ", " << reason << ")" << std::endl;
       d_dt.eqNotifyDisequal(t1, t2, reason);
     }
   };/* class TheoryDatatypes::NotifyClass */

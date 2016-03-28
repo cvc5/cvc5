@@ -1310,15 +1310,7 @@ void SmtEngine::setDefaults() {
       Trace("smt") << "turning on quantifier logic, for strings-exp"
                    << std::endl;
     }
-    if(! options::finiteModelFind.wasSetByUser()) {
-      options::finiteModelFind.set( true );
-      Trace("smt") << "turning on finite-model-find, for strings-exp"
-                   << std::endl;
-    }
     if(! options::fmfBoundInt.wasSetByUser()) {
-      if(! options::fmfBoundIntLazy.wasSetByUser()) {
-        options::fmfBoundIntLazy.set( true );
-      }
       options::fmfBoundInt.set( true );
       Trace("smt") << "turning on fmf-bound-int, for strings-exp" << std::endl;
     }

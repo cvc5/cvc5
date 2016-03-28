@@ -113,9 +113,8 @@ Node QuantArith::mkNode( std::map< Node, Node >& msum ) {
 
 // given (msum <k> 0), solve (veq_c * v <k> val) or (val <k> veq_c * v), where:
 // veq_c is either null (meaning 1), or positive.
-// return value -1: veq_c*v is LHS.
-
-int QuantArith::isolate( Node v, std::map< Node, Node >& msum, Node & veq, Kind k, bool doCoeff ) {
+// return value 1: veq_c*v is RHS, -1: veq_c*v is LHS, 0: failed.
+int QuantArith::isolate( Node v, std::map< Node, Node >& msum, Node & veq_c, Node & val, Kind k ) {
   std::map< Node, Node >::iterator itv = msum.find( v );
   if( itv!=msum.end() ){
     std::vector< Node > children;
@@ -136,75 +135,20 @@ int QuantArith::isolate( Node v, std::map< Node, Node >& msum, Node & veq, Kind 
           children.push_back(m);
         }
       }
-      veq = children.size()>1 ? NodeManager::currentNM()->mkNode( PLUS, children ) :
+      val = children.size()>1 ? NodeManager::currentNM()->mkNode( PLUS, children ) :
                                 (children.size()==1 ? children[0] : NodeManager::currentNM()->mkConst( Rational(0) ));
-      Node vc = v;
-      if( !r.isOne() && !r.isNegativeOne() ){
-        if( vc.getType().isInteger() ){
-          if( doCoeff ){
-            vc = NodeManager::currentNM()->mkNode( MULT, NodeManager::currentNM()->mkConst( r.abs() ), vc );
-          }else{
-            return 0;
-          }
-        }else{
-          veq = NodeManager::currentNM()->mkNode( MULT, veq, NodeManager::currentNM()->mkConst( Rational(1) / r.abs() ) );
-        }
-      }
-      if( r.sgn()==1 ){
-        veq = negate(veq);
-      }
-      veq = Rewriter::rewrite( veq );
-      bool inOrder = r.sgn()==1 || k==EQUAL;
-      veq = NodeManager::currentNM()->mkNode( k, inOrder ? vc : veq, inOrder ? veq : vc );
-      return inOrder ? 1 : -1;
-    }
-  }
-  return 0;
-}
-
-int QuantArith::isolate( Node v, std::map< Node, Node >& msum, Node & veq_c, Node & val, Kind k ) {
-  Node vatom;
-  //isolate pv in the inequality
-  int ires = isolate( v, msum, vatom, k, true );
-  if( ires!=0 ){
-    val = vatom[ ires==1 ? 1 : 0 ];
-    Node pvm = vatom[ ires==1 ? 0 : 1 ];
-    //get monomial
-    if( pvm!=v ){
-      Node veq_v;
-      if( QuantArith::getMonomial( pvm, veq_c, veq_v ) ){
-        Assert( veq_v==v );
-      }
-    }
-  }
-  return ires;
-}
-
-/*
-int QuantArith::isolate( Node v, std::map< Node, Node >& msum, Node & veq_c, Node & val, Kind k ) {
-  Assert( k==EQUAL || k==GEQ );
-  std::map< Node, Node >::iterator itv = msum.find( v );
-  if( itv!=msum.end() ){
-    Rational r = itv->second.isNull() ? Rational(1) : itv->second.getConst<Rational>();
-    if( r.sgn()!=0 ){
-      veq_c = itv->second;
-      msum.erase( itv );
-      val = mkNode( msum );
-      msum[v] = veq_c;
       if( !r.isOne() && !r.isNegativeOne() ){
         if( v.getType().isInteger() ){
           veq_c = NodeManager::currentNM()->mkConst( r.abs() );
         }else{
           val = NodeManager::currentNM()->mkNode( MULT, val, NodeManager::currentNM()->mkConst( Rational(1) / r.abs() ) );
-          veq_c = Node::null();
         }
-      }else{
-        veq_c = Node::null();
       }
       if( r.sgn()==1 ){
-        val = negate( val );
+        val = negate(val);
+      }else{
+        val = Rewriter::rewrite( val );
       }
-      val = Rewriter::rewrite( val );
       return ( r.sgn()==1 || k==EQUAL ) ? 1 : -1;
     }
   }
@@ -230,7 +174,6 @@ int QuantArith::isolate( Node v, std::map< Node, Node >& msum, Node & veq, Kind 
   }
   return ires;
 }
-*/
 
 Node QuantArith::solveEqualityFor( Node lit, Node v ) {
   Assert( lit.getKind()==EQUAL || lit.getKind()==IFF );
@@ -241,7 +184,7 @@ Node QuantArith::solveEqualityFor( Node lit, Node v ) {
       return lit[1-r];
     }
   }
-  if( tn.isInteger() || tn.isReal() ){
+  if( tn.isReal() ){
     if( quantifiers::TermDb::containsTerm( lit, v ) ){
       std::map< Node, Node > msum;
       if( QuantArith::getMonomialSumLit( lit, msum ) ){
