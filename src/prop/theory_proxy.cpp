@@ -126,7 +126,7 @@ void TheoryProxy::explainPropagation(SatLiteral l, SatClause& explanation) {
     }
   } else {
     explanation.push_back(l);
-    explanation.push_back(~d_cnfStream->getLiteral(explanationNode));
+    explanation.push_back(~d_cnfStream->getLiteral(theoryExplanation));
   }
 }
 
