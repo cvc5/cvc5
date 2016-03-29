@@ -291,6 +291,8 @@ libcvc4_la_SOURCES = \
 	theory/arrays/array_info.cpp \
 	theory/arrays/static_fact_manager.h \
 	theory/arrays/static_fact_manager.cpp \
+	theory/arrays/array_proof_reconstruction.cpp \
+	theory/arrays/array_proof_reconstruction.h \
 	theory/quantifiers/theory_quantifiers_type_rules.h \
 	theory/quantifiers/theory_quantifiers.h \
 	theory/quantifiers/quantifiers_rewriter.h \
@@ -364,6 +366,8 @@ libcvc4_la_SOURCES = \
 	theory/quantifiers/quant_split.cpp \
 	theory/quantifiers/anti_skolem.h \
 	theory/quantifiers/anti_skolem.cpp \
+	theory/quantifiers/equality_infer.h \
+	theory/quantifiers/equality_infer.cpp \
 	theory/arith/theory_arith_type_rules.h \
 	theory/arith/type_enumerator.h \
 	theory/arith/arithvar.h \

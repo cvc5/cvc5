@@ -96,7 +96,7 @@ public:
   public:
     std::vector< int > d_order;
   };/* class InstMatchTrie ImtIndexOrder */
-public:
+
   /** the data */
   std::map< Node, InstMatchTrie > d_data;
 private:
@@ -141,18 +141,18 @@ public:
 
 /** trie for InstMatch objects */
 class CDInstMatchTrie {
-public:
+private:
   /** the data */
   std::map< Node, CDInstMatchTrie* > d_data;
   /** is valid */
   context::CDO< bool > d_valid;
-private:
+
   void print( std::ostream& out, Node q, std::vector< TNode >& terms ) const;
   void getInstantiations( std::vector< Node >& insts, Node q, std::vector< Node >& terms, QuantifiersEngine * qe ) const;
 public:
   CDInstMatchTrie( context::Context* c ) : d_valid( c, false ){}
-  ~CDInstMatchTrie(){}
-public:
+  ~CDInstMatchTrie();
+
   /** return true if m exists in this trie
         modEq is if we check modulo equality
         modInst is if we return true if m is an instance of a match that exists

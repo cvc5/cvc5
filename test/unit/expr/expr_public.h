@@ -58,7 +58,7 @@ public:
       char *argv[2];
       argv[0] = strdup("");
       argv[1] = strdup("--output-language=ast");
-      opts.parseOptions(2, argv);
+      Options::parseOptions(&opts, 2, argv);
       free(argv[0]);
       free(argv[1]);
 

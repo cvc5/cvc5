@@ -225,6 +225,15 @@ void InstMatchTrie::getInstantiations( std::vector< Node >& insts, Node q, std::
   }
 }
 
+CDInstMatchTrie::~CDInstMatchTrie() {
+  for(std::map< Node, CDInstMatchTrie* >::iterator i = d_data.begin(),
+          iend = d_data.end(); i != iend; ++i) {
+    CDInstMatchTrie* current = (*i).second;
+    delete current;
+  }
+  d_data.clear();
+}
+
 
 bool CDInstMatchTrie::addInstMatch( QuantifiersEngine* qe, Node f, std::vector< Node >& m,
                                     context::Context* c, bool modEq, bool modInst, int index, bool onlyExist ){
@@ -285,6 +294,7 @@ bool CDInstMatchTrie::addInstMatch( QuantifiersEngine* qe, Node f, std::vector< 
     if( !onlyExist ){
       // std::map< Node, CDInstMatchTrie* >::iterator it = d_data.find( n );
       CDInstMatchTrie* imt = new CDInstMatchTrie( c );
+      Assert(d_data.find(n) == d_data.end());
       d_data[n] = imt;
       imt->addInstMatch( qe, f, m, c, modEq, modInst, index+1, false );
     }

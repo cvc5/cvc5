@@ -744,12 +744,14 @@ bool FullModelChecker::exhaustiveInstantiate(FirstOrderModelFmc * fm, Node f, No
   for( unsigned i=0; i<c.getNumChildren(); i++ ){
     if( c[i].getType().isInteger() ){
       if( fm->isInterval(c[i]) ){
+        Trace("fmc-exh-debug") << "...set " << i << " based on interval." << std::endl;
         for( unsigned b=0; b<2; b++ ){
           if( !fm->isStar(c[i][b]) ){
             riter.d_bounds[b][i] = c[i][b];
           }
         }
       }else if( !fm->isStar(c[i]) ){
+        Trace("fmc-exh-debug") << "...set " << i << " based on point." << std::endl;
         riter.d_bounds[0][i] = c[i];
         riter.d_bounds[1][i] = QuantArith::offset( c[i], 1 );
       }

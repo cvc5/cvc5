@@ -129,6 +129,7 @@ void TheoryProofEngine::registerTerm(Expr term) {
   if (d_registrationCache.count(term)) {
     return;
   }
+  Debug("pf::tp") << "TheoryProofEngine::registerTerm: registering new term: " << term << std::endl;
 
   theory::TheoryId theory_id = theory::Theory::theoryOf(term);
 

@@ -124,12 +124,13 @@ int RewriteEngine::checkRewriteRule( Node f, Theory::Effort e ) {
     std::map< Node, QuantInfo >::iterator it = d_qinfo.find( f );
     if( it!=d_qinfo.end() ){
       QuantInfo * qi = &it->second;
-      if( qi->d_mg->isValid() ){
+      if( qi->matchGeneratorIsValid() ){
         Node rr = TermDb::getRewriteRule( f );
         Trace("rewrite-engine-inst-debug") << "   Reset round..." << std::endl;
         qi->reset_round( qcf );
         Trace("rewrite-engine-inst-debug") << "   Get matches..." << std::endl;
-        while( qi->d_mg->getNextMatch( qcf, qi ) && ( addedLemmas==0 || !options::rrOneInstPerRound() ) ){
+        while( qi->getNextMatch( qcf ) &&
+               ( addedLemmas==0 || !options::rrOneInstPerRound() ) ){
           Trace("rewrite-engine-inst-debug") << "   Got match to complete..." << std::endl;
           qi->debugPrintMatch( "rewrite-engine-inst-debug" );
           std::vector< int > assigned;

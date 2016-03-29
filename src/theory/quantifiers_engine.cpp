@@ -41,6 +41,7 @@
 #include "theory/quantifiers/trigger.h"
 #include "theory/quantifiers/quant_split.h"
 #include "theory/quantifiers/anti_skolem.h"
+#include "theory/quantifiers/equality_infer.h"
 #include "theory/theory_engine.h"
 #include "theory/uf/equality_engine.h"
 #include "theory/uf/theory_uf.h"
@@ -88,12 +89,16 @@ QuantifiersEngine::QuantifiersEngine(context::Context* c, context::UserContext* 
     d_te( te ),
     d_lemmas_produced_c(u),
     d_skolemized(u),
+    d_ierCounter_c(c),
+    //d_ierCounter(c),
+    //d_ierCounter_lc(c),
+    //d_ierCounterLastLc(c),
     d_presolve(u, true),
     d_presolve_in(u),
     d_presolve_cache(u),
     d_presolve_cache_wq(u),
     d_presolve_cache_wic(u){
-  d_eq_query = new EqualityQueryQuantifiersEngine( this );
+  d_eq_query = new EqualityQueryQuantifiersEngine( c, this );
   d_term_db = new quantifiers::TermDb( c, u, this );
   d_tr_trie = new inst::TriggerTrie;
   d_hasAddedLemma = false;
@@ -140,12 +145,21 @@ QuantifiersEngine::QuantifiersEngine(context::Context* c, context::UserContext* 
   d_total_inst_count_debug = 0;
   //allow theory combination to go first, once initially
   d_ierCounter = options::instWhenTcFirst() ? 0 : 1;
+  d_ierCounter_c = d_ierCounter;
   d_ierCounter_lc = 0;
-  d_ierCounterLastLc = d_ierCounter_lc;
+  d_ierCounterLastLc = 0;
   d_inst_when_phase = 1 + ( options::instWhenPhase()<1 ? 1 : options::instWhenPhase() );
 }
 
 QuantifiersEngine::~QuantifiersEngine(){
+  for(std::map< Node, inst::CDInstMatchTrie* >::iterator
+      i = d_c_inst_match_trie.begin(), iend = d_c_inst_match_trie.end();
+      i != iend; ++i)
+  {
+    delete (*i).second;
+  }
+  d_c_inst_match_trie.clear();
+
   delete d_alpha_equiv;
   delete d_builder;
   delete d_rr_engine;
@@ -372,6 +386,7 @@ void QuantifiersEngine::check( Theory::Effort e ){
   if( needsCheck ){
     if( Trace.isOn("quant-engine-debug") ){
       Trace("quant-engine-debug") << "Quantifiers Engine check, level = " << e << std::endl;
+      Trace("quant-engine-debug") << "  depth : " << d_ierCounter_c << std::endl;
       Trace("quant-engine-debug") << "  modules to check : ";
       for( unsigned i=0; i<qm.size(); i++ ){
         Trace("quant-engine-debug") << qm[i]->identify() << " ";
@@ -397,22 +412,31 @@ void QuantifiersEngine::check( Theory::Effort e ){
       return;
     }
 
-    Trace("quant-engine-debug2") << "Reset term db..." << std::endl;
+    if( Trace.isOn("quant-engine-ee-pre") ){
+      Trace("quant-engine-ee-pre") << "Equality engine (pre-inference): " << std::endl;
+      debugPrintEqualityEngine( "quant-engine-ee-pre" );
+    }
+    Trace("quant-engine-debug2") << "Reset equality engine..." << std::endl;
     d_eq_query->reset( e );
-    d_term_db->reset( e );
-    if( d_rel_dom ){
-      d_rel_dom->reset();
-    }
-    d_model->reset_round();
     
-    if( Trace.isOn("quant-engine-ee") ){
-      Trace("quant-engine-ee") << "Equality engine : " << std::endl;
-      debugPrintEqualityEngine( "quant-engine-ee" );
-    }
     if( Trace.isOn("quant-engine-assert") ){
       Trace("quant-engine-assert") << "Assertions : " << std::endl;
       getTheoryEngine()->printAssertions("quant-engine-assert");
     }
+    if( Trace.isOn("quant-engine-ee") ){
+      Trace("quant-engine-ee") << "Equality engine : " << std::endl;
+      debugPrintEqualityEngine( "quant-engine-ee" );
+    }
+    
+    Trace("quant-engine-debug2") << "Reset term database..." << std::endl;
+    if( !d_term_db->reset( e ) ){
+      flushLemmas();
+      return;
+    }
+    if( d_rel_dom ){
+      d_rel_dom->reset();
+    }
+    d_model->reset_round();
     
     for( unsigned i=0; i<d_modules.size(); i++ ){
       Trace("quant-engine-debug2") << "Reset " << d_modules[i]->identify().c_str() << std::endl;
@@ -465,11 +489,12 @@ void QuantifiersEngine::check( Theory::Effort e ){
           if( e==Theory::EFFORT_FULL ){
             //increment if a last call happened, we are not strictly enforcing interleaving, or already were in phase
             if( d_ierCounterLastLc!=d_ierCounter_lc || !options::instWhenStrictInterleave() || d_ierCounter%d_inst_when_phase!=0 ){
-              d_ierCounter++;
+              d_ierCounter = d_ierCounter + 1;
               d_ierCounterLastLc = d_ierCounter_lc;
+              d_ierCounter_c = d_ierCounter_c.get() + 1;
             }
           }else if( e==Theory::EFFORT_LAST_CALL ){
-            d_ierCounter_lc++;
+            d_ierCounter_lc = d_ierCounter_lc + 1;
           }
         }else if( quant_e==QEFFORT_MODEL ){
           if( e==Theory::EFFORT_LAST_CALL ){
@@ -532,6 +557,12 @@ void QuantifiersEngine::check( Theory::Effort e ){
       }
     }
   }
+}
+
+void QuantifiersEngine::notifyCombineTheories() {
+  //if allowing theory combination to happen at most once between instantiation rounds
+  //d_ierCounter = 1;
+  //d_ierCounterLastLc = -1;
 }
 
 bool QuantifiersEngine::reduceQuantifier( Node q ) {
@@ -686,6 +717,29 @@ void QuantifiersEngine::addTermToDatabase( Node n, bool withinQuant, bool within
       }
     }
   }
+}
+
+void QuantifiersEngine::eqNotifyNewClass(TNode t) {
+  addTermToDatabase( t );
+  if( d_eq_query->getEqualityInference() ){
+    d_eq_query->getEqualityInference()->eqNotifyNewClass( t );
+  }
+}
+
+void QuantifiersEngine::eqNotifyPreMerge(TNode t1, TNode t2) {
+  if( d_eq_query->getEqualityInference() ){
+    d_eq_query->getEqualityInference()->eqNotifyMerge( t1, t2 );
+  }
+}
+
+void QuantifiersEngine::eqNotifyPostMerge(TNode t1, TNode t2) {
+
+}
+
+void QuantifiersEngine::eqNotifyDisequal(TNode t1, TNode t2, TNode reason) {
+  //if( d_qcf ){
+  //  d_qcf->assertDisequal( t1, t2 );
+  //}
 }
 
 void QuantifiersEngine::computeTermVector( Node f, InstMatch& m, std::vector< Node >& vars, std::vector< Node >& terms ){
@@ -990,6 +1044,9 @@ bool QuantifiersEngine::addInstantiation( Node q, std::vector< Node >& terms, bo
       Trace("inst-add-debug") << " -> Currently entailed." << std::endl;
       return false;
     }
+    //Node eval = d_term_db->evaluateTerm( q[1], subs, false, true );
+    //Trace("ajr-temp") << "Instantiation evaluates to : " << std::endl;
+    //Trace("ajr-temp") << "   " << eval << std::endl;
   }
 
   //check for duplication
@@ -1238,6 +1295,19 @@ void QuantifiersEngine::debugPrintEqualityEngine( const char * c ) {
   }
 }
 
+
+EqualityQueryQuantifiersEngine::EqualityQueryQuantifiersEngine( context::Context* c, QuantifiersEngine* qe ) : d_qe( qe ), d_eqi_counter( c ), d_reset_count( 0 ){
+  if( options::inferArithTriggerEq() ){
+    d_eq_inference = new quantifiers::EqualityInference( c );
+  }else{
+    d_eq_inference = NULL;
+  }
+}
+
+EqualityQueryQuantifiersEngine::~EqualityQueryQuantifiersEngine(){
+  delete d_eq_inference;
+}
+
 void EqualityQueryQuantifiersEngine::reset( Theory::Effort e ){
   d_int_rep.clear();
   d_reset_count++;
@@ -1246,53 +1316,17 @@ void EqualityQueryQuantifiersEngine::reset( Theory::Effort e ){
 
 void EqualityQueryQuantifiersEngine::processInferences( Theory::Effort e ) {
   if( options::inferArithTriggerEq() ){
-    std::vector< Node > infer;
-    std::vector< Node > infer_exp;
     eq::EqualityEngine* ee = getEngine();
-    eq::EqClassesIterator eqcs_i = eq::EqClassesIterator( ee );
-    while( !eqcs_i.isFinished() ){
-      TNode r = (*eqcs_i);
-      TypeNode tr = r.getType();
-      if( tr.isReal() ){
-        std::vector< Node > eqc;
-        eq::EqClassIterator eqc_i = eq::EqClassIterator( r, ee );
-        while( !eqc_i.isFinished() ){
-          TNode n = (*eqc_i);
-          //accumulate equivalence class
-          eqc.push_back( n );
-          ++eqc_i;
-        }
-        for( unsigned i=0; i<eqc.size(); i++ ){
-          Node n = eqc[i];
-          if( n.getKind()==PLUS ){
-            std::map< Node, Node > msum;
-            QuantArith::getMonomialSum( n, msum );
-            for( std::map< Node, Node >::iterator it = msum.begin(); it != msum.end(); ++it ){
-              //if the term is a trigger
-              Node t = it->first;
-              if( inst::Trigger::isAtomicTrigger( t ) ){
-                for( unsigned j=0; j<eqc.size(); j++ ){
-                  if( i!=j ){
-                    Node eq = n.eqNode( eqc[j] );
-                    Node v = QuantArith::solveEqualityFor( eq, t );
-                    Trace("quant-engine-ee-proc-debug") << "processInferences : Can infer : " << t << " == " << v << std::endl;
-                    if( ee->hasTerm( v ) && ee->getRepresentative( v )!=r ){
-                      Trace("quant-engine-ee-proc") << "processInferences : Infer : " << t << " == " << v << " from " << n << " == " << eqc[j] << std::endl;
-                      infer.push_back( t.eqNode( v ) );
-                      infer_exp.push_back( n.eqNode( eqc[j] ) );
-                    }
-                  }
-                }
-              }
-            }
-          } 
-        }
-      }
-      ++eqcs_i;
-    }
-    for( unsigned i=0; i<infer.size(); i++ ){
-      Trace("quant-engine-ee-proc-debug") << "Asserting equality " << infer[i] << std::endl;
-      ee->assertEquality( infer[i], true, infer_exp[i] );
+    //updated implementation
+    while( d_eqi_counter.get()<d_eq_inference->getNumPendingMerges() ){
+      Node eq = d_eq_inference->getPendingMerge( d_eqi_counter.get() );
+      Trace("quant-engine-ee-proc") << "processInferences : Infer : " << eq << std::endl;
+      Assert( ee->hasTerm( eq[0] ) );
+      Assert( ee->hasTerm( eq[1] ) );
+      Assert( !ee->areDisequal( eq[0], eq[1], false ) );
+      //just use itself as an explanation for now (should never be used, since equality engine should be consistent)
+      ee->assertEquality( eq, true, eq );
+      d_eqi_counter = d_eqi_counter.get() + 1;
     }
     Assert( ee->consistent() );
   }
@@ -1339,7 +1373,7 @@ Node EqualityQueryQuantifiersEngine::getInternalRepresentative( Node a, Node f, 
   Assert( f.isNull() || f.getKind()==FORALL );
   Node r = getRepresentative( a );
   if( options::finiteModelFind() ){
-    if( r.isConst() ){
+    if( r.isConst() && quantifiers::TermDb::containsUninterpretedConstant( r ) ){
       //map back from values assigned by model, if any
       if( d_qe->getModel() ){
         std::map< Node, Node >::iterator it = d_qe->getModel()->d_rep_set.d_values_to_terms.find( r );

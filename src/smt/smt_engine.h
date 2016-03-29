@@ -244,10 +244,10 @@ class CVC4_PUBLIC SmtEngine {
   bool d_needPostsolve;
 
   /*
-   * Whether to call theory preprocessing during simplification - on by default* but gets turned off if arithRewriteEq is on
+   * Whether to call theory preprocessing during simplification - on
+   * by default* but gets turned off if arithRewriteEq is on
    */
   bool d_earlyTheoryPP;
-
 
   /**
    * Most recent result of last checkSat/query or (set-info :status).

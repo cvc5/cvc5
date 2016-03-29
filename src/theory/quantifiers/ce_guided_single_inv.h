@@ -58,13 +58,21 @@ private:
   CegqiOutputSingleInv * d_cosi;
   CegInstantiator * d_cinst;
   //for recognizing templates for invariant synthesis
-  Node substituteInvariantTemplates( Node n, std::map< Node, Node >& prog_templ, std::map< Node, std::vector< Node > >& prog_templ_vars );
+  Node substituteInvariantTemplates(
+      Node n, std::map< Node, Node >& prog_templ,
+      std::map< Node, std::vector< Node > >& prog_templ_vars );
   // partially single invocation
-  Node removeDeepEmbedding( Node n, std::vector< Node >& progs, std::vector< TypeNode >& types, int& type_valid, std::map< Node, Node >& visited );
+  Node removeDeepEmbedding( Node n, std::vector< Node >& progs,
+                            std::vector< TypeNode >& types, int& type_valid,
+                            std::map< Node, Node >& visited );
   Node addDeepEmbedding( Node n, std::map< Node, Node >& visited );
   //presolve
-  void collectPresolveEqTerms( Node n, std::map< Node, std::vector< Node > >& teq );
-  void getPresolveEqConjuncts( std::vector< Node >& vars, std::vector< Node >& terms, std::map< Node, std::vector< Node > >& teq, Node n, std::vector< Node >& conj );
+  void collectPresolveEqTerms( Node n,
+                               std::map< Node, std::vector< Node > >& teq );
+  void getPresolveEqConjuncts( std::vector< Node >& vars,
+                               std::vector< Node >& terms,
+                               std::map< Node, std::vector< Node > >& teq,
+                               Node n, std::vector< Node >& conj );
   //constructing solution
   Node constructSolution( std::vector< unsigned >& indices, unsigned i, unsigned index );
   Node postProcessSolution( Node n );
@@ -113,7 +121,7 @@ public:
   Node d_full_inv;
   Node d_full_guard;
   //explanation for current single invocation conjecture
-  Node d_single_inv_exp;  
+  Node d_single_inv_exp;
   // transition relation version per program
   std::map< Node, Node > d_trans_pre;
   std::map< Node, Node > d_trans_post;
@@ -132,19 +140,33 @@ public:
   //get solution
   Node getSolution( unsigned sol_index, TypeNode stn, int& reconstructed, bool rconsSygus = true );
   //reconstruct to syntax
-  Node reconstructToSyntax( Node s, TypeNode stn, int& reconstructed, bool rconsSygus = true );
+  Node reconstructToSyntax( Node s, TypeNode stn, int& reconstructed,
+                            bool rconsSygus = true );
   // has ites
   bool hasITEs() { return d_has_ites; }
   // is single invocation
-  bool isSingleInvocation() { return !d_single_inv.isNull(); }
+  bool isSingleInvocation() const { return !d_single_inv.isNull(); }
   // is single invocation
-  bool isFullySingleInvocation() { return !d_single_inv.isNull() && d_nsingle_inv.isNull(); }
+  bool isFullySingleInvocation() const {
+    return !d_single_inv.isNull() && d_nsingle_inv.isNull();
+  }
   //needs check
   bool needsCheck();
   /** preregister conjecture */
   void preregisterConjecture( Node q );
   //initialize next candidate si conjecture (if not fully single invocation)
-  void initializeNextSiConjecture();  
+  void initializeNextSiConjecture();
+
+  Node getTransPre(Node prog) const {
+    std::map<Node, Node>::const_iterator location = d_trans_pre.find(prog);
+    return location->second;
+  }
+
+  Node getTransPost(Node prog) const {
+    std::map<Node, Node>::const_iterator location = d_trans_post.find(prog);
+    return location->second;
+  }
+
 };
 
 // partitions any formulas given to it into single invocation/non-single invocation
@@ -198,9 +220,8 @@ public:
   void debugPrint( const char * c );
 };
 
-
-}
-}
-}
+}/* namespace CVC4::theory::quantifiers */
+}/* namespace CVC4::theory */
+}/* namespace CVC4 */
 
 #endif

@@ -210,6 +210,7 @@ public:
    * @param node node to convert and assert
    * @param removable whether the sat solver can choose to remove the clauses
    * @param negated whether we are asserting the node negated
+   * @param ownerTheory indicates the theory that should invoked to prove the formula.
    */
   virtual void convertAndAssert(TNode node, bool removable, bool negated, ProofRule proof_id, TNode from = TNode::null(), LemmaProofRecipe* proofRecipe = NULL) = 0;
 

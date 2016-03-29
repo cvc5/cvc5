@@ -140,24 +140,26 @@ void TheoryEngine::finishInit() {
 }
 
 void TheoryEngine::eqNotifyNewClass(TNode t){
-  if( d_logicInfo.isQuantified() ){
-    d_quantEngine->addTermToDatabase( t );
+  if (d_logicInfo.isQuantified()) {
+    d_quantEngine->eqNotifyNewClass( t );
   }
 }
 
 void TheoryEngine::eqNotifyPreMerge(TNode t1, TNode t2){
-
+  if (d_logicInfo.isQuantified()) {
+    d_quantEngine->eqNotifyPreMerge( t1, t2 );
+  }
 }
 
 void TheoryEngine::eqNotifyPostMerge(TNode t1, TNode t2){
-
+  if (d_logicInfo.isQuantified()) {
+    d_quantEngine->eqNotifyPostMerge( t1, t2 );
+  }
 }
 
 void TheoryEngine::eqNotifyDisequal(TNode t1, TNode t2, TNode reason){
-  if( d_logicInfo.isQuantified() ){
-    if( options::quantConflictFind() ){
-      d_quantEngine->getConflictFind()->assertDisequal( t1, t2 );
-    }
+  if (d_logicInfo.isQuantified()) {
+    d_quantEngine->eqNotifyDisequal( t1, t2, reason );
   }
 }
 
@@ -467,6 +469,9 @@ void TheoryEngine::check(Theory::Effort effort) {
         // Do the combination
         Debug("theory") << "TheoryEngine::check(" << effort << "): running combination" << endl;
         combineTheories();
+        if(d_logicInfo.isQuantified()){
+          d_quantEngine->notifyCombineTheories();
+        }
       }
     }
 
@@ -481,7 +486,7 @@ void TheoryEngine::check(Theory::Effort effort) {
         // must build model at this point
         d_curr_model_builder->buildModel(d_curr_model, true);
       }
-    Trace("theory::assertions-model") << endl;
+      Trace("theory::assertions-model") << endl;
       if (Trace.isOn("theory::assertions-model")) {
         printAssertions("theory::assertions-model");
       }
@@ -1343,7 +1348,6 @@ static Node mkExplanation(const std::vector<NodeTheoryPair>& explanation) {
 
 Node TheoryEngine::getExplanationAndRecipe(TNode node, LemmaProofRecipe* proofRecipe) {
   Debug("pf::explain") << "TheoryEngine::getExplanation( " << node << " ) called" << std::endl;
-
   Debug("theory::explain") << "TheoryEngine::getExplanation(" << node << "): current propagation index = " << d_propagationMapTimestamp << endl;
 
   bool polarity = node.getKind() != kind::NOT;
