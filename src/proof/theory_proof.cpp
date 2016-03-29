@@ -25,6 +25,7 @@
 #include "proof/clause_id.h"
 #include "proof/cnf_proof.h"
 #include "proof/proof_manager.h"
+#include "proof/proof_output_channel.h"
 #include "proof/proof_utils.h"
 #include "proof/sat_proof.h"
 #include "proof/uf_proof.h"
@@ -48,74 +49,6 @@ namespace CVC4 {
 unsigned CVC4::LetCount::counter = 0;
 static unsigned LET_COUNT = 1;
 
-//for proof replay
-class ProofOutputChannel : public theory::OutputChannel {
-public:
-  Node d_conflict;
-  Proof* d_proof;
-  Node d_lemma;
-
-  ProofOutputChannel() : d_conflict(), d_proof(NULL) {}
-  virtual ~ProofOutputChannel() throw() {}
-
-  void conflict(TNode n, Proof* pf) throw() {
-    Trace("theory-proof-debug") << "; CONFLICT: " << n << std::endl;
-    Assert(d_conflict.isNull());
-    Assert(!n.isNull());
-    d_conflict = n;
-    Assert(pf != NULL);
-    d_proof = pf;
-  }
-  bool propagate(TNode x) throw() {
-    Trace("theory-proof-debug") << "got a propagation: " << x << std::endl;
-    return true;
-  }
-  theory::LemmaStatus lemma(TNode n, ProofRule rule, bool, bool, bool) throw() {
-    Trace("theory-proof-debug") << "new lemma: " << n << std::endl;
-    d_lemma = n;
-    return theory::LemmaStatus(TNode::null(), 0);
-  }
-  theory::LemmaStatus splitLemma(TNode, bool) throw() {
-    AlwaysAssert(false);
-    return theory::LemmaStatus(TNode::null(), 0);
-  }
-  void requirePhase(TNode n, bool b) throw() {
-    Debug("theory-proof-debug") << "ProofOutputChannel::requirePhase called" << std::endl;
-    Trace("theory-proof-debug") << "requirePhase " << n << " " << b << std::endl;
-  }
-  bool flipDecision() throw() {
-    Debug("theory-proof-debug") << "ProofOutputChannel::flipDecision called" << std::endl;
-    AlwaysAssert(false);
-    return false;
-  }
-  void setIncomplete() throw() {
-    Debug("theory-proof-debug") << "ProofOutputChannel::setIncomplete called" << std::endl;
-    AlwaysAssert(false);
-  }
-};/* class ProofOutputChannel */
-
-//for proof replay
-class MyPreRegisterVisitor {
-  theory::Theory* d_theory;
-  __gnu_cxx::hash_set<TNode, TNodeHashFunction> d_visited;
-public:
-  typedef void return_type;
-  MyPreRegisterVisitor(theory::Theory* theory)
-  : d_theory(theory)
-  , d_visited()
-  {}
-  bool alreadyVisited(TNode current, TNode parent) { return d_visited.find(current) != d_visited.end(); }
-  void visit(TNode current, TNode parent) {
-    if(theory::Theory::theoryOf(current) == d_theory->getId()) {
-      //Trace("theory-proof-debug") << "preregister " << current << std::endl;
-      d_theory->preRegisterTerm(current);
-      d_visited.insert(current);
-    }
-  }
-  void start(TNode node) { }
-  void done(TNode node) { }
-}; /* class MyPreRegisterVisitor */
-
 TheoryProofEngine::TheoryProofEngine()
   : d_registrationCache()
   , d_theoryProofTable()
@@ -130,7 +63,6 @@ TheoryProofEngine::~TheoryProofEngine() {
     delete it->second;
   }
 }
-
 
 void TheoryProofEngine::registerTheory(theory::Theory* th) {
   if (th) {
@@ -169,7 +101,7 @@ void TheoryProofEngine::registerTheory(theory::Theory* th) {
 TheoryProof* TheoryProofEngine::getTheoryProof(theory::TheoryId id) {
   // The UF theory handles queries for the Builtin theory.
   if (id == theory::THEORY_BUILTIN) {
-    Trace("pf::tp") << "TheoryProofEngine::getTheoryProof: BUILTIN --> UF" << std::endl;
+    Debug("pf::tp") << "TheoryProofEngine::getTheoryProof: BUILTIN --> UF" << std::endl;
     id = theory::THEORY_UF;
   }
 

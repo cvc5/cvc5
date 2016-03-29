@@ -486,8 +486,9 @@ template <class Solver>
       d_lemmaClauses.insert(newId);
       Debug("pf::sat") << "TSatProof::registerClause registering a new lemma clause: "
                        << newId << " = " << *buildClause(newId)
-                       << ". Explainer theory: " << d_cnfProof->getExplainerTheory()
+                       << "Recipe: "
                        << std::endl;
+      d_cnfProof->getProofRecipe().dump("pf::sat");
       d_cnfProof->registerExplanationLemma(newId);
     }
   }
@@ -520,8 +521,9 @@ ClauseId TSatProof<Solver>::registerUnitClause(typename Solver::TLit lit,
       Assert(d_lemmaClauses.find(newId) == d_lemmaClauses.end());
       Debug("pf::sat") << "TSatProof::registerUnitClause: registering a new lemma (UNIT CLAUSE): "
                        << lit
-                       << ". Explainer theory: " << d_cnfProof->getExplainerTheory()
+                       << ". Recipe: "
                        << std::endl;
+      d_cnfProof->getProofRecipe().dump("pf::sat");
       d_lemmaClauses.insert(newId);
       d_cnfProof->registerExplanationLemma(newId);
     }

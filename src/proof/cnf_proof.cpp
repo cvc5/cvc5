@@ -34,7 +34,7 @@ CnfProof::CnfProof(CnfStream* stream,
   : d_cnfStream(stream)
   , d_clauseToAssertion(ctx)
   , d_assertionToProofRule(ctx)
-  , d_clauseIdToOwnerTheory(ctx)
+  , d_clauseIdToProofRecipe(ctx)
   , d_currentAssertionStack()
   , d_currentDefinitionStack()
   , d_clauseToDefinition(ctx)
@@ -146,14 +146,14 @@ void CnfProof::registerAssertion(Node assertion, ProofRule reason) {
 }
 
 void CnfProof::registerExplanationLemma(ClauseId clauseId) {
-  d_clauseIdToOwnerTheory.insert(clauseId, getExplainerTheory());
+  d_clauseIdToProofRecipe.insert(clauseId, getProofRecipe());
 }
 
 theory::TheoryId CnfProof::getOwnerTheory(ClauseId clause) {
-  Assert(d_clauseIdToOwnerTheory.find(clause) != d_clauseIdToOwnerTheory.end());
-  return d_clauseIdToOwnerTheory[clause];
+  Assert(d_clauseIdToProofRecipe.find(clause) != d_clauseIdToProofRecipe.end());
+  LemmaProofRecipe proofRecipe = d_clauseIdToProofRecipe[clause];
+  return proofRecipe.getTheory();
 }
-
 
 void CnfProof::setCnfDependence(Node from, Node to) {
   Debug("proof:cnf") << "CnfProof::setCnfDependence "
@@ -185,12 +185,13 @@ Node CnfProof::getCurrentAssertion() {
   return d_currentAssertionStack.back();
 }
 
-void CnfProof::setExplainerTheory(theory::TheoryId theory) {
-  d_explainerTheory = theory;
+void CnfProof::setProofRecipe(LemmaProofRecipe* proofRecipe) {
+  Assert(proofRecipe);
+  d_proofRecipe = *proofRecipe;
 }
 
-theory::TheoryId CnfProof::getExplainerTheory() {
-  return d_explainerTheory;
+LemmaProofRecipe CnfProof::getProofRecipe() {
+  return d_proofRecipe;
 }
 
 void CnfProof::pushCurrentDefinition(Node definition) {

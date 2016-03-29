@@ -276,6 +276,7 @@ CRef Solver::reason(Var x) {
     CRef real_reason = ca.alloc(explLevel, explanation, true);
     // FIXME: at some point will need more information about where this explanation
     // came from (ie. the theory/sharing)
+    Debug("pf::sat") << "Minisat::Solver registering a THEORY_LEMMA (1)" << std::endl;
     PROOF (ClauseId id = ProofManager::getSatProof()->registerClause(real_reason, THEORY_LEMMA);
            ProofManager::getCnfProof()->registerConvertedClause(id, true);
            // no need to pop current assertion as this is not converted to cnf
@@ -1725,6 +1726,7 @@ CRef Solver::updateLemmas() {
          TNode cnf_assertion = lemmas_cnf_assertion[i].first;
          TNode cnf_def = lemmas_cnf_assertion[i].second;
 
+         Debug("pf::sat") << "Minisat::Solver registering a THEORY_LEMMA (2)" << std::endl;
          ClauseId id = ProofManager::getSatProof()->registerClause(lemma_ref, THEORY_LEMMA);
          ProofManager::getCnfProof()->setClauseAssertion(id, cnf_assertion);
          ProofManager::getCnfProof()->setClauseDefinition(id, cnf_def);
@@ -1741,6 +1743,7 @@ CRef Solver::updateLemmas() {
          Node cnf_assertion = lemmas_cnf_assertion[i].first;
          Node cnf_def = lemmas_cnf_assertion[i].second;
 
+         Debug("pf::sat") << "Minisat::Solver registering a THEORY_LEMMA (3)" << std::endl;
          ClauseId id = ProofManager::getSatProof()->registerUnitClause(lemma[0], THEORY_LEMMA);
          ProofManager::getCnfProof()->setClauseAssertion(id, cnf_assertion);
          ProofManager::getCnfProof()->setClauseDefinition(id, cnf_def);

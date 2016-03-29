@@ -27,6 +27,7 @@
 
 #include "context/cdhashmap.h"
 #include "proof/clause_id.h"
+#include "proof/lemma_proof.h"
 #include "proof/sat_proof.h"
 #include "util/proof.h"
 
@@ -43,7 +44,7 @@ typedef __gnu_cxx::hash_set<ClauseId> ClauseIdSet;
 
 typedef context::CDHashMap<ClauseId, Node> ClauseIdToNode;
 typedef context::CDHashMap<Node, ProofRule, NodeHashFunction> NodeToProofRule;
-typedef context::CDHashMap<ClauseId, theory::TheoryId> ClauseIdToTheory;
+typedef context::CDHashMap<ClauseId, LemmaProofRecipe> ClauseToProofRecipe;
 
 class CnfProof {
 protected:
@@ -55,11 +56,11 @@ protected:
   /** Map from assertion to reason for adding assertion  **/
   NodeToProofRule d_assertionToProofRule;
 
-  /** Map from assertion to the theory that added this assertion  **/
-  ClauseIdToTheory d_clauseIdToOwnerTheory;
+  /** Map from assertion to the recipe for proving it **/
+  ClauseToProofRecipe d_clauseIdToProofRecipe;
 
-  /** The last theory to explain a lemma **/
-  theory::TheoryId d_explainerTheory;
+  /** The recipe for proving the current lemma **/
+  LemmaProofRecipe d_proofRecipe;
 
   /** Top of stack is assertion currently being converted to CNF **/
   std::vector<Node> d_currentAssertionStack;
@@ -121,8 +122,8 @@ public:
   void popCurrentDefinition();
   Node getCurrentDefinition();
 
-  void setExplainerTheory(theory::TheoryId theory);
-  theory::TheoryId getExplainerTheory();
+  void setProofRecipe(LemmaProofRecipe* proofRecipe);
+  LemmaProofRecipe getProofRecipe();
   theory::TheoryId getOwnerTheory(ClauseId clause);
 
   void registerExplanationLemma(ClauseId clauseId);
