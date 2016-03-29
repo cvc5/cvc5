@@ -99,7 +99,8 @@ TheoryArrays::TheoryArrays(context::Context* c, context::UserContext* u,
       d_defValues(c),
       d_readTableContext(new context::Context()),
       d_arrayMerges(c),
-      d_inCheckModel(false)
+      d_inCheckModel(false),
+      d_proofReconstruction(&d_equalityEngine)
 {
   smtStatisticsRegistry()->registerStat(&d_numRow);
   smtStatisticsRegistry()->registerStat(&d_numExt);
@@ -127,6 +128,10 @@ TheoryArrays::TheoryArrays(context::Context* c, context::UserContext* u,
   if (d_useArrTable) {
     d_equalityEngine.addFunctionKind(kind::ARR_TABLE_FUN);
   }
+
+  d_equalityEngine.addPathReconstructionTrigger(eq::MERGED_ARRAYS_ROW, &d_proofReconstruction);
+  d_equalityEngine.addPathReconstructionTrigger(eq::MERGED_ARRAYS_ROW1, &d_proofReconstruction);
+  d_equalityEngine.addPathReconstructionTrigger(eq::MERGED_ARRAYS_EXT, &d_proofReconstruction);
 }
 
 TheoryArrays::~TheoryArrays() {
@@ -1318,128 +1323,67 @@ void TheoryArrays::check(Effort e) {
           if(fact[0][0].getType().isArray() && !d_conflict) {
             if (d_conflict) { Debug("pf::array") << "Entering the skolemization branch" << std::endl; }
 
-            // NodeManager* nm = NodeManager::currentNM();
-            // TypeNode indexType = fact[0][0].getType()[0];
-            // Node k = nm->mkBoundVar("k", indexType);
+            NodeManager* nm = NodeManager::currentNM();
+            TypeNode indexType = fact[0][0].getType()[0];
 
-            // Node ak = nm->mkNode(kind::SELECT, fact[0][0], k);
-            // Node bk = nm->mkNode(kind::SELECT, fact[0][1], k);
-            // //Node eq = d_valuation.ensureLiteral(ak.eqNode(bk));
-            // Node eq = ak.eqNode(bk);
-            // Node ex = nm->mkNode(kind::LEMMA_EXISTS, nm->mkNode(kind::BOUND_VAR_LIST, k), eq.notNode());
-            // Node lemma = fact[0].orNode(ex);
-            // Trace("arrays-lem")<<"Arrays::addExtLemma " << lemma <<"\n";
-            // d_out->lemma(lemma, RULE_ARRAYS_EXT);
-            // ++d_numExt;
-
-            // Code BEFORE Morgan's changes:
-            // ////////////////////////////////
+            TNode k;
+            // k is the skolem for this disequality.
             if (!d_proofsEnabled) {
               Debug("pf::array") << "Check: kind::NOT: array theory making a skolem" << std::endl;
 
-              NodeManager* nm = NodeManager::currentNM();
-              TypeNode indexType = fact[0][0].getType()[0];
-              TNode k = getSkolem(fact,"array_ext_index", indexType, "an extensional lemma index variable from the theory of arrays", false);
+              // If not in replay mode, generate a fresh skolem variable
+              k = getSkolem(fact,
+                            "array_ext_index",
+                            indexType,
+                            "an extensional lemma index variable from the theory of arrays",
+                            false);
 
-              // Added
-              if (options::proof()) {
-                ProofManager::getSkolemizationManager()->registerSkolem(fact, k);
+              // Register this skolem for the proof replay phase
+              PROOF(ProofManager::getSkolemizationManager()->registerSkolem(fact, k));
+            } else {
+              if (!ProofManager::getSkolemizationManager()->hasSkolem(fact)) {
+                // In the solution pass we didn't need this skolem. Therefore, we don't need it
+                // in this reply pass, either.
+                break;
               }
-              ////
 
-              Node ak = nm->mkNode(kind::SELECT, fact[0][0], k);
-              Node bk = nm->mkNode(kind::SELECT, fact[0][1], k);
+              // Reuse the same skolem as in the solution pass
+              k = ProofManager::getSkolemizationManager()->getSkolem(fact);
+              Debug("pf::array") << "Skolem = " << k << std::endl;
+            }
 
-              Node eq;
+            Node ak = nm->mkNode(kind::SELECT, fact[0][0], k);
+            Node bk = nm->mkNode(kind::SELECT, fact[0][1], k);
+            Node eq = ak.eqNode(bk);
+            Node lemma = fact[0].orNode(eq.notNode());
 
-              // Update from Clark, for EXT lemma propagation
-              //
-              // eq = d_valuation.ensureLiteral(ak.eqNode(bk));
-              // Assert(eq.getKind() == kind::EQUAL);
-              eq = ak.eqNode(bk);
-              // END changes from Clark
+            // In solve mode we don't care if ak and bk are registered. If they aren't, they'll be registered
+            // when we output the lemma. However, in replay need the lemma to be propagated, and so we
+            // preregister manually.
+            if (d_proofsEnabled) {
+              if (!d_equalityEngine.hasTerm(ak)) { preRegisterTermInternal(ak); }
+              if (!d_equalityEngine.hasTerm(bk)) { preRegisterTermInternal(bk); }
+            }
 
-              Node lemma = fact[0].orNode(eq.notNode());
+            if (options::arraysPropagate() > 0 && d_equalityEngine.hasTerm(ak) && d_equalityEngine.hasTerm(bk)) {
+              // Propagate witness disequality - might produce a conflict
+              d_permRef.push_back(lemma);
+              Debug("pf::array") << "Asserting to the equality engine:" << std::endl
+                                 << "\teq = " << eq << std::endl
+                                 << "\treason = " << fact << std::endl;
 
-              // Also added from Clark for EXT lemma propagation:
-              if (options::arraysPropagate() > 0 && d_equalityEngine.hasTerm(ak) && d_equalityEngine.hasTerm(bk)) {
-                // Propagate witness disequality - might produce a conflict
-                d_permRef.push_back(lemma);
-                d_equalityEngine.assertEquality(eq, false, fact, eq::MERGED_ARRAYS_EXT);
-                ++d_numProp;
-              }
-              // END changes from Clark
+              d_equalityEngine.assertEquality(eq, false, fact, eq::MERGED_ARRAYS_EXT);
+              ++d_numProp;
+            }
 
+            if (!d_proofsEnabled) {
+              // If this is the solution pass, generate the lemma. Otherwise, don't generate it -
+              // as this is the lemma that we're reproving...
               Trace("arrays-lem")<<"Arrays::addExtLemma " << lemma <<"\n";
               d_out->lemma(lemma);
               ++d_numExt;
-            } else {
-              Debug("pf::array") << "In Array's Check (proof phase), handling fact = " << fact << std::endl;
-
-              NodeManager* nm = NodeManager::currentNM();
-              TypeNode indexType = fact[0][0].getType()[0];
-
-              TNode k;
-              if (ProofManager::getSkolemizationManager()->hasSkolem(fact)) {
-                k = ProofManager::getSkolemizationManager()->getSkolem(fact);
-                // } else {
-                //   Unreachable();
-                //   // Debug("pf::array") << "New skolem getting registered at proof checking phase!" << std::endl;
-                //   // k = getSkolem(fact,"array_ext_index", indexType, "an extensional lemma index variable from the theory of arrays", false);
-                //   // ProofSkolemization::registerSkolem(fact, k);
-                // }
-
-                // Do we really need to generate the lemma again? Or just assert the disequality?
-                Debug("pf::array") << "Skolem = " << k << std::endl;
-
-                Node ak = nm->mkNode(kind::SELECT, fact[0][0], k);
-                Node bk = nm->mkNode(kind::SELECT, fact[0][1], k);
-
-                Debug("pf::array") << "ak = " << ak << ", bk = " << bk << std::endl;
-                Debug("pf::array") << "Equality engine has ak? " <<
-                  ( d_equalityEngine.hasTerm(ak) ? "YES" : "NO" ) << std::endl;
-                Debug("pf::array") << "Equality engine has bk? " <<
-                  ( d_equalityEngine.hasTerm(bk) ? "YES" : "NO" ) << std::endl;
-
-                Node eq = ak.eqNode(bk);
-
-                // eq = d_valuation.ensureLiteral(ak.eqNode(bk));
-                //                Assert(eq.getKind() == kind::EQUAL);
-
-                Node lemma = fact[0].orNode(eq.notNode());
-
-                // ONLY IN PROOF MODE, if the terms ak and bk are not yet registered, we'd like to register them.
-                // Keep this is mind in future refactoring
-                if (!d_equalityEngine.hasTerm(ak)) {
-                  preRegisterTermInternal(ak);
-                }
-                if (!d_equalityEngine.hasTerm(bk)) {
-                  preRegisterTermInternal(bk);
-                }
-                // END ONLY IF PROOF MODE
-
-                // Also added from Clark for EXT lemma propagation:
-                if (options::arraysPropagate() > 0 && d_equalityEngine.hasTerm(ak) && d_equalityEngine.hasTerm(bk)) {
-                  // Propagate witness disequality - might produce a conflict
-                  d_permRef.push_back(lemma);
-                  Debug("pf::array") << "Asserting to the equality engine:" << std::endl
-                                     << "\teq = " << eq << std::endl
-                                     << "\treason = " << fact << std::endl;
-
-                  d_equalityEngine.assertEquality(eq, false, fact, eq::MERGED_ARRAYS_EXT);
-                  ++d_numProp;
-                }
-                // END changes from Clark
-
-                // Debug("pf::array") << "lemma = " << lemma << std::endl;
-
-                // Trace("arrays-lem")<<"Arrays::addExtLemma " << lemma <<"\n";
-                // d_out->lemma(lemma);
-                // ++d_numExt;
-              }
             }
-          }
-          else {
+          } else {
             Debug("pf::array") << "Check: kind::NOT: array theory NOT making a skolem" << std::endl;
             d_modelConstraints.push_back(fact);
           }

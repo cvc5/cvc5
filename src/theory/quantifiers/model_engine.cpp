@@ -274,7 +274,7 @@ void ModelEngine::exhaustiveInstantiate( Node f, int effort ){
     //create a rep set iterator and iterate over the (relevant) domain of the quantifier
     RepSetIterator riter( d_quantEngine, &(d_quantEngine->getModel()->d_rep_set) );
     if( riter.setQuantifier( f ) ){
-      Trace("fmf-exh-inst") << "...exhaustive instantiation incomplete=" << riter.d_incomplete << "..." << std::endl;
+      Trace("fmf-exh-inst") << "...exhaustive instantiation set, incomplete=" << riter.d_incomplete << "..." << std::endl;
       if( !riter.d_incomplete ){
         int triedLemmas = 0;
         int addedLemmas = 0;
@@ -299,6 +299,7 @@ void ModelEngine::exhaustiveInstantiate( Node f, int effort ){
         d_statistics.d_exh_inst_lemmas += addedLemmas;
       }
     }else{
+      Trace("fmf-exh-inst") << "...exhaustive instantiation failed to set, incomplete=" << riter.d_incomplete << "..." << std::endl;
       Assert( riter.d_incomplete );
     }
     //if the iterator is incomplete, we will return unknown instead of sat if no instantiations are added this round

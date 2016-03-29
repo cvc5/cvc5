@@ -36,9 +36,10 @@ public:
   static bool getMonomial( Node n, std::map< Node, Node >& msum );
   static bool getMonomialSum( Node n, std::map< Node, Node >& msum );
   static bool getMonomialSumLit( Node lit, std::map< Node, Node >& msum );
+  static Node mkNode( std::map< Node, Node >& msum );
   //return 1 : solved on LHS, return -1 : solved on RHS, return 0: failed
-  static int isolate( Node v, std::map< Node, Node >& msum, Node & veq, Kind k, bool doCoeff = false );
   static int isolate( Node v, std::map< Node, Node >& msum, Node & veq_c, Node & val, Kind k );
+  static int isolate( Node v, std::map< Node, Node >& msum, Node & veq, Kind k, bool doCoeff = false );
   static Node solveEqualityFor( Node lit, Node v );
   static Node negate( Node t );
   static Node offset( Node t, int i );

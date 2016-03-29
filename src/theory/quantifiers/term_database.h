@@ -71,6 +71,9 @@ typedef expr::Attribute<InstVarNumAttributeId, uint64_t> InstVarNumAttribute;
 struct TermDepthAttributeId {};
 typedef expr::Attribute<TermDepthAttributeId, uint64_t> TermDepthAttribute;
 
+struct ContainsUConstAttributeId {};
+typedef expr::Attribute<ContainsUConstAttributeId, uint64_t> ContainsUConstAttribute;
+
 struct ModelBasisAttributeId {};
 typedef expr::Attribute<ModelBasisAttributeId, bool> ModelBasisAttribute;
 //for APPLY_UF terms, 1 : term has direct child with model basis attribute,
@@ -171,8 +174,14 @@ private:
   std::hash_set< Node, NodeHashFunction > d_iclosure_processed;
   /** select op map */
   std::map< Node, std::map< TypeNode, Node > > d_par_op_map;
+  /** whether master equality engine is UF-inconsistent */
+  bool d_consistent_ee;
   /** set has term */
   void setHasTerm( Node n );
+  /** evaluate term */
+  TNode evaluateTerm2( TNode n, std::map< TNode, TNode >& subs, bool subsRep, bool hasSubs );
+  Node evaluateTerm2( TNode n, std::map< TNode, TNode >& subs, bool subsRep, bool hasSubs, std::map< TNode, Node >& visited );
+  bool isEntailed( TNode n, std::map< TNode, TNode >& subs, bool subsRep, bool hasSubs, bool pol );
 public:
   TermDb( context::Context* c, context::UserContext* u, QuantifiersEngine* qe );
   ~TermDb(){}
@@ -210,7 +219,7 @@ public:
   /** presolve (called once per user check-sat) */
   void presolve();
   /** reset (calculate which terms are active) */
-  void reset( Theory::Effort effort );
+  bool reset( Theory::Effort effort );
   /** get match operator */
   Node getMatchOperator( Node n );
   /** get term arg index */
@@ -225,9 +234,9 @@ public:
   /** evaluate a term under a substitution.  Return representative in EE if possible.
    * subsRep is whether subs contains only representatives
    */
-  TNode evaluateTerm( TNode n, std::map< TNode, TNode >& subs, bool subsRep );
+  Node evaluateTerm( TNode n, std::map< TNode, TNode >& subs, bool subsRep, bool mkNewTerms = false );
   /** same as above, but without substitution */
-  TNode evaluateTerm( TNode n );
+  Node evaluateTerm( TNode n, bool mkNewTerms = false );
   /** is entailed (incomplete check) */
   bool isEntailed( TNode n, std::map< TNode, TNode >& subs, bool subsRep, bool pol );
   /** has term */
@@ -429,7 +438,6 @@ private:
   //helper for contains term
   static bool containsTerm2( Node n, Node t, std::map< Node, bool >& visited );
   static bool containsTerms2( Node n, std::vector< Node >& t, std::map< Node, bool >& visited );
-  static bool containsUninterpretedConstant2( Node n, std::map< Node, bool >& visited );
 //general utilities
 public:
   /** simple check for whether n contains t as subterm */

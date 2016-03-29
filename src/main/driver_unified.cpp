@@ -101,7 +101,7 @@ int runCvc4(int argc, char* argv[], Options& opts) {
   progPath = argv[0];
 
   // Parse the options
-  vector<string> filenames = opts.parseOptions(argc, argv);
+  vector<string> filenames = Options::parseOptions(&opts, argc, argv);
 
 # ifndef PORTFOLIO_BUILD
   if( opts.wasSetByUserThreads() ||

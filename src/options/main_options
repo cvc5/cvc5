@@ -54,8 +54,8 @@ option segvSpin --segv-spin bool :default false
  spin on segfault/other crash waiting for gdb
 undocumented-alias --segv-nospin = --no-segv-spin
 
-expert-option tearDownIncremental : --tear-down-incremental int :default 0
- implement PUSH/POP/multi-query by destroying and recreating SmtEngine
+expert-option tearDownIncremental : --tear-down-incremental=N int :default 0
+ implement PUSH/POP/multi-query by destroying and recreating SmtEngine every N queries
 
 expert-option waitToJoin --wait-to-join bool :default true
  wait for other threads to join before quitting

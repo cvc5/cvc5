@@ -140,6 +140,18 @@ public:
   void eqNotifyDisequal(TNode t1, TNode t2, TNode reason) { }
 };/* class EqualityEngineNotifyNone */
 
+/**
+ * An interface for equality engine notifications during equality path reconstruction.
+ * Can be used to add theory-specific logic for, e.g., proof construction.
+ */
+class PathReconstructionNotify {
+public:
+
+  virtual ~PathReconstructionNotify() {}
+
+  virtual void notify(MergeReasonType reasonType, Node reason, Node a, Node b,
+                      std::vector<TNode>& equalities, EqProof* proof) const = 0;
+};
 
 /**
  * Class for keeping an incremental congruence closure over a set of terms. It provides
@@ -217,6 +229,9 @@ private:
 
   /** The map of kinds to be treated as interpreted function applications (for evaluation of constants) */
   KindMap d_congruenceKindsInterpreted;
+
+  /** Objects that need to be notified during equality path reconstruction */
+  std::map<MergeReasonType, const PathReconstructionNotify*> d_pathReconstructionTriggers;
 
   /** Map from nodes to their ids */
   __gnu_cxx::hash_map<TNode, EqualityNodeId, TNodeHashFunction> d_nodeIds;
@@ -833,6 +848,10 @@ public:
    */
   bool consistent() const { return !d_done; }
 
+  /**
+   * Marks an object for merge type based notification during equality path reconstruction.
+   */
+  void addPathReconstructionTrigger(MergeReasonType trigger, const PathReconstructionNotify* notify);
 };
 
 /**

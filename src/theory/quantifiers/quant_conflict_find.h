@@ -115,8 +115,8 @@ private: //for completing match
   int d_una_index;
   std::vector< int > d_una_eqc_count;
 public:
-  QuantInfo() : d_mg( NULL ) {}
-  ~QuantInfo() { delete d_mg; }
+  QuantInfo();
+  ~QuantInfo();
   std::vector< TNode > d_vars;
   std::vector< TypeNode > d_var_types;
   std::map< TNode, int > d_var_num;
@@ -128,9 +128,21 @@ public:
   int getNumVars() { return (int)d_vars.size(); }
   TNode getVar( int i ) { return d_vars[i]; }
 
+  typedef std::map< int, MatchGen * > VarMgMap;
+ private:
   MatchGen * d_mg;
+  VarMgMap d_var_mg;
+ public:
+  VarMgMap::const_iterator var_mg_find(int i) const { return d_var_mg.find(i); }
+  VarMgMap::const_iterator var_mg_end() const { return d_var_mg.end(); }
+  bool containsVarMg(int i) const { return var_mg_find(i) != var_mg_end(); }
+
+  bool matchGeneratorIsValid() const { return d_mg->isValid(); }
+  bool getNextMatch( QuantConflictFind * p) {
+    return d_mg->getNextMatch(p, this);
+  }
+
   Node d_q;
-  std::map< int, MatchGen * > d_var_mg;
   void reset_round( QuantConflictFind * p );
 public:
   //initialize
@@ -248,8 +260,8 @@ public:
   std::string identify() const { return "QcfEngine"; }
 };
 
-}
-}
-}
+} /* namespace CVC4::theory::quantifiers */
+} /* namespace CVC4::theory */
+} /* namespace CVC4 */
 
 #endif

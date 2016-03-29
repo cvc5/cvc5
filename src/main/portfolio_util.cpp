@@ -92,7 +92,7 @@ void parseThreadSpecificOptions(OptionsList& threadOptions, const Options& opts)
       *vp++ = NULL;
       if(targc > 1) { // this is necessary in case you do e.g. --thread0="  "
         try {
-          tOpts.parseOptions(targc, targv);
+          Options::parseOptions(&tOpts, targc, targv);
         } catch(OptionException& e) {
           stringstream ss;
           ss << optid << ": " << e.getMessage();

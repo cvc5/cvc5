@@ -604,7 +604,7 @@ template <> bool Options::wasSetByUser(options::${internal}__option_t) const { r
     for link in $links; do
       run_links="$run_links
 #line $lineno \"$kf\"
-      argumentExtender.extend(extra_argc, extra_argv, \"$link\", allocated);"
+      extender->pushBackPreemption(\"$link\");"
     done
   fi
   if [ -n "$smt_links" ]; then
@@ -623,7 +623,7 @@ template <> bool Options::wasSetByUser(options::${internal}__option_t) const { r
     for link in $links_alternate; do
       run_links_alternate="$run_links_alternate
 #line $lineno \"$kf\"
-      argumentExtender.extend(extra_argc, extra_argv, \"$link\", allocated);"
+      extender->pushBackPreemption(\"$link\");"
     done
   fi
   if [ -n "$notifications" ]; then
@@ -657,7 +657,7 @@ template <> void runBoolPredicates(options::${internal}__option_t, std::string o
     if [ "$type" = bool ]; then
       all_modules_option_handlers="${all_modules_option_handlers}${cases}
 #line $lineno \"$kf\"
-      assignBool(options::$internal, option, true);$run_links
+      options->assignBool(options::$internal, option, true);$run_links
       break;
 "
     elif [ -n "$expect_arg" -a "$internal" != - ]; then
@@ -690,7 +690,7 @@ template <> options::${internal}__option_t::type runHandlerAndPredicates(options
 }"
       all_modules_option_handlers="${all_modules_option_handlers}${cases}
 #line $lineno \"$kf\"
-      assign(options::$internal, option, optionarg);$run_links
+      options->assign(options::$internal, option, optionarg);$run_links
       break;
 "
     elif [ -n "$expect_arg" ]; then
@@ -733,7 +733,7 @@ template <> options::${internal}__option_t::type runHandlerAndPredicates(options
     if [ "$type" = bool ]; then
       all_modules_option_handlers="${all_modules_option_handlers}${cases_alternate}
 #line $lineno \"$kf\"
-      assignBool(options::$internal, option, false);$run_links_alternate
+      options->assignBool(options::$internal, option, false);$run_links_alternate
       break;
 "
     else
@@ -1013,12 +1013,12 @@ function handle_alias {
     fi
     links="$links
 #line $lineno \"$kf\"
-      argumentExtender.extend(extra_argc, extra_argv, \"$linkopt\", allocated);"
+      extender->pushBackPreemption(\"$linkopt\");"
     if [ "$linkarg" ]; then
       # include also the arg
       links="$links
 #line $lineno \"$kf\"
-      argumentExtender.extend(extra_argc, extra_argv, optionarg.c_str(), allocated);"
+      extender->pushBackPreemption(optionarg.c_str());"
     fi
     shift
   done

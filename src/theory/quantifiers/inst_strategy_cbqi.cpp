@@ -35,7 +35,7 @@ using namespace CVC4::theory::arith;
 
 InstStrategyCbqi::InstStrategyCbqi( QuantifiersEngine * qe )
   : QuantifiersModule( qe ), d_added_cbqi_lemma( qe->getUserContext() )
-//, d_added_inst( qe->getUserContext() ) 
+//, d_added_inst( qe->getUserContext() )
 {
 }
 
@@ -588,6 +588,13 @@ InstStrategyCegqi::InstStrategyCegqi( QuantifiersEngine * qe )
 
 InstStrategyCegqi::~InstStrategyCegqi() throw () {
   delete d_out;
+
+  for(std::map< Node, CegInstantiator * >::iterator i = d_cinst.begin(),
+          iend = d_cinst.end(); i != iend; ++i) {
+    CegInstantiator * instantiator = (*i).second;
+    delete instantiator;
+  }
+  d_cinst.clear();
 }
 
 void InstStrategyCegqi::processResetInstantiationRound( Theory::Effort effort ) {

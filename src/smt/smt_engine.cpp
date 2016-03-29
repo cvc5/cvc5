@@ -110,8 +110,17 @@ using namespace CVC4::context;
 using namespace CVC4::theory;
 
 namespace CVC4 {
-
 namespace smt {
+
+struct DeleteCommandFunction : public std::unary_function<const Command*, void>
+{
+  void operator()(const Command* command) { delete command; }
+};
+
+void DeleteAndClearCommandVector(std::vector<Command*>& commands) {
+  std::for_each(commands.begin(), commands.end(), DeleteCommandFunction());
+  commands.clear();
+}
 
 /** Useful for counting the number of recursive calls. */
 class ScopeCounter {
@@ -1194,6 +1203,8 @@ SmtEngine::~SmtEngine() throw() {
     }
     d_dumpCommands.clear();
 
+    DeleteAndClearCommandVector(d_modelGlobalCommands);
+
     if(d_modelCommands != NULL) {
       d_modelCommands->deleteSelf();
     }
@@ -1299,15 +1310,7 @@ void SmtEngine::setDefaults() {
       Trace("smt") << "turning on quantifier logic, for strings-exp"
                    << std::endl;
     }
-    if(! options::finiteModelFind.wasSetByUser()) {
-      options::finiteModelFind.set( true );
-      Trace("smt") << "turning on finite-model-find, for strings-exp"
-                   << std::endl;
-    }
     if(! options::fmfBoundInt.wasSetByUser()) {
-      if(! options::fmfBoundIntLazy.wasSetByUser()) {
-        options::fmfBoundIntLazy.set( true );
-      }
       options::fmfBoundInt.set( true );
       Trace("smt") << "turning on fmf-bound-int, for strings-exp" << std::endl;
     }
@@ -2112,6 +2115,8 @@ CVC4::SExpr SmtEngine::getInfo(const std::string& key) const
 void SmtEngine::defineFunction(Expr func,
                                const std::vector<Expr>& formals,
                                Expr formula) {
+  SmtScope smts(this);
+  doPendingPops();
   Trace("smt") << "SMT defineFunction(" << func << ")" << endl;
   for(std::vector<Expr>::const_iterator i = formals.begin(); i != formals.end(); ++i) {
     if((*i).getKind() != kind::BOUND_VARIABLE) {
@@ -2130,7 +2135,6 @@ void SmtEngine::defineFunction(Expr func,
   DefineFunctionCommand c(ss.str(), func, formals, formula);
   addToModelCommandAndDump(c, ExprManager::VAR_FLAG_DEFINED, true, "declarations");
 
-  SmtScope smts(this);
 
   PROOF( if (options::checkUnsatCores()) {
       d_defineCommands.push_back(c.clone());
@@ -5295,7 +5299,7 @@ void SmtEngine::resetAssertions() throw() {
   Assert(d_userLevels.size() == 0 && d_userContext->getLevel() == 1);
   d_context->popto(0);
   d_userContext->popto(0);
-  d_modelGlobalCommands.clear();
+  DeleteAndClearCommandVector(d_modelGlobalCommands);
   d_userContext->push();
   d_context->push();
 }

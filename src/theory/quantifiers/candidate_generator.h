@@ -108,6 +108,8 @@ private:
   eq::EqClassesIterator d_eq;
   //equality you are trying to match equalities for
   Node d_match_pattern;
+  Node d_match_gterm;
+  bool d_do_mgt;
   //einstantiator pointer
   QuantifiersEngine* d_qe;
 public:
