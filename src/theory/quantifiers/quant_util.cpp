@@ -377,3 +377,20 @@ void QuantPhaseReq::getPolarity( Node n, int child, bool hasPol, bool pol, bool&
     newPol = pol;
   }
 }
+
+void QuantPhaseReq::getEntailPolarity( Node n, int child, bool hasPol, bool pol, bool& newHasPol, bool& newPol ) {
+  if( n.getKind()==AND || n.getKind()==OR ){
+    newHasPol = hasPol && pol==( n.getKind()==AND );
+    newPol = pol;
+  }else if( n.getKind()==IMPLIES ){
+    newHasPol = hasPol && !pol;
+    newPol = child==0 ? !pol : pol;
+  }else if( n.getKind()==NOT ){
+    newHasPol = hasPol;
+    newPol = !pol;
+  }else{
+    newHasPol = false;
+    newPol = pol;
+  }
+}
+

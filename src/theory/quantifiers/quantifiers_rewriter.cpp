@@ -324,7 +324,7 @@ Node QuantifiersRewriter::computeNNF( Node body ){
     }else if( isLiteral( body[0] ) ){
       return body;
     }else{
-      std::vector< Node > children;
+      std::vector< Node > children; 
       Kind k = body[0].getKind();
 
       if( body[0].getKind()==OR || body[0].getKind()==AND ){
@@ -1546,7 +1546,7 @@ bool QuantifiersRewriter::doOperation( Node f, int computeOption, QAttributes& q
   }else if( computeOption==COMPUTE_AGGRESSIVE_MINISCOPING ){
     return options::aggressiveMiniscopeQuant() && is_std;
   }else if( computeOption==COMPUTE_NNF ){
-    return options::nnfQuant();
+    return true;
   }else if( computeOption==COMPUTE_PROCESS_TERMS ){
     return true;
     //return options::iteLiftQuant()!=ITE_LIFT_QUANT_MODE_NONE || options::iteCondVarSplitQuant();

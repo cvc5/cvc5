@@ -37,11 +37,6 @@ option condVarSplitQuantAgg --cond-var-split-agg-quant bool :default false
  aggressive split quantified formulas that lead to variable eliminations
 option iteDtTesterSplitQuant --ite-dtt-split-quant bool :read-write :default false
  split ites with dt testers as conditions
-# Whether to CNF quantifier bodies
-# option cnfQuant --cnf-quant bool :default false
-#  apply CNF conversion to quantified formulas
-option nnfQuant --nnf-quant bool :default true
- apply NNF conversion to quantified formulas
 # Whether to pre-skolemize quantifier bodies.
 # For example, forall x. ( P( x ) => (exists y. f( y ) = x) ) will be rewritten to
 #   forall x. P( x ) => f( S( x ) ) = x

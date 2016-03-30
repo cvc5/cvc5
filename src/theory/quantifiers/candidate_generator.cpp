@@ -62,6 +62,7 @@ CandidateGeneratorQE::CandidateGeneratorQE( QuantifiersEngine* qe, Node op ) :
   d_op( op ), d_qe( qe ), d_term_iter( -1 ){
   Assert( !d_op.isNull() );
 }
+
 void CandidateGeneratorQE::resetInstantiationRound(){
   d_term_iter_limit = d_qe->getTermDatabase()->getNumGroundTerms( d_op );
 }
@@ -71,20 +72,20 @@ void CandidateGeneratorQE::reset( Node eqc ){
   if( eqc.isNull() ){
     d_mode = cand_term_db;
   }else{
-    //create an equivalence class iterator in eq class eqc
-    //d_qe->getEqualityQuery()->getEquivalenceClass( eqc, d_eqc );
-
-    eq::EqualityEngine* ee = d_qe->getEqualityQuery()->getEngine();
-    if( ee->hasTerm( eqc ) ){
-      Node rep = ee->getRepresentative( eqc );
-      d_eqc_iter = eq::EqClassIterator( rep, ee );
-      d_mode = cand_term_eqc;
+    if( isExcludedEqc( eqc ) ){
+      d_mode = cand_term_none;
     }else{
-      d_n = eqc;
-      d_mode = cand_term_ident;
+      eq::EqualityEngine* ee = d_qe->getEqualityQuery()->getEngine();
+      if( ee->hasTerm( eqc ) ){
+        //create an equivalence class iterator in eq class eqc
+        Node rep = ee->getRepresentative( eqc );
+        d_eqc_iter = eq::EqClassIterator( rep, ee );
+        d_mode = cand_term_eqc;
+      }else{
+        d_n = eqc;
+        d_mode = cand_term_ident;
+      }
     }
-    //a should be in its equivalence class
-    //Assert( std::find( eqc.begin(), eqc.end(), a )!=eqc.end() );
   }
 }
 bool CandidateGeneratorQE::isLegalOpCandidate( Node n ) {
@@ -98,17 +99,26 @@ bool CandidateGeneratorQE::isLegalOpCandidate( Node n ) {
 
 Node CandidateGeneratorQE::getNextCandidate(){
   if( d_mode==cand_term_db ){
+    Debug("cand-gen-qe") << "...get next candidate in tbd" << std::endl;
     //get next candidate term in the uf term database
     while( d_term_iter<d_term_iter_limit ){
       Node n = d_qe->getTermDatabase()->getGroundTerm( d_op, d_term_iter );
       d_term_iter++;
       if( isLegalCandidate( n ) ){
         if( d_qe->getTermDatabase()->hasTermCurrent( n ) ){
-          return n;
+          if( d_exclude_eqc.empty() ){
+            return n;
+          }else{
+            Node r = d_qe->getEqualityQuery()->getRepresentative( n );
+            if( d_exclude_eqc.find( r )==d_exclude_eqc.end() ){
+              return n;
+            }
+          }
         }
       }
     }
   }else if( d_mode==cand_term_eqc ){
+    Debug("cand-gen-qe") << "...get next candidate in eqc" << std::endl;
     while( !d_eqc_iter.isFinished() ){
       Node n = *d_eqc_iter;
       ++d_eqc_iter;
@@ -117,6 +127,7 @@ Node CandidateGeneratorQE::getNextCandidate(){
       }
     }
   }else if( d_mode==cand_term_ident ){
+    Debug("cand-gen-qe") << "...get next candidate identity" << std::endl;
     if( !d_n.isNull() ){
       Node n = d_n;
       d_n = Node::null();

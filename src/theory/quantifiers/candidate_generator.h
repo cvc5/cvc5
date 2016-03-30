@@ -88,10 +88,12 @@ private:
     cand_term_db,
     cand_term_ident,
     cand_term_eqc,
+    cand_term_none,
   };
   short d_mode;
   bool isLegalOpCandidate( Node n );
   Node d_n;
+  std::map< Node, bool > d_exclude_eqc;
 public:
   CandidateGeneratorQE( QuantifiersEngine* qe, Node op );
   ~CandidateGeneratorQE() throw() {}
@@ -99,6 +101,8 @@ public:
   void resetInstantiationRound();
   void reset( Node eqc );
   Node getNextCandidate();
+  void excludeEqc( Node r ) { d_exclude_eqc[r] = true; }
+  bool isExcludedEqc( Node r ) { return d_exclude_eqc.find( r )!=d_exclude_eqc.end(); }
 };
 
 class CandidateGeneratorQELitEq : public CandidateGenerator

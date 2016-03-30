@@ -64,7 +64,7 @@ protected:
   InstMatchGenerator* d_next;
   /** eq class */
   Node d_eq_class;
-  bool d_eq_class_rel;
+  Node d_eq_class_rel;
   /** variable numbers */
   std::map< int, int > d_var_num;
   /** initialize pattern */
@@ -211,6 +211,8 @@ private:
   Node d_f;
   /** match term */
   Node d_match_pattern;
+  /** equivalence class */
+  Node d_eqc;
   /** match pattern arg types */
   std::vector< TypeNode > d_match_pattern_arg_types;
   /** operator */

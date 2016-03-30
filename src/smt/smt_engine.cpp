@@ -552,6 +552,11 @@ class SmtEnginePrivate : public NodeManagerListener {
    */
   unsigned d_simplifyAssertionsDepth;
 
+  /** whether certain preprocess steps are necessary */
+  bool d_needsExpandDefs;
+  bool d_needsRewriteBoolTerms;
+  bool d_needsConstrainSubTypes;
+
 public:
   /**
    * Map from skolem variables to index in d_assertions containing
@@ -679,6 +684,9 @@ public:
     d_abstractValueMap(&d_fakeContext),
     d_abstractValues(),
     d_simplifyAssertionsDepth(0),
+    d_needsExpandDefs(true),
+    d_needsRewriteBoolTerms(true),
+    d_needsConstrainSubTypes(true), //TODO
     d_iteSkolemMap(),
     d_iteRemover(smt.d_userContext),
     d_pbsProcessor(smt.d_userContext),
@@ -3860,6 +3868,7 @@ void SmtEnginePrivate::processAssertions() {
 
   Debug("smt") << " d_assertions     : " << d_assertions.size() << endl;
 
+
   dumpAssertions("pre-constrain-subtypes", d_assertions);
   {
     // Any variables of subtype types need to be constrained properly.
@@ -4194,6 +4203,7 @@ void SmtEnginePrivate::processAssertions() {
 
   Trace("smt-proc") << "SmtEnginePrivate::processAssertions() end" << endl;
   dumpAssertions("post-everything", d_assertions);
+  
 
   //set instantiation level of everything to zero
   if( options::instLevelInputOnly() && options::instMaxLevel()!=-1 ){

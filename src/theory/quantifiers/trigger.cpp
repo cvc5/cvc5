@@ -337,13 +337,19 @@ bool Trigger::isCbqiKind( Kind k ) {
 }
 
 bool Trigger::isSimpleTrigger( Node n ){
-  if( isAtomicTrigger( n ) ){
-    for( int i=0; i<(int)n.getNumChildren(); i++ ){
-      if( n[i].getKind()!=INST_CONSTANT && quantifiers::TermDb::hasInstConstAttr(n[i]) ){
+  Node t = n;
+  if( n.getKind()==IFF || n.getKind()==EQUAL ){
+    if( !quantifiers::TermDb::hasInstConstAttr( n[1] ) ){
+      t = n[0];
+    }
+  }
+  if( isAtomicTrigger( t ) ){
+    for( unsigned i=0; i<t.getNumChildren(); i++ ){
+      if( t[i].getKind()!=INST_CONSTANT && quantifiers::TermDb::hasInstConstAttr(t[i]) ){
         return false;
       }
     }
-    if( options::purifyDtTriggers() && n.getKind()==APPLY_SELECTOR_TOTAL ){
+    if( options::purifyDtTriggers() && t.getKind()==APPLY_SELECTOR_TOTAL ){
       return false;
     }
     return true;
@@ -352,64 +358,66 @@ bool Trigger::isSimpleTrigger( Node n ){
   }
 }
 
-
-bool Trigger::collectPatTerms2( Node f, Node n, std::map< Node, bool >& patMap, int tstrt, std::vector< Node >& exclude, bool pol, bool hasPol ){
-  if( patMap.find( n )==patMap.end() ){
-    patMap[ n ] = false;
-    if( tstrt==TS_MIN_TRIGGER ){
-      if( n.getKind()==FORALL ){
-        return false;
-      }else{
-        bool retVal = false;
+//store triggers in reqPol, indicating their polarity (if any) they must appear to falsify the quantified formula
+bool Trigger::collectPatTerms2( Node f, Node n, std::map< Node, bool >& visited, int tstrt, std::vector< Node >& exclude, 
+                                std::map< Node, int >& reqPol, bool pol, bool hasPol, bool epol, bool hasEPol ){
+  std::map< Node, bool >::iterator itv = visited.find( n );
+  if( itv==visited.end() ){
+    visited[ n ] = false;
+    Trace("auto-gen-trigger-debug2") << "Collect pat terms " << n << " " << pol << " " << hasPol << " " << epol << " " << hasEPol << std::endl;
+    bool retVal = false;
+    if( n.getKind()!=FORALL ){
+      if( tstrt==TS_MIN_TRIGGER ){
         for( unsigned i=0; i<n.getNumChildren(); i++ ){
           bool newHasPol, newPol;
+          bool newHasEPol, newEPol;
           QuantPhaseReq::getPolarity( n, i, hasPol, pol, newHasPol, newPol );
-          if( collectPatTerms2( f, n[i], patMap, tstrt, exclude, newPol, newHasPol ) ){
+          QuantPhaseReq::getEntailPolarity( n, i, hasEPol, epol, newHasEPol, newEPol );
+          if( collectPatTerms2( f, n[i], visited, tstrt, exclude, reqPol, newPol, newHasPol, newEPol, newHasEPol ) ){
             retVal = true;
           }
         }
-        if( retVal ){
-          return true;
-        }else{
+        if( !retVal ){
           Node nu;
           if( std::find( exclude.begin(), exclude.end(), n )==exclude.end() ){
             nu = getIsUsableTrigger( n, f, pol, hasPol );
           }
           if( !nu.isNull() ){
-            patMap[ nu ] = true;
-            return true;
-          }else{
-            return false;
-          }
-        }
-      }
-    }else{
-      bool retVal = false;
-      Node nu;
-      if( std::find( exclude.begin(), exclude.end(), n )==exclude.end() ){
-        nu = getIsUsableTrigger( n, f, pol, hasPol );
-      }
-      if( !nu.isNull() ){
-        patMap[ nu ] = true;
-        if( tstrt==TS_MAX_TRIGGER ){
-          return true;
-        }else{
-          retVal = true;
-        }
-      }
-      if( n.getKind()!=FORALL ){
-        for( unsigned i=0; i<n.getNumChildren(); i++ ){
-          bool newHasPol, newPol;
-          QuantPhaseReq::getPolarity( n, i, hasPol, pol, newHasPol, newPol );
-          if( collectPatTerms2( f, n[i], patMap, tstrt, exclude, newPol, newHasPol ) ){
+            reqPol[ nu ] = hasEPol ? ( epol==(n.getKind()!=NOT) ? 1 : -1 ) : 0;
+            visited[ nu ] = true;
             retVal = true;
           }
         }
+      }else{
+        Node nu;
+        if( std::find( exclude.begin(), exclude.end(), n )==exclude.end() ){
+          nu = getIsUsableTrigger( n, f, pol, hasPol );
+        }
+        bool rec = true;
+        if( !nu.isNull() ){
+          reqPol[ nu ] = hasEPol ? ( epol==(n.getKind()!=NOT) ? 1 : -1 ) : 0;
+          visited[ nu ] = true;
+          retVal = true;
+          if( tstrt==TS_MAX_TRIGGER ){
+            rec = false;
+          }
+        }
+        if( rec ){
+          for( unsigned i=0; i<n.getNumChildren(); i++ ){
+            bool newHasPol, newPol;
+            bool newHasEPol, newEPol;
+            QuantPhaseReq::getPolarity( n, i, hasPol, pol, newHasPol, newPol );
+            QuantPhaseReq::getEntailPolarity( n, i, hasEPol, epol, newHasEPol, newEPol );
+            if( collectPatTerms2( f, n[i], visited, tstrt, exclude, reqPol, newPol, newHasPol, newEPol, newHasEPol ) ){
+              retVal = true;
+            }
+          }
+        }
       }
-      return retVal;
     }
+    return retVal;
   }else{
-    return patMap[ n ];
+    return itv->second;
   }
 }
 
@@ -493,42 +501,47 @@ bool Trigger::isLocalTheoryExt( Node n, std::vector< Node >& vars, std::vector< 
   return true;
 }
 
-void Trigger::collectPatTerms( QuantifiersEngine* qe, Node f, Node n, std::vector< Node >& patTerms, int tstrt, std::vector< Node >& exclude, bool filterInst ){
-  std::map< Node, bool > patMap;
+void Trigger::collectPatTerms( QuantifiersEngine* qe, Node f, Node n, std::vector< Node >& patTerms, int tstrt, std::vector< Node >& exclude, 
+                               std::map< Node, int >& reqPol, bool filterInst ){
+  std::map< Node, bool > visited;
   if( filterInst ){
     //immediately do not consider any term t for which another term is an instance of t
     std::vector< Node > patTerms2;
-    collectPatTerms( qe, f, n, patTerms2, TS_ALL, exclude, false );
+    std::map< Node, int > reqPol2;
+    collectPatTerms( qe, f, n, patTerms2, TS_ALL, exclude, reqPol2, false );
     std::vector< Node > temp;
     temp.insert( temp.begin(), patTerms2.begin(), patTerms2.end() );
     qe->getTermDatabase()->filterInstances( temp );
     if( temp.size()!=patTerms2.size() ){
       Trace("trigger-filter-instance") << "Filtered an instance: " << std::endl;
       Trace("trigger-filter-instance") << "Old: ";
-      for( int i=0; i<(int)patTerms2.size(); i++ ){
+      for( unsigned i=0; i<patTerms2.size(); i++ ){
         Trace("trigger-filter-instance") << patTerms2[i] << " ";
       }
       Trace("trigger-filter-instance") << std::endl << "New: ";
-      for( int i=0; i<(int)temp.size(); i++ ){
+      for( unsigned i=0; i<temp.size(); i++ ){
         Trace("trigger-filter-instance") << temp[i] << " ";
       }
       Trace("trigger-filter-instance") << std::endl;
     }
     if( tstrt==TS_ALL ){
-      patTerms.insert( patTerms.begin(), temp.begin(), temp.end() );
+      for( unsigned i=0; i<temp.size(); i++ ){
+        reqPol[temp[i]] = reqPol2[temp[i]];
+        patTerms.push_back( temp[i] );
+      }
       return;
     }else{
       //do not consider terms that have instances
-      for( int i=0; i<(int)patTerms2.size(); i++ ){
+      for( unsigned i=0; i<patTerms2.size(); i++ ){
         if( std::find( temp.begin(), temp.end(), patTerms2[i] )==temp.end() ){
-          patMap[ patTerms2[i] ] = false;
+          visited[ patTerms2[i] ] = false;
         }
       }
     }
   }
-  collectPatTerms2( f, n, patMap, tstrt, exclude, true, true );
-  for( std::map< Node, bool >::iterator it = patMap.begin(); it != patMap.end(); ++it ){
-    if( it->second ){
+  collectPatTerms2( f, n, visited, tstrt, exclude, reqPol, true, true, false, true );
+  for( std::map< Node, int >::iterator it = reqPol.begin(); it != reqPol.end(); ++it ){
+    if( visited[it->first] ){
       patTerms.push_back( it->first );
     }
   }
@@ -611,9 +624,10 @@ Node Trigger::getInversion( Node n, Node x ) {
 
 void Trigger::getTriggerVariables( QuantifiersEngine* qe, Node icn, Node f, std::vector< Node >& t_vars ) {
   std::vector< Node > patTerms;
+  std::map< Node, int > reqPol;
   //collect all patterns from icn
   std::vector< Node > exclude;
-  collectPatTerms( qe, f, icn, patTerms, TS_ALL, exclude );
+  collectPatTerms( qe, f, icn, patTerms, TS_ALL, exclude, reqPol );
   //collect all variables from all patterns in patTerms, add to t_vars
   for( unsigned i=0; i<patTerms.size(); i++ ){
     qe->getTermDatabase()->getVarContainsNode( f, patTerms[i], t_vars );

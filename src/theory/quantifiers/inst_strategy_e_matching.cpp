@@ -246,29 +246,32 @@ void InstStrategyAutoGenTriggers::generateTriggers( Node f ){
     d_patTerms[1][f].clear();
     bool ntrivTriggers = options::relationalTriggers();
     std::vector< Node > patTermsF;
+    std::map< Node, int > reqPol;
     //well-defined function: can assume LHS is only trigger
     if( options::quantFunWellDefined() ){
       Node hd = TermDb::getFunDefHead( f );
       if( !hd.isNull() ){
         hd = d_quantEngine->getTermDatabase()->getInstConstantNode( hd, f );
         patTermsF.push_back( hd );
+        reqPol[hd] = 0;
       }
     }
     //otherwise, use algorithm for collecting pattern terms
     if( patTermsF.empty() ){
       Node bd = d_quantEngine->getTermDatabase()->getInstConstantBody( f );
-      Trigger::collectPatTerms( d_quantEngine, f, bd, patTermsF, d_tr_strategy, d_user_no_gen[f], true );
+      Trigger::collectPatTerms( d_quantEngine, f, bd, patTermsF, d_tr_strategy, d_user_no_gen[f], reqPol, true );
       Trace("auto-gen-trigger-debug") << "Collected pat terms for " << bd << ", no-patterns : " << d_user_no_gen[f].size() << std::endl;
       if( ntrivTriggers ){
         sortTriggers st;
         std::sort( patTermsF.begin(), patTermsF.end(), st );
       }
       for( unsigned i=0; i<patTermsF.size(); i++ ){
-        Trace("auto-gen-trigger-debug") << "   " << patTermsF[i] << std::endl;
+        Assert( reqPol.find( patTermsF[i] )!=reqPol.end() );
+        Trace("auto-gen-trigger-debug") << "   " << patTermsF[i] << " " << reqPol[patTermsF[i]] << std::endl;
       }
       Trace("auto-gen-trigger-debug") << std::endl;
     }
-    //sort into single/multi triggers
+    //sort into single/multi triggers, calculate which terms should not be considered
     std::map< Node, std::vector< Node > > varContains;
     std::map< Node, bool > vcMap;
     std::map< Node, bool > rmPatTermsF;
@@ -284,20 +287,34 @@ void InstStrategyAutoGenTriggers::generateTriggers( Node f ){
       }
       int curr_w = Trigger::getTriggerWeight( patTermsF[i] );
       if( ntrivTriggers && !newVar && last_weight!=-1 && curr_w>last_weight ){
-        Trace("auto-gen-trigger-debug") << "Exclude expendible non-trivial trigger : " << patTermsF[i] << std::endl;
+        Trace("auto-gen-trigger-debug") << "...exclude expendible non-trivial trigger : " << patTermsF[i] << std::endl;
         rmPatTermsF[patTermsF[i]] = true;
       }else{
         last_weight = curr_w;
       }
     }
     for( std::map< Node, std::vector< Node > >::iterator it = varContains.begin(); it != varContains.end(); ++it ){
-      if( rmPatTermsF.find( it->first )==rmPatTermsF.end() ){
-        if( it->second.size()==f[0].getNumChildren() && ( options::pureThTriggers() || !Trigger::isPureTheoryTrigger( it->first ) ) ){
-          d_patTerms[0][f].push_back( it->first );
-          d_is_single_trigger[ it->first ] = true;
+      Node pat = it->first;
+      Trace("auto-gen-trigger-debug") << "...processing pattern " << pat << std::endl;
+      if( rmPatTermsF.find( pat )==rmPatTermsF.end() ){
+        //process the pattern: if it has a required polarity, consider it
+        if( options::instNoEntail() ){
+          Assert( reqPol.find( pat )!=reqPol.end() );
+          int rpol = reqPol[pat];
+          Trace("auto-gen-trigger-debug") << "...required polarity for " << pat << " is " << rpol << std::endl;
+          if( rpol!=0 ){
+            Assert( pat.getType().isBoolean() );
+            if( pat.getKind()==APPLY_UF ){
+              pat = NodeManager::currentNM()->mkNode( IFF, pat, NodeManager::currentNM()->mkConst( rpol==-1 ) ).negate();
+            }
+          }
+        }
+        if( it->second.size()==f[0].getNumChildren() && ( options::pureThTriggers() || !Trigger::isPureTheoryTrigger( pat ) ) ){
+          d_patTerms[0][f].push_back( pat );
+          d_is_single_trigger[ pat ] = true;
         }else{
-          d_patTerms[1][f].push_back( it->first );
-          d_is_single_trigger[ it->first ] = false;
+          d_patTerms[1][f].push_back( pat );
+          d_is_single_trigger[ pat ] = false;
         }
       }
     }
@@ -332,7 +349,7 @@ void InstStrategyAutoGenTriggers::generateTriggers( Node f ){
         //sort based on # occurrences (this will cause Trigger to select rarer symbols)
         std::sort( patTerms.begin(), patTerms.end(), sqfs );
         Debug("relevant-trigger") << "Terms based on relevance: " << std::endl;
-        for( int i=0; i<(int)patTerms.size(); i++ ){
+        for( unsigned i=0; i<patTerms.size(); i++ ){
           Debug("relevant-trigger") << "   " << patTerms[i] << " (";
           Debug("relevant-trigger") << d_quantEngine->getQuantifierRelevance()->getNumQuantifiersForSymbol( patTerms[i].getOperator() ) << ")" << std::endl;
         }

@@ -100,7 +100,7 @@ class Trigger {
   };
   static void collectPatTerms( QuantifiersEngine* qe, Node f, Node n,
                                std::vector< Node >& patTerms, int tstrt,
-                               std::vector< Node >& exclude,
+                               std::vector< Node >& exclude, std::map< Node, int >& reqPol,
                                bool filterInst = false );
   /** is usable trigger */
   static bool isUsableTrigger( Node n, Node q );
@@ -140,9 +140,9 @@ private:
   static Node getIsUsableTrigger( Node n, Node f, bool pol = true,
                                   bool hasPol = false );
   /** collect all APPLY_UF pattern terms for f in n */
-  static bool collectPatTerms2( Node f, Node n, std::map< Node, bool >& patMap,
-                                int tstrt, std::vector< Node >& exclude,
-                                bool pol, bool hasPol );
+  static bool collectPatTerms2( Node f, Node n, std::map< Node, bool >& visited, 
+                                int tstrt, std::vector< Node >& exclude, std::map< Node, int >& reqPol,
+                                bool pol, bool hasPol, bool epol, bool hasEPol );
 
   std::vector< Node > d_nodes;
 
