@@ -337,7 +337,7 @@ bool Trigger::isCbqiKind( Kind k ) {
 }
 
 bool Trigger::isSimpleTrigger( Node n ){
-  Node t = n;
+  Node t = n.getKind()==NOT ? n[0] : n;
   if( n.getKind()==IFF || n.getKind()==EQUAL ){
     if( !quantifiers::TermDb::hasInstConstAttr( n[1] ) ){
       t = n[0];
@@ -359,69 +359,70 @@ bool Trigger::isSimpleTrigger( Node n ){
 }
 
 //store triggers in reqPol, indicating their polarity (if any) they must appear to falsify the quantified formula
-bool Trigger::collectPatTerms2( Node f, Node n, std::map< Node, bool >& visited, int tstrt, std::vector< Node >& exclude, 
-                                std::map< Node, int >& reqPol, bool pol, bool hasPol, bool epol, bool hasEPol ){
-  std::map< Node, bool >::iterator itv = visited.find( n );
+bool Trigger::collectPatTerms2( Node f, Node n, std::map< Node, Node >& visited, std::map< Node, std::vector< Node > >& visited_fv, 
+                                int tstrt, std::vector< Node >& exclude, 
+                                std::map< Node, int >& reqPol, std::vector< Node >& added,
+                                bool pol, bool hasPol, bool epol, bool hasEPol ){
+  std::map< Node, Node >::iterator itv = visited.find( n );
   if( itv==visited.end() ){
-    visited[ n ] = false;
+    visited[ n ] = Node::null();
     Trace("auto-gen-trigger-debug2") << "Collect pat terms " << n << " " << pol << " " << hasPol << " " << epol << " " << hasEPol << std::endl;
     bool retVal = false;
     if( n.getKind()!=FORALL ){
-      if( tstrt==TS_MIN_TRIGGER ){
-        for( unsigned i=0; i<n.getNumChildren(); i++ ){
-          bool newHasPol, newPol;
-          bool newHasEPol, newEPol;
-          QuantPhaseReq::getPolarity( n, i, hasPol, pol, newHasPol, newPol );
-          QuantPhaseReq::getEntailPolarity( n, i, hasEPol, epol, newHasEPol, newEPol );
-          if( collectPatTerms2( f, n[i], visited, tstrt, exclude, reqPol, newPol, newHasPol, newEPol, newHasEPol ) ){
-            retVal = true;
-          }
-        }
-        if( !retVal ){
-          Node nu;
-          if( std::find( exclude.begin(), exclude.end(), n )==exclude.end() ){
-            nu = getIsUsableTrigger( n, f, pol, hasPol );
-          }
-          if( !nu.isNull() ){
-            reqPol[ nu ] = hasEPol ? ( epol==(n.getKind()!=NOT) ? 1 : -1 ) : 0;
-            visited[ nu ] = true;
-            retVal = true;
-          }
-        }
-      }else{
-        Node nu;
-        if( std::find( exclude.begin(), exclude.end(), n )==exclude.end() ){
-          nu = getIsUsableTrigger( n, f, pol, hasPol );
-        }
-        bool rec = true;
+      bool rec = true;
+      Node nu;
+      if( n.getKind()!=NOT && std::find( exclude.begin(), exclude.end(), n )==exclude.end() ){
+        nu = getIsUsableTrigger( n, f, pol, hasPol );
         if( !nu.isNull() ){
-          reqPol[ nu ] = hasEPol ? ( epol==(n.getKind()!=NOT) ? 1 : -1 ) : 0;
-          visited[ nu ] = true;
+          reqPol[ nu ] = hasEPol ? ( epol ? 1 : -1 ) : 0;
+          visited[ nu ] = nu;
+          quantifiers::TermDb::computeVarContains( nu, visited_fv[ nu ] );
           retVal = true;
           if( tstrt==TS_MAX_TRIGGER ){
             rec = false;
           }
         }
-        if( rec ){
-          for( unsigned i=0; i<n.getNumChildren(); i++ ){
-            bool newHasPol, newPol;
-            bool newHasEPol, newEPol;
-            QuantPhaseReq::getPolarity( n, i, hasPol, pol, newHasPol, newPol );
-            QuantPhaseReq::getEntailPolarity( n, i, hasEPol, epol, newHasEPol, newEPol );
-            if( collectPatTerms2( f, n[i], visited, tstrt, exclude, reqPol, newPol, newHasPol, newEPol, newHasEPol ) ){
-              retVal = true;
+      }
+      if( rec ){
+        std::vector< Node > added2;
+        for( unsigned i=0; i<n.getNumChildren(); i++ ){
+          bool newHasPol, newPol;
+          bool newHasEPol, newEPol;
+          QuantPhaseReq::getPolarity( n, i, hasPol, pol, newHasPol, newPol );
+          QuantPhaseReq::getEntailPolarity( n, i, hasEPol, epol, newHasEPol, newEPol );
+          if( collectPatTerms2( f, n[i], visited, visited_fv, tstrt, exclude, reqPol, added2, newPol, newHasPol, newEPol, newHasEPol ) ){
+            retVal = true;
+          }
+        }
+        if( !nu.isNull() ){
+          bool rm_nu = false;
+          //discard if we added a subterm as a trigger with all variables that nu has
+          for( unsigned i=0; i<added2.size(); i++ ){
+            Assert( visited_fv.find( added2[i] )!=visited_fv.end() );
+            if( visited_fv[ nu ].size()==visited_fv[added2[i]].size() ){
+              rm_nu = true;
             }
+            added.push_back( added2[i] );
+          }
+          if( rm_nu && tstrt==TS_MIN_TRIGGER ){
+            visited[nu] = Node::null();
+            reqPol.erase( nu );
+          }else{
+            added.push_back( nu );
           }
         }
       }
     }
     return retVal;
   }else{
-    return itv->second;
+    if( itv->second.isNull() ){
+      return false;
+    }else{
+      added.push_back( itv->second );
+      return true;
+    }
   }
 }
-
-
 
 bool Trigger::isBooleanTermTrigger( Node n ) {
   if( n.getKind()==ITE ){
@@ -503,7 +504,7 @@ bool Trigger::isLocalTheoryExt( Node n, std::vector< Node >& vars, std::vector< 
 
 void Trigger::collectPatTerms( QuantifiersEngine* qe, Node f, Node n, std::vector< Node >& patTerms, int tstrt, std::vector< Node >& exclude, 
                                std::map< Node, int >& reqPol, bool filterInst ){
-  std::map< Node, bool > visited;
+  std::map< Node, Node > visited;
   if( filterInst ){
     //immediately do not consider any term t for which another term is an instance of t
     std::vector< Node > patTerms2;
@@ -534,14 +535,16 @@ void Trigger::collectPatTerms( QuantifiersEngine* qe, Node f, Node n, std::vecto
       //do not consider terms that have instances
       for( unsigned i=0; i<patTerms2.size(); i++ ){
         if( std::find( temp.begin(), temp.end(), patTerms2[i] )==temp.end() ){
-          visited[ patTerms2[i] ] = false;
+          visited[ patTerms2[i] ] = Node::null();
         }
       }
     }
   }
-  collectPatTerms2( f, n, visited, tstrt, exclude, reqPol, true, true, false, true );
+  std::map< Node, std::vector< Node > > visited_fv;
+  std::vector< Node > added;
+  collectPatTerms2( f, n, visited, visited_fv, tstrt, exclude, reqPol, added, true, true, false, true );
   for( std::map< Node, int >::iterator it = reqPol.begin(); it != reqPol.end(); ++it ){
-    if( visited[it->first] ){
+    if( !visited[it->first].isNull() ){
       patTerms.push_back( it->first );
     }
   }

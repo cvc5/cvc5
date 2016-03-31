@@ -107,6 +107,8 @@ enum TriggerSelMode {
   TRIGGER_SEL_MIN,
   /** only consider maximal terms for triggers */
   TRIGGER_SEL_MAX,
+  /** consider all terms for triggers */
+  TRIGGER_SEL_ALL,
 };
 
 enum CVC4_PUBLIC PrenexQuantMode {

@@ -602,12 +602,14 @@ theory::quantifiers::UserPatMode OptionsHandler::stringToUserPatMode(std::string
 }
 
 theory::quantifiers::TriggerSelMode OptionsHandler::stringToTriggerSelMode(std::string option, std::string optarg) throw(OptionException) {
-  if(optarg ==  "default" || optarg == "all" ) {
+  if(optarg ==  "default") {
     return theory::quantifiers::TRIGGER_SEL_DEFAULT;
   } else if(optarg == "min") {
     return theory::quantifiers::TRIGGER_SEL_MIN;
   } else if(optarg == "max") {
     return theory::quantifiers::TRIGGER_SEL_MAX;
+  } else if(optarg == "all") {
+    return theory::quantifiers::TRIGGER_SEL_ALL;
   } else if(optarg ==  "help") {
     puts(s_triggerSelModeHelp.c_str());
     exit(1);

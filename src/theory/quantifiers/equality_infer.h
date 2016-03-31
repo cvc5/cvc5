@@ -49,8 +49,12 @@ private:
     ~EqcInfo(){}
     context::CDO< Node > d_rep;
     context::CDO< bool > d_valid;
+    //explanation for why d_rep is how it is
+    NodeList d_rep_exp;
   };
 
+  /** track explanations */
+  bool d_trackExplain;
   /** information necessary for equivalence classes */
   NodeMap d_elim_vars;
   std::map< Node, EqcInfo * > d_eqci;
@@ -62,8 +66,10 @@ private:
   void addToUseList( Node used, Node eqc );
   /** pending merges */
   NodeList d_pending_merges;
+  NodeList d_pending_merge_exp;
 public:
-  EqualityInference(context::Context* c);
+  //second argument is whether explanations should be tracked
+  EqualityInference(context::Context* c, bool trackExp = false);
   virtual ~EqualityInference();
   /** input : notification when equality engine is updated */
   void eqNotifyNewClass(TNode t);
@@ -71,6 +77,7 @@ public:
   /** output : inferred equalities */
   unsigned getNumPendingMerges() { return d_pending_merges.size(); }
   Node getPendingMerge( unsigned i ) { return d_pending_merges[i]; }  
+  Node getPendingMergeExplanation( unsigned i );
 };
 
 }

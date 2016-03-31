@@ -126,6 +126,8 @@ public:
   /** the data */
   std::map< TNode, TermArgTrie > d_data;
 public:
+  bool hasNodeData() { return !d_data.empty(); }
+  TNode getNodeData() { return d_data.begin()->first; }
   TNode existsTerm( std::vector< TNode >& reps, int argIndex = 0 );
   TNode addOrGetTerm( TNode n, std::vector< TNode >& reps, int argIndex = 0 );
   bool addTerm( TNode n, std::vector< TNode >& reps, int argIndex = 0 );
@@ -358,26 +360,26 @@ public:
 //for triggers
 private:
   /** helper function for compute var contains */
-  void computeVarContains2( Node n, std::vector< Node >& varContains, std::map< Node, bool >& visited );
+  static void computeVarContains2( Node n, std::vector< Node >& varContains, std::map< Node, bool >& visited );
   /** triggers for each operator */
   std::map< Node, std::vector< inst::Trigger* > > d_op_triggers;
   /** helper for is instance of */
-  bool isUnifiableInstanceOf( Node n1, Node n2, std::map< Node, Node >& subs );
+  static bool isUnifiableInstanceOf( Node n1, Node n2, std::map< Node, Node >& subs );
   /** -1: n1 is an instance of n2, 1: n1 is an instance of n2 */
-  int isInstanceOf2( Node n1, Node n2, std::vector< Node >& varContains1, std::vector< Node >& varContains2 );
+  static int isInstanceOf2( Node n1, Node n2, std::vector< Node >& varContains1, std::vector< Node >& varContains2 );
 public:
   /** compute var contains */
-  void computeVarContains( Node n, std::vector< Node >& varContains );
+  static void computeVarContains( Node n, std::vector< Node >& varContains );
   /** get var contains for each of the patterns in pats */
-  void getVarContains( Node f, std::vector< Node >& pats, std::map< Node, std::vector< Node > >& varContains );
+  static void getVarContains( Node f, std::vector< Node >& pats, std::map< Node, std::vector< Node > >& varContains );
   /** get var contains for node n */
-  void getVarContainsNode( Node f, Node n, std::vector< Node >& varContains );
+  static void getVarContainsNode( Node f, Node n, std::vector< Node >& varContains );
+  /** -1: n1 is an instance of n2, 1: n1 is an instance of n2 */
+  static int isInstanceOf( Node n1, Node n2 );
+  /** filter all nodes that have instances */
+  static void filterInstances( std::vector< Node >& nodes );
   /** register trigger (for eager quantifier instantiation) */
   void registerTrigger( inst::Trigger* tr, Node op );
-  /** -1: n1 is an instance of n2, 1: n1 is an instance of n2 */
-  int isInstanceOf( Node n1, Node n2 );
-  /** filter all nodes that have instances */
-  void filterInstances( std::vector< Node >& nodes );
 
 //for term ordering
 private:

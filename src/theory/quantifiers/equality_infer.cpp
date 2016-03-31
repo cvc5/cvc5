@@ -26,11 +26,12 @@ using namespace std;
 
 namespace CVC4 {
 
-EqualityInference::EqcInfo::EqcInfo(context::Context* c) : d_rep( c ), d_valid( c, false ) {
+EqualityInference::EqcInfo::EqcInfo(context::Context* c) : d_rep( c ), d_valid( c, false ), d_rep_exp(c) {
 
 }
 
-EqualityInference::EqualityInference( context::Context* c ) : d_c( c ), d_elim_vars( c ), d_rep_to_eqc( c ), d_uselist( c ), d_pending_merges( c ){
+EqualityInference::EqualityInference( context::Context* c, bool trackExp ) : 
+d_c( c ), d_trackExplain( trackExp ), d_elim_vars( c ), d_rep_to_eqc( c ), d_uselist( c ), d_pending_merges( c ), d_pending_merge_exp( c ){
   d_one = NodeManager::currentNM()->mkConst( Rational( 1 ) );
 }
 
@@ -127,6 +128,10 @@ void EqualityInference::setEqcRep( Node t, Node r, EqcInfo * eqci ) {
       Trace("eq-infer") << "Infer two equivalence classes are equal : " << t << " " << t2 << std::endl;
       Trace("eq-infer") << "  since they both normalize to : " << r << std::endl;
       d_pending_merges.push_back( t.eqNode( t2 ) );
+      if( d_trackExplain ){
+        //TODO
+        d_pending_merge_exp.push_back( t.eqNode( t2 ) );
+      }
     }
   }
 }
@@ -231,5 +236,10 @@ void EqualityInference::eqNotifyMerge(TNode t1, TNode t2) {
     }
   }
 }
+
+Node EqualityInference::getPendingMergeExplanation( unsigned i ) { 
+  Assert( d_trackExplain );
+  return d_pending_merge_exp[i]; 
+}  
 
 }

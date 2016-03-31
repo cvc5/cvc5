@@ -58,9 +58,11 @@ Node CandidateGeneratorQueue::getNextCandidate(){
   }
 }
 
-CandidateGeneratorQE::CandidateGeneratorQE( QuantifiersEngine* qe, Node op ) :
-  d_op( op ), d_qe( qe ), d_term_iter( -1 ){
+CandidateGeneratorQE::CandidateGeneratorQE( QuantifiersEngine* qe, Node pat ) :
+  d_qe( qe ), d_term_iter( -1 ){
+  d_op = qe->getTermDatabase()->getMatchOperator( pat );
   Assert( !d_op.isNull() );
+  d_op_arity = pat.getNumChildren();
 }
 
 void CandidateGeneratorQE::resetInstantiationRound(){
@@ -77,11 +79,23 @@ void CandidateGeneratorQE::reset( Node eqc ){
     }else{
       eq::EqualityEngine* ee = d_qe->getEqualityQuery()->getEngine();
       if( ee->hasTerm( eqc ) ){
-        //create an equivalence class iterator in eq class eqc
-        Node rep = ee->getRepresentative( eqc );
-        d_eqc_iter = eq::EqClassIterator( rep, ee );
-        d_mode = cand_term_eqc;
+        quantifiers::TermArgTrie * tat = d_qe->getTermDatabase()->getTermArgTrie( eqc, d_op );
+        if( tat ){
+#if 1
+          //create an equivalence class iterator in eq class eqc
+          Node rep = ee->getRepresentative( eqc );
+          d_eqc_iter = eq::EqClassIterator( rep, ee );
+          d_mode = cand_term_eqc;
+#else
+          d_tindex.push_back( tat );
+          d_tindex_iter.push_back( tat->d_data.begin() );
+          d_mode = cand_term_tindex;
+#endif     
+        }else{
+          d_mode = cand_term_none;
+        }   
       }else{
+        //the only match is this term itself
         d_n = eqc;
         d_mode = cand_term_ident;
       }
@@ -111,6 +125,7 @@ Node CandidateGeneratorQE::getNextCandidate(){
           }else{
             Node r = d_qe->getEqualityQuery()->getRepresentative( n );
             if( d_exclude_eqc.find( r )==d_exclude_eqc.end() ){
+              Debug("cand-gen-qe") << "...returning " << n << std::endl;
               return n;
             }
           }
@@ -123,9 +138,40 @@ Node CandidateGeneratorQE::getNextCandidate(){
       Node n = *d_eqc_iter;
       ++d_eqc_iter;
       if( isLegalOpCandidate( n ) ){
+        Debug("cand-gen-qe") << "...returning " << n << std::endl;
         return n;
       }
     }
+  }else if( d_mode==cand_term_tindex ){
+    Debug("cand-gen-qe") << "...get next candidate in tindex " << d_op << " " << d_op_arity << std::endl;
+    //increment the term index iterator
+    if( !d_tindex.empty() ){
+      //populate the vector
+      while( d_tindex_iter.size()<=d_op_arity ){
+        Assert( !d_tindex_iter.empty() );
+        Assert( !d_tindex_iter.back()->second.d_data.empty() );
+        d_tindex.push_back( &(d_tindex_iter.back()->second) );
+        d_tindex_iter.push_back( d_tindex_iter.back()->second.d_data.begin() );
+      }
+      //get the current node
+      Assert( d_tindex_iter.back()->second.hasNodeData() );
+      Node n = d_tindex_iter.back()->second.getNodeData();
+      Debug("cand-gen-qe") << "...returning " << n << std::endl;
+      Assert( !n.isNull() );
+      Assert( isLegalOpCandidate( n ) );
+      //increment
+      bool success = false;
+      do{
+        ++d_tindex_iter.back();
+        if( d_tindex_iter.back()==d_tindex.back()->d_data.end() ){
+          d_tindex.pop_back();
+          d_tindex_iter.pop_back();
+        }else{
+          success = true;
+        }
+      }while( !success && !d_tindex.empty() );
+      return n;   
+    } 
   }else if( d_mode==cand_term_ident ){
     Debug("cand-gen-qe") << "...get next candidate identity" << std::endl;
     if( !d_n.isNull() ){

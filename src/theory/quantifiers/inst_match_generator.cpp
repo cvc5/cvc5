@@ -121,7 +121,7 @@ void InstMatchGenerator::initialize( Node q, QuantifiersEngine* qe, std::vector<
     //create candidate generator
     if( Trigger::isAtomicTrigger( d_match_pattern ) ){
       //we will be scanning lists trying to find d_match_pattern.getOperator()
-      d_cg = new inst::CandidateGeneratorQE( qe, d_match_pattern_op );
+      d_cg = new inst::CandidateGeneratorQE( qe, d_match_pattern );
       //if matching on disequality, inform the candidate generator not to match on eqc
       if( d_pattern.getKind()==NOT && ( d_pattern[0].getKind()==IFF || d_pattern[0].getKind()==EQUAL ) ){
         ((inst::CandidateGeneratorQE*)d_cg)->excludeEqc( d_eq_class_rel );
@@ -679,6 +679,12 @@ int InstMatchGeneratorMulti::addTerm( Node q, Node t, QuantifiersEngine* qe ){
 }
 
 InstMatchGeneratorSimple::InstMatchGeneratorSimple( Node q, Node pat ) : d_f( q ), d_match_pattern( pat ) {
+  if( d_match_pattern.getKind()==NOT ){
+    d_match_pattern = d_match_pattern[0];
+    d_pol = false;
+  }else{
+    d_pol = true;
+  }
   if( d_match_pattern.getKind()==EQUAL || d_match_pattern.getKind()==IFF ){
     d_eqc = d_match_pattern[1];
     d_match_pattern = d_match_pattern[0];
@@ -702,16 +708,30 @@ void InstMatchGeneratorSimple::resetInstantiationRound( QuantifiersEngine* qe ) 
 }
 
 int InstMatchGeneratorSimple::addInstantiations( Node q, InstMatch& baseMatch, QuantifiersEngine* qe ){
-  InstMatch m( q );
-  m.add( baseMatch );
   int addedLemmas = 0;
   quantifiers::TermArgTrie* tat;
   if( d_eqc.isNull() ){
     tat = qe->getTermDatabase()->getTermArgTrie( d_op );
   }else{
-    tat = qe->getTermDatabase()->getTermArgTrie( d_eqc, d_op );
+    if( d_pol ){
+      tat = qe->getTermDatabase()->getTermArgTrie( d_eqc, d_op );
+    }else{
+      Node r = qe->getEqualityQuery()->getRepresentative( d_eqc );
+      //iterate over all classes except r
+      tat = qe->getTermDatabase()->getTermArgTrie( Node::null(), d_op );
+      for( std::map< TNode, quantifiers::TermArgTrie >::iterator it = tat->d_data.begin(); it != tat->d_data.end(); ++it ){
+        if( it->first!=r ){
+          InstMatch m( q );
+          m.add( baseMatch );
+          addInstantiations( m, qe, addedLemmas, 0, &(it->second) );
+        }
+      }
+      tat = NULL;
+    }
   }
   if( tat ){
+    InstMatch m( q );
+    m.add( baseMatch );
     addInstantiations( m, qe, addedLemmas, 0, tat );
     return addedLemmas;
   }else{
@@ -723,7 +743,7 @@ void InstMatchGeneratorSimple::addInstantiations( InstMatch& m, QuantifiersEngin
   Debug("simple-trigger-debug") << "Add inst " << argIndex << " " << d_match_pattern << std::endl;
   if( argIndex==(int)d_match_pattern.getNumChildren() ){
     Assert( !tat->d_data.empty() );
-    Node t = tat->d_data.begin()->first;
+    TNode t = tat->getNodeData();
     Debug("simple-trigger") << "Actual term is " << t << std::endl;
     //convert to actual used terms
     for( std::map< int, int >::iterator it = d_var_num.begin(); it != d_var_num.end(); ++it ){

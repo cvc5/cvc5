@@ -141,7 +141,7 @@ void InstStrategyUserPatterns::addUserPattern( Node q, Node pat ){
 
 InstStrategyAutoGenTriggers::InstStrategyAutoGenTriggers( QuantifiersEngine* qe ) : InstStrategy( qe ){
   //how to select trigger terms
-  if( options::triggerSelMode()==TRIGGER_SEL_MIN ){
+  if( options::triggerSelMode()==TRIGGER_SEL_MIN || options::triggerSelMode()==TRIGGER_SEL_DEFAULT ){
     d_tr_strategy = Trigger::TS_MIN_TRIGGER;
   }else if( options::triggerSelMode()==TRIGGER_SEL_MAX ){
     d_tr_strategy = Trigger::TS_MAX_TRIGGER;

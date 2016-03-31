@@ -23,6 +23,10 @@
 namespace CVC4 {
 namespace theory {
 
+namespace quantifiers {
+  class TermArgTrie;
+}
+
 class QuantifiersEngine;
 
 namespace inst {
@@ -79,6 +83,9 @@ private:
   //instantiator pointer
   QuantifiersEngine* d_qe;
   //the equality class iterator
+  unsigned d_op_arity;
+  std::vector< quantifiers::TermArgTrie* > d_tindex;
+  std::vector< std::map< TNode, quantifiers::TermArgTrie >::iterator > d_tindex_iter;
   eq::EqClassIterator d_eqc_iter;
   //std::vector< Node > d_eqc;
   int d_term_iter;
@@ -88,6 +95,7 @@ private:
     cand_term_db,
     cand_term_ident,
     cand_term_eqc,
+    cand_term_tindex,
     cand_term_none,
   };
   short d_mode;
@@ -95,7 +103,7 @@ private:
   Node d_n;
   std::map< Node, bool > d_exclude_eqc;
 public:
-  CandidateGeneratorQE( QuantifiersEngine* qe, Node op );
+  CandidateGeneratorQE( QuantifiersEngine* qe, Node pat );
   ~CandidateGeneratorQE() throw() {}
 
   void resetInstantiationRound();

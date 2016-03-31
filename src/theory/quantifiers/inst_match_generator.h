@@ -212,6 +212,7 @@ private:
   /** match term */
   Node d_match_pattern;
   /** equivalence class */
+  bool d_pol;
   Node d_eqc;
   /** match pattern arg types */
   std::vector< TypeNode > d_match_pattern_arg_types;

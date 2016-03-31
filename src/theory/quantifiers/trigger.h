@@ -140,8 +140,9 @@ private:
   static Node getIsUsableTrigger( Node n, Node f, bool pol = true,
                                   bool hasPol = false );
   /** collect all APPLY_UF pattern terms for f in n */
-  static bool collectPatTerms2( Node f, Node n, std::map< Node, bool >& visited, 
-                                int tstrt, std::vector< Node >& exclude, std::map< Node, int >& reqPol,
+  static bool collectPatTerms2( Node f, Node n, std::map< Node, Node >& visited, std::map< Node, std::vector< Node > >& visited_fv, 
+                                int tstrt, std::vector< Node >& exclude, 
+                                std::map< Node, int >& reqPol, std::vector< Node >& added,
                                 bool pol, bool hasPol, bool epol, bool hasEPol );
 
   std::vector< Node > d_nodes;
