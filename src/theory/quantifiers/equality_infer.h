@@ -43,30 +43,46 @@ class EqualityInference
 private:
   context::Context * d_c;
   Node d_one;
+  Node d_true;
   class EqcInfo {
   public:
     EqcInfo(context::Context* c);
     ~EqcInfo(){}
     context::CDO< Node > d_rep;
+    //whether the eqc of this info is a representative and d_rep can been computed successfully
     context::CDO< bool > d_valid;
-    //explanation for why d_rep is how it is
-    NodeList d_rep_exp;
+    //whether the eqc of this info is a solved variable
+    context::CDO< bool > d_solved;
+    //master equivalence class (a union find)
+    context::CDO< Node > d_master;
+    //a vector of equalities t1=t2 for which eqNotifyMerge(t1,t2) was called that explains d_rep
+    //NodeList d_rep_exp;
+    //the list of other eqc where this variable may be appear
+    //NodeList d_uselist;
   };
 
   /** track explanations */
   bool d_trackExplain;
   /** information necessary for equivalence classes */
-  NodeMap d_elim_vars;
+  BoolMap d_elim_vars;
   std::map< Node, EqcInfo * > d_eqci;
   NodeMap d_rep_to_eqc;
+  NodeListMap d_rep_exp;
   /** set eqc rep */
-  void setEqcRep( Node t, Node r, EqcInfo * eqci );
+  void setEqcRep( Node t, Node r, std::vector< Node >& exp_to_add, EqcInfo * eqci );
   /** use list */
   NodeListMap d_uselist;
   void addToUseList( Node used, Node eqc );
   /** pending merges */
   NodeList d_pending_merges;
   NodeList d_pending_merge_exp;
+  /** add to explanation */
+  void addToExplanation( std::vector< Node >& exp, Node e );
+  void addToExplanationEqc( std::vector< Node >& exp, Node eqc );
+  void addToExplanationEqc( Node eqc, std::vector< Node >& exp_to_add );
+  /** for setting master/slave */
+  Node getMaster( Node t, EqcInfo * eqc, bool& updated, Node new_m = Node::null() );
+  bool updateMaster( Node t1, Node t2, EqcInfo * eqc1, EqcInfo * eqc2 );
 public:
   //second argument is whether explanations should be tracked
   EqualityInference(context::Context* c, bool trackExp = false);

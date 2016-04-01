@@ -417,7 +417,10 @@ void QuantifiersEngine::check( Theory::Effort e ){
       debugPrintEqualityEngine( "quant-engine-ee-pre" );
     }
     Trace("quant-engine-debug2") << "Reset equality engine..." << std::endl;
-    d_eq_query->reset( e );
+    if( !d_eq_query->reset( e ) ){
+      flushLemmas();
+      return;
+    }
     
     if( Trace.isOn("quant-engine-assert") ){
       Trace("quant-engine-assert") << "Assertions : " << std::endl;
@@ -1298,7 +1301,7 @@ void QuantifiersEngine::debugPrintEqualityEngine( const char * c ) {
 
 EqualityQueryQuantifiersEngine::EqualityQueryQuantifiersEngine( context::Context* c, QuantifiersEngine* qe ) : d_qe( qe ), d_eqi_counter( c ), d_reset_count( 0 ){
   if( options::inferArithTriggerEq() ){
-    d_eq_inference = new quantifiers::EqualityInference( c );
+    d_eq_inference = new quantifiers::EqualityInference( c, options::inferArithTriggerEqExp() );
   }else{
     d_eq_inference = NULL;
   }
@@ -1308,28 +1311,44 @@ EqualityQueryQuantifiersEngine::~EqualityQueryQuantifiersEngine(){
   delete d_eq_inference;
 }
 
-void EqualityQueryQuantifiersEngine::reset( Theory::Effort e ){
+bool EqualityQueryQuantifiersEngine::reset( Theory::Effort e ){
   d_int_rep.clear();
   d_reset_count++;
-  processInferences( e );
+  return processInferences( e );
 }
 
-void EqualityQueryQuantifiersEngine::processInferences( Theory::Effort e ) {
+bool EqualityQueryQuantifiersEngine::processInferences( Theory::Effort e ) {
   if( options::inferArithTriggerEq() ){
     eq::EqualityEngine* ee = getEngine();
     //updated implementation
     while( d_eqi_counter.get()<d_eq_inference->getNumPendingMerges() ){
       Node eq = d_eq_inference->getPendingMerge( d_eqi_counter.get() );
+      Node eq_exp = d_eq_inference->getPendingMergeExplanation( d_eqi_counter.get() );
       Trace("quant-engine-ee-proc") << "processInferences : Infer : " << eq << std::endl;
+      Trace("quant-engine-ee-proc") << "      explanation : " << eq_exp << std::endl;
       Assert( ee->hasTerm( eq[0] ) );
       Assert( ee->hasTerm( eq[1] ) );
-      Assert( !ee->areDisequal( eq[0], eq[1], false ) );
-      //just use itself as an explanation for now (should never be used, since equality engine should be consistent)
-      ee->assertEquality( eq, true, eq );
-      d_eqi_counter = d_eqi_counter.get() + 1;
+      if( ee->areDisequal( eq[0], eq[1], false ) ){
+        Trace("quant-engine-ee-proc") << "processInferences : Conflict : " << eq << std::endl;
+        if( Trace.isOn("term-db-lemma") ){
+          Trace("term-db-lemma") << "Disequal terms, equal by normalization : " << eq[0] << " " << eq[1] << "!!!!" << std::endl;
+          if( !d_qe->getTheoryEngine()->needCheck() ){
+            Trace("term-db-lemma") << "  all theories passed with no lemmas." << std::endl;
+            //this should really never happen (implies arithmetic is incomplete when sharing is enabled)
+            Assert( false );
+          }
+          Trace("term-db-lemma") << "  add split on : " << eq << std::endl;
+        }
+        d_qe->addSplit( eq );
+        return false;
+      }else{
+        ee->assertEquality( eq, true, eq_exp );
+        d_eqi_counter = d_eqi_counter.get() + 1;
+      }
     }
     Assert( ee->consistent() );
   }
+  return true;
 }
 
 bool EqualityQueryQuantifiersEngine::hasTerm( Node a ){

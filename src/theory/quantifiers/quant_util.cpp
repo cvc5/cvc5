@@ -33,14 +33,14 @@ bool QuantArith::getMonomial( Node n, Node& c, Node& v ){
   }
 }
 bool QuantArith::getMonomial( Node n, std::map< Node, Node >& msum ) {
-  if( n.getKind()==MULT && n.getNumChildren()==2 && n[0].isConst() ){
-    if( msum.find(n[1])==msum.end() ){
-      msum[n[1]] = n[0];
-      return true;
-    }
-  }else if( n.isConst() ){
+  if( n.isConst() ){
     if( msum.find(Node::null())==msum.end() ){
       msum[Node::null()] = n;
+      return true;
+    }
+  }else if( n.getKind()==MULT && n.getNumChildren()==2 && n[0].isConst() ){
+    if( msum.find(n[1])==msum.end() ){
+      msum[n[1]] = n[0];
       return true;
     }
   }else{

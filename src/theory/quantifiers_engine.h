@@ -413,7 +413,7 @@ private:
   int d_reset_count;
 
   /** processInferences : will merge equivalence classes in master equality engine, if possible */
-  void processInferences( Theory::Effort e );
+  bool processInferences( Theory::Effort e );
   /** node contains */
   Node getInstance( Node n, const std::vector< Node >& eqc, std::hash_map<TNode, Node, TNodeHashFunction>& cache );
   /** get score */
@@ -422,7 +422,7 @@ public:
   EqualityQueryQuantifiersEngine( context::Context* c, QuantifiersEngine* qe );
   virtual ~EqualityQueryQuantifiersEngine();
   /** reset */
-  void reset( Theory::Effort e );
+  bool reset( Theory::Effort e );
   /** general queries about equality */
   bool hasTerm( Node a );
   Node getRepresentative( Node a );
