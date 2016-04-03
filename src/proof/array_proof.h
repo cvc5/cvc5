@@ -35,7 +35,12 @@ private:
                               unsigned tb,
                               const LetMap& map);
 
-  std::hash_map<Node, Node, NodeHashFunction> d_nodeToSkolem;
+  /** Merge tag for ROW applications */
+  static unsigned d_reasonRow;
+  /** Merge tag for ROW1 applications */
+  static unsigned d_reasonRow1;
+  /** Merge tag for EXT applications */
+  static unsigned d_reasonExt;
 public:
   ProofArray(theory::eq::EqProof* pf) : d_proof(pf) {}
   //it is simply an equality engine proof
@@ -44,6 +49,10 @@ public:
   static void toStreamLFSC(std::ostream& out, TheoryProof* tp, theory::eq::EqProof* pf, const LetMap& map);
 
   void registerSkolem(Node equality, Node skolem);
+
+  static void setRowMergeTag(unsigned tag);
+  static void setRow1MergeTag(unsigned tag);
+  static void setExtMergeTag(unsigned tag);
 };
 
 namespace theory {

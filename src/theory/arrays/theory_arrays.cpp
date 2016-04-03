@@ -129,9 +129,17 @@ TheoryArrays::TheoryArrays(context::Context* c, context::UserContext* u,
     d_equalityEngine.addFunctionKind(kind::ARR_TABLE_FUN);
   }
 
-  d_equalityEngine.addPathReconstructionTrigger(eq::MERGED_ARRAYS_ROW, &d_proofReconstruction);
-  d_equalityEngine.addPathReconstructionTrigger(eq::MERGED_ARRAYS_ROW1, &d_proofReconstruction);
-  d_equalityEngine.addPathReconstructionTrigger(eq::MERGED_ARRAYS_EXT, &d_proofReconstruction);
+  d_reasonRow = d_equalityEngine.getFreshMergeReasonType();
+  d_reasonRow1 = d_equalityEngine.getFreshMergeReasonType();
+  d_reasonExt = d_equalityEngine.getFreshMergeReasonType();
+
+  d_proofReconstruction.setRowMergeTag(d_reasonRow);
+  d_proofReconstruction.setRow1MergeTag(d_reasonRow1);
+  d_proofReconstruction.setExtMergeTag(d_reasonExt);
+
+  d_equalityEngine.addPathReconstructionTrigger(d_reasonRow, &d_proofReconstruction);
+  d_equalityEngine.addPathReconstructionTrigger(d_reasonRow1, &d_proofReconstruction);
+  d_equalityEngine.addPathReconstructionTrigger(d_reasonExt, &d_proofReconstruction);
 }
 
 TheoryArrays::~TheoryArrays() {
@@ -665,7 +673,7 @@ void TheoryArrays::preRegisterTermInternal(TNode node)
           if (ni != node) {
             preRegisterTermInternal(ni);
           }
-          d_equalityEngine.assertEquality(ni.eqNode(s[2]), true, d_true, eq::MERGED_ARRAYS_ROW1);
+          d_equalityEngine.assertEquality(ni.eqNode(s[2]), true, d_true, d_reasonRow1);
           Assert(++it == stores->end());
         }
       }
@@ -751,7 +759,7 @@ void TheoryArrays::preRegisterTermInternal(TNode node)
       }
 
       // Apply RIntro1 Rule
-      d_equalityEngine.assertEquality(ni.eqNode(v), true, d_true, eq::MERGED_ARRAYS_ROW1);
+      d_equalityEngine.assertEquality(ni.eqNode(v), true, d_true, d_reasonRow1);
     }
 
     d_infoMap.addStore(node, node);
@@ -1367,7 +1375,7 @@ void TheoryArrays::check(Effort e) {
                                  << "\teq = " << eq << std::endl
                                  << "\treason = " << fact << std::endl;
 
-              d_equalityEngine.assertEquality(eq, false, fact, eq::MERGED_ARRAYS_EXT);
+              d_equalityEngine.assertEquality(eq, false, fact, d_reasonExt);
               ++d_numProp;
             }
 
@@ -1669,7 +1677,7 @@ void TheoryArrays::checkRIntro1(TNode a, TNode b)
     d_infoMap.setRIntro1Applied(s);
     Node ni = nm->mkNode(kind::SELECT, s, s[1]);
     preRegisterTermInternal(ni);
-    d_equalityEngine.assertEquality(ni.eqNode(s[2]), true, d_true, eq::MERGED_ARRAYS_ROW1);
+    d_equalityEngine.assertEquality(ni.eqNode(s[2]), true, d_true, d_reasonRow1);
   }
 }
 
@@ -1976,7 +1984,7 @@ void TheoryArrays::propagate(RowLemmaType lem)
       if (!bjExists) {
         preRegisterTermInternal(bj);
       }
-      d_equalityEngine.assertEquality(aj_eq_bj, true, reason, eq::MERGED_ARRAYS_ROW);
+      d_equalityEngine.assertEquality(aj_eq_bj, true, reason, d_reasonRow);
       ++d_numProp;
       return;
     }
@@ -1986,7 +1994,7 @@ void TheoryArrays::propagate(RowLemmaType lem)
       Node i_eq_j = i.eqNode(j);
       Node reason = nm->mkNode(kind::OR, i_eq_j, aj_eq_bj);
       d_permRef.push_back(reason);
-      d_equalityEngine.assertEquality(i_eq_j, true, reason, eq::MERGED_ARRAYS_ROW);
+      d_equalityEngine.assertEquality(i_eq_j, true, reason, d_reasonRow);
       ++d_numProp;
       return;
     }
@@ -2230,14 +2238,21 @@ void TheoryArrays::conflict(TNode a, TNode b) {
   }
 
   if (!d_inCheckModel) {
-    if (proof) { proof->debug_print("pf::array"); }
-    ProofArray* proof_array = d_proofsEnabled ? new ProofArray( proof ) : NULL;
+    ProofArray* proof_array = NULL;
+
+    if (d_proofsEnabled) {
+      proof->debug_print("pf::array");
+      proof_array = new ProofArray( proof );
+      proof_array->setRowMergeTag(d_reasonRow);
+      proof_array->setRow1MergeTag(d_reasonRow1);
+      proof_array->setExtMergeTag(d_reasonExt);
+    }
+
     d_out->conflict(d_conflictNode, proof_array);
   }
 
   d_conflict = true;
 }
-
 
 }/* CVC4::theory::arrays namespace */
 }/* CVC4::theory namespace */

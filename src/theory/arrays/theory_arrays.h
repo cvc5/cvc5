@@ -125,6 +125,15 @@ class TheoryArrays : public Theory {
   /** conflicts in setModelVal */
   IntStat d_numSetModelValConflicts;
 
+  // Merge reason types
+
+  /** Merge tag for ROW applications */
+  unsigned d_reasonRow;
+  /** Merge tag for ROW1 applications */
+  unsigned d_reasonRow1;
+  /** Merge tag for EXT applications */
+  unsigned d_reasonExt;
+
  public:
 
   TheoryArrays(context::Context* c, context::UserContext* u, OutputChannel& out,

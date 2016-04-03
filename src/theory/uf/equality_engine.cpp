@@ -93,6 +93,8 @@ void EqualityEngine::init() {
 
   d_trueId = getNodeId(d_true);
   d_falseId = getNodeId(d_false);
+
+  d_freshMergeReasonType = eq::NUMBER_OF_MERGE_REASONS;
 }
 
 EqualityEngine::~EqualityEngine() throw(AssertionException) {
@@ -389,7 +391,7 @@ const EqualityNode& EqualityEngine::getEqualityNode(EqualityNodeId nodeId) const
   return d_equalityNodes[nodeId];
 }
 
-void EqualityEngine::assertEqualityInternal(TNode t1, TNode t2, TNode reason, MergeReasonType pid) {
+void EqualityEngine::assertEqualityInternal(TNode t1, TNode t2, TNode reason, unsigned pid) {
 
   Debug("equality") << d_name << "::eq::addEqualityInternal(" << t1 << "," << t2 << "), pid = " << pid << std::endl;
 
@@ -407,7 +409,7 @@ void EqualityEngine::assertEqualityInternal(TNode t1, TNode t2, TNode reason, Me
   enqueue(MergeCandidate(t1Id, t2Id, pid, reason));
 }
 
-void EqualityEngine::assertPredicate(TNode t, bool polarity, TNode reason, MergeReasonType pid) {
+void EqualityEngine::assertPredicate(TNode t, bool polarity, TNode reason, unsigned pid) {
   Debug("equality") << d_name << "::eq::addPredicate(" << t << "," << (polarity ? "true" : "false") << ")" << std::endl;
   Assert(t.getKind() != kind::EQUAL, "Use assertEquality instead");
   assertEqualityInternal(t, polarity ? d_true : d_false, reason, pid);
@@ -420,7 +422,7 @@ void EqualityEngine::mergePredicates(TNode p, TNode q, TNode reason) {
   propagate();
 }
 
-void EqualityEngine::assertEquality(TNode eq, bool polarity, TNode reason, MergeReasonType pid) {
+void EqualityEngine::assertEquality(TNode eq, bool polarity, TNode reason, unsigned pid) {
   Debug("equality") << d_name << "::eq::addEquality(" << eq << "," << (polarity ? "true" : "false") << ")" << std::endl;
   if (polarity) {
     // If two terms are already equal, don't assert anything
@@ -888,7 +890,7 @@ void EqualityEngine::backtrack() {
 
 }
 
-void EqualityEngine::addGraphEdge(EqualityNodeId t1, EqualityNodeId t2, MergeReasonType type, TNode reason) {
+void EqualityEngine::addGraphEdge(EqualityNodeId t1, EqualityNodeId t2, unsigned type, TNode reason) {
   Debug("equality") << d_name << "::eq::addGraphEdge(" << d_nodes[t1] << "," << d_nodes[t2] << "," << reason << ")" << std::endl;
   EqualityEdgeId edge = d_equalityEdges.size();
   d_equalityEdges.push_back(EqualityEdge(t2, d_equalityGraph[t1], type, reason));
@@ -1089,7 +1091,7 @@ void EqualityEngine::getExplanation(EqualityNodeId t1Id, EqualityNodeId t2Id, st
             // The current node
             currentNode = bfsQueue[currentIndex].nodeId;
             EqualityNodeId edgeNode = d_equalityEdges[currentEdge].getNodeId();
-            MergeReasonType reasonType = d_equalityEdges[currentEdge].getReasonType();
+            unsigned reasonType = d_equalityEdges[currentEdge].getReasonType();
             Node reason = d_equalityEdges[currentEdge].getReason();
 
             Debug("equality") << d_name << "::eq::getExplanation(): currentEdge = " << currentEdge << ", currentNode = " << currentNode << std::endl;
@@ -1711,10 +1713,14 @@ size_t EqualityEngine::getSize(TNode t) {
 }
 
 
-void EqualityEngine::addPathReconstructionTrigger(MergeReasonType trigger, const PathReconstructionNotify* notify) {
+void EqualityEngine::addPathReconstructionTrigger(unsigned trigger, const PathReconstructionNotify* notify) {
   // Currently we can only inform one callback per trigger
   Assert(d_pathReconstructionTriggers.find(trigger) == d_pathReconstructionTriggers.end());
   d_pathReconstructionTriggers[trigger] = notify;
+}
+
+unsigned EqualityEngine::getFreshMergeReasonType() {
+  return d_freshMergeReasonType++;
 }
 
 void EqualityEngine::addTriggerTerm(TNode t, TheoryId tag)
@@ -2220,7 +2226,6 @@ void EqProof::debug_print( const char * c, unsigned tb ) const{
   }
   Debug( c ) << ")" << std::endl;
 }
-
 
 } // Namespace uf
 } // Namespace theory

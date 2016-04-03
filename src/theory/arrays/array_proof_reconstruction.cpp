@@ -1,10 +1,10 @@
 /*********************                                                        */
 /*! \file array_proof_reconstruction.h
- ** \verbatim
- **
- ** \brief Array-specific proof construction logic to be used during the
- ** equality engine's path reconstruction
- **/
+** \verbatim
+**
+** \brief Array-specific proof construction logic to be used during the
+** equality engine's path reconstruction
+**/
 
 #include "theory/arrays/array_proof_reconstruction.h"
 
@@ -16,16 +16,26 @@ ArrayProofReconstruction::ArrayProofReconstruction(const eq::EqualityEngine* equ
   : d_equalityEngine(equalityEngine) {
 }
 
-void ArrayProofReconstruction::notify(eq::MergeReasonType reasonType, Node reason, Node a, Node b,
+void ArrayProofReconstruction::setRowMergeTag(unsigned tag) {
+  d_reasonRow = tag;
+}
+
+void ArrayProofReconstruction::setRow1MergeTag(unsigned tag) {
+  d_reasonRow1 = tag;
+}
+
+void ArrayProofReconstruction::setExtMergeTag(unsigned tag) {
+  d_reasonExt = tag;
+}
+
+void ArrayProofReconstruction::notify(unsigned reasonType, Node reason, Node a, Node b,
                                       std::vector<TNode>& equalities, eq::EqProof* proof) const {
 
   Debug("pf::array") << "ArrayProofReconstruction::notify( "
                      << reason << ", " << a << ", " << b << std::endl;
 
 
-  switch (reasonType) {
-
-  case eq::MERGED_ARRAYS_EXT: {
+  if (reasonType == d_reasonExt) {
     if (proof) {
       // Todo: here we assume that a=b is an assertion. We should probably call explain()
       // recursively, to explain this.
@@ -33,10 +43,9 @@ void ArrayProofReconstruction::notify(eq::MergeReasonType reasonType, Node reaso
       childProof->d_node = reason;
       proof->d_children.push_back(childProof);
     }
-    break;
   }
 
-  case eq::MERGED_ARRAYS_ROW: {
+  else if (reasonType == d_reasonRow) {
     // ROW rules mean that (i==k) OR ((a[i]:=t)[k] == a[k])
     // The equality here will be either (i == k) because ((a[i]:=t)[k] != a[k]),
     // or ((a[i]:=t)[k] == a[k]) because (i != k).
@@ -103,16 +112,11 @@ void ArrayProofReconstruction::notify(eq::MergeReasonType reasonType, Node reaso
         proof->d_children.push_back(childProof);
       }
     }
-    break;
+
   }
 
-  case eq::MERGED_ARRAYS_ROW1: {
+  else if (reasonType == d_reasonRow1) {
     // No special handling required at this time
-    break;
-  }
-
-  default:
-    break;
   }
 }
 

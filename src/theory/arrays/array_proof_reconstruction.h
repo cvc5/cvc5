@@ -26,10 +26,21 @@ class ArrayProofReconstruction : public eq::PathReconstructionNotify {
 public:
   ArrayProofReconstruction(const eq::EqualityEngine* equalityEngine);
 
-  void notify(eq::MergeReasonType reasonType, Node reason, Node a, Node b,
+  void notify(unsigned reasonType, Node reason, Node a, Node b,
               std::vector<TNode>& equalities, eq::EqProof* proof) const;
 
+  void setRowMergeTag(unsigned tag);
+  void setRow1MergeTag(unsigned tag);
+  void setExtMergeTag(unsigned tag);
+
 private:
+  /** Merge tag for ROW applications */
+  unsigned d_reasonRow;
+  /** Merge tag for ROW1 applications */
+  unsigned d_reasonRow1;
+  /** Merge tag for EXT applications */
+  unsigned d_reasonExt;
+
   const eq::EqualityEngine* d_equalityEngine;
 }; /* class ArrayProofReconstruction */
 
