@@ -79,6 +79,7 @@ public:
   void reset_round( Theory::Effort e );
   void check( Theory::Effort e, unsigned quant_e );
   bool checkComplete();
+  void preRegisterQuantifier( Node q );
   void registerQuantifier( Node q );
   Node explain(TNode n){ return Node::null(); }
   /** add user pattern */

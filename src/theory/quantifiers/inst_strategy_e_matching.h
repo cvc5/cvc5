@@ -23,6 +23,7 @@
 #include "theory/quantifiers/trigger.h"
 #include "theory/quantifiers_engine.h"
 #include "util/statistics_registry.h"
+#include "options/quantifiers_options.h"
 
 namespace CVC4 {
 namespace theory {
@@ -64,7 +65,7 @@ public:
   };
 private:
   /** trigger generation strategy */
-  int d_tr_strategy;
+  TriggerSelMode d_tr_strategy;
   /** regeneration */
   bool d_regenerate;
   int d_regenerate_frequency;

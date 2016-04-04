@@ -165,6 +165,22 @@ bool InstantiationEngine::isIncomplete( Node q ) {
   return true;
 }
 
+void InstantiationEngine::preRegisterQuantifier( Node q ) {
+  if( options::strictTriggers() && q.getNumChildren()==3 ){
+    //if strict triggers, take ownership of this quantified formula
+    bool hasPat = false;
+    for( unsigned i=0; i<q[2].getNumChildren(); i++ ){
+      if( q[2][i].getKind()==INST_PATTERN || q[2][i].getKind()==INST_NO_PATTERN  ){
+        hasPat = true;
+        break;
+      }
+    }
+    if( hasPat ){
+      d_quantEngine->setOwner( q, this, 1 );
+    }
+  }
+}
+
 void InstantiationEngine::registerQuantifier( Node f ){
   if( d_quantEngine->hasOwnership( f, this ) ){
     //for( unsigned i=0; i<d_instStrategies.size(); ++i ){

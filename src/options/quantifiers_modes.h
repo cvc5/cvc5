@@ -107,6 +107,10 @@ enum TriggerSelMode {
   TRIGGER_SEL_MIN,
   /** only consider maximal terms for triggers */
   TRIGGER_SEL_MAX,
+  /** consider minimal terms for single triggers, maximal for non-single */
+  TRIGGER_SEL_MIN_SINGLE_MAX,
+  /** consider minimal terms for single triggers, all for non-single */
+  TRIGGER_SEL_MIN_SINGLE_ALL,
   /** consider all terms for triggers */
   TRIGGER_SEL_ALL,
 };

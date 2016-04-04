@@ -69,8 +69,8 @@ option inferArithTriggerEq --infer-arith-trigger-eq bool :default false
 option inferArithTriggerEqExp --infer-arith-trigger-eq-exp bool :default false
  record explanations for inferArithTriggerEq
  
-option smartTriggers --smart-triggers bool :default true
- enable smart triggers
+option strictTriggers --strict-triggers bool :default false
+ only instantiate quantifiers with user patterns based on triggers
 option relevantTriggers --relevant-triggers bool :default false
  prefer triggers that are more relevant based on SInE style analysis
 option relationalTriggers --relational-triggers bool :default false
@@ -89,7 +89,7 @@ option multiTriggerPriority --multi-trigger-priority bool :default false
  only try multi triggers if single triggers give no instantiations
 option triggerSelMode --trigger-sel CVC4::theory::quantifiers::TriggerSelMode :default CVC4::theory::quantifiers::TRIGGER_SEL_DEFAULT :read-write :include "options/quantifiers_modes.h" :handler  stringToTriggerSelMode
  selection mode for triggers
-option userPatternsQuant --user-pat=MODE CVC4::theory::quantifiers::UserPatMode :default CVC4::theory::quantifiers::USER_PAT_MODE_TRUST :include "options/quantifiers_modes.h" :handler stringToUserPatMode
+option userPatternsQuant --user-pat=MODE CVC4::theory::quantifiers::UserPatMode :default CVC4::theory::quantifiers::USER_PAT_MODE_TRUST :read-write :include "options/quantifiers_modes.h" :handler stringToUserPatMode
  policy for handling user-provided patterns for quantifier instantiation
 option incrementTriggers --increment-triggers bool :default true
  generate additional triggers as needed during search

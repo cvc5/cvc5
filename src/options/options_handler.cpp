@@ -347,14 +347,20 @@ interleave \n\
 const std::string OptionsHandler::s_triggerSelModeHelp = "\
 Trigger selection modes currently supported by the --trigger-sel option:\n\
 \n\
-default \n\
-+ Default, consider all subterms of quantified formulas for trigger selection.\n\
-\n\
-min \n\
+min | default \n\
 + Consider only minimal subterms that meet criteria for triggers.\n\
 \n\
 max \n\
 + Consider only maximal subterms that meet criteria for triggers. \n\
+\n\
+all \n\
++ Consider all subterms that meet criteria for triggers. \n\
+\n\
+min-s-max \n\
++ Consider only minimal subterms that meet criteria for single triggers, maximal otherwise. \n\
+\n\
+min-s-all \n\
++ Consider only minimal subterms that meet criteria for single triggers, all otherwise. \n\
 \n\
 ";
 const std::string OptionsHandler::s_prenexQuantModeHelp = "\
@@ -608,6 +614,10 @@ theory::quantifiers::TriggerSelMode OptionsHandler::stringToTriggerSelMode(std::
     return theory::quantifiers::TRIGGER_SEL_MIN;
   } else if(optarg == "max") {
     return theory::quantifiers::TRIGGER_SEL_MAX;
+  } else if(optarg == "min-s-max") {
+    return theory::quantifiers::TRIGGER_SEL_MIN_SINGLE_MAX;
+  } else if(optarg == "min-s-all") {
+    return theory::quantifiers::TRIGGER_SEL_MIN_SINGLE_ALL;
   } else if(optarg == "all") {
     return theory::quantifiers::TRIGGER_SEL_ALL;
   } else if(optarg ==  "help") {

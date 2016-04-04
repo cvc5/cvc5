@@ -21,6 +21,7 @@
 
 #include "expr/node.h"
 #include "theory/quantifiers/inst_match.h"
+#include "options/quantifiers_options.h"
 
 // Forward declarations for defining the Trigger and TriggerTrie.
 namespace CVC4 {
@@ -86,20 +87,12 @@ class Trigger {
   };
   static Trigger* mkTrigger( QuantifiersEngine* qe, Node f,
                              std::vector< Node >& nodes, int matchOption = 0,
-                             bool keepAll = true, int trOption = TR_MAKE_NEW,
-                             bool smartTriggers = false );
+                             bool keepAll = true, int trOption = TR_MAKE_NEW );
   static Trigger* mkTrigger( QuantifiersEngine* qe, Node f, Node n,
                              int matchOption = 0, bool keepAll = true,
-                             int trOption = TR_MAKE_NEW,
-                             bool smartTriggers = false );
-  //different strategies for choosing trigger terms
-  enum {
-    TS_MAX_TRIGGER = 0,
-    TS_MIN_TRIGGER,
-    TS_ALL,
-  };
+                             int trOption = TR_MAKE_NEW );
   static void collectPatTerms( QuantifiersEngine* qe, Node f, Node n,
-                               std::vector< Node >& patTerms, int tstrt,
+                               std::vector< Node >& patTerms, quantifiers::TriggerSelMode tstrt,
                                std::vector< Node >& exclude, std::map< Node, int >& reqPol,
                                bool filterInst = false );
   /** is usable trigger */
@@ -132,8 +125,7 @@ class Trigger {
 
 private:
   /** trigger constructor */
-  Trigger( QuantifiersEngine* ie, Node f, std::vector< Node >& nodes,
-           int matchOption = 0, bool smartTriggers = false );
+  Trigger( QuantifiersEngine* ie, Node f, std::vector< Node >& nodes, int matchOption = 0 );
 
   /** is subterm of trigger usable */
   static bool isUsable( Node n, Node q );
@@ -141,7 +133,7 @@ private:
                                   bool hasPol = false );
   /** collect all APPLY_UF pattern terms for f in n */
   static bool collectPatTerms2( Node f, Node n, std::map< Node, Node >& visited, std::map< Node, std::vector< Node > >& visited_fv, 
-                                int tstrt, std::vector< Node >& exclude, 
+                                quantifiers::TriggerSelMode tstrt, std::vector< Node >& exclude, 
                                 std::map< Node, int >& reqPol, std::vector< Node >& added,
                                 bool pol, bool hasPol, bool epol, bool hasEPol );
 

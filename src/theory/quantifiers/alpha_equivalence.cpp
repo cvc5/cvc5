@@ -54,12 +54,17 @@ bool AlphaEquivalenceNode::registerNode( AlphaEquivalenceNode* aen, QuantifiersE
     aen->d_quant = q;
     return true;
   }else{
-    //lemma ( q <=> d_quant )
-    Trace("quant-ae") << "Alpha equivalent : " << std::endl;
-    Trace("quant-ae") << "  " << q << std::endl;
-    Trace("quant-ae") << "  " << aen->d_quant << std::endl;
-    qe->getOutputChannel().lemma( q.iffNode( aen->d_quant ) );
-    return false;
+    if( q.getNumChildren()==2 ){
+      //lemma ( q <=> d_quant )
+      Trace("quant-ae") << "Alpha equivalent : " << std::endl;
+      Trace("quant-ae") << "  " << q << std::endl;
+      Trace("quant-ae") << "  " << aen->d_quant << std::endl;
+      qe->getOutputChannel().lemma( q.iffNode( aen->d_quant ) );
+      return false;
+    }else{
+      //do not reduce annotated quantified formulas based on alpha equivalence 
+      return true;
+    }
   }
 }
 

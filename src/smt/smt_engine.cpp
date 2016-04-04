@@ -1846,6 +1846,11 @@ void SmtEngine::setDefaults() {
     }
   }
   //implied options...
+  if( options::strictTriggers() ){
+    if( !options::userPatternsQuant.wasSetByUser() ){
+      options::userPatternsQuant.set( quantifiers::USER_PAT_MODE_TRUST );
+    }
+  }
   if( options::qcfMode.wasSetByUser() || options::qcfTConstraint() ){
     options::quantConflictFind.set( true );
   }

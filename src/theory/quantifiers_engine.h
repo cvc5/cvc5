@@ -271,11 +271,12 @@ public:  //modules
 private:
   /** owner of quantified formulas */
   std::map< Node, QuantifiersModule * > d_owner;
+  std::map< Node, int > d_owner_priority;
 public:
   /** get owner */
   QuantifiersModule * getOwner( Node q );
   /** set owner */
-  void setOwner( Node q, QuantifiersModule * m );
+  void setOwner( Node q, QuantifiersModule * m, int priority = 0 );
   /** considers */
   bool hasOwnership( Node q, QuantifiersModule * m = NULL );
 public:

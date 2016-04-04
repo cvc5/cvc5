@@ -138,9 +138,10 @@ public:
 
 class QAttributes{
 public:
-  QAttributes() : d_conjecture(false), d_axiom(false), d_sygus(false),
+  QAttributes() : d_hasPattern(false), d_conjecture(false), d_axiom(false), d_sygus(false),
                   d_synthesis(false), d_rr_priority(-1), d_qinstLevel(-1), d_quant_elim(false), d_quant_elim_partial(false){}
   ~QAttributes(){}
+  bool d_hasPattern;
   Node d_rr;
   bool d_conjecture;
   bool d_axiom;

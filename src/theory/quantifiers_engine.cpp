@@ -315,13 +315,17 @@ QuantifiersModule * QuantifiersEngine::getOwner( Node q ) {
   }
 }
 
-void QuantifiersEngine::setOwner( Node q, QuantifiersModule * m ) {
+void QuantifiersEngine::setOwner( Node q, QuantifiersModule * m, int priority ) {
   QuantifiersModule * mo = getOwner( q );
   if( mo!=m ){
     if( mo!=NULL ){
-      Trace("quant-warn") << "WARNING: setting owner of " << q << " to " << ( m ? m->identify() : "null" ) << ", but already has owner " << mo->identify() << "!" << std::endl;
+      if( priority<=d_owner_priority[q] ){
+        Trace("quant-warn") << "WARNING: setting owner of " << q << " to " << ( m ? m->identify() : "null" ) << ", but already has owner " << mo->identify() << " with higher priority!" << std::endl;
+        return;
+      }
     }
     d_owner[q] = m;
+    d_owner_priority[q] = priority;
   }
 }
 
@@ -393,9 +397,6 @@ void QuantifiersEngine::check( Theory::Effort e ){
       }
       Trace("quant-engine-debug") << std::endl;
       Trace("quant-engine-debug") << "  # quantified formulas = " << d_model->getNumAssertedQuantifiers() << std::endl;
-      //if( d_model->getNumToReduceQuantifiers()>0 ){
-      //  Trace("quant-engine-debug") << "  # quantified formulas to reduce = " << d_model->getNumToReduceQuantifiers() << std::endl;
-      //}
       if( !d_lemmas_waiting.empty() ){
         Trace("quant-engine-debug") << "  lemmas waiting = " << d_lemmas_waiting.size() << std::endl;
       }

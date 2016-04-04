@@ -13,8 +13,6 @@
  **/
 
 #include "theory/quantifiers/inst_strategy_e_matching.h"
-
-#include "options/quantifiers_options.h"
 #include "theory/quantifiers/inst_match_generator.h"
 #include "theory/quantifiers/relevant_domain.h"
 #include "theory/quantifiers/term_database.h"
@@ -85,7 +83,7 @@ int InstStrategyUserPatterns::process( Node f, Theory::Effort effort, int e ){
       if( d_quantEngine->getInstUserPatMode()==USER_PAT_MODE_RESORT  ){
         int matchOption = 0;
         for( unsigned i=0; i<d_user_gen_wait[f].size(); i++ ){
-          Trigger * t = Trigger::mkTrigger( d_quantEngine, f, d_user_gen_wait[f][i], matchOption, true, Trigger::TR_RETURN_NULL, options::smartTriggers() );
+          Trigger * t = Trigger::mkTrigger( d_quantEngine, f, d_user_gen_wait[f][i], matchOption, true, Trigger::TR_RETURN_NULL );
           if( t ){
             d_user_gen[f].push_back( t );
           }
@@ -134,19 +132,17 @@ void InstStrategyUserPatterns::addUserPattern( Node q, Node pat ){
     if( d_quantEngine->getInstUserPatMode()==USER_PAT_MODE_RESORT ){
       d_user_gen_wait[q].push_back( nodes );
     }else{
-      d_user_gen[q].push_back( Trigger::mkTrigger( d_quantEngine, q, nodes, matchOption, true, Trigger::TR_MAKE_NEW, options::smartTriggers() ) );
+      d_user_gen[q].push_back( Trigger::mkTrigger( d_quantEngine, q, nodes, matchOption, true, Trigger::TR_MAKE_NEW ) );
     }
   }
 }
 
 InstStrategyAutoGenTriggers::InstStrategyAutoGenTriggers( QuantifiersEngine* qe ) : InstStrategy( qe ){
   //how to select trigger terms
-  if( options::triggerSelMode()==TRIGGER_SEL_MIN || options::triggerSelMode()==TRIGGER_SEL_DEFAULT ){
-    d_tr_strategy = Trigger::TS_MIN_TRIGGER;
-  }else if( options::triggerSelMode()==TRIGGER_SEL_MAX ){
-    d_tr_strategy = Trigger::TS_MAX_TRIGGER;
+  if( options::triggerSelMode()==quantifiers::TRIGGER_SEL_DEFAULT ){
+    d_tr_strategy = quantifiers::TRIGGER_SEL_MIN;
   }else{
-    d_tr_strategy = Trigger::TS_ALL;
+    d_tr_strategy = options::triggerSelMode();
   }
   //whether to select new triggers during the search
   if( options::incrementTriggers() ){
@@ -358,7 +354,7 @@ void InstStrategyAutoGenTriggers::generateTriggers( Node f ){
       int matchOption = 0;
       Trigger* tr = NULL;
       if( d_is_single_trigger[ patTerms[0] ] ){
-        tr = Trigger::mkTrigger( d_quantEngine, f, patTerms[0], matchOption, false, Trigger::TR_RETURN_NULL, options::smartTriggers() );
+        tr = Trigger::mkTrigger( d_quantEngine, f, patTerms[0], matchOption, false, Trigger::TR_RETURN_NULL );
         d_single_trigger_gen[ patTerms[0] ] = true;
       }else{
         //only generate multi trigger if option set, or if no single triggers exist
@@ -376,7 +372,7 @@ void InstStrategyAutoGenTriggers::generateTriggers( Node f ){
           d_made_multi_trigger[f] = true;
         }
         //will possibly want to get an old trigger
-        tr = Trigger::mkTrigger( d_quantEngine, f, patTerms, matchOption, false, Trigger::TR_GET_OLD, options::smartTriggers() );
+        tr = Trigger::mkTrigger( d_quantEngine, f, patTerms, matchOption, false, Trigger::TR_GET_OLD );
       }
       if( tr ){
         unsigned tindex;
@@ -412,7 +408,7 @@ void InstStrategyAutoGenTriggers::generateTriggers( Node f ){
               if( !options::relevantTriggers() ||
                   d_quantEngine->getQuantifierRelevance()->getNumQuantifiersForSymbol( patTerms[index].getOperator() )<=nqfs_curr ){
                 d_single_trigger_gen[ patTerms[index] ] = true;
-                Trigger* tr2 = Trigger::mkTrigger( d_quantEngine, f, patTerms[index], matchOption, false, Trigger::TR_RETURN_NULL, options::smartTriggers() );
+                Trigger* tr2 = Trigger::mkTrigger( d_quantEngine, f, patTerms[index], matchOption, false, Trigger::TR_RETURN_NULL );
                 if( tr2 ){
                   //Notice() << "Add additional trigger " << patTerms[index] << std::endl;
                   tr2->resetInstantiationRound();
@@ -484,7 +480,7 @@ bool InstStrategyLocalTheoryExt::isLocalTheoryExt( Node f ) {
       }
       Trace("local-t-ext") << std::endl;
       int matchOption = 0;
-      Trigger * tr = Trigger::mkTrigger( d_quantEngine, f, patTerms, matchOption, true, Trigger::TR_GET_OLD, options::smartTriggers() );
+      Trigger * tr = Trigger::mkTrigger( d_quantEngine, f, patTerms, matchOption, true, Trigger::TR_GET_OLD );
       d_lte_trigger[f] = tr;
     }else{
       Trace("local-t-ext") << "No local theory extensions trigger for " << f << "." << std::endl;

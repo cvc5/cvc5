@@ -13,8 +13,6 @@
  **/
 
 #include "theory/quantifiers/trigger.h"
-
-#include "options/quantifiers_options.h"
 #include "theory/quantifiers/candidate_generator.h"
 #include "theory/quantifiers/inst_match_generator.h"
 #include "theory/quantifiers/term_database.h"
@@ -33,33 +31,25 @@ namespace theory {
 namespace inst {
 
 /** trigger class constructor */
-Trigger::Trigger( QuantifiersEngine* qe, Node f, std::vector< Node >& nodes,
-                  int matchOption, bool smartTriggers )
+Trigger::Trigger( QuantifiersEngine* qe, Node f, std::vector< Node >& nodes, int matchOption )
     : d_quantEngine( qe ), d_f( f )
 {
   d_nodes.insert( d_nodes.begin(), nodes.begin(), nodes.end() );
   Trace("trigger") << "Trigger for " << f << ": " << std::endl;
-  for( int i=0; i<(int)d_nodes.size(); i++ ){
+  for( unsigned i=0; i<d_nodes.size(); i++ ){
     Trace("trigger") << "   " << d_nodes[i] << std::endl;
   }
-  Trace("trigger-debug") << ", smart triggers = " << smartTriggers;
-  Trace("trigger") << std::endl;
-  if( smartTriggers ){
-    if( d_nodes.size()==1 ){
-      if( isSimpleTrigger( d_nodes[0] ) ){
-        d_mg = new InstMatchGeneratorSimple( f, d_nodes[0] );
-      }else{
-        d_mg = InstMatchGenerator::mkInstMatchGenerator( f, d_nodes[0], qe );
-        d_mg->setActiveAdd(true);
-      }
+  if( d_nodes.size()==1 ){
+    if( isSimpleTrigger( d_nodes[0] ) ){
+      d_mg = new InstMatchGeneratorSimple( f, d_nodes[0] );
     }else{
-      d_mg = new InstMatchGeneratorMulti( f, d_nodes, qe );
-      //d_mg = InstMatchGenerator::mkInstMatchGenerator( d_nodes, qe );
-      //d_mg->setActiveAdd();
+      d_mg = InstMatchGenerator::mkInstMatchGenerator( f, d_nodes[0], qe );
+      d_mg->setActiveAdd(true);
     }
   }else{
-    d_mg = InstMatchGenerator::mkInstMatchGenerator( f, d_nodes, qe );
-    d_mg->setActiveAdd(true);
+    d_mg = new InstMatchGeneratorMulti( f, d_nodes, qe );
+    //d_mg = InstMatchGenerator::mkInstMatchGenerator( d_nodes, qe );
+    //d_mg->setActiveAdd();
   }
   if( d_nodes.size()==1 ){
     if( isSimpleTrigger( d_nodes[0] ) ){
@@ -68,11 +58,10 @@ Trigger::Trigger( QuantifiersEngine* qe, Node f, std::vector< Node >& nodes,
       ++(qe->d_statistics.d_simple_triggers);
     }
   }else{
-    Trace("multi-trigger") << "Multi-trigger ";
-    debugPrint("multi-trigger");
-    Trace("multi-trigger") << " for " << f << std::endl;
-    //Notice() << "Multi-trigger for " << f << " : " << std::endl;
-    //Notice() << "   " << (*this) << std::endl;
+    Trace("multi-trigger") << "Trigger for " << f << ": " << std::endl;
+    for( unsigned i=0; i<d_nodes.size(); i++ ){
+      Trace("multi-trigger") << "   " << d_nodes[i] << std::endl;
+    }
     ++(qe->d_statistics.d_multi_triggers);
   }
   //Notice() << "Trigger : " << (*this) << "  for " << f << std::endl;
@@ -123,8 +112,7 @@ int Trigger::addInstantiations( InstMatch& baseMatch ){
   return addedLemmas;
 }
 
-Trigger* Trigger::mkTrigger( QuantifiersEngine* qe, Node f, std::vector< Node >& nodes, int matchOption, bool keepAll, int trOption,
-                             bool smartTriggers ){
+Trigger* Trigger::mkTrigger( QuantifiersEngine* qe, Node f, std::vector< Node >& nodes, int matchOption, bool keepAll, int trOption ){
   std::vector< Node > trNodes;
   if( !keepAll ){
     //only take nodes that contribute variables to the trigger when added
@@ -211,15 +199,15 @@ Trigger* Trigger::mkTrigger( QuantifiersEngine* qe, Node f, std::vector< Node >&
       }
     }
   }
-  Trigger* t = new Trigger( qe, f, trNodes, matchOption, smartTriggers );
+  Trigger* t = new Trigger( qe, f, trNodes, matchOption );
   qe->getTriggerDatabase()->addTrigger( trNodes, t );
   return t;
 }
 
-Trigger* Trigger::mkTrigger( QuantifiersEngine* qe, Node f, Node n, int matchOption, bool keepAll, int trOption, bool smartTriggers ){
+Trigger* Trigger::mkTrigger( QuantifiersEngine* qe, Node f, Node n, int matchOption, bool keepAll, int trOption ){
   std::vector< Node > nodes;
   nodes.push_back( n );
-  return mkTrigger( qe, f, nodes, matchOption, keepAll, trOption, smartTriggers );
+  return mkTrigger( qe, f, nodes, matchOption, keepAll, trOption );
 }
 
 bool Trigger::isUsable( Node n, Node q ){
@@ -360,7 +348,7 @@ bool Trigger::isSimpleTrigger( Node n ){
 
 //store triggers in reqPol, indicating their polarity (if any) they must appear to falsify the quantified formula
 bool Trigger::collectPatTerms2( Node f, Node n, std::map< Node, Node >& visited, std::map< Node, std::vector< Node > >& visited_fv, 
-                                int tstrt, std::vector< Node >& exclude, 
+                                quantifiers::TriggerSelMode tstrt, std::vector< Node >& exclude, 
                                 std::map< Node, int >& reqPol, std::vector< Node >& added,
                                 bool pol, bool hasPol, bool epol, bool hasEPol ){
   std::map< Node, Node >::iterator itv = visited.find( n );
@@ -371,14 +359,16 @@ bool Trigger::collectPatTerms2( Node f, Node n, std::map< Node, Node >& visited,
     if( n.getKind()!=FORALL ){
       bool rec = true;
       Node nu;
+      bool nu_single = false;
       if( n.getKind()!=NOT && std::find( exclude.begin(), exclude.end(), n )==exclude.end() ){
         nu = getIsUsableTrigger( n, f, pol, hasPol );
         if( !nu.isNull() ){
           reqPol[ nu ] = hasEPol ? ( epol ? 1 : -1 ) : 0;
           visited[ nu ] = nu;
           quantifiers::TermDb::computeVarContains( nu, visited_fv[ nu ] );
+          nu_single = visited_fv[nu].size()==f[0].getNumChildren();
           retVal = true;
-          if( tstrt==TS_MAX_TRIGGER ){
+          if( tstrt==quantifiers::TRIGGER_SEL_MAX || ( tstrt==quantifiers::TRIGGER_SEL_MIN_SINGLE_MAX && !nu_single ) ){
             rec = false;
           }
         }
@@ -404,7 +394,7 @@ bool Trigger::collectPatTerms2( Node f, Node n, std::map< Node, Node >& visited,
             }
             added.push_back( added2[i] );
           }
-          if( rm_nu && tstrt==TS_MIN_TRIGGER ){
+          if( rm_nu && ( tstrt==quantifiers::TRIGGER_SEL_MIN || ( tstrt==quantifiers::TRIGGER_SEL_MIN_SINGLE_ALL && nu_single ) ) ){
             visited[nu] = Node::null();
             reqPol.erase( nu );
           }else{
@@ -502,14 +492,14 @@ bool Trigger::isLocalTheoryExt( Node n, std::vector< Node >& vars, std::vector< 
   return true;
 }
 
-void Trigger::collectPatTerms( QuantifiersEngine* qe, Node f, Node n, std::vector< Node >& patTerms, int tstrt, std::vector< Node >& exclude, 
+void Trigger::collectPatTerms( QuantifiersEngine* qe, Node f, Node n, std::vector< Node >& patTerms, quantifiers::TriggerSelMode tstrt, std::vector< Node >& exclude, 
                                std::map< Node, int >& reqPol, bool filterInst ){
   std::map< Node, Node > visited;
   if( filterInst ){
     //immediately do not consider any term t for which another term is an instance of t
     std::vector< Node > patTerms2;
     std::map< Node, int > reqPol2;
-    collectPatTerms( qe, f, n, patTerms2, TS_ALL, exclude, reqPol2, false );
+    collectPatTerms( qe, f, n, patTerms2, quantifiers::TRIGGER_SEL_ALL, exclude, reqPol2, false );
     std::vector< Node > temp;
     temp.insert( temp.begin(), patTerms2.begin(), patTerms2.end() );
     qe->getTermDatabase()->filterInstances( temp );
@@ -525,7 +515,7 @@ void Trigger::collectPatTerms( QuantifiersEngine* qe, Node f, Node n, std::vecto
       }
       Trace("trigger-filter-instance") << std::endl;
     }
-    if( tstrt==TS_ALL ){
+    if( tstrt==quantifiers::TRIGGER_SEL_ALL ){
       for( unsigned i=0; i<temp.size(); i++ ){
         reqPol[temp[i]] = reqPol2[temp[i]];
         patTerms.push_back( temp[i] );
@@ -630,7 +620,7 @@ void Trigger::getTriggerVariables( QuantifiersEngine* qe, Node icn, Node f, std:
   std::map< Node, int > reqPol;
   //collect all patterns from icn
   std::vector< Node > exclude;
-  collectPatTerms( qe, f, icn, patTerms, TS_ALL, exclude, reqPol );
+  collectPatTerms( qe, f, icn, patTerms, quantifiers::TRIGGER_SEL_ALL, exclude, reqPol );
   //collect all variables from all patterns in patTerms, add to t_vars
   for( unsigned i=0; i<patTerms.size(); i++ ){
     qe->getTermDatabase()->getVarContainsNode( f, patTerms[i], t_vars );

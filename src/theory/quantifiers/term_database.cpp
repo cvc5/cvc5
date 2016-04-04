@@ -1945,7 +1945,7 @@ void TermDb::computeAttributes( Node q ) {
       Trace("quant-warn") << "WARNING : rewrite engine is null, and we have : " << q << std::endl;
     }
     //set rewrite engine as owner
-    d_quantEngine->setOwner( q, d_quantEngine->getRewriteEngine() );
+    d_quantEngine->setOwner( q, d_quantEngine->getRewriteEngine(), 2 );
   }
   if( d_qattr[q].isFunDef() ){
     Node f = d_qattr[q].d_fundef_f;
@@ -1954,19 +1954,19 @@ void TermDb::computeAttributes( Node q ) {
       exit( 1 );
     }
     d_fun_defs[f] = true;
-    d_quantEngine->setOwner( q, d_quantEngine->getFunDefEngine() );
+    d_quantEngine->setOwner( q, d_quantEngine->getFunDefEngine(), 2 );
   }
   if( d_qattr[q].d_sygus ){
     if( d_quantEngine->getCegInstantiation()==NULL ){
       Trace("quant-warn") << "WARNING : ceg instantiation is null, and we have : " << q << std::endl;
     }
-    d_quantEngine->setOwner( q, d_quantEngine->getCegInstantiation() );
+    d_quantEngine->setOwner( q, d_quantEngine->getCegInstantiation(), 2 );
   }
   if( d_qattr[q].d_synthesis ){
     if( d_quantEngine->getCegInstantiation()==NULL ){
       Trace("quant-warn") << "WARNING : ceg instantiation is null, and we have : " << q << std::endl;
     }
-    d_quantEngine->setOwner( q, d_quantEngine->getCegInstantiation() );
+    d_quantEngine->setOwner( q, d_quantEngine->getCegInstantiation(), 2 );
   }
 }
 
@@ -1976,7 +1976,9 @@ void TermDb::computeQuantAttributes( Node q, QAttributes& qa ){
     qa.d_ipl = q[2];
     for( unsigned i=0; i<q[2].getNumChildren(); i++ ){
       Trace("quant-attr-debug") << "Check : " << q[2][i] << " " << q[2][i].getKind() << std::endl;
-      if( q[2][i].getKind()==INST_ATTRIBUTE ){
+      if( q[2][i].getKind()==INST_PATTERN || q[2][i].getKind()==INST_NO_PATTERN ){
+        qa.d_hasPattern = true;
+      }else if( q[2][i].getKind()==INST_ATTRIBUTE ){
         Node avar = q[2][i][0];
         if( avar.getAttribute(AxiomAttribute()) ){
           Trace("quant-attr") << "Attribute : axiom : " << q << std::endl;
