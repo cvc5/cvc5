@@ -36,11 +36,11 @@ private:
                               const LetMap& map);
 
   /** Merge tag for ROW applications */
-  static unsigned d_reasonRow;
+  static unsigned s_reasonRow;
   /** Merge tag for ROW1 applications */
-  static unsigned d_reasonRow1;
+  static unsigned s_reasonRow1;
   /** Merge tag for EXT applications */
-  static unsigned d_reasonExt;
+  static unsigned s_reasonExt;
 public:
   ProofArray(theory::eq::EqProof* pf) : d_proof(pf) {}
   //it is simply an equality engine proof
