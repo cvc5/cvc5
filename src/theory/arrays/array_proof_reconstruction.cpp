@@ -1,9 +1,18 @@
 /*********************                                                        */
-/*! \file array_proof_reconstruction.h
-** \verbatim
-**
-** \brief Array-specific proof construction logic to be used during the
-** equality engine's path reconstruction
+/*! \file array_proof_reconstruction.cpp
+ ** \verbatim
+ ** Top contributors (to current version):
+ **   Guy Katz
+ ** This file is part of the CVC4 project.
+ ** Copyright (c) 2009-2016 by the authors listed in the file AUTHORS
+ ** in the top-level source directory) and their institutional affiliations.
+ ** All rights reserved.  See the file COPYING in the top-level source
+ ** directory for licensing information.\endverbatim
+ **
+ ** [[ Add lengthier description here ]]
+
+ ** \todo document this file
+
 **/
 
 #include "theory/arrays/array_proof_reconstruction.h"

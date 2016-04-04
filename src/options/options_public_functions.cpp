@@ -1,13 +1,13 @@
 /*********************                                                        */
 /*! \file options_public_functions.cpp
  ** \verbatim
- ** Original author: Morgan Deters
- ** Major contributors: none
- ** Minor contributors (to current version): Kshitij Bansal
+ ** Top contributors (to current version):
+ **   Tim King
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2014  New York University and The University of Iowa
- ** See the file COPYING in the top-level source directory for licensing
- ** information.\endverbatim
+ ** Copyright (c) 2009-2016 by the authors listed in the file AUTHORS
+ ** in the top-level source directory) and their institutional affiliations.
+ ** All rights reserved.  See the file COPYING in the top-level source
+ ** directory for licensing information.\endverbatim
  **
  ** \brief Definitions of public facing interface functions for Options.
  **

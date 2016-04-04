@@ -1,13 +1,13 @@
 /*********************                                                        */
 /*! \file theory_arith.h
  ** \verbatim
- ** Original author: Morgan Deters
- ** Major contributors: Dejan Jovanovic, Tim King
- ** Minor contributors (to current version): Martin Brain <>, Tianyi Liang, Andrew Reynolds
+ ** Top contributors (to current version):
+ **   Tim King, Morgan Deters, Dejan Jovanovic
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2014  New York University and The University of Iowa
- ** See the file COPYING in the top-level source directory for licensing
- ** information.\endverbatim
+ ** Copyright (c) 2009-2016 by the authors listed in the file AUTHORS
+ ** in the top-level source directory) and their institutional affiliations.
+ ** All rights reserved.  See the file COPYING in the top-level source
+ ** directory for licensing information.\endverbatim
  **
  ** \brief Arithmetic theory.
  ** Arithmetic theory.

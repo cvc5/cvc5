@@ -1,13 +1,13 @@
 /*********************                                                        */
 /*! \file type_node.cpp
  ** \verbatim
- ** Original author: Dejan Jovanovic
- ** Major contributors: Kshitij Bansal, Morgan Deters
- ** Minor contributors (to current version): Andrew Reynolds, Clark Barrett, Tim King
+ ** Top contributors (to current version):
+ **   Morgan Deters, Andrew Reynolds, Kshitij Bansal
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2014  New York University and The University of Iowa
- ** See the file COPYING in the top-level source directory for licensing
- ** information.\endverbatim
+ ** Copyright (c) 2009-2016 by the authors listed in the file AUTHORS
+ ** in the top-level source directory) and their institutional affiliations.
+ ** All rights reserved.  See the file COPYING in the top-level source
+ ** directory for licensing information.\endverbatim
  **
  ** \brief Reference-counted encapsulation of a pointer to node information.
  **

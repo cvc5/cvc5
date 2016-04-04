@@ -1,13 +1,13 @@
 /*********************                                                        */
 /*! \file smt2.cpp
  ** \verbatim
- ** Original author: Christopher L. Conway
- ** Major contributors: Kshitij Bansal, Morgan Deters
- ** Minor contributors (to current version): Andrew Reynolds, Clark Barrett, Tianyi Liang
+ ** Top contributors (to current version):
+ **   Andrew Reynolds, Kshitij Bansal, Morgan Deters
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2014  New York University and The University of Iowa
- ** See the file COPYING in the top-level source directory for licensing
- ** information.\endverbatim
+ ** Copyright (c) 2009-2016 by the authors listed in the file AUTHORS
+ ** in the top-level source directory) and their institutional affiliations.
+ ** All rights reserved.  See the file COPYING in the top-level source
+ ** directory for licensing information.\endverbatim
  **
  ** \brief Definitions of SMT2 constants.
  **
