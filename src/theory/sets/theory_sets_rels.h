@@ -72,6 +72,7 @@ private:
     NodeSet d_mem;
     NodeSet d_not_mem;
     context::CDO< Node > d_tp;
+    context::CDO< Node > d_pt;
   };
 
   /** has eqc info */
@@ -119,11 +120,13 @@ public:
   void eqNotifyPostMerge(Node t1, Node t2);
 
 private:
-
+  void mergeTransposeEqcs(Node t1, Node t2);
+  void mergeProductEqcs(Node t1, Node t2);
   std::map< Node, EqcInfo* > d_eqc_info;
   void doPendingMerge();
   EqcInfo* getOrMakeEqcInfo( Node n, bool doMake = false );
   void sendInferTranspose(bool, Node, Node, Node, bool reverseOnly = false);
+  void sendInferProduct(bool, Node, Node, Node);
 
 
   void check();

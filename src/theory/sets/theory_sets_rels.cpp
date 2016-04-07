@@ -1178,11 +1178,11 @@ typedef std::map< Node, std::hash_set< Node, NodeHashFunction > >::iterator TC_P
   }
 
   TheorySetsRels::EqcInfo::EqcInfo( context::Context* c ) :
-  d_mem(c), d_not_mem(c), d_tp(c) {}
+  d_mem(c), d_not_mem(c), d_tp(c), d_pt(c) {}
 
   void TheorySetsRels::eqNotifyNewClass( Node n ) {
     Trace("rels-std") << "[sets-rels] eqNotifyNewClass:" << " t = " << n << std::endl;
-    if(isRel(n) && n.getKind() == kind::TRANSPOSE) {
+    if(isRel(n) && (n.getKind() == kind::TRANSPOSE || n.getKind() == kind::PRODUCT)) {
       getOrMakeEqcInfo( n, true );
     }
   }
@@ -1213,68 +1213,133 @@ typedef std::map< Node, std::hash_set< Node, NodeHashFunction > >::iterator TC_P
       }
       if(!ei->d_tp.get().isNull()) {
         Node exp = polarity ? explain(t2) : explain(t2.negate());
-        if(ei->d_tp.get() != t2[1])
+        if(ei->d_tp.get() != t2[1]) {
           exp = AND( explain(EQUAL( ei->d_tp.get(), t2[1]) ), exp );
+        }
         sendInferTranspose( polarity, t2[0], ei->d_tp.get(), exp, true );
+      }
+      if(!ei->d_pt.get().isNull()) {
+        Node exp = polarity ? explain(t2) : explain(t2.negate());
+        if(ei->d_pt.get() != t2[1]) {
+          exp = AND( explain(EQUAL( ei->d_pt.get(), t2[1]) ), exp );
+        }
+        sendInferProduct(polarity, t2[0], ei->d_pt.get(), exp);
       }
     // Merge two relation eqcs
     } else if(t1.getType().isSet() &&
               t2.getType().isSet() &&
               t1.getType().getSetElementType().isTuple()) {
-
-      EqcInfo* t1_ei = getOrMakeEqcInfo(t1);
-      EqcInfo* t2_ei = getOrMakeEqcInfo(t2);
-      if(t1_ei != NULL && t2_ei != NULL) {
-        // TP(t1) = TP(t2) -> t1 = t2;
-        if(!t1_ei->d_tp.get().isNull() && !t2_ei->d_tp.get().isNull()) {
-          sendInferTranspose( true, t1_ei->d_tp.get(), t2_ei->d_tp.get(), explain(EQUAL(t1, t2)) );
-        }
-        // Apply transpose rule on (non)members of t2 and t1->tp
-        if(!t1_ei->d_tp.get().isNull()) {
-          for(NodeSet::key_iterator itr = t2_ei->d_mem.key_begin(); itr != t2_ei->d_mem.key_end(); itr++) {
-            if(!t1_ei->d_mem.contains(*itr)) {
-              sendInferTranspose( true, *itr, t1_ei->d_tp.get(), AND(explain(EQUAL(t1_ei->d_tp.get(), t2)), explain(MEMBER(*itr, t2))) );
-            }
-          }
-          for(NodeSet::key_iterator itr = t2_ei->d_not_mem.key_begin(); itr != t2_ei->d_not_mem.key_end(); itr++) {
-            if(!t1_ei->d_not_mem.contains(*itr)) {
-              sendInferTranspose( false, *itr, t1_ei->d_tp.get(), AND(explain(EQUAL(t1_ei->d_tp.get(), t2)), explain(MEMBER(*itr, t2).negate())) );
-            }
-          }
-          // Apply transpose rule on (non)members of t1 and t2->tp
-        } else if(!t2_ei->d_tp.get().isNull()) {
-          t1_ei->d_tp.set(t2_ei->d_tp);
-          for(NodeSet::key_iterator itr = t1_ei->d_mem.key_begin(); itr != t1_ei->d_mem.key_end(); itr++) {
-            if(!t2_ei->d_mem.contains(*itr)) {
-              sendInferTranspose( true, *itr, t2_ei->d_tp.get(), AND(explain(EQUAL(t1, t2_ei->d_tp.get())), explain(MEMBER(*itr, t1))) );
-            }
-          }
-          for(NodeSet::key_iterator itr = t1_ei->d_not_mem.key_begin(); itr != t1_ei->d_not_mem.key_end(); itr++) {
-            if(!t2_ei->d_not_mem.contains(*itr)) {
-              sendInferTranspose( false, *itr, t2_ei->d_tp.get(), AND(explain(EQUAL(t1, t2_ei->d_tp.get())), explain(MEMBER(*itr, t1).negate())) );
-            }
-          }
-        }
-      // t1 was created already and t2 was not
-      } else if(t1_ei != NULL) {
-        if(t1_ei->d_tp.get().isNull() && t2.getKind() == kind::TRANSPOSE) {
-          t1_ei->d_tp.set( t2 );
-        }
-      } else if(t2_ei != NULL){
-        t1_ei = getOrMakeEqcInfo(t1, true);
-        for(NodeSet::key_iterator itr = t2_ei->d_mem.key_begin(); itr != t2_ei->d_mem.key_end(); itr++) {
-          t1_ei->d_mem.insert(*itr);
-        }
-        for(NodeSet::key_iterator itr = t2_ei->d_not_mem.key_begin(); itr != t2_ei->d_not_mem.key_end(); itr++) {
-          t1_ei->d_not_mem.insert(*itr);
-        }
-        if(t1_ei->d_tp.get().isNull() && !t2_ei->d_tp.get().isNull()) {
-          t1_ei->d_tp.set(t2_ei->d_tp);
-        }
-      }
+      mergeTransposeEqcs(t1, t2);
+      mergeProductEqcs(t1, t2);
     }
 
     Trace("rels-std") << "[sets-rels] done with eqNotifyPostMerge:" << " t1 = " << t1 << " t2 = " << t2 << std::endl;
+  }
+
+  void TheorySetsRels::mergeProductEqcs(Node t1, Node t2) {
+    EqcInfo* t1_ei = getOrMakeEqcInfo(t1);
+    EqcInfo* t2_ei = getOrMakeEqcInfo(t2);
+    if(t1_ei != NULL && t2_ei != NULL) {
+      // PT(t1) = PT(t2) -> t1 = t2;
+      if(!t1_ei->d_pt.get().isNull() && !t2_ei->d_pt.get().isNull()) {
+        sendInferProduct( true, t1_ei->d_pt.get(), t2_ei->d_pt.get(), explain(EQUAL(t1, t2)) );
+      }
+      // Apply Product rule on (non)members of t2 and t1->tp
+      if(!t1_ei->d_pt.get().isNull()) {
+        for(NodeSet::key_iterator itr = t2_ei->d_mem.key_begin(); itr != t2_ei->d_mem.key_end(); itr++) {
+          if(!t1_ei->d_mem.contains(*itr)) {
+            sendInferProduct( true, *itr, t1_ei->d_pt.get(), AND(explain(EQUAL(t1_ei->d_pt.get(), t2)), explain(MEMBER(*itr, t2))) );
+          }
+        }
+        for(NodeSet::key_iterator itr = t2_ei->d_not_mem.key_begin(); itr != t2_ei->d_not_mem.key_end(); itr++) {
+          if(!t1_ei->d_not_mem.contains(*itr)) {
+            sendInferProduct( false, *itr, t1_ei->d_pt.get(), AND(explain(EQUAL(t1_ei->d_pt.get(), t2)), explain(MEMBER(*itr, t2).negate())) );
+          }
+        }
+        // Apply transpose rule on (non)members of t1 and t2->tp
+      } else if(!t2_ei->d_pt.get().isNull()) {
+        t1_ei->d_pt.set(t2_ei->d_pt);
+        for(NodeSet::key_iterator itr = t1_ei->d_mem.key_begin(); itr != t1_ei->d_mem.key_end(); itr++) {
+          if(!t2_ei->d_mem.contains(*itr)) {
+            sendInferProduct( true, *itr, t2_ei->d_pt.get(), AND(explain(EQUAL(t1, t2_ei->d_pt.get())), explain(MEMBER(*itr, t1))) );
+          }
+        }
+        for(NodeSet::key_iterator itr = t1_ei->d_not_mem.key_begin(); itr != t1_ei->d_not_mem.key_end(); itr++) {
+          if(!t2_ei->d_not_mem.contains(*itr)) {
+            sendInferProduct( false, *itr, t2_ei->d_pt.get(), AND(explain(EQUAL(t1, t2_ei->d_pt.get())), explain(MEMBER(*itr, t1).negate())) );
+          }
+        }
+      }
+    // t1 was created already and t2 was not
+    } else if(t1_ei != NULL) {
+      if(t1_ei->d_pt.get().isNull() && t2.getKind() == kind::PRODUCT) {
+        t1_ei->d_pt.set( t2 );
+      }
+    } else if(t2_ei != NULL){
+      t1_ei = getOrMakeEqcInfo(t1, true);
+      for(NodeSet::key_iterator itr = t2_ei->d_mem.key_begin(); itr != t2_ei->d_mem.key_end(); itr++) {
+        t1_ei->d_mem.insert(*itr);
+      }
+      for(NodeSet::key_iterator itr = t2_ei->d_not_mem.key_begin(); itr != t2_ei->d_not_mem.key_end(); itr++) {
+        t1_ei->d_not_mem.insert(*itr);
+      }
+      if(t1_ei->d_pt.get().isNull() && !t2_ei->d_pt.get().isNull()) {
+        t1_ei->d_pt.set(t2_ei->d_pt);
+      }
+    }
+  }
+
+  void TheorySetsRels::mergeTransposeEqcs(Node t1, Node t2) {
+    EqcInfo* t1_ei = getOrMakeEqcInfo(t1);
+    EqcInfo* t2_ei = getOrMakeEqcInfo(t2);
+    if(t1_ei != NULL && t2_ei != NULL) {
+      // TP(t1) = TP(t2) -> t1 = t2;
+      if(!t1_ei->d_tp.get().isNull() && !t2_ei->d_tp.get().isNull()) {
+        sendInferTranspose( true, t1_ei->d_tp.get(), t2_ei->d_tp.get(), explain(EQUAL(t1, t2)) );
+      }
+      // Apply transpose rule on (non)members of t2 and t1->tp
+      if(!t1_ei->d_tp.get().isNull()) {
+        for(NodeSet::key_iterator itr = t2_ei->d_mem.key_begin(); itr != t2_ei->d_mem.key_end(); itr++) {
+          if(!t1_ei->d_mem.contains(*itr)) {
+            sendInferTranspose( true, *itr, t1_ei->d_tp.get(), AND(explain(EQUAL(t1_ei->d_tp.get(), t2)), explain(MEMBER(*itr, t2))) );
+          }
+        }
+        for(NodeSet::key_iterator itr = t2_ei->d_not_mem.key_begin(); itr != t2_ei->d_not_mem.key_end(); itr++) {
+          if(!t1_ei->d_not_mem.contains(*itr)) {
+            sendInferTranspose( false, *itr, t1_ei->d_tp.get(), AND(explain(EQUAL(t1_ei->d_tp.get(), t2)), explain(MEMBER(*itr, t2).negate())) );
+          }
+        }
+        // Apply transpose rule on (non)members of t1 and t2->tp
+      } else if(!t2_ei->d_tp.get().isNull()) {
+        t1_ei->d_tp.set(t2_ei->d_tp);
+        for(NodeSet::key_iterator itr = t1_ei->d_mem.key_begin(); itr != t1_ei->d_mem.key_end(); itr++) {
+          if(!t2_ei->d_mem.contains(*itr)) {
+            sendInferTranspose( true, *itr, t2_ei->d_tp.get(), AND(explain(EQUAL(t1, t2_ei->d_tp.get())), explain(MEMBER(*itr, t1))) );
+          }
+        }
+        for(NodeSet::key_iterator itr = t1_ei->d_not_mem.key_begin(); itr != t1_ei->d_not_mem.key_end(); itr++) {
+          if(!t2_ei->d_not_mem.contains(*itr)) {
+            sendInferTranspose( false, *itr, t2_ei->d_tp.get(), AND(explain(EQUAL(t1, t2_ei->d_tp.get())), explain(MEMBER(*itr, t1).negate())) );
+          }
+        }
+      }
+    // t1 was created already and t2 was not
+    } else if(t1_ei != NULL) {
+      if(t1_ei->d_tp.get().isNull() && t2.getKind() == kind::TRANSPOSE) {
+        t1_ei->d_tp.set( t2 );
+      }
+    } else if(t2_ei != NULL){
+      t1_ei = getOrMakeEqcInfo(t1, true);
+      for(NodeSet::key_iterator itr = t2_ei->d_mem.key_begin(); itr != t2_ei->d_mem.key_end(); itr++) {
+        t1_ei->d_mem.insert(*itr);
+      }
+      for(NodeSet::key_iterator itr = t2_ei->d_not_mem.key_begin(); itr != t2_ei->d_not_mem.key_end(); itr++) {
+        t1_ei->d_not_mem.insert(*itr);
+      }
+      if(t1_ei->d_tp.get().isNull() && !t2_ei->d_tp.get().isNull()) {
+        t1_ei->d_tp.set(t2_ei->d_tp);
+      }
+    }
   }
 
   void TheorySetsRels::doPendingMerge() {
@@ -1325,6 +1390,61 @@ typedef std::map< Node, std::hash_set< Node, NodeHashFunction > >::iterator TC_P
 
   }
 
+  void TheorySetsRels::sendInferProduct( bool polarity, Node t1, Node t2, Node exp ) {
+    Assert(t2.getKind() == kind::PRODUCT);
+    if(polarity && isRel(t1) && isRel(t2)) {
+      Assert(t1.getKind() == kind::PRODUCT);
+      Node n = NodeManager::currentNM()->mkNode( kind::IMPLIES, exp, EQUAL(t1[0], t2[0]) );
+      Trace("rels-std") << "[sets-rels-lemma] Generate a lemma by applying transpose rule: "
+                        << n << std::endl;
+      d_pending_merge.push_back(n);
+      d_lemma.insert(n);
+      return;
+    }
+
+    std::vector<Node> r1_element;
+    std::vector<Node> r2_element;
+    Node r1 = t2[0];
+    Node r2 = t2[1];
+
+    NodeManager *nm = NodeManager::currentNM();
+    Datatype dt = r1.getType().getSetElementType().getDatatype();
+    unsigned int i = 0;
+    unsigned int s1_len = r1.getType().getSetElementType().getTupleLength();
+    unsigned int tup_len = t2.getType().getSetElementType().getTupleLength();
+
+    r1_element.push_back(Node::fromExpr(dt[0].getConstructor()));
+    for(; i < s1_len; ++i) {
+      r1_element.push_back(nthElementOfTuple(t1, i));
+    }
+
+    dt = r2.getType().getSetElementType().getDatatype();
+    r2_element.push_back(Node::fromExpr(dt[0].getConstructor()));
+    for(; i < tup_len; ++i) {
+      r2_element.push_back(nthElementOfTuple(t1, i));
+    }
+    Node tuple_1 = getRepresentative(nm->mkNode(kind::APPLY_CONSTRUCTOR, r1_element));
+    Node tuple_2 = getRepresentative(nm->mkNode(kind::APPLY_CONSTRUCTOR, r2_element));
+    Node n1;
+    Node n2;
+    if(polarity) {
+      n1 = NodeManager::currentNM()->mkNode( kind::IMPLIES, exp, MEMBER(tuple_1, r1) );
+      n2 = NodeManager::currentNM()->mkNode( kind::IMPLIES, exp, MEMBER(tuple_2, r2) );
+    } else {
+      n1 = NodeManager::currentNM()->mkNode( kind::IMPLIES, exp, MEMBER(tuple_1, r1).negate() );
+      n2 = NodeManager::currentNM()->mkNode( kind::IMPLIES, exp, MEMBER(tuple_2, r2).negate() );
+    }
+    Trace("rels-std") << "[sets-rels-lemma] Generate a lemma by applying product rule: "
+                      << n2 << std::endl;
+    d_pending_merge.push_back(n2);
+    d_lemma.insert(n2);
+    Trace("rels-std") << "[sets-rels-lemma] Generate a lemma by applying product rule: "
+                      << n1 << std::endl;
+    d_pending_merge.push_back(n1);
+    d_lemma.insert(n1);
+
+  }
+
   TheorySetsRels::EqcInfo* TheorySetsRels::getOrMakeEqcInfo( Node n, bool doMake ){
     std::map< Node, EqcInfo* >::iterator eqc_i = d_eqc_info.find( n );
     if(eqc_i == d_eqc_info.end()){
@@ -1338,6 +1458,8 @@ typedef std::map< Node, std::hash_set< Node, NodeHashFunction > >::iterator TC_P
         }
         if(n.getKind() == kind::TRANSPOSE){
           ei->d_tp = n;
+        } else if(n.getKind() == kind::PRODUCT) {
+          ei->d_pt = n;
         }
         return ei;
       }else{
