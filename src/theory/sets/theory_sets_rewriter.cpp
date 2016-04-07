@@ -208,14 +208,23 @@ RewriteResponse TheorySetsRewriter::postRewrite(TNode node) {
   }//kind::UNION
 
   case kind::TRANSPOSE: {
-    if(node[0].getType().isSet() && !node[0].getType().getSetElementType().isTuple())
-      return RewriteResponse(REWRITE_AGAIN, node[0]);
     if(node[0].getKind() != kind::TRANSPOSE) {
       Trace("sets-postrewrite") << "Sets::postRewrite returning " << node << std::endl;
       return RewriteResponse(REWRITE_DONE, node);
     }
     if(node[0].getKind() == kind::TRANSPOSE) {
       return RewriteResponse(REWRITE_AGAIN, node[0][0]);
+    }
+    break;
+  }
+
+  case kind::TRANSCLOSURE: {
+    if(node[0].getKind() != kind::TRANSCLOSURE) {
+      Trace("sets-postrewrite") << "Sets::postRewrite returning " << node << std::endl;
+      return RewriteResponse(REWRITE_DONE, node);
+    }
+    if(node[0].getKind() == kind::TRANSCLOSURE) {
+      return RewriteResponse(REWRITE_AGAIN, node[0]);
     }
     break;
   }

@@ -87,14 +87,14 @@ private:
     TheorySetsPrivate& d_theory;
 
   public:
-    NotifyClass(TheorySetsPrivate& theory): d_theory(theory) {}
+    NotifyClass(TheorySetsPrivate& theory): d_theory(theory){}
     bool eqNotifyTriggerEquality(TNode equality, bool value);
     bool eqNotifyTriggerPredicate(TNode predicate, bool value);
     bool eqNotifyTriggerTermEquality(TheoryId tag, TNode t1, TNode t2, bool value);
     void eqNotifyConstantTermMerge(TNode t1, TNode t2);
-    void eqNotifyNewClass(TNode t) {}
+    void eqNotifyNewClass(TNode t);
     void eqNotifyPreMerge(TNode t1, TNode t2) {}
-    void eqNotifyPostMerge(TNode t1, TNode t2) {}
+    void eqNotifyPostMerge(TNode t1, TNode t2);
     void eqNotifyDisequal(TNode t1, TNode t2, TNode reason) {}
   } d_notify;
 
@@ -199,8 +199,11 @@ private:
   // more debugging stuff
   friend class TheorySetsScrutinize;
   TheorySetsScrutinize* d_scrutinize;
-  TheorySetsRels* d_rels;
   void dumpAssertionsHumanified() const;  /** do some formatting to make them more readable */
+
+  // relational solver
+  TheorySetsRels* d_rels;
+
 };/* class TheorySetsPrivate */
 
 

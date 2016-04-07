@@ -95,10 +95,10 @@ void TheorySetsPrivate::check(Theory::Effort level) {
     Debug("sets") << "[sets]  is complete = " << isComplete() << std::endl;
 
   }
+
+  // invoke the relational solver
   d_rels->check(level);
-//  if( level == Theory::EFFORT_FULL ) {
-//    d_rels->doPendingLemmas();
-//  }
+
   if( (level == Theory::EFFORT_FULL || options::setsEagerLemmas() ) && !isComplete()) {
     d_external.d_out->lemma(getLemma());
     return;
@@ -119,29 +119,31 @@ void TheorySetsPrivate::assertEquality(TNode fact, TNode reason, bool learnt)
 
   bool polarity = fact.getKind() != kind::NOT;
   TNode atom = polarity ? fact : fact[0];
-
+  Debug("sets-assert") << "\n finish assert equality!!!!!!!*************** 0" <<std::endl;
   // fact already holds
   if( holds(atom, polarity) ) {
     Debug("sets-assert") << "[sets-assert]   already present, skipping" << std::endl;
     return;
   }
-
+  Debug("sets-assert") << "\n finish assert equality!!!!!!!*************** 1" <<std::endl;
   // assert fact & check for conflict
   if(learnt) {
+    Debug("sets-assert") << "\n finish assert equality!!!!!!!*************** 5" <<std::endl;
     registerReason(reason, /*save=*/ true);
   }
+  Debug("sets-assert") << "\n finish assert equality!!!!!!!*************** 4" <<std::endl;
   d_equalityEngine.assertEquality(atom, polarity, reason);
-
+  Debug("sets-assert") << "\n finish assert equality!!!!!!!*************** 2" <<std::endl;
   if(!d_equalityEngine.consistent()) {
     Debug("sets-assert") << "[sets-assert]   running into a conflict" << std::endl;
     d_conflict = true;
     return;
   }
-
+  Debug("sets-assert") << "\n finish assert equality!!!!!!!*************** 3" <<std::endl;
   if(!polarity && atom[0].getType().isSet()) {
     addToPending(atom);
   }
-
+  Debug("sets-assert") << "\n finish assert equality!!!!!!!*************** " <<std::endl;
 }/* TheorySetsPrivate::assertEquality() */
 
 
@@ -1308,21 +1310,23 @@ void TheorySetsPrivate::NotifyClass::eqNotifyConstantTermMerge(TNode t1, TNode t
   Debug("sets-eq") << "[sets-eq] eqNotifyConstantTermMerge " << " t1 = " << t1 << " t2 = " << t2 << std::endl;
   d_theory.conflict(t1, t2);
 }
-
-// void TheorySetsPrivate::NotifyClass::eqNotifyNewClass(TNode t)
-// {
-//   Debug("sets-eq") << "[sets-eq] eqNotifyNewClass:" << " t = " << t << std::endl;
-// }
+//
+ void TheorySetsPrivate::NotifyClass::eqNotifyNewClass(TNode t)
+ {
+   Debug("sets-eq") << "[sets-eq] eqNotifyNewClass:" << " t = " << t << std::endl;
+   d_theory.d_rels->eqNotifyNewClass(t);
+ }
 
 // void TheorySetsPrivate::NotifyClass::eqNotifyPreMerge(TNode t1, TNode t2)
 // {
 //   Debug("sets-eq") << "[sets-eq] eqNotifyPreMerge:" << " t1 = " << t1 << " t2 = " << t2 << std::endl;
 // }
-
-// void TheorySetsPrivate::NotifyClass::eqNotifyPostMerge(TNode t1, TNode t2)
-// {
-//   Debug("sets-eq") << "[sets-eq] eqNotifyPostMerge:" << " t1 = " << t1 << " t2 = " << t2 << std::endl;
-// }
+//
+ void TheorySetsPrivate::NotifyClass::eqNotifyPostMerge(TNode t1, TNode t2)
+ {
+   Debug("sets-eq") << "[sets-eq] eqNotifyPostMerge:" << " t1 = " << t1 << " t2 = " << t2 << std::endl;
+   d_theory.d_rels->eqNotifyPostMerge(t1, t2);
+ }
 
 // void TheorySetsPrivate::NotifyClass::eqNotifyDisequal(TNode t1, TNode t2, TNode reason)
 // {
