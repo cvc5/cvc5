@@ -101,6 +101,8 @@ class EqualityQuery {
 public:
   EqualityQuery(){}
   virtual ~EqualityQuery(){};
+  /** extends engine */
+  virtual bool extendsEngine() { return false; }
   /** contains term */
   virtual bool hasTerm( Node a ) = 0;
   /** get the representative of the equivalence class of a */

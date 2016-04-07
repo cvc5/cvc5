@@ -244,17 +244,21 @@ RewriteResponse QuantifiersRewriter::postRewrite(TNode in) {
     ret = ret.negate();
     status = REWRITE_AGAIN_FULL;
   }else if( in.getKind()==FORALL ){
-    //compute attributes
-    QAttributes qa;
-    TermDb::computeQuantAttributes( in, qa );
-    if( !qa.isRewriteRule() ){
-      for( int op=0; op<COMPUTE_LAST; op++ ){
-        if( doOperation( in, op, qa ) ){
-          ret = computeOperation( in, op, qa );
-          if( ret!=in ){
-            rew_op = op;
-            status = REWRITE_AGAIN_FULL;
-            break;
+    if( in[1].isConst() ){
+      return RewriteResponse( status, in[1] );
+    }else{
+      //compute attributes
+      QAttributes qa;
+      TermDb::computeQuantAttributes( in, qa );
+      if( !qa.isRewriteRule() ){
+        for( int op=0; op<COMPUTE_LAST; op++ ){
+          if( doOperation( in, op, qa ) ){
+            ret = computeOperation( in, op, qa );
+            if( ret!=in ){
+              rew_op = op;
+              status = REWRITE_AGAIN_FULL;
+              break;
+            }
           }
         }
       }

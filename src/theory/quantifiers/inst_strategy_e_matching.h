@@ -89,6 +89,7 @@ private:
   int process( Node q, Theory::Effort effort, int e );
   /** generate triggers */
   void generateTriggers( Node q );
+  void addPatternToPool( Node q, Node pat, unsigned num_fv );
   //bool addTrigger( inst::Trigger * tr, Node f, unsigned r );
   /** has user patterns */
   bool hasUserPatterns( Node q );

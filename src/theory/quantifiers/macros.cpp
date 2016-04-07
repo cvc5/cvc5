@@ -153,7 +153,7 @@ bool QuantifierMacros::isGroundUfTerm( Node f, Node n ) {
   d_qe->getTermDatabase()->getVarContainsNode( f, icn, var );
   Trace("macros-debug2") << "Get trigger variables for " << icn << std::endl;
   std::vector< Node > trigger_var;
-  inst::Trigger::getTriggerVariables( d_qe, icn, f, trigger_var );
+  inst::Trigger::getTriggerVariables( icn, f, trigger_var );
   Trace("macros-debug2") << "Done." << std::endl;
   //only if all variables are also trigger variables
   return trigger_var.size()>=var.size();

@@ -30,6 +30,18 @@ namespace CVC4 {
 namespace theory {
 namespace inst {
 
+void TriggerTermInfo::init( Node q, Node n, int reqPol, Node reqPolEq ){
+  if( d_fv.empty() ){
+    quantifiers::TermDb::getVarContainsNode( q, n, d_fv );
+  }
+  if( d_reqPol==0 ){
+    d_reqPol = reqPol;
+    d_reqPolEq = reqPolEq;
+  }else{
+    //determined a ground (dis)equality must hold or else q is a tautology?
+  }
+}
+
 /** trigger class constructor */
 Trigger::Trigger( QuantifiersEngine* qe, Node f, std::vector< Node >& nodes, int matchOption )
     : d_quantEngine( qe ), d_f( f )
@@ -122,7 +134,7 @@ Trigger* Trigger::mkTrigger( QuantifiersEngine* qe, Node f, std::vector< Node >&
     std::map< Node, std::vector< Node > > patterns;
     size_t varCount = 0;
     std::map< Node, std::vector< Node > > varContains;
-    qe->getTermDatabase()->getVarContains( f, temp, varContains );
+    quantifiers::TermDb::getVarContains( f, temp, varContains );
     for( unsigned i=0; i<temp.size(); i++ ){
       bool foundVar = false;
       for( unsigned j=0; j<varContains[ temp[i] ].size(); j++ ){
@@ -213,7 +225,7 @@ Trigger* Trigger::mkTrigger( QuantifiersEngine* qe, Node f, Node n, int matchOpt
 bool Trigger::isUsable( Node n, Node q ){
   if( quantifiers::TermDb::getInstConstAttr(n)==q ){
     if( isAtomicTrigger( n ) ){
-      for( int i=0; i<(int)n.getNumChildren(); i++ ){
+      for( unsigned i=0; i<n.getNumChildren(); i++ ){
         if( !isUsable( n[i], q ) ){
           return false;
         }
@@ -238,68 +250,91 @@ bool Trigger::isUsable( Node n, Node q ){
   }
 }
 
-Node Trigger::getIsUsableTrigger( Node n, Node f, bool pol, bool hasPol ) {
-  Trace("trigger-debug") << "Is " << n << " a usable trigger? pol/hasPol=" << pol << "/" << hasPol << std::endl;
+Node Trigger::getIsUsableEq( Node q, Node n ) {
+  Assert( isRelationalTrigger( n ) );
+  for( unsigned i=0; i<2; i++) {
+    if( isUsableEqTerms( q, n[i], n[1-i] ) ){
+      if( i==1 && ( n.getKind()==EQUAL || n.getKind()==IFF ) && !quantifiers::TermDb::hasInstConstAttr(n[0]) ){
+        return NodeManager::currentNM()->mkNode( n.getKind(), n[1], n[0] );  
+      }else{
+        return n;
+      }
+    }
+  }
+  return Node::null();
+}
+
+bool Trigger::isUsableEqTerms( Node q, Node n1, Node n2 ) {
+  if( n1.getKind()==INST_CONSTANT ){
+    if( options::relationalTriggers() ){
+      if( !quantifiers::TermDb::hasInstConstAttr(n2) ){
+        return true;
+      }else if( n2.getKind()==INST_CONSTANT ){
+        return true;
+      }
+    }
+  }else if( isAtomicTrigger( n1 ) && isUsable( n1, q ) ){
+    if( options::relationalTriggers() && n2.getKind()==INST_CONSTANT && !quantifiers::TermDb::containsTerm( n1, n2 ) ){
+      return true;
+    }else if( !quantifiers::TermDb::hasInstConstAttr(n2) ){
+      return true;
+    }
+  }
+  return false;
+}
+
+Node Trigger::getIsUsableTrigger( Node n, Node q ) {
+  bool pol = true;
+  Trace("trigger-debug") << "Is " << n << " a usable trigger?" << std::endl;
   if( n.getKind()==NOT ){
     pol = !pol;
     n = n[0];
   }
-  if( options::relationalTriggers() ){
-    if( n.getKind()==EQUAL || n.getKind()==IFF || n.getKind()==GEQ ){
-      Node rtr;
-      bool do_negate = hasPol && pol;
-      bool is_arith = n[0].getType().isReal();
-      for( unsigned i=0; i<2; i++) {
-        if( n[1-i].getKind()==INST_CONSTANT ){
-          if( ( ( isUsableTrigger( n[i], f ) && !quantifiers::TermDb::containsTerm( n[i], n[1-i] ) ) || !quantifiers::TermDb::hasInstConstAttr(n[i]) ) && 
-              ( !do_negate || is_arith ) ){
-            rtr = n;
-            break;
-          }
-          if( n[i].getKind()==INST_CONSTANT && ( !hasPol || pol ) ){
-            do_negate = true;
-            rtr = n;
-            break;
-          }
-        }
-      }
-      if( is_arith ){
-        //try to rearrange?
-        std::map< Node, Node > m;
-        if( QuantArith::getMonomialSumLit(n, m) ){
-          for( std::map< Node, Node >::iterator it = m.begin(); it!=m.end(); ++it ){
-            if( !it->first.isNull() && it->first.getKind()==INST_CONSTANT ){
-              Node veq;
-              if( QuantArith::isolate( it->first, m, veq, n.getKind() )!=0 ){
-                int vti = veq[0]==it->first ? 1 : 0;
-                if( ( isUsableTrigger( veq[vti], f ) && !quantifiers::TermDb::containsTerm( veq[vti], veq[1-vti] ) ) || !quantifiers::TermDb::hasInstConstAttr(veq[vti]) ){
-                  rtr = veq;
-                }
-              }
+  if( n.getKind()==INST_CONSTANT ){
+    return pol ? n : NodeManager::currentNM()->mkNode( IFF, n, NodeManager::currentNM()->mkConst( true ) ).notNode();
+  }else if( isRelationalTrigger( n ) ){
+    Node rtr = getIsUsableEq( q, n );
+    if( rtr.isNull() && n[0].getType().isReal() ){
+      //try to solve relation
+      std::map< Node, Node > m;
+      if( QuantArith::getMonomialSumLit(n, m) ){
+        for( std::map< Node, Node >::iterator it = m.begin(); it!=m.end(); ++it ){
+          bool trySolve = false;
+          if( !it->first.isNull() ){
+            if( it->first.getKind()==INST_CONSTANT ){
+              trySolve = options::relationalTriggers();
+            }else if( isUsableTrigger( it->first, q ) ){
+              trySolve = true;
             }
           }
+          if( trySolve ){
+            Trace("trigger-debug") << "Try to solve for " << it->first << std::endl;
+            Node veq;
+            if( QuantArith::isolate( it->first, m, veq, n.getKind() )!=0 ){
+              rtr = getIsUsableEq( q, veq );
+            }
+            //either all solves will succeed or all solves will fail
+            break;
+          }
         }
-      }
-      if( !rtr.isNull() ){
-        Trace("relational-trigger") << "Relational trigger : " << std::endl;
-        Trace("relational-trigger") << "    " << rtr << " (from " << n << ")" << std::endl;
-        Trace("relational-trigger") << "    in quantifier " << f << std::endl;
-        if( hasPol ){
-          Trace("relational-trigger") << "    polarity : " << pol << std::endl;
-        }
-        Node rtr2 = do_negate ? rtr.negate() : rtr;
-        Trace("relational-trigger") << "    return : " << rtr2 << std::endl;
-        return rtr2;
       }
     }
-  }
-  bool usable = quantifiers::TermDb::getInstConstAttr(n)==f && isAtomicTrigger( n ) && isUsable( n, f );
-  Trace("trigger-debug") << n << " usable : " << (quantifiers::TermDb::getInstConstAttr(n)==f) << " " << isAtomicTrigger( n ) << " " << isUsable( n, f ) << std::endl;
-  if( usable ){
-    return n;
+    if( !rtr.isNull() ){
+      Trace("relational-trigger") << "Relational trigger : " << std::endl;
+      Trace("relational-trigger") << "    " << rtr << " (from " << n << ")" << std::endl;
+      Trace("relational-trigger") << "    in quantifier " << q << std::endl;
+      Node rtr2 = pol ? rtr : rtr.negate();
+      Trace("relational-trigger") << "    return : " << rtr2 << std::endl;
+      return rtr2;
+    }
   }else{
-    return Node::null();
+    bool usable = quantifiers::TermDb::getInstConstAttr(n)==q && isAtomicTrigger( n ) && isUsable( n, q );
+    Trace("trigger-debug") << n << " usable : " << (quantifiers::TermDb::getInstConstAttr(n)==q) << " " << isAtomicTrigger( n ) << " " << isUsable( n, q ) << std::endl;
+    if( usable ){
+      return pol ? n : NodeManager::currentNM()->mkNode( IFF, n, NodeManager::currentNM()->mkConst( true ) ).notNode();
+    }
   }
+  return Node::null();
 }
 
 bool Trigger::isUsableTrigger( Node n, Node q ){
@@ -319,6 +354,14 @@ bool Trigger::isAtomicTriggerKind( Kind k ) {
          k==UNION || k==INTERSECTION || k==SUBSET || k==SETMINUS || k==MEMBER || k==SINGLETON;
 }
 
+bool Trigger::isRelationalTrigger( Node n ) {
+  return isRelationalTriggerKind( n.getKind() );
+}
+
+bool Trigger::isRelationalTriggerKind( Kind k ) {
+  return k==EQUAL || k==IFF || k==GEQ;
+}
+  
 bool Trigger::isCbqiKind( Kind k ) {
   return quantifiers::TermDb::isBoolConnective( k ) || k==PLUS || k==GEQ || k==EQUAL || k==MULT ||
          k==APPLY_CONSTRUCTOR || k==APPLY_SELECTOR_TOTAL || k==APPLY_TESTER;
@@ -347,40 +390,63 @@ bool Trigger::isSimpleTrigger( Node n ){
 }
 
 //store triggers in reqPol, indicating their polarity (if any) they must appear to falsify the quantified formula
-bool Trigger::collectPatTerms2( Node f, Node n, std::map< Node, Node >& visited, std::map< Node, std::vector< Node > >& visited_fv, 
-                                quantifiers::TriggerSelMode tstrt, std::vector< Node >& exclude, 
-                                std::map< Node, int >& reqPol, std::vector< Node >& added,
+bool Trigger::collectPatTerms2( Node q, Node n, std::map< Node, Node >& visited, std::map< Node, TriggerTermInfo >& tinfo, 
+                                quantifiers::TriggerSelMode tstrt, std::vector< Node >& exclude, std::vector< Node >& added,
                                 bool pol, bool hasPol, bool epol, bool hasEPol ){
   std::map< Node, Node >::iterator itv = visited.find( n );
   if( itv==visited.end() ){
     visited[ n ] = Node::null();
     Trace("auto-gen-trigger-debug2") << "Collect pat terms " << n << " " << pol << " " << hasPol << " " << epol << " " << hasEPol << std::endl;
     bool retVal = false;
-    if( n.getKind()!=FORALL ){
+    if( n.getKind()!=FORALL && n.getKind()!=INST_CONSTANT ){
       bool rec = true;
       Node nu;
       bool nu_single = false;
       if( n.getKind()!=NOT && std::find( exclude.begin(), exclude.end(), n )==exclude.end() ){
-        nu = getIsUsableTrigger( n, f, pol, hasPol );
+        nu = getIsUsableTrigger( n, q );
         if( !nu.isNull() ){
-          reqPol[ nu ] = hasEPol ? ( epol ? 1 : -1 ) : 0;
-          visited[ nu ] = nu;
-          quantifiers::TermDb::computeVarContains( nu, visited_fv[ nu ] );
-          nu_single = visited_fv[nu].size()==f[0].getNumChildren();
-          retVal = true;
-          if( tstrt==quantifiers::TRIGGER_SEL_MAX || ( tstrt==quantifiers::TRIGGER_SEL_MIN_SINGLE_MAX && !nu_single ) ){
-            rec = false;
+          Assert( nu.getKind()!=NOT );
+          Trace("auto-gen-trigger-debug2") << "...found usable trigger : " << nu << std::endl;
+          Node reqEq;
+          if( nu.getKind()==IFF || nu.getKind()==EQUAL ){
+            if( isAtomicTrigger( nu[0] ) && !quantifiers::TermDb::hasInstConstAttr(nu[1]) ){
+              if( hasPol ){
+                reqEq = nu[1];
+              }
+              nu = nu[0];
+            }
+          }
+          Assert( reqEq.isNull() || !quantifiers::TermDb::hasInstConstAttr( reqEq ) );
+          Assert( isUsableTrigger( nu, q ) );
+          //do not add if already excluded
+          bool add = true;
+          if( n!=nu ){
+            std::map< Node, Node >::iterator itvu = visited.find( nu );
+            if( itvu!=visited.end() && itvu->second.isNull() ){
+              add = false;
+            }
+          }
+          if( add ){
+            Trace("auto-gen-trigger-debug2") << "...add usable trigger : " << nu << std::endl;
+            visited[ nu ] = nu;
+            tinfo[ nu ].init( q, nu, hasEPol ? ( epol ? 1 : -1 ) : 0, reqEq );
+            nu_single = tinfo[ nu ].d_fv.size()==q[0].getNumChildren();
+            retVal = true;
+            if( tstrt==quantifiers::TRIGGER_SEL_MAX || ( tstrt==quantifiers::TRIGGER_SEL_MIN_SINGLE_MAX && !nu_single ) ){
+              rec = false;
+            }
           }
         }
       }
       if( rec ){
+        Node nrec = nu.isNull() ? n : nu;
         std::vector< Node > added2;
-        for( unsigned i=0; i<n.getNumChildren(); i++ ){
+        for( unsigned i=0; i<nrec.getNumChildren(); i++ ){
           bool newHasPol, newPol;
           bool newHasEPol, newEPol;
-          QuantPhaseReq::getPolarity( n, i, hasPol, pol, newHasPol, newPol );
-          QuantPhaseReq::getEntailPolarity( n, i, hasEPol, epol, newHasEPol, newEPol );
-          if( collectPatTerms2( f, n[i], visited, visited_fv, tstrt, exclude, reqPol, added2, newPol, newHasPol, newEPol, newHasEPol ) ){
+          QuantPhaseReq::getPolarity( nrec, i, hasPol, pol, newHasPol, newPol );
+          QuantPhaseReq::getEntailPolarity( nrec, i, hasEPol, epol, newHasEPol, newEPol );
+          if( collectPatTerms2( q, nrec[i], visited, tinfo, tstrt, exclude, added2, newPol, newHasPol, newEPol, newHasEPol ) ){
             retVal = true;
           }
         }
@@ -388,15 +454,19 @@ bool Trigger::collectPatTerms2( Node f, Node n, std::map< Node, Node >& visited,
           bool rm_nu = false;
           //discard if we added a subterm as a trigger with all variables that nu has
           for( unsigned i=0; i<added2.size(); i++ ){
-            Assert( visited_fv.find( added2[i] )!=visited_fv.end() );
-            if( visited_fv[ nu ].size()==visited_fv[added2[i]].size() ){
-              rm_nu = true;
+            Assert( tinfo.find( added2[i] )!=tinfo.end() );
+            if( added2[i]!=nu ){
+              if( tinfo[ nu ].d_fv.size()==tinfo[ added2[i] ].d_fv.size() ){
+                rm_nu = true;
+              }
+              added.push_back( added2[i] );
+            }else{
+              Assert( false );
             }
-            added.push_back( added2[i] );
           }
           if( rm_nu && ( tstrt==quantifiers::TRIGGER_SEL_MIN || ( tstrt==quantifiers::TRIGGER_SEL_MIN_SINGLE_ALL && nu_single ) ) ){
             visited[nu] = Node::null();
-            reqPol.erase( nu );
+            tinfo.erase( nu );
           }else{
             added.push_back( nu );
           }
@@ -448,7 +518,7 @@ int Trigger::getTriggerWeight( Node n ) {
     return 0;
   }else{
     if( options::relationalTriggers() ){
-      if( n.getKind()==EQUAL || n.getKind()==IFF || n.getKind()==GEQ ){
+      if( isRelationalTrigger( n ) ){
         for( unsigned i=0; i<2; i++ ){
           if( n[i].getKind()==INST_CONSTANT && !quantifiers::TermDb::hasInstConstAttr( n[1-i] ) ){
             return 0;
@@ -492,17 +562,17 @@ bool Trigger::isLocalTheoryExt( Node n, std::vector< Node >& vars, std::vector< 
   return true;
 }
 
-void Trigger::collectPatTerms( QuantifiersEngine* qe, Node f, Node n, std::vector< Node >& patTerms, quantifiers::TriggerSelMode tstrt, std::vector< Node >& exclude, 
-                               std::map< Node, int >& reqPol, bool filterInst ){
+void Trigger::collectPatTerms( Node q, Node n, std::vector< Node >& patTerms, quantifiers::TriggerSelMode tstrt, std::vector< Node >& exclude, 
+                               std::map< Node, TriggerTermInfo >& tinfo, bool filterInst ){
   std::map< Node, Node > visited;
   if( filterInst ){
     //immediately do not consider any term t for which another term is an instance of t
     std::vector< Node > patTerms2;
-    std::map< Node, int > reqPol2;
-    collectPatTerms( qe, f, n, patTerms2, quantifiers::TRIGGER_SEL_ALL, exclude, reqPol2, false );
+    std::map< Node, TriggerTermInfo > tinfo2;
+    collectPatTerms( q, n, patTerms2, quantifiers::TRIGGER_SEL_ALL, exclude, tinfo2, false );
     std::vector< Node > temp;
     temp.insert( temp.begin(), patTerms2.begin(), patTerms2.end() );
-    qe->getTermDatabase()->filterInstances( temp );
+    quantifiers::TermDb::filterInstances( temp );
     if( temp.size()!=patTerms2.size() ){
       Trace("trigger-filter-instance") << "Filtered an instance: " << std::endl;
       Trace("trigger-filter-instance") << "Old: ";
@@ -517,7 +587,10 @@ void Trigger::collectPatTerms( QuantifiersEngine* qe, Node f, Node n, std::vecto
     }
     if( tstrt==quantifiers::TRIGGER_SEL_ALL ){
       for( unsigned i=0; i<temp.size(); i++ ){
-        reqPol[temp[i]] = reqPol2[temp[i]];
+        //copy information
+        tinfo[temp[i]].d_fv.insert( tinfo[temp[i]].d_fv.end(), tinfo2[temp[i]].d_fv.begin(), tinfo2[temp[i]].d_fv.end() );
+        tinfo[temp[i]].d_reqPol = tinfo2[temp[i]].d_reqPol;
+        tinfo[temp[i]].d_reqPolEq = tinfo2[temp[i]].d_reqPolEq;
         patTerms.push_back( temp[i] );
       }
       return;
@@ -530,10 +603,9 @@ void Trigger::collectPatTerms( QuantifiersEngine* qe, Node f, Node n, std::vecto
       }
     }
   }
-  std::map< Node, std::vector< Node > > visited_fv;
   std::vector< Node > added;
-  collectPatTerms2( f, n, visited, visited_fv, tstrt, exclude, reqPol, added, true, true, false, true );
-  for( std::map< Node, int >::iterator it = reqPol.begin(); it != reqPol.end(); ++it ){
+  collectPatTerms2( q, n, visited, tinfo, tstrt, exclude, added, true, true, false, true );
+  for( std::map< Node, TriggerTermInfo >::iterator it = tinfo.begin(); it != tinfo.end(); ++it ){
     if( !visited[it->first].isNull() ){
       patTerms.push_back( it->first );
     }
@@ -615,15 +687,15 @@ Node Trigger::getInversion( Node n, Node x ) {
   return Node::null();
 }
 
-void Trigger::getTriggerVariables( QuantifiersEngine* qe, Node icn, Node f, std::vector< Node >& t_vars ) {
+void Trigger::getTriggerVariables( Node icn, Node q, std::vector< Node >& t_vars ) {
   std::vector< Node > patTerms;
-  std::map< Node, int > reqPol;
+  std::map< Node, TriggerTermInfo > tinfo;
   //collect all patterns from icn
   std::vector< Node > exclude;
-  collectPatTerms( qe, f, icn, patTerms, quantifiers::TRIGGER_SEL_ALL, exclude, reqPol );
+  collectPatTerms( q, icn, patTerms, quantifiers::TRIGGER_SEL_ALL, exclude, tinfo );
   //collect all variables from all patterns in patTerms, add to t_vars
   for( unsigned i=0; i<patTerms.size(); i++ ){
-    qe->getTermDatabase()->getVarContainsNode( f, patTerms[i], t_vars );
+    quantifiers::TermDb::getVarContainsNode( q, patTerms[i], t_vars );
   }
 }
 
@@ -655,7 +727,7 @@ InstMatchGenerator* Trigger::getInstMatchGenerator( Node q, Node n ) {
 
 Trigger* TriggerTrie::getTrigger2( std::vector< Node >& nodes ){
   if( nodes.empty() ){
-    return d_tr;
+    return d_tr.empty() ? NULL : d_tr[0];
   }else{
     Node n = nodes.back();
     nodes.pop_back();
@@ -669,13 +741,7 @@ Trigger* TriggerTrie::getTrigger2( std::vector< Node >& nodes ){
 
 void TriggerTrie::addTrigger2( std::vector< Node >& nodes, Trigger* t ){
   if( nodes.empty() ){
-    if(d_tr != NULL){
-      // TODO: Andy can you look at fmf/QEpres-uf.855035.smt?
-      delete d_tr;
-      d_tr = NULL;
-    }
-    Assert(d_tr == NULL);
-    d_tr = t;
+    d_tr.push_back( t );
   }else{
     Node n = nodes.back();
     nodes.pop_back();
@@ -688,7 +754,6 @@ void TriggerTrie::addTrigger2( std::vector< Node >& nodes, Trigger* t ){
 
 
 TriggerTrie::TriggerTrie()
-    : d_tr( NULL )
 {}
 
 TriggerTrie::~TriggerTrie() {
@@ -699,7 +764,9 @@ TriggerTrie::~TriggerTrie() {
   }
   d_children.clear();
 
-  if(d_tr != NULL) { delete d_tr; }
+  for( unsigned i=0; i<d_tr.size(); i++ ){
+    delete d_tr[i];
+  }
 }
 
 }/* CVC4::theory::inst namespace */

@@ -20,6 +20,7 @@
 #include "expr/attribute.h"
 #include "theory/theory.h"
 #include "theory/type_enumerator.h"
+#include "theory/quantifiers/quant_util.h"
 
 #include <map>
 
@@ -182,9 +183,9 @@ private:
   /** set has term */
   void setHasTerm( Node n );
   /** evaluate term */
-  TNode evaluateTerm2( TNode n, std::map< TNode, TNode >& subs, bool subsRep, bool hasSubs );
-  Node evaluateTerm2( TNode n, std::map< TNode, TNode >& subs, bool subsRep, bool hasSubs, std::map< TNode, Node >& visited );
-  bool isEntailed( TNode n, std::map< TNode, TNode >& subs, bool subsRep, bool hasSubs, bool pol );
+  TNode evaluateTerm2( TNode n, std::map< TNode, TNode >& subs, bool subsRep, bool hasSubs, EqualityQuery * qy );
+  Node evaluateTerm2( TNode n, std::map< TNode, TNode >& subs, bool subsRep, bool hasSubs, std::map< TNode, Node >& visited, EqualityQuery * qy );
+  bool isEntailed( TNode n, std::map< TNode, TNode >& subs, bool subsRep, bool hasSubs, bool pol, EqualityQuery * qy );
 public:
   TermDb( context::Context* c, context::UserContext* u, QuantifiersEngine* qe );
   ~TermDb(){}
@@ -237,11 +238,11 @@ public:
   /** evaluate a term under a substitution.  Return representative in EE if possible.
    * subsRep is whether subs contains only representatives
    */
-  Node evaluateTerm( TNode n, std::map< TNode, TNode >& subs, bool subsRep, bool mkNewTerms = false );
+  Node evaluateTerm( TNode n, std::map< TNode, TNode >& subs, bool subsRep, bool mkNewTerms = false, EqualityQuery * qy = NULL );
   /** same as above, but without substitution */
-  Node evaluateTerm( TNode n, bool mkNewTerms = false );
+  Node evaluateTerm( TNode n, bool mkNewTerms = false, EqualityQuery * qy = NULL );
   /** is entailed (incomplete check) */
-  bool isEntailed( TNode n, std::map< TNode, TNode >& subs, bool subsRep, bool pol );
+  bool isEntailed( TNode n, std::map< TNode, TNode >& subs, bool subsRep, bool pol, EqualityQuery * qy = NULL );
   /** has term */
   bool hasTermCurrent( Node n, bool useMode = true );
   /** is term eligble for instantiation? */

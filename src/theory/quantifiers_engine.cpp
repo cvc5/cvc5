@@ -142,6 +142,7 @@ QuantifiersEngine::QuantifiersEngine(context::Context* c, context::UserContext* 
   d_rel_dom = NULL;
   d_builder = NULL;
 
+  d_curr_effort_level = QEFFORT_NONE;
   d_total_inst_count_debug = 0;
   //allow theory combination to go first, once initially
   d_ierCounter = options::instWhenTcFirst() ? 0 : 1;
@@ -463,6 +464,7 @@ void QuantifiersEngine::check( Theory::Effort e ){
     }
     Trace("quant-engine-debug") << "Check modules that needed check..." << std::endl;
     for( unsigned quant_e = QEFFORT_CONFLICT; quant_e<=QEFFORT_LAST_CALL; quant_e++ ){
+      d_curr_effort_level = quant_e;
       bool success = true;
       //build the model if any module requested it
       if( needsModelE==quant_e ){
@@ -522,6 +524,7 @@ void QuantifiersEngine::check( Theory::Effort e ){
         }
       }
     }
+    d_curr_effort_level = QEFFORT_NONE;
     Trace("quant-engine-debug") << "Done check modules that needed check." << std::endl;
     if( d_hasAddedLemma ){
       //debug information
@@ -756,67 +759,6 @@ void QuantifiersEngine::computeTermVector( Node f, InstMatch& m, std::vector< No
   }
 }
 
-bool QuantifiersEngine::addInstantiationInternal( Node f, std::vector< Node >& vars, std::vector< Node >& terms, bool doVts ){
-  Assert( f.getKind()==FORALL );
-  Assert( vars.size()==terms.size() );
-  Node body = getInstantiation( f, vars, terms, doVts );  //do virtual term substitution
-  body = quantifiers::QuantifiersRewriter::preprocess( body, true );
-  Trace("inst-debug") << "...preprocess to " << body << std::endl;
-  Trace("inst-assert") << "(assert " << body << ")" << std::endl;
-  //make the lemma
-  Node lem = NodeManager::currentNM()->mkNode( kind::OR, f.negate(), body );
-  //check for duplication
-  if( addLemma( lem ) ){
-    d_total_inst_debug[f]++;
-    d_temp_inst_debug[f]++;
-    d_total_inst_count_debug++;
-    Trace("inst") << "*** Instantiate " << f << " with " << std::endl;
-    for( unsigned i=0; i<terms.size(); i++ ){
-      if( Trace.isOn("inst") ){
-        Trace("inst") << "   " << terms[i];
-        if( Trace.isOn("inst-debug") ){
-          Trace("inst-debug") << ", type=" << terms[i].getType() << ", var_type=" << f[0][i].getType();
-        }
-        Trace("inst") << std::endl;
-      }
-      if( options::cbqi() ){
-        Node icf = quantifiers::TermDb::getInstConstAttr(terms[i]);
-        bool bad_inst = false;
-        if( !icf.isNull() ){
-          if( icf==f ){
-            bad_inst = true;
-          }else{
-            bad_inst = quantifiers::TermDb::containsTerms( terms[i], d_term_db->d_inst_constants[f] );
-          }
-        }
-        if( bad_inst ){
-          Trace("inst")<< "***& Bad Instantiate " << f << " with " << std::endl;
-          for( unsigned i=0; i<terms.size(); i++ ){
-            Trace("inst") << "   " << terms[i] << std::endl;
-          }
-          Unreachable("Bad instantiation");
-        }
-      }
-      Assert( terms[i].getType().isSubtypeOf( f[0][i].getType() ) );
-    }
-    if( options::instMaxLevel()!=-1 ){
-      uint64_t maxInstLevel = 0;
-      for( unsigned i=0; i<terms.size(); i++ ){
-        if( terms[i].hasAttribute(InstLevelAttribute()) ){
-          if( terms[i].getAttribute(InstLevelAttribute())>maxInstLevel ){
-            maxInstLevel = terms[i].getAttribute(InstLevelAttribute());
-          }
-        }
-      }
-      setInstantiationLevelAttr( body, f[1], maxInstLevel+1 );
-    }
-    ++(d_statistics.d_instantiations);
-    return true;
-  }else{
-    ++(d_statistics.d_inst_duplicate);
-    return false;
-  }
-}
 
 bool QuantifiersEngine::recordInstantiationInternal( Node q, std::vector< Node >& terms, bool modEq, bool modInst ) {
   if( options::incrementalSolving() ){
@@ -847,7 +789,7 @@ void QuantifiersEngine::setInstantiationLevelAttr( Node n, Node qn, uint64_t lev
       Trace("inst-level-debug") << "Set instantiation level " << n << " to " << level << std::endl;
     }
     Assert( n.getNumChildren()==qn.getNumChildren() );
-    for( int i=0; i<(int)n.getNumChildren(); i++ ){
+    for( unsigned i=0; i<n.getNumChildren(); i++ ){
       setInstantiationLevelAttr( n[i], qn[i], level );
     }
   }
@@ -859,7 +801,7 @@ void QuantifiersEngine::setInstantiationLevelAttr( Node n, uint64_t level ){
     n.setAttribute(ila,level);
     Trace("inst-level-debug") << "Set instantiation level " << n << " to " << level << std::endl;
   }
-  for( int i=0; i<(int)n.getNumChildren(); i++ ){
+  for( unsigned i=0; i<n.getNumChildren(); i++ ){
     setInstantiationLevelAttr( n[i], level );
   }
 }
@@ -970,9 +912,11 @@ bool QuantifiersEngine::existsInstantiation( Node f, InstMatch& m, bool modEq, b
 }
 */
 
-bool QuantifiersEngine::addLemma( Node lem, bool doCache ){
+bool QuantifiersEngine::addLemma( Node lem, bool doCache, bool doRewrite ){
   if( doCache ){
-    lem = Rewriter::rewrite(lem);
+    if( doRewrite ){
+      lem = Rewriter::rewrite(lem);
+    }
     Trace("inst-add-debug") << "Adding lemma : " << lem << std::endl;
     if( d_lemmas_produced_c.find( lem )==d_lemmas_produced_c.end() ){
       //d_curr_out->lemma( lem, false, true );
@@ -985,6 +929,7 @@ bool QuantifiersEngine::addLemma( Node lem, bool doCache ){
       return false;
     }
   }else{
+    //do not need to rewrite, will be rewritten after sending
     d_lemmas_waiting.push_back( lem );
     return true;
   }
@@ -1012,7 +957,6 @@ bool QuantifiersEngine::addInstantiation( Node q, std::vector< Node >& terms, bo
     if( terms[i].isNull() ){
       terms[i] = d_term_db->getModelBasisTerm( q[0][i].getType() );
     }
-    //make it representative, this is helpful for recognizing duplication
     if( mkRep ){
       //pick the best possible representative for instantiation, based on past use and simplicity of term
       terms[i] = d_eq_query->getInternalRepresentative( terms[i], q, i );
@@ -1026,7 +970,29 @@ bool QuantifiersEngine::addInstantiation( Node q, std::vector< Node >& terms, bo
       return false;
     }
 #ifdef CVC4_ASSERTIONS
-    Assert( !quantifiers::TermDb::containsUninterpretedConstant( terms[i] ) );
+    bool bad_inst = false;
+    if( quantifiers::TermDb::containsUninterpretedConstant( terms[i] ) ){
+      bad_inst = true;
+    }else if( !terms[i].getType().isSubtypeOf( q[0][i].getType() ) ){
+      bad_inst = true;
+    }else if( options::cbqi() ){
+      Node icf = quantifiers::TermDb::getInstConstAttr(terms[i]);
+      if( !icf.isNull() ){
+        if( icf==q ){
+          bad_inst = true;
+        }else{
+          bad_inst = quantifiers::TermDb::containsTerms( terms[i], d_term_db->d_inst_constants[q] );
+        }      
+      }
+    }
+    //this assertion is critical to soundness
+    if( bad_inst ){
+      Trace("inst")<< "***& Bad Instantiate " << q << " with " << std::endl;
+      for( unsigned j=0; j<terms.size(); j++ ){
+        Trace("inst") << "   " << terms[j] << std::endl;
+      }
+      Assert( false );
+    }      
 #endif
   }
 
@@ -1038,7 +1004,8 @@ bool QuantifiersEngine::addInstantiation( Node q, std::vector< Node >& terms, bo
       }
     }
   }
-  //check for entailment
+  
+  //check for positive entailment
   if( options::instNoEntail() ){
     std::map< TNode, TNode > subs;
     for( unsigned i=0; i<terms.size(); i++ ){
@@ -1053,7 +1020,7 @@ bool QuantifiersEngine::addInstantiation( Node q, std::vector< Node >& terms, bo
     //Trace("ajr-temp") << "   " << eval << std::endl;
   }
 
-  //check for duplication
+  //check for term vector duplication
   bool alreadyExists = !recordInstantiationInternal( q, terms, modEq, modInst );
   if( alreadyExists ){
     Trace("inst-add-debug") << " -> Already exists." << std::endl;
@@ -1061,16 +1028,57 @@ bool QuantifiersEngine::addInstantiation( Node q, std::vector< Node >& terms, bo
     return false;
   }
 
-
-  //add the instantiation
+  //construct the instantiation
   Trace("inst-add-debug") << "Constructing instantiation..." << std::endl;
-  bool addedInst = addInstantiationInternal( q, d_term_db->d_vars[q], terms, doVts );
-  //report the result
-  if( addedInst ){
+  Assert( d_term_db->d_vars[q].size()==terms.size() );
+  Node body = getInstantiation( q, d_term_db->d_vars[q], terms, doVts );  //do virtual term substitution
+  body = quantifiers::QuantifiersRewriter::preprocess( body, true );
+  Trace("inst-debug") << "...preprocess to " << body << std::endl;
+
+  //construct the lemma  
+  Trace("inst-assert") << "(assert " << body << ")" << std::endl;
+  body = Rewriter::rewrite(body);
+  Node lem = NodeManager::currentNM()->mkNode( kind::OR, q.negate(), body );
+  lem = Rewriter::rewrite(lem);
+
+  //check for lemma duplication
+  if( addLemma( lem, true, false ) ){
+    d_total_inst_debug[q]++;
+    d_temp_inst_debug[q]++;
+    d_total_inst_count_debug++;
+    if( Trace.isOn("inst") ){
+      Trace("inst") << "*** Instantiate " << q << " with " << std::endl;
+      for( unsigned i=0; i<terms.size(); i++ ){
+        if( Trace.isOn("inst") ){
+          Trace("inst") << "   " << terms[i];
+          if( Trace.isOn("inst-debug") ){
+            Trace("inst-debug") << ", type=" << terms[i].getType() << ", var_type=" << q[0][i].getType();
+          }
+          Trace("inst") << std::endl;
+        }
+      }
+    }
+    if( options::instMaxLevel()!=-1 ){
+      uint64_t maxInstLevel = 0;
+      for( unsigned i=0; i<terms.size(); i++ ){
+        if( terms[i].hasAttribute(InstLevelAttribute()) ){
+          if( terms[i].getAttribute(InstLevelAttribute())>maxInstLevel ){
+            maxInstLevel = terms[i].getAttribute(InstLevelAttribute());
+          }
+        }
+      }
+      setInstantiationLevelAttr( body, q[1], maxInstLevel+1 );
+    }
+    //notify listeners
+    for( unsigned j=0; j<d_inst_notify.size(); j++ ){
+      d_inst_notify[j]->notifyInstantiation( q, lem, terms, body );
+    }
     Trace("inst-add-debug") << " -> Success." << std::endl;
+    ++(d_statistics.d_instantiations);
     return true;
   }else{
     Trace("inst-add-debug") << " -> Lemma already exists." << std::endl;
+    ++(d_statistics.d_inst_duplicate);
     return false;
   }
 }
@@ -1380,13 +1388,17 @@ bool EqualityQueryQuantifiersEngine::areEqual( Node a, Node b ){
 }
 
 bool EqualityQueryQuantifiersEngine::areDisequal( Node a, Node b ){
-  eq::EqualityEngine* ee = getEngine();
-  if( ee->hasTerm( a ) && ee->hasTerm( b ) ){
-    if( ee->areDisequal( a, b, false ) ){
-      return true;
+  if( a==b ){
+    return false;
+  }else{
+    eq::EqualityEngine* ee = getEngine();
+    if( ee->hasTerm( a ) && ee->hasTerm( b ) ){
+      if( ee->areDisequal( a, b, false ) ){
+        return true;
+      }
     }
+    return false;
   }
-  return false;
 }
 
 Node EqualityQueryQuantifiersEngine::getInternalRepresentative( Node a, Node f, int index ){

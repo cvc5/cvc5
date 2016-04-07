@@ -81,6 +81,12 @@ public:
   quantifiers::TermDb * getTermDatabase();
 };/* class QuantifiersModule */
 
+class InstantiationNotify {
+public:
+  InstantiationNotify(){}
+  virtual void notifyInstantiation( Node q, Node lem, std::vector< Node >& terms, Node body ) = 0;
+};
+
 namespace quantifiers {
   class FirstOrderModel;
   //modules
@@ -128,6 +134,8 @@ private:
   TheoryEngine* d_te;
   /** vector of modules for quantifiers */
   std::vector< QuantifiersModule* > d_modules;
+  /** instantiation notify */
+  std::vector< InstantiationNotify* > d_inst_notify;
   /** equality query class */
   EqualityQueryQuantifiersEngine* d_eq_query;
   /** for computing relevance of quantifiers */
@@ -176,6 +184,8 @@ public: //effort levels
     QEFFORT_NONE,
   };
 private:
+  /** current effort level */
+  unsigned d_curr_effort_level;
   /** list of all quantifiers seen */
   std::map< Node, bool > d_quants;
   /** quantifiers reduced */
@@ -303,8 +313,6 @@ private:
   bool reduceQuantifier( Node q );
   /** compute term vector */
   void computeTermVector( Node f, InstMatch& m, std::vector< Node >& vars, std::vector< Node >& terms );
-  /** instantiate f with arguments terms */
-  bool addInstantiationInternal( Node f, std::vector< Node >& vars, std::vector< Node >& terms, bool doVts = false );
   /** record instantiation, return true if it was non-duplicate */
   bool recordInstantiationInternal( Node q, std::vector< Node >& terms, bool modEq = false, bool modInst = false );
   /** set instantiation level attr */
@@ -321,7 +329,7 @@ public:
   /** do substitution */
   Node getSubstitute( Node n, std::vector< Node >& terms );
   /** add lemma lem */
-  bool addLemma( Node lem, bool doCache = true );
+  bool addLemma( Node lem, bool doCache = true, bool doRewrite = true );
   /** add require phase */
   void addRequirePhase( Node lit, bool req );
   /** do instantiation specified by m */

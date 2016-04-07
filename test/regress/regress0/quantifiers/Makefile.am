@@ -76,7 +76,8 @@ TESTS =	\
 	subtype-param.smt2 \
 	anti-sk-simp.smt2 \
 	pure_dt_cbqi.smt2 \
-	florian-case-ax.smt2
+	florian-case-ax.smt2 \
+	double-pattern.smt2
 
 
 # regression can be solved with --finite-model-find --fmf-inst-engine

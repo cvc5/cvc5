@@ -139,8 +139,8 @@ void InstMatchGenerator::initialize( Node q, QuantifiersEngine* qe, std::vector<
       }else{
         d_cg = new CandidateGeneratorQEAll( qe, d_match_pattern );
       }
-    }else if( d_match_pattern.getKind()==EQUAL || d_match_pattern.getKind()==IFF ){
-      Assert( d_match_pattern[0].getKind()==INST_CONSTANT && d_match_pattern[1].getKind()==INST_CONSTANT );
+    }else if( ( d_match_pattern.getKind()==EQUAL || d_match_pattern.getKind()==IFF ) && 
+              d_match_pattern[0].getKind()==INST_CONSTANT && d_match_pattern[1].getKind()==INST_CONSTANT ){
       //we will be producing candidates via literal matching heuristics
       if( d_pattern.getKind()!=NOT ){
         //candidates will be all equalities
