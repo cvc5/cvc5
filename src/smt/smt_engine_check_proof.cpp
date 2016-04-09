@@ -63,13 +63,14 @@ void SmtEngine::checkProof() {
 
   Chat() << "checking proof..." << endl;
 
-  if ( !(d_logic.isPure(theory::THEORY_BOOL) ||
+  if ( ( !(d_logic.isPure(theory::THEORY_BOOL) ||
            d_logic.isPure(theory::THEORY_BV) ||
            d_logic.isPure(theory::THEORY_ARRAY) ||
            (d_logic.isPure(theory::THEORY_UF) &&
             ! d_logic.hasCardinalityConstraints())) ||
-       d_logic.isQuantified()) {
-    // no checking for these yet
+         d_logic.isQuantified())
+       && (! (d_logic.getLogicString() == "QF_ABV" )))
+  {
     Notice() << "Notice: no proof-checking for non-UF/Bool/BV proofs yet" << endl;
     return;
   }
