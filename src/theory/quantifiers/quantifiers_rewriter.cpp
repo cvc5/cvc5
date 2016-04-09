@@ -1,13 +1,13 @@
 /*********************                                                        */
 /*! \file quantifiers_rewriter.cpp
  ** \verbatim
- ** Original author: Morgan Deters
- ** Major contributors: Andrew Reynolds
- ** Minor contributors (to current version): Tim King
+ ** Top contributors (to current version):
+ **   Andrew Reynolds, Morgan Deters, Tim King
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2014  New York University and The University of Iowa
- ** See the file COPYING in the top-level source directory for licensing
- ** information.\endverbatim
+ ** Copyright (c) 2009-2016 by the authors listed in the file AUTHORS
+ ** in the top-level source directory) and their institutional affiliations.
+ ** All rights reserved.  See the file COPYING in the top-level source
+ ** directory for licensing information.\endverbatim
  **
  ** \brief Implementation of QuantifiersRewriter class
  **/
@@ -231,6 +231,7 @@ RewriteResponse QuantifiersRewriter::postRewrite(TNode in) {
   Trace("quantifiers-rewrite-debug") << "post-rewriting " << in << std::endl;
   RewriteStatus status = REWRITE_DONE;
   Node ret = in;
+  int rew_op = -1;
   //get the body
   if( in.getKind()==EXISTS ){
     std::vector< Node > children;
@@ -243,16 +244,21 @@ RewriteResponse QuantifiersRewriter::postRewrite(TNode in) {
     ret = ret.negate();
     status = REWRITE_AGAIN_FULL;
   }else if( in.getKind()==FORALL ){
-    //compute attributes
-    QAttributes qa;
-    TermDb::computeQuantAttributes( in, qa );
-    if( !qa.isRewriteRule() ){
-      for( int op=0; op<COMPUTE_LAST; op++ ){
-        if( doOperation( in, op, qa ) ){
-          ret = computeOperation( in, op, qa );
-          if( ret!=in ){
-            status = REWRITE_AGAIN_FULL;
-            break;
+    if( in[1].isConst() ){
+      return RewriteResponse( status, in[1] );
+    }else{
+      //compute attributes
+      QAttributes qa;
+      TermDb::computeQuantAttributes( in, qa );
+      if( !qa.isRewriteRule() ){
+        for( int op=0; op<COMPUTE_LAST; op++ ){
+          if( doOperation( in, op, qa ) ){
+            ret = computeOperation( in, op, qa );
+            if( ret!=in ){
+              rew_op = op;
+              status = REWRITE_AGAIN_FULL;
+              break;
+            }
           }
         }
       }
@@ -260,7 +266,7 @@ RewriteResponse QuantifiersRewriter::postRewrite(TNode in) {
   }
   //print if changed
   if( in!=ret ){
-    Trace("quantifiers-rewrite") << "*** rewrite " << in << std::endl;
+    Trace("quantifiers-rewrite") << "*** rewrite (op=" << rew_op << ") " << in << std::endl;
     Trace("quantifiers-rewrite") << " to " << std::endl;
     Trace("quantifiers-rewrite") << ret << std::endl;
   }
@@ -1537,8 +1543,9 @@ Node QuantifiersRewriter::computeAggressiveMiniscoping( std::vector< Node >& arg
   return mkForAll( args, body, qa );
 }
 
-bool QuantifiersRewriter::doOperation( Node f, int computeOption, QAttributes& qa ){
-  bool is_std = !qa.d_sygus && !qa.d_quant_elim && !qa.isFunDef();
+bool QuantifiersRewriter::doOperation( Node q, int computeOption, QAttributes& qa ){
+  bool is_strict_trigger = qa.d_hasPattern && options::userPatternsQuant()==USER_PAT_MODE_TRUST;
+  bool is_std = !qa.d_sygus && !qa.d_quant_elim && !qa.isFunDef() && !is_strict_trigger;
   if( computeOption==COMPUTE_ELIM_SYMBOLS ){
     return true;
   }else if( computeOption==COMPUTE_MINISCOPING ){
@@ -1551,15 +1558,15 @@ bool QuantifiersRewriter::doOperation( Node f, int computeOption, QAttributes& q
     return true;
     //return options::iteLiftQuant()!=ITE_LIFT_QUANT_MODE_NONE || options::iteCondVarSplitQuant();
   }else if( computeOption==COMPUTE_COND_SPLIT ){
-    return ( options::iteDtTesterSplitQuant() || options::condVarSplitQuant() ) && is_std;
+    return ( options::iteDtTesterSplitQuant() || options::condVarSplitQuant() ) && !is_strict_trigger;
   }else if( computeOption==COMPUTE_PRENEX ){
-    return options::prenexQuant()!=PRENEX_NONE && !options::aggressiveMiniscopeQuant();
+    return options::prenexQuant()!=PRENEX_NONE && !options::aggressiveMiniscopeQuant() && is_std;
   }else if( computeOption==COMPUTE_VAR_ELIMINATION ){
     return ( options::varElimQuant() || options::dtVarExpandQuant() || options::purifyQuant() ) && is_std;
   //}else if( computeOption==COMPUTE_CNF ){
   //  return options::cnfQuant();
   }else if( computeOption==COMPUTE_PURIFY_EXPAND ){
-    return options::purifyQuant();
+    return options::purifyQuant() && is_std;
   }else{
     return false;
   }
@@ -1617,7 +1624,7 @@ Node QuantifiersRewriter::computeOperation( Node f, int computeOption, QAttribut
       std::vector< Node > children;
       children.push_back( NodeManager::currentNM()->mkNode(kind::BOUND_VAR_LIST, args ) );
       children.push_back( n );
-      if( !qa.d_ipl.isNull() ){
+      if( !qa.d_ipl.isNull() && args.size()==f[0].getNumChildren() ){
         children.push_back( qa.d_ipl );
       }
       return NodeManager::currentNM()->mkNode(kind::FORALL, children );

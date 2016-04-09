@@ -1,13 +1,13 @@
 /*********************                                                        */
 /*! \file theory_engine.h
  ** \verbatim
- ** Original author: Morgan Deters
- ** Major contributors: Andrew Reynolds, Dejan Jovanovic
- ** Minor contributors (to current version): Christopher L. Conway, Francois Bobot, Kshitij Bansal, Clark Barrett, Liana Hadarean, Tim King
+ ** Top contributors (to current version):
+ **   Morgan Deters, Dejan Jovanovic, Andrew Reynolds
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2014  New York University and The University of Iowa
- ** See the file COPYING in the top-level source directory for licensing
- ** information.\endverbatim
+ ** Copyright (c) 2009-2016 by the authors listed in the file AUTHORS
+ ** in the top-level source directory) and their institutional affiliations.
+ ** All rights reserved.  See the file COPYING in the top-level source
+ ** directory for licensing information.\endverbatim
  **
  ** \brief The theory engine
  **
@@ -297,8 +297,15 @@ class TheoryEngine {
       return d_engine->lemma(lemma, rule, false, removable, preprocess, sendAtoms ? d_theory : theory::THEORY_LAST, d_theory);
     }
 
+    /*theory::LemmaStatus preservedLemma(TNode lemma, bool removable = false, bool preprocess = false) throw(TypeCheckingExceptionPrivate, AssertionException, UnsafeInterruptException, LogicException) {
+      Trace("theory::lemma") << "EngineOutputChannel<" << d_theory << ">::preservedLemma(" << lemma << ")" << std::endl;
+      ++ d_statistics.lemmas;
+      d_engine->d_outputChannelUsed = true;
+      return d_engine->lemma(lemma, false, removable, preprocess, d_theory);
+    }*/
+
     theory::LemmaStatus splitLemma(TNode lemma, bool removable = false) throw(TypeCheckingExceptionPrivate, AssertionException, UnsafeInterruptException) {
-      Trace("theory::lemma") << "EngineOutputChannel<" << d_theory << ">::lemma(" << lemma << ")" << std::endl;
+      Trace("theory::lemma") << "EngineOutputChannel<" << d_theory << ">::splitLemma(" << lemma << ")" << std::endl;
       ++ d_statistics.lemmas;
       d_engine->d_outputChannelUsed = true;
       return d_engine->lemma(lemma, RULE_SPLIT, false, removable, false, d_theory, d_theory);

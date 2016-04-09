@@ -1,13 +1,13 @@
 /*********************                                                        */
 /*! \file quantifiers_engine.h
  ** \verbatim
- ** Original author: Morgan Deters
- ** Major contributors: Andrew Reynolds
- ** Minor contributors (to current version): Francois Bobot
+ ** Top contributors (to current version):
+ **   Andrew Reynolds, Morgan Deters, Tim King
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2014  New York University and The University of Iowa
- ** See the file COPYING in the top-level source directory for licensing
- ** information.\endverbatim
+ ** Copyright (c) 2009-2016 by the authors listed in the file AUTHORS
+ ** in the top-level source directory) and their institutional affiliations.
+ ** All rights reserved.  See the file COPYING in the top-level source
+ ** directory for licensing information.\endverbatim
  **
  ** \brief Theory instantiator, Instantiation Engine classes
  **/
@@ -44,42 +44,11 @@ namespace quantifiers {
   class TermDbSygus;
 }
 
-class QuantifiersModule {
-protected:
-  QuantifiersEngine* d_quantEngine;
+class InstantiationNotify {
 public:
-  QuantifiersModule( QuantifiersEngine* qe ) : d_quantEngine( qe ){}
-  virtual ~QuantifiersModule(){}
-  //get quantifiers engine
-  QuantifiersEngine* getQuantifiersEngine() { return d_quantEngine; }
-  /** presolve */
-  virtual void presolve() {}
-  /* whether this module needs to check this round */
-  virtual bool needsCheck( Theory::Effort e ) { return e>=Theory::EFFORT_LAST_CALL; }
-  /* whether this module needs a model built */
-  virtual unsigned needsModel( Theory::Effort e );
-  /* reset at a round */
-  virtual void reset_round( Theory::Effort e ){}
-  /* Call during quantifier engine's check */
-  virtual void check( Theory::Effort e, unsigned quant_e ) = 0;
-  /* check was complete (e.g. no lemmas implies a model) */
-  virtual bool checkComplete() { return true; }
-  /* Called for new quantified formulas */
-  virtual void preRegisterQuantifier( Node q ) { }
-  /* Called for new quantifiers after owners are finalized */
-  virtual void registerQuantifier( Node q ) = 0;
-  virtual void assertNode( Node n ) {}
-  virtual void propagate( Theory::Effort level ){}
-  virtual Node getNextDecisionRequest() { return TNode::null(); }
-  /** Identify this module (for debugging, dynamic configuration, etc..) */
-  virtual std::string identify() const = 0;
-public:
-  eq::EqualityEngine * getEqualityEngine();
-  bool areDisequal( TNode n1, TNode n2 );
-  bool areEqual( TNode n1, TNode n2 );
-  TNode getRepresentative( TNode n );
-  quantifiers::TermDb * getTermDatabase();
-};/* class QuantifiersModule */
+  InstantiationNotify(){}
+  virtual void notifyInstantiation( unsigned quant_e, Node q, Node lem, std::vector< Node >& terms, Node body ) = 0;
+};
 
 namespace quantifiers {
   class FirstOrderModel;
@@ -103,6 +72,7 @@ namespace quantifiers {
   class QuantDSplit;
   class QuantAntiSkolem;
   class EqualityInference;
+  class InstPropagator;
 }/* CVC4::theory::quantifiers */
 
 namespace inst {
@@ -126,8 +96,12 @@ class QuantifiersEngine {
 private:
   /** reference to theory engine object */
   TheoryEngine* d_te;
+  /** vector of utilities for quantifiers */
+  std::vector< QuantifiersUtil* > d_util;
   /** vector of modules for quantifiers */
   std::vector< QuantifiersModule* > d_modules;
+  /** instantiation notify */
+  std::vector< InstantiationNotify* > d_inst_notify;
   /** equality query class */
   EqualityQueryQuantifiersEngine* d_eq_query;
   /** for computing relevance of quantifiers */
@@ -166,6 +140,8 @@ private:
   quantifiers::QuantDSplit * d_qsplit;
   /** quantifiers anti-skolemization */
   quantifiers::QuantAntiSkolem * d_anti_skolem;
+  /** quantifiers instantiation propagtor */
+  quantifiers::InstPropagator * d_inst_prop;
 public: //effort levels
   enum {
     QEFFORT_CONFLICT,
@@ -176,6 +152,8 @@ public: //effort levels
     QEFFORT_NONE,
   };
 private:
+  /** current effort level */
+  unsigned d_curr_effort_level;
   /** list of all quantifiers seen */
   std::map< Node, bool > d_quants;
   /** quantifiers reduced */
@@ -271,11 +249,12 @@ public:  //modules
 private:
   /** owner of quantified formulas */
   std::map< Node, QuantifiersModule * > d_owner;
+  std::map< Node, int > d_owner_priority;
 public:
   /** get owner */
   QuantifiersModule * getOwner( Node q );
   /** set owner */
-  void setOwner( Node q, QuantifiersModule * m );
+  void setOwner( Node q, QuantifiersModule * m, int priority = 0 );
   /** considers */
   bool hasOwnership( Node q, QuantifiersModule * m = NULL );
 public:
@@ -302,8 +281,6 @@ private:
   bool reduceQuantifier( Node q );
   /** compute term vector */
   void computeTermVector( Node f, InstMatch& m, std::vector< Node >& vars, std::vector< Node >& terms );
-  /** instantiate f with arguments terms */
-  bool addInstantiationInternal( Node f, std::vector< Node >& vars, std::vector< Node >& terms, bool doVts = false );
   /** record instantiation, return true if it was non-duplicate */
   bool recordInstantiationInternal( Node q, std::vector< Node >& terms, bool modEq = false, bool modInst = false );
   /** set instantiation level attr */
@@ -320,7 +297,7 @@ public:
   /** do substitution */
   Node getSubstitute( Node n, std::vector< Node >& terms );
   /** add lemma lem */
-  bool addLemma( Node lem, bool doCache = true );
+  bool addLemma( Node lem, bool doCache = true, bool doRewrite = true );
   /** add require phase */
   void addRequirePhase( Node lit, bool req );
   /** do instantiation specified by m */
@@ -418,11 +395,15 @@ private:
   Node getInstance( Node n, const std::vector< Node >& eqc, std::hash_map<TNode, Node, TNodeHashFunction>& cache );
   /** get score */
   int getRepScore( Node n, Node f, int index, TypeNode v_tn );
+  /** flatten representatives */
+  void flattenRepresentatives( std::map< TypeNode, std::vector< Node > >& reps );
 public:
   EqualityQueryQuantifiersEngine( context::Context* c, QuantifiersEngine* qe );
   virtual ~EqualityQueryQuantifiersEngine();
   /** reset */
   bool reset( Theory::Effort e );
+  /** identify */
+  std::string identify() const { return "EqualityQueryQE"; }
   /** general queries about equality */
   bool hasTerm( Node a );
   Node getRepresentative( Node a );
@@ -430,13 +411,12 @@ public:
   bool areDisequal( Node a, Node b );
   eq::EqualityEngine* getEngine();
   void getEquivalenceClass( Node a, std::vector< Node >& eqc );
+  TNode getCongruentTerm( Node f, std::vector< TNode >& args );
   /** getInternalRepresentative gets the current best representative in the equivalence class of a, based on some criteria.
       If cbqi is active, this will return a term in the equivalence class of "a" that does
       not contain instantiation constants, if such a term exists.
    */
   Node getInternalRepresentative( Node a, Node f, int index );
-  /** flatten representatives */
-  void flattenRepresentatives( std::map< TypeNode, std::vector< Node > >& reps );
   /** get quantifiers equality inference */
   quantifiers::EqualityInference * getEqualityInference() { return d_eq_inference; }
 }; /* EqualityQueryQuantifiersEngine */

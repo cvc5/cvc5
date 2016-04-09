@@ -1,13 +1,13 @@
 /*********************                                                        */
 /*! \file smt2_printer.cpp
  ** \verbatim
- ** Original author: Morgan Deters
- ** Major contributors: none
- ** Minor contributors (to current version): Dejan Jovanovic, Tim King, Liana Hadarean, Kshitij Bansal, Tianyi Liang, Francois Bobot, Andrew Reynolds
+ ** Top contributors (to current version):
+ **   Morgan Deters, Andrew Reynolds, Martin Brain
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2014  New York University and The University of Iowa
- ** See the file COPYING in the top-level source directory for licensing
- ** information.\endverbatim
+ ** Copyright (c) 2009-2016 by the authors listed in the file AUTHORS
+ ** in the top-level source directory) and their institutional affiliations.
+ ** All rights reserved.  See the file COPYING in the top-level source
+ ** directory for licensing information.\endverbatim
  **
  ** \brief The pretty-printer interface for the SMT2 output language
  **
@@ -977,7 +977,7 @@ void Smt2Printer::toStream(std::ostream& out, const Command* c,
 
 
 static std::string quoteSymbol(TNode n) {
-#warning "check the old implementation. It seems off."
+  // #warning "check the old implementation. It seems off."
   std::stringstream ss;
   ss << language::SetLanguage(language::output::LANG_SMTLIB_V2_5);
   return CVC4::quoteSymbol(ss.str());

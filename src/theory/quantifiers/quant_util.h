@@ -1,13 +1,13 @@
 /*********************                                                        */
 /*! \file quant_util.h
  ** \verbatim
- ** Original author: Andrew Reynolds
- ** Major contributors: Morgan Deters
- ** Minor contributors (to current version): none
+ ** Top contributors (to current version):
+ **   Morgan Deters, Andrew Reynolds, Tim King
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2014  New York University and The University of Iowa
- ** See the file COPYING in the top-level source directory for licensing
- ** information.\endverbatim
+ ** Copyright (c) 2009-2016 by the authors listed in the file AUTHORS
+ ** in the top-level source directory) and their institutional affiliations.
+ ** All rights reserved.  See the file COPYING in the top-level source
+ ** directory for licensing information.\endverbatim
  **
  ** \brief quantifier util
  **/
@@ -28,6 +28,58 @@ namespace CVC4 {
 namespace theory {
 
 class QuantifiersEngine;
+
+namespace quantifiers {
+  class TermDb;
+}
+
+class QuantifiersModule {
+protected:
+  QuantifiersEngine* d_quantEngine;
+public:
+  QuantifiersModule( QuantifiersEngine* qe ) : d_quantEngine( qe ){}
+  virtual ~QuantifiersModule(){}
+  //get quantifiers engine
+  QuantifiersEngine* getQuantifiersEngine() { return d_quantEngine; }
+  /** presolve */
+  virtual void presolve() {}
+  /* whether this module needs to check this round */
+  virtual bool needsCheck( Theory::Effort e ) { return e>=Theory::EFFORT_LAST_CALL; }
+  /* whether this module needs a model built */
+  virtual unsigned needsModel( Theory::Effort e );
+  /* reset at a round */
+  virtual void reset_round( Theory::Effort e ){}
+  /* Call during quantifier engine's check */
+  virtual void check( Theory::Effort e, unsigned quant_e ) = 0;
+  /* check was complete (e.g. no lemmas implies a model) */
+  virtual bool checkComplete() { return true; }
+  /* Called for new quantified formulas */
+  virtual void preRegisterQuantifier( Node q ) { }
+  /* Called for new quantifiers after owners are finalized */
+  virtual void registerQuantifier( Node q ) = 0;
+  virtual void assertNode( Node n ) {}
+  virtual void propagate( Theory::Effort level ){}
+  virtual Node getNextDecisionRequest() { return TNode::null(); }
+  /** Identify this module (for debugging, dynamic configuration, etc..) */
+  virtual std::string identify() const = 0;
+public:
+  eq::EqualityEngine * getEqualityEngine();
+  bool areDisequal( TNode n1, TNode n2 );
+  bool areEqual( TNode n1, TNode n2 );
+  TNode getRepresentative( TNode n );
+  quantifiers::TermDb * getTermDatabase();
+};/* class QuantifiersModule */
+
+class QuantifiersUtil {
+public:
+  QuantifiersUtil(){}
+  virtual ~QuantifiersUtil(){}
+  /* reset at a round */
+  virtual bool reset( Theory::Effort e ) = 0;
+  /** Identify this module (for debugging, dynamic configuration, etc..) */
+  virtual std::string identify() const = 0;
+};
+
 
 class QuantArith
 {
@@ -97,10 +149,12 @@ public:
 };
 
 
-class EqualityQuery {
+class EqualityQuery : public QuantifiersUtil{
 public:
   EqualityQuery(){}
   virtual ~EqualityQuery(){};
+  /** extends engine */
+  virtual bool extendsEngine() { return false; }
   /** contains term */
   virtual bool hasTerm( Node a ) = 0;
   /** get the representative of the equivalence class of a */
@@ -113,6 +167,8 @@ public:
   virtual eq::EqualityEngine* getEngine() = 0;
   /** get the equivalence class of a */
   virtual void getEquivalenceClass( Node a, std::vector< Node >& eqc ) = 0;
+  /** get the term that exists in EE that is congruent to f with args (f is returned by TermDb::getMatchOperator(...) */
+  virtual TNode getCongruentTerm( Node f, std::vector< TNode >& args ) = 0;
 };/* class EqualityQuery */
 
 

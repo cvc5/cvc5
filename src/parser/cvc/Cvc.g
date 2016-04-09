@@ -1,13 +1,13 @@
 /* *******************                                                        */
 /*! \file Cvc.g
  ** \verbatim
- ** Original author: Christopher L. Conway
- ** Major contributors: Morgan Deters
- ** Minor contributors (to current version): Tim King, Dejan Jovanovic, Tianyi Liang, Andrew Reynolds
+ ** Top contributors (to current version):
+ **   Morgan Deters, Christopher L. Conway, Andrew Reynolds
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2014  New York University and The University of Iowa
- ** See the file COPYING in the top-level source directory for licensing
- ** information.\endverbatim
+ ** Copyright (c) 2009-2016 by the authors listed in the file AUTHORS
+ ** in the top-level source directory) and their institutional affiliations.
+ ** All rights reserved.  See the file COPYING in the top-level source
+ ** directory for licensing information.\endverbatim
  **
  ** \brief Parser for CVC presentation input language
  **
@@ -1983,6 +1983,11 @@ simpleTerm[CVC4::Expr& f]
       for(size_t i = 1; i < args.size(); ++i) {
         f = MK_EXPR(kind::UNION, f, MK_EXPR(kind::SINGLETON, args[i]));
       }
+    }
+
+    /* set cardinality literal */
+  | BAR BAR formula[f] { args.push_back(f); } BAR BAR
+    { f = MK_EXPR(kind::CARD, args[0]);
     }
 
     /* array literals */

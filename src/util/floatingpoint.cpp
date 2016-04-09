@@ -1,13 +1,14 @@
 /*********************                                                        */
 /*! \file floatingpoint.cpp
  ** \verbatim
- ** Original author: Martin Brain
- ** Major contributors:
- ** Minor contributors (to current version):
- ** This file is part of the CVC4 project.
+ ** Top contributors (to current version):
+ **   Tim King, Martin Brain
  ** Copyright (c) 2013  University of Oxford
- ** See the file COPYING in the top-level source directory for licensing
- ** information.\endverbatim
+ ** This file is part of the CVC4 project.
+ ** Copyright (c) 2009-2016 by the authors listed in the file AUTHORS
+ ** in the top-level source directory) and their institutional affiliations.
+ ** All rights reserved.  See the file COPYING in the top-level source
+ ** directory for licensing information.\endverbatim
  **
  ** \brief [[ Implementations of the utility functions for working with floating point theories. ]]
  **

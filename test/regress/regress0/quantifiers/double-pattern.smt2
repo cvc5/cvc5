@@ -1,0 +1,6 @@
+(set-logic UFLIA)
+(set-info :status unsat)
+(declare-fun P (Int) Bool)
+(assert (forall ((x Int)) (! (! (P x) :pattern ((P x))) :pattern ((P x)))))
+(assert (not (P 0)))
+(check-sat)

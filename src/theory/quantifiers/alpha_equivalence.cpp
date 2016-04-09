@@ -1,13 +1,13 @@
 /*********************                                                        */
 /*! \file alpha_equivalence.cpp
  ** \verbatim
- ** Original author: Andrew Reynolds
- ** Major contributors: none
- ** Minor contributors (to current version): none
+ ** Top contributors (to current version):
+ **   Andrew Reynolds, Tim King
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2015  New York University and The University of Iowa
- ** See the file COPYING in the top-level source directory for licensing
- ** information.\endverbatim
+ ** Copyright (c) 2009-2016 by the authors listed in the file AUTHORS
+ ** in the top-level source directory) and their institutional affiliations.
+ ** All rights reserved.  See the file COPYING in the top-level source
+ ** directory for licensing information.\endverbatim
  **
  ** \brief Alpha equivalence checking
  **
@@ -54,12 +54,17 @@ bool AlphaEquivalenceNode::registerNode( AlphaEquivalenceNode* aen, QuantifiersE
     aen->d_quant = q;
     return true;
   }else{
-    //lemma ( q <=> d_quant )
-    Trace("quant-ae") << "Alpha equivalent : " << std::endl;
-    Trace("quant-ae") << "  " << q << std::endl;
-    Trace("quant-ae") << "  " << aen->d_quant << std::endl;
-    qe->getOutputChannel().lemma( q.iffNode( aen->d_quant ) );
-    return false;
+    if( q.getNumChildren()==2 ){
+      //lemma ( q <=> d_quant )
+      Trace("quant-ae") << "Alpha equivalent : " << std::endl;
+      Trace("quant-ae") << "  " << q << std::endl;
+      Trace("quant-ae") << "  " << aen->d_quant << std::endl;
+      qe->getOutputChannel().lemma( q.iffNode( aen->d_quant ) );
+      return false;
+    }else{
+      //do not reduce annotated quantified formulas based on alpha equivalence 
+      return true;
+    }
   }
 }
 

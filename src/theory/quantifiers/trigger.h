@@ -1,13 +1,13 @@
 /*********************                                                        */
 /*! \file trigger.h
  ** \verbatim
- ** Original author: Morgan Deters
- ** Major contributors: Andrew Reynolds
- ** Minor contributors (to current version): Francois Bobot
+ ** Top contributors (to current version):
+ **   Tim King, Morgan Deters, Andrew Reynolds
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2014  New York University and The University of Iowa
- ** See the file COPYING in the top-level source directory for licensing
- ** information.\endverbatim
+ ** Copyright (c) 2009-2016 by the authors listed in the file AUTHORS
+ ** in the top-level source directory) and their institutional affiliations.
+ ** All rights reserved.  See the file COPYING in the top-level source
+ ** directory for licensing information.\endverbatim
  **
  ** \brief trigger class
  **/
@@ -21,6 +21,7 @@
 
 #include "expr/node.h"
 #include "theory/quantifiers/inst_match.h"
+#include "options/quantifiers_options.h"
 
 // Forward declarations for defining the Trigger and TriggerTrie.
 namespace CVC4 {
@@ -40,6 +41,16 @@ class InstMatchGenerator;
 namespace CVC4 {
 namespace theory {
 namespace inst {
+
+class TriggerTermInfo {
+public:
+  TriggerTermInfo() : d_reqPol(0){}
+  ~TriggerTermInfo(){}
+  std::vector< Node > d_fv;
+  int d_reqPol;
+  Node d_reqPolEq;
+  void init( Node q, Node n, int reqPol = 0, Node reqPolEq = Node::null() );
+};
 
 /** A collect of nodes representing a trigger. */
 class Trigger {
@@ -86,26 +97,20 @@ class Trigger {
   };
   static Trigger* mkTrigger( QuantifiersEngine* qe, Node f,
                              std::vector< Node >& nodes, int matchOption = 0,
-                             bool keepAll = true, int trOption = TR_MAKE_NEW,
-                             bool smartTriggers = false );
+                             bool keepAll = true, int trOption = TR_MAKE_NEW );
   static Trigger* mkTrigger( QuantifiersEngine* qe, Node f, Node n,
                              int matchOption = 0, bool keepAll = true,
-                             int trOption = TR_MAKE_NEW,
-                             bool smartTriggers = false );
-  //different strategies for choosing trigger terms
-  enum {
-    TS_MAX_TRIGGER = 0,
-    TS_MIN_TRIGGER,
-    TS_ALL,
-  };
-  static void collectPatTerms( QuantifiersEngine* qe, Node f, Node n,
-                               std::vector< Node >& patTerms, int tstrt,
-                               std::vector< Node >& exclude, std::map< Node, int >& reqPol,
+                             int trOption = TR_MAKE_NEW );
+  static void collectPatTerms( Node q, Node n, std::vector< Node >& patTerms, quantifiers::TriggerSelMode tstrt,
+                               std::vector< Node >& exclude, std::map< Node, TriggerTermInfo >& tinfo,
                                bool filterInst = false );
   /** is usable trigger */
   static bool isUsableTrigger( Node n, Node q );
+  static Node getIsUsableTrigger( Node n, Node q );
   static bool isAtomicTrigger( Node n );
   static bool isAtomicTriggerKind( Kind k );
+  static bool isRelationalTrigger( Node n );
+  static bool isRelationalTriggerKind( Kind k );
   static bool isCbqiKind( Kind k );
   static bool isSimpleTrigger( Node n );
   static bool isBooleanTermTrigger( Node n );
@@ -118,8 +123,7 @@ class Trigger {
   static Node getInversionVariable( Node n );
   static Node getInversion( Node n, Node x );
   /** get all variables that E-matching can possibly handle */
-  static void getTriggerVariables( QuantifiersEngine* qe, Node icn, Node f,
-                                   std::vector< Node >& t_vars );
+  static void getTriggerVariables( Node icn, Node f, std::vector< Node >& t_vars );
 
   void debugPrint( const char * c ) {
     Trace(c) << "TRIGGER( ";
@@ -129,20 +133,17 @@ class Trigger {
     }
     Trace(c) << " )";
   }
-
 private:
   /** trigger constructor */
-  Trigger( QuantifiersEngine* ie, Node f, std::vector< Node >& nodes,
-           int matchOption = 0, bool smartTriggers = false );
+  Trigger( QuantifiersEngine* ie, Node f, std::vector< Node >& nodes, int matchOption = 0 );
 
   /** is subterm of trigger usable */
   static bool isUsable( Node n, Node q );
-  static Node getIsUsableTrigger( Node n, Node f, bool pol = true,
-                                  bool hasPol = false );
+  static Node getIsUsableEq( Node q, Node eq );
+  static bool isUsableEqTerms( Node q, Node n1, Node n2 );
   /** collect all APPLY_UF pattern terms for f in n */
-  static bool collectPatTerms2( Node f, Node n, std::map< Node, Node >& visited, std::map< Node, std::vector< Node > >& visited_fv, 
-                                int tstrt, std::vector< Node >& exclude, 
-                                std::map< Node, int >& reqPol, std::vector< Node >& added,
+  static bool collectPatTerms2( Node q, Node n, std::map< Node, Node >& visited, std::map< Node, TriggerTermInfo >& tinfo, 
+                                quantifiers::TriggerSelMode tstrt, std::vector< Node >& exclude, std::vector< Node >& added,
                                 bool pol, bool hasPol, bool epol, bool hasEPol );
 
   std::vector< Node > d_nodes;
@@ -177,7 +178,7 @@ private:
   inst::Trigger* getTrigger2( std::vector< Node >& nodes );
   void addTrigger2( std::vector< Node >& nodes, inst::Trigger* t );
 
-  inst::Trigger* d_tr;
+  std::vector< inst::Trigger* > d_tr;
   std::map< TNode, TriggerTrie* > d_children;
 };/* class inst::Trigger::TriggerTrie */
 

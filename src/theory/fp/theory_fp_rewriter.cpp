@@ -1,13 +1,14 @@
 /*********************                                                        */
 /*! \file theory_fp_rewriter.cpp
  ** \verbatim
- ** Original author: Martin Brain
- ** Major contributors: 
- ** Minor contributors (to current version): 
- ** This file is part of the CVC4 project.
+ ** Top contributors (to current version):
+ **   Martin Brain, Tim King, Clark Barrett
  ** Copyright (c) 2013  University of Oxford
- ** See the file COPYING in the top-level source directory for licensing
- ** information.\endverbatim
+ ** This file is part of the CVC4 project.
+ ** Copyright (c) 2009-2016 by the authors listed in the file AUTHORS
+ ** in the top-level source directory) and their institutional affiliations.
+ ** All rights reserved.  See the file COPYING in the top-level source
+ ** directory for licensing information.\endverbatim
  **
  ** \brief [[ Rewrite rules for floating point theories. ]]
  **

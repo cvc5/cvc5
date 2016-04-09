@@ -1,13 +1,13 @@
 /*********************                                                        */
 /*! \file options_handler.cpp
  ** \verbatim
- ** Original author: Tim King
- ** Major contributors: none
- ** Minor contributors (to current version): none
+ ** Top contributors (to current version):
+ **   Tim King, Andrew Reynolds
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2014  New York University and The University of Iowa
- ** See the file COPYING in the top-level source directory for licensing
- ** information.\endverbatim
+ ** Copyright (c) 2009-2016 by the authors listed in the file AUTHORS
+ ** in the top-level source directory) and their institutional affiliations.
+ ** All rights reserved.  See the file COPYING in the top-level source
+ ** directory for licensing information.\endverbatim
  **
  ** \brief Interface for custom handlers and predicates options.
  **
@@ -347,14 +347,20 @@ interleave \n\
 const std::string OptionsHandler::s_triggerSelModeHelp = "\
 Trigger selection modes currently supported by the --trigger-sel option:\n\
 \n\
-default \n\
-+ Default, consider all subterms of quantified formulas for trigger selection.\n\
-\n\
-min \n\
+min | default \n\
 + Consider only minimal subterms that meet criteria for triggers.\n\
 \n\
 max \n\
 + Consider only maximal subterms that meet criteria for triggers. \n\
+\n\
+all \n\
++ Consider all subterms that meet criteria for triggers. \n\
+\n\
+min-s-max \n\
++ Consider only minimal subterms that meet criteria for single triggers, maximal otherwise. \n\
+\n\
+min-s-all \n\
++ Consider only minimal subterms that meet criteria for single triggers, all otherwise. \n\
 \n\
 ";
 const std::string OptionsHandler::s_prenexQuantModeHelp = "\
@@ -608,6 +614,10 @@ theory::quantifiers::TriggerSelMode OptionsHandler::stringToTriggerSelMode(std::
     return theory::quantifiers::TRIGGER_SEL_MIN;
   } else if(optarg == "max") {
     return theory::quantifiers::TRIGGER_SEL_MAX;
+  } else if(optarg == "min-s-max") {
+    return theory::quantifiers::TRIGGER_SEL_MIN_SINGLE_MAX;
+  } else if(optarg == "min-s-all") {
+    return theory::quantifiers::TRIGGER_SEL_MIN_SINGLE_ALL;
   } else if(optarg == "all") {
     return theory::quantifiers::TRIGGER_SEL_ALL;
   } else if(optarg ==  "help") {

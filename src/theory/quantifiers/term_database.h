@@ -1,13 +1,13 @@
 /*********************                                                        */
 /*! \file term_database.h
  ** \verbatim
- ** Original author: Andrew Reynolds
- ** Major contributors: Morgan Deters
- ** Minor contributors (to current version): Tim King
+ ** Top contributors (to current version):
+ **   Andrew Reynolds, Morgan Deters, Tim King
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2014  New York University and The University of Iowa
- ** See the file COPYING in the top-level source directory for licensing
- ** information.\endverbatim
+ ** Copyright (c) 2009-2016 by the authors listed in the file AUTHORS
+ ** in the top-level source directory) and their institutional affiliations.
+ ** All rights reserved.  See the file COPYING in the top-level source
+ ** directory for licensing information.\endverbatim
  **
  ** \brief term database class
  **/
@@ -20,6 +20,7 @@
 #include "expr/attribute.h"
 #include "theory/theory.h"
 #include "theory/type_enumerator.h"
+#include "theory/quantifiers/quant_util.h"
 
 #include <map>
 
@@ -138,9 +139,10 @@ public:
 
 class QAttributes{
 public:
-  QAttributes() : d_conjecture(false), d_axiom(false), d_sygus(false),
+  QAttributes() : d_hasPattern(false), d_conjecture(false), d_axiom(false), d_sygus(false),
                   d_synthesis(false), d_rr_priority(-1), d_qinstLevel(-1), d_quant_elim(false), d_quant_elim_partial(false){}
   ~QAttributes(){}
+  bool d_hasPattern;
   Node d_rr;
   bool d_conjecture;
   bool d_axiom;
@@ -162,7 +164,7 @@ namespace fmcheck {
 
 class TermDbSygus;
 
-class TermDb {
+class TermDb : public QuantifiersUtil {
   friend class ::CVC4::theory::QuantifiersEngine;
   friend class ::CVC4::theory::inst::Trigger;
   friend class ::CVC4::theory::quantifiers::fmcheck::FullModelChecker;
@@ -181,9 +183,9 @@ private:
   /** set has term */
   void setHasTerm( Node n );
   /** evaluate term */
-  TNode evaluateTerm2( TNode n, std::map< TNode, TNode >& subs, bool subsRep, bool hasSubs );
-  Node evaluateTerm2( TNode n, std::map< TNode, TNode >& subs, bool subsRep, bool hasSubs, std::map< TNode, Node >& visited );
-  bool isEntailed( TNode n, std::map< TNode, TNode >& subs, bool subsRep, bool hasSubs, bool pol );
+  Node evaluateTerm2( TNode n, std::map< TNode, Node >& visited, EqualityQuery * qy );
+  TNode getEntailedTerm2( TNode n, std::map< TNode, TNode >& subs, bool subsRep, bool hasSubs, EqualityQuery * qy );
+  bool isEntailed2( TNode n, std::map< TNode, TNode >& subs, bool subsRep, bool hasSubs, bool pol, EqualityQuery * qy );
 public:
   TermDb( context::Context* c, context::UserContext* u, QuantifiersEngine* qe );
   ~TermDb(){}
@@ -222,13 +224,16 @@ public:
   void presolve();
   /** reset (calculate which terms are active) */
   bool reset( Theory::Effort effort );
+  /** identify */
+  std::string identify() const { return "TermDb"; }
   /** get match operator */
   Node getMatchOperator( Node n );
   /** get term arg index */
   TermArgTrie * getTermArgTrie( Node f );
   TermArgTrie * getTermArgTrie( Node eqc, Node f );
   /** exists term */
-  TNode existsTerm( Node f, Node n );
+  TNode getCongruentTerm( Node f, Node n );
+  TNode getCongruentTerm( Node f, std::vector< TNode >& args );
   /** compute arg reps */
   void computeArgReps( TNode n );
   /** compute uf eqc terms */
@@ -236,11 +241,13 @@ public:
   /** evaluate a term under a substitution.  Return representative in EE if possible.
    * subsRep is whether subs contains only representatives
    */
-  Node evaluateTerm( TNode n, std::map< TNode, TNode >& subs, bool subsRep, bool mkNewTerms = false );
-  /** same as above, but without substitution */
-  Node evaluateTerm( TNode n, bool mkNewTerms = false );
+  Node evaluateTerm( TNode n, EqualityQuery * qy = NULL );
+  /** get entailed term, does not construct new terms, less aggressive */
+  TNode getEntailedTerm( TNode n, EqualityQuery * qy = NULL );
+  TNode getEntailedTerm( TNode n, std::map< TNode, TNode >& subs, bool subsRep, EqualityQuery * qy = NULL );
   /** is entailed (incomplete check) */
-  bool isEntailed( TNode n, std::map< TNode, TNode >& subs, bool subsRep, bool pol );
+  bool isEntailed( TNode n, bool pol, EqualityQuery * qy = NULL );
+  bool isEntailed( TNode n, std::map< TNode, TNode >& subs, bool subsRep, bool pol, EqualityQuery * qy = NULL );
   /** has term */
   bool hasTermCurrent( Node n, bool useMode = true );
   /** is term eligble for instantiation? */

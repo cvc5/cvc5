@@ -1,13 +1,13 @@
 /*********************                                                        */
 /*! \file quant_conflict_find.cpp
  ** \verbatim
- ** Original author: Andrew Reynolds
- ** Major contributors: none
- ** Minor contributors (to current version): none
+ ** Top contributors (to current version):
+ **   Clark Barrett, Tim King, Andrew Reynolds
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2014  New York University and The University of Iowa
- ** See the file COPYING in the top-level source directory for licensing
- ** information.\endverbatim
+ ** Copyright (c) 2009-2016 by the authors listed in the file AUTHORS
+ ** in the top-level source directory) and their institutional affiliations.
+ ** All rights reserved.  See the file COPYING in the top-level source
+ ** directory for licensing information.\endverbatim
  **
  ** \brief quant conflict find class
  **
@@ -1061,16 +1061,27 @@ void MatchGen::reset_round( QuantConflictFind * p ) {
     d_qni_gterm_rep[it->first] = p->getRepresentative( it->second );
   }
   if( d_type==typ_ground ){
-    int e = p->evaluate( d_n );
-    if( e==1 ){
-      d_ground_eval[0] = p->d_true;
-    }else if( e==-1 ){
-      d_ground_eval[0] = p->d_false;
+    //int e = p->evaluate( d_n );
+    //if( e==1 ){
+    //  d_ground_eval[0] = p->d_true;
+    //}else if( e==-1 ){
+    //  d_ground_eval[0] = p->d_false;
+    //}
+    //modified 
+    for( unsigned i=0; i<2; i++ ){ 
+      if( p->getTermDatabase()->isEntailed( d_n, i==0 ) ){
+        d_ground_eval[0] = i==0 ? p->d_true : p->d_false;
+      }
     }
   }else if( d_type==typ_eq ){
     for( unsigned i=0; i<d_n.getNumChildren(); i++ ){
       if( !d_n[i].hasBoundVar() ){
-        d_ground_eval[i] = p->evaluateTerm( d_n[i] );
+        TNode t = p->getTermDatabase()->getEntailedTerm( d_n[i] );
+        if( t.isNull() ){
+          d_ground_eval[i] = d_n[i];
+        }else{
+          d_ground_eval[i] = t;
+        }
       }
     }
   }
@@ -1103,8 +1114,12 @@ void MatchGen::reset( QuantConflictFind * p, bool tgt, QuantInfo * qi ) {
     int vn = qi->getCurrentRepVar( qi->getVarNum( n ) );
     if( vn==-1 ){
       //evaluate the value, see if it is compatible
-      int e = p->evaluate( n );
-      if( ( e==1 && d_tgt ) || ( e==0 && !d_tgt ) ){
+      //int e = p->evaluate( n );
+      //if( ( e==1 && d_tgt ) || ( e==0 && !d_tgt ) ){
+      //  d_child_counter = 0;
+      //}
+      //modified 
+      if( p->getTermDatabase()->isEntailed( n, d_tgt ) ){ 
         d_child_counter = 0;
       }
     }else{
@@ -1787,84 +1802,6 @@ void QuantConflictFind::registerQuantifier( Node q ) {
   }
 }
 
-int QuantConflictFind::evaluate( Node n, bool pref, bool hasPref ) {
-  int ret = 0;
-  if( n.getKind()==EQUAL ){
-    Node n1 = evaluateTerm( n[0] );
-    Node n2 = evaluateTerm( n[1] );
-    Debug("qcf-eval") << "Evaluate : Normalize " << n << " to " << n1 << " = " << n2 << std::endl;
-    if( areEqual( n1, n2 ) ){
-      ret = 1;
-    }else if( areDisequal( n1, n2 ) ){
-      ret = -1;
-    }
-    //else if( d_effort>QuantConflictFind::effort_conflict ){
-    //  ret = -1;
-    //}
-  }else if( MatchGen::isHandledUfTerm( n ) ){  //predicate
-    Node nn = evaluateTerm( n );
-    Debug("qcf-eval") << "Evaluate : Normalize " << nn << " to " << n << std::endl;
-    if( areEqual( nn, d_true ) ){
-      ret = 1;
-    }else if( areEqual( nn, d_false ) ){
-      ret = -1;
-    }
-    //else if( d_effort>QuantConflictFind::effort_conflict ){
-    //  ret = -1;
-    //}
-  }else if( n.getKind()==NOT ){
-    return -evaluate( n[0] );
-  }else if( n.getKind()==ITE ){
-    int cev1 = evaluate( n[0] );
-    int cevc[2] = { 0, 0 };
-    for( unsigned i=0; i<2; i++ ){
-      if( ( i==0 && cev1!=-1 ) || ( i==1 && cev1!=1 ) ){
-        cevc[i] = evaluate( n[i+1] );
-        if( cev1!=0 ){
-          ret = cevc[i];
-          break;
-        }else if( cevc[i]==0 ){
-          break;
-        }
-      }
-    }
-    if( ret==0 && cevc[0]!=0 && cevc[0]==cevc[1] ){
-      ret = cevc[0];
-    }
-  }else if( n.getKind()==IFF ){
-    int cev1 = evaluate( n[0] );
-    if( cev1!=0 ){
-      int cev2 = evaluate( n[1] );
-      if( cev2!=0 ){
-        ret = cev1==cev2 ? 1 : -1;
-      }
-    }
-
-  }else{
-    int ssval = 0;
-    if( n.getKind()==OR ){
-      ssval = 1;
-    }else if( n.getKind()==AND ){
-      ssval = -1;
-    }
-    bool isUnk = false;
-    for( unsigned i=0; i<n.getNumChildren(); i++ ){
-      int cev = evaluate( n[i] );
-      if( cev==ssval ){
-        ret = ssval;
-        break;
-      }else if( cev==0 ){
-        isUnk = true;
-      }
-    }
-    if( ret==0 && !isUnk ){
-      ret = -ssval;
-    }
-  }
-  Debug("qcf-eval") << "Evaluate " << n << " to " << ret << std::endl;
-  return ret;
-}
-
 short QuantConflictFind::getMaxQcfEffort() {
   if( options::qcfMode()==QCF_CONFLICT_ONLY ){
     return effort_conflict;
@@ -1906,38 +1843,6 @@ void QuantConflictFind::assertNode( Node q ) {
     //  it->first->d_active.set( true );
     //}
   }
-}
-
-Node QuantConflictFind::evaluateTerm( Node n ) {
-  if( MatchGen::isHandledUfTerm( n ) ){
-    Node f = MatchGen::getMatchOperator( this, n );
-    Node nn;
-    if( getEqualityEngine()->hasTerm( n ) ){
-      nn = getTermDatabase()->existsTerm( f, n );
-    }else{
-      std::vector< TNode > args;
-      for( unsigned i=0; i<n.getNumChildren(); i++ ){
-        Node c = evaluateTerm( n[i] );
-        args.push_back( c );
-      }
-      nn = getTermDatabase()->d_func_map_trie[f].existsTerm( args );
-    }
-    if( !nn.isNull() ){
-      Debug("qcf-eval") << "GT: Term " << nn << " for " << n << " hasTerm = " << getEqualityEngine()->hasTerm( n )  << std::endl;
-      return getRepresentative( nn );
-    }else{
-      Debug("qcf-eval") << "GT: No term for " << n << " hasTerm = " << getEqualityEngine()->hasTerm( n )  << std::endl;
-      return n;
-    }
-  }else if( n.getKind()==ITE ){
-    int v = evaluate( n[0], false, false );
-    if( v==1 ){
-      return evaluateTerm( n[1] );
-    }else if( v==-1 ){
-      return evaluateTerm( n[2] );
-    }
-  }
-  return getRepresentative( n );
 }
 
 /** new node */
@@ -2055,13 +1960,12 @@ void QuantConflictFind::check( Theory::Effort level, unsigned quant_e ) {
                   std::vector< Node > terms;
                   qi->getMatch( terms );
                   if( !qi->isTConstraintSpurious( this, terms ) ){
+                    //for debugging
                     if( Debug.isOn("qcf-check-inst") ){
-                      //if( e==effort_conflict ){
                       Node inst = d_quantEngine->getInstantiation( q, terms );
                       Debug("qcf-check-inst") << "Check instantiation " << inst << "..." << std::endl;
-                      Assert( evaluate( inst )!=1 );
-                      Assert( evaluate( inst )==-1 || e>effort_conflict );
-                      //}
+                      Assert( !getTermDatabase()->isEntailed( inst, true ) );
+                      Assert( getTermDatabase()->isEntailed( inst, false ) || e>effort_conflict );
                     }
                     if( d_quantEngine->addInstantiation( q, terms, false ) ){
                       Trace("qcf-check") << "   ... Added instantiation" << std::endl;

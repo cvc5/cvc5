@@ -1,13 +1,13 @@
 /*********************                                                        */
 /*! \file instantiation_engine.cpp
  ** \verbatim
- ** Original author: Morgan Deters
- ** Major contributors: Andrew Reynolds
- ** Minor contributors (to current version): Tim King
+ ** Top contributors (to current version):
+ **   Andrew Reynolds, Morgan Deters, Tim King
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2014  New York University and The University of Iowa
- ** See the file COPYING in the top-level source directory for licensing
- ** information.\endverbatim
+ ** Copyright (c) 2009-2016 by the authors listed in the file AUTHORS
+ ** in the top-level source directory) and their institutional affiliations.
+ ** All rights reserved.  See the file COPYING in the top-level source
+ ** directory for licensing information.\endverbatim
  **
  ** \brief Implementation of instantiation engine class
  **/
@@ -163,6 +163,22 @@ bool InstantiationEngine::checkComplete() {
 
 bool InstantiationEngine::isIncomplete( Node q ) {
   return true;
+}
+
+void InstantiationEngine::preRegisterQuantifier( Node q ) {
+  if( options::strictTriggers() && q.getNumChildren()==3 ){
+    //if strict triggers, take ownership of this quantified formula
+    bool hasPat = false;
+    for( unsigned i=0; i<q[2].getNumChildren(); i++ ){
+      if( q[2][i].getKind()==INST_PATTERN || q[2][i].getKind()==INST_NO_PATTERN  ){
+        hasPat = true;
+        break;
+      }
+    }
+    if( hasPat ){
+      d_quantEngine->setOwner( q, this, 1 );
+    }
+  }
 }
 
 void InstantiationEngine::registerQuantifier( Node f ){

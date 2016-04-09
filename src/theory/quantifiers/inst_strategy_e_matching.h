@@ -1,13 +1,13 @@
 /*********************                                                        */
 /*! \file inst_strategy_e_matching.h
  ** \verbatim
- ** Original author: Andrew Reynolds
- ** Major contributors: Morgan Deters
- ** Minor contributors (to current version): none
+ ** Top contributors (to current version):
+ **   Morgan Deters, Andrew Reynolds, Tim King
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2014  New York University and The University of Iowa
- ** See the file COPYING in the top-level source directory for licensing
- ** information.\endverbatim
+ ** Copyright (c) 2009-2016 by the authors listed in the file AUTHORS
+ ** in the top-level source directory) and their institutional affiliations.
+ ** All rights reserved.  See the file COPYING in the top-level source
+ ** directory for licensing information.\endverbatim
  **
  ** \brief E matching instantiation strategies
  **/
@@ -23,6 +23,7 @@
 #include "theory/quantifiers/trigger.h"
 #include "theory/quantifiers_engine.h"
 #include "util/statistics_registry.h"
+#include "options/quantifiers_options.h"
 
 namespace CVC4 {
 namespace theory {
@@ -64,7 +65,7 @@ public:
   };
 private:
   /** trigger generation strategy */
-  int d_tr_strategy;
+  TriggerSelMode d_tr_strategy;
   /** regeneration */
   bool d_regenerate;
   int d_regenerate_frequency;
@@ -88,6 +89,7 @@ private:
   int process( Node q, Theory::Effort effort, int e );
   /** generate triggers */
   void generateTriggers( Node q );
+  void addPatternToPool( Node q, Node pat, unsigned num_fv );
   //bool addTrigger( inst::Trigger * tr, Node f, unsigned r );
   /** has user patterns */
   bool hasUserPatterns( Node q );

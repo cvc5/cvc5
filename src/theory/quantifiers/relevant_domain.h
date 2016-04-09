@@ -1,13 +1,13 @@
 /*********************                                                        */
 /*! \file relevant_domain.h
  ** \verbatim
- ** Original author: Andrew Reynolds
- ** Major contributors: Morgan Deters
- ** Minor contributors (to current version): none
+ ** Top contributors (to current version):
+ **   Morgan Deters, Andrew Reynolds, Tim King
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2014  New York University and The University of Iowa
- ** See the file COPYING in the top-level source directory for licensing
- ** information.\endverbatim
+ ** Copyright (c) 2009-2016 by the authors listed in the file AUTHORS
+ ** in the top-level source directory) and their institutional affiliations.
+ ** All rights reserved.  See the file COPYING in the top-level source
+ ** directory for licensing information.\endverbatim
  **
  ** \brief relevant domain class
  **/
@@ -23,7 +23,7 @@ namespace CVC4 {
 namespace theory {
 namespace quantifiers {
 
-class RelevantDomain
+class RelevantDomain : public QuantifiersUtil
 {
 private:
   class RDomain
@@ -62,7 +62,10 @@ private:
 public:
   RelevantDomain( QuantifiersEngine* qe, FirstOrderModel* m );
   virtual ~RelevantDomain(){}
-  void reset();
+  /* reset */
+  bool reset( Theory::Effort e );
+  /** identify */
+  std::string identify() const { return "RelevantDomain"; }
   //compute the relevant domain
   void compute();
 
