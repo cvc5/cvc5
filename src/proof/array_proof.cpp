@@ -23,10 +23,6 @@
 
 namespace CVC4 {
 
-unsigned ProofArray::s_reasonRow;
-unsigned ProofArray::s_reasonRow1;
-unsigned ProofArray::s_reasonExt;
-
 inline static Node eqNode(TNode n1, TNode n2) {
   return NodeManager::currentNM()->mkNode(n1.getType().isBoolean() ? kind::IFF : kind::EQUAL, n1, n2);
 }
@@ -84,15 +80,15 @@ inline static bool match(TNode n1, TNode n2) {
 }
 
 void ProofArray::setRowMergeTag(unsigned tag) {
-  s_reasonRow = tag;
+  d_reasonRow = tag;
 }
 
 void ProofArray::setRow1MergeTag(unsigned tag) {
-  s_reasonRow1 = tag;
+  d_reasonRow1 = tag;
 }
 
 void ProofArray::setExtMergeTag(unsigned tag) {
-  s_reasonExt = tag;
+  d_reasonExt = tag;
 }
 
 void ProofArray::toStream(std::ostream& out) {
@@ -247,7 +243,7 @@ Node ProofArray::toStreamRecLFSC(std::ostream& out,
     if (n2[0].getNumChildren() > 0) { Debug("mgdx") << "\nn2[0]: " << n2[0][0] << std::endl; }
     if (n1.getNumChildren() > 1) { Debug("mgdx") << "n1[1]: " << n1[1] << std::endl; }
 
-    if (pf->d_children[neg]->d_id == s_reasonExt) {
+    if (pf->d_children[neg]->d_id == d_reasonExt) {
       // The negative node was created by an EXT rule; e.g. it is a[k]!=b[k], due to a!=b.
 
       //      	    (clausify_false (contra _ .gl2 (or_elim_1 _ _ .gl1 FIXME))))))) (\ .glemc6
@@ -824,7 +820,7 @@ Node ProofArray::toStreamRecLFSC(std::ostream& out,
     return n1;
   }
 
-  else if (pf->d_id == s_reasonRow) {
+  else if (pf->d_id == d_reasonRow) {
     Debug("mgd") << "row lemma: " << pf->d_node << std::endl;
     Assert(pf->d_node.getKind() == kind::EQUAL);
 
@@ -970,7 +966,7 @@ Node ProofArray::toStreamRecLFSC(std::ostream& out,
     }
   }
 
-  else if (pf->d_id == s_reasonRow1) {
+  else if (pf->d_id == d_reasonRow1) {
     Debug("mgd") << "row1 lemma: " << pf->d_node << std::endl;
     Assert(pf->d_node.getKind() == kind::EQUAL);
     TNode t1, t2, t3;
@@ -1005,7 +1001,7 @@ Node ProofArray::toStreamRecLFSC(std::ostream& out,
     return ret;
   }
 
-  else if (pf->d_id == s_reasonExt) {
+  else if (pf->d_id == d_reasonExt) {
     theory::eq::EqProof *child_proof;
 
     Assert(pf->d_node.getKind() == kind::NOT);
