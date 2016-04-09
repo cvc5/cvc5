@@ -23,7 +23,7 @@ namespace CVC4 {
 namespace theory {
 namespace quantifiers {
 
-class RelevantDomain
+class RelevantDomain : public QuantifiersUtil
 {
 private:
   class RDomain
@@ -62,7 +62,10 @@ private:
 public:
   RelevantDomain( QuantifiersEngine* qe, FirstOrderModel* m );
   virtual ~RelevantDomain(){}
-  void reset();
+  /* reset */
+  bool reset( Theory::Effort e );
+  /** identify */
+  std::string identify() const { return "RelevantDomain"; }
   //compute the relevant domain
   void compute();
 

@@ -164,7 +164,7 @@ namespace fmcheck {
 
 class TermDbSygus;
 
-class TermDb {
+class TermDb : public QuantifiersUtil {
   friend class ::CVC4::theory::QuantifiersEngine;
   friend class ::CVC4::theory::inst::Trigger;
   friend class ::CVC4::theory::quantifiers::fmcheck::FullModelChecker;
@@ -183,9 +183,9 @@ private:
   /** set has term */
   void setHasTerm( Node n );
   /** evaluate term */
-  TNode evaluateTerm2( TNode n, std::map< TNode, TNode >& subs, bool subsRep, bool hasSubs, EqualityQuery * qy );
-  Node evaluateTerm2( TNode n, std::map< TNode, TNode >& subs, bool subsRep, bool hasSubs, std::map< TNode, Node >& visited, EqualityQuery * qy );
-  bool isEntailed( TNode n, std::map< TNode, TNode >& subs, bool subsRep, bool hasSubs, bool pol, EqualityQuery * qy );
+  Node evaluateTerm2( TNode n, std::map< TNode, Node >& visited, EqualityQuery * qy );
+  TNode getEntailedTerm2( TNode n, std::map< TNode, TNode >& subs, bool subsRep, bool hasSubs, EqualityQuery * qy );
+  bool isEntailed2( TNode n, std::map< TNode, TNode >& subs, bool subsRep, bool hasSubs, bool pol, EqualityQuery * qy );
 public:
   TermDb( context::Context* c, context::UserContext* u, QuantifiersEngine* qe );
   ~TermDb(){}
@@ -224,13 +224,16 @@ public:
   void presolve();
   /** reset (calculate which terms are active) */
   bool reset( Theory::Effort effort );
+  /** identify */
+  std::string identify() const { return "TermDb"; }
   /** get match operator */
   Node getMatchOperator( Node n );
   /** get term arg index */
   TermArgTrie * getTermArgTrie( Node f );
   TermArgTrie * getTermArgTrie( Node eqc, Node f );
   /** exists term */
-  TNode existsTerm( Node f, Node n );
+  TNode getCongruentTerm( Node f, Node n );
+  TNode getCongruentTerm( Node f, std::vector< TNode >& args );
   /** compute arg reps */
   void computeArgReps( TNode n );
   /** compute uf eqc terms */
@@ -238,10 +241,12 @@ public:
   /** evaluate a term under a substitution.  Return representative in EE if possible.
    * subsRep is whether subs contains only representatives
    */
-  Node evaluateTerm( TNode n, std::map< TNode, TNode >& subs, bool subsRep, bool mkNewTerms = false, EqualityQuery * qy = NULL );
-  /** same as above, but without substitution */
-  Node evaluateTerm( TNode n, bool mkNewTerms = false, EqualityQuery * qy = NULL );
+  Node evaluateTerm( TNode n, EqualityQuery * qy = NULL );
+  /** get entailed term, does not construct new terms, less aggressive */
+  TNode getEntailedTerm( TNode n, EqualityQuery * qy = NULL );
+  TNode getEntailedTerm( TNode n, std::map< TNode, TNode >& subs, bool subsRep, EqualityQuery * qy = NULL );
   /** is entailed (incomplete check) */
+  bool isEntailed( TNode n, bool pol, EqualityQuery * qy = NULL );
   bool isEntailed( TNode n, std::map< TNode, TNode >& subs, bool subsRep, bool pol, EqualityQuery * qy = NULL );
   /** has term */
   bool hasTermCurrent( Node n, bool useMode = true );

@@ -23,6 +23,38 @@ using namespace CVC4::kind;
 using namespace CVC4::context;
 using namespace CVC4::theory;
 
+
+unsigned QuantifiersModule::needsModel( Theory::Effort e ) {
+  return QuantifiersEngine::QEFFORT_NONE;
+}
+
+eq::EqualityEngine * QuantifiersModule::getEqualityEngine() {
+  return d_quantEngine->getMasterEqualityEngine();
+}
+
+bool QuantifiersModule::areEqual( TNode n1, TNode n2 ) {
+  eq::EqualityEngine * ee = getEqualityEngine();
+  return n1==n2 || ( ee->hasTerm( n1 ) && ee->hasTerm( n2 ) && ee->areEqual( n1, n2 ) );
+}
+
+bool QuantifiersModule::areDisequal( TNode n1, TNode n2 ) {
+  eq::EqualityEngine * ee = getEqualityEngine();
+  return n1!=n2 && ee->hasTerm( n1 ) && ee->hasTerm( n2 ) && ee->areDisequal( n1, n2, false );
+}
+
+TNode QuantifiersModule::getRepresentative( TNode n ) {
+  eq::EqualityEngine * ee = getEqualityEngine();
+  if( ee->hasTerm( n ) ){
+    return ee->getRepresentative( n );
+  }else{
+    return n;
+  }
+}
+
+quantifiers::TermDb * QuantifiersModule::getTermDatabase() {
+  return d_quantEngine->getTermDatabase();
+}
+
 bool QuantArith::getMonomial( Node n, Node& c, Node& v ){
   if( n.getKind()==MULT && n.getNumChildren()==2 && n[0].isConst() ){
     c = n[0];

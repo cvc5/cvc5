@@ -192,9 +192,6 @@ public:  //for ground terms
   Node d_false;
   TNode getZero( Kind k );
 private:
-  Node evaluateTerm( Node n );
-  int evaluate( Node n, bool pref = false, bool hasPref = false );
-private:
   //currently asserted quantifiers
   NodeList d_qassert;
   std::map< Node, QuantInfo > d_qinfo;

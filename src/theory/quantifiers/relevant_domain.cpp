@@ -82,8 +82,9 @@ RelevantDomain::RDomain * RelevantDomain::getRDomain( Node n, int i, bool getPar
   return getParent ? d_rel_doms[n][i]->getParent() : d_rel_doms[n][i];
 }
 
-void RelevantDomain::reset(){
+bool RelevantDomain::reset( Theory::Effort e ) {
   d_is_computed = false;
+  return true;
 }
 
 void RelevantDomain::compute(){

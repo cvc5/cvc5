@@ -1273,7 +1273,7 @@ bool ConjectureGenerator::notifySubstitution( TNode glhs, std::map< TNode, TNode
   }
   Trace("sg-cconj-debug") << "Evaluate RHS : : " << rhs << std::endl;
   //get the representative of rhs with substitution subs
-  TNode grhs = getTermDatabase()->evaluateTerm( rhs, subs, true );
+  TNode grhs = getTermDatabase()->getEntailedTerm( rhs, subs, true );
   Trace("sg-cconj-debug") << "...done evaluating term, got : " << grhs << std::endl;
   if( !grhs.isNull() ){
     if( glhs!=grhs ){

@@ -42,6 +42,7 @@
 #include "theory/quantifiers/quant_split.h"
 #include "theory/quantifiers/anti_skolem.h"
 #include "theory/quantifiers/equality_infer.h"
+#include "theory/quantifiers/inst_propagator.h"
 #include "theory/theory_engine.h"
 #include "theory/uf/equality_engine.h"
 #include "theory/uf/theory_uf.h"
@@ -53,37 +54,6 @@ using namespace CVC4::kind;
 using namespace CVC4::context;
 using namespace CVC4::theory;
 using namespace CVC4::theory::inst;
-
-unsigned QuantifiersModule::needsModel( Theory::Effort e ) {
-  return QuantifiersEngine::QEFFORT_NONE;
-}
-
-eq::EqualityEngine * QuantifiersModule::getEqualityEngine() {
-  return d_quantEngine->getMasterEqualityEngine();
-}
-
-bool QuantifiersModule::areEqual( TNode n1, TNode n2 ) {
-  eq::EqualityEngine * ee = getEqualityEngine();
-  return n1==n2 || ( ee->hasTerm( n1 ) && ee->hasTerm( n2 ) && ee->areEqual( n1, n2 ) );
-}
-
-bool QuantifiersModule::areDisequal( TNode n1, TNode n2 ) {
-  eq::EqualityEngine * ee = getEqualityEngine();
-  return n1!=n2 && ee->hasTerm( n1 ) && ee->hasTerm( n2 ) && ee->areDisequal( n1, n2, false );
-}
-
-TNode QuantifiersModule::getRepresentative( TNode n ) {
-  eq::EqualityEngine * ee = getEqualityEngine();
-  if( ee->hasTerm( n ) ){
-    return ee->getRepresentative( n );
-  }else{
-    return n;
-  }
-}
-
-quantifiers::TermDb * QuantifiersModule::getTermDatabase() {
-  return d_quantEngine->getTermDatabase();
-}
 
 QuantifiersEngine::QuantifiersEngine(context::Context* c, context::UserContext* u, TheoryEngine* te):
     d_te( te ),
@@ -98,8 +68,21 @@ QuantifiersEngine::QuantifiersEngine(context::Context* c, context::UserContext* 
     d_presolve_cache(u),
     d_presolve_cache_wq(u),
     d_presolve_cache_wic(u){
+  //utilities
   d_eq_query = new EqualityQueryQuantifiersEngine( c, this );
+  d_util.push_back( d_eq_query );
+  
   d_term_db = new quantifiers::TermDb( c, u, this );
+  d_util.push_back( d_term_db );
+  
+  if( options::instPropagate() ){
+    d_inst_prop = new quantifiers::InstPropagator( this );
+    d_util.push_back( d_inst_prop );
+    d_inst_notify.push_back( d_inst_prop->getInstantiationNotify() );
+  }else{
+    d_inst_prop = NULL;
+  }
+
   d_tr_trie = new inst::TriggerTrie;
   d_hasAddedLemma = false;
   //don't add true lemma
@@ -183,6 +166,7 @@ QuantifiersEngine::~QuantifiersEngine(){
   delete d_i_cbqi;
   delete d_qsplit;
   delete d_anti_skolem;
+  delete d_inst_prop;
 }
 
 EqualityQueryQuantifiersEngine* QuantifiersEngine::getEqualityQuery() {
@@ -288,6 +272,7 @@ void QuantifiersEngine::finishInit(){
 
   if( needsRelDom ){
     d_rel_dom = new quantifiers::RelevantDomain( this, d_model );
+    d_util.push_back( d_rel_dom );
   }
 
   if( needsBuilder ){
@@ -389,6 +374,12 @@ void QuantifiersEngine::check( Theory::Effort e ){
 
   Trace("quant-engine-debug2") << "Quantifiers Engine call to check, level = " << e << ", needsCheck=" << needsCheck << std::endl;
   if( needsCheck ){
+    //flush previous lemmas (for instance, if was interupted), or other lemmas to process
+    flushLemmas();
+    if( d_hasAddedLemma ){
+      return;
+    }
+    
     if( Trace.isOn("quant-engine-debug") ){
       Trace("quant-engine-debug") << "Quantifiers Engine check, level = " << e << std::endl;
       Trace("quant-engine-debug") << "  depth : " << d_ierCounter_c << std::endl;
@@ -405,44 +396,38 @@ void QuantifiersEngine::check( Theory::Effort e ){
       Trace("quant-engine-debug") << "  Needs model effort : " << needsModelE << std::endl;
       Trace("quant-engine-debug") << "Resetting all modules..." << std::endl;
     }
-
-    //reset relevant information
-
-    //flush previous lemmas (for instance, if was interupted), or other lemmas to process
-    flushLemmas();
-    if( d_hasAddedLemma ){
-      return;
-    }
-
     if( Trace.isOn("quant-engine-ee-pre") ){
       Trace("quant-engine-ee-pre") << "Equality engine (pre-inference): " << std::endl;
       debugPrintEqualityEngine( "quant-engine-ee-pre" );
     }
-    Trace("quant-engine-debug2") << "Reset equality engine..." << std::endl;
-    if( !d_eq_query->reset( e ) ){
-      flushLemmas();
-      return;
-    }
-    
     if( Trace.isOn("quant-engine-assert") ){
       Trace("quant-engine-assert") << "Assertions : " << std::endl;
       getTheoryEngine()->printAssertions("quant-engine-assert");
     }
+    
+    //reset utilities
+    for( unsigned i=0; i<d_util.size(); i++ ){
+      Trace("quant-engine-debug2") << "Reset " << d_util[i]->identify().c_str() << "..." << std::endl;
+      if( !d_util[i]->reset( e ) ){
+        flushLemmas();
+        if( d_hasAddedLemma ){
+          return;
+        }else{
+          //should only fail reset if added a lemma
+          Assert( false );
+        }
+      }
+    }
+
     if( Trace.isOn("quant-engine-ee") ){
       Trace("quant-engine-ee") << "Equality engine : " << std::endl;
       debugPrintEqualityEngine( "quant-engine-ee" );
     }
-    
-    Trace("quant-engine-debug2") << "Reset term database..." << std::endl;
-    if( !d_term_db->reset( e ) ){
-      flushLemmas();
-      return;
-    }
-    if( d_rel_dom ){
-      d_rel_dom->reset();
-    }
+
+    //reset the model
     d_model->reset_round();
     
+    //reset the modules
     for( unsigned i=0; i<d_modules.size(); i++ ){
       Trace("quant-engine-debug2") << "Reset " << d_modules[i]->identify().c_str() << std::endl;
       d_modules[i]->reset_round( e );
@@ -1007,6 +992,7 @@ bool QuantifiersEngine::addInstantiation( Node q, std::vector< Node >& terms, bo
   
   //check for positive entailment
   if( options::instNoEntail() ){
+    //TODO: check consistency of equality engine (if not aborting on utility's reset)
     std::map< TNode, TNode > subs;
     for( unsigned i=0; i<terms.size(); i++ ){
       subs[q[0][i]] = terms[i];
@@ -1069,9 +1055,11 @@ bool QuantifiersEngine::addInstantiation( Node q, std::vector< Node >& terms, bo
       }
       setInstantiationLevelAttr( body, q[1], maxInstLevel+1 );
     }
-    //notify listeners
-    for( unsigned j=0; j<d_inst_notify.size(); j++ ){
-      d_inst_notify[j]->notifyInstantiation( q, lem, terms, body );
+    if( d_curr_effort_level>QEFFORT_CONFLICT ){
+      //notify listeners
+      for( unsigned j=0; j<d_inst_notify.size(); j++ ){
+        d_inst_notify[j]->notifyInstantiation( d_curr_effort_level, q, lem, terms, body );
+      }
     }
     Trace("inst-add-debug") << " -> Success." << std::endl;
     ++(d_statistics.d_instantiations);
@@ -1569,6 +1557,10 @@ void EqualityQueryQuantifiersEngine::getEquivalenceClass( Node a, std::vector< N
   }
   //a should be in its equivalence class
   Assert( std::find( eqc.begin(), eqc.end(), a )!=eqc.end() );
+}
+
+TNode EqualityQueryQuantifiersEngine::getCongruentTerm( Node f, std::vector< TNode >& args ) {
+  return d_qe->getTermDatabase()->getCongruentTerm( f, args );
 }
 
 //helper functions

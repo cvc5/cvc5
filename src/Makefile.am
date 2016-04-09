@@ -364,6 +364,8 @@ libcvc4_la_SOURCES = \
 	theory/quantifiers/anti_skolem.cpp \
 	theory/quantifiers/equality_infer.h \
 	theory/quantifiers/equality_infer.cpp \
+	theory/quantifiers/inst_propagator.h \
+	theory/quantifiers/inst_propagator.cpp \
 	theory/arith/theory_arith_type_rules.h \
 	theory/arith/type_enumerator.h \
 	theory/arith/arithvar.h \
