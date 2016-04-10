@@ -47,7 +47,7 @@ namespace quantifiers {
 class InstantiationNotify {
 public:
   InstantiationNotify(){}
-  virtual void notifyInstantiation( unsigned quant_e, Node q, Node lem, std::vector< Node >& terms, Node body ) = 0;
+  virtual bool notifyInstantiation( unsigned quant_e, Node q, Node lem, std::vector< Node >& terms, Node body ) = 0;
 };
 
 namespace quantifiers {
@@ -151,9 +151,14 @@ public: //effort levels
     //none
     QEFFORT_NONE,
   };
-private:
+private:  //this information is reset during check
   /** current effort level */
   unsigned d_curr_effort_level;
+  /** are we in conflict */
+  bool d_conflict;
+  /** has added lemma this round */
+  bool d_hasAddedLemma;
+private:
   /** list of all quantifiers seen */
   std::map< Node, bool > d_quants;
   /** quantifiers reduced */
@@ -165,8 +170,6 @@ private:
   std::vector< Node > d_lemmas_waiting;
   /** phase requirements waiting */
   std::map< Node, bool > d_phase_req_waiting;
-  /** has added lemma this round */
-  bool d_hasAddedLemma;
   /** list of all instantiations produced for each quantifier */
   std::map< Node, inst::InstMatchTrie > d_inst_match_trie;
   std::map< Node, inst::CDInstMatchTrie* > d_c_inst_match_trie;
@@ -282,7 +285,9 @@ private:
   /** compute term vector */
   void computeTermVector( Node f, InstMatch& m, std::vector< Node >& vars, std::vector< Node >& terms );
   /** record instantiation, return true if it was non-duplicate */
-  bool recordInstantiationInternal( Node q, std::vector< Node >& terms, bool modEq = false, bool modInst = false );
+  bool recordInstantiationInternal( Node q, std::vector< Node >& terms, bool modEq = false, bool modInst = false, bool addedLem = true );
+  /** remove instantiation */
+  bool removeInstantiationInternal( Node q, std::vector< Node >& terms );
   /** set instantiation level attr */
   static void setInstantiationLevelAttr( Node n, Node qn, uint64_t level );
   /** flush lemmas */
@@ -298,18 +303,24 @@ public:
   Node getSubstitute( Node n, std::vector< Node >& terms );
   /** add lemma lem */
   bool addLemma( Node lem, bool doCache = true, bool doRewrite = true );
+  /** remove pending lemma */
+  bool removeLemma( Node lem );
   /** add require phase */
   void addRequirePhase( Node lit, bool req );
   /** do instantiation specified by m */
   bool addInstantiation( Node q, InstMatch& m, bool mkRep = true, bool modEq = false, bool modInst = false, bool doVts = false );
   /** add instantiation */
   bool addInstantiation( Node q, std::vector< Node >& terms, bool mkRep = true, bool modEq = false, bool modInst = false, bool doVts = false );
+  /** remove pending instantiation */
+  bool removeInstantiation( Node q, Node lem, std::vector< Node >& terms );
   /** split on node n */
   bool addSplit( Node n, bool reqPhase = false, bool reqPhasePol = true );
   /** add split equality */
   bool addSplitEquality( Node n1, Node n2, bool reqPhase = false, bool reqPhasePol = true );
   /** has added lemma */
   bool hasAddedLemma() { return !d_lemmas_waiting.empty() || d_hasAddedLemma; }
+  /** is in conflict */
+  bool inConflict() { return d_conflict; }
   /** get number of waiting lemmas */
   unsigned getNumLemmasWaiting() { return d_lemmas_waiting.size(); }
   /** get needs check */
@@ -328,7 +339,7 @@ public:
   /** get trigger database */
   inst::TriggerTrie* getTriggerDatabase() { return d_tr_trie; }
   /** add term to database */
-  void addTermToDatabase( Node n, bool withinQuant = false, bool withinInstClosure = false );  
+  void addTermToDatabase( Node n, bool withinQuant = false, bool withinInstClosure = false );
   /** notification when master equality engine is updated */
   void eqNotifyNewClass(TNode t);
   void eqNotifyPreMerge(TNode t1, TNode t2);

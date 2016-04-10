@@ -122,7 +122,7 @@ class CegqiOutputInstStrategy : public CegqiOutput {
 public:
   CegqiOutputInstStrategy( InstStrategyCegqi * out ) : d_out( out ){}
   InstStrategyCegqi * d_out;
-  bool addInstantiation( std::vector< Node >& subs );
+  bool doAddInstantiation( std::vector< Node >& subs );
   bool isEligibleForInstantiation( Node n );
   bool addLemma( Node lem );
 };
@@ -143,7 +143,7 @@ public:
   InstStrategyCegqi( QuantifiersEngine * qe );
   ~InstStrategyCegqi() throw();
 
-  bool addInstantiation( std::vector< Node >& subs );
+  bool doAddInstantiation( std::vector< Node >& subs );
   bool isEligibleForInstantiation( Node n );
   bool addLemma( Node lem );
   /** identify */

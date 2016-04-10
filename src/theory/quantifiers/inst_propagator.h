@@ -74,23 +74,24 @@ private:
   /** disequality list, stores explanations */
   std::map< Node, std::map< Node, Node > > d_diseq_list;
   /** add arg */
-  void addArgument( std::vector< TNode >& args, std::vector< TNode >& props, Node n, bool is_prop, bool pol );
+  void addArgument( std::vector< Node >& args, std::vector< Node >& props, Node n, bool is_prop, bool pol );
 public:
   enum {
+    STATUS_CONFLICT,
     STATUS_MERGED_KNOWN,
     STATUS_MERGED_UNKNOWN,
     STATUS_NONE,
   };
   /** set equal */
-  int setEqual( Node& a, Node& b, std::vector< Node >& reason );
+  int setEqual( Node& a, Node& b, bool pol, std::vector< Node >& reason );
   Node d_true;
   Node d_false;
 public:
   //for explanations
   static void merge_exp( std::vector< Node >& v, std::vector< Node >& v_to_merge, int up_to_size = -1 );
 
-  Node evaluateTermExp( TNode n, std::vector< Node >& exp, std::map< TNode, Node >& visited, bool hasPol, bool pol,
-                        std::map< Node, bool >& watch_list_out, std::vector< TNode >& props );
+  Node evaluateTermExp( Node n, std::vector< Node >& exp, std::map< Node, Node >& visited, bool hasPol, bool pol,
+                        std::map< Node, bool >& watch_list_out, std::vector< Node >& props );
   static bool isLiteral( Node n );
 };
 
@@ -103,11 +104,13 @@ private:
     InstPropagator& d_ip;
   public:
     InstantiationNotifyInstPropagator(InstPropagator& ip): d_ip(ip) {}
-    virtual void notifyInstantiation( unsigned quant_e, Node q, Node lem, std::vector< Node >& terms, Node body ) { d_ip.notifyInstantiation( quant_e, q, lem, terms, body ); }
+    virtual bool notifyInstantiation( unsigned quant_e, Node q, Node lem, std::vector< Node >& terms, Node body ) { 
+      return d_ip.notifyInstantiation( quant_e, q, lem, terms, body ); 
+    }
   };
   InstantiationNotifyInstPropagator d_notify;
   /** notify instantiation method */
-  void notifyInstantiation( unsigned quant_e, Node q, Node lem, std::vector< Node >& terms, Node body );
+  bool notifyInstantiation( unsigned quant_e, Node q, Node lem, std::vector< Node >& terms, Node body );
   /** equality query */
   EqualityQueryInstProp d_qy;
   class InstInfo {
@@ -125,7 +128,7 @@ private:
   /** instantiation count/info */
   unsigned d_icount;
   std::map< unsigned, InstInfo > d_ii;
-  std::map< TNode, unsigned > d_conc_to_id[2];
+  std::map< Node, unsigned > d_conc_to_id[2];
   /** are we in conflict */
   bool d_conflict;
   /** watch list */

@@ -155,20 +155,6 @@ bool InstMatchTrie::addInstMatch( QuantifiersEngine* qe, Node f, std::vector< No
         return ret;
       }
     }
-    /*
-    //check if m is an instance of another instantiation if modInst is true
-    if( modInst ){
-      if( !n.isNull() ){
-        Node nl;
-        std::map< Node, InstMatchTrie >::iterator itm = d_data.find( nl );
-        if( itm!=d_data.end() ){
-          if( !itm->second.addInstMatch( qe, f, m, modEq, modInst, imtio, true, index+1 ) ){
-            return false;
-          }
-        }
-      }
-    }
-    */
     if( modEq ){
       //check modulo equality if any other instantiation match exists
       if( !n.isNull() && qe->getEqualityQuery()->getEngine()->hasTerm( n ) ){
@@ -192,6 +178,24 @@ bool InstMatchTrie::addInstMatch( QuantifiersEngine* qe, Node f, std::vector< No
       d_data[n].addInstMatch( qe, f, m, modEq, modInst, imtio, false, index+1 );
     }
     return true;
+  }
+}
+
+bool InstMatchTrie::removeInstMatch( QuantifiersEngine* qe, Node q, std::vector< Node >& m, ImtIndexOrder* imtio, int index ) {
+  Assert( index<(int)q[0].getNumChildren() );
+  Assert( !imtio || index<(int)imtio->d_order.size() );
+  int i_index = imtio ? imtio->d_order[index] : index;
+  Node n = m[i_index];
+  std::map< Node, InstMatchTrie >::iterator it = d_data.find( n );
+  if( it!=d_data.end() ){
+    if( (index+1)==(int)q[0].getNumChildren() || ( imtio && (index+1)==(int)imtio->d_order.size() ) ){
+      d_data.erase( n );
+      return true;
+    }else{
+      return it->second.removeInstMatch( qe, q, m, imtio, index+1 );
+    }
+  }else{
+    return false;
   }
 }
 
@@ -257,20 +261,6 @@ bool CDInstMatchTrie::addInstMatch( QuantifiersEngine* qe, Node f, std::vector< 
         return reset || ret;
       }
     }
-    //check if m is an instance of another instantiation if modInst is true
-    /*
-    if( modInst ){
-      if( !n.isNull() ){
-        Node nl;
-        std::map< Node, CDInstMatchTrie* >::iterator itm = d_data.find( nl );
-        if( itm!=d_data.end() ){
-          if( !itm->second->addInstMatch( qe, f, m, c, modEq, modInst, index+1, true ) ){
-            return false;
-          }
-        }
-      }
-    }
-    */
     if( modEq ){
       //check modulo equality if any other instantiation match exists
       if( !n.isNull() && qe->getEqualityQuery()->getEngine()->hasTerm( n ) ){
@@ -299,6 +289,25 @@ bool CDInstMatchTrie::addInstMatch( QuantifiersEngine* qe, Node f, std::vector< 
       imt->addInstMatch( qe, f, m, c, modEq, modInst, index+1, false );
     }
     return true;
+  }
+}
+
+bool CDInstMatchTrie::removeInstMatch( QuantifiersEngine* qe, Node q, std::vector< Node >& m, int index ) {
+  if( index==(int)q[0].getNumChildren() ){
+    if( d_valid.get() ){
+      d_valid.set( false );
+      return true;
+    }else{
+      return false;
+    }
+  }else{
+    Node n = m[index];
+    std::map< Node, CDInstMatchTrie* >::iterator it = d_data.find( n );
+    if( it!=d_data.end() ){
+      return it->second->removeInstMatch( qe, q, m, index+1 );
+    }else{
+      return false;
+    }
   }
 }
 

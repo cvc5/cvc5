@@ -57,6 +57,8 @@ using namespace CVC4::theory::inst;
 
 QuantifiersEngine::QuantifiersEngine(context::Context* c, context::UserContext* u, TheoryEngine* te):
     d_te( te ),
+    //d_quants(u),
+    //d_quants_red(u),
     d_lemmas_produced_c(u),
     d_skolemized(u),
     d_ierCounter_c(c),
@@ -71,10 +73,10 @@ QuantifiersEngine::QuantifiersEngine(context::Context* c, context::UserContext* 
   //utilities
   d_eq_query = new EqualityQueryQuantifiersEngine( c, this );
   d_util.push_back( d_eq_query );
-  
+
   d_term_db = new quantifiers::TermDb( c, u, this );
   d_util.push_back( d_term_db );
-  
+
   if( options::instPropagate() ){
     d_inst_prop = new quantifiers::InstPropagator( this );
     d_util.push_back( d_inst_prop );
@@ -84,6 +86,8 @@ QuantifiersEngine::QuantifiersEngine(context::Context* c, context::UserContext* 
   }
 
   d_tr_trie = new inst::TriggerTrie;
+  d_curr_effort_level = QEFFORT_NONE;
+  d_conflict = false;
   d_hasAddedLemma = false;
   //don't add true lemma
   d_lemmas_produced_c[d_term_db->d_true] = true;
@@ -125,7 +129,6 @@ QuantifiersEngine::QuantifiersEngine(context::Context* c, context::UserContext* 
   d_rel_dom = NULL;
   d_builder = NULL;
 
-  d_curr_effort_level = QEFFORT_NONE;
   d_total_inst_count_debug = 0;
   //allow theory combination to go first, once initially
   d_ierCounter = options::instWhenTcFirst() ? 0 : 1;
@@ -243,7 +246,7 @@ void QuantifiersEngine::finishInit(){
     d_lte_part_inst = new quantifiers::LtePartialInst( this, c );
     d_modules.push_back( d_lte_part_inst );
   }
-  if( ( options::finiteModelFind() && options::quantDynamicSplit()!=quantifiers::QUANT_DSPLIT_MODE_NONE ) || 
+  if( ( options::finiteModelFind() && options::quantDynamicSplit()!=quantifiers::QUANT_DSPLIT_MODE_NONE ) ||
       options::quantDynamicSplit()==quantifiers::QUANT_DSPLIT_MODE_AGG ){
     d_qsplit = new quantifiers::QuantDSplit( this, c );
     d_modules.push_back( d_qsplit );
@@ -361,6 +364,7 @@ void QuantifiersEngine::check( Theory::Effort e ){
     }
   }
 
+  d_conflict = false;
   d_hasAddedLemma = false;
   bool setIncomplete = false;
   if( e==Theory::EFFORT_LAST_CALL ){
@@ -379,7 +383,7 @@ void QuantifiersEngine::check( Theory::Effort e ){
     if( d_hasAddedLemma ){
       return;
     }
-    
+
     if( Trace.isOn("quant-engine-debug") ){
       Trace("quant-engine-debug") << "Quantifiers Engine check, level = " << e << std::endl;
       Trace("quant-engine-debug") << "  depth : " << d_ierCounter_c << std::endl;
@@ -404,7 +408,7 @@ void QuantifiersEngine::check( Theory::Effort e ){
       Trace("quant-engine-assert") << "Assertions : " << std::endl;
       getTheoryEngine()->printAssertions("quant-engine-assert");
     }
-    
+
     //reset utilities
     for( unsigned i=0; i<d_util.size(); i++ ){
       Trace("quant-engine-debug2") << "Reset " << d_util[i]->identify().c_str() << "..." << std::endl;
@@ -426,7 +430,7 @@ void QuantifiersEngine::check( Theory::Effort e ){
 
     //reset the model
     d_model->reset_round();
-    
+
     //reset the modules
     for( unsigned i=0; i<d_modules.size(); i++ ){
       Trace("quant-engine-debug2") << "Reset " << d_modules[i]->identify().c_str() << std::endl;
@@ -437,6 +441,7 @@ void QuantifiersEngine::check( Theory::Effort e ){
     flushLemmas();
     if( d_hasAddedLemma ){
       return;
+
     }
 
     if( e==Theory::EFFORT_LAST_CALL ){
@@ -468,6 +473,10 @@ void QuantifiersEngine::check( Theory::Effort e ){
         for( unsigned i=0; i<qm.size(); i++ ){
           Trace("quant-engine-debug") << "Check " << qm[i]->identify().c_str() << " at effort " << quant_e << "..." << std::endl;
           qm[i]->check( e, quant_e );
+          if( d_conflict ){
+            Trace("quant-engine-debug") << "...conflict!" << std::endl;
+            break;
+          }
         }
       }
       //flush all current lemmas
@@ -476,6 +485,7 @@ void QuantifiersEngine::check( Theory::Effort e ){
       if( d_hasAddedLemma ){
         break;
       }else{
+        Assert( !d_conflict );
         if( quant_e==QEFFORT_CONFLICT ){
           if( e==Theory::EFFORT_FULL ){
             //increment if a last call happened, we are not strictly enforcing interleaving, or already were in phase
@@ -573,7 +583,7 @@ bool QuantifiersEngine::reduceQuantifier( Node q ) {
     d_quants_red[q] = false;
     return false;
   }else{
-    return it->second;
+    return (*it).second;
   }
 }
 
@@ -619,7 +629,7 @@ bool QuantifiersEngine::registerQuantifier( Node f ){
       return true;
     }
   }else{
-    return it->second;
+    return (*it).second;
   }
 }
 
@@ -745,7 +755,11 @@ void QuantifiersEngine::computeTermVector( Node f, InstMatch& m, std::vector< No
 }
 
 
-bool QuantifiersEngine::recordInstantiationInternal( Node q, std::vector< Node >& terms, bool modEq, bool modInst ) {
+bool QuantifiersEngine::recordInstantiationInternal( Node q, std::vector< Node >& terms, bool modEq, bool modInst, bool addedLem ) {
+  if( !addedLem ){
+    //record the instantiation for deletion later
+    //TODO
+  }
   if( options::incrementalSolving() ){
     Trace("inst-add-debug") << "Adding into context-dependent inst trie, modEq = " << modEq << ", modInst = " << modInst << std::endl;
     inst::CDInstMatchTrie* imt;
@@ -760,6 +774,19 @@ bool QuantifiersEngine::recordInstantiationInternal( Node q, std::vector< Node >
   }else{
     Trace("inst-add-debug") << "Adding into inst trie" << std::endl;
     return d_inst_match_trie[q].addInstMatch( this, q, terms, modEq, modInst );
+  }
+}
+
+bool QuantifiersEngine::removeInstantiationInternal( Node q, std::vector< Node >& terms ) {
+  if( options::incrementalSolving() ){
+    std::map< Node, inst::CDInstMatchTrie* >::iterator it = d_c_inst_match_trie.find( q );
+    if( it!=d_c_inst_match_trie.end() ){
+      return it->second->removeInstMatch( this, q, terms );
+    }else{
+      return false;
+    }
+  }else{
+    return d_inst_match_trie[q].removeInstMatch( this, q, terms );
   }
 }
 
@@ -903,7 +930,8 @@ bool QuantifiersEngine::addLemma( Node lem, bool doCache, bool doRewrite ){
       lem = Rewriter::rewrite(lem);
     }
     Trace("inst-add-debug") << "Adding lemma : " << lem << std::endl;
-    if( d_lemmas_produced_c.find( lem )==d_lemmas_produced_c.end() ){
+    BoolMap::const_iterator itp = d_lemmas_produced_c.find( lem );
+    if( itp==d_lemmas_produced_c.end() || !(*itp).second ){
       //d_curr_out->lemma( lem, false, true );
       d_lemmas_produced_c[ lem ] = true;
       d_lemmas_waiting.push_back( lem );
@@ -920,6 +948,17 @@ bool QuantifiersEngine::addLemma( Node lem, bool doCache, bool doRewrite ){
   }
 }
 
+bool QuantifiersEngine::removeLemma( Node lem ) {
+  std::vector< Node >::iterator it = std::find( d_lemmas_waiting.begin(), d_lemmas_waiting.end(), lem );
+  if( it!=d_lemmas_waiting.end() ){
+    d_lemmas_waiting.erase( it, it + 1 );
+    d_lemmas_produced_c[ lem ] = false;
+    return true;
+  }else{
+    return false;
+  }
+}
+
 void QuantifiersEngine::addRequirePhase( Node lit, bool req ){
   d_phase_req_waiting[lit] = req;
 }
@@ -933,7 +972,7 @@ bool QuantifiersEngine::addInstantiation( Node q, InstMatch& m, bool mkRep, bool
 bool QuantifiersEngine::addInstantiation( Node q, std::vector< Node >& terms, bool mkRep, bool modEq, bool modInst, bool doVts ) {
   // For resource-limiting (also does a time check).
   getOutputChannel().safePoint(options::quantifierStep());
-
+  Assert( !d_conflict );
   Assert( terms.size()==q[0].getNumChildren() );
   Trace("inst-add-debug") << "For quantified formula " << q << ", add instantiation: " << std::endl;
   for( unsigned i=0; i<terms.size(); i++ ){
@@ -951,7 +990,7 @@ bool QuantifiersEngine::addInstantiation( Node q, std::vector< Node >& terms, bo
     }
     Trace("inst-add-debug") << " -> " << terms[i] << std::endl;
     if( terms[i].isNull() ){
-      Trace("inst-add-debug") << " -> Failed to make term vector, due to term/type restrictions." << std::endl;
+      Trace("inst-add-debug") << " --> Failed to make term vector, due to term/type restrictions." << std::endl;
       return false;
     }
 #ifdef CVC4_ASSERTIONS
@@ -967,7 +1006,7 @@ bool QuantifiersEngine::addInstantiation( Node q, std::vector< Node >& terms, bo
           bad_inst = true;
         }else{
           bad_inst = quantifiers::TermDb::containsTerms( terms[i], d_term_db->d_inst_constants[q] );
-        }      
+        }
       }
     }
     //this assertion is critical to soundness
@@ -977,7 +1016,7 @@ bool QuantifiersEngine::addInstantiation( Node q, std::vector< Node >& terms, bo
         Trace("inst") << "   " << terms[j] << std::endl;
       }
       Assert( false );
-    }      
+    }
 #endif
   }
 
@@ -989,7 +1028,7 @@ bool QuantifiersEngine::addInstantiation( Node q, std::vector< Node >& terms, bo
       }
     }
   }
-  
+
   //check for positive entailment
   if( options::instNoEntail() ){
     //TODO: check consistency of equality engine (if not aborting on utility's reset)
@@ -998,7 +1037,7 @@ bool QuantifiersEngine::addInstantiation( Node q, std::vector< Node >& terms, bo
       subs[q[0][i]] = terms[i];
     }
     if( d_term_db->isEntailed( q[1], subs, false, true ) ){
-      Trace("inst-add-debug") << " -> Currently entailed." << std::endl;
+      Trace("inst-add-debug") << " --> Currently entailed." << std::endl;
       return false;
     }
     //Node eval = d_term_db->evaluateTerm( q[1], subs, false, true );
@@ -1009,7 +1048,7 @@ bool QuantifiersEngine::addInstantiation( Node q, std::vector< Node >& terms, bo
   //check for term vector duplication
   bool alreadyExists = !recordInstantiationInternal( q, terms, modEq, modInst );
   if( alreadyExists ){
-    Trace("inst-add-debug") << " -> Already exists." << std::endl;
+    Trace("inst-add-debug") << " --> Already exists." << std::endl;
     ++(d_statistics.d_inst_duplicate_eq);
     return false;
   }
@@ -1021,7 +1060,7 @@ bool QuantifiersEngine::addInstantiation( Node q, std::vector< Node >& terms, bo
   body = quantifiers::QuantifiersRewriter::preprocess( body, true );
   Trace("inst-debug") << "...preprocess to " << body << std::endl;
 
-  //construct the lemma  
+  //construct the lemma
   Trace("inst-assert") << "(assert " << body << ")" << std::endl;
   body = Rewriter::rewrite(body);
   Node lem = NodeManager::currentNM()->mkNode( kind::OR, q.negate(), body );
@@ -1055,17 +1094,21 @@ bool QuantifiersEngine::addInstantiation( Node q, std::vector< Node >& terms, bo
       }
       setInstantiationLevelAttr( body, q[1], maxInstLevel+1 );
     }
-    if( d_curr_effort_level>QEFFORT_CONFLICT ){
+    if( d_curr_effort_level>QEFFORT_CONFLICT && d_curr_effort_level<QEFFORT_NONE ){
       //notify listeners
       for( unsigned j=0; j<d_inst_notify.size(); j++ ){
-        d_inst_notify[j]->notifyInstantiation( d_curr_effort_level, q, lem, terms, body );
+        if( !d_inst_notify[j]->notifyInstantiation( d_curr_effort_level, q, lem, terms, body ) ){
+          Trace("inst-add-debug") << "...we are in conflict." << std::endl;
+          d_conflict = true;
+          Assert( !d_lemmas_waiting.empty() );
+        }
       }
     }
-    Trace("inst-add-debug") << " -> Success." << std::endl;
+    Trace("inst-add-debug") << " --> Success." << std::endl;
     ++(d_statistics.d_instantiations);
     return true;
   }else{
-    Trace("inst-add-debug") << " -> Lemma already exists." << std::endl;
+    Trace("inst-add-debug") << " --> Lemma already exists." << std::endl;
     ++(d_statistics.d_inst_duplicate);
     return false;
   }
@@ -1089,6 +1132,16 @@ bool QuantifiersEngine::addSplitEquality( Node n1, Node n2, bool reqPhase, bool 
   Node fm = NodeManager::currentNM()->mkNode( knd, n1, n2 );
   return addSplit( fm );
 }
+
+bool QuantifiersEngine::removeInstantiation( Node q, Node lem, std::vector< Node >& terms ) {
+  //lem must occur in d_waiting_lemmas
+  if( removeLemma( lem ) ){
+    return removeInstantiationInternal( q, terms );
+  }else{
+    return false;
+  }
+}
+
 
 bool QuantifiersEngine::getInstWhenNeedsCheck( Theory::Effort e ) {
   Trace("quant-engine-debug2") << "Get inst when needs check, counts=" << d_ierCounter << ", " << d_ierCounter_lc << std::endl;

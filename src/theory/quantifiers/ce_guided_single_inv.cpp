@@ -33,8 +33,8 @@ using namespace std;
 
 namespace CVC4 {
 
-bool CegqiOutputSingleInv::addInstantiation( std::vector< Node >& subs ) {
-  return d_out->addInstantiation( subs );
+bool CegqiOutputSingleInv::doAddInstantiation( std::vector< Node >& subs ) {
+  return d_out->doAddInstantiation( subs );
 }
 
 bool CegqiOutputSingleInv::isEligibleForInstantiation( Node n ) {
@@ -55,12 +55,12 @@ CegConjectureSingleInv::CegConjectureSingleInv( QuantifiersEngine * qe, CegConje
   }
   d_cosi = new CegqiOutputSingleInv( this );
   //  third and fourth arguments set to (false,false) until we have solution reconstruction for delta and infinity
-  d_cinst = new CegInstantiator( d_qe, d_cosi, false, false );   
+  d_cinst = new CegInstantiator( d_qe, d_cosi, false, false );
 
   d_sol = new CegConjectureSingleInvSol( qe );
 
   d_sip = new SingleInvocationPartition;
-  
+
   if( options::cegqiSingleInvPartial() ){
     d_ei = new CegEntailmentInfer( qe, d_sip );
   }else{
@@ -104,7 +104,7 @@ void CegConjectureSingleInv::getInitialSingleInvLemma( std::vector< Node >& lems
     if( d_cinst ){
       delete d_cinst;
     }
-    d_cinst = new CegInstantiator( d_qe, d_cosi, false, false );   
+    d_cinst = new CegInstantiator( d_qe, d_cosi, false, false );
     d_cinst->registerCounterexampleLemma( lems, d_single_inv_sk );
   }
 }
@@ -480,7 +480,7 @@ void CegConjectureSingleInv::initializeNextSiConjecture() {
   if( d_single_inv.isNull() ){
     if( d_ei->getEntailedConjecture( d_single_inv, d_single_inv_exp ) ){
       Trace("cegqi-nsi") << "NSI : got : " << d_single_inv << std::endl;
-      Trace("cegqi-nsi") << "NSI : exp : " << d_single_inv_exp << std::endl; 
+      Trace("cegqi-nsi") << "NSI : exp : " << d_single_inv_exp << std::endl;
     }else{
       Trace("cegqi-nsi") << "NSI : failed to construct next conjecture." << std::endl;
       Notice() << "Incomplete due to --cegqi-si-partial." << std::endl;
@@ -491,7 +491,7 @@ void CegConjectureSingleInv::initializeNextSiConjecture() {
     Trace("cegqi-nsi") << "NSI : have : " << d_single_inv << std::endl;
     Assert( d_single_inv_exp.isNull() );
   }
-  
+
   d_si_guard = Node::null();
   d_ns_guard = Rewriter::rewrite( NodeManager::currentNM()->mkSkolem( "GS", NodeManager::currentNM()->booleanType() ) );
   d_ns_guard = d_qe->getValuation().ensureLiteral( d_ns_guard );
@@ -508,7 +508,7 @@ void CegConjectureSingleInv::initializeNextSiConjecture() {
   Trace("cegqi-nsi") << "NSI : conjecture is " << d_single_inv << std::endl;
 }
 
-bool CegConjectureSingleInv::addInstantiation( std::vector< Node >& subs ){
+bool CegConjectureSingleInv::doAddInstantiation( std::vector< Node >& subs ){
   std::stringstream siss;
   if( Trace.isOn("cegqi-si-inst-debug") || Trace.isOn("cegqi-engine") ){
     siss << "  * single invocation: " << std::endl;
@@ -843,7 +843,7 @@ bool SingleInvocationPartition::init( Node n ) {
   std::vector< TypeNode > typs;
   std::map< Node, bool > visited;
   if( inferArgTypes( n, typs, visited ) ){
-    return init( typs, n );  
+    return init( typs, n );
   }else{
     Trace("si-prt") << "Could not infer argument types." << std::endl;
     return false;

@@ -33,7 +33,7 @@ namespace quantifiers {
 class CegqiOutput {
 public:
   virtual ~CegqiOutput() {}
-  virtual bool addInstantiation( std::vector< Node >& subs ) = 0;
+  virtual bool doAddInstantiation( std::vector< Node >& subs ) = 0;
   virtual bool isEligibleForInstantiation( Node n ) = 0;
   virtual bool addLemma( Node lem ) = 0;
 };
@@ -108,16 +108,16 @@ private:
   };
   */
   // effort=0 : do not use model value, 1: use model value, 2: one must use model value
-  bool addInstantiation( SolvedForm& sf, SolvedForm& ssf, std::vector< Node >& vars,
+  bool doAddInstantiation( SolvedForm& sf, SolvedForm& ssf, std::vector< Node >& vars,
                          std::vector< int >& btyp, Node theta, unsigned i, unsigned effort,
                          std::map< Node, Node >& cons, std::vector< Node >& curr_var );
-  bool addInstantiationInc( Node n, Node pv, Node pv_coeff, int bt, SolvedForm& sf, SolvedForm& ssf, std::vector< Node >& vars,
+  bool doAddInstantiationInc( Node n, Node pv, Node pv_coeff, int bt, SolvedForm& sf, SolvedForm& ssf, std::vector< Node >& vars,
                             std::vector< int >& btyp, Node theta, unsigned i, unsigned effort,
                             std::map< Node, Node >& cons, std::vector< Node >& curr_var );
-  bool addInstantiationCoeff( SolvedForm& sf,
+  bool doAddInstantiationCoeff( SolvedForm& sf,
                               std::vector< Node >& vars, std::vector< int >& btyp,
                               unsigned j, std::map< Node, Node >& cons );
-  bool addInstantiation( std::vector< Node >& subs, std::vector< Node >& vars, std::map< Node, Node >& cons );
+  bool doAddInstantiation( std::vector< Node >& subs, std::vector< Node >& vars, std::map< Node, Node >& cons );
   Node constructInstantiation( Node n, std::map< Node, Node >& subs_map, std::map< Node, Node >& cons );
   Node applySubstitution( TypeNode tn, Node n, SolvedForm& sf, std::vector< Node >& vars, Node& pv_coeff, bool try_coeff = true ) {
     return applySubstitution( tn, n, sf.d_subs, sf.d_coeff, sf.d_has_coeff, vars, pv_coeff, try_coeff );

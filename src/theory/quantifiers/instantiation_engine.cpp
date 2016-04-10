@@ -60,7 +60,7 @@ void InstantiationEngine::presolve() {
   }
 }
 
-bool InstantiationEngine::doInstantiationRound( Theory::Effort effort ){
+void InstantiationEngine::doInstantiationRound( Theory::Effort effort ){
   unsigned lastWaiting = d_quantEngine->getNumLemmasWaiting();
   //iterate over an internal effort level e
   int e = 0;
@@ -83,8 +83,10 @@ bool InstantiationEngine::doInstantiationRound( Theory::Effort effort ){
           InstStrategy* is = d_instStrategies[j];
           Trace("inst-engine-debug") << "Do " << is->identify() << " " << e_use << std::endl;
           int quantStatus = is->process( q, effort, e_use );
-          Trace("inst-engine-debug") << " -> status is " << quantStatus << std::endl;
-          if( quantStatus==InstStrategy::STATUS_UNFINISHED ){
+          Trace("inst-engine-debug") << " -> status is " << quantStatus << ", conflict=" << d_quantEngine->inConflict() << std::endl;
+          if( d_quantEngine->inConflict() ){
+            return;
+          }else if( quantStatus==InstStrategy::STATUS_UNFINISHED ){
             finished = false;
           }
         }
@@ -95,13 +97,6 @@ bool InstantiationEngine::doInstantiationRound( Theory::Effort effort ){
       finished = true;
     }
     e++;
-  }
-  //Notice() << "All instantiators finished, # added lemmas = " << (int)d_lemmas_waiting.size() << std::endl;
-  if( !d_quantEngine->hasAddedLemma() ){
-    return false;
-  }else{
-    Trace("inst-engine") << "Added lemmas = " << (int)(d_quantEngine->getNumLemmasWaiting()-lastWaiting)  << std::endl;
-    return true;
   }
 }
 
@@ -138,8 +133,18 @@ void InstantiationEngine::check( Theory::Effort e, unsigned quant_e ){
     Trace("inst-engine-debug") << "InstEngine: check: # asserted quantifiers " << d_quants.size() << "/";
     Trace("inst-engine-debug") << d_quantEngine->getModel()->getNumAssertedQuantifiers() << " " << quantActive << std::endl;
     if( quantActive ){
-      bool addedLemmas = doInstantiationRound( e );
-      Trace("inst-engine-debug") << "Add lemmas = " << addedLemmas << std::endl;
+      unsigned lastWaiting = d_quantEngine->getNumLemmasWaiting();
+      doInstantiationRound( e );
+      if( d_quantEngine->inConflict() ){
+        Assert( d_quantEngine->getNumLemmasWaiting()>lastWaiting );
+        Trace("inst-engine") << "Conflict, size = " << d_quantEngine->getNumLemmasWaiting();
+        if( lastWaiting>0 ){
+          Trace("inst-engine") << " (prev " << lastWaiting << ")";
+        }
+        Trace("inst-engine") << std::endl;
+      }else if( d_quantEngine->hasAddedLemma() ){
+        Trace("inst-engine") << "Added lemmas = " << (d_quantEngine->getNumLemmasWaiting()-lastWaiting)  << std::endl;
+      }
     }else{
       d_quants.clear();
     }

@@ -107,6 +107,7 @@ void InstStrategyCbqi::reset_round( Theory::Effort effort ) {
 
 void InstStrategyCbqi::check( Theory::Effort e, unsigned quant_e ) {
   if( quant_e==QuantifiersEngine::QEFFORT_STANDARD ){
+    Assert( !d_quantEngine->inConflict() );
     double clSet = 0;
     if( Trace.isOn("cbqi-engine") ){
       clSet = double(clock())/double(CLOCKS_PER_SEC);
@@ -118,9 +119,12 @@ void InstStrategyCbqi::check( Theory::Effort e, unsigned quant_e ) {
         Node q = d_quantEngine->getModel()->getAssertedQuantifier( i );
         if( doCbqi( q ) && d_quantEngine->getModel()->isQuantifierActive( q ) ){
           process( q, e, ee );
+          if( d_quantEngine->inConflict() ){
+            break;
+          }
         }
       }
-      if( d_quantEngine->getNumLemmasWaiting()>lastWaiting ){
+      if( d_quantEngine->inConflict() || d_quantEngine->getNumLemmasWaiting()>lastWaiting ){
         break;
       }
     }
@@ -567,8 +571,8 @@ Node InstStrategySimplex::getTableauxValue( ArithVar v, bool minus_delta ){
 
 //new implementation
 
-bool CegqiOutputInstStrategy::addInstantiation( std::vector< Node >& subs ) {
-  return d_out->addInstantiation( subs );
+bool CegqiOutputInstStrategy::doAddInstantiation( std::vector< Node >& subs ) {
+  return d_out->doAddInstantiation( subs );
 }
 
 bool CegqiOutputInstStrategy::isEligibleForInstantiation( Node n ) {
@@ -636,13 +640,13 @@ void InstStrategyCegqi::process( Node q, Theory::Effort effort, int e ) {
   }
 }
 
-bool InstStrategyCegqi::addInstantiation( std::vector< Node >& subs ) {
+bool InstStrategyCegqi::doAddInstantiation( std::vector< Node >& subs ) {
   Assert( !d_curr_quant.isNull() );
   //if doing partial quantifier elimination, record the instantiation and set the incomplete flag instead of sending instantiation lemma
   if( d_quantEngine->getTermDatabase()->isQAttrQuantElimPartial( d_curr_quant ) ){
     d_cbqi_set_quant_inactive = true;
     d_incomplete_check = true;
-    d_quantEngine->recordInstantiationInternal( d_curr_quant, subs, false, false );
+    d_quantEngine->recordInstantiationInternal( d_curr_quant, subs, false, false, true );
     return true;
   }else{
     //check if we need virtual term substitution (if used delta or infinity)

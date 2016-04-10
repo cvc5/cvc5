@@ -68,7 +68,7 @@ bool RewriteEngine::needsCheck( Theory::Effort e ){
 
 void RewriteEngine::check( Theory::Effort e, unsigned quant_e ) {
   if( quant_e==QuantifiersEngine::QEFFORT_STANDARD ){
-  //if( e==Theory::EFFORT_FULL ){  
+    Assert( !d_quantEngine->inConflict() );
     Trace("rewrite-engine") << "---Rewrite Engine Round, effort = " << e << "---" << std::endl;
     //if( e==Theory::EFFORT_LAST_CALL ){
     //  if( !d_quantEngine->getModel()->isModelSet() ){
@@ -95,7 +95,7 @@ void RewriteEngine::check( Theory::Effort e, unsigned quant_e ) {
     //per priority level
     int index = 0;
     bool success = true;
-    while( success && index<(int)d_priority_order.size() ) {
+    while( !d_quantEngine->inConflict() && success && index<(int)d_priority_order.size() ) {
       addedLemmas += checkRewriteRule( d_priority_order[index], e );
       index++;
       if( index<(int)d_priority_order.size() ){
@@ -104,11 +104,6 @@ void RewriteEngine::check( Theory::Effort e, unsigned quant_e ) {
     }
 
     Trace("rewrite-engine") << "Finished rewrite engine, added " << addedLemmas << " lemmas." << std::endl;
-    if (addedLemmas==0) {
-
-    }else{
-      //otherwise, the search will continue
-    }
   }
 }
 
@@ -129,7 +124,7 @@ int RewriteEngine::checkRewriteRule( Node f, Theory::Effort e ) {
         Trace("rewrite-engine-inst-debug") << "   Reset round..." << std::endl;
         qi->reset_round( qcf );
         Trace("rewrite-engine-inst-debug") << "   Get matches..." << std::endl;
-        while( qi->getNextMatch( qcf ) &&
+        while( !d_quantEngine->inConflict() && qi->getNextMatch( qcf ) &&
                ( addedLemmas==0 || !options::rrOneInstPerRound() ) ){
           Trace("rewrite-engine-inst-debug") << "   Got match to complete..." << std::endl;
           qi->debugPrintMatch( "rewrite-engine-inst-debug" );
@@ -138,7 +133,7 @@ int RewriteEngine::checkRewriteRule( Node f, Theory::Effort e ) {
             bool doContinue = false;
             bool success = true;
             int tempAddedLemmas = 0;
-            while( tempAddedLemmas==0 && success && ( addedLemmas==0 || !options::rrOneInstPerRound() ) ){
+            while( !d_quantEngine->inConflict() && tempAddedLemmas==0 && success && ( addedLemmas==0 || !options::rrOneInstPerRound() ) ){
               success = qi->completeMatch( qcf, assigned, doContinue );
               doContinue = true;
               if( success ){

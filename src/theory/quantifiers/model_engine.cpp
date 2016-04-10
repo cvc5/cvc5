@@ -62,6 +62,7 @@ void ModelEngine::reset_round( Theory::Effort e ) {
 
 void ModelEngine::check( Theory::Effort e, unsigned quant_e ){
   if( quant_e==QuantifiersEngine::QEFFORT_MODEL ){
+    Assert( !d_quantEngine->inConflict() );
     int addedLemmas = 0;
     FirstOrderModel* fm = d_quantEngine->getModel();
 
@@ -100,8 +101,6 @@ void ModelEngine::check( Theory::Effort e, unsigned quant_e ){
       //CVC4 will answer SAT or unknown
       Trace("fmf-consistent") << std::endl;
       debugPrint("fmf-consistent");
-    }else{
-      //otherwise, the search will continue
     }
   }
 }
@@ -194,33 +193,40 @@ int ModelEngine::checkModel(){
   // FMC uses two sub-effort levels
   int e_max = options::mbqiMode()==MBQI_FMC || options::mbqiMode()==MBQI_FMC_INTERVAL ? 2 : ( options::mbqiMode()==MBQI_TRUST ? 0 : 1 );
   for( int e=0; e<e_max; e++) {
-    if (d_addedLemmas==0) {
-      for( int i=0; i<fm->getNumAssertedQuantifiers(); i++ ){
-        Node f = fm->getAssertedQuantifier( i );
-        Trace("fmf-exh-inst") << "-> Exhaustive instantiate " << f << ", effort = " << e << "..." << std::endl;
-        //determine if we should check this quantifier
-        if( considerQuantifiedFormula( f ) ){
-          exhaustiveInstantiate( f, e );
-          if( Trace.isOn("model-engine-warn") ){
-            if( d_addedLemmas>10000 ){
-              Debug("fmf-exit") << std::endl;
-              debugPrint("fmf-exit");
-              exit( 0 );
-            }
+    for( int i=0; i<fm->getNumAssertedQuantifiers(); i++ ){
+      Node f = fm->getAssertedQuantifier( i );
+      Trace("fmf-exh-inst") << "-> Exhaustive instantiate " << f << ", effort = " << e << "..." << std::endl;
+      //determine if we should check this quantifier
+      if( considerQuantifiedFormula( f ) ){
+        exhaustiveInstantiate( f, e );
+        if( Trace.isOn("model-engine-warn") ){
+          if( d_addedLemmas>10000 ){
+            Debug("fmf-exit") << std::endl;
+            debugPrint("fmf-exit");
+            exit( 0 );
           }
-          if( optOneQuantPerRound() && d_addedLemmas>0 ){
-            break;
-          }
-        }else{
-          Trace("fmf-exh-inst") << "-> Inactive : " << f << std::endl;
         }
+        if( d_quantEngine->inConflict() || ( optOneQuantPerRound() && d_addedLemmas>0 ) ){
+          break;
+        }
+      }else{
+        Trace("fmf-exh-inst") << "-> Inactive : " << f << std::endl;
       }
+    }
+    if( d_addedLemmas>0 ){
+      break;
+    }else{
+      Assert( !d_quantEngine->inConflict() );
     }
   }
 
   //print debug information
-  Trace("model-engine") << "Added Lemmas = " << d_addedLemmas << " / " << d_triedLemmas << " / ";
-  Trace("model-engine") << d_totalLemmas << std::endl;
+  if( d_quantEngine->inConflict() ){
+    Trace("model-engine") << "Conflict, size = " << d_quantEngine->getNumLemmasWaiting() << std::endl;
+  }else{
+    Trace("model-engine") << "Added Lemmas = " << d_addedLemmas << " / " << d_triedLemmas << " / ";
+    Trace("model-engine") << d_totalLemmas << std::endl;
+  }
   return d_addedLemmas;
 }
 
@@ -266,11 +272,13 @@ void ModelEngine::exhaustiveInstantiate( Node f, int effort ){
     d_incomplete_check = d_incomplete_check || mb->d_incomplete_check;
     d_statistics.d_mbqi_inst_lemmas += mb->d_addedLemmas;
   }else{
-    Trace("fmf-exh-inst-debug") << "   Instantiation Constants: ";
-    for( size_t i=0; i<f[0].getNumChildren(); i++ ){
-      Trace("fmf-exh-inst-debug") << d_quantEngine->getTermDatabase()->getInstantiationConstant( f, i ) << " ";
+    if( Trace.isOn("fmf-exh-inst-debug") ){
+      Trace("fmf-exh-inst-debug") << "   Instantiation Constants: ";
+      for( size_t i=0; i<f[0].getNumChildren(); i++ ){
+        Trace("fmf-exh-inst-debug") << d_quantEngine->getTermDatabase()->getInstantiationConstant( f, i ) << " ";
+      }
+      Trace("fmf-exh-inst-debug") << std::endl;
     }
-    Trace("fmf-exh-inst-debug") << std::endl;
     //create a rep set iterator and iterate over the (relevant) domain of the quantifier
     RepSetIterator riter( d_quantEngine, &(d_quantEngine->getModel()->d_rep_set) );
     if( riter.setQuantifier( f ) ){
@@ -289,6 +297,9 @@ void ModelEngine::exhaustiveInstantiate( Node f, int effort ){
           //add as instantiation
           if( d_quantEngine->addInstantiation( f, m ) ){
             addedLemmas++;
+            if( d_quantEngine->inConflict() ){
+              break;
+            }
           }else{
             Debug("fmf-model-eval") << "* Failed Add instantiation " << m << std::endl;
           }

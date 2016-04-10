@@ -106,7 +106,9 @@ int InstStrategyUserPatterns::process( Node f, Theory::Effort effort, int e ){
           if( d_user_gen[f][i]->isMultiTrigger() ){
             d_quantEngine->d_statistics.d_multi_trigger_instantiations += numInst;
           }
-          //d_quantEngine->d_hasInstantiated[f] = true;
+          if( d_quantEngine->inConflict() ){
+            break;
+          }
         }
       }
     }
@@ -229,11 +231,13 @@ int InstStrategyAutoGenTriggers::process( Node f, Theory::Effort effort, int e )
               if( r==1 ){
                 d_quantEngine->d_statistics.d_multi_trigger_instantiations += numInst;
               }
-              //d_quantEngine->d_hasInstantiated[f] = true;
+              if( d_quantEngine->inConflict() ){
+                break;
+              }
             }
           }
         }
-        if( hasInst && options::multiTriggerPriority() ){
+        if( d_quantEngine->inConflict() || ( hasInst && options::multiTriggerPriority() ) ){
           break;
         }
       }
@@ -575,6 +579,9 @@ void FullSaturation::check( Theory::Effort e, unsigned quant_e ) {
         if( process( q, fullEffort ) ){
           //added lemma
           addedLemmas++;
+          if( d_quantEngine->inConflict() ){
+            break;
+          }
         }
       }
     }

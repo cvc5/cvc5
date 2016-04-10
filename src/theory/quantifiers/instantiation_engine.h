@@ -70,7 +70,7 @@ private:
   /** is the engine incomplete for this quantifier */
   bool isIncomplete( Node q );
   /** do instantiation round */
-  bool doInstantiationRound( Theory::Effort effort );
+  void doInstantiationRound( Theory::Effort effort );
 public:
   InstantiationEngine( QuantifiersEngine* qe );
   ~InstantiationEngine();

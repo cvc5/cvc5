@@ -155,11 +155,15 @@ void QModelBuilderIG::processBuildModel( TheoryModel* m, bool fullModel ) {
           int lems = initializeQuantifier( f, f );
           d_statistics.d_init_inst_gen_lemmas += lems;
           d_addedLemmas += lems;
+          if( d_qe->inConflict() ){
+            break;
+          }
         }
       }
       if( d_addedLemmas>0 ){
         Trace("model-engine") << "Initialize, Added Lemmas = " << d_addedLemmas << std::endl;
       }else{
+        Assert( !d_qe->inConflict() );
         //initialize model
         fm->initialize();
         //analyze the functions
@@ -202,7 +206,7 @@ void QModelBuilderIG::processBuildModel( TheoryModel* m, bool fullModel ) {
               }else{
                 d_numQuantNoSelForm++;
               }
-              if( options::fmfInstGenOneQuantPerRound() && lems>0 ){
+              if( d_qe->inConflict() || ( options::fmfInstGenOneQuantPerRound() && lems>0 ) ){
                 break;
               }
             }else if( d_quant_sat.find( f )!=d_quant_sat.end() ){
@@ -428,6 +432,9 @@ bool QModelBuilderIG::doExhaustiveInstantiation( FirstOrderModel * fm, Node f, i
           //add as instantiation
           if( d_qe->addInstantiation( f, m ) ){
             d_addedLemmas++;
+            if( d_qe->inConflict() ){
+              break;
+            }
             //if the instantiation is show to be false, and we wish to skip multiple instantiations at once
             if( eval==-1 ){
               riter.increment2( depIndex );

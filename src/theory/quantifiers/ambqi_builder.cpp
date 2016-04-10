@@ -190,7 +190,7 @@ bool AbsDef::addInstantiations( FirstOrderModelAbs * m, QuantifiersEngine * qe, 
                 success = true;
               }
             }
-          }while( !success && index<32 );
+          }while( !qe->inConflict() && !success && index<32 );
           //mark if we are incomplete
           osuccess = osuccess && success;
         }
