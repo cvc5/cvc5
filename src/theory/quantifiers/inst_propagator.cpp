@@ -156,8 +156,15 @@ bool EqualityQueryInstProp::areDisequalExp( Node a, Node b, std::vector< Node >&
   if( areDisequal( a, b ) ){
     return true;
   }else{
-    //TODO?
-    return false;
+    //Assert( getRepresentative( a )==a );
+    //Assert( getRepresentative( b )==b );
+    std::map< Node, std::vector< Node > >::iterator itd = d_diseq_list[a].find( b );
+    if( itd!=d_diseq_list[a].end() ){
+      exp.insert( exp.end(), itd->second.begin(), itd->second.end() );
+      return true;
+    }else{
+      return false;
+    }
   }
 }
 
@@ -283,9 +290,27 @@ int EqualityQueryInstProp::setEqual( Node& a, Node& b, bool pol, std::vector< No
       Trace("qip-eq") << "EqualityQueryInstProp::setEqual : merge " << ar << " -> " << br << ", exp size = " << d_uf_exp[ar].size() << ", status = " << status << std::endl;
       a = ar;
       b = br;
+      
+      //carry disequality list
+      std::map< Node, std::map< Node, std::vector< Node > > >::iterator itd = d_diseq_list.find( ar );
+      if( itd!=d_diseq_list.end() ){
+        for( std::map< Node, std::vector< Node > >::iterator itdd = itd->second.begin(); itdd != itd->second.end(); ++itdd ){
+          Node d = itdd->first;
+          if( d_diseq_list[br].find( d )==d_diseq_list[br].end() ){
+            merge_exp( d_diseq_list[br][d], itdd->second );
+            merge_exp( d_diseq_list[br][d], d_uf_exp[ar] );
+          }
+        }
+      }
+      
       return status;
     }else{
-      //TODO?
+      Trace("qip-eq") << "EqualityQueryInstProp::setEqual : disequal " << ar << " <> " << br << std::endl;
+      Assert( d_diseq_list[ar].find( br )==d_diseq_list[ar].end() );
+      Assert( d_diseq_list[br].find( ar )==d_diseq_list[br].end() );
+      
+      merge_exp( d_diseq_list[ar][br], reason );
+      merge_exp( d_diseq_list[br][ar], reason );
       return STATUS_NONE;
     }
   }
@@ -556,6 +581,7 @@ bool InstPropagator::notifyInstantiation( unsigned quant_e, Node q, Node lem, st
     Trace("qip-prop") << "...finished notify instantiation." << std::endl;
     return !d_conflict;
   }else{
+    Assert( false );
     return true;
   }
 }
@@ -688,14 +714,18 @@ void InstPropagator::conflict( std::vector< Node >& exp ) {
   addRelevantInstances( exp, "qip-propagate" );
 
   //now, inform quantifiers engine which instances should be retracted
+  Trace("qip-prop-debug") << "...remove instantiation ids : ";
   for( std::map< unsigned, InstInfo >::iterator it = d_ii.begin(); it != d_ii.end(); ++it ){
     if( d_relevant_inst.find( it->first )==d_relevant_inst.end() ){
       if( !d_qe->removeInstantiation( it->second.d_q, it->second.d_lem, it->second.d_terms ) ){
         Trace("qip-warn") << "WARNING : did not remove instantiation id " << it->first << std::endl;
         Assert( false );
+      }else{
+        Trace("qip-prop-debug") << it->first << " ";
       }
     }
   }
+  Trace("qip-prop-debug") << std::endl;
   //will interupt the quantifiers engine
   Trace("quant-engine-conflict") << "-----> InstPropagator::conflict with " << exp.size() << " instances." << std::endl;
 }

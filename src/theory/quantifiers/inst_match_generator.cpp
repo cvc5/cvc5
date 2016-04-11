@@ -307,9 +307,6 @@ void InstMatchGenerator::reset( Node eqc, QuantifiersEngine* qe ){
 }
 
 bool InstMatchGenerator::getNextMatch( Node f, InstMatch& m, QuantifiersEngine* qe ){
-  if( qe->inConflict() ){
-    return false;
-  }
   if( d_needsReset ){
     Trace("matching") << "Reset not done yet, must do the reset..." << std::endl;
     reset( d_eq_class, qe );
@@ -348,9 +345,15 @@ int InstMatchGenerator::addInstantiations( Node f, InstMatch& baseMatch, Quantif
       m.add( baseMatch );
       if( qe->addInstantiation( f, m, false ) ){
         addedLemmas++;
+        if( qe->inConflict() ){
+          break;
+        }
       }
     }else{
       addedLemmas++;
+      if( qe->inConflict() ){
+        break;
+      }
     }
     m.clear();
   }
@@ -368,7 +371,7 @@ int InstMatchGenerator::addTerm( Node f, Node t, QuantifiersEngine* qe ){
       }
     }
   }else{
-    for( int i=0; i<(int)d_children.size(); i++ ){
+    for( unsigned i=0; i<d_children.size(); i++ ){
       d_children[i]->addTerm( f, t, qe );
     }
   }
@@ -530,14 +533,14 @@ d_f( q ){
 
 /** reset instantiation round (call this whenever equivalence classes have changed) */
 void InstMatchGeneratorMulti::resetInstantiationRound( QuantifiersEngine* qe ){
-  for( int i=0; i<(int)d_children.size(); i++ ){
+  for( unsigned i=0; i<d_children.size(); i++ ){
     d_children[i]->resetInstantiationRound( qe );
   }
 }
 
 /** reset, eqc is the equivalence class to search in (any if eqc=null) */
 void InstMatchGeneratorMulti::reset( Node eqc, QuantifiersEngine* qe ){
-  for( int i=0; i<(int)d_children.size(); i++ ){
+  for( unsigned i=0; i<d_children.size(); i++ ){
     d_children[i]->reset( eqc, qe );
   }
 }
@@ -545,7 +548,7 @@ void InstMatchGeneratorMulti::reset( Node eqc, QuantifiersEngine* qe ){
 int InstMatchGeneratorMulti::addInstantiations( Node q, InstMatch& baseMatch, QuantifiersEngine* qe ){
   int addedLemmas = 0;
   Debug("smart-multi-trigger") << "Process smart multi trigger" << std::endl;
-  for( int i=0; i<(int)d_children.size(); i++ ){
+  for( unsigned i=0; i<d_children.size(); i++ ){
     Debug("smart-multi-trigger") << "Calculate matches " << i << std::endl;
     std::vector< InstMatch > newMatches;
     InstMatch m( q );
@@ -555,8 +558,11 @@ int InstMatchGeneratorMulti::addInstantiations( Node q, InstMatch& baseMatch, Qu
       m.clear();
     }
     Debug("smart-multi-trigger") << "Made " << newMatches.size() << " new matches for index " << i << std::endl;
-    for( int j=0; j<(int)newMatches.size(); j++ ){
+    for( unsigned j=0; j<newMatches.size(); j++ ){
       processNewMatch( qe, newMatches[j], i, addedLemmas );
+      if( qe->inConflict() ){
+        return addedLemmas;
+      }
     }
   }
   return addedLemmas;
@@ -579,6 +585,7 @@ void InstMatchGeneratorMulti::processNewMatch( QuantifiersEngine* qe, InstMatch&
 void InstMatchGeneratorMulti::processNewInstantiations( QuantifiersEngine* qe, InstMatch& m, int& addedLemmas, InstMatchTrie* tr,
                                                         std::vector< IndexedTrie >& unique_var_tries,
                                                         int trieIndex, int childIndex, int endChildIndex, bool modEq ){
+  Assert( !qe->inConflict() );
   if( childIndex==endChildIndex ){
     //now, process unique variables
     processNewInstantiations2( qe, m, addedLemmas, unique_var_tries, 0 );
@@ -600,6 +607,9 @@ void InstMatchGeneratorMulti::processNewInstantiations( QuantifiersEngine* qe, I
           mn.setValue( curr_index, it->first);
           processNewInstantiations( qe, mn, addedLemmas, &(it->second), unique_var_tries,
                                     trieIndex+1, childIndex, endChildIndex, modEq );
+          if( qe->inConflict() ){
+            break;
+          }
         }
       //}
     }else{
@@ -621,6 +631,9 @@ void InstMatchGeneratorMulti::processNewInstantiations( QuantifiersEngine* qe, I
               if( itc!=tr->d_data.end() ){
                 processNewInstantiations( qe, m, addedLemmas, &(itc->second), unique_var_tries,
                                           trieIndex+1, childIndex, endChildIndex, modEq );
+                if( qe->inConflict() ){
+                  break;
+                }
               }
             }
             ++eqc;
@@ -652,6 +665,9 @@ void InstMatchGeneratorMulti::processNewInstantiations2( QuantifiersEngine* qe, 
         InstMatch mn( &m );
         mn.setValue( curr_index, it->first);
         processNewInstantiations2( qe, mn, addedLemmas, unique_var_tries, uvtIndex, &(it->second), trieIndex+1 );
+        if( qe->inConflict() ){
+          break;
+        }
       }
     }else{
       processNewInstantiations2( qe, m, addedLemmas, unique_var_tries, uvtIndex+1 );
@@ -727,6 +743,9 @@ int InstMatchGeneratorSimple::addInstantiations( Node q, InstMatch& baseMatch, Q
           InstMatch m( q );
           m.add( baseMatch );
           addInstantiations( m, qe, addedLemmas, 0, &(it->second) );
+          if( qe->inConflict() ){
+            break;
+          }
         }
       }
       tat = NULL;
@@ -736,10 +755,8 @@ int InstMatchGeneratorSimple::addInstantiations( Node q, InstMatch& baseMatch, Q
     InstMatch m( q );
     m.add( baseMatch );
     addInstantiations( m, qe, addedLemmas, 0, tat );
-    return addedLemmas;
-  }else{
-    return 0;
   }
+  return addedLemmas;
 }
 
 void InstMatchGeneratorSimple::addInstantiations( InstMatch& m, QuantifiersEngine* qe, int& addedLemmas, int argIndex, quantifiers::TermArgTrie* tat ){
@@ -777,13 +794,12 @@ void InstMatchGeneratorSimple::addInstantiations( InstMatch& m, QuantifiersEngin
         }
         return;
       }
+      //inst constant from another quantified formula, treat as ground term  TODO: remove this?
     }
-    if( !qe->inConflict() ){
-      Node r = qe->getEqualityQuery()->getRepresentative( d_match_pattern[argIndex] );
-      std::map< TNode, quantifiers::TermArgTrie >::iterator it = tat->d_data.find( r );
-      if( it!=tat->d_data.end() ){
-        addInstantiations( m, qe, addedLemmas, argIndex+1, &(it->second) );
-      }
+    Node r = qe->getEqualityQuery()->getRepresentative( d_match_pattern[argIndex] );
+    std::map< TNode, quantifiers::TermArgTrie >::iterator it = tat->d_data.find( r );
+    if( it!=tat->d_data.end() ){
+      addInstantiations( m, qe, addedLemmas, argIndex+1, &(it->second) );
     }
   }
 }

@@ -1101,6 +1101,7 @@ bool QuantifiersEngine::addInstantiation( Node q, std::vector< Node >& terms, bo
           Trace("inst-add-debug") << "...we are in conflict." << std::endl;
           d_conflict = true;
           Assert( !d_lemmas_waiting.empty() );
+          break;
         }
       }
     }

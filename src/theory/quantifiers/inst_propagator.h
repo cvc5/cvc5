@@ -72,7 +72,7 @@ private:
   std::map< Node, std::vector< Node > > d_uf_exp;
   Node getUfRepresentative( Node a, std::vector< Node >& exp );
   /** disequality list, stores explanations */
-  std::map< Node, std::map< Node, Node > > d_diseq_list;
+  std::map< Node, std::map< Node, std::vector< Node > > > d_diseq_list;
   /** add arg */
   void addArgument( std::vector< Node >& args, std::vector< Node >& props, Node n, bool is_prop, bool pol );
 public:
