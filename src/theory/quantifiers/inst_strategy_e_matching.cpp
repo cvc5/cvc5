@@ -691,10 +691,13 @@ bool FullSaturation::process( Node f, bool fullEffort ){
                 if( max_zero[i] ){
                   //no terms available, will report incomplete instantiation
                   terms.push_back( Node::null() );
+                  Trace("inst-alg-rd") << "  null" << std::endl;
                 }else if( r==0 ){
                   terms.push_back( rd->getRDomain( f, i )->d_terms[childIndex[i]] );
+                  Trace("inst-alg-rd") << "  " << rd->getRDomain( f, i )->d_terms[childIndex[i]] << std::endl;
                 }else{
                   terms.push_back( d_quantEngine->getTermDatabase()->getTypeGroundTerm( ftypes[i], childIndex[i] ) );
+                  Trace("inst-alg-rd") << "  " << d_quantEngine->getTermDatabase()->getTypeGroundTerm( ftypes[i], childIndex[i] ) << std::endl;
                 }
               }
               if( d_quantEngine->addInstantiation( f, terms, false ) ){

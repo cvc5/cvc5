@@ -183,7 +183,7 @@ private:
   /** counter for forcing assignments (ensures fairness) */
   unsigned d_dtfCounter;
   /** expand definition skolem functions */
-  std::map< Node, Node > d_exp_def_skolem;
+  std::map< TypeNode, std::map< Node, Node > > d_exp_def_skolem;
   /** sygus utilities */
   SygusSplit * d_sygus_split;
   SygusSymBreak * d_sygus_sym_break;

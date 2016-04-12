@@ -508,9 +508,9 @@ bool QuantInfo::setMatch( QuantConflictFind * p, int v, TNode n, bool isGroundRe
       if( it!=d_var_rel_dom.end() ){
         for( std::map< TNode, std::vector< unsigned > >::iterator it2 = it->second.begin(); it2 != it->second.end(); ++it2 ){
           for( unsigned j=0; j<it2->second.size(); j++ ){
-            Debug("qcf-match-debug2") << n << " in relevant domain " <<  it2->second << "." << it2->second[j] << "?" << std::endl;
+            Debug("qcf-match-debug2") << n << " in relevant domain " <<  it2->first << "." << it2->second[j] << "?" << std::endl;
             if( !p->getTermDatabase()->inRelevantDomain( it2->first, it2->second[j], n ) ){
-              Debug("qcf-match-debug") << "  -> fail, since " << n << " is not in relevant domain of " << it2->second << "." << it2->second[j] << std::endl;
+              Debug("qcf-match-debug") << "  -> fail, since " << n << " is not in relevant domain of " << it2->first << "." << it2->second[j] << std::endl;
               return false;
             }
           }

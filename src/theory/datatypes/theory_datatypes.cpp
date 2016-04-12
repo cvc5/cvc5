@@ -540,8 +540,9 @@ Node TheoryDatatypes::expandDefinition(LogicRequest &logicRequest, Node n) {
       if( tst==d_true ){
         n_ret = sel;
       }else{
-        mkExpDefSkolem( selector, n[0].getType(), n.getType() );
-        Node sk = NodeManager::currentNM()->mkNode( kind::APPLY_UF, d_exp_def_skolem[ selector ], n[0]  );
+        TypeNode ndt = n[0].getType();
+        mkExpDefSkolem( selector, ndt, n.getType() );
+        Node sk = NodeManager::currentNM()->mkNode( kind::APPLY_UF, d_exp_def_skolem[ndt][ selector ], n[0]  );
         if( tst==NodeManager::currentNM()->mkConst( false ) ){
           n_ret = sk;
         }else{
@@ -994,10 +995,10 @@ void TheoryDatatypes::getSelectorsForCons( Node r, std::map< int, bool >& sels )
 }
 
 void TheoryDatatypes::mkExpDefSkolem( Node sel, TypeNode dt, TypeNode rt ) {
-  if( d_exp_def_skolem.find( sel )==d_exp_def_skolem.end() ){
+  if( d_exp_def_skolem[dt].find( sel )==d_exp_def_skolem[dt].end() ){
     std::stringstream ss;
     ss << sel << "_uf";
-    d_exp_def_skolem[ sel ] = NodeManager::currentNM()->mkSkolem( ss.str().c_str(),
+    d_exp_def_skolem[dt][ sel ] = NodeManager::currentNM()->mkSkolem( ss.str().c_str(),
                                   NodeManager::currentNM()->mkFunctionType( dt, rt ) );
   }
 }
@@ -1299,7 +1300,8 @@ void TheoryDatatypes::computeCareGraph(){
             TNode y = f2[k];
             Assert(d_equalityEngine.hasTerm(x));
             Assert(d_equalityEngine.hasTerm(y));
-            if( areDisequal(x, y) ){
+            //need to consider types for parametric selectors
+            if( x.getType()!=y.getType() || areDisequal(x, y) ){
               somePairIsDisequal = true;
               break;
             }else if( !d_equalityEngine.areEqual( x, y ) ){

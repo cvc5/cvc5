@@ -126,9 +126,10 @@ Node TermDb::getTypeGroundTerm( TypeNode tn, unsigned i ) {
 }
 
 Node TermDb::getMatchOperator( Node n ) {
-  //return n.getOperator();
   Kind k = n.getKind();
-  if( k==SELECT || k==STORE || k==UNION || k==INTERSECTION || k==SUBSET || k==SETMINUS || k==MEMBER || k==SINGLETON ){
+  //datatype operators may be parametric, always assume they are
+  if( k==SELECT || k==STORE || k==UNION || k==INTERSECTION || k==SUBSET || k==SETMINUS || k==MEMBER || k==SINGLETON || 
+      k==APPLY_SELECTOR_TOTAL || k==APPLY_TESTER ){
     //since it is parametric, use a particular one as op
     TypeNode tn = n[0].getType();
     Node op = n.getOperator();
@@ -241,10 +242,11 @@ Node TermDb::evaluateTerm2( TNode n, std::map< TNode, Node >& visited, EqualityQ
   if( itv != visited.end() ){
     return itv->second;
   }
-  Assert( n.getKind()!=BOUND_VARIABLE );
   Trace("term-db-eval") << "evaluate term : " << n << std::endl;
   Node ret;
-  if( !qy->hasTerm( n ) ){
+  if( n.getKind()==BOUND_VARIABLE ){
+    return n;
+  }else if( !qy->hasTerm( n ) ){
     //term is not known to be equal to a representative in equality engine, evaluate it
     if( n.getKind()==FORALL ){
       ret = Node::null();
