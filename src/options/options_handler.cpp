@@ -576,8 +576,6 @@ theory::quantifiers::QcfMode OptionsHandler::stringToQcfMode(std::string option,
     return theory::quantifiers::QCF_PROP_EQ;
   } else if(optarg == "partial") {
     return theory::quantifiers::QCF_PARTIAL;
-  } else if(optarg == "mc" ) {
-    return theory::quantifiers::QCF_MC;
   } else if(optarg ==  "help") {
     puts(s_qcfModeHelp.c_str());
     exit(1);

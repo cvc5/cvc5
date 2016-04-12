@@ -573,8 +573,8 @@ void FullSaturation::check( Theory::Effort e, unsigned quant_e ) {
       Trace("fs-engine") << "---Full Saturation Round, effort = " << e << "---" << std::endl;
     }
     int addedLemmas = 0;
-    for( int i=0; i<d_quantEngine->getModel()->getNumAssertedQuantifiers(); i++ ){
-      Node q = d_quantEngine->getModel()->getAssertedQuantifier( i );
+    for( unsigned i=0; i<d_quantEngine->getModel()->getNumAssertedQuantifiers(); i++ ){
+      Node q = d_quantEngine->getModel()->getAssertedQuantifier( i, true );
       if( d_quantEngine->hasOwnership( q, this ) && d_quantEngine->getModel()->isQuantifierActive( q ) ){
         if( process( q, fullEffort ) ){
           //added lemma
@@ -627,7 +627,7 @@ bool FullSaturation::process( Node f, bool fullEffort ){
         if( r==0 ){
           ts = rd->getRDomain( f, i )->d_terms.size();
         }else{
-          ts = d_quantEngine->getTermDatabase()->d_type_map[f[0][i].getType()].size();
+          ts = d_quantEngine->getTermDatabase()->getNumTypeGroundTerms( f[0][i].getType() );
         }
         max_zero.push_back( fullEffort && ts==0 );
         ts = ( fullEffort && ts==0 ) ? 1 : ts;
@@ -643,6 +643,11 @@ bool FullSaturation::process( Node f, bool fullEffort ){
         }
       }
       if( !has_zero ){
+        std::vector< TypeNode > ftypes;
+        for( unsigned i=0; i<f[0].getNumChildren(); i++ ){
+          ftypes.push_back( f[0][i].getType() );
+        }
+      
         Trace("inst-alg-rd") << "Will do " << final_max_i << " stages of instantiation." << std::endl;
         unsigned max_i = 0;
         bool success;
@@ -660,7 +665,7 @@ bool FullSaturation::process( Node f, bool fullEffort ){
                 if( options::cbqi() && r==1 && !max_zero[index] ){
                   //skip inst constant nodes
                   while( nv<maxs[index] && nv<=max_i &&
-                          quantifiers::TermDb::hasInstConstAttr( d_quantEngine->getTermDatabase()->d_type_map[f[0][index].getType()][nv] ) ){
+                          quantifiers::TermDb::hasInstConstAttr( d_quantEngine->getTermDatabase()->getTypeGroundTerm( ftypes[index], nv ) ) ){
                     nv++;
                   }
                 }
@@ -689,7 +694,7 @@ bool FullSaturation::process( Node f, bool fullEffort ){
                 }else if( r==0 ){
                   terms.push_back( rd->getRDomain( f, i )->d_terms[childIndex[i]] );
                 }else{
-                  terms.push_back( d_quantEngine->getTermDatabase()->d_type_map[f[0][i].getType()][childIndex[i]] );
+                  terms.push_back( d_quantEngine->getTermDatabase()->getTypeGroundTerm( ftypes[i], childIndex[i] ) );
                 }
               }
               if( d_quantEngine->addInstantiation( f, terms, false ) ){

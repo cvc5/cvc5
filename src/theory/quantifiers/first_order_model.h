@@ -49,6 +49,12 @@ protected:
   QuantifiersEngine * d_qe;
   /** list of quantifiers asserted in the current context */
   context::CDList<Node> d_forall_asserts;
+  /** quantified formulas marked as relevant */
+  unsigned d_rlv_count;
+  std::map< Node, unsigned > d_forall_rlv;
+  std::vector< Node > d_forall_rlv_vec;
+  Node d_last_forall_rlv;
+  std::vector< Node > d_forall_rlv_assert;
   /** is model set */
   context::CDO< bool > d_isModelSet;
   /** get variable id */
@@ -59,9 +65,9 @@ public: //for Theory Quantifiers:
   /** assert quantifier */
   void assertQuantifier( Node n );
   /** get number of asserted quantifiers */
-  int getNumAssertedQuantifiers() { return (int)d_forall_asserts.size(); }
+  unsigned getNumAssertedQuantifiers();
   /** get asserted quantifier */
-  Node getAssertedQuantifier( int i ) { return d_forall_asserts[i]; }
+  Node getAssertedQuantifier( unsigned i, bool ordered = false );
   /** initialize model for term */
   void initializeModelForTerm( Node n, std::map< Node, bool >& visited );
   virtual void processInitializeModelForTerm( Node n ) = 0;
@@ -96,8 +102,10 @@ private:
 public:
   /** reset round */
   void reset_round();
-  /** is quantified formula asserted */
-  //bool isQuantifierAsserted( TNode q );
+  /** mark quantified formula relevant */
+  void markRelevant( Node q );
+  /** get relevance value */
+  int getRelevanceValue( Node q );
   /** set quantified formula active/inactive 
    * a quantified formula may be set inactive if for instance:
    *   - it is entailed by other quantified formulas

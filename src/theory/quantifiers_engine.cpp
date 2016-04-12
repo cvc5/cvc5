@@ -88,6 +88,7 @@ QuantifiersEngine::QuantifiersEngine(context::Context* c, context::UserContext* 
   d_tr_trie = new inst::TriggerTrie;
   d_curr_effort_level = QEFFORT_NONE;
   d_conflict = false;
+  d_num_added_lemmas_round = 0;
   d_hasAddedLemma = false;
   //don't add true lemma
   d_lemmas_produced_c[d_term_db->d_true] = true;
@@ -365,6 +366,7 @@ void QuantifiersEngine::check( Theory::Effort e ){
   }
 
   d_conflict = false;
+  d_num_added_lemmas_round = 0;
   d_hasAddedLemma = false;
   bool setIncomplete = false;
   if( e==Theory::EFFORT_LAST_CALL ){
@@ -398,7 +400,6 @@ void QuantifiersEngine::check( Theory::Effort e ){
       }
       Trace("quant-engine-debug") << "  Theory engine finished : " << !d_te->needCheck() << std::endl;
       Trace("quant-engine-debug") << "  Needs model effort : " << needsModelE << std::endl;
-      Trace("quant-engine-debug") << "Resetting all modules..." << std::endl;
     }
     if( Trace.isOn("quant-engine-ee-pre") ){
       Trace("quant-engine-ee-pre") << "Equality engine (pre-inference): " << std::endl;
@@ -410,6 +411,7 @@ void QuantifiersEngine::check( Theory::Effort e ){
     }
 
     //reset utilities
+    Trace("quant-engine-debug") << "Resetting all utilities..." << std::endl;
     for( unsigned i=0; i<d_util.size(); i++ ){
       Trace("quant-engine-debug2") << "Reset " << d_util[i]->identify().c_str() << "..." << std::endl;
       if( !d_util[i]->reset( e ) ){
@@ -429,9 +431,11 @@ void QuantifiersEngine::check( Theory::Effort e ){
     }
 
     //reset the model
+    Trace("quant-engine-debug") << "Reset model..." << std::endl;
     d_model->reset_round();
 
     //reset the modules
+    Trace("quant-engine-debug") << "Resetting all modules..." << std::endl;
     for( unsigned i=0; i<d_modules.size(); i++ ){
       Trace("quant-engine-debug2") << "Reset " << d_modules[i]->identify().c_str() << std::endl;
       d_modules[i]->reset_round( e );
@@ -936,6 +940,7 @@ bool QuantifiersEngine::addLemma( Node lem, bool doCache, bool doRewrite ){
       d_lemmas_produced_c[ lem ] = true;
       d_lemmas_waiting.push_back( lem );
       Trace("inst-add-debug") << "Added lemma" << std::endl;
+      d_num_added_lemmas_round++;
       return true;
     }else{
       Trace("inst-add-debug") << "Duplicate." << std::endl;
@@ -944,6 +949,7 @@ bool QuantifiersEngine::addLemma( Node lem, bool doCache, bool doRewrite ){
   }else{
     //do not need to rewrite, will be rewritten after sending
     d_lemmas_waiting.push_back( lem );
+    d_num_added_lemmas_round++;
     return true;
   }
 }
@@ -1115,6 +1121,14 @@ bool QuantifiersEngine::addInstantiation( Node q, std::vector< Node >& terms, bo
   }
 }
 
+bool QuantifiersEngine::removeInstantiation( Node q, Node lem, std::vector< Node >& terms ) {
+  //lem must occur in d_waiting_lemmas
+  if( removeLemma( lem ) ){
+    return removeInstantiationInternal( q, terms );
+  }else{
+    return false;
+  }
+}
 
 bool QuantifiersEngine::addSplit( Node n, bool reqPhase, bool reqPhasePol ){
   n = Rewriter::rewrite( n );
@@ -1134,15 +1148,9 @@ bool QuantifiersEngine::addSplitEquality( Node n1, Node n2, bool reqPhase, bool 
   return addSplit( fm );
 }
 
-bool QuantifiersEngine::removeInstantiation( Node q, Node lem, std::vector< Node >& terms ) {
-  //lem must occur in d_waiting_lemmas
-  if( removeLemma( lem ) ){
-    return removeInstantiationInternal( q, terms );
-  }else{
-    return false;
-  }
+void QuantifiersEngine::markRelevant( Node q ) {
+  d_model->markRelevant( q );
 }
-
 
 bool QuantifiersEngine::getInstWhenNeedsCheck( Theory::Effort e ) {
   Trace("quant-engine-debug2") << "Get inst when needs check, counts=" << d_ierCounter << ", " << d_ierCounter_lc << std::endl;

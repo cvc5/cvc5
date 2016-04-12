@@ -82,7 +82,7 @@ QuantAntiSkolem::QuantAntiSkolem( QuantifiersEngine * qe ) : QuantifiersModule( 
 void QuantAntiSkolem::check( Theory::Effort e, unsigned quant_e ) {
   if( quant_e==QuantifiersEngine::QEFFORT_STANDARD ){
     d_sqtc.clear();
-    for( int i=0; i<d_quantEngine->getModel()->getNumAssertedQuantifiers(); i++ ){
+    for( unsigned i=0; i<d_quantEngine->getModel()->getNumAssertedQuantifiers(); i++ ){
       Node q = d_quantEngine->getModel()->getAssertedQuantifier( i );
       if( d_quant_processed.find( q )==d_quant_processed.end() ){
         d_quant_processed[q] = true;

@@ -39,7 +39,7 @@ public:
   std::map< TNode, OpArgIndex > d_child;
   std::vector< TNode > d_ops;
   std::vector< TNode > d_op_terms;
-  void addTerm( ConjectureGenerator * s, TNode n, unsigned index = 0 );
+  void addTerm( std::vector< TNode >& terms, TNode n, unsigned index = 0 );
   Node getGroundTerm( ConjectureGenerator * s, std::vector< TNode >& args );
   void getGroundTerms( ConjectureGenerator * s, std::vector< TNode >& terms );
 };

@@ -285,7 +285,7 @@ void RewriteEngine::registerQuantifier( Node f ) {
       //make the quantified formula
       d_qinfo_n[f] = NodeManager::currentNM()->mkNode( FORALL, qcfn_c );
       Trace("rr-register") << "  qcf formula is : " << d_qinfo_n[f] << std::endl;
-      d_qinfo[f].initialize( d_qinfo_n[f], d_qinfo_n[f][1] );
+      d_qinfo[f].initialize( qcf, d_qinfo_n[f], d_qinfo_n[f][1] );
     }
   }
 }

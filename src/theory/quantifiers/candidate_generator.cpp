@@ -298,7 +298,6 @@ Node CandidateGeneratorQEAll::getNextCandidate() {
     }
   }
   if( d_firstTime ){
-    Assert( d_qe->getTermDatabase()->d_type_map[d_match_pattern_type].empty() );
     //must return something
     d_firstTime = false;
     return d_qe->getTermDatabase()->getModelBasisTerm( d_match_pattern_type );

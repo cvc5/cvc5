@@ -350,11 +350,11 @@ void FullModelChecker::preProcessBuildModel(TheoryModel* m, bool fullModel) {
     }
     //do not have to introduce terms for sorts of domains of quantified formulas if we are allowed to assume empty sorts
     if( !options::fmfEmptySorts() ){
-      for( int i=0; i<fm->getNumAssertedQuantifiers(); i++ ){
+      for( unsigned i=0; i<fm->getNumAssertedQuantifiers(); i++ ){
         Node q = fm->getAssertedQuantifier( i );
         //make sure all types are set
-        for( unsigned i=0; i<q[0].getNumChildren(); i++ ){
-          preInitializeType( fm, q[0][i].getType() );
+        for( unsigned j=0; j<q[0].getNumChildren(); j++ ){
+          preInitializeType( fm, q[0][j].getType() );
         }
       }
     }

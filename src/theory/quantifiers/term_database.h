@@ -163,11 +163,21 @@ namespace fmcheck {
 }
 
 class TermDbSygus;
+class QuantConflictFind;
+class RelevantDomain;
+class ConjectureGenerator;
+class TermGenerator;
+class TermGenEnv;
 
 class TermDb : public QuantifiersUtil {
   friend class ::CVC4::theory::QuantifiersEngine;
+  //TODO: eliminate most of these
   friend class ::CVC4::theory::inst::Trigger;
   friend class ::CVC4::theory::quantifiers::fmcheck::FullModelChecker;
+  friend class ::CVC4::theory::quantifiers::QuantConflictFind;
+  friend class ::CVC4::theory::quantifiers::RelevantDomain;
+  friend class ::CVC4::theory::quantifiers::ConjectureGenerator;
+  friend class ::CVC4::theory::quantifiers::TermGenEnv;
   typedef context::CDHashMap<Node, int, NodeHashFunction> NodeIntMap;
 private:
   /** reference to the quantifiers engine */
@@ -180,12 +190,6 @@ private:
   std::map< Node, std::map< TypeNode, Node > > d_par_op_map;
   /** whether master equality engine is UF-inconsistent */
   bool d_consistent_ee;
-  /** set has term */
-  void setHasTerm( Node n );
-  /** evaluate term */
-  Node evaluateTerm2( TNode n, std::map< TNode, Node >& visited, EqualityQuery * qy );
-  TNode getEntailedTerm2( TNode n, std::map< TNode, TNode >& subs, bool subsRep, bool hasSubs, EqualityQuery * qy );
-  bool isEntailed2( TNode n, std::map< TNode, TNode >& subs, bool subsRep, bool hasSubs, bool pol, EqualityQuery * qy );
 public:
   TermDb( context::Context* c, context::UserContext* u, QuantifiersEngine* qe );
   ~TermDb(){}
@@ -195,7 +199,14 @@ public:
   /** constants */
   Node d_zero;
   Node d_one;
-
+public:
+  /** presolve (called once per user check-sat) */
+  void presolve();
+  /** reset (calculate which terms are active) */
+  bool reset( Theory::Effort effort );
+  /** identify */
+  std::string identify() const { return "TermDb"; }  
+private:
   /** map from operators to ground terms for that operator */
   std::map< Node, std::vector< Node > > d_op_map;
   /** map from type nodes to terms of that type */
@@ -208,24 +219,29 @@ public:
   /** map from operators to trie */
   std::map< Node, TermArgTrie > d_func_map_trie;
   std::map< Node, TermArgTrie > d_func_map_eqc_trie;
+  /** mapping from operators to their representative relevant domains */
+  std::map< Node, std::map< unsigned, std::vector< Node > > > d_func_map_rel_dom;
   /** has map */
   std::map< Node, bool > d_has_map;
   /** map from reps to a term in eqc in d_has_map */
-  std::map< Node, Node > d_term_elig_eqc;
-
+  std::map< Node, Node > d_term_elig_eqc;  
+  /** set has term */
+  void setHasTerm( Node n );
+  /** evaluate term */
+  Node evaluateTerm2( TNode n, std::map< TNode, Node >& visited, EqualityQuery * qy );
+  TNode getEntailedTerm2( TNode n, std::map< TNode, TNode >& subs, bool subsRep, bool hasSubs, EqualityQuery * qy );
+  bool isEntailed2( TNode n, std::map< TNode, TNode >& subs, bool subsRep, bool hasSubs, bool pol, EqualityQuery * qy );
 public:
   /** ground terms for operator */
   unsigned getNumGroundTerms( Node f );
   /** get ground term for operator */
   Node getGroundTerm( Node f, unsigned i );
+  /** get num type terms */
+  unsigned getNumTypeGroundTerms( TypeNode tn );
+  /** get type ground term */
+  Node getTypeGroundTerm( TypeNode tn, unsigned i );
   /** add a term to the database */
   void addTerm( Node n, std::set< Node >& added, bool withinQuant = false, bool withinInstClosure = false );
-  /** presolve (called once per user check-sat) */
-  void presolve();
-  /** reset (calculate which terms are active) */
-  bool reset( Theory::Effort effort );
-  /** identify */
-  std::string identify() const { return "TermDb"; }
   /** get match operator */
   Node getMatchOperator( Node n );
   /** get term arg index */
@@ -238,6 +254,8 @@ public:
   void computeArgReps( TNode n );
   /** compute uf eqc terms */
   void computeUfEqcTerms( TNode f );
+  /** in relevant domain */
+  bool inRelevantDomain( TNode f, unsigned i, TNode r );
   /** evaluate a term under a substitution.  Return representative in EE if possible.
    * subsRep is whether subs contains only representatives
    */
@@ -297,7 +315,7 @@ public:
   /** get the i^th instantiation constant of q */
   Node getInstantiationConstant( Node q, int i ) const;
   /** get number of instantiation constants for q */
-  int getNumInstantiationConstants( Node q ) const;
+  unsigned getNumInstantiationConstants( Node q ) const;
   /** get the ce body q[e/x] */
   Node getInstConstantBody( Node q );
   /** get counterexample literal (for cbqi) */

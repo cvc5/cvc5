@@ -156,6 +156,8 @@ private:  //this information is reset during check
   unsigned d_curr_effort_level;
   /** are we in conflict */
   bool d_conflict;
+  /** number of lemmas we actually added this round (for debugging) */
+  unsigned d_num_added_lemmas_round;
   /** has added lemma this round */
   bool d_hasAddedLemma;
 private:
@@ -317,12 +319,16 @@ public:
   bool addSplit( Node n, bool reqPhase = false, bool reqPhasePol = true );
   /** add split equality */
   bool addSplitEquality( Node n1, Node n2, bool reqPhase = false, bool reqPhasePol = true );
+  /** mark relevant quantified formula, this will indicate it should be checked before the others */
+  void markRelevant( Node q );
   /** has added lemma */
   bool hasAddedLemma() { return !d_lemmas_waiting.empty() || d_hasAddedLemma; }
   /** is in conflict */
   bool inConflict() { return d_conflict; }
   /** get number of waiting lemmas */
   unsigned getNumLemmasWaiting() { return d_lemmas_waiting.size(); }
+  /** get number of waiting lemmas */
+  unsigned getNumLemmasAddedThisRound() { return d_num_added_lemmas_round; }
   /** get needs check */
   bool getInstWhenNeedsCheck( Theory::Effort e );
   /** get user pat mode */

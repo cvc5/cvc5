@@ -34,7 +34,7 @@ struct sortConjectureScore {
 };
 
 
-void OpArgIndex::addTerm( ConjectureGenerator * s, TNode n, unsigned index ){
+void OpArgIndex::addTerm( std::vector< TNode >& terms, TNode n, unsigned index ){
   if( index==n.getNumChildren() ){
     Assert( n.hasOperator() );
     if( std::find( d_ops.begin(), d_ops.end(), n.getOperator() )==d_ops.end() ){
@@ -42,7 +42,7 @@ void OpArgIndex::addTerm( ConjectureGenerator * s, TNode n, unsigned index ){
       d_op_terms.push_back( n );
     }
   }else{
-    d_child[s->getTermDatabase()->d_arg_reps[n][index]].addTerm( s, n, index+1 );
+    d_child[terms[index]].addTerm( terms, n, index+1 );
   }
 }
 
@@ -369,7 +369,7 @@ void ConjectureGenerator::check( Theory::Effort e, unsigned quant_e ) {
           TNode n = (*ieqc_i);
           if( getTermDatabase()->hasTermCurrent( n ) ){
             if( isHandledTerm( n ) ){
-              d_op_arg_index[r].addTerm( this, n );
+              d_op_arg_index[r].addTerm( getTermDatabase()->d_arg_reps[n], n );
             }
           }
           ++ieqc_i;
@@ -489,7 +489,7 @@ void ConjectureGenerator::check( Theory::Effort e, unsigned quant_e ) {
       d_thm_index.clear();
       std::vector< Node > provenConj;
       quantifiers::FirstOrderModel* m = d_quantEngine->getModel();
-      for( int i=0; i<m->getNumAssertedQuantifiers(); i++ ){
+      for( unsigned i=0; i<m->getNumAssertedQuantifiers(); i++ ){
         Node q = m->getAssertedQuantifier( i );
         Trace("thm-db-debug") << "Is " << q << " a relevant theorem?" << std::endl;
         Node conjEq;
@@ -1569,10 +1569,12 @@ bool TermGenerator::getNextMatch( TermGenEnv * s, TNode eqc, std::map< TypeNode,
         if( d_match_status_child_num==0 ){
           //initial binding
           TNode f = s->getTgFunc( d_typ, d_status_num );
-          std::map< TNode, TermArgTrie >::iterator it = s->getTermDatabase()->d_func_map_eqc_trie[f].d_data.find( eqc );
-          if( it!=s->getTermDatabase()->d_func_map_eqc_trie[f].d_data.end() ){
-            d_match_children.push_back( it->second.d_data.begin() );
-            d_match_children_end.push_back( it->second.d_data.end() );
+          //std::map< TNode, TermArgTrie >::iterator it = s->getTermDatabase()->d_func_map_eqc_trie[f].d_data.find( eqc );
+          Assert( !eqc.isNull() );
+          TermArgTrie * tat = s->getTermDatabase()->getTermArgTrie( eqc, f );
+          if( tat ){
+            d_match_children.push_back( tat->d_data.begin() );
+            d_match_children_end.push_back( tat->d_data.end() );
           }else{
             d_match_status++;
             d_match_status_child_num--;

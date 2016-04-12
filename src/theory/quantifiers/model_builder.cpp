@@ -54,10 +54,10 @@ void QModelBuilder::debugModel( FirstOrderModel* fm ){
     Trace("quant-check-model") << "Testing quantifier instantiations..." << std::endl;
     int tests = 0;
     int bad = 0;
-    for( int i=0; i<fm->getNumAssertedQuantifiers(); i++ ){
+    for( unsigned i=0; i<fm->getNumAssertedQuantifiers(); i++ ){
       Node f = fm->getAssertedQuantifier( i );
       std::vector< Node > vars;
-      for( int j=0; j<(int)f[0].getNumChildren(); j++ ){
+      for( unsigned j=0; j<f[0].getNumChildren(); j++ ){
         vars.push_back( f[0][j] );
       }
       RepSetIterator riter( d_qe, &(fm->d_rep_set) );
@@ -65,8 +65,8 @@ void QModelBuilder::debugModel( FirstOrderModel* fm ){
         while( !riter.isFinished() ){
           tests++;
           std::vector< Node > terms;
-          for( int i=0; i<riter.getNumTerms(); i++ ){
-            terms.push_back( riter.getTerm( i ) );
+          for( int k=0; k<riter.getNumTerms(); k++ ){
+            terms.push_back( riter.getTerm( k ) );
           }
           Node n = d_qe->getInstantiation( f, vars, terms );
           Node val = fm->getValue( n );
@@ -149,7 +149,7 @@ void QModelBuilderIG::processBuildModel( TheoryModel* m, bool fullModel ) {
     if( optUseModel() ){
       Trace("model-engine-debug") << "Initializing " << fm->getNumAssertedQuantifiers() << " quantifiers..." << std::endl;
       //check if any quantifiers are un-initialized
-      for( int i=0; i<fm->getNumAssertedQuantifiers(); i++ ){
+      for( unsigned i=0; i<fm->getNumAssertedQuantifiers(); i++ ){
         Node f = fm->getAssertedQuantifier( i );
         if( isQuantifierActive( f ) ){
           int lems = initializeQuantifier( f, f );
@@ -173,7 +173,7 @@ void QModelBuilderIG::processBuildModel( TheoryModel* m, bool fullModel ) {
         Trace("model-engine-debug") << "Analyzing quantifiers..." << std::endl;
         d_quant_sat.clear();
         d_uf_prefs.clear();
-        for( int i=0; i<fm->getNumAssertedQuantifiers(); i++ ){
+        for( unsigned i=0; i<fm->getNumAssertedQuantifiers(); i++ ){
           Node f = fm->getAssertedQuantifier( i );
           if( isQuantifierActive( f ) ){
             analyzeQuantifier( fm, f );
@@ -190,7 +190,7 @@ void QModelBuilderIG::processBuildModel( TheoryModel* m, bool fullModel ) {
           d_numQuantNoSelForm = 0;
           //now, see if we know that any exceptions via InstGen exist
           Trace("model-engine-debug") << "Perform InstGen techniques for quantifiers..." << std::endl;
-          for( int i=0; i<fm->getNumAssertedQuantifiers(); i++ ){
+          for( unsigned i=0; i<fm->getNumAssertedQuantifiers(); i++ ){
             Node f = fm->getAssertedQuantifier( i );
             if( isQuantifierActive( f ) ){
               int lems = doInstGen( fm, f );

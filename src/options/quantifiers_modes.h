@@ -83,8 +83,6 @@ enum QcfMode {
   QCF_PROP_EQ,
   /** use qcf for conflicts, propagations and heuristic instantiations */
   QCF_PARTIAL,
-  /** use qcf for model checking */
-  QCF_MC,
 };
 
 enum UserPatMode {

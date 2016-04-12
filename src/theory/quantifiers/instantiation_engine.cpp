@@ -123,8 +123,8 @@ void InstantiationEngine::check( Theory::Effort e, unsigned quant_e ){
     //collect all active quantified formulas belonging to this
     bool quantActive = false;
     d_quants.clear();
-    for( int i=0; i<d_quantEngine->getModel()->getNumAssertedQuantifiers(); i++ ){
-      Node q = d_quantEngine->getModel()->getAssertedQuantifier( i );
+    for( unsigned i=0; i<d_quantEngine->getModel()->getNumAssertedQuantifiers(); i++ ){
+      Node q = d_quantEngine->getModel()->getAssertedQuantifier( i, true );
       if( d_quantEngine->hasOwnership( q, this ) && d_quantEngine->getModel()->isQuantifierActive( q ) ){
         quantActive = true;
         d_quants.push_back( q );
@@ -137,7 +137,7 @@ void InstantiationEngine::check( Theory::Effort e, unsigned quant_e ){
       doInstantiationRound( e );
       if( d_quantEngine->inConflict() ){
         Assert( d_quantEngine->getNumLemmasWaiting()>lastWaiting );
-        Trace("inst-engine") << "Conflict, size = " << d_quantEngine->getNumLemmasWaiting();
+        Trace("inst-engine") << "Conflict = " << d_quantEngine->getNumLemmasWaiting() << " / " << d_quantEngine->getNumLemmasAddedThisRound();
         if( lastWaiting>0 ){
           Trace("inst-engine") << " (prev " << lastWaiting << ")";
         }

@@ -78,8 +78,8 @@ TNode TermArgTrie::addOrGetTerm( TNode n, std::vector< TNode >& reps, int argInd
 
 void TermArgTrie::debugPrint( const char * c, Node n, unsigned depth ) {
   for( std::map< TNode, TermArgTrie >::iterator it = d_data.begin(); it != d_data.end(); ++it ){
-    for( unsigned i=0; i<depth; i++ ){ Debug(c) << "  "; }
-    Debug(c) << it->first << std::endl;
+    for( unsigned i=0; i<depth; i++ ){ Trace(c) << "  "; }
+    Trace(c) << it->first << std::endl;
     it->second.debugPrint( c, n, depth+1 );
   }
 }
@@ -109,6 +109,20 @@ unsigned TermDb::getNumGroundTerms( Node f ) {
 Node TermDb::getGroundTerm( Node f, unsigned i ) {
   Assert( i<d_op_map[f].size() );
   return d_op_map[f][i];
+}
+
+unsigned TermDb::getNumTypeGroundTerms( TypeNode tn ) {
+  std::map< TypeNode, std::vector< Node > >::iterator it = d_type_map.find( tn );
+  if( it!=d_type_map.end() ){
+    return it->second.size();
+  }else{
+    return 0;
+  }
+}
+
+Node TermDb::getTypeGroundTerm( TypeNode tn, unsigned i ) {
+  Assert( i<d_type_map[tn].size() );
+  return d_type_map[tn][i];
 }
 
 Node TermDb::getMatchOperator( Node n ) {
@@ -202,6 +216,21 @@ void TermDb::computeUfEqcTerms( TNode f ) {
         }
       }
     }
+  }
+}
+
+bool TermDb::inRelevantDomain( TNode f, unsigned i, TNode r ) {
+  Assert( d_quantEngine->getTheoryEngine()->getMasterEqualityEngine()->getRepresentative( r )==r );
+  std::map< Node, std::map< unsigned, std::vector< Node > > >::iterator it = d_func_map_rel_dom.find( f );
+  if( it != d_func_map_rel_dom.end() ){
+    std::map< unsigned, std::vector< Node > >::iterator it2 = it->second.find( i );
+    if( it2!=it->second.end() ){
+      return std::find( it2->second.begin(), it2->second.end(), r )!=it2->second.end();
+    }else{
+      return false;
+    }
+  }else{
+    return false;
   }
 }
 
@@ -533,6 +562,7 @@ bool TermDb::reset( Theory::Effort effort ){
   d_arg_reps.clear();
   d_func_map_trie.clear();
   d_func_map_eqc_trie.clear();
+  d_func_map_rel_dom.clear();
   d_consistent_ee = true;
 
   eq::EqualityEngine* ee = d_quantEngine->getMasterEqualityEngine();
@@ -596,15 +626,17 @@ bool TermDb::reset( Theory::Effort effort ){
           }
           computeArgReps( n );
 
-          if( Trace.isOn("term-db-debug") ){
-            Trace("term-db-debug") << "Adding term " << n << " with arg reps : ";
-            for( unsigned i=0; i<d_arg_reps[n].size(); i++ ){
-              Trace("term-db-debug") << d_arg_reps[n][i] << " ";
+          Trace("term-db-debug") << "Adding term " << n << " with arg reps : ";
+          for( unsigned i=0; i<d_arg_reps[n].size(); i++ ){
+            Trace("term-db-debug") << d_arg_reps[n][i] << " ";
+            if( std::find( d_func_map_rel_dom[it->first][i].begin(), 
+                           d_func_map_rel_dom[it->first][i].end(), d_arg_reps[n][i] ) == d_func_map_rel_dom[it->first][i].end() ){
+              d_func_map_rel_dom[it->first][i].push_back( d_arg_reps[n][i] );
             }
-            Trace("term-db-debug") << std::endl;
-            if( ee->hasTerm( n ) ){
-              Trace("term-db-debug") << "  and value : " << ee->getRepresentative( n ) << std::endl;
-            }
+          }
+          Trace("term-db-debug") << std::endl;
+          if( ee->hasTerm( n ) ){
+            Trace("term-db-debug") << "  and value : " << ee->getRepresentative( n ) << std::endl;
           }
           Node at = d_func_map_trie[ it->first ].addOrGetTerm( n, d_arg_reps[n] );
           if( at!=n && ee->areEqual( at, n ) ){
@@ -650,12 +682,12 @@ bool TermDb::reset( Theory::Effort effort ){
   Trace("term-db-stats") << "TermDb: Reset" << std::endl;
   Trace("term-db-stats") << "Non-Congruent/Congruent/Non-Relevant = ";
   Trace("term-db-stats") << nonCongruentCount << " / " << congruentCount << " (" << alreadyCongruentCount << ") / " << nonRelevantCount << std::endl;
-  if( Debug.isOn("term-db") ){
-    Debug("term-db") << "functions : " << std::endl;
+  if( Trace.isOn("term-db-index") ){
+    Trace("term-db-index") << "functions : " << std::endl;
     for( std::map< Node, std::vector< Node > >::iterator it = d_op_map.begin(); it != d_op_map.end(); ++it ){
       if( it->second.size()>0 ){
-        Debug("term-db") << "- " << it->first << std::endl;
-        d_func_map_trie[ it->first ].debugPrint("term-db", it->second[0]);
+        Trace("term-db-index") << "- " << it->first << std::endl;
+        d_func_map_trie[ it->first ].debugPrint("term-db-index", it->second[0]);
       }
     }
   }
@@ -929,10 +961,10 @@ Node TermDb::getInstantiationConstant( Node q, int i ) const {
 }
 
 /** get number of instantiation constants for q */
-int TermDb::getNumInstantiationConstants( Node q ) const {
+unsigned TermDb::getNumInstantiationConstants( Node q ) const {
   std::map< Node, std::vector< Node > >::const_iterator it = d_inst_constants.find( q );
   if( it!=d_inst_constants.end() ){
-    return (int)it->second.size();
+    return it->second.size();
   }else{
     return 0;
   }

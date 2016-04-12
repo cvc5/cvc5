@@ -83,8 +83,10 @@ void ModelEngine::check( Theory::Effort e, unsigned quant_e ){
       Trace("model-engine-debug") << "Check model..." << std::endl;
       d_incomplete_check = false;
       //print debug
-      Trace("fmf-model-complete") << std::endl;
-      debugPrint("fmf-model-complete");
+      if( Trace.isOn("fmf-model-complete") ){
+        Trace("fmf-model-complete") << std::endl;
+        debugPrint("fmf-model-complete");
+      }
       //successfully built an acceptable model, now check it
       addedLemmas += checkModel();
     }else{
@@ -99,8 +101,10 @@ void ModelEngine::check( Theory::Effort e, unsigned quant_e ){
     if( addedLemmas==0 ){
       Trace("model-engine-debug") << "No lemmas added, incomplete = " << d_incomplete_check << std::endl;
       //CVC4 will answer SAT or unknown
-      Trace("fmf-consistent") << std::endl;
-      debugPrint("fmf-consistent");
+      if( Trace.isOn("fmf-consistent") ){
+        Trace("fmf-consistent") << std::endl;
+        debugPrint("fmf-consistent");
+      }
     }
   }
 }
@@ -177,35 +181,30 @@ int ModelEngine::checkModel(){
   d_addedLemmas = 0;
   d_totalLemmas = 0;
   //for statistics
-  for( int i=0; i<fm->getNumAssertedQuantifiers(); i++ ){
-    Node f = fm->getAssertedQuantifier( i );
-    int totalInst = 1;
-    for( size_t i=0; i<f[0].getNumChildren(); i++ ){
-      TypeNode tn = f[0][i].getType();
-      if( fm->d_rep_set.hasType( tn ) ){
-        totalInst = totalInst * (int)fm->d_rep_set.d_type_reps[ tn ].size();
+  if( Trace.isOn("model-engine") ){
+    for( unsigned i=0; i<fm->getNumAssertedQuantifiers(); i++ ){
+      Node f = fm->getAssertedQuantifier( i );
+      int totalInst = 1;
+      for( unsigned j=0; j<f[0].getNumChildren(); j++ ){
+        TypeNode tn = f[0][j].getType();
+        if( fm->d_rep_set.hasType( tn ) ){
+          totalInst = totalInst * (int)fm->d_rep_set.d_type_reps[ tn ].size();
+        }
       }
+      d_totalLemmas += totalInst;
     }
-    d_totalLemmas += totalInst;
   }
 
   Trace("model-engine-debug") << "Do exhaustive instantiation..." << std::endl;
   // FMC uses two sub-effort levels
   int e_max = options::mbqiMode()==MBQI_FMC || options::mbqiMode()==MBQI_FMC_INTERVAL ? 2 : ( options::mbqiMode()==MBQI_TRUST ? 0 : 1 );
   for( int e=0; e<e_max; e++) {
-    for( int i=0; i<fm->getNumAssertedQuantifiers(); i++ ){
-      Node f = fm->getAssertedQuantifier( i );
+    for( unsigned i=0; i<fm->getNumAssertedQuantifiers(); i++ ){
+      Node f = fm->getAssertedQuantifier( i, true );
       Trace("fmf-exh-inst") << "-> Exhaustive instantiate " << f << ", effort = " << e << "..." << std::endl;
       //determine if we should check this quantifier
       if( considerQuantifiedFormula( f ) ){
         exhaustiveInstantiate( f, e );
-        if( Trace.isOn("model-engine-warn") ){
-          if( d_addedLemmas>10000 ){
-            Debug("fmf-exit") << std::endl;
-            debugPrint("fmf-exit");
-            exit( 0 );
-          }
-        }
         if( d_quantEngine->inConflict() || ( optOneQuantPerRound() && d_addedLemmas>0 ) ){
           break;
         }
@@ -222,7 +221,7 @@ int ModelEngine::checkModel(){
 
   //print debug information
   if( d_quantEngine->inConflict() ){
-    Trace("model-engine") << "Conflict, size = " << d_quantEngine->getNumLemmasWaiting() << std::endl;
+    Trace("model-engine") << "Conflict = " << d_quantEngine->getNumLemmasWaiting() << " / " << d_quantEngine->getNumLemmasAddedThisRound() << std::endl;
   }else{
     Trace("model-engine") << "Added Lemmas = " << d_addedLemmas << " / " << d_triedLemmas << " / ";
     Trace("model-engine") << d_totalLemmas << std::endl;
@@ -320,15 +319,15 @@ void ModelEngine::exhaustiveInstantiate( Node f, int effort ){
 
 void ModelEngine::debugPrint( const char* c ){
   Trace( c ) << "Quantifiers: " << std::endl;
-  for( int i=0; i<(int)d_quantEngine->getModel()->getNumAssertedQuantifiers(); i++ ){
-    Node f = d_quantEngine->getModel()->getAssertedQuantifier( i );
+  for( unsigned i=0; i<d_quantEngine->getModel()->getNumAssertedQuantifiers(); i++ ){
+    Node q = d_quantEngine->getModel()->getAssertedQuantifier( i );
     Trace( c ) << "   ";
-    if( !d_quantEngine->getModelBuilder()->isQuantifierActive( f ) ){
+    if( !d_quantEngine->getModelBuilder()->isQuantifierActive( q ) ){
       Trace( c ) << "*Inactive* ";
     }else{
       Trace( c ) << "           ";
     }
-    Trace( c ) << f << std::endl;
+    Trace( c ) << q << std::endl;
   }
   //d_quantEngine->getModel()->debugPrint( c );
 }

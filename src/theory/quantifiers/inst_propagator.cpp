@@ -723,6 +723,9 @@ void InstPropagator::conflict( std::vector< Node >& exp ) {
       }else{
         Trace("qip-prop-debug") << it->first << " ";
       }
+    }else{
+      //mark the quantified formula as relevant
+      d_qe->markRelevant( it->second.d_q );
     }
   }
   Trace("qip-prop-debug") << std::endl;

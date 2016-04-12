@@ -114,6 +114,9 @@ private: //for completing match
   int d_unassigned_nvar;
   int d_una_index;
   std::vector< int > d_una_eqc_count;
+  //optimization: track which arguments variables appear under UF terms in
+  std::map< int, std::map< TNode, std::vector< unsigned > > > d_var_rel_dom;
+  void getPropagateVars( std::vector< TNode >& vars, TNode n, bool pol, std::map< TNode, bool >& visited );
 public:
   QuantInfo();
   ~QuantInfo();
@@ -138,7 +141,7 @@ public:
   bool containsVarMg(int i) const { return var_mg_find(i) != var_mg_end(); }
 
   bool matchGeneratorIsValid() const { return d_mg->isValid(); }
-  bool getNextMatch( QuantConflictFind * p) {
+  bool getNextMatch( QuantConflictFind * p ) {
     return d_mg->getNextMatch(p, this);
   }
 
@@ -146,7 +149,7 @@ public:
   void reset_round( QuantConflictFind * p );
 public:
   //initialize
-  void initialize( Node q, Node qn );
+  void initialize( QuantConflictFind * p, Node q, Node qn );
   //current constraints
   std::vector< TNode > d_match;
   std::vector< TNode > d_match_term;
@@ -158,7 +161,7 @@ public:
   bool getCurrentCanBeEqual( QuantConflictFind * p, int v, TNode n, bool chDiseq = false );
   int addConstraint( QuantConflictFind * p, int v, TNode n, bool polarity );
   int addConstraint( QuantConflictFind * p, int v, TNode n, int vn, bool polarity, bool doRemove );
-  bool setMatch( QuantConflictFind * p, int v, TNode n );
+  bool setMatch( QuantConflictFind * p, int v, TNode n, bool isGroundRep );
   bool isMatchSpurious( QuantConflictFind * p );
   bool isTConstraintSpurious( QuantConflictFind * p, std::vector< Node >& terms );
   bool entailmentTest( QuantConflictFind * p, Node lit, bool chEnt = true );
@@ -178,7 +181,6 @@ class QuantConflictFind : public QuantifiersModule
   typedef context::CDHashMap<Node, bool, NodeHashFunction> NodeBoolMap;
 private:
   context::CDO< bool > d_conflict;
-  std::vector< Node > d_quant_order;
   std::map< Kind, Node > d_zero;
   //for storing nodes created during t-constraint solving (prevents memory leaks)
   std::vector< Node > d_tempCache;
@@ -192,18 +194,14 @@ public:  //for ground terms
   Node d_false;
   TNode getZero( Kind k );
 private:
-  //currently asserted quantifiers
-  NodeList d_qassert;
   std::map< Node, QuantInfo > d_qinfo;
 private:  //for equivalence classes
   // type -> list(eqc)
   std::map< TypeNode, std::vector< TNode > > d_eqcs;
-  std::map< TypeNode, Node > d_model_basis;
 public:
   enum {
     effort_conflict,
     effort_prop_eq,
-    effort_mc,
   };
   short d_effort;
   void setEffort( int e ) { d_effort = e; }
