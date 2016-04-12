@@ -1,0 +1,10 @@
+% EXPECT: unsat
+OPTION "logic" "ALL_SUPPORTED";
+IntPair: TYPE = [INT, INT];
+x : SET OF IntPair;
+e : IntPair;
+ASSERT e = (4, 4);
+ASSERT e IS_IN x;
+
+ASSERT NOT ((4, 4) IS_IN x);
+CHECKSAT;

@@ -10,7 +10,13 @@ zt : IntPair;
 ASSERT zt = (2,1);
 
 ASSERT z IS_IN x;
-ASSERT NOT (zt IS_IN (TRANSPOSE x));
+ASSERT (3, 4) IS_IN x;
+ASSERT (3, 5) IS_IN x;
+ASSERT (3, 3) IS_IN x;
+
+ASSERT x = TRANSPOSE(y);
+
+ASSERT NOT (zt IS_IN y);
 
 ASSERT z IS_IN y;
 ASSERT NOT (zt IS_IN (TRANSPOSE y));
