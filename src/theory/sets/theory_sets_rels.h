@@ -100,6 +100,7 @@ private:
   NodeSet d_lemma;
   NodeSet d_shared_terms;
 
+  std::hash_set< Node, NodeHashFunction > d_tc_nodes;
   std::map< Node, std::vector<Node> > d_tuple_reps;
   std::map< Node, TupleTrie > d_membership_trie;
   std::hash_set< Node, NodeHashFunction > d_symbolic_tuples;
