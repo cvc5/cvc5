@@ -232,6 +232,8 @@ CRef Solver::reason(Var x) {
     vec<Lit> explanation;
     MinisatSatSolver::toMinisatClause(explanation_cl, explanation);
 
+    Debug("pf::sat") << "Solver::reason: explanation_cl = " << explanation_cl << std::endl;
+
     // Sort the literals by trail index level
     lemma_lt lt(*this);
     sort(explanation, lt);
@@ -265,6 +267,12 @@ CRef Solver::reason(Var x) {
       prev = explanation[j++] = explanation[i];
     }
     explanation.shrink(i - j);
+
+    Debug("pf::sat") << "Solver::reason: explanation = " ;
+    for (int i = 0; i < explanation.size(); ++i) {
+      Debug("pf::sat") << explanation[i] << " ";
+    }
+    Debug("pf::sat") << std::endl;
 
     // We need an explanation clause so we add a fake literal
     if (j == 1) {
@@ -337,6 +345,12 @@ bool Solver::addClause_(vec<Lit>& ps, bool removable, ClauseId& id)
 
     // If we are in solve or decision level > 0
     if (minisat_busy || decisionLevel() > 0) {
+      Debug("pf::sat") << "Add clause adding a new lemma: ";
+      for (int k = 0; k < ps.size(); ++k) {
+        Debug("pf::sat") << ps[k] << " ";
+      }
+      Debug("pf::sat") << std::endl;
+
       lemmas.push();
       ps.copyTo(lemmas.last());
       lemmas_removable.push(removable);
@@ -1667,6 +1681,13 @@ CRef Solver::updateLemmas() {
     {
       // The current lemma
       vec<Lit>& lemma = lemmas[i];
+
+      Debug("pf::sat") << "Solver::updateLemmas: working on lemma: ";
+      for (int k = 0; k < lemma.size(); ++k) {
+        Debug("pf::sat") << lemma[k] << " ";
+      }
+      Debug("pf::sat") << std::endl;
+
       // If it's an empty lemma, we have a conflict at zero level
       if (lemma.size() == 0) {
         Assert (! PROOF_ON());
