@@ -19,6 +19,7 @@
 
 #include "proof/clause_id.h"
 #include "proof/proof_manager.h"
+#include "proof/proof_utils.h"
 #include "proof/theory_proof.h"
 #include "prop/cnf_stream.h"
 #include "prop/minisat/minisat.h"
@@ -32,7 +33,6 @@ CnfProof::CnfProof(prop::CnfStream* stream,
   : d_cnfStream(stream)
   , d_clauseToAssertion(ctx)
   , d_assertionToProofRule(ctx)
-  , d_clauseIdToProofRecipe(ctx)
   , d_currentAssertionStack()
   , d_currentDefinitionStack()
   , d_clauseToDefinition(ctx)
@@ -103,7 +103,6 @@ void CnfProof::registerConvertedClause(ClauseId clause, bool explanation) {
 
   setClauseAssertion(clause, current_assertion);
   setClauseDefinition(clause, current_expr);
-  registerExplanationLemma(clause);
 }
 
 void CnfProof::setClauseAssertion(ClauseId clause, Node expr) {
@@ -143,14 +142,9 @@ void CnfProof::registerAssertion(Node assertion, ProofRule reason) {
   d_assertionToProofRule.insert(assertion, reason);
 }
 
-void CnfProof::registerExplanationLemma(ClauseId clauseId) {
-  d_clauseIdToProofRecipe.insert(clauseId, getProofRecipe());
-}
-
-theory::TheoryId CnfProof::getOwnerTheory(ClauseId clause) {
-  Assert(d_clauseIdToProofRecipe.find(clause) != d_clauseIdToProofRecipe.end());
-  LemmaProofRecipe proofRecipe = d_clauseIdToProofRecipe[clause];
-  return proofRecipe.getTheory();
+LemmaProofRecipe CnfProof::getProofRecipe(const std::set<Node> &lemma) {
+  Assert(d_lemmaToProofRecipe.find(lemma) != d_lemmaToProofRecipe.end());
+  return d_lemmaToProofRecipe[lemma];
 }
 
 void CnfProof::setCnfDependence(Node from, Node to) {
@@ -185,11 +179,7 @@ Node CnfProof::getCurrentAssertion() {
 
 void CnfProof::setProofRecipe(LemmaProofRecipe* proofRecipe) {
   Assert(proofRecipe);
-  d_proofRecipe = *proofRecipe;
-}
-
-LemmaProofRecipe CnfProof::getProofRecipe() {
-  return d_proofRecipe;
+  d_lemmaToProofRecipe[proofRecipe->getAssertions()] = *proofRecipe;
 }
 
 void CnfProof::pushCurrentDefinition(Node definition) {
@@ -213,22 +203,19 @@ Node CnfProof::getCurrentDefinition() {
   return d_currentDefinitionStack.back();
 }
 
-
 Node CnfProof::getAtom(prop::SatVariable var) {
   prop::SatLiteral lit (var);
   Node node = d_cnfStream->getNode(lit);
   return node;
 }
 
-
 void CnfProof::collectAtoms(const prop::SatClause* clause,
-                            NodeSet& atoms) {
+                            std::set<Node>& atoms) {
   for (unsigned i = 0; i < clause->size(); ++i) {
     prop::SatLiteral lit = clause->operator[](i);
     prop::SatVariable var = lit.getSatVariable();
     TNode atom = getAtom(var);
     if (atoms.find(atom) == atoms.end()) {
-      Assert (atoms.find(atom) == atoms.end());
       atoms.insert(atom);
     }
   }
@@ -238,14 +225,65 @@ prop::SatLiteral CnfProof::getLiteral(TNode atom) {
   return d_cnfStream->getLiteral(atom);
 }
 
+bool CnfProof::hasLiteral(TNode atom) {
+  return d_cnfStream->hasLiteral(atom);
+}
+
+void CnfProof::ensureLiteral(TNode atom) {
+  d_cnfStream->ensureLiteral(atom);
+}
+
 void CnfProof::collectAtomsForClauses(const IdToSatClause& clauses,
-                                       NodeSet& atom_map) {
+                                      std::set<Node>& atoms) {
   IdToSatClause::const_iterator it = clauses.begin();
   for (; it != clauses.end(); ++it) {
     const prop::SatClause* clause = it->second;
-    collectAtoms(clause, atom_map);
+    collectAtoms(clause, atoms);
   }
+}
 
+void CnfProof::collectAtomsAndRewritesForLemmas(const IdToSatClause& lemmaClauses,
+                                                std::set<Node>& atoms,
+                                                NodePairSet& rewrites) {
+  IdToSatClause::const_iterator it = lemmaClauses.begin();
+  for (; it != lemmaClauses.end(); ++it) {
+    const prop::SatClause* clause = it->second;
+
+    // TODO: just calculate the map from ID to recipe once,
+    // instead of redoing this over and over again
+    std::vector<Expr> clause_expr;
+    std::set<Node> clause_expr_nodes;
+    for(unsigned i = 0; i < clause->size(); ++i) {
+      prop::SatLiteral lit = (*clause)[i];
+      Node node = getAtom(lit.getSatVariable());
+      Expr atom = node.toExpr();
+      if (atom.isConst()) {
+        Assert (atom == utils::mkTrue());
+        continue;
+      }
+      clause_expr_nodes.insert(lit.isNegated() ? node.notNode() : node);
+    }
+
+    LemmaProofRecipe recipe = getProofRecipe(clause_expr_nodes);
+
+    for (unsigned i = 0; i < recipe.getNumSteps(); ++i) {
+      LemmaProofRecipe::ProofStep proofStep = recipe.getStep(i);
+      Node atom = proofStep.getLiteral();
+      if (atom.getKind() == kind::NOT) {
+        atom = atom[0];
+      }
+
+      atoms.insert(atom);
+    }
+
+    LemmaProofRecipe::RewriteIterator rewriteIt;
+    for (rewriteIt = recipe.rewriteBegin(); rewriteIt != recipe.rewriteEnd(); ++rewriteIt) {
+      rewrites.insert(NodePair(rewriteIt->first, rewriteIt->second));
+
+      // The unrewritten terms also need to have literals, so insert them into atoms
+      atoms.insert(rewriteIt->first);
+    }
+  }
 }
 
 void CnfProof::collectAssertionsForClauses(const IdToSatClause& clauses,
@@ -264,13 +302,13 @@ void CnfProof::collectAssertionsForClauses(const IdToSatClause& clauses,
   }
 }
 
-void LFSCCnfProof::printAtomMapping(const NodeSet& atoms,
+void LFSCCnfProof::printAtomMapping(const std::set<Node>& atoms,
                                     std::ostream& os,
                                     std::ostream& paren) {
-  NodeSet::const_iterator it = atoms.begin();
-  NodeSet::const_iterator end = atoms.end();
+  std::set<Node>::const_iterator it = atoms.begin();
+  std::set<Node>::const_iterator end = atoms.end();
 
-  for (;it != end;  ++it) {
+  for (;it != end; ++it) {
     os << "(decl_atom ";
     Node atom = *it;
     prop::SatVariable var = getLiteral(atom).getSatVariable();
@@ -278,8 +316,8 @@ void LFSCCnfProof::printAtomMapping(const NodeSet& atoms,
     LFSCTheoryProofEngine* pe = (LFSCTheoryProofEngine*)ProofManager::currentPM()->getTheoryProofEngine();
     pe->printLetTerm(atom.toExpr(), os);
 
-    os << " (\\ " << ProofManager::getVarName(var, d_name)
-       << " (\\ " << ProofManager::getAtomName(var, d_name) << "\n";
+    os << " (\\ " << ProofManager::getVarName(var, d_name);
+    os << " (\\ " << ProofManager::getAtomName(var, d_name) << "\n";
     paren << ")))";
   }
 }
@@ -305,6 +343,9 @@ void LFSCCnfProof::printCnfProofForClause(ClauseId id,
                                           const prop::SatClause* clause,
                                           std::ostream& os,
                                           std::ostream& paren) {
+  Debug("cnf-pf") << std::endl << std::endl << "LFSCCnfProof::printCnfProofForClause( " << id << " ) starting "
+                  << std::endl;
+
   os << "(satlem _ _ ";
   std::ostringstream clause_paren;
   printClause(*clause, os, clause_paren);
@@ -336,6 +377,10 @@ void LFSCCnfProof::printCnfProofForClause(ClauseId id,
   // checks if tautological definitional clause or top-level clause
   // and prints the proof of the top-level formula
   bool is_input = printProofTopLevel(base_assertion, os_base);
+
+  if (is_input) {
+    Debug("cnf-pf") << std::endl << "; base assertion is input. proof: " << os_base.str() << std::endl;
+  }
 
   //get base assertion with polarity
   bool base_pol = base_assertion.getKind()!=kind::NOT;
@@ -664,6 +709,7 @@ void LFSCCnfProof::printCnfProofForClause(ClauseId id,
 
   os << ")" << clause_paren.str()
      << " (\\ " << ProofManager::getInputClauseName(id, d_name) << "\n";
+
   paren << "))";
 }
 

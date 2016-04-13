@@ -44,7 +44,9 @@ typedef __gnu_cxx::hash_set<ClauseId> ClauseIdSet;
 
 typedef context::CDHashMap<ClauseId, Node> ClauseIdToNode;
 typedef context::CDHashMap<Node, ProofRule, NodeHashFunction> NodeToProofRule;
-typedef context::CDHashMap<ClauseId, LemmaProofRecipe> ClauseToProofRecipe;
+typedef std::map<std::set<Node>, LemmaProofRecipe> LemmaToRecipe;
+typedef std::pair<Node, Node> NodePair;
+typedef std::set<NodePair> NodePairSet;
 
 class CnfProof {
 protected:
@@ -56,11 +58,8 @@ protected:
   /** Map from assertion to reason for adding assertion  **/
   NodeToProofRule d_assertionToProofRule;
 
-  /** Map from assertion to the recipe for proving it **/
-  ClauseToProofRecipe d_clauseIdToProofRecipe;
-
-  /** The recipe for proving the current lemma **/
-  LemmaProofRecipe d_proofRecipe;
+  /** Map from lemma to the recipe for proving it **/
+  LemmaToRecipe d_lemmaToProofRecipe;
 
   /** Top of stack is assertion currently being converted to CNF **/
   std::vector<Node> d_currentAssertionStack;
@@ -92,10 +91,16 @@ public:
 
   Node getAtom(prop::SatVariable var);
   prop::SatLiteral getLiteral(TNode node);
+  bool hasLiteral(TNode node);
+  void ensureLiteral(TNode node);
+
   void collectAtoms(const prop::SatClause* clause,
-                    NodeSet& atoms);
+                    std::set<Node>& atoms);
   void collectAtomsForClauses(const IdToSatClause& clauses,
-                               NodeSet& atoms);
+                              std::set<Node>& atoms);
+  void collectAtomsAndRewritesForLemmas(const IdToSatClause& lemmaClauses,
+                                        std::set<Node>& atoms,
+                                        NodePairSet& rewrites);
   void collectAssertionsForClauses(const IdToSatClause& clauses,
                                    NodeSet& assertions);
 
@@ -123,10 +128,7 @@ public:
   Node getCurrentDefinition();
 
   void setProofRecipe(LemmaProofRecipe* proofRecipe);
-  LemmaProofRecipe getProofRecipe();
-  theory::TheoryId getOwnerTheory(ClauseId clause);
-
-  void registerExplanationLemma(ClauseId clauseId);
+  LemmaProofRecipe getProofRecipe(const std::set<Node> &lemma);
 
   // accessors for the leaf assertions that are being converted to CNF
   bool isAssertion(Node node);
@@ -135,7 +137,7 @@ public:
   Node getAssertionForClause(ClauseId clause);
 
   /** Virtual methods for printing things **/
-  virtual void printAtomMapping(const NodeSet& atoms,
+  virtual void printAtomMapping(const std::set<Node>& atoms,
                                 std::ostream& os,
                                 std::ostream& paren) = 0;
 
@@ -162,7 +164,7 @@ public:
   {}
   ~LFSCCnfProof() {}
 
-  void printAtomMapping(const NodeSet& atoms,
+  void printAtomMapping(const std::set<Node>& atoms,
                         std::ostream& os,
                         std::ostream& paren);
 
