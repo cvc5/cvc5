@@ -866,4 +866,8 @@ void LFSCUFProof::printDeferredDeclarations(std::ostream& os, std::ostream& pare
   // Nothing to do here at this point.
 }
 
+void LFSCUFProof::printAliasingDeclarations(std::ostream& os, std::ostream& paren) {
+  // Nothing to do here at this point.
+}
+
 } /* namespace CVC4 */

@@ -1062,6 +1062,7 @@ void ArrayProof::registerTerm(Expr term) {
 }
 
 std::string ArrayProof::skolemToLiteral(Expr skolem) {
+  Debug("pf::array") << "ArrayProof::skolemToLiteral( " << skolem << ")" << std::endl;
   Assert(d_skolemToLiteral.find(skolem) != d_skolemToLiteral.end());
   return d_skolemToLiteral[skolem];
 }
@@ -1234,6 +1235,7 @@ void LFSCArrayProof::printTermDeclarations(std::ostream& os, std::ostream& paren
 void LFSCArrayProof::printDeferredDeclarations(std::ostream& os, std::ostream& paren) {
   Debug("pf::array") << "Array: print deferred declarations called" << std::endl;
 
+  unsigned count = 1;
   for (ExprSet::const_iterator it = d_skolemDeclarations.begin(); it != d_skolemDeclarations.end(); ++it) {
     Expr term = *it;
     Node equality = ProofManager::getSkolemizationManager()->getDisequality(*it);
@@ -1242,7 +1244,7 @@ void LFSCArrayProof::printDeferredDeclarations(std::ostream& os, std::ostream& p
                        << "It is a witness for: " << equality << std::endl;
 
     std::ostringstream newSkolemLiteral;
-    newSkolemLiteral << ".sl" << d_skolemToLiteral.size();
+    newSkolemLiteral << ".sl" << count++;
     std::string skolemLiteral = newSkolemLiteral.str();
 
     d_skolemToLiteral[*it] = skolemLiteral;
@@ -1255,20 +1257,32 @@ void LFSCArrayProof::printDeferredDeclarations(std::ostream& os, std::ostream& p
     Node array_one = equality[0][0];
     Node array_two = equality[0][1];
 
-    LetMap map;
+    Node lemma = ProofManager::getSkolemizationManager()->getLemma(term);
+    // Lemma should be: (OR (a == b) (NOT (a[k] == b[k]))
+    Assert(lemma.getKind() == kind::OR);
+    Assert(lemma.getNumChildren() == 2);
+    Assert(lemma[0] == equality[0]);
+    Assert(lemma[1].getKind() == kind::NOT);
+    bool symm = (lemma[1][0][0][0] == lemma[0][1]);
 
-    os << "(ext _ _ ";
+    LetMap map;
+    os << "(" << (symm ? "symm_" : "" ) << "ext _ _ ";
     printTerm(array_one.toExpr(), os, map);
     os << " ";
     printTerm(array_two.toExpr(), os, map);
     os << " (\\ ";
-    printTerm(*it, os, map);
+    // printTerm(*it, os, map);
+    os << ProofManager::sanitize(*it);
     os << " (\\ ";
     os << skolemLiteral.c_str();
     os << "\n";
 
     paren << ")))";
   }
+}
+
+void LFSCArrayProof::printAliasingDeclarations(std::ostream& os, std::ostream& paren) {
+    // Nothing to do here at this point.
 }
 
 } /* CVC4  namespace */
