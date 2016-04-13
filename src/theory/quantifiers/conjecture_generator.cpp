@@ -605,7 +605,8 @@ void ConjectureGenerator::check( Theory::Effort e, unsigned quant_e ) {
       std::vector< TypeNode > rt_types;
       std::map< TypeNode, std::map< int, std::vector< Node > > > conj_lhs;
       unsigned addedLemmas = 0;
-      for( unsigned depth=1; depth<=3; depth++ ){
+      unsigned maxDepth = options::conjectureGenMaxDepth();
+      for( unsigned depth=1; depth<=maxDepth; depth++ ){
         Trace("sg-proc") << "Generate relevant LHS at depth " << depth << "..." << std::endl;
         Trace("sg-rel-term") << "Relevant terms of depth " << depth << " : " << std::endl;
         //set up environment
@@ -1167,6 +1168,8 @@ void ConjectureGenerator::processCandidateConjecture( TNode lhs, TNode rhs, unsi
     d_waiting_conjectures_score.push_back( score );
     d_waiting_conjectures[lhs].push_back( rhs );
     d_waiting_conjectures[rhs].push_back( lhs );
+  }else{
+    Trace("sg-conjecture-debug2") << "...do not consider " << lhs << " == " << rhs << ", score = " << score << std::endl;
   }
 }
 

@@ -260,10 +260,6 @@ public:
   /** get instantiate cons */
   static Node getInstCons( Node n, const Datatype& dt, int index ) {
     Assert( index>=0 && index<(int)dt.getNumConstructors() );
-    Type tspec;
-    if( dt.isParametric() ){
-      tspec = dt[index].getSpecializedConstructorType(n.getType().toType());
-    }
     std::vector< Node > children;
     children.push_back( Node::fromExpr( dt[index].getConstructor() ) );
     for( int i=0; i<(int)dt[index].getNumArgs(); i++ ){

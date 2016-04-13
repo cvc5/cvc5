@@ -1016,14 +1016,29 @@ Node TermDb::getInstantiatedNode( Node n, Node q, std::vector< Node >& terms ) {
 }
 
 
-void getSelfSel( const DatatypeConstructor& dc, Node n, TypeNode ntn, std::vector< Node >& selfSel ){
+void getSelfSel( const Datatype& dt, const DatatypeConstructor& dc, Node n, TypeNode ntn, std::vector< Node >& selfSel ){
+  TypeNode tspec;
+  if( dt.isParametric() ){
+    tspec = TypeNode::fromType( dc.getSpecializedConstructorType(n.getType().toType()) );
+    Trace("sk-ind-debug") << "Specialized constructor type : " << tspec << std::endl;
+    Assert( tspec.getNumChildren()==dc.getNumArgs() );
+  }
+  Trace("sk-ind-debug") << "Check self sel " << dc.getName() << " " << dt.getName() << std::endl;
   for( unsigned j=0; j<dc.getNumArgs(); j++ ){
-    TypeNode tn = TypeNode::fromType( dc[j].getRangeType() );
     std::vector< Node > ssc;
-    if( tn==ntn ){
-      ssc.push_back( n );
+    if( dt.isParametric() ){
+      Trace("sk-ind-debug") << "Compare " << tspec[j] << " " << ntn << std::endl;
+      if( tspec[j]==ntn ){
+        ssc.push_back( n );
+      }
+    }else{
+      TypeNode tn = TypeNode::fromType( dc[j].getRangeType() );
+      Trace("sk-ind-debug") << "Compare " << tn << " " << ntn << std::endl;
+      if( tn==ntn ){
+        ssc.push_back( n );
+      }
     }
-    /* TODO
+    /* TODO: more than weak structural induction
     else if( datatypes::DatatypesRewriter::isTypeDatatype( tn ) && std::find( visited.begin(), visited.end(), tn )==visited.end() ){
       visited.push_back( tn );
       const Datatype& dt = ((DatatypeType)(subs[0].getType()).toType()).getDatatype();
@@ -1101,7 +1116,7 @@ Node TermDb::mkSkolemizedBody( Node f, Node n, std::vector< TypeNode >& argTypes
       std::vector< Node > disj;
       for( unsigned i=0; i<dt.getNumConstructors(); i++ ){
         std::vector< Node > selfSel;
-        getSelfSel( dt[i], k, tn, selfSel );
+        getSelfSel( dt, dt[i], k, tn, selfSel );
         std::vector< Node > conj;
         conj.push_back( NodeManager::currentNM()->mkNode( APPLY_TESTER, Node::fromExpr( dt[i].getTester() ), k ).negate() );
         for( unsigned j=0; j<selfSel.size(); j++ ){

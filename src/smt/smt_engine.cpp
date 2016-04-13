@@ -1095,20 +1095,27 @@ SmtEngine::SmtEngine(ExprManager* em) throw() :
 }
 
 void SmtEngine::finishInit() {
+  Trace("smt-debug") << "SmtEngine::finishInit" << std::endl;
   // ensure that our heuristics are properly set up
   setDefaults();
+  
+  Trace("smt-debug") << "Making decision engine..." << std::endl;
 
   d_decisionEngine = new DecisionEngine(d_context, d_userContext);
   d_decisionEngine->init();   // enable appropriate strategies
 
+  Trace("smt-debug") << "Making prop engine..." << std::endl;
   d_propEngine = new PropEngine(d_theoryEngine, d_decisionEngine, d_context,
                                 d_userContext, d_private->getReplayLog(),
                                 d_replayStream, d_channels);
 
+  Trace("smt-debug") << "Setting up theory engine..." << std::endl;
   d_theoryEngine->setPropEngine(d_propEngine);
   d_theoryEngine->setDecisionEngine(d_decisionEngine);
+  Trace("smt-debug") << "Finishing init for theory engine..." << std::endl;
   d_theoryEngine->finishInit();
 
+  Trace("smt-debug") << "Set up assertion list..." << std::endl;
   // [MGD 10/20/2011] keep around in incremental mode, due to a
   // cleanup ordering issue and Nodes/TNodes.  If SAT is popped
   // first, some user-context-dependent TNodes might still exist
@@ -1129,6 +1136,7 @@ void SmtEngine::finishInit() {
                       << SetBenchmarkLogicCommand(everything.getLogicString());
   }
 
+  Trace("smt-debug") << "Dump declaration commands..." << std::endl;
   // dump out any pending declaration commands
   for(unsigned i = 0; i < d_dumpCommands.size(); ++i) {
     Dump("declarations") << *d_dumpCommands[i];
@@ -1137,6 +1145,7 @@ void SmtEngine::finishInit() {
   d_dumpCommands.clear();
 
   PROOF( ProofManager::currentPM()->setLogic(d_logic); );
+  Trace("smt-debug") << "SmtEngine::finishInit done" << std::endl;
 }
 
 void SmtEngine::finalOptionsAreSet() {
@@ -3638,6 +3647,7 @@ Result SmtEngine::check() {
   // Make sure the prop layer has all of the assertions
   Trace("smt") << "SmtEngine::check(): processing assertions" << endl;
   d_private->processAssertions();
+  Trace("smt") << "SmtEngine::check(): done processing assertions" << endl;
 
   // Turn off stop only for QF_LRA
   // TODO: Bring up in a meeting where to put this
