@@ -180,6 +180,7 @@ FINDARGS = -iname Makefile \
 		-or -iname \*.mk \
 		-or -iname \*.h \
 		-or -iname \*.cpp \
+		-or -iname \*.cc \
 		-or -iname \*.c | \
 		grep -v TestRunner | \
 		xargs etags
