@@ -258,7 +258,20 @@ SatLiteral CnfStream::convertAtom(TNode node) {
 
 SatLiteral CnfStream::getLiteral(TNode node) {
   Assert(!node.isNull(), "CnfStream: can't getLiteral() of null node");
+
+  if (!d_nodeToLiteralMap.contains(node)) {
+    Debug("gk::cnf") << "Dumping CNF map" << std::endl;
+    NodeToLiteralMap::key_iterator it;
+    for (it = d_nodeToLiteralMap.key_begin(); it != d_nodeToLiteralMap.key_end(); ++it) {
+      Debug("gk::cnf") << *it << std::endl;
+    }
+    Debug("gk::cnf") << "Dumping CNF map DONE" << std::endl;
+
+    Debug("gk::cnf") << "Rewritten node = " << theory::Rewriter::rewrite(node) << std::endl;
+  }
+
   Assert(d_nodeToLiteralMap.contains(node), "Literal not in the CNF Cache: %s\n", node.toString().c_str());
+
   SatLiteral literal = d_nodeToLiteralMap[node];
   Debug("cnf") << "CnfStream::getLiteral(" << node << ") => " << literal << std::endl;
   return literal;
