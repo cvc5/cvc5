@@ -331,7 +331,7 @@ void TheoryBV::sendConflict() {
   if (d_conflictNode.isNull()) {
     return;
   } else {
-    Debug("bitvector") << indent() << "TheoryBV::check(): conflict " << d_conflictNode;
+    Debug("bitvector") << indent() << "TheoryBV::check(): conflict " << d_conflictNode << std::endl;
     d_out->conflict(d_conflictNode);
     d_statistics.d_avgConflictSize.addEntry(d_conflictNode.getNumChildren());
     d_conflictNode = Node::null();
@@ -707,7 +707,7 @@ Node TheoryBV::explain(TNode node) {
   // return the explanation
   Node explanation = utils::mkAnd(assumptions);
   Debug("bitvector::explain") << "TheoryBV::explain(" << node << ") => " << explanation << std::endl;
-  Debug("bitvector::explain") << "TheoryBV::explain done. \n"; 
+  Debug("bitvector::explain") << "TheoryBV::explain done. \n";
   return explanation;
 }
 
