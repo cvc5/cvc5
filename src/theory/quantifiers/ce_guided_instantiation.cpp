@@ -432,7 +432,7 @@ void CegInstantiation::checkCegConjecture( CegConjecture * conj ) {
       Assert( aq==q );
       std::vector< Node > model_terms;
       if( getModelValues( conj, conj->d_candidates, model_terms ) ){
-        d_quantEngine->addInstantiation( q, model_terms, false );
+        d_quantEngine->addInstantiation( q, model_terms );
       }
     }
   }else{

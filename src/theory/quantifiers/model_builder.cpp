@@ -280,7 +280,7 @@ int QModelBuilderIG::initializeQuantifier( Node f, Node fp ){
     //try to add it
     Trace("inst-fmf-init") << "Init: try to add match " << d_quant_basis_match[f] << std::endl;
     //add model basis instantiation
-    if( d_qe->addInstantiation( fp, d_quant_basis_match[f], false ) ){
+    if( d_qe->addInstantiation( fp, d_quant_basis_match[f] ) ){
       d_quant_basis_match_added[f] = true;
       return 1;
     }else{
@@ -430,7 +430,7 @@ bool QModelBuilderIG::doExhaustiveInstantiation( FirstOrderModel * fm, Node f, i
           }
           Debug("fmf-model-eval") << "* Add instantiation " << m << std::endl;
           //add as instantiation
-          if( d_qe->addInstantiation( f, m ) ){
+          if( d_qe->addInstantiation( f, m, true ) ){
             d_addedLemmas++;
             if( d_qe->inConflict() ){
               break;

@@ -28,14 +28,14 @@ class AlphaEquivalenceNode {
 public:
   std::map< Node, std::map< int, AlphaEquivalenceNode > > d_children;
   Node d_quant;
-  static bool registerNode( AlphaEquivalenceNode* aen, QuantifiersEngine* qe, Node q, std::vector< Node >& tt, std::vector< int >& arg_index );
+  static Node registerNode( AlphaEquivalenceNode* aen, QuantifiersEngine* qe, Node q, std::vector< Node >& tt, std::vector< int >& arg_index );
 };
 
 class AlphaEquivalenceTypeNode {
 public:
   std::map< TypeNode, std::map< int, AlphaEquivalenceTypeNode > > d_children;
   AlphaEquivalenceNode d_data;
-  static bool registerNode( AlphaEquivalenceTypeNode* aetn,
+  static Node registerNode( AlphaEquivalenceTypeNode* aetn,
                             QuantifiersEngine* qe, Node q, Node t, std::vector< TypeNode >& typs, std::map< TypeNode, int >& typ_count, int index = 0 );
 };
 
@@ -47,8 +47,8 @@ private:
 public:
   AlphaEquivalence( QuantifiersEngine* qe ) : d_qe( qe ){}
   ~AlphaEquivalence(){}
-
-  bool reduceQuantifier( Node q );
+  /** reduce quantifier, return value (if non-null) is lemma justifying why q ia reducible. */
+  Node reduceQuantifier( Node q );
 };
 
 }

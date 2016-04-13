@@ -682,7 +682,7 @@ bool FullModelChecker::doExhaustiveInstantiation( FirstOrderModel * fm, Node f, 
               }else{
                 //just add the instance
                 d_triedLemmas++;
-                if( d_qe->addInstantiation( f, inst ) ){
+                if( d_qe->addInstantiation( f, inst, true ) ){
                   Trace("fmc-debug-inst") << "** Added instantiation." << std::endl;
                   d_addedLemmas++;
                   if( d_qe->inConflict() || options::fmfOneInstPerRound() ){
@@ -810,7 +810,7 @@ bool FullModelChecker::exhaustiveInstantiate(FirstOrderModelFmc * fm, Node f, No
       if (ev!=d_true) {
         Trace("fmc-exh-debug") << ", add!";
         //add as instantiation
-        if( d_qe->addInstantiation( f, inst ) ){
+        if( d_qe->addInstantiation( f, inst, true ) ){
           Trace("fmc-exh-debug")  << " ...success.";
           addedLemmas++;
           if( d_qe->inConflict() || options::fmfOneInstPerRound() ){

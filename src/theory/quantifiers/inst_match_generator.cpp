@@ -270,7 +270,7 @@ bool InstMatchGenerator::continueNextMatch( Node f, InstMatch& m, QuantifiersEng
     return d_next->getNextMatch( f, m, qe );
   }else{
     if( d_active_add ){
-      return qe->addInstantiation( f, m, false );
+      return qe->addInstantiation( f, m );
     }else{
       return true;
     }
@@ -343,7 +343,7 @@ int InstMatchGenerator::addInstantiations( Node f, InstMatch& baseMatch, Quantif
   while( getNextMatch( f, m, qe ) ){
     if( !d_active_add ){
       m.add( baseMatch );
-      if( qe->addInstantiation( f, m, false ) ){
+      if( qe->addInstantiation( f, m ) ){
         addedLemmas++;
         if( qe->inConflict() ){
           break;
@@ -366,7 +366,7 @@ int InstMatchGenerator::addTerm( Node f, Node t, QuantifiersEngine* qe ){
   if( !d_match_pattern.isNull() ){
     InstMatch m( f );
     if( getMatch( f, t, m, qe ) ){
-      if( qe->addInstantiation( f, m, false ) ){
+      if( qe->addInstantiation( f, m ) ){
         return 1;
       }
     }
@@ -674,7 +674,7 @@ void InstMatchGeneratorMulti::processNewInstantiations2( QuantifiersEngine* qe, 
     }
   }else{
     //m is an instantiation
-    if( qe->addInstantiation( d_f, m, false ) ){
+    if( qe->addInstantiation( d_f, m ) ){
       addedLemmas++;
       Debug("smart-multi-trigger") << "-> Produced instantiation " << m << std::endl;
     }
@@ -770,7 +770,7 @@ void InstMatchGeneratorSimple::addInstantiations( InstMatch& m, QuantifiersEngin
       Debug("simple-trigger") << "...set " << it->second << " " << t[it->first] << std::endl;
       m.setValue( it->second, t[it->first] );
     }
-    if( qe->addInstantiation( d_f, m, false ) ){
+    if( qe->addInstantiation( d_f, m ) ){
       addedLemmas++;
       Debug("simple-trigger") << "-> Produced instantiation " << m << std::endl;
     }
@@ -815,7 +815,7 @@ int InstMatchGeneratorSimple::addTerm( Node q, Node t, QuantifiersEngine* qe ){
       return 0;
     }
   }
-  return qe->addInstantiation( q, m, false ) ? 1 : 0;
+  return qe->addInstantiation( q, m ) ? 1 : 0;
 }
 
 }/* CVC4::theory::inst namespace */

@@ -164,7 +164,8 @@ private:
   /** list of all quantifiers seen */
   std::map< Node, bool > d_quants;
   /** quantifiers reduced */
-  std::map< Node, bool > d_quants_red;
+  BoolMap d_quants_red;
+  std::map< Node, Node > d_quants_red_lem;
   /** list of all lemmas produced */
   //std::map< Node, bool > d_lemmas_produced;
   BoolMap d_lemmas_produced_c;
@@ -175,6 +176,8 @@ private:
   /** list of all instantiations produced for each quantifier */
   std::map< Node, inst::InstMatchTrie > d_inst_match_trie;
   std::map< Node, inst::CDInstMatchTrie* > d_c_inst_match_trie;
+  /** recorded instantiations */
+  std::vector< std::pair< Node, std::vector< Node > > > d_recorded_inst;
   /** quantifiers that have been skolemized */
   BoolMap d_skolemized;
   /** term database */
@@ -287,7 +290,7 @@ private:
   /** compute term vector */
   void computeTermVector( Node f, InstMatch& m, std::vector< Node >& vars, std::vector< Node >& terms );
   /** record instantiation, return true if it was non-duplicate */
-  bool recordInstantiationInternal( Node q, std::vector< Node >& terms, bool modEq = false, bool modInst = false, bool addedLem = true );
+  bool recordInstantiationInternal( Node q, std::vector< Node >& terms, bool modEq = false, bool addedLem = true );
   /** remove instantiation */
   bool removeInstantiationInternal( Node q, std::vector< Node >& terms );
   /** set instantiation level attr */
@@ -310,9 +313,9 @@ public:
   /** add require phase */
   void addRequirePhase( Node lit, bool req );
   /** do instantiation specified by m */
-  bool addInstantiation( Node q, InstMatch& m, bool mkRep = true, bool modEq = false, bool modInst = false, bool doVts = false );
+  bool addInstantiation( Node q, InstMatch& m, bool mkRep = false, bool modEq = false, bool doVts = false );
   /** add instantiation */
-  bool addInstantiation( Node q, std::vector< Node >& terms, bool mkRep = true, bool modEq = false, bool modInst = false, bool doVts = false );
+  bool addInstantiation( Node q, std::vector< Node >& terms, bool mkRep = false, bool modEq = false, bool doVts = false );
   /** remove pending instantiation */
   bool removeInstantiation( Node q, Node lem, std::vector< Node >& terms );
   /** split on node n */

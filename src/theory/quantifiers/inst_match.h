@@ -111,23 +111,23 @@ public:
         modInst is if we return true if m is an instance of a match that exists
    */
   bool existsInstMatch( QuantifiersEngine* qe, Node f, InstMatch& m, bool modEq = false,
-                        bool modInst = false, ImtIndexOrder* imtio = NULL, int index = 0 ) {
-    return !addInstMatch( qe, f, m, modEq, modInst, imtio, true, index );
+                        ImtIndexOrder* imtio = NULL, int index = 0 ) {
+    return !addInstMatch( qe, f, m, modEq, imtio, true, index );
   }
   bool existsInstMatch( QuantifiersEngine* qe, Node f, std::vector< Node >& m, bool modEq = false,
-                        bool modInst = false, ImtIndexOrder* imtio = NULL, int index = 0 ) {
-    return !addInstMatch( qe, f, m, modEq, modInst, imtio, true, index );
+                        ImtIndexOrder* imtio = NULL, int index = 0 ) {
+    return !addInstMatch( qe, f, m, modEq, imtio, true, index );
   }
   /** add match m for quantifier f, take into account equalities if modEq = true,
       if imtio is non-null, this is the order to add to trie
       return true if successful
   */
   bool addInstMatch( QuantifiersEngine* qe, Node f, InstMatch& m, bool modEq = false,
-                     bool modInst = false, ImtIndexOrder* imtio = NULL, bool onlyExist = false, int index = 0 ){
-    return addInstMatch( qe, f, m.d_vals, modEq, modInst, imtio, onlyExist, index );
+                     ImtIndexOrder* imtio = NULL, bool onlyExist = false, int index = 0 ){
+    return addInstMatch( qe, f, m.d_vals, modEq, imtio, onlyExist, index );
   }
   bool addInstMatch( QuantifiersEngine* qe, Node f, std::vector< Node >& m, bool modEq = false,
-                     bool modInst = false, ImtIndexOrder* imtio = NULL, bool onlyExist = false, int index = 0 );
+                     ImtIndexOrder* imtio = NULL, bool onlyExist = false, int index = 0 );
   bool removeInstMatch( QuantifiersEngine* qe, Node f, std::vector< Node >& m, ImtIndexOrder* imtio = NULL, int index = 0 );
   void print( std::ostream& out, Node q ) const{
     std::vector< TNode > terms;
@@ -159,23 +159,23 @@ public:
         modInst is if we return true if m is an instance of a match that exists
    */
   bool existsInstMatch( QuantifiersEngine* qe, Node q, InstMatch& m, context::Context* c, bool modEq = false,
-                        bool modInst = false, int index = 0 ) {
-    return !addInstMatch( qe, q, m, c, modEq, modInst, index, true );
+                        int index = 0 ) {
+    return !addInstMatch( qe, q, m, c, modEq, index, true );
   }
   bool existsInstMatch( QuantifiersEngine* qe, Node q, std::vector< Node >& m, context::Context* c, bool modEq = false,
-                        bool modInst = false, int index = 0 ) {
-    return !addInstMatch( qe, q, m, c, modEq, modInst, index, true );
+                        int index = 0 ) {
+    return !addInstMatch( qe, q, m, c, modEq, index, true );
   }
   /** add match m for quantifier f, take into account equalities if modEq = true,
       if imtio is non-null, this is the order to add to trie
       return true if successful
   */
   bool addInstMatch( QuantifiersEngine* qe, Node q, InstMatch& m, context::Context* c, bool modEq = false,
-                     bool modInst = false, int index = 0, bool onlyExist = false ) {
-    return addInstMatch( qe, q, m.d_vals, c, modEq, modInst, index, onlyExist );
+                     int index = 0, bool onlyExist = false ) {
+    return addInstMatch( qe, q, m.d_vals, c, modEq, index, onlyExist );
   }
   bool addInstMatch( QuantifiersEngine* qe, Node q, std::vector< Node >& m, context::Context* c, bool modEq = false,
-                     bool modInst = false, int index = 0, bool onlyExist = false );
+                     int index = 0, bool onlyExist = false );
   bool removeInstMatch( QuantifiersEngine* qe, Node q, std::vector< Node >& m, int index = 0 );
   void print( std::ostream& out, Node q ) const{
     std::vector< TNode > terms;
@@ -202,10 +202,10 @@ public:
 public:
   /** add match m, return true if successful */
   bool addInstMatch( QuantifiersEngine* qe, Node f, InstMatch& m, bool modEq = false, bool modInst = false ){
-    return d_imt.addInstMatch( qe, f, m, modEq, modInst, d_imtio );
+    return d_imt.addInstMatch( qe, f, m, modEq, d_imtio );
   }
   bool existsInstMatch( QuantifiersEngine* qe, Node f, InstMatch& m, bool modEq = false, bool modInst = false ){
-    return d_imt.existsInstMatch( qe, f, m, modEq, modInst, d_imtio );
+    return d_imt.existsInstMatch( qe, f, m, modEq, d_imtio );
   }
 };/* class InstMatchTrieOrdered */
 

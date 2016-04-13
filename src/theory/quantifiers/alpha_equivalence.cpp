@@ -29,7 +29,7 @@ struct sortTypeOrder {
   }
 };
 
-bool AlphaEquivalenceNode::registerNode( AlphaEquivalenceNode* aen, QuantifiersEngine* qe, Node q, std::vector< Node >& tt, std::vector< int >& arg_index ) {
+Node AlphaEquivalenceNode::registerNode( AlphaEquivalenceNode* aen, QuantifiersEngine* qe, Node q, std::vector< Node >& tt, std::vector< int >& arg_index ) {
   while( !tt.empty() ){
     if( tt.size()==arg_index.size()+1 ){
       Node t = tt.back();
@@ -49,26 +49,25 @@ bool AlphaEquivalenceNode::registerNode( AlphaEquivalenceNode* aen, QuantifiersE
       }
     }
   }
+  Node lem;
   Trace("aeq-debug") << std::endl;
   if( aen->d_quant.isNull() ){
     aen->d_quant = q;
-    return true;
   }else{
     if( q.getNumChildren()==2 ){
       //lemma ( q <=> d_quant )
       Trace("quant-ae") << "Alpha equivalent : " << std::endl;
       Trace("quant-ae") << "  " << q << std::endl;
       Trace("quant-ae") << "  " << aen->d_quant << std::endl;
-      qe->getOutputChannel().lemma( q.iffNode( aen->d_quant ) );
-      return false;
+      lem = q.iffNode( aen->d_quant );
     }else{
       //do not reduce annotated quantified formulas based on alpha equivalence 
-      return true;
     }
   }
+  return lem;
 }
 
-bool AlphaEquivalenceTypeNode::registerNode( AlphaEquivalenceTypeNode* aetn,
+Node AlphaEquivalenceTypeNode::registerNode( AlphaEquivalenceTypeNode* aetn,
                                              QuantifiersEngine* qe, Node q, Node t, std::vector< TypeNode >& typs, std::map< TypeNode, int >& typ_count, int index ){
   while( index<(int)typs.size() ){
     TypeNode curr = typs[index];
@@ -84,7 +83,7 @@ bool AlphaEquivalenceTypeNode::registerNode( AlphaEquivalenceTypeNode* aetn,
   return AlphaEquivalenceNode::registerNode( &(aetn->d_data), qe, q, tt, arg_index );
 }
 
-bool AlphaEquivalence::reduceQuantifier( Node q ) {
+Node AlphaEquivalence::reduceQuantifier( Node q ) {
   Assert( q.getKind()==FORALL );
   Trace("aeq") << "Alpha equivalence : register " << q << std::endl;
   //construct canonical quantified formula
@@ -104,7 +103,7 @@ bool AlphaEquivalence::reduceQuantifier( Node q ) {
   sto.d_tdb = d_qe->getTermDatabase();
   std::sort( typs.begin(), typs.end(), sto );
   Trace("aeq-debug") << "  ";
-  bool ret = !AlphaEquivalenceTypeNode::registerNode( &d_ae_typ_trie, d_qe, q, t, typs, typ_count );
+  Node ret = AlphaEquivalenceTypeNode::registerNode( &d_ae_typ_trie, d_qe, q, t, typs, typ_count );
   Trace("aeq") << "  ...result : " << ret << std::endl;
   return ret;
 }

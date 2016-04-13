@@ -5152,7 +5152,7 @@ Expr SmtEngine::doQuantifierElimination(const Expr& e, bool doFull, bool strict)
 
     //ensure all instantiations were accounted for
     for( std::map< Node, std::vector< Node > >::iterator it = insts.begin(); it != insts.end(); ++it ){
-      if( visited.find( it->first )==visited.end() ){
+      if( !it->second.empty() && visited.find( it->first )==visited.end() ){
         stringstream ss;
         ss << "While performing quantifier elimination, processed a quantified formula : " << it->first;
         ss << " that was not related to the query.  Try option --simplification=none.";

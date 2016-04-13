@@ -599,18 +599,6 @@ bool FullSaturation::process( Node f, bool fullEffort ){
   unsigned rstart = options::fullSaturateQuantRd() ? 0 : 1;
   unsigned rend = fullEffort ? 1 : rstart;
   for( unsigned r=rstart; r<=rend; r++ ){
-      /*
-      //complete guess
-      if( d_guessed.find( f )==d_guessed.end() ){
-        Trace("inst-alg") << "-> Guess instantiate " << f << "..." << std::endl;
-        d_guessed[f] = true;
-        InstMatch m( f );
-        if( d_quantEngine->addInstantiation( f, m ) ){
-          ++(d_quantEngine->d_statistics.d_instantiations_guess);
-          return true;
-        }
-      }
-      */
     if( rd || r>0 ){
       if( r==0 ){
         Trace("inst-alg") << "-> Relevant domain instantiate " << f << "..." << std::endl;
@@ -700,7 +688,7 @@ bool FullSaturation::process( Node f, bool fullEffort ){
                   Trace("inst-alg-rd") << "  " << d_quantEngine->getTermDatabase()->getTypeGroundTerm( ftypes[i], childIndex[i] ) << std::endl;
                 }
               }
-              if( d_quantEngine->addInstantiation( f, terms, false ) ){
+              if( d_quantEngine->addInstantiation( f, terms ) ){
                 Trace("inst-alg-rd") << "Success!" << std::endl;
                 ++(d_quantEngine->d_statistics.d_instantiations_guess);
                 return true;

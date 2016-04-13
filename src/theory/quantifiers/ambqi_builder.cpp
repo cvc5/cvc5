@@ -159,7 +159,7 @@ bool AbsDef::addInstantiations( FirstOrderModelAbs * m, QuantifiersEngine * qe, 
       return true;
     }else{
       if( depth==q[0].getNumChildren() ){
-        if( qe->addInstantiation( q, terms ) ){
+        if( qe->addInstantiation( q, terms, true ) ){
           Trace("ambqi-inst-debug") << "-> Added instantiation." << std::endl;
           inst++;
           return true;
