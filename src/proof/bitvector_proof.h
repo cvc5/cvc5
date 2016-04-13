@@ -109,7 +109,7 @@ public:
   virtual void registerTerm(Expr term);
 
   virtual void printTermBitblasting(Expr term, std::ostream& os) = 0;
-  virtual void printAtomBitblasting(Expr term, std::ostream& os) = 0;
+  virtual void printAtomBitblasting(Expr term, std::ostream& os, bool swap) = 0;
 
   virtual void printBitblasting(std::ostream& os, std::ostream& paren) = 0;
   virtual void printResolutionProof(std::ostream& os, std::ostream& paren) = 0;
@@ -137,11 +137,12 @@ public:
   virtual void printOwnedTerm(Expr term, std::ostream& os, const LetMap& map);
   virtual void printOwnedSort(Type type, std::ostream& os);
   virtual void printTermBitblasting(Expr term, std::ostream& os);
-  virtual void printAtomBitblasting(Expr term, std::ostream& os);
+  virtual void printAtomBitblasting(Expr term, std::ostream& os, bool swap);
   virtual void printTheoryLemmaProof(std::vector<Expr>& lemma, std::ostream& os, std::ostream& paren);
   virtual void printSortDeclarations(std::ostream& os, std::ostream& paren);
   virtual void printTermDeclarations(std::ostream& os, std::ostream& paren);
   virtual void printDeferredDeclarations(std::ostream& os, std::ostream& paren);
+  virtual void printAliasingDeclarations(std::ostream& os, std::ostream& paren);
   virtual void printBitblasting(std::ostream& os, std::ostream& paren);
   virtual void printResolutionProof(std::ostream& os, std::ostream& paren);
 };

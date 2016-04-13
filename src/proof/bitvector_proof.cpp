@@ -15,9 +15,11 @@
 ** \todo document this file
 **/
 
-#include "proof/bitvector_proof.h"
 #include "options/bv_options.h"
+#include "proof/array_proof.h"
+#include "proof/bitvector_proof.h"
 #include "proof/clause_id.h"
+#include "proof/proof_output_channel.h"
 #include "proof/proof_utils.h"
 #include "proof/sat_proof_implementation.h"
 #include "prop/bvminisat/bvminisat.h"
@@ -153,6 +155,7 @@ void BitVectorProof::endBVConflict(const CVC4::BVMinisat::Solver::TLitVec& confl
     Expr expr_lit = lit.isNegated() ? atom.notExpr() : atom;
     expr_confl.push_back(expr_lit);
   }
+
   Expr conflict = utils::mkSortedExpr(kind::OR, expr_confl);
   Debug("pf::bv") << "Make conflict for " << conflict << std::endl;
 
@@ -168,7 +171,7 @@ void BitVectorProof::endBVConflict(const CVC4::BVMinisat::Solver::TLitVec& confl
   ClauseId clause_id = d_resolutionProof->registerAssumptionConflict(confl);
   d_bbConflictMap[conflict] = clause_id;
   d_resolutionProof->endResChain(clause_id);
-  Debug("pf::bv") << "BitVectorProof::endBVConflict id"<<clause_id<< " => " << conflict << "\n";
+  Debug("pf::bv") << "BitVectorProof::endBVConflict id" <<clause_id<< " => " << conflict << "\n";
   d_isAssumptionConflict = false;
 }
 
@@ -185,8 +188,41 @@ void BitVectorProof::finalizeConflicts(std::vector<Expr>& conflicts) {
     if(d_bbConflictMap.find(confl) != d_bbConflictMap.end()){
       ClauseId id = d_bbConflictMap[confl];
       d_resolutionProof->collectClauses(id);
-    }else{
-      Debug("pf::bv") << "Do not collect clauses for " << confl << std::endl;
+    } else {
+      ExprToClauseId::const_iterator it;
+      bool matchFound = false;
+      for (it = d_bbConflictMap.begin(); it != d_bbConflictMap.end(); ++it) {
+        Expr possibleMatch = it->first;
+        if (possibleMatch.getNumChildren() > confl.getNumChildren())
+          continue;
+
+        unsigned k = 0;
+        bool matching = true;
+        for (unsigned j = 0; j < possibleMatch.getNumChildren(); ++j) {
+          // j is the index in possibleMatch
+          // k is the index in confl
+          while (k < confl.getNumChildren() && confl[k] != possibleMatch[j]) {
+            ++k;
+          }
+          if (k == confl.getNumChildren()) {
+            // We couldn't find a match for possibleMatch[j], so not a match
+            matching = false;
+            break;
+          }
+        }
+
+        if (matching) {
+          Debug("pf::bv") << "Collecting info from a sub-conflict" << std::endl;
+          d_resolutionProof->collectClauses(it->second);
+          matchFound = true;
+          break;
+        }
+      }
+
+      if (!matchFound) {
+        Debug("pf::bv") << "Do not collect clauses for " << confl << std::endl;
+        Unreachable();
+      }
     }
   }
 }
@@ -262,11 +298,25 @@ void LFSCBitVectorProof::printOwnedTerm(Expr term, std::ostream& os, const LetMa
     printBitOf(term, os, map);
     return;
   }
-  case kind::VARIABLE:
-  case kind::SKOLEM: {
-    os << "(a_var_bv " << utils::getSize(term)<< " " << ProofManager::sanitize(term) <<")";
+
+  case kind::VARIABLE: {
+    os << "(a_var_bv " << utils::getSize(term)<< " " << ProofManager::sanitize(term) << ")";
     return;
   }
+
+  case kind::SKOLEM: {
+
+    // TODO: we need to distinguish between "real" skolems (e.g. from array) and "fake" skolems,
+    // like ITE terms. Is there a more elegant way?
+
+    if (ProofManager::getSkolemizationManager()->isSkolem(term)) {
+      os << ProofManager::sanitize(term);
+    } else {
+      os << "(a_var_bv " << utils::getSize(term)<< " " << ProofManager::sanitize(term) << ")";
+    }
+    return;
+  }
+
   default:
     Unreachable();
   }
@@ -406,11 +456,95 @@ void LFSCBitVectorProof::printTheoryLemmaProof(std::vector<Expr>& lemma, std::os
     d_resolutionProof->printAssumptionsResolution(lemma_id, os, lemma_paren);
     os <<lemma_paren.str();
   } else {
-    Unreachable(); // If we were to reach here, we would crash because BV replay is currently not supported
-                   // in TheoryProof::printTheoryLemmaProof()
 
-    Debug("pf::bv") << std::endl << "; Print non-bitblast theory conflict " << conflict << std::endl;
-    BitVectorProof::printTheoryLemmaProof( lemma, os, paren );
+    Debug("pf::bv") << "Found a non-recorded conflict. Will look for a matching sub-conflict..." << std::endl;
+
+
+    ExprToClauseId::const_iterator it;
+    unsigned i = 0;
+    for (it = d_bbConflictMap.begin(); it != d_bbConflictMap.end(); ++it) {
+      // Our conflict is sorted, and the records are also sorted.
+      ++i;
+      // Debug("pf::bv") << "\tConflict #" << i << ": " << it->first << std::endl;
+      Expr possibleMatch = it->first;
+      if (possibleMatch.getNumChildren() > conflict.getNumChildren())
+        continue;
+
+      unsigned k = 0;
+
+      bool matching = true;
+      for (unsigned j = 0; j < possibleMatch.getNumChildren(); ++j) {
+        // j is the index in possibleMatch
+        // k is the index in conflict
+        while (k < conflict.getNumChildren() && conflict[k] != possibleMatch[j]) {
+          ++k;
+        }
+        if (k == conflict.getNumChildren()) {
+          // We couldn't find a match for possibleMatch[j], so not a match
+          matching = false;
+          break;
+        }
+      }
+
+      if (matching) {
+        Debug("pf::bv") << "Found a match with conflict #" << i << ": " << std::endl << possibleMatch << std::endl;
+
+        // The rest is just a copy of the usual handling, if a precise match is found.
+        // We only use the literals that appear in the matching conflict, though, and not in the
+        // original lemma - as these may not have even been bit blasted!
+        std::ostringstream lemma_paren;
+        for (unsigned i = 0; i < possibleMatch.getNumChildren(); ++i) {
+          //          for (unsigned i = 0; i < lemma.size(); ++i) {
+          // Expr lit = lemma[i];
+          Expr lit = possibleMatch[i];
+
+          if (lit.getKind() == kind::NOT) {
+            os << "(intro_assump_t _ _ _ ";
+          } else {
+            os << "(intro_assump_f _ _ _ ";
+          }
+          lemma_paren <<")";
+          // print corresponding literal in main sat solver
+          ProofManager* pm = ProofManager::currentPM();
+          CnfProof* cnf = pm->getCnfProof();
+          prop::SatLiteral main_lit = cnf->getLiteral(lit);
+          os << pm->getLitName(main_lit);
+          os <<" ";
+          // print corresponding literal in bv sat solver
+          prop::SatVariable bb_var = d_cnfProof->getLiteral(lit).getSatVariable();
+          os << pm->getAtomName(bb_var, "bb");
+          os <<"(\\unit"<<bb_var<<"\n";
+          lemma_paren <<")";
+        }
+        // Expr lem = utils::mkOr(possibleMatch);
+        // Assert (d_bbConflictMap.find(lem) != d_bbConflictMap.end());
+        // ClauseId lemma_id = d_bbConflictMap[lem];
+        ClauseId lemma_id = it->second;
+        d_resolutionProof->printAssumptionsResolution(lemma_id, os, lemma_paren);
+        os <<lemma_paren.str();
+
+        return;
+      }
+    }
+
+    Debug("pf::bv") << "Failed to find a matching sub-conflict..." << std::endl;
+
+
+    Debug("pf::bv") << "Dumping existing conflicts:" << std::endl;
+
+    i = 0;
+    for (it = d_bbConflictMap.begin(); it != d_bbConflictMap.end(); ++it) {
+      ++i;
+      Debug("pf::bv") << "\tConflict #" << i << ": " << it->first << std::endl;
+    }
+
+    Unreachable();
+
+    // Unreachable(); // If we were to reach here, we would crash because BV replay is currently not supported
+    // // in TheoryProof::printTheoryLemmaProof()
+
+    // // Debug("pf::bv") << std::endl << "; Print non-bitblast theory conflict " << conflict << std::endl;
+    // // BitVectorProof::printTheoryLemmaProof( lemma, os, paren );
   }
 }
 
@@ -422,18 +556,22 @@ void LFSCBitVectorProof::printTermDeclarations(std::ostream& os, std::ostream& p
   ExprSet::const_iterator it = d_declarations.begin();
   ExprSet::const_iterator end = d_declarations.end();
   for (; it != end; ++it) {
-    if (it->isVariable() || it->isConst()) {
+    if ((it->isVariable() || it->isConst()) && !ProofManager::getSkolemizationManager()->isSkolem(*it)) {
       d_exprToVariableName[*it] = ProofManager::sanitize(*it);
     } else {
       d_exprToVariableName[*it] = assignAlias(*it);
     }
+
     os << "(% " << d_exprToVariableName[*it] <<" var_bv" << "\n";
-    //    os << "(% " << d_exprToVariableName[*it] <<" var_bv\t\t; " << *it << "\n";
     paren <<")";
   }
 }
 
 void LFSCBitVectorProof::printDeferredDeclarations(std::ostream& os, std::ostream& paren) {
+  // Nothing to do here at this point.
+}
+
+void LFSCBitVectorProof::printAliasingDeclarations(std::ostream& os, std::ostream& paren) {
   // Print "trust" statements to bind complex bv variables to their associated terms
 
   ExprToString::const_iterator it = d_assignedAliases.begin();
@@ -607,7 +745,9 @@ void LFSCBitVectorProof::printTermBitblasting(Expr term, std::ostream& os) {
   }
 }
 
-void LFSCBitVectorProof::printAtomBitblasting(Expr atom, std::ostream& os) {
+void LFSCBitVectorProof::printAtomBitblasting(Expr atom, std::ostream& os, bool swap) {
+  Debug("gk::temp") << std::endl << "LFSCBitVectorProof::printAtomBitblasting: atom = ( " << atom << " ), swap = " << swap << std::endl << std::endl;
+
   Kind kind = atom.getKind();
   switch(kind) {
   case kind::BITVECTOR_ULT :
@@ -628,7 +768,14 @@ void LFSCBitVectorProof::printAtomBitblasting(Expr atom, std::ostream& os) {
 
     if (hasAlias(atom[0]) || hasAlias(atom[1])) {os << "_alias";}
     if (hasAlias(atom[0])) {os << "_1";}
-    if (hasAlias(atom[1])) {os << "_2";}
+    if (hasAlias(atom[1])) {
+      os << "_2";
+      // if (!hasAlias(atom[0]) && swap) {os << "_swap";
+      // }
+      if (swap) {
+        os << "_swap";
+      }
+    }
 
     os << " _ _ _ _ _ _ ";
 
@@ -695,7 +842,34 @@ void LFSCBitVectorProof::printBitblasting(std::ostream& os, std::ostream& paren)
       bool val = ait->first.getConst<bool>();
       os << "(iff_symm " << (val ? "true" : "false" ) << ")";
     } else {
-      printAtomBitblasting(ait->first, os);
+      Assert(ait->first == ait->second[0]);
+
+      bool swap = false;
+      if (ait->first.getKind() == kind::EQUAL) {
+        Expr bitwiseEquivalence = ait->second[1];
+        Debug("gk::temp") << std::endl << "bitblasting: " << ait->first << std::endl;
+        Debug("gk::temp") << std::endl << "bitwiseEquivalence = " << bitwiseEquivalence << std::endl;
+
+        if (bitwiseEquivalence.getKind() != kind::AND) {
+          // Just one bit
+          if (bitwiseEquivalence.getNumChildren() > 0 && bitwiseEquivalence[0].getKind() == kind::BITVECTOR_BITOF) {
+            Debug("gk::temp") << std::endl << "bitwiseEquivalence[0] = " << bitwiseEquivalence[0] << std::endl;
+            Debug("gk::temp") << std::endl << "bitwiseEquivalence[0][0] = " << bitwiseEquivalence[0][0] << std::endl;
+            swap = (ait->first[1] == bitwiseEquivalence[0][0]);
+          }
+        } else {
+          // Multiple bits
+          if (bitwiseEquivalence[0].getNumChildren() > 0 &&
+              bitwiseEquivalence[0][0].getKind() == kind::BITVECTOR_BITOF) {
+            Debug("gk::temp") << std::endl << "bitwiseEquivalence[0][0] = " << bitwiseEquivalence[0][0] << std::endl;
+            Debug("gk::temp") << std::endl << "bitwiseEquivalence[0][0][0] = " << bitwiseEquivalence[0][0][0] << std::endl;
+
+            swap = (ait->first[1] == bitwiseEquivalence[0][0][0]);
+          }
+        }
+      }
+
+      printAtomBitblasting(ait->first, os, swap);
     }
 
     os <<"(\\ " << ProofManager::getPreprocessedAssertionName(ait->second) <<"\n";
@@ -722,10 +896,10 @@ void LFSCBitVectorProof::printResolutionProof(std::ostream& os,
   // print mapping between theory atoms and internal SAT variables
   os << std::endl << ";; BB atom mapping\n" << std::endl;
 
-  NodeSet atoms;
-  d_cnfProof->collectAtomsForClauses(used_inputs,atoms);
+  std::set<Node> atoms;
+  d_cnfProof->collectAtomsForClauses(used_inputs, atoms);
 
-  NodeSet::iterator atomIt;
+  std::set<Node>::iterator atomIt;
   Debug("pf::bv") << std::endl << "BV Dumping atoms from inputs: " << std::endl << std::endl;
   for (atomIt = atoms.begin(); atomIt != atoms.end(); ++atomIt) {
     Debug("pf::bv") << "\tAtom: " << *atomIt << std::endl;
