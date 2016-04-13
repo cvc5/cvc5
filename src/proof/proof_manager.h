@@ -142,6 +142,9 @@ protected:
   LogicInfo d_logic;
 
 public:
+  // TODO: make private with setters/getters etc
+  std::map<std::string, std::string> d_rewriteFilters;
+
   ProofManager(ProofFormat format = LFSC);
   ~ProofManager();
 

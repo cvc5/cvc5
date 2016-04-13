@@ -197,11 +197,8 @@ std::string ProofManager::getAtomName(prop::SatVariable var,
 }
 std::string ProofManager::getLitName(prop::SatLiteral lit,
                                      const std::string& prefix) {
-  Debug("pf::pm") << std::endl << "ProofManager::getLitName( " << lit << ", " << prefix << " ) = "
-                  << append(prefix+".l", lit.toInt()) << std::endl;
   return append(prefix+".l", lit.toInt());
 }
-
 
 std::string ProofManager::getPreprocessedAssertionName(Node node,
                                                        const std::string& prefix) {
@@ -222,7 +219,12 @@ std::string ProofManager::getAtomName(TNode atom,
 
 std::string ProofManager::getLitName(TNode lit,
                                      const std::string& prefix) {
-  return getLitName(currentPM()->d_cnfProof->getLiteral(lit), prefix);
+  std::string litName = getLitName(currentPM()->d_cnfProof->getLiteral(lit), prefix);
+  if (currentPM()->d_rewriteFilters.find(litName) != currentPM()->d_rewriteFilters.end()) {
+    return currentPM()->d_rewriteFilters[litName];
+  }
+
+  return litName;
 }
 
 std::string ProofManager::sanitize(TNode node) {
@@ -390,8 +392,35 @@ void LFSCProof::toStream(std::ostream& out) {
   for (it3 = used_assertions.begin(); it3 != used_assertions.end(); ++it3)
     Debug("pf::pm") << "\t assertion = " << *it3 << std::endl;
 
-  NodeSet atoms;
+  std::set<Node> atoms;
+  NodePairSet rewrites;
   // collects the atoms in the clauses
+  d_cnfProof->collectAtomsAndRewritesForLemmas(used_lemmas, atoms, rewrites);
+
+  if (!rewrites.empty()) {
+    Debug("pf::pm") << std::endl << "Rewrites used in lemmas: " << std::endl;
+    NodePairSet::const_iterator rewriteIt;
+    for (rewriteIt = rewrites.begin(); rewriteIt != rewrites.end(); ++rewriteIt) {
+      Debug("pf::pm") << "\t" << rewriteIt->first << " --> " << rewriteIt->second << std::endl;
+    }
+  } else {
+    Debug("pf::pm") << "No rewrites in lemmas found" << std::endl;
+  }
+
+  // The derived/unrewritten atoms may not have CNF literals required later on.
+  // If they don't, add them.
+  std::set<Node>::const_iterator it;
+  for (it = atoms.begin(); it != atoms.end(); ++it) {
+    if (!d_cnfProof->hasLiteral(*it)) {
+      d_cnfProof->ensureLiteral(*it);
+    }
+  }
+
+  Debug("pf::pm") << std::endl << "Dumping atoms from JUST lemmas: " << std::endl << std::endl;
+  for (it = atoms.begin(); it != atoms.end(); ++it) {
+    Debug("pf::pm") << "\tAtom: " << *it << std::endl;
+  }
+
   d_cnfProof->collectAtomsForClauses(used_inputs, atoms);
   d_cnfProof->collectAtomsForClauses(used_lemmas, atoms);
 
@@ -399,25 +428,22 @@ void LFSCProof::toStream(std::ostream& out) {
   for (NodeSet::const_iterator it = used_assertions.begin();
        it != used_assertions.end(); ++it) {
     utils::collectAtoms(*it, atoms);
+    // utils::collectAtoms(*it, newAtoms);
   }
 
-  NodeSet::iterator atomIt;
+  std::set<Node>::iterator atomIt;
   Debug("pf::pm") << std::endl << "Dumping atoms from lemmas, inputs and assertions: " << std::endl << std::endl;
   for (atomIt = atoms.begin(); atomIt != atoms.end(); ++atomIt) {
     Debug("pf::pm") << "\tAtom: " << *atomIt << std::endl;
   }
-
   smt::SmtScope scope(d_smtEngine);
   std::ostringstream paren;
   out << "(check\n";
   out << " ;; Declarations\n";
 
   // declare the theory atoms
-  NodeSet::const_iterator it = atoms.begin();
-  NodeSet::const_iterator end = atoms.end();
-
   Debug("pf::pm") << "LFSCProof::toStream: registering terms:" << std::endl;
-  for(; it != end; ++it) {
+  for(it = atoms.begin(); it != atoms.end(); ++it) {
     Debug("pf::pm") << "\tTerm: " << (*it).toExpr() << std::endl;
     d_theoryProof->registerTerm((*it).toExpr());
   }
@@ -436,9 +462,15 @@ void LFSCProof::toStream(std::ostream& out) {
 
   out << "(: (holds cln)\n\n";
 
+  out << " ;; Rewrites for Lemmas \n";
+  d_theoryProof->printLemmaRewrites(rewrites, out, paren);
+
   // Have the theory proofs print deferred declarations, e.g. for skolem variables.
   out << " ;; Printing deferred declarations \n\n";
   d_theoryProof->printDeferredDeclarations(out, paren);
+
+  out << " ;; Printing aliasing declarations \n\n";
+  d_theoryProof->printAliasingDeclarations(out, paren);
 
   // print trust that input assertions are their preprocessed form
   printPreprocessedAssertions(used_assertions, out, paren);
