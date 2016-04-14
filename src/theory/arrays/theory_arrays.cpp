@@ -2059,57 +2059,18 @@ void TheoryArrays::queueRowLemma(RowLemmaType lem)
 
   if ((options::arraysEagerLemmas() || bothExist) && !d_proofsEnabled) {
 
-    // Make sure that any terms introduced by rewriting are appropriately stored in the equality database
-    Node aj2 = Rewriter::rewrite(aj);
-    if (aj != aj2) {
-      if (!ajExists) {
-        preRegisterTermInternal(aj);
-      }
-      if (!d_equalityEngine.hasTerm(aj2)) {
-        preRegisterTermInternal(aj2);
-      }
-      d_equalityEngine.assertEquality(aj.eqNode(aj2), true, d_true);
+    if (!ajExists) {
+      preRegisterTermInternal(aj);
     }
-    Node bj2 = Rewriter::rewrite(bj);
-    if (bj != bj2) {
-      if (!bjExists) {
-        preRegisterTermInternal(bj);
-      }
-      if (!d_equalityEngine.hasTerm(bj2)) {
-        preRegisterTermInternal(bj2);
-      }
-      d_equalityEngine.assertEquality(bj.eqNode(bj2), true, d_true);
-    }
-    if (aj2 == bj2) {
-      return;
+    if (!bjExists) {
+      preRegisterTermInternal(bj);
     }
 
-    // construct lemma
-    Node eq1 = aj2.eqNode(bj2);
-    Node eq1_r = Rewriter::rewrite(eq1);
-    if (eq1_r == d_true) {
-      if (!d_equalityEngine.hasTerm(aj2)) {
-        preRegisterTermInternal(aj2);
-      }
-      if (!d_equalityEngine.hasTerm(bj2)) {
-        preRegisterTermInternal(bj2);
-      }
-      d_equalityEngine.assertEquality(eq1, true, d_true);
-      return;
-    }
-
-    Node eq2 = i.eqNode(j);
-    Node eq2_r = Rewriter::rewrite(eq2);
-    if (eq2_r == d_true) {
-      d_equalityEngine.assertEquality(eq2, true, d_true);
-      return;
-    }
-
-    Node lemma = nm->mkNode(kind::OR, eq2_r, eq1_r);
+    Node lemma = nm->mkNode(kind::OR, i.eqNode(j), aj.eqNode(bj));
 
     Trace("arrays-lem")<<"Arrays::addRowLemma adding "<<lemma<<"\n";
     d_RowAlreadyAdded.insert(lem);
-    d_out->lemma(lemma);
+    d_out->lemma(lemma, RULE_INVALID, false, false, true);
     ++d_numRow;
   }
   else {
@@ -2168,57 +2129,18 @@ bool TheoryArrays::dischargeLemmas()
       }
     }
 
-    // Make sure that any terms introduced by rewriting are appropriately stored in the equality database
-    Node aj2 = Rewriter::rewrite(aj);
-    if (aj != aj2) {
-      if (!ajExists) {
-        preRegisterTermInternal(aj);
-      }
-      if (!d_equalityEngine.hasTerm(aj2)) {
-        preRegisterTermInternal(aj2);
-      }
-      d_equalityEngine.assertEquality(aj.eqNode(aj2), true, d_true);
+    if (!ajExists) {
+      preRegisterTermInternal(aj);
     }
-    Node bj2 = Rewriter::rewrite(bj);
-    if (bj != bj2) {
-      if (!bjExists) {
-        preRegisterTermInternal(bj);
-      }
-      if (!d_equalityEngine.hasTerm(bj2)) {
-        preRegisterTermInternal(bj2);
-      }
-      d_equalityEngine.assertEquality(bj.eqNode(bj2), true, d_true);
-    }
-    if (aj2 == bj2) {
-      continue;
+    if (!bjExists) {
+      preRegisterTermInternal(bj);
     }
 
-    // construct lemma
-    Node eq1 = aj2.eqNode(bj2);
-    Node eq1_r = Rewriter::rewrite(eq1);
-    if (eq1_r == d_true) {
-      if (!d_equalityEngine.hasTerm(aj2)) {
-        preRegisterTermInternal(aj2);
-      }
-      if (!d_equalityEngine.hasTerm(bj2)) {
-        preRegisterTermInternal(bj2);
-      }
-      d_equalityEngine.assertEquality(eq1, true, d_true);
-      continue;
-    }
-
-    Node eq2 = i.eqNode(j);
-    Node eq2_r = Rewriter::rewrite(eq2);
-    if (eq2_r == d_true) {
-      d_equalityEngine.assertEquality(eq2, true, d_true);
-      continue;
-    }
-
-    Node lem = nm->mkNode(kind::OR, eq2_r, eq1_r);
+    Node lem = nm->mkNode(kind::OR, i.eqNode(j), aj.eqNode(bj));
 
     Trace("arrays-lem")<<"Arrays::addRowLemma adding "<<lem<<"\n";
     d_RowAlreadyAdded.insert(l);
-    d_out->lemma(lem);
+    d_out->lemma(lem, RULE_INVALID, false, false, true);
     ++d_numRow;
     lemmasAdded = true;
     if (options::arraysReduceSharing()) {
