@@ -223,6 +223,12 @@ bool Type::isString() const {
   return d_typeNode->isString();
 }
 
+/** Is this the regexp type? */
+bool Type::isRegExp() const {
+  NodeManagerScope nms(d_nodeManager);
+  return d_typeNode->isRegExp();
+}
+
 /** Is this the rounding mode type? */
 bool Type::isRoundingMode() const {
   NodeManagerScope nms(d_nodeManager);
@@ -425,6 +431,11 @@ RealType::RealType(const Type& t) throw(IllegalArgumentException) :
 StringType::StringType(const Type& t) throw(IllegalArgumentException) :
   Type(t) {
   PrettyCheckArgument(isNull() || isString(), this);
+}
+
+RegExpType::RegExpType(const Type& t) throw(IllegalArgumentException) :
+  Type(t) {
+  PrettyCheckArgument(isNull() || isRegExp(), this);
 }
 
 RoundingModeType::RoundingModeType(const Type& t) throw(IllegalArgumentException) :

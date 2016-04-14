@@ -205,16 +205,35 @@ tokens {
   // Strings
 
   STRING_TOK = 'STRING';
-  SCONCAT_TOK = 'SCONCAT';
-  SCONTAINS_TOK = 'CONTAINS';
-  SSUBSTR_TOK = 'SUBSTR';
-  SINDEXOF_TOK = 'INDEXOF';
-  SREPLACE_TOK = 'REPLACE';
-  SPREFIXOF_TOK = 'PREFIXOF';
-  SSUFFIXOF_TOK = 'SUFFIXOF';
-  STOINTEGER_TOK = 'TO_INTEGER';
-  STOSTRING_TOK = 'TO_STRING';
-  STORE_TOK = 'TO_RE';
+  STRING_CONCAT_TOK = 'CONCAT';
+  STRING_LENGTH_TOK = 'LENGTH';
+  STRING_CONTAINS_TOK = 'CONTAINS';
+  STRING_SUBSTR_TOK = 'SUBSTR';
+  STRING_CHARAT_TOK = 'CHARAT';
+  STRING_INDEXOF_TOK = 'INDEXOF';
+  STRING_REPLACE_TOK = 'REPLACE';
+  STRING_PREFIXOF_TOK = 'PREFIXOF';
+  STRING_SUFFIXOF_TOK = 'SUFFIXOF';
+  STRING_STOI_TOK = 'STRING_TO_INTEGER';
+  STRING_ITOS_TOK = 'INTEGER_TO_STRING';
+  STRING_U16TOS_TOK = 'UINT16_TO_STRING';
+  STRING_STOU16_TOK = 'STRING_TO_UINT16';
+  STRING_U32TOS_TOK = 'UINT32_TO_STRING';
+  STRING_STOU32_TOK = 'STRING_TO_UINT32';
+  //Regular expressions (TODO)
+  //STRING_IN_REGEXP_TOK
+  //STRING_TO_REGEXP_TOK
+  //REGEXP_CONCAT_TOK 
+  //REGEXP_UNION_TOK 
+  //REGEXP_INTER_TOK 
+  //REGEXP_STAR_TOK 
+  //REGEXP_PLUS_TOK 
+  //REGEXP_OPT_TOK 
+  //REGEXP_RANGE_TOK 
+  //REGEXP_LOOP_TOK 
+  //REGEXP_EMPTY_TOK
+  //REGEXP_SIGMA_TOK
+  
   
   FMF_CARD_TOK = 'HAS_CARD';
 
@@ -351,6 +370,7 @@ Kind getOperatorKind(int type, bool& negate) {
   case CONCAT_TOK: return kind::BITVECTOR_CONCAT;
   case BAR: return kind::BITVECTOR_OR;
   case BVAND_TOK: return kind::BITVECTOR_AND;
+  
   }
 
   std::stringstream ss;
@@ -1662,7 +1682,6 @@ postfixTerm[CVC4::Expr& f]
           f = MK_EXPR(CVC4::kind::SELECT, f, f2);
         }
       }
-
       /* left- or right-shift */
     | ( LEFTSHIFT_TOK { left = true; }
       | RIGHTSHIFT_TOK { left = false; } ) k=numeral
@@ -1888,7 +1907,6 @@ bvTerm[CVC4::Expr& f]
     { f = MK_EXPR(CVC4::kind::BITVECTOR_SGT, f, f2); }
   | BVSGE_TOK LPAREN formula[f] COMMA formula[f2] RPAREN
     { f = MK_EXPR(CVC4::kind::BITVECTOR_SGE, f, f2); }
-
   | stringTerm[f]
   ;
 
@@ -1900,27 +1918,35 @@ stringTerm[CVC4::Expr& f]
   std::vector<Expr> args;
 }
     /* String prefix operators */
-  : SCONCAT_TOK LPAREN formula[f] { args.push_back(f); }
+  : STRING_CONCAT_TOK LPAREN formula[f] { args.push_back(f); }
     ( COMMA formula[f2] { args.push_back(f2); } )+ RPAREN
     { f = MK_EXPR(CVC4::kind::STRING_CONCAT, args); }
-  | SCONTAINS_TOK LPAREN formula[f] COMMA formula[f2] RPAREN
+  | STRING_LENGTH_TOK LPAREN formula[f] RPAREN
+    { f = MK_EXPR(CVC4::kind::STRING_LENGTH, f); }
+  | STRING_CONTAINS_TOK LPAREN formula[f] COMMA formula[f2] RPAREN
     { f = MK_EXPR(CVC4::kind::STRING_STRCTN, f, f2); }
-  | SSUBSTR_TOK LPAREN formula[f] COMMA formula[f2] COMMA formula[f3] RPAREN
+  | STRING_SUBSTR_TOK LPAREN formula[f] COMMA formula[f2] COMMA formula[f3] RPAREN
     { f = MK_EXPR(CVC4::kind::STRING_SUBSTR, f, f2, f3); }
-  | SINDEXOF_TOK LPAREN formula[f] COMMA formula[f2] COMMA formula[f3] RPAREN
+  | STRING_INDEXOF_TOK LPAREN formula[f] COMMA formula[f2] COMMA formula[f3] RPAREN
     { f = MK_EXPR(CVC4::kind::STRING_STRIDOF, f, f2, f3); }
-  | SREPLACE_TOK LPAREN formula[f] COMMA formula[f2] COMMA formula[f3] RPAREN
+  | STRING_REPLACE_TOK LPAREN formula[f] COMMA formula[f2] COMMA formula[f3] RPAREN
     { f = MK_EXPR(CVC4::kind::STRING_STRREPL, f, f2, f3); }
-  | SPREFIXOF_TOK LPAREN formula[f] COMMA formula[f2] RPAREN
+  | STRING_PREFIXOF_TOK LPAREN formula[f] COMMA formula[f2] RPAREN
     { f = MK_EXPR(CVC4::kind::STRING_PREFIX, f, f2); }
-  | SSUFFIXOF_TOK LPAREN formula[f] COMMA formula[f2] RPAREN
+  | STRING_SUFFIXOF_TOK LPAREN formula[f] COMMA formula[f2] RPAREN
     { f = MK_EXPR(CVC4::kind::STRING_SUFFIX, f, f2); }
-  | STOINTEGER_TOK LPAREN formula[f] RPAREN
+  | STRING_STOI_TOK LPAREN formula[f] RPAREN
     { f = MK_EXPR(CVC4::kind::STRING_STOI, f); }
-  | STOSTRING_TOK LPAREN formula[f] RPAREN
+  | STRING_ITOS_TOK LPAREN formula[f] RPAREN
     { f = MK_EXPR(CVC4::kind::STRING_ITOS, f); }
-  | STORE_TOK LPAREN formula[f] RPAREN
-    { f = MK_EXPR(CVC4::kind::STRING_TO_REGEXP, f); }
+  | STRING_U16TOS_TOK LPAREN formula[f] RPAREN
+    { f = MK_EXPR(CVC4::kind::STRING_U16TOS, f); }
+  | STRING_STOU16_TOK LPAREN formula[f] RPAREN
+    { f = MK_EXPR(CVC4::kind::STRING_STOU16, f); }
+  | STRING_U32TOS_TOK LPAREN formula[f] RPAREN
+    { f = MK_EXPR(CVC4::kind::STRING_U32TOS, f); }
+  | STRING_STOU32_TOK LPAREN formula[f] RPAREN
+    { f = MK_EXPR(CVC4::kind::STRING_STOU32, f); }    
 
     /* string literal */
   | str[s]

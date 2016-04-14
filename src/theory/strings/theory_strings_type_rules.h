@@ -239,7 +239,7 @@ class RegExpConstantTypeRule {
 public:
   inline static TypeNode computeType(NodeManager* nodeManager, TNode n, bool check)
       throw (TypeCheckingExceptionPrivate, AssertionException) {
-    return nodeManager->regexpType();
+    return nodeManager->regExpType();
   }
 };
 
@@ -262,7 +262,7 @@ public:
          throw TypeCheckingExceptionPrivate(n, "expecting at least 2 terms in regexp concat");
       }
     }
-    return nodeManager->regexpType();
+    return nodeManager->regExpType();
   }
 };
 
@@ -280,7 +280,7 @@ public:
          }
       }
     }
-    return nodeManager->regexpType();
+    return nodeManager->regExpType();
   }
 };
 
@@ -298,7 +298,7 @@ public:
        }
       }
     }
-    return nodeManager->regexpType();
+    return nodeManager->regExpType();
   }
 };
 
@@ -312,7 +312,7 @@ public:
         throw TypeCheckingExceptionPrivate(n, "expecting regexp terms");
       }
     }
-    return nodeManager->regexpType();
+    return nodeManager->regExpType();
   }
 };
 
@@ -326,7 +326,7 @@ public:
         throw TypeCheckingExceptionPrivate(n, "expecting regexp terms");
       }
     }
-    return nodeManager->regexpType();
+    return nodeManager->regExpType();
   }
 };
 
@@ -340,7 +340,7 @@ public:
         throw TypeCheckingExceptionPrivate(n, "expecting regexp terms");
       }
     }
-    return nodeManager->regexpType();
+    return nodeManager->regExpType();
   }
 };
 
@@ -373,7 +373,7 @@ public:
         throw TypeCheckingExceptionPrivate(n, "expecting standard ASCII characters in regexp range, or please set the option strings-std-ascii to be false");
       }
     }
-    return nodeManager->regexpType();
+    return nodeManager->regExpType();
   }
 };
 
@@ -409,7 +409,7 @@ public:
         //}
       }
     }
-    return nodeManager->regexpType();
+    return nodeManager->regExpType();
   }
 };
 
@@ -426,7 +426,7 @@ public:
       //  throw TypeCheckingExceptionPrivate(n, "expecting constant string terms");
       //}
     }
-    return nodeManager->regexpType();
+    return nodeManager->regExpType();
   }
 };
 
@@ -456,7 +456,7 @@ public:
     throw (TypeCheckingExceptionPrivate, AssertionException) {
 
     Assert(n.getKind() == kind::REGEXP_EMPTY);
-    return nodeManager->regexpType();
+    return nodeManager->regExpType();
   }
 };
 
@@ -466,7 +466,7 @@ public:
     throw (TypeCheckingExceptionPrivate, AssertionException) {
 
     Assert(n.getKind() == kind::REGEXP_SIGMA);
-    return nodeManager->regexpType();
+    return nodeManager->regExpType();
   }
 };
 
@@ -480,7 +480,7 @@ public:
         throw TypeCheckingExceptionPrivate(n, "expecting an integer term in RV");
       }
     }
-    return nodeManager->regexpType();
+    return nodeManager->regExpType();
   }
 };
 
