@@ -142,6 +142,11 @@ StringType ExprManager::stringType() const {
   return StringType(Type(d_nodeManager, new TypeNode(d_nodeManager->stringType())));
 }
 
+RegExpType ExprManager::regExpType() const {
+  NodeManagerScope nms(d_nodeManager);
+  return StringType(Type(d_nodeManager, new TypeNode(d_nodeManager->regExpType())));
+}
+
 RealType ExprManager::realType() const {
   NodeManagerScope nms(d_nodeManager);
   return RealType(Type(d_nodeManager, new TypeNode(d_nodeManager->realType())));

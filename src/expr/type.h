@@ -47,6 +47,7 @@ class BooleanType;
 class IntegerType;
 class RealType;
 class StringType;
+class RegExpType;
 class RoundingModeType;
 class BitVectorType;
 class ArrayType;
@@ -258,6 +259,12 @@ public:
   bool isString() const;
 
   /**
+   * Is this the regexp type?
+   * @return true if the type is the regexp type
+   */
+  bool isRegExp() const;
+
+  /**
    * Is this the rounding mode type?
    * @return true if the type is the rounding mode type
    */
@@ -422,6 +429,18 @@ public:
   /** Construct from the base type */
   StringType(const Type& type) throw(IllegalArgumentException);
 };/* class StringType */
+
+/**
+ * Singleton class encapsulating the string type.
+ */
+class CVC4_PUBLIC RegExpType : public Type {
+
+public:
+
+  /** Construct from the base type */
+  RegExpType(const Type& type) throw(IllegalArgumentException);
+};/* class RegExpType */
+
 
 /**
  * Singleton class encapsulating the rounding mode type.

@@ -705,7 +705,7 @@ public:
   inline TypeNode stringType();
 
   /** Get the (singleton) type for RegExp. */
-  inline TypeNode regexpType();
+  inline TypeNode regExpType();
 
   /** Get the (singleton) type for rounding modes. */
   inline TypeNode roundingModeType();
@@ -1001,7 +1001,7 @@ inline TypeNode NodeManager::stringType() {
 }
 
 /** Get the (singleton) type for regexps. */
-inline TypeNode NodeManager::regexpType() {
+inline TypeNode NodeManager::regExpType() {
   return TypeNode(mkTypeConst<TypeConstant>(REGEXP_TYPE));
 }
 
