@@ -28,6 +28,7 @@
 #include "proof/clause_id.h"
 #include "prop/sat_solver_types.h"
 #include "util/proof.h"
+#include "proof/proof_utils.h"
 
 namespace CVC4 {
 
@@ -153,6 +154,14 @@ public:
   virtual void printDeferredDeclarations(std::ostream& os, std::ostream& paren) = 0;
 
   /**
+   * Print aliasing declarations.
+   *
+   * @param os
+   * @param paren closing parenthesis
+   */
+  virtual void printAliasingDeclarations(std::ostream& os, std::ostream& paren) = 0;
+
+  /**
    * Print proofs of all the theory lemmas (must prove
    * actual clause used in resolution proof).
    *
@@ -176,7 +185,7 @@ public:
    */
   void registerTheory(theory::Theory* theory);
 
-  theory::TheoryId getTheoryForLemma(ClauseId id);
+  theory::TheoryId getTheoryForLemma(const prop::SatClause* clause);
   TheoryProof* getTheoryProof(theory::TheoryId id);
 
   void markTermForFutureRegistration(Expr term, theory::TheoryId id);
@@ -199,13 +208,23 @@ public:
   virtual void printLetTerm(Expr term, std::ostream& os);
   virtual void printBoundTerm(Expr term, std::ostream& os, const LetMap& map);
   virtual void printAssertions(std::ostream& os, std::ostream& paren);
+  virtual void printLemmaRewrites(NodePairSet& rewrites, std::ostream& os, std::ostream& paren);
   virtual void printDeferredDeclarations(std::ostream& os, std::ostream& paren);
+  virtual void printAliasingDeclarations(std::ostream& os, std::ostream& paren);
   virtual void printTheoryLemmas(const IdToSatClause& lemmas,
                                  std::ostream& os,
                                  std::ostream& paren);
   virtual void printSort(Type type, std::ostream& os);
 
   void performExtraRegistrations();
+
+private:
+  static void dumpTheoryLemmas(const IdToSatClause& lemmas);
+
+  // TODO: this function should be moved into the BV prover.
+  void finalizeBvConflicts(const IdToSatClause& lemmas, std::ostream& os, std::ostream& paren);
+
+  std::map<Node, std::string> d_assertionToRewrite;
 };
 
 class TheoryProof {
@@ -281,6 +300,13 @@ public:
    */
   virtual void printDeferredDeclarations(std::ostream& os, std::ostream& paren) = 0;
   /**
+   * Print any aliasing declarations.
+   *
+   * @param os
+   * @param paren
+   */
+  virtual void printAliasingDeclarations(std::ostream& os, std::ostream& paren) = 0;
+  /**
    * Register a term of this theory that appears in the proof.
    *
    * @param term
@@ -303,6 +329,7 @@ public:
   virtual void printSortDeclarations(std::ostream& os, std::ostream& paren) = 0;
   virtual void printTermDeclarations(std::ostream& os, std::ostream& paren) = 0;
   virtual void printDeferredDeclarations(std::ostream& os, std::ostream& paren) = 0;
+  virtual void printAliasingDeclarations(std::ostream& os, std::ostream& paren) = 0;
 };
 
 class LFSCBooleanProof : public BooleanProof {
@@ -316,6 +343,7 @@ public:
   virtual void printSortDeclarations(std::ostream& os, std::ostream& paren);
   virtual void printTermDeclarations(std::ostream& os, std::ostream& paren);
   virtual void printDeferredDeclarations(std::ostream& os, std::ostream& paren);
+  virtual void printAliasingDeclarations(std::ostream& os, std::ostream& paren);
 };
 
 } /* CVC4 namespace */
