@@ -18,20 +18,20 @@ void SkolemizationManager::registerSkolem(Node disequality, Node skolem) {
   d_skolemToDisequality[skolem] = disequality;
 }
 
-void SkolemizationManager::registerLemmaForSkolem(Node skolem, Node lemma) {
-  Debug("pf::pm") << "SkolemizationManager: registerLemmaForSkolem: skolem = " << skolem
-                  << ", lemma = " << lemma << std::endl;
+// void SkolemizationManager::registerLemmaForSkolem(Node skolem, Node lemma) {
+//   Debug("pf::pm") << "SkolemizationManager: registerLemmaForSkolem: skolem = " << skolem
+//                   << ", lemma = " << lemma << std::endl;
 
-  Assert(isSkolem(skolem));
-  d_skolemToLemma[skolem] = lemma;
-}
+//   Assert(isSkolem(skolem));
+//   d_skolemToLemma[skolem] = lemma;
+// }
 
-Node SkolemizationManager::getLemma(Node skolem) {
-  Assert(isSkolem(skolem));
-  Assert(d_skolemToLemma.find(skolem) != d_skolemToLemma.end());
+// Node SkolemizationManager::getLemma(Node skolem) {
+//   Assert(isSkolem(skolem));
+//   Assert(d_skolemToLemma.find(skolem) != d_skolemToLemma.end());
 
-  return d_skolemToLemma[skolem];
-}
+//   return d_skolemToLemma[skolem];
+// }
 
 bool SkolemizationManager::hasSkolem(Node disequality) {
   return (d_disequalityToSkolem.find(disequality) != d_disequalityToSkolem.end());

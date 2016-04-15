@@ -24,8 +24,8 @@ public:
   Node getSkolem(Node disequality);
   Node getDisequality(Node skolem);
   bool isSkolem(Node skolem);
-  void registerLemmaForSkolem(Node skolem, Node lemma);
-  Node getLemma(Node skolem);
+  // void registerLemmaForSkolem(Node skolem, Node lemma);
+  // Node getLemma(Node skolem);
 
   void clear();
 

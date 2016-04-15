@@ -1257,7 +1257,7 @@ void LFSCArrayProof::printDeferredDeclarations(std::ostream& os, std::ostream& p
     Node array_one = equality[0][0];
     Node array_two = equality[0][1];
 
-    Node lemma = ProofManager::getSkolemizationManager()->getLemma(term);
+    // Node lemma = ProofManager::getSkolemizationManager()->getLemma(term);
 
     // Attempting to comment the symm stuff out, now that we have better rewrite support
 
