@@ -107,6 +107,10 @@ void BitVectorProof::registerAtomBB(Expr atom, Expr atom_bb) {
   Expr def = atom.iffExpr(atom_bb);
   d_bbAtoms.insert(std::make_pair(atom, def));
   registerTerm(atom);
+
+  // Register the atom's terms for bitblasting
+  registerTermBB(atom[0]);
+  registerTermBB(atom[1]);
 }
 
 void BitVectorProof::registerTerm(Expr term) {
@@ -176,6 +180,7 @@ void BitVectorProof::endBVConflict(const CVC4::BVMinisat::Solver::TLitVec& confl
 }
 
 void BitVectorProof::finalizeConflicts(std::vector<Expr>& conflicts) {
+
   if (options::bitblastMode() == theory::bv::BITBLAST_MODE_EAGER) {
     Debug("pf::bv") << "Construct full proof." << std::endl;
     d_resolutionProof->constructProof();
@@ -193,34 +198,57 @@ void BitVectorProof::finalizeConflicts(std::vector<Expr>& conflicts) {
       bool matchFound = false;
       for (it = d_bbConflictMap.begin(); it != d_bbConflictMap.end(); ++it) {
         Expr possibleMatch = it->first;
-        if (possibleMatch.getNumChildren() > confl.getNumChildren())
-          continue;
 
-        unsigned k = 0;
-        bool matching = true;
-        for (unsigned j = 0; j < possibleMatch.getNumChildren(); ++j) {
-          // j is the index in possibleMatch
-          // k is the index in confl
-          while (k < confl.getNumChildren() && confl[k] != possibleMatch[j]) {
-            ++k;
+        if (possibleMatch.getKind() != kind::OR) {
+          // This is a single-node conflict. If this node is in the conflict we're trying to prove,
+          // we have a match.
+          for (unsigned k = 0; k < confl.getNumChildren(); ++k) {
+            if (confl[k] == possibleMatch) {
+              matchFound = true;
+              d_resolutionProof->collectClauses(it->second);
+              break;
+            }
           }
-          if (k == confl.getNumChildren()) {
-            // We couldn't find a match for possibleMatch[j], so not a match
-            matching = false;
+        } else {
+          if (possibleMatch.getNumChildren() > confl.getNumChildren())
+            continue;
+
+          unsigned k = 0;
+          bool matching = true;
+          for (unsigned j = 0; j < possibleMatch.getNumChildren(); ++j) {
+            // j is the index in possibleMatch
+            // k is the index in confl
+            while (k < confl.getNumChildren() && confl[k] != possibleMatch[j]) {
+              ++k;
+            }
+            if (k == confl.getNumChildren()) {
+              // We couldn't find a match for possibleMatch[j], so not a match
+              matching = false;
+              break;
+            }
+          }
+
+          if (matching) {
+            Debug("pf::bv") << "Collecting info from a sub-conflict" << std::endl;
+            d_resolutionProof->collectClauses(it->second);
+            matchFound = true;
             break;
           }
-        }
-
-        if (matching) {
-          Debug("pf::bv") << "Collecting info from a sub-conflict" << std::endl;
-          d_resolutionProof->collectClauses(it->second);
-          matchFound = true;
-          break;
         }
       }
 
       if (!matchFound) {
         Debug("pf::bv") << "Do not collect clauses for " << confl << std::endl;
+
+        Debug("pf::bv") << "Dumping existing conflicts:" << std::endl;
+
+        i = 0;
+        for (it = d_bbConflictMap.begin(); it != d_bbConflictMap.end(); ++it) {
+          ++i;
+          Debug("pf::bv") << "\tConflict #" << i << ": " << it->first << std::endl;
+        }
+
+
         Unreachable();
       }
     }
@@ -459,6 +487,7 @@ void LFSCBitVectorProof::printTheoryLemmaProof(std::vector<Expr>& lemma, std::os
 
     Debug("pf::bv") << "Found a non-recorded conflict. Will look for a matching sub-conflict..." << std::endl;
 
+    bool matching;
 
     ExprToClauseId::const_iterator it;
     unsigned i = 0;
@@ -467,22 +496,39 @@ void LFSCBitVectorProof::printTheoryLemmaProof(std::vector<Expr>& lemma, std::os
       ++i;
       // Debug("pf::bv") << "\tConflict #" << i << ": " << it->first << std::endl;
       Expr possibleMatch = it->first;
-      if (possibleMatch.getNumChildren() > conflict.getNumChildren())
-        continue;
+      // Debug("pf::bv") << "possibleMatch = " << possibleMatch << std::endl;
 
-      unsigned k = 0;
+      if (possibleMatch.getKind() != kind::OR) {
+        // Debug("pf::bv") << "Checking singleton conflict (#" << i << "): " << possibleMatch << std::endl;
 
-      bool matching = true;
-      for (unsigned j = 0; j < possibleMatch.getNumChildren(); ++j) {
-        // j is the index in possibleMatch
-        // k is the index in conflict
-        while (k < conflict.getNumChildren() && conflict[k] != possibleMatch[j]) {
-          ++k;
+        // This is a single-node conflict. If this node is in the conflict we're trying to prove,
+        // we have a match.
+        matching = false;
+
+        for (unsigned k = 0; k < conflict.getNumChildren(); ++k) {
+          if (conflict[k] == possibleMatch) {
+            matching = true;
+            break;
+          }
         }
-        if (k == conflict.getNumChildren()) {
-          // We couldn't find a match for possibleMatch[j], so not a match
-          matching = false;
-          break;
+      } else {
+        if (possibleMatch.getNumChildren() > conflict.getNumChildren())
+          continue;
+
+        unsigned k = 0;
+
+        matching = true;
+        for (unsigned j = 0; j < possibleMatch.getNumChildren(); ++j) {
+          // j is the index in possibleMatch
+          // k is the index in conflict
+          while (k < conflict.getNumChildren() && conflict[k] != possibleMatch[j]) {
+            ++k;
+          }
+          if (k == conflict.getNumChildren()) {
+            // We couldn't find a match for possibleMatch[j], so not a match
+            matching = false;
+            break;
+          }
         }
       }
 
@@ -578,6 +624,7 @@ void LFSCBitVectorProof::printAliasingDeclarations(std::ostream& os, std::ostrea
   ExprToString::const_iterator end = d_assignedAliases.end();
 
   for (; it != end; ++it) {
+    Debug("pf::bv") << "Printing aliasing declaration for: " << *it << std::endl;
     std::stringstream declaration;
     declaration << ".fbvd" << d_aliasToBindDeclaration.size();
     d_aliasToBindDeclaration[it->second] = declaration.str();
