@@ -28,19 +28,19 @@ public:
     ProofStep(theory::TheoryId theory, Node literalToProve);
     theory::TheoryId getTheory() const;
     Node getLiteral() const;
-    void addAssumption(const Node& assumption);
-    std::set<Node> getAssumptions() const;
+    void addAssertion(const Node& assertion);
+    std::set<Node> getAssertions() const;
 
   private:
     theory::TheoryId d_theory;
     Node d_literalToProve;
-    std::set<Node> d_assumptions;
+    std::set<Node> d_assertions;
   };
 
   //* The lemma assertions and owner */
-  void addAssertion(Node assertion);
-  std::set<Node> getAssertions() const;
-  void setTheory(theory::TheoryId theory);
+  void addBaseAssertion(Node baseAssertion);
+  std::set<Node> getBaseAssertions() const;
+  // void setTheory(theory::TheoryId theory);
   theory::TheoryId getTheory() const;
 
   //* Rewrite rules */
@@ -54,7 +54,8 @@ public:
 
   //* Proof Steps */
   void addStep(ProofStep& proofStep);
-  ProofStep getStep(unsigned index) const;
+  const ProofStep* getStep(unsigned index) const;
+  ProofStep* getStep(unsigned index);
   unsigned getNumSteps() const;
   std::set<Node> getMissingAssertionsForStep(unsigned index) const;
   bool simpleLemma() const;
@@ -65,13 +66,13 @@ public:
 
 private:
   //* The list of assertions for this lemma */
-  std::set<Node> d_assertions;
+  std::set<Node> d_baseAssertions;
 
   //* The various steps needed to derive the empty clause */
   std::list<ProofStep> d_proofSteps;
 
   //* The owner theory. If the proof has steps, this theory makes the final step */
-  theory::TheoryId d_theory;
+  // theory::TheoryId d_theory;
 
   //* A map from assertions to their rewritten explanations (toAssert --> toExplain) */
   std::map<Node, Node> d_assertionToExplanation;

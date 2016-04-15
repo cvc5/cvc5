@@ -9,6 +9,7 @@
 **/
 
 #include "proof/lemma_proof.h"
+#include "theory/rewriter.h"
 
 namespace CVC4 {
 
@@ -24,12 +25,12 @@ Node LemmaProofRecipe::ProofStep::getLiteral() const {
   return d_literalToProve;
 }
 
-void LemmaProofRecipe::ProofStep::addAssumption(const Node& assumption) {
-  d_assumptions.insert(assumption);
+void LemmaProofRecipe::ProofStep::addAssertion(const Node& assertion) {
+  d_assertions.insert(assertion);
 }
 
-std::set<Node> LemmaProofRecipe::ProofStep::getAssumptions() const {
-  return d_assumptions;
+std::set<Node> LemmaProofRecipe::ProofStep::getAssertions() const {
+  return d_assertions;
 }
 
 void LemmaProofRecipe::addStep(ProofStep& proofStep) {
@@ -40,7 +41,7 @@ void LemmaProofRecipe::addStep(ProofStep& proofStep) {
 std::set<Node> LemmaProofRecipe::getMissingAssertionsForStep(unsigned index) const {
   Assert(index < d_proofSteps.size());
 
-  std::set<Node> existingAssertions = d_assertions;
+  std::set<Node> existingAssertions = getBaseAssertions();
 
   std::list<ProofStep>::const_iterator step = d_proofSteps.begin();
   while (index != 0) {
@@ -49,7 +50,7 @@ std::set<Node> LemmaProofRecipe::getMissingAssertionsForStep(unsigned index) con
     --index;
   }
 
-  std::set<Node> neededAssertions = step->getAssumptions();
+  std::set<Node> neededAssertions = step->getAssertions();
 
   std::set<Node> result;
   std::set_difference(neededAssertions.begin(), neededAssertions.end(),
@@ -59,64 +60,90 @@ std::set<Node> LemmaProofRecipe::getMissingAssertionsForStep(unsigned index) con
 }
 
 void LemmaProofRecipe::dump(const char *tag) const {
-  if (d_proofSteps.empty()) {
-    Debug(tag) << std::endl << "[Simple lemma]" << std::endl;
-    Assert(d_assertionToExplanation.empty());
-  } else {
-    Debug(tag) << std::endl << "Proof steps:" << std::endl;
 
-    unsigned count = 1;
-    for (std::list<ProofStep>::const_iterator step = d_proofSteps.begin(); step != d_proofSteps.end(); ++step) {
-      Debug(tag) << "\tStep #" << count << ": " << "\t[" << step->getTheory() << "] " << step->getLiteral()
-                 << std::endl;
+  if (d_proofSteps.size() == 1) {
+    Debug(tag) << std::endl << "[Simple lemma]" << std::endl << std::endl;
+  }
 
-      std::set<Node> missingAssertions = getMissingAssertionsForStep(count - 1);
-      for (std::set<Node>::const_iterator it = missingAssertions.begin(); it != missingAssertions.end(); ++it) {
-        Debug(tag) << "\t\t\tMissing assertion for step: " << *it << std::endl;
-      }
+  unsigned count = 1;
+  Debug(tag) << "Base assertions:" << std::endl;
+  for (std::set<Node>::iterator baseIt = d_baseAssertions.begin();
+       baseIt != d_baseAssertions.end();
+       ++baseIt) {
+    Debug(tag) << "\t#" << count << ": " << "\t" << *baseIt << std::endl;
+    ++count;
+  }
 
-      Debug(tag) << std::endl;
-      ++count;
+  Debug(tag) << std::endl << std::endl << "Proof steps:" << std::endl;
+
+   count = 1;
+  for (std::list<ProofStep>::const_iterator step = d_proofSteps.begin(); step != d_proofSteps.end(); ++step) {
+    Debug(tag) << "\tStep #" << count << ": " << "\t[" << step->getTheory() << "] ";
+    if (step->getLiteral() == Node()) {
+      Debug(tag) << "Contradiction";
+    } else {
+      Debug(tag) << step->getLiteral();
     }
 
-    if (!d_assertionToExplanation.empty()) {
-      Debug(tag) << std::endl << "Rewrites used:" << std::endl;
-      count = 1;
-      for (std::map<Node, Node>::const_iterator rewrite = d_assertionToExplanation.begin();
-           rewrite != d_assertionToExplanation.end();
-           ++rewrite) {
-        Debug(tag) << "\tRewrite #" << count << ":" << std::endl
-                   << "\t\t" << rewrite->first
-                   << std::endl << "\t\trewritten into" << std::endl
-                   << "\t\t" << rewrite->second
-                   << std::endl << std::endl;
-        ++count;
-      }
+    Debug(tag) << std::endl;
+
+    std::set<Node> missingAssertions = getMissingAssertionsForStep(count - 1);
+    for (std::set<Node>::const_iterator it = missingAssertions.begin(); it != missingAssertions.end(); ++it) {
+      Debug(tag) << "\t\t\tMissing assertion for step: " << *it << std::endl;
+    }
+
+    Debug(tag) << std::endl;
+    ++count;
+  }
+
+  if (!d_assertionToExplanation.empty()) {
+    Debug(tag) << std::endl << "Rewrites used:" << std::endl;
+    count = 1;
+    for (std::map<Node, Node>::const_iterator rewrite = d_assertionToExplanation.begin();
+         rewrite != d_assertionToExplanation.end();
+         ++rewrite) {
+      Debug(tag) << "\tRewrite #" << count << ":" << std::endl
+                 << "\t\t" << rewrite->first
+                 << std::endl << "\t\trewritten into" << std::endl
+                 << "\t\t" << rewrite->second
+                 << std::endl << std::endl;
+      ++count;
     }
   }
 }
 
-void LemmaProofRecipe::addAssertion(Node assertion) {
-  d_assertions.insert(assertion);
+void LemmaProofRecipe::addBaseAssertion(Node baseAssertion) {
+  d_baseAssertions.insert(baseAssertion);
 }
 
-std::set<Node> LemmaProofRecipe::getAssertions() const {
-  return d_assertions;
+std::set<Node> LemmaProofRecipe::getBaseAssertions() const {
+  return d_baseAssertions;
 }
 
-void LemmaProofRecipe::setTheory(theory::TheoryId theory) {
-  d_theory = theory;
-}
+// void LemmaProofRecipe::setTheory(theory::TheoryId theory) {
+//   d_theory = theory;
+// }
 
 theory::TheoryId LemmaProofRecipe::getTheory() const {
-  return d_theory;
+  Assert(d_proofSteps.size() > 0);
+  return d_proofSteps.back().getTheory();
 }
 
 void LemmaProofRecipe::addRewriteRule(Node assertion, Node explanation) {
   Debug("gk::temp") << "LemmaProofRecipe::addRewriteRule: " << assertion << " --> " << explanation << std::endl;
+  Assert(theory::Rewriter::rewrite(assertion) == explanation);
+  Assert(((assertion.getKind() == kind::NOT) && (explanation.getKind() == kind::NOT)) ||
+         ((assertion.getKind() != kind::NOT) && (explanation.getKind() != kind::NOT)));
+
   // if (d_explanationToAssertion.find(explanation) != d_explanationToAssertion.end()) {
   //   Debug("gk::temp") << "LemmaProofRecipe::addRewriteRule: existing rewrite: " << d_explanationToAssertion[explanation] << std::endl;
   //   Assert(d_explanationToAssertion[explanation] == assertion);
+  // }
+
+
+  // if (assertion.getKind() == kind::NOT) {
+  //   assertion = assertion[0];
+  //   explanation = explanation[0];
   // }
 
   if (d_assertionToExplanation.find(assertion) != d_assertionToExplanation.end()) {
@@ -145,18 +172,18 @@ LemmaProofRecipe::RewriteIterator LemmaProofRecipe::rewriteEnd() const {
 }
 
 bool LemmaProofRecipe::operator<(const LemmaProofRecipe& other) const {
-    return d_assertions < other.d_assertions;
+    return d_baseAssertions < other.d_baseAssertions;
   }
 
 bool LemmaProofRecipe::simpleLemma() const {
-  return d_proofSteps.empty();
+  return d_proofSteps.size() == 1;
 }
 
 bool LemmaProofRecipe::compositeLemma() const {
   return !simpleLemma();
 }
 
-LemmaProofRecipe::ProofStep LemmaProofRecipe::getStep(unsigned index) const {
+const LemmaProofRecipe::ProofStep* LemmaProofRecipe::getStep(unsigned index) const {
   Assert(index < d_proofSteps.size());
 
   std::list<ProofStep>::const_iterator it = d_proofSteps.begin();
@@ -165,7 +192,19 @@ LemmaProofRecipe::ProofStep LemmaProofRecipe::getStep(unsigned index) const {
     --index;
   }
 
-  return *it;
+  return &(*it);
+}
+
+LemmaProofRecipe::ProofStep* LemmaProofRecipe::getStep(unsigned index) {
+  Assert(index < d_proofSteps.size());
+
+  std::list<ProofStep>::iterator it = d_proofSteps.begin();
+  while (index != 0) {
+    ++it;
+    --index;
+  }
+
+  return &(*it);
 }
 
 unsigned LemmaProofRecipe::getNumSteps() const {
