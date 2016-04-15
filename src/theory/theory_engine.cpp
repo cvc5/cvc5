@@ -1261,11 +1261,13 @@ bool TheoryEngine::propagate(TNode literal, theory::TheoryId theory) {
 
     PROOF({
         LemmaProofRecipe proofRecipe;
+        proofRecipe.addBaseAssertion(literal);
 
         Node emptyNode;
         LemmaProofRecipe::ProofStep proofStep(theory, emptyNode);
         proofStep.addAssertion(literal);
-        proofRecipe.addBaseAssertion(literal);
+        proofRecipe.addStep(proofStep);
+
         ProofManager::getCnfProof()->setProofRecipe(&proofRecipe);
       });
 
@@ -1684,9 +1686,11 @@ void TheoryEngine::conflict(TNode conflict, TheoryId theoryId) {
               continue;
             }
             proofRecipe->getStep(0)->addAssertion(conflict[i].negate());
+            proofRecipe->addBaseAssertion(conflict[i].negate());
           }
         } else {
           proofRecipe->getStep(0)->addAssertion(conflict.negate());
+          proofRecipe->addBaseAssertion(conflict.negate());
         }
       });
 
