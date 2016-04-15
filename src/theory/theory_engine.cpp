@@ -67,16 +67,33 @@ theory::LemmaStatus TheoryEngine::EngineOutputChannel::lemma(TNode lemma,
 
   LemmaProofRecipe* proofRecipe = NULL;
   PROOF({
+      // Theory lemmas have one step that proves the empty clause
       proofRecipe = new LemmaProofRecipe;
-      proofRecipe->setTheory(d_theory);
 
+      Node emptyNode;
+      LemmaProofRecipe::ProofStep proofStep(d_theory, emptyNode);
+
+      // proofRecipe->setTheory(d_theory);
+
+      Node rewritten;
       if (lemma.getKind() == kind::OR) {
         for (unsigned i = 0; i < lemma.getNumChildren(); ++i) {
-          proofRecipe->addAssertion(theory::Rewriter::rewrite(lemma[i]));
+          rewritten = theory::Rewriter::rewrite(lemma[i]);
+          if (rewritten != lemma[i]) {
+            proofRecipe->addRewriteRule(lemma[i].negate(), rewritten.negate());
+          }
+          proofStep.addAssertion(lemma[i]);
+          proofRecipe->addBaseAssertion(rewritten);
         }
       } else {
-        proofRecipe->addAssertion(theory::Rewriter::rewrite(lemma));
+        rewritten = theory::Rewriter::rewrite(lemma);
+        if (rewritten != lemma) {
+          proofRecipe->addRewriteRule(lemma.negate(), rewritten.negate());
+        }
+        proofStep.addAssertion(lemma);
+        proofRecipe->addBaseAssertion(rewritten);
       }
+      proofRecipe->addStep(proofStep);
     });
 
   theory::LemmaStatus result = d_engine->lemma(lemma,
@@ -1244,8 +1261,11 @@ bool TheoryEngine::propagate(TNode literal, theory::TheoryId theory) {
 
     PROOF({
         LemmaProofRecipe proofRecipe;
-        proofRecipe.setTheory(theory);
-        proofRecipe.addAssertion(literal);
+
+        Node emptyNode;
+        LemmaProofRecipe::ProofStep proofStep(theory, emptyNode);
+        proofStep.addAssertion(literal);
+        proofRecipe.addBaseAssertion(literal);
         ProofManager::getCnfProof()->setProofRecipe(&proofRecipe);
       });
 
@@ -1357,8 +1377,13 @@ Node TheoryEngine::getExplanationAndRecipe(TNode node, LemmaProofRecipe* proofRe
     Debug("theory::explain") << "TheoryEngine::getExplanation(" << node << ") => " << explanation << endl;
     PROOF({
         if(proofRecipe) {
-          proofRecipe->setTheory(theoryOf(atom)->getId());
-          proofRecipe->addAssertion(node);
+          Node emptyNode;
+          LemmaProofRecipe::ProofStep proofStep(theoryOf(atom)->getId(), emptyNode);
+          proofStep.addAssertion(node);
+          proofRecipe->addBaseAssertion(node);
+
+          // proofRecipe->setTheory(theoryOf(atom)->getId());
+          // proofRecipe->addAssertion(node);
 
           if (explanation.getKind() == kind::AND) {
             // If the explanation is a conjunction, the recipe for the corresponding lemma is
@@ -1374,17 +1399,21 @@ Node TheoryEngine::getExplanationAndRecipe(TNode node, LemmaProofRecipe* proofRe
                 continue;
               }
               Debug("theory::explain") << "TheoryEngine::getExplanationAndRecipe: adding recipe assertion: "
-                                   << explanation[i].negate() << std::endl;
-              proofRecipe->addAssertion(explanation[i].negate());
+                                       << explanation[i].negate() << std::endl;
+              proofStep.addAssertion(explanation[i].negate());
+              proofRecipe->addBaseAssertion(explanation[i].negate());
             }
           } else {
             // The recipe for proving it is by negating it. "True" is not an acceptable reason.
             if (!((explanation.isConst() && explanation.getConst<bool>()) ||
                   (explanation.getKind() == kind::NOT &&
                    explanation[0].isConst() && !explanation[0].getConst<bool>()))) {
-              proofRecipe->addAssertion(explanation.negate());
+              proofStep.addAssertion(explanation.negate());
+              proofRecipe->addBaseAssertion(explanation.negate());
             }
           }
+
+          proofRecipe->addStep(proofStep);
         }
       });
 
@@ -1407,8 +1436,12 @@ Node TheoryEngine::getExplanationAndRecipe(TNode node, LemmaProofRecipe* proofRe
   explanationVector.push_back(d_propagationMap[toExplain]);
   // Process the explanation
   if (proofRecipe) {
-    proofRecipe->setTheory(explainer);
-    proofRecipe->addAssertion(node);
+    Node emptyNode;
+    LemmaProofRecipe::ProofStep proofStep(explainer, emptyNode);
+    proofStep.addAssertion(node);
+    proofRecipe->addStep(proofStep);
+    // proofStep.addAssertion(node);
+    proofRecipe->addBaseAssertion(node);
   }
 
   getExplanation(explanationVector, proofRecipe);
@@ -1614,7 +1647,9 @@ void TheoryEngine::conflict(TNode conflict, TheoryId theoryId) {
   LemmaProofRecipe* proofRecipe = NULL;
   PROOF({
       proofRecipe = new LemmaProofRecipe;
-      proofRecipe->setTheory(theoryId);
+      Node emptyNode;
+      LemmaProofRecipe::ProofStep proofStep(theoryId, emptyNode);
+      proofRecipe->addStep(proofStep);
     });
 
   // In the multiple-theories case, we need to reconstruct the conflict
@@ -1648,10 +1683,10 @@ void TheoryEngine::conflict(TNode conflict, TheoryId theoryId) {
               ++ i;
               continue;
             }
-            proofRecipe->addAssertion(conflict[i].negate());
+            proofRecipe->getStep(0)->addAssertion(conflict[i].negate());
           }
         } else {
-          proofRecipe->addAssertion(conflict.negate());
+          proofRecipe->getStep(0)->addAssertion(conflict.negate());
         }
       });
 
@@ -1827,7 +1862,7 @@ void TheoryEngine::getExplanation(std::vector<NodeTheoryPair>& explanationVector
   unsigned j = 0; // Index of the last literal we are keeping
 
   std::set<Node> inputAssertions;
-  PROOF(inputAssertions = proofRecipe->getAssertions(););
+  PROOF(inputAssertions = proofRecipe->getStep(0)->getAssertions(););
 
   while (i < explanationVector.size()) {
     // Get the current literal to explain
@@ -1918,10 +1953,10 @@ void TheoryEngine::getExplanation(std::vector<NodeTheoryPair>& explanationVector
             LemmaProofRecipe::ProofStep proofStep(toExplain.theory, toExplain.node);
             if (explanation.getKind() == kind::AND) {
               for (unsigned k = 0; k < explanation.getNumChildren(); ++ k) {
-                proofStep.addAssumption(explanation[k].negate());
+                proofStep.addAssertion(explanation[k].negate());
               }
             } else {
-              proofStep.addAssumption(explanation.negate());
+              proofStep.addAssertion(explanation.negate());
             }
             proofRecipe->addStep(proofStep);
           }
@@ -1935,9 +1970,12 @@ void TheoryEngine::getExplanation(std::vector<NodeTheoryPair>& explanationVector
   PROOF({
       if (proofRecipe) {
         // The remaining literals are the base of the proof
+        Debug("gk::temp") << "Remaining literals become base" << std::endl;
         for (unsigned k = 0; k < explanationVector.size(); ++k) {
-          proofRecipe->addAssertion(explanationVector[k].node.negate());
+          proofRecipe->addBaseAssertion(explanationVector[k].node.negate());
         }
+
+        proofRecipe->dump("gk::temp");
       }
     });
 }
