@@ -236,10 +236,10 @@ typedef std::map< Node, std::hash_set< Node, NodeHashFunction > >::iterator TC_P
     Node tc_r_rep = getRepresentative(tc_term[0]);
 
     // build the TC graph for tc_rep if it was not created before
-    if( d_tc_nodes.find(tc_rep) == d_tc_nodes.end() ) {
+    if( d_rel_nodes.find(tc_rep) == d_rel_nodes.end() ) {
       Trace("rels-debug") << "[sets-rels]  Start building the TC graph!" << std::endl;
       buildTCGraph(tc_r_rep, tc_rep, tc_term);
-      d_tc_nodes.insert(tc_rep);
+      d_rel_nodes.insert(tc_rep);
     }
     // insert atom[0] in the tc_graph if it is not in the graph already
     TC_IT tc_graph_it = d_membership_tc_cache.find(tc_rep);
@@ -316,6 +316,10 @@ typedef std::map< Node, std::hash_set< Node, NodeHashFunction > >::iterator TC_P
 
   void TheorySetsRels::applyProductRule(Node exp, Node product_term) {
     Trace("rels-debug") << "\n[sets-rels] *********** Applying PRODUCT rule  " << std::endl;
+    if(d_rel_nodes.find(product_term) == d_rel_nodes.end()) {
+      computeRels(product_term);
+      d_rel_nodes.insert(product_term);
+    }
     bool polarity = exp.getKind() != kind::NOT;
     Node atom = polarity ? exp : exp[0];
     Node r1_rep = getRepresentative(product_term[0]);
@@ -366,25 +370,22 @@ typedef std::map< Node, std::hash_set< Node, NodeHashFunction > >::iterator TC_P
       reason_2 = Rewriter::rewrite(AND(reason_2, explain(EQUAL(t2, t2_rep))));
     }
     if(polarity) {
-      if(!hasMember(r1_rep, t1_rep)) {
-        addToMap(d_membership_db, r1_rep, t1_rep);
+      if(safeAddToMap(d_membership_db, r1_rep, t1_rep)) {
         addToMap(d_membership_exp_db, r1_rep, reason_1);
         sendInfer(fact_1, reason_1, "product-split");
       }
-      if(!hasMember(r2_rep, t2)) {
-        addToMap(d_membership_db, r2_rep, t2);
+      if(safeAddToMap(d_membership_db, r2_rep, t2_rep)) {
         addToMap(d_membership_exp_db, r2_rep, reason_2);
         sendInfer(fact_2, reason_2, "product-split");
       }
 
     } else {
-//      sendInfer(fact_1.negate(), reason_1, "product-split");
-//      sendInfer(fact_2.negate(), reason_2, "product-split");
+      sendInfer(fact_1.negate(), reason_1, "product-split");
+      sendInfer(fact_2.negate(), reason_2, "product-split");
 
       // ONLY need to explicitly compute joins if there are negative literals involving PRODUCT
       Trace("rels-debug") << "\n[sets-rels] Apply PRODUCT-COMPOSE rule on term: " << product_term
                           << " with explanation: " << exp << std::endl;
-      computeRels(product_term);
     }
   }
 
@@ -399,6 +400,10 @@ typedef std::map< Node, std::hash_set< Node, NodeHashFunction > >::iterator TC_P
    */
   void TheorySetsRels::applyJoinRule(Node exp, Node join_term) {
     Trace("rels-debug") << "\n[sets-rels] *********** Applying JOIN rule  " << std::endl;
+    if(d_rel_nodes.find(join_term) == d_rel_nodes.end()) {
+      computeRels(join_term);
+      d_rel_nodes.insert(join_term);
+    }
     bool polarity = exp.getKind() != kind::NOT;
     Node atom = polarity ? exp : exp[0];
     Node r1_rep = getRepresentative(join_term[0]);
@@ -472,7 +477,6 @@ typedef std::map< Node, std::hash_set< Node, NodeHashFunction > >::iterator TC_P
       // ONLY need to explicitly compute joins if there are negative literals involving JOIN
       Trace("rels-debug") <<  "\n[sets-rels] Apply JOIN-COMPOSE rule on term: " << join_term
                           << " with explanation: " << exp << std::endl;
-      computeRels(join_term);
     }
   }
 
@@ -521,14 +525,18 @@ typedef std::map< Node, std::hash_set< Node, NodeHashFunction > >::iterator TC_P
          != d_terms_cache[tp_t0_rep].end()) {
         std::vector<Node> join_terms = d_terms_cache[tp_t0_rep][kind::JOIN];
         for(unsigned int i = 0; i < join_terms.size(); i++) {
-          computeRels(join_terms[i]);
+          if(d_rel_nodes.find(join_terms[i]) == d_rel_nodes.end()) {
+            computeRels(join_terms[i]);
+          }
         }
       }
       if(d_terms_cache[tp_t0_rep].find(kind::PRODUCT)
          != d_terms_cache[tp_t0_rep].end()) {
         std::vector<Node> product_terms = d_terms_cache[tp_t0_rep][kind::PRODUCT];
         for(unsigned int i = 0; i < product_terms.size(); i++) {
-          computeRels(product_terms[i]);
+          if(d_rel_nodes.find(product_terms[i]) == d_rel_nodes.end()) {
+            computeRels(product_terms[i]);
+          }
         }
       }
       fact = fact.negate();
@@ -792,7 +800,7 @@ typedef std::map< Node, std::hash_set< Node, NodeHashFunction > >::iterator TC_P
         d_sets_theory.d_out->lemma(NodeManager::currentNM()->mkNode(kind::IMPLIES, child_it->second, child_it->first));
       }
     }
-    d_tc_nodes.clear();
+    d_rel_nodes.clear();
     d_pending_facts.clear();
     d_membership_constraints_cache.clear();
     d_membership_tc_cache.clear();
@@ -930,12 +938,20 @@ typedef std::map< Node, std::hash_set< Node, NodeHashFunction > >::iterator TC_P
   }
 
   bool TheorySetsRels::safeAddToMap(std::map< Node, std::vector<Node> >& map, Node rel_rep, Node member) {
-    if(map.find(rel_rep) == map.end()) {
+    std::map< Node, std::vector< Node > >::iterator mem_it = map.find(rel_rep);
+    if(mem_it == map.end()) {
       std::vector<Node> members;
       members.push_back(member);
       map[rel_rep] = members;
       return true;
-    } else if(std::find(map[rel_rep].begin(), map[rel_rep].end(), member) == map[rel_rep].end()) {
+    } else {
+      std::vector<Node>::iterator mems = mem_it->second.begin();
+      while(mems != mem_it->second.end()) {
+        if(areEqual(*mems, member)) {
+          return false;
+        }
+        mems++;
+      }
       map[rel_rep].push_back(member);
       return true;
     }
@@ -979,7 +995,7 @@ typedef std::map< Node, std::hash_set< Node, NodeHashFunction > >::iterator TC_P
       if(tc_r_mems != d_membership_db.end()) {
         for(unsigned int i = 0; i < tc_r_mems->second.size(); i++) {
           if(areEqual(tc_r_mems->second[i], tuple)) {
-            Node exp = d_trueNode;
+            Node exp = MEMBER(tc_r_mems->second[i], tc_r_mems->first);
             if(tc_r_rep != tc_term[0]) {
               exp = explain(EQUAL(tc_r_rep, tc_term[0]));
             }
@@ -1006,7 +1022,7 @@ typedef std::map< Node, std::hash_set< Node, NodeHashFunction > >::iterator TC_P
       if(tc_t_mems != d_membership_db.end()) {
         for(unsigned int j = 0; j < tc_t_mems->second.size(); j++) {
           if(areEqual(tc_t_mems->second[j], tuple)) {
-            Node exp = d_trueNode;
+            Node exp = MEMBER(tc_t_mems->second[j], tc_t_mems->first);
             if(tc_rep != tc_terms[i]) {
               exp = AND(exp, explain(EQUAL(tc_rep, tc_terms[i])));
             }
@@ -1038,7 +1054,7 @@ typedef std::map< Node, std::hash_set< Node, NodeHashFunction > >::iterator TC_P
     return Node::null();
   }
 
-  inline Node TheorySetsRels::nthElementOfTuple( Node tuple, int n_th ) {
+  Node TheorySetsRels::nthElementOfTuple( Node tuple, int n_th ) {
     if(tuple.isConst() || (!tuple.isVar() && !tuple.isConst()))
       return tuple[n_th];
     Datatype dt = tuple.getType().getDatatype();
@@ -1067,17 +1083,19 @@ typedef std::map< Node, std::hash_set< Node, NodeHashFunction > >::iterator TC_P
   }
 
   bool TheorySetsRels::holds(Node node) {
+    Trace("rels-check") << " [sets-rels] Check if node = " << node << " already holds " << std::endl;
     bool polarity = node.getKind() != kind::NOT;
     Node atom = polarity ? node : node[0];
     Node polarity_atom = polarity ? d_trueNode : d_falseNode;
-    if(d_eqEngine->hasTerm(node)) {
-      return areEqual(node, polarity_atom);
+    if(d_eqEngine->hasTerm(atom)) {
+      Trace("rels-check") << " [sets-rels] node = " << node << " is in the EE " << std::endl;
+      return areEqual(atom, polarity_atom);
     } else {
       Node atom_mod = NodeManager::currentNM()->mkNode(atom.getKind(),
                                                        getRepresentative(atom[0]),
                                                        getRepresentative(atom[1]));
       if(d_eqEngine->hasTerm(atom_mod)) {
-        return areEqual(node, polarity_atom);
+        return areEqual(atom_mod, polarity_atom);
       }
     }
     return false;

@@ -672,6 +672,7 @@ bool TheorySetsPrivate::checkModel(const SettermElementsMap& settermElementsMap,
                       << std::endl;
 
   Assert(S.getType().isSet());
+  std::set<Node> temp_nodes;
 
   const Elements emptySetOfElements;
   const Elements& saved =
@@ -714,6 +715,74 @@ bool TheorySetsPrivate::checkModel(const SettermElementsMap& settermElementsMap,
     case kind::SETMINUS:
       std::set_difference(left.begin(), left.end(), right.begin(), right.end(),
                           std::inserter(cur, cur.begin()) );
+      break;
+    case kind::PRODUCT: {
+      std::set<Node> new_tuple_set;
+      Elements::const_iterator left_it = left.begin();
+      int left_len = (*left_it).getType().getTupleLength();
+      TypeNode tn = S.getType().getSetElementType();
+      while(left_it != left.end()) {
+        Trace("rels-debug") << "Sets::postRewrite processing left_it = " <<  *left_it << std::endl;
+        std::vector<Node> left_tuple;
+        left_tuple.push_back(Node::fromExpr(tn.getDatatype()[0].getConstructor()));
+        for(int i = 0; i < left_len; i++) {
+          left_tuple.push_back(TheorySetsRels::nthElementOfTuple(*left_it,i));
+        }
+        Elements::const_iterator right_it = right.begin();
+        int right_len = (*right_it).getType().getTupleLength();
+        while(right_it != right.end()) {
+          std::vector<Node> right_tuple;
+          for(int j = 0; j < right_len; j++) {
+            right_tuple.push_back(TheorySetsRels::nthElementOfTuple(*right_it,j));
+          }
+          std::vector<Node> new_tuple;
+          new_tuple.insert(new_tuple.end(), left_tuple.begin(), left_tuple.end());
+          new_tuple.insert(new_tuple.end(), right_tuple.begin(), right_tuple.end());
+          Node composed_tuple = NodeManager::currentNM()->mkNode(kind::APPLY_CONSTRUCTOR, new_tuple);
+          temp_nodes.insert(composed_tuple);
+          new_tuple_set.insert(composed_tuple);
+          right_it++;
+        }
+        left_it++;
+      }
+      cur.insert(new_tuple_set.begin(), new_tuple_set.end());
+      Trace("rels-debug") << " ***** Done with check model for product operator" << std::endl;
+      break;
+    }
+    case kind::JOIN: {
+      std::set<Node> new_tuple_set;
+      Elements::const_iterator left_it = left.begin();
+      int left_len = (*left_it).getType().getTupleLength();
+      TypeNode tn = S.getType().getSetElementType();
+      while(left_it != left.end()) {
+        std::vector<Node> left_tuple;
+        left_tuple.push_back(Node::fromExpr(tn.getDatatype()[0].getConstructor()));
+        for(int i = 0; i < left_len - 1; i++) {
+          left_tuple.push_back(TheorySetsRels::nthElementOfTuple(*left_it,i));
+        }
+        Elements::const_iterator right_it = right.begin();
+        int right_len = (*right_it).getType().getTupleLength();
+        while(right_it != right.end()) {
+          if(TheorySetsRels::nthElementOfTuple(*left_it,left_len-1) == TheorySetsRels::nthElementOfTuple(*right_it,0)) {
+            std::vector<Node> right_tuple;
+            for(int j = 1; j < right_len; j++) {
+              right_tuple.push_back(TheorySetsRels::nthElementOfTuple(*right_it,j));
+            }
+            std::vector<Node> new_tuple;
+            new_tuple.insert(new_tuple.end(), left_tuple.begin(), left_tuple.end());
+            new_tuple.insert(new_tuple.end(), right_tuple.begin(), right_tuple.end());
+            Node composed_tuple = NodeManager::currentNM()->mkNode(kind::APPLY_CONSTRUCTOR, new_tuple);
+            new_tuple_set.insert(composed_tuple);
+          }
+          right_it++;
+        }
+        left_it++;
+      }
+      cur.insert(new_tuple_set.begin(), new_tuple_set.end());
+      Trace("rels-debug") << " ***** Done with check model for JOIN operator" << std::endl;
+      break;
+    }
+    case kind::TRANSCLOSURE:
       break;
     default:
       Unhandled();

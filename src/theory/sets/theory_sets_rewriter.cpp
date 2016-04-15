@@ -16,6 +16,7 @@
 
 #include "theory/sets/theory_sets_rewriter.h"
 #include "theory/sets/normal_form.h"
+#include "theory/sets/theory_sets_rels.h"
 
 namespace CVC4 {
 namespace theory {
@@ -62,37 +63,6 @@ RewriteResponse TheorySetsRewriter::postRewrite(TNode node) {
       bool isMember = checkConstantMembership(node[0], S);
       return RewriteResponse(REWRITE_DONE, nm->mkConst(isMember));
     }
-//    if(node[1].getKind() == kind::TRANSPOSE) {
-//      // only work for node[0] is an actual tuple like (a, b), won't work for tuple variables
-//      if(node[0].getType().isSet() && !node[0].getType().getSetElementType().isTuple()) {
-//        Node atom = node;
-//        bool polarity = node.getKind() != kind::NOT;
-//        if( !polarity )
-//          atom = atom[0];
-//        Node new_node = NodeManager::currentNM()->mkNode(kind::MEMBER, atom[0], atom[1][0]);
-//        if(!polarity)
-//          new_node = new_node.negate();
-//        return RewriteResponse(REWRITE_AGAIN, new_node);
-//      }
-//      if(node[0].isVar())
-//        return RewriteResponse(REWRITE_DONE, node);
-//      std::vector<Node> elements;
-//      std::vector<TypeNode> tuple_types = node[0].getType().getTupleTypes();
-//      std::reverse(tuple_types.begin(), tuple_types.end());
-//      TypeNode tn = NodeManager::currentNM()->mkTupleType(tuple_types);
-//      Datatype dt = tn.getDatatype();
-//      elements.push_back(Node::fromExpr(dt[0].getConstructor()));
-//      for(Node::iterator child_it = node[0].end()-1;
-//                child_it != node[0].begin()-1; --child_it) {
-//        elements.push_back(*child_it);
-//      }
-//      Node new_node = NodeManager::currentNM()->mkNode(kind::MEMBER,
-//                                                       NodeManager::currentNM()->mkNode(kind::APPLY_CONSTRUCTOR, elements),
-//                                                       node[1][0]);
-//      if(node.getKind() == kind::NOT)
-//        new_node = NodeManager::currentNM()->mkNode(kind::NOT, new_node);
-//      return RewriteResponse(REWRITE_AGAIN, new_node);
-//    }
     break;
   }//kind::MEMBER
 
@@ -208,23 +178,134 @@ RewriteResponse TheorySetsRewriter::postRewrite(TNode node) {
   }//kind::UNION
 
   case kind::TRANSPOSE: {
+    if(node[0].getKind() == kind::TRANSPOSE) {
+      return RewriteResponse(REWRITE_AGAIN, node[0][0]);
+    }
+
+    if(node[0].getKind() == kind::EMPTYSET) {
+      return RewriteResponse(REWRITE_DONE, nm->mkConst(EmptySet(nm->toType(node.getType()))));
+    } else if(node[0].isConst()) {
+      std::set<Node> new_tuple_set;
+      std::set<Node> tuple_set = NormalForm::getElementsFromNormalConstant(node[0]);
+      std::set<Node>::iterator tuple_it = tuple_set.begin();
+
+      while(tuple_it != tuple_set.end()) {
+        new_tuple_set.insert(TheorySetsRels::reverseTuple(*tuple_it));
+        tuple_it++;
+      }
+      Node new_node = NormalForm::elementsToSet(new_tuple_set, node.getType());
+      Assert(new_node.isConst());
+      Trace("sets-postrewrite") << "Sets::postRewrite returning " << new_node << std::endl;
+      return RewriteResponse(REWRITE_DONE, new_node);
+
+    }
     if(node[0].getKind() != kind::TRANSPOSE) {
       Trace("sets-postrewrite") << "Sets::postRewrite returning " << node << std::endl;
       return RewriteResponse(REWRITE_DONE, node);
     }
-    if(node[0].getKind() == kind::TRANSPOSE) {
-      return RewriteResponse(REWRITE_AGAIN, node[0][0]);
+    break;
+  }
+
+  case kind::PRODUCT: {
+    Trace("sets-rels-postrewrite") << "Sets::postRewrite processing " <<  node << std::endl;
+    if( node[0].getKind() == kind::EMPTYSET ||
+        node[1].getKind() == kind::EMPTYSET) {
+      return RewriteResponse(REWRITE_DONE, nm->mkConst(EmptySet(nm->toType(node.getType()))));
+    } else if( node[0].isConst() && node[1].isConst() ) {
+      Trace("sets-rels-postrewrite") << "Sets::postRewrite processing **** " <<  node << std::endl;
+      std::set<Node> new_tuple_set;
+      std::set<Node> left = NormalForm::getElementsFromNormalConstant(node[0]);
+      std::set<Node> right = NormalForm::getElementsFromNormalConstant(node[1]);
+      std::set<Node>::iterator left_it = left.begin();
+      int left_len = (*left_it).getType().getTupleLength();
+      TypeNode tn = node.getType().getSetElementType();
+      while(left_it != left.end()) {
+        Trace("rels-debug") << "Sets::postRewrite processing left_it = " <<  *left_it << std::endl;
+        std::vector<Node> left_tuple;
+        left_tuple.push_back(Node::fromExpr(tn.getDatatype()[0].getConstructor()));
+        for(int i = 0; i < left_len; i++) {
+          left_tuple.push_back(TheorySetsRels::nthElementOfTuple(*left_it,i));
+        }
+        std::set<Node>::iterator right_it = right.begin();
+        int right_len = (*right_it).getType().getTupleLength();
+        while(right_it != right.end()) {
+          Trace("rels-debug") << "Sets::postRewrite processing left_it = " <<  *right_it << std::endl;
+          std::vector<Node> right_tuple;
+          for(int j = 0; j < right_len; j++) {
+            right_tuple.push_back(TheorySetsRels::nthElementOfTuple(*right_it,j));
+          }
+          std::vector<Node> new_tuple;
+          new_tuple.insert(new_tuple.end(), left_tuple.begin(), left_tuple.end());
+          new_tuple.insert(new_tuple.end(), right_tuple.begin(), right_tuple.end());
+          Node composed_tuple = NodeManager::currentNM()->mkNode(kind::APPLY_CONSTRUCTOR, new_tuple);
+          new_tuple_set.insert(composed_tuple);
+          right_it++;
+        }
+        left_it++;
+      }
+      Node new_node = NormalForm::elementsToSet(new_tuple_set, node.getType());
+      Assert(new_node.isConst());
+      Trace("sets-postrewrite") << "Sets::postRewrite returning " << new_node << std::endl;
+      return RewriteResponse(REWRITE_DONE, new_node);
     }
     break;
   }
 
+  case kind::JOIN: {
+    if( node[0].getKind() == kind::EMPTYSET ||
+        node[1].getKind() == kind::EMPTYSET) {
+      return RewriteResponse(REWRITE_DONE, nm->mkConst(EmptySet(nm->toType(node.getType()))));
+    } else if( node[0].isConst() && node[1].isConst() ) {
+      Trace("sets-rels-postrewrite") << "Sets::postRewrite processing " <<  node << std::endl;
+      std::set<Node> new_tuple_set;
+      std::set<Node> left = NormalForm::getElementsFromNormalConstant(node[0]);
+      std::set<Node> right = NormalForm::getElementsFromNormalConstant(node[1]);
+      std::set<Node>::iterator left_it = left.begin();
+      int left_len = (*left_it).getType().getTupleLength();
+      TypeNode tn = node.getType().getSetElementType();
+      while(left_it != left.end()) {
+        std::vector<Node> left_tuple;
+        left_tuple.push_back(Node::fromExpr(tn.getDatatype()[0].getConstructor()));
+        for(int i = 0; i < left_len - 1; i++) {
+          left_tuple.push_back(TheorySetsRels::nthElementOfTuple(*left_it,i));
+        }
+        std::set<Node>::iterator right_it = right.begin();
+        int right_len = (*right_it).getType().getTupleLength();
+        while(right_it != right.end()) {
+          if(TheorySetsRels::nthElementOfTuple(*left_it,left_len-1) == TheorySetsRels::nthElementOfTuple(*right_it,0)) {
+            std::vector<Node> right_tuple;
+            for(int j = 1; j < right_len; j++) {
+              right_tuple.push_back(TheorySetsRels::nthElementOfTuple(*right_it,j));
+            }
+            std::vector<Node> new_tuple;
+            new_tuple.insert(new_tuple.end(), left_tuple.begin(), left_tuple.end());
+            new_tuple.insert(new_tuple.end(), right_tuple.begin(), right_tuple.end());
+            Node composed_tuple = NodeManager::currentNM()->mkNode(kind::APPLY_CONSTRUCTOR, new_tuple);
+            new_tuple_set.insert(composed_tuple);
+          }
+          right_it++;
+        }
+        left_it++;
+      }
+      Node new_node = NormalForm::elementsToSet(new_tuple_set, node.getType());
+      Assert(new_node.isConst());
+      Trace("sets-postrewrite") << "Sets::postRewrite returning " << new_node << std::endl;
+      return RewriteResponse(REWRITE_DONE, new_node);
+    }
+
+    break;
+  }
+
   case kind::TRANSCLOSURE: {
-    if(node[0].getKind() != kind::TRANSCLOSURE) {
+    if(node[0].getKind() == kind::EMPTYSET) {
+      return RewriteResponse(REWRITE_DONE, nm->mkConst(EmptySet(nm->toType(node.getType()))));
+    } else if (node[0].isConst()) {
+
+    } else if(node[0].getKind() == kind::TRANSCLOSURE) {
+      return RewriteResponse(REWRITE_AGAIN, node[0]);
+    } else if(node[0].getKind() != kind::TRANSCLOSURE) {
       Trace("sets-postrewrite") << "Sets::postRewrite returning " << node << std::endl;
       return RewriteResponse(REWRITE_DONE, node);
-    }
-    if(node[0].getKind() == kind::TRANSCLOSURE) {
-      return RewriteResponse(REWRITE_AGAIN, node[0]);
     }
     break;
   }

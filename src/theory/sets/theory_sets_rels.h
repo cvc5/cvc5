@@ -45,6 +45,7 @@ class TheorySetsRels {
 
   typedef context::CDChunkList<Node> NodeList;
   typedef context::CDHashSet<Node, NodeHashFunction> NodeSet;
+  typedef context::CDHashMap<Node, bool, NodeHashFunction> NodeBoolMap;
 
 public:
   TheorySetsRels(context::Context* c,
@@ -100,7 +101,7 @@ private:
   NodeSet d_lemma;
   NodeSet d_shared_terms;
 
-  std::hash_set< Node, NodeHashFunction > d_tc_nodes;
+  std::hash_set< Node, NodeHashFunction > d_rel_nodes;
   std::map< Node, std::vector<Node> > d_tuple_reps;
   std::map< Node, TupleTrie > d_membership_trie;
   std::hash_set< Node, NodeHashFunction > d_symbolic_tuples;
@@ -141,7 +142,6 @@ private:
   void buildTCGraph( Node, Node, Node );
   void computeRels( Node );
   void computeTransposeRelations( Node );
-  Node reverseTuple( Node );
   void finalizeTCInfer();
   void inferTC( Node, std::map< Node, std::hash_set< Node, NodeHashFunction > >& );
   void inferTC( Node, Node, std::map< Node, std::hash_set< Node, NodeHashFunction > >&,
@@ -159,7 +159,6 @@ private:
   bool checkCycles( Node );
 
   // Helper functions
-  inline Node nthElementOfTuple( Node, int);
   inline Node getReason(Node tc_rep, Node tc_term, Node tc_r_rep, Node tc_r);
   inline Node constructPair(Node tc_rep, Node a, Node b);
   Node findMemExp(Node r, Node tuple);
@@ -177,6 +176,10 @@ private:
   inline void addToMembershipDB( Node, Node, Node  );
   bool isRel( Node n ) {return n.getType().isSet() && n.getType().getSetElementType().isTuple();}
   Node mkAnd( std::vector< TNode >& assumptions );
+
+public:
+  static Node reverseTuple( Node );
+  static Node nthElementOfTuple( Node, int);
 
 };
 
