@@ -425,20 +425,21 @@ void LFSCTheoryProofEngine::dumpTheoryLemmas(const IdToSatClause& lemmas) {
     }
 
     LemmaProofRecipe recipe = pm->getCnfProof()->getProofRecipe(nodes);
-    Debug("pf::dumpLemmas") << "\tOwner theory = " << recipe.getTheory() << std::endl;
+    recipe.dump("pf::dumpLemmas");
+    // Debug("pf::dumpLemmas") << "\tOwner theory = " << recipe.getTheory() << std::endl;
 
-    std::set<Node>::iterator nodeIt;
-    Debug("pf::dumpLemmas") << "\tLiterals:" << std::endl;
-    for (nodeIt = nodes.begin(); nodeIt != nodes.end(); ++nodeIt) {
-      Debug("pf::dumpLemmas") << "\t\t" << *nodeIt << std::endl;
-    }
+    // std::set<Node>::iterator nodeIt;
+    // Debug("pf::dumpLemmas") << "\tLiterals:" << std::endl;
+    // for (nodeIt = nodes.begin(); nodeIt != nodes.end(); ++nodeIt) {
+    //   Debug("pf::dumpLemmas") << "\t\t" << *nodeIt << std::endl;
+    // }
 
-    if (recipe.simpleLemma()) {
-      Debug("pf::dumpLemmas") << std::endl << "[Simple lemma]" << std::endl;
-    } else {
-      recipe.dump("pf::dumpLemmas");
-    }
-    Debug("pf::dumpLemmas") << std::endl;
+    // if (recipe.simpleLemma()) {
+    //   Debug("pf::dumpLemmas") << std::endl << "[Simple lemma]" << std::endl;
+    // } else {
+    //   recipe.dump("pf::dumpLemmas");
+    // }
+    // Debug("pf::dumpLemmas") << std::endl;
   }
 
   Debug("pf::dumpLemmas") << "(DEBUG) Theory lemma printing DONE" << std::endl << std::endl;
@@ -471,71 +472,72 @@ void LFSCTheoryProofEngine::finalizeBvConflicts(const IdToSatClause& lemmas, std
 
     LemmaProofRecipe recipe = ProofManager::currentPM()->getCnfProof()->getProofRecipe(conflictNodes);
 
-    // theory::TheoryId theory_id = getTheoryForLemma(clause);
-    // if (theory_id != theory::THEORY_BV) continue;
+    // if (recipe.simpleLemma()) {
+    //   if (recipe.getTheory() == theory::THEORY_BV) {
+    //     bv_lemmas.push_back(utils::mkSortedExpr(kind::OR, conflict));
+    //   }
+    // } else {
+    unsigned numberOfSteps = recipe.getNumSteps();
 
-    if (recipe.simpleLemma()) {
-      if (recipe.getTheory() == theory::THEORY_BV) {
-        bv_lemmas.push_back(utils::mkSortedExpr(kind::OR, conflict));
+    prop::SatClause currentClause = *clause;
+    std::vector<Expr> currentClauseExpr = conflict;
+
+    for (unsigned i = 0; i < numberOfSteps; ++i) {
+      const LemmaProofRecipe::ProofStep* currentStep = recipe.getStep(i);
+
+      if (currentStep->getTheory() != theory::THEORY_BV) {
+        continue;
       }
-    } else {
-      unsigned numberOfSteps = recipe.getNumSteps();
 
-      prop::SatClause currentClause = *clause;
-      std::vector<Expr> currentClauseExpr = conflict;
+      currentClause = *clause;
+      currentClauseExpr = conflict;
 
-      for (unsigned i = 0; i < numberOfSteps; ++i) {
-        LemmaProofRecipe::ProofStep currentStep = recipe.getStep(i);
+      for (unsigned j = 0; j < i; ++j) {
+        // Literals already used in previous steps need to be negated
+        Node previousLiteralNode = recipe.getStep(j)->getLiteral();
+        Node previousLiteralNodeNegated = previousLiteralNode.negate();
+        prop::SatLiteral previousLiteralNegated =
+          ProofManager::currentPM()->getCnfProof()->getLiteral(previousLiteralNodeNegated);
 
-        if (recipe.getStep(i).getTheory() != theory::THEORY_BV) {
-          continue;
-        }
+        currentClause.push_back(previousLiteralNegated);
+        currentClauseExpr.push_back(previousLiteralNodeNegated.toExpr());
+      }
 
-        currentClause = *clause;
-        currentClauseExpr = conflict;
+      // If we're in the final step, the last literal is Null and should not be added.
+      // Otherwise, the current literal does NOT need to be negated
+      Node currentLiteralNode = currentStep->getLiteral();
 
-        for (unsigned j = 0; j < i; ++j) {
-          // Literals already used in previous steps need to be negated
-          Node previousLiteralNode = recipe.getStep(j).getLiteral();
-          Node previousLiteralNodeNegated = previousLiteralNode.negate();
-          prop::SatLiteral previousLiteralNegated =
-            ProofManager::currentPM()->getCnfProof()->getLiteral(previousLiteralNodeNegated);
-
-          currentClause.push_back(previousLiteralNegated);
-          currentClauseExpr.push_back(previousLiteralNodeNegated.toExpr());
-        }
-
-        // The current literal does NOT need to be negated
-        Node currentLiteralNode = currentStep.getLiteral();
+      if (currentLiteralNode != Node()) {
         prop::SatLiteral currentLiteral =
           ProofManager::currentPM()->getCnfProof()->getLiteral(currentLiteralNode);
 
         currentClause.push_back(currentLiteral);
         currentClauseExpr.push_back(currentLiteralNode.toExpr());
-
-        bv_lemmas.push_back(utils::mkSortedExpr(kind::OR, currentClauseExpr));
       }
 
-      if (recipe.getTheory() == theory::THEORY_BV) {
-        // And now the final step
-        currentClause = *clause;
-        currentClauseExpr = conflict;
-
-        for (unsigned i = 0; i < numberOfSteps; ++i) {
-          // All literals already used in previous steps need to be negated
-          Node previousLiteralNode = recipe.getStep(i).getLiteral();
-          Node previousLiteralNodeNegated = previousLiteralNode.negate();
-          prop::SatLiteral previousLiteralNegated =
-            ProofManager::currentPM()->getCnfProof()->getLiteral(previousLiteralNodeNegated);
-
-          currentClause.push_back(previousLiteralNegated);
-          currentClauseExpr.push_back(previousLiteralNodeNegated.toExpr());
-        }
-
-        bv_lemmas.push_back(utils::mkSortedExpr(kind::OR, currentClauseExpr));
-      }
+      bv_lemmas.push_back(utils::mkSortedExpr(kind::OR, currentClauseExpr));
     }
+
+      // if (recipe.getTheory() == theory::THEORY_BV) {
+      //   // And now the final step
+      //   currentClause = *clause;
+      //   currentClauseExpr = conflict;
+
+      //   for (unsigned i = 0; i < numberOfSteps; ++i) {
+      //     // All literals already used in previous steps need to be negated
+      //     Node previousLiteralNode = recipe.getStep(i)->getLiteral();
+      //     Node previousLiteralNodeNegated = previousLiteralNode.negate();
+      //     prop::SatLiteral previousLiteralNegated =
+      //       ProofManager::currentPM()->getCnfProof()->getLiteral(previousLiteralNodeNegated);
+
+      //     currentClause.push_back(previousLiteralNegated);
+      //     currentClauseExpr.push_back(previousLiteralNodeNegated.toExpr());
+      //   }
+
+      //   bv_lemmas.push_back(utils::mkSortedExpr(kind::OR, currentClauseExpr));
+      // }
   }
+  //}
 
   BitVectorProof* bv = ProofManager::getBitVectorProof();
   bv->finalizeConflicts(bv_lemmas);
@@ -554,7 +556,11 @@ void LFSCTheoryProofEngine::printTheoryLemmas(const IdToSatClause& lemmas,
     dumpTheoryLemmas(lemmas);
   }
 
+  Debug("gk::temp") << "finalizeConflicts starting" << std::endl;
+
   finalizeBvConflicts(lemmas, os, paren);
+
+  Debug("gk::temp") << "finalizeConflicts done" << std::endl;
 
   if (options::bitblastMode() == theory::bv::BITBLAST_MODE_EAGER) {
     Assert (lemmas.size() == 1);
@@ -590,9 +596,9 @@ void LFSCTheoryProofEngine::printTheoryLemmas(const IdToSatClause& lemmas,
     LemmaProofRecipe recipe = pm->getCnfProof()->getProofRecipe(clause_expr_nodes);
 
     if (recipe.simpleLemma()) {
-      // In a simple lemma, there should be no rewrites.
-      Assert(recipe.rewriteBegin() == recipe.rewriteEnd());
-      Debug("gk::temp") << "Simple lemma" << std::endl;
+      // In a simple lemma, there will be no propositional resolution in the end
+
+      Debug("pf::tp") << "Simple lemma" << std::endl;
       // printing clause as it appears in resolution proof
       os << "(satlem _ _ ";
       std::ostringstream clause_paren;
@@ -604,7 +610,82 @@ void LFSCTheoryProofEngine::printTheoryLemmas(const IdToSatClause& lemmas,
       Debug("pf::tp") << "Get theory lemma from " << theory_id << "..." << std::endl;
       Debug("theory-proof-debug") << ";; Get theory lemma from " << theory_id << "..." << std::endl;
 
+      //      getTheoryProof(theory_id)->printTheoryLemmaProof(clause_expr, os, paren);
+
+      std::set<Node> missingAssertions = recipe.getMissingAssertionsForStep(0);
+      if (!missingAssertions.empty()) {
+        Debug("pf::tp") << "Have missing assertions for this simple lemma!" << std::endl;
+      }
+
+      std::set<Node>::const_iterator missingAssertion;
+      for (missingAssertion = missingAssertions.begin();
+           missingAssertion != missingAssertions.end();
+           ++missingAssertion) {
+
+        Debug("pf::tp") << "Working on missing assertion: " << *missingAssertion << std::endl;
+
+        Assert(recipe.wasRewritten(missingAssertion->negate()));
+        Node explanation = recipe.getExplanation(missingAssertion->negate()).negate();
+
+        Debug("pf::tp") << "Found explanation: " << explanation << std::endl;
+
+        // We have a missing assertion.
+        //     rewriteIt->first is the assertion after the rewrite (the explanation),
+        //     rewriteIt->second is the original assertion that needs to be fed into the theory.
+
+        bool found = false;
+        unsigned k;
+        for (k = 0; k < clause_expr.size(); ++k) {
+          if (clause_expr[k] == explanation.toExpr()) {
+            found = true;
+            break;
+          }
+        }
+
+        Assert(found);
+
+        Debug("pf::tp") << "Replacing theory assertion "
+                        << clause_expr[k]
+                        << " with "
+                        << *missingAssertion
+                        << std::endl;
+
+        clause_expr[k] = missingAssertion->toExpr();
+
+        std::ostringstream rewritten;
+        Debug("gk::temp2") << ";; explanation = " << explanation << std::endl;
+        Debug("gk::temp2") << ";; missingAssertion = " << *missingAssertion << std::endl;
+
+        bool assertionPol = (missingAssertion->getKind() != kind::NOT);
+        bool explanationPol = (explanation.getKind() != kind::NOT);
+
+        Debug("gk::temp2") << ";; assertionPol = " << assertionPol << ", explanationPol == " << explanationPol << std::endl;
+
+        // rewritten << "(or_elim_1 _ _ ";
+        // rewritten << pm->getLitName(explanation);
+        // rewritten << " (iff_elim_1 _ _ ";
+        // rewritten << d_assertionToRewrite[*missingAssertion];
+        // rewritten << "))";
+
+        rewritten << "(or_elim_1 _ _ ";
+        rewritten << "(not_not_intro _ ";
+        rewritten << pm->getLitName(explanation);
+        rewritten << ") (iff_elim_1 _ _ ";
+        rewritten << d_assertionToRewrite[missingAssertion->negate()];
+        rewritten << "))";
+
+
+        pm->d_rewriteFilters[pm->getLitName(*missingAssertion)] = rewritten.str();
+
+        Debug("pf::tp") << "Setting a rewrite filter for this proof: " << std::endl
+                        << pm->getLitName(*missingAssertion) << " --> " << rewritten.str()
+                        << std::endl << std::endl;
+      }
+
       getTheoryProof(theory_id)->printTheoryLemmaProof(clause_expr, os, paren);
+
+      // Turn rewrite filter OFF
+      pm->d_rewriteFilters.clear();
 
       Debug("pf::tp") << "Get theory lemma from " << theory_id << "... DONE!" << std::endl;
       // os << " (clausify_false trust)";
@@ -621,26 +702,14 @@ void LFSCTheoryProofEngine::printTheoryLemmas(const IdToSatClause& lemmas,
       std::vector<Expr> currentClauseExpr = clause_expr;
 
       for (unsigned i = 0; i < numberOfSteps; ++i) {
-        LemmaProofRecipe::ProofStep currentStep = recipe.getStep(i);
+        const LemmaProofRecipe::ProofStep* currentStep = recipe.getStep(i);
 
         currentClause = *clause;
         currentClauseExpr = clause_expr;
 
-        // Want to prove:
-        //   ~a /\ ~b --> unsat
-
-        //   can prove:
-        //   ~a /\ ~b /\ ~c --> unsat
-
-        //   will prove:
-        //   ~a /\ ~b /\ c --> unsat
-
-        //   our "steps" are part of the final conflict, so ~c.
-        //   In the intermediate steps need to negate them, and in the final step, leave them
-
         for (unsigned j = 0; j < i; ++j) {
           // Literals already used in previous steps need to be negated
-          Node previousLiteralNode = recipe.getStep(j).getLiteral();
+          Node previousLiteralNode = recipe.getStep(j)->getLiteral();
           Node previousLiteralNodeNegated = previousLiteralNode.negate();
           prop::SatLiteral previousLiteralNegated =
             ProofManager::currentPM()->getCnfProof()->getLiteral(previousLiteralNodeNegated);
@@ -648,13 +717,16 @@ void LFSCTheoryProofEngine::printTheoryLemmas(const IdToSatClause& lemmas,
           currentClauseExpr.push_back(previousLiteralNodeNegated.toExpr());
         }
 
-        // The current literal does NOT need to be negated
-        Node currentLiteralNode = currentStep.getLiteral();
-        prop::SatLiteral currentLiteral =
-          ProofManager::currentPM()->getCnfProof()->getLiteral(currentLiteralNode);
+        // If the current literal is NULL, can ignore (final step)
+        // Otherwise, the current literal does NOT need to be negated
+        Node currentLiteralNode = currentStep->getLiteral();
+        if (currentLiteralNode != Node()) {
+          prop::SatLiteral currentLiteral =
+            ProofManager::currentPM()->getCnfProof()->getLiteral(currentLiteralNode);
 
-        currentClause.push_back(currentLiteral);
-        currentClauseExpr.push_back(currentLiteralNode.toExpr());
+          currentClause.push_back(currentLiteral);
+          currentClauseExpr.push_back(currentLiteralNode.toExpr());
+        }
 
         os << "(satlem _ _ ";
         std::ostringstream clause_paren;
@@ -662,14 +734,8 @@ void LFSCTheoryProofEngine::printTheoryLemmas(const IdToSatClause& lemmas,
         pm->getCnfProof()->printClause(currentClause, os, clause_paren);
 
         // query appropriate theory for proof of clause
-        theory::TheoryId theory_id = currentStep.getTheory();
+        theory::TheoryId theory_id = currentStep->getTheory();
         Debug("pf::tp") << "Get theory lemma from " << theory_id << "..." << std::endl;
-
-        // std::set<Node> missingAssertions
-
-        // RewriteIterator rewriteBegin() const {
-  //   return d_explanationToAssertion.begin();
-  // }
 
         std::set<Node> missingAssertions = recipe.getMissingAssertionsForStep(i);
         if (!missingAssertions.empty()) {
@@ -686,6 +752,8 @@ void LFSCTheoryProofEngine::printTheoryLemmas(const IdToSatClause& lemmas,
 
           Assert(recipe.wasRewritten(missingAssertion->negate()));
           Node explanation = recipe.getExplanation(missingAssertion->negate()).negate();
+          // Assert(recipe.wasRewritten(missingAssertion->negate()));
+          // Node explanation = recipe.getExplanation(missingAssertion->negate()).negate();
 
           Debug("pf::tp") << "Found explanation: " << explanation << std::endl;
 
@@ -733,104 +801,106 @@ void LFSCTheoryProofEngine::printTheoryLemmas(const IdToSatClause& lemmas,
         pm->d_rewriteFilters.clear();
 
         Debug("pf::tp") << "Get theory lemma from " << theory_id << "... DONE!" << std::endl;
-        // os << " (clausify_false trust)";
         os << clause_paren.str();
         os << "( \\ " << pm->getLemmaClauseName(id) << "s" << i <<"\n";
         paren << "))";
       }
 
-      // And now the final step
-      currentClause = *clause;
-      currentClauseExpr = clause_expr;
+      // // And now the final step
+      // currentClause = *clause;
+      // currentClauseExpr = clause_expr;
 
-      for (unsigned i = 0; i < numberOfSteps; ++i) {
-        // All literals already used in previous steps need to be negated
-        Node previousLiteralNode = recipe.getStep(i).getLiteral();
+      // for (unsigned i = 0; i < numberOfSteps; ++i) {
+      //   // All literals already used in previous steps need to be negated
+      //   Node previousLiteralNode = recipe.getStep(i)->getLiteral();
 
-        Node previousLiteralNodeNegated = previousLiteralNode.negate();
-        prop::SatLiteral previousLiteralNegated =
-          ProofManager::currentPM()->getCnfProof()->getLiteral(previousLiteralNodeNegated);
-        currentClause.push_back(previousLiteralNegated);
-        currentClauseExpr.push_back(previousLiteralNodeNegated.toExpr());
-      }
-
-      os << "(satlem _ _ ";
-      std::ostringstream clause_paren;
-
-      pm->getCnfProof()->printClause(currentClause, os, clause_paren);
-
-      // query appropriate theory for proof of clause
-      theory::TheoryId theory_id = recipe.getTheory();
-      Debug("pf::tp") << "Get theory lemma from " << theory_id << "..." << std::endl;
-
-      // std::set<Node> missingAssertions = recipe.getMissingAssertionsForStep(numberOfSteps - 1);
-      // if (!missingAssertions.empty()) {
-      //   Debug("pf::tp") << "Have missing assertions for this step!" << std::endl;
+      //   Node previousLiteralNodeNegated = previousLiteralNode.negate();
+      //   prop::SatLiteral previousLiteralNegated =
+      //     ProofManager::currentPM()->getCnfProof()->getLiteral(previousLiteralNodeNegated);
+      //   currentClause.push_back(previousLiteralNegated);
+      //   currentClauseExpr.push_back(previousLiteralNodeNegated.toExpr());
       // }
 
-      // // Turn rewrite filter ON
-      // std::set<Node>::const_iterator missingAssertion;
-      // for (missingAssertion = missingAssertions.begin();
-      //      missingAssertion != missingAssertions.end();
-      //      ++missingAssertion) {
+      // os << "(satlem _ _ ";
+      // std::ostringstream clause_paren;
 
-      //   Debug("pf::tp") << "Working on missing assertion: " << *missingAssertion << std::endl;
+      // pm->getCnfProof()->printClause(currentClause, os, clause_paren);
 
-      //   Assert(recipe.wasRewritten(*missingAssertion));
-      //   Node explanation = recipe.getExplanation(*missingAssertion);
+      // // query appropriate theory for proof of clause
+      // theory::TheoryId theory_id = recipe.getTheory();
+      // Debug("pf::tp") << "Get theory lemma from " << theory_id << "..." << std::endl;
 
-      //   Debug("pf::tp") << "Found explanation: " << explanation << std::endl;
+      // // std::set<Node> missingAssertions = recipe.getMissingAssertionsForStep(numberOfSteps - 1);
+      // // if (!missingAssertions.empty()) {
+      // //   Debug("pf::tp") << "Have missing assertions for this step!" << std::endl;
+      // // }
 
-      //   // We have a missing assertion.
-      //   //     rewriteIt->first is the assertion after the rewrite (the explanation),
-      //   //     rewriteIt->second is the original assertion that needs to be fed into the theory.
+      // // // Turn rewrite filter ON
+      // // std::set<Node>::const_iterator missingAssertion;
+      // // for (missingAssertion = missingAssertions.begin();
+      // //      missingAssertion != missingAssertions.end();
+      // //      ++missingAssertion) {
 
-      //   bool found = false;
-      //   unsigned k;
-      //   for (k = 0; k < currentClauseExpr.size(); ++k) {
-      //     if (currentClauseExpr[k] == explanation.negate().toExpr()) {
-      //       found = true;
-      //       break;
-      //     }
-      //   }
+      // //   Debug("pf::tp") << "Working on missing assertion: " << *missingAssertion << std::endl;
 
-      //   Assert(found);
+      // //   Assert(recipe.wasRewritten(*missingAssertion));
+      // //   Node explanation = recipe.getExplanation(*missingAssertion);
 
-      //   Debug("pf::tp") << "Replacing theory assertion "
-      //                   << currentClauseExpr[k]
-      //                   << " with "
-      //                   << *missingAssertion
-      //                   << std::endl;
+      // //   Debug("pf::tp") << "Found explanation: " << explanation << std::endl;
 
-      //   currentClauseExpr[k] = missingAssertion->toExpr();
+      // //   // We have a missing assertion.
+      // //   //     rewriteIt->first is the assertion after the rewrite (the explanation),
+      // //   //     rewriteIt->second is the original assertion that needs to be fed into the theory.
 
-      //   std::ostringstream rewritten;
-      //   rewritten << "(or_elim_1 _ _ ";
-      //   rewritten << "(not_not_intro _ ";
-      //   rewritten << pm->getLitName(explanation);
-      //   rewritten << "(iff_elim1 _ _ ";
-      //   rewritten << missingAssertion->negate();
-      //   rewritten << ")))";
+      // //   bool found = false;
+      // //   unsigned k;
+      // //   for (k = 0; k < currentClauseExpr.size(); ++k) {
+      // //     if (currentClauseExpr[k] == explanation.negate().toExpr()) {
+      // //       found = true;
+      // //       break;
+      // //     }
+      // //   }
 
-      //   pm->d_rewriteFilters[pm->getLitName(explanation)] = rewritten.str();
+      // //   Assert(found);
 
-      //   Debug("pf::tp") << "Setting a rewrite filter for this proof: " << std::endl
-      //                   << pm->getLitName(explanation) << " --> " << rewritten.str()
-      //                   << std::endl << std::endl;
-      // }
+      // //   Debug("pf::tp") << "Replacing theory assertion "
+      // //                   << currentClauseExpr[k]
+      // //                   << " with "
+      // //                   << *missingAssertion
+      // //                   << std::endl;
 
-      getTheoryProof(theory_id)->printTheoryLemmaProof(currentClauseExpr, os, paren);
-      Debug("pf::tp") << "Get theory lemma from " << theory_id << "... DONE!" << std::endl;
-      // os << " (clausify_false trust)";
-      os << clause_paren.str();
-      os << "( \\ " << pm->getLemmaClauseName(id) << "s" << numberOfSteps << "\n";
-      paren << "))";
+      // //   currentClauseExpr[k] = missingAssertion->toExpr();
+
+      // //   std::ostringstream rewritten;
+      // //   rewritten << "(or_elim_1 _ _ ";
+      // //   rewritten << "(not_not_intro _ ";
+      // //   rewritten << pm->getLitName(explanation);
+      // //   rewritten << "(iff_elim1 _ _ ";
+      // //   rewritten << missingAssertion->negate();
+      // //   rewritten << ")))";
+
+      // //   pm->d_rewriteFilters[pm->getLitName(explanation)] = rewritten.str();
+
+      // //   Debug("pf::tp") << "Setting a rewrite filter for this proof: " << std::endl
+      // //                   << pm->getLitName(explanation) << " --> " << rewritten.str()
+      // //                   << std::endl << std::endl;
+      // // }
+
+      // getTheoryProof(theory_id)->printTheoryLemmaProof(currentClauseExpr, os, paren);
+      // Debug("pf::tp") << "Get theory lemma from " << theory_id << "... DONE!" << std::endl;
+      // // os << " (clausify_false trust)";
+      // os << clause_paren.str();
+      // os << "( \\ " << pm->getLemmaClauseName(id) << "s" << numberOfSteps << "\n";
+      // paren << "))";
 
       // Now we need to do propositional resolution on the steps to get the "real" lemma
+
+      Assert(numberOfSteps >= 2);
+
       os << "(satlem_simplify _ _ _ ";
-      for (unsigned i = 0; i < numberOfSteps; ++i) {
+      for (unsigned i = 0; i < numberOfSteps - 1; ++i) {
         // Resolve step i with step i + 1
-        if (recipe.getStep(i).getLiteral().getKind() == kind::NOT) {
+        if (recipe.getStep(i)->getLiteral().getKind() == kind::NOT) {
           os << "(Q _ _ ";
         } else {
           os << "(R _ _ ";
@@ -840,11 +910,11 @@ void LFSCTheoryProofEngine::printTheoryLemmas(const IdToSatClause& lemmas,
         os << " ";
       }
 
-      os << pm->getLemmaClauseName(id) << "s" << numberOfSteps << " ";
+      os << pm->getLemmaClauseName(id) << "s" << numberOfSteps - 1 << " ";
 
       prop::SatLiteral v;
-      for (int i = numberOfSteps - 1; i >= 0; --i) {
-        v = ProofManager::currentPM()->getCnfProof()->getLiteral(recipe.getStep(i).getLiteral());
+      for (int i = numberOfSteps - 2; i >= 0; --i) {
+        v = ProofManager::currentPM()->getCnfProof()->getLiteral(recipe.getStep(i)->getLiteral());
         os << ProofManager::getVarName(v.getSatVariable(), "") << ") ";
       }
 
