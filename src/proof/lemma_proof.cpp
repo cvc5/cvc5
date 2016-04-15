@@ -131,7 +131,7 @@ theory::TheoryId LemmaProofRecipe::getTheory() const {
 
 void LemmaProofRecipe::addRewriteRule(Node assertion, Node explanation) {
   Debug("gk::temp") << "LemmaProofRecipe::addRewriteRule: " << assertion << " --> " << explanation << std::endl;
-  Assert(theory::Rewriter::rewrite(assertion) == explanation);
+  // Assert(theory::Rewriter::rewrite(assertion) == explanation);
   Assert(((assertion.getKind() == kind::NOT) && (explanation.getKind() == kind::NOT)) ||
          ((assertion.getKind() != kind::NOT) && (explanation.getKind() != kind::NOT)));
 
