@@ -403,6 +403,7 @@ void LFSCProof::toStream(std::ostream& out) {
     for (rewriteIt = rewrites.begin(); rewriteIt != rewrites.end(); ++rewriteIt) {
       Debug("pf::pm") << "\t" << rewriteIt->first << " --> " << rewriteIt->second << std::endl;
     }
+    Debug("pf::pm") << std::endl << "Rewrite printing done" << std::endl;
   } else {
     Debug("pf::pm") << "No rewrites in lemmas found" << std::endl;
   }
@@ -411,6 +412,7 @@ void LFSCProof::toStream(std::ostream& out) {
   // If they don't, add them.
   std::set<Node>::const_iterator it;
   for (it = atoms.begin(); it != atoms.end(); ++it) {
+    Debug("pf::pm") << "Ensure literal for atom: " << *it << std::endl;
     if (!d_cnfProof->hasLiteral(*it)) {
       d_cnfProof->ensureLiteral(*it);
     }
@@ -462,15 +464,15 @@ void LFSCProof::toStream(std::ostream& out) {
 
   out << "(: (holds cln)\n\n";
 
-  out << " ;; Rewrites for Lemmas \n";
-  d_theoryProof->printLemmaRewrites(rewrites, out, paren);
-
   // Have the theory proofs print deferred declarations, e.g. for skolem variables.
   out << " ;; Printing deferred declarations \n\n";
   d_theoryProof->printDeferredDeclarations(out, paren);
 
   out << " ;; Printing aliasing declarations \n\n";
   d_theoryProof->printAliasingDeclarations(out, paren);
+
+  out << " ;; Rewrites for Lemmas \n";
+  d_theoryProof->printLemmaRewrites(rewrites, out, paren);
 
   // print trust that input assertions are their preprocessed form
   printPreprocessedAssertions(used_assertions, out, paren);
