@@ -1258,12 +1258,17 @@ void LFSCArrayProof::printDeferredDeclarations(std::ostream& os, std::ostream& p
     Node array_two = equality[0][1];
 
     Node lemma = ProofManager::getSkolemizationManager()->getLemma(term);
-    // Lemma should be: (OR (a == b) (NOT (a[k] == b[k]))
-    Assert(lemma.getKind() == kind::OR);
-    Assert(lemma.getNumChildren() == 2);
-    Assert(lemma[0] == equality[0]);
-    Assert(lemma[1].getKind() == kind::NOT);
-    bool symm = (lemma[1][0][0][0] == lemma[0][1]);
+
+    // Attempting to comment the symm stuff out, now that we have better rewrite support
+
+    // // Lemma should be: (OR (a == b) (NOT (a[k] == b[k]))
+    // Assert(lemma.getKind() == kind::OR);
+    // Assert(lemma.getNumChildren() == 2);
+    // Assert(lemma[0] == equality[0]);
+    // Assert(lemma[1].getKind() == kind::NOT);
+    // bool symm = (lemma[1][0][0][0] == lemma[0][1]);
+    bool symm = false;
+    //
 
     LetMap map;
     os << "(" << (symm ? "symm_" : "" ) << "ext _ _ ";
