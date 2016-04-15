@@ -179,7 +179,8 @@ Node CnfProof::getCurrentAssertion() {
 
 void CnfProof::setProofRecipe(LemmaProofRecipe* proofRecipe) {
   Assert(proofRecipe);
-  d_lemmaToProofRecipe[proofRecipe->getAssertions()] = *proofRecipe;
+  Assert(proofRecipe->getNumSteps() > 0);
+  d_lemmaToProofRecipe[proofRecipe->getBaseAssertions()] = *proofRecipe;
 }
 
 void CnfProof::pushCurrentDefinition(Node definition) {
@@ -264,11 +265,27 @@ void CnfProof::collectAtomsAndRewritesForLemmas(const IdToSatClause& lemmaClause
       clause_expr_nodes.insert(lit.isNegated() ? node.notNode() : node);
     }
 
+
+    // Debug
+    std::set<Node>::iterator nodeIt;
+    Debug("gk::temp") << "CnfProof::collectAtomsAndRewritesForLemmas: working on lemma " << it->first << ":"
+                      << std::endl;
+    for (nodeIt = clause_expr_nodes.begin(); nodeIt != clause_expr_nodes.end(); ++nodeIt) {
+      Debug("gk::temp") << "\t" << *nodeIt << std::endl;
+    }
+    // End debug
+
     LemmaProofRecipe recipe = getProofRecipe(clause_expr_nodes);
 
     for (unsigned i = 0; i < recipe.getNumSteps(); ++i) {
-      LemmaProofRecipe::ProofStep proofStep = recipe.getStep(i);
-      Node atom = proofStep.getLiteral();
+      const LemmaProofRecipe::ProofStep* proofStep = recipe.getStep(i);
+      Node atom = proofStep->getLiteral();
+
+      if (atom == Node()) {
+        // The last proof step always has the empty node as its target...
+        continue;
+      }
+
       if (atom.getKind() == kind::NOT) {
         atom = atom[0];
       }
@@ -281,7 +298,11 @@ void CnfProof::collectAtomsAndRewritesForLemmas(const IdToSatClause& lemmaClause
       rewrites.insert(NodePair(rewriteIt->first, rewriteIt->second));
 
       // The unrewritten terms also need to have literals, so insert them into atoms
-      atoms.insert(rewriteIt->first);
+      Node rewritten = rewriteIt->first;
+      if (rewritten.getKind() == kind::NOT) {
+        rewritten = rewritten[0];
+      }
+      atoms.insert(rewritten);
     }
   }
 }
