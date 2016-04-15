@@ -1063,7 +1063,9 @@ SmtEngine::SmtEngine(ExprManager* em) throw() :
   // SatProof and TheoryProofs. The TheoryProofEngine and the SatProof are
   // initialized in TheoryEngine and PropEngine respectively. 
   Assert(d_proofManager == NULL);
-  PROOF( d_proofManager = new ProofManager(); ); 
+#ifdef CVC4_PROOF
+  d_proofManager = new ProofManager();
+#endif
   
   // We have mutual dependency here, so we add the prop engine to the theory
   // engine later (it is non-essential there)
