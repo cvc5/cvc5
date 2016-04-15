@@ -67,8 +67,6 @@ typedef std::map< Node, std::hash_set< Node, NodeHashFunction > >::iterator TC_P
         Node tp_rel_rep = getRepresentative(tp_rel);
         if(d_terms_cache.find(tp_rel_rep) != d_terms_cache.end()) {
           for(unsigned int i = 0; i < m_it->second.size(); i++) {
-//            Node exp = tp_rel == tp_rel_rep ? d_membership_exp_cache[rel_rep][i]
-//                                            : AND(d_membership_exp_cache[rel_rep][i], EQUAL(tp_rel, tp_rel_rep));
             // Lazily apply transpose-occur rule.
             // Need to eagerly apply if we don't send facts as lemmas
             applyTransposeRule(d_membership_exp_cache[rel_rep][i], tp_rel_rep, true);
@@ -100,8 +98,8 @@ typedef std::map< Node, std::hash_set< Node, NodeHashFunction > >::iterator TC_P
               applyProductRule(exp, product_terms[j]);
             }
           }
-          if(kind_terms.find(kind::TRANSCLOSURE) != kind_terms.end()) {
-            std::vector<Node> tc_terms = kind_terms[kind::TRANSCLOSURE];
+          if(kind_terms.find(kind::TCLOSURE) != kind_terms.end()) {
+            std::vector<Node> tc_terms = kind_terms[kind::TCLOSURE];
             for(unsigned int j = 0; j < tc_terms.size(); j++) {
               applyTCRule(exp, tc_terms[j]);
             }
@@ -153,7 +151,7 @@ typedef std::map< Node, std::hash_set< Node, NodeHashFunction > >::iterator TC_P
           if( n.getKind() == kind::TRANSPOSE ||
               n.getKind() == kind::JOIN ||
               n.getKind() == kind::PRODUCT ||
-              n.getKind() == kind::TRANSCLOSURE ) {
+              n.getKind() == kind::TCLOSURE ) {
             std::map<kind::Kind_t, std::vector<Node> > rel_terms;
             std::vector<Node> terms;
             // No r record is found
@@ -190,15 +188,15 @@ typedef std::map< Node, std::hash_set< Node, NodeHashFunction > >::iterator TC_P
   /*
    *
    *
-   * transitive closure rule 1:   y = (TRANSCLOSURE x)
+   * transitive closure rule 1:   y = (TCLOSURE x)
    *                           ---------------------------------------------
    *                              y = x | x.x | x.x.x | ... (| is union)
    *
    *
    *
-   * transitive closure rule 2:   TRANSCLOSURE(x)
+   * transitive closure rule 2:   TCLOSURE(x)
    *                            -----------------------------------------------------------
-   *                              x <= TRANSCLOSURE(x) && (x JOIN x) <= TRANSCLOSURE(x) ....
+   *                              x <= TCLOSURE(x) && (x JOIN x) <= TCLOSURE(x) ....
    *
    *                              TC(x) = TC(y) => x = y ?
    *
@@ -984,7 +982,7 @@ typedef std::map< Node, std::hash_set< Node, NodeHashFunction > >::iterator TC_P
   // tc_terms are transitive closure of rels and are modulo equal to tc_rep
   Node TheorySetsRels::findMemExp(Node tc_rep, Node tuple) {
     Trace("rels-exp") << "TheorySetsRels::findMemExp ( tc_rep = " << tc_rep << ", tuple = " << tuple << ")" << std::endl;
-    std::vector<Node> tc_terms = d_terms_cache.find(tc_rep)->second[kind::TRANSCLOSURE];
+    std::vector<Node> tc_terms = d_terms_cache.find(tc_rep)->second[kind::TCLOSURE];
     Assert(tc_terms.size() > 0);
     for(unsigned int i = 0; i < tc_terms.size(); i++) {
       Node tc_term = tc_terms[i];
@@ -1054,7 +1052,7 @@ typedef std::map< Node, std::hash_set< Node, NodeHashFunction > >::iterator TC_P
     return Node::null();
   }
 
-  Node TheorySetsRels::nthElementOfTuple( Node tuple, int n_th ) {
+  Node TheorySetsRels::nthElementOfTuple( Node tuple, int n_th ) {    
     if(tuple.isConst() || (!tuple.isVar() && !tuple.isConst()))
       return tuple[n_th];
     Datatype dt = tuple.getType().getDatatype();
@@ -1159,7 +1157,7 @@ typedef std::map< Node, std::hash_set< Node, NodeHashFunction > >::iterator TC_P
     d_eqEngine->addFunctionKind(kind::PRODUCT);
     d_eqEngine->addFunctionKind(kind::JOIN);
     d_eqEngine->addFunctionKind(kind::TRANSPOSE);
-    d_eqEngine->addFunctionKind(kind::TRANSCLOSURE);
+    d_eqEngine->addFunctionKind(kind::TCLOSURE);
   }
 
   TheorySetsRels::~TheorySetsRels() {}
@@ -1188,7 +1186,7 @@ typedef std::map< Node, std::hash_set< Node, NodeHashFunction > >::iterator TC_P
 
   Node TupleTrie::existsTerm( std::vector< Node >& reps, int argIndex ) {
     if( argIndex==(int)reps.size() ){
-      if( d_data.empty() ){
+      if( d_data.empty() ){        
         return Node::null();
       }else{
         return d_data.begin()->first;

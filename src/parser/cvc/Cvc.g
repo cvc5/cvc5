@@ -208,7 +208,7 @@ tokens {
   JOIN_TOK = 'JOIN';
   TRANSPOSE_TOK = 'TRANSPOSE';
   PRODUCT_TOK = 'PRODUCT';
-  TRANSCLOSURE_TOK = 'TRANSCLOSURE';
+  TRANSCLOSURE_TOK = 'TCLOSURE';
 
   // Strings
 
@@ -1649,7 +1649,7 @@ bvNegTerm[CVC4::Expr& f]
   | TRANSPOSE_TOK bvNegTerm[f]
     { f = MK_EXPR(CVC4::kind::TRANSPOSE, f); } 
   | TRANSCLOSURE_TOK bvNegTerm[f]
-    { f = MK_EXPR(CVC4::kind::TRANSCLOSURE, f); }
+    { f = MK_EXPR(CVC4::kind::TCLOSURE, f); }
   | TUPLE_TOK LPAREN bvNegTerm[f] RPAREN
     { std::vector<Type> types;
       std::vector<Expr> args;

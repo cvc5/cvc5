@@ -233,7 +233,7 @@ struct RelTransposeTypeRule {
 struct RelTransClosureTypeRule {
   inline static TypeNode computeType(NodeManager* nodeManager, TNode n, bool check)
     throw (TypeCheckingExceptionPrivate, AssertionException) {
-    Assert(n.getKind() == kind::TRANSCLOSURE);
+    Assert(n.getKind() == kind::TCLOSURE);
     TypeNode setType = n[0].getType(check);
     if(check) {
       if(!setType.isSet() && !setType.getSetElementType().isTuple()) {
@@ -251,7 +251,7 @@ struct RelTransClosureTypeRule {
   }
 
   inline static bool computeIsConst(NodeManager* nodeManager, TNode n) {
-      Assert(n.getKind() == kind::TRANSCLOSURE);
+      Assert(n.getKind() == kind::TCLOSURE);
       return false;
     }
 };/* struct RelTransClosureTypeRule */

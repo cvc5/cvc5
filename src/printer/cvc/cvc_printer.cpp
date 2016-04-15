@@ -780,8 +780,8 @@ void CvcPrinter::toStream(std::ostream& out, TNode n, int depth, bool types, boo
       op << "TRANSPOSE";
       opType = PREFIX;
       break;
-    case kind::TRANSCLOSURE:
-      op << "TRANSCLOSURE";
+    case kind::TCLOSURE:
+      op << "TCLOSURE";
       opType = PREFIX;
       break;
     case kind::SINGLETON:

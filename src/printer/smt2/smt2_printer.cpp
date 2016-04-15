@@ -505,7 +505,7 @@ void Smt2Printer::toStream(std::ostream& out, TNode n,
   case kind::SUBSET:
   case kind::MEMBER:
   case kind::SET_TYPE:
-  case kind::TRANSCLOSURE:
+  case kind::TCLOSURE:
   case kind::TRANSPOSE:
   case kind::JOIN:
   case kind::PRODUCT:
@@ -786,7 +786,7 @@ static string smtKindString(Kind k) throw() {
   case kind::SET_TYPE: return "Set";
   case kind::SINGLETON: return "singleton";
   case kind::INSERT: return "insert";
-  case kind::TRANSCLOSURE: return "transclosure";
+  case kind::TCLOSURE: return "tclosure";
   case kind::TRANSPOSE: return "transpose";
   case kind::PRODUCT: return "product";
   case kind::JOIN: return "join";

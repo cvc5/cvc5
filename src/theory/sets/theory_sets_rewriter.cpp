@@ -296,14 +296,14 @@ RewriteResponse TheorySetsRewriter::postRewrite(TNode node) {
     break;
   }
 
-  case kind::TRANSCLOSURE: {
+  case kind::TCLOSURE: {
     if(node[0].getKind() == kind::EMPTYSET) {
       return RewriteResponse(REWRITE_DONE, nm->mkConst(EmptySet(nm->toType(node.getType()))));
     } else if (node[0].isConst()) {
 
-    } else if(node[0].getKind() == kind::TRANSCLOSURE) {
+    } else if(node[0].getKind() == kind::TCLOSURE) {
       return RewriteResponse(REWRITE_AGAIN, node[0]);
-    } else if(node[0].getKind() != kind::TRANSCLOSURE) {
+    } else if(node[0].getKind() != kind::TCLOSURE) {
       Trace("sets-postrewrite") << "Sets::postRewrite returning " << node << std::endl;
       return RewriteResponse(REWRITE_DONE, node);
     }

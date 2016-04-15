@@ -46,7 +46,7 @@ operator INSERT        2: "set obtained by inserting elements (first N-1 paramet
 operator JOIN 		   2  "set join"
 operator PRODUCT 	   2  "set cartesian product"
 operator TRANSPOSE 	   1  "set transpose"
-operator TRANSCLOSURE  1  "set transitive closure"
+operator TCLOSURE      1  "set transitive closure"
 
 typerule UNION          ::CVC4::theory::sets::SetsBinaryOperatorTypeRule
 typerule INTERSECTION   ::CVC4::theory::sets::SetsBinaryOperatorTypeRule
@@ -60,7 +60,7 @@ typerule INSERT         ::CVC4::theory::sets::InsertTypeRule
 typerule JOIN 			::CVC4::theory::sets::RelBinaryOperatorTypeRule
 typerule PRODUCT 		::CVC4::theory::sets::RelBinaryOperatorTypeRule
 typerule TRANSPOSE 		::CVC4::theory::sets::RelTransposeTypeRule
-typerule TRANSCLOSURE 	::CVC4::theory::sets::RelTransClosureTypeRule
+typerule TCLOSURE 	    ::CVC4::theory::sets::RelTransClosureTypeRule
 
 construle UNION         ::CVC4::theory::sets::SetsBinaryOperatorTypeRule
 construle INTERSECTION  ::CVC4::theory::sets::SetsBinaryOperatorTypeRule
@@ -71,6 +71,6 @@ construle INSERT        ::CVC4::theory::sets::InsertTypeRule
 construle JOIN 			::CVC4::theory::sets::RelBinaryOperatorTypeRule
 construle PRODUCT 		::CVC4::theory::sets::RelBinaryOperatorTypeRule
 construle TRANSPOSE 	::CVC4::theory::sets::RelTransposeTypeRule
-construle TRANSCLOSURE 	::CVC4::theory::sets::RelTransClosureTypeRule
+construle TCLOSURE 	    ::CVC4::theory::sets::RelTransClosureTypeRule
 
 endtheory

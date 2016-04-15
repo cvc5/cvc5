@@ -225,7 +225,7 @@ void Smt2::addTheory(Theory theory) {
     addOperator(kind::SUBSET, "subset");
     addOperator(kind::MEMBER, "member");
     addOperator(kind::TRANSPOSE, "transpose");
-    addOperator(kind::TRANSCLOSURE, "transclosure");
+    addOperator(kind::TCLOSURE, "tclosure");
     addOperator(kind::JOIN, "join");
     addOperator(kind::PRODUCT, "product");
     addOperator(kind::SINGLETON, "singleton");

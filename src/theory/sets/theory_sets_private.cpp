@@ -782,7 +782,7 @@ bool TheorySetsPrivate::checkModel(const SettermElementsMap& settermElementsMap,
       Trace("rels-debug") << " ***** Done with check model for JOIN operator" << std::endl;
       break;
     }
-    case kind::TRANSCLOSURE:
+    case kind::TCLOSURE:
       break;
     default:
       Unhandled();
