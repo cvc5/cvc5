@@ -1974,12 +1974,9 @@ void TheoryEngine::getExplanation(std::vector<NodeTheoryPair>& explanationVector
   PROOF({
       if (proofRecipe) {
         // The remaining literals are the base of the proof
-        Debug("gk::temp") << "Remaining literals become base" << std::endl;
         for (unsigned k = 0; k < explanationVector.size(); ++k) {
           proofRecipe->addBaseAssertion(explanationVector[k].node.negate());
         }
-
-        proofRecipe->dump("gk::temp");
       }
     });
 }
