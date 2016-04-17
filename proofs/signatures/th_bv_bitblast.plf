@@ -479,6 +479,21 @@
 			       	      	(default (fail formula))))
 		(default (fail formula))))
 
+
+;; Hackish...
+
+(declare bv_bbl_=_false
+	 (! n mpz
+	 (! x (term (BitVec n))
+         (! y (term (BitVec n))
+         (! bx bblt
+         (! by bblt
+         (! f formula
+         (! bbx (bblast_term n x bx)
+         (! bby (bblast_term n y by)
+         (! c (^ (bblast_eq bx by) f)
+            (th_holds (iff (= (BitVec n) x y) false))))))))))))
+
 (declare bv_bbl_=
 	 (! n mpz
 	 (! x (term (BitVec n))
@@ -489,6 +504,18 @@
          (! bbx (bblast_term n x bx)
          (! bby (bblast_term n y by)
          (! c (^ (bblast_eq bx by) f)
+            (th_holds (iff (= (BitVec n) x y) f))))))))))))
+
+(declare bv_bbl_=_swap
+	 (! n mpz
+	 (! x (term (BitVec n))
+         (! y (term (BitVec n))
+         (! bx bblt
+         (! by bblt
+         (! f formula
+         (! bbx (bblast_term n x bx)
+         (! bby (bblast_term n y by)
+         (! c (^ (bblast_eq by bx) f)
             (th_holds (iff (= (BitVec n) x y) f))))))))))))
 
 (declare bv_bbl_=_alias_1
@@ -505,6 +532,20 @@
          (! c (^ (bblast_eq bx by) f)
             (th_holds (iff (= (BitVec n) a y) f))))))))))))))
 
+(declare bv_bbl_=_alias_1_swap
+	 (! n mpz
+	 (! x (term (BitVec n))
+         (! y (term (BitVec n))
+         (! bx bblt
+         (! by bblt
+         (! f formula
+ 	 (! a (term (BitVec n))
+ 	 (! e (th_holds (= _ x a))
+         (! bbx (bblast_term n x bx)
+         (! bby (bblast_term n y by)
+         (! c (^ (bblast_eq by bx) f)
+            (th_holds (iff (= (BitVec n) a y) f))))))))))))))
+
 (declare bv_bbl_=_alias_2
 	 (! n mpz
 	 (! x (term (BitVec n))
@@ -517,6 +558,20 @@
  	 (! e (th_holds (= _ y a))
          (! bby (bblast_term n y by)
          (! c (^ (bblast_eq bx by) f)
+            (th_holds (iff (= (BitVec n) x a) f))))))))))))))
+
+(declare bv_bbl_=_alias_2_swap
+	 (! n mpz
+	 (! x (term (BitVec n))
+         (! y (term (BitVec n))
+         (! bx bblt
+         (! by bblt
+         (! f formula
+         (! bbx (bblast_term n x bx)
+ 	 (! a (term (BitVec n))
+ 	 (! e (th_holds (= _ y a))
+         (! bby (bblast_term n y by)
+         (! c (^ (bblast_eq by bx) f)
             (th_holds (iff (= (BitVec n) x a) f))))))))))))))
 
 (declare bv_bbl_=_alias_1_2
@@ -533,6 +588,22 @@
  	 (! e2 (th_holds (= _ y a2))
          (! bby (bblast_term n y by)
          (! c (^ (bblast_eq bx by) f)
+            (th_holds (iff (= (BitVec n) a1 a2) f))))))))))))))))
+
+(declare bv_bbl_=_alias_1_2_swap
+	 (! n mpz
+	 (! x (term (BitVec n))
+         (! y (term (BitVec n))
+         (! bx bblt
+         (! by bblt
+         (! f formula
+ 	 (! a1 (term (BitVec n))
+ 	 (! e1 (th_holds (= _ x a1))
+         (! bbx (bblast_term n x bx)
+ 	 (! a2 (term (BitVec n))
+ 	 (! e2 (th_holds (= _ y a2))
+         (! bby (bblast_term n y by)
+         (! c (^ (bblast_eq by bx) f)
             (th_holds (iff (= (BitVec n) a1 a2) f))))))))))))))))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -559,6 +630,22 @@
          (! bby (bblast_term n y by)
          (! c (^ (bblast_bvult bx by (mp_add n (~1))) f)
             (th_holds (iff (bvult n x y) f))))))))))))
+
+(declare bv_bbl_bvult_alias_1_2
+	 (! n mpz
+	 (! x (term (BitVec n))
+         (! y (term (BitVec n))
+         (! bx bblt
+         (! by bblt
+         (! f formula
+ 	 (! a1 (term (BitVec n))
+ 	 (! e1 (th_holds (= _ x a1))
+         (! bbx (bblast_term n x bx)
+ 	 (! a2 (term (BitVec n))
+ 	 (! e2 (th_holds (= _ y a2))
+         (! bby (bblast_term n y by)
+         (! c (^ (bblast_bvult bx by (mp_add n (~1))) f)
+            (th_holds (iff (bvult n a1 a2) f))))))))))))))))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; BITBLAST BVSLT
