@@ -1957,10 +1957,17 @@ void TheoryEngine::getExplanation(std::vector<NodeTheoryPair>& explanationVector
             LemmaProofRecipe::ProofStep proofStep(toExplain.theory, toExplain.node);
             if (explanation.getKind() == kind::AND) {
               for (unsigned k = 0; k < explanation.getNumChildren(); ++ k) {
-                proofStep.addAssertion(explanation[k].negate());
+                // If a true constant or a negation of a false constant we can ignore it
+                if (! ((explanation[k].isConst() && explanation[k].getConst<bool>()) ||
+                       (explanation[k].getKind() == kind::NOT && explanation[k][0].isConst() && !explanation[k][0].getConst<bool>()))) {
+                  proofStep.addAssertion(explanation[k].negate());
+                }
               }
             } else {
-              proofStep.addAssertion(explanation.negate());
+             if (! ((explanation.isConst() && explanation.getConst<bool>()) ||
+                    (explanation.getKind() == kind::NOT && explanation[0].isConst() && !explanation[0].getConst<bool>()))) {
+               proofStep.addAssertion(explanation.negate());
+             }
             }
             proofRecipe->addStep(proofStep);
           }
