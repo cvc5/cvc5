@@ -1184,6 +1184,8 @@ void LFSCArrayProof::printSortDeclarations(std::ostream& os, std::ostream& paren
       ProofManager::currentPM()->markPrinted(*it);
     }
   }
+
+  Debug("pf::array") << "Arrays declaring sorts DONE" << std::endl;
 }
 
 void LFSCArrayProof::printTermDeclarations(std::ostream& os, std::ostream& paren) {
