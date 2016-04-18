@@ -832,6 +832,8 @@ void LFSCUFProof::printSortDeclarations(std::ostream& os, std::ostream& paren) {
 
 void LFSCUFProof::printTermDeclarations(std::ostream& os, std::ostream& paren) {
   // declaring the terms
+  Debug("pf::uf") << "LFSCUFProof::printTermDeclarations called" << std::endl;
+
   for (ExprSet::const_iterator it = d_declarations.begin(); it != d_declarations.end(); ++it) {
     Expr term = *it;
 
@@ -847,7 +849,9 @@ void LFSCUFProof::printTermDeclarations(std::ostream& os, std::ostream& paren) {
       os << "(arrow";
       for (unsigned i = 0; i < args.size(); i++) {
         Type arg_type = args[i];
-        os << " " << arg_type;
+        // os << " " << arg_type;
+        os << " ";
+        d_proofEngine->printSort(arg_type, os);
         if (i < args.size() - 2) {
           os << " (arrow";
           fparen << ")";
@@ -860,6 +864,8 @@ void LFSCUFProof::printTermDeclarations(std::ostream& os, std::ostream& paren) {
     }
     paren << ")";
   }
+
+  Debug("pf::uf") << "LFSCUFProof::printTermDeclarations done" << std::endl;
 }
 
 void LFSCUFProof::printDeferredDeclarations(std::ostream& os, std::ostream& paren) {
