@@ -130,7 +130,14 @@ namespace CVC4 {
 
 %include "expr/expr.h"
 
+#ifdef SWIGPYTHON
+/* The python bindings on Mac OS X have trouble with this one - leave it
+ * out for now. */
+*/
+//%template(getConstTypeConstant) CVC4::Expr::getConst<CVC4::TypeConstant>;
+#else
 %template(getConstTypeConstant) CVC4::Expr::getConst<CVC4::TypeConstant>;
+#endif
 %template(getConstArrayStoreAll) CVC4::Expr::getConst<CVC4::ArrayStoreAll>;
 %template(getConstBitVectorSize) CVC4::Expr::getConst<CVC4::BitVectorSize>;
 %template(getConstAscriptionType) CVC4::Expr::getConst<CVC4::AscriptionType>;

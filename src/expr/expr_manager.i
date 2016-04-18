@@ -40,7 +40,6 @@
 
 %include "expr/expr_manager.h"
 
-%template(mkConst) CVC4::ExprManager::mkConst<CVC4::TypeConstant>;
 %template(mkConst) CVC4::ExprManager::mkConst<CVC4::ArrayStoreAll>;
 %template(mkConst) CVC4::ExprManager::mkConst<CVC4::BitVectorSize>;
 %template(mkConst) CVC4::ExprManager::mkConst<CVC4::AscriptionType>;
@@ -83,15 +82,17 @@
 %template(mkBoolConst) CVC4::ExprManager::mkConst<bool>;
 
 // These cases have trouble too.  Remove them for now.
+//%template(mkConst) CVC4::ExprManager::mkConst<CVC4::TypeConstant>;
 //%template(mkConst) CVC4::ExprManager::mkConst<CVC4::TupleSelect>;
 //%template(mkConst) CVC4::ExprManager::mkConst<CVC4::Record>;
 //%template(mkConst) CVC4::ExprManager::mkConst<CVC4::RecordSelect>;
 
 #else
-%template(mkConst) CVC4::ExprManager::mkConst<bool>;		  %template(mkConst) CVC4::ExprManager::mkConst<bool>;
+%template(mkConst) CVC4::ExprManager::mkConst<CVC4::TypeConstant>;
 %template(mkConst) CVC4::ExprManager::mkConst<CVC4::TupleSelect>;
 %template(mkConst) CVC4::ExprManager::mkConst<CVC4::Record>;
 %template(mkConst) CVC4::ExprManager::mkConst<CVC4::RecordSelect>;
+%template(mkConst) CVC4::ExprManager::mkConst<bool>;
 #endif
 
 %include "expr/expr_manager.h"
