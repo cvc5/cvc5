@@ -444,7 +444,6 @@ void LFSCBitVectorProof::printOperatorParametric(Expr term, std::ostream& os, co
 
 void LFSCBitVectorProof::printOwnedSort(Type type, std::ostream& os) {
   Debug("pf::bv") << std::endl << "(pf::bv) LFSCBitVectorProof::printOwnedSort( " << type << " )" << std::endl;
-
   Assert (type.isBitVector());
   unsigned width = utils::getSize(type);
   os << "(BitVec "<<width<<")";
@@ -756,11 +755,17 @@ void LFSCBitVectorProof::printTermBitblasting(Expr term, std::ostream& os) {
     return;
   }
   case kind::BITVECTOR_EXTRACT : {
-    os <<"(bv_bbl_"<<utils::toLFSCKind(kind) <<" ";
-    os << utils::getSize(term) << " ";
+    os <<"(bv_bbl_"<<utils::toLFSCKind(kind);
+
+    if (hasAlias(term[0])) {os << "_alias";};
+
+    os << " " << utils::getSize(term) << " ";
     os << utils::getExtractHigh(term) << " ";
     os << utils::getExtractLow(term) << " ";
     os << " _ _ _ _ ";
+
+    if (hasAlias(term[0])) {os << "_ " << d_aliasToBindDeclaration[d_assignedAliases[term[0]]] << " ";}
+
     os << getBBTermName(term[0]);
     os <<")";
     return;

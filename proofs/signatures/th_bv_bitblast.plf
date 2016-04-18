@@ -180,6 +180,20 @@
                            (bblast_term n (extract n i j m x) rb)))))))))))
 
 
+(declare bv_bbl_extract_alias (! n mpz
+  			      (! i mpz
+			      (! j mpz
+			      (! m mpz
+                       	      (! x (term (BitVec m))
+		       	      (! xb bblt
+		       	      (! rb bblt
+			      (! a (term (BitVec m))
+		              (! e (th_holds (= _ x a))
+		       	      (! xbb (bblast_term m x xb)
+			      (! c ( ^ (bblast_extract xb i j m) rb)
+                                 (bblast_term n (extract n i j m a) rb)))))))))))))
+
+
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; BITBLAST ZERO/SIGN EXTEND
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
