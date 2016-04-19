@@ -133,7 +133,6 @@ namespace CVC4 {
 #ifdef SWIGPYTHON
 /* The python bindings on Mac OS X have trouble with this one - leave it
  * out for now. */
-*/
 //%template(getConstTypeConstant) CVC4::Expr::getConst<CVC4::TypeConstant>;
 #else
 %template(getConstTypeConstant) CVC4::Expr::getConst<CVC4::TypeConstant>;
