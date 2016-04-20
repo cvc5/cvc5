@@ -1,13 +1,13 @@
 /* *******************                                                        */
 /*! \file Smt2.g
  ** \verbatim
- ** Original author: Christopher L. Conway
- ** Major contributors: Morgan Deters
- ** Minor contributors (to current version): Dejan Jovanovic, Kshitij Bansal, Tianyi Liang, Francois Bobot, Andrew Reynolds
+ ** Top contributors (to current version):
+ **   Morgan Deters, Andrew Reynolds, Christopher L. Conway
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2014  New York University and The University of Iowa
- ** See the file COPYING in the top-level source directory for licensing
- ** information.\endverbatim
+ ** Copyright (c) 2009-2016 by the authors listed in the file AUTHORS
+ ** in the top-level source directory) and their institutional affiliations.
+ ** All rights reserved.  See the file COPYING in the top-level source
+ ** directory for licensing information.\endverbatim
  **
  ** \brief Parser for SMT-LIB v2 input language
  **
@@ -765,9 +765,7 @@ sygusCommand returns [CVC4::Command* cmd = NULL]
       Command* c = new SetUserAttributeCommand("sygus", sygusVar);
       c->setMuted(true);
       PARSER_STATE->preemptCommand(c);
-      c = new AssertCommand(body);
-      PARSER_STATE->preemptCommand(c);
-      $cmd = new CheckSatCommand();
+      $cmd = new CheckSynthCommand(body);
     }
   | c = command { $cmd = c; }
  //   /* error handling */
@@ -1302,6 +1300,12 @@ extendedCommand[CVC4::Command*& cmd]
   | SIMPLIFY_TOK { PARSER_STATE->checkThatLogicIsSet(); }
     term[e,e2]
     { cmd = new SimplifyCommand(e); }
+  | GET_QE_TOK { PARSER_STATE->checkThatLogicIsSet(); }
+    term[e,e2]
+    { cmd = new GetQuantifierEliminationCommand(e, true); }
+  | GET_QE_DISJUNCT_TOK { PARSER_STATE->checkThatLogicIsSet(); }
+    term[e,e2]
+    { cmd = new GetQuantifierEliminationCommand(e, false); }
   ;
 
 
@@ -2562,6 +2566,8 @@ DECLARE_CONST_TOK : 'declare-const';
 DEFINE_CONST_TOK : 'define-const';
 SIMPLIFY_TOK : 'simplify';
 INCLUDE_TOK : 'include';
+GET_QE_TOK : 'get-qe';
+GET_QE_DISJUNCT_TOK : 'get-qe-disjunct';
 
 // SyGuS commands
 SYNTH_FUN_TOK : 'synth-fun';

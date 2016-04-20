@@ -1,13 +1,13 @@
 /*********************                                                        */
 /*! \file command.cpp
  ** \verbatim
- ** Original author: Morgan Deters
- ** Major contributors: none
- ** Minor contributors (to current version): Kshitij Bansal, Dejan Jovanovic, Andrew Reynolds, Francois Bobot
+ ** Top contributors (to current version):
+ **   Morgan Deters, Andrew Reynolds, Francois Bobot
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2014  New York University and The University of Iowa
- ** See the file COPYING in the top-level source directory for licensing
- ** information.\endverbatim
+ ** Copyright (c) 2009-2016 by the authors listed in the file AUTHORS
+ ** in the top-level source directory) and their institutional affiliations.
+ ** All rights reserved.  See the file COPYING in the top-level source
+ ** directory for licensing information.\endverbatim
  **
  ** \brief Implementation of command objects.
  **
@@ -375,6 +375,59 @@ Command* QueryCommand::clone() const {
 std::string QueryCommand::getCommandName() const throw() {
   return "query";
 }
+
+
+/* class CheckSynthCommand */
+
+CheckSynthCommand::CheckSynthCommand() throw() :
+  d_expr() {
+}
+
+CheckSynthCommand::CheckSynthCommand(const Expr& expr, bool inUnsatCore) throw() :
+  d_expr(expr), d_inUnsatCore(inUnsatCore) {
+}
+
+Expr CheckSynthCommand::getExpr() const throw() {
+  return d_expr;
+}
+
+void CheckSynthCommand::invoke(SmtEngine* smtEngine) throw() {
+  try {
+    d_result = smtEngine->checkSynth(d_expr);
+    d_commandStatus = CommandSuccess::instance();
+  } catch(exception& e) {
+    d_commandStatus = new CommandFailure(e.what());
+  }
+}
+
+Result CheckSynthCommand::getResult() const throw() {
+  return d_result;
+}
+
+void CheckSynthCommand::printResult(std::ostream& out, uint32_t verbosity) const throw() {
+  if(! ok()) {
+    this->Command::printResult(out, verbosity);
+  } else {
+    out << d_result << endl;
+  }
+}
+
+Command* CheckSynthCommand::exportTo(ExprManager* exprManager, ExprManagerMapCollection& variableMap) {
+  CheckSynthCommand* c = new CheckSynthCommand(d_expr.exportTo(exprManager, variableMap), d_inUnsatCore);
+  c->d_result = d_result;
+  return c;
+}
+
+Command* CheckSynthCommand::clone() const {
+  CheckSynthCommand* c = new CheckSynthCommand(d_expr, d_inUnsatCore);
+  c->d_result = d_result;
+  return c;
+}
+
+std::string CheckSynthCommand::getCommandName() const throw() {
+  return "check-synth";
+}
+
 
 /* class ResetCommand */
 
@@ -1231,6 +1284,60 @@ Command* GetSynthSolutionCommand::clone() const {
 
 std::string GetSynthSolutionCommand::getCommandName() const throw() {
   return "get-instantiations";
+}
+
+/* class GetQuantifierEliminationCommand */
+
+GetQuantifierEliminationCommand::GetQuantifierEliminationCommand() throw() :
+  d_expr() {
+}
+
+GetQuantifierEliminationCommand::GetQuantifierEliminationCommand(const Expr& expr, bool doFull) throw() :
+  d_expr(expr), d_doFull(doFull) {
+}
+
+Expr GetQuantifierEliminationCommand::getExpr() const throw() {
+  return d_expr;
+}
+bool GetQuantifierEliminationCommand::getDoFull() const throw() {
+  return d_doFull;
+}
+
+void GetQuantifierEliminationCommand::invoke(SmtEngine* smtEngine) throw() {
+  try {
+    d_result = smtEngine->doQuantifierElimination(d_expr, d_doFull);
+    d_commandStatus = CommandSuccess::instance();
+  } catch(exception& e) {
+    d_commandStatus = new CommandFailure(e.what());
+  }
+}
+
+Expr GetQuantifierEliminationCommand::getResult() const throw() {
+  return d_result;
+}
+
+void GetQuantifierEliminationCommand::printResult(std::ostream& out, uint32_t verbosity) const throw() {
+  if(! ok()) {
+    this->Command::printResult(out, verbosity);
+  } else {
+    out << d_result << endl;
+  }
+}
+
+Command* GetQuantifierEliminationCommand::exportTo(ExprManager* exprManager, ExprManagerMapCollection& variableMap) {
+  GetQuantifierEliminationCommand* c = new GetQuantifierEliminationCommand(d_expr.exportTo(exprManager, variableMap), d_doFull);
+  c->d_result = d_result;
+  return c;
+}
+
+Command* GetQuantifierEliminationCommand::clone() const {
+  GetQuantifierEliminationCommand* c = new GetQuantifierEliminationCommand(d_expr, d_doFull);
+  c->d_result = d_result;
+  return c;
+}
+
+std::string GetQuantifierEliminationCommand::getCommandName() const throw() {
+  return d_doFull ? "get-qe" : "get-qe-disjunct";
 }
 
 /* class GetUnsatCoreCommand */

@@ -1,13 +1,13 @@
 /*********************                                                        */
 /*! \file term_database.h
  ** \verbatim
- ** Original author: Andrew Reynolds
- ** Major contributors: Morgan Deters
- ** Minor contributors (to current version): Tim King
+ ** Top contributors (to current version):
+ **   Andrew Reynolds, Morgan Deters, Tim King
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2014  New York University and The University of Iowa
- ** See the file COPYING in the top-level source directory for licensing
- ** information.\endverbatim
+ ** Copyright (c) 2009-2016 by the authors listed in the file AUTHORS
+ ** in the top-level source directory) and their institutional affiliations.
+ ** All rights reserved.  See the file COPYING in the top-level source
+ ** directory for licensing information.\endverbatim
  **
  ** \brief term database class
  **/
@@ -20,6 +20,7 @@
 #include "expr/attribute.h"
 #include "theory/theory.h"
 #include "theory/type_enumerator.h"
+#include "theory/quantifiers/quant_util.h"
 
 #include <map>
 
@@ -68,6 +69,12 @@ typedef expr::Attribute<InstLevelAttributeId, uint64_t> InstLevelAttribute;
 struct InstVarNumAttributeId {};
 typedef expr::Attribute<InstVarNumAttributeId, uint64_t> InstVarNumAttribute;
 
+struct TermDepthAttributeId {};
+typedef expr::Attribute<TermDepthAttributeId, uint64_t> TermDepthAttribute;
+
+struct ContainsUConstAttributeId {};
+typedef expr::Attribute<ContainsUConstAttributeId, uint64_t> ContainsUConstAttribute;
+
 struct ModelBasisAttributeId {};
 typedef expr::Attribute<ModelBasisAttributeId, bool> ModelBasisAttribute;
 //for APPLY_UF terms, 1 : term has direct child with model basis attribute,
@@ -99,6 +106,14 @@ typedef expr::Attribute<SygusProxyAttributeId, Node> SygusProxyAttribute;
 struct AbsTypeFunDefAttributeId {};
 typedef expr::Attribute<AbsTypeFunDefAttributeId, bool> AbsTypeFunDefAttribute;
 
+/** Attribute true for quantifiers that we are doing quantifier elimination on */
+struct QuantElimAttributeId {};
+typedef expr::Attribute< QuantElimAttributeId, bool > QuantElimAttribute;
+
+/** Attribute true for quantifiers that we are doing partial quantifier elimination on */
+struct QuantElimPartialAttributeId {};
+typedef expr::Attribute< QuantElimPartialAttributeId, bool > QuantElimPartialAttribute;
+
 class QuantifiersEngine;
 
 namespace inst{
@@ -112,23 +127,57 @@ public:
   /** the data */
   std::map< TNode, TermArgTrie > d_data;
 public:
+  bool hasNodeData() { return !d_data.empty(); }
+  TNode getNodeData() { return d_data.begin()->first; }
   TNode existsTerm( std::vector< TNode >& reps, int argIndex = 0 );
+  TNode addOrGetTerm( TNode n, std::vector< TNode >& reps, int argIndex = 0 );
   bool addTerm( TNode n, std::vector< TNode >& reps, int argIndex = 0 );
   void debugPrint( const char * c, Node n, unsigned depth = 0 );
   void clear() { d_data.clear(); }
 };/* class TermArgTrie */
 
 
+class QAttributes{
+public:
+  QAttributes() : d_hasPattern(false), d_conjecture(false), d_axiom(false), d_sygus(false),
+                  d_synthesis(false), d_rr_priority(-1), d_qinstLevel(-1), d_quant_elim(false), d_quant_elim_partial(false){}
+  ~QAttributes(){}
+  bool d_hasPattern;
+  Node d_rr;
+  bool d_conjecture;
+  bool d_axiom;
+  Node d_fundef_f;
+  bool d_sygus;
+  bool d_synthesis;
+  int d_rr_priority;
+  int d_qinstLevel;
+  bool d_quant_elim;
+  bool d_quant_elim_partial;
+  Node d_ipl;
+  bool isRewriteRule() { return !d_rr.isNull(); }
+  bool isFunDef() { return !d_fundef_f.isNull(); }
+};
+
 namespace fmcheck {
   class FullModelChecker;
 }
 
 class TermDbSygus;
+class QuantConflictFind;
+class RelevantDomain;
+class ConjectureGenerator;
+class TermGenerator;
+class TermGenEnv;
 
-class TermDb {
+class TermDb : public QuantifiersUtil {
   friend class ::CVC4::theory::QuantifiersEngine;
+  //TODO: eliminate most of these
   friend class ::CVC4::theory::inst::Trigger;
   friend class ::CVC4::theory::quantifiers::fmcheck::FullModelChecker;
+  friend class ::CVC4::theory::quantifiers::QuantConflictFind;
+  friend class ::CVC4::theory::quantifiers::RelevantDomain;
+  friend class ::CVC4::theory::quantifiers::ConjectureGenerator;
+  friend class ::CVC4::theory::quantifiers::TermGenEnv;
   typedef context::CDHashMap<Node, int, NodeHashFunction> NodeIntMap;
 private:
   /** reference to the quantifiers engine */
@@ -139,8 +188,8 @@ private:
   std::hash_set< Node, NodeHashFunction > d_iclosure_processed;
   /** select op map */
   std::map< Node, std::map< TypeNode, Node > > d_par_op_map;
-  /** set has term */
-  void setHasTerm( Node n );
+  /** whether master equality engine is UF-inconsistent */
+  bool d_consistent_ee;
 public:
   TermDb( context::Context* c, context::UserContext* u, QuantifiersEngine* qe );
   ~TermDb(){}
@@ -150,12 +199,18 @@ public:
   /** constants */
   Node d_zero;
   Node d_one;
-
+public:
+  /** presolve (called once per user check-sat) */
+  void presolve();
+  /** reset (calculate which terms are active) */
+  bool reset( Theory::Effort effort );
+  /** identify */
+  std::string identify() const { return "TermDb"; }  
+private:
   /** map from operators to ground terms for that operator */
   std::map< Node, std::vector< Node > > d_op_map;
   /** map from type nodes to terms of that type */
   std::map< TypeNode, std::vector< Node > > d_type_map;
-
 
   /** count number of non-redundant ground terms per operator */
   std::map< Node, int > d_op_nonred_count;
@@ -164,41 +219,53 @@ public:
   /** map from operators to trie */
   std::map< Node, TermArgTrie > d_func_map_trie;
   std::map< Node, TermArgTrie > d_func_map_eqc_trie;
+  /** mapping from operators to their representative relevant domains */
+  std::map< Node, std::map< unsigned, std::vector< Node > > > d_func_map_rel_dom;
   /** has map */
   std::map< Node, bool > d_has_map;
   /** map from reps to a term in eqc in d_has_map */
-  std::map< Node, Node > d_term_elig_eqc;
-
+  std::map< Node, Node > d_term_elig_eqc;  
+  /** set has term */
+  void setHasTerm( Node n );
+  /** evaluate term */
+  Node evaluateTerm2( TNode n, std::map< TNode, Node >& visited, EqualityQuery * qy );
+  TNode getEntailedTerm2( TNode n, std::map< TNode, TNode >& subs, bool subsRep, bool hasSubs, EqualityQuery * qy );
+  bool isEntailed2( TNode n, std::map< TNode, TNode >& subs, bool subsRep, bool hasSubs, bool pol, EqualityQuery * qy );
 public:
   /** ground terms for operator */
   unsigned getNumGroundTerms( Node f );
   /** get ground term for operator */
   Node getGroundTerm( Node f, unsigned i );
+  /** get num type terms */
+  unsigned getNumTypeGroundTerms( TypeNode tn );
+  /** get type ground term */
+  Node getTypeGroundTerm( TypeNode tn, unsigned i );
   /** add a term to the database */
   void addTerm( Node n, std::set< Node >& added, bool withinQuant = false, bool withinInstClosure = false );
-  /** presolve (called once per user check-sat) */
-  void presolve();
-  /** reset (calculate which terms are active) */
-  void reset( Theory::Effort effort );
-  /** get operator*/
-  Node getOperator( Node n );
+  /** get match operator */
+  Node getMatchOperator( Node n );
   /** get term arg index */
   TermArgTrie * getTermArgTrie( Node f );
   TermArgTrie * getTermArgTrie( Node eqc, Node f );
   /** exists term */
-  TNode existsTerm( Node f, Node n );
+  TNode getCongruentTerm( Node f, Node n );
+  TNode getCongruentTerm( Node f, std::vector< TNode >& args );
   /** compute arg reps */
   void computeArgReps( TNode n );
   /** compute uf eqc terms */
   void computeUfEqcTerms( TNode f );
+  /** in relevant domain */
+  bool inRelevantDomain( TNode f, unsigned i, TNode r );
   /** evaluate a term under a substitution.  Return representative in EE if possible.
    * subsRep is whether subs contains only representatives
    */
-  TNode evaluateTerm( TNode n, std::map< TNode, TNode >& subs, bool subsRep );
-  /** same as above, but without substitution */
-  TNode evaluateTerm( TNode n );
+  Node evaluateTerm( TNode n, EqualityQuery * qy = NULL );
+  /** get entailed term, does not construct new terms, less aggressive */
+  TNode getEntailedTerm( TNode n, EqualityQuery * qy = NULL );
+  TNode getEntailedTerm( TNode n, std::map< TNode, TNode >& subs, bool subsRep, EqualityQuery * qy = NULL );
   /** is entailed (incomplete check) */
-  bool isEntailed( TNode n, std::map< TNode, TNode >& subs, bool subsRep, bool pol );
+  bool isEntailed( TNode n, bool pol, EqualityQuery * qy = NULL );
+  bool isEntailed( TNode n, std::map< TNode, TNode >& subs, bool subsRep, bool pol, EqualityQuery * qy = NULL );
   /** has term */
   bool hasTermCurrent( Node n, bool useMode = true );
   /** is term eligble for instantiation? */
@@ -248,7 +315,7 @@ public:
   /** get the i^th instantiation constant of q */
   Node getInstantiationConstant( Node q, int i ) const;
   /** get number of instantiation constants for q */
-  int getNumInstantiationConstants( Node q ) const;
+  unsigned getNumInstantiationConstants( Node q ) const;
   /** get the ce body q[e/x] */
   Node getInstConstantBody( Node q );
   /** get counterexample literal (for cbqi) */
@@ -318,26 +385,26 @@ public:
 //for triggers
 private:
   /** helper function for compute var contains */
-  void computeVarContains2( Node n, std::vector< Node >& varContains, std::map< Node, bool >& visited );
+  static void computeVarContains2( Node n, std::vector< Node >& varContains, std::map< Node, bool >& visited );
   /** triggers for each operator */
   std::map< Node, std::vector< inst::Trigger* > > d_op_triggers;
   /** helper for is instance of */
-  bool isUnifiableInstanceOf( Node n1, Node n2, std::map< Node, Node >& subs );
+  static bool isUnifiableInstanceOf( Node n1, Node n2, std::map< Node, Node >& subs );
   /** -1: n1 is an instance of n2, 1: n1 is an instance of n2 */
-  int isInstanceOf2( Node n1, Node n2, std::vector< Node >& varContains1, std::vector< Node >& varContains2 );
+  static int isInstanceOf2( Node n1, Node n2, std::vector< Node >& varContains1, std::vector< Node >& varContains2 );
 public:
   /** compute var contains */
-  void computeVarContains( Node n, std::vector< Node >& varContains );
+  static void computeVarContains( Node n, std::vector< Node >& varContains );
   /** get var contains for each of the patterns in pats */
-  void getVarContains( Node f, std::vector< Node >& pats, std::map< Node, std::vector< Node > >& varContains );
+  static void getVarContains( Node f, std::vector< Node >& pats, std::map< Node, std::vector< Node > >& varContains );
   /** get var contains for node n */
-  void getVarContainsNode( Node f, Node n, std::vector< Node >& varContains );
+  static void getVarContainsNode( Node f, Node n, std::vector< Node >& varContains );
+  /** -1: n1 is an instance of n2, 1: n1 is an instance of n2 */
+  static int isInstanceOf( Node n1, Node n2 );
+  /** filter all nodes that have instances */
+  static void filterInstances( std::vector< Node >& nodes );
   /** register trigger (for eager quantifier instantiation) */
   void registerTrigger( inst::Trigger* tr, Node op );
-  /** -1: n1 is an instance of n2, 1: n1 is an instance of n2 */
-  int isInstanceOf( Node n1, Node n2 );
-  /** filter all nodes that have instances */
-  void filterInstances( std::vector< Node >& nodes );
 
 //for term ordering
 private:
@@ -390,14 +457,14 @@ public:
   bool containsVtsTerm( std::vector< Node >& n, bool isFree = false );
   /** simple check for contains term */
   bool containsVtsInfinity( Node n, bool isFree = false );
-  /** make type */
-  static Node mkNodeType( Node n, TypeNode tn );
-
+  /** ensure type */
+  static Node ensureType( Node n, TypeNode tn );
+  /** get ensure type condition */
+  static bool getEnsureTypeCondition( Node n, TypeNode tn, std::vector< Node >& cond );
 private:
   //helper for contains term
   static bool containsTerm2( Node n, Node t, std::map< Node, bool >& visited );
   static bool containsTerms2( Node n, std::vector< Node >& t, std::map< Node, bool >& visited );
-  static bool containsUninterpretedConstant2( Node n, std::map< Node, bool >& visited );
 //general utilities
 public:
   /** simple check for whether n contains t as subterm */
@@ -406,6 +473,8 @@ public:
   static bool containsTerms( Node n, std::vector< Node >& t );
   /** contains uninterpreted constant */
   static bool containsUninterpretedConstant( Node n );
+  /** get the term depth of n */
+  static int getTermDepth( Node n );
   /** simple negate */
   static Node simpleNegate( Node n );
   /** is assoc */
@@ -440,15 +509,11 @@ public: //general queries concerning quantified formulas wrt modules
   static Node getFunDefHead( Node q );
   /** get fun def body */
   static Node getFunDefBody( Node q );
+  /** is quant elim annotation */
+  static bool isQuantElimAnnotation( Node ipl );
 //attributes
 private:
-  std::map< Node, bool > d_qattr_conjecture;
-  std::map< Node, bool > d_qattr_axiom;
-  std::map< Node, bool > d_qattr_fundef;
-  std::map< Node, bool > d_qattr_sygus;
-  std::map< Node, bool > d_qattr_synthesis;
-  std::map< Node, int > d_qattr_rr_priority;
-  std::map< Node, int > d_qattr_qinstLevel;
+  std::map< Node, QAttributes > d_qattr;
   //record attributes
   void computeAttributes( Node q );
 public:
@@ -466,7 +531,12 @@ public:
   int getQAttrQuantInstLevel( Node q );
   /** get rewrite rule priority */
   int getQAttrRewriteRulePriority( Node q );
-
+  /** is quant elim */
+  bool isQAttrQuantElim( Node q );
+  /** is quant elim partial */
+  bool isQAttrQuantElimPartial( Node q );
+  /** compute quantifier attributes */
+  static void computeQuantAttributes( Node q, QAttributes& qa );
 };/* class TermDb */
 
 class TermDbSygus {

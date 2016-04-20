@@ -1,13 +1,13 @@
 /*********************                                                        */
 /*! \file node_manager_attributes.h
  ** \verbatim
- ** Original author: Morgan Deters
- ** Major contributors: none
- ** Minor contributors (to current version): none
+ ** Top contributors (to current version):
+ **   Morgan Deters, Tim King
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2014  New York University and The University of Iowa
- ** See the file COPYING in the top-level source directory for licensing
- ** information.\endverbatim
+ ** Copyright (c) 2009-2016 by the authors listed in the file AUTHORS
+ ** in the top-level source directory) and their institutional affiliations.
+ ** All rights reserved.  See the file COPYING in the top-level source
+ ** directory for licensing information.\endverbatim
  **
  ** \brief [[ Add one-line brief description here ]]
  **
@@ -28,8 +28,6 @@ namespace attr {
   struct VarNameTag { };
   struct GlobalVarTag { };
   struct SortArityTag { };
-  struct DatatypeTupleTag { };
-  struct DatatypeRecordTag { };
   struct TypeTag { };
   struct TypeCheckedTag { };
 }/* CVC4::expr::attr namespace */
@@ -37,10 +35,6 @@ namespace attr {
 typedef Attribute<attr::VarNameTag, std::string> VarNameAttr;
 typedef Attribute<attr::GlobalVarTag(), bool> GlobalVarAttr;
 typedef Attribute<attr::SortArityTag, uint64_t> SortArityAttr;
-/** Attribute true for datatype types that are replacements for tuple types */
-typedef expr::Attribute<expr::attr::DatatypeTupleTag, TypeNode> DatatypeTupleAttr;
-/** Attribute true for datatype types that are replacements for record types */
-typedef expr::Attribute<expr::attr::DatatypeRecordTag, TypeNode> DatatypeRecordAttr;
 typedef expr::Attribute<expr::attr::TypeTag, TypeNode> TypeAttr;
 typedef expr::Attribute<expr::attr::TypeCheckedTag, bool> TypeCheckedAttr;
 

@@ -1,13 +1,13 @@
 /*********************                                                        */
 /*! \file quantifiers_attributes.cpp
  ** \verbatim
- ** Original author: Andrew Reynolds
- ** Major contributors: Morgan Deters
- ** Minor contributors (to current version): none
+ ** Top contributors (to current version):
+ **   Andrew Reynolds, Morgan Deters, Tim King
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2014  New York University and The University of Iowa
- ** See the file COPYING in the top-level source directory for licensing
- ** information.\endverbatim
+ ** Copyright (c) 2009-2016 by the authors listed in the file AUTHORS
+ ** in the top-level source directory) and their institutional affiliations.
+ ** All rights reserved.  See the file COPYING in the top-level source
+ ** directory for licensing information.\endverbatim
  **
  ** \brief Implementation of QuantifiersAttributes class
  **/
@@ -24,7 +24,7 @@ using namespace CVC4::context;
 using namespace CVC4::theory;
 using namespace CVC4::theory::quantifiers;
 
-void QuantifiersAttributes::setUserAttribute( const std::string& attr, Node n, std::vector<Node> node_values, std::string str_value ){
+void QuantifiersAttributes::setUserAttribute( const std::string& attr, Node n, std::vector< Node >& node_values, std::string str_value ){
   Trace("quant-attr-debug") << "Set " << attr << " " << n << std::endl;
   if( attr=="axiom" ){
     Trace("quant-attr-debug") << "Set axiom " << n << std::endl;
@@ -58,5 +58,13 @@ void QuantifiersAttributes::setUserAttribute( const std::string& attr, Node n, s
     Trace("quant-attr-debug") << "Set rewrite rule priority " << n << " to " << lvl << std::endl;
     RrPriorityAttribute rrpa;
     n.setAttribute( rrpa, lvl );
+  }else if( attr=="quant-elim" ){
+    Trace("quant-attr-debug") << "Set quantifier elimination " << n << std::endl;
+    QuantElimAttribute qea;
+    n.setAttribute( qea, true );
+  }else if( attr=="quant-elim-partial" ){
+    Trace("quant-attr-debug") << "Set partial quantifier elimination " << n << std::endl;
+    QuantElimPartialAttribute qepa;
+    n.setAttribute( qepa, true );
   }
 }

@@ -1,13 +1,13 @@
 /*********************                                                        */
 /*! \file conjecture_generator.cpp
  ** \verbatim
- ** Original author: Andrew Reynolds
- ** Major contributors: none
- ** Minor contributors (to current version): none
+ ** Top contributors (to current version):
+ **   Clark Barrett, Andrew Reynolds, Tim King
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2014  New York University and The University of Iowa
- ** See the file COPYING in the top-level source directory for licensing
- ** information.\endverbatim
+ ** Copyright (c) 2009-2016 by the authors listed in the file AUTHORS
+ ** in the top-level source directory) and their institutional affiliations.
+ ** All rights reserved.  See the file COPYING in the top-level source
+ ** directory for licensing information.\endverbatim
  **
  ** \brief conjecture generator class
  **
@@ -34,7 +34,7 @@ struct sortConjectureScore {
 };
 
 
-void OpArgIndex::addTerm( ConjectureGenerator * s, TNode n, unsigned index ){
+void OpArgIndex::addTerm( std::vector< TNode >& terms, TNode n, unsigned index ){
   if( index==n.getNumChildren() ){
     Assert( n.hasOperator() );
     if( std::find( d_ops.begin(), d_ops.end(), n.getOperator() )==d_ops.end() ){
@@ -42,7 +42,7 @@ void OpArgIndex::addTerm( ConjectureGenerator * s, TNode n, unsigned index ){
       d_op_terms.push_back( n );
     }
   }else{
-    d_child[s->getTermDatabase()->d_arg_reps[n][index]].addTerm( s, n, index+1 );
+    d_child[terms[index]].addTerm( terms, n, index+1 );
   }
 }
 
@@ -369,7 +369,7 @@ void ConjectureGenerator::check( Theory::Effort e, unsigned quant_e ) {
           TNode n = (*ieqc_i);
           if( getTermDatabase()->hasTermCurrent( n ) ){
             if( isHandledTerm( n ) ){
-              d_op_arg_index[r].addTerm( this, n );
+              d_op_arg_index[r].addTerm( getTermDatabase()->d_arg_reps[n], n );
             }
           }
           ++ieqc_i;
@@ -489,7 +489,7 @@ void ConjectureGenerator::check( Theory::Effort e, unsigned quant_e ) {
       d_thm_index.clear();
       std::vector< Node > provenConj;
       quantifiers::FirstOrderModel* m = d_quantEngine->getModel();
-      for( int i=0; i<m->getNumAssertedQuantifiers(); i++ ){
+      for( unsigned i=0; i<m->getNumAssertedQuantifiers(); i++ ){
         Node q = m->getAssertedQuantifier( i );
         Trace("thm-db-debug") << "Is " << q << " a relevant theorem?" << std::endl;
         Node conjEq;
@@ -605,7 +605,8 @@ void ConjectureGenerator::check( Theory::Effort e, unsigned quant_e ) {
       std::vector< TypeNode > rt_types;
       std::map< TypeNode, std::map< int, std::vector< Node > > > conj_lhs;
       unsigned addedLemmas = 0;
-      for( unsigned depth=1; depth<=3; depth++ ){
+      unsigned maxDepth = options::conjectureGenMaxDepth();
+      for( unsigned depth=1; depth<=maxDepth; depth++ ){
         Trace("sg-proc") << "Generate relevant LHS at depth " << depth << "..." << std::endl;
         Trace("sg-rel-term") << "Relevant terms of depth " << depth << " : " << std::endl;
         //set up environment
@@ -1167,6 +1168,8 @@ void ConjectureGenerator::processCandidateConjecture( TNode lhs, TNode rhs, unsi
     d_waiting_conjectures_score.push_back( score );
     d_waiting_conjectures[lhs].push_back( rhs );
     d_waiting_conjectures[rhs].push_back( lhs );
+  }else{
+    Trace("sg-conjecture-debug2") << "...do not consider " << lhs << " == " << rhs << ", score = " << score << std::endl;
   }
 }
 
@@ -1273,7 +1276,7 @@ bool ConjectureGenerator::notifySubstitution( TNode glhs, std::map< TNode, TNode
   }
   Trace("sg-cconj-debug") << "Evaluate RHS : : " << rhs << std::endl;
   //get the representative of rhs with substitution subs
-  TNode grhs = getTermDatabase()->evaluateTerm( rhs, subs, true );
+  TNode grhs = getTermDatabase()->getEntailedTerm( rhs, subs, true );
   Trace("sg-cconj-debug") << "...done evaluating term, got : " << grhs << std::endl;
   if( !grhs.isNull() ){
     if( glhs!=grhs ){
@@ -1569,10 +1572,12 @@ bool TermGenerator::getNextMatch( TermGenEnv * s, TNode eqc, std::map< TypeNode,
         if( d_match_status_child_num==0 ){
           //initial binding
           TNode f = s->getTgFunc( d_typ, d_status_num );
-          std::map< TNode, TermArgTrie >::iterator it = s->getTermDatabase()->d_func_map_eqc_trie[f].d_data.find( eqc );
-          if( it!=s->getTermDatabase()->d_func_map_eqc_trie[f].d_data.end() ){
-            d_match_children.push_back( it->second.d_data.begin() );
-            d_match_children_end.push_back( it->second.d_data.end() );
+          //std::map< TNode, TermArgTrie >::iterator it = s->getTermDatabase()->d_func_map_eqc_trie[f].d_data.find( eqc );
+          Assert( !eqc.isNull() );
+          TermArgTrie * tat = s->getTermDatabase()->getTermArgTrie( eqc, f );
+          if( tat ){
+            d_match_children.push_back( tat->d_data.begin() );
+            d_match_children_end.push_back( tat->d_data.end() );
           }else{
             d_match_status++;
             d_match_status_child_num--;

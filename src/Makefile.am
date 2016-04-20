@@ -76,35 +76,41 @@ libcvc4_la_SOURCES = \
 	printer/cvc/cvc_printer.cpp \
 	printer/tptp/tptp_printer.h \
 	printer/tptp/tptp_printer.cpp \
+	proof/arith_proof.cpp \
+	proof/arith_proof.h \
+	proof/array_proof.cpp \
+	proof/array_proof.h \
+	proof/bitvector_proof.cpp \
+	proof/bitvector_proof.h \
+	proof/clause_id.h \
+	proof/cnf_proof.cpp \
+	proof/cnf_proof.h \
 	proof/proof.h \
+	proof/proof_manager.cpp \
+	proof/proof_manager.h \
+	proof/proof_utils.cpp \
+	proof/proof_utils.h \
 	proof/sat_proof.h \
 	proof/sat_proof_implementation.h \
-	proof/cnf_proof.h \
-	proof/cnf_proof.cpp \
-	proof/theory_proof.h \
+	proof/skolemization_manager.cpp \
+	proof/skolemization_manager.h \
 	proof/theory_proof.cpp \
-	proof/uf_proof.h \
+	proof/theory_proof.h \
 	proof/uf_proof.cpp \
-	proof/array_proof.h \
-	proof/bitvector_proof.h \
-	proof/bitvector_proof.cpp \
-	proof/proof_manager.h \
-	proof/proof_manager.cpp \
-	proof/proof_utils.h \
-	proof/proof_utils.cpp \
+	proof/uf_proof.h \
 	proof/unsat_core.cpp \
 	proof/unsat_core.h \
-	prop/registrar.h \
+	prop/cnf_stream.cpp \
+	prop/cnf_stream.h \
 	prop/prop_engine.cpp \
 	prop/prop_engine.h \
-	prop/theory_proxy.h \
-	prop/theory_proxy.cpp \
-	prop/cnf_stream.h \
-	prop/cnf_stream.cpp \
+	prop/registrar.h \
 	prop/sat_solver.h \
-	prop/sat_solver_types.h \
-	prop/sat_solver_factory.h \
 	prop/sat_solver_factory.cpp \
+	prop/sat_solver_factory.h \
+	prop/sat_solver_types.h \
+	prop/theory_proxy.cpp \
+	prop/theory_proxy.h \
 	smt/boolean_terms.cpp \
 	smt/boolean_terms.h \
 	smt/command.cpp \
@@ -284,6 +290,8 @@ libcvc4_la_SOURCES = \
 	theory/arrays/array_info.cpp \
 	theory/arrays/static_fact_manager.h \
 	theory/arrays/static_fact_manager.cpp \
+	theory/arrays/array_proof_reconstruction.cpp \
+	theory/arrays/array_proof_reconstruction.h \
 	theory/quantifiers/theory_quantifiers_type_rules.h \
 	theory/quantifiers/theory_quantifiers.h \
 	theory/quantifiers/quantifiers_rewriter.h \
@@ -353,6 +361,14 @@ libcvc4_la_SOURCES = \
 	theory/quantifiers/quant_equality_engine.cpp \
 	theory/quantifiers/ceg_instantiator.h \
 	theory/quantifiers/ceg_instantiator.cpp \
+	theory/quantifiers/quant_split.h \
+	theory/quantifiers/quant_split.cpp \
+	theory/quantifiers/anti_skolem.h \
+	theory/quantifiers/anti_skolem.cpp \
+	theory/quantifiers/equality_infer.h \
+	theory/quantifiers/equality_infer.cpp \
+	theory/quantifiers/inst_propagator.h \
+	theory/quantifiers/inst_propagator.cpp \
 	theory/arith/theory_arith_type_rules.h \
 	theory/arith/type_enumerator.h \
 	theory/arith/arithvar.h \

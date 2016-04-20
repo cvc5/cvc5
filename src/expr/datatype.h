@@ -1,13 +1,13 @@
 /*********************                                                        */
 /*! \file datatype.h
  ** \verbatim
- ** Original author: Morgan Deters
- ** Major contributors: Andrew Reynolds
- ** Minor contributors (to current version): none
+ ** Top contributors (to current version):
+ **   Morgan Deters, Andrew Reynolds, Tim King
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2014  New York University and The University of Iowa
- ** See the file COPYING in the top-level source directory for licensing
- ** information.\endverbatim
+ ** Copyright (c) 2009-2016 by the authors listed in the file AUTHORS
+ ** in the top-level source directory) and their institutional affiliations.
+ ** All rights reserved.  See the file COPYING in the top-level source
+ ** directory for licensing information.\endverbatim
  **
  ** \brief A class representing a Datatype definition
  **
@@ -153,6 +153,11 @@ public:
    * this call is only permitted after resolution.
    */
   SelectorType getType() const;
+
+  /**
+   * Get the range type of this argument.
+   */
+  Type getRangeType() const;
 
   /**
    * Get the name of the type of this constructor argument
@@ -474,6 +479,7 @@ private:
   bool d_isCo;
   bool d_isTuple;
   bool d_isRecord;
+  Record * d_record;
   std::vector<DatatypeConstructor> d_constructors;
   bool d_resolved;
   Type d_self;
@@ -553,6 +559,8 @@ public:
    */
   inline Datatype(std::string name, const std::vector<Type>& params, bool isCo = false);
 
+  ~Datatype();
+
   /**
    * Add a constructor to this Datatype.  Constructor names need not
    * be unique; they are for convenience and pretty-printing only.
@@ -601,6 +609,9 @@ public:
 
   /** is this a record datatype? */
   inline bool isRecord() const;
+
+  /** get the record representation for this datatype */
+  inline Record * getRecord() const;
 
   /**
    * Return the cardinality of this datatype (the sum of the
@@ -772,6 +783,7 @@ inline Datatype::Datatype(std::string name, bool isCo) :
   d_isCo(isCo),
   d_isTuple(false),
   d_isRecord(false),
+  d_record(NULL),
   d_constructors(),
   d_resolved(false),
   d_self(),
@@ -788,6 +800,7 @@ inline Datatype::Datatype(std::string name, const std::vector<Type>& params, boo
   d_isCo(isCo),
   d_isTuple(false),
   d_isRecord(false),
+  d_record(NULL),
   d_constructors(),
   d_resolved(false),
   d_self(),
@@ -842,6 +855,10 @@ inline bool Datatype::isTuple() const {
 
 inline bool Datatype::isRecord() const {
   return d_isRecord;
+}
+
+inline Record * Datatype::getRecord() const {
+  return d_record;
 }
 
 inline bool Datatype::operator!=(const Datatype& other) const throw() {

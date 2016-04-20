@@ -1,13 +1,13 @@
 /*********************                                                        */
 /*! \file ambqi_builder.cpp
  ** \verbatim
- ** Original author: Andrew Reynolds
- ** Major contributors: Morgan Deters
- ** Minor contributors (to current version): none
+ ** Top contributors (to current version):
+ **   Morgan Deters, Tim King, Andrew Reynolds
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2014  New York University and The University of Iowa
- ** See the file COPYING in the top-level source directory for licensing
- ** information.\endverbatim
+ ** Copyright (c) 2009-2016 by the authors listed in the file AUTHORS
+ ** in the top-level source directory) and their institutional affiliations.
+ ** All rights reserved.  See the file COPYING in the top-level source
+ ** directory for licensing information.\endverbatim
  **
  ** \brief Implementation of abstract MBQI builder
  **/
@@ -159,7 +159,7 @@ bool AbsDef::addInstantiations( FirstOrderModelAbs * m, QuantifiersEngine * qe, 
       return true;
     }else{
       if( depth==q[0].getNumChildren() ){
-        if( qe->addInstantiation( q, terms ) ){
+        if( qe->addInstantiation( q, terms, true ) ){
           Trace("ambqi-inst-debug") << "-> Added instantiation." << std::endl;
           inst++;
           return true;
@@ -190,7 +190,7 @@ bool AbsDef::addInstantiations( FirstOrderModelAbs * m, QuantifiersEngine * qe, 
                 success = true;
               }
             }
-          }while( !success && index<32 );
+          }while( !qe->inConflict() && !success && index<32 );
           //mark if we are incomplete
           osuccess = osuccess && success;
         }

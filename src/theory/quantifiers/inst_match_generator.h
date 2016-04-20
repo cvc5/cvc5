@@ -1,13 +1,13 @@
 /*********************                                                        */
 /*! \file inst_match_generator.h
  ** \verbatim
- ** Original author: Andrew Reynolds
- ** Major contributors: Morgan Deters
- ** Minor contributors (to current version): none
+ ** Top contributors (to current version):
+ **   Morgan Deters, Andrew Reynolds, Clark Barrett
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2014  New York University and The University of Iowa
- ** See the file COPYING in the top-level source directory for licensing
- ** information.\endverbatim
+ ** Copyright (c) 2009-2016 by the authors listed in the file AUTHORS
+ ** in the top-level source directory) and their institutional affiliations.
+ ** All rights reserved.  See the file COPYING in the top-level source
+ ** directory for licensing information.\endverbatim
  **
  ** \brief inst match generator class
  **/
@@ -64,7 +64,7 @@ protected:
   InstMatchGenerator* d_next;
   /** eq class */
   Node d_eq_class;
-  bool d_eq_class_rel;
+  Node d_eq_class_rel;
   /** variable numbers */
   std::map< int, int > d_var_num;
   /** initialize pattern */
@@ -211,6 +211,9 @@ private:
   Node d_f;
   /** match term */
   Node d_match_pattern;
+  /** equivalence class */
+  bool d_pol;
+  Node d_eqc;
   /** match pattern arg types */
   std::vector< TypeNode > d_match_pattern_arg_types;
   /** operator */

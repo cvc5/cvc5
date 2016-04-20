@@ -1,13 +1,13 @@
 /*********************                                                        */
 /*! \file theory_sets_type_rules.h
  ** \verbatim
- ** Original author: Kshitij Bansal
- ** Major contributors: none
- ** Minor contributors (to current version): Morgan Deters
+ ** Top contributors (to current version):
+ **   Kshitij Bansal, Tim King, Morgan Deters
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2014  New York University and The University of Iowa
- ** See the file COPYING in the top-level source directory for licensing
- ** information.\endverbatim
+ ** Copyright (c) 2009-2016 by the authors listed in the file AUTHORS
+ ** in the top-level source directory) and their institutional affiliations.
+ ** All rights reserved.  See the file COPYING in the top-level source
+ ** directory for licensing information.\endverbatim
  **
  ** \brief Sets theory type rules.
  **
@@ -136,6 +136,25 @@ struct EmptySetTypeRule {
   }
 };/* struct EmptySetTypeRule */
 
+struct CardTypeRule {
+  inline static TypeNode computeType(NodeManager* nodeManager, TNode n, bool check)
+    throw (TypeCheckingExceptionPrivate, AssertionException) {
+    Assert(n.getKind() == kind::CARD);
+    TypeNode setType = n[0].getType(check);
+    if( check ) {
+      if(!setType.isSet()) {
+        throw TypeCheckingExceptionPrivate(n, "cardinality operates on a set, non-set object found");
+      }
+    }
+    return nodeManager->integerType();
+  }
+
+  inline static bool computeIsConst(NodeManager* nodeManager, TNode n) {
+    Assert(n.getKind() == kind::CARD);
+    return false;
+  }
+};/* struct CardTypeRule */
+
 struct InsertTypeRule {
   inline static TypeNode computeType(NodeManager* nodeManager, TNode n, bool check)
     throw (TypeCheckingExceptionPrivate, AssertionException) {
@@ -255,7 +274,6 @@ struct RelTransClosureTypeRule {
       return false;
     }
 };/* struct RelTransClosureTypeRule */
-
 
 struct SetsProperties {
   inline static Cardinality computeCardinality(TypeNode type) {

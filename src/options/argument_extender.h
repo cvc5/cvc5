@@ -1,79 +1,85 @@
 /*********************                                                        */
-/*! \file preempt_get_option.h
+/*! \file argument_extender.h
  ** \verbatim
- ** Original author: Tim King
- ** Major contributors: none
- ** Minor contributors (to current version): none
+ ** Top contributors (to current version):
+ **   Tim King
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2014  New York University and The University of Iowa
- ** See the file COPYING in the top-level source directory for licensing
- ** information.\endverbatim
+ ** Copyright (c) 2009-2016 by the authors listed in the file AUTHORS
+ ** in the top-level source directory) and their institutional affiliations.
+ ** All rights reserved.  See the file COPYING in the top-level source
+ ** directory for licensing information.\endverbatim
  **
- ** \brief Utility function for extending commandline options.
+ ** \brief Abstract utility class for extending commandline options.
  **
- ** Utility function for extending commandline options.
+ ** Abstract utility class for extending commandline options.
  **/
 
-#include "cvc4_private.h"
+#include "cvc4_public.h"
 
-#ifndef __CVC4__OPTIONS__PREMPT_GET_OPTION_H
-#define __CVC4__OPTIONS__PREMPT_GET_OPTION_H
+#ifndef __CVC4__OPTIONS__ARGUMENT_EXTENDER_H
+#define __CVC4__OPTIONS__ARGUMENT_EXTENDER_H
 
 #include <cstddef>
-#include <vector>
 
 namespace CVC4 {
 namespace options {
 
-
+/**
+ * Abstract utility class for implementing command line options
+ * parsing for the Options class. This allows for adding preemption
+ * arguments. A preemption is effectivly adding a new argument into
+ * the commandline arguments and must be processed immediately.
+ */
 class ArgumentExtender {
- public:
-  /**
-   * Preconditions:
-   *  additional >= 1
-   *  length >= 1
-   */
-  ArgumentExtender(unsigned additional, size_t length);
-  ~ArgumentExtender();
+public:
+  ArgumentExtender(){}
+  virtual ~ArgumentExtender(){}
 
   /**
-   * This purpose of this function is to massage argc and argv upon the event
-   * of parsing during Options::parseOptions of an option with the :link or
-   * :link-alternative attributes. The purpose of the function is to extend argv
-   * with another commandline argument.
+   * This creates a copy of the current arguments list as a new array.
+   * The new array is stored in argv.  The user of this function is
+   * expected to own the memory of the string array, but not the
+   * strings themselves.  The length of the new array is
+   * numArguments() and is stored in argc.
    *
    * Preconditions:
-   *  opt is '\0' terminated, non-null and non-empty c-string.
-   *  strlen(opt) <= getLength()
-   *
-   * Let P be the first position in argv that is >= 1 and is either NULL or
-   * empty:
-   *   argv[P] == NULL || argv[P] == '\0'
-   *
-   * This has a very specific set of side effects:
-   * - argc is incremented by one.
-   * - If argv[P] == NULL, this reallocates argv to have (P+additional)
-   *   elements.
-   * - The 0 through P-1 elements of argv are the same.
-   * - The P element of argv is a copy of the first len-1 characters of opt.
-   *   This is a newly allocated '\0' terminated c string of length len.
-   * - The P+1 through (P+additional-2) elements of argv are newly allocated
-   *   empty '\0' terminated c strings of size len.
-   * - The last element at (P+additional-1) of argv is NULL.
-   * - All allocations are pushed back onto allocated.
+   * - argc and argv are non-null.
    */
-  void extend(int& argc, char**& argv, const char* opt,
-              std::vector<char*>& allocated);
+  virtual void getArguments(int* argc, char*** argv) const = 0;
 
-  unsigned getIncrease() const;
-  size_t getLength() const;
+  /** Returns the number of arguments that are . */
+  virtual size_t numArguments() const = 0;
 
- private:
-  unsigned d_additional;
-  size_t d_length;
-};
+  /**
+   * Inserts a copy of element into the front of the arguments list.
+   * Preconditions: element is non-null and 0 terminated.
+   */
+  virtual void pushFrontArgument(const char* element) = 0;
+
+  /**
+   * Inserts a copy of element into the back of the arguments list.
+   * Preconditions: element is non-null and 0 terminated.
+   */
+  virtual void pushBackArgument(const char* element) = 0;
+
+  /** Removes the front of the arguments list.*/
+  virtual void popFrontArgument() = 0;
+
+  /** Adds a new preemption to the arguments list. */
+  virtual void pushBackPreemption(const char* element) = 0;
+
+  /**
+   * Moves all of the preemptions into the front of the arguments
+   * list.
+   */
+  virtual void movePreemptionsToArguments() = 0;
+
+  /** Returns true iff there is a pending preemption.*/
+  virtual bool hasPreemptions() const = 0;
+
+};/* class ArgumentExtender */
 
 }/* CVC4::options namespace */
 }/* CVC4 namespace */
 
-#endif /* __CVC4__OPTIONS__PREMPT_GET_OPTION_H */
+#endif /* __CVC4__OPTIONS__ARGUMENT_EXTENDER_H */

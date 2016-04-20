@@ -1,13 +1,13 @@
 /*********************                                                        */
 /*! \file portfolio_util.cpp
  ** \verbatim
- ** Original author: Kshitij Bansal
- ** Major contributors: none
- ** Minor contributors (to current version): Morgan Deters
+ ** Top contributors (to current version):
+ **   Tim King, Kshitij Bansal
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2014  New York University and The University of Iowa
- ** See the file COPYING in the top-level source directory for licensing
- ** information.\endverbatim
+ ** Copyright (c) 2009-2016 by the authors listed in the file AUTHORS
+ ** in the top-level source directory) and their institutional affiliations.
+ ** All rights reserved.  See the file COPYING in the top-level source
+ ** directory for licensing information.\endverbatim
  **
  ** \brief Code relevant only for portfolio builds
  **/
@@ -92,7 +92,7 @@ void parseThreadSpecificOptions(OptionsList& threadOptions, const Options& opts)
       *vp++ = NULL;
       if(targc > 1) { // this is necessary in case you do e.g. --thread0="  "
         try {
-          tOpts.parseOptions(targc, targv);
+          Options::parseOptions(&tOpts, targc, targv);
         } catch(OptionException& e) {
           stringstream ss;
           ss << optid << ": " << e.getMessage();

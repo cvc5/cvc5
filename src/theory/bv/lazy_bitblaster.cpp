@@ -1,17 +1,17 @@
 /*********************                                                        */
 /*! \file lazy_bitblaster.cpp
  ** \verbatim
- ** Original author: Liana Hadarean
- ** Major contributors: none
- ** Minor contributors (to current version): Morgan Deters
+ ** Top contributors (to current version):
+ **   Liana Hadarean, Tim King, Morgan Deters
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2014  New York University and The University of Iowa
- ** See the file COPYING in the top-level source directory for licensing
- ** information.\endverbatim
+ ** Copyright (c) 2009-2016 by the authors listed in the file AUTHORS
+ ** in the top-level source directory) and their institutional affiliations.
+ ** All rights reserved.  See the file COPYING in the top-level source
+ ** directory for licensing information.\endverbatim
  **
- ** \brief Bitblaster for the lazy bv solver. 
+ ** \brief Bitblaster for the lazy bv solver.
  **
- ** Bitblaster for the lazy bv solver. 
+ ** Bitblaster for the lazy bv solver.
  **/
 
 #include "bitblaster_template.h"
@@ -123,11 +123,11 @@ void TLazyBitblaster::bbAtom(TNode node) {
       }
       atom_bb = utils::mkAnd(atoms);
     }
-    Assert (!atom_bb.isNull()); 
+    Assert (!atom_bb.isNull());
     Node atom_definition = utils::mkNode(kind::IFF, node, atom_bb);
     storeBBAtom(node, atom_bb);
     d_cnfStream->convertAndAssert(atom_definition, false, false, RULE_INVALID, TNode::null());
-    return; 
+    return;
   }
 
   // the bitblasted definition of the atom
@@ -138,7 +138,7 @@ void TLazyBitblaster::bbAtom(TNode node) {
   if (!options::proof()) {
     atom_bb = Rewriter::rewrite(atom_bb);
   }
-      
+
   // asserting that the atom is true iff the definition holds
   Node atom_definition = utils::mkNode(kind::IFF, node, atom_bb);
   storeBBAtom(node, atom_bb);
@@ -150,7 +150,7 @@ void TLazyBitblaster::storeBBAtom(TNode atom, Node atom_bb) {
   if( d_bvp != NULL ){
     d_bvp->registerAtomBB(atom.toExpr(), atom_bb.toExpr());
   }
-  d_bbAtoms.insert(atom); 
+  d_bbAtoms.insert(atom);
 }
 
 void TLazyBitblaster::storeBBTerm(TNode node, const Bits& bits) {
@@ -160,16 +160,16 @@ void TLazyBitblaster::storeBBTerm(TNode node, const Bits& bits) {
 
 
 bool TLazyBitblaster::hasBBAtom(TNode atom) const {
-  return d_bbAtoms.find(atom) != d_bbAtoms.end(); 
+  return d_bbAtoms.find(atom) != d_bbAtoms.end();
 }
 
 
 void TLazyBitblaster::makeVariable(TNode var, Bits& bits) {
   Assert(bits.size() == 0);
   for (unsigned i = 0; i < utils::getSize(var); ++i) {
-    bits.push_back(utils::mkBitOf(var, i)); 
+    bits.push_back(utils::mkBitOf(var, i));
   }
-  d_variables.insert(var); 
+  d_variables.insert(var);
 }
 
 uint64_t TLazyBitblaster::computeAtomWeight(TNode node, NodeSet& seen) {
@@ -182,7 +182,7 @@ uint64_t TLazyBitblaster::computeAtomWeight(TNode node, NodeSet& seen) {
 
 // cnf conversion ensures the atom represents itself
 Node TLazyBitblaster::getBBAtom(TNode node) const {
-  return node; 
+  return node;
 }
 
 void TLazyBitblaster::bbTerm(TNode node, Bits& bits) {
@@ -220,9 +220,9 @@ void TLazyBitblaster::explain(TNode atom, std::vector<TNode>& explanation) {
     for (unsigned i = 0; i < literal_explanation.size(); ++i) {
       explanation.push_back(d_cnfStream->getNode(literal_explanation[i]));
     }
-    return; 
+    return;
   }
-  
+
   std::vector<prop::SatLiteral> literal_explanation;
   d_satSolver->explain(lit, literal_explanation);
   for (unsigned i = 0; i < literal_explanation.size(); ++i) {
@@ -285,7 +285,7 @@ bool TLazyBitblaster::solve() {
     }
   }
   Debug("bitvector") << "TLazyBitblaster::solve() asserted atoms " << d_assertedAtoms->size() <<"\n";
-  d_satSolverFullModel.set(true); 
+  d_satSolverFullModel.set(true);
   return prop::SAT_VALUE_TRUE == d_satSolver->solve();
 }
 
@@ -357,11 +357,11 @@ bool TLazyBitblaster::MinisatNotify::notify(prop::SatLiteral lit) {
       d_lazyBB->d_explanations->insert(lit, literal_explanation);
     } else {
       // we propagated it at a lower level
-      return true; 
+      return true;
     }
   }
   ++(d_lazyBB->d_statistics.d_numBitblastingPropagations);
-  TNode atom = d_cnf->getNode(lit); 
+  TNode atom = d_cnf->getNode(lit);
   return d_bv->storePropagation(atom, SUB_BITBLAST);
 }
 
@@ -398,13 +398,13 @@ EqualityStatus TLazyBitblaster::getEqualityStatus(TNode a, TNode b) {
   if (a_eq_b == utils::mkTrue()) return theory::EQUALITY_TRUE;
 
   if (!d_satSolverFullModel.get())
-    return theory::EQUALITY_UNKNOWN; 
-  
+    return theory::EQUALITY_UNKNOWN;
+
   // Check if cache is valid (invalidated in check and pops)
   if (d_bv->d_invalidateModelCache.get()) {
-    invalidateModelCache(); 
+    invalidateModelCache();
   }
-  d_bv->d_invalidateModelCache.set(false); 
+  d_bv->d_invalidateModelCache.set(false);
 
   Node a_value = getTermModel(a, true);
   Node b_value = getTermModel(b, true);
@@ -414,10 +414,10 @@ EqualityStatus TLazyBitblaster::getEqualityStatus(TNode a, TNode b) {
 
   if (a_value == b_value) {
     Debug("bv-equality-status")<< "theory::EQUALITY_TRUE_IN_MODEL\n";
-    return theory::EQUALITY_TRUE_IN_MODEL; 
+    return theory::EQUALITY_TRUE_IN_MODEL;
   }
   Debug("bv-equality-status")<< "theory::EQUALITY_FALSE_IN_MODEL\n";
-  return theory::EQUALITY_FALSE_IN_MODEL; 
+  return theory::EQUALITY_FALSE_IN_MODEL;
 }
 
 
@@ -426,9 +426,9 @@ bool TLazyBitblaster::isSharedTerm(TNode node) {
 }
 
 bool TLazyBitblaster::hasValue(TNode a) {
-  Assert (hasBBTerm(a)); 
+  Assert (hasBBTerm(a));
   Bits bits;
-  getBBTerm(a, bits); 
+  getBBTerm(a, bits);
   for (int i = bits.size() -1; i >= 0; --i) {
     prop::SatValue bit_value;
     if (d_cnfStream->hasLiteral(bits[i])) {
@@ -456,7 +456,7 @@ Node TLazyBitblaster::getModelFromSatSolver(TNode a, bool fullModel) {
   if (!hasBBTerm(a)) {
     return fullModel? utils::mkConst(utils::getSize(a), 0u) : Node();
   }
-  
+
   Bits bits;
   getBBTerm(a, bits);
   Integer value(0);
@@ -486,13 +486,13 @@ void TLazyBitblaster::collectModelInfo(TheoryModel* m, bool fullModel) {
     // not actually a leaf of the bit-vector theory
     if (d_variables.find(var) == d_variables.end())
       continue;
-    
-    Assert (Theory::theoryOf(var) == theory::THEORY_BV || isSharedTerm(var)); 
+
+    Assert (Theory::theoryOf(var) == theory::THEORY_BV || isSharedTerm(var));
     // only shared terms could not have been bit-blasted
     Assert (hasBBTerm(var) || isSharedTerm(var));
-    
+
     Node const_value = getModelFromSatSolver(var, fullModel);
-    Assert (const_value.isNull() || const_value.isConst()); 
+    Assert (const_value.isNull() || const_value.isConst());
     if(const_value != Node()) {
       Debug("bitvector-model") << "TLazyBitblaster::collectModelInfo (assert (= "
                                << var << " "

@@ -1,13 +1,13 @@
 /*********************                                                        */
 /*! \file equality_engine_types.h
  ** \verbatim
- ** Original author: Dejan Jovanovic
- ** Major contributors: none
- ** Minor contributors (to current version): Morgan Deters, Andrew Reynolds
+ ** Top contributors (to current version):
+ **   Dejan Jovanovic, Andrew Reynolds, Guy Katz
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2014  New York University and The University of Iowa
- ** See the file COPYING in the top-level source directory for licensing
- ** information.\endverbatim
+ ** Copyright (c) 2009-2016 by the authors listed in the file AUTHORS
+ ** in the top-level source directory) and their institutional affiliations.
+ ** All rights reserved.  See the file COPYING in the top-level source
+ ** directory for licensing information.\endverbatim
  **
  ** \brief [[ Add one-line brief description here ]]
  **
@@ -67,14 +67,11 @@ enum MergeReasonType {
   MERGED_THROUGH_REFLEXIVITY,
   /** Equality was merged to false, due to both sides of equality being a constant */
   MERGED_THROUGH_CONSTANTS,
-
   /** (for proofs only) Equality was merged due to transitivity */
   MERGED_THROUGH_TRANS,
 
-  /** Theory specific proof rules */
-  MERGED_ARRAYS_ROW,
-  MERGED_ARRAYS_ROW1,
-  MERGED_ARRAYS_EXT
+  /** Reason types beyond this constant are theory specific reasons */
+  NUMBER_OF_MERGE_REASONS
 };
 
 inline std::ostream& operator << (std::ostream& out, MergeReasonType reason) {
@@ -91,10 +88,10 @@ inline std::ostream& operator << (std::ostream& out, MergeReasonType reason) {
   case MERGED_THROUGH_CONSTANTS:
     out << "constants disequal";
     break;
-  // (for proofs only)
   case MERGED_THROUGH_TRANS:
     out << "transitivity";
     break;
+
   default:
     out << "[theory]";
     break;
@@ -108,9 +105,9 @@ inline std::ostream& operator << (std::ostream& out, MergeReasonType reason) {
  */
 struct MergeCandidate {
   EqualityNodeId t1Id, t2Id;
-  MergeReasonType type;
+  unsigned type;
   TNode reason;
-  MergeCandidate(EqualityNodeId x, EqualityNodeId y, MergeReasonType type, TNode reason)
+  MergeCandidate(EqualityNodeId x, EqualityNodeId y, unsigned type, TNode reason)
   : t1Id(x), t2Id(y), type(type), reason(reason)
   {}
 };
@@ -365,4 +362,3 @@ struct TriggerInfo {
 } // namespace eq
 } // namespace theory
 } // namespace CVC4
-

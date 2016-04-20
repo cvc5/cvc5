@@ -1,13 +1,13 @@
 /*********************                                                        */
 /*! \file theory_datatypes.h
  ** \verbatim
- ** Original author: Morgan Deters
- ** Major contributors: Andrew Reynolds
- ** Minor contributors (to current version): Francois Bobot, Dejan Jovanovic
+ ** Top contributors (to current version):
+ **   Andrew Reynolds, Morgan Deters, Tim King
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2014  New York University and The University of Iowa
- ** See the file COPYING in the top-level source directory for licensing
- ** information.\endverbatim
+ ** Copyright (c) 2009-2016 by the authors listed in the file AUTHORS
+ ** in the top-level source directory) and their institutional affiliations.
+ ** All rights reserved.  See the file COPYING in the top-level source
+ ** directory for licensing information.\endverbatim
  **
  ** \brief Theory of datatypes.
  **
@@ -87,19 +87,19 @@ private:
       d_dt.conflict(t1, t2);
     }
     void eqNotifyNewClass(TNode t) {
-      Debug("dt") << "NotifyClass::eqNotifyNewClass(" << t << std::endl;
+      Debug("dt") << "NotifyClass::eqNotifyNewClass(" << t << ")" << std::endl;
       d_dt.eqNotifyNewClass(t);
     }
     void eqNotifyPreMerge(TNode t1, TNode t2) {
-      Debug("dt") << "NotifyClass::eqNotifyPreMerge(" << t1 << ", " << t2 << std::endl;
+      Debug("dt") << "NotifyClass::eqNotifyPreMerge(" << t1 << ", " << t2 << ")" << std::endl;
       d_dt.eqNotifyPreMerge(t1, t2);
     }
     void eqNotifyPostMerge(TNode t1, TNode t2) {
-      Debug("dt") << "NotifyClass::eqNotifyPostMerge(" << t1 << ", " << t2 << std::endl;
+      Debug("dt") << "NotifyClass::eqNotifyPostMerge(" << t1 << ", " << t2 << ")" << std::endl;
       d_dt.eqNotifyPostMerge(t1, t2);
     }
     void eqNotifyDisequal(TNode t1, TNode t2, TNode reason) {
-      Debug("dt") << "NotifyClass::eqNotifyDisequal(" << t1 << ", " << t2 << ", " << reason << std::endl;
+      Debug("dt") << "NotifyClass::eqNotifyDisequal(" << t1 << ", " << t2 << ", " << reason << ")" << std::endl;
       d_dt.eqNotifyDisequal(t1, t2, reason);
     }
   };/* class TheoryDatatypes::NotifyClass */
@@ -131,9 +131,10 @@ private:
   bool hasTester( Node n );
   /** get the possible constructors for n */
   void getPossibleCons( EqcInfo* eqc, Node n, std::vector< bool >& cons );
+  void getSelectorsForCons( Node r, std::map< int, bool >& sels );
   /** mkExpDefSkolem */
-  void mkExpDefSkolem( Node sel, TypeNode dt, TypeNode rt );  
-  /** skolems for terms */  
+  void mkExpDefSkolem( Node sel, TypeNode dt, TypeNode rt );
+  /** skolems for terms */
   NodeMap d_term_sk;
   Node getTermSkolemFor( Node n );
 private:
@@ -165,6 +166,7 @@ private:
   context::CDO<bool> d_conflict;
   /** Added lemma ? */
   bool d_addedLemma;
+  bool d_addedFact;
   /** The conflict node */
   Node d_conflictNode;
   /** cache for which terms we have called collectTerms(...) on */
@@ -181,7 +183,7 @@ private:
   /** counter for forcing assignments (ensures fairness) */
   unsigned d_dtfCounter;
   /** expand definition skolem functions */
-  std::map< Node, Node > d_exp_def_skolem;
+  std::map< TypeNode, std::map< Node, Node > > d_exp_def_skolem;
   /** sygus utilities */
   SygusSplit * d_sygus_split;
   SygusSymBreak * d_sygus_sym_break;
@@ -260,6 +262,8 @@ public:
   std::string identify() const { return std::string("TheoryDatatypes"); }
   /** debug print */
   void printModelDebug( const char* c );
+  /** entailment check */
+  virtual std::pair<bool, Node> entailmentCheck(TNode lit, const EntailmentCheckParameters* params = NULL, EntailmentCheckSideEffects* out = NULL);
 private:
   /** add tester to equivalence class info */
   void addTester( int ttindex, Node t, EqcInfo* eqc, Node n, Node t_arg );

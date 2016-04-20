@@ -1,13 +1,13 @@
 /*********************                                                        */
 /*! \file ite_utilities.h
  ** \verbatim
- ** Original author: Tim King
- ** Major contributors: none
- ** Minor contributors (to current version): Morgan Deters
+ ** Top contributors (to current version):
+ **   Tim King, Morgan Deters
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2014  New York University and The University of Iowa
- ** See the file COPYING in the top-level source directory for licensing
- ** information.\endverbatim
+ ** Copyright (c) 2009-2016 by the authors listed in the file AUTHORS
+ ** in the top-level source directory) and their institutional affiliations.
+ ** All rights reserved.  See the file COPYING in the top-level source
+ ** directory for licensing information.\endverbatim
  **
  ** \brief Simplifications for ITE expressions
  **
@@ -133,7 +133,7 @@ public:
 private:
   typedef std::hash_map<Node, uint32_t, NodeHashFunction> NodeCountMap;
   NodeCountMap d_termITEHeight;
-};
+}; /* class TermITEHeightCounter */
 
 /**
  * A routine designed to undo the potentially large blow up
@@ -177,7 +177,7 @@ private:
     ~Statistics();
   };
   Statistics d_statistics;
-};
+}; /* class ITECompressor */
 
 class ITESimplifier {
 public:
@@ -302,6 +302,15 @@ public:
 
   void clear();
 private:
+
+  /**
+   * This should always equal the number of care sets allocated by
+   * this object - the number of these that have been deleted. This is
+   * initially 0 and should always be 0 at the *start* of
+   * ~ITECareSimplifier().
+   */
+  unsigned d_careSetsOutstanding;
+
   Node d_true;
   Node d_false;
 
@@ -309,12 +318,16 @@ private:
 
   class CareSetPtr;
   class CareSetPtrVal {
+   public:
+    bool safeToGarbageCollect() const { return d_refCount == 0; }
+   private:
     friend class ITECareSimplifier::CareSetPtr;
     ITECareSimplifier& d_iteSimplifier;
     unsigned d_refCount;
     std::set<Node> d_careSet;
-    CareSetPtrVal(ITECareSimplifier& simp) : d_iteSimplifier(simp), d_refCount(1) {}
-  };
+    CareSetPtrVal(ITECareSimplifier& simp)
+        : d_iteSimplifier(simp), d_refCount(1) {}
+  }; /* class ITECareSimplifier::CareSetPtrVal */
 
   std::vector<CareSetPtrVal*> d_usedSets;
   void careSetPtrGC(CareSetPtrVal* val) {
@@ -350,16 +363,14 @@ private:
       return *this;
     }
     std::set<Node>& getCareSet() { return d_val->d_careSet; }
-    static CareSetPtr mkNew(ITECareSimplifier& simp) {
-      CareSetPtrVal* val = new CareSetPtrVal(simp);
-      return CareSetPtr(val);
-    }
+
+    static CareSetPtr mkNew(ITECareSimplifier& simp);
     static CareSetPtr recycle(CareSetPtrVal* val) {
       Assert(val != NULL && val->d_refCount == 0);
       val->d_refCount = 1;
       return CareSetPtr(val);
     }
-  };
+  }; /* class ITECareSimplifier::CareSetPtr */
 
   CareSetPtr getNewSet();
 

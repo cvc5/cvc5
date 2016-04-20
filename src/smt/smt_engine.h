@@ -1,13 +1,13 @@
 /*********************                                                        */
 /*! \file smt_engine.h
  ** \verbatim
- ** Original author: Morgan Deters
- ** Major contributors: none
- ** Minor contributors (to current version): Martin Brain <>, Tim King, Clark Barrett, Christopher L. Conway, Andrew Reynolds, Kshitij Bansal, Dejan Jovanovic
+ ** Top contributors (to current version):
+ **   Morgan Deters, Tim King, Andrew Reynolds
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2014  New York University and The University of Iowa
- ** See the file COPYING in the top-level source directory for licensing
- ** information.\endverbatim
+ ** Copyright (c) 2009-2016 by the authors listed in the file AUTHORS
+ ** in the top-level source directory) and their institutional affiliations.
+ ** All rights reserved.  See the file COPYING in the top-level source
+ ** directory for licensing information.\endverbatim
  **
  ** \brief SmtEngine: the main public entry point of libcvc4.
  **
@@ -244,10 +244,10 @@ class CVC4_PUBLIC SmtEngine {
   bool d_needPostsolve;
 
   /*
-   * Whether to call theory preprocessing during simplification - on by default* but gets turned off if arithRewriteEq is on
+   * Whether to call theory preprocessing during simplification - on
+   * by default* but gets turned off if arithRewriteEq is on
    */
   bool d_earlyTheoryPP;
-
 
   /**
    * Most recent result of last checkSat/query or (set-info :status).
@@ -401,6 +401,8 @@ class CVC4_PUBLIC SmtEngine {
   SmtEngine(const SmtEngine&) CVC4_UNDEFINED;
   SmtEngine& operator=(const SmtEngine&) CVC4_UNDEFINED;
 
+  //check satisfiability (for query and check-sat)
+  Result checkSatisfiability(const Expr& e, bool inUnsatCore, bool isQuery);
 public:
 
   /**
@@ -494,6 +496,12 @@ public:
   Result checkSat(const Expr& e = Expr(), bool inUnsatCore = true) throw(TypeCheckingException, ModalException, LogicException);
 
   /**
+   * Assert a synthesis conjecture to the current context and call
+   * check().  Returns sat, unsat, or unknown result.
+   */
+  Result checkSynth(const Expr& e) throw(TypeCheckingException, ModalException, LogicException);
+
+  /**
    * Simplify a formula without doing "much" work.  Does not involve
    * the SAT Engine in the simplification, but uses the current
    * definitions, assertions, and the current partial model, if one
@@ -551,6 +559,11 @@ public:
    * Print solution for synthesis conjectures found by ce_guided_instantiation module
    */
   void printSynthSolution( std::ostream& out );
+
+  /**
+   * Do quantifier elimination, doFull false means just output one disjunct, strict is whether to output warnings.
+   */
+  Expr doQuantifierElimination(const Expr& e, bool doFull, bool strict=true) throw(TypeCheckingException, ModalException, LogicException);
 
   /**
    * Get an unsatisfiable core (only if immediately preceded by an

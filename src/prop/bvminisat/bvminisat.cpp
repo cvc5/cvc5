@@ -19,6 +19,7 @@
 #include "prop/bvminisat/bvminisat.h"
 
 #include "prop/bvminisat/simp/SimpSolver.h"
+#include "proof/clause_id.h"
 #include "proof/sat_proof.h"
 #include "util/statistics_registry.h"
 

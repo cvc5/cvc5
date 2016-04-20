@@ -30,11 +30,12 @@ OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWA
 #include "mtl/Sort.h"
 #include "options/bv_options.h"
 #include "options/smt_options.h"
-#include "theory/interrupted.h"
-#include "proof/proof_manager.h"
 #include "proof/bitvector_proof.h"
+#include "proof/clause_id.h"
+#include "proof/proof_manager.h"
 #include "proof/sat_proof.h"
 #include "proof/sat_proof_implementation.h"
+#include "theory/interrupted.h"
 #include "util/utility.h"
 
 namespace CVC4 {

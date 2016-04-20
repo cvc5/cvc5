@@ -23,5 +23,9 @@ option cdtBisimilar --cdt-bisimilar bool :default true
  do bisimilarity check for co-datatypes
 option dtCyclic --dt-cyclic bool :default true
  do cyclicity check for datatypes
+option dtInferAsLemmas --dt-infer-as-lemmas bool :default false
+ always send lemmas out instead of making internal inferences
+#option dtRExplainLemmas --dt-rexplain-lemmas bool :default true
+# regression explanations for datatype lemmas
  
 endmodule

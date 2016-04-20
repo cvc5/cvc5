@@ -1,13 +1,13 @@
 /*********************                                                        */
 /*! \file options.h
  ** \verbatim
- ** Original author: Morgan Deters
- ** Major contributors: none
- ** Minor contributors (to current version): Kshitij Bansal
+ ** Top contributors (to current version):
+ **   Tim King, Morgan Deters, Kshitij Bansal
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2014  New York University and The University of Iowa
- ** See the file COPYING in the top-level source directory for licensing
- ** information.\endverbatim
+ ** Copyright (c) 2009-2016 by the authors listed in the file AUTHORS
+ ** in the top-level source directory) and their institutional affiliations.
+ ** All rights reserved.  See the file COPYING in the top-level source
+ ** directory for licensing information.\endverbatim
  **
  ** \brief Global (command-line, set-option, ...) parameters for SMT.
  **
@@ -27,6 +27,7 @@
 #include "base/listener.h"
 #include "base/modal_exception.h"
 #include "base/tls.h"
+#include "options/argument_extender.h"
 #include "options/language.h"
 #include "options/printer_modes.h"
 #include "options/option_exception.h"
@@ -314,12 +315,18 @@ public:
   static std::vector<std::string> suggestSmtOptions(const std::string& optionName) throw();
 
   /**
-   * Initialize the options based on the given command-line arguments.
-   * The return value is what's left of the command line (that is, the
-   * non-option arguments).
+   * Initialize the Options object options based on the given
+   * command-line arguments given in argc and argv.  The return value
+   * is what's left of the command line (that is, the non-option
+   * arguments).
+   *
+   * This function uses getopt_long() and is not thread safe.
+   *
+   * Preconditions: options and argv must be non-null.
    */
-  std::vector<std::string> parseOptions(int argc, char* argv[])
-      throw(OptionException);
+  static std::vector<std::string> parseOptions(Options* options,
+                                               int argc, char* argv[])
+    throw(OptionException);
 
   /**
    * Get the setting for all options.
@@ -528,6 +535,22 @@ public:
   /** Sends a std::flush to getOut(). */
   void flushOut();
 
+ private:
+
+  /**
+   * Internal procedure for implementing the parseOptions function.
+   * Initializes the options object based on the given command-line
+   * arguments. This uses an ArgumentExtender containing the
+   * command-line arguments. Nonoptions are stored into nonoptions.
+   *
+   * This is not thread safe.
+   *
+   * Preconditions: options, extender and nonoptions are non-null.
+   */
+  static void parseOptionsRecursive(Options* options,
+                                    options::ArgumentExtender* extender,
+                                    std::vector<std::string>* nonoptions)
+    throw(OptionException);
 };/* class Options */
 
 }/* CVC4 namespace */

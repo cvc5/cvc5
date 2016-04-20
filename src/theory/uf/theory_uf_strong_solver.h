@@ -1,13 +1,13 @@
 /*********************                                                        */
 /*! \file theory_uf_strong_solver.h
  ** \verbatim
- ** Original author: Morgan Deters
- ** Major contributors: Andrew Reynolds
- ** Minor contributors (to current version): none
+ ** Top contributors (to current version):
+ **   Andrew Reynolds, Morgan Deters, Tim King
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2014  New York University and The University of Iowa
- ** See the file COPYING in the top-level source directory for licensing
- ** information.\endverbatim
+ ** Copyright (c) 2009-2016 by the authors listed in the file AUTHORS
+ ** in the top-level source directory) and their institutional affiliations.
+ ** All rights reserved.  See the file COPYING in the top-level source
+ ** directory for licensing information.\endverbatim
  **
  ** \brief Theory uf strong solver
  **/
@@ -25,17 +25,19 @@
 #include "util/statistics_registry.h"
 
 namespace CVC4 {
-
 class SortInference;
-
 namespace theory {
-
 class SubsortSymmetryBreaker;
-
 namespace uf {
-
 class TheoryUF;
 class DisequalityPropagator;
+} /* namespace CVC4::theory::uf */
+} /* namespace CVC4::theory */
+} /* namespace CVC4 */
+
+namespace CVC4 {
+namespace theory {
+namespace uf {
 
 class StrongSolverTheoryUF{
 protected:
@@ -44,83 +46,135 @@ protected:
   typedef context::CDHashMap<Node, Node, NodeHashFunction> NodeNodeMap;
   typedef context::CDHashMap<TypeNode, bool, TypeNodeHashFunction> TypeNodeBoolMap;
 public:
-  /** information for incremental conflict/clique finding for a particular sort */
+  /**
+   * Information for incremental conflict/clique finding for a
+   * particular sort.
+   */
   class SortModel {
   private:
     std::map< Node, std::vector< int > > d_totality_lems;
     std::map< TypeNode, std::map< int, std::vector< Node > > > d_sym_break_terms;
     std::map< Node, int > d_sym_break_index;
   public:
-    /** a partition of the current equality graph for which cliques can occur internally */
+
+    /**
+     * A partition of the current equality graph for which cliques
+     * can occur internally.
+     */
     class Region {
     public:
-      /** conflict find pointer */
-      SortModel* d_cf;
       /** information stored about each node in region */
       class RegionNodeInfo {
       public:
         /** disequality list for node */
         class DiseqList {
         public:
-          DiseqList( context::Context* c ) : d_size( c, 0 ), d_disequalities( c ){}
+          DiseqList( context::Context* c )
+            : d_size( c, 0 ), d_disequalities( c ) {}
           ~DiseqList(){}
-          context::CDO< unsigned > d_size;
-          NodeBoolMap d_disequalities;
+
           void setDisequal( Node n, bool valid ){
-            Assert( d_disequalities.find( n )==d_disequalities.end() || d_disequalities[n]!=valid );
+            Assert( (!isSet(n)) || getDisequalityValue(n) != valid );
             d_disequalities[ n ] = valid;
             d_size = d_size + ( valid ? 1 : -1 );
           }
-        };
-      private:
-        DiseqList d_internal;
-        DiseqList d_external;
+          bool isSet(Node n) const {
+            return d_disequalities.find(n) != d_disequalities.end();
+          }
+          bool getDisequalityValue(Node n) const {
+            Assert(isSet(n));
+            return (*(d_disequalities.find(n))).second;
+          }
+
+          int size() const { return d_size; }
+          
+          typedef NodeBoolMap::iterator iterator;
+          iterator begin() { return d_disequalities.begin(); }
+          iterator end() { return d_disequalities.end(); }
+
+        private:
+          context::CDO< int > d_size;
+          NodeBoolMap d_disequalities;
+        }; /* class DiseqList */
       public:
         /** constructor */
-        RegionNodeInfo( context::Context* c ) :
-          d_internal( c ), d_external( c ), d_valid( c, true ){
+        RegionNodeInfo( context::Context* c )
+          : d_internal(c), d_external(c), d_valid(c, true) {
           d_disequalities[0] = &d_internal;
           d_disequalities[1] = &d_external;
         }
         ~RegionNodeInfo(){}
+       
+        int getNumDisequalities() const {
+          return d_disequalities[0]->size() + d_disequalities[1]->size();
+        }
+        int getNumExternalDisequalities() const {
+          return d_disequalities[0]->size();
+        }
+        int getNumInternalDisequalities() const {
+          return d_disequalities[1]->size();
+        }
+
+        bool valid() const { return d_valid; }
+        void setValid(bool valid) { d_valid = valid; }
+
+        DiseqList* get(unsigned i) { return d_disequalities[i]; }
+
+      private:
+        DiseqList d_internal;
+        DiseqList d_external;
         context::CDO< bool > d_valid;
         DiseqList* d_disequalities[2];
+      }; /* class RegionNodeInfo */
 
-        int getNumDisequalities() { return d_disequalities[0]->d_size + d_disequalities[1]->d_size; }
-        int getNumExternalDisequalities() { return d_disequalities[0]->d_size; }
-        int getNumInternalDisequalities() { return d_disequalities[1]->d_size; }
-      };
-      ///** end class RegionNodeInfo */
     private:
+      /** conflict find pointer */
+      SortModel* d_cf;
+
       context::CDO< unsigned > d_testCliqueSize;
       context::CDO< unsigned > d_splitsSize;
-    public:
       //a postulated clique
       NodeBoolMap d_testClique;
       //disequalities needed for this clique to happen
       NodeBoolMap d_splits;
-    private:
       //number of valid representatives in this region
       context::CDO< unsigned > d_reps_size;
       //total disequality size (external)
       context::CDO< unsigned > d_total_diseq_external;
       //total disequality size (internal)
       context::CDO< unsigned > d_total_diseq_internal;
-    private:
       /** set rep */
       void setRep( Node n, bool valid );
-    public:
-      //constructor
-      Region( SortModel* cf, context::Context* c ) : d_cf( cf ), d_testCliqueSize( c, 0 ),
-        d_splitsSize( c, 0 ), d_testClique( c ), d_splits( c ), d_reps_size( c, 0 ),
-        d_total_diseq_external( c, 0 ), d_total_diseq_internal( c, 0 ), d_valid( c, true ) {
-      }
-      virtual ~Region(){}
       //region node infomation
       std::map< Node, RegionNodeInfo* > d_nodes;
       //whether region is valid
       context::CDO< bool > d_valid;
+
     public:
+      //constructor
+      Region( SortModel* cf, context::Context* c );
+      virtual ~Region();
+
+      typedef std::map< Node, RegionNodeInfo* >::iterator iterator;
+      iterator begin() { return d_nodes.begin(); }
+      iterator end() { return d_nodes.end(); }
+
+      typedef NodeBoolMap::iterator split_iterator;
+      split_iterator begin_splits() { return d_splits.begin(); }
+      split_iterator end_splits() { return d_splits.end(); }
+
+      /** Returns a RegionInfo. */
+      RegionNodeInfo* getRegionInfo(Node n) {
+        Assert(d_nodes.find(n) != d_nodes.end());
+        return (* (d_nodes.find(n))).second;
+      }
+
+      /** Returns whether or not d_valid is set in current context. */
+      bool valid() const { return d_valid; }
+
+      /** Sets d_valid to the value valid in the current context.*/
+      void setValid(bool valid) { d_valid = valid; }
+
       /** add rep */
       void addRep( Node n );
       //take node from region
@@ -131,13 +185,14 @@ public:
       void setEqual( Node a, Node b );
       //set n1 != n2 to value 'valid', type is whether it is internal/external
       void setDisequal( Node n1, Node n2, int type, bool valid );
-    public:
       //get num reps
       int getNumReps() { return d_reps_size; }
       //get test clique size
       int getTestCliqueSize() { return d_testCliqueSize; }
       // has representative
-      bool hasRep( Node n ) { return d_nodes.find( n )!=d_nodes.end() && d_nodes[n]->d_valid; }
+      bool hasRep( Node n ) {
+        return d_nodes.find(n) != d_nodes.end() && d_nodes[n]->valid();
+      }
       // is disequal
       bool isDisequal( Node n1, Node n2, int type );
       /** get must merge */
@@ -145,15 +200,18 @@ public:
       /** has splits */
       bool hasSplits() { return d_splitsSize>0; }
       /** get external disequalities */
-      void getNumExternalDisequalities( std::map< Node, int >& num_ext_disequalities );
-    public:
+      void getNumExternalDisequalities(std::map< Node, int >& num_ext_disequalities );
       /** check for cliques */
       bool check( Theory::Effort level, int cardinality, std::vector< Node >& clique );
       /** get candidate clique */
       bool getCandidateClique( int cardinality, std::vector< Node >& clique );
       //print debug
       void debugPrint( const char* c, bool incClique = false );
-    };
+
+      // Returns the first key in d_nodes.
+      Node frontKey() const { return d_nodes.begin()->first; }
+    }; /* class Region */
+
   private:
     /** the type this model is for */
     TypeNode d_type;
@@ -173,16 +231,17 @@ public:
     std::vector< Node > d_disequalities;
     /** number of representatives in all regions */
     context::CDO< unsigned > d_reps;
-  private:
+
     /** get number of disequalities from node n to region ri */
     int getNumDisequalitiesToRegion( Node n, int ri );
     /** get number of disequalities from Region r to other regions */
     void getDisequalitiesToRegions( int ri, std::map< int, int >& regions_diseq );
     /** is valid */
-    bool isValid( int ri ) { return ri>=0 && ri<(int)d_regions_index && d_regions[ ri ]->d_valid; }
+    bool isValid( int ri ) {
+      return ri>=0 && ri<(int)d_regions_index && d_regions[ ri ]->valid();
+    }
     /** set split score */
     void setSplitScore( Node n, int s );
-  private:
     /** check if we need to combine region ri */
     void checkRegion( int ri, bool checkCombine = true );
     /** force combine region */
@@ -191,18 +250,21 @@ public:
     int combineRegions( int ai, int bi );
     /** move node n to region ri */
     void moveNode( Node n, int ri );
-  private:
     /** allocate cardinality */
     void allocateCardinality( OutputChannel* out );
-    /** add split 0 = no split, -1 = entailed disequality added, 1 = split added */
+    /**
+     * Add splits. Returns
+     *   0 = no split,
+     *  -1 = entailed disequality added, or
+     *   1 = split added.
+     */
     int addSplit( Region* r, OutputChannel* out );
     /** add clique lemma */
     void addCliqueLemma( std::vector< Node >& clique, OutputChannel* out );
     /** add totality axiom */
     void addTotalityAxiom( Node n, int cardinality, OutputChannel* out );
-  private:
+
     class NodeTrie {
-      std::map< Node, NodeTrie > d_children;
     public:
       bool add( std::vector< Node >& n, unsigned i = 0 ){
         Assert( i<n.size() );
@@ -214,10 +276,13 @@ public:
           return d_children[n[i]].add( n, i+1 );
         }
       }
-    };
+    private:
+      std::map< Node, NodeTrie > d_children;
+    }; /* class NodeTrie */
+
     std::map< int, NodeTrie > d_clique_trie;
     void addClique( int c, std::vector< Node >& clique );
-  private:
+
     /** Are we in conflict */
     context::CDO<bool> d_conflict;
     /** cardinality */
@@ -232,8 +297,6 @@ public:
     std::map< int, Node > d_cardinality_literal;
     /** cardinality lemmas */
     std::map< int, Node > d_cardinality_lemma;
-    /** cardinality assertions (indexed by cardinality literals ) */
-    NodeBoolMap d_cardinality_assertions;
     /** whether a positive cardinality constraint has been asserted */
     context::CDO< bool > d_hasCard;
     /** clique lemmas that have been asserted */
@@ -246,18 +309,20 @@ public:
     context::CDO< bool > d_initialized;
     /** cache for lemmas */
     NodeBoolMap d_lemma_cache;
-  private:
+
     /** apply totality */
     bool applyTotality( int cardinality );
     /** get totality lemma terms */
     Node getTotalityLemmaTerm( int cardinality, int i );
     /** simple check cardinality */
     void simpleCheckCardinality();
-  private:
+
     bool doSendLemma( Node lem );
+
   public:
-    SortModel( Node n, context::Context* c, context::UserContext* u, StrongSolverTheoryUF* thss );
-    virtual ~SortModel(){}
+    SortModel( Node n, context::Context* c, context::UserContext* u,
+               StrongSolverTheoryUF* thss );
+    virtual ~SortModel();
     /** initialize */
     void initialize( OutputChannel* out );
     /** new node */
@@ -420,8 +485,25 @@ public:
   Statistics d_statistics;
 };/* class StrongSolverTheoryUF */
 
-class DisequalityPropagator
-{
+class DisequalityPropagator {
+public:
+  DisequalityPropagator(QuantifiersEngine* qe, StrongSolverTheoryUF* ufss);
+  /** merge */
+  void merge( Node a, Node b );
+  /** assert terms are disequal */
+  void assertDisequal( Node a, Node b, Node reason );
+  /** assert predicate */
+  void assertPredicate( Node p, bool polarity );
+
+  class Statistics {
+  public:
+    IntStat d_propagations;
+    Statistics();
+    ~Statistics();
+  };
+  /** statistics class */
+  Statistics d_statistics;
+
 private:
   /** quantifiers engine */
   QuantifiersEngine* d_qe;
@@ -432,26 +514,9 @@ private:
   Node d_false;
   /** check term t against equivalence class that t is disequal from */
   void checkEquivalenceClass( Node t, Node eqc );
-public:
-  DisequalityPropagator(QuantifiersEngine* qe, StrongSolverTheoryUF* ufss);
-  /** merge */
-  void merge( Node a, Node b );
-  /** assert terms are disequal */
-  void assertDisequal( Node a, Node b, Node reason );
-  /** assert predicate */
-  void assertPredicate( Node p, bool polarity );
-public:
-  class Statistics {
-  public:
-    IntStat d_propagations;
-    Statistics();
-    ~Statistics();
-  };
-  /** statistics class */
-  Statistics d_statistics;
-};
+}; /* class DisequalityPropagator */
 
-}
+}/* CVC4::theory namespace::uf */
 }/* CVC4::theory namespace */
 }/* CVC4 namespace */
 

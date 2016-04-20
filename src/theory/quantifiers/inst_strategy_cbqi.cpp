@@ -1,13 +1,13 @@
 /*********************                                                        */
 /*! \file inst_strategy_cbqi.cpp
  ** \verbatim
- ** Original author: Andrew Reynolds
- ** Major contributors: Morgan Deters
- ** Minor contributors (to current version): Tim King
+ ** Top contributors (to current version):
+ **   Andrew Reynolds, Morgan Deters, Tim King
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2014  New York University and The University of Iowa
- ** See the file COPYING in the top-level source directory for licensing
- ** information.\endverbatim
+ ** Copyright (c) 2009-2016 by the authors listed in the file AUTHORS
+ ** in the top-level source directory) and their institutional affiliations.
+ ** All rights reserved.  See the file COPYING in the top-level source
+ ** directory for licensing information.\endverbatim
  **
  ** \brief Implementation of counterexample-guided quantifier instantiation strategies
  **/
@@ -34,8 +34,9 @@ using namespace CVC4::theory::arith;
 #define ARITH_INSTANTIATOR_USE_MINUS_DELTA
 
 InstStrategyCbqi::InstStrategyCbqi( QuantifiersEngine * qe )
-  : QuantifiersModule( qe )
-  , d_added_cbqi_lemma( qe->getUserContext() ){
+  : QuantifiersModule( qe ), d_added_cbqi_lemma( qe->getUserContext() )
+//, d_added_inst( qe->getUserContext() )
+{
 }
 
 InstStrategyCbqi::~InstStrategyCbqi() throw(){}
@@ -45,7 +46,7 @@ bool InstStrategyCbqi::needsCheck( Theory::Effort e ) {
 }
 
 unsigned InstStrategyCbqi::needsModel( Theory::Effort e ) {
-  for( int i=0; i<d_quantEngine->getModel()->getNumAssertedQuantifiers(); i++ ){
+  for( unsigned i=0; i<d_quantEngine->getModel()->getNumAssertedQuantifiers(); i++ ){
     Node q = d_quantEngine->getModel()->getAssertedQuantifier( i );
     if( doCbqi( q ) && d_quantEngine->getModel()->isQuantifierActive( q ) ){
       return QuantifiersEngine::QEFFORT_STANDARD;
@@ -58,7 +59,7 @@ void InstStrategyCbqi::reset_round( Theory::Effort effort ) {
   d_cbqi_set_quant_inactive = false;
   d_incomplete_check = false;
   //check if any cbqi lemma has not been added yet
-  for( int i=0; i<d_quantEngine->getModel()->getNumAssertedQuantifiers(); i++ ){
+  for( unsigned i=0; i<d_quantEngine->getModel()->getNumAssertedQuantifiers(); i++ ){
     Node q = d_quantEngine->getModel()->getAssertedQuantifier( i );
     //it is not active if it corresponds to a rewrite rule: we will process in rewrite engine
     if( doCbqi( q ) ){
@@ -106,6 +107,7 @@ void InstStrategyCbqi::reset_round( Theory::Effort effort ) {
 
 void InstStrategyCbqi::check( Theory::Effort e, unsigned quant_e ) {
   if( quant_e==QuantifiersEngine::QEFFORT_STANDARD ){
+    Assert( !d_quantEngine->inConflict() );
     double clSet = 0;
     if( Trace.isOn("cbqi-engine") ){
       clSet = double(clock())/double(CLOCKS_PER_SEC);
@@ -113,13 +115,16 @@ void InstStrategyCbqi::check( Theory::Effort e, unsigned quant_e ) {
     }
     unsigned lastWaiting = d_quantEngine->getNumLemmasWaiting();
     for( int ee=0; ee<=1; ee++ ){
-      for( int i=0; i<d_quantEngine->getModel()->getNumAssertedQuantifiers(); i++ ){
+      for( unsigned i=0; i<d_quantEngine->getModel()->getNumAssertedQuantifiers(); i++ ){
         Node q = d_quantEngine->getModel()->getAssertedQuantifier( i );
         if( doCbqi( q ) && d_quantEngine->getModel()->isQuantifierActive( q ) ){
           process( q, e, ee );
+          if( d_quantEngine->inConflict() ){
+            break;
+          }
         }
       }
-      if( d_quantEngine->getNumLemmasWaiting()>lastWaiting ){
+      if( d_quantEngine->inConflict() || d_quantEngine->getNumLemmasWaiting()>lastWaiting ){
         break;
       }
     }
@@ -162,13 +167,15 @@ void InstStrategyCbqi::registerCounterexampleLemma( Node q, Node lem ){
 bool InstStrategyCbqi::hasNonCbqiOperator( Node n, std::map< Node, bool >& visited ){
   if( visited.find( n )==visited.end() ){
     visited[n] = true;
-    if( n.getKind()!=INST_CONSTANT && TermDb::hasInstConstAttr( n ) ){
+    if( n.getKind()!=BOUND_VARIABLE && TermDb::hasBoundVarAttr( n ) ){
       if( !inst::Trigger::isCbqiKind( n.getKind() ) ){
         Trace("cbqi-debug2") << "Non-cbqi kind : " << n.getKind() << " in " << n  << std::endl;
         return true;
       }else if( n.getKind()==MULT && ( n.getNumChildren()!=2 || !n[0].isConst() ) ){
         Trace("cbqi-debug2") << "Non-linear arithmetic : " << n << std::endl;
         return true;
+      }else if( n.getKind()==FORALL ){
+        return hasNonCbqiOperator( n[1], visited );
       }else{
         for( unsigned i=0; i<n.getNumChildren(); i++ ){
           if( hasNonCbqiOperator( n[i], visited ) ){
@@ -201,20 +208,25 @@ bool InstStrategyCbqi::doCbqi( Node q ){
   std::map< Node, bool >::iterator it = d_do_cbqi.find( q );
   if( it==d_do_cbqi.end() ){
     bool ret = false;
-    //if has an instantiation pattern, don't do it
-    if( q.getNumChildren()==3 && options::eMatching() && options::userPatternsQuant()!=USER_PAT_MODE_IGNORE ){
-      ret = false;
+    if( d_quantEngine->getTermDatabase()->isQAttrQuantElim( q ) ){
+      ret = true;
     }else{
-      if( options::cbqiAll() ){
-        ret = true;
+      //if has an instantiation pattern, don't do it
+      if( q.getNumChildren()==3 && options::eMatching() && options::userPatternsQuant()!=USER_PAT_MODE_IGNORE ){
+        ret = false;
       }else{
-        //if quantifier has a non-arithmetic variable, then do not use cbqi
-        //if quantifier has an APPLY_UF term, then do not use cbqi
-        Node cb = d_quantEngine->getTermDatabase()->getInstConstantBody( q );
-        std::map< Node, bool > visited;
-        ret = !hasNonCbqiVariable( q ) && !hasNonCbqiOperator( cb, visited );
+        if( options::cbqiAll() ){
+          ret = true;
+        }else{
+          //if quantifier has a non-arithmetic variable, then do not use cbqi
+          //if quantifier has an APPLY_UF term, then do not use cbqi
+          //Node cb = d_quantEngine->getTermDatabase()->getInstConstantBody( q );
+          std::map< Node, bool > visited;
+          ret = !hasNonCbqiVariable( q ) && !hasNonCbqiOperator( q[1], visited );
+        }
       }
     }
+    Trace("cbqi") << "doCbqi " << q << " returned " << ret << std::endl;
     d_do_cbqi[q] = ret;
     return ret;
   }else{
@@ -224,7 +236,7 @@ bool InstStrategyCbqi::doCbqi( Node q ){
 
 Node InstStrategyCbqi::getNextDecisionRequest(){
   // all counterexample literals that are not asserted
-  for( int i=0; i<d_quantEngine->getModel()->getNumAssertedQuantifiers(); i++ ){
+  for( unsigned i=0; i<d_quantEngine->getModel()->getNumAssertedQuantifiers(); i++ ){
     Node q = d_quantEngine->getModel()->getAssertedQuantifier( i );
     if( hasAddedCbqiLemma( q ) ){
       Node cel = d_quantEngine->getTermDatabase()->getCounterexampleLiteral( q );
@@ -304,8 +316,10 @@ void InstStrategySimplex::processResetInstantiationRound( Theory::Effort effort 
     }
   }
   //print debug
-  Debug("quant-arith-debug") << std::endl;
-  debugPrint( "quant-arith-debug" );
+  if( Debug.isOn("quant-arith-debug") ){
+    Debug("quant-arith-debug") << std::endl;
+    debugPrint( "quant-arith-debug" );
+  }
   d_counter++;
 }
 
@@ -343,10 +357,10 @@ void InstStrategySimplex::process( Node f, Theory::Effort effort, int e ){
       bool m_point_valid = true;
       int lem = 0;
       //scan over all instantiation rows
-      for( int i=0; i<d_quantEngine->getTermDatabase()->getNumInstantiationConstants( f ); i++ ){
+      for( unsigned i=0; i<d_quantEngine->getTermDatabase()->getNumInstantiationConstants( f ); i++ ){
         Node ic = d_quantEngine->getTermDatabase()->getInstantiationConstant( f, i );
         Debug("quant-arith-simplex") << "InstStrategySimplex check " << ic << ", rows = " << d_instRows[ic].size() << std::endl;
-        for( int j=0; j<(int)d_instRows[ic].size(); j++ ){
+        for( unsigned j=0; j<d_instRows[ic].size(); j++ ){
           ArithVar x = d_instRows[ic][j];
           if( !d_ceTableaux[ic][x].empty() ){
             if( Debug.isOn("quant-arith-simplex") ){
@@ -462,25 +476,25 @@ void InstStrategySimplex::debugPrint( const char* c ){
   }
   Debug(c) << std::endl;
 
-  for( int i=0; i<d_quantEngine->getModel()->getNumAssertedQuantifiers(); i++ ){
+  for( unsigned i=0; i<d_quantEngine->getModel()->getNumAssertedQuantifiers(); i++ ){
     Node f = d_quantEngine->getModel()->getAssertedQuantifier( i );
     Debug(c) << f << std::endl;
     Debug(c) << "   Inst constants: ";
-    for( int i=0; i<(int)d_quantEngine->getTermDatabase()->getNumInstantiationConstants( f ); i++ ){
-      if( i>0 ){
+    for( unsigned j=0; j<d_quantEngine->getTermDatabase()->getNumInstantiationConstants( f ); i++ ){
+      if( j>0 ){
         Debug( c ) << ", ";
       }
       Debug( c ) << d_quantEngine->getTermDatabase()->getInstantiationConstant( f, i );
     }
     Debug(c) << std::endl;
-    for( int j=0; j<d_quantEngine->getTermDatabase()->getNumInstantiationConstants( f ); j++ ){
+    for( unsigned j=0; j<d_quantEngine->getTermDatabase()->getNumInstantiationConstants( f ); j++ ){
       Node ic = d_quantEngine->getTermDatabase()->getInstantiationConstant( f, j );
       Debug(c) << "   Instantiation rows for " << ic << " : ";
-      for( int i=0; i<(int)d_instRows[ic].size(); i++ ){
-        if( i>0 ){
+      for( unsigned k=0; k<d_instRows[ic].size(); k++ ){
+        if( k>0 ){
           Debug(c) << ", ";
         }
-        Debug(c) << d_instRows[ic][i];
+        Debug(c) << d_instRows[ic][k];
       }
       Debug(c) << std::endl;
     }
@@ -559,8 +573,8 @@ Node InstStrategySimplex::getTableauxValue( ArithVar v, bool minus_delta ){
 
 //new implementation
 
-bool CegqiOutputInstStrategy::addInstantiation( std::vector< Node >& subs ) {
-  return d_out->addInstantiation( subs );
+bool CegqiOutputInstStrategy::doAddInstantiation( std::vector< Node >& subs ) {
+  return d_out->doAddInstantiation( subs );
 }
 
 bool CegqiOutputInstStrategy::isEligibleForInstantiation( Node n ) {
@@ -580,24 +594,33 @@ InstStrategyCegqi::InstStrategyCegqi( QuantifiersEngine * qe )
 
 InstStrategyCegqi::~InstStrategyCegqi() throw () {
   delete d_out;
+
+  for(std::map< Node, CegInstantiator * >::iterator i = d_cinst.begin(),
+          iend = d_cinst.end(); i != iend; ++i) {
+    CegInstantiator * instantiator = (*i).second;
+    delete instantiator;
+  }
+  d_cinst.clear();
 }
 
 void InstStrategyCegqi::processResetInstantiationRound( Theory::Effort effort ) {
-  d_check_vts_lemma_lc = true;
+  d_check_vts_lemma_lc = false;
 }
 
-void InstStrategyCegqi::process( Node f, Theory::Effort effort, int e ) {
+void InstStrategyCegqi::process( Node q, Theory::Effort effort, int e ) {
   if( e==0 ){
-    CegInstantiator * cinst = getInstantiator( f );
-    Trace("inst-alg") << "-> Run cegqi for " << f << std::endl;
-    d_curr_quant = f;
+    CegInstantiator * cinst = getInstantiator( q );
+    Trace("inst-alg") << "-> Run cegqi for " << q << std::endl;
+    d_curr_quant = q;
     if( !cinst->check() ){
       d_incomplete_check = true;
+      d_check_vts_lemma_lc = true;
     }
     d_curr_quant = Node::null();
   }else if( e==1 ){
     //minimize the free delta heuristically on demand
     if( d_check_vts_lemma_lc ){
+      Trace("inst-alg") << "-> Minimize delta heuristic, for " << q << std::endl;
       d_check_vts_lemma_lc = false;
       d_small_const = NodeManager::currentNM()->mkNode( MULT, d_small_const, d_small_const );
       d_small_const = Rewriter::rewrite( d_small_const );
@@ -619,11 +642,24 @@ void InstStrategyCegqi::process( Node f, Theory::Effort effort, int e ) {
   }
 }
 
-bool InstStrategyCegqi::addInstantiation( std::vector< Node >& subs ) {
+bool InstStrategyCegqi::doAddInstantiation( std::vector< Node >& subs ) {
   Assert( !d_curr_quant.isNull() );
-  //check if we need virtual term substitution (if used delta or infinity)
-  bool used_vts = d_quantEngine->getTermDatabase()->containsVtsTerm( subs, false );
-  return d_quantEngine->addInstantiation( d_curr_quant, subs, false, false, false, used_vts );
+  //if doing partial quantifier elimination, record the instantiation and set the incomplete flag instead of sending instantiation lemma
+  if( d_quantEngine->getTermDatabase()->isQAttrQuantElimPartial( d_curr_quant ) ){
+    d_cbqi_set_quant_inactive = true;
+    d_incomplete_check = true;
+    d_quantEngine->recordInstantiationInternal( d_curr_quant, subs, false, false );
+    return true;
+  }else{
+    //check if we need virtual term substitution (if used delta or infinity)
+    bool used_vts = d_quantEngine->getTermDatabase()->containsVtsTerm( subs, false );
+    if( d_quantEngine->addInstantiation( d_curr_quant, subs, false, false, used_vts ) ){
+      //d_added_inst.insert( d_curr_quant );
+      return true;
+    }else{
+      return false;
+    }
+  }
 }
 
 bool InstStrategyCegqi::addLemma( Node lem ) {
@@ -665,7 +701,7 @@ void InstStrategyCegqi::registerCounterexampleLemma( Node q, Node lem ) {
   //must register with the instantiator
   //must explicitly remove ITEs so that we record dependencies
   std::vector< Node > ce_vars;
-  for( int i=0; i<d_quantEngine->getTermDatabase()->getNumInstantiationConstants( q ); i++ ){
+  for( unsigned i=0; i<d_quantEngine->getTermDatabase()->getNumInstantiationConstants( q ); i++ ){
     ce_vars.push_back( d_quantEngine->getTermDatabase()->getInstantiationConstant( q, i ) );
   }
   std::vector< Node > lems;

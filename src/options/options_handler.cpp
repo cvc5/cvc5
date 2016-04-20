@@ -1,13 +1,13 @@
 /*********************                                                        */
 /*! \file options_handler.cpp
  ** \verbatim
- ** Original author: Tim King
- ** Major contributors: none
- ** Minor contributors (to current version): none
+ ** Top contributors (to current version):
+ **   Tim King, Andrew Reynolds
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2014  New York University and The University of Iowa
- ** See the file COPYING in the top-level source directory for licensing
- ** information.\endverbatim
+ ** Copyright (c) 2009-2016 by the authors listed in the file AUTHORS
+ ** in the top-level source directory) and their institutional affiliations.
+ ** All rights reserved.  See the file COPYING in the top-level source
+ ** directory for licensing information.\endverbatim
  **
  ** \brief Interface for custom handlers and predicates options.
  **
@@ -347,14 +347,20 @@ interleave \n\
 const std::string OptionsHandler::s_triggerSelModeHelp = "\
 Trigger selection modes currently supported by the --trigger-sel option:\n\
 \n\
-default \n\
-+ Default, consider all subterms of quantified formulas for trigger selection.\n\
-\n\
-min \n\
+min | default \n\
 + Consider only minimal subterms that meet criteria for triggers.\n\
 \n\
 max \n\
 + Consider only maximal subterms that meet criteria for triggers. \n\
+\n\
+all \n\
++ Consider all subterms that meet criteria for triggers. \n\
+\n\
+min-s-max \n\
++ Consider only minimal subterms that meet criteria for single triggers, maximal otherwise. \n\
+\n\
+min-s-all \n\
++ Consider only minimal subterms that meet criteria for single triggers, all otherwise. \n\
 \n\
 ";
 const std::string OptionsHandler::s_prenexQuantModeHelp = "\
@@ -428,7 +434,7 @@ post \n\
 ";
 
 const std::string OptionsHandler::s_macrosQuantHelp = "\
-Template modes for quantifiers macro expansion, supported by --macros-quant-mode:\n\
+Modes for quantifiers macro expansion, supported by --macros-quant-mode:\n\
 \n\
 all \n\
 + Infer definitions for functions, including those containing quantified formulas.\n\
@@ -438,6 +444,34 @@ ground (default) \n\
 \n\
 ground-uf \n\
 + Only infer ground definitions for functions that result in triggers for all free variables.\n\
+\n\
+";
+
+const std::string OptionsHandler::s_quantDSplitHelp = "\
+Modes for quantifiers splitting, supported by --quant-dsplit-mode:\n\
+\n\
+none \n\
++ Never split quantified formulas.\n\
+\n\
+default \n\
++ Split quantified formulas over some finite datatypes when finite model finding is enabled.\n\
+\n\
+agg \n\
++ Aggressively split quantified formulas.\n\
+\n\
+";
+
+const std::string OptionsHandler::s_quantRepHelp = "\
+Modes for quantifiers representative selection, supported by --quant-rep-mode:\n\
+\n\
+ee \n\
++ Let equality engine choose representatives.\n\
+\n\
+first (default) \n\
++ Choose terms that appear first.\n\
+\n\
+depth \n\
++ Choose terms that are of minimal depth.\n\
 \n\
 ";
 
@@ -542,8 +576,6 @@ theory::quantifiers::QcfMode OptionsHandler::stringToQcfMode(std::string option,
     return theory::quantifiers::QCF_PROP_EQ;
   } else if(optarg == "partial") {
     return theory::quantifiers::QCF_PARTIAL;
-  } else if(optarg == "mc" ) {
-    return theory::quantifiers::QCF_MC;
   } else if(optarg ==  "help") {
     puts(s_qcfModeHelp.c_str());
     exit(1);
@@ -574,12 +606,18 @@ theory::quantifiers::UserPatMode OptionsHandler::stringToUserPatMode(std::string
 }
 
 theory::quantifiers::TriggerSelMode OptionsHandler::stringToTriggerSelMode(std::string option, std::string optarg) throw(OptionException) {
-  if(optarg ==  "default" || optarg == "all" ) {
+  if(optarg ==  "default") {
     return theory::quantifiers::TRIGGER_SEL_DEFAULT;
   } else if(optarg == "min") {
     return theory::quantifiers::TRIGGER_SEL_MIN;
   } else if(optarg == "max") {
     return theory::quantifiers::TRIGGER_SEL_MAX;
+  } else if(optarg == "min-s-max") {
+    return theory::quantifiers::TRIGGER_SEL_MIN_SINGLE_MAX;
+  } else if(optarg == "min-s-all") {
+    return theory::quantifiers::TRIGGER_SEL_MIN_SINGLE_ALL;
+  } else if(optarg == "all") {
+    return theory::quantifiers::TRIGGER_SEL_ALL;
   } else if(optarg ==  "help") {
     puts(s_triggerSelModeHelp.c_str());
     exit(1);
@@ -686,6 +724,37 @@ theory::quantifiers::MacrosQuantMode OptionsHandler::stringToMacrosQuantMode(std
   }
 }
 
+theory::quantifiers::QuantDSplitMode OptionsHandler::stringToQuantDSplitMode(std::string option, std::string optarg) throw(OptionException) {
+  if(optarg == "none" ) {
+    return theory::quantifiers::QUANT_DSPLIT_MODE_NONE;
+  } else if(optarg == "default") {
+    return theory::quantifiers::QUANT_DSPLIT_MODE_DEFAULT;
+  } else if(optarg == "agg") {
+    return theory::quantifiers::QUANT_DSPLIT_MODE_AGG;
+  } else if(optarg ==  "help") {
+    puts(s_quantDSplitHelp.c_str());
+    exit(1);
+  } else {
+    throw OptionException(std::string("unknown option for --quant-dsplit-mode: `") +
+                          optarg + "'.  Try --quant-dsplit-mode help.");
+  }
+}
+
+theory::quantifiers::QuantRepMode OptionsHandler::stringToQuantRepMode(std::string option, std::string optarg) throw(OptionException) {
+  if(optarg == "none" ) {
+    return theory::quantifiers::QUANT_REP_MODE_EE;
+  } else if(optarg == "first" || optarg == "default") {
+    return theory::quantifiers::QUANT_REP_MODE_FIRST;
+  } else if(optarg == "depth") {
+    return theory::quantifiers::QUANT_REP_MODE_DEPTH;
+  } else if(optarg ==  "help") {
+    puts(s_quantRepHelp.c_str());
+    exit(1);
+  } else {
+    throw OptionException(std::string("unknown option for --quant-rep-mode: `") +
+                          optarg + "'.  Try --quant-rep-mode help.");
+  }
+}
 
 // theory/bv/options_handlers.h
 void OptionsHandler::abcEnabledBuild(std::string option, bool value) throw(OptionException) {

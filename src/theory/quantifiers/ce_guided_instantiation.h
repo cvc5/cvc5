@@ -1,13 +1,13 @@
 /*********************                                                        */
 /*! \file ce_guided_instantiation.h
  ** \verbatim
- ** Original author: Andrew Reynolds
- ** Major contributors: none
- ** Minor contributors (to current version): none
+ ** Top contributors (to current version):
+ **   Andrew Reynolds, Tim King
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2014  New York University and The University of Iowa
- ** See the file COPYING in the top-level source directory for licensing
- ** information.\endverbatim
+ ** Copyright (c) 2009-2016 by the authors listed in the file AUTHORS
+ ** in the top-level source directory) and their institutional affiliations.
+ ** All rights reserved.  See the file COPYING in the top-level source
+ ** directory for licensing information.\endverbatim
  **
  ** \brief counterexample guided instantiation class
  **/
@@ -33,6 +33,8 @@ private:
   QuantifiersEngine * d_qe;
 public:
   CegConjecture( QuantifiersEngine * qe, context::Context* c );
+  ~CegConjecture();
+
   /** quantified formula asserted */
   Node d_assert_quant;
   /** quantified formula (after processing) */
@@ -56,12 +58,36 @@ public:
   unsigned d_refine_count;
   /** current extential quantifeirs whose couterexamples we must refine */
   std::vector< std::vector< Node > > d_ce_sk;
+
+  const CegConjectureSingleInv* getCegConjectureSingleInv() const {
+    return d_ceg_si;
+  }
+
+  bool doCegConjectureCheck(std::vector< Node >& lems) {
+    return d_ceg_si->check(lems);
+  }
+
+  Node getSingleInvocationSolution(unsigned sol_index, TypeNode stn,
+                                   int& reconstructed, bool rconsSygus=true){
+    return d_ceg_si->getSolution(sol_index, stn, reconstructed, rconsSygus);
+  }
+
+  Node reconstructToSyntaxSingleInvocation(
+      Node s, TypeNode stn, int& reconstructed, bool rconsSygus = true ) {
+    return d_ceg_si->reconstructToSyntax(s, stn, reconstructed, rconsSygus);
+  }
+
+  std::vector<Node>& getProgTempVars(Node prog) {
+    return d_ceg_si->d_prog_templ_vars[prog];
+  }
+
+ private:
   /** single invocation utility */
   CegConjectureSingleInv * d_ceg_si;
 public: //non-syntax guided (deprecated)
   /** guard */
   bool d_syntax_guided;
-  Node d_nsg_guard;  
+  Node d_nsg_guard;
 public:  //for fairness
   /** the cardinality literals */
   std::map< int, Node > d_lits;
@@ -76,7 +102,7 @@ public:  //for fairness
   /** fairness */
   CegqiFairMode getCegqiFairMode();
   /** is single invocation */
-  bool isSingleInvocation();
+  bool isSingleInvocation() const;
   /** is single invocation */
   bool isFullySingleInvocation();
   /** needs check */
@@ -151,10 +177,10 @@ public:
     ~Statistics();
   };/* class CegInstantiation::Statistics */
   Statistics d_statistics;
-};
+}; /* class CegInstantiation */
 
-}
-}
-}
+} /* namespace CVC4::theory::quantifiers */
+} /* namespace CVC4::theory */
+} /* namespace CVC4 */
 
 #endif

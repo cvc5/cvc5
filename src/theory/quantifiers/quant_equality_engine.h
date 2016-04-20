@@ -1,13 +1,13 @@
 /*********************                                                        */
 /*! \file quant_equality_engine.h
  ** \verbatim
- ** Original author: Andrew Reynolds
- ** Major contributors: none
- ** Minor contributors (to current version): none
+ ** Top contributors (to current version):
+ **   Andrew Reynolds, Tim King
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2014  New York University and The University of Iowa
- ** See the file COPYING in the top-level source directory for licensing
- ** information.\endverbatim
+ ** Copyright (c) 2009-2016 by the authors listed in the file AUTHORS
+ ** in the top-level source directory) and their institutional affiliations.
+ ** All rights reserved.  See the file COPYING in the top-level source
+ ** directory for licensing information.\endverbatim
  **
  ** \brief Congruence closure with free variables
  **/
@@ -56,12 +56,21 @@ private:
   context::CDList<Node> d_quant_red;
   /** unprocessed quantifiers in current context */
   NodeBoolMap d_quant_unproc;
+  // map predicates to functions over int
+  TypeNode d_intType;
+  std::map< Node, Node > d_pred_to_func;
+  Node getFunctionForPredicate( Node f );
+  Node getFunctionAppForPredicateApp( Node n );
 private:
   void conflict(TNode t1, TNode t2);
   void eqNotifyNewClass(TNode t);
   void eqNotifyPreMerge(TNode t1, TNode t2);
   void eqNotifyPostMerge(TNode t1, TNode t2);
   void eqNotifyDisequal(TNode t1, TNode t2, TNode reason);
+  //queries
+  bool areUnivDisequalInternal( TNode n1, TNode n2 );
+  bool areUnivEqualInternal( TNode n1, TNode n2 );  
+  TNode getUnivRepresentativeInternal( TNode n );
 public:
   QuantEqualityEngine( QuantifiersEngine * qe, context::Context* c );
   virtual ~QuantEqualityEngine() throw (){}

@@ -1,13 +1,13 @@
 /*********************                                                        */
 /*! \file datatypes_rewriter.h
  ** \verbatim
- ** Original author: Morgan Deters
- ** Major contributors: Andrew Reynolds
- ** Minor contributors (to current version): Kshitij Bansal
+ ** Top contributors (to current version):
+ **   Andrew Reynolds, Morgan Deters, Tim King
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2014  New York University and The University of Iowa
- ** See the file COPYING in the top-level source directory for licensing
- ** information.\endverbatim
+ ** Copyright (c) 2009-2016 by the authors listed in the file AUTHORS
+ ** in the top-level source directory) and their institutional affiliations.
+ ** All rights reserved.  See the file COPYING in the top-level source
+ ** directory for licensing information.\endverbatim
  **
  ** \brief Rewriter for the theory of inductive datatypes
  **
@@ -200,20 +200,24 @@ public:
       }
     }
 
-    if(in.getKind() == kind::EQUAL && in[0] == in[1]) {
-      return RewriteResponse(REWRITE_DONE,
-                             NodeManager::currentNM()->mkConst(true));
-    }
     if(in.getKind() == kind::EQUAL ) {
-      std::vector< Node > rew;
-      if( checkClash(in[0], in[1], rew) ){
-        Trace("datatypes-rewrite") << "Rewrite clashing equality " << in << " to false" << std::endl;
-        return RewriteResponse(REWRITE_DONE, NodeManager::currentNM()->mkConst(false));
-      }else if( rew.size()==1 && rew[0]!=in ){
-        Trace("datatypes-rewrite") << "Rewrite equality " << in << " to " << rew[0] << std::endl;
-        return RewriteResponse(REWRITE_AGAIN_FULL, rew[0] );
+      if(in[0] == in[1]) {
+        return RewriteResponse(REWRITE_DONE, NodeManager::currentNM()->mkConst(true));
       }else{
-        Trace("datatypes-rewrite-debug") << "Did not rewrite equality " << in << " " << in[0].getKind() << " " << in[1].getKind() << std::endl;
+        std::vector< Node > rew;
+        if( checkClash(in[0], in[1], rew) ){
+          Trace("datatypes-rewrite") << "Rewrite clashing equality " << in << " to false" << std::endl;
+          return RewriteResponse(REWRITE_DONE, NodeManager::currentNM()->mkConst(false));
+        //}else if( rew.size()==1 && rew[0]!=in ){
+        //  Trace("datatypes-rewrite") << "Rewrite equality " << in << " to " << rew[0] << std::endl;
+        //  return RewriteResponse(REWRITE_AGAIN_FULL, rew[0] );
+        }else if( in[1]<in[0] ){
+          Node ins = NodeManager::currentNM()->mkNode(in.getKind(), in[1], in[0]);
+          Trace("datatypes-rewrite") << "Swap equality " << in << " to " << ins << std::endl;
+          return RewriteResponse(REWRITE_DONE, ins);
+        }else{
+          Trace("datatypes-rewrite-debug") << "Did not rewrite equality " << in << " " << in[0].getKind() << " " << in[1].getKind() << std::endl;
+        }
       }
     }
 
@@ -256,10 +260,6 @@ public:
   /** get instantiate cons */
   static Node getInstCons( Node n, const Datatype& dt, int index ) {
     Assert( index>=0 && index<(int)dt.getNumConstructors() );
-    Type tspec;
-    if( dt.isParametric() ){
-      tspec = dt[index].getSpecializedConstructorType(n.getType().toType());
-    }
     std::vector< Node > children;
     children.push_back( Node::fromExpr( dt[index].getConstructor() ) );
     for( int i=0; i<(int)dt[index].getNumArgs(); i++ ){

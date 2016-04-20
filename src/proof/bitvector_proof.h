@@ -1,13 +1,13 @@
 /*********************                                                        */
 /*! \file bitvector_proof.h
  ** \verbatim
- ** Original author: Liana Hadarean
- ** Major contributors: none
- ** Minor contributors (to current version): none
+ ** Top contributors (to current version):
+ **   Liana Hadarean, Guy Katz, Tim King
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2014  New York University and The University of Iowa
- ** See the file COPYING in the top-level source directory for licensing
- ** information.\endverbatim
+ ** Copyright (c) 2009-2016 by the authors listed in the file AUTHORS
+ ** in the top-level source directory) and their institutional affiliations.
+ ** All rights reserved.  See the file COPYING in the top-level source
+ ** directory for licensing information.\endverbatim
  **
  ** \brief Bitvector proof
  **
@@ -19,7 +19,7 @@
 #ifndef __CVC4__BITVECTOR__PROOF_H
 #define __CVC4__BITVECTOR__PROOF_H
 
-//#include <cstdint> 
+//#include <cstdint>
 #include <ext/hash_map>
 #include <ext/hash_set>
 #include <iostream>
@@ -45,7 +45,7 @@ template <class T> class TBitblaster;
 } /* namespace CVC4::theory::bv */
 } /* namespace CVC4::theory */
 
-class CnfProof; 
+class CnfProof;
 } /* namespace CVC4 */
 
 namespace CVC4 {
@@ -109,7 +109,7 @@ public:
 
   virtual void printTermBitblasting(Expr term, std::ostream& os) = 0;
   virtual void printAtomBitblasting(Expr term, std::ostream& os) = 0;
-  
+
   virtual void printBitblasting(std::ostream& os, std::ostream& paren) = 0;
   virtual void printResolutionProof(std::ostream& os, std::ostream& paren) = 0;
 
@@ -122,17 +122,19 @@ class LFSCBitVectorProof: public BitVectorProof {
   void printOperatorUnary(Expr term, std::ostream& os, const LetMap& map);
   void printPredicate(Expr term, std::ostream& os, const LetMap& map);
   void printOperatorParametric(Expr term, std::ostream& os, const LetMap& map);
-  void printBitOf(Expr term, std::ostream& os);
+  void printBitOf(Expr term, std::ostream& os, const LetMap& map);
 public:
   LFSCBitVectorProof(theory::bv::TheoryBV* bv, TheoryProofEngine* proofEngine)
     :BitVectorProof(bv, proofEngine)
   {}
-  virtual void printTerm(Expr term, std::ostream& os, const LetMap& map);
-  virtual void printSort(Type type, std::ostream& os);
+  virtual void printOwnedTerm(Expr term, std::ostream& os, const LetMap& map);
+  virtual void printOwnedSort(Type type, std::ostream& os);
   virtual void printTermBitblasting(Expr term, std::ostream& os);
   virtual void printAtomBitblasting(Expr term, std::ostream& os);
   virtual void printTheoryLemmaProof(std::vector<Expr>& lemma, std::ostream& os, std::ostream& paren);
-  virtual void printDeclarations(std::ostream& os, std::ostream& paren);
+  virtual void printSortDeclarations(std::ostream& os, std::ostream& paren);
+  virtual void printTermDeclarations(std::ostream& os, std::ostream& paren);
+  virtual void printDeferredDeclarations(std::ostream& os, std::ostream& paren);
   virtual void printBitblasting(std::ostream& os, std::ostream& paren);
   virtual void printResolutionProof(std::ostream& os, std::ostream& paren);
 };

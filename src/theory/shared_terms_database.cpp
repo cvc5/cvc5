@@ -1,13 +1,13 @@
 /*********************                                                        */
 /*! \file shared_terms_database.cpp
  ** \verbatim
- ** Original author: Dejan Jovanovic
- ** Major contributors: Morgan Deters
- ** Minor contributors (to current version): Andrew Reynolds, Clark Barrett
+ ** Top contributors (to current version):
+ **   Dejan Jovanovic, Morgan Deters, Clark Barrett
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2014  New York University and The University of Iowa
- ** See the file COPYING in the top-level source directory for licensing
- ** information.\endverbatim
+ ** Copyright (c) 2009-2016 by the authors listed in the file AUTHORS
+ ** in the top-level source directory) and their institutional affiliations.
+ ** All rights reserved.  See the file COPYING in the top-level source
+ ** directory for licensing information.\endverbatim
  **
  ** [[ Add lengthier description here ]]
  ** \todo document this file
@@ -122,7 +122,7 @@ Theory::Set SharedTermsDatabase::getNotifiedTheories(TNode term) const {
 
 bool SharedTermsDatabase::propagateSharedEquality(TheoryId theory, TNode a, TNode b, bool value)
 {
-  Debug("shared-terms-database") << "SharedTermsDatabase::newEquality(" << theory << a << "," << b << ", " << (value ? "true" : "false") << ")" << endl;
+  Debug("shared-terms-database") << "SharedTermsDatabase::newEquality(" << theory << "," << a << "," << b << ", " << (value ? "true" : "false") << ")" << endl;
 
   if (d_inConflict) {
     return false;

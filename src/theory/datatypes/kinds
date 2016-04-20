@@ -85,12 +85,6 @@ typerule APPLY_TYPE_ASCRIPTION ::CVC4::theory::datatypes::DatatypeAscriptionType
 # constructor applications are constant if they are applied only to constants
 construle APPLY_CONSTRUCTOR ::CVC4::theory::datatypes::DatatypeConstructorTypeRule
 
-## for co-datatypes
-operator MU 2 "a mu operator, first argument is a bound variable, second argument is body"
-typerule MU ::CVC4::theory::datatypes::DatatypeMuTypeRule
-# mu applications are constant expressions
-construle MU ::CVC4::theory::datatypes::DatatypeMuTypeRule
-
 constant TUPLE_UPDATE_OP \
         ::CVC4::TupleUpdate \
         ::CVC4::TupleUpdateHashFunction \
@@ -98,22 +92,6 @@ constant TUPLE_UPDATE_OP \
         "operator for a tuple update; payload is an instance of the CVC4::TupleUpdate class"
 parameterized TUPLE_UPDATE TUPLE_UPDATE_OP 2 "tuple update; first parameter is a TUPLE_UPDATE_OP (which references an index), second is the tuple, third is the element to store in the tuple at the given index"
 typerule TUPLE_UPDATE ::CVC4::theory::datatypes::TupleUpdateTypeRule
-
-constant RECORD_TYPE \
-    ::CVC4::Record \
-    ::CVC4::RecordHashFunction \
-    "expr/record.h" \
-    "record type"
-cardinality RECORD_TYPE \
-    "::CVC4::theory::datatypes::RecordProperties::computeCardinality(%TYPE%)" \
-    "theory/datatypes/theory_datatypes_type_rules.h"
-well-founded RECORD_TYPE \
-    "::CVC4::theory::datatypes::RecordProperties::isWellFounded(%TYPE%)" \
-    "::CVC4::theory::datatypes::RecordProperties::mkGroundTerm(%TYPE%)" \
-    "theory/datatypes/theory_datatypes_type_rules.h"
-enumerator RECORD_TYPE \
-    "::CVC4::theory::datatypes::RecordEnumerator" \
-    "theory/datatypes/type_enumerator.h"
 
 constant RECORD_UPDATE_OP \
         ::CVC4::RecordUpdate \

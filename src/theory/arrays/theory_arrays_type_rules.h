@@ -1,13 +1,13 @@
 /*********************                                                        */
 /*! \file theory_arrays_type_rules.h
  ** \verbatim
- ** Original author: Morgan Deters
- ** Major contributors: Clark Barrett
- ** Minor contributors (to current version): Christopher L. Conway
+ ** Top contributors (to current version):
+ **   Morgan Deters, Clark Barrett, Guy Katz
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2014  New York University and The University of Iowa
- ** See the file COPYING in the top-level source directory for licensing
- ** information.\endverbatim
+ ** Copyright (c) 2009-2016 by the authors listed in the file AUTHORS
+ ** in the top-level source directory) and their institutional affiliations.
+ ** All rights reserved.  See the file COPYING in the top-level source
+ ** directory for licensing information.\endverbatim
  **
  ** \brief Typing and cardinality rules for the theory of arrays
  **
@@ -213,6 +213,15 @@ struct ArraysProperties {
     return *TypeEnumerator(type);
   }
 };/* struct ArraysProperties */
+
+
+struct ArrayPartialSelectTypeRule {
+  inline static TypeNode computeType(NodeManager* nodeManager, TNode n, bool check)
+    throw (TypeCheckingExceptionPrivate, AssertionException) {
+    Assert(n.getKind() == kind::PARTIAL_SELECT_0 || n.getKind() == kind::PARTIAL_SELECT_1);
+    return nodeManager->integerType();
+  }
+};/* struct ArrayPartialSelectTypeRule */
 
 }/* CVC4::theory::arrays namespace */
 }/* CVC4::theory namespace */

@@ -9,7 +9,7 @@
 ; input :
 ; ~L1
 
-; (extenstionality) lemma : 
+; (extenstionality) lemma :
 ; L1 or ~L2
 
 ; theory conflicts :
@@ -26,13 +26,13 @@
 (check
 (% I sort
 (% E sort
-(% a (term (array I E))
+(% a (term (Array I E))
 (% i (term I)
 
 
 ; (1) -------------------- input formula -----------------------------------
 
-(% A1 (th_holds (not (= (array I E) a (apply _ _ (apply _ _ (apply _ _ (write I E) a) i) (apply _ _ (apply _ _ (read I E) a) i)))))
+(% A1 (th_holds (not (= (Array I E) a (apply _ _ (apply _ _ (apply _ _ (write I E) a) i) (apply _ _ (apply _ _ (read I E) a) i)))))
 
 
 
@@ -57,7 +57,7 @@
 ; (4) -------------------- map theory literals to boolean variables
 ;     --- maps all theory literals involved in proof to boolean literals
 
-(decl_atom (= (array I E) a (apply _ _ (apply _ _ (apply _ _ (write I E) a) i) (apply _ _ (apply _ _ (read I E) a) i))) (\ v1 (\ a1
+(decl_atom (= (Array I E) a (apply _ _ (apply _ _ (apply _ _ (write I E) a) i) (apply _ _ (apply _ _ (read I E) a) i))) (\ v1 (\ a1
 (decl_atom (= E (apply _ _ (apply _ _ (read I E) a) k) (apply _ _ (apply _ _ (read I E) (apply _ _ (apply _ _ (apply _ _ (write I E) a) i) (apply _ _ (apply _ _ (read I E) a) i))) k)) (\ v2 (\ a2
 (decl_atom (= I i k) (\ v3 (\ a3
 
@@ -73,7 +73,7 @@
 
    ; use read over write rule "row"
    (contra _ (symm _ _ _ (row _ _ _ _ a (apply _ _ (apply _ _ (read I E) a) i) l3)) l2)
-   
+
 ))))) (\ CT1
 ; CT1 is the clause ( v2 V v3 )
 
@@ -83,9 +83,9 @@
 (clausify_false
 
    ; use read over write rule "row1"
-   (contra _ (symm _ _ _ 
-   	     (trans _ _ _ _ 
-               (symm _ _ _ (cong _ _ _ _ _ _ 
+   (contra _ (symm _ _ _
+   	     (trans _ _ _ _
+               (symm _ _ _ (cong _ _ _ _ _ _
                	 (refl _ (apply _ _ (read I E) (apply _ _ (apply _ _ (apply _ _ (write I E) a) i) (apply _ _ (apply _ _ (read I E) a) i))))
                	 l3))
                (trans _ _ _ _
@@ -93,7 +93,7 @@
                  (cong _ _ _ _ _ _ (refl _ (apply _ _ (read I E) a)) l3)
                  )))
             l2)
-   
+
 ))))) (\ CT2
 ; CT2 is the clause ( v2 V ~v3 )
 

@@ -1,13 +1,13 @@
 /*********************                                                        */
 /*! \file sat_proof.h
  ** \verbatim
- ** Original author: Liana Hadarean
- ** Major contributors: Morgan Deters
- ** Minor contributors (to current version): none
+ ** Top contributors (to current version):
+ **   Liana Hadarean, Morgan Deters, Tim King
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2014  New York University and The University of Iowa
- ** See the file COPYING in the top-level source directory for licensing
- ** information.\endverbatim
+ ** Copyright (c) 2009-2016 by the authors listed in the file AUTHORS
+ ** in the top-level source directory) and their institutional affiliations.
+ ** All rights reserved.  See the file COPYING in the top-level source
+ ** directory for licensing information.\endverbatim
  **
  ** \brief Resolution proof
  **
@@ -20,20 +20,21 @@
 #define __CVC4__SAT__PROOF_H
 
 #include <stdint.h>
+
 #include <ext/hash_map>
 #include <ext/hash_set>
 #include <iosfwd>
 #include <set>
 #include <sstream>
 #include <vector>
+
 #include "expr/expr.h"
+#include "proof/clause_id.h"
 #include "proof/proof_manager.h"
 #include "util/proof.h"
 #include "util/statistics_registry.h"
 
-
 namespace CVC4 {
-
 
 class CnfProof;
 
@@ -123,7 +124,7 @@ protected:
   VarSet              d_assumptions; // assumption literals for bv solver
   IdHashSet           d_assumptionConflicts; // assumption conflicts not actually added to SAT solver
   IdToConflicts       d_assumptionConflictsDebug;
-  
+
   // resolutions
   IdResMap            d_resChains;
   ResStack            d_resStack;
@@ -240,13 +241,13 @@ public:
   ClauseId getTrueUnit() const;
   ClauseId getFalseUnit() const;
 
-  
+
   void registerAssumption(const typename Solver::TVar var);
   ClauseId registerAssumptionConflict(const typename Solver::TLitVec& confl);
-  
+
   ClauseId storeUnitConflict(typename Solver::TLit lit,
                              ClauseKind kind);
- 
+
   /**
    * Marks the deleted clauses as deleted. Note we may still use them in the final
    * resolution.
@@ -296,11 +297,12 @@ public:
   virtual void printResolutionEmptyClause(std::ostream& out, std::ostream& paren) = 0;
   virtual void printAssumptionsResolution(ClauseId id, std::ostream& out, std::ostream& paren) = 0;
 
-
   void collectClausesUsed(IdToSatClause& inputs,
                           IdToSatClause& lemmas);
 
   void storeClauseGlue(ClauseId clause, int glue);
+
+
 
 private:
   __gnu_cxx::hash_map<ClauseId, int> d_glueMap;
@@ -319,7 +321,6 @@ private:
 
   Statistics d_statistics;
 };/* class TSatProof */
-
 
 template <class S>
 class ProofProxy {

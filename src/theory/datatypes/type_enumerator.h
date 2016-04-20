@@ -1,13 +1,13 @@
 /*********************                                                        */
 /*! \file type_enumerator.h
  ** \verbatim
- ** Original author: Morgan Deters
- ** Major contributors: Andrew Reynolds
- ** Minor contributors (to current version): Dejan Jovanovic
+ ** Top contributors (to current version):
+ **   Andrew Reynolds, Morgan Deters, Tim King
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2014  New York University and The University of Iowa
- ** See the file COPYING in the top-level source directory for licensing
- ** information.\endverbatim
+ ** Copyright (c) 2009-2016 by the authors listed in the file AUTHORS
+ ** in the top-level source directory) and their institutional affiliations.
+ ** All rights reserved.  See the file COPYING in the top-level source
+ ** directory for licensing information.\endverbatim
  **
  ** \brief An enumerator for datatypes
  **
@@ -176,92 +176,6 @@ public:
   }
 
 };/* DatatypesEnumerator */
-
-
-class RecordEnumerator : public TypeEnumeratorBase<RecordEnumerator> {
-  TypeEnumeratorProperties * d_tep;
-  TypeEnumerator** d_enumerators;
-
-  /** Allocate and initialize the delegate enumerators */
-  void newEnumerators() {
-    const Record& rec = getType().getConst<Record>();
-    d_enumerators = new TypeEnumerator*[rec.getNumFields()];
-    for(size_t i = 0; i < rec.getNumFields(); ++i) {
-      d_enumerators[i] = new TypeEnumerator(TypeNode::fromType(rec[i].second));
-    }
-  }
-
-  void deleteEnumerators() throw() {
-    if(d_enumerators != NULL) {
-      const Record& rec = getType().getConst<Record>();
-      for(size_t i = 0; i < rec.getNumFields(); ++i) {
-        delete d_enumerators[i];
-      }
-      delete [] d_enumerators;
-      d_enumerators = NULL;
-    }
-  }
-
-public:
-
-  RecordEnumerator(TypeNode type, TypeEnumeratorProperties * tep = NULL) throw() :
-    TypeEnumeratorBase<RecordEnumerator>(type), d_tep(tep) {
-    Assert(type.isRecord());
-    newEnumerators();
-  }
-
-  RecordEnumerator(const RecordEnumerator& re) throw() :
-    TypeEnumeratorBase<RecordEnumerator>(re.getType()),
-    d_tep(re.d_tep),
-    d_enumerators(NULL) {
-
-    if(re.d_enumerators != NULL) {
-      newEnumerators();
-      for(size_t i = 0; i < getType().getNumChildren(); ++i) {
-        *d_enumerators[i] = TypeEnumerator(*re.d_enumerators[i]);
-      }
-    }
-  }
-
-  virtual ~RecordEnumerator() throw() {
-    deleteEnumerators();
-  }
-
-  Node operator*() throw(NoMoreValuesException) {
-    if(isFinished()) {
-      throw NoMoreValuesException(getType());
-    }
-
-
-    return Node::null();
-  }
-
-  RecordEnumerator& operator++() throw() {
-    if(isFinished()) {
-      return *this;
-    }
-
-    size_t i;
-    const Record& rec = getType().getConst<Record>();
-    for(i = 0; i < rec.getNumFields(); ++i) {
-      if(d_enumerators[i]->isFinished()) {
-        *d_enumerators[i] = TypeEnumerator(TypeNode::fromType(rec[i].second));
-      } else {
-        ++*d_enumerators[i];
-        return *this;
-      }
-    }
-
-    deleteEnumerators();
-
-    return *this;
-  }
-
-  bool isFinished() throw() {
-    return d_enumerators == NULL;
-  }
-
-};/* RecordEnumerator */
 
 }/* CVC4::theory::datatypes namespace */
 }/* CVC4::theory namespace */

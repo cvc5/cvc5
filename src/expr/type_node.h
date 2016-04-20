@@ -1,13 +1,13 @@
 /*********************                                                        */
 /*! \file type_node.h
  ** \verbatim
- ** Original author: Dejan Jovanovic
- ** Major contributors: Morgan Deters
- ** Minor contributors (to current version): Clark Barrett, Andrew Reynolds, Tianyi Liang, Kshitij Bansal, Tim King
+ ** Top contributors (to current version):
+ **   Morgan Deters, Dejan Jovanovic, Martin Brain
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2014  New York University and The University of Iowa
- ** See the file COPYING in the top-level source directory for licensing
- ** information.\endverbatim
+ ** Copyright (c) 2009-2016 by the authors listed in the file AUTHORS
+ ** in the top-level source directory) and their institutional affiliations.
+ ** All rights reserved.  See the file COPYING in the top-level source
+ ** directory for licensing information.\endverbatim
  **
  ** \brief Reference-counted encapsulation of a pointer to node information.
  **
@@ -642,8 +642,10 @@ public:
    * For more information see: http://cvc4.cs.nyu.edu/wiki/Cvc4_Type_Lattice
    */
   static TypeNode leastCommonTypeNode(TypeNode t0, TypeNode t1);
+  static TypeNode mostCommonTypeNode(TypeNode t0, TypeNode t1);
 
 private:
+  static TypeNode commonTypeNode(TypeNode t0, TypeNode t1, bool isLeast);
 
   /**
    * Returns the leastUpperBound in the extended type lattice of two

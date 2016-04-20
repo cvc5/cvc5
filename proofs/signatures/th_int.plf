@@ -1,0 +1,25 @@
+(declare Int sort)
+
+(define arithpred_Int (! x (term Int)
+                      (! y (term Int)
+                        formula)))
+
+(declare >_Int arithpred_Int)
+(declare >=_Int arithpred_Int)
+(declare <_Int  arithpred_Int)
+(declare <=_Int arithpred_Int)
+
+(define arithterm_Int (! x (term Int)
+		      (! y (term Int)
+		        (term Int))))
+
+(declare +_Int arithterm_Int)
+(declare -_Int arithterm_Int)
+(declare *_Int arithterm_Int)  ; is * ok to use?
+(declare /_Int arithterm_Int)  ; is / ok to use?
+
+; a constant term
+(declare a_int (! x mpz (term Int)))
+
+; unary negation
+(declare u-_Int (! t (term Int) (term Int)))

@@ -1,0 +1,25 @@
+(declare Real sort)
+
+(define arithpred_Real (! x (term Real)
+                       (! y (term Real)
+                         formula)))
+
+(declare >_Real arithpred_Real)
+(declare >=_Real arithpred_Real)
+(declare <_Real  arithpred_Real)
+(declare <=_Real arithpred_Real)
+
+(define arithterm_Real (! x (term Real)
+                       (! y (term Real)
+                         (term Real))))
+
+(declare +_Real arithterm_Real)
+(declare -_Real arithterm_Real)
+(declare *_Real arithterm_Real)  ; is * ok to use?
+(declare /_Real arithterm_Real)  ; is / ok to use?
+
+; a constant term
+(declare a_real (! x mpq (term Real)))
+
+; unary negation
+(declare u-_Real (! t (term Real) (term Real)))

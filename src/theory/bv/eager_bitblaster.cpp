@@ -1,13 +1,13 @@
 /*********************                                                        */
 /*! \file eager_bitblaster.cpp
  ** \verbatim
- ** Original author: Liana Hadarean
- ** Major contributors: none
- ** Minor contributors (to current version): none
+ ** Top contributors (to current version):
+ **   Liana Hadarean, Tim King, Guy Katz
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2014  New York University and The University of Iowa
- ** See the file COPYING in the top-level source directory for licensing
- ** information.\endverbatim
+ ** Copyright (c) 2009-2016 by the authors listed in the file AUTHORS
+ ** in the top-level source directory) and their institutional affiliations.
+ ** All rights reserved.  See the file COPYING in the top-level source
+ ** directory for licensing information.\endverbatim
  **
  ** \brief
  **
@@ -36,9 +36,14 @@ void BitblastingRegistrar::preRegister(Node n) {
 
 EagerBitblaster::EagerBitblaster(TheoryBV* theory_bv)
   : TBitblaster<Node>()
+  , d_satSolver(NULL)
+  , d_bitblastingRegistrar(NULL)
+  , d_nullContext(NULL)
+  , d_cnfStream(NULL)
   , d_bv(theory_bv)
   , d_bbAtoms()
   , d_variables()
+  , d_notify()
 {
   d_bitblastingRegistrar = new BitblastingRegistrar(this);
   d_nullContext = new context::Context();
@@ -50,8 +55,7 @@ EagerBitblaster::EagerBitblaster(TheoryBV* theory_bv)
       d_satSolver, d_bitblastingRegistrar, d_nullContext, options::proof(),
       "EagerBitblaster");
 
-  MinisatEmptyNotify* notify = new MinisatEmptyNotify();
-  d_satSolver->setNotify(notify);
+  d_satSolver->setNotify(&d_notify);
   d_bvp = NULL;
 }
 
@@ -95,7 +99,7 @@ void EagerBitblaster::bbAtom(TNode node) {
   // asserting that the atom is true iff the definition holds
   Node atom_definition = utils::mkNode(kind::IFF, node, atom_bb);
 
-  AlwaysAssert (options::bitblastMode() == theory::bv::BITBLAST_MODE_EAGER); 
+  AlwaysAssert (options::bitblastMode() == theory::bv::BITBLAST_MODE_EAGER);
   storeBBAtom(node, atom_bb);
   d_cnfStream->convertAndAssert(atom_definition, false, false, RULE_INVALID, TNode::null());
 }
@@ -104,7 +108,7 @@ void EagerBitblaster::storeBBAtom(TNode atom, Node atom_bb) {
   if( d_bvp ){
     d_bvp->registerAtomBB(atom.toExpr(), atom_bb.toExpr());
   }
-  d_bbAtoms.insert(atom); 
+  d_bbAtoms.insert(atom);
 }
 
 void EagerBitblaster::storeBBTerm(TNode node, const Bits& bits) {
@@ -136,13 +140,13 @@ void EagerBitblaster::bbTerm(TNode node, Bits& bits) {
 void EagerBitblaster::makeVariable(TNode var, Bits& bits) {
   Assert(bits.size() == 0);
   for (unsigned i = 0; i < utils::getSize(var); ++i) {
-    bits.push_back(utils::mkBitOf(var, i)); 
+    bits.push_back(utils::mkBitOf(var, i));
   }
-  d_variables.insert(var); 
+  d_variables.insert(var);
 }
 
 Node EagerBitblaster::getBBAtom(TNode node) const {
-  return node; 
+  return node;
 }
 
 

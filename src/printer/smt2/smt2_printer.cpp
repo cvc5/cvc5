@@ -1,13 +1,13 @@
 /*********************                                                        */
 /*! \file smt2_printer.cpp
  ** \verbatim
- ** Original author: Morgan Deters
- ** Major contributors: none
- ** Minor contributors (to current version): Dejan Jovanovic, Tim King, Liana Hadarean, Kshitij Bansal, Tianyi Liang, Francois Bobot, Andrew Reynolds
+ ** Top contributors (to current version):
+ **   Morgan Deters, Andrew Reynolds, Martin Brain
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2014  New York University and The University of Iowa
- ** See the file COPYING in the top-level source directory for licensing
- ** information.\endverbatim
+ ** Copyright (c) 2009-2016 by the authors listed in the file AUTHORS
+ ** in the top-level source directory) and their institutional affiliations.
+ ** All rights reserved.  See the file COPYING in the top-level source
+ ** directory for licensing information.\endverbatim
  **
  ** \brief The pretty-printer interface for the SMT2 output language
  **
@@ -385,6 +385,8 @@ void Smt2Printer::toStream(std::ostream& out, TNode n,
     // arrays theory
   case kind::SELECT:
   case kind::STORE:
+  case kind::PARTIAL_SELECT_0:
+  case kind::PARTIAL_SELECT_1:
   case kind::ARRAY_TYPE: out << smtKindString(k) << " "; break;
 
     // string theory
@@ -449,7 +451,7 @@ void Smt2Printer::toStream(std::ostream& out, TNode n,
 
   case kind::CARDINALITY_CONSTRAINT: out << "fmf.card "; break;
   case kind::CARDINALITY_VALUE: out << "fmf.card.val "; break;
-  
+
     // bv theory
   case kind::BITVECTOR_CONCAT: out << "concat "; forceBinary = true; break;
   case kind::BITVECTOR_AND: out << "bvand "; forceBinary = true; break;
@@ -736,6 +738,8 @@ static string smtKindString(Kind k) throw() {
   case kind::SELECT: return "select";
   case kind::STORE: return "store";
   case kind::ARRAY_TYPE: return "Array";
+  case kind::PARTIAL_SELECT_0: return "partial_select_0";
+  case kind::PARTIAL_SELECT_1: return "partial_select_1";
 
     // bv theory
   case kind::BITVECTOR_CONCAT: return "concat";
@@ -981,7 +985,7 @@ void Smt2Printer::toStream(std::ostream& out, const Command* c,
 
 
 static std::string quoteSymbol(TNode n) {
-#warning "check the old implementation. It seems off."
+  // #warning "check the old implementation. It seems off."
   std::stringstream ss;
   ss << language::SetLanguage(language::output::LANG_SMTLIB_V2_5);
   return CVC4::quoteSymbol(ss.str());

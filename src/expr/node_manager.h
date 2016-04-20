@@ -1,13 +1,13 @@
 /*********************                                                        */
 /*! \file node_manager.h
  ** \verbatim
- ** Original author: Dejan Jovanovic
- ** Major contributors: Christopher L. Conway, Morgan Deters
- ** Minor contributors (to current version): ACSYS, Tianyi Liang, Kshitij Bansal, Tim King
+ ** Top contributors (to current version):
+ **   Morgan Deters, Christopher L. Conway, Dejan Jovanovic
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2014  New York University and The University of Iowa
- ** See the file COPYING in the top-level source directory for licensing
- ** information.\endverbatim
+ ** Copyright (c) 2009-2016 by the authors listed in the file AUTHORS
+ ** in the top-level source directory) and their institutional affiliations.
+ ** All rights reserved.  See the file COPYING in the top-level source
+ ** directory for licensing information.\endverbatim
  **
  ** \brief A manager for Nodes
  **
@@ -166,7 +166,20 @@ class NodeManager {
   /**
    * A map of tuple and record types to their corresponding datatype.
    */
-  std::hash_map<TypeNode, TypeNode, TypeNodeHashFunction> d_tupleAndRecordTypes;
+  class TupleTypeCache {
+  public:
+    std::map< TypeNode, TupleTypeCache > d_children;
+    TypeNode d_data;
+    TypeNode getTupleType( NodeManager * nm, std::vector< TypeNode >& types, unsigned index = 0 );
+  };
+  class RecTypeCache {
+  public:
+    std::map< TypeNode, std::map< std::string, RecTypeCache > > d_children;
+    TypeNode d_data;
+    TypeNode getRecordType( NodeManager * nm, const Record& rec, unsigned index = 0 );
+  };
+  TupleTypeCache d_tt_cache;
+  RecTypeCache d_rt_cache;
 
   /**
    * Keep a count of all abstract values produced by this NodeManager.
@@ -692,7 +705,7 @@ public:
   inline TypeNode stringType();
 
   /** Get the (singleton) type for RegExp. */
-  inline TypeNode regexpType();
+  inline TypeNode regExpType();
 
   /** Get the (singleton) type for rounding modes. */
   inline TypeNode roundingModeType();
@@ -988,7 +1001,7 @@ inline TypeNode NodeManager::stringType() {
 }
 
 /** Get the (singleton) type for regexps. */
-inline TypeNode NodeManager::regexpType() {
+inline TypeNode NodeManager::regExpType() {
   return TypeNode(mkTypeConst<TypeConstant>(REGEXP_TYPE));
 }
 

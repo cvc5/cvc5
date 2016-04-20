@@ -1,13 +1,13 @@
 /*********************                                                        */
 /*! \file quant_conflict_find.h
  ** \verbatim
- ** Original author: Andrew Reynolds
- ** Major contributors: none
- ** Minor contributors (to current version): none
+ ** Top contributors (to current version):
+ **   Clark Barrett, Tim King, Andrew Reynolds
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2014  New York University and The University of Iowa
- ** See the file COPYING in the top-level source directory for licensing
- ** information.\endverbatim
+ ** Copyright (c) 2009-2016 by the authors listed in the file AUTHORS
+ ** in the top-level source directory) and their institutional affiliations.
+ ** All rights reserved.  See the file COPYING in the top-level source
+ ** directory for licensing information.\endverbatim
  **
  ** \brief quantifiers conflict find class
  **/
@@ -98,7 +98,7 @@ public:
   // is this term treated as UF application?
   static bool isHandledBoolConnective( TNode n );
   static bool isHandledUfTerm( TNode n );
-  static Node getOperator( QuantConflictFind * p, Node n );
+  static Node getMatchOperator( QuantConflictFind * p, Node n );
   //can this node be handled by the algorithm
   static bool isHandled( TNode n );
 };
@@ -114,9 +114,12 @@ private: //for completing match
   int d_unassigned_nvar;
   int d_una_index;
   std::vector< int > d_una_eqc_count;
+  //optimization: track which arguments variables appear under UF terms in
+  std::map< int, std::map< TNode, std::vector< unsigned > > > d_var_rel_dom;
+  void getPropagateVars( std::vector< TNode >& vars, TNode n, bool pol, std::map< TNode, bool >& visited );
 public:
-  QuantInfo() : d_mg( NULL ) {}
-  ~QuantInfo() { delete d_mg; }
+  QuantInfo();
+  ~QuantInfo();
   std::vector< TNode > d_vars;
   std::vector< TypeNode > d_var_types;
   std::map< TNode, int > d_var_num;
@@ -128,13 +131,25 @@ public:
   int getNumVars() { return (int)d_vars.size(); }
   TNode getVar( int i ) { return d_vars[i]; }
 
+  typedef std::map< int, MatchGen * > VarMgMap;
+ private:
   MatchGen * d_mg;
+  VarMgMap d_var_mg;
+ public:
+  VarMgMap::const_iterator var_mg_find(int i) const { return d_var_mg.find(i); }
+  VarMgMap::const_iterator var_mg_end() const { return d_var_mg.end(); }
+  bool containsVarMg(int i) const { return var_mg_find(i) != var_mg_end(); }
+
+  bool matchGeneratorIsValid() const { return d_mg->isValid(); }
+  bool getNextMatch( QuantConflictFind * p ) {
+    return d_mg->getNextMatch(p, this);
+  }
+
   Node d_q;
-  std::map< int, MatchGen * > d_var_mg;
   void reset_round( QuantConflictFind * p );
 public:
   //initialize
-  void initialize( Node q, Node qn );
+  void initialize( QuantConflictFind * p, Node q, Node qn );
   //current constraints
   std::vector< TNode > d_match;
   std::vector< TNode > d_match_term;
@@ -146,7 +161,7 @@ public:
   bool getCurrentCanBeEqual( QuantConflictFind * p, int v, TNode n, bool chDiseq = false );
   int addConstraint( QuantConflictFind * p, int v, TNode n, bool polarity );
   int addConstraint( QuantConflictFind * p, int v, TNode n, int vn, bool polarity, bool doRemove );
-  bool setMatch( QuantConflictFind * p, int v, TNode n );
+  bool setMatch( QuantConflictFind * p, int v, TNode n, bool isGroundRep );
   bool isMatchSpurious( QuantConflictFind * p );
   bool isTConstraintSpurious( QuantConflictFind * p, std::vector< Node >& terms );
   bool entailmentTest( QuantConflictFind * p, Node lit, bool chEnt = true );
@@ -166,7 +181,6 @@ class QuantConflictFind : public QuantifiersModule
   typedef context::CDHashMap<Node, bool, NodeHashFunction> NodeBoolMap;
 private:
   context::CDO< bool > d_conflict;
-  std::vector< Node > d_quant_order;
   std::map< Kind, Node > d_zero;
   //for storing nodes created during t-constraint solving (prevents memory leaks)
   std::vector< Node > d_tempCache;
@@ -180,21 +194,14 @@ public:  //for ground terms
   Node d_false;
   TNode getZero( Kind k );
 private:
-  Node evaluateTerm( Node n );
-  int evaluate( Node n, bool pref = false, bool hasPref = false );
-private:
-  //currently asserted quantifiers
-  NodeList d_qassert;
   std::map< Node, QuantInfo > d_qinfo;
 private:  //for equivalence classes
   // type -> list(eqc)
   std::map< TypeNode, std::vector< TNode > > d_eqcs;
-  std::map< TypeNode, Node > d_model_basis;
 public:
   enum {
     effort_conflict,
     effort_prop_eq,
-    effort_mc,
   };
   short d_effort;
   void setEffort( int e ) { d_effort = e; }
@@ -248,8 +255,8 @@ public:
   std::string identify() const { return "QcfEngine"; }
 };
 
-}
-}
-}
+} /* namespace CVC4::theory::quantifiers */
+} /* namespace CVC4::theory */
+} /* namespace CVC4 */
 
 #endif

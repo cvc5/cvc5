@@ -1,13 +1,13 @@
 /*********************                                                        */
 /*! \file command_executor_portfolio.cpp
  ** \verbatim
- ** Original author: Morgan Deters
- ** Major contributors: Kshitij Bansal
- ** Minor contributors (to current version): Andrew Reynolds
+ ** Top contributors (to current version):
+ **   Kshitij Bansal, Tim King, Morgan Deters
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2014  New York University and The University of Iowa
- ** See the file COPYING in the top-level source directory for licensing
- ** information.\endverbatim
+ ** Copyright (c) 2009-2016 by the authors listed in the file AUTHORS
+ ** in the top-level source directory) and their institutional affiliations.
+ ** All rights reserved.  See the file COPYING in the top-level source
+ ** directory for licensing information.\endverbatim
  **
  ** \brief An additional layer between commands and invoking them.
  **
@@ -198,7 +198,8 @@ bool CommandExecutorPortfolio::doCommandSingleton(Command* cmd)
   // command
 
   if(dynamic_cast<CheckSatCommand*>(cmd) != NULL ||
-     dynamic_cast<QueryCommand*>(cmd) != NULL) {
+     dynamic_cast<QueryCommand*>(cmd) != NULL ||
+     dynamic_cast<CheckSynthCommand*>(cmd) != NULL) {
     mode = 1;
   } else if(dynamic_cast<GetValueCommand*>(cmd) != NULL ||
             dynamic_cast<GetAssignmentCommand*>(cmd) != NULL ||

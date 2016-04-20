@@ -1,13 +1,13 @@
 /*********************                                                        */
 /*! \file expr_patterns.h
  ** \verbatim
- ** Original author: Kshitij Bansal
- ** Major contributors: none
- ** Minor contributors (to current version): none
+ ** Top contributors (to current version):
+ **   Kshitij Bansal, Tim King
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2014  New York University and The University of Iowa
- ** See the file COPYING in the top-level source directory for licensing
- ** information.\endverbatim
+ ** Copyright (c) 2009-2016 by the authors listed in the file AUTHORS
+ ** in the top-level source directory) and their institutional affiliations.
+ ** All rights reserved.  See the file COPYING in the top-level source
+ ** directory for licensing information.\endverbatim
  **
  ** \brief Expr patterns.
  **
@@ -52,6 +52,10 @@ static Node SINGLETON(TNode a) {
 
 static Node EQUAL(TNode a, TNode b) {
   return NodeManager::currentNM()->mkNode(kind::EQUAL, a, b);
+}
+
+static Node CARD(TNode a) {
+  return NodeManager::currentNM()->mkNode(kind::CARD, a);
 }
 
 }/* CVC4::expr::pattern namespace */

@@ -1,13 +1,13 @@
 /*********************                                                        */
 /*! \file full_model_check.cpp
  ** \verbatim
- ** Original author: Andrew Reynolds
- ** Major contributors: Morgan Deters
- ** Minor contributors (to current version): Kshitij Bansal
+ ** Top contributors (to current version):
+ **   Morgan Deters, Andrew Reynolds, Tim King
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2014  New York University and The University of Iowa
- ** See the file COPYING in the top-level source directory for licensing
- ** information.\endverbatim
+ ** Copyright (c) 2009-2016 by the authors listed in the file AUTHORS
+ ** in the top-level source directory) and their institutional affiliations.
+ ** All rights reserved.  See the file COPYING in the top-level source
+ ** directory for licensing information.\endverbatim
  **
  ** \brief Implementation of full model check class
  **/
@@ -350,11 +350,11 @@ void FullModelChecker::preProcessBuildModel(TheoryModel* m, bool fullModel) {
     }
     //do not have to introduce terms for sorts of domains of quantified formulas if we are allowed to assume empty sorts
     if( !options::fmfEmptySorts() ){
-      for( int i=0; i<fm->getNumAssertedQuantifiers(); i++ ){
+      for( unsigned i=0; i<fm->getNumAssertedQuantifiers(); i++ ){
         Node q = fm->getAssertedQuantifier( i );
         //make sure all types are set
-        for( unsigned i=0; i<q[0].getNumChildren(); i++ ){
-          preInitializeType( fm, q[0][i].getType() );
+        for( unsigned j=0; j<q[0].getNumChildren(); j++ ){
+          preInitializeType( fm, q[0][j].getType() );
         }
       }
     }
@@ -411,6 +411,11 @@ void FullModelChecker::processBuildModel(TheoryModel* m, bool fullModel){
           Node r = fm->getUsedRepresentative(n);
           Trace("fmc-model-debug") << n << " -> " << r << std::endl;
           //AlwaysAssert( fm->areEqual( fm->d_uf_terms[op][i], r ) );
+        }else{
+          if( Trace.isOn("fmc-model-debug") ){
+            Node r = fm->getUsedRepresentative(n);
+            Trace("fmc-model-debug") << "[redundant] " << n << " -> " << r << std::endl;
+          }
         }
       }
       Trace("fmc-model-debug") << std::endl;
@@ -456,7 +461,7 @@ void FullModelChecker::processBuildModel(TheoryModel* m, bool fullModel){
             }
           }
           if( !isStar && !ri.isConst() ){
-            Trace("fmc-warn") << "Warning : model has non-constant argument in model " << ri << " (from " << c[i] << ")" << std::endl;
+            Trace("fmc-warn") << "Warning : model for " << op << " has non-constant argument in model " << ri << " (from " << c[i] << ")" << std::endl;
             Assert( false );
           }
           entry_children.push_back(ri);
@@ -464,7 +469,7 @@ void FullModelChecker::processBuildModel(TheoryModel* m, bool fullModel){
         Node n = NodeManager::currentNM()->mkNode( APPLY_UF, children );
         Node nv = fm->getUsedRepresentative( v );
         if( !nv.isConst() ){
-          Trace("fmc-warn") << "Warning : model has non-constant value in model " << nv << std::endl;
+          Trace("fmc-warn") << "Warning : model for " << op << " has non-constant value in model " << nv << std::endl;
           Assert( false );
         }
         Node en = (useSimpleModels() && hasNonStar) ? n : NodeManager::currentNM()->mkNode( APPLY_UF, entry_children );
@@ -586,6 +591,7 @@ void FullModelChecker::debugPrint(const char * tr, Node n, bool dispStar) {
 
 bool FullModelChecker::doExhaustiveInstantiation( FirstOrderModel * fm, Node f, int effort ) {
   Trace("fmc") << "Full model check " << f << ", effort = " << effort << "..." << std::endl;
+  Assert( !d_qe->inConflict() );
   if( optUseModel() ){
     FirstOrderModelFmc * fmfmc = fm->asFirstOrderModelFmc();
     if (effort==0) {
@@ -614,7 +620,7 @@ bool FullModelChecker::doExhaustiveInstantiation( FirstOrderModel * fm, Node f, 
 
         //consider all entries going to non-true
         for (unsigned i=0; i<d_quant_models[f].d_cond.size(); i++) {
-          if( d_quant_models[f].d_value[i]!=d_true) {
+          if( d_quant_models[f].d_value[i]!=d_true ) {
             Trace("fmc-inst") << "Instantiate based on " << d_quant_models[f].d_cond[i] << "..." << std::endl;
             bool hasStar = false;
             std::vector< Node > inst;
@@ -676,15 +682,21 @@ bool FullModelChecker::doExhaustiveInstantiation( FirstOrderModel * fm, Node f, 
               }else{
                 //just add the instance
                 d_triedLemmas++;
-                if( d_qe->addInstantiation( f, inst ) ){
+                if( d_qe->addInstantiation( f, inst, true ) ){
                   Trace("fmc-debug-inst") << "** Added instantiation." << std::endl;
                   d_addedLemmas++;
-                  if( options::fmfOneInstPerRound() ){
+                  if( d_qe->inConflict() || options::fmfOneInstPerRound() ){
                     break;
                   }
                 }else{
                   Trace("fmc-debug-inst") << "** Instantiation was duplicate." << std::endl;
-                  //this can happen if evaluation is unknown
+                  //this can happen if evaluation is unknown, or if we are generalizing a star that already has a value
+                  //if( !hasStar && d_quant_models[f].d_value[i]==d_false ){
+                  //  Trace("fmc-warn") << "**** FMC warning: inconsistent duplicate instantiation." << std::endl;
+                  //}
+                  //this assertion can happen if two instantiations from this round are identical
+                  // (0,1)->false (1,0)->false   for   forall xy. f( x, y ) = f( y, x )
+                  //Assert( hasStar || d_quant_models[f].d_value[i]!=d_false );
                   //might try it next effort level
                   d_star_insts[f].push_back(i);
                 }
@@ -733,12 +745,14 @@ bool FullModelChecker::exhaustiveInstantiate(FirstOrderModelFmc * fm, Node f, No
   for( unsigned i=0; i<c.getNumChildren(); i++ ){
     if( c[i].getType().isInteger() ){
       if( fm->isInterval(c[i]) ){
+        Trace("fmc-exh-debug") << "...set " << i << " based on interval." << std::endl;
         for( unsigned b=0; b<2; b++ ){
           if( !fm->isStar(c[i][b]) ){
             riter.d_bounds[b][i] = c[i][b];
           }
         }
       }else if( !fm->isStar(c[i]) ){
+        Trace("fmc-exh-debug") << "...set " << i << " based on point." << std::endl;
         riter.d_bounds[0][i] = c[i];
         riter.d_bounds[1][i] = QuantArith::offset( c[i], 1 );
       }
@@ -780,11 +794,11 @@ bool FullModelChecker::exhaustiveInstantiate(FirstOrderModelFmc * fm, Node f, No
       for( int i=0; i<riter.getNumTerms(); i++ ){
         Node rr = riter.getTerm( i );
         Node r = rr;
-        if( r.getType().isSort() ){
-          r = fm->getUsedRepresentative( r );
-        }else{
-          r = fm->getCurrentModelValue( r );
-        }
+        //if( r.getType().isSort() ){
+        r = fm->getUsedRepresentative( r );
+        //}else{
+        //  r = fm->getCurrentModelValue( r );
+        //}
         debugPrint("fmc-exh-debug", r);
         Trace("fmc-exh-debug") << " (term : " << rr << ")";
         ev_inst.push_back( r );
@@ -796,10 +810,10 @@ bool FullModelChecker::exhaustiveInstantiate(FirstOrderModelFmc * fm, Node f, No
       if (ev!=d_true) {
         Trace("fmc-exh-debug") << ", add!";
         //add as instantiation
-        if( d_qe->addInstantiation( f, inst ) ){
+        if( d_qe->addInstantiation( f, inst, true ) ){
           Trace("fmc-exh-debug")  << " ...success.";
           addedLemmas++;
-          if( options::fmfOneInstPerRound() ){
+          if( d_qe->inConflict() || options::fmfOneInstPerRound() ){
             break;
           }
         }else{
@@ -846,38 +860,12 @@ void FullModelChecker::doCheck(FirstOrderModelFmc * fm, Node f, Def & d, Node n 
     d.addEntry(fm, mkCondDefault(fm, f), Node::null());
   }
   else if( n.getType().isArray() ){
-    //make the definition
-    bool success = false;
-    /*
-    Node r = fm->getRepresentative(n);
-    Trace("fmc-debug") << "Representative for array is " << r << std::endl;
-    while( r.getKind() == kind::STORE ){
-      Node i = fm->getUsedRepresentative( r[1] );
-      Node e = fm->getUsedRepresentative( r[2] );
-      d.addEntry(fm, mkArrayCond(i), e );
-      r = fm->getRepresentative( r[0] );
-    }
-    Node defC = mkArrayCond(fm->getStar(n.getType().getArrayIndexType()));
-    bool success = false;
-    Node odefaultValue;
-    if( r.getKind() == kind::STORE_ALL ){
-      ArrayStoreAll storeAll = r.getConst<ArrayStoreAll>();
-      odefaultValue = Node::fromExpr(storeAll.getExpr());
-      Node defaultValue = fm->getUsedRepresentative( odefaultValue, true );
-      if( !defaultValue.isNull() ){
-        d.addEntry(fm, defC, defaultValue);
-        success = true;
-      }
-    }
-    */
-    if( !success ){
-      //Trace("fmc-warn") << "WARNING : ARRAYS : Can't process base array " << r << std::endl;
-      //Trace("fmc-warn") << "          Default value was : " << odefaultValue << std::endl;
-      //Trace("fmc-debug") << "Can't process base array " << r << std::endl;
-      //can't process this array
-      d.reset();
-      d.addEntry(fm, mkCondDefault(fm, f), Node::null());
-    }
+    //Trace("fmc-warn") << "WARNING : ARRAYS : Can't process base array " << r << std::endl;
+    //Trace("fmc-warn") << "          Default value was : " << odefaultValue << std::endl;
+    //Trace("fmc-debug") << "Can't process base array " << r << std::endl;
+    //can't process this array
+    d.reset();
+    d.addEntry(fm, mkCondDefault(fm, f), Node::null());
   }
   else if( n.getNumChildren()==0 ){
     Node r = n;

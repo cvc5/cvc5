@@ -1,13 +1,13 @@
 /*********************                                                        */
 /*! \file node_manager.cpp
  ** \verbatim
- ** Original author: Dejan Jovanovic
- ** Major contributors: Morgan Deters
- ** Minor contributors (to current version): ACSYS, Kshitij Bansal, Tim King, Christopher L. Conway
+ ** Top contributors (to current version):
+ **   Morgan Deters, Tim King, Andrew Reynolds
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2014  New York University and The University of Iowa
- ** See the file COPYING in the top-level source directory for licensing
- ** information.\endverbatim
+ ** Copyright (c) 2009-2016 by the authors listed in the file AUTHORS
+ ** in the top-level source directory) and their institutional affiliations.
+ ** All rights reserved.  See the file COPYING in the top-level source
+ ** directory for licensing information.\endverbatim
  **
  ** \brief Expression manager implementation.
  **
@@ -170,7 +170,9 @@ NodeManager::~NodeManager() {
     d_operators[i] = Node::null();
   }
 
-  d_tupleAndRecordTypes.clear();
+  //d_tupleAndRecordTypes.clear();
+  d_tt_cache.d_children.clear();
+  d_rt_cache.d_children.clear();
 
   Assert(!d_attrManager->inGarbageCollection() );
   while(!d_zombies.empty()) {
@@ -461,6 +463,47 @@ TypeNode NodeManager::mkSubrangeType(const SubrangeBounds& bounds)
   return TypeNode(mkTypeConst(bounds));
 }
 
+TypeNode NodeManager::TupleTypeCache::getTupleType( NodeManager * nm, std::vector< TypeNode >& types, unsigned index ) {
+  if( index==types.size() ){
+    if( d_data.isNull() ){
+      Datatype dt("__cvc4_tuple");
+      dt.setTuple();
+      DatatypeConstructor c("__cvc4_tuple_ctor");
+      for (unsigned i = 0; i < types.size(); ++ i) {
+        std::stringstream ss;
+        ss << "__cvc4_tuple_stor_" << i;
+        c.addArg(ss.str().c_str(), types[i].toType());
+      }
+      dt.addConstructor(c);
+      d_data = TypeNode::fromType(nm->toExprManager()->mkDatatypeType(dt));
+      Debug("tuprec-debug") << "Return type : " << d_data << std::endl;
+    }
+    return d_data;
+  }else{
+    return d_children[types[index]].getTupleType( nm, types, index+1 );
+  }
+}
+
+TypeNode NodeManager::RecTypeCache::getRecordType( NodeManager * nm, const Record& rec, unsigned index ) {
+  if( index==rec.getNumFields() ){
+    if( d_data.isNull() ){
+      const Record::FieldVector& fields = rec.getFields();
+      Datatype dt("__cvc4_record");
+      dt.setRecord();
+      DatatypeConstructor c("__cvc4_record_ctor");
+      for(Record::FieldVector::const_iterator i = fields.begin(); i != fields.end(); ++i) {
+        c.addArg((*i).first, (*i).second);
+      }
+      dt.addConstructor(c);
+      d_data = TypeNode::fromType(nm->toExprManager()->mkDatatypeType(dt));
+      Debug("tuprec-debug") << "Return type : " << d_data << std::endl;
+    }
+    return d_data;
+  }else{
+    return d_children[TypeNode::fromType( rec[index].second )][rec[index].first].getRecordType( nm, rec, index+1 );
+  }
+}
+
 TypeNode NodeManager::mkTupleType(const std::vector<TypeNode>& types) {
   std::vector< TypeNode > ts;
   Debug("tuprec-debug") << "Make tuple type : ";
@@ -470,60 +513,11 @@ TypeNode NodeManager::mkTupleType(const std::vector<TypeNode>& types) {
     Debug("tuprec-debug") << types[i] << " ";
   }
   Debug("tuprec-debug") << std::endl;
-  //index based on function type
-  TypeNode tindex;
-  if( types.empty() ){
-    //do nothing (will index on null type)
-  }else if( types.size()==1 ){
-    tindex = types[0];
-  }else{
-    TypeNode tt = ts.back();
-    ts.pop_back();
-    tindex = mkFunctionType( ts, tt );
-    ts.push_back( tt );
-  }
-  TypeNode& dtt = d_tupleAndRecordTypes[tindex];
-  if(dtt.isNull()) {
-    Datatype dt("__cvc4_tuple");
-    dt.setTuple();
-    DatatypeConstructor c("__cvc4_tuple_ctor");
-    for (unsigned i = 0; i < ts.size(); ++ i) {
-      std::stringstream ss;
-      ss << "__cvc4_tuple_stor_" << i;
-      c.addArg(ss.str().c_str(), ts[i].toType());
-    }
-    dt.addConstructor(c);
-    dtt = TypeNode::fromType(toExprManager()->mkDatatypeType(dt));
-    dtt.setAttribute(DatatypeTupleAttr(), tindex);
-    Debug("tuprec-debug") << "Return type : " << dtt << std::endl;
-  }else{
-    Debug("tuprec-debug") << "Return cached type : " << dtt << std::endl;
-  }
-  Assert(!dtt.isNull());
-  return dtt;
+  return d_tt_cache.getTupleType( this, ts );
 }
 
 TypeNode NodeManager::mkRecordType(const Record& rec) {
-  //index based on type constant
-  TypeNode tindex = mkTypeConst(rec);
-  TypeNode& dtt = d_tupleAndRecordTypes[tindex];
-  if(dtt.isNull()) {
-    const Record::FieldVector& fields = rec.getFields();
-    Datatype dt("__cvc4_record");
-    dt.setRecord();
-    DatatypeConstructor c("__cvc4_record_ctor");
-    for(Record::FieldVector::const_iterator i = fields.begin(); i != fields.end(); ++i) {
-      c.addArg((*i).first, (*i).second);
-    }
-    dt.addConstructor(c);
-    dtt = TypeNode::fromType(toExprManager()->mkDatatypeType(dt));
-    dtt.setAttribute(DatatypeRecordAttr(), tindex);
-    Debug("tuprec-debug") << "Return type : " << dtt << std::endl;
-  }else{
-    Debug("tuprec-debug") << "Return cached type : " << dtt << std::endl;
-  }
-  Assert(!dtt.isNull());
-  return dtt;
+  return d_rt_cache.getRecordType( this, rec );
 }
 
 void NodeManager::reclaimAllZombies(){

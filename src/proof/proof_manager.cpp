@@ -1,34 +1,31 @@
 /*********************                                                        */
 /*! \file proof_manager.cpp
  ** \verbatim
- ** Original author: Liana Hadarean
- ** Major contributors: Morgan Deters
- ** Minor contributors (to current version): Andrew Reynolds
+ ** Top contributors (to current version):
+ **   Liana Hadarean, Guy Katz, Morgan Deters
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2014  New York University and The University of Iowa
- ** See the file COPYING in the top-level source directory for licensing
- ** information.\endverbatim
- **
- ** \brief [[ Add one-line brief description here ]]
+ ** Copyright (c) 2009-2016 by the authors listed in the file AUTHORS
+ ** in the top-level source directory) and their institutional affiliations.
+ ** All rights reserved.  See the file COPYING in the top-level source
+ ** directory for licensing information.\endverbatim
  **
  ** [[ Add lengthier description here ]]
- ** \todo document this file
- **/
 
-#include "context/context.h"
+ ** \todo document this file
+
+**/
 
 #include "proof/proof_manager.h"
-#include "proof/cnf_proof.h"
-#include "proof/theory_proof.h"
-#include "proof/bitvector_proof.h"
-#include "proof/proof_utils.h"
-#include "proof/sat_proof_implementation.h"
-#include "options/bv_options.h"
-
-#include "util/proof.h"
-#include "util/hash.h"
 
 #include "base/cvc4_assert.h"
+#include "context/context.h"
+#include "options/bv_options.h"
+#include "proof/bitvector_proof.h"
+#include "proof/clause_id.h"
+#include "proof/cnf_proof.h"
+#include "proof/proof_utils.h"
+#include "proof/sat_proof_implementation.h"
+#include "proof/theory_proof.h"
 #include "smt/smt_engine.h"
 #include "smt/smt_engine_scope.h"
 #include "smt_util/node_visitor.h"
@@ -38,7 +35,8 @@
 #include "theory/uf/equality_engine.h"
 #include "theory/uf/theory_uf.h"
 #include "theory/valuation.h"
-
+#include "util/hash.h"
+#include "util/proof.h"
 
 namespace CVC4 {
 
@@ -107,6 +105,7 @@ UFProof* ProofManager::getUfProof() {
   TheoryProof* pf = getTheoryProofEngine()->getTheoryProof(theory::THEORY_UF);
   return (UFProof*)pf;
 }
+
 BitVectorProof* ProofManager::getBitVectorProof() {
   Assert (options::proof());
   TheoryProof* pf = getTheoryProofEngine()->getTheoryProof(theory::THEORY_BV);
@@ -117,6 +116,17 @@ ArrayProof* ProofManager::getArrayProof() {
   Assert (options::proof());
   TheoryProof* pf = getTheoryProofEngine()->getTheoryProof(theory::THEORY_ARRAY);
   return (ArrayProof*)pf;
+}
+
+ArithProof* ProofManager::getArithProof() {
+  Assert (options::proof());
+  TheoryProof* pf = getTheoryProofEngine()->getTheoryProof(theory::THEORY_ARITH);
+  return (ArithProof*)pf;
+}
+
+SkolemizationManager* ProofManager::getSkolemizationManager() {
+  Assert (options::proof());
+  return &(currentPM()->d_skolemizationManager);
 }
 
 void ProofManager::initSatProof(Minisat::Solver* solver) {
@@ -212,13 +222,21 @@ std::string ProofManager::getLitName(TNode lit,
   return getLitName(currentPM()->d_cnfProof->getLiteral(lit), prefix);
 }
 
-std::string ProofManager::sanitize(TNode var) {
-  Assert (var.isVar());
-  std::string name = var.toString();
-  std::replace(name.begin(), name.end(), ' ', '_');
+std::string ProofManager::sanitize(TNode node) {
+  Assert (node.isVar() || node.isConst());
+
+  std::string name = node.toString();
+  if (node.isVar()) {
+    std::replace(name.begin(), name.end(), ' ', '_');
+  } else if (node.isConst()) {
+    name.erase(std::remove(name.begin(), name.end(), '('), name.end());
+    name.erase(std::remove(name.begin(), name.end(), ')'), name.end());
+    name.erase(std::remove(name.begin(), name.end(), ' '), name.end());
+    name = "const" + name;
+  }
+
   return name;
 }
-
 
 void ProofManager::traceDeps(TNode n) {
   Debug("cores") << "trace deps " << n << std::endl;
@@ -321,9 +339,50 @@ void LFSCProof::toStream(std::ostream& out) {
   d_satProof->collectClausesUsed(used_inputs,
                                  used_lemmas);
 
+  IdToSatClause::iterator it2;
+  Debug("pf::pm") << std::endl << "Used inputs: " << std::endl;
+  for (it2 = used_inputs.begin(); it2 != used_inputs.end(); ++it2) {
+    Debug("pf::pm") << "\t input = " << *(it2->second) << std::endl;
+  }
+  Debug("pf::pm") << std::endl;
+
+  // Debug("pf::pm") << std::endl << "Used lemmas: " << std::endl;
+  // for (it2 = used_lemmas.begin(); it2 != used_lemmas.end(); ++it2) {
+  //   Debug("pf::pm") << "\t lemma = " << *(it2->second) << std::endl;
+  // }
+  // Debug("pf::pm") << std::endl;
+  Debug("pf::pm") << std::endl << "Used lemmas: " << std::endl;
+  for (it2 = used_lemmas.begin(); it2 != used_lemmas.end(); ++it2) {
+
+    std::vector<Expr> clause_expr;
+    for(unsigned i = 0; i < it2->second->size(); ++i) {
+      prop::SatLiteral lit = (*(it2->second))[i];
+      Expr atom = d_cnfProof->getAtom(lit.getSatVariable()).toExpr();
+      if (atom.isConst()) {
+        Assert (atom == utils::mkTrue());
+        continue;
+      }
+      Expr expr_lit = lit.isNegated() ? atom.notExpr(): atom;
+      clause_expr.push_back(expr_lit);
+    }
+
+    Debug("pf::pm") << "\t lemma " << it2->first << " = " << *(it2->second) << std::endl;
+    Debug("pf::pm") << "\t";
+    for (unsigned i = 0; i < clause_expr.size(); ++i) {
+      Debug("pf::pm") << clause_expr[i] << " ";
+    }
+    Debug("pf::pm") << std::endl;
+  }
+  Debug("pf::pm") << std::endl;
+
   // collecting assertions that lead to the clauses being asserted
   NodeSet used_assertions;
   d_cnfProof->collectAssertionsForClauses(used_inputs, used_assertions);
+
+  NodeSet::iterator it3;
+  Debug("pf::pm") << std::endl << "Used assertions: " << std::endl;
+  for (it3 = used_assertions.begin(); it3 != used_assertions.end(); ++it3)
+    Debug("pf::pm") << "\t assertion = " << *it3 << std::endl;
 
   NodeSet atoms;
   // collects the atoms in the clauses
@@ -336,20 +395,24 @@ void LFSCProof::toStream(std::ostream& out) {
     utils::collectAtoms(*it, atoms);
   }
 
-  if (Debug.isOn("proof:pm")) {
-    // std::cout << NodeManager::currentNM();
-    Debug("proof:pm") << "LFSCProof::Used assertions: "<< std::endl;
-    for(NodeSet::const_iterator it = used_assertions.begin(); it != used_assertions.end(); ++it) {
-      Debug("proof:pm") << "   " << *it << std::endl;
-    }
+  NodeSet::iterator atomIt;
+  Debug("pf::pm") << std::endl << "Dumping atoms from lemmas, inputs and assertions: " << std::endl << std::endl;
+  for (atomIt = atoms.begin(); atomIt != atoms.end(); ++atomIt) {
+    Debug("pf::pm") << "\tAtom: " << *atomIt << std::endl;
 
-    Debug("proof:pm") << "LFSCProof::Used atoms: "<< std::endl;
-    for(NodeSet::const_iterator it = atoms.begin(); it != atoms.end(); ++it) {
-      Debug("proof:pm") << "   " << *it << std::endl;
+    if (Debug.isOn("proof:pm")) {
+      // std::cout << NodeManager::currentNM();
+      Debug("proof:pm") << "LFSCProof::Used assertions: "<< std::endl;
+      for(NodeSet::const_iterator it = used_assertions.begin(); it != used_assertions.end(); ++it) {
+        Debug("proof:pm") << "   " << *it << std::endl;
+      }
+
+      Debug("proof:pm") << "LFSCProof::Used atoms: "<< std::endl;
+      for(NodeSet::const_iterator it = atoms.begin(); it != atoms.end(); ++it) {
+        Debug("proof:pm") << "   " << *it << std::endl;
+      }
     }
   }
-
-
 
   smt::SmtScope scope(d_smtEngine);
   std::ostringstream paren;
@@ -359,20 +422,39 @@ void LFSCProof::toStream(std::ostream& out) {
   // declare the theory atoms
   NodeSet::const_iterator it = atoms.begin();
   NodeSet::const_iterator end = atoms.end();
+
+  Debug("pf::pm") << "LFSCProof::toStream: registering terms:" << std::endl;
   for(; it != end; ++it) {
+    Debug("pf::pm") << "\tTerm: " << (*it).toExpr() << std::endl;
     d_theoryProof->registerTerm((*it).toExpr());
   }
+
+  Debug("pf::pm") << std::endl << "Term registration done!" << std::endl << std::endl;
+
+  Debug("pf::pm") << std::endl << "LFSCProof::toStream: starting to print assertions" << std::endl;
+
   // print out all the original assertions
+  d_theoryProof->registerTermsFromAssertions();
+  d_theoryProof->printSortDeclarations(out, paren);
+  d_theoryProof->printTermDeclarations(out, paren);
   d_theoryProof->printAssertions(out, paren);
 
+  Debug("pf::pm") << std::endl << "LFSCProof::toStream: print assertions DONE" << std::endl;
 
-  out << "(: (holds cln)\n";
+  out << "(: (holds cln)\n\n";
+
+  // Have the theory proofs print deferred declarations, e.g. for skolem variables.
+  out << " ;; Printing deferred declarations \n";
+  d_theoryProof->printDeferredDeclarations(out, paren);
 
   // print trust that input assertions are their preprocessed form
   printPreprocessedAssertions(used_assertions, out, paren);
 
   // print mapping between theory atoms and internal SAT variables
+  out << ";; Printing mapping from preprocessed assertions into atoms \n";
   d_cnfProof->printAtomMapping(atoms, out, paren);
+
+  Debug("pf::pm") << std::endl << "Printing cnf proof for clauses" << std::endl;
 
   IdToSatClause::const_iterator cl_it = used_inputs.begin();
   // print CNF conversion proof for each clause
@@ -380,11 +462,15 @@ void LFSCProof::toStream(std::ostream& out) {
     d_cnfProof->printCnfProofForClause(cl_it->first, cl_it->second, out, paren);
   }
 
+  Debug("pf::pm") << std::endl << "Printing cnf proof for clauses DONE" << std::endl;
+
   // FIXME: for now assume all theory lemmas are in CNF form so
   // distinguish between them and inputs
   // print theory lemmas for resolution proof
-  d_theoryProof->printTheoryLemmas(used_lemmas, out, paren);
 
+  Debug("pf::pm") << "Proof manager: printing theory lemmas" << std::endl;
+  d_theoryProof->printTheoryLemmas(used_lemmas, out, paren);
+  Debug("pf::pm") << "Proof manager: printing theory lemmas DONE!" << std::endl;
 
   if (options::bitblastMode() == theory::bv::BITBLAST_MODE_EAGER && ProofManager::getBitVectorProof()) {
     // print actual resolution proof
@@ -406,7 +492,7 @@ void LFSCProof::toStream(std::ostream& out) {
 void LFSCProof::printPreprocessedAssertions(const NodeSet& assertions,
                                             std::ostream& os,
                                             std::ostream& paren) {
-  os << " ;; Preprocessing \n";
+  os << "\n ;; In the preprocessor we trust \n";
   NodeSet::const_iterator it = assertions.begin();
   NodeSet::const_iterator end = assertions.end();
 
@@ -422,11 +508,12 @@ void LFSCProof::printPreprocessedAssertions(const NodeSet& assertions,
     paren << "))";
 
   }
+
+  os << "\n";
 }
 
-
-
 //---from Morgan---
+
 bool ProofManager::hasOp(TNode n) const {
   return d_bops.find(n) != d_bops.end();
 }
@@ -438,16 +525,21 @@ Node ProofManager::lookupOp(TNode n) const {
 }
 
 Node ProofManager::mkOp(TNode n) {
+  Trace("mgd-pm-mkop") << "MkOp : " << n << " " << n.getKind() << std::endl;
   if(n.getKind() != kind::BUILTIN) {
     return n;
   }
+
   Node& op = d_ops[n];
   if(op.isNull()) {
-    Debug("mgd") << "making an op for " << n << "\n";
+    Assert((n.getConst<Kind>() == kind::SELECT) || (n.getConst<Kind>() == kind::STORE));
+
+    Debug("mgd-pm-mkop") << "making an op for " << n << "\n";
+
     std::stringstream ss;
     ss << n;
     std::string s = ss.str();
-    Debug("mgd") << " : " << s << std::endl;
+    Debug("mgd-pm-mkop") << " : " << s << std::endl;
     std::vector<TypeNode> v;
     v.push_back(NodeManager::currentNM()->integerType());
     if(n.getConst<Kind>() == kind::SELECT) {
@@ -459,44 +551,54 @@ Node ProofManager::mkOp(TNode n) {
       v.push_back(NodeManager::currentNM()->integerType());
     }
     TypeNode type = NodeManager::currentNM()->mkFunctionType(v);
+    Debug("mgd-pm-mkop") << "typenode is: " << type << "\n";
     op = NodeManager::currentNM()->mkSkolem(s, type, " ignore", NodeManager::SKOLEM_NO_NOTIFY);
     d_bops[op] = n;
   }
+  Debug("mgd-pm-mkop") << "returning the op: " << op << "\n";
   return op;
 }
 //---end from Morgan---
 
+bool ProofManager::wasPrinted(const Type& type) const {
+  return d_printedTypes.find(type) != d_printedTypes.end();
+}
+
+void ProofManager::markPrinted(const Type& type) {
+  d_printedTypes.insert(type);
+}
+
 std::ostream& operator<<(std::ostream& out, CVC4::ProofRule k) {
   switch(k) {
   case RULE_GIVEN:
-    out << "RULE_GIVEN"; 
+    out << "RULE_GIVEN";
     break;
   case RULE_DERIVED:
-    out << "RULE_DERIVED"; 
+    out << "RULE_DERIVED";
     break;
   case RULE_RECONSTRUCT:
-    out << "RULE_RECONSTRUCT"; 
+    out << "RULE_RECONSTRUCT";
     break;
   case RULE_TRUST:
-    out << "RULE_TRUST"; 
+    out << "RULE_TRUST";
     break;
   case RULE_INVALID:
-    out << "RULE_INVALID"; 
+    out << "RULE_INVALID";
     break;
   case RULE_CONFLICT:
-    out << "RULE_CONFLICT"; 
+    out << "RULE_CONFLICT";
     break;
   case RULE_TSEITIN:
-    out << "RULE_TSEITIN"; 
+    out << "RULE_TSEITIN";
     break;
   case RULE_SPLIT:
-    out << "RULE_SPLIT"; 
+    out << "RULE_SPLIT";
     break;
   case RULE_ARRAYS_EXT:
-    out << "RULE_ARRAYS"; 
+    out << "RULE_ARRAYS";
     break;
   case RULE_ARRAYS_ROW:
-    out << "RULE_ARRAYS"; 
+    out << "RULE_ARRAYS";
     break;
   default:
     out << "ProofRule Unknown! [" << unsigned(k) << "]";

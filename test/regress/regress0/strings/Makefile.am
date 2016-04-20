@@ -74,7 +74,9 @@ TESTS = \
   idof-handg.smt2 \
   fmf001.smt2 \
   type002.smt2 \
-  crash-1019.smt2
+  crash-1019.smt2 \
+  norn-31.smt2 \
+  strings-native-simple.cvc
 
 FAILING_TESTS =
 

@@ -1,13 +1,13 @@
 /*********************                                                        */
 /*! \file boolean_terms.cpp
  ** \verbatim
- ** Original author: Morgan Deters
- ** Major contributors: none
- ** Minor contributors (to current version): Andrew Reynolds
+ ** Top contributors (to current version):
+ **   Morgan Deters, Andrew Reynolds, Tim King
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2014  New York University and The University of Iowa
- ** See the file COPYING in the top-level source directory for licensing
- ** information.\endverbatim
+ ** Copyright (c) 2009-2016 by the authors listed in the file AUTHORS
+ ** in the top-level source directory) and their institutional affiliations.
+ ** All rights reserved.  See the file COPYING in the top-level source
+ ** directory for licensing information.\endverbatim
  **
  ** \brief [[ Add one-line brief description here ]]
  **
@@ -137,26 +137,6 @@ Node BooleanTermConverter::rewriteAs(TNode in, TypeNode as, std::map< TypeNode, 
   TypeNode in_t = in.getType();
   if( processing.find( in_t )==processing.end() ){
     processing[in_t] = true;
-    if(in.getType().isRecord()) {
-      Assert(as.isRecord());
-      const Record& inRec = in.getType().getRecord();
-      const Record& asRec = as.getRecord();
-      Assert(inRec.getNumFields() == asRec.getNumFields());
-      const Datatype & dt = ((DatatypeType)in.getType().toType()).getDatatype();
-      NodeBuilder<> nb(kind::APPLY_CONSTRUCTOR);
-      nb << NodeManager::currentNM()->mkConst(asRec);
-      for(size_t i = 0; i < asRec.getNumFields(); ++i) {
-        Assert(inRec[i].first == asRec[i].first);
-        Node arg = NodeManager::currentNM()->mkNode(kind::APPLY_SELECTOR_TOTAL, dt[0][i].getSelector(), in);
-        if(inRec[i].second != asRec[i].second) {
-          arg = rewriteAs(arg, TypeNode::fromType(asRec[i].second), processing);
-        }
-        nb << arg;
-      }
-      Node out = nb;
-      processing.erase( in_t );
-      return out;
-    }
     if(in.getType().isDatatype()) {
       if(as.isBoolean() && in.getType().hasAttribute(BooleanTermAttr())) {
         processing.erase( in_t );

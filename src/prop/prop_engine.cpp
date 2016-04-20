@@ -1,13 +1,13 @@
 /*********************                                                        */
 /*! \file prop_engine.cpp
  ** \verbatim
- ** Original author: Morgan Deters
- ** Major contributors: Dejan Jovanovic
- ** Minor contributors (to current version): Clark Barrett, Liana Hadarean, Kshitij Bansal, Christopher L. Conway, Tim King
+ ** Top contributors (to current version):
+ **   Morgan Deters, Dejan Jovanovic, Tim King
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2014  New York University and The University of Iowa
- ** See the file COPYING in the top-level source directory for licensing
- ** information.\endverbatim
+ ** Copyright (c) 2009-2016 by the authors listed in the file AUTHORS
+ ** in the top-level source directory) and their institutional affiliations.
+ ** All rights reserved.  See the file COPYING in the top-level source
+ ** directory for licensing information.\endverbatim
  **
  ** \brief Implementation of the propositional engine of CVC4
  **
@@ -132,12 +132,13 @@ void PropEngine::assertFormula(TNode node) {
 void PropEngine::assertLemma(TNode node, bool negated,
                              bool removable,
                              ProofRule rule,
+                             theory::TheoryId ownerTheory,
                              TNode from) {
   //Assert(d_inCheckSat, "Sat solver should be in solve()!");
   Debug("prop::lemmas") << "assertLemma(" << node << ")" << endl;
 
   // Assert as (possibly) removable
-  d_cnfStream->convertAndAssert(node, removable, negated, rule, from);
+  d_cnfStream->convertAndAssert(node, removable, negated, rule, from, ownerTheory);
 }
 
 void PropEngine::requirePhase(TNode n, bool phase) {

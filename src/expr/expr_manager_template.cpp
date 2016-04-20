@@ -1,13 +1,13 @@
 /*********************                                                        */
 /*! \file expr_manager_template.cpp
  ** \verbatim
- ** Original author: Morgan Deters
- ** Major contributors: Dejan Jovanovic, Christopher L. Conway
- ** Minor contributors (to current version): Kshitij Bansal, Andrew Reynolds
+ ** Top contributors (to current version):
+ **   Morgan Deters, Tim King, Christopher L. Conway
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2014  New York University and The University of Iowa
- ** See the file COPYING in the top-level source directory for licensing
- ** information.\endverbatim
+ ** Copyright (c) 2009-2016 by the authors listed in the file AUTHORS
+ ** in the top-level source directory) and their institutional affiliations.
+ ** All rights reserved.  See the file COPYING in the top-level source
+ ** directory for licensing information.\endverbatim
  **
  ** \brief Public-facing expression manager interface, implementation
  **
@@ -140,6 +140,11 @@ BooleanType ExprManager::booleanType() const {
 StringType ExprManager::stringType() const {
   NodeManagerScope nms(d_nodeManager);
   return StringType(Type(d_nodeManager, new TypeNode(d_nodeManager->stringType())));
+}
+
+RegExpType ExprManager::regExpType() const {
+  NodeManagerScope nms(d_nodeManager);
+  return StringType(Type(d_nodeManager, new TypeNode(d_nodeManager->regExpType())));
 }
 
 RealType ExprManager::realType() const {
@@ -791,7 +796,7 @@ void ExprManager::checkResolvedDatatype(DatatypeType dtt) const {
         j != j_end;
         ++j) {
       const DatatypeConstructorArg& a = *j;
-      Type selectorType = a.getSelector().getType();
+      Type selectorType = a.getType();
       Assert(a.isResolved() &&
              selectorType.isSelector() &&
              SelectorType(selectorType).getDomain() == dtt,

@@ -1,13 +1,13 @@
 /*********************                                                        */
 /*! \file ce_guided_single_inv.h
  ** \verbatim
- ** Original author: Andrew Reynolds
- ** Major contributors: none
- ** Minor contributors (to current version): none
+ ** Top contributors (to current version):
+ **   Andrew Reynolds, Tim King, Clark Barrett
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2014  New York University and The University of Iowa
- ** See the file COPYING in the top-level source directory for licensing
- ** information.\endverbatim
+ ** Copyright (c) 2009-2016 by the authors listed in the file AUTHORS
+ ** in the top-level source directory) and their institutional affiliations.
+ ** All rights reserved.  See the file COPYING in the top-level source
+ ** directory for licensing information.\endverbatim
  **
  ** \brief utility for processing single invocation synthesis conjectures
  **/
@@ -37,7 +37,7 @@ public:
   CegqiOutputSingleInv( CegConjectureSingleInv * out ) : d_out( out ){}
   ~CegqiOutputSingleInv() {}
   CegConjectureSingleInv * d_out;
-  bool addInstantiation( std::vector< Node >& subs );
+  bool doAddInstantiation( std::vector< Node >& subs );
   bool isEligibleForInstantiation( Node n );
   bool addLemma( Node lem );
 };
@@ -58,13 +58,21 @@ private:
   CegqiOutputSingleInv * d_cosi;
   CegInstantiator * d_cinst;
   //for recognizing templates for invariant synthesis
-  Node substituteInvariantTemplates( Node n, std::map< Node, Node >& prog_templ, std::map< Node, std::vector< Node > >& prog_templ_vars );
+  Node substituteInvariantTemplates(
+      Node n, std::map< Node, Node >& prog_templ,
+      std::map< Node, std::vector< Node > >& prog_templ_vars );
   // partially single invocation
-  Node removeDeepEmbedding( Node n, std::vector< Node >& progs, std::vector< TypeNode >& types, int& type_valid, std::map< Node, Node >& visited );
+  Node removeDeepEmbedding( Node n, std::vector< Node >& progs,
+                            std::vector< TypeNode >& types, int& type_valid,
+                            std::map< Node, Node >& visited );
   Node addDeepEmbedding( Node n, std::map< Node, Node >& visited );
   //presolve
-  void collectPresolveEqTerms( Node n, std::map< Node, std::vector< Node > >& teq );
-  void getPresolveEqConjuncts( std::vector< Node >& vars, std::vector< Node >& terms, std::map< Node, std::vector< Node > >& teq, Node n, std::vector< Node >& conj );
+  void collectPresolveEqTerms( Node n,
+                               std::map< Node, std::vector< Node > >& teq );
+  void getPresolveEqConjuncts( std::vector< Node >& vars,
+                               std::vector< Node >& terms,
+                               std::map< Node, std::vector< Node > >& teq,
+                               Node n, std::vector< Node >& conj );
   //constructing solution
   Node constructSolution( std::vector< unsigned >& indices, unsigned i, unsigned index );
   Node postProcessSolution( Node n );
@@ -94,7 +102,7 @@ public:
 private:
   std::vector< Node > d_curr_lemmas;
   //add instantiation
-  bool addInstantiation( std::vector< Node >& subs );
+  bool doAddInstantiation( std::vector< Node >& subs );
   //is eligible for instantiation
   bool isEligibleForInstantiation( Node n );
   // add lemma
@@ -113,7 +121,7 @@ public:
   Node d_full_inv;
   Node d_full_guard;
   //explanation for current single invocation conjecture
-  Node d_single_inv_exp;  
+  Node d_single_inv_exp;
   // transition relation version per program
   std::map< Node, Node > d_trans_pre;
   std::map< Node, Node > d_trans_post;
@@ -132,19 +140,33 @@ public:
   //get solution
   Node getSolution( unsigned sol_index, TypeNode stn, int& reconstructed, bool rconsSygus = true );
   //reconstruct to syntax
-  Node reconstructToSyntax( Node s, TypeNode stn, int& reconstructed, bool rconsSygus = true );
+  Node reconstructToSyntax( Node s, TypeNode stn, int& reconstructed,
+                            bool rconsSygus = true );
   // has ites
   bool hasITEs() { return d_has_ites; }
   // is single invocation
-  bool isSingleInvocation() { return !d_single_inv.isNull(); }
+  bool isSingleInvocation() const { return !d_single_inv.isNull(); }
   // is single invocation
-  bool isFullySingleInvocation() { return !d_single_inv.isNull() && d_nsingle_inv.isNull(); }
+  bool isFullySingleInvocation() const {
+    return !d_single_inv.isNull() && d_nsingle_inv.isNull();
+  }
   //needs check
   bool needsCheck();
   /** preregister conjecture */
   void preregisterConjecture( Node q );
   //initialize next candidate si conjecture (if not fully single invocation)
-  void initializeNextSiConjecture();  
+  void initializeNextSiConjecture();
+
+  Node getTransPre(Node prog) const {
+    std::map<Node, Node>::const_iterator location = d_trans_pre.find(prog);
+    return location->second;
+  }
+
+  Node getTransPost(Node prog) const {
+    std::map<Node, Node>::const_iterator location = d_trans_post.find(prog);
+    return location->second;
+  }
+
 };
 
 // partitions any formulas given to it into single invocation/non-single invocation
@@ -153,18 +175,23 @@ public:
 class SingleInvocationPartition
 {
 private:
+  //options
+  Kind d_checkKind;
+  bool inferArgTypes( Node n, std::vector< TypeNode >& typs, std::map< Node, bool >& visited );
+  void process( Node n );
   bool collectConjuncts( Node n, bool pol, std::vector< Node >& conj );
   bool processConjunct( Node n, std::map< Node, bool >& visited, std::vector< Node >& args,
                         std::vector< Node >& terms, std::vector< Node >& subs );
   Node getSpecificationInst( Node n, std::map< Node, Node >& lam, std::map< Node, Node >& visited );
   void extractInvariant2( Node n, Node& func, int& pol, std::vector< Node >& disjuncts, bool hasPol, std::map< Node, bool >& visited );
 public:
-  void init( std::vector< TypeNode >& typs );
-  //inputs
-  void process( Node n );
-  std::vector< TypeNode > d_arg_types;
+  SingleInvocationPartition( Kind checkKind = kind::APPLY_UF ) : d_checkKind( checkKind ){}
+  ~SingleInvocationPartition(){}
+  bool init( Node n );
+  bool init( std::vector< TypeNode >& typs, Node n );
 
   //outputs (everything is with bound var)
+  std::vector< TypeNode > d_arg_types;
   std::map< Node, bool > d_funcs;
   std::map< Node, Node > d_func_inv;
   std::map< Node, Node > d_inv_to_func;
@@ -173,8 +200,8 @@ public:
   std::vector< Node > d_func_vars; //the first-order variables corresponding to all functions
   std::vector< Node > d_si_vars;   //the arguments that we based the anti-skolemization on
   std::vector< Node > d_all_vars;  //every free variable of conjuncts[2]
-  // si, nsi, all
-  std::vector< Node > d_conjuncts[3];
+  // si, nsi, all, non-ground si
+  std::vector< Node > d_conjuncts[4];
 
   bool isAntiSkolemizableType( Node f );
 
@@ -187,12 +214,14 @@ public:
 
   void extractInvariant( Node n, Node& func, int& pol, std::vector< Node >& disjuncts );
 
+  bool isPurelySingleInvocation() { return d_conjuncts[1].empty(); }
+  bool isNonGroundSingleInvocation() { return d_conjuncts[3].size()==d_conjuncts[1].size(); }
+
   void debugPrint( const char * c );
 };
 
-
-}
-}
-}
+}/* namespace CVC4::theory::quantifiers */
+}/* namespace CVC4::theory */
+}/* namespace CVC4 */
 
 #endif

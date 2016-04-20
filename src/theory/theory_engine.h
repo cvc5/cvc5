@@ -1,13 +1,13 @@
 /*********************                                                        */
 /*! \file theory_engine.h
  ** \verbatim
- ** Original author: Morgan Deters
- ** Major contributors: Andrew Reynolds, Dejan Jovanovic
- ** Minor contributors (to current version): Christopher L. Conway, Francois Bobot, Kshitij Bansal, Clark Barrett, Liana Hadarean, Tim King
+ ** Top contributors (to current version):
+ **   Morgan Deters, Dejan Jovanovic, Andrew Reynolds
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2014  New York University and The University of Iowa
- ** See the file COPYING in the top-level source directory for licensing
- ** information.\endverbatim
+ ** Copyright (c) 2009-2016 by the authors listed in the file AUTHORS
+ ** in the top-level source directory) and their institutional affiliations.
+ ** All rights reserved.  See the file COPYING in the top-level source
+ ** directory for licensing information.\endverbatim
  **
  ** \brief The theory engine
  **
@@ -59,7 +59,7 @@ struct NodeTheoryPair {
   Node node;
   theory::TheoryId theory;
   size_t timestamp;
-  NodeTheoryPair(TNode node, theory::TheoryId theory, size_t timestamp)
+  NodeTheoryPair(TNode node, theory::TheoryId theory, size_t timestamp = 0)
   : node(node), theory(theory), timestamp(timestamp) {}
   NodeTheoryPair()
   : theory(theory::THEORY_LAST) {}
@@ -263,7 +263,7 @@ class TheoryEngine {
     {
     }
 
-      void safePoint(uint64_t ammount) throw(theory::Interrupted, UnsafeInterruptException, AssertionException) {
+    void safePoint(uint64_t ammount) throw(theory::Interrupted, UnsafeInterruptException, AssertionException) {
       spendResource(ammount);
       if (d_engine->d_interrupted) {
         throw theory::Interrupted();
@@ -294,14 +294,21 @@ class TheoryEngine {
       Trace("theory::lemma") << "EngineOutputChannel<" << d_theory << ">::lemma(" << lemma << ")" << std::endl;
       ++ d_statistics.lemmas;
       d_engine->d_outputChannelUsed = true;
-      return d_engine->lemma(lemma, rule, false, removable, preprocess, sendAtoms ? d_theory: theory::THEORY_LAST);
+      return d_engine->lemma(lemma, rule, false, removable, preprocess, sendAtoms ? d_theory : theory::THEORY_LAST, d_theory);
     }
 
-    theory::LemmaStatus splitLemma(TNode lemma, bool removable = false) throw(TypeCheckingExceptionPrivate, AssertionException, UnsafeInterruptException) {
-      Trace("theory::lemma") << "EngineOutputChannel<" << d_theory << ">::lemma(" << lemma << ")" << std::endl;
+    /*theory::LemmaStatus preservedLemma(TNode lemma, bool removable = false, bool preprocess = false) throw(TypeCheckingExceptionPrivate, AssertionException, UnsafeInterruptException, LogicException) {
+      Trace("theory::lemma") << "EngineOutputChannel<" << d_theory << ">::preservedLemma(" << lemma << ")" << std::endl;
       ++ d_statistics.lemmas;
       d_engine->d_outputChannelUsed = true;
-      return d_engine->lemma(lemma, RULE_SPLIT, false, removable, false, d_theory);
+      return d_engine->lemma(lemma, false, removable, preprocess, d_theory);
+    }*/
+
+    theory::LemmaStatus splitLemma(TNode lemma, bool removable = false) throw(TypeCheckingExceptionPrivate, AssertionException, UnsafeInterruptException) {
+      Trace("theory::lemma") << "EngineOutputChannel<" << d_theory << ">::splitLemma(" << lemma << ")" << std::endl;
+      ++ d_statistics.lemmas;
+      d_engine->d_outputChannelUsed = true;
+      return d_engine->lemma(lemma, RULE_SPLIT, false, removable, false, d_theory, d_theory);
     }
 
     void demandRestart() throw(TypeCheckingExceptionPrivate, AssertionException, UnsafeInterruptException) {
@@ -448,7 +455,8 @@ class TheoryEngine {
                             bool negated,
                             bool removable,
                             bool preprocess,
-                            theory::TheoryId atomsTo);
+                            theory::TheoryId atomsTo,
+                            theory::TheoryId ownerTheory);
 
   /** Enusre that the given atoms are send to the given theory */
   void ensureLemmaAtoms(const std::vector<TNode>& atoms, theory::TheoryId theory);
@@ -719,6 +727,12 @@ public:
   Node getExplanation(TNode node);
 
   /**
+   * Returns an explanation of the node propagated to the SAT solver and the theory
+   * that propagated it.
+   */
+  NodeTheoryPair getExplanationAndExplainer(TNode node);
+
+  /**
    * collect model info
    */
   void collectModelInfo( theory::TheoryModel* m, bool fullModel );
@@ -782,6 +796,11 @@ public:
    * Print solution for synthesis conjectures found by ce_guided_instantiation module
    */
   void printSynthSolution( std::ostream& out );
+
+  /**
+   * Get instantiations
+   */
+  void getInstantiations( std::map< Node, std::vector< Node > >& insts );
 
   /**
    * Forwards an entailment check according to the given theoryOfMode.
@@ -851,7 +870,7 @@ public:
    * This function is called when an attribute is set by a user.  In SMT-LIBv2 this is done
    * via the syntax (! n :attr)
    */
-  void setUserAttribute(const std::string& attr, Node n, std::vector<Node> node_values, std::string str_value);
+  void setUserAttribute(const std::string& attr, Node n, std::vector<Node>& node_values, std::string str_value);
 
   /**
    * Handle user attribute.

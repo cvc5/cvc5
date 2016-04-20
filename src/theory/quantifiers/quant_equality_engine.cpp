@@ -1,13 +1,13 @@
 /*********************                                                        */
 /*! \file quant_equality_engine.cpp
  ** \verbatim
- ** Original author: Andrew Reynolds
- ** Major contributors: none
- ** Minor contributors (to current version): none
+ ** Top contributors (to current version):
+ **   Andrew Reynolds, Tim King
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2014  New York University and The University of Iowa
- ** See the file COPYING in the top-level source directory for licensing
- ** information.\endverbatim
+ ** Copyright (c) 2009-2016 by the authors listed in the file AUTHORS
+ ** in the top-level source directory) and their institutional affiliations.
+ ** All rights reserved.  See the file COPYING in the top-level source
+ ** directory for licensing information.\endverbatim
  **
  ** Congruence closure with free variables
  **/
@@ -32,6 +32,7 @@ d_conflict(c, false),
 d_quant_red(c),
 d_quant_unproc(c){
   d_uequalityEngine.addFunctionKind( kind::APPLY_UF );
+  d_intType = NodeManager::currentNM()->integerType();
 }
 
 void QuantEqualityEngine::conflict(TNode t1, TNode t2) {
@@ -86,56 +87,130 @@ void QuantEqualityEngine::registerQuantifier( Node q ) {
 void QuantEqualityEngine::assertNode( Node n ) {
   Assert( n.getKind()==FORALL );
   Trace("qee-debug") << "QEE assert : " << n << std::endl;
-  Node lit = n[1].getKind()==NOT ? n[1][0] : n[1];
-  bool pol = n[1].getKind()!=NOT;
-  if( lit.getKind()==APPLY_UF || lit.getKind()==EQUAL ){
-    lit = getTermDatabase()->getCanonicalTerm( lit );
-    Trace("qee-debug") << "Canonical :  " << lit << ", pol = " << pol << std::endl;
-    Node t1 = lit.getKind()==APPLY_UF ? lit : lit[0];
+  if( !d_conflict ){
+    Node lit = n[1].getKind()==NOT ? n[1][0] : n[1];
+    bool pol = n[1].getKind()!=NOT;
+    bool success = true;
+    Node t1;
     Node t2;
-    if( lit.getKind()==APPLY_UF ){
-      t2 = pol ? getTermDatabase()->d_true : getTermDatabase()->d_false;
-      pol = true;
-    }else{
-      t2 = lit[1];
-    }
-    bool alreadyHolds = false;
-    if( pol && areUnivEqual( t1, t2 ) ){
-      alreadyHolds = true;
-    }else if( !pol && areUnivDisequal( t1, t2 ) ){
-      alreadyHolds = true;
-    }
-
-    if( alreadyHolds ){
-      d_quant_red.push_back( n );
-      Trace("qee-debug") << "...add to redundant" << std::endl;
-    }else{
-      Trace("qee-debug") << "...assert" << std::endl;
-      Trace("qee-assert") << "QEE : assert : " << lit << ", pol = " << pol << ", kind = " << lit.getKind() << std::endl;
+    if( lit.getKind()==APPLY_UF || lit.getKind()==EQUAL || lit.getKind()==IFF ){
+      lit = getTermDatabase()->getCanonicalTerm( lit );
+      Trace("qee-debug") << "Canonical :  " << lit << ", pol = " << pol << std::endl;
       if( lit.getKind()==APPLY_UF ){
-        d_uequalityEngine.assertPredicate(lit, pol, n);
-      }else{
-        d_uequalityEngine.assertEquality(lit, pol, n);
+        t1 = getFunctionAppForPredicateApp( lit );
+        t2 = pol ? getTermDatabase()->d_one : getTermDatabase()->d_zero;
+        pol = true;
+        lit = NodeManager::currentNM()->mkNode( EQUAL, t1, t2 );
+      }else if( lit.getKind()==EQUAL ){
+        t1 = lit[0];
+        t2 = lit[1];
+      }else if( lit.getKind()==IFF ){
+        if( lit[0].getKind()==NOT ){
+          t1 = lit[0][0];
+          pol = !pol;
+        }else{
+          t1 = lit[0];
+        }
+        if( lit[1].getKind()==NOT ){
+          t2 = lit[1][0];
+          pol = !pol;
+        }else{
+          t2 = lit[1];
+        }
+        if( t1.getKind()==APPLY_UF && t2.getKind()==APPLY_UF ){
+          t1 = getFunctionAppForPredicateApp( t1 );
+          t2 = getFunctionAppForPredicateApp( t2 );
+          lit = NodeManager::currentNM()->mkNode( EQUAL, t1, t2 );
+        }else{
+          success = false;
+        }
       }
+    }else{
+      success = false;
     }
-  }else{
-    d_quant_unproc[n] = true;
-    Trace("qee-debug") << "...add to unprocessed (" << lit.getKind() << ")" << std::endl;
+    if( success ){
+      bool alreadyHolds = false;
+      if( pol && areUnivEqualInternal( t1, t2 ) ){
+        alreadyHolds = true;
+      }else if( !pol && areUnivDisequalInternal( t1, t2 ) ){
+        alreadyHolds = true;
+      }
+
+      if( alreadyHolds ){
+        d_quant_red.push_back( n );
+        Trace("qee-debug") << "...add to redundant" << std::endl;
+      }else{
+        Trace("qee-debug") << "...assert" << std::endl;
+        Trace("qee-assert") << "QEE : assert : " << lit << ", pol = " << pol << ", kind = " << lit.getKind() << std::endl;
+        if( lit.getKind()==APPLY_UF ){
+          d_uequalityEngine.assertPredicate(lit, pol, n);
+        }else{
+          d_uequalityEngine.assertEquality(lit, pol, n);
+        }
+      }
+    }else{
+      d_quant_unproc[n] = true;
+      Trace("qee-debug") << "...add to unprocessed (" << lit.getKind() << ")" << std::endl;
+    }
   }
 }
 
-bool QuantEqualityEngine::areUnivDisequal( TNode n1, TNode n2 ) {
+bool QuantEqualityEngine::areUnivDisequalInternal( TNode n1, TNode n2 ) {
   return n1!=n2 && d_uequalityEngine.hasTerm( n1 ) && d_uequalityEngine.hasTerm( n2 ) && d_uequalityEngine.areDisequal( n1, n2, false );
 }
 
-bool QuantEqualityEngine::areUnivEqual( TNode n1, TNode n2 ) {
+bool QuantEqualityEngine::areUnivEqualInternal( TNode n1, TNode n2 ) {
   return n1==n2 || ( d_uequalityEngine.hasTerm( n1 ) && d_uequalityEngine.hasTerm( n2 ) && d_uequalityEngine.areEqual( n1, n2 ) );
 }
 
-TNode QuantEqualityEngine::getUnivRepresentative( TNode n ) {
+TNode QuantEqualityEngine::getUnivRepresentativeInternal( TNode n ) {
   if( d_uequalityEngine.hasTerm( n ) ){
     return d_uequalityEngine.getRepresentative( n );
   }else{
     return n;
   }
 }
+bool QuantEqualityEngine::areUnivDisequal( TNode n1, TNode n2 ) {
+  //TODO: must convert to internal representation
+  return areUnivDisequalInternal( n1, n2 );
+}
+
+bool QuantEqualityEngine::areUnivEqual( TNode n1, TNode n2 ) {
+  //TODO: must convert to internal representation
+  return areUnivEqualInternal( n1, n2 );
+}
+
+TNode QuantEqualityEngine::getUnivRepresentative( TNode n ) {
+  //TODO: must convert to internal representation
+  return getUnivRepresentativeInternal( n );
+}
+
+Node QuantEqualityEngine::getFunctionForPredicate( Node f ) {
+  std::map< Node, Node >::iterator it = d_pred_to_func.find( f );
+  if( it==d_pred_to_func.end() ){
+    std::vector< TypeNode > argTypes;
+    TypeNode tn = f.getType();
+    for( unsigned i=0; i<(tn.getNumChildren()-1); i++ ){
+      argTypes.push_back( tn[i] );
+    }
+    TypeNode ftn = NodeManager::currentNM()->mkFunctionType( argTypes, d_intType  );
+    std::stringstream ss;
+    ss << "ee_" << f;
+    Node op = NodeManager::currentNM()->mkSkolem( ss.str(), ftn, "op created for internal ee" );
+    d_pred_to_func[f] = op;
+    return op;
+  }else{
+    return it->second;
+  }
+}
+
+Node QuantEqualityEngine::getFunctionAppForPredicateApp( Node n ) {
+  Assert( n.getKind()==APPLY_UF );
+  std::vector< Node > children;
+  children.push_back( getFunctionForPredicate( n.getOperator() ) );
+  for( unsigned i=0; i<n.getNumChildren(); i++ ){
+    children.push_back( n[i] );
+  }
+  return NodeManager::currentNM()->mkNode( APPLY_UF, children );
+}
+

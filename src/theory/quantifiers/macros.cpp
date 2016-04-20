@@ -1,13 +1,13 @@
 /*********************                                                        */
 /*! \file macros.cpp
  ** \verbatim
- ** Original author: Andrew Reynolds
- ** Major contributors: Morgan Deters
- ** Minor contributors (to current version): Kshitij Bansal
+ ** Top contributors (to current version):
+ **   Andrew Reynolds, Morgan Deters, Tim King
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2014  New York University and The University of Iowa
- ** See the file COPYING in the top-level source directory for licensing
- ** information.\endverbatim
+ ** Copyright (c) 2009-2016 by the authors listed in the file AUTHORS
+ ** in the top-level source directory) and their institutional affiliations.
+ ** All rights reserved.  See the file COPYING in the top-level source
+ ** directory for licensing information.\endverbatim
  **
  ** \brief Sort inference module
  **
@@ -39,9 +39,15 @@ bool QuantifierMacros::simplify( std::vector< Node >& assertions, bool doRewrite
     d_ground_macros = (r==0);
     Trace("macros") << "Find macros, ground=" << d_ground_macros << "..." << std::endl;
     //first, collect macro definitions
-    for( int i=0; i<(int)assertions.size(); i++ ){
+    std::vector< Node > macro_assertions;
+    for( unsigned i=0; i<assertions.size(); i++ ){
       Trace("macros-debug") << "  process assertion " << assertions[i] << std::endl;
       if( processAssertion( assertions[i] ) ){
+        PROOF( 
+          if( std::find( macro_assertions.begin(), macro_assertions.end(), assertions[i] )==macro_assertions.end() ){
+            macro_assertions.push_back( assertions[i] );
+          }
+        );
         //process this assertion again
         i--;
       }
@@ -56,7 +62,17 @@ bool QuantifierMacros::simplify( std::vector< Node >& assertions, bool doRewrite
         if( curr!=assertions[i] ){
           curr = Rewriter::rewrite( curr );
           Trace("macros-rewrite") << "Rewrite " << assertions[i] << " to " << curr << std::endl;
-          PROOF( ProofManager::currentPM()->addDependence(curr, assertions[i]); );
+          //for now, it is dependent upon all assertions involving macros, this is an over-approximation.
+          //a more fine-grained unsat core computation would require caching dependencies for each subterm of the formula, 
+          // which is expensive.
+          PROOF( 
+            ProofManager::currentPM()->addDependence(curr, assertions[i]); 
+            for( unsigned j=0; j<macro_assertions.size(); j++ ){
+              if( macro_assertions[j]!=assertions[i] ){
+                ProofManager::currentPM()->addDependence(curr,macro_assertions[j]);
+              }
+            }
+          );
           assertions[i] = curr;
           retVal = true;
         }
@@ -68,7 +84,7 @@ bool QuantifierMacros::simplify( std::vector< Node >& assertions, bool doRewrite
     }
   }
   if( Trace.isOn("macros-warn") ){
-    for( int i=0; i<(int)assertions.size(); i++ ){
+    for( unsigned i=0; i<assertions.size(); i++ ){
       debugMacroDefinition( assertions[i], assertions[i] );
     }
   }
@@ -137,7 +153,7 @@ bool QuantifierMacros::isGroundUfTerm( Node f, Node n ) {
   d_qe->getTermDatabase()->getVarContainsNode( f, icn, var );
   Trace("macros-debug2") << "Get trigger variables for " << icn << std::endl;
   std::vector< Node > trigger_var;
-  inst::Trigger::getTriggerVariables( d_qe, icn, f, trigger_var );
+  inst::Trigger::getTriggerVariables( icn, f, trigger_var );
   Trace("macros-debug2") << "Done." << std::endl;
   //only if all variables are also trigger variables
   return trigger_var.size()>=var.size();
@@ -145,18 +161,24 @@ bool QuantifierMacros::isGroundUfTerm( Node f, Node n ) {
 
 bool QuantifierMacros::isBoundVarApplyUf( Node n ) {
   Assert( n.getKind()==APPLY_UF );
-  TypeNode tn = n.getOperator().getType();
+  TypeNode tno = n.getOperator().getType();
+  std::map< Node, bool > vars;
   for( unsigned i=0; i<n.getNumChildren(); i++ ){
     if( n[i].getKind()!=BOUND_VARIABLE ){
       return false;
     }
-    if( n[i].getType()!=tn[i] ){
+    if( n[i].getType()!=tno[i] ){
       return false;
     }
-    for( unsigned j=0; j<i; j++ ){
-      if( n[j]==n[i] ){
-        return false;
-      }
+    if( !tno[i].isSort() && !tno[i].isReal() && ( !tno[i].isDatatype() || tno[i].isParametricDatatype() ) && 
+        !tno[i].isBitVector() && !tno[i].isString() && !tno[i].isFloatingPoint() ){
+      //only non-parametric types are supported
+      return false;
+    }
+    if( vars.find( n[i] )==vars.end() ){
+      vars[n[i]] = true;
+    }else{
+      return false;
     }
   }
   return true;
@@ -388,13 +410,33 @@ Node QuantifierMacros::simplify( Node n ){
         Node op = n.getOperator();
         std::map< Node, Node >::iterator it = d_macro_defs.find( op );
         if( it!=d_macro_defs.end() && !it->second.isNull() ){
-          //do substitution if necessary
-          ret = it->second;
-          std::map< Node, std::vector< Node > >::iterator itb = d_macro_basis.find( op );
-          if( itb!=d_macro_basis.end() ){
-            ret = ret.substitute( itb->second.begin(), itb->second.end(), children.begin(), children.end() );
+          //only apply if children are subtypes of arguments
+          bool success = true;
+          std::vector< Node > cond;
+          TypeNode tno = op.getType();
+          for( unsigned i=0; i<children.size(); i++ ){
+            if( !TermDb::getEnsureTypeCondition( children[i], tno[i], cond ) ){
+              //if this does fail, we are incomplete, since we are eliminating quantified formula corresponding to op, 
+              //  and not ensuring it applies to n when its types are correct.
+              //however, this should never fail: we never process types for which we cannot constuct conditions that ensure correct types, e.g. (is-int t).
+              Assert( false );
+              success = false;
+              break;
+            }
           }
-          retSet = true;
+          if( success ){
+            //do substitution if necessary
+            ret = it->second;
+            std::map< Node, std::vector< Node > >::iterator itb = d_macro_basis.find( op );
+            if( itb!=d_macro_basis.end() ){
+              ret = ret.substitute( itb->second.begin(), itb->second.end(), children.begin(), children.end() );
+            }
+            if( !cond.empty() ){
+              Node cc = cond.size()==1 ? cond[0] : NodeManager::currentNM()->mkNode( kind::AND, cond );
+              ret = NodeManager::currentNM()->mkNode( kind::ITE, cc, ret, n );
+            }
+            retSet = true;
+          }
         }
       }
       if( !retSet && childChanged ){

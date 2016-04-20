@@ -1,13 +1,13 @@
 /*********************                                                        */
 /*! \file theory_engine.cpp
  ** \verbatim
- ** Original author: Morgan Deters
- ** Major contributors: Dejan Jovanovic
- ** Minor contributors (to current version): Christopher L. Conway, Tianyi Liang, Kshitij Bansal, Clark Barrett, Liana Hadarean, Andrew Reynolds, Tim King
+ ** Top contributors (to current version):
+ **   Dejan Jovanovic, Morgan Deters, Tim King
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2014  New York University and The University of Iowa
- ** See the file COPYING in the top-level source directory for licensing
- ** information.\endverbatim
+ ** Copyright (c) 2009-2016 by the authors listed in the file AUTHORS
+ ** in the top-level source directory) and their institutional affiliations.
+ ** All rights reserved.  See the file COPYING in the top-level source
+ ** directory for licensing information.\endverbatim
  **
  ** \brief The theory engine
  **
@@ -78,24 +78,26 @@ void TheoryEngine::finishInit() {
 }
 
 void TheoryEngine::eqNotifyNewClass(TNode t){
-  if( d_logicInfo.isQuantified() ){
-    d_quantEngine->addTermToDatabase( t );
+  if (d_logicInfo.isQuantified()) {
+    d_quantEngine->eqNotifyNewClass( t );
   }
 }
 
 void TheoryEngine::eqNotifyPreMerge(TNode t1, TNode t2){
-
+  if (d_logicInfo.isQuantified()) {
+    d_quantEngine->eqNotifyPreMerge( t1, t2 );
+  }
 }
 
 void TheoryEngine::eqNotifyPostMerge(TNode t1, TNode t2){
-
+  if (d_logicInfo.isQuantified()) {
+    d_quantEngine->eqNotifyPostMerge( t1, t2 );
+  }
 }
 
 void TheoryEngine::eqNotifyDisequal(TNode t1, TNode t2, TNode reason){
-  if( d_logicInfo.isQuantified() ){
-    if( options::quantConflictFind() ){
-      d_quantEngine->getConflictFind()->assertDisequal( t1, t2 );
-    }
+  if (d_logicInfo.isQuantified()) {
+    d_quantEngine->eqNotifyDisequal( t1, t2, reason );
   }
 }
 
@@ -198,6 +200,7 @@ void TheoryEngine::interrupt() throw(ModalException) {
 
 void TheoryEngine::preRegister(TNode preprocessed) {
 
+  Debug("theory") << "TheoryEngine::preRegister( " << preprocessed << ")" << std::endl;
   if(Dump.isOn("missed-t-propagations")) {
     d_possiblePropagations.push_back(preprocessed);
   }
@@ -344,6 +347,7 @@ void TheoryEngine::check(Theory::Effort effort) {
     if (theory::TheoryTraits<THEORY>::hasCheck && d_logicInfo.isTheoryEnabled(THEORY)) { \
        theoryOf(THEORY)->check(effort); \
        if (d_inConflict) { \
+         Debug("conflict") << THEORY << " in conflict. " << std::endl; \
          break; \
        } \
     }
@@ -404,6 +408,9 @@ void TheoryEngine::check(Theory::Effort effort) {
         // Do the combination
         Debug("theory") << "TheoryEngine::check(" << effort << "): running combination" << endl;
         combineTheories();
+        if(d_logicInfo.isQuantified()){
+          d_quantEngine->notifyCombineTheories();
+        }
       }
     }
 
@@ -418,14 +425,14 @@ void TheoryEngine::check(Theory::Effort effort) {
         // must build model at this point
         d_curr_model_builder->buildModel(d_curr_model, true);
       }
-    Trace("theory::assertions-model") << endl;
+      Trace("theory::assertions-model") << endl;
       if (Trace.isOn("theory::assertions-model")) {
         printAssertions("theory::assertions-model");
       }
     }
 
     Debug("theory") << "TheoryEngine::check(" << effort << "): done, we are " << (d_inConflict ? "unsat" : "sat") << (d_lemmasAdded ? " with new lemmas" : " with no new lemmas");
-    Debug("theory") << ", need check = " << needCheck() << endl;
+    Debug("theory") << ", need check = " << (needCheck() ? "YES" : "NO") << endl;
 
     if(!d_inConflict && Theory::fullEffort(effort) && d_masterEqualityEngine != NULL && !d_lemmasAdded) {
       AlwaysAssert(d_masterEqualityEngine->consistent());
@@ -490,7 +497,7 @@ void TheoryEngine::combineTheories() {
 
     // We need to split on it
     Debug("combineTheories") << "TheoryEngine::combineTheories(): requesting a split " << endl;
-    lemma(equality.orNode(equality.notNode()), RULE_INVALID, false, false, false, carePair.theory);
+    lemma(equality.orNode(equality.notNode()), RULE_INVALID, false, false, false, carePair.theory, carePair.theory);
     // This code is supposed to force preference to follow what the theory models already have
     // but it doesn't seem to make a big difference - need to explore more -Clark
     // if (true) {
@@ -1212,6 +1219,8 @@ Node TheoryEngine::ensureLiteral(TNode n) {
 void TheoryEngine::printInstantiations( std::ostream& out ) {
   if( d_quantEngine ){
     d_quantEngine->printInstantiations( out );
+  }else{
+    out << "Internal error : instantiations not available when quantifiers are not present." << std::endl;
   }
 }
 
@@ -1222,6 +1231,15 @@ void TheoryEngine::printSynthSolution( std::ostream& out ) {
     out << "Internal error : synth solution not available when quantifiers are not present." << std::endl;
   }
 }
+
+void TheoryEngine::getInstantiations( std::map< Node, std::vector< Node > >& insts ) {
+  if( d_quantEngine ){
+    d_quantEngine->getInstantiations( insts );
+  }else{
+    Assert( false );
+  }
+}
+
 
 static Node mkExplanation(const std::vector<NodeTheoryPair>& explanation) {
 
@@ -1252,8 +1270,7 @@ static Node mkExplanation(const std::vector<NodeTheoryPair>& explanation) {
   return conjunction;
 }
 
-
-Node TheoryEngine::getExplanation(TNode node) {
+NodeTheoryPair TheoryEngine::getExplanationAndExplainer(TNode node) {
   Debug("theory::explain") << "TheoryEngine::getExplanation(" << node << "): current propagation index = " << d_propagationMapTimestamp << endl;
 
   bool polarity = node.getKind() != kind::NOT;
@@ -1263,12 +1280,16 @@ Node TheoryEngine::getExplanation(TNode node) {
   if (!d_logicInfo.isSharingEnabled()) {
     Node explanation = theoryOf(atom)->explain(node);
     Debug("theory::explain") << "TheoryEngine::getExplanation(" << node << ") => " << explanation << endl;
-    return explanation;
+    return NodeTheoryPair(explanation, theoryOf(atom)->getId());
   }
 
   // Initial thing to explain
   NodeTheoryPair toExplain(node, THEORY_SAT_SOLVER, d_propagationMapTimestamp);
   Assert(d_propagationMap.find(toExplain) != d_propagationMap.end());
+
+  NodeTheoryPair nodeExplainerPair = d_propagationMap[toExplain];
+  TheoryId explainer = nodeExplainerPair.theory;
+
   // Create the workplace for explanations
   std::vector<NodeTheoryPair> explanationVector;
   explanationVector.push_back(d_propagationMap[toExplain]);
@@ -1278,7 +1299,11 @@ Node TheoryEngine::getExplanation(TNode node) {
 
   Debug("theory::explain") << "TheoryEngine::getExplanation(" << node << ") => " << explanation << endl;
 
-  return explanation;
+  return NodeTheoryPair(explanation, explainer);
+}
+
+Node TheoryEngine::getExplanation(TNode node) {
+  return getExplanationAndExplainer(node).node;
 }
 
 struct AtomsCollect {
@@ -1380,7 +1405,8 @@ theory::LemmaStatus TheoryEngine::lemma(TNode node,
                                         bool negated,
                                         bool removable,
                                         bool preprocess,
-                                        theory::TheoryId atomsTo) {
+                                        theory::TheoryId atomsTo,
+                                        theory::TheoryId ownerTheory) {
   // For resource-limiting (also does a time check).
   // spendResource();
 
@@ -1406,12 +1432,13 @@ theory::LemmaStatus TheoryEngine::lemma(TNode node,
     d_channels->getLemmaOutputChannel()->notifyNewLemma(node.toExpr());
   }
 
+  std::vector<Node> additionalLemmas;
+  IteSkolemMap iteSkolemMap;
+
   // Run theory preprocessing, maybe
   Node ppNode = preprocess ? this->preprocess(node) : Node(node);
 
   // Remove the ITEs
-  std::vector<Node> additionalLemmas;
-  IteSkolemMap iteSkolemMap;
   additionalLemmas.push_back(ppNode);
   d_iteRemover.run(additionalLemmas, iteSkolemMap);
   additionalLemmas[0] = theory::Rewriter::rewrite(additionalLemmas[0]);
@@ -1429,10 +1456,10 @@ theory::LemmaStatus TheoryEngine::lemma(TNode node,
   }
 
   // assert to prop engine
-  d_propEngine->assertLemma(additionalLemmas[0], negated, removable, rule, node);
+  d_propEngine->assertLemma(additionalLemmas[0], negated, removable, rule, ownerTheory, node);
   for (unsigned i = 1; i < additionalLemmas.size(); ++ i) {
     additionalLemmas[i] = theory::Rewriter::rewrite(additionalLemmas[i]);
-    d_propEngine->assertLemma(additionalLemmas[i], false, removable, rule, node);
+    d_propEngine->assertLemma(additionalLemmas[i], false, removable, rule, ownerTheory, node);
   }
 
   // WARNING: Below this point don't assume additionalLemmas[0] to be not negated.
@@ -1476,11 +1503,11 @@ void TheoryEngine::conflict(TNode conflict, TheoryId theoryId) {
     Node fullConflict = mkExplanation(explanationVector);
     Debug("theory::conflict") << "TheoryEngine::conflict(" << conflict << ", " << theoryId << "): full = " << fullConflict << endl;
     Assert(properConflict(fullConflict));
-    lemma(fullConflict, RULE_CONFLICT, true, true, false, THEORY_LAST);
+    lemma(fullConflict, RULE_CONFLICT, true, true, false, THEORY_LAST, theoryId);
   } else {
     // When only one theory, the conflict should need no processing
     Assert(properConflict(conflict));
-    lemma(conflict, RULE_CONFLICT, true, true, false, THEORY_LAST);
+    lemma(conflict, RULE_CONFLICT, true, true, false, THEORY_LAST, theoryId);
   }
 }
 
@@ -1718,7 +1745,7 @@ void TheoryEngine::ppUnconstrainedSimp(vector<Node>& assertions)
 }
 
 
-void TheoryEngine::setUserAttribute(const std::string& attr, Node n, std::vector<Node> node_values, std::string str_value) {
+void TheoryEngine::setUserAttribute(const std::string& attr, Node n, std::vector<Node>& node_values, std::string str_value) {
   Trace("te-attr") << "set user attribute " << attr << " " << n << endl;
   if( d_attr_handle.find( attr )!=d_attr_handle.end() ){
     for( size_t i=0; i<d_attr_handle[attr].size(); i++ ){

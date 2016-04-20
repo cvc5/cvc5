@@ -1,13 +1,13 @@
 /*********************                                                        */
 /*! \file command_executor.cpp
  ** \verbatim
- ** Original author: Morgan Deters
- ** Major contributors: Andrew Reynolds, Kshitij Bansal
- ** Minor contributors (to current version): none
+ ** Top contributors (to current version):
+ **   Kshitij Bansal, Tim King, Morgan Deters
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2014  New York University and The University of Iowa
- ** See the file COPYING in the top-level source directory for licensing
- ** information.\endverbatim
+ ** Copyright (c) 2009-2016 by the authors listed in the file AUTHORS
+ ** in the top-level source directory) and their institutional affiliations.
+ ** All rights reserved.  See the file COPYING in the top-level source
+ ** directory for licensing information.\endverbatim
  **
  ** \brief An additional layer between commands and invoking them.
  **/
@@ -114,6 +114,10 @@ bool CommandExecutor::doCommandSingleton(Command* cmd)
   QueryCommand* q = dynamic_cast<QueryCommand*>(cmd);
   if(q != NULL) {
     d_result = res = q->getResult();
+  }
+  CheckSynthCommand* csy = dynamic_cast<CheckSynthCommand*>(cmd);
+  if(csy != NULL) {
+    d_result = res = csy->getResult();
   }
 
   if((cs != NULL || q != NULL) && d_options.getStatsEveryQuery()) {

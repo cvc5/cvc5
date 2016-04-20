@@ -4,6 +4,7 @@
 
 %ignore CVC4::operator<<(std::ostream&, const SExpr&);
 %ignore CVC4::operator<<(std::ostream&, SExpr::SexprTypes);
+%ignore CVC4::operator<<(std::ostream&, PrettySExprs);
 
 // for Java and the like
 %extend CVC4::SExpr {

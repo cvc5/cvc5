@@ -1,13 +1,13 @@
 /*********************                                                        */
 /*! \file first_order_model.cpp
  ** \verbatim
- ** Original author: Andrew Reynolds
- ** Major contributors: none
- ** Minor contributors (to current version): Kshitij Bansal, Morgan Deters
+ ** Top contributors (to current version):
+ **   Andrew Reynolds, Morgan Deters, Tim King
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2014  New York University and The University of Iowa
- ** See the file COPYING in the top-level source directory for licensing
- ** information.\endverbatim
+ ** Copyright (c) 2009-2016 by the authors listed in the file AUTHORS
+ ** in the top-level source directory) and their institutional affiliations.
+ ** All rights reserved.  See the file COPYING in the top-level source
+ ** directory for licensing information.\endverbatim
  **
  ** \brief Implementation of model engine model class
  **/
@@ -30,24 +30,43 @@ using namespace CVC4::theory;
 using namespace CVC4::theory::quantifiers;
 using namespace CVC4::theory::quantifiers::fmcheck;
 
+struct sortQuantifierRelevance {
+  FirstOrderModel * d_fm;
+  bool operator() (Node i, Node j) {
+    int wi = d_fm->getRelevanceValue( i );
+    int wj = d_fm->getRelevanceValue( j );
+    if( wi==wj ){
+      return i<j;
+    }else{
+      return wi<wj;
+    }
+  }
+};
+
 FirstOrderModel::FirstOrderModel(QuantifiersEngine * qe, context::Context* c, std::string name ) :
 TheoryModel( c, name, true ),
 d_qe( qe ), d_forall_asserts( c ), d_isModelSet( c, false ){
-
+  d_rlv_count = 0;
 }
 
-void FirstOrderModel::assertQuantifier( Node n, bool reduced ){
-  if( !reduced ){
-    if( n.getKind()==FORALL ){
-      d_forall_asserts.push_back( n );
-    }else if( n.getKind()==NOT ){
-      Assert( n[0].getKind()==FORALL );
-    }
+void FirstOrderModel::assertQuantifier( Node n ){
+  if( n.getKind()==FORALL ){
+    d_forall_asserts.push_back( n );
+  }else if( n.getKind()==NOT ){
+    Assert( n[0].getKind()==FORALL );
+  }
+}
+
+unsigned FirstOrderModel::getNumAssertedQuantifiers() { 
+  return d_forall_asserts.size(); 
+}
+
+Node FirstOrderModel::getAssertedQuantifier( unsigned i, bool ordered ) { 
+  if( !ordered || d_forall_rlv_assert.empty() ){
+    return d_forall_asserts[i]; 
   }else{
-    Assert( n.getKind()==FORALL );
-    Assert( d_forall_to_reduce.find( n )==d_forall_to_reduce.end() );
-    d_forall_to_reduce[n] = true;
-    Trace("quant") << "Mark to reduce : " << n << std::endl;
+    Assert( d_forall_rlv_assert.size()==d_forall_asserts.size() );
+    return d_forall_rlv_assert[i];
   }
 }
 
@@ -81,11 +100,11 @@ void FirstOrderModel::initialize() {
   processInitialize( true );
   //this is called after representatives have been chosen and the equality engine has been built
   //for each quantifier, collect all operators we care about
-  for( int i=0; i<getNumAssertedQuantifiers(); i++ ){
+  for( unsigned i=0; i<getNumAssertedQuantifiers(); i++ ){
     Node f = getAssertedQuantifier( i );
     if( d_quant_var_id.find( f )==d_quant_var_id.end() ){
-      for(unsigned i=0; i<f[0].getNumChildren(); i++){
-        d_quant_var_id[f][f[0][i]] = i;
+      for(unsigned j=0; j<f[0].getNumChildren(); j++){
+        d_quant_var_id[f][f[0][j]] = j;
       }
     }
     processInitializeQuantifier( f );
@@ -122,19 +141,71 @@ Node FirstOrderModel::getSomeDomainElement(TypeNode tn){
 
 /** needs check */
 bool FirstOrderModel::checkNeeded() {
-  return d_forall_asserts.size()>0 || !d_forall_to_reduce.empty();
-}
-
-/** mark reduced */
-void FirstOrderModel::markQuantifierReduced( Node q ) {
-  Assert( d_forall_to_reduce.find( q )!=d_forall_to_reduce.end() );
-  d_forall_to_reduce.erase( q );
-  Trace("quant") << "Mark reduced : " << q << std::endl;
+  return d_forall_asserts.size()>0;
 }
 
 void FirstOrderModel::reset_round() {
   d_quant_active.clear();
+  
+  //order the quantified formulas
+  if( !d_forall_rlv_vec.empty() ){
+    Trace("fm-relevant") << "Build sorted relevant list..." << std::endl;
+    d_forall_rlv_assert.clear();
+    Trace("fm-relevant-debug") << "Mark asserted quantified formulas..." << std::endl;
+    std::map< Node, bool > qassert;
+    for( unsigned i=0; i<d_forall_asserts.size(); i++ ){
+      qassert[d_forall_asserts[i]] = true;
+    }
+    Trace("fm-relevant-debug") << "Sort the relevant quantified formulas..." << std::endl;
+    sortQuantifierRelevance sqr;
+    sqr.d_fm = this;
+    std::sort( d_forall_rlv_vec.begin(), d_forall_rlv_vec.end(), sqr );
+    Trace("fm-relevant-debug") << "Add relevant asserted formulas..." << std::endl;
+    for( int i=(int)(d_forall_rlv_vec.size()-1); i>=0; i-- ){
+      Node q = d_forall_rlv_vec[i];
+      if( qassert.find( q )!=qassert.end() ){
+        Trace("fm-relevant") << "   " << d_forall_rlv[q] << " : " << q << std::endl;
+        d_forall_rlv_assert.push_back( q );
+      }
+    }
+    Trace("fm-relevant-debug") << "Add remaining asserted formulas..." << std::endl;
+    for( unsigned i=0; i<d_forall_asserts.size(); i++ ){
+      Node q = d_forall_asserts[i];
+      if( std::find( d_forall_rlv_assert.begin(), d_forall_rlv_assert.end(), q )==d_forall_rlv_assert.end() ){
+        d_forall_rlv_assert.push_back( q );
+      }else{
+        Trace("fm-relevant-debug") << "...already included " << q << std::endl;
+      }
+    }
+    Trace("fm-relevant-debug") << "Sizes : " << d_forall_rlv_assert.size() << " " << d_forall_asserts.size() << std::endl;
+    Assert( d_forall_rlv_assert.size()==d_forall_asserts.size() );
+  }
 }
+
+void FirstOrderModel::markRelevant( Node q ) {
+  if( q!=d_last_forall_rlv ){
+    Trace("fm-relevant") << "Mark relevant : " << q << std::endl;
+    if( std::find( d_forall_rlv_vec.begin(), d_forall_rlv_vec.end(), q )==d_forall_rlv_vec.end() ){
+      d_forall_rlv_vec.push_back( q );
+    }
+    d_forall_rlv[ q ] = d_rlv_count;
+    d_rlv_count++;
+    d_last_forall_rlv = q;
+  }
+}
+
+int FirstOrderModel::getRelevanceValue( Node q ) {
+  std::map< Node, unsigned >::iterator it = d_forall_rlv.find( q );
+  if( it==d_forall_rlv.end() ){
+    return -1;
+  }else{
+    return it->second;
+  }
+}
+
+//bool FirstOrderModel::isQuantifierAsserted( TNode q ) {
+//  return d_forall_asserts.find( q )!=d_forall_asserts.end();
+//}
 
 void FirstOrderModel::setQuantifierActive( TNode q, bool active ) {
   d_quant_active[q] = active;

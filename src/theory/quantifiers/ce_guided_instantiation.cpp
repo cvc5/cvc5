@@ -1,13 +1,13 @@
 /*********************                                                        */
 /*! \file ce_guided_instantiation.cpp
  ** \verbatim
- ** Original author: Andrew Reynolds
- ** Major contributors: none
- ** Minor contributors (to current version): none
+ ** Top contributors (to current version):
+ **   Andrew Reynolds, Tim King, Morgan Deters
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2014  New York University and The University of Iowa
- ** See the file COPYING in the top-level source directory for licensing
- ** information.\endverbatim
+ ** Copyright (c) 2009-2016 by the authors listed in the file AUTHORS
+ ** in the top-level source directory) and their institutional affiliations.
+ ** All rights reserved.  See the file COPYING in the top-level source
+ ** directory for licensing information.\endverbatim
  **
  ** \brief counterexample guided instantiation class
  **
@@ -22,17 +22,23 @@
 #include "theory/quantifiers/term_database.h"
 #include "theory/theory_engine.h"
 
-using namespace CVC4;
 using namespace CVC4::kind;
-using namespace CVC4::theory;
-using namespace CVC4::theory::quantifiers;
 using namespace std;
 
 namespace CVC4 {
+namespace theory {
+namespace quantifiers {
 
-CegConjecture::CegConjecture( QuantifiersEngine * qe, context::Context* c ) : d_qe( qe ), d_curr_lit( c, 0 ){
+
+CegConjecture::CegConjecture( QuantifiersEngine * qe, context::Context* c )
+    : d_qe( qe ), d_curr_lit( c, 0 )
+{
   d_refine_count = 0;
   d_ceg_si = new CegConjectureSingleInv( qe, this );
+}
+
+CegConjecture::~CegConjecture() {
+  delete d_ceg_si;
 }
 
 void CegConjecture::assign( Node q ) {
@@ -149,7 +155,7 @@ CegqiFairMode CegConjecture::getCegqiFairMode() {
   return isSingleInvocation() ? CEGQI_FAIR_NONE : options::ceGuidedInstFair();
 }
 
-bool CegConjecture::isSingleInvocation() {
+bool CegConjecture::isSingleInvocation() const {
   return d_ceg_si->isSingleInvocation();
 }
 
@@ -219,11 +225,13 @@ bool CegInstantiation::needsCheck( Theory::Effort e ) {
 }
 
 unsigned CegInstantiation::needsModel( Theory::Effort e ) {
-  return d_conj->d_ceg_si->isSingleInvocation() ? QuantifiersEngine::QEFFORT_STANDARD : QuantifiersEngine::QEFFORT_MODEL;
+  return d_conj->getCegConjectureSingleInv()->isSingleInvocation()
+      ? QuantifiersEngine::QEFFORT_STANDARD : QuantifiersEngine::QEFFORT_MODEL;
 }
 
 void CegInstantiation::check( Theory::Effort e, unsigned quant_e ) {
-  unsigned echeck = d_conj->d_ceg_si->isSingleInvocation() ? QuantifiersEngine::QEFFORT_STANDARD : QuantifiersEngine::QEFFORT_MODEL;
+  unsigned echeck = d_conj->getCegConjectureSingleInv()->isSingleInvocation() ?
+      QuantifiersEngine::QEFFORT_STANDARD : QuantifiersEngine::QEFFORT_MODEL;
   if( quant_e==echeck ){
     Trace("cegqi-engine") << "---Counterexample Guided Instantiation Engine---" << std::endl;
     Trace("cegqi-engine-debug") << std::endl;
@@ -294,12 +302,13 @@ Node CegInstantiation::getNextDecisionRequest() {
   if( d_conj->isAssigned() ){
     d_conj->initializeGuard( d_quantEngine );
     std::vector< Node > req_dec;
-    if( !d_conj->d_ceg_si->d_full_guard.isNull() ){
-      req_dec.push_back( d_conj->d_ceg_si->d_full_guard );
+    const CegConjectureSingleInv* ceg_si = d_conj->getCegConjectureSingleInv();
+    if( ! ceg_si->d_full_guard.isNull() ){
+      req_dec.push_back( ceg_si->d_full_guard );
     }
     //must decide ns guard before s guard
-    if( !d_conj->d_ceg_si->d_ns_guard.isNull() ){
-      req_dec.push_back( d_conj->d_ceg_si->d_ns_guard );
+    if( !ceg_si->d_ns_guard.isNull() ){
+      req_dec.push_back( ceg_si->d_ns_guard );
     }
     req_dec.push_back( d_conj->getGuard() );
     for( unsigned i=0; i<req_dec.size(); i++ ){
@@ -348,9 +357,9 @@ void CegInstantiation::checkCegConjecture( CegConjecture * conj ) {
   if( conj->d_ce_sk.empty() ){
     Trace("cegqi-engine") << "  *** Check candidate phase..." << std::endl;
     if( conj->d_syntax_guided ){
-      if( conj->d_ceg_si ){
+      if( conj->getCegConjectureSingleInv() != NULL ){
         std::vector< Node > lems;
-        if( conj->d_ceg_si->check( lems ) ){
+        if( conj->doCegConjectureCheck( lems ) ){
           if( !lems.empty() ){
             d_last_inst_si = true;
             for( unsigned j=0; j<lems.size(); j++ ){
@@ -423,7 +432,7 @@ void CegInstantiation::checkCegConjecture( CegConjecture * conj ) {
       Assert( aq==q );
       std::vector< Node > model_terms;
       if( getModelValues( conj, conj->d_candidates, model_terms ) ){
-        d_quantEngine->addInstantiation( q, model_terms, false );
+        d_quantEngine->addInstantiation( q, model_terms );
       }
     }
   }else{
@@ -600,39 +609,53 @@ void CegInstantiation::printSynthSolution( std::ostream& out ) {
       Node sol;
       int status;
       if( d_last_inst_si ){
-        Assert( d_conj->d_ceg_si );
-        sol = d_conj->d_ceg_si->getSolution( i, tn, status );
+        Assert( d_conj->getCegConjectureSingleInv() != NULL );
+        sol = d_conj->getSingleInvocationSolution( i, tn, status );
         sol = sol.getKind()==LAMBDA ? sol[1] : sol;
       }else{
         if( !d_conj->d_candidate_inst[i].empty() ){
           sol = d_conj->d_candidate_inst[i].back();
-          //check if this was based on a template, if so, we must do reconstruction
+          // Check if this was based on a template, if so, we must do
+          // Reconstruction
           if( d_conj->d_assert_quant!=d_conj->d_quant ){
             Node sygus_sol = sol;
-            Trace("cegqi-inv") << "Sygus version of solution is : " << sol << ", type : " << sol.getType() << std::endl;
+            Trace("cegqi-inv") << "Sygus version of solution is : " << sol
+                               << ", type : " << sol.getType() << std::endl;
             std::vector< Node > subs;
             Expr svl = dt.getSygusVarList();
             for( unsigned j=0; j<svl.getNumChildren(); j++ ){
               subs.push_back( Node::fromExpr( svl[j] ) );
             }
             if( options::sygusInvTemplMode() == SYGUS_INV_TEMPL_MODE_PRE ){
-              if( d_conj->d_ceg_si->d_trans_pre.find( prog )!=d_conj->d_ceg_si->d_trans_pre.end() ){
-                Assert( d_conj->d_ceg_si->d_prog_templ_vars[prog].size()==subs.size() );
-                Node pre = d_conj->d_ceg_si->d_trans_pre[prog];
-                pre = pre.substitute( d_conj->d_ceg_si->d_prog_templ_vars[prog].begin(), d_conj->d_ceg_si->d_prog_templ_vars[prog].end(),
+              const CegConjectureSingleInv* ceg_si =
+                  d_conj->getCegConjectureSingleInv();
+              if(ceg_si->d_trans_pre.find( prog ) != ceg_si->d_trans_pre.end()){
+                std::vector<Node>& templ_vars = d_conj->getProgTempVars(prog);
+                Assert(templ_vars.size() == subs.size());
+                Node pre = ceg_si->getTransPre(prog);
+                pre = pre.substitute( templ_vars.begin(), templ_vars.end(),
                                       subs.begin(), subs.end() );
-                sol = getTermDatabase()->getTermDatabaseSygus()->sygusToBuiltin( sol, sol.getType() );
-                Trace("cegqi-inv") << "Builtin version of solution is : " << sol << ", type : " << sol.getType() << std::endl;
+                TermDbSygus* sygusDb = getTermDatabase()->getTermDatabaseSygus();
+                sol = sygusDb->sygusToBuiltin( sol, sol.getType() );
+                Trace("cegqi-inv") << "Builtin version of solution is : "
+                                   << sol << ", type : " << sol.getType()
+                                   << std::endl;
                 sol = NodeManager::currentNM()->mkNode( OR, sol, pre );
               }
-            }else if( options::sygusInvTemplMode() == SYGUS_INV_TEMPL_MODE_POST ){
-              if( d_conj->d_ceg_si->d_trans_post.find( prog )!=d_conj->d_ceg_si->d_trans_post.end() ){
-                Assert( d_conj->d_ceg_si->d_prog_templ_vars[prog].size()==subs.size() );
-                Node post = d_conj->d_ceg_si->d_trans_post[prog];
-                post = post.substitute( d_conj->d_ceg_si->d_prog_templ_vars[prog].begin(), d_conj->d_ceg_si->d_prog_templ_vars[prog].end(),
+            }else if(options::sygusInvTemplMode() == SYGUS_INV_TEMPL_MODE_POST){
+              const CegConjectureSingleInv* ceg_si =
+                  d_conj->getCegConjectureSingleInv();
+              if(ceg_si->d_trans_post.find(prog) != ceg_si->d_trans_post.end()){
+                std::vector<Node>& templ_vars = d_conj->getProgTempVars(prog);
+                Assert( templ_vars.size()==subs.size() );
+                Node post = ceg_si->getTransPost(prog);
+                post = post.substitute( templ_vars.begin(), templ_vars.end(),
                                         subs.begin(), subs.end() );
-                sol = getTermDatabase()->getTermDatabaseSygus()->sygusToBuiltin( sol, sol.getType() );
-                Trace("cegqi-inv") << "Builtin version of solution is : " << sol << ", type : " << sol.getType() << std::endl;
+                TermDbSygus* sygusDb = getTermDatabase()->getTermDatabaseSygus();
+                sol = sygusDb->sygusToBuiltin( sol, sol.getType() );
+                Trace("cegqi-inv") << "Builtin version of solution is : "
+                                   << sol << ", type : " << sol.getType()
+                                   << std::endl;
                 sol = NodeManager::currentNM()->mkNode( AND, sol, post );
               }
             }
@@ -643,7 +666,7 @@ void CegInstantiation::printSynthSolution( std::ostream& out ) {
               Trace("cegqi-inv-debug") << "With template : " << sol << std::endl;
               sol = Rewriter::rewrite( sol );
               Trace("cegqi-inv-debug") << "Simplified : " << sol << std::endl;
-              sol = d_conj->d_ceg_si->reconstructToSyntax( sol, tn, status );
+              sol = d_conj->reconstructToSyntaxSingleInvocation(sol, tn, status);
               sol = sol.getKind()==LAMBDA ? sol[1] : sol;
             }
           }else{
@@ -712,5 +735,6 @@ CegInstantiation::Statistics::~Statistics(){
   smtStatisticsRegistry()->unregisterStat(&d_cegqi_si_lemmas);
 }
 
-
-}
+}/* namespace CVC4::theory::quantifiers */
+}/* namespace CVC4::theory */
+}/* namespace CVC4 */

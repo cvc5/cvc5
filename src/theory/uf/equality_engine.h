@@ -1,13 +1,13 @@
 /*********************                                                        */
 /*! \file equality_engine.h
  ** \verbatim
- ** Original author: Dejan Jovanovic
- ** Major contributors: Morgan Deters
- ** Minor contributors (to current version): Tim King, Kshitij Bansal, Dejan Jovanovic, Liana Hadarean, Andrew Reynolds
+ ** Top contributors (to current version):
+ **   Dejan Jovanovic, Morgan Deters, Guy Katz
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2014  New York University and The University of Iowa
- ** See the file COPYING in the top-level source directory for licensing
- ** information.\endverbatim
+ ** Copyright (c) 2009-2016 by the authors listed in the file AUTHORS
+ ** in the top-level source directory) and their institutional affiliations.
+ ** All rights reserved.  See the file COPYING in the top-level source
+ ** directory for licensing information.\endverbatim
  **
  ** \brief [[ Add one-line brief description here ]]
  **
@@ -140,6 +140,18 @@ public:
   void eqNotifyDisequal(TNode t1, TNode t2, TNode reason) { }
 };/* class EqualityEngineNotifyNone */
 
+/**
+ * An interface for equality engine notifications during equality path reconstruction.
+ * Can be used to add theory-specific logic for, e.g., proof construction.
+ */
+class PathReconstructionNotify {
+public:
+
+  virtual ~PathReconstructionNotify() {}
+
+  virtual void notify(unsigned reasonType, Node reason, Node a, Node b,
+                      std::vector<TNode>& equalities, EqProof* proof) const = 0;
+};
 
 /**
  * Class for keeping an incremental congruence closure over a set of terms. It provides
@@ -218,6 +230,9 @@ private:
   /** The map of kinds to be treated as interpreted function applications (for evaluation of constants) */
   KindMap d_congruenceKindsInterpreted;
 
+  /** Objects that need to be notified during equality path reconstruction */
+  std::map<unsigned, const PathReconstructionNotify*> d_pathReconstructionTriggers;
+
   /** Map from nodes to their ids */
   __gnu_cxx::hash_map<TNode, EqualityNodeId, TNodeHashFunction> d_nodeIds;
 
@@ -259,6 +274,9 @@ private:
   /** Memory for the use-list nodes */
   std::vector<UseListNode> d_useListNodes;
 
+  /** A fresh merge reason type to return upon request */
+  unsigned d_freshMergeReasonType;
+
   /**
    * We keep a list of asserted equalities. Not among original terms, but
    * among the class representatives.
@@ -289,7 +307,7 @@ private:
     // The next edge
     EqualityEdgeId d_nextId;
     // Type of reason for this equality
-    MergeReasonType d_mergeType;
+    unsigned d_mergeType;
     // Reason of this equality
     TNode d_reason;
 
@@ -298,7 +316,7 @@ private:
     EqualityEdge():
       d_nodeId(null_edge), d_nextId(null_edge), d_mergeType(MERGED_THROUGH_CONGRUENCE) {}
 
-    EqualityEdge(EqualityNodeId nodeId, EqualityNodeId nextId, MergeReasonType type, TNode reason):
+    EqualityEdge(EqualityNodeId nodeId, EqualityNodeId nextId, unsigned type, TNode reason):
       d_nodeId(nodeId), d_nextId(nextId), d_mergeType(type), d_reason(reason) {}
 
     /** Returns the id of the next edge */
@@ -308,7 +326,7 @@ private:
     EqualityNodeId getNodeId() const { return d_nodeId; }
 
     /** The reason of this edge */
-    MergeReasonType getReasonType() const { return d_mergeType; }
+    unsigned getReasonType() const { return d_mergeType; }
 
     /** The reason of this edge */
     TNode getReason() const { return d_reason; }
@@ -333,7 +351,7 @@ private:
   std::vector<EqualityEdgeId> d_equalityGraph;
 
   /** Add an edge to the equality graph */
-  void addGraphEdge(EqualityNodeId t1, EqualityNodeId t2, MergeReasonType type, TNode reason);
+  void addGraphEdge(EqualityNodeId t1, EqualityNodeId t2, unsigned type, TNode reason);
 
   /** Returns the equality node of the given node */
   EqualityNode& getEqualityNode(TNode node);
@@ -505,7 +523,7 @@ private:
   /**
    * Adds an equality of terms t1 and t2 to the database.
    */
-  void assertEqualityInternal(TNode t1, TNode t2, TNode reason, MergeReasonType pid = MERGED_THROUGH_EQUALITY);
+  void assertEqualityInternal(TNode t1, TNode t2, TNode reason, unsigned pid = MERGED_THROUGH_EQUALITY);
 
   /**
    * Adds a trigger equality to the database with the trigger node and polarity for notification.
@@ -729,7 +747,7 @@ public:
    *                 asserting the negated predicate
    * @param reason the reason to keep for building explanations
    */
-  void assertPredicate(TNode p, bool polarity, TNode reason, MergeReasonType pid = MERGED_THROUGH_EQUALITY);
+  void assertPredicate(TNode p, bool polarity, TNode reason, unsigned pid = MERGED_THROUGH_EQUALITY);
 
   /**
    * Adds predicate p and q and makes them equal.
@@ -744,7 +762,7 @@ public:
    *                 asserting the negated equality
    * @param reason the reason to keep for building explanations
    */
-  void assertEquality(TNode eq, bool polarity, TNode reason, MergeReasonType pid = MERGED_THROUGH_EQUALITY);
+  void assertEquality(TNode eq, bool polarity, TNode reason, unsigned pid = MERGED_THROUGH_EQUALITY);
 
   /**
    * Returns the current representative of the term t.
@@ -833,6 +851,15 @@ public:
    */
   bool consistent() const { return !d_done; }
 
+  /**
+   * Marks an object for merge type based notification during equality path reconstruction.
+   */
+  void addPathReconstructionTrigger(unsigned trigger, const PathReconstructionNotify* notify);
+
+  /**
+   * Returns a fresh merge reason type tag for the client to use.
+   */
+  unsigned getFreshMergeReasonType();
 };
 
 /**
@@ -876,7 +903,7 @@ class EqProof
 {
 public:
   EqProof() : d_id(MERGED_THROUGH_REFLEXIVITY){}
-  MergeReasonType d_id;
+  unsigned d_id;
   Node d_node;
   std::vector< EqProof * > d_children;
   void debug_print( const char * c, unsigned tb = 0 ) const;

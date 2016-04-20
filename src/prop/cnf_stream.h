@@ -1,13 +1,13 @@
 /*********************                                                        */
 /*! \file cnf_stream.h
  ** \verbatim
- ** Original author: Tim King
- ** Major contributors: Morgan Deters, Dejan Jovanovic
- ** Minor contributors (to current version): Clark Barrett, Liana Hadarean, Christopher L. Conway, Andrew Reynolds
+ ** Top contributors (to current version):
+ **   Dejan Jovanovic, Morgan Deters, Tim King
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2014  New York University and The University of Iowa
- ** See the file COPYING in the top-level source directory for licensing
- ** information.\endverbatim
+ ** Copyright (c) 2009-2016 by the authors listed in the file AUTHORS
+ ** in the top-level source directory) and their institutional affiliations.
+ ** All rights reserved.  See the file COPYING in the top-level source
+ ** directory for licensing information.\endverbatim
  **
  ** \brief This class transforms a sequence of formulas into clauses.
  **
@@ -207,9 +207,14 @@ public:
    * @param node node to convert and assert
    * @param removable whether the sat solver can choose to remove the clauses
    * @param negated whether we are asserting the node negated
+   * @param ownerTheory indicates the theory that should invoked to prove the formula.
    */
-  virtual void convertAndAssert(TNode node, bool removable, bool negated, ProofRule proof_id, TNode from = TNode::null()) = 0;
-
+  virtual void convertAndAssert(TNode node,
+                                bool removable,
+                                bool negated,
+                                ProofRule proof_id,
+                                TNode from = TNode::null(),
+                                theory::TheoryId ownerTheory = theory::THEORY_LAST) = 0;
   /**
    * Get the node that is represented by the given SatLiteral.
    * @param literal the literal from the sat solver
@@ -278,7 +283,8 @@ public:
    * @param negated true if negated
    */
   void convertAndAssert(TNode node, bool removable,
-                        bool negated, ProofRule rule, TNode from = TNode::null());
+                        bool negated, ProofRule rule, TNode from = TNode::null(),
+                        theory::TheoryId ownerTheory = theory::THEORY_LAST);
 
   /**
    * Constructs the stream to use the given sat solver.

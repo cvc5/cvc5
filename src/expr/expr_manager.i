@@ -40,7 +40,6 @@
 
 %include "expr/expr_manager.h"
 
-%template(mkConst) CVC4::ExprManager::mkConst<CVC4::TypeConstant>;
 %template(mkConst) CVC4::ExprManager::mkConst<CVC4::ArrayStoreAll>;
 %template(mkConst) CVC4::ExprManager::mkConst<CVC4::BitVectorSize>;
 %template(mkConst) CVC4::ExprManager::mkConst<CVC4::AscriptionType>;
@@ -67,10 +66,7 @@
 %template(mkConst) CVC4::ExprManager::mkConst<CVC4::UninterpretedConstant>;
 %template(mkConst) CVC4::ExprManager::mkConst<CVC4::kind::Kind_t>;
 %template(mkConst) CVC4::ExprManager::mkConst<CVC4::Datatype>;
-%template(mkConst) CVC4::ExprManager::mkConst<CVC4::TupleSelect>;
 %template(mkConst) CVC4::ExprManager::mkConst<CVC4::TupleUpdate>;
-%template(mkConst) CVC4::ExprManager::mkConst<CVC4::Record>;
-%template(mkConst) CVC4::ExprManager::mkConst<CVC4::RecordSelect>;
 %template(mkConst) CVC4::ExprManager::mkConst<CVC4::RecordUpdate>;
 %template(mkConst) CVC4::ExprManager::mkConst<CVC4::Rational>;
 %template(mkConst) CVC4::ExprManager::mkConst<CVC4::BitVector>;
@@ -78,6 +74,25 @@
 %template(mkConst) CVC4::ExprManager::mkConst<CVC4::EmptySet>;
 %template(mkConst) CVC4::ExprManager::mkConst<CVC4::String>;
 %template(mkConst) CVC4::ExprManager::mkConst<CVC4::RegExp>;
+#ifdef SWIGPYTHON
+/* The python bindings cannot differentiate between bool and other basic
+ * types like enum and int. Therefore, we rename mkConst for the bool
+ * case into mkBoolConst.
+*/
+%template(mkBoolConst) CVC4::ExprManager::mkConst<bool>;
+
+// These cases have trouble too.  Remove them for now.
+//%template(mkConst) CVC4::ExprManager::mkConst<CVC4::TypeConstant>;
+//%template(mkConst) CVC4::ExprManager::mkConst<CVC4::TupleSelect>;
+//%template(mkConst) CVC4::ExprManager::mkConst<CVC4::Record>;
+//%template(mkConst) CVC4::ExprManager::mkConst<CVC4::RecordSelect>;
+
+#else
+%template(mkConst) CVC4::ExprManager::mkConst<CVC4::TypeConstant>;
+%template(mkConst) CVC4::ExprManager::mkConst<CVC4::TupleSelect>;
+%template(mkConst) CVC4::ExprManager::mkConst<CVC4::Record>;
+%template(mkConst) CVC4::ExprManager::mkConst<CVC4::RecordSelect>;
 %template(mkConst) CVC4::ExprManager::mkConst<bool>;
+#endif
 
 %include "expr/expr_manager.h"

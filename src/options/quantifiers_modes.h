@@ -1,13 +1,13 @@
 /*********************                                                        */
 /*! \file quantifiers_modes.h
  ** \verbatim
- ** Original author: Andrew Reynolds
- ** Major contributors: Morgan Deters
- ** Minor contributors (to current version): none
+ ** Top contributors (to current version):
+ **   Andrew Reynolds, Tim King, Morgan Deters
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2014  New York University and The University of Iowa
- ** See the file COPYING in the top-level source directory for licensing
- ** information.\endverbatim
+ ** Copyright (c) 2009-2016 by the authors listed in the file AUTHORS
+ ** in the top-level source directory) and their institutional affiliations.
+ ** All rights reserved.  See the file COPYING in the top-level source
+ ** directory for licensing information.\endverbatim
  **
  ** \brief [[ Add one-line brief description here ]]
  **
@@ -83,8 +83,6 @@ enum QcfMode {
   QCF_PROP_EQ,
   /** use qcf for conflicts, propagations and heuristic instantiations */
   QCF_PARTIAL,
-  /** use qcf for model checking */
-  QCF_MC,
 };
 
 enum UserPatMode {
@@ -107,6 +105,12 @@ enum TriggerSelMode {
   TRIGGER_SEL_MIN,
   /** only consider maximal terms for triggers */
   TRIGGER_SEL_MAX,
+  /** consider minimal terms for single triggers, maximal for non-single */
+  TRIGGER_SEL_MIN_SINGLE_MAX,
+  /** consider minimal terms for single triggers, all for non-single */
+  TRIGGER_SEL_MIN_SINGLE_ALL,
+  /** consider all terms for triggers */
+  TRIGGER_SEL_ALL,
 };
 
 enum CVC4_PUBLIC PrenexQuantMode {
@@ -161,6 +165,24 @@ enum MacrosQuantMode {
   MACROS_QUANT_MODE_GROUND,
   /** infer ground uf definitions */
   MACROS_QUANT_MODE_GROUND_UF,
+};
+
+enum QuantDSplitMode {
+  /** never do quantifiers splitting */
+  QUANT_DSPLIT_MODE_NONE,
+  /** default */
+  QUANT_DSPLIT_MODE_DEFAULT,
+  /** do quantifiers splitting aggressively */
+  QUANT_DSPLIT_MODE_AGG,
+};
+
+enum QuantRepMode {
+  /** let equality engine choose representatives */
+  QUANT_REP_MODE_EE,
+  /** default, choose representatives that appear first */
+  QUANT_REP_MODE_FIRST,
+  /** choose representatives that have minimal depth */
+  QUANT_REP_MODE_DEPTH,
 };
 
 }/* CVC4::theory::quantifiers namespace */

@@ -1,13 +1,13 @@
 /*********************                                                        */
 /*! \file cvc3_compat.cpp
  ** \verbatim
- ** Original author: Morgan Deters
- ** Major contributors: none
- ** Minor contributors (to current version): Andrew Reynolds, Tim King, Dejan Jovanovic, Tianyi Liang
+ ** Top contributors (to current version):
+ **   Morgan Deters, Tim King, Andrew Reynolds
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2014  New York University and The University of Iowa
- ** See the file COPYING in the top-level source directory for licensing
- ** information.\endverbatim
+ ** Copyright (c) 2009-2016 by the authors listed in the file AUTHORS
+ ** in the top-level source directory) and their institutional affiliations.
+ ** All rights reserved.  See the file COPYING in the top-level source
+ ** directory for licensing information.\endverbatim
  **
  ** \brief CVC3 compatibility layer for CVC4
  **
@@ -1818,8 +1818,7 @@ Expr ValidityChecker::recordExpr(const std::vector<std::string>& fields,
 Expr ValidityChecker::recSelectExpr(const Expr& record, const std::string& field) {
   Type t = record.getType();
   const CVC4::Datatype& dt = ((CVC4::DatatypeType)t).getDatatype();
-  const CVC4::Record& rec = ((CVC4::DatatypeType)t).getRecord();
-  unsigned index = rec.getIndex(field);
+  unsigned index = CVC4::Datatype::indexOf( dt[0].getSelector(field) );
   return d_em->mkExpr(CVC4::kind::APPLY_SELECTOR_TOTAL, dt[0][index].getSelector(), record);
 }
 

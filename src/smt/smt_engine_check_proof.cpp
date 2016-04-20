@@ -1,13 +1,13 @@
 /*********************                                                        */
 /*! \file smt_engine_check_proof.cpp
  ** \verbatim
- ** Original author: Morgan Deters
- ** Major contributors: none
- ** Minor contributors (to current version): none
+ ** Top contributors (to current version):
+ **   Morgan Deters, Tim King, Guy Katz
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2014  New York University and The University of Iowa
- ** See the file COPYING in the top-level source directory for licensing
- ** information.\endverbatim
+ ** Copyright (c) 2009-2016 by the authors listed in the file AUTHORS
+ ** in the top-level source directory) and their institutional affiliations.
+ ** All rights reserved.  See the file COPYING in the top-level source
+ ** directory for licensing information.\endverbatim
  **
  ** \brief [[ Add one-line brief description here ]]
  **
@@ -22,7 +22,7 @@
 #include <fstream>
 #include <string>
 
-#warning "TODO: Why is lfsc's check.h being included like this?"
+// #warning "TODO: Why is lfsc's check.h being included like this?"
 #include "check.h"
 
 #include "base/configuration_private.h"
@@ -63,17 +63,26 @@ void SmtEngine::checkProof() {
 
   Chat() << "checking proof..." << endl;
 
-  if( !(d_logic.isPure(theory::THEORY_BOOL) ||
-        d_logic.isPure(theory::THEORY_BV) ||
-	(d_logic.isPure(theory::THEORY_UF) &&
-	 ! d_logic.hasCardinalityConstraints())) ||
-      d_logic.isQuantified()) {
+  if ( !(d_logic.isPure(theory::THEORY_BOOL) ||
+           d_logic.isPure(theory::THEORY_BV) ||
+           d_logic.isPure(theory::THEORY_ARRAY) ||
+           (d_logic.isPure(theory::THEORY_UF) &&
+            ! d_logic.hasCardinalityConstraints())) ||
+       d_logic.isQuantified()) {
     // no checking for these yet
     Notice() << "Notice: no proof-checking for non-UF/Bool/BV proofs yet" << endl;
     return;
   }
 
-  char* pfFile = strdup("/tmp/cvc4_proof.XXXXXX");
+  char const* tempDir = getenv("TMPDIR");
+  if (!tempDir) {
+    tempDir = "/tmp";
+  }
+
+  stringstream pfPath;
+  pfPath << tempDir << "/cvc4_proof.XXXXXX";
+
+  char* pfFile = strdup(pfPath.str().c_str());
   int fd = mkstemp(pfFile);
 
   // ensure this temp file is removed after

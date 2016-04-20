@@ -1,13 +1,13 @@
 /*********************                                                        */
 /*! \file unconstrained_simplifier.cpp
  ** \verbatim
- ** Original author: Clark Barrett
- ** Major contributors: none
- ** Minor contributors (to current version): Kshitij Bansal, Morgan Deters, Tim King, Liana Hadarean, Peter Collingbourne, Andrew Reynolds
+ ** Top contributors (to current version):
+ **   Clark Barrett, Peter Collingbourne, Tim King
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2014  New York University and The University of Iowa
- ** See the file COPYING in the top-level source directory for licensing
- ** information.\endverbatim
+ ** Copyright (c) 2009-2016 by the authors listed in the file AUTHORS
+ ** in the top-level source directory) and their institutional affiliations.
+ ** All rights reserved.  See the file COPYING in the top-level source
+ ** directory for licensing information.\endverbatim
  **
  ** \brief Simplifications based on unconstrained variables
  **

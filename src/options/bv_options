@@ -11,14 +11,14 @@ option bitblastMode bitblast --bitblast=MODE CVC4::theory::bv::BitblastMode :han
  choose bitblasting mode, see --bitblast=help
 
 # Options for eager bit-blasting
- 
+
 option bitvectorAig --bitblast-aig bool :default false :predicate abcEnabledBuild setBitblastAig :read-write
  bitblast by first converting to AIG (implies --bitblast=eager)
 expert-option bitvectorAigSimplifications --bv-aig-simp=COMMAND std::string :default "" :predicate abcEnabledBuild :read-write :link --bitblast-aig :link-smt bitblast-aig
  abc command to run AIG simplifications (implies --bitblast-aig, default is "balance;drw")
 
 # Options for lazy bit-blasting
-option bitvectorPropagate --bv-propagate bool :default true :read-write 
+option bitvectorPropagate --bv-propagate bool :default true :read-write
  use bit-vector propagation in the bit-blaster
 
 option bitvectorEqualitySolver --bv-eq-solver bool :default true :read-write
@@ -28,18 +28,18 @@ option bitvectorEqualitySlicer --bv-eq-slicer=MODE CVC4::theory::bv::BvSlicerMod
  turn on the slicing equality solver for the bit-vector theory (only if --bitblast=lazy)
 
 
-option bitvectorInequalitySolver --bv-inequality-solver bool :default true :read-write 
+option bitvectorInequalitySolver --bv-inequality-solver bool :default true :read-write
  turn on the inequality solver for the bit-vector theory (only if --bitblast=lazy)
 
 option bitvectorAlgebraicSolver --bv-algebraic-solver bool :default true :read-write
  turn on the algebraic solver for the bit-vector theory (only if --bitblast=lazy)
- 
+
 expert-option bitvectorAlgebraicBudget --bv-algebraic-budget unsigned :default 1500 :read-write :link --bv-algebraic-solver :link-smt bv-algebraic-solver
  the budget allowed for the algebraic solver in number of SAT conflicts
 
 # General options
 
-option bitvectorToBool --bv-to-bool bool :default false :read-write 
+option bitvectorToBool --bv-to-bool bool :default false :read-write
  lift bit-vectors of size 1 to booleans when possible
 
 option bitvectorDivByZeroConst --bv-div-zero-const bool :default false :read-write
@@ -47,11 +47,11 @@ option bitvectorDivByZeroConst --bv-div-zero-const bool :default false :read-wri
 
 expert-option bvExtractArithRewrite --bv-extract-arith bool :default false :read-write
  enable rewrite pushing extract [i:0] over arithmetic operations (can blow up)
- 
-expert-option bvAbstraction --bv-abstraction bool :default false :read-write
- mcm benchmark abstraction 
 
-expert-option skolemizeArguments --bv-skolemize bool :default false :read-write 
+expert-option bvAbstraction --bv-abstraction bool :default false :read-write
+ mcm benchmark abstraction
+
+expert-option skolemizeArguments --bv-skolemize bool :default false :read-write
  skolemize arguments for bv abstraction (only does something if --bv-abstraction is on)
 
 expert-option bvNumFunc --bv-num-func=NUM unsigned :default 1
@@ -62,8 +62,8 @@ expert-option bvEagerExplanations --bv-eager-explanations bool :default false :r
 
 expert-option bitvectorQuickXplain --bv-quick-xplain bool :default false
  minimize bv conflicts using the QuickXplain algorithm
- 
+
 expert-option bvIntroducePow2 --bv-intro-pow2 bool :default false
  introduce bitvector powers of two as a preprocessing pass
- 
+
 endmodule

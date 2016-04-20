@@ -38,10 +38,9 @@ TESTS =	\
 	gauss_init_0030.fof.smt2 \
 	qcft-javafe.filespace.TreeWalker.006.smt2 \
 	qcft-smtlib3dbc51.smt2 \
-	symmetric_unsat_7.smt2 \
 	javafe.ast.StmtVec.009.smt2 \
 	ARI176e1.smt2 \
-  bi-artm-s.smt2 \
+	bi-artm-s.smt2 \
 	simp-typ-test.smt2 \
 	macros-int-real.smt2 \
 	stream-x2014-09-18-unsat.smt2 \
@@ -65,12 +64,22 @@ TESTS =	\
 	ext-ex-deq-trigger.smt2 \
 	matching-lia-1arg.smt2 \
 	RND_4_16.smt2 \
-  cdt-0208-to.smt2 \
-  psyco-196.smt2 \
-  agg-rew-test.smt2 \
-  agg-rew-test-cf.smt2 \
-  rew-to-0211-dd.smt2 \
-  rew-to-scala.smt2
+	cdt-0208-to.smt2 \
+	psyco-196.smt2 \
+	agg-rew-test.smt2 \
+	agg-rew-test-cf.smt2 \
+	rew-to-0211-dd.smt2 \
+	rew-to-scala.smt2 \
+	macro-subtype-param.smt2 \
+	macros-real-arg.smt2 \
+	subtype-param-unk.smt2 \
+	subtype-param.smt2 \
+	anti-sk-simp.smt2 \
+	pure_dt_cbqi.smt2 \
+	florian-case-ax.smt2 \
+	double-pattern.smt2 \
+	qcf-rel-dom-opt.smt2 \
+	parametric-lists.smt2
 
 
 # regression can be solved with --finite-model-find --fmf-inst-engine

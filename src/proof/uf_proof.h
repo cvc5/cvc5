@@ -1,13 +1,13 @@
 /*********************                                                        */
 /*! \file uf_proof.h
  ** \verbatim
- ** Original author: Liana Hadarean
- ** Major contributors: none
- ** Minor contributors (to current version): none
+ ** Top contributors (to current version):
+ **   Liana Hadarean, Guy Katz, Tim King
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2014  New York University and The University of Iowa
- ** See the file COPYING in the top-level source directory for licensing
- ** information.\endverbatim
+ ** Copyright (c) 2009-2016 by the authors listed in the file AUTHORS
+ ** in the top-level source directory) and their institutional affiliations.
+ ** All rights reserved.  See the file COPYING in the top-level source
+ ** directory for licensing information.\endverbatim
  **
  ** \brief UF proof
  **
@@ -37,7 +37,7 @@ public:
   static void toStreamLFSC(std::ostream& out, TheoryProof * tp, theory::eq::EqProof * pf, const LetMap& map);
 };
 
-  
+
 namespace theory {
 namespace uf {
 class TheoryUF;
@@ -51,7 +51,7 @@ class UFProof : public TheoryProof {
 protected:
   TypeSet d_sorts;        // all the uninterpreted sorts in this theory
   ExprSet d_declarations; // all the variable/function declarations
-  
+
 public:
   UFProof(theory::uf::TheoryUF* uf, TheoryProofEngine* proofEngine);
 
@@ -63,10 +63,12 @@ public:
   LFSCUFProof(theory::uf::TheoryUF* uf, TheoryProofEngine* proofEngine)
     : UFProof(uf, proofEngine)
   {}
-  virtual void printTerm(Expr term, std::ostream& os, const LetMap& map);
-  virtual void printSort(Type type, std::ostream& os); 
+  virtual void printOwnedTerm(Expr term, std::ostream& os, const LetMap& map);
+  virtual void printOwnedSort(Type type, std::ostream& os);
   virtual void printTheoryLemmaProof(std::vector<Expr>& lemma, std::ostream& os, std::ostream& paren);
-  virtual void printDeclarations(std::ostream& os, std::ostream& paren);
+  virtual void printSortDeclarations(std::ostream& os, std::ostream& paren);
+  virtual void printTermDeclarations(std::ostream& os, std::ostream& paren);
+  virtual void printDeferredDeclarations(std::ostream& os, std::ostream& paren);
 };
 
 

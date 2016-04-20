@@ -37,11 +37,6 @@ option condVarSplitQuantAgg --cond-var-split-agg-quant bool :default false
  aggressive split quantified formulas that lead to variable eliminations
 option iteDtTesterSplitQuant --ite-dtt-split-quant bool :read-write :default false
  split ites with dt testers as conditions
-# Whether to CNF quantifier bodies
-# option cnfQuant --cnf-quant bool :default false
-#  apply CNF conversion to quantified formulas
-option nnfQuant --nnf-quant bool :default true
- apply NNF conversion to quantified formulas
 # Whether to pre-skolemize quantifier bodies.
 # For example, forall x. ( P( x ) => (exists y. f( y ) = x) ) will be rewritten to
 #   forall x. P( x ) => f( S( x ) ) = x
@@ -57,6 +52,8 @@ option elimTautQuant --elim-taut-quant bool :default true
  eliminate tautological disjuncts of quantified formulas
 option purifyQuant --purify-quant bool :default false
  purify quantified formulas
+option elimExtArithQuant --elim-ext-arith-quant bool :default true
+ eliminate extended arithmetic symbols in quantified formulas
  
 #### E-matching options
  
@@ -67,9 +64,13 @@ option termDbMode --term-db-mode CVC4::theory::quantifiers::TermDbMode :default 
  which ground terms to consider for instantiation
 option registerQuantBodyTerms --register-quant-body-terms bool :default false
  consider ground terms within bodies of quantified formulas for matching
+option inferArithTriggerEq --infer-arith-trigger-eq bool :default false
+ infer equalities for trigger terms based on solving arithmetic equalities
+option inferArithTriggerEqExp --infer-arith-trigger-eq-exp bool :default false
+ record explanations for inferArithTriggerEq
  
-option smartTriggers --smart-triggers bool :default true
- enable smart triggers
+option strictTriggers --strict-triggers bool :default false
+ only instantiate quantifiers with user patterns based on triggers
 option relevantTriggers --relevant-triggers bool :default false
  prefer triggers that are more relevant based on SInE style analysis
 option relationalTriggers --relational-triggers bool :default false
@@ -88,20 +89,26 @@ option multiTriggerPriority --multi-trigger-priority bool :default false
  only try multi triggers if single triggers give no instantiations
 option triggerSelMode --trigger-sel CVC4::theory::quantifiers::TriggerSelMode :default CVC4::theory::quantifiers::TRIGGER_SEL_DEFAULT :read-write :include "options/quantifiers_modes.h" :handler  stringToTriggerSelMode
  selection mode for triggers
-option userPatternsQuant --user-pat=MODE CVC4::theory::quantifiers::UserPatMode :default CVC4::theory::quantifiers::USER_PAT_MODE_TRUST :include "options/quantifiers_modes.h" :handler stringToUserPatMode
+option userPatternsQuant --user-pat=MODE CVC4::theory::quantifiers::UserPatMode :default CVC4::theory::quantifiers::USER_PAT_MODE_TRUST :read-write :include "options/quantifiers_modes.h" :handler stringToUserPatMode
  policy for handling user-provided patterns for quantifier instantiation
 option incrementTriggers --increment-triggers bool :default true
  generate additional triggers as needed during search
  
 option instWhenMode --inst-when=MODE CVC4::theory::quantifiers::InstWhenMode :default CVC4::theory::quantifiers::INST_WHEN_FULL_LAST_CALL :read-write :include "options/quantifiers_modes.h" :handler stringToInstWhenMode :predicate checkInstWhenMode
  when to apply instantiation
+option instWhenStrictInterleave --inst-when-strict-interleave bool :default true :read-write
+ ensure theory combination and standard quantifier effort strategies take turns 
+option instWhenPhase --inst-when-phase=N int :read-write :default 2 :read-write
+ instantiation rounds quantifiers takes (>=1) before allowing theory combination to happen
+option instWhenTcFirst --inst-when-tc-first bool :default true :read-write
+ allow theory combination to happen once initially, before quantifier strategies are run
  
 option instMaxLevel --inst-max-level=N int :read-write :default -1
  maximum inst level of terms used to instantiate quantified formulas with (-1 == no limit, default)
 option instLevelInputOnly --inst-level-input-only bool :default true
  only input terms are assigned instantiation level zero
-option internalReps --quant-internal-reps bool :default true
- instantiate with representatives chosen by quantifiers engine
+option quantRepMode --quant-rep-mode=MODE  CVC4::theory::quantifiers::QuantRepMode :default CVC4::theory::quantifiers::QUANT_REP_MODE_FIRST :read-write :include "options/quantifiers_modes.h" :handler stringToQuantRepMode
+ selection mode for representatives in quantifiers engine
  
 option eagerInstQuant --eager-inst-quant bool :default false
  apply quantifier instantiation eagerly
@@ -167,6 +174,9 @@ option qcfAllConflict --qcf-all-conflict bool :read-write :default false
 
 option instNoEntail --inst-no-entail bool :read-write :default true
  do not consider instances of quantified formulas that are currently entailed
+
+option instPropagate --inst-propagate bool :read-write :default false
+ internal propagation for instantiations for selecting relevant instances
  
 ### rewrite rules options 
  
@@ -200,6 +210,8 @@ option conjectureGenGtEnum --conjecture-gen-gt-enum=N int :default 50
  number of ground terms to generate for model filtering
 option conjectureUeeIntro --conjecture-gen-uee-intro bool :default false
  more aggressive merging for universal equality engine, introduces terms
+option conjectureGenMaxDepth --conjecture-gen-max-depth=N int :default 3
+ maximum depth of terms to consider for conjectures
   
 ### synthesis options 
 
@@ -283,6 +295,10 @@ option macrosQuant --macros-quant bool :read-write :default false
  perform quantifiers macro expansion
 option macrosQuantMode --macros-quant-mode=MODE CVC4::theory::quantifiers::MacrosQuantMode :default CVC4::theory::quantifiers::MACROS_QUANT_MODE_GROUND_UF :include "options/quantifiers_modes.h" :handler stringToMacrosQuantMode
  mode for quantifiers macro expansion
+option quantDynamicSplit --quant-dsplit-mode=MODE CVC4::theory::quantifiers::QuantDSplitMode :read-write :default CVC4::theory::quantifiers::QUANT_DSPLIT_MODE_DEFAULT :include "options/quantifiers_modes.h" :handler stringToQuantDSplitMode
+ mode for dynamic quantifiers splitting
+option quantAntiSkolem --quant-anti-skolem bool :read-write :default false
+ perform anti-skolemization for quantified formulas
 
 ### recursive function options
 
