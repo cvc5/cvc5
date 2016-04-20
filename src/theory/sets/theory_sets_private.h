@@ -26,6 +26,7 @@
 #include "theory/uf/equality_engine.h"
 #include "theory/sets/term_info.h"
 #include "theory/sets/theory_sets_rels.h"
+#include "theory/sets/rels_utils.h"
 
 namespace CVC4 {
 namespace theory {

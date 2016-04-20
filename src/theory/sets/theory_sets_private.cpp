@@ -726,14 +726,14 @@ bool TheorySetsPrivate::checkModel(const SettermElementsMap& settermElementsMap,
         std::vector<Node> left_tuple;
         left_tuple.push_back(Node::fromExpr(tn.getDatatype()[0].getConstructor()));
         for(int i = 0; i < left_len; i++) {
-          left_tuple.push_back(TheorySetsRels::nthElementOfTuple(*left_it,i));
+          left_tuple.push_back(RelsUtils::nthElementOfTuple(*left_it,i));
         }
         Elements::const_iterator right_it = right.begin();
         int right_len = (*right_it).getType().getTupleLength();
         while(right_it != right.end()) {
           std::vector<Node> right_tuple;
           for(int j = 0; j < right_len; j++) {
-            right_tuple.push_back(TheorySetsRels::nthElementOfTuple(*right_it,j));
+            right_tuple.push_back(RelsUtils::nthElementOfTuple(*right_it,j));
           }
           std::vector<Node> new_tuple;
           new_tuple.insert(new_tuple.end(), left_tuple.begin(), left_tuple.end());
@@ -758,15 +758,15 @@ bool TheorySetsPrivate::checkModel(const SettermElementsMap& settermElementsMap,
         std::vector<Node> left_tuple;
         left_tuple.push_back(Node::fromExpr(tn.getDatatype()[0].getConstructor()));
         for(int i = 0; i < left_len - 1; i++) {
-          left_tuple.push_back(TheorySetsRels::nthElementOfTuple(*left_it,i));
+          left_tuple.push_back(RelsUtils::nthElementOfTuple(*left_it,i));
         }
         Elements::const_iterator right_it = right.begin();
         int right_len = (*right_it).getType().getTupleLength();
         while(right_it != right.end()) {
-          if(TheorySetsRels::nthElementOfTuple(*left_it,left_len-1) == TheorySetsRels::nthElementOfTuple(*right_it,0)) {
+          if(RelsUtils::nthElementOfTuple(*left_it,left_len-1) == RelsUtils::nthElementOfTuple(*right_it,0)) {
             std::vector<Node> right_tuple;
             for(int j = 1; j < right_len; j++) {
-              right_tuple.push_back(TheorySetsRels::nthElementOfTuple(*right_it,j));
+              right_tuple.push_back(RelsUtils::nthElementOfTuple(*right_it,j));
             }
             std::vector<Node> new_tuple;
             new_tuple.insert(new_tuple.end(), left_tuple.begin(), left_tuple.end());
@@ -929,20 +929,20 @@ void TheorySetsPrivate::collectModelInfo(TheoryModel* m, bool fullModel)
     m->assertRepresentative(shape);
   }
 
-#ifdef CVC4_ASSERTIONS
-  bool checkPassed = true;
-  BOOST_FOREACH(TNode term, terms) {
-    if( term.getType().isSet() ) {
-      checkPassed &= checkModel(settermElementsMap, term);
-    }
-  }
-  if(Trace.isOn("sets-checkmodel-ignore")) {
-    Trace("sets-checkmodel-ignore") << "[sets-checkmodel-ignore] checkPassed value was " << checkPassed << std::endl;
-  } else {
-    Assert( checkPassed,
-            "THEORY_SETS check-model failed. Run with -d sets-model for details." );
-  }
-#endif
+// #ifdef CVC4_ASSERTIONS
+//   bool checkPassed = true;
+//   BOOST_FOREACH(TNode term, terms) {
+//     if( term.getType().isSet() ) {
+//       checkPassed &= checkModel(settermElementsMap, term);
+//     }
+//   }
+//   if(Trace.isOn("sets-checkmodel-ignore")) {
+//     Trace("sets-checkmodel-ignore") << "[sets-checkmodel-ignore] checkPassed value was " << checkPassed << std::endl;
+//   } else {
+//     Assert( checkPassed,
+//             "THEORY_SETS check-model failed. Run with -d sets-model for details." );
+//   }
+// #endif
 }
 
 Node TheorySetsPrivate::getModelValue(TNode n)

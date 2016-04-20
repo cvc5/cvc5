@@ -21,6 +21,7 @@
 #include "theory/uf/equality_engine.h"
 #include "context/cdhashset.h"
 #include "context/cdchunk_list.h"
+#include "theory/sets/rels_utils.h"
 
 namespace CVC4 {
 namespace theory {
@@ -176,10 +177,6 @@ private:
   inline void addToMembershipDB( Node, Node, Node  );
   bool isRel( Node n ) {return n.getType().isSet() && n.getType().getSetElementType().isTuple();}
   Node mkAnd( std::vector< TNode >& assumptions );
-
-public:
-  static Node reverseTuple( Node );
-  static Node nthElementOfTuple( Node, int);
 
 };
 

@@ -172,7 +172,7 @@ typedef std::map< Node, std::hash_set< Node, NodeHashFunction > >::iterator TC_P
         // need to add all tuple elements as shared terms
         } else if(n.getType().isTuple() && !n.isConst() && !n.isVar()) {
           for(unsigned int i = 0; i < n.getType().getTupleLength(); i++) {
-            Node element = nthElementOfTuple(n, i);
+            Node element = RelsUtils::nthElementOfTuple(n, i);
             if(!element.isConst()) {
               makeSharedTerm(element);
             }
@@ -208,13 +208,13 @@ typedef std::map< Node, std::hash_set< Node, NodeHashFunction > >::iterator TC_P
     if(mem_it != d_membership_db.end()) {
       for(std::vector<Node>::iterator pair_it = mem_it->second.begin();
           pair_it != mem_it->second.end(); pair_it++) {
-        TC_PAIR_IT pair_set_it = tc_graph.find(nthElementOfTuple(*pair_it, 0));
+        TC_PAIR_IT pair_set_it = tc_graph.find(RelsUtils::nthElementOfTuple(*pair_it, 0));
         if( pair_set_it != tc_graph.end() ) {
-          pair_set_it->second.insert(nthElementOfTuple(*pair_it, 1));
+          pair_set_it->second.insert(RelsUtils::nthElementOfTuple(*pair_it, 1));
         } else {
           std::hash_set< Node, NodeHashFunction > snd_pair_set;
-          snd_pair_set.insert(nthElementOfTuple(*pair_it, 1));
-          tc_graph[nthElementOfTuple(*pair_it, 0)] = snd_pair_set;
+          snd_pair_set.insert(RelsUtils::nthElementOfTuple(*pair_it, 1));
+          tc_graph[RelsUtils::nthElementOfTuple(*pair_it, 0)] = snd_pair_set;
         }
       }
     }
@@ -243,13 +243,13 @@ typedef std::map< Node, std::hash_set< Node, NodeHashFunction > >::iterator TC_P
     TC_IT tc_graph_it = d_membership_tc_cache.find(tc_rep);
     if(polarity) {
       if(tc_graph_it != d_membership_tc_cache.end()) {
-        TC_PAIR_IT pair_set_it = tc_graph_it->second.find(nthElementOfTuple(atom[0], 0));
+        TC_PAIR_IT pair_set_it = tc_graph_it->second.find(RelsUtils::nthElementOfTuple(atom[0], 0));
         if(pair_set_it != tc_graph_it->second.end()) {
-          pair_set_it->second.insert(nthElementOfTuple(atom[0], 1));
+          pair_set_it->second.insert(RelsUtils::nthElementOfTuple(atom[0], 1));
         } else {
           std::hash_set< Node, NodeHashFunction > pair_set;
-          pair_set.insert(nthElementOfTuple(atom[0], 1));
-          tc_graph_it->second[nthElementOfTuple(atom[0], 0)] = pair_set;
+          pair_set.insert(RelsUtils::nthElementOfTuple(atom[0], 1));
+          tc_graph_it->second[RelsUtils::nthElementOfTuple(atom[0], 0)] = pair_set;
         }
         Node reason = getReason(tc_rep, tc_term, tc_r_rep, tc_term[0]);
         std::map< Node, Node >::iterator exp_it = d_membership_tc_exp_cache.find(tc_rep);
@@ -259,8 +259,8 @@ typedef std::map< Node, std::hash_set< Node, NodeHashFunction > >::iterator TC_P
       } else {
         std::map< Node, std::hash_set< Node, NodeHashFunction > > pair_set;
         std::hash_set< Node, NodeHashFunction > set;
-        set.insert(nthElementOfTuple(atom[0], 1));
-        pair_set[nthElementOfTuple(atom[0], 0)] = set;
+        set.insert(RelsUtils::nthElementOfTuple(atom[0], 1));
+        pair_set[RelsUtils::nthElementOfTuple(atom[0], 0)] = set;
         d_membership_tc_cache[tc_rep] = pair_set;
         Node reason = getReason(tc_rep, tc_term, tc_r_rep, tc_term[0]);
         if(!reason.isNull()) {
@@ -270,8 +270,8 @@ typedef std::map< Node, std::hash_set< Node, NodeHashFunction > >::iterator TC_P
     // check if atom[0] already exists in TC graph for conflict
     } else {
       if(tc_graph_it != d_membership_tc_cache.end()) {
-        checkTCGraphForConflict(atom, tc_rep, d_trueNode, nthElementOfTuple(atom[0], 0),
-                                nthElementOfTuple(atom[0], 1), tc_graph_it->second);
+        checkTCGraphForConflict(atom, tc_rep, d_trueNode, RelsUtils::nthElementOfTuple(atom[0], 0),
+                                RelsUtils::nthElementOfTuple(atom[0], 1), tc_graph_it->second);
       }
     }
   }
@@ -335,13 +335,13 @@ typedef std::map< Node, std::hash_set< Node, NodeHashFunction > >::iterator TC_P
 
     r1_element.push_back(Node::fromExpr(dt[0].getConstructor()));
     for(; i < s1_len; ++i) {
-      r1_element.push_back(nthElementOfTuple(atom[0], i));
+      r1_element.push_back(RelsUtils::nthElementOfTuple(atom[0], i));
     }
 
     dt = r2_rep.getType().getSetElementType().getDatatype();
     r2_element.push_back(Node::fromExpr(dt[0].getConstructor()));
     for(; i < tup_len; ++i) {
-      r2_element.push_back(nthElementOfTuple(atom[0], i));
+      r2_element.push_back(RelsUtils::nthElementOfTuple(atom[0], i));
     }
 
     Node fact_1;
@@ -424,7 +424,7 @@ typedef std::map< Node, std::hash_set< Node, NodeHashFunction > >::iterator TC_P
 
       r1_element.push_back(Node::fromExpr(dt[0].getConstructor()));
       for(; i < s1_len-1; ++i) {
-        r1_element.push_back(nthElementOfTuple(atom[0], i));
+        r1_element.push_back(RelsUtils::nthElementOfTuple(atom[0], i));
       }
       r1_element.push_back(shared_x);
 
@@ -432,7 +432,7 @@ typedef std::map< Node, std::hash_set< Node, NodeHashFunction > >::iterator TC_P
       r2_element.push_back(Node::fromExpr(dt[0].getConstructor()));
       r2_element.push_back(shared_x);
       for(; i < tup_len; ++i) {
-        r2_element.push_back(nthElementOfTuple(atom[0], i));
+        r2_element.push_back(RelsUtils::nthElementOfTuple(atom[0], i));
       }
 
       Node t1 = nm->mkNode(kind::APPLY_CONSTRUCTOR, r1_element);
@@ -496,7 +496,7 @@ typedef std::map< Node, std::hash_set< Node, NodeHashFunction > >::iterator TC_P
     Trace("rels-debug") << "\n[sets-rels] *********** Applying TRANSPOSE rule  " << std::endl;
     bool polarity = exp.getKind() != kind::NOT;
     Node atom = polarity ? exp : exp[0];
-    Node reversedTuple = getRepresentative(reverseTuple(atom[0]));
+    Node reversedTuple = getRepresentative(RelsUtils::reverseTuple(atom[0]));
 
     if(tp_occur) {
       Trace("rels-debug") << "\n[sets-rels] Apply TRANSPOSE-OCCUR rule on term: " << tp_term
@@ -671,7 +671,7 @@ typedef std::map< Node, std::hash_set< Node, NodeHashFunction > >::iterator TC_P
     Assert(tuples.size() == exps.size());
     for(unsigned int i = 0; i < tuples.size(); i++) {
       Node reason = exps[i][1] == n0_rep ? exps[i] : AND(exps[i], EQUAL(exps[i][1], n0_rep));
-      Node rev_tup = getRepresentative(reverseTuple(tuples[i]));
+      Node rev_tup = getRepresentative(RelsUtils::reverseTuple(tuples[i]));
       Node fact = MEMBER(rev_tup, n_rep);
       if(holds(fact)) {
         Trace("rels-debug") << "[sets-rels] New fact: " << fact << " already holds! Skip..." << std::endl;
@@ -717,8 +717,8 @@ typedef std::map< Node, std::hash_set< Node, NodeHashFunction > >::iterator TC_P
       for(unsigned int j = 0; j < r2_elements.size(); j++) {
         std::vector<Node> composed_tuple;
         TypeNode tn = n.getType().getSetElementType();
-        Node r2_lmost = nthElementOfTuple(r2_elements[j], 0);
-        Node r1_rmost = nthElementOfTuple(r1_elements[i], t1_len-1);
+        Node r2_lmost = RelsUtils::nthElementOfTuple(r2_elements[j], 0);
+        Node r1_rmost = RelsUtils::nthElementOfTuple(r1_elements[i], t1_len-1);
         composed_tuple.push_back(Node::fromExpr(tn.getDatatype()[0].getConstructor()));
 
         if((areEqual(r1_rmost, r2_lmost) && n.getKind() == kind::JOIN) ||
@@ -727,14 +727,14 @@ typedef std::map< Node, std::hash_set< Node, NodeHashFunction > >::iterator TC_P
           unsigned int k = 0;
           unsigned int l = 1;
           for(; k < t1_len - 1; ++k) {
-            composed_tuple.push_back(nthElementOfTuple(r1_elements[i], k));
+            composed_tuple.push_back(RelsUtils::nthElementOfTuple(r1_elements[i], k));
           }
           if(isProduct) {
-            composed_tuple.push_back(nthElementOfTuple(r1_elements[i], k));
-            composed_tuple.push_back(nthElementOfTuple(r2_elements[j], 0));
+            composed_tuple.push_back(RelsUtils::nthElementOfTuple(r1_elements[i], k));
+            composed_tuple.push_back(RelsUtils::nthElementOfTuple(r2_elements[j], 0));
           }
           for(; l < t2_len; ++l) {
-            composed_tuple.push_back(nthElementOfTuple(r2_elements[j], l));
+            composed_tuple.push_back(RelsUtils::nthElementOfTuple(r2_elements[j], l));
           }
           Node composed_tuple_rep = getRepresentative(nm->mkNode(kind::APPLY_CONSTRUCTOR, composed_tuple));
           Node fact = MEMBER(composed_tuple_rep, new_rel_rep);
@@ -883,20 +883,6 @@ typedef std::map< Node, std::hash_set< Node, NodeHashFunction > >::iterator TC_P
     d_pending_split_facts.clear();
   }
 
-  Node TheorySetsRels::reverseTuple( Node tuple ) {
-    Assert( tuple.getType().isTuple() );
-    std::vector<Node> elements;
-    std::vector<TypeNode> tuple_types = tuple.getType().getTupleTypes();
-    std::reverse( tuple_types.begin(), tuple_types.end() );
-    TypeNode tn = NodeManager::currentNM()->mkTupleType( tuple_types );
-    Datatype dt = tn.getDatatype();
-    elements.push_back( Node::fromExpr(dt[0].getConstructor() ) );
-    for(int i = tuple_types.size() - 1; i >= 0; --i) {
-      elements.push_back( nthElementOfTuple(tuple, i) );
-    }
-    return NodeManager::currentNM()->mkNode( kind::APPLY_CONSTRUCTOR, elements );
-  }
-
   void TheorySetsRels::assertMembership( Node fact, Node reason, bool polarity ) {
     d_eqEngine->assertPredicate( fact, polarity, reason );
   }
@@ -921,7 +907,7 @@ typedef std::map< Node, std::hash_set< Node, NodeHashFunction > >::iterator TC_P
     } else if(a.getType().isTuple()) {
       bool equal = true;
       for(unsigned int i = 0; i < a.getType().getTupleLength(); i++) {
-        equal = equal && areEqual(nthElementOfTuple(a, i), nthElementOfTuple(b, i));
+        equal = equal && areEqual(RelsUtils::nthElementOfTuple(a, i), RelsUtils::nthElementOfTuple(b, i));
       }
       return equal;
     } else if(!a.getType().isBoolean()){
@@ -1001,11 +987,11 @@ typedef std::map< Node, std::hash_set< Node, NodeHashFunction > >::iterator TC_P
               exp = AND(exp, explain(EQUAL(tc_rep, tc_term)));
             }
             if(tc_r_mems->second[i] != tuple) {
-              if(nthElementOfTuple(tc_r_mems->second[i], 0) != nthElementOfTuple(tuple, 0)) {
-                exp = AND(exp, explain(EQUAL(nthElementOfTuple(tc_r_mems->second[i], 0), nthElementOfTuple(tuple, 0))));
+              if(RelsUtils::nthElementOfTuple(tc_r_mems->second[i], 0) != RelsUtils::nthElementOfTuple(tuple, 0)) {
+                exp = AND(exp, explain(EQUAL(RelsUtils::nthElementOfTuple(tc_r_mems->second[i], 0), RelsUtils::nthElementOfTuple(tuple, 0))));
               }
-              if(nthElementOfTuple(tc_r_mems->second[i], 1) != nthElementOfTuple(tuple, 1)) {
-                exp = AND(exp, explain(EQUAL(nthElementOfTuple(tc_r_mems->second[i], 1), nthElementOfTuple(tuple, 1))));
+              if(RelsUtils::nthElementOfTuple(tc_r_mems->second[i], 1) != RelsUtils::nthElementOfTuple(tuple, 1)) {
+                exp = AND(exp, explain(EQUAL(RelsUtils::nthElementOfTuple(tc_r_mems->second[i], 1), RelsUtils::nthElementOfTuple(tuple, 1))));
               }
               exp = AND(exp, EQUAL(tc_r_mems->second[i], tuple));
             }
@@ -1028,11 +1014,11 @@ typedef std::map< Node, std::hash_set< Node, NodeHashFunction > >::iterator TC_P
               exp = AND(exp, explain(EQUAL(tc_term_rep, tc_terms[i])));
             }
             if(tc_t_mems->second[j] != tuple) {
-              if(nthElementOfTuple(tc_t_mems->second[j], 0) != nthElementOfTuple(tuple, 0)) {
-                exp = AND(exp, explain(EQUAL(nthElementOfTuple(tc_t_mems->second[j], 0), nthElementOfTuple(tuple, 0))));
+              if(RelsUtils::nthElementOfTuple(tc_t_mems->second[j], 0) != RelsUtils::nthElementOfTuple(tuple, 0)) {
+                exp = AND(exp, explain(EQUAL(RelsUtils::nthElementOfTuple(tc_t_mems->second[j], 0), RelsUtils::nthElementOfTuple(tuple, 0))));
               }
-              if(nthElementOfTuple(tc_t_mems->second[j], 1) != nthElementOfTuple(tuple, 1)) {
-                exp = AND(exp, explain(EQUAL(nthElementOfTuple(tc_t_mems->second[j], 1), nthElementOfTuple(tuple, 1))));
+              if(RelsUtils::nthElementOfTuple(tc_t_mems->second[j], 1) != RelsUtils::nthElementOfTuple(tuple, 1)) {
+                exp = AND(exp, explain(EQUAL(RelsUtils::nthElementOfTuple(tc_t_mems->second[j], 1), RelsUtils::nthElementOfTuple(tuple, 1))));
               }
               exp = AND(exp, EQUAL(tc_t_mems->second[j], tuple));
             }
@@ -1050,13 +1036,6 @@ typedef std::map< Node, std::hash_set< Node, NodeHashFunction > >::iterator TC_P
 //      }
 //    }
     return Node::null();
-  }
-
-  Node TheorySetsRels::nthElementOfTuple( Node tuple, int n_th ) {    
-    if(tuple.isConst() || (!tuple.isVar() && !tuple.isConst()))
-      return tuple[n_th];
-    Datatype dt = tuple.getType().getDatatype();
-    return NodeManager::currentNM()->mkNode(kind::APPLY_SELECTOR_TOTAL, dt[0][n_th].getSelector(), tuple);
   }
 
   void TheorySetsRels::addSharedTerm( TNode n ) {
@@ -1102,7 +1081,7 @@ typedef std::map< Node, std::hash_set< Node, NodeHashFunction > >::iterator TC_P
   void TheorySetsRels::computeTupleReps( Node n ) {
     if( d_tuple_reps.find( n ) == d_tuple_reps.end() ){
       for( unsigned i = 0; i < n.getType().getTupleLength(); i++ ){
-        d_tuple_reps[n].push_back( getRepresentative( nthElementOfTuple(n, i) ) );
+        d_tuple_reps[n].push_back( getRepresentative( RelsUtils::nthElementOfTuple(n, i) ) );
       }
     }
   }
@@ -1125,7 +1104,7 @@ typedef std::map< Node, std::hash_set< Node, NodeHashFunction > >::iterator TC_P
       std::vector<Node> tuple_elements;
       tuple_elements.push_back(Node::fromExpr((n[0].getType().getDatatype())[0].getConstructor()));
       for(unsigned int i = 0; i < n[0].getType().getTupleLength(); i++) {
-        Node element = nthElementOfTuple(n[0], i);
+        Node element = RelsUtils::nthElementOfTuple(n[0], i);
         makeSharedTerm(element);
         tuple_elements.push_back(element);
       }
@@ -1435,18 +1414,18 @@ typedef std::map< Node, std::hash_set< Node, NodeHashFunction > >::iterator TC_P
     Node n1;
     if(reverseOnly) {
       if(polarity) {
-        n1 = NodeManager::currentNM()->mkNode( kind::IMPLIES, exp, MEMBER(reverseTuple(t1), t2[0]) );
+        n1 = NodeManager::currentNM()->mkNode( kind::IMPLIES, exp, MEMBER(RelsUtils::reverseTuple(t1), t2[0]) );
       } else {
-        n1 = NodeManager::currentNM()->mkNode( kind::IMPLIES, exp, MEMBER(reverseTuple(t1), t2[0]).negate() );
+        n1 = NodeManager::currentNM()->mkNode( kind::IMPLIES, exp, MEMBER(RelsUtils::reverseTuple(t1), t2[0]).negate() );
       }
     } else {
       Node n2;
       if(polarity) {
         n1 = NodeManager::currentNM()->mkNode( kind::IMPLIES, exp, MEMBER(t1, t2) );
-        n2 = NodeManager::currentNM()->mkNode( kind::IMPLIES, exp, MEMBER(reverseTuple(t1), t2[0]) );
+        n2 = NodeManager::currentNM()->mkNode( kind::IMPLIES, exp, MEMBER(RelsUtils::reverseTuple(t1), t2[0]) );
       } else {
         n1 = NodeManager::currentNM()->mkNode( kind::IMPLIES, exp, MEMBER(t1, t2).negate() );
-        n2 = NodeManager::currentNM()->mkNode( kind::IMPLIES, exp, MEMBER(reverseTuple(t1), t2[0]).negate() );
+        n2 = NodeManager::currentNM()->mkNode( kind::IMPLIES, exp, MEMBER(RelsUtils::reverseTuple(t1), t2[0]).negate() );
       }
       Trace("rels-std") << "[sets-rels-lemma] Generate a lemma by applying transpose rule: "
                         << n2 << std::endl;
@@ -1485,13 +1464,13 @@ typedef std::map< Node, std::hash_set< Node, NodeHashFunction > >::iterator TC_P
 
     r1_element.push_back(Node::fromExpr(dt[0].getConstructor()));
     for(; i < s1_len; ++i) {
-      r1_element.push_back(nthElementOfTuple(t1, i));
+      r1_element.push_back(RelsUtils::nthElementOfTuple(t1, i));
     }
 
     dt = r2.getType().getSetElementType().getDatatype();
     r2_element.push_back(Node::fromExpr(dt[0].getConstructor()));
     for(; i < tup_len; ++i) {
-      r2_element.push_back(nthElementOfTuple(t1, i));
+      r2_element.push_back(RelsUtils::nthElementOfTuple(t1, i));
     }
     Node tuple_1 = getRepresentative(nm->mkNode(kind::APPLY_CONSTRUCTOR, r1_element));
     Node tuple_2 = getRepresentative(nm->mkNode(kind::APPLY_CONSTRUCTOR, r2_element));
@@ -1576,6 +1555,7 @@ typedef std::map< Node, std::hash_set< Node, NodeHashFunction > >::iterator TC_P
 
     return conjunction;
   }/* mkAnd() */
+  
 
 }
 }

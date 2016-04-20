@@ -17,6 +17,7 @@
 #include "theory/sets/theory_sets_rewriter.h"
 #include "theory/sets/normal_form.h"
 #include "theory/sets/theory_sets_rels.h"
+#include "theory/sets/rels_utils.h"
 
 namespace CVC4 {
 namespace theory {
@@ -190,7 +191,7 @@ RewriteResponse TheorySetsRewriter::postRewrite(TNode node) {
       std::set<Node>::iterator tuple_it = tuple_set.begin();
 
       while(tuple_it != tuple_set.end()) {
-        new_tuple_set.insert(TheorySetsRels::reverseTuple(*tuple_it));
+        new_tuple_set.insert(RelsUtils::reverseTuple(*tuple_it));
         tuple_it++;
       }
       Node new_node = NormalForm::elementsToSet(new_tuple_set, node.getType());
@@ -224,7 +225,7 @@ RewriteResponse TheorySetsRewriter::postRewrite(TNode node) {
         std::vector<Node> left_tuple;
         left_tuple.push_back(Node::fromExpr(tn.getDatatype()[0].getConstructor()));
         for(int i = 0; i < left_len; i++) {
-          left_tuple.push_back(TheorySetsRels::nthElementOfTuple(*left_it,i));
+          left_tuple.push_back(RelsUtils::nthElementOfTuple(*left_it,i));
         }
         std::set<Node>::iterator right_it = right.begin();
         int right_len = (*right_it).getType().getTupleLength();
@@ -232,7 +233,7 @@ RewriteResponse TheorySetsRewriter::postRewrite(TNode node) {
           Trace("rels-debug") << "Sets::postRewrite processing left_it = " <<  *right_it << std::endl;
           std::vector<Node> right_tuple;
           for(int j = 0; j < right_len; j++) {
-            right_tuple.push_back(TheorySetsRels::nthElementOfTuple(*right_it,j));
+            right_tuple.push_back(RelsUtils::nthElementOfTuple(*right_it,j));
           }
           std::vector<Node> new_tuple;
           new_tuple.insert(new_tuple.end(), left_tuple.begin(), left_tuple.end());
@@ -267,15 +268,15 @@ RewriteResponse TheorySetsRewriter::postRewrite(TNode node) {
         std::vector<Node> left_tuple;
         left_tuple.push_back(Node::fromExpr(tn.getDatatype()[0].getConstructor()));
         for(int i = 0; i < left_len - 1; i++) {
-          left_tuple.push_back(TheorySetsRels::nthElementOfTuple(*left_it,i));
+          left_tuple.push_back(RelsUtils::nthElementOfTuple(*left_it,i));
         }
         std::set<Node>::iterator right_it = right.begin();
         int right_len = (*right_it).getType().getTupleLength();
         while(right_it != right.end()) {
-          if(TheorySetsRels::nthElementOfTuple(*left_it,left_len-1) == TheorySetsRels::nthElementOfTuple(*right_it,0)) {
+          if(RelsUtils::nthElementOfTuple(*left_it,left_len-1) == RelsUtils::nthElementOfTuple(*right_it,0)) {
             std::vector<Node> right_tuple;
             for(int j = 1; j < right_len; j++) {
-              right_tuple.push_back(TheorySetsRels::nthElementOfTuple(*right_it,j));
+              right_tuple.push_back(RelsUtils::nthElementOfTuple(*right_it,j));
             }
             std::vector<Node> new_tuple;
             new_tuple.insert(new_tuple.end(), left_tuple.begin(), left_tuple.end());
@@ -300,7 +301,13 @@ RewriteResponse TheorySetsRewriter::postRewrite(TNode node) {
     if(node[0].getKind() == kind::EMPTYSET) {
       return RewriteResponse(REWRITE_DONE, nm->mkConst(EmptySet(nm->toType(node.getType()))));
     } else if (node[0].isConst()) {
-
+      std::set<Node> rel_mems = NormalForm::getElementsFromNormalConstant(node[0]);
+      std::set<Node> tc_rel_mems = RelsUtils::computeTC(rel_mems, node);
+      Node new_node = NormalForm::elementsToSet(tc_rel_mems, node.getType());
+      Assert(new_node.isConst());
+      Trace("sets-postrewrite") << "Sets::postRewrite returning " << new_node << std::endl;
+      return RewriteResponse(REWRITE_DONE, new_node);
+      
     } else if(node[0].getKind() == kind::TCLOSURE) {
       return RewriteResponse(REWRITE_AGAIN, node[0]);
     } else if(node[0].getKind() != kind::TCLOSURE) {
