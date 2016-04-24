@@ -74,7 +74,10 @@ void SmtEngine::checkProof() {
         logicString == "QF_AUF" ||
         logicString == "QF_UFBV" ||
         logicString == "QF_ABV" ||
-        logicString == "QF_AUFBV"
+        logicString == "QF_AUFBV" ||
+        // Arithmetic with holes
+        logicString == "QF_UFLRA" ||
+        logicString == "QF_UFLIA"
         )) {
     // This logic is not yet supported
     Notice() << "Notice: no proof-checking for " << logicString << " proofs yet" << endl;
