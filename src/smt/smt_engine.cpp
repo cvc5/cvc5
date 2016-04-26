@@ -1061,12 +1061,16 @@ SmtEngine::SmtEngine(ExprManager* em) throw() :
 
   // The ProofManager is constructed before any other proof objects such as
   // SatProof and TheoryProofs. The TheoryProofEngine and the SatProof are
-  // initialized in TheoryEngine and PropEngine respectively. 
+  // initialized in TheoryEngine and PropEngine respectively.
   Assert(d_proofManager == NULL);
+
+  // d_proofManager must be created before Options has been finished
+  // being parsed from the input file. Because of this, we cannot trust
+  // that options::proof() is set correctly yet.
 #ifdef CVC4_PROOF
   d_proofManager = new ProofManager();
 #endif
-  
+
   // We have mutual dependency here, so we add the prop engine to the theory
   // engine later (it is non-essential there)
   d_theoryEngine = new TheoryEngine(d_context, d_userContext,
@@ -1100,7 +1104,7 @@ void SmtEngine::finishInit() {
   Trace("smt-debug") << "SmtEngine::finishInit" << std::endl;
   // ensure that our heuristics are properly set up
   setDefaults();
-  
+
   Trace("smt-debug") << "Making decision engine..." << std::endl;
 
   d_decisionEngine = new DecisionEngine(d_context, d_userContext);
@@ -1237,8 +1241,14 @@ SmtEngine::~SmtEngine() throw() {
     delete d_decisionEngine;
     d_decisionEngine = NULL;
 
-    PROOF(delete d_proofManager;);
-    PROOF(d_proofManager = NULL;);
+
+// d_proofManager is always created when proofs are enabled at configure time.
+// Becuase of this, this code should not be wrapped in PROOF() which
+// additionally checks flags such as options::proof().
+#ifdef CVC4_PROOF
+    delete d_proofManager;
+    d_proofManager = NULL;
+#endif
 
     delete d_stats;
     d_stats = NULL;
