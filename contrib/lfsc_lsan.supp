@@ -1,0 +1,8 @@
+# LSAN suppressions for memory leaks in LFSC.
+#
+# To use this file, add LSAN_OPTIONS to the commandline invocation.
+#   LSAN_OPTIONS=suppressions=contrib/lfsc_lsan.supp ./build/bin/cvc4 ...
+# For more information on the leak sanitizer in ASAN, see
+# https://github.com/google/sanitizers/wiki/AddressSanitizerLeakSanitizer
+leak:CVC4::CnfProof::pushCurrentDefinition
+
