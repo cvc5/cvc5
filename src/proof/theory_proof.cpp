@@ -325,7 +325,11 @@ void LFSCTheoryProofEngine::printAssertions(std::ostream& os, std::ostream& pare
   for (; it != end; ++it) {
     Debug("pf::tp") << "printAssertions: assertion is: " << *it << std::endl;
     // FIXME: merge this with counter
-    os << "(% A" << counter++ << " (th_holds ";
+    std::ostringstream name;
+    name << "A" << counter++;
+
+    ProofManager::currentPM()->registerUnrewrittenAssertion(*it, name.str());
+    os << "(% " << name.str() << " (th_holds ";
     printLetTerm(*it,  os);
     os << ")\n";
     paren << ")";
@@ -451,7 +455,14 @@ void LFSCTheoryProofEngine::finalizeBvConflicts(const IdToSatClause& lemmas, std
   // conflicts needed ahead of time for resolution
   // proof lemmas
   std::vector<Expr> bv_lemmas;
+  // Warning() << "LFSCTheoryProofEngine::finalizeBvConflicts: total #conflicts = " << lemmas.size() << std::endl;
+  unsigned count = 1;
+
   for (IdToSatClause::const_iterator it = lemmas.begin(); it != lemmas.end(); ++it) {
+    // if (count % 1000 == 0) {
+    //   Warning() << "LFSCTheoryProofEngine::finalizeBvConflicts: working on lemma # " << count++ << std::endl;
+    // }
+
     const prop::SatClause* clause = it->second;
 
     std::vector<Expr> conflict;
@@ -557,10 +568,11 @@ void LFSCTheoryProofEngine::printTheoryLemmas(const IdToSatClause& lemmas,
   }
 
   Debug("gk::temp") << "finalizeConflicts starting" << std::endl;
+  // Warning() << "finalizeConflicts starting" << std::endl;
 
   finalizeBvConflicts(lemmas, os, paren);
 
-  Debug("gk::temp") << "finalizeConflicts done" << std::endl;
+  // Warning() << "finalizeConflicts done" << std::endl;
 
   if (options::bitblastMode() == theory::bv::BITBLAST_MODE_EAGER) {
     Assert (lemmas.size() == 1);

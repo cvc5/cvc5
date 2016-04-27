@@ -202,6 +202,10 @@ std::string ProofManager::getLitName(prop::SatLiteral lit,
 
 std::string ProofManager::getPreprocessedAssertionName(Node node,
                                                        const std::string& prefix) {
+  if (currentPM()->d_unchangedAssertionFilters.find(node) != currentPM()->d_unchangedAssertionFilters.end()) {
+    return currentPM()->d_unchangedAssertionFilters[node];
+  }
+
   node = node.getKind() == kind::BITVECTOR_EAGER_ATOM ? node[0] : node;
   return append(prefix+".PA", node.getId());
 }
@@ -477,6 +481,9 @@ void LFSCProof::toStream(std::ostream& out) {
   // print trust that input assertions are their preprocessed form
   printPreprocessedAssertions(used_assertions, out, paren);
 
+  // Check for assertions that did not get rewritten, and update the printing filter.
+  checkUnrewrittenAssertion(used_assertions);
+
   // print mapping between theory atoms and internal SAT variables
   out << ";; Printing mapping from preprocessed assertions into atoms \n";
   d_cnfProof->printAtomMapping(atoms, out, paren);
@@ -489,6 +496,7 @@ void LFSCProof::toStream(std::ostream& out) {
     d_cnfProof->printCnfProofForClause(cl_it->first, cl_it->second, out, paren);
   }
 
+  // Warning() << std::endl << "Printing cnf proof for clauses DONE" << std::endl;
   Debug("pf::pm") << std::endl << "Printing cnf proof for clauses DONE" << std::endl;
 
   // FIXME: for now assume all theory lemmas are in CNF form so
@@ -537,6 +545,29 @@ void LFSCProof::printPreprocessedAssertions(const NodeSet& assertions,
   }
 
   os << "\n";
+}
+
+void LFSCProof::checkUnrewrittenAssertion(const NodeSet& rewrites) {
+  Debug("pf::pm") << "LFSCProof::checkUnrewrittenAssertion starting" << std::endl;
+
+  NodeSet::const_iterator rewrite;
+  for (rewrite = rewrites.begin(); rewrite != rewrites.end(); ++rewrite) {
+    Debug("pf::pm") << "LFSCProof::checkUnrewrittenAssertion: handling " << *rewrite << std::endl;
+    if (ProofManager::currentPM()->have_input_assertion((*rewrite).toExpr())) {
+      Assert(ProofManager::currentPM()->d_unrewrittenAssertionToName.find((*rewrite).toExpr()) !=
+             ProofManager::currentPM()->d_unrewrittenAssertionToName.end());
+      Debug("pf::pm") << "LFSCProof::checkUnrewrittenAssertion: this assertion was NOT rewritten!" << std::endl
+                      << "\tAdding filter: "
+                      << ProofManager::getPreprocessedAssertionName(*rewrite, "")
+                      << " --> "
+                      << ProofManager::currentPM()->d_unrewrittenAssertionToName[(*rewrite).toExpr()]
+                      << std::endl;
+      ProofManager::currentPM()->d_unchangedAssertionFilters[(*rewrite)] =
+        ProofManager::currentPM()->d_unrewrittenAssertionToName[(*rewrite).toExpr()];
+    } else {
+      Debug("pf::pm") << "LFSCProof::checkUnrewrittenAssertion: this assertion WAS rewritten! " << *rewrite << std::endl;
+    }
+  }
 }
 
 //---from Morgan---
@@ -593,6 +624,10 @@ bool ProofManager::wasPrinted(const Type& type) const {
 
 void ProofManager::markPrinted(const Type& type) {
   d_printedTypes.insert(type);
+}
+
+void ProofManager::registerUnrewrittenAssertion(Expr assertion, std::string name) {
+  d_unrewrittenAssertionToName[assertion] = name;
 }
 
 std::ostream& operator<<(std::ostream& out, CVC4::ProofRule k) {

@@ -144,6 +144,8 @@ protected:
 public:
   // TODO: make private with setters/getters etc
   std::map<std::string, std::string> d_rewriteFilters;
+  std::map<Node, std::string> d_unchangedAssertionFilters;
+  std::map<Expr, std::string> d_unrewrittenAssertionToName;
 
   ProofManager(ProofFormat format = LFSC);
   ~ProofManager();
@@ -178,6 +180,9 @@ public:
   }
   assertions_iterator end_assertions() const { return d_inputFormulas.end(); }
   size_t num_assertions() const { return d_inputFormulas.size(); }
+  bool have_input_assertion(const Expr &assertion) {
+    return d_inputFormulas.find(assertion) != d_inputFormulas.end();
+  }
 
 //---from Morgan---
   Node mkOp(TNode n);
@@ -229,6 +234,7 @@ public:
   void markPrinted(const Type& type);
   bool wasPrinted(const Type& type) const;
 
+  void registerUnrewrittenAssertion(Expr assertion, std::string name);
 };/* class ProofManager */
 
 class LFSCProof : public Proof {
@@ -241,6 +247,8 @@ class LFSCProof : public Proof {
   void printPreprocessedAssertions(const NodeSet& assertions,
                                    std::ostream& os,
                                    std::ostream& paren);
+
+  void checkUnrewrittenAssertion(const NodeSet& assertions);
 public:
   LFSCProof(SmtEngine* smtEngine,
             LFSCCoreSatProof* sat,
