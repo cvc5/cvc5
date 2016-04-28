@@ -478,11 +478,11 @@ void LFSCProof::toStream(std::ostream& out) {
   out << " ;; Rewrites for Lemmas \n";
   d_theoryProof->printLemmaRewrites(rewrites, out, paren);
 
-  // print trust that input assertions are their preprocessed form
-  printPreprocessedAssertions(used_assertions, out, paren);
-
   // Check for assertions that did not get rewritten, and update the printing filter.
   checkUnrewrittenAssertion(used_assertions);
+
+  // print trust that input assertions are their preprocessed form
+  printPreprocessedAssertions(used_assertions, out, paren);
 
   // print mapping between theory atoms and internal SAT variables
   out << ";; Printing mapping from preprocessed assertions into atoms \n";
@@ -531,17 +531,21 @@ void LFSCProof::printPreprocessedAssertions(const NodeSet& assertions,
   NodeSet::const_iterator it = assertions.begin();
   NodeSet::const_iterator end = assertions.end();
 
+  Debug("pf::pm") << "LFSCProof::checkUnrewrittenAssertion starting" << std::endl;
+
   for (; it != end; ++it) {
-    os << "(th_let_pf _ ";
+    if (ProofManager::currentPM()->d_unrewrittenAssertionToName.find((*it).toExpr()) ==
+        ProofManager::currentPM()->d_unrewrittenAssertionToName.end()) {
+      os << "(th_let_pf _ ";
 
-    //TODO
-    os << "(trust_f ";
-    ProofManager::currentPM()->getTheoryProofEngine()->printLetTerm((*it).toExpr(), os);
-    os << ") ";
+      //TODO
+      os << "(trust_f ";
+      ProofManager::currentPM()->getTheoryProofEngine()->printLetTerm((*it).toExpr(), os);
+      os << ") ";
 
-    os << "(\\ "<< ProofManager::getPreprocessedAssertionName(*it, "") << "\n";
-    paren << "))";
-
+      os << "(\\ "<< ProofManager::getPreprocessedAssertionName(*it, "") << "\n";
+      paren << "))";
+    }
   }
 
   os << "\n";
@@ -629,6 +633,17 @@ void ProofManager::markPrinted(const Type& type) {
 void ProofManager::registerUnrewrittenAssertion(Expr assertion, std::string name) {
   d_unrewrittenAssertionToName[assertion] = name;
 }
+
+// void ProofManager::registerEagerProof(std::set<Node> conflict, Proof* pf) {
+//   Debug("pf::eager") << "ProofManager::registerEagerProof: conflict = " << std::endl << "\t";
+//   std::set<Node>::const_iterator it;
+//   for (it = conflict.begin(); it != conflict.end(); ++it) {
+//     Debug("pf::eager") << *it << " ";
+//   }
+//   Debug("pf::eager") << std::endl;
+
+//   d_eagerConflictToProof[conflict] = pf;
+// }
 
 std::ostream& operator<<(std::ostream& out, CVC4::ProofRule k) {
   switch(k) {
