@@ -175,8 +175,11 @@ option qcfAllConflict --qcf-all-conflict bool :read-write :default false
 option instNoEntail --inst-no-entail bool :read-write :default true
  do not consider instances of quantified formulas that are currently entailed
 
-option instPropagate --inst-propagate bool :read-write :default false
+option instPropagate --inst-prop bool :read-write :default false
  internal propagation for instantiations for selecting relevant instances
+ 
+option qcfEagerTest --qcf-eager-test bool :default true
+ optimization, test qcf instances eagerly
  
 ### rewrite rules options 
  

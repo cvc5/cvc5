@@ -35,6 +35,7 @@ class MatchGen {
 private:
   //current children information
   int d_child_counter;
+  bool d_use_children;
   //children of this object
   std::vector< int > d_children_order;
   unsigned getNumChildren() { return d_children.size(); }
@@ -117,6 +118,15 @@ private: //for completing match
   //optimization: track which arguments variables appear under UF terms in
   std::map< int, std::map< TNode, std::vector< unsigned > > > d_var_rel_dom;
   void getPropagateVars( std::vector< TNode >& vars, TNode n, bool pol, std::map< TNode, bool >& visited );
+  //optimization: number of variables set, to track when we can stop
+  std::map< int, bool > d_vars_set;
+  std::map< Node, bool > d_ground_terms;
+  unsigned d_extra_var;
+public:
+  void setGroundSubterm( Node t ) { d_ground_terms[t] = true; }
+  bool isGroundSubterm( Node t ) { return d_ground_terms.find( t )!=d_ground_terms.end(); }
+  bool isBaseMatchComplete();
+  bool isPropagatingInstance( QuantConflictFind * p, Node n );
 public:
   QuantInfo();
   ~QuantInfo();
@@ -161,12 +171,13 @@ public:
   bool getCurrentCanBeEqual( QuantConflictFind * p, int v, TNode n, bool chDiseq = false );
   int addConstraint( QuantConflictFind * p, int v, TNode n, bool polarity );
   int addConstraint( QuantConflictFind * p, int v, TNode n, int vn, bool polarity, bool doRemove );
-  bool setMatch( QuantConflictFind * p, int v, TNode n, bool isGroundRep );
+  bool setMatch( QuantConflictFind * p, int v, TNode n, bool isGroundRep, bool isGround );
+  void unsetMatch( QuantConflictFind * p, int v );
   bool isMatchSpurious( QuantConflictFind * p );
   bool isTConstraintSpurious( QuantConflictFind * p, std::vector< Node >& terms );
   bool entailmentTest( QuantConflictFind * p, Node lit, bool chEnt = true );
   bool completeMatch( QuantConflictFind * p, std::vector< int >& assigned, bool doContinue = false );
-  void revertMatch( std::vector< int >& assigned );
+  void revertMatch( QuantConflictFind * p, std::vector< int >& assigned );
   void debugPrintMatch( const char * c );
   bool isConstrainedVar( int v );
 public:

@@ -57,6 +57,7 @@ using namespace CVC4::theory::inst;
 
 QuantifiersEngine::QuantifiersEngine(context::Context* c, context::UserContext* u, TheoryEngine* te):
     d_te( te ),
+    d_conflict_c(c, false),
     //d_quants(u),
     d_quants_red(u),
     d_lemmas_produced_c(u),
@@ -380,6 +381,8 @@ void QuantifiersEngine::check( Theory::Effort e ){
 
   Trace("quant-engine-debug2") << "Quantifiers Engine call to check, level = " << e << ", needsCheck=" << needsCheck << std::endl;
   if( needsCheck ){
+    //this will fail if a set of instances is marked as a conflict, but is not
+    Assert( !d_conflict_c.get() );
     //flush previous lemmas (for instance, if was interupted), or other lemmas to process
     flushLemmas();
     if( d_hasAddedLemma ){
@@ -1122,6 +1125,7 @@ bool QuantifiersEngine::addInstantiation( Node q, std::vector< Node >& terms, bo
         if( !d_inst_notify[j]->notifyInstantiation( d_curr_effort_level, q, lem, terms, body ) ){
           Trace("inst-add-debug") << "...we are in conflict." << std::endl;
           d_conflict = true;
+          d_conflict_c = true;
           Assert( !d_lemmas_waiting.empty() );
           break;
         }
@@ -1403,7 +1407,7 @@ bool EqualityQueryQuantifiersEngine::processInferences( Theory::Effort e ) {
       Trace("quant-engine-ee-proc") << "      explanation : " << eq_exp << std::endl;
       Assert( ee->hasTerm( eq[0] ) );
       Assert( ee->hasTerm( eq[1] ) );
-      if( ee->areDisequal( eq[0], eq[1], false ) ){
+      if( areDisequal( eq[0], eq[1] ) ){
         Trace("quant-engine-ee-proc") << "processInferences : Conflict : " << eq << std::endl;
         if( Trace.isOn("term-db-lemma") ){
           Trace("term-db-lemma") << "Disequal terms, equal by normalization : " << eq[0] << " " << eq[1] << "!!!!" << std::endl;
@@ -1445,11 +1449,10 @@ bool EqualityQueryQuantifiersEngine::areEqual( Node a, Node b ){
   }else{
     eq::EqualityEngine* ee = getEngine();
     if( ee->hasTerm( a ) && ee->hasTerm( b ) ){
-      if( ee->areEqual( a, b ) ){
-        return true;
-      }
+      return ee->areEqual( a, b );
+    }else{
+      return false;
     }
-    return false;
   }
 }
 
@@ -1459,11 +1462,10 @@ bool EqualityQueryQuantifiersEngine::areDisequal( Node a, Node b ){
   }else{
     eq::EqualityEngine* ee = getEngine();
     if( ee->hasTerm( a ) && ee->hasTerm( b ) ){
-      if( ee->areDisequal( a, b, false ) ){
-        return true;
-      }
+      return ee->areDisequal( a, b, false );
+    }else{
+      return a.isConst() && b.isConst();
     }
-    return false;
   }
 }
 

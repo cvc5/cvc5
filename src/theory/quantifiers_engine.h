@@ -156,6 +156,7 @@ private:  //this information is reset during check
   unsigned d_curr_effort_level;
   /** are we in conflict */
   bool d_conflict;
+  context::CDO< bool > d_conflict_c;
   /** number of lemmas we actually added this round (for debugging) */
   unsigned d_num_added_lemmas_round;
   /** has added lemma this round */

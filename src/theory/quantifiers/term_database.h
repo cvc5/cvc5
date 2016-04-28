@@ -228,7 +228,7 @@ private:
   /** set has term */
   void setHasTerm( Node n );
   /** evaluate term */
-  Node evaluateTerm2( TNode n, std::map< TNode, Node >& visited, EqualityQuery * qy );
+  Node evaluateTerm2( TNode n, std::map< TNode, Node >& visited, EqualityQuery * qy, bool useEntailmentTests );
   TNode getEntailedTerm2( TNode n, std::map< TNode, TNode >& subs, bool subsRep, bool hasSubs, EqualityQuery * qy );
   bool isEntailed2( TNode n, std::map< TNode, TNode >& subs, bool subsRep, bool hasSubs, bool pol, EqualityQuery * qy );
 public:
@@ -259,7 +259,7 @@ public:
   /** evaluate a term under a substitution.  Return representative in EE if possible.
    * subsRep is whether subs contains only representatives
    */
-  Node evaluateTerm( TNode n, EqualityQuery * qy = NULL );
+  Node evaluateTerm( TNode n, EqualityQuery * qy = NULL, bool useEntailmentTests = false );
   /** get entailed term, does not construct new terms, less aggressive */
   TNode getEntailedTerm( TNode n, EqualityQuery * qy = NULL );
   TNode getEntailedTerm( TNode n, std::map< TNode, TNode >& subs, bool subsRep, EqualityQuery * qy = NULL );

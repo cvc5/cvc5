@@ -237,25 +237,23 @@ bool TermDb::inRelevantDomain( TNode f, unsigned i, TNode r ) {
 
 //return a term n' equivalent to n
 //  maximal subterms of n' are representatives in the equality engine qy
-Node TermDb::evaluateTerm2( TNode n, std::map< TNode, Node >& visited, EqualityQuery * qy ) {
+Node TermDb::evaluateTerm2( TNode n, std::map< TNode, Node >& visited, EqualityQuery * qy, bool useEntailmentTests ) {
   std::map< TNode, Node >::iterator itv = visited.find( n );
   if( itv != visited.end() ){
     return itv->second;
   }
   Trace("term-db-eval") << "evaluate term : " << n << std::endl;
-  Node ret;
-  if( n.getKind()==BOUND_VARIABLE ){
-    return n;
+  Node ret = n;
+  if( n.getKind()==FORALL || n.getKind()==BOUND_VARIABLE ){
+    //do nothing
   }else if( !qy->hasTerm( n ) ){
     //term is not known to be equal to a representative in equality engine, evaluate it
-    if( n.getKind()==FORALL ){
-      ret = Node::null();
-    }else if( n.hasOperator() ){
+    if( n.hasOperator() ){
       TNode f = getMatchOperator( n );
       std::vector< TNode > args;
       bool ret_set = false;
       for( unsigned i=0; i<n.getNumChildren(); i++ ){
-        TNode c = evaluateTerm2( n[i], visited, qy );
+        TNode c = evaluateTerm2( n[i], visited, qy, useEntailmentTests );
         if( c.isNull() ){
           ret = Node::null();
           ret_set = true;
@@ -267,7 +265,7 @@ Node TermDb::evaluateTerm2( TNode n, std::map< TNode, Node >& visited, EqualityQ
             ret_set = true;
             break;
           }else if( n.getKind()==kind::ITE && i==0 ){
-            ret = evaluateTerm2( n[ c==d_true ? 1 : 2], visited, qy ); 
+            ret = evaluateTerm2( n[ c==d_true ? 1 : 2], visited, qy, useEntailmentTests ); 
             ret_set = true;
             break;
           }
@@ -295,6 +293,22 @@ Node TermDb::evaluateTerm2( TNode n, std::map< TNode, Node >& visited, EqualityQ
           }
           ret = NodeManager::currentNM()->mkNode( n.getKind(), args );
           ret = Rewriter::rewrite( ret );
+          if( ret.getKind()==kind::EQUAL ){
+            if( qy->areDisequal( ret[0], ret[1] ) ){
+              ret = d_false;
+            }
+          }
+          if( useEntailmentTests ){
+            if( ret.getKind()==kind::EQUAL || ret.getKind()==kind::GEQ ){
+              for( unsigned j=0; j<2; j++ ){
+                std::pair<bool, Node> et = d_quantEngine->getTheoryEngine()->entailmentCheck(THEORY_OF_TYPE_BASED, j==0 ? ret : ret.negate() );
+                if( et.first ){
+                  ret = j==0 ? d_true : d_false;
+                  break;
+                }
+              }
+            }
+          }
         }
       }
     }
@@ -355,12 +369,12 @@ TNode TermDb::getEntailedTerm2( TNode n, std::map< TNode, TNode >& subs, bool su
   return TNode::null();
 }
 
-Node TermDb::evaluateTerm( TNode n, EqualityQuery * qy ) {
+Node TermDb::evaluateTerm( TNode n, EqualityQuery * qy, bool useEntailmentTests ) {
   if( qy==NULL ){
     qy = d_quantEngine->getEqualityQuery();
   }
   std::map< TNode, Node > visited;
-  return evaluateTerm2( n, visited, qy );
+  return evaluateTerm2( n, visited, qy, useEntailmentTests );
 }
 
 TNode TermDb::getEntailedTerm( TNode n, std::map< TNode, TNode >& subs, bool subsRep, EqualityQuery * qy ) {

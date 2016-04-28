@@ -74,7 +74,7 @@ private:
   /** disequality list, stores explanations */
   std::map< Node, std::map< Node, std::vector< Node > > > d_diseq_list;
   /** add arg */
-  void addArgument( std::vector< Node >& args, std::vector< Node >& props, Node n, bool is_prop, bool pol );
+  void addArgument( Node n, std::vector< Node >& args, std::vector< Node >& watch, bool is_watch );
 public:
   enum {
     STATUS_CONFLICT,
@@ -89,10 +89,13 @@ public:
 public:
   //for explanations
   static void merge_exp( std::vector< Node >& v, std::vector< Node >& v_to_merge, int up_to_size = -1 );
+  //for watch list
+  static void setWatchList( Node n, std::vector< Node >& watch, std::map< Node, std::vector< Node > >& watch_list_out );
+  static void collectWatchList( Node n, std::map< Node, std::vector< Node > >& watch_list_out, std::vector< Node >& watch_list );
 
-  Node evaluateTermExp( Node n, std::vector< Node >& exp, std::map< Node, Node >& visited, bool hasPol, bool pol,
-                        std::map< Node, bool >& watch_list_out, std::vector< Node >& props );
-  static bool isLiteral( Node n );
+  Node evaluateTermExp( Node n, std::vector< Node >& exp, std::map< int, std::map< Node, Node > >& visited,
+                        bool hasPol, bool pol, std::map< Node, std::vector< Node > >& watch_list_out, std::vector< Node >& props );
+  bool isPropagateLiteral( Node n );
 };
 
 class InstPropagator : public QuantifiersUtil {
@@ -104,13 +107,15 @@ private:
     InstPropagator& d_ip;
   public:
     InstantiationNotifyInstPropagator(InstPropagator& ip): d_ip(ip) {}
-    virtual bool notifyInstantiation( unsigned quant_e, Node q, Node lem, std::vector< Node >& terms, Node body ) { 
-      return d_ip.notifyInstantiation( quant_e, q, lem, terms, body ); 
+    virtual bool notifyInstantiation( unsigned quant_e, Node q, Node lem, std::vector< Node >& terms, Node body ) {
+      return d_ip.notifyInstantiation( quant_e, q, lem, terms, body );
     }
   };
   InstantiationNotifyInstPropagator d_notify;
   /** notify instantiation method */
   bool notifyInstantiation( unsigned quant_e, Node q, Node lem, std::vector< Node >& terms, Node body );
+  /** allocate instantiation */
+  unsigned allocateInstantiation( Node q, Node lem, std::vector< Node >& terms, Node body );
   /** equality query */
   EqualityQueryInstProp d_qy;
   class InstInfo {
@@ -143,7 +148,6 @@ private:
   void conflict( std::vector< Node >& exp );
   bool cacheConclusion( unsigned id, Node body, int prop_index = 0 );
   void addRelevantInstances( std::vector< Node >& exp, const char * c );
-
   void debugPrintExplanation( std::vector< Node >& exp, const char * c );
 public:
   InstPropagator( QuantifiersEngine* qe );
