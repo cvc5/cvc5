@@ -115,7 +115,7 @@ public:
 // On Mac clang, there appears to be a code generation bug in an exception
 // block here.  For now, there doesn't appear a good workaround; just disable
 // assertions on that setup.
-#if defined(CVC4_ASSERTIONS) && !(defined(__APPLE__) && defined(__clang__))
+#if defined(CVC4_ASSERTIONS) && !(defined(__clang__))
     if(d_te->isFinished()) {
       try {
         **d_te;
