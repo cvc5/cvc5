@@ -313,8 +313,22 @@ class TSatProof {
                                     // to SAT solver
   IdToConflicts d_assumptionConflictsDebug;
 
-  // resolutions
+  // Resolutions.
+
+  /**
+   * Map from ClauseId to resolution chain corresponding proving the
+   * clause corresponding to the ClauseId. d_resolutionChains owns the
+   * memory of the ResChain* it contains.
+   */
   IdResMap d_resolutionChains;
+
+   /*
+   * Stack containting current ResChain* we are working on. d_resStack
+   * owns the memory for the ResChain* it contains. Invariant: no
+   * ResChain* pointer can be both in d_resStack and
+   * d_resolutionChains. Memory ownership is transfered from
+   * d_resStack to d_resolutionChains via registerResolution.
+   */
   ResStack d_resStack;
   bool d_checkRes;
 

@@ -258,7 +258,6 @@ TSatProof<Solver>::~TSatProof() {
     delete seen_input_it->second;
   }
 
-  // TODO: Have an expert check this.
   typedef typename IdResMap::const_iterator ResolutionChainIterator;
   ResolutionChainIterator resolution_it = d_resolutionChains.begin();
   ResolutionChainIterator resolution_it_end = d_resolutionChains.end();
@@ -267,6 +266,8 @@ TSatProof<Solver>::~TSatProof() {
     delete current;
   }
 
+  // It could be the case that d_resStack is not empty at destruction time
+  // (for example in the SAT case).
   typename ResStack::const_iterator resolution_stack_it = d_resStack.begin();
   typename ResStack::const_iterator resolution_stack_it_end = d_resStack.end();
   for (; resolution_stack_it != resolution_stack_it_end;
@@ -718,7 +719,9 @@ void TSatProof<Solver>::registerResolution(ClauseId id, ResChain<Solver>* res) {
   removeRedundantFromRes(res, id);
   Assert(res->redundantRemoved());
 
-  // TODO: Have someone with a clue check this.
+  // Because the SAT solver can add the same clause multiple times, it
+  // could be the case that a resolution chain for this clause already
+  // exists (e.g. when removing units in addClause).
   if (hasResolutionChain(id)) {
     ResChain<Solver>* current = d_resolutionChains.find(id)->second;
     delete current;
@@ -797,7 +800,6 @@ void TSatProof<Solver>::endResChain(typename Solver::TLit lit) {
 template <class Solver>
 void TSatProof<Solver>::cancelResChain() {
   Assert(d_resStack.size() > 0);
-  // TODO: Expert check.
   ResolutionChain* back = d_resStack.back();
   delete back;
   d_resStack.pop_back();
@@ -898,7 +900,6 @@ void TSatProof<Solver>::finalizeProof(typename Solver::TCRef conflict_ref) {
     print(conflict_id);
   }
 
-  // TODO: Run this rotation by someone.
   ResChain<Solver>* res = new ResChain<Solver>(conflict_id);
   // Here, the call to resolveUnit() can reallocate memory in the
   // clause allocator.  So reload conflict ptr each time.
