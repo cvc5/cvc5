@@ -19,6 +19,7 @@
 #include "base/cvc4_assert.h"
 #include "context/context.h"
 #include "options/bv_options.h"
+#include "options/proof_options.h"
 #include "proof/arith_proof.h"
 #include "proof/array_proof.h"
 #include "proof/bitvector_proof.h"
@@ -456,7 +457,7 @@ void LFSCTheoryProofEngine::finalizeBvConflicts(const IdToSatClause& lemmas, std
   // proof lemmas
   std::vector<Expr> bv_lemmas;
   // Warning() << "LFSCTheoryProofEngine::finalizeBvConflicts: total #conflicts = " << lemmas.size() << std::endl;
-  unsigned count = 1;
+  // unsigned count = 1;
 
   for (IdToSatClause::const_iterator it = lemmas.begin(); it != lemmas.end(); ++it) {
     // if (count % 1000 == 0) {
@@ -1053,6 +1054,32 @@ void LFSCTheoryProofEngine::printCoreTerm(Expr term, std::ostream& os, const Let
 }
 
 void TheoryProof::printTheoryLemmaProof(std::vector<Expr>& lemma, std::ostream& os, std::ostream& paren) {
+    if (options::eagerUfProofs() || options::eagerArrayProofs()) {
+    // Eager proof mode.
+    Debug("pf::eager") << std::endl << "TheoryProof::printTheoryLemmaProof called in eager proof mode" << std::endl;
+
+    std::set<Node> conflict;
+    for (unsigned i = 0; i < lemma.size(); ++i) {
+      conflict.insert(Node(lemma[i]).negate());
+    }
+
+    Debug("pf::eager") << "conflict = " << std::endl << "\t";
+    std::set<Node>::const_iterator it;
+    for (it = conflict.begin(); it != conflict.end(); ++it) {
+      Debug("pf::eager") << *it << " ";
+    }
+    Debug("pf::eager") << std::endl;
+
+    if (ProofManager::currentPM()->d_eagerConflictToProof.find(conflict) != ProofManager::currentPM()->d_eagerConflictToProof.end()) {
+      Debug("pf::eager") << "Conflict node exists in the database. Printing proof" << std::endl;
+      ProofManager::currentPM()->d_eagerConflictToProof[conflict]->toStream(os);
+      Debug("pf::eager") << "Done printing proof" << std::endl;
+      return;
+    } else {
+      Debug("pf::eager") << "Conflict DID NOT exist in the database (theory lemma?). Doing a lazy proof." << std::endl;
+    }
+  }
+
   //default method for replaying proofs: assert (negated) literals back to a fresh copy of the theory
   Assert( d_theory!=NULL );
   context::UserContext fakeContext;
@@ -1063,6 +1090,11 @@ void TheoryProof::printTheoryLemmaProof(std::vector<Expr>& lemma, std::ostream& 
   Trace("theory-proof-debug") << ";; Print theory lemma proof, theory id = " << d_theory->getId() << std::endl;
   if(d_theory->getId()==theory::THEORY_UF) {
     th = new theory::uf::TheoryUF(&fakeContext, &fakeContext, oc, v,
+                                  ProofManager::currentPM()->getLogicInfo(),
+                                  "replay::");
+  } else if(d_theory->getId()==theory::THEORY_BV) {
+    Assert(!options::eagerBvProofs()); // Eager BV proofs are handled in bv_proof.
+    th = new theory::bv::TheoryBV(&fakeContext, &fakeContext, oc, v,
                                   ProofManager::currentPM()->getLogicInfo(),
                                   "replay::");
   } else if(d_theory->getId()==theory::THEORY_ARRAY) {
