@@ -5,4 +5,13 @@
 
 module PROOF "options/proof_options.h" Proof
 
+option eagerUfProofs --eager-uf-proofs bool :default false :read-write
+  produce UF proofs eagerly
+
+option eagerArrayProofs --eager-array-proofs bool :default false :read-write
+  produce Array proofs eagerly
+
+option eagerBvProofs --eager-bv-proofs bool :default true :read-write
+  produce BV proofs eagerly
+
 endmodule
