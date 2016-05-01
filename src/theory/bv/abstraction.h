@@ -38,11 +38,11 @@ class AbstractionModule {
     IntStat d_numFunctionsAbstracted;
     IntStat d_numArgsSkolemized;
     TimerStat d_abstractionTime;
-    Statistics();
+    Statistics(const std::string& name);
     ~Statistics();
   };
 
-  
+
   class ArgsTableEntry {
     std::vector<ArgsVec> d_data;
     unsigned d_arity;
@@ -61,11 +61,11 @@ class AbstractionModule {
     unsigned getArity() { return d_arity; }
     unsigned getNumEntries() { return d_data.size(); }
     ArgsVec& getEntry(unsigned i ) { Assert (i < d_data.size()); return d_data[i]; }
-  }; 
+  };
 
   class ArgsTable {
     __gnu_cxx::hash_map<TNode, ArgsTableEntry, TNodeHashFunction > d_data;
-    bool hasEntry(TNode signature) const; 
+    bool hasEntry(TNode signature) const;
   public:
     typedef __gnu_cxx::hash_map<TNode, ArgsTableEntry, TNodeHashFunction >::iterator iterator;
     ArgsTable() {}
@@ -75,12 +75,12 @@ class AbstractionModule {
     iterator end() { return d_data.end(); }
   };
 
-  /** 
+  /**
    * Checks if one pattern is a generalization of the other
-   * 
-   * @param s 
-   * @param t 
-   * 
+   *
+   * @param s
+   * @param t
+   *
    * @return 1 if s :> t, 2 if s <: t, 0 if they equivalent and -1 if they are incomparable
    */
   static int comparePatterns(TNode s, TNode t);
@@ -93,7 +93,7 @@ class AbstractionModule {
     theory::SubstitutionMap d_subst;
     TNode d_conflict;
     std::vector<Node> d_lemmas;
-    
+
     void backtrack(std::vector<int>& stack);
     int next(int val, int index);
     bool isConsistent(const std::vector<int>& stack);
@@ -108,7 +108,7 @@ class AbstractionModule {
       , d_conflict(conflict)
       , d_lemmas()
     {
-      Debug("bv-abstraction-gen") << "LemmaInstantiator conflict:" << conflict << "\n"; 
+      Debug("bv-abstraction-gen") << "LemmaInstantiator conflict:" << conflict << "\n";
       // initializing the search space
       for (unsigned i = 0; i < functions.size(); ++i) {
         TNode func_op = functions[i].getOperator();
@@ -118,31 +118,31 @@ class AbstractionModule {
       }
     }
 
-    void generateInstantiations(std::vector<Node>& lemmas); 
-    
+    void generateInstantiations(std::vector<Node>& lemmas);
+
   };
-  
+
   typedef __gnu_cxx::hash_map<Node, std::vector<Node>, NodeHashFunction> NodeVecMap;
   typedef __gnu_cxx::hash_map<Node, TNode, NodeHashFunction> NodeTNodeMap;
   typedef __gnu_cxx::hash_map<TNode, TNode, TNodeHashFunction> TNodeTNodeMap;
   typedef __gnu_cxx::hash_map<Node, Node, NodeHashFunction> NodeNodeMap;
   typedef __gnu_cxx::hash_map<Node, TNode, NodeHashFunction> TNodeNodeMap;
   typedef __gnu_cxx::hash_set<TNode, TNodeHashFunction> TNodeSet;
-  typedef __gnu_cxx::hash_map<unsigned, Node> IntNodeMap; 
+  typedef __gnu_cxx::hash_map<unsigned, Node> IntNodeMap;
   typedef __gnu_cxx::hash_map<unsigned, unsigned> IndexMap;
   typedef __gnu_cxx::hash_map<unsigned, std::vector<Node> > SkolemMap;
   typedef __gnu_cxx::hash_map<TNode, unsigned, TNodeHashFunction > SignatureMap;
-  
-  ArgsTable d_argsTable; 
+
+  ArgsTable d_argsTable;
 
   // mapping between signature and uninterpreted function symbol used to
   // abstract the signature
   NodeNodeMap d_signatureToFunc;
-  NodeNodeMap d_funcToSignature; 
+  NodeNodeMap d_funcToSignature;
 
-  NodeNodeMap d_assertionToSignature; 
+  NodeNodeMap d_assertionToSignature;
   SignatureMap d_signatures;
-  NodeNodeMap d_sigToGeneralization; 
+  NodeNodeMap d_sigToGeneralization;
   TNodeSet d_skolems;
 
   // skolems maps
@@ -165,7 +165,7 @@ class AbstractionModule {
   Node getGeneralizedSignature(Node node);
   Node getSignatureSkolem(TNode node);
 
-  unsigned getBitwidthIndex(unsigned bitwidth); 
+  unsigned getBitwidthIndex(unsigned bitwidth);
   void resetSignatureIndex();
   Node computeSignatureRec(TNode, NodeNodeMap&);
   void storeSignature(Node signature, TNode assertion);
@@ -175,14 +175,14 @@ class AbstractionModule {
 
   // crazy instantiation methods
   void generateInstantiations(unsigned current,
-                              std::vector<ArgsTableEntry>& matches, 
+                              std::vector<ArgsTableEntry>& matches,
                               std::vector<std::vector<ArgsVec> >& instantiations,
                               std::vector<std::vector<ArgsVec> >& new_instantiations);
 
   Node tryMatching(const std::vector<Node>& ss, const std::vector<TNode>& tt, TNode conflict);
   void makeFreshArgs(TNode func, std::vector<Node>& fresh_args);
   void makeFreshSkolems(TNode node, SubstitutionMap& map, SubstitutionMap& reverse_map);
-  
+
   void skolemizeArguments(std::vector<Node>& assertions);
   Node reverseAbstraction(Node assertion, NodeNodeMap& seen);
 
@@ -192,9 +192,9 @@ class AbstractionModule {
   void storeLemma(TNode lemma);
 
   Statistics d_statistics;
-  
+
 public:
-  AbstractionModule()
+  AbstractionModule(const std::string& name)
     : d_argsTable()
     , d_signatureToFunc()
     , d_funcToSignature()
@@ -207,34 +207,34 @@ public:
     , d_addedLemmas()
     , d_lemmaAtoms()
     , d_inputAtoms()
-    , d_statistics()
+    , d_statistics(name)
   {}
-  /** 
+  /**
    * returns true if there are new uninterepreted functions symbols in the output
-   * 
-   * @param assertions 
-   * @param new_assertions 
-   * 
-   * @return 
+   *
+   * @param assertions
+   * @param new_assertions
+   *
+   * @return
    */
   bool applyAbstraction(const std::vector<Node>& assertions, std::vector<Node>& new_assertions);
-  /** 
-   * Returns true if the node represents an abstraction predicate. 
-   * 
-   * @param node 
-   * 
-   * @return 
+  /**
+   * Returns true if the node represents an abstraction predicate.
+   *
+   * @param node
+   *
+   * @return
    */
   bool isAbstraction(TNode node);
-  /** 
-   * Returns the interpretation of the abstraction predicate. 
-   * 
-   * @param node 
-   * 
-   * @return 
+  /**
+   * Returns the interpretation of the abstraction predicate.
+   *
+   * @param node
+   *
+   * @return
    */
   Node getInterpretation(TNode node);
-  Node simplifyConflict(TNode conflict); 
+  Node simplifyConflict(TNode conflict);
   void generalizeConflict(TNode conflict, std::vector<Node>& lemmas);
   void addInputAtom(TNode atom);
   bool isLemmaAtom(TNode node) const;
