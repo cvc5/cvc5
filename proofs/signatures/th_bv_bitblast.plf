@@ -25,6 +25,7 @@
 	    (bblast_term n x y)))))
 
 
+;; Binds a symbol to the bblast_term to be used later on.
 (declare decl_bblast
 	 (! n mpz
 	 (! b bblt
