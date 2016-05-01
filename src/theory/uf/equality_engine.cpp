@@ -964,9 +964,7 @@ void EqualityEngine::explainEquality(TNode t1, TNode t2, bool polarity, std::vec
           bool nullCongruenceFound = false;
           for (unsigned i = 0; i < eqpc->d_children.size(); ++i) {
             if (eqpc->d_children[i]->d_id==eq::MERGED_THROUGH_CONGRUENCE && eqpc->d_children[i]->d_node.isNull()) {
-
               // For now, assume there can only be one null congruence child
-              Assert(!nullCongruenceFound);
               nullCongruenceFound = true;
 
               Debug("pf::ee") << "Have congruence with empty d_node. Splitting..." << std::endl;
