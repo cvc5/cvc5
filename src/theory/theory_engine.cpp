@@ -128,6 +128,31 @@ bool TheoryEngine::EngineOutputChannel::propagate(TNode literal)
   return d_engine->propagate(literal, d_theory);
 }
 
+void TheoryEngine::EngineOutputChannel::conflict(TNode conflictNode, Proof* pf)
+  throw(AssertionException, UnsafeInterruptException) {
+  Trace("theory::conflict") << "EngineOutputChannel<" << d_theory << ">::conflict(" << conflictNode << ")" << std::endl;
+  //  Assert(pf == NULL); // theory shouldn't be producing proofs yet
+  PROOF({
+      // We are in eager proof production mode. Register this proof with the proof master.
+      if (pf != NULL) {
+        std::set<Node> conflict;
+        if (conflictNode.getKind() == kind::AND) {
+          for (unsigned i = 0; i < conflictNode.getNumChildren(); ++i) {
+            conflict.insert(conflictNode[i]);
+          }
+        } else {
+          conflict.insert(conflictNode);
+        }
+        ProofManager::currentPM()->registerEagerProof(conflict, pf);
+      }
+    });
+
+  ++ d_statistics.conflicts;
+  d_engine->d_outputChannelUsed = true;
+  d_engine->conflict(conflictNode, d_theory);
+}
+
+
 void TheoryEngine::finishInit() {
   // initialize the quantifiers engine
   d_quantEngine = new QuantifiersEngine(d_context, d_userContext, this);

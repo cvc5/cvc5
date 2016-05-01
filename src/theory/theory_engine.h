@@ -271,13 +271,7 @@ class TheoryEngine {
       }
     }
 
-    void conflict(TNode conflictNode, Proof* pf = NULL) throw(AssertionException, UnsafeInterruptException) {
-      Trace("theory::conflict") << "EngineOutputChannel<" << d_theory << ">::conflict(" << conflictNode << ")" << std::endl;
-      Assert(pf == NULL); // theory shouldn't be producing proofs yet
-      ++ d_statistics.conflicts;
-      d_engine->d_outputChannelUsed = true;
-      d_engine->conflict(conflictNode, d_theory);
-    }
+    void conflict(TNode conflictNode, Proof* pf = NULL) throw(AssertionException, UnsafeInterruptException);
 
     bool propagate(TNode literal) throw(AssertionException, UnsafeInterruptException);
 
