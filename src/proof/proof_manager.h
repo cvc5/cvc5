@@ -132,7 +132,6 @@ class ProofManager {
   Proof* d_fullProof;
   ProofFormat d_format; // used for now only in debug builds
 
-  NodeToNodes d_deps;
   // trace dependences back to unsat core
   void traceDeps(TNode n);
 
@@ -146,6 +145,9 @@ public:
   std::map<std::string, std::string> d_rewriteFilters;
   std::map<Node, std::string> d_unchangedAssertionFilters;
   std::map<Expr, std::string> d_unrewrittenAssertionToName;
+  std::map<std::set<Node>, Proof*> d_eagerConflictToProof;
+
+  NodeToNodes d_deps;
 
   ProofManager(ProofFormat format = LFSC);
   ~ProofManager();
@@ -183,6 +185,9 @@ public:
   bool have_input_assertion(const Expr &assertion) {
     return d_inputFormulas.find(assertion) != d_inputFormulas.end();
   }
+
+  void registerEagerProof(std::set<Node> conflictNode, Proof* pf);
+
 
 //---from Morgan---
   Node mkOp(TNode n);
@@ -235,6 +240,10 @@ public:
   bool wasPrinted(const Type& type) const;
 
   void registerUnrewrittenAssertion(Expr assertion, std::string name);
+
+  // NodeToNodes d_preprocessedToOriginal;
+  // void addPreprocessingDependence(TNode preprocessed, TNode original);
+
 };/* class ProofManager */
 
 class LFSCProof : public Proof {

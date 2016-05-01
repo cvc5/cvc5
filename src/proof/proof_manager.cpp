@@ -20,6 +20,7 @@
 #include "base/cvc4_assert.h"
 #include "context/context.h"
 #include "options/bv_options.h"
+#include "options/proof_options.h"
 #include "proof/bitvector_proof.h"
 #include "proof/clause_id.h"
 #include "proof/cnf_proof.h"
@@ -479,7 +480,9 @@ void LFSCProof::toStream(std::ostream& out) {
   d_theoryProof->printLemmaRewrites(rewrites, out, paren);
 
   // Check for assertions that did not get rewritten, and update the printing filter.
-  checkUnrewrittenAssertion(used_assertions);
+  if (options::fewerPreprocessingHoles()) {
+    checkUnrewrittenAssertion(used_assertions);
+  }
 
   // print trust that input assertions are their preprocessed form
   printPreprocessedAssertions(used_assertions, out, paren);
@@ -534,8 +537,11 @@ void LFSCProof::printPreprocessedAssertions(const NodeSet& assertions,
   Debug("pf::pm") << "LFSCProof::checkUnrewrittenAssertion starting" << std::endl;
 
   for (; it != end; ++it) {
-    if (ProofManager::currentPM()->d_unrewrittenAssertionToName.find((*it).toExpr()) ==
-        ProofManager::currentPM()->d_unrewrittenAssertionToName.end()) {
+    if (options::fewerPreprocessingHoles() &&
+        (ProofManager::currentPM()->d_unrewrittenAssertionToName.find((*it).toExpr()) !=
+         ProofManager::currentPM()->d_unrewrittenAssertionToName.end())) {
+      // This preprocessing step can be eliminated; don't do anything.
+    } else {
       os << "(th_let_pf _ ";
 
       //TODO
@@ -570,6 +576,22 @@ void LFSCProof::checkUnrewrittenAssertion(const NodeSet& rewrites) {
         ProofManager::currentPM()->d_unrewrittenAssertionToName[(*rewrite).toExpr()];
     } else {
       Debug("pf::pm") << "LFSCProof::checkUnrewrittenAssertion: this assertion WAS rewritten! " << *rewrite << std::endl;
+
+      // Assert(ProofManager::currentPM()->d_deps.find(*rewrite) != ProofManager::currentPM()->d_deps.end());
+
+      // std::vector<Node> dependencies = ProofManager::currentPM()->d_deps[*rewrite];
+      // // Check that one of the dependencies is an input formulas
+
+      // bool found = false;
+      // for (unsigned i = 0; i < dependencies.size(); ++i) {
+      //   ProofManager::assertions_iterator it;
+      //   for (it = ProofManager::currentPM()->begin_assertions(); it != ProofManager::currentPM()->end_assertions(); ++it) {
+      //     if (*it == dependencies[i].toExpr()) {
+      //       found = true;
+      //     }
+      //   }
+      // }
+      // Assert(found);
     }
   }
 }
@@ -634,16 +656,16 @@ void ProofManager::registerUnrewrittenAssertion(Expr assertion, std::string name
   d_unrewrittenAssertionToName[assertion] = name;
 }
 
-// void ProofManager::registerEagerProof(std::set<Node> conflict, Proof* pf) {
-//   Debug("pf::eager") << "ProofManager::registerEagerProof: conflict = " << std::endl << "\t";
-//   std::set<Node>::const_iterator it;
-//   for (it = conflict.begin(); it != conflict.end(); ++it) {
-//     Debug("pf::eager") << *it << " ";
-//   }
-//   Debug("pf::eager") << std::endl;
+void ProofManager::registerEagerProof(std::set<Node> conflict, Proof* pf) {
+  Debug("pf::eager") << "ProofManager::registerEagerProof: conflict = " << std::endl << "\t";
+  std::set<Node>::const_iterator it;
+  for (it = conflict.begin(); it != conflict.end(); ++it) {
+    Debug("pf::eager") << *it << " ";
+  }
+  Debug("pf::eager") << std::endl;
 
-//   d_eagerConflictToProof[conflict] = pf;
-// }
+  d_eagerConflictToProof[conflict] = pf;
+}
 
 std::ostream& operator<<(std::ostream& out, CVC4::ProofRule k) {
   switch(k) {
