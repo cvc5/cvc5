@@ -20,6 +20,7 @@
 
 #include "expr/kind.h"
 #include "options/arrays_options.h"
+#include "options/proof_options.h"
 #include "options/smt_options.h"
 #include "proof/array_proof.h"
 #include "proof/proof_manager.h"
@@ -821,7 +822,53 @@ void TheoryArrays::propagate(Effort e)
 
 
 Node TheoryArrays::explain(TNode literal) {
-  return explain(literal, NULL);
+  Debug("pf::eager") << "TheoryArrays::explain( " << literal << " ) called" << std::endl;
+
+  eq::EqProof* pf = NULL;
+  if (options::eagerArrayProofs()) {
+    pf = new eq::EqProof();
+  }
+
+  Node explanation = explain(literal, pf);
+
+    PROOF({
+      if (options::eagerArrayProofs()) {
+        std::set<Node> conflict;
+        if (explanation.getKind() == kind::AND) {
+          for (unsigned i = 0; i < explanation.getNumChildren(); ++i) {
+            conflict.insert(explanation[i]);
+          }
+        } else {
+          conflict.insert(explanation);
+        }
+        conflict.insert(literal.negate());
+
+        // Hack: special treatment for congruence proofs. Maybe move to EE?
+        if (pf->d_id != theory::eq::MERGED_THROUGH_TRANS) {
+          Debug("pf::eager") << "array explain congruence case. Before:\n";
+          pf->debug_print("pf::eager");
+
+          theory::eq::EqProof* newPf = new theory::eq::EqProof;
+          newPf->d_node = NodeManager::currentNM()->mkConst(false).iffNode(NodeManager::currentNM()->mkConst(true));
+          newPf->d_id = theory::eq::MERGED_THROUGH_TRANS;
+
+          newPf->d_children.push_back(pf);
+
+          theory::eq::EqProof* newChild2 = new theory::eq::EqProof;
+          newChild2->d_node = literal.negate();
+          newChild2->d_id = theory::eq::MERGED_THROUGH_EQUALITY;
+          newPf->d_children.push_back(newChild2);
+
+          Debug("pf::eager") << "uf explain congruence case. After:\n";
+          newPf->debug_print("pf::eager");
+          ProofManager::currentPM()->registerEagerProof(conflict, new ProofArray(newPf));
+        } else {
+          ProofManager::currentPM()->registerEagerProof(conflict, new ProofArray(pf));
+        }
+      }
+    });
+
+    return explanation;
 }
 
 Node TheoryArrays::explain(TNode literal, eq::EqProof *proof)
@@ -1391,6 +1438,7 @@ void TheoryArrays::check(Effort e) {
         break;
     default:
       Unreachable();
+      break;
     }
   }
 
@@ -2105,6 +2153,7 @@ void TheoryArrays::queueRowLemma(RowLemmaType lem)
     Node lemma = nm->mkNode(kind::OR, eq2_r, eq1_r);
 
     Trace("arrays-lem")<<"Arrays::addRowLemma adding "<<lemma<<"\n";
+    Trace("gk::temp")<<"Arrays::addRowLemma lemma before rewrite (1): "<< nm->mkNode(kind::OR, eq2, eq1)<<"\n";
     d_RowAlreadyAdded.insert(lem);
     d_out->lemma(lemma);
     ++d_numRow;
@@ -2128,6 +2177,7 @@ Node TheoryArrays::getNextDecisionRequest() {
 
 bool TheoryArrays::dischargeLemmas()
 {
+  Debug("pf::array") << "TheoryArrays::dischargeLemmas called" << std::endl;
   bool lemmasAdded = false;
   size_t sz = d_RowQueue.size();
   for (unsigned count = 0; count < sz; ++count) {
@@ -2213,7 +2263,10 @@ bool TheoryArrays::dischargeLemmas()
 
     Node lem = nm->mkNode(kind::OR, eq2_r, eq1_r);
 
+    //Node lem = nm->mkNode(kind::OR, i.eqNode(j), aj.eqNode(bj));
+
     Trace("arrays-lem")<<"Arrays::addRowLemma adding "<<lem<<"\n";
+    // Trace("gk::temp")<<"Arrays::addRowLemma lemma before rewrite (2): "<< nm->mkNode(kind::OR, eq2, eq1)<<"\n";
     d_RowAlreadyAdded.insert(l);
     d_out->lemma(lem);
     ++d_numRow;
@@ -2227,7 +2280,12 @@ bool TheoryArrays::dischargeLemmas()
 
 void TheoryArrays::conflict(TNode a, TNode b) {
   Debug("pf::array") << "TheoryArrays::Conflict called" << std::endl;
-  eq::EqProof* proof = d_proofsEnabled ? new eq::EqProof() : NULL;
+
+  eq::EqProof* proof = NULL;
+  if (options::eagerArrayProofs() || d_proofsEnabled) {
+    proof = new eq::EqProof();
+  }
+
   if (a.getKind() == kind::CONST_BOOLEAN) {
     d_conflictNode = explain(a.iffNode(b), proof);
   } else {
@@ -2236,13 +2294,17 @@ void TheoryArrays::conflict(TNode a, TNode b) {
 
   if (!d_inCheckModel) {
     if (proof) { proof->debug_print("pf::array"); }
-    ProofArray* proof_array = d_proofsEnabled ? new ProofArray( proof ) : NULL;
-    d_out->conflict(d_conflictNode, proof_array);
+
+    ProofArray* auf = NULL;
+    if (options::eagerArrayProofs() || d_proofsEnabled) {
+      auf = new ProofArray( proof );
+    }
+
+    d_out->conflict(d_conflictNode, auf);
   }
 
   d_conflict = true;
 }
-
 
 }/* CVC4::theory::arrays namespace */
 }/* CVC4::theory namespace */
