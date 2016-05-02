@@ -225,6 +225,8 @@ public:
   void addDependence(TNode n, TNode dep);
   void addUnsatCore(Expr formula);
 
+  void undoPreprocessing(Node n, std::set<Node>& assertions);
+
   void traceUnsatCore();
   assertions_iterator begin_unsat_core() const { return d_outputCoreFormulas.begin(); }
   assertions_iterator end_unsat_core() const { return d_outputCoreFormulas.end(); }

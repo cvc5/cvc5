@@ -248,6 +248,37 @@ std::string ProofManager::sanitize(TNode node) {
   return name;
 }
 
+void ProofManager::undoPreprocessing(Node n, std::set<Node>& assertions) {
+  Debug("pf::pm") << "ProofManager::undoPreprocessing: " << n << std::endl;
+
+  if ((n.isConst() && n == NodeManager::currentNM()->mkConst<bool>(true)) ||
+      (n.getKind() == kind::NOT && n[0] == NodeManager::currentNM()->mkConst<bool>(false))) {
+    return;
+  }
+
+  if (d_inputCoreFormulas.find(n.toExpr()) != d_inputCoreFormulas.end()) {
+    // originating formula was in core set
+    Debug("pf::pm") << " -- IN INPUT CORE LIST!" << std::endl;
+    assertions.insert(n);
+    return;
+  } else {
+    Debug("pf::pm") << " -- NOT IN INPUT CORE LIST!" << std::endl;
+    if (d_deps.find(n) == d_deps.end()) {
+      InternalError("Cannot trace dependence information back to input assertion:\n`%s'", n.toString().c_str());
+    }
+
+    Assert(d_deps.find(n) != d_deps.end());
+
+    std::vector<Node> deps = (*d_deps.find(n)).second;
+    for(std::vector<Node>::const_iterator i = deps.begin(); i != deps.end(); ++i) {
+      Debug("pf::pm") << " + tracing deps: " << n << " -deps-on- " << *i << std::endl;
+      if( !(*i).isNull() ){
+        undoPreprocessing(*i, assertions);
+      }
+    }
+  }
+}
+
 void ProofManager::traceDeps(TNode n) {
   Debug("cores") << "trace deps " << n << std::endl;
   if ((n.isConst() && n == NodeManager::currentNM()->mkConst<bool>(true)) ||
@@ -547,9 +578,23 @@ void LFSCProof::printPreprocessedAssertions(const NodeSet& assertions,
         // This preprocessing step can be eliminated; don't do anything.
       } else {
         os << "(th_let_pf _ (trust_f (iff ";
+
+        // Figure out which input assertion led to this assertion
+        std::set<Node> inputAssertions;
+        ProofManager::currentPM()->undoPreprocessing(*it, inputAssertions);
+        Assert(inputAssertions.size() == 1);
+        Node inputAssertion = *inputAssertions.begin();
+
+        Debug("pf::pm") << "Original assertion for " << *it
+                        << " is: "
+                        << inputAssertion
+                        << ", AKA "
+                        << ProofManager::currentPM()->d_unrewrittenAssertionToName[inputAssertion.toExpr()]
+                        << std::endl;
+
         // For now just use the first assertion...
-        ProofManager::assertions_iterator assertion = ProofManager::currentPM()->begin_assertions();
-        ProofManager::currentPM()->getTheoryProofEngine()->printLetTerm(*assertion, os);
+        // ProofManager::assertions_iterator assertion = ProofManager::currentPM()->begin_assertions();
+        ProofManager::currentPM()->getTheoryProofEngine()->printLetTerm(inputAssertion.toExpr(), os);
 
         os << " ";
         ProofManager::currentPM()->getTheoryProofEngine()->printLetTerm((*it).toExpr(), os);
@@ -562,12 +607,13 @@ void LFSCProof::printPreprocessedAssertions(const NodeSet& assertions,
 
         rewritten << "(or_elim_1 _ _ ";
         rewritten << "(not_not_intro _ ";
-        rewritten << "A0";
+        rewritten << ProofManager::currentPM()->d_unrewrittenAssertionToName[inputAssertion.toExpr()];
         rewritten << ") (iff_elim_1 _ _ ";
         rewritten << ProofManager::getPreprocessedAssertionName(*it, "");
         rewritten << "))";
 
         ProofManager::currentPM()->d_unchangedAssertionFilters[(*it)] = rewritten.str();
+
       }
     }
   } else {

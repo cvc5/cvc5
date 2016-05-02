@@ -57,6 +57,7 @@
 #include "options/open_ostream.h"
 #include "options/option_exception.h"
 #include "options/printer_options.h"
+#include "options/proof_options.h"
 #include "options/prop_options.h"
 #include "options/quantifiers_options.h"
 #include "options/set_language.h"
@@ -982,7 +983,7 @@ public:
           Trace("smt-qe-debug") << "   return : " << ret << std::endl;
           //recursive (for nested quantification)
           ret = replaceQuantifiersWithInstantiations( reti, insts, visited );
-        }     
+        }
       }else if( n.getNumChildren()>0 ){
         bool childChanged = false;
         std::vector< Node > children;
@@ -1053,10 +1054,10 @@ SmtEngine::SmtEngine(ExprManager* em) throw() :
 
   // The ProofManager is constructed before any other proof objects such as
   // SatProof and TheoryProofs. The TheoryProofEngine and the SatProof are
-  // initialized in TheoryEngine and PropEngine respectively. 
+  // initialized in TheoryEngine and PropEngine respectively.
   Assert(d_proofManager == NULL);
-  PROOF( d_proofManager = new ProofManager(); ); 
-  
+  PROOF( d_proofManager = new ProofManager(); );
+
   // We have mutual dependency here, so we add the prop engine to the theory
   // engine later (it is non-essential there)
   d_theoryEngine = new TheoryEngine(d_context, d_userContext,
@@ -1690,14 +1691,14 @@ void SmtEngine::setDefaults() {
     //must have finite model finding on
     options::finiteModelFind.set( true );
   }
-  
+
   //if it contains a theory with non-termination, do not strictly enforce that quantifiers and theory combination must be interleaved
   if( d_logic.isTheoryEnabled(THEORY_STRINGS) || (d_logic.isTheoryEnabled(THEORY_ARITH) && !d_logic.isLinear()) ){
     if( !options::instWhenStrictInterleave.wasSetByUser() ){
       options::instWhenStrictInterleave.set( false );
     }
   }
-  
+
   //local theory extensions
   if( options::localTheoryExt() ){
     if( !options::instMaxLevel.wasSetByUser() ){
@@ -1806,7 +1807,7 @@ void SmtEngine::setDefaults() {
   }
   //counterexample-guided instantiation for non-sygus
   // enable if any quantifiers with arithmetic or datatypes
-  if( ( d_logic.isQuantified() && ( d_logic.isTheoryEnabled(THEORY_ARITH) || d_logic.isTheoryEnabled(THEORY_DATATYPES) ) ) || 
+  if( ( d_logic.isQuantified() && ( d_logic.isTheoryEnabled(THEORY_ARITH) || d_logic.isTheoryEnabled(THEORY_DATATYPES) ) ) ||
       options::cbqiAll() ){
     if( !options::cbqi.wasSetByUser() ){
       options::cbqi.set( true );
@@ -3812,7 +3813,7 @@ void SmtEnginePrivate::processAssertions() {
        ProofManager::currentPM()->addAssertion(d_assertions[i].toExpr());
      }
      );
-  
+
   Debug("smt") << " d_assertions     : " << d_assertions.size() << endl;
 
   if( options::ceGuidedInst() ){
@@ -4231,7 +4232,7 @@ void SmtEnginePrivate::addFormula(TNode n, bool inUnsatCore, bool inInput)
   PROOF(
     if( inInput ){
       // n is an input assertion
-      if (inUnsatCore || options::dumpUnsatCores() || options::checkUnsatCores())
+      if (inUnsatCore || options::dumpUnsatCores() || options::checkUnsatCores() || options::fewerPreprocessingHoles())
         ProofManager::currentPM()->addCoreAssertion(n.toExpr());
     }else{
       // n is the result of an unknown preprocessing step, add it to dependency map to null
@@ -4387,18 +4388,18 @@ Result SmtEngine::checkSynth(const Expr& e) throw(TypeCheckingException, ModalEx
   //possibly run quantifier elimination to make formula into single invocation
   if( conj[1].getKind()==kind::EXISTS ){
     Node conj_se = conj[1][1];
-    
+
     Trace("smt-synth") << "Compute single invocation for " << conj_se << "..." << std::endl;
     quantifiers::SingleInvocationPartition sip( kind::APPLY );
     sip.init( conj_se );
     Trace("smt-synth") << "...finished, got:" << std::endl;
     sip.debugPrint("smt-synth");
-    
+
     if( !sip.isPurelySingleInvocation() && sip.isNonGroundSingleInvocation() ){
       //We are in the case where our synthesis conjecture is exists f. forall xy. P( f( x ), x, y ), P does not contain f.
-      //The following will run QE on (exists z x.) exists y. P( z, x, y ) to obtain Q( z, x ), 
+      //The following will run QE on (exists z x.) exists y. P( z, x, y ) to obtain Q( z, x ),
       //  and then constructs exists f. forall x. Q( f( x ), x ), where Q does not contain f.  We invoke synthesis solver on this result.
-    
+
       //create new smt engine to do quantifier elimination
       SmtEngine smt_qe( d_exprManager );
       smt_qe.setLogic(getLogicInfo());
@@ -4433,11 +4434,11 @@ Result SmtEngine::checkSynth(const Expr& e) throw(TypeCheckingException, ModalEx
       Node conj_se_ngsi_subs = conj_se_ngsi.substitute( orig.begin(), orig.end(), subs.begin(), subs.end() );
       Assert( !qe_vars.empty() );
       conj_se_ngsi_subs = NodeManager::currentNM()->mkNode( kind::EXISTS, NodeManager::currentNM()->mkNode( kind::BOUND_VAR_LIST, qe_vars ), conj_se_ngsi_subs );
-      
+
       Trace("smt-synth") << "Run quantifier elimination on " << conj_se_ngsi_subs << std::endl;
       Expr qe_res = smt_qe.doQuantifierElimination( conj_se_ngsi_subs.toExpr(), true, false );
       Trace("smt-synth") << "Result : " << qe_res << std::endl;
-      
+
       //create single invocation conjecture
       Node qe_res_n = Node::fromExpr( qe_res );
       qe_res_n = qe_res_n.substitute( subs.begin(), subs.end(), orig.begin(), orig.end() );
@@ -4450,7 +4451,7 @@ Result SmtEngine::checkSynth(const Expr& e) throw(TypeCheckingException, ModalEx
       e_check = qe_res_n.toExpr();
     }
   }
-  
+
   return checkSatisfiability( e_check, true, false );
 }
 
@@ -5077,7 +5078,7 @@ Expr SmtEngine::doQuantifierElimination(const Expr& e, bool doFull, bool strict)
     Warning() << "Unexpected logic for quantifier elimination " << d_logic << endl;
   }
   Trace("smt-qe") << "Do quantifier elimination " << e << std::endl;
-  Node n_e = Node::fromExpr( e );  
+  Node n_e = Node::fromExpr( e );
   if( n_e.getKind()!=kind::EXISTS ){
     throw ModalException("Expecting an existentially quantified formula as argument to get-qe.");
   }
@@ -5104,7 +5105,7 @@ Expr SmtEngine::doQuantifierElimination(const Expr& e, bool doFull, bool strict)
       InternalError(ss.str().c_str());
     }
     //get the instantiations for all quantified formulas
-    std::map< Node, std::vector< Node > > insts;    
+    std::map< Node, std::vector< Node > > insts;
     d_theoryEngine->getInstantiations( insts );
     //find the quantified formula that corresponds to the input
     Node top_q;
