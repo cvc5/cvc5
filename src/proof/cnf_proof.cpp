@@ -147,6 +147,10 @@ LemmaProofRecipe CnfProof::getProofRecipe(const std::set<Node> &lemma) {
   return d_lemmaToProofRecipe[lemma];
 }
 
+bool CnfProof::haveProofRecipe(const std::set<Node> &lemma) {
+  return d_lemmaToProofRecipe.find(lemma) != d_lemmaToProofRecipe.end();
+}
+
 void CnfProof::setCnfDependence(Node from, Node to) {
   Debug("proof:cnf") << "CnfProof::setCnfDependence "
                      << "from " << from  << std::endl

@@ -165,12 +165,6 @@ void TheoryProofEngine::registerTerm(Expr term) {
 theory::TheoryId TheoryProofEngine::getTheoryForLemma(const prop::SatClause* clause) {
   ProofManager* pm = ProofManager::currentPM();
 
-  if ((pm->getLogic() == "QF_UFLIA") || (pm->getLogic() == "QF_UFLRA")) {
-    Debug("pf::tp") << "TheoryProofEngine::getTheoryForLemma: special hack for Arithmetic-with-holes support. "
-                       << "Returning THEORY_ARITH" << std::endl;
-    return theory::THEORY_ARITH;
-  }
-
   std::set<Node> nodes;
   for(unsigned i = 0; i < clause->size(); ++i) {
     prop::SatLiteral lit = (*clause)[i];
@@ -182,6 +176,17 @@ theory::TheoryId TheoryProofEngine::getTheoryForLemma(const prop::SatClause* cla
     }
 
     nodes.insert(lit.isNegated() ? node.notNode() : node);
+  }
+
+  if (!pm->getCnfProof()->haveProofRecipe(nodes)) {
+    // This lemma is not in the database. We only allow this in the special case of arithmetic with holes.
+    if ((pm->getLogic() == "QF_UFLIA") || (pm->getLogic() == "QF_UFLRA")) {
+      Debug("pf::tp") << "TheoryProofEngine::getTheoryForLemma: special hack for Arithmetic-with-holes support. "
+                      << "Returning THEORY_ARITH" << std::endl;
+      return theory::THEORY_ARITH;
+    } else {
+      Unreachable();
+    }
   }
 
   theory::TheoryId owner = pm->getCnfProof()->getProofRecipe(nodes).getTheory();

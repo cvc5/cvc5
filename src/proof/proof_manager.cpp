@@ -529,7 +529,7 @@ void LFSCProof::printPreprocessedAssertions(const NodeSet& assertions,
   NodeSet::const_iterator it = assertions.begin();
   NodeSet::const_iterator end = assertions.end();
 
-  Debug("pf::pm") << "LFSCProof::checkUnrewrittenAssertion starting" << std::endl;
+  Debug("pf::pm") << "LFSCProof::printPreprocessedAssertions starting" << std::endl;
 
   if (options::fewerPreprocessingHoles()) {
     // Check for assertions that did not get rewritten, and update the printing filter.

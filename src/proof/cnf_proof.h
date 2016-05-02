@@ -129,6 +129,7 @@ public:
 
   void setProofRecipe(LemmaProofRecipe* proofRecipe);
   LemmaProofRecipe getProofRecipe(const std::set<Node> &lemma);
+  bool haveProofRecipe(const std::set<Node> &lemma);
 
   // accessors for the leaf assertions that are being converted to CNF
   bool isAssertion(Node node);
