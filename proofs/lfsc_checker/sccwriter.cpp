@@ -286,7 +286,7 @@ void sccwriter::write_code( Expr* code, std::ostream& os, int ind, const char* r
     {
       indent( os, ind );
       os << retModString.c_str();
-      os << "new IntExpr( " << mpz_get_si( ((IntExpr*)code)->n ) << " );" << std::endl;
+      os << "new IntExpr( (signed long int)" << mpz_get_si( ((IntExpr*)code)->n ) << " );" << std::endl;
       indent( os, ind );
       os << incString.c_str() << std::endl;
     }
@@ -527,7 +527,7 @@ void sccwriter::write_code( Expr* code, std::ostream& os, int ind, const char* r
         indent( os, ind );
         os << "Expr* ";
         write_variable( ((SymSExpr*)((CExpr*)code)->kids[0])->s, os );
-        os << ";" << std::endl;
+        os << " = NULL;" << std::endl;
         std::ostringstream ss;
         write_variable( ((SymSExpr*)((CExpr*)code)->kids[0])->s, ss );
         write_code( ((CExpr*)code)->kids[1], os, ind, ss.str().c_str() );
@@ -841,7 +841,7 @@ void sccwriter::write_expr( Expr* code, std::ostream& os, int ind, std::string& 
     {
       os << "static ";
     }
-    os << "Expr* " << ss.str().c_str() << ";" << std::endl;
+    os << "Expr* " << ss.str().c_str() << " = NULL;" << std::endl;
     //write the expression
     std::ostringstream ss2;
     ss2 << ss.str().c_str();
