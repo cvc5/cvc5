@@ -114,7 +114,7 @@ bool TermArgBasisTrie::addTerm2( FirstOrderModel* fm, Node n, int argIndex ){
 
 
 QModelBuilderIG::QModelBuilderIG( context::Context* c, QuantifiersEngine* qe ) :
-QModelBuilder( c, qe ) {
+QModelBuilder( c, qe ), d_basisNoMatch( c ) {
 
 }
 
@@ -302,7 +302,7 @@ void QModelBuilderIG::analyzeModel( FirstOrderModel* fm ){
     for( size_t i=0; i<fmig->d_uf_terms[op].size(); i++ ){
       Node n = fmig->d_uf_terms[op][i];
       //for calculating if op is constant
-      if( !n.getAttribute(NoMatchAttribute()) ){
+      if( d_qe->getTermDatabase()->isTermActive( n ) ){
         Node v = fmig->getRepresentative( n );
         if( i==0 ){
           d_uf_prefs[op].d_const_val = v;
@@ -312,12 +312,11 @@ void QModelBuilderIG::analyzeModel( FirstOrderModel* fm ){
         }
       }
       //for calculating terms that we don't need to consider
-      if( !n.getAttribute(NoMatchAttribute()) || n.getAttribute(ModelBasisArgAttribute())!=0 ){
-        if( !n.getAttribute(BasisNoMatchAttribute()) ){
+      if( d_qe->getTermDatabase()->isTermActive( n ) || n.getAttribute(ModelBasisArgAttribute())!=0 ){
+        if( d_basisNoMatch.find( n )==d_basisNoMatch.end() ){
           //need to consider if it is not congruent modulo model basis
           if( !tabt.addTerm( fmig, n ) ){
-             BasisNoMatchAttribute bnma;
-             n.setAttribute(bnma,true);
+            d_basisNoMatch[n] = true;
           }
         }
       }
@@ -382,8 +381,8 @@ bool QModelBuilderIG::isQuantifierActive( Node f ){
 }
 
 bool QModelBuilderIG::isTermActive( Node n ){
-  return !n.getAttribute(NoMatchAttribute()) || //it is not congruent to another active term
-         ( n.getAttribute(ModelBasisArgAttribute())!=0 && !n.getAttribute(BasisNoMatchAttribute()) ); //or it has model basis arguments
+  return d_qe->getTermDatabase()->isTermActive( n ) || //it is not congruent to another active term
+         ( n.getAttribute(ModelBasisArgAttribute())!=0 && d_basisNoMatch.find( n )==d_basisNoMatch.end() ); //or it has model basis arguments
                                                                                                       //and is not congruent modulo model basis
                                                                                                       //to another active term
 }
@@ -667,7 +666,7 @@ int QModelBuilderDefault::doInstGen( FirstOrderModel* fm, Node f ){
       //if applicable, try to add exceptions here
       if( !tr_terms.empty() ){
         //make a trigger for these terms, add instantiations
-        inst::Trigger* tr = inst::Trigger::mkTrigger( d_qe, f, tr_terms, 0, true, inst::Trigger::TR_MAKE_NEW );
+        inst::Trigger* tr = inst::Trigger::mkTrigger( d_qe, f, tr_terms, true, inst::Trigger::TR_MAKE_NEW );
         //Notice() << "Trigger = " << (*tr) << std::endl;
         tr->resetInstantiationRound();
         tr->reset( Node::null() );

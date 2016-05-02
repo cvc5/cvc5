@@ -83,6 +83,9 @@ private:
   std::map< Node, std::map< inst::Trigger*, bool > > d_processed_trigger;
   //instantiation no patterns
   std::map< Node, std::vector< Node > > d_user_no_gen;
+  // number of trigger variables per quantifier
+  std::map< Node, unsigned > d_num_trigger_vars;
+  std::map< Node, Node > d_vc_partition[2];
 private:
   /** process functions */
   void processResetInstantiationRound( Theory::Effort effort );
@@ -90,7 +93,7 @@ private:
   /** generate triggers */
   void generateTriggers( Node q );
   void addPatternToPool( Node q, Node pat, unsigned num_fv );
-  //bool addTrigger( inst::Trigger * tr, Node f, unsigned r );
+  void addTrigger( inst::Trigger * tr, Node f );
   /** has user patterns */
   bool hasUserPatterns( Node q );
   /** has user patterns */

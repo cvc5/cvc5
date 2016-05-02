@@ -79,7 +79,8 @@ TESTS =	\
 	florian-case-ax.smt2 \
 	double-pattern.smt2 \
 	qcf-rel-dom-opt.smt2 \
-	parametric-lists.smt2
+	parametric-lists.smt2 \
+	partial-trigger.smt2
 
 
 # regression can be solved with --finite-model-find --fmf-inst-engine

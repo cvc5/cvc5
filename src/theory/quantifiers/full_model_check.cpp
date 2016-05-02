@@ -405,7 +405,7 @@ void FullModelChecker::processBuildModel(TheoryModel* m, bool fullModel){
       bool needsDefault = true;
       for( size_t i=0; i<fm->d_uf_terms[op].size(); i++ ){
         Node n = fm->d_uf_terms[op][i];
-        if( !n.getAttribute(NoMatchAttribute()) ){
+        if( d_qe->getTermDatabase()->isTermActive( n ) ){
           add_conds.push_back( n );
           add_values.push_back( n );
           Node r = fm->getUsedRepresentative(n);

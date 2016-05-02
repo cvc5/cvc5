@@ -28,7 +28,7 @@ using namespace CVC4::theory;
 using namespace CVC4::theory::inst;
 
 bool CandidateGenerator::isLegalCandidate( Node n ){
-  return ( !n.getAttribute(NoMatchAttribute()) && ( !options::cbqi() || !quantifiers::TermDb::hasInstConstAttr(n) ) );
+  return d_qe->getTermDatabase()->isTermActive( n ) && ( !options::cbqi() || !quantifiers::TermDb::hasInstConstAttr(n) );
 }
 
 void CandidateGeneratorQueue::addCandidate( Node n ) {
@@ -59,7 +59,7 @@ Node CandidateGeneratorQueue::getNextCandidate(){
 }
 
 CandidateGeneratorQE::CandidateGeneratorQE( QuantifiersEngine* qe, Node pat ) :
-  d_qe( qe ), d_term_iter( -1 ){
+CandidateGenerator( qe ), d_term_iter( -1 ){
   d_op = qe->getTermDatabase()->getMatchOperator( pat );
   Assert( !d_op.isNull() );
   d_op_arity = pat.getNumChildren();
@@ -186,7 +186,7 @@ Node CandidateGeneratorQE::getNextCandidate(){
 }
 
 CandidateGeneratorQELitEq::CandidateGeneratorQELitEq( QuantifiersEngine* qe, Node mpat ) :
-  d_match_pattern( mpat ), d_qe( qe ){
+  CandidateGenerator( qe ), d_match_pattern( mpat ){
   Assert( mpat.getKind()==EQUAL );
   for( unsigned i=0; i<2; i++ ){
     if( !quantifiers::TermDb::hasInstConstAttr(mpat[i]) ){
@@ -225,7 +225,7 @@ Node CandidateGeneratorQELitEq::getNextCandidate(){
 
 
 CandidateGeneratorQELitDeq::CandidateGeneratorQELitDeq( QuantifiersEngine* qe, Node mpat ) :
-  d_match_pattern( mpat ), d_qe( qe ){
+CandidateGenerator( qe ), d_match_pattern( mpat ){
 
   Assert( d_match_pattern.getKind()==EQUAL || d_match_pattern.getKind()==IFF );
   d_match_pattern_type = d_match_pattern[0].getType();
@@ -259,7 +259,7 @@ Node CandidateGeneratorQELitDeq::getNextCandidate(){
 
 
 CandidateGeneratorQEAll::CandidateGeneratorQEAll( QuantifiersEngine* qe, Node mpat ) :
-  d_match_pattern( mpat ), d_qe( qe ){
+  CandidateGenerator( qe ), d_match_pattern( mpat ){
   d_match_pattern_type = mpat.getType();
   Assert( mpat.getKind()==INST_CONSTANT );
   d_f = quantifiers::TermDb::getInstConstAttr( mpat );

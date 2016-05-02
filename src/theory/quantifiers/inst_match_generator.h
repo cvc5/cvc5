@@ -224,7 +224,7 @@ private:
   void addInstantiations( InstMatch& m, QuantifiersEngine* qe, int& addedLemmas, int argIndex, quantifiers::TermArgTrie* tat );
 public:
   /** constructors */
-  InstMatchGeneratorSimple( Node q, Node pat );
+  InstMatchGeneratorSimple( Node q, Node pat, QuantifiersEngine* qe );
   /** destructor */
   ~InstMatchGeneratorSimple() throw() {}
   /** reset instantiation round (call this whenever equivalence classes have changed) */

@@ -150,7 +150,7 @@ void InstMatchGenerator::initialize( Node q, QuantifiersEngine* qe, std::vector<
         d_cg = new inst::CandidateGeneratorQELitDeq( qe, d_match_pattern );
       }
     }else{
-      d_cg = new CandidateGeneratorQueue;
+      d_cg = new CandidateGeneratorQueue( qe );
       Trace("inst-match-gen-warn") << "(?) Unknown matching pattern is " << d_match_pattern << std::endl;
       d_matchPolicy = MATCH_GEN_INTERNAL_ERROR;
     }
@@ -697,7 +697,7 @@ int InstMatchGeneratorMulti::addTerm( Node q, Node t, QuantifiersEngine* qe ){
   return addedLemmas;
 }
 
-InstMatchGeneratorSimple::InstMatchGeneratorSimple( Node q, Node pat ) : d_f( q ), d_match_pattern( pat ) {
+InstMatchGeneratorSimple::InstMatchGeneratorSimple( Node q, Node pat, QuantifiersEngine* qe ) : d_f( q ), d_match_pattern( pat ) {
   if( d_match_pattern.getKind()==NOT ){
     d_match_pattern = d_match_pattern[0];
     d_pol = false;
@@ -720,10 +720,11 @@ InstMatchGeneratorSimple::InstMatchGeneratorSimple( Node q, Node pat ) : d_f( q 
     }
     d_match_pattern_arg_types.push_back( d_match_pattern[i].getType() );
   }
+  d_op = qe->getTermDatabase()->getMatchOperator( d_match_pattern );
 }
 
 void InstMatchGeneratorSimple::resetInstantiationRound( QuantifiersEngine* qe ) {
-  d_op = qe->getTermDatabase()->getMatchOperator( d_match_pattern );
+  
 }
 
 int InstMatchGeneratorSimple::addInstantiations( Node q, InstMatch& baseMatch, QuantifiersEngine* qe ){
@@ -751,6 +752,7 @@ int InstMatchGeneratorSimple::addInstantiations( Node q, InstMatch& baseMatch, Q
       tat = NULL;
     }
   }
+  Debug("simple-trigger-debug") << "Adding instantiations based on " << tat << " from " << d_op << " " << d_eqc << std::endl;
   if( tat ){
     InstMatch m( q );
     m.add( baseMatch );

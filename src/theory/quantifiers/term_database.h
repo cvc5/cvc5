@@ -47,15 +47,6 @@ typedef expr::Attribute< SygusAttributeId, bool > SygusAttribute;
 struct SynthesisAttributeId {};
 typedef expr::Attribute< SynthesisAttributeId, bool > SynthesisAttribute;
 
-/** Attribute true for nodes that should not be used for matching */
-struct NoMatchAttributeId {};
-/** use the special for boolean flag */
-typedef expr::Attribute< NoMatchAttributeId,
-                         bool,
-                         expr::attr::NullCleanupStrategy,
-                         true // context dependent
-                       > NoMatchAttribute;
-
 // attribute for "contains instantiation constants from"
 struct InstConstantAttributeId {};
 typedef expr::Attribute<InstConstantAttributeId, Node> InstConstantAttribute;
@@ -179,6 +170,7 @@ class TermDb : public QuantifiersUtil {
   friend class ::CVC4::theory::quantifiers::ConjectureGenerator;
   friend class ::CVC4::theory::quantifiers::TermGenEnv;
   typedef context::CDHashMap<Node, int, NodeHashFunction> NodeIntMap;
+  typedef context::CDHashMap<Node, bool, NodeHashFunction> NodeBoolMap;
 private:
   /** reference to the quantifiers engine */
   QuantifiersEngine* d_quantEngine;
@@ -211,6 +203,8 @@ private:
   std::map< Node, std::vector< Node > > d_op_map;
   /** map from type nodes to terms of that type */
   std::map< TypeNode, std::vector< Node > > d_type_map;
+  /** inactive map */
+  NodeBoolMap d_inactive_map;
 
   /** count number of non-redundant ground terms per operator */
   std::map< Node, int > d_op_nonred_count;
@@ -266,6 +260,9 @@ public:
   /** is entailed (incomplete check) */
   bool isEntailed( TNode n, bool pol, EqualityQuery * qy = NULL );
   bool isEntailed( TNode n, std::map< TNode, TNode >& subs, bool subsRep, bool pol, EqualityQuery * qy = NULL );
+  /** is active */
+  bool isTermActive( Node n );
+  void setTermInactive( Node n );
   /** has term */
   bool hasTermCurrent( Node n, bool useMode = true );
   /** is term eligble for instantiation? */
@@ -327,6 +324,7 @@ public:
       instantiation.
    */
   Node getInstConstantNode( Node n, Node q );
+  Node getVariableNode( Node n, Node q );
   /** get substituted node */
   Node getInstantiatedNode( Node n, Node q, std::vector< Node >& terms );
 

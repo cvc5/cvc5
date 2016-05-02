@@ -285,7 +285,7 @@ Node ConjectureGenerator::getFreeVar( TypeNode tn, unsigned i ) {
 }
 
 bool ConjectureGenerator::isHandledTerm( TNode n ){
-  return !n.getAttribute(NoMatchAttribute()) && inst::Trigger::isAtomicTrigger( n ) && ( n.getKind()!=APPLY_UF || n.getOperator().getKind()!=SKOLEM );
+  return d_quantEngine->getTermDatabase()->isTermActive( n ) && inst::Trigger::isAtomicTrigger( n ) && ( n.getKind()!=APPLY_UF || n.getOperator().getKind()!=SKOLEM );
 }
 
 Node ConjectureGenerator::getGroundEqc( TNode r ) {
@@ -425,7 +425,7 @@ void ConjectureGenerator::check( Theory::Effort e, unsigned quant_e ) {
           eq::EqClassIterator eqc_i = eq::EqClassIterator( r, ee );
           while( !eqc_i.isFinished() ){
             TNode n = (*eqc_i);
-            if( getTermDatabase()->hasTermCurrent( n ) && !n.getAttribute(NoMatchAttribute()) && ( n.getKind()!=EQUAL || isFalse ) ){
+            if( getTermDatabase()->hasTermCurrent( n ) && getTermDatabase()->isTermActive( n ) && ( n.getKind()!=EQUAL || isFalse ) ){
               if( firstTime ){
                 Trace("sg-gen-eqc") << "e" << d_em[r] << " : { " << std::endl;
                 firstTime = false;

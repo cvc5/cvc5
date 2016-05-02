@@ -787,7 +787,7 @@ void AbsMbqiBuilder::processBuildModel(TheoryModel* m, bool fullModel) {
       Trace("ambqi-model-debug") << "Initial terms: " << std::endl;
       for( size_t i=0; i<fm->d_uf_terms[f].size(); i++ ){
         Node n = fm->d_uf_terms[f][i];
-        if( !n.getAttribute(NoMatchAttribute()) ){
+        if( d_qe->getTermDatabase()->isTermActive( n ) ){
           Trace("ambqi-model-debug") << "  " << n << " -> " << fm->getRepresentativeId( n ) << std::endl;
           fapps.push_back( n );
         }

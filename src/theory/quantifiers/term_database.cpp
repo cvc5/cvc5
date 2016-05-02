@@ -84,7 +84,7 @@ void TermArgTrie::debugPrint( const char * c, Node n, unsigned depth ) {
   }
 }
 
-TermDb::TermDb( context::Context* c, context::UserContext* u, QuantifiersEngine* qe ) : d_quantEngine( qe ), d_op_id_count( 0 ), d_typ_id_count( 0 ) {
+TermDb::TermDb( context::Context* c, context::UserContext* u, QuantifiersEngine* qe ) : d_quantEngine( qe ), d_inactive_map( c ), d_op_id_count( 0 ), d_typ_id_count( 0 ) {
   d_true = NodeManager::currentNM()->mkConst( true );
   d_false = NodeManager::currentNM()->mkConst( false );
   d_zero = NodeManager::currentNM()->mkConst( Rational( 0 ) );
@@ -178,6 +178,8 @@ void TermDb::addTerm( Node n, std::set< Node >& added, bool withinQuant, bool wi
             }
           }
         }
+      }else{
+        setTermInactive( n );
       }
       rec = true;
     }
@@ -210,7 +212,7 @@ void TermDb::computeUfEqcTerms( TNode f ) {
     for( unsigned i=0; i<d_op_map[f].size(); i++ ){
       TNode n = d_op_map[f][i];
       if( hasTermCurrent( n ) ){
-        if( !n.getAttribute(NoMatchAttribute()) ){
+        if( isTermActive( n ) ){
           computeArgReps( n );
           TNode r = ee->hasTerm( n ) ? ee->getRepresentative( n ) : n;
           d_func_map_eqc_trie[f].d_data[r].addTerm( n, d_arg_reps[n] );
@@ -471,6 +473,18 @@ bool TermDb::isEntailed( TNode n, std::map< TNode, TNode >& subs, bool subsRep, 
   return isEntailed2( n, subs, subsRep, true, pol, qy );
 }
 
+bool TermDb::isTermActive( Node n ) {
+  return d_inactive_map.find( n )==d_inactive_map.end(); 
+  //return !n.getAttribute(NoMatchAttribute());
+}
+
+void TermDb::setTermInactive( Node n ) {
+  d_inactive_map[n] = true;
+  //Trace("term-db-debug2") << "set no match attribute" << std::endl;
+  //NoMatchAttribute nma;
+  //n.setAttribute(nma,true);
+}
+
 bool TermDb::hasTermCurrent( Node n, bool useMode ) {
   if( !useMode ){
     return d_has_map.find( n )!=d_has_map.end();
@@ -636,7 +650,7 @@ bool TermDb::reset( Theory::Effort effort ){
       Node n = it->second[i];
       //to be added to term index, term must be relevant, and exist in EE
       if( hasTermCurrent( n ) && ee->hasTerm( n ) ){
-        if( !n.getAttribute(NoMatchAttribute()) ){
+        if( isTermActive( n ) ){
           if( options::finiteModelFind() ){
             computeModelBasisArgAttribute( n );
           }
@@ -651,13 +665,11 @@ bool TermDb::reset( Theory::Effort effort ){
             }
           }
           Trace("term-db-debug") << std::endl;
-          if( ee->hasTerm( n ) ){
-            Trace("term-db-debug") << "  and value : " << ee->getRepresentative( n ) << std::endl;
-          }
+          Trace("term-db-debug") << "  and value : " << ee->getRepresentative( n ) << std::endl;
           Node at = d_func_map_trie[ it->first ].addOrGetTerm( n, d_arg_reps[n] );
+          Trace("term-db-debug2") << "...add term returned " << at << std::endl;
           if( at!=n && ee->areEqual( at, n ) ){
-            NoMatchAttribute nma;
-            n.setAttribute(nma,true);
+            setTermInactive( n );
             Trace("term-db-debug") << n << " is redundant." << std::endl;
             congruentCount++;
           }else{
@@ -846,9 +858,8 @@ void TermDb::makeInstantiationConstantsFor( Node q ){
       ic.setAttribute( ivna, i );
       InstConstantAttribute ica;
       ic.setAttribute( ica, q );
-      //also set the no-match attribute
-      NoMatchAttribute nma;
-      ic.setAttribute(nma,true);
+      //also set the term inactive
+      setTermInactive( ic );
     }
   }
 }
@@ -906,11 +917,6 @@ Node TermDb::getInstConstAttr( Node n ) {
     }
     InstConstantAttribute ica;
     n.setAttribute(ica, q);
-    if( !q.isNull() ){
-      //also set the no-match attribute
-      NoMatchAttribute nma;
-      n.setAttribute(nma,true);
-    }
   }
   return n.getAttribute(InstConstantAttribute());
 }
@@ -1019,9 +1025,12 @@ Node TermDb::getCounterexampleLiteral( Node q ){
 
 Node TermDb::getInstConstantNode( Node n, Node q ){
   makeInstantiationConstantsFor( q );
-  Node n2 = n.substitute( d_vars[q].begin(), d_vars[q].end(),
-                          d_inst_constants[q].begin(), d_inst_constants[q].end() );
-  return n2;
+  return n.substitute( d_vars[q].begin(), d_vars[q].end(), d_inst_constants[q].begin(), d_inst_constants[q].end() );
+}
+
+Node TermDb::getVariableNode( Node n, Node q ) {
+  makeInstantiationConstantsFor( q );
+  return n.substitute( d_inst_constants[q].begin(), d_inst_constants[q].end(), d_vars[q].begin(), d_vars[q].end() );
 }
 
 Node TermDb::getInstantiatedNode( Node n, Node q, std::vector< Node >& terms ) {
