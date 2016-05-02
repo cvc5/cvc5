@@ -16,6 +16,7 @@
 **/
 
 #include "options/bv_options.h"
+#include "options/proof_options.h"
 #include "proof/array_proof.h"
 #include "proof/bitvector_proof.h"
 #include "proof/clause_id.h"
@@ -455,6 +456,14 @@ void LFSCBitVectorProof::printTheoryLemmaProof(std::vector<Expr>& lemma, std::os
   Debug("pf::bv") << "\tconflict = " << conflict << std::endl;
   Debug("gk::temp") << std::endl << "\tconflict = " << conflict << std::endl;
 
+  // if (!options::eagerBvProofs()) {
+  //   Debug("pf::eager") << std::endl << "Performing a lazy BV lemma proof" << std::endl;
+  //   BitVectorProof::printTheoryLemmaProof( lemma, os, paren );
+  //   return;
+  // }
+
+  // Debug("pf::eager") << std::endl << "Performing an eager BV lemma proof" << std::endl;
+
   if (d_bbConflictMap.find(conflict) != d_bbConflictMap.end()) {
     std::ostringstream lemma_paren;
     for (unsigned i = 0; i < lemma.size(); ++i) {
@@ -477,7 +486,7 @@ void LFSCBitVectorProof::printTheoryLemmaProof(std::vector<Expr>& lemma, std::os
       // print corresponding literal in bv sat solver
       prop::SatVariable bb_var = d_cnfProof->getLiteral(lit).getSatVariable();
       os << pm->getAtomName(bb_var, "bb");
-      os <<"(\\unit"<<bb_var<<"\n";
+      os <<"(\\ unit"<<bb_var<<"\n";
       lemma_paren <<")";
     }
     Expr lem = utils::mkOr(lemma);
@@ -566,7 +575,7 @@ void LFSCBitVectorProof::printTheoryLemmaProof(std::vector<Expr>& lemma, std::os
             // print corresponding literal in bv sat solver
             prop::SatVariable bb_var = d_cnfProof->getLiteral(lit).getSatVariable();
             os << pm->getAtomName(bb_var, "bb");
-            os <<"(\\unit"<<bb_var<<"\n";
+            os <<"(\\ unit"<<bb_var<<"\n";
             lemma_paren <<")";
           }
         } else {
@@ -587,7 +596,7 @@ void LFSCBitVectorProof::printTheoryLemmaProof(std::vector<Expr>& lemma, std::os
           // print corresponding literal in bv sat solver
           prop::SatVariable bb_var = d_cnfProof->getLiteral(lit).getSatVariable();
           os << pm->getAtomName(bb_var, "bb");
-          os <<"(\\unit"<<bb_var<<"\n";
+          os <<"(\\ unit"<<bb_var<<"\n";
           lemma_paren <<")";
         }
 

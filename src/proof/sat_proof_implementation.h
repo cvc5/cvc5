@@ -1027,11 +1027,11 @@ void LFSCSatProof<Solver>::printResolution(ClauseId id, std::ostream& out, std::
   }
 
   if (id == this->d_emptyClauseId) {
-    out <<"(\\empty empty)";
+    out <<"(\\ empty empty)";
     return;
   }
 
-  out << "(\\" << this->clauseName(id) << "\n";   // bind to lemma name
+  out << "(\\ " << this->clauseName(id) << "\n";   // bind to lemma name
   paren << "))";                            // closing parethesis for lemma binding and satlem
 }
 
