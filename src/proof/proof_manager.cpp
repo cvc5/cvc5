@@ -479,11 +479,6 @@ void LFSCProof::toStream(std::ostream& out) {
   out << " ;; Rewrites for Lemmas \n";
   d_theoryProof->printLemmaRewrites(rewrites, out, paren);
 
-  // Check for assertions that did not get rewritten, and update the printing filter.
-  if (options::fewerPreprocessingHoles()) {
-    checkUnrewrittenAssertion(used_assertions);
-  }
-
   // print trust that input assertions are their preprocessed form
   printPreprocessedAssertions(used_assertions, out, paren);
 
@@ -536,12 +531,42 @@ void LFSCProof::printPreprocessedAssertions(const NodeSet& assertions,
 
   Debug("pf::pm") << "LFSCProof::checkUnrewrittenAssertion starting" << std::endl;
 
-  for (; it != end; ++it) {
-    if (options::fewerPreprocessingHoles() &&
-        (ProofManager::currentPM()->d_unrewrittenAssertionToName.find((*it).toExpr()) !=
-         ProofManager::currentPM()->d_unrewrittenAssertionToName.end())) {
-      // This preprocessing step can be eliminated; don't do anything.
-    } else {
+  if (options::fewerPreprocessingHoles()) {
+    // Check for assertions that did not get rewritten, and update the printing filter.
+    checkUnrewrittenAssertion(assertions);
+
+    // For the remaining assertions, bind them to input assertions.
+    for (; it != end; ++it) {
+      if (ProofManager::currentPM()->d_unrewrittenAssertionToName.find((*it).toExpr()) !=
+          ProofManager::currentPM()->d_unrewrittenAssertionToName.end()) {
+        // This preprocessing step can be eliminated; don't do anything.
+      } else {
+        os << "(th_let_pf _ (trust_f (iff ";
+        // For now just use the first assertion...
+        ProofManager::assertions_iterator assertion = ProofManager::currentPM()->begin_assertions();
+        ProofManager::currentPM()->getTheoryProofEngine()->printLetTerm(*assertion, os);
+
+        os << " ";
+        ProofManager::currentPM()->getTheoryProofEngine()->printLetTerm((*it).toExpr(), os);
+
+        os << "))";
+        os << "(\\ "<< ProofManager::getPreprocessedAssertionName(*it, "") << "\n";
+        paren << "))";
+
+        std::ostringstream rewritten;
+
+        rewritten << "(or_elim_1 _ _ ";
+        rewritten << "(not_not_intro _ ";
+        rewritten << "A0";
+        rewritten << ") (iff_elim_1 _ _ ";
+        rewritten << ProofManager::getPreprocessedAssertionName(*it, "");
+        rewritten << "))";
+
+        ProofManager::currentPM()->d_unchangedAssertionFilters[(*it)] = rewritten.str();
+      }
+    }
+  } else {
+    for (; it != end; ++it) {
       os << "(th_let_pf _ ";
 
       //TODO
