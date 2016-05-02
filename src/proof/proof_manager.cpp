@@ -419,7 +419,12 @@ void LFSCProof::toStream(std::ostream& out) {
   for (it = atoms.begin(); it != atoms.end(); ++it) {
     Debug("pf::pm") << "Ensure literal for atom: " << *it << std::endl;
     if (!d_cnfProof->hasLiteral(*it)) {
-      d_cnfProof->ensureLiteral(*it);
+      // For arith with holes: these literals are not normalized, causing an error in Arith.
+      if (theory::Theory::theoryOf(*it) == theory::THEORY_ARITH) {
+        d_cnfProof->ensureLiteral(*it, true); // This disabled preregistration with the theory solver.
+      } else {
+        d_cnfProof->ensureLiteral(*it); // Normal method, does preregister with the theory.
+      }
     }
   }
 

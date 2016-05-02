@@ -234,8 +234,8 @@ bool CnfProof::hasLiteral(TNode atom) {
   return d_cnfStream->hasLiteral(atom);
 }
 
-void CnfProof::ensureLiteral(TNode atom) {
-  d_cnfStream->ensureLiteral(atom);
+void CnfProof::ensureLiteral(TNode atom, bool noPreregistration) {
+  d_cnfStream->ensureLiteral(atom, noPreregistration);
 }
 
 void CnfProof::collectAtomsForClauses(const IdToSatClause& clauses,

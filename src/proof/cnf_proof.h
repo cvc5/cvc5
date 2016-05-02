@@ -92,7 +92,7 @@ public:
   Node getAtom(prop::SatVariable var);
   prop::SatLiteral getLiteral(TNode node);
   bool hasLiteral(TNode node);
-  void ensureLiteral(TNode node);
+  void ensureLiteral(TNode node, bool noPreregistration = false);
 
   void collectAtoms(const prop::SatClause* clause,
                     std::set<Node>& atoms);

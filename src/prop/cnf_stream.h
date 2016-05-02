@@ -177,7 +177,7 @@ protected:
    * structure in this expression.  Assumed to not be in the
    * translation cache.
    */
-  SatLiteral convertAtom(TNode node);
+  SatLiteral convertAtom(TNode node, bool noPreprocessing = false);
 
 public:
 
@@ -234,7 +234,7 @@ public:
    * this is like a "convert-but-don't-assert" version of
    * convertAndAssert().
    */
-  virtual void ensureLiteral(TNode n) = 0;
+  virtual void ensureLiteral(TNode n, bool noPreregistration = false) = 0;
 
   /**
    * Returns the literal that represents the given node in the SAT CNF
@@ -336,7 +336,7 @@ private:
    */
   SatLiteral toCNF(TNode node, bool negated = false);
 
-  void ensureLiteral(TNode n);
+  void ensureLiteral(TNode n, bool noPreregistration = false);
 
 };/* class TseitinCnfStream */
 

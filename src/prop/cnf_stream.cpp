@@ -120,7 +120,7 @@ bool CnfStream::hasLiteral(TNode n) const {
   return find != d_nodeToLiteralMap.end();
 }
 
-void TseitinCnfStream::ensureLiteral(TNode n) {
+void TseitinCnfStream::ensureLiteral(TNode n, bool noPreregistration) {
   // These are not removable and have no proof ID
   d_removable = false;
 
@@ -163,7 +163,7 @@ void TseitinCnfStream::ensureLiteral(TNode n) {
     d_literalToNodeMap.insert_safe(~lit, n.notNode());
   } else {
     // We have a theory atom or variable.
-    lit = convertAtom(n);
+    lit = convertAtom(n, noPreregistration);
   }
 
   Assert(hasLiteral(n) && getNode(lit) == n);
@@ -232,7 +232,7 @@ void CnfStream::setProof(CnfProof* proof) {
   d_cnfProof = proof;
 }
 
-SatLiteral CnfStream::convertAtom(TNode node) {
+SatLiteral CnfStream::convertAtom(TNode node, bool noPreregistration) {
   Debug("cnf") << "convertAtom(" << node << ")" << endl;
 
   Assert(!hasLiteral(node), "atom already mapped!");
@@ -247,7 +247,7 @@ SatLiteral CnfStream::convertAtom(TNode node) {
   } else {
     theoryLiteral = true;
     canEliminate = false;
-    preRegister = true;
+    preRegister = !noPreregistration; // used to be true.
   }
 
   // Make a new literal (variables are not considered theory literals)
