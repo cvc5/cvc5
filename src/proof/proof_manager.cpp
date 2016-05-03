@@ -609,6 +609,13 @@ void LFSCProof::printPreprocessedAssertions(const NodeSet& assertions,
           }
         }
 
+        if (ProofManager::currentPM()->d_unrewrittenAssertionToName.find(inputAssertion.toExpr()) ==
+            ProofManager::currentPM()->d_unrewrittenAssertionToName.end()) {
+          // The thing returned by undoPreprocessing does not appear in the input assertions...
+          Debug("pf::pm") << "LFSCProof::printPreprocessedAssertions: Count NOT find the assertion that caused this PA. Picking an arbitrary one..." << std::endl;
+          inputAssertion = Node(ProofManager::currentPM()->d_unrewrittenAssertionToName.begin()->first);
+        }
+
         Debug("pf::pm") << "Original assertion for " << *it
                         << " is: "
                         << inputAssertion
