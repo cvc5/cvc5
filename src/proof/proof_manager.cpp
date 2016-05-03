@@ -579,11 +579,26 @@ void LFSCProof::printPreprocessedAssertions(const NodeSet& assertions,
       } else {
         os << "(th_let_pf _ (trust_f (iff ";
 
-        // Figure out which input assertion led to this assertion
-        std::set<Node> inputAssertions;
-        ProofManager::currentPM()->undoPreprocessing(*it, inputAssertions);
-        Assert(inputAssertions.size() == 1);
-        Node inputAssertion = *inputAssertions.begin();
+        Node inputAssertion;
+
+        if (((*it).isConst() && *it == NodeManager::currentNM()->mkConst<bool>(true)) ||
+            ((*it).getKind() == kind::NOT && (*it)[0] == NodeManager::currentNM()->mkConst<bool>(false))) {
+          inputAssertion = NodeManager::currentNM()->mkConst<bool>(true);
+        } else {
+          // Figure out which input assertion led to this assertion
+          std::set<Node> inputAssertions;
+          ProofManager::currentPM()->undoPreprocessing(*it, inputAssertions);
+
+          Debug("pf::pm") << "Original assertions for " << *it << " are: " << std::endl;
+
+          std::set<Node>::iterator assertionIt;
+          for (assertionIt = inputAssertions.begin(); assertionIt != inputAssertions.end(); ++assertionIt) {
+            Debug("pf::pm") << "\t" << *assertionIt << std::endl;
+          }
+
+          Assert(inputAssertions.size() == 1);
+          inputAssertion = *inputAssertions.begin();
+        }
 
         Debug("pf::pm") << "Original assertion for " << *it
                         << " is: "
