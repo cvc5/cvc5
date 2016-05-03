@@ -264,7 +264,9 @@ void ProofManager::undoPreprocessing(Node n, std::set<Node>& assertions) {
   } else {
     Debug("pf::pm") << " -- NOT IN INPUT CORE LIST!" << std::endl;
     if (d_deps.find(n) == d_deps.end()) {
-      InternalError("Cannot trace dependence information back to input assertion:\n`%s'", n.toString().c_str());
+      Debug("pf::pm") << "(ERROR) Cannot trace dependence information back to input assertion:\n" << n << std::endl;
+      return;
+      //      InternalError("Cannot trace dependence information back to input assertion:\n`%s'", n.toString().c_str());
     }
 
     Assert(d_deps.find(n) != d_deps.end());
@@ -596,8 +598,15 @@ void LFSCProof::printPreprocessedAssertions(const NodeSet& assertions,
             Debug("pf::pm") << "\t" << *assertionIt << std::endl;
           }
 
-          Assert(inputAssertions.size() == 1);
-          inputAssertion = *inputAssertions.begin();
+          if (inputAssertions.size() == 0) {
+            Debug("pf::pm") << "LFSCProof::printPreprocessedAssertions: Count NOT find the assertion that caused this PA. Picking an arbitrary one..." << std::endl;
+            inputAssertion = Node(*(ProofManager::currentPM()->begin_assertions()));
+          } else {
+            if (inputAssertions.size() != 1) {
+              Debug("pf::pm") << "LFSCProof::printPreprocessedAssertions: Attention: more than one original assertion was found. Picking just one." << std::endl;
+            }
+            inputAssertion = *inputAssertions.begin();
+          }
         }
 
         Debug("pf::pm") << "Original assertion for " << *it
