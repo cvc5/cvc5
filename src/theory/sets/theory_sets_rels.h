@@ -47,6 +47,9 @@ class TheorySetsRels {
   typedef context::CDChunkList<Node> NodeList;
   typedef context::CDHashSet<Node, NodeHashFunction> NodeSet;
   typedef context::CDHashMap<Node, bool, NodeHashFunction> NodeBoolMap;
+  typedef context::CDHashMap<Node, NodeList*, NodeHashFunction> NodeListMap;
+  typedef context::CDHashMap<Node, NodeSet*, NodeHashFunction> NodeSetMap;
+  typedef context::CDHashMap<Node, Node, NodeHashFunction> NodeMap;
 
 public:
   TheorySetsRels(context::Context* c,
@@ -58,13 +61,15 @@ public:
   ~TheorySetsRels();
   void check(Theory::Effort);
   void doPendingLemmas();
-  context::Context * d_c;
 
 private:
   /** equivalence class info
    * d_mem tuples that are members of this equivalence class
    * d_not_mem tuples that are not members of this equivalence class
    * d_tp is a node of kind TRANSPOSE (if any) in this equivalence class,
+   * d_pt is a node of kind PRODUCT (if any) in this equivalence class,
+   * d_join is a node of kind JOIN (if any) in this equivalence class,
+   * d_tc is a node of kind TCLOSURE (if any) in this equivalence class,
    */
   class EqcInfo
   {
@@ -73,8 +78,13 @@ private:
     ~EqcInfo(){}
     NodeSet d_mem;
     NodeSet d_not_mem;
+    NodeListMap d_in;
+    NodeListMap d_out;
+    NodeMap d_tc_mem_exp;
     context::CDO< Node > d_tp;
     context::CDO< Node > d_pt;
+    context::CDO< Node > d_join;
+    context::CDO< Node > d_tc;
   };
 
   /** has eqc info */
@@ -101,6 +111,9 @@ private:
   NodeList d_infer_exp;
   NodeSet d_lemma;
   NodeSet d_shared_terms;
+  
+  // tc terms that have been decomposed
+  NodeSet d_tc_saver;
 
   std::hash_set< Node, NodeHashFunction > d_rel_nodes;
   std::map< Node, std::vector<Node> > d_tuple_reps;
@@ -123,13 +136,22 @@ public:
   void eqNotifyPostMerge(Node t1, Node t2);
 
 private:
+
+  void doPendingMerge();
+  std::map< Node, EqcInfo* > d_eqc_info;
+  EqcInfo* getOrMakeEqcInfo( Node n, bool doMake = false );
   void mergeTransposeEqcs(Node t1, Node t2);
   void mergeProductEqcs(Node t1, Node t2);
-  std::map< Node, EqcInfo* > d_eqc_info;
-  void doPendingMerge();
-  EqcInfo* getOrMakeEqcInfo( Node n, bool doMake = false );
+  void mergeTCEqcs(Node t1, Node t2);
   void sendInferTranspose(bool, Node, Node, Node, bool reverseOnly = false);
   void sendInferProduct(bool, Node, Node, Node);
+  void sendInferTC(EqcInfo* tc_ei, Node mem, Node exp);
+  void sendInferInTC(EqcInfo* tc_ei, Node fst, Node snd, std::hash_set<Node, NodeHashFunction> seen, Node exp);
+  void sendInferOutTC(EqcInfo* tc_ei, Node fst, Node snd, std::hash_set<Node, NodeHashFunction> seen, Node exp);
+  void addTCMem(EqcInfo* tc_ei, Node mem);
+  Node findTCMemExp(EqcInfo*, Node);
+  void mergeTCEqcExp(EqcInfo*, EqcInfo*);
+  void buildTCAndExp(Node, EqcInfo*);
 
 
   void check();

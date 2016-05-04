@@ -696,6 +696,11 @@ const TheorySetsPrivate::Elements& TheorySetsPrivate::getElements
                           std::inserter(cur, cur.begin()) );
       break;
     }
+    case kind::JOIN: 
+    case kind::TCLOSURE:
+    case kind::TRANSPOSE:
+    case kind::PRODUCT:
+      break;
     default:
       Assert(theory::kindToTheoryId(k) != theory::THEORY_SETS,
              (std::string("Kind belonging to set theory not explicitly handled: ") + kindToString(k)).c_str());
