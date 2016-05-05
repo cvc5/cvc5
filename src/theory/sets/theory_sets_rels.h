@@ -45,9 +45,11 @@ public:
 class TheorySetsRels {
 
   typedef context::CDChunkList<Node> NodeList;
+  typedef context::CDChunkList<int> IdList;
   typedef context::CDHashSet<Node, NodeHashFunction> NodeSet;
   typedef context::CDHashMap<Node, bool, NodeHashFunction> NodeBoolMap;
   typedef context::CDHashMap<Node, NodeList*, NodeHashFunction> NodeListMap;
+  typedef context::CDHashMap<int, IdList*> IdListMap;
   typedef context::CDHashMap<Node, NodeSet*, NodeHashFunction> NodeSetMap;
   typedef context::CDHashMap<Node, Node, NodeHashFunction> NodeMap;
 
@@ -76,6 +78,7 @@ private:
   public:
     EqcInfo( context::Context* c );
     ~EqcInfo(){}
+    int counter;
     NodeSet d_mem;
     NodeSet d_not_mem;
     NodeListMap d_in;
@@ -85,6 +88,10 @@ private:
     context::CDO< Node > d_pt;
     context::CDO< Node > d_join;
     context::CDO< Node > d_tc;
+    IdListMap d_id_in;
+    IdListMap d_id_out;
+    std::hash_map<int, Node> d_id_node;
+    std::hash_map<Node, int> d_node_id;
   };
 
   /** has eqc info */
@@ -168,7 +175,7 @@ private:
   void finalizeTCInfer();
   void inferTC( Node, std::map< Node, std::hash_set< Node, NodeHashFunction > >& );
   void inferTC( Node, Node, std::map< Node, std::hash_set< Node, NodeHashFunction > >&,
-                Node, Node, std::hash_set< Node, NodeHashFunction >&, bool first_round = false);
+                Node, Node, std::hash_set< Node, NodeHashFunction >&);
 
   Node explain(Node);
 
@@ -184,7 +191,7 @@ private:
   // Helper functions
   inline Node getReason(Node tc_rep, Node tc_term, Node tc_r_rep, Node tc_r);
   inline Node constructPair(Node tc_rep, Node a, Node b);
-  Node findMemExp(Node r, Node tuple);
+  Node findMemExp(Node r, Node pair);
   bool safeAddToMap( std::map< Node, std::vector<Node> >&, Node, Node );
   void addToMap( std::map< Node, std::vector<Node> >&, Node, Node );
   bool hasMember( Node, Node );
