@@ -350,6 +350,8 @@ void Smt2::setLogic(std::string name) {
       name = "UFLIRA";
     } else if(name == "BV") {
       name = "UFBV";
+    } else if(name == "SLIA") {
+      name = "UFSLIA";
     } else if(name == "ALL_SUPPORTED") {
       //no change
     } else {

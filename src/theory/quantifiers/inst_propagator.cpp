@@ -34,6 +34,7 @@ bool EqualityQueryInstProp::reset( Theory::Effort e ) {
   d_uf.clear();
   d_uf_exp.clear();
   d_diseq_list.clear();
+  d_uf_func_map_trie.clear();
   return true;
 }
 
@@ -103,7 +104,7 @@ TNode EqualityQueryInstProp::getCongruentTerm( Node f, std::vector< TNode >& arg
   if( !t.isNull() ){
     return t;
   }else{
-    return d_func_map_trie[f].existsTerm( args );
+    return d_uf_func_map_trie[f].existsTerm( args );
   }
 }
 
@@ -164,6 +165,21 @@ bool EqualityQueryInstProp::areDisequalExp( Node a, Node b, std::vector< Node >&
       return true;
     }else{
       return false;
+    }
+  }
+}
+
+TNode EqualityQueryInstProp::getCongruentTermExp( Node f, std::vector< TNode >& args, std::vector< Node >& exp ) {
+  TNode t = d_qe->getTermDatabase()->getCongruentTerm( f, args );
+  if( !t.isNull() ){
+    return t;
+  }else{
+    TNode tt = d_uf_func_map_trie[f].existsTerm( args );
+    if( !tt.isNull() ){
+      //TODO?
+      return tt;
+    }else{
+      return tt;
     }
   }
 }
@@ -279,11 +295,13 @@ int EqualityQueryInstProp::setEqual( Node& a, Node& b, bool pol, std::vector< No
       Assert( d_uf_exp[ar].empty() );
       Assert( d_uf_exp[br].empty() );
 
+      //registerUfTerm( ar );
       d_uf[ar] = br;
       merge_exp( d_uf_exp[ar], exp_a );
       merge_exp( d_uf_exp[ar], exp_b );
       merge_exp( d_uf_exp[ar], reason );
 
+      //registerUfTerm( br );
       d_uf[br] = br;
       d_uf_exp[br].clear();
 
@@ -312,6 +330,25 @@ int EqualityQueryInstProp::setEqual( Node& a, Node& b, bool pol, std::vector< No
       merge_exp( d_diseq_list[ar][br], reason );
       merge_exp( d_diseq_list[br][ar], reason );
       return STATUS_NONE;
+    }
+  }
+}
+
+void EqualityQueryInstProp::registerUfTerm( TNode n ) {
+  if( d_uf.find( n )==d_uf.end() ){
+    if( !getEngine()->hasTerm( n ) ){
+      TNode f = d_qe->getTermDatabase()->getMatchOperator( n );
+      if( !f.isNull() ){
+        std::vector< TNode > args;
+        for( unsigned i=0; i<n.getNumChildren(); i++ ){
+          if( !getEngine()->hasTerm( n[i] ) ){
+            return;
+          }else{
+            args.push_back( n[i] );
+          }
+        }
+        d_uf_func_map_trie[f].addTerm( n, args );
+      }
     }
   }
 }
@@ -573,6 +610,7 @@ bool InstPropagator::reset( Theory::Effort e ) {
   d_watch_list.clear();
   d_update_list.clear();
   d_relevant_inst.clear();
+  d_has_relevant_inst = false;
   return d_qy.reset( e );
 }
 
@@ -607,7 +645,31 @@ bool InstPropagator::notifyInstantiation( unsigned quant_e, Node q, Node lem, st
     return !d_conflict;
   }else{
     Assert( false );
-    return true;
+    return false;
+  }
+}
+
+void InstPropagator::filterInstantiations() {
+  if( d_has_relevant_inst ){
+    //now, inform quantifiers engine which instances should be retracted
+    Trace("qip-prop-debug") << "...remove instantiation ids : ";
+    for( std::map< unsigned, InstInfo >::iterator it = d_ii.begin(); it != d_ii.end(); ++it ){
+      if( !it->second.d_q.isNull() ){
+        if( d_relevant_inst.find( it->first )==d_relevant_inst.end() ){
+          if( !d_qe->removeInstantiation( it->second.d_q, it->second.d_lem, it->second.d_terms ) ){
+            Trace("qip-warn") << "WARNING : did not remove instantiation id " << it->first << std::endl;
+            Assert( false );
+          }else{
+            Trace("qip-prop-debug") << it->first << " ";
+          }
+        }else{
+          //mark the quantified formula as relevant
+          d_qe->markRelevant( it->second.d_q );
+        }
+      }
+    }
+    Trace("qip-prop-debug") << std::endl;
+    Trace("quant-engine-conflict") << "-----> InstPropagator::" << ( d_conflict ? "conflict" : "propagate" ) << " with " << d_relevant_inst.size() << " instances." << std::endl;
   }
 }
 
@@ -720,10 +782,12 @@ void InstPropagator::propagate( Node a, Node b, bool pol, std::vector< Node >& e
   }
   if( pol ){
     if( status==EqualityQueryInstProp::STATUS_MERGED_KNOWN ){
+      Trace("qip-rlv-propagate") << "Relevant propagation : " << a << ( pol ? " == " : " != " ) << b << std::endl;
       Assert( d_qy.getEngine()->hasTerm( a ) );
       Assert( d_qy.getEngine()->hasTerm( b ) );
       Trace("qip-prop-debug") << "...equality between known terms." << std::endl;
       addRelevantInstances( exp, "qip-propagate" );
+      //d_has_relevant_inst = true;
     }
     Trace("qip-prop-debug") << "...merged representatives " << a << " and " << b << std::endl;
     for( unsigned i=0; i<2; i++ ){
@@ -750,27 +814,7 @@ void InstPropagator::conflict( std::vector< Node >& exp ) {
   d_conflict = true;
   d_relevant_inst.clear();
   addRelevantInstances( exp, "qip-propagate" );
-
-  //now, inform quantifiers engine which instances should be retracted
-  Trace("qip-prop-debug") << "...remove instantiation ids : ";
-  for( std::map< unsigned, InstInfo >::iterator it = d_ii.begin(); it != d_ii.end(); ++it ){
-    if( !it->second.d_q.isNull() ){
-      if( d_relevant_inst.find( it->first )==d_relevant_inst.end() ){
-        if( !d_qe->removeInstantiation( it->second.d_q, it->second.d_lem, it->second.d_terms ) ){
-          Trace("qip-warn") << "WARNING : did not remove instantiation id " << it->first << std::endl;
-          Assert( false );
-        }else{
-          Trace("qip-prop-debug") << it->first << " ";
-        }
-      }else{
-        //mark the quantified formula as relevant
-        d_qe->markRelevant( it->second.d_q );
-      }
-    }
-  }
-  Trace("qip-prop-debug") << std::endl;
-  //will interupt the quantifiers engine
-  Trace("quant-engine-conflict") << "-----> InstPropagator::conflict with " << exp.size() << " instances." << std::endl;
+  d_has_relevant_inst = true;
 }
 
 bool InstPropagator::cacheConclusion( unsigned id, Node body, int prop_index ) {

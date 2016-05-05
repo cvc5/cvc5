@@ -48,6 +48,7 @@ class InstantiationNotify {
 public:
   InstantiationNotify(){}
   virtual bool notifyInstantiation( unsigned quant_e, Node q, Node lem, std::vector< Node >& terms, Node body ) = 0;
+  virtual void filterInstantiations() = 0;
 };
 
 namespace quantifiers {

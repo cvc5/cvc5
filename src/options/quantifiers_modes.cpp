@@ -46,11 +46,14 @@ std::ostream& operator<<(std::ostream& out, theory::quantifiers::LiteralMatchMod
   case theory::quantifiers::LITERAL_MATCH_NONE:
     out << "LITERAL_MATCH_NONE";
     break;
-  case theory::quantifiers::LITERAL_MATCH_PREDICATE:
-    out << "LITERAL_MATCH_PREDICATE";
+  case theory::quantifiers::LITERAL_MATCH_USE:
+    out << "LITERAL_MATCH_USE";
     break;
-  case theory::quantifiers::LITERAL_MATCH_EQUALITY:
-    out << "LITERAL_MATCH_EQUALITY";
+  case theory::quantifiers::LITERAL_MATCH_AGG_PREDICATE:
+    out << "LITERAL_MATCH_AGG_PREDICATE";
+    break;
+  case theory::quantifiers::LITERAL_MATCH_AGG:
+    out << "LITERAL_MATCH_AGG";
     break;
   default:
     out << "LiteralMatchMode!UNKNOWN";

@@ -254,15 +254,21 @@ last-call\n\
 const std::string OptionsHandler::s_literalMatchHelp = "\
 Literal match modes currently supported by the --literal-match option:\n\
 \n\
-none (default)\n\
+none \n\
 + Do not use literal matching.\n\
 \n\
-predicate\n\
-+ Consider the phase requirements of predicate literals when applying heuristic\n\
-  quantifier instantiation.  For example, the trigger P( x ) in the quantified \n\
-  formula forall( x ). ( P( x ) V ~Q( x ) ) will only be matched with ground\n\
-  terms P( t ) where P( t ) is in the equivalence class of false, and likewise\n\
-  Q( x ) with Q( s ) where Q( s ) is in the equivalence class of true.\n\
+use (default)\n\
++ Consider phase requirements of triggers conservatively. For example, the\n\
+  trigger P( x ) in forall( x ). ( P( x ) V ~Q( x ) ) will not be matched with\n\
+  terms in the equivalence class of true, and likewise Q( x ) will not be matched\n\
+  terms in the equivalence class of false. Extends to equality.\n\
+\n\
+agg-predicate \n\
++ Consider phase requirements aggressively for predicates. In the above example,\n\
+  only match P( x ) with terms that are in the equivalence class of false.\n\
+\n\
+agg \n\
++ Consider the phase requirements aggressively for all triggers.\n\
 \n\
 ";
 
@@ -506,10 +512,12 @@ void OptionsHandler::checkInstWhenMode(std::string option, theory::quantifiers::
 theory::quantifiers::LiteralMatchMode OptionsHandler::stringToLiteralMatchMode(std::string option, std::string optarg) throw(OptionException) {
   if(optarg ==  "none") {
     return theory::quantifiers::LITERAL_MATCH_NONE;
-  } else if(optarg ==  "predicate") {
-    return theory::quantifiers::LITERAL_MATCH_PREDICATE;
-  } else if(optarg ==  "equality") {
-    return theory::quantifiers::LITERAL_MATCH_EQUALITY;
+  } else if(optarg ==  "use") {
+    return theory::quantifiers::LITERAL_MATCH_USE;
+  } else if(optarg ==  "agg-predicate") {
+    return theory::quantifiers::LITERAL_MATCH_AGG_PREDICATE;
+  } else if(optarg ==  "agg") {
+    return theory::quantifiers::LITERAL_MATCH_AGG;
   } else if(optarg ==  "help") {
     puts(s_literalMatchHelp.c_str());
     exit(1);
@@ -520,9 +528,7 @@ theory::quantifiers::LiteralMatchMode OptionsHandler::stringToLiteralMatchMode(s
 }
 
 void OptionsHandler::checkLiteralMatchMode(std::string option, theory::quantifiers::LiteralMatchMode mode) throw(OptionException) {
-  if(mode == theory::quantifiers::LITERAL_MATCH_EQUALITY) {
-    throw OptionException(std::string("Mode equality for ") + option + " is not supported in this release.");
-  }
+
 }
 
 theory::quantifiers::MbqiMode OptionsHandler::stringToMbqiMode(std::string option, std::string optarg) throw(OptionException) {

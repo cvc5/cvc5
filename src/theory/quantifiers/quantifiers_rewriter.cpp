@@ -187,7 +187,6 @@ RewriteResponse QuantifiersRewriter::preRewrite(TNode in) {
     std::vector< Node > args;
     Node body = in;
     bool doRewrite = false;
-    bool firstTime = true;
     while( body.getNumChildren()==2 && body.getKind()==body[1].getKind() ){
       for( unsigned i=0; i<body[0].getNumChildren(); i++ ){
         args.push_back( body[0][i] );
@@ -197,8 +196,11 @@ RewriteResponse QuantifiersRewriter::preRewrite(TNode in) {
     }
     if( doRewrite ){
       std::vector< Node > children;
+      for( unsigned i=0; i<body[0].getNumChildren(); i++ ){
+        args.push_back( body[0][i] );
+      }      
       children.push_back( NodeManager::currentNM()->mkNode(kind::BOUND_VAR_LIST,args) );
-      children.push_back( body );
+      children.push_back( body[1] );
       Node n = NodeManager::currentNM()->mkNode( in.getKind(), children );
       if( in!=n ){
         Trace("quantifiers-pre-rewrite") << "*** pre-rewrite " << in << std::endl;

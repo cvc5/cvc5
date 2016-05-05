@@ -332,19 +332,30 @@ void InstStrategyAutoGenTriggers::generateTriggers( Node f ){
         unsigned num_fv = tinfo[pat].d_fv.size();
         Trace("auto-gen-trigger-debug") << "...required polarity for " << pat << " is " << rpol << ", eq=" << rpoleq << std::endl;
         if( rpol!=0 ){
+          Assert( rpol==1 || rpol==-1 );
           if( Trigger::isRelationalTrigger( pat ) ){
             pat = rpol==-1 ? pat.negate() : pat;
           }else{
             Assert( Trigger::isAtomicTrigger( pat ) );
             if( pat.getType().isBoolean() && rpoleq.isNull() ){
-              pat = NodeManager::currentNM()->mkNode( IFF, pat, NodeManager::currentNM()->mkConst( rpol==-1 ) ).negate();
+              if( options::literalMatchMode()==LITERAL_MATCH_USE ){
+                pat = NodeManager::currentNM()->mkNode( IFF, pat, NodeManager::currentNM()->mkConst( rpol==-1 ) ).negate();
+              }else if( options::literalMatchMode()!=LITERAL_MATCH_NONE ){
+                pat = NodeManager::currentNM()->mkNode( IFF, pat, NodeManager::currentNM()->mkConst( rpol==1 ) );
+              }
             }else{
               Assert( !rpoleq.isNull() );
               if( rpol==-1 ){
-                //all equivalence classes except rpoleq
-                pat = NodeManager::currentNM()->mkNode( EQUAL, pat, rpoleq ).negate();
+                if( options::literalMatchMode()!=LITERAL_MATCH_NONE ){
+                  //all equivalence classes except rpoleq
+                  pat = NodeManager::currentNM()->mkNode( EQUAL, pat, rpoleq ).negate();
+                }
               }else if( rpol==1 ){
-                //all equivalence classes that are not disequal to rpoleq TODO
+                if( options::literalMatchMode()==LITERAL_MATCH_AGG ){
+                  //only equivalence class rpoleq
+                  pat = NodeManager::currentNM()->mkNode( EQUAL, pat, rpoleq );
+                }
+                //all equivalence classes that are not disequal to rpoleq TODO?
               }
             }
           }

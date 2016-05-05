@@ -44,10 +44,12 @@ enum InstWhenMode {
 enum LiteralMatchMode {
   /** Do not consider polarity of patterns */
   LITERAL_MATCH_NONE,
-  /** Consider polarity of boolean predicates only */
-  LITERAL_MATCH_PREDICATE,
-  /** Consider polarity of boolean predicates, as well as equalities */
-  LITERAL_MATCH_EQUALITY,
+  /** Conservatively consider polarity of patterns */
+  LITERAL_MATCH_USE,
+  /** Aggressively consider polarity of Boolean predicates */
+  LITERAL_MATCH_AGG_PREDICATE,
+  /** Aggressively consider polarity of all terms */
+  LITERAL_MATCH_AGG,
 };
 
 enum MbqiMode {

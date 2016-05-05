@@ -760,7 +760,9 @@ sygusCommand returns [CVC4::Command* cmd = NULL]
         body = EXPR_MANAGER->mkExpr(kind::EXISTS, EXPR_MANAGER->mkExpr(kind::BOUND_VAR_LIST, PARSER_STATE->getSygusVars()), body);
         Debug("parser-sygus") << "...constructed exists " << body << std::endl;   
       }
-      body = EXPR_MANAGER->mkExpr(kind::FORALL, EXPR_MANAGER->mkExpr(kind::BOUND_VAR_LIST, PARSER_STATE->getSygusFunSymbols()), body, sygusAttr);
+      if( !PARSER_STATE->getSygusFunSymbols().empty() ){
+        body = EXPR_MANAGER->mkExpr(kind::FORALL, EXPR_MANAGER->mkExpr(kind::BOUND_VAR_LIST, PARSER_STATE->getSygusFunSymbols()), body, sygusAttr);
+      }
       Debug("parser-sygus") << "...constructed forall " << body << std::endl;   
       Command* c = new SetUserAttributeCommand("sygus", sygusVar);
       c->setMuted(true);
@@ -791,6 +793,7 @@ sygusGTerm[CVC4::SygusGTerm& sgt, std::string& fun]
   std::string sname;
   std::vector< Expr > let_vars;
   bool readingLet = false;
+  std::string s;
 }
   : LPAREN_TOK
     //read operator
@@ -888,6 +891,12 @@ sygusGTerm[CVC4::SygusGTerm& sgt, std::string& fun]
       std::string binString = AntlrInput::tokenTextSubstr($BINARY_LITERAL, 2);
       sgt.d_expr = MK_CONST( BitVector(binString, 2) );
       sgt.d_name = AntlrInput::tokenText($BINARY_LITERAL);
+      sgt.d_gterm_type = SygusGTerm::gterm_op;
+    }
+  | str[s,false]
+    { Debug("parser-sygus") << "Sygus grammar " << fun << " : string literal \"" << s << "\"" << std::endl;
+      sgt.d_expr = MK_CONST( ::CVC4::String(s) );
+      sgt.d_name = s;
       sgt.d_gterm_type = SygusGTerm::gterm_op;
     }
   | symbol[name,CHECK_NONE,SYM_VARIABLE] ( SYGUS_ENUM_CONS_TOK symbol[name2,CHECK_NONE,SYM_VARIABLE] { readEnum = true; } )?
@@ -2773,7 +2782,7 @@ STRING_LITERAL_2_0
  * will be part of the token text.  Use the str[] parser rule instead.
  */
 STRING_LITERAL_2_5
-  : { PARSER_STATE->v2_5() }?=>
+  : { PARSER_STATE->v2_5() || PARSER_STATE->sygus() }?=>
     '"' (~('"') | '""')* '"'
   ;
 

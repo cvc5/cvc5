@@ -120,7 +120,7 @@ option fullSaturateQuantRd --full-saturate-quant-rd bool :default true
 option fullSaturateInst --fs-inst bool :default false
  interleave full saturate instantiation with other techniques
 
-option literalMatchMode --literal-matching=MODE CVC4::theory::quantifiers::LiteralMatchMode :default CVC4::theory::quantifiers::LITERAL_MATCH_NONE :include "options/quantifiers_modes.h" :handler stringToLiteralMatchMode :predicate checkLiteralMatchMode
+option literalMatchMode --literal-matching=MODE CVC4::theory::quantifiers::LiteralMatchMode :default CVC4::theory::quantifiers::LITERAL_MATCH_USE :include "options/quantifiers_modes.h" :handler stringToLiteralMatchMode :predicate checkLiteralMatchMode
  choose literal matching mode
 
 ### finite model finding options

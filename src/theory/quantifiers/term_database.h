@@ -248,6 +248,8 @@ public:
   void computeArgReps( TNode n );
   /** compute uf eqc terms */
   void computeUfEqcTerms( TNode f );
+  /** compute uf terms */
+  void computeUfTerms( TNode f );
   /** in relevant domain */
   bool inRelevantDomain( TNode f, unsigned i, TNode r );
   /** evaluate a term under a substitution.  Return representative in EE if possible.
@@ -271,7 +273,7 @@ public:
   Node getEligibleTermInEqc( TNode r );
   /** is inst closure */
   bool isInstClosure( Node r );
-
+  
 //for model basis
 private:
   //map from types to model basis terms

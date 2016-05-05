@@ -280,7 +280,34 @@
   	     	   (bbltn (fail bblt))
 	 	   ((bbltc bi b') (bbltc (xor (xor ai bi) (bblast_bvadd_carry a' b' carry))
 				  	 (bblast_bvadd a' b' carry)))))))
-				
+
+
+(program reverse_help ((x bblt) (acc bblt)) bblt
+(match x
+       (bbltn acc)
+       ((bbltc xi x') (reverse_help x' (bbltc xi acc)))))
+
+
+(program reverseb ((x bblt)) bblt
+	 (reverse_help x bbltn))
+
+
+; AJR: use this version?
+;(program bblast_bvadd_2h ((a bblt) (b bblt) (carry formula)) bblt
+;(match a
+;  ( bbltn (match b (bbltn bbltn) (default (fail bblt))))
+;  ((bbltc ai a') (match b 
+;       (bbltn (fail bblt))
+;	 	   ((bbltc bi b') 
+;	 	     (let carry' (or (and ai bi) (and (xor ai bi) carry))
+;	 	     (bbltc (xor (xor ai bi) carry)
+;				  	    (bblast_bvadd_2h a' b' carry'))))))))
+
+;(program bblast_bvadd_2 ((a bblt) (b bblt) (carry formula)) bblt
+;(let ar (reverseb a) ;; reverse a and b so that we can build the circuit 
+;(let br (reverseb b) ;; from the least significant bit up
+;(let ret (bblast_bvadd_2h ar br carry)
+;  (reverseb ret)))))
 				
 (declare bv_bbl_bvadd (! n mpz
                       (! x (term (BitVec n))
@@ -321,15 +348,6 @@
 
 			   
 ;; shift add multiplier
-
-(program reverse_help ((x bblt) (acc bblt)) bblt
-(match x
-       (bbltn acc)
-       ((bbltc xi x') (reverse_help x' (bbltc xi acc)))))
-
-
-(program reverseb ((x bblt)) bblt
-	 (reverse_help x bbltn))
 
 ;; (program concat ((a bblt) (b bblt)) bblt
 ;;   (match a (bbltn b)

@@ -119,7 +119,7 @@ void QuantInfo::initialize( QuantConflictFind * p, Node q, Node qn ) {
     //}
     //get all variables that are always relevant
     std::map< TNode, bool > visited;
-    getPropagateVars( vars, q[1], false, visited );
+    getPropagateVars( p, vars, q[1], false, visited );
     for( unsigned j=0; j<vars.size(); j++ ){
       Node v = vars[j];
       TNode f = p->getTermDatabase()->getMatchOperator( v );
@@ -140,7 +140,7 @@ void QuantInfo::initialize( QuantConflictFind * p, Node q, Node qn ) {
   }
 }
 
-void QuantInfo::getPropagateVars( std::vector< TNode >& vars, TNode n, bool pol, std::map< TNode, bool >& visited ){
+void QuantInfo::getPropagateVars( QuantConflictFind * p, std::vector< TNode >& vars, TNode n, bool pol, std::map< TNode, bool >& visited ){
   std::map< TNode, bool >::iterator itv = visited.find( n );
   if( itv==visited.end() ){
     visited[n] = true;
@@ -149,6 +149,12 @@ void QuantInfo::getPropagateVars( std::vector< TNode >& vars, TNode n, bool pol,
     if( d_var_num.find( n )!=d_var_num.end() ){
       Assert( std::find( vars.begin(), vars.end(), n )==vars.end() );
       vars.push_back( n );
+      TNode f = p->getTermDatabase()->getMatchOperator( n );
+      if( !f.isNull() ){
+        if( std::find( p->d_func_rel_dom[f].begin(), p->d_func_rel_dom[f].end(), d_q )==p->d_func_rel_dom[f].end() ){
+          p->d_func_rel_dom[f].push_back( d_q );
+        }
+      } 
     }else if( MatchGen::isHandledBoolConnective( n ) ){
       Assert( n.getKind()!=IMPLIES );
       QuantPhaseReq::getEntailPolarity( n, 0, true, pol, rec, newPol );
@@ -156,7 +162,7 @@ void QuantInfo::getPropagateVars( std::vector< TNode >& vars, TNode n, bool pol,
     Trace("qcf-opt-debug") << "getPropagateVars " << n << ", pol = " << pol << ", rec = " << rec << std::endl;
     if( rec ){
       for( unsigned i=0; i<n.getNumChildren(); i++ ){
-        getPropagateVars( vars, n[i], pol, visited );
+        getPropagateVars( p, vars, n[i], pol, visited );
       }
     }
   }
@@ -238,7 +244,7 @@ void QuantInfo::flatten( Node n, bool beneathQuant ) {
 }
 
 
-void QuantInfo::reset_round( QuantConflictFind * p ) {
+bool QuantInfo::reset_round( QuantConflictFind * p ) {
   for( unsigned i=0; i<d_match.size(); i++ ){
     d_match[i] = TNode::null();
     d_match_term[i] = TNode::null();
@@ -246,6 +252,7 @@ void QuantInfo::reset_round( QuantConflictFind * p ) {
   d_vars_set.clear();
   d_curr_var_deq.clear();
   d_tconstraints.clear();
+  
   //add built-in variable constraints
   for( unsigned r=0; r<2; r++ ){
     for( std::map< int, std::vector< Node > >::iterator it = d_var_constraint[r].begin();
@@ -263,7 +270,7 @@ void QuantInfo::reset_round( QuantConflictFind * p ) {
           d_mg->d_children.clear();
           d_mg->d_n = NodeManager::currentNM()->mkConst( true );
           d_mg->d_type = MatchGen::typ_ground;
-          return;
+          return false;
         }
       }
     }
@@ -274,6 +281,7 @@ void QuantInfo::reset_round( QuantConflictFind * p ) {
   }
   //now, reset for matching
   d_mg->reset( p, false, this );
+  return true;
 }
 
 int QuantInfo::getCurrentRepVar( int v ) {
@@ -1283,11 +1291,14 @@ void MatchGen::reset( QuantConflictFind * p, bool tgt, QuantInfo * qi ) {
     }
   }else if( d_type==typ_var ){
     Assert( isHandledUfTerm( d_n ) );
-    Node f = getMatchOperator( p, d_n );
+    TNode f = getMatchOperator( p, d_n );
     Debug("qcf-match-debug") << "       reset: Var will match operators of " << f << std::endl;
     TermArgTrie * qni = p->getTermDatabase()->getTermArgTrie( Node::null(), f );
     if( qni!=NULL ){
       d_qn.push_back( qni );
+    }else{
+      //inform irrelevant quantifiers
+      p->setIrrelevantFunction( f );
     }
     d_matched_basis = false;
   }else if( d_type==typ_tsym || d_type==typ_tconstraint ){
@@ -2013,6 +2024,18 @@ void QuantConflictFind::reset_round( Theory::Effort level ) {
   d_needs_computeRelEqr = true;
 }
 
+void QuantConflictFind::setIrrelevantFunction( TNode f ) {
+  if( d_irr_func.find( f )==d_irr_func.end() ){
+    d_irr_func[f] = true;
+    std::map< TNode, std::vector< Node > >::iterator it = d_func_rel_dom.find( f );
+    if( it != d_func_rel_dom.end()){
+      for( unsigned j=0; j<it->second.size(); j++ ){
+        d_irr_quant[it->second[j]] = true;
+      }
+    }
+  }
+}
+
 /** check */
 void QuantConflictFind::check( Theory::Effort level, unsigned quant_e ) {
   if( quant_e==QuantifiersEngine::QEFFORT_CONFLICT ){
@@ -2035,14 +2058,9 @@ void QuantConflictFind::check( Theory::Effort level, unsigned quant_e ) {
       }
       computeRelevantEqr();
 
-      //determine order for quantified formulas
-      std::vector< Node > qorder;
-      for( unsigned i=0; i<d_quantEngine->getModel()->getNumAssertedQuantifiers(); i++ ){
-        Node q = d_quantEngine->getModel()->getAssertedQuantifier( i, true );
-        if( d_quantEngine->hasOwnership( q, this ) ){
-          qorder.push_back( q );
-        }
-      }
+      d_irr_func.clear();
+      d_irr_quant.clear();
+
       if( Trace.isOn("qcf-debug") ){
         Trace("qcf-debug") << std::endl;
         debugPrint("qcf-debug");
@@ -2053,79 +2071,82 @@ void QuantConflictFind::check( Theory::Effort level, unsigned quant_e ) {
       for( short e = effort_conflict; e<=end_e; e++ ){
         d_effort = e;
         Trace("qcf-check") << "Checking quantified formulas at effort " << e << "..." << std::endl;
-        for( unsigned j=0; j<qorder.size(); j++ ){
-          Node q = qorder[j];
-          QuantInfo * qi = &d_qinfo[q];
+        for( unsigned i=0; i<d_quantEngine->getModel()->getNumAssertedQuantifiers(); i++ ){
+          Node q = d_quantEngine->getModel()->getAssertedQuantifier( i, true );
+          if( d_quantEngine->hasOwnership( q, this ) && d_irr_quant.find( q )==d_irr_quant.end() ){
+            QuantInfo * qi = &d_qinfo[q];
 
-          Assert( d_qinfo.find( q )!=d_qinfo.end() );
-          if( qi->matchGeneratorIsValid() ){
-            Trace("qcf-check") << "Check quantified formula ";
-            debugPrintQuant("qcf-check", q);
-            Trace("qcf-check") << " : " << q << "..." << std::endl;
+            Assert( d_qinfo.find( q )!=d_qinfo.end() );
+            if( qi->matchGeneratorIsValid() ){
+              Trace("qcf-check") << "Check quantified formula ";
+              debugPrintQuant("qcf-check", q);
+              Trace("qcf-check") << " : " << q << "..." << std::endl;
 
-            Trace("qcf-check-debug") << "Reset round..." << std::endl;
-            qi->reset_round( this );
-            //try to make a matches making the body false
-            Trace("qcf-check-debug") << "Get next match..." << std::endl;
-            while( qi->getNextMatch( this ) ){
-              Trace("qcf-inst") << "*** Produced match at effort " << e << " : " << std::endl;
-              qi->debugPrintMatch("qcf-inst");
-              Trace("qcf-inst") << std::endl;
-              if( !qi->isMatchSpurious( this ) ){
-                std::vector< int > assigned;
-                if( qi->completeMatch( this, assigned ) ){
-                  std::vector< Node > terms;
-                  qi->getMatch( terms );
-                  bool tcs = qi->isTConstraintSpurious( this, terms );
-                  if( !tcs ){
-                    //for debugging
-                    if( Debug.isOn("qcf-check-inst") ){
-                      Node inst = d_quantEngine->getInstantiation( q, terms );
-                      Debug("qcf-check-inst") << "Check instantiation " << inst << "..." << std::endl;
-                      Assert( !getTermDatabase()->isEntailed( inst, true ) );
-                      Assert( getTermDatabase()->isEntailed( inst, false ) || e>effort_conflict );
-                    }
-                    if( d_quantEngine->addInstantiation( q, terms ) ){
-                      Trace("qcf-check") << "   ... Added instantiation" << std::endl;
-                      Trace("qcf-inst") << "*** Was from effort " << e << " : " << std::endl;
-                      qi->debugPrintMatch("qcf-inst");
-                      Trace("qcf-inst") << std::endl;
-                      ++addedLemmas;
-                      if( e==effort_conflict ){
-                        d_quantEngine->markRelevant( q );
-                        ++(d_statistics.d_conflict_inst);
-                        if( options::qcfAllConflict() ){
-                          isConflict = true;
-                        }else{
-                          d_conflict.set( true );
+              Trace("qcf-check-debug") << "Reset round..." << std::endl;
+              if( qi->reset_round( this ) ){
+                //try to make a matches making the body false
+                Trace("qcf-check-debug") << "Get next match..." << std::endl;
+                while( qi->getNextMatch( this ) ){
+                  Trace("qcf-inst") << "*** Produced match at effort " << e << " : " << std::endl;
+                  qi->debugPrintMatch("qcf-inst");
+                  Trace("qcf-inst") << std::endl;
+                  if( !qi->isMatchSpurious( this ) ){
+                    std::vector< int > assigned;
+                    if( qi->completeMatch( this, assigned ) ){
+                      std::vector< Node > terms;
+                      qi->getMatch( terms );
+                      bool tcs = qi->isTConstraintSpurious( this, terms );
+                      if( !tcs ){
+                        //for debugging
+                        if( Debug.isOn("qcf-check-inst") ){
+                          Node inst = d_quantEngine->getInstantiation( q, terms );
+                          Debug("qcf-check-inst") << "Check instantiation " << inst << "..." << std::endl;
+                          Assert( !getTermDatabase()->isEntailed( inst, true ) );
+                          Assert( getTermDatabase()->isEntailed( inst, false ) || e>effort_conflict );
                         }
-                        break;
-                      }else if( e==effort_prop_eq ){
-                        d_quantEngine->markRelevant( q );
-                        ++(d_statistics.d_prop_inst);
+                        if( d_quantEngine->addInstantiation( q, terms ) ){
+                          Trace("qcf-check") << "   ... Added instantiation" << std::endl;
+                          Trace("qcf-inst") << "*** Was from effort " << e << " : " << std::endl;
+                          qi->debugPrintMatch("qcf-inst");
+                          Trace("qcf-inst") << std::endl;
+                          ++addedLemmas;
+                          if( e==effort_conflict ){
+                            d_quantEngine->markRelevant( q );
+                            ++(d_statistics.d_conflict_inst);
+                            if( options::qcfAllConflict() ){
+                              isConflict = true;
+                            }else{
+                              d_conflict.set( true );
+                            }
+                            break;
+                          }else if( e==effort_prop_eq ){
+                            d_quantEngine->markRelevant( q );
+                            ++(d_statistics.d_prop_inst);
+                          }
+                        }else{
+                          Trace("qcf-inst") << "   ... Failed to add instantiation" << std::endl;
+                          //this should only happen if the algorithm generates the same propagating instance twice this round
+                          //in this case, break to avoid exponential behavior
+                          break;
+                        }
+                      }else{
+                        Trace("qcf-inst") << "   ... Spurious instantiation (match is T-inconsistent)" << std::endl;
                       }
+                      //clean up assigned
+                      qi->revertMatch( this, assigned );
+                      d_tempCache.clear();
                     }else{
-                      Trace("qcf-inst") << "   ... Failed to add instantiation" << std::endl;
-                      //this should only happen if the algorithm generates the same propagating instance twice this round
-                      //in this case, break to avoid exponential behavior
-                      break;
+                      Trace("qcf-inst") << "   ... Spurious instantiation (cannot assign unassigned variables)" << std::endl;
                     }
                   }else{
-                    Trace("qcf-inst") << "   ... Spurious instantiation (match is T-inconsistent)" << std::endl;
+                    Trace("qcf-inst") << "   ... Spurious instantiation (match is inconsistent)" << std::endl;
                   }
-                  //clean up assigned
-                  qi->revertMatch( this, assigned );
-                  d_tempCache.clear();
-                }else{
-                  Trace("qcf-inst") << "   ... Spurious instantiation (cannot assign unassigned variables)" << std::endl;
                 }
-              }else{
-                Trace("qcf-inst") << "   ... Spurious instantiation (match is inconsistent)" << std::endl;
+                Trace("qcf-check") << "Done, conflict = " << d_conflict << std::endl;
+                if( d_conflict ){
+                  break;
+                }
               }
-            }
-            Trace("qcf-check") << "Done, conflict = " << d_conflict << std::endl;
-            if( d_conflict ){
-              break;
             }
           }
         }
@@ -2157,17 +2178,9 @@ void QuantConflictFind::check( Theory::Effort level, unsigned quant_e ) {
 void QuantConflictFind::computeRelevantEqr() {
   if( d_needs_computeRelEqr ){
     d_needs_computeRelEqr = false;
-    Trace("qcf-check") << "Compute relevant equalities..." << std::endl;
-    //d_uf_terms.clear();
-    //d_eqc_uf_terms.clear();
+    Trace("qcf-check") << "Compute relevant equivalence classes..." << std::endl;
     d_eqcs.clear();
-    //d_arg_reps.clear();
-    //double clSet = 0;
-    //if( Trace.isOn("qcf-opt") ){
-    //  clSet = double(clock())/double(CLOCKS_PER_SEC);
-    //}
 
-    //now, store matches
     eq::EqClassesIterator eqcs_i = eq::EqClassesIterator( getEqualityEngine() );
     while( !eqcs_i.isFinished() ){
       Node r = (*eqcs_i);

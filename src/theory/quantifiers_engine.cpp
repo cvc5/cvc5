@@ -353,7 +353,7 @@ void QuantifiersEngine::check( Theory::Effort e ){
   std::vector< QuantifiersModule* > qm;
   if( d_model->checkNeeded() ){
     needsCheck = needsCheck || e>=Theory::EFFORT_LAST_CALL;  //always need to check at or above last call
-    for( int i=0; i<(int)d_modules.size(); i++ ){
+    for( unsigned i=0; i<d_modules.size(); i++ ){
       if( d_modules[i]->needsCheck( e ) ){
         qm.push_back( d_modules[i] );
         needsCheck = true;
@@ -395,6 +395,12 @@ void QuantifiersEngine::check( Theory::Effort e ){
         removeInstantiationInternal( d_recorded_inst[i].first, d_recorded_inst[i].second );
       } 
       d_recorded_inst.clear();
+    }
+    
+    double clSet = 0;
+    if( Trace.isOn("quant-engine") ){
+      clSet = double(clock())/double(CLOCKS_PER_SEC);
+      Trace("quant-engine") << ">>>>> Quantifiers Engine Round, effort = " << e << " <<<<<" << std::endl;
     }
 
     if( Trace.isOn("quant-engine-debug") ){
@@ -456,7 +462,6 @@ void QuantifiersEngine::check( Theory::Effort e ){
     flushLemmas();
     if( d_hasAddedLemma ){
       return;
-
     }
 
     if( e==Theory::EFFORT_LAST_CALL ){
@@ -548,6 +553,13 @@ void QuantifiersEngine::check( Theory::Effort e ){
         }
       }
     }
+    if( Trace.isOn("quant-engine") ){
+      double clSet2 = double(clock())/double(CLOCKS_PER_SEC);
+      Trace("quant-engine") << "Finished quantifiers engine, total time = " << (clSet2-clSet);
+      Trace("quant-engine") << ", added lemma = " << d_hasAddedLemma;
+      Trace("quant-engine") << std::endl;
+    }
+    
     Trace("quant-engine-debug2") << "Finished quantifiers engine check." << std::endl;
   }else{
     Trace("quant-engine-debug2") << "Quantifiers Engine does not need check." << std::endl;
@@ -567,7 +579,7 @@ void QuantifiersEngine::check( Theory::Effort e ){
       }
     }
     if( setIncomplete ){
-      Trace("quant-engine-debug") << "Set incomplete flag." << std::endl;
+      Trace("quant-engine") << "Set incomplete flag." << std::endl;
       getOutputChannel().setIncomplete();
     }
     //output debug stats
@@ -646,8 +658,6 @@ bool QuantifiersEngine::registerQuantifier( Node f ){
         d_modules[i]->registerQuantifier( f );
       }
       Node ceBody = d_term_db->getInstConstantBody( f );
-      //generate the phase requirements
-      //d_phase_reqs[f] = new QuantPhaseReq( ceBody, true );
       //also register it with the strong solver
       //if( options::finiteModelFind() ){
       //  ((uf::TheoryUF*)d_te->theoryOf( THEORY_UF ))->getStrongSolver()->registerQuantifier( f );
@@ -1209,9 +1219,19 @@ quantifiers::UserPatMode QuantifiersEngine::getInstUserPatMode() {
 
 void QuantifiersEngine::flushLemmas(){
   if( !d_lemmas_waiting.empty() ){
+    //filter based on notify classes
+    if( !d_inst_notify.empty() ){
+      unsigned prev_lem_sz = d_lemmas_waiting.size();
+      for( unsigned j=0; j<d_inst_notify.size(); j++ ){
+        d_inst_notify[j]->filterInstantiations();
+      }  
+      if( prev_lem_sz!=d_lemmas_waiting.size() ){
+        Trace("quant-engine") << "...filtered instances : " << d_lemmas_waiting.size() << " / " << prev_lem_sz << std::endl;
+      }
+    }
     //take default output channel if none is provided
     d_hasAddedLemma = true;
-    for( int i=0; i<(int)d_lemmas_waiting.size(); i++ ){
+    for( unsigned i=0; i<d_lemmas_waiting.size(); i++ ){
       Trace("qe-lemma") << "Lemma : " << d_lemmas_waiting[i] << std::endl;
       getOutputChannel().lemma( d_lemmas_waiting[i], false, true );
     }
