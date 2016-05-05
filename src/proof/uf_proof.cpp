@@ -329,9 +329,16 @@ Node ProofUF::toStreamRecLFSC(std::ostream& out, TheoryProof * tp, theory::eq::E
 
       if(n2[0].getKind() == kind::APPLY_UF) {
         out << "(trans _ _ _ _ ";
-        out << "(symm _ _ _ ";
-        out << ss.str();
-        out << ") (pred_eq_f _ " << ProofManager::getLitName(n2[0]) << ")) t_t_neq_f))" << std::endl;
+
+        if (n1[0] == n2[0]) {
+          out << "(symm _ _ _ ";
+          out << ss.str();
+          out << ") ";
+        } else {
+          Assert(n1[1] == n2[0]);
+          out << ss.str();
+        }
+        out << "(pred_eq_f _ " << ProofManager::getLitName(n2[0]) << ")) t_t_neq_f))" << std::endl;
       } else {
         Assert((n1[0] == n2[0][0] && n1[1] == n2[0][1]) || (n1[1] == n2[0][0] && n1[0] == n2[0][1]));
         if(n1[1] == n2[0][0]) {
@@ -713,10 +720,10 @@ Node ProofUF::toStreamRecLFSC(std::ostream& out, TheoryProof * tp, theory::eq::E
       } else if(n1.getKind() == kind::EQUAL || n1.getKind() == kind::IFF) {
         // n1 is an equality/iff, but n2 is a predicate
         if(n1[0] == n2) {
-          n1 = n1[1];
+          n1 = n1[1].iffNode(NodeManager::currentNM()->mkConst(true));
           ss << "(symm _ _ _ " << ss1.str() << ") (pred_eq_t _ " << ss2.str() << ")";
         } else if(n1[1] == n2) {
-          n1 = n1[0];
+          n1 = n1[0].iffNode(NodeManager::currentNM()->mkConst(true));
           ss << ss1.str() << " (pred_eq_t _ " << ss2.str() << ")";
         } else {
           Unreachable();
@@ -724,10 +731,10 @@ Node ProofUF::toStreamRecLFSC(std::ostream& out, TheoryProof * tp, theory::eq::E
       } else if(n2.getKind() == kind::EQUAL || n2.getKind() == kind::IFF) {
         // n2 is an equality/iff, but n1 is a predicate
         if(n2[0] == n1) {
-          n1 = n2[1];
+          n1 = n2[1].iffNode(NodeManager::currentNM()->mkConst(true));
           ss << "(symm _ _ _ " << ss2.str() << ") (pred_eq_t _ " << ss1.str() << ")";
         } else if(n2[1] == n1) {
-          n1 = n2[0];
+          n1 = n2[0].iffNode(NodeManager::currentNM()->mkConst(true));
           ss << ss2.str() << " (pred_eq_t _ " << ss1.str() << ")";
         } else {
           Unreachable();
@@ -747,83 +754,13 @@ Node ProofUF::toStreamRecLFSC(std::ostream& out, TheoryProof * tp, theory::eq::E
   case theory::eq::MERGED_ARRAYS_ROW: {
     Debug("pf::uf") << "eq::MERGED_ARRAYS_ROW encountered in UF_PROOF" << std::endl;
     Unreachable();
-
-    Debug("pf::uf") << "row lemma: " << pf->d_node << std::endl;
-    Assert(pf->d_node.getKind() == kind::EQUAL);
-    TNode t1, t2, t3, t4;
-    Node ret;
-    if(pf->d_node[1].getKind() == kind::SELECT &&
-       pf->d_node[1][0].getKind() == kind::STORE &&
-       pf->d_node[0].getKind() == kind::SELECT &&
-       pf->d_node[0][0] == pf->d_node[1][0][0] &&
-       pf->d_node[0][1] == pf->d_node[1][1]) {
-      t2 = pf->d_node[1][0][1];
-      t3 = pf->d_node[1][1];
-      t1 = pf->d_node[0][0];
-      t4 = pf->d_node[1][0][2];
-      ret = pf->d_node[1].eqNode(pf->d_node[0]);
-      Debug("pf::uf") << "t1 " << t1 << "\nt2 " << t2 << "\nt3 " << t3 << "\nt4 " << t4 << "\n";
-    } else {
-      Assert(pf->d_node[0].getKind() == kind::SELECT &&
-             pf->d_node[0][0].getKind() == kind::STORE &&
-             pf->d_node[1].getKind() == kind::SELECT &&
-             pf->d_node[1][0] == pf->d_node[0][0][0] &&
-             pf->d_node[1][1] == pf->d_node[0][1]);
-      t2 = pf->d_node[0][0][1];
-      t3 = pf->d_node[0][1];
-      t1 = pf->d_node[1][0];
-      t4 = pf->d_node[0][0][2];
-      ret = pf->d_node;
-      Debug("pf::uf") << "t1 " << t1 << "\nt2 " << t2 << "\nt3 " << t3 << "\nt4 " << t4 << "\n";
-    }
-    out << "(row _ _ ";
-    tp->printTerm(t2.toExpr(), out, map);
-    out << " ";
-    tp->printTerm(t3.toExpr(), out, map);
-    out << " ";
-    tp->printTerm(t1.toExpr(), out, map);
-    out << " ";
-    tp->printTerm(t4.toExpr(), out, map);
-    out << " " << ProofManager::getLitName(t2.eqNode(t3)) << ")";
-    return ret;
+    return Node();
   }
 
   case theory::eq::MERGED_ARRAYS_ROW1: {
     Debug("pf::uf") << "eq::MERGED_ARRAYS_ROW1 encountered in UF_PROOF" << std::endl;
     Unreachable();
-
-    Debug("pf::uf") << "row1 lemma: " << pf->d_node << std::endl;
-    Assert(pf->d_node.getKind() == kind::EQUAL);
-    TNode t1, t2, t3;
-    Node ret;
-    if(pf->d_node[1].getKind() == kind::SELECT &&
-       pf->d_node[1][0].getKind() == kind::STORE &&
-       pf->d_node[1][0][1] == pf->d_node[1][1] &&
-       pf->d_node[1][0][2] == pf->d_node[0]) {
-      t1 = pf->d_node[1][0][0];
-      t2 = pf->d_node[1][0][1];
-      t3 = pf->d_node[0];
-      ret = pf->d_node[1].eqNode(pf->d_node[0]);
-      Debug("pf::uf") << "t1 " << t1 << "\nt2 " << t2 << "\nt3 " << t3 << "\n";
-    } else {
-      Assert(pf->d_node[0].getKind() == kind::SELECT &&
-             pf->d_node[0][0].getKind() == kind::STORE &&
-             pf->d_node[0][0][1] == pf->d_node[0][1] &&
-             pf->d_node[0][0][2] == pf->d_node[1]);
-      t1 = pf->d_node[0][0][0];
-      t2 = pf->d_node[0][0][1];
-      t3 = pf->d_node[1];
-      ret = pf->d_node;
-      Debug("pf::uf") << "t1 " << t1 << "\nt2 " << t2 << "\nt3 " << t3 << "\n";
-    }
-    out << "(row1 _ _ ";
-    tp->printTerm(t1.toExpr(), out, map);
-    out << " ";
-    tp->printTerm(t2.toExpr(), out, map);
-    out << " ";
-    tp->printTerm(t3.toExpr(), out, map);
-    out << ")";
-    return ret;
+    return Node();
   }
 
   default:
