@@ -221,11 +221,12 @@ int ModelEngine::checkModel(){
 
   //print debug information
   if( d_quantEngine->inConflict() ){
-    Trace("model-engine") << "Conflict = " << d_quantEngine->getNumLemmasWaiting() << " / " << d_quantEngine->getNumLemmasAddedThisRound() << std::endl;
+    Trace("model-engine") << "Conflict, added lemmas = ";
   }else{
-    Trace("model-engine") << "Added Lemmas = " << d_addedLemmas << " / " << d_triedLemmas << " / ";
-    Trace("model-engine") << d_totalLemmas << std::endl;
-  }
+    Trace("model-engine") << "Added Lemmas = ";
+  } 
+  Trace("model-engine") << d_addedLemmas << " / " << d_triedLemmas << " / ";
+  Trace("model-engine") << d_totalLemmas << std::endl;
   return d_addedLemmas;
 }
 

@@ -826,6 +826,33 @@ static string smtKindString(Kind k) throw() {
   case kind::FLOATINGPOINT_TO_SBV: return "fp.to_sbv";
   case kind::FLOATINGPOINT_TO_REAL: return "fp.to_real";
 
+  //string theory
+  case kind::STRING_CONCAT: return "str.++";
+  case kind::STRING_LENGTH: return "str.len";
+  case kind::STRING_SUBSTR: return "str.substr" ;
+  case kind::STRING_STRCTN: return "str.contains" ;
+  case kind::STRING_CHARAT: return "str.at" ;
+  case kind::STRING_STRIDOF: return "str.indexof" ;
+  case kind::STRING_STRREPL: return "str.replace" ;
+  case kind::STRING_PREFIX: return "str.prefixof" ;
+  case kind::STRING_SUFFIX: return "str.suffixof" ;
+  case kind::STRING_ITOS: return "int.to.str" ;
+  case kind::STRING_STOI: return "str.to.int" ;
+  case kind::STRING_U16TOS: return "u16.to.str" ;
+  case kind::STRING_STOU16: return "str.to.u16" ;
+  case kind::STRING_U32TOS: return "u32.to.str" ;
+  case kind::STRING_STOU32: return "str.to.u32" ;
+  case kind::STRING_IN_REGEXP: return "str.in.re";
+  case kind::STRING_TO_REGEXP: return "str.to.re";
+  case kind::REGEXP_CONCAT: return "re.++";
+  case kind::REGEXP_UNION: return "re.union";
+  case kind::REGEXP_INTER: return "re.inter";
+  case kind::REGEXP_STAR: return "re.*";
+  case kind::REGEXP_PLUS: return "re.+";
+  case kind::REGEXP_OPT: return "re.opt";
+  case kind::REGEXP_RANGE: return "re.range";
+  case kind::REGEXP_LOOP: return "re.loop";
+  
   default:
     ; /* fall through */
   }

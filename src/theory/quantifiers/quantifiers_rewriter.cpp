@@ -230,7 +230,7 @@ RewriteResponse QuantifiersRewriter::postRewrite(TNode in) {
     ret = ret.negate();
     status = REWRITE_AGAIN_FULL;
   }else if( in.getKind()==FORALL ){
-    if( in[1].isConst() ){
+    if( in[1].isConst() && in.getNumChildren()==2 ){
       return RewriteResponse( status, in[1] );
     }else{
       //compute attributes

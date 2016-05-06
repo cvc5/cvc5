@@ -158,8 +158,6 @@ private:  //this information is reset during check
   /** are we in conflict */
   bool d_conflict;
   context::CDO< bool > d_conflict_c;
-  /** number of lemmas we actually added this round (for debugging) */
-  unsigned d_num_added_lemmas_round;
   /** has added lemma this round */
   bool d_hasAddedLemma;
 private:
@@ -332,8 +330,6 @@ public:
   bool inConflict() { return d_conflict; }
   /** get number of waiting lemmas */
   unsigned getNumLemmasWaiting() { return d_lemmas_waiting.size(); }
-  /** get number of waiting lemmas */
-  unsigned getNumLemmasAddedThisRound() { return d_num_added_lemmas_round; }
   /** get needs check */
   bool getInstWhenNeedsCheck( Theory::Effort e );
   /** get user pat mode */

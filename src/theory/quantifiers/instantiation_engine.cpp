@@ -137,11 +137,7 @@ void InstantiationEngine::check( Theory::Effort e, unsigned quant_e ){
       doInstantiationRound( e );
       if( d_quantEngine->inConflict() ){
         Assert( d_quantEngine->getNumLemmasWaiting()>lastWaiting );
-        Trace("inst-engine") << "Conflict = " << d_quantEngine->getNumLemmasWaiting() << " / " << d_quantEngine->getNumLemmasAddedThisRound();
-        if( lastWaiting>0 ){
-          Trace("inst-engine") << " (prev " << lastWaiting << ")";
-        }
-        Trace("inst-engine") << std::endl;
+        Trace("inst-engine") << "Conflict, added lemmas = " << (d_quantEngine->getNumLemmasWaiting()-lastWaiting) << std::endl;
       }else if( d_quantEngine->hasAddedLemma() ){
         Trace("inst-engine") << "Added lemmas = " << (d_quantEngine->getNumLemmasWaiting()-lastWaiting)  << std::endl;
       }

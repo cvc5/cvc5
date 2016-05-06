@@ -89,7 +89,6 @@ QuantifiersEngine::QuantifiersEngine(context::Context* c, context::UserContext* 
   d_tr_trie = new inst::TriggerTrie;
   d_curr_effort_level = QEFFORT_NONE;
   d_conflict = false;
-  d_num_added_lemmas_round = 0;
   d_hasAddedLemma = false;
   //don't add true lemma
   d_lemmas_produced_c[d_term_db->d_true] = true;
@@ -367,7 +366,6 @@ void QuantifiersEngine::check( Theory::Effort e ){
   }
 
   d_conflict = false;
-  d_num_added_lemmas_round = 0;
   d_hasAddedLemma = false;
   bool setIncomplete = false;
   if( e==Theory::EFFORT_LAST_CALL ){
@@ -969,7 +967,6 @@ bool QuantifiersEngine::addLemma( Node lem, bool doCache, bool doRewrite ){
       d_lemmas_produced_c[ lem ] = true;
       d_lemmas_waiting.push_back( lem );
       Trace("inst-add-debug") << "Added lemma" << std::endl;
-      d_num_added_lemmas_round++;
       return true;
     }else{
       Trace("inst-add-debug") << "Duplicate." << std::endl;
@@ -978,7 +975,6 @@ bool QuantifiersEngine::addLemma( Node lem, bool doCache, bool doRewrite ){
   }else{
     //do not need to rewrite, will be rewritten after sending
     d_lemmas_waiting.push_back( lem );
-    d_num_added_lemmas_round++;
     return true;
   }
 }

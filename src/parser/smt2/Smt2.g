@@ -749,7 +749,7 @@ sygusCommand returns [CVC4::Command* cmd = NULL]
       $cmd = new EmptyCommand();
     }
   | /* check-synth */
-    CHECK_SYNTH_TOK { PARSER_STATE->checkThatLogicIsSet(); }
+    CHECK_SYNTH_TOK { PARSER_STATE->checkThatLogicIsSet();PARSER_STATE->defineSygusFuns(); }
     { Expr sygusVar = EXPR_MANAGER->mkVar("sygus", EXPR_MANAGER->booleanType());
       Expr sygusAttr = EXPR_MANAGER->mkExpr(kind::INST_PATTERN_LIST, EXPR_MANAGER->mkExpr(kind::INST_ATTRIBUTE, sygusVar));
       std::vector<Expr> bodyv;

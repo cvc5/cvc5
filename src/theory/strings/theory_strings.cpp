@@ -3275,11 +3275,9 @@ void TheoryStrings::separateByLength(std::vector< Node >& n,
     Assert( d_equalityEngine.getRepresentative(eqc)==eqc );
     EqcInfo* ei = getOrMakeEqcInfo( eqc, false );
     Node lt = ei ? ei->d_length_term : Node::null();
-    Trace("ajr-temp") << "Length term for " << eqc << " is " << lt << std::endl;
     if( !lt.isNull() ){
       lt = NodeManager::currentNM()->mkNode( kind::STRING_LENGTH, lt );
       Node r = d_equalityEngine.getRepresentative( lt );
-      Trace("ajr-temp") << "Length term rep for " << eqc << " is " << lt << std::endl;
       if( eqc_to_leqc.find( r )==eqc_to_leqc.end() ){
         eqc_to_leqc[r] = leqc_counter;
         leqc_to_eqc[leqc_counter] = r;
