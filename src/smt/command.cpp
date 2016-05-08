@@ -29,6 +29,7 @@
 #include "expr/node.h"
 #include "options/options.h"
 #include "options/smt_options.h"
+#include "options/proof_options.h"
 #include "printer/printer.h"
 #include "smt/dump.h"
 #include "smt/model.h"
@@ -1182,7 +1183,13 @@ void GetProofCommand::printResult(std::ostream& out, uint32_t verbosity) const t
     this->Command::printResult(out, verbosity);
   } else {
     smt::SmtScope scope(d_smtEngine);
-    d_result->toStream(out);
+
+    if (!options::dumpToDevNull()) {
+      d_result->toStream(out);
+    } else {
+      ofstream devNull("dev/null");
+      d_result->toStream(devNull);
+    }
   }
 }
 
