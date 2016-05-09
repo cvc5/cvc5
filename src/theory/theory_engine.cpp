@@ -1558,15 +1558,9 @@ void TheoryEngine::mkAckermanizationAsssertions(std::vector<Node>& assertions) {
 
 Node TheoryEngine::ppSimpITE(TNode assertion)
 {
-  if(options::incrementalSolving()){
-    // disabling the d_iteUtilities->simpITE(assertion) pass for incremental solving.
-    // This is paranoia. We do not actually know of a bug coming from this.
-    // TODO re-enable
+  if (!d_iteRemover.containsTermITE(assertion)) {
     return assertion;
-  } else if(!d_iteRemover.containsTermITE(assertion)){
-    return assertion;
-  }else{
-
+  } else {
     Node result = d_iteUtilities->simpITE(assertion);
     Node res_rewritten = Rewriter::rewrite(result);
 
@@ -1576,10 +1570,9 @@ Node TheoryEngine::ppSimpITE(TNode assertion)
       Chat() << "ending simplifyWithCare()"
              << " post simplifyWithCare()" << postSimpWithCare.getId() << endl;
       result = Rewriter::rewrite(postSimpWithCare);
-    }else{
+    } else {
       result = res_rewritten;
     }
-
     return result;
   }
 }
