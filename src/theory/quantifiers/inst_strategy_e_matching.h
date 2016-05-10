@@ -86,13 +86,14 @@ private:
   // number of trigger variables per quantifier
   std::map< Node, unsigned > d_num_trigger_vars;
   std::map< Node, Node > d_vc_partition[2];
+  std::map< Node, Node > d_pat_to_mpat;
 private:
   /** process functions */
   void processResetInstantiationRound( Theory::Effort effort );
   int process( Node q, Theory::Effort effort, int e );
   /** generate triggers */
   void generateTriggers( Node q );
-  void addPatternToPool( Node q, Node pat, unsigned num_fv );
+  void addPatternToPool( Node q, Node pat, unsigned num_fv, Node mpat );
   void addTrigger( inst::Trigger * tr, Node f );
   /** has user patterns */
   bool hasUserPatterns( Node q );

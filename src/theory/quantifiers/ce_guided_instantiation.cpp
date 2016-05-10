@@ -21,6 +21,7 @@
 #include "theory/quantifiers/first_order_model.h"
 #include "theory/quantifiers/term_database.h"
 #include "theory/theory_engine.h"
+#include "prop/prop_engine.h"
 
 using namespace CVC4::kind;
 using namespace std;
@@ -291,6 +292,8 @@ void CegInstantiation::registerQuantifier( Node q ) {
     }else{
       Assert( d_conj->d_quant==q );
     }
+  }else{
+    Trace("cegqi-debug") << "Register quantifier : " << q << std::endl;
   }
 }
 
@@ -317,7 +320,7 @@ Node CegInstantiation::getNextDecisionRequest() {
         Trace("cegqi-debug") << "CEGQI : Decide next on : " << req_dec[i] << "..." << std::endl;
         return req_dec[i];
       }else{
-        Trace("cegqi-debug") << "CEGQI : " << req_dec[i] << " already has value " << value << std::endl;
+        Trace("cegqi-debug2") << "CEGQI : " << req_dec[i] << " already has value " << value << std::endl;
       }
     }
 
@@ -426,6 +429,16 @@ void CegInstantiation::checkCegConjecture( CegConjecture * conj ) {
         d_quantEngine->addLemma( lem );
         ++(d_statistics.d_cegqi_lemmas_ce);
         Trace("cegqi-engine") << "  ...find counterexample." << std::endl;
+        //optimization : eagerly unfold applications of evaluation function
+        if( options::sygusEagerUnfold() ){
+          std::vector< Node > eager_lems;
+          std::map< Node, bool > visited;
+          getEagerUnfoldLemmas( eager_lems, lem, visited );        
+          for( unsigned i=0; i<eager_lems.size(); i++ ){
+            Trace("cegqi-lemma") << "Cegqi::Lemma : eager unfold : " << eager_lems[i] << std::endl;
+            d_quantEngine->addLemma( eager_lems[i] );
+          }
+        }
       }
 
     }else{
@@ -586,6 +599,53 @@ void CegInstantiation::getMeasureLemmas( Node n, Node v, std::vector< Node >& le
       getMeasureLemmas( nn, v[i], lems );
     }
 
+  }
+}
+
+void CegInstantiation::getEagerUnfoldLemmas( std::vector< Node >& lems, Node n, std::map< Node, bool >& visited ) {
+  if( visited.find( n )==visited.end() ){
+    Trace("cegqi-eager-debug") << "getEagerUnfoldLemmas " << n << std::endl;
+    visited[n] = true;
+    if( n.getKind()==APPLY_UF ){
+      TypeNode tn = n[0].getType();
+      Trace("cegqi-eager-debug") << "check " << n[0].getType() << std::endl;
+      if( datatypes::DatatypesRewriter::isTypeDatatype(tn) ){
+        const Datatype& dt = ((DatatypeType)(tn).toType()).getDatatype();
+        if( dt.isSygus() ){
+          Trace("cegqi-eager") << "Unfold eager : " << n << std::endl;
+          Node bTerm = d_quantEngine->getTermDatabaseSygus()->sygusToBuiltin( n[0], tn );
+          Trace("cegqi-eager") << "Built-in term : " << bTerm << std::endl;
+          std::vector< Node > vars;
+          std::vector< Node > subs;
+          Node var_list = Node::fromExpr( dt.getSygusVarList() );
+          Assert( var_list.getNumChildren()+1==n.getNumChildren() );
+          for( unsigned j=0; j<var_list.getNumChildren(); j++ ){
+            vars.push_back( var_list[j] );
+          }
+          for( unsigned j=1; j<n.getNumChildren(); j++ ){
+            if( var_list[j-1].getType().isBoolean() ){   
+              //TODO: remove this case when boolean term conversion is eliminated
+              Node c = NodeManager::currentNM()->mkConst(BitVector(1u, 1u));
+              subs.push_back( n[j].eqNode( c ) );
+            }else{
+              subs.push_back( n[j] );
+            }
+            Assert( subs[j-1].getType()==var_list[j-1].getType() );
+          }
+          bTerm = bTerm.substitute( vars.begin(), vars.end(), subs.begin(), subs.end() );
+          Trace("cegqi-eager") << "Built-in term after subs : " << bTerm << std::endl;
+          Trace("cegqi-eager-debug") << "Types : " << bTerm.getType() << " " << n.getType() << std::endl;
+          Assert( n.getType()==bTerm.getType() );
+          Node lem = Rewriter::rewrite( NodeManager::currentNM()->mkNode( n.getType().isBoolean() ? IFF : EQUAL, n, bTerm ) ); 
+          lems.push_back( lem );
+        }
+      }
+    }
+    if( n.getKind()!=FORALL ){
+      for( unsigned i=0; i<n.getNumChildren(); i++ ){
+        getEagerUnfoldLemmas( lems, n[i], visited );
+      }
+    }
   }
 }
 

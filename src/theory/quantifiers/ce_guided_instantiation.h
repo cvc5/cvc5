@@ -139,6 +139,8 @@ private: //for enforcing fairness
   std::map< Node, std::map< int, Node > > d_size_term_lemma;
   /** get measure lemmas */
   void getMeasureLemmas( Node n, Node v, std::vector< Node >& lems );
+  /** get eager unfolding */
+  void getEagerUnfoldLemmas( std::vector< Node >& lems, Node n, std::map< Node, bool >& visited );
 private:
   /** check conjecture */
   void checkCegConjecture( CegConjecture * conj );

@@ -34,9 +34,10 @@ using namespace CVC4::theory::quantifiers;
 
 struct sortQuantifiersForSymbol {
   QuantifiersEngine* d_qe;
+  std::map< Node, Node > d_op_map;
   bool operator() (Node i, Node j) {
-    int nqfsi = d_qe->getQuantifierRelevance()->getNumQuantifiersForSymbol( i.getOperator() );
-    int nqfsj = d_qe->getQuantifierRelevance()->getNumQuantifiersForSymbol( j.getOperator() );
+    int nqfsi = d_qe->getQuantifierRelevance()->getNumQuantifiersForSymbol( d_op_map[i] );
+    int nqfsj = d_qe->getQuantifierRelevance()->getNumQuantifiersForSymbol( d_op_map[j] );
     if( nqfsi<nqfsj ){
       return true;
     }else if( nqfsi>nqfsj ){
@@ -325,6 +326,7 @@ void InstStrategyAutoGenTriggers::generateTriggers( Node f ){
       Node pat = patTermsF[i];
       if( rmPatTermsF.find( pat )==rmPatTermsF.end() ){
         Trace("auto-gen-trigger-debug") << "...processing pattern " << pat << std::endl;
+        Node mpat = pat;
         //process the pattern: if it has a required polarity, consider it
         Assert( tinfo.find( pat )!=tinfo.end() );
         int rpol = tinfo[pat].d_reqPol;
@@ -363,10 +365,10 @@ void InstStrategyAutoGenTriggers::generateTriggers( Node f ){
         }else{
           if( Trigger::isRelationalTrigger( pat ) ){
             //consider both polarities
-            addPatternToPool( f, pat.negate(), num_fv );
+            addPatternToPool( f, pat.negate(), num_fv, mpat );
           }
         }
-        addPatternToPool( f, pat, num_fv );
+        addPatternToPool( f, pat, num_fv, mpat );
       }
     }
     //tinfo not used below this point
@@ -398,12 +400,17 @@ void InstStrategyAutoGenTriggers::generateTriggers( Node f ){
       if( options::relevantTriggers() ){
         sortQuantifiersForSymbol sqfs;
         sqfs.d_qe = d_quantEngine;
+        for( unsigned i=0; i<patTerms.size(); i++ ){
+          Assert( d_pat_to_mpat.find( patTerms[i] )!=d_pat_to_mpat.end() );
+          Assert( d_pat_to_mpat[patTerms[i]].hasOperator() );
+          sqfs.d_op_map[ patTerms[i] ] = d_pat_to_mpat[patTerms[i]].getOperator();
+        }        
         //sort based on # occurrences (this will cause Trigger to select rarer symbols)
         std::sort( patTerms.begin(), patTerms.end(), sqfs );
         Debug("relevant-trigger") << "Terms based on relevance: " << std::endl;
         for( unsigned i=0; i<patTerms.size(); i++ ){
-          Debug("relevant-trigger") << "   " << patTerms[i] << " (";
-          Debug("relevant-trigger") << d_quantEngine->getQuantifierRelevance()->getNumQuantifiersForSymbol( patTerms[i].getOperator() ) << ")" << std::endl;
+          Debug("relevant-trigger") << "   " << patTerms[i] << " from " << d_pat_to_mpat[patTerms[i]] << " (";
+          Debug("relevant-trigger") << d_quantEngine->getQuantifierRelevance()->getNumQuantifiersForSymbol( d_pat_to_mpat[patTerms[i]].getOperator() ) << ")" << std::endl;
         }
       }
       //now, generate the trigger...
@@ -462,7 +469,8 @@ void InstStrategyAutoGenTriggers::generateTriggers( Node f ){
   }
 }
 
-void InstStrategyAutoGenTriggers::addPatternToPool( Node q, Node pat, unsigned num_fv ) {
+void InstStrategyAutoGenTriggers::addPatternToPool( Node q, Node pat, unsigned num_fv, Node mpat ) {
+  d_pat_to_mpat[pat] = mpat;
   unsigned num_vars = options::partialTriggers() ? d_num_trigger_vars[q] : q[0].getNumChildren();
   if( num_fv==num_vars && ( options::pureThTriggers() || !Trigger::isPureTheoryTrigger( pat ) ) ){
     d_patTerms[0][q].push_back( pat );

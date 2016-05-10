@@ -180,6 +180,8 @@ option instPropagate --inst-prop bool :read-write :default false
  
 option qcfEagerTest --qcf-eager-test bool :default true
  optimization, test qcf instances eagerly
+option qcfSkipRd --qcf-skip-rd bool :default false
+ optimization, skip instances based on possibly irrelevant portions of quantified formulas
  
 ### rewrite rules options 
  
@@ -251,6 +253,9 @@ option sygusNormalFormGlobalContent --sygus-nf-sym-content bool :default true
 option sygusInvTemplMode --sygus-inv-templ=MODE CVC4::theory::quantifiers::SygusInvTemplMode :default CVC4::theory::quantifiers::SYGUS_INV_TEMPL_MODE_NONE :include "options/quantifiers_modes.h" :handler stringToSygusInvTemplMode
   template mode for sygus invariant synthesis
 
+option sygusEagerUnfold --sygus-eager-unfold bool :default false
+  eager unfold evaluation functions
+  
 # approach applied to general quantified formulas
 option cbqiSplx --cbqi-splx bool :read-write :default false
  turns on old implementation of counterexample-based quantifier instantiation

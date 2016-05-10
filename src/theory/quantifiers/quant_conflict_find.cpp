@@ -112,14 +112,15 @@ void QuantInfo::initialize( QuantConflictFind * p, Node q, Node qn ) {
     //optimization : record variable argument positions for terms that must be matched
     std::vector< TNode > vars;
     //TODO: revisit this, makes QCF faster, but misses conflicts due to caring about paths that may not be relevant (starExec jobs 14136/14137)
-    //if( options::qcfSkipRd() ){
-    //  for( unsigned j=q[0].getNumChildren(); j<d_vars.size(); j++ ){
-    //    vars.push_back( d_vars[j] );
-    //  }
-    //}
-    //get all variables that are always relevant
-    std::map< TNode, bool > visited;
-    getPropagateVars( p, vars, q[1], false, visited );
+    if( options::qcfSkipRd() ){
+      for( unsigned j=q[0].getNumChildren(); j<d_vars.size(); j++ ){
+        vars.push_back( d_vars[j] );
+      }
+    }else{
+      //get all variables that are always relevant
+      std::map< TNode, bool > visited;
+      getPropagateVars( p, vars, q[1], false, visited );
+    }
     for( unsigned j=0; j<vars.size(); j++ ){
       Node v = vars[j];
       TNode f = p->getTermDatabase()->getMatchOperator( v );
