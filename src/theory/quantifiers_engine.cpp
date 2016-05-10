@@ -1093,6 +1093,7 @@ bool QuantifiersEngine::addInstantiation( Node q, std::vector< Node >& terms, bo
 
   //construct the lemma
   Trace("inst-assert") << "(assert " << body << ")" << std::endl;
+  Node orig_body = body;
   body = Rewriter::rewrite(body);
   Node lem = NodeManager::currentNM()->mkNode( kind::OR, q.negate(), body );
   lem = Rewriter::rewrite(lem);
@@ -1123,7 +1124,7 @@ bool QuantifiersEngine::addInstantiation( Node q, std::vector< Node >& terms, bo
           }
         }
       }
-      setInstantiationLevelAttr( body, q[1], maxInstLevel+1 );
+      setInstantiationLevelAttr( orig_body, q[1], maxInstLevel+1 );
     }
     if( d_curr_effort_level>QEFFORT_CONFLICT && d_curr_effort_level<QEFFORT_NONE ){
       //notify listeners

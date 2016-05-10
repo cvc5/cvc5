@@ -80,7 +80,8 @@ TESTS =	\
 	double-pattern.smt2 \
 	qcf-rel-dom-opt.smt2 \
 	parametric-lists.smt2 \
-	partial-trigger.smt2
+	partial-trigger.smt2 \
+	inst-max-level-segf.smt2
 
 
 # regression can be solved with --finite-model-find --fmf-inst-engine
