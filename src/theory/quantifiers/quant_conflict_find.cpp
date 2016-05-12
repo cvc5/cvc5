@@ -49,7 +49,7 @@ QuantInfo::~QuantInfo() {
 
 void QuantInfo::initialize( QuantConflictFind * p, Node q, Node qn ) {
   d_q = q;
-  d_extra_var = 0;
+  d_extra_var.clear();
   for( unsigned i=0; i<q[0].getNumChildren(); i++ ){
     d_match.push_back( TNode::null() );
     d_match_term.push_back( TNode::null() );
@@ -170,7 +170,7 @@ void QuantInfo::getPropagateVars( QuantConflictFind * p, std::vector< TNode >& v
 }
 
 bool QuantInfo::isBaseMatchComplete() {
-  return d_vars_set.size()==(d_q[0].getNumChildren()+d_extra_var);
+  return d_vars_set.size()==(d_q[0].getNumChildren()+d_extra_var.size());
 }
 
 void QuantInfo::registerNode( Node n, bool hasPol, bool pol, bool beneathQuant ) {
@@ -230,7 +230,7 @@ void QuantInfo::flatten( Node n, bool beneathQuant ) {
       if( n.getKind()==ITE ){
         registerNode( n, false, false );
       }else if( n.getKind()==BOUND_VARIABLE ){
-        d_extra_var++;
+        d_extra_var.push_back( n );
       }else{
         for( unsigned i=0; i<n.getNumChildren(); i++ ){
           flatten( n[i], beneathQuant );
@@ -578,6 +578,11 @@ bool QuantInfo::isTConstraintSpurious( QuantConflictFind * p, std::vector< Node 
         Trace("qcf-instance-check") << "  " << terms[i] << std::endl;
         subs[d_q[0][i]] = terms[i];
       }
+      for( unsigned i=0; i<d_extra_var.size(); i++ ){
+        Node n = getCurrentExpValue( d_extra_var[i] );
+        Trace("qcf-instance-check") << "  " << d_extra_var[i] << " -> " << n << std::endl;
+        subs[d_extra_var[i]] = n;
+      }
       if( !p->getTermDatabase()->isEntailed( d_q[1], subs, false, false ) ){
         Trace("qcf-instance-check") << "...not entailed to be false." << std::endl;
         return true;
@@ -616,6 +621,7 @@ bool QuantInfo::isTConstraintSpurious( QuantConflictFind * p, std::vector< Node 
 
 bool QuantInfo::isPropagatingInstance( QuantConflictFind * p, Node n ) {
   if( n.getKind()==FORALL ){
+    //TODO?
     return true;
   }else if( n.getKind()==NOT || n.getKind()==AND || n.getKind()==OR || n.getKind()==EQUAL || n.getKind()==ITE || n.getKind()==IFF ){
     for( unsigned i=0; i<n.getNumChildren(); i++ ){
@@ -1120,58 +1126,77 @@ MatchGen::MatchGen( QuantInfo * qi, Node n, bool isVar )
 
 }
 
-void MatchGen::collectBoundVar( QuantInfo * qi, Node n, std::vector< int >& cbvars ) {
-  int v = qi->getVarNum( n );
-  if( v!=-1 && std::find( cbvars.begin(), cbvars.end(), v )==cbvars.end() ){
-    cbvars.push_back( v );
-  }
-  for( unsigned i=0; i<n.getNumChildren(); i++ ){
-    collectBoundVar( qi, n[i], cbvars );
+void MatchGen::collectBoundVar( QuantInfo * qi, Node n, std::vector< int >& cbvars, std::map< Node, bool >& visited, bool& hasNested ) {
+  if( visited.find( n )==visited.end() ){
+    visited[n] = true;
+    if( n.getKind()==FORALL ){
+      hasNested = true;
+    }
+    int v = qi->getVarNum( n );
+    if( v!=-1 && std::find( cbvars.begin(), cbvars.end(), v )==cbvars.end() ){
+      cbvars.push_back( v );
+    }
+    for( unsigned i=0; i<n.getNumChildren(); i++ ){
+      collectBoundVar( qi, n[i], cbvars, visited, hasNested );
+    }
   }
 }
 
 void MatchGen::determineVariableOrder( QuantInfo * qi, std::vector< int >& bvars ) {
-  Trace("qcf-qregister-debug") << "Determine variable order " << d_n << std::endl;
-  bool isCom = d_type==typ_formula && ( d_n.getKind()==OR || d_n.getKind()==AND || d_n.getKind()==IFF );
-  std::map< int, std::vector< int > > c_to_vars;
-  std::map< int, std::vector< int > > vars_to_c;
-  std::map< int, int > vb_count;
-  std::map< int, int > vu_count;
-  std::vector< bool > assigned;
-  Trace("qcf-qregister-debug") << "Calculate bound variables..." << std::endl;
-  for( unsigned i=0; i<d_children.size(); i++ ){
-    collectBoundVar( qi, d_children[i].d_n, c_to_vars[i] );
-    assigned.push_back( false );
-    vb_count[i] = 0;
-    vu_count[i] = 0;
-    for( unsigned j=0; j<c_to_vars[i].size(); j++ ){
-      int v = c_to_vars[i][j];
-      vars_to_c[v].push_back( i );
-      if( std::find( bvars.begin(), bvars.end(), v )==bvars.end() ){
-        vu_count[i]++;
-        if( !isCom ){
-          bvars.push_back( v );
+  Trace("qcf-qregister-debug") << "Determine variable order " << d_n << ", #bvars = " << bvars.size() << std::endl;
+  bool isComm = d_type==typ_formula && ( d_n.getKind()==OR || d_n.getKind()==AND || d_n.getKind()==IFF );
+  if( isComm ){
+    std::map< int, std::vector< int > > c_to_vars;
+    std::map< int, std::vector< int > > vars_to_c;
+    std::map< int, int > vb_count;
+    std::map< int, int > vu_count;
+    std::map< int, bool > has_nested;
+    std::vector< bool > assigned;
+    Trace("qcf-qregister-debug") << "Calculate bound variables..." << std::endl;
+    for( unsigned i=0; i<d_children.size(); i++ ){
+      std::map< Node, bool > visited;
+      has_nested[i] = false;
+      collectBoundVar( qi, d_children[i].d_n, c_to_vars[i], visited, has_nested[i] );
+      assigned.push_back( false );
+      vb_count[i] = 0;
+      vu_count[i] = 0;
+      for( unsigned j=0; j<c_to_vars[i].size(); j++ ){
+        int v = c_to_vars[i][j];
+        vars_to_c[v].push_back( i );
+        if( std::find( bvars.begin(), bvars.end(), v )==bvars.end() ){
+          vu_count[i]++;
+        }else{
+          vb_count[i]++;
         }
-      }else{
-        vb_count[i]++;
       }
     }
-  }
-  if( isCom ){
-    //children that bind the least number of unbound variables go first
+    //children that bind no unbound variable, then the most number of bound, unbound variables go first
+    Trace("qcf-qregister-vo") << "Variable order for " << d_n << " : " << std::endl;
     do {
+      int min_score0 = -1;
       int min_score = -1;
       int min_score_index = -1;
       for( unsigned i=0; i<d_children.size(); i++ ){
         if( !assigned[i] ){
-          int score = vu_count[i];
-          if( min_score==-1 || score<min_score ){
+          Trace("qcf-qregister-debug2") << "Child " << i << " has b/ub : " << vb_count[i] << "/" << vu_count[i] << std::endl;
+          int score0 = 0;//has_nested[i] ? 0 : 1;
+          int score;
+          if( !options::qcfVoExp() ){
+            score = vu_count[i];
+          }else{
+            score =  vu_count[i]==0 ? 0 : ( 1 + qi->d_vars.size()*( qi->d_vars.size() - vb_count[i] ) + ( qi->d_vars.size() - vu_count[i] )  );
+          }
+          if( min_score==-1 || score0<min_score0 || ( score0==min_score0 && score<min_score ) ){
+            min_score0 = score0;
             min_score = score;
             min_score_index = i;
           }
         }
       }
-      Trace("qcf-qregister-debug") << "...assign child " << min_score_index << "/" << d_children.size() << std::endl;
+      Trace("qcf-qregister-vo") << "  " << d_children_order.size()+1 << ": " << d_children[min_score_index].d_n << " : ";
+      Trace("qcf-qregister-vo") << vu_count[min_score_index] << " " << vb_count[min_score_index] << " " << has_nested[min_score_index] << std::endl;
+      Trace("qcf-qregister-debug") << "...assign child " << min_score_index << std::endl;
+      Trace("qcf-qregister-debug") << "...score : " << min_score << std::endl;
       Assert( min_score_index!=-1 );
       //add to children order
       d_children_order.push_back( min_score_index );
@@ -1201,6 +1226,16 @@ void MatchGen::determineVariableOrder( QuantInfo * qi, std::vector< int >& bvars
     for( unsigned i=0; i<d_children.size(); i++ ){
       d_children_order.push_back( i );
       d_children[i].determineVariableOrder( qi, bvars );
+      //now add to bvars
+      std::map< Node, bool > visited;
+      std::vector< int > cvars;
+      bool has_nested = false;
+      collectBoundVar( qi, d_children[i].d_n, cvars, visited, has_nested );
+      for( unsigned j=0; j<cvars.size(); j++ ){
+        if( std::find( bvars.begin(), bvars.end(), cvars[j] )==bvars.end() ){
+          bvars.push_back( cvars[j] );
+        }
+      }
     }
   }
 }
@@ -1349,7 +1384,7 @@ void MatchGen::reset( QuantConflictFind * p, bool tgt, QuantInfo * qi ) {
         }
       }
     }else{
-      //otherwise, add a constraint to a variable
+      //otherwise, add a constraint to a variable  TODO: this may be over-eager at effort > conflict, since equality may be a propagation
       if( vn[1]!=-1 && vn[0]==-1 ){
         //swap
         Node t = nn[1];
@@ -1384,7 +1419,9 @@ void MatchGen::reset( QuantConflictFind * p, bool tgt, QuantInfo * qi ) {
       d_qn.push_back( NULL );
     }else{
       if( d_tgt && d_n.getKind()==FORALL ){
-        //do nothing
+        //fail
+      }else if( d_n.getKind()==FORALL && p->d_effort==QuantConflictFind::effort_conflict && !options::qcfNestedConflict() ){
+        //fail
       }else{
         //reset the first child to d_tgt
         d_child_counter = 0;

@@ -62,7 +62,7 @@ private:
   std::map< int, Node > d_ground_eval;
   //determine variable order
   void determineVariableOrder( QuantInfo * qi, std::vector< int >& bvars );
-  void collectBoundVar( QuantInfo * qi, Node n, std::vector< int >& cbvars );
+  void collectBoundVar( QuantInfo * qi, Node n, std::vector< int >& cbvars, std::map< Node, bool >& visited, bool& hasNested );
 public:
   //type of the match generator
   enum {
@@ -121,7 +121,7 @@ private: //for completing match
   //optimization: number of variables set, to track when we can stop
   std::map< int, bool > d_vars_set;
   std::map< Node, bool > d_ground_terms;
-  unsigned d_extra_var;
+  std::vector< Node > d_extra_var;
 public:
   void setGroundSubterm( Node t ) { d_ground_terms[t] = true; }
   bool isGroundSubterm( Node t ) { return d_ground_terms.find( t )!=d_ground_terms.end(); }

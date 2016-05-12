@@ -415,14 +415,16 @@ TNode TermDb::getEntailedTerm2( TNode n, std::map< TNode, TNode >& subs, bool su
     return n;
   }else if( n.getKind()==BOUND_VARIABLE ){
     if( hasSubs ){
-      Assert( subs.find( n )!=subs.end() );
-      Trace("term-db-entail") << "...substitution is : " << subs[n] << std::endl;
-      if( subsRep ){
-        Assert( qy->getEngine()->hasTerm( subs[n] ) );
-        Assert( qy->getEngine()->getRepresentative( subs[n] )==subs[n] );
-        return subs[n];
-      }else{
-        return getEntailedTerm2( subs[n], subs, subsRep, hasSubs, qy );
+      std::map< TNode, TNode >::iterator it = subs.find( n );
+      if( it!=subs.end() ){
+        Trace("term-db-entail") << "...substitution is : " << it->second << std::endl;
+        if( subsRep ){
+          Assert( qy->getEngine()->hasTerm( it->second ) );
+          Assert( qy->getEngine()->getRepresentative( it->second )==it->second );
+          return it->second;
+        }else{
+          return getEntailedTerm2( it->second, subs, subsRep, hasSubs, qy );
+        }
       }
     }
   }else if( n.getKind()==ITE ){
@@ -535,6 +537,8 @@ bool TermDb::isEntailed2( TNode n, std::map< TNode, TNode >& subs, bool subsRep,
         return qy->getEngine()->getRepresentative( n1 ) == ( pol ? d_true : d_false );
       }
     }
+  }else if( n.getKind()==FORALL ){
+    return isEntailed2( n[1], subs, subsRep, hasSubs, pol, qy );
   }
   return false;
 }
