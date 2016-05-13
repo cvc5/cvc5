@@ -55,6 +55,24 @@ using namespace CVC4::theory;
 
 namespace CVC4 {
 
+inline void flattenAnd(Node n, std::vector<TNode>& out){
+  Assert(n.getKind() == kind::AND);
+  for(Node::iterator i=n.begin(), i_end=n.end(); i != i_end; ++i){
+    Node curr = *i;
+    if(curr.getKind() == kind::AND){
+      flattenAnd(curr, out);
+    }else{
+      out.push_back(curr);
+    }
+  }
+}
+
+inline Node flattenAnd(Node n){
+  std::vector<TNode> out;
+  flattenAnd(n, out);
+  return NodeManager::currentNM()->mkNode(kind::AND, out);
+}
+
 theory::LemmaStatus TheoryEngine::EngineOutputChannel::lemma(TNode lemma,
                                                              ProofRule rule,
                                                              bool removable,
@@ -1415,20 +1433,21 @@ Node TheoryEngine::getExplanationAndRecipe(TNode node, LemmaProofRecipe* proofRe
           if (explanation.getKind() == kind::AND) {
             // If the explanation is a conjunction, the recipe for the corresponding lemma is
             // the negation of its conjuncts.
-            for (unsigned i = 0; i < explanation.getNumChildren(); ++i) {
-              if (explanation[i].isConst() && explanation[i].getConst<bool>()) {
+            Node flat = flattenAnd(explanation);
+            for (unsigned i = 0; i < flat.getNumChildren(); ++i) {
+              if (flat[i].isConst() && flat[i].getConst<bool>()) {
                 ++ i;
                 continue;
               }
-              if (explanation[i].getKind() == kind::NOT &&
-                  explanation[i][0].isConst() && !explanation[i][0].getConst<bool>()) {
+              if (flat[i].getKind() == kind::NOT &&
+                  flat[i][0].isConst() && !flat[i][0].getConst<bool>()) {
                 ++ i;
                 continue;
               }
               Debug("theory::explain") << "TheoryEngine::getExplanationAndRecipe: adding recipe assertion: "
-                                       << explanation[i].negate() << std::endl;
-              proofStep.addAssertion(explanation[i].negate());
-              proofRecipe->addBaseAssertion(explanation[i].negate());
+                                       << flat[i].negate() << std::endl;
+              proofStep.addAssertion(flat[i].negate());
+              proofRecipe->addBaseAssertion(flat[i].negate());
             }
           } else {
             // The recipe for proving it is by negating it. "True" is not an acceptable reason.
@@ -1981,11 +2000,12 @@ void TheoryEngine::getExplanation(std::vector<NodeTheoryPair>& explanationVector
           if (inputAssertions.find(toExplain.node) == inputAssertions.end()) {
             LemmaProofRecipe::ProofStep proofStep(toExplain.theory, toExplain.node);
             if (explanation.getKind() == kind::AND) {
-              for (unsigned k = 0; k < explanation.getNumChildren(); ++ k) {
+              Node flat = flattenAnd(explanation);
+              for (unsigned k = 0; k < flat.getNumChildren(); ++ k) {
                 // If a true constant or a negation of a false constant we can ignore it
-                if (! ((explanation[k].isConst() && explanation[k].getConst<bool>()) ||
-                       (explanation[k].getKind() == kind::NOT && explanation[k][0].isConst() && !explanation[k][0].getConst<bool>()))) {
-                  proofStep.addAssertion(explanation[k].negate());
+                if (! ((flat[k].isConst() && flat[k].getConst<bool>()) ||
+                       (flat[k].getKind() == kind::NOT && flat[k][0].isConst() && !flat[k][0].getConst<bool>()))) {
+                  proofStep.addAssertion(flat[k].negate());
                 }
               }
             } else {
