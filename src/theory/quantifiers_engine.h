@@ -295,9 +295,9 @@ private:
   bool removeInstantiationInternal( Node q, std::vector< Node >& terms );
   /** set instantiation level attr */
   static void setInstantiationLevelAttr( Node n, Node qn, uint64_t level );
+public:
   /** flush lemmas */
   void flushLemmas();
-public:
   /** get instantiation */
   Node getInstantiation( Node q, std::vector< Node >& vars, std::vector< Node >& terms, bool doVts = false );
   /** get instantiation */

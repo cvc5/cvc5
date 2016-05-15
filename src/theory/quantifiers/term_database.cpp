@@ -90,7 +90,7 @@ TermDb::TermDb( context::Context* c, context::UserContext* u, QuantifiersEngine*
   d_zero = NodeManager::currentNM()->mkConst( Rational( 0 ) );
   d_one = NodeManager::currentNM()->mkConst( Rational( 1 ) );
   if( options::ceGuidedInst() ){
-    d_sygus_tdb = new TermDbSygus;
+    d_sygus_tdb = new TermDbSygus( c, qe );
   }else{
     d_sygus_tdb = NULL;
   }
@@ -170,6 +170,10 @@ void TermDb::addTerm( Node n, std::set< Node >& added, bool withinQuant, bool wi
           Node op = getMatchOperator( n );
           d_op_map[op].push_back( n );
           added.insert( n );
+          
+          if( d_sygus_tdb ){
+            d_sygus_tdb->registerEvalTerm( n );
+          }
 
           if( options::eagerInstQuant() ){
             for( unsigned i=0; i<n.getNumChildren(); i++ ){
@@ -537,7 +541,7 @@ bool TermDb::isEntailed2( TNode n, std::map< TNode, TNode >& subs, bool subsRep,
         return qy->getEngine()->getRepresentative( n1 ) == ( pol ? d_true : d_false );
       }
     }
-  }else if( n.getKind()==FORALL ){
+  }else if( n.getKind()==FORALL && !pol ){
     return isEntailed2( n[1], subs, subsRep, hasSubs, pol, qy );
   }
   return false;
@@ -1576,7 +1580,7 @@ struct sortTermOrder {
 //this function makes a canonical representation of a term (
 //  - orders variables left to right
 //  - if apply_torder, then sort direct subterms of commutative operators
-Node TermDb::getCanonicalTerm( TNode n, std::map< TypeNode, unsigned >& var_count, std::map< TNode, TNode >& subs, bool apply_torder ) {
+Node TermDb::getCanonicalTerm( TNode n, std::map< TypeNode, unsigned >& var_count, std::map< TNode, TNode >& subs, bool apply_torder, std::map< TNode, Node >& visited ) {
   Trace("canon-term-debug") << "Get canonical term for " << n << std::endl;
   if( n.getKind()==BOUND_VARIABLE ){
     std::map< TNode, TNode >::iterator it = subs.find( n );
@@ -1593,32 +1597,38 @@ Node TermDb::getCanonicalTerm( TNode n, std::map< TypeNode, unsigned >& var_coun
       return it->second;
     }
   }else if( n.getNumChildren()>0 ){
-    //collect children
-    Trace("canon-term-debug") << "Collect children" << std::endl;
-    std::vector< Node > cchildren;
-    for( unsigned i=0; i<n.getNumChildren(); i++ ){
-      cchildren.push_back( n[i] );
+    std::map< TNode, Node >::iterator it = visited.find( n );
+    if( it!=visited.end() ){
+      return it->second;
+    }else{
+      //collect children
+      Trace("canon-term-debug") << "Collect children" << std::endl;
+      std::vector< Node > cchildren;
+      for( unsigned i=0; i<n.getNumChildren(); i++ ){
+        cchildren.push_back( n[i] );
+      }
+      //if applicable, first sort by term order
+      if( apply_torder && isComm( n.getKind() ) ){
+        Trace("canon-term-debug") << "Sort based on commutative operator " << n.getKind() << std::endl;
+        sortTermOrder sto;
+        sto.d_tdb = this;
+        std::sort( cchildren.begin(), cchildren.end(), sto );
+      }
+      //now make canonical
+      Trace("canon-term-debug") << "Make canonical children" << std::endl;
+      for( unsigned i=0; i<cchildren.size(); i++ ){
+        cchildren[i] = getCanonicalTerm( cchildren[i], var_count, subs, apply_torder, visited );
+      }
+      if( n.getMetaKind() == kind::metakind::PARAMETERIZED ){
+        Trace("canon-term-debug") << "Insert operator " << n.getOperator() << std::endl;
+        cchildren.insert( cchildren.begin(), n.getOperator() );
+      }
+      Trace("canon-term-debug") << "...constructing for " << n << "." << std::endl;
+      Node ret = NodeManager::currentNM()->mkNode( n.getKind(), cchildren );
+      Trace("canon-term-debug") << "...constructed " << ret << " for " << n << "." << std::endl;
+      visited[n] = ret;
+      return ret;
     }
-    //if applicable, first sort by term order
-    if( apply_torder && isComm( n.getKind() ) ){
-      Trace("canon-term-debug") << "Sort based on commutative operator " << n.getKind() << std::endl;
-      sortTermOrder sto;
-      sto.d_tdb = this;
-      std::sort( cchildren.begin(), cchildren.end(), sto );
-    }
-    //now make canonical
-    Trace("canon-term-debug") << "Make canonical children" << std::endl;
-    for( unsigned i=0; i<cchildren.size(); i++ ){
-      cchildren[i] = getCanonicalTerm( cchildren[i], var_count, subs, apply_torder );
-    }
-    if( n.getMetaKind() == kind::metakind::PARAMETERIZED ){
-      Trace("canon-term-debug") << "Insert operator " << n.getOperator() << std::endl;
-      cchildren.insert( cchildren.begin(), n.getOperator() );
-    }
-    Trace("canon-term-debug") << "...constructing for " << n << "." << std::endl;
-    Node ret = NodeManager::currentNM()->mkNode( n.getKind(), cchildren );
-    Trace("canon-term-debug") << "...constructed " << ret << " for " << n << "." << std::endl;
-    return ret;
   }else{
     Trace("canon-term-debug") << "...return 0-child term." << std::endl;
     return n;
@@ -1628,7 +1638,8 @@ Node TermDb::getCanonicalTerm( TNode n, std::map< TypeNode, unsigned >& var_coun
 Node TermDb::getCanonicalTerm( TNode n, bool apply_torder ){
   std::map< TypeNode, unsigned > var_count;
   std::map< TNode, TNode > subs;
-  return getCanonicalTerm( n, var_count, subs, apply_torder );
+  std::map< TNode, Node > visited;
+  return getCanonicalTerm( n, var_count, subs, apply_torder, visited );
 }
 
 void TermDb::getVtsTerms( std::vector< Node >& t, bool isFree, bool create, bool inc_delta ) {
@@ -2249,9 +2260,13 @@ bool TermDb::isQAttrQuantElimPartial( Node q ) {
   }
 }
 
-TermDbSygus::TermDbSygus(){
+TermDbSygus::TermDbSygus( context::Context* c, QuantifiersEngine* qe ) : d_quantEngine( qe ){
   d_true = NodeManager::currentNM()->mkConst( true );
   d_false = NodeManager::currentNM()->mkConst( false );
+}
+
+bool TermDbSygus::reset( Theory::Effort e ) { 
+  return true;  
 }
 
 TNode TermDbSygus::getVar( TypeNode tn, int i ) {
@@ -3184,3 +3199,69 @@ void TermDbSygus::printSygusTerm( std::ostream& out, Node n, std::vector< Node >
     out << n;
   }
 }
+
+void TermDbSygus::registerEvalTerm( Node n ) {
+  if( options::sygusDirectEval() ){
+    if( n.getKind()==APPLY_UF ){
+      Trace("sygus-eager") << "TermDbSygus::eager: Register eval term : " << n << std::endl;
+      TypeNode tn = n[0].getType();
+      if( datatypes::DatatypesRewriter::isTypeDatatype(tn) ){
+        const Datatype& dt = ((DatatypeType)(tn).toType()).getDatatype();
+        if( dt.isSygus() ){
+          Node f = n.getOperator();
+          Trace("sygus-eager") << "...the evaluation function is : " << f << std::endl;
+          Assert( n[0].getKind()!=APPLY_CONSTRUCTOR );
+          d_evals[n[0]].push_back( n );
+          TypeNode tn = n[0].getType();
+          Assert( datatypes::DatatypesRewriter::isTypeDatatype(tn) );
+          const Datatype& dt = ((DatatypeType)(tn).toType()).getDatatype();
+          Node var_list = Node::fromExpr( dt.getSygusVarList() );
+          Assert( dt.isSygus() );
+          d_eval_args[n[0]].push_back( std::vector< Node >() );
+          for( unsigned j=1; j<n.getNumChildren(); j++ ){
+            if( var_list[j-1].getType().isBoolean() ){
+              //TODO: remove this case when boolean term conversion is eliminated
+              Node c = NodeManager::currentNM()->mkConst(BitVector(1u, 1u));
+              d_eval_args[n[0]].back().push_back( n[j].eqNode( c ) );
+            }else{
+              d_eval_args[n[0]].back().push_back( n[j] );
+            }
+          }
+
+        }
+      }    
+    }
+  }
+}
+
+void TermDbSygus::registerModelValue( Node n, Node v, std::vector< Node >& lems ) {
+  std::map< Node, std::vector< std::vector< Node > > >::iterator it = d_eval_args.find( n );
+  if( it!=d_eval_args.end() && !it->second.empty() ){
+    unsigned start = d_node_mv_args_proc[n][v];
+    Node antec = n.eqNode( v ).negate();
+    TypeNode tn = n.getType();
+    Assert( datatypes::DatatypesRewriter::isTypeDatatype(tn) );
+    const Datatype& dt = ((DatatypeType)(tn).toType()).getDatatype();
+    Assert( dt.isSygus() );
+    Trace("sygus-eager") << "TermDbSygus::eager: Register model value : " << v << " for " << n << std::endl;
+    Trace("sygus-eager") << "...it has " << it->second.size() << " evaluations, already processed " << start << "." << std::endl;
+    Node bTerm = d_quantEngine->getTermDatabaseSygus()->sygusToBuiltin( v, tn );
+    Trace("sygus-eager") << "Built-in term : " << bTerm << std::endl;
+    std::vector< Node > vars;
+    Node var_list = Node::fromExpr( dt.getSygusVarList() );
+    for( unsigned j=0; j<var_list.getNumChildren(); j++ ){
+      vars.push_back( var_list[j] );
+    }
+    //for each evaluation
+    for( unsigned i=start; i<it->second.size(); i++ ){
+      Assert( vars.size()==it->second[i].size() );
+      Node sBTerm = bTerm.substitute( vars.begin(), vars.end(), it->second[i].begin(), it->second[i].end() );
+      Node lem = NodeManager::currentNM()->mkNode( n.getType().isBoolean() ? IFF : EQUAL, d_evals[n][i], sBTerm ); 
+      lem = NodeManager::currentNM()->mkNode( OR, antec, lem );
+      Trace("sygus-eager") << "Lemma : " << lem << std::endl;
+      lems.push_back( lem );
+    }
+    d_node_mv_args_proc[n][v] = it->second.size();
+  }
+}
+

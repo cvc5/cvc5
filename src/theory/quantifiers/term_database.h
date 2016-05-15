@@ -419,7 +419,8 @@ private:
   //free variables
   std::map< TypeNode, std::vector< Node > > d_cn_free_var;
   // get canonical term, return null if it contains a term apart from handled signature
-  Node getCanonicalTerm( TNode n, std::map< TypeNode, unsigned >& var_count, std::map< TNode, TNode >& subs, bool apply_torder );
+  Node getCanonicalTerm( TNode n, std::map< TypeNode, unsigned >& var_count, std::map< TNode, TNode >& subs, bool apply_torder, 
+                         std::map< TNode, Node >& visited );
 public:
   /** get id for operator */
   int getIdForOperator( Node op );
@@ -541,6 +542,8 @@ public:
 
 class TermDbSygus {
 private:
+  /** reference to the quantifiers engine */
+  QuantifiersEngine* d_quantEngine;
   std::map< TypeNode, std::vector< Node > > d_fv;
   std::map< Node, TypeNode > d_fv_stype;
   std::map< Node, int > d_fv_num;
@@ -581,7 +584,11 @@ private:
   std::map< TypeNode, std::map< Node, Node > > d_sygus_to_builtin;
   std::map< TypeNode, std::map< Node, Node > > d_builtin_const_to_sygus;
 public:
-  TermDbSygus();
+  TermDbSygus( context::Context* c, QuantifiersEngine* qe );
+  ~TermDbSygus(){}
+  bool reset( Theory::Effort e );
+  std::string identify() const { return "TermDbSygus"; }
+  
   bool isRegistered( TypeNode tn );
   TypeNode sygusToBuiltinType( TypeNode tn );
   int getKindArg( TypeNode tn, Kind k );
@@ -633,6 +640,15 @@ public:
   static Kind getOperatorKind( Node op );
   /** print sygus term */
   static void printSygusTerm( std::ostream& out, Node n, std::vector< Node >& lvs );
+  
+//for eager instantiation
+private:
+  std::map< Node, std::vector< Node > > d_evals;
+  std::map< Node, std::vector< std::vector< Node > > > d_eval_args;
+  std::map< Node, std::map< Node, unsigned > > d_node_mv_args_proc;
+public:
+  void registerEvalTerm( Node n );
+  void registerModelValue( Node n, Node v, std::vector< Node >& lems );
 };
 
 }/* CVC4::theory::quantifiers namespace */

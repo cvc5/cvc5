@@ -802,6 +802,8 @@ sygusGTerm[CVC4::SygusGTerm& sgt, std::string& fun]
         //since we enforce satisfaction completeness, immediately convert to total version
         if( k==CVC4::kind::BITVECTOR_UDIV ){
           k = CVC4::kind::BITVECTOR_UDIV_TOTAL;
+        }else if( k==CVC4::kind::BITVECTOR_UREM ){
+          k = CVC4::kind::BITVECTOR_UREM_TOTAL;
         }
         sgt.d_name = kind::kindToString(k);
         sgt.d_gterm_type = SygusGTerm::gterm_op;
@@ -837,6 +839,8 @@ sygusGTerm[CVC4::SygusGTerm& sgt, std::string& fun]
           k = PARSER_STATE->getOperatorKind(name);
           if( k==CVC4::kind::BITVECTOR_UDIV ){
             k = CVC4::kind::BITVECTOR_UDIV_TOTAL;
+          }else if( k==CVC4::kind::BITVECTOR_UREM ){
+            k = CVC4::kind::BITVECTOR_UREM_TOTAL;
           }
           sgt.d_name = kind::kindToString(k);
           sgt.d_gterm_type = SygusGTerm::gterm_op;

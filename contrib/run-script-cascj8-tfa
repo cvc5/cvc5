@@ -31,10 +31,10 @@ function finishwith {
 
 trywith 10 --decision=internal --full-saturate-quant
 trywith 10 --finite-model-find --decision=internal
-trywith 10 ---purify-quant --full-saturate-quant
-trywith 10 ---partial-triggers --full-saturate-quant
-trywith 10 ---no-e-matching --full-saturate-quant
+trywith 10 --purify-quant --full-saturate-quant
+trywith 10 --partial-triggers --full-saturate-quant
+trywith 10 --no-e-matching --full-saturate-quant
 trywith 30 --cbqi-all --purify-triggers --full-saturate-quant 
-trywith 60 --cbqi-all ---fs-inst --full-saturate-quant
+trywith 60 --cbqi-all --fs-inst --full-saturate-quant
 finishwith --full-saturate-quant
 # echo "% SZS status" "GaveUp for $filename"

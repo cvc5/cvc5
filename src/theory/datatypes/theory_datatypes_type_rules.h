@@ -299,10 +299,9 @@ public:
         throw TypeCheckingExceptionPrivate(n, "datatype height bound must be non-negative");
       }
     }
-    return nodeManager->integerType();
+    return nodeManager->booleanType();
   }
 };/* class DtHeightBoundTypeRule */
-
 
 }/* CVC4::theory::datatypes namespace */
 }/* CVC4::theory namespace */

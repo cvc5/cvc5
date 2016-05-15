@@ -219,7 +219,6 @@ void QuantInfo::flatten( Node n, bool beneathQuant ) {
     if( n.getKind()==BOUND_VARIABLE ){
       d_inMatchConstraint[n] = true;
     }
-    //if( MatchGen::isHandledUfTerm( n ) || n.getKind()==ITE ){
     if( d_var_num.find( n )==d_var_num.end() ){
       Trace("qcf-qregister-debug2") << "Add FLATTEN VAR : " << n << std::endl;
       d_var_num[n] = d_vars.size();
@@ -987,26 +986,7 @@ MatchGen::MatchGen( QuantInfo * qi, Node n, bool isVar )
   if( isVar ){
     Assert( qi->d_var_num.find( n )!=qi->d_var_num.end() );
     if( n.getKind()==ITE ){
-  /*
-      d_type = typ_ite_var;
-      d_type_not = false;
-      d_n = n;
-      d_children.push_back( MatchGen( qi, d_n[0] ) );
-      if( d_children[0].isValid() ){
-        d_type = typ_ite_var;
-        for( unsigned i=1; i<=2; i++ ){
-          Node nn = n.eqNode( n[i] );
-          d_children.push_back( MatchGen( qi, nn ) );
-          d_children[d_children.size()-1].d_qni_bound_except.push_back( 0 );
-          if( !d_children[d_children.size()-1].isValid() ){
-            setInvalid();
-            break;
-          }
-        }
-      }else{
-*/
-        d_type = typ_invalid;
-     //}
+      d_type = typ_invalid;
     }else{
       d_type = isHandledUfTerm( n ) ? typ_var : typ_tsym;
       d_qni_var_num[0] = qi->getVarNum( n );
@@ -1049,26 +1029,6 @@ MatchGen::MatchGen( QuantInfo * qi, Node n, bool isVar )
               break;
             }
           }
-          /*
-          else if( isTop && n.getKind()==OR && d_children[d_children.size()-1].d_type==typ_var_eq ){
-            Trace("qcf-qregister-debug") << "Remove child, make built-in constraint" << std::endl;
-            //if variable equality/disequality at top level, remove immediately
-            bool cIsNot = d_children[d_children.size()-1].d_type_not;
-            Node cn = d_children[d_children.size()-1].d_n;
-            Assert( cn.getKind()==EQUAL );
-            Assert( p->d_qinfo[q].isVar( cn[0] ) || p->d_qinfo[q].isVar( cn[1] ) );
-            //make it a built-in constraint instead
-            for( unsigned i=0; i<2; i++ ){
-              if( p->d_qinfo[q].isVar( cn[i] ) ){
-                int v = p->d_qinfo[q].getVarNum( cn[i] );
-                Node cno = cn[i==0 ? 1 : 0];
-                p->d_qinfo[q].d_var_constraint[ cIsNot ? 0 : 1 ][v].push_back( cno );
-                break;
-              }
-            }
-            d_children.pop_back();
-          }
-          */
         }
       }else{
         d_type = typ_invalid;
@@ -1104,20 +1064,6 @@ MatchGen::MatchGen( QuantInfo * qi, Node n, bool isVar )
       d_type = typ_ground;
       qi->setGroundSubterm( d_n );
     }
-    //if( d_type!=typ_invalid ){
-      //determine an efficient children ordering
-      //if( !d_children.empty() ){
-        //for( unsigned i=0; i<d_children.size(); i++ ){
-        //  d_children_order.push_back( i );
-        //}
-        //if( !d_n.isNull() && ( d_n.getKind()==OR || d_n.getKind()==AND || d_n.getKind()==IFF ) ){
-          //sort based on the type of the constraint : ground comes first, then literals, then others
-          //MatchGenSort mgs;
-          //mgs.d_mg = this;
-          //std::sort( d_children_order.begin(), d_children_order.end(), mgs );
-        //}
-      //}
-    //}
   }
   Trace("qcf-qregister-debug")  << "Done make match gen " << n << ", type = ";
   debugPrintType( "qcf-qregister-debug", d_type, true );
@@ -1201,22 +1147,21 @@ void MatchGen::determineVariableOrder( QuantInfo * qi, std::vector< int >& bvars
       //add to children order
       d_children_order.push_back( min_score_index );
       assigned[min_score_index] = true;
-      //if( vb_count[min_score_index]==0 ){
-      //  d_independent.push_back( min_score_index );
-      //}
       //determine order internal to children
       d_children[min_score_index].determineVariableOrder( qi, bvars );
       Trace("qcf-qregister-debug")  << "...bind variables" << std::endl;
       //now, make it a bound variable
-      for( unsigned i=0; i<c_to_vars[min_score_index].size(); i++ ){
-        int v = c_to_vars[min_score_index][i];
-        if( std::find( bvars.begin(), bvars.end(), v )==bvars.end() ){
-          for( unsigned j=0; j<vars_to_c[v].size(); j++ ){
-            int vc = vars_to_c[v][j];
-            vu_count[vc]--;
-            vb_count[vc]++;
+      if( vu_count[min_score_index]>0 ){
+        for( unsigned i=0; i<c_to_vars[min_score_index].size(); i++ ){
+          int v = c_to_vars[min_score_index][i];
+          if( std::find( bvars.begin(), bvars.end(), v )==bvars.end() ){
+            for( unsigned j=0; j<vars_to_c[v].size(); j++ ){
+              int vc = vars_to_c[v][j];
+              vu_count[vc]--;
+              vb_count[vc]++;
+            }
+            bvars.push_back( v );
           }
-          bvars.push_back( v );
         }
       }
       Trace("qcf-qregister-debug") << "...done assign child " << min_score_index << std::endl;
@@ -1908,7 +1853,7 @@ void MatchGen::setInvalid() {
 }
 
 bool MatchGen::isHandledBoolConnective( TNode n ) {
-  return n.getType().isBoolean() && TermDb::isBoolConnective( n.getKind() );
+  return TermDb::isBoolConnective( n.getKind() ) && ( n.getKind()!=ITE || n.getType().isBoolean() );
 }
 
 bool MatchGen::isHandledUfTerm( TNode n ) {
@@ -1964,28 +1909,31 @@ void QuantConflictFind::registerQuantifier( Node q ) {
   if( d_quantEngine->hasOwnership( q, this ) ){
     d_quants.push_back( q );
     d_quant_id[q] = d_quants.size();
-    Trace("qcf-qregister") << "Register ";
-    debugPrintQuant( "qcf-qregister", q );
-    Trace("qcf-qregister") << " : " << q << std::endl;
+    if( Trace.isOn("qcf-qregister") ){
+      Trace("qcf-qregister") << "Register ";
+      debugPrintQuant( "qcf-qregister", q );
+      Trace("qcf-qregister") << " : " << q << std::endl;
+    }
     //make QcfNode structure
     Trace("qcf-qregister") << "- Get relevant equality/disequality pairs, calculate flattening..." << std::endl;
     d_qinfo[q].initialize( this, q, q[1] );
 
     //debug print
-    Trace("qcf-qregister") << "- Flattened structure is :" << std::endl;
-    Trace("qcf-qregister") << "    ";
-    debugPrintQuantBody( "qcf-qregister", q, q[1] );
-    Trace("qcf-qregister") << std::endl;
-    if( d_qinfo[q].d_vars.size()>q[0].getNumChildren() ){
-      Trace("qcf-qregister") << "  with additional constraints : " << std::endl;
-      for( unsigned j=q[0].getNumChildren(); j<d_qinfo[q].d_vars.size(); j++ ){
-        Trace("qcf-qregister") << "    ?x" << j << " = ";
-        debugPrintQuantBody( "qcf-qregister", q, d_qinfo[q].d_vars[j], false );
-        Trace("qcf-qregister") << std::endl;
+    if( Trace.isOn("qcf-qregister") ){
+      Trace("qcf-qregister") << "- Flattened structure is :" << std::endl;
+      Trace("qcf-qregister") << "    ";
+      debugPrintQuantBody( "qcf-qregister", q, q[1] );
+      Trace("qcf-qregister") << std::endl;
+      if( d_qinfo[q].d_vars.size()>q[0].getNumChildren() ){
+        Trace("qcf-qregister") << "  with additional constraints : " << std::endl;
+        for( unsigned j=q[0].getNumChildren(); j<d_qinfo[q].d_vars.size(); j++ ){
+          Trace("qcf-qregister") << "    ?x" << j << " = ";
+          debugPrintQuantBody( "qcf-qregister", q, d_qinfo[q].d_vars[j], false );
+          Trace("qcf-qregister") << std::endl;
+        }
       }
+      Trace("qcf-qregister") << "Done registering quantifier." << std::endl;
     }
-    
-    Trace("qcf-qregister") << "Done registering quantifier." << std::endl;
   }
 }
 

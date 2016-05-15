@@ -30,18 +30,19 @@ function finishwith {
 }
 
 # designed for 300 seconds
-trywith 20 --relevant-triggers --full-saturate-quant 
+trywith 20 --relational-triggers --full-saturate-quant 
 trywith 20 --no-e-matching --full-saturate-quant 
-trywith 20 --finite-model-find --mbqi=abs
+trywith 15 --finite-model-find --mbqi=abs
 trywith 5 --multi-trigger-when-single --full-saturate-quant 
 trywith 5 --trigger-sel=max --full-saturate-quant
-trywith 5 --multi-trigger-when-single --multi-trigger-priority --full-saturate-quant 
-trywith 5 --relational-triggers --full-saturate-quant 
-trywith 15 --term-db-mode=relevant --full-saturate-quant
-trywith 15 --pre-quant=none --full-saturate-quant
-trywith 15 --finite-model-find --uf-ss=no-minimal
-trywith 30 --decision=internal --full-saturate-quant
+trywith 5 --multi-trigger-when-single --multi-trigger-priority --full-saturate-quant  
+trywith 10 --finite-model-find --uf-ss=no-minimal --sort-inference --uf-ss-fair
+trywith 10 --term-db-mode=relevant --full-saturate-quant
+trywith 15 --prenex-quant=none --full-saturate-quant
+trywith 15 --decision=internal --full-saturate-quant
+trywith 30 --relevant-triggers --full-saturate-quant 
+trywith 30 --finite-model-find --fmf-inst-engine --sort-inference --uf-ss-fair
 trywith 30 --fs-inst --full-saturate-quant
 trywith 30 --no-quant-cf --full-saturate-quant 
-finishwith --relational-triggers --full-saturate-quant 
+finishwith --qcf-vo-exp --full-saturate-quant 
 # echo "% SZS status" "GaveUp for $filename"

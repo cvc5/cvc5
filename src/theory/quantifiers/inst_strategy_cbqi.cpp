@@ -692,8 +692,10 @@ CegInstantiator * InstStrategyCegqi::getInstantiator( Node q ) {
 
 void InstStrategyCegqi::registerQuantifier( Node q ) {
   if( options::cbqiPreRegInst() ){
-    //just get the instantiator
-    getInstantiator( q );
+    if( doCbqi( q ) ){
+      //just get the instantiator
+      getInstantiator( q );
+    }
   }
 }
 

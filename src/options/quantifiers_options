@@ -144,7 +144,7 @@ option fmfOneInstPerRound --mbqi-one-inst-per-round bool :read-write :default fa
 option fmfOneQuantPerRound --mbqi-one-quant-per-round bool :default false
  only add instantiations for one quantifier per round for mbqi
 
-option fmfInstEngine --fmf-inst-engine bool :default false
+option fmfInstEngine --fmf-inst-engine bool :default false :read-write
  use instantiation engine in conjunction with finite model finding
 option fmfInstGen --fmf-inst-gen bool :default true
  enable Inst-Gen instantiation techniques for finite model finding 
@@ -258,8 +258,8 @@ option sygusNormalFormGlobalContent --sygus-nf-sym-content bool :default true
 option sygusInvTemplMode --sygus-inv-templ=MODE CVC4::theory::quantifiers::SygusInvTemplMode :default CVC4::theory::quantifiers::SYGUS_INV_TEMPL_MODE_NONE :include "options/quantifiers_modes.h" :handler stringToSygusInvTemplMode
   template mode for sygus invariant synthesis
 
-option sygusEagerUnfold --sygus-eager-unfold bool :default false
-  eager unfold evaluation functions
+option sygusDirectEval --sygus-direct-eval bool :default false
+  direct unfolding of evaluation functions
   
 # approach applied to general quantified formulas
 option cbqiSplx --cbqi-splx bool :read-write :default false

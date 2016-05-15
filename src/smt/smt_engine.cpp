@@ -1343,6 +1343,10 @@ void SmtEngine::setDefaults() {
       options::fmfBoundInt.set( true );
       Trace("smt") << "turning on fmf-bound-int, for strings-exp" << std::endl;
     }
+    if(! options::fmfInstEngine.wasSetByUser()) {
+      options::fmfInstEngine.set( true );
+      Trace("smt") << "turning on fmf-inst-engine, for strings-exp" << std::endl;
+    }
     /*
     if(! options::rewriteDivk.wasSetByUser()) {
       options::rewriteDivk.set( true );
@@ -3894,7 +3898,6 @@ void SmtEnginePrivate::processAssertions() {
   dumpAssertions("post-boolean-terms", d_assertions);
 
   Debug("smt") << " d_assertions     : " << d_assertions.size() << endl;
-
 
   dumpAssertions("pre-constrain-subtypes", d_assertions);
   {
