@@ -655,6 +655,7 @@ bool QuantifiersEngine::registerQuantifier( Node f ){
       for( unsigned i=0; i<d_modules.size(); i++ ){
         d_modules[i]->registerQuantifier( f );
       }
+      //TODO: remove this
       Node ceBody = d_term_db->getInstConstantBody( f );
       //also register it with the strong solver
       //if( options::finiteModelFind() ){
@@ -887,6 +888,7 @@ Node QuantifiersEngine::getInstantiation( Node q, std::vector< Node >& vars, std
   Node body;
   //process partial instantiation if necessary
   if( d_term_db->d_vars[q].size()!=vars.size() ){
+    Assert( vars.size()==terms.size() );
     body = q[ 1 ].substitute( vars.begin(), vars.end(), terms.begin(), terms.end() );
     std::vector< Node > uninst_vars;
     //doing a partial instantiation, must add quantifier for all uninstantiated variables
@@ -901,6 +903,7 @@ Node QuantifiersEngine::getInstantiation( Node q, std::vector< Node >& vars, std
     Trace("partial-inst") << "                      : " << body << std::endl;
   }else{
     if( options::cbqi() ){
+      Assert( vars.size()==terms.size() );
       body = q[ 1 ].substitute( vars.begin(), vars.end(), terms.begin(), terms.end() );
     }else{
       //do optimized version
@@ -933,6 +936,7 @@ Node QuantifiersEngine::getInstantiation( Node q, InstMatch& m, bool doVts ){
 }
 
 Node QuantifiersEngine::getInstantiation( Node q, std::vector< Node >& terms, bool doVts ) {
+  Assert( d_term_db->d_vars.find( q )!=d_term_db->d_vars.end() );
   return getInstantiation( q, d_term_db->d_vars[q], terms, doVts );
 }
 

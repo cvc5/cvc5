@@ -349,7 +349,7 @@ Node RewriteRule<SdivEliminate>::apply(TNode node) {
   Node abs_a   = utils::mkNode(kind::ITE, a_lt_0, utils::mkNode(kind::BITVECTOR_NEG, a), a);
   Node abs_b   = utils::mkNode(kind::ITE, b_lt_0, utils::mkNode(kind::BITVECTOR_NEG, b), b);
 
-  Node a_udiv_b   = utils::mkNode(kind::BITVECTOR_UDIV, abs_a, abs_b);
+  Node a_udiv_b   = utils::mkNode(options::bitvectorDivByZeroConst() ? kind::BITVECTOR_UDIV_TOTAL : kind::BITVECTOR_UDIV, abs_a, abs_b);
   Node neg_result = utils::mkNode(kind::BITVECTOR_NEG, a_udiv_b);
   
   Node condition = utils::mkNode(kind::XOR, a_lt_0, b_lt_0);
@@ -377,7 +377,7 @@ Node RewriteRule<SremEliminate>::apply(TNode node) {
   Node abs_a   = utils::mkNode(kind::ITE, a_lt_0, utils::mkNode(kind::BITVECTOR_NEG, a), a);
   Node abs_b   = utils::mkNode(kind::ITE, b_lt_0, utils::mkNode(kind::BITVECTOR_NEG, b), b);
 
-  Node a_urem_b   = utils::mkNode(kind::BITVECTOR_UREM, abs_a, abs_b);
+  Node a_urem_b   = utils::mkNode( options::bitvectorDivByZeroConst() ? kind::BITVECTOR_UREM_TOTAL : kind::BITVECTOR_UREM, abs_a, abs_b);
   Node neg_result = utils::mkNode(kind::BITVECTOR_NEG, a_urem_b);
   
   Node result    = utils::mkNode(kind::ITE, a_lt_0, neg_result, a_urem_b);

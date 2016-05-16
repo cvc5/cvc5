@@ -534,6 +534,7 @@ bool CegConjectureSingleInv::doAddInstantiation( std::vector< Node >& subs ){
     return false;
   }else{
     Trace("cegqi-engine") << siss.str() << std::endl;
+    Assert( d_single_inv_var.size()==subs.size() );
     Node lem = d_single_inv[1].substitute( d_single_inv_var.begin(), d_single_inv_var.end(), subs.begin(), subs.end() );
     if( d_qe->getTermDatabase()->containsVtsTerm( lem ) ){
       Trace("cegqi-engine-debug") << "Rewrite based on vts symbols..." << std::endl;
@@ -595,6 +596,7 @@ bool CegConjectureSingleInv::check( std::vector< Node >& lems ) {
           for( unsigned i=0; i<d_sip->d_all_vars.size(); i++ ){
             subs.push_back( NodeManager::currentNM()->mkSkolem( "kv", d_sip->d_all_vars[i].getType(), "created for verifying nsi" ) );
           }
+          Assert( d_sip->d_all_vars.size()==subs.size() );
           inst = inst.substitute( d_sip->d_all_vars.begin(), d_sip->d_all_vars.end(), subs.begin(), subs.end() );
           Trace("cegqi-nsi") << "NSI : verification : " << inst << std::endl;
           Trace("cegqi-lemma") << "Cegqi::Lemma : verification lemma : " << inst << std::endl;
@@ -751,6 +753,7 @@ Node CegConjectureSingleInv::getSolution( unsigned sol_index, TypeNode stn, int&
     std::sort( indices.begin(), indices.end(), ssii );
     Trace("csi-sol") << "Construct solution" << std::endl;
     s = constructSolution( indices, sol_index, 0 );
+    Assert( vars.size()==d_sol->d_varList.size() );
     s = s.substitute( vars.begin(), vars.end(), d_sol->d_varList.begin(), d_sol->d_varList.end() );
   }
   d_orig_solution = s;
@@ -922,6 +925,7 @@ void SingleInvocationPartition::process( Node n ) {
         std::vector< Node > funcs;
         //normalize the invocations
         if( !terms.empty() ){
+          Assert( terms.size()==subs.size() );
           cr = cr.substitute( terms.begin(), terms.end(), subs.begin(), subs.end() );
         }
         std::vector< Node > children;
@@ -940,6 +944,7 @@ void SingleInvocationPartition::process( Node n ) {
         }
         Trace("si-prt") << std::endl;
         cr = children.size()==1 ? children[0] : NodeManager::currentNM()->mkNode( OR, children );
+        Assert( terms.size()==subs.size() );
         cr = cr.substitute( terms.begin(), terms.end(), subs.begin(), subs.end() );
         Trace("si-prt-debug") << "...normalized invocations to " << cr << std::endl;
         //now must check if it has other bound variables
@@ -974,6 +979,7 @@ void SingleInvocationPartition::process( Node n ) {
             }
           }
         }
+        Assert( terms.size()==subs.size() );
         cr = cr.substitute( terms.begin(), terms.end(), subs.begin(), subs.end() );
       }
       cr = Rewriter::rewrite( cr );
@@ -982,6 +988,7 @@ void SingleInvocationPartition::process( Node n ) {
       TermDb::getBoundVars( cr, d_all_vars );
       if( singleInvocation ){
         //replace with single invocation formulation
+        Assert( si_terms.size()==si_subs.size() );
         cr = cr.substitute( si_terms.begin(), si_terms.end(), si_subs.begin(), si_subs.end() );
         cr = Rewriter::rewrite( cr );
         Trace("si-prt") << ".....si version=" << cr << std::endl;

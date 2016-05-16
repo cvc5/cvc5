@@ -22,6 +22,7 @@
 #include "theory/quantifiers/term_database.h"
 #include "theory/theory_engine.h"
 #include "prop/prop_engine.h"
+#include "theory/bv/theory_bv_rewriter.h"
 
 using namespace CVC4::kind;
 using namespace std;
@@ -56,12 +57,15 @@ void CegConjecture::assign( Node q ) {
     }
   }
   d_quant = q;
+  Assert( d_candidates.empty() );
+  std::vector< Node > vars;
   for( unsigned i=0; i<q[0].getNumChildren(); i++ ){
+    vars.push_back( q[0][i] );
     d_candidates.push_back( NodeManager::currentNM()->mkSkolem( "e", q[0][i].getType() ) );
   }
   Trace("cegqi") << "Base quantified formula is : " << q << std::endl;
   //construct base instantiation
-  d_base_inst = Rewriter::rewrite( d_qe->getInstantiation( q, d_candidates ) );
+  d_base_inst = Rewriter::rewrite( d_qe->getInstantiation( q, vars, d_candidates ) );
   Trace("cegqi") << "Base instantiation is :      " << d_base_inst << std::endl;
   if( d_qe->getTermDatabase()->isQAttrSygus( d_assert_quant ) ){
     CegInstantiation::collectDisjuncts( d_base_inst, d_base_disj );
@@ -272,9 +276,26 @@ void CegInstantiation::preRegisterQuantifier( Node q ) {
         if( datatypes::DatatypesRewriter::isTypeDatatype(tn) ){
           const Datatype& dt = ((DatatypeType)(tn).toType()).getDatatype();
           if( dt.isSygus() ){
-            //take ownership of this quantified formula (will use direct evaluation instead of instantiation)
-            d_quantEngine->setOwner( q, this );
-            d_eval_axioms[q] = true;
+            //do unfolding if it induces Boolean structure, 
+            //do direct evaluation if it does not induce Boolean structure,
+            //  the reasoning is unfolding over these terms does not lead to helpful conflict analysis, and introduces many shared terms
+            bool directEval = true;
+            TypeNode ptn = pat.getType();
+            if( ptn.isBoolean() || ptn.isBitVector() ){
+              directEval = false;
+            }else{
+              unsigned cindex = Datatype::indexOf(pat[0].getOperator().toExpr() );
+              Node base = d_quantEngine->getTermDatabaseSygus()->getGenericBase( tn, dt, cindex );
+              Trace("cegqi-debug") << "Generic base term for " << pat[0] << " is " << base << std::endl;
+              if( base.getKind()==ITE ){
+                directEval = false;
+              }
+            }
+            if( directEval ){
+              //take ownership of this quantified formula (will use direct evaluation instead of unfolding instantiation)
+              d_quantEngine->setOwner( q, this );
+              d_eval_axioms[q] = true;
+            }
           }
         }
       }
@@ -413,8 +434,13 @@ void CegInstantiation::checkCegConjecture( CegConjecture * conj ) {
           }
           if( !eager_eval_lem.empty() ){
             for( unsigned j=0; j<eager_eval_lem.size(); j++ ){
-              Trace("cegqi-lemma") << "Cegqi::Lemma : evaluation : " << eager_eval_lem[j] << std::endl;
-              d_quantEngine->addLemma( eager_eval_lem[j] );
+              Node lem = eager_eval_lem[j];
+              if( d_quantEngine->getTheoryEngine()->isTheoryEnabled(THEORY_BV) ){
+                //FIXME: hack to incorporate hacks from BV for division by zero
+                lem = bv::TheoryBVRewriter::eliminateBVSDiv( lem );
+              }
+              Trace("cegqi-lemma") << "Cegqi::Lemma : evaluation : " << lem << std::endl;
+              d_quantEngine->addLemma( lem );
             }
             return;
           }
@@ -435,6 +461,7 @@ void CegInstantiation::checkCegConjecture( CegConjecture * conj ) {
           }
         }
         //must get a counterexample to the value of the current candidate
+        Assert( conj->d_candidates.size()==model_values.size() );
         Node inst = conj->d_base_inst.substitute( conj->d_candidates.begin(), conj->d_candidates.end(), model_values.begin(), model_values.end() );
         //check whether we will run CEGIS on inner skolem variables
         bool sk_refine = ( !conj->isGround() || conj->d_refine_count==0 );
@@ -686,6 +713,7 @@ Node CegInstantiation::getEagerUnfold( Node n, std::map< Node, Node >& visited )
             }
             Assert( subs[j-1].getType()==var_list[j-1].getType() );
           }
+          Assert( vars.size()==subs.size() );
           bTerm = bTerm.substitute( vars.begin(), vars.end(), subs.begin(), subs.end() );
           Trace("cegqi-eager") << "Built-in term after subs : " << bTerm << std::endl;
           Trace("cegqi-eager-debug") << "Types : " << bTerm.getType() << " " << n.getType() << std::endl;

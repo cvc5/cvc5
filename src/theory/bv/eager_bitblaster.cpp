@@ -216,7 +216,7 @@ void EagerBitblaster::collectModelInfo(TheoryModel* m, bool fullModel) {
       // only shared terms could not have been bit-blasted
       Assert (hasBBTerm(var) || isSharedTerm(var));
 
-      Node const_value = getModelFromSatSolver(var, fullModel);
+      Node const_value = getModelFromSatSolver(var, true);
 
       if(const_value != Node()) {
         Debug("bitvector-model") << "EagerBitblaster::collectModelInfo (assert (= "

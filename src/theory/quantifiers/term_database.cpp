@@ -2480,8 +2480,8 @@ Node TermDbSygus::sygusToBuiltin( Node n, TypeNode tn ) {
   std::map< Node, Node >::iterator it = d_sygus_to_builtin[tn].find( n );
   if( it==d_sygus_to_builtin[tn].end() ){
     Trace("sygus-db-debug") << "SygusToBuiltin : compute for " << n << ", type = " << tn << std::endl;
-    Assert( n.getKind()==APPLY_CONSTRUCTOR );
     const Datatype& dt = ((DatatypeType)(tn).toType()).getDatatype();
+    Assert( n.getKind()==APPLY_CONSTRUCTOR );
     unsigned i = Datatype::indexOf( n.getOperator().toExpr() );
     Assert( n.getNumChildren()==dt[i].getNumArgs() );
     std::map< TypeNode, int > var_count;
@@ -3200,9 +3200,17 @@ void TermDbSygus::printSygusTerm( std::ostream& out, Node n, std::vector< Node >
   }
 }
 
+Node TermDbSygus::getAnchor( Node n ) {
+  if( n.getKind()==APPLY_SELECTOR_TOTAL ){
+    return getAnchor( n[0] );
+  }else{
+    return n;
+  }
+}
+
 void TermDbSygus::registerEvalTerm( Node n ) {
   if( options::sygusDirectEval() ){
-    if( n.getKind()==APPLY_UF ){
+    if( n.getKind()==APPLY_UF && !n.getType().isBoolean() ){
       Trace("sygus-eager") << "TermDbSygus::eager: Register eval term : " << n << std::endl;
       TypeNode tn = n[0].getType();
       if( datatypes::DatatypesRewriter::isTypeDatatype(tn) ){
@@ -3210,58 +3218,72 @@ void TermDbSygus::registerEvalTerm( Node n ) {
         if( dt.isSygus() ){
           Node f = n.getOperator();
           Trace("sygus-eager") << "...the evaluation function is : " << f << std::endl;
-          Assert( n[0].getKind()!=APPLY_CONSTRUCTOR );
-          d_evals[n[0]].push_back( n );
-          TypeNode tn = n[0].getType();
-          Assert( datatypes::DatatypesRewriter::isTypeDatatype(tn) );
-          const Datatype& dt = ((DatatypeType)(tn).toType()).getDatatype();
-          Node var_list = Node::fromExpr( dt.getSygusVarList() );
-          Assert( dt.isSygus() );
-          d_eval_args[n[0]].push_back( std::vector< Node >() );
-          for( unsigned j=1; j<n.getNumChildren(); j++ ){
-            if( var_list[j-1].getType().isBoolean() ){
-              //TODO: remove this case when boolean term conversion is eliminated
-              Node c = NodeManager::currentNM()->mkConst(BitVector(1u, 1u));
-              d_eval_args[n[0]].back().push_back( n[j].eqNode( c ) );
-            }else{
-              d_eval_args[n[0]].back().push_back( n[j] );
+          if( n[0].getKind()!=APPLY_CONSTRUCTOR ){
+            d_evals[n[0]].push_back( n );
+            TypeNode tn = n[0].getType();
+            Assert( datatypes::DatatypesRewriter::isTypeDatatype(tn) );
+            const Datatype& dt = ((DatatypeType)(tn).toType()).getDatatype();
+            Node var_list = Node::fromExpr( dt.getSygusVarList() );
+            Assert( dt.isSygus() );
+            d_eval_args[n[0]].push_back( std::vector< Node >() );
+            for( unsigned j=1; j<n.getNumChildren(); j++ ){
+              if( var_list[j-1].getType().isBoolean() ){
+                //TODO: remove this case when boolean term conversion is eliminated
+                Node c = NodeManager::currentNM()->mkConst(BitVector(1u, 1u));
+                d_eval_args[n[0]].back().push_back( n[j].eqNode( c ) );
+              }else{
+                d_eval_args[n[0]].back().push_back( n[j] );
+              }
             }
+            Node a = getAnchor( n[0] );
+            d_subterms[a][n[0]] = true;
           }
-
         }
       }    
     }
   }
 }
 
-void TermDbSygus::registerModelValue( Node n, Node v, std::vector< Node >& lems ) {
-  std::map< Node, std::vector< std::vector< Node > > >::iterator it = d_eval_args.find( n );
-  if( it!=d_eval_args.end() && !it->second.empty() ){
-    unsigned start = d_node_mv_args_proc[n][v];
-    Node antec = n.eqNode( v ).negate();
-    TypeNode tn = n.getType();
-    Assert( datatypes::DatatypesRewriter::isTypeDatatype(tn) );
-    const Datatype& dt = ((DatatypeType)(tn).toType()).getDatatype();
-    Assert( dt.isSygus() );
-    Trace("sygus-eager") << "TermDbSygus::eager: Register model value : " << v << " for " << n << std::endl;
-    Trace("sygus-eager") << "...it has " << it->second.size() << " evaluations, already processed " << start << "." << std::endl;
-    Node bTerm = d_quantEngine->getTermDatabaseSygus()->sygusToBuiltin( v, tn );
-    Trace("sygus-eager") << "Built-in term : " << bTerm << std::endl;
-    std::vector< Node > vars;
-    Node var_list = Node::fromExpr( dt.getSygusVarList() );
-    for( unsigned j=0; j<var_list.getNumChildren(); j++ ){
-      vars.push_back( var_list[j] );
+void TermDbSygus::registerModelValue( Node a, Node v, std::vector< Node >& lems ) {
+  std::map< Node, std::map< Node, bool > >::iterator its = d_subterms.find( a );
+  if( its!=d_subterms.end() ){
+    Trace("sygus-eager") << "registerModelValue : " << a << ", has " << its->second.size() << " registered subterms." << std::endl;
+    for( std::map< Node, bool >::iterator itss = its->second.begin(); itss != its->second.end(); ++itss ){
+      Node n = itss->first;
+      Trace("sygus-eager-debug") << "...process : " << n << std::endl;
+      std::map< Node, std::vector< std::vector< Node > > >::iterator it = d_eval_args.find( n );
+      if( it!=d_eval_args.end() && !it->second.empty() ){
+        TNode at = a;
+        TNode vt = v;
+        Node vn = n.substitute( at, vt );
+        vn = Rewriter::rewrite( vn );
+        unsigned start = d_node_mv_args_proc[n][vn];
+        Node antec = n.eqNode( vn ).negate();
+        TypeNode tn = n.getType();
+        Assert( datatypes::DatatypesRewriter::isTypeDatatype(tn) );
+        const Datatype& dt = ((DatatypeType)(tn).toType()).getDatatype();
+        Assert( dt.isSygus() );
+        Trace("sygus-eager") << "TermDbSygus::eager: Register model value : " << vn << " for " << n << std::endl;
+        Trace("sygus-eager") << "...it has " << it->second.size() << " evaluations, already processed " << start << "." << std::endl;
+        Node bTerm = d_quantEngine->getTermDatabaseSygus()->sygusToBuiltin( vn, tn );
+        Trace("sygus-eager") << "Built-in term : " << bTerm << std::endl;
+        std::vector< Node > vars;
+        Node var_list = Node::fromExpr( dt.getSygusVarList() );
+        for( unsigned j=0; j<var_list.getNumChildren(); j++ ){
+          vars.push_back( var_list[j] );
+        }
+        //for each evaluation
+        for( unsigned i=start; i<it->second.size(); i++ ){
+          Assert( vars.size()==it->second[i].size() );
+          Node sBTerm = bTerm.substitute( vars.begin(), vars.end(), it->second[i].begin(), it->second[i].end() );
+          Node lem = NodeManager::currentNM()->mkNode( n.getType().isBoolean() ? IFF : EQUAL, d_evals[n][i], sBTerm ); 
+          lem = NodeManager::currentNM()->mkNode( OR, antec, lem );
+          Trace("sygus-eager") << "Lemma : " << lem << std::endl;
+          lems.push_back( lem );
+        }
+        d_node_mv_args_proc[n][vn] = it->second.size();
+      }
     }
-    //for each evaluation
-    for( unsigned i=start; i<it->second.size(); i++ ){
-      Assert( vars.size()==it->second[i].size() );
-      Node sBTerm = bTerm.substitute( vars.begin(), vars.end(), it->second[i].begin(), it->second[i].end() );
-      Node lem = NodeManager::currentNM()->mkNode( n.getType().isBoolean() ? IFF : EQUAL, d_evals[n][i], sBTerm ); 
-      lem = NodeManager::currentNM()->mkNode( OR, antec, lem );
-      Trace("sygus-eager") << "Lemma : " << lem << std::endl;
-      lems.push_back( lem );
-    }
-    d_node_mv_args_proc[n][v] = it->second.size();
   }
 }
 

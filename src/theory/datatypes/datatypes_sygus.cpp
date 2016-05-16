@@ -420,13 +420,14 @@ bool SygusSplit::considerSygusSplitKind( const Datatype& dt, const Datatype& pdt
     }
   }
   //push
-  if( parent==NOT || parent==BITVECTOR_NOT || parent==UMINUS || parent==BITVECTOR_NEG ){
+  if( parent==NOT || parent==BITVECTOR_NOT || parent==UMINUS || parent==BITVECTOR_NEG || k==ITE ){
      //negation normal form
     if( parent==k && isArgDatatype( dt[c], 0, pdt ) ){
       return false;
     }
     Kind nk = UNDEFINED_KIND;
-    Kind reqk = UNDEFINED_KIND;  //required kind for all children
+    Kind reqk = UNDEFINED_KIND;       //required kind for all children
+    std::map< unsigned, Kind > reqkc; //required kind for some children
     if( parent==NOT ){
       if( k==AND ) {
         nk = OR;reqk = NOT;
@@ -437,8 +438,7 @@ bool SygusSplit::considerSygusSplitKind( const Datatype& dt, const Datatype& pdt
       }else if( k==XOR ) {
         nk = IFF;
       }
-    }
-    if( parent==BITVECTOR_NOT ){
+    }else if( parent==BITVECTOR_NOT ){
       if( k==BITVECTOR_AND ) {
         nk = BITVECTOR_OR;reqk = BITVECTOR_NOT;
       }else if( k==BITVECTOR_OR ){
@@ -448,15 +448,20 @@ bool SygusSplit::considerSygusSplitKind( const Datatype& dt, const Datatype& pdt
       }else if( k==BITVECTOR_XOR ) {
         nk = BITVECTOR_XNOR;
       }
-    }
-    if( parent==UMINUS ){
+    }else if( parent==UMINUS ){
       if( k==PLUS ){
         nk = PLUS;reqk = UMINUS;
       }
-    }
-    if( parent==BITVECTOR_NEG ){
+    }else if( parent==BITVECTOR_NEG ){
       if( k==PLUS ){
         nk = PLUS;reqk = BITVECTOR_NEG;
+      }
+    }else if( k==ITE ){
+      //ITE lifting
+      if( parent!=ITE ){
+        nk = ITE;
+        reqkc[1] = parent;
+        reqkc[2] = parent;
       }
     }
     if( nk!=UNDEFINED_KIND ){
@@ -468,37 +473,38 @@ bool SygusSplit::considerSygusSplitKind( const Datatype& dt, const Datatype& pdt
       int pcr = d_tds->getKindArg( tnp, nk );
       if( pcr!=-1 ){
         Assert( pcr<(int)pdt.getNumConstructors() );
-        if( reqk!=UNDEFINED_KIND ){
+        if( reqk!=UNDEFINED_KIND || !reqkc.empty() ){
           //must have same number of arguments
           if( pdt[pcr].getNumArgs()==dt[c].getNumArgs() ){
-            bool success = true;
-            std::map< int, TypeNode > childTypes;
             for( unsigned i=0; i<pdt[pcr].getNumArgs(); i++ ){
               TypeNode tna = d_tds->getArgType( pdt[pcr], i );
               Assert( datatypes::DatatypesRewriter::isTypeDatatype( tna ) );
+              std::vector< Kind > rks;
               if( reqk!=UNDEFINED_KIND ){
-                //child must have a NOT
-                int nindex = d_tds->getKindArg( tna, reqk );
+                rks.push_back( reqk );
+              }
+              std::map< unsigned, Kind >::iterator itr = reqkc.find( i );
+              if( itr!=reqkc.end() ){
+                rks.push_back( itr->second );
+              }
+              for( unsigned j=0; j<rks.size(); j++ ){
+                Kind rkc = rks[j];
+                //child must have reqk
+                int nindex = d_tds->getKindArg( tna, rkc );
                 if( nindex!=-1 ){
                   const Datatype& adt = ((DatatypeType)(tn).toType()).getDatatype();
                   if( d_tds->getArgType( dt[c], i )!=d_tds->getArgType( adt[nindex], 0 ) ){
                     Trace("sygus-split-debug") << "...arg " << i << " type mismatch." << std::endl;
-                    success = false;
-                    break;
+                    return true;
                   }
                 }else{
-                  Trace("sygus-split-debug") << "...argument " << i << " does not have " << reqk << "." << std::endl;
-                  success = false;
-                  break;
+                  Trace("sygus-split-debug") << "...argument " << i << " does not have " << rkc << "." << std::endl;
+                  return true;
                 }
-              }else{
-                childTypes[i] = tna;
               }
             }
-            if( success ){
-              Trace("sygus-split-debug") << "...success" << std::endl;
-              return false;
-            }
+            Trace("sygus-split-debug") << "...success" << std::endl;
+            return false;
           }else{
             Trace("sygus-split-debug") << "...#arg mismatch." << std::endl;
           }

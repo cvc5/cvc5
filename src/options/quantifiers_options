@@ -258,7 +258,7 @@ option sygusNormalFormGlobalContent --sygus-nf-sym-content bool :default true
 option sygusInvTemplMode --sygus-inv-templ=MODE CVC4::theory::quantifiers::SygusInvTemplMode :default CVC4::theory::quantifiers::SYGUS_INV_TEMPL_MODE_NONE :include "options/quantifiers_modes.h" :handler stringToSygusInvTemplMode
   template mode for sygus invariant synthesis
 
-option sygusDirectEval --sygus-direct-eval bool :default false
+option sygusDirectEval --sygus-direct-eval bool :default true
   direct unfolding of evaluation functions
   
 # approach applied to general quantified formulas

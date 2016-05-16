@@ -557,7 +557,6 @@ public:
 private:
   std::map< TypeNode, std::map< int, Node > > d_generic_base;
   std::map< TypeNode, std::vector< Node > > d_generic_templ;
-  Node getGenericBase( TypeNode tn, const Datatype& dt, int c );
   bool getMatch( Node p, Node n, std::map< int, Node >& s );
   bool getMatch2( Node p, Node n, std::map< int, Node >& s, std::vector< int >& new_s );
 public:
@@ -622,6 +621,7 @@ public:
   /** get value */
   Node getTypeMaxValue( TypeNode tn );
   TypeNode getSygusTypeForVar( Node v );
+  Node getGenericBase( TypeNode tn, const Datatype& dt, int c );
   Node mkGeneric( const Datatype& dt, int c, std::map< TypeNode, int >& var_count, std::map< int, Node >& pre );
   Node sygusToBuiltin( Node n, TypeNode tn );
   Node builtinToSygusConst( Node c, TypeNode tn, int rcons_depth = 0 );
@@ -641,8 +641,11 @@ public:
   /** print sygus term */
   static void printSygusTerm( std::ostream& out, Node n, std::vector< Node >& lvs );
   
+  /** get anchor */
+  static Node getAnchor( Node n );
 //for eager instantiation
 private:
+  std::map< Node, std::map< Node, bool > > d_subterms;
   std::map< Node, std::vector< Node > > d_evals;
   std::map< Node, std::vector< std::vector< Node > > > d_eval_args;
   std::map< Node, std::map< Node, unsigned > > d_node_mv_args_proc;

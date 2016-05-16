@@ -459,7 +459,7 @@ Node TBitblaster<T>::getTermModel(TNode node, bool fullModel) {
 
   if (Theory::isLeafOf(node, theory::THEORY_BV)) {
     // if it is a leaf may ask for fullModel
-    value = getModelFromSatSolver(node, fullModel); 
+    value = getModelFromSatSolver(node, true); 
     Debug("bv-equality-status")<< "TLazyBitblaster::getTermModel from VarValue" << node <<" => " << value <<"\n";
     Assert ((fullModel && !value.isNull() && value.isConst()) || !fullModel); 
     if (!value.isNull()) {
