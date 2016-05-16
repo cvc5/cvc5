@@ -89,6 +89,15 @@ Node ProofUF::toStreamRecLFSC(std::ostream& out, TheoryProof * tp, theory::eq::E
   Debug("pf::uf") << std::endl;
 
   if(tb == 0) {
+    // Special case: false was an input, so the proof is just "false".
+    if (pf->d_id == theory::eq::MERGED_THROUGH_EQUALITY &&
+        pf->d_node == NodeManager::currentNM()->mkConst(false)) {
+      out << "(clausify_false ";
+      out << ProofManager::getLitName(NodeManager::currentNM()->mkConst(false).notNode());
+      out << ")" << std::endl;
+      return Node();
+    }
+
     Assert(pf->d_id == theory::eq::MERGED_THROUGH_TRANS);
     Assert(!pf->d_node.isNull());
     Assert(pf->d_children.size() >= 2);
