@@ -1695,6 +1695,15 @@ void TheoryEngine::conflict(TNode conflict, TheoryId theoryId) {
       proofRecipe = new LemmaProofRecipe;
       Node emptyNode;
       LemmaProofRecipe::ProofStep proofStep(theoryId, emptyNode);
+
+      if (conflict.getKind() == kind::AND) {
+        for (unsigned i = 0; i < conflict.getNumChildren(); ++i) {
+          proofStep.addAssertion(conflict[i].negate());
+        }
+      } else {
+        proofStep.addAssertion(conflict.negate());
+      }
+
       proofRecipe->addStep(proofStep);
     });
 
