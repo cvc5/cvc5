@@ -692,12 +692,11 @@ void LFSCTheoryProofEngine::printTheoryLemmas(const IdToSatClause& lemmas,
         rewritten << d_assertionToRewrite[missingAssertion->negate()];
         rewritten << "))";
 
-
-        pm->d_rewriteFilters[pm->getLitName(*missingAssertion)] = rewritten.str();
-
         Debug("pf::tp") << "Setting a rewrite filter for this proof: " << std::endl
                         << pm->getLitName(*missingAssertion) << " --> " << rewritten.str()
                         << std::endl << std::endl;
+
+        pm->d_rewriteFilters[pm->getLitName(*missingAssertion)] = rewritten.str();
       }
 
       getTheoryProof(theory_id)->printTheoryLemmaProof(clause_expr, os, paren);
@@ -806,11 +805,11 @@ void LFSCTheoryProofEngine::printTheoryLemmas(const IdToSatClause& lemmas,
           rewritten << d_assertionToRewrite[missingAssertion->negate()];
           rewritten << "))";
 
-          pm->d_rewriteFilters[pm->getLitName(*missingAssertion)] = rewritten.str();
-
           Debug("pf::tp") << "Setting a rewrite filter for this proof: " << std::endl
                           << pm->getLitName(*missingAssertion) << " --> " << rewritten.str()
                           << std::endl << std::endl;
+
+          pm->d_rewriteFilters[pm->getLitName(*missingAssertion)] = rewritten.str();
         }
 
         getTheoryProof(theory_id)->printTheoryLemmaProof(currentClauseExpr, os, paren);
