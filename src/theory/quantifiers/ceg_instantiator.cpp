@@ -781,6 +781,7 @@ bool CegInstantiator::doAddInstantiationInc( Node n, Node pv, Node pv_coeff, int
     }
   }
   if( success ){
+    Trace("cbqi-inst-debug2") << "Adding to vectors..." << std::endl;
     vars.push_back( pv );
     btyp.push_back( bt );
     sf.push_back( pv, n, pv_coeff );
@@ -800,8 +801,10 @@ bool CegInstantiator::doAddInstantiationInc( Node n, Node pv, Node pv_coeff, int
       curr_var.pop_back();
       is_cv = true;
     }
+    Trace("cbqi-inst-debug2") << "Recurse..." << std::endl;
     success = doAddInstantiation( sf, ssf, vars, btyp, new_theta, curr_var.empty() ? i+1 : i, effort, cons, curr_var );
     if( !success ){
+      Trace("cbqi-inst-debug2") << "Removing from vectors..." << std::endl;
       if( is_cv ){
         curr_var.push_back( pv );
       }
@@ -814,6 +817,7 @@ bool CegInstantiator::doAddInstantiationInc( Node n, Node pv, Node pv_coeff, int
   if( success ){
     return true;
   }else{
+    Trace("cbqi-inst-debug2") << "Revert substitutions..." << std::endl;
     //revert substitution information
     for( std::map< int, Node >::iterator it = prev_subs.begin(); it != prev_subs.end(); it++ ){
       sf.d_subs[it->first] = it->second;
@@ -1035,7 +1039,13 @@ Node CegInstantiator::applySubstitution( TypeNode tn, Node n, std::vector< Node 
           if( !it->second.isNull() ){
             c_coeff = NodeManager::currentNM()->mkNode( MULT, c_coeff, it->second );
           }
-          Node c = NodeManager::currentNM()->mkNode( MULT, c_coeff, msum_term[it->first] );
+          Assert( !c_coeff.isNull() );
+          Node c;
+          if( msum_term[it->first].isNull() ){
+            c = c_coeff;
+          }else{
+            c = NodeManager::currentNM()->mkNode( MULT, c_coeff, msum_term[it->first] );
+          }
           children.push_back( c );
           Trace("cegqi-si-apply-subs-debug") << "Add child : " << c << std::endl;
         }
@@ -1594,6 +1604,7 @@ int CegInstantiator::solve_arith( Node pv, Node atom, Node& veq_c, Node& val, No
         realPart = real_part.empty() ? d_zero : ( real_part.size()==1 ? real_part[0] : NodeManager::currentNM()->mkNode( PLUS, real_part ) );
         Assert( d_out->isEligibleForInstantiation( realPart ) );
         //re-isolate
+        Trace("cbqi-inst-debug") << "Re-isolate..." << std::endl;
         ires = QuantArith::isolate( pv, msum, veq_c, val, atom.getKind() );
         Trace("cbqi-inst-debug") << "Isolate for mixed Int/Real : " << veq_c << " * " << pv << " " << atom.getKind() << " " << val << std::endl;
         Trace("cbqi-inst-debug") << "                 real part : " << realPart << std::endl;
