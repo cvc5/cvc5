@@ -109,6 +109,9 @@ option instLevelInputOnly --inst-level-input-only bool :default true
  only input terms are assigned instantiation level zero
 option quantRepMode --quant-rep-mode=MODE  CVC4::theory::quantifiers::QuantRepMode :default CVC4::theory::quantifiers::QUANT_REP_MODE_FIRST :read-write :include "options/quantifiers_modes.h" :handler stringToQuantRepMode
  selection mode for representatives in quantifiers engine
+option instRelevantCond --inst-rlv-cond bool :default false
+ add relevancy conditions for instantiations
+
  
 option eagerInstQuant --eager-inst-quant bool :default false
  apply quantifier instantiation eagerly
@@ -229,8 +232,8 @@ option ceGuidedInst --cegqi bool :default false :read-write
   counterexample-guided quantifier instantiation
 option ceGuidedInstFair --cegqi-fair=MODE CVC4::theory::quantifiers::CegqiFairMode :default CVC4::theory::quantifiers::CEGQI_FAIR_DT_SIZE :include "options/quantifiers_modes.h" :handler stringToCegqiFairMode
   if and how to apply fairness for cegqi
-option cegqiSingleInv --cegqi-si bool :default false :read-write
-  process single invocation synthesis conjectures
+option cegqiSingleInvMode --cegqi-si=MODE CVC4::theory::quantifiers::CegqiSingleInvMode :default CVC4::theory::quantifiers::CEGQI_SI_MODE_NONE :include "options/quantifiers_modes.h" :handler stringToCegqiSingleInvMode :read-write
+  mode for processing single invocation synthesis conjectures
 option cegqiSingleInvPartial --cegqi-si-partial bool :default false
   combined techniques for synthesis conjectures that are partially single invocation 
 option cegqiSingleInvReconstruct --cegqi-si-reconstruct bool :default true
@@ -239,8 +242,6 @@ option cegqiSingleInvReconstructConst --cegqi-si-reconstruct-const bool :default
   include constants when reconstruct solutions for single invocation conjectures in original grammar
 option cegqiSingleInvAbort --cegqi-si-abort bool :default false
   abort if synthesis conjecture is not single invocation
-option cegqiSingleInvMultiInstAbort --cegqi-si-multi-inst-abort bool :default false
-  abort if synthesis conjecture is single invocation with no ITE in grammar and multiple instantiations are tried
   
 option sygusNormalForm --sygus-nf bool :default true
   only search for sygus builtin terms that are in normal form

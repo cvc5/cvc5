@@ -48,7 +48,7 @@ void CegConjecture::assign( Node q ) {
   Assert( q.getKind()==FORALL );
   d_assert_quant = q;
   //register with single invocation if applicable
-  if( d_qe->getTermDatabase()->isQAttrSygus( d_assert_quant ) && options::cegqiSingleInv() ){
+  if( d_qe->getTermDatabase()->isQAttrSygus( d_assert_quant ) && options::cegqiSingleInvMode()!=CEGQI_SI_MODE_NONE ){
     d_ceg_si->initialize( q );
     if( q!=d_ceg_si->d_quant ){
       //Node red_lem = NodeManager::currentNM()->mkNode( OR, q.negate(), d_cegqi_si->d_quant );

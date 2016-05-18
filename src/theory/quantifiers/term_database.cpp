@@ -1865,6 +1865,18 @@ bool TermDb::getEnsureTypeCondition( Node n, TypeNode tn, std::vector< Node >& c
   }
 }
 
+void TermDb::getRelevancyCondition( Node n, std::vector< Node >& cond ) {
+  if( n.getKind()==APPLY_SELECTOR_TOTAL ){
+    unsigned scindex = Datatype::cindexOf(n.getOperator().toExpr());
+    const Datatype& dt = ((DatatypeType)(n[0].getType()).toType()).getDatatype();
+    Node rc = NodeManager::currentNM()->mkNode( APPLY_TESTER, Node::fromExpr( dt[scindex].getTester() ), n[0] ).negate();
+    if( std::find( cond.begin(), cond.end(), rc )==cond.end() ){
+      cond.push_back( rc );
+    }
+    getRelevancyCondition( n[0], cond );
+  }
+}
+
 bool TermDb::containsTerm2( Node n, Node t, std::map< Node, bool >& visited ) {
   if( n==t ){
     return true;

@@ -425,6 +425,24 @@ all \n\
 \n\
 ";
 
+const std::string OptionsHandler::s_cegqiSingleInvHelp = "\
+Modes for single invocation techniques, supported by --cegqi-si:\n\
+\n\
+none  \n\
++ Do not use single invocation techniques.\n\
+\n\
+use (default) \n\
++ Use single invocation techniques only if grammar is not restrictive.\n\
+\n\
+all-abort  \n\
++ Always use single invocation techniques, abort if solution reconstruction will likely fail,\
+  for instance, when the grammar does not have ITE and solution requires it.\n\
+\n\
+all \n\
++ Always use single invocation techniques. \n\
+\n\
+";
+
 const std::string OptionsHandler::s_sygusInvTemplHelp = "\
 Template modes for sygus invariant synthesis, supported by --sygus-inv-templ:\n\
 \n\
@@ -697,6 +715,24 @@ theory::quantifiers::IteLiftQuantMode OptionsHandler::stringToIteLiftQuantMode(s
   } else {
     throw OptionException(std::string("unknown option for --ite-lift-quant: `") +
                           optarg + "'.  Try --ite-lift-quant help.");
+  }
+}
+
+theory::quantifiers::CegqiSingleInvMode OptionsHandler::stringToCegqiSingleInvMode(std::string option, std::string optarg) throw(OptionException) {
+  if(optarg == "none" ) {
+    return theory::quantifiers::CEGQI_SI_MODE_NONE;
+  } else if(optarg == "use" || optarg == "default") {
+    return theory::quantifiers::CEGQI_SI_MODE_USE;
+  } else if(optarg == "all-abort") {
+    return theory::quantifiers::CEGQI_SI_MODE_ALL_ABORT;
+  } else if(optarg == "all") {
+    return theory::quantifiers::CEGQI_SI_MODE_ALL;
+  } else if(optarg ==  "help") {
+    puts(s_cegqiSingleInvHelp.c_str());
+    exit(1);
+  } else {
+    throw OptionException(std::string("unknown option for --cegqi-si: `") +
+                          optarg + "'.  Try --cegqi-si help.");
   }
 }
 

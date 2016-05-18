@@ -1010,6 +1010,7 @@ bool QuantifiersEngine::addInstantiation( Node q, std::vector< Node >& terms, bo
   Assert( !d_conflict );
   Assert( terms.size()==q[0].getNumChildren() );
   Trace("inst-add-debug") << "For quantified formula " << q << ", add instantiation: " << std::endl;
+  std::vector< Node > rlv_cond;
   for( unsigned i=0; i<terms.size(); i++ ){
     Trace("inst-add-debug") << "  " << q[0][i];
     Trace("inst-add-debug2") << " -> " << terms[i];
@@ -1027,6 +1028,11 @@ bool QuantifiersEngine::addInstantiation( Node q, std::vector< Node >& terms, bo
     if( terms[i].isNull() ){
       Trace("inst-add-debug") << " --> Failed to make term vector, due to term/type restrictions." << std::endl;
       return false;
+    }else{
+      //get relevancy conditions
+      if( options::instRelevantCond() ){
+        quantifiers::TermDb::getRelevancyCondition( terms[i], rlv_cond );
+      }
     }
 #ifdef CVC4_ASSERTIONS
     bool bad_inst = false;
@@ -1092,14 +1098,21 @@ bool QuantifiersEngine::addInstantiation( Node q, std::vector< Node >& terms, bo
   Trace("inst-add-debug") << "Constructing instantiation..." << std::endl;
   Assert( d_term_db->d_vars[q].size()==terms.size() );
   Node body = getInstantiation( q, d_term_db->d_vars[q], terms, doVts );  //do virtual term substitution
+  Node orig_body = body;
   body = quantifiers::QuantifiersRewriter::preprocess( body, true );
   Trace("inst-debug") << "...preprocess to " << body << std::endl;
 
   //construct the lemma
   Trace("inst-assert") << "(assert " << body << ")" << std::endl;
-  Node orig_body = body;
   body = Rewriter::rewrite(body);
-  Node lem = NodeManager::currentNM()->mkNode( kind::OR, q.negate(), body );
+  Node lem;
+  if( rlv_cond.empty() ){
+    lem = NodeManager::currentNM()->mkNode( kind::OR, q.negate(), body );
+  }else{
+    rlv_cond.push_back( q.negate() );
+    rlv_cond.push_back( body );
+    lem = NodeManager::currentNM()->mkNode( kind::OR, rlv_cond );
+  }
   lem = Rewriter::rewrite(lem);
 
   //check for lemma duplication
@@ -1120,15 +1133,20 @@ bool QuantifiersEngine::addInstantiation( Node q, std::vector< Node >& terms, bo
       }
     }
     if( options::instMaxLevel()!=-1 ){
-      uint64_t maxInstLevel = 0;
-      for( unsigned i=0; i<terms.size(); i++ ){
-        if( terms[i].hasAttribute(InstLevelAttribute()) ){
-          if( terms[i].getAttribute(InstLevelAttribute())>maxInstLevel ){
-            maxInstLevel = terms[i].getAttribute(InstLevelAttribute());
+      if( doVts ){
+        //virtual term substitution/instantiation level features are incompatible
+        Assert( false );
+      }else{
+        uint64_t maxInstLevel = 0;
+        for( unsigned i=0; i<terms.size(); i++ ){
+          if( terms[i].hasAttribute(InstLevelAttribute()) ){
+            if( terms[i].getAttribute(InstLevelAttribute())>maxInstLevel ){
+              maxInstLevel = terms[i].getAttribute(InstLevelAttribute());
+            }
           }
         }
+        setInstantiationLevelAttr( orig_body, q[1], maxInstLevel+1 );
       }
-      setInstantiationLevelAttr( orig_body, q[1], maxInstLevel+1 );
     }
     if( d_curr_effort_level>QEFFORT_CONFLICT && d_curr_effort_level<QEFFORT_NONE ){
       //notify listeners

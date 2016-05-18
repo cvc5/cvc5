@@ -1,5 +1,5 @@
 ; EXPECT: unsat
-; COMMAND-LINE: --cegqi-si --no-dump-synth
+; COMMAND-LINE: --no-dump-synth
 (set-logic SLIA)
 (synth-fun f ((firstname String) (lastname String)) String
 ((Start String (ntString))

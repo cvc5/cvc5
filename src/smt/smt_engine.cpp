@@ -1737,6 +1737,10 @@ void SmtEngine::setDefaults() {
       options::instMaxLevel.set( 0 );
     }
   }
+  if( options::instMaxLevel()!=-1 ){
+    Notice() << "SmtEngine: turning off cbqi to support instMaxLevel" << endl;
+    options::cbqi.set(false);
+  }
 
   if(options::fmfBoundIntLazy.wasSetByUser() && options::fmfBoundIntLazy()) {
     options::fmfBoundInt.set( true );
@@ -1797,13 +1801,15 @@ void SmtEngine::setDefaults() {
   }
 
   //apply counterexample guided instantiation options
-  if( options::cegqiSingleInv() ){
-    options::ceGuidedInst.set( true );
+  if( options::cegqiSingleInvMode()!=quantifiers::CEGQI_SI_MODE_NONE ){
+    if( !options::ceGuidedInst.wasSetByUser() ){
+      options::ceGuidedInst.set( true ); 
+    } 
   }
   if( options::ceGuidedInst() ){
     //counterexample-guided instantiation for sygus
-    if( !options::cegqiSingleInv.wasSetByUser() ){
-      options::cegqiSingleInv.set( true );
+    if( !options::cegqiSingleInvMode.wasSetByUser() ){
+      options::cegqiSingleInvMode.set( quantifiers::CEGQI_SI_MODE_USE );
     }
     if( !options::quantConflictFind.wasSetByUser() ){
       options::quantConflictFind.set( false );

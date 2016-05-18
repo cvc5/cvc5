@@ -153,6 +153,17 @@ enum IteLiftQuantMode {
   ITE_LIFT_QUANT_MODE_ALL,
 };
 
+enum CegqiSingleInvMode {
+  /** do not use single invocation techniques */
+  CEGQI_SI_MODE_NONE,
+  /** use single invocation techniques */
+  CEGQI_SI_MODE_USE,
+  /** always use single invocation techniques, abort if solution reconstruction will fail */
+  CEGQI_SI_MODE_ALL_ABORT,
+  /** always use single invocation techniques */
+  CEGQI_SI_MODE_ALL,
+};
+
 enum SygusInvTemplMode {
   /** synthesize I( x ) */
   SYGUS_INV_TEMPL_MODE_NONE,

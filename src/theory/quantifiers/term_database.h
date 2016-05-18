@@ -462,6 +462,8 @@ public:
   static Node ensureType( Node n, TypeNode tn );
   /** get ensure type condition */
   static bool getEnsureTypeCondition( Node n, TypeNode tn, std::vector< Node >& cond );
+  /** get relevancy condition */
+  static void getRelevancyCondition( Node n, std::vector< Node >& cond );
 private:
   //helper for contains term
   static bool containsTerm2( Node n, Node t, std::map< Node, bool >& visited );
