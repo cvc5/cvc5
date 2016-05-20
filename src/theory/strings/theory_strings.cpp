@@ -456,11 +456,6 @@ void TheoryStrings::preRegisterTerm(TNode n) {
         ss << "Term of kind " << n.getKind() << " not supported in default mode, try --strings-exp";
         throw LogicException(ss.str());
       }
-    }else{
-      //collect extended functions here: some may not be asserted to strings (such as those with return type Int),
-      //  but we need to record them so they are treated properly
-      std::map< Node, bool > visited;
-      collectExtendedFuncTerms( n, visited );
     }
     switch( n.getKind() ) {
       case kind::EQUAL: {
@@ -475,19 +470,26 @@ void TheoryStrings::preRegisterTerm(TNode n) {
         break;
       }
       default: {
-        if( n.getType().isString() ) {
+        TypeNode tn = n.getType();
+        if( tn.isString() ) {
           registerTerm( n, 0 );
           // FMF
           if( n.getKind() == kind::VARIABLE && options::stringFMF() ){
             d_input_vars.insert(n);
           }
           d_equalityEngine.addTerm(n);
-        } else if (n.getType().isBoolean()) {
+        } else if (tn.isBoolean()) {
           // Get triggered for both equal and dis-equal
           d_equalityEngine.addTriggerPredicate(n);
         } else {
           // Function applications/predicates
           d_equalityEngine.addTerm(n);
+          if( options::stringExp() ){
+            //collect extended functions here: some may not be asserted to strings (such as those with return type Int),
+            //  but we need to record them so they are treated properly
+            std::map< Node, bool > visited;
+            collectExtendedFuncTerms( n, visited );          
+          }
         }
         //concat terms do not contribute to theory combination?  TODO: verify
         if( n.hasOperator() && kindToTheoryId( n.getKind() )==THEORY_STRINGS && n.getKind()!=kind::STRING_CONCAT ){
@@ -499,6 +501,7 @@ void TheoryStrings::preRegisterTerm(TNode n) {
 }
 
 Node TheoryStrings::expandDefinition(LogicRequest &logicRequest, Node node) {
+  Trace("strings-exp-def") << "TheoryStrings::expandDefinition : " << node << std::endl;
   return node;
 }
 

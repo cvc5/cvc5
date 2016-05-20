@@ -181,10 +181,8 @@ private:
   std::vector< Node > d_pending;
   std::map< Node, Node > d_pending_exp;
   std::vector< Node > d_pending_merge;
-  /** All the constructor terms that the theory has seen */
-  context::CDList<TNode> d_consTerms;
-  /** All the selector terms that the theory has seen */
-  context::CDList<TNode> d_selTerms;
+  /** All the function terms that the theory has seen */
+  context::CDList<TNode> d_functionTerms;
   /** counter for forcing assignments (ensures fairness) */
   unsigned d_dtfCounter;
   /** expand definition skolem functions */

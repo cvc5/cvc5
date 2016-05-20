@@ -56,8 +56,7 @@ TheoryDatatypes::TheoryDatatypes(Context* c, UserContext* u, OutputChannel& out,
       //d_consEqc( c ),
       d_conflict( c, false ),
       d_collectTermsCache( c ),
-      d_consTerms( c ),
-      d_selTerms( c ),
+      d_functionTerms( c ),
       d_singleton_eq( u ),
       d_lemmas_produced_c( u )
 {
@@ -1352,35 +1351,31 @@ void TheoryDatatypes::addCarePairs( quantifiers::TermArgTrie * t1, quantifiers::
 
 void TheoryDatatypes::computeCareGraph(){
   unsigned n_pairs = 0;
-  Trace("dt-cg-summary") << "Compute graph for dt..." << d_consTerms.size() << " " << d_selTerms.size() << " " << d_sharedTerms.size() << std::endl;
+  Trace("dt-cg-summary") << "Compute graph for dt..." << d_functionTerms.size() << " " << d_sharedTerms.size() << std::endl;
   Trace("dt-cg") << "Build indices..." << std::endl;
   std::map< TypeNode, std::map< Node, quantifiers::TermArgTrie > > index;
   std::map< Node, unsigned > arity;
   //populate indices
-  for( unsigned r=0; r<2; r++ ){
-    unsigned functionTerms = r==0 ? d_consTerms.size() : d_selTerms.size();
-    for( unsigned i=0; i<functionTerms; i++ ){
-      TNode f1 = r==0 ? d_consTerms[i] : d_selTerms[i];
-      if( f1.getNumChildren()>0 ){
-        Assert(d_equalityEngine.hasTerm(f1));
-        Trace("dt-cg-debug") << "...build for " << f1 << std::endl;
-        //break into index based on operator, and type of first argument (since some operators are parametric)
-        Node op = f1.getOperator();
-        TypeNode tn = f1[0].getType();
-        std::vector< TNode > reps;
-        bool has_trigger_arg = false;
-        for( unsigned j=0; j<f1.getNumChildren(); j++ ){
-          reps.push_back( d_equalityEngine.getRepresentative( f1[j] ) );
-          if( d_equalityEngine.isTriggerTerm( f1[j], THEORY_DATATYPES ) ){
-            has_trigger_arg = true;
-          }
-        }
-        //only may contribute to care pairs if has at least one trigger argument
-        if( has_trigger_arg ){
-          index[tn][op].addTerm( f1, reps );
-          arity[op] = reps.size();
-        }
+  unsigned functionTerms = d_functionTerms.size();
+  for( unsigned i=0; i<functionTerms; i++ ){
+    TNode f1 = d_functionTerms[i];
+    Assert(d_equalityEngine.hasTerm(f1));
+    Trace("dt-cg-debug") << "...build for " << f1 << std::endl;
+    //break into index based on operator, and type of first argument (since some operators are parametric)
+    Node op = f1.getOperator();
+    TypeNode tn = f1[0].getType();
+    std::vector< TNode > reps;
+    bool has_trigger_arg = false;
+    for( unsigned j=0; j<f1.getNumChildren(); j++ ){
+      reps.push_back( d_equalityEngine.getRepresentative( f1[j] ) );
+      if( d_equalityEngine.isTriggerTerm( f1[j], THEORY_DATATYPES ) ){
+        has_trigger_arg = true;
       }
+    }
+    //only may contribute to care pairs if has at least one trigger argument
+    if( has_trigger_arg ){
+      index[tn][op].addTerm( f1, reps );
+      arity[op] = reps.size();
     }
   }
   //for each index
@@ -1607,11 +1602,13 @@ void TheoryDatatypes::collectTerms( Node n ) {
     //}
     if( n.getKind() == APPLY_CONSTRUCTOR ){
       Debug("datatypes") << "  Found constructor " << n << endl;
-      d_consTerms.push_back( n );
+      if( n.getNumChildren()>0 ){
+        d_functionTerms.push_back( n );
+      }
     }else{
 
       if( n.getKind() == APPLY_SELECTOR_TOTAL || n.getKind() == DT_SIZE || n.getKind() == DT_HEIGHT_BOUND ){
-        d_selTerms.push_back( n );
+        d_functionTerms.push_back( n );
         //we must also record which selectors exist
         Trace("dt-collapse-sel") << "  Found selector " << n << endl;
         Node rep = getRepresentative( n[0] );
