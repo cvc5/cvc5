@@ -32,6 +32,11 @@
 
 namespace CVC4 {
 namespace theory {
+
+namespace quantifiers{
+  class TermArgTrie;
+}
+
 namespace datatypes {
 
 class TheoryDatatypes : public Theory {
@@ -216,6 +221,7 @@ private:
   TNode getEqcConstructor( TNode r );
 
 protected:
+  void addCarePairs( quantifiers::TermArgTrie * t1, quantifiers::TermArgTrie * t2, unsigned arity, unsigned depth, unsigned& n_pairs );
   /** compute care graph */
   void computeCareGraph();
 

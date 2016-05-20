@@ -28,6 +28,7 @@
 #include "theory/strings/type_enumerator.h"
 #include "theory/theory_model.h"
 #include "theory/valuation.h"
+#include "theory/quantifiers/term_database.h"
 
 using namespace std;
 using namespace CVC4::context;
@@ -74,9 +75,11 @@ TheoryStrings::TheoryStrings(context::Context* c, context::UserContext* u,
       d_preproc(u),
       d_preproc_cache(u),
       d_extf_infer_cache(c),
+      d_ee_disequalities(c),
       d_congruent(c),
       d_proxy_var(u),
       d_proxy_var_to_length(u),
+      d_functionsTerms(c),
       d_neg_ctn_eqlen(c),
       d_neg_ctn_ulen(c),
       d_neg_ctn_cached(u),
@@ -453,6 +456,11 @@ void TheoryStrings::preRegisterTerm(TNode n) {
         ss << "Term of kind " << n.getKind() << " not supported in default mode, try --strings-exp";
         throw LogicException(ss.str());
       }
+    }else{
+      //collect extended functions here: some may not be asserted to strings (such as those with return type Int),
+      //  but we need to record them so they are treated properly
+      std::map< Node, bool > visited;
+      collectExtendedFuncTerms( n, visited );
     }
     switch( n.getKind() ) {
       case kind::EQUAL: {
@@ -473,12 +481,17 @@ void TheoryStrings::preRegisterTerm(TNode n) {
           if( n.getKind() == kind::VARIABLE && options::stringFMF() ){
             d_input_vars.insert(n);
           }
+          d_equalityEngine.addTerm(n);
         } else if (n.getType().isBoolean()) {
           // Get triggered for both equal and dis-equal
           d_equalityEngine.addTriggerPredicate(n);
         } else {
           // Function applications/predicates
           d_equalityEngine.addTerm(n);
+        }
+        //concat terms do not contribute to theory combination?  TODO: verify
+        if( n.hasOperator() && kindToTheoryId( n.getKind() )==THEORY_STRINGS && n.getKind()!=kind::STRING_CONCAT ){
+          d_functionsTerms.push_back( n );
         }
       }
     }
@@ -740,53 +753,23 @@ void TheoryStrings::eqNotifyNewClass(TNode t){
 
 /** called when two equivalance classes will merge */
 void TheoryStrings::eqNotifyPreMerge(TNode t1, TNode t2){
-    EqcInfo * e2 = getOrMakeEqcInfo(t2, false);
-    if( e2 ){
-      EqcInfo * e1 = getOrMakeEqcInfo( t1 );
-      //add information from e2 to e1
-      if( !e2->d_const_term.get().isNull() ){
-        e1->d_const_term.set( e2->d_const_term );
-      }
-      if( !e2->d_length_term.get().isNull() ){
-        e1->d_length_term.set( e2->d_length_term );
-      }
-      if( e2->d_cardinality_lem_k.get()>e1->d_cardinality_lem_k.get() ) {
-        e1->d_cardinality_lem_k.set( e2->d_cardinality_lem_k );
-      }
-      if( !e2->d_normalized_length.get().isNull() ){
-        e1->d_normalized_length.set( e2->d_normalized_length );
-      }
+  EqcInfo * e2 = getOrMakeEqcInfo(t2, false);
+  if( e2 ){
+    EqcInfo * e1 = getOrMakeEqcInfo( t1 );
+    //add information from e2 to e1
+    if( !e2->d_const_term.get().isNull() ){
+      e1->d_const_term.set( e2->d_const_term );
     }
-    /*
-    if( hasTerm( d_zero ) ){
-      Node leqc;
-      if( areEqual(d_zero, t1) ){
-        leqc = t2;
-      }else if( areEqual(d_zero, t2) ){
-        leqc = t1;
-      }
-      if( !leqc.isNull() ){
-        //scan equivalence class to see if we apply
-        eq::EqClassIterator eqc_i = eq::EqClassIterator( leqc, &d_equalityEngine );
-        while( !eqc_i.isFinished() ){
-          Node n = (*eqc_i);
-          if( n.getKind()==kind::STRING_LENGTH ){
-            if( !hasTerm( d_emptyString ) || !areEqual(n[0], d_emptyString ) ){
-              //apply the rule length(n[0])==0 => n[0] == ""
-              Node eq = NodeManager::currentNM()->mkNode( kind::EQUAL, n[0], d_emptyString );
-              d_pending.push_back( eq );
-              Node eq_exp = NodeManager::currentNM()->mkNode( kind::EQUAL, n, d_zero );
-              d_pending_exp[eq] = eq_exp;
-              Trace("strings-infer") << "Strings : Infer Empty : " << eq << " from " << eq_exp << std::endl;
-              d_infer.push_back(eq);
-              d_infer_exp.push_back(eq_exp);
-            }
-          }
-          ++eqc_i;
-        }
-      }
+    if( !e2->d_length_term.get().isNull() ){
+      e1->d_length_term.set( e2->d_length_term );
     }
-    */
+    if( e2->d_cardinality_lem_k.get()>e1->d_cardinality_lem_k.get() ) {
+      e1->d_cardinality_lem_k.set( e2->d_cardinality_lem_k );
+    }
+    if( !e2->d_normalized_length.get().isNull() ){
+      e1->d_normalized_length.set( e2->d_normalized_length );
+    }
+  }
 }
 
 /** called when two equivalance classes have merged */
@@ -796,11 +779,106 @@ void TheoryStrings::eqNotifyPostMerge(TNode t1, TNode t2) {
 
 /** called when two equivalance classes are disequal */
 void TheoryStrings::eqNotifyDisequal(TNode t1, TNode t2, TNode reason) {
+  if( t1.getType().isString() ){
+    //store disequalities between strings, may need to check if their lengths are equal/disequal
+    d_ee_disequalities.push_back( t1.eqNode( t2 ) );
+  }
+}
 
+void TheoryStrings::addCarePairs( quantifiers::TermArgTrie * t1, quantifiers::TermArgTrie * t2, unsigned arity, unsigned depth ) {
+  if( depth==arity ){
+    if( t2!=NULL ){
+      Node f1 = t1->getNodeData();
+      Node f2 = t2->getNodeData();
+      if( !d_equalityEngine.areEqual( f1, f2 ) ){
+        Trace("strings-cg-debug") << "TheoryStrings::computeCareGraph(): checking function " << f1 << " and " << f2 << std::endl;
+        vector< pair<TNode, TNode> > currentPairs;
+        for (unsigned k = 0; k < f1.getNumChildren(); ++ k) {
+          TNode x = f1[k];
+          TNode y = f2[k];
+          Assert( d_equalityEngine.hasTerm(x) );
+          Assert( d_equalityEngine.hasTerm(y) );
+          Assert( !d_equalityEngine.areDisequal( x, y, false ) );
+          if( !d_equalityEngine.areEqual( x, y ) ){
+            if( d_equalityEngine.isTriggerTerm(x, THEORY_STRINGS) && d_equalityEngine.isTriggerTerm(y, THEORY_STRINGS) ){
+              TNode x_shared = d_equalityEngine.getTriggerTermRepresentative(x, THEORY_STRINGS);
+              TNode y_shared = d_equalityEngine.getTriggerTermRepresentative(y, THEORY_STRINGS);
+              EqualityStatus eqStatus = d_valuation.getEqualityStatus(x_shared, y_shared);
+              if( eqStatus==EQUALITY_FALSE_AND_PROPAGATED || eqStatus==EQUALITY_FALSE || eqStatus==EQUALITY_FALSE_IN_MODEL ){
+                //an argument is disequal, we are done
+                return;
+              }else{
+                currentPairs.push_back(make_pair(x_shared, y_shared));
+              }
+            }
+          }
+        }
+        for (unsigned c = 0; c < currentPairs.size(); ++ c) {
+          Trace("strings-cg-pair") << "TheoryStrings::computeCareGraph(): pair : " << currentPairs[c].first << " " << currentPairs[c].second << std::endl;
+          Trace("ajr-temp") << currentPairs[c].first << ", " << currentPairs[c].second << std::endl;
+          addCarePair(currentPairs[c].first, currentPairs[c].second);
+        }
+      }
+    }
+  }else{
+    if( t2==NULL ){
+      if( depth<(arity-1) ){
+        //add care pairs internal to each child
+        for( std::map< TNode, quantifiers::TermArgTrie >::iterator it = t1->d_data.begin(); it != t1->d_data.end(); ++it ){
+          addCarePairs( &it->second, NULL, arity, depth+1 );
+        }
+      }
+      //add care pairs based on each pair of non-disequal arguments
+      for( std::map< TNode, quantifiers::TermArgTrie >::iterator it = t1->d_data.begin(); it != t1->d_data.end(); ++it ){
+        std::map< TNode, quantifiers::TermArgTrie >::iterator it2 = it;
+        ++it2;
+        for( ; it2 != t1->d_data.end(); ++it2 ){
+          if( !d_equalityEngine.areDisequal(it->first, it2->first, false) ){
+            addCarePairs( &it->second, &it2->second, arity, depth+1 );
+          }
+        }
+      }
+    }else{
+      //add care pairs based on product of indices, non-disequal arguments
+      for( std::map< TNode, quantifiers::TermArgTrie >::iterator it = t1->d_data.begin(); it != t1->d_data.end(); ++it ){
+        for( std::map< TNode, quantifiers::TermArgTrie >::iterator it2 = t2->d_data.begin(); it2 != t2->d_data.end(); ++it2 ){
+          if( !d_equalityEngine.areDisequal(it->first, it2->first, false) ){
+            addCarePairs( &it->second, &it2->second, arity, depth+1 );
+          }
+        }
+      }
+    }
+  }
 }
 
 void TheoryStrings::computeCareGraph(){
-  Theory::computeCareGraph();
+  //computing the care graph here is probably still necessary, due to operators that take non-string arguments  TODO: verify
+  Trace("strings-cg") << "TheoryStrings::computeCareGraph(): Build term indices..." << std::endl;
+  std::map< Node, quantifiers::TermArgTrie > index;
+  std::map< Node, unsigned > arity;
+  unsigned functionTerms = d_functionsTerms.size();
+  for (unsigned i = 0; i < functionTerms; ++ i) {
+    TNode f1 = d_functionsTerms[i];
+    Trace("strings-cg") << "...build for " << f1 << std::endl;
+    Node op = f1.getOperator();
+    std::vector< TNode > reps;
+    bool has_trigger_arg = false;
+    for( unsigned j=0; j<f1.getNumChildren(); j++ ){
+      reps.push_back( d_equalityEngine.getRepresentative( f1[j] ) );
+      if( d_equalityEngine.isTriggerTerm( f1[j], THEORY_STRINGS ) ){
+        has_trigger_arg = true;
+      }
+    }
+    if( has_trigger_arg ){
+      index[op].addTerm( f1, reps );
+      arity[op] = reps.size();
+    }
+  }
+  //for each index
+  for( std::map< Node, quantifiers::TermArgTrie >::iterator itii = index.begin(); itii != index.end(); ++itii ){
+    Trace("strings-cg") << "TheoryStrings::computeCareGraph(): Process index " << itii->first << "..." << std::endl;
+    addCarePairs( &itii->second, NULL, arity[ itii->first ], 0 );
+  }
 }
 
 void TheoryStrings::assertPendingFact(Node atom, bool polarity, Node exp) {
@@ -1136,8 +1214,12 @@ void TheoryStrings::checkExtendedFuncsEval( int effort ) {
           }else{
             if( !areEqual( n, nrc ) ){
               if( n.getType().isBoolean() ){
-                d_extf_exp[n].push_back( nrc==d_true ? n.negate() : n );
-                conc = d_false;
+                if( areEqual( n, nrc==d_true ? d_false : d_true )  ){
+                  d_extf_exp[n].push_back( nrc==d_true ? n.negate() : n );
+                  conc = d_false;
+                }else{
+                  conc = nrc==d_true ? n : n.negate();
+                }
               }else{
                 conc = n.eqNode( nrc );
               }
@@ -1145,7 +1227,7 @@ void TheoryStrings::checkExtendedFuncsEval( int effort ) {
           }
           if( !conc.isNull() ){
             Trace("strings-extf") << "  resolve extf : " << nr << " -> " << nrc << std::endl;
-            sendInference( d_extf_exp[n], conc, effort==0 ? "EXTF" : "EXTF-N", n.getType().isInteger() || d_extf_exp[n].empty() );
+            sendInference( d_extf_exp[n], conc, effort==0 ? "EXTF" : "EXTF-N", true );
             if( d_conflict ){
               Trace("strings-extf-debug") << "  conflict, return." << std::endl;
               return;
@@ -2752,7 +2834,7 @@ void TheoryStrings::sendInference( std::vector< Node >& exp, std::vector< Node >
   eq = eq.isNull() ? d_false : Rewriter::rewrite( eq );
   if( eq!=d_true ){
     if( Trace.isOn("strings-infer-debug") ){
-      Trace("strings-infer-debug") << "infer : " << eq << " from: " << std::endl;
+      Trace("strings-infer-debug") << "By " << c << ", infer : " << eq << " from: " << std::endl;
       for( unsigned i=0; i<exp.size(); i++ ){
         Trace("strings-infer-debug")  << "  " << exp[i] << std::endl;
       }
@@ -2761,8 +2843,8 @@ void TheoryStrings::sendInference( std::vector< Node >& exp, std::vector< Node >
       }
       //Trace("strings-infer-debug") << "as lemma : " << asLemma << std::endl;
     }
-    bool doSendLemma = ( asLemma || eq==d_false || eq.getKind()==kind::OR || options::stringInferAsLemmas() );
-    if( doSendLemma ){  
+    //check if we should send a lemma or an inference
+    if( asLemma || eq==d_false || eq.getKind()==kind::OR || !exp_n.empty() || options::stringInferAsLemmas() ){  
       Node eq_exp;
       if( options::stringRExplainLemmas() ){
         eq_exp = mkExplain( exp, exp_n );
@@ -2780,7 +2862,6 @@ void TheoryStrings::sendInference( std::vector< Node >& exp, std::vector< Node >
       }
       sendLemma( eq_exp, eq, c );
     }else{
-      Assert( exp_n.empty() );
       sendInfer( mkAnd( exp ), eq, c );
     }
   }
@@ -3064,30 +3145,56 @@ void TheoryStrings::getConcatVec( Node n, std::vector< Node >& c ) {
 void TheoryStrings::checkDeqNF() {
   std::vector< std::vector< Node > > cols;
   std::vector< Node > lts;
-  separateByLength( d_strings_eqc, cols, lts );
-  for( unsigned i=0; i<cols.size(); i++ ){
-    if( cols[i].size()>1 && d_lemma_cache.empty() ){
-      Trace("strings-solve") << "- Verify disequalities are processed for " << cols[i][0];
-      printConcat( d_normal_forms[cols[i][0]], "strings-solve" );
-      Trace("strings-solve")  << "... #eql = " << cols[i].size() << std::endl;
-      //must ensure that normal forms are disequal
-      for( unsigned j=0; j<cols[i].size(); j++ ){
-        for( unsigned k=(j+1); k<cols[i].size(); k++ ){
-          if( areDisequal( cols[i][j], cols[i][k] ) ){
-            Assert( !d_conflict );
-            //if( !areDisequal( cols[i][j], cols[i][k] ) ){
-            //  sendSplit( cols[i][j], cols[i][k], "D-NORM", true );
-            //  return;
-            //}else{
-            Trace("strings-solve") << "- Compare " << cols[i][j] << " ";
-            printConcat( d_normal_forms[cols[i][j]], "strings-solve" );
-            Trace("strings-solve") << " against " << cols[i][k] << " ";
-            printConcat( d_normal_forms[cols[i][k]], "strings-solve" );
-            Trace("strings-solve")  << "..." << std::endl;
-            if( processDeq( cols[i][j], cols[i][k] ) ){
-              return;
+  std::map< Node, std::map< Node, bool > > processed;
+  
+  //for each pair of disequal strings, must determine whether their lengths are equal or disequal
+  bool addedLSplit = false;
+  for( NodeList::const_iterator id = d_ee_disequalities.begin(); id != d_ee_disequalities.end(); ++id ) {
+    Node eq = *id;
+    Node n[2];
+    for( unsigned i=0; i<2; i++ ){
+      n[i] = d_equalityEngine.getRepresentative( eq[i] );
+    }
+    if( processed[n[0]].find( n[1] )==processed[n[0]].end() ){
+      processed[n[0]][n[1]] = true;
+      Node lt[2];
+      for( unsigned i=0; i<2; i++ ){
+        EqcInfo* ei = getOrMakeEqcInfo( n[i], false );
+        lt[i] = ei ? ei->d_length_term : Node::null();
+        if( lt[i].isNull() ){
+          lt[i] = eq[i];
+        }
+        lt[i] = NodeManager::currentNM()->mkNode( kind::STRING_LENGTH, lt[i] );
+      }
+      if( !areEqual( lt[0], lt[1] ) && !areDisequal( lt[0], lt[1] ) ){
+        addedLSplit = true;
+        sendSplit( lt[0], lt[1], "DEQ-LENGTH-SP" );
+      }
+    }
+  }
+  
+  if( !addedLSplit ){
+    separateByLength( d_strings_eqc, cols, lts );
+    for( unsigned i=0; i<cols.size(); i++ ){
+      if( cols[i].size()>1 && d_lemma_cache.empty() ){
+        Trace("strings-solve") << "- Verify disequalities are processed for " << cols[i][0] << ", normal form : ";
+        printConcat( d_normal_forms[cols[i][0]], "strings-solve" );
+        Trace("strings-solve")  << "... #eql = " << cols[i].size() << std::endl;
+        //must ensure that normal forms are disequal
+        for( unsigned j=0; j<cols[i].size(); j++ ){
+          for( unsigned k=(j+1); k<cols[i].size(); k++ ){
+            //for strings that are disequal, but have the same length
+            if( areDisequal( cols[i][j], cols[i][k] ) ){
+              Assert( !d_conflict );
+              Trace("strings-solve") << "- Compare " << cols[i][j] << " ";
+              printConcat( d_normal_forms[cols[i][j]], "strings-solve" );
+              Trace("strings-solve") << " against " << cols[i][k] << " ";
+              printConcat( d_normal_forms[cols[i][k]], "strings-solve" );
+              Trace("strings-solve")  << "..." << std::endl;
+              if( processDeq( cols[i][j], cols[i][k] ) ){
+                return;
+              }
             }
-            //}
           }
         }
       }
@@ -3149,6 +3256,9 @@ void TheoryStrings::checkCardinality() {
   //int cardinality = options::stringCharCardinality();
   //Trace("strings-solve-debug2") << "get cardinality: " << cardinality << endl;
 
+  //AJR: this will create a partition of eqc, where each collection has length that are pairwise propagated to be equal.
+  //  we do not require disequalities between the lengths of each collection, since we split on disequalities between lengths of string terms that are disequal (DEQ-LENGTH-SP).
+  //  TODO: revisit this?
   std::vector< std::vector< Node > > cols;
   std::vector< Node > lts;
   separateByLength( d_strings_eqc, cols, lts );
@@ -3159,53 +3269,50 @@ void TheoryStrings::checkCardinality() {
     if( cols[i].size() > 1 ) {
       // size > c^k
       unsigned card_need = 1;
-      double curr = (double)cols[i].size()-1;
+      double curr = (double)cols[i].size();
       while( curr>d_card_size ){
         curr = curr/(double)d_card_size;
         card_need++;
       }
+      Trace("strings-card") << "Need length " << card_need << " for this number of strings (where alphabet size is " << d_card_size << ")." << std::endl;
       Node cmp = NodeManager::currentNM()->mkNode( kind::GEQ, lr, NodeManager::currentNM()->mkConst( Rational( card_need ) ) );
       cmp = Rewriter::rewrite( cmp );
       if( cmp!=d_true ){
         unsigned int int_k = (unsigned int)card_need;
-        bool allDisequal = true;
         for( std::vector< Node >::iterator itr1 = cols[i].begin();
             itr1 != cols[i].end(); ++itr1) {
           for( std::vector< Node >::iterator itr2 = itr1 + 1;
             itr2 != cols[i].end(); ++itr2) {
             if(!areDisequal( *itr1, *itr2 )) {
-              allDisequal = false;
               // add split lemma
               sendSplit( *itr1, *itr2, "CARD-SP" );
               return;
             }
           }
         }
-        if( allDisequal ){
-          EqcInfo* ei = getOrMakeEqcInfo( lr, true );
-          Trace("strings-card") << "Previous cardinality used for " << lr << " is " << ((int)ei->d_cardinality_lem_k.get()-1) << std::endl;
-          if( int_k+1 > ei->d_cardinality_lem_k.get() ){
-            Node k_node = NodeManager::currentNM()->mkConst( ::CVC4::Rational( int_k ) );
-            //add cardinality lemma
-            Node dist = NodeManager::currentNM()->mkNode( kind::DISTINCT, cols[i] );
-            std::vector< Node > vec_node;
-            vec_node.push_back( dist );
-            for( std::vector< Node >::iterator itr1 = cols[i].begin();
-                itr1 != cols[i].end(); ++itr1) {
-              Node len = NodeManager::currentNM()->mkNode( kind::STRING_LENGTH, *itr1 );
-              if( len!=lr ) {
-                Node len_eq_lr = len.eqNode(lr);
-                vec_node.push_back( len_eq_lr );
-              }
+        EqcInfo* ei = getOrMakeEqcInfo( lr, true );
+        Trace("strings-card") << "Previous cardinality used for " << lr << " is " << ((int)ei->d_cardinality_lem_k.get()-1) << std::endl;
+        if( int_k+1 > ei->d_cardinality_lem_k.get() ){
+          Node k_node = NodeManager::currentNM()->mkConst( ::CVC4::Rational( int_k ) );
+          //add cardinality lemma
+          Node dist = NodeManager::currentNM()->mkNode( kind::DISTINCT, cols[i] );
+          std::vector< Node > vec_node;
+          vec_node.push_back( dist );
+          for( std::vector< Node >::iterator itr1 = cols[i].begin();
+              itr1 != cols[i].end(); ++itr1) {
+            Node len = NodeManager::currentNM()->mkNode( kind::STRING_LENGTH, *itr1 );
+            if( len!=lr ) {
+              Node len_eq_lr = len.eqNode(lr);
+              vec_node.push_back( len_eq_lr );
             }
-            Node len = NodeManager::currentNM()->mkNode( kind::STRING_LENGTH, cols[i][0] );
-            Node cons = NodeManager::currentNM()->mkNode( kind::GEQ, len, k_node );
-            cons = Rewriter::rewrite( cons );
-            ei->d_cardinality_lem_k.set( int_k+1 );
-            if( cons!=d_true ){
-              sendInference( d_empty_vec, vec_node, cons, "CARDINALITY", true );
-              return;
-            }
+          }
+          Node len = NodeManager::currentNM()->mkNode( kind::STRING_LENGTH, cols[i][0] );
+          Node cons = NodeManager::currentNM()->mkNode( kind::GEQ, len, k_node );
+          cons = Rewriter::rewrite( cons );
+          ei->d_cardinality_lem_k.set( int_k+1 );
+          if( cons!=d_true ){
+            sendInference( d_empty_vec, vec_node, cons, "CARDINALITY", true );
+            return;
           }
         }
       }

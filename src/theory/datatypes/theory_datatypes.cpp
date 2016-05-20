@@ -27,9 +27,11 @@
 #include "theory/datatypes/datatypes_rewriter.h"
 #include "theory/datatypes/theory_datatypes_type_rules.h"
 #include "theory/quantifiers_engine.h"
+#include "theory/quantifiers/term_database.h"
 #include "theory/theory_model.h"
 #include "theory/type_enumerator.h"
 #include "theory/valuation.h"
+#include "options/theory_options.h"
 
 using namespace std;
 using namespace CVC4::kind;
@@ -1277,61 +1279,118 @@ EqualityStatus TheoryDatatypes::getEqualityStatus(TNode a, TNode b){
   return EQUALITY_FALSE_IN_MODEL;
 }
 
-void TheoryDatatypes::computeCareGraph(){
-  Trace("dt-cg") << "Compute graph for dt..." << std::endl;
-  vector< pair<TNode, TNode> > currentPairs;
-  for( unsigned r=0; r<2; r++ ){
-    unsigned functionTerms = r==0 ? d_consTerms.size() : d_selTerms.size();
-    for( unsigned i=0; i<functionTerms; i++ ){
-      TNode f1 = r==0 ? d_consTerms[i] : d_selTerms[i];
-      Assert(d_equalityEngine.hasTerm(f1));
-      for( unsigned j=i+1; j<functionTerms; j++ ){
-        TNode f2 = r==0 ? d_consTerms[j] : d_selTerms[j];
-        Trace("dt-cg-debug") << "dt-cg(" << r << "): " << f1 << " and " << f2 << " " << (f1.getOperator()==f2.getOperator()) << " " << areEqual( f1, f2 ) << std::endl;
-        Assert(d_equalityEngine.hasTerm(f2));
-        if( f1.getOperator()==f2.getOperator() &&
-            ( ( f1.getKind()!=DT_SIZE && f1.getKind()!=DT_HEIGHT_BOUND ) || f1[0].getType()==f2[0].getType() ) &&
-            !areEqual( f1, f2 ) ){
-          Trace("dt-cg") << "Check " << f1 << " and " << f2 << std::endl;
-          bool somePairIsDisequal = false;
-          currentPairs.clear();
-          for (unsigned k = 0; k < f1.getNumChildren(); ++ k) {
-            TNode x = f1[k];
-            TNode y = f2[k];
-            Assert(d_equalityEngine.hasTerm(x));
-            Assert(d_equalityEngine.hasTerm(y));
-            //need to consider types for parametric selectors
-            if( x.getType()!=y.getType() || areDisequal(x, y) ){
-              somePairIsDisequal = true;
-              break;
-            }else if( !d_equalityEngine.areEqual( x, y ) ){
-              Trace("dt-cg") << "Arg #" << k << " is " << x << " " << y << std::endl;
-              if( d_equalityEngine.isTriggerTerm(x, THEORY_DATATYPES) && d_equalityEngine.isTriggerTerm(y, THEORY_DATATYPES) ){
-                TNode x_shared = d_equalityEngine.getTriggerTermRepresentative(x, THEORY_DATATYPES);
-                TNode y_shared = d_equalityEngine.getTriggerTermRepresentative(y, THEORY_DATATYPES);
-                Trace("dt-cg") << "Arg #" << k << " shared term is " << x_shared << " " << y_shared << std::endl;
-                EqualityStatus eqStatus = d_valuation.getEqualityStatus(x_shared, y_shared);
-                Trace("dt-cg") << "...eq status is " << eqStatus << std::endl;
-                if( eqStatus==EQUALITY_FALSE_AND_PROPAGATED || eqStatus==EQUALITY_FALSE || eqStatus==EQUALITY_FALSE_IN_MODEL ){
-                  somePairIsDisequal = true;
-                  break;
-                }else{
-                  currentPairs.push_back(make_pair(x_shared, y_shared));
-                }
+
+
+void TheoryDatatypes::addCarePairs( quantifiers::TermArgTrie * t1, quantifiers::TermArgTrie * t2, unsigned arity, unsigned depth, unsigned& n_pairs ){
+  if( depth==arity ){
+    if( t2!=NULL ){
+      Node f1 = t1->getNodeData();
+      Node f2 = t2->getNodeData();
+      if( !areEqual( f1, f2 ) ){
+        Trace("dt-cg") << "Check " << f1 << " and " << f2 << std::endl;
+        vector< pair<TNode, TNode> > currentPairs;
+        for (unsigned k = 0; k < f1.getNumChildren(); ++ k) {
+          TNode x = f1[k];
+          TNode y = f2[k];
+          Assert( d_equalityEngine.hasTerm(x) );
+          Assert( d_equalityEngine.hasTerm(y) );
+          Assert( !areDisequal( x, y ) );
+          if( !d_equalityEngine.areEqual( x, y ) ){
+            Trace("dt-cg") << "Arg #" << k << " is " << x << " " << y << std::endl;
+            if( d_equalityEngine.isTriggerTerm(x, THEORY_DATATYPES) && d_equalityEngine.isTriggerTerm(y, THEORY_DATATYPES) ){
+              TNode x_shared = d_equalityEngine.getTriggerTermRepresentative(x, THEORY_DATATYPES);
+              TNode y_shared = d_equalityEngine.getTriggerTermRepresentative(y, THEORY_DATATYPES);
+              Trace("dt-cg") << "Arg #" << k << " shared term is " << x_shared << " " << y_shared << std::endl;
+              EqualityStatus eqStatus = d_valuation.getEqualityStatus(x_shared, y_shared);
+              Trace("dt-cg") << "...eq status is " << eqStatus << std::endl;
+              if( eqStatus==EQUALITY_FALSE_AND_PROPAGATED || eqStatus==EQUALITY_FALSE || eqStatus==EQUALITY_FALSE_IN_MODEL ){
+                //an argument is disequal, we are done
+                return;
+              }else{
+                currentPairs.push_back(make_pair(x_shared, y_shared));
               }
             }
           }
-          if (!somePairIsDisequal) {
-            for (unsigned c = 0; c < currentPairs.size(); ++ c) {
-              Trace("dt-cg-pair") << "Pair : " << currentPairs[c].first << " " << currentPairs[c].second << std::endl;
-              addCarePair(currentPairs[c].first, currentPairs[c].second);
-            }
+        }
+        for (unsigned c = 0; c < currentPairs.size(); ++ c) {
+          Trace("dt-cg-pair") << "Pair : " << currentPairs[c].first << " " << currentPairs[c].second << std::endl;
+          addCarePair(currentPairs[c].first, currentPairs[c].second);
+          n_pairs++;
+        }
+      }
+    }
+  }else{
+    if( t2==NULL ){
+      if( depth<(arity-1) ){
+        //add care pairs internal to each child
+        for( std::map< TNode, quantifiers::TermArgTrie >::iterator it = t1->d_data.begin(); it != t1->d_data.end(); ++it ){
+          addCarePairs( &it->second, NULL, arity, depth+1, n_pairs );
+        }
+      }
+      //add care pairs based on each pair of non-disequal arguments
+      for( std::map< TNode, quantifiers::TermArgTrie >::iterator it = t1->d_data.begin(); it != t1->d_data.end(); ++it ){
+        std::map< TNode, quantifiers::TermArgTrie >::iterator it2 = it;
+        ++it2;
+        for( ; it2 != t1->d_data.end(); ++it2 ){
+          if( !areDisequal(it->first, it2->first) ){
+            addCarePairs( &it->second, &it2->second, arity, depth+1, n_pairs );
+          }
+        }
+      }
+    }else{
+      //add care pairs based on product of indices, non-disequal arguments
+      for( std::map< TNode, quantifiers::TermArgTrie >::iterator it = t1->d_data.begin(); it != t1->d_data.end(); ++it ){
+        for( std::map< TNode, quantifiers::TermArgTrie >::iterator it2 = t2->d_data.begin(); it2 != t2->d_data.end(); ++it2 ){
+          if( !areDisequal(it->first, it2->first) ){
+            addCarePairs( &it->second, &it2->second, arity, depth+1, n_pairs );
           }
         }
       }
     }
   }
-  Trace("dt-cg") << "Done Compute graph for dt." << std::endl;
+}
+
+void TheoryDatatypes::computeCareGraph(){
+  unsigned n_pairs = 0;
+  Trace("dt-cg-summary") << "Compute graph for dt..." << d_consTerms.size() << " " << d_selTerms.size() << " " << d_sharedTerms.size() << std::endl;
+  Trace("dt-cg") << "Build indices..." << std::endl;
+  std::map< TypeNode, std::map< Node, quantifiers::TermArgTrie > > index;
+  std::map< Node, unsigned > arity;
+  //populate indices
+  for( unsigned r=0; r<2; r++ ){
+    unsigned functionTerms = r==0 ? d_consTerms.size() : d_selTerms.size();
+    for( unsigned i=0; i<functionTerms; i++ ){
+      TNode f1 = r==0 ? d_consTerms[i] : d_selTerms[i];
+      if( f1.getNumChildren()>0 ){
+        Assert(d_equalityEngine.hasTerm(f1));
+        Trace("dt-cg-debug") << "...build for " << f1 << std::endl;
+        //break into index based on operator, and type of first argument (since some operators are parametric)
+        Node op = f1.getOperator();
+        TypeNode tn = f1[0].getType();
+        std::vector< TNode > reps;
+        bool has_trigger_arg = false;
+        for( unsigned j=0; j<f1.getNumChildren(); j++ ){
+          reps.push_back( d_equalityEngine.getRepresentative( f1[j] ) );
+          if( d_equalityEngine.isTriggerTerm( f1[j], THEORY_DATATYPES ) ){
+            has_trigger_arg = true;
+          }
+        }
+        //only may contribute to care pairs if has at least one trigger argument
+        if( has_trigger_arg ){
+          index[tn][op].addTerm( f1, reps );
+          arity[op] = reps.size();
+        }
+      }
+    }
+  }
+  //for each index
+  for( std::map< TypeNode, std::map< Node, quantifiers::TermArgTrie > >::iterator iti = index.begin(); iti != index.end(); ++iti ){
+    for( std::map< Node, quantifiers::TermArgTrie >::iterator itii = iti->second.begin(); itii != iti->second.end(); ++itii ){
+      Trace("dt-cg") << "Process index " << itii->first << ", " << iti->first << "..." << std::endl;
+      addCarePairs( &itii->second, NULL, arity[ itii->first ], 0, n_pairs );
+    }
+  }
+  Trace("dt-cg-summary") << "...done, # pairs = " << n_pairs << std::endl;
 }
 
 void TheoryDatatypes::collectModelInfo( TheoryModel* m, bool fullModel ){
@@ -1543,9 +1602,9 @@ Node TheoryDatatypes::getSingletonLemma( TypeNode tn, bool pol ) {
 void TheoryDatatypes::collectTerms( Node n ) {
   if( d_collectTermsCache.find( n )==d_collectTermsCache.end() ){
     d_collectTermsCache[n] = true;
-    for( int i=0; i<(int)n.getNumChildren(); i++ ) {
-      collectTerms( n[i] );
-    }
+    //for( int i=0; i<(int)n.getNumChildren(); i++ ) {
+    //  collectTerms( n[i] );
+    //}
     if( n.getKind() == APPLY_CONSTRUCTOR ){
       Debug("datatypes") << "  Found constructor " << n << endl;
       d_consTerms.push_back( n );

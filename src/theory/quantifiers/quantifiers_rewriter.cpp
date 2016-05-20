@@ -449,6 +449,8 @@ int getEntailedCond( Node n, std::map< Node, bool >& currCond ){
   std::map< Node, bool >::iterator it = currCond.find( n );
   if( it!=currCond.end() ){
     return it->second ? 1 : -1;
+  }else if( n.getKind()==NOT ){
+    return -getEntailedCond( n[0], currCond );
   }else if( n.getKind()==AND || n.getKind()==OR ){
     bool hasZero = false;
     for( unsigned i=0; i<n.getNumChildren(); i++ ){
@@ -469,8 +471,7 @@ int getEntailedCond( Node n, std::map< Node, bool >& currCond ){
     }else if( res==-1 ){
       return getEntailedCond( n[2], currCond );
     }
-  }
-  if( n.getKind()==IFF || n.getKind()==ITE ){
+  }else if( n.getKind()==IFF || n.getKind()==ITE ){
     unsigned start = n.getKind()==IFF ? 0 : 1;
     int res1 = 0;
     for( unsigned j=start; j<=(start+1); j++ ){

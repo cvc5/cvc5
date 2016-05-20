@@ -33,6 +33,11 @@
 
 namespace CVC4 {
 namespace theory {
+
+namespace quantifiers{
+  class TermArgTrie;
+}
+
 namespace strings {
 
 /**
@@ -176,6 +181,8 @@ private:
   // extended functions inferences cache
   NodeSet d_extf_infer_cache;
   std::vector< Node > d_empty_vec;
+  //
+  NodeList d_ee_disequalities;
 private:
   NodeSet d_congruent;
   std::map< Node, Node > d_eqc_to_const;
@@ -236,6 +243,8 @@ private:
   //maintain which concat terms have the length lemma instantiated
   NodeNodeMap d_proxy_var;
   NodeNodeMap d_proxy_var_to_length;
+  /** All the function terms that the theory has seen */
+  context::CDList<TNode> d_functionsTerms;
 private:
   //initial check
   void checkInit();
@@ -304,6 +313,8 @@ private:
   //cardinality check
   void checkCardinality();
 
+private:
+  void addCarePairs( quantifiers::TermArgTrie * t1, quantifiers::TermArgTrie * t2, unsigned arity, unsigned depth );
 public:
   /** preregister term */
   void preRegisterTerm(TNode n);
