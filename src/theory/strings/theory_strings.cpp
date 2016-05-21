@@ -1830,9 +1830,9 @@ bool TheoryStrings::normalizeEquivalenceClass( Node eqc, std::vector< Node > & n
         }
         nf.insert( nf.end(), normal_forms[nf_index].begin(), normal_forms[nf_index].end() );
         nf_exp.insert( nf_exp.end(), normal_forms_exp[nf_index].begin(), normal_forms_exp[nf_index].end() );
-        //if( eqc!=normal_form_src[nf_index] ){
-        //  nf_exp.push_back( eqc.eqNode( normal_form_src[nf_index] ) );
-        //}
+        if( eqc!=normal_form_src[nf_index] ){
+          nf_exp.push_back( eqc.eqNode( normal_form_src[nf_index] ) );
+        }
         Trace("strings-solve-debug2") << "take normal form ... done" << std::endl;
         d_normal_forms_base[eqc] = normal_form_src[nf_index];
         //*/
