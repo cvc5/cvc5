@@ -21,6 +21,7 @@
 #include "expr/type_properties.h"
 #include "options/base_options.h"
 #include "options/expr_options.h"
+#include "options/quantifiers_options.h"
 
 using namespace std;
 
@@ -62,6 +63,26 @@ TypeNode TypeNode::substitute(const TypeNode& type,
 
 Cardinality TypeNode::getCardinality() const {
   return kind::getCardinality(*this);
+}
+
+bool TypeNode::isInterpretedFinite() const {
+  if( getCardinality().isFinite() ){
+    return true;
+  }else{
+    if( options::finiteModelFind() ){
+      if( isSort() ){
+        return true;
+      }else if( isDatatype() || isParametricDatatype() ){
+        const Datatype& dt = getDatatype();
+        return dt.isInterpretedFinite();
+      }else if( isArray() ){
+        return getArrayIndexType().isInterpretedFinite() && getArrayConstituentType().isInterpretedFinite();
+      }else if( isSet() ) {
+        return getSetElementType().isInterpretedFinite();
+      }
+    }
+    return false;
+  }
 }
 
 bool TypeNode::isWellFounded() const {

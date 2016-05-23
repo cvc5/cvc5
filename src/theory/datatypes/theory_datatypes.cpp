@@ -191,7 +191,7 @@ void TheoryDatatypes::check(Effort e) {
           if( !hasLabel( eqc, n ) ){
             Trace("datatypes-debug") << "No constructor..." << std::endl;
             const Datatype& dt = ((DatatypeType)(tn).toType()).getDatatype();
-            Trace("datatypes-debug") << "Datatype " << dt << " is " << dt.isFinite() << " " << dt.isUFinite() << " " << dt.isRecursiveSingleton() << std::endl;
+            Trace("datatypes-debug") << "Datatype " << dt << " is " << dt.isFinite() << " " << dt.isInterpretedFinite() << " " << dt.isRecursiveSingleton() << std::endl;
             bool continueProc = true;
             if( dt.isRecursiveSingleton() ){
               Trace("datatypes-debug") << "Check recursive singleton..." << std::endl;
@@ -252,7 +252,7 @@ void TheoryDatatypes::check(Effort e) {
                   if( consIndex==-1 ){
                     consIndex = j;
                   }
-                  if( options::finiteModelFind() ? !dt[ j ].isUFinite() : !dt[ j ].isFinite() ) {
+                  if( !dt[ j ].isInterpretedFinite() ) {
                     if( !eqc || !eqc->d_selectors ){
                       needSplit = false;
                     }
@@ -1497,7 +1497,7 @@ void TheoryDatatypes::collectModelInfo( TheoryModel* m, bool fullModel ){
         if( neqc.isNull() ){
           for( unsigned i=0; i<pcons.size(); i++ ){
             //must try the infinite ones first
-            bool cfinite = options::finiteModelFind() ? dt[ i ].isUFinite() : dt[ i ].isFinite();
+            bool cfinite = dt[ i ].isInterpretedFinite();
             if( pcons[i] && (r==1)==cfinite ){
               neqc = DatatypesRewriter::getInstCons( eqc, dt, i );
               //for( unsigned j=0; j<neqc.getNumChildren(); j++ ){
