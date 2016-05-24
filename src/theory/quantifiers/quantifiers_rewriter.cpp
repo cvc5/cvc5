@@ -1542,8 +1542,7 @@ bool QuantifiersRewriter::doOperation( Node q, int computeOption, QAttributes& q
   }else if( computeOption==COMPUTE_NNF ){
     return true;
   }else if( computeOption==COMPUTE_PROCESS_TERMS ){
-    return true;
-    //return options::iteLiftQuant()!=ITE_LIFT_QUANT_MODE_NONE || options::iteCondVarSplitQuant();
+    return options::condRewriteQuant();
   }else if( computeOption==COMPUTE_COND_SPLIT ){
     return ( options::iteDtTesterSplitQuant() || options::condVarSplitQuant() ) && !is_strict_trigger;
   }else if( computeOption==COMPUTE_PRENEX ){

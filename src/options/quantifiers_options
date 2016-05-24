@@ -54,6 +54,8 @@ option purifyQuant --purify-quant bool :default false
  purify quantified formulas
 option elimExtArithQuant --elim-ext-arith-quant bool :default true
  eliminate extended arithmetic symbols in quantified formulas
+option condRewriteQuant --cond-rewrite-quant bool :default true
+ conditional rewriting of quantified formulas
  
 #### E-matching options
  

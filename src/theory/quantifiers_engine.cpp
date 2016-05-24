@@ -641,6 +641,7 @@ bool QuantifiersEngine::registerQuantifier( Node f ){
       d_term_db->makeInstantiationConstantsFor( f );
       d_term_db->computeAttributes( f );
       for( unsigned i=0; i<d_modules.size(); i++ ){
+        Trace("quant-debug") << "pre-register with " << d_modules[i]->identify() << "..." << std::endl;
         d_modules[i]->preRegisterQuantifier( f );
       }
       QuantifiersModule * qm = getOwner( f );
@@ -653,6 +654,7 @@ bool QuantifiersEngine::registerQuantifier( Node f ){
       }
       //register with each module
       for( unsigned i=0; i<d_modules.size(); i++ ){
+        Trace("quant-debug") << "register with " << d_modules[i]->identify() << "..." << std::endl;
         d_modules[i]->registerQuantifier( f );
       }
       //TODO: remove this
@@ -886,9 +888,9 @@ Node QuantifiersEngine::getSubstitute( Node n, std::vector< Node >& terms ){
 
 Node QuantifiersEngine::getInstantiation( Node q, std::vector< Node >& vars, std::vector< Node >& terms, bool doVts ){
   Node body;
+  Assert( vars.size()==terms.size() );
   //process partial instantiation if necessary
-  if( d_term_db->d_vars[q].size()!=vars.size() ){
-    Assert( vars.size()==terms.size() );
+  if( q[0].getNumChildren()!=vars.size() ){
     body = q[ 1 ].substitute( vars.begin(), vars.end(), terms.begin(), terms.end() );
     std::vector< Node > uninst_vars;
     //doing a partial instantiation, must add quantifier for all uninstantiated variables
@@ -897,13 +899,14 @@ Node QuantifiersEngine::getInstantiation( Node q, std::vector< Node >& vars, std
         uninst_vars.push_back( q[0][i] );
       }
     }
+    Trace("partial-inst") << "Partially instantiating with " << vars.size() << " / " << q[0].getNumChildren() << " for " << q << std::endl;
+    Assert( !uninst_vars.empty() );
     Node bvl = NodeManager::currentNM()->mkNode( BOUND_VAR_LIST, uninst_vars );
     body = NodeManager::currentNM()->mkNode( FORALL, bvl, body );
     Trace("partial-inst") << "Partial instantiation : " << q << std::endl;
     Trace("partial-inst") << "                      : " << body << std::endl;
   }else{
     if( options::cbqi() ){
-      Assert( vars.size()==terms.size() );
       body = q[ 1 ].substitute( vars.begin(), vars.end(), terms.begin(), terms.end() );
     }else{
       //do optimized version
