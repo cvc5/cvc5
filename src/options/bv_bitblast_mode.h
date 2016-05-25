@@ -60,12 +60,19 @@ enum BvSlicerMode {
 
 };/* enum BvSlicerMode */
 
+/** Enumeration of sat solvers that can be used. */
+enum SatSolverMode {
+  SAT_SOLVER_MINISAT,
+  SAT_SOLVER_CRYPTOMINISAT,
+};/* enum SatSolver */
+
 
 }/* CVC4::theory::bv namespace */
 }/* CVC4::theory namespace */
 
 std::ostream& operator<<(std::ostream& out, theory::bv::BitblastMode mode);
 std::ostream& operator<<(std::ostream& out, theory::bv::BvSlicerMode mode);
+std::ostream& operator<<(std::ostream& out, theory::bv::SatSolverMode mode);
 
 }/* CVC4 namespace */
 

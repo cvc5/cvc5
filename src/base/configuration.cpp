@@ -134,6 +134,10 @@ bool Configuration::isBuiltWithAbc() {
   return IS_ABC_BUILD;
 }
 
+bool Configuration::isBuiltWithCryptominisat() {
+  return IS_CRYPTOMINISAT_BUILD;
+}
+
 bool Configuration::isBuiltWithReadline() {
   return IS_READLINE_BUILD;
 }

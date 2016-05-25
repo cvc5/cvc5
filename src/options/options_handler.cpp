@@ -821,6 +821,72 @@ void OptionsHandler::abcEnabledBuild(std::string option, std::string value) thro
 #endif /* CVC4_USE_ABC */
 }
 
+void OptionsHandler::satSolverEnabledBuild(std::string option,
+                                           bool value) throw(OptionException) {
+#ifndef CVC4_USE_CRYPTOMINISAT
+  if(value) {
+    std::stringstream ss;
+    ss << "option `" << option << "' requires an cryptominisat-enabled build of CVC4; this binary was not built with cryptominisat support";
+    throw OptionException(ss.str());
+  }
+#endif /* CVC4_USE_CRYPTOMINISAT */
+}
+
+void OptionsHandler::satSolverEnabledBuild(std::string option,
+                                           std::string value) throw(OptionException) {
+#ifndef CVC4_USE_CRYPTOMINISAT
+  if(!value.empty()) {
+    std::stringstream ss;
+    ss << "option `" << option << "' requires an cryptominisat-enabled build of CVC4; this binary was not built with cryptominisat support";
+    throw OptionException(ss.str());
+  }
+#endif /* CVC4_USE_CRYPTOMINISAT */
+}
+
+const std::string OptionsHandler::s_bvSatSolverHelp = "\
+Sat solvers currently supported by the --bv-sat-solver option:\n\
+\n\
+minisat (default)\n\
+\n\
+cryptominisat\n\
+";
+
+theory::bv::SatSolverMode OptionsHandler::stringToSatSolver(std::string option,
+                                                            std::string optarg) throw(OptionException) {
+  if(optarg == "minisat") {
+    return theory::bv::SAT_SOLVER_MINISAT;
+  } else if(optarg == "cryptominisat") {
+    
+    if (options::incrementalSolving() &&
+        options::incrementalSolving.wasSetByUser()) {
+      throw OptionException(std::string("Cryptominsat does not support incremental mode. \n\
+                                         Try --bv-sat-solver=minisat"));
+    }
+
+    if (options::bitblastMode() == theory::bv::BITBLAST_MODE_LAZY &&
+        options::bitblastMode.wasSetByUser()) {
+      throw OptionException(std::string("Cryptominsat does not support lazy bit-blsating. \n\
+                                         Try --bv-sat-solver=minisat"));
+    }
+    if (!options::bitvectorToBool.wasSetByUser()) {
+      options::bitvectorToBool.set(true);
+    }
+
+    // if (!options::bvAbstraction.wasSetByUser() &&
+    //     !options::skolemizeArguments.wasSetByUser()) {
+    //   options::bvAbstraction.set(true);
+    //   options::skolemizeArguments.set(true); 
+    // }
+    return theory::bv::SAT_SOLVER_CRYPTOMINISAT;
+  } else if(optarg == "help") {
+    puts(s_bvSatSolverHelp.c_str());
+    exit(1);
+  } else {
+    throw OptionException(std::string("unknown option for --bv-sat-solver: `") +
+                          optarg + "'.  Try --bv-sat-solver=help.");
+  }
+}
+
 const std::string OptionsHandler::s_bitblastingModeHelp = "\
 Bit-blasting modes currently supported by the --bitblast option:\n\
 \n\

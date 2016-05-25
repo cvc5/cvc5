@@ -35,6 +35,8 @@ public:
                                              StatisticsRegistry* registry,
                                              const std::string& name = "");
   static DPLLSatSolverInterface* createDPLLMinisat(StatisticsRegistry* registry);
+  static SatSolver* createCryptoMinisat(StatisticsRegistry* registry,
+                                        const std::string& name = "");
 
 };/* class SatSolverFactory */
 

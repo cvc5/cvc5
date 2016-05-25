@@ -107,10 +107,15 @@ public:
   // theory/bv/options_handlers.h
   void abcEnabledBuild(std::string option, bool value) throw(OptionException);
   void abcEnabledBuild(std::string option, std::string value) throw(OptionException);
+  void satSolverEnabledBuild(std::string option, bool value) throw(OptionException);
+  void satSolverEnabledBuild(std::string option, std::string optarg) throw(OptionException);
+
   theory::bv::BitblastMode stringToBitblastMode(std::string option, std::string optarg) throw(OptionException);
   theory::bv::BvSlicerMode stringToBvSlicerMode(std::string option, std::string optarg) throw(OptionException);
   void setBitblastAig(std::string option, bool arg) throw(OptionException);
 
+  theory::bv::SatSolverMode stringToSatSolver(std::string option, std::string optarg) throw(OptionException);
+    
 
   // theory/booleans/options_handlers.h
   theory::booleans::BooleanTermConversionMode stringToBooleanTermConversionMode(std::string option, std::string optarg) throw(OptionException);
@@ -193,6 +198,7 @@ public:
 
   /* Help strings */
   static const std::string s_bitblastingModeHelp;
+  static const std::string s_bvSatSolverHelp;
   static const std::string s_booleanTermConversionModeHelp;
   static const std::string s_bvSlicerModeHelp;
   static const std::string s_cegqiFairModeHelp;
