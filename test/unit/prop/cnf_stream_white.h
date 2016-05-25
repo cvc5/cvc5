@@ -69,6 +69,14 @@ public:
     return ClauseIdUndef;
   }
 
+  ClauseId addXorClause(SatClause& clause, bool rhs, bool removable) {
+    d_addClauseCalled = true;
+    return ClauseIdUndef;
+  }
+
+  bool nativeXor() { return false; }
+
+  
   void reset() {
     d_addClauseCalled = false;
   }
