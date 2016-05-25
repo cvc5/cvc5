@@ -100,7 +100,8 @@ namespace prop {
 class CryptoMinisatSolver : public SatSolver {
 
 public:
-  CryptoMinisatSolver(const std::string& name = "") { Unreachable(); }
+  CryptoMinisatSolver(StatisticsRegistry* registry,
+                      const std::string& name = "") { Unreachable(); }
   /** Assert a clause in the solver. */
   ClauseId addClause(SatClause& clause, bool removable) {
     Unreachable();
