@@ -35,11 +35,11 @@ QF_LIA)
   ;;
 QF_NIA)
   trywith 20
-  trywith 1800 --solve-int-as-bv=2 --bitblast=eager
-  trywith 1800 --solve-int-as-bv=4 --bitblast=eager
-  trywith 1800 --solve-int-as-bv=8 --bitblast=eager
-  trywith 1800 --solve-int-as-bv=16 --bitblast=eager
-  finishwith --solve-int-as-bv=32 --bitblast=eager
+  trywith 1800 --solve-int-as-bv=2 --bitblast=eager --bv-sat-solver=cryptominisat
+  trywith 1800 --solve-int-as-bv=4 --bitblast=eager --bv-sat-solver=cryptominisat
+  trywith 1800 --solve-int-as-bv=8 --bitblast=eager --bv-sat-solver=cryptominisat
+  trywith 1800 --solve-int-as-bv=16 --bitblast=eager --bv-sat-solver=cryptominisat
+  finishwith --solve-int-as-bv=32 --bitblast=eager --bv-sat-solver=cryptominisat
   ;;
 ALIA|AUFLIA|AUFLIRA|AUFNIRA|UF|UFIDL|UFLIA|UFLRA|UFNIA)
   # the following is designed for a run time of 2400s (40 min).
