@@ -33,6 +33,14 @@ QF_LIA)
   # same as QF_LRA but add --pb-rewrites
   finishwith --enable-miplib-trick --miplib-trick-subs=4 --use-approx --lemmas-on-replay-failure --replay-early-close-depth=4 --replay-lemma-reject-cut=128 --replay-reject-cut=512 --unconstrained-simp --use-soi --pb-rewrites
   ;;
+QF_NIA)
+  trywith 20
+  trywith 1800 --solve-int-as-bv=2 --bitblast=eager
+  trywith 1800 --solve-int-as-bv=4 --bitblast=eager
+  trywith 1800 --solve-int-as-bv=8 --bitblast=eager
+  trywith 1800 --solve-int-as-bv=16 --bitblast=eager
+  finishwith --solve-int-as-bv=32 --bitblast=eager
+  ;;
 ALIA|AUFLIA|AUFLIRA|AUFNIRA|UF|UFBV|UFIDL|UFLIA|UFLRA|UFNIA)
   # the following is designed for a run time of 2400s (40 min).
   # initial runs 1min
@@ -78,14 +86,18 @@ QF_AUFBV)
   trywith 600
   finishwith --decision=justification-stoponly
   ;;
-QF_ABV)
-  finishwith --ite-simp --simp-with-care --repeat-simp
+  trywith 50 --ite-simp --simp-with-care --repeat-simp --arrays-weak-equiv
+  trywith 500 --arrays-weak-equiv
+  finishwith --ite-simp --simp-with-care --repeat-simp --arrays-weak-equiv
+  ;;
+QF_UFBV)
+  finishwith --bitblast=eager --bv-sat-solver=cryptominisat
   ;;
 QF_BV)
   exec ./pcvc4 -L smt2 --no-incremental --no-checking --no-interactive --thread-stack=1024 \
          --threads 2 \
-         --thread0 '--unconstrained-simp --bv-div-zero-const --bv-intro-pow2 --bitblast=eager --no-bv-abstraction' \
-         --thread1 '--unconstrained-simp --bv-div-zero-const --bv-intro-pow2 --bv-eq-slicer=auto ' \
+         --thread0 '--unconstrained-simp --bv-div-zero-const --bv-intro-pow2 --bitblast=eager  --bv-sat-solver=cryptominisat --bitblast-aig --no-bv-native-xor --no-bv-abstraction' \
+         --thread1 '--unconstrained-simp --bv-div-zero-const --bv-intro-pow2 --bv-eq-slicer=auto --no-bv-abstraction' \
          --no-wait-to-join \
          "$bench"
   #trywith 10 --bv-eq-slicer=auto --decision=justification
@@ -93,11 +105,18 @@ QF_BV)
   #trywith 600 --decision=internal --bitblast-eager
   #finishwith --decision=justification --decision-use-weight --decision-weight-internal=usr1
   ;;
+QF_AUFLIA)
+  finishwith --no-arrays-eager-index --arrays-eager-lemmas --decision=justification
+  ;;
+QF_AX)
+  finishwith --no-arrays-eager-index --arrays-eager-lemmas --decision=internal
+  ;;
 QF_AUFNIA)
   finishwith --decision=justification --no-arrays-eager-index --arrays-eager-lemmas
   ;;
-QF_AUFLIA|QF_AX)
-  finishwith --no-arrays-eager-index --arrays-eager-lemmas
+QF_ALIA)
+  trywith 70 --decision=justification --arrays-weak-equiv
+  finishwith --decision=justification-stoponly --no-arrays-eager-index --arrays-eager-lemmas
   ;;
 *)
   # just run the default

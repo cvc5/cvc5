@@ -2603,8 +2603,9 @@ Node SmtEnginePrivate::intToBV(TNode n, NodeMap& cache) {
             case kind::CONST_RATIONAL: {
               Rational constant = current.getConst<Rational>();
               AlwaysAssert(constant.isIntegral());
+              AlwaysAssert(constant >= 0);
               BitVector bv(size, constant.getNumerator());
-              if (bv.getValue() != constant.getNumerator()) {
+              if (bv.toSignedInt() != constant.getNumerator()) {
                 throw TypeCheckingException(current.toExpr(), string("Not enough bits for constant in intToBV: ") + current.toString());
               }
               result = nm->mkConst(bv);
