@@ -209,8 +209,8 @@ public:
   StrongSolverTheoryUF* getStrongSolver() {
     return d_thss;
   }
-//private:
-  //void addCarePairs( quantifiers::TermArgTrie * t1, quantifiers::TermArgTrie * t2, unsigned arity, unsigned depth );
+private:
+  void addCarePairs( quantifiers::TermArgTrie * t1, quantifiers::TermArgTrie * t2, unsigned arity, unsigned depth );
 };/* class TheoryUF */
 
 }/* CVC4::theory::uf namespace */

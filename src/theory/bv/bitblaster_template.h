@@ -306,7 +306,7 @@ class AigBitblaster : public TBitblaster<Abc_Obj_t*> {
   
   static Abc_Ntk_t* abcAigNetwork;
   context::Context* d_nullContext;
-  prop::BVSatSolverInterface* d_satSolver;
+  prop::SatSolver* d_satSolver;
   TNodeAigMap d_aigCache;
   NodeAigMap d_bbAtoms;
   

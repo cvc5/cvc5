@@ -433,7 +433,7 @@ void TheoryUF::addSharedTerm(TNode t) {
   d_equalityEngine.addTriggerTerm(t, THEORY_UF);
 }
 
-/*
+//TODO: move quantifiers::TermArgTrie to src/theory/
 void TheoryUF::addCarePairs( quantifiers::TermArgTrie * t1, quantifiers::TermArgTrie * t2, unsigned arity, unsigned depth ){
   if( depth==arity ){
     if( t2!=NULL ){
@@ -498,13 +498,11 @@ void TheoryUF::addCarePairs( quantifiers::TermArgTrie * t1, quantifiers::TermArg
     }
   }
 }
-*/
 
 void TheoryUF::computeCareGraph() {
 
   if (d_sharedTerms.size() > 0) {
-
-/*  TODO : this does (almost) the same as below, and is 1-2 order of magnitudes faster
+    //use term indexing 
     Debug("uf::sharing") << "TheoryUf::computeCareGraph(): Build term indices..." << std::endl;
     std::map< Node, quantifiers::TermArgTrie > index;
     std::map< Node, unsigned > arity;
@@ -529,92 +527,6 @@ void TheoryUF::computeCareGraph() {
     for( std::map< Node, quantifiers::TermArgTrie >::iterator itii = index.begin(); itii != index.end(); ++itii ){
       Debug("uf::sharing") << "TheoryUf::computeCareGraph(): Process index " << itii->first << "..." << std::endl;
       addCarePairs( &itii->second, NULL, arity[ itii->first ], 0 );
-    }
- */
-    vector< pair<TNode, TNode> > currentPairs;
-
-    // Go through the function terms and see if there are any to split on
-    unsigned functionTerms = d_functionsTerms.size();
-    for (unsigned i = 0; i < functionTerms; ++ i) {
-
-      TNode f1 = d_functionsTerms[i];
-      Node op = f1.getOperator();
-
-      for (unsigned j = i + 1; j < functionTerms; ++ j) {
-
-        TNode f2 = d_functionsTerms[j];
-
-        // If the operators are not the same, we can skip this pair
-        if (f2.getOperator() != op) {
-          continue;
-        }
-
-        Debug("uf::sharing") << "TheoryUf::computeCareGraph(): checking function " << f1 << " and " << f2 << std::endl;
-
-        // If the terms are already known to be equal, we are also in good shape
-        if (d_equalityEngine.areEqual(f1, f2)) {
-          Debug("uf::sharing") << "TheoryUf::computeCareGraph(): equal, skipping" << std::endl;
-          continue;
-        }
-
-        // We have two functions f(x1, ..., xn) and f(y1, ..., yn) no known to be equal
-        // We split on the argument pairs that are are not known, unless there is some
-        // argument pair that is already dis-equal.
-        bool somePairIsDisequal = false;
-        currentPairs.clear();
-        for (unsigned k = 0; k < f1.getNumChildren(); ++ k) {
-
-          TNode x = f1[k];
-          TNode y = f2[k];
-
-          Debug("uf::sharing") << "TheoryUf::computeCareGraph(): checking arguments " << x << " and " << y << std::endl;
-
-          if (d_equalityEngine.areDisequal(x, y, false)) {
-            // Mark that there is a dis-equal pair and break
-            somePairIsDisequal = true;
-            Debug("uf::sharing") << "TheoryUf::computeCareGraph(): disequal, disregarding all" << std::endl;
-            break;
-          }
-
-          if (d_equalityEngine.areEqual(x, y)) {
-            // We don't need this one
-            Debug("uf::sharing") << "TheoryUf::computeCareGraph(): equal" << std::endl;
-            continue;
-          }
-
-          if (!d_equalityEngine.isTriggerTerm(x, THEORY_UF) || !d_equalityEngine.isTriggerTerm(y, THEORY_UF)) {
-            // Not connected to shared terms, we don't care
-            continue;
-          }
-
-          // Get representative trigger terms
-          TNode x_shared = d_equalityEngine.getTriggerTermRepresentative(x, THEORY_UF);
-          TNode y_shared = d_equalityEngine.getTriggerTermRepresentative(y, THEORY_UF);
-
-          EqualityStatus eqStatusDomain = d_valuation.getEqualityStatus(x_shared, y_shared);
-          switch (eqStatusDomain) {
-          case EQUALITY_FALSE_AND_PROPAGATED:
-          case EQUALITY_FALSE:
-          case EQUALITY_FALSE_IN_MODEL:
-            somePairIsDisequal = true;
-            continue;
-            break;
-          default:
-            break;
-            // nothing
-          }
-
-          // Otherwise, we need to figure it out
-          Debug("uf::sharing") << "TheoryUf::computeCareGraph(): adding to care-graph" << std::endl;
-          currentPairs.push_back(make_pair(x_shared, y_shared));
-        }
-
-        if (!somePairIsDisequal) {
-          for (unsigned i = 0; i < currentPairs.size(); ++ i) {
-            addCarePair(currentPairs[i].first, currentPairs[i].second);
-          }
-        }
-      }
     }
   }
 }/* TheoryUF::computeCareGraph() */

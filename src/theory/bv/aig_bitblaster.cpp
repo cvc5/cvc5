@@ -19,7 +19,7 @@
 #include "options/bv_options.h"
 #include "prop/cnf_stream.h"
 #include "prop/sat_solver_factory.h"
-
+#include "smt/smt_statistics_registry.h"
 
 #ifdef CVC4_USE_ABC
 // Function is defined as static in ABC. Not sure how else to do this. 
@@ -144,7 +144,8 @@ AigBitblaster::AigBitblaster()
   switch(options::bvSatSolver()) {
   case SAT_SOLVER_MINISAT: {
     prop::BVSatSolverInterface* minisat = prop::SatSolverFactory::createMinisat(d_nullContext,
-										"AigBitblaster");
+                                                                                smtStatisticsRegistry(),
+                                                                                "AigBitblaster");
     MinisatEmptyNotify* notify = new MinisatEmptyNotify();
     minisat->setNotify(notify);
     d_satSolver = minisat;
@@ -415,7 +416,7 @@ void AigBitblaster::assertToSatSolver(Cnf_Dat_t* pCnf) {
       prop::SatLiteral lit(sat_variables[index-1], int_lit < 0); 
       clause.push_back(lit); 
     }
-    d_satSolver->addClause(clause, false, RULE_INVALID);
+    d_satSolver->addClause(clause, false);
   }
 }
 

@@ -22,6 +22,9 @@
 #include "theory/quantifiers/term_database.h"
 #include "theory/theory_engine.h"
 
+#include "theory/bv/theory_bv_utils.h"
+#include "util/bitvector.h"
+
 //#define MBP_STRICT_ASSERTIONS
 
 using namespace std;
@@ -466,6 +469,36 @@ bool CegInstantiator::doAddInstantiation( SolvedForm& sf, SolvedForm& ssf, std::
                 }
               }
             }
+            /*   TODO: algebraic reasoning for bitvector instantiation
+            else if( pvtn.isBitVector() ){
+              if( atom.getKind()==BITVECTOR_ULT || atom.getKind()==BITVECTOR_ULE ){
+                for( unsigned t=0; t<2; t++ ){
+                  if( atom[t]==pv ){
+                    computeProgVars( atom[1-t] );
+                    if( d_inelig.find( atom[1-t] )==d_inelig.end() ){
+                      //only ground terms  TODO: more
+                      if( d_prog_var[atom[1-t]].empty() ){
+                        Node veq_c;
+                        Node uval;
+                        if( ( !pol && atom.getKind()==BITVECTOR_ULT ) || ( pol && atom.getKind()==BITVECTOR_ULE ) ){
+                          uval = atom[1-t];
+                        }else{
+                          uval = NodeManager::currentNM()->mkNode( (atom.getKind()==BITVECTOR_ULT)==(t==1) ? BITVECTOR_PLUS : BITVECTOR_SUB, atom[1-t], 
+                                                                   bv::utils::mkConst(pvtn.getConst<BitVectorSize>(), 1) );
+                        }
+                        if( subs_proc[uval].find( veq_c )==subs_proc[uval].end() ){
+                          subs_proc[uval][veq_c] = true;
+                          if( doAddInstantiationInc( uval, pv, veq_c, 0, sf, ssf, vars, btyp, theta, i, effort, cons, curr_var ) ){
+                            return true;
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+            */
           }
         }
       }
@@ -685,7 +718,7 @@ bool CegInstantiator::doAddInstantiation( SolvedForm& sf, SolvedForm& ssf, std::
 
     //[5] resort to using value in model
     // do so if we are in effort=1, or if the variable is boolean, or if we are solving for a subfield of a datatype
-    if( ( effort>0 || pvtn.isBoolean() || !curr_var.empty() ) && d_qe->getTermDatabase()->isClosedEnumerableType( pvtn ) ){
+    if( ( effort>0 || pvtn.isBoolean() || pvtn.isBitVector() || !curr_var.empty() ) && d_qe->getTermDatabase()->isClosedEnumerableType( pvtn ) ){
       Node mv = getModelValue( pv );
       Node pv_coeff_m;
       Trace("cbqi-inst-debug") << "[5] " << i << "...try model value " << mv << std::endl;

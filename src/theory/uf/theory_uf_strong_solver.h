@@ -414,7 +414,7 @@ private:
   SubsortSymmetryBreaker* d_sym_break;
 public:
   StrongSolverTheoryUF(context::Context* c, context::UserContext* u, OutputChannel& out, TheoryUF* th);
-  ~StrongSolverTheoryUF() {}
+  ~StrongSolverTheoryUF();
   /** get theory */
   TheoryUF* getTheory() { return d_th; }
   /** disequality propagator */
