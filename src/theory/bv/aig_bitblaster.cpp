@@ -140,10 +140,24 @@ AigBitblaster::AigBitblaster()
   , d_bbAtoms()
   , d_aigOutputNode(NULL)
 {
-  d_nullContext = new context::Context(); 
-  d_satSolver = prop::SatSolverFactory::createMinisat(d_nullContext, smtStatisticsRegistry(), "AigBitblaster");
-  MinisatEmptyNotify* notify = new MinisatEmptyNotify();
-  d_satSolver->setNotify(notify);
+  d_nullContext = new context::Context();
+  switch(options::bvSatSolver()) {
+  case SAT_SOLVER_MINISAT: {
+    prop::BVSatSolverInterface* minisat = prop::SatSolverFactory::createMinisat(d_nullContext,
+                                                                                smtStatisticsRegistry(),
+                                                                                "AigBitblaster");
+    MinisatEmptyNotify* notify = new MinisatEmptyNotify();
+    minisat->setNotify(notify);
+    d_satSolver = minisat;
+    break;
+  }
+  case SAT_SOLVER_CRYPTOMINISAT:
+    d_satSolver = prop::SatSolverFactory::createCryptoMinisat(smtStatisticsRegistry(),
+                                                              "AigBitblaster");
+    break;
+  default:
+    Unreachable("Unknown SAT solver type");
+  }
 }
 
 AigBitblaster::~AigBitblaster() {
