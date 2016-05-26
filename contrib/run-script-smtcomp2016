@@ -33,7 +33,7 @@ QF_LIA)
   # same as QF_LRA but add --pb-rewrites
   finishwith --enable-miplib-trick --miplib-trick-subs=4 --use-approx --lemmas-on-replay-failure --replay-early-close-depth=4 --replay-lemma-reject-cut=128 --replay-reject-cut=512 --unconstrained-simp --use-soi --pb-rewrites
   ;;
-ALIA|AUFLIA|AUFLIRA|AUFNIRA|UF|UFBV|UFIDL|UFLIA|UFLRA|UFNIA)
+ALIA|AUFLIA|AUFLIRA|AUFNIRA|UF|UFIDL|UFLIA|UFLRA|UFNIA)
   # the following is designed for a run time of 2400s (40 min).
   # initial runs 1min
   trywith 20 --simplification=none --full-saturate-quant
@@ -64,8 +64,14 @@ ALIA|AUFLIA|AUFLIRA|AUFNIRA|UF|UFBV|UFIDL|UFLIA|UFLRA|UFNIA)
   # finish 12min
   finishwith --full-saturate-quant
   ;;
+UFBV)
+  # many problems in UFBV are essentially BV
+  trywith 300 --full-saturate-quant 
+  trywith 300 --finite-model-find
+  finishwith --cbqi-all --full-saturate-quant
+  ;;
 BV)
-  trywith 30 --finite-model-find
+  trywith 300 --finite-model-find
   finishwith --cbqi-all --full-saturate-quant
   ;;
 LIA|LRA|NIA|NRA)
