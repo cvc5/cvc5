@@ -20,36 +20,33 @@ function runcvc4 {
   # we run in this way for line-buffered input, otherwise memory's a
   # concern (plus it mimics what we'll end up getting from an
   # application-track trace runner?)
-  $cvc4 --force-logic="$logic" -L smt2 --print-success --no-checking --no-interactive "$@" <&0-
+  $cvc4 --force-logic="$logic" -L smt2 --print-success --no-checking --no-interactive --incremental "$@" <&0-
 }
 
 case "$logic" in
 
 QF_LRA)
-  runcvc4 --tear-down-incremental --unconstrained-simp
+  runcvc4 --enable-miplib-trick --miplib-trick-subs=4 --lemmas-on-replay-failure --replay-early-close-depth=4 --replay-lemma-reject-cut=128 --replay-reject-cut=512 --unconstrained-simp
   ;;
 QF_LIA)
   # same as QF_LRA but add --pb-rewrites
-  runcvc4 --tear-down-incremental --unconstrained-simp
+  runcvc4 --enable-miplib-trick --miplib-trick-subs=4 --lemmas-on-replay-failure --replay-early-close-depth=4 --replay-lemma-reject-cut=128 --replay-reject-cut=512 --unconstrained-simp --pb-rewrites
   ;;
-ALIA|AUFLIA|AUFLIRA|AUFNIRA|UF|UFBV|UFIDL|UFLIA|UFLRA|UFNIA)
-  runcvc4  --tear-down-incremental
-  ;;
-BV)
-  runcvc4 --cbqi-all --tear-down-incremental
+ALIA|AUFLIA|AUFLIRA|AUFNIRA|BV|UF|UFBV|UFIDL|UFLIA|UFLRA|UFNIA)
+  runcvc4 --simplification=none --decision=internal --full-saturate-quant
   ;;
 LIA|LRA|NIA|NRA)
-  runcvc4 --tear-down-incremental
+  runcvc4 --enable-cbqi --full-saturate-quant
   ;;
 QF_BV)
-  runcvc4 --tear-down-incremental --unconstrained-simp --bv-eq-slicer=auto --bv-div-zero-const --bv-intro-pow2
+  runcvc4 --unconstrained-simp --bv-eq-slicer=auto --bv-div-zero-const --bv-intro-pow2
   ;;
 QF_AUFLIA|QF_AX)
-  runcvc4 --tear-down-incremental --no-arrays-eager-index --arrays-eager-lemmas
+  runcvc4 --no-arrays-eager-index --arrays-eager-lemmas
   ;;
 *)
   # just run the default
-  runcvc4 --tear-down-incremental
+  runcvc4
   ;;
 
 esac
