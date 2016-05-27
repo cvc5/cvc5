@@ -113,6 +113,8 @@ libcvc4_la_SOURCES = \
 	prop/sat_solver_factory.cpp \
 	prop/sat_solver_factory.h \
 	prop/sat_solver_types.h \
+	prop/cryptominisat.h \
+	prop/cryptominisat.cpp \
 	prop/theory_proxy.cpp \
 	prop/theory_proxy.h \
 	smt/boolean_terms.cpp \
@@ -368,6 +370,8 @@ libcvc4_la_SOURCES = \
 	theory/quantifiers/anti_skolem.cpp \
 	theory/quantifiers/equality_infer.h \
 	theory/quantifiers/equality_infer.cpp \
+	theory/quantifiers/inst_propagator.h \
+	theory/quantifiers/inst_propagator.cpp \
 	theory/arith/theory_arith_type_rules.h \
 	theory/arith/type_enumerator.h \
 	theory/arith/arithvar.h \
@@ -475,6 +479,12 @@ if CVC4_USE_ABC
 libcvc4_la_LIBADD += $(ABC_LIBS)
 libcvc4_la_LDFLAGS += $(ABC_LDFLAGS)
 endif
+
+if CVC4_USE_CRYPTOMINISAT
+libcvc4_la_LIBADD += $(CRYPTOMINISAT_LIBS)
+libcvc4_la_LDFLAGS += $(CRYPTOMINISAT_LDFLAGS)
+endif
+
 
 BUILT_SOURCES = \
 	theory/rewriter_tables.h \

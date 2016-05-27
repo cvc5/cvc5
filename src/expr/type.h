@@ -1,13 +1,13 @@
 /*********************                                                        */
 /*! \file type.h
  ** \verbatim
- ** Original author: Christopher L. Conway
- ** Major contributors: Dejan Jovanovic, Morgan Deters
- ** Minor contributors (to current version): Andrew Reynolds, Kshitij Bansal
+ ** Top contributors (to current version):
+ **   Morgan Deters, Dejan Jovanovic, Martin Brain
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2014  New York University and The University of Iowa
- ** See the file COPYING in the top-level source directory for licensing
- ** information.\endverbatim
+ ** Copyright (c) 2009-2016 by the authors listed in the file AUTHORS
+ ** in the top-level source directory) and their institutional affiliations.
+ ** All rights reserved.  See the file COPYING in the top-level source
+ ** directory for licensing information.\endverbatim
  **
  ** \brief Interface for expression types.
  **
@@ -47,6 +47,7 @@ class BooleanType;
 class IntegerType;
 class RealType;
 class StringType;
+class RegExpType;
 class RoundingModeType;
 class BitVectorType;
 class ArrayType;
@@ -258,6 +259,12 @@ public:
   bool isString() const;
 
   /**
+   * Is this the regexp type?
+   * @return true if the type is the regexp type
+   */
+  bool isRegExp() const;
+
+  /**
    * Is this the rounding mode type?
    * @return true if the type is the rounding mode type
    */
@@ -422,6 +429,18 @@ public:
   /** Construct from the base type */
   StringType(const Type& type) throw(IllegalArgumentException);
 };/* class StringType */
+
+/**
+ * Singleton class encapsulating the string type.
+ */
+class CVC4_PUBLIC RegExpType : public Type {
+
+public:
+
+  /** Construct from the base type */
+  RegExpType(const Type& type) throw(IllegalArgumentException);
+};/* class RegExpType */
+
 
 /**
  * Singleton class encapsulating the rounding mode type.

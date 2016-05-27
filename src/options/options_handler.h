@@ -1,13 +1,13 @@
 /*********************                                                        */
 /*! \file options_handler.h
  ** \verbatim
- ** Original author: Tim King
- ** Major contributors: none
- ** Minor contributors (to current version): Andrew Reynolds
+ ** Top contributors (to current version):
+ **   Tim King, Andrew Reynolds
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2014  New York University and The University of Iowa
- ** See the file COPYING in the top-level source directory for licensing
- ** information.\endverbatim
+ ** Copyright (c) 2009-2016 by the authors listed in the file AUTHORS
+ ** in the top-level source directory) and their institutional affiliations.
+ ** All rights reserved.  See the file COPYING in the top-level source
+ ** directory for licensing information.\endverbatim
  **
  ** \brief Interface for custom handlers and predicates options.
  **
@@ -98,6 +98,7 @@ public:
   theory::quantifiers::CegqiFairMode stringToCegqiFairMode(std::string option, std::string optarg) throw(OptionException);
   theory::quantifiers::TermDbMode stringToTermDbMode(std::string option, std::string optarg) throw(OptionException);
   theory::quantifiers::IteLiftQuantMode stringToIteLiftQuantMode(std::string option, std::string optarg) throw(OptionException);
+  theory::quantifiers::CegqiSingleInvMode stringToCegqiSingleInvMode(std::string option, std::string optarg) throw(OptionException);
   theory::quantifiers::SygusInvTemplMode stringToSygusInvTemplMode(std::string option, std::string optarg) throw(OptionException);
   theory::quantifiers::MacrosQuantMode stringToMacrosQuantMode(std::string option, std::string optarg) throw(OptionException);
   theory::quantifiers::QuantDSplitMode stringToQuantDSplitMode(std::string option, std::string optarg) throw(OptionException);
@@ -106,10 +107,15 @@ public:
   // theory/bv/options_handlers.h
   void abcEnabledBuild(std::string option, bool value) throw(OptionException);
   void abcEnabledBuild(std::string option, std::string value) throw(OptionException);
+  void satSolverEnabledBuild(std::string option, bool value) throw(OptionException);
+  void satSolverEnabledBuild(std::string option, std::string optarg) throw(OptionException);
+
   theory::bv::BitblastMode stringToBitblastMode(std::string option, std::string optarg) throw(OptionException);
   theory::bv::BvSlicerMode stringToBvSlicerMode(std::string option, std::string optarg) throw(OptionException);
   void setBitblastAig(std::string option, bool arg) throw(OptionException);
 
+  theory::bv::SatSolverMode stringToSatSolver(std::string option, std::string optarg) throw(OptionException);
+    
 
   // theory/booleans/options_handlers.h
   theory::booleans::BooleanTermConversionMode stringToBooleanTermConversionMode(std::string option, std::string optarg) throw(OptionException);
@@ -192,6 +198,7 @@ public:
 
   /* Help strings */
   static const std::string s_bitblastingModeHelp;
+  static const std::string s_bvSatSolverHelp;
   static const std::string s_booleanTermConversionModeHelp;
   static const std::string s_bvSlicerModeHelp;
   static const std::string s_cegqiFairModeHelp;
@@ -209,6 +216,7 @@ public:
   static const std::string s_qcfModeHelp;
   static const std::string s_qcfWhenModeHelp;
   static const std::string s_simplificationHelp;
+  static const std::string s_cegqiSingleInvHelp;
   static const std::string s_sygusInvTemplHelp;
   static const std::string s_termDbModeHelp;
   static const std::string s_theoryOfModeHelp;

@@ -1,13 +1,13 @@
 /*********************                                                        */
 /*! \file type_enumerator.h
  ** \verbatim
- ** Original author: Morgan Deters
- ** Major contributors: Andrew Reynolds
- ** Minor contributors (to current version): Dejan Jovanovic
+ ** Top contributors (to current version):
+ **   Andrew Reynolds, Morgan Deters, Tim King
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2014  New York University and The University of Iowa
- ** See the file COPYING in the top-level source directory for licensing
- ** information.\endverbatim
+ ** Copyright (c) 2009-2016 by the authors listed in the file AUTHORS
+ ** in the top-level source directory) and their institutional affiliations.
+ ** All rights reserved.  See the file COPYING in the top-level source
+ ** directory for licensing information.\endverbatim
  **
  ** \brief An enumerator for datatypes
  **
@@ -159,7 +159,7 @@ public:
       }
       if( d_ctor>=d_has_debruijn+d_datatype.getNumConstructors() ){
         //try next size limit as long as new terms were generated at last size, or other cases
-        if( prevSize==d_size_limit || ( d_size_limit==0 && d_datatype.isCodatatype() ) || ( options::finiteModelFind() ? !d_datatype.isUFinite() : !d_datatype.isFinite() ) ){
+        if( prevSize==d_size_limit || ( d_size_limit==0 && d_datatype.isCodatatype() ) || !d_datatype.isInterpretedFinite() ){
           d_size_limit++;
           d_ctor = d_zeroCtor;
           for( unsigned i=0; i<d_sel_sum.size(); i++ ){

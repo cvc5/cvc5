@@ -1,13 +1,13 @@
 /*********************                                                        */
 /*! \file model_builder.h
  ** \verbatim
- ** Original author: Andrew Reynolds
- ** Major contributors: Morgan Deters
- ** Minor contributors (to current version): none
+ ** Top contributors (to current version):
+ **   Andrew Reynolds, Morgan Deters, Tim King
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2014  New York University and The University of Iowa
- ** See the file COPYING in the top-level source directory for licensing
- ** information.\endverbatim
+ ** Copyright (c) 2009-2016 by the authors listed in the file AUTHORS
+ ** in the top-level source directory) and their institutional affiliations.
+ ** All rights reserved.  See the file COPYING in the top-level source
+ ** directory for licensing information.\endverbatim
  **
  ** \brief Model Builder class
  **/
@@ -57,15 +57,6 @@ public:
 
 
 
-/** Attribute true for nodes that should not be used when considered for inst-gen basis */
-struct BasisNoMatchAttributeId {};
-/** use the special for boolean flag */
-typedef expr::Attribute< BasisNoMatchAttributeId,
-                         bool,
-                         expr::attr::NullCleanupStrategy,
-                         true // context dependent
-                       > BasisNoMatchAttribute;
-
 class TermArgBasisTrie {
 private:
   bool addTerm2( FirstOrderModel* fm, Node n, int argIndex );
@@ -85,7 +76,9 @@ public:
   */
 class QModelBuilderIG : public QModelBuilder
 {
+  typedef context::CDHashMap<Node, bool, NodeHashFunction> BoolMap;
 protected:
+  BoolMap d_basisNoMatch;
   //map from operators to model preference data
   std::map< Node, uf::UfModelPreferenceData > d_uf_prefs;
   //built model uf

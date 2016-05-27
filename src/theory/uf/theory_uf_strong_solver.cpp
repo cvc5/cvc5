@@ -1,13 +1,13 @@
 /*********************                                                        */
 /*! \file theory_uf_strong_solver.cpp
  ** \verbatim
- ** Original author: Morgan Deters
- ** Major contributors: Andrew Reynolds
- ** Minor contributors (to current version): Clark Barrett
+ ** Top contributors (to current version):
+ **   Andrew Reynolds, Morgan Deters, Tim King
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2014  New York University and The University of Iowa
- ** See the file COPYING in the top-level source directory for licensing
- ** information.\endverbatim
+ ** Copyright (c) 2009-2016 by the authors listed in the file AUTHORS
+ ** in the top-level source directory) and their institutional affiliations.
+ ** All rights reserved.  See the file COPYING in the top-level source
+ ** directory for licensing information.\endverbatim
  **
  ** \brief Implementation of theory uf strong solver class
  **/
@@ -1667,6 +1667,12 @@ StrongSolverTheoryUF::StrongSolverTheoryUF(context::Context* c,
     d_sym_break = new SubsortSymmetryBreaker( th->getQuantifiersEngine(), c );
   }else{
     d_sym_break = NULL;
+  }
+}
+
+StrongSolverTheoryUF::~StrongSolverTheoryUF() { 
+  for( std::map< TypeNode, SortModel* >::iterator it = d_rep_model.begin(); it != d_rep_model.end(); ++it ){
+    delete it->second;
   }
 }
 

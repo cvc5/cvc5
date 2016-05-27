@@ -14,10 +14,7 @@
       (match ti
         ((apply si1 si2 ti1 ti2) (match (is_inst_t ti1 t1 k) (tt (is_inst_t ti2 t2 k)) (ff ff)))
         (default ff)))
-    (default
-      (match ti
-        ((apply si1 si2 ti1 ti2) ff)
-        (default (eqterm ti (ifmarked t k t)))))))
+    (default (eqterm ti (ifmarked t k t)))))
 
 (program is_inst_f ((fi formula) (f formula) (k term)) bool
   (match f

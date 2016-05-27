@@ -1,24 +1,28 @@
+/*********************                                                        */
 /*! \file congruence_manager.cpp
  ** \verbatim
- ** Original author: Tim King
- ** Major contributors: none
- ** Minor contributors (to current version): Morgan Deters, Dejan Jovanovic
+ ** Top contributors (to current version):
+ **   Tim King, Dejan Jovanovic, Morgan Deters, Andrew Reynolds
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2014  New York University and The University of Iowa
- ** See the file COPYING in the top-level source directory for licensing
- ** information.\endverbatim
+ ** Copyright (c) 2009-2016 by the authors listed in the file AUTHORS
+ ** in the top-level source directory) and their institutional affiliations.
+ ** All rights reserved.  See the file COPYING in the top-level source
+ ** directory for licensing information.\endverbatim
  **
  ** \brief [[ Add one-line brief description here ]]
  **
  ** [[ Add lengthier description here ]]
  ** \todo document this file
  **/
+
 #include "theory/arith/congruence_manager.h"
 
 #include "base/output.h"
 #include "smt/smt_statistics_registry.h"
 #include "theory/arith/arith_utilities.h"
 #include "theory/arith/constraint.h"
+#include "theory/quantifiers/equality_infer.h"
+#include "options/arith_options.h"
 
 namespace CVC4 {
 namespace theory {
@@ -28,6 +32,8 @@ ArithCongruenceManager::ArithCongruenceManager(context::Context* c, ConstraintDa
   : d_inConflict(c),
     d_raiseConflict(raiseConflict),
     d_notify(*this),
+    d_eq_infer(NULL),
+    d_eqi_counter(0,c),
     d_keepAlive(c),
     d_propagatations(c),
     d_explanationMap(c),
@@ -35,7 +41,19 @@ ArithCongruenceManager::ArithCongruenceManager(context::Context* c, ConstraintDa
     d_setupLiteral(setup),
     d_avariables(avars),
     d_ee(d_notify, c, "theory::arith::ArithCongruenceManager", true)
-{}
+{
+  //module to infer additional equalities based on normalization
+  if( options::sNormInferEq() ){
+    d_eq_infer = new quantifiers::EqualityInference(c, true);
+    d_true = NodeManager::currentNM()->mkConst( true );
+  }
+}
+
+ArithCongruenceManager::~ArithCongruenceManager() {
+  if( d_eq_infer ){
+    delete d_eq_infer;
+  }
+}
 
 ArithCongruenceManager::Statistics::Statistics():
   d_watchedVariables("theory::arith::congruence::watchedVariables", 0),
@@ -98,10 +116,12 @@ void ArithCongruenceManager::ArithCongruenceNotify::eqNotifyConstantTermMerge(TN
   }
 }
 void ArithCongruenceManager::ArithCongruenceNotify::eqNotifyNewClass(TNode t) {
+  d_acm.eqNotifyNewClass(t);
 }
 void ArithCongruenceManager::ArithCongruenceNotify::eqNotifyPreMerge(TNode t1, TNode t2) {
 }
 void ArithCongruenceManager::ArithCongruenceNotify::eqNotifyPostMerge(TNode t1, TNode t2) {
+  d_acm.eqNotifyPostMerge(t1,t2);
 }
 void ArithCongruenceManager::ArithCongruenceNotify::eqNotifyDisequal(TNode t1, TNode t2, TNode reason) {
 }
@@ -297,9 +317,9 @@ bool ArithCongruenceManager::propagate(TNode x){
     c->setEqualityEngineProof();
   }else if(c->hasProof() && x != rewritten){
     if(c->assertedToTheTheory()){
-      pushBack(x, rewritten, c->getWitness());
+      pushBack(x);
     }else{
-      pushBack(x, rewritten);
+      pushBack(x);
     }
   }else{
     Assert(c->hasProof() && x == rewritten);
@@ -339,8 +359,24 @@ Node ArithCongruenceManager::explainInternal(TNode internal){
     return conjunction;
   }
 }
+
+void ArithCongruenceManager::eqNotifyNewClass(TNode t) {
+  if( d_eq_infer ){
+    d_eq_infer->eqNotifyNewClass(t);
+    fixpointInfer();
+  }
+}
+void ArithCongruenceManager::eqNotifyPostMerge(TNode t1, TNode t2) {
+  if( d_eq_infer ){
+    d_eq_infer->eqNotifyMerge(t1, t2);
+    fixpointInfer();
+  }
+}
+
 Node ArithCongruenceManager::explain(TNode external){
+  Trace("arith-ee") << "Ask for explanation of " << external << std::endl;
   Node internal = externalToInternal(external);
+  Trace("arith-ee") << "...internal = " << internal << std::endl;
   return explainInternal(internal);
 }
 
@@ -376,6 +412,7 @@ void ArithCongruenceManager::assertionToEqualityEngine(bool isEquality, ArithVar
   TNode eq = d_watchedEqualities[s];
   Assert(eq.getKind() == kind::EQUAL);
 
+  Trace("arith-ee") << "Assert " << eq << ", pol " << isEquality << ", reason " << reason << std::endl;
   if(isEquality){
     d_ee.assertEquality(eq, true, reason);
   }else{
@@ -401,6 +438,7 @@ void ArithCongruenceManager::equalsConstant(ConstraintCP c){
   Node reason = c->externalExplainByAssertions();
   d_keepAlive.push_back(reason);
 
+  Trace("arith-ee") << "Assert equalsConstant " << eq << ", reason " << reason << std::endl;
   d_ee.assertEquality(eq, true, reason);
 }
 
@@ -424,13 +462,62 @@ void ArithCongruenceManager::equalsConstant(ConstraintCP lb, ConstraintCP ub){
   d_keepAlive.push_back(eq);
   d_keepAlive.push_back(reason);
 
-
+  Trace("arith-ee") << "Assert equalsConstant2 " << eq << ", reason " << reason << std::endl;
   d_ee.assertEquality(eq, true, reason);
 }
 
 void ArithCongruenceManager::addSharedTerm(Node x){
   d_ee.addTriggerTerm(x, THEORY_ARITH);
 }
+
+bool ArithCongruenceManager::fixpointInfer() {
+  if( d_eq_infer ){
+    while(! inConflict() && d_eqi_counter.get()<d_eq_infer->getNumPendingMerges() ) {
+      Trace("snorm-infer-eq-debug") << "Processing " << d_eqi_counter.get() << " / " << d_eq_infer->getNumPendingMerges() << std::endl;
+      Node eq = d_eq_infer->getPendingMerge( d_eqi_counter.get() );
+      Trace("snorm-infer-eq") << "ArithCongruenceManager : Infer by normalization : " << eq << std::endl;
+      if( !d_ee.areEqual( eq[0], eq[1] ) ){
+        Node eq_exp = d_eq_infer->getPendingMergeExplanation( d_eqi_counter.get() );
+        Trace("snorm-infer-eq") << "           explanation : " << eq_exp << std::endl;
+        //regress explanation
+        std::vector<TNode> assumptions;
+        if( eq_exp.getKind()==kind::AND ){
+          for( unsigned i=0; i<eq_exp.getNumChildren(); i++ ){
+            explain( eq_exp[i], assumptions );
+          }
+        }else if( eq_exp.getKind()==kind::EQUAL ){
+          explain( eq_exp, assumptions );
+        }else{
+          //eq_exp should be true
+          Assert( eq_exp==d_true );
+        }
+        Node req_exp;
+        if( assumptions.empty() ){
+          req_exp = d_true;
+        }else{
+          std::set<TNode> assumptionSet;
+          assumptionSet.insert(assumptions.begin(), assumptions.end());
+          if( assumptionSet.size()==1 ){
+            req_exp = assumptions[0];
+          }else{
+            NodeBuilder<> conjunction(kind::AND);
+            enqueueIntoNB(assumptionSet, conjunction);
+            req_exp = conjunction;
+          }
+        }
+        Trace("snorm-infer-eq") << " regressed explanation : " << req_exp << std::endl;
+        d_ee.assertEquality( eq, true, req_exp );
+        d_keepAlive.push_back( req_exp );
+      }else{
+        Trace("snorm-infer-eq") << "...already equal." << std::endl;
+      }
+      d_eqi_counter = d_eqi_counter.get() + 1;
+    }
+  }
+  return inConflict();
+}
+
+
 
 }/* CVC4::theory::arith namespace */
 }/* CVC4::theory namespace */

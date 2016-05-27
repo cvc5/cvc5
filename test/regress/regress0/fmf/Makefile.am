@@ -55,7 +55,8 @@ TESTS =	\
 	datatypes-ufinite-nested.smt2 \
 	ForElimination-scala-9.smt2 \
 	agree466.smt2 \
-	LeftistHeap.scala-8-ncm.smt2
+	LeftistHeap.scala-8-ncm.smt2 \
+	sc-crash-052316.smt2
 
 EXTRA_DIST = $(TESTS)
 

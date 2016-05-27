@@ -1,13 +1,13 @@
 /*********************                                                        */
 /*! \file lazy_bitblaster.cpp
  ** \verbatim
- ** Original author: Liana Hadarean
- ** Major contributors: none
- ** Minor contributors (to current version): Morgan Deters
+ ** Top contributors (to current version):
+ **   Liana Hadarean, Tim King, Morgan Deters
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2014  New York University and The University of Iowa
- ** See the file COPYING in the top-level source directory for licensing
- ** information.\endverbatim
+ ** Copyright (c) 2009-2016 by the authors listed in the file AUTHORS
+ ** in the top-level source directory) and their institutional affiliations.
+ ** All rights reserved.  See the file COPYING in the top-level source
+ ** directory for licensing information.\endverbatim
  **
  ** \brief Bitblaster for the lazy bv solver.
  **
@@ -491,7 +491,7 @@ void TLazyBitblaster::collectModelInfo(TheoryModel* m, bool fullModel) {
     // only shared terms could not have been bit-blasted
     Assert (hasBBTerm(var) || isSharedTerm(var));
 
-    Node const_value = getModelFromSatSolver(var, fullModel);
+    Node const_value = getModelFromSatSolver(var, true);
     Assert (const_value.isNull() || const_value.isConst());
     if(const_value != Node()) {
       Debug("bitvector-model") << "TLazyBitblaster::collectModelInfo (assert (= "

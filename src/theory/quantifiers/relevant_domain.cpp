@@ -1,13 +1,13 @@
 /*********************                                                        */
 /*! \file relevant_domain.cpp
  ** \verbatim
- ** Original author: Andrew Reynolds
- ** Major contributors: Morgan Deters
- ** Minor contributors (to current version): none
+ ** Top contributors (to current version):
+ **   Andrew Reynolds, Morgan Deters, Tim King
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2014  New York University and The University of Iowa
- ** See the file COPYING in the top-level source directory for licensing
- ** information.\endverbatim
+ ** Copyright (c) 2009-2016 by the authors listed in the file AUTHORS
+ ** in the top-level source directory) and their institutional affiliations.
+ ** All rights reserved.  See the file COPYING in the top-level source
+ ** directory for licensing information.\endverbatim
  **
  ** \brief Implementation of relevant domain class
  **/
@@ -82,8 +82,9 @@ RelevantDomain::RDomain * RelevantDomain::getRDomain( Node n, int i, bool getPar
   return getParent ? d_rel_doms[n][i]->getParent() : d_rel_doms[n][i];
 }
 
-void RelevantDomain::reset(){
+bool RelevantDomain::reset( Theory::Effort e ) {
   d_is_computed = false;
+  return true;
 }
 
 void RelevantDomain::compute(){
@@ -94,7 +95,7 @@ void RelevantDomain::compute(){
         it2->second->reset();
       }
     }
-    for( int i=0; i<d_model->getNumAssertedQuantifiers(); i++ ){
+    for( unsigned i=0; i<d_model->getNumAssertedQuantifiers(); i++ ){
       Node q = d_model->getAssertedQuantifier( i );
       Node icf = d_qe->getTermDatabase()->getInstConstantBody( q );
       Trace("rel-dom-debug") << "compute relevant domain for " << icf << std::endl;
@@ -109,7 +110,7 @@ void RelevantDomain::compute(){
       for( unsigned i=0; i<sz; i++ ){
         Node n = it->second[i];
         //if it is a non-redundant term
-        if( !n.getAttribute(NoMatchAttribute()) ){
+        if( db->isTermActive( n ) ){
           for( unsigned j=0; j<n.getNumChildren(); j++ ){
             RDomain * rf = getRDomain( op, j );
             rf->addTerm( n[j] );

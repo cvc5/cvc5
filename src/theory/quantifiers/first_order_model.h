@@ -1,13 +1,13 @@
 /*********************                                                        */
 /*! \file first_order_model.h
  ** \verbatim
- ** Original author: Andrew Reynolds
- ** Major contributors: Morgan Deters
- ** Minor contributors (to current version): none
+ ** Top contributors (to current version):
+ **   Andrew Reynolds, Morgan Deters, Tim King
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2014  New York University and The University of Iowa
- ** See the file COPYING in the top-level source directory for licensing
- ** information.\endverbatim
+ ** Copyright (c) 2009-2016 by the authors listed in the file AUTHORS
+ ** in the top-level source directory) and their institutional affiliations.
+ ** All rights reserved.  See the file COPYING in the top-level source
+ ** directory for licensing information.\endverbatim
  **
  ** \brief Model extended classes
  **/
@@ -49,6 +49,12 @@ protected:
   QuantifiersEngine * d_qe;
   /** list of quantifiers asserted in the current context */
   context::CDList<Node> d_forall_asserts;
+  /** quantified formulas marked as relevant */
+  unsigned d_rlv_count;
+  std::map< Node, unsigned > d_forall_rlv;
+  std::vector< Node > d_forall_rlv_vec;
+  Node d_last_forall_rlv;
+  std::vector< Node > d_forall_rlv_assert;
   /** is model set */
   context::CDO< bool > d_isModelSet;
   /** get variable id */
@@ -59,9 +65,9 @@ public: //for Theory Quantifiers:
   /** assert quantifier */
   void assertQuantifier( Node n );
   /** get number of asserted quantifiers */
-  int getNumAssertedQuantifiers() { return (int)d_forall_asserts.size(); }
+  unsigned getNumAssertedQuantifiers();
   /** get asserted quantifier */
-  Node getAssertedQuantifier( int i ) { return d_forall_asserts[i]; }
+  Node getAssertedQuantifier( unsigned i, bool ordered = false );
   /** initialize model for term */
   void initializeModelForTerm( Node n, std::map< Node, bool >& visited );
   virtual void processInitializeModelForTerm( Node n ) = 0;
@@ -96,8 +102,10 @@ private:
 public:
   /** reset round */
   void reset_round();
-  /** is quantified formula asserted */
-  //bool isQuantifierAsserted( TNode q );
+  /** mark quantified formula relevant */
+  void markRelevant( Node q );
+  /** get relevance value */
+  int getRelevanceValue( Node q );
   /** set quantified formula active/inactive 
    * a quantified formula may be set inactive if for instance:
    *   - it is entailed by other quantified formulas

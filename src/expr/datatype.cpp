@@ -1,13 +1,13 @@
 /*********************                                                        */
 /*! \file datatype.cpp
  ** \verbatim
- ** Original author: Morgan Deters
- ** Major contributors: Andrew Reynolds
- ** Minor contributors (to current version): none
+ ** Top contributors (to current version):
+ **   Morgan Deters, Andrew Reynolds, Tim King
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2014  New York University and The University of Iowa
- ** See the file COPYING in the top-level source directory for licensing
- ** information.\endverbatim
+ ** Copyright (c) 2009-2016 by the authors listed in the file AUTHORS
+ ** in the top-level source directory) and their institutional affiliations.
+ ** All rights reserved.  See the file COPYING in the top-level source
+ ** directory for licensing information.\endverbatim
  **
  ** \brief A class representing a Datatype definition
  **
@@ -297,7 +297,7 @@ bool Datatype::isFinite() const throw(IllegalArgumentException) {
   return true;
 }
 
-bool Datatype::isUFinite() const throw(IllegalArgumentException) {
+bool Datatype::isInterpretedFinite() const throw(IllegalArgumentException) {
   PrettyCheckArgument(isResolved(), this, "this datatype is not yet resolved");
   // we're using some internals, so we have to set up this library context
   ExprManagerScope ems(d_self);
@@ -310,7 +310,7 @@ bool Datatype::isUFinite() const throw(IllegalArgumentException) {
   self.setAttribute(DatatypeUFiniteComputedAttr(), true);
   self.setAttribute(DatatypeUFiniteAttr(), false);
   for(const_iterator i = begin(), i_end = end(); i != i_end; ++i) {
-    if(! (*i).isUFinite()) {
+    if(! (*i).isInterpretedFinite()) {
       return false;
     }
   }
@@ -850,7 +850,7 @@ bool DatatypeConstructor::isFinite() const throw(IllegalArgumentException) {
   return true;
 }
 
-bool DatatypeConstructor::isUFinite() const throw(IllegalArgumentException) {
+bool DatatypeConstructor::isInterpretedFinite() const throw(IllegalArgumentException) {
   PrettyCheckArgument(isResolved(), this, "this datatype constructor is not yet resolved");
   // we're using some internals, so we have to set up this library context
   ExprManagerScope ems(d_constructor);
@@ -859,18 +859,9 @@ bool DatatypeConstructor::isUFinite() const throw(IllegalArgumentException) {
   if(self.getAttribute(DatatypeUFiniteComputedAttr())) {
     return self.getAttribute(DatatypeUFiniteAttr());
   }
-  bool success = true;
   for(const_iterator i = begin(), i_end = end(); i != i_end; ++i) {
-    Type t = (*i).getRangeType();
-    if( t.isDatatype() ){
-      const Datatype& dt = ((DatatypeType)t).getDatatype();
-      if( !dt.isUFinite() ){
-        success = false;
-      }
-    }else if(!t.isSort() && !t.getCardinality().isFinite()) {
-      success = false;
-    }
-    if(!success ){
+    TypeNode t = TypeNode::fromType( (*i).getRangeType() );
+    if(!t.isInterpretedFinite()) {
       self.setAttribute(DatatypeUFiniteComputedAttr(), true);
       self.setAttribute(DatatypeUFiniteAttr(), false);
       return false;

@@ -162,4 +162,7 @@ option pbRewrites --pb-rewrites bool :default false
 option pbRewriteThreshold --pb-rewrite-threshold int :default 256
  threshold of number of pseudoboolean variables to have before doing rewrites
 
+option sNormInferEq --snorm-infer-eq bool :default false
+ infer equalities based on Shostak normalization
+
 endmodule

@@ -1,13 +1,13 @@
 /*********************                                                        */
 /*! \file instantiation_engine.cpp
  ** \verbatim
- ** Original author: Morgan Deters
- ** Major contributors: Andrew Reynolds
- ** Minor contributors (to current version): Tim King
+ ** Top contributors (to current version):
+ **   Andrew Reynolds, Morgan Deters, Tim King
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2014  New York University and The University of Iowa
- ** See the file COPYING in the top-level source directory for licensing
- ** information.\endverbatim
+ ** Copyright (c) 2009-2016 by the authors listed in the file AUTHORS
+ ** in the top-level source directory) and their institutional affiliations.
+ ** All rights reserved.  See the file COPYING in the top-level source
+ ** directory for licensing information.\endverbatim
  **
  ** \brief Implementation of instantiation engine class
  **/
@@ -60,7 +60,7 @@ void InstantiationEngine::presolve() {
   }
 }
 
-bool InstantiationEngine::doInstantiationRound( Theory::Effort effort ){
+void InstantiationEngine::doInstantiationRound( Theory::Effort effort ){
   unsigned lastWaiting = d_quantEngine->getNumLemmasWaiting();
   //iterate over an internal effort level e
   int e = 0;
@@ -83,8 +83,10 @@ bool InstantiationEngine::doInstantiationRound( Theory::Effort effort ){
           InstStrategy* is = d_instStrategies[j];
           Trace("inst-engine-debug") << "Do " << is->identify() << " " << e_use << std::endl;
           int quantStatus = is->process( q, effort, e_use );
-          Trace("inst-engine-debug") << " -> status is " << quantStatus << std::endl;
-          if( quantStatus==InstStrategy::STATUS_UNFINISHED ){
+          Trace("inst-engine-debug") << " -> status is " << quantStatus << ", conflict=" << d_quantEngine->inConflict() << std::endl;
+          if( d_quantEngine->inConflict() ){
+            return;
+          }else if( quantStatus==InstStrategy::STATUS_UNFINISHED ){
             finished = false;
           }
         }
@@ -95,13 +97,6 @@ bool InstantiationEngine::doInstantiationRound( Theory::Effort effort ){
       finished = true;
     }
     e++;
-  }
-  //Notice() << "All instantiators finished, # added lemmas = " << (int)d_lemmas_waiting.size() << std::endl;
-  if( !d_quantEngine->hasAddedLemma() ){
-    return false;
-  }else{
-    Trace("inst-engine") << "Added lemmas = " << (int)(d_quantEngine->getNumLemmasWaiting()-lastWaiting)  << std::endl;
-    return true;
   }
 }
 
@@ -128,8 +123,8 @@ void InstantiationEngine::check( Theory::Effort e, unsigned quant_e ){
     //collect all active quantified formulas belonging to this
     bool quantActive = false;
     d_quants.clear();
-    for( int i=0; i<d_quantEngine->getModel()->getNumAssertedQuantifiers(); i++ ){
-      Node q = d_quantEngine->getModel()->getAssertedQuantifier( i );
+    for( unsigned i=0; i<d_quantEngine->getModel()->getNumAssertedQuantifiers(); i++ ){
+      Node q = d_quantEngine->getModel()->getAssertedQuantifier( i, true );
       if( d_quantEngine->hasOwnership( q, this ) && d_quantEngine->getModel()->isQuantifierActive( q ) ){
         quantActive = true;
         d_quants.push_back( q );
@@ -138,8 +133,14 @@ void InstantiationEngine::check( Theory::Effort e, unsigned quant_e ){
     Trace("inst-engine-debug") << "InstEngine: check: # asserted quantifiers " << d_quants.size() << "/";
     Trace("inst-engine-debug") << d_quantEngine->getModel()->getNumAssertedQuantifiers() << " " << quantActive << std::endl;
     if( quantActive ){
-      bool addedLemmas = doInstantiationRound( e );
-      Trace("inst-engine-debug") << "Add lemmas = " << addedLemmas << std::endl;
+      unsigned lastWaiting = d_quantEngine->getNumLemmasWaiting();
+      doInstantiationRound( e );
+      if( d_quantEngine->inConflict() ){
+        Assert( d_quantEngine->getNumLemmasWaiting()>lastWaiting );
+        Trace("inst-engine") << "Conflict, added lemmas = " << (d_quantEngine->getNumLemmasWaiting()-lastWaiting) << std::endl;
+      }else if( d_quantEngine->hasAddedLemma() ){
+        Trace("inst-engine") << "Added lemmas = " << (d_quantEngine->getNumLemmasWaiting()-lastWaiting)  << std::endl;
+      }
     }else{
       d_quants.clear();
     }
@@ -163,6 +164,22 @@ bool InstantiationEngine::checkComplete() {
 
 bool InstantiationEngine::isIncomplete( Node q ) {
   return true;
+}
+
+void InstantiationEngine::preRegisterQuantifier( Node q ) {
+  if( options::strictTriggers() && q.getNumChildren()==3 ){
+    //if strict triggers, take ownership of this quantified formula
+    bool hasPat = false;
+    for( unsigned i=0; i<q[2].getNumChildren(); i++ ){
+      if( q[2][i].getKind()==INST_PATTERN || q[2][i].getKind()==INST_NO_PATTERN  ){
+        hasPat = true;
+        break;
+      }
+    }
+    if( hasPat ){
+      d_quantEngine->setOwner( q, this, 1 );
+    }
+  }
 }
 
 void InstantiationEngine::registerQuantifier( Node f ){

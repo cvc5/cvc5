@@ -1,13 +1,13 @@
 /*********************                                                        */
 /*! \file bitvector.h
  ** \verbatim
- ** Original author: Dejan Jovanovic
- ** Major contributors: Morgan Deters, Liana Hadarean
- ** Minor contributors (to current version): Christopher L. Conway
+ ** Top contributors (to current version):
+ **   Liana Hadarean, Dejan Jovanovic, Morgan Deters
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2014  New York University and The University of Iowa
- ** See the file COPYING in the top-level source directory for licensing
- ** information.\endverbatim
+ ** Copyright (c) 2009-2016 by the authors listed in the file AUTHORS
+ ** in the top-level source directory) and their institutional affiliations.
+ ** All rights reserved.  See the file COPYING in the top-level source
+ ** directory for licensing information.\endverbatim
  **
  ** \brief [[ Add one-line brief description here ]]
  **
@@ -338,6 +338,15 @@ public:
     return d_value;
   }
 
+  Integer toSignedInt() const {
+    // returns Integer corresponding to two's complement interpretation of bv
+    unsigned size = d_size;
+    Integer sign_bit = d_value.extractBitRange(1,size-1);
+    Integer val = d_value.extractBitRange(size-1, 0);
+    Integer res = Integer(-1) * sign_bit.multiplyByPow2(size - 1) + val;
+    return res;
+  }
+
   /**
    Returns k is the integer is equal to 2^{k-1} and zero
    otherwise
@@ -356,14 +365,6 @@ private:
   unsigned d_size;
   Integer d_value;
 
-  Integer toSignedInt() const {
-    // returns Integer corresponding to two's complement interpretation of bv
-    unsigned size = d_size;
-    Integer sign_bit = d_value.extractBitRange(1,size-1);
-    Integer val = d_value.extractBitRange(size-1, 0);
-    Integer res = Integer(-1) * sign_bit.multiplyByPow2(size - 1) + val;
-    return res;
-  }
 };/* class BitVector */
 
 

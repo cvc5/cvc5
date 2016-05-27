@@ -1,13 +1,13 @@
 /*********************                                                        */
 /*! \file datatype.h
  ** \verbatim
- ** Original author: Morgan Deters
- ** Major contributors: Andrew Reynolds
- ** Minor contributors (to current version): none
+ ** Top contributors (to current version):
+ **   Morgan Deters, Andrew Reynolds, Tim King
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2014  New York University and The University of Iowa
- ** See the file COPYING in the top-level source directory for licensing
- ** information.\endverbatim
+ ** Copyright (c) 2009-2016 by the authors listed in the file AUTHORS
+ ** in the top-level source directory) and their institutional affiliations.
+ ** All rights reserved.  See the file COPYING in the top-level source
+ ** directory for licensing information.\endverbatim
  **
  ** \brief A class representing a Datatype definition
  **
@@ -342,7 +342,7 @@ public:
    * uninterpreted sorts are finite.  This function can
    * only be called for resolved constructors.
    */
-  bool isUFinite() const throw(IllegalArgumentException);
+  bool isInterpretedFinite() const throw(IllegalArgumentException);
 
   /**
    * Returns true iff this Datatype constructor has already been
@@ -634,7 +634,7 @@ public:
    * datatype is  not well-founded, this function  returns false.  The
    * Datatype must be resolved or an exception is thrown.
    */
-  bool isUFinite() const throw(IllegalArgumentException);
+  bool isInterpretedFinite() const throw(IllegalArgumentException);
 
   /**
    * Return true iff this datatype is well-founded (there exist ground

@@ -1,13 +1,13 @@
 /*********************                                                        */
 /*! \file theory_model.cpp
  ** \verbatim
- ** Original author: Morgan Deters
- ** Major contributors: Andrew Reynolds, Clark Barrett
- ** Minor contributors (to current version): Kshitij Bansal, Liana Hadarean, Tim King
+ ** Top contributors (to current version):
+ **   Clark Barrett, Andrew Reynolds, Morgan Deters
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2014  New York University and The University of Iowa
- ** See the file COPYING in the top-level source directory for licensing
- ** information.\endverbatim
+ ** Copyright (c) 2009-2016 by the authors listed in the file AUTHORS
+ ** in the top-level source directory) and their institutional affiliations.
+ ** All rights reserved.  See the file COPYING in the top-level source
+ ** directory for licensing information.\endverbatim
  **
  ** \brief Implementation of model class
  **/
@@ -832,6 +832,7 @@ void TheoryEngineModelBuilder::buildModel(Model* m, bool fullModel)
           Assert(!t.isBoolean() || (*i2).getKind() == kind::APPLY_UF);
           Node n;
           if (t.getCardinality().isInfinite()) {
+          // if (!t.isInterpretedFinite()) {
             bool success;
             do{
               Trace("model-builder-debug") << "Enumerate term of type " << t << std::endl;

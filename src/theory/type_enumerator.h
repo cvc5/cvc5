@@ -1,13 +1,13 @@
 /*********************                                                        */
 /*! \file type_enumerator.h
  ** \verbatim
- ** Original author: Morgan Deters
- ** Major contributors: none
- ** Minor contributors (to current version): Andrew Reynolds
+ ** Top contributors (to current version):
+ **   Morgan Deters, Andrew Reynolds, Tim King
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2014  New York University and The University of Iowa
- ** See the file COPYING in the top-level source directory for licensing
- ** information.\endverbatim
+ ** Copyright (c) 2009-2016 by the authors listed in the file AUTHORS
+ ** in the top-level source directory) and their institutional affiliations.
+ ** All rights reserved.  See the file COPYING in the top-level source
+ ** directory for licensing information.\endverbatim
  **
  ** \brief Enumerators for types
  **
@@ -115,7 +115,7 @@ public:
 // On Mac clang, there appears to be a code generation bug in an exception
 // block here.  For now, there doesn't appear a good workaround; just disable
 // assertions on that setup.
-#if defined(CVC4_ASSERTIONS) && !(defined(__APPLE__) && defined(__clang__))
+#if defined(CVC4_ASSERTIONS) && !(defined(__clang__))
     if(d_te->isFinished()) {
       try {
         **d_te;

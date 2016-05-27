@@ -1,13 +1,13 @@
 /*********************                                                        */
 /*! \file datatypes_rewriter.h
  ** \verbatim
- ** Original author: Morgan Deters
- ** Major contributors: Andrew Reynolds
- ** Minor contributors (to current version): Kshitij Bansal
+ ** Top contributors (to current version):
+ **   Andrew Reynolds, Morgan Deters, Tim King
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2014  New York University and The University of Iowa
- ** See the file COPYING in the top-level source directory for licensing
- ** information.\endverbatim
+ ** Copyright (c) 2009-2016 by the authors listed in the file AUTHORS
+ ** in the top-level source directory) and their institutional affiliations.
+ ** All rights reserved.  See the file COPYING in the top-level source
+ ** directory for licensing information.\endverbatim
  **
  ** \brief Rewriter for the theory of inductive datatypes
  **
@@ -260,10 +260,6 @@ public:
   /** get instantiate cons */
   static Node getInstCons( Node n, const Datatype& dt, int index ) {
     Assert( index>=0 && index<(int)dt.getNumConstructors() );
-    Type tspec;
-    if( dt.isParametric() ){
-      tspec = dt[index].getSpecializedConstructorType(n.getType().toType());
-    }
     std::vector< Node > children;
     children.push_back( Node::fromExpr( dt[index].getConstructor() ) );
     for( int i=0; i<(int)dt[index].getNumArgs(); i++ ){

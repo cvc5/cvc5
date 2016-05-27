@@ -1,13 +1,13 @@
 /*********************                                                        */
 /*! \file theory_sets_private.h
  ** \verbatim
- ** Original author: Kshitij Bansal
- ** Major contributors: none
- ** Minor contributors (to current version): Andrew Reynolds
+ ** Top contributors (to current version):
+ **   Kshitij Bansal, Tim King, Andrew Reynolds
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2014  New York University and The University of Iowa
- ** See the file COPYING in the top-level source directory for licensing
- ** information.\endverbatim
+ ** Copyright (c) 2009-2016 by the authors listed in the file AUTHORS
+ ** in the top-level source directory) and their institutional affiliations.
+ ** All rights reserved.  See the file COPYING in the top-level source
+ ** directory for licensing information.\endverbatim
  **
  ** \brief Sets theory implementation.
  **
@@ -66,6 +66,8 @@ public:
 
   void preRegisterTerm(TNode node);
 
+  void presolve();
+
   void propagate(Theory::Effort);
 
 private:
@@ -74,8 +76,16 @@ private:
   class Statistics {
   public:
     TimerStat d_getModelValueTime;
+    TimerStat d_mergeTime;
+    TimerStat d_processCard2Time;
     IntStat d_memberLemmas;
     IntStat d_disequalityLemmas;
+    IntStat d_numVertices;
+    IntStat d_numVerticesMax;
+    IntStat d_numMergeEq1or2;
+    IntStat d_numMergeEq3;
+    IntStat d_numLeaves;
+    IntStat d_numLeavesMax;
 
     Statistics();
     ~Statistics();
@@ -113,6 +123,20 @@ private:
   /** generate and send out conflict node */
   void conflict(TNode, TNode);
 
+  /** send out a lemma */
+  enum SetsLemmaTag {
+    SETS_LEMMA_DISEQUAL,
+    SETS_LEMMA_MEMBER,
+    SETS_LEMMA_GRAPH,
+    SETS_LEMMA_OTHER
+  };
+
+  /**
+   * returns true if a lemmas was generated
+   * returns false otherwise (found in cache)
+   */
+  bool lemma(Node n, SetsLemmaTag t);
+
   class TermInfoManager {
     TheorySetsPrivate& d_theory;
     context::Context* d_context;
@@ -141,6 +165,25 @@ private:
   };
   TermInfoManager* d_termInfoManager;
 
+  /******
+   * Card Vars :
+   *
+   * mapping from set terms to correpsonding cardinality variable
+   * 
+   * in the ::check function, when we get one of those cardinality
+   * variables to be assigned to 0, we will assert in equality engine
+   * to be equal to empty set.
+   *
+   * if required, we will add more filters so it doesn't leak to
+   * outside world
+   */
+  Node getCardVar(TNode n);
+  Node newCardVar(TNode n);
+  bool isCardVar(TNode n);
+  typedef std::hash_map <Node, Node, NodeHashFunction> NodeNodeHashMap;
+  NodeNodeHashMap d_setTermToCardVar;
+  NodeNodeHashMap d_cardVarToSetTerm;
+  
   /** Assertions and helper functions */
   bool present(TNode atom);
   bool holds(TNode lit) {
@@ -199,6 +242,58 @@ private:
   friend class TheorySetsScrutinize;
   TheorySetsScrutinize* d_scrutinize;
   void dumpAssertionsHumanified() const;  /** do some formatting to make them more readable */
+
+
+
+  /***** Cardinality handling *****/
+  bool d_cardEnabled;
+  void enableCard();
+  void cardCreateEmptysetSkolem(TypeNode t);
+  
+  CDNodeSet d_cardTerms;
+  std::set<TypeNode> d_typesAdded;
+  CDNodeSet d_processedCardTerms;
+  std::map<std::pair<Node, Node>, bool> d_processedCardPairs;
+  CDNodeSet d_cardLowerLemmaCache;
+  void registerCard(TNode);
+  void processCard(Theory::Effort level);
+
+  /* Graph handling */
+  std::map<TNode, std::set<TNode> > edgesFd;
+  std::map<TNode, std::set<TNode> > edgesBk;
+  std::set< std::pair<TNode, TNode> > disjoint;
+  std::set<TNode> leaves;
+  void buildGraph();
+
+  /* For calculus as in paper */
+  void processCard2(Theory::Effort level);
+  CDNodeSet d_V;
+  context::CDHashMap <TNode, std::vector<TNode>, TNodeHashFunction > d_E;
+  void add_edges(TNode source, TNode dest);
+  void add_edges(TNode source, TNode dest1, TNode dest2);
+  void add_edges(TNode source, TNode dest1, TNode dest2, TNode dest3);
+  void add_edges(TNode source, const std::vector<TNode>& dests);
+  void add_node(TNode vertex);
+  void merge_nodes(std::set<TNode> a, std::set<TNode> b, Node reason);
+  std::set<TNode> get_leaves(Node vertex);
+  std::set<TNode> get_leaves(Node vertex1, Node vertex2);
+  std::set<TNode> get_leaves(Node vertex1, Node vertex2, Node vertex3);
+  std::set<TNode> non_empty(std::set<TNode> vertices);
+  void print_graph();
+  context::CDQueue < std::pair<TNode, TNode> > d_graphMergesPending;
+  context::CDList<Node> d_allSetEqualitiesSoFar;
+  Node eqSoFar();
+  Node eqemptySoFar();
+
+  std::set<TNode> getNonEmptyLeaves(TNode);
+  CDNodeSet d_lemmasGenerated;
+  bool d_newLemmaGenerated;
+
+  void guessLeavesEmptyLemmas();
+
+
+  /** relevant terms */
+  CDNodeSet d_relTerms;
 };/* class TheorySetsPrivate */
 
 

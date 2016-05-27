@@ -1,13 +1,13 @@
 /*********************                                                        */
 /*! \file bitblaster_template.h
  ** \verbatim
- ** Original author: Liana Hadarean
- ** Major contributors: none
- ** Minor contributors (to current version): Morgan Deters
+ ** Top contributors (to current version):
+ **   Liana Hadarean, Tim King, Morgan Deters
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2014  New York University and The University of Iowa
- ** See the file COPYING in the top-level source directory for licensing
- ** information.\endverbatim
+ ** Copyright (c) 2009-2016 by the authors listed in the file AUTHORS
+ ** in the top-level source directory) and their institutional affiliations.
+ ** All rights reserved.  See the file COPYING in the top-level source
+ ** directory for licensing information.\endverbatim
  **
  ** \brief Wrapper around the SAT solver used for bitblasting
  **
@@ -257,7 +257,7 @@ public:
 class EagerBitblaster : public TBitblaster<Node> {
   typedef __gnu_cxx::hash_set<TNode, TNodeHashFunction> TNodeSet;
   // sat solver used for bitblasting and associated CnfStream
-  prop::BVSatSolverInterface*        d_satSolver;
+  prop::SatSolver*                   d_satSolver;
   BitblastingRegistrar*              d_bitblastingRegistrar;
   context::Context*                  d_nullContext;
   prop::CnfStream*                   d_cnfStream;
@@ -306,7 +306,7 @@ class AigBitblaster : public TBitblaster<Abc_Obj_t*> {
   
   static Abc_Ntk_t* abcAigNetwork;
   context::Context* d_nullContext;
-  prop::BVSatSolverInterface* d_satSolver;
+  prop::SatSolver* d_satSolver;
   TNodeAigMap d_aigCache;
   NodeAigMap d_bbAtoms;
   
@@ -459,7 +459,7 @@ Node TBitblaster<T>::getTermModel(TNode node, bool fullModel) {
 
   if (Theory::isLeafOf(node, theory::THEORY_BV)) {
     // if it is a leaf may ask for fullModel
-    value = getModelFromSatSolver(node, fullModel); 
+    value = getModelFromSatSolver(node, true); 
     Debug("bv-equality-status")<< "TLazyBitblaster::getTermModel from VarValue" << node <<" => " << value <<"\n";
     Assert ((fullModel && !value.isNull() && value.isConst()) || !fullModel); 
     if (!value.isNull()) {

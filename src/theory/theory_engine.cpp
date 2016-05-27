@@ -1,13 +1,13 @@
 /*********************                                                        */
 /*! \file theory_engine.cpp
  ** \verbatim
- ** Original author: Morgan Deters
- ** Major contributors: Dejan Jovanovic
- ** Minor contributors (to current version): Christopher L. Conway, Tianyi Liang, Kshitij Bansal, Clark Barrett, Liana Hadarean, Andrew Reynolds, Tim King
+ ** Top contributors (to current version):
+ **   Dejan Jovanovic, Morgan Deters, Tim King
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2014  New York University and The University of Iowa
- ** See the file COPYING in the top-level source directory for licensing
- ** information.\endverbatim
+ ** Copyright (c) 2009-2016 by the authors listed in the file AUTHORS
+ ** in the top-level source directory) and their institutional affiliations.
+ ** All rights reserved.  See the file COPYING in the top-level source
+ ** directory for licensing information.\endverbatim
  **
  ** \brief The theory engine
  **
@@ -465,6 +465,7 @@ void TheoryEngine::check(Theory::Effort effort) {
     if (theory::TheoryTraits<THEORY>::hasCheck && d_logicInfo.isTheoryEnabled(THEORY)) { \
        theoryOf(THEORY)->check(effort); \
        if (d_inConflict) { \
+         Debug("conflict") << THEORY << " in conflict. " << std::endl; \
          break; \
        } \
     }
@@ -1803,15 +1804,9 @@ void TheoryEngine::mkAckermanizationAsssertions(std::vector<Node>& assertions) {
 
 Node TheoryEngine::ppSimpITE(TNode assertion)
 {
-  if(options::incrementalSolving()){
-    // disabling the d_iteUtilities->simpITE(assertion) pass for incremental solving.
-    // This is paranoia. We do not actually know of a bug coming from this.
-    // TODO re-enable
+  if (!d_iteRemover.containsTermITE(assertion)) {
     return assertion;
-  } else if(!d_iteRemover.containsTermITE(assertion)){
-    return assertion;
-  }else{
-
+  } else {
     Node result = d_iteUtilities->simpITE(assertion);
     Node res_rewritten = Rewriter::rewrite(result);
 
@@ -1821,10 +1816,9 @@ Node TheoryEngine::ppSimpITE(TNode assertion)
       Chat() << "ending simplifyWithCare()"
              << " post simplifyWithCare()" << postSimpWithCare.getId() << endl;
       result = Rewriter::rewrite(postSimpWithCare);
-    }else{
+    } else {
       result = res_rewritten;
     }
-
     return result;
   }
 }

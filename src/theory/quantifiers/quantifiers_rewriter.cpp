@@ -1,13 +1,13 @@
 /*********************                                                        */
 /*! \file quantifiers_rewriter.cpp
  ** \verbatim
- ** Original author: Morgan Deters
- ** Major contributors: Andrew Reynolds
- ** Minor contributors (to current version): Tim King
+ ** Top contributors (to current version):
+ **   Andrew Reynolds, Morgan Deters, Tim King
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2014  New York University and The University of Iowa
- ** See the file COPYING in the top-level source directory for licensing
- ** information.\endverbatim
+ ** Copyright (c) 2009-2016 by the authors listed in the file AUTHORS
+ ** in the top-level source directory) and their institutional affiliations.
+ ** All rights reserved.  See the file COPYING in the top-level source
+ ** directory for licensing information.\endverbatim
  **
  ** \brief Implementation of QuantifiersRewriter class
  **/
@@ -185,19 +185,10 @@ RewriteResponse QuantifiersRewriter::preRewrite(TNode in) {
   if( in.getKind()==kind::EXISTS || in.getKind()==kind::FORALL ){
     Trace("quantifiers-rewrite-debug") << "pre-rewriting " << in << std::endl;
     std::vector< Node > args;
-    for( int i=0; i<(int)in[0].getNumChildren(); i++ ){
-      args.push_back( in[0][i] );
-    }
-    Node body = in[1];
+    Node body = in;
     bool doRewrite = false;
-    std::vector< Node > ipl;
-    while( body.getNumChildren()>=2 && body.getKind()==in.getKind() ){
-      if( body.getNumChildren()==3 ){
-        for( unsigned i=0; i<body[2].getNumChildren(); i++ ){
-          ipl.push_back( body[2][i] );
-        }
-      }
-      for( int i=0; i<(int)body[0].getNumChildren(); i++ ){
+    while( body.getNumChildren()==2 && body.getKind()==body[1].getKind() ){
+      for( unsigned i=0; i<body[0].getNumChildren(); i++ ){
         args.push_back( body[0][i] );
       }
       body = body[1];
@@ -205,16 +196,11 @@ RewriteResponse QuantifiersRewriter::preRewrite(TNode in) {
     }
     if( doRewrite ){
       std::vector< Node > children;
+      for( unsigned i=0; i<body[0].getNumChildren(); i++ ){
+        args.push_back( body[0][i] );
+      }      
       children.push_back( NodeManager::currentNM()->mkNode(kind::BOUND_VAR_LIST,args) );
-      children.push_back( body );
-      if( in.getNumChildren()==3 ){
-        for( unsigned i=0; i<in[2].getNumChildren(); i++ ){
-          ipl.push_back( in[2][i] );
-        }
-      }
-      if( !ipl.empty() ){
-        children.push_back( NodeManager::currentNM()->mkNode( INST_PATTERN_LIST, ipl ) );
-      }
+      children.push_back( body[1] );
       Node n = NodeManager::currentNM()->mkNode( in.getKind(), children );
       if( in!=n ){
         Trace("quantifiers-pre-rewrite") << "*** pre-rewrite " << in << std::endl;
@@ -231,6 +217,7 @@ RewriteResponse QuantifiersRewriter::postRewrite(TNode in) {
   Trace("quantifiers-rewrite-debug") << "post-rewriting " << in << std::endl;
   RewriteStatus status = REWRITE_DONE;
   Node ret = in;
+  int rew_op = -1;
   //get the body
   if( in.getKind()==EXISTS ){
     std::vector< Node > children;
@@ -243,16 +230,21 @@ RewriteResponse QuantifiersRewriter::postRewrite(TNode in) {
     ret = ret.negate();
     status = REWRITE_AGAIN_FULL;
   }else if( in.getKind()==FORALL ){
-    //compute attributes
-    QAttributes qa;
-    TermDb::computeQuantAttributes( in, qa );
-    if( !qa.isRewriteRule() ){
-      for( int op=0; op<COMPUTE_LAST; op++ ){
-        if( doOperation( in, op, qa ) ){
-          ret = computeOperation( in, op, qa );
-          if( ret!=in ){
-            status = REWRITE_AGAIN_FULL;
-            break;
+    if( in[1].isConst() && in.getNumChildren()==2 ){
+      return RewriteResponse( status, in[1] );
+    }else{
+      //compute attributes
+      QAttributes qa;
+      TermDb::computeQuantAttributes( in, qa );
+      if( !qa.isRewriteRule() ){
+        for( int op=0; op<COMPUTE_LAST; op++ ){
+          if( doOperation( in, op, qa ) ){
+            ret = computeOperation( in, op, qa );
+            if( ret!=in ){
+              rew_op = op;
+              status = REWRITE_AGAIN_FULL;
+              break;
+            }
           }
         }
       }
@@ -260,7 +252,7 @@ RewriteResponse QuantifiersRewriter::postRewrite(TNode in) {
   }
   //print if changed
   if( in!=ret ){
-    Trace("quantifiers-rewrite") << "*** rewrite " << in << std::endl;
+    Trace("quantifiers-rewrite") << "*** rewrite (op=" << rew_op << ") " << in << std::endl;
     Trace("quantifiers-rewrite") << " to " << std::endl;
     Trace("quantifiers-rewrite") << ret << std::endl;
   }
@@ -324,7 +316,7 @@ Node QuantifiersRewriter::computeNNF( Node body ){
     }else if( isLiteral( body[0] ) ){
       return body;
     }else{
-      std::vector< Node > children;
+      std::vector< Node > children; 
       Kind k = body[0].getKind();
 
       if( body[0].getKind()==OR || body[0].getKind()==AND ){
@@ -457,6 +449,8 @@ int getEntailedCond( Node n, std::map< Node, bool >& currCond ){
   std::map< Node, bool >::iterator it = currCond.find( n );
   if( it!=currCond.end() ){
     return it->second ? 1 : -1;
+  }else if( n.getKind()==NOT ){
+    return -getEntailedCond( n[0], currCond );
   }else if( n.getKind()==AND || n.getKind()==OR ){
     bool hasZero = false;
     for( unsigned i=0; i<n.getNumChildren(); i++ ){
@@ -477,8 +471,7 @@ int getEntailedCond( Node n, std::map< Node, bool >& currCond ){
     }else if( res==-1 ){
       return getEntailedCond( n[2], currCond );
     }
-  }
-  if( n.getKind()==IFF || n.getKind()==ITE ){
+  }else if( n.getKind()==IFF || n.getKind()==ITE ){
     unsigned start = n.getKind()==IFF ? 0 : 1;
     int res1 = 0;
     for( unsigned j=start; j<=(start+1); j++ ){
@@ -1537,8 +1530,9 @@ Node QuantifiersRewriter::computeAggressiveMiniscoping( std::vector< Node >& arg
   return mkForAll( args, body, qa );
 }
 
-bool QuantifiersRewriter::doOperation( Node f, int computeOption, QAttributes& qa ){
-  bool is_std = !qa.d_sygus && !qa.d_quant_elim && !qa.isFunDef();
+bool QuantifiersRewriter::doOperation( Node q, int computeOption, QAttributes& qa ){
+  bool is_strict_trigger = qa.d_hasPattern && options::userPatternsQuant()==USER_PAT_MODE_TRUST;
+  bool is_std = !qa.d_sygus && !qa.d_quant_elim && !qa.isFunDef() && !is_strict_trigger;
   if( computeOption==COMPUTE_ELIM_SYMBOLS ){
     return true;
   }else if( computeOption==COMPUTE_MINISCOPING ){
@@ -1546,20 +1540,19 @@ bool QuantifiersRewriter::doOperation( Node f, int computeOption, QAttributes& q
   }else if( computeOption==COMPUTE_AGGRESSIVE_MINISCOPING ){
     return options::aggressiveMiniscopeQuant() && is_std;
   }else if( computeOption==COMPUTE_NNF ){
-    return options::nnfQuant();
-  }else if( computeOption==COMPUTE_PROCESS_TERMS ){
     return true;
-    //return options::iteLiftQuant()!=ITE_LIFT_QUANT_MODE_NONE || options::iteCondVarSplitQuant();
+  }else if( computeOption==COMPUTE_PROCESS_TERMS ){
+    return options::condRewriteQuant();
   }else if( computeOption==COMPUTE_COND_SPLIT ){
-    return ( options::iteDtTesterSplitQuant() || options::condVarSplitQuant() ) && is_std;
+    return ( options::iteDtTesterSplitQuant() || options::condVarSplitQuant() ) && !is_strict_trigger;
   }else if( computeOption==COMPUTE_PRENEX ){
-    return options::prenexQuant()!=PRENEX_NONE && !options::aggressiveMiniscopeQuant();
+    return options::prenexQuant()!=PRENEX_NONE && !options::aggressiveMiniscopeQuant() && is_std;
   }else if( computeOption==COMPUTE_VAR_ELIMINATION ){
     return ( options::varElimQuant() || options::dtVarExpandQuant() || options::purifyQuant() ) && is_std;
   //}else if( computeOption==COMPUTE_CNF ){
   //  return options::cnfQuant();
   }else if( computeOption==COMPUTE_PURIFY_EXPAND ){
-    return options::purifyQuant();
+    return options::purifyQuant() && is_std;
   }else{
     return false;
   }
@@ -1617,7 +1610,7 @@ Node QuantifiersRewriter::computeOperation( Node f, int computeOption, QAttribut
       std::vector< Node > children;
       children.push_back( NodeManager::currentNM()->mkNode(kind::BOUND_VAR_LIST, args ) );
       children.push_back( n );
-      if( !qa.d_ipl.isNull() ){
+      if( !qa.d_ipl.isNull() && args.size()==f[0].getNumChildren() ){
         children.push_back( qa.d_ipl );
       }
       return NodeManager::currentNM()->mkNode(kind::FORALL, children );

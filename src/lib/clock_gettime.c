@@ -1,13 +1,13 @@
 /*********************                                                        */
 /*! \file clock_gettime.c
  ** \verbatim
- ** Original author: Morgan Deters
- ** Major contributors: none
- ** Minor contributors (to current version): none
+ ** Top contributors (to current version):
+ **   Morgan Deters, Tim King
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2014  New York University and The University of Iowa
- ** See the file COPYING in the top-level source directory for licensing
- ** information.\endverbatim
+ ** Copyright (c) 2009-2016 by the authors listed in the file AUTHORS
+ ** in the top-level source directory) and their institutional affiliations.
+ ** All rights reserved.  See the file COPYING in the top-level source
+ ** directory for licensing information.\endverbatim
  **
  ** \brief Replacement for clock_gettime() for systems without it (like
  ** Mac OS X)
@@ -16,7 +16,7 @@
  ** OS X).
  **/
 
-#warning "TODO(taking): Make lib/clock_gettime.h cvc4_private.h again."
+// #warning "TODO(taking): Make lib/clock_gettime.h cvc4_private.h again."
 
 #include "lib/clock_gettime.h"
 

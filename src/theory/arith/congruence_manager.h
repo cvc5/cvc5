@@ -1,13 +1,13 @@
 /*********************                                                        */
 /*! \file congruence_manager.h
  ** \verbatim
- ** Original author: Tim King
- ** Major contributors: none
- ** Minor contributors (to current version): Dejan Jovanovic, Morgan Deters
+ ** Top contributors (to current version):
+ **   Tim King, Morgan Deters, Dejan Jovanovic, Andrew Reynolds
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2014  New York University and The University of Iowa
- ** See the file COPYING in the top-level source directory for licensing
- ** information.\endverbatim
+ ** Copyright (c) 2009-2016 by the authors listed in the file AUTHORS
+ ** in the top-level source directory) and their institutional affiliations.
+ ** All rights reserved.  See the file COPYING in the top-level source
+ ** directory for licensing information.\endverbatim
  **
  ** \brief [[ Add one-line brief description here ]]
  **
@@ -33,6 +33,11 @@
 
 namespace CVC4 {
 namespace theory {
+
+namespace quantifiers {
+class EqualityInference;
+}
+
 namespace arith {
 
 class ArithCongruenceManager {
@@ -69,6 +74,11 @@ private:
     void eqNotifyDisequal(TNode t1, TNode t2, TNode reason);
   };
   ArithCongruenceNotify d_notify;
+  
+  /** module for shostak normalization, d_eqi_counter is how many pending merges in d_eq_infer we have processed */
+  quantifiers::EqualityInference * d_eq_infer;
+  context::CDO< unsigned > d_eqi_counter;
+  Node d_true;
 
   context::CDList<Node> d_keepAlive;
 
@@ -127,9 +137,12 @@ private:
 
   Node explainInternal(TNode internal);
 
+  void eqNotifyNewClass(TNode t);
+  void eqNotifyPostMerge(TNode t1, TNode t2);
 public:
 
   ArithCongruenceManager(context::Context* satContext, ConstraintDatabase&, SetupLiteralCallBack, const ArithVariables&, RaiseEqualityEngineConflict raiseConflict);
+  ~ArithCongruenceManager();
 
   Node explain(TNode literal);
   void explain(TNode lit, NodeBuilder<>& out);
@@ -160,6 +173,8 @@ public:
 
   void addSharedTerm(Node x);
 
+  /** process inferred equalities based on Shostak normalization */
+  bool fixpointInfer();
 private:
   class Statistics {
   public:

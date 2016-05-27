@@ -1,13 +1,13 @@
 /*********************                                                        */
 /*! \file theory_uf_strong_solver.h
  ** \verbatim
- ** Original author: Morgan Deters
- ** Major contributors: Andrew Reynolds
- ** Minor contributors (to current version): none
+ ** Top contributors (to current version):
+ **   Andrew Reynolds, Morgan Deters, Tim King
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2014  New York University and The University of Iowa
- ** See the file COPYING in the top-level source directory for licensing
- ** information.\endverbatim
+ ** Copyright (c) 2009-2016 by the authors listed in the file AUTHORS
+ ** in the top-level source directory) and their institutional affiliations.
+ ** All rights reserved.  See the file COPYING in the top-level source
+ ** directory for licensing information.\endverbatim
  **
  ** \brief Theory uf strong solver
  **/
@@ -414,7 +414,7 @@ private:
   SubsortSymmetryBreaker* d_sym_break;
 public:
   StrongSolverTheoryUF(context::Context* c, context::UserContext* u, OutputChannel& out, TheoryUF* th);
-  ~StrongSolverTheoryUF() {}
+  ~StrongSolverTheoryUF();
   /** get theory */
   TheoryUF* getTheory() { return d_th; }
   /** disequality propagator */

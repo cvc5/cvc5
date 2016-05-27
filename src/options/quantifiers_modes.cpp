@@ -1,13 +1,13 @@
 /*********************                                                        */
 /*! \file quantifiers_modes.cpp
  ** \verbatim
- ** Original author: Andrew Reynolds
- ** Major contributors: Morgan Deters
- ** Minor contributors (to current version): none
+ ** Top contributors (to current version):
+ **   Andrew Reynolds, Morgan Deters, Tim King
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2014  New York University and The University of Iowa
- ** See the file COPYING in the top-level source directory for licensing
- ** information.\endverbatim
+ ** Copyright (c) 2009-2016 by the authors listed in the file AUTHORS
+ ** in the top-level source directory) and their institutional affiliations.
+ ** All rights reserved.  See the file COPYING in the top-level source
+ ** directory for licensing information.\endverbatim
  **
  ** \brief [[ Add one-line brief description here ]]
  **
@@ -46,11 +46,14 @@ std::ostream& operator<<(std::ostream& out, theory::quantifiers::LiteralMatchMod
   case theory::quantifiers::LITERAL_MATCH_NONE:
     out << "LITERAL_MATCH_NONE";
     break;
-  case theory::quantifiers::LITERAL_MATCH_PREDICATE:
-    out << "LITERAL_MATCH_PREDICATE";
+  case theory::quantifiers::LITERAL_MATCH_USE:
+    out << "LITERAL_MATCH_USE";
     break;
-  case theory::quantifiers::LITERAL_MATCH_EQUALITY:
-    out << "LITERAL_MATCH_EQUALITY";
+  case theory::quantifiers::LITERAL_MATCH_AGG_PREDICATE:
+    out << "LITERAL_MATCH_AGG_PREDICATE";
+    break;
+  case theory::quantifiers::LITERAL_MATCH_AGG:
+    out << "LITERAL_MATCH_AGG";
     break;
   default:
     out << "LiteralMatchMode!UNKNOWN";

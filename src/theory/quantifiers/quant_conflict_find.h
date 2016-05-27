@@ -1,13 +1,13 @@
 /*********************                                                        */
 /*! \file quant_conflict_find.h
  ** \verbatim
- ** Original author: Andrew Reynolds
- ** Major contributors: none
- ** Minor contributors (to current version): none
+ ** Top contributors (to current version):
+ **   Clark Barrett, Tim King, Andrew Reynolds
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2014  New York University and The University of Iowa
- ** See the file COPYING in the top-level source directory for licensing
- ** information.\endverbatim
+ ** Copyright (c) 2009-2016 by the authors listed in the file AUTHORS
+ ** in the top-level source directory) and their institutional affiliations.
+ ** All rights reserved.  See the file COPYING in the top-level source
+ ** directory for licensing information.\endverbatim
  **
  ** \brief quantifiers conflict find class
  **/
@@ -35,6 +35,7 @@ class MatchGen {
 private:
   //current children information
   int d_child_counter;
+  bool d_use_children;
   //children of this object
   std::vector< int > d_children_order;
   unsigned getNumChildren() { return d_children.size(); }
@@ -61,7 +62,7 @@ private:
   std::map< int, Node > d_ground_eval;
   //determine variable order
   void determineVariableOrder( QuantInfo * qi, std::vector< int >& bvars );
-  void collectBoundVar( QuantInfo * qi, Node n, std::vector< int >& cbvars );
+  void collectBoundVar( QuantInfo * qi, Node n, std::vector< int >& cbvars, std::map< Node, bool >& visited, bool& hasNested );
 public:
   //type of the match generator
   enum {
@@ -114,6 +115,18 @@ private: //for completing match
   int d_unassigned_nvar;
   int d_una_index;
   std::vector< int > d_una_eqc_count;
+  //optimization: track which arguments variables appear under UF terms in
+  std::map< int, std::map< TNode, std::vector< unsigned > > > d_var_rel_dom;
+  void getPropagateVars( QuantConflictFind * p, std::vector< TNode >& vars, TNode n, bool pol, std::map< TNode, bool >& visited );
+  //optimization: number of variables set, to track when we can stop
+  std::map< int, bool > d_vars_set;
+  std::map< Node, bool > d_ground_terms;
+  std::vector< Node > d_extra_var;
+public:
+  void setGroundSubterm( Node t ) { d_ground_terms[t] = true; }
+  bool isGroundSubterm( Node t ) { return d_ground_terms.find( t )!=d_ground_terms.end(); }
+  bool isBaseMatchComplete();
+  bool isPropagatingInstance( QuantConflictFind * p, Node n );
 public:
   QuantInfo();
   ~QuantInfo();
@@ -138,15 +151,15 @@ public:
   bool containsVarMg(int i) const { return var_mg_find(i) != var_mg_end(); }
 
   bool matchGeneratorIsValid() const { return d_mg->isValid(); }
-  bool getNextMatch( QuantConflictFind * p) {
+  bool getNextMatch( QuantConflictFind * p ) {
     return d_mg->getNextMatch(p, this);
   }
 
   Node d_q;
-  void reset_round( QuantConflictFind * p );
+  bool reset_round( QuantConflictFind * p );
 public:
   //initialize
-  void initialize( Node q, Node qn );
+  void initialize( QuantConflictFind * p, Node q, Node qn );
   //current constraints
   std::vector< TNode > d_match;
   std::vector< TNode > d_match_term;
@@ -158,12 +171,13 @@ public:
   bool getCurrentCanBeEqual( QuantConflictFind * p, int v, TNode n, bool chDiseq = false );
   int addConstraint( QuantConflictFind * p, int v, TNode n, bool polarity );
   int addConstraint( QuantConflictFind * p, int v, TNode n, int vn, bool polarity, bool doRemove );
-  bool setMatch( QuantConflictFind * p, int v, TNode n );
+  bool setMatch( QuantConflictFind * p, int v, TNode n, bool isGroundRep, bool isGround );
+  void unsetMatch( QuantConflictFind * p, int v );
   bool isMatchSpurious( QuantConflictFind * p );
   bool isTConstraintSpurious( QuantConflictFind * p, std::vector< Node >& terms );
   bool entailmentTest( QuantConflictFind * p, Node lit, bool chEnt = true );
   bool completeMatch( QuantConflictFind * p, std::vector< int >& assigned, bool doContinue = false );
-  void revertMatch( std::vector< int >& assigned );
+  void revertMatch( QuantConflictFind * p, std::vector< int >& assigned );
   void debugPrintMatch( const char * c );
   bool isConstrainedVar( int v );
 public:
@@ -178,10 +192,14 @@ class QuantConflictFind : public QuantifiersModule
   typedef context::CDHashMap<Node, bool, NodeHashFunction> NodeBoolMap;
 private:
   context::CDO< bool > d_conflict;
-  std::vector< Node > d_quant_order;
   std::map< Kind, Node > d_zero;
   //for storing nodes created during t-constraint solving (prevents memory leaks)
   std::vector< Node > d_tempCache;
+  //optimization: list of quantifiers that depend on ground function applications
+  std::map< TNode, std::vector< Node > > d_func_rel_dom;
+  std::map< TNode, bool > d_irr_func;
+  std::map< Node, bool > d_irr_quant;
+  void setIrrelevantFunction( TNode f );
 private:
   std::map< Node, Node > d_op_node;
   int d_fid_count;
@@ -192,21 +210,14 @@ public:  //for ground terms
   Node d_false;
   TNode getZero( Kind k );
 private:
-  Node evaluateTerm( Node n );
-  int evaluate( Node n, bool pref = false, bool hasPref = false );
-private:
-  //currently asserted quantifiers
-  NodeList d_qassert;
   std::map< Node, QuantInfo > d_qinfo;
 private:  //for equivalence classes
   // type -> list(eqc)
   std::map< TypeNode, std::vector< TNode > > d_eqcs;
-  std::map< TypeNode, Node > d_model_basis;
 public:
   enum {
     effort_conflict,
     effort_prop_eq,
-    effort_mc,
   };
   short d_effort;
   void setEffort( int e ) { d_effort = e; }

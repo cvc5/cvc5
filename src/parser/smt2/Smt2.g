@@ -1,13 +1,13 @@
 /* *******************                                                        */
 /*! \file Smt2.g
  ** \verbatim
- ** Original author: Christopher L. Conway
- ** Major contributors: Morgan Deters
- ** Minor contributors (to current version): Dejan Jovanovic, Kshitij Bansal, Tianyi Liang, Francois Bobot, Andrew Reynolds
+ ** Top contributors (to current version):
+ **   Morgan Deters, Andrew Reynolds, Christopher L. Conway
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2014  New York University and The University of Iowa
- ** See the file COPYING in the top-level source directory for licensing
- ** information.\endverbatim
+ ** Copyright (c) 2009-2016 by the authors listed in the file AUTHORS
+ ** in the top-level source directory) and their institutional affiliations.
+ ** All rights reserved.  See the file COPYING in the top-level source
+ ** directory for licensing information.\endverbatim
  **
  ** \brief Parser for SMT-LIB v2 input language
  **
@@ -749,7 +749,7 @@ sygusCommand returns [CVC4::Command* cmd = NULL]
       $cmd = new EmptyCommand();
     }
   | /* check-synth */
-    CHECK_SYNTH_TOK { PARSER_STATE->checkThatLogicIsSet(); }
+    CHECK_SYNTH_TOK { PARSER_STATE->checkThatLogicIsSet();PARSER_STATE->defineSygusFuns(); }
     { Expr sygusVar = EXPR_MANAGER->mkVar("sygus", EXPR_MANAGER->booleanType());
       Expr sygusAttr = EXPR_MANAGER->mkExpr(kind::INST_PATTERN_LIST, EXPR_MANAGER->mkExpr(kind::INST_ATTRIBUTE, sygusVar));
       std::vector<Expr> bodyv;
@@ -760,7 +760,9 @@ sygusCommand returns [CVC4::Command* cmd = NULL]
         body = EXPR_MANAGER->mkExpr(kind::EXISTS, EXPR_MANAGER->mkExpr(kind::BOUND_VAR_LIST, PARSER_STATE->getSygusVars()), body);
         Debug("parser-sygus") << "...constructed exists " << body << std::endl;   
       }
-      body = EXPR_MANAGER->mkExpr(kind::FORALL, EXPR_MANAGER->mkExpr(kind::BOUND_VAR_LIST, PARSER_STATE->getSygusFunSymbols()), body, sygusAttr);
+      if( !PARSER_STATE->getSygusFunSymbols().empty() ){
+        body = EXPR_MANAGER->mkExpr(kind::FORALL, EXPR_MANAGER->mkExpr(kind::BOUND_VAR_LIST, PARSER_STATE->getSygusFunSymbols()), body, sygusAttr);
+      }
       Debug("parser-sygus") << "...constructed forall " << body << std::endl;   
       Command* c = new SetUserAttributeCommand("sygus", sygusVar);
       c->setMuted(true);
@@ -791,6 +793,7 @@ sygusGTerm[CVC4::SygusGTerm& sgt, std::string& fun]
   std::string sname;
   std::vector< Expr > let_vars;
   bool readingLet = false;
+  std::string s;
 }
   : LPAREN_TOK
     //read operator
@@ -799,6 +802,8 @@ sygusGTerm[CVC4::SygusGTerm& sgt, std::string& fun]
         //since we enforce satisfaction completeness, immediately convert to total version
         if( k==CVC4::kind::BITVECTOR_UDIV ){
           k = CVC4::kind::BITVECTOR_UDIV_TOTAL;
+        }else if( k==CVC4::kind::BITVECTOR_UREM ){
+          k = CVC4::kind::BITVECTOR_UREM_TOTAL;
         }
         sgt.d_name = kind::kindToString(k);
         sgt.d_gterm_type = SygusGTerm::gterm_op;
@@ -834,6 +839,8 @@ sygusGTerm[CVC4::SygusGTerm& sgt, std::string& fun]
           k = PARSER_STATE->getOperatorKind(name);
           if( k==CVC4::kind::BITVECTOR_UDIV ){
             k = CVC4::kind::BITVECTOR_UDIV_TOTAL;
+          }else if( k==CVC4::kind::BITVECTOR_UREM ){
+            k = CVC4::kind::BITVECTOR_UREM_TOTAL;
           }
           sgt.d_name = kind::kindToString(k);
           sgt.d_gterm_type = SygusGTerm::gterm_op;
@@ -888,6 +895,12 @@ sygusGTerm[CVC4::SygusGTerm& sgt, std::string& fun]
       std::string binString = AntlrInput::tokenTextSubstr($BINARY_LITERAL, 2);
       sgt.d_expr = MK_CONST( BitVector(binString, 2) );
       sgt.d_name = AntlrInput::tokenText($BINARY_LITERAL);
+      sgt.d_gterm_type = SygusGTerm::gterm_op;
+    }
+  | str[s,false]
+    { Debug("parser-sygus") << "Sygus grammar " << fun << " : string literal \"" << s << "\"" << std::endl;
+      sgt.d_expr = MK_CONST( ::CVC4::String(s) );
+      sgt.d_name = s;
       sgt.d_gterm_type = SygusGTerm::gterm_op;
     }
   | symbol[name,CHECK_NONE,SYM_VARIABLE] ( SYGUS_ENUM_CONS_TOK symbol[name2,CHECK_NONE,SYM_VARIABLE] { readEnum = true; } )?
@@ -2773,7 +2786,7 @@ STRING_LITERAL_2_0
  * will be part of the token text.  Use the str[] parser rule instead.
  */
 STRING_LITERAL_2_5
-  : { PARSER_STATE->v2_5() }?=>
+  : { PARSER_STATE->v2_5() || PARSER_STATE->sygus() }?=>
     '"' (~('"') | '""')* '"'
   ;
 

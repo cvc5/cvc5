@@ -1,13 +1,13 @@
 /*********************                                                        */
 /*! \file ce_guided_instantiation.h
  ** \verbatim
- ** Original author: Andrew Reynolds
- ** Major contributors: none
- ** Minor contributors (to current version): none
+ ** Top contributors (to current version):
+ **   Andrew Reynolds, Tim King
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2014  New York University and The University of Iowa
- ** See the file COPYING in the top-level source directory for licensing
- ** information.\endverbatim
+ ** Copyright (c) 2009-2016 by the authors listed in the file AUTHORS
+ ** in the top-level source directory) and their institutional affiliations.
+ ** All rights reserved.  See the file COPYING in the top-level source
+ ** directory for licensing information.\endverbatim
  **
  ** \brief counterexample guided instantiation class
  **/
@@ -126,6 +126,8 @@ private:
   CegConjecture * d_conj;
   /** last instantiation by single invocation module? */
   bool d_last_inst_si;
+  /** evaluation axioms */
+  std::map< Node, bool > d_eval_axioms;
 private: //for enforcing fairness
   /** measure functions */
   std::map< TypeNode, Node > d_uf_measure;
@@ -139,6 +141,8 @@ private: //for enforcing fairness
   std::map< Node, std::map< int, Node > > d_size_term_lemma;
   /** get measure lemmas */
   void getMeasureLemmas( Node n, Node v, std::vector< Node >& lems );
+  /** get eager unfolding */
+  Node getEagerUnfold( Node n, std::map< Node, Node >& visited );
 private:
   /** check conjecture */
   void checkCegConjecture( CegConjecture * conj );
@@ -156,6 +160,7 @@ public:
   /* Call during quantifier engine's check */
   void check( Theory::Effort e, unsigned quant_e );
   /* Called for new quantifiers */
+  void preRegisterQuantifier( Node q );
   void registerQuantifier( Node q );
   void assertNode( Node n );
   Node getNextDecisionRequest();

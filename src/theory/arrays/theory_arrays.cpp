@@ -1,13 +1,13 @@
 /*********************                                                        */
 /*! \file theory_arrays.cpp
  ** \verbatim
- ** Original author: Clark Barrett
- ** Major contributors: Morgan Deters
- ** Minor contributors (to current version): Tim King, Kshitij Bansal, Andrew Reynolds, Dejan Jovanovic
+ ** Top contributors (to current version):
+ **   Clark Barrett, Morgan Deters, Guy Katz
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2014  New York University and The University of Iowa
- ** See the file COPYING in the top-level source directory for licensing
- ** information.\endverbatim
+ ** Copyright (c) 2009-2016 by the authors listed in the file AUTHORS
+ ** in the top-level source directory) and their institutional affiliations.
+ ** All rights reserved.  See the file COPYING in the top-level source
+ ** directory for licensing information.\endverbatim
  **
  ** \brief Implementation of the theory of arrays.
  **
@@ -130,9 +130,17 @@ TheoryArrays::TheoryArrays(context::Context* c, context::UserContext* u,
     d_equalityEngine.addFunctionKind(kind::ARR_TABLE_FUN);
   }
 
-  d_equalityEngine.addPathReconstructionTrigger(eq::MERGED_ARRAYS_ROW, &d_proofReconstruction);
-  d_equalityEngine.addPathReconstructionTrigger(eq::MERGED_ARRAYS_ROW1, &d_proofReconstruction);
-  d_equalityEngine.addPathReconstructionTrigger(eq::MERGED_ARRAYS_EXT, &d_proofReconstruction);
+  d_reasonRow = d_equalityEngine.getFreshMergeReasonType();
+  d_reasonRow1 = d_equalityEngine.getFreshMergeReasonType();
+  d_reasonExt = d_equalityEngine.getFreshMergeReasonType();
+
+  d_proofReconstruction.setRowMergeTag(d_reasonRow);
+  d_proofReconstruction.setRow1MergeTag(d_reasonRow1);
+  d_proofReconstruction.setExtMergeTag(d_reasonExt);
+
+  d_equalityEngine.addPathReconstructionTrigger(d_reasonRow, &d_proofReconstruction);
+  d_equalityEngine.addPathReconstructionTrigger(d_reasonRow1, &d_proofReconstruction);
+  d_equalityEngine.addPathReconstructionTrigger(d_reasonExt, &d_proofReconstruction);
 }
 
 TheoryArrays::~TheoryArrays() {
@@ -666,7 +674,7 @@ void TheoryArrays::preRegisterTermInternal(TNode node)
           if (ni != node) {
             preRegisterTermInternal(ni);
           }
-          d_equalityEngine.assertEquality(ni.eqNode(s[2]), true, d_true, eq::MERGED_ARRAYS_ROW1);
+          d_equalityEngine.assertEquality(ni.eqNode(s[2]), true, d_true, d_reasonRow1);
           Assert(++it == stores->end());
         }
       }
@@ -752,7 +760,7 @@ void TheoryArrays::preRegisterTermInternal(TNode node)
       }
 
       // Apply RIntro1 Rule
-      d_equalityEngine.assertEquality(ni.eqNode(v), true, d_true, eq::MERGED_ARRAYS_ROW1);
+      d_equalityEngine.assertEquality(ni.eqNode(v), true, d_true, d_reasonRow1);
     }
 
     d_infoMap.addStore(node, node);
@@ -1419,7 +1427,7 @@ void TheoryArrays::check(Effort e) {
                                  << "\teq = " << eq << std::endl
                                  << "\treason = " << fact << std::endl;
 
-              d_equalityEngine.assertEquality(eq, false, fact, eq::MERGED_ARRAYS_EXT);
+              d_equalityEngine.assertEquality(eq, false, fact, d_reasonExt);
               ++d_numProp;
             }
 
@@ -1722,7 +1730,7 @@ void TheoryArrays::checkRIntro1(TNode a, TNode b)
     d_infoMap.setRIntro1Applied(s);
     Node ni = nm->mkNode(kind::SELECT, s, s[1]);
     preRegisterTermInternal(ni);
-    d_equalityEngine.assertEquality(ni.eqNode(s[2]), true, d_true, eq::MERGED_ARRAYS_ROW1);
+    d_equalityEngine.assertEquality(ni.eqNode(s[2]), true, d_true, d_reasonRow1);
   }
 }
 
@@ -2029,7 +2037,7 @@ void TheoryArrays::propagate(RowLemmaType lem)
       if (!bjExists) {
         preRegisterTermInternal(bj);
       }
-      d_equalityEngine.assertEquality(aj_eq_bj, true, reason, eq::MERGED_ARRAYS_ROW);
+      d_equalityEngine.assertEquality(aj_eq_bj, true, reason, d_reasonRow);
       ++d_numProp;
       return;
     }
@@ -2039,7 +2047,7 @@ void TheoryArrays::propagate(RowLemmaType lem)
       Node i_eq_j = i.eqNode(j);
       Node reason = nm->mkNode(kind::OR, i_eq_j, aj_eq_bj);
       d_permRef.push_back(reason);
-      d_equalityEngine.assertEquality(i_eq_j, true, reason, eq::MERGED_ARRAYS_ROW);
+      d_equalityEngine.assertEquality(i_eq_j, true, reason, d_reasonRow);
       ++d_numProp;
       return;
     }
@@ -2103,7 +2111,6 @@ void TheoryArrays::queueRowLemma(RowLemmaType lem)
   // TODO: maybe add triggers here
 
   if ((options::arraysEagerLemmas() || bothExist) && !d_proofsEnabled) {
-
     // Make sure that any terms introduced by rewriting are appropriately stored in the equality database
     Node aj2 = Rewriter::rewrite(aj);
     if (aj != aj2) {
@@ -2235,6 +2242,7 @@ bool TheoryArrays::dischargeLemmas()
         preRegisterTermInternal(bj2);
       }
       d_equalityEngine.assertEquality(bj.eqNode(bj2), true, d_true);
+
     }
     if (aj2 == bj2) {
       continue;
@@ -2293,14 +2301,17 @@ void TheoryArrays::conflict(TNode a, TNode b) {
   }
 
   if (!d_inCheckModel) {
-    if (proof) { proof->debug_print("pf::array"); }
+    ProofArray* proof_array = NULL;
 
-    ProofArray* auf = NULL;
-    if (options::eagerArrayProofs() || d_proofsEnabled) {
-      auf = new ProofArray( proof );
+    if (d_proofsEnabled) {
+      proof->debug_print("pf::array");
+      proof_array = new ProofArray( proof );
+      proof_array->setRowMergeTag(d_reasonRow);
+      proof_array->setRow1MergeTag(d_reasonRow1);
+      proof_array->setExtMergeTag(d_reasonExt);
     }
 
-    d_out->conflict(d_conflictNode, auf);
+    d_out->conflict(d_conflictNode, proof_array);
   }
 
   d_conflict = true;

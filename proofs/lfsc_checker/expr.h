@@ -8,9 +8,9 @@
 #include <map>
 #include "chunking_memory_management.h"
 
-#define USE_FLAT_APP
+#define USE_FLAT_APP  //AJR: off deprecated
 #define MARKVAR_32
-#define DEBUG_SYM_NAMES
+//#define DEBUG_SYM_NAMES
 //#define DEBUG_SYMS
 
 // Expr class
@@ -66,7 +66,6 @@ protected:
 
   enum { INC, DEC, CREATE };
   void debugrefcnt(int ref, int what) {
-#ifdef DEBUG_REFCNT
     std::cout << "[";
     debug();
     switch(what) {
@@ -83,10 +82,6 @@ protected:
     char tmp[10];
     sprintf(tmp,"%d",ref);
     std::cout << tmp << "]\n";
-#else
-    (void)ref;
-    (void)what;
-#endif
   }
 
   Expr(int _class, int _op)
@@ -114,14 +109,18 @@ public:
     //   std::cout << " " << ref << std::endl;
     //}
     ref = ref<4194303 ? ref + 1 : ref;
+#ifdef DEBUG_REFCNT    
     debugrefcnt(ref,INC);
+#endif
     data = (ref << 9) | (data & 511);
   }
   static void destroy(Expr *, bool);
   inline void dec(bool dec_kids = true) {
     int ref = getrefcnt();
     ref = ref - 1;
+#ifdef DEBUG_REFCNT    
     debugrefcnt(ref,DEC);
+#endif
     if (ref == 0)
       destroy(this,dec_kids);
     else
@@ -131,10 +130,10 @@ public:
   //must pass statType (the expr representing "type") to this function
   bool isType( Expr* statType );
 
-  inline bool isDatatype() {
+  inline bool isDatatype() const {
     return getclass() == SYMS_EXPR || getop() == MPZ || getop() == MPQ;
   }
-  inline bool isArithTerm() {
+  inline bool isArithTerm() const {
     return getop() == ADD || getop() == NEG;
   }
 
@@ -188,13 +187,17 @@ public:
   CExpr(int _op) : Expr(CEXPR, _op), kids() {
     kids = new Expr *[1];
     kids[0] = 0;
+#ifdef DEBUG_REFCNT    
     debugrefcnt(1,CREATE);
+#endif
   }
   CExpr(int _op, Expr *e1) : Expr(CEXPR, _op), kids() {
     kids = new Expr *[2];
     kids[0] = e1;
     kids[1] = 0;
+#ifdef DEBUG_REFCNT    
     debugrefcnt(1,CREATE);
+#endif
   }
   CExpr(int _op, Expr *e1, Expr *e2)
     : Expr(CEXPR, _op), kids() {
@@ -202,7 +205,9 @@ public:
     kids[0] = e1;
     kids[1] = e2;
     kids[2] = 0;
+#ifdef DEBUG_REFCNT    
     debugrefcnt(1,CREATE);
+#endif
   }
   CExpr(int _op, Expr *e1, Expr *e2, Expr *e3)
     : Expr(CEXPR, _op), kids() {
@@ -211,7 +216,9 @@ public:
     kids[1] = e2;
     kids[2] = e3;
     kids[3] = 0;
+#ifdef DEBUG_REFCNT    
     debugrefcnt(1,CREATE);
+#endif
   }
   CExpr(int _op, Expr *e1, Expr *e2, Expr *e3, Expr *e4)
     : Expr(CEXPR, _op), kids() {
@@ -221,7 +228,9 @@ public:
     kids[2] = e3;
     kids[3] = e4;
     kids[4] = 0;
+#ifdef DEBUG_REFCNT    
     debugrefcnt(1,CREATE);
+#endif
   }
   CExpr(int _op, const std::vector<Expr *> &_kids) 
     : Expr(CEXPR, _op), kids() {
@@ -230,13 +239,17 @@ public:
     for (i = 0; i < iend; i++)
       kids[i] = _kids[i];
     kids[i] = 0;
+#ifdef DEBUG_REFCNT    
     debugrefcnt(1,CREATE);
+#endif
   }
 
   // _kids must be null-terminated.
   CExpr(int _op, bool dummy, Expr **_kids) : Expr(CEXPR, _op), kids(_kids) {
     (void)dummy;
+#ifdef DEBUG_REFCNT    
     debugrefcnt(1,CREATE);
+#endif
   }
 
   Expr *whr();
@@ -253,7 +266,9 @@ class IntExpr : public Expr {
   }
   IntExpr(mpz_t _n) : Expr(INT_EXPR, 0), n() {
     mpz_init_set(n,_n);
+#ifdef DEBUG_REFCNT    
     debugrefcnt(1,CREATE);
+#endif
   }
   IntExpr(signed long int _n ) : Expr(INT_EXPR, 0), n() {
     mpz_init_set_si( n, _n );
@@ -271,7 +286,9 @@ class RatExpr : public Expr {
   RatExpr(mpq_t _n) : Expr(RAT_EXPR, 0), n() {
     mpq_init( n );
     mpq_set(n,_n);
+#ifdef DEBUG_REFCNT   
     debugrefcnt(1,CREATE);
+#endif
     mpq_canonicalize( n );
   }
   RatExpr(signed long int _n1, unsigned long int _n2 ) : Expr(RAT_EXPR, 0), n() {
@@ -290,15 +307,19 @@ class SymExpr : public Expr {
     : Expr(theclass, 0), val(0)
   {   
     (void)_s;
+#ifdef DEBUG_REFCNT   
     if (theclass == SYM_EXPR)
       debugrefcnt(1,CREATE);
+#endif
   }
   SymExpr(const SymExpr &e, int theclass = SYM_EXPR) 
     : Expr(theclass, 0), val(0)
   {
     (void)e;
+#ifdef DEBUG_REFCNT   
     if (theclass == SYM_EXPR)
       debugrefcnt(1,CREATE);
+#endif
   }
 #ifdef MARKVAR_32
 private:
@@ -317,12 +338,16 @@ class SymSExpr : public SymExpr {
   SymSExpr(std::string _s, int theclass = SYMS_EXPR) 
     : SymExpr(_s, theclass), s(_s)
   {
+#ifdef DEBUG_REFCNT   
     debugrefcnt(1,CREATE);
+#endif
   }
   SymSExpr(const SymSExpr &e, int theclass = SYMS_EXPR) 
     : SymExpr(e, theclass), s(e.s)
   { 
+#ifdef DEBUG_REFCNT   
     debugrefcnt(1,CREATE);
+#endif
   }
 };
 
@@ -338,7 +363,9 @@ public:
 #ifdef DEBUG_HOLE_NAMES
     id = next_id++;
 #endif
+#ifdef DEBUG_REFCNT   
     debugrefcnt(1,CREATE);
+#endif
   }
   Expr *val; // may be set during subst(), defeq(), and clone().
 };

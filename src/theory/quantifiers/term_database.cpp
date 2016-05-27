@@ -1,13 +1,13 @@
 /*********************                                                        */
 /*! \file term_database.cpp
  ** \verbatim
- ** Original author: Andrew Reynolds
- ** Major contributors: Francois Bobot
- ** Minor contributors (to current version): Kshitij Bansal, Morgan Deters
+ ** Top contributors (to current version):
+ **   Andrew Reynolds, Francois Bobot, Tim King
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2014  New York University and The University of Iowa
- ** See the file COPYING in the top-level source directory for licensing
- ** information.\endverbatim
+ ** Copyright (c) 2009-2016 by the authors listed in the file AUTHORS
+ ** in the top-level source directory) and their institutional affiliations.
+ ** All rights reserved.  See the file COPYING in the top-level source
+ ** directory for licensing information.\endverbatim
  **
  ** \brief Implementation of term databse class
  **/
@@ -78,19 +78,19 @@ TNode TermArgTrie::addOrGetTerm( TNode n, std::vector< TNode >& reps, int argInd
 
 void TermArgTrie::debugPrint( const char * c, Node n, unsigned depth ) {
   for( std::map< TNode, TermArgTrie >::iterator it = d_data.begin(); it != d_data.end(); ++it ){
-    for( unsigned i=0; i<depth; i++ ){ Debug(c) << "  "; }
-    Debug(c) << it->first << std::endl;
+    for( unsigned i=0; i<depth; i++ ){ Trace(c) << "  "; }
+    Trace(c) << it->first << std::endl;
     it->second.debugPrint( c, n, depth+1 );
   }
 }
 
-TermDb::TermDb( context::Context* c, context::UserContext* u, QuantifiersEngine* qe ) : d_quantEngine( qe ), d_op_id_count( 0 ), d_typ_id_count( 0 ) {
+TermDb::TermDb( context::Context* c, context::UserContext* u, QuantifiersEngine* qe ) : d_quantEngine( qe ), d_inactive_map( c ), d_op_id_count( 0 ), d_typ_id_count( 0 ) {
   d_true = NodeManager::currentNM()->mkConst( true );
   d_false = NodeManager::currentNM()->mkConst( false );
   d_zero = NodeManager::currentNM()->mkConst( Rational( 0 ) );
   d_one = NodeManager::currentNM()->mkConst( Rational( 1 ) );
   if( options::ceGuidedInst() ){
-    d_sygus_tdb = new TermDbSygus;
+    d_sygus_tdb = new TermDbSygus( c, qe );
   }else{
     d_sygus_tdb = NULL;
   }
@@ -111,10 +111,25 @@ Node TermDb::getGroundTerm( Node f, unsigned i ) {
   return d_op_map[f][i];
 }
 
+unsigned TermDb::getNumTypeGroundTerms( TypeNode tn ) {
+  std::map< TypeNode, std::vector< Node > >::iterator it = d_type_map.find( tn );
+  if( it!=d_type_map.end() ){
+    return it->second.size();
+  }else{
+    return 0;
+  }
+}
+
+Node TermDb::getTypeGroundTerm( TypeNode tn, unsigned i ) {
+  Assert( i<d_type_map[tn].size() );
+  return d_type_map[tn][i];
+}
+
 Node TermDb::getMatchOperator( Node n ) {
-  //return n.getOperator();
   Kind k = n.getKind();
-  if( k==SELECT || k==STORE || k==UNION || k==INTERSECTION || k==SUBSET || k==SETMINUS || k==MEMBER || k==SINGLETON ){
+  //datatype operators may be parametric, always assume they are
+  if( k==SELECT || k==STORE || k==UNION || k==INTERSECTION || k==SUBSET || k==SETMINUS || k==MEMBER || k==SINGLETON || 
+      k==APPLY_SELECTOR_TOTAL || k==APPLY_TESTER ){
     //since it is parametric, use a particular one as op
     TypeNode tn = n[0].getType();
     Node op = n.getOperator();
@@ -148,9 +163,17 @@ void TermDb::addTerm( Node n, std::set< Node >& added, bool withinQuant, bool wi
         //if this is an atomic trigger, consider adding it
         if( inst::Trigger::isAtomicTrigger( n ) ){
           Trace("term-db") << "register term in db " << n << std::endl;
+          if( options::finiteModelFind() ){
+            computeModelBasisArgAttribute( n );
+          }
+          
           Node op = getMatchOperator( n );
           d_op_map[op].push_back( n );
           added.insert( n );
+          
+          if( d_sygus_tdb ){
+            d_sygus_tdb->registerEvalTerm( n );
+          }
 
           if( options::eagerInstQuant() ){
             for( unsigned i=0; i<n.getNumChildren(); i++ ){
@@ -163,6 +186,8 @@ void TermDb::addTerm( Node n, std::set< Node >& added, bool withinQuant, bool wi
             }
           }
         }
+      }else{
+        setTermInactive( n );
       }
       rec = true;
     }
@@ -195,7 +220,7 @@ void TermDb::computeUfEqcTerms( TNode f ) {
     for( unsigned i=0; i<d_op_map[f].size(); i++ ){
       TNode n = d_op_map[f][i];
       if( hasTermCurrent( n ) ){
-        if( !n.getAttribute(NoMatchAttribute()) ){
+        if( isTermActive( n ) ){
           computeArgReps( n );
           TNode r = ee->hasTerm( n ) ? ee->getRepresentative( n ) : n;
           d_func_map_eqc_trie[f].d_data[r].addTerm( n, d_arg_reps[n] );
@@ -205,77 +230,180 @@ void TermDb::computeUfEqcTerms( TNode f ) {
   }
 }
 
-//returns a term n' equivalent to n
-//  - if hasSubs = true, then n is consider under substitution subs
-//  - if mkNewTerms = true, then n' is either null, or a term in the master equality engine
-Node TermDb::evaluateTerm2( TNode n, std::map< TNode, TNode >& subs, bool subsRep, bool hasSubs, std::map< TNode, Node >& visited ) {
+void TermDb::computeUfTerms( TNode f ) {
+  if( d_op_nonred_count.find( f )==d_op_nonred_count.end() ){
+    d_op_nonred_count[ f ] = 0;
+    std::map< Node, std::vector< Node > >::iterator it = d_op_map.find( f );
+    if( it!=d_op_map.end() ){
+      eq::EqualityEngine* ee = d_quantEngine->getMasterEqualityEngine();
+      Trace("term-db-debug") << "Adding terms for operator " << f << std::endl;
+      for( unsigned i=0; i<it->second.size(); i++ ){
+        Node n = it->second[i];
+        //to be added to term index, term must be relevant, and exist in EE
+        if( hasTermCurrent( n ) && ee->hasTerm( n ) ){
+          if( isTermActive( n ) ){
+            computeArgReps( n );
+
+            Trace("term-db-debug") << "Adding term " << n << " with arg reps : ";
+            for( unsigned i=0; i<d_arg_reps[n].size(); i++ ){
+              Trace("term-db-debug") << d_arg_reps[n][i] << " ";
+              if( std::find( d_func_map_rel_dom[f][i].begin(), 
+                             d_func_map_rel_dom[f][i].end(), d_arg_reps[n][i] ) == d_func_map_rel_dom[f][i].end() ){
+                d_func_map_rel_dom[f][i].push_back( d_arg_reps[n][i] );
+              }
+            }
+            Trace("term-db-debug") << std::endl;
+            Trace("term-db-debug") << "  and value : " << ee->getRepresentative( n ) << std::endl;
+            Node at = d_func_map_trie[ f ].addOrGetTerm( n, d_arg_reps[n] );
+            Trace("term-db-debug2") << "...add term returned " << at << std::endl;
+            if( at!=n && ee->areEqual( at, n ) ){
+              setTermInactive( n );
+              Trace("term-db-debug") << n << " is redundant." << std::endl;
+              //congruentCount++;
+            }else{
+              if( at!=n && ee->areDisequal( at, n, false ) ){
+                std::vector< Node > lits;
+                lits.push_back( NodeManager::currentNM()->mkNode( at.getType().isBoolean() ? IFF : EQUAL, at, n ) );
+                for( unsigned i=0; i<at.getNumChildren(); i++ ){
+                  if( at[i]!=n[i] ){
+                    lits.push_back( NodeManager::currentNM()->mkNode( at[i].getType().isBoolean() ? IFF : EQUAL, at[i], n[i] ).negate() );
+                  }
+                }
+                Node lem = lits.size()==1 ? lits[0] : NodeManager::currentNM()->mkNode( OR, lits );
+                if( Trace.isOn("term-db-lemma") ){
+                  Trace("term-db-lemma") << "Disequal congruent terms : " << at << " " << n << "!!!!" << std::endl;
+                  if( !d_quantEngine->getTheoryEngine()->needCheck() ){
+                    Trace("term-db-lemma") << "  all theories passed with no lemmas." << std::endl;
+                  }
+                  Trace("term-db-lemma") << "  add lemma : " << lem << std::endl;
+                }
+                d_quantEngine->addLemma( lem );
+                d_consistent_ee = false;
+                return;
+              }
+              //nonCongruentCount++;
+              d_op_nonred_count[ f ]++;
+            }
+          }else{
+            Trace("term-db-debug") << n << " is already redundant." << std::endl;
+            //congruentCount++;
+            //alreadyCongruentCount++;
+          }
+        }else{
+          Trace("term-db-debug") << n << " is not relevant." << std::endl;
+          //nonRelevantCount++;
+        }
+      }
+      
+      /*
+      if( Trace.isOn("term-db-index") ){
+        Trace("term-db-index") << "Term index for " << f << " : " << std::endl;
+        Trace("term-db-index") << "- " << it->first << std::endl;
+        d_func_map_trie[ f ].debugPrint("term-db-index", it->second[0]);
+        Trace("term-db-index") << "Non-Congruent/Congruent/Non-Relevant = ";
+        Trace("term-db-index") << nonCongruentCount << " / " << congruentCount << " (" << alreadyCongruentCount << ") / " << nonRelevantCount << std::endl; 
+      }
+      */
+    }
+  }
+}
+
+bool TermDb::inRelevantDomain( TNode f, unsigned i, TNode r ) {
+  computeUfTerms( f );
+  Assert( d_quantEngine->getTheoryEngine()->getMasterEqualityEngine()->getRepresentative( r )==r );
+  std::map< Node, std::map< unsigned, std::vector< Node > > >::iterator it = d_func_map_rel_dom.find( f );
+  if( it != d_func_map_rel_dom.end() ){
+    std::map< unsigned, std::vector< Node > >::iterator it2 = it->second.find( i );
+    if( it2!=it->second.end() ){
+      return std::find( it2->second.begin(), it2->second.end(), r )!=it2->second.end();
+    }else{
+      return false;
+    }
+  }else{
+    return false;
+  }
+}
+
+//return a term n' equivalent to n
+//  maximal subterms of n' are representatives in the equality engine qy
+Node TermDb::evaluateTerm2( TNode n, std::map< TNode, Node >& visited, EqualityQuery * qy, bool useEntailmentTests ) {
   std::map< TNode, Node >::iterator itv = visited.find( n );
   if( itv != visited.end() ){
     return itv->second;
   }
-  Node ret;
   Trace("term-db-eval") << "evaluate term : " << n << std::endl;
-  eq::EqualityEngine * ee = d_quantEngine->getTheoryEngine()->getMasterEqualityEngine();
-  if( ee->hasTerm( n ) ){
-    Trace("term-db-eval") << "...exists in ee, return rep " << std::endl;
-    ret = ee->getRepresentative( n );
-  }else if( n.getKind()==BOUND_VARIABLE ){
-    if( hasSubs ){
-      Assert( subs.find( n )!=subs.end() );
-      Trace("term-db-eval") << "...substitution is : " << subs[n] << std::endl;
-      if( subsRep ){
-        Assert( ee->hasTerm( subs[n] ) );
-        Assert( ee->getRepresentative( subs[n] )==subs[n] );
-        ret = subs[n];
-      }else{
-        ret = evaluateTerm2( subs[n], subs, subsRep, hasSubs, visited );
-      }
-    }
-  }else if( n.getKind()==FORALL ){
-    ret = n;
-  }else{
+  Node ret = n;
+  if( n.getKind()==FORALL || n.getKind()==BOUND_VARIABLE ){
+    //do nothing
+  }else if( !qy->hasTerm( n ) ){
+    //term is not known to be equal to a representative in equality engine, evaluate it
     if( n.hasOperator() ){
       TNode f = getMatchOperator( n );
       std::vector< TNode > args;
       bool ret_set = false;
       for( unsigned i=0; i<n.getNumChildren(); i++ ){
-        TNode c = evaluateTerm2( n[i], subs, subsRep, hasSubs, visited );
+        TNode c = evaluateTerm2( n[i], visited, qy, useEntailmentTests );
         if( c.isNull() ){
-          ret = TNode::null();
+          ret = Node::null();
           ret_set = true;
           break;
+        }else if( c==d_true || c==d_false ){
+          //short-circuiting
+          if( ( n.getKind()==kind::AND && c==d_false ) || ( n.getKind()==kind::OR && c==d_true ) ){
+            ret = c;
+            ret_set = true;
+            break;
+          }else if( n.getKind()==kind::ITE && i==0 ){
+            ret = evaluateTerm2( n[ c==d_true ? 1 : 2], visited, qy, useEntailmentTests ); 
+            ret_set = true;
+            break;
+          }
         }
-        Trace("term-db-eval") << "Child " << i << " : " << c << std::endl;
-        //short-circuit and/or
-        if( ( n.getKind()==kind::AND && c==d_false ) || ( n.getKind()==kind::OR && c==d_true ) ){
-          ret = c;
-          ret_set = true;
-          break;
-        }else{
-          args.push_back( c );
-        }
+        Trace("term-db-eval") << "  child " << i << " : " << c << std::endl;
+        args.push_back( c );
       }
       if( !ret_set ){
+        //if it is an indexed term, return the congruent term
         if( !f.isNull() ){
-          Trace("term-db-eval") << "Get term from DB" << std::endl;
-          TNode nn = d_func_map_trie[f].existsTerm( args );
-          Trace("term-db-eval") << "Got term " << nn << std::endl;
-          if( !nn.isNull() && ee->hasTerm( nn ) ){
-            Trace("term-db-eval") << "return rep " << std::endl;
-            ret = ee->getRepresentative( nn );
+          TNode nn = qy->getCongruentTerm( f, args );
+          Trace("term-db-eval") << "  got congruent term " << nn << " from DB for " << n << std::endl;
+          if( !nn.isNull() ){
+            ret = qy->getRepresentative( nn );
+            Trace("term-db-eval") << "return rep" << std::endl;
             ret_set = true;
+            Assert( !ret.isNull() );
           }
         }
         if( !ret_set ){
+          Trace("term-db-eval") << "return rewrite" << std::endl;
           //a theory symbol or a new UF term
           if( n.getMetaKind() == kind::metakind::PARAMETERIZED ){
             args.insert( args.begin(), n.getOperator() );
           }
           ret = NodeManager::currentNM()->mkNode( n.getKind(), args );
           ret = Rewriter::rewrite( ret );
+          if( ret.getKind()==kind::EQUAL ){
+            if( qy->areDisequal( ret[0], ret[1] ) ){
+              ret = d_false;
+            }
+          }
+          if( useEntailmentTests ){
+            if( ret.getKind()==kind::EQUAL || ret.getKind()==kind::GEQ ){
+              for( unsigned j=0; j<2; j++ ){
+                std::pair<bool, Node> et = d_quantEngine->getTheoryEngine()->entailmentCheck(THEORY_OF_TYPE_BASED, j==0 ? ret : ret.negate() );
+                if( et.first ){
+                  ret = j==0 ? d_true : d_false;
+                  break;
+                }
+              }
+            }
+          }
         }
       }
     }
+  }else{
+    Trace("term-db-eval") << "...exists in ee, return rep" << std::endl;
+    ret = qy->getRepresentative( n );
   }
   Trace("term-db-eval") << "evaluated term : " << n << ", got : " << ret << std::endl;
   visited[n] = ret;
@@ -283,22 +411,30 @@ Node TermDb::evaluateTerm2( TNode n, std::map< TNode, TNode >& subs, bool subsRe
 }
 
 
-TNode TermDb::evaluateTerm2( TNode n, std::map< TNode, TNode >& subs, bool subsRep, bool hasSubs ) {
-  Trace("term-db-eval") << "evaluate term : " << n << std::endl;
-  eq::EqualityEngine * ee = d_quantEngine->getTheoryEngine()->getMasterEqualityEngine();
-  if( ee->hasTerm( n ) ){
-    Trace("term-db-eval") << "...exists in ee, return rep " << std::endl;
+TNode TermDb::getEntailedTerm2( TNode n, std::map< TNode, TNode >& subs, bool subsRep, bool hasSubs, EqualityQuery * qy ) {
+  Assert( !qy->extendsEngine() );
+  Trace("term-db-entail") << "get entailed term : " << n << std::endl;
+  if( qy->getEngine()->hasTerm( n ) ){
+    Trace("term-db-entail") << "...exists in ee, return rep " << std::endl;
     return n;
   }else if( n.getKind()==BOUND_VARIABLE ){
     if( hasSubs ){
-      Assert( subs.find( n )!=subs.end() );
-      Trace("term-db-eval") << "...substitution is : " << subs[n] << std::endl;
-      if( subsRep ){
-        Assert( ee->hasTerm( subs[n] ) );
-        Assert( ee->getRepresentative( subs[n] )==subs[n] );
-        return subs[n];
-      }else{
-        return evaluateTerm2( subs[n], subs, subsRep, hasSubs );
+      std::map< TNode, TNode >::iterator it = subs.find( n );
+      if( it!=subs.end() ){
+        Trace("term-db-entail") << "...substitution is : " << it->second << std::endl;
+        if( subsRep ){
+          Assert( qy->getEngine()->hasTerm( it->second ) );
+          Assert( qy->getEngine()->getRepresentative( it->second )==it->second );
+          return it->second;
+        }else{
+          return getEntailedTerm2( it->second, subs, subsRep, hasSubs, qy );
+        }
+      }
+    }
+  }else if( n.getKind()==ITE ){
+    for( unsigned i=0; i<2; i++ ){
+      if( isEntailed2( n[0], subs, subsRep, hasSubs, i==0, qy ) ){
+        return getEntailedTerm2( n[ i==0 ? 1 : 2 ], subs, subsRep, hasSubs, qy );
       }
     }
   }else{
@@ -307,17 +443,16 @@ TNode TermDb::evaluateTerm2( TNode n, std::map< TNode, TNode >& subs, bool subsR
       if( !f.isNull() ){
         std::vector< TNode > args;
         for( unsigned i=0; i<n.getNumChildren(); i++ ){
-          TNode c = evaluateTerm2( n[i], subs, subsRep, hasSubs );
+          TNode c = getEntailedTerm2( n[i], subs, subsRep, hasSubs, qy );
           if( c.isNull() ){
             return TNode::null();
           }
-          c = ee->getRepresentative( c );
-          Trace("term-db-eval") << "Got child : " << c << std::endl;
+          c = qy->getEngine()->getRepresentative( c );
+          Trace("term-db-entail") << "  child " << i << " : " << c << std::endl;
           args.push_back( c );
         }
-        Trace("term-db-eval") << "Get term from DB" << std::endl;
-        TNode nn = d_func_map_trie[f].existsTerm( args );
-        Trace("term-db-eval") << "Got term " << nn << std::endl;
+        TNode nn = qy->getCongruentTerm( f, args );
+        Trace("term-db-entail") << "  got congruent term " << nn << " for " << n << std::endl;
         return nn;
       }
     }
@@ -325,53 +460,57 @@ TNode TermDb::evaluateTerm2( TNode n, std::map< TNode, TNode >& subs, bool subsR
   return TNode::null();
 }
 
-Node TermDb::evaluateTerm( TNode n, std::map< TNode, TNode >& subs, bool subsRep, bool mkNewTerms ) {
-  if( mkNewTerms ){
-    std::map< TNode, Node > visited;
-    return evaluateTerm2( n, subs, subsRep, true, visited );
-  }else{
-    return evaluateTerm2( n, subs, subsRep, true );
+Node TermDb::evaluateTerm( TNode n, EqualityQuery * qy, bool useEntailmentTests ) {
+  if( qy==NULL ){
+    qy = d_quantEngine->getEqualityQuery();
   }
+  std::map< TNode, Node > visited;
+  return evaluateTerm2( n, visited, qy, useEntailmentTests );
 }
 
-Node TermDb::evaluateTerm( TNode n, bool mkNewTerms ) {
+TNode TermDb::getEntailedTerm( TNode n, std::map< TNode, TNode >& subs, bool subsRep, EqualityQuery * qy ) {
+  if( qy==NULL ){
+    qy = d_quantEngine->getEqualityQuery();
+  }
+  return getEntailedTerm2( n, subs, subsRep, true, qy );
+}
+
+TNode TermDb::getEntailedTerm( TNode n, EqualityQuery * qy ) {
+  if( qy==NULL ){
+    qy = d_quantEngine->getEqualityQuery();
+  }
   std::map< TNode, TNode > subs;
-  if( mkNewTerms ){
-    std::map< TNode, Node > visited;
-    return evaluateTerm2( n, subs, false, false, visited );
-  }else{
-    return evaluateTerm2( n, subs, false, false );
-  }
+  return getEntailedTerm2( n, subs, false, false, qy );
 }
 
-bool TermDb::isEntailed( TNode n, std::map< TNode, TNode >& subs, bool subsRep, bool hasSubs, bool pol ) {
-  Trace("term-db-eval") << "Check entailed : " << n << ", pol = " << pol << std::endl;
+bool TermDb::isEntailed2( TNode n, std::map< TNode, TNode >& subs, bool subsRep, bool hasSubs, bool pol, EqualityQuery * qy ) {
+  Assert( !qy->extendsEngine() );
+  Trace("term-db-entail") << "Check entailed : " << n << ", pol = " << pol << std::endl;
   Assert( n.getType().isBoolean() );
   if( n.getKind()==EQUAL ){
-    TNode n1 = evaluateTerm2( n[0], subs, subsRep, hasSubs );
+    TNode n1 = getEntailedTerm2( n[0], subs, subsRep, hasSubs, qy );
     if( !n1.isNull() ){
-      TNode n2 = evaluateTerm2( n[1], subs, subsRep, hasSubs );
+      TNode n2 = getEntailedTerm2( n[1], subs, subsRep, hasSubs, qy );
       if( !n2.isNull() ){
         if( n1==n2 ){
           return pol;
         }else{
-          eq::EqualityEngine * ee = d_quantEngine->getTheoryEngine()->getMasterEqualityEngine();
-          Assert( ee->hasTerm( n1 ) );
-          Assert( ee->hasTerm( n2 ) );
+          Assert( qy->getEngine()->hasTerm( n1 ) );
+          Assert( qy->getEngine()->hasTerm( n2 ) );
           if( pol ){
-            return ee->areEqual( n1, n2 );
+            return qy->getEngine()->areEqual( n1, n2 );
           }else{
-            return ee->areDisequal( n1, n2, false );
+            return qy->getEngine()->areDisequal( n1, n2, false );
           }
         }
       }
     }
   }else if( n.getKind()==NOT ){
-    return isEntailed( n[0], subs, subsRep, hasSubs, !pol );
+    return isEntailed2( n[0], subs, subsRep, hasSubs, !pol, qy );
   }else if( n.getKind()==OR || n.getKind()==AND ){
     bool simPol = ( pol && n.getKind()==OR ) || ( !pol && n.getKind()==AND );
     for( unsigned i=0; i<n.getNumChildren(); i++ ){
-      if( isEntailed( n[i], subs, subsRep, hasSubs, pol ) ){
+      if( isEntailed2( n[i], subs, subsRep, hasSubs, pol, qy ) ){
         if( simPol ){
           return true;
         }
@@ -384,35 +523,57 @@ bool TermDb::isEntailed( TNode n, std::map< TNode, TNode >& subs, bool subsRep, 
     return !simPol;
   }else if( n.getKind()==IFF || n.getKind()==ITE ){
     for( unsigned i=0; i<2; i++ ){
-      if( isEntailed( n[0], subs, subsRep, hasSubs, i==0 ) ){
+      if( isEntailed2( n[0], subs, subsRep, hasSubs, i==0, qy ) ){
         unsigned ch = ( n.getKind()==IFF || i==0 ) ? 1 : 2;
         bool reqPol = ( n.getKind()==ITE || i==0 ) ? pol : !pol;
-        return isEntailed( n[ch], subs, subsRep, hasSubs, reqPol );
+        return isEntailed2( n[ch], subs, subsRep, hasSubs, reqPol, qy );
       }
     }
   }else if( n.getKind()==APPLY_UF ){
-    TNode n1 = evaluateTerm2( n, subs, subsRep, hasSubs );
+    TNode n1 = getEntailedTerm2( n, subs, subsRep, hasSubs, qy );
     if( !n1.isNull() ){
+      Assert( qy->hasTerm( n1 ) );
       if( n1==d_true ){
         return pol;
       }else if( n1==d_false ){
         return !pol;
       }else{
-        eq::EqualityEngine * ee = d_quantEngine->getTheoryEngine()->getMasterEqualityEngine();
-        return ee->getRepresentative( n1 ) == ( pol ? d_true : d_false );
+        return qy->getEngine()->getRepresentative( n1 ) == ( pol ? d_true : d_false );
       }
     }
+  }else if( n.getKind()==FORALL && !pol ){
+    return isEntailed2( n[1], subs, subsRep, hasSubs, pol, qy );
   }
   return false;
 }
 
-bool TermDb::isEntailed( TNode n, std::map< TNode, TNode >& subs, bool subsRep, bool pol ) {
-  if( d_consistent_ee ){
-    return isEntailed( n, subs, subsRep, true, pol );
-  }else{
-    //don't check entailment wrt an inconsistent ee
-    return false;
+bool TermDb::isEntailed( TNode n, bool pol, EqualityQuery * qy ) {
+  if( qy==NULL ){
+    Assert( d_consistent_ee );
+    qy = d_quantEngine->getEqualityQuery();
   }
+  std::map< TNode, TNode > subs;
+  return isEntailed2( n, subs, false, false, pol, qy );
+}
+
+bool TermDb::isEntailed( TNode n, std::map< TNode, TNode >& subs, bool subsRep, bool pol, EqualityQuery * qy ) {
+  if( qy==NULL ){
+    Assert( d_consistent_ee );
+    qy = d_quantEngine->getEqualityQuery();
+  }
+  return isEntailed2( n, subs, subsRep, true, pol, qy );
+}
+
+bool TermDb::isTermActive( Node n ) {
+  return d_inactive_map.find( n )==d_inactive_map.end(); 
+  //return !n.getAttribute(NoMatchAttribute());
+}
+
+void TermDb::setTermInactive( Node n ) {
+  d_inactive_map[n] = true;
+  //Trace("term-db-debug2") << "set no match attribute" << std::endl;
+  //NoMatchAttribute nma;
+  //n.setAttribute(nma,true);
 }
 
 bool TermDb::hasTermCurrent( Node n, bool useMode ) {
@@ -514,14 +675,15 @@ void TermDb::presolve() {
 }
 
 bool TermDb::reset( Theory::Effort effort ){
-  int nonCongruentCount = 0;
-  int congruentCount = 0;
-  int alreadyCongruentCount = 0;
-  int nonRelevantCount = 0;
+  //int nonCongruentCount = 0;
+  //int congruentCount = 0;
+  //int alreadyCongruentCount = 0;
+  //int nonRelevantCount = 0;
   d_op_nonred_count.clear();
   d_arg_reps.clear();
   d_func_map_trie.clear();
   d_func_map_eqc_trie.clear();
+  d_func_map_rel_dom.clear();
   d_consistent_ee = true;
 
   eq::EqualityEngine* ee = d_quantEngine->getMasterEqualityEngine();
@@ -563,89 +725,42 @@ bool TermDb::reset( Theory::Effort effort ){
       }
     }
   }
-
-
-  //rebuild d_func/pred_map_trie for each operation, this will calculate all congruent terms
-  for( std::map< Node, std::vector< Node > >::iterator it = d_op_map.begin(); it != d_op_map.end(); ++it ){
-    d_op_nonred_count[ it->first ] = 0;
-    Trace("term-db-debug") << "Adding terms for operator " << it->first << std::endl;
-    for( unsigned i=0; i<it->second.size(); i++ ){
-      Node n = it->second[i];
-      //to be added to term index, term must be relevant, and either exist in EE or be an inst closure term
-      if( hasTermCurrent( n ) && ( ee->hasTerm( n ) || d_iclosure_processed.find( n )!=d_iclosure_processed.end() ) ){
-        if( !n.getAttribute(NoMatchAttribute()) ){
-          if( options::finiteModelFind() ){
-            computeModelBasisArgAttribute( n );
-          }
-          computeArgReps( n );
-
-          if( Trace.isOn("term-db-debug") ){
-            Trace("term-db-debug") << "Adding term " << n << " with arg reps : ";
-            for( unsigned i=0; i<d_arg_reps[n].size(); i++ ){
-              Trace("term-db-debug") << d_arg_reps[n][i] << " ";
-            }
-            Trace("term-db-debug") << std::endl;
-            if( ee->hasTerm( n ) ){
-              Trace("term-db-debug") << "  and value : " << ee->getRepresentative( n ) << std::endl;
-            }
-          }
-          Node at = d_func_map_trie[ it->first ].addOrGetTerm( n, d_arg_reps[n] );
-          if( at!=n && ee->areEqual( at, n ) ){
-            NoMatchAttribute nma;
-            n.setAttribute(nma,true);
-            Trace("term-db-debug") << n << " is redundant." << std::endl;
-            congruentCount++;
-          }else{
-            if( at!=n && ee->areDisequal( at, n, false ) ){
-              std::vector< Node > lits;
-              lits.push_back( NodeManager::currentNM()->mkNode( at.getType().isBoolean() ? IFF : EQUAL, at, n ) );
-              for( unsigned i=0; i<at.getNumChildren(); i++ ){
-                if( at[i]!=n[i] ){
-                  lits.push_back( NodeManager::currentNM()->mkNode( at[i].getType().isBoolean() ? IFF : EQUAL, at[i], n[i] ).negate() );
-                }
-              }
-              Node lem = lits.size()==1 ? lits[0] : NodeManager::currentNM()->mkNode( OR, lits );
-              if( Trace.isOn("term-db-lemma") ){
-                Trace("term-db-lemma") << "Disequal congruent terms : " << at << " " << n << "!!!!" << std::endl;
-                if( !d_quantEngine->getTheoryEngine()->needCheck() ){
-                  Trace("term-db-lemma") << "  all theories passed with no lemmas." << std::endl;
-                }
-                Trace("term-db-lemma") << "  add lemma : " << lem << std::endl;
-              }
-              d_quantEngine->addLemma( lem );
-              d_consistent_ee = false;
-              return false;
-            }
-            nonCongruentCount++;
-            d_op_nonred_count[ it->first ]++;
-          }
-        }else{
-          Trace("term-db-debug") << n << " is already redundant." << std::endl;
-          congruentCount++;
-          alreadyCongruentCount++;
-        }
-      }else{
-        Trace("term-db-debug") << n << " is not relevant." << std::endl;
-        nonRelevantCount++;
-      }
+  //explicitly add inst closure terms to the equality engine to ensure only EE terms are indexed
+  for( std::hash_set< Node, NodeHashFunction >::iterator it = d_iclosure_processed.begin(); it !=d_iclosure_processed.end(); ++it ){
+    Node n = *it;
+    if( !ee->hasTerm( n ) ){
+      ee->addTerm( n );
     }
   }
+
+/*
+  //rebuild d_func/pred_map_trie for each operation, this will calculate all congruent terms
+  for( std::map< Node, std::vector< Node > >::iterator it = d_op_map.begin(); it != d_op_map.end(); ++it ){
+    computeUfTerms( it->first );
+    if( !d_consistent_ee ){
+      return false;
+    }
+  }
+*/  
+  /*
   Trace("term-db-stats") << "TermDb: Reset" << std::endl;
   Trace("term-db-stats") << "Non-Congruent/Congruent/Non-Relevant = ";
   Trace("term-db-stats") << nonCongruentCount << " / " << congruentCount << " (" << alreadyCongruentCount << ") / " << nonRelevantCount << std::endl;
-  if( Debug.isOn("term-db") ){
-    Debug("term-db") << "functions : " << std::endl;
+  if( Trace.isOn("term-db-index") ){
+    Trace("term-db-index") << "functions : " << std::endl;
     for( std::map< Node, std::vector< Node > >::iterator it = d_op_map.begin(); it != d_op_map.end(); ++it ){
       if( it->second.size()>0 ){
-        Debug("term-db") << "- " << it->first << std::endl;
-        d_func_map_trie[ it->first ].debugPrint("term-db", it->second[0]);
+        Trace("term-db-index") << "- " << it->first << std::endl;
+        d_func_map_trie[ it->first ].debugPrint("term-db-index", it->second[0]);
       }
     }
   }
+  */
   return true;
 }
 
 TermArgTrie * TermDb::getTermArgTrie( Node f ) {
+  computeUfTerms( f );
   std::map< Node, TermArgTrie >::iterator itut = d_func_map_trie.find( f );
   if( itut!=d_func_map_trie.end() ){
     return &itut->second;
@@ -673,9 +788,20 @@ TermArgTrie * TermDb::getTermArgTrie( Node eqc, Node f ) {
   }
 }
 
-TNode TermDb::existsTerm( Node f, Node n ) {
-  computeArgReps( n );
-  return d_func_map_trie[f].existsTerm( d_arg_reps[n] );
+TNode TermDb::getCongruentTerm( Node f, Node n ) {
+  computeUfTerms( f );
+  std::map< Node, TermArgTrie >::iterator itut = d_func_map_trie.find( f );
+  if( itut!=d_func_map_trie.end() ){
+    computeArgReps( n );
+    return itut->second.existsTerm( d_arg_reps[n] );
+  }else{
+    return TNode::null();
+  }
+}
+
+TNode TermDb::getCongruentTerm( Node f, std::vector< TNode >& args ) {
+  computeUfTerms( f );
+  return d_func_map_trie[f].existsTerm( args );
 }
 
 Node TermDb::getModelBasisTerm( TypeNode tn, int i ){
@@ -777,9 +903,8 @@ void TermDb::makeInstantiationConstantsFor( Node q ){
       ic.setAttribute( ivna, i );
       InstConstantAttribute ica;
       ic.setAttribute( ica, q );
-      //also set the no-match attribute
-      NoMatchAttribute nma;
-      ic.setAttribute(nma,true);
+      //also set the term inactive
+      setTermInactive( ic );
     }
   }
 }
@@ -837,11 +962,6 @@ Node TermDb::getInstConstAttr( Node n ) {
     }
     InstConstantAttribute ica;
     n.setAttribute(ica, q);
-    if( !q.isNull() ){
-      //also set the no-match attribute
-      NoMatchAttribute nma;
-      n.setAttribute(nma,true);
-    }
   }
   return n.getAttribute(InstConstantAttribute());
 }
@@ -908,10 +1028,10 @@ Node TermDb::getInstantiationConstant( Node q, int i ) const {
 }
 
 /** get number of instantiation constants for q */
-int TermDb::getNumInstantiationConstants( Node q ) const {
+unsigned TermDb::getNumInstantiationConstants( Node q ) const {
   std::map< Node, std::vector< Node > >::const_iterator it = d_inst_constants.find( q );
   if( it!=d_inst_constants.end() ){
-    return (int)it->second.size();
+    return it->second.size();
   }else{
     return 0;
   }
@@ -950,9 +1070,12 @@ Node TermDb::getCounterexampleLiteral( Node q ){
 
 Node TermDb::getInstConstantNode( Node n, Node q ){
   makeInstantiationConstantsFor( q );
-  Node n2 = n.substitute( d_vars[q].begin(), d_vars[q].end(),
-                          d_inst_constants[q].begin(), d_inst_constants[q].end() );
-  return n2;
+  return n.substitute( d_vars[q].begin(), d_vars[q].end(), d_inst_constants[q].begin(), d_inst_constants[q].end() );
+}
+
+Node TermDb::getVariableNode( Node n, Node q ) {
+  makeInstantiationConstantsFor( q );
+  return n.substitute( d_inst_constants[q].begin(), d_inst_constants[q].end(), d_vars[q].begin(), d_vars[q].end() );
 }
 
 Node TermDb::getInstantiatedNode( Node n, Node q, std::vector< Node >& terms ) {
@@ -961,14 +1084,29 @@ Node TermDb::getInstantiatedNode( Node n, Node q, std::vector< Node >& terms ) {
 }
 
 
-void getSelfSel( const DatatypeConstructor& dc, Node n, TypeNode ntn, std::vector< Node >& selfSel ){
+void getSelfSel( const Datatype& dt, const DatatypeConstructor& dc, Node n, TypeNode ntn, std::vector< Node >& selfSel ){
+  TypeNode tspec;
+  if( dt.isParametric() ){
+    tspec = TypeNode::fromType( dc.getSpecializedConstructorType(n.getType().toType()) );
+    Trace("sk-ind-debug") << "Specialized constructor type : " << tspec << std::endl;
+    Assert( tspec.getNumChildren()==dc.getNumArgs() );
+  }
+  Trace("sk-ind-debug") << "Check self sel " << dc.getName() << " " << dt.getName() << std::endl;
   for( unsigned j=0; j<dc.getNumArgs(); j++ ){
-    TypeNode tn = TypeNode::fromType( dc[j].getRangeType() );
     std::vector< Node > ssc;
-    if( tn==ntn ){
-      ssc.push_back( n );
+    if( dt.isParametric() ){
+      Trace("sk-ind-debug") << "Compare " << tspec[j] << " " << ntn << std::endl;
+      if( tspec[j]==ntn ){
+        ssc.push_back( n );
+      }
+    }else{
+      TypeNode tn = TypeNode::fromType( dc[j].getRangeType() );
+      Trace("sk-ind-debug") << "Compare " << tn << " " << ntn << std::endl;
+      if( tn==ntn ){
+        ssc.push_back( n );
+      }
     }
-    /* TODO
+    /* TODO: more than weak structural induction
     else if( datatypes::DatatypesRewriter::isTypeDatatype( tn ) && std::find( visited.begin(), visited.end(), tn )==visited.end() ){
       visited.push_back( tn );
       const Datatype& dt = ((DatatypeType)(subs[0].getType()).toType()).getDatatype();
@@ -1046,7 +1184,7 @@ Node TermDb::mkSkolemizedBody( Node f, Node n, std::vector< TypeNode >& argTypes
       std::vector< Node > disj;
       for( unsigned i=0; i<dt.getNumConstructors(); i++ ){
         std::vector< Node > selfSel;
-        getSelfSel( dt[i], k, tn, selfSel );
+        getSelfSel( dt, dt[i], k, tn, selfSel );
         std::vector< Node > conj;
         conj.push_back( NodeManager::currentNM()->mkNode( APPLY_TESTER, Node::fromExpr( dt[i].getTester() ), k ).negate() );
         for( unsigned j=0; j<selfSel.size(); j++ ){
@@ -1442,7 +1580,7 @@ struct sortTermOrder {
 //this function makes a canonical representation of a term (
 //  - orders variables left to right
 //  - if apply_torder, then sort direct subterms of commutative operators
-Node TermDb::getCanonicalTerm( TNode n, std::map< TypeNode, unsigned >& var_count, std::map< TNode, TNode >& subs, bool apply_torder ) {
+Node TermDb::getCanonicalTerm( TNode n, std::map< TypeNode, unsigned >& var_count, std::map< TNode, TNode >& subs, bool apply_torder, std::map< TNode, Node >& visited ) {
   Trace("canon-term-debug") << "Get canonical term for " << n << std::endl;
   if( n.getKind()==BOUND_VARIABLE ){
     std::map< TNode, TNode >::iterator it = subs.find( n );
@@ -1459,32 +1597,38 @@ Node TermDb::getCanonicalTerm( TNode n, std::map< TypeNode, unsigned >& var_coun
       return it->second;
     }
   }else if( n.getNumChildren()>0 ){
-    //collect children
-    Trace("canon-term-debug") << "Collect children" << std::endl;
-    std::vector< Node > cchildren;
-    for( unsigned i=0; i<n.getNumChildren(); i++ ){
-      cchildren.push_back( n[i] );
+    std::map< TNode, Node >::iterator it = visited.find( n );
+    if( it!=visited.end() ){
+      return it->second;
+    }else{
+      //collect children
+      Trace("canon-term-debug") << "Collect children" << std::endl;
+      std::vector< Node > cchildren;
+      for( unsigned i=0; i<n.getNumChildren(); i++ ){
+        cchildren.push_back( n[i] );
+      }
+      //if applicable, first sort by term order
+      if( apply_torder && isComm( n.getKind() ) ){
+        Trace("canon-term-debug") << "Sort based on commutative operator " << n.getKind() << std::endl;
+        sortTermOrder sto;
+        sto.d_tdb = this;
+        std::sort( cchildren.begin(), cchildren.end(), sto );
+      }
+      //now make canonical
+      Trace("canon-term-debug") << "Make canonical children" << std::endl;
+      for( unsigned i=0; i<cchildren.size(); i++ ){
+        cchildren[i] = getCanonicalTerm( cchildren[i], var_count, subs, apply_torder, visited );
+      }
+      if( n.getMetaKind() == kind::metakind::PARAMETERIZED ){
+        Trace("canon-term-debug") << "Insert operator " << n.getOperator() << std::endl;
+        cchildren.insert( cchildren.begin(), n.getOperator() );
+      }
+      Trace("canon-term-debug") << "...constructing for " << n << "." << std::endl;
+      Node ret = NodeManager::currentNM()->mkNode( n.getKind(), cchildren );
+      Trace("canon-term-debug") << "...constructed " << ret << " for " << n << "." << std::endl;
+      visited[n] = ret;
+      return ret;
     }
-    //if applicable, first sort by term order
-    if( apply_torder && isComm( n.getKind() ) ){
-      Trace("canon-term-debug") << "Sort based on commutative operator " << n.getKind() << std::endl;
-      sortTermOrder sto;
-      sto.d_tdb = this;
-      std::sort( cchildren.begin(), cchildren.end(), sto );
-    }
-    //now make canonical
-    Trace("canon-term-debug") << "Make canonical children" << std::endl;
-    for( unsigned i=0; i<cchildren.size(); i++ ){
-      cchildren[i] = getCanonicalTerm( cchildren[i], var_count, subs, apply_torder );
-    }
-    if( n.getMetaKind() == kind::metakind::PARAMETERIZED ){
-      Trace("canon-term-debug") << "Insert operator " << n.getOperator() << std::endl;
-      cchildren.insert( cchildren.begin(), n.getOperator() );
-    }
-    Trace("canon-term-debug") << "...constructing for " << n << "." << std::endl;
-    Node ret = NodeManager::currentNM()->mkNode( n.getKind(), cchildren );
-    Trace("canon-term-debug") << "...constructed " << ret << " for " << n << "." << std::endl;
-    return ret;
   }else{
     Trace("canon-term-debug") << "...return 0-child term." << std::endl;
     return n;
@@ -1494,7 +1638,8 @@ Node TermDb::getCanonicalTerm( TNode n, std::map< TypeNode, unsigned >& var_coun
 Node TermDb::getCanonicalTerm( TNode n, bool apply_torder ){
   std::map< TypeNode, unsigned > var_count;
   std::map< TNode, TNode > subs;
-  return getCanonicalTerm( n, var_count, subs, apply_torder );
+  std::map< TNode, Node > visited;
+  return getCanonicalTerm( n, var_count, subs, apply_torder, visited );
 }
 
 void TermDb::getVtsTerms( std::vector< Node >& t, bool isFree, bool create, bool inc_delta ) {
@@ -1720,6 +1865,18 @@ bool TermDb::getEnsureTypeCondition( Node n, TypeNode tn, std::vector< Node >& c
   }
 }
 
+void TermDb::getRelevancyCondition( Node n, std::vector< Node >& cond ) {
+  if( n.getKind()==APPLY_SELECTOR_TOTAL ){
+    unsigned scindex = Datatype::cindexOf(n.getOperator().toExpr());
+    const Datatype& dt = ((DatatypeType)(n[0].getType()).toType()).getDatatype();
+    Node rc = NodeManager::currentNM()->mkNode( APPLY_TESTER, Node::fromExpr( dt[scindex].getTester() ), n[0] ).negate();
+    if( std::find( cond.begin(), cond.end(), rc )==cond.end() ){
+      cond.push_back( rc );
+    }
+    getRelevancyCondition( n[0], cond );
+  }
+}
+
 bool TermDb::containsTerm2( Node n, Node t, std::map< Node, bool >& visited ) {
   if( n==t ){
     return true;
@@ -1814,7 +1971,8 @@ Node TermDb::simpleNegate( Node n ){
 
 bool TermDb::isAssoc( Kind k ) {
   return k==PLUS || k==MULT || k==AND || k==OR || k==XOR || k==IFF ||
-         k==BITVECTOR_PLUS || k==BITVECTOR_MULT || k==BITVECTOR_AND || k==BITVECTOR_OR || k==BITVECTOR_XOR || k==BITVECTOR_XNOR || k==BITVECTOR_CONCAT;
+         k==BITVECTOR_PLUS || k==BITVECTOR_MULT || k==BITVECTOR_AND || k==BITVECTOR_OR || k==BITVECTOR_XOR || k==BITVECTOR_XNOR || k==BITVECTOR_CONCAT ||
+         k==STRING_CONCAT;
 }
 
 bool TermDb::isComm( Kind k ) {
@@ -1945,7 +2103,7 @@ void TermDb::computeAttributes( Node q ) {
       Trace("quant-warn") << "WARNING : rewrite engine is null, and we have : " << q << std::endl;
     }
     //set rewrite engine as owner
-    d_quantEngine->setOwner( q, d_quantEngine->getRewriteEngine() );
+    d_quantEngine->setOwner( q, d_quantEngine->getRewriteEngine(), 2 );
   }
   if( d_qattr[q].isFunDef() ){
     Node f = d_qattr[q].d_fundef_f;
@@ -1954,19 +2112,19 @@ void TermDb::computeAttributes( Node q ) {
       exit( 1 );
     }
     d_fun_defs[f] = true;
-    d_quantEngine->setOwner( q, d_quantEngine->getFunDefEngine() );
+    d_quantEngine->setOwner( q, d_quantEngine->getFunDefEngine(), 2 );
   }
   if( d_qattr[q].d_sygus ){
     if( d_quantEngine->getCegInstantiation()==NULL ){
       Trace("quant-warn") << "WARNING : ceg instantiation is null, and we have : " << q << std::endl;
     }
-    d_quantEngine->setOwner( q, d_quantEngine->getCegInstantiation() );
+    d_quantEngine->setOwner( q, d_quantEngine->getCegInstantiation(), 2 );
   }
   if( d_qattr[q].d_synthesis ){
     if( d_quantEngine->getCegInstantiation()==NULL ){
       Trace("quant-warn") << "WARNING : ceg instantiation is null, and we have : " << q << std::endl;
     }
-    d_quantEngine->setOwner( q, d_quantEngine->getCegInstantiation() );
+    d_quantEngine->setOwner( q, d_quantEngine->getCegInstantiation(), 2 );
   }
 }
 
@@ -1976,7 +2134,9 @@ void TermDb::computeQuantAttributes( Node q, QAttributes& qa ){
     qa.d_ipl = q[2];
     for( unsigned i=0; i<q[2].getNumChildren(); i++ ){
       Trace("quant-attr-debug") << "Check : " << q[2][i] << " " << q[2][i].getKind() << std::endl;
-      if( q[2][i].getKind()==INST_ATTRIBUTE ){
+      if( q[2][i].getKind()==INST_PATTERN || q[2][i].getKind()==INST_NO_PATTERN ){
+        qa.d_hasPattern = true;
+      }else if( q[2][i].getKind()==INST_ATTRIBUTE ){
         Node avar = q[2][i][0];
         if( avar.getAttribute(AxiomAttribute()) ){
           Trace("quant-attr") << "Attribute : axiom : " << q << std::endl;
@@ -2112,9 +2272,13 @@ bool TermDb::isQAttrQuantElimPartial( Node q ) {
   }
 }
 
-TermDbSygus::TermDbSygus(){
+TermDbSygus::TermDbSygus( context::Context* c, QuantifiersEngine* qe ) : d_quantEngine( qe ){
   d_true = NodeManager::currentNM()->mkConst( true );
   d_false = NodeManager::currentNM()->mkConst( false );
+}
+
+bool TermDbSygus::reset( Theory::Effort e ) { 
+  return true;  
 }
 
 TNode TermDbSygus::getVar( TypeNode tn, int i ) {
@@ -2328,8 +2492,8 @@ Node TermDbSygus::sygusToBuiltin( Node n, TypeNode tn ) {
   std::map< Node, Node >::iterator it = d_sygus_to_builtin[tn].find( n );
   if( it==d_sygus_to_builtin[tn].end() ){
     Trace("sygus-db-debug") << "SygusToBuiltin : compute for " << n << ", type = " << tn << std::endl;
-    Assert( n.getKind()==APPLY_CONSTRUCTOR );
     const Datatype& dt = ((DatatypeType)(tn).toType()).getDatatype();
+    Assert( n.getKind()==APPLY_CONSTRUCTOR );
     unsigned i = Datatype::indexOf( n.getOperator().toExpr() );
     Assert( n.getNumChildren()==dt[i].getNumArgs() );
     std::map< TypeNode, int > var_count;
@@ -2979,6 +3143,7 @@ void TermDbSygus::printSygusTerm( std::ostream& out, Node n, std::vector< Node >
           std::string name = std::string( str.begin() + found +1, str.end() );
           out << name;
         }else{
+          Trace("ajr-temp") << "[[print operator " << op << "]]" << std::endl;
           out << op;
         }
         if( n.getNumChildren()>0 ){
@@ -3046,3 +3211,91 @@ void TermDbSygus::printSygusTerm( std::ostream& out, Node n, std::vector< Node >
     out << n;
   }
 }
+
+Node TermDbSygus::getAnchor( Node n ) {
+  if( n.getKind()==APPLY_SELECTOR_TOTAL ){
+    return getAnchor( n[0] );
+  }else{
+    return n;
+  }
+}
+
+void TermDbSygus::registerEvalTerm( Node n ) {
+  if( options::sygusDirectEval() ){
+    if( n.getKind()==APPLY_UF && !n.getType().isBoolean() ){
+      Trace("sygus-eager") << "TermDbSygus::eager: Register eval term : " << n << std::endl;
+      TypeNode tn = n[0].getType();
+      if( datatypes::DatatypesRewriter::isTypeDatatype(tn) ){
+        const Datatype& dt = ((DatatypeType)(tn).toType()).getDatatype();
+        if( dt.isSygus() ){
+          Node f = n.getOperator();
+          Trace("sygus-eager") << "...the evaluation function is : " << f << std::endl;
+          if( n[0].getKind()!=APPLY_CONSTRUCTOR ){
+            d_evals[n[0]].push_back( n );
+            TypeNode tn = n[0].getType();
+            Assert( datatypes::DatatypesRewriter::isTypeDatatype(tn) );
+            const Datatype& dt = ((DatatypeType)(tn).toType()).getDatatype();
+            Node var_list = Node::fromExpr( dt.getSygusVarList() );
+            Assert( dt.isSygus() );
+            d_eval_args[n[0]].push_back( std::vector< Node >() );
+            for( unsigned j=1; j<n.getNumChildren(); j++ ){
+              if( var_list[j-1].getType().isBoolean() ){
+                //TODO: remove this case when boolean term conversion is eliminated
+                Node c = NodeManager::currentNM()->mkConst(BitVector(1u, 1u));
+                d_eval_args[n[0]].back().push_back( n[j].eqNode( c ) );
+              }else{
+                d_eval_args[n[0]].back().push_back( n[j] );
+              }
+            }
+            Node a = getAnchor( n[0] );
+            d_subterms[a][n[0]] = true;
+          }
+        }
+      }    
+    }
+  }
+}
+
+void TermDbSygus::registerModelValue( Node a, Node v, std::vector< Node >& lems ) {
+  std::map< Node, std::map< Node, bool > >::iterator its = d_subterms.find( a );
+  if( its!=d_subterms.end() ){
+    Trace("sygus-eager") << "registerModelValue : " << a << ", has " << its->second.size() << " registered subterms." << std::endl;
+    for( std::map< Node, bool >::iterator itss = its->second.begin(); itss != its->second.end(); ++itss ){
+      Node n = itss->first;
+      Trace("sygus-eager-debug") << "...process : " << n << std::endl;
+      std::map< Node, std::vector< std::vector< Node > > >::iterator it = d_eval_args.find( n );
+      if( it!=d_eval_args.end() && !it->second.empty() ){
+        TNode at = a;
+        TNode vt = v;
+        Node vn = n.substitute( at, vt );
+        vn = Rewriter::rewrite( vn );
+        unsigned start = d_node_mv_args_proc[n][vn];
+        Node antec = n.eqNode( vn ).negate();
+        TypeNode tn = n.getType();
+        Assert( datatypes::DatatypesRewriter::isTypeDatatype(tn) );
+        const Datatype& dt = ((DatatypeType)(tn).toType()).getDatatype();
+        Assert( dt.isSygus() );
+        Trace("sygus-eager") << "TermDbSygus::eager: Register model value : " << vn << " for " << n << std::endl;
+        Trace("sygus-eager") << "...it has " << it->second.size() << " evaluations, already processed " << start << "." << std::endl;
+        Node bTerm = d_quantEngine->getTermDatabaseSygus()->sygusToBuiltin( vn, tn );
+        Trace("sygus-eager") << "Built-in term : " << bTerm << std::endl;
+        std::vector< Node > vars;
+        Node var_list = Node::fromExpr( dt.getSygusVarList() );
+        for( unsigned j=0; j<var_list.getNumChildren(); j++ ){
+          vars.push_back( var_list[j] );
+        }
+        //for each evaluation
+        for( unsigned i=start; i<it->second.size(); i++ ){
+          Assert( vars.size()==it->second[i].size() );
+          Node sBTerm = bTerm.substitute( vars.begin(), vars.end(), it->second[i].begin(), it->second[i].end() );
+          Node lem = NodeManager::currentNM()->mkNode( n.getType().isBoolean() ? IFF : EQUAL, d_evals[n][i], sBTerm ); 
+          lem = NodeManager::currentNM()->mkNode( OR, antec, lem );
+          Trace("sygus-eager") << "Lemma : " << lem << std::endl;
+          lems.push_back( lem );
+        }
+        d_node_mv_args_proc[n][vn] = it->second.size();
+      }
+    }
+  }
+}
+
