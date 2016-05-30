@@ -186,19 +186,20 @@ void BitVectorProof::finalizeConflicts(std::vector<Expr>& conflicts) {
     d_resolutionProof->constructProof();
     return;
   }
-  for(unsigned i = 0; i < conflicts.size(); ++i) {
+
+  for (unsigned i = 0; i < conflicts.size(); ++i) {
     Expr confl = conflicts[i];
     Debug("pf::bv") << "Finalize conflict " << confl << std::endl;
-    //Assert (d_bbConflictMap.find(confl) != d_bbConflictMap.end());
-    if(d_bbConflictMap.find(confl) != d_bbConflictMap.end()){
+
+    if (d_bbConflictMap.find(confl) != d_bbConflictMap.end()) {
       ClauseId id = d_bbConflictMap[confl];
       d_resolutionProof->collectClauses(id);
     } else {
+      // There is no exact match for our conflict, but maybe it is a subset of another conflict
       ExprToClauseId::const_iterator it;
       bool matchFound = false;
       for (it = d_bbConflictMap.begin(); it != d_bbConflictMap.end(); ++it) {
         Expr possibleMatch = it->first;
-
         if (possibleMatch.getKind() != kind::OR) {
           // This is a single-node conflict. If this node is in the conflict we're trying to prove,
           // we have a match.
@@ -238,16 +239,14 @@ void BitVectorProof::finalizeConflicts(std::vector<Expr>& conflicts) {
       }
 
       if (!matchFound) {
-        Debug("pf::bv") << "Do not collect clauses for " << confl << std::endl;
-
-        Debug("pf::bv") << "Dumping existing conflicts:" << std::endl;
+        Debug("pf::bv") << "Do not collect clauses for " << confl << std::endl
+                        << "Dumping existing conflicts:" << std::endl;
 
         i = 0;
         for (it = d_bbConflictMap.begin(); it != d_bbConflictMap.end(); ++it) {
           ++i;
           Debug("pf::bv") << "\tConflict #" << i << ": " << it->first << std::endl;
         }
-
 
         Unreachable();
       }
@@ -484,7 +483,8 @@ void LFSCBitVectorProof::printTheoryLemmaProof(std::vector<Expr>& lemma, std::os
     os <<lemma_paren.str();
   } else {
 
-    Debug("pf::bv") << "Found a non-recorded conflict. Will look for a matching sub-conflict..." << std::endl;
+    Debug("pf::bv") << "Found a non-recorded conflict. Looking for a matching sub-conflict..."
+                    << std::endl;
 
     bool matching;
 
@@ -493,13 +493,9 @@ void LFSCBitVectorProof::printTheoryLemmaProof(std::vector<Expr>& lemma, std::os
     for (it = d_bbConflictMap.begin(); it != d_bbConflictMap.end(); ++it) {
       // Our conflict is sorted, and the records are also sorted.
       ++i;
-      // Debug("pf::bv") << "\tConflict #" << i << ": " << it->first << std::endl;
       Expr possibleMatch = it->first;
-      // Debug("pf::bv") << "possibleMatch = " << possibleMatch << std::endl;
 
       if (possibleMatch.getKind() != kind::OR) {
-        // Debug("pf::bv") << "Checking singleton conflict (#" << i << "): " << possibleMatch << std::endl;
-
         // This is a single-node conflict. If this node is in the conflict we're trying to prove,
         // we have a match.
         matching = false;
@@ -540,8 +536,6 @@ void LFSCBitVectorProof::printTheoryLemmaProof(std::vector<Expr>& lemma, std::os
 
         if (possibleMatch.getKind() == kind::OR) {
           for (unsigned i = 0; i < possibleMatch.getNumChildren(); ++i) {
-            //          for (unsigned i = 0; i < lemma.size(); ++i) {
-            // Expr lit = lemma[i];
             Expr lit = possibleMatch[i];
 
             if (lit.getKind() == kind::NOT) {
@@ -584,10 +578,6 @@ void LFSCBitVectorProof::printTheoryLemmaProof(std::vector<Expr>& lemma, std::os
           lemma_paren <<")";
         }
 
-
-        // Expr lem = utils::mkOr(possibleMatch);
-        // Assert (d_bbConflictMap.find(lem) != d_bbConflictMap.end());
-        // ClauseId lemma_id = d_bbConflictMap[lem];
         ClauseId lemma_id = it->second;
         d_resolutionProof->printAssumptionsResolution(lemma_id, os, lemma_paren);
         os <<lemma_paren.str();
@@ -596,10 +586,8 @@ void LFSCBitVectorProof::printTheoryLemmaProof(std::vector<Expr>& lemma, std::os
       }
     }
 
-    Debug("pf::bv") << "Failed to find a matching sub-conflict..." << std::endl;
-
-
-    Debug("pf::bv") << "Dumping existing conflicts:" << std::endl;
+    Debug("pf::bv") << "Failed to find a matching sub-conflict..." << std::endl
+                    << "Dumping existing conflicts:" << std::endl;
 
     i = 0;
     for (it = d_bbConflictMap.begin(); it != d_bbConflictMap.end(); ++it) {
@@ -608,12 +596,6 @@ void LFSCBitVectorProof::printTheoryLemmaProof(std::vector<Expr>& lemma, std::os
     }
 
     Unreachable();
-
-    // Unreachable(); // If we were to reach here, we would crash because BV replay is currently not supported
-    // // in TheoryProof::printTheoryLemmaProof()
-
-    // // Debug("pf::bv") << std::endl << "; Print non-bitblast theory conflict " << conflict << std::endl;
-    // // BitVectorProof::printTheoryLemmaProof( lemma, os, paren );
   }
 }
 
@@ -723,7 +705,7 @@ void LFSCBitVectorProof::printTermBitblasting(Expr term, std::ostream& os) {
       if (kind == kind::BITVECTOR_CONCAT) {
         os << " " << utils::getSize(term) << " _";
       }
-      os <<" _ _ _ _ _ _ ";
+      os << " _ _ _ _ _ _ ";
     }
 
     if (hasAlias(term[0])) {os << "_ " << d_aliasToBindDeclaration[d_assignedAliases[term[0]]] << " ";}
@@ -741,10 +723,10 @@ void LFSCBitVectorProof::printTermBitblasting(Expr term, std::ostream& os) {
   case kind::BITVECTOR_NOT :
   case kind::BITVECTOR_ROTATE_LEFT :
   case kind::BITVECTOR_ROTATE_RIGHT : {
-    os <<"(bv_bbl_"<<utils::toLFSCKind(kind);
-    os <<" _ _ _ _ ";
+    os << "(bv_bbl_"<<utils::toLFSCKind(kind);
+    os << " _ _ _ _ ";
     os << getBBTermName(term[0]);
-    os <<")";
+    os << ")";
     return;
   }
   case kind::BITVECTOR_EXTRACT : {
@@ -835,22 +817,13 @@ void LFSCBitVectorProof::printAtomBitblasting(Expr atom, std::ostream& os, bool 
   case kind::EQUAL: {
     Debug("pf::bv") << "Bitblasing kind = " << kind << std::endl;
 
-    // Currently we assuem at most one term has an alias
-    // Assert(!(hasAlias(atom[0]) && hasAlias(atom[1])));
-
     os << "(bv_bbl_" << utils::toLFSCKind(atom.getKind());
 
     if (hasAlias(atom[0]) || hasAlias(atom[1])) {os << "_alias";}
     if (hasAlias(atom[0])) {os << "_1";}
-    if (hasAlias(atom[1])) {
-      os << "_2";
-      // if (!hasAlias(atom[0]) && swap) {os << "_swap";
-      // }
-    }
+    if (hasAlias(atom[1])) {os << "_2";}
 
-    if (swap) {
-      os << "_swap";
-    }
+    if (swap) {os << "_swap";}
 
     os << " _ _ _ _ _ _ ";
 
@@ -863,7 +836,6 @@ void LFSCBitVectorProof::printAtomBitblasting(Expr atom, std::ostream& os, bool 
     os << getBBTermName(atom[1]);
 
     os << ")";
-    // os << getBBTermName(atom[0]) << " " << getBBTermName(atom[1]) << ")";
     return;
   }
   default:
@@ -916,9 +888,8 @@ void LFSCBitVectorProof::printBitblasting(std::ostream& os, std::ostream& paren)
 
     os << "(decl_bblast _ _ _ ";
     printTermBitblasting(*it, os);
-    os << "(\\ "<< getBBTermName(*it);
-    os << "\n";
-    paren <<"))";
+    os << "(\\ "<< getBBTermName(*it) << "\n";
+    paren << "))";
   }
   // bit-blast atoms
   ExprToExpr::const_iterator ait = d_bbAtoms.begin();

@@ -958,9 +958,6 @@ Node ProofArray::toStreamRecLFSC(std::ostream& out,
         out << ") ";
       }
 
-
-      // Unreachable();
-
       return ret;
     }
   }
