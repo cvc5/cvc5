@@ -1,13 +1,13 @@
 /*********************                                                        */
 /*! \file logic_request.h
  ** \verbatim
- ** Original author: Martin Brain <>
- ** Major contributors: none
- ** Minor contributors (to current version): Tim King
+ ** Top contributors (to current version):
+ **   Martin Brain, Tim King
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2014  New York University and The University of Iowa
- ** See the file COPYING in the top-level source directory for licensing
- ** information.\endverbatim
+ ** Copyright (c) 2009-2016 by the authors listed in the file AUTHORS
+ ** in the top-level source directory) and their institutional affiliations.
+ ** All rights reserved.  See the file COPYING in the top-level source
+ ** directory for licensing information.\endverbatim
  **
  ** \brief An object to request logic widening in the running SmtEngine
  **

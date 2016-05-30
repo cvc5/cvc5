@@ -1,13 +1,13 @@
 /*********************                                                        */
 /*! \file sat_solver.h
  ** \verbatim
- ** Original author: Dejan Jovanovic
- ** Major contributors: Morgan Deters, Liana Hadarean
- ** Minor contributors (to current version): none
+ ** Top contributors (to current version):
+ **   Liana Hadarean, Dejan Jovanovic, Morgan Deters
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2014  New York University and The University of Iowa
- ** See the file COPYING in the top-level source directory for licensing
- ** information.\endverbatim
+ ** Copyright (c) 2009-2016 by the authors listed in the file AUTHORS
+ ** in the top-level source directory) and their institutional affiliations.
+ ** All rights reserved.  See the file COPYING in the top-level source
+ ** directory for licensing information.\endverbatim
  **
  ** \brief SAT Solver.
  **
@@ -49,6 +49,12 @@ public:
   virtual ClauseId addClause(SatClause& clause,
                              bool removable) = 0;
 
+  /** Return true if the solver supports native xor resoning */
+  virtual bool nativeXor() { return false; }
+
+  /** Add a clause corresponding to rhs = l1 xor .. xor ln  */
+  virtual ClauseId addXorClause(SatClause& clause, bool rhs, bool removable) = 0;
+  
   /**
    * Create a new boolean variable in the solver.
    * @param isTheoryAtom is this a theory atom that needs to be asserted to theory
@@ -84,7 +90,8 @@ public:
 
   /** Check if the solver is in an inconsistent state */
   virtual bool ok() const = 0;
-
+  
+  virtual void setProofLog( BitVectorProof * bvp ) {}
   
 };/* class SatSolver */
 

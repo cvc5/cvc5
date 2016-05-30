@@ -1,13 +1,13 @@
 /*********************                                                        */
 /*! \file anti_skolem.cpp
  ** \verbatim
- ** Original author: Andrew Reynolds
- ** Major contributors: none
- ** Minor contributors (to current version): none
+ ** Top contributors (to current version):
+ **   Andrew Reynolds, Tim King
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2014  New York University and The University of Iowa
- ** See the file COPYING in the top-level source directory for licensing
- ** information.\endverbatim
+ ** Copyright (c) 2009-2016 by the authors listed in the file AUTHORS
+ ** in the top-level source directory) and their institutional affiliations.
+ ** All rights reserved.  See the file COPYING in the top-level source
+ ** directory for licensing information.\endverbatim
  **
  ** \brief Implementation of anti-skolemization
  **          ( forall x. P[ f( x ) ] ^ forall x. Q[ f( x ) ]  ) => forall x. exists y. ( P[ y ] ^ Q[ y ] )
@@ -82,7 +82,7 @@ QuantAntiSkolem::QuantAntiSkolem( QuantifiersEngine * qe ) : QuantifiersModule( 
 void QuantAntiSkolem::check( Theory::Effort e, unsigned quant_e ) {
   if( quant_e==QuantifiersEngine::QEFFORT_STANDARD ){
     d_sqtc.clear();
-    for( int i=0; i<d_quantEngine->getModel()->getNumAssertedQuantifiers(); i++ ){
+    for( unsigned i=0; i<d_quantEngine->getModel()->getNumAssertedQuantifiers(); i++ ){
       Node q = d_quantEngine->getModel()->getAssertedQuantifier( i );
       if( d_quant_processed.find( q )==d_quant_processed.end() ){
         d_quant_processed[q] = true;

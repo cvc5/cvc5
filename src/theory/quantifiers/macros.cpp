@@ -1,13 +1,13 @@
 /*********************                                                        */
 /*! \file macros.cpp
  ** \verbatim
- ** Original author: Andrew Reynolds
- ** Major contributors: Morgan Deters
- ** Minor contributors (to current version): Kshitij Bansal
+ ** Top contributors (to current version):
+ **   Andrew Reynolds, Morgan Deters, Tim King
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2014  New York University and The University of Iowa
- ** See the file COPYING in the top-level source directory for licensing
- ** information.\endverbatim
+ ** Copyright (c) 2009-2016 by the authors listed in the file AUTHORS
+ ** in the top-level source directory) and their institutional affiliations.
+ ** All rights reserved.  See the file COPYING in the top-level source
+ ** directory for licensing information.\endverbatim
  **
  ** \brief Sort inference module
  **
@@ -153,7 +153,7 @@ bool QuantifierMacros::isGroundUfTerm( Node f, Node n ) {
   d_qe->getTermDatabase()->getVarContainsNode( f, icn, var );
   Trace("macros-debug2") << "Get trigger variables for " << icn << std::endl;
   std::vector< Node > trigger_var;
-  inst::Trigger::getTriggerVariables( d_qe, icn, f, trigger_var );
+  inst::Trigger::getTriggerVariables( icn, f, trigger_var );
   Trace("macros-debug2") << "Done." << std::endl;
   //only if all variables are also trigger variables
   return trigger_var.size()>=var.size();

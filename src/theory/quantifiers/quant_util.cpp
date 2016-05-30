@@ -1,13 +1,13 @@
 /*********************                                                        */
 /*! \file quant_util.cpp
  ** \verbatim
- ** Original author: Andrew Reynolds
- ** Major contributors: Morgan Deters
- ** Minor contributors (to current version): none
+ ** Top contributors (to current version):
+ **   Andrew Reynolds, Morgan Deters, Tim King
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2014  New York University and The University of Iowa
- ** See the file COPYING in the top-level source directory for licensing
- ** information.\endverbatim
+ ** Copyright (c) 2009-2016 by the authors listed in the file AUTHORS
+ ** in the top-level source directory) and their institutional affiliations.
+ ** All rights reserved.  See the file COPYING in the top-level source
+ ** directory for licensing information.\endverbatim
  **
  ** \brief Implementation of quantifier utilities
  **/
@@ -23,6 +23,31 @@ using namespace CVC4::kind;
 using namespace CVC4::context;
 using namespace CVC4::theory;
 
+
+unsigned QuantifiersModule::needsModel( Theory::Effort e ) {
+  return QuantifiersEngine::QEFFORT_NONE;
+}
+
+eq::EqualityEngine * QuantifiersModule::getEqualityEngine() {
+  return d_quantEngine->getMasterEqualityEngine();
+}
+
+bool QuantifiersModule::areEqual( TNode n1, TNode n2 ) {
+  return d_quantEngine->getEqualityQuery()->areEqual( n1, n2 );
+}
+
+bool QuantifiersModule::areDisequal( TNode n1, TNode n2 ) {
+  return d_quantEngine->getEqualityQuery()->areDisequal( n1, n2 );
+}
+
+TNode QuantifiersModule::getRepresentative( TNode n ) {
+  return d_quantEngine->getEqualityQuery()->getRepresentative( n );
+}
+
+quantifiers::TermDb * QuantifiersModule::getTermDatabase() {
+  return d_quantEngine->getTermDatabase();
+}
+
 bool QuantArith::getMonomial( Node n, Node& c, Node& v ){
   if( n.getKind()==MULT && n.getNumChildren()==2 && n[0].isConst() ){
     c = n[0];
@@ -33,14 +58,14 @@ bool QuantArith::getMonomial( Node n, Node& c, Node& v ){
   }
 }
 bool QuantArith::getMonomial( Node n, std::map< Node, Node >& msum ) {
-  if( n.getKind()==MULT && n.getNumChildren()==2 && n[0].isConst() ){
-    if( msum.find(n[1])==msum.end() ){
-      msum[n[1]] = n[0];
-      return true;
-    }
-  }else if( n.isConst() ){
+  if( n.isConst() ){
     if( msum.find(Node::null())==msum.end() ){
       msum[Node::null()] = n;
+      return true;
+    }
+  }else if( n.getKind()==MULT && n.getNumChildren()==2 && n[0].isConst() ){
+    if( msum.find(n[1])==msum.end() ){
+      msum[n[1]] = n[0];
       return true;
     }
   }else{
@@ -377,3 +402,20 @@ void QuantPhaseReq::getPolarity( Node n, int child, bool hasPol, bool pol, bool&
     newPol = pol;
   }
 }
+
+void QuantPhaseReq::getEntailPolarity( Node n, int child, bool hasPol, bool pol, bool& newHasPol, bool& newPol ) {
+  if( n.getKind()==AND || n.getKind()==OR ){
+    newHasPol = hasPol && pol==( n.getKind()==AND );
+    newPol = pol;
+  }else if( n.getKind()==IMPLIES ){
+    newHasPol = hasPol && !pol;
+    newPol = child==0 ? !pol : pol;
+  }else if( n.getKind()==NOT ){
+    newHasPol = hasPol;
+    newPol = !pol;
+  }else{
+    newHasPol = false;
+    newPol = pol;
+  }
+}
+

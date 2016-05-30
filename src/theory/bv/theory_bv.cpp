@@ -1,13 +1,13 @@
 /*********************                                                        */
 /*! \file theory_bv.cpp
  ** \verbatim
- ** Original author: Dejan Jovanovic
- ** Major contributors: Liana Hadarean
- ** Minor contributors (to current version): Tim King, Kshitij Bansal, Clark Barrett, Andrew Reynolds, Morgan Deters, Martin Brain <>
+ ** Top contributors (to current version):
+ **   Liana Hadarean, Tim King, Dejan Jovanovic
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2014  New York University and The University of Iowa
- ** See the file COPYING in the top-level source directory for licensing
- ** information.\endverbatim
+ ** Copyright (c) 2009-2016 by the authors listed in the file AUTHORS
+ ** in the top-level source directory) and their institutional affiliations.
+ ** All rights reserved.  See the file COPYING in the top-level source
+ ** directory for licensing information.\endverbatim
  **
  ** [[ Add lengthier description here ]]
  ** \todo document this file

@@ -1,13 +1,13 @@
 /*********************                                                        */
 /*! \file quantifiers_modes.h
  ** \verbatim
- ** Original author: Andrew Reynolds
- ** Major contributors: Morgan Deters
- ** Minor contributors (to current version): none
+ ** Top contributors (to current version):
+ **   Andrew Reynolds, Tim King, Morgan Deters
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2014  New York University and The University of Iowa
- ** See the file COPYING in the top-level source directory for licensing
- ** information.\endverbatim
+ ** Copyright (c) 2009-2016 by the authors listed in the file AUTHORS
+ ** in the top-level source directory) and their institutional affiliations.
+ ** All rights reserved.  See the file COPYING in the top-level source
+ ** directory for licensing information.\endverbatim
  **
  ** \brief [[ Add one-line brief description here ]]
  **
@@ -44,10 +44,12 @@ enum InstWhenMode {
 enum LiteralMatchMode {
   /** Do not consider polarity of patterns */
   LITERAL_MATCH_NONE,
-  /** Consider polarity of boolean predicates only */
-  LITERAL_MATCH_PREDICATE,
-  /** Consider polarity of boolean predicates, as well as equalities */
-  LITERAL_MATCH_EQUALITY,
+  /** Conservatively consider polarity of patterns */
+  LITERAL_MATCH_USE,
+  /** Aggressively consider polarity of Boolean predicates */
+  LITERAL_MATCH_AGG_PREDICATE,
+  /** Aggressively consider polarity of all terms */
+  LITERAL_MATCH_AGG,
 };
 
 enum MbqiMode {
@@ -83,8 +85,6 @@ enum QcfMode {
   QCF_PROP_EQ,
   /** use qcf for conflicts, propagations and heuristic instantiations */
   QCF_PARTIAL,
-  /** use qcf for model checking */
-  QCF_MC,
 };
 
 enum UserPatMode {
@@ -107,6 +107,12 @@ enum TriggerSelMode {
   TRIGGER_SEL_MIN,
   /** only consider maximal terms for triggers */
   TRIGGER_SEL_MAX,
+  /** consider minimal terms for single triggers, maximal for non-single */
+  TRIGGER_SEL_MIN_SINGLE_MAX,
+  /** consider minimal terms for single triggers, all for non-single */
+  TRIGGER_SEL_MIN_SINGLE_ALL,
+  /** consider all terms for triggers */
+  TRIGGER_SEL_ALL,
 };
 
 enum CVC4_PUBLIC PrenexQuantMode {
@@ -125,6 +131,8 @@ enum CegqiFairMode {
   CEGQI_FAIR_DT_SIZE,
   /** enforce fairness by datatypes height bound */
   CEGQI_FAIR_DT_HEIGHT_PRED,
+  /** enforce fairness by datatypes size bound */
+  CEGQI_FAIR_DT_SIZE_PRED,
   /** do not use fair strategy for CEGQI */
   CEGQI_FAIR_NONE,
 };
@@ -143,6 +151,17 @@ enum IteLiftQuantMode {
   ITE_LIFT_QUANT_MODE_SIMPLE,
   /** lift ITEs  */
   ITE_LIFT_QUANT_MODE_ALL,
+};
+
+enum CegqiSingleInvMode {
+  /** do not use single invocation techniques */
+  CEGQI_SI_MODE_NONE,
+  /** use single invocation techniques */
+  CEGQI_SI_MODE_USE,
+  /** always use single invocation techniques, abort if solution reconstruction will fail */
+  CEGQI_SI_MODE_ALL_ABORT,
+  /** always use single invocation techniques */
+  CEGQI_SI_MODE_ALL,
 };
 
 enum SygusInvTemplMode {

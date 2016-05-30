@@ -1,18 +1,18 @@
 /*********************                                                        */
-/*! \file uf_proof.cpp
-** \verbatim
-** Original author: Liana Hadarean
-** Major contributors: none
-** Minor contributors (to current version): none
-** This file is part of the CVC4 project.
-** Copyright (c) 2009-2014  New York University and The University of Iowa
-** See the file COPYING in the top-level source directory for licensing
-** information.\endverbatim
-**
-** \brief [[ Add one-line brief description here ]]
-**
-** [[ Add lengthier description here ]]
-** \todo document this file
+/*! \file array_proof.cpp
+ ** \verbatim
+ ** Top contributors (to current version):
+ **   Guy Katz
+ ** This file is part of the CVC4 project.
+ ** Copyright (c) 2009-2016 by the authors listed in the file AUTHORS
+ ** in the top-level source directory) and their institutional affiliations.
+ ** All rights reserved.  See the file COPYING in the top-level source
+ ** directory for licensing information.\endverbatim
+ **
+ ** [[ Add lengthier description here ]]
+
+ ** \todo document this file
+
 **/
 
 #include "options/proof_options.h"
@@ -80,6 +80,18 @@ inline static bool match(TNode n1, TNode n2) {
   return true;
 }
 
+void ProofArray::setRowMergeTag(unsigned tag) {
+  d_reasonRow = tag;
+}
+
+void ProofArray::setRow1MergeTag(unsigned tag) {
+  d_reasonRow1 = tag;
+}
+
+void ProofArray::setExtMergeTag(unsigned tag) {
+  d_reasonExt = tag;
+}
+
 void ProofArray::toStream(std::ostream& out) {
   Trace("pf::array") << "; Print Array proof..." << std::endl;
   //AJR : carry this further?
@@ -94,10 +106,6 @@ void ProofArray::toStreamLFSC(std::ostream& out, TheoryProof* tp, theory::eq::Eq
   Debug("pf::array") << std::endl;
   toStreamRecLFSC( out, tp, pf, 0, map );
   Debug("pf::array") << "Printing array proof in LFSC DONE" << std::endl;
-}
-
-void ProofArray::registerSkolem(Node equality, Node skolem) {
-  d_nodeToSkolem[equality] = skolem;
 }
 
 Node ProofArray::toStreamRecLFSC(std::ostream& out,
@@ -236,8 +244,8 @@ Node ProofArray::toStreamRecLFSC(std::ostream& out,
         Debug("pf::array") << "Collecting congruence sequence" << std::endl;
         for (count = 0;
              i + count < pf->d_children.size() &&
-             pf->d_children[i + count]->d_id==theory::eq::MERGED_THROUGH_CONGRUENCE &&
-             pf->d_children[i + count]->d_node.isNull();
+               pf->d_children[i + count]->d_id==theory::eq::MERGED_THROUGH_CONGRUENCE &&
+               pf->d_children[i + count]->d_node.isNull();
              ++count) {
           Debug("pf::array") << "Found a congruence: " << std::endl;
           pf->d_children[i+count]->debug_print("pf::array");
@@ -335,7 +343,7 @@ Node ProofArray::toStreamRecLFSC(std::ostream& out,
 
     out << "(clausify_false (contra _ ";
 
-    if ((pf->d_children[neg]->d_id == theory::eq::MERGED_ARRAYS_EXT) ||
+    if ((pf->d_children[neg]->d_id == d_reasonExt) ||
         (pf->d_children[neg]->d_id == theory::eq::MERGED_THROUGH_TRANS)) {
       // Ext case: The negative node was created by an EXT rule; e.g. it is a[k]!=b[k], due to a!=b.
       out << ss.str();
@@ -363,8 +371,7 @@ Node ProofArray::toStreamRecLFSC(std::ostream& out,
     return Node();
   }
 
-  switch(pf->d_id) {
-  case theory::eq::MERGED_THROUGH_CONGRUENCE: {
+  if (pf->d_id == theory::eq::MERGED_THROUGH_CONGRUENCE) {
     Debug("mgd") << "\nok, looking at congruence:\n";
     pf->debug_print("mgd");
     std::stack<const theory::eq::EqProof*> stk;
@@ -412,8 +419,8 @@ Node ProofArray::toStreamRecLFSC(std::ostream& out,
     } else {
       Debug("mgd") << "SIDE IS 1\n";
       if(!match(pf2->d_node, n1[1])) {
-      Debug("mgd") << "IN BAD CASE, our first subproof is\n";
-      pf2->d_children[0]->debug_print("mgd");
+        Debug("mgd") << "IN BAD CASE, our first subproof is\n";
+        pf2->d_children[0]->debug_print("mgd");
       }
       Assert(match(pf2->d_node, n1[1]));
       side = 1;
@@ -458,7 +465,7 @@ Node ProofArray::toStreamRecLFSC(std::ostream& out,
         b2 << kind::PARTIAL_APPLY_UF;
         b2 << ProofManager::currentPM()->mkOp(n1[1-side].getOperator());
       }
-        b2.append(n1[1-side].begin(), n1[1-side].end());
+      b2.append(n1[1-side].begin(), n1[1-side].end());
     } else if (n1[1-side].getKind() == kind::PARTIAL_SELECT_0) {
       b2 << kind::PARTIAL_SELECT_1;
     } else {
@@ -552,13 +559,13 @@ Node ProofArray::toStreamRecLFSC(std::ostream& out,
       b1.append(n1.begin(), n1.end());
       n1 = b1;
       Debug("mgd") << "New n1: " << n1 << std::endl;
-    // } else if (n1.getKind() == kind::PARTIAL_SELECT_0 && n1.getNumChildren() == 1) {
-    //   Debug("mgd") << "Finished a PARTIAL_SELECT_1. Updating.." << std::endl;
-    //   b1.clear(kind::PARTIAL_SELECT_1);
-    //   b1.append(n1.begin(), n1.end());
-    //   n1 = b1;
-    //   Debug("mgd") << "New n1: " << n1 << std::endl;
-    // } else
+      // } else if (n1.getKind() == kind::PARTIAL_SELECT_0 && n1.getNumChildren() == 1) {
+      //   Debug("mgd") << "Finished a PARTIAL_SELECT_1. Updating.." << std::endl;
+      //   b1.clear(kind::PARTIAL_SELECT_1);
+      //   b1.append(n1.begin(), n1.end());
+      //   n1 = b1;
+      //   Debug("mgd") << "New n1: " << n1 << std::endl;
+      // } else
     } else if(n1.getOperator().getType().getNumChildren() == n1.getNumChildren() + 1) {
       if(ProofManager::currentPM()->hasOp(n1.getOperator())) {
         b1.clear(ProofManager::currentPM()->lookupOp(n2.getOperator()).getConst<Kind>());
@@ -586,13 +593,13 @@ Node ProofArray::toStreamRecLFSC(std::ostream& out,
       b2.append(n2.begin(), n2.end());
       n2 = b2;
       Debug("mgd") << "New n2: " << n2 << std::endl;
-    // } else if (n2.getKind() == kind::PARTIAL_SELECT_0 && n2.getNumChildren() == 1) {
-    //   Debug("mgd") << "Finished a PARTIAL_SELECT_1. Updating.." << std::endl;
-    //   b2.clear(kind::PARTIAL_SELECT_1);
-    //   b2.append(n2.begin(), n2.end());
-    //   n2 = b2;
-    //   Debug("mgd") << "New n2: " << n2 << std::endl;
-    // } else
+      // } else if (n2.getKind() == kind::PARTIAL_SELECT_0 && n2.getNumChildren() == 1) {
+      //   Debug("mgd") << "Finished a PARTIAL_SELECT_1. Updating.." << std::endl;
+      //   b2.clear(kind::PARTIAL_SELECT_1);
+      //   b2.append(n2.begin(), n2.end());
+      //   n2 = b2;
+      //   Debug("mgd") << "New n2: " << n2 << std::endl;
+      // } else
     } else if(n2.getOperator().getType().getNumChildren() == n2.getNumChildren() + 1) {
       if(ProofManager::currentPM()->hasOp(n2.getOperator())) {
         b2.clear(ProofManager::currentPM()->lookupOp(n2.getOperator()).getConst<Kind>());
@@ -609,23 +616,25 @@ Node ProofArray::toStreamRecLFSC(std::ostream& out,
     return n;
   }
 
-  case theory::eq::MERGED_THROUGH_REFLEXIVITY:
+  else if (pf->d_id == theory::eq::MERGED_THROUGH_REFLEXIVITY) {
     Assert(!pf->d_node.isNull());
     Assert(pf->d_children.empty());
     out << "(refl _ ";
     tp->printTerm(NodeManager::currentNM()->toExpr(pf->d_node), out, map);
     out << ")";
     return eqNode(pf->d_node, pf->d_node);
+  }
 
-  case theory::eq::MERGED_THROUGH_EQUALITY:
+  else if (pf->d_id == theory::eq::MERGED_THROUGH_EQUALITY) {
     Assert(!pf->d_node.isNull());
     Assert(pf->d_children.empty());
     Debug("pf::array") << "ArrayProof::toStream: getLitName( " << pf->d_node.negate() << " ) = " <<
       ProofManager::getLitName(pf->d_node.negate()) << std::endl;
     out << ProofManager::getLitName(pf->d_node.negate());
     return pf->d_node;
+  }
 
-  case theory::eq::MERGED_THROUGH_TRANS: {
+  else if (pf->d_id == theory::eq::MERGED_THROUGH_TRANS) {
     bool firstNeg = false;
     bool secondNeg = false;
 
@@ -822,27 +831,27 @@ Node ProofArray::toStreamRecLFSC(std::ostream& out,
         // Both elements of the transitivity rule are equalities/iffs
       {
         if(n1[0] == n2[0]) {
-            if(tb == 1) { Debug("mgdx") << "case 1\n"; }
-            n1 = eqNode(n1[1], n2[1]);
-            ss << (firstNeg ? "(negsymm _ _ _ " : "(symm _ _ _ ") << ss1.str() << ") " << ss2.str();
+          if(tb == 1) { Debug("mgdx") << "case 1\n"; }
+          n1 = eqNode(n1[1], n2[1]);
+          ss << (firstNeg ? "(negsymm _ _ _ " : "(symm _ _ _ ") << ss1.str() << ") " << ss2.str();
         } else if(n1[1] == n2[1]) {
           if(tb == 1) { Debug("mgdx") << "case 2\n"; }
           n1 = eqNode(n1[0], n2[0]);
           ss << ss1.str() << (secondNeg ? " (negsymm _ _ _ " : " (symm _ _ _ " ) << ss2.str() << ")";
         } else if(n1[0] == n2[1]) {
-            if(tb == 1) { Debug("mgdx") << "case 3\n"; }
-            if(!firstNeg && !secondNeg) {
-              n1 = eqNode(n2[0], n1[1]);
-              ss << ss2.str() << " " << ss1.str();
-            } else if (firstNeg) {
-              n1 = eqNode(n1[1], n2[0]);
-              ss << " (negsymm _ _ _ " << ss1.str() << ") (symm _ _ _ " << ss2.str() << ")";
-            } else {
-              Assert(secondNeg);
-              n1 = eqNode(n1[1], n2[0]);
-              ss << " (symm _ _ _ " << ss1.str() << ") (negsymm _ _ _ " << ss2.str() << ")";
-            }
-            if(tb == 1) { Debug("mgdx") << "++ proved " << n1 << "\n"; }
+          if(tb == 1) { Debug("mgdx") << "case 3\n"; }
+          if(!firstNeg && !secondNeg) {
+            n1 = eqNode(n2[0], n1[1]);
+            ss << ss2.str() << " " << ss1.str();
+          } else if (firstNeg) {
+            n1 = eqNode(n1[1], n2[0]);
+            ss << " (negsymm _ _ _ " << ss1.str() << ") (symm _ _ _ " << ss2.str() << ")";
+          } else {
+            Assert(secondNeg);
+            n1 = eqNode(n1[1], n2[0]);
+            ss << " (symm _ _ _ " << ss1.str() << ") (negsymm _ _ _ " << ss2.str() << ")";
+          }
+          if(tb == 1) { Debug("mgdx") << "++ proved " << n1 << "\n"; }
         } else if(n1[1] == n2[0]) {
           if(tb == 1) { Debug("mgdx") << "case 4\n"; }
           n1 = eqNode(n1[0], n2[1]);
@@ -899,7 +908,7 @@ Node ProofArray::toStreamRecLFSC(std::ostream& out,
     return n1;
   }
 
-  case theory::eq::MERGED_ARRAYS_ROW: {
+  else if (pf->d_id == d_reasonRow) {
     Debug("mgd") << "row lemma: " << pf->d_node << std::endl;
     Assert(pf->d_node.getKind() == kind::EQUAL);
 
@@ -1054,7 +1063,7 @@ Node ProofArray::toStreamRecLFSC(std::ostream& out,
     }
   }
 
-  case theory::eq::MERGED_ARRAYS_ROW1: {
+  else if (pf->d_id == d_reasonRow1) {
     Debug("mgd") << "row1 lemma: " << pf->d_node << std::endl;
     Assert(pf->d_node.getKind() == kind::EQUAL);
     TNode t1, t2, t3;
@@ -1089,7 +1098,7 @@ Node ProofArray::toStreamRecLFSC(std::ostream& out,
     return ret;
   }
 
-  case theory::eq::MERGED_ARRAYS_EXT: {
+  else if (pf->d_id == d_reasonExt) {
     theory::eq::EqProof *child_proof;
 
     Assert(pf->d_node.getKind() == kind::NOT);
@@ -1118,7 +1127,7 @@ Node ProofArray::toStreamRecLFSC(std::ostream& out,
     return pf->d_node;
   }
 
-  default:
+  else {
     Assert(!pf->d_node.isNull());
     Assert(pf->d_children.empty());
     Debug("mgd") << "theory proof: " << pf->d_node << " by rule " << int(pf->d_id) << std::endl;

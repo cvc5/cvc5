@@ -1,13 +1,13 @@
 /*********************                                                        */
 /*! \file theory_datatypes.h
  ** \verbatim
- ** Original author: Morgan Deters
- ** Major contributors: Andrew Reynolds
- ** Minor contributors (to current version): Francois Bobot, Dejan Jovanovic
+ ** Top contributors (to current version):
+ **   Andrew Reynolds, Morgan Deters, Tim King
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2014  New York University and The University of Iowa
- ** See the file COPYING in the top-level source directory for licensing
- ** information.\endverbatim
+ ** Copyright (c) 2009-2016 by the authors listed in the file AUTHORS
+ ** in the top-level source directory) and their institutional affiliations.
+ ** All rights reserved.  See the file COPYING in the top-level source
+ ** directory for licensing information.\endverbatim
  **
  ** \brief Theory of datatypes.
  **
@@ -32,6 +32,11 @@
 
 namespace CVC4 {
 namespace theory {
+
+namespace quantifiers{
+  class TermArgTrie;
+}
+
 namespace datatypes {
 
 class TheoryDatatypes : public Theory {
@@ -176,14 +181,12 @@ private:
   std::vector< Node > d_pending;
   std::map< Node, Node > d_pending_exp;
   std::vector< Node > d_pending_merge;
-  /** All the constructor terms that the theory has seen */
-  context::CDList<TNode> d_consTerms;
-  /** All the selector terms that the theory has seen */
-  context::CDList<TNode> d_selTerms;
+  /** All the function terms that the theory has seen */
+  context::CDList<TNode> d_functionTerms;
   /** counter for forcing assignments (ensures fairness) */
   unsigned d_dtfCounter;
   /** expand definition skolem functions */
-  std::map< Node, Node > d_exp_def_skolem;
+  std::map< TypeNode, std::map< Node, Node > > d_exp_def_skolem;
   /** sygus utilities */
   SygusSplit * d_sygus_split;
   SygusSymBreak * d_sygus_sym_break;
@@ -216,6 +219,7 @@ private:
   TNode getEqcConstructor( TNode r );
 
 protected:
+  void addCarePairs( quantifiers::TermArgTrie * t1, quantifiers::TermArgTrie * t2, unsigned arity, unsigned depth, unsigned& n_pairs );
   /** compute care graph */
   void computeCareGraph();
 

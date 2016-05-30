@@ -1,13 +1,13 @@
 /*********************                                                        */
 /*! \file type.cpp
  ** \verbatim
- ** Original author: Christopher L. Conway
- ** Major contributors: Dejan Jovanovic, Morgan Deters
- ** Minor contributors (to current version): Kshitij Bansal, Andrew Reynolds
+ ** Top contributors (to current version):
+ **   Morgan Deters, Dejan Jovanovic, Andrew Reynolds
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2014  New York University and The University of Iowa
- ** See the file COPYING in the top-level source directory for licensing
- ** information.\endverbatim
+ ** Copyright (c) 2009-2016 by the authors listed in the file AUTHORS
+ ** in the top-level source directory) and their institutional affiliations.
+ ** All rights reserved.  See the file COPYING in the top-level source
+ ** directory for licensing information.\endverbatim
  **
  ** \brief Implementation of expression types
  **
@@ -223,6 +223,12 @@ bool Type::isString() const {
   return d_typeNode->isString();
 }
 
+/** Is this the regexp type? */
+bool Type::isRegExp() const {
+  NodeManagerScope nms(d_nodeManager);
+  return d_typeNode->isRegExp();
+}
+
 /** Is this the rounding mode type? */
 bool Type::isRoundingMode() const {
   NodeManagerScope nms(d_nodeManager);
@@ -425,6 +431,11 @@ RealType::RealType(const Type& t) throw(IllegalArgumentException) :
 StringType::StringType(const Type& t) throw(IllegalArgumentException) :
   Type(t) {
   PrettyCheckArgument(isNull() || isString(), this);
+}
+
+RegExpType::RegExpType(const Type& t) throw(IllegalArgumentException) :
+  Type(t) {
+  PrettyCheckArgument(isNull() || isRegExp(), this);
 }
 
 RoundingModeType::RoundingModeType(const Type& t) throw(IllegalArgumentException) :

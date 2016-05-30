@@ -1,13 +1,13 @@
 /*********************                                                        */
 /*! \file theory_uf.h
  ** \verbatim
- ** Original author: Tim King
- ** Major contributors: Dejan Jovanovic, Morgan Deters
- ** Minor contributors (to current version): Andrew Reynolds
+ ** Top contributors (to current version):
+ **   Dejan Jovanovic, Morgan Deters, Tim King
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2014  New York University and The University of Iowa
- ** See the file COPYING in the top-level source directory for licensing
- ** information.\endverbatim
+ ** Copyright (c) 2009-2016 by the authors listed in the file AUTHORS
+ ** in the top-level source directory) and their institutional affiliations.
+ ** All rights reserved.  See the file COPYING in the top-level source
+ ** directory for licensing information.\endverbatim
  **
  ** \brief This is the interface to TheoryUF implementations
  **
@@ -32,6 +32,11 @@
 
 namespace CVC4 {
 namespace theory {
+
+namespace quantifiers{
+  class TermArgTrie;
+}
+
 namespace uf {
 
 class UfTermDb;
@@ -204,6 +209,8 @@ public:
   StrongSolverTheoryUF* getStrongSolver() {
     return d_thss;
   }
+private:
+  void addCarePairs( quantifiers::TermArgTrie * t1, quantifiers::TermArgTrie * t2, unsigned arity, unsigned depth );
 };/* class TheoryUF */
 
 }/* CVC4::theory::uf namespace */

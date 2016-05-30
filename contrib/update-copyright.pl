@@ -39,13 +39,14 @@ my $excluded_paths = '^(src/parser/antlr_input_imports.cpp|src/bindings/compat/.
 
 # Years of copyright for the template.  E.g., the string
 # "1985, 1987, 1992, 1997, 2008" or "2006-2009" or whatever.
-my $years = '2009-2014';
+my $years = '2009-2016';
 
 my $standard_template = <<EOF;
  ** This file is part of the CVC4 project.
- ** Copyright (c) $years  New York University and The University of Iowa
- ** See the file COPYING in the top-level source directory for licensing
- ** information.\\endverbatim
+ ** Copyright (c) $years by the authors listed in the file AUTHORS
+ ** in the top-level source directory) and their institutional affiliations.
+ ** All rights reserved.  See the file COPYING in the top-level source
+ ** directory for licensing information.\\endverbatim
 EOF
 
 ## end config ##
@@ -135,9 +136,7 @@ sub handleFile {
   open(my $IN, $infile) || die "error opening $infile for reading";
   open(my $OUT, '>', $outfile) || die "error opening $outfile for writing";
   open(my $AUTHOR, "$dir/get-authors " . $infile . '|');
-  my $author = <$AUTHOR>; chomp $author;
-  my $major_contributors = <$AUTHOR>; chomp $major_contributors;
-  my $minor_contributors = <$AUTHOR>; chomp $minor_contributors;
+  my $authors = <$AUTHOR>; chomp $authors;
   close $AUTHOR;
   $_ = <$IN>;
   if(m,^(%{)?/\*(\*| )\*\*\*,) {
@@ -154,12 +153,11 @@ sub handleFile {
       print $OUT "/*! \\file $file\n";
     }
     print $OUT " ** \\verbatim\n";
-    print $OUT " ** Original author: $author\n";
-    print $OUT " ** Major contributors: $major_contributors\n";
-    print $OUT " ** Minor contributors (to current version): $minor_contributors\n";
+    print $OUT " ** Top contributors (to current version):\n";
+    print $OUT " **   $authors\n";
     my $comment_stub = "";
     while(my $line = <$IN>) {
-      if($line =~ /\b[Cc]opyright\b/ && $line !~ /\bNew York University and The University of Iowa\b/) {
+      if($line =~ /\b[Cc]opyright\b/ && $line !~ /\bby the authors listed in the file AUTHORS\b/) {
         # someone else holds this copyright
         print $OUT $line;
       }
@@ -191,9 +189,7 @@ $line";
       print $OUT "/*! \\file $file\n";
     }
     print $OUT " ** \\verbatim\n";
-    print $OUT " ** Original author: $author\n";
-    print $OUT " ** Major contributors: $major_contributors\n";
-    print $OUT " ** Minor contributors (to current version): $minor_contributors\n";
+    print $OUT " ** Top authors (to current version): $authors\n";
     print $OUT $standard_template;
     print $OUT " **\n";
     print $OUT " ** \\brief [[ Add one-line brief description here ]]\n";

@@ -1,13 +1,13 @@
 /*********************                                                        */
 /*! \file inst_match.cpp
  ** \verbatim
- ** Original author: Morgan Deters
- ** Major contributors: Andrew Reynolds
- ** Minor contributors (to current version): Kshitij Bansal, Francois Bobot, Clark Barrett
+ ** Top contributors (to current version):
+ **   Andrew Reynolds, Morgan Deters, Tim King
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2014  New York University and The University of Iowa
- ** See the file COPYING in the top-level source directory for licensing
- ** information.\endverbatim
+ ** Copyright (c) 2009-2016 by the authors listed in the file AUTHORS
+ ** in the top-level source directory) and their institutional affiliations.
+ ** All rights reserved.  See the file COPYING in the top-level source
+ ** directory for licensing information.\endverbatim
  **
  ** \brief Implementation of inst match class
  **/
@@ -142,7 +142,7 @@ bool InstMatch::set( QuantifiersEngine* qe, int i, TNode n ) {
 }
 
 bool InstMatchTrie::addInstMatch( QuantifiersEngine* qe, Node f, std::vector< Node >& m, bool modEq,
-                                  bool modInst, ImtIndexOrder* imtio, bool onlyExist, int index ) {
+                                  ImtIndexOrder* imtio, bool onlyExist, int index ) {
   if( index==(int)f[0].getNumChildren() || ( imtio && index==(int)imtio->d_order.size() ) ){
     return false;
   }else{
@@ -150,25 +150,11 @@ bool InstMatchTrie::addInstMatch( QuantifiersEngine* qe, Node f, std::vector< No
     Node n = m[i_index];
     std::map< Node, InstMatchTrie >::iterator it = d_data.find( n );
     if( it!=d_data.end() ){
-      bool ret = it->second.addInstMatch( qe, f, m, modEq, modInst, imtio, onlyExist, index+1 );
+      bool ret = it->second.addInstMatch( qe, f, m, modEq, imtio, onlyExist, index+1 );
       if( !onlyExist || !ret ){
         return ret;
       }
     }
-    /*
-    //check if m is an instance of another instantiation if modInst is true
-    if( modInst ){
-      if( !n.isNull() ){
-        Node nl;
-        std::map< Node, InstMatchTrie >::iterator itm = d_data.find( nl );
-        if( itm!=d_data.end() ){
-          if( !itm->second.addInstMatch( qe, f, m, modEq, modInst, imtio, true, index+1 ) ){
-            return false;
-          }
-        }
-      }
-    }
-    */
     if( modEq ){
       //check modulo equality if any other instantiation match exists
       if( !n.isNull() && qe->getEqualityQuery()->getEngine()->hasTerm( n ) ){
@@ -179,7 +165,7 @@ bool InstMatchTrie::addInstMatch( QuantifiersEngine* qe, Node f, std::vector< No
           if( en!=n ){
             std::map< Node, InstMatchTrie >::iterator itc = d_data.find( en );
             if( itc!=d_data.end() ){
-              if( itc->second.addInstMatch( qe, f, m, modEq, modInst, imtio, true, index+1 ) ){
+              if( itc->second.addInstMatch( qe, f, m, modEq, imtio, true, index+1 ) ){
                 return false;
               }
             }
@@ -189,9 +175,27 @@ bool InstMatchTrie::addInstMatch( QuantifiersEngine* qe, Node f, std::vector< No
       }
     }
     if( !onlyExist ){
-      d_data[n].addInstMatch( qe, f, m, modEq, modInst, imtio, false, index+1 );
+      d_data[n].addInstMatch( qe, f, m, modEq, imtio, false, index+1 );
     }
     return true;
+  }
+}
+
+bool InstMatchTrie::removeInstMatch( QuantifiersEngine* qe, Node q, std::vector< Node >& m, ImtIndexOrder* imtio, int index ) {
+  Assert( index<(int)q[0].getNumChildren() );
+  Assert( !imtio || index<(int)imtio->d_order.size() );
+  int i_index = imtio ? imtio->d_order[index] : index;
+  Node n = m[i_index];
+  std::map< Node, InstMatchTrie >::iterator it = d_data.find( n );
+  if( it!=d_data.end() ){
+    if( (index+1)==(int)q[0].getNumChildren() || ( imtio && (index+1)==(int)imtio->d_order.size() ) ){
+      d_data.erase( n );
+      return true;
+    }else{
+      return it->second.removeInstMatch( qe, q, m, imtio, index+1 );
+    }
+  }else{
+    return false;
   }
 }
 
@@ -236,7 +240,7 @@ CDInstMatchTrie::~CDInstMatchTrie() {
 
 
 bool CDInstMatchTrie::addInstMatch( QuantifiersEngine* qe, Node f, std::vector< Node >& m,
-                                    context::Context* c, bool modEq, bool modInst, int index, bool onlyExist ){
+                                    context::Context* c, bool modEq, int index, bool onlyExist ){
   bool reset = false;
   if( !d_valid.get() ){
     if( onlyExist ){
@@ -252,25 +256,11 @@ bool CDInstMatchTrie::addInstMatch( QuantifiersEngine* qe, Node f, std::vector< 
     Node n = m[ index ];
     std::map< Node, CDInstMatchTrie* >::iterator it = d_data.find( n );
     if( it!=d_data.end() ){
-      bool ret = it->second->addInstMatch( qe, f, m, c, modEq, modInst, index+1, onlyExist );
+      bool ret = it->second->addInstMatch( qe, f, m, c, modEq, index+1, onlyExist );
       if( !onlyExist || !ret ){
         return reset || ret;
       }
     }
-    //check if m is an instance of another instantiation if modInst is true
-    /*
-    if( modInst ){
-      if( !n.isNull() ){
-        Node nl;
-        std::map< Node, CDInstMatchTrie* >::iterator itm = d_data.find( nl );
-        if( itm!=d_data.end() ){
-          if( !itm->second->addInstMatch( qe, f, m, c, modEq, modInst, index+1, true ) ){
-            return false;
-          }
-        }
-      }
-    }
-    */
     if( modEq ){
       //check modulo equality if any other instantiation match exists
       if( !n.isNull() && qe->getEqualityQuery()->getEngine()->hasTerm( n ) ){
@@ -281,7 +271,7 @@ bool CDInstMatchTrie::addInstMatch( QuantifiersEngine* qe, Node f, std::vector< 
           if( en!=n ){
             std::map< Node, CDInstMatchTrie* >::iterator itc = d_data.find( en );
             if( itc!=d_data.end() ){
-              if( itc->second->addInstMatch( qe, f, m, c, modEq, modInst, index+1, true ) ){
+              if( itc->second->addInstMatch( qe, f, m, c, modEq, index+1, true ) ){
                 return false;
               }
             }
@@ -296,9 +286,28 @@ bool CDInstMatchTrie::addInstMatch( QuantifiersEngine* qe, Node f, std::vector< 
       CDInstMatchTrie* imt = new CDInstMatchTrie( c );
       Assert(d_data.find(n) == d_data.end());
       d_data[n] = imt;
-      imt->addInstMatch( qe, f, m, c, modEq, modInst, index+1, false );
+      imt->addInstMatch( qe, f, m, c, modEq, index+1, false );
     }
     return true;
+  }
+}
+
+bool CDInstMatchTrie::removeInstMatch( QuantifiersEngine* qe, Node q, std::vector< Node >& m, int index ) {
+  if( index==(int)q[0].getNumChildren() ){
+    if( d_valid.get() ){
+      d_valid.set( false );
+      return true;
+    }else{
+      return false;
+    }
+  }else{
+    Node n = m[index];
+    std::map< Node, CDInstMatchTrie* >::iterator it = d_data.find( n );
+    if( it!=d_data.end() ){
+      return it->second->removeInstMatch( qe, q, m, index+1 );
+    }else{
+      return false;
+    }
   }
 }
 

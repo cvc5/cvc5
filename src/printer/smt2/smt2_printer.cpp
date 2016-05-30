@@ -1,13 +1,13 @@
 /*********************                                                        */
 /*! \file smt2_printer.cpp
  ** \verbatim
- ** Original author: Morgan Deters
- ** Major contributors: none
- ** Minor contributors (to current version): Dejan Jovanovic, Tim King, Liana Hadarean, Kshitij Bansal, Tianyi Liang, Francois Bobot, Andrew Reynolds
+ ** Top contributors (to current version):
+ **   Morgan Deters, Andrew Reynolds, Martin Brain
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2014  New York University and The University of Iowa
- ** See the file COPYING in the top-level source directory for licensing
- ** information.\endverbatim
+ ** Copyright (c) 2009-2016 by the authors listed in the file AUTHORS
+ ** in the top-level source directory) and their institutional affiliations.
+ ** All rights reserved.  See the file COPYING in the top-level source
+ ** directory for licensing information.\endverbatim
  **
  ** \brief The pretty-printer interface for the SMT2 output language
  **
@@ -826,6 +826,33 @@ static string smtKindString(Kind k) throw() {
   case kind::FLOATINGPOINT_TO_SBV: return "fp.to_sbv";
   case kind::FLOATINGPOINT_TO_REAL: return "fp.to_real";
 
+  //string theory
+  case kind::STRING_CONCAT: return "str.++";
+  case kind::STRING_LENGTH: return "str.len";
+  case kind::STRING_SUBSTR: return "str.substr" ;
+  case kind::STRING_STRCTN: return "str.contains" ;
+  case kind::STRING_CHARAT: return "str.at" ;
+  case kind::STRING_STRIDOF: return "str.indexof" ;
+  case kind::STRING_STRREPL: return "str.replace" ;
+  case kind::STRING_PREFIX: return "str.prefixof" ;
+  case kind::STRING_SUFFIX: return "str.suffixof" ;
+  case kind::STRING_ITOS: return "int.to.str" ;
+  case kind::STRING_STOI: return "str.to.int" ;
+  case kind::STRING_U16TOS: return "u16.to.str" ;
+  case kind::STRING_STOU16: return "str.to.u16" ;
+  case kind::STRING_U32TOS: return "u32.to.str" ;
+  case kind::STRING_STOU32: return "str.to.u32" ;
+  case kind::STRING_IN_REGEXP: return "str.in.re";
+  case kind::STRING_TO_REGEXP: return "str.to.re";
+  case kind::REGEXP_CONCAT: return "re.++";
+  case kind::REGEXP_UNION: return "re.union";
+  case kind::REGEXP_INTER: return "re.inter";
+  case kind::REGEXP_STAR: return "re.*";
+  case kind::REGEXP_PLUS: return "re.+";
+  case kind::REGEXP_OPT: return "re.opt";
+  case kind::REGEXP_RANGE: return "re.range";
+  case kind::REGEXP_LOOP: return "re.loop";
+  
   default:
     ; /* fall through */
   }
@@ -977,7 +1004,7 @@ void Smt2Printer::toStream(std::ostream& out, const Command* c,
 
 
 static std::string quoteSymbol(TNode n) {
-#warning "check the old implementation. It seems off."
+  // #warning "check the old implementation. It seems off."
   std::stringstream ss;
   ss << language::SetLanguage(language::output::LANG_SMTLIB_V2_5);
   return CVC4::quoteSymbol(ss.str());

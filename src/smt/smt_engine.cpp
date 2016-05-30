@@ -1,13 +1,13 @@
 /*********************                                                        */
 /*! \file smt_engine.cpp
  ** \verbatim
- ** Original author: Morgan Deters
- ** Major contributors: Clark Barrett
- ** Minor contributors (to current version): Christopher L. Conway, Tianyi Liang, Martin Brain <>, Kshitij Bansal, Liana Hadarean, Dejan Jovanovic, Tim King, Andrew Reynolds
+ ** Top contributors (to current version):
+ **   Morgan Deters, Clark Barrett, Tim King
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2014  New York University and The University of Iowa
- ** See the file COPYING in the top-level source directory for licensing
- ** information.\endverbatim
+ ** Copyright (c) 2009-2016 by the authors listed in the file AUTHORS
+ ** in the top-level source directory) and their institutional affiliations.
+ ** All rights reserved.  See the file COPYING in the top-level source
+ ** directory for licensing information.\endverbatim
  **
  ** \brief The main entry point into the CVC4 library's SMT interface
  **
@@ -553,6 +553,11 @@ class SmtEnginePrivate : public NodeManagerListener {
    */
   unsigned d_simplifyAssertionsDepth;
 
+  /** whether certain preprocess steps are necessary */
+  bool d_needsExpandDefs;
+  bool d_needsRewriteBoolTerms;
+  bool d_needsConstrainSubTypes;
+
 public:
   /**
    * Map from skolem variables to index in d_assertions containing
@@ -680,6 +685,9 @@ public:
     d_abstractValueMap(&d_fakeContext),
     d_abstractValues(),
     d_simplifyAssertionsDepth(0),
+    d_needsExpandDefs(true),
+    d_needsRewriteBoolTerms(true),
+    d_needsConstrainSubTypes(true), //TODO
     d_iteSkolemMap(),
     d_iteRemover(smt.d_userContext),
     d_pbsProcessor(smt.d_userContext),
@@ -1056,7 +1064,13 @@ SmtEngine::SmtEngine(ExprManager* em) throw() :
   // SatProof and TheoryProofs. The TheoryProofEngine and the SatProof are
   // initialized in TheoryEngine and PropEngine respectively.
   Assert(d_proofManager == NULL);
-  PROOF( d_proofManager = new ProofManager(); );
+
+  // d_proofManager must be created before Options has been finished
+  // being parsed from the input file. Because of this, we cannot trust
+  // that options::proof() is set correctly yet.
+#ifdef CVC4_PROOF
+  d_proofManager = new ProofManager();
+#endif
 
   // We have mutual dependency here, so we add the prop engine to the theory
   // engine later (it is non-essential there)
@@ -1088,20 +1102,27 @@ SmtEngine::SmtEngine(ExprManager* em) throw() :
 }
 
 void SmtEngine::finishInit() {
+  Trace("smt-debug") << "SmtEngine::finishInit" << std::endl;
   // ensure that our heuristics are properly set up
   setDefaults();
+
+  Trace("smt-debug") << "Making decision engine..." << std::endl;
 
   d_decisionEngine = new DecisionEngine(d_context, d_userContext);
   d_decisionEngine->init();   // enable appropriate strategies
 
+  Trace("smt-debug") << "Making prop engine..." << std::endl;
   d_propEngine = new PropEngine(d_theoryEngine, d_decisionEngine, d_context,
                                 d_userContext, d_private->getReplayLog(),
                                 d_replayStream, d_channels);
 
+  Trace("smt-debug") << "Setting up theory engine..." << std::endl;
   d_theoryEngine->setPropEngine(d_propEngine);
   d_theoryEngine->setDecisionEngine(d_decisionEngine);
+  Trace("smt-debug") << "Finishing init for theory engine..." << std::endl;
   d_theoryEngine->finishInit();
 
+  Trace("smt-debug") << "Set up assertion list..." << std::endl;
   // [MGD 10/20/2011] keep around in incremental mode, due to a
   // cleanup ordering issue and Nodes/TNodes.  If SAT is popped
   // first, some user-context-dependent TNodes might still exist
@@ -1122,6 +1143,7 @@ void SmtEngine::finishInit() {
                       << SetBenchmarkLogicCommand(everything.getLogicString());
   }
 
+  Trace("smt-debug") << "Dump declaration commands..." << std::endl;
   // dump out any pending declaration commands
   for(unsigned i = 0; i < d_dumpCommands.size(); ++i) {
     Dump("declarations") << *d_dumpCommands[i];
@@ -1130,6 +1152,7 @@ void SmtEngine::finishInit() {
   d_dumpCommands.clear();
 
   PROOF( ProofManager::currentPM()->setLogic(d_logic); );
+  Trace("smt-debug") << "SmtEngine::finishInit done" << std::endl;
 }
 
 void SmtEngine::finalOptionsAreSet() {
@@ -1219,8 +1242,14 @@ SmtEngine::~SmtEngine() throw() {
     delete d_decisionEngine;
     d_decisionEngine = NULL;
 
-    PROOF(delete d_proofManager;);
-    PROOF(d_proofManager = NULL;);
+
+// d_proofManager is always created when proofs are enabled at configure time.
+// Becuase of this, this code should not be wrapped in PROOF() which
+// additionally checks flags such as options::proof().
+#ifdef CVC4_PROOF
+    delete d_proofManager;
+    d_proofManager = NULL;
+#endif
 
     delete d_stats;
     d_stats = NULL;
@@ -1314,6 +1343,10 @@ void SmtEngine::setDefaults() {
     if(! options::fmfBoundInt.wasSetByUser()) {
       options::fmfBoundInt.set( true );
       Trace("smt") << "turning on fmf-bound-int, for strings-exp" << std::endl;
+    }
+    if(! options::fmfInstEngine.wasSetByUser()) {
+      options::fmfInstEngine.set( true );
+      Trace("smt") << "turning on fmf-inst-engine, for strings-exp" << std::endl;
     }
     /*
     if(! options::rewriteDivk.wasSetByUser()) {
@@ -1705,6 +1738,10 @@ void SmtEngine::setDefaults() {
       options::instMaxLevel.set( 0 );
     }
   }
+  if( options::instMaxLevel()!=-1 ){
+    Notice() << "SmtEngine: turning off cbqi to support instMaxLevel" << endl;
+    options::cbqi.set(false);
+  }
 
   if(options::fmfBoundIntLazy.wasSetByUser() && options::fmfBoundIntLazy()) {
     options::fmfBoundInt.set( true );
@@ -1765,13 +1802,15 @@ void SmtEngine::setDefaults() {
   }
 
   //apply counterexample guided instantiation options
-  if( options::cegqiSingleInv() ){
-    options::ceGuidedInst.set( true );
+  if( options::cegqiSingleInvMode()!=quantifiers::CEGQI_SI_MODE_NONE ){
+    if( !options::ceGuidedInst.wasSetByUser() ){
+      options::ceGuidedInst.set( true );
+    }
   }
   if( options::ceGuidedInst() ){
     //counterexample-guided instantiation for sygus
-    if( !options::cegqiSingleInv.wasSetByUser() ){
-      options::cegqiSingleInv.set( true );
+    if( !options::cegqiSingleInvMode.wasSetByUser() ){
+      options::cegqiSingleInvMode.set( quantifiers::CEGQI_SI_MODE_USE );
     }
     if( !options::quantConflictFind.wasSetByUser() ){
       options::quantConflictFind.set( false );
@@ -1839,6 +1878,11 @@ void SmtEngine::setDefaults() {
     }
   }
   //implied options...
+  if( options::strictTriggers() ){
+    if( !options::userPatternsQuant.wasSetByUser() ){
+      options::userPatternsQuant.set( quantifiers::USER_PAT_MODE_TRUST );
+    }
+  }
   if( options::qcfMode.wasSetByUser() || options::qcfTConstraint() ){
     options::quantConflictFind.set( true );
   }
@@ -2560,8 +2604,9 @@ Node SmtEnginePrivate::intToBV(TNode n, NodeMap& cache) {
             case kind::CONST_RATIONAL: {
               Rational constant = current.getConst<Rational>();
               AlwaysAssert(constant.isIntegral());
+              AlwaysAssert(constant >= 0);
               BitVector bv(size, constant.getNumerator());
-              if (bv.getValue() != constant.getNumerator()) {
+              if (bv.toSignedInt() != constant.getNumerator()) {
                 throw TypeCheckingException(current.toExpr(), string("Not enough bits for constant in intToBV: ") + current.toString());
               }
               result = nm->mkConst(bv);
@@ -3626,6 +3671,7 @@ Result SmtEngine::check() {
   // Make sure the prop layer has all of the assertions
   Trace("smt") << "SmtEngine::check(): processing assertions" << endl;
   d_private->processAssertions();
+  Trace("smt") << "SmtEngine::check(): done processing assertions" << endl;
 
   // Turn off stop only for QF_LRA
   // TODO: Bring up in a meeting where to put this
@@ -4196,6 +4242,7 @@ void SmtEnginePrivate::processAssertions() {
   Trace("smt-proc") << "SmtEnginePrivate::processAssertions() end" << endl;
   dumpAssertions("post-everything", d_assertions);
 
+
   //set instantiation level of everything to zero
   if( options::instLevelInputOnly() && options::instMaxLevel()!=-1 ){
     for( unsigned i=0; i < d_assertions.size(); i++ ) {
@@ -4384,71 +4431,72 @@ Result SmtEngine::checkSynth(const Expr& e) throw(TypeCheckingException, ModalEx
   Trace("smt-synth") << "Check synthesis conjecture: " << e << std::endl;
   Expr e_check = e;
   Node conj = Node::fromExpr( e );
-  Assert( conj.getKind()==kind::FORALL );
-  //possibly run quantifier elimination to make formula into single invocation
-  if( conj[1].getKind()==kind::EXISTS ){
-    Node conj_se = conj[1][1];
+  if( conj.getKind()==kind::FORALL ){
+    //possibly run quantifier elimination to make formula into single invocation
+    if( conj[1].getKind()==kind::EXISTS ){
+      Node conj_se = conj[1][1];
 
-    Trace("smt-synth") << "Compute single invocation for " << conj_se << "..." << std::endl;
-    quantifiers::SingleInvocationPartition sip( kind::APPLY );
-    sip.init( conj_se );
-    Trace("smt-synth") << "...finished, got:" << std::endl;
-    sip.debugPrint("smt-synth");
+      Trace("smt-synth") << "Compute single invocation for " << conj_se << "..." << std::endl;
+      quantifiers::SingleInvocationPartition sip( kind::APPLY );
+      sip.init( conj_se );
+      Trace("smt-synth") << "...finished, got:" << std::endl;
+      sip.debugPrint("smt-synth");
 
-    if( !sip.isPurelySingleInvocation() && sip.isNonGroundSingleInvocation() ){
-      //We are in the case where our synthesis conjecture is exists f. forall xy. P( f( x ), x, y ), P does not contain f.
-      //The following will run QE on (exists z x.) exists y. P( z, x, y ) to obtain Q( z, x ),
-      //  and then constructs exists f. forall x. Q( f( x ), x ), where Q does not contain f.  We invoke synthesis solver on this result.
+      if( !sip.isPurelySingleInvocation() && sip.isNonGroundSingleInvocation() ){
+        //We are in the case where our synthesis conjecture is exists f. forall xy. P( f( x ), x, y ), P does not contain f.
+        //The following will run QE on (exists z x.) exists y. P( z, x, y ) to obtain Q( z, x ),
+        //  and then constructs exists f. forall x. Q( f( x ), x ), where Q does not contain f.  We invoke synthesis solver on this result.
 
-      //create new smt engine to do quantifier elimination
-      SmtEngine smt_qe( d_exprManager );
-      smt_qe.setLogic(getLogicInfo());
-      Trace("smt-synth") << "Property is non-ground single invocation, run QE to obtain single invocation." << std::endl;
-      //partition variables
-      std::vector< Node > qe_vars;
-      std::vector< Node > nqe_vars;
-      for( unsigned i=0; i<sip.d_all_vars.size(); i++ ){
-        Node v = sip.d_all_vars[i];
-        if( std::find( sip.d_si_vars.begin(), sip.d_si_vars.end(), v )==sip.d_si_vars.end() ){
-          qe_vars.push_back( v );
-        }else{
-          nqe_vars.push_back( v );
+        //create new smt engine to do quantifier elimination
+        SmtEngine smt_qe( d_exprManager );
+        smt_qe.setLogic(getLogicInfo());
+        Trace("smt-synth") << "Property is non-ground single invocation, run QE to obtain single invocation." << std::endl;
+        //partition variables
+        std::vector< Node > qe_vars;
+        std::vector< Node > nqe_vars;
+        for( unsigned i=0; i<sip.d_all_vars.size(); i++ ){
+          Node v = sip.d_all_vars[i];
+          if( std::find( sip.d_si_vars.begin(), sip.d_si_vars.end(), v )==sip.d_si_vars.end() ){
+            qe_vars.push_back( v );
+          }else{
+            nqe_vars.push_back( v );
+          }
         }
-      }
-      std::vector< Node > orig;
-      std::vector< Node > subs;
-      //skolemize non-qe variables
-      for( unsigned i=0; i<nqe_vars.size(); i++ ){
-        Node k = NodeManager::currentNM()->mkSkolem( "k", nqe_vars[i].getType(), "qe for non-ground single invocation" );
-        orig.push_back( nqe_vars[i] );
-        subs.push_back( k );
-        Trace("smt-synth") << "  subs : " << nqe_vars[i] << " -> " << k << std::endl;
-      }
-      for( std::map< Node, bool >::iterator it = sip.d_funcs.begin(); it != sip.d_funcs.end(); ++it ){
-        orig.push_back( sip.d_func_inv[it->first] );
-        Node k = NodeManager::currentNM()->mkSkolem( "k", sip.d_func_fo_var[it->first].getType(), "qe for function in non-ground single invocation" );
-        subs.push_back( k );
-        Trace("smt-synth") << "  subs : " << sip.d_func_inv[it->first] << " -> " << k << std::endl;
-      }
-      Node conj_se_ngsi = sip.getFullSpecification();
-      Node conj_se_ngsi_subs = conj_se_ngsi.substitute( orig.begin(), orig.end(), subs.begin(), subs.end() );
-      Assert( !qe_vars.empty() );
-      conj_se_ngsi_subs = NodeManager::currentNM()->mkNode( kind::EXISTS, NodeManager::currentNM()->mkNode( kind::BOUND_VAR_LIST, qe_vars ), conj_se_ngsi_subs );
+        std::vector< Node > orig;
+        std::vector< Node > subs;
+        //skolemize non-qe variables
+        for( unsigned i=0; i<nqe_vars.size(); i++ ){
+          Node k = NodeManager::currentNM()->mkSkolem( "k", nqe_vars[i].getType(), "qe for non-ground single invocation" );
+          orig.push_back( nqe_vars[i] );
+          subs.push_back( k );
+          Trace("smt-synth") << "  subs : " << nqe_vars[i] << " -> " << k << std::endl;
+        }
+        for( std::map< Node, bool >::iterator it = sip.d_funcs.begin(); it != sip.d_funcs.end(); ++it ){
+          orig.push_back( sip.d_func_inv[it->first] );
+          Node k = NodeManager::currentNM()->mkSkolem( "k", sip.d_func_fo_var[it->first].getType(), "qe for function in non-ground single invocation" );
+          subs.push_back( k );
+          Trace("smt-synth") << "  subs : " << sip.d_func_inv[it->first] << " -> " << k << std::endl;
+        }
+        Node conj_se_ngsi = sip.getFullSpecification();
+        Node conj_se_ngsi_subs = conj_se_ngsi.substitute( orig.begin(), orig.end(), subs.begin(), subs.end() );
+        Assert( !qe_vars.empty() );
+        conj_se_ngsi_subs = NodeManager::currentNM()->mkNode( kind::EXISTS, NodeManager::currentNM()->mkNode( kind::BOUND_VAR_LIST, qe_vars ), conj_se_ngsi_subs );
 
-      Trace("smt-synth") << "Run quantifier elimination on " << conj_se_ngsi_subs << std::endl;
-      Expr qe_res = smt_qe.doQuantifierElimination( conj_se_ngsi_subs.toExpr(), true, false );
-      Trace("smt-synth") << "Result : " << qe_res << std::endl;
+        Trace("smt-synth") << "Run quantifier elimination on " << conj_se_ngsi_subs << std::endl;
+        Expr qe_res = smt_qe.doQuantifierElimination( conj_se_ngsi_subs.toExpr(), true, false );
+        Trace("smt-synth") << "Result : " << qe_res << std::endl;
 
-      //create single invocation conjecture
-      Node qe_res_n = Node::fromExpr( qe_res );
-      qe_res_n = qe_res_n.substitute( subs.begin(), subs.end(), orig.begin(), orig.end() );
-      if( !nqe_vars.empty() ){
-        qe_res_n = NodeManager::currentNM()->mkNode( kind::EXISTS, NodeManager::currentNM()->mkNode( kind::BOUND_VAR_LIST, nqe_vars ), qe_res_n );
+        //create single invocation conjecture
+        Node qe_res_n = Node::fromExpr( qe_res );
+        qe_res_n = qe_res_n.substitute( subs.begin(), subs.end(), orig.begin(), orig.end() );
+        if( !nqe_vars.empty() ){
+          qe_res_n = NodeManager::currentNM()->mkNode( kind::EXISTS, NodeManager::currentNM()->mkNode( kind::BOUND_VAR_LIST, nqe_vars ), qe_res_n );
+        }
+        Assert( conj.getNumChildren()==3 );
+        qe_res_n = NodeManager::currentNM()->mkNode( kind::FORALL, conj[0], qe_res_n, conj[2] );
+        Trace("smt-synth") << "Converted conjecture after QE : " << qe_res_n << std::endl;
+        e_check = qe_res_n.toExpr();
       }
-      Assert( conj.getNumChildren()==3 );
-      qe_res_n = NodeManager::currentNM()->mkNode( kind::FORALL, conj[0], qe_res_n, conj[2] );
-      Trace("smt-synth") << "Converted conjecture after QE : " << qe_res_n << std::endl;
-      e_check = qe_res_n.toExpr();
     }
   }
 
@@ -5128,7 +5176,7 @@ Expr SmtEngine::doQuantifierElimination(const Expr& e, bool doFull, bool strict)
 
     //ensure all instantiations were accounted for
     for( std::map< Node, std::vector< Node > >::iterator it = insts.begin(); it != insts.end(); ++it ){
-      if( visited.find( it->first )==visited.end() ){
+      if( !it->second.empty() && visited.find( it->first )==visited.end() ){
         stringstream ss;
         ss << "While performing quantifier elimination, processed a quantified formula : " << it->first;
         ss << " that was not related to the query.  Try option --simplification=none.";

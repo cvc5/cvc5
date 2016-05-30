@@ -44,6 +44,9 @@ public:
   void initialize(context::Context* context, TheoryProxy* theoryProxy);
 
   ClauseId addClause(SatClause& clause, bool removable);
+  ClauseId addXorClause(SatClause& clause, bool rhs, bool removable) {
+    Unreachable("Minisat does not support native XOR reasoning");
+  }
 
   SatVariable newVar(bool isTheoryAtom, bool preRegister, bool canErase);
   SatVariable trueVar() { return d_minisat->trueVar(); }

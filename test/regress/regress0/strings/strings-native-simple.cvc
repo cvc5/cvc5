@@ -1,0 +1,10 @@
+% EXPECT: sat
+
+x : STRING;
+y : STRING;
+
+ASSERT x = CONCAT( "abcd", y );
+ASSERT LENGTH( x ) >= 6;
+ASSERT LENGTH( y ) < 5;
+
+CHECKSAT;

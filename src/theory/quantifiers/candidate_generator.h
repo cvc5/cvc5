@@ -1,13 +1,13 @@
 /*********************                                                        */
 /*! \file candidate_generator.h
  ** \verbatim
- ** Original author: Morgan Deters
- ** Major contributors: Andrew Reynolds
- ** Minor contributors (to current version): none
+ ** Top contributors (to current version):
+ **   Morgan Deters, Andrew Reynolds, Clark Barrett
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2014  New York University and The University of Iowa
- ** See the file COPYING in the top-level source directory for licensing
- ** information.\endverbatim
+ ** Copyright (c) 2009-2016 by the authors listed in the file AUTHORS
+ ** in the top-level source directory) and their institutional affiliations.
+ ** All rights reserved.  See the file COPYING in the top-level source
+ ** directory for licensing information.\endverbatim
  **
  ** \brief Theory uf candidate generator
  **/
@@ -23,14 +23,20 @@
 namespace CVC4 {
 namespace theory {
 
+namespace quantifiers {
+  class TermArgTrie;
+}
+
 class QuantifiersEngine;
 
 namespace inst {
 
 /** base class for generating candidates for matching */
 class CandidateGenerator {
+protected:
+  QuantifiersEngine* d_qe;
 public:
-  CandidateGenerator(){}
+  CandidateGenerator( QuantifiersEngine* qe ) : d_qe( qe ){}
   virtual ~CandidateGenerator(){}
 
   /** Get candidates functions.  These set up a context to get all match candidates.
@@ -50,7 +56,7 @@ public:
   virtual void resetInstantiationRound() = 0;
 public:
   /** legal candidate */
-  static bool isLegalCandidate( Node n );
+  bool isLegalCandidate( Node n );
 };/* class CandidateGenerator */
 
 /** candidate generator queue (for manual candidate generation) */
@@ -59,7 +65,7 @@ private:
   std::vector< Node > d_candidates;
   int d_candidate_index;
 public:
-  CandidateGeneratorQueue() : d_candidate_index( 0 ){}
+  CandidateGeneratorQueue( QuantifiersEngine* qe ) : CandidateGenerator( qe ), d_candidate_index( 0 ){}
   ~CandidateGeneratorQueue() throw() {}
 
   void addCandidate( Node n );
@@ -76,9 +82,10 @@ class CandidateGeneratorQE : public CandidateGenerator
 private:
   //operator you are looking for
   Node d_op;
-  //instantiator pointer
-  QuantifiersEngine* d_qe;
   //the equality class iterator
+  unsigned d_op_arity;
+  std::vector< quantifiers::TermArgTrie* > d_tindex;
+  std::vector< std::map< TNode, quantifiers::TermArgTrie >::iterator > d_tindex_iter;
   eq::EqClassIterator d_eqc_iter;
   //std::vector< Node > d_eqc;
   int d_term_iter;
@@ -88,17 +95,22 @@ private:
     cand_term_db,
     cand_term_ident,
     cand_term_eqc,
+    cand_term_tindex,
+    cand_term_none,
   };
   short d_mode;
   bool isLegalOpCandidate( Node n );
   Node d_n;
+  std::map< Node, bool > d_exclude_eqc;
 public:
-  CandidateGeneratorQE( QuantifiersEngine* qe, Node op );
+  CandidateGeneratorQE( QuantifiersEngine* qe, Node pat );
   ~CandidateGeneratorQE() throw() {}
 
   void resetInstantiationRound();
   void reset( Node eqc );
   Node getNextCandidate();
+  void excludeEqc( Node r ) { d_exclude_eqc[r] = true; }
+  bool isExcludedEqc( Node r ) { return d_exclude_eqc.find( r )!=d_exclude_eqc.end(); }
 };
 
 class CandidateGeneratorQELitEq : public CandidateGenerator
@@ -110,8 +122,6 @@ private:
   Node d_match_pattern;
   Node d_match_gterm;
   bool d_do_mgt;
-  //einstantiator pointer
-  QuantifiersEngine* d_qe;
 public:
   CandidateGeneratorQELitEq( QuantifiersEngine* qe, Node mpat );
   ~CandidateGeneratorQELitEq() throw() {}
@@ -130,8 +140,6 @@ private:
   Node d_match_pattern;
   //type of disequality
   TypeNode d_match_pattern_type;
-  //einstantiator pointer
-  QuantifiersEngine* d_qe;
 public:
   CandidateGeneratorQELitDeq( QuantifiersEngine* qe, Node mpat );
   ~CandidateGeneratorQELitDeq() throw() {}
@@ -149,8 +157,6 @@ private:
   //equality you are trying to match equalities for
   Node d_match_pattern;
   TypeNode d_match_pattern_type;
-  //einstantiator pointer
-  QuantifiersEngine* d_qe;
   // quantifier/index for the variable we are matching
   Node d_f;
   unsigned d_index;

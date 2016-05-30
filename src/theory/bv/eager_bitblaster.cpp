@@ -1,13 +1,13 @@
 /*********************                                                        */
 /*! \file eager_bitblaster.cpp
  ** \verbatim
- ** Original author: Liana Hadarean
- ** Major contributors: none
- ** Minor contributors (to current version): none
+ ** Top contributors (to current version):
+ **   Liana Hadarean, Tim King, Guy Katz
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2014  New York University and The University of Iowa
- ** See the file COPYING in the top-level source directory for licensing
- ** information.\endverbatim
+ ** Copyright (c) 2009-2016 by the authors listed in the file AUTHORS
+ ** in the top-level source directory) and their institutional affiliations.
+ ** All rights reserved.  See the file COPYING in the top-level source
+ ** directory for licensing information.\endverbatim
  **
  ** \brief
  **
@@ -47,15 +47,30 @@ EagerBitblaster::EagerBitblaster(TheoryBV* theory_bv)
 {
   d_bitblastingRegistrar = new BitblastingRegistrar(this);
   d_nullContext = new context::Context();
-
-  d_satSolver = prop::SatSolverFactory::createMinisat(
-      d_nullContext, smtStatisticsRegistry(), "EagerBitblaster");
+  
+  switch(options::bvSatSolver()) {
+  case SAT_SOLVER_MINISAT: {
+    prop::BVSatSolverInterface* minisat =
+      prop::SatSolverFactory::createMinisat(d_nullContext,
+                                            smtStatisticsRegistry(),
+                                            "EagerBitblaster");
+    MinisatEmptyNotify* notify = new MinisatEmptyNotify();
+    minisat->setNotify(notify);
+    d_satSolver = minisat;
+    break;
+  }
+  case SAT_SOLVER_CRYPTOMINISAT:
+    d_satSolver = prop::SatSolverFactory::createCryptoMinisat(smtStatisticsRegistry(),
+                                                              "EagerBitblaster");
+    break;
+  default:
+    Unreachable("Unknown SAT solver type");
+  }
 
   d_cnfStream = new prop::TseitinCnfStream(
       d_satSolver, d_bitblastingRegistrar, d_nullContext, options::proof(),
       "EagerBitblaster");
 
-  d_satSolver->setNotify(&d_notify);
   d_bvp = NULL;
 }
 
@@ -216,7 +231,7 @@ void EagerBitblaster::collectModelInfo(TheoryModel* m, bool fullModel) {
       // only shared terms could not have been bit-blasted
       Assert (hasBBTerm(var) || isSharedTerm(var));
 
-      Node const_value = getModelFromSatSolver(var, fullModel);
+      Node const_value = getModelFromSatSolver(var, true);
 
       if(const_value != Node()) {
         Debug("bitvector-model") << "EagerBitblaster::collectModelInfo (assert (= "

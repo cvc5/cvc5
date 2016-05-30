@@ -1,13 +1,13 @@
 /*********************                                                        */
 /*! \file quant_split.cpp
  ** \verbatim
- ** Original author: Andrew Reynolds
- ** Major contributors: none
- ** Minor contributors (to current version): none
+ ** Top contributors (to current version):
+ **   Andrew Reynolds, Tim King
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2014  New York University and The University of Iowa
- ** See the file COPYING in the top-level source directory for licensing
- ** information.\endverbatim
+ ** Copyright (c) 2009-2016 by the authors listed in the file AUTHORS
+ ** in the top-level source directory) and their institutional affiliations.
+ ** All rights reserved.  See the file COPYING in the top-level source
+ ** directory for licensing information.\endverbatim
  **
  ** \brief Implementation of dynamic quantifiers splitting
  **/
@@ -48,11 +48,11 @@ void QuantDSplit::preRegisterQuantifier( Node q ) {
       }else{
         int score = -1;
         if( options::quantDynamicSplit()==quantifiers::QUANT_DSPLIT_MODE_AGG ){
-          score = dt.isUFinite() ? 1 : -1;
+          score = dt.isInterpretedFinite() ? 1 : -1;
         }else if( options::quantDynamicSplit()==quantifiers::QUANT_DSPLIT_MODE_DEFAULT ){
-          score = dt.isUFinite() ? 1 : -1;
+          score = dt.isInterpretedFinite() ? 1 : -1;
         }
-        Trace("quant-dsplit-debug") << "Datatype " << dt.getName() << " is score " << score << " (" << dt.isUFinite() << " " << dt.isFinite() << ")" << std::endl;
+        Trace("quant-dsplit-debug") << "Datatype " << dt.getName() << " is score " << score << " (" << dt.isInterpretedFinite() << " " << dt.isFinite() << ")" << std::endl;
         if( score>max_score ){
           max_index = i;
           max_score = score;

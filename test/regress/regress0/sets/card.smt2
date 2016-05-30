@@ -1,0 +1,8 @@
+(set-logic QF_UFLIAFS)
+(declare-sort E 0)
+(declare-fun s () (Set E))
+(declare-fun t () (Set E))
+(assert (>= (card s) 5))
+(assert (>= (card t) 5))
+(assert (<= (card (union s t)) 4))
+(check-sat)

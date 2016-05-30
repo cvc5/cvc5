@@ -1,13 +1,13 @@
 /*********************                                                        */
-/*! \file bitblast_mode.h
+/*! \file bv_bitblast_mode.h
  ** \verbatim
- ** Original author: Liana Hadarean
- ** Major contributors: none
- ** Minor contributors (to current version): none
+ ** Top contributors (to current version):
+ **   Liana Hadarean, Tim King
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2014  New York University and The University of Iowa
- ** See the file COPYING in the top-level source directory for licensing
- ** information.\endverbatim
+ ** Copyright (c) 2009-2016 by the authors listed in the file AUTHORS
+ ** in the top-level source directory) and their institutional affiliations.
+ ** All rights reserved.  See the file COPYING in the top-level source
+ ** directory for licensing information.\endverbatim
  **
  ** \brief Bitblasting modes for bit-vector solver.
  **
@@ -60,12 +60,19 @@ enum BvSlicerMode {
 
 };/* enum BvSlicerMode */
 
+/** Enumeration of sat solvers that can be used. */
+enum SatSolverMode {
+  SAT_SOLVER_MINISAT,
+  SAT_SOLVER_CRYPTOMINISAT,
+};/* enum SatSolver */
+
 
 }/* CVC4::theory::bv namespace */
 }/* CVC4::theory namespace */
 
 std::ostream& operator<<(std::ostream& out, theory::bv::BitblastMode mode);
 std::ostream& operator<<(std::ostream& out, theory::bv::BvSlicerMode mode);
+std::ostream& operator<<(std::ostream& out, theory::bv::SatSolverMode mode);
 
 }/* CVC4 namespace */
 

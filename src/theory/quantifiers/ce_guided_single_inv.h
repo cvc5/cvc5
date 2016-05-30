@@ -1,13 +1,13 @@
 /*********************                                                        */
 /*! \file ce_guided_single_inv.h
  ** \verbatim
- ** Original author: Andrew Reynolds
- ** Major contributors: none
- ** Minor contributors (to current version): none
+ ** Top contributors (to current version):
+ **   Andrew Reynolds, Tim King, Clark Barrett
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2014  New York University and The University of Iowa
- ** See the file COPYING in the top-level source directory for licensing
- ** information.\endverbatim
+ ** Copyright (c) 2009-2016 by the authors listed in the file AUTHORS
+ ** in the top-level source directory) and their institutional affiliations.
+ ** All rights reserved.  See the file COPYING in the top-level source
+ ** directory for licensing information.\endverbatim
  **
  ** \brief utility for processing single invocation synthesis conjectures
  **/
@@ -37,7 +37,7 @@ public:
   CegqiOutputSingleInv( CegConjectureSingleInv * out ) : d_out( out ){}
   ~CegqiOutputSingleInv() {}
   CegConjectureSingleInv * d_out;
-  bool addInstantiation( std::vector< Node >& subs );
+  bool doAddInstantiation( std::vector< Node >& subs );
   bool isEligibleForInstantiation( Node n );
   bool addLemma( Node lem );
 };
@@ -102,7 +102,7 @@ public:
 private:
   std::vector< Node > d_curr_lemmas;
   //add instantiation
-  bool addInstantiation( std::vector< Node >& subs );
+  bool doAddInstantiation( std::vector< Node >& subs );
   //is eligible for instantiation
   bool isEligibleForInstantiation( Node n );
   // add lemma

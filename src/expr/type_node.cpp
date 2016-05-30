@@ -1,13 +1,13 @@
 /*********************                                                        */
 /*! \file type_node.cpp
  ** \verbatim
- ** Original author: Dejan Jovanovic
- ** Major contributors: Kshitij Bansal, Morgan Deters
- ** Minor contributors (to current version): Andrew Reynolds, Clark Barrett, Tim King
+ ** Top contributors (to current version):
+ **   Morgan Deters, Andrew Reynolds, Kshitij Bansal
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2014  New York University and The University of Iowa
- ** See the file COPYING in the top-level source directory for licensing
- ** information.\endverbatim
+ ** Copyright (c) 2009-2016 by the authors listed in the file AUTHORS
+ ** in the top-level source directory) and their institutional affiliations.
+ ** All rights reserved.  See the file COPYING in the top-level source
+ ** directory for licensing information.\endverbatim
  **
  ** \brief Reference-counted encapsulation of a pointer to node information.
  **
@@ -21,6 +21,7 @@
 #include "expr/type_properties.h"
 #include "options/base_options.h"
 #include "options/expr_options.h"
+#include "options/quantifiers_options.h"
 
 using namespace std;
 
@@ -62,6 +63,26 @@ TypeNode TypeNode::substitute(const TypeNode& type,
 
 Cardinality TypeNode::getCardinality() const {
   return kind::getCardinality(*this);
+}
+
+bool TypeNode::isInterpretedFinite() const {
+  if( getCardinality().isFinite() ){
+    return true;
+  }else{
+    if( options::finiteModelFind() ){
+      if( isSort() ){
+        return true;
+      }else if( isDatatype() || isParametricDatatype() ){
+        const Datatype& dt = getDatatype();
+        return dt.isInterpretedFinite();
+      }else if( isArray() ){
+        return getArrayIndexType().isInterpretedFinite() && getArrayConstituentType().isInterpretedFinite();
+      }else if( isSet() ) {
+        return getSetElementType().isInterpretedFinite();
+      }
+    }
+    return false;
+  }
 }
 
 bool TypeNode::isWellFounded() const {
