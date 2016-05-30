@@ -343,7 +343,7 @@ Node ProofArray::toStreamRecLFSC(std::ostream& out,
 
     out << "(clausify_false (contra _ ";
 
-    if ((pf->d_children[neg]->d_id == theory::eq::MERGED_ARRAYS_EXT) ||
+    if ((pf->d_children[neg]->d_id == d_reasonExt) ||
         (pf->d_children[neg]->d_id == theory::eq::MERGED_THROUGH_TRANS)) {
       // Ext case: The negative node was created by an EXT rule; e.g. it is a[k]!=b[k], due to a!=b.
       out << ss.str();
