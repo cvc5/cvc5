@@ -61,12 +61,3 @@
                    (! u2 (th_holds (or (= _ t1 t2) (not (= _ (apply _ _ (apply _ _ (read s1 s2) t1) k) (apply _ _ (apply _ _ (read s1 s2) t2) k)))))
                      (holds cln)))
                (holds cln)))))))
-
-(declare symm_ext (! s1 sort
-             (! s2 sort
-             (! t1 (term (Array s1 s2))
-             (! t2 (term (Array s1 s2))
-             (! u1 (! k (term s1)
-                   (! u2 (th_holds (or (= _ t1 t2) (not (= _ (apply _ _ (apply _ _ (read s1 s2) t2) k) (apply _ _ (apply _ _ (read s1 s2) t1) k)))))
-                     (holds cln)))
-               (holds cln)))))))

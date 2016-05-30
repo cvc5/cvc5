@@ -25,7 +25,7 @@
 	    (bblast_term n x y)))))
 
 
-;; Binds a symbol to the bblast_term to be used later on.
+; Binds a symbol to the bblast_term to be used later on.
 (declare decl_bblast
 	 (! n mpz
 	 (! b bblt
@@ -89,8 +89,6 @@
     (bbltn (match y ((bbltc by y') (bbltc by (bblast_concat x y')))
     	   	    (bbltn bbltn)))
     ((bbltc bx x') (bbltc bx (bblast_concat x' y)))))
-
-
 
 (declare bv_bbl_concat (! n mpz
 	 	       (! m mpz
@@ -180,7 +178,6 @@
 			(! c ( ^ (bblast_extract xb i j m) rb)
                            (bblast_term n (extract n i j m x) rb)))))))))))
 
-
 (declare bv_bbl_extract_alias (! n mpz
   			      (! i mpz
 			      (! j mpz
@@ -193,7 +190,6 @@
 		       	      (! xbb (bblast_term m x xb)
 			      (! c ( ^ (bblast_extract xb i j m) rb)
                                  (bblast_term n (extract n i j m a) rb)))))))))))))
-
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; BITBLAST ZERO/SIGN EXTEND
@@ -215,7 +211,6 @@
 		       	(! xbb (bblast_term m x xb)
 			(! c ( ^ (bblast_zextend xb k m) rb)
                            (bblast_term n (zero_extend n k m x) rb))))))))))
-
 
 (program bblast_sextend ((x bblt) (i mpz)) bblt
  (match x (bbltn (fail bblt))
@@ -254,7 +249,6 @@
                       (bbltn (fail bblt))
                       ((bbltc by y') (bbltc (and bx by) (bblast_bvand x' y')))))))
 
-
 (declare bv_bbl_bvand (! n mpz
                       (! x (term (BitVec n))
 		      (! y (term (BitVec n))
@@ -274,7 +268,6 @@
     (bbltn bbltn)
     ((bbltc bx x') (bbltc (not bx) (bblast_bvnot x')))))
 
-
 (declare bv_bbl_bvnot (! n mpz
                       (! x (term (BitVec n))
 		      (! xb bblt
@@ -293,7 +286,6 @@
     ((bbltc bx x') (match y
                       (bbltn (fail bblt))
                       ((bbltc by y') (bbltc (or bx by) (bblast_bvor x' y')))))))
-
 
 (declare bv_bbl_bvor (! n mpz
                       (! x (term (BitVec n))
@@ -316,7 +308,6 @@
     ((bbltc bx x') (match y
                       (bbltn (fail bblt))
                       ((bbltc by y') (bbltc (xor bx by) (bblast_bvxor x' y')))))))
-
 
 (declare bv_bbl_bvxor (! n mpz
                       (! x (term (BitVec n))
@@ -513,7 +504,8 @@
 		(default (fail formula))))
 
 
-;; Hackish...
+;; TODO: a temporary bypass for rewrites that we don't support yet. As soon
+;; as we do, remove this rule.
 
 (declare bv_bbl_=_false
 	 (! n mpz
