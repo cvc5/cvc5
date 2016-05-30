@@ -74,30 +74,12 @@ void SmtEngine::checkProof() {
         logicString == "QF_AUF" ||
         logicString == "QF_UFBV" ||
         logicString == "QF_ABV" ||
-        logicString == "QF_AUFBV" ||
-        // Arithmetic with holes
-        logicString == "QF_UFLRA" ||
-        logicString == "QF_UFLIA"
+        logicString == "QF_AUFBV"
         )) {
     // This logic is not yet supported
     Notice() << "Notice: no proof-checking for " << logicString << " proofs yet" << endl;
     return;
   }
-
-  // if ( ( !(d_logic.isPure(theory::THEORY_BOOL) ||
-  //          d_logic.isPure(theory::THEORY_BV) ||
-  //          d_logic.isPure(theory::THEORY_ARRAY) ||
-  //          (d_logic.isPure(theory::THEORY_UF) &&
-  //           ! d_logic.hasCardinalityConstraints())) ||
-  //        d_logic.isQuantified())
-  //      // Override for Arith proofs with holds
-  //      // && (! (d_logic.getLogicString() == "QF_UFLRA" || d_logic.getLogicString() == "QF_UFLIA" )))
-  //      && (! (d_logic.getLogicString() == "QF_ABV" )))
-  // {
-  //   // no checking for these yet
-  //   Notice() << "Notice: no proof-checking for non-UF/Bool/BV proofs yet" << endl;
-  //   return;
-  // }
 
   char const* tempDir = getenv("TMPDIR");
   if (!tempDir) {

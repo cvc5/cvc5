@@ -491,7 +491,6 @@ void EqualityEngine::assertEquality(TNode eq, bool polarity, TNode reason, unsig
           if (!hasPropagatedDisequality(aTag, aSharedId, bSharedId)) {
             // Store a proof if not there already
             if (!hasPropagatedDisequality(aSharedId, bSharedId)) {
-              Debug("equality") << "areDisequal: case 5" << std::endl;
               d_deducedDisequalityReasons.push_back(EqualityPair(aSharedId, a));
               d_deducedDisequalityReasons.push_back(EqualityPair(bSharedId, b));
               d_deducedDisequalityReasons.push_back(EqualityPair(eqId, d_falseId));
@@ -965,10 +964,9 @@ void EqualityEngine::explainEquality(TNode t1, TNode t2, bool polarity, std::vec
           std::vector<EqProof *> orderedChildren;
           bool nullCongruenceFound = false;
           for (unsigned i = 0; i < eqpc->d_children.size(); ++i) {
-            if (eqpc->d_children[i]->d_id==eq::MERGED_THROUGH_CONGRUENCE && eqpc->d_children[i]->d_node.isNull()) {
-              // For now, assume there can only be one null congruence child
+            if (eqpc->d_children[i]->d_id==eq::MERGED_THROUGH_CONGRUENCE &&
+                eqpc->d_children[i]->d_node.isNull()) {
               nullCongruenceFound = true;
-
               Debug("pf::ee") << "Have congruence with empty d_node. Splitting..." << std::endl;
               orderedChildren.insert(orderedChildren.begin(), eqpc->d_children[i]->d_children[0]);
               orderedChildren.push_back(eqpc->d_children[i]->d_children[1]);
@@ -1583,7 +1581,6 @@ void EqualityEngine::propagate() {
             // safe. Had we iterated over, or done other set operations this might be dangerous.
             if (!hasPropagatedDisequality(THEORY_LAST, lhsId, rhsId)) {
               if (!hasPropagatedDisequality(lhsId, rhsId)) {
-                Debug("equality") << "areDisequal: case 6" << std::endl;
                 d_deducedDisequalityReasons.push_back(EqualityPair(original, d_falseId));
               }
               storePropagatedDisequality(THEORY_LAST, lhsId, rhsId);
@@ -1664,7 +1661,6 @@ bool EqualityEngine::areDisequal(TNode t1, TNode t2, bool ensureProof) const
   // Check for constants
   if (d_isConstant[t1ClassId] && d_isConstant[t2ClassId] && t1ClassId != t2ClassId) {
     if (ensureProof) {
-      Debug("equality") << "areDisequal: case 1" << std::endl;
       nonConst->d_deducedDisequalityReasons.push_back(EqualityPair(t1Id, t1ClassId));
       nonConst->d_deducedDisequalityReasons.push_back(EqualityPair(t2Id, t2ClassId));
       nonConst->storePropagatedDisequality(THEORY_LAST, t1Id, t2Id);
@@ -1679,7 +1675,6 @@ bool EqualityEngine::areDisequal(TNode t1, TNode t2, bool ensureProof) const
   if (find != d_applicationLookup.end()) {
     if (getEqualityNode(find->second).getFind() == getEqualityNode(d_falseId).getFind()) {
       if (ensureProof) {
-        Debug("equality") << "areDisequal: case 2" << std::endl;
         const FunctionApplication original = d_applications[find->second].original;
         nonConst->d_deducedDisequalityReasons.push_back(EqualityPair(t1Id, original.a));
         nonConst->d_deducedDisequalityReasons.push_back(EqualityPair(find->second, d_falseId));
@@ -1697,7 +1692,6 @@ bool EqualityEngine::areDisequal(TNode t1, TNode t2, bool ensureProof) const
   if (find != d_applicationLookup.end()) {
     if (getEqualityNode(find->second).getFind() == getEqualityNode(d_falseId).getFind()) {
       if (ensureProof) {
-        Debug("equality") << "areDisequal: case 3" << std::endl;
         const FunctionApplication original = d_applications[find->second].original;
         nonConst->d_deducedDisequalityReasons.push_back(EqualityPair(t2Id, original.a));
         nonConst->d_deducedDisequalityReasons.push_back(EqualityPair(find->second, d_falseId));
@@ -2095,7 +2089,6 @@ bool EqualityEngine::propagateTriggerTermDisequalities(Theory::Set tags, Trigger
       if (!hasPropagatedDisequality(currentTag, myRep, tagRep)) {
         // Construct the proof if not there already
         if (!hasPropagatedDisequality(myRep, tagRep)) {
-          Debug("equality") << "areDisequal: case 4" << std::endl;
           d_deducedDisequalityReasons.push_back(EqualityPair(myCompare, myRep));
           d_deducedDisequalityReasons.push_back(EqualityPair(toCompare, tagRep));
           d_deducedDisequalityReasons.push_back(EqualityPair(disequalityInfo.equalityId, d_falseId));

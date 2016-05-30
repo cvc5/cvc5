@@ -69,18 +69,8 @@ bool MyPreRegisterVisitor::alreadyVisited(TNode current, TNode parent) {
 }
 
 void MyPreRegisterVisitor::visit(TNode current, TNode parent) {
-  // if(theory::Theory::theoryOf(current) == d_theory->getId()) {
-  //Trace("theory-proof-debug") << "preregister " << current << std::endl;
-    d_theory->preRegisterTerm(current);
-
-    d_visited.insert(current);
-  // }
-
-    //    if (current.isConst() || current.isVar()) {
-    // if ((current.getKind() != kind::EQUAL) && (current.getKind() != kind::NOT)) {
-    //   Debug("pf::tp") << "MyPreRegisterVisitor: adding a shared term: " << current << std::endl;
-    //   d_theory->addSharedTerm(current);
-    // }
+  d_theory->preRegisterTerm(current);
+  d_visited.insert(current);
 }
 
 void MyPreRegisterVisitor::start(TNode node) {

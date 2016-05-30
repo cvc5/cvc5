@@ -132,23 +132,18 @@ class ProofManager {
   Proof* d_fullProof;
   ProofFormat d_format; // used for now only in debug builds
 
+  NodeToNodes d_deps;
   // trace dependences back to unsat core
   void traceDeps(TNode n);
 
   std::set<Type> d_printedTypes;
 
+  std::map<std::string, std::string> d_rewriteFilters;
+
 protected:
   LogicInfo d_logic;
 
 public:
-  // TODO: make private with setters/getters etc
-  std::map<std::string, std::string> d_rewriteFilters;
-  std::map<Node, std::string> d_unchangedAssertionFilters;
-  std::map<Expr, std::string> d_unrewrittenAssertionToName;
-  std::map<std::set<Node>, Proof*> d_eagerConflictToProof;
-
-  NodeToNodes d_deps;
-
   ProofManager(ProofFormat format = LFSC);
   ~ProofManager();
 
@@ -182,12 +177,6 @@ public:
   }
   assertions_iterator end_assertions() const { return d_inputFormulas.end(); }
   size_t num_assertions() const { return d_inputFormulas.size(); }
-  bool have_input_assertion(const Expr &assertion) {
-    return d_inputFormulas.find(assertion) != d_inputFormulas.end();
-  }
-
-  void registerEagerProof(std::set<Node> conflictNode, Proof* pf);
-
 
 //---from Morgan---
   Node mkOp(TNode n);
@@ -225,8 +214,6 @@ public:
   void addDependence(TNode n, TNode dep);
   void addUnsatCore(Expr formula);
 
-  void undoPreprocessing(Node n, std::set<Node>& assertions);
-
   void traceUnsatCore();
   assertions_iterator begin_unsat_core() const { return d_outputCoreFormulas.begin(); }
   assertions_iterator end_unsat_core() const { return d_outputCoreFormulas.end(); }
@@ -240,8 +227,6 @@ public:
 
   void markPrinted(const Type& type);
   bool wasPrinted(const Type& type) const;
-
-  void registerUnrewrittenAssertion(Expr assertion, std::string name);
 
   // NodeToNodes d_preprocessedToOriginal;
   // void addPreprocessingDependence(TNode preprocessed, TNode original);
@@ -258,8 +243,6 @@ class LFSCProof : public Proof {
   void printPreprocessedAssertions(const NodeSet& assertions,
                                    std::ostream& os,
                                    std::ostream& paren);
-
-  void checkUnrewrittenAssertion(const NodeSet& assertions);
 public:
   LFSCProof(SmtEngine* smtEngine,
             LFSCCoreSatProof* sat,

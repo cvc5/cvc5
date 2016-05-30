@@ -236,54 +236,7 @@ void TheoryUF::explain(TNode literal, std::vector<TNode>& assumptions, eq::EqPro
 }
 
 Node TheoryUF::explain(TNode literal) {
-  // This is an explanation request as a result of a propagation. If eager proofs are on, also produce a proof.
-  Debug("pf::eager") << "TheoryUF::explain( " << literal << " ) called" << std::endl;
-
-  eq::EqProof* pf = NULL;
-  if (options::eagerUfProofs()) {
-    pf = new eq::EqProof();
-  }
-
-  Node explanation = explain(literal, pf);
-
-  PROOF({
-      if (options::eagerUfProofs()) {
-        std::set<Node> conflict;
-        if (explanation.getKind() == kind::AND) {
-          for (unsigned i = 0; i < explanation.getNumChildren(); ++i) {
-            conflict.insert(explanation[i]);
-          }
-        } else {
-          conflict.insert(explanation);
-        }
-        conflict.insert(literal.negate());
-
-        // Hack: special treatment for congruence proofs. Maybe move to EE?
-        if (pf->d_id == theory::eq::MERGED_THROUGH_CONGRUENCE) {
-          Debug("pf::eager") << "uf explain congruence case. Before:\n";
-          pf->debug_print("pf::eager");
-
-          theory::eq::EqProof* newPf = new theory::eq::EqProof;
-          newPf->d_node = NodeManager::currentNM()->mkConst(false).iffNode(NodeManager::currentNM()->mkConst(true));
-          newPf->d_id = theory::eq::MERGED_THROUGH_TRANS;
-
-          newPf->d_children.push_back(pf);
-
-          theory::eq::EqProof* newChild2 = new theory::eq::EqProof;
-          newChild2->d_node = literal.negate();
-          newChild2->d_id = theory::eq::MERGED_THROUGH_EQUALITY;
-          newPf->d_children.push_back(newChild2);
-
-          Debug("pf::eager") << "uf explain congruence case. After:\n";
-          newPf->debug_print("pf::eager");
-          ProofManager::currentPM()->registerEagerProof(conflict, new ProofUF(newPf));
-        } else {
-          ProofManager::currentPM()->registerEagerProof(conflict, new ProofUF(pf));
-        }
-      }
-    });
-
-  return explanation;
+  return explain(literal, NULL);
 }
 
 Node TheoryUF::explain(TNode literal, eq::EqProof* pf) {
@@ -550,7 +503,7 @@ void TheoryUF::addCarePairs( quantifiers::TermArgTrie * t1, quantifiers::TermArg
 void TheoryUF::computeCareGraph() {
 
   if (d_sharedTerms.size() > 0) {
-    //use term indexing 
+    //use term indexing
     Debug("uf::sharing") << "TheoryUf::computeCareGraph(): Build term indices..." << std::endl;
     std::map< Node, quantifiers::TermArgTrie > index;
     std::map< Node, unsigned > arity;
@@ -580,22 +533,14 @@ void TheoryUF::computeCareGraph() {
 }/* TheoryUF::computeCareGraph() */
 
 void TheoryUF::conflict(TNode a, TNode b) {
-  eq::EqProof* pf = NULL;
-  if (options::eagerUfProofs() || d_proofsEnabled) {
-    pf = new eq::EqProof();
-  }
+  eq::EqProof* pf = d_proofsEnabled ? new eq::EqProof() : NULL;
 
   if (a.getKind() == kind::CONST_BOOLEAN) {
     d_conflictNode = explain(a.iffNode(b),pf);
   } else {
     d_conflictNode = explain(a.eqNode(b),pf);
   }
-
-  ProofUF* puf = NULL;
-  if (options::eagerUfProofs() || d_proofsEnabled) {
-    puf = new ProofUF( pf );
-  }
-
+  ProofUF* puf = d_proofsEnabled ? new ProofUF( pf ) : NULL;
   d_out->conflict(d_conflictNode, puf);
   d_conflict = true;
 }

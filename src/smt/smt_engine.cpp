@@ -57,7 +57,6 @@
 #include "options/open_ostream.h"
 #include "options/option_exception.h"
 #include "options/printer_options.h"
-#include "options/proof_options.h"
 #include "options/prop_options.h"
 #include "options/quantifiers_options.h"
 #include "options/set_language.h"
@@ -4279,7 +4278,7 @@ void SmtEnginePrivate::addFormula(TNode n, bool inUnsatCore, bool inInput)
   PROOF(
     if( inInput ){
       // n is an input assertion
-      if (inUnsatCore || options::dumpUnsatCores() || options::checkUnsatCores() || options::fewerPreprocessingHoles())
+      if (inUnsatCore || options::dumpUnsatCores() || options::checkUnsatCores())
         ProofManager::currentPM()->addCoreAssertion(n.toExpr());
     }else{
       // n is the result of an unknown preprocessing step, add it to dependency map to null

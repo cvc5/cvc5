@@ -203,10 +203,6 @@ std::string ProofManager::getLitName(prop::SatLiteral lit,
 
 std::string ProofManager::getPreprocessedAssertionName(Node node,
                                                        const std::string& prefix) {
-  if (currentPM()->d_unchangedAssertionFilters.find(node) != currentPM()->d_unchangedAssertionFilters.end()) {
-    return currentPM()->d_unchangedAssertionFilters[node];
-  }
-
   node = node.getKind() == kind::BITVECTOR_EAGER_ATOM ? node[0] : node;
   return append(prefix+".PA", node.getId());
 }
@@ -246,39 +242,6 @@ std::string ProofManager::sanitize(TNode node) {
   }
 
   return name;
-}
-
-void ProofManager::undoPreprocessing(Node n, std::set<Node>& assertions) {
-  Debug("pf::pm") << "ProofManager::undoPreprocessing: " << n << std::endl;
-
-  if ((n.isConst() && n == NodeManager::currentNM()->mkConst<bool>(true)) ||
-      (n.getKind() == kind::NOT && n[0] == NodeManager::currentNM()->mkConst<bool>(false))) {
-    return;
-  }
-
-  if (d_inputCoreFormulas.find(n.toExpr()) != d_inputCoreFormulas.end()) {
-    // originating formula was in core set
-    Debug("pf::pm") << " -- IN INPUT CORE LIST!" << std::endl;
-    assertions.insert(n);
-    return;
-  } else {
-    Debug("pf::pm") << " -- NOT IN INPUT CORE LIST!" << std::endl;
-    if (d_deps.find(n) == d_deps.end()) {
-      Debug("pf::pm") << "(ERROR) Cannot trace dependence information back to input assertion:\n" << n << std::endl;
-      return;
-      //      InternalError("Cannot trace dependence information back to input assertion:\n`%s'", n.toString().c_str());
-    }
-
-    Assert(d_deps.find(n) != d_deps.end());
-
-    std::vector<Node> deps = (*d_deps.find(n)).second;
-    for(std::vector<Node>::const_iterator i = deps.begin(); i != deps.end(); ++i) {
-      Debug("pf::pm") << " + tracing deps: " << n << " -deps-on- " << *i << std::endl;
-      if( !(*i).isNull() ){
-        undoPreprocessing(*i, assertions);
-      }
-    }
-  }
 }
 
 void ProofManager::traceDeps(TNode n) {
@@ -452,18 +415,13 @@ void LFSCProof::toStream(std::ostream& out) {
   for (it = atoms.begin(); it != atoms.end(); ++it) {
     Debug("pf::pm") << "Ensure literal for atom: " << *it << std::endl;
     if (!d_cnfProof->hasLiteral(*it)) {
-      // For arith with holes: these literals are not normalized, causing an error in Arith.
+      // For arithmetic: these literals are not normalized, causing an error in Arith.
       if (theory::Theory::theoryOf(*it) == theory::THEORY_ARITH) {
-        d_cnfProof->ensureLiteral(*it, true); // This disabled preregistration with the theory solver.
+        d_cnfProof->ensureLiteral(*it, true); // This disables preregistration with the theory solver.
       } else {
-        d_cnfProof->ensureLiteral(*it); // Normal method, does preregister with the theory.
+        d_cnfProof->ensureLiteral(*it); // Normal method, with theory solver preregisteration.
       }
     }
-  }
-
-  Debug("pf::pm") << std::endl << "Dumping atoms from JUST lemmas: " << std::endl << std::endl;
-  for (it = atoms.begin(); it != atoms.end(); ++it) {
-    Debug("pf::pm") << "\tAtom: " << *it << std::endl;
   }
 
   d_cnfProof->collectAtomsForClauses(used_inputs, atoms);
@@ -477,7 +435,8 @@ void LFSCProof::toStream(std::ostream& out) {
   }
 
   std::set<Node>::iterator atomIt;
-  Debug("pf::pm") << std::endl << "Dumping atoms from lemmas, inputs and assertions: " << std::endl << std::endl;
+  Debug("pf::pm") << std::endl << "Dumping atoms from lemmas, inputs and assertions: "
+                  << std::endl << std::endl;
   for (atomIt = atoms.begin(); atomIt != atoms.end(); ++atomIt) {
     Debug("pf::pm") << "\tAtom: " << *atomIt << std::endl;
   }
@@ -532,12 +491,7 @@ void LFSCProof::toStream(std::ostream& out) {
     d_cnfProof->printCnfProofForClause(cl_it->first, cl_it->second, out, paren);
   }
 
-  // Warning() << std::endl << "Printing cnf proof for clauses DONE" << std::endl;
   Debug("pf::pm") << std::endl << "Printing cnf proof for clauses DONE" << std::endl;
-
-  // FIXME: for now assume all theory lemmas are in CNF form so
-  // distinguish between them and inputs
-  // print theory lemmas for resolution proof
 
   Debug("pf::pm") << "Proof manager: printing theory lemmas" << std::endl;
   d_theoryProof->printTheoryLemmas(used_lemmas, out, paren);
@@ -569,138 +523,19 @@ void LFSCProof::printPreprocessedAssertions(const NodeSet& assertions,
 
   Debug("pf::pm") << "LFSCProof::printPreprocessedAssertions starting" << std::endl;
 
-  if (options::fewerPreprocessingHoles()) {
-    // Check for assertions that did not get rewritten, and update the printing filter.
-    checkUnrewrittenAssertion(assertions);
+  for (; it != end; ++it) {
+    os << "(th_let_pf _ ";
 
-    // For the remaining assertions, bind them to input assertions.
-    for (; it != end; ++it) {
-      if (ProofManager::currentPM()->d_unrewrittenAssertionToName.find((*it).toExpr()) !=
-          ProofManager::currentPM()->d_unrewrittenAssertionToName.end()) {
-        // This preprocessing step can be eliminated; don't do anything.
-      } else {
-        os << "(th_let_pf _ (trust_f (iff ";
+    //TODO
+    os << "(trust_f ";
+    ProofManager::currentPM()->getTheoryProofEngine()->printLetTerm((*it).toExpr(), os);
+    os << ") ";
 
-        Node inputAssertion;
-
-        if (((*it).isConst() && *it == NodeManager::currentNM()->mkConst<bool>(true)) ||
-            ((*it).getKind() == kind::NOT && (*it)[0] == NodeManager::currentNM()->mkConst<bool>(false))) {
-          inputAssertion = NodeManager::currentNM()->mkConst<bool>(true);
-        } else {
-          // Figure out which input assertion led to this assertion
-          std::set<Node> inputAssertions;
-          ProofManager::currentPM()->undoPreprocessing(*it, inputAssertions);
-
-          Debug("pf::pm") << "Original assertions for " << *it << " are: " << std::endl;
-
-          std::set<Node>::iterator assertionIt;
-          for (assertionIt = inputAssertions.begin(); assertionIt != inputAssertions.end(); ++assertionIt) {
-            Debug("pf::pm") << "\t" << *assertionIt << std::endl;
-          }
-
-          if (inputAssertions.size() == 0) {
-            Debug("pf::pm") << "LFSCProof::printPreprocessedAssertions: Count NOT find the assertion that caused this PA. Picking an arbitrary one..." << std::endl;
-            inputAssertion = Node(*(ProofManager::currentPM()->begin_assertions()));
-          } else {
-            if (inputAssertions.size() != 1) {
-              Debug("pf::pm") << "LFSCProof::printPreprocessedAssertions: Attention: more than one original assertion was found. Picking just one." << std::endl;
-            }
-            inputAssertion = *inputAssertions.begin();
-          }
-        }
-
-        if (ProofManager::currentPM()->d_unrewrittenAssertionToName.find(inputAssertion.toExpr()) ==
-            ProofManager::currentPM()->d_unrewrittenAssertionToName.end()) {
-          // The thing returned by undoPreprocessing does not appear in the input assertions...
-          Debug("pf::pm") << "LFSCProof::printPreprocessedAssertions: Count NOT find the assertion that caused this PA. Picking an arbitrary one..." << std::endl;
-          inputAssertion = Node(ProofManager::currentPM()->d_unrewrittenAssertionToName.begin()->first);
-        }
-
-        Debug("pf::pm") << "Original assertion for " << *it
-                        << " is: "
-                        << inputAssertion
-                        << ", AKA "
-                        << ProofManager::currentPM()->d_unrewrittenAssertionToName[inputAssertion.toExpr()]
-                        << std::endl;
-
-        // For now just use the first assertion...
-        // ProofManager::assertions_iterator assertion = ProofManager::currentPM()->begin_assertions();
-        ProofManager::currentPM()->getTheoryProofEngine()->printLetTerm(inputAssertion.toExpr(), os);
-
-        os << " ";
-        ProofManager::currentPM()->getTheoryProofEngine()->printLetTerm((*it).toExpr(), os);
-
-        os << "))";
-        os << "(\\ "<< ProofManager::getPreprocessedAssertionName(*it, "") << "\n";
-        paren << "))";
-
-        std::ostringstream rewritten;
-
-        rewritten << "(or_elim_1 _ _ ";
-        rewritten << "(not_not_intro _ ";
-        rewritten << ProofManager::currentPM()->d_unrewrittenAssertionToName[inputAssertion.toExpr()];
-        rewritten << ") (iff_elim_1 _ _ ";
-        rewritten << ProofManager::getPreprocessedAssertionName(*it, "");
-        rewritten << "))";
-
-        ProofManager::currentPM()->d_unchangedAssertionFilters[(*it)] = rewritten.str();
-
-      }
-    }
-  } else {
-    for (; it != end; ++it) {
-      os << "(th_let_pf _ ";
-
-      //TODO
-      os << "(trust_f ";
-      ProofManager::currentPM()->getTheoryProofEngine()->printLetTerm((*it).toExpr(), os);
-      os << ") ";
-
-      os << "(\\ "<< ProofManager::getPreprocessedAssertionName(*it, "") << "\n";
-      paren << "))";
-    }
+    os << "(\\ "<< ProofManager::getPreprocessedAssertionName(*it, "") << "\n";
+    paren << "))";
   }
 
   os << "\n";
-}
-
-void LFSCProof::checkUnrewrittenAssertion(const NodeSet& rewrites) {
-  Debug("pf::pm") << "LFSCProof::checkUnrewrittenAssertion starting" << std::endl;
-
-  NodeSet::const_iterator rewrite;
-  for (rewrite = rewrites.begin(); rewrite != rewrites.end(); ++rewrite) {
-    Debug("pf::pm") << "LFSCProof::checkUnrewrittenAssertion: handling " << *rewrite << std::endl;
-    if (ProofManager::currentPM()->have_input_assertion((*rewrite).toExpr())) {
-      Assert(ProofManager::currentPM()->d_unrewrittenAssertionToName.find((*rewrite).toExpr()) !=
-             ProofManager::currentPM()->d_unrewrittenAssertionToName.end());
-      Debug("pf::pm") << "LFSCProof::checkUnrewrittenAssertion: this assertion was NOT rewritten!" << std::endl
-                      << "\tAdding filter: "
-                      << ProofManager::getPreprocessedAssertionName(*rewrite, "")
-                      << " --> "
-                      << ProofManager::currentPM()->d_unrewrittenAssertionToName[(*rewrite).toExpr()]
-                      << std::endl;
-      ProofManager::currentPM()->d_unchangedAssertionFilters[(*rewrite)] =
-        ProofManager::currentPM()->d_unrewrittenAssertionToName[(*rewrite).toExpr()];
-    } else {
-      Debug("pf::pm") << "LFSCProof::checkUnrewrittenAssertion: this assertion WAS rewritten! " << *rewrite << std::endl;
-
-      // Assert(ProofManager::currentPM()->d_deps.find(*rewrite) != ProofManager::currentPM()->d_deps.end());
-
-      // std::vector<Node> dependencies = ProofManager::currentPM()->d_deps[*rewrite];
-      // // Check that one of the dependencies is an input formulas
-
-      // bool found = false;
-      // for (unsigned i = 0; i < dependencies.size(); ++i) {
-      //   ProofManager::assertions_iterator it;
-      //   for (it = ProofManager::currentPM()->begin_assertions(); it != ProofManager::currentPM()->end_assertions(); ++it) {
-      //     if (*it == dependencies[i].toExpr()) {
-      //       found = true;
-      //     }
-      //   }
-      // }
-      // Assert(found);
-    }
-  }
 }
 
 //---from Morgan---
@@ -757,21 +592,6 @@ bool ProofManager::wasPrinted(const Type& type) const {
 
 void ProofManager::markPrinted(const Type& type) {
   d_printedTypes.insert(type);
-}
-
-void ProofManager::registerUnrewrittenAssertion(Expr assertion, std::string name) {
-  d_unrewrittenAssertionToName[assertion] = name;
-}
-
-void ProofManager::registerEagerProof(std::set<Node> conflict, Proof* pf) {
-  Debug("pf::eager") << "ProofManager::registerEagerProof: conflict = " << std::endl << "\t";
-  std::set<Node>::const_iterator it;
-  for (it = conflict.begin(); it != conflict.end(); ++it) {
-    Debug("pf::eager") << *it << " ";
-  }
-  Debug("pf::eager") << std::endl;
-
-  d_eagerConflictToProof[conflict] = pf;
 }
 
 std::ostream& operator<<(std::ostream& out, CVC4::ProofRule k) {

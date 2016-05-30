@@ -203,10 +203,8 @@ void SharedTermsDatabase::assertEquality(TNode equality, bool polarity, TNode re
 
 bool SharedTermsDatabase::propagateEquality(TNode equality, bool polarity) {
   if (polarity) {
-    Debug("pf::explain") << "SharedTermsDatabase::propagateEquality: propagating " << equality << std::endl;
     d_theoryEngine->propagate(equality, THEORY_BUILTIN);
   } else {
-    Debug("pf::explain") << "SharedTermsDatabase::propagateEquality: propagating " << equality.notNode() << std::endl;
     d_theoryEngine->propagate(equality.notNode(), THEORY_BUILTIN);
   }
   return true;
@@ -261,7 +259,5 @@ Node SharedTermsDatabase::explain(TNode literal) const {
   Assert(atom.getKind() == kind::EQUAL);
   std::vector<TNode> assumptions;
   d_equalityEngine.explainEquality(atom[0], atom[1], polarity, assumptions);
-
-  Debug("pf::explain") << "SharedTermsDatabase::explain( " << literal << " ) ==> " << mkAnd(assumptions) << std::endl;
   return mkAnd(assumptions);
 }

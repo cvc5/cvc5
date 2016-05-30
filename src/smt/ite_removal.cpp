@@ -17,7 +17,6 @@
 
 #include <vector>
 
-#include "options/proof_options.h"
 #include "proof/proof_manager.h"
 #include "theory/ite_utilities.h"
 
@@ -56,7 +55,7 @@ void RemoveITE::run(std::vector<Node>& output, IteSkolemMap& iteSkolemMap, bool 
     // fixes the bug on clang on Mac OS
     Node itesRemoved = run(output[i], output, iteSkolemMap, false);
     // In some calling contexts, not necessary to report dependence information.
-    if(reportDeps && (options::unsatCores() || options::fewerPreprocessingHoles())) {
+    if(reportDeps && options::unsatCores()) {
       // new assertions have a dependence on the node
       PROOF( ProofManager::currentPM()->addDependence(itesRemoved, output[i]); )
       while(n < output.size()) {

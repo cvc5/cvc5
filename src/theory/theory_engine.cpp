@@ -91,8 +91,6 @@ theory::LemmaStatus TheoryEngine::EngineOutputChannel::lemma(TNode lemma,
       Node emptyNode;
       LemmaProofRecipe::ProofStep proofStep(d_theory, emptyNode);
 
-      // proofRecipe->setTheory(d_theory);
-
       Node rewritten;
       if (lemma.getKind() == kind::OR) {
         for (unsigned i = 0; i < lemma.getNumChildren(); ++i) {
@@ -1297,7 +1295,6 @@ bool TheoryEngine::propagate(TNode literal, theory::TheoryId theory) {
       assertToTheory(literal, literal, /* to */ THEORY_BUILTIN, /* from */ theory);
     }
   } else {
-
     // We could be propagating a unit-clause lemma. In this case, we need to provide a
     // recipe.
     // TODO: Consider putting this someplace else? This is the only refence to the proof
@@ -1417,8 +1414,10 @@ Node TheoryEngine::getExplanationAndRecipe(TNode node, LemmaProofRecipe* proofRe
 
   // If we're not in shared mode, explanations are simple
   if (!d_logicInfo.isSharingEnabled()) {
-    Debug("theory::explain") << "TheoryEngine::getExplanation: sharing is NOT enabled. Responsible theory is: "
-                         << theoryOf(atom)->getId() << std::endl;
+    Debug("theory::explain") << "TheoryEngine::getExplanation: sharing is NOT enabled. "
+                             << " Responsible theory is: "
+                             << theoryOf(atom)->getId() << std::endl;
+
     Node explanation = theoryOf(atom)->explain(node);
     Debug("theory::explain") << "TheoryEngine::getExplanation(" << node << ") => " << explanation << endl;
     PROOF({
@@ -1427,9 +1426,6 @@ Node TheoryEngine::getExplanationAndRecipe(TNode node, LemmaProofRecipe* proofRe
           LemmaProofRecipe::ProofStep proofStep(theoryOf(atom)->getId(), emptyNode);
           proofStep.addAssertion(node);
           proofRecipe->addBaseAssertion(node);
-
-          // proofRecipe->setTheory(theoryOf(atom)->getId());
-          // proofRecipe->addAssertion(node);
 
           if (explanation.getKind() == kind::AND) {
             // If the explanation is a conjunction, the recipe for the corresponding lemma is
@@ -1474,8 +1470,9 @@ Node TheoryEngine::getExplanationAndRecipe(TNode node, LemmaProofRecipe* proofRe
   Assert(d_propagationMap.find(toExplain) != d_propagationMap.end());
 
   NodeTheoryPair nodeExplainerPair = d_propagationMap[toExplain];
-  Debug("theory::explain") << "TheoryEngine::getExplanation: explainer for node " << nodeExplainerPair.node
-                       << " is theory: " << nodeExplainerPair.theory << std::endl;
+  Debug("theory::explain") << "TheoryEngine::getExplanation: explainer for node "
+                           << nodeExplainerPair.node
+                           << " is theory: " << nodeExplainerPair.theory << std::endl;
   TheoryId explainer = nodeExplainerPair.theory;
 
   // Create the workplace for explanations
@@ -1487,7 +1484,6 @@ Node TheoryEngine::getExplanationAndRecipe(TNode node, LemmaProofRecipe* proofRe
     LemmaProofRecipe::ProofStep proofStep(explainer, emptyNode);
     proofStep.addAssertion(node);
     proofRecipe->addStep(proofStep);
-    // proofStep.addAssertion(node);
     proofRecipe->addBaseAssertion(node);
   }
 
@@ -1713,10 +1709,9 @@ void TheoryEngine::conflict(TNode conflict, TheoryId theoryId) {
     // Create the workplace for explanations
     std::vector<NodeTheoryPair> explanationVector;
     explanationVector.push_back(NodeTheoryPair(conflict, theoryId, d_propagationMapTimestamp));
+
     // Process the explanation
-
     getExplanation(explanationVector, proofRecipe);
-
     Node fullConflict = mkExplanation(explanationVector);
     Debug("theory::conflict") << "TheoryEngine::conflict(" << conflict << ", " << theoryId << "): full = " << fullConflict << endl;
     Assert(properConflict(fullConflict));
@@ -1984,8 +1979,9 @@ void TheoryEngine::getExplanation(std::vector<NodeTheoryPair>& explanationVector
       Debug("theory::explain") << "\tTerm was propagated by THEORY_BUILTIN. Explanation: " << explanation << std::endl;
     } else {
       explanation = theoryOf(toExplain.theory)->explain(toExplain.node);
-      Debug("theory::explain") << "\tTerm was propagated by owner theory: " << theoryOf(toExplain.theory)->getId()
-                           << ". Explanation: " << explanation << std::endl;
+      Debug("theory::explain") << "\tTerm was propagated by owner theory: "
+                               << theoryOf(toExplain.theory)->getId()
+                               << ". Explanation: " << explanation << std::endl;
     }
 
     Debug("theory::explain") << "TheoryEngine::explain(): got explanation " << explanation << " got from " << toExplain.theory << endl;

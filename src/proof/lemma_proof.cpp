@@ -76,7 +76,7 @@ void LemmaProofRecipe::dump(const char *tag) const {
 
   Debug(tag) << std::endl << std::endl << "Proof steps:" << std::endl;
 
-   count = 1;
+  count = 1;
   for (std::list<ProofStep>::const_iterator step = d_proofSteps.begin(); step != d_proofSteps.end(); ++step) {
     Debug(tag) << "\tStep #" << count << ": " << "\t[" << step->getTheory() << "] ";
     if (step->getLiteral() == Node()) {
@@ -120,39 +120,16 @@ std::set<Node> LemmaProofRecipe::getBaseAssertions() const {
   return d_baseAssertions;
 }
 
-// void LemmaProofRecipe::setTheory(theory::TheoryId theory) {
-//   d_theory = theory;
-// }
-
 theory::TheoryId LemmaProofRecipe::getTheory() const {
   Assert(d_proofSteps.size() > 0);
   return d_proofSteps.back().getTheory();
 }
 
 void LemmaProofRecipe::addRewriteRule(Node assertion, Node explanation) {
-  Debug("gk::temp") << "LemmaProofRecipe::addRewriteRule: " << assertion << " --> " << explanation << std::endl;
-  // Assert(theory::Rewriter::rewrite(assertion) == explanation);
-
-  // The below doesn't hold for arithmetic...
-  // Assert(((assertion.getKind() == kind::NOT) && (explanation.getKind() == kind::NOT)) ||
-  //        ((assertion.getKind() != kind::NOT) && (explanation.getKind() != kind::NOT)));
-
-  // if (d_explanationToAssertion.find(explanation) != d_explanationToAssertion.end()) {
-  //   Debug("gk::temp") << "LemmaProofRecipe::addRewriteRule: existing rewrite: " << d_explanationToAssertion[explanation] << std::endl;
-  //   Assert(d_explanationToAssertion[explanation] == assertion);
-  // }
-
-
-  // if (assertion.getKind() == kind::NOT) {
-  //   assertion = assertion[0];
-  //   explanation = explanation[0];
-  // }
-
   if (d_assertionToExplanation.find(assertion) != d_assertionToExplanation.end()) {
     Assert(d_assertionToExplanation[assertion] == explanation);
   }
 
-  // d_explanationToAssertion[explanation] = assertion;
   d_assertionToExplanation[assertion] = explanation;
 }
 

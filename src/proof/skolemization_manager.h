@@ -37,9 +37,6 @@ public:
   Node getSkolem(Node disequality);
   Node getDisequality(Node skolem);
   bool isSkolem(Node skolem);
-  // void registerLemmaForSkolem(Node skolem, Node lemma);
-  // Node getLemma(Node skolem);
-
   void clear();
 
   std::hash_map<Node, Node, NodeHashFunction>::const_iterator begin();
@@ -48,7 +45,6 @@ public:
 private:
   std::hash_map<Node, Node, NodeHashFunction> d_disequalityToSkolem;
   std::hash_map<Node, Node, NodeHashFunction> d_skolemToDisequality;
-  std::hash_map<Node, Node, NodeHashFunction> d_skolemToLemma;
 };
 
 }/* CVC4 namespace */

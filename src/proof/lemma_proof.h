@@ -40,7 +40,6 @@ public:
   //* The lemma assertions and owner */
   void addBaseAssertion(Node baseAssertion);
   std::set<Node> getBaseAssertions() const;
-  // void setTheory(theory::TheoryId theory);
   theory::TheoryId getTheory() const;
 
   //* Rewrite rules */
@@ -70,9 +69,6 @@ private:
 
   //* The various steps needed to derive the empty clause */
   std::list<ProofStep> d_proofSteps;
-
-  //* The owner theory. If the proof has steps, this theory makes the final step */
-  // theory::TheoryId d_theory;
 
   //* A map from assertions to their rewritten explanations (toAssert --> toExplain) */
   std::map<Node, Node> d_assertionToExplanation;

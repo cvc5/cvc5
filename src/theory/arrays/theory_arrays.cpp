@@ -20,7 +20,6 @@
 
 #include "expr/kind.h"
 #include "options/arrays_options.h"
-#include "options/proof_options.h"
 #include "options/smt_options.h"
 #include "proof/array_proof.h"
 #include "proof/proof_manager.h"
@@ -830,53 +829,8 @@ void TheoryArrays::propagate(Effort e)
 
 
 Node TheoryArrays::explain(TNode literal) {
-  Debug("pf::eager") << "TheoryArrays::explain( " << literal << " ) called" << std::endl;
-
-  eq::EqProof* pf = NULL;
-  if (options::eagerArrayProofs()) {
-    pf = new eq::EqProof();
-  }
-
-  Node explanation = explain(literal, pf);
-
-    PROOF({
-      if (options::eagerArrayProofs()) {
-        std::set<Node> conflict;
-        if (explanation.getKind() == kind::AND) {
-          for (unsigned i = 0; i < explanation.getNumChildren(); ++i) {
-            conflict.insert(explanation[i]);
-          }
-        } else {
-          conflict.insert(explanation);
-        }
-        conflict.insert(literal.negate());
-
-        // Hack: special treatment for congruence proofs. Maybe move to EE?
-        if (pf->d_id != theory::eq::MERGED_THROUGH_TRANS) {
-          Debug("pf::eager") << "array explain congruence case. Before:\n";
-          pf->debug_print("pf::eager");
-
-          theory::eq::EqProof* newPf = new theory::eq::EqProof;
-          newPf->d_node = NodeManager::currentNM()->mkConst(false).iffNode(NodeManager::currentNM()->mkConst(true));
-          newPf->d_id = theory::eq::MERGED_THROUGH_TRANS;
-
-          newPf->d_children.push_back(pf);
-
-          theory::eq::EqProof* newChild2 = new theory::eq::EqProof;
-          newChild2->d_node = literal.negate();
-          newChild2->d_id = theory::eq::MERGED_THROUGH_EQUALITY;
-          newPf->d_children.push_back(newChild2);
-
-          Debug("pf::eager") << "uf explain congruence case. After:\n";
-          newPf->debug_print("pf::eager");
-          ProofManager::currentPM()->registerEagerProof(conflict, new ProofArray(newPf));
-        } else {
-          ProofManager::currentPM()->registerEagerProof(conflict, new ProofArray(pf));
-        }
-      }
-    });
-
-    return explanation;
+  Node explanation = explain(literal, NULL);
+  return explanation;
 }
 
 Node TheoryArrays::explain(TNode literal, eq::EqProof *proof)
@@ -1363,16 +1317,11 @@ void TheoryArrays::check(Effort e) {
         d_equalityEngine.assertPredicate(fact, true, fact);
         break;
       case kind::NOT:
-        Debug("pf::array") << "Check: kind::NOT" << std::endl;
-        Debug("pf::array") << "Array theory conflicted? (1): " << ( d_conflict ? "YES" : "NO" ) << std::endl;
-
         if (fact[0].getKind() == kind::SELECT) {
           d_equalityEngine.assertPredicate(fact[0], false, fact);
         } else if (!d_equalityEngine.areDisequal(fact[0][0], fact[0][1], false)) {
           // Assert the dis-equality
           d_equalityEngine.assertEquality(fact[0], false, fact);
-
-          Debug("pf::array") << "Array theory conflicted? (2): " << ( d_conflict ? "YES" : "NO" ) << std::endl;
 
           // Apply ArrDiseq Rule if diseq is between arrays
           if(fact[0][0].getType().isArray() && !d_conflict) {
@@ -2160,7 +2109,6 @@ void TheoryArrays::queueRowLemma(RowLemmaType lem)
     Node lemma = nm->mkNode(kind::OR, eq2_r, eq1_r);
 
     Trace("arrays-lem")<<"Arrays::addRowLemma adding "<<lemma<<"\n";
-    Trace("gk::temp")<<"Arrays::addRowLemma lemma before rewrite (1): "<< nm->mkNode(kind::OR, eq2, eq1)<<"\n";
     d_RowAlreadyAdded.insert(lem);
     d_out->lemma(lemma);
     ++d_numRow;
@@ -2184,7 +2132,6 @@ Node TheoryArrays::getNextDecisionRequest() {
 
 bool TheoryArrays::dischargeLemmas()
 {
-  Debug("pf::array") << "TheoryArrays::dischargeLemmas called" << std::endl;
   bool lemmasAdded = false;
   size_t sz = d_RowQueue.size();
   for (unsigned count = 0; count < sz; ++count) {
@@ -2271,10 +2218,7 @@ bool TheoryArrays::dischargeLemmas()
 
     Node lem = nm->mkNode(kind::OR, eq2_r, eq1_r);
 
-    //Node lem = nm->mkNode(kind::OR, i.eqNode(j), aj.eqNode(bj));
-
     Trace("arrays-lem")<<"Arrays::addRowLemma adding "<<lem<<"\n";
-    // Trace("gk::temp")<<"Arrays::addRowLemma lemma before rewrite (2): "<< nm->mkNode(kind::OR, eq2, eq1)<<"\n";
     d_RowAlreadyAdded.insert(l);
     d_out->lemma(lem);
     ++d_numRow;
@@ -2288,11 +2232,7 @@ bool TheoryArrays::dischargeLemmas()
 
 void TheoryArrays::conflict(TNode a, TNode b) {
   Debug("pf::array") << "TheoryArrays::Conflict called" << std::endl;
-
-  eq::EqProof* proof = NULL;
-  if (options::eagerArrayProofs() || d_proofsEnabled) {
-    proof = new eq::EqProof();
-  }
+  eq::EqProof* proof = d_proofsEnabled ? new eq::EqProof() : NULL;
 
   if (a.getKind() == kind::CONST_BOOLEAN) {
     d_conflictNode = explain(a.iffNode(b), proof);
