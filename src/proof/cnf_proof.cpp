@@ -269,16 +269,6 @@ void CnfProof::collectAtomsAndRewritesForLemmas(const IdToSatClause& lemmaClause
       clause_expr_nodes.insert(lit.isNegated() ? node.notNode() : node);
     }
 
-
-    // Debug
-    std::set<Node>::iterator nodeIt;
-    Debug("gk::temp") << "CnfProof::collectAtomsAndRewritesForLemmas: working on lemma " << it->first << ":"
-                      << std::endl;
-    for (nodeIt = clause_expr_nodes.begin(); nodeIt != clause_expr_nodes.end(); ++nodeIt) {
-      Debug("gk::temp") << "\t" << *nodeIt << std::endl;
-    }
-    // End debug
-
     LemmaProofRecipe recipe = getProofRecipe(clause_expr_nodes);
 
     for (unsigned i = 0; i < recipe.getNumSteps(); ++i) {

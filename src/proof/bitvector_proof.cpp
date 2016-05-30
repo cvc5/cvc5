@@ -453,22 +453,11 @@ void LFSCBitVectorProof::printTheoryLemmaProof(std::vector<Expr>& lemma, std::os
   Debug("pf::bv") << "(pf::bv) LFSCBitVectorProof::printTheoryLemmaProof called" << std::endl;
   Expr conflict = utils::mkSortedExpr(kind::OR, lemma);
   Debug("pf::bv") << "\tconflict = " << conflict << std::endl;
-  Debug("gk::temp") << std::endl << "\tconflict = " << conflict << std::endl;
-
-  // if (!options::eagerBvProofs()) {
-  //   Debug("pf::eager") << std::endl << "Performing a lazy BV lemma proof" << std::endl;
-  //   BitVectorProof::printTheoryLemmaProof( lemma, os, paren );
-  //   return;
-  // }
-
-  // Debug("pf::eager") << std::endl << "Performing an eager BV lemma proof" << std::endl;
 
   if (d_bbConflictMap.find(conflict) != d_bbConflictMap.end()) {
     std::ostringstream lemma_paren;
     for (unsigned i = 0; i < lemma.size(); ++i) {
       Expr lit = lemma[i];
-
-      Debug("gk::temp") << "intro_assump: working on lit = " << lit << std::endl;
 
       if (lit.getKind() == kind::NOT) {
         os << "(intro_assump_t _ _ _ ";
@@ -544,8 +533,6 @@ void LFSCBitVectorProof::printTheoryLemmaProof(std::vector<Expr>& lemma, std::os
 
       if (matching) {
         Debug("pf::bv") << "Found a match with conflict #" << i << ": " << std::endl << possibleMatch << std::endl;
-        Debug("gk::temp") << "Found a match with conflict #" << i << ": " << std::endl << possibleMatch << std::endl;
-
         // The rest is just a copy of the usual handling, if a precise match is found.
         // We only use the literals that appear in the matching conflict, though, and not in the
         // original lemma - as these may not have even been bit blasted!
@@ -556,8 +543,6 @@ void LFSCBitVectorProof::printTheoryLemmaProof(std::vector<Expr>& lemma, std::os
             //          for (unsigned i = 0; i < lemma.size(); ++i) {
             // Expr lit = lemma[i];
             Expr lit = possibleMatch[i];
-
-            Debug("gk::temp") << std::endl << "intro_assump: working on lit = " << lit << std::endl << std::endl;
 
             if (lit.getKind() == kind::NOT) {
               os << "(intro_assump_t _ _ _ ";
@@ -837,8 +822,6 @@ void LFSCBitVectorProof::printTermBitblasting(Expr term, std::ostream& os) {
 }
 
 void LFSCBitVectorProof::printAtomBitblasting(Expr atom, std::ostream& os, bool swap) {
-  Debug("gk::temp") << std::endl << "LFSCBitVectorProof::printAtomBitblasting: atom = ( " << atom << " ), swap = " << swap << std::endl << std::endl;
-
   Kind kind = atom.getKind();
   switch(kind) {
   case kind::BITVECTOR_ULT :
@@ -889,8 +872,6 @@ void LFSCBitVectorProof::printAtomBitblasting(Expr atom, std::ostream& os, bool 
 }
 
 void LFSCBitVectorProof::printAtomBitblastingToFalse(Expr atom, std::ostream& os) {
-  Debug("gk::temp") << std::endl << "LFSCBitVectorProof::printAtomBitblastingToFalse: atom = ( " << atom << " )" << std::endl << std::endl;
-
   Assert(atom.getKind() == kind::EQUAL);
 
   os << "(bv_bbl_=_false";
@@ -957,33 +938,21 @@ void LFSCBitVectorProof::printBitblasting(std::ostream& os, std::ostream& paren)
       bool swap = false;
       if (ait->first.getKind() == kind::EQUAL) {
         Expr bitwiseEquivalence = ait->second[1];
-        Debug("gk::temp") << std::endl << "bitblasting: " << ait->first << std::endl;
-        Debug("gk::temp") << std::endl << "bitwiseEquivalence = " << bitwiseEquivalence << std::endl;
-
         if ((bitwiseEquivalence.getKind() == kind::CONST_BOOLEAN) && !bitwiseEquivalence.getConst<bool>()) {
-          Debug("gk::temp") << std::endl << "Have a case of atom rewritten to FALSE" << std::endl;
           printAtomBitblastingToFalse(ait->first, os);
         } else {
           if (bitwiseEquivalence.getKind() != kind::AND) {
             // Just one bit
             if (bitwiseEquivalence.getNumChildren() > 0 && bitwiseEquivalence[0].getKind() == kind::BITVECTOR_BITOF) {
-              Debug("gk::temp") << std::endl << "bitwiseEquivalence[0] = " << bitwiseEquivalence[0] << std::endl;
-              Debug("gk::temp") << std::endl << "bitwiseEquivalence[0][0] = " << bitwiseEquivalence[0][0] << std::endl;
               swap = (ait->first[1] == bitwiseEquivalence[0][0]);
             }
           } else {
             // Multiple bits
             if (bitwiseEquivalence[0].getNumChildren() > 0 &&
                 bitwiseEquivalence[0][0].getKind() == kind::BITVECTOR_BITOF) {
-              Debug("gk::temp") << std::endl << "bitwiseEquivalence[0][0] = " << bitwiseEquivalence[0][0] << std::endl;
-              Debug("gk::temp") << std::endl << "bitwiseEquivalence[0][0][0] = " << bitwiseEquivalence[0][0][0] << std::endl;
-
               swap = (ait->first[1] == bitwiseEquivalence[0][0][0]);
             } else if (bitwiseEquivalence[0].getNumChildren() > 0 &&
                        bitwiseEquivalence[0][1].getKind() == kind::BITVECTOR_BITOF) {
-              Debug("gk::temp") << std::endl << "bitwiseEquivalence[0][1] = " << bitwiseEquivalence[0][1] << std::endl;
-              Debug("gk::temp") << std::endl << "bitwiseEquivalence[0][1][0] = " << bitwiseEquivalence[0][1][0] << std::endl;
-
               swap = (ait->first[0] == bitwiseEquivalence[0][1][0]);
             }
           }
