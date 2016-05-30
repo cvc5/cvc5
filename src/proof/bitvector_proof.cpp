@@ -16,7 +16,6 @@
 **/
 
 #include "options/bv_options.h"
-#include "options/proof_options.h"
 #include "proof/array_proof.h"
 #include "proof/bitvector_proof.h"
 #include "proof/clause_id.h"

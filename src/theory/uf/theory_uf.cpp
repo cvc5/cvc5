@@ -20,7 +20,6 @@
 #include "options/quantifiers_options.h"
 #include "options/smt_options.h"
 #include "options/uf_options.h"
-#include "options/proof_options.h"
 #include "proof/proof_manager.h"
 #include "proof/theory_proof.h"
 #include "proof/uf_proof.h"

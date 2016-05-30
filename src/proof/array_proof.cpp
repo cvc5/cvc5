@@ -15,7 +15,6 @@
 
 **/
 
-#include "options/proof_options.h"
 #include "proof/theory_proof.h"
 #include "proof/proof_manager.h"
 #include "proof/array_proof.h"
@@ -1263,7 +1262,6 @@ void LFSCArrayProof::printDeferredDeclarations(std::ostream& os, std::ostream& p
     Node array_two = equality[0][1];
 
     LetMap map;
-    os << "(" << (symm ? "symm_" : "" ) << "ext _ _ ";
     os << "(ext _ _ ";
     printTerm(array_one.toExpr(), os, map);
     os << " ";

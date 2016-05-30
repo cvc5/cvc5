@@ -20,7 +20,6 @@
 #include "base/cvc4_assert.h"
 #include "context/context.h"
 #include "options/bv_options.h"
-#include "options/proof_options.h"
 #include "proof/bitvector_proof.h"
 #include "proof/clause_id.h"
 #include "proof/cnf_proof.h"
@@ -592,6 +591,14 @@ bool ProofManager::wasPrinted(const Type& type) const {
 
 void ProofManager::markPrinted(const Type& type) {
   d_printedTypes.insert(type);
+}
+
+void ProofManager::addRewriteFilter(const std::string &original, const std::string &substitute) {
+  d_rewriteFilters[original] = substitute;
+}
+
+void ProofManager::clearRewriteFilters() {
+  d_rewriteFilters.clear();
 }
 
 std::ostream& operator<<(std::ostream& out, CVC4::ProofRule k) {

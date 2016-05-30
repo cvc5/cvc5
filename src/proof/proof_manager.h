@@ -228,8 +228,8 @@ public:
   void markPrinted(const Type& type);
   bool wasPrinted(const Type& type) const;
 
-  // NodeToNodes d_preprocessedToOriginal;
-  // void addPreprocessingDependence(TNode preprocessed, TNode original);
+  void addRewriteFilter(const std::string &original, const std::string &substitute);
+  void clearRewriteFilters();
 
 };/* class ProofManager */
 

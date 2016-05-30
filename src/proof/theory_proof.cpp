@@ -19,7 +19,6 @@
 #include "base/cvc4_assert.h"
 #include "context/context.h"
 #include "options/bv_options.h"
-#include "options/proof_options.h"
 #include "proof/arith_proof.h"
 #include "proof/array_proof.h"
 #include "proof/bitvector_proof.h"
@@ -312,8 +311,6 @@ void LFSCTheoryProofEngine::printAssertions(std::ostream& os, std::ostream& pare
     Debug("pf::tp") << "printAssertions: assertion is: " << *it << std::endl;
     std::ostringstream name;
     name << "A" << counter++;
-
-    ProofManager::currentPM()->registerUnrewrittenAssertion(*it, name.str());
     os << "(% " << name.str() << " (th_holds ";
     printLetTerm(*it,  os);
     os << ")\n";
@@ -597,7 +594,7 @@ void LFSCTheoryProofEngine::printTheoryLemmas(const IdToSatClause& lemmas,
                         << pm->getLitName(*missingAssertion) << " --> " << rewritten.str()
                         << std::endl << std::endl;
 
-        pm->d_rewriteFilters[pm->getLitName(*missingAssertion)] = rewritten.str();
+        pm->addRewriteFilter(pm->getLitName(*missingAssertion), rewritten.str());
       }
 
       // Query the appropriate theory for a proof of this clause
@@ -606,7 +603,7 @@ void LFSCTheoryProofEngine::printTheoryLemmas(const IdToSatClause& lemmas,
       getTheoryProof(theory_id)->printTheoryLemmaProof(clause_expr, os, paren);
 
       // Turn rewrite filter OFF
-      pm->d_rewriteFilters.clear();
+      pm->clearRewriteFilters();
 
       Debug("pf::tp") << "Get theory lemma from " << theory_id << "... DONE!" << std::endl;
       os << clause_paren.str();
@@ -707,13 +704,13 @@ void LFSCTheoryProofEngine::printTheoryLemmas(const IdToSatClause& lemmas,
                           << pm->getLitName(*missingAssertion) << " --> " << rewritten.str()
                           << std::endl << std::endl;
 
-          pm->d_rewriteFilters[pm->getLitName(*missingAssertion)] = rewritten.str();
+          pm->addRewriteFilter(pm->getLitName(*missingAssertion), rewritten.str());
         }
 
         getTheoryProof(theory_id)->printTheoryLemmaProof(currentClauseExpr, os, paren);
 
         // Turn rewrite filter OFF
-        pm->d_rewriteFilters.clear();
+        pm->clearRewriteFilters();
 
         Debug("pf::tp") << "Get theory lemma from " << theory_id << "... DONE!" << std::endl;
         os << clause_paren.str();
