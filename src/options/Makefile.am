@@ -10,7 +10,7 @@
 # Step 4: Generate X_options.h from X_options.sed
 # Step 5: Generate X_options.cpp from X_options.sed.
 #   This stage also waits for X_options.h as otherwise it cannot compile.
-# 
+#
 
 OPTIONS_SRC_FILES = \
 	arith_options \
@@ -27,7 +27,6 @@ OPTIONS_SRC_FILES = \
 	main_options \
 	parser_options \
 	printer_options \
-	proof_options \
 	prop_options \
 	quantifiers_options \
 	sets_options \
@@ -51,7 +50,6 @@ OPTIONS_TEMPS = \
 	main_options.tmp \
 	parser_options.tmp \
 	printer_options.tmp \
-	proof_options.tmp \
 	prop_options.tmp \
 	quantifiers_options.tmp \
 	sets_options.tmp \
@@ -75,7 +73,6 @@ OPTIONS_OPTIONS_FILES = \
 	main_options.options \
 	parser_options.options \
 	printer_options.options \
-	proof_options.options \
 	prop_options.options \
 	quantifiers_options.options \
 	sets_options.options \
@@ -99,7 +96,6 @@ OPTIONS_SEDS = \
 	main_options.sed \
 	parser_options.sed \
 	printer_options.sed \
-	proof_options.sed \
 	prop_options.sed \
 	quantifiers_options.sed \
 	sets_options.sed \
@@ -123,7 +119,6 @@ OPTIONS_HEADS = \
 	main_options.h \
 	parser_options.h \
 	printer_options.h \
-	proof_options.h \
 	prop_options.h \
 	quantifiers_options.h \
 	sets_options.h \
@@ -147,7 +142,6 @@ OPTIONS_CPPS = \
 	main_options.cpp \
 	parser_options.cpp \
 	printer_options.cpp \
-	proof_options.cpp \
 	prop_options.cpp \
 	quantifiers_options.cpp \
 	sets_options.cpp \
@@ -295,14 +289,14 @@ options_holder_template.h options_template.cpp options_get_option_template.cpp o
 
 # Make sure the implicit rules never mistake X_options for the -o file for a
 # CPP file.
-arith_options arrays_options base_options booleans_options builtin_options bv_options datatypes_options decision_options expr_options fp_options idl_options main_options parser_options printer_options proof_options prop_options quantifiers_options sets_options smt_options strings_options theory_options uf_options:;
+arith_options arrays_options base_options booleans_options builtin_options bv_options datatypes_options decision_options expr_options fp_options idl_options main_options parser_options printer_options prop_options quantifiers_options sets_options smt_options strings_options theory_options uf_options:;
 
 
 # These are phony to force them to be made everytime.
-.PHONY: arith_options.tmp arrays_options.tmp base_options.tmp booleans_options.tmp builtin_options.tmp bv_options.tmp datatypes_options.tmp decision_options.tmp expr_options.tmp fp_options.tmp idl_options.tmp main_options.tmp parser_options.tmp printer_options.tmp proof_options.tmp prop_options.tmp quantifiers_options.tmp sets_options.tmp smt_options.tmp strings_options.tmp theory_options.tmp uf_options.tmp
+.PHONY: arith_options.tmp arrays_options.tmp base_options.tmp booleans_options.tmp builtin_options.tmp bv_options.tmp datatypes_options.tmp decision_options.tmp expr_options.tmp fp_options.tmp idl_options.tmp main_options.tmp parser_options.tmp printer_options.tmp prop_options.tmp quantifiers_options.tmp sets_options.tmp smt_options.tmp strings_options.tmp theory_options.tmp uf_options.tmp
 
 # Make is happier being listed explictly. Not sure why.
-arith_options.tmp arrays_options.tmp base_options.tmp booleans_options.tmp builtin_options.tmp bv_options.tmp datatypes_options.tmp decision_options.tmp expr_options.tmp fp_options.tmp idl_options.tmp main_options.tmp parser_options.tmp printer_options.tmp proof_options.tmp prop_options.tmp quantifiers_options.tmp sets_options.tmp smt_options.tmp strings_options.tmp theory_options.tmp uf_options.tmp:
+arith_options.tmp arrays_options.tmp base_options.tmp booleans_options.tmp builtin_options.tmp bv_options.tmp datatypes_options.tmp decision_options.tmp expr_options.tmp fp_options.tmp idl_options.tmp main_options.tmp parser_options.tmp printer_options.tmp prop_options.tmp quantifiers_options.tmp sets_options.tmp smt_options.tmp strings_options.tmp theory_options.tmp uf_options.tmp:
 	echo "$@" "$(@:.tmp=)"
 	$(AM_V_GEN)(cp "@srcdir@/$(@:.tmp=)" "$@" || true)
 #TIM:
@@ -424,4 +418,3 @@ $(DOCUMENTATION_FILES) : % : %_template %_template.sed mkoptions summary.sed
 # directories that are cleaned first.  Without this rule, "distclean"
 # fails.
 %.Plo:; $(MKDIR_P) "$(dir $@)" && : > "$@"
-
