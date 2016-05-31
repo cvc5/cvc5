@@ -235,55 +235,76 @@ Node ProofArray::toStreamRecLFSC(std::ostream& out,
         ++i;
       }
     }
-    Assert(neg >= 0);
+
+    bool disequalityFound = (neg >= 0);
+    if (!disequalityFound) {
+      Debug("pf::uf") << "A disequality was NOT found. UNSAT due to merged constants" << std::endl;
+      Debug("pf::uf") << "Proof for: " << pf->d_node << std::endl;
+      Assert(pf->d_node.getKind() == kind::EQUAL);
+      Assert(pf->d_node.getNumChildren() == 2);
+      Assert (pf->d_node[0].isConst() && pf->d_node[1].isConst());
+    }
 
     Node n1;
     std::stringstream ss, ss2;
     //Assert(subTrans.d_children.size() == pf->d_children.size() - 1);
     Debug("mgdx") << "\nsubtrans has " << subTrans.d_children.size() << " children\n";
-    if(pf->d_children.size() > 2) {
+    if(!disequalityFound || pf->d_children.size() > 2) {
       n1 = toStreamRecLFSC(ss, tp, &subTrans, 1, map);
     } else {
       n1 = toStreamRecLFSC(ss, tp, subTrans.d_children[0], 1, map);
       Debug("mgdx") << "\nsubTrans unique child " << subTrans.d_children[0]->d_id << " was proven\ngot: " << n1 << std::endl;
     }
 
-    Node n2 = pf->d_children[neg]->d_node;
-    Assert(n2.getKind() == kind::NOT);
-    Debug("mgdx") << "\nhave proven: " << n1 << std::endl;
-    Debug("mgdx") << "n2 is " << n2 << std::endl;
-    Debug("mgdx") << "n2->d_id is " << pf->d_children[neg]->d_id << std::endl;
-    Debug("mgdx") << "n2[0] is " << n2[0] << std::endl;
-
-    if (n2[0].getNumChildren() > 0) { Debug("mgdx") << "\nn2[0]: " << n2[0][0] << std::endl; }
-    if (n1.getNumChildren() > 1) { Debug("mgdx") << "n1[1]: " << n1[1] << std::endl; }
-
     out << "(clausify_false (contra _ ";
 
-    if ((pf->d_children[neg]->d_id == d_reasonExt) ||
-        (pf->d_children[neg]->d_id == theory::eq::MERGED_THROUGH_TRANS)) {
-      // Ext case: The negative node was created by an EXT rule; e.g. it is a[k]!=b[k], due to a!=b.
+    if (disequalityFound) {
+      Node n2 = pf->d_children[neg]->d_node;
+      Assert(n2.getKind() == kind::NOT);
+      Debug("mgdx") << "\nhave proven: " << n1 << std::endl;
+      Debug("mgdx") << "n2 is " << n2 << std::endl;
+      Debug("mgdx") << "n2->d_id is " << pf->d_children[neg]->d_id << std::endl;
+      Debug("mgdx") << "n2[0] is " << n2[0] << std::endl;
+
+      if (n2[0].getNumChildren() > 0) { Debug("mgdx") << "\nn2[0]: " << n2[0][0] << std::endl; }
+      if (n1.getNumChildren() > 1) { Debug("mgdx") << "n1[1]: " << n1[1] << std::endl; }
+
+      if ((pf->d_children[neg]->d_id == d_reasonExt) ||
+          (pf->d_children[neg]->d_id == theory::eq::MERGED_THROUGH_TRANS)) {
+        // Ext case: The negative node was created by an EXT rule; e.g. it is a[k]!=b[k], due to a!=b.
+        out << ss.str();
+        out << " ";
+        toStreamRecLFSC(ss2, tp, pf->d_children[neg], 1, map);
+        out << ss2.str();
+      } else if (n2[0].getKind() == kind::APPLY_UF) {
+        out << "(trans _ _ _ _ ";
+        out << "(symm _ _ _ ";
+        out << ss.str();
+        out << ") (pred_eq_f _ " << ProofManager::getLitName(n2[0]) << ")) t_t_neq_f))" << std::endl;
+      } else {
+        Assert((n1[0] == n2[0][0] && n1[1] == n2[0][1]) || (n1[1] == n2[0][0] && n1[0] == n2[0][1]));
+        if(n1[1] == n2[0][0]) {
+          out << "(symm _ _ _ " << ss.str() << ")";
+        } else {
+          out << ss.str();
+        }
+        Debug("pf::array") << "ArrayProof::toStream: getLitName( " << n2[0] << " ) = " <<
+          ProofManager::getLitName(n2[0]) << std::endl;
+
+        out << " " << ProofManager::getLitName(n2[0]);
+      }
+    } else {
+      Node n2 = pf->d_node;
+      Assert(n2.getKind() == kind::EQUAL);
+      Assert((n1[0] == n2[0] && n1[1] == n2[1]) || (n1[1] == n2[0] && n1[0] == n2[1]));
+
       out << ss.str();
       out << " ";
-      toStreamRecLFSC(ss2, tp, pf->d_children[neg], 1, map);
-      out << ss2.str();
-    } else if (n2[0].getKind() == kind::APPLY_UF) {
-      out << "(trans _ _ _ _ ";
-      out << "(symm _ _ _ ";
-      out << ss.str();
-      out << ") (pred_eq_f _ " << ProofManager::getLitName(n2[0]) << ")) t_t_neq_f))" << std::endl;
-    } else {
-      Assert((n1[0] == n2[0][0] && n1[1] == n2[0][1]) || (n1[1] == n2[0][0] && n1[0] == n2[0][1]));
-      if(n1[1] == n2[0][0]) {
-        out << "(symm _ _ _ " << ss.str() << ")";
-      } else {
-        out << ss.str();
-      }
-      Debug("pf::array") << "ArrayProof::toStream: getLitName( " << n2[0] << " ) = " <<
-        ProofManager::getLitName(n2[0]) << std::endl;
-
-      out << " " << ProofManager::getLitName(n2[0]);
+      ProofManager::getTheoryProofEngine()->printConstantDisequalityProof(out,
+                                                                          n1[0].toExpr(),
+                                                                          n1[1].toExpr());
     }
+
     out << "))" << std::endl;
     return Node();
   }
