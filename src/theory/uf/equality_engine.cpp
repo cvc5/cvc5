@@ -2211,9 +2211,15 @@ bool EqClassIterator::isFinished() const {
   return d_current == null_id;
 }
 
-void EqProof::debug_print( const char * c, unsigned tb ) const{
-  for( unsigned i=0; i<tb; i++ ) { Debug( c ) << "  "; }
-  Debug( c ) << d_id << "(";
+void EqProof::debug_print(const char* c, unsigned tb, PrettyPrinter* prettyPrinter) const {
+  for(unsigned i=0; i<tb; i++) { Debug( c ) << "  "; }
+
+  if (prettyPrinter)
+    Debug( c ) << prettyPrinter->printTag(d_id);
+  else
+    Debug( c ) << d_id;
+
+  Debug( c ) << "(";
   if( !d_children.empty() || !d_node.isNull() ){
     if( !d_node.isNull() ){
       Debug( c ) << std::endl;
@@ -2223,7 +2229,7 @@ void EqProof::debug_print( const char * c, unsigned tb ) const{
     for( unsigned i=0; i<d_children.size(); i++ ){
       if( i>0 || !d_node.isNull() ) Debug( c ) << ",";
       Debug( c ) << std::endl;
-      d_children[i]->debug_print( c, tb+1 );
+      d_children[i]->debug_print( c, tb+1, prettyPrinter );
     }
   }
   Debug( c ) << ")" << std::endl;

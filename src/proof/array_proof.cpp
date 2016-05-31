@@ -81,14 +81,29 @@ inline static bool match(TNode n1, TNode n2) {
 
 void ProofArray::setRowMergeTag(unsigned tag) {
   d_reasonRow = tag;
+  d_proofPrinter.d_row = tag;
 }
 
 void ProofArray::setRow1MergeTag(unsigned tag) {
   d_reasonRow1 = tag;
+  d_proofPrinter.d_row1 = tag;
 }
 
 void ProofArray::setExtMergeTag(unsigned tag) {
   d_reasonExt = tag;
+  d_proofPrinter.d_ext = tag;
+}
+
+unsigned ProofArray::getRowMergeTag() const {
+  return d_reasonRow;
+}
+
+unsigned ProofArray::getRow1MergeTag() const {
+  return d_reasonRow1;
+}
+
+unsigned ProofArray::getExtMergeTag() const {
+  return d_reasonExt;
 }
 
 void ProofArray::toStream(std::ostream& out) {
@@ -101,7 +116,7 @@ void ProofArray::toStream(std::ostream& out) {
 
 void ProofArray::toStreamLFSC(std::ostream& out, TheoryProof* tp, theory::eq::EqProof* pf, const LetMap& map) {
   Debug("pf::array") << "Printing array proof in LFSC : " << std::endl;
-  pf->debug_print("pf::array");
+  pf->debug_print("pf::array", 0, &d_proofPrinter);
   Debug("pf::array") << std::endl;
   toStreamRecLFSC( out, tp, pf, 0, map );
   Debug("pf::array") << "Printing array proof in LFSC DONE" << std::endl;
@@ -114,7 +129,7 @@ Node ProofArray::toStreamRecLFSC(std::ostream& out,
                                  const LetMap& map) {
 
   Debug("pf::array") << std::endl << std::endl << "toStreamRecLFSC called. tb = " << tb << " . proof:" << std::endl;
-  pf->debug_print("pf::array");
+  pf->debug_print("pf::array", 0, &d_proofPrinter);
   Debug("pf::array") << std::endl;
 
   if(tb == 0) {
@@ -150,7 +165,7 @@ Node ProofArray::toStreamRecLFSC(std::ostream& out,
                pf->d_children[i + count]->d_node.isNull();
              ++count) {
           Debug("pf::array") << "Found a congruence: " << std::endl;
-          pf->d_children[i+count]->debug_print("pf::array");
+          pf->d_children[i+count]->debug_print("pf::array", 0, &d_proofPrinter);
           congruenceClosures.push_back(pf->d_children[i+count]);
         }
 
@@ -275,7 +290,7 @@ Node ProofArray::toStreamRecLFSC(std::ostream& out,
 
   if (pf->d_id == theory::eq::MERGED_THROUGH_CONGRUENCE) {
     Debug("mgd") << "\nok, looking at congruence:\n";
-    pf->debug_print("mgd");
+    pf->debug_print("mgd", 0, &d_proofPrinter);
     std::stack<const theory::eq::EqProof*> stk;
     for(const theory::eq::EqProof* pf2 = pf; pf2->d_id == theory::eq::MERGED_THROUGH_CONGRUENCE; pf2 = pf2->d_children[0]) {
       Assert(!pf2->d_node.isNull());
@@ -305,7 +320,7 @@ Node ProofArray::toStreamRecLFSC(std::ostream& out,
 
 
     Debug("mgd") << "\nok, in FIRST cong[" << stk.size() << "]" << "\n";
-    pf2->debug_print("mgd");
+    pf2->debug_print("mgd", 0, &d_proofPrinter);
     // Temp
     Debug("mgd") << "n1 is a proof for: " << pf2->d_children[0]->d_node << ". It is: " << n1 << std::endl;
     Debug("mgd") << "n2 is a proof for: " << pf2->d_children[1]->d_node << ". It is: " << n2 << std::endl;
@@ -322,7 +337,7 @@ Node ProofArray::toStreamRecLFSC(std::ostream& out,
       Debug("mgd") << "SIDE IS 1\n";
       if(!match(pf2->d_node, n1[1])) {
         Debug("mgd") << "IN BAD CASE, our first subproof is\n";
-        pf2->d_children[0]->debug_print("mgd");
+        pf2->d_children[0]->debug_print("mgd", 0, &d_proofPrinter);
       }
       Assert(match(pf2->d_node, n1[1]));
       side = 1;
@@ -544,7 +559,7 @@ Node ProofArray::toStreamRecLFSC(std::ostream& out,
     Assert(pf->d_children.size() >= 2);
     std::stringstream ss;
     Debug("mgd") << "\ndoing trans proof[[\n";
-    pf->debug_print("mgd");
+    pf->debug_print("mgd", 0, &d_proofPrinter);
     Debug("mgd") << "\n";
     Node n1 = toStreamRecLFSC(ss, tp, pf->d_children[0], tb + 1, map);
     Debug("mgd") << "\ndoing trans proof, got n1 " << n1 << "\n";
@@ -762,7 +777,7 @@ Node ProofArray::toStreamRecLFSC(std::ostream& out,
           Warning() << "\n\ntrans proof failure at step " << i << "\n\n";
           Warning() << "0 proves " << n1 << "\n";
           Warning() << "1 proves " << n2 << "\n\n";
-          pf->debug_print("mgdx",0);
+          pf->debug_print("mgdx", 0, &d_proofPrinter);
           //toStreamRec(Warning.getStream(), pf, 0);
           Warning() << "\n\n";
           Unreachable();
