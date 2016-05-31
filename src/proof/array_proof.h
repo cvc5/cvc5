@@ -36,8 +36,6 @@ private:
     }
 
     std::string printTag(unsigned tag) {
-      Debug("gk::temp") << "PrettyPrinter::printTag called!" << std::endl;
-
       if (tag == theory::eq::MERGED_THROUGH_CONGRUENCE) return "Congruence";
       if (tag == theory::eq::MERGED_THROUGH_EQUALITY) return "Pure Equality";
       if (tag == theory::eq::MERGED_THROUGH_TRANS) return "Transitivity";
