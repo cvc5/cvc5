@@ -39,31 +39,57 @@ class BoundedIntegers : public QuantifiersModule
   typedef context::CDHashMap<Node, int, NodeHashFunction> NodeIntMap;
   typedef context::CDHashMap<Node, Node, NodeHashFunction> NodeNodeMap;
   typedef context::CDHashMap<int, bool> IntBoolMap;
+public:
+  enum {
+    BOUND_FINITE,
+    BOUND_INT_RANGE,
+    BOUND_SET_MEMBER,
+    BOUND_NONE
+  };
 private:
   //for determining bounds
   bool isBound( Node f, Node v );
   bool hasNonBoundVar( Node f, Node b );
-  std::map< Node, std::map< Node, Node > > d_bounds[2];
+  //bound type
+  std::map< Node, std::map< Node, unsigned > > d_bound_type;
   std::map< Node, std::vector< Node > > d_set;
-  std::map< Node, std::vector< int > > d_set_nums;
+  std::map< Node, std::map< Node, int > > d_set_nums;
+  //integer lower/upper bounds
+  std::map< Node, std::map< Node, Node > > d_bounds[2];
   std::map< Node, std::map< Node, Node > > d_range;
   std::map< Node, std::map< Node, Node > > d_nground_range;
+  //set membership range
+  std::map< Node, std::map< Node, Node > > d_setm_range;
   void hasFreeVar( Node f, Node n );
   void process( Node f, Node n, bool pol,
+                std::map< Node, unsigned >& bound_lit_type_map,
                 std::map< int, std::map< Node, Node > >& bound_lit_map,
-                std::map< int, std::map< Node, bool > >& bound_lit_pol_map );
+                std::map< int, std::map< Node, bool > >& bound_lit_pol_map,
+                std::map< int, std::map< Node, Node > >& bound_int_range_term );
   void processLiteral( Node f, Node lit, bool pol,
+                       std::map< Node, unsigned >& bound_lit_type_map,
                        std::map< int, std::map< Node, Node > >& bound_lit_map,
-                       std::map< int, std::map< Node, bool > >& bound_lit_pol_map  );
+                       std::map< int, std::map< Node, bool > >& bound_lit_pol_map,
+                       std::map< int, std::map< Node, Node > >& bound_int_range_term  );
   std::vector< Node > d_bound_quants;
 private:
   class RangeModel {
+  public:
+    RangeModel(){}
+    virtual ~RangeModel(){}
+    virtual void initialize() = 0;
+    virtual void assertNode(Node n) = 0;
+    virtual Node getNextDecisionRequest() = 0;
+    virtual bool proxyCurrentRange() = 0;
+  };
+  class IntRangeModel : public RangeModel {
   private:
     BoundedIntegers * d_bi;
     void allocateRange();
     Node d_proxy_range;
   public:
-    RangeModel(BoundedIntegers * bi, Node r, context::Context* c, context::Context* u, bool isProxy);
+    IntRangeModel( BoundedIntegers * bi, Node r, context::Context* c, context::Context* u, bool isProxy);
+    virtual ~IntRangeModel(){}
     Node d_range;
     int d_curr_max;
     std::map< int, Node > d_range_literal;
@@ -108,27 +134,36 @@ private:
   std::map< Node, std::map< Node, BoundInstTrie > > d_bnd_it;
 private:
   void addLiteralFromRange( Node lit, Node r );
+  
+  void setBoundedVar( Node f, Node v, unsigned bound_type );
 public:
   BoundedIntegers( context::Context* c, QuantifiersEngine* qe );
-  ~BoundedIntegers() throw() {}
-
+  virtual ~BoundedIntegers();
+  
+  void presolve();
   bool needsCheck( Theory::Effort e );
   void check( Theory::Effort e, unsigned quant_e );
   void registerQuantifier( Node f );
   void assertNode( Node n );
   Node getNextDecisionRequest();
-  bool isBoundVar( Node f, Node v ) { return std::find( d_set[f].begin(), d_set[f].end(), v )!=d_set[f].end(); }
-  unsigned getNumBoundVars( Node f ) { return d_set[f].size(); }
-  Node getBoundVar( Node f, int i ) { return d_set[f][i]; }
-  int getBoundVarNum( Node f, int i ) { return d_set_nums[f][i]; }
-  Node getLowerBound( Node f, Node v ){ return d_bounds[0][f][v]; }
-  Node getUpperBound( Node f, Node v ){ return d_bounds[1][f][v]; }
+  bool isBoundVar( Node q, Node v ) { return std::find( d_set[q].begin(), d_set[q].end(), v )!=d_set[q].end(); }
+  unsigned getBoundVarType( Node q, Node v );
+  unsigned getNumBoundVars( Node q ) { return d_set[q].size(); }
+  Node getBoundVar( Node q, int i ) { return d_set[q][i]; }
+  //for integer range
+  Node getLowerBound( Node q, Node v ){ return d_bounds[0][q][v]; }
+  Node getUpperBound( Node q, Node v ){ return d_bounds[1][q][v]; }
   void getBounds( Node f, Node v, RepSetIterator * rsi, Node & l, Node & u );
   void getBoundValues( Node f, Node v, RepSetIterator * rsi, Node & l, Node & u );
   bool isGroundRange(Node f, Node v);
+  //for set range
+  Node getSetRange( Node q, Node v, RepSetIterator * rsi );
+  Node getSetRangeValue( Node q, Node v, RepSetIterator * rsi );
 
   /** Identify this module */
   std::string identify() const { return "BoundedIntegers"; }
+private:
+  bool getRsiSubsitution( Node q, Node v, std::vector< Node >& vars, std::vector< Node >& subs, RepSetIterator * rsi );
 };
 
 }

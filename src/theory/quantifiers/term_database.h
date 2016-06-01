@@ -300,6 +300,7 @@ public:
 private:
   /** map from universal quantifiers to the list of variables */
   std::map< Node, std::vector< Node > > d_vars;
+  std::map< Node, std::map< Node, unsigned > > d_var_num;
   /** map from universal quantifiers to the list of instantiation constants */
   std::map< Node, std::vector< Node > > d_inst_constants;
   /** map from universal quantifiers to their inst constant body */
@@ -311,6 +312,8 @@ private:
   /** make instantiation constants for */
   void makeInstantiationConstantsFor( Node q );
 public:
+  /** get variable number */
+  unsigned getVariableNum( Node q, Node v ) { return d_var_num[q][v]; }
   /** get the i^th instantiation constant of q */
   Node getInstantiationConstant( Node q, int i ) const;
   /** get number of instantiation constants for q */

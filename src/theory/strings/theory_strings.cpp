@@ -127,7 +127,9 @@ TheoryStrings::TheoryStrings(context::Context* c, context::UserContext* u,
 }
 
 TheoryStrings::~TheoryStrings() {
-
+  for( std::map< Node, EqcInfo* >::iterator it = d_eqc_info.begin(); it != d_eqc_info.end(); ++it ){
+    delete it->second;
+  }
 }
 
 Node TheoryStrings::getRepresentative( Node t ) {

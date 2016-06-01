@@ -168,6 +168,7 @@ void TermDb::addTerm( Node n, std::set< Node >& added, bool withinQuant, bool wi
           }
           
           Node op = getMatchOperator( n );
+          Trace("term-db-debug") << "  match operator is : " << op << std::endl;
           d_op_map[op].push_back( n );
           added.insert( n );
           
@@ -893,6 +894,7 @@ void TermDb::makeInstantiationConstantsFor( Node q ){
     Debug("quantifiers-engine") << "Instantiation constants for " << q << " : " << std::endl;
     for( unsigned i=0; i<q[0].getNumChildren(); i++ ){
       d_vars[q].push_back( q[0][i] );
+      d_var_num[q][q[0][i]] = i;
       //make instantiation constants
       Node ic = NodeManager::currentNM()->mkInstConstant( q[0][i].getType() );
       d_inst_constants_map[ic] = q;
