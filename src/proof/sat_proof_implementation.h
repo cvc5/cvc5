@@ -837,7 +837,7 @@ ClauseId TSatProof<Solver>::resolveUnit(typename Solver::TLit lit) {
   // clause allocator.  So reload reason ptr each time.
   const typename Solver::TClause& initial_reason = getClause(reason_ref);
   size_t current_reason_size = initial_reason.size();
-  for (int i = 0; i < current_reason_size; i++) {
+  for (size_t i = 0; i < current_reason_size; i++) {
     const typename Solver::TClause& current_reason = getClause(reason_ref);
     current_reason_size = current_reason.size();
     typename Solver::TLit l = current_reason[i];
@@ -899,7 +899,7 @@ void TSatProof<Solver>::finalizeProof(typename Solver::TCRef conflict_ref) {
   // Here, the call to resolveUnit() can reallocate memory in the
   // clause allocator.  So reload conflict ptr each time.
   size_t conflict_size = getClause(conflict_ref).size();
-  for (int i = 0; i < conflict_size; ++i) {
+  for (size_t i = 0; i < conflict_size; ++i) {
     const typename Solver::TClause& conflict = getClause(conflict_ref);
     typename Solver::TLit lit = conflict[i];
     ClauseId res_id = resolveUnit(~lit);
