@@ -25,31 +25,27 @@ function runcvc4 {
 
 case "$logic" in
 
-QF_LRA)
-  runcvc4 --tear-down-incremental --unconstrained-simp
+ALIA|QF_ALIA|QF_LRA|QF_UFLIA|QF_UFLRA|UFLRA)
+  runcvc4 --incremental
   ;;
-QF_LIA)
-  # same as QF_LRA but add --pb-rewrites
-  runcvc4 --tear-down-incremental --unconstrained-simp
+ANIA|QF_ANIA|QF_NIA|QF_UFNIA)
+  runcvc4 --tear-down-incremental=1
   ;;
-ALIA|AUFLIA|AUFLIRA|AUFNIRA|UF|UFBV|UFIDL|UFLIA|UFLRA|UFNIA)
-  runcvc4  --tear-down-incremental
+LIA)
+  runcvc4 --incremental --cbqi
   ;;
-BV)
-  runcvc4 --cbqi-all --tear-down-incremental
-  ;;
-LIA|LRA|NIA|NRA)
-  runcvc4 --tear-down-incremental
+QF_AUFLIA)
+  runcvc4 --no-arrays-eager-index --arrays-eager-lemmas --incremental
   ;;
 QF_BV)
-  runcvc4 --tear-down-incremental --unconstrained-simp --bv-eq-slicer=auto --bv-div-zero-const --bv-intro-pow2
+  runcvc4 --tear-down-incremental=4 --bv-eq-slicer=auto --bv-div-zero-const --bv-intro-pow2
   ;;
-QF_AUFLIA|QF_AX)
-  runcvc4 --tear-down-incremental --no-arrays-eager-index --arrays-eager-lemmas
+QF_LIA)
+  runcvc4 --tear-down-incremental=1 --unconstrained-simp
   ;;
 *)
   # just run the default
-  runcvc4 --tear-down-incremental
+  runcvc4 --incremental
   ;;
 
 esac

@@ -278,8 +278,8 @@ void InstStrategyAutoGenTriggers::generateTriggers( Node f ){
         Trace("auto-gen-trigger-debug") << "Collected pat terms for " << bd << ", no-patterns : " << d_user_no_gen[f].size() << std::endl;
         for( unsigned i=0; i<patTermsF.size(); i++ ){
           Assert( tinfo.find( patTermsF[i] )!=tinfo.end() );
-          Trace("auto-gen-trigger-debug") << "   " << patTermsF[i];
-          Trace("auto-gen-trigger-debug") << " info[" << tinfo[patTermsF[i]].d_reqPol << ", " << tinfo[patTermsF[i]].d_reqPolEq << ", " << tinfo[patTermsF[i]].d_fv.size() << "]" << std::endl;
+          Trace("auto-gen-trigger-debug") << "   " << patTermsF[i] << std::endl;
+          Trace("auto-gen-trigger-debug2") << "     info = [" << tinfo[patTermsF[i]].d_reqPol << ", " << tinfo[patTermsF[i]].d_reqPolEq << ", " << tinfo[patTermsF[i]].d_fv.size() << "]" << std::endl;
         }
         Trace("auto-gen-trigger-debug") << std::endl;
       }

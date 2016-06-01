@@ -64,42 +64,27 @@ class RepSetIterator {
 public:
   enum {
     ENUM_DOMAIN_ELEMENTS,
-    ENUM_RANGE,
+    ENUM_INT_RANGE,
+    ENUM_SET_MEMBERS,
   };
 private:
   QuantifiersEngine * d_qe;
   //initialize function
   bool initialize();
-  //for enum ranges
+  //for int ranges
   std::map< int, Node > d_lower_bounds;
+  //for set ranges
+  std::map< int, std::vector< Node > > d_setm_bounds;
   //domain size
   int domainSize( int i );
   //node this is rep set iterator is for
   Node d_owner;
-  //reset index
-  bool resetIndex( int i, bool initial = false );
+  //reset index, 1:success, 0:empty, -1:fail
+  int resetIndex( int i, bool initial = false );
   /** set index order */
   void setIndexOrder( std::vector< int >& indexOrder );
-public:
-  RepSetIterator( QuantifiersEngine * qe, RepSet* rs );
-  ~RepSetIterator(){}
-  //set that this iterator will be iterating over instantiations for a quantifier
-  bool setQuantifier( Node f );
-  //set that this iterator will be iterating over the domain of a function
-  bool setFunctionDomain( Node op );
-public:
-  //pointer to model
-  RepSet* d_rep_set;
-  //enumeration type?
-  std::vector< int > d_enum_type;
-  //index we are considering
-  std::vector< int > d_index;
-  //types we are considering
-  std::vector< TypeNode > d_types;
-  //domain we are considering
-  std::vector< RepDomain > d_domain;
-  //are we only considering a strict subset of the domain of the quantifier?
-  bool d_incomplete;
+  /** do reset increment the iterator at index=counter */
+  int do_reset_increment( int counter, bool initial = false );
   //ordering for variables we are indexing over
   //  for example, given reps = { a, b } and quantifier forall( x, y, z ) P( x, y, z ) with d_index_order = { 2, 0, 1 },
   //    then we consider instantiations in this order:
@@ -112,23 +97,49 @@ public:
   //variables to index they are considered at
   //  for example, if d_index_order = { 2, 0, 1 }
   //    then d_var_order = { 0 -> 1, 1 -> 2, 2 -> 0 }
-  std::map< int, int > d_var_order;
+  std::map< int, int > d_var_order;  
+  //are we only considering a strict subset of the domain of the quantifier?
+  bool d_incomplete;
+public:
+  RepSetIterator( QuantifiersEngine * qe, RepSet* rs );
+  ~RepSetIterator(){}
+  //set that this iterator will be iterating over instantiations for a quantifier
+  bool setQuantifier( Node f );
+  //set that this iterator will be iterating over the domain of a function
+  bool setFunctionDomain( Node op );
+public:
+  //pointer to model
+  RepSet* d_rep_set;
+  //enumeration type?
+  std::vector< int > d_enum_type;
+  //current tuple we are considering
+  std::vector< int > d_index;
+  //types we are considering
+  std::vector< TypeNode > d_types;
+  //domain we are considering
+  std::vector< RepDomain > d_domain;
   //intervals
   std::map< int, Node > d_bounds[2];
 public:
   /** increment the iterator at index=counter */
-  int increment2( int counter );
+  int increment2( int i );
   /** increment the iterator */
   int increment();
   /** is the iterator finished? */
   bool isFinished();
   /** get the i_th term we are considering */
-  Node getTerm( int i );
+  Node getCurrentTerm( int v );
   /** get the number of terms we are considering */
   int getNumTerms() { return (int)d_index_order.size(); }
   /** debug print */
   void debugPrint( const char* c );
   void debugPrintSmall( const char* c );
+  //get index order, returns var #
+  int getIndexOrder( int v ) { return d_index_order[v]; }
+  //get variable order, returns index #
+  int getVariableOrder( int i ) { return d_var_order[i]; }
+  //is incomplete
+  bool isIncomplete() { return d_incomplete; }
 };/* class RepSetIterator */
 
 }/* CVC4::theory namespace */

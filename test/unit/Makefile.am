@@ -34,7 +34,6 @@ UNIT_TESTS += \
 	context/cdo_black \
 	context/cdlist_black \
 	context/cdlist_context_memory_black \
-	context/cdmap_black \
 	context/cdmap_white \
 	context/cdvector_black \
 	context/stacking_vector_black \

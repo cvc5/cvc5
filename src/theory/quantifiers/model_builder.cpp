@@ -66,7 +66,7 @@ void QModelBuilder::debugModel( FirstOrderModel* fm ){
           tests++;
           std::vector< Node > terms;
           for( int k=0; k<riter.getNumTerms(); k++ ){
-            terms.push_back( riter.getTerm( k ) );
+            terms.push_back( riter.getCurrentTerm( k ) );
           }
           Node n = d_qe->getInstantiation( f, vars, terms );
           Node val = fm->getValue( n );
@@ -84,7 +84,9 @@ void QModelBuilder::debugModel( FirstOrderModel* fm ){
         }
         Trace("quant-check-model") << "." << std::endl;
       }else{
-        Trace("quant-check-model") << "Warning: Could not test quantifier " << f << std::endl;
+        if( riter.isIncomplete() ){
+          Trace("quant-check-model") << "Warning: Could not test quantifier " << f << std::endl;
+        }
       }
     }
   }
@@ -399,15 +401,19 @@ bool QModelBuilderIG::doExhaustiveInstantiation( FirstOrderModel * fm, Node f, i
       Debug("inst-fmf-ei") << "Begin instantiation..." << std::endl;
       while( !riter.isFinished() && ( d_addedLemmas==0 || !options::fmfOneInstPerRound() ) ){
         d_triedLemmas++;
-        for( int i=0; i<(int)riter.d_index.size(); i++ ){
-          Trace("try") << i << " : " << riter.d_index[i] << " : " << riter.getTerm( i ) << std::endl;
+        if( Debug.isOn("inst-fmf-ei-debug") ){
+          for( int i=0; i<(int)riter.d_index.size(); i++ ){
+            Debug("inst-fmf-ei-debug") << i << " : " << riter.d_index[i] << " : " << riter.getCurrentTerm( i ) << std::endl;
+          }
         }
         int eval = 0;
         int depIndex;
         //see if instantiation is already true in current model
-        Debug("fmf-model-eval") << "Evaluating ";
-        riter.debugPrintSmall("fmf-model-eval");
-        Debug("fmf-model-eval") << "Done calculating terms." << std::endl;
+        if( Debug.isOn("fmf-model-eval") ){
+          Debug("fmf-model-eval") << "Evaluating ";
+          riter.debugPrintSmall("fmf-model-eval");
+          Debug("fmf-model-eval") << "Done calculating terms." << std::endl;
+        }
         //if evaluate(...)==1, then the instantiation is already true in the model
         //  depIndex is the index of the least significant variable that this evaluation relies upon
         depIndex = riter.getNumTerms()-1;
@@ -425,7 +431,7 @@ bool QModelBuilderIG::doExhaustiveInstantiation( FirstOrderModel * fm, Node f, i
           //instantiation was not shown to be true, construct the match
           InstMatch m( f );
           for( int i=0; i<riter.getNumTerms(); i++ ){
-            m.set( d_qe, riter.d_index_order[i], riter.getTerm( i ) );
+            m.set( d_qe, i, riter.getCurrentTerm( i ) );
           }
           Debug("fmf-model-eval") << "* Add instantiation " << m << std::endl;
           //add as instantiation
@@ -463,8 +469,8 @@ bool QModelBuilderIG::doExhaustiveInstantiation( FirstOrderModel * fm, Node f, i
         Trace("model-engine-warn") << std::endl;
       }
     }
-     //if the iterator is incomplete, we will return unknown instead of sat if no instantiations are added this round
-    d_incomplete_check = riter.d_incomplete;
+    //if the iterator is incomplete, we will return unknown instead of sat if no instantiations are added this round
+    d_incomplete_check = riter.isIncomplete();
     return true;
   }else{
     return false;
