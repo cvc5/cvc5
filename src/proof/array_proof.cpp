@@ -238,8 +238,8 @@ Node ProofArray::toStreamRecLFSC(std::ostream& out,
 
     bool disequalityFound = (neg >= 0);
     if (!disequalityFound) {
-      Debug("pf::uf") << "A disequality was NOT found. UNSAT due to merged constants" << std::endl;
-      Debug("pf::uf") << "Proof for: " << pf->d_node << std::endl;
+      Debug("pf::array") << "A disequality was NOT found. UNSAT due to merged constants" << std::endl;
+      Debug("pf::array") << "Proof for: " << pf->d_node << std::endl;
       Assert(pf->d_node.getKind() == kind::EQUAL);
       Assert(pf->d_node.getNumChildren() == 2);
       Assert (pf->d_node[0].isConst() && pf->d_node[1].isConst());
@@ -569,6 +569,20 @@ Node ProofArray::toStreamRecLFSC(std::ostream& out,
     Debug("pf::array") << "ArrayProof::toStream: getLitName( " << pf->d_node.negate() << " ) = " <<
       ProofManager::getLitName(pf->d_node.negate()) << std::endl;
     out << ProofManager::getLitName(pf->d_node.negate());
+    return pf->d_node;
+  }
+
+  else if (pf->d_id == theory::eq::MERGED_THROUGH_CONSTANTS) {
+    Debug("pf::array") << "Proof for: " << pf->d_node << std::endl;
+    Assert(pf->d_node.getKind() == kind::NOT);
+    Node n = pf->d_node[0];
+    Assert(n.getKind() == kind::EQUAL);
+    Assert(n.getNumChildren() == 2);
+    Assert(n[0].isConst() && n[1].isConst());
+
+    ProofManager::getTheoryProofEngine()->printConstantDisequalityProof(out,
+                                                                        n[0].toExpr(),
+                                                                        n[1].toExpr());
     return pf->d_node;
   }
 

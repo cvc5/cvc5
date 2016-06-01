@@ -38,8 +38,10 @@ private:
     std::string printTag(unsigned tag) {
       if (tag == theory::eq::MERGED_THROUGH_CONGRUENCE) return "Congruence";
       if (tag == theory::eq::MERGED_THROUGH_EQUALITY) return "Pure Equality";
-      if (tag == theory::eq::MERGED_THROUGH_TRANS) return "Transitivity";
       if (tag == theory::eq::MERGED_THROUGH_REFLEXIVITY) return "Reflexivity";
+      if (tag == theory::eq::MERGED_THROUGH_CONSTANTS) return "Constants";
+      if (tag == theory::eq::MERGED_THROUGH_TRANS) return "Transitivity";
+
       if (tag == d_row) return "Read Over Write";
       if (tag == d_row1) return "Read Over Write (1)";
       if (tag == d_ext) return "Extensionality";
