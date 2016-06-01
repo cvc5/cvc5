@@ -284,7 +284,7 @@ bool Trigger::isUsableEqTerms( Node q, Node n1, Node n2 ) {
         return true;
       }
     }
-  }else if( isAtomicTrigger( n1 ) && isUsable( n1, q ) ){
+  }else if( isUsableAtomicTrigger( n1, q ) ){
     if( options::relationalTriggers() && n2.getKind()==INST_CONSTANT && !quantifiers::TermDb::containsTerm( n1, n2 ) ){
       return true;
     }else if( !quantifiers::TermDb::hasInstConstAttr(n2) ){
@@ -339,13 +339,16 @@ Node Trigger::getIsUsableTrigger( Node n, Node q ) {
       return rtr2;
     }
   }else{
-    bool usable = quantifiers::TermDb::getInstConstAttr(n)==q && isAtomicTrigger( n ) && isUsable( n, q );
-    Trace("trigger-debug") << n << " usable : " << (quantifiers::TermDb::getInstConstAttr(n)==q) << " " << isAtomicTrigger( n ) << " " << isUsable( n, q ) << std::endl;
-    if( usable ){
+    Trace("trigger-debug") << n << " usable : " << ( quantifiers::TermDb::getInstConstAttr(n)==q ) << " " << isAtomicTrigger( n ) << " " << isUsable( n, q ) << std::endl;
+    if( isUsableAtomicTrigger( n, q ) ){
       return pol ? n : NodeManager::currentNM()->mkNode( IFF, n, NodeManager::currentNM()->mkConst( true ) ).notNode();
     }
   }
   return Node::null();
+}
+
+bool Trigger::isUsableAtomicTrigger( Node n, Node q ) {
+  return quantifiers::TermDb::getInstConstAttr( n )==q && isAtomicTrigger( n ) && isUsable( n, q );
 }
 
 bool Trigger::isUsableTrigger( Node n, Node q ){
