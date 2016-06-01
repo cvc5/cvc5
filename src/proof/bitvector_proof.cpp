@@ -189,7 +189,25 @@ void BitVectorProof::finalizeConflicts(std::vector<Expr>& conflicts) {
 
   for (unsigned i = 0; i < conflicts.size(); ++i) {
     Expr confl = conflicts[i];
-    Debug("pf::bv") << "Finalize conflict " << confl << std::endl;
+    Debug("pf::bv") << "Finalize conflict #" << i << ": " << confl << std::endl;
+
+    // Special case: if the conflict has a (true) or a (not false) in it, it is trivial...
+    bool ignoreConflict = false;
+    if ((confl.isConst() && confl.getConst<bool>()) ||
+        (confl.getKind() == kind::NOT && confl[0].isConst() && !confl[0].getConst<bool>())) {
+      ignoreConflict = true;
+    } else if (confl.getKind() == kind::OR) {
+      for (unsigned k = 0; k < confl.getNumChildren(); ++k) {
+        if ((confl[k].isConst() && confl[k].getConst<bool>()) ||
+            (confl[k].getKind() == kind::NOT && confl[k][0].isConst() && !confl[k][0].getConst<bool>())) {
+          ignoreConflict = true;
+        }
+      }
+    }
+    if (ignoreConflict) {
+      Debug("pf::bv") << "Ignoring conflict due to (true) or (not false)" << std::endl;
+      continue;
+    }
 
     if (d_bbConflictMap.find(confl) != d_bbConflictMap.end()) {
       ClauseId id = d_bbConflictMap[confl];
