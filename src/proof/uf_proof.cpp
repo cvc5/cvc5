@@ -705,6 +705,7 @@ void LFSCUFProof::printOwnedTerm(Expr term, std::ostream& os, const LetMap& map)
   }
 
   Assert (term.getKind() == kind::APPLY_UF);
+  d_proofEngine->treatBoolsAsFormulas(false);
 
   if(term.getType().isBoolean()) {
     os << "(p_app ";
@@ -721,6 +722,7 @@ void LFSCUFProof::printOwnedTerm(Expr term, std::ostream& os, const LetMap& map)
   if(term.getType().isBoolean()) {
     os << ")";
   }
+  d_proofEngine->treatBoolsAsFormulas(true);
 }
 
 void LFSCUFProof::printOwnedSort(Type type, std::ostream& os) {

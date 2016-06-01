@@ -190,6 +190,8 @@ public:
   void markTermForFutureRegistration(Expr term, theory::TheoryId id);
 
   void printConstantDisequalityProof(std::ostream& os, Expr c1, Expr c2);
+
+  virtual void treatBoolsAsFormulas(bool value) {};
 };
 
 class LFSCTheoryProofEngine : public TheoryProofEngine {
@@ -216,6 +218,8 @@ public:
   virtual void printSort(Type type, std::ostream& os);
 
   void performExtraRegistrations();
+
+  void treatBoolsAsFormulas(bool value);
 
 private:
   static void dumpTheoryLemmas(const IdToSatClause& lemmas);
@@ -311,6 +315,8 @@ public:
    * @param term
    */
   virtual void registerTerm(Expr term) = 0;
+
+  virtual void treatBoolsAsFormulas(bool value) {}
 };
 
 class BooleanProof : public TheoryProof {
@@ -334,7 +340,7 @@ public:
 class LFSCBooleanProof : public BooleanProof {
 public:
   LFSCBooleanProof(TheoryProofEngine* proofEngine)
-    : BooleanProof(proofEngine)
+    : BooleanProof(proofEngine), d_treatBoolsAsFormulas(true)
   {}
   virtual void printOwnedTerm(Expr term, std::ostream& os, const LetMap& map);
   virtual void printOwnedSort(Type type, std::ostream& os);
@@ -343,6 +349,13 @@ public:
   virtual void printTermDeclarations(std::ostream& os, std::ostream& paren);
   virtual void printDeferredDeclarations(std::ostream& os, std::ostream& paren);
   virtual void printAliasingDeclarations(std::ostream& os, std::ostream& paren);
+
+  void treatBoolsAsFormulas(bool value) {
+    d_treatBoolsAsFormulas = value;
+  }
+
+private:
+  bool d_treatBoolsAsFormulas;
 };
 
 } /* CVC4 namespace */

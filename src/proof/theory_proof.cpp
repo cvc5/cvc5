@@ -289,6 +289,14 @@ void LFSCTheoryProofEngine::performExtraRegistrations() {
   }
 }
 
+void LFSCTheoryProofEngine::treatBoolsAsFormulas(bool value) {
+  TheoryProofTable::const_iterator it = d_theoryProofTable.begin();
+  TheoryProofTable::const_iterator end = d_theoryProofTable.end();
+  for (; it != end; ++it) {
+    it->second->treatBoolsAsFormulas(value);
+  }
+}
+
 void LFSCTheoryProofEngine::registerTermsFromAssertions() {
   ProofManager::assertions_iterator it = ProofManager::currentPM()->begin_assertions();
   ProofManager::assertions_iterator end = ProofManager::currentPM()->end_assertions();
@@ -431,11 +439,14 @@ void LFSCTheoryProofEngine::finalizeBvConflicts(const IdToSatClause& lemmas, std
       prop::SatLiteral lit = (*clause)[i];
       Node node = ProofManager::currentPM()->getCnfProof()->getAtom(lit.getSatVariable());
       Expr atom = node.toExpr();
+
+      // The literals (true) and (not false) are omitted from conflicts
       if (atom.isConst()) {
         Assert (atom == utils::mkTrue() ||
                 (atom == utils::mkFalse() && lit.isNegated()));
         continue;
       }
+
       Expr expr_lit = lit.isNegated() ? atom.notExpr() : atom;
       conflict.push_back(expr_lit);
       conflictNodes.insert(lit.isNegated() ? node.notNode() : node);
@@ -455,12 +466,30 @@ void LFSCTheoryProofEngine::finalizeBvConflicts(const IdToSatClause& lemmas, std
         continue;
       }
 
+      // If any rewrites took place, we need to update the conflict clause accordingly
+      std::set<Node> missingAssertions = recipe.getMissingAssertionsForStep(i);
+      std::map<Node, Node> explanationToMissingAssertion;
+      std::set<Node>::iterator assertionIt;
+      for (assertionIt = missingAssertions.begin();
+           assertionIt != missingAssertions.end();
+           ++assertionIt) {
+        Node negated = (*assertionIt).negate();
+        explanationToMissingAssertion[recipe.getExplanation(negated)] = negated;
+      }
+
       currentClause = *clause;
       currentClauseExpr = conflict;
 
       for (unsigned j = 0; j < i; ++j) {
         // Literals already used in previous steps need to be negated
         Node previousLiteralNode = recipe.getStep(j)->getLiteral();
+
+        // If this literal is the result of a rewrite, we need to translate it
+        if (explanationToMissingAssertion.find(previousLiteralNode) !=
+            explanationToMissingAssertion.end()) {
+          previousLiteralNode = explanationToMissingAssertion[previousLiteralNode];
+        }
+
         Node previousLiteralNodeNegated = previousLiteralNode.negate();
         prop::SatLiteral previousLiteralNegated =
           ProofManager::currentPM()->getCnfProof()->getLiteral(previousLiteralNodeNegated);
@@ -748,7 +777,7 @@ void LFSCTheoryProofEngine::printTheoryLemmas(const IdToSatClause& lemmas,
 }
 
 void LFSCTheoryProofEngine::printBoundTerm(Expr term, std::ostream& os, const LetMap& map) {
-  // Debug("pf::tp") << "LFSCTheoryProofEngine::printBoundTerm( " << term << " ) " << std::endl;
+  Debug("pf::tp") << "LFSCTheoryProofEngine::printBoundTerm( " << term << " ) " << std::endl;
 
   LetMap::const_iterator it = map.find(term);
   if (it != map.end()) {
@@ -983,7 +1012,10 @@ void BooleanProof::registerTerm(Expr term) {
 void LFSCBooleanProof::printOwnedTerm(Expr term, std::ostream& os, const LetMap& map) {
   Assert (term.getType().isBoolean());
   if (term.isVariable()) {
-    os << "(p_app " << ProofManager::sanitize(term) <<")";
+    if (d_treatBoolsAsFormulas)
+      os << "(p_app " << ProofManager::sanitize(term) <<")";
+    else
+      os << ProofManager::sanitize(term);
     return;
   }
 
@@ -1022,7 +1054,10 @@ void LFSCBooleanProof::printOwnedTerm(Expr term, std::ostream& os, const LetMap&
     return;
 
   case kind::CONST_BOOLEAN:
-    os << (term.getConst<bool>() ? "true" : "false");
+    if (d_treatBoolsAsFormulas)
+      os << (term.getConst<bool>() ? "true" : "false");
+    else
+      os << (term.getConst<bool>() ? "t_true" : "t_false");
     return;
 
   default:
