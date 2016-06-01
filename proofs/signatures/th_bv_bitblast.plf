@@ -656,6 +656,20 @@
          (! c (^ (bblast_bvult bx by (mp_add n (~1))) f)
             (th_holds (iff (bvult n x y) f))))))))))))
 
+(declare bv_bbl_bvult_alias_1
+	 (! n mpz
+	 (! x (term (BitVec n))
+         (! y (term (BitVec n))
+         (! bx bblt
+         (! by bblt
+         (! f formula
+ 	 (! a1 (term (BitVec n))
+ 	 (! e1 (th_holds (= _ x a1))
+         (! bbx (bblast_term n x bx)
+         (! bby (bblast_term n y by)
+         (! c (^ (bblast_bvult bx by (mp_add n (~1))) f)
+            (th_holds (iff (bvult n a1 y) f))))))))))))))
+
 (declare bv_bbl_bvult_alias_1_2
 	 (! n mpz
 	 (! x (term (BitVec n))
