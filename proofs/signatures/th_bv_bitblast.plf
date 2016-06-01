@@ -382,6 +382,19 @@
                       (! c (^ (bblast_bvadd xb yb false) rb)
                            (bblast_term n (bvadd n x y) rb)))))))))))
 
+(declare bv_bbl_bvadd_alias_1 (! n mpz
+	                      (! x (term (BitVec n))
+		              (! y (term (BitVec n))
+        		      (! xb bblt
+        		      (! yb bblt
+	        	      (! rb bblt
+			      (! a (term (BitVec n))
+		              (! e (th_holds (= _ x a))
+		              (! xbb (bblast_term n x xb)
+        		      (! ybb (bblast_term n y yb)
+                              (! c (^ (bblast_bvadd xb yb false) rb)
+                                   (bblast_term n (bvadd n a y) rb)))))))))))))
+
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; BITBLAST BVNEG
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -670,6 +683,20 @@
          (! c (^ (bblast_bvult bx by (mp_add n (~1))) f)
             (th_holds (iff (bvult n a1 y) f))))))))))))))
 
+(declare bv_bbl_bvult_alias_2
+	 (! n mpz
+	 (! x (term (BitVec n))
+         (! y (term (BitVec n))
+         (! bx bblt
+         (! by bblt
+         (! f formula
+         (! bbx (bblast_term n x bx)
+ 	 (! a2 (term (BitVec n))
+ 	 (! e2 (th_holds (= _ y a2))
+         (! bby (bblast_term n y by)
+         (! c (^ (bblast_bvult bx by (mp_add n (~1))) f)
+            (th_holds (iff (bvult n x a2) f))))))))))))))
+
 (declare bv_bbl_bvult_alias_1_2
 	 (! n mpz
 	 (! x (term (BitVec n))
@@ -713,6 +740,33 @@
          (! c (^ (bblast_bvslt bx by n) f)
             (th_holds (iff (bvslt n x y) f))))))))))))
 
+(declare bv_bbl_bvslt_alias_1
+	 (! n mpz
+	 (! x (term (BitVec n))
+         (! y (term (BitVec n))
+         (! bx bblt
+         (! by bblt
+         (! f formula
+ 	 (! a (term (BitVec n))
+ 	 (! e (th_holds (= _ x a))
+         (! bbx (bblast_term n x bx)
+         (! bby (bblast_term n y by)
+         (! c (^ (bblast_bvslt bx by n) f)
+            (th_holds (iff (bvslt n a y) f))))))))))))))
+
+(declare bv_bbl_bvslt_alias_2
+	 (! n mpz
+	 (! x (term (BitVec n))
+         (! y (term (BitVec n))
+         (! bx bblt
+         (! by bblt
+         (! f formula
+         (! bbx (bblast_term n x bx)
+ 	 (! a (term (BitVec n))
+ 	 (! e (th_holds (= _ y a))
+         (! bby (bblast_term n y by)
+         (! c (^ (bblast_bvslt bx by n) f)
+            (th_holds (iff (bvslt n x a) f))))))))))))))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;
