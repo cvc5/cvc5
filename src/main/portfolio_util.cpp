@@ -98,12 +98,6 @@ void parseThreadSpecificOptions(OptionsList& threadOptions, const Options& opts)
           ss << optid << ": " << e.getMessage();
           throw OptionException(ss.str());
         }
-        if(optind != targc) {
-          stringstream ss;
-          ss << "unused argument `" << targv[optind]
-             << "' in thread configuration " << optid << " !";
-          throw OptionException(ss.str());
-        }
         if(tOpts.getThreads() != numThreads ||
            tOpts.getThreadArgv() != opts.getThreadArgv()) {
           stringstream ss;

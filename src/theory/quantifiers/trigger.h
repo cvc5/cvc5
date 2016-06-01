@@ -107,6 +107,7 @@ class Trigger {
   /** is usable trigger */
   static bool isUsableTrigger( Node n, Node q );
   static Node getIsUsableTrigger( Node n, Node q );
+  static bool isUsableAtomicTrigger( Node n, Node q );
   static bool isAtomicTrigger( Node n );
   static bool isAtomicTriggerKind( Kind k );
   static bool isRelationalTrigger( Node n );

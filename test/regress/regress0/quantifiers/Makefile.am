@@ -82,7 +82,8 @@ TESTS =	\
 	parametric-lists.smt2 \
 	partial-trigger.smt2 \
 	inst-max-level-segf.smt2 \
-	small-bug1-fixpoint-3.smt2
+	small-bug1-fixpoint-3.smt2 \
+	z3.620661-no-fv-trigger.smt2
 
 
 # regression can be solved with --finite-model-find --fmf-inst-engine

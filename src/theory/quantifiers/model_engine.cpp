@@ -282,15 +282,15 @@ void ModelEngine::exhaustiveInstantiate( Node f, int effort ){
     //create a rep set iterator and iterate over the (relevant) domain of the quantifier
     RepSetIterator riter( d_quantEngine, &(d_quantEngine->getModel()->d_rep_set) );
     if( riter.setQuantifier( f ) ){
-      Trace("fmf-exh-inst") << "...exhaustive instantiation set, incomplete=" << riter.d_incomplete << "..." << std::endl;
-      if( !riter.d_incomplete ){
+      Trace("fmf-exh-inst") << "...exhaustive instantiation set, incomplete=" << riter.isIncomplete() << "..." << std::endl;
+      if( !riter.isIncomplete() ){
         int triedLemmas = 0;
         int addedLemmas = 0;
         while( !riter.isFinished() && ( addedLemmas==0 || !options::fmfOneInstPerRound() ) ){
           //instantiation was not shown to be true, construct the match
           InstMatch m( f );
           for( int i=0; i<riter.getNumTerms(); i++ ){
-            m.set( d_quantEngine, riter.d_index_order[i], riter.getTerm( i ) );
+            m.set( d_quantEngine, i, riter.getCurrentTerm( i ) );
           }
           Debug("fmf-model-eval") << "* Add instantiation " << m << std::endl;
           triedLemmas++;
@@ -310,11 +310,10 @@ void ModelEngine::exhaustiveInstantiate( Node f, int effort ){
         d_statistics.d_exh_inst_lemmas += addedLemmas;
       }
     }else{
-      Trace("fmf-exh-inst") << "...exhaustive instantiation failed to set, incomplete=" << riter.d_incomplete << "..." << std::endl;
-      Assert( riter.d_incomplete );
+      Trace("fmf-exh-inst") << "...exhaustive instantiation did set, incomplete=" << riter.isIncomplete() << "..." << std::endl;
     }
     //if the iterator is incomplete, we will return unknown instead of sat if no instantiations are added this round
-    d_incomplete_check = d_incomplete_check || riter.d_incomplete;
+    d_incomplete_check = d_incomplete_check || riter.isIncomplete();
   }
 }
 

@@ -406,8 +406,8 @@ Node FirstOrderModelIG::evaluateTerm( Node n, int& depIndex, RepSetIterator* ri 
   //check the type of n
   if( n.getKind()==INST_CONSTANT ){
     int v = n.getAttribute(InstVarNumAttribute());
-    depIndex = ri->d_var_order[ v ];
-    val = ri->getTerm( v );
+    depIndex = ri->getIndexOrder( v );
+    val = ri->getCurrentTerm( v );
   }else if( n.getKind()==ITE ){
     int depIndex1, depIndex2;
     int eval = evaluate( n[0], depIndex1, ri );

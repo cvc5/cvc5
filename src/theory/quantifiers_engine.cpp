@@ -634,6 +634,7 @@ bool QuantifiersEngine::registerQuantifier( Node f ){
 
     //check whether we should apply a reduction
     if( reduceQuantifier( f ) ){
+      Trace("quant") << "...reduced." << std::endl;
       d_quants[f] = false;
       return false;
     }else{
