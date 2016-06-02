@@ -86,7 +86,16 @@ Node ProofUF::toStreamRecLFSC(std::ostream& out, TheoryProof * tp, theory::eq::E
   pf->debug_print("pf::uf");
   Debug("pf::uf") << std::endl;
 
-  if(tb == 0) {
+  if (tb == 0) {
+    // Special case: false was an input, so the proof is just "false".
+    if (pf->d_id == theory::eq::MERGED_THROUGH_EQUALITY &&
+        pf->d_node == NodeManager::currentNM()->mkConst(false)) {
+      out << "(clausify_false ";
+      out << ProofManager::getLitName(NodeManager::currentNM()->mkConst(false).notNode());
+      out << ")" << std::endl;
+      return Node();
+    }
+
     Assert(pf->d_id == theory::eq::MERGED_THROUGH_TRANS);
     Assert(!pf->d_node.isNull());
     Assert(pf->d_children.size() >= 2);
@@ -190,42 +199,71 @@ Node ProofUF::toStreamRecLFSC(std::ostream& out, TheoryProof * tp, theory::eq::E
         ++i;
       }
     }
-    Assert(neg >= 0);
+
+    bool disequalityFound = (neg >= 0);
+    if (!disequalityFound) {
+      Debug("pf::uf") << "A disequality was NOT found. UNSAT due to merged constants" << std::endl;
+      Debug("pf::uf") << "Proof for: " << pf->d_node << std::endl;
+      Assert(pf->d_node.getKind() == kind::EQUAL);
+      Assert(pf->d_node.getNumChildren() == 2);
+      Assert (pf->d_node[0].isConst() && pf->d_node[1].isConst());
+    }
 
     Node n1;
     std::stringstream ss;
-    //Assert(subTrans.d_children.size() == pf->d_children.size() - 1);
     Debug("pf::uf") << "\nsubtrans has " << subTrans.d_children.size() << " children\n";
-    if(pf->d_children.size() > 2) {
+
+    if(!disequalityFound || subTrans.d_children.size() >= 2) {
       n1 = toStreamRecLFSC(ss, tp, &subTrans, 1, map);
     } else {
       n1 = toStreamRecLFSC(ss, tp, subTrans.d_children[0], 1, map);
       Debug("pf::uf") << "\nsubTrans unique child " << subTrans.d_children[0]->d_id << " was proven\ngot: " << n1 << std::endl;
     }
 
-    Node n2 = pf->d_children[neg]->d_node;
-    Assert(n2.getKind() == kind::NOT);
-    out << "(clausify_false (contra _ ";
     Debug("pf::uf") << "\nhave proven: " << n1 << std::endl;
-    Debug("pf::uf") << "n2 is " << n2[0] << std::endl;
 
-    if (n2[0].getNumChildren() > 0) { Debug("pf::uf") << "\nn2[0]: " << n2[0][0] << std::endl; }
-    if (n1.getNumChildren() > 1) { Debug("pf::uf") << "n1[1]: " << n1[1] << std::endl; }
+    out << "(clausify_false (contra _ ";
 
-    if(n2[0].getKind() == kind::APPLY_UF) {
-      out << "(trans _ _ _ _ ";
-      out << "(symm _ _ _ ";
-      out << ss.str();
-      out << ") (pred_eq_f _ " << ProofManager::getLitName(n2[0]) << ")) t_t_neq_f))" << std::endl;
-    } else {
-      Assert((n1[0] == n2[0][0] && n1[1] == n2[0][1]) || (n1[1] == n2[0][0] && n1[0] == n2[0][1]));
-      if(n1[1] == n2[0][0]) {
-        out << "(symm _ _ _ " << ss.str() << ")";
+    if (disequalityFound) {
+      Node n2 = pf->d_children[neg]->d_node;
+      Assert(n2.getKind() == kind::NOT);
+      Debug("pf::uf") << "n2 is " << n2[0] << std::endl;
+
+      if (n2[0].getNumChildren() > 0) { Debug("pf::uf") << "\nn2[0]: " << n2[0][0] << std::endl; }
+      if (n1.getNumChildren() > 1) { Debug("pf::uf") << "n1[1]: " << n1[1] << std::endl; }
+
+      if(n2[0].getKind() == kind::APPLY_UF) {
+        out << "(trans _ _ _ _ ";
+
+        if (n1[0] == n2[0]) {
+          out << "(symm _ _ _ ";
+          out << ss.str();
+          out << ") ";
+        } else {
+          Assert(n1[1] == n2[0]);
+          out << ss.str();
+        }
+        out << "(pred_eq_f _ " << ProofManager::getLitName(n2[0]) << ")) t_t_neq_f))" << std::endl;
       } else {
-        out << ss.str();
+        Assert((n1[0] == n2[0][0] && n1[1] == n2[0][1]) || (n1[1] == n2[0][0] && n1[0] == n2[0][1]));
+        if(n1[1] == n2[0][0]) {
+          out << "(symm _ _ _ " << ss.str() << ")";
+        } else {
+          out << ss.str();
+        }
+        out << " " << ProofManager::getLitName(n2[0]) << "))" << std::endl;
       }
-      out << " " << ProofManager::getLitName(n2[0]) << "))" << std::endl;
+    } else {
+      Node n2 = pf->d_node;
+      Assert(n2.getKind() == kind::EQUAL);
+      Assert((n1[0] == n2[0] && n1[1] == n2[1]) || (n1[1] == n2[0] && n1[0] == n2[1]));
+
+      out << ss.str();
+      out << " ";
+      ProofManager::getTheoryProofEngine()->printConstantDisequalityProof(out, n1[0].toExpr(), n1[1].toExpr());
+      out << "))" << std::endl;
     }
+
     return Node();
   }
 
@@ -584,10 +622,10 @@ Node ProofUF::toStreamRecLFSC(std::ostream& out, TheoryProof * tp, theory::eq::E
       } else if(n1.getKind() == kind::EQUAL || n1.getKind() == kind::IFF) {
         // n1 is an equality/iff, but n2 is a predicate
         if(n1[0] == n2) {
-          n1 = n1[1];
+          n1 = n1[1].iffNode(NodeManager::currentNM()->mkConst(true));
           ss << "(symm _ _ _ " << ss1.str() << ") (pred_eq_t _ " << ss2.str() << ")";
         } else if(n1[1] == n2) {
-          n1 = n1[0];
+          n1 = n1[0].iffNode(NodeManager::currentNM()->mkConst(true));
           ss << ss1.str() << " (pred_eq_t _ " << ss2.str() << ")";
         } else {
           Unreachable();
@@ -595,16 +633,16 @@ Node ProofUF::toStreamRecLFSC(std::ostream& out, TheoryProof * tp, theory::eq::E
       } else if(n2.getKind() == kind::EQUAL || n2.getKind() == kind::IFF) {
         // n2 is an equality/iff, but n1 is a predicate
         if(n2[0] == n1) {
-          n1 = n2[1];
+          n1 = n2[1].iffNode(NodeManager::currentNM()->mkConst(true));
           ss << "(symm _ _ _ " << ss2.str() << ") (pred_eq_t _ " << ss1.str() << ")";
         } else if(n2[1] == n1) {
-          n1 = n2[0];
+          n1 = n2[0].iffNode(NodeManager::currentNM()->mkConst(true));
           ss << ss2.str() << " (pred_eq_t _ " << ss1.str() << ")";
         } else {
           Unreachable();
         }
       } else {
-        // Both n1 and n2 are prediacates. Don't know what to do...
+        // Both n1 and n2 are predicates. Don't know what to do...
         Unreachable();
       }
 
@@ -667,6 +705,7 @@ void LFSCUFProof::printOwnedTerm(Expr term, std::ostream& os, const LetMap& map)
   }
 
   Assert (term.getKind() == kind::APPLY_UF);
+  d_proofEngine->treatBoolsAsFormulas(false);
 
   if(term.getType().isBoolean()) {
     os << "(p_app ";
@@ -683,6 +722,7 @@ void LFSCUFProof::printOwnedTerm(Expr term, std::ostream& os, const LetMap& map)
   if(term.getType().isBoolean()) {
     os << ")";
   }
+  d_proofEngine->treatBoolsAsFormulas(true);
 }
 
 void LFSCUFProof::printOwnedSort(Type type, std::ostream& os) {
@@ -714,6 +754,8 @@ void LFSCUFProof::printSortDeclarations(std::ostream& os, std::ostream& paren) {
 
 void LFSCUFProof::printTermDeclarations(std::ostream& os, std::ostream& paren) {
   // declaring the terms
+  Debug("pf::uf") << "LFSCUFProof::printTermDeclarations called" << std::endl;
+
   for (ExprSet::const_iterator it = d_declarations.begin(); it != d_declarations.end(); ++it) {
     Expr term = *it;
 
@@ -729,7 +771,8 @@ void LFSCUFProof::printTermDeclarations(std::ostream& os, std::ostream& paren) {
       os << "(arrow";
       for (unsigned i = 0; i < args.size(); i++) {
         Type arg_type = args[i];
-        os << " " << arg_type;
+        os << " ";
+        d_proofEngine->printSort(arg_type, os);
         if (i < args.size() - 2) {
           os << " (arrow";
           fparen << ")";
@@ -742,9 +785,15 @@ void LFSCUFProof::printTermDeclarations(std::ostream& os, std::ostream& paren) {
     }
     paren << ")";
   }
+
+  Debug("pf::uf") << "LFSCUFProof::printTermDeclarations done" << std::endl;
 }
 
 void LFSCUFProof::printDeferredDeclarations(std::ostream& os, std::ostream& paren) {
+  // Nothing to do here at this point.
+}
+
+void LFSCUFProof::printAliasingDeclarations(std::ostream& os, std::ostream& paren) {
   // Nothing to do here at this point.
 }
 

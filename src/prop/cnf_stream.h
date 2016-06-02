@@ -36,6 +36,9 @@
 #include "smt_util/lemma_channels.h"
 
 namespace CVC4 {
+
+class LemmaProofRecipe;
+
 namespace prop {
 
 class PropEngine;
@@ -174,7 +177,7 @@ protected:
    * structure in this expression.  Assumed to not be in the
    * translation cache.
    */
-  SatLiteral convertAtom(TNode node);
+  SatLiteral convertAtom(TNode node, bool noPreprocessing = false);
 
 public:
 
@@ -207,14 +210,10 @@ public:
    * @param node node to convert and assert
    * @param removable whether the sat solver can choose to remove the clauses
    * @param negated whether we are asserting the node negated
-   * @param ownerTheory indicates the theory that should invoked to prove the formula.
+   * @param proofRecipe contains the proof recipe for proving this node
    */
-  virtual void convertAndAssert(TNode node,
-                                bool removable,
-                                bool negated,
-                                ProofRule proof_id,
-                                TNode from = TNode::null(),
-                                theory::TheoryId ownerTheory = theory::THEORY_LAST) = 0;
+  virtual void convertAndAssert(TNode node, bool removable, bool negated, ProofRule proof_id, TNode from = TNode::null(), LemmaProofRecipe* proofRecipe = NULL) = 0;
+
   /**
    * Get the node that is represented by the given SatLiteral.
    * @param literal the literal from the sat solver
@@ -235,7 +234,7 @@ public:
    * this is like a "convert-but-don't-assert" version of
    * convertAndAssert().
    */
-  virtual void ensureLiteral(TNode n) = 0;
+  virtual void ensureLiteral(TNode n, bool noPreregistration = false) = 0;
 
   /**
    * Returns the literal that represents the given node in the SAT CNF
@@ -284,7 +283,7 @@ public:
    */
   void convertAndAssert(TNode node, bool removable,
                         bool negated, ProofRule rule, TNode from = TNode::null(),
-                        theory::TheoryId ownerTheory = theory::THEORY_LAST);
+                        LemmaProofRecipe* proofRecipe = NULL);
 
   /**
    * Constructs the stream to use the given sat solver.
@@ -337,7 +336,7 @@ private:
    */
   SatLiteral toCNF(TNode node, bool negated = false);
 
-  void ensureLiteral(TNode n);
+  void ensureLiteral(TNode n, bool noPreregistration = false);
 
 };/* class TseitinCnfStream */
 

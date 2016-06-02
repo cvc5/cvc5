@@ -50,6 +50,7 @@
 namespace CVC4 {
 
 class ResourceManager;
+class LemmaProofRecipe;
 
 /**
  * A pair of a theory and a node. This is used to mark the flow of
@@ -270,46 +271,18 @@ class TheoryEngine {
       }
     }
 
-    void conflict(TNode conflictNode, Proof* pf = NULL) throw(AssertionException, UnsafeInterruptException) {
-      Trace("theory::conflict") << "EngineOutputChannel<" << d_theory << ">::conflict(" << conflictNode << ")" << std::endl;
-      Assert(pf == NULL); // theory shouldn't be producing proofs yet
-      ++ d_statistics.conflicts;
-      d_engine->d_outputChannelUsed = true;
-      d_engine->conflict(conflictNode, d_theory);
-    }
+    void conflict(TNode conflictNode, Proof* pf = NULL) throw(AssertionException, UnsafeInterruptException);
 
-    bool propagate(TNode literal) throw(AssertionException, UnsafeInterruptException) {
-      Trace("theory::propagate") << "EngineOutputChannel<" << d_theory << ">::propagate(" << literal << ")" << std::endl;
-      ++ d_statistics.propagations;
-      d_engine->d_outputChannelUsed = true;
-      return d_engine->propagate(literal, d_theory);
-    }
+    bool propagate(TNode literal) throw(AssertionException, UnsafeInterruptException);
 
     theory::LemmaStatus lemma(TNode lemma,
                               ProofRule rule,
                               bool removable = false,
                               bool preprocess = false,
                               bool sendAtoms = false)
-      throw(TypeCheckingExceptionPrivate, AssertionException, UnsafeInterruptException) {
-      Trace("theory::lemma") << "EngineOutputChannel<" << d_theory << ">::lemma(" << lemma << ")" << std::endl;
-      ++ d_statistics.lemmas;
-      d_engine->d_outputChannelUsed = true;
-      return d_engine->lemma(lemma, rule, false, removable, preprocess, sendAtoms ? d_theory : theory::THEORY_LAST, d_theory);
-    }
+      throw(TypeCheckingExceptionPrivate, AssertionException, UnsafeInterruptException);
 
-    /*theory::LemmaStatus preservedLemma(TNode lemma, bool removable = false, bool preprocess = false) throw(TypeCheckingExceptionPrivate, AssertionException, UnsafeInterruptException, LogicException) {
-      Trace("theory::lemma") << "EngineOutputChannel<" << d_theory << ">::preservedLemma(" << lemma << ")" << std::endl;
-      ++ d_statistics.lemmas;
-      d_engine->d_outputChannelUsed = true;
-      return d_engine->lemma(lemma, false, removable, preprocess, d_theory);
-    }*/
-
-    theory::LemmaStatus splitLemma(TNode lemma, bool removable = false) throw(TypeCheckingExceptionPrivate, AssertionException, UnsafeInterruptException) {
-      Trace("theory::lemma") << "EngineOutputChannel<" << d_theory << ">::splitLemma(" << lemma << ")" << std::endl;
-      ++ d_statistics.lemmas;
-      d_engine->d_outputChannelUsed = true;
-      return d_engine->lemma(lemma, RULE_SPLIT, false, removable, false, d_theory, d_theory);
-    }
+    theory::LemmaStatus splitLemma(TNode lemma, bool removable = false) throw(TypeCheckingExceptionPrivate, AssertionException, UnsafeInterruptException);
 
     void demandRestart() throw(TypeCheckingExceptionPrivate, AssertionException, UnsafeInterruptException) {
       NodeManager* curr = NodeManager::currentNM();
@@ -456,7 +429,7 @@ class TheoryEngine {
                             bool removable,
                             bool preprocess,
                             theory::TheoryId atomsTo,
-                            theory::TheoryId ownerTheory);
+                            LemmaProofRecipe* proofRecipe);
 
   /** Enusre that the given atoms are send to the given theory */
   void ensureLemmaAtoms(const std::vector<TNode>& atoms, theory::TheoryId theory);
@@ -606,9 +579,10 @@ private:
    * asking relevant theories to explain the propagations. Initially
    * the explanation vector should contain only the element (node, theory)
    * where the node is the one to be explained, and the theory is the
-   * theory that sent the literal.
+   * theory that sent the literal. The lemmaProofRecipe will contain a list
+   * of the explanation steps required to produce the original node.
    */
-  void getExplanation(std::vector<NodeTheoryPair>& explanationVector);
+  void getExplanation(std::vector<NodeTheoryPair>& explanationVector, LemmaProofRecipe* lemmaProofRecipe);
 
 public:
 
@@ -730,7 +704,7 @@ public:
    * Returns an explanation of the node propagated to the SAT solver and the theory
    * that propagated it.
    */
-  NodeTheoryPair getExplanationAndExplainer(TNode node);
+  Node getExplanationAndRecipe(TNode node, LemmaProofRecipe* proofRecipe);
 
   /**
    * collect model info
