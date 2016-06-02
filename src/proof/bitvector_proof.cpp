@@ -1004,7 +1004,10 @@ void LFSCBitVectorProof::printResolutionProof(std::ostream& os,
 
 std::string LFSCBitVectorProof::assignAlias(Expr expr) {
   static unsigned counter = 0;
-  Assert(d_exprToVariableName.find(expr) == d_exprToVariableName.end());
+  if (d_exprToVariableName.find(expr) != d_exprToVariableName.end()) {
+    return d_exprToVariableName[expr];
+  }
+
   std::stringstream ss;
   ss << "fbv" << counter++;
   Debug("pf::bv") << "assignAlias( " << expr << ") = " << ss.str() << std::endl;
