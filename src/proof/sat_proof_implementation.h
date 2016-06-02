@@ -543,9 +543,12 @@ ClauseId TSatProof<Solver>::registerClause(typename Solver::TCRef clause,
     if (kind == THEORY_LEMMA) {
       Assert(d_lemmaClauses.find(newId) == d_lemmaClauses.end());
       d_lemmaClauses.insert(newId);
-      Debug("pf::sat") << "TSatProof::registerClause registering a new lemma clause: "
-                       << newId << " = " << *buildClause(newId)
-                       << std::endl;
+      Debug("pf::sat")
+          << "TSatProof::registerClause registering a new lemma clause: "
+          << newId << " = " << *buildClause(newId)
+          << ". Explainer theory: " << d_cnfProof->getExplainerTheory()
+          << std::endl;
+      d_cnfProof->registerExplanationLemma(newId);
     }
   }
 
@@ -576,10 +579,12 @@ ClauseId TSatProof<Solver>::registerUnitClause(typename Solver::TLit lit,
     }
     if (kind == THEORY_LEMMA) {
       Assert(d_lemmaClauses.find(newId) == d_lemmaClauses.end());
-      Debug("pf::sat") << "TSatProof::registerUnitClause: registering a new lemma (UNIT CLAUSE): "
-                       << lit
-                       << std::endl;
+      Debug("pf::sat") << "TSatProof::registerUnitClause: registering a new "
+                          "lemma (UNIT CLAUSE): "
+                       << lit << ". Explainer theory: "
+                       << d_cnfProof->getExplainerTheory() << std::endl;
       d_lemmaClauses.insert(newId);
+      d_cnfProof->registerExplanationLemma(newId);
     }
   }
   ClauseId id = d_unitId[toInt(lit)];
@@ -837,7 +842,7 @@ ClauseId TSatProof<Solver>::resolveUnit(typename Solver::TLit lit) {
   // clause allocator.  So reload reason ptr each time.
   const typename Solver::TClause& initial_reason = getClause(reason_ref);
   size_t current_reason_size = initial_reason.size();
-  for (size_t i = 0; i < current_reason_size; i++) {
+  for (int i = 0; i < current_reason_size; i++) {
     const typename Solver::TClause& current_reason = getClause(reason_ref);
     current_reason_size = current_reason.size();
     typename Solver::TLit l = current_reason[i];
@@ -899,7 +904,7 @@ void TSatProof<Solver>::finalizeProof(typename Solver::TCRef conflict_ref) {
   // Here, the call to resolveUnit() can reallocate memory in the
   // clause allocator.  So reload conflict ptr each time.
   size_t conflict_size = getClause(conflict_ref).size();
-  for (size_t i = 0; i < conflict_size; ++i) {
+  for (int i = 0; i < conflict_size; ++i) {
     const typename Solver::TClause& conflict = getClause(conflict_ref);
     typename Solver::TLit lit = conflict[i];
     ClauseId res_id = resolveUnit(~lit);
@@ -1101,12 +1106,12 @@ void LFSCSatProof<Solver>::printResolution(ClauseId id, std::ostream& out,
   }
 
   if (id == this->d_emptyClauseId) {
-    out <<"(\\ empty empty)";
+    out << "(\\empty empty)";
     return;
   }
 
-  out << "(\\ " << this->clauseName(id) << "\n";   // bind to lemma name
-  paren << "))";                            // closing parethesis for lemma binding and satlem
+  out << "(\\" << this->clauseName(id) << "\n";  // bind to lemma name
+  paren << "))";  // closing parethesis for lemma binding and satlem
 }
 
 /// LFSCSatProof class

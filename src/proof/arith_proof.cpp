@@ -830,8 +830,4 @@ void LFSCArithProof::printDeferredDeclarations(std::ostream& os, std::ostream& p
   // Nothing to do here at this point.
 }
 
-void LFSCArithProof::printAliasingDeclarations(std::ostream& os, std::ostream& paren) {
-  // Nothing to do here at this point.
-}
-
 } /* CVC4  namespace */

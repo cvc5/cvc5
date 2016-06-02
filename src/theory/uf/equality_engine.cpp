@@ -964,9 +964,12 @@ void EqualityEngine::explainEquality(TNode t1, TNode t2, bool polarity, std::vec
           std::vector<EqProof *> orderedChildren;
           bool nullCongruenceFound = false;
           for (unsigned i = 0; i < eqpc->d_children.size(); ++i) {
-            if (eqpc->d_children[i]->d_id==eq::MERGED_THROUGH_CONGRUENCE &&
-                eqpc->d_children[i]->d_node.isNull()) {
+            if (eqpc->d_children[i]->d_id==eq::MERGED_THROUGH_CONGRUENCE && eqpc->d_children[i]->d_node.isNull()) {
+
+              // For now, assume there can only be one null congruence child
+              Assert(!nullCongruenceFound);
               nullCongruenceFound = true;
+
               Debug("pf::ee") << "Have congruence with empty d_node. Splitting..." << std::endl;
               orderedChildren.insert(orderedChildren.begin(), eqpc->d_children[i]->d_children[0]);
               orderedChildren.push_back(eqpc->d_children[i]->d_children[1]);
@@ -1189,9 +1192,6 @@ void EqualityEngine::getExplanation(EqualityNodeId t1Id, EqualityNodeId t2Id, st
                 getExplanation(childId, getEqualityNode(childId).getFind(), equalities, eqpcc);
                 if( eqpc ) {
                   eqpc->d_children.push_back( eqpcc );
-
-                  Debug("pf::ee") << "MERGED_THROUGH_CONSTANTS. Dumping the child proof" << std::endl;
-                  eqpc->debug_print("pf::ee", 1);
                 }
               }
 
@@ -1605,7 +1605,6 @@ void EqualityEngine::propagate() {
 }
 
 void EqualityEngine::debugPrintGraph() const {
-  Debug("equality::graph") << std::endl << "Dumping graph" << std::endl;
   for (EqualityNodeId nodeId = 0; nodeId < d_nodes.size(); ++ nodeId) {
 
     Debug("equality::graph") << d_nodes[nodeId] << " " << nodeId << "(" << getEqualityNode(nodeId).getFind() << "):";
@@ -1619,7 +1618,6 @@ void EqualityEngine::debugPrintGraph() const {
 
     Debug("equality::graph") << std::endl;
   }
-  Debug("equality::graph") << std::endl;
 }
 
 bool EqualityEngine::areEqual(TNode t1, TNode t2) const {
@@ -2211,15 +2209,9 @@ bool EqClassIterator::isFinished() const {
   return d_current == null_id;
 }
 
-void EqProof::debug_print(const char* c, unsigned tb, PrettyPrinter* prettyPrinter) const {
-  for(unsigned i=0; i<tb; i++) { Debug( c ) << "  "; }
-
-  if (prettyPrinter)
-    Debug( c ) << prettyPrinter->printTag(d_id);
-  else
-    Debug( c ) << d_id;
-
-  Debug( c ) << "(";
+void EqProof::debug_print( const char * c, unsigned tb ) const{
+  for( unsigned i=0; i<tb; i++ ) { Debug( c ) << "  "; }
+  Debug( c ) << d_id << "(";
   if( !d_children.empty() || !d_node.isNull() ){
     if( !d_node.isNull() ){
       Debug( c ) << std::endl;
@@ -2229,7 +2221,7 @@ void EqProof::debug_print(const char* c, unsigned tb, PrettyPrinter* prettyPrint
     for( unsigned i=0; i<d_children.size(); i++ ){
       if( i>0 || !d_node.isNull() ) Debug( c ) << ",";
       Debug( c ) << std::endl;
-      d_children[i]->debug_print( c, tb+1, prettyPrinter );
+      d_children[i]->debug_print( c, tb+1 );
     }
   }
   Debug( c ) << ")" << std::endl;

@@ -10,7 +10,7 @@
 # Step 4: Generate X_options.h from X_options.sed
 # Step 5: Generate X_options.cpp from X_options.sed.
 #   This stage also waits for X_options.h as otherwise it cannot compile.
-#
+# 
 
 OPTIONS_SRC_FILES = \
 	arith_options \
@@ -424,3 +424,4 @@ $(DOCUMENTATION_FILES) : % : %_template %_template.sed mkoptions summary.sed
 # directories that are cleaned first.  Without this rule, "distclean"
 # fails.
 %.Plo:; $(MKDIR_P) "$(dir $@)" && : > "$@"
+

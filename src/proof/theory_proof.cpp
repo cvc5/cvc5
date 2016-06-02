@@ -25,7 +25,6 @@
 #include "proof/clause_id.h"
 #include "proof/cnf_proof.h"
 #include "proof/proof_manager.h"
-#include "proof/proof_output_channel.h"
 #include "proof/proof_utils.h"
 #include "proof/sat_proof.h"
 #include "proof/uf_proof.h"
@@ -49,6 +48,74 @@ namespace CVC4 {
 unsigned CVC4::LetCount::counter = 0;
 static unsigned LET_COUNT = 1;
 
+//for proof replay
+class ProofOutputChannel : public theory::OutputChannel {
+public:
+  Node d_conflict;
+  Proof* d_proof;
+  Node d_lemma;
+
+  ProofOutputChannel() : d_conflict(), d_proof(NULL) {}
+  virtual ~ProofOutputChannel() throw() {}
+
+  void conflict(TNode n, Proof* pf) throw() {
+    Trace("theory-proof-debug") << "; CONFLICT: " << n << std::endl;
+    Assert(d_conflict.isNull());
+    Assert(!n.isNull());
+    d_conflict = n;
+    Assert(pf != NULL);
+    d_proof = pf;
+  }
+  bool propagate(TNode x) throw() {
+    Trace("theory-proof-debug") << "got a propagation: " << x << std::endl;
+    return true;
+  }
+  theory::LemmaStatus lemma(TNode n, ProofRule rule, bool, bool, bool) throw() {
+    Trace("theory-proof-debug") << "new lemma: " << n << std::endl;
+    d_lemma = n;
+    return theory::LemmaStatus(TNode::null(), 0);
+  }
+  theory::LemmaStatus splitLemma(TNode, bool) throw() {
+    AlwaysAssert(false);
+    return theory::LemmaStatus(TNode::null(), 0);
+  }
+  void requirePhase(TNode n, bool b) throw() {
+    Debug("theory-proof-debug") << "ProofOutputChannel::requirePhase called" << std::endl;
+    Trace("theory-proof-debug") << "requirePhase " << n << " " << b << std::endl;
+  }
+  bool flipDecision() throw() {
+    Debug("theory-proof-debug") << "ProofOutputChannel::flipDecision called" << std::endl;
+    AlwaysAssert(false);
+    return false;
+  }
+  void setIncomplete() throw() {
+    Debug("theory-proof-debug") << "ProofOutputChannel::setIncomplete called" << std::endl;
+    AlwaysAssert(false);
+  }
+};/* class ProofOutputChannel */
+
+//for proof replay
+class MyPreRegisterVisitor {
+  theory::Theory* d_theory;
+  __gnu_cxx::hash_set<TNode, TNodeHashFunction> d_visited;
+public:
+  typedef void return_type;
+  MyPreRegisterVisitor(theory::Theory* theory)
+  : d_theory(theory)
+  , d_visited()
+  {}
+  bool alreadyVisited(TNode current, TNode parent) { return d_visited.find(current) != d_visited.end(); }
+  void visit(TNode current, TNode parent) {
+    if(theory::Theory::theoryOf(current) == d_theory->getId()) {
+      //Trace("theory-proof-debug") << "preregister " << current << std::endl;
+      d_theory->preRegisterTerm(current);
+      d_visited.insert(current);
+    }
+  }
+  void start(TNode node) { }
+  void done(TNode node) { }
+}; /* class MyPreRegisterVisitor */
+
 TheoryProofEngine::TheoryProofEngine()
   : d_registrationCache()
   , d_theoryProofTable()
@@ -64,12 +131,13 @@ TheoryProofEngine::~TheoryProofEngine() {
   }
 }
 
+
 void TheoryProofEngine::registerTheory(theory::Theory* th) {
-  if (th) {
+  if( th ){
     theory::TheoryId id = th->getId();
     if(d_theoryProofTable.find(id) == d_theoryProofTable.end()) {
 
-      Trace("pf::tp") << "TheoryProofEngine::registerTheory: " << id << std::endl;
+      Trace("theory-proof-debug") << "; register theory " << id << std::endl;
 
       if (id == theory::THEORY_UF) {
         d_theoryProofTable[id] = new LFSCUFProof((theory::uf::TheoryUF*)th, this);
@@ -99,42 +167,19 @@ void TheoryProofEngine::registerTheory(theory::Theory* th) {
 }
 
 TheoryProof* TheoryProofEngine::getTheoryProof(theory::TheoryId id) {
-  // The UF theory handles queries for the Builtin theory.
-  if (id == theory::THEORY_BUILTIN) {
-    Debug("pf::tp") << "TheoryProofEngine::getTheoryProof: BUILTIN --> UF" << std::endl;
-    id = theory::THEORY_UF;
-  }
-
   Assert (d_theoryProofTable.find(id) != d_theoryProofTable.end());
   return d_theoryProofTable[id];
 }
 
-void TheoryProofEngine::markTermForFutureRegistration(Expr term, theory::TheoryId id) {
-  d_exprToTheoryIds[term].insert(id);
-}
-
-void TheoryProofEngine::printConstantDisequalityProof(std::ostream& os, Expr c1, Expr c2) {
-  LetMap emptyMap;
-
-  os << "(trust_f (not (= _ ";
-  printBoundTerm(c1, os, emptyMap);
-  os << " ";
-  printBoundTerm(c2, os, emptyMap);
-  os << ")))";
-}
-
 void TheoryProofEngine::registerTerm(Expr term) {
-  Debug("pf::tp") << "TheoryProofEngine::registerTerm: registering term: " << term << std::endl;
-
   if (d_registrationCache.count(term)) {
     return;
   }
-
-  Debug("pf::tp") << "TheoryProofEngine::registerTerm: registering NEW term: " << term << std::endl;
+  Debug("pf::tp") << "TheoryProofEngine::registerTerm: registering new term: " << term << std::endl;
 
   theory::TheoryId theory_id = theory::Theory::theoryOf(term);
 
-  Debug("pf::tp") << "Term's theory( " << term << " ) = " << theory_id << std::endl;
+  Debug("pf::tp") << "Term's theory: " << theory_id << std::endl;
 
   // don't need to register boolean terms
   if (theory_id == theory::THEORY_BUILTIN ||
@@ -148,38 +193,32 @@ void TheoryProofEngine::registerTerm(Expr term) {
 
   if (!supportedTheory(theory_id)) return;
 
-  // Register the term with its owner theory
   getTheoryProof(theory_id)->registerTerm(term);
-
-  // A special case: the array theory needs to know of every skolem, even if
-  // it belongs to another theory (e.g., a BV skolem)
-  if (ProofManager::getSkolemizationManager()->isSkolem(term) && theory_id != theory::THEORY_ARRAY) {
-    Debug("pf::tp") << "TheoryProofEngine::registerTerm: Special case: registering a non-array skolem: " << term << std::endl;
-    getTheoryProof(theory::THEORY_ARRAY)->registerTerm(term);
-  }
-
   d_registrationCache.insert(term);
 }
 
-theory::TheoryId TheoryProofEngine::getTheoryForLemma(const prop::SatClause* clause) {
+theory::TheoryId TheoryProofEngine::getTheoryForLemma(ClauseId id) {
   ProofManager* pm = ProofManager::currentPM();
 
-  std::set<Node> nodes;
-  for(unsigned i = 0; i < clause->size(); ++i) {
-    prop::SatLiteral lit = (*clause)[i];
-    Node node = pm->getCnfProof()->getAtom(lit.getSatVariable());
-    Expr atom = node.toExpr();
-    if (atom.isConst()) {
-      Assert (atom == utils::mkTrue());
-      continue;
-    }
+  Debug("pf::tp") << "TheoryProofEngine::getTheoryForLemma( " << id << " )"
+                     << " = " << pm->getCnfProof()->getOwnerTheory(id) << std::endl;
 
-    nodes.insert(lit.isNegated() ? node.notNode() : node);
+  if ((pm->getLogic() == "QF_UFLIA") || (pm->getLogic() == "QF_UFLRA")) {
+    Debug("pf::tp") << "TheoryProofEngine::getTheoryForLemma: special hack for Arithmetic-with-holes support. "
+                       << "Returning THEORY_ARITH" << std::endl;
+    return theory::THEORY_ARITH;
   }
 
-  // Ensure that the lemma is in the database.
-  Assert (pm->getCnfProof()->haveProofRecipe(nodes));
-  return pm->getCnfProof()->getProofRecipe(nodes).getTheory();
+  return pm->getCnfProof()->getOwnerTheory(id);
+
+  // if (pm->getLogic() == "QF_UF") return theory::THEORY_UF;
+  // if (pm->getLogic() == "QF_BV") return theory::THEORY_BV;
+  // if (pm->getLogic() == "QF_AX") return theory::THEORY_ARRAY;
+  // if (pm->getLogic() == "ALL_SUPPORTED") return theory::THEORY_BV;
+
+  // Debug("pf::tp") << "Unsupported logic (" << pm->getLogic() << ")" << std::endl;
+
+  // Unreachable();
 }
 
 void LFSCTheoryProofEngine::bind(Expr term, LetMap& map, Bindings& let_order) {
@@ -233,6 +272,8 @@ void LFSCTheoryProofEngine::printLetTerm(Expr term, std::ostream& os) {
 
 void LFSCTheoryProofEngine::printTheoryTerm(Expr term, std::ostream& os, const LetMap& map) {
   theory::TheoryId theory_id = theory::Theory::theoryOf(term);
+  Debug("pf::tp") << std::endl << "LFSCTheoryProofEngine::printTheoryTerm: term = " << term
+                     << ", theory_id = " << theory_id << std::endl;
 
   // boolean terms and ITEs are special because they
   // are common to all theories
@@ -274,29 +315,6 @@ void LFSCTheoryProofEngine::printSort(Type type, std::ostream& os) {
   Unreachable();
 }
 
-void LFSCTheoryProofEngine::performExtraRegistrations() {
-  ExprToTheoryIds::const_iterator it;
-  for (it = d_exprToTheoryIds.begin(); it != d_exprToTheoryIds.end(); ++it) {
-    if (d_registrationCache.count(it->first)) { // Only register if the term appeared
-      TheoryIdSet::const_iterator theoryIt;
-      for (theoryIt = it->second.begin(); theoryIt != it->second.end(); ++theoryIt) {
-        Debug("pf::tp") << "\tExtra registration of term " << it->first
-                        << " with theory: " << *theoryIt << std::endl;
-        Assert(supportedTheory(*theoryIt));
-        getTheoryProof(*theoryIt)->registerTerm(it->first);
-      }
-    }
-  }
-}
-
-void LFSCTheoryProofEngine::treatBoolsAsFormulas(bool value) {
-  TheoryProofTable::const_iterator it = d_theoryProofTable.begin();
-  TheoryProofTable::const_iterator end = d_theoryProofTable.end();
-  for (; it != end; ++it) {
-    it->second->treatBoolsAsFormulas(value);
-  }
-}
-
 void LFSCTheoryProofEngine::registerTermsFromAssertions() {
   ProofManager::assertions_iterator it = ProofManager::currentPM()->begin_assertions();
   ProofManager::assertions_iterator end = ProofManager::currentPM()->end_assertions();
@@ -304,8 +322,6 @@ void LFSCTheoryProofEngine::registerTermsFromAssertions() {
   for(; it != end; ++it) {
     registerTerm(*it);
   }
-
-  performExtraRegistrations();
 }
 
 void LFSCTheoryProofEngine::printAssertions(std::ostream& os, std::ostream& paren) {
@@ -317,41 +333,15 @@ void LFSCTheoryProofEngine::printAssertions(std::ostream& os, std::ostream& pare
 
   for (; it != end; ++it) {
     Debug("pf::tp") << "printAssertions: assertion is: " << *it << std::endl;
-    std::ostringstream name;
-    name << "A" << counter++;
-    os << "(% " << name.str() << " (th_holds ";
+    // FIXME: merge this with counter
+    os << "(% A" << counter++ << " (th_holds ";
     printLetTerm(*it,  os);
     os << ")\n";
     paren << ")";
   }
-
+  //store map between assertion and counter
+  // ProofManager::currentPM()->setAssertion( *it );
   Debug("pf::tp") << "LFSCTheoryProofEngine::printAssertions done" << std::endl << std::endl;
-}
-
-void LFSCTheoryProofEngine::printLemmaRewrites(NodePairSet& rewrites, std::ostream& os, std::ostream& paren) {
-  Debug("pf::tp") << "LFSCTheoryProofEngine::printLemmaRewrites called" << std::endl << std::endl;
-
-  NodePairSet::const_iterator it;
-
-  for (it = rewrites.begin(); it != rewrites.end(); ++it) {
-    Debug("pf::tp") << "printLemmaRewrites: " << it->first << " --> " << it->second << std::endl;
-
-    std::ostringstream rewriteRule;
-    rewriteRule << ".lrr" << d_assertionToRewrite.size();
-
-    LetMap emptyMap;
-    os << "(th_let_pf _ (trust_f (iff ";
-    printBoundTerm(it->second.toExpr(), os, emptyMap);
-    os << " ";
-    printBoundTerm(it->first.toExpr(), os, emptyMap);
-    os << ")) (\\ " << rewriteRule.str() << "\n";
-
-    d_assertionToRewrite[it->first] = rewriteRule.str();
-    Debug("pf::tp") << "d_assertionToRewrite[" << it->first << "] = " << rewriteRule.str() << std::endl;
-    paren << "))";
-  }
-
-  Debug("pf::tp") << "LFSCTheoryProofEngine::printLemmaRewrites done" << std::endl << std::endl;
 }
 
 void LFSCTheoryProofEngine::printSortDeclarations(std::ostream& os, std::ostream& paren) {
@@ -388,148 +378,55 @@ void LFSCTheoryProofEngine::printDeferredDeclarations(std::ostream& os, std::ost
   }
 }
 
-void LFSCTheoryProofEngine::printAliasingDeclarations(std::ostream& os, std::ostream& paren) {
-  Debug("pf::tp") << "LFSCTheoryProofEngine::printAliasingDeclarations called" << std::endl;
-
-  TheoryProofTable::const_iterator it = d_theoryProofTable.begin();
-  TheoryProofTable::const_iterator end = d_theoryProofTable.end();
-  for (; it != end; ++it) {
-    it->second->printAliasingDeclarations(os, paren);
-  }
-}
-
-void LFSCTheoryProofEngine::dumpTheoryLemmas(const IdToSatClause& lemmas) {
-  Debug("pf::dumpLemmas") << "Dumping ALL theory lemmas" << std::endl << std::endl;
-
+void LFSCTheoryProofEngine::printTheoryLemmas(const IdToSatClause& lemmas,
+                                              std::ostream& os,
+                                              std::ostream& paren) {
+  os << " ;; Theory Lemmas \n";
   ProofManager* pm = ProofManager::currentPM();
-  for (IdToSatClause::const_iterator it = lemmas.begin(); it != lemmas.end(); ++it) {
+  IdToSatClause::const_iterator it = lemmas.begin();
+  IdToSatClause::const_iterator end = lemmas.end();
+
+  Debug("pf::tp") << "LFSCTheoryProofEngine::printTheoryLemmas: checking lemma owners..." << std::endl;
+
+  for (; it != end; ++it) {
+    Debug("pf::tp") << "LFSCTheoryProofEngine::printTheoryLemmas: new lemma" << std::endl;
     ClauseId id = it->first;
-    Debug("pf::dumpLemmas") << "**** \tLemma ID = " << id << std::endl;
-    const prop::SatClause* clause = it->second;
-    std::set<Node> nodes;
-    for(unsigned i = 0; i < clause->size(); ++i) {
-      prop::SatLiteral lit = (*clause)[i];
-      Node node = pm->getCnfProof()->getAtom(lit.getSatVariable());
-      if (node.isConst()) {
-        Assert (node.toExpr() == utils::mkTrue());
-        continue;
-      }
-      nodes.insert(lit.isNegated() ? node.notNode() : node);
-    }
-
-    LemmaProofRecipe recipe = pm->getCnfProof()->getProofRecipe(nodes);
-    recipe.dump("pf::dumpLemmas");
+    Debug("pf::tp") << "\tLemma = " << id
+                       << ". Owner theory: " << pm->getCnfProof()->getOwnerTheory(id) << std::endl;
   }
+  it = lemmas.begin();
 
-  Debug("pf::dumpLemmas") << "Theory lemma printing DONE" << std::endl << std::endl;
-}
-
-// TODO: this function should be moved into the BV prover.
-void LFSCTheoryProofEngine::finalizeBvConflicts(const IdToSatClause& lemmas, std::ostream& os, std::ostream& paren) {
-  // BitVector theory is special case: must know all conflicts needed
-  // ahead of time for resolution proof lemmas
+  // BitVector theory is special case: must know all
+  // conflicts needed ahead of time for resolution
+  // proof lemmas
   std::vector<Expr> bv_lemmas;
-
-  for (IdToSatClause::const_iterator it = lemmas.begin(); it != lemmas.end(); ++it) {
+  for (; it != end; ++it) {
+    ClauseId id = it->first;
     const prop::SatClause* clause = it->second;
+
+    theory::TheoryId theory_id = getTheoryForLemma(id);
+    if (theory_id != theory::THEORY_BV) continue;
 
     std::vector<Expr> conflict;
-    std::set<Node> conflictNodes;
     for(unsigned i = 0; i < clause->size(); ++i) {
       prop::SatLiteral lit = (*clause)[i];
-      Node node = ProofManager::currentPM()->getCnfProof()->getAtom(lit.getSatVariable());
-      Expr atom = node.toExpr();
-
-      // The literals (true) and (not false) are omitted from conflicts
+      Expr atom = pm->getCnfProof()->getAtom(lit.getSatVariable()).toExpr();
       if (atom.isConst()) {
         Assert (atom == utils::mkTrue() ||
                 (atom == utils::mkFalse() && lit.isNegated()));
         continue;
       }
-
       Expr expr_lit = lit.isNegated() ? atom.notExpr() : atom;
       conflict.push_back(expr_lit);
-      conflictNodes.insert(lit.isNegated() ? node.notNode() : node);
     }
-
-    LemmaProofRecipe recipe = ProofManager::currentPM()->getCnfProof()->getProofRecipe(conflictNodes);
-
-    unsigned numberOfSteps = recipe.getNumSteps();
-
-    prop::SatClause currentClause = *clause;
-    std::vector<Expr> currentClauseExpr = conflict;
-
-    for (unsigned i = 0; i < numberOfSteps; ++i) {
-      const LemmaProofRecipe::ProofStep* currentStep = recipe.getStep(i);
-
-      if (currentStep->getTheory() != theory::THEORY_BV) {
-        continue;
-      }
-
-      // If any rewrites took place, we need to update the conflict clause accordingly
-      std::set<Node> missingAssertions = recipe.getMissingAssertionsForStep(i);
-      std::map<Node, Node> explanationToMissingAssertion;
-      std::set<Node>::iterator assertionIt;
-      for (assertionIt = missingAssertions.begin();
-           assertionIt != missingAssertions.end();
-           ++assertionIt) {
-        Node negated = (*assertionIt).negate();
-        explanationToMissingAssertion[recipe.getExplanation(negated)] = negated;
-      }
-
-      currentClause = *clause;
-      currentClauseExpr = conflict;
-
-      for (unsigned j = 0; j < i; ++j) {
-        // Literals already used in previous steps need to be negated
-        Node previousLiteralNode = recipe.getStep(j)->getLiteral();
-
-        // If this literal is the result of a rewrite, we need to translate it
-        if (explanationToMissingAssertion.find(previousLiteralNode) !=
-            explanationToMissingAssertion.end()) {
-          previousLiteralNode = explanationToMissingAssertion[previousLiteralNode];
-        }
-
-        Node previousLiteralNodeNegated = previousLiteralNode.negate();
-        prop::SatLiteral previousLiteralNegated =
-          ProofManager::currentPM()->getCnfProof()->getLiteral(previousLiteralNodeNegated);
-
-        currentClause.push_back(previousLiteralNegated);
-        currentClauseExpr.push_back(previousLiteralNodeNegated.toExpr());
-      }
-
-      // If we're in the final step, the last literal is Null and should not be added.
-      // Otherwise, the current literal does NOT need to be negated
-      Node currentLiteralNode = currentStep->getLiteral();
-
-      if (currentLiteralNode != Node()) {
-        prop::SatLiteral currentLiteral =
-          ProofManager::currentPM()->getCnfProof()->getLiteral(currentLiteralNode);
-
-        currentClause.push_back(currentLiteral);
-        currentClauseExpr.push_back(currentLiteralNode.toExpr());
-      }
-
-      bv_lemmas.push_back(utils::mkSortedExpr(kind::OR, currentClauseExpr));
-    }
+    bv_lemmas.push_back(utils::mkSortedExpr(kind::OR, conflict));
   }
-
+  // FIXME: ugly, move into bit-vector proof by adding lemma
+  // queue inside each theory_proof
   BitVectorProof* bv = ProofManager::getBitVectorProof();
   bv->finalizeConflicts(bv_lemmas);
+
   bv->printResolutionProof(os, paren);
-}
-
-void LFSCTheoryProofEngine::printTheoryLemmas(const IdToSatClause& lemmas,
-                                              std::ostream& os,
-                                              std::ostream& paren) {
-  os << " ;; Theory Lemmas \n";
-  Debug("pf::tp") << "LFSCTheoryProofEngine::printTheoryLemmas: starting" << std::endl;
-
-  if (Debug.isOn("pf::dumpLemmas")) {
-    dumpTheoryLemmas(lemmas);
-  }
-
-  finalizeBvConflicts(lemmas, os, paren);
 
   if (options::bitblastMode() == theory::bv::BITBLAST_MODE_EAGER) {
     Assert (lemmas.size() == 1);
@@ -537,247 +434,54 @@ void LFSCTheoryProofEngine::printTheoryLemmas(const IdToSatClause& lemmas,
     return;
   }
 
-  ProofManager* pm = ProofManager::currentPM();
+  it = lemmas.begin();
+
   Debug("pf::tp") << "LFSCTheoryProofEngine::printTheoryLemmas: printing lemmas..." << std::endl;
 
-  for (IdToSatClause::const_iterator it = lemmas.begin(); it != lemmas.end(); ++it) {
-    ClauseId id = it->first;
-    const prop::SatClause* clause = it->second;
+  for (; it != end; ++it) {
+    Debug("pf::tp") << "LFSCTheoryProofEngine::printTheoryLemmas: printing a new lemma!" << std::endl;
 
-    Debug("pf::tp") << "LFSCTheoryProofEngine::printTheoryLemmas: printing lemma. ID = "
-                    << id << std::endl;
+    // Debug("pf::tp") << "\tLemma = " << it->first << ", " << *(it->second) << std::endl;
+    ClauseId id = it->first;
+    Debug("pf::tp") << "Owner theory:" << pm->getCnfProof()->getOwnerTheory(id) << std::endl;
+    const prop::SatClause* clause = it->second;
+    // printing clause as it appears in resolution proof
+    os << "(satlem _ _ ";
+    std::ostringstream clause_paren;
+
+    Debug("pf::tp") << "CnfProof printing clause..." << std::endl;
+    pm->getCnfProof()->printClause(*clause, os, clause_paren);
+    Debug("pf::tp") << "CnfProof printing clause - Done!" << std::endl;
 
     std::vector<Expr> clause_expr;
-    std::set<Node> clause_expr_nodes;
     for(unsigned i = 0; i < clause->size(); ++i) {
       prop::SatLiteral lit = (*clause)[i];
-      Node node = pm->getCnfProof()->getAtom(lit.getSatVariable());
-      Expr atom = node.toExpr();
+      Expr atom = pm->getCnfProof()->getAtom(lit.getSatVariable()).toExpr();
       if (atom.isConst()) {
         Assert (atom == utils::mkTrue());
         continue;
       }
       Expr expr_lit = lit.isNegated() ? atom.notExpr(): atom;
       clause_expr.push_back(expr_lit);
-      clause_expr_nodes.insert(lit.isNegated() ? node.notNode() : node);
     }
 
-    LemmaProofRecipe recipe = pm->getCnfProof()->getProofRecipe(clause_expr_nodes);
+    Debug("pf::tp") << "Expression printing done!" << std::endl;
 
-    if (recipe.simpleLemma()) {
-      // In a simple lemma, there will be no propositional resolution in the end
-
-      Debug("pf::tp") << "Simple lemma" << std::endl;
-      // Printing the clause as it appears in resolution proof
-      os << "(satlem _ _ ";
-      std::ostringstream clause_paren;
-      pm->getCnfProof()->printClause(*clause, os, clause_paren);
-
-      // Find and handle missing assertions, due to rewrites
-      std::set<Node> missingAssertions = recipe.getMissingAssertionsForStep(0);
-      if (!missingAssertions.empty()) {
-        Debug("pf::tp") << "Have missing assertions for this simple lemma!" << std::endl;
-      }
-
-      std::set<Node>::const_iterator missingAssertion;
-      for (missingAssertion = missingAssertions.begin();
-           missingAssertion != missingAssertions.end();
-           ++missingAssertion) {
-
-        Debug("pf::tp") << "Working on missing assertion: " << *missingAssertion << std::endl;
-        Assert(recipe.wasRewritten(missingAssertion->negate()));
-        Node explanation = recipe.getExplanation(missingAssertion->negate()).negate();
-        Debug("pf::tp") << "Found explanation: " << explanation << std::endl;
-
-        // We have a missing assertion.
-        //     rewriteIt->first is the assertion after the rewrite (the explanation),
-        //     rewriteIt->second is the original assertion that needs to be fed into the theory.
-
-        bool found = false;
-        unsigned k;
-        for (k = 0; k < clause_expr.size(); ++k) {
-          if (clause_expr[k] == explanation.toExpr()) {
-            found = true;
-            break;
-          }
-        }
-
-        Assert(found);
-        Debug("pf::tp") << "Replacing theory assertion "
-                        << clause_expr[k]
-                        << " with "
-                        << *missingAssertion
-                        << std::endl;
-
-        clause_expr[k] = missingAssertion->toExpr();
-
-        std::ostringstream rewritten;
-        rewritten << "(or_elim_1 _ _ ";
-        rewritten << "(not_not_intro _ ";
-        rewritten << pm->getLitName(explanation);
-        rewritten << ") (iff_elim_1 _ _ ";
-        rewritten << d_assertionToRewrite[missingAssertion->negate()];
-        rewritten << "))";
-
-        Debug("pf::tp") << "Setting a rewrite filter for this proof: " << std::endl
-                        << pm->getLitName(*missingAssertion) << " --> " << rewritten.str()
-                        << std::endl << std::endl;
-
-        pm->addRewriteFilter(pm->getLitName(*missingAssertion), rewritten.str());
-      }
-
-      // Query the appropriate theory for a proof of this clause
-      theory::TheoryId theory_id = getTheoryForLemma(clause);
-      Debug("pf::tp") << "Get theory lemma from " << theory_id << "..." << std::endl;
-      getTheoryProof(theory_id)->printTheoryLemmaProof(clause_expr, os, paren);
-
-      // Turn rewrite filter OFF
-      pm->clearRewriteFilters();
-
-      Debug("pf::tp") << "Get theory lemma from " << theory_id << "... DONE!" << std::endl;
-      os << clause_paren.str();
-      os << "( \\ " << pm->getLemmaClauseName(id) <<"\n";
-      paren << "))";
-    } else { // This is a composite lemma
-
-      unsigned numberOfSteps = recipe.getNumSteps();
-      prop::SatClause currentClause = *clause;
-      std::vector<Expr> currentClauseExpr = clause_expr;
-
-      for (unsigned i = 0; i < numberOfSteps; ++i) {
-        const LemmaProofRecipe::ProofStep* currentStep = recipe.getStep(i);
-
-        currentClause = *clause;
-        currentClauseExpr = clause_expr;
-
-        for (unsigned j = 0; j < i; ++j) {
-          // Literals already used in previous steps need to be negated
-          Node previousLiteralNode = recipe.getStep(j)->getLiteral();
-          Node previousLiteralNodeNegated = previousLiteralNode.negate();
-          prop::SatLiteral previousLiteralNegated =
-            ProofManager::currentPM()->getCnfProof()->getLiteral(previousLiteralNodeNegated);
-          currentClause.push_back(previousLiteralNegated);
-          currentClauseExpr.push_back(previousLiteralNodeNegated.toExpr());
-        }
-
-        // If the current literal is NULL, can ignore (final step)
-        // Otherwise, the current literal does NOT need to be negated
-        Node currentLiteralNode = currentStep->getLiteral();
-        if (currentLiteralNode != Node()) {
-          prop::SatLiteral currentLiteral =
-            ProofManager::currentPM()->getCnfProof()->getLiteral(currentLiteralNode);
-
-          currentClause.push_back(currentLiteral);
-          currentClauseExpr.push_back(currentLiteralNode.toExpr());
-        }
-
-        os << "(satlem _ _ ";
-        std::ostringstream clause_paren;
-
-        pm->getCnfProof()->printClause(currentClause, os, clause_paren);
-
-        // query appropriate theory for proof of clause
-        theory::TheoryId theory_id = currentStep->getTheory();
-        Debug("pf::tp") << "Get theory lemma from " << theory_id << "..." << std::endl;
-
-        std::set<Node> missingAssertions = recipe.getMissingAssertionsForStep(i);
-        if (!missingAssertions.empty()) {
-          Debug("pf::tp") << "Have missing assertions for this step!" << std::endl;
-        }
-
-        // Turn rewrite filter ON
-        std::set<Node>::const_iterator missingAssertion;
-        for (missingAssertion = missingAssertions.begin();
-             missingAssertion != missingAssertions.end();
-             ++missingAssertion) {
-
-          Debug("pf::tp") << "Working on missing assertion: " << *missingAssertion << std::endl;
-
-          Assert(recipe.wasRewritten(missingAssertion->negate()));
-          Node explanation = recipe.getExplanation(missingAssertion->negate()).negate();
-
-          Debug("pf::tp") << "Found explanation: " << explanation << std::endl;
-
-          // We have a missing assertion.
-          //     rewriteIt->first is the assertion after the rewrite (the explanation),
-          //     rewriteIt->second is the original assertion that needs to be fed into the theory.
-
-          bool found = false;
-          unsigned k;
-          for (k = 0; k < currentClauseExpr.size(); ++k) {
-            if (currentClauseExpr[k] == explanation.toExpr()) {
-              found = true;
-              break;
-            }
-          }
-
-          Assert(found);
-
-          Debug("pf::tp") << "Replacing theory assertion "
-                          << currentClauseExpr[k]
-                          << " with "
-                          << *missingAssertion
-                          << std::endl;
-
-          currentClauseExpr[k] = missingAssertion->toExpr();
-
-          std::ostringstream rewritten;
-          rewritten << "(or_elim_1 _ _ ";
-          rewritten << "(not_not_intro _ ";
-          rewritten << pm->getLitName(explanation);
-          rewritten << ") (iff_elim_1 _ _ ";
-          rewritten << d_assertionToRewrite[missingAssertion->negate()];
-          rewritten << "))";
-
-          Debug("pf::tp") << "Setting a rewrite filter for this proof: " << std::endl
-                          << pm->getLitName(*missingAssertion) << " --> " << rewritten.str()
-                          << std::endl << std::endl;
-
-          pm->addRewriteFilter(pm->getLitName(*missingAssertion), rewritten.str());
-        }
-
-        getTheoryProof(theory_id)->printTheoryLemmaProof(currentClauseExpr, os, paren);
-
-        // Turn rewrite filter OFF
-        pm->clearRewriteFilters();
-
-        Debug("pf::tp") << "Get theory lemma from " << theory_id << "... DONE!" << std::endl;
-        os << clause_paren.str();
-        os << "( \\ " << pm->getLemmaClauseName(id) << "s" << i <<"\n";
-        paren << "))";
-      }
-
-      Assert(numberOfSteps >= 2);
-
-      os << "(satlem_simplify _ _ _ ";
-      for (unsigned i = 0; i < numberOfSteps - 1; ++i) {
-        // Resolve step i with step i + 1
-        if (recipe.getStep(i)->getLiteral().getKind() == kind::NOT) {
-          os << "(Q _ _ ";
-        } else {
-          os << "(R _ _ ";
-        }
-
-        os << pm->getLemmaClauseName(id) << "s" << i;
-        os << " ";
-      }
-
-      os << pm->getLemmaClauseName(id) << "s" << numberOfSteps - 1 << " ";
-
-      prop::SatLiteral v;
-      for (int i = numberOfSteps - 2; i >= 0; --i) {
-        v = ProofManager::currentPM()->getCnfProof()->getLiteral(recipe.getStep(i)->getLiteral());
-        os << ProofManager::getVarName(v.getSatVariable(), "") << ") ";
-      }
-
-      os << "( \\ " << pm->getLemmaClauseName(id) << "\n";
-      paren << "))";
-    }
+    // query appropriate theory for proof of clause
+    theory::TheoryId theory_id = getTheoryForLemma(id);
+    Debug("pf::tp") << "Get theory lemma from " << theory_id << "..." << std::endl;
+    Debug("theory-proof-debug") << ";; Get theory lemma from " << theory_id << "..." << std::endl;
+    getTheoryProof(theory_id)->printTheoryLemmaProof(clause_expr, os, paren);
+    Debug("pf::tp") << "Get theory lemma from " << theory_id << "... DONE!" << std::endl;
+    // os << " (clausify_false trust)";
+    os << clause_paren.str();
+    os << "( \\ " << pm->getLemmaClauseName(id) <<"\n";
+    paren << "))";
   }
 }
 
 void LFSCTheoryProofEngine::printBoundTerm(Expr term, std::ostream& os, const LetMap& map) {
-  Debug("pf::tp") << "LFSCTheoryProofEngine::printBoundTerm( " << term << " ) " << std::endl;
+  // Debug("pf::tp") << "LFSCTheoryProofEngine::printBoundTerm( " << term << " ) " << std::endl;
 
   LetMap::const_iterator it = map.find(term);
   if (it != map.end()) {
@@ -893,21 +597,19 @@ void LFSCTheoryProofEngine::printCoreTerm(Expr term, std::ostream& os, const Let
 }
 
 void TheoryProof::printTheoryLemmaProof(std::vector<Expr>& lemma, std::ostream& os, std::ostream& paren) {
-  // Default method for replaying proofs: assert (negated) literals back to a fresh copy of the theory
-  Assert(d_theory!=NULL);
-
+  //default method for replaying proofs: assert (negated) literals back to a fresh copy of the theory
+  Assert( d_theory!=NULL );
   context::UserContext fakeContext;
   ProofOutputChannel oc;
   theory::Valuation v(NULL);
   //make new copy of theory
   theory::Theory* th;
-  Trace("pf::tp") << ";; Print theory lemma proof, theory id = " << d_theory->getId() << std::endl;
-
-  if (d_theory->getId()==theory::THEORY_UF) {
+  Trace("theory-proof-debug") << ";; Print theory lemma proof, theory id = " << d_theory->getId() << std::endl;
+  if(d_theory->getId()==theory::THEORY_UF) {
     th = new theory::uf::TheoryUF(&fakeContext, &fakeContext, oc, v,
                                   ProofManager::currentPM()->getLogicInfo(),
                                   "replay::");
-  } else if (d_theory->getId()==theory::THEORY_ARRAY) {
+  } else if(d_theory->getId()==theory::THEORY_ARRAY) {
     th = new theory::arrays::TheoryArrays(&fakeContext, &fakeContext, oc, v,
                                           ProofManager::currentPM()->getLogicInfo(),
                                           "replay::");
@@ -1012,10 +714,7 @@ void BooleanProof::registerTerm(Expr term) {
 void LFSCBooleanProof::printOwnedTerm(Expr term, std::ostream& os, const LetMap& map) {
   Assert (term.getType().isBoolean());
   if (term.isVariable()) {
-    if (d_treatBoolsAsFormulas)
-      os << "(p_app " << ProofManager::sanitize(term) <<")";
-    else
-      os << ProofManager::sanitize(term);
+    os << "(p_app " << ProofManager::sanitize(term) <<")";
     return;
   }
 
@@ -1054,10 +753,7 @@ void LFSCBooleanProof::printOwnedTerm(Expr term, std::ostream& os, const LetMap&
     return;
 
   case kind::CONST_BOOLEAN:
-    if (d_treatBoolsAsFormulas)
-      os << (term.getConst<bool>() ? "true" : "false");
-    else
-      os << (term.getConst<bool>() ? "t_true" : "t_false");
+    os << (term.getConst<bool>() ? "true" : "false");
     return;
 
   default:
@@ -1087,10 +783,6 @@ void LFSCBooleanProof::printTermDeclarations(std::ostream& os, std::ostream& par
 }
 
 void LFSCBooleanProof::printDeferredDeclarations(std::ostream& os, std::ostream& paren) {
-  // Nothing to do here at this point.
-}
-
-void LFSCBooleanProof::printAliasingDeclarations(std::ostream& os, std::ostream& paren) {
   // Nothing to do here at this point.
 }
 

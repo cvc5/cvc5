@@ -120,7 +120,7 @@ bool CnfStream::hasLiteral(TNode n) const {
   return find != d_nodeToLiteralMap.end();
 }
 
-void TseitinCnfStream::ensureLiteral(TNode n, bool noPreregistration) {
+void TseitinCnfStream::ensureLiteral(TNode n) {
   // These are not removable and have no proof ID
   d_removable = false;
 
@@ -163,7 +163,7 @@ void TseitinCnfStream::ensureLiteral(TNode n, bool noPreregistration) {
     d_literalToNodeMap.insert_safe(~lit, n.notNode());
   } else {
     // We have a theory atom or variable.
-    lit = convertAtom(n, noPreregistration);
+    lit = convertAtom(n);
   }
 
   Assert(hasLiteral(n) && getNode(lit) == n);
@@ -232,7 +232,7 @@ void CnfStream::setProof(CnfProof* proof) {
   d_cnfProof = proof;
 }
 
-SatLiteral CnfStream::convertAtom(TNode node, bool noPreregistration) {
+SatLiteral CnfStream::convertAtom(TNode node) {
   Debug("cnf") << "convertAtom(" << node << ")" << endl;
 
   Assert(!hasLiteral(node), "atom already mapped!");
@@ -247,7 +247,7 @@ SatLiteral CnfStream::convertAtom(TNode node, bool noPreregistration) {
   } else {
     theoryLiteral = true;
     canEliminate = false;
-    preRegister = !noPreregistration;
+    preRegister = true;
   }
 
   // Make a new literal (variables are not considered theory literals)
@@ -258,11 +258,7 @@ SatLiteral CnfStream::convertAtom(TNode node, bool noPreregistration) {
 
 SatLiteral CnfStream::getLiteral(TNode node) {
   Assert(!node.isNull(), "CnfStream: can't getLiteral() of null node");
-
-  Assert(d_nodeToLiteralMap.contains(node),
-         "Literal not in the CNF Cache: %s\n",
-         node.toString().c_str());
-
+  Assert(d_nodeToLiteralMap.contains(node), "Literal not in the CNF Cache: %s\n", node.toString().c_str());
   SatLiteral literal = d_nodeToLiteralMap[node];
   Debug("cnf") << "CnfStream::getLiteral(" << node << ") => " << literal << std::endl;
   return literal;
@@ -679,7 +675,7 @@ void TseitinCnfStream::convertAndAssert(TNode node,
                                         bool negated,
                                         ProofRule proof_id,
                                         TNode from,
-                                        LemmaProofRecipe* proofRecipe) {
+                                        theory::TheoryId ownerTheory) {
   Debug("cnf") << "convertAndAssert(" << node
                << ", removable = " << (removable ? "true" : "false")
                << ", negated = " << (negated ? "true" : "false") << ")" << endl;
@@ -689,12 +685,7 @@ void TseitinCnfStream::convertAndAssert(TNode node,
       Node assertion = negated ? node.notNode() : (Node)node;
       Node from_assertion = negated? from.notNode() : (Node) from;
 
-      if (proofRecipe) {
-        Debug("pf::sat") << "TseitinCnfStream::convertAndAssert: setting proof recipe" << std::endl;
-        proofRecipe->dump("pf::sat");
-        d_cnfProof->setProofRecipe(proofRecipe);
-      }
-
+      d_cnfProof->setExplainerTheory(ownerTheory);
       if (proof_id != RULE_INVALID) {
         d_cnfProof->pushCurrentAssertion(from.isNull() ? assertion : from_assertion);
         d_cnfProof->registerAssertion(from.isNull() ? assertion : from_assertion, proof_id);

@@ -150,7 +150,7 @@ ClauseId MinisatSatSolver::addClause(SatClause& clause, bool removable) {
   // FIXME: This relies on the invariant that when ok() is false
   // the SAT solver does not add the clause (which is what Minisat currently does)
   if (!ok()) {
-    return ClauseIdUndef;
+    return ClauseIdUndef; 
   }
   d_minisat->addClause(minisat_clause, removable, clause_id);
   PROOF( Assert (clause_id != ClauseIdError););
@@ -185,7 +185,7 @@ SatValue MinisatSatSolver::solve() {
 }
 
 bool MinisatSatSolver::ok() const {
-  return d_minisat->okay();
+  return d_minisat->okay(); 
 }
 
 void MinisatSatSolver::interrupt() {
@@ -204,20 +204,20 @@ bool MinisatSatSolver::properExplanation(SatLiteral lit, SatLiteral expl) const 
   return true;
 }
 
-void MinisatSatSolver::requirePhase(SatLiteral lit) {
+void MinisatSatSolver::requirePhase(SatLiteral lit) { 
   Assert(!d_minisat->rnd_pol);
   Debug("minisat") << "requirePhase(" << lit << ")" << " " <<  lit.getSatVariable() << " " << lit.isNegated() << std::endl;
   SatVariable v = lit.getSatVariable();
   d_minisat->freezePolarity(v, lit.isNegated());
 }
 
-bool MinisatSatSolver::flipDecision() {
+bool MinisatSatSolver::flipDecision() { 
   Debug("minisat") << "flipDecision()" << std::endl;
   return d_minisat->flipDecision();
 }
 
-bool MinisatSatSolver::isDecision(SatVariable decn) const {
-  return d_minisat->isDecision( decn );
+bool MinisatSatSolver::isDecision(SatVariable decn) const { 
+  return d_minisat->isDecision( decn ); 
 }
 
 /** Incremental interface */
@@ -291,7 +291,7 @@ namespace CVC4 {
 template<>
 prop::SatLiteral toSatLiteral< CVC4::Minisat::Solver>(Minisat::Solver::TLit lit) {
   return prop::MinisatSatSolver::toSatLiteral(lit);
-}
+} 
 
 template<>
 void toSatClause< CVC4::Minisat::Solver> (const CVC4::Minisat::Solver::TClause& minisat_cl,
@@ -300,3 +300,5 @@ void toSatClause< CVC4::Minisat::Solver> (const CVC4::Minisat::Solver::TClause& 
 }
 
 } /* namespace CVC4 */
+
+

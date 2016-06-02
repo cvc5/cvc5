@@ -4,7 +4,7 @@
 (declare bbltc (! f formula (! v bblt bblt)))
 
 ; calculate the length of a bit-blasted term
-(program bblt_len ((v bblt)) mpz
+(program bblt_len ((v bblt)) mpz 
   (match v
     (bbltn 0)
     ((bbltc b v') (mp_add (bblt_len v') 1))))
@@ -25,7 +25,6 @@
 	    (bblast_term n x y)))))
 
 
-; Binds a symbol to the bblast_term to be used later on.
 (declare decl_bblast
 	 (! n mpz
 	 (! b bblt
@@ -47,31 +46,31 @@
 ;;           BITBLASTING RULES
 ;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-
+	 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; BITBLAST CONSTANT
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (program bblast_const ((v bv) (n mpz)) bblt
-  (mp_ifneg n (match v (bvn bbltn)
+  (mp_ifneg n (match v (bvn bbltn) 
                        (default (fail bblt)))
               (match v ((bvc b v') (bbltc (match b (b0 false) (b1 true)) (bblast_const v' (mp_add n (~ 1)))))
                        (default (fail bblt)))))
-
+              
 (declare bv_bbl_const (! n mpz
                       (! f bblt
                       (! v bv
                       (! c (^ (bblast_const v (mp_add n (~ 1))) f)
                            (bblast_term n (a_bv n v) f))))))
 
-
+		   
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; BITBLAST VARIABLE
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (program bblast_var ((x var_bv) (n mpz)) bblt
-  (mp_ifneg n bbltn
+  (mp_ifneg n bbltn 
               (bbltc (bitof x n) (bblast_var x (mp_add n (~ 1))))))
 
 (declare bv_bbl_var (! n mpz
@@ -80,16 +79,18 @@
                     (! c (^ (bblast_var x (mp_add n (~ 1))) f)
                          (bblast_term n (a_var_bv n x) f))))))
 
+
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; BITBLAST CONCAT
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (program bblast_concat ((x bblt) (y bblt)) bblt
-  (match x
+  (match x 
     (bbltn (match y ((bbltc by y') (bbltc by (bblast_concat x y')))
     	   	    (bbltn bbltn)))
     ((bbltc bx x') (bbltc bx (bblast_concat x' y)))))
-
+				
+				
 (declare bv_bbl_concat (! n mpz
 	 	       (! m mpz
 		       (! m1 mpz
@@ -103,93 +104,35 @@
                        (! c (^ (bblast_concat xb yb ) rb)
                            (bblast_term n (concat n m m1 x y) rb)))))))))))))
 
-(declare bv_bbl_concat_alias_1 (! n mpz
-     	    	               (! m mpz
-		               (! m1 mpz
-                               (! x (term (BitVec m))
-		               (! y (term (BitVec m1))
-		               (! xb bblt
-		               (! yb bblt
-		               (! rb bblt
-       		               (! a (term (BitVec m))
-		               (! e (th_holds (= _ x a))
-		               (! xbb (bblast_term m x xb)
-		               (! ybb (bblast_term m1 y yb)
-                               (! c (^ (bblast_concat xb yb) rb)
-                                   (bblast_term n (concat n m m1 a y) rb)))))))))))))))
-
-(declare bv_bbl_concat_alias_2 (! n mpz
-     	    	               (! m mpz
-		               (! m1 mpz
-                               (! x (term (BitVec m))
-		               (! y (term (BitVec m1))
-		               (! xb bblt
-		               (! yb bblt
-		               (! rb bblt
-		               (! xbb (bblast_term m x xb)
-       		               (! a (term (BitVec m1))
-		               (! e (th_holds (= _ y a))
-		               (! ybb (bblast_term m1 y yb)
-                               (! c (^ (bblast_concat xb yb) rb)
-                                   (bblast_term n (concat n m m1 x a) rb)))))))))))))))
-
-(declare bv_bbl_concat_alias_1_2 (! n mpz
-     	    	                 (! m mpz
-		                 (! m1 mpz
-                                 (! x (term (BitVec m))
-		                 (! y (term (BitVec m1))
-		                 (! xb bblt
-		                 (! yb bblt
-		                 (! rb bblt
-       		                 (! a1 (term (BitVec m))
-		                 (! e (th_holds (= _ x a1))
-		                 (! xbb (bblast_term m x xb)
-       		                 (! a2 (term (BitVec m1))
-		                 (! e (th_holds (= _ y a2))
-		                 (! ybb (bblast_term m1 y yb)
-                                 (! c (^ (bblast_concat xb yb) rb)
-                                     (bblast_term n (concat n m m1 a1 a2) rb)))))))))))))))))
-
+			  
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; BITBLAST EXTRACT
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (program bblast_extract_rec ((x bblt) (i mpz) (j mpz) (n mpz)) bblt
-  (match x
+  (match x 
     ((bbltc bx x') (mp_ifneg (mpz_sub (mpz_sub j n) 1)
     	       	   	     (mp_ifneg (mpz_sub (mpz_sub n i) 1)
 			    	  	  (bbltc bx (bblast_extract_rec x' i j (mpz_sub n 1)))
 					  (bblast_extract_rec x' i j (mpz_sub n 1)))
-
+ 					 
 			     bbltn))
    (bbltn bbltn)))
 
 (program bblast_extract ((x bblt) (i mpz) (j mpz) (n mpz)) bblt
- (bblast_extract_rec x i j (mpz_sub n 1)))
+ (bblast_extract_rec x i j (mpz_sub n 1)))			    
 
 (declare bv_bbl_extract (! n mpz
 			(! i mpz
 			(! j mpz
 			(! m mpz
-                       	(! x (term (BitVec m))
+                       	(! x (term (BitVec m))	
 		       	(! xb bblt
 		       	(! rb bblt
 		       	(! xbb (bblast_term m x xb)
 			(! c ( ^ (bblast_extract xb i j m) rb)
                            (bblast_term n (extract n i j m x) rb)))))))))))
 
-(declare bv_bbl_extract_alias (! n mpz
-  			      (! i mpz
-			      (! j mpz
-			      (! m mpz
-                       	      (! x (term (BitVec m))
-		       	      (! xb bblt
-		       	      (! rb bblt
-			      (! a (term (BitVec m))
-		              (! e (th_holds (= _ x a))
-		       	      (! xbb (bblast_term m x xb)
-			      (! c ( ^ (bblast_extract xb i j m) rb)
-                                 (bblast_term n (extract n i j m a) rb)))))))))))))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; BITBLAST ZERO/SIGN EXTEND
@@ -205,50 +148,42 @@
 (declare bv_bbl_zero_extend (! n mpz
 			(! k mpz
 			(! m mpz
-                       	(! x (term (BitVec m))
+                       	(! x (term (BitVec m))	
 		       	(! xb bblt
 		       	(! rb bblt
 		       	(! xbb (bblast_term m x xb)
 			(! c ( ^ (bblast_zextend xb k m) rb)
                            (bblast_term n (zero_extend n k m x) rb))))))))))
 
+			
 (program bblast_sextend ((x bblt) (i mpz)) bblt
  (match x (bbltn (fail bblt))
- 	  ((bbltc xb x') (extend_rec x (mpz_sub i 1) xb))))
+ 	  ((bbltc xb x') (extend_rec x (mpz_sub i 1) xb))))			    
 
 (declare bv_bbl_sign_extend (! n mpz
 			(! k mpz
 			(! m mpz
-                       	(! x (term (BitVec m))
+                       	(! x (term (BitVec m))	
 		       	(! xb bblt
 		       	(! rb bblt
 		       	(! xbb (bblast_term m x xb)
 			(! c ( ^ (bblast_sextend xb k m) rb)
                            (bblast_term n (sign_extend n k m x) rb))))))))))
-
-(declare bv_bbl_sign_extend_alias (! n mpz
-   			          (! k mpz
-			          (! m mpz
-                       	          (! x (term (BitVec m))
-		       	          (! xb bblt
-		       	          (! rb bblt
-				  (! a (term (BitVec m))
-		                  (! e (th_holds (= _ x a))
-		       	          (! xbb (bblast_term m x xb)
-			          (! c ( ^ (bblast_sextend xb k m) rb)
-                                     (bblast_term n (sign_extend n k m a) rb))))))))))))
-
+			   
+			   
+			     
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; BITBLAST BVAND
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-
+		 
 (program bblast_bvand ((x bblt) (y bblt)) bblt
-  (match x
+  (match x 
     (bbltn (match y (bbltn bbltn) (default (fail bblt))))
-    ((bbltc bx x') (match y
+    ((bbltc bx x') (match y 
                       (bbltn (fail bblt))
                       ((bbltc by y') (bbltc (and bx by) (bblast_bvand x' y')))))))
-
+				
+				
 (declare bv_bbl_bvand (! n mpz
                       (! x (term (BitVec n))
 		      (! y (term (BitVec n))
@@ -264,10 +199,11 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (program bblast_bvnot ((x bblt)) bblt
-  (match x
-    (bbltn bbltn)
+  (match x 
+    (bbltn bbltn) 
     ((bbltc bx x') (bbltc (not bx) (bblast_bvnot x')))))
-
+				
+				
 (declare bv_bbl_bvnot (! n mpz
                       (! x (term (BitVec n))
 		      (! xb bblt
@@ -279,14 +215,15 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; BITBLAST BVOR
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-
+			   
 (program bblast_bvor ((x bblt) (y bblt)) bblt
-  (match x
+  (match x 
     (bbltn (match y (bbltn bbltn) (default (fail bblt))))
-    ((bbltc bx x') (match y
+    ((bbltc bx x') (match y 
                       (bbltn (fail bblt))
                       ((bbltc by y') (bbltc (or bx by) (bblast_bvor x' y')))))))
-
+				
+				
 (declare bv_bbl_bvor (! n mpz
                       (! x (term (BitVec n))
 		      (! y (term (BitVec n))
@@ -301,14 +238,15 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; BITBLAST BVXOR
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-
+			   
 (program bblast_bvxor ((x bblt) (y bblt)) bblt
-  (match x
+  (match x 
     (bbltn (match y (bbltn bbltn) (default (fail bblt))))
-    ((bbltc bx x') (match y
+    ((bbltc bx x') (match y 
                       (bbltn (fail bblt))
                       ((bbltc by y') (bbltc (xor bx by) (bblast_bvxor x' y')))))))
-
+				
+				
 (declare bv_bbl_bvxor (! n mpz
                       (! x (term (BitVec n))
 		      (! y (term (BitVec n))
@@ -324,8 +262,8 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; BITBLAST BVADD
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-
-;; return the carry bit after adding x y
+			   
+;; return the carry bit after adding x y			   
 ;; FIXME: not the most efficient thing in the world
 (program bblast_bvadd_carry ((a bblt) (b bblt) (carry formula)) formula
 (match a
@@ -334,7 +272,7 @@
   	     	   (bbltn (fail formula))
 	 	   ((bbltc bi b') (or (and ai bi) (and (xor ai bi) (bblast_bvadd_carry a' b' carry))))))))
 
-;; ripple carry adder where carry is the initial carry bit
+;; ripple carry adder where carry is the initial carry bit		   
 (program bblast_bvadd ((a bblt) (b bblt) (carry formula)) bblt
 (match a
   ( bbltn (match b (bbltn bbltn) (default (fail bblt))))
@@ -358,19 +296,19 @@
 ;(program bblast_bvadd_2h ((a bblt) (b bblt) (carry formula)) bblt
 ;(match a
 ;  ( bbltn (match b (bbltn bbltn) (default (fail bblt))))
-;  ((bbltc ai a') (match b
+;  ((bbltc ai a') (match b 
 ;       (bbltn (fail bblt))
-;	 	   ((bbltc bi b')
+;	 	   ((bbltc bi b') 
 ;	 	     (let carry' (or (and ai bi) (and (xor ai bi) carry))
 ;	 	     (bbltc (xor (xor ai bi) carry)
 ;				  	    (bblast_bvadd_2h a' b' carry'))))))))
 
 ;(program bblast_bvadd_2 ((a bblt) (b bblt) (carry formula)) bblt
-;(let ar (reverseb a) ;; reverse a and b so that we can build the circuit
+;(let ar (reverseb a) ;; reverse a and b so that we can build the circuit 
 ;(let br (reverseb b) ;; from the least significant bit up
 ;(let ret (bblast_bvadd_2h ar br carry)
 ;  (reverseb ret)))))
-
+				
 (declare bv_bbl_bvadd (! n mpz
                       (! x (term (BitVec n))
 		      (! y (term (BitVec n))
@@ -382,18 +320,6 @@
                       (! c (^ (bblast_bvadd xb yb false) rb)
                            (bblast_term n (bvadd n x y) rb)))))))))))
 
-(declare bv_bbl_bvadd_alias_1 (! n mpz
-	                      (! x (term (BitVec n))
-		              (! y (term (BitVec n))
-        		      (! xb bblt
-        		      (! yb bblt
-	        	      (! rb bblt
-			      (! a (term (BitVec n))
-		              (! e (th_holds (= _ x a))
-		              (! xbb (bblast_term n x xb)
-        		      (! ybb (bblast_term n y yb)
-                              (! c (^ (bblast_bvadd xb yb false) rb)
-                                   (bblast_term n (bvadd n a y) rb)))))))))))))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; BITBLAST BVNEG
@@ -405,8 +331,8 @@
 
 (program bblast_bvneg ((x bblt) (n mpz)) bblt
   (bblast_bvadd (bblast_bvnot x) (bblast_zero n) true))
-
-
+				
+				
 (declare bv_bbl_bvneg (! n mpz
                       (! x (term (BitVec n))
 		      (! xb bblt
@@ -420,14 +346,14 @@
 ;; BITBLAST BVMUL
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-
+			   
 ;; shift add multiplier
 
 ;; (program concat ((a bblt) (b bblt)) bblt
 ;;   (match a (bbltn b)
 ;;   	   ((bbltc ai a') (bbltc ai (concat a' b)))))
 
-
+	   
 (program top_k_bits ((a bblt) (k mpz)) bblt
   (mp_ifzero k bbltn
   	     (match a (bbltn (fail bblt))
@@ -436,7 +362,7 @@
 (program bottom_k_bits ((a bblt) (k mpz)) bblt
  (reverseb (top_k_bits (reverseb a) k)))
 
-;; assumes the least signigicant bit is at the beginning of the list
+;; assumes the least signigicant bit is at the beginning of the list 
 (program k_bit ((a bblt) (k mpz)) formula
 (mp_ifneg k (fail formula)
 (match a (bbltn (fail formula))
@@ -445,7 +371,7 @@
 (program and_with_bit ((a bblt) (bt formula)) bblt
 (match a (bbltn bbltn)
          ((bbltc ai a') (bbltc (and bt ai) (and_with_bit a' bt)))))
-
+	 
 ;; a is going to be the current result
 ;; carry is going to be false initially
 ;; b is the and of a and b[k]
@@ -469,19 +395,19 @@
 (let ak (top_k_bits a k')
 (let b' (and_with_bit ak (k_bit b k))
  (mp_ifzero (mpz_sub k' 1)
-   (mult_step_k_h res b' bbltn false k)
+   (mult_step_k_h res b' bbltn false k)	
    (let res' (mult_step_k_h res b' bbltn false k)
    (mult_step a b (reverseb res') n (mp_add k 1))))))))
 
 
 (program bblast_bvmul ((a bblt) (b bblt) (n mpz)) bblt
-(let ar (reverseb a) ;; reverse a and b so that we can build the circuit
+(let ar (reverseb a) ;; reverse a and b so that we can build the circuit 
 (let br (reverseb b) ;; from the least significant bit up
 (let res (and_with_bit ar (k_bit br 0))
-     (mp_ifzero (mpz_sub n 1)     ;; if multiplying 1 bit numbers no need to call mult_step
+     (mp_ifzero (mpz_sub n 1)     ;; if multiplying 1 bit numbers no need to call mult_step 
      		res
 		(mult_step ar br res n 1))))))
-
+     
 (declare bv_bbl_bvmul (! n mpz
                       (! x (term (BitVec n))
 		      (! y (term (BitVec n))
@@ -494,18 +420,18 @@
                            (bblast_term n (bvmul n x y) rb)))))))))))
 
 
-
+			   
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; BITBLAST EQUALS
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-
+			   
 ; bit blast  x = y
 ; for x,y of size n, it will return a conjuction (x.0 = y.0 ^ ( ... ^ (x.{n-1} = y.{n-1})))
 ; f is the accumulator formula that builds the equality in the right order
 (program bblast_eq_rec ((x bblt) (y bblt) (f formula)) formula
-  (match x
+  (match x 
     (bbltn (match y (bbltn f) (default (fail formula))))
-    ((bbltc fx x') (match y
+    ((bbltc fx x') (match y 
                       (bbltn (fail formula))
                       ((bbltc fy y') (bblast_eq_rec x' y' (and (iff fx fy) f)))))
     (default (fail formula))))
@@ -515,23 +441,7 @@
 	 	((bbltc bx x') (match y ((bbltc by y') (bblast_eq_rec x' y' (iff bx by)))
 			       	      	(default (fail formula))))
 		(default (fail formula))))
-
-
-;; TODO: a temporary bypass for rewrites that we don't support yet. As soon
-;; as we do, remove this rule.
-
-(declare bv_bbl_=_false
-	 (! n mpz
-	 (! x (term (BitVec n))
-         (! y (term (BitVec n))
-         (! bx bblt
-         (! by bblt
-         (! f formula
-         (! bbx (bblast_term n x bx)
-         (! bby (bblast_term n y by)
-         (! c (^ (bblast_eq bx by) f)
-            (th_holds (iff (= (BitVec n) x y) false))))))))))))
-
+	
 (declare bv_bbl_=
 	 (! n mpz
 	 (! x (term (BitVec n))
@@ -544,110 +454,11 @@
          (! c (^ (bblast_eq bx by) f)
             (th_holds (iff (= (BitVec n) x y) f))))))))))))
 
-(declare bv_bbl_=_swap
-	 (! n mpz
-	 (! x (term (BitVec n))
-         (! y (term (BitVec n))
-         (! bx bblt
-         (! by bblt
-         (! f formula
-         (! bbx (bblast_term n x bx)
-         (! bby (bblast_term n y by)
-         (! c (^ (bblast_eq by bx) f)
-            (th_holds (iff (= (BitVec n) x y) f))))))))))))
-
-(declare bv_bbl_=_alias_1
-	 (! n mpz
-	 (! x (term (BitVec n))
-         (! y (term (BitVec n))
-         (! bx bblt
-         (! by bblt
-         (! f formula
- 	 (! a (term (BitVec n))
- 	 (! e (th_holds (= _ x a))
-         (! bbx (bblast_term n x bx)
-         (! bby (bblast_term n y by)
-         (! c (^ (bblast_eq bx by) f)
-            (th_holds (iff (= (BitVec n) a y) f))))))))))))))
-
-(declare bv_bbl_=_alias_1_swap
-	 (! n mpz
-	 (! x (term (BitVec n))
-         (! y (term (BitVec n))
-         (! bx bblt
-         (! by bblt
-         (! f formula
- 	 (! a (term (BitVec n))
- 	 (! e (th_holds (= _ x a))
-         (! bbx (bblast_term n x bx)
-         (! bby (bblast_term n y by)
-         (! c (^ (bblast_eq by bx) f)
-            (th_holds (iff (= (BitVec n) a y) f))))))))))))))
-
-(declare bv_bbl_=_alias_2
-	 (! n mpz
-	 (! x (term (BitVec n))
-         (! y (term (BitVec n))
-         (! bx bblt
-         (! by bblt
-         (! f formula
-         (! bbx (bblast_term n x bx)
- 	 (! a (term (BitVec n))
- 	 (! e (th_holds (= _ y a))
-         (! bby (bblast_term n y by)
-         (! c (^ (bblast_eq bx by) f)
-            (th_holds (iff (= (BitVec n) x a) f))))))))))))))
-
-(declare bv_bbl_=_alias_2_swap
-	 (! n mpz
-	 (! x (term (BitVec n))
-         (! y (term (BitVec n))
-         (! bx bblt
-         (! by bblt
-         (! f formula
-         (! bbx (bblast_term n x bx)
- 	 (! a (term (BitVec n))
- 	 (! e (th_holds (= _ y a))
-         (! bby (bblast_term n y by)
-         (! c (^ (bblast_eq by bx) f)
-            (th_holds (iff (= (BitVec n) x a) f))))))))))))))
-
-(declare bv_bbl_=_alias_1_2
-	 (! n mpz
-	 (! x (term (BitVec n))
-         (! y (term (BitVec n))
-         (! bx bblt
-         (! by bblt
-         (! f formula
- 	 (! a1 (term (BitVec n))
- 	 (! e1 (th_holds (= _ x a1))
-         (! bbx (bblast_term n x bx)
- 	 (! a2 (term (BitVec n))
- 	 (! e2 (th_holds (= _ y a2))
-         (! bby (bblast_term n y by)
-         (! c (^ (bblast_eq bx by) f)
-            (th_holds (iff (= (BitVec n) a1 a2) f))))))))))))))))
-
-(declare bv_bbl_=_alias_1_2_swap
-	 (! n mpz
-	 (! x (term (BitVec n))
-         (! y (term (BitVec n))
-         (! bx bblt
-         (! by bblt
-         (! f formula
- 	 (! a1 (term (BitVec n))
- 	 (! e1 (th_holds (= _ x a1))
-         (! bbx (bblast_term n x bx)
- 	 (! a2 (term (BitVec n))
- 	 (! e2 (th_holds (= _ y a2))
-         (! bby (bblast_term n y by)
-         (! c (^ (bblast_eq by bx) f)
-            (th_holds (iff (= (BitVec n) a1 a2) f))))))))))))))))
-
+			 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; BITBLAST BVULT
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-
+	    
 (program bblast_bvult ((x bblt) (y bblt) (n mpz)) formula
 (match x
   ( bbltn (fail formula))
@@ -669,54 +480,10 @@
          (! c (^ (bblast_bvult bx by (mp_add n (~1))) f)
             (th_holds (iff (bvult n x y) f))))))))))))
 
-(declare bv_bbl_bvult_alias_1
-	 (! n mpz
-	 (! x (term (BitVec n))
-         (! y (term (BitVec n))
-         (! bx bblt
-         (! by bblt
-         (! f formula
- 	 (! a1 (term (BitVec n))
- 	 (! e1 (th_holds (= _ x a1))
-         (! bbx (bblast_term n x bx)
-         (! bby (bblast_term n y by)
-         (! c (^ (bblast_bvult bx by (mp_add n (~1))) f)
-            (th_holds (iff (bvult n a1 y) f))))))))))))))
-
-(declare bv_bbl_bvult_alias_2
-	 (! n mpz
-	 (! x (term (BitVec n))
-         (! y (term (BitVec n))
-         (! bx bblt
-         (! by bblt
-         (! f formula
-         (! bbx (bblast_term n x bx)
- 	 (! a2 (term (BitVec n))
- 	 (! e2 (th_holds (= _ y a2))
-         (! bby (bblast_term n y by)
-         (! c (^ (bblast_bvult bx by (mp_add n (~1))) f)
-            (th_holds (iff (bvult n x a2) f))))))))))))))
-
-(declare bv_bbl_bvult_alias_1_2
-	 (! n mpz
-	 (! x (term (BitVec n))
-         (! y (term (BitVec n))
-         (! bx bblt
-         (! by bblt
-         (! f formula
- 	 (! a1 (term (BitVec n))
- 	 (! e1 (th_holds (= _ x a1))
-         (! bbx (bblast_term n x bx)
- 	 (! a2 (term (BitVec n))
- 	 (! e2 (th_holds (= _ y a2))
-         (! bby (bblast_term n y by)
-         (! c (^ (bblast_bvult bx by (mp_add n (~1))) f)
-            (th_holds (iff (bvult n a1 a2) f))))))))))))))))
-
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; BITBLAST BVSLT
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-
+	    
 (program bblast_bvslt ((x bblt) (y bblt) (n mpz)) formula
 (match x
   ( bbltn (fail formula))
@@ -739,34 +506,7 @@
          (! bby (bblast_term n y by)
          (! c (^ (bblast_bvslt bx by n) f)
             (th_holds (iff (bvslt n x y) f))))))))))))
-
-(declare bv_bbl_bvslt_alias_1
-	 (! n mpz
-	 (! x (term (BitVec n))
-         (! y (term (BitVec n))
-         (! bx bblt
-         (! by bblt
-         (! f formula
- 	 (! a (term (BitVec n))
- 	 (! e (th_holds (= _ x a))
-         (! bbx (bblast_term n x bx)
-         (! bby (bblast_term n y by)
-         (! c (^ (bblast_bvslt bx by n) f)
-            (th_holds (iff (bvslt n a y) f))))))))))))))
-
-(declare bv_bbl_bvslt_alias_2
-	 (! n mpz
-	 (! x (term (BitVec n))
-         (! y (term (BitVec n))
-         (! bx bblt
-         (! by bblt
-         (! f formula
-         (! bbx (bblast_term n x bx)
- 	 (! a (term (BitVec n))
- 	 (! e (th_holds (= _ y a))
-         (! bby (bblast_term n y by)
-         (! c (^ (bblast_bvslt bx by n) f)
-            (th_holds (iff (bvslt n x a) f))))))))))))))
+	    
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;
@@ -803,8 +543,8 @@
 ;;           REWRITE RULES
 ;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-
-
+	    
+	    
 ; rewrite rule :
 ; x + y = y + x
 (declare bvadd_symm
@@ -812,7 +552,7 @@
 	 (! x (term (BitVec n))
 	 (! y (term (BitVec n))
 	    (th_holds (= (BitVec n) (bvadd _ x y) (bvadd _ y x)))))))
-
+	    
 ;; (declare bvcrazy_rewrite
 ;; 	 (! n mpz
 ;; 	 (! x (term (BitVec n))
@@ -824,12 +564,12 @@
 ;; 	 (! s (^ (rewrite_scc xn yn) true)
 ;; 	 (! u (! x (term (BitVec n)) (holds cln))
 ;; 	     (holds cln)))))))))))
-
+	 
 ;; 	    (th_holds (= (BitVec n) (bvadd x y) (bvadd y x)))))))
 
-
-
-; necessary?
+	    
+	    
+; necessary? 
 ;; (program calc_bvand ((a bv) (b bv)) bv
 ;;   (match a
 ;;     (bvn (match b (bvn bvn) (default (fail bv))))
@@ -838,7 +578,7 @@
 ;;                       (default (fail bv))))))
 
 ;; ; rewrite rule (w constants) :
-;; ; a & b = c
+;; ; a & b = c    
 ;; (declare bvand_const (! c bv
 ;; 		     (! a bv
 ;;                      (! b bv
@@ -846,7 +586,7 @@
 ;;                         (th_holds (= BitVec (bvand (a_bv a) (a_bv b)) (a_bv c))))))))
 
 
-;; making constant bit-vectors
+;; making constant bit-vectors	 
 (program mk_ones ((n mpz)) bv
 	(mp_ifzero n bvn (bvc b1 (mk_ones (mpz_sub n 1)))))
 
@@ -854,7 +594,7 @@
 	(mp_ifzero n bvn (bvc b0 (mk_ones (mpz_sub n 1)))))
 
 
-
+	
 ;; (bvxnor a b) => (bvnot (bvxor a b))
 ;; (declare bvxnor_elim
 ;; 	 (! n mpz
@@ -881,7 +621,7 @@
 ;; 	 (! rwb (rw_term _ b (a_bv _ zero_bits))
 ;; 	 (rw_term _  (bvxor _ a b)
 ;; 	 	  a'))))))))))
-
+		  
 ;; ;; (bvxor a 11) => (bvnot a)
 ;; (declare bvxor_one
 ;; 	 (! n mpz
@@ -895,7 +635,7 @@
 ;; 	 (rw_term _ (bvxor _ a b)
 ;; 	 	  (bvnot _ a')))))))))))
 
-
+		  
 ;; ;; (bvnot (bvnot a)) => a
 ;; (declare bvnot_idemp
 ;; 	 (! n mpz
@@ -904,3 +644,4 @@
 ;; 	 (! rwa (rw_term _  a a')
 ;; 	 (rw_term _ (bvnot _ (bvnot _ a))
 ;; 	 	  a'))))))
+

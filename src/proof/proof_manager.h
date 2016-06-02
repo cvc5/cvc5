@@ -34,8 +34,6 @@
 
 namespace CVC4 {
 
-class SmtGlobals;
-
 // forward declarations
 namespace Minisat {
   class Solver;
@@ -138,8 +136,6 @@ class ProofManager {
 
   std::set<Type> d_printedTypes;
 
-  std::map<std::string, std::string> d_rewriteFilters;
-
 protected:
   LogicInfo d_logic;
 
@@ -227,9 +223,6 @@ public:
 
   void markPrinted(const Type& type);
   bool wasPrinted(const Type& type) const;
-
-  void addRewriteFilter(const std::string &original, const std::string &substitute);
-  void clearRewriteFilters();
 
 };/* class ProofManager */
 

@@ -96,14 +96,10 @@ libcvc4_la_SOURCES = \
 	proof/skolemization_manager.h \
 	proof/theory_proof.cpp \
 	proof/theory_proof.h \
-	proof/lemma_proof.cpp \
-	proof/lemma_proof.h \
 	proof/uf_proof.cpp \
 	proof/uf_proof.h \
 	proof/unsat_core.cpp \
 	proof/unsat_core.h \
-	proof/proof_output_channel.cpp \
-	proof/proof_output_channel.h \
 	prop/cnf_stream.cpp \
 	prop/cnf_stream.h \
 	prop/prop_engine.cpp \

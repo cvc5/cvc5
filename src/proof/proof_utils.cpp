@@ -21,14 +21,14 @@
 namespace CVC4 {
 namespace utils {
 
-void collectAtoms(TNode node, std::set<Node>& seen) {
+void collectAtoms(TNode node, CVC4::NodeSet& seen) {
   if (seen.find(node) != seen.end())
     return;
   if (theory::Theory::theoryOf(node) != theory::THEORY_BOOL || node.isVar()) {
       seen.insert(node);
       return;
   }
-
+  
   for (unsigned i = 0; i < node.getNumChildren(); ++i) {
     collectAtoms(node[i], seen);
   }
@@ -47,23 +47,23 @@ std::string toLFSCKind(Kind kind) {
 
     // bit-vector kinds
   case kind::BITVECTOR_AND :
-    return "bvand";
+    return "bvand"; 
   case kind::BITVECTOR_OR :
-    return "bvor";
+    return "bvor"; 
   case kind::BITVECTOR_XOR :
-    return "bvxor";
+    return "bvxor"; 
   case kind::BITVECTOR_NAND :
-    return "bvnand";
+    return "bvnand"; 
   case kind::BITVECTOR_NOR :
-    return "bvnor";
+    return "bvnor"; 
   case kind::BITVECTOR_XNOR :
-    return "bvxnor";
+    return "bvxnor"; 
   case kind::BITVECTOR_COMP :
-    return "bvcomp";
+    return "bvcomp"; 
   case kind::BITVECTOR_MULT :
     return "bvmul";
   case kind::BITVECTOR_PLUS :
-    return "bvadd";
+    return "bvadd"; 
   case kind::BITVECTOR_SUB :
     return "bvsub";
   case kind::BITVECTOR_UDIV :
@@ -71,49 +71,49 @@ std::string toLFSCKind(Kind kind) {
     return "bvudiv";
   case kind::BITVECTOR_UREM :
   case kind::BITVECTOR_UREM_TOTAL :
-    return "bvurem";
+    return "bvurem"; 
   case kind::BITVECTOR_SDIV :
-    return "bvsdiv";
+    return "bvsdiv"; 
   case kind::BITVECTOR_SREM :
     return "bvsrem";
   case kind::BITVECTOR_SMOD :
-    return "bvsmod";
+    return "bvsmod"; 
   case kind::BITVECTOR_SHL :
-    return "bvshl";
+    return "bvshl"; 
   case kind::BITVECTOR_LSHR :
     return "bvlshr";
   case kind::BITVECTOR_ASHR :
     return "bvashr";
   case kind::BITVECTOR_CONCAT :
-    return "concat";
+    return "concat"; 
   case kind::BITVECTOR_NEG :
-    return "bvneg";
+    return "bvneg"; 
   case kind::BITVECTOR_NOT :
-    return "bvnot";
+    return "bvnot"; 
   case kind::BITVECTOR_ROTATE_LEFT :
-    return "rotate_left";
+    return "rotate_left"; 
   case kind::BITVECTOR_ROTATE_RIGHT :
     return "rotate_right";
   case kind::BITVECTOR_ULT :
-    return "bvult";
+    return "bvult"; 
   case kind::BITVECTOR_ULE :
-    return "bvule";
+    return "bvule"; 
   case kind::BITVECTOR_UGT :
     return "bvugt";
   case kind::BITVECTOR_UGE :
     return "bvuge";
   case kind::BITVECTOR_SLT :
-    return "bvslt";
+    return "bvslt"; 
   case kind::BITVECTOR_SLE :
-    return "bvsle";
+    return "bvsle"; 
   case kind::BITVECTOR_SGT :
-    return "bvsgt";
+    return "bvsgt"; 
   case kind::BITVECTOR_SGE :
-    return "bvsge";
+    return "bvsge"; 
   case kind::BITVECTOR_EXTRACT :
-    return "extract";
+    return "extract"; 
   case kind::BITVECTOR_REPEAT :
-    return "repeat";
+    return "repeat"; 
   case kind::BITVECTOR_ZERO_EXTEND :
     return "zero_extend";
   case kind::BITVECTOR_SIGN_EXTEND :
