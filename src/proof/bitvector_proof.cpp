@@ -628,7 +628,8 @@ void LFSCBitVectorProof::printTermDeclarations(std::ostream& os, std::ostream& p
     if ((it->isVariable() || it->isConst()) && !ProofManager::getSkolemizationManager()->isSkolem(*it)) {
       d_exprToVariableName[*it] = ProofManager::sanitize(*it);
     } else {
-      d_exprToVariableName[*it] = assignAlias(*it);
+      std::string newAlias = assignAlias(*it);
+      d_exprToVariableName[*it] = newAlias;
     }
 
     os << "(% " << d_exprToVariableName[*it] <<" var_bv" << "\n";
@@ -1003,13 +1004,10 @@ void LFSCBitVectorProof::printResolutionProof(std::ostream& os,
 }
 
 std::string LFSCBitVectorProof::assignAlias(Expr expr) {
-  static unsigned counter = 0;
-  if (d_exprToVariableName.find(expr) != d_exprToVariableName.end()) {
-    return d_exprToVariableName[expr];
-  }
+  Assert(d_exprToVariableName.find(expr) == d_exprToVariableName.end());
 
   std::stringstream ss;
-  ss << "fbv" << counter++;
+  ss << "fbv" << d_assignedAliases.size();
   Debug("pf::bv") << "assignAlias( " << expr << ") = " << ss.str() << std::endl;
   d_assignedAliases[expr] = ss.str();
   return ss.str();
