@@ -42,14 +42,16 @@ namespace CVC4 {
 namespace theory {
 namespace bv {
 
-TheoryBV::TheoryBV(context::Context* c, context::UserContext* u, OutputChannel& out, Valuation valuation, const LogicInfo& logicInfo)
-  : Theory(THEORY_BV, c, u, out, valuation, logicInfo),
+TheoryBV::TheoryBV(context::Context* c, context::UserContext* u,
+                   OutputChannel& out, Valuation valuation,
+                   const LogicInfo& logicInfo, std::string name)
+  : Theory(THEORY_BV, c, u, out, valuation, logicInfo, name),
     d_context(c),
     d_alreadyPropagatedSet(c),
     d_sharedTermsSet(c),
     d_subtheories(),
     d_subtheoryMap(),
-    d_statistics(),
+    d_statistics(getFullInstanceName()),
     d_staticLearnCache(),
     d_BVDivByZero(),
     d_BVRemByZero(),
@@ -62,7 +64,7 @@ TheoryBV::TheoryBV(context::Context* c, context::UserContext* u, OutputChannel& 
     d_literalsToPropagateIndex(c, 0),
     d_propagatedBy(c),
     d_eagerSolver(NULL),
-    d_abstractionModule(new AbstractionModule()),
+    d_abstractionModule(new AbstractionModule(getFullInstanceName())),
     d_isCoreTheory(false),
     d_calledPreregister(false)
 {
@@ -119,14 +121,14 @@ void TheoryBV::spendResource(unsigned ammount) throw(UnsafeInterruptException) {
   getOutputChannel().spendResource(ammount);
 }
 
-TheoryBV::Statistics::Statistics():
-  d_avgConflictSize("theory::bv::AvgBVConflictSize"),
-  d_solveSubstitutions("theory::bv::NumberOfSolveSubstitutions", 0),
-  d_solveTimer("theory::bv::solveTimer"),
-  d_numCallsToCheckFullEffort("theory::bv::NumberOfFullCheckCalls", 0),
-  d_numCallsToCheckStandardEffort("theory::bv::NumberOfStandardCheckCalls", 0),
-  d_weightComputationTimer("theory::bv::weightComputationTimer"),
-  d_numMultSlice("theory::bv::NumMultSliceApplied", 0)
+TheoryBV::Statistics::Statistics(const std::string &name):
+  d_avgConflictSize(name + "theory::bv::AvgBVConflictSize"),
+  d_solveSubstitutions(name + "theory::bv::NumberOfSolveSubstitutions", 0),
+  d_solveTimer(name + "theory::bv::solveTimer"),
+  d_numCallsToCheckFullEffort(name + "theory::bv::NumberOfFullCheckCalls", 0),
+  d_numCallsToCheckStandardEffort(name + "theory::bv::NumberOfStandardCheckCalls", 0),
+  d_weightComputationTimer(name + "theory::bv::weightComputationTimer"),
+  d_numMultSlice(name + "theory::bv::NumMultSliceApplied", 0)
 {
   smtStatisticsRegistry()->registerStat(&d_avgConflictSize);
   smtStatisticsRegistry()->registerStat(&d_solveSubstitutions);
@@ -234,7 +236,7 @@ void TheoryBV::mkAckermanizationAsssertions(std::vector<Node>& assertions) {
         for (unsigned i = 0; i < args1.getNumChildren(); ++i) {
           eqs[i] = nm->mkNode(kind::EQUAL, args1[i], args2[i]);
         }
-        
+
         Node args_eq = eqs.size() == 1 ? eqs[0] : nm->mkNode(kind::AND, eqs);
         Node func_eq = nm->mkNode(kind::EQUAL, args1, args2);
         Node lemma = nm->mkNode(kind::IMPLIES, args_eq, func_eq);
@@ -276,9 +278,9 @@ Node TheoryBV::expandDefinition(LogicRequest &logicRequest, Node node) {
 
     // if (options::bitblastMode() == theory::bv::BITBLAST_MODE_EAGER) {
     //   // Ackermanize UF if using eager bit-blasting
-    //   Node ackerman_var = nm->mkNode(node.getKind() == kind::BITVECTOR_UDIV ? kind::BITVECTOR_ACKERMANIZE_UDIV : kind::BITVECTOR_ACKERMANIZE_UREM, num); 
+    //   Node ackerman_var = nm->mkNode(node.getKind() == kind::BITVECTOR_UDIV ? kind::BITVECTOR_ACKERMANIZE_UDIV : kind::BITVECTOR_ACKERMANIZE_UREM, num);
     //   node = nm->mkNode(kind::ITE, den_eq_0, ackerman_var, divTotalNumDen);
-    //   return node; 
+    //   return node;
     // } else {
       Node divByZero = getBVDivByZero(node.getKind(), width);
       Node divByZeroNum = nm->mkNode(kind::APPLY_UF, divByZero, num);
@@ -327,7 +329,7 @@ void TheoryBV::sendConflict() {
   if (d_conflictNode.isNull()) {
     return;
   } else {
-    Debug("bitvector") << indent() << "TheoryBV::check(): conflict " << d_conflictNode;
+    Debug("bitvector") << indent() << "TheoryBV::check(): conflict " << d_conflictNode << std::endl;
     d_out->conflict(d_conflictNode);
     d_statistics.d_avgConflictSize.addEntry(d_conflictNode.getNumChildren());
     d_conflictNode = Node::null();
@@ -703,7 +705,7 @@ Node TheoryBV::explain(TNode node) {
   // return the explanation
   Node explanation = utils::mkAnd(assumptions);
   Debug("bitvector::explain") << "TheoryBV::explain(" << node << ") => " << explanation << std::endl;
-  Debug("bitvector::explain") << "TheoryBV::explain done. \n"; 
+  Debug("bitvector::explain") << "TheoryBV::explain done. \n";
   return explanation;
 }
 
@@ -723,7 +725,7 @@ EqualityStatus TheoryBV::getEqualityStatus(TNode a, TNode b)
 {
   if (options::bitblastMode() == theory::bv::BITBLAST_MODE_EAGER)
     return EQUALITY_UNKNOWN;
-  Assert (options::bitblastMode() == theory::bv::BITBLAST_MODE_LAZY); 
+  Assert (options::bitblastMode() == theory::bv::BITBLAST_MODE_LAZY);
   for (unsigned i = 0; i < d_subtheories.size(); ++i) {
     EqualityStatus status = d_subtheories[i]->getEqualityStatus(a, b);
     if (status != EQUALITY_UNKNOWN) {

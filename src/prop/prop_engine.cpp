@@ -132,13 +132,13 @@ void PropEngine::assertFormula(TNode node) {
 void PropEngine::assertLemma(TNode node, bool negated,
                              bool removable,
                              ProofRule rule,
-                             theory::TheoryId ownerTheory,
+                             LemmaProofRecipe* proofRecipe,
                              TNode from) {
   //Assert(d_inCheckSat, "Sat solver should be in solve()!");
   Debug("prop::lemmas") << "assertLemma(" << node << ")" << endl;
 
   // Assert as (possibly) removable
-  d_cnfStream->convertAndAssert(node, removable, negated, rule, from, ownerTheory);
+  d_cnfStream->convertAndAssert(node, removable, negated, rule, from, proofRecipe);
 }
 
 void PropEngine::requirePhase(TNode n, bool phase) {

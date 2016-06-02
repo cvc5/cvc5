@@ -902,11 +902,17 @@ public:
 class EqProof
 {
 public:
+  class PrettyPrinter {
+  public:
+    virtual ~PrettyPrinter() {}
+    virtual std::string printTag(unsigned tag) = 0;
+  };
+
   EqProof() : d_id(MERGED_THROUGH_REFLEXIVITY){}
   unsigned d_id;
   Node d_node;
   std::vector< EqProof * > d_children;
-  void debug_print( const char * c, unsigned tb = 0 ) const;
+  void debug_print(const char * c, unsigned tb = 0, PrettyPrinter* prettyPrinter = NULL) const;
 };/* class EqProof */
 
 } // Namespace eq
