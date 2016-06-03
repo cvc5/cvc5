@@ -82,6 +82,8 @@ TheoryDatatypes::~TheoryDatatypes() {
     Assert(current != NULL);
     delete current;
   }
+  delete d_sygus_split;
+  delete d_sygus_sym_break;
 }
 
 void TheoryDatatypes::setMasterEqualityEngine(eq::EqualityEngine* eq) {

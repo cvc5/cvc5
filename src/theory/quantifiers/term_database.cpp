@@ -238,10 +238,15 @@ void TermDb::computeUfTerms( TNode f ) {
     if( it!=d_op_map.end() ){
       eq::EqualityEngine* ee = d_quantEngine->getMasterEqualityEngine();
       Trace("term-db-debug") << "Adding terms for operator " << f << std::endl;
+      unsigned congruentCount = 0;
+      unsigned nonCongruentCount = 0;
+      unsigned alreadyCongruentCount = 0;
+      unsigned relevantCount = 0;
       for( unsigned i=0; i<it->second.size(); i++ ){
         Node n = it->second[i];
         //to be added to term index, term must be relevant, and exist in EE
         if( hasTermCurrent( n ) && ee->hasTerm( n ) ){
+          relevantCount++;
           if( isTermActive( n ) ){
             computeArgReps( n );
 
@@ -260,7 +265,7 @@ void TermDb::computeUfTerms( TNode f ) {
             if( at!=n && ee->areEqual( at, n ) ){
               setTermInactive( n );
               Trace("term-db-debug") << n << " is redundant." << std::endl;
-              //congruentCount++;
+              congruentCount++;
             }else{
               if( at!=n && ee->areDisequal( at, n, false ) ){
                 std::vector< Node > lits;
@@ -282,29 +287,22 @@ void TermDb::computeUfTerms( TNode f ) {
                 d_consistent_ee = false;
                 return;
               }
-              //nonCongruentCount++;
+              nonCongruentCount++;
               d_op_nonred_count[ f ]++;
             }
           }else{
             Trace("term-db-debug") << n << " is already redundant." << std::endl;
-            //congruentCount++;
-            //alreadyCongruentCount++;
+            alreadyCongruentCount++;
           }
         }else{
           Trace("term-db-debug") << n << " is not relevant." << std::endl;
-          //nonRelevantCount++;
         }
       }
-      
-      /*
-      if( Trace.isOn("term-db-index") ){
-        Trace("term-db-index") << "Term index for " << f << " : " << std::endl;
-        Trace("term-db-index") << "- " << it->first << std::endl;
-        d_func_map_trie[ f ].debugPrint("term-db-index", it->second[0]);
-        Trace("term-db-index") << "Non-Congruent/Congruent/Non-Relevant = ";
-        Trace("term-db-index") << nonCongruentCount << " / " << congruentCount << " (" << alreadyCongruentCount << ") / " << nonRelevantCount << std::endl; 
+      if( Trace.isOn("tdb") ){
+        Trace("tdb") << "Term db size [" << f << "] : " << nonCongruentCount << " / ";
+        Trace("tdb") << ( nonCongruentCount + congruentCount ) << " / " << ( nonCongruentCount + congruentCount + alreadyCongruentCount ) << " / ";
+        Trace("tdb") << relevantCount << " / " << it->second.size() << std::endl;
       }
-      */
     }
   }
 }
@@ -676,10 +674,6 @@ void TermDb::presolve() {
 }
 
 bool TermDb::reset( Theory::Effort effort ){
-  //int nonCongruentCount = 0;
-  //int congruentCount = 0;
-  //int alreadyCongruentCount = 0;
-  //int nonRelevantCount = 0;
   d_op_nonred_count.clear();
   d_arg_reps.clear();
   d_func_map_trie.clear();
@@ -743,20 +737,6 @@ bool TermDb::reset( Theory::Effort effort ){
     }
   }
 */  
-  /*
-  Trace("term-db-stats") << "TermDb: Reset" << std::endl;
-  Trace("term-db-stats") << "Non-Congruent/Congruent/Non-Relevant = ";
-  Trace("term-db-stats") << nonCongruentCount << " / " << congruentCount << " (" << alreadyCongruentCount << ") / " << nonRelevantCount << std::endl;
-  if( Trace.isOn("term-db-index") ){
-    Trace("term-db-index") << "functions : " << std::endl;
-    for( std::map< Node, std::vector< Node > >::iterator it = d_op_map.begin(); it != d_op_map.end(); ++it ){
-      if( it->second.size()>0 ){
-        Trace("term-db-index") << "- " << it->first << std::endl;
-        d_func_map_trie[ it->first ].debugPrint("term-db-index", it->second[0]);
-      }
-    }
-  }
-  */
   return true;
 }
 

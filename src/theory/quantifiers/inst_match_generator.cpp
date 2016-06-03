@@ -32,6 +32,7 @@ namespace theory {
 namespace inst {
 
 InstMatchGenerator::InstMatchGenerator( Node pat ){
+  d_cg = NULL;
   d_needsReset = true;
   d_active_add = false;
   Assert( quantifiers::TermDb::hasInstConstAttr(pat) );
@@ -43,10 +44,18 @@ InstMatchGenerator::InstMatchGenerator( Node pat ){
 }
 
 InstMatchGenerator::InstMatchGenerator() {
+  d_cg = NULL;
   d_needsReset = true;
   d_active_add = false;
   d_next = NULL;
   d_matchPolicy = MATCH_GEN_DEFAULT;
+}
+
+InstMatchGenerator::~InstMatchGenerator() throw() {
+  for( unsigned i=0; i<d_children.size(); i++ ){
+    delete d_children[i];
+  }
+  delete d_cg;
 }
 
 void InstMatchGenerator::setActiveAdd(bool val){
@@ -249,7 +258,7 @@ bool InstMatchGenerator::getMatch( Node f, Node t, InstMatch& m, QuantifiersEngi
       Trace("matching-debug2") << "Reset children..." << std::endl;
       //now, fit children into match
       //we will be requesting candidates for matching terms for each child
-      for( int i=0; i<(int)d_children.size(); i++ ){
+      for( unsigned i=0; i<d_children.size(); i++ ){
         d_children[i]->reset( t[ d_children_index[i] ], qe );
       }
       Trace("matching-debug2") << "Continue next " << d_next << std::endl;
@@ -484,7 +493,7 @@ d_f( q ){
     }
     Debug("smart-multi-trigger") << std::endl;
   }
-  for( int i=0; i<(int)pats.size(); i++ ){
+  for( unsigned i=0; i<pats.size(); i++ ){
     Node n = pats[i];
     //make the match generator
     d_children.push_back( InstMatchGenerator::mkInstMatchGenerator(q, n, qe ) );
@@ -492,7 +501,7 @@ d_f( q ){
     std::vector< int > unique_vars;
     std::map< int, bool > shared_vars;
     int numSharedVars = 0;
-    for( int j=0; j<(int)d_var_contains[n].size(); j++ ){
+    for( unsigned j=0; j<d_var_contains[n].size(); j++ ){
       if( d_var_to_node[ d_var_contains[n][j] ].size()==1 ){
         Debug("smart-multi-trigger") << "Var " << d_var_contains[n][j] << " is unique to " << pats[i] << std::endl;
         unique_vars.push_back( d_var_contains[n][j] );
@@ -503,7 +512,7 @@ d_f( q ){
     }
     //we use the latest shared variables, then unique variables
     std::vector< int > vars;
-    int index = i==0 ? (int)(pats.size()-1) : (i-1);
+    unsigned index = i==0 ? pats.size()-1 : (i-1);
     while( numSharedVars>0 && index!=i ){
       for( std::map< int, bool >::iterator it = shared_vars.begin(); it != shared_vars.end(); ++it ){
         if( it->second ){
@@ -519,16 +528,24 @@ d_f( q ){
     }
     vars.insert( vars.end(), unique_vars.begin(), unique_vars.end() );
     Debug("smart-multi-trigger") << "   Index[" << i << "]: ";
-    for( int i=0; i<(int)vars.size(); i++ ){
-      Debug("smart-multi-trigger") << vars[i] << " ";
+    for( unsigned j=0; j<vars.size(); j++ ){
+      Debug("smart-multi-trigger") << vars[j] << " ";
     }
     Debug("smart-multi-trigger") << std::endl;
     //make ordered inst match trie
-    InstMatchTrie::ImtIndexOrder* imtio = new InstMatchTrie::ImtIndexOrder;
-    imtio->d_order.insert( imtio->d_order.begin(), vars.begin(), vars.end() );
-    d_children_trie.push_back( InstMatchTrieOrdered( imtio ) );
+    d_imtio[i] = new InstMatchTrie::ImtIndexOrder;
+    d_imtio[i]->d_order.insert( d_imtio[i]->d_order.begin(), vars.begin(), vars.end() );
+    d_children_trie.push_back( InstMatchTrieOrdered( d_imtio[i] ) );
   }
+}
 
+InstMatchGeneratorMulti::~InstMatchGeneratorMulti() throw() {
+  for( unsigned i=0; i<d_children.size(); i++ ){
+    delete d_children[i];
+  }
+  for( std::map< unsigned, InstMatchTrie::ImtIndexOrder* >::iterator it = d_imtio.begin(); it != d_imtio.end(); ++it ){
+    delete it->second;
+  }
 }
 
 /** reset instantiation round (call this whenever equivalence classes have changed) */
