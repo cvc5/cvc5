@@ -114,13 +114,11 @@ void TheoryProofEngine::markTermForFutureRegistration(Expr term, theory::TheoryI
 }
 
 void TheoryProofEngine::printConstantDisequalityProof(std::ostream& os, Expr c1, Expr c2) {
-  LetMap emptyMap;
+  Assert(c1.isConst());
+  Assert(c2.isConst());
 
-  os << "(trust_f (not (= _ ";
-  printBoundTerm(c1, os, emptyMap);
-  os << " ";
-  printBoundTerm(c2, os, emptyMap);
-  os << ")))";
+  Assert(theory::Theory::theoryOf(c1) == theory::Theory::theoryOf(c2));
+  getTheoryProof(theory::Theory::theoryOf(c1))->printConstantDisequalityProof(os, c1, c2);
 }
 
 void TheoryProofEngine::registerTerm(Expr term) {
@@ -1098,6 +1096,18 @@ void LFSCBooleanProof::printTheoryLemmaProof(std::vector<Expr>& lemma,
                                              std::ostream& os,
                                              std::ostream& paren) {
   Unreachable("No boolean lemmas yet!");
+}
+
+void TheoryProof::printConstantDisequalityProof(std::ostream& os, Expr c1, Expr c2) {
+  // By default, we just print a trust statement. Specific theories can implement
+  // better proofs.
+  LetMap emptyMap;
+
+  os << "(trust_f (not (= _ ";
+  d_proofEngine->printBoundTerm(c1, os, emptyMap);
+  os << " ";
+  d_proofEngine->printBoundTerm(c2, os, emptyMap);
+  os << ")))";
 }
 
 } /* namespace CVC4 */

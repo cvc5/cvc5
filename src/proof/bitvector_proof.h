@@ -147,6 +147,7 @@ public:
   virtual void printAliasingDeclarations(std::ostream& os, std::ostream& paren);
   virtual void printBitblasting(std::ostream& os, std::ostream& paren);
   virtual void printResolutionProof(std::ostream& os, std::ostream& paren);
+  void printConstantDisequalityProof(std::ostream& os, Expr c1, Expr c2);
 };
 
 }/* CVC4 namespace */

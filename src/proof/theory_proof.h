@@ -315,6 +315,12 @@ public:
    * @param term
    */
   virtual void registerTerm(Expr term) = 0;
+  /**
+   * Print a proof for the disequality of two constants that belong to this theory.
+   *
+   * @param term
+   */
+  virtual void printConstantDisequalityProof(std::ostream& os, Expr c1, Expr c2);
 
   virtual void treatBoolsAsFormulas(bool value) {}
 };

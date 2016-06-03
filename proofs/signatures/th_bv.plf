@@ -49,6 +49,25 @@
 	 (! v bv
 	    (term (BitVec n)))))
 
+(program bv_constants_are_disequal ((x bv) (y bv)) formula
+  (match x
+      (bvn (fail formula))
+      ((bvc bx x')
+        (match y
+          (bvn (fail formula))
+          ((bvc by y') (match bx
+                             (b0 (match by (b0 (bv_constants_are_disequal x' y')) (b1 (true))))
+                             (b1 (match by (b0 (true)) (b1 (bv_constants_are_disequal x' y'))))
+          ))
+      ))
+))
+
+(declare bv_disequal_constants
+	 (! n mpz
+	 (! x bv
+	 (! y bv
+	 (! c (^ (bv_constants_are_disequal x y) true)
+  	   (th_holds (not (= (BitVec n) (a_bv n x) (a_bv n y)))))))))
 
 ; a bv variable
 (declare var_bv type)
