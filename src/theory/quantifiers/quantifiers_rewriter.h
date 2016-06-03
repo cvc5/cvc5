@@ -38,6 +38,7 @@ public:
   static int getPurifyId( Node n );
   static int getPurifyIdLit( Node n );
 private:
+  static bool addCheckElimChild( std::vector< Node >& children, Node c, Kind k, std::map< Node, bool >& lit_pol, bool& childrenChanged );
   static void addNodeToOrBuilder( Node n, NodeBuilder<>& t );
   static Node mkForAll( std::vector< Node >& args, Node body, QAttributes& qa );
   static void computeArgs( std::vector< Node >& args, std::map< Node, bool >& activeMap, Node n, std::map< Node, bool >& visited );
@@ -46,7 +47,6 @@ private:
   static Node computeProcessTerms2( Node body, bool hasPol, bool pol, std::map< Node, bool >& currCond, int nCurrCond,
                                     std::map< Node, Node >& cache, std::map< Node, Node >& icache,
                                     std::vector< Node >& new_vars, std::vector< Node >& new_conds );
-  static Node computeClause( Node n );
   static void computeDtTesterIteSplit( Node n, std::map< Node, Node >& pcons, std::map< Node, std::map< int, Node > >& ncons, std::vector< Node >& conj );
   static bool isConditionalVariableElim( Node n, int pol=0 );
   static bool isVariableElim( Node v, Node s, std::map< Node, std::vector< int > >& var_parent );
@@ -57,15 +57,13 @@ private:
   static Node computeVarElimination2( Node body, std::vector< Node >& args, QAttributes& qa, std::map< Node, std::vector< int > >& var_parent );
 private:
   static Node computeElimSymbols( Node body );
-  static Node computeMiniscoping( Node f, std::vector< Node >& args, Node body, QAttributes& qa );
+  static Node computeMiniscoping( std::vector< Node >& args, Node body, QAttributes& qa );
   static Node computeAggressiveMiniscoping( std::vector< Node >& args, Node body );
-  static Node computeNNF( Node body );
   //cache is dependent upon currCond, icache is not, new_conds are negated conditions
   static Node computeProcessTerms( Node body, std::vector< Node >& new_vars, std::vector< Node >& new_conds, Node q, QAttributes& qa );
   static Node computeCondSplit( Node body, QAttributes& qa );
-  static Node computeCNF( Node body, std::vector< Node >& args, NodeBuilder<>& defs, bool forcePred );
   static Node computePrenex( Node body, std::vector< Node >& args, bool pol );
-  static Node computeSplit( Node f, std::vector< Node >& args, Node body );
+  static Node computeSplit( std::vector< Node >& args, Node body, QAttributes& qa );
   static Node computeVarElimination( Node body, std::vector< Node >& args, QAttributes& qa );
   static Node computePurify( Node body, std::vector< Node >& args, std::map< Node, std::vector< int > >& var_parent );
   static void computePurifyExpand( Node body, std::vector< Node >& conj, std::vector< Node >& args, QAttributes& qa );
@@ -74,7 +72,6 @@ private:
     COMPUTE_ELIM_SYMBOLS = 0,
     COMPUTE_MINISCOPING,
     COMPUTE_AGGRESSIVE_MINISCOPING,
-    COMPUTE_NNF,
     COMPUTE_PROCESS_TERMS,
     COMPUTE_PRENEX,
     COMPUTE_VAR_ELIMINATION,
