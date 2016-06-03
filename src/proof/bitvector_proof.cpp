@@ -677,7 +677,7 @@ void LFSCBitVectorProof::printTermBitblasting(Expr term, std::ostream& os) {
   if (Theory::isLeafOf(term, theory::THEORY_BV) && !term.isConst()) {
     // A term is a leaf if it has no children, or if it belongs to another theory
     os << "(bv_bbl_var " << utils::getSize(term) << " " << d_exprToVariableName[term];
-    os << " _ )";
+    os << " _)";
     return;
   }
 
@@ -711,27 +711,15 @@ void LFSCBitVectorProof::printTermBitblasting(Expr term, std::ostream& os) {
     for (int i = term.getNumChildren() - 1; i > 0; --i) {
       os <<"(bv_bbl_"<< utils::toLFSCKind(kind);
 
-      if (i > 1) {
-        // This is not the inner-most operation; only child i+1 can be aliased
-        if (hasAlias(term[i])) {os << "_alias_2";}
-      } else {
-        // This is the inner-most operation; both children can be aliased
-        if (hasAlias(term[i-1]) || hasAlias(term[i])) {os << "_alias";}
-        if (hasAlias(term[i-1])) {os << "_1";}
-        if (hasAlias(term[i])) {os << "_2";}
-      }
-
       if (kind == kind::BITVECTOR_CONCAT) {
         os << " " << utils::getSize(term) << " _";
       }
       os << " _ _ _ _ _ _ ";
     }
 
-    if (hasAlias(term[0])) {os << "_ " << d_aliasToBindDeclaration[d_assignedAliases[term[0]]] << " ";}
     os << getBBTermName(term[0]) << " ";
 
     for (unsigned i = 1; i < term.getNumChildren(); ++i) {
-      if (hasAlias(term[i])) {os << "_ " << d_aliasToBindDeclaration[d_assignedAliases[term[i]]] << " ";}
       os << getBBTermName(term[i]);
       os << ") ";
     }
@@ -751,14 +739,10 @@ void LFSCBitVectorProof::printTermBitblasting(Expr term, std::ostream& os) {
   case kind::BITVECTOR_EXTRACT : {
     os <<"(bv_bbl_"<<utils::toLFSCKind(kind);
 
-    if (hasAlias(term[0])) {os << "_alias";};
-
     os << " " << utils::getSize(term) << " ";
     os << utils::getExtractHigh(term) << " ";
     os << utils::getExtractLow(term) << " ";
     os << " _ _ _ _ ";
-
-    if (hasAlias(term[0])) {os << "_ " << d_aliasToBindDeclaration[d_assignedAliases[term[0]]] << " ";}
 
     os << getBBTermName(term[0]);
     os <<")";
@@ -767,8 +751,8 @@ void LFSCBitVectorProof::printTermBitblasting(Expr term, std::ostream& os) {
   case kind::BITVECTOR_REPEAT :
   case kind::BITVECTOR_ZERO_EXTEND :
   case kind::BITVECTOR_SIGN_EXTEND : {
-    os <<"(bv_bbl_" <<utils::toLFSCKind(kind) << (hasAlias(term[0]) ? "_alias " : " ");
-    os << utils::getSize(term) <<" ";
+    os << "(bv_bbl_" << utils::toLFSCKind(kind) << " ";
+    os << utils::getSize(term) << " ";
     if (term.getKind() == kind::BITVECTOR_REPEAT) {
       unsigned amount = term.getOperator().getConst<BitVectorRepeat>().repeatAmount;
       os << amount;
@@ -784,7 +768,6 @@ void LFSCBitVectorProof::printTermBitblasting(Expr term, std::ostream& os) {
     }
 
     os <<" _ _ _ _ ";
-    if (hasAlias(term[0])) {os << "_ " << d_aliasToBindDeclaration[d_assignedAliases[term[0]]] << " ";}
     os << getBBTermName(term[0]);
     os <<")";
     return;
@@ -838,23 +821,14 @@ void LFSCBitVectorProof::printAtomBitblasting(Expr atom, std::ostream& os, bool 
 
     os << "(bv_bbl_" << utils::toLFSCKind(atom.getKind());
 
-    if (hasAlias(atom[0]) || hasAlias(atom[1])) {os << "_alias";}
-    if (hasAlias(atom[0])) {os << "_1";}
-    if (hasAlias(atom[1])) {os << "_2";}
-
     if (swap) {os << "_swap";}
 
     os << " _ _ _ _ _ _ ";
-
-    if (hasAlias(atom[0])) {os << "_ " << d_aliasToBindDeclaration[d_assignedAliases[atom[0]]] << " ";}
     os << getBBTermName(atom[0]);
-
     os << " ";
-
-    if (hasAlias(atom[1])) {os << "_ " << d_aliasToBindDeclaration[d_assignedAliases[atom[1]]] << " ";}
     os << getBBTermName(atom[1]);
-
     os << ")";
+
     return;
   }
   default:
@@ -867,12 +841,10 @@ void LFSCBitVectorProof::printAtomBitblastingToFalse(Expr atom, std::ostream& os
 
   os << "(bv_bbl_=_false";
   os << " _ _ _ _ _ _ ";
-  if (hasAlias(atom[0])) {os << "_ " << d_aliasToBindDeclaration[d_assignedAliases[atom[0]]] << " ";}
   os << getBBTermName(atom[0]);
 
   os << " ";
 
-  if (hasAlias(atom[1])) {os << "_ " << d_aliasToBindDeclaration[d_assignedAliases[atom[1]]] << " ";}
   os << getBBTermName(atom[1]);
 
   os << ")";
@@ -905,10 +877,21 @@ void LFSCBitVectorProof::printBitblasting(std::ostream& os, std::ostream& paren)
         options::bitblastMode() != theory::bv::BITBLAST_MODE_EAGER)
       continue;
 
-    os << "(decl_bblast _ _ _ ";
-    printTermBitblasting(*it, os);
-    os << "(\\ "<< getBBTermName(*it) << "\n";
-    paren << "))";
+    // Is this term has an alias, we inject it through the decl_bblast statement
+    if (hasAlias(*it)) {
+      os << "(decl_bblast_with_alias _ _ _ _ ";
+      printTermBitblasting(*it, os);
+      os << " " << d_aliasToBindDeclaration[d_assignedAliases[*it]] << " ";
+      os << "(\\ "<< getBBTermName(*it);
+      os << "\n";
+      paren <<"))";
+    } else {
+      os << "(decl_bblast _ _ _ ";
+      printTermBitblasting(*it, os);
+      os << "(\\ "<< getBBTermName(*it);
+      os << "\n";
+      paren <<"))";
+    }
   }
   // bit-blast atoms
   ExprToExpr::const_iterator ait = d_bbAtoms.begin();
