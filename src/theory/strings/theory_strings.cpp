@@ -2726,23 +2726,17 @@ int TheoryStrings::processSimpleDeq( std::vector< Node >& nfi, std::vector< Node
 
 void TheoryStrings::addNormalFormPair( Node n1, Node n2 ){
   if( !isNormalFormPair( n1, n2 ) ){
-    //Assert( !isNormalFormPair( n1, n2 ) );
-    NodeList* lst;
-    NodeListMap::iterator nf_i = d_nf_pairs.find( n1 );
-    if( nf_i == d_nf_pairs.end() ){
-      if( d_nf_pairs.find( n2 )!=d_nf_pairs.end() ){
-        addNormalFormPair( n2, n1 );
-        return;
-      }
-      lst = new(getSatContext()->getCMM()) NodeList( true, getSatContext(), false,
-                                                           ContextMemoryAllocator<TNode>(getSatContext()->getCMM()) );
-      d_nf_pairs.insertDataFromContextMemory( n1, lst );
-      Trace("strings-nf") << "Create cache for " << n1 << std::endl;
-    } else {
-      lst = (*nf_i).second;
+    int index = 0;
+    NodeIntMap::const_iterator it = d_nf_pairs.find( n1 );
+    if( it!=d_nf_pairs.end() ){
+      index = (*it).second;
     }
-    Trace("strings-nf") << "Add normal form pair : " << n1 << " " << n2 << std::endl;
-    lst->push_back( n2 );
+    d_nf_pairs[n1] = index + 1;
+    if( index<(int)d_nf_pairs_data[n1].size() ){
+      d_nf_pairs_data[n1][index] = n2;
+    }else{
+      d_nf_pairs_data[n1].push_back( n2 );
+    } 
     Assert( isNormalFormPair( n1, n2 ) );
   } else {
     Trace("strings-nf-debug") << "Already a normal form pair " << n1 << " " << n2 << std::endl;
@@ -2755,15 +2749,14 @@ bool TheoryStrings::isNormalFormPair( Node n1, Node n2 ) {
 }
 
 bool TheoryStrings::isNormalFormPair2( Node n1, Node n2 ) {
-    //Trace("strings-debug") << "is normal form pair. " << n1 << " " << n2 << std::endl;
-  NodeList* lst;
-  NodeListMap::iterator nf_i = d_nf_pairs.find( n1 );
-  if( nf_i != d_nf_pairs.end() ) {
-    lst = (*nf_i).second;
-    for( NodeList::const_iterator i = lst->begin(); i != lst->end(); ++i ) {
-      Node n = *i;
-      if( n==n2 ) {
-          return true;
+  //Trace("strings-debug") << "is normal form pair. " << n1 << " " << n2 << std::endl;
+  NodeIntMap::const_iterator it = d_nf_pairs.find( n1 );
+  if( it!=d_nf_pairs.end() ){
+    Assert( d_nf_pairs_data.find( n1 )!=d_nf_pairs_data.end() );
+    for( int i=0; i<(*it).second; i++ ){
+      Assert( i<(int)d_nf_pairs_data[n1].size() );
+      if( d_nf_pairs_data[n1][i]==n2 ){
+        return true;
       }
     }
   }
@@ -3428,6 +3421,26 @@ void TheoryStrings::updateMpl( Node n, int b ) {
 }
 */
 
+
+unsigned TheoryStrings::getNumMemberships( Node n, bool isPos ) {
+  if( isPos ){
+    NodeIntMap::const_iterator it = d_pos_memberships.find( n );
+    if( it!=d_pos_memberships.end() ){
+      return (*it).second;
+    }
+  }else{
+    NodeIntMap::const_iterator it = d_neg_memberships.find( n );
+    if( it!=d_neg_memberships.end() ){
+      return (*it).second;
+    }
+  }
+  return 0;
+}
+
+Node TheoryStrings::getMembership( Node n, bool isPos, unsigned i ) {
+  return isPos ? d_pos_memberships_data[n][i] : d_neg_memberships_data[n][i];
+}
+
 //// Regular Expressions
 Node TheoryStrings::mkRegExpAntec(Node atom, Node ant) {
   if(d_regexp_ant.find(atom) == d_regexp_ant.end()) {
@@ -3505,10 +3518,8 @@ bool TheoryStrings::normalizePosMemberships(std::map< Node, std::vector< Node > 
 
   Trace("regexp-check") << "Normalizing Positive Memberships ... " << std::endl;
 
-  for(NodeListMap::const_iterator itr_xr = d_pos_memberships.begin();
-    itr_xr != d_pos_memberships.end(); ++itr_xr ) {
+  for( NodeIntMap::const_iterator itr_xr = d_pos_memberships.begin(); itr_xr != d_pos_memberships.end(); ++itr_xr ){
     Node x = (*itr_xr).first;
-    NodeList* lst = (*itr_xr).second;
     Node nf_x = x;
     std::vector< Node > nf_x_exp;
     if(d_normal_forms.find( x ) != d_normal_forms.end()) {
@@ -3522,10 +3533,11 @@ bool TheoryStrings::normalizePosMemberships(std::map< Node, std::vector< Node > 
 
     std::vector< Node > vec_x;
     std::vector< Node > vec_r;
-    for(NodeList::const_iterator itr_lst = lst->begin();
-        itr_lst != lst->end(); ++itr_lst) {
-      Node r = *itr_lst;
-      Node nf_r = normalizeRegexp((*lst)[0]);
+    unsigned n_pmem = (*itr_xr).second;
+    Assert( getNumMemberships( x, true )==n_pmem );
+    for( unsigned k=0; k<n_pmem; k++ ){
+      Node r = getMembership( x, true, k );
+      Node nf_r = normalizeRegexp( r );  //AJR: fixed (was normalizing mem #0 always)
       Node memb = NodeManager::currentNM()->mkNode(kind::STRING_IN_REGEXP, nf_x, nf_r);
       if(d_processed_memberships.find(memb) == d_processed_memberships.end()) {
         if(d_regexp_opr.checkConstRegExp(nf_r)) {
@@ -3755,46 +3767,43 @@ void TheoryStrings::checkMemberships() {
   Trace("regexp-debug") << "Checking Memberships ... " << std::endl;
   //if(options::stringEIT()) {
     //TODO: Opt for normal forms
-    for(NodeListMap::const_iterator itr_xr = d_pos_memberships.begin();
-      itr_xr != d_pos_memberships.end(); ++itr_xr ) {
+    for( NodeIntMap::const_iterator itr_xr = d_pos_memberships.begin(); itr_xr != d_pos_memberships.end(); ++itr_xr ){
       bool spflag = false;
       Node x = (*itr_xr).first;
-      NodeList* lst = (*itr_xr).second;
       Trace("regexp-debug") << "Checking Memberships for " << x << std::endl;
       if(d_inter_index.find(x) == d_inter_index.end()) {
         d_inter_index[x] = 0;
       }
       int cur_inter_idx = d_inter_index[x];
-      if(cur_inter_idx != (int)lst->size()) {
-        if(lst->size() == 1) {
-          d_inter_cache[x] = (*lst)[0];
+      unsigned n_pmem = (*itr_xr).second;
+      Assert( getNumMemberships( x, true )==n_pmem );
+      if( cur_inter_idx != (int)n_pmem ) {
+        if( n_pmem == 1) {
+          d_inter_cache[x] = getMembership( x, true, 0 );
           d_inter_index[x] = 1;
           Trace("regexp-debug") << "... only one choice " << std::endl;
-        } else if(lst->size() > 1) {
+        } else if(n_pmem > 1) {
           Node r;
           if(d_inter_cache.find(x) != d_inter_cache.end()) {
             r = d_inter_cache[x];
           }
           if(r.isNull()) {
-            r = (*lst)[0];
+            r = getMembership( x, true, 0 );
             cur_inter_idx = 1;
           }
-          NodeList::const_iterator itr_lst = lst->begin();
-          for(int i=0; i<cur_inter_idx; i++) {
-            ++itr_lst;
-          }
-          Trace("regexp-debug") << "... staring from : " << cur_inter_idx << ", we have " << lst->size() << std::endl;
-          for(;itr_lst != lst->end(); ++itr_lst) {
-            Node r2 = *itr_lst;
+
+          unsigned k_start = cur_inter_idx;
+          Trace("regexp-debug") << "... staring from : " << cur_inter_idx << ", we have " << n_pmem << std::endl;
+          for(unsigned k = k_start; k<n_pmem; k++) {
+            Node r2 = getMembership( x, true, k );
             r = d_regexp_opr.intersect(r, r2, spflag);
             if(spflag) {
               break;
             } else if(r == d_emptyRegexp) {
               std::vector< Node > vec_nodes;
-              ++itr_lst;
-              for(NodeList::const_iterator itr2 = lst->begin();
-                itr2 != itr_lst; ++itr2) {
-                Node n = NodeManager::currentNM()->mkNode(kind::STRING_IN_REGEXP, x, *itr2);
+              for( unsigned kk=0; kk<=k; kk++ ){
+                Node rr = getMembership( x, true, kk );
+                Node n = NodeManager::currentNM()->mkNode(kind::STRING_IN_REGEXP, x, rr);
                 vec_nodes.push_back( n );
               }
               Node conc;
@@ -3809,7 +3818,7 @@ void TheoryStrings::checkMemberships() {
           //updates
           if(!d_conflict && !spflag) {
             d_inter_cache[x] = r;
-            d_inter_index[x] = (int)lst->size();
+            d_inter_index[x] = (int)n_pmem;
           }
         }
       }
@@ -4432,44 +4441,52 @@ void TheoryStrings::addMembership(Node assertion) {
   Node x = atom[0];
   Node r = atom[1];
   if(polarity) {
-    NodeList* lst;
-    NodeListMap::iterator itr_xr = d_pos_memberships.find( x );
-    if( itr_xr == d_pos_memberships.end() ){
-      lst = new(getSatContext()->getCMM()) NodeList( true, getSatContext(), false,
-                                ContextMemoryAllocator<TNode>(getSatContext()->getCMM()) );
-      d_pos_memberships.insertDataFromContextMemory( x, lst );
-    } else {
-      lst = (*itr_xr).second;
-    }
-    //check
-    for( NodeList::const_iterator itr = lst->begin(); itr != lst->end(); ++itr ) {
-      if( r == *itr ) {
-        return;
+    int index = 0;
+    NodeIntMap::const_iterator it = d_pos_memberships.find( x );
+    if( it!=d_nf_pairs.end() ){
+      index = (*it).second;
+      for( int k=0; k<index; k++ ){
+        if( k<(int)d_pos_memberships_data[x].size() ){
+          if( d_pos_memberships_data[x][k]==r ){
+            return;
+          }
+        }else{
+          break;
+        }
       }
     }
-    lst->push_back( r );
+    d_pos_memberships[x] = index + 1;
+    if( index<(int)d_pos_memberships_data[x].size() ){
+      d_pos_memberships_data[x][index] = r;
+    }else{
+      d_pos_memberships_data[x].push_back( r );
+    }
   } else if(!options::stringIgnNegMembership()) {
     /*if(options::stringEIT() && d_regexp_opr.checkConstRegExp(r)) {
       int rt;
       Node r2 = d_regexp_opr.complement(r, rt);
       Node a = NodeManager::currentNM()->mkNode(kind::STRING_IN_REGEXP, x, r2);
     }*/
-    NodeList* lst;
-    NodeListMap::iterator itr_xr = d_neg_memberships.find( x );
-    if( itr_xr == d_neg_memberships.end() ){
-      lst = new(getSatContext()->getCMM()) NodeList( true, getSatContext(), false,
-                                ContextMemoryAllocator<TNode>(getSatContext()->getCMM()) );
-      d_neg_memberships.insertDataFromContextMemory( x, lst );
-    } else {
-      lst = (*itr_xr).second;
-    }
-    //check
-    for( NodeList::const_iterator itr = lst->begin(); itr != lst->end(); ++itr ) {
-      if( r == *itr ) {
-        return;
+    int index = 0;
+    NodeIntMap::const_iterator it = d_neg_memberships.find( x );
+    if( it!=d_nf_pairs.end() ){
+      index = (*it).second;
+      for( int k=0; k<index; k++ ){
+        if( k<(int)d_neg_memberships_data[x].size() ){
+          if( d_neg_memberships_data[x][k]==r ){
+            return;
+          }
+        }else{
+          break;
+        }
       }
     }
-    lst->push_back( r );
+    d_neg_memberships[x] = index + 1;
+    if( index<(int)d_neg_memberships_data[x].size() ){
+      d_neg_memberships_data[x][index] = r;
+    }else{
+      d_neg_memberships_data[x].push_back( r );
+    }
   }
   // old
   if(polarity || !options::stringIgnNegMembership()) {

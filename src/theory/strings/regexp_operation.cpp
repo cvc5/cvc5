@@ -39,6 +39,10 @@ RegExpOpr::RegExpOpr()
   d_sigma_star = NodeManager::currentNM()->mkNode( kind::REGEXP_STAR, d_sigma );
 }
 
+RegExpOpr::~RegExpOpr(){ 
+
+}
+
 int RegExpOpr::gcd ( int a, int b ) {
   int c;
   while ( a != 0 ) {

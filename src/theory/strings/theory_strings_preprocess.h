@@ -40,6 +40,7 @@ private:
   Node simplify( Node t, std::vector< Node > &new_nodes );
 public:
   StringsPreprocess( context::UserContext* u );
+  ~StringsPreprocess();
 
   Node decompose( Node t, std::vector< Node > &new_nodes );
   void simplify(std::vector< Node > &vec_node);
