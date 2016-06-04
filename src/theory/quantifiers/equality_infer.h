@@ -39,7 +39,7 @@ class EqualityInference
   typedef context::CDHashMap< Node, Node, NodeHashFunction > NodeMap;
   typedef context::CDHashMap< Node, bool, NodeHashFunction > BoolMap;
   typedef context::CDChunkList<Node> NodeList;
-  typedef context::CDHashMap< Node, NodeList *, NodeHashFunction > NodeListMap;
+  typedef context::CDHashMap< Node, int, NodeHashFunction > NodeIntMap;
 private:
   context::Context * d_c;
   Node d_one;
@@ -67,11 +67,13 @@ private:
   BoolMap d_elim_vars;
   std::map< Node, EqcInfo * > d_eqci;
   NodeMap d_rep_to_eqc;
-  NodeListMap d_rep_exp;
+  NodeIntMap d_rep_exp;
+  std::map< Node, std::vector< Node > > d_rep_exp_data;
   /** set eqc rep */
   void setEqcRep( Node t, Node r, std::vector< Node >& exp_to_add, EqcInfo * eqci );
   /** use list */
-  NodeListMap d_uselist;
+  NodeIntMap d_uselist;
+  std::map< Node, std::vector< Node > > d_uselist_data;
   void addToUseList( Node used, Node eqc );
   /** pending merges */
   NodeList d_pending_merges;
