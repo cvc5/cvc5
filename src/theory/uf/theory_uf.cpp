@@ -502,7 +502,7 @@ void TheoryUF::addCarePairs( quantifiers::TermArgTrie * t1, quantifiers::TermArg
 void TheoryUF::computeCareGraph() {
 
   if (d_sharedTerms.size() > 0) {
-    //use term indexing 
+    //use term indexing
     Debug("uf::sharing") << "TheoryUf::computeCareGraph(): Build term indices..." << std::endl;
     std::map< Node, quantifiers::TermArgTrie > index;
     std::map< Node, unsigned > arity;
@@ -533,6 +533,7 @@ void TheoryUF::computeCareGraph() {
 
 void TheoryUF::conflict(TNode a, TNode b) {
   eq::EqProof* pf = d_proofsEnabled ? new eq::EqProof() : NULL;
+
   if (a.getKind() == kind::CONST_BOOLEAN) {
     d_conflictNode = explain(a.iffNode(b),pf);
   } else {

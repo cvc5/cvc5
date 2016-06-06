@@ -232,6 +232,8 @@ CRef Solver::reason(Var x) {
     vec<Lit> explanation;
     MinisatSatSolver::toMinisatClause(explanation_cl, explanation);
 
+    Debug("pf::sat") << "Solver::reason: explanation_cl = " << explanation_cl << std::endl;
+
     // Sort the literals by trail index level
     lemma_lt lt(*this);
     sort(explanation, lt);
@@ -266,6 +268,12 @@ CRef Solver::reason(Var x) {
     }
     explanation.shrink(i - j);
 
+    Debug("pf::sat") << "Solver::reason: explanation = " ;
+    for (int i = 0; i < explanation.size(); ++i) {
+      Debug("pf::sat") << explanation[i] << " ";
+    }
+    Debug("pf::sat") << std::endl;
+
     // We need an explanation clause so we add a fake literal
     if (j == 1) {
       // Add not TRUE to the clause
@@ -276,6 +284,7 @@ CRef Solver::reason(Var x) {
     CRef real_reason = ca.alloc(explLevel, explanation, true);
     // FIXME: at some point will need more information about where this explanation
     // came from (ie. the theory/sharing)
+    Debug("pf::sat") << "Minisat::Solver registering a THEORY_LEMMA (1)" << std::endl;
     PROOF (ClauseId id = ProofManager::getSatProof()->registerClause(real_reason, THEORY_LEMMA);
            ProofManager::getCnfProof()->registerConvertedClause(id, true);
            // no need to pop current assertion as this is not converted to cnf
@@ -336,6 +345,12 @@ bool Solver::addClause_(vec<Lit>& ps, bool removable, ClauseId& id)
 
     // If we are in solve or decision level > 0
     if (minisat_busy || decisionLevel() > 0) {
+      Debug("pf::sat") << "Add clause adding a new lemma: ";
+      for (int k = 0; k < ps.size(); ++k) {
+        Debug("pf::sat") << ps[k] << " ";
+      }
+      Debug("pf::sat") << std::endl;
+
       lemmas.push();
       ps.copyTo(lemmas.last());
       lemmas_removable.push(removable);
@@ -1666,6 +1681,13 @@ CRef Solver::updateLemmas() {
     {
       // The current lemma
       vec<Lit>& lemma = lemmas[i];
+
+      Debug("pf::sat") << "Solver::updateLemmas: working on lemma: ";
+      for (int k = 0; k < lemma.size(); ++k) {
+        Debug("pf::sat") << lemma[k] << " ";
+      }
+      Debug("pf::sat") << std::endl;
+
       // If it's an empty lemma, we have a conflict at zero level
       if (lemma.size() == 0) {
         Assert (! PROOF_ON());
@@ -1725,6 +1747,7 @@ CRef Solver::updateLemmas() {
          TNode cnf_assertion = lemmas_cnf_assertion[i].first;
          TNode cnf_def = lemmas_cnf_assertion[i].second;
 
+         Debug("pf::sat") << "Minisat::Solver registering a THEORY_LEMMA (2)" << std::endl;
          ClauseId id = ProofManager::getSatProof()->registerClause(lemma_ref, THEORY_LEMMA);
          ProofManager::getCnfProof()->setClauseAssertion(id, cnf_assertion);
          ProofManager::getCnfProof()->setClauseDefinition(id, cnf_def);
@@ -1741,6 +1764,7 @@ CRef Solver::updateLemmas() {
          Node cnf_assertion = lemmas_cnf_assertion[i].first;
          Node cnf_def = lemmas_cnf_assertion[i].second;
 
+         Debug("pf::sat") << "Minisat::Solver registering a THEORY_LEMMA (3)" << std::endl;
          ClauseId id = ProofManager::getSatProof()->registerUnitClause(lemma[0], THEORY_LEMMA);
          ProofManager::getCnfProof()->setClauseAssertion(id, cnf_assertion);
          ProofManager::getCnfProof()->setClauseDefinition(id, cnf_def);

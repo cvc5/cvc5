@@ -37,7 +37,7 @@ class BitblastSolver : public SubtheorySolver {
   struct Statistics {
     IntStat d_numCallstoCheck;
     IntStat d_numBBLemmas;
-    Statistics();
+    Statistics(const std::string &instanceName);
     ~Statistics();
   };
   /** Bitblaster */
@@ -71,8 +71,8 @@ public:
   Node getModelValue(TNode node);
   bool isComplete() { return true; }
   void bitblastQueue();
-  void setAbstraction(AbstractionModule* module); 
-  uint64_t computeAtomWeight(TNode atom); 
+  void setAbstraction(AbstractionModule* module);
+  uint64_t computeAtomWeight(TNode atom);
   void setProofLog( BitVectorProof * bvp );
 };
 

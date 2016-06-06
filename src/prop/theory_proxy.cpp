@@ -99,29 +99,34 @@ void TheoryProxy::explainPropagation(SatLiteral l, SatClause& explanation) {
   TNode lNode = d_cnfStream->getNode(l);
   Debug("prop-explain") << "explainPropagation(" << lNode << ")" << std::endl;
 
-  NodeTheoryPair theoryExplanation = d_theoryEngine->getExplanationAndExplainer(lNode);
-  Node explanationNode = theoryExplanation.node;
-  theory::TheoryId explainerTheory = theoryExplanation.theory;
+  LemmaProofRecipe* proofRecipe = NULL;
+  PROOF(proofRecipe = new LemmaProofRecipe;);
+
+  Node theoryExplanation = d_theoryEngine->getExplanationAndRecipe(lNode, proofRecipe);
 
   PROOF({
-      ProofManager::getCnfProof()->pushCurrentAssertion(explanationNode);
-      ProofManager::getCnfProof()->setExplainerTheory(explainerTheory);
+      ProofManager::getCnfProof()->pushCurrentAssertion(theoryExplanation);
+      ProofManager::getCnfProof()->setProofRecipe(proofRecipe);
 
-      Debug("pf::sat") << "TheoryProxy::explainPropagation: setting explainer theory to: "
-                        << explainerTheory << std::endl;
+      Debug("pf::sat") << "TheoryProxy::explainPropagation: setting lemma recipe to: "
+                       << std::endl;
+      proofRecipe->dump("pf::sat");
+
+      delete proofRecipe;
+      proofRecipe = NULL;
     });
 
-  Debug("prop-explain") << "explainPropagation() => " << explanationNode << std::endl;
-  if (explanationNode.getKind() == kind::AND) {
-    Node::const_iterator it = explanationNode.begin();
-    Node::const_iterator it_end = explanationNode.end();
+  Debug("prop-explain") << "explainPropagation() => " << theoryExplanation << std::endl;
+  if (theoryExplanation.getKind() == kind::AND) {
+    Node::const_iterator it = theoryExplanation.begin();
+    Node::const_iterator it_end = theoryExplanation.end();
     explanation.push_back(l);
     for (; it != it_end; ++ it) {
       explanation.push_back(~d_cnfStream->getLiteral(*it));
     }
   } else {
     explanation.push_back(l);
-    explanation.push_back(~d_cnfStream->getLiteral(explanationNode));
+    explanation.push_back(~d_cnfStream->getLiteral(theoryExplanation));
   }
 }
 
@@ -175,7 +180,9 @@ void TheoryProxy::notifyRestart() {
           if(lemmaCount % 1 == 0) {
             Debug("shared") << "=) " << asNode << std::endl;
           }
-          d_propEngine->assertLemma(d_theoryEngine->preprocess(asNode), false, true, RULE_INVALID, theory::THEORY_LAST);
+
+          LemmaProofRecipe* noProofRecipe = NULL;
+          d_propEngine->assertLemma(d_theoryEngine->preprocess(asNode), false, true, RULE_INVALID, noProofRecipe);
         } else {
           Debug("shared") << "=(" << asNode << std::endl;
         }
