@@ -552,10 +552,10 @@ class SmtEnginePrivate : public NodeManagerListener {
    */
   unsigned d_simplifyAssertionsDepth;
 
-  /** whether certain preprocess steps are necessary */
-  bool d_needsExpandDefs;
-  bool d_needsRewriteBoolTerms;
-  bool d_needsConstrainSubTypes;
+  /** TODO: whether certain preprocess steps are necessary */
+  //bool d_needsExpandDefs;
+  //bool d_needsRewriteBoolTerms;
+  //bool d_needsConstrainSubTypes;
 
 public:
   /**
@@ -684,9 +684,9 @@ public:
     d_abstractValueMap(&d_fakeContext),
     d_abstractValues(),
     d_simplifyAssertionsDepth(0),
-    d_needsExpandDefs(true),
-    d_needsRewriteBoolTerms(true),
-    d_needsConstrainSubTypes(true), //TODO
+    //d_needsExpandDefs(true),
+    //d_needsRewriteBoolTerms(true),
+    //d_needsConstrainSubTypes(true), //TODO
     d_iteSkolemMap(),
     d_iteRemover(smt.d_userContext),
     d_pbsProcessor(smt.d_userContext),

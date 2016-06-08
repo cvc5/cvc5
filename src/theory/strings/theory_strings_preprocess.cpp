@@ -33,6 +33,10 @@ StringsPreprocess::StringsPreprocess( context::UserContext* u ) : d_cache( u ){
   d_zero = NodeManager::currentNM()->mkConst( ::CVC4::Rational(0) );
 }
 
+StringsPreprocess::~StringsPreprocess(){
+
+}
+
 /*
 int StringsPreprocess::checkFixLenVar( Node t ) {
   int ret = 2;

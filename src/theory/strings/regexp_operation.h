@@ -99,6 +99,7 @@ private:
 
 public:
   RegExpOpr();
+  ~RegExpOpr();
 
   bool checkConstRegExp( Node r );
   void simplify(Node t, std::vector< Node > &new_nodes, bool polarity);

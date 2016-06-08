@@ -42,9 +42,7 @@ class SubsortSymmetryBreaker {
   typedef context::CDHashMap<Node, bool, NodeHashFunction> NodeBoolMap;
   typedef context::CDHashMap<Node, int, NodeHashFunction> NodeIntMap;
   typedef context::CDHashMap<Node, Node, NodeHashFunction> NodeNodeMap;
-  //typedef context::CDChunkList<int> IntList;
   typedef context::CDList<Node> NodeList;
-  typedef context::CDHashMap<Node, NodeList*, NodeHashFunction> NodeListMap;
 private:
   /** quantifiers engine */
   QuantifiersEngine* d_qe;

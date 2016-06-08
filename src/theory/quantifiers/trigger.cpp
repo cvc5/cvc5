@@ -86,7 +86,7 @@ Trigger::Trigger( QuantifiersEngine* qe, Node f, std::vector< Node >& nodes )
 }
 
 Trigger::~Trigger() {
-  if(d_mg != NULL) { delete d_mg; }
+  delete d_mg;
 }
 
 void Trigger::resetInstantiationRound(){

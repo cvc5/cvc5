@@ -42,7 +42,7 @@ namespace datatypes {
 class TheoryDatatypes : public Theory {
 private:
   typedef context::CDChunkList<Node> NodeList;
-  typedef context::CDHashMap<Node, NodeList*, NodeHashFunction> NodeListMap;
+  typedef context::CDHashMap< Node, int, NodeHashFunction> NodeIntMap;
   typedef context::CDHashMap< Node, bool, NodeHashFunction > BoolMap;
   typedef context::CDHashMap< Node, Node, NodeHashFunction > NodeMap;
 
@@ -162,9 +162,11 @@ private:
    *   NOT is_[constructor_1]( t )...NOT is_[constructor_n]( t )  followed by
    *   is_[constructor_(n+1)]( t ), each of which is a unique tester.
   */
-  NodeListMap d_labels;
+  NodeIntMap d_labels;
+  std::map< Node, std::vector< Node > > d_labels_data;
   /** selector apps for eqch equivalence class */
-  NodeListMap d_selector_apps;
+  NodeIntMap d_selector_apps;
+  std::map< Node, std::vector< Node > > d_selector_apps_data;
   /** constructor terms */
   //BoolMap d_consEqc;
   /** Are we in conflict */

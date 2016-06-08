@@ -50,7 +50,6 @@ typedef expr::Attribute< StringsProxyVarAttributeId, bool > StringsProxyVarAttri
 
 class TheoryStrings : public Theory {
   typedef context::CDChunkList<Node> NodeList;
-  typedef context::CDHashMap<Node, NodeList*, NodeHashFunction> NodeListMap;
   typedef context::CDHashMap<Node, bool, NodeHashFunction> NodeBoolMap;
   typedef context::CDHashMap<Node, int, NodeHashFunction> NodeIntMap;
   typedef context::CDHashMap<Node, Node, NodeHashFunction> NodeNodeMap;
@@ -165,7 +164,8 @@ private:
   std::map< Node, std::vector< Node > > d_normal_forms_exp;
   std::map< Node, std::map< Node, std::map< bool, int > > > d_normal_forms_exp_depend;
   //map of pairs of terms that have the same normal form
-  NodeListMap d_nf_pairs;
+  NodeIntMap d_nf_pairs;
+  std::map< Node, std::vector< Node > > d_nf_pairs_data;
   void addNormalFormPair( Node n1, Node n2 );
   bool isNormalFormPair( Node n1, Node n2 );
   bool isNormalFormPair2( Node n1, Node n2 );
@@ -421,8 +421,12 @@ private:
   NodeSet d_regexp_ucached;
   NodeSet d_regexp_ccached;
   // stored assertions
-  NodeListMap d_pos_memberships;
-  NodeListMap d_neg_memberships;
+  NodeIntMap d_pos_memberships;
+  std::map< Node, std::vector< Node > > d_pos_memberships_data;
+  NodeIntMap d_neg_memberships;
+  std::map< Node, std::vector< Node > > d_neg_memberships_data;
+  unsigned getNumMemberships( Node n, bool isPos );
+  Node getMembership( Node n, bool isPos, unsigned i );
   // semi normal forms for symbolic expression
   std::map< Node, Node > d_nf_regexps;
   std::map< Node, std::vector< Node > > d_nf_regexps_exp;
