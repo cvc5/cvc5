@@ -69,18 +69,18 @@ inline static bool match(TNode n1, TNode n2) {
 void ProofArith::toStream(std::ostream& out) {
   Trace("theory-proof-debug") << "; Print Arith proof..." << std::endl;
   //AJR : carry this further?
-  LetMap map;
+  ProofLetMap map;
   toStreamLFSC(out, ProofManager::getArithProof(), d_proof, map);
 }
 
-void ProofArith::toStreamLFSC(std::ostream& out, TheoryProof * tp, theory::eq::EqProof * pf, const LetMap& map) {
+void ProofArith::toStreamLFSC(std::ostream& out, TheoryProof * tp, theory::eq::EqProof * pf, const ProofLetMap& map) {
   Debug("lfsc-arith") << "Printing arith proof in LFSC : " << std::endl;
   pf->debug_print("lfsc-arith");
   Debug("lfsc-arith") << std::endl;
   toStreamRecLFSC( out, tp, pf, 0, map );
 }
 
-Node ProofArith::toStreamRecLFSC(std::ostream& out, TheoryProof * tp, theory::eq::EqProof * pf, unsigned tb, const LetMap& map) {
+Node ProofArith::toStreamRecLFSC(std::ostream& out, TheoryProof * tp, theory::eq::EqProof * pf, unsigned tb, const ProofLetMap& map) {
   Debug("pf::arith") << std::endl << std::endl << "toStreamRecLFSC called. tb = " << tb << " . proof:" << std::endl;
   pf->debug_print("pf::arith");
   Debug("pf::arith") << std::endl;
@@ -643,7 +643,7 @@ void ArithProof::registerTerm(Expr term) {
   }
 }
 
-void LFSCArithProof::printOwnedTerm(Expr term, std::ostream& os, const LetMap& map) {
+void LFSCArithProof::printOwnedTerm(Expr term, std::ostream& os, const ProofLetMap& map) {
   Debug("pf::arith") << "Arith print term: " << term << ". Kind: " << term.getKind()
                      << ". Type: " << term.getType()
                      << ". Number of children: " << term.getNumChildren() << std::endl;
@@ -810,14 +810,14 @@ void LFSCArithProof::printOwnedSort(Type type, std::ostream& os) {
   }
 }
 
-void LFSCArithProof::printTheoryLemmaProof(std::vector<Expr>& lemma, std::ostream& os, std::ostream& paren) {
+void LFSCArithProof::printTheoryLemmaProof(std::vector<Expr>& lemma, std::ostream& os, std::ostream& paren, const ProofLetMap& map) {
   os << " ;; Arith Theory Lemma \n;;";
   for (unsigned i = 0; i < lemma.size(); ++i) {
     os << lemma[i] <<" ";
   }
   os <<"\n";
   //os << " (clausify_false trust)";
-  ArithProof::printTheoryLemmaProof( lemma, os, paren );
+  ArithProof::printTheoryLemmaProof(lemma, os, paren, map);
 }
 
 void LFSCArithProof::printSortDeclarations(std::ostream& os, std::ostream& paren) {

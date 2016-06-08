@@ -25,6 +25,7 @@
 #include "prop/bvminisat/bvminisat.h"
 #include "theory/bv/bitblaster_template.h"
 #include "theory/bv/theory_bv.h"
+#include "theory/bv/theory_bv_rewrite_rules.h"
 
 using namespace CVC4::theory;
 using namespace CVC4::theory::bv;
@@ -272,7 +273,7 @@ void BitVectorProof::finalizeConflicts(std::vector<Expr>& conflicts) {
   }
 }
 
-void LFSCBitVectorProof::printOwnedTerm(Expr term, std::ostream& os, const LetMap& map) {
+void LFSCBitVectorProof::printOwnedTerm(Expr term, std::ostream& os, const ProofLetMap& map) {
   Debug("pf::bv") << std::endl << "(pf::bv) LFSCBitVectorProof::printOwnedTerm( " << term << " ), theory is: "
                   << Theory::theoryOf(term) << std::endl;
 
@@ -367,7 +368,7 @@ void LFSCBitVectorProof::printOwnedTerm(Expr term, std::ostream& os, const LetMa
   }
 }
 
-void LFSCBitVectorProof::printBitOf(Expr term, std::ostream& os, const LetMap& map) {
+void LFSCBitVectorProof::printBitOf(Expr term, std::ostream& os, const ProofLetMap& map) {
   Assert (term.getKind() == kind::BITVECTOR_BITOF);
   unsigned bit = term.getOperator().getConst<BitVectorBitOf>().bitIndex;
   Expr var = term[0];
@@ -395,7 +396,7 @@ void LFSCBitVectorProof::printConstant(Expr term, std::ostream& os) {
   os << paren.str();
 }
 
-void LFSCBitVectorProof::printOperatorNary(Expr term, std::ostream& os, const LetMap& map) {
+void LFSCBitVectorProof::printOperatorNary(Expr term, std::ostream& os, const ProofLetMap& map) {
   std::string op = utils::toLFSCKind(term.getKind());
   std::ostringstream paren;
   std::string holes = term.getKind() == kind::BITVECTOR_CONCAT ? "_ _ " : "";
@@ -413,7 +414,7 @@ void LFSCBitVectorProof::printOperatorNary(Expr term, std::ostream& os, const Le
   }
 }
 
-void LFSCBitVectorProof::printOperatorUnary(Expr term, std::ostream& os, const LetMap& map) {
+void LFSCBitVectorProof::printOperatorUnary(Expr term, std::ostream& os, const ProofLetMap& map) {
   os <<"(";
   os << utils::toLFSCKind(term.getKind()) << " " << utils::getSize(term) <<" ";
   os << " ";
@@ -421,7 +422,7 @@ void LFSCBitVectorProof::printOperatorUnary(Expr term, std::ostream& os, const L
   os <<")";
 }
 
-void LFSCBitVectorProof::printPredicate(Expr term, std::ostream& os, const LetMap& map) {
+void LFSCBitVectorProof::printPredicate(Expr term, std::ostream& os, const ProofLetMap& map) {
   os <<"(";
   os << utils::toLFSCKind(term.getKind()) << " " << utils::getSize(term[0]) <<" ";
   os << " ";
@@ -431,7 +432,7 @@ void LFSCBitVectorProof::printPredicate(Expr term, std::ostream& os, const LetMa
   os <<")";
 }
 
-void LFSCBitVectorProof::printOperatorParametric(Expr term, std::ostream& os, const LetMap& map) {
+void LFSCBitVectorProof::printOperatorParametric(Expr term, std::ostream& os, const ProofLetMap& map) {
   os <<"(";
   os << utils::toLFSCKind(term.getKind()) << " " << utils::getSize(term) <<" ";
   os <<" ";
@@ -466,7 +467,7 @@ void LFSCBitVectorProof::printOwnedSort(Type type, std::ostream& os) {
   os << "(BitVec "<<width<<")";
 }
 
-void LFSCBitVectorProof::printTheoryLemmaProof(std::vector<Expr>& lemma, std::ostream& os, std::ostream& paren) {
+void LFSCBitVectorProof::printTheoryLemmaProof(std::vector<Expr>& lemma, std::ostream& os, std::ostream& paren, const ProofLetMap& map) {
   Debug("pf::bv") << "(pf::bv) LFSCBitVectorProof::printTheoryLemmaProof called" << std::endl;
   Expr conflict = utils::mkSortedExpr(kind::OR, lemma);
   Debug("pf::bv") << "\tconflict = " << conflict << std::endl;
@@ -658,7 +659,7 @@ void LFSCBitVectorProof::printAliasingDeclarations(std::ostream& os, std::ostrea
     os << "(trust_f ";
     os << "(= (BitVec " << utils::getSize(it->first) << ") ";
     os << "(a_var_bv " << utils::getSize(it->first) << " " << it->second << ") ";
-    LetMap emptyMap;
+    ProofLetMap emptyMap;
     d_proofEngine->printBoundTerm(it->first, os, emptyMap);
     os << ")) ";
     os << "(\\ "<< d_aliasToBindDeclaration[it->second] << "\n";
@@ -942,31 +943,28 @@ void LFSCBitVectorProof::printBitblasting(std::ostream& os, std::ostream& paren)
   }
 }
 
-void LFSCBitVectorProof::printResolutionProof(std::ostream& os,
-                                              std::ostream& paren) {
-  // collect the input clauses used
+void LFSCBitVectorProof::calculateAtomsInBitblastingProof() {
+  // Collect the input clauses used
   IdToSatClause used_lemmas;
   IdToSatClause used_inputs;
-  d_resolutionProof->collectClausesUsed(used_inputs,
-                                        used_lemmas);
-  Assert (used_lemmas.empty());
+  d_resolutionProof->collectClausesUsed(used_inputs, used_lemmas);
+  d_cnfProof->collectAtomsForClauses(used_inputs, d_atomsInBitblastingProof);
+  Assert(used_lemmas.empty());
+}
 
-  IdToSatClause::iterator it2;
-  Debug("pf::bv") << std::endl << "BV Used inputs: " << std::endl;
-  for (it2 = used_inputs.begin(); it2 != used_inputs.end(); ++it2) {
-    Debug("pf::bv") << "\t input = " << *(it2->second) << std::endl;
-  }
-  Debug("pf::bv") << std::endl;
+const std::set<Node>* LFSCBitVectorProof::getAtomsInBitblastingProof() {
+  return &d_atomsInBitblastingProof;
+}
 
+void LFSCBitVectorProof::printResolutionProof(std::ostream& os,
+                                              std::ostream& paren,
+                                              ProofLetMap& letMap) {
   // print mapping between theory atoms and internal SAT variables
   os << std::endl << ";; BB atom mapping\n" << std::endl;
 
-  std::set<Node> atoms;
-  d_cnfProof->collectAtomsForClauses(used_inputs, atoms);
-
   std::set<Node>::iterator atomIt;
   Debug("pf::bv") << std::endl << "BV Dumping atoms from inputs: " << std::endl << std::endl;
-  for (atomIt = atoms.begin(); atomIt != atoms.end(); ++atomIt) {
+  for (atomIt = d_atomsInBitblastingProof.begin(); atomIt != d_atomsInBitblastingProof.end(); ++atomIt) {
     Debug("pf::bv") << "\tAtom: " << *atomIt << std::endl;
   }
   Debug("pf::bv") << std::endl;
@@ -975,7 +973,11 @@ void LFSCBitVectorProof::printResolutionProof(std::ostream& os,
   printBitblasting(os, paren);
 
   // print CNF conversion proof for bit-blasted facts
-  d_cnfProof->printAtomMapping(atoms, os, paren);
+  IdToSatClause used_lemmas;
+  IdToSatClause used_inputs;
+  d_resolutionProof->collectClausesUsed(used_inputs, used_lemmas);
+
+  d_cnfProof->printAtomMapping(d_atomsInBitblastingProof, os, paren, letMap);
   os << std::endl << ";; Bit-blasting definitional clauses \n" << std::endl;
   for (IdToSatClause::iterator it = used_inputs.begin();
        it != used_inputs.end(); ++it) {
@@ -1027,6 +1029,15 @@ void LFSCBitVectorProof::printConstantDisequalityProof(std::ostream& os, Expr c1
   os << "bvn";
   os << paren.str();
 
+  os << ")";
+}
+
+void LFSCBitVectorProof::printRewriteProof(std::ostream& os, const Node &n1, const Node &n2) {
+  ProofLetMap emptyMap;
+  os << "(rr_bv_default ";
+  d_proofEngine->printBoundTerm(n2.toExpr(), os, emptyMap);
+  os << " ";
+  d_proofEngine->printBoundTerm(n1.toExpr(), os, emptyMap);
   os << ")";
 }
 

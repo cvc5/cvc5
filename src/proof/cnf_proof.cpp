@@ -337,6 +337,28 @@ void LFSCCnfProof::printAtomMapping(const std::set<Node>& atoms,
   }
 }
 
+void LFSCCnfProof::printAtomMapping(const std::set<Node>& atoms,
+                                    std::ostream& os,
+                                    std::ostream& paren,
+                                    ProofLetMap &letMap) {
+  std::set<Node>::const_iterator it = atoms.begin();
+  std::set<Node>::const_iterator end = atoms.end();
+
+  for (;it != end; ++it) {
+    os << "(decl_atom ";
+    Node atom = *it;
+    prop::SatVariable var = getLiteral(atom).getSatVariable();
+    //FIXME hideous
+    LFSCTheoryProofEngine* pe = (LFSCTheoryProofEngine*)ProofManager::currentPM()->getTheoryProofEngine();
+    // pe->printLetTerm(atom.toExpr(), os);
+    pe->printBoundTerm(atom.toExpr(), os, letMap);
+
+    os << " (\\ " << ProofManager::getVarName(var, d_name);
+    os << " (\\ " << ProofManager::getAtomName(var, d_name) << "\n";
+    paren << ")))";
+  }
+}
+
 // maps each expr to the position it had in the clause and the polarity it had
 Node LFSCCnfProof::clauseToNode(const prop::SatClause& clause,
                                 std::map<Node, unsigned>& childIndex,

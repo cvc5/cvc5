@@ -32,6 +32,58 @@ typedef __gnu_cxx::hash_set<Node, NodeHashFunction> NodeSet;
 typedef std::pair<Node, Node> NodePair;
 typedef std::set<NodePair> NodePairSet;
 
+
+struct ProofLetCount {
+  static unsigned counter;
+  static void resetCounter() { counter = 0; }
+  static unsigned newId() { return ++counter; }
+
+  unsigned count;
+  unsigned id;
+  ProofLetCount()
+    : count(0)
+    , id(-1)
+  {}
+
+  void increment() { ++count; }
+  ProofLetCount(unsigned i)
+    : count(1)
+    , id(i)
+  {}
+
+  ProofLetCount(const ProofLetCount& other)
+    : count(other.count)
+    , id (other.id)
+  {}
+
+  bool operator==(const ProofLetCount &other) const {
+    return other.id == id && other.count == count;
+  }
+
+  ProofLetCount& operator=(const ProofLetCount &rhs) {
+    if (&rhs == this) return *this;
+    id = rhs.id;
+    count = rhs.count;
+    return *this;
+  }
+};
+
+struct LetOrderElement {
+  Expr expr;
+  unsigned id;
+  LetOrderElement(Expr e, unsigned i)
+    : expr(e)
+    , id(i)
+  {}
+
+  LetOrderElement()
+    : expr()
+    , id(-1)
+  {}
+};
+
+typedef std::vector<LetOrderElement> Bindings;
+
 namespace utils {
 
 std::string toLFSCKind(Kind kind);

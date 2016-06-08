@@ -20,6 +20,7 @@
 #include "base/cvc4_assert.h"
 #include "context/context.h"
 #include "options/bv_options.h"
+#include "options/proof_options.h"
 #include "proof/bitvector_proof.h"
 #include "proof/clause_id.h"
 #include "proof/cnf_proof.h"
@@ -335,6 +336,10 @@ LFSCProof::LFSCProof(SmtEngine* smtEngine,
   , d_smtEngine(smtEngine)
 {}
 
+void LFSCProof::toStream(std::ostream& out, const ProofLetMap& map) {
+  Unreachable();
+}
+
 void LFSCProof::toStream(std::ostream& out) {
 
   Assert(options::bitblastMode() != theory::bv::BITBLAST_MODE_EAGER);
@@ -469,6 +474,16 @@ void LFSCProof::toStream(std::ostream& out) {
   out << " ;; Printing deferred declarations \n\n";
   d_theoryProof->printDeferredDeclarations(out, paren);
 
+  d_theoryProof->finalizeBvConflicts(used_lemmas, out);
+  ProofManager::getBitVectorProof()->calculateAtomsInBitblastingProof();
+
+  out << "\n ;; Printing the global let map \n";
+
+  ProofLetMap globalLetMap;
+  if (options::lfscLetification()) {
+    ProofManager::currentPM()->printGlobalLetMap(atoms, globalLetMap, out, paren);
+  }
+
   out << " ;; Printing aliasing declarations \n\n";
   d_theoryProof->printAliasingDeclarations(out, paren);
 
@@ -476,11 +491,11 @@ void LFSCProof::toStream(std::ostream& out) {
   d_theoryProof->printLemmaRewrites(rewrites, out, paren);
 
   // print trust that input assertions are their preprocessed form
-  printPreprocessedAssertions(used_assertions, out, paren);
+  printPreprocessedAssertions(used_assertions, out, paren, globalLetMap);
 
   // print mapping between theory atoms and internal SAT variables
   out << ";; Printing mapping from preprocessed assertions into atoms \n";
-  d_cnfProof->printAtomMapping(atoms, out, paren);
+  d_cnfProof->printAtomMapping(atoms, out, paren, globalLetMap);
 
   Debug("pf::pm") << std::endl << "Printing cnf proof for clauses" << std::endl;
 
@@ -493,7 +508,7 @@ void LFSCProof::toStream(std::ostream& out) {
   Debug("pf::pm") << std::endl << "Printing cnf proof for clauses DONE" << std::endl;
 
   Debug("pf::pm") << "Proof manager: printing theory lemmas" << std::endl;
-  d_theoryProof->printTheoryLemmas(used_lemmas, out, paren);
+  d_theoryProof->printTheoryLemmas(used_lemmas, out, paren, globalLetMap);
   Debug("pf::pm") << "Proof manager: printing theory lemmas DONE!" << std::endl;
 
   if (options::bitblastMode() == theory::bv::BITBLAST_MODE_EAGER && ProofManager::getBitVectorProof()) {
@@ -515,7 +530,8 @@ void LFSCProof::toStream(std::ostream& out) {
 
 void LFSCProof::printPreprocessedAssertions(const NodeSet& assertions,
                                             std::ostream& os,
-                                            std::ostream& paren) {
+                                            std::ostream& paren,
+                                            ProofLetMap& globalLetMap) {
   os << "\n ;; In the preprocessor we trust \n";
   NodeSet::const_iterator it = assertions.begin();
   NodeSet::const_iterator end = assertions.end();
@@ -527,7 +543,7 @@ void LFSCProof::printPreprocessedAssertions(const NodeSet& assertions,
 
     //TODO
     os << "(trust_f ";
-    ProofManager::currentPM()->getTheoryProofEngine()->printLetTerm((*it).toExpr(), os);
+    ProofManager::currentPM()->getTheoryProofEngine()->printTheoryTerm((*it).toExpr(), os, globalLetMap);
     os << ") ";
 
     os << "(\\ "<< ProofManager::getPreprocessedAssertionName(*it, "") << "\n";
@@ -640,5 +656,75 @@ std::ostream& operator<<(std::ostream& out, CVC4::ProofRule k) {
   return out;
 }
 
+void ProofManager::registerRewrite(unsigned ruleId, Node original, Node result){
+  Assert (currentPM()->d_theoryProof != NULL);
+  currentPM()->d_rewriteLog.push_back(RewriteLogEntry(ruleId, original, result));
+}
+
+void ProofManager::clearRewriteLog() {
+  Assert (currentPM()->d_theoryProof != NULL);
+  currentPM()->d_rewriteLog.clear();
+}
+
+std::vector<RewriteLogEntry> ProofManager::getRewriteLog() {
+  return currentPM()->d_rewriteLog;
+}
+
+void ProofManager::dumpRewriteLog() const {
+  Debug("pf::rr") << "Dumpign rewrite log:" << std::endl;
+
+  for (unsigned i = 0; i < d_rewriteLog.size(); ++i) {
+    Debug("pf::rr") << "\tRule " << d_rewriteLog[i].getRuleId()
+                    << ": "
+                    << d_rewriteLog[i].getOriginal()
+                    << " --> "
+                    << d_rewriteLog[i].getResult() << std::endl;
+  }
+}
+
+void bind(Expr term, ProofLetMap& map, Bindings& letOrder) {
+  ProofLetMap::iterator it = map.find(term);
+  if (it != map.end())
+    return;
+
+  for (unsigned i = 0; i < term.getNumChildren(); ++i)
+    bind(term[i], map, letOrder);
+
+  unsigned newId = ProofLetCount::newId();
+  ProofLetCount letCount(newId);
+  map[term] = letCount;
+  letOrder.push_back(LetOrderElement(term, newId));
+}
+
+void ProofManager::printGlobalLetMap(std::set<Node>& atoms,
+                                     ProofLetMap& letMap,
+                                     std::ostream& out,
+                                     std::ostringstream& paren) {
+  Bindings letOrder;
+  std::set<Node>::const_iterator atom;
+  for (atom = atoms.begin(); atom != atoms.end(); ++atom) {
+    bind(atom->toExpr(), letMap, letOrder);
+  }
+
+  // TODO: give each theory a chance to add atoms. For now, just query BV directly...
+  const std::set<Node>* additionalAtoms = ProofManager::getBitVectorProof()->getAtomsInBitblastingProof();
+  for (atom = additionalAtoms->begin(); atom != additionalAtoms->end(); ++atom) {
+    Debug("gk::temp") << "Binding additional atom: " << *atom << std::endl;
+    bind(atom->toExpr(), letMap, letOrder);
+  }
+
+  for (unsigned i = 0; i < letOrder.size(); ++i) {
+    Expr currentExpr = letOrder[i].expr;
+    unsigned letId = letOrder[i].id;
+    ProofLetMap::iterator it = letMap.find(currentExpr);
+    Assert(it != letMap.end());
+    out << "\n(@ let" << letId << " ";
+    d_theoryProof->printBoundTerm(currentExpr, out, letMap);
+    paren << ")";
+    it->second.increment();
+  }
+
+  out << std::endl << std::endl;
+}
 
 } /* CVC4  namespace */

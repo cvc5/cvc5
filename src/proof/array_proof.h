@@ -59,7 +59,7 @@ private:
   Node toStreamRecLFSC(std::ostream& out, TheoryProof* tp,
                        theory::eq::EqProof* pf,
                        unsigned tb,
-                       const LetMap& map);
+                       const ProofLetMap& map);
 
   /** Merge tag for ROW applications */
   unsigned d_reasonRow;
@@ -74,7 +74,8 @@ public:
   //it is simply an equality engine proof
   theory::eq::EqProof *d_proof;
   void toStream(std::ostream& out);
-  void toStreamLFSC(std::ostream& out, TheoryProof* tp, theory::eq::EqProof* pf, const LetMap& map);
+  void toStream(std::ostream& out, const ProofLetMap& map);
+  void toStreamLFSC(std::ostream& out, TheoryProof* tp, theory::eq::EqProof* pf, const ProofLetMap& map);
 
   void registerSkolem(Node equality, Node skolem);
 
@@ -117,9 +118,9 @@ public:
     : ArrayProof(arrays, proofEngine)
   {}
 
-  virtual void printOwnedTerm(Expr term, std::ostream& os, const LetMap& map);
+  virtual void printOwnedTerm(Expr term, std::ostream& os, const ProofLetMap& map);
   virtual void printOwnedSort(Type type, std::ostream& os);
-  virtual void printTheoryLemmaProof(std::vector<Expr>& lemma, std::ostream& os, std::ostream& paren);
+  virtual void printTheoryLemmaProof(std::vector<Expr>& lemma, std::ostream& os, std::ostream& paren, const ProofLetMap& map);
   virtual void printSortDeclarations(std::ostream& os, std::ostream& paren);
   virtual void printTermDeclarations(std::ostream& os, std::ostream& paren);
   virtual void printDeferredDeclarations(std::ostream& os, std::ostream& paren);

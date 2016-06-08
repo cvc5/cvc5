@@ -46,7 +46,7 @@
 
 namespace CVC4 {
 
-unsigned CVC4::LetCount::counter = 0;
+unsigned CVC4::ProofLetCount::counter = 0;
 static unsigned LET_COUNT = 1;
 
 TheoryProofEngine::TheoryProofEngine()
@@ -180,30 +180,30 @@ theory::TheoryId TheoryProofEngine::getTheoryForLemma(const prop::SatClause* cla
   return pm->getCnfProof()->getProofRecipe(nodes).getTheory();
 }
 
-void LFSCTheoryProofEngine::bind(Expr term, LetMap& map, Bindings& let_order) {
-  LetMap::iterator it = map.find(term);
+void LFSCTheoryProofEngine::bind(Expr term, ProofLetMap& map, Bindings& let_order) {
+  ProofLetMap::iterator it = map.find(term);
   if (it != map.end()) {
-    LetCount& count = it->second;
+    ProofLetCount& count = it->second;
     count.increment();
     return;
   }
   for (unsigned i = 0; i < term.getNumChildren(); ++i) {
     bind(term[i], map, let_order);
   }
-  unsigned new_id = LetCount::newId();
-  map[term] = LetCount(new_id);
+  unsigned new_id = ProofLetCount::newId();
+  map[term] = ProofLetCount(new_id);
   let_order.push_back(LetOrderElement(term, new_id));
 }
 
 void LFSCTheoryProofEngine::printLetTerm(Expr term, std::ostream& os) {
-  LetMap map;
+  ProofLetMap map;
   Bindings let_order;
   bind(term, map, let_order);
   std::ostringstream paren;
   for (unsigned i = 0; i < let_order.size(); ++i) {
     Expr current_expr = let_order[i].expr;
     unsigned let_id = let_order[i].id;
-    LetMap::const_iterator it = map.find(current_expr);
+    ProofLetMap::const_iterator it = map.find(current_expr);
     Assert (it != map.end());
     unsigned let_count = it->second.count;
     Assert(let_count);
@@ -212,7 +212,7 @@ void LFSCTheoryProofEngine::printLetTerm(Expr term, std::ostream& os) {
       continue;
     }
 
-    os << "(@ let"<<let_id << " ";
+    os << "(@ let" <<let_id << " ";
     printTheoryTerm(current_expr, os, map);
     paren <<")";
   }
@@ -223,13 +223,12 @@ void LFSCTheoryProofEngine::printLetTerm(Expr term, std::ostream& os) {
     printTheoryTerm(last, os, map);
   }
   else {
-    os << " let"<< last_let_id;
+    os << " let" << last_let_id;
   }
   os << paren.str();
 }
 
-
-void LFSCTheoryProofEngine::printTheoryTerm(Expr term, std::ostream& os, const LetMap& map) {
+void LFSCTheoryProofEngine::printTheoryTerm(Expr term, std::ostream& os, const ProofLetMap& map) {
   theory::TheoryId theory_id = theory::Theory::theoryOf(term);
 
   // boolean terms and ITEs are special because they
@@ -318,7 +317,11 @@ void LFSCTheoryProofEngine::printAssertions(std::ostream& os, std::ostream& pare
     std::ostringstream name;
     name << "A" << counter++;
     os << "(% " << name.str() << " (th_holds ";
-    printLetTerm(*it,  os);
+
+    // Assertions appear before the global let map, so we use a dummpMap to avoid letification here.
+    ProofLetMap dummyMap;
+    printBoundTerm(*it, os, dummyMap);
+
     os << ")\n";
     paren << ")";
   }
@@ -326,7 +329,9 @@ void LFSCTheoryProofEngine::printAssertions(std::ostream& os, std::ostream& pare
   Debug("pf::tp") << "LFSCTheoryProofEngine::printAssertions done" << std::endl << std::endl;
 }
 
-void LFSCTheoryProofEngine::printLemmaRewrites(NodePairSet& rewrites, std::ostream& os, std::ostream& paren) {
+void LFSCTheoryProofEngine::printLemmaRewrites(NodePairSet& rewrites,
+                                               std::ostream& os,
+                                               std::ostream& paren) {
   Debug("pf::tp") << "LFSCTheoryProofEngine::printLemmaRewrites called" << std::endl << std::endl;
 
   NodePairSet::const_iterator it;
@@ -334,15 +339,16 @@ void LFSCTheoryProofEngine::printLemmaRewrites(NodePairSet& rewrites, std::ostre
   for (it = rewrites.begin(); it != rewrites.end(); ++it) {
     Debug("pf::tp") << "printLemmaRewrites: " << it->first << " --> " << it->second << std::endl;
 
+    Node n1 = it->first;
+    Node n2 = it->second;
+    Assert(theory::Theory::theoryOf(n1) == theory::Theory::theoryOf(n2));
+
     std::ostringstream rewriteRule;
     rewriteRule << ".lrr" << d_assertionToRewrite.size();
 
-    LetMap emptyMap;
-    os << "(th_let_pf _ (trust_f (iff ";
-    printBoundTerm(it->second.toExpr(), os, emptyMap);
-    os << " ";
-    printBoundTerm(it->first.toExpr(), os, emptyMap);
-    os << ")) (\\ " << rewriteRule.str() << "\n";
+    os << "(th_let_pf _ ";
+    getTheoryProof(theory::Theory::theoryOf(n1))->printRewriteProof(os, n1, n2);
+    os << "(\\ " << rewriteRule.str() << "\n";
 
     d_assertionToRewrite[it->first] = rewriteRule.str();
     Debug("pf::tp") << "d_assertionToRewrite[" << it->first << "] = " << rewriteRule.str() << std::endl;
@@ -423,7 +429,7 @@ void LFSCTheoryProofEngine::dumpTheoryLemmas(const IdToSatClause& lemmas) {
 }
 
 // TODO: this function should be moved into the BV prover.
-void LFSCTheoryProofEngine::finalizeBvConflicts(const IdToSatClause& lemmas, std::ostream& os, std::ostream& paren) {
+void LFSCTheoryProofEngine::finalizeBvConflicts(const IdToSatClause& lemmas, std::ostream& os) {
   // BitVector theory is special case: must know all conflicts needed
   // ahead of time for resolution proof lemmas
   std::vector<Expr> bv_lemmas;
@@ -514,12 +520,13 @@ void LFSCTheoryProofEngine::finalizeBvConflicts(const IdToSatClause& lemmas, std
 
   BitVectorProof* bv = ProofManager::getBitVectorProof();
   bv->finalizeConflicts(bv_lemmas);
-  bv->printResolutionProof(os, paren);
+  //  bv->printResolutionProof(os, paren, letMap);
 }
 
 void LFSCTheoryProofEngine::printTheoryLemmas(const IdToSatClause& lemmas,
                                               std::ostream& os,
-                                              std::ostream& paren) {
+                                              std::ostream& paren,
+                                              ProofLetMap& map) {
   os << " ;; Theory Lemmas \n";
   Debug("pf::tp") << "LFSCTheoryProofEngine::printTheoryLemmas: starting" << std::endl;
 
@@ -527,7 +534,8 @@ void LFSCTheoryProofEngine::printTheoryLemmas(const IdToSatClause& lemmas,
     dumpTheoryLemmas(lemmas);
   }
 
-  finalizeBvConflicts(lemmas, os, paren);
+  //  finalizeBvConflicts(lemmas, os, paren, map);
+  ProofManager::getBitVectorProof()->printResolutionProof(os, paren, map);
 
   if (options::bitblastMode() == theory::bv::BITBLAST_MODE_EAGER) {
     Assert (lemmas.size() == 1);
@@ -627,7 +635,7 @@ void LFSCTheoryProofEngine::printTheoryLemmas(const IdToSatClause& lemmas,
       // Query the appropriate theory for a proof of this clause
       theory::TheoryId theory_id = getTheoryForLemma(clause);
       Debug("pf::tp") << "Get theory lemma from " << theory_id << "..." << std::endl;
-      getTheoryProof(theory_id)->printTheoryLemmaProof(clause_expr, os, paren);
+      getTheoryProof(theory_id)->printTheoryLemmaProof(clause_expr, os, paren, map);
 
       // Turn rewrite filter OFF
       pm->clearRewriteFilters();
@@ -734,7 +742,7 @@ void LFSCTheoryProofEngine::printTheoryLemmas(const IdToSatClause& lemmas,
           pm->addRewriteFilter(pm->getLitName(*missingAssertion), rewritten.str());
         }
 
-        getTheoryProof(theory_id)->printTheoryLemmaProof(currentClauseExpr, os, paren);
+        getTheoryProof(theory_id)->printTheoryLemmaProof(currentClauseExpr, os, paren, map);
 
         // Turn rewrite filter OFF
         pm->clearRewriteFilters();
@@ -774,15 +782,15 @@ void LFSCTheoryProofEngine::printTheoryLemmas(const IdToSatClause& lemmas,
   }
 }
 
-void LFSCTheoryProofEngine::printBoundTerm(Expr term, std::ostream& os, const LetMap& map) {
+void LFSCTheoryProofEngine::printBoundTerm(Expr term, std::ostream& os, const ProofLetMap& map) {
   Debug("pf::tp") << "LFSCTheoryProofEngine::printBoundTerm( " << term << " ) " << std::endl;
 
-  LetMap::const_iterator it = map.find(term);
+  ProofLetMap::const_iterator it = map.find(term);
   if (it != map.end()) {
     unsigned id = it->second.id;
     unsigned count = it->second.count;
     if (count > LET_COUNT) {
-      os <<"let"<<id;
+      os << "let" << id;
       return;
     }
   }
@@ -790,7 +798,7 @@ void LFSCTheoryProofEngine::printBoundTerm(Expr term, std::ostream& os, const Le
   printTheoryTerm(term, os, map);
 }
 
-void LFSCTheoryProofEngine::printCoreTerm(Expr term, std::ostream& os, const LetMap& map) {
+void LFSCTheoryProofEngine::printCoreTerm(Expr term, std::ostream& os, const ProofLetMap& map) {
   if (term.isVariable()) {
     os << ProofManager::sanitize(term);
     return;
@@ -890,7 +898,10 @@ void LFSCTheoryProofEngine::printCoreTerm(Expr term, std::ostream& os, const Let
 
 }
 
-void TheoryProof::printTheoryLemmaProof(std::vector<Expr>& lemma, std::ostream& os, std::ostream& paren) {
+void TheoryProof::printTheoryLemmaProof(std::vector<Expr>& lemma,
+                                        std::ostream& os,
+                                        std::ostream& paren,
+                                        const ProofLetMap& map) {
   // Default method for replaying proofs: assert (negated) literals back to a fresh copy of the theory
   Assert(d_theory!=NULL);
 
@@ -975,7 +986,7 @@ void TheoryProof::printTheoryLemmaProof(std::vector<Expr>& lemma, std::ostream& 
     th->check(theory::Theory::EFFORT_FULL);
   }
   Debug("pf::tp") << "Calling   oc.d_proof->toStream(os)" << std::endl;
-  oc.d_proof->toStream(os);
+  oc.d_proof->toStream(os, map);
   Debug("pf::tp") << "Calling   oc.d_proof->toStream(os) -- DONE!" << std::endl;
 
   Debug("pf::tp") << "About to delete the theory solver used for proving the lemma... " << std::endl;
@@ -1007,7 +1018,7 @@ void BooleanProof::registerTerm(Expr term) {
   }
 }
 
-void LFSCBooleanProof::printOwnedTerm(Expr term, std::ostream& os, const LetMap& map) {
+void LFSCBooleanProof::printOwnedTerm(Expr term, std::ostream& os, const ProofLetMap& map) {
   Assert (term.getType().isBoolean());
   if (term.isVariable()) {
     if (d_treatBoolsAsFormulas)
@@ -1101,13 +1112,23 @@ void LFSCBooleanProof::printTheoryLemmaProof(std::vector<Expr>& lemma,
 void TheoryProof::printConstantDisequalityProof(std::ostream& os, Expr c1, Expr c2) {
   // By default, we just print a trust statement. Specific theories can implement
   // better proofs.
-  LetMap emptyMap;
+  ProofLetMap emptyMap;
 
   os << "(trust_f (not (= _ ";
   d_proofEngine->printBoundTerm(c1, os, emptyMap);
   os << " ";
   d_proofEngine->printBoundTerm(c2, os, emptyMap);
   os << ")))";
+}
+
+void TheoryProof::printRewriteProof(std::ostream& os, const Node &n1, const Node &n2) {
+  // This is the default for a rewrite proof: just a trust statement.
+  ProofLetMap emptyMap;
+  os << "(trust_f (iff ";
+  d_proofEngine->printBoundTerm(n1.toExpr(), os, emptyMap);
+  os << " ";
+  d_proofEngine->printBoundTerm(n2.toExpr(), os, emptyMap);
+  os << "))";
 }
 
 } /* namespace CVC4 */

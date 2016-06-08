@@ -141,6 +141,10 @@ public:
   virtual void printAtomMapping(const std::set<Node>& atoms,
                                 std::ostream& os,
                                 std::ostream& paren) = 0;
+  virtual void printAtomMapping(const std::set<Node>& atoms,
+                           std::ostream& os,
+                           std::ostream& paren,
+                           ProofLetMap &letMap) = 0;
 
   virtual void printClause(const prop::SatClause& clause,
                            std::ostream& os,
@@ -168,6 +172,11 @@ public:
   void printAtomMapping(const std::set<Node>& atoms,
                         std::ostream& os,
                         std::ostream& paren);
+
+  void printAtomMapping(const std::set<Node>& atoms,
+                        std::ostream& os,
+                        std::ostream& paren,
+                        ProofLetMap &letMap);
 
   void printClause(const prop::SatClause& clause,
                    std::ostream& os,

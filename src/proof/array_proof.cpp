@@ -107,14 +107,17 @@ unsigned ProofArray::getExtMergeTag() const {
 }
 
 void ProofArray::toStream(std::ostream& out) {
+  ProofLetMap map;
+  toStream(out, map);
+}
+
+void ProofArray::toStream(std::ostream& out, const ProofLetMap& map) {
   Trace("pf::array") << "; Print Array proof..." << std::endl;
-  //AJR : carry this further?
-  LetMap map;
   toStreamLFSC(out, ProofManager::getArrayProof(), d_proof, map);
   Debug("pf::array") << "; Print Array proof done!" << std::endl;
 }
 
-void ProofArray::toStreamLFSC(std::ostream& out, TheoryProof* tp, theory::eq::EqProof* pf, const LetMap& map) {
+void ProofArray::toStreamLFSC(std::ostream& out, TheoryProof* tp, theory::eq::EqProof* pf, const ProofLetMap& map) {
   Debug("pf::array") << "Printing array proof in LFSC : " << std::endl;
   pf->debug_print("pf::array", 0, &d_proofPrinter);
   Debug("pf::array") << std::endl;
@@ -126,7 +129,7 @@ Node ProofArray::toStreamRecLFSC(std::ostream& out,
                                  TheoryProof* tp,
                                  theory::eq::EqProof* pf,
                                  unsigned tb,
-                                 const LetMap& map) {
+                                 const ProofLetMap& map) {
 
   Debug("pf::array") << std::endl << std::endl << "toStreamRecLFSC called. tb = " << tb << " . proof:" << std::endl;
   pf->debug_print("pf::array", 0, &d_proofPrinter);
@@ -1122,7 +1125,7 @@ std::string ArrayProof::skolemToLiteral(Expr skolem) {
   return d_skolemToLiteral[skolem];
 }
 
-void LFSCArrayProof::printOwnedTerm(Expr term, std::ostream& os, const LetMap& map) {
+void LFSCArrayProof::printOwnedTerm(Expr term, std::ostream& os, const ProofLetMap& map) {
   Assert (theory::Theory::theoryOf(term) == theory::THEORY_ARRAY);
 
   if (theory::Theory::theoryOf(term) != theory::THEORY_ARRAY) {
@@ -1216,14 +1219,14 @@ void LFSCArrayProof::printOwnedSort(Type type, std::ostream& os) {
   }
 }
 
-void LFSCArrayProof::printTheoryLemmaProof(std::vector<Expr>& lemma, std::ostream& os, std::ostream& paren) {
+void LFSCArrayProof::printTheoryLemmaProof(std::vector<Expr>& lemma, std::ostream& os, std::ostream& paren, const ProofLetMap& map) {
   os << " ;; Array Theory Lemma \n;;";
   for (unsigned i = 0; i < lemma.size(); ++i) {
     os << lemma[i] <<" ";
   }
   os <<"\n";
   //os << " (clausify_false trust)";
-  ArrayProof::printTheoryLemmaProof(lemma, os, paren);
+  ArrayProof::printTheoryLemmaProof(lemma, os, paren, map);
 }
 
 void LFSCArrayProof::printSortDeclarations(std::ostream& os, std::ostream& paren) {
@@ -1308,7 +1311,7 @@ void LFSCArrayProof::printDeferredDeclarations(std::ostream& os, std::ostream& p
     Node array_one = equality[0][0];
     Node array_two = equality[0][1];
 
-    LetMap map;
+    ProofLetMap map;
     os << "(ext _ _ ";
     printTerm(array_one.toExpr(), os, map);
     os << " ";
