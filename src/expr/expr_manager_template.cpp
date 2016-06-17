@@ -941,6 +941,11 @@ Expr ExprManager::mkBoundVar(Type type) {
   return Expr(this, d_nodeManager->mkBoundVarPtr(*type.d_typeNode));
 }
 
+Expr ExprManager::mkSepNil(Type type) {
+  NodeManagerScope nms(d_nodeManager);
+  return Expr(this, d_nodeManager->mkSepNilPtr(*type.d_typeNode));
+}
+
 Expr ExprManager::mkAssociative(Kind kind,
                                 const std::vector<Expr>& children) {
   PrettyCheckArgument(

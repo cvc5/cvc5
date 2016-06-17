@@ -25,7 +25,7 @@ namespace sep {
 void TheorySepRewriter::getStarChildren( Node n, std::vector< Node >& s_children, std::vector< Node >& ns_children ){
   Assert( n.getKind()==kind::SEP_STAR );
   for( unsigned i=0; i<n.getNumChildren(); i++ ){
-    if( n[i].getKind()==kind::EMP_STAR ){
+    if( n[i].getKind()==kind::SEP_EMP ){
       s_children.push_back( n[i] );
     }else if( n[i].getKind()==kind::SEP_STAR ){
       getStarChildren( n[i], s_children, ns_children );
@@ -41,7 +41,7 @@ void TheorySepRewriter::getStarChildren( Node n, std::vector< Node >& s_children
         //remove empty star
         std::vector< Node > temp_s_children2;
         for( unsigned i=0; i<temp_s_children.size(); i++ ){
-          if( temp_s_children[i].getKind()!=kind::EMP_STAR ){
+          if( temp_s_children[i].getKind()!=kind::SEP_EMP ){
             temp_s_children2.push_back( temp_s_children[i] );
           }
         }
@@ -87,7 +87,7 @@ void TheorySepRewriter::getAndChildren( Node n, std::vector< Node >& s_children,
 bool TheorySepRewriter::isSpatial( Node n, std::map< Node, bool >& visited ) {
   if( visited.find( n )==visited.end() ){
     visited[n] = true;
-    if( n.getKind()==kind::SEP_STAR || n.getKind()==kind::SEP_PTO || n.getKind()==kind::EMP_STAR || n.getKind()==kind::SEP_LABEL ){
+    if( n.getKind()==kind::SEP_STAR || n.getKind()==kind::SEP_PTO || n.getKind()==kind::SEP_EMP || n.getKind()==kind::SEP_LABEL ){
       return true;
     }else if( n.getType().isBoolean() ){
       for( unsigned i=0; i<n.getNumChildren(); i++ ){
@@ -104,14 +104,6 @@ RewriteResponse TheorySepRewriter::postRewrite(TNode node) {
   Trace("sep-postrewrite") << "Sep::postRewrite start " << node << std::endl;
   Node retNode = node;
   switch (node.getKind()) {
-    case kind::SEP_NIL: {
-      TypeEnumerator te(node[0].getType());
-      Node n = *te;
-      if( n!=node[0] ){
-        retNode = NodeManager::currentNM()->mkNode( kind::SEP_NIL, n );
-      }
-      break;
-    }
     case kind::SEP_LABEL: {
       if( node[0].getKind()==kind::SEP_PTO ){
         Node s = NodeManager::currentNM()->mkNode( kind::SINGLETON, node[0][0] );
@@ -121,7 +113,7 @@ RewriteResponse TheorySepRewriter::postRewrite(TNode node) {
           retNode = NodeManager::currentNM()->mkNode( kind::AND, c1, c2 );
         }
       }
-      if( node[0].getKind()==kind::EMP_STAR ){
+      if( node[0].getKind()==kind::SEP_EMP ){
         retNode = node[1].eqNode( NodeManager::currentNM()->mkConst(EmptySet(node[1].getType().toType())) );
       }
       break;
@@ -177,9 +169,9 @@ RewriteResponse TheorySepRewriter::postRewrite(TNode node) {
 
 /*
 RewriteResponse TheorySepRewriter::preRewrite(TNode node) {
-  if( node.getKind()==kind::EMP_STAR ){
+  if( node.getKind()==kind::SEP_EMP ){
     Trace("sep-prerewrite") << "Sep::preRewrite emp star " << std::endl;
-    return RewriteResponse(REWRITE_DONE, NodeManager::currentNM()->mkNode( kind::EMP_STAR, NodeManager::currentNM()->mkConst( true ) ) );
+    return RewriteResponse(REWRITE_DONE, NodeManager::currentNM()->mkNode( kind::SEP_EMP, NodeManager::currentNM()->mkConst( true ) ) );
   }else{
     Trace("sep-prerewrite") << "Sep::preRewrite returning " << node << std::endl;
     return RewriteResponse(REWRITE_DONE, node);

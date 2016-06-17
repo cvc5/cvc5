@@ -1607,10 +1607,10 @@ term[CVC4::Expr& expr, CVC4::Expr& expr2]
         Debug("parser") << "Empty set encountered: " << f << " "
                           << f2 << " " << type <<  std::endl;
         expr = MK_CONST( ::CVC4::EmptySet(type) );
-      } else if(f.getKind() == CVC4::kind::NIL_REF) {
-        //hack: We don't want the nil reference to be a constant: for instance, it could be of type Int but is not a const rational.
-        //      However, the expression has 0 children. So we convert to (sep_nil tmp) here.
-        expr = MK_EXPR(CVC4::kind::SEP_NIL, PARSER_STATE->mkBoundVar("__tmp",type) );        
+      } else if(f.getKind() == CVC4::kind::SEP_NIL_REF) {
+        //We don't want the nil reference to be a constant: for instance, it could be of type Int but is not a const rational.
+        //However, the expression has 0 children. So we convert to a SEP_NIL variable.
+        expr = EXPR_MANAGER->mkSepNil(type);
       } else {
         if(f.getType() != type) {
           PARSER_STATE->parseError("Type ascription not satisfied.");

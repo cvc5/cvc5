@@ -86,9 +86,10 @@ class TheorySep : public Theory {
   /** Explain why this literal is true by adding assumptions */
   void explain(TNode literal, std::vector<TNode>& assumptions);
 
+  void preRegisterTermRec(TNode t, std::map< TNode, bool >& visited );
   public:
 
-  void preRegisterTerm(TNode n);
+  void preRegisterTerm(TNode t);
   void propagate(Effort e);
   Node explain(TNode n);
 
@@ -274,7 +275,6 @@ private:
   bool hasTerm( Node a );
   bool areEqual( Node a, Node b );
   bool areDisequal( Node a, Node b );
-  /** called when two equivalence classes will merge */
   void eqNotifyPreMerge(TNode t1, TNode t2);
   void eqNotifyPostMerge(TNode t1, TNode t2);
 

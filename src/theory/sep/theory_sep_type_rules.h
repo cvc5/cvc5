@@ -25,7 +25,7 @@ namespace CVC4 {
 namespace theory {
 namespace sep {
 
-class NilRefTypeRule {
+class SepNilRefTypeRule {
 public:
   inline static TypeNode computeType(NodeManager* nodeManager, TNode n, bool check)
     throw (TypeCheckingExceptionPrivate, AssertionException) {
@@ -33,18 +33,11 @@ public:
   }
 };
 
-class SepNilTypeRule {
+class SepEmpTypeRule {
 public:
   inline static TypeNode computeType(NodeManager* nodeManager, TNode n, bool check)
     throw (TypeCheckingExceptionPrivate, AssertionException) {
-    return n[0].getType(check);    
-  }
-};
-
-class EmpStarTypeRule {
-public:
-  inline static TypeNode computeType(NodeManager* nodeManager, TNode n, bool check)
-    throw (TypeCheckingExceptionPrivate, AssertionException) {
+    Assert(n.getKind() == kind::SEP_EMP);
     return nodeManager->booleanType();
   }
 };
@@ -55,14 +48,7 @@ struct SepPtoTypeRule {
     Assert(n.getKind() == kind::SEP_PTO);
     if( check ) {
       TypeNode refType = n[0].getType(check);
-      //SEP-POLY
-      //if(!refType.isRef()) {
-      //  throw TypeCheckingExceptionPrivate(n, "pto applied to non-reference term");
-      //}
       TypeNode ptType = n[1].getType(check);
-      //if(!ptType.isComparableTo(refType.getRefConstituentType())){
-      //  throw TypeCheckingExceptionPrivate(n, "pto maps reference to term of different type");
-      //}
     }
     return nodeManager->booleanType();
   }
@@ -101,14 +87,6 @@ struct SepWandTypeRule {
     return btype;
   }
 };/* struct SepWandTypeRule */
-
-class EmpStarInternalTypeRule {
-public:
-  inline static TypeNode computeType(NodeManager* nodeManager, TNode n, bool check)
-    throw (TypeCheckingExceptionPrivate, AssertionException) {
-    return nodeManager->booleanType();
-  }
-};/* struct EmpStarInternalTypeRule */
 
 struct SepLabelTypeRule {
   inline static TypeNode computeType(NodeManager* nodeManager, TNode n, bool check)

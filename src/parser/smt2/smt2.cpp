@@ -167,16 +167,14 @@ void Smt2::addFloatingPointOperators() {
 }
 
 void Smt2::addSepOperators() {
-  //addOperator(kind::SEP_NIL, "sep.nil");
   addOperator(kind::SEP_STAR, "sep");
   addOperator(kind::SEP_PTO, "pto");
   addOperator(kind::SEP_WAND, "wand");
-  addOperator(kind::EMP_STAR, "emp");
-  //Parser::addOperator(kind::SEP_NIL);
+  addOperator(kind::SEP_EMP, "emp");
   Parser::addOperator(kind::SEP_STAR);
   Parser::addOperator(kind::SEP_PTO);
   Parser::addOperator(kind::SEP_WAND);
-  Parser::addOperator(kind::EMP_STAR);
+  Parser::addOperator(kind::SEP_EMP);
 }
 
 void Smt2::addTheory(Theory theory) {
