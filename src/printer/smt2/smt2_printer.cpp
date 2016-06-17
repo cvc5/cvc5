@@ -318,7 +318,12 @@ void Smt2Printer::toStream(std::ostream& out, TNode n,
     }
     return;
   }
-
+  
+  if( n.getKind() == kind::SEP_NIL ){
+    out << "sep.nil";
+    return;
+  }
+  
   bool stillNeedToPrintParams = true;
   bool forceBinary = false; // force N-ary to binary when outputing children
   // operator
@@ -581,6 +586,12 @@ void Smt2Printer::toStream(std::ostream& out, TNode n,
   case kind::APPLY_SELECTOR_TOTAL:
   case kind::PARAMETRIC_DATATYPE:
     break;
+    
+  //separation
+  case kind::EMP_STAR:
+  case kind::SEP_PTO:
+  case kind::SEP_STAR:
+  case kind::SEP_WAND:out << smtKindString(k) << " "; break;
 
     // quantifiers
   case kind::FORALL:
@@ -853,6 +864,12 @@ static string smtKindString(Kind k) throw() {
   case kind::REGEXP_RANGE: return "re.range";
   case kind::REGEXP_LOOP: return "re.loop";
   
+  //sep theory
+  case kind::SEP_STAR: return "sep";
+  case kind::SEP_PTO: return "pto";
+  case kind::SEP_WAND: return "wand";
+  case kind::EMP_STAR: return "emp";
+    
   default:
     ; /* fall through */
   }

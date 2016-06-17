@@ -551,9 +551,9 @@ void TheoryUF::eqNotifyNewClass(TNode t) {
 }
 
 void TheoryUF::eqNotifyPreMerge(TNode t1, TNode t2) {
-  if (getLogicInfo().isQuantified()) {
+  //if (getLogicInfo().isQuantified()) {
     //getQuantifiersEngine()->getEfficientEMatcher()->merge( t1, t2 );
-  }
+  //}
 }
 
 void TheoryUF::eqNotifyPostMerge(TNode t1, TNode t2) {

@@ -714,7 +714,8 @@ void AlgebraicSolver::collectModelInfo(TheoryModel* model, bool fullModel) {
     Assert (!value.isNull() || !fullModel);
 
     // may be a shared term that did not appear in the current assertions
-    if (!value.isNull()) {
+    // AJR: need to check whether already in map for cases where collectModelInfo is called multiple times in the same context
+    if (!value.isNull() && !d_modelMap->hasSubstitution(var)) {
       Debug("bitvector-model") << "   " << var << " => " << value << "\n";
       Assert (value.getKind() == kind::CONST_BITVECTOR);
       d_modelMap->addSubstitution(var, value);

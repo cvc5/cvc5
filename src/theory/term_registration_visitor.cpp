@@ -37,8 +37,13 @@ bool PreRegisterVisitor::alreadyVisited(TNode current, TNode parent) {
 
   if( ( parent.getKind() == kind::FORALL ||
         parent.getKind() == kind::EXISTS ||
-        parent.getKind() == kind::REWRITE_RULE /*||
-        parent.getKind() == kind::CARDINALITY_CONSTRAINT*/ ) &&
+        parent.getKind() == kind::REWRITE_RULE ||
+        parent.getKind() == kind::SEP_NIL ||
+        parent.getKind() == kind::SEP_STAR ||
+        parent.getKind() == kind::SEP_WAND ||
+        ( parent.getKind() == kind::SEP_LABEL && current.getType().isBoolean() )
+        // parent.getKind() == kind::CARDINALITY_CONSTRAINT
+      ) &&
       current != parent ) {
     Debug("register::internal") << "quantifier:true" << std::endl;
     return true;
@@ -177,8 +182,13 @@ bool SharedTermsVisitor::alreadyVisited(TNode current, TNode parent) const {
 
   if( ( parent.getKind() == kind::FORALL ||
         parent.getKind() == kind::EXISTS ||
-        parent.getKind() == kind::REWRITE_RULE /*||
-        parent.getKind() == kind::CARDINALITY_CONSTRAINT*/  ) &&
+        parent.getKind() == kind::REWRITE_RULE ||
+        parent.getKind() == kind::SEP_NIL ||
+        parent.getKind() == kind::SEP_STAR ||
+        parent.getKind() == kind::SEP_WAND ||
+        ( parent.getKind() == kind::SEP_LABEL && current.getType().isBoolean() )
+        // parent.getKind() == kind::CARDINALITY_CONSTRAINT
+      ) &&
       current != parent ) {
     Debug("register::internal") << "quantifier:true" << std::endl;
     return true;

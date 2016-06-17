@@ -166,6 +166,18 @@ void Smt2::addFloatingPointOperators() {
   Parser::addOperator(kind::FLOATINGPOINT_TO_SBV);
 }
 
+void Smt2::addSepOperators() {
+  //addOperator(kind::SEP_NIL, "sep.nil");
+  addOperator(kind::SEP_STAR, "sep");
+  addOperator(kind::SEP_PTO, "pto");
+  addOperator(kind::SEP_WAND, "wand");
+  addOperator(kind::EMP_STAR, "emp");
+  //Parser::addOperator(kind::SEP_NIL);
+  Parser::addOperator(kind::SEP_STAR);
+  Parser::addOperator(kind::SEP_PTO);
+  Parser::addOperator(kind::SEP_WAND);
+  Parser::addOperator(kind::EMP_STAR);
+}
 
 void Smt2::addTheory(Theory theory) {
   switch(theory) {
@@ -254,7 +266,11 @@ void Smt2::addTheory(Theory theory) {
     defineType("Float128", getExprManager()->mkFloatingPointType(15, 113));
     addFloatingPointOperators();
     break;
-
+    
+  case THEORY_SEP:
+    addSepOperators();
+    break;
+    
   default:
     std::stringstream ss;
     ss << "internal error: unsupported theory " << theory;
@@ -307,6 +323,8 @@ bool Smt2::isTheoryEnabled(Theory theory) const {
     return d_logic.isTheoryEnabled(theory::THEORY_UF);
   case THEORY_FP:
     return d_logic.isTheoryEnabled(theory::THEORY_FP);
+  case THEORY_SEP:
+    return d_logic.isTheoryEnabled(theory::THEORY_SEP);
   default:
     std::stringstream ss;
     ss << "internal error: unsupported theory " << theory;
@@ -415,6 +433,10 @@ void Smt2::setLogic(std::string name) {
     addTheory(THEORY_FP);
   }
 
+  if (d_logic.isTheoryEnabled(theory::THEORY_SEP)) {
+    addTheory(THEORY_SEP);
+  }
+  
 }/* Smt2::setLogic() */
 
 void Smt2::setInfo(const std::string& flag, const SExpr& sexpr) {

@@ -781,6 +781,14 @@ public:
   assertions_iterator facts_end() const {
     return d_facts.end();
   }
+  /**
+   * Whether facts have been asserted to this theory.
+   *
+   * @return true iff facts have been asserted to this theory.
+   */
+  bool hasFacts() { 
+    return !d_facts.empty(); 
+  }
 
   typedef context::CDList<TNode>::const_iterator shared_terms_iterator;
 

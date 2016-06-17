@@ -59,6 +59,7 @@ subdirs_to_check = \
 	regress/regress0/sets \
 	regress/regress0/parser \
 	regress/regress0/sygus \
+	regress/regress0/sep \
 	regress/regress1 \
 	regress/regress1/arith \
 	regress/regress2 \

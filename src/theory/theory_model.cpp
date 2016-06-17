@@ -561,7 +561,7 @@ void TheoryEngineModelBuilder::buildModel(Model* m, bool fullModel)
   TheoryModel* tm = (TheoryModel*)m;
 
   // buildModel with fullModel = true should only be called once in any context
-  Assert(!tm->d_modelBuilt);
+  Assert(!tm->isBuilt());
   tm->d_modelBuilt = fullModel;
 
   // Reset model
@@ -1015,7 +1015,7 @@ Node TheoryEngineModelBuilder::normalize(TheoryModel* m, TNode r, std::map< Node
     retNode = NodeManager::currentNM()->mkNode( r.getKind(), children );
     if (childrenConst) {
       retNode = Rewriter::rewrite(retNode);
-      Assert(retNode.getKind()==kind::APPLY_UF || retNode.getKind()==kind::REGEXP_RANGE || retNode.isConst());
+      Assert(retNode.getKind()==kind::APPLY_UF || retNode.getKind()==kind::REGEXP_RANGE || retNode.getKind()==kind::SEP_NIL || retNode.isConst());
     }
   }
   d_normalizedCache[r] = retNode;
