@@ -442,6 +442,10 @@ void LogicInfo::setLogicString(std::string logicString) throw(IllegalArgumentExc
         enableTheory(THEORY_SETS);
         p += 2;
       }
+      if(!strncmp(p, "SEP", 3)) {
+        enableTheory(THEORY_SEP);
+        p += 3;
+      }
     }
   }
   if(*p != '\0') {
