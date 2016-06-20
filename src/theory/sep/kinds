@@ -10,14 +10,14 @@ typechecker "theory/sep/theory_sep_type_rules.h"
 properties polite stable-infinite parametric
 properties check propagate presolve getNextDecisionRequest
 
+rewriter ::CVC4::theory::sep::TheorySepRewriter "theory/sep/theory_sep_rewriter.h"
+
 # constants
 constant SEP_NIL_REF \
     ::CVC4::NilRef \
     ::CVC4::NilRefHashFunction \
     "expr/sepconst.h" \
     "the nil reference constant; payload is an instance of the CVC4::NilRef class"
-    
-rewriter ::CVC4::theory::sep::TheorySepRewriter "theory/sep/theory_sep_rewriter.h"
 
 variable SEP_NIL "separation nil"
 
