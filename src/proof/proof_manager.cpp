@@ -62,10 +62,10 @@ ProofManager::ProofManager(ProofFormat format):
 }
 
 ProofManager::~ProofManager() {
-  delete d_satProof;
-  delete d_cnfProof;
-  delete d_theoryProof;
-  delete d_fullProof;
+  if (d_satProof) delete d_satProof;
+  if (d_cnfProof) delete d_cnfProof;
+  if (d_theoryProof) delete d_theoryProof;
+  if (d_fullProof) delete d_fullProof;
 }
 
 ProofManager* ProofManager::currentPM() {

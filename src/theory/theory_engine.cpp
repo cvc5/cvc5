@@ -261,7 +261,9 @@ TheoryEngine::TheoryEngine(context::Context* context,
   d_true = NodeManager::currentNM()->mkConst<bool>(true);
   d_false = NodeManager::currentNM()->mkConst<bool>(false);
 
-  PROOF (ProofManager::currentPM()->initTheoryProofEngine(); );
+#ifdef CVC4_PROOF
+  ProofManager::currentPM()->initTheoryProofEngine();
+#endif
 
   d_iteUtilities = new ITEUtilities(d_iteRemover.getContainsVisitor());
 
