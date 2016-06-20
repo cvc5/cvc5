@@ -681,6 +681,20 @@ Node NodeManager::mkInstConstant(const TypeNode& type) {
   return n;
 }
 
+Node NodeManager::mkSepNil(const TypeNode& type) {
+  Node n = NodeBuilder<0>(this, kind::SEP_NIL);
+  n.setAttribute(TypeAttr(), type);
+  n.setAttribute(TypeCheckedAttr(), true);
+  return n;
+}
+
+Node* NodeManager::mkSepNilPtr(const TypeNode& type) {
+  Node* n = NodeBuilder<0>(this, kind::SEP_NIL).constructNodePtr();
+  setAttribute(*n, TypeAttr(), type);
+  setAttribute(*n, TypeCheckedAttr(), true);
+  return n;
+}
+
 Node NodeManager::mkAbstractValue(const TypeNode& type) {
   Node n = mkConst(AbstractValue(++d_abstractValueCount));
   n.setAttribute(TypeAttr(), type);

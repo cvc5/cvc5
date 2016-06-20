@@ -518,18 +518,29 @@ void TheoryEngine::check(Theory::Effort effort) {
 
     // Must consult quantifiers theory for last call to ensure sat, or otherwise add a lemma
     if( effort == Theory::EFFORT_FULL && ! d_inConflict && ! needCheck() ) {
-      //d_theoryTable[THEORY_STRINGS]->check(Theory::EFFORT_LAST_CALL);
-      if(d_logicInfo.isQuantified()) {
-        // quantifiers engine must pass effort last call check
-        d_quantEngine->check(Theory::EFFORT_LAST_CALL);
-        // if returning incomplete or SAT, we have ensured that the model in the quantifiers engine has been built
-      } else if(options::produceModels()) {
-        // must build model at this point
-        d_curr_model_builder->buildModel(d_curr_model, true);
+      //calls to theories requiring the model go here
+      //FIXME: this should not be theory-specific
+      if(d_logicInfo.isTheoryEnabled(THEORY_SEP)) {
+        Assert( d_theoryTable[THEORY_SEP]!=NULL );
+        if( d_theoryTable[THEORY_SEP]->hasFacts() ){
+          // must build model at this point
+          d_curr_model_builder->buildModel(getModel(), false);
+          d_theoryTable[THEORY_SEP]->check(Theory::EFFORT_LAST_CALL);
+        }
       }
-      Trace("theory::assertions-model") << endl;
-      if (Trace.isOn("theory::assertions-model")) {
-        printAssertions("theory::assertions-model");
+      if( ! d_inConflict && ! needCheck() ){
+        if(d_logicInfo.isQuantified()) {
+          // quantifiers engine must pass effort last call check
+          d_quantEngine->check(Theory::EFFORT_LAST_CALL);
+          // if returning incomplete or SAT, we have ensured that the model in the quantifiers engine has been built
+        } else if(options::produceModels()) {
+          // must build model at this point
+          d_curr_model_builder->buildModel(getModel(), true);
+        }
+        Trace("theory::assertions-model") << endl;
+        if (Trace.isOn("theory::assertions-model")) {
+          printAssertions("theory::assertions-model");
+        }
       }
     }
 

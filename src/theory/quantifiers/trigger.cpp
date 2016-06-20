@@ -375,8 +375,13 @@ bool Trigger::isRelationalTriggerKind( Kind k ) {
 }
   
 bool Trigger::isCbqiKind( Kind k ) {
-  return quantifiers::TermDb::isBoolConnective( k ) || k==PLUS || k==GEQ || k==EQUAL || k==MULT ||
-         k==APPLY_CONSTRUCTOR || k==APPLY_SELECTOR_TOTAL || k==APPLY_TESTER;
+  if( quantifiers::TermDb::isBoolConnective( k ) || k==PLUS || k==GEQ || k==EQUAL || k==MULT ){
+    return true;
+  }else{
+    //CBQI typically works for satisfaction-complete theories
+    TheoryId t = kindToTheoryId( k );
+    return t==THEORY_BV || t==THEORY_DATATYPES;
+  }
 }
 
 bool Trigger::isSimpleTrigger( Node n ){

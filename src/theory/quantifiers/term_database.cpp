@@ -1925,7 +1925,7 @@ bool TermDb::containsUninterpretedConstant( Node n ) {
     bool ret = false;
     if( n.getKind()==UNINTERPRETED_CONSTANT ){
       ret = true;
-    }else{
+    }else{ 
       for( unsigned i=0; i<n.getNumChildren(); i++ ){
         if( containsUninterpretedConstant( n[i] ) ){
           ret = true;

@@ -561,7 +561,7 @@ void TheoryEngineModelBuilder::buildModel(Model* m, bool fullModel)
   TheoryModel* tm = (TheoryModel*)m;
 
   // buildModel with fullModel = true should only be called once in any context
-  Assert(!tm->d_modelBuilt);
+  Assert(!tm->isBuilt());
   tm->d_modelBuilt = fullModel;
 
   // Reset model

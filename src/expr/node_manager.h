@@ -332,7 +332,7 @@ class NodeManager {
   /** Create a variable with the given type. */
   Node mkVar(const TypeNode& type, uint32_t flags = ExprManager::VAR_FLAG_NONE);
   Node* mkVarPtr(const TypeNode& type, uint32_t flags = ExprManager::VAR_FLAG_NONE);
-
+  
 public:
 
   explicit NodeManager(ExprManager* exprManager);
@@ -486,6 +486,10 @@ public:
 
   /** Create a instantiation constant with the given type. */
   Node mkInstConstant(const TypeNode& type);
+  
+  /** Create nil reference for separation logic with the given type. */
+  Node mkSepNil(const TypeNode& type);
+  Node* mkSepNilPtr(const TypeNode& type);
 
   /** Make a new abstract value with the given type. */
   Node mkAbstractValue(const TypeNode& type);

@@ -1041,16 +1041,20 @@ bool QuantifiersEngine::addInstantiation( Node q, std::vector< Node >& terms, bo
 #ifdef CVC4_ASSERTIONS
     bool bad_inst = false;
     if( quantifiers::TermDb::containsUninterpretedConstant( terms[i] ) ){
+      Trace("inst") << "***& inst contains uninterpreted constant : " << terms[i] << std::endl;
       bad_inst = true;
     }else if( !terms[i].getType().isSubtypeOf( q[0][i].getType() ) ){
+      Trace("inst") << "***& inst bad type : " << terms[i] << " " << terms[i].getType() << "/" << q[0][i].getType() << std::endl;
       bad_inst = true;
     }else if( options::cbqi() ){
       Node icf = quantifiers::TermDb::getInstConstAttr(terms[i]);
       if( !icf.isNull() ){
         if( icf==q ){
+          Trace("inst") << "***& inst contains inst constant attr : " << terms[i] << std::endl;
           bad_inst = true;
-        }else{
-          bad_inst = quantifiers::TermDb::containsTerms( terms[i], d_term_db->d_inst_constants[q] );
+        }else if( quantifiers::TermDb::containsTerms( terms[i], d_term_db->d_inst_constants[q] ) ){
+          Trace("inst") << "***& inst contains inst constants : " << terms[i] << std::endl;
+          bad_inst = true;
         }
       }
     }

@@ -32,6 +32,7 @@ namespace theory {
 
 class EntailmentCheckParameters;
 class EntailmentCheckSideEffects;
+class TheoryModel;
 
 /**
  * The status of an equality in the current context.
@@ -105,6 +106,11 @@ public:
    */
   Node getModelValue(TNode var);
 
+  /**
+   * Returns pointer to model.
+   */
+  TheoryModel* getModel();
+  
   /**
    * Ensure that the given node will have a designated SAT literal
    * that is definitionally equal to it.  The result of this function

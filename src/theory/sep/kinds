@@ -1,0 +1,37 @@
+# kinds                                                               -*- sh -*-
+#
+# For documentation on this file format, please refer to
+# src/theory/builtin/kinds.
+#
+
+theory THEORY_SEP ::CVC4::theory::sep::TheorySep "theory/sep/theory_sep.h"
+typechecker "theory/sep/theory_sep_type_rules.h"
+
+properties polite stable-infinite parametric
+properties check propagate presolve getNextDecisionRequest
+
+# constants
+constant SEP_NIL_REF \
+    ::CVC4::NilRef \
+    ::CVC4::NilRefHashFunction \
+    "expr/sepconst.h" \
+    "the nil reference constant; payload is an instance of the CVC4::NilRef class"
+    
+rewriter ::CVC4::theory::sep::TheorySepRewriter "theory/sep/theory_sep_rewriter.h"
+
+variable SEP_NIL "separation nil"
+
+operator SEP_EMP 1 "separation empty heap"
+operator SEP_PTO 2 "points to relation"
+operator SEP_STAR 2: "separation star"
+operator SEP_WAND 2 "separation magic wand"
+operator SEP_LABEL 2 "separation label"
+
+typerule SEP_NIL_REF ::CVC4::theory::sep::SepNilRefTypeRule
+typerule SEP_EMP ::CVC4::theory::sep::SepEmpTypeRule
+typerule SEP_PTO ::CVC4::theory::sep::SepPtoTypeRule
+typerule SEP_STAR ::CVC4::theory::sep::SepStarTypeRule
+typerule SEP_WAND ::CVC4::theory::sep::SepWandTypeRule
+typerule SEP_LABEL ::CVC4::theory::sep::SepLabelTypeRule
+
+endtheory

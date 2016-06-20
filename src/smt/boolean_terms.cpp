@@ -458,7 +458,7 @@ Node BooleanTermConverter::rewriteBooleanTermsRec(TNode top, theory::TheoryId pa
         goto next_worklist;
       }
 
-      if(parentTheory != theory::THEORY_BOOL && top.getType().isBoolean()) {
+      if(parentTheory != theory::THEORY_BOOL && top.getType().isBoolean() && top.getKind()!=kind::SEP_STAR && top.getKind()!=kind::SEP_WAND) {
         // still need to rewrite e.g. function applications over boolean
         Node topRewritten = rewriteBooleanTermsRec(top, theory::THEORY_BOOL, quantBoolVars);
         Node n;
@@ -682,20 +682,22 @@ Node BooleanTermConverter::rewriteBooleanTermsRec(TNode top, theory::TheoryId pa
             goto next_worklist;
           }
         } else if(!t.isSort() && t.getNumChildren() > 0) {
-          for(TypeNode::iterator i = t.begin(); i != t.end(); ++i) {
-            if((*i).isBoolean()) {
-              vector<TypeNode> argTypes(t.begin(), t.end());
-              replace(argTypes.begin(), argTypes.end(), *i, d_tt.getType());
-              TypeNode newType = nm->mkTypeNode(t.getKind(), argTypes);
-              Node n = nm->mkSkolem(top.getAttribute(expr::VarNameAttr()),
-                                    newType, "a variable introduced by Boolean-term conversion",
-                                    NodeManager::SKOLEM_EXACT_NAME);
-              Debug("boolean-terms") << "constructed: " << n << " of type " << newType << endl;
-              top.setAttribute(BooleanTermAttr(), n);
-              d_varCache[top] = n;
-              result.top() << n;
-              worklist.pop();
-              goto next_worklist;
+          if( t.getKind()!=kind::SEP_STAR && t.getKind()!=kind::SEP_WAND ){
+            for(TypeNode::iterator i = t.begin(); i != t.end(); ++i) {
+              if((*i).isBoolean()) {
+                vector<TypeNode> argTypes(t.begin(), t.end());
+                replace(argTypes.begin(), argTypes.end(), *i, d_tt.getType());
+                TypeNode newType = nm->mkTypeNode(t.getKind(), argTypes);
+                Node n = nm->mkSkolem(top.getAttribute(expr::VarNameAttr()),
+                                      newType, "a variable introduced by Boolean-term conversion",
+                                      NodeManager::SKOLEM_EXACT_NAME);
+                Debug("boolean-terms") << "constructed: " << n << " of type " << newType << endl;
+                top.setAttribute(BooleanTermAttr(), n);
+                d_varCache[top] = n;
+                result.top() << n;
+                worklist.pop();
+                goto next_worklist;
+              }
             }
           }
         }
@@ -714,6 +716,8 @@ Node BooleanTermConverter::rewriteBooleanTermsRec(TNode top, theory::TheoryId pa
       case kind::RR_REWRITE:
       case kind::RR_DEDUCTION:
       case kind::RR_REDUCTION:
+      case kind::SEP_STAR:
+      case kind::SEP_WAND:
         // not yet supported
         result.top() << top;
         worklist.pop();

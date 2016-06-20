@@ -446,7 +446,12 @@ libcvc4_la_SOURCES = \
 	theory/fp/theory_fp.cpp \
 	theory/fp/theory_fp_rewriter.h \
 	theory/fp/theory_fp_rewriter.cpp \
-	theory/fp/theory_fp_type_rules.h
+	theory/fp/theory_fp_type_rules.h \
+	theory/sep/theory_sep.h \
+	theory/sep/theory_sep.cpp \
+	theory/sep/theory_sep_rewriter.h \
+	theory/sep/theory_sep_rewriter.cpp \
+	theory/sep/theory_sep_type_rules.h
 
 nodist_libcvc4_la_SOURCES = \
 	theory/rewriter_tables.h \

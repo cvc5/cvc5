@@ -94,6 +94,7 @@
 #include "theory/quantifiers/quantifiers_rewriter.h"
 #include "theory/sort_inference.h"
 #include "theory/strings/theory_strings.h"
+#include "theory/sep/theory_sep.h"
 #include "theory/substitutions.h"
 #include "theory/theory_engine.h"
 #include "theory/theory_model.h"
@@ -1844,8 +1845,8 @@ void SmtEngine::setDefaults() {
     }
   }
   //counterexample-guided instantiation for non-sygus
-  // enable if any quantifiers with arithmetic or datatypes
-  if( ( d_logic.isQuantified() && ( d_logic.isTheoryEnabled(THEORY_ARITH) || d_logic.isTheoryEnabled(THEORY_DATATYPES) ) ) ||
+  // enable if any possible quantifiers with arithmetic, datatypes or bitvectors
+  if( ( d_logic.isQuantified() && ( d_logic.isTheoryEnabled(THEORY_ARITH) || d_logic.isTheoryEnabled(THEORY_DATATYPES) || d_logic.isTheoryEnabled(THEORY_BV) ) ) || 
       options::cbqiAll() ){
     if( !options::cbqi.wasSetByUser() ){
       options::cbqi.set( true );
@@ -3984,6 +3985,10 @@ void SmtEnginePrivate::processAssertions() {
     }
     Trace("smt-proc") << "SmtEnginePrivate::processAssertions() : post-strings-preprocess" << endl;
     dumpAssertions("post-strings-pp", d_assertions);
+  }
+  if( d_smt.d_logic.isTheoryEnabled(THEORY_SEP) ) {
+    //separation logic solver needs to register the entire input
+    ((theory::sep::TheorySep*)d_smt.d_theoryEngine->theoryOf(THEORY_SEP))->processAssertions( d_assertions.ref() );
   }
   if( d_smt.d_logic.isQuantified() ){
     Trace("smt-proc") << "SmtEnginePrivate::processAssertions() : pre-quant-preprocess" << endl;

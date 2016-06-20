@@ -153,27 +153,23 @@ int ModelEngine::checkModel(){
   //d_quantEngine->getEqualityQuery()->flattenRepresentatives( fm->d_rep_set.d_type_reps );
 
   //for debugging
-  if( Trace.isOn("model-engine") || Trace.isOn("model-engine-debug") ){
-    for( std::map< TypeNode, std::vector< Node > >::iterator it = fm->d_rep_set.d_type_reps.begin();
-         it != fm->d_rep_set.d_type_reps.end(); ++it ){
-      if( it->first.isSort() ){
-        Trace("model-engine") << "Cardinality( " << it->first << " )" << " = " << it->second.size() << std::endl;
-        if( Trace.isOn("model-engine-debug") ){
-          Trace("model-engine-debug") << "        Reps : ";
-          for( size_t i=0; i<it->second.size(); i++ ){
-            Trace("model-engine-debug") << it->second[i] << "  ";
-          }
-          Trace("model-engine-debug") << std::endl;
-          Trace("model-engine-debug") << "   Term reps : ";
-          for( size_t i=0; i<it->second.size(); i++ ){
-            Node r = d_quantEngine->getEqualityQuery()->getInternalRepresentative( it->second[i], Node::null(), 0 );
-            Trace("model-engine-debug") << r << " ";
-          }
-          Trace("model-engine-debug") << std::endl;
-          Node mbt = d_quantEngine->getTermDatabase()->getModelBasisTerm(it->first);
-          Trace("model-engine-debug") << "  Basis term : " << mbt << std::endl;
-        }
+  for( std::map< TypeNode, std::vector< Node > >::iterator it = fm->d_rep_set.d_type_reps.begin();
+       it != fm->d_rep_set.d_type_reps.end(); ++it ){
+    if( it->first.isSort() ){
+      Trace("model-engine") << "Cardinality( " << it->first << " )" << " = " << it->second.size() << std::endl;
+      Trace("model-engine-debug") << "        Reps : ";
+      for( size_t i=0; i<it->second.size(); i++ ){
+        Trace("model-engine-debug") << it->second[i] << "  ";
       }
+      Trace("model-engine-debug") << std::endl;
+      Trace("model-engine-debug") << "   Term reps : ";
+      for( size_t i=0; i<it->second.size(); i++ ){
+        Node r = d_quantEngine->getEqualityQuery()->getInternalRepresentative( it->second[i], Node::null(), 0 );
+        Trace("model-engine-debug") << r << " ";
+      }
+      Trace("model-engine-debug") << std::endl;
+      Node mbt = d_quantEngine->getTermDatabase()->getModelBasisTerm(it->first);
+      Trace("model-engine-debug") << "  Basis term : " << mbt << std::endl;
     }
   }
 
