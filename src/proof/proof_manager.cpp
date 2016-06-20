@@ -96,7 +96,6 @@ CnfProof* ProofManager::getCnfProof() {
 }
 
 TheoryProofEngine* ProofManager::getTheoryProofEngine() {
-  Assert (options::proof());
   Assert (currentPM()->d_theoryProof != NULL);
   return currentPM()->d_theoryProof;
 }

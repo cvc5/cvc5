@@ -1083,7 +1083,9 @@ SmtEngine::SmtEngine(ExprManager* em) throw() :
   for(TheoryId id = theory::THEORY_FIRST; id < theory::THEORY_LAST; ++id) {
     TheoryConstructor::addTheory(d_theoryEngine, id);
     //register with proof engine if applicable
-    THEORY_PROOF(ProofManager::currentPM()->getTheoryProofEngine()->registerTheory(d_theoryEngine->theoryOf(id)); );
+#ifdef CVC4_PROOF
+    ProofManager::currentPM()->getTheoryProofEngine()->registerTheory(d_theoryEngine->theoryOf(id));
+#endif
   }
 
   d_private->addUseTheoryListListener(d_theoryEngine);
@@ -1152,6 +1154,13 @@ void SmtEngine::finishInit() {
   d_dumpCommands.clear();
 
   PROOF( ProofManager::currentPM()->setLogic(d_logic); );
+  PROOF({
+      for(TheoryId id = theory::THEORY_FIRST; id < theory::THEORY_LAST; ++id) {
+        ProofManager::currentPM()->getTheoryProofEngine()->
+          finishRegisterTheory(d_theoryEngine->theoryOf(id));
+      }
+    });
+
   Trace("smt-debug") << "SmtEngine::finishInit done" << std::endl;
 }
 
@@ -1846,7 +1855,7 @@ void SmtEngine::setDefaults() {
   }
   //counterexample-guided instantiation for non-sygus
   // enable if any possible quantifiers with arithmetic, datatypes or bitvectors
-  if( ( d_logic.isQuantified() && ( d_logic.isTheoryEnabled(THEORY_ARITH) || d_logic.isTheoryEnabled(THEORY_DATATYPES) || d_logic.isTheoryEnabled(THEORY_BV) ) ) || 
+  if( ( d_logic.isQuantified() && ( d_logic.isTheoryEnabled(THEORY_ARITH) || d_logic.isTheoryEnabled(THEORY_DATATYPES) || d_logic.isTheoryEnabled(THEORY_BV) ) ) ||
       options::cbqiAll() ){
     if( !options::cbqi.wasSetByUser() ){
       options::cbqi.set( true );

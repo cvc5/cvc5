@@ -130,10 +130,19 @@ public:
 
   /**
    * Ensures that a theory proof class for the given theory is created.
+   * This method can be invoked regardless of whether the "proof" option
+   * has been set.
    *
    * @param theory
    */
   void registerTheory(theory::Theory* theory);
+  /**
+   * Additional configuration of the theory proof class for the given theory.
+   * This method should only be invoked when the "proof" option has been set.
+   *
+   * @param theory
+   */
+  void finishRegisterTheory(theory::Theory* theory);
 
   theory::TheoryId getTheoryForLemma(const prop::SatClause* clause);
   TheoryProof* getTheoryProof(theory::TheoryId id);

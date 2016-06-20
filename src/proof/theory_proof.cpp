@@ -79,7 +79,6 @@ void TheoryProofEngine::registerTheory(theory::Theory* th) {
       if (id == theory::THEORY_BV) {
         BitVectorProof * bvp = new LFSCBitVectorProof((theory::bv::TheoryBV*)th, this);
         d_theoryProofTable[id] = bvp;
-        ((theory::bv::TheoryBV*)th)->setProofLog( bvp );
         return;
       }
 
@@ -94,6 +93,19 @@ void TheoryProofEngine::registerTheory(theory::Theory* th) {
       }
 
       // TODO other theories
+    }
+  }
+}
+
+void TheoryProofEngine::finishRegisterTheory(theory::Theory* th) {
+  if (th) {
+    theory::TheoryId id = th->getId();
+    if (id == theory::THEORY_BV) {
+      Assert(d_theoryProofTable.find(id) != d_theoryProofTable.end());
+
+      BitVectorProof *bvp = (BitVectorProof *)d_theoryProofTable[id];
+      ((theory::bv::TheoryBV*)th)->setProofLog( bvp );
+      return;
     }
   }
 }
