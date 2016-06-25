@@ -43,6 +43,8 @@ typedef std::map< Node, std::hash_set< Node, NodeHashFunction > >::iterator     
 
 int TheorySetsRels::EqcInfo::counter        = 0;
 
+
+  // do a test
   void TheorySetsRels::check(Theory::Effort level) {
     Trace("rels") << "\n[sets-rels] ******************************* Start the relational solver *******************************\n" << std::endl;
     if(Theory::fullEffort(level)) {
@@ -1553,20 +1555,24 @@ int TheorySetsRels::EqcInfo::counter        = 0;
     Trace("rels-std") << "[sets-rels] Merge TC eqcs t1 = " << t1 << " and t2 = " << t2 << std::endl;
     EqcInfo* t1_ei = getOrMakeEqcInfo(t1);
     EqcInfo* t2_ei = getOrMakeEqcInfo(t2);
-
+    Trace("rels-std") << "[sets-rels] 0 debugging merging TC eqcs t1 = " << t1 << " and t2 = " << t2 << std::endl;
     if(t1_ei != NULL && t2_ei != NULL) {
+      Trace("rels-std") << "[sets-rels] 1 debugging merging TC eqcs t1 = " << t1 << " and t2 = " << t2 << std::endl;
       NodeSet::const_iterator     non_mem_it  = t2_ei->d_not_mem.begin();
       while(non_mem_it != t2_ei->d_not_mem.end()) {
         t1_ei->d_not_mem.insert(*non_mem_it);
         non_mem_it++;
       }
       if(!t1_ei->d_tc.get().isNull()) {
+        Trace("rels-std") << "[sets-rels] 2 debugging merging TC eqcs t1 = " << t1 << " and t2 = " << t2 << std::endl;
         NodeSet::const_iterator     mem_it  = t2_ei->d_mem.begin();
         while(mem_it != t2_ei->d_mem.end()) {
           addTCMemAndSendInfer(t1_ei, MEMBER(*mem_it, t2_ei->d_tc.get()), (*t2_ei->d_mem_exp.find(*mem_it)).second);
           mem_it++;
         }
+        Trace("rels-std") << "[sets-rels] 3 debugging merging TC eqcs t1 = " << t1 << " and t2 = " << t2 << std::endl;
       } else if(!t2_ei->d_tc.get().isNull()) {
+        Trace("rels-std") << "[sets-rels] 4 debugging merging TC eqcs t1 = " << t1 << " and t2 = " << t2 << std::endl;
         t1_ei->d_tc.set(t2_ei->d_tc);
         NodeSet::const_iterator     t1_mem_it  = t1_ei->d_mem.begin();
         while(t1_mem_it != t1_ei->d_mem.end()) {
