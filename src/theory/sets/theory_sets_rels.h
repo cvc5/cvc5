@@ -35,8 +35,8 @@ public:
   /** the data */
   std::map< Node, TupleTrie > d_data;
 public:
-  Node existsTerm( std::vector< Node >& reps, int argIndex = 0 );
   std::vector<Node> findTerms( std::vector< Node >& reps, int argIndex = 0 );
+  Node existsTerm( std::vector< Node >& reps, int argIndex = 0 );
   bool addTerm( Node n, std::vector< Node >& reps, int argIndex = 0 );
   void debugPrint( const char * c, Node n, unsigned depth = 0 );
   void clear() { d_data.clear(); }
@@ -44,14 +44,14 @@ public:
 
 class TheorySetsRels {
 
-  typedef context::CDChunkList<Node> NodeList;
-  typedef context::CDChunkList<int> IdList;
-  typedef context::CDHashSet<Node, NodeHashFunction> NodeSet;
-  typedef context::CDHashMap<Node, bool, NodeHashFunction> NodeBoolMap;
+  typedef context::CDChunkList<Node>                            NodeList;
+  typedef context::CDChunkList<int>                             IdList;
+  typedef context::CDHashMap<int, IdList*>                      IdListMap;
+  typedef context::CDHashSet<Node, NodeHashFunction>            NodeSet;
+  typedef context::CDHashMap<Node, bool, NodeHashFunction>      NodeBoolMap;
   typedef context::CDHashMap<Node, NodeList*, NodeHashFunction> NodeListMap;
-  typedef context::CDHashMap<int, IdList*> IdListMap;
-  typedef context::CDHashMap<Node, NodeSet*, NodeHashFunction> NodeSetMap;
-  typedef context::CDHashMap<Node, Node, NodeHashFunction> NodeMap;
+  typedef context::CDHashMap<Node, NodeSet*, NodeHashFunction>  NodeSetMap;
+  typedef context::CDHashMap<Node, Node, NodeHashFunction>      NodeMap;
 
 public:
   TheorySetsRels(context::Context* c,
@@ -78,64 +78,59 @@ private:
   public:
     EqcInfo( context::Context* c );
     ~EqcInfo(){}
-    int counter;
-    NodeSet d_mem;
-    NodeSet d_not_mem;
-    NodeListMap d_in;
-    NodeListMap d_out;
-    NodeMap d_tc_mem_exp;
-    context::CDO< Node > d_tp;
-    context::CDO< Node > d_pt;
-    context::CDO< Node > d_join;
-    context::CDO< Node > d_tc;
-    IdListMap d_id_in;
-    IdListMap d_id_out;
-    std::hash_map<int, Node> d_id_node;
-    std::hash_map<Node, int> d_node_id;
+    static int                  counter;
+    NodeSet                     d_mem;
+    NodeSet                     d_not_mem;
+    NodeListMap                 d_in;
+    NodeListMap                 d_out;
+    NodeMap                     d_mem_exp;
+    IdListMap                   d_id_in; // mapping from a element rep id to a list of rep ids that pointed by
+    IdListMap                   d_id_out; // mapping from a element rep id to a list of rep ids that point to
+    context::CDO< Node >        d_tp;
+    context::CDO< Node >        d_pt;
+    context::CDO< Node >        d_join;
+    context::CDO< Node >        d_tc;
   };
+
+private:
+  std::map<int, Node>      d_id_node; // mapping between integer id and tuple element rep
+  std::map<Node, int>      d_node_id; // mapping between tuple element rep and integer id
 
   /** has eqc info */
   bool hasEqcInfo( TNode n ) { return d_eqc_info.find( n )!=d_eqc_info.end(); }
 
 
 private:
-
-  TheorySets& d_sets_theory;
-
+  eq::EqualityEngine            *d_eqEngine;
+  context::CDO<bool>            *d_conflict;
+  TheorySets&                   d_sets_theory;
   /** True and false constant nodes */
-  Node d_trueNode;
-  Node d_falseNode;
-
+  Node                          d_trueNode;
+  Node                          d_falseNode;
   // Facts and lemmas to be sent to EE
-  std::map< Node, Node > d_pending_facts;
-  std::map< Node, Node > d_pending_split_facts;
-  std::vector< Node > d_lemma_cache;
-
-  NodeList d_pending_merge;
-
+  std::map< Node, Node >        d_pending_facts;
+  std::map< Node, Node >        d_pending_split_facts;
+  std::vector< Node >           d_lemma_cache;
+  NodeList                      d_pending_merge;
   /** inferences: maintained to ensure ref count for internally introduced nodes */
-  NodeList d_infer;
-  NodeList d_infer_exp;
-  NodeSet d_lemma;
-  NodeSet d_shared_terms;
-  
+  NodeList                      d_infer;
+  NodeList                      d_infer_exp;
+  NodeSet                       d_lemma;
+  NodeSet                       d_shared_terms;
   // tc terms that have been decomposed
-  NodeSet d_tc_saver;
+  NodeSet                       d_tc_saver;
 
-  std::hash_set< Node, NodeHashFunction > d_rel_nodes;
-  std::map< Node, std::vector<Node> > d_tuple_reps;
-  std::map< Node, TupleTrie > d_membership_trie;
-  std::hash_set< Node, NodeHashFunction > d_symbolic_tuples;
-  std::map< Node, std::vector<Node> > d_membership_constraints_cache;
-  std::map< Node, std::vector<Node> > d_membership_exp_cache;
-  std::map< Node, std::map<kind::Kind_t, std::vector<Node> > > d_terms_cache;
-  std::map< Node, std::vector<Node> > d_membership_db;
-  std::map< Node, std::vector<Node> > d_membership_exp_db;
-  std::map< Node, std::map< Node, std::hash_set<Node, NodeHashFunction> > > d_membership_tc_cache;
-  std::map< Node, Node > d_membership_tc_exp_cache;
-
-  eq::EqualityEngine *d_eqEngine;
-  context::CDO<bool> *d_conflict;
+  std::hash_set< Node, NodeHashFunction >       d_rel_nodes;
+  std::map< Node, std::vector<Node> >           d_tuple_reps;
+  std::map< Node, TupleTrie >                   d_membership_trie;
+  std::hash_set< Node, NodeHashFunction >       d_symbolic_tuples;
+  std::map< Node, std::vector<Node> >           d_membership_constraints_cache;
+  std::map< Node, std::vector<Node> >           d_membership_exp_cache;
+  std::map< Node, std::vector<Node> >           d_membership_db;
+  std::map< Node, std::vector<Node> >           d_membership_exp_db;
+  std::map< Node, Node >                        d_membership_tc_exp_cache;
+  std::map< Node, std::map<kind::Kind_t, std::vector<Node> > >                  d_terms_cache;
+  std::map< Node, std::map< Node, std::hash_set<Node, NodeHashFunction> > >     d_membership_tc_cache;
 
   /** information necessary for equivalence classes */
 public:
@@ -152,13 +147,15 @@ private:
   void mergeTCEqcs(Node t1, Node t2);
   void sendInferTranspose(bool, Node, Node, Node, bool reverseOnly = false);
   void sendInferProduct(bool, Node, Node, Node);
-  void sendInferTC(EqcInfo* tc_ei, Node mem, Node exp);
-  void sendInferInTC(EqcInfo* tc_ei, Node fst, Node snd, std::hash_set<Node, NodeHashFunction> seen, Node exp);
-  void sendInferOutTC(EqcInfo* tc_ei, Node fst, Node snd, std::hash_set<Node, NodeHashFunction> seen, Node exp);
-  void addTCMem(EqcInfo* tc_ei, Node mem);
+  void sendTCInference(EqcInfo* tc_ei, Node mem_rep, Node fst_rep, Node snd_rep, int id1, int id2);
+  void addTCMemAndSendInfer(EqcInfo* tc_ei, Node mem, Node exp, bool fromRel = false);
   Node findTCMemExp(EqcInfo*, Node);
   void mergeTCEqcExp(EqcInfo*, EqcInfo*);
   void buildTCAndExp(Node, EqcInfo*);
+  int getOrMakeElementRepId(EqcInfo*, Node);
+  void collectInReachableNodes(EqcInfo* tc_ei, int start_id, std::hash_set<int>& in_reachable, bool firstRound  = true);
+  void collectOutReachableNodes(EqcInfo* tc_ei, int start_id, std::hash_set<int>& out_reachable, bool firstRound  = true);
+  Node explainTCMem(EqcInfo*, Node, Node, Node);
 
 
   void check();
@@ -189,6 +186,7 @@ private:
   bool checkCycles( Node );
 
   // Helper functions
+  bool insertIntoIdList(IdList&, int);
   inline Node getReason(Node tc_rep, Node tc_term, Node tc_r_rep, Node tc_r);
   inline Node constructPair(Node tc_rep, Node a, Node b);
   Node findMemExp(Node r, Node pair);
@@ -206,6 +204,13 @@ private:
   inline void addToMembershipDB( Node, Node, Node  );
   bool isRel( Node n ) {return n.getType().isSet() && n.getType().getSetElementType().isTuple();}
   Node mkAnd( std::vector< TNode >& assumptions );
+  void printNodeMap(char* fst, char* snd, NodeMap map) {
+    NodeMap::iterator map_it    = map.begin();
+    while(map_it != map.end()) {
+      Trace("rels-debug") << fst << " "<< (*map_it).first << " " << snd << " " << (*map_it).second<< std::endl;
+      map_it++;
+    }
+  }
 
 };
 
