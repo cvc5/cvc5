@@ -19,6 +19,7 @@
 #include "base/cvc4_assert.h"
 #include "context/context.h"
 #include "options/bv_options.h"
+#include "options/proof_options.h"
 #include "proof/arith_proof.h"
 #include "proof/array_proof.h"
 #include "proof/bitvector_proof.h"
@@ -801,6 +802,7 @@ void LFSCTheoryProofEngine::printBoundTerm(Expr term, std::ostream& os, const Pr
   if (it != map.end()) {
     unsigned id = it->second.id;
     unsigned count = it->second.count;
+
     if (count > LET_COUNT) {
       os << "let" << id;
       return;
@@ -1044,6 +1046,32 @@ void LFSCBooleanProof::printOwnedTerm(Expr term, std::ostream& os, const ProofLe
   switch(k) {
   case kind::OR:
   case kind::AND:
+    if (options::lfscLetification() && term.getNumChildren() > 2) {
+      // If letification is on, the entire term is probably a let expression.
+      // However, we need to transform it from (and a b c) into (and a (and b c)) form first.
+      Node currentExpression = term[term.getNumChildren() - 1];
+      for (int i = term.getNumChildren() - 2; i >= 0; --i) {
+        NodeBuilder<> builder(k);
+        builder << term[i];
+        builder << currentExpression.toExpr();
+        currentExpression = builder;
+      }
+
+      // The let map should already have the current expression.
+      ProofLetMap::const_iterator it = map.find(term);
+      if (it != map.end()) {
+        unsigned id = it->second.id;
+        unsigned count = it->second.count;
+
+        if (count > LET_COUNT) {
+          os << "let" << id;
+          break;
+        }
+      }
+    }
+
+    // If letification is off or there were 2 children, same treatment as the other cases.
+    // (No break is intentional).
   case kind::XOR:
   case kind::IFF:
   case kind::IMPLIES:
