@@ -621,7 +621,7 @@ void LFSCTheoryProofEngine::printTheoryLemmas(const IdToSatClause& lemmas,
           }
         }
 
-        Assert(found);
+        AlwaysAssert(found);
         Debug("pf::tp") << "Replacing theory assertion "
                         << clause_expr[k]
                         << " with "
@@ -730,7 +730,7 @@ void LFSCTheoryProofEngine::printTheoryLemmas(const IdToSatClause& lemmas,
             }
           }
 
-          Assert(found);
+          AlwaysAssert(found);
 
           Debug("pf::tp") << "Replacing theory assertion "
                           << currentClauseExpr[k]

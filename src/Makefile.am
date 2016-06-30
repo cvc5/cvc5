@@ -540,6 +540,7 @@ EXTRA_DIST = \
 	theory/mktheorytraits \
 	theory/quantifiers/kinds \
 	theory/rewriter_tables_template.h \
+	theory/sep/kinds \
 	theory/sets/kinds \
 	theory/strings/kinds \
 	theory/theory_traits_template.h \

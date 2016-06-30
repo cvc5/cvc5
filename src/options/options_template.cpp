@@ -720,7 +720,7 @@ void Options::parseOptionsRecursive(Options* options,
     switch(c) {
 ${all_modules_option_handlers}
 
-#line 722 "${template}"
+#line 724 "${template}"
 
     case ':':
       // This can be a long or short option, and the way to get at the
@@ -798,7 +798,7 @@ std::string Options::suggestCommandLineOptions(const std::string& optionName) th
 
 static const char* smtOptions[] = {
   ${all_modules_smt_options},
-#line 800 "${template}"
+#line 802 "${template}"
   NULL
 };/* smtOptions[] */
 
@@ -820,7 +820,7 @@ std::vector< std::vector<std::string> > Options::getOptions() const throw() {
 
   ${all_modules_get_options}
 
-#line 762 "${template}"
+#line 824 "${template}"
 
   return opts;
 }

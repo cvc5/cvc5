@@ -163,7 +163,7 @@ class CDOhash_map : public ContextObj {
         d_data = p->d_data;
       }
     }
-    // Explicitly call destructors fro the key and the date as they will not
+    // Explicitly call destructors for the key and the date as they will not
     // otherwise get called.
     p->d_key.~Key();
     p->d_data.~Data();
@@ -478,18 +478,13 @@ public:
     typename table_type::iterator i = d_map.find(k);
     if(i != d_map.end()) {
       Debug("gc") << "key " << k << " obliterated" << std::endl;
-      // We can't call ->deleteSelf() here, because it calls the
-      // ContextObj destructor, which calls CDOhash_map::destroy(), which
-      // restore()'s, which puts the CDOhash_map on the trash, which causes
-      // a double-delete.
-      (*i).second->~Element();
-      // Writing ...->~CDOhash_map() in the above is legal (?) but breaks
-      // g++ 4.1, though later versions have no problem.
+      // Restore this object to level 0.  If it was inserted after level 0,
+      // nothing else to do as restore will put it in the trash.
+      (*i).second->destroy();
 
+      // Check if object was inserted at level 0: in that case, still have
+      // to do some work.
       typename table_type::iterator j = d_map.find(k);
-      // This if() succeeds for objects inserted when in the
-      // zero-scope: they were never save()'d there, so restore()
-      // never gets a NULL map and so they leak.
       if(j != d_map.end()) {
         Element* elt = (*j).second;
         if(d_first == elt) {
@@ -505,9 +500,8 @@ public:
         }
         d_map.erase(j);//FIXME multithreading
         Debug("gc") << "key " << k << " obliterated zero-scope: " << elt << std::endl;
-        // was already destructed, so don't call ->deleteSelf()
         if(!elt->d_noTrash) {
-          ::operator delete(elt);
+          elt->deleteSelf();
         }
       }
     }
