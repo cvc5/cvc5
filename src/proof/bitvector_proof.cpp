@@ -605,6 +605,20 @@ void LFSCBitVectorProof::printTheoryLemmaProof(std::vector<Expr>& lemma, std::os
       }
     }
 
+    // We failed to find a matching sub conflict. The last hope is that the
+    // conflict has a FALSE assertion in it; this can happen in some corner cases,
+    // where the FALSE is the result of a rewrite.
+
+    for (unsigned i = 0; i < lemma.size(); ++i) {
+      if (lemma[i].getKind() == kind::NOT && lemma[i][0] == utils::mkFalse()) {
+        Debug("pf::bv") << "Lemma has a (not false) literal" << std::endl;
+        os << "(clausify_false ";
+        os << ProofManager::getLitName(lemma[i]);
+        os << ")";
+        return;
+      }
+    }
+
     Debug("pf::bv") << "Failed to find a matching sub-conflict..." << std::endl
                     << "Dumping existing conflicts:" << std::endl;
 

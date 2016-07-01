@@ -354,7 +354,8 @@ void LFSCTheoryProofEngine::printLemmaRewrites(NodePairSet& rewrites,
 
     Node n1 = it->first;
     Node n2 = it->second;
-    Assert(theory::Theory::theoryOf(n1) == theory::Theory::theoryOf(n2));
+    Assert(n1.toExpr() == utils::mkFalse() ||
+           theory::Theory::theoryOf(n1) == theory::Theory::theoryOf(n2));
 
     std::ostringstream rewriteRule;
     rewriteRule << ".lrr" << d_assertionToRewrite.size();
