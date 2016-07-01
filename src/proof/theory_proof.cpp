@@ -948,11 +948,15 @@ void TheoryProof::printTheoryLemmaProof(std::vector<Expr>& lemma,
   Debug("pf::tp") << "TheoryProof::printTheoryLemmaProof - th->ProduceProofs() DONE" << std::endl;
 
   MyPreRegisterVisitor preRegVisitor(th);
-  for( unsigned i=0; i<lemma.size(); i++ ){
-    Node lit = Node::fromExpr( lemma[i] ).negate();
-    Trace("pf::tp") << "; preregistering and asserting " << lit << std::endl;
-    NodeVisitor<MyPreRegisterVisitor>::run(preRegVisitor, lit);
-    th->assertFact(lit, false);
+  for (unsigned i=0; i<lemma.size(); i++) {
+    Node strippedLit = (lemma[i].getKind() == kind::NOT) ? lemma[i][0] : lemma[i];
+    if (strippedLit.getKind() == kind::EQUAL ||
+        d_theory->getId() == theory::Theory::theoryOf(strippedLit)) {
+      Node lit = Node::fromExpr( lemma[i] ).negate();
+      Trace("pf::tp") << "; preregistering and asserting " << lit << std::endl;
+      NodeVisitor<MyPreRegisterVisitor>::run(preRegVisitor, lit);
+      th->assertFact(lit, false);
+    }
   }
 
   Debug("pf::tp") << "TheoryProof::printTheoryLemmaProof - calling th->check()" << std::endl;
