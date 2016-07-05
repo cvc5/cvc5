@@ -270,7 +270,7 @@ std::string LogicInfo::getLogicString() const {
       if(d_theories[THEORY_FP]) {
         ss << "FP";
         ++seen;
-      }
+      } 
       if(d_theories[THEORY_DATATYPES]) {
         ss << "DT";
         ++seen;
@@ -296,7 +296,10 @@ std::string LogicInfo::getLogicString() const {
         ss << "FS";
         ++seen;
       }
-
+      if(d_theories[THEORY_SEP]) {
+        ss << "SEP";
+        ++seen;
+      }     
       if(seen != d_sharingTheories) {
         Unhandled("can't extract a logic string from LogicInfo; at least one "
                   "active theory is unknown to LogicInfo::getLogicString() !");
@@ -438,6 +441,10 @@ void LogicInfo::setLogicString(std::string logicString) throw(IllegalArgumentExc
       if(!strncmp(p, "FS", 2)) {
         enableTheory(THEORY_SETS);
         p += 2;
+      }
+      if(!strncmp(p, "SEP", 3)) {
+        enableTheory(THEORY_SEP);
+        p += 3;
       }
     }
   }

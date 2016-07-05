@@ -37,7 +37,6 @@ public:
   Node getSkolem(Node disequality);
   Node getDisequality(Node skolem);
   bool isSkolem(Node skolem);
-
   void clear();
 
   std::hash_map<Node, Node, NodeHashFunction>::const_iterator begin();

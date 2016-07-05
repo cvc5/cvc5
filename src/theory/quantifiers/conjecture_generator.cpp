@@ -285,7 +285,7 @@ Node ConjectureGenerator::getFreeVar( TypeNode tn, unsigned i ) {
 }
 
 bool ConjectureGenerator::isHandledTerm( TNode n ){
-  return !n.getAttribute(NoMatchAttribute()) && inst::Trigger::isAtomicTrigger( n ) && ( n.getKind()!=APPLY_UF || n.getOperator().getKind()!=SKOLEM );
+  return d_quantEngine->getTermDatabase()->isTermActive( n ) && inst::Trigger::isAtomicTrigger( n ) && ( n.getKind()!=APPLY_UF || n.getOperator().getKind()!=SKOLEM );
 }
 
 Node ConjectureGenerator::getGroundEqc( TNode r ) {
@@ -425,7 +425,7 @@ void ConjectureGenerator::check( Theory::Effort e, unsigned quant_e ) {
           eq::EqClassIterator eqc_i = eq::EqClassIterator( r, ee );
           while( !eqc_i.isFinished() ){
             TNode n = (*eqc_i);
-            if( getTermDatabase()->hasTermCurrent( n ) && !n.getAttribute(NoMatchAttribute()) && ( n.getKind()!=EQUAL || isFalse ) ){
+            if( getTermDatabase()->hasTermCurrent( n ) && getTermDatabase()->isTermActive( n ) && ( n.getKind()!=EQUAL || isFalse ) ){
               if( firstTime ){
                 Trace("sg-gen-eqc") << "e" << d_em[r] << " : { " << std::endl;
                 firstTime = false;
@@ -1572,7 +1572,6 @@ bool TermGenerator::getNextMatch( TermGenEnv * s, TNode eqc, std::map< TypeNode,
         if( d_match_status_child_num==0 ){
           //initial binding
           TNode f = s->getTgFunc( d_typ, d_status_num );
-          //std::map< TNode, TermArgTrie >::iterator it = s->getTermDatabase()->d_func_map_eqc_trie[f].d_data.find( eqc );
           Assert( !eqc.isNull() );
           TermArgTrie * tat = s->getTermDatabase()->getTermArgTrie( eqc, f );
           if( tat ){
@@ -1726,9 +1725,9 @@ void TermGenEnv::collectSignatureInformation() {
   d_func_kind.clear();
   d_func_args.clear();
   TypeNode tnull;
-  for( std::map< Node, TermArgTrie >::iterator it = getTermDatabase()->d_func_map_trie.begin(); it != getTermDatabase()->d_func_map_trie.end(); ++it ){
-    if( getTermDatabase()->getNumGroundTerms( it->first )>0 ){
-      Node nn = getTermDatabase()->getGroundTerm( it->first, 0 );
+  for( std::map< Node, std::vector< Node > >::iterator it = getTermDatabase()->d_op_map.begin(); it != getTermDatabase()->d_op_map.end(); ++it ){
+    if( !it->second.empty() ){
+      Node nn = it->second[0];
       Trace("sg-rel-sig-debug") << "Check in signature : " << nn << std::endl;
       if( d_cg->isHandledTerm( nn ) && nn.getKind()!=APPLY_SELECTOR_TOTAL && !nn.getType().isBoolean() ){
         bool do_enum = true;
@@ -1750,7 +1749,7 @@ void TermGenEnv::collectSignatureInformation() {
           d_typ_tg_funcs[nn.getType()].push_back( it->first );
           d_tg_func_param[it->first] = ( nn.getMetaKind() == kind::metakind::PARAMETERIZED );
           Trace("sg-rel-sig") << "Will enumerate function applications of : " << it->first << ", #args = " << d_func_args[it->first].size() << ", kind = " << nn.getKind() << std::endl;
-          getTermDatabase()->computeUfEqcTerms( it->first );
+          //getTermDatabase()->computeUfEqcTerms( it->first );
         }
       }
       Trace("sg-rel-sig-debug") << "Done check in signature : " << nn << std::endl;

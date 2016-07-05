@@ -35,6 +35,7 @@ class MatchGen {
 private:
   //current children information
   int d_child_counter;
+  bool d_use_children;
   //children of this object
   std::vector< int > d_children_order;
   unsigned getNumChildren() { return d_children.size(); }
@@ -61,7 +62,7 @@ private:
   std::map< int, Node > d_ground_eval;
   //determine variable order
   void determineVariableOrder( QuantInfo * qi, std::vector< int >& bvars );
-  void collectBoundVar( QuantInfo * qi, Node n, std::vector< int >& cbvars );
+  void collectBoundVar( QuantInfo * qi, Node n, std::vector< int >& cbvars, std::map< Node, bool >& visited, bool& hasNested );
 public:
   //type of the match generator
   enum {
@@ -116,7 +117,16 @@ private: //for completing match
   std::vector< int > d_una_eqc_count;
   //optimization: track which arguments variables appear under UF terms in
   std::map< int, std::map< TNode, std::vector< unsigned > > > d_var_rel_dom;
-  void getPropagateVars( std::vector< TNode >& vars, TNode n, bool pol, std::map< TNode, bool >& visited );
+  void getPropagateVars( QuantConflictFind * p, std::vector< TNode >& vars, TNode n, bool pol, std::map< TNode, bool >& visited );
+  //optimization: number of variables set, to track when we can stop
+  std::map< int, bool > d_vars_set;
+  std::map< Node, bool > d_ground_terms;
+  std::vector< Node > d_extra_var;
+public:
+  void setGroundSubterm( Node t ) { d_ground_terms[t] = true; }
+  bool isGroundSubterm( Node t ) { return d_ground_terms.find( t )!=d_ground_terms.end(); }
+  bool isBaseMatchComplete();
+  bool isPropagatingInstance( QuantConflictFind * p, Node n );
 public:
   QuantInfo();
   ~QuantInfo();
@@ -146,7 +156,7 @@ public:
   }
 
   Node d_q;
-  void reset_round( QuantConflictFind * p );
+  bool reset_round( QuantConflictFind * p );
 public:
   //initialize
   void initialize( QuantConflictFind * p, Node q, Node qn );
@@ -161,12 +171,13 @@ public:
   bool getCurrentCanBeEqual( QuantConflictFind * p, int v, TNode n, bool chDiseq = false );
   int addConstraint( QuantConflictFind * p, int v, TNode n, bool polarity );
   int addConstraint( QuantConflictFind * p, int v, TNode n, int vn, bool polarity, bool doRemove );
-  bool setMatch( QuantConflictFind * p, int v, TNode n, bool isGroundRep );
+  bool setMatch( QuantConflictFind * p, int v, TNode n, bool isGroundRep, bool isGround );
+  void unsetMatch( QuantConflictFind * p, int v );
   bool isMatchSpurious( QuantConflictFind * p );
   bool isTConstraintSpurious( QuantConflictFind * p, std::vector< Node >& terms );
   bool entailmentTest( QuantConflictFind * p, Node lit, bool chEnt = true );
   bool completeMatch( QuantConflictFind * p, std::vector< int >& assigned, bool doContinue = false );
-  void revertMatch( std::vector< int >& assigned );
+  void revertMatch( QuantConflictFind * p, std::vector< int >& assigned );
   void debugPrintMatch( const char * c );
   bool isConstrainedVar( int v );
 public:
@@ -184,6 +195,11 @@ private:
   std::map< Kind, Node > d_zero;
   //for storing nodes created during t-constraint solving (prevents memory leaks)
   std::vector< Node > d_tempCache;
+  //optimization: list of quantifiers that depend on ground function applications
+  std::map< TNode, std::vector< Node > > d_func_rel_dom;
+  std::map< TNode, bool > d_irr_func;
+  std::map< Node, bool > d_irr_quant;
+  void setIrrelevantFunction( TNode f );
 private:
   std::map< Node, Node > d_op_node;
   int d_fid_count;

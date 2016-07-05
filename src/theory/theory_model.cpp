@@ -561,7 +561,7 @@ void TheoryEngineModelBuilder::buildModel(Model* m, bool fullModel)
   TheoryModel* tm = (TheoryModel*)m;
 
   // buildModel with fullModel = true should only be called once in any context
-  Assert(!tm->d_modelBuilt);
+  Assert(!tm->isBuilt());
   tm->d_modelBuilt = fullModel;
 
   // Reset model
@@ -832,6 +832,7 @@ void TheoryEngineModelBuilder::buildModel(Model* m, bool fullModel)
           Assert(!t.isBoolean() || (*i2).getKind() == kind::APPLY_UF);
           Node n;
           if (t.getCardinality().isInfinite()) {
+          // if (!t.isInterpretedFinite()) {
             bool success;
             do{
               Trace("model-builder-debug") << "Enumerate term of type " << t << std::endl;

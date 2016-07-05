@@ -27,5 +27,7 @@ option dtInferAsLemmas --dt-infer-as-lemmas bool :default false
  always send lemmas out instead of making internal inferences
 #option dtRExplainLemmas --dt-rexplain-lemmas bool :default true
 # regression explanations for datatype lemmas
+option dtBlastSplits --dt-blast-splits bool :default false
+ when applicable, blast splitting lemmas for all variables at once
  
 endmodule

@@ -22,6 +22,7 @@
 #include <iosfwd>
 #include <map>
 #include "proof/proof.h"
+#include "proof/proof_utils.h"
 #include "proof/skolemization_manager.h"
 #include "util/proof.h"
 #include "expr/node.h"
@@ -33,6 +34,8 @@
 
 
 namespace CVC4 {
+
+class SmtGlobals;
 
 // forward declarations
 namespace Minisat {
@@ -113,6 +116,30 @@ enum ProofRule {
   RULE_ARRAYS_ROW,  /* arrays, read-over-write */
 };/* enum ProofRules */
 
+class RewriteLogEntry {
+public:
+  RewriteLogEntry(unsigned ruleId, Node original, Node result)
+    : d_ruleId(ruleId), d_original(original), d_result(result) {
+  }
+
+  unsigned getRuleId() const {
+    return d_ruleId;
+  }
+
+  Node getOriginal() const {
+    return d_original;
+  }
+
+  Node getResult() const {
+    return d_result;
+  }
+
+private:
+  unsigned d_ruleId;
+  Node d_original;
+  Node d_result;
+};
+
 class ProofManager {
   CoreSatProof*  d_satProof;
   CnfProof*      d_cnfProof;
@@ -135,6 +162,10 @@ class ProofManager {
   void traceDeps(TNode n);
 
   std::set<Type> d_printedTypes;
+
+  std::map<std::string, std::string> d_rewriteFilters;
+
+  std::vector<RewriteLogEntry> d_rewriteLog;
 
 protected:
   LogicInfo d_logic;
@@ -224,6 +255,19 @@ public:
   void markPrinted(const Type& type);
   bool wasPrinted(const Type& type) const;
 
+  void addRewriteFilter(const std::string &original, const std::string &substitute);
+  void clearRewriteFilters();
+
+  static void registerRewrite(unsigned ruleId, Node original, Node result);
+  static void clearRewriteLog();
+
+  std::vector<RewriteLogEntry> getRewriteLog();
+  void dumpRewriteLog() const;
+
+  void printGlobalLetMap(std::set<Node>& atoms,
+                         ProofLetMap& letMap,
+                         std::ostream& out,
+                         std::ostringstream& paren);
 };/* class ProofManager */
 
 class LFSCProof : public Proof {
@@ -235,13 +279,15 @@ class LFSCProof : public Proof {
   // FIXME: hack until we get preprocessing
   void printPreprocessedAssertions(const NodeSet& assertions,
                                    std::ostream& os,
-                                   std::ostream& paren);
+                                   std::ostream& paren,
+                                   ProofLetMap& globalLetMap);
 public:
   LFSCProof(SmtEngine* smtEngine,
             LFSCCoreSatProof* sat,
             LFSCCnfProof* cnf,
             LFSCTheoryProofEngine* theory);
   virtual void toStream(std::ostream& out);
+  virtual void toStream(std::ostream& out, const ProofLetMap& map);
   virtual ~LFSCProof() {}
 };/* class LFSCProof */
 

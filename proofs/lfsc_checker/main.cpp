@@ -133,6 +133,7 @@ int main(int argc, char **argv) {
   a.files.clear();
 #endif
 
+  std::cout << "Proof checked successfully!" << std::endl << std::endl;
   std::cout << "time = " << (int)clock() - check_time << std::endl;
   std::cout << "sym count = " << SymExpr::symmCount << std::endl;
   std::cout << "marked count = " << Expr::markedCount << std::endl;

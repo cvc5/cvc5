@@ -1670,6 +1670,12 @@ StrongSolverTheoryUF::StrongSolverTheoryUF(context::Context* c,
   }
 }
 
+StrongSolverTheoryUF::~StrongSolverTheoryUF() { 
+  for( std::map< TypeNode, SortModel* >::iterator it = d_rep_model.begin(); it != d_rep_model.end(); ++it ){
+    delete it->second;
+  }
+}
+
 SortInference* StrongSolverTheoryUF::getSortInference() {
   return d_th->getQuantifiersEngine()->getTheoryEngine()->getSortInference();
 }

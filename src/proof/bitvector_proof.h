@@ -60,6 +60,7 @@ typedef __gnu_cxx::hash_set<Expr, ExprHashFunction> ExprSet;
 typedef __gnu_cxx::hash_map<Expr, ClauseId, ExprHashFunction> ExprToClauseId;
 typedef __gnu_cxx::hash_map<Expr, unsigned, ExprHashFunction> ExprToId;
 typedef __gnu_cxx::hash_map<Expr, Expr, ExprHashFunction> ExprToExpr;
+typedef __gnu_cxx::hash_map<Expr, std::string, ExprHashFunction> ExprToString;
 
 class BitVectorProof : public TheoryProof {
 protected:
@@ -108,35 +109,52 @@ public:
   virtual void registerTerm(Expr term);
 
   virtual void printTermBitblasting(Expr term, std::ostream& os) = 0;
-  virtual void printAtomBitblasting(Expr term, std::ostream& os) = 0;
+  virtual void printAtomBitblasting(Expr term, std::ostream& os, bool swap) = 0;
+  virtual void printAtomBitblastingToFalse(Expr term, std::ostream& os) = 0;
 
   virtual void printBitblasting(std::ostream& os, std::ostream& paren) = 0;
-  virtual void printResolutionProof(std::ostream& os, std::ostream& paren) = 0;
-
+  virtual void printResolutionProof(std::ostream& os, std::ostream& paren, ProofLetMap& letMap) = 0;
+  virtual const std::set<Node>* getAtomsInBitblastingProof() = 0;
+  virtual void calculateAtomsInBitblastingProof() = 0;
 };
 
 class LFSCBitVectorProof: public BitVectorProof {
 
   void printConstant(Expr term, std::ostream& os);
-  void printOperatorNary(Expr term, std::ostream& os, const LetMap& map);
-  void printOperatorUnary(Expr term, std::ostream& os, const LetMap& map);
-  void printPredicate(Expr term, std::ostream& os, const LetMap& map);
-  void printOperatorParametric(Expr term, std::ostream& os, const LetMap& map);
-  void printBitOf(Expr term, std::ostream& os, const LetMap& map);
+  void printOperatorNary(Expr term, std::ostream& os, const ProofLetMap& map);
+  void printOperatorUnary(Expr term, std::ostream& os, const ProofLetMap& map);
+  void printPredicate(Expr term, std::ostream& os, const ProofLetMap& map);
+  void printOperatorParametric(Expr term, std::ostream& os, const ProofLetMap& map);
+  void printBitOf(Expr term, std::ostream& os, const ProofLetMap& map);
+
+  ExprToString d_exprToVariableName;
+  ExprToString d_assignedAliases;
+  std::map<std::string, std::string> d_aliasToBindDeclaration;
+  std::string assignAlias(Expr expr);
+  bool hasAlias(Expr expr);
+
+  std::set<Node> d_atomsInBitblastingProof;
+
 public:
   LFSCBitVectorProof(theory::bv::TheoryBV* bv, TheoryProofEngine* proofEngine)
     :BitVectorProof(bv, proofEngine)
   {}
-  virtual void printOwnedTerm(Expr term, std::ostream& os, const LetMap& map);
+  virtual void printOwnedTerm(Expr term, std::ostream& os, const ProofLetMap& map);
   virtual void printOwnedSort(Type type, std::ostream& os);
   virtual void printTermBitblasting(Expr term, std::ostream& os);
-  virtual void printAtomBitblasting(Expr term, std::ostream& os);
-  virtual void printTheoryLemmaProof(std::vector<Expr>& lemma, std::ostream& os, std::ostream& paren);
+  virtual void printAtomBitblasting(Expr term, std::ostream& os, bool swap);
+  virtual void printAtomBitblastingToFalse(Expr term, std::ostream& os);
+  virtual void printTheoryLemmaProof(std::vector<Expr>& lemma, std::ostream& os, std::ostream& paren, const ProofLetMap& map);
   virtual void printSortDeclarations(std::ostream& os, std::ostream& paren);
   virtual void printTermDeclarations(std::ostream& os, std::ostream& paren);
   virtual void printDeferredDeclarations(std::ostream& os, std::ostream& paren);
+  virtual void printAliasingDeclarations(std::ostream& os, std::ostream& paren);
   virtual void printBitblasting(std::ostream& os, std::ostream& paren);
-  virtual void printResolutionProof(std::ostream& os, std::ostream& paren);
+  virtual void printResolutionProof(std::ostream& os, std::ostream& paren, ProofLetMap& letMap);
+  void calculateAtomsInBitblastingProof();
+  const std::set<Node>* getAtomsInBitblastingProof();
+  void printConstantDisequalityProof(std::ostream& os, Expr c1, Expr c2);
+  void printRewriteProof(std::ostream& os, const Node &n1, const Node &n2);
 };
 
 }/* CVC4 namespace */

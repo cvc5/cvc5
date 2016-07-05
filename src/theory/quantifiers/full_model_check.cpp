@@ -405,7 +405,7 @@ void FullModelChecker::processBuildModel(TheoryModel* m, bool fullModel){
       bool needsDefault = true;
       for( size_t i=0; i<fm->d_uf_terms[op].size(); i++ ){
         Node n = fm->d_uf_terms[op][i];
-        if( !n.getAttribute(NoMatchAttribute()) ){
+        if( d_qe->getTermDatabase()->isTermActive( n ) ){
           add_conds.push_back( n );
           add_values.push_back( n );
           Node r = fm->getUsedRepresentative(n);
@@ -764,7 +764,7 @@ bool FullModelChecker::exhaustiveInstantiate(FirstOrderModelFmc * fm, Node f, No
     Trace("fmc-exh-debug") << "Set element domains..." << std::endl;
     //set the domains based on the entry
     for (unsigned i=0; i<c.getNumChildren(); i++) {
-      if (riter.d_enum_type[i]==RepSetIterator::ENUM_DOMAIN_ELEMENTS) {
+      if( riter.d_enum_type[i]==RepSetIterator::ENUM_DOMAIN_ELEMENTS || riter.d_enum_type[i]==RepSetIterator::ENUM_SET_MEMBERS ){
         TypeNode tn = c[i].getType();
         if( d_rep_ids.find(tn)!=d_rep_ids.end() ){
           if( fm->isInterval(c[i]) || fm->isStar(c[i]) ){
@@ -773,6 +773,7 @@ bool FullModelChecker::exhaustiveInstantiate(FirstOrderModelFmc * fm, Node f, No
             if (d_rep_ids[tn].find(c[i])!=d_rep_ids[tn].end()) {
               riter.d_domain[i].clear();
               riter.d_domain[i].push_back(d_rep_ids[tn][c[i]]);
+              riter.d_enum_type[i] = RepSetIterator::ENUM_DOMAIN_ELEMENTS;
             }else{
               Trace("fmc-exh") << "---- Does not have rep : " << c[i] << " for type " << tn << std::endl;
               return false;
@@ -792,7 +793,7 @@ bool FullModelChecker::exhaustiveInstantiate(FirstOrderModelFmc * fm, Node f, No
       std::vector< Node > ev_inst;
       std::vector< Node > inst;
       for( int i=0; i<riter.getNumTerms(); i++ ){
-        Node rr = riter.getTerm( i );
+        Node rr = riter.getCurrentTerm( i );
         Node r = rr;
         //if( r.getType().isSort() ){
         r = fm->getUsedRepresentative( r );
@@ -826,18 +827,18 @@ bool FullModelChecker::exhaustiveInstantiate(FirstOrderModelFmc * fm, Node f, No
       int index = riter.increment();
       Trace("fmc-exh-debug") << "Incremented index " << index << std::endl;
       if( !riter.isFinished() ){
-        if (index>=0 && riter.d_index[index]>0 && addedLemmas>0 && riter.d_enum_type[index]==RepSetIterator::ENUM_RANGE) {
+        if (index>=0 && riter.d_index[index]>0 && addedLemmas>0 && riter.d_enum_type[index]==RepSetIterator::ENUM_INT_RANGE) {
           Trace("fmc-exh-debug") << "Since this is a range enumeration, skip to the next..." << std::endl;
           riter.increment2( index-1 );
         }
       }
     }
     d_addedLemmas += addedLemmas;
-    Trace("fmc-exh") << "----Finished Exhaustive instantiate, lemmas = " << addedLemmas << ", incomplete=" << riter.d_incomplete << std::endl;
-    return addedLemmas>0 || !riter.d_incomplete;
+    Trace("fmc-exh") << "----Finished Exhaustive instantiate, lemmas = " << addedLemmas << ", incomplete=" << riter.isIncomplete() << std::endl;
+    return addedLemmas>0 || !riter.isIncomplete();
   }else{
     Trace("fmc-exh") << "----Finished Exhaustive instantiate, failed." << std::endl;
-    return false;
+    return !riter.isIncomplete();
   }
 }
 

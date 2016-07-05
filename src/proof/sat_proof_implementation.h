@@ -32,29 +32,28 @@
 namespace CVC4 {
 
 template <class Solver>
-void printLit (typename Solver::TLit l) {
+void printLit(typename Solver::TLit l) {
   Debug("proof:sat") << (sign(l) ? "-" : "") << var(l) + 1;
 }
 
 template <class Solver>
-void printClause (typename Solver::TClause& c) {
+void printClause(const typename Solver::TClause& c) {
   for (int i = 0; i < c.size(); i++) {
     Debug("proof:sat") << (sign(c[i]) ? "-" : "") << var(c[i]) + 1 << " ";
   }
 }
 
 template <class Solver>
-void printClause (std::vector<typename Solver::TLit>& c) {
+void printClause(const std::vector<typename Solver::TLit>& c) {
   for (unsigned i = 0; i < c.size(); i++) {
     Debug("proof:sat") << (sign(c[i]) ? "-" : "") << var(c[i]) + 1 << " ";
   }
 }
 
-
 template <class Solver>
 void printLitSet(const std::set<typename Solver::TLit>& s) {
-  typename std::set < typename Solver::TLit>::const_iterator it = s.begin();
-  for(; it != s.end(); ++it) {
+  typename std::set<typename Solver::TLit>::const_iterator it = s.begin();
+  for (; it != s.end(); ++it) {
     printLit<Solver>(*it);
     Debug("proof:sat") << " ";
   }
@@ -63,17 +62,16 @@ void printLitSet(const std::set<typename Solver::TLit>& s) {
 
 // purely debugging functions
 template <class Solver>
-void printDebug (typename Solver::TLit l) {
+void printDebug(typename Solver::TLit l) {
   Debug("proof:sat") << (sign(l) ? "-" : "") << var(l) + 1 << std::endl;
 }
 template <class Solver>
-void printDebug (typename Solver::TClause& c) {
+void printDebug(typename Solver::TClause& c) {
   for (int i = 0; i < c.size(); i++) {
     Debug("proof:sat") << (sign(c[i]) ? "-" : "") << var(c[i]) + 1 << " ";
   }
   Debug("proof:sat") << std::endl;
 }
-
 
 /**
  * Converts the clause associated to id to a set of literals
@@ -84,11 +82,11 @@ void printDebug (typename Solver::TClause& c) {
 template <class Solver>
 void TSatProof<Solver>::createLitSet(ClauseId id, LitSet& set) {
   Assert(set.empty());
-  if(isUnit(id)) {
+  if (isUnit(id)) {
     set.insert(getUnit(id));
     return;
   }
-  if ( id == d_emptyClauseId) {
+  if (id == d_emptyClauseId) {
     return;
   }
   // if it's an assumption
@@ -101,12 +99,11 @@ void TSatProof<Solver>::createLitSet(ClauseId id, LitSet& set) {
   }
 
   typename Solver::TCRef ref = getClauseRef(id);
-  typename Solver::TClause& c = getClause(ref);
+  const typename Solver::TClause& c = getClause(ref);
   for (int i = 0; i < c.size(); i++) {
     set.insert(c[i]);
   }
 }
-
 
 /**
  * Resolves clause1 and clause2 on variable var and stores the
@@ -124,8 +121,8 @@ bool resolve(const typename Solver::TLit v,
   typename Solver::TLit var = sign(v) ? ~v : v;
   if (s) {
     // literal appears positive in the first clause
-    if( !clause2.count(~var)) {
-      if(Debug.isOn("proof:sat")) {
+    if (!clause2.count(~var)) {
+      if (Debug.isOn("proof:sat")) {
         Debug("proof:sat") << "proof:resolve: Missing literal ";
         printLit<Solver>(var);
         Debug("proof:sat") << std::endl;
@@ -135,13 +132,13 @@ bool resolve(const typename Solver::TLit v,
     clause1.erase(var);
     clause2.erase(~var);
     typename std::set<typename Solver::TLit>::iterator it = clause2.begin();
-    for (; it!= clause2.end(); ++it) {
+    for (; it != clause2.end(); ++it) {
       clause1.insert(*it);
     }
   } else {
     // literal appears negative in the first clause
-    if( !clause1.count(~var) || !clause2.count(var)) {
-      if(Debug.isOn("proof:sat")) {
+    if (!clause1.count(~var) || !clause2.count(var)) {
+      if (Debug.isOn("proof:sat")) {
         Debug("proof:sat") << "proof:resolve: Missing literal ";
         printLit<Solver>(var);
         Debug("proof:sat") << std::endl;
@@ -151,7 +148,7 @@ bool resolve(const typename Solver::TLit v,
     clause1.erase(~var);
     clause2.erase(var);
     typename std::set<typename Solver::TLit>::iterator it = clause2.begin();
-    for (; it!= clause2.end(); ++it) {
+    for (; it != clause2.end(); ++it) {
       clause1.insert(*it);
     }
   }
@@ -160,13 +157,19 @@ bool resolve(const typename Solver::TLit v,
 
 /// ResChain
 template <class Solver>
-ResChain<Solver>::ResChain(ClauseId start) :
-    d_start(start),
-    d_steps(),
-    d_redundantLits(NULL)
-  {}
+ResChain<Solver>::ResChain(ClauseId start)
+    : d_start(start), d_steps(), d_redundantLits(NULL) {}
+
 template <class Solver>
-void ResChain<Solver>::addStep(typename Solver::TLit lit, ClauseId id, bool sign) {
+ResChain<Solver>::~ResChain() {
+  if (d_redundantLits != NULL) {
+    delete d_redundantLits;
+  }
+}
+
+template <class Solver>
+void ResChain<Solver>::addStep(typename Solver::TLit lit, ClauseId id,
+                               bool sign) {
   ResStep<Solver> step(lit, id, sign);
   d_steps.push_back(step);
 }
@@ -181,50 +184,47 @@ void ResChain<Solver>::addRedundantLit(typename Solver::TLit lit) {
   }
 }
 
-
 /// ProxyProof
 template <class Solver>
-ProofProxy<Solver>::ProofProxy(TSatProof<Solver>* proof):
-  d_proof(proof)
-{}
+ProofProxy<Solver>::ProofProxy(TSatProof<Solver>* proof) : d_proof(proof) {}
 
 template <class Solver>
-void ProofProxy<Solver>::updateCRef(typename Solver::TCRef oldref, typename Solver::TCRef newref) {
+void ProofProxy<Solver>::updateCRef(typename Solver::TCRef oldref,
+                                    typename Solver::TCRef newref) {
   d_proof->updateCRef(oldref, newref);
 }
 
-
 /// SatProof
 template <class Solver>
-TSatProof<Solver>::TSatProof(Solver* solver, const std::string& name, bool checkRes)
-  : d_solver(solver)
-  , d_cnfProof(NULL)
-  , d_idClause()
-  , d_clauseId()
-  , d_idUnit()
-  , d_deleted()
-  , d_inputClauses()
-  , d_lemmaClauses()
-  , d_assumptions()
-  , d_assumptionConflicts()
-  , d_assumptionConflictsDebug()
-  , d_resChains()
-  , d_resStack()
-  , d_checkRes(checkRes)
-  , d_emptyClauseId(ClauseIdEmpty)
-  , d_nullId(-2)
-  , d_temp_clauseId()
-  , d_temp_idClause()
-  , d_unitConflictId()
-  , d_storedUnitConflict(false)
-  , d_trueLit(ClauseIdUndef)
-  , d_falseLit(ClauseIdUndef)
-  , d_name(name)
-  , d_seenLearnt()
-  , d_seenInputs()
-  , d_seenLemmas()
-  , d_statistics(name)
-{
+TSatProof<Solver>::TSatProof(Solver* solver, const std::string& name,
+                             bool checkRes)
+    : d_solver(solver),
+      d_cnfProof(NULL),
+      d_idClause(),
+      d_clauseId(),
+      d_idUnit(),
+      d_deleted(),
+      d_inputClauses(),
+      d_lemmaClauses(),
+      d_assumptions(),
+      d_assumptionConflicts(),
+      d_assumptionConflictsDebug(),
+      d_resolutionChains(),
+      d_resStack(),
+      d_checkRes(checkRes),
+      d_emptyClauseId(ClauseIdEmpty),
+      d_nullId(-2),
+      d_temp_clauseId(),
+      d_temp_idClause(),
+      d_unitConflictId(),
+      d_storedUnitConflict(false),
+      d_trueLit(ClauseIdUndef),
+      d_falseLit(ClauseIdUndef),
+      d_name(name),
+      d_seenLearnt(),
+      d_seenInputs(),
+      d_seenLemmas(),
+      d_statistics(name) {
   d_proxy = new ProofProxy<Solver>(this);
 }
 
@@ -233,34 +233,53 @@ TSatProof<Solver>::~TSatProof() {
   delete d_proxy;
 
   // FIXME: double free if deleted clause also appears in d_seenLemmas?
-  IdToSatClause::iterator it = d_deletedTheoryLemmas.begin();
-  IdToSatClause::iterator end = d_deletedTheoryLemmas.end();
+  IdToSatClause::const_iterator it = d_deletedTheoryLemmas.begin();
+  IdToSatClause::const_iterator end = d_deletedTheoryLemmas.end();
 
   for (; it != end; ++it) {
     ClauseId id = it->first;
     // otherwise deleted in next loop
-    if (d_seenLemmas.find(id) == d_seenLemmas.end())
+    if (d_seenLemmas.find(id) == d_seenLemmas.end()) {
       delete it->second;
+    }
   }
 
-  IdToSatClause::iterator seen_it = d_seenLemmas.begin();
-  IdToSatClause::iterator seen_end = d_seenLemmas.end();
+  IdToSatClause::const_iterator seen_lemma_it = d_seenLemmas.begin();
+  IdToSatClause::const_iterator seen_lemma_end = d_seenLemmas.end();
 
-  for (; seen_it != seen_end; ++seen_it) {
-    delete seen_it->second;
+  for (; seen_lemma_it != seen_lemma_end; ++seen_lemma_it) {
+    delete seen_lemma_it->second;
   }
 
-  seen_it = d_seenInputs.begin();
-  seen_end = d_seenInputs.end();
+  IdToSatClause::const_iterator seen_input_it = d_seenInputs.begin();
+  IdToSatClause::const_iterator seen_input_end = d_seenInputs.end();
 
-  for (; seen_it != seen_end; ++seen_it) {
-    delete seen_it->second;
+  for (; seen_input_it != seen_input_end; ++seen_input_it) {
+    delete seen_input_it->second;
+  }
+
+  typedef typename IdResMap::const_iterator ResolutionChainIterator;
+  ResolutionChainIterator resolution_it = d_resolutionChains.begin();
+  ResolutionChainIterator resolution_it_end = d_resolutionChains.end();
+  for (; resolution_it != resolution_it_end; ++resolution_it) {
+    ResChain<Solver>* current = resolution_it->second;
+    delete current;
+  }
+
+  // It could be the case that d_resStack is not empty at destruction time
+  // (for example in the SAT case).
+  typename ResStack::const_iterator resolution_stack_it = d_resStack.begin();
+  typename ResStack::const_iterator resolution_stack_it_end = d_resStack.end();
+  for (; resolution_stack_it != resolution_stack_it_end;
+       ++resolution_stack_it) {
+    ResChain<Solver>* current = *resolution_stack_it;
+    delete current;
   }
 }
 
 template <class Solver>
 void TSatProof<Solver>::setCnfProof(CnfProof* cnf_proof) {
-  Assert (d_cnfProof == NULL);
+  Assert(d_cnfProof == NULL);
   d_cnfProof = cnf_proof;
 }
 
@@ -273,19 +292,19 @@ void TSatProof<Solver>::setCnfProof(CnfProof* cnf_proof) {
  */
 template <class Solver>
 bool TSatProof<Solver>::checkResolution(ClauseId id) {
-  if(d_checkRes) {
+  if (d_checkRes) {
     bool validRes = true;
-    Assert(d_resChains.find(id) != d_resChains.end());
-    ResChain<Solver>* res = d_resChains[id];
+    Assert(hasResolutionChain(id));
+    const ResolutionChain& res = getResolutionChain(id);
     LitSet clause1;
-    createLitSet(res->getStart(), clause1);
-    typename ResChain<Solver>::ResSteps& steps = res->getSteps();
+    createLitSet(res.getStart(), clause1);
+    const typename ResolutionChain::ResSteps& steps = res.getSteps();
     for (unsigned i = 0; i < steps.size(); i++) {
-      typename Solver::TLit    var = steps[i].lit;
+      typename Solver::TLit var = steps[i].lit;
       LitSet clause2;
-      createLitSet (steps[i].id, clause2);
-      bool res = resolve<Solver> (var, clause1, clause2, steps[i].sign);
-      if(res == false) {
+      createLitSet(steps[i].id, clause2);
+      bool res = resolve<Solver>(var, clause1, clause2, steps[i].sign);
+      if (res == false) {
         validRes = false;
         break;
       }
@@ -307,8 +326,9 @@ bool TSatProof<Solver>::checkResolution(ClauseId id) {
     for (unsigned i = 0; i < c.size(); ++i) {
       int count = clause1.erase(c[i]);
       if (count == 0) {
-        if(Debug.isOn("proof:sat")) {
-          Debug("proof:sat") << "proof:checkResolution::literal not in computed result ";
+        if (Debug.isOn("proof:sat")) {
+          Debug("proof:sat")
+              << "proof:checkResolution::literal not in computed result ";
           printLit<Solver>(c[i]);
           Debug("proof:sat") << "\n";
         }
@@ -316,9 +336,10 @@ bool TSatProof<Solver>::checkResolution(ClauseId id) {
       }
     }
     validRes = clause1.empty();
-    if (! validRes) {
-      if(Debug.isOn("proof:sat")) {
-        Debug("proof:sat") << "proof:checkResolution::Invalid Resolution, unremoved literals: \n";
+    if (!validRes) {
+      if (Debug.isOn("proof:sat")) {
+        Debug("proof:sat") << "proof:checkResolution::Invalid Resolution, "
+                              "unremoved literals: \n";
         printLitSet<Solver>(clause1);
         Debug("proof:sat") << "proof:checkResolution:: result should be: \n";
         printClause<Solver>(c);
@@ -331,37 +352,54 @@ bool TSatProof<Solver>::checkResolution(ClauseId id) {
   }
 }
 
-
-
-
 /// helper methods
 template <class Solver>
-ClauseId TSatProof<Solver>::getClauseId(typename Solver::TCRef ref) {
-  if(d_clauseId.find(ref) == d_clauseId.end()) {
+bool TSatProof<Solver>::hasClauseIdForCRef(typename Solver::TCRef ref) const {
+  return d_clauseId.find(ref) != d_clauseId.end();
+}
+
+template <class Solver>
+ClauseId TSatProof<Solver>::getClauseIdForCRef(
+    typename Solver::TCRef ref) const {
+  if (d_clauseId.find(ref) == d_clauseId.end()) {
     Debug("proof:sat") << "Missing clause \n";
   }
-  Assert(d_clauseId.find(ref) != d_clauseId.end());
-  return d_clauseId[ref];
+  Assert(hasClauseIdForCRef(ref));
+  return d_clauseId.find(ref)->second;
 }
 
 template <class Solver>
-ClauseId TSatProof<Solver>::getClauseId(typename Solver::TLit lit) {
-  Assert(d_unitId.find(toInt(lit)) != d_unitId.end());
-  return d_unitId[toInt(lit)];
+bool TSatProof<Solver>::hasClauseIdForLiteral(typename Solver::TLit lit) const {
+  return d_unitId.find(toInt(lit)) != d_unitId.end();
 }
+
 template <class Solver>
-typename Solver::TCRef TSatProof<Solver>::getClauseRef(ClauseId id) {
-  if (d_idClause.find(id) == d_idClause.end()) {
-    Debug("proof:sat") << "proof:getClauseRef cannot find clause "<<id<<" "
-                       << ((d_deleted.find(id) != d_deleted.end()) ? "deleted" : "")
-                       << (isUnit(id)? "Unit" : "") << std::endl;
+ClauseId TSatProof<Solver>::getClauseIdForLiteral(
+    typename Solver::TLit lit) const {
+  Assert(hasClauseIdForLiteral(lit));
+  return d_unitId.find(toInt(lit))->second;
+}
+
+template <class Solver>
+bool TSatProof<Solver>::hasClauseRef(ClauseId id) const {
+  return d_idClause.find(id) != d_idClause.end();
+}
+
+template <class Solver>
+typename Solver::TCRef TSatProof<Solver>::getClauseRef(ClauseId id) const {
+  if (!hasClauseRef(id)) {
+    Debug("proof:sat") << "proof:getClauseRef cannot find clause " << id << " "
+                       << ((d_deleted.find(id) != d_deleted.end()) ? "deleted"
+                                                                   : "")
+                       << (isUnit(id) ? "Unit" : "") << std::endl;
   }
-  Assert(d_idClause.find(id) != d_idClause.end());
-  return d_idClause[id];
+  Assert(hasClauseRef(id));
+  return d_idClause.find(id)->second;
 }
 
 template <class Solver>
-typename Solver::TClause& TSatProof<Solver>::getClause(typename Solver::TCRef ref) {
+const typename Solver::TClause& TSatProof<Solver>::getClause(
+    typename Solver::TCRef ref) const {
   Assert(ref != Solver::TCRef_Undef);
   Assert(ref >= 0 && ref < d_solver->ca.size());
   return d_solver->ca[ref];
@@ -379,85 +417,106 @@ void TSatProof<Solver>::getLitVec(ClauseId id, LitVector& vec) {
     return;
   }
   typename Solver::TCRef cref = getClauseRef(id);
-  typename Solver::TClause& cl = getClause(cref);
+  const typename Solver::TClause& cl = getClause(cref);
   for (int i = 0; i < cl.size(); ++i) {
     vec.push_back(cl[i]);
   }
 }
 
-
 template <class Solver>
-typename Solver::TLit TSatProof<Solver>::getUnit(ClauseId id) {
-  Assert(d_idUnit.find(id) != d_idUnit.end());
-  return d_idUnit[id];
-}
-template <class Solver>
-bool TSatProof<Solver>::isUnit(ClauseId id) {
+bool TSatProof<Solver>::isUnit(ClauseId id) const {
   return d_idUnit.find(id) != d_idUnit.end();
 }
+
 template <class Solver>
-bool TSatProof<Solver>::isUnit(typename Solver::TLit lit) {
-  return d_unitId.find(toInt(lit)) != d_unitId.end();
-}
-template <class Solver>
-ClauseId TSatProof<Solver>::getUnitId(typename Solver::TLit lit) {
-  Assert(isUnit(lit));
-  return d_unitId[toInt(lit)];
-}
-template <class Solver>
-bool TSatProof<Solver>::hasResolution(ClauseId id) {
-  return d_resChains.find(id) != d_resChains.end();
-}
-template <class Solver>
-bool TSatProof<Solver>::isInputClause(ClauseId id) {
-  return (d_inputClauses.find(id) != d_inputClauses.end());
-}
-template <class Solver>
-bool TSatProof<Solver>::isLemmaClause(ClauseId id) {
-  return (d_lemmaClauses.find(id) != d_lemmaClauses.end());
+typename Solver::TLit TSatProof<Solver>::getUnit(ClauseId id) const {
+  Assert(isUnit(id));
+  return d_idUnit.find(id)->second;
 }
 
 template <class Solver>
-bool TSatProof<Solver>::isAssumptionConflict(ClauseId id) {
+bool TSatProof<Solver>::isUnit(typename Solver::TLit lit) const {
+  return d_unitId.find(toInt(lit)) != d_unitId.end();
+}
+
+template <class Solver>
+ClauseId TSatProof<Solver>::getUnitId(typename Solver::TLit lit) const {
+  Assert(isUnit(lit));
+  return d_unitId.find(toInt(lit))->second;
+}
+
+template <class Solver>
+bool TSatProof<Solver>::hasResolutionChain(ClauseId id) const {
+  return d_resolutionChains.find(id) != d_resolutionChains.end();
+}
+
+template <class Solver>
+const typename TSatProof<Solver>::ResolutionChain&
+TSatProof<Solver>::getResolutionChain(ClauseId id) const {
+  Assert(hasResolutionChain(id));
+  const ResolutionChain* chain = d_resolutionChains.find(id)->second;
+  return *chain;
+}
+
+template <class Solver>
+typename TSatProof<Solver>::ResolutionChain*
+TSatProof<Solver>::getMutableResolutionChain(ClauseId id) {
+  Assert(hasResolutionChain(id));
+  ResolutionChain* chain = d_resolutionChains.find(id)->second;
+  return chain;
+}
+
+template <class Solver>
+bool TSatProof<Solver>::isInputClause(ClauseId id) const {
+  return d_inputClauses.find(id) != d_inputClauses.end();
+}
+
+template <class Solver>
+bool TSatProof<Solver>::isLemmaClause(ClauseId id) const {
+  return d_lemmaClauses.find(id) != d_lemmaClauses.end();
+}
+
+template <class Solver>
+bool TSatProof<Solver>::isAssumptionConflict(ClauseId id) const {
   return d_assumptionConflicts.find(id) != d_assumptionConflicts.end();
 }
 
-
 template <class Solver>
-void TSatProof<Solver>::print(ClauseId id) {
+void TSatProof<Solver>::print(ClauseId id) const {
   if (d_deleted.find(id) != d_deleted.end()) {
-    Debug("proof:sat") << "del"<<id;
+    Debug("proof:sat") << "del" << id;
   } else if (isUnit(id)) {
     printLit<Solver>(getUnit(id));
   } else if (id == d_emptyClauseId) {
-    Debug("proof:sat") << "empty "<< std::endl;
-  }
-  else {
+    Debug("proof:sat") << "empty " << std::endl;
+  } else {
     typename Solver::TCRef ref = getClauseRef(id);
     printClause<Solver>(getClause(ref));
   }
 }
-template <class Solver>
-void TSatProof<Solver>::printRes(ClauseId id) {
-  Assert(hasResolution(id));
-  Debug("proof:sat") << "id "<< id <<": ";
-  printRes(d_resChains[id]);
-}
-template <class Solver>
-void TSatProof<Solver>::printRes(ResChain<Solver>* res) {
-  ClauseId start_id = res->getStart();
 
-  if(Debug.isOn("proof:sat")) {
+template <class Solver>
+void TSatProof<Solver>::printRes(ClauseId id) const {
+  Assert(hasResolutionChain(id));
+  Debug("proof:sat") << "id " << id << ": ";
+  printRes(getResolutionChain(id));
+}
+
+template <class Solver>
+void TSatProof<Solver>::printRes(const ResolutionChain& res) const {
+  ClauseId start_id = res.getStart();
+
+  if (Debug.isOn("proof:sat")) {
     Debug("proof:sat") << "(";
     print(start_id);
   }
 
-  typename ResChain<Solver>::ResSteps& steps = res->getSteps();
-  for(unsigned i = 0; i < steps.size(); i++ ) {
+  const typename ResolutionChain::ResSteps& steps = res.getSteps();
+  for (unsigned i = 0; i < steps.size(); i++) {
     typename Solver::TLit v = steps[i].lit;
     ClauseId id = steps[i].id;
 
-    if(Debug.isOn("proof:sat")) {
+    if (Debug.isOn("proof:sat")) {
       Debug("proof:sat") << "[";
       printLit<Solver>(v);
       Debug("proof:sat") << "] ";
@@ -469,8 +528,8 @@ void TSatProof<Solver>::printRes(ResChain<Solver>* res) {
 
 /// registration methods
 template <class Solver>
-  ClauseId TSatProof<Solver>::registerClause(typename Solver::TCRef clause,
-					     ClauseKind kind) {
+ClauseId TSatProof<Solver>::registerClause(typename Solver::TCRef clause,
+                                           ClauseKind kind) {
   Assert(clause != Solver::TCRef_Undef);
   typename ClauseIdMap::iterator it = d_clauseId.find(clause);
   if (it == d_clauseId.end()) {
@@ -485,10 +544,8 @@ template <class Solver>
       Assert(d_lemmaClauses.find(newId) == d_lemmaClauses.end());
       d_lemmaClauses.insert(newId);
       Debug("pf::sat") << "TSatProof::registerClause registering a new lemma clause: "
-                            << newId << " = " << *buildClause(newId)
-                            << ". Explainer theory: " << d_cnfProof->getExplainerTheory()
-                            << std::endl;
-      d_cnfProof->registerExplanationLemma(newId);
+                       << newId << " = " << *buildClause(newId)
+                       << std::endl;
     }
   }
 
@@ -496,15 +553,16 @@ template <class Solver>
   Assert(kind != INPUT || d_inputClauses.count(id));
   Assert(kind != THEORY_LEMMA || d_lemmaClauses.count(id));
 
-  Debug("proof:sat:detailed") << "registerClause CRef: " << clause << " id: " << d_clauseId[clause]
-                              <<"                kind: " << kind << "\n";
-  //ProofManager::currentPM()->setRegisteredClauseId( d_clauseId[clause] );
+  Debug("proof:sat:detailed") << "registerClause CRef: " << clause
+                              << " id: " << d_clauseId[clause]
+                              << "                kind: " << kind << "\n";
+  // ProofManager::currentPM()->setRegisteredClauseId( d_clauseId[clause] );
   return id;
 }
 
 template <class Solver>
 ClauseId TSatProof<Solver>::registerUnitClause(typename Solver::TLit lit,
-					       ClauseKind kind) {
+                                               ClauseKind kind) {
   Debug("cores") << "registerUnitClause " << kind << std::endl;
   typename UnitIdMap::iterator it = d_unitId.find(toInt(lit));
   if (it == d_unitId.end()) {
@@ -519,59 +577,57 @@ ClauseId TSatProof<Solver>::registerUnitClause(typename Solver::TLit lit,
     if (kind == THEORY_LEMMA) {
       Assert(d_lemmaClauses.find(newId) == d_lemmaClauses.end());
       Debug("pf::sat") << "TSatProof::registerUnitClause: registering a new lemma (UNIT CLAUSE): "
-                            << lit
-                            << ". Explainer theory: " << d_cnfProof->getExplainerTheory()
-                            << std::endl;
+                       << lit
+                       << std::endl;
       d_lemmaClauses.insert(newId);
-      d_cnfProof->registerExplanationLemma(newId);
     }
   }
   ClauseId id = d_unitId[toInt(lit)];
   Assert(kind != INPUT || d_inputClauses.count(id));
   Assert(kind != THEORY_LEMMA || d_lemmaClauses.count(id));
   Debug("proof:sat:detailed") << "registerUnitClause id: " << id
-                              <<" kind: " << kind << "\n";
+                              << " kind: " << kind << "\n";
   // ProofManager::currentPM()->setRegisteredClauseId( d_unitId[toInt(lit)] );
   return id;
 }
 template <class Solver>
 void TSatProof<Solver>::registerTrueLit(const typename Solver::TLit lit) {
-  Assert (d_trueLit == ClauseIdUndef);
+  Assert(d_trueLit == ClauseIdUndef);
   d_trueLit = registerUnitClause(lit, INPUT);
 }
 
 template <class Solver>
 void TSatProof<Solver>::registerFalseLit(const typename Solver::TLit lit) {
-  Assert (d_falseLit == ClauseIdUndef);
+  Assert(d_falseLit == ClauseIdUndef);
   d_falseLit = registerUnitClause(lit, INPUT);
 }
 
 template <class Solver>
 ClauseId TSatProof<Solver>::getTrueUnit() const {
-  Assert (d_trueLit != ClauseIdUndef);
+  Assert(d_trueLit != ClauseIdUndef);
   return d_trueLit;
 }
 
 template <class Solver>
 ClauseId TSatProof<Solver>::getFalseUnit() const {
-  Assert (d_falseLit != ClauseIdUndef);
+  Assert(d_falseLit != ClauseIdUndef);
   return d_falseLit;
 }
 
-
 template <class Solver>
 void TSatProof<Solver>::registerAssumption(const typename Solver::TVar var) {
-  Assert (d_assumptions.find(var) == d_assumptions.end());
+  Assert(d_assumptions.find(var) == d_assumptions.end());
   d_assumptions.insert(var);
 }
 
 template <class Solver>
-ClauseId TSatProof<Solver>::registerAssumptionConflict(const typename Solver::TLitVec& confl) {
+ClauseId TSatProof<Solver>::registerAssumptionConflict(
+    const typename Solver::TLitVec& confl) {
   Debug("proof:sat:detailed") << "registerAssumptionConflict " << std::endl;
   // Uniqueness is checked in the bit-vector proof
   // should be vars
   for (int i = 0; i < confl.size(); ++i) {
-    Assert (d_assumptions.find(var(confl[i])) != d_assumptions.end());
+    Assert(d_assumptions.find(var(confl[i])) != d_assumptions.end());
   }
   ClauseId new_id = ProofManager::currentPM()->nextId();
   d_assumptionConflicts.insert(new_id);
@@ -588,9 +644,10 @@ ClauseId TSatProof<Solver>::registerAssumptionConflict(const typename Solver::TL
   return new_id;
 }
 
-
 template <class Solver>
-void TSatProof<Solver>::removedDfs(typename Solver::TLit lit, LitSet* removedSet, LitVector& removeStack, LitSet& inClause, LitSet& seen) {
+void TSatProof<Solver>::removedDfs(typename Solver::TLit lit,
+                                   LitSet* removedSet, LitVector& removeStack,
+                                   LitSet& inClause, LitSet& seen) {
   // if we already added the literal return
   if (seen.count(lit)) {
     return;
@@ -604,20 +661,21 @@ void TSatProof<Solver>::removedDfs(typename Solver::TLit lit, LitSet* removedSet
   }
 
   int size = getClause(reason_ref).size();
-  for (int i = 1; i < size; i++ ) {
+  for (int i = 1; i < size; i++) {
     typename Solver::TLit v = getClause(reason_ref)[i];
-    if(inClause.count(v) == 0 && seen.count(v) == 0) {
+    if (inClause.count(v) == 0 && seen.count(v) == 0) {
       removedDfs(v, removedSet, removeStack, inClause, seen);
     }
   }
-  if(seen.count(lit) == 0) {
+  if (seen.count(lit) == 0) {
     seen.insert(lit);
     removeStack.push_back(lit);
   }
 }
 
 template <class Solver>
-void TSatProof<Solver>::removeRedundantFromRes(ResChain<Solver>* res, ClauseId id) {
+void TSatProof<Solver>::removeRedundantFromRes(ResChain<Solver>* res,
+                                               ClauseId id) {
   LitSet* removed = res->getRedundant();
   if (removed == NULL) {
     return;
@@ -628,11 +686,12 @@ void TSatProof<Solver>::removeRedundantFromRes(ResChain<Solver>* res, ClauseId i
 
   LitVector removeStack;
   LitSet seen;
-  for (typename LitSet::iterator it = removed->begin(); it != removed->end(); ++it) {
+  for (typename LitSet::iterator it = removed->begin(); it != removed->end();
+       ++it) {
     removedDfs(*it, removed, removeStack, inClause, seen);
   }
 
-  for (int i = removeStack.size()-1; i >= 0; --i) {
+  for (int i = removeStack.size() - 1; i >= 0; --i) {
     typename Solver::TLit lit = removeStack[i];
     typename Solver::TCRef reason_ref = d_solver->reason(var(lit));
     ClauseId reason_id;
@@ -655,41 +714,50 @@ void TSatProof<Solver>::registerResolution(ClauseId id, ResChain<Solver>* res) {
   removeRedundantFromRes(res, id);
   Assert(res->redundantRemoved());
 
-  d_resChains[id] = res;
-  if(Debug.isOn("proof:sat")) {
+  // Because the SAT solver can add the same clause multiple times, it
+  // could be the case that a resolution chain for this clause already
+  // exists (e.g. when removing units in addClause).
+  if (hasResolutionChain(id)) {
+    ResChain<Solver>* current = d_resolutionChains.find(id)->second;
+    delete current;
+    d_resolutionChains.erase(id);
+  }
+  Assert(!hasResolutionChain(id));
+
+  d_resolutionChains.insert(std::make_pair(id, res));
+  if (Debug.isOn("proof:sat")) {
     printRes(id);
   }
-  if(d_checkRes) {
+  if (d_checkRes) {
     Assert(checkResolution(id));
   }
 
-  PSTATS(
-  d_statistics.d_resChainLengths << ((uint64_t)res->getSteps().size());
-  d_statistics.d_avgChainLength.addEntry((uint64_t)res->getSteps().size());
-  ++(d_statistics.d_numLearnedClauses);
-  )
+  PSTATS(uint64_t resolutionSteps =
+             static_cast<uint64_t>(res.getSteps().size());
+         d_statistics.d_resChainLengths << resolutionSteps;
+         d_statistics.d_avgChainLength.addEntry(resolutionSteps);
+         ++(d_statistics.d_numLearnedClauses);)
 }
-
 
 /// recording resolutions
 template <class Solver>
 void TSatProof<Solver>::startResChain(typename Solver::TCRef start) {
-  ClauseId id = getClauseId(start);
-  ResChain<Solver>* res = new ResChain<Solver>(id);
+  ClauseId id = getClauseIdForCRef(start);
+  ResolutionChain* res = new ResolutionChain(id);
   d_resStack.push_back(res);
 }
 
 template <class Solver>
 void TSatProof<Solver>::startResChain(typename Solver::TLit start) {
   ClauseId id = getUnitId(start);
-  ResChain<Solver>* res = new ResChain<Solver>(id);
+  ResolutionChain* res = new ResolutionChain(id);
   d_resStack.push_back(res);
 }
 
-
 template <class Solver>
 void TSatProof<Solver>::addResolutionStep(typename Solver::TLit lit,
-                                          typename Solver::TCRef clause, bool sign) {
+                                          typename Solver::TCRef clause,
+                                          bool sign) {
   ClauseId id = registerClause(clause, LEARNT);
   ResChain<Solver>* res = d_resStack.back();
   res->addStep(lit, id, sign);
@@ -697,13 +765,12 @@ void TSatProof<Solver>::addResolutionStep(typename Solver::TLit lit,
 
 template <class Solver>
 void TSatProof<Solver>::endResChain(ClauseId id) {
-  Debug("proof:sat:detailed") <<"endResChain " << id << "\n";
+  Debug("proof:sat:detailed") << "endResChain " << id << "\n";
   Assert(d_resStack.size() > 0);
   ResChain<Solver>* res = d_resStack.back();
   registerResolution(id, res);
   d_resStack.pop_back();
 }
-
 
 // template <class Solver>
 // void TSatProof<Solver>::endResChain(typename Solver::TCRef clause) {
@@ -718,25 +785,25 @@ template <class Solver>
 void TSatProof<Solver>::endResChain(typename Solver::TLit lit) {
   Assert(d_resStack.size() > 0);
   ClauseId id = registerUnitClause(lit, LEARNT);
-  Debug("proof:sat:detailed") <<"endResChain unit " << id << "\n";
-  ResChain<Solver>* res = d_resStack.back();
+  Debug("proof:sat:detailed") << "endResChain unit " << id << "\n";
+  ResolutionChain* res = d_resStack.back();
   d_glueMap[id] = 1;
   registerResolution(id, res);
   d_resStack.pop_back();
 }
 
-
 template <class Solver>
 void TSatProof<Solver>::cancelResChain() {
   Assert(d_resStack.size() > 0);
+  ResolutionChain* back = d_resStack.back();
+  delete back;
   d_resStack.pop_back();
 }
-
 
 template <class Solver>
 void TSatProof<Solver>::storeLitRedundant(typename Solver::TLit lit) {
   Assert(d_resStack.size() > 0);
-  ResChain<Solver>* res = d_resStack.back();
+  ResolutionChain* res = d_resStack.back();
   res->addRedundantLit(lit);
 }
 
@@ -755,9 +822,9 @@ void TSatProof<Solver>::storeUnitResolution(typename Solver::TLit lit) {
 template <class Solver>
 ClauseId TSatProof<Solver>::resolveUnit(typename Solver::TLit lit) {
   // first check if we already have a resolution for lit
-  if(isUnit(lit)) {
-    ClauseId id = getClauseId(lit);
-    Assert(hasResolution(id) || isInputClause(id) || isLemmaClause(id));
+  if (isUnit(lit)) {
+    ClauseId id = getClauseIdForLiteral(lit);
+    Assert(hasResolutionChain(id) || isInputClause(id) || isLemmaClause(id));
     return id;
   }
   typename Solver::TCRef reason_ref = d_solver->reason(var(lit));
@@ -768,12 +835,13 @@ ClauseId TSatProof<Solver>::resolveUnit(typename Solver::TLit lit) {
   ResChain<Solver>* res = new ResChain<Solver>(reason_id);
   // Here, the call to resolveUnit() can reallocate memory in the
   // clause allocator.  So reload reason ptr each time.
-  typename Solver::TClause* reason = &getClause(reason_ref);
-  for (int i = 0;
-       i < reason->size();
-       i++, reason = &getClause(reason_ref)) {
-    typename Solver::TLit l = (*reason)[i];
-    if(lit != l) {
+  const typename Solver::TClause& initial_reason = getClause(reason_ref);
+  size_t current_reason_size = initial_reason.size();
+  for (size_t i = 0; i < current_reason_size; i++) {
+    const typename Solver::TClause& current_reason = getClause(reason_ref);
+    current_reason_size = current_reason.size();
+    typename Solver::TLit l = current_reason[i];
+    if (lit != l) {
       ClauseId res_id = resolveUnit(~l);
       res->addStep(l, res_id, !sign(l));
     }
@@ -787,16 +855,19 @@ void TSatProof<Solver>::toStream(std::ostream& out) {
   Debug("proof:sat") << "TSatProof<Solver>::printProof\n";
   Unimplemented("native proof printing not supported yet");
 }
+
 template <class Solver>
-ClauseId TSatProof<Solver>::storeUnitConflict(typename Solver::TLit conflict_lit,
-                                              ClauseKind kind) {
+ClauseId TSatProof<Solver>::storeUnitConflict(
+    typename Solver::TLit conflict_lit, ClauseKind kind) {
   Debug("cores") << "STORE UNIT CONFLICT" << std::endl;
   Assert(!d_storedUnitConflict);
   d_unitConflictId = registerUnitClause(conflict_lit, kind);
   d_storedUnitConflict = true;
-  Debug("proof:sat:detailed") <<"storeUnitConflict " << d_unitConflictId << "\n";
+  Debug("proof:sat:detailed") << "storeUnitConflict " << d_unitConflictId
+                              << "\n";
   return d_unitConflictId;
 }
+
 template <class Solver>
 void TSatProof<Solver>::finalizeProof(typename Solver::TCRef conflict_ref) {
   Assert(d_resStack.size() == 0);
@@ -816,10 +887,10 @@ void TSatProof<Solver>::finalizeProof(typename Solver::TCRef conflict_ref) {
     return;
   } else {
     Assert(!d_storedUnitConflict);
-    conflict_id = registerClause(conflict_ref, LEARNT); //FIXME
+    conflict_id = registerClause(conflict_ref, LEARNT);  // FIXME
   }
 
-  if(Debug.isOn("proof:sat")) {
+  if (Debug.isOn("proof:sat")) {
     Debug("proof:sat") << "proof::finalizeProof Final Conflict ";
     print(conflict_id);
   }
@@ -827,13 +898,13 @@ void TSatProof<Solver>::finalizeProof(typename Solver::TCRef conflict_ref) {
   ResChain<Solver>* res = new ResChain<Solver>(conflict_id);
   // Here, the call to resolveUnit() can reallocate memory in the
   // clause allocator.  So reload conflict ptr each time.
-  typename Solver::TClause* conflict = &getClause(conflict_ref);
-  for (int i = 0;
-       i < conflict->size();
-       ++i, conflict = &getClause(conflict_ref)) {
-    typename Solver::TLit lit = (*conflict)[i];
+  size_t conflict_size = getClause(conflict_ref).size();
+  for (size_t i = 0; i < conflict_size; ++i) {
+    const typename Solver::TClause& conflict = getClause(conflict_ref);
+    typename Solver::TLit lit = conflict[i];
     ClauseId res_id = resolveUnit(~lit);
     res->addStep(lit, res_id, !sign(lit));
+    conflict_size = conflict.size();
   }
   registerResolution(d_emptyClauseId, res);
 }
@@ -845,12 +916,13 @@ void TSatProof<Solver>::updateCRef(typename Solver::TCRef oldref,
   if (d_clauseId.find(oldref) == d_clauseId.end()) {
     return;
   }
-  ClauseId id = getClauseId(oldref);
+  ClauseId id = getClauseIdForCRef(oldref);
   Assert(d_temp_clauseId.find(newref) == d_temp_clauseId.end());
   Assert(d_temp_idClause.find(id) == d_temp_idClause.end());
   d_temp_clauseId[newref] = id;
   d_temp_idClause[id] = newref;
 }
+
 template <class Solver>
 void TSatProof<Solver>::finishUpdateCRef() {
   d_clauseId.swap(d_temp_clauseId);
@@ -859,10 +931,11 @@ void TSatProof<Solver>::finishUpdateCRef() {
   d_idClause.swap(d_temp_idClause);
   d_temp_idClause.clear();
 }
+
 template <class Solver>
 void TSatProof<Solver>::markDeleted(typename Solver::TCRef clause) {
-  if (d_clauseId.find(clause) != d_clauseId.end()) {
-    ClauseId id = getClauseId(clause);
+  if (hasClauseIdForCRef(clause)) {
+    ClauseId id = getClauseIdForCRef(clause);
     Assert(d_deleted.find(id) == d_deleted.end());
     d_deleted.insert(id);
     if (isLemmaClause(id)) {
@@ -875,13 +948,12 @@ void TSatProof<Solver>::markDeleted(typename Solver::TCRef clause) {
 }
 
 // template<>
-// void toSatClause< ::BVMinisat::Solver> (const BVMinisat::Solver::TClause& minisat_cl,
+// void toSatClause< ::BVMinisat::Solver> (const BVMinisat::Solver::TClause&
+// minisat_cl,
 //                                         prop::SatClause& sat_cl) {
 
 //   prop::BVMinisatSatSolver::toSatClause(minisat_cl, sat_cl);
 // }
-
-
 
 template <class Solver>
 void TSatProof<Solver>::constructProof(ClauseId conflict) {
@@ -894,11 +966,10 @@ std::string TSatProof<Solver>::clauseName(ClauseId id) {
   if (isInputClause(id)) {
     os << ProofManager::getInputClauseName(id, d_name);
     return os.str();
-  } else
-  if (isLemmaClause(id)) {
+  } else if (isLemmaClause(id)) {
     os << ProofManager::getLemmaClauseName(id, d_name);
     return os.str();
-  }else {
+  } else {
     os << ProofManager::getLearntClauseName(id, d_name);
     return os.str();
   }
@@ -944,17 +1015,15 @@ void TSatProof<Solver>::collectClauses(ClauseId id) {
     d_seenLearnt.insert(id);
   }
 
-  Assert(d_resChains.find(id) != d_resChains.end());
-  ResChain<Solver>* res = d_resChains[id];
-  PSTATS(
-  d_statistics.d_usedResChainLengths << ((uint64_t)res->getSteps().size());
-  d_statistics.d_usedClauseGlue << ((uint64_t) d_glueMap[id]);
-         );
-  ClauseId start = res->getStart();
+  const ResolutionChain& res = getResolutionChain(id);
+  const typename ResolutionChain::ResSteps& steps = res.getSteps();
+  PSTATS(d_statistics.d_usedResChainLengths
+             << ((uint64_t)steps.size());
+         d_statistics.d_usedClauseGlue << ((uint64_t)d_glueMap[id]););
+  ClauseId start = res.getStart();
   collectClauses(start);
 
-  typename ResChain<Solver>::ResSteps steps = res->getSteps();
-  for(size_t i = 0; i < steps.size(); i++) {
+  for (size_t i = 0; i < steps.size(); i++) {
     collectClauses(steps[i].id);
   }
 }
@@ -964,28 +1033,27 @@ void TSatProof<Solver>::collectClausesUsed(IdToSatClause& inputs,
                                            IdToSatClause& lemmas) {
   inputs = d_seenInputs;
   lemmas = d_seenLemmas;
-  PSTATS (
-  d_statistics.d_numLearnedInProof.setData(d_seenLearnt.size());
-  d_statistics.d_numLemmasInProof.setData(d_seenLemmas.size());
-          );
+  PSTATS(d_statistics.d_numLearnedInProof.setData(d_seenLearnt.size());
+         d_statistics.d_numLemmasInProof.setData(d_seenLemmas.size()););
 }
 
 template <class Solver>
 void TSatProof<Solver>::storeClauseGlue(ClauseId clause, int glue) {
-  Assert (d_glueMap.find(clause) == d_glueMap.end());
+  Assert(d_glueMap.find(clause) == d_glueMap.end());
   d_glueMap.insert(std::make_pair(clause, glue));
 }
 
 template <class Solver>
 TSatProof<Solver>::Statistics::Statistics(const std::string& prefix)
-  : d_numLearnedClauses("satproof::"+prefix+"::NumLearnedClauses", 0)
-  , d_numLearnedInProof("satproof::"+prefix+"::NumLearnedInProof", 0)
-  , d_numLemmasInProof("satproof::"+prefix+"::NumLemmasInProof", 0)
-  , d_avgChainLength("satproof::"+prefix+"::AvgResChainLength")
-  , d_resChainLengths("satproof::"+prefix+"::ResChainLengthsHist")
-  , d_usedResChainLengths("satproof::"+prefix+"::UsedResChainLengthsHist")
-  , d_clauseGlue("satproof::"+prefix+"::ClauseGlueHist")
-  , d_usedClauseGlue("satproof::"+prefix+"::UsedClauseGlueHist") {
+    : d_numLearnedClauses("satproof::" + prefix + "::NumLearnedClauses", 0),
+      d_numLearnedInProof("satproof::" + prefix + "::NumLearnedInProof", 0),
+      d_numLemmasInProof("satproof::" + prefix + "::NumLemmasInProof", 0),
+      d_avgChainLength("satproof::" + prefix + "::AvgResChainLength"),
+      d_resChainLengths("satproof::" + prefix + "::ResChainLengthsHist"),
+      d_usedResChainLengths("satproof::" + prefix +
+                            "::UsedResChainLengthsHist"),
+      d_clauseGlue("satproof::" + prefix + "::ClauseGlueHist"),
+      d_usedClauseGlue("satproof::" + prefix + "::UsedClauseGlueHist") {
   smtStatisticsRegistry()->registerStat(&d_numLearnedClauses);
   smtStatisticsRegistry()->registerStat(&d_numLearnedInProof);
   smtStatisticsRegistry()->registerStat(&d_numLemmasInProof);
@@ -1008,73 +1076,78 @@ TSatProof<Solver>::Statistics::~Statistics() {
   smtStatisticsRegistry()->unregisterStat(&d_usedClauseGlue);
 }
 
-
 /// LFSCSatProof class
 template <class Solver>
-void LFSCSatProof<Solver>::printResolution(ClauseId id, std::ostream& out, std::ostream& paren) {
+void LFSCSatProof<Solver>::printResolution(ClauseId id, std::ostream& out,
+                                           std::ostream& paren) {
   out << "(satlem_simplify _ _ _ ";
 
-  ResChain<Solver>* res = this->d_resChains[id];
-  typename ResChain<Solver>::ResSteps& steps = res->getSteps();
+  const ResChain<Solver>& res = this->getResolutionChain(id);
+  const typename ResChain<Solver>::ResSteps& steps = res.getSteps();
 
-  for (int i = steps.size()-1; i >= 0; i--) {
+  for (int i = steps.size() - 1; i >= 0; i--) {
     out << "(";
-    out << (steps[i].sign? "R" : "Q") << " _ _ ";
+    out << (steps[i].sign ? "R" : "Q") << " _ _ ";
   }
 
-  ClauseId start_id = res->getStart();
+  ClauseId start_id = res.getStart();
   out << this->clauseName(start_id) << " ";
 
-  for(unsigned i = 0; i < steps.size(); i++) {
-    prop::SatVariable v = prop::MinisatSatSolver::toSatVariable(var(steps[i].lit));
-    out << this->clauseName(steps[i].id) << " "<<ProofManager::getVarName(v, this->d_name) <<")";
+  for (unsigned i = 0; i < steps.size(); i++) {
+    prop::SatVariable v =
+        prop::MinisatSatSolver::toSatVariable(var(steps[i].lit));
+    out << this->clauseName(steps[i].id) << " "
+        << ProofManager::getVarName(v, this->d_name) << ")";
   }
 
   if (id == this->d_emptyClauseId) {
-    out <<"(\\empty empty)";
+    out <<"(\\ empty empty)";
     return;
   }
 
-  out << "(\\" << this->clauseName(id) << "\n";   // bind to lemma name
+  out << "(\\ " << this->clauseName(id) << "\n";   // bind to lemma name
   paren << "))";                            // closing parethesis for lemma binding and satlem
 }
 
 /// LFSCSatProof class
 template <class Solver>
-void LFSCSatProof<Solver>::printAssumptionsResolution(ClauseId id, std::ostream& out, std::ostream& paren) {
-  Assert (this->isAssumptionConflict(id));
+void LFSCSatProof<Solver>::printAssumptionsResolution(ClauseId id,
+                                                      std::ostream& out,
+                                                      std::ostream& paren) {
+  Assert(this->isAssumptionConflict(id));
   // print the resolution proving the assumption conflict
   printResolution(id, out, paren);
   // resolve out assumptions to prove empty clause
   out << "(satlem_simplify _ _ _ ";
-  std::vector<typename Solver::TLit>& confl = *(this->d_assumptionConflictsDebug[id]);
+  std::vector<typename Solver::TLit>& confl =
+      *(this->d_assumptionConflictsDebug[id]);
 
-  Assert (confl.size());
+  Assert(confl.size());
 
   for (unsigned i = 0; i < confl.size(); ++i) {
     prop::SatLiteral lit = toSatLiteral<Solver>(confl[i]);
-    out <<"(";
-    out << (lit.isNegated() ? "Q" : "R") <<" _ _ ";
+    out << "(";
+    out << (lit.isNegated() ? "Q" : "R") << " _ _ ";
   }
 
-  out << this->clauseName(id)<< " ";
+  out << this->clauseName(id) << " ";
   for (int i = confl.size() - 1; i >= 0; --i) {
     prop::SatLiteral lit = toSatLiteral<Solver>(confl[i]);
     prop::SatVariable v = lit.getSatVariable();
-    out << "unit"<< v <<" ";
-    out << ProofManager::getVarName(v, this->d_name) <<")";
+    out << "unit" << v << " ";
+    out << ProofManager::getVarName(v, this->d_name) << ")";
   }
-  out <<"(\\ e e)\n";
-  paren <<")";
+  out << "(\\ e e)\n";
+  paren << ")";
 }
 
-
 template <class Solver>
-void LFSCSatProof<Solver>::printResolutions(std::ostream& out, std::ostream& paren) {
+void LFSCSatProof<Solver>::printResolutions(std::ostream& out,
+                                            std::ostream& paren) {
   Debug("bv-proof") << "; print resolutions" << std::endl;
   std::set<ClauseId>::iterator it = this->d_seenLearnt.begin();
-  for(; it!= this->d_seenLearnt.end(); ++it) {
-    if(*it != this->d_emptyClauseId) {
+  for (; it != this->d_seenLearnt.end(); ++it) {
+    if (*it != this->d_emptyClauseId) {
       Debug("bv-proof") << "; print resolution for " << *it << std::endl;
       printResolution(*it, out, paren);
     }
@@ -1083,29 +1156,29 @@ void LFSCSatProof<Solver>::printResolutions(std::ostream& out, std::ostream& par
 }
 
 template <class Solver>
-void LFSCSatProof<Solver>::printResolutionEmptyClause(std::ostream& out, std::ostream& paren) {
+void LFSCSatProof<Solver>::printResolutionEmptyClause(std::ostream& out,
+                                                      std::ostream& paren) {
   printResolution(this->d_emptyClauseId, out, paren);
 }
 
-
 inline std::ostream& operator<<(std::ostream& out, CVC4::ClauseKind k) {
-  switch(k) {
-  case CVC4::INPUT:
-    out << "INPUT";
-    break;
-  case CVC4::THEORY_LEMMA:
-    out << "THEORY_LEMMA";
-    break;
-  case CVC4::LEARNT:
-    out << "LEARNT";
-    break;
-  default:
-    out << "ClauseKind Unknown! [" << unsigned(k) << "]";
+  switch (k) {
+    case CVC4::INPUT:
+      out << "INPUT";
+      break;
+    case CVC4::THEORY_LEMMA:
+      out << "THEORY_LEMMA";
+      break;
+    case CVC4::LEARNT:
+      out << "LEARNT";
+      break;
+    default:
+      out << "ClauseKind Unknown! [" << unsigned(k) << "]";
   }
 
   return out;
 }
 
-}/* CVC4 namespace */
+} /* CVC4 namespace */
 
 #endif /* __CVC4__SAT__PROOF_IMPLEMENTATION_H */

@@ -93,6 +93,8 @@ public:
 
   static bool isBuiltWithAbc();
 
+  static bool isBuiltWithCryptominisat();
+
   static bool isBuiltWithReadline();
 
   static bool isBuiltWithCudd();

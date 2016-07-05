@@ -30,7 +30,7 @@ ${includes}
 // compiler directs the user to the template file instead of the
 // generated one.  We don't want the user to modify the generated one,
 // since it'll get overwritten on a later build.
-#line 33 "${template}"
+#line 34 "${template}"
 
 #ifdef CVC4_STATISTICS_ON
   #define INC_STAT(kind) \
@@ -939,6 +939,11 @@ Expr ExprManager::mkBoundVar(Type type) {
   NodeManagerScope nms(d_nodeManager);
   INC_STAT_VAR(type, true);
   return Expr(this, d_nodeManager->mkBoundVarPtr(*type.d_typeNode));
+}
+
+Expr ExprManager::mkSepNil(Type type) {
+  NodeManagerScope nms(d_nodeManager);
+  return Expr(this, d_nodeManager->mkSepNilPtr(*type.d_typeNode));
 }
 
 Expr ExprManager::mkAssociative(Kind kind,

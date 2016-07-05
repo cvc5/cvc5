@@ -66,7 +66,7 @@ void QModelBuilder::debugModel( FirstOrderModel* fm ){
           tests++;
           std::vector< Node > terms;
           for( int k=0; k<riter.getNumTerms(); k++ ){
-            terms.push_back( riter.getTerm( k ) );
+            terms.push_back( riter.getCurrentTerm( k ) );
           }
           Node n = d_qe->getInstantiation( f, vars, terms );
           Node val = fm->getValue( n );
@@ -84,7 +84,9 @@ void QModelBuilder::debugModel( FirstOrderModel* fm ){
         }
         Trace("quant-check-model") << "." << std::endl;
       }else{
-        Trace("quant-check-model") << "Warning: Could not test quantifier " << f << std::endl;
+        if( riter.isIncomplete() ){
+          Trace("quant-check-model") << "Warning: Could not test quantifier " << f << std::endl;
+        }
       }
     }
   }
@@ -114,7 +116,7 @@ bool TermArgBasisTrie::addTerm2( FirstOrderModel* fm, Node n, int argIndex ){
 
 
 QModelBuilderIG::QModelBuilderIG( context::Context* c, QuantifiersEngine* qe ) :
-QModelBuilder( c, qe ) {
+QModelBuilder( c, qe ), d_basisNoMatch( c ) {
 
 }
 
@@ -302,7 +304,7 @@ void QModelBuilderIG::analyzeModel( FirstOrderModel* fm ){
     for( size_t i=0; i<fmig->d_uf_terms[op].size(); i++ ){
       Node n = fmig->d_uf_terms[op][i];
       //for calculating if op is constant
-      if( !n.getAttribute(NoMatchAttribute()) ){
+      if( d_qe->getTermDatabase()->isTermActive( n ) ){
         Node v = fmig->getRepresentative( n );
         if( i==0 ){
           d_uf_prefs[op].d_const_val = v;
@@ -312,12 +314,11 @@ void QModelBuilderIG::analyzeModel( FirstOrderModel* fm ){
         }
       }
       //for calculating terms that we don't need to consider
-      if( !n.getAttribute(NoMatchAttribute()) || n.getAttribute(ModelBasisArgAttribute())!=0 ){
-        if( !n.getAttribute(BasisNoMatchAttribute()) ){
+      if( d_qe->getTermDatabase()->isTermActive( n ) || n.getAttribute(ModelBasisArgAttribute())!=0 ){
+        if( d_basisNoMatch.find( n )==d_basisNoMatch.end() ){
           //need to consider if it is not congruent modulo model basis
           if( !tabt.addTerm( fmig, n ) ){
-             BasisNoMatchAttribute bnma;
-             n.setAttribute(bnma,true);
+            d_basisNoMatch[n] = true;
           }
         }
       }
@@ -382,8 +383,8 @@ bool QModelBuilderIG::isQuantifierActive( Node f ){
 }
 
 bool QModelBuilderIG::isTermActive( Node n ){
-  return !n.getAttribute(NoMatchAttribute()) || //it is not congruent to another active term
-         ( n.getAttribute(ModelBasisArgAttribute())!=0 && !n.getAttribute(BasisNoMatchAttribute()) ); //or it has model basis arguments
+  return d_qe->getTermDatabase()->isTermActive( n ) || //it is not congruent to another active term
+         ( n.getAttribute(ModelBasisArgAttribute())!=0 && d_basisNoMatch.find( n )==d_basisNoMatch.end() ); //or it has model basis arguments
                                                                                                       //and is not congruent modulo model basis
                                                                                                       //to another active term
 }
@@ -400,15 +401,19 @@ bool QModelBuilderIG::doExhaustiveInstantiation( FirstOrderModel * fm, Node f, i
       Debug("inst-fmf-ei") << "Begin instantiation..." << std::endl;
       while( !riter.isFinished() && ( d_addedLemmas==0 || !options::fmfOneInstPerRound() ) ){
         d_triedLemmas++;
-        for( int i=0; i<(int)riter.d_index.size(); i++ ){
-          Trace("try") << i << " : " << riter.d_index[i] << " : " << riter.getTerm( i ) << std::endl;
+        if( Debug.isOn("inst-fmf-ei-debug") ){
+          for( int i=0; i<(int)riter.d_index.size(); i++ ){
+            Debug("inst-fmf-ei-debug") << i << " : " << riter.d_index[i] << " : " << riter.getCurrentTerm( i ) << std::endl;
+          }
         }
         int eval = 0;
         int depIndex;
         //see if instantiation is already true in current model
-        Debug("fmf-model-eval") << "Evaluating ";
-        riter.debugPrintSmall("fmf-model-eval");
-        Debug("fmf-model-eval") << "Done calculating terms." << std::endl;
+        if( Debug.isOn("fmf-model-eval") ){
+          Debug("fmf-model-eval") << "Evaluating ";
+          riter.debugPrintSmall("fmf-model-eval");
+          Debug("fmf-model-eval") << "Done calculating terms." << std::endl;
+        }
         //if evaluate(...)==1, then the instantiation is already true in the model
         //  depIndex is the index of the least significant variable that this evaluation relies upon
         depIndex = riter.getNumTerms()-1;
@@ -426,7 +431,7 @@ bool QModelBuilderIG::doExhaustiveInstantiation( FirstOrderModel * fm, Node f, i
           //instantiation was not shown to be true, construct the match
           InstMatch m( f );
           for( int i=0; i<riter.getNumTerms(); i++ ){
-            m.set( d_qe, riter.d_index_order[i], riter.getTerm( i ) );
+            m.set( d_qe, i, riter.getCurrentTerm( i ) );
           }
           Debug("fmf-model-eval") << "* Add instantiation " << m << std::endl;
           //add as instantiation
@@ -464,8 +469,8 @@ bool QModelBuilderIG::doExhaustiveInstantiation( FirstOrderModel * fm, Node f, i
         Trace("model-engine-warn") << std::endl;
       }
     }
-     //if the iterator is incomplete, we will return unknown instead of sat if no instantiations are added this round
-    d_incomplete_check = riter.d_incomplete;
+    //if the iterator is incomplete, we will return unknown instead of sat if no instantiations are added this round
+    d_incomplete_check = riter.isIncomplete();
     return true;
   }else{
     return false;
@@ -667,7 +672,7 @@ int QModelBuilderDefault::doInstGen( FirstOrderModel* fm, Node f ){
       //if applicable, try to add exceptions here
       if( !tr_terms.empty() ){
         //make a trigger for these terms, add instantiations
-        inst::Trigger* tr = inst::Trigger::mkTrigger( d_qe, f, tr_terms, 0, true, inst::Trigger::TR_MAKE_NEW );
+        inst::Trigger* tr = inst::Trigger::mkTrigger( d_qe, f, tr_terms, true, inst::Trigger::TR_MAKE_NEW );
         //Notice() << "Trigger = " << (*tr) << std::endl;
         tr->resetInstantiationRound();
         tr->reset( Node::null() );

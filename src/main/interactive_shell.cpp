@@ -172,6 +172,7 @@ InteractiveShell::~InteractiveShell() {
              << ": " << strerror(err) << std::endl;
   }
 #endif /* HAVE_LIBREADLINE */
+  delete d_parser;
 }
 
 Command* InteractiveShell::readCommand() throw (UnsafeInterruptException) {

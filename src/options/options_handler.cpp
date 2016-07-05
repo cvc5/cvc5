@@ -254,15 +254,21 @@ last-call\n\
 const std::string OptionsHandler::s_literalMatchHelp = "\
 Literal match modes currently supported by the --literal-match option:\n\
 \n\
-none (default)\n\
+none \n\
 + Do not use literal matching.\n\
 \n\
-predicate\n\
-+ Consider the phase requirements of predicate literals when applying heuristic\n\
-  quantifier instantiation.  For example, the trigger P( x ) in the quantified \n\
-  formula forall( x ). ( P( x ) V ~Q( x ) ) will only be matched with ground\n\
-  terms P( t ) where P( t ) is in the equivalence class of false, and likewise\n\
-  Q( x ) with Q( s ) where Q( s ) is in the equivalence class of true.\n\
+use (default)\n\
++ Consider phase requirements of triggers conservatively. For example, the\n\
+  trigger P( x ) in forall( x ). ( P( x ) V ~Q( x ) ) will not be matched with\n\
+  terms in the equivalence class of true, and likewise Q( x ) will not be matched\n\
+  terms in the equivalence class of false. Extends to equality.\n\
+\n\
+agg-predicate \n\
++ Consider phase requirements aggressively for predicates. In the above example,\n\
+  only match P( x ) with terms that are in the equivalence class of false.\n\
+\n\
+agg \n\
++ Consider the phase requirements aggressively for all triggers.\n\
 \n\
 ";
 
@@ -384,7 +390,7 @@ uf-dt-size \n\
 + Enforce fairness using an uninterpreted function for datatypes size.\n\
 \n\
 default | dt-size \n\
-+ Default, enforce fairness using size theory operator.\n\
++ Default, enforce fairness using size operator.\n\
 \n\
 dt-height-bound \n\
 + Enforce fairness by height bound predicate.\n\
@@ -416,6 +422,24 @@ simple  \n\
 \n\
 all \n\
 + Lift if-then-else in quantified formulas. \n\
+\n\
+";
+
+const std::string OptionsHandler::s_cegqiSingleInvHelp = "\
+Modes for single invocation techniques, supported by --cegqi-si:\n\
+\n\
+none  \n\
++ Do not use single invocation techniques.\n\
+\n\
+use (default) \n\
++ Use single invocation techniques only if grammar is not restrictive.\n\
+\n\
+all-abort  \n\
++ Always use single invocation techniques, abort if solution reconstruction will likely fail,\
+  for instance, when the grammar does not have ITE and solution requires it.\n\
+\n\
+all \n\
++ Always use single invocation techniques. \n\
 \n\
 ";
 
@@ -506,10 +530,12 @@ void OptionsHandler::checkInstWhenMode(std::string option, theory::quantifiers::
 theory::quantifiers::LiteralMatchMode OptionsHandler::stringToLiteralMatchMode(std::string option, std::string optarg) throw(OptionException) {
   if(optarg ==  "none") {
     return theory::quantifiers::LITERAL_MATCH_NONE;
-  } else if(optarg ==  "predicate") {
-    return theory::quantifiers::LITERAL_MATCH_PREDICATE;
-  } else if(optarg ==  "equality") {
-    return theory::quantifiers::LITERAL_MATCH_EQUALITY;
+  } else if(optarg ==  "use") {
+    return theory::quantifiers::LITERAL_MATCH_USE;
+  } else if(optarg ==  "agg-predicate") {
+    return theory::quantifiers::LITERAL_MATCH_AGG_PREDICATE;
+  } else if(optarg ==  "agg") {
+    return theory::quantifiers::LITERAL_MATCH_AGG;
   } else if(optarg ==  "help") {
     puts(s_literalMatchHelp.c_str());
     exit(1);
@@ -520,9 +546,7 @@ theory::quantifiers::LiteralMatchMode OptionsHandler::stringToLiteralMatchMode(s
 }
 
 void OptionsHandler::checkLiteralMatchMode(std::string option, theory::quantifiers::LiteralMatchMode mode) throw(OptionException) {
-  if(mode == theory::quantifiers::LITERAL_MATCH_EQUALITY) {
-    throw OptionException(std::string("Mode equality for ") + option + " is not supported in this release.");
-  }
+
 }
 
 theory::quantifiers::MbqiMode OptionsHandler::stringToMbqiMode(std::string option, std::string optarg) throw(OptionException) {
@@ -651,6 +675,8 @@ theory::quantifiers::CegqiFairMode OptionsHandler::stringToCegqiFairMode(std::st
     return theory::quantifiers::CEGQI_FAIR_DT_SIZE;
   } else if(optarg == "dt-height-bound" ){
     return theory::quantifiers::CEGQI_FAIR_DT_HEIGHT_PRED;
+  //} else if(optarg == "dt-size-bound" ){
+  //  return theory::quantifiers::CEGQI_FAIR_DT_SIZE_PRED;
   } else if(optarg == "none") {
     return theory::quantifiers::CEGQI_FAIR_NONE;
   } else if(optarg ==  "help") {
@@ -689,6 +715,24 @@ theory::quantifiers::IteLiftQuantMode OptionsHandler::stringToIteLiftQuantMode(s
   } else {
     throw OptionException(std::string("unknown option for --ite-lift-quant: `") +
                           optarg + "'.  Try --ite-lift-quant help.");
+  }
+}
+
+theory::quantifiers::CegqiSingleInvMode OptionsHandler::stringToCegqiSingleInvMode(std::string option, std::string optarg) throw(OptionException) {
+  if(optarg == "none" ) {
+    return theory::quantifiers::CEGQI_SI_MODE_NONE;
+  } else if(optarg == "use" || optarg == "default") {
+    return theory::quantifiers::CEGQI_SI_MODE_USE;
+  } else if(optarg == "all-abort") {
+    return theory::quantifiers::CEGQI_SI_MODE_ALL_ABORT;
+  } else if(optarg == "all") {
+    return theory::quantifiers::CEGQI_SI_MODE_ALL;
+  } else if(optarg ==  "help") {
+    puts(s_cegqiSingleInvHelp.c_str());
+    exit(1);
+  } else {
+    throw OptionException(std::string("unknown option for --cegqi-si: `") +
+                          optarg + "'.  Try --cegqi-si help.");
   }
 }
 
@@ -775,6 +819,72 @@ void OptionsHandler::abcEnabledBuild(std::string option, std::string value) thro
     throw OptionException(ss.str());
   }
 #endif /* CVC4_USE_ABC */
+}
+
+void OptionsHandler::satSolverEnabledBuild(std::string option,
+                                           bool value) throw(OptionException) {
+#ifndef CVC4_USE_CRYPTOMINISAT
+  if(value) {
+    std::stringstream ss;
+    ss << "option `" << option << "' requires an cryptominisat-enabled build of CVC4; this binary was not built with cryptominisat support";
+    throw OptionException(ss.str());
+  }
+#endif /* CVC4_USE_CRYPTOMINISAT */
+}
+
+void OptionsHandler::satSolverEnabledBuild(std::string option,
+                                           std::string value) throw(OptionException) {
+#ifndef CVC4_USE_CRYPTOMINISAT
+  if(!value.empty()) {
+    std::stringstream ss;
+    ss << "option `" << option << "' requires an cryptominisat-enabled build of CVC4; this binary was not built with cryptominisat support";
+    throw OptionException(ss.str());
+  }
+#endif /* CVC4_USE_CRYPTOMINISAT */
+}
+
+const std::string OptionsHandler::s_bvSatSolverHelp = "\
+Sat solvers currently supported by the --bv-sat-solver option:\n\
+\n\
+minisat (default)\n\
+\n\
+cryptominisat\n\
+";
+
+theory::bv::SatSolverMode OptionsHandler::stringToSatSolver(std::string option,
+                                                            std::string optarg) throw(OptionException) {
+  if(optarg == "minisat") {
+    return theory::bv::SAT_SOLVER_MINISAT;
+  } else if(optarg == "cryptominisat") {
+    
+    if (options::incrementalSolving() &&
+        options::incrementalSolving.wasSetByUser()) {
+      throw OptionException(std::string("Cryptominsat does not support incremental mode. \n\
+                                         Try --bv-sat-solver=minisat"));
+    }
+
+    if (options::bitblastMode() == theory::bv::BITBLAST_MODE_LAZY &&
+        options::bitblastMode.wasSetByUser()) {
+      throw OptionException(std::string("Cryptominsat does not support lazy bit-blsating. \n\
+                                         Try --bv-sat-solver=minisat"));
+    }
+    if (!options::bitvectorToBool.wasSetByUser()) {
+      options::bitvectorToBool.set(true);
+    }
+
+    // if (!options::bvAbstraction.wasSetByUser() &&
+    //     !options::skolemizeArguments.wasSetByUser()) {
+    //   options::bvAbstraction.set(true);
+    //   options::skolemizeArguments.set(true); 
+    // }
+    return theory::bv::SAT_SOLVER_CRYPTOMINISAT;
+  } else if(optarg == "help") {
+    puts(s_bvSatSolverHelp.c_str());
+    exit(1);
+  } else {
+    throw OptionException(std::string("unknown option for --bv-sat-solver: `") +
+                          optarg + "'.  Try --bv-sat-solver=help.");
+  }
 }
 
 const std::string OptionsHandler::s_bitblastingModeHelp = "\

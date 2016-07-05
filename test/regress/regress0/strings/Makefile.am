@@ -76,7 +76,9 @@ TESTS = \
   type002.smt2 \
   crash-1019.smt2 \
   norn-31.smt2 \
-  strings-native-simple.cvc
+  strings-native-simple.cvc \
+  cmu-2db2-extf-reg.smt2 \
+  norn-nel-bug-052116.smt2
 
 FAILING_TESTS =
 

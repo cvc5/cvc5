@@ -30,17 +30,30 @@ struct sortTypeOrder {
 };
 
 Node AlphaEquivalenceNode::registerNode( AlphaEquivalenceNode* aen, QuantifiersEngine* qe, Node q, std::vector< Node >& tt, std::vector< int >& arg_index ) {
+  std::map< Node, bool > visited;
   while( !tt.empty() ){
     if( tt.size()==arg_index.size()+1 ){
       Node t = tt.back();
-      Node op = t.hasOperator() ? t.getOperator() : t;
-      arg_index.push_back( 0 );
+      Node op;
+      if( t.hasOperator() ){
+        if( visited.find( t )==visited.end() ){
+          visited[t] = true;
+          op = t.getOperator();
+          arg_index.push_back( 0 );
+        }else{
+          op = t;
+          arg_index.push_back( -1 );
+        }
+      }else{
+        op = t;
+        arg_index.push_back( 0 );
+      }
       Trace("aeq-debug") << op << " ";
       aen = &(aen->d_children[op][t.getNumChildren()]);
     }else{
       Node t = tt.back();
       int i = arg_index.back();
-      if( i==(int)t.getNumChildren() ){
+      if( i==-1 || i==(int)t.getNumChildren() ){
         tt.pop_back();
         arg_index.pop_back();
       }else{
@@ -56,9 +69,9 @@ Node AlphaEquivalenceNode::registerNode( AlphaEquivalenceNode* aen, QuantifiersE
   }else{
     if( q.getNumChildren()==2 ){
       //lemma ( q <=> d_quant )
-      Trace("quant-ae") << "Alpha equivalent : " << std::endl;
-      Trace("quant-ae") << "  " << q << std::endl;
-      Trace("quant-ae") << "  " << aen->d_quant << std::endl;
+      Trace("alpha-eq") << "Alpha equivalent : " << std::endl;
+      Trace("alpha-eq") << "  " << q << std::endl;
+      Trace("alpha-eq") << "  " << aen->d_quant << std::endl;
       lem = q.iffNode( aen->d_quant );
     }else{
       //do not reduce annotated quantified formulas based on alpha equivalence 

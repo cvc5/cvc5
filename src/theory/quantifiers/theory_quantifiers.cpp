@@ -72,8 +72,11 @@ void TheoryQuantifiers::notifyEq(TNode lhs, TNode rhs) {
 
 void TheoryQuantifiers::preRegisterTerm(TNode n) {
   Debug("quantifiers-prereg") << "TheoryQuantifiers::preRegisterTerm() " << n << endl;
-  if( n.getKind()==FORALL && !TermDb::hasInstConstAttr(n) ){
-    getQuantifiersEngine()->registerQuantifier( n );
+  if( n.getKind()==FORALL ){
+    if( !options::cbqi() || options::recurseCbqi() || !TermDb::hasInstConstAttr(n) ){
+      getQuantifiersEngine()->registerQuantifier( n );
+      Debug("quantifiers-prereg") << "TheoryQuantifiers::preRegisterTerm() done " << n << endl;
+    }
   }
 }
 

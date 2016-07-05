@@ -21,13 +21,21 @@
 #define __CVC4__PROOF_H
 
 #include <iosfwd>
+#include <ext/hash_map>
 
 namespace CVC4 {
+
+class Expr;
+class ProofLetCount;
+struct ExprHashFunction;
+
+typedef __gnu_cxx::hash_map<Expr, ProofLetCount, ExprHashFunction> ProofLetMap;
 
 class CVC4_PUBLIC Proof {
 public:
   virtual ~Proof() { }
   virtual void toStream(std::ostream& out) = 0;
+  virtual void toStream(std::ostream& out, const ProofLetMap& map) = 0;
 };/* class Proof */
 
 }/* CVC4 namespace */

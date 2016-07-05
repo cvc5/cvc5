@@ -34,7 +34,6 @@ bool destroy_progs = false;
     Expr *r = rr;	    \
     int ref = r->data >> 9; \
     ref = ref - 1; \
-    r->debugrefcnt(ref,DEC); \
     if (ref == 0) {  \
       _e = r;		  \
       goto start_destroy; \
@@ -43,6 +42,7 @@ bool destroy_progs = false;
       r->data = (ref << 9) | (r->data & 511); \
   } while(0)
 
+//removed from below "ref = ref -1;":   r->debugrefcnt(ref,DEC);
 
 void Expr::destroy(Expr *_e, bool dec_kids) {
  start_destroy:

@@ -190,7 +190,7 @@ bool InstStrategyCbqi::hasNonCbqiOperator( Node n, std::map< Node, bool >& visit
 bool InstStrategyCbqi::hasNonCbqiVariable( Node q ){
   for( unsigned i=0; i<q[0].getNumChildren(); i++ ){
     TypeNode tn = q[0][i].getType();
-    if( !tn.isInteger() && !tn.isReal() && !tn.isBoolean() ){
+    if( !tn.isInteger() && !tn.isReal() && !tn.isBoolean() && !tn.isBitVector() ){
       if( options::cbqiSplx() ){
         return true;
       }else{
@@ -242,7 +242,7 @@ Node InstStrategyCbqi::getNextDecisionRequest(){
       Node cel = d_quantEngine->getTermDatabase()->getCounterexampleLiteral( q );
       bool value;
       if( !d_quantEngine->getValuation().hasSatValue( cel, value ) ){
-        Trace("cbqi-debug2") << "CBQI: get next decision " << cel << std::endl;
+        Trace("cbqi-dec") << "CBQI: get next decision " << cel << std::endl;
         return cel;
       }
     }
@@ -692,8 +692,10 @@ CegInstantiator * InstStrategyCegqi::getInstantiator( Node q ) {
 
 void InstStrategyCegqi::registerQuantifier( Node q ) {
   if( options::cbqiPreRegInst() ){
-    //just get the instantiator
-    getInstantiator( q );
+    if( doCbqi( q ) ){
+      //just get the instantiator
+      getInstantiator( q );
+    }
   }
 }
 

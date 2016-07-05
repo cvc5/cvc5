@@ -53,10 +53,10 @@ void EqualityInference::addToExplanation( std::vector< Node >& exp, Node e ) {
 }
 
 void EqualityInference::addToExplanationEqc( std::vector< Node >& exp, Node eqc ) {
-  NodeListMap::iterator re_i = d_rep_exp.find( eqc );
+  NodeIntMap::iterator re_i = d_rep_exp.find( eqc );
   if( re_i!=d_rep_exp.end() ){
-    for( unsigned i=0; i<(*re_i).second->size(); i++ ){
-      addToExplanation( exp, (*(*re_i).second)[i] );
+    for( int i=0; i<(*re_i).second; i++ ){
+      addToExplanation( exp, d_rep_exp_data[eqc][i] );
     }
   }
   //for( unsigned i=0; i<d_eqci[n]->d_rep_exp.size(); i++ ){
@@ -65,16 +65,19 @@ void EqualityInference::addToExplanationEqc( std::vector< Node >& exp, Node eqc 
 }
 
 void EqualityInference::addToExplanationEqc( Node eqc, std::vector< Node >& exp_to_add ) {
-  NodeListMap::iterator re_i = d_rep_exp.find( eqc );
-  NodeList* re;
+  NodeIntMap::iterator re_i = d_rep_exp.find( eqc );
+  int n_re = 0;
   if( re_i != d_rep_exp.end() ){
-    re = (*re_i).second;
-  }else{
-    re = new(d_c->getCMM()) NodeList( true, d_c, false, context::ContextMemoryAllocator<TNode>(d_c->getCMM()) );
-    d_rep_exp.insertDataFromContextMemory( eqc, re );
+    n_re = (*re_i).second;
   }
+  d_rep_exp[eqc] = n_re + exp_to_add.size();
   for( unsigned i=0; i<exp_to_add.size(); i++ ){
-    re->push_back( exp_to_add[i] );
+    if( n_re<(int)d_rep_exp_data[eqc].size() ){
+      d_rep_exp_data[eqc][n_re] = exp_to_add[i];
+    }else{
+      d_rep_exp_data[eqc].push_back( exp_to_add[i] );
+    }
+    n_re++;
   }
   //for( unsigned i=0; i<exp_to_add.size(); i++ ){
   //  eqci->d_rep_exp.push_back( exp_to_add[i] );
@@ -204,16 +207,18 @@ void EqualityInference::eqNotifyNewClass(TNode t) {
 
 void EqualityInference::addToUseList( Node used, Node eqc ) {
 #if 1
-  NodeListMap::iterator ul_i = d_uselist.find( used );
-  NodeList* ul;
+  NodeIntMap::iterator ul_i = d_uselist.find( used );
+  int n_ul = 0;
   if( ul_i != d_uselist.end() ){
-    ul = (*ul_i).second;
-  }else{
-    ul = new(d_c->getCMM()) NodeList( true, d_c, false, context::ContextMemoryAllocator<TNode>(d_c->getCMM()) );
-    d_uselist.insertDataFromContextMemory( used, ul );
+    n_ul = (*ul_i).second;
   }
+  d_uselist[ used ] = n_ul + 1;
   Trace("eq-infer-debug") << "      add to use list : " << used << " -> " << eqc << std::endl;
-  (*ul).push_back( eqc );  
+  if( n_ul<(int)d_uselist_data[used].size() ){
+    d_uselist_data[used][n_ul] = eqc;
+  }else{
+    d_uselist_data[used].push_back( eqc );  
+  }
 #else
   std::map< Node, EqcInfo * >::iterator itu = d_eqci.find( used );
   EqcInfo * eqci_used;
@@ -356,12 +361,12 @@ void EqualityInference::eqNotifyMerge(TNode t1, TNode t2) {
               //go through all equivalence classes that may refer to v_solve
               std::map< Node, bool > processed;
               processed[v_solve] = true;
-              NodeListMap::iterator ul_i = d_uselist.find( v_solve );
+              NodeIntMap::iterator ul_i = d_uselist.find( v_solve );
               if( ul_i != d_uselist.end() ){
-                NodeList* ul = (*ul_i).second;
-                Trace("eq-infer-debug") << "      use list size = " << ul->size() << std::endl;
-                for( unsigned j=0; j<ul->size(); j++ ){
-                  Node r = (*ul)[j];
+                int n_ul = (*ul_i).second;
+                Trace("eq-infer-debug") << "      use list size = " << n_ul << std::endl;
+                for( int j=0; j<n_ul; j++ ){
+                  Node r = d_uselist_data[v_solve][j];
                 //Trace("eq-infer-debug") << "      use list size = " << eqci_solved->d_uselist.size() << std::endl;
                 //for( unsigned j=0; j<eqci_solved->d_uselist.size(); j++ ){
                 //  Node r = eqci_solved->d_uselist[j];

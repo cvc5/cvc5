@@ -402,6 +402,60 @@ void SygusSplit::registerSygusTypeConstructorArg( TypeNode tnn, const Datatype& 
   }
 }
 
+class ReqTrie {
+public:
+  ReqTrie() : d_req_kind( UNDEFINED_KIND ){}
+  std::map< unsigned, ReqTrie > d_children;
+  Kind d_req_kind;
+  TypeNode d_req_type;
+  Node d_req_const;
+  void print( const char * c, int indent = 0 ){
+    if( d_req_kind!=UNDEFINED_KIND ){
+      Trace(c) << d_req_kind << " ";
+    }else if( !d_req_type.isNull() ){
+      Trace(c) << d_req_type;
+    }else if( !d_req_const.isNull() ){
+      Trace(c) << d_req_const;
+    }else{
+      Trace(c) << "_";
+    }
+    Trace(c) << std::endl;
+    for( std::map< unsigned, ReqTrie >::iterator it = d_children.begin(); it != d_children.end(); ++it ){
+      for( int i=0; i<=indent; i++ ) { Trace(c) << "  "; }
+      Trace(c) << it->first << " : ";
+      it->second.print( c, indent+1 );
+    }
+  }
+  bool satisfiedBy( quantifiers::TermDbSygus * tdb, TypeNode tn ){
+    if( d_req_kind!=UNDEFINED_KIND ){
+      int c = tdb->getKindArg( tn, d_req_kind );
+      if( c!=-1 ){
+        const Datatype& dt = ((DatatypeType)(tn).toType()).getDatatype();
+        for( std::map< unsigned, ReqTrie >::iterator it = d_children.begin(); it != d_children.end(); ++it ){
+          if( it->first<dt[c].getNumArgs() ){
+            TypeNode tnc = tdb->getArgType( dt[c], it->first );
+            if( !it->second.satisfiedBy( tdb, tnc ) ){
+              return false;
+            }
+          }else{
+            return false;
+          }
+        }
+        return true;
+      }else{
+        return false;
+      }
+    }else if( !d_req_const.isNull() ){
+      return tdb->hasConst( tn, d_req_const );
+    }else if( !d_req_type.isNull() ){
+      return tn==d_req_type;
+    }else{
+      return true;
+    }
+  }
+};
+
+
 //this function gets all easy redundant cases, before consulting rewriters
 bool SygusSplit::considerSygusSplitKind( const Datatype& dt, const Datatype& pdt, TypeNode tn, TypeNode tnp, Kind k, Kind parent, int arg ) {
   Assert( d_tds->hasKind( tn, k ) );
@@ -419,101 +473,168 @@ bool SygusSplit::considerSygusSplitKind( const Datatype& dt, const Datatype& pdt
       return arg==firstArg;
     }
   }
-  //push
+  //describes the shape of an alternate term to construct
+  //  we check whether this term is in the sygus grammar below
+  ReqTrie rt;
+  bool rt_valid = false;
+  
+  //construct rt by cases
   if( parent==NOT || parent==BITVECTOR_NOT || parent==UMINUS || parent==BITVECTOR_NEG ){
-     //negation normal form
-    if( parent==k && isArgDatatype( dt[c], 0, pdt ) ){
-      return false;
-    }
-    Kind nk = UNDEFINED_KIND;
-    Kind reqk = UNDEFINED_KIND;  //required kind for all children
-    if( parent==NOT ){
-      if( k==AND ) {
-        nk = OR;reqk = NOT;
-      }else if( k==OR ){
-        nk = AND;reqk = NOT;
-      }else if( k==IFF ) {
-        nk = XOR;
-      }else if( k==XOR ) {
-        nk = IFF;
+    rt_valid = true;
+    //negation normal form
+    if( parent==k ){
+      rt.d_req_type = d_tds->getArgType( dt[c], 0 );
+    }else{
+      Kind reqk = UNDEFINED_KIND;       //required kind for all children
+      std::map< unsigned, Kind > reqkc; //required kind for some children
+      if( parent==NOT ){
+        if( k==AND ) {
+          rt.d_req_kind = OR;reqk = NOT;
+        }else if( k==OR ){
+          rt.d_req_kind = AND;reqk = NOT;
+        }else if( k==IFF ) {
+          rt.d_req_kind = XOR;
+        }else if( k==XOR ) {
+          rt.d_req_kind = IFF;
+        }else if( k==ITE ){
+          rt.d_req_kind = ITE;reqkc[1] = NOT;reqkc[2] = NOT;
+          rt.d_children[0].d_req_type = d_tds->getArgType( dt[c], 0 );
+        }else if( k==LEQ || k==GT ){
+          //  (not (~ x y)) ----->  (~ (+ y 1) x)
+          rt.d_req_kind = k;
+          rt.d_children[0].d_req_kind = PLUS;
+          rt.d_children[0].d_children[0].d_req_type = d_tds->getArgType( dt[c], 1 );
+          rt.d_children[0].d_children[1].d_req_const = NodeManager::currentNM()->mkConst( Rational( 1 ) );
+          rt.d_children[1].d_req_type = d_tds->getArgType( dt[c], 0 );
+          //TODO: other possibilities?
+        }else if( k==LT || k==GEQ ){
+          //  (not (~ x y)) ----->  (~ y (+ x 1))
+          rt.d_req_kind = k;
+          rt.d_children[0].d_req_type = d_tds->getArgType( dt[c], 1 );
+          rt.d_children[1].d_req_kind = PLUS;
+          rt.d_children[1].d_children[0].d_req_type = d_tds->getArgType( dt[c], 0 );
+          rt.d_children[1].d_children[1].d_req_const = NodeManager::currentNM()->mkConst( Rational( 1 ) );
+        }else{
+          rt_valid = false;
+        }
+      }else if( parent==BITVECTOR_NOT ){
+        if( k==BITVECTOR_AND ) {
+          rt.d_req_kind = BITVECTOR_OR;reqk = BITVECTOR_NOT;
+        }else if( k==BITVECTOR_OR ){
+          rt.d_req_kind = BITVECTOR_AND;reqk = BITVECTOR_NOT;
+        }else if( k==BITVECTOR_XNOR ) {
+          rt.d_req_kind = BITVECTOR_XOR;
+        }else if( k==BITVECTOR_XOR ) {
+          rt.d_req_kind = BITVECTOR_XNOR;
+        }else{
+          rt_valid = false;
+        }
+      }else if( parent==UMINUS ){
+        if( k==PLUS ){
+          rt.d_req_kind = PLUS;reqk = UMINUS;
+        }else{
+          rt_valid = false;
+        }
+      }else if( parent==BITVECTOR_NEG ){
+        if( k==PLUS ){
+          rt.d_req_kind = PLUS;reqk = BITVECTOR_NEG;
+        }else{
+          rt_valid = false;
+        }
       }
-    }
-    if( parent==BITVECTOR_NOT ){
-      if( k==BITVECTOR_AND ) {
-        nk = BITVECTOR_OR;reqk = BITVECTOR_NOT;
-      }else if( k==BITVECTOR_OR ){
-        nk = BITVECTOR_AND;reqk = BITVECTOR_NOT;
-      }else if( k==BITVECTOR_XNOR ) {
-        nk = BITVECTOR_XOR;
-      }else if( k==BITVECTOR_XOR ) {
-        nk = BITVECTOR_XNOR;
-      }
-    }
-    if( parent==UMINUS ){
-      if( k==PLUS ){
-        nk = PLUS;reqk = UMINUS;
-      }
-    }
-    if( parent==BITVECTOR_NEG ){
-      if( k==PLUS ){
-        nk = PLUS;reqk = BITVECTOR_NEG;
-      }
-    }
-    if( nk!=UNDEFINED_KIND ){
-      Trace("sygus-split-debug") << "Push " << parent << " over " << k << " to " << nk;
-      if( reqk!=UNDEFINED_KIND ){
-        Trace("sygus-split-debug") << ", reqk = " << reqk;
-      }
-      Trace("sygus-split-debug") << "?" << std::endl;
-      int pcr = d_tds->getKindArg( tnp, nk );
-      if( pcr!=-1 ){
-        Assert( pcr<(int)pdt.getNumConstructors() );
-        if( reqk!=UNDEFINED_KIND ){
+      if( rt_valid && ( reqk!=UNDEFINED_KIND || !reqkc.empty() ) ){
+        int pcr = d_tds->getKindArg( tnp, rt.d_req_kind );
+        if( pcr!=-1 ){
+          Assert( pcr<(int)pdt.getNumConstructors() );
           //must have same number of arguments
           if( pdt[pcr].getNumArgs()==dt[c].getNumArgs() ){
-            bool success = true;
-            std::map< int, TypeNode > childTypes;
             for( unsigned i=0; i<pdt[pcr].getNumArgs(); i++ ){
-              TypeNode tna = d_tds->getArgType( pdt[pcr], i );
-              Assert( datatypes::DatatypesRewriter::isTypeDatatype( tna ) );
-              if( reqk!=UNDEFINED_KIND ){
-                //child must have a NOT
-                int nindex = d_tds->getKindArg( tna, reqk );
-                if( nindex!=-1 ){
-                  const Datatype& adt = ((DatatypeType)(tn).toType()).getDatatype();
-                  if( d_tds->getArgType( dt[c], i )!=d_tds->getArgType( adt[nindex], 0 ) ){
-                    Trace("sygus-split-debug") << "...arg " << i << " type mismatch." << std::endl;
-                    success = false;
-                    break;
-                  }
-                }else{
-                  Trace("sygus-split-debug") << "...argument " << i << " does not have " << reqk << "." << std::endl;
-                  success = false;
-                  break;
+              Kind rk = reqk;
+              if( reqk==UNDEFINED_KIND ){
+                std::map< unsigned, Kind >::iterator itr = reqkc.find( i );
+                if( itr!=reqkc.end() ){
+                  rk = itr->second;
                 }
-              }else{
-                childTypes[i] = tna;
+              }
+              if( rk!=UNDEFINED_KIND ){
+                rt.d_children[i].d_req_kind = rk;
+                rt.d_children[i].d_children[0].d_req_type = d_tds->getArgType( dt[c], i );
               }
             }
-            if( success ){
-              Trace("sygus-split-debug") << "...success" << std::endl;
-              return false;
-            }
           }else{
-            Trace("sygus-split-debug") << "...#arg mismatch." << std::endl;
+            rt_valid = false;
           }
         }else{
-          return !isTypeMatch( pdt[pcr], dt[c] );
+          rt_valid = false;
         }
-      }else{
-        Trace("sygus-split-debug") << "...operator not available." << std::endl;
       }
     }
+  }else if( k==MINUS || k==BITVECTOR_SUB ){
+    if( parent==EQUAL || 
+        parent==MINUS || parent==BITVECTOR_SUB || 
+        parent==LEQ || parent==LT || parent==GEQ || parent==GT ){
+      int oarg = arg==0 ? 1 : 0;
+      //  (~ x (- y z))  ---->  (~ (+ x z) y)
+      //  (~ (- y z) x)  ---->  (~ y (+ x z))
+      rt.d_req_kind = parent;
+      rt.d_children[arg].d_req_type = d_tds->getArgType( dt[c], 0 );
+      rt.d_children[oarg].d_req_kind = k==MINUS ? PLUS : BITVECTOR_PLUS;
+      rt.d_children[oarg].d_children[0].d_req_type = d_tds->getArgType( pdt[pc], oarg );
+      rt.d_children[oarg].d_children[1].d_req_type = d_tds->getArgType( dt[c], 1 );
+      rt_valid = true;
+    }else if( parent==PLUS || parent==BITVECTOR_PLUS ){
+      //  (+ x (- y z))  -----> (- (+ x y) z)
+      //  (+ (- y z) x)  -----> (- (+ x y) z)
+      rt.d_req_kind = parent==PLUS ? MINUS : BITVECTOR_SUB;
+      int oarg = arg==0 ? 1 : 0;
+      rt.d_children[0].d_req_kind = parent;
+      rt.d_children[0].d_children[0].d_req_type = d_tds->getArgType( pdt[pc], oarg );
+      rt.d_children[0].d_children[1].d_req_type = d_tds->getArgType( dt[c], 0 );
+      rt.d_children[1].d_req_type = d_tds->getArgType( dt[c], 1 );
+      rt_valid = true;
+    }
+  }else if( k==ITE ){
+    if( parent!=ITE ){
+      //  (o X (ite y z w) X')  -----> (ite y (o X z X') (o X w X'))
+      rt.d_req_kind = ITE;
+      rt.d_children[0].d_req_type = d_tds->getArgType( dt[c], 0 );
+      unsigned n_args = pdt[pc].getNumArgs();
+      for( unsigned r=1; r<=2; r++ ){
+        rt.d_children[r].d_req_kind = parent;
+        for( unsigned q=0; q<n_args; q++ ){
+          if( (int)q==arg ){
+            rt.d_children[r].d_children[q].d_req_type = d_tds->getArgType( dt[c], r );
+          }else{
+            rt.d_children[r].d_children[q].d_req_type = d_tds->getArgType( pdt[pc], q );
+          }
+        }
+      }
+      rt_valid = true;
+      //TODO: this increases term size but is probably a good idea
+    }
+  }else if( k==NOT ){
+    if( parent==ITE ){
+      //  (ite (not y) z w)  -----> (ite y w z)
+      rt.d_req_kind = ITE;
+      rt.d_children[0].d_req_type = d_tds->getArgType( dt[c], 0 );
+      rt.d_children[1].d_req_type = d_tds->getArgType( pdt[pc], 2 );
+      rt.d_children[2].d_req_type = d_tds->getArgType( pdt[pc], 1 );
+    }
   }
-  if( parent==MINUS || parent==BITVECTOR_SUB ){
-
-
+  Trace("sygus-consider-split") << "Consider sygus split kind " << k << ", parent = " << parent << ", arg = " << arg << "?" << std::endl;
+  if( rt_valid ){
+    rt.print("sygus-consider-split");
+    //check if it meets the requirements
+    if( rt.satisfiedBy( d_tds, tnp ) ){
+      Trace("sygus-consider-split") << "...success!" << std::endl;
+      //do not need to consider the kind in the search since there are ways to construct equivalent terms
+      return false;
+    }else{
+      Trace("sygus-consider-split") << "...failed." << std::endl;
+    }
+    Trace("sygus-consider-split") << std::endl;
   }
+  //must consider this kind in the search  
   return true;
 }
 
@@ -616,6 +737,7 @@ bool SygusSplit::isGenericRedundant( TypeNode tn, Node g, bool active ) {
         d_gen_terms[tn][gr] = g;
         d_gen_terms_inactive[tn][gr] = g;
         Trace("sygus-gnf-debug") << "...not redundant." << std::endl;
+        Trace("sygus-nf-reg") << "*** Sygus (generic) normal form : normal form of " << g << " is " << gr << std::endl;
       }else{
         Trace("sygus-gnf-debug") << "...redundant." << std::endl;
         Trace("sygus-nf") << "* Sygus normal form : simplify since " << g << " and " << itg->second << " both rewrite to " << gr << std::endl;
@@ -849,6 +971,7 @@ bool SygusSymBreak::processCurrentProgram( Node a, TypeNode at, int depth, Node 
       }else{
         d_redundant[at][prog] = false;
         red = false;
+        Trace("sygus-nf-reg") << "*** Sygus normal form : normal form of " << prog << " is " << progr << std::endl;
       }
     }else{
       rep_prog = itnp->second;
@@ -858,6 +981,7 @@ bool SygusSymBreak::processCurrentProgram( Node a, TypeNode at, int depth, Node 
         d_redundant[at].erase( rep_prog );
         d_redundant[at][prog] = false;
         red = false;
+        Trace("sygus-nf-reg") << "*** Sygus normal form : normal form of " << prog << " is " << progr << " (redundant but smaller than " << rep_prog << ") " << std::endl;
       }else{
         Assert( prog!=itnp->second );
         d_redundant[at][prog] = true;
@@ -1090,6 +1214,7 @@ bool SygusSymBreak::processCurrentProgram( Node a, TypeNode at, int depth, Node 
     }
   }else{
     red = it->second;
+    Trace("sygus-nf-debug") << "Already processed, redundant : " << red << std::endl;
   }
   if( red ){
     if( std::find( d_lemmas_reported[at][prog].begin(), d_lemmas_reported[at][prog].end(), a )==d_lemmas_reported[at][prog].end() ){

@@ -20,6 +20,7 @@
 #include "base/cvc4_assert.h"
 #include "context/context.h"
 #include "options/bv_options.h"
+#include "options/proof_options.h"
 #include "proof/bitvector_proof.h"
 #include "proof/clause_id.h"
 #include "proof/cnf_proof.h"
@@ -61,10 +62,10 @@ ProofManager::ProofManager(ProofFormat format):
 }
 
 ProofManager::~ProofManager() {
-  delete d_satProof;
-  delete d_cnfProof;
-  delete d_theoryProof;
-  delete d_fullProof;
+  if (d_satProof) delete d_satProof;
+  if (d_cnfProof) delete d_cnfProof;
+  if (d_theoryProof) delete d_theoryProof;
+  if (d_fullProof) delete d_fullProof;
 }
 
 ProofManager* ProofManager::currentPM() {
@@ -95,7 +96,6 @@ CnfProof* ProofManager::getCnfProof() {
 }
 
 TheoryProofEngine* ProofManager::getTheoryProofEngine() {
-  Assert (options::proof());
   Assert (currentPM()->d_theoryProof != NULL);
   return currentPM()->d_theoryProof;
 }
@@ -200,7 +200,6 @@ std::string ProofManager::getLitName(prop::SatLiteral lit,
   return append(prefix+".l", lit.toInt());
 }
 
-
 std::string ProofManager::getPreprocessedAssertionName(Node node,
                                                        const std::string& prefix) {
   node = node.getKind() == kind::BITVECTOR_EAGER_ATOM ? node[0] : node;
@@ -217,9 +216,15 @@ std::string ProofManager::getAtomName(TNode atom,
   Assert(!lit.isNegated());
   return getAtomName(lit.getSatVariable(), prefix);
 }
+
 std::string ProofManager::getLitName(TNode lit,
                                      const std::string& prefix) {
-  return getLitName(currentPM()->d_cnfProof->getLiteral(lit), prefix);
+  std::string litName = getLitName(currentPM()->d_cnfProof->getLiteral(lit), prefix);
+  if (currentPM()->d_rewriteFilters.find(litName) != currentPM()->d_rewriteFilters.end()) {
+    return currentPM()->d_rewriteFilters[litName];
+  }
+
+  return litName;
 }
 
 std::string ProofManager::sanitize(TNode node) {
@@ -330,7 +335,14 @@ LFSCProof::LFSCProof(SmtEngine* smtEngine,
   , d_smtEngine(smtEngine)
 {}
 
+void LFSCProof::toStream(std::ostream& out, const ProofLetMap& map) {
+  Unreachable();
+}
+
 void LFSCProof::toStream(std::ostream& out) {
+
+  Assert(options::bitblastMode() != theory::bv::BITBLAST_MODE_EAGER);
+
   d_satProof->constructProof();
 
   // collecting leaf clauses in resolution proof
@@ -384,8 +396,37 @@ void LFSCProof::toStream(std::ostream& out) {
   for (it3 = used_assertions.begin(); it3 != used_assertions.end(); ++it3)
     Debug("pf::pm") << "\t assertion = " << *it3 << std::endl;
 
-  NodeSet atoms;
+  std::set<Node> atoms;
+  NodePairSet rewrites;
   // collects the atoms in the clauses
+  d_cnfProof->collectAtomsAndRewritesForLemmas(used_lemmas, atoms, rewrites);
+
+  if (!rewrites.empty()) {
+    Debug("pf::pm") << std::endl << "Rewrites used in lemmas: " << std::endl;
+    NodePairSet::const_iterator rewriteIt;
+    for (rewriteIt = rewrites.begin(); rewriteIt != rewrites.end(); ++rewriteIt) {
+      Debug("pf::pm") << "\t" << rewriteIt->first << " --> " << rewriteIt->second << std::endl;
+    }
+    Debug("pf::pm") << std::endl << "Rewrite printing done" << std::endl;
+  } else {
+    Debug("pf::pm") << "No rewrites in lemmas found" << std::endl;
+  }
+
+  // The derived/unrewritten atoms may not have CNF literals required later on.
+  // If they don't, add them.
+  std::set<Node>::const_iterator it;
+  for (it = atoms.begin(); it != atoms.end(); ++it) {
+    Debug("pf::pm") << "Ensure literal for atom: " << *it << std::endl;
+    if (!d_cnfProof->hasLiteral(*it)) {
+      // For arithmetic: these literals are not normalized, causing an error in Arith.
+      if (theory::Theory::theoryOf(*it) == theory::THEORY_ARITH) {
+        d_cnfProof->ensureLiteral(*it, true); // This disables preregistration with the theory solver.
+      } else {
+        d_cnfProof->ensureLiteral(*it); // Normal method, with theory solver preregisteration.
+      }
+    }
+  }
+
   d_cnfProof->collectAtomsForClauses(used_inputs, atoms);
   d_cnfProof->collectAtomsForClauses(used_lemmas, atoms);
 
@@ -393,38 +434,23 @@ void LFSCProof::toStream(std::ostream& out) {
   for (NodeSet::const_iterator it = used_assertions.begin();
        it != used_assertions.end(); ++it) {
     utils::collectAtoms(*it, atoms);
+    // utils::collectAtoms(*it, newAtoms);
   }
 
-  NodeSet::iterator atomIt;
-  Debug("pf::pm") << std::endl << "Dumping atoms from lemmas, inputs and assertions: " << std::endl << std::endl;
+  std::set<Node>::iterator atomIt;
+  Debug("pf::pm") << std::endl << "Dumping atoms from lemmas, inputs and assertions: "
+                  << std::endl << std::endl;
   for (atomIt = atoms.begin(); atomIt != atoms.end(); ++atomIt) {
     Debug("pf::pm") << "\tAtom: " << *atomIt << std::endl;
-
-    if (Debug.isOn("proof:pm")) {
-      // std::cout << NodeManager::currentNM();
-      Debug("proof:pm") << "LFSCProof::Used assertions: "<< std::endl;
-      for(NodeSet::const_iterator it = used_assertions.begin(); it != used_assertions.end(); ++it) {
-        Debug("proof:pm") << "   " << *it << std::endl;
-      }
-
-      Debug("proof:pm") << "LFSCProof::Used atoms: "<< std::endl;
-      for(NodeSet::const_iterator it = atoms.begin(); it != atoms.end(); ++it) {
-        Debug("proof:pm") << "   " << *it << std::endl;
-      }
-    }
   }
-
   smt::SmtScope scope(d_smtEngine);
   std::ostringstream paren;
   out << "(check\n";
   out << " ;; Declarations\n";
 
   // declare the theory atoms
-  NodeSet::const_iterator it = atoms.begin();
-  NodeSet::const_iterator end = atoms.end();
-
   Debug("pf::pm") << "LFSCProof::toStream: registering terms:" << std::endl;
-  for(; it != end; ++it) {
+  for(it = atoms.begin(); it != atoms.end(); ++it) {
     Debug("pf::pm") << "\tTerm: " << (*it).toExpr() << std::endl;
     d_theoryProof->registerTerm((*it).toExpr());
   }
@@ -444,15 +470,31 @@ void LFSCProof::toStream(std::ostream& out) {
   out << "(: (holds cln)\n\n";
 
   // Have the theory proofs print deferred declarations, e.g. for skolem variables.
-  out << " ;; Printing deferred declarations \n";
+  out << " ;; Printing deferred declarations \n\n";
   d_theoryProof->printDeferredDeclarations(out, paren);
 
+  d_theoryProof->finalizeBvConflicts(used_lemmas, out);
+  ProofManager::getBitVectorProof()->calculateAtomsInBitblastingProof();
+
+  out << "\n ;; Printing the global let map \n";
+
+  ProofLetMap globalLetMap;
+  if (options::lfscLetification()) {
+    ProofManager::currentPM()->printGlobalLetMap(atoms, globalLetMap, out, paren);
+  }
+
+  out << " ;; Printing aliasing declarations \n\n";
+  d_theoryProof->printAliasingDeclarations(out, paren);
+
+  out << " ;; Rewrites for Lemmas \n";
+  d_theoryProof->printLemmaRewrites(rewrites, out, paren);
+
   // print trust that input assertions are their preprocessed form
-  printPreprocessedAssertions(used_assertions, out, paren);
+  printPreprocessedAssertions(used_assertions, out, paren, globalLetMap);
 
   // print mapping between theory atoms and internal SAT variables
   out << ";; Printing mapping from preprocessed assertions into atoms \n";
-  d_cnfProof->printAtomMapping(atoms, out, paren);
+  d_cnfProof->printAtomMapping(atoms, out, paren, globalLetMap);
 
   Debug("pf::pm") << std::endl << "Printing cnf proof for clauses" << std::endl;
 
@@ -464,12 +506,8 @@ void LFSCProof::toStream(std::ostream& out) {
 
   Debug("pf::pm") << std::endl << "Printing cnf proof for clauses DONE" << std::endl;
 
-  // FIXME: for now assume all theory lemmas are in CNF form so
-  // distinguish between them and inputs
-  // print theory lemmas for resolution proof
-
   Debug("pf::pm") << "Proof manager: printing theory lemmas" << std::endl;
-  d_theoryProof->printTheoryLemmas(used_lemmas, out, paren);
+  d_theoryProof->printTheoryLemmas(used_lemmas, out, paren, globalLetMap);
   Debug("pf::pm") << "Proof manager: printing theory lemmas DONE!" << std::endl;
 
   if (options::bitblastMode() == theory::bv::BITBLAST_MODE_EAGER && ProofManager::getBitVectorProof()) {
@@ -491,22 +529,24 @@ void LFSCProof::toStream(std::ostream& out) {
 
 void LFSCProof::printPreprocessedAssertions(const NodeSet& assertions,
                                             std::ostream& os,
-                                            std::ostream& paren) {
+                                            std::ostream& paren,
+                                            ProofLetMap& globalLetMap) {
   os << "\n ;; In the preprocessor we trust \n";
   NodeSet::const_iterator it = assertions.begin();
   NodeSet::const_iterator end = assertions.end();
+
+  Debug("pf::pm") << "LFSCProof::printPreprocessedAssertions starting" << std::endl;
 
   for (; it != end; ++it) {
     os << "(th_let_pf _ ";
 
     //TODO
     os << "(trust_f ";
-    ProofManager::currentPM()->getTheoryProofEngine()->printLetTerm((*it).toExpr(), os);
+    ProofManager::currentPM()->getTheoryProofEngine()->printTheoryTerm((*it).toExpr(), os, globalLetMap);
     os << ") ";
 
     os << "(\\ "<< ProofManager::getPreprocessedAssertionName(*it, "") << "\n";
     paren << "))";
-
   }
 
   os << "\n";
@@ -568,6 +608,14 @@ void ProofManager::markPrinted(const Type& type) {
   d_printedTypes.insert(type);
 }
 
+void ProofManager::addRewriteFilter(const std::string &original, const std::string &substitute) {
+  d_rewriteFilters[original] = substitute;
+}
+
+void ProofManager::clearRewriteFilters() {
+  d_rewriteFilters.clear();
+}
+
 std::ostream& operator<<(std::ostream& out, CVC4::ProofRule k) {
   switch(k) {
   case RULE_GIVEN:
@@ -607,5 +655,88 @@ std::ostream& operator<<(std::ostream& out, CVC4::ProofRule k) {
   return out;
 }
 
+void ProofManager::registerRewrite(unsigned ruleId, Node original, Node result){
+  Assert (currentPM()->d_theoryProof != NULL);
+  currentPM()->d_rewriteLog.push_back(RewriteLogEntry(ruleId, original, result));
+}
+
+void ProofManager::clearRewriteLog() {
+  Assert (currentPM()->d_theoryProof != NULL);
+  currentPM()->d_rewriteLog.clear();
+}
+
+std::vector<RewriteLogEntry> ProofManager::getRewriteLog() {
+  return currentPM()->d_rewriteLog;
+}
+
+void ProofManager::dumpRewriteLog() const {
+  Debug("pf::rr") << "Dumpign rewrite log:" << std::endl;
+
+  for (unsigned i = 0; i < d_rewriteLog.size(); ++i) {
+    Debug("pf::rr") << "\tRule " << d_rewriteLog[i].getRuleId()
+                    << ": "
+                    << d_rewriteLog[i].getOriginal()
+                    << " --> "
+                    << d_rewriteLog[i].getResult() << std::endl;
+  }
+}
+
+void bind(Expr term, ProofLetMap& map, Bindings& letOrder) {
+  ProofLetMap::iterator it = map.find(term);
+  if (it != map.end())
+    return;
+
+  for (unsigned i = 0; i < term.getNumChildren(); ++i)
+    bind(term[i], map, letOrder);
+
+  // Special case: chain operators. If we have and(a,b,c), it will be prineted as and(a,and(b,c)).
+  // The subterm and(b,c) may repeat elsewhere, so we need to bind it, too.
+  Kind k = term.getKind();
+  if (((k == kind::OR) || (k == kind::AND)) && term.getNumChildren() > 2) {
+    Node currentExpression = term[term.getNumChildren() - 1];
+    for (int i = term.getNumChildren() - 2; i >= 0; --i) {
+      NodeBuilder<> builder(k);
+      builder << term[i];
+      builder << currentExpression.toExpr();
+      currentExpression = builder;
+      bind(currentExpression.toExpr(), map, letOrder);
+    }
+  } else {
+    unsigned newId = ProofLetCount::newId();
+    ProofLetCount letCount(newId);
+    map[term] = letCount;
+    letOrder.push_back(LetOrderElement(term, newId));
+  }
+}
+
+void ProofManager::printGlobalLetMap(std::set<Node>& atoms,
+                                     ProofLetMap& letMap,
+                                     std::ostream& out,
+                                     std::ostringstream& paren) {
+  Bindings letOrder;
+  std::set<Node>::const_iterator atom;
+  for (atom = atoms.begin(); atom != atoms.end(); ++atom) {
+    bind(atom->toExpr(), letMap, letOrder);
+  }
+
+  // TODO: give each theory a chance to add atoms. For now, just query BV directly...
+  const std::set<Node>* additionalAtoms = ProofManager::getBitVectorProof()->getAtomsInBitblastingProof();
+  for (atom = additionalAtoms->begin(); atom != additionalAtoms->end(); ++atom) {
+    bind(atom->toExpr(), letMap, letOrder);
+  }
+
+  for (unsigned i = 0; i < letOrder.size(); ++i) {
+    Expr currentExpr = letOrder[i].expr;
+    unsigned letId = letOrder[i].id;
+    ProofLetMap::iterator it = letMap.find(currentExpr);
+    Assert(it != letMap.end());
+    out << "\n(@ let" << letId << " ";
+    d_theoryProof->printBoundTerm(currentExpr, out, letMap);
+    paren << ")";
+    it->second.increment();
+  }
+
+  out << std::endl << std::endl;
+}
 
 } /* CVC4  namespace */

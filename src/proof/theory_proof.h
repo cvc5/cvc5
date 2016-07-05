@@ -27,6 +27,7 @@
 #include "proof/clause_id.h"
 #include "prop/sat_solver_types.h"
 #include "util/proof.h"
+#include "proof/proof_utils.h"
 
 namespace CVC4 {
 
@@ -34,66 +35,21 @@ namespace theory {
 class Theory;
 } /* namespace CVC4::theory */
 
-struct LetCount {
-  static unsigned counter;
-  static void resetCounter() { counter = 0; }
-  static unsigned newId() { return ++counter; }
-
-  unsigned count;
-  unsigned id;
-  LetCount()
-    : count(0)
-    , id(-1)
-  {}
-
-  void increment() { ++count; }
-  LetCount(unsigned i)
-    : count(1)
-    , id(i)
-  {}
-  LetCount(const LetCount& other)
-    : count(other.count)
-    , id (other.id)
-  {}
-  bool operator==(const LetCount &other) const {
-    return other.id == id && other.count == count;
-  }
-  LetCount& operator=(const LetCount &rhs) {
-    if (&rhs == this) return *this;
-    id = rhs.id;
-    count = rhs.count;
-    return *this;
-  }
-};
-
-struct LetOrderElement {
-  Expr expr;
-  unsigned id;
-  LetOrderElement(Expr e, unsigned i)
-    : expr(e)
-    , id(i)
-  {}
-
-  LetOrderElement()
-    : expr()
-    , id(-1)
-  {}
-};
-
 typedef __gnu_cxx::hash_map < ClauseId, prop::SatClause* > IdToSatClause;
-
-typedef __gnu_cxx::hash_map<Expr, LetCount, ExprHashFunction> LetMap;
-typedef std::vector<LetOrderElement> Bindings;
 
 class TheoryProof;
 
 typedef __gnu_cxx::hash_set<Expr, ExprHashFunction > ExprSet;
 typedef std::map<theory::TheoryId, TheoryProof* > TheoryProofTable;
 
+typedef std::set<theory::TheoryId> TheoryIdSet;
+typedef std::map<Expr, TheoryIdSet> ExprToTheoryIds;
+
 class TheoryProofEngine {
 protected:
   ExprSet d_registrationCache;
   TheoryProofTable d_theoryProofTable;
+  ExprToTheoryIds d_exprToTheoryIds;
 
   /**
    * Returns whether the theory is currently supported in proof
@@ -113,7 +69,7 @@ public:
    */
   virtual void printLetTerm(Expr term, std::ostream& os) = 0;
   virtual void printBoundTerm(Expr term, std::ostream& os,
-                              const LetMap& map) = 0;
+                              const ProofLetMap& map) = 0;
 
   /**
    * Print the proof representation of the given sort.
@@ -148,6 +104,14 @@ public:
   virtual void printDeferredDeclarations(std::ostream& os, std::ostream& paren) = 0;
 
   /**
+   * Print aliasing declarations.
+   *
+   * @param os
+   * @param paren closing parenthesis
+   */
+  virtual void printAliasingDeclarations(std::ostream& os, std::ostream& paren) = 0;
+
+  /**
    * Print proofs of all the theory lemmas (must prove
    * actual clause used in resolution proof).
    *
@@ -155,7 +119,7 @@ public:
    * @param paren
    */
   virtual void printTheoryLemmas(const IdToSatClause& lemmas, std::ostream& os,
-                                 std::ostream& paren) = 0;
+                                 std::ostream& paren, ProofLetMap& map) = 0;
 
   /**
    * Register theory atom (ensures all terms and atoms are declared).
@@ -166,35 +130,67 @@ public:
 
   /**
    * Ensures that a theory proof class for the given theory is created.
+   * This method can be invoked regardless of whether the "proof" option
+   * has been set.
    *
    * @param theory
    */
   void registerTheory(theory::Theory* theory);
+  /**
+   * Additional configuration of the theory proof class for the given theory.
+   * This method should only be invoked when the "proof" option has been set.
+   *
+   * @param theory
+   */
+  void finishRegisterTheory(theory::Theory* theory);
 
-  theory::TheoryId getTheoryForLemma(ClauseId id);
+  theory::TheoryId getTheoryForLemma(const prop::SatClause* clause);
   TheoryProof* getTheoryProof(theory::TheoryId id);
+
+  void markTermForFutureRegistration(Expr term, theory::TheoryId id);
+
+  void printConstantDisequalityProof(std::ostream& os, Expr c1, Expr c2);
+
+  virtual void treatBoolsAsFormulas(bool value) {};
+
+  virtual void printTheoryTerm(Expr term, std::ostream& os, const ProofLetMap& map) = 0;
 };
 
 class LFSCTheoryProofEngine : public TheoryProofEngine {
-  LetMap d_letMap;
-  void printTheoryTerm(Expr term, std::ostream& os, const LetMap& map);
-  void bind(Expr term, LetMap& map, Bindings& let_order);
+  void bind(Expr term, ProofLetMap& map, Bindings& let_order);
 public:
   LFSCTheoryProofEngine()
     : TheoryProofEngine() {}
 
+  void printTheoryTerm(Expr term, std::ostream& os, const ProofLetMap& map);
+
   void registerTermsFromAssertions();
   void printSortDeclarations(std::ostream& os, std::ostream& paren);
   void printTermDeclarations(std::ostream& os, std::ostream& paren);
-  virtual void printCoreTerm(Expr term, std::ostream& os, const LetMap& map);
+  virtual void printCoreTerm(Expr term, std::ostream& os, const ProofLetMap& map);
   virtual void printLetTerm(Expr term, std::ostream& os);
-  virtual void printBoundTerm(Expr term, std::ostream& os, const LetMap& map);
+  virtual void printBoundTerm(Expr term, std::ostream& os, const ProofLetMap& map);
   virtual void printAssertions(std::ostream& os, std::ostream& paren);
+  virtual void printLemmaRewrites(NodePairSet& rewrites, std::ostream& os, std::ostream& paren);
   virtual void printDeferredDeclarations(std::ostream& os, std::ostream& paren);
+  virtual void printAliasingDeclarations(std::ostream& os, std::ostream& paren);
   virtual void printTheoryLemmas(const IdToSatClause& lemmas,
                                  std::ostream& os,
-                                 std::ostream& paren);
+                                 std::ostream& paren,
+                                 ProofLetMap& map);
   virtual void printSort(Type type, std::ostream& os);
+
+  void performExtraRegistrations();
+
+  void treatBoolsAsFormulas(bool value);
+  void finalizeBvConflicts(const IdToSatClause& lemmas, std::ostream& os);
+
+private:
+  static void dumpTheoryLemmas(const IdToSatClause& lemmas);
+
+  // TODO: this function should be moved into the BV prover.
+
+  std::map<Node, std::string> d_assertionToRewrite;
 };
 
 class TheoryProof {
@@ -214,7 +210,7 @@ public:
    * @param term expresion representing term
    * @param os output stream
    */
-  void printTerm(Expr term, std::ostream& os, const LetMap& map) {
+  void printTerm(Expr term, std::ostream& os, const ProofLetMap& map) {
     d_proofEngine->printBoundTerm(term, os, map);
   }
   /**
@@ -223,7 +219,7 @@ public:
    * @param term expresion representing term
    * @param os output stream
    */
-  virtual void printOwnedTerm(Expr term, std::ostream& os, const LetMap& map) = 0;
+  virtual void printOwnedTerm(Expr term, std::ostream& os, const ProofLetMap& map) = 0;
   /**
    * Print the proof representation of the given type that belongs to some theory.
    *
@@ -246,7 +242,10 @@ public:
    *
    * @param os output stream
    */
-  virtual void printTheoryLemmaProof(std::vector<Expr>& lemma, std::ostream& os, std::ostream& paren);
+  virtual void printTheoryLemmaProof(std::vector<Expr>& lemma,
+                                     std::ostream& os,
+                                     std::ostream& paren,
+                                     const ProofLetMap& map);
   /**
    * Print the sorts declarations for this theory.
    *
@@ -270,11 +269,32 @@ public:
    */
   virtual void printDeferredDeclarations(std::ostream& os, std::ostream& paren) = 0;
   /**
+   * Print any aliasing declarations.
+   *
+   * @param os
+   * @param paren
+   */
+  virtual void printAliasingDeclarations(std::ostream& os, std::ostream& paren) = 0;
+  /**
    * Register a term of this theory that appears in the proof.
    *
    * @param term
    */
   virtual void registerTerm(Expr term) = 0;
+  /**
+   * Print a proof for the disequality of two constants that belong to this theory.
+   *
+   * @param term
+   */
+  virtual void printConstantDisequalityProof(std::ostream& os, Expr c1, Expr c2);
+  /**
+   * Print a proof for the equivalence of n1 and n2.
+   *
+   * @param term
+   */
+  virtual void printRewriteProof(std::ostream& os, const Node &n1, const Node &n2);
+
+  virtual void treatBoolsAsFormulas(bool value) {}
 };
 
 class BooleanProof : public TheoryProof {
@@ -285,26 +305,35 @@ public:
 
   virtual void registerTerm(Expr term);
 
-  virtual void printOwnedTerm(Expr term, std::ostream& os, const LetMap& map) = 0;
+  virtual void printOwnedTerm(Expr term, std::ostream& os, const ProofLetMap& map) = 0;
 
   virtual void printOwnedSort(Type type, std::ostream& os) = 0;
   virtual void printTheoryLemmaProof(std::vector<Expr>& lemma, std::ostream& os, std::ostream& paren) = 0;
   virtual void printSortDeclarations(std::ostream& os, std::ostream& paren) = 0;
   virtual void printTermDeclarations(std::ostream& os, std::ostream& paren) = 0;
   virtual void printDeferredDeclarations(std::ostream& os, std::ostream& paren) = 0;
+  virtual void printAliasingDeclarations(std::ostream& os, std::ostream& paren) = 0;
 };
 
 class LFSCBooleanProof : public BooleanProof {
 public:
   LFSCBooleanProof(TheoryProofEngine* proofEngine)
-    : BooleanProof(proofEngine)
+    : BooleanProof(proofEngine), d_treatBoolsAsFormulas(true)
   {}
-  virtual void printOwnedTerm(Expr term, std::ostream& os, const LetMap& map);
+  virtual void printOwnedTerm(Expr term, std::ostream& os, const ProofLetMap& map);
   virtual void printOwnedSort(Type type, std::ostream& os);
   virtual void printTheoryLemmaProof(std::vector<Expr>& lemma, std::ostream& os, std::ostream& paren);
   virtual void printSortDeclarations(std::ostream& os, std::ostream& paren);
   virtual void printTermDeclarations(std::ostream& os, std::ostream& paren);
   virtual void printDeferredDeclarations(std::ostream& os, std::ostream& paren);
+  virtual void printAliasingDeclarations(std::ostream& os, std::ostream& paren);
+
+  void treatBoolsAsFormulas(bool value) {
+    d_treatBoolsAsFormulas = value;
+  }
+
+private:
+  bool d_treatBoolsAsFormulas;
 };
 
 } /* CVC4 namespace */

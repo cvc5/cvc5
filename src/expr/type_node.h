@@ -419,6 +419,13 @@ public:
    * @return a finite or infinite cardinality
    */
   Cardinality getCardinality() const;
+  
+  /**
+   * Is this type interpreted as being finite.
+   * If finite model finding is enabled, this assumes all uninterpreted sorts 
+   *   are interpreted as finite.
+   */
+  bool isInterpretedFinite() const;
 
   /**
    * Returns whether this type is well-founded.

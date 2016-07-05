@@ -7,6 +7,9 @@ module BV "options/bv_options.h" Bitvector theory
 
 # Option to set the bit-blasting mode (lazy, eager)
 
+expert-option bvSatSolver bv-sat-solver --bv-sat-solver=MODE CVC4::theory::bv::SatSolverMode :predicate satSolverEnabledBuild :handler stringToSatSolver :default CVC4::theory::bv::SAT_SOLVER_MINISAT :read-write :include "options/bv_bitblast_mode.h"
+ choose which sat solver to use, see --bv-sat-solver=help
+
 option bitblastMode bitblast --bitblast=MODE CVC4::theory::bv::BitblastMode :handler stringToBitblastMode :default CVC4::theory::bv::BITBLAST_MODE_LAZY :read-write :include "options/bv_bitblast_mode.h"
  choose bitblasting mode, see --bitblast=help
 

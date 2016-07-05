@@ -275,6 +275,7 @@ struct RelTransClosureTypeRule {
     }
 };/* struct RelTransClosureTypeRule */
 
+
 struct SetsProperties {
   inline static Cardinality computeCardinality(TypeNode type) {
     Assert(type.getKind() == kind::SET_TYPE);

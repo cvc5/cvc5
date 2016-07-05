@@ -19,7 +19,7 @@
 #include "options/bv_options.h"
 #include "prop/cnf_stream.h"
 #include "prop/sat_solver_factory.h"
-
+#include "smt/smt_statistics_registry.h"
 
 #ifdef CVC4_USE_ABC
 // Function is defined as static in ABC. Not sure how else to do this. 
@@ -140,10 +140,24 @@ AigBitblaster::AigBitblaster()
   , d_bbAtoms()
   , d_aigOutputNode(NULL)
 {
-  d_nullContext = new context::Context(); 
-  d_satSolver = prop::SatSolverFactory::createMinisat(d_nullContext, "AigBitblaster");
-  MinisatEmptyNotify* notify = new MinisatEmptyNotify();
-  d_satSolver->setNotify(notify);
+  d_nullContext = new context::Context();
+  switch(options::bvSatSolver()) {
+  case SAT_SOLVER_MINISAT: {
+    prop::BVSatSolverInterface* minisat = prop::SatSolverFactory::createMinisat(d_nullContext,
+                                                                                smtStatisticsRegistry(),
+                                                                                "AigBitblaster");
+    MinisatEmptyNotify* notify = new MinisatEmptyNotify();
+    minisat->setNotify(notify);
+    d_satSolver = minisat;
+    break;
+  }
+  case SAT_SOLVER_CRYPTOMINISAT:
+    d_satSolver = prop::SatSolverFactory::createCryptoMinisat(smtStatisticsRegistry(),
+                                                              "AigBitblaster");
+    break;
+  default:
+    Unreachable("Unknown SAT solver type");
+  }
 }
 
 AigBitblaster::~AigBitblaster() {
@@ -402,7 +416,7 @@ void AigBitblaster::assertToSatSolver(Cnf_Dat_t* pCnf) {
       prop::SatLiteral lit(sat_variables[index-1], int_lit < 0); 
       clause.push_back(lit); 
     }
-    d_satSolver->addClause(clause, false, RULE_INVALID);
+    d_satSolver->addClause(clause, false);
   }
 }
 

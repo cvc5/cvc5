@@ -36,6 +36,7 @@ class TheoryModel : public Model
 protected:
   /** substitution map for this model */
   SubstitutionMap d_substitutions;
+  context::CDO<bool> d_modelBuilt;
 public:
   TheoryModel(context::Context* c, std::string name, bool enableFuncModels);
   virtual ~TheoryModel() throw();
@@ -51,7 +52,6 @@ public:
   /** true/false nodes */
   Node d_true;
   Node d_false;
-  context::CDO<bool> d_modelBuilt;
   mutable std::hash_map<Node, Node, NodeHashFunction> d_modelCache;
 
 protected:
@@ -62,6 +62,8 @@ protected:
    */
   Node getModelValue(TNode n, bool hasBoundVars = false, bool useDontCares = false) const;
 public:
+  /** is built */
+  bool isBuilt() { return d_modelBuilt.get(); }
   /**
    * Get value function.  This should be called only after a ModelBuilder has called buildModel(...)
    * on this model.

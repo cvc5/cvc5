@@ -342,7 +342,7 @@ public:
    * uninterpreted sorts are finite.  This function can
    * only be called for resolved constructors.
    */
-  bool isUFinite() const throw(IllegalArgumentException);
+  bool isInterpretedFinite() const throw(IllegalArgumentException);
 
   /**
    * Returns true iff this Datatype constructor has already been
@@ -613,6 +613,9 @@ public:
   /** get the record representation for this datatype */
   inline Record * getRecord() const;
 
+  /** get the record representation for this datatype */
+  inline Record * getRecord() const;
+
   /**
    * Return the cardinality of this datatype (the sum of the
    * cardinalities of its constructors).  The Datatype must be
@@ -634,7 +637,7 @@ public:
    * datatype is  not well-founded, this function  returns false.  The
    * Datatype must be resolved or an exception is thrown.
    */
-  bool isUFinite() const throw(IllegalArgumentException);
+  bool isInterpretedFinite() const throw(IllegalArgumentException);
 
   /**
    * Return true iff this datatype is well-founded (there exist ground

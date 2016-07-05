@@ -76,6 +76,8 @@ class Trigger {
   int addTerm( Node t );
   /** return whether this is a multi-trigger */
   bool isMultiTrigger() { return d_nodes.size()>1; }
+  /** get inst pattern list */
+  Node getInstPattern();
 
   /** add all available instantiations exhaustively, in any equivalence class
       if limitInst>0, limitInst is the max # of instantiations to try */
@@ -84,8 +86,6 @@ class Trigger {
      ie     : quantifier engine;
      f      : forall something ....
      nodes  : (multi-)trigger
-     matchOption : which policy to use for creating matches
-                   (one of InstMatchGenerator::MATCH_GEN_* )
      keepAll: don't remove unneeded patterns;
      trOption : policy for dealing with triggers that already existed
                 (see below)
@@ -95,18 +95,19 @@ class Trigger {
     TR_GET_OLD,     //return a previous trigger if it had already been created
     TR_RETURN_NULL  //return null if a duplicate is found
   };
-  static Trigger* mkTrigger( QuantifiersEngine* qe, Node f,
-                             std::vector< Node >& nodes, int matchOption = 0,
-                             bool keepAll = true, int trOption = TR_MAKE_NEW );
-  static Trigger* mkTrigger( QuantifiersEngine* qe, Node f, Node n,
-                             int matchOption = 0, bool keepAll = true,
-                             int trOption = TR_MAKE_NEW );
+  //nodes input, trNodes output
+  static bool mkTriggerTerms( Node q, std::vector< Node >& nodes, unsigned n_vars, std::vector< Node >& trNodes );
+  static Trigger* mkTrigger( QuantifiersEngine* qe, Node f, std::vector< Node >& nodes,
+                             bool keepAll = true, int trOption = TR_MAKE_NEW, unsigned use_n_vars = 0 );
+  static Trigger* mkTrigger( QuantifiersEngine* qe, Node f, Node n, bool keepAll = true,
+                             int trOption = TR_MAKE_NEW, unsigned use_n_vars = 0 );
   static void collectPatTerms( Node q, Node n, std::vector< Node >& patTerms, quantifiers::TriggerSelMode tstrt,
                                std::vector< Node >& exclude, std::map< Node, TriggerTermInfo >& tinfo,
                                bool filterInst = false );
   /** is usable trigger */
   static bool isUsableTrigger( Node n, Node q );
   static Node getIsUsableTrigger( Node n, Node q );
+  static bool isUsableAtomicTrigger( Node n, Node q );
   static bool isAtomicTrigger( Node n );
   static bool isAtomicTriggerKind( Kind k );
   static bool isRelationalTrigger( Node n );
@@ -135,7 +136,7 @@ class Trigger {
   }
 private:
   /** trigger constructor */
-  Trigger( QuantifiersEngine* ie, Node f, std::vector< Node >& nodes, int matchOption = 0 );
+  Trigger( QuantifiersEngine* ie, Node f, std::vector< Node >& nodes );
 
   /** is subterm of trigger usable */
   static bool isUsable( Node n, Node q );

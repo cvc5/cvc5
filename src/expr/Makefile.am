@@ -40,6 +40,8 @@ libexpr_la_SOURCES = \
 	pickle_data.h \
 	pickler.cpp \
 	pickler.h \
+	sepconst.cpp \
+	sepconst.h \
 	symbol_table.cpp \
 	symbol_table.h \
 	type.cpp \

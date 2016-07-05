@@ -257,7 +257,7 @@ public:
 class EagerBitblaster : public TBitblaster<Node> {
   typedef __gnu_cxx::hash_set<TNode, TNodeHashFunction> TNodeSet;
   // sat solver used for bitblasting and associated CnfStream
-  prop::BVSatSolverInterface*        d_satSolver;
+  prop::SatSolver*                   d_satSolver;
   BitblastingRegistrar*              d_bitblastingRegistrar;
   context::Context*                  d_nullContext;
   prop::CnfStream*                   d_cnfStream;
@@ -265,6 +265,8 @@ class EagerBitblaster : public TBitblaster<Node> {
   theory::bv::TheoryBV* d_bv;
   TNodeSet d_bbAtoms;
   TNodeSet d_variables;
+
+  MinisatEmptyNotify d_notify;
 
   MinisatEmptyNotify d_notify;
 
@@ -306,7 +308,7 @@ class AigBitblaster : public TBitblaster<Abc_Obj_t*> {
   
   static Abc_Ntk_t* abcAigNetwork;
   context::Context* d_nullContext;
-  prop::BVSatSolverInterface* d_satSolver;
+  prop::SatSolver* d_satSolver;
   TNodeAigMap d_aigCache;
   NodeAigMap d_bbAtoms;
   
@@ -459,7 +461,7 @@ Node TBitblaster<T>::getTermModel(TNode node, bool fullModel) {
 
   if (Theory::isLeafOf(node, theory::THEORY_BV)) {
     // if it is a leaf may ask for fullModel
-    value = getModelFromSatSolver(node, fullModel); 
+    value = getModelFromSatSolver(node, true); 
     Debug("bv-equality-status")<< "TLazyBitblaster::getTermModel from VarValue" << node <<" => " << value <<"\n";
     Assert ((fullModel && !value.isNull() && value.isConst()) || !fullModel); 
     if (!value.isNull()) {

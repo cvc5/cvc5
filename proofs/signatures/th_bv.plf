@@ -8,7 +8,7 @@
 
 (program mp_ispos ((x mpz)) formula
 	 (mp_ifneg x false true))
-	 
+
 (program mpz_eq ((x mpz) (y mpz)) formula
     (mp_ifzero (mpz_sub x y) true false))
 
@@ -21,7 +21,7 @@
 (program mpz_ ((x mpz) (y mpz)) formula
     (mp_ifzero (mpz_sub x y) true false))
 
-    
+
 ; "bitvec" is a term of type "sort"
 ; (declare BitVec sort)
 (declare BitVec (!n mpz sort))
@@ -37,7 +37,7 @@
 (declare bvc (! b bit (! v bv bv)))
 
 ; calculate the length of a bitvector
-;; (program bv_len ((v bv)) mpz 
+;; (program bv_len ((v bv)) mpz
 ;;   (match v
 ;;     (bvn 0)
 ;;     ((bvc b v') (mp_add (bv_len v') 1))))
@@ -48,7 +48,26 @@
 	 (! n mpz
 	 (! v bv
 	    (term (BitVec n)))))
-	 
+
+(program bv_constants_are_disequal ((x bv) (y bv)) formula
+  (match x
+      (bvn (fail formula))
+      ((bvc bx x')
+        (match y
+          (bvn (fail formula))
+          ((bvc by y') (match bx
+                             (b0 (match by (b0 (bv_constants_are_disequal x' y')) (b1 (true))))
+                             (b1 (match by (b0 (true)) (b1 (bv_constants_are_disequal x' y'))))
+          ))
+      ))
+))
+
+(declare bv_disequal_constants
+	 (! n mpz
+	 (! x bv
+	 (! y bv
+	 (! c (^ (bv_constants_are_disequal x y) true)
+  	   (th_holds (not (= (BitVec n) (a_bv n x) (a_bv n y)))))))))
 
 ; a bv variable
 (declare var_bv type)
@@ -61,7 +80,7 @@
 ; bit vector binary operators
 (define bvop2
 	(! n mpz
-	(! x (term (BitVec n)) 
+	(! x (term (BitVec n))
         (! y (term (BitVec n))
              	   (term (BitVec n))))))
 
@@ -88,7 +107,7 @@
 ; bit vector unary operators
 (define bvop1
 	(! n mpz
-	(! x (term (BitVec n)) 
+	(! x (term (BitVec n))
              	   (term (BitVec n)))))
 
 
@@ -111,8 +130,8 @@
 	 (! t1 (term (BitVec m))
 	 (! t2 (term (BitVec m'))
 	    (term (BitVec n))))))))
-	    
-;; side-condition fails in signature only??	    
+
+;; side-condition fails in signature only??
 ;;	 (! s (^ (mp_add m m') n)
 
 ;; (declare repeat bvopp)
@@ -147,22 +166,22 @@
 	    (term (BitVec n)))))))
 
 
-	   
-;; TODO: add checks for valid typing for these operators	   
+
+;; TODO: add checks for valid typing for these operators
 ;; (! c1 (^ (mpz_lte i j)
 ;; (! c2 (^ (mpz_lt i n) true)
 ;; (! c3 (^ (mp_ifneg i false true) true)
-;; (! c4 (^ (mp_ifneg j false true) true)	
+;; (! c4 (^ (mp_ifneg j false true) true)
 ;; (! s (^ (mp_add (mpz_sub i j) 1) m)
 
-	   
+
 ; bit vector predicates
 (define bvpred
 	(! n mpz
 	(! x (term (BitVec n))
 	(! y (term (BitVec n))
 	           formula))))
-		   
+
 (declare bvult bvpred)
 (declare bvule bvpred)
 (declare bvugt bvpred)
@@ -171,4 +190,3 @@
 (declare bvsle bvpred)
 (declare bvsgt bvpred)
 (declare bvsge bvpred)
-

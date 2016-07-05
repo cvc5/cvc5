@@ -21,6 +21,8 @@
 #include "theory/quantifiers/first_order_model.h"
 #include "theory/quantifiers/term_database.h"
 #include "theory/theory_engine.h"
+#include "prop/prop_engine.h"
+#include "theory/bv/theory_bv_rewriter.h"
 
 using namespace CVC4::kind;
 using namespace std;
@@ -46,7 +48,7 @@ void CegConjecture::assign( Node q ) {
   Assert( q.getKind()==FORALL );
   d_assert_quant = q;
   //register with single invocation if applicable
-  if( d_qe->getTermDatabase()->isQAttrSygus( d_assert_quant ) && options::cegqiSingleInv() ){
+  if( d_qe->getTermDatabase()->isQAttrSygus( d_assert_quant ) && options::cegqiSingleInvMode()!=CEGQI_SI_MODE_NONE ){
     d_ceg_si->initialize( q );
     if( q!=d_ceg_si->d_quant ){
       //Node red_lem = NodeManager::currentNM()->mkNode( OR, q.negate(), d_cegqi_si->d_quant );
@@ -55,12 +57,15 @@ void CegConjecture::assign( Node q ) {
     }
   }
   d_quant = q;
+  Assert( d_candidates.empty() );
+  std::vector< Node > vars;
   for( unsigned i=0; i<q[0].getNumChildren(); i++ ){
+    vars.push_back( q[0][i] );
     d_candidates.push_back( NodeManager::currentNM()->mkSkolem( "e", q[0][i].getType() ) );
   }
   Trace("cegqi") << "Base quantified formula is : " << q << std::endl;
   //construct base instantiation
-  d_base_inst = Rewriter::rewrite( d_qe->getInstantiation( q, d_candidates ) );
+  d_base_inst = Rewriter::rewrite( d_qe->getInstantiation( q, vars, d_candidates ) );
   Trace("cegqi") << "Base instantiation is :      " << d_base_inst << std::endl;
   if( d_qe->getTermDatabase()->isQAttrSygus( d_assert_quant ) ){
     CegInstantiation::collectDisjuncts( d_base_inst, d_base_disj );
@@ -130,14 +135,18 @@ Node CegConjecture::getLiteral( QuantifiersEngine * qe, int i ) {
       qe->getOutputChannel().lemma( lem );
       qe->getOutputChannel().requirePhase( lit, true );
 
-      if( getCegqiFairMode()==CEGQI_FAIR_DT_HEIGHT_PRED ){
+      if( getCegqiFairMode()==CEGQI_FAIR_DT_HEIGHT_PRED || getCegqiFairMode()==CEGQI_FAIR_DT_SIZE_PRED ){
         //implies height bounds on each candidate variable
         std::vector< Node > lem_c;
         for( unsigned j=0; j<d_candidates.size(); j++ ){
-          lem_c.push_back( NodeManager::currentNM()->mkNode( DT_HEIGHT_BOUND, d_candidates[j], c ) );
+          if( getCegqiFairMode()==CEGQI_FAIR_DT_HEIGHT_PRED ){
+            lem_c.push_back( NodeManager::currentNM()->mkNode( DT_HEIGHT_BOUND, d_candidates[j], c ) );
+          }else{
+            //lem_c.push_back( NodeManager::currentNM()->mkNode( DT_SIZE_BOUND, d_candidates[j], c ) );
+          }
         }
         Node hlem = NodeManager::currentNM()->mkNode( OR, lit.negate(), lem_c.size()==1 ? lem_c[0] : NodeManager::currentNM()->mkNode( AND, lem_c ) );
-        Trace("cegqi-lemma") << "Cegqi::Lemma : Fairness expansion (dt-height-pred) : " << hlem << std::endl;
+        Trace("cegqi-lemma") << "Cegqi::Lemma : Fairness expansion (pred) : " << hlem << std::endl;
         qe->getOutputChannel().lemma( hlem );
       }
       return lit;
@@ -257,8 +266,45 @@ void CegInstantiation::check( Theory::Effort e, unsigned quant_e ) {
   }
 }
 
+void CegInstantiation::preRegisterQuantifier( Node q ) {
+  if( options::sygusDirectEval() ){
+    if( q.getNumChildren()==3 && q[2].getKind()==INST_PATTERN_LIST && q[2][0].getKind()==INST_PATTERN ){  
+      //check whether it is an evaluation axiom
+      Node pat = q[2][0][0];
+      if( pat.getKind()==APPLY_UF ){
+        TypeNode tn = pat[0].getType();
+        if( datatypes::DatatypesRewriter::isTypeDatatype(tn) ){
+          const Datatype& dt = ((DatatypeType)(tn).toType()).getDatatype();
+          if( dt.isSygus() ){
+            //do unfolding if it induces Boolean structure, 
+            //do direct evaluation if it does not induce Boolean structure,
+            //  the reasoning is unfolding over these terms does not lead to helpful conflict analysis, and introduces many shared terms
+            bool directEval = true;
+            TypeNode ptn = pat.getType();
+            if( ptn.isBoolean() || ptn.isBitVector() ){
+              directEval = false;
+            }else{
+              unsigned cindex = Datatype::indexOf(pat[0].getOperator().toExpr() );
+              Node base = d_quantEngine->getTermDatabaseSygus()->getGenericBase( tn, dt, cindex );
+              Trace("cegqi-debug") << "Generic base term for " << pat[0] << " is " << base << std::endl;
+              if( base.getKind()==ITE ){
+                directEval = false;
+              }
+            }
+            if( directEval ){
+              //take ownership of this quantified formula (will use direct evaluation instead of unfolding instantiation)
+              d_quantEngine->setOwner( q, this );
+              d_eval_axioms[q] = true;
+            }
+          }
+        }
+      }
+    }
+  }  
+}
+
 void CegInstantiation::registerQuantifier( Node q ) {
-  if( d_quantEngine->getOwner( q )==this ){
+  if( d_quantEngine->getOwner( q )==this && d_eval_axioms.find( q )==d_eval_axioms.end() ){
     if( !d_conj->isAssigned() ){
       Trace("cegqi") << "Register conjecture : " << q << std::endl;
       d_conj->assign( q );
@@ -278,7 +324,7 @@ void CegInstantiation::registerQuantifier( Node q ) {
             if( it!=d_uf_measure.end() ){
               mc.push_back( NodeManager::currentNM()->mkNode( APPLY_UF, it->second, d_conj->d_candidates[j] ) );
             }
-          }else if( d_conj->getCegqiFairMode()==CEGQI_FAIR_DT_HEIGHT_PRED ){
+          }else if( d_conj->getCegqiFairMode()==CEGQI_FAIR_DT_HEIGHT_PRED || d_conj->getCegqiFairMode()==CEGQI_FAIR_DT_SIZE_PRED  ){
             //measure term is a fresh constant
             mc.push_back( NodeManager::currentNM()->mkSkolem( "K", NodeManager::currentNM()->integerType() ) );
           }
@@ -291,6 +337,8 @@ void CegInstantiation::registerQuantifier( Node q ) {
     }else{
       Assert( d_conj->d_quant==q );
     }
+  }else{
+    Trace("cegqi-debug") << "Register quantifier : " << q << std::endl;
   }
 }
 
@@ -317,7 +365,7 @@ Node CegInstantiation::getNextDecisionRequest() {
         Trace("cegqi-debug") << "CEGQI : Decide next on : " << req_dec[i] << "..." << std::endl;
         return req_dec[i];
       }else{
-        Trace("cegqi-debug") << "CEGQI : " << req_dec[i] << " already has value " << value << std::endl;
+        Trace("cegqi-debug2") << "CEGQI : " << req_dec[i] << " already has value " << value << std::endl;
       }
     }
 
@@ -350,6 +398,11 @@ void CegInstantiation::checkCegConjecture( CegConjecture * conj ) {
     Trace("cegqi-engine-debug") << conj->d_candidates[i] << " ";
   }
   Trace("cegqi-engine-debug") << std::endl;
+  Trace("cegqi-engine-debug") << "  * Candidate ce skolems : ";
+  for( unsigned i=0; i<conj->d_ce_sk.size(); i++ ){
+    Trace("cegqi-engine-debug") << conj->d_ce_sk[i] << " ";
+  }
+  Trace("cegqi-engine-debug") << std::endl;
   if( conj->getCegqiFairMode()!=CEGQI_FAIR_NONE ){
     Trace("cegqi-engine") << "  * Current term size : " << conj->d_curr_lit.get() << std::endl;
   }
@@ -374,6 +427,24 @@ void CegInstantiation::checkCegConjecture( CegConjecture * conj ) {
       }
       std::vector< Node > model_values;
       if( getModelValues( conj, conj->d_candidates, model_values ) ){
+        if( options::sygusDirectEval() ){
+          std::vector< Node > eager_eval_lem;
+          for( unsigned j=0; j<conj->d_candidates.size(); j++ ){
+            d_quantEngine->getTermDatabaseSygus()->registerModelValue( conj->d_candidates[j], model_values[j], eager_eval_lem );
+          }
+          if( !eager_eval_lem.empty() ){
+            for( unsigned j=0; j<eager_eval_lem.size(); j++ ){
+              Node lem = eager_eval_lem[j];
+              if( d_quantEngine->getTheoryEngine()->isTheoryEnabled(THEORY_BV) ){
+                //FIXME: hack to incorporate hacks from BV for division by zero
+                lem = bv::TheoryBVRewriter::eliminateBVSDiv( lem );
+              }
+              Trace("cegqi-lemma") << "Cegqi::Lemma : evaluation : " << lem << std::endl;
+              d_quantEngine->addLemma( lem );
+            }
+            return;
+          }
+        }
         //check if we must apply fairness lemmas
         if( conj->getCegqiFairMode()==CEGQI_FAIR_UF_DT_SIZE ){
           std::vector< Node > lems;
@@ -390,6 +461,7 @@ void CegInstantiation::checkCegConjecture( CegConjecture * conj ) {
           }
         }
         //must get a counterexample to the value of the current candidate
+        Assert( conj->d_candidates.size()==model_values.size() );
         Node inst = conj->d_base_inst.substitute( conj->d_candidates.begin(), conj->d_candidates.end(), model_values.begin(), model_values.end() );
         //check whether we will run CEGIS on inner skolem variables
         bool sk_refine = ( !conj->isGround() || conj->d_refine_count==0 );
@@ -422,10 +494,30 @@ void CegInstantiation::checkCegConjecture( CegConjecture * conj ) {
         Node lem = NodeManager::currentNM()->mkNode( OR, ic );
         lem = Rewriter::rewrite( lem );
         d_last_inst_si = false;
+        //eagerly unfold applications of evaluation function
+        if( options::sygusDirectEval() ){
+          Trace("cegqi-eager") << "pre-unfold counterexample : " << lem << std::endl;
+          std::map< Node, Node > visited_n;
+          lem = getEagerUnfold( lem, visited_n );
+        }
+
         Trace("cegqi-lemma") << "Cegqi::Lemma : counterexample : " << lem << std::endl;
-        d_quantEngine->addLemma( lem );
-        ++(d_statistics.d_cegqi_lemmas_ce);
-        Trace("cegqi-engine") << "  ...find counterexample." << std::endl;
+        if( d_quantEngine->addLemma( lem ) ){
+          ++(d_statistics.d_cegqi_lemmas_ce);
+          Trace("cegqi-engine") << "  ...find counterexample." << std::endl;
+        }else{
+          //this may happen if we eagerly unfold, simplify to true
+          if( !options::sygusDirectEval() ){
+            Trace("cegqi-engine") << "  ...FAILED to add candidate!" << std::endl;
+          }else{
+            Trace("cegqi-engine-debug") << "  ...FAILED to add candidate!" << std::endl;
+          }
+          if( conj->d_refine_count==0  ){
+            //immediately go to refine candidate
+            checkCegConjecture( conj );
+            return;
+          }
+        }
       }
 
     }else{
@@ -586,6 +678,74 @@ void CegInstantiation::getMeasureLemmas( Node n, Node v, std::vector< Node >& le
       getMeasureLemmas( nn, v[i], lems );
     }
 
+  }
+}
+
+Node CegInstantiation::getEagerUnfold( Node n, std::map< Node, Node >& visited ) {
+  std::map< Node, Node >::iterator itv = visited.find( n );
+  if( itv==visited.end() ){
+    Trace("cegqi-eager-debug") << "getEagerUnfold " << n << std::endl;
+    Node ret;
+    if( n.getKind()==APPLY_UF ){
+      TypeNode tn = n[0].getType();
+      Trace("cegqi-eager-debug") << "check " << n[0].getType() << std::endl;
+      if( datatypes::DatatypesRewriter::isTypeDatatype(tn) ){
+        const Datatype& dt = ((DatatypeType)(tn).toType()).getDatatype();
+        if( dt.isSygus() ){ 
+          Trace("cegqi-eager") << "Unfold eager : " << n << std::endl;
+          Node bTerm = d_quantEngine->getTermDatabaseSygus()->sygusToBuiltin( n[0], tn );
+          Trace("cegqi-eager") << "Built-in term : " << bTerm << std::endl;
+          std::vector< Node > vars;
+          std::vector< Node > subs;
+          Node var_list = Node::fromExpr( dt.getSygusVarList() );
+          Assert( var_list.getNumChildren()+1==n.getNumChildren() );
+          for( unsigned j=0; j<var_list.getNumChildren(); j++ ){
+            vars.push_back( var_list[j] );
+          }
+          for( unsigned j=1; j<n.getNumChildren(); j++ ){
+            Node nc = getEagerUnfold( n[j], visited );
+            if( var_list[j-1].getType().isBoolean() ){   
+              //TODO: remove this case when boolean term conversion is eliminated
+              Node c = NodeManager::currentNM()->mkConst(BitVector(1u, 1u));
+              subs.push_back( nc.eqNode( c ) );
+            }else{
+              subs.push_back( nc );
+            }
+            Assert( subs[j-1].getType()==var_list[j-1].getType() );
+          }
+          Assert( vars.size()==subs.size() );
+          bTerm = bTerm.substitute( vars.begin(), vars.end(), subs.begin(), subs.end() );
+          Trace("cegqi-eager") << "Built-in term after subs : " << bTerm << std::endl;
+          Trace("cegqi-eager-debug") << "Types : " << bTerm.getType() << " " << n.getType() << std::endl;
+          Assert( n.getType()==bTerm.getType() );
+          ret = bTerm; 
+        }
+      }
+    }
+    if( ret.isNull() ){
+      if( n.getKind()!=FORALL ){
+        bool childChanged = false;
+        std::vector< Node > children;
+        for( unsigned i=0; i<n.getNumChildren(); i++ ){
+          Node nc = getEagerUnfold( n[i], visited );
+          childChanged = childChanged || n[i]!=nc;
+          children.push_back( nc );
+        }
+        if( childChanged ){
+          if( n.getMetaKind() == kind::metakind::PARAMETERIZED ){
+            children.insert( children.begin(), n.getOperator() );
+          }
+          ret = NodeManager::currentNM()->mkNode( n.getKind(), children );
+        }
+      }
+      if( ret.isNull() ){
+        ret = n;
+      }
+    }
+    visited[n] = ret;
+    return ret;
+  }else{
+    return itv->second;
   }
 }
 

@@ -44,10 +44,12 @@ enum InstWhenMode {
 enum LiteralMatchMode {
   /** Do not consider polarity of patterns */
   LITERAL_MATCH_NONE,
-  /** Consider polarity of boolean predicates only */
-  LITERAL_MATCH_PREDICATE,
-  /** Consider polarity of boolean predicates, as well as equalities */
-  LITERAL_MATCH_EQUALITY,
+  /** Conservatively consider polarity of patterns */
+  LITERAL_MATCH_USE,
+  /** Aggressively consider polarity of Boolean predicates */
+  LITERAL_MATCH_AGG_PREDICATE,
+  /** Aggressively consider polarity of all terms */
+  LITERAL_MATCH_AGG,
 };
 
 enum MbqiMode {
@@ -129,6 +131,8 @@ enum CegqiFairMode {
   CEGQI_FAIR_DT_SIZE,
   /** enforce fairness by datatypes height bound */
   CEGQI_FAIR_DT_HEIGHT_PRED,
+  /** enforce fairness by datatypes size bound */
+  CEGQI_FAIR_DT_SIZE_PRED,
   /** do not use fair strategy for CEGQI */
   CEGQI_FAIR_NONE,
 };
@@ -147,6 +151,17 @@ enum IteLiftQuantMode {
   ITE_LIFT_QUANT_MODE_SIMPLE,
   /** lift ITEs  */
   ITE_LIFT_QUANT_MODE_ALL,
+};
+
+enum CegqiSingleInvMode {
+  /** do not use single invocation techniques */
+  CEGQI_SI_MODE_NONE,
+  /** use single invocation techniques */
+  CEGQI_SI_MODE_USE,
+  /** always use single invocation techniques, abort if solution reconstruction will fail */
+  CEGQI_SI_MODE_ALL_ABORT,
+  /** always use single invocation techniques */
+  CEGQI_SI_MODE_ALL,
 };
 
 enum SygusInvTemplMode {

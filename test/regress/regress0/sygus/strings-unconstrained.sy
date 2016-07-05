@@ -1,0 +1,15 @@
+; EXPECT: unsat
+; COMMAND-LINE: --no-dump-synth
+(set-logic SLIA)
+(synth-fun f ((firstname String) (lastname String)) String
+((Start String (ntString))
+
+(ntString String (
+firstname 
+lastname 
+" "
+(str.++ ntString ntString)))
+))
+
+(check-synth)
+

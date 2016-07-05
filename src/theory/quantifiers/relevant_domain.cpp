@@ -110,7 +110,7 @@ void RelevantDomain::compute(){
       for( unsigned i=0; i<sz; i++ ){
         Node n = it->second[i];
         //if it is a non-redundant term
-        if( !n.getAttribute(NoMatchAttribute()) ){
+        if( db->isTermActive( n ) ){
           for( unsigned j=0; j<n.getNumChildren(); j++ ){
             RDomain * rf = getRDomain( op, j );
             rf->addTerm( n[j] );

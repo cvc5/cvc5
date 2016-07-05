@@ -1,0 +1,134 @@
+#!/bin/bash
+
+cvc4=./cvc4
+bench="$1"
+
+logic=$(expr "$(grep -m1 '^[^;]*set-logic' "$bench")" : ' *(set-logic  *\([A-Z_]*\) *) *$')
+
+# use: trywith [params..]
+# to attempt a run.  Only thing printed on stdout is "sat" or "unsat", in
+# which case this run script terminates immediately.  Otherwise, this
+# function returns normally.
+function trywith {
+  limit=$1; shift;
+  result="$(ulimit -S -t "$limit";$cvc4 -L smt2 --no-incremental --no-checking --no-interactive "$@" $bench)"
+  case "$result" in
+    sat|unsat) echo "$result"; exit 0;;
+  esac
+}
+
+# use: finishwith [params..]
+# to run cvc4 and let it output whatever it will to stdout.
+function finishwith {
+  $cvc4 -L smt2 --no-incremental --no-checking --no-interactive "$@" $bench
+}
+
+case "$logic" in
+
+QF_LRA)
+  trywith 200 --enable-miplib-trick --miplib-trick-subs=4 --use-approx --lemmas-on-replay-failure --replay-early-close-depth=4 --replay-lemma-reject-cut=128 --replay-reject-cut=512 --unconstrained-simp --use-soi
+  finishwith --no-restrict-pivots --use-soi --new-prop --unconstrained-simp
+  ;;
+QF_LIA)
+  # same as QF_LRA but add --pb-rewrites
+  finishwith --enable-miplib-trick --miplib-trick-subs=4 --use-approx --lemmas-on-replay-failure --replay-early-close-depth=4 --replay-lemma-reject-cut=128 --replay-reject-cut=512 --unconstrained-simp --use-soi --pb-rewrites
+  ;;
+QF_NIA)
+  trywith 20
+  trywith 1800 --solve-int-as-bv=2 --bitblast=eager --bv-sat-solver=cryptominisat
+  trywith 1800 --solve-int-as-bv=4 --bitblast=eager --bv-sat-solver=cryptominisat
+  trywith 1800 --solve-int-as-bv=8 --bitblast=eager --bv-sat-solver=cryptominisat
+  trywith 1800 --solve-int-as-bv=16 --bitblast=eager --bv-sat-solver=cryptominisat
+  finishwith --solve-int-as-bv=32 --bitblast=eager --bv-sat-solver=cryptominisat
+  ;;
+ALIA|AUFLIA|AUFLIRA|AUFNIRA|UF|UFIDL|UFLIA|UFLRA|UFNIA)
+  # the following is designed for a run time of 2400s (40 min).
+  # initial runs 1min
+  trywith 20 --simplification=none --full-saturate-quant
+  trywith 20 --no-e-matching --full-saturate-quant
+  trywith 20 --fs-inst --decision=internal --full-saturate-quant
+  # trigger selections 2min
+  trywith 30 --relevant-triggers --full-saturate-quant
+  trywith 30 --trigger-sel=max --full-saturate-quant
+  trywith 30 --multi-trigger-when-single --full-saturate-quant
+  trywith 30 --multi-trigger-when-single --multi-trigger-priority --full-saturate-quant
+  # other 2min
+  trywith 30 --pre-skolem-quant --full-saturate-quant
+  trywith 30 --inst-when=full --full-saturate-quant
+  trywith 30 --decision=internal --simplification=none --no-inst-no-entail --no-quant-cf --full-saturate-quant
+  trywith 30 --no-e-matching --no-quant-cf --full-saturate-quant
+  # finite model find 2min
+  trywith 30 --finite-model-find
+  trywith 30 --finite-model-find --uf-ss=no-minimal
+  trywith 60 --finite-model-find --decision=internal
+  # long runs 20min
+  trywith 300 --decision=internal --full-saturate-quant
+  trywith 300 --term-db-mode=relevant --full-saturate-quant
+  trywith 300 --fs-inst --full-saturate-quant
+  trywith 300 --finite-model-find --fmf-inst-engine
+  # finite model find 1min
+  trywith 30 --finite-model-find --fmf-bound-int
+  trywith 30 --finite-model-find --sort-inference
+  # finish 12min
+  finishwith --full-saturate-quant
+  ;;
+UFBV)
+  # many problems in UFBV are essentially BV
+  trywith 300 --full-saturate-quant 
+  trywith 300 --finite-model-find
+  finishwith --cbqi-all --full-saturate-quant
+  ;;
+BV)
+  trywith 300 --finite-model-find
+  finishwith --cbqi-all --full-saturate-quant
+  ;;
+LIA|LRA|NIA|NRA)
+  trywith 30 --full-saturate-quant
+  trywith 300 --full-saturate-quant --cbqi-min-bounds
+  trywith 300 --full-saturate-quant --decision=internal
+  finishwith --full-saturate-quant --cbqi-midpoint
+  ;;
+QF_AUFBV)
+  trywith 600
+  finishwith --decision=justification-stoponly
+  ;;
+QF_ABV)
+  trywith 50 --ite-simp --simp-with-care --repeat-simp --arrays-weak-equiv
+  trywith 500 --arrays-weak-equiv
+  finishwith --ite-simp --simp-with-care --repeat-simp --arrays-weak-equiv
+  ;;
+QF_UFBV)
+  finishwith --bitblast=eager --bv-sat-solver=cryptominisat
+  ;;
+QF_BV)
+  exec ./pcvc4 -L smt2 --no-incremental --no-checking --no-interactive --thread-stack=1024 \
+         --threads 2 \
+         --thread0 '--unconstrained-simp --bv-div-zero-const --bv-intro-pow2 --bitblast=eager  --bv-sat-solver=cryptominisat --bitblast-aig --no-bv-abstraction' \
+         --thread1 '--unconstrained-simp --bv-div-zero-const --bv-intro-pow2 --bv-eq-slicer=auto --no-bv-abstraction' \
+         --no-wait-to-join \
+         "$bench"
+  #trywith 10 --bv-eq-slicer=auto --decision=justification
+  #trywith 60 --decision=justification
+  #trywith 600 --decision=internal --bitblast-eager
+  #finishwith --decision=justification --decision-use-weight --decision-weight-internal=usr1
+  ;;
+QF_AUFLIA)
+  finishwith --no-arrays-eager-index --arrays-eager-lemmas --decision=justification
+  ;;
+QF_AX)
+  finishwith --no-arrays-eager-index --arrays-eager-lemmas --decision=internal
+  ;;
+QF_AUFNIA)
+  finishwith --decision=justification --no-arrays-eager-index --arrays-eager-lemmas
+  ;;
+QF_ALIA)
+  trywith 70 --decision=justification --arrays-weak-equiv
+  finishwith --decision=justification-stoponly --no-arrays-eager-index --arrays-eager-lemmas
+  ;;
+*)
+  # just run the default
+  finishwith
+  ;;
+
+esac
+

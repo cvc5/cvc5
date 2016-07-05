@@ -931,7 +931,10 @@ toplevelDeclaration[CVC4::Command*& cmd]
  * A bound variable declaration.
  */
 boundVarDecl[std::vector<std::string>& ids, CVC4::Type& t]
-  : identifierList[ids,CHECK_NONE,SYM_VARIABLE] COLON declareVariables[*(Command**)NULL,t,ids,false]
+@init {
+  Command* local_cmd = NULL;
+}
+  : identifierList[ids,CHECK_NONE,SYM_VARIABLE] COLON declareVariables[local_cmd,t,ids,false]
   ;
 
 /**

@@ -33,22 +33,15 @@ eq::EqualityEngine * QuantifiersModule::getEqualityEngine() {
 }
 
 bool QuantifiersModule::areEqual( TNode n1, TNode n2 ) {
-  eq::EqualityEngine * ee = getEqualityEngine();
-  return n1==n2 || ( ee->hasTerm( n1 ) && ee->hasTerm( n2 ) && ee->areEqual( n1, n2 ) );
+  return d_quantEngine->getEqualityQuery()->areEqual( n1, n2 );
 }
 
 bool QuantifiersModule::areDisequal( TNode n1, TNode n2 ) {
-  eq::EqualityEngine * ee = getEqualityEngine();
-  return n1!=n2 && ee->hasTerm( n1 ) && ee->hasTerm( n2 ) && ee->areDisequal( n1, n2, false );
+  return d_quantEngine->getEqualityQuery()->areDisequal( n1, n2 );
 }
 
 TNode QuantifiersModule::getRepresentative( TNode n ) {
-  eq::EqualityEngine * ee = getEqualityEngine();
-  if( ee->hasTerm( n ) ){
-    return ee->getRepresentative( n );
-  }else{
-    return n;
-  }
+  return d_quantEngine->getEqualityQuery()->getRepresentative( n );
 }
 
 quantifiers::TermDb * QuantifiersModule::getTermDatabase() {
@@ -389,7 +382,7 @@ void QuantPhaseReq::computePhaseReqs( Node n, bool polarity, std::map< Node, int
 }
 
 void QuantPhaseReq::getPolarity( Node n, int child, bool hasPol, bool pol, bool& newHasPol, bool& newPol ) {
-  if( n.getKind()==AND || n.getKind()==OR ){
+  if( n.getKind()==AND || n.getKind()==OR || n.getKind()==SEP_STAR ){
     newHasPol = hasPol;
     newPol = pol;
   }else if( n.getKind()==IMPLIES ){

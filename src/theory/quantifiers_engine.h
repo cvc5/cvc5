@@ -48,6 +48,7 @@ class InstantiationNotify {
 public:
   InstantiationNotify(){}
   virtual bool notifyInstantiation( unsigned quant_e, Node q, Node lem, std::vector< Node >& terms, Node body ) = 0;
+  virtual void filterInstantiations() = 0;
 };
 
 namespace quantifiers {
@@ -156,8 +157,7 @@ private:  //this information is reset during check
   unsigned d_curr_effort_level;
   /** are we in conflict */
   bool d_conflict;
-  /** number of lemmas we actually added this round (for debugging) */
-  unsigned d_num_added_lemmas_round;
+  context::CDO< bool > d_conflict_c;
   /** has added lemma this round */
   bool d_hasAddedLemma;
 private:
@@ -295,9 +295,9 @@ private:
   bool removeInstantiationInternal( Node q, std::vector< Node >& terms );
   /** set instantiation level attr */
   static void setInstantiationLevelAttr( Node n, Node qn, uint64_t level );
+public:
   /** flush lemmas */
   void flushLemmas();
-public:
   /** get instantiation */
   Node getInstantiation( Node q, std::vector< Node >& vars, std::vector< Node >& terms, bool doVts = false );
   /** get instantiation */
@@ -330,8 +330,6 @@ public:
   bool inConflict() { return d_conflict; }
   /** get number of waiting lemmas */
   unsigned getNumLemmasWaiting() { return d_lemmas_waiting.size(); }
-  /** get number of waiting lemmas */
-  unsigned getNumLemmasAddedThisRound() { return d_num_added_lemmas_round; }
   /** get needs check */
   bool getInstWhenNeedsCheck( Theory::Effort e );
   /** get user pat mode */

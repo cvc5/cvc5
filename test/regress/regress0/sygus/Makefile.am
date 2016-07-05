@@ -48,7 +48,10 @@ TESTS = commutative.sy \
         clock-inc-tuple.sy \
         dt-test-ns.sy \
         no-mention.sy \
-        max2-univ.sy
+        max2-univ.sy \
+        strings-small.sy \
+        strings-unconstrained.sy \
+        hd-sdiv.sy
 
 # sygus tests currently taking too long for make regress
 EXTRA_DIST = $(TESTS) \

@@ -56,7 +56,8 @@ class TheoryBV : public Theory {
 public:
 
   TheoryBV(context::Context* c, context::UserContext* u, OutputChannel& out,
-           Valuation valuation, const LogicInfo& logicInfo);
+           Valuation valuation, const LogicInfo& logicInfo,
+           std::string name = "");
 
   ~TheoryBV();
 
@@ -88,8 +89,8 @@ public:
 
   void presolve();
 
-  bool applyAbstraction(const std::vector<Node>& assertions, std::vector<Node>& new_assertions); 
-  
+  bool applyAbstraction(const std::vector<Node>& assertions, std::vector<Node>& new_assertions);
+
   void setProofLog( BitVectorProof * bvp );
 
 private:
@@ -100,10 +101,10 @@ private:
     IntStat     d_solveSubstitutions;
     TimerStat   d_solveTimer;
     IntStat     d_numCallsToCheckFullEffort;
-    IntStat     d_numCallsToCheckStandardEffort; 
+    IntStat     d_numCallsToCheckStandardEffort;
     TimerStat   d_weightComputationTimer;
     IntStat     d_numMultSlice;
-    Statistics();
+    Statistics(const std::string &name);
     ~Statistics();
   };
 
@@ -121,12 +122,12 @@ private:
    */
   Node getBVDivByZero(Kind k, unsigned width);
 
-  typedef __gnu_cxx::hash_set<TNode, TNodeHashFunction> TNodeSet; 
-  void collectNumerators(TNode term, TNodeSet& seen);
-  
+  typedef __gnu_cxx::hash_set<TNode, TNodeHashFunction> TNodeSet;
+  void collectFunctionSymbols(TNode term, TNodeSet& seen);
+  void storeFunction(TNode func, TNode term);
   typedef __gnu_cxx::hash_set<Node, NodeHashFunction> NodeSet;
   NodeSet d_staticLearnCache;
-  
+
   /**
    * Maps from bit-vector width to division-by-zero uninterpreted
    * function symbols.
@@ -134,17 +135,15 @@ private:
   __gnu_cxx::hash_map<unsigned, Node> d_BVDivByZero;
   __gnu_cxx::hash_map<unsigned, Node> d_BVRemByZero;
 
-  /**
-   * Maps from bit-vector width to numerators
-   * of uninterpreted function symbol
-   */
-  typedef __gnu_cxx::hash_map<unsigned, TNodeSet > WidthToNumerators;
 
-  WidthToNumerators d_BVDivByZeroAckerman;
-  WidthToNumerators d_BVRemByZeroAckerman;
+  typedef __gnu_cxx::hash_map<Node, NodeSet, NodeHashFunction>  FunctionToArgs;
+  typedef __gnu_cxx::hash_map<Node, Node, NodeHashFunction>  NodeToNode;
+  // for ackermanization
+  FunctionToArgs d_funcToArgs;
+  CVC4::theory::SubstitutionMap d_funcToSkolem;
 
   context::CDO<bool> d_lemmasAdded;
-  
+
   // Are we in conflict?
   context::CDO<bool> d_conflict;
 
@@ -167,17 +166,17 @@ private:
   typedef context::CDHashMap<Node, SubTheory, NodeHashFunction> PropagatedMap;
   PropagatedMap d_propagatedBy;
 
-  EagerBitblastSolver* d_eagerSolver; 
+  EagerBitblastSolver* d_eagerSolver;
   AbstractionModule* d_abstractionModule;
   bool d_isCoreTheory;
   bool d_calledPreregister;
-  
+
   bool wasPropagatedBySubtheory(TNode literal) const {
-    return d_propagatedBy.find(literal) != d_propagatedBy.end(); 
+    return d_propagatedBy.find(literal) != d_propagatedBy.end();
   }
-  
+
   SubTheory getPropagatingSubtheory(TNode literal) const {
-    Assert(wasPropagatedBySubtheory(literal)); 
+    Assert(wasPropagatedBySubtheory(literal));
     PropagatedMap::const_iterator find = d_propagatedBy.find(literal);
     return (*find).second;
   }
@@ -193,7 +192,7 @@ private:
   void addSharedTerm(TNode t);
 
   bool isSharedTerm(TNode t) { return d_sharedTermsSet.contains(t); }
-  
+
   EqualityStatus getEqualityStatus(TNode a, TNode b);
 
   Node getModelValue(TNode var);
@@ -214,7 +213,7 @@ private:
 
   void lemma(TNode node) { d_out->lemma(node, RULE_CONFLICT); d_lemmasAdded = true; }
 
-  void checkForLemma(TNode node); 
+  void checkForLemma(TNode node);
 
   friend class LazyBitblaster;
   friend class TLazyBitblaster;

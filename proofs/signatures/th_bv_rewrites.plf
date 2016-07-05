@@ -1,0 +1,22 @@
+;
+; Equality swap
+;
+
+(declare rr_bv_eq
+	 (! n mpz
+	 (! t1 (term (BitVec n))
+ 	 (! t2 (term (BitVec n))
+	     (th_holds (iff (= (BitVec n) t2 t1) (= (BitVec n) t1 t2)))))))
+
+;
+; Additional rules...
+;
+
+;
+; Default, if nothing else applied
+;
+
+(declare rr_bv_default
+	 (! t1 formula
+ 	 (! t2 formula
+	     (th_holds (iff t1 t2))))))

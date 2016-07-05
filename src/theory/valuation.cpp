@@ -87,6 +87,10 @@ Node Valuation::getModelValue(TNode var) {
   return d_engine->getModelValue(var);
 }
 
+TheoryModel* Valuation::getModel() {
+  return d_engine->getModel();
+}
+
 Node Valuation::ensureLiteral(TNode n) {
   return d_engine->ensureLiteral(n);
 }

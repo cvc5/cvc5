@@ -1,21 +1,23 @@
 The authors, designers, and main contributors to CVC4 are listed below.
 CVC4's copyright is held by these individuals and the affiliated
-institutions at the time of their contributions (see the file COPYING).
-All rights reserved.
+institutions at the time of their contributions (note that some authors have
+had more than one affiliated institution).  See the file COPYING for details on
+the copyright and licensing of CVC4.
 
 The core designers and authors of CVC4 are:
 
-  Kshitij Bansal, New York University
-  Clark Barrett, New York University
-  Francois Bobot, The University of Iowa & Commissariat a l'Energie Atomique
+  Kshitij Bansal, New York University, Google, Inc.
+  Clark Barrett, New York University, Google, Inc.
+  Francois Bobot, The University of Iowa, Commissariat a l'Energie Atomique
   Martin Brain, University of Oxford
-  Christopher Conway, New York University & Google, Inc.
+  Christopher Conway, New York University, Google, Inc.
   Morgan Deters, New York University
-  Liana Hadarean, New York University & Mentor Graphics Corporation
-  Dejan Jovanovic, New York University & SRI International
-  Tim King, New York University, Universite Joseph Fourier & Google, Inc.
+  Liana Hadarean, New York University, Mentor Graphics Corporation
+  Dejan Jovanovic, New York University, SRI International
+  Guy Katz, New York University
+  Tim King, New York University, Universite Joseph Fourier, Google, Inc.
   Tianyi Liang, The University of Iowa
-  Andrew Reynolds, The University of Iowa & EPFL
+  Andrew Reynolds, The University of Iowa, EPFL
   Cesare Tinelli, The University of Iowa
 
 Contributors to the CVC4 codebase additionally include:

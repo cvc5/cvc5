@@ -24,7 +24,7 @@ int colnum = 1;
 const char *filename = 0;
 FILE *curfile = 0;
 
-//#define USE_HASH_MAPS
+//#define USE_HASH_MAPS  //AJR: deprecated
 
 symmap2 progs;
 std::vector< Expr* > ascHoles;

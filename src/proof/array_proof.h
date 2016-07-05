@@ -30,10 +30,36 @@ namespace CVC4 {
 //proof object outputted by TheoryARRAY
 class ProofArray : public Proof {
 private:
+  class ArrayProofPrinter : public theory::eq::EqProof::PrettyPrinter {
+  public:
+    ArrayProofPrinter() : d_row(0), d_row1(0), d_ext(0) {
+    }
+
+    std::string printTag(unsigned tag) {
+      if (tag == theory::eq::MERGED_THROUGH_CONGRUENCE) return "Congruence";
+      if (tag == theory::eq::MERGED_THROUGH_EQUALITY) return "Pure Equality";
+      if (tag == theory::eq::MERGED_THROUGH_REFLEXIVITY) return "Reflexivity";
+      if (tag == theory::eq::MERGED_THROUGH_CONSTANTS) return "Constants";
+      if (tag == theory::eq::MERGED_THROUGH_TRANS) return "Transitivity";
+
+      if (tag == d_row) return "Read Over Write";
+      if (tag == d_row1) return "Read Over Write (1)";
+      if (tag == d_ext) return "Extensionality";
+
+      std::ostringstream result;
+      result << tag;
+      return result.str();
+    }
+
+    unsigned d_row;
+    unsigned d_row1;
+    unsigned d_ext;
+  };
+
   Node toStreamRecLFSC(std::ostream& out, TheoryProof* tp,
                        theory::eq::EqProof* pf,
                        unsigned tb,
-                       const LetMap& map);
+                       const ProofLetMap& map);
 
   /** Merge tag for ROW applications */
   unsigned d_reasonRow;
@@ -41,18 +67,25 @@ private:
   unsigned d_reasonRow1;
   /** Merge tag for EXT applications */
   unsigned d_reasonExt;
+
+  ArrayProofPrinter d_proofPrinter;
 public:
   ProofArray(theory::eq::EqProof* pf) : d_proof(pf) {}
   //it is simply an equality engine proof
   theory::eq::EqProof *d_proof;
   void toStream(std::ostream& out);
-  void toStreamLFSC(std::ostream& out, TheoryProof* tp, theory::eq::EqProof* pf, const LetMap& map);
+  void toStream(std::ostream& out, const ProofLetMap& map);
+  void toStreamLFSC(std::ostream& out, TheoryProof* tp, theory::eq::EqProof* pf, const ProofLetMap& map);
 
   void registerSkolem(Node equality, Node skolem);
 
   void setRowMergeTag(unsigned tag);
   void setRow1MergeTag(unsigned tag);
   void setExtMergeTag(unsigned tag);
+
+  unsigned getRowMergeTag() const;
+  unsigned getRow1MergeTag() const;
+  unsigned getExtMergeTag() const;
 };
 
 namespace theory {
@@ -85,12 +118,13 @@ public:
     : ArrayProof(arrays, proofEngine)
   {}
 
-  virtual void printOwnedTerm(Expr term, std::ostream& os, const LetMap& map);
+  virtual void printOwnedTerm(Expr term, std::ostream& os, const ProofLetMap& map);
   virtual void printOwnedSort(Type type, std::ostream& os);
-  virtual void printTheoryLemmaProof(std::vector<Expr>& lemma, std::ostream& os, std::ostream& paren);
+  virtual void printTheoryLemmaProof(std::vector<Expr>& lemma, std::ostream& os, std::ostream& paren, const ProofLetMap& map);
   virtual void printSortDeclarations(std::ostream& os, std::ostream& paren);
   virtual void printTermDeclarations(std::ostream& os, std::ostream& paren);
   virtual void printDeferredDeclarations(std::ostream& os, std::ostream& paren);
+  virtual void printAliasingDeclarations(std::ostream& os, std::ostream& paren);
 };
 
 

@@ -48,11 +48,11 @@ void QuantDSplit::preRegisterQuantifier( Node q ) {
       }else{
         int score = -1;
         if( options::quantDynamicSplit()==quantifiers::QUANT_DSPLIT_MODE_AGG ){
-          score = dt.isUFinite() ? 1 : -1;
+          score = dt.isInterpretedFinite() ? 1 : -1;
         }else if( options::quantDynamicSplit()==quantifiers::QUANT_DSPLIT_MODE_DEFAULT ){
-          score = dt.isUFinite() ? 1 : -1;
+          score = dt.isInterpretedFinite() ? 1 : -1;
         }
-        Trace("quant-dsplit-debug") << "Datatype " << dt.getName() << " is score " << score << " (" << dt.isUFinite() << " " << dt.isFinite() << ")" << std::endl;
+        Trace("quant-dsplit-debug") << "Datatype " << dt.getName() << " is score " << score << " (" << dt.isInterpretedFinite() << " " << dt.isFinite() << ")" << std::endl;
         if( score>max_score ){
           max_index = i;
           max_score = score;

@@ -96,10 +96,14 @@ libcvc4_la_SOURCES = \
 	proof/skolemization_manager.h \
 	proof/theory_proof.cpp \
 	proof/theory_proof.h \
+	proof/lemma_proof.cpp \
+	proof/lemma_proof.h \
 	proof/uf_proof.cpp \
 	proof/uf_proof.h \
 	proof/unsat_core.cpp \
 	proof/unsat_core.h \
+	proof/proof_output_channel.cpp \
+	proof/proof_output_channel.h \
 	prop/cnf_stream.cpp \
 	prop/cnf_stream.h \
 	prop/prop_engine.cpp \
@@ -109,6 +113,8 @@ libcvc4_la_SOURCES = \
 	prop/sat_solver_factory.cpp \
 	prop/sat_solver_factory.h \
 	prop/sat_solver_types.h \
+	prop/cryptominisat.h \
+	prop/cryptominisat.cpp \
 	prop/theory_proxy.cpp \
 	prop/theory_proxy.h \
 	smt/boolean_terms.cpp \
@@ -443,7 +449,12 @@ libcvc4_la_SOURCES = \
 	theory/fp/theory_fp.cpp \
 	theory/fp/theory_fp_rewriter.h \
 	theory/fp/theory_fp_rewriter.cpp \
-	theory/fp/theory_fp_type_rules.h
+	theory/fp/theory_fp_type_rules.h \
+	theory/sep/theory_sep.h \
+	theory/sep/theory_sep.cpp \
+	theory/sep/theory_sep_rewriter.h \
+	theory/sep/theory_sep_rewriter.cpp \
+	theory/sep/theory_sep_type_rules.h
 
 nodist_libcvc4_la_SOURCES = \
 	theory/rewriter_tables.h \
@@ -476,6 +487,12 @@ if CVC4_USE_ABC
 libcvc4_la_LIBADD += $(ABC_LIBS)
 libcvc4_la_LDFLAGS += $(ABC_LDFLAGS)
 endif
+
+if CVC4_USE_CRYPTOMINISAT
+libcvc4_la_LIBADD += $(CRYPTOMINISAT_LIBS)
+libcvc4_la_LDFLAGS += $(CRYPTOMINISAT_LDFLAGS)
+endif
+
 
 BUILT_SOURCES = \
 	theory/rewriter_tables.h \
@@ -526,6 +543,7 @@ EXTRA_DIST = \
 	theory/mktheorytraits \
 	theory/quantifiers/kinds \
 	theory/rewriter_tables_template.h \
+	theory/sep/kinds \
 	theory/sets/kinds \
 	theory/strings/kinds \
 	theory/theory_traits_template.h \

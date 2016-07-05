@@ -22,7 +22,6 @@ TESTS =	\
 	bug00.smt \
 	bug338.smt2 \
 	bug347.smt \
-	bug348.smt \
 	bug451.smt \
 	bug509.smt \
 	bug580.smt2 \

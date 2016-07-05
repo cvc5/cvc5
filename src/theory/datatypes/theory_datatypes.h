@@ -32,12 +32,17 @@
 
 namespace CVC4 {
 namespace theory {
+
+namespace quantifiers{
+  class TermArgTrie;
+}
+
 namespace datatypes {
 
 class TheoryDatatypes : public Theory {
 private:
   typedef context::CDChunkList<Node> NodeList;
-  typedef context::CDHashMap<Node, NodeList*, NodeHashFunction> NodeListMap;
+  typedef context::CDHashMap< Node, int, NodeHashFunction> NodeIntMap;
   typedef context::CDHashMap< Node, bool, NodeHashFunction > BoolMap;
   typedef context::CDHashMap< Node, Node, NodeHashFunction > NodeMap;
 
@@ -157,9 +162,11 @@ private:
    *   NOT is_[constructor_1]( t )...NOT is_[constructor_n]( t )  followed by
    *   is_[constructor_(n+1)]( t ), each of which is a unique tester.
   */
-  NodeListMap d_labels;
+  NodeIntMap d_labels;
+  std::map< Node, std::vector< Node > > d_labels_data;
   /** selector apps for eqch equivalence class */
-  NodeListMap d_selector_apps;
+  NodeIntMap d_selector_apps;
+  std::map< Node, std::vector< Node > > d_selector_apps_data;
   /** constructor terms */
   //BoolMap d_consEqc;
   /** Are we in conflict */
@@ -176,10 +183,8 @@ private:
   std::vector< Node > d_pending;
   std::map< Node, Node > d_pending_exp;
   std::vector< Node > d_pending_merge;
-  /** All the constructor terms that the theory has seen */
-  context::CDList<TNode> d_consTerms;
-  /** All the selector terms that the theory has seen */
-  context::CDList<TNode> d_selTerms;
+  /** All the function terms that the theory has seen */
+  context::CDList<TNode> d_functionTerms;
   /** counter for forcing assignments (ensures fairness) */
   unsigned d_dtfCounter;
   /** expand definition skolem functions */
@@ -216,6 +221,7 @@ private:
   TNode getEqcConstructor( TNode r );
 
 protected:
+  void addCarePairs( quantifiers::TermArgTrie * t1, quantifiers::TermArgTrie * t2, unsigned arity, unsigned depth, unsigned& n_pairs );
   /** compute care graph */
   void computeCareGraph();
 

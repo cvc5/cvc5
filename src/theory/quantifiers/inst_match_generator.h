@@ -91,7 +91,7 @@ public:
   InstMatchGenerator( Node pat );
   InstMatchGenerator();
   /** destructor */
-  ~InstMatchGenerator() throw() {}
+  virtual ~InstMatchGenerator() throw();
   /** The pattern we are producing matches for.
       If null, this is a multi trigger that is merging matches from d_children.
   */
@@ -125,7 +125,7 @@ public:
 class VarMatchGeneratorBooleanTerm : public InstMatchGenerator {
 public:
   VarMatchGeneratorBooleanTerm( Node var, Node comp );
-  ~VarMatchGeneratorBooleanTerm() throw() {}
+  virtual ~VarMatchGeneratorBooleanTerm() throw() {}
   Node d_comp;
   bool d_rm_prev;
   /** reset instantiation round (call this at beginning of instantiation round) */
@@ -142,7 +142,7 @@ public:
 class VarMatchGeneratorTermSubs : public InstMatchGenerator {
 public:
   VarMatchGeneratorTermSubs( Node var, Node subs );
-  ~VarMatchGeneratorTermSubs() throw() {}
+  virtual ~VarMatchGeneratorTermSubs() throw() {}
   TNode d_var;
   TypeNode d_var_type;
   Node d_subs;
@@ -183,6 +183,8 @@ private:
   int d_matchPolicy;
   /** children generators */
   std::vector< InstMatchGenerator* > d_children;
+  /** order */
+  std::map< unsigned, InstMatchTrie::ImtIndexOrder* > d_imtio;
   /** inst match tries for each child */
   std::vector< InstMatchTrieOrdered > d_children_trie;
   /** calculate matches */
@@ -191,7 +193,7 @@ public:
   /** constructors */
   InstMatchGeneratorMulti( Node q, std::vector< Node >& pats, QuantifiersEngine* qe );
   /** destructor */
-  ~InstMatchGeneratorMulti() throw() {}
+  virtual ~InstMatchGeneratorMulti() throw();
   /** reset instantiation round (call this whenever equivalence classes have changed) */
   void resetInstantiationRound( QuantifiersEngine* qe );
   /** reset, eqc is the equivalence class to search in (any if eqc=null) */
@@ -224,7 +226,7 @@ private:
   void addInstantiations( InstMatch& m, QuantifiersEngine* qe, int& addedLemmas, int argIndex, quantifiers::TermArgTrie* tat );
 public:
   /** constructors */
-  InstMatchGeneratorSimple( Node q, Node pat );
+  InstMatchGeneratorSimple( Node q, Node pat, QuantifiersEngine* qe );
   /** destructor */
   ~InstMatchGeneratorSimple() throw() {}
   /** reset instantiation round (call this whenever equivalence classes have changed) */

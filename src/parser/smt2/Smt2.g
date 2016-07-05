@@ -749,7 +749,7 @@ sygusCommand returns [CVC4::Command* cmd = NULL]
       $cmd = new EmptyCommand();
     }
   | /* check-synth */
-    CHECK_SYNTH_TOK { PARSER_STATE->checkThatLogicIsSet(); }
+    CHECK_SYNTH_TOK { PARSER_STATE->checkThatLogicIsSet();PARSER_STATE->defineSygusFuns(); }
     { Expr sygusVar = EXPR_MANAGER->mkVar("sygus", EXPR_MANAGER->booleanType());
       Expr sygusAttr = EXPR_MANAGER->mkExpr(kind::INST_PATTERN_LIST, EXPR_MANAGER->mkExpr(kind::INST_ATTRIBUTE, sygusVar));
       std::vector<Expr> bodyv;
@@ -760,7 +760,9 @@ sygusCommand returns [CVC4::Command* cmd = NULL]
         body = EXPR_MANAGER->mkExpr(kind::EXISTS, EXPR_MANAGER->mkExpr(kind::BOUND_VAR_LIST, PARSER_STATE->getSygusVars()), body);
         Debug("parser-sygus") << "...constructed exists " << body << std::endl;   
       }
-      body = EXPR_MANAGER->mkExpr(kind::FORALL, EXPR_MANAGER->mkExpr(kind::BOUND_VAR_LIST, PARSER_STATE->getSygusFunSymbols()), body, sygusAttr);
+      if( !PARSER_STATE->getSygusFunSymbols().empty() ){
+        body = EXPR_MANAGER->mkExpr(kind::FORALL, EXPR_MANAGER->mkExpr(kind::BOUND_VAR_LIST, PARSER_STATE->getSygusFunSymbols()), body, sygusAttr);
+      }
       Debug("parser-sygus") << "...constructed forall " << body << std::endl;   
       Command* c = new SetUserAttributeCommand("sygus", sygusVar);
       c->setMuted(true);
@@ -791,6 +793,7 @@ sygusGTerm[CVC4::SygusGTerm& sgt, std::string& fun]
   std::string sname;
   std::vector< Expr > let_vars;
   bool readingLet = false;
+  std::string s;
 }
   : LPAREN_TOK
     //read operator
@@ -799,6 +802,8 @@ sygusGTerm[CVC4::SygusGTerm& sgt, std::string& fun]
         //since we enforce satisfaction completeness, immediately convert to total version
         if( k==CVC4::kind::BITVECTOR_UDIV ){
           k = CVC4::kind::BITVECTOR_UDIV_TOTAL;
+        }else if( k==CVC4::kind::BITVECTOR_UREM ){
+          k = CVC4::kind::BITVECTOR_UREM_TOTAL;
         }
         sgt.d_name = kind::kindToString(k);
         sgt.d_gterm_type = SygusGTerm::gterm_op;
@@ -834,6 +839,8 @@ sygusGTerm[CVC4::SygusGTerm& sgt, std::string& fun]
           k = PARSER_STATE->getOperatorKind(name);
           if( k==CVC4::kind::BITVECTOR_UDIV ){
             k = CVC4::kind::BITVECTOR_UDIV_TOTAL;
+          }else if( k==CVC4::kind::BITVECTOR_UREM ){
+            k = CVC4::kind::BITVECTOR_UREM_TOTAL;
           }
           sgt.d_name = kind::kindToString(k);
           sgt.d_gterm_type = SygusGTerm::gterm_op;
@@ -888,6 +895,12 @@ sygusGTerm[CVC4::SygusGTerm& sgt, std::string& fun]
       std::string binString = AntlrInput::tokenTextSubstr($BINARY_LITERAL, 2);
       sgt.d_expr = MK_CONST( BitVector(binString, 2) );
       sgt.d_name = AntlrInput::tokenText($BINARY_LITERAL);
+      sgt.d_gterm_type = SygusGTerm::gterm_op;
+    }
+  | str[s,false]
+    { Debug("parser-sygus") << "Sygus grammar " << fun << " : string literal \"" << s << "\"" << std::endl;
+      sgt.d_expr = MK_CONST( ::CVC4::String(s) );
+      sgt.d_name = s;
       sgt.d_gterm_type = SygusGTerm::gterm_op;
     }
   | symbol[name,CHECK_NONE,SYM_VARIABLE] ( SYGUS_ENUM_CONS_TOK symbol[name2,CHECK_NONE,SYM_VARIABLE] { readEnum = true; } )?
@@ -1594,6 +1607,10 @@ term[CVC4::Expr& expr, CVC4::Expr& expr2]
         Debug("parser") << "Empty set encountered: " << f << " "
                           << f2 << " " << type <<  std::endl;
         expr = MK_CONST( ::CVC4::EmptySet(type) );
+      } else if(f.getKind() == CVC4::kind::SEP_NIL_REF) {
+        //We don't want the nil reference to be a constant: for instance, it could be of type Int but is not a const rational.
+        //However, the expression has 0 children. So we convert to a SEP_NIL variable.
+        expr = EXPR_MANAGER->mkSepNil(type);
       } else {
         if(f.getType() != type) {
           PARSER_STATE->parseError("Type ascription not satisfied.");
@@ -1898,6 +1915,8 @@ term[CVC4::Expr& expr, CVC4::Expr& expr2]
   | EMPTYSET_TOK
     { expr = MK_CONST( ::CVC4::EmptySet(Type())); }
 
+  | NILREF_TOK
+    { expr = MK_CONST( ::CVC4::NilRef(Type())); }
     // NOTE: Theory constants go here
   ;
 
@@ -2633,6 +2652,7 @@ FMFCARDVAL_TOK : 'fmf.card.val';
 INST_CLOSURE_TOK : 'inst-closure';
 
 EMPTYSET_TOK: { PARSER_STATE->isTheoryEnabled(Smt2::THEORY_SETS) }? 'emptyset';
+NILREF_TOK: { PARSER_STATE->isTheoryEnabled(Smt2::THEORY_SEP) }? 'sep.nil';
 // Other set theory operators are not
 // tokenized and handled directly when
 // processing a term
@@ -2773,7 +2793,7 @@ STRING_LITERAL_2_0
  * will be part of the token text.  Use the str[] parser rule instead.
  */
 STRING_LITERAL_2_5
-  : { PARSER_STATE->v2_5() }?=>
+  : { PARSER_STATE->v2_5() || PARSER_STATE->sygus() }?=>
     '"' (~('"') | '""')* '"'
   ;
 

@@ -47,15 +47,6 @@ typedef expr::Attribute< SygusAttributeId, bool > SygusAttribute;
 struct SynthesisAttributeId {};
 typedef expr::Attribute< SynthesisAttributeId, bool > SynthesisAttribute;
 
-/** Attribute true for nodes that should not be used for matching */
-struct NoMatchAttributeId {};
-/** use the special for boolean flag */
-typedef expr::Attribute< NoMatchAttributeId,
-                         bool,
-                         expr::attr::NullCleanupStrategy,
-                         true // context dependent
-                       > NoMatchAttribute;
-
 // attribute for "contains instantiation constants from"
 struct InstConstantAttributeId {};
 typedef expr::Attribute<InstConstantAttributeId, Node> InstConstantAttribute;
@@ -179,6 +170,7 @@ class TermDb : public QuantifiersUtil {
   friend class ::CVC4::theory::quantifiers::ConjectureGenerator;
   friend class ::CVC4::theory::quantifiers::TermGenEnv;
   typedef context::CDHashMap<Node, int, NodeHashFunction> NodeIntMap;
+  typedef context::CDHashMap<Node, bool, NodeHashFunction> NodeBoolMap;
 private:
   /** reference to the quantifiers engine */
   QuantifiersEngine* d_quantEngine;
@@ -211,6 +203,8 @@ private:
   std::map< Node, std::vector< Node > > d_op_map;
   /** map from type nodes to terms of that type */
   std::map< TypeNode, std::vector< Node > > d_type_map;
+  /** inactive map */
+  NodeBoolMap d_inactive_map;
 
   /** count number of non-redundant ground terms per operator */
   std::map< Node, int > d_op_nonred_count;
@@ -228,7 +222,7 @@ private:
   /** set has term */
   void setHasTerm( Node n );
   /** evaluate term */
-  Node evaluateTerm2( TNode n, std::map< TNode, Node >& visited, EqualityQuery * qy );
+  Node evaluateTerm2( TNode n, std::map< TNode, Node >& visited, EqualityQuery * qy, bool useEntailmentTests );
   TNode getEntailedTerm2( TNode n, std::map< TNode, TNode >& subs, bool subsRep, bool hasSubs, EqualityQuery * qy );
   bool isEntailed2( TNode n, std::map< TNode, TNode >& subs, bool subsRep, bool hasSubs, bool pol, EqualityQuery * qy );
 public:
@@ -254,18 +248,23 @@ public:
   void computeArgReps( TNode n );
   /** compute uf eqc terms */
   void computeUfEqcTerms( TNode f );
+  /** compute uf terms */
+  void computeUfTerms( TNode f );
   /** in relevant domain */
   bool inRelevantDomain( TNode f, unsigned i, TNode r );
   /** evaluate a term under a substitution.  Return representative in EE if possible.
    * subsRep is whether subs contains only representatives
    */
-  Node evaluateTerm( TNode n, EqualityQuery * qy = NULL );
+  Node evaluateTerm( TNode n, EqualityQuery * qy = NULL, bool useEntailmentTests = false );
   /** get entailed term, does not construct new terms, less aggressive */
   TNode getEntailedTerm( TNode n, EqualityQuery * qy = NULL );
   TNode getEntailedTerm( TNode n, std::map< TNode, TNode >& subs, bool subsRep, EqualityQuery * qy = NULL );
   /** is entailed (incomplete check) */
   bool isEntailed( TNode n, bool pol, EqualityQuery * qy = NULL );
   bool isEntailed( TNode n, std::map< TNode, TNode >& subs, bool subsRep, bool pol, EqualityQuery * qy = NULL );
+  /** is active */
+  bool isTermActive( Node n );
+  void setTermInactive( Node n );
   /** has term */
   bool hasTermCurrent( Node n, bool useMode = true );
   /** is term eligble for instantiation? */
@@ -274,7 +273,7 @@ public:
   Node getEligibleTermInEqc( TNode r );
   /** is inst closure */
   bool isInstClosure( Node r );
-
+  
 //for model basis
 private:
   //map from types to model basis terms
@@ -301,6 +300,7 @@ public:
 private:
   /** map from universal quantifiers to the list of variables */
   std::map< Node, std::vector< Node > > d_vars;
+  std::map< Node, std::map< Node, unsigned > > d_var_num;
   /** map from universal quantifiers to the list of instantiation constants */
   std::map< Node, std::vector< Node > > d_inst_constants;
   /** map from universal quantifiers to their inst constant body */
@@ -312,6 +312,8 @@ private:
   /** make instantiation constants for */
   void makeInstantiationConstantsFor( Node q );
 public:
+  /** get variable number */
+  unsigned getVariableNum( Node q, Node v ) { return d_var_num[q][v]; }
   /** get the i^th instantiation constant of q */
   Node getInstantiationConstant( Node q, int i ) const;
   /** get number of instantiation constants for q */
@@ -327,6 +329,7 @@ public:
       instantiation.
    */
   Node getInstConstantNode( Node n, Node q );
+  Node getVariableNode( Node n, Node q );
   /** get substituted node */
   Node getInstantiatedNode( Node n, Node q, std::vector< Node >& terms );
 
@@ -419,7 +422,8 @@ private:
   //free variables
   std::map< TypeNode, std::vector< Node > > d_cn_free_var;
   // get canonical term, return null if it contains a term apart from handled signature
-  Node getCanonicalTerm( TNode n, std::map< TypeNode, unsigned >& var_count, std::map< TNode, TNode >& subs, bool apply_torder );
+  Node getCanonicalTerm( TNode n, std::map< TypeNode, unsigned >& var_count, std::map< TNode, TNode >& subs, bool apply_torder, 
+                         std::map< TNode, Node >& visited );
 public:
   /** get id for operator */
   int getIdForOperator( Node op );
@@ -461,6 +465,8 @@ public:
   static Node ensureType( Node n, TypeNode tn );
   /** get ensure type condition */
   static bool getEnsureTypeCondition( Node n, TypeNode tn, std::vector< Node >& cond );
+  /** get relevancy condition */
+  static void getRelevancyCondition( Node n, std::vector< Node >& cond );
 private:
   //helper for contains term
   static bool containsTerm2( Node n, Node t, std::map< Node, bool >& visited );
@@ -541,6 +547,8 @@ public:
 
 class TermDbSygus {
 private:
+  /** reference to the quantifiers engine */
+  QuantifiersEngine* d_quantEngine;
   std::map< TypeNode, std::vector< Node > > d_fv;
   std::map< Node, TypeNode > d_fv_stype;
   std::map< Node, int > d_fv_num;
@@ -554,7 +562,6 @@ public:
 private:
   std::map< TypeNode, std::map< int, Node > > d_generic_base;
   std::map< TypeNode, std::vector< Node > > d_generic_templ;
-  Node getGenericBase( TypeNode tn, const Datatype& dt, int c );
   bool getMatch( Node p, Node n, std::map< int, Node >& s );
   bool getMatch2( Node p, Node n, std::map< int, Node >& s, std::vector< int >& new_s );
 public:
@@ -581,7 +588,11 @@ private:
   std::map< TypeNode, std::map< Node, Node > > d_sygus_to_builtin;
   std::map< TypeNode, std::map< Node, Node > > d_builtin_const_to_sygus;
 public:
-  TermDbSygus();
+  TermDbSygus( context::Context* c, QuantifiersEngine* qe );
+  ~TermDbSygus(){}
+  bool reset( Theory::Effort e );
+  std::string identify() const { return "TermDbSygus"; }
+  
   bool isRegistered( TypeNode tn );
   TypeNode sygusToBuiltinType( TypeNode tn );
   int getKindArg( TypeNode tn, Kind k );
@@ -615,6 +626,7 @@ public:
   /** get value */
   Node getTypeMaxValue( TypeNode tn );
   TypeNode getSygusTypeForVar( Node v );
+  Node getGenericBase( TypeNode tn, const Datatype& dt, int c );
   Node mkGeneric( const Datatype& dt, int c, std::map< TypeNode, int >& var_count, std::map< int, Node >& pre );
   Node sygusToBuiltin( Node n, TypeNode tn );
   Node builtinToSygusConst( Node c, TypeNode tn, int rcons_depth = 0 );
@@ -633,6 +645,18 @@ public:
   static Kind getOperatorKind( Node op );
   /** print sygus term */
   static void printSygusTerm( std::ostream& out, Node n, std::vector< Node >& lvs );
+  
+  /** get anchor */
+  static Node getAnchor( Node n );
+//for eager instantiation
+private:
+  std::map< Node, std::map< Node, bool > > d_subterms;
+  std::map< Node, std::vector< Node > > d_evals;
+  std::map< Node, std::vector< std::vector< Node > > > d_eval_args;
+  std::map< Node, std::map< Node, unsigned > > d_node_mv_args_proc;
+public:
+  void registerEvalTerm( Node n );
+  void registerModelValue( Node n, Node v, std::vector< Node >& lems );
 };
 
 }/* CVC4::theory::quantifiers namespace */

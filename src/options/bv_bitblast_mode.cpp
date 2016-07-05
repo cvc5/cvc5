@@ -53,4 +53,19 @@ std::ostream& operator<<(std::ostream& out, theory::bv::BvSlicerMode mode) {
   return out;
 }
 
+std::ostream& operator<<(std::ostream& out, theory::bv::SatSolverMode solver) {
+  switch(solver) {
+  case theory::bv::SAT_SOLVER_MINISAT:
+    out << "SAT_SOLVER_MINISAT"; 
+    break;
+  case theory::bv::SAT_SOLVER_CRYPTOMINISAT:
+    out << "SAT_SOLVER_CRYPTOMINISAT"; 
+    break;
+  default:
+    out << "SatSolverMode:UNKNOWN![" << unsigned(solver) << "]";
+  }
+
+  return out;
+}
+
 }/* CVC4 namespace */

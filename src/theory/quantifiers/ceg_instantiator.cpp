@@ -22,6 +22,9 @@
 #include "theory/quantifiers/term_database.h"
 #include "theory/theory_engine.h"
 
+#include "theory/bv/theory_bv_utils.h"
+#include "util/bitvector.h"
+
 //#define MBP_STRICT_ASSERTIONS
 
 using namespace std;
@@ -466,6 +469,36 @@ bool CegInstantiator::doAddInstantiation( SolvedForm& sf, SolvedForm& ssf, std::
                 }
               }
             }
+            /*   TODO: algebraic reasoning for bitvector instantiation
+            else if( pvtn.isBitVector() ){
+              if( atom.getKind()==BITVECTOR_ULT || atom.getKind()==BITVECTOR_ULE ){
+                for( unsigned t=0; t<2; t++ ){
+                  if( atom[t]==pv ){
+                    computeProgVars( atom[1-t] );
+                    if( d_inelig.find( atom[1-t] )==d_inelig.end() ){
+                      //only ground terms  TODO: more
+                      if( d_prog_var[atom[1-t]].empty() ){
+                        Node veq_c;
+                        Node uval;
+                        if( ( !pol && atom.getKind()==BITVECTOR_ULT ) || ( pol && atom.getKind()==BITVECTOR_ULE ) ){
+                          uval = atom[1-t];
+                        }else{
+                          uval = NodeManager::currentNM()->mkNode( (atom.getKind()==BITVECTOR_ULT)==(t==1) ? BITVECTOR_PLUS : BITVECTOR_SUB, atom[1-t], 
+                                                                   bv::utils::mkConst(pvtn.getConst<BitVectorSize>(), 1) );
+                        }
+                        if( subs_proc[uval].find( veq_c )==subs_proc[uval].end() ){
+                          subs_proc[uval][veq_c] = true;
+                          if( doAddInstantiationInc( uval, pv, veq_c, 0, sf, ssf, vars, btyp, theta, i, effort, cons, curr_var ) ){
+                            return true;
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+            */
           }
         }
       }
@@ -685,7 +718,7 @@ bool CegInstantiator::doAddInstantiation( SolvedForm& sf, SolvedForm& ssf, std::
 
     //[5] resort to using value in model
     // do so if we are in effort=1, or if the variable is boolean, or if we are solving for a subfield of a datatype
-    if( ( effort>0 || pvtn.isBoolean() || !curr_var.empty() ) && d_qe->getTermDatabase()->isClosedEnumerableType( pvtn ) ){
+    if( ( effort>0 || pvtn.isBoolean() || pvtn.isBitVector() || !curr_var.empty() ) && d_qe->getTermDatabase()->isClosedEnumerableType( pvtn ) ){
       Node mv = getModelValue( pv );
       Node pv_coeff_m;
       Trace("cbqi-inst-debug") << "[5] " << i << "...try model value " << mv << std::endl;
@@ -781,6 +814,7 @@ bool CegInstantiator::doAddInstantiationInc( Node n, Node pv, Node pv_coeff, int
     }
   }
   if( success ){
+    Trace("cbqi-inst-debug2") << "Adding to vectors..." << std::endl;
     vars.push_back( pv );
     btyp.push_back( bt );
     sf.push_back( pv, n, pv_coeff );
@@ -800,8 +834,10 @@ bool CegInstantiator::doAddInstantiationInc( Node n, Node pv, Node pv_coeff, int
       curr_var.pop_back();
       is_cv = true;
     }
+    Trace("cbqi-inst-debug2") << "Recurse..." << std::endl;
     success = doAddInstantiation( sf, ssf, vars, btyp, new_theta, curr_var.empty() ? i+1 : i, effort, cons, curr_var );
     if( !success ){
+      Trace("cbqi-inst-debug2") << "Removing from vectors..." << std::endl;
       if( is_cv ){
         curr_var.push_back( pv );
       }
@@ -814,6 +850,7 @@ bool CegInstantiator::doAddInstantiationInc( Node n, Node pv, Node pv_coeff, int
   if( success ){
     return true;
   }else{
+    Trace("cbqi-inst-debug2") << "Revert substitutions..." << std::endl;
     //revert substitution information
     for( std::map< int, Node >::iterator it = prev_subs.begin(); it != prev_subs.end(); it++ ){
       sf.d_subs[it->first] = it->second;
@@ -1035,7 +1072,13 @@ Node CegInstantiator::applySubstitution( TypeNode tn, Node n, std::vector< Node 
           if( !it->second.isNull() ){
             c_coeff = NodeManager::currentNM()->mkNode( MULT, c_coeff, it->second );
           }
-          Node c = NodeManager::currentNM()->mkNode( MULT, c_coeff, msum_term[it->first] );
+          Assert( !c_coeff.isNull() );
+          Node c;
+          if( msum_term[it->first].isNull() ){
+            c = c_coeff;
+          }else{
+            c = NodeManager::currentNM()->mkNode( MULT, c_coeff, msum_term[it->first] );
+          }
           children.push_back( c );
           Trace("cegqi-si-apply-subs-debug") << "Add child : " << c << std::endl;
         }
@@ -1594,6 +1637,7 @@ int CegInstantiator::solve_arith( Node pv, Node atom, Node& veq_c, Node& val, No
         realPart = real_part.empty() ? d_zero : ( real_part.size()==1 ? real_part[0] : NodeManager::currentNM()->mkNode( PLUS, real_part ) );
         Assert( d_out->isEligibleForInstantiation( realPart ) );
         //re-isolate
+        Trace("cbqi-inst-debug") << "Re-isolate..." << std::endl;
         ires = QuantArith::isolate( pv, msum, veq_c, val, atom.getKind() );
         Trace("cbqi-inst-debug") << "Isolate for mixed Int/Real : " << veq_c << " * " << pv << " " << atom.getKind() << " " << val << std::endl;
         Trace("cbqi-inst-debug") << "                 real part : " << realPart << std::endl;

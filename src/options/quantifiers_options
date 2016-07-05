@@ -54,6 +54,8 @@ option purifyQuant --purify-quant bool :default false
  purify quantified formulas
 option elimExtArithQuant --elim-ext-arith-quant bool :default true
  eliminate extended arithmetic symbols in quantified formulas
+option condRewriteQuant --cond-rewrite-quant bool :default true
+ conditional rewriting of quantified formulas
  
 #### E-matching options
  
@@ -109,6 +111,8 @@ option instLevelInputOnly --inst-level-input-only bool :default true
  only input terms are assigned instantiation level zero
 option quantRepMode --quant-rep-mode=MODE  CVC4::theory::quantifiers::QuantRepMode :default CVC4::theory::quantifiers::QUANT_REP_MODE_FIRST :read-write :include "options/quantifiers_modes.h" :handler stringToQuantRepMode
  selection mode for representatives in quantifiers engine
+option instRelevantCond --inst-rlv-cond bool :default false
+ add relevancy conditions for instantiations
  
 option eagerInstQuant --eager-inst-quant bool :default false
  apply quantifier instantiation eagerly
@@ -120,7 +124,7 @@ option fullSaturateQuantRd --full-saturate-quant-rd bool :default true
 option fullSaturateInst --fs-inst bool :default false
  interleave full saturate instantiation with other techniques
 
-option literalMatchMode --literal-matching=MODE CVC4::theory::quantifiers::LiteralMatchMode :default CVC4::theory::quantifiers::LITERAL_MATCH_NONE :include "options/quantifiers_modes.h" :handler stringToLiteralMatchMode :predicate checkLiteralMatchMode
+option literalMatchMode --literal-matching=MODE CVC4::theory::quantifiers::LiteralMatchMode :default CVC4::theory::quantifiers::LITERAL_MATCH_USE :include "options/quantifiers_modes.h" :handler stringToLiteralMatchMode :predicate checkLiteralMatchMode
  choose literal matching mode
 
 ### finite model finding options
@@ -144,7 +148,7 @@ option fmfOneInstPerRound --mbqi-one-inst-per-round bool :read-write :default fa
 option fmfOneQuantPerRound --mbqi-one-quant-per-round bool :default false
  only add instantiations for one quantifier per round for mbqi
 
-option fmfInstEngine --fmf-inst-engine bool :default false
+option fmfInstEngine --fmf-inst-engine bool :default false :read-write
  use instantiation engine in conjunction with finite model finding
 option fmfInstGen --fmf-inst-gen bool :default true
  enable Inst-Gen instantiation techniques for finite model finding 
@@ -171,13 +175,23 @@ option qcfTConstraint --qcf-tconstraint bool :read-write :default false
  enable entailment checks for t-constraints in qcf algorithm
 option qcfAllConflict --qcf-all-conflict bool :read-write :default false
  add all available conflicting instances during conflict-based instantiation
+option qcfNestedConflict --qcf-nested-conflict bool :default false
+ consider conflicts for nested quantifiers
+option qcfVoExp --qcf-vo-exp bool :default false
+ qcf experimental variable ordering
+ 
+ 
 
 option instNoEntail --inst-no-entail bool :read-write :default true
  do not consider instances of quantified formulas that are currently entailed
 
-option instPropagate --inst-propagate bool :read-write :default false
+option instPropagate --inst-prop bool :read-write :default false
  internal propagation for instantiations for selecting relevant instances
  
+option qcfEagerTest --qcf-eager-test bool :default true
+ optimization, test qcf instances eagerly
+option qcfSkipRd --qcf-skip-rd bool :default false
+ optimization, skip instances based on possibly irrelevant portions of quantified formulas
 ### rewrite rules options 
  
 option quantRewriteRules --rewrite-rules bool :default false
@@ -219,8 +233,8 @@ option ceGuidedInst --cegqi bool :default false :read-write
   counterexample-guided quantifier instantiation
 option ceGuidedInstFair --cegqi-fair=MODE CVC4::theory::quantifiers::CegqiFairMode :default CVC4::theory::quantifiers::CEGQI_FAIR_DT_SIZE :include "options/quantifiers_modes.h" :handler stringToCegqiFairMode
   if and how to apply fairness for cegqi
-option cegqiSingleInv --cegqi-si bool :default false :read-write
-  process single invocation synthesis conjectures
+option cegqiSingleInvMode --cegqi-si=MODE CVC4::theory::quantifiers::CegqiSingleInvMode :default CVC4::theory::quantifiers::CEGQI_SI_MODE_NONE :include "options/quantifiers_modes.h" :handler stringToCegqiSingleInvMode :read-write
+  mode for processing single invocation synthesis conjectures
 option cegqiSingleInvPartial --cegqi-si-partial bool :default false
   combined techniques for synthesis conjectures that are partially single invocation 
 option cegqiSingleInvReconstruct --cegqi-si-reconstruct bool :default true
@@ -229,8 +243,6 @@ option cegqiSingleInvReconstructConst --cegqi-si-reconstruct-const bool :default
   include constants when reconstruct solutions for single invocation conjectures in original grammar
 option cegqiSingleInvAbort --cegqi-si-abort bool :default false
   abort if synthesis conjecture is not single invocation
-option cegqiSingleInvMultiInstAbort --cegqi-si-multi-inst-abort bool :default false
-  abort if synthesis conjecture is single invocation with no ITE in grammar and multiple instantiations are tried
   
 option sygusNormalForm --sygus-nf bool :default true
   only search for sygus builtin terms that are in normal form
@@ -248,6 +260,9 @@ option sygusNormalFormGlobalContent --sygus-nf-sym-content bool :default true
 option sygusInvTemplMode --sygus-inv-templ=MODE CVC4::theory::quantifiers::SygusInvTemplMode :default CVC4::theory::quantifiers::SYGUS_INV_TEMPL_MODE_NONE :include "options/quantifiers_modes.h" :handler stringToSygusInvTemplMode
   template mode for sygus invariant synthesis
 
+option sygusDirectEval --sygus-direct-eval bool :default true
+  direct unfolding of evaluation functions
+  
 # approach applied to general quantified formulas
 option cbqiSplx --cbqi-splx bool :read-write :default false
  turns on old implementation of counterexample-based quantifier instantiation

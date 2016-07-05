@@ -49,6 +49,12 @@ public:
   virtual ClauseId addClause(SatClause& clause,
                              bool removable) = 0;
 
+  /** Return true if the solver supports native xor resoning */
+  virtual bool nativeXor() { return false; }
+
+  /** Add a clause corresponding to rhs = l1 xor .. xor ln  */
+  virtual ClauseId addXorClause(SatClause& clause, bool rhs, bool removable) = 0;
+  
   /**
    * Create a new boolean variable in the solver.
    * @param isTheoryAtom is this a theory atom that needs to be asserted to theory
@@ -84,7 +90,8 @@ public:
 
   /** Check if the solver is in an inconsistent state */
   virtual bool ok() const = 0;
-
+  
+  virtual void setProofLog( BitVectorProof * bvp ) {}
   
 };/* class SatSolver */
 

@@ -175,7 +175,7 @@ int RewriteEngine::checkRewriteRule( Node f, Theory::Effort e ) {
                   for( unsigned j=0; j<to_remove.size(); j++ ){
                     Node ns = d_quantEngine->getSubstitute( to_remove[j], inst );
                     Trace("rewrite-engine-inst-debug") << "Will remove : " << ns << std::endl;
-                    ns.setAttribute(NoMatchAttribute(),true);
+                    d_quantEngine->getTermDatabase()->setTermInactive( ns );
                   }
                   */
                 }else{

@@ -57,15 +57,6 @@ public:
 
 
 
-/** Attribute true for nodes that should not be used when considered for inst-gen basis */
-struct BasisNoMatchAttributeId {};
-/** use the special for boolean flag */
-typedef expr::Attribute< BasisNoMatchAttributeId,
-                         bool,
-                         expr::attr::NullCleanupStrategy,
-                         true // context dependent
-                       > BasisNoMatchAttribute;
-
 class TermArgBasisTrie {
 private:
   bool addTerm2( FirstOrderModel* fm, Node n, int argIndex );
@@ -85,7 +76,9 @@ public:
   */
 class QModelBuilderIG : public QModelBuilder
 {
+  typedef context::CDHashMap<Node, bool, NodeHashFunction> BoolMap;
 protected:
+  BoolMap d_basisNoMatch;
   //map from operators to model preference data
   std::map< Node, uf::UfModelPreferenceData > d_uf_prefs;
   //built model uf

@@ -1,5 +1,5 @@
 ; EXPECT: unsat
-; COMMAND-LINE: --cegqi --no-dump-synth
+; COMMAND-LINE: --no-dump-synth
 
 (set-logic LIA)
 

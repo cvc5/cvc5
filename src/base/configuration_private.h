@@ -114,6 +114,12 @@ namespace CVC4 {
 #  define IS_ABC_BUILD false
 #endif /* CVC4_USE_ABC */
 
+#if CVC4_USE_CRYPTOMINISAT
+#  define IS_CRYPTOMINISAT_BUILD true
+#else /* CVC4_USE_CRYPTOMINISAT */
+#  define IS_CRYPTOMINISAT_BUILD false
+#endif /* CVC4_USE_CRYPTOMINISAT */
+
 #ifdef HAVE_LIBREADLINE
 #  define IS_READLINE_BUILD true
 #else /* HAVE_LIBREADLINE */

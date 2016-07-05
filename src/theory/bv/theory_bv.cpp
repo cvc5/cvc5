@@ -44,25 +44,29 @@ namespace bv {
 
 TheoryBV::TheoryBV(context::Context* c, context::UserContext* u,
                    OutputChannel& out, Valuation valuation,
-                   const LogicInfo& logicInfo)
-    : Theory(THEORY_BV, c, u, out, valuation, logicInfo),
-      d_context(c),
-      d_alreadyPropagatedSet(c),
-      d_sharedTermsSet(c),
-      d_subtheories(),
-      d_subtheoryMap(),
-      d_statistics(),
-      d_staticLearnCache(),
-      d_lemmasAdded(c, false),
-      d_conflict(c, false),
-      d_invalidateModelCache(c, true),
-      d_literalsToPropagate(c),
-      d_literalsToPropagateIndex(c, 0),
-      d_propagatedBy(c),
-      d_eagerSolver(NULL),
-      d_abstractionModule(new AbstractionModule()),
-      d_isCoreTheory(false),
-      d_calledPreregister(false)
+                   const LogicInfo& logicInfo, std::string name)
+  : Theory(THEORY_BV, c, u, out, valuation, logicInfo, name),
+    d_context(c),
+    d_alreadyPropagatedSet(c),
+    d_sharedTermsSet(c),
+    d_subtheories(),
+    d_subtheoryMap(),
+    d_statistics(getFullInstanceName()),
+    d_staticLearnCache(),
+    d_BVDivByZero(),
+    d_BVRemByZero(),
+    d_funcToArgs(),
+    d_funcToSkolem(u),
+    d_lemmasAdded(c, false),
+    d_conflict(c, false),
+    d_invalidateModelCache(c, true),
+    d_literalsToPropagate(c),
+    d_literalsToPropagateIndex(c, 0),
+    d_propagatedBy(c),
+    d_eagerSolver(NULL),
+    d_abstractionModule(new AbstractionModule(getFullInstanceName())),
+    d_isCoreTheory(false),
+    d_calledPreregister(false)
 {
 
   if (options::bitblastMode() == theory::bv::BITBLAST_MODE_EAGER) {
@@ -117,14 +121,14 @@ void TheoryBV::spendResource(unsigned ammount) throw(UnsafeInterruptException) {
   getOutputChannel().spendResource(ammount);
 }
 
-TheoryBV::Statistics::Statistics():
-  d_avgConflictSize("theory::bv::AvgBVConflictSize"),
-  d_solveSubstitutions("theory::bv::NumberOfSolveSubstitutions", 0),
-  d_solveTimer("theory::bv::solveTimer"),
-  d_numCallsToCheckFullEffort("theory::bv::NumberOfFullCheckCalls", 0),
-  d_numCallsToCheckStandardEffort("theory::bv::NumberOfStandardCheckCalls", 0),
-  d_weightComputationTimer("theory::bv::weightComputationTimer"),
-  d_numMultSlice("theory::bv::NumMultSliceApplied", 0)
+TheoryBV::Statistics::Statistics(const std::string &name):
+  d_avgConflictSize(name + "theory::bv::AvgBVConflictSize"),
+  d_solveSubstitutions(name + "theory::bv::NumberOfSolveSubstitutions", 0),
+  d_solveTimer(name + "theory::bv::solveTimer"),
+  d_numCallsToCheckFullEffort(name + "theory::bv::NumberOfFullCheckCalls", 0),
+  d_numCallsToCheckStandardEffort(name + "theory::bv::NumberOfStandardCheckCalls", 0),
+  d_weightComputationTimer(name + "theory::bv::weightComputationTimer"),
+  d_numMultSlice(name + "theory::bv::NumMultSliceApplied", 0)
 {
   smtStatisticsRegistry()->registerStat(&d_avgConflictSize);
   smtStatisticsRegistry()->registerStat(&d_solveSubstitutions);
@@ -175,28 +179,29 @@ Node TheoryBV::getBVDivByZero(Kind k, unsigned width) {
 }
 
 
-void TheoryBV::collectNumerators(TNode term, TNodeSet& seen) {
+void TheoryBV::collectFunctionSymbols(TNode term, TNodeSet& seen) {
   if (seen.find(term) != seen.end())
     return;
-  if (term.getKind() == kind::BITVECTOR_ACKERMANIZE_UDIV) {
-    unsigned size = utils::getSize(term[0]);
-    if (d_BVDivByZeroAckerman.find(size) == d_BVDivByZeroAckerman.end()) {
-      d_BVDivByZeroAckerman[size] = TNodeSet();
-    }
-    d_BVDivByZeroAckerman[size].insert(term[0]);
-    seen.insert(term);
-  } else if (term.getKind() == kind::BITVECTOR_ACKERMANIZE_UREM) {
-    unsigned size = utils::getSize(term[0]);
-    if (d_BVRemByZeroAckerman.find(size) == d_BVRemByZeroAckerman.end()) {
-      d_BVRemByZeroAckerman[size] = TNodeSet();
-    }
-    d_BVRemByZeroAckerman[size].insert(term[0]);
-    seen.insert(term);
+  if (term.getKind() == kind::APPLY_UF) {
+    TNode func = term.getOperator();
+    storeFunction(func, term);
   }
   for (unsigned i = 0; i < term.getNumChildren(); ++i) {
-    collectNumerators(term[i], seen);
+    collectFunctionSymbols(term[i], seen);
   }
   seen.insert(term);
+}
+
+void TheoryBV::storeFunction(TNode func, TNode term) {
+  if (d_funcToArgs.find(func) == d_funcToArgs.end()) {
+    d_funcToArgs.insert(make_pair(func, NodeSet()));
+  }
+  NodeSet& set = d_funcToArgs[func];
+  if (set.find(term) == set.end()) {
+    set.insert(term);
+    Node skolem = utils::mkVar(utils::getSize(term));
+    d_funcToSkolem.addSubstitution(term, skolem);
+  }
 }
 
 void TheoryBV::mkAckermanizationAsssertions(std::vector<Node>& assertions) {
@@ -206,50 +211,43 @@ void TheoryBV::mkAckermanizationAsssertions(std::vector<Node>& assertions) {
   AlwaysAssert(!options::incrementalSolving());
   TNodeSet seen;
   for (unsigned i = 0; i < assertions.size(); ++i) {
-    collectNumerators(assertions[i], seen);
+    collectFunctionSymbols(assertions[i], seen);
   }
 
-  // process division UF
-  Debug("bv-ackermanize") << "Process division UF...\n";
-  for (WidthToNumerators::const_iterator it = d_BVDivByZeroAckerman.begin(); it != d_BVDivByZeroAckerman.end(); ++it) {
-    const TNodeSet& numerators= it->second;
-    for (TNodeSet::const_iterator i = numerators.begin(); i != numerators.end(); ++i) {
-      TNodeSet::const_iterator j = i;
-      j++;
-      for (; j != numerators.end(); ++j) {
-        TNode arg1 = *i;
-        TNode arg2 = *j;
-        TNode acker1 = utils::mkNode(kind::BITVECTOR_ACKERMANIZE_UDIV, arg1);
-        TNode acker2 = utils::mkNode(kind::BITVECTOR_ACKERMANIZE_UDIV, arg2);
+  FunctionToArgs::const_iterator it = d_funcToArgs.begin();
+  NodeManager* nm = NodeManager::currentNM();
+  for (; it!= d_funcToArgs.end(); ++it) {
+    TNode func = it->first;
+    const NodeSet& args = it->second;
+    NodeSet::const_iterator it1 = args.begin();
+    for ( ; it1 != args.end(); ++it1) {
+      for(NodeSet::const_iterator it2 = it1; it2 != args.end(); ++it2) {
+        TNode args1 = *it1;
+        TNode args2 = *it2;
 
-        Node arg_eq = utils::mkNode(kind::EQUAL, arg1, arg2);
-        Node acker_eq = utils::mkNode(kind::EQUAL, acker1, acker2);
-        Node lemma = utils::mkNode(kind::IMPLIES, arg_eq, acker_eq);
-        Debug("bv-ackermanize") << "  " << lemma << "\n";
+        AlwaysAssert (args1.getKind() == kind::APPLY_UF &&
+                args1.getOperator() == func);
+        AlwaysAssert (args2.getKind() == kind::APPLY_UF &&
+                args2.getOperator() == func);
+        AlwaysAssert (args1.getNumChildren() == args2.getNumChildren());
+
+        std::vector<Node> eqs(args1.getNumChildren());
+
+        for (unsigned i = 0; i < args1.getNumChildren(); ++i) {
+          eqs[i] = nm->mkNode(kind::EQUAL, args1[i], args2[i]);
+        }
+
+        Node args_eq = eqs.size() == 1 ? eqs[0] : nm->mkNode(kind::AND, eqs);
+        Node func_eq = nm->mkNode(kind::EQUAL, args1, args2);
+        Node lemma = nm->mkNode(kind::IMPLIES, args_eq, func_eq);
         assertions.push_back(lemma);
       }
     }
   }
-  // process remainder UF
-  Debug("bv-ackermanize") << "Process remainder UF...\n";
-  for (WidthToNumerators::const_iterator it = d_BVRemByZeroAckerman.begin(); it != d_BVRemByZeroAckerman.end(); ++it) {
-    const TNodeSet& numerators= it->second;
-    for (TNodeSet::const_iterator i = numerators.begin(); i != numerators.end(); ++i) {
-      TNodeSet::const_iterator j = i;
-      j++;
-      for (; j != numerators.end(); ++j) {
-        TNode arg1 = *i;
-        TNode arg2 = *j;
-        TNode acker1 = utils::mkNode(kind::BITVECTOR_ACKERMANIZE_UREM, arg1);
-        TNode acker2 = utils::mkNode(kind::BITVECTOR_ACKERMANIZE_UREM, arg2);
 
-        Node arg_eq = utils::mkNode(kind::EQUAL, arg1, arg2);
-        Node acker_eq = utils::mkNode(kind::EQUAL, acker1, acker2);
-        Node lemma = utils::mkNode(kind::IMPLIES, arg_eq, acker_eq);
-        Debug("bv-ackermanize") << "  " << lemma << "\n";
-        assertions.push_back(lemma);
-      }
-    }
+  // replace applications of UF by skolems (FIXME for model building)
+  for(unsigned i = 0; i < assertions.size(); ++i) {
+    assertions[i] = d_funcToSkolem.apply(assertions[i]);
   }
 }
 
@@ -278,18 +276,18 @@ Node TheoryBV::expandDefinition(LogicRequest &logicRequest, Node node) {
     Node divTotalNumDen = nm->mkNode(node.getKind() == kind::BITVECTOR_UDIV ? kind::BITVECTOR_UDIV_TOTAL :
 				     kind::BITVECTOR_UREM_TOTAL, num, den);
 
-    if (options::bitblastMode() == theory::bv::BITBLAST_MODE_EAGER) {
-      // Ackermanize UF if using eager bit-blasting
-      Node ackerman_var = nm->mkNode(node.getKind() == kind::BITVECTOR_UDIV ? kind::BITVECTOR_ACKERMANIZE_UDIV : kind::BITVECTOR_ACKERMANIZE_UREM, num);
-      node = nm->mkNode(kind::ITE, den_eq_0, ackerman_var, divTotalNumDen);
-      return node;
-    } else {
+    // if (options::bitblastMode() == theory::bv::BITBLAST_MODE_EAGER) {
+    //   // Ackermanize UF if using eager bit-blasting
+    //   Node ackerman_var = nm->mkNode(node.getKind() == kind::BITVECTOR_UDIV ? kind::BITVECTOR_ACKERMANIZE_UDIV : kind::BITVECTOR_ACKERMANIZE_UREM, num);
+    //   node = nm->mkNode(kind::ITE, den_eq_0, ackerman_var, divTotalNumDen);
+    //   return node;
+    // } else {
       Node divByZero = getBVDivByZero(node.getKind(), width);
       Node divByZeroNum = nm->mkNode(kind::APPLY_UF, divByZero, num);
       node = nm->mkNode(kind::ITE, den_eq_0, divByZeroNum, divTotalNumDen);
       logicRequest.widenLogic(THEORY_UF);
       return node;
-    }
+      //}
   }
     break;
 
@@ -331,7 +329,7 @@ void TheoryBV::sendConflict() {
   if (d_conflictNode.isNull()) {
     return;
   } else {
-    Debug("bitvector") << indent() << "TheoryBV::check(): conflict " << d_conflictNode;
+    Debug("bitvector") << indent() << "TheoryBV::check(): conflict " << d_conflictNode << std::endl;
     d_out->conflict(d_conflictNode);
     d_statistics.d_avgConflictSize.addEntry(d_conflictNode.getNumChildren());
     d_conflictNode = Node::null();
@@ -707,7 +705,7 @@ Node TheoryBV::explain(TNode node) {
   // return the explanation
   Node explanation = utils::mkAnd(assumptions);
   Debug("bitvector::explain") << "TheoryBV::explain(" << node << ") => " << explanation << std::endl;
-  Debug("bitvector::explain") << "TheoryBV::explain done. \n"; 
+  Debug("bitvector::explain") << "TheoryBV::explain done. \n";
   return explanation;
 }
 
@@ -725,6 +723,8 @@ void TheoryBV::addSharedTerm(TNode t) {
 
 EqualityStatus TheoryBV::getEqualityStatus(TNode a, TNode b)
 {
+  if (options::bitblastMode() == theory::bv::BITBLAST_MODE_EAGER)
+    return EQUALITY_UNKNOWN;
   Assert (options::bitblastMode() == theory::bv::BITBLAST_MODE_LAZY);
   for (unsigned i = 0; i < d_subtheories.size(); ++i) {
     EqualityStatus status = d_subtheories[i]->getEqualityStatus(a, b);

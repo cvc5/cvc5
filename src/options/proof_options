@@ -5,4 +5,7 @@
 
 module PROOF "options/proof_options.h" Proof
 
+option lfscLetification --lfsc-letification bool :default true
+ turns on global letification in LFSC proofs
+
 endmodule

@@ -16,6 +16,7 @@
 
 #include "prop/sat_solver_factory.h"
 
+#include "prop/cryptominisat.h"
 #include "prop/minisat/minisat.h"
 #include "prop/bvminisat/bvminisat.h"
 
@@ -25,6 +26,12 @@ namespace prop {
 BVSatSolverInterface* SatSolverFactory::createMinisat(context::Context* mainSatContext, StatisticsRegistry* registry, const std::string& name) {
   return new BVMinisatSatSolver(registry, mainSatContext, name);
 }
+
+SatSolver* SatSolverFactory::createCryptoMinisat(StatisticsRegistry* registry,
+                                                   const std::string& name) {
+return new CryptoMinisatSolver(registry, name);
+}
+  
 
 DPLLSatSolverInterface* SatSolverFactory::createDPLLMinisat(StatisticsRegistry* registry) {
   return new MinisatSatSolver(registry);

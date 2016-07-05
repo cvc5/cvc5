@@ -124,6 +124,9 @@ public:
   /** Get the type for regular expressions. */
   RegExpType regExpType() const;
 
+  /** Get the type for regular expressions. */
+  RegExpType regExpType() const;
+
   /** Get the type for reals. */
   RealType realType() const;
 
@@ -545,6 +548,11 @@ public:
    * @param type the type for the new bound variable
    */
   Expr mkBoundVar(Type type);
+  
+  /**
+   * Create a (nameless) new nil reference for separation logic of type
+   */
+  Expr mkSepNil(Type type);
 
   /** Get a reference to the statistics registry for this ExprManager */
   Statistics getStatistics() const throw();

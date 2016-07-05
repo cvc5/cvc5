@@ -64,6 +64,7 @@ typerule PRODUCT 		::CVC4::theory::sets::RelBinaryOperatorTypeRule
 typerule TRANSPOSE 		::CVC4::theory::sets::RelTransposeTypeRule
 typerule TCLOSURE 	    ::CVC4::theory::sets::RelTransClosureTypeRule
 
+
 construle UNION         ::CVC4::theory::sets::SetsBinaryOperatorTypeRule
 construle INTERSECTION  ::CVC4::theory::sets::SetsBinaryOperatorTypeRule
 construle SETMINUS      ::CVC4::theory::sets::SetsBinaryOperatorTypeRule

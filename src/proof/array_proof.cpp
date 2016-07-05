@@ -81,27 +81,45 @@ inline static bool match(TNode n1, TNode n2) {
 
 void ProofArray::setRowMergeTag(unsigned tag) {
   d_reasonRow = tag;
+  d_proofPrinter.d_row = tag;
 }
 
 void ProofArray::setRow1MergeTag(unsigned tag) {
   d_reasonRow1 = tag;
+  d_proofPrinter.d_row1 = tag;
 }
 
 void ProofArray::setExtMergeTag(unsigned tag) {
   d_reasonExt = tag;
+  d_proofPrinter.d_ext = tag;
+}
+
+unsigned ProofArray::getRowMergeTag() const {
+  return d_reasonRow;
+}
+
+unsigned ProofArray::getRow1MergeTag() const {
+  return d_reasonRow1;
+}
+
+unsigned ProofArray::getExtMergeTag() const {
+  return d_reasonExt;
 }
 
 void ProofArray::toStream(std::ostream& out) {
+  ProofLetMap map;
+  toStream(out, map);
+}
+
+void ProofArray::toStream(std::ostream& out, const ProofLetMap& map) {
   Trace("pf::array") << "; Print Array proof..." << std::endl;
-  //AJR : carry this further?
-  LetMap map;
   toStreamLFSC(out, ProofManager::getArrayProof(), d_proof, map);
   Debug("pf::array") << "; Print Array proof done!" << std::endl;
 }
 
-void ProofArray::toStreamLFSC(std::ostream& out, TheoryProof* tp, theory::eq::EqProof* pf, const LetMap& map) {
+void ProofArray::toStreamLFSC(std::ostream& out, TheoryProof* tp, theory::eq::EqProof* pf, const ProofLetMap& map) {
   Debug("pf::array") << "Printing array proof in LFSC : " << std::endl;
-  pf->debug_print("pf::array");
+  pf->debug_print("pf::array", 0, &d_proofPrinter);
   Debug("pf::array") << std::endl;
   toStreamRecLFSC( out, tp, pf, 0, map );
   Debug("pf::array") << "Printing array proof in LFSC DONE" << std::endl;
@@ -111,10 +129,10 @@ Node ProofArray::toStreamRecLFSC(std::ostream& out,
                                  TheoryProof* tp,
                                  theory::eq::EqProof* pf,
                                  unsigned tb,
-                                 const LetMap& map) {
+                                 const ProofLetMap& map) {
 
   Debug("pf::array") << std::endl << std::endl << "toStreamRecLFSC called. tb = " << tb << " . proof:" << std::endl;
-  pf->debug_print("pf::array");
+  pf->debug_print("pf::array", 0, &d_proofPrinter);
   Debug("pf::array") << std::endl;
 
   if(tb == 0) {
@@ -150,7 +168,7 @@ Node ProofArray::toStreamRecLFSC(std::ostream& out,
                pf->d_children[i + count]->d_node.isNull();
              ++count) {
           Debug("pf::array") << "Found a congruence: " << std::endl;
-          pf->d_children[i+count]->debug_print("pf::array");
+          pf->d_children[i+count]->debug_print("pf::array", 0, &d_proofPrinter);
           congruenceClosures.push_back(pf->d_children[i+count]);
         }
 
@@ -220,48 +238,48 @@ Node ProofArray::toStreamRecLFSC(std::ostream& out,
         ++i;
       }
     }
-    Assert(neg >= 0);
+
+    bool disequalityFound = (neg >= 0);
+    if (!disequalityFound) {
+      Debug("pf::array") << "A disequality was NOT found. UNSAT due to merged constants" << std::endl;
+      Debug("pf::array") << "Proof for: " << pf->d_node << std::endl;
+      Assert(pf->d_node.getKind() == kind::EQUAL);
+      Assert(pf->d_node.getNumChildren() == 2);
+      Assert (pf->d_node[0].isConst() && pf->d_node[1].isConst());
+    }
 
     Node n1;
     std::stringstream ss, ss2;
     //Assert(subTrans.d_children.size() == pf->d_children.size() - 1);
     Debug("mgdx") << "\nsubtrans has " << subTrans.d_children.size() << " children\n";
-    if(pf->d_children.size() > 2) {
+    if(!disequalityFound || pf->d_children.size() > 2) {
       n1 = toStreamRecLFSC(ss, tp, &subTrans, 1, map);
     } else {
       n1 = toStreamRecLFSC(ss, tp, subTrans.d_children[0], 1, map);
       Debug("mgdx") << "\nsubTrans unique child " << subTrans.d_children[0]->d_id << " was proven\ngot: " << n1 << std::endl;
     }
 
-    Node n2 = pf->d_children[neg]->d_node;
-    Assert(n2.getKind() == kind::NOT);
-    Debug("mgdx") << "\nhave proven: " << n1 << std::endl;
-    Debug("mgdx") << "n2 is " << n2 << std::endl;
-    Debug("mgdx") << "n2->d_id is " << pf->d_children[neg]->d_id << std::endl;
-    Debug("mgdx") << "n2[0] is " << n2[0] << std::endl;
+    out << "(clausify_false (contra _ ";
 
-    if (n2[0].getNumChildren() > 0) { Debug("mgdx") << "\nn2[0]: " << n2[0][0] << std::endl; }
-    if (n1.getNumChildren() > 1) { Debug("mgdx") << "n1[1]: " << n1[1] << std::endl; }
+    if (disequalityFound) {
+      Node n2 = pf->d_children[neg]->d_node;
+      Assert(n2.getKind() == kind::NOT);
+      Debug("mgdx") << "\nhave proven: " << n1 << std::endl;
+      Debug("mgdx") << "n2 is " << n2 << std::endl;
+      Debug("mgdx") << "n2->d_id is " << pf->d_children[neg]->d_id << std::endl;
+      Debug("mgdx") << "n2[0] is " << n2[0] << std::endl;
 
-    if (pf->d_children[neg]->d_id == d_reasonExt) {
-      // The negative node was created by an EXT rule; e.g. it is a[k]!=b[k], due to a!=b.
+      if (n2[0].getNumChildren() > 0) { Debug("mgdx") << "\nn2[0]: " << n2[0][0] << std::endl; }
+      if (n1.getNumChildren() > 1) { Debug("mgdx") << "n1[1]: " << n1[1] << std::endl; }
 
-      //      	    (clausify_false (contra _ .gl2 (or_elim_1 _ _ .gl1 FIXME))))))) (\ .glemc6
-
-      out << "(clausify_false (contra _ ";
-      out << ss.str();
-
-      toStreamRecLFSC(ss2, tp, pf->d_children[neg], 1, map);
-
-      out << " ";
-      out << ss2.str();
-      out << "))";
-
-    } else {
-      // The negative node is, e.g., a pure equality
-      out << "(clausify_false (contra _ ";
-
-      if(n2[0].getKind() == kind::APPLY_UF) {
+      if ((pf->d_children[neg]->d_id == d_reasonExt) ||
+          (pf->d_children[neg]->d_id == theory::eq::MERGED_THROUGH_TRANS)) {
+        // Ext case: The negative node was created by an EXT rule; e.g. it is a[k]!=b[k], due to a!=b.
+        out << ss.str();
+        out << " ";
+        toStreamRecLFSC(ss2, tp, pf->d_children[neg], 1, map);
+        out << ss2.str();
+      } else if (n2[0].getKind() == kind::APPLY_UF) {
         out << "(trans _ _ _ _ ";
         out << "(symm _ _ _ ";
         out << ss.str();
@@ -276,16 +294,27 @@ Node ProofArray::toStreamRecLFSC(std::ostream& out,
         Debug("pf::array") << "ArrayProof::toStream: getLitName( " << n2[0] << " ) = " <<
           ProofManager::getLitName(n2[0]) << std::endl;
 
-        out << " " << ProofManager::getLitName(n2[0]) << "))" << std::endl;
+        out << " " << ProofManager::getLitName(n2[0]);
       }
+    } else {
+      Node n2 = pf->d_node;
+      Assert(n2.getKind() == kind::EQUAL);
+      Assert((n1[0] == n2[0] && n1[1] == n2[1]) || (n1[1] == n2[0] && n1[0] == n2[1]));
+
+      out << ss.str();
+      out << " ";
+      ProofManager::getTheoryProofEngine()->printConstantDisequalityProof(out,
+                                                                          n1[0].toExpr(),
+                                                                          n1[1].toExpr());
     }
 
+    out << "))" << std::endl;
     return Node();
   }
 
   if (pf->d_id == theory::eq::MERGED_THROUGH_CONGRUENCE) {
     Debug("mgd") << "\nok, looking at congruence:\n";
-    pf->debug_print("mgd");
+    pf->debug_print("mgd", 0, &d_proofPrinter);
     std::stack<const theory::eq::EqProof*> stk;
     for(const theory::eq::EqProof* pf2 = pf; pf2->d_id == theory::eq::MERGED_THROUGH_CONGRUENCE; pf2 = pf2->d_children[0]) {
       Assert(!pf2->d_node.isNull());
@@ -315,7 +344,7 @@ Node ProofArray::toStreamRecLFSC(std::ostream& out,
 
 
     Debug("mgd") << "\nok, in FIRST cong[" << stk.size() << "]" << "\n";
-    pf2->debug_print("mgd");
+    pf2->debug_print("mgd", 0, &d_proofPrinter);
     // Temp
     Debug("mgd") << "n1 is a proof for: " << pf2->d_children[0]->d_node << ". It is: " << n1 << std::endl;
     Debug("mgd") << "n2 is a proof for: " << pf2->d_children[1]->d_node << ". It is: " << n2 << std::endl;
@@ -332,7 +361,7 @@ Node ProofArray::toStreamRecLFSC(std::ostream& out,
       Debug("mgd") << "SIDE IS 1\n";
       if(!match(pf2->d_node, n1[1])) {
         Debug("mgd") << "IN BAD CASE, our first subproof is\n";
-        pf2->d_children[0]->debug_print("mgd");
+        pf2->d_children[0]->debug_print("mgd", 0, &d_proofPrinter);
       }
       Assert(match(pf2->d_node, n1[1]));
       side = 1;
@@ -546,6 +575,20 @@ Node ProofArray::toStreamRecLFSC(std::ostream& out,
     return pf->d_node;
   }
 
+  else if (pf->d_id == theory::eq::MERGED_THROUGH_CONSTANTS) {
+    Debug("pf::array") << "Proof for: " << pf->d_node << std::endl;
+    Assert(pf->d_node.getKind() == kind::NOT);
+    Node n = pf->d_node[0];
+    Assert(n.getKind() == kind::EQUAL);
+    Assert(n.getNumChildren() == 2);
+    Assert(n[0].isConst() && n[1].isConst());
+
+    ProofManager::getTheoryProofEngine()->printConstantDisequalityProof(out,
+                                                                        n[0].toExpr(),
+                                                                        n[1].toExpr());
+    return pf->d_node;
+  }
+
   else if (pf->d_id == theory::eq::MERGED_THROUGH_TRANS) {
     bool firstNeg = false;
     bool secondNeg = false;
@@ -554,7 +597,7 @@ Node ProofArray::toStreamRecLFSC(std::ostream& out,
     Assert(pf->d_children.size() >= 2);
     std::stringstream ss;
     Debug("mgd") << "\ndoing trans proof[[\n";
-    pf->debug_print("mgd");
+    pf->debug_print("mgd", 0, &d_proofPrinter);
     Debug("mgd") << "\n";
     Node n1 = toStreamRecLFSC(ss, tp, pf->d_children[0], tb + 1, map);
     Debug("mgd") << "\ndoing trans proof, got n1 " << n1 << "\n";
@@ -772,7 +815,7 @@ Node ProofArray::toStreamRecLFSC(std::ostream& out,
           Warning() << "\n\ntrans proof failure at step " << i << "\n\n";
           Warning() << "0 proves " << n1 << "\n";
           Warning() << "1 proves " << n2 << "\n\n";
-          pf->debug_print("mgdx",0);
+          pf->debug_print("mgdx", 0, &d_proofPrinter);
           //toStreamRec(Warning.getStream(), pf, 0);
           Warning() << "\n\n";
           Unreachable();
@@ -931,6 +974,9 @@ Node ProofArray::toStreamRecLFSC(std::ostream& out,
       t4 = pf->d_children[0]->d_node[0][side][0][2];
       ret = pf->d_node;
 
+      // The order of indices needs to match; we might have to swap t1 and t2 and then apply symmetry.
+      bool swap = (t2 == pf->d_children[0]->d_node[0][side][0][1]);
+
       Debug("mgd") << "t1 " << t1 << "\nt2 " << t2 << "\nt3 " << t3 << "\nt4 " << t4 << "\n";
 
       Assert(pf->d_children.size() == 1);
@@ -939,28 +985,31 @@ Node ProofArray::toStreamRecLFSC(std::ostream& out,
 
       Debug("pf::array") << "Subproof is: " << ss.str() << std::endl;
 
+      if (swap) {
+        out << "(symm _ _ _ ";
+      }
+
       out << "(negativerow _ _ ";
-      tp->printTerm(t1.toExpr(), out, map);
+      tp->printTerm(swap ? t2.toExpr() : t1.toExpr(), out, map);
       out << " ";
-      tp->printTerm(t2.toExpr(), out, map);
+      tp->printTerm(swap ? t1.toExpr() : t2.toExpr(), out, map);
       out << " ";
       tp->printTerm(t3.toExpr(), out, map);
       out << " ";
       tp->printTerm(t4.toExpr(), out, map);
       out << " ";
 
-
-      // if (subproof[0][1] == t3) {
-      Debug("pf::array") << "Dont need symmetry!" << std::endl;
-      out << ss.str();
-      // } else {
-      //   Debug("pf::array") << "Need symmetry!" << std::endl;
-      //   out << "(negsymm _ _ _ " << ss.str() << ")";
-      // }
+      if (side != 0) {
+        out << "(negsymm _ _ _ " << ss.str() << ")";
+      } else {
+        out << ss.str();
+      }
 
       out << ")";
 
-      // Unreachable();
+      if (swap) {
+        out << ") ";
+      }
 
       return ret;
     }
@@ -1071,13 +1120,12 @@ void ArrayProof::registerTerm(Expr term) {
 }
 
 std::string ArrayProof::skolemToLiteral(Expr skolem) {
+  Debug("pf::array") << "ArrayProof::skolemToLiteral( " << skolem << ")" << std::endl;
   Assert(d_skolemToLiteral.find(skolem) != d_skolemToLiteral.end());
   return d_skolemToLiteral[skolem];
 }
 
-void LFSCArrayProof::printOwnedTerm(Expr term, std::ostream& os, const LetMap& map) {
-  Debug("pf::array") << std::endl << "(pf::array) LFSCArrayProof::printOwnedTerm: term = " << term << std::endl;
-
+void LFSCArrayProof::printOwnedTerm(Expr term, std::ostream& os, const ProofLetMap& map) {
   Assert (theory::Theory::theoryOf(term) == theory::THEORY_ARRAY);
 
   if (theory::Theory::theoryOf(term) != theory::THEORY_ARRAY) {
@@ -1154,23 +1202,35 @@ void LFSCArrayProof::printOwnedTerm(Expr term, std::ostream& os, const LetMap& m
 void LFSCArrayProof::printOwnedSort(Type type, std::ostream& os) {
   Debug("pf::array") << std::endl << "(pf::array) LFSCArrayProof::printOwnedSort: type is: " << type << std::endl;
   Assert (type.isArray() || type.isSort());
-  os << type <<" ";
+  if (type.isArray()){
+    ArrayType array_type(type);
+
+    Debug("pf::array") << "LFSCArrayProof::printOwnedSort: type is an array. Index type: "
+                       << array_type.getIndexType()
+                       << ", element type: " << array_type.getConstituentType() << std::endl;
+
+    os << "(Array ";
+    printSort(array_type.getIndexType(), os);
+    os << " ";
+    printSort(array_type.getConstituentType(), os);
+    os << ")";
+  } else {
+    os << type <<" ";
+  }
 }
 
-void LFSCArrayProof::printTheoryLemmaProof(std::vector<Expr>& lemma, std::ostream& os, std::ostream& paren) {
+void LFSCArrayProof::printTheoryLemmaProof(std::vector<Expr>& lemma, std::ostream& os, std::ostream& paren, const ProofLetMap& map) {
   os << " ;; Array Theory Lemma \n;;";
   for (unsigned i = 0; i < lemma.size(); ++i) {
     os << lemma[i] <<" ";
   }
   os <<"\n";
   //os << " (clausify_false trust)";
-  ArrayProof::printTheoryLemmaProof(lemma, os, paren);
+  ArrayProof::printTheoryLemmaProof(lemma, os, paren, map);
 }
 
 void LFSCArrayProof::printSortDeclarations(std::ostream& os, std::ostream& paren) {
   // declaring the sorts
-  Debug("pf::array") << "Arrays declaring sorts..." << std::endl;
-
   for (TypeSet::const_iterator it = d_sorts.begin(); it != d_sorts.end(); ++it) {
     if (!ProofManager::currentPM()->wasPrinted(*it)) {
       os << "(% " << *it << " sort\n";
@@ -1229,6 +1289,7 @@ void LFSCArrayProof::printTermDeclarations(std::ostream& os, std::ostream& paren
 void LFSCArrayProof::printDeferredDeclarations(std::ostream& os, std::ostream& paren) {
   Debug("pf::array") << "Array: print deferred declarations called" << std::endl;
 
+  unsigned count = 1;
   for (ExprSet::const_iterator it = d_skolemDeclarations.begin(); it != d_skolemDeclarations.end(); ++it) {
     Expr term = *it;
     Node equality = ProofManager::getSkolemizationManager()->getDisequality(*it);
@@ -1237,7 +1298,7 @@ void LFSCArrayProof::printDeferredDeclarations(std::ostream& os, std::ostream& p
                        << "It is a witness for: " << equality << std::endl;
 
     std::ostringstream newSkolemLiteral;
-    newSkolemLiteral << ".sl" << d_skolemToLiteral.size();
+    newSkolemLiteral << ".sl" << count++;
     std::string skolemLiteral = newSkolemLiteral.str();
 
     d_skolemToLiteral[*it] = skolemLiteral;
@@ -1250,20 +1311,23 @@ void LFSCArrayProof::printDeferredDeclarations(std::ostream& os, std::ostream& p
     Node array_one = equality[0][0];
     Node array_two = equality[0][1];
 
-    LetMap map;
-
+    ProofLetMap map;
     os << "(ext _ _ ";
     printTerm(array_one.toExpr(), os, map);
     os << " ";
     printTerm(array_two.toExpr(), os, map);
     os << " (\\ ";
-    printTerm(*it, os, map);
+    os << ProofManager::sanitize(*it);
     os << " (\\ ";
     os << skolemLiteral.c_str();
     os << "\n";
 
     paren << ")))";
   }
+}
+
+void LFSCArrayProof::printAliasingDeclarations(std::ostream& os, std::ostream& paren) {
+    // Nothing to do here at this point.
 }
 
 } /* CVC4  namespace */

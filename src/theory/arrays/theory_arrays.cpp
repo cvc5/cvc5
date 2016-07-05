@@ -829,7 +829,8 @@ void TheoryArrays::propagate(Effort e)
 
 
 Node TheoryArrays::explain(TNode literal) {
-  return explain(literal, NULL);
+  Node explanation = explain(literal, NULL);
+  return explanation;
 }
 
 Node TheoryArrays::explain(TNode literal, eq::EqProof *proof)
@@ -1394,6 +1395,7 @@ void TheoryArrays::check(Effort e) {
         break;
     default:
       Unreachable();
+      break;
     }
   }
 
@@ -2231,6 +2233,7 @@ bool TheoryArrays::dischargeLemmas()
 void TheoryArrays::conflict(TNode a, TNode b) {
   Debug("pf::array") << "TheoryArrays::Conflict called" << std::endl;
   eq::EqProof* proof = d_proofsEnabled ? new eq::EqProof() : NULL;
+
   if (a.getKind() == kind::CONST_BOOLEAN) {
     d_conflictNode = explain(a.iffNode(b), proof);
   } else {

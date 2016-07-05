@@ -94,6 +94,7 @@
 #include "theory/quantifiers/quantifiers_rewriter.h"
 #include "theory/sort_inference.h"
 #include "theory/strings/theory_strings.h"
+#include "theory/sep/theory_sep.h"
 #include "theory/substitutions.h"
 #include "theory/theory_engine.h"
 #include "theory/theory_model.h"
@@ -552,10 +553,10 @@ class SmtEnginePrivate : public NodeManagerListener {
    */
   unsigned d_simplifyAssertionsDepth;
 
-  /** whether certain preprocess steps are necessary */
-  bool d_needsExpandDefs;
-  bool d_needsRewriteBoolTerms;
-  bool d_needsConstrainSubTypes;
+  /** TODO: whether certain preprocess steps are necessary */
+  //bool d_needsExpandDefs;
+  //bool d_needsRewriteBoolTerms;
+  //bool d_needsConstrainSubTypes;
 
 public:
   /**
@@ -684,9 +685,9 @@ public:
     d_abstractValueMap(&d_fakeContext),
     d_abstractValues(),
     d_simplifyAssertionsDepth(0),
-    d_needsExpandDefs(true),
-    d_needsRewriteBoolTerms(true),
-    d_needsConstrainSubTypes(true), //TODO
+    //d_needsExpandDefs(true),
+    //d_needsRewriteBoolTerms(true),
+    //d_needsConstrainSubTypes(true), //TODO
     d_iteSkolemMap(),
     d_iteRemover(smt.d_userContext),
     d_pbsProcessor(smt.d_userContext),
@@ -990,7 +991,7 @@ public:
           Trace("smt-qe-debug") << "   return : " << ret << std::endl;
           //recursive (for nested quantification)
           ret = replaceQuantifiersWithInstantiations( reti, insts, visited );
-        }     
+        }
       }else if( n.getNumChildren()>0 ){
         bool childChanged = false;
         std::vector< Node > children;
@@ -1061,12 +1062,16 @@ SmtEngine::SmtEngine(ExprManager* em) throw() :
 
   // The ProofManager is constructed before any other proof objects such as
   // SatProof and TheoryProofs. The TheoryProofEngine and the SatProof are
-  // initialized in TheoryEngine and PropEngine respectively. 
+  // initialized in TheoryEngine and PropEngine respectively.
   Assert(d_proofManager == NULL);
+
+  // d_proofManager must be created before Options has been finished
+  // being parsed from the input file. Because of this, we cannot trust
+  // that options::proof() is set correctly yet.
 #ifdef CVC4_PROOF
   d_proofManager = new ProofManager();
 #endif
-  
+
   // We have mutual dependency here, so we add the prop engine to the theory
   // engine later (it is non-essential there)
   d_theoryEngine = new TheoryEngine(d_context, d_userContext,
@@ -1078,7 +1083,9 @@ SmtEngine::SmtEngine(ExprManager* em) throw() :
   for(TheoryId id = theory::THEORY_FIRST; id < theory::THEORY_LAST; ++id) {
     TheoryConstructor::addTheory(d_theoryEngine, id);
     //register with proof engine if applicable
-    THEORY_PROOF(ProofManager::currentPM()->getTheoryProofEngine()->registerTheory(d_theoryEngine->theoryOf(id)); );
+#ifdef CVC4_PROOF
+    ProofManager::currentPM()->getTheoryProofEngine()->registerTheory(d_theoryEngine->theoryOf(id));
+#endif
   }
 
   d_private->addUseTheoryListListener(d_theoryEngine);
@@ -1100,7 +1107,7 @@ void SmtEngine::finishInit() {
   Trace("smt-debug") << "SmtEngine::finishInit" << std::endl;
   // ensure that our heuristics are properly set up
   setDefaults();
-  
+
   Trace("smt-debug") << "Making decision engine..." << std::endl;
 
   d_decisionEngine = new DecisionEngine(d_context, d_userContext);
@@ -1147,6 +1154,13 @@ void SmtEngine::finishInit() {
   d_dumpCommands.clear();
 
   PROOF( ProofManager::currentPM()->setLogic(d_logic); );
+  PROOF({
+      for(TheoryId id = theory::THEORY_FIRST; id < theory::THEORY_LAST; ++id) {
+        ProofManager::currentPM()->getTheoryProofEngine()->
+          finishRegisterTheory(d_theoryEngine->theoryOf(id));
+      }
+    });
+
   Trace("smt-debug") << "SmtEngine::finishInit done" << std::endl;
 }
 
@@ -1237,8 +1251,14 @@ SmtEngine::~SmtEngine() throw() {
     delete d_decisionEngine;
     d_decisionEngine = NULL;
 
-    PROOF(delete d_proofManager;);
-    PROOF(d_proofManager = NULL;);
+
+// d_proofManager is always created when proofs are enabled at configure time.
+// Becuase of this, this code should not be wrapped in PROOF() which
+// additionally checks flags such as options::proof().
+#ifdef CVC4_PROOF
+    delete d_proofManager;
+    d_proofManager = NULL;
+#endif
 
     delete d_stats;
     d_stats = NULL;
@@ -1306,9 +1326,9 @@ void SmtEngine::setDefaults() {
   }
   else if (options::solveIntAsBV() > 0) {
     d_logic = LogicInfo("QF_BV");
-  // } else if (d_logic.getLogicString() == "QF_UFBV" &&
-  //            options::bitblastMode() == theory::bv::BITBLAST_MODE_EAGER) {
-  //   d_logic = LogicInfo("QF_BV");
+  } else if (d_logic.getLogicString() == "QF_UFBV" &&
+             options::bitblastMode() == theory::bv::BITBLAST_MODE_EAGER) {
+    d_logic = LogicInfo("QF_BV");
   }
 
   // set strings-exp
@@ -1332,6 +1352,10 @@ void SmtEngine::setDefaults() {
     if(! options::fmfBoundInt.wasSetByUser()) {
       options::fmfBoundInt.set( true );
       Trace("smt") << "turning on fmf-bound-int, for strings-exp" << std::endl;
+    }
+    if(! options::fmfInstEngine.wasSetByUser()) {
+      options::fmfInstEngine.set( true );
+      Trace("smt") << "turning on fmf-inst-engine, for strings-exp" << std::endl;
     }
     /*
     if(! options::rewriteDivk.wasSetByUser()) {
@@ -1709,19 +1733,23 @@ void SmtEngine::setDefaults() {
     //must have finite model finding on
     options::finiteModelFind.set( true );
   }
-  
+
   //if it contains a theory with non-termination, do not strictly enforce that quantifiers and theory combination must be interleaved
   if( d_logic.isTheoryEnabled(THEORY_STRINGS) || (d_logic.isTheoryEnabled(THEORY_ARITH) && !d_logic.isLinear()) ){
     if( !options::instWhenStrictInterleave.wasSetByUser() ){
       options::instWhenStrictInterleave.set( false );
     }
   }
-  
+
   //local theory extensions
   if( options::localTheoryExt() ){
     if( !options::instMaxLevel.wasSetByUser() ){
       options::instMaxLevel.set( 0 );
     }
+  }
+  if( options::instMaxLevel()!=-1 ){
+    Notice() << "SmtEngine: turning off cbqi to support instMaxLevel" << endl;
+    options::cbqi.set(false);
   }
 
   if(options::fmfBoundIntLazy.wasSetByUser() && options::fmfBoundIntLazy()) {
@@ -1783,13 +1811,15 @@ void SmtEngine::setDefaults() {
   }
 
   //apply counterexample guided instantiation options
-  if( options::cegqiSingleInv() ){
-    options::ceGuidedInst.set( true );
+  if( options::cegqiSingleInvMode()!=quantifiers::CEGQI_SI_MODE_NONE ){
+    if( !options::ceGuidedInst.wasSetByUser() ){
+      options::ceGuidedInst.set( true );
+    }
   }
   if( options::ceGuidedInst() ){
     //counterexample-guided instantiation for sygus
-    if( !options::cegqiSingleInv.wasSetByUser() ){
-      options::cegqiSingleInv.set( true );
+    if( !options::cegqiSingleInvMode.wasSetByUser() ){
+      options::cegqiSingleInvMode.set( quantifiers::CEGQI_SI_MODE_USE );
     }
     if( !options::quantConflictFind.wasSetByUser() ){
       options::quantConflictFind.set( false );
@@ -1824,8 +1854,8 @@ void SmtEngine::setDefaults() {
     }
   }
   //counterexample-guided instantiation for non-sygus
-  // enable if any quantifiers with arithmetic or datatypes
-  if( ( d_logic.isQuantified() && ( d_logic.isTheoryEnabled(THEORY_ARITH) || d_logic.isTheoryEnabled(THEORY_DATATYPES) ) ) || 
+  // enable if any possible quantifiers with arithmetic, datatypes or bitvectors
+  if( ( d_logic.isQuantified() && ( d_logic.isTheoryEnabled(THEORY_ARITH) || d_logic.isTheoryEnabled(THEORY_DATATYPES) || d_logic.isTheoryEnabled(THEORY_BV) ) ) ||
       options::cbqiAll() ){
     if( !options::cbqi.wasSetByUser() ){
       options::cbqi.set( true );
@@ -2583,8 +2613,9 @@ Node SmtEnginePrivate::intToBV(TNode n, NodeMap& cache) {
             case kind::CONST_RATIONAL: {
               Rational constant = current.getConst<Rational>();
               AlwaysAssert(constant.isIntegral());
+              AlwaysAssert(constant >= 0);
               BitVector bv(size, constant.getNumerator());
-              if (bv.getValue() != constant.getNumerator()) {
+              if (bv.toSignedInt() != constant.getNumerator()) {
                 throw TypeCheckingException(current.toExpr(), string("Not enough bits for constant in intToBV: ") + current.toString());
               }
               result = nm->mkConst(bv);
@@ -3837,7 +3868,7 @@ void SmtEnginePrivate::processAssertions() {
        ProofManager::currentPM()->addAssertion(d_assertions[i].toExpr());
      }
      );
-  
+
   Debug("smt") << " d_assertions     : " << d_assertions.size() << endl;
 
   if( options::ceGuidedInst() ){
@@ -3856,8 +3887,8 @@ void SmtEnginePrivate::processAssertions() {
   }
 
   if (options::bitblastMode() == theory::bv::BITBLAST_MODE_EAGER &&
-      !d_smt.d_logic.isPure(THEORY_BV)) {
-    //    && d_smt.d_logic.getLogicString() != "QF_UFBV")
+      !d_smt.d_logic.isPure(THEORY_BV) &&
+      d_smt.d_logic.getLogicString() != "QF_UFBV") {
     throw ModalException("Eager bit-blasting does not currently support theory combination. "
                          "Note that in a QF_BV problem UF symbols can be introduced for division. "
                          "Try --bv-div-zero-const to interpret division by zero as a constant.");
@@ -3884,7 +3915,6 @@ void SmtEnginePrivate::processAssertions() {
   dumpAssertions("post-boolean-terms", d_assertions);
 
   Debug("smt") << " d_assertions     : " << d_assertions.size() << endl;
-
 
   dumpAssertions("pre-constrain-subtypes", d_assertions);
   {
@@ -3964,6 +3994,10 @@ void SmtEnginePrivate::processAssertions() {
     }
     Trace("smt-proc") << "SmtEnginePrivate::processAssertions() : post-strings-preprocess" << endl;
     dumpAssertions("post-strings-pp", d_assertions);
+  }
+  if( d_smt.d_logic.isTheoryEnabled(THEORY_SEP) ) {
+    //separation logic solver needs to register the entire input
+    ((theory::sep::TheorySep*)d_smt.d_theoryEngine->theoryOf(THEORY_SEP))->processAssertions( d_assertions.ref() );
   }
   if( d_smt.d_logic.isQuantified() ){
     Trace("smt-proc") << "SmtEnginePrivate::processAssertions() : pre-quant-preprocess" << endl;
@@ -4220,7 +4254,7 @@ void SmtEnginePrivate::processAssertions() {
 
   Trace("smt-proc") << "SmtEnginePrivate::processAssertions() end" << endl;
   dumpAssertions("post-everything", d_assertions);
-  
+
 
   //set instantiation level of everything to zero
   if( options::instLevelInputOnly() && options::instMaxLevel()!=-1 ){
@@ -4410,74 +4444,75 @@ Result SmtEngine::checkSynth(const Expr& e) throw(TypeCheckingException, ModalEx
   Trace("smt-synth") << "Check synthesis conjecture: " << e << std::endl;
   Expr e_check = e;
   Node conj = Node::fromExpr( e );
-  Assert( conj.getKind()==kind::FORALL );
-  //possibly run quantifier elimination to make formula into single invocation
-  if( conj[1].getKind()==kind::EXISTS ){
-    Node conj_se = conj[1][1];
-    
-    Trace("smt-synth") << "Compute single invocation for " << conj_se << "..." << std::endl;
-    quantifiers::SingleInvocationPartition sip( kind::APPLY );
-    sip.init( conj_se );
-    Trace("smt-synth") << "...finished, got:" << std::endl;
-    sip.debugPrint("smt-synth");
-    
-    if( !sip.isPurelySingleInvocation() && sip.isNonGroundSingleInvocation() ){
-      //We are in the case where our synthesis conjecture is exists f. forall xy. P( f( x ), x, y ), P does not contain f.
-      //The following will run QE on (exists z x.) exists y. P( z, x, y ) to obtain Q( z, x ), 
-      //  and then constructs exists f. forall x. Q( f( x ), x ), where Q does not contain f.  We invoke synthesis solver on this result.
-    
-      //create new smt engine to do quantifier elimination
-      SmtEngine smt_qe( d_exprManager );
-      smt_qe.setLogic(getLogicInfo());
-      Trace("smt-synth") << "Property is non-ground single invocation, run QE to obtain single invocation." << std::endl;
-      //partition variables
-      std::vector< Node > qe_vars;
-      std::vector< Node > nqe_vars;
-      for( unsigned i=0; i<sip.d_all_vars.size(); i++ ){
-        Node v = sip.d_all_vars[i];
-        if( std::find( sip.d_si_vars.begin(), sip.d_si_vars.end(), v )==sip.d_si_vars.end() ){
-          qe_vars.push_back( v );
-        }else{
-          nqe_vars.push_back( v );
+  if( conj.getKind()==kind::FORALL ){
+    //possibly run quantifier elimination to make formula into single invocation
+    if( conj[1].getKind()==kind::EXISTS ){
+      Node conj_se = conj[1][1];
+
+      Trace("smt-synth") << "Compute single invocation for " << conj_se << "..." << std::endl;
+      quantifiers::SingleInvocationPartition sip( kind::APPLY );
+      sip.init( conj_se );
+      Trace("smt-synth") << "...finished, got:" << std::endl;
+      sip.debugPrint("smt-synth");
+
+      if( !sip.isPurelySingleInvocation() && sip.isNonGroundSingleInvocation() ){
+        //We are in the case where our synthesis conjecture is exists f. forall xy. P( f( x ), x, y ), P does not contain f.
+        //The following will run QE on (exists z x.) exists y. P( z, x, y ) to obtain Q( z, x ),
+        //  and then constructs exists f. forall x. Q( f( x ), x ), where Q does not contain f.  We invoke synthesis solver on this result.
+
+        //create new smt engine to do quantifier elimination
+        SmtEngine smt_qe( d_exprManager );
+        smt_qe.setLogic(getLogicInfo());
+        Trace("smt-synth") << "Property is non-ground single invocation, run QE to obtain single invocation." << std::endl;
+        //partition variables
+        std::vector< Node > qe_vars;
+        std::vector< Node > nqe_vars;
+        for( unsigned i=0; i<sip.d_all_vars.size(); i++ ){
+          Node v = sip.d_all_vars[i];
+          if( std::find( sip.d_si_vars.begin(), sip.d_si_vars.end(), v )==sip.d_si_vars.end() ){
+            qe_vars.push_back( v );
+          }else{
+            nqe_vars.push_back( v );
+          }
         }
+        std::vector< Node > orig;
+        std::vector< Node > subs;
+        //skolemize non-qe variables
+        for( unsigned i=0; i<nqe_vars.size(); i++ ){
+          Node k = NodeManager::currentNM()->mkSkolem( "k", nqe_vars[i].getType(), "qe for non-ground single invocation" );
+          orig.push_back( nqe_vars[i] );
+          subs.push_back( k );
+          Trace("smt-synth") << "  subs : " << nqe_vars[i] << " -> " << k << std::endl;
+        }
+        for( std::map< Node, bool >::iterator it = sip.d_funcs.begin(); it != sip.d_funcs.end(); ++it ){
+          orig.push_back( sip.d_func_inv[it->first] );
+          Node k = NodeManager::currentNM()->mkSkolem( "k", sip.d_func_fo_var[it->first].getType(), "qe for function in non-ground single invocation" );
+          subs.push_back( k );
+          Trace("smt-synth") << "  subs : " << sip.d_func_inv[it->first] << " -> " << k << std::endl;
+        }
+        Node conj_se_ngsi = sip.getFullSpecification();
+        Node conj_se_ngsi_subs = conj_se_ngsi.substitute( orig.begin(), orig.end(), subs.begin(), subs.end() );
+        Assert( !qe_vars.empty() );
+        conj_se_ngsi_subs = NodeManager::currentNM()->mkNode( kind::EXISTS, NodeManager::currentNM()->mkNode( kind::BOUND_VAR_LIST, qe_vars ), conj_se_ngsi_subs );
+
+        Trace("smt-synth") << "Run quantifier elimination on " << conj_se_ngsi_subs << std::endl;
+        Expr qe_res = smt_qe.doQuantifierElimination( conj_se_ngsi_subs.toExpr(), true, false );
+        Trace("smt-synth") << "Result : " << qe_res << std::endl;
+
+        //create single invocation conjecture
+        Node qe_res_n = Node::fromExpr( qe_res );
+        qe_res_n = qe_res_n.substitute( subs.begin(), subs.end(), orig.begin(), orig.end() );
+        if( !nqe_vars.empty() ){
+          qe_res_n = NodeManager::currentNM()->mkNode( kind::EXISTS, NodeManager::currentNM()->mkNode( kind::BOUND_VAR_LIST, nqe_vars ), qe_res_n );
+        }
+        Assert( conj.getNumChildren()==3 );
+        qe_res_n = NodeManager::currentNM()->mkNode( kind::FORALL, conj[0], qe_res_n, conj[2] );
+        Trace("smt-synth") << "Converted conjecture after QE : " << qe_res_n << std::endl;
+        e_check = qe_res_n.toExpr();
       }
-      std::vector< Node > orig;
-      std::vector< Node > subs;
-      //skolemize non-qe variables
-      for( unsigned i=0; i<nqe_vars.size(); i++ ){
-        Node k = NodeManager::currentNM()->mkSkolem( "k", nqe_vars[i].getType(), "qe for non-ground single invocation" );
-        orig.push_back( nqe_vars[i] );
-        subs.push_back( k );
-        Trace("smt-synth") << "  subs : " << nqe_vars[i] << " -> " << k << std::endl;
-      }
-      for( std::map< Node, bool >::iterator it = sip.d_funcs.begin(); it != sip.d_funcs.end(); ++it ){
-        orig.push_back( sip.d_func_inv[it->first] );
-        Node k = NodeManager::currentNM()->mkSkolem( "k", sip.d_func_fo_var[it->first].getType(), "qe for function in non-ground single invocation" );
-        subs.push_back( k );
-        Trace("smt-synth") << "  subs : " << sip.d_func_inv[it->first] << " -> " << k << std::endl;
-      }
-      Node conj_se_ngsi = sip.getFullSpecification();
-      Node conj_se_ngsi_subs = conj_se_ngsi.substitute( orig.begin(), orig.end(), subs.begin(), subs.end() );
-      Assert( !qe_vars.empty() );
-      conj_se_ngsi_subs = NodeManager::currentNM()->mkNode( kind::EXISTS, NodeManager::currentNM()->mkNode( kind::BOUND_VAR_LIST, qe_vars ), conj_se_ngsi_subs );
-      
-      Trace("smt-synth") << "Run quantifier elimination on " << conj_se_ngsi_subs << std::endl;
-      Expr qe_res = smt_qe.doQuantifierElimination( conj_se_ngsi_subs.toExpr(), true, false );
-      Trace("smt-synth") << "Result : " << qe_res << std::endl;
-      
-      //create single invocation conjecture
-      Node qe_res_n = Node::fromExpr( qe_res );
-      qe_res_n = qe_res_n.substitute( subs.begin(), subs.end(), orig.begin(), orig.end() );
-      if( !nqe_vars.empty() ){
-        qe_res_n = NodeManager::currentNM()->mkNode( kind::EXISTS, NodeManager::currentNM()->mkNode( kind::BOUND_VAR_LIST, nqe_vars ), qe_res_n );
-      }
-      Assert( conj.getNumChildren()==3 );
-      qe_res_n = NodeManager::currentNM()->mkNode( kind::FORALL, conj[0], qe_res_n, conj[2] );
-      Trace("smt-synth") << "Converted conjecture after QE : " << qe_res_n << std::endl;
-      e_check = qe_res_n.toExpr();
     }
   }
-  
+
   return checkSatisfiability( e_check, true, false );
 }
 
@@ -5104,7 +5139,7 @@ Expr SmtEngine::doQuantifierElimination(const Expr& e, bool doFull, bool strict)
     Warning() << "Unexpected logic for quantifier elimination " << d_logic << endl;
   }
   Trace("smt-qe") << "Do quantifier elimination " << e << std::endl;
-  Node n_e = Node::fromExpr( e );  
+  Node n_e = Node::fromExpr( e );
   if( n_e.getKind()!=kind::EXISTS ){
     throw ModalException("Expecting an existentially quantified formula as argument to get-qe.");
   }
@@ -5131,7 +5166,7 @@ Expr SmtEngine::doQuantifierElimination(const Expr& e, bool doFull, bool strict)
       InternalError(ss.str().c_str());
     }
     //get the instantiations for all quantified formulas
-    std::map< Node, std::vector< Node > > insts;    
+    std::map< Node, std::vector< Node > > insts;
     d_theoryEngine->getInstantiations( insts );
     //find the quantified formula that corresponds to the input
     Node top_q;

@@ -126,6 +126,8 @@ private:
   CegConjecture * d_conj;
   /** last instantiation by single invocation module? */
   bool d_last_inst_si;
+  /** evaluation axioms */
+  std::map< Node, bool > d_eval_axioms;
 private: //for enforcing fairness
   /** measure functions */
   std::map< TypeNode, Node > d_uf_measure;
@@ -139,6 +141,8 @@ private: //for enforcing fairness
   std::map< Node, std::map< int, Node > > d_size_term_lemma;
   /** get measure lemmas */
   void getMeasureLemmas( Node n, Node v, std::vector< Node >& lems );
+  /** get eager unfolding */
+  Node getEagerUnfold( Node n, std::map< Node, Node >& visited );
 private:
   /** check conjecture */
   void checkCegConjecture( CegConjecture * conj );
@@ -156,6 +160,7 @@ public:
   /* Call during quantifier engine's check */
   void check( Theory::Effort e, unsigned quant_e );
   /* Called for new quantifiers */
+  void preRegisterQuantifier( Node q );
   void registerQuantifier( Node q );
   void assertNode( Node n );
   Node getNextDecisionRequest();
