@@ -93,6 +93,7 @@ Node TheorySep::ppRewrite(TNode term) {
 
 //must process assertions at preprocess so that quantified assertions are processed properly
 void TheorySep::processAssertions( std::vector< Node >& assertions ) {
+  d_pp_nils.clear();
   std::map< Node, bool > visited;
   for( unsigned i=0; i<assertions.size(); i++ ){
     processAssertion( assertions[i], visited );
@@ -102,7 +103,11 @@ void TheorySep::processAssertions( std::vector< Node >& assertions ) {
 void TheorySep::processAssertion( Node n, std::map< Node, bool >& visited ) {
   if( visited.find( n )==visited.end() ){
     visited[n] = true;
-    if( n.getKind()==kind::SEP_PTO || n.getKind()==kind::SEP_STAR || n.getKind()==kind::SEP_WAND || n.getKind()==kind::SEP_EMP ){
+    if( n.getKind()==kind::SEP_NIL ){
+      if( std::find( d_pp_nils.begin(), d_pp_nils.end(), n )==d_pp_nils.end() ){
+        d_pp_nils.push_back( n );
+      }
+    }else if( n.getKind()==kind::SEP_PTO || n.getKind()==kind::SEP_STAR || n.getKind()==kind::SEP_WAND || n.getKind()==kind::SEP_EMP ){
       //get the reference type (will compute d_type_references)
       int card = 0;
       TypeNode tn = getReferenceType( n, card );
@@ -307,6 +312,13 @@ void TheorySep::collectModelInfo( TheoryModel* m, bool fullModel )
 void TheorySep::presolve() {
   Trace("sep-pp") << "Presolving" << std::endl;
   //TODO: cleanup if incremental?
+  
+  //we must preregister all instances of sep.nil to ensure they are made equal
+  for( unsigned i=0; i<d_pp_nils.size(); i++ ){
+    std::map< TNode, bool > visited;
+    preRegisterTermRec( d_pp_nils[i], visited );
+  }
+  d_pp_nils.clear();
 }
 
 
@@ -772,6 +784,10 @@ void TheorySep::check(Effort e) {
   Trace("sep-check") << "Sep::check(): " << e << " done, conflict=" << d_conflict.get() << endl;
 }
 
+
+bool TheorySep::needsCheckLastEffort() {
+  return hasFacts();
+}
 
 Node TheorySep::getNextDecisionRequest() {
   for( unsigned i=0; i<d_neg_guards.size(); i++ ){

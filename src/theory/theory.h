@@ -565,7 +565,11 @@ public:
    * - or call get() until done() is true.
    */
   virtual void check(Effort level = EFFORT_FULL) { }
-
+  
+  /**
+   * Needs last effort check?
+   */ 
+  virtual bool needsCheckLastEffort() { return false; }
   /**
    * T-propagate new literal assignments in the current context.
    */

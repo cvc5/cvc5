@@ -183,6 +183,7 @@ class TheoryEngine {
    * Default model object
    */
   theory::TheoryModel* d_curr_model;
+  bool d_aloc_curr_model;
   /**
    * Model builder object
    */

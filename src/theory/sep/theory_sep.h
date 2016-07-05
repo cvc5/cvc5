@@ -50,6 +50,8 @@ class TheorySep : public Theory {
 
   /** True node for predicates = false */
   Node d_false;
+  
+  std::vector< Node > d_pp_nils;
 
   Node mkAnd( std::vector< TNode >& assumptions );
 
@@ -125,6 +127,8 @@ class TheorySep : public Theory {
   public:
 
   void check(Effort e);
+
+  bool needsCheckLastEffort();
 
   private:
 

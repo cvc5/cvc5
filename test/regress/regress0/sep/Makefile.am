@@ -53,7 +53,8 @@ TESTS =	\
   dispose-list-4-init.smt2 \
   wand-0526-sat.smt2 \
   quant_wand.smt2 \
-  fmf-nemp-2.smt2
+  fmf-nemp-2.smt2 \
+  trees-1.smt2
 
 
 FAILING_TESTS =
