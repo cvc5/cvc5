@@ -20,13 +20,6 @@
 #include "theory/sets/expr_patterns.h"
 #include "theory/sets/theory_sets_private.h"
 #include "theory/sets/theory_sets.h"
-//#include "options/sets_options.h"
-//#include "smt/smt_statistics_registry.h"
-//#include "theory/sets/expr_patterns.h" // ONLY included here
-//#include "theory/sets/scrutinize.h"
-//#include "theory/sets/theory_sets.h"
-//#include "theory/theory_model.h"
-//#include "util/result.h"
 
 
 using namespace std;
@@ -36,10 +29,10 @@ namespace CVC4 {
 namespace theory {
 namespace sets {
 
-typedef std::map<Node, std::map<kind::Kind_t, std::vector<Node> > >::iterator                   TERM_IT;
-typedef std::map<Node, std::map<Node, std::hash_set<Node, NodeHashFunction> > >::iterator       TC_IT;
 typedef std::map<Node, std::vector<Node> >::iterator                                            MEM_IT;
 typedef std::map< Node, std::hash_set< Node, NodeHashFunction > >::iterator                     TC_PAIR_IT;
+typedef std::map<Node, std::map<kind::Kind_t, std::vector<Node> > >::iterator                   TERM_IT;
+typedef std::map<Node, std::map<Node, std::hash_set<Node, NodeHashFunction> > >::iterator       TC_IT;
 
 int TheorySetsRels::EqcInfo::counter        = 0;
 
@@ -1319,6 +1312,11 @@ int TheorySetsRels::EqcInfo::counter        = 0;
     Node        fst_rep         = getRepresentative(fst);
     Node        snd_rep         = getRepresentative(snd);
     Node        mem_rep         = RelsUtils::constructPair(tc_ei->d_tc, fst_rep, snd_rep);
+
+    if(tc_ei->d_mem.find(mem_rep) != tc_ei->d_mem.end()) {
+      return;
+    }
+
     int         fst_rep_id      = getOrMakeElementRepId(tc_ei, fst_rep);
     int         snd_rep_id      = getOrMakeElementRepId(tc_ei, snd_rep);
 
@@ -1332,6 +1330,12 @@ int TheorySetsRels::EqcInfo::counter        = 0;
     } else {
       in_lst = (*tc_in_mem_it).second;
     }
+
+    std::hash_set<int>       in_reachable;
+    std::hash_set<int>       out_reachable;
+    collectInReachableNodes(tc_ei, fst_rep_id, in_reachable);
+    collectOutReachableNodes(tc_ei, snd_rep_id, out_reachable);
+
     // If fst_rep is inserted into in_lst successfully,
     // save rep pair's exp and send out TC inference lemmas.
     // Otherwise, mem's rep is already in the TC and return.
@@ -1366,7 +1370,7 @@ int TheorySetsRels::EqcInfo::counter        = 0;
     }
     insertIntoIdList(*out_lst, snd_rep_id);
     Trace("rels-std") << "Add out membership arrow for " << fst_rep << " to : " << snd_rep << std::endl;
-    sendTCInference(tc_ei, mem_rep, fst_rep, snd_rep, fst_rep_id, snd_rep_id);
+    sendTCInference(tc_ei, in_reachable, out_reachable, mem_rep, fst_rep, snd_rep, fst_rep_id, snd_rep_id);
   }
 
   Node TheorySetsRels::explainTCMem(EqcInfo* ei, Node pair, Node fst, Node snd) {
@@ -1386,25 +1390,34 @@ int TheorySetsRels::EqcInfo::counter        = 0;
     return Node::null();
   }
 
-  void TheorySetsRels::sendTCInference(EqcInfo* tc_ei, Node mem_rep, Node fst_rep, Node snd_rep, int id1, int id2) {
+  void TheorySetsRels::sendTCInference(EqcInfo* tc_ei, std::hash_set<int> in_reachable, std::hash_set<int> out_reachable, Node mem_rep, Node fst_rep, Node snd_rep, int id1, int id2) {
     Trace("rels-std") << "Start making TC inference after adding a member " << mem_rep << " to " << tc_ei->d_tc.get() << std::endl;
+
+    NodeMap::iterator map_it    = tc_ei->d_mem_exp.begin();
+    while(map_it != tc_ei->d_mem_exp.end()) {
+      Trace("rels-debug") << " mem =  "<< (*map_it).first << " exp = " << (*map_it).second<< std::endl;
+      map_it++;
+    }
     Node exp            = explainTCMem(tc_ei, mem_rep, fst_rep, snd_rep);
+    Assert(!exp.isNull());
     Node tc_lemma       = NodeManager::currentNM()->mkNode(kind::IMPLIES, exp, MEMBER(mem_rep, tc_ei->d_tc.get()));
     d_pending_merge.push_back(tc_lemma);
     d_lemma.insert(tc_lemma);
 
-    std::hash_set<int>       in_reachable;
-    std::hash_set<int>       out_reachable;
-    collectInReachableNodes(tc_ei, id1, in_reachable);
-    collectOutReachableNodes(tc_ei, id2, out_reachable);
-    Trace("rels-std") << "Start making TC inference after adding a member " << mem_rep << " to " << tc_ei->d_tc.get() <<  " ***** 2" << std::endl;
+    Trace("rels-std") << "Start making TC inference after adding a member " << mem_rep << " to " << tc_ei->d_tc.get()
+                      << " in_reachable size = " << in_reachable.size()
+                      << " out_reachable size = " << out_reachable.size()
+                      <<  " ***** 2" << std::endl;
+
     std::hash_set<int>::iterator        in_reachable_it = in_reachable.begin();
     while(in_reachable_it != in_reachable.end()) {
       Node    in_node         = d_id_node[*in_reachable_it];
       Node    in_pair         = RelsUtils::constructPair(tc_ei->d_tc.get(), in_node, fst_rep);
       Node    new_pair        = RelsUtils::constructPair(tc_ei->d_tc.get(), in_node, snd_rep);
+
+      Trace("rels-std") << "Reason for " << in_pair << "   " << explainTCMem(tc_ei, in_pair, in_node, fst_rep) << std::endl;
+
       Node    reason          = AND(explainTCMem(tc_ei, in_pair, in_node, fst_rep), exp);
-      Trace("rels-std") << "***$$$$$$$$$$ Adding exp for " << new_pair << " with reason " << reason << std::endl;
       tc_ei->d_mem_exp[new_pair] = reason;
       tc_ei->d_mem.insert(new_pair);
       Node tc_lemma = NodeManager::currentNM()->mkNode(kind::IMPLIES, reason, MEMBER(new_pair, tc_ei->d_tc.get()));
@@ -1444,7 +1457,7 @@ int TheorySetsRels::EqcInfo::counter        = 0;
   }
 
   void TheorySetsRels::collectInReachableNodes(EqcInfo* tc_ei, int start_id, std::hash_set<int>& in_reachable, bool firstRound) {
-    Trace("rels-std") << "Start collecting in-reachable nodes for node with id " << start_id <<  " ***** 0" << std::endl;
+    Trace("rels-std") << "**** Start collecting in-reachable nodes for node with id " << start_id << std::endl;
     if(in_reachable.find(start_id) != in_reachable.end()) {
       return;
     }
@@ -1463,7 +1476,7 @@ int TheorySetsRels::EqcInfo::counter        = 0;
   }
 
   void TheorySetsRels::collectOutReachableNodes(EqcInfo* tc_ei, int start_id, std::hash_set<int>& out_reachable, bool firstRound) {
-    Trace("rels-std") << "Start collecting out-reachable nodes for node with id " << start_id <<  " ***** 0" << std::endl;
+    Trace("rels-std") << "**** Start collecting out-reachable nodes for node with id " << start_id << std::endl;
     if(out_reachable.find(start_id) != out_reachable.end()) {
       return;
     }
@@ -1555,24 +1568,19 @@ int TheorySetsRels::EqcInfo::counter        = 0;
     Trace("rels-std") << "[sets-rels] Merge TC eqcs t1 = " << t1 << " and t2 = " << t2 << std::endl;
     EqcInfo* t1_ei = getOrMakeEqcInfo(t1);
     EqcInfo* t2_ei = getOrMakeEqcInfo(t2);
-    Trace("rels-std") << "[sets-rels] 0 debugging merging TC eqcs t1 = " << t1 << " and t2 = " << t2 << std::endl;
     if(t1_ei != NULL && t2_ei != NULL) {
-      Trace("rels-std") << "[sets-rels] 1 debugging merging TC eqcs t1 = " << t1 << " and t2 = " << t2 << std::endl;
       NodeSet::const_iterator     non_mem_it  = t2_ei->d_not_mem.begin();
       while(non_mem_it != t2_ei->d_not_mem.end()) {
         t1_ei->d_not_mem.insert(*non_mem_it);
         non_mem_it++;
       }
       if(!t1_ei->d_tc.get().isNull()) {
-        Trace("rels-std") << "[sets-rels] 2 debugging merging TC eqcs t1 = " << t1 << " and t2 = " << t2 << std::endl;
         NodeSet::const_iterator     mem_it  = t2_ei->d_mem.begin();
         while(mem_it != t2_ei->d_mem.end()) {
           addTCMemAndSendInfer(t1_ei, MEMBER(*mem_it, t2_ei->d_tc.get()), (*t2_ei->d_mem_exp.find(*mem_it)).second);
           mem_it++;
         }
-        Trace("rels-std") << "[sets-rels] 3 debugging merging TC eqcs t1 = " << t1 << " and t2 = " << t2 << std::endl;
       } else if(!t2_ei->d_tc.get().isNull()) {
-        Trace("rels-std") << "[sets-rels] 4 debugging merging TC eqcs t1 = " << t1 << " and t2 = " << t2 << std::endl;
         t1_ei->d_tc.set(t2_ei->d_tc);
         NodeSet::const_iterator     t1_mem_it  = t1_ei->d_mem.begin();
         while(t1_mem_it != t1_ei->d_mem.end()) {
@@ -1868,7 +1876,14 @@ int TheorySetsRels::EqcInfo::counter        = 0;
 
     return conjunction;
   }/* mkAnd() */
-  
+
+  void TheorySetsRels::printNodeMap(char* fst, char* snd, NodeMap map) {
+    NodeMap::iterator map_it    = map.begin();
+    while(map_it != map.end()) {
+      Trace("rels-debug") << fst << " "<< (*map_it).first << " " << snd << " " << (*map_it).second<< std::endl;
+      map_it++;
+    }
+  }
 
 }
 }

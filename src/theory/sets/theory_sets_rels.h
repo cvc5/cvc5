@@ -147,7 +147,7 @@ private:
   void mergeTCEqcs(Node t1, Node t2);
   void sendInferTranspose(bool, Node, Node, Node, bool reverseOnly = false);
   void sendInferProduct(bool, Node, Node, Node);
-  void sendTCInference(EqcInfo* tc_ei, Node mem_rep, Node fst_rep, Node snd_rep, int id1, int id2);
+  void sendTCInference(EqcInfo* tc_ei, std::hash_set<int> in_reachable, std::hash_set<int> out_reachable, Node mem_rep, Node fst_rep, Node snd_rep, int id1, int id2);
   void addTCMemAndSendInfer(EqcInfo* tc_ei, Node mem, Node exp, bool fromRel = false);
   Node findTCMemExp(EqcInfo*, Node);
   void mergeTCEqcExp(EqcInfo*, EqcInfo*);
@@ -204,13 +204,7 @@ private:
   inline void addToMembershipDB( Node, Node, Node  );
   bool isRel( Node n ) {return n.getType().isSet() && n.getType().getSetElementType().isTuple();}
   Node mkAnd( std::vector< TNode >& assumptions );
-  void printNodeMap(char* fst, char* snd, NodeMap map) {
-    NodeMap::iterator map_it    = map.begin();
-    while(map_it != map.end()) {
-      Trace("rels-debug") << fst << " "<< (*map_it).first << " " << snd << " " << (*map_it).second<< std::endl;
-      map_it++;
-    }
-  }
+  void printNodeMap(char* fst, char* snd, NodeMap map);
 
 };
 
