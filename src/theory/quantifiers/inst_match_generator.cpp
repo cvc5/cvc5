@@ -65,6 +65,24 @@ void InstMatchGenerator::setActiveAdd(bool val){
   }
 }
 
+int InstMatchGenerator::getActiveScore( QuantifiersEngine * qe ) {
+  if( Trigger::isAtomicTrigger( d_match_pattern ) ){
+    Node f = qe->getTermDatabase()->getMatchOperator( d_match_pattern );
+    unsigned ngt = qe->getTermDatabase()->getNumGroundTerms( f );
+    Trace("trigger-active-sel-debug") << "Number of ground terms for " << f << " is " << ngt << std::endl;
+    return ngt;
+  }else if( d_match_pattern.getKind()==INST_CONSTANT ){
+    TypeNode tn = d_match_pattern.getType();
+    unsigned ngtt = qe->getTermDatabase()->getNumTypeGroundTerms( tn );
+    Trace("trigger-active-sel-debug") << "Number of ground terms for " << tn << " is " << ngtt << std::endl;
+    return ngtt;
+//  }else if( d_match_pattern_getKind()==EQUAL || d_match_pattern.getKind()==IFF ){
+    
+  }else{
+    return -1;
+  }
+}
+
 void InstMatchGenerator::initialize( Node q, QuantifiersEngine* qe, std::vector< InstMatchGenerator * > & gens ){
   if( !d_pattern.isNull() ){
     Trace("inst-match-gen") << "Initialize, pattern term is " << d_pattern << std::endl;
@@ -836,6 +854,14 @@ int InstMatchGeneratorSimple::addTerm( Node q, Node t, QuantifiersEngine* qe ){
   }
   return qe->addInstantiation( q, m ) ? 1 : 0;
 }
+
+int InstMatchGeneratorSimple::getActiveScore( QuantifiersEngine * qe ) {
+  Node f = qe->getTermDatabase()->getMatchOperator( d_match_pattern );
+  unsigned ngt = qe->getTermDatabase()->getNumGroundTerms( f );
+  Trace("trigger-active-sel-debug") << "Number of ground terms for (simple) " << f << " is " << ngt << std::endl;
+  return ngt;   
+}
+
 
 }/* CVC4::theory::inst namespace */
 }/* CVC4::theory namespace */

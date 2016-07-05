@@ -149,11 +149,7 @@ void InstStrategyUserPatterns::addUserPattern( Node q, Node pat ){
 
 InstStrategyAutoGenTriggers::InstStrategyAutoGenTriggers( QuantifiersEngine* qe ) : InstStrategy( qe ){
   //how to select trigger terms
-  if( options::triggerSelMode()==quantifiers::TRIGGER_SEL_DEFAULT ){
-    d_tr_strategy = quantifiers::TRIGGER_SEL_MIN;
-  }else{
-    d_tr_strategy = options::triggerSelMode();
-  }
+  d_tr_strategy = options::triggerSelMode();
   //whether to select new triggers during the search
   if( options::incrementTriggers() ){
     d_regenerate_frequency = 3;
@@ -211,6 +207,29 @@ int InstStrategyAutoGenTriggers::process( Node f, Theory::Effort effort, int e )
       //  d_processed_trigger.clear();
       //  d_quantEngine->getEqualityQuery()->setLiberal( true );
       //}
+      if( options::triggerActiveSelMode()!=TRIGGER_ACTIVE_SEL_ALL ){
+        int max_score = -1;
+        Trigger * max_trigger = NULL;
+        for( std::map< Trigger*, bool >::iterator itt = d_auto_gen_trigger[0][f].begin(); itt != d_auto_gen_trigger[0][f].end(); ++itt ){
+          int score = itt->first->getActiveScore();
+          if( options::triggerActiveSelMode()==TRIGGER_ACTIVE_SEL_MIN ){
+            if( score>=0 && ( score<max_score || max_score<0 ) ){
+              max_score = score;
+              max_trigger = itt->first;
+            } 
+          }else{
+            if( score>max_score ){
+              max_score = score;
+              max_trigger = itt->first;
+            }
+          }
+          d_auto_gen_trigger[0][f][itt->first] = false;
+        }
+        if( max_trigger!=NULL ){
+          d_auto_gen_trigger[0][f][max_trigger] = true;
+        }
+      }
+      
       bool hasInst = false;
       for( unsigned r=0; r<2; r++ ){
         for( std::map< Trigger*, bool >::iterator itt = d_auto_gen_trigger[r][f].begin(); itt != d_auto_gen_trigger[r][f].end(); ++itt ){

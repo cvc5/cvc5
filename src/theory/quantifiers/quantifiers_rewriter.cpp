@@ -202,6 +202,9 @@ RewriteResponse QuantifiersRewriter::preRewrite(TNode in) {
       }      
       children.push_back( NodeManager::currentNM()->mkNode(kind::BOUND_VAR_LIST,args) );
       children.push_back( body[1] );
+      if( body.getNumChildren()==3 ){
+        children.push_back( body[2] );
+      }
       Node n = NodeManager::currentNM()->mkNode( in.getKind(), children );
       if( in!=n ){
         Trace("quantifiers-pre-rewrite") << "*** pre-rewrite " << in << std::endl;

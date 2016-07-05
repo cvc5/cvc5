@@ -134,6 +134,7 @@ class Trigger {
     }
     Trace(c) << " )";
   }
+  int getActiveScore();
 private:
   /** trigger constructor */
   Trigger( QuantifiersEngine* ie, Node f, std::vector< Node >& nodes );
