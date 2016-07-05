@@ -268,8 +268,6 @@ class EagerBitblaster : public TBitblaster<Node> {
 
   MinisatEmptyNotify d_notify;
 
-  MinisatEmptyNotify d_notify;
-
   Node getModelFromSatSolver(TNode a, bool fullModel);
   bool isSharedTerm(TNode node);
 

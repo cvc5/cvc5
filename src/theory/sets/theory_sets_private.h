@@ -139,20 +139,6 @@ private:
    */
   bool lemma(Node n, SetsLemmaTag t);
 
-  /** send out a lemma */
-  enum SetsLemmaTag {
-    SETS_LEMMA_DISEQUAL,
-    SETS_LEMMA_MEMBER,
-    SETS_LEMMA_GRAPH,
-    SETS_LEMMA_OTHER
-  };
-
-  /**
-   * returns true if a lemmas was generated
-   * returns false otherwise (found in cache)
-   */
-  bool lemma(Node n, SetsLemmaTag t);
-
   class TermInfoManager {
     TheorySetsPrivate& d_theory;
     context::Context* d_context;

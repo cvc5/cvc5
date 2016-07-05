@@ -124,9 +124,6 @@ public:
   /** Get the type for regular expressions. */
   RegExpType regExpType() const;
 
-  /** Get the type for regular expressions. */
-  RegExpType regExpType() const;
-
   /** Get the type for reals. */
   RealType realType() const;
 

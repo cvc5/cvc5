@@ -613,9 +613,6 @@ public:
   /** get the record representation for this datatype */
   inline Record * getRecord() const;
 
-  /** get the record representation for this datatype */
-  inline Record * getRecord() const;
-
   /**
    * Return the cardinality of this datatype (the sum of the
    * cardinalities of its constructors).  The Datatype must be
