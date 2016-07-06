@@ -289,8 +289,6 @@ private:
                                       std::vector< std::vector< Node > > &normal_forms_exp, std::vector< std::map< Node, std::map< bool, int > > >& normal_forms_exp_depend,
                                       unsigned i, unsigned j, int index, bool isRev, std::vector< Node >& curr_exp );
 
-  //check for extended functions
-  void checkExtendedFuncs();
   //check membership constraints
   Node mkRegExpAntec(Node atom, Node ant);
   Node normalizeRegexp(Node r);
@@ -394,11 +392,6 @@ protected:
 
   void inferSubstitutionProxyVars( Node n, std::vector< Node >& vars, std::vector< Node >& subs, std::vector< Node >& unproc );
 private:
-
-  // Special String Functions
-  NodeSet d_neg_ctn_eqlen;
-  NodeSet d_neg_ctn_ulen;
-  NodeSet d_neg_ctn_cached;
   //extended string terms and whether they have been reduced
   NodeBoolMap d_ext_func_terms;
   std::map< Node, std::map< Node, std::vector< Node > > > d_extf_vars;
@@ -444,7 +437,6 @@ private:
 
   CVC4::String getHeadConst( Node x );
   bool deriveRegExp( Node x, Node r, Node ant );
-  bool addMembershipLength(Node atom);
   void addMembership(Node assertion);
   Node getNormalString(Node x, std::vector<Node> &nf_exp);
   Node getNormalSymRegExp(Node r, std::vector<Node> &nf_exp);
