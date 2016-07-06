@@ -135,17 +135,17 @@ void TheoryProofEngine::printConstantDisequalityProof(std::ostream& os, Expr c1,
 }
 
 void TheoryProofEngine::registerTerm(Expr term) {
-  Debug("pf::tp") << "TheoryProofEngine::registerTerm: registering term: " << term << std::endl;
+  Debug("pf::tp::register") << "TheoryProofEngine::registerTerm: registering term: " << term << std::endl;
 
   if (d_registrationCache.count(term)) {
     return;
   }
 
-  Debug("pf::tp") << "TheoryProofEngine::registerTerm: registering NEW term: " << term << std::endl;
+  Debug("pf::tp::register") << "TheoryProofEngine::registerTerm: registering NEW term: " << term << std::endl;
 
   theory::TheoryId theory_id = theory::Theory::theoryOf(term);
 
-  Debug("pf::tp") << "Term's theory( " << term << " ) = " << theory_id << std::endl;
+  Debug("pf::tp::register") << "Term's theory( " << term << " ) = " << theory_id << std::endl;
 
   // don't need to register boolean terms
   if (theory_id == theory::THEORY_BUILTIN ||
@@ -165,7 +165,7 @@ void TheoryProofEngine::registerTerm(Expr term) {
   // A special case: the array theory needs to know of every skolem, even if
   // it belongs to another theory (e.g., a BV skolem)
   if (ProofManager::getSkolemizationManager()->isSkolem(term) && theory_id != theory::THEORY_ARRAY) {
-    Debug("pf::tp") << "TheoryProofEngine::registerTerm: Special case: registering a non-array skolem: " << term << std::endl;
+    Debug("pf::tp::register") << "TheoryProofEngine::registerTerm: registering a non-array skolem: " << term << std::endl;
     getTheoryProof(theory::THEORY_ARRAY)->registerTerm(term);
   }
 
@@ -632,15 +632,27 @@ void LFSCTheoryProofEngine::printTheoryLemmas(const IdToSatClause& lemmas,
         clause_expr[k] = missingAssertion->toExpr();
 
         std::ostringstream rewritten;
-        rewritten << "(or_elim_1 _ _ ";
-        rewritten << "(not_not_intro _ ";
-        rewritten << pm->getLitName(explanation);
-        rewritten << ") (iff_elim_1 _ _ ";
-        rewritten << d_assertionToRewrite[missingAssertion->negate()];
-        rewritten << "))";
+
+        if (missingAssertion->getKind() == kind::NOT && (*missingAssertion)[0].toExpr() == utils::mkFalse()) {
+          rewritten << "(or_elim_2 _ _ ";
+          rewritten << "(not_not_intro _ ";
+          rewritten << pm->getLitName(explanation);
+          rewritten << ") (iff_elim_2 _ _ ";
+          rewritten << d_assertionToRewrite[missingAssertion->negate()];
+          rewritten << "))";
+        }
+        else {
+          rewritten << "(or_elim_1 _ _ ";
+          rewritten << "(not_not_intro _ ";
+          rewritten << pm->getLitName(explanation);
+          rewritten << ") (iff_elim_1 _ _ ";
+          rewritten << d_assertionToRewrite[missingAssertion->negate()];
+          rewritten << "))";
+        }
 
         Debug("pf::tp") << "Setting a rewrite filter for this proof: " << std::endl
                         << pm->getLitName(*missingAssertion) << " --> " << rewritten.str()
+                        << ", explanation = " << explanation
                         << std::endl << std::endl;
 
         pm->addRewriteFilter(pm->getLitName(*missingAssertion), rewritten.str());
@@ -742,15 +754,27 @@ void LFSCTheoryProofEngine::printTheoryLemmas(const IdToSatClause& lemmas,
           currentClauseExpr[k] = missingAssertion->toExpr();
 
           std::ostringstream rewritten;
-          rewritten << "(or_elim_1 _ _ ";
-          rewritten << "(not_not_intro _ ";
-          rewritten << pm->getLitName(explanation);
-          rewritten << ") (iff_elim_1 _ _ ";
-          rewritten << d_assertionToRewrite[missingAssertion->negate()];
-          rewritten << "))";
+
+          if (missingAssertion->getKind() == kind::NOT && (*missingAssertion)[0].toExpr() == utils::mkFalse()) {
+            rewritten << "(or_elim_2 _ _ ";
+            rewritten << "(not_not_intro _ ";
+            rewritten << pm->getLitName(explanation);
+            rewritten << ") (iff_elim_2 _ _ ";
+            rewritten << d_assertionToRewrite[missingAssertion->negate()];
+            rewritten << "))";
+          }
+          else {
+            rewritten << "(or_elim_1 _ _ ";
+            rewritten << "(not_not_intro _ ";
+            rewritten << pm->getLitName(explanation);
+            rewritten << ") (iff_elim_1 _ _ ";
+            rewritten << d_assertionToRewrite[missingAssertion->negate()];
+            rewritten << "))";
+          }
 
           Debug("pf::tp") << "Setting a rewrite filter for this proof: " << std::endl
                           << pm->getLitName(*missingAssertion) << " --> " << rewritten.str()
+                          << "explanation = " << explanation
                           << std::endl << std::endl;
 
           pm->addRewriteFilter(pm->getLitName(*missingAssertion), rewritten.str());

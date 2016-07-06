@@ -637,6 +637,7 @@ Node ProofArray::toStreamRecLFSC(std::ostream& out,
       //       we look at the node after the equality sequence. If it needs a, we go for a=a; and if it needs
       //       b, we go for b=b. If there is no following node, we look at the goal of the transitivity proof,
       //       and use it to determine which option we need.
+
       if(n2.getKind() == kind::EQUAL || n2.getKind() == kind::IFF) {
         if (((n1[0] == n2[0]) && (n1[1] == n2[1])) || ((n1[0] == n2[1]) && (n1[1] == n2[0]))) {
           // We are in a sequence of identical equalities
@@ -900,7 +901,6 @@ Node ProofArray::toStreamRecLFSC(std::ostream& out,
       // inner index != outer index
       // t3 is the outer index
 
-
       Assert(pf->d_children.size() == 1);
       std::stringstream ss;
       Node subproof = toStreamRecLFSC(ss, tp, pf->d_children[0], tb + 1, map);
@@ -915,22 +915,76 @@ Node ProofArray::toStreamRecLFSC(std::ostream& out,
       tp->printTerm(t4.toExpr(), out, map);
       out << " ";
 
+
       Debug("pf::array") << "pf->d_children[0]->d_node is: " << pf->d_children[0]->d_node
                          << ". t3 is: " << t3 << std::endl
                          << "subproof is: " << subproof << std::endl;
 
       Debug("pf::array") << "Subproof is: " << ss.str() << std::endl;
 
-      if (subproof[0][1] == t3) {
-        Debug("pf::array") << "Dont need symmetry!" << std::endl;
-        out << ss.str();
+      // The subproof needs to show that t2 != t3. This can either be a direct disequality,
+      // or, if (wlog) t2 is constant, it can show that t3 is equal to another constant.
+      if (subproof.getKind() == kind::NOT) {
+        // The subproof is for t2 != t3 (or t3 != t2)
+        if (subproof[0][1] == t3) {
+          Debug("pf::array") << "Dont need symmetry!" << std::endl;
+          out << ss.str();
+        } else {
+          Debug("pf::array") << "Need symmetry!" << std::endl;
+          out << "(negsymm _ _ _ " << ss.str() << ")";
+        }
       } else {
-        Debug("pf::array") << "Need symmetry!" << std::endl;
-        out << "(negsymm _ _ _ " << ss.str() << ")";
+        // Either t2 or t3 is a constant.
+        Assert(subproof.getKind() == kind::EQUAL);
+        Assert(subproof[0].isConst() || subproof[1].isConst());
+        Assert(t2.isConst() || t3.isConst());
+        Assert(!(t2.isConst() && t3.isConst()));
+
+        bool t2IsConst = t2.isConst();
+        if (subproof[0].isConst()) {
+          if (t2IsConst) {
+            // (t3 == subproof[1]) == subproof[0] != t2
+            // goal is t2 != t3
+            // subproof already shows constant = t3
+            Assert(t3 == subproof[1]);
+            out << "(negtrans _ _ _ _ ";
+            tp->printConstantDisequalityProof(out, t2.toExpr(), subproof[0].toExpr());
+            out << " ";
+            out << ss.str();
+            out << ")";
+          } else {
+            Assert(t2 == subproof[1]);
+            out << "(negsymm _ _ _ ";
+            out << "(negtrans _ _ _ _ ";
+            tp->printConstantDisequalityProof(out, t3.toExpr(), subproof[0].toExpr());
+            out << " ";
+            out << ss.str();
+            out << "))";
+          }
+        } else {
+          if (t2IsConst) {
+            // (t3 == subproof[0]) == subproof[1] != t2
+            // goal is t2 != t3
+            // subproof already shows constant = t3
+            Assert(t3 == subproof[0]);
+            out << "(negtrans _ _ _ _ ";
+            tp->printConstantDisequalityProof(out, t2.toExpr(), subproof[1].toExpr());
+            out << " ";
+            out << "(symm _ _ _ " << ss.str() << ")";
+            out << ")";
+          } else {
+            Assert(t2 == subproof[0]);
+            out << "(negsymm _ _ _ ";
+            out << "(negtrans _ _ _ _ ";
+            tp->printConstantDisequalityProof(out, t3.toExpr(), subproof[1].toExpr());
+            out << " ";
+            out << "(symm _ _ _ " << ss.str() << ")";
+            out << "))";
+          }
+        }
       }
 
       out << ")";
-
       return ret;
     } else {
       Debug("pf::array") << "In the case of NEGATIVE ROW" << std::endl;
