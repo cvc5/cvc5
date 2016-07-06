@@ -658,9 +658,9 @@ void TheoryStrings::checkReduction( Node atom, int pol, int effort ) {
   }else{
     if( options::stringLazyPreproc() ){
       if( atom.getKind()==kind::STRING_SUBSTR ){
-        r_effort = options::stringLazyPreproc2() ? 1 : 0;
+        r_effort = 1;
       }else{
-        r_effort = options::stringLazyPreproc2() ? 2 : 0;
+        r_effort = 2;
       }
     }
   }

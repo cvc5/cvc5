@@ -38,9 +38,7 @@ option stringIgnNegMembership strings-inm --strings-inm bool :default false
 # the cardinality of the characters used by the theory of strings, default 128 (for standard ASCII) or 256 (for extended ASCII)
 
 option stringLazyPreproc strings-lazy-pp --strings-lazy-pp bool :default true
- perform string preprocessing lazily upon assertion
-option stringLazyPreproc2 strings-lazy-pp2 --strings-lazy-pp2 bool :default true
- perform string preprocessing lazily upon failure to reduce 
+ perform string preprocessing lazily
 
 option stringLenGeqZ strings-len-geqz --strings-len-geqz bool :default false
  strings length greater than zero lemmas

@@ -711,6 +711,7 @@ public:
    * collect model info
    */
   void collectModelInfo( theory::TheoryModel* m, bool fullModel );
+  void collectModelComments( theory::TheoryModel* m );
 
   /**
    * Get the current model

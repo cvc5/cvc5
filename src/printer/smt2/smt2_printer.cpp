@@ -1061,6 +1061,14 @@ void Smt2Printer::toStream(std::ostream& out, const UnsatCore& core, const std::
 
 
 void Smt2Printer::toStream(std::ostream& out, const Model& m) const throw() {
+  //print the model comments
+  std::stringstream c;
+  m.getComments( c );
+  std::string ln;
+  while( std::getline( c, ln ) ){
+    out << "; " << ln << std::endl;
+  }
+  //print the model
   out << "(model" << endl;
   this->Printer::toStream(out, m);
   out << ")" << endl;

@@ -64,6 +64,11 @@ void TheoryModel::reset(){
   d_eeContext->push();
 }
 
+void TheoryModel::getComments(std::ostream& out) const {
+  Trace("model-builder") << "get comments..." << std::endl;
+  out << d_comment_str.str();
+}
+
 Node TheoryModel::getValue(TNode n, bool useDontCares) const {
   //apply substitutions
   Node nn = d_substitutions.apply(n);
@@ -937,6 +942,12 @@ void TheoryEngineModelBuilder::buildModel(Model* m, bool fullModel)
   //modelBuilder-specific initialization
   processBuildModel( tm, fullModel );
 
+  // Collect model comments from the theories
+  if( fullModel ){
+    Trace("model-builder") << "TheoryEngineModelBuilder: Collect model comments..." << std::endl;
+    d_te->collectModelComments(tm);
+  }
+  
 #ifdef CVC4_ASSERTIONS
   if (fullModel) {
     // Check that every term evaluates to its representative in the model

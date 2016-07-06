@@ -450,6 +450,9 @@ Node StringsPreprocess::simplify( Node t, std::vector< Node > &new_nodes ) {
       d_cache[t] = skw;
       retNode = skw;
     }
+  } else if( t.getKind() == kind::STRING_STRCTN ){
+    //TODO?
+    d_cache[t] = Node::null();
   } else{
     d_cache[t] = Node::null();
   }

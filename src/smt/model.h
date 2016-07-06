@@ -58,7 +58,6 @@ public:
   const SmtEngine* getSmtEngine() const { return &d_smt; }
   /** get the input name (file name, etc.) this model is associated to */
   std::string getInputName() const { return d_inputName; }
-
 public:
   /** Check whether this expr is a don't-care in the model */
   virtual bool isDontCare(Expr expr) const { return false; }
@@ -66,6 +65,8 @@ public:
   virtual Expr getValue(Expr expr) const = 0;
   /** get cardinality for sort */
   virtual Cardinality getCardinality(Type t) const = 0;
+  /** print comments */
+  virtual void getComments(std::ostream& out) const {}
 };/* class Model */
 
 class ModelBuilder {

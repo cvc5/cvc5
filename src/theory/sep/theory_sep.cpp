@@ -276,32 +276,44 @@ void TheorySep::collectModelInfo( TheoryModel* m, bool fullModel )
 {
   // Send the equality engine information to the model
   m->assertEqualityEngine( &d_equalityEngine );
+ 
+}
+
+void TheorySep::collectModelComments(TheoryModel* m) {
+  Trace("sep-model") << "Printing model for TheorySep..." << std::endl;
   
-  if( fullModel ){
-    for( std::map< TypeNode, Node >::iterator it = d_base_label.begin(); it != d_base_label.end(); ++it ){
-      Trace("sep-model") << "; Model for heap, type = " << it->first << " : " << std::endl;
-      computeLabelModel( it->second, d_tmodel );
-      if( d_label_model[it->second].d_heap_locs_model.empty() ){
-        Trace("sep-model") << ";   [empty]" << std::endl;
-      }else{
-        for( unsigned j=0; j<d_label_model[it->second].d_heap_locs_model.size(); j++ ){
-          Assert( d_label_model[it->second].d_heap_locs_model[j].getKind()==kind::SINGLETON );
-          Node l = d_label_model[it->second].d_heap_locs_model[j][0];
-          Trace("sep-model") << ";   " << l << " -> ";
-          if( d_pto_model[l].isNull() ){
-            Trace("sep-model") << "_";
-          }else{
-            Trace("sep-model") << d_pto_model[l];
-          }
-          Trace("sep-model") << std::endl;
+  for( std::map< TypeNode, Node >::iterator it = d_base_label.begin(); it != d_base_label.end(); ++it ){
+    Trace("sep-model") << "Model for heap, type = " << it->first << " : " << std::endl;
+    m->d_comment_str << "Model for heap, type = " << it->first << " : " << std::endl;
+    computeLabelModel( it->second, d_tmodel );
+    if( d_label_model[it->second].d_heap_locs_model.empty() ){
+      Trace("sep-model") << "  [empty]" << std::endl;
+      m->d_comment_str << "  [empty]" << std::endl;
+    }else{
+      for( unsigned j=0; j<d_label_model[it->second].d_heap_locs_model.size(); j++ ){
+        Assert( d_label_model[it->second].d_heap_locs_model[j].getKind()==kind::SINGLETON );
+        Node l = d_label_model[it->second].d_heap_locs_model[j][0];
+        Trace("sep-model") << " " << l << " -> ";
+        m->d_comment_str << "  " << l << " -> ";
+        if( d_pto_model[l].isNull() ){
+          Trace("sep-model") << "_";
+          m->d_comment_str << "_";
+        }else{
+          Trace("sep-model") << d_pto_model[l];
+          m->d_comment_str << d_pto_model[l];
         }
+        Trace("sep-model") << std::endl;
+        m->d_comment_str << std::endl;
       }
-      Node nil = getNilRef( it->first );
-      Node vnil = d_valuation.getModel()->getRepresentative( nil );
-      Trace("sep-model") << "; sep.nil = " << vnil << std::endl;
-      Trace("sep-model") << std::endl;
     }
+    Node nil = getNilRef( it->first );
+    Node vnil = d_valuation.getModel()->getRepresentative( nil );
+    Trace("sep-model") << "sep.nil = " << vnil << std::endl;
+    Trace("sep-model") << std::endl;
+    m->d_comment_str << "sep.nil = " << vnil << std::endl;
+    m->d_comment_str << std::endl;
   }
+  Trace("sep-model") << "Finished printing model for TheorySep." << std::endl;
 }
 
 /////////////////////////////////////////////////////////////////////////////
@@ -1282,8 +1294,12 @@ void TheorySep::computeLabelModel( Node lbl, std::map< Node, Node >& tmodel ) {
         d_label_model[lbl].d_heap_locs_model.push_back( v_val[1] );
         v_val = v_val[0];
       }
-      Assert( v_val.getKind()==kind::SINGLETON );
-      d_label_model[lbl].d_heap_locs_model.push_back( v_val );
+      if( v_val.getKind()==kind::SINGLETON ){
+        d_label_model[lbl].d_heap_locs_model.push_back( v_val );
+      }else{
+        throw Exception("Could not establish value of heap in model.");
+        Assert( false );
+      }
     }
     //end hack
     for( unsigned j=0; j<d_label_model[lbl].d_heap_locs_model.size(); j++ ){
