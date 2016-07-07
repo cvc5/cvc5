@@ -54,7 +54,8 @@ TESTS =	\
   wand-0526-sat.smt2 \
   quant_wand.smt2 \
   fmf-nemp-2.smt2 \
-  trees-1.smt2
+  trees-1.smt2 \
+  wand-false.smt2
 
 
 FAILING_TESTS =

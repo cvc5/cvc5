@@ -747,8 +747,7 @@ void TheorySep::check(Effort e) {
                   pol_atom = atom.negate();
                 }
                 lemc.push_back( pol_atom );
-                //TODO: add disjointness assumption
-                
+
                 //lemc.push_back( s_lbl.eqNode( o_b_lbl_mval ).negate() );
                 //lemc.push_back( NodeManager::currentNM()->mkNode( kind::SUBSET, o_b_lbl_mval, s_lbl ).negate() );
                 lemc.insert( lemc.end(), conc.begin(), conc.end() );
@@ -1165,11 +1164,40 @@ Node TheorySep::instantiateLabel( Node n, Node o_lbl, Node lbl, Node lbl_v, std:
             return Node::null();
           }
         }
+        Node empSet = NodeManager::currentNM()->mkConst(EmptySet(rtn.toType()));
         if( n.getKind()==kind::SEP_STAR ){
+          //disjoint contraints
+          Node vsu;
+          std::vector< Node > vs;
+          for( std::map< int, Node >::iterator itl = d_label_map[n][lbl].begin(); itl != d_label_map[n][lbl].end(); ++itl ){
+            Node sub_lbl = itl->second;
+            Node lbl_mval = d_label_model[sub_lbl].getValue( rtn );
+            for( unsigned j=0; j<vs.size(); j++ ){
+              children.push_back( NodeManager::currentNM()->mkNode( kind::INTERSECTION, lbl_mval, vs[j] ).eqNode( empSet ) );
+            }
+            vs.push_back( lbl_mval );
+            if( vsu.isNull() ){
+              vsu = lbl_mval;
+            }else{
+              vsu = NodeManager::currentNM()->mkNode( kind::UNION, vsu, lbl_mval );
+            }
+          }
+          children.push_back( vsu.eqNode( lbl ) );
+          
+          //return the lemma
           Assert( children.size()>1 );
           return NodeManager::currentNM()->mkNode( kind::AND, children );      
         }else{
-          return NodeManager::currentNM()->mkNode( kind::OR, children[0].negate(), children[1] );
+          std::vector< Node > wchildren;
+          //disjoint constraints
+          Node sub_lbl_0 = d_label_map[n][lbl][0];
+          Node lbl_mval_0 = d_label_model[sub_lbl_0].getValue( rtn );
+          wchildren.push_back( NodeManager::currentNM()->mkNode( kind::INTERSECTION, lbl_mval_0, lbl ).eqNode( empSet ).negate() );
+          
+          //return the lemma
+          wchildren.push_back( children[0].negate() );
+          wchildren.push_back( children[1] );
+          return NodeManager::currentNM()->mkNode( kind::OR, wchildren );
         }
       }else{
         //nested star/wand, label it and return
