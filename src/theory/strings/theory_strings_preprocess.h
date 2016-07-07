@@ -31,19 +31,22 @@ namespace theory {
 namespace strings {
 
 class StringsPreprocess {
-  typedef context::CDHashMap<Node, Node, NodeHashFunction> NodeNodeMap;
-  NodeNodeMap d_cache;
   //Constants
   Node d_zero;
-private:
-  //int checkFixLenVar( Node t );
-  Node simplify( Node t, std::vector< Node > &new_nodes );
+  Node d_one;
+  //mapping from kinds to UF
+  std::map< Kind, Node > d_uf;
+  //get UF for node
+  Node getUfForNode( Node n );
 public:
   StringsPreprocess( context::UserContext* u );
   ~StringsPreprocess();
-
-  Node decompose( Node t, std::vector< Node > &new_nodes );
-  void simplify(std::vector< Node > &vec_node);
+  //simplify a node
+  Node simplify( Node t, std::vector< Node > &new_nodes );
+  //recursive simplify
+  Node simplifyRec( Node t, std::vector< Node > &new_nodes, std::map< Node, Node >& visited );
+  //simplify each node in vec_node
+  void processAssertions(std::vector< Node > &vec_node);
 };
 
 }/* CVC4::theory::strings namespace */

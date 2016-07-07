@@ -78,7 +78,8 @@ TESTS = \
   norn-31.smt2 \
   strings-native-simple.cvc \
   cmu-2db2-extf-reg.smt2 \
-  norn-nel-bug-052116.smt2
+  norn-nel-bug-052116.smt2 \
+  cmu-disagree-0707-dd.smt2
 
 FAILING_TESTS =
 

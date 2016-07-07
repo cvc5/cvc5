@@ -3986,15 +3986,6 @@ void SmtEnginePrivate::processAssertions() {
     dumpAssertions("post-bv-to-bool", d_assertions);
     Trace("smt") << "POST bvToBool" << endl;
   }
-  if( d_smt.d_logic.isTheoryEnabled(THEORY_STRINGS) ) {
-    Trace("smt-proc") << "SmtEnginePrivate::processAssertions() : pre-strings-preprocess" << endl;
-    dumpAssertions("pre-strings-pp", d_assertions);
-    if( !options::stringLazyPreproc() ){
-      ((theory::strings::TheoryStrings*)d_smt.d_theoryEngine->theoryOf(THEORY_STRINGS))->getPreprocess()->simplify( d_assertions.ref() );
-    }
-    Trace("smt-proc") << "SmtEnginePrivate::processAssertions() : post-strings-preprocess" << endl;
-    dumpAssertions("post-strings-pp", d_assertions);
-  }
   if( d_smt.d_logic.isTheoryEnabled(THEORY_SEP) ) {
     //separation logic solver needs to register the entire input
     ((theory::sep::TheorySep*)d_smt.d_theoryEngine->theoryOf(THEORY_SEP))->processAssertions( d_assertions.ref() );

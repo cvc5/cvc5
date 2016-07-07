@@ -320,6 +320,8 @@ public:
   Node expandDefinition(LogicRequest &logicRequest, Node n);
   /** Check at effort e */
   void check(Effort e);
+  /** needs check last effort */
+  bool needsCheckLastEffort();
   /** Conflict when merging two constants */
   void conflict(TNode a, TNode b);
   /** called when a new equivalence class is created */
@@ -451,7 +453,8 @@ private:
 public:
   //for finite model finding
   Node getNextDecisionRequest();
-
+  //ppRewrite
+  Node ppRewrite(TNode atom);
 public:
 /** statistics class */
   class Statistics {

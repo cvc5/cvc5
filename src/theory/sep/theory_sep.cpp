@@ -726,33 +726,19 @@ void TheorySep::check(Effort e) {
               Assert( d_label_model.find( s_lbl )!=d_label_model.end() );
               std::vector< Node > conc;
               bool inst_success = true;
-              if( options::sepExp() ){
-                //old refinement lemmas
-                for( std::map< int, Node >::iterator itl = d_label_map[s_atom][s_lbl].begin(); itl != d_label_map[s_atom][s_lbl].end(); ++itl ){
-                  int sub_index = itl->first;
-                  std::map< Node, Node > visited;
-                  Node c = applyLabel( s_atom[itl->first], mvals[sub_index], visited );
-                  Trace("sep-process-debug") << "    applied inst : " << c << std::endl;
-                  if( s_atom.getKind()==kind::SEP_STAR || sub_index==0 ){
-                    conc.push_back( c.negate() );
-                  }else{
-                    conc.push_back( c );
-                  }
-                }
+              //new refinement
+              //instantiate the label
+              std::map< Node, Node > visited;
+              Node inst = instantiateLabel( s_atom, s_lbl, s_lbl, o_b_lbl_mval, visited, d_pto_model, d_tmodel, tn, active_lbl );
+              Trace("sep-inst-debug") << "    applied inst : " << inst << std::endl;
+              if( inst.isNull() ){
+                inst_success = false;
               }else{
-                //new refinement
-                std::map< Node, Node > visited;
-                Node inst = instantiateLabel( s_atom, s_lbl, s_lbl, o_b_lbl_mval, visited, d_pto_model, d_tmodel, tn, active_lbl );
-                Trace("sep-inst-debug") << "    applied inst : " << inst << std::endl;
-                if( inst.isNull() ){
+                inst = Rewriter::rewrite( inst );
+                if( inst==( polarity ? d_true : d_false ) ){
                   inst_success = false;
-                }else{
-                  inst = Rewriter::rewrite( inst );
-                  if( inst==( polarity ? d_true : d_false ) ){
-                    inst_success = false;
-                  }
-                  conc.push_back( polarity ? inst : inst.negate() );
                 }
+                conc.push_back( polarity ? inst : inst.negate() );
               }
               if( inst_success ){
                 std::vector< Node > lemc;
@@ -761,11 +747,13 @@ void TheorySep::check(Effort e) {
                   pol_atom = atom.negate();
                 }
                 lemc.push_back( pol_atom );
+                //TODO: add disjointness assumption
+                
                 //lemc.push_back( s_lbl.eqNode( o_b_lbl_mval ).negate() );
                 //lemc.push_back( NodeManager::currentNM()->mkNode( kind::SUBSET, o_b_lbl_mval, s_lbl ).negate() );
                 lemc.insert( lemc.end(), conc.begin(), conc.end() );
                 Node lem = NodeManager::currentNM()->mkNode( kind::OR, lemc );
-                if( std::find( d_refinement_lem[s_atom][s_lbl].begin(), d_refinement_lem[s_atom][s_lbl].end(),  lem )==d_refinement_lem[s_atom][s_lbl].end() ){
+                if( std::find( d_refinement_lem[s_atom][s_lbl].begin(), d_refinement_lem[s_atom][s_lbl].end(), lem )==d_refinement_lem[s_atom][s_lbl].end() ){
                   d_refinement_lem[s_atom][s_lbl].push_back( lem );
                   Trace("sep-process") << "-----> refinement lemma (#" << d_refinement_lem[s_atom][s_lbl].size() << ") : " << lem << std::endl;
                   Trace("sep-lemma") << "Sep::Lemma : negated star/wand refinement : " << lem << std::endl;
