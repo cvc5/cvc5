@@ -1851,37 +1851,36 @@ void TheoryStrings::checkNormalForms(){
     for( unsigned i=0; i<d_strings_eqc.size(); i++ ) {
       Node eqc = d_strings_eqc[i];
       Trace("strings-process-debug") << "- Verify normal forms are the same for " << eqc << std::endl;
-      std::vector< Node > nf;
-      std::vector< Node > nf_exp;
-      normalizeEquivalenceClass( eqc, nf, nf_exp );
+      normalizeEquivalenceClass( eqc );
       Trace("strings-debug") << "Finished normalizing eqc..." << std::endl;
       if( hasProcessed() ){
         return;
       }else{
-        Node nf_term = mkConcat( nf );
-        if( nf_to_eqc.find( nf_term )!=nf_to_eqc.end() ) {
-          //Trace("strings-debug") << "Merge because of normal form : " << eqc << " and " << nf_to_eqc[nf_term] << " both have normal form " << nf_term << std::endl;
+        Node nf_term = mkConcat( d_normal_forms[eqc] );
+        std::map< Node, Node >::iterator itn = nf_to_eqc.find( nf_term );
+        if( itn!=nf_to_eqc.end() ){
           //two equivalence classes have same normal form, merge
-          nf_exp.push_back( eqc_to_exp[nf_to_eqc[nf_term]] );
-          Node eq = eqc.eqNode( nf_to_eqc[nf_term] );
+          std::vector< Node > nf_exp;
+          nf_exp.push_back( mkAnd( d_normal_forms_exp[eqc] ) );
+          nf_exp.push_back( eqc_to_exp[itn->second] );
+          Node eq = d_normal_forms_base[eqc].eqNode( d_normal_forms_base[itn->second] );
           sendInference( nf_exp, eq, "Normal_Form" );
         } else {
           nf_to_eqc[nf_term] = eqc;
-          eqc_to_exp[eqc] = mkAnd( nf_exp );
+          eqc_to_exp[eqc] = mkAnd( d_normal_forms_exp[eqc] );
         }
       }
       Trace("strings-process-debug") << "Done verifying normal forms are the same for " << eqc << std::endl;
     }
-
-    if(Trace.isOn("strings-nf")) {
-      Trace("strings-nf") << "**** Normal forms are : " << std::endl;
-      for( std::map< Node, Node >::iterator it = nf_to_eqc.begin(); it != nf_to_eqc.end(); ++it ){
-        Trace("strings-nf") << "  N[" << it->second << "] = " << it->first << std::endl;
-        //Trace("strings-nf") << "     exp: " << eqc_to_exp[it->first] << std::endl;
-      }
-      Trace("strings-nf") << std::endl;
-    }
     if( !hasProcessed() ){
+      if(Trace.isOn("strings-nf")) {
+        Trace("strings-nf") << "**** Normal forms are : " << std::endl;
+        for( std::map< Node, Node >::iterator it = nf_to_eqc.begin(); it != nf_to_eqc.end(); ++it ){
+          Trace("strings-nf") << "  N[" << it->second << "] = " << it->first << std::endl;
+          Trace("strings-nf") << "     exp: " << eqc_to_exp[it->first] << std::endl;
+        }
+        Trace("strings-nf") << std::endl;
+      }
       checkExtendedFuncsEval( 1 );
       Trace("strings-process-debug") << "Done check extended functions re-eval, addedFact = " << !d_pending.empty() << " " << !d_lemma_cache.empty() << ", d_conflict = " << d_conflict << std::endl;
       if( !hasProcessed() ){
@@ -1900,8 +1899,8 @@ void TheoryStrings::checkNormalForms(){
   }
 }
 
-//nf_exp is conjunction
-bool TheoryStrings::normalizeEquivalenceClass( Node eqc, std::vector< Node > & nf, std::vector< Node > & nf_exp ) {
+//compute d_normal_forms_(base,exp,exp_depend)[eqc]
+bool TheoryStrings::normalizeEquivalenceClass( Node eqc ) {
   Trace("strings-process-debug") << "Process equivalence class " << eqc << std::endl;
   if( areEqual( eqc, d_emptyString ) ) {
     for( unsigned j=0; j<d_eqc[eqc].size(); j++ ){
@@ -1917,74 +1916,77 @@ bool TheoryStrings::normalizeEquivalenceClass( Node eqc, std::vector< Node > & n
     d_normal_forms_exp[eqc].clear();
     return true;
   } else {
+    Assert( d_normal_forms.find(eqc)==d_normal_forms.end() );
     bool result;
-    if( d_normal_forms.find(eqc)==d_normal_forms.end() ){
-      //phi => t = s1 * ... * sn
-      // normal form for each non-variable term in this eqc (s1...sn)
-      std::vector< std::vector< Node > > normal_forms;
-      // explanation for each normal form (phi)
-      std::vector< std::vector< Node > > normal_forms_exp;
-      // dependency information 
-      std::vector< std::map< Node, std::map< bool, int > > > normal_forms_exp_depend;
-      // record terms for each normal form (t)
-      std::vector< Node > normal_form_src;
-      //Get Normal Forms
-      result = getNormalForms(eqc, normal_forms, normal_form_src, normal_forms_exp, normal_forms_exp_depend);
-      if( hasProcessed() ){
+    //phi => t = s1 * ... * sn
+    // normal form for each non-variable term in this eqc (s1...sn)
+    std::vector< std::vector< Node > > normal_forms;
+    // explanation for each normal form (phi)
+    std::vector< std::vector< Node > > normal_forms_exp;
+    // dependency information 
+    std::vector< std::map< Node, std::map< bool, int > > > normal_forms_exp_depend;
+    // record terms for each normal form (t)
+    std::vector< Node > normal_form_src;
+    //Get Normal Forms
+    result = getNormalForms(eqc, normal_forms, normal_form_src, normal_forms_exp, normal_forms_exp_depend);
+    if( hasProcessed() ){
+      return true;
+    }else if( result ){
+      if( processNEqc(normal_forms, normal_form_src, normal_forms_exp, normal_forms_exp_depend) ){
         return true;
-      }else if( result ){
-        if( processNEqc(normal_forms, normal_form_src, normal_forms_exp, normal_forms_exp_depend) ){
-          return true;
-        }
       }
-      //construct the normal form
-      if( normal_forms.empty() ){
-        Trace("strings-solve-debug2") << "construct the normal form" << std::endl;
-        getConcatVec( eqc, nf );
-        d_normal_forms_base[eqc] = eqc;
-      }else{
-        int nf_index = 0;
-        //nf.insert( nf.end(), normal_forms[nf_index].begin(), normal_forms[nf_index].end() );
-        //nf_exp.insert( nf_exp.end(), normal_forms_exp[nf_index].begin(), normal_forms_exp[nf_index].end() );
-        //Trace("strings-solve-debug2") << "take normal form ... done" << std::endl;
-        //d_normal_forms_base[eqc] = normal_form_src[nf_index];
-        ///*
-        std::vector< Node >::iterator itn = std::find( normal_form_src.begin(), normal_form_src.end(), eqc );
-        if( itn!=normal_form_src.end() ){
-          nf_index = itn - normal_form_src.begin();
-          Trace("strings-solve-debug2") << "take normal form " << nf_index << std::endl;
-          Assert( normal_form_src[nf_index]==eqc );
-        }else{
-          //just take the first normal form
-          Trace("strings-solve-debug2") << "take the first normal form" << std::endl;
-        }
-        nf.insert( nf.end(), normal_forms[nf_index].begin(), normal_forms[nf_index].end() );
-        nf_exp.insert( nf_exp.end(), normal_forms_exp[nf_index].begin(), normal_forms_exp[nf_index].end() );
-        if( eqc!=normal_form_src[nf_index] ){
-          nf_exp.push_back( eqc.eqNode( normal_form_src[nf_index] ) );
-        }
-        Trace("strings-solve-debug2") << "take normal form ... done" << std::endl;
-        d_normal_forms_base[eqc] = normal_form_src[nf_index];
-        //*/
-        //track dependencies 
-        for( unsigned i=0; i<normal_forms_exp[nf_index].size(); i++ ){
-          Node exp = normal_forms_exp[nf_index][i];
-          for( unsigned r=0; r<2; r++ ){
-            d_normal_forms_exp_depend[eqc][exp][r==0] = normal_forms_exp_depend[nf_index][exp][r==0];
+    }
+    //construct the normal form
+    if( normal_forms.empty() ){
+      Trace("strings-solve-debug2") << "construct the normal form" << std::endl;
+      //FIXME: cleanup
+      eq::EqClassIterator eqc_i = eq::EqClassIterator( eqc, &d_equalityEngine );
+      Node eqc_c = eqc;
+      //do not choose a concat here (in this case they have non-trivial explanation why they normalize to self)
+      while( eqc_c.getKind()==kind::STRING_CONCAT && !eqc_i.isFinished() ){
+        Node n = (*eqc_i);
+        if( d_congruent.find( n )==d_congruent.end() ){
+          if( n.getKind()!=kind::STRING_CONCAT ){
+            eqc_c = n;
           }
         }
+        ++eqc_i;
       }
-
-      d_normal_forms[eqc].insert( d_normal_forms[eqc].end(), nf.begin(), nf.end() );
-      d_normal_forms_exp[eqc].insert( d_normal_forms_exp[eqc].end(), nf_exp.begin(), nf_exp.end() );
-      
-      Trace("strings-process-debug") << "Return process equivalence class " << eqc << " : returned, size = " << nf.size() << std::endl;
+      getConcatVec( eqc_c, d_normal_forms[eqc] );
+      d_normal_forms_base[eqc] = eqc_c;
     }else{
-      Trace("strings-process-debug") << "Return process equivalence class " << eqc << " : already computed, size = " << d_normal_forms[eqc].size() << std::endl;
-      nf.insert( nf.end(), d_normal_forms[eqc].begin(), d_normal_forms[eqc].end() );
-      nf_exp.insert( nf_exp.end(), d_normal_forms_exp[eqc].begin(), d_normal_forms_exp[eqc].end() );
-      result = true;
+      int nf_index = 0;
+      //nf.insert( nf.end(), normal_forms[nf_index].begin(), normal_forms[nf_index].end() );
+      //nf_exp.insert( nf_exp.end(), normal_forms_exp[nf_index].begin(), normal_forms_exp[nf_index].end() );
+      //Trace("strings-solve-debug2") << "take normal form ... done" << std::endl;
+      //d_normal_forms_base[eqc] = normal_form_src[nf_index];
+      ///*
+      std::vector< Node >::iterator itn = std::find( normal_form_src.begin(), normal_form_src.end(), eqc );
+      if( itn!=normal_form_src.end() ){
+        nf_index = itn - normal_form_src.begin();
+        Trace("strings-solve-debug2") << "take normal form " << nf_index << std::endl;
+        Assert( normal_form_src[nf_index]==eqc );
+      }else{
+        //just take the first normal form
+        Trace("strings-solve-debug2") << "take the first normal form" << std::endl;
+      }
+      d_normal_forms[eqc].insert( d_normal_forms[eqc].end(), normal_forms[nf_index].begin(), normal_forms[nf_index].end() );
+      d_normal_forms_exp[eqc].insert( d_normal_forms_exp[eqc].end(), normal_forms_exp[nf_index].begin(), normal_forms_exp[nf_index].end() );
+      if( eqc!=normal_form_src[nf_index] ){
+        d_normal_forms_exp[eqc].push_back( eqc.eqNode( normal_form_src[nf_index] ) );
+      }
+      Trace("strings-solve-debug2") << "take normal form ... done" << std::endl;
+      d_normal_forms_base[eqc] = normal_form_src[nf_index];
+      //*/
+      //track dependencies 
+      for( unsigned i=0; i<normal_forms_exp[nf_index].size(); i++ ){
+        Node exp = normal_forms_exp[nf_index][i];
+        for( unsigned r=0; r<2; r++ ){
+          d_normal_forms_exp_depend[eqc][exp][r==0] = normal_forms_exp_depend[nf_index][exp][r==0];
+        }
+      }
     }
+    Trace("strings-process-debug") << "Return process equivalence class " << eqc << " : returned, size = " << d_normal_forms[eqc].size() << std::endl;
     return result;
   }
 }
@@ -2078,17 +2080,6 @@ bool TheoryStrings::getNormalForms( Node &eqc, std::vector< std::vector< Node > 
           //this was redundant: combination of self + empty string(s)
           Node nn = nf_n.size()==0 ? d_emptyString : nf_n[0];
           Assert( areEqual( nn, eqc ) );
-          //Assert( areEqual( nf_n[0], eqc ) );
-          /*
-          if( !areEqual( nn, eqc ) ){
-            std::vector< Node > ant;
-            ant.insert( ant.end(), nf_exp_n.begin(), nf_exp_n.end() );
-            ant.push_back( n.eqNode( eqc ) );
-            Node conc = Rewriter::rewrite( nn.eqNode( eqc ) );
-            sendInference( ant, conc, "CYCLE-T" );
-            return true;
-          }
-          */
         }
       }
     }

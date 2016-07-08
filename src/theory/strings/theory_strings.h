@@ -262,7 +262,7 @@ private:
   Node checkCycles( Node eqc, std::vector< Node >& curr, std::vector< Node >& exp );
   //normal forms check
   void checkNormalForms();
-  bool normalizeEquivalenceClass( Node n, std::vector< Node > & nf, std::vector< Node > & nf_exp );
+  bool normalizeEquivalenceClass( Node n );
   bool getNormalForms( Node &eqc, std::vector< std::vector< Node > > &normal_forms, std::vector< Node > &normal_form_src,
                        std::vector< std::vector< Node > > &normal_forms_exp, std::vector< std::map< Node, std::map< bool, int > > >& normal_forms_exp_depend);
   bool detectLoop(std::vector< std::vector< Node > > &normal_forms,
