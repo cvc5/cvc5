@@ -80,7 +80,8 @@ TESTS = \
   cmu-2db2-extf-reg.smt2 \
   norn-nel-bug-052116.smt2 \
   cmu-disagree-0707-dd.smt2 \
-  cmu-5042-0707-2.smt2
+  cmu-5042-0707-2.smt2 \
+  cmu-dis-0707-3.smt2  
 
 FAILING_TESTS =
 
@@ -88,6 +89,8 @@ EXTRA_DIST = $(TESTS)
 
 # and make sure to distribute it
 EXTRA_DIST +=
+
+#norn-dis-0707-3.smt2
 
 # synonyms for "check"
 .PHONY: regress regress0 test

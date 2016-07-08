@@ -1847,6 +1847,7 @@ void TheoryStrings::checkNormalForms(){
     d_normal_forms.clear();
     d_normal_forms_exp.clear();
     std::map< Node, Node > nf_to_eqc;
+    std::map< Node, Node > eqc_to_nf;
     std::map< Node, Node > eqc_to_exp;
     for( unsigned i=0; i<d_strings_eqc.size(); i++ ) {
       Node eqc = d_strings_eqc[i];
@@ -1867,6 +1868,7 @@ void TheoryStrings::checkNormalForms(){
           sendInference( nf_exp, eq, "Normal_Form" );
         } else {
           nf_to_eqc[nf_term] = eqc;
+          eqc_to_nf[eqc] = nf_term;
           eqc_to_exp[eqc] = mkAnd( d_normal_forms_exp[eqc] );
         }
       }
@@ -1875,9 +1877,9 @@ void TheoryStrings::checkNormalForms(){
     if( !hasProcessed() ){
       if(Trace.isOn("strings-nf")) {
         Trace("strings-nf") << "**** Normal forms are : " << std::endl;
-        for( std::map< Node, Node >::iterator it = nf_to_eqc.begin(); it != nf_to_eqc.end(); ++it ){
-          Trace("strings-nf") << "  N[" << it->second << "] = " << it->first << std::endl;
-          Trace("strings-nf") << "     exp: " << eqc_to_exp[it->first] << std::endl;
+        for( std::map< Node, Node >::iterator it = eqc_to_exp.begin(); it != eqc_to_exp.end(); ++it ){
+          Trace("strings-nf") << "  N[" << it->first << "] (base " << d_normal_forms_base[it->first] << ") = " << eqc_to_nf[it->first] << std::endl;
+          Trace("strings-nf") << "     exp: " << it->second << std::endl;
         }
         Trace("strings-nf") << std::endl;
       }
@@ -1954,6 +1956,9 @@ bool TheoryStrings::normalizeEquivalenceClass( Node eqc ) {
       }
       getConcatVec( eqc_c, d_normal_forms[eqc] );
       d_normal_forms_base[eqc] = eqc_c;
+      if( eqc_c!=eqc ){
+        d_normal_forms_exp[eqc].push_back( eqc_c.eqNode( eqc ) );
+      }
     }else{
       int nf_index = 0;
       //nf.insert( nf.end(), normal_forms[nf_index].begin(), normal_forms[nf_index].end() );
