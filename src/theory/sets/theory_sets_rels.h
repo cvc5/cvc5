@@ -129,6 +129,8 @@ private:
   std::map< Node, std::vector<Node> >           d_membership_db;
   std::map< Node, std::vector<Node> >           d_membership_exp_db;
   std::map< Node, Node >                        d_membership_tc_exp_cache;
+
+  std::map< Node, std::hash_set<Node, NodeHashFunction> >                       d_tc_membership_db;
   std::map< Node, std::map<kind::Kind_t, std::vector<Node> > >                  d_terms_cache;
   std::map< Node, std::map< Node, std::hash_set<Node, NodeHashFunction> > >     d_membership_tc_cache;
 
@@ -173,9 +175,12 @@ private:
   void inferTC( Node, std::map< Node, std::hash_set< Node, NodeHashFunction > >& );
   void inferTC( Node, Node, std::map< Node, std::hash_set< Node, NodeHashFunction > >&,
                 Node, Node, std::hash_set< Node, NodeHashFunction >&);
+  bool isTCReachable(Node fst, Node snd, std::hash_set<Node, NodeHashFunction>& hasSeen,
+                      std::map< Node, std::hash_set< Node, NodeHashFunction > >& tc_graph);
 
   Node explain(Node);
 
+  void doTCLemmas();
   void sendInfer( Node fact, Node exp, const char * c );
   void sendLemma( Node fact, Node reason, const char * c );
   void sendSplit( Node a, Node b, const char * c );
@@ -183,7 +188,6 @@ private:
   void doPendingSplitFacts();
   void addSharedTerm( TNode n );
   void checkTCGraphForConflict( Node, Node, Node, Node, Node, std::map< Node, std::hash_set< Node, NodeHashFunction > >& );
-  bool checkCycles( Node );
 
   // Helper functions
   bool insertIntoIdList(IdList&, int);
