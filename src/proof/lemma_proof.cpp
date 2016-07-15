@@ -65,6 +65,10 @@ void LemmaProofRecipe::dump(const char *tag) const {
     Debug(tag) << std::endl << "[Simple lemma]" << std::endl << std::endl;
   }
 
+  if (d_originalLemma != Node()) {
+    Debug(tag) << std::endl << "Original lemma: " << d_originalLemma << std::endl << std::endl;
+  }
+
   unsigned count = 1;
   Debug(tag) << "Base assertions:" << std::endl;
   for (std::set<Node>::iterator baseIt = d_baseAssertions.begin();
@@ -189,5 +193,14 @@ LemmaProofRecipe::ProofStep* LemmaProofRecipe::getStep(unsigned index) {
 unsigned LemmaProofRecipe::getNumSteps() const {
   return d_proofSteps.size();
 }
+
+void LemmaProofRecipe::setOriginalLemma(Node lemma) {
+  d_originalLemma = lemma;
+}
+
+Node LemmaProofRecipe::getOriginalLemma() const {
+  return d_originalLemma;
+}
+
 
 } /* namespace CVC4 */

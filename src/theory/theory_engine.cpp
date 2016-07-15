@@ -91,6 +91,8 @@ theory::LemmaStatus TheoryEngine::EngineOutputChannel::lemma(TNode lemma,
       Node emptyNode;
       LemmaProofRecipe::ProofStep proofStep(d_theory, emptyNode);
 
+      proofRecipe->setOriginalLemma(lemma);
+
       Node rewritten;
       if (lemma.getKind() == kind::OR) {
         for (unsigned i = 0; i < lemma.getNumChildren(); ++i) {
@@ -156,7 +158,7 @@ void TheoryEngine::EngineOutputChannel::conflict(TNode conflictNode, Proof* pf)
 void TheoryEngine::finishInit() {
   // initialize the quantifiers engine
   d_quantEngine = new QuantifiersEngine(d_context, d_userContext, this);
-  
+
   //initialize the model
   if( d_logicInfo.isQuantified() ) {
     d_curr_model = d_quantEngine->getModel();

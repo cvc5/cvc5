@@ -69,6 +69,7 @@ ProofManager::~ProofManager() {
 }
 
 ProofManager* ProofManager::currentPM() {
+  Assert(PROOF_ON(), "Cannot call ProofManager when proofs are off");
   return smt::currentProofManager();
 }
 
@@ -288,6 +289,36 @@ void ProofManager::traceUnsatCore() {
       // trace dependences back to actual assertions
       // (this adds them to the unsat core)
       traceDeps(node);
+    }
+  }
+}
+
+void ProofManager::getLemmasInUnsatCore(theory::TheoryId theory, std::vector<Node> &lemmas) {
+  d_satProof->constructProof();
+
+  IdToSatClause used_lemmas;
+  IdToSatClause used_inputs;
+  d_satProof->collectClausesUsed(used_inputs, used_lemmas);
+
+  IdToSatClause::const_iterator it;
+
+  for (it = used_lemmas.begin(); it != used_lemmas.end(); ++it) {
+    std::set<Node> lemma;
+    for(unsigned i = 0; i < it->second->size(); ++i) {
+      prop::SatLiteral lit = (*(it->second))[i];
+      Node node = getCnfProof()->getAtom(lit.getSatVariable());
+      Expr atom = node.toExpr();
+      if (atom.isConst()) {
+        Assert (atom == utils::mkTrue());
+        continue;
+      }
+      lemma.insert(lit.isNegated() ? node.notNode() : node);
+    }
+
+    LemmaProofRecipe recipe = getCnfProof()->getProofRecipe(lemma);
+
+    if (recipe.simpleLemma() && recipe.getTheory() == theory) {
+      lemmas.push_back(recipe.getOriginalLemma());
     }
   }
 }
