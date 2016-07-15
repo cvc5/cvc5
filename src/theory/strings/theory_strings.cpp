@@ -1956,16 +1956,8 @@ bool TheoryStrings::normalizeEquivalenceClass( Node eqc ) {
       }
       getConcatVec( eqc_c, d_normal_forms[eqc] );
       d_normal_forms_base[eqc] = eqc_c;
-      if( eqc_c!=eqc ){
-        d_normal_forms_exp[eqc].push_back( eqc_c.eqNode( eqc ) );
-      }
     }else{
       int nf_index = 0;
-      //nf.insert( nf.end(), normal_forms[nf_index].begin(), normal_forms[nf_index].end() );
-      //nf_exp.insert( nf_exp.end(), normal_forms_exp[nf_index].begin(), normal_forms_exp[nf_index].end() );
-      //Trace("strings-solve-debug2") << "take normal form ... done" << std::endl;
-      //d_normal_forms_base[eqc] = normal_form_src[nf_index];
-      ///*
       std::vector< Node >::iterator itn = std::find( normal_form_src.begin(), normal_form_src.end(), eqc );
       if( itn!=normal_form_src.end() ){
         nf_index = itn - normal_form_src.begin();
@@ -1977,12 +1969,8 @@ bool TheoryStrings::normalizeEquivalenceClass( Node eqc ) {
       }
       d_normal_forms[eqc].insert( d_normal_forms[eqc].end(), normal_forms[nf_index].begin(), normal_forms[nf_index].end() );
       d_normal_forms_exp[eqc].insert( d_normal_forms_exp[eqc].end(), normal_forms_exp[nf_index].begin(), normal_forms_exp[nf_index].end() );
-      if( eqc!=normal_form_src[nf_index] ){
-        d_normal_forms_exp[eqc].push_back( eqc.eqNode( normal_form_src[nf_index] ) );
-      }
       Trace("strings-solve-debug2") << "take normal form ... done" << std::endl;
       d_normal_forms_base[eqc] = normal_form_src[nf_index];
-      //*/
       //track dependencies 
       for( unsigned i=0; i<normal_forms_exp[nf_index].size(); i++ ){
         Node exp = normal_forms_exp[nf_index][i];
@@ -2050,8 +2038,9 @@ bool TheoryStrings::getNormalForms( Node &eqc, std::vector< std::vector< Node > 
                 }
               }
             }
-            if( nr!=n[i] ){
-              Node eq = n[i].eqNode( nr );
+            if( d_normal_forms_base[nr]!=n[i] ){
+              Assert( d_normal_forms_base.find( nr )!=d_normal_forms_base.end() );
+              Node eq = n[i].eqNode( d_normal_forms_base[nr] );
               nf_exp_n.push_back( eq );
               //track depends
               nf_exp_depend_n[eq][false] = orig_size;
@@ -3460,44 +3449,6 @@ void TheoryStrings::getEquivalenceClasses( std::vector< Node >& eqcs ) {
       eqcs.push_back( eqc );
     }
     ++eqcs_i;
-  }
-}
-
-void TheoryStrings::getFinalNormalForm( Node n, std::vector< Node >& nf, std::vector< Node >& exp ) {
-  if( n!=d_emptyString ) {
-    if( n.getKind()==kind::STRING_CONCAT ) {
-      for( unsigned i=0; i<n.getNumChildren(); i++ ) {
-        getFinalNormalForm( n[i], nf, exp );
-      }
-    } else {
-      Trace("strings-debug") << "Get final normal form " << n << std::endl;
-      Assert( d_equalityEngine.hasTerm( n ) );
-      Node nr = d_equalityEngine.getRepresentative( n );
-      EqcInfo *eqc_n = getOrMakeEqcInfo( nr, false );
-      Node nc = eqc_n ? eqc_n->d_const_term.get() : Node::null();
-      if( !nc.isNull() ) {
-        nf.push_back( nc );
-        if( n!=nc ) {
-          exp.push_back( NodeManager::currentNM()->mkNode( kind::EQUAL, n, nc ) );
-        }
-      } else {
-        Assert( d_normal_forms.find( nr )!=d_normal_forms.end() );
-        if( d_normal_forms[nr][0]==nr ) {
-          Assert( d_normal_forms[nr].size()==1 );
-          nf.push_back( nr );
-          if( n!=nr ) {
-            exp.push_back( NodeManager::currentNM()->mkNode( kind::EQUAL, n, nr ) );
-          }
-        } else {
-          for( unsigned i=0; i<d_normal_forms[nr].size(); i++ ) {
-            Assert( d_normal_forms[nr][i]!=nr );
-            getFinalNormalForm( d_normal_forms[nr][i], nf, exp );
-          }
-          exp.insert( exp.end(), d_normal_forms_exp[nr].begin(), d_normal_forms_exp[nr].end() );
-        }
-      }
-      Trace("strings-ind-nf") << "The final normal form of " << n << " is " << nf << std::endl;
-    }
   }
 }
 

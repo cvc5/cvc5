@@ -385,8 +385,6 @@ protected:
 
   //get equivalence classes
   void getEquivalenceClasses( std::vector< Node >& eqcs );
-  //get final normal form
-  void getFinalNormalForm( Node n, std::vector< Node >& nf, std::vector< Node >& exp );
 
   //separate into collections with equal length
   void separateByLength( std::vector< Node >& n, std::vector< std::vector< Node > >& col, std::vector< Node >& lts );
