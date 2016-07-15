@@ -69,7 +69,6 @@ ProofManager::~ProofManager() {
 }
 
 ProofManager* ProofManager::currentPM() {
-  Assert(PROOF_ON(), "Cannot call ProofManager when proofs are off");
   return smt::currentProofManager();
 }
 
@@ -294,6 +293,8 @@ void ProofManager::traceUnsatCore() {
 }
 
 void ProofManager::getLemmasInUnsatCore(theory::TheoryId theory, std::vector<Node> &lemmas) {
+  Assert(PROOF_ON(), "Cannot compute unsat core when proofs are off");
+
   d_satProof->constructProof();
 
   IdToSatClause used_lemmas;
