@@ -35,18 +35,21 @@ class StringsPreprocess {
   Node d_zero;
   Node d_one;
   //mapping from kinds to UF
-  std::map< Kind, Node > d_uf;
+  std::map< Kind, std::map< unsigned, Node > > d_uf;
   //get UF for node
-  Node getUfForNode( Node n );
+  Node getUfForNode( Kind k, Node n, unsigned id = 0 );
+  Node getUfAppForNode( Kind k, Node n, unsigned id = 0 );
+  //recursive simplify
+  Node simplifyRec( Node t, std::vector< Node > &new_nodes, std::map< Node, Node >& visited );
 public:
   StringsPreprocess( context::UserContext* u );
   ~StringsPreprocess();
-  //simplify a node
+  //returns a node that is equivalent to t under assumptions in new_nodes
   Node simplify( Node t, std::vector< Node > &new_nodes );
-  //recursive simplify
-  Node simplifyRec( Node t, std::vector< Node > &new_nodes, std::map< Node, Node >& visited );
-  //simplify each node in vec_node
-  void processAssertions(std::vector< Node > &vec_node);
+  //process assertion: guarentees to remove all extf
+  Node processAssertion( Node n, std::vector< Node > &new_nodes );
+  //proces assertions: guarentees to remove all extf, rewrite in place
+  void processAssertions( std::vector< Node > &vec_node );
 };
 
 }/* CVC4::theory::strings namespace */

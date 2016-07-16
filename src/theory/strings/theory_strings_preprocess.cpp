@@ -38,22 +38,32 @@ StringsPreprocess::~StringsPreprocess(){
 
 }
 
-Node StringsPreprocess::getUfForNode( Node n ) {
-  //TODO: use this for eager preprocess
-  Kind k = n.getKind();
-  std::map< Kind, Node >::iterator it = d_uf.find( k );
-  if( it==d_uf.end() ){
+Node StringsPreprocess::getUfForNode( Kind k, Node n, unsigned id ) {
+  std::map< unsigned, Node >::iterator it = d_uf[k].find( id );
+  if( it==d_uf[k].end() ){
     std::vector< TypeNode > types;
     for( unsigned i=0; i<n.getNumChildren(); i++ ){
       types.push_back( n[i].getType() );
     }
     TypeNode typ = NodeManager::currentNM()->mkFunctionType( types, n.getType() );
     Node f = NodeManager::currentNM()->mkSkolem( "sop", typ, "op created for string op" );
-    d_uf[k] = f;
+    d_uf[k][id] = f;
     return f;
   }else{
     return it->second;
   }
+}
+
+//pro: congruence possible, con: introduces UF/requires theory combination
+//  currently hurts performance
+//TODO: for all skolems below
+Node StringsPreprocess::getUfAppForNode( Kind k, Node n, unsigned id ) {
+  std::vector< Node > children;
+  children.push_back( getUfForNode( k, n, id ) );
+  for( unsigned i=0; i<n.getNumChildren(); i++ ){
+    children.push_back( n[i] );
+  }
+  return NodeManager::currentNM()->mkNode( kind::APPLY_UF, children );
 }
 
 //returns an n such that t can be replaced by n, under the assumption of lemmas in new_nodes
@@ -64,7 +74,12 @@ Node StringsPreprocess::simplify( Node t, std::vector< Node > &new_nodes ) {
   Node retNode = t;
 
   if( t.getKind() == kind::STRING_SUBSTR ) {
-    Node skt = NodeManager::currentNM()->mkSkolem( "sst", NodeManager::currentNM()->stringType(), "created for substr" );
+    Node skt;
+    if( options::stringUfReduct() ){
+      skt = getUfAppForNode( kind::STRING_SUBSTR, t );
+    }else{
+      skt = NodeManager::currentNM()->mkSkolem( "sst", NodeManager::currentNM()->stringType(), "created for substr" );
+    }
     Node t12 = NodeManager::currentNM()->mkNode( kind::PLUS, t[1], t[2] );
     Node lt0 = NodeManager::currentNM()->mkNode( kind::STRING_LENGTH, t[0] );
     //start point is greater than or equal zero
@@ -74,7 +89,7 @@ Node StringsPreprocess::simplify( Node t, std::vector< Node > &new_nodes ) {
     //length is positive
     Node c3 = NodeManager::currentNM()->mkNode( kind::GT, t[2], d_zero );
     Node cond = NodeManager::currentNM()->mkNode( kind::AND, c1, c2, c3 );
-
+  
     Node sk1 = NodeManager::currentNM()->mkSkolem( "ss1", NodeManager::currentNM()->stringType(), "created for substr" );
     Node sk2 = NodeManager::currentNM()->mkSkolem( "ss2", NodeManager::currentNM()->stringType(), "created for substr" );
     Node b11 = t[0].eqNode( NodeManager::currentNM()->mkNode( kind::STRING_CONCAT, sk1, skt, sk2 ) );
@@ -94,7 +109,12 @@ Node StringsPreprocess::simplify( Node t, std::vector< Node > &new_nodes ) {
     Node sk2 = NodeManager::currentNM()->mkSkolem( "io2", NodeManager::currentNM()->stringType(), "created for indexof" );
     Node sk3 = NodeManager::currentNM()->mkSkolem( "io3", NodeManager::currentNM()->stringType(), "created for indexof" );
     Node sk4 = NodeManager::currentNM()->mkSkolem( "io4", NodeManager::currentNM()->stringType(), "created for indexof" );
-    Node skk = NodeManager::currentNM()->mkSkolem( "iok", NodeManager::currentNM()->integerType(), "created for indexof" );
+    Node skk;
+    if( options::stringUfReduct() ){
+      skk = getUfAppForNode( kind::STRING_STRIDOF, t );
+    }else{
+      skk = NodeManager::currentNM()->mkSkolem( "iok", NodeManager::currentNM()->integerType(), "created for indexof" );
+    }
     Node st = NodeManager::currentNM()->mkNode( kind::STRING_SUBSTR, t[0], t[2], NodeManager::currentNM()->mkNode( kind::MINUS, NodeManager::currentNM()->mkNode( kind::STRING_LENGTH, t[0] ), t[2] ) );
     Node eq = st.eqNode( NodeManager::currentNM()->mkNode( kind::STRING_CONCAT, sk2, sk3, sk4 ) );
     new_nodes.push_back( eq );
@@ -139,8 +159,12 @@ Node StringsPreprocess::simplify( Node t, std::vector< Node > &new_nodes ) {
     //        NodeManager::currentNM()->mkNode(kind::GEQ, t[0], d_zero),
     //        t[0], NodeManager::currentNM()->mkNode(kind::UMINUS, t[0])));
     Node num = t[0];
-    //Node pret = NodeManager::currentNM()->mkNode(kind::STRING_ITOS, num);
-    Node pret = NodeManager::currentNM()->mkSkolem( "itost", NodeManager::currentNM()->stringType(), "created for itos" );
+    Node pret;
+    if( options::stringUfReduct() ){
+      pret = NodeManager::currentNM()->mkNode(kind::STRING_ITOS, num);
+    }else{
+      pret = NodeManager::currentNM()->mkSkolem( "itost", NodeManager::currentNM()->stringType(), "created for itos" );
+    }
     Node lenp = NodeManager::currentNM()->mkNode(kind::STRING_LENGTH, pret);
 
     Node nonneg = NodeManager::currentNM()->mkNode(kind::GEQ, t[0], d_zero);
@@ -246,8 +270,14 @@ Node StringsPreprocess::simplify( Node t, std::vector< Node > &new_nodes ) {
     retNode = pret;
   } else if( t.getKind() == kind::STRING_STOI || t.getKind() == kind::STRING_STOU16 || t.getKind() == kind::STRING_STOU32 ) {
     Node str = t[0];
+    Node pret;
+    if( options::stringUfReduct() ){
+      pret = getUfAppForNode( kind::STRING_STOI, t );
+    }else{
+      pret = NodeManager::currentNM()->mkSkolem( "stoit", NodeManager::currentNM()->integerType(), "created for stoi" );
+    }
     //Node pret = NodeManager::currentNM()->mkNode(kind::STRING_STOI, str);
-    Node pret = NodeManager::currentNM()->mkSkolem( "stoit", NodeManager::currentNM()->integerType(), "created for stoi" );
+    //Node pret = getUfAppForNode( kind::STRING_STOI, t );
     Node lenp = NodeManager::currentNM()->mkNode(kind::STRING_LENGTH, str);
 
     Node negone = NodeManager::currentNM()->mkConst( ::CVC4::Rational(-1) );
@@ -432,6 +462,21 @@ Node StringsPreprocess::simplifyRec( Node t, std::vector< Node > & new_nodes, st
     visited[t] = retNode;
     return retNode;
   }
+}
+
+Node StringsPreprocess::processAssertion( Node n, std::vector< Node > &new_nodes ) {
+  std::map< Node, Node > visited;
+  std::vector< Node > new_nodes_curr;
+  Node ret = simplifyRec( n, new_nodes_curr, visited );
+  while( !new_nodes_curr.empty() ){
+    Node curr = new_nodes_curr.back();
+    new_nodes_curr.pop_back();
+    std::vector< Node > new_nodes_tmp;
+    curr = simplifyRec( curr, new_nodes_tmp, visited );
+    new_nodes_curr.insert( new_nodes_curr.end(), new_nodes_tmp.begin(), new_nodes_tmp.end() );
+    new_nodes.push_back( curr );
+  }
+  return ret;
 }
 
 void StringsPreprocess::processAssertions( std::vector< Node > &vec_node ){

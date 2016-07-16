@@ -194,8 +194,8 @@ private:
   class TermIndex {
   public:
     Node d_data;
-    std::map< Node, TermIndex > d_children;
-    Node add( Node n, unsigned index, TheoryStrings* t, Node er, std::vector< Node >& c );
+    std::map< TNode, TermIndex > d_children;
+    Node add( TNode n, unsigned index, TheoryStrings* t, Node er, std::vector< Node >& c );
     void clear(){ d_children.clear(); }
   };
   std::map< Kind, TermIndex > d_term_index;
@@ -246,17 +246,52 @@ private:
   /** All the function terms that the theory has seen */
   context::CDList<TNode> d_functionsTerms;
 private:
+  //extended string terms, map to whether they are active
+  NodeBoolMap d_ext_func_terms;
+  //any non-reduced extended functions exist
+  context::CDO< bool > d_has_extf;
+  // static information about extf
+  class ExtfInfo {
+  public:
+    //all variables in this term
+    std::vector< Node > d_vars;
+  };
+  // non-static information about extf
+  class ExtfInfoTmp {
+  public:
+    void init(){
+      d_pol = 0;
+      d_model_active = true;
+    }
+    // list of terms that something (does not) contain and their explanation
+    std::map< bool, std::vector< Node > > d_ctn;
+    std::map< bool, std::vector< Node > > d_ctn_from;
+    //polarity
+    int d_pol;
+    //explanation
+    std::vector< Node > d_exp;
+    //reps -> list of variables
+    std::map< Node, std::vector< Node > > d_rep_vars;
+    //false if it is reduced in the model
+    bool d_model_active;
+  };
+  std::map< Node, ExtfInfo > d_extf_info;
+  std::map< Node, ExtfInfoTmp > d_extf_info_tmp;
+  //collect extended operator terms
+  void collectExtendedFuncTerms( Node n, std::map< Node, bool >& visited );
+  void addExtendedFuncTerm( Node n );
+private:
   //initial check
   void checkInit();
   void checkConstantEquivalenceClasses( TermIndex* ti, std::vector< Node >& vecc );
   //extended functions evaluation check
-  void checkExtendedFuncsEval( int effort = 0 );
-  void checkExtfInference( Node n, Node nr, int effort );
-  void collectVars( Node n, std::map< Node, std::vector< Node > >& vars, std::map< Node, bool >& visited );
+  void checkExtfEval( int effort = 0 );
+  void checkExtfInference( Node n, Node nr, ExtfInfoTmp& in, int effort );
+  void collectVars( Node n, std::vector< Node >& vars, std::map< Node, bool >& visited );
   Node getSymbolicDefinition( Node n, std::vector< Node >& exp );
   //check extf reduction
-  void checkExtfReduction( int effort );
-  void checkReduction( Node atom, int pol, int effort );
+  void checkExtfReductions( int effort );
+  void checkExtfReduction( Node atom, int pol, int effort );
   //flat forms check
   void checkFlatForms();
   Node checkCycles( Node eqc, std::vector< Node >& curr, std::vector< Node >& exp );
@@ -391,21 +426,6 @@ protected:
   void printConcat( std::vector< Node >& n, const char * c );
 
   void inferSubstitutionProxyVars( Node n, std::vector< Node >& vars, std::vector< Node >& subs, std::vector< Node >& unproc );
-private:
-  //extended string terms and whether they have been reduced
-  NodeBoolMap d_ext_func_terms;
-  std::map< Node, std::map< Node, std::vector< Node > > > d_extf_vars;
-  // list of terms that something (does not) contain and their explanation
-  class ExtfInfo {
-  public:
-    std::map< bool, std::vector< Node > > d_ctn;
-    std::map< bool, std::vector< Node > > d_ctn_from;
-  };
-  std::map< Node, int > d_extf_pol;
-  std::map< Node, std::vector< Node > > d_extf_exp;
-  std::map< Node, ExtfInfo > d_extf_info;
-  //collect extended operator terms
-  void collectExtendedFuncTerms( Node n, std::map< Node, bool >& visited );
 
   // Symbolic Regular Expression
 private:

@@ -63,6 +63,10 @@ option stringRExplainLemmas strings-rexplain-lemmas --strings-rexplain-lemmas bo
  regression explanations for string lemmas
 option stringMinPrefixExplain strings-min-prefix-explain --strings-min-prefix-explain bool :default true
  minimize explanations for prefix of normal forms in strings
+option stringGuessModel strings-guess-model --strings-guess-model bool :default false
+ use model guessing to avoid string extended function reductions
+option stringUfReduct strings-uf-reduct --strings-uf-reduct bool :default false
+ use uninterpreted functions when applying extended function reductions
 
 
 endmodule
