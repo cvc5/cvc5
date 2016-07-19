@@ -26,6 +26,8 @@ option prenexQuant --prenex-quant=MODE CVC4::theory::quantifiers::PrenexQuantMod
 #   forall y. P( c, y )
 option varElimQuant --var-elim-quant bool :default true
  enable simple variable elimination for quantified formulas
+option varIneqElimQuant --var-ineq-elim-quant bool :default true
+ enable variable elimination based on infinite projection of unbound arithmetic variables
 option dtVarExpandQuant --dt-var-exp-quant bool :default true
  expand datatype variables bound to one constructor in quantifiers
 #ite lift mode for quantified formulas
@@ -50,8 +52,6 @@ option aggressiveMiniscopeQuant --ag-miniscope-quant bool :default false
  perform aggressive miniscoping for quantifiers
 option elimTautQuant --elim-taut-quant bool :default true
  eliminate tautological disjuncts of quantified formulas
-option purifyQuant --purify-quant bool :default false
- purify quantified formulas
 option elimExtArithQuant --elim-ext-arith-quant bool :default true
  eliminate extended arithmetic symbols in quantified formulas
 option condRewriteQuant --cond-rewrite-quant bool :default true
@@ -327,5 +327,10 @@ option quantAntiSkolem --quant-anti-skolem bool :read-write :default false
 
 option quantEqualityEngine --quant-ee bool :default false
   maintain congrunce closure over universal equalities
+ 
+### proof options
+
+option trackInstLemmas --track-inst-lemmas bool :default true
+  when proof is enabled, track instantiation lemmas (for proofs, unsat cores, qe and synthesis minimization)
  
 endmodule

@@ -143,6 +143,9 @@ private:
   quantifiers::QuantAntiSkolem * d_anti_skolem;
   /** quantifiers instantiation propagtor */
   quantifiers::InstPropagator * d_inst_prop;
+private:
+  /** whether we are tracking instantiation lemmas */
+  bool d_trackInstLemmas;
 public: //effort levels
   enum {
     QEFFORT_CONFLICT,
@@ -363,6 +366,10 @@ public:
   void printSynthSolution( std::ostream& out );
   /** get instantiations */
   void getInstantiations( std::map< Node, std::vector< Node > >& insts );
+  /** get unsat core lemmas */
+  bool getUnsatCoreLemmas( std::vector< Node >& active_lemmas );
+  /** get inst for lemmas */
+  void getExplanationForInstLemmas( std::vector< Node >& lems, std::map< Node, Node >& quant, std::map< Node, std::vector< Node > >& tvec ); 
   /** statistics class */
   class Statistics {
   public:

@@ -662,7 +662,7 @@ Node CegConjectureSingleInv::constructSolution( std::vector< unsigned >& indices
   Assert( index<d_inst.size() );
   Assert( i<d_inst[index].size() );
   unsigned uindex = indices[index];
-  if( index==d_inst.size()-1 ){
+  if( index==indices.size()-1 ){
     return d_inst[uindex][i];
   }else{
     Node cond = d_lemmas_produced[uindex];
@@ -753,12 +753,29 @@ Node CegConjectureSingleInv::getSolution( unsigned sol_index, TypeNode stn, int&
 
     //construct the solution
     Trace("csi-sol") << "Sort solution return values " << sol_index << std::endl;
+    bool useUnsatCore = false;
+    std::vector< Node > active_lemmas;
+    /*  TODO?
+    //minimize based on unsat core, if possible
+    std::vector< Node > active_lemmas;
+    if( d_qe->getUnsatCoreLemmas( active_lemmas ) ){
+      useUnsatCore = true;
+    } 
+    */
     Assert( d_lemmas_produced.size()==d_inst.size() );
     std::vector< unsigned > indices;
     for( unsigned i=0; i<d_lemmas_produced.size(); i++ ){
-      Assert( sol_index<d_inst[i].size() );
-      indices.push_back( i );
+      bool incl = true;
+      if( useUnsatCore ){
+        incl = std::find( active_lemmas.begin(), active_lemmas.end(), d_lemmas_produced[i] )!=active_lemmas.end();
+      }
+      if( incl ){
+        Assert( sol_index<d_inst[i].size() );
+        indices.push_back( i );
+      }
     }
+    Trace("csi-sol") << "...included " << indices.size() << " / " << d_lemmas_produced.size() << " instantiations." << std::endl;
+    Assert( !indices.empty() );
     //sort indices based on heuristic : currently, do all constant returns first (leads to simpler conditions)
     // TODO : to minimize solution size, put the largest term last
     sortSiInstanceIndices ssii;

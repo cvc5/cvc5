@@ -129,6 +129,8 @@ QuantifiersEngine::QuantifiersEngine(context::Context* c, context::UserContext* 
   d_fs = NULL;
   d_rel_dom = NULL;
   d_builder = NULL;
+  
+  d_trackInstLemmas = options::proof() && options::trackInstLemmas();
 
   d_total_inst_count_debug = 0;
   //allow theory combination to go first, once initially
@@ -224,6 +226,11 @@ void QuantifiersEngine::finishInit(){
       }
     }
   }
+  if( options::ceGuidedInst() ){
+    d_ceg_inst = new quantifiers::CegInstantiation( this, c );
+    d_modules.push_back( d_ceg_inst );
+    needsBuilder = true;
+  }  
   //finite model finding
   if( options::finiteModelFind() ){
     if( options::fmfBoundInt() ){
@@ -237,11 +244,6 @@ void QuantifiersEngine::finishInit(){
   if( options::quantRewriteRules() ){
     d_rr_engine = new quantifiers::RewriteEngine( c, this );
     d_modules.push_back(d_rr_engine);
-  }
-  if( options::ceGuidedInst() ){
-    d_ceg_inst = new quantifiers::CegInstantiation( this, c );
-    d_modules.push_back( d_ceg_inst );
-    needsBuilder = true;
   }
   if( options::ltePartialInst() ){
     d_lte_part_inst = new quantifiers::LtePartialInst( this, c );
@@ -719,7 +721,7 @@ void QuantifiersEngine::propagate( Theory::Effort level ){
 }
 
 Node QuantifiersEngine::getNextDecisionRequest(){
-  for( int i=0; i<(int)d_modules.size(); i++ ){
+  for( unsigned i=0; i<d_modules.size(); i++ ){
     Node n = d_modules[i]->getNextDecisionRequest();
     if( !n.isNull() ){
       return n;
@@ -1168,6 +1170,16 @@ bool QuantifiersEngine::addInstantiation( Node q, std::vector< Node >& terms, bo
         }
       }
     }
+    if( d_trackInstLemmas ){
+      bool recorded;
+      if( options::incrementalSolving() ){
+        recorded = d_c_inst_match_trie[q]->recordInstLemma( q, terms, lem );
+      }else{
+        recorded = d_inst_match_trie[q].recordInstLemma( q, terms, lem );
+      }
+      Trace("inst-add-debug") << "...was recorded : " << recorded << std::endl;
+      Assert( recorded );
+    }
     Trace("inst-add-debug") << " --> Success." << std::endl;
     ++(d_statistics.d_instantiations);
     return true;
@@ -1273,7 +1285,56 @@ void QuantifiersEngine::flushLemmas(){
   }
 }
 
+bool QuantifiersEngine::getUnsatCoreLemmas( std::vector< Node >& active_lemmas ) {
+  //TODO: only if unsat core available
+  bool isUnsatCoreAvailable = false;
+  //if( options::proof() ){
+  //}
+  if( isUnsatCoreAvailable ){
+    Trace("inst-unsat-core") << "Get instantiations in unsat core..." << std::endl;
+    ProofManager::currentPM()->getLemmasInUnsatCore(theory::THEORY_QUANTIFIERS, active_lemmas);
+    if( Trace.isOn("inst-unsat-core") ){
+      Trace("inst-unsat-core") << "Quantifiers lemmas in unsat core: " << std::endl;
+      for (unsigned i = 0; i < active_lemmas.size(); ++i) {
+        Trace("inst-unsat-core") << "  " << active_lemmas[i] << std::endl;
+      }
+      Trace("inst-unsat-core") << std::endl;
+    }
+    return true;
+  }else{
+    return false;
+  }
+}
+
+void QuantifiersEngine::getExplanationForInstLemmas( std::vector< Node >& lems, std::map< Node, Node >& quant, std::map< Node, std::vector< Node > >& tvec ) {
+  if( d_trackInstLemmas ){
+    if( options::incrementalSolving() ){
+      for( std::map< Node, inst::CDInstMatchTrie* >::iterator it = d_c_inst_match_trie.begin(); it != d_c_inst_match_trie.end(); ++it ){
+        it->second->getExplanationForInstLemmas( it->first, lems, quant, tvec );
+      }
+    }else{
+      for( std::map< Node, inst::InstMatchTrie >::iterator it = d_inst_match_trie.begin(); it != d_inst_match_trie.end(); ++it ){
+        it->second.getExplanationForInstLemmas( it->first, lems, quant, tvec );
+      }
+    }
+#ifdef CVC4_ASSERTIONS
+    for( unsigned j=0; j<lems.size(); j++ ){
+      Assert( quant.find( lems[j] )!=quant.end() );
+      Assert( tvec.find( lems[j] )!=tvec.end() );
+    }
+#endif
+  }else{
+    Assert( false );
+  }
+}
+
 void QuantifiersEngine::printInstantiations( std::ostream& out ) {
+  bool useUnsatCore = false;
+  std::vector< Node > active_lemmas;
+  if( d_trackInstLemmas && getUnsatCoreLemmas( active_lemmas ) ){
+    useUnsatCore = true;
+  }
+
   bool printed = false;
   for( BoolMap::iterator it = d_skolemized.begin(); it != d_skolemized.end(); ++it ){
     Node q = (*it).first;
@@ -1289,16 +1350,21 @@ void QuantifiersEngine::printInstantiations( std::ostream& out ) {
   }
   if( options::incrementalSolving() ){
     for( std::map< Node, inst::CDInstMatchTrie* >::iterator it = d_c_inst_match_trie.begin(); it != d_c_inst_match_trie.end(); ++it ){
-      printed = true;
-      out << "Instantiations of " << it->first << " : " << std::endl;
-      it->second->print( out, it->first );
+      bool firstTime = true;
+      it->second->print( out, it->first, firstTime, useUnsatCore, active_lemmas );
+      if( !firstTime ){
+        out << std::endl;
+      }      
+      printed = printed || !firstTime;
     }
   }else{
     for( std::map< Node, inst::InstMatchTrie >::iterator it = d_inst_match_trie.begin(); it != d_inst_match_trie.end(); ++it ){
-      printed = true;
-      out << "Instantiations of " << it->first << " : " << std::endl;
-      it->second.print( out, it->first );
-      out << std::endl;
+      bool firstTime = true;
+      it->second.print( out, it->first, firstTime, useUnsatCore, active_lemmas );
+      if( !firstTime ){
+        out << std::endl;
+      }
+      printed = printed || !firstTime;
     }
   }
   if( !printed ){
@@ -1315,13 +1381,19 @@ void QuantifiersEngine::printSynthSolution( std::ostream& out ) {
 }
 
 void QuantifiersEngine::getInstantiations( std::map< Node, std::vector< Node > >& insts ) {
+  bool useUnsatCore = false;
+  std::vector< Node > active_lemmas;
+  if( d_trackInstLemmas && getUnsatCoreLemmas( active_lemmas ) ){
+    useUnsatCore = true;
+  }
+
   if( options::incrementalSolving() ){
     for( std::map< Node, inst::CDInstMatchTrie* >::iterator it = d_c_inst_match_trie.begin(); it != d_c_inst_match_trie.end(); ++it ){
-      it->second->getInstantiations( insts[it->first], it->first, this );
+      it->second->getInstantiations( insts[it->first], it->first, this, useUnsatCore, active_lemmas );
     }
   }else{
     for( std::map< Node, inst::InstMatchTrie >::iterator it = d_inst_match_trie.begin(); it != d_inst_match_trie.end(); ++it ){
-      it->second.getInstantiations( insts[it->first], it->first, this );
+      it->second.getInstantiations( insts[it->first], it->first, this, useUnsatCore, active_lemmas );
     }
   }
 }
