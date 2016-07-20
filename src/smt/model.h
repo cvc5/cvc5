@@ -67,6 +67,8 @@ public:
   virtual Cardinality getCardinality(Type t) const = 0;
   /** print comments */
   virtual void getComments(std::ostream& out) const {}
+  /** get heap model (for separation logic) */
+  virtual bool getHeapModel( Expr& h, Expr& ne ) const { return false; }
 };/* class Model */
 
 class ModelBuilder {

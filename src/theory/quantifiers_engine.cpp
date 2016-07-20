@@ -1340,21 +1340,21 @@ void QuantifiersEngine::printInstantiations( std::ostream& out ) {
   for( BoolMap::iterator it = d_skolemized.begin(); it != d_skolemized.end(); ++it ){
     Node q = (*it).first;
     printed = true;
-    out << "Skolem constants of " << q << " : " << std::endl;
+    out << "(skolem " << q << std::endl;
     out << "  ( ";
     for( unsigned i=0; i<d_term_db->d_skolem_constants[q].size(); i++ ){
-      if( i>0 ){ out << ", "; }
+      if( i>0 ){ out << " "; }
       out << d_term_db->d_skolem_constants[q][i];
     }
     out << " )" << std::endl;
-    out << std::endl;
+    out << ")" << std::endl;
   }
   if( options::incrementalSolving() ){
     for( std::map< Node, inst::CDInstMatchTrie* >::iterator it = d_c_inst_match_trie.begin(); it != d_c_inst_match_trie.end(); ++it ){
       bool firstTime = true;
       it->second->print( out, it->first, firstTime, useUnsatCore, active_lemmas );
       if( !firstTime ){
-        out << std::endl;
+        out << ")" << std::endl;
       }      
       printed = printed || !firstTime;
     }
@@ -1363,13 +1363,13 @@ void QuantifiersEngine::printInstantiations( std::ostream& out ) {
       bool firstTime = true;
       it->second.print( out, it->first, firstTime, useUnsatCore, active_lemmas );
       if( !firstTime ){
-        out << std::endl;
+        out << ")" << std::endl;
       }
       printed = printed || !firstTime;
     }
   }
   if( !printed ){
-    out << "No instantiations." << std::endl;
+    out << "No instantiations" << std::endl;
   }
 }
 

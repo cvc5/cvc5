@@ -798,11 +798,11 @@ void TheoryEngine::collectModelInfo( theory::TheoryModel* m, bool fullModel ){
   }
 }
 
-void TheoryEngine::collectModelComments( theory::TheoryModel* m ){
+void TheoryEngine::postProcessModel( theory::TheoryModel* m ){
   for(TheoryId theoryId = theory::THEORY_FIRST; theoryId < theory::THEORY_LAST; ++theoryId) {
     if(d_logicInfo.isTheoryEnabled(theoryId)) {
-      Trace("model-builder-debug") << "  CollectModelComments on theory: " << theoryId << endl;
-      d_theoryTable[theoryId]->collectModelComments( m );
+      Trace("model-builder-debug") << "  PostProcessModel on theory: " << theoryId << endl;
+      d_theoryTable[theoryId]->postProcessModel( m );
     }
   }
 }

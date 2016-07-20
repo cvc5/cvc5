@@ -53,10 +53,18 @@ public:
   Node d_true;
   Node d_false;
   mutable std::hash_map<Node, Node, NodeHashFunction> d_modelCache;
+public:  
   /** comment stream to include in printing */
   std::stringstream d_comment_str;
   /** get comments */
   void getComments(std::ostream& out) const;
+private:
+  /** information for separation logic */
+  Node d_sep_heap;
+  Node d_sep_nil_eq;
+public:
+  void setHeapModel( Node h, Node neq );
+  bool getHeapModel( Expr& h, Expr& neq ) const;
 protected:
   /** reset the model */
   virtual void reset();

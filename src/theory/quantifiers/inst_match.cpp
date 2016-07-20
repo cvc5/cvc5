@@ -229,7 +229,7 @@ void InstMatchTrie::print( std::ostream& out, Node q, std::vector< TNode >& term
     }  
     if( print ){ 
       if( firstTime ){
-        out << "Instantiations of " << q << " : " << std::endl;
+        out << "(instantiation " << q << std::endl;
         firstTime = false;
       }
       out << "  ( ";
@@ -403,12 +403,12 @@ void CDInstMatchTrie::print( std::ostream& out, Node q, std::vector< TNode >& te
       }  
       if( print ){ 
         if( firstTime ){
-          out << "Instantiations of " << q << " : " << std::endl;
+          out << "(instantiation " << q << std::endl;
           firstTime = false;
         }
         out << "  ( ";
         for( unsigned i=0; i<terms.size(); i++ ){
-          if( i>0 ) out << ", ";
+          if( i>0 ) out << " ";
           out << terms[i];
         }
         out << " )" << std::endl;

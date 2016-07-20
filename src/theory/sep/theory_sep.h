@@ -108,7 +108,7 @@ class TheorySep : public Theory {
   public:
 
   void collectModelInfo(TheoryModel* m, bool fullModel);
-  void collectModelComments(TheoryModel* m);
+  void postProcessModel(TheoryModel* m);
 
   /////////////////////////////////////////////////////////////////////////////
   // NOTIFICATIONS

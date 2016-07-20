@@ -56,6 +56,9 @@ TheoryModel::~TheoryModel() throw() {
 
 void TheoryModel::reset(){
   d_modelCache.clear();
+  d_comment_str.clear();
+  d_sep_heap = Node::null();
+  d_sep_nil_eq = Node::null();
   d_reps.clear();
   d_rep_set.clear();
   d_uf_terms.clear();
@@ -67,6 +70,21 @@ void TheoryModel::reset(){
 void TheoryModel::getComments(std::ostream& out) const {
   Trace("model-builder") << "get comments..." << std::endl;
   out << d_comment_str.str();
+}
+
+void TheoryModel::setHeapModel( Node h, Node neq ) { 
+  d_sep_heap = h;
+  d_sep_nil_eq = neq;
+}
+
+bool TheoryModel::getHeapModel( Expr& h, Expr& neq ) const {
+  if( d_sep_heap.isNull() || d_sep_nil_eq.isNull() ){
+    return false;
+  }else{
+    h = d_sep_heap.toExpr();
+    neq = d_sep_nil_eq.toExpr();
+    return true;
+  }
 }
 
 Node TheoryModel::getValue(TNode n, bool useDontCares) const {
@@ -945,7 +963,7 @@ void TheoryEngineModelBuilder::buildModel(Model* m, bool fullModel)
   // Collect model comments from the theories
   if( fullModel ){
     Trace("model-builder") << "TheoryEngineModelBuilder: Collect model comments..." << std::endl;
-    d_te->collectModelComments(tm);
+    d_te->postProcessModel(tm);
   }
   
 #ifdef CVC4_ASSERTIONS

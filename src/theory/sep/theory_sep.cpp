@@ -279,39 +279,66 @@ void TheorySep::collectModelInfo( TheoryModel* m, bool fullModel )
  
 }
 
-void TheorySep::collectModelComments(TheoryModel* m) {
+void TheorySep::postProcessModel(TheoryModel* m) {
   Trace("sep-model") << "Printing model for TheorySep..." << std::endl;
   
+  std::vector< Node > sep_children;
+  Node m_neq;
+  Node m_heap;
   for( std::map< TypeNode, Node >::iterator it = d_base_label.begin(); it != d_base_label.end(); ++it ){
-    Trace("sep-model") << "Model for heap, type = " << it->first << " : " << std::endl;
-    m->d_comment_str << "Model for heap, type = " << it->first << " : " << std::endl;
+    //should only be constructing for one heap type
+    Assert( m_heap.isNull() );
+    Assert( d_loc_to_data_type.find( it->first )!=d_loc_to_data_type.end() );
+    Trace("sep-model") << "Model for heap, type = " << it->first << " with data type " << d_loc_to_data_type[it->first] << " : " << std::endl;
+    TypeEnumerator te_range( d_loc_to_data_type[it->first] );
+    //m->d_comment_str << "Model for heap, type = " << it->first << " : " << std::endl;
     computeLabelModel( it->second, d_tmodel );
     if( d_label_model[it->second].d_heap_locs_model.empty() ){
       Trace("sep-model") << "  [empty]" << std::endl;
-      m->d_comment_str << "  [empty]" << std::endl;
+      //m->d_comment_str << "  [empty]" << std::endl;
     }else{
       for( unsigned j=0; j<d_label_model[it->second].d_heap_locs_model.size(); j++ ){
         Assert( d_label_model[it->second].d_heap_locs_model[j].getKind()==kind::SINGLETON );
+        std::vector< Node > pto_children;
         Node l = d_label_model[it->second].d_heap_locs_model[j][0];
+        Assert( l.isConst() );
+        pto_children.push_back( l );
         Trace("sep-model") << " " << l << " -> ";
-        m->d_comment_str << "  " << l << " -> ";
+        //m->d_comment_str << "  " << l << " -> ";
         if( d_pto_model[l].isNull() ){
           Trace("sep-model") << "_";
-          m->d_comment_str << "_";
+          //m->d_comment_str << "_";
+          pto_children.push_back( *te_range );
         }else{
           Trace("sep-model") << d_pto_model[l];
-          m->d_comment_str << d_pto_model[l];
+          //m->d_comment_str << d_pto_model[l];
+          Node vpto = d_valuation.getModel()->getRepresentative( d_pto_model[l] );
+          Assert( vpto.isConst() );
+          pto_children.push_back( vpto );
         }
         Trace("sep-model") << std::endl;
-        m->d_comment_str << std::endl;
+        //m->d_comment_str << std::endl;
+        sep_children.push_back( NodeManager::currentNM()->mkNode( kind::SEP_PTO, pto_children ) );
       }
     }
     Node nil = getNilRef( it->first );
     Node vnil = d_valuation.getModel()->getRepresentative( nil );
+    m_neq = NodeManager::currentNM()->mkNode( nil.getType().isBoolean() ? kind::IFF : kind::EQUAL, nil, vnil );
     Trace("sep-model") << "sep.nil = " << vnil << std::endl;
     Trace("sep-model") << std::endl;
-    m->d_comment_str << "sep.nil = " << vnil << std::endl;
-    m->d_comment_str << std::endl;
+    //m->d_comment_str << "sep.nil = " << vnil << std::endl;
+    //m->d_comment_str << std::endl;
+    if( sep_children.empty() ){
+      TypeEnumerator te_domain( it->first );
+      m_heap = NodeManager::currentNM()->mkNode( kind::SEP_EMP, *te_domain );
+    }else if( sep_children.size()==1 ){
+      m_heap = sep_children[0];
+    }else{
+      m_heap = NodeManager::currentNM()->mkNode( kind::SEP_STAR, sep_children );
+    }
+    m->setHeapModel( m_heap, m_neq );
+    //m->d_comment_str << m->d_sep_heap << std::endl;
+    //m->d_comment_str << m->d_sep_nil_eq << std::endl;
   }
   Trace("sep-model") << "Finished printing model for TheorySep." << std::endl;
 }
@@ -469,6 +496,11 @@ void TheorySep::check(Effort e) {
                 Node ilem = s.eqNode( empSet );
                 Trace("sep-lemma-debug") << "Sep::Lemma : wand reduction, disjoint : " << ilem << std::endl;
                 c_lems.push_back( ilem );
+                //nil does not occur in labels[0]
+                Node nr = getNilRef( tn );
+                Node nrlem = NodeManager::currentNM()->mkNode( kind::MEMBER, nr, labels[0] ).negate();
+                Trace("sep-lemma") << "Sep::Lemma: sep.nil not in wand antecedant heap : " << nrlem << std::endl;
+                d_out->lemma( nrlem );
               }
               //send out definitional lemmas for introduced sets
               for( unsigned j=0; j<c_lems.size(); j++ ){
@@ -482,8 +514,9 @@ void TheorySep::check(Effort e) {
               if( s_lbl!=ss ){
                 conc = s_lbl.eqNode( ss );
               }
-              Node ssn = NodeManager::currentNM()->mkNode( kind::EQUAL, s_atom[0], getNilRef(s_atom[0].getType()) ).negate();
-              conc = conc.isNull() ? ssn : NodeManager::currentNM()->mkNode( kind::AND, conc, ssn );
+              //not needed anymore: semantics of sep.nil is enforced globally
+              //Node ssn = NodeManager::currentNM()->mkNode( kind::EQUAL, s_atom[0], getNilRef(s_atom[0].getType()) ).negate();
+              //conc = conc.isNull() ? ssn : NodeManager::currentNM()->mkNode( kind::AND, conc, ssn );
             }else{
               //labeled emp should be rewritten
               Assert( false );
@@ -1036,6 +1069,13 @@ Node TheorySep::getBaseLabel( TypeNode tn ) {
     //slem = NodeManager::currentNM()->mkNode( kind::SUBSET, d_base_label[tn], d_reference_bound_max[tn] );
     //Trace("sep-lemma") << "Sep::Lemma: base reference bound for " << tn << " : " << slem << std::endl;
     //d_out->lemma( slem );
+    
+    //assert that nil ref is not in base label
+    Node nr = getNilRef( tn );
+    Node nrlem = NodeManager::currentNM()->mkNode( kind::MEMBER, nr, n_lbl ).negate();
+    Trace("sep-lemma") << "Sep::Lemma: sep.nil not in base label " << tn << " : " << nrlem << std::endl;
+    d_out->lemma( nrlem );
+    
     return n_lbl;
   }else{
     return it->second;
@@ -1056,13 +1096,6 @@ Node TheorySep::getNilRef( TypeNode tn ) {
 void TheorySep::setNilRef( TypeNode tn, Node n ) {
   Assert( n.getType()==tn );
   d_nil_ref[tn] = n;
-  /*
-  //must add unit lemma to ensure nil is always a term in model construction
-  Node k = NodeManager::currentNM()->mkSkolem( "nk", tn );
-  Node eq = NodeManager::currentNM()->mkNode( tn.isBoolean() ? kind::IFF : kind::EQUAL, k, n );
-  d_out->lemma( eq );
-  */
-  //TODO: must not occur in base label
 }
 
 Node TheorySep::mkUnion( TypeNode tn, std::vector< Node >& locs ) {

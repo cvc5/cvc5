@@ -593,8 +593,8 @@ public:
    * class.
    */
   virtual void collectModelInfo( TheoryModel* m, bool fullModel ){ }
-  /** if theories want to print something as a comment before model printing, do it here */
-  virtual void collectModelComments( TheoryModel* m ){ }
+  /** if theories want to do something with model after building, do it here */
+  virtual void postProcessModel( TheoryModel* m ){ }
   
   /**
    * Return a decision request, if the theory has one, or the NULL node
