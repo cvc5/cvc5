@@ -321,7 +321,12 @@ void ProofManager::getLemmasInUnsatCore(theory::TheoryId theory, std::vector<Nod
       lemma.insert(lit.isNegated() ? node.notNode() : node);
     }
 
-    LemmaProofRecipe recipe = getCnfProof()->getProofRecipe(lemma);
+    // TODO: we should be able to drop the "haveProofRecipe" check.
+    // however, there are some rewrite issues with the arith solver, resulting
+    // in non-registered recipes. For now we assume no one is requesting arith lemmas.
+    LemmaProofRecipe recipe;
+    if ( getCnfProof()->haveProofRecipe(lemma) )
+         recipe = getCnfProof()->getProofRecipe(lemma);
 
     if (recipe.simpleLemma() && recipe.getTheory() == theory) {
       lemmas.push_back(recipe.getOriginalLemma());
