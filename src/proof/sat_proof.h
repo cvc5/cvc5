@@ -199,6 +199,7 @@ class TSatProof {
   void constructProof(ClauseId id);
   void constructProof() { constructProof(d_emptyClauseId); }
   void collectClauses(ClauseId id);
+  bool derivedEmptyClause() const;
   prop::SatClause* buildClause(ClauseId id);
 
   virtual void printResolution(ClauseId id, std::ostream& out,

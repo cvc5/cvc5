@@ -292,8 +292,13 @@ void ProofManager::traceUnsatCore() {
   }
 }
 
+bool ProofManager::unsatCoreAvailable() const {
+  return d_satProof->derivedEmptyClause();
+}
+
 void ProofManager::getLemmasInUnsatCore(theory::TheoryId theory, std::vector<Node> &lemmas) {
   Assert(PROOF_ON(), "Cannot compute unsat core when proofs are off");
+  Assert(unsatCoreAvailable(), "Cannot get unsat core at this time. Mabye the input is SAT?" );
 
   d_satProof->constructProof();
 

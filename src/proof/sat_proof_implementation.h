@@ -998,6 +998,11 @@ prop::SatClause* TSatProof<Solver>::buildClause(ClauseId id) {
 }
 
 template <class Solver>
+bool TSatProof<Solver>::derivedEmptyClause() const {
+  return hasResolutionChain(d_emptyClauseId);
+}
+
+template <class Solver>
 void TSatProof<Solver>::collectClauses(ClauseId id) {
   if (d_seenInputs.find(id) != d_seenInputs.end() ||
       d_seenLemmas.find(id) != d_seenLemmas.end() ||

@@ -246,6 +246,7 @@ public:
   assertions_iterator end_unsat_core() const { return d_outputCoreFormulas.end(); }
   size_t size_unsat_core() const { return d_outputCoreFormulas.size(); }
 
+  bool unsatCoreAvailable() const;
   void getLemmasInUnsatCore(theory::TheoryId theory, std::vector<Node> &lemmas);
 
   int nextId() { return d_nextId++; }
