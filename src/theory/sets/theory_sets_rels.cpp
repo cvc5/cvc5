@@ -138,9 +138,8 @@ int TheorySetsRels::EqcInfo::counter        = 0;
               if(safeAddToMap(d_membership_constraints_cache, rel_rep, tup_rep)) {
                 bool true_eq    = areEqual(r, d_trueNode);
                 Node reason     = true_eq ? n : n.negate();
-
                 addToMap(d_membership_exp_cache, rel_rep, reason);
-                Trace("rels-mem") << "[******] exp: " << reason << " for " << rel_rep << std::endl;
+
                 if(true_eq) {
                   addToMembershipDB(rel_rep, tup_rep, reason);
                 }
@@ -209,8 +208,10 @@ int TheorySetsRels::EqcInfo::counter        = 0;
     MEM_IT mem_it = d_membership_db.find(tc_r_rep);
 
     if(mem_it != d_membership_db.end()) {
+      Trace("rels-tc-lemma") << "*** relation = " << tc_r_rep << std::endl;
       for(std::vector<Node>::iterator pair_it = mem_it->second.begin();
           pair_it != mem_it->second.end(); pair_it++) {
+        Trace("rels-tc-lemma") << "     member = " << *pair_it << std::endl;
         Node            fst_rep         = getRepresentative(RelsUtils::nthElementOfTuple(*pair_it, 0));
         Node            snd_rep         = getRepresentative(RelsUtils::nthElementOfTuple(*pair_it, 1));
         TC_PAIR_IT      pair_set_it     = tc_graph.find(fst_rep);
@@ -234,12 +235,11 @@ int TheorySetsRels::EqcInfo::counter        = 0;
   void TheorySetsRels::applyTCRule(Node exp, Node tc_term) {
     Trace("rels-debug") << "\n[sets-rels] *********** Applying TRANSITIVE CLOSURE rule on  "
                         << tc_term << " with explanation " << exp << std::endl;
-
-    Node tc_rep         = getRepresentative(tc_term);
-    Node tc_r_rep       = getRepresentative(tc_term[0]);
+    Node tc_rep = getRepresentative(tc_term);
     // build the TC graph for tc_rep if it was not created before
     if( d_rel_nodes.find(tc_rep) == d_rel_nodes.end() ) {
       Trace("rels-debug") << "[sets-rels]  Start building the TC graph!" << std::endl;
+      Node tc_r_rep = getRepresentative(tc_term[0]);
       buildTCGraph(tc_r_rep, tc_rep, tc_term);
       d_rel_nodes.insert(tc_rep);
     }
@@ -868,13 +868,15 @@ int TheorySetsRels::EqcInfo::counter        = 0;
 
       while(set_it != mem_it->second.end()) {
         std::hash_set<Node, NodeHashFunction> hasSeen;
+        bool    isReachable     = false;
         Node    fst             = RelsUtils::nthElementOfTuple(*set_it, 0);
         Node    snd             = RelsUtils::nthElementOfTuple(*set_it, 1);
         Node    fst_rep         = getRepresentative(fst);
         Node    snd_rep         = getRepresentative(RelsUtils::nthElementOfTuple(*set_it, 1));
         TC_IT   tc_graph_it     = d_membership_tc_cache.find(tc_rep);
 
-        if((tc_graph_it != d_membership_tc_cache.end() && !isTCReachable(fst_rep, snd_rep, hasSeen, tc_graph_it->second)) ||
+        isTCReachable(fst_rep, snd_rep, hasSeen, tc_graph_it->second, isReachable);
+        if((tc_graph_it != d_membership_tc_cache.end() && !isReachable) ||
            (tc_graph_it == d_membership_tc_cache.end())) {
           Node reason   = explain(MEMBER(*set_it, mem_it->first));
           Node sk_1     = NodeManager::currentNM()->mkSkolem("sde", fst_rep.getType());
@@ -900,7 +902,7 @@ int TheorySetsRels::EqcInfo::counter        = 0;
                                                               (AND(MEMBER(RelsUtils::constructPair(tc_r_rep, fst_rep, sk_1), tc_r_rep),
                                                                    (AND(MEMBER(RelsUtils::constructPair(tc_r_rep, sk_2, snd_rep), tc_r_rep),
                                                                         (OR(sk_eq, MEMBER(RelsUtils::constructPair(tc_rep, sk_1, sk_2), tc_rep)))))))));
-          Trace("rels-lemma") << "[sets-rels-lemma] Process a TC lemma : "
+          Trace("rels-tc-lemma") << "[sets-rels-lemma] Process a TC lemma : "
                               << tc_lemma << std::endl;
           d_sets_theory.d_out->lemma(tc_lemma);
           d_sets_theory.d_out->requirePhase(Rewriter::rewrite(mem_of_r), true);
@@ -913,7 +915,7 @@ int TheorySetsRels::EqcInfo::counter        = 0;
   }
 
   bool TheorySetsRels::isTCReachable(Node start, Node dest, std::hash_set<Node, NodeHashFunction>& hasSeen,
-                                      std::map< Node, std::hash_set< Node, NodeHashFunction > >& tc_graph) {
+                                      std::map< Node, std::hash_set< Node, NodeHashFunction > >& tc_graph, bool& isReachable) {
     if(hasSeen.find(start) == hasSeen.end()) {
       hasSeen.insert(start);
     }
@@ -922,20 +924,20 @@ int TheorySetsRels::EqcInfo::counter        = 0;
 
     if(pair_set_it != tc_graph.end()) {
       if(pair_set_it->second.find(dest) != pair_set_it->second.end()) {
-        return true;
+        isReachable = isReachable || true;
       } else {
         std::hash_set< Node, NodeHashFunction >::iterator set_it = pair_set_it->second.begin();
 
         while(set_it != pair_set_it->second.end()) {
           // need to check if *set_it has been looked already
           if(hasSeen.find(*set_it) == hasSeen.end()) {
-            isTCReachable(*set_it, dest, hasSeen, tc_graph);
+            isTCReachable(*set_it, dest, hasSeen, tc_graph, isReachable);
           }
           set_it++;
         }
       }
     }
-    return false;
+    isReachable = isReachable || false;
   }
 
   void TheorySetsRels::sendSplit(Node a, Node b, const char * c) {

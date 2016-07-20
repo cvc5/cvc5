@@ -176,7 +176,7 @@ private:
   void inferTC( Node, Node, std::map< Node, std::hash_set< Node, NodeHashFunction > >&,
                 Node, Node, std::hash_set< Node, NodeHashFunction >&);
   bool isTCReachable(Node fst, Node snd, std::hash_set<Node, NodeHashFunction>& hasSeen,
-                      std::map< Node, std::hash_set< Node, NodeHashFunction > >& tc_graph);
+                      std::map< Node, std::hash_set< Node, NodeHashFunction > >& tc_graph, bool&);
 
   Node explain(Node);
 
