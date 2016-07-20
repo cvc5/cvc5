@@ -175,7 +175,7 @@ void TheorySep::preRegisterTermRec(TNode t, std::map< TNode, bool >& visited ) {
       std::map< TypeNode, Node >::iterator it = d_nil_ref.find( tn );
       if( it==d_nil_ref.end() ){
         Trace("sep-prereg") << "...set as reference." << std::endl;
-        d_nil_ref[tn] = t;
+        setNilRef( tn, t );
       }else{
         Node nr = it->second;
         Trace("sep-prereg") << "...reference is " << nr << "." << std::endl;
@@ -999,7 +999,7 @@ Node TheorySep::getBaseLabel( TypeNode tn ) {
     ss << "__Lb";
     TypeNode ltn = NodeManager::currentNM()->mkSetType(tn);
     //TypeNode ltn = NodeManager::currentNM()->mkSetType(NodeManager::currentNM()->mkRefType(tn));
-    Node n_lbl = NodeManager::currentNM()->mkSkolem( ss.str(), ltn, "" );
+    Node n_lbl = NodeManager::currentNM()->mkSkolem( ss.str(), ltn, "base label" );
     d_base_label[tn] = n_lbl;
     //make reference bound
     Trace("sep") << "Make reference bound label for " << tn << std::endl;
@@ -1046,11 +1046,23 @@ Node TheorySep::getNilRef( TypeNode tn ) {
   std::map< TypeNode, Node >::iterator it = d_nil_ref.find( tn );
   if( it==d_nil_ref.end() ){
     Node nil = NodeManager::currentNM()->mkSepNil( tn );
-    d_nil_ref[tn] = nil;
+    setNilRef( tn, nil );
     return nil;
   }else{
     return it->second;
   }
+}
+
+void TheorySep::setNilRef( TypeNode tn, Node n ) {
+  Assert( n.getType()==tn );
+  d_nil_ref[tn] = n;
+  /*
+  //must add unit lemma to ensure nil is always a term in model construction
+  Node k = NodeManager::currentNM()->mkSkolem( "nk", tn );
+  Node eq = NodeManager::currentNM()->mkNode( tn.isBoolean() ? kind::IFF : kind::EQUAL, k, n );
+  d_out->lemma( eq );
+  */
+  //TODO: must not occur in base label
 }
 
 Node TheorySep::mkUnion( TypeNode tn, std::vector< Node >& locs ) {
@@ -1082,7 +1094,7 @@ Node TheorySep::getLabel( Node atom, int child, Node lbl ) {
     ss << "__Lc" << child;
     TypeNode ltn = NodeManager::currentNM()->mkSetType(refType);
     //TypeNode ltn = NodeManager::currentNM()->mkSetType(NodeManager::currentNM()->mkRefType(refType));
-    Node n_lbl = NodeManager::currentNM()->mkSkolem( ss.str(), ltn, "" );
+    Node n_lbl = NodeManager::currentNM()->mkSkolem( ss.str(), ltn, "sep label" );
     d_label_map[atom][lbl][child] = n_lbl;
     d_label_map_parent[n_lbl] = lbl;
     return n_lbl;

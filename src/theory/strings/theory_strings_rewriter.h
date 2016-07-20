@@ -61,6 +61,10 @@ public:
   static void getConcat( Node n, std::vector< Node >& c );
   static Node mkConcat( Kind k, std::vector< Node >& c );
   static Node splitConstant( Node a, Node b, int& index, bool isRev );
+  /** return true if constant c can contain the concat n/list l in order 
+      firstc/lastc store which indices were used */
+  static bool canConstantContainConcat( Node c, Node n, int& firstc, int& lastc );
+  static bool canConstantContainList( Node c, std::vector< Node >& l, int& firstc, int& lastc );
 };/* class TheoryStringsRewriter */
 
 }/* CVC4::theory::strings namespace */

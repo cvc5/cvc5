@@ -248,6 +248,7 @@ class TheorySep : public Theory {
   //get the base label for the spatial assertion
   Node getBaseLabel( TypeNode tn );
   Node getNilRef( TypeNode tn );
+  void setNilRef( TypeNode tn, Node n );
   Node getLabel( Node atom, int child, Node lbl );
   Node applyLabel( Node n, Node lbl, std::map< Node, Node >& visited );
   void getLabelChildren( Node atom, Node lbl, std::vector< Node >& children, std::vector< Node >& labels );

@@ -1270,24 +1270,26 @@ void TheoryStrings::checkExtfEval( int effort ) {
       std::vector< Node > sub;
       for( std::map< Node, std::vector< Node > >::iterator itv = itit->second.d_rep_vars.begin(); itv != itit->second.d_rep_vars.end(); ++itv ){
         Node nr = itv->first;
-        std::map< Node, Node >::iterator itc = d_eqc_to_const.find( nr );
         Node s;
         Node b;
         Node e;
         if( effort>=3 ){
           //model values
           s = d_valuation.getModel()->getRepresentative( nr );
-        }else if( itc!=d_eqc_to_const.end() ){
-          //constant equivalence classes
-          b = d_eqc_to_const_base[nr];
-          s = itc->second;
-          e = d_eqc_to_const_exp[nr];
-        }else if( effort>=1 && effort<3 ){
-          //normal forms
-          b = d_normal_forms_base[nr];
-          std::vector< Node > expt;
-          s = getNormalString( b, expt );
-          e = mkAnd( expt );
+        }else{
+          std::map< Node, Node >::iterator itc = d_eqc_to_const.find( nr );
+          if( itc!=d_eqc_to_const.end() ){
+            //constant equivalence classes
+            b = d_eqc_to_const_base[nr];
+            s = itc->second;
+            e = d_eqc_to_const_exp[nr];
+          }else if( effort>=1 && effort<3 ){
+            //normal forms
+            b = d_normal_forms_base[nr];
+            std::vector< Node > expt;
+            s = getNormalString( b, expt );
+            e = mkAnd( expt );
+          }
         }
         if( !s.isNull() ){
           bool added = false;
@@ -1543,6 +1545,14 @@ Node TheoryStrings::getSymbolicDefinition( Node n, std::vector< Node >& exp ) {
   }
 }
 
+Node TheoryStrings::getConstantEqc( Node eqc ) {
+  std::map< Node, Node >::iterator it = d_eqc_to_const.find( eqc );
+  if( it!=d_eqc_to_const.end() ){
+    return it->second;
+  }else{
+    return Node::null();
+  }
+}
 
 void TheoryStrings::debugPrintFlatForms( const char * tc ){
   for( unsigned k=0; k<d_strings_eqc.size(); k++ ){
@@ -1610,14 +1620,50 @@ void TheoryStrings::checkFlatForms() {
       Trace("strings-ff") << "Flat forms : " << std::endl;
       debugPrintFlatForms( "strings-ff" );
     }
+    
     //inferences without recursively expanding flat forms
+    
+    //(1) approximate equality by containment, infer conflicts
     for( unsigned k=0; k<d_strings_eqc.size(); k++ ){
       Node eqc = d_strings_eqc[k];
-      Node c;
-      std::map< Node, Node >::iterator itc = d_eqc_to_const.find( eqc );
-      if( itc!=d_eqc_to_const.end() ){
-        c = itc->second;   //use?
+      Node c = getConstantEqc( eqc );
+      if( !c.isNull() ){
+        //if equivalence class is constant, all component constants in flat forms must be contained in it, in order
+        std::map< Node, std::vector< Node > >::iterator it = d_eqc.find( eqc );
+        if( it!=d_eqc.end() ){
+          for( unsigned i=0; i<it->second.size(); i++ ){
+            Node n = it->second[i];
+            int firstc, lastc;
+            if( !TheoryStringsRewriter::canConstantContainList( c, d_flat_form[n], firstc, lastc ) ){
+              Trace("strings-ff-debug") << "Flat form for " << n << " cannot be contained in constant " << c << std::endl;
+              Trace("strings-ff-debug") << "  indices = " << firstc << "/" << lastc << std::endl;
+              //conflict, explanation is n = base ^ base = c ^ relevant porition of ( n = f[n] )
+              std::vector< Node > exp;
+              Assert( d_eqc_to_const_base.find( eqc )!=d_eqc_to_const_base.end() );
+              addToExplanation( n, d_eqc_to_const_base[eqc], exp );
+              Assert( d_eqc_to_const_exp.find( eqc )!=d_eqc_to_const_exp.end() );
+              if( !d_eqc_to_const_exp[eqc].isNull() ){
+                exp.push_back( d_eqc_to_const_exp[eqc] );
+              }
+              for( int e=firstc; e<=lastc; e++ ){
+                if( d_flat_form[n][e].isConst() ){
+                  Assert( e>=0 && e<(int)d_flat_form_index[n].size() );
+                  Assert( d_flat_form_index[n][e]>=0 && d_flat_form_index[n][e]<(int)n.getNumChildren() );
+                  addToExplanation( d_flat_form[n][e], n[d_flat_form_index[n][e]], exp );
+                }
+              }
+              Node conc = d_false;
+              sendInference( exp, conc, "F_NCTN" );
+              return;
+            }
+          }
+        }
       }
+    }
+    
+    //(2) scan lists, unification to infer conflicts and equalities
+    for( unsigned k=0; k<d_strings_eqc.size(); k++ ){
+      Node eqc = d_strings_eqc[k];
       std::map< Node, std::vector< Node > >::iterator it = d_eqc.find( eqc );
       if( it!=d_eqc.end() && it->second.size()>1 ){
         //iterate over start index
@@ -1659,7 +1705,7 @@ void TheoryStrings::checkFlatForms() {
                 }
               }else{
                 Node curr = d_flat_form[a][count];
-                Node curr_c = d_eqc_to_const[curr];
+                Node curr_c = getConstantEqc( curr );
                 Node ac = a[d_flat_form_index[a][count]];
                 std::vector< Node > lexp;
                 Node lcurr = getLength( ac, lexp );
@@ -1685,7 +1731,7 @@ void TheoryStrings::checkFlatForms() {
                         Node bc = b[d_flat_form_index[b][count]];
                         inelig.push_back( b );
                         Assert( !areEqual( curr, cc ) );
-                        Node cc_c = d_eqc_to_const[cc];
+                        Node cc_c = getConstantEqc( cc );
                         if( !curr_c.isNull() && !cc_c.isNull() ){
                           //check for constant conflict
                           int index;
@@ -1761,7 +1807,7 @@ void TheoryStrings::checkFlatForms() {
                 }
                 //notice that F_EndpointEmp is not typically applied, since strict prefix equality ( a.b = a ) where a,b non-empty 
                 //  is conflicting by arithmetic len(a.b)=len(a)+len(b)!=len(a) when len(b)!=0.
-                sendInference( exp, conc, inf_type==0? "F_Const" : ( inf_type==1 ? "F_LengthEq" : ( inf_type==2 ? "F_EndpointEmp" : "F_EndpointEq" ) ) );
+                sendInference( exp, conc, inf_type==0 ? "F_Const" : ( inf_type==1 ? "F_Unify" : ( inf_type==2 ? "F_EndpointEmp" : "F_EndpointEq" ) ) );
                 if( d_conflict ){
                   return;
                 }else{
@@ -2020,6 +2066,7 @@ bool TheoryStrings::normalizeEquivalenceClass( Node eqc ) {
 
 bool TheoryStrings::getNormalForms( Node &eqc, std::vector< std::vector< Node > > &normal_forms, std::vector< Node > &normal_form_src,
                                     std::vector< std::vector< Node > > &normal_forms_exp, std::vector< std::map< Node, std::map< bool, int > > >& normal_forms_exp_depend ) {
+  //constant for equivalence class
   Trace("strings-process-debug") << "Get normal forms " << eqc << std::endl;
   eq::EqClassIterator eqc_i = eq::EqClassIterator( eqc, &d_equalityEngine );
   while( !eqc_i.isFinished() ){
@@ -2114,8 +2161,8 @@ bool TheoryStrings::getNormalForms( Node &eqc, std::vector< std::vector< Node > 
     ++eqc_i;
   }
 
-  if(Trace.isOn("strings-solve")) {
-    if( !normal_forms.empty() ) {
+  if( !normal_forms.empty() ) {
+    if(Trace.isOn("strings-solve")) {
       Trace("strings-solve") << "--- Normal forms for equivlance class " << eqc << " : " << std::endl;
       for( unsigned i=0; i<normal_forms.size(); i++ ) {
         Trace("strings-solve") << "#" << i << " (from " << normal_form_src[i] << ") : ";
@@ -2150,7 +2197,35 @@ bool TheoryStrings::getNormalForms( Node &eqc, std::vector< std::vector< Node > 
     } else {
       Trace("strings-solve") << "--- Single normal form for equivalence class " << eqc << std::endl;
     }
+    
+    //if equivalence class is constant, approximate as containment, infer conflicts
+    Node c = getConstantEqc( eqc );
+    if( !c.isNull() ){
+      Trace("strings-solve") << "Eqc is constant " << c << std::endl;
+      for( unsigned i=0; i<normal_forms.size(); i++ ) {
+        int firstc, lastc;
+        if( !TheoryStringsRewriter::canConstantContainList( c, normal_forms[i], firstc, lastc ) ){
+          Node n = normal_form_src[i];
+          //conflict
+          Trace("strings-solve") << "Normal form for " << n << " cannot be contained in constant " << c << std::endl;
+          //conflict, explanation is n = base ^ base = c ^ relevant porition of ( n = N[n] )
+          std::vector< Node > exp;
+          Assert( d_eqc_to_const_base.find( eqc )!=d_eqc_to_const_base.end() );
+          addToExplanation( n, d_eqc_to_const_base[eqc], exp );
+          Assert( d_eqc_to_const_exp.find( eqc )!=d_eqc_to_const_exp.end() );
+          if( !d_eqc_to_const_exp[eqc].isNull() ){
+            exp.push_back( d_eqc_to_const_exp[eqc] );
+          }
+          //TODO: this can be minimized based on firstc/lastc, normal_forms_exp_depend
+          exp.insert( exp.end(), normal_forms_exp[i].begin(), normal_forms_exp[i].end() );
+          Node conc = d_false;
+          sendInference( exp, conc, "N_NCTN" );
+          return true;
+        }
+      }
+    }
   }
+  
   return true;
 }
 
@@ -2203,7 +2278,7 @@ bool TheoryStrings::processNEqc( std::vector< std::vector< Node > > &normal_form
         unsigned index = 0;
         bool success;
         do{
-          //simple check
+          //first, make progress with simple checks
           if( processSimpleNEq( normal_forms, normal_form_src, normal_forms_exp, normal_forms_exp_depend, i, j, index, false ) ){
             //added a lemma, return
             return true;
@@ -2221,7 +2296,7 @@ bool TheoryStrings::processNEqc( std::vector< std::vector< Node > > &normal_form
             Node length_term_j = getLength( normal_forms[j][index], lexp );
             //check  length(normal_forms[i][index]) == length(normal_forms[j][index])
             if( !areDisequal(length_term_i, length_term_j) && !areEqual(length_term_i, length_term_j) &&
-                normal_forms[i][index].getKind()!=kind::CONST_STRING && normal_forms[j][index].getKind()!=kind::CONST_STRING ) {
+                normal_forms[i][index].getKind()!=kind::CONST_STRING && normal_forms[j][index].getKind()!=kind::CONST_STRING ) {   //AJR: remove the latter 2 conditions?
               //length terms are equal, merge equivalence classes if not already done so
               Node length_eq = NodeManager::currentNM()->mkNode( kind::EQUAL, length_term_i, length_term_j );
               Trace("strings-solve-debug") << "Non-simple Case 1 : string lengths neither equal nor disequal" << std::endl;
@@ -2388,8 +2463,8 @@ bool TheoryStrings::processSimpleNEq( std::vector< std::vector< Node > > &normal
   do {
     success = false;
     //if we are at the end
-    if(index==normal_forms[i].size() || index==normal_forms[j].size() ) {
-      if( index==normal_forms[i].size() && index==normal_forms[j].size() ) {
+    if( index==normal_forms[i].size() || index==normal_forms[j].size() ){
+      if( index==normal_forms[i].size() && index==normal_forms[j].size() ){
         //we're done
       } else {
         //the remainder must be empty
@@ -2403,7 +2478,7 @@ bool TheoryStrings::processSimpleNEq( std::vector< std::vector< Node > > &normal
           Node eq = normal_forms[k][index_k].eqNode( d_emptyString );
           //Trace("strings-lemma") << "Strings: Infer " << eq << " from " << eq_exp << std::endl;
           Assert( !areEqual( d_emptyString, normal_forms[k][index_k] ) );
-          sendInference( curr_exp, eq, "EQ_Endpoint" );
+          sendInference( curr_exp, eq, "N_EndpointEmp" );
           index_k++;
         }
         return true;
@@ -2428,7 +2503,7 @@ bool TheoryStrings::processSimpleNEq( std::vector< std::vector< Node > > &normal
           //temp_exp.insert(temp_exp.end(), curr_exp.begin(), curr_exp.end() );
           getExplanationVectorForPrefix( normal_forms, normal_form_src, normal_forms_exp, normal_forms_exp_depend, i, j, index, isRev, temp_exp );
           temp_exp.push_back(length_eq);
-          sendInference( temp_exp, eq, "LengthEq" );
+          sendInference( temp_exp, eq, "N_Unify" );
           return true;
         }else if( ( normal_forms[i][index].getKind()!=kind::CONST_STRING && index==normal_forms[i].size()-1 ) ||
                   ( normal_forms[j][index].getKind()!=kind::CONST_STRING && index==normal_forms[j].size()-1 ) ){
@@ -2453,7 +2528,7 @@ bool TheoryStrings::processSimpleNEq( std::vector< std::vector< Node > > &normal
           }
           if( !areEqual( eqn[0], eqn[1] ) ) {
             conc = eqn[0].eqNode( eqn[1] );
-            sendInference( antec, conc, "ENDPOINT", true );
+            sendInference( antec, conc, "N_EndpointEq", true );
             return true;
           }else{
             Assert( normal_forms[i].size()==normal_forms[j].size() );
@@ -2483,12 +2558,12 @@ bool TheoryStrings::processSimpleNEq( std::vector< std::vector< Node > > &normal
             normal_forms[l][index] = normal_forms[k][index];
             index++;
             success = true;
-          } else {
+          }else{
             std::vector< Node > antec;
             //curr_exp is conflict
             //antec.insert(antec.end(), curr_exp.begin(), curr_exp.end() );
             getExplanationVectorForPrefix( normal_forms, normal_form_src, normal_forms_exp, normal_forms_exp_depend, i, j, index, isRev, antec );
-            sendInference( antec, d_false, "Const Conflict", true );
+            sendInference( antec, d_false, "N_Const", true );
             return true;
           }
         }

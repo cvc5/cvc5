@@ -1502,22 +1502,12 @@ Node TheoryStringsRewriter::rewriteContains( Node node ) {
       }
     }
   }else if( node[0].isConst() ){
-    CVC4::String t = node[0].getConst<String>();
-    if( t.size()==0 ){
+    if( node[0].getConst<String>().size()==0 ){
       return NodeManager::currentNM()->mkNode( kind::EQUAL, node[0], node[1] );
     }else if( node[1].getKind()==kind::STRING_CONCAT ){
-      //must find constant components in order
-      size_t pos = 0;
-      for(unsigned i=0; i<node[1].getNumChildren(); i++) {
-        if( node[1][i].isConst() ){
-          CVC4::String s = node[1][i].getConst<String>();
-          size_t new_pos = t.find(s,pos);
-          if( new_pos==std::string::npos ) {
-            return NodeManager::currentNM()->mkConst( false );
-          }else{
-            pos = new_pos + s.size();
-          }
-        }
+      int firstc, lastc;
+      if( !canConstantContainConcat( node[0], node[1], firstc, lastc ) ){
+        return NodeManager::currentNM()->mkConst( false );
       }
     }
   }
@@ -1710,3 +1700,51 @@ Node TheoryStringsRewriter::splitConstant( Node a, Node b, int& index, bool isRe
     return Node::null();
   }
 }
+
+bool TheoryStringsRewriter::canConstantContainConcat( Node c, Node n, int& firstc, int& lastc ) {
+  Assert( c.isConst() );
+  CVC4::String t = c.getConst<String>();
+  Assert( n.getKind()==kind::STRING_CONCAT );
+  //must find constant components in order
+  size_t pos = 0;
+  firstc = -1;
+  lastc = -1;
+  for(unsigned i=0; i<n.getNumChildren(); i++) {
+    if( n[i].isConst() ){
+      firstc = firstc==-1 ? i : firstc;
+      lastc = i;
+      CVC4::String s = n[i].getConst<String>();
+      size_t new_pos = t.find(s,pos);
+      if( new_pos==std::string::npos ) {
+        return false;
+      }else{
+        pos = new_pos + s.size();
+      }
+    }
+  }
+  return true;
+}
+
+bool TheoryStringsRewriter::canConstantContainList( Node c, std::vector< Node >& l, int& firstc, int& lastc ) {
+  Assert( c.isConst() );
+  CVC4::String t = c.getConst<String>();
+  //must find constant components in order
+  size_t pos = 0;
+  firstc = -1;
+  lastc = -1;
+  for(unsigned i=0; i<l.size(); i++) {
+    if( l[i].isConst() ){
+      firstc = firstc==-1 ? i : firstc;
+      lastc = i;
+      CVC4::String s = l[i].getConst<String>();
+      size_t new_pos = t.find(s,pos);
+      if( new_pos==std::string::npos ) {
+        return false;
+      }else{
+        pos = new_pos + s.size();
+      }
+    }
+  }
+  return true;
+}
+
