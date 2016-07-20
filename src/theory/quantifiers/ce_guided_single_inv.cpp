@@ -755,13 +755,10 @@ Node CegConjectureSingleInv::getSolution( unsigned sol_index, TypeNode stn, int&
     Trace("csi-sol") << "Sort solution return values " << sol_index << std::endl;
     bool useUnsatCore = false;
     std::vector< Node > active_lemmas;
-    /*  TODO?
     //minimize based on unsat core, if possible
-    std::vector< Node > active_lemmas;
-    if( d_qe->getUnsatCoreLemmas( active_lemmas ) ){
+    if( options::cegqiSolMinCore() && d_qe->getUnsatCoreLemmas( active_lemmas ) ){
       useUnsatCore = true;
     } 
-    */
     Assert( d_lemmas_produced.size()==d_inst.size() );
     std::vector< unsigned > indices;
     for( unsigned i=0; i<d_lemmas_produced.size(); i++ ){

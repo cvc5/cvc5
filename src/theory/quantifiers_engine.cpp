@@ -1286,10 +1286,11 @@ void QuantifiersEngine::flushLemmas(){
 }
 
 bool QuantifiersEngine::getUnsatCoreLemmas( std::vector< Node >& active_lemmas ) {
-  //TODO: only if unsat core available
+  //only if unsat core available
   bool isUnsatCoreAvailable = false;
-  //if( options::proof() ){
-  //}
+  if( options::proof() ){
+    isUnsatCoreAvailable = ProofManager::currentPM()->unsatCoreAvailable();
+  }
   if( isUnsatCoreAvailable ){
     Trace("inst-unsat-core") << "Get instantiations in unsat core..." << std::endl;
     ProofManager::currentPM()->getLemmasInUnsatCore(theory::THEORY_QUANTIFIERS, active_lemmas);
