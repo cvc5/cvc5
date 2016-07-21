@@ -82,7 +82,9 @@ TESTS = \
   cmu-disagree-0707-dd.smt2 \
   cmu-5042-0707-2.smt2 \
   cmu-dis-0707-3.smt2 \
-  nf-ff-contains-abs.smt2  
+  nf-ff-contains-abs.smt2  \
+  csp-prefix-exp-bug.smt2 \
+  cmu-substr-rw.smt2  
 
 FAILING_TESTS =
 

@@ -1032,16 +1032,16 @@ RewriteResponse TheoryStringsRewriter::postRewrite(TNode node) {
       Node tmpNode = rewriteConcatString(node[0]);
       if(tmpNode.isConst()) {
         retNode = NodeManager::currentNM()->mkConst( ::CVC4::Rational( tmpNode.getConst<String>().size() ) );
-      } else if(tmpNode.getKind() == kind::STRING_SUBSTR) {
+      //} else if(tmpNode.getKind() == kind::STRING_SUBSTR) {
         //retNode = tmpNode[2];
-      } else {
+      } else if( tmpNode.getKind()==kind::STRING_CONCAT ){
         // it has to be string concat
         std::vector<Node> node_vec;
         for(unsigned int i=0; i<tmpNode.getNumChildren(); ++i) {
           if(tmpNode[i].isConst()) {
             node_vec.push_back( NodeManager::currentNM()->mkConst( ::CVC4::Rational( tmpNode[i].getConst<String>().size() ) ) );
-          } else if(tmpNode[i].getKind() == kind::STRING_SUBSTR) {
-            node_vec.push_back( tmpNode[i][2] );
+          //} else if(tmpNode[i].getKind() == kind::STRING_SUBSTR) {
+          //  node_vec.push_back( tmpNode[i][2] );
           } else {
             node_vec.push_back( NodeManager::currentNM()->mkNode(kind::STRING_LENGTH, tmpNode[i]) );
           }
