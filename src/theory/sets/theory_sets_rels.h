@@ -123,15 +123,27 @@ private:
   std::hash_set< Node, NodeHashFunction >       d_rel_nodes;
   std::map< Node, std::vector<Node> >           d_tuple_reps;
   std::map< Node, TupleTrie >                   d_membership_trie;
-  std::hash_set< Node, NodeHashFunction >       d_symbolic_tuples;
-  std::map< Node, std::vector<Node> >           d_membership_constraints_cache;
-  std::map< Node, std::vector<Node> >           d_membership_exp_cache;
-  std::map< Node, std::vector<Node> >           d_membership_db;
-  std::map< Node, std::vector<Node> >           d_membership_exp_db;
-  std::map< Node, Node >                        d_membership_tc_exp_cache;
 
-  std::map< Node, std::hash_set<Node, NodeHashFunction> >                       d_tc_membership_db;
+  /** Symbolic tuple variables that has been reduced to concrete ones */
+  std::hash_set< Node, NodeHashFunction >       d_symbolic_tuples;
+
+  /** Mapping between relation and its (non)members representatives */
+  std::map< Node, std::vector<Node> >           d_membership_constraints_cache;
+
+  /** Mapping between relation and its (non)members' explanation */
+  std::map< Node, std::vector<Node> >           d_membership_exp_cache;
+
+  /** Mapping between relation and its member representatives */
+  std::map< Node, std::vector<Node> >           d_membership_db;
+
+  /** Mapping between relation and its members' explanation */
+  std::map< Node, std::vector<Node> >           d_membership_exp_db;
+
+  /** Mapping between a relation and its equivalent relations involving relational operators */
   std::map< Node, std::map<kind::Kind_t, std::vector<Node> > >                  d_terms_cache;
+
+  std::map< Node, Node >                                                        d_membership_tc_exp_cache;
+  std::map< Node, std::hash_set<Node, NodeHashFunction> >                       d_tc_membership_db;
   std::map< Node, std::map< Node, std::hash_set<Node, NodeHashFunction> > >     d_membership_tc_cache;
 
   /** information necessary for equivalence classes */
@@ -175,7 +187,7 @@ private:
   void inferTC( Node, std::map< Node, std::hash_set< Node, NodeHashFunction > >& );
   void inferTC( Node, Node, std::map< Node, std::hash_set< Node, NodeHashFunction > >&,
                 Node, Node, std::hash_set< Node, NodeHashFunction >&);
-  bool isTCReachable(Node fst, Node snd, std::hash_set<Node, NodeHashFunction>& hasSeen,
+  void isTCReachable(Node fst, Node snd, std::hash_set<Node, NodeHashFunction>& hasSeen,
                       std::map< Node, std::hash_set< Node, NodeHashFunction > >& tc_graph, bool&);
 
   Node explain(Node);
@@ -194,7 +206,7 @@ private:
   inline Node getReason(Node tc_rep, Node tc_term, Node tc_r_rep, Node tc_r);
   inline Node constructPair(Node tc_rep, Node a, Node b);
   Node findMemExp(Node r, Node pair);
-  bool safeAddToMap( std::map< Node, std::vector<Node> >&, Node, Node );
+  bool safelyAddToMap( std::map< Node, std::vector<Node> >&, Node, Node );
   void addToMap( std::map< Node, std::vector<Node> >&, Node, Node );
   bool hasMember( Node, Node );
   Node getRepresentative( Node t );

@@ -15,12 +15,10 @@
  **/
 
 #include "theory/sets/theory_sets_rels.h"
-
 #include "expr/datatype.h"
 #include "theory/sets/expr_patterns.h"
 #include "theory/sets/theory_sets_private.h"
 #include "theory/sets/theory_sets.h"
-
 
 using namespace std;
 using namespace CVC4::expr::pattern;
@@ -29,15 +27,14 @@ namespace CVC4 {
 namespace theory {
 namespace sets {
 
-typedef std::map<Node, std::vector<Node> >::iterator                                            MEM_IT;
+typedef std::map< Node, std::vector< Node > >::iterator                                         MEM_IT;
+typedef std::map< kind::Kind_t, std::vector< Node > >::iterator                                 KIND_TERM_IT;
 typedef std::map< Node, std::hash_set< Node, NodeHashFunction > >::iterator                     TC_PAIR_IT;
-typedef std::map<Node, std::map<kind::Kind_t, std::vector<Node> > >::iterator                   TERM_IT;
-typedef std::map<Node, std::map<Node, std::hash_set<Node, NodeHashFunction> > >::iterator       TC_IT;
+typedef std::map< Node, std::map< kind::Kind_t, std::vector< Node > > >::iterator               TERM_IT;
+typedef std::map< Node, std::map< Node, std::hash_set< Node, NodeHashFunction > > >::iterator   TC_IT;
 
 int TheorySetsRels::EqcInfo::counter        = 0;
 
-
-  // do a test
   void TheorySetsRels::check(Theory::Effort level) {
     Trace("rels") << "\n[sets-rels] ******************************* Start the relational solver *******************************\n" << std::endl;
     if(Theory::fullEffort(level)) {
@@ -55,6 +52,7 @@ int TheorySetsRels::EqcInfo::counter        = 0;
 
   void TheorySetsRels::check() {
     MEM_IT m_it = d_membership_constraints_cache.begin();
+
     while(m_it != d_membership_constraints_cache.end()) {
       Node rel_rep = m_it->first;
 
@@ -75,6 +73,7 @@ int TheorySetsRels::EqcInfo::counter        = 0;
         for(unsigned int i = 0; i < m_it->second.size(); i++) {
           Node                                          exp             = d_membership_exp_cache[rel_rep][i];
           std::map<kind::Kind_t, std::vector<Node> >    kind_terms      = d_terms_cache[rel_rep];
+
           if(kind_terms.find(kind::TRANSPOSE) != kind_terms.end()) {
             std::vector<Node> tp_terms = kind_terms[kind::TRANSPOSE];
             // exp is a membership term and tp_terms contains all
@@ -111,69 +110,73 @@ int TheorySetsRels::EqcInfo::counter        = 0;
   }
 
   /*
-   * Polulate the relational terms data structure
+   * Populate relational terms data structure
    */
 
   void TheorySetsRels::collectRelsInfo() {
-    Trace("rels-debug") << "[sets-rels] Start collecting relational terms..." << std::endl;
+    Trace("rels") << "[sets-rels] Start collecting relational terms..." << std::endl;
     eq::EqClassesIterator eqcs_i = eq::EqClassesIterator( d_eqEngine );
     while( !eqcs_i.isFinished() ){
-      Node                      r       = (*eqcs_i);
-      eq::EqClassIterator       eqc_i   = eq::EqClassIterator( r, d_eqEngine );
-      Trace("rels-ee") << "[sets-rels-ee] term representative: " << r << std::endl;
+      Node                      eqc_rep  = (*eqcs_i);
+      eq::EqClassIterator       eqc_i   = eq::EqClassIterator( eqc_rep, d_eqEngine );
+
+      Trace("rels-ee") << "[sets-rels-ee] term representative: " << eqc_rep << std::endl;
+
       while( !eqc_i.isFinished() ){
-        Node n = (*eqc_i);
-        Trace("rels-ee") << "  term : " << n << std::endl;
+        Node eqc_node = (*eqc_i);
 
-        if(getRepresentative(r) == getRepresentative(d_trueNode) ||
-           getRepresentative(r) == getRepresentative(d_falseNode)) {
+        Trace("rels-ee") << "  term : " << eqc_node << std::endl;
+
+        if(getRepresentative(eqc_rep) == getRepresentative(d_trueNode) ||
+           getRepresentative(eqc_rep) == getRepresentative(d_falseNode)) {
           // collect membership info
-          if(n.getKind() == kind::MEMBER && n[1].getType().getSetElementType().isTuple()) {
-            Node tup_rep = getRepresentative(n[0]);
-            Node rel_rep = getRepresentative(n[1]);
-            // Todo: check n[0] or n[0]'s rep is a var??
-            if(n[0].isVar()){
-              reduceTupleVar(n);
-            } else {
-              if(safeAddToMap(d_membership_constraints_cache, rel_rep, tup_rep)) {
-                bool true_eq    = areEqual(r, d_trueNode);
-                Node reason     = true_eq ? n : n.negate();
-                addToMap(d_membership_exp_cache, rel_rep, reason);
+          if(eqc_node.getKind() == kind::MEMBER && eqc_node[1].getType().getSetElementType().isTuple()) {
+            Node tup_rep = getRepresentative(eqc_node[0]);
+            Node rel_rep = getRepresentative(eqc_node[1]);
 
-                if(true_eq) {
+            if(eqc_node[0].isVar()){
+              reduceTupleVar(eqc_node);
+            } else {
+              if( safelyAddToMap(d_membership_constraints_cache, rel_rep, tup_rep) ) {
+                bool is_true_eq    = areEqual(eqc_rep, d_trueNode);
+                Node reason        = is_true_eq ? eqc_node : eqc_node.negate();
+
+                addToMap(d_membership_exp_cache, rel_rep, reason);
+                if( is_true_eq ) {
+                  // add tup_rep to membership database
+                  // and store mapping between tuple and tuple's elements representatives
                   addToMembershipDB(rel_rep, tup_rep, reason);
                 }
               }
             }
           }
         // collect relational terms info
-        } else if( r.getType().isSet() && r.getType().getSetElementType().isTuple() ) {
-          if( n.getKind() == kind::TRANSPOSE ||
-              n.getKind() == kind::JOIN ||
-              n.getKind() == kind::PRODUCT ||
-              n.getKind() == kind::TCLOSURE ) {
-            std::map<kind::Kind_t, std::vector<Node> >  rel_terms;
+        } else if( eqc_rep.getType().isSet() && eqc_rep.getType().getSetElementType().isTuple() ) {
+          if( eqc_node.getKind() == kind::TRANSPOSE || eqc_node.getKind() == kind::JOIN ||
+              eqc_node.getKind() == kind::PRODUCT || eqc_node.getKind() == kind::TCLOSURE ) {
             std::vector<Node>                           terms;
-            // No r record is found
-            if( d_terms_cache.find(r) == d_terms_cache.end() ) {
-              terms.push_back(n);
-              rel_terms[n.getKind()]    = terms;
-              d_terms_cache[r]          = rel_terms;
+            std::map<kind::Kind_t, std::vector<Node> >  rel_terms;
+            TERM_IT     terms_it      = d_terms_cache.find(eqc_rep);
+
+            if( terms_it == d_terms_cache.end() ) {
+              terms.push_back(eqc_node);
+              rel_terms[eqc_node.getKind()]      = terms;
+              d_terms_cache[eqc_rep]             = rel_terms;
             } else {
-              // No n's kind record is found
-              if( d_terms_cache[r].find(n.getKind()) == d_terms_cache[r].end() ) {
-                terms.push_back(n);
-                d_terms_cache[r][n.getKind()] = terms;
+              KIND_TERM_IT kind_term_it = terms_it->second.find(eqc_node.getKind());
+
+              if( kind_term_it == terms_it->second.end() ) {
+                terms.push_back(eqc_node);
+                d_terms_cache[eqc_rep][eqc_node.getKind()] = terms;
               } else {
-                d_terms_cache[r][n.getKind()].push_back(n);
+                kind_term_it->second.push_back(eqc_node);
               }
             }
           }
         // need to add all tuple elements as shared terms
-        } else if(n.getType().isTuple() && !n.isConst() && !n.isVar()) {
-          for(unsigned int i = 0; i < n.getType().getTupleLength(); i++) {
-            Node element = RelsUtils::nthElementOfTuple(n, i);
-
+        } else if(eqc_node.getType().isTuple() && !eqc_node.isConst() && !eqc_node.isVar()) {
+          for(unsigned int i = 0; i < eqc_node.getType().getTupleLength(); i++) {
+            Node element = RelsUtils::nthElementOfTuple(eqc_node, i);
             if(!element.isConst()) {
               makeSharedTerm(element);
             }
@@ -258,56 +261,6 @@ int TheorySetsRels::EqcInfo::counter        = 0;
       }
     }
     //todo: need to construct a tc_graph if transitive closure is used in the context
-
-//    Node atom           = polarity ? exp : exp[0];
-//    Node tup_rep        = getRepresentative(atom[0]);
-//    Node tc_rep         = getRepresentative(tc_term);
-//    Node tc_r_rep       = getRepresentative(tc_term[0]);
-//
-//    // build the TC graph for tc_rep if it was not created before
-//    if( d_rel_nodes.find(tc_rep) == d_rel_nodes.end() ) {
-//      Trace("rels-debug") << "[sets-rels]  Start building the TC graph!" << std::endl;
-//      buildTCGraph(tc_r_rep, tc_rep, tc_term);
-//      d_rel_nodes.insert(tc_rep);
-//    }
-
-    // insert tup_rep in the tc_graph if it is not in the graph already
-//    TC_IT tc_graph_it = d_membership_tc_cache.find(tc_rep);
-//
-//    if( polarity ) {
-//      Node fst_rep = getRepresentative(RelsUtils::nthElementOfTuple(tup_rep, 0));
-//      Node snd_rep = getRepresentative(RelsUtils::nthElementOfTuple(tup_rep, 1));
-//
-//      if( tc_graph_it != d_membership_tc_cache.end() ) {
-//        TC_PAIR_IT pair_set_it = tc_graph_it->second.find(fst_rep);
-//
-//        if( pair_set_it != tc_graph_it->second.end() ) {
-//          pair_set_it->second.insert(snd_rep);
-//        } else {
-//          std::hash_set< Node, NodeHashFunction > pair_set;
-//          pair_set.insert(snd_rep);
-//          tc_graph_it->second[fst_rep] = pair_set;
-//        }
-//
-//        Node                                    reason = getReason(tc_rep, tc_term, tc_r_rep, tc_term[0]);
-//        std::map< Node, Node >::iterator        exp_it = d_membership_tc_exp_cache.find(tc_rep);
-//
-//        if(!reason.isNull() && exp_it->second != reason) {
-//          d_membership_tc_exp_cache[tc_rep] = Rewriter::rewrite(AND(exp_it->second, reason));
-//        }
-//      } else {
-//        std::map< Node, std::hash_set< Node, NodeHashFunction > >       pair_set;
-//        std::hash_set< Node, NodeHashFunction >                         snd_set;
-//
-//        snd_set.insert(snd_rep);
-//        pair_set[fst_rep]               = snd_set;
-//        d_membership_tc_cache[tc_rep]   = pair_set;
-//        Node reason = getReason(tc_rep, tc_term, tc_r_rep, tc_term[0]);
-//
-//        if(!reason.isNull()) {
-//          d_membership_tc_exp_cache[tc_rep] = reason;
-//        }
-//      }
 //    // check if tup_rep already exists in TC graph for conflict
 //    } else {
 //      if( tc_graph_it != d_membership_tc_cache.end() ) {
@@ -530,7 +483,7 @@ int TheorySetsRels::EqcInfo::counter        = 0;
    *                         ------------------------------------------------
    *                            [NOT] (b, a) IS_IN X
    *
-   *
+   * Not implemented!
    * transpose-equal rule:   [NOT]  (TRANSPOSE X) = (TRANSPOSE Y)
    *                         -----------------------------------------------
    *                         [NOT]  (X = Y)
@@ -914,7 +867,7 @@ int TheorySetsRels::EqcInfo::counter        = 0;
     }
   }
 
-  bool TheorySetsRels::isTCReachable(Node start, Node dest, std::hash_set<Node, NodeHashFunction>& hasSeen,
+  void TheorySetsRels::isTCReachable(Node start, Node dest, std::hash_set<Node, NodeHashFunction>& hasSeen,
                                       std::map< Node, std::hash_set< Node, NodeHashFunction > >& tc_graph, bool& isReachable) {
     if(hasSeen.find(start) == hasSeen.end()) {
       hasSeen.insert(start);
@@ -925,6 +878,7 @@ int TheorySetsRels::EqcInfo::counter        = 0;
     if(pair_set_it != tc_graph.end()) {
       if(pair_set_it->second.find(dest) != pair_set_it->second.end()) {
         isReachable = isReachable || true;
+        return;
       } else {
         std::hash_set< Node, NodeHashFunction >::iterator set_it = pair_set_it->second.begin();
 
@@ -937,7 +891,6 @@ int TheorySetsRels::EqcInfo::counter        = 0;
         }
       }
     }
-    isReachable = isReachable || false;
   }
 
   void TheorySetsRels::sendSplit(Node a, Node b, const char * c) {
@@ -1048,7 +1001,10 @@ int TheorySetsRels::EqcInfo::counter        = 0;
     return false;
   }
 
-  bool TheorySetsRels::safeAddToMap(std::map< Node, std::vector<Node> >& map, Node rel_rep, Node member) {
+  /*
+   * Make sure duplicate members are not added in map
+   */
+  bool TheorySetsRels::safelyAddToMap(std::map< Node, std::vector<Node> >& map, Node rel_rep, Node member) {
     std::map< Node, std::vector< Node > >::iterator mem_it = map.find(rel_rep);
     if(mem_it == map.end()) {
       std::vector<Node> members;
@@ -1210,6 +1166,10 @@ int TheorySetsRels::EqcInfo::counter        = 0;
     return false;
   }
 
+  /*
+   * For each tuple n, we store a mapping between n and a list of its elements representatives
+   * in d_tuple_reps. This would later be used for applying JOIN operator.
+   */
   void TheorySetsRels::computeTupleReps( Node n ) {
     if( d_tuple_reps.find( n ) == d_tuple_reps.end() ){
       for( unsigned i = 0; i < n.getType().getTupleLength(); i++ ){
@@ -1230,6 +1190,10 @@ int TheorySetsRels::EqcInfo::counter        = 0;
     return NodeManager::currentNM()->mkNode(kind::APPLY_CONSTRUCTOR, Node::fromExpr(dt[0].getConstructor()), a, b);
   }
 
+  /*
+   * Node n[0] is a tuple variable, reduce n[0] to a concrete representation,
+   * which is (e1, ..., en) where e1, ... ,en are concrete elements of tuple n[0].
+   */
   void TheorySetsRels::reduceTupleVar(Node n) {
     if(d_symbolic_tuples.find(n) == d_symbolic_tuples.end()) {
       Trace("rels-debug") << "Reduce tuple var: " << n[0] << " to concrete one " << std::endl;
@@ -1505,8 +1469,6 @@ int TheorySetsRels::EqcInfo::counter        = 0;
 
   void TheorySetsRels::sendTCInference(EqcInfo* tc_ei, std::hash_set<int> in_reachable, std::hash_set<int> out_reachable, Node mem_rep, Node fst_rep, Node snd_rep, int id1, int id2) {
     Trace("rels-std") << "Start making TC inference after adding a member " << mem_rep << " to " << tc_ei->d_tc.get() << std::endl;
-
-    NodeMap::iterator map_it    = tc_ei->d_mem_exp.begin();
     Node exp            = explainTCMem(tc_ei, mem_rep, fst_rep, snd_rep);
     Assert(!exp.isNull());
     Node tc_lemma       = NodeManager::currentNM()->mkNode(kind::IMPLIES, exp, MEMBER(mem_rep, tc_ei->d_tc.get()));
