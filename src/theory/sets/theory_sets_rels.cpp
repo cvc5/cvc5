@@ -316,7 +316,7 @@ int TheorySetsRels::EqcInfo::counter        = 0;
     Trace("rels-debug") << "\n[sets-rels] *********** Applying PRODUCT rule  " << std::endl;
 
     if(d_rel_nodes.find(product_term) == d_rel_nodes.end()) {
-      computeRels(product_term);
+//      computeRels(product_term);
       d_rel_nodes.insert(product_term);
     }
     bool polarity       = exp.getKind() != kind::NOT;
@@ -393,7 +393,7 @@ int TheorySetsRels::EqcInfo::counter        = 0;
   void TheorySetsRels::applyJoinRule(Node exp, Node join_term) {
     Trace("rels-debug") << "\n[sets-rels] *********** Applying JOIN rule  " << std::endl;
     if(d_rel_nodes.find(join_term) == d_rel_nodes.end()) {
-      computeRels(join_term);
+//      computeRels(join_term);
       d_rel_nodes.insert(join_term);
     }
 
@@ -508,24 +508,24 @@ int TheorySetsRels::EqcInfo::counter        = 0;
 
     if(!polarity) {
       // tp_term is a nested term and we eagerly compute its subterms' members
-      if(d_terms_cache[tp_t0_rep].find(kind::JOIN)
-         != d_terms_cache[tp_t0_rep].end()) {
-        std::vector<Node> join_terms = d_terms_cache[tp_t0_rep][kind::JOIN];
-        for(unsigned int i = 0; i < join_terms.size(); i++) {
-          if(d_rel_nodes.find(join_terms[i]) == d_rel_nodes.end()) {
-            computeRels(join_terms[i]);
-          }
-        }
-      }
-      if(d_terms_cache[tp_t0_rep].find(kind::PRODUCT)
-         != d_terms_cache[tp_t0_rep].end()) {
-        std::vector<Node> product_terms = d_terms_cache[tp_t0_rep][kind::PRODUCT];
-        for(unsigned int i = 0; i < product_terms.size(); i++) {
-          if(d_rel_nodes.find(product_terms[i]) == d_rel_nodes.end()) {
-            computeRels(product_terms[i]);
-          }
-        }
-      }
+//      if(d_terms_cache[tp_t0_rep].find(kind::JOIN)
+//         != d_terms_cache[tp_t0_rep].end()) {
+//        std::vector<Node> join_terms = d_terms_cache[tp_t0_rep][kind::JOIN];
+//        for(unsigned int i = 0; i < join_terms.size(); i++) {
+//          if(d_rel_nodes.find(join_terms[i]) == d_rel_nodes.end()) {
+//            computeRels(join_terms[i]);
+//          }
+//        }
+//      }
+//      if(d_terms_cache[tp_t0_rep].find(kind::PRODUCT)
+//         != d_terms_cache[tp_t0_rep].end()) {
+//        std::vector<Node> product_terms = d_terms_cache[tp_t0_rep][kind::PRODUCT];
+//        for(unsigned int i = 0; i < product_terms.size(); i++) {
+//          if(d_rel_nodes.find(product_terms[i]) == d_rel_nodes.end()) {
+//            computeRels(product_terms[i]);
+//          }
+//        }
+//      }
       fact = fact.negate();
     }
     sendInfer(fact, reason, "transpose-rule");    
@@ -1219,6 +1219,7 @@ int TheorySetsRels::EqcInfo::counter        = 0;
                                  context::CDO<bool>* conflict,
                                  TheorySets& d_set):    
     d_eqEngine(eq),
+    d_conflict(conflict),
     d_sets_theory(d_set),
     d_trueNode(NodeManager::currentNM()->mkConst<bool>(true)),
     d_falseNode(NodeManager::currentNM()->mkConst<bool>(false)),
@@ -1227,8 +1228,7 @@ int TheorySetsRels::EqcInfo::counter        = 0;
     d_infer_exp(c),
     d_lemma(u),
     d_shared_terms(u),
-    d_tc_saver(u),
-    d_conflict(conflict)
+    d_tc_saver(u)
   {
     d_eqEngine->addFunctionKind(kind::PRODUCT);
     d_eqEngine->addFunctionKind(kind::JOIN);
@@ -1325,7 +1325,7 @@ int TheorySetsRels::EqcInfo::counter        = 0;
 
   TheorySetsRels::EqcInfo::EqcInfo( context::Context* c ) :
   d_mem(c), d_not_mem(c), d_in(c), d_out(c), d_mem_exp(c),
-  d_tp(c), d_pt(c), d_join(c), d_tc(c), d_id_in(c), d_id_out(c) {}
+  d_id_in(c), d_id_out(c), d_tp(c), d_pt(c), d_join(c),d_tc(c) {}
 
   void TheorySetsRels::eqNotifyNewClass( Node n ) {
     Trace("rels-std") << "[sets-rels] eqNotifyNewClass:" << " t = " << n << std::endl;
