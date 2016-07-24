@@ -142,8 +142,13 @@ private:
   /** Mapping between a relation and its equivalent relations involving relational operators */
   std::map< Node, std::map<kind::Kind_t, std::vector<Node> > >                  d_terms_cache;
 
+  /** Mapping between TC(r) and one explanation when building TC graph*/
   std::map< Node, Node >                                                        d_membership_tc_exp_cache;
+
+  /** Mapping between transitive closure relation TC(r) and members directly asserted members */
   std::map< Node, std::hash_set<Node, NodeHashFunction> >                       d_tc_membership_db;
+
+  /** Mapping between transitive closure relation TC(r) and its TC graph constructed based on the members of r*/
   std::map< Node, std::map< Node, std::hash_set<Node, NodeHashFunction> > >     d_membership_tc_cache;
 
   /** information necessary for equivalence classes */
@@ -175,15 +180,15 @@ private:
   void check();
   void collectRelsInfo();
   void assertMembership( Node fact, Node reason, bool polarity );
-  void composeTupleMemForRels( Node );
+  void composeTupleMemForRel( Node );
   void applyTransposeRule( Node, Node, bool tp_occur_rule = false );
   void applyJoinRule( Node, Node );
   void applyProductRule( Node, Node );
   void applyTCRule( Node, Node );
-  void buildTCGraph( Node, Node, Node );
-  void computeRels( Node );
-  void computeTransposeRelations( Node );
-  void finalizeTCInfer();
+  void constructTCGraph( Node, Node, Node );
+  void computeTuplesInRel( Node );
+  void computeTpRel( Node );
+  void finalizeTCInference();
   void inferTC( Node, std::map< Node, std::hash_set< Node, NodeHashFunction > >& );
   void inferTC( Node, Node, std::map< Node, std::hash_set< Node, NodeHashFunction > >&,
                 Node, Node, std::hash_set< Node, NodeHashFunction >&);
@@ -195,9 +200,6 @@ private:
   void doTCLemmas();
   void sendInfer( Node fact, Node exp, const char * c );
   void sendLemma( Node fact, Node reason, const char * c );
-  void sendSplit( Node a, Node b, const char * c );
-  void doPendingFacts();
-  void doPendingSplitFacts();
   void addSharedTerm( TNode n );
   void checkTCGraphForConflict( Node, Node, Node, Node, Node, std::map< Node, std::hash_set< Node, NodeHashFunction > >& );
 

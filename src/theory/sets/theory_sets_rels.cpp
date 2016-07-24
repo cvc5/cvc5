@@ -106,7 +106,7 @@ int TheorySetsRels::EqcInfo::counter        = 0;
       }
       m_it++;
     }
-    finalizeTCInfer();
+    finalizeTCInference();
   }
 
   /*
@@ -190,6 +190,41 @@ int TheorySetsRels::EqcInfo::counter        = 0;
   }
 
   /*
+   * Construct transitive closure graph for tc_rep based on the members of tc_r_rep
+   */
+
+  void TheorySetsRels::constructTCGraph(Node tc_r_rep, Node tc_rep, Node tc_term) {
+    Trace("rels-tc") << "[sets-rels] Construct TC graph for transitive closure relation " << tc_rep << std::endl;
+
+    std::map< Node, std::hash_set< Node, NodeHashFunction > > tc_graph;
+    MEM_IT mem_it = d_membership_db.find(tc_r_rep);
+
+    if(mem_it != d_membership_db.end()) {
+      for(std::vector<Node>::iterator pair_it = mem_it->second.begin();
+          pair_it != mem_it->second.end(); pair_it++) {
+        Node            fst_rep         = getRepresentative(RelsUtils::nthElementOfTuple(*pair_it, 0));
+        Node            snd_rep         = getRepresentative(RelsUtils::nthElementOfTuple(*pair_it, 1));
+        TC_PAIR_IT      pair_set_it     = tc_graph.find(fst_rep);
+
+        if( pair_set_it != tc_graph.end() ) {
+          pair_set_it->second.insert(snd_rep);
+        } else {
+          std::hash_set< Node, NodeHashFunction > snd_set;
+          snd_set.insert(snd_rep);
+          tc_graph[fst_rep] = snd_set;
+        }
+      }
+    }
+
+    Node reason = getReason(tc_rep, tc_term, tc_r_rep, tc_term[0]);
+
+    if(!reason.isNull()) {
+      d_membership_tc_exp_cache[tc_rep] = reason;
+    }
+    d_membership_tc_cache[tc_rep] = tc_graph;
+  }
+
+  /*
    *
    *
    * transitive closure rule 1:   y = (TCLOSURE x)
@@ -206,51 +241,23 @@ int TheorySetsRels::EqcInfo::counter        = 0;
    *
    */
 
-  void TheorySetsRels::buildTCGraph(Node tc_r_rep, Node tc_rep, Node tc_term) {
-    std::map< Node, std::hash_set< Node, NodeHashFunction > > tc_graph;
-    MEM_IT mem_it = d_membership_db.find(tc_r_rep);
-
-    if(mem_it != d_membership_db.end()) {
-      Trace("rels-tc-lemma") << "*** relation = " << tc_r_rep << std::endl;
-      for(std::vector<Node>::iterator pair_it = mem_it->second.begin();
-          pair_it != mem_it->second.end(); pair_it++) {
-        Trace("rels-tc-lemma") << "     member = " << *pair_it << std::endl;
-        Node            fst_rep         = getRepresentative(RelsUtils::nthElementOfTuple(*pair_it, 0));
-        Node            snd_rep         = getRepresentative(RelsUtils::nthElementOfTuple(*pair_it, 1));
-        TC_PAIR_IT      pair_set_it     = tc_graph.find(fst_rep);
-
-        if( pair_set_it != tc_graph.end() ) {
-          pair_set_it->second.insert(snd_rep);
-        } else {
-          std::hash_set< Node, NodeHashFunction > snd_set;
-          snd_set.insert(snd_rep);
-          tc_graph[fst_rep] = snd_set;
-        }
-      }
-    }
-    Node reason = getReason(tc_rep, tc_term, tc_r_rep, tc_term[0]);
-    if(!reason.isNull()) {
-      d_membership_tc_exp_cache[tc_rep] = reason;
-    }
-    d_membership_tc_cache[tc_rep] = tc_graph;
-  }
-
   void TheorySetsRels::applyTCRule(Node exp, Node tc_term) {
     Trace("rels-debug") << "\n[sets-rels] *********** Applying TRANSITIVE CLOSURE rule on  "
                         << tc_term << " with explanation " << exp << std::endl;
+
     Node tc_rep = getRepresentative(tc_term);
     // build the TC graph for tc_rep if it was not created before
     if( d_rel_nodes.find(tc_rep) == d_rel_nodes.end() ) {
       Trace("rels-debug") << "[sets-rels]  Start building the TC graph!" << std::endl;
       Node tc_r_rep = getRepresentative(tc_term[0]);
-      buildTCGraph(tc_r_rep, tc_rep, tc_term);
+      constructTCGraph(tc_r_rep, tc_rep, tc_term);
       d_rel_nodes.insert(tc_rep);
     }
 
     bool polarity = exp.getKind() != kind::NOT;
 
     if(polarity) {
-      std::map< Node, std::hash_set< Node, NodeHashFunction > >::iterator mem_it  = d_tc_membership_db.find(tc_term);
+      TC_PAIR_IT mem_it  = d_tc_membership_db.find(tc_term);
 
       if( mem_it == d_tc_membership_db.end() ) {
         std::hash_set<Node, NodeHashFunction> members;
@@ -316,7 +323,7 @@ int TheorySetsRels::EqcInfo::counter        = 0;
     Trace("rels-debug") << "\n[sets-rels] *********** Applying PRODUCT rule  " << std::endl;
 
     if(d_rel_nodes.find(product_term) == d_rel_nodes.end()) {
-//      computeRels(product_term);
+      computeTuplesInRel(product_term);
       d_rel_nodes.insert(product_term);
     }
     bool polarity       = exp.getKind() != kind::NOT;
@@ -392,8 +399,12 @@ int TheorySetsRels::EqcInfo::counter        = 0;
    */
   void TheorySetsRels::applyJoinRule(Node exp, Node join_term) {
     Trace("rels-debug") << "\n[sets-rels] *********** Applying JOIN rule  " << std::endl;
+
     if(d_rel_nodes.find(join_term) == d_rel_nodes.end()) {
-//      computeRels(join_term);
+      Trace("rels-debug") <<  "\n[sets-rels] Apply JOIN-COMPOSE rule on term: " << join_term
+                          << " with explanation: " << exp << std::endl;
+
+      computeTuplesInRel(join_term);
       d_rel_nodes.insert(join_term);
     }
 
@@ -403,7 +414,6 @@ int TheorySetsRels::EqcInfo::counter        = 0;
     Node r2_rep         = getRepresentative(join_term[1]);
 
     if(polarity) {
-
       Trace("rels-debug") <<  "\n[sets-rels] Apply JOIN-SPLIT rule on term: " << join_term
                           << " with explanation: " << exp << std::endl;
 
@@ -421,18 +431,17 @@ int TheorySetsRels::EqcInfo::counter        = 0;
       for(; i < s1_len-1; ++i) {
         r1_element.push_back(RelsUtils::nthElementOfTuple(atom[0], i));
       }
-
       r1_element.push_back(shared_x);
       dt = r2_rep.getType().getSetElementType().getDatatype();
       r2_element.push_back(Node::fromExpr(dt[0].getConstructor()));
       r2_element.push_back(shared_x);
-
       for(; i < tup_len; ++i) {
         r2_element.push_back(RelsUtils::nthElementOfTuple(atom[0], i));
       }
 
       Node t1 = nm->mkNode(kind::APPLY_CONSTRUCTOR, r1_element);
       Node t2 = nm->mkNode(kind::APPLY_CONSTRUCTOR, r2_element);
+
       computeTupleReps(t1);
       computeTupleReps(t2);
 
@@ -456,21 +465,13 @@ int TheorySetsRels::EqcInfo::counter        = 0;
         reasons = Rewriter::rewrite(AND(reason, explain(EQUAL(r1_rep, join_term[0]))));
       }    
       sendInfer(fact, reasons, "join-split");
-
       reasons   = reason;
       fact      = MEMBER(t2, r2_rep);
-
       if(r2_rep != join_term[1]) {
         reasons = Rewriter::rewrite(AND(reason, explain(EQUAL(r2_rep, join_term[1]))));
       }
       sendInfer(fact, reasons, "join-split");
-
-      // Need to make the skolem "shared_x" as shared term
       makeSharedTerm(shared_x);
-    } else {
-      // ONLY need to explicitly compute joins if there are negative literals involving JOIN
-      Trace("rels-debug") <<  "\n[sets-rels] Apply JOIN-COMPOSE rule on term: " << join_term
-                          << " with explanation: " << exp << std::endl;
     }
   }
 
@@ -483,13 +484,14 @@ int TheorySetsRels::EqcInfo::counter        = 0;
    *                         ------------------------------------------------
    *                            [NOT] (b, a) IS_IN X
    *
-   * Not implemented!
+   * Not implemented yet!
    * transpose-equal rule:   [NOT]  (TRANSPOSE X) = (TRANSPOSE Y)
    *                         -----------------------------------------------
    *                         [NOT]  (X = Y)
    */
   void TheorySetsRels::applyTransposeRule(Node exp, Node tp_term, bool tp_occur) {
     Trace("rels-debug") << "\n[sets-rels] *********** Applying TRANSPOSE rule  " << std::endl;
+
     bool polarity       = exp.getKind() != kind::NOT;
     Node atom           = polarity ? exp : exp[0];
     Node reversedTuple  = getRepresentative(RelsUtils::reverseTuple(atom[0]));
@@ -497,6 +499,7 @@ int TheorySetsRels::EqcInfo::counter        = 0;
     if(tp_occur) {
       Trace("rels-debug") << "\n[sets-rels] Apply TRANSPOSE-OCCUR rule on term: " << tp_term
                              << " with explanation: " << exp << std::endl;
+
       Node fact = polarity ? MEMBER(reversedTuple, tp_term) : MEMBER(reversedTuple, tp_term).negate();
       sendInfer(fact, exp, "transpose-occur");
       return;
@@ -507,33 +510,15 @@ int TheorySetsRels::EqcInfo::counter        = 0;
     Node fact           = MEMBER(reversedTuple, tp_t0_rep);
 
     if(!polarity) {
-      // tp_term is a nested term and we eagerly compute its subterms' members
-//      if(d_terms_cache[tp_t0_rep].find(kind::JOIN)
-//         != d_terms_cache[tp_t0_rep].end()) {
-//        std::vector<Node> join_terms = d_terms_cache[tp_t0_rep][kind::JOIN];
-//        for(unsigned int i = 0; i < join_terms.size(); i++) {
-//          if(d_rel_nodes.find(join_terms[i]) == d_rel_nodes.end()) {
-//            computeRels(join_terms[i]);
-//          }
-//        }
-//      }
-//      if(d_terms_cache[tp_t0_rep].find(kind::PRODUCT)
-//         != d_terms_cache[tp_t0_rep].end()) {
-//        std::vector<Node> product_terms = d_terms_cache[tp_t0_rep][kind::PRODUCT];
-//        for(unsigned int i = 0; i < product_terms.size(); i++) {
-//          if(d_rel_nodes.find(product_terms[i]) == d_rel_nodes.end()) {
-//            computeRels(product_terms[i]);
-//          }
-//        }
-//      }
       fact = fact.negate();
     }
     sendInfer(fact, reason, "transpose-rule");    
   }
 
 
-  void TheorySetsRels::finalizeTCInfer() {
+  void TheorySetsRels::finalizeTCInference() {
     Trace("rels-debug") << "[sets-rels] Finalizing transitive closure inferences!" << std::endl;
+
     for(TC_IT tc_it = d_membership_tc_cache.begin(); tc_it != d_membership_tc_cache.end(); tc_it++) {
       inferTC(tc_it->first, tc_it->second);
     }
@@ -541,8 +526,8 @@ int TheorySetsRels::EqcInfo::counter        = 0;
 
   void TheorySetsRels::inferTC(Node tc_rep, std::map< Node, std::hash_set< Node, NodeHashFunction > >& tc_graph) {
     Trace("rels-debug") << "[sets-rels] Build TC graph for tc_rep = " << tc_rep << std::endl;
-    for(std::map< Node, std::hash_set< Node, NodeHashFunction > >::iterator pair_set_it = tc_graph.begin();
-        pair_set_it != tc_graph.end(); pair_set_it++) {
+
+    for(TC_PAIR_IT pair_set_it = tc_graph.begin(); pair_set_it != tc_graph.end(); pair_set_it++) {
       for(std::hash_set< Node, NodeHashFunction >::iterator set_it = pair_set_it->second.begin();
           set_it != pair_set_it->second.end(); set_it++) {
         std::hash_set<Node, NodeHashFunction>   elements;
@@ -561,8 +546,8 @@ int TheorySetsRels::EqcInfo::counter        = 0;
 
   void TheorySetsRels::inferTC( Node exp, Node tc_rep, std::map< Node, std::hash_set< Node, NodeHashFunction > >& tc_graph,
                                 Node start_node, Node cur_node, std::hash_set< Node, NodeHashFunction >& traversed ) {
-    Node                                                pair    = constructPair(tc_rep, start_node, cur_node);
-    std::map<Node, std::vector<Node> >::iterator        mem_it  = d_membership_db.find(tc_rep);
+    Node        pair    = constructPair(tc_rep, start_node, cur_node);
+    MEM_IT      mem_it  = d_membership_db.find(tc_rep);
 
     if(mem_it != d_membership_db.end()) {
       if(std::find(mem_it->second.begin(), mem_it->second.end(), pair) == mem_it->second.end()) {
@@ -573,10 +558,10 @@ int TheorySetsRels::EqcInfo::counter        = 0;
     if(traversed.find(cur_node) != traversed.end()) {
       return;
     }
-
     traversed.insert(cur_node);
-    Node                                                                reason  = exp;
-    std::map< Node, std::hash_set< Node, NodeHashFunction > >::iterator cur_set = tc_graph.find(cur_node);
+
+    Node        reason  = exp;
+    TC_PAIR_IT  cur_set = tc_graph.find(cur_node);
 
     if(cur_set != tc_graph.end()) {
       for(std::hash_set< Node, NodeHashFunction >::iterator set_it = cur_set->second.begin();
@@ -589,15 +574,15 @@ int TheorySetsRels::EqcInfo::counter        = 0;
   }
 
   // Bottom-up fashion to compute relations
-  void TheorySetsRels::computeRels(Node n) {
+  void TheorySetsRels::computeTuplesInRel(Node n) {
     Trace("rels-debug") << "\n[sets-rels] computeJoinOrProductRelations for relation  " << n << std::endl;
     switch(n[0].getKind()) {
     case kind::TRANSPOSE:
-      computeTransposeRelations(n[0]);
+      computeTpRel(n[0]);
       break;
     case kind::JOIN:
     case kind::PRODUCT:
-      computeRels(n[0]);
+      computeTuplesInRel(n[0]);
       break;
     default:
       break;
@@ -605,11 +590,11 @@ int TheorySetsRels::EqcInfo::counter        = 0;
 
     switch(n[1].getKind()) {
     case kind::TRANSPOSE:
-      computeTransposeRelations(n[1]);
+      computeTpRel(n[1]);
       break;
     case kind::JOIN:
     case kind::PRODUCT:
-      computeRels(n[1]);
+      computeTuplesInRel(n[1]);
       break;
     default:
       break;
@@ -618,17 +603,17 @@ int TheorySetsRels::EqcInfo::counter        = 0;
     if(d_membership_db.find(getRepresentative(n[0])) == d_membership_db.end() ||
        d_membership_db.find(getRepresentative(n[1])) == d_membership_db.end())
           return;
-    composeTupleMemForRels(n);
+    composeTupleMemForRel(n);
   }
 
-  void TheorySetsRels::computeTransposeRelations(Node n) {
+  void TheorySetsRels::computeTpRel(Node n) {
     switch(n[0].getKind()) {
     case kind::TRANSPOSE:
-      computeTransposeRelations(n[0]);
+      computeTpRel(n[0]);
       break;
     case kind::JOIN:
     case kind::PRODUCT:
-      computeRels(n[0]);
+      computeTuplesInRel(n[0]);
       break;
     default:
       break;
@@ -660,7 +645,7 @@ int TheorySetsRels::EqcInfo::counter        = 0;
    * e.g. If (a, b) in X and (b, c) in Y, (a, c) in (X JOIN Y)
    *
    */
-  void TheorySetsRels::composeTupleMemForRels( Node n ) {
+  void TheorySetsRels::composeTupleMemForRel( Node n ) {
     Node r1             = n[0];
     Node r2             = n[1];
     Node r1_rep         = getRepresentative(r1);
@@ -683,17 +668,16 @@ int TheorySetsRels::EqcInfo::counter        = 0;
 
     Node new_rel        = n.getKind() == kind::JOIN ? nm->mkNode(kind::JOIN, r1_rep, r2_rep)
                                              : nm->mkNode(kind::PRODUCT, r1_rep, r2_rep);
-
     Node new_rel_rep    = getRepresentative(new_rel);
     unsigned int t1_len = r1_elements.front().getType().getTupleLength();
     unsigned int t2_len = r2_elements.front().getType().getTupleLength();
 
     for(unsigned int i = 0; i < r1_elements.size(); i++) {
       for(unsigned int j = 0; j < r2_elements.size(); j++) {
-        std::vector<Node>       composed_tuple;
-        TypeNode                tn              = n.getType().getSetElementType();
-        Node                    r1_rmost        = RelsUtils::nthElementOfTuple(r1_elements[i], t1_len-1);
-        Node                    r2_lmost        = RelsUtils::nthElementOfTuple(r2_elements[j], 0);
+        std::vector<Node> composed_tuple;
+        TypeNode          tn            = n.getType().getSetElementType();
+        Node              r1_rmost      = RelsUtils::nthElementOfTuple(r1_elements[i], t1_len-1);
+        Node              r2_lmost      = RelsUtils::nthElementOfTuple(r2_elements[j], 0);
         composed_tuple.push_back(Node::fromExpr(tn.getDatatype()[0].getConstructor()));
 
         if((areEqual(r1_rmost, r2_lmost) && n.getKind() == kind::JOIN) ||
@@ -719,16 +703,15 @@ int TheorySetsRels::EqcInfo::counter        = 0;
             Trace("rels-debug") << "[sets-rels] New fact: " << fact << " already holds! Skip..." << std::endl;
           } else {
             std::vector<Node> reasons;
-            //Todo: need more explanation
-            reasons.push_back(explain(r1_exps[i]));            
+            reasons.push_back(explain(r1_exps[i]));
             reasons.push_back(explain(r2_exps[j]));
             if(r1_exps[i].getKind() == kind::MEMBER && r1_exps[i][0] != r1_elements[i]) {
-              reasons.push_back(explain(EQUAL(r1_elements[i], r1_exps[i][0])));            
+              reasons.push_back(explain(EQUAL(r1_elements[i], r1_exps[i][0])));
             }
             if(r2_exps[j].getKind() == kind::MEMBER && r2_exps[j][0] != r2_elements[j]) {
-              reasons.push_back(explain(EQUAL(r2_elements[j], r2_exps[j][0])));            
+              reasons.push_back(explain(EQUAL(r2_elements[j], r2_exps[j][0])));
             }
-            if(!isProduct) {              
+            if(!isProduct) {
               if(r1_rmost != r2_lmost) {
                 reasons.push_back(explain(EQUAL(r1_rmost, r2_lmost)));
               }
@@ -763,22 +746,22 @@ int TheorySetsRels::EqcInfo::counter        = 0;
       for( unsigned i=0; i < d_lemma_cache.size(); i++ ){
         Assert(d_lemma_cache[i].getKind() == kind::IMPLIES);
         if(holds( d_lemma_cache[i][1] )) {
-          Trace("rels-lemma") << "[sets-rels-lemma-skip] Skip the already held lemma: "
+          Trace("rels-lemma") << "[sets-rels-lemma-skip] Skip an already held lemma: "
                               << d_lemma_cache[i]<< std::endl;
           continue;
         }
-        Trace("rels-lemma") << "[sets-rels-lemma] Process pending lemma : "
+        Trace("rels-lemma") << "[sets-rels-lemma] Send out a lemma : "
                             << d_lemma_cache[i] << std::endl;
         d_sets_theory.d_out->lemma( d_lemma_cache[i] );
       }
       for( std::map<Node, Node>::iterator child_it = d_pending_facts.begin();
            child_it != d_pending_facts.end(); child_it++ ) {
         if(holds(child_it->first)) {
-          Trace("rels-lemma") << "[sets-rels-fact-lemma-skip] Skip the already held fact,: "
+          Trace("rels-lemma") << "[sets-rels-fact-lemma-skip] Skip an already held fact,: "
                               << child_it->first << std::endl;
           continue;
         }
-        Trace("rels-lemma") << "[sets-rels-fact-lemma] Process pending fact as lemma : "
+        Trace("rels-lemma") << "[sets-rels-fact-lemma] Send out a fact as lemma : "
                             << child_it->first << " with reason " << child_it->second << std::endl;
         d_sets_theory.d_out->lemma(NodeManager::currentNM()->mkNode(kind::IMPLIES, child_it->second, child_it->first));
       }
@@ -804,6 +787,7 @@ int TheorySetsRels::EqcInfo::counter        = 0;
   }
 
   void TheorySetsRels::doTCLemmas() {
+    Trace("rels-debug") << "[sets-rels]  Start processing TC lemmas .......... " << std::endl;
     std::map< Node, std::hash_set< Node, NodeHashFunction > >::iterator mem_it = d_tc_membership_db.begin();
 
     while(mem_it != d_tc_membership_db.end()) {
@@ -813,7 +797,7 @@ int TheorySetsRels::EqcInfo::counter        = 0;
       // build the TC graph for tc_rep if it was not created before
       if( d_rel_nodes.find(tc_rep) == d_rel_nodes.end() ) {
         Trace("rels-debug") << "[sets-rels]  Start building the TC graph for relation " << mem_it->first << std::endl;
-        buildTCGraph(tc_r_rep, tc_rep, mem_it->first);
+        constructTCGraph(tc_r_rep, tc_rep, mem_it->first);
         d_rel_nodes.insert(tc_rep);
       }
 
@@ -847,7 +831,7 @@ int TheorySetsRels::EqcInfo::counter        = 0;
             reason = AND(reason, explain(EQUAL(tc_r_rep, mem_it->first[0])));
           }
           if(tc_rep != mem_it->first) {
-            reason = AND(reason, explain(EQUAL(tc_r_rep, mem_it->first)));
+            reason = AND(reason, explain(EQUAL(tc_rep, mem_it->first)));
           }
 
           Node tc_lemma = NodeManager::currentNM()->mkNode(kind::IMPLIES, reason,
@@ -855,7 +839,7 @@ int TheorySetsRels::EqcInfo::counter        = 0;
                                                               (AND(MEMBER(RelsUtils::constructPair(tc_r_rep, fst_rep, sk_1), tc_r_rep),
                                                                    (AND(MEMBER(RelsUtils::constructPair(tc_r_rep, sk_2, snd_rep), tc_r_rep),
                                                                         (OR(sk_eq, MEMBER(RelsUtils::constructPair(tc_rep, sk_1, sk_2), tc_rep)))))))));
-          Trace("rels-tc-lemma") << "[sets-rels-lemma] Process a TC lemma : "
+          Trace("rels-tc-lemma") << "[sets-rels-lemma] Send out a TC lemma : "
                               << tc_lemma << std::endl;
           d_sets_theory.d_out->lemma(tc_lemma);
           d_sets_theory.d_out->requirePhase(Rewriter::rewrite(mem_of_r), true);
@@ -877,7 +861,7 @@ int TheorySetsRels::EqcInfo::counter        = 0;
 
     if(pair_set_it != tc_graph.end()) {
       if(pair_set_it->second.find(dest) != pair_set_it->second.end()) {
-        isReachable = isReachable || true;
+        isReachable = true;
         return;
       } else {
         std::hash_set< Node, NodeHashFunction >::iterator set_it = pair_set_it->second.begin();
@@ -893,76 +877,16 @@ int TheorySetsRels::EqcInfo::counter        = 0;
     }
   }
 
-  void TheorySetsRels::sendSplit(Node a, Node b, const char * c) {
-    Node eq             = a.eqNode( b );
-    Node neq            = NOT( eq );
-    Node lemma_or       = OR( eq, neq );
-
-    Trace("rels-lemma") << "[sets-lemma] Lemma " << c << " SPLIT : " << lemma_or << std::endl;
-    d_lemma_cache.push_back( lemma_or );
-  }
-
   void TheorySetsRels::sendLemma(Node conc, Node ant, const char * c) {
-    Trace("rels-lemma") << "[sets-lemma] Infer " << conc << " from " << ant << " by " << c << std::endl;
     Node lemma = NodeManager::currentNM()->mkNode(kind::IMPLIES, ant, conc);
     d_lemma_cache.push_back(lemma);
     d_lemma.insert(lemma);
   }
 
   void TheorySetsRels::sendInfer( Node fact, Node exp, const char * c ) {
-    Trace("rels-lemma") << "[sets-fact] Infer " << fact << " from " << exp << " by " << c << std::endl;
     d_pending_facts[fact] = exp;
     d_infer.push_back( fact );
     d_infer_exp.push_back( exp );
-  }
-
-  void TheorySetsRels::doPendingFacts() {
-    std::map<Node, Node>::iterator map_it = d_pending_facts.begin();
-    while( !(*d_conflict) && map_it != d_pending_facts.end()) {
-      Node fact = map_it->first;
-      Node exp  = d_pending_facts[ fact ];
-
-      if(fact.getKind() == kind::AND) {
-        for(size_t j=0; j<fact.getNumChildren(); j++) {
-          bool polarity = fact[j].getKind() != kind::NOT;
-          Node atom     = polarity ? fact[j] : fact[j][0];
-          assertMembership(atom, exp, polarity);
-        }
-      } else {
-        bool polarity   = fact.getKind() != kind::NOT;
-        Node atom       = polarity ? fact : fact[0];
-        assertMembership(atom, exp, polarity);
-      }
-      map_it++;
-    }
-    d_pending_facts.clear();
-    d_membership_constraints_cache.clear();
-    d_membership_db.clear();
-    d_membership_exp_cache.clear();
-    d_terms_cache.clear();
-  }
-
-  void TheorySetsRels::doPendingSplitFacts() {
-    std::map<Node, Node>::iterator map_it = d_pending_split_facts.begin();
-    while( !(*d_conflict) && map_it != d_pending_split_facts.end()) {
-      Node fact = map_it->first;
-      Node exp  = d_pending_split_facts[ fact ];
-
-      if(fact.getKind() == kind::AND) {
-        for(size_t j=0; j<fact.getNumChildren(); j++) {
-          bool polarity = fact[j].getKind() != kind::NOT;
-          Node atom     = polarity ? fact[j] : fact[j][0];
-          assertMembership(atom, exp, polarity);
-        }
-      } else {
-        Trace("rels-lemma") << "[sets-split-fact] Send " << fact << " from " << exp << std::endl;
-        bool polarity   = fact.getKind() != kind::NOT;
-        Node atom       = polarity ? fact : fact[0];
-        assertMembership(atom, exp, polarity);
-      }
-      map_it++;
-    }
-    d_pending_split_facts.clear();
   }
 
   void TheorySetsRels::assertMembership( Node fact, Node reason, bool polarity ) {
@@ -1036,15 +960,12 @@ int TheorySetsRels::EqcInfo::counter        = 0;
   }
 
   inline Node TheorySetsRels::getReason(Node tc_rep, Node tc_term, Node tc_r_rep, Node tc_r) {
-    Trace("rels-reason") << "[sets-rels] getReason(" << tc_rep << ", " << tc_term << ", " << tc_r_rep << ", " << tc_r << std::endl;
     if(tc_term != tc_rep) {
       Node reason = explain(EQUAL(tc_term, tc_rep));
-
       if(tc_term[0] != tc_r_rep) {
         return AND(reason, explain(EQUAL(tc_term[0], tc_r_rep)));
       }
     }
-    Trace("rels-reason") << "[sets-rels] done getReason(" << tc_rep << ", " << tc_term << ", " << tc_r_rep << ", " << tc_r << std::endl;
     return Node::null();
   }
 
@@ -1128,13 +1049,6 @@ int TheorySetsRels::EqcInfo::counter        = 0;
     Trace("rels-debug") << "[sets-rels] Add a shared term:  " << n << std::endl;
     d_sets_theory.addSharedTerm(n);
     d_eqEngine->addTriggerTerm(n, THEORY_SETS);
-  }
-
-  bool TheorySetsRels::hasMember( Node rel_rep, Node tuple ){
-    if(d_membership_db.find(rel_rep) == d_membership_db.end())
-      return false;
-    return std::find(d_membership_db[rel_rep].begin(),
-                     d_membership_db[rel_rep].end(), tuple) != d_membership_db[rel_rep].end();
   }
 
   void TheorySetsRels::makeSharedTerm( Node n ) {
@@ -1343,11 +1257,9 @@ int TheorySetsRels::EqcInfo::counter        = 0;
     std::map<Node, int>::iterator       nid_it  = d_node_id.find(e_rep);
 
     if( nid_it == d_node_id.end() ) {
-      Trace("rels-std") << "[sets-rels] getOrMakeElementRepId:" << " *** 0"<< std::endl;
       if(d_eqEngine->hasTerm(e_rep)) {
         // it is possible that e's rep changes at this moment, thus we need to know the eqc of e's previous rep
         eq::EqClassIterator rep_eqc_i = eq::EqClassIterator( e_rep, d_eqEngine );
-        Trace("rels-std") << "[sets-rels] getOrMakeElementRepId:" << " *** 1"<< std::endl;
         while(!rep_eqc_i.isFinished()) {
           std::map<Node, int>::iterator id_it = d_node_id.find(*rep_eqc_i);
 
@@ -1382,6 +1294,7 @@ int TheorySetsRels::EqcInfo::counter        = 0;
 
   void TheorySetsRels::addTCMemAndSendInfer(EqcInfo* tc_ei, Node membership, Node exp, bool fromRel) {
     Trace("rels-std") << "[sets-rels] addTCMemAndSendInfer:" << " membership = " << membership << " from a relation? " << fromRel<< std::endl;
+
     IdList*     in_lst;
     IdList*     out_lst;
     Node        fst             = RelsUtils::nthElementOfTuple(membership[0], 0);
@@ -1455,6 +1368,7 @@ int TheorySetsRels::EqcInfo::counter        = 0;
       return (*ei->d_mem_exp.find(pair)).second;
     }
     NodeMap::iterator   mem_exp_it      = ei->d_mem_exp.begin();
+
     while(mem_exp_it != ei->d_mem_exp.end()) {
       Node      tuple   = (*mem_exp_it).first;
       Node      fst_e   = RelsUtils::nthElementOfTuple(tuple, 0);
@@ -1469,6 +1383,7 @@ int TheorySetsRels::EqcInfo::counter        = 0;
 
   void TheorySetsRels::sendTCInference(EqcInfo* tc_ei, std::hash_set<int> in_reachable, std::hash_set<int> out_reachable, Node mem_rep, Node fst_rep, Node snd_rep, int id1, int id2) {
     Trace("rels-std") << "Start making TC inference after adding a member " << mem_rep << " to " << tc_ei->d_tc.get() << std::endl;
+
     Node exp            = explainTCMem(tc_ei, mem_rep, fst_rep, snd_rep);
     Assert(!exp.isNull());
     Node tc_lemma       = NodeManager::currentNM()->mkNode(kind::IMPLIES, exp, MEMBER(mem_rep, tc_ei->d_tc.get()));
@@ -1476,6 +1391,7 @@ int TheorySetsRels::EqcInfo::counter        = 0;
     d_lemma.insert(tc_lemma);
 
     std::hash_set<int>::iterator        in_reachable_it = in_reachable.begin();
+
     while(in_reachable_it != in_reachable.end()) {
       Node    in_node         = d_id_node[*in_reachable_it];
       Node    in_pair         = RelsUtils::constructPair(tc_ei->d_tc.get(), in_node, fst_rep);
@@ -1498,6 +1414,7 @@ int TheorySetsRels::EqcInfo::counter        = 0;
       Assert(reason != Node::null());
 
       std::hash_set<int>::iterator        in_reachable_it = in_reachable.begin();
+
       while(in_reachable_it != in_reachable.end()) {
         Node    in_node         = d_id_node[*in_reachable_it];
         Node    in_pair         = RelsUtils::constructPair(tc_ei->d_tc.get(), in_node, snd_rep);
@@ -1627,16 +1544,20 @@ int TheorySetsRels::EqcInfo::counter        = 0;
 
   void TheorySetsRels::mergeTCEqcs(Node t1, Node t2) {
     Trace("rels-std") << "[sets-rels] Merge TC eqcs t1 = " << t1 << " and t2 = " << t2 << std::endl;
+
     EqcInfo* t1_ei = getOrMakeEqcInfo(t1);
     EqcInfo* t2_ei = getOrMakeEqcInfo(t2);
+
     if(t1_ei != NULL && t2_ei != NULL) {
       NodeSet::const_iterator     non_mem_it  = t2_ei->d_not_mem.begin();
+
       while(non_mem_it != t2_ei->d_not_mem.end()) {
         t1_ei->d_not_mem.insert(*non_mem_it);
         non_mem_it++;
       }
       if(!t1_ei->d_tc.get().isNull()) {
         NodeSet::const_iterator     mem_it  = t2_ei->d_mem.begin();
+
         while(mem_it != t2_ei->d_mem.end()) {
           addTCMemAndSendInfer(t1_ei, MEMBER(*mem_it, t2_ei->d_tc.get()), (*t2_ei->d_mem_exp.find(*mem_it)).second);
           mem_it++;
@@ -1644,11 +1565,17 @@ int TheorySetsRels::EqcInfo::counter        = 0;
       } else if(!t2_ei->d_tc.get().isNull()) {
         t1_ei->d_tc.set(t2_ei->d_tc);
         NodeSet::const_iterator     t1_mem_it  = t1_ei->d_mem.begin();
+
         while(t1_mem_it != t1_ei->d_mem.end()) {
-          addTCMemAndSendInfer(t1_ei, MEMBER(*t1_mem_it, t1_ei->d_tc.get()), (*t1_ei->d_mem_exp.find(*t1_mem_it)).second);
+          Node                          membership      = MEMBER(*t1_mem_it, t1_ei->d_tc.get());
+          NodeMap::const_iterator       reason_it       = t1_ei->d_mem_exp.find(*t1_mem_it);
+          Assert(reason_it != t1_ei->d_mem_exp.end());
+          addTCMemAndSendInfer(t1_ei, membership, (*reason_it).second);
           t1_mem_it++;
         }
+
         NodeSet::const_iterator     t2_mem_it  = t2_ei->d_mem.begin();
+
         while(t2_mem_it != t2_ei->d_mem.end()) {
           addTCMemAndSendInfer(t1_ei, MEMBER(*t2_mem_it, t2_ei->d_tc.get()), (*t2_ei->d_mem_exp.find(*t2_mem_it)).second);
           t2_mem_it++;
@@ -1665,6 +1592,7 @@ int TheorySetsRels::EqcInfo::counter        = 0;
     Trace("rels-std") << "[sets-rels] Merge PRODUCT eqcs t1 = " << t1 << " and t2 = " << t2 << std::endl;
     EqcInfo* t1_ei = getOrMakeEqcInfo(t1);
     EqcInfo* t2_ei = getOrMakeEqcInfo(t2);
+
     if(t1_ei != NULL && t2_ei != NULL) {
       // PT(t1) = PT(t2) -> t1 = t2;
       if(!t1_ei->d_pt.get().isNull() && !t2_ei->d_pt.get().isNull()) {
@@ -1702,14 +1630,15 @@ int TheorySetsRels::EqcInfo::counter        = 0;
       }
     } else if(t2_ei != NULL){
       t1_ei = getOrMakeEqcInfo(t1, true);
-      for(NodeSet::key_iterator itr = t2_ei->d_mem.key_begin(); itr != t2_ei->d_mem.key_end(); itr++) {       
-        t1_ei->d_mem.insert(*itr);
-      }
-      for(NodeSet::key_iterator itr = t2_ei->d_not_mem.key_begin(); itr != t2_ei->d_not_mem.key_end(); itr++) {
-        t1_ei->d_not_mem.insert(*itr);
-      }
       if(t1_ei->d_pt.get().isNull() && !t2_ei->d_pt.get().isNull()) {
         t1_ei->d_pt.set(t2_ei->d_pt);
+        for(NodeSet::key_iterator itr = t2_ei->d_mem.key_begin(); itr != t2_ei->d_mem.key_end(); itr++) {
+          t1_ei->d_mem.insert(*itr);
+          t1_ei->d_mem_exp.insert(*itr, t2_ei->d_mem_exp[*itr]);
+        }
+        for(NodeSet::key_iterator itr = t2_ei->d_not_mem.key_begin(); itr != t2_ei->d_not_mem.key_end(); itr++) {
+          t1_ei->d_not_mem.insert(*itr);
+        }
       }
     }
   }
@@ -1720,6 +1649,7 @@ int TheorySetsRels::EqcInfo::counter        = 0;
     EqcInfo* t2_ei = getOrMakeEqcInfo(t2);
 
     if(t1_ei != NULL && t2_ei != NULL) {
+      Trace("rels-std") << "[sets-rels] 0 Merge TRANSPOSE eqcs t1 = " << t1 << " and t2 = " << t2 << std::endl;
       // TP(t1) = TP(t2) -> t1 = t2;
       if(!t1_ei->d_tp.get().isNull() && !t2_ei->d_tp.get().isNull()) {
         sendInferTranspose( true, t1_ei->d_tp.get(), t2_ei->d_tp.get(), explain(EQUAL(t1, t2)) );
@@ -1757,14 +1687,15 @@ int TheorySetsRels::EqcInfo::counter        = 0;
       }
     } else if(t2_ei != NULL){
       t1_ei = getOrMakeEqcInfo(t1, true);
-      for(NodeSet::key_iterator itr = t2_ei->d_mem.key_begin(); itr != t2_ei->d_mem.key_end(); itr++) {
-        t1_ei->d_mem.insert(*itr);
-      }
-      for(NodeSet::key_iterator itr = t2_ei->d_not_mem.key_begin(); itr != t2_ei->d_not_mem.key_end(); itr++) {
-        t1_ei->d_not_mem.insert(*itr);
-      }
       if(t1_ei->d_tp.get().isNull() && !t2_ei->d_tp.get().isNull()) {
         t1_ei->d_tp.set(t2_ei->d_tp);
+        for(NodeSet::key_iterator itr = t2_ei->d_mem.key_begin(); itr != t2_ei->d_mem.key_end(); itr++) {
+          t1_ei->d_mem.insert(*itr);
+          t1_ei->d_mem_exp.insert(*itr, t2_ei->d_mem_exp[*itr]);
+        }
+        for(NodeSet::key_iterator itr = t2_ei->d_not_mem.key_begin(); itr != t2_ei->d_not_mem.key_end(); itr++) {
+          t1_ei->d_not_mem.insert(*itr);
+        }
       }
     }
   }
@@ -1949,7 +1880,6 @@ int TheorySetsRels::EqcInfo::counter        = 0;
 }
 }
 }
-
 
 
 
