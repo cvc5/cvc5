@@ -93,7 +93,6 @@ theory::LemmaStatus TheoryEngine::EngineOutputChannel::lemma(TNode lemma,
                                                removable,
                                                preprocess,
                                                sendAtoms ? d_theory : theory::THEORY_LAST);
-  // PROOF(delete proofRecipe;);
   return result;
 }
 
