@@ -180,6 +180,7 @@ private:
   NodeBoolMap d_preproc_cache;
   // extended functions inferences cache
   NodeSet d_extf_infer_cache;
+  NodeSet d_extf_infer_cache_u;
   std::vector< Node > d_empty_vec;
   //
   NodeList d_ee_disequalities;
@@ -321,10 +322,11 @@ private:
   int processReverseDeq( std::vector< Node >& nfi, std::vector< Node >& nfj, Node ni, Node nj );
   int processSimpleDeq( std::vector< Node >& nfi, std::vector< Node >& nfj, Node ni, Node nj, unsigned& index, bool isRev );
   void checkDeqNF();
-  
-  void getExplanationVectorForPrefix( std::vector< std::vector< Node > > &normal_forms, std::vector< Node > &normal_form_src,
-                                      std::vector< std::vector< Node > > &normal_forms_exp, std::vector< std::map< Node, std::map< bool, int > > >& normal_forms_exp_depend,
-                                      unsigned i, unsigned j, int index, bool isRev, std::vector< Node >& curr_exp );
+  void getExplanationVectorForPrefix( std::vector< std::vector< Node > > &normal_forms_exp, std::vector< std::map< Node, std::map< bool, int > > >& normal_forms_exp_depend,
+                                      unsigned i, int index, bool isRev, std::vector< Node >& curr_exp );
+  void getExplanationVectorForPrefixEq( std::vector< std::vector< Node > > &normal_forms, std::vector< Node > &normal_form_src,
+                                        std::vector< std::vector< Node > > &normal_forms_exp, std::vector< std::map< Node, std::map< bool, int > > >& normal_forms_exp_depend,
+                                        unsigned i, unsigned j, int index_i, int index_j, bool isRev, std::vector< Node >& curr_exp );
 
   //check membership constraints
   Node mkRegExpAntec(Node atom, Node ant);
@@ -401,6 +403,7 @@ protected:
   enum {
     sk_id_c_spt,
     sk_id_vc_spt,
+    sk_id_vc_bin_spt,
     sk_id_v_spt,
     sk_id_ctn_pre,
     sk_id_ctn_post,

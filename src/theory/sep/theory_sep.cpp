@@ -945,6 +945,9 @@ TypeNode TheorySep::getReferenceType2( Node atom, int& card, int index, Node n, 
     Trace("sep-type-debug") << "visit : " << n << " : " << atom << " " << index << std::endl;
     visited[n] = -1;
     if( n.getKind()==kind::SEP_PTO ){
+      //TODO: when THEORY_SETS supports mixed Int/Real sets
+      //TypeNode tn1 = n[0].getType().getBaseType();
+      //TypeNode tn2 = n[1].getType().getBaseType();
       TypeNode tn1 = n[0].getType();
       TypeNode tn2 = n[1].getType();
       if( quantifiers::TermDb::hasBoundVarAttr( n[0] ) ){
@@ -956,6 +959,13 @@ TypeNode TheorySep::getReferenceType2( Node atom, int& card, int index, Node n, 
       }
       std::map< TypeNode, TypeNode >::iterator itt = d_loc_to_data_type.find( tn1 );
       if( itt==d_loc_to_data_type.end() ){
+        if( !d_loc_to_data_type.empty() ){
+          TypeNode te1 = d_loc_to_data_type.begin()->first;
+          std::stringstream ss;
+          ss << "ERROR: specifying heap constraints for two different types : " << tn1 << " -> " << tn2 << " and " << te1 << " -> " << d_loc_to_data_type[te1] << std::endl;
+          throw LogicException(ss.str());
+          Assert( false );
+        }
         Trace("sep-type") << "Sep: assume location type " << tn1 << " is associated with data type " << tn2 << " (from " << atom << ")" << std::endl;
         d_loc_to_data_type[tn1] = tn2;
       }else{
