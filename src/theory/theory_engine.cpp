@@ -83,35 +83,8 @@ theory::LemmaStatus TheoryEngine::EngineOutputChannel::lemma(TNode lemma,
   ++ d_statistics.lemmas;
   d_engine->d_outputChannelUsed = true;
 
-  LemmaProofRecipe* proofRecipe = NULL;
   PROOF({
-      // Theory lemmas have one step that proves the empty clause
-      proofRecipe = new LemmaProofRecipe;
-
-      Node emptyNode;
-      LemmaProofRecipe::ProofStep proofStep(d_theory, emptyNode);
-
-      proofRecipe->setOriginalLemma(lemma);
-
-      Node rewritten;
-      if (lemma.getKind() == kind::OR) {
-        for (unsigned i = 0; i < lemma.getNumChildren(); ++i) {
-          rewritten = theory::Rewriter::rewrite(lemma[i]);
-          if (rewritten != lemma[i]) {
-            proofRecipe->addRewriteRule(lemma[i].negate(), rewritten.negate());
-          }
-          proofStep.addAssertion(lemma[i]);
-          proofRecipe->addBaseAssertion(rewritten);
-        }
-      } else {
-        rewritten = theory::Rewriter::rewrite(lemma);
-        if (rewritten != lemma) {
-          proofRecipe->addRewriteRule(lemma.negate(), rewritten.negate());
-        }
-        proofStep.addAssertion(lemma);
-        proofRecipe->addBaseAssertion(rewritten);
-      }
-      proofRecipe->addStep(proofStep);
+      registerLemmaRecipe(lemma, lemma, d_theory);
     });
 
   theory::LemmaStatus result = d_engine->lemma(lemma,
@@ -119,10 +92,49 @@ theory::LemmaStatus TheoryEngine::EngineOutputChannel::lemma(TNode lemma,
                                                false,
                                                removable,
                                                preprocess,
-                                               sendAtoms ? d_theory : theory::THEORY_LAST,
-                                               proofRecipe);
-  PROOF(delete proofRecipe;);
+                                               sendAtoms ? d_theory : theory::THEORY_LAST);
+  // PROOF(delete proofRecipe;);
   return result;
+}
+
+void TheoryEngine::EngineOutputChannel::registerLemmaRecipe(Node lemma, Node originalLemma, theory::TheoryId theoryId) {
+  // During CNF conversion, conjunctions will be broken down into
+  // multiple lemmas. In order for the recipes to match, we have to do
+  // the same here.
+  if (lemma.getKind() == kind::AND) {
+    for (unsigned i = 0; i < lemma.getNumChildren(); ++i)
+      registerLemmaRecipe(lemma[i], originalLemma, theoryId);
+  }
+
+  // Theory lemmas have one step that proves the empty clause
+  LemmaProofRecipe proofRecipe;
+  Node emptyNode;
+  LemmaProofRecipe::ProofStep proofStep(theoryId, emptyNode);
+
+  // Remember the original lemma, so we can report this later when asked to
+  proofRecipe.setOriginalLemma(originalLemma);
+
+  // Record the assertions and rewrites
+  Node rewritten;
+  if (lemma.getKind() == kind::OR) {
+    for (unsigned i = 0; i < lemma.getNumChildren(); ++i) {
+      rewritten = theory::Rewriter::rewrite(lemma[i]);
+      if (rewritten != lemma[i]) {
+        proofRecipe.addRewriteRule(lemma[i].negate(), rewritten.negate());
+      }
+      proofStep.addAssertion(lemma[i]);
+      proofRecipe.addBaseAssertion(rewritten);
+    }
+  } else {
+    rewritten = theory::Rewriter::rewrite(lemma);
+    if (rewritten != lemma) {
+      proofRecipe.addRewriteRule(lemma.negate(), rewritten.negate());
+    }
+    proofStep.addAssertion(lemma);
+    proofRecipe.addBaseAssertion(rewritten);
+  }
+  proofRecipe.addStep(proofStep);
+  ProofManager::getCnfProof()->setProofRecipe(&proofRecipe);
 }
 
 theory::LemmaStatus TheoryEngine::EngineOutputChannel::splitLemma(TNode lemma, bool removable)
@@ -131,10 +143,8 @@ theory::LemmaStatus TheoryEngine::EngineOutputChannel::splitLemma(TNode lemma, b
   ++ d_statistics.lemmas;
   d_engine->d_outputChannelUsed = true;
 
-
-  LemmaProofRecipe* proofRecipe = NULL;
   Debug("pf::explain") << "TheoryEngine::EngineOutputChannel::splitLemma( " << lemma << " )" << std::endl;
-  theory::LemmaStatus result = d_engine->lemma(lemma, RULE_SPLIT, false, removable, false, d_theory, proofRecipe);
+  theory::LemmaStatus result = d_engine->lemma(lemma, RULE_SPLIT, false, removable, false, d_theory);
   return result;
 }
 
@@ -629,8 +639,7 @@ void TheoryEngine::combineTheories() {
     // We need to split on it
     Debug("combineTheories") << "TheoryEngine::combineTheories(): requesting a split " << endl;
 
-    LemmaProofRecipe* proofRecipe = NULL;
-    lemma(equality.orNode(equality.notNode()), RULE_INVALID, false, false, false, carePair.theory, proofRecipe);
+    lemma(equality.orNode(equality.notNode()), RULE_INVALID, false, false, false, carePair.theory);
 
     // This code is supposed to force preference to follow what the theory models already have
     // but it doesn't seem to make a big difference - need to explore more -Clark
@@ -1616,8 +1625,7 @@ theory::LemmaStatus TheoryEngine::lemma(TNode node,
                                         bool negated,
                                         bool removable,
                                         bool preprocess,
-                                        theory::TheoryId atomsTo,
-                                        LemmaProofRecipe* proofRecipe) {
+                                        theory::TheoryId atomsTo) {
   // For resource-limiting (also does a time check).
   // spendResource();
 
@@ -1667,10 +1675,10 @@ theory::LemmaStatus TheoryEngine::lemma(TNode node,
   }
 
   // assert to prop engine
-  d_propEngine->assertLemma(additionalLemmas[0], negated, removable, rule, proofRecipe, node);
+  d_propEngine->assertLemma(additionalLemmas[0], negated, removable, rule, node);
   for (unsigned i = 1; i < additionalLemmas.size(); ++ i) {
     additionalLemmas[i] = theory::Rewriter::rewrite(additionalLemmas[i]);
-    d_propEngine->assertLemma(additionalLemmas[i], false, removable, rule, proofRecipe, node);
+    d_propEngine->assertLemma(additionalLemmas[i], false, removable, rule, node);
   }
 
   // WARNING: Below this point don't assume additionalLemmas[0] to be not negated.
@@ -1729,10 +1737,11 @@ void TheoryEngine::conflict(TNode conflict, TheoryId theoryId) {
 
     // Process the explanation
     getExplanation(explanationVector, proofRecipe);
+    PROOF(ProofManager::getCnfProof()->setProofRecipe(proofRecipe));
     Node fullConflict = mkExplanation(explanationVector);
     Debug("theory::conflict") << "TheoryEngine::conflict(" << conflict << ", " << theoryId << "): full = " << fullConflict << endl;
     Assert(properConflict(fullConflict));
-    lemma(fullConflict, RULE_CONFLICT, true, true, false, THEORY_LAST, proofRecipe);
+    lemma(fullConflict, RULE_CONFLICT, true, true, false, THEORY_LAST);
 
   } else {
     // When only one theory, the conflict should need no processing
@@ -1758,9 +1767,11 @@ void TheoryEngine::conflict(TNode conflict, TheoryId theoryId) {
           proofRecipe->getStep(0)->addAssertion(conflict.negate());
           proofRecipe->addBaseAssertion(conflict.negate());
         }
+
+        ProofManager::getCnfProof()->setProofRecipe(proofRecipe);
       });
 
-    lemma(conflict, RULE_CONFLICT, true, true, false, THEORY_LAST, proofRecipe);
+    lemma(conflict, RULE_CONFLICT, true, true, false, THEORY_LAST);
   }
 
   PROOF({

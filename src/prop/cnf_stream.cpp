@@ -678,8 +678,7 @@ void TseitinCnfStream::convertAndAssert(TNode node,
                                         bool removable,
                                         bool negated,
                                         ProofRule proof_id,
-                                        TNode from,
-                                        LemmaProofRecipe* proofRecipe) {
+                                        TNode from) {
   Debug("cnf") << "convertAndAssert(" << node
                << ", removable = " << (removable ? "true" : "false")
                << ", negated = " << (negated ? "true" : "false") << ")" << endl;
@@ -688,12 +687,6 @@ void TseitinCnfStream::convertAndAssert(TNode node,
     (if (d_cnfProof) {
       Node assertion = negated ? node.notNode() : (Node)node;
       Node from_assertion = negated? from.notNode() : (Node) from;
-
-      if (proofRecipe) {
-        Debug("pf::sat") << "TseitinCnfStream::convertAndAssert: setting proof recipe" << std::endl;
-        proofRecipe->dump("pf::sat");
-        d_cnfProof->setProofRecipe(proofRecipe);
-      }
 
       if (proof_id != RULE_INVALID) {
         d_cnfProof->pushCurrentAssertion(from.isNull() ? assertion : from_assertion);

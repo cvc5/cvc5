@@ -37,7 +37,6 @@ namespace CVC4 {
 class ResourceManager;
 class DecisionEngine;
 class TheoryEngine;
-class LemmaProofRecipe;
 
 namespace theory {
   class TheoryRegistrar;
@@ -135,7 +134,7 @@ public:
    * @param removable whether this lemma can be quietly removed based
    * on an activity heuristic (or not)
    */
-  void assertLemma(TNode node, bool negated, bool removable, ProofRule rule, LemmaProofRecipe* proofRecipe, TNode from = TNode::null());
+  void assertLemma(TNode node, bool negated, bool removable, ProofRule rule, TNode from = TNode::null());
 
   /**
    * If ever n is decided upon, it must be in the given phase.  This

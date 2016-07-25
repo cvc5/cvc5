@@ -37,8 +37,6 @@
 
 namespace CVC4 {
 
-class LemmaProofRecipe;
-
 namespace prop {
 
 class PropEngine;
@@ -210,9 +208,8 @@ public:
    * @param node node to convert and assert
    * @param removable whether the sat solver can choose to remove the clauses
    * @param negated whether we are asserting the node negated
-   * @param proofRecipe contains the proof recipe for proving this node
    */
-  virtual void convertAndAssert(TNode node, bool removable, bool negated, ProofRule proof_id, TNode from = TNode::null(), LemmaProofRecipe* proofRecipe = NULL) = 0;
+  virtual void convertAndAssert(TNode node, bool removable, bool negated, ProofRule proof_id, TNode from = TNode::null()) = 0;
 
   /**
    * Get the node that is represented by the given SatLiteral.
@@ -282,8 +279,7 @@ public:
    * @param negated true if negated
    */
   void convertAndAssert(TNode node, bool removable,
-                        bool negated, ProofRule rule, TNode from = TNode::null(),
-                        LemmaProofRecipe* proofRecipe = NULL);
+                        bool negated, ProofRule rule, TNode from = TNode::null());
 
   /**
    * Constructs the stream to use the given sat solver.

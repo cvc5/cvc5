@@ -181,8 +181,7 @@ void TheoryProxy::notifyRestart() {
             Debug("shared") << "=) " << asNode << std::endl;
           }
 
-          LemmaProofRecipe* noProofRecipe = NULL;
-          d_propEngine->assertLemma(d_theoryEngine->preprocess(asNode), false, true, RULE_INVALID, noProofRecipe);
+          d_propEngine->assertLemma(d_theoryEngine->preprocess(asNode), false, true, RULE_INVALID);
         } else {
           Debug("shared") << "=(" << asNode << std::endl;
         }
