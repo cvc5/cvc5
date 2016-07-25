@@ -656,7 +656,7 @@ void LFSCBitVectorProof::printDeferredDeclarations(std::ostream& os, std::ostrea
   // Nothing to do here at this point.
 }
 
-void LFSCBitVectorProof::printAliasingDeclarations(std::ostream& os, std::ostream& paren) {
+void LFSCBitVectorProof::printAliasingDeclarations(std::ostream& os, std::ostream& paren, const ProofLetMap &globalLetMap) {
   // Print "trust" statements to bind complex bv variables to their associated terms
 
   ExprToString::const_iterator it = d_assignedAliases.begin();
@@ -673,8 +673,7 @@ void LFSCBitVectorProof::printAliasingDeclarations(std::ostream& os, std::ostrea
     os << "(trust_f ";
     os << "(= (BitVec " << utils::getSize(it->first) << ") ";
     os << "(a_var_bv " << utils::getSize(it->first) << " " << it->second << ") ";
-    ProofLetMap emptyMap;
-    d_proofEngine->printBoundTerm(it->first, os, emptyMap);
+    d_proofEngine->printBoundTerm(it->first, os, globalLetMap);
     os << ")) ";
     os << "(\\ "<< d_aliasToBindDeclaration[it->second] << "\n";
     paren << "))";

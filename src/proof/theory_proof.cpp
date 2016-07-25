@@ -406,13 +406,13 @@ void LFSCTheoryProofEngine::printDeferredDeclarations(std::ostream& os, std::ost
   }
 }
 
-void LFSCTheoryProofEngine::printAliasingDeclarations(std::ostream& os, std::ostream& paren) {
+void LFSCTheoryProofEngine::printAliasingDeclarations(std::ostream& os, std::ostream& paren, const ProofLetMap &globalLetMap) {
   Debug("pf::tp") << "LFSCTheoryProofEngine::printAliasingDeclarations called" << std::endl;
 
   TheoryProofTable::const_iterator it = d_theoryProofTable.begin();
   TheoryProofTable::const_iterator end = d_theoryProofTable.end();
   for (; it != end; ++it) {
-    it->second->printAliasingDeclarations(os, paren);
+    it->second->printAliasingDeclarations(os, paren, globalLetMap);
   }
 }
 
@@ -1168,7 +1168,7 @@ void LFSCBooleanProof::printDeferredDeclarations(std::ostream& os, std::ostream&
   // Nothing to do here at this point.
 }
 
-void LFSCBooleanProof::printAliasingDeclarations(std::ostream& os, std::ostream& paren) {
+void LFSCBooleanProof::printAliasingDeclarations(std::ostream& os, std::ostream& paren, const ProofLetMap &globalLetMap) {
   // Nothing to do here at this point.
 }
 

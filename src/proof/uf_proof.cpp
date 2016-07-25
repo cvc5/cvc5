@@ -797,7 +797,7 @@ void LFSCUFProof::printDeferredDeclarations(std::ostream& os, std::ostream& pare
   // Nothing to do here at this point.
 }
 
-void LFSCUFProof::printAliasingDeclarations(std::ostream& os, std::ostream& paren) {
+void LFSCUFProof::printAliasingDeclarations(std::ostream& os, std::ostream& paren, const ProofLetMap &globalLetMap) {
   // Nothing to do here at this point.
 }
 

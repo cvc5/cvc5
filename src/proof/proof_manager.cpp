@@ -515,18 +515,16 @@ void LFSCProof::toStream(std::ostream& out) {
   out << " ;; Printing deferred declarations \n\n";
   d_theoryProof->printDeferredDeclarations(out, paren);
 
+  out << "\n ;; Printing the global let map";
   d_theoryProof->finalizeBvConflicts(used_lemmas, out);
   ProofManager::getBitVectorProof()->calculateAtomsInBitblastingProof();
-
-  out << "\n ;; Printing the global let map \n";
-
   ProofLetMap globalLetMap;
   if (options::lfscLetification()) {
     ProofManager::currentPM()->printGlobalLetMap(atoms, globalLetMap, out, paren);
   }
 
   out << " ;; Printing aliasing declarations \n\n";
-  d_theoryProof->printAliasingDeclarations(out, paren);
+  d_theoryProof->printAliasingDeclarations(out, paren, globalLetMap);
 
   out << " ;; Rewrites for Lemmas \n";
   d_theoryProof->printLemmaRewrites(rewrites, out, paren);

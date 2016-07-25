@@ -830,7 +830,7 @@ void LFSCArithProof::printDeferredDeclarations(std::ostream& os, std::ostream& p
   // Nothing to do here at this point.
 }
 
-void LFSCArithProof::printAliasingDeclarations(std::ostream& os, std::ostream& paren) {
+void LFSCArithProof::printAliasingDeclarations(std::ostream& os, std::ostream& paren, const ProofLetMap &globalLetMap) {
   // Nothing to do here at this point.
 }
 

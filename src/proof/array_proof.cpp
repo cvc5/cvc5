@@ -1380,7 +1380,7 @@ void LFSCArrayProof::printDeferredDeclarations(std::ostream& os, std::ostream& p
   }
 }
 
-void LFSCArrayProof::printAliasingDeclarations(std::ostream& os, std::ostream& paren) {
+void LFSCArrayProof::printAliasingDeclarations(std::ostream& os, std::ostream& paren, const ProofLetMap &globalLetMap) {
     // Nothing to do here at this point.
 }
 
