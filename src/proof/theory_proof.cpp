@@ -126,12 +126,12 @@ void TheoryProofEngine::markTermForFutureRegistration(Expr term, theory::TheoryI
   d_exprToTheoryIds[term].insert(id);
 }
 
-void TheoryProofEngine::printConstantDisequalityProof(std::ostream& os, Expr c1, Expr c2) {
+void TheoryProofEngine::printConstantDisequalityProof(std::ostream& os, Expr c1, Expr c2, const ProofLetMap &globalLetMap) {
   Assert(c1.isConst());
   Assert(c2.isConst());
 
   Assert(theory::Theory::theoryOf(c1) == theory::Theory::theoryOf(c2));
-  getTheoryProof(theory::Theory::theoryOf(c1))->printConstantDisequalityProof(os, c1, c2);
+  getTheoryProof(theory::Theory::theoryOf(c1))->printConstantDisequalityProof(os, c1, c2, globalLetMap);
 }
 
 void TheoryProofEngine::registerTerm(Expr term) {
@@ -992,13 +992,6 @@ void TheoryProof::printTheoryLemmaProof(std::vector<Expr>& lemma,
     Assert(!oc.d_lemma.isNull());
     Trace("pf::tp") << "; ++ but got lemma: " << oc.d_lemma << std::endl;
 
-    // Original, as in Liana's branch
-    // Trace("pf::tp") << "; asserting " << oc.d_lemma[1].negate() << std::endl;
-    // th->assertFact(oc.d_lemma[1].negate(), false);
-    // th->check(theory::Theory::EFFORT_FULL);
-
-    // Altered version, to handle OR lemmas
-
     if (oc.d_lemma.getKind() == kind::OR) {
       Debug("pf::tp") << "OR lemma. Negating each child separately" << std::endl;
       for (unsigned i = 0; i < oc.d_lemma.getNumChildren(); ++i) {
@@ -1087,7 +1080,7 @@ void LFSCBooleanProof::printOwnedTerm(Expr term, std::ostream& os, const ProofLe
       }
 
       // The let map should already have the current expression.
-      ProofLetMap::const_iterator it = map.find(currentExpression.toExpr());
+      ProofLetMap::const_iterator it = map.find(term);
       if (it != map.end()) {
         unsigned id = it->second.id;
         unsigned count = it->second.count;
@@ -1178,15 +1171,14 @@ void LFSCBooleanProof::printTheoryLemmaProof(std::vector<Expr>& lemma,
   Unreachable("No boolean lemmas yet!");
 }
 
-void TheoryProof::printConstantDisequalityProof(std::ostream& os, Expr c1, Expr c2) {
+void TheoryProof::printConstantDisequalityProof(std::ostream& os, Expr c1, Expr c2, const ProofLetMap &globalLetMap) {
   // By default, we just print a trust statement. Specific theories can implement
   // better proofs.
-  ProofLetMap emptyMap;
 
   os << "(trust_f (not (= _ ";
-  d_proofEngine->printBoundTerm(c1, os, emptyMap);
+  d_proofEngine->printBoundTerm(c1, os, globalLetMap);
   os << " ";
-  d_proofEngine->printBoundTerm(c2, os, emptyMap);
+  d_proofEngine->printBoundTerm(c2, os, globalLetMap);
   os << ")))";
 }
 

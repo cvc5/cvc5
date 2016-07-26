@@ -305,7 +305,8 @@ Node ProofArray::toStreamRecLFSC(std::ostream& out,
       out << " ";
       ProofManager::getTheoryProofEngine()->printConstantDisequalityProof(out,
                                                                           n1[0].toExpr(),
-                                                                          n1[1].toExpr());
+                                                                          n1[1].toExpr(),
+                                                                          map);
     }
 
     out << "))" << std::endl;
@@ -585,7 +586,8 @@ Node ProofArray::toStreamRecLFSC(std::ostream& out,
 
     ProofManager::getTheoryProofEngine()->printConstantDisequalityProof(out,
                                                                         n[0].toExpr(),
-                                                                        n[1].toExpr());
+                                                                        n[1].toExpr(),
+                                                                        map);
     return pf->d_node;
   }
 
@@ -948,7 +950,7 @@ Node ProofArray::toStreamRecLFSC(std::ostream& out,
             // subproof already shows constant = t3
             Assert(t3 == subproof[1]);
             out << "(negtrans _ _ _ _ ";
-            tp->printConstantDisequalityProof(out, t2.toExpr(), subproof[0].toExpr());
+            tp->printConstantDisequalityProof(out, t2.toExpr(), subproof[0].toExpr(), map);
             out << " ";
             out << ss.str();
             out << ")";
@@ -956,7 +958,7 @@ Node ProofArray::toStreamRecLFSC(std::ostream& out,
             Assert(t2 == subproof[1]);
             out << "(negsymm _ _ _ ";
             out << "(negtrans _ _ _ _ ";
-            tp->printConstantDisequalityProof(out, t3.toExpr(), subproof[0].toExpr());
+            tp->printConstantDisequalityProof(out, t3.toExpr(), subproof[0].toExpr(), map);
             out << " ";
             out << ss.str();
             out << "))";
@@ -968,7 +970,7 @@ Node ProofArray::toStreamRecLFSC(std::ostream& out,
             // subproof already shows constant = t3
             Assert(t3 == subproof[0]);
             out << "(negtrans _ _ _ _ ";
-            tp->printConstantDisequalityProof(out, t2.toExpr(), subproof[1].toExpr());
+            tp->printConstantDisequalityProof(out, t2.toExpr(), subproof[1].toExpr(), map);
             out << " ";
             out << "(symm _ _ _ " << ss.str() << ")";
             out << ")";
@@ -976,7 +978,7 @@ Node ProofArray::toStreamRecLFSC(std::ostream& out,
             Assert(t2 == subproof[0]);
             out << "(negsymm _ _ _ ";
             out << "(negtrans _ _ _ _ ";
-            tp->printConstantDisequalityProof(out, t3.toExpr(), subproof[1].toExpr());
+            tp->printConstantDisequalityProof(out, t3.toExpr(), subproof[1].toExpr(), map);
             out << " ";
             out << "(symm _ _ _ " << ss.str() << ")";
             out << "))";

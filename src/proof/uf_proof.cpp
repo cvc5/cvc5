@@ -264,7 +264,7 @@ Node ProofUF::toStreamRecLFSC(std::ostream& out, TheoryProof * tp, theory::eq::E
 
       out << ss.str();
       out << " ";
-      ProofManager::getTheoryProofEngine()->printConstantDisequalityProof(out, n1[0].toExpr(), n1[1].toExpr());
+      ProofManager::getTheoryProofEngine()->printConstantDisequalityProof(out, n1[0].toExpr(), n1[1].toExpr(), map);
       out << "))" << std::endl;
     }
 

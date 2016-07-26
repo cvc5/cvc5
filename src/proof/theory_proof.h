@@ -149,7 +149,7 @@ public:
 
   void markTermForFutureRegistration(Expr term, theory::TheoryId id);
 
-  void printConstantDisequalityProof(std::ostream& os, Expr c1, Expr c2);
+  void printConstantDisequalityProof(std::ostream& os, Expr c1, Expr c2, const ProofLetMap &globalLetMap);
 
   virtual void treatBoolsAsFormulas(bool value) {};
 
@@ -286,7 +286,7 @@ public:
    *
    * @param term
    */
-  virtual void printConstantDisequalityProof(std::ostream& os, Expr c1, Expr c2);
+  virtual void printConstantDisequalityProof(std::ostream& os, Expr c1, Expr c2, const ProofLetMap &globalLetMap);
   /**
    * Print a proof for the equivalence of n1 and n2.
    *
