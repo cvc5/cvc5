@@ -74,7 +74,7 @@ private:
                                std::map< Node, std::vector< Node > >& teq,
                                Node n, std::vector< Node >& conj );
   //constructing solution
-  Node constructSolution( std::vector< unsigned >& indices, unsigned i, unsigned index );
+  Node constructSolution( std::vector< unsigned >& indices, unsigned i, unsigned index, std::map< Node, Node >& weak_imp );
   Node postProcessSolution( Node n );
 private:
   //list of skolems for each argument of programs

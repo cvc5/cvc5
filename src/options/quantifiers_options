@@ -244,6 +244,8 @@ option cegqiSingleInvReconstruct --cegqi-si-reconstruct bool :default true
   reconstruct solutions for single invocation conjectures in original grammar
 option cegqiSolMinCore --cegqi-si-sol-min-core bool :default false
   minimize solutions for single invocation conjectures based on unsat core
+option cegqiSolMinInst --cegqi-si-sol-min-inst bool :default true
+  minimize individual instantiations for single invocation conjectures based on unsat core
 option cegqiSingleInvReconstructConst --cegqi-si-reconstruct-const bool :default true
   include constants when reconstruct solutions for single invocation conjectures in original grammar
 option cegqiSingleInvAbort --cegqi-si-abort bool :default false

@@ -1307,6 +1307,21 @@ bool QuantifiersEngine::getUnsatCoreLemmas( std::vector< Node >& active_lemmas )
   }
 }
 
+bool QuantifiersEngine::getUnsatCoreLemmas( std::vector< Node >& active_lemmas, std::map< Node, Node >& weak_imp ) {
+  if( getUnsatCoreLemmas( active_lemmas ) ){
+    for (unsigned i = 0; i < active_lemmas.size(); ++i) {
+      Node n = ProofManager::currentPM()->getWeakestImplicantInUnsatCore(active_lemmas[i]);
+      if( n!=active_lemmas[i] ){
+        Trace("inst-unsat-core") << "  weaken : " << active_lemmas[i] << " -> " << n << std::endl;
+      }
+      weak_imp[active_lemmas[i]] = n;
+    }
+    return true;
+  }else{
+    return false;
+  }
+}
+
 void QuantifiersEngine::getExplanationForInstLemmas( std::vector< Node >& lems, std::map< Node, Node >& quant, std::map< Node, std::vector< Node > >& tvec ) {
   if( d_trackInstLemmas ){
     if( options::incrementalSolving() ){
