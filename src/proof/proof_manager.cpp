@@ -271,7 +271,7 @@ void ProofManager::traceDeps(TNode n) {
 
 void ProofManager::traceUnsatCore() {
   Assert (options::unsatCores());
-  d_satProof->constructProof();
+  constructSatProof();
   IdToSatClause used_lemmas;
   IdToSatClause used_inputs;
   d_satProof->collectClausesUsed(used_inputs,
@@ -296,11 +296,17 @@ bool ProofManager::unsatCoreAvailable() const {
   return d_satProof->derivedEmptyClause();
 }
 
+void ProofManager::constructSatProof() {
+  if (!d_satProof->proofConstructed()) {
+    d_satProof->constructProof();
+  }
+}
+
 void ProofManager::getLemmasInUnsatCore(theory::TheoryId theory, std::vector<Node> &lemmas) {
   Assert(PROOF_ON(), "Cannot compute unsat core when proofs are off");
   Assert(unsatCoreAvailable(), "Cannot get unsat core at this time. Mabye the input is SAT?" );
 
-  d_satProof->constructProof();
+  constructSatProof();
 
   IdToSatClause used_lemmas;
   IdToSatClause used_inputs;
@@ -309,29 +315,86 @@ void ProofManager::getLemmasInUnsatCore(theory::TheoryId theory, std::vector<Nod
   IdToSatClause::const_iterator it;
 
   for (it = used_lemmas.begin(); it != used_lemmas.end(); ++it) {
-    std::set<Node> lemma;
-    for(unsigned i = 0; i < it->second->size(); ++i) {
-      prop::SatLiteral lit = (*(it->second))[i];
-      Node node = getCnfProof()->getAtom(lit.getSatVariable());
-      Expr atom = node.toExpr();
-      if (atom.isConst()) {
-        Assert (atom == utils::mkTrue());
-        continue;
-      }
-      lemma.insert(lit.isNegated() ? node.notNode() : node);
-    }
+    std::set<Node> lemma = satClauseToNodeSet(it->second);
 
     // TODO: we should be able to drop the "haveProofRecipe" check.
     // however, there are some rewrite issues with the arith solver, resulting
     // in non-registered recipes. For now we assume no one is requesting arith lemmas.
     LemmaProofRecipe recipe;
-    if ( getCnfProof()->haveProofRecipe(lemma) )
-         recipe = getCnfProof()->getProofRecipe(lemma);
+    if (getCnfProof()->haveProofRecipe(lemma))
+      recipe = getCnfProof()->getProofRecipe(lemma);
 
     if (recipe.simpleLemma() && recipe.getTheory() == theory) {
       lemmas.push_back(recipe.getOriginalLemma());
     }
   }
+}
+
+std::set<Node> ProofManager::satClauseToNodeSet(prop::SatClause* clause) {
+  std::set<Node> result;
+  for (unsigned i = 0; i < clause->size(); ++i) {
+    prop::SatLiteral lit = (*clause)[i];
+    Node node = getCnfProof()->getAtom(lit.getSatVariable());
+    Expr atom = node.toExpr();
+    if (atom.isConst()) {
+      Assert (atom == utils::mkTrue());
+      continue;
+    }
+    result.insert(lit.isNegated() ? node.notNode() : node);
+  }
+
+  return result;
+}
+
+Node ProofManager::getWeakestImplicantInUnsatCore(Node lemma) {
+  Assert(PROOF_ON(), "Cannot compute unsat core when proofs are off");
+  Assert(unsatCoreAvailable(), "Cannot get unsat core at this time. Mabye the input is SAT?" );
+
+  if (lemma.getKind() != kind::AND)
+    return lemma;
+
+  constructSatProof();
+
+  NodeBuilder<> builder(kind::AND);
+
+  IdToSatClause used_lemmas;
+  IdToSatClause used_inputs;
+  d_satProof->collectClausesUsed(used_inputs, used_lemmas);
+
+  IdToSatClause::const_iterator it;
+  std::set<Node>::iterator lemmaIt;
+
+  for (it = used_lemmas.begin(); it != used_lemmas.end(); ++it) {
+    std::set<Node> currentLemma = satClauseToNodeSet(it->second);
+
+    // TODO: we should be able to drop the "haveProofRecipe" check.
+    // however, there are some rewrite issues with the arith solver, resulting
+    // in non-registered recipes. For now we assume no one is requesting arith lemmas.
+    LemmaProofRecipe recipe;
+    if (getCnfProof()->haveProofRecipe(currentLemma))
+      recipe = getCnfProof()->getProofRecipe(currentLemma);
+
+    if (recipe.getOriginalLemma() == lemma) {
+      for (lemmaIt = currentLemma.begin(); lemmaIt != currentLemma.end(); ++lemmaIt) {
+        builder << *lemmaIt;
+
+        // Sanity check: make sure that each conjunct really appears in the original lemma
+        bool found = false;
+        for (unsigned i = 0; i < lemma.getNumChildren(); ++i) {
+          if (lemma[i] == *lemmaIt)
+            found = true;
+        }
+        Assert(found);
+      }
+    }
+  }
+
+  Assert(builder.getNumChildren() != 0);
+
+  if (builder.getNumChildren() == 1)
+    return builder[0];
+
+  return builder;
 }
 
 void ProofManager::addAssertion(Expr formula) {
@@ -385,6 +448,7 @@ void LFSCProof::toStream(std::ostream& out) {
 
   Assert(options::bitblastMode() != theory::bv::BITBLAST_MODE_EAGER);
 
+  Assert(!d_satProof->proofConstructed());
   d_satProof->constructProof();
 
   // collecting leaf clauses in resolution proof

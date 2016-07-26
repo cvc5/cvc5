@@ -224,6 +224,7 @@ TSatProof<Solver>::TSatProof(Solver* solver, const std::string& name,
       d_seenLearnt(),
       d_seenInputs(),
       d_seenLemmas(),
+      d_satProofConstructed(false),
       d_statistics(name) {
   d_proxy = new ProofProxy<Solver>(this);
 }
@@ -957,7 +958,13 @@ void TSatProof<Solver>::markDeleted(typename Solver::TCRef clause) {
 
 template <class Solver>
 void TSatProof<Solver>::constructProof(ClauseId conflict) {
+  d_satProofConstructed = true;
   collectClauses(conflict);
+}
+
+template <class Solver>
+bool TSatProof<Solver>::proofConstructed() const {
+  return d_satProofConstructed;
 }
 
 template <class Solver>

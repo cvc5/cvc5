@@ -248,6 +248,7 @@ public:
 
   bool unsatCoreAvailable() const;
   void getLemmasInUnsatCore(theory::TheoryId theory, std::vector<Node> &lemmas);
+  Node getWeakestImplicantInUnsatCore(Node lemma);
 
   int nextId() { return d_nextId++; }
 
@@ -271,6 +272,10 @@ public:
                          ProofLetMap& letMap,
                          std::ostream& out,
                          std::ostringstream& paren);
+
+private:
+  void constructSatProof();
+  std::set<Node> satClauseToNodeSet(prop::SatClause* clause);
 };/* class ProofManager */
 
 class LFSCProof : public Proof {
