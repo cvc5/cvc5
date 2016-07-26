@@ -67,6 +67,10 @@ option stringGuessModel strings-guess-model --strings-guess-model bool :default 
  use model guessing to avoid string extended function reductions
 option stringUfReduct strings-uf-reduct --strings-uf-reduct bool :default false
  use uninterpreted functions when applying extended function reductions
+option stringBinaryCsp strings-binary-csp --strings-binary-csp bool :default false
+ use binary search when splitting strings
+option stringLenPropCsp strings-lprop-csp --strings-lprop-csp bool :default false
+ do length propagation based on constant splits
 
 
 endmodule

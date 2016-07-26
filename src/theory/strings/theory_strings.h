@@ -300,8 +300,8 @@ private:
   Node checkCycles( Node eqc, std::vector< Node >& curr, std::vector< Node >& exp );
   //normal forms check
   void checkNormalForms();
-  bool normalizeEquivalenceClass( Node n );
-  bool getNormalForms( Node &eqc, std::vector< std::vector< Node > > &normal_forms, std::vector< Node > &normal_form_src,
+  void normalizeEquivalenceClass( Node n );
+  void getNormalForms( Node &eqc, std::vector< std::vector< Node > > &normal_forms, std::vector< Node > &normal_form_src,
                        std::vector< std::vector< Node > > &normal_forms_exp, std::vector< std::map< Node, std::map< bool, int > > >& normal_forms_exp_depend);
   bool detectLoop(std::vector< std::vector< Node > > &normal_forms,
         int i, int j, int index, int &loop_in_i, int &loop_in_j);
@@ -311,13 +311,14 @@ private:
         int i, int j, int loop_n_index, int other_n_index,
         int loop_index, int index);
   bool processNEqc( std::vector< std::vector< Node > > &normal_forms, std::vector< Node > &normal_form_src,
-                    std::vector< std::vector< Node > > &normal_forms_exp, std::vector< std::map< Node, std::map< bool, int > > >& normal_forms_exp_depend );
+                    std::vector< std::vector< Node > > &normal_forms_exp, std::vector< std::map< Node, std::map< bool, int > > >& normal_forms_exp_depend,
+                    int effort );
   bool processReverseNEq( std::vector< std::vector< Node > > &normal_forms, std::vector< Node > &normal_form_src, 
                           std::vector< std::vector< Node > > &normal_forms_exp, std::vector< std::map< Node, std::map< bool, int > > >& normal_forms_exp_depend, 
-                          unsigned i, unsigned j );
+                          unsigned i, unsigned j, unsigned& index, unsigned rproc );
   bool processSimpleNEq( std::vector< std::vector< Node > > &normal_forms, std::vector< Node > &normal_form_src, 
                          std::vector< std::vector< Node > > &normal_forms_exp, std::vector< std::map< Node, std::map< bool, int > > >& normal_forms_exp_depend, 
-                         unsigned i, unsigned j, unsigned& index, bool isRev );
+                         unsigned i, unsigned j, unsigned& index, bool isRev, unsigned rproc );
   bool processDeq( Node n1, Node n2 );
   int processReverseDeq( std::vector< Node >& nfi, std::vector< Node >& nfj, Node ni, Node nj );
   int processSimpleDeq( std::vector< Node >& nfi, std::vector< Node >& nfj, Node ni, Node nj, unsigned& index, bool isRev );
@@ -327,6 +328,8 @@ private:
   void getExplanationVectorForPrefixEq( std::vector< std::vector< Node > > &normal_forms, std::vector< Node > &normal_form_src,
                                         std::vector< std::vector< Node > > &normal_forms_exp, std::vector< std::map< Node, std::map< bool, int > > >& normal_forms_exp_depend,
                                         unsigned i, unsigned j, int index_i, int index_j, bool isRev, std::vector< Node >& curr_exp );
+
+  Node collectConstantStringAt( std::vector< Node >& vec, int& index, bool isRev );
 
   //check membership constraints
   Node mkRegExpAntec(Node atom, Node ant);
