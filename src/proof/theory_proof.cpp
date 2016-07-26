@@ -1080,7 +1080,7 @@ void LFSCBooleanProof::printOwnedTerm(Expr term, std::ostream& os, const ProofLe
       }
 
       // The let map should already have the current expression.
-      ProofLetMap::const_iterator it = map.find(term);
+      ProofLetMap::const_iterator it = map.find(currentExpression.toExpr());
       if (it != map.end()) {
         unsigned id = it->second.id;
         unsigned count = it->second.count;
