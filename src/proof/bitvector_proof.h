@@ -81,6 +81,10 @@ protected:
   bool d_isAssumptionConflict;
   theory::bv::TBitblaster<Node>* d_bitblaster;
   std::string getBBTermName(Expr expr);
+
+  std::map<Expr,std::string> d_constantLetMap;
+  bool d_useConstantLetification;
+
 public:
   BitVectorProof(theory::bv::TheoryBV* bv, TheoryProofEngine* proofEngine);
 

@@ -384,7 +384,7 @@ Node ProofManager::getWeakestImplicantInUnsatCore(Node lemma) {
           if (lemma[i] == *lemmaIt)
             found = true;
         }
-        Assert(found);
+        AlwaysAssert(found);
       }
     }
   }
