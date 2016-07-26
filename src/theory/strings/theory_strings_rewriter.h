@@ -65,6 +65,8 @@ public:
       firstc/lastc store which indices were used */
   static bool canConstantContainConcat( Node c, Node n, int& firstc, int& lastc );
   static bool canConstantContainList( Node c, std::vector< Node >& l, int& firstc, int& lastc );
+  static Node getNextConstantAt( std::vector< Node >& vec, unsigned& start_index, unsigned& end_index, bool isRev );
+  static Node collectConstantStringAt( std::vector< Node >& vec, unsigned& end_index, bool isRev );
 };/* class TheoryStringsRewriter */
 
 }/* CVC4::theory::strings namespace */
