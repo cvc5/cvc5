@@ -658,7 +658,7 @@ bool CegConjectureSingleInv::check( std::vector< Node >& lems ) {
   }
 }
 
-Node CegConjectureSingleInv::constructSolution( std::vector< unsigned >& indices, unsigned i, unsigned index ) {
+Node CegConjectureSingleInv::constructSolution( std::vector< unsigned >& indices, unsigned i, unsigned index, std::map< Node, Node >& weak_imp ) {
   Assert( index<d_inst.size() );
   Assert( i<d_inst[index].size() );
   unsigned uindex = indices[index];
@@ -666,9 +666,14 @@ Node CegConjectureSingleInv::constructSolution( std::vector< unsigned >& indices
     return d_inst[uindex][i];
   }else{
     Node cond = d_lemmas_produced[uindex];
+    //weaken based on unsat core
+    std::map< Node, Node >::iterator itw = weak_imp.find( cond );
+    if( itw!=weak_imp.end() ){
+      cond = itw->second;
+    }
     cond = TermDb::simpleNegate( cond );
     Node ite1 = d_inst[uindex][i];
-    Node ite2 = constructSolution( indices, i, index+1 );
+    Node ite2 = constructSolution( indices, i, index+1, weak_imp );
     return NodeManager::currentNM()->mkNode( ITE, cond, ite1, ite2 );
   }
 }
@@ -756,8 +761,17 @@ Node CegConjectureSingleInv::getSolution( unsigned sol_index, TypeNode stn, int&
     bool useUnsatCore = false;
     std::vector< Node > active_lemmas;
     //minimize based on unsat core, if possible
-    if( options::cegqiSolMinCore() && d_qe->getUnsatCoreLemmas( active_lemmas ) ){
-      useUnsatCore = true;
+    std::map< Node, Node > weak_imp;
+    if( options::cegqiSolMinCore() ){
+      if( options::cegqiSolMinInst() ){
+        if( d_qe->getUnsatCoreLemmas( active_lemmas, weak_imp ) ){
+          useUnsatCore = true;
+        }
+      }else{
+        if( d_qe->getUnsatCoreLemmas( active_lemmas ) ){
+          useUnsatCore = true;
+        }
+      }
     } 
     Assert( d_lemmas_produced.size()==d_inst.size() );
     std::vector< unsigned > indices;
@@ -780,7 +794,7 @@ Node CegConjectureSingleInv::getSolution( unsigned sol_index, TypeNode stn, int&
     ssii.d_i = sol_index;
     std::sort( indices.begin(), indices.end(), ssii );
     Trace("csi-sol") << "Construct solution" << std::endl;
-    s = constructSolution( indices, sol_index, 0 );
+    s = constructSolution( indices, sol_index, 0, weak_imp );
     Assert( vars.size()==d_sol->d_varList.size() );
     s = s.substitute( vars.begin(), vars.end(), d_sol->d_varList.begin(), d_sol->d_varList.end() );
   }
