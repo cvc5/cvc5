@@ -336,11 +336,8 @@ std::set<Node> ProofManager::satClauseToNodeSet(prop::SatClause* clause) {
     prop::SatLiteral lit = (*clause)[i];
     Node node = getCnfProof()->getAtom(lit.getSatVariable());
     Expr atom = node.toExpr();
-    if (atom.isConst()) {
-      Assert (atom == utils::mkTrue());
-      continue;
-    }
-    result.insert(lit.isNegated() ? node.notNode() : node);
+    if (atom != utils::mkTrue())
+      result.insert(lit.isNegated() ? node.notNode() : node);
   }
 
   return result;
