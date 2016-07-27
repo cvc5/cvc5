@@ -1167,7 +1167,8 @@ void LFSCBooleanProof::printAliasingDeclarations(std::ostream& os, std::ostream&
 
 void LFSCBooleanProof::printTheoryLemmaProof(std::vector<Expr>& lemma,
                                              std::ostream& os,
-                                             std::ostream& paren) {
+                                             std::ostream& paren,
+                                             const ProofLetMap& map) {
   Unreachable("No boolean lemmas yet!");
 }
 

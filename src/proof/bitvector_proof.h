@@ -157,7 +157,7 @@ public:
   virtual void printResolutionProof(std::ostream& os, std::ostream& paren, ProofLetMap& letMap);
   void calculateAtomsInBitblastingProof();
   const std::set<Node>* getAtomsInBitblastingProof();
-  void printConstantDisequalityProof(std::ostream& os, Expr c1, Expr c2);
+  void printConstantDisequalityProof(std::ostream& os, Expr c1, Expr c2, const ProofLetMap &globalLetMap);
   void printRewriteProof(std::ostream& os, const Node &n1, const Node &n2);
 };
 

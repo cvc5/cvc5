@@ -33,7 +33,8 @@ typedef std::pair<Node, Node> NodePair;
 typedef std::set<NodePair> NodePairSet;
 
 
-struct ProofLetCount {
+class ProofLetCount {
+public:
   static unsigned counter;
   static void resetCounter() { counter = 0; }
   static unsigned newId() { return ++counter; }

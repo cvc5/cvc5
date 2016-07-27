@@ -1054,7 +1054,7 @@ bool LFSCBitVectorProof::hasAlias(Expr expr) {
   return d_assignedAliases.find(expr) != d_assignedAliases.end();
 }
 
-void LFSCBitVectorProof::printConstantDisequalityProof(std::ostream& os, Expr c1, Expr c2) {
+void LFSCBitVectorProof::printConstantDisequalityProof(std::ostream& os, Expr c1, Expr c2, const ProofLetMap &globalLetMap) {
   Assert (c1.isConst());
   Assert (c2.isConst());
   Assert (utils::getSize(c1) == utils::getSize(c2));
