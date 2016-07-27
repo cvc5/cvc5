@@ -100,9 +100,15 @@ void TheoryEngine::EngineOutputChannel::registerLemmaRecipe(Node lemma, Node ori
   // During CNF conversion, conjunctions will be broken down into
   // multiple lemmas. In order for the recipes to match, we have to do
   // the same here.
+
+  NodeManager* nm = NodeManager::currentNM();
+
   if (lemma.getKind() == kind::AND) {
     for (unsigned i = 0; i < lemma.getNumChildren(); ++i)
       registerLemmaRecipe(lemma[i], originalLemma, theoryId);
+  } else if (lemma.getKind() == kind::IFF) {
+    registerLemmaRecipe(nm->mkNode(kind::OR, lemma[0], lemma[1].negate()), originalLemma, theoryId);
+    registerLemmaRecipe(nm->mkNode(kind::OR, lemma[0].negate(), lemma[1]), originalLemma, theoryId);
   }
 
   // Theory lemmas have one step that proves the empty clause

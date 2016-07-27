@@ -313,6 +313,7 @@ void ProofManager::getLemmasInUnsatCore(theory::TheoryId theory, std::vector<Nod
   d_satProof->collectClausesUsed(used_inputs, used_lemmas);
 
   IdToSatClause::const_iterator it;
+  std::set<Node> seen;
 
   for (it = used_lemmas.begin(); it != used_lemmas.end(); ++it) {
     std::set<Node> lemma = satClauseToNodeSet(it->second);
@@ -325,8 +326,9 @@ void ProofManager::getLemmasInUnsatCore(theory::TheoryId theory, std::vector<Nod
       continue;
 
     recipe = getCnfProof()->getProofRecipe(lemma);
-    if (recipe.simpleLemma() && recipe.getTheory() == theory) {
+    if (recipe.simpleLemma() && recipe.getTheory() == theory && seen.find(recipe.getOriginalLemma()) == seen.end()) {
       lemmas.push_back(recipe.getOriginalLemma());
+      seen.insert(recipe.getOriginalLemma());
     }
   }
 }
