@@ -321,9 +321,10 @@ void ProofManager::getLemmasInUnsatCore(theory::TheoryId theory, std::vector<Nod
     // however, there are some rewrite issues with the arith solver, resulting
     // in non-registered recipes. For now we assume no one is requesting arith lemmas.
     LemmaProofRecipe recipe;
-    if (getCnfProof()->haveProofRecipe(lemma))
-      recipe = getCnfProof()->getProofRecipe(lemma);
+    if (!getCnfProof()->haveProofRecipe(lemma))
+      continue;
 
+    recipe = getCnfProof()->getProofRecipe(lemma);
     if (recipe.simpleLemma() && recipe.getTheory() == theory) {
       lemmas.push_back(recipe.getOriginalLemma());
     }
@@ -368,9 +369,10 @@ Node ProofManager::getWeakestImplicantInUnsatCore(Node lemma) {
     // however, there are some rewrite issues with the arith solver, resulting
     // in non-registered recipes. For now we assume no one is requesting arith lemmas.
     LemmaProofRecipe recipe;
-    if (getCnfProof()->haveProofRecipe(currentLemma))
-      recipe = getCnfProof()->getProofRecipe(currentLemma);
+    if (!getCnfProof()->haveProofRecipe(currentLemma))
+      continue;
 
+    recipe = getCnfProof()->getProofRecipe(currentLemma);
     if (recipe.getOriginalLemma() == lemma) {
       for (lemmaIt = currentLemma.begin(); lemmaIt != currentLemma.end(); ++lemmaIt) {
         builder << *lemmaIt;
@@ -381,12 +383,14 @@ Node ProofManager::getWeakestImplicantInUnsatCore(Node lemma) {
           if (lemma[i] == *lemmaIt)
             found = true;
         }
-        AlwaysAssert(found);
+
+        if (!found)
+          return lemma;
       }
     }
   }
 
-  Assert(builder.getNumChildren() != 0);
+  AlwaysAssert(builder.getNumChildren() != 0);
 
   if (builder.getNumChildren() == 1)
     return builder[0];
