@@ -8,4 +8,7 @@ module PROOF "options/proof_options.h" Proof
 option lfscLetification --lfsc-letification bool :default true
  turns on global letification in LFSC proofs
 
+option aggressiveCoreMin --aggressive-core-min bool :default false
+ turns on aggressive unsat core minimization (experimental)
+
 endmodule

@@ -348,7 +348,8 @@ Node ProofManager::getWeakestImplicantInUnsatCore(Node lemma) {
   Assert(PROOF_ON(), "Cannot compute unsat core when proofs are off");
   Assert(unsatCoreAvailable(), "Cannot get unsat core at this time. Mabye the input is SAT?" );
 
-  if (lemma.getKind() != kind::AND)
+  // If we're doing aggressive minimization, work on all lemmas, not just conjunctions.
+  if (!options::aggressiveCoreMin() && (lemma.getKind() != kind::AND))
     return lemma;
 
   constructSatProof();
@@ -377,15 +378,18 @@ Node ProofManager::getWeakestImplicantInUnsatCore(Node lemma) {
       for (lemmaIt = currentLemma.begin(); lemmaIt != currentLemma.end(); ++lemmaIt) {
         builder << *lemmaIt;
 
-        // Sanity check: make sure that each conjunct really appears in the original lemma
-        bool found = false;
-        for (unsigned i = 0; i < lemma.getNumChildren(); ++i) {
-          if (lemma[i] == *lemmaIt)
-            found = true;
-        }
+        // Unless in aggressive mode, check that each conjunct appears in the original
+        // lemma.
+        if (!options::aggressiveCoreMin()) {
+          bool found = false;
+          for (unsigned i = 0; i < lemma.getNumChildren(); ++i) {
+            if (lemma[i] == *lemmaIt)
+              found = true;
+          }
 
-        if (!found)
-          return lemma;
+          if (!found)
+            return lemma;
+        }
       }
     }
   }
