@@ -154,7 +154,7 @@ private:
   std::map< Node, std::hash_set<Node, NodeHashFunction> >                       d_tc_membership_db;
 
   /** Mapping between transitive closure relation TC(r) and its TC graph constructed based on the members of r*/
-  std::map< Node, std::map< Node, std::hash_set<Node, NodeHashFunction> > >     d_tc_graph;
+  std::map< Node, std::map< Node, std::hash_set<Node, NodeHashFunction> > >     d_tc_r_graph;
 
   /** Mapping between transitive closure TC(r)'s representative and TC(r) */
   std::map< Node, Node > d_tc_rep_term;
@@ -192,7 +192,7 @@ private:
   void applyJoinRule( Node, Node );
   void applyProductRule( Node, Node );
   void applyTCRule( Node, Node );
-  void constructTCGraph( Node, Node, Node );
+  std::map< Node, std::hash_set< Node, NodeHashFunction > > constructTCGraph( Node, Node, Node );
   void computeTuplesInRel( Node );
   void computeTpRel( Node );
   void finalizeTCInference();
