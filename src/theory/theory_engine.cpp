@@ -112,9 +112,17 @@ void TheoryEngine::EngineOutputChannel::registerLemmaRecipe(Node lemma, Node ori
   switch (lemma.getKind()) {
 
   case kind::AND:
-    Assert(!negated); // TODO
-    for (unsigned i = 0; i < lemma.getNumChildren(); ++i)
-      registerLemmaRecipe(lemma[i], originalLemma, false, theoryId);
+    if (!negated) {
+      for (unsigned i = 0; i < lemma.getNumChildren(); ++i)
+        registerLemmaRecipe(lemma[i], originalLemma, false, theoryId);
+    } else {
+      NodeBuilder<> builder(kind::OR);
+      for (unsigned i = 0; i < lemma.getNumChildren(); ++i)
+        builder << lemma[i].negate();
+
+      Node disjunction = (builder.getNumChildren() == 1) ? builder[0] : builder;
+      registerLemmaRecipe(disjunction, originalLemma, false, theoryId);
+    }
     break;
 
   case kind::IFF:
