@@ -328,7 +328,7 @@ class TheoryEngine {
     /**
      * A helper function for registering lemma recipes with the proof engine
      */
-    void registerLemmaRecipe(Node lemma, Node originalLemma, theory::TheoryId theoryId);
+    void registerLemmaRecipe(Node lemma, Node originalLemma, bool preprocess, theory::TheoryId theoryId);
   };/* class TheoryEngine::EngineOutputChannel */
 
   /**
