@@ -85,7 +85,8 @@ TESTS =	\
 	small-bug1-fixpoint-3.smt2 \
 	z3.620661-no-fv-trigger.smt2 \
 	bug_743.smt2 \
-	quaternion_ds1_symm_0428.fof.smt2
+	quaternion_ds1_symm_0428.fof.smt2 \
+	bug749-rounding.smt2
 
 
 # regression can be solved with --finite-model-find --fmf-inst-engine
