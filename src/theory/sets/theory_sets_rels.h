@@ -93,8 +93,11 @@ private:
   };
 
 private:
-  std::map<int, Node>      d_id_node; // mapping between integer id and tuple element rep
-  std::map<Node, int>      d_node_id; // mapping between tuple element rep and integer id
+  /** Mapping between integer id and tuple element rep */
+  std::map<int, Node>      d_id_node;
+
+  /** Mapping between tuple element rep and integer id*/
+  std::map<Node, int>      d_node_id;
 
   /** has eqc info */
   bool hasEqcInfo( TNode n ) { return d_eqc_info.find( n )!=d_eqc_info.end(); }
@@ -104,22 +107,24 @@ private:
   eq::EqualityEngine            *d_eqEngine;
   context::CDO<bool>            *d_conflict;
   TheorySets&                   d_sets_theory;
+
   /** True and false constant nodes */
   Node                          d_trueNode;
   Node                          d_falseNode;
-  // Facts and lemmas to be sent to EE
+
+  /** Facts and lemmas to be sent to EE */
   std::map< Node, Node >        d_pending_facts;
   std::map< Node, Node >        d_pending_split_facts;
   std::vector< Node >           d_lemma_cache;
   NodeList                      d_pending_merge;
+
   /** inferences: maintained to ensure ref count for internally introduced nodes */
   NodeList                      d_infer;
   NodeList                      d_infer_exp;
   NodeSet                       d_lemma;
   NodeSet                       d_shared_terms;
-  // tc terms that have been decomposed
-  NodeSet                       d_tc_saver;
 
+  /** Relations that have been applied JOIN, PRODUCT, TC composition rules */
   std::hash_set< Node, NodeHashFunction >       d_rel_nodes;
   std::map< Node, std::vector<Node> >           d_tuple_reps;
   std::map< Node, TupleTrie >                   d_membership_trie;
@@ -145,13 +150,15 @@ private:
   /** Mapping between TC(r) and one explanation when building TC graph*/
   std::map< Node, Node >                                                        d_membership_tc_exp_cache;
 
-  /** Mapping between transitive closure relation TC(r) and members directly asserted members */
+  /** Mapping between transitive closure relation TC(r) (is not necessary a representative) and members directly asserted members */
   std::map< Node, std::hash_set<Node, NodeHashFunction> >                       d_tc_membership_db;
 
   /** Mapping between transitive closure relation TC(r) and its TC graph constructed based on the members of r*/
-  std::map< Node, std::map< Node, std::hash_set<Node, NodeHashFunction> > >     d_membership_tc_cache;
+  std::map< Node, std::map< Node, std::hash_set<Node, NodeHashFunction> > >     d_tc_graph;
 
-  /** information necessary for equivalence classes */
+  /** Mapping between transitive closure TC(r)'s representative and TC(r) */
+  std::map< Node, Node > d_tc_rep_term;
+
 public:
   void eqNotifyNewClass(Node t);
   void eqNotifyPostMerge(Node t1, Node t2);
