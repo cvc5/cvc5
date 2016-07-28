@@ -957,20 +957,27 @@ bool QuantifiersRewriter::computeVariableElimLit( Node lit, bool pol, std::vecto
               Node veq_c;
               Node val;
               int ires = QuantArith::isolate( itm->first, msum, veq_c, val, lit.getKind() );
-              if( ires!=0 && veq_c.isNull() && isVariableElim( itm->first, val ) ){
+              if( ires!=0 && veq_c.isNull() ){
                 bool is_upper = pol!=( ires==1 );
                 Trace("var-elim-ineq-debug") << lit << " is a " << ( is_upper ? "upper" : "lower" ) << " bound for " << itm->first << std::endl;
                 Trace("var-elim-ineq-debug") << "  pol/ires = " << pol << " " << ires << std::endl;
                 num_bounds[itm->first][is_upper][lit] = pol;
+              }else{
+                Trace("var-elim-ineq-debug") << "...ineligible " << itm->first << " since it cannot be solved for (" << ires << ", " << veq_c << ")." << std::endl;
+                num_bounds[itm->first][true].clear();
+                num_bounds[itm->first][false].clear();
               }
             }
           }else{
-            //compute variables in itm->first, these are not eligible for elimination
-            std::vector< Node > bvs;
-            TermDb::getBoundVars( itm->first, bvs );
-            for( unsigned j=0; j<bvs.size(); j++ ){
-              num_bounds[bvs[j]][true].clear();
-              num_bounds[bvs[j]][false].clear();
+            if( lit.getKind()==GEQ || lit.getKind()==GT ){
+              //compute variables in itm->first, these are not eligible for elimination
+              std::vector< Node > bvs;
+              TermDb::getBoundVars( itm->first, bvs );
+              for( unsigned j=0; j<bvs.size(); j++ ){
+                Trace("var-elim-ineq-debug") << "...ineligible " << bvs[j] << " since it is contained in monomial." << std::endl;
+                num_bounds[bvs[j]][true].clear();
+                num_bounds[bvs[j]][false].clear();
+              }
             }
           }
         }
