@@ -41,6 +41,15 @@
 
 namespace CVC4 {
 
+std::string nodeSetToString(const std::set<Node>& nodes) {
+  std::ostringstream os;
+  std::set<Node>::const_iterator it;
+  for (it = nodes.begin(); it != nodes.end(); ++it) {
+    os << *it << " ";
+  }
+  return os.str();
+}
+
 std::string append(const std::string& str, uint64_t num) {
   std::ostringstream os;
   os << str << num;
@@ -315,17 +324,23 @@ void ProofManager::getLemmasInUnsatCore(theory::TheoryId theory, std::vector<Nod
   IdToSatClause::const_iterator it;
   std::set<Node> seen;
 
+  Debug("pf::lemmasUnsatCore") << "Dumping all lemmas in unsat core" << std::endl;
   for (it = used_lemmas.begin(); it != used_lemmas.end(); ++it) {
     std::set<Node> lemma = satClauseToNodeSet(it->second);
+    Debug("pf::lemmasUnsatCore") << nodeSetToString(lemma);
 
     // TODO: we should be able to drop the "haveProofRecipe" check.
     // however, there are some rewrite issues with the arith solver, resulting
     // in non-registered recipes. For now we assume no one is requesting arith lemmas.
     LemmaProofRecipe recipe;
-    if (!getCnfProof()->haveProofRecipe(lemma))
+    if (!getCnfProof()->haveProofRecipe(lemma)) {
+      Debug("pf::lemmasUnsatCore") << "\t[no recipe]" << std::endl;
       continue;
+    }
 
     recipe = getCnfProof()->getProofRecipe(lemma);
+    Debug("pf::lemmasUnsatCore") << "\t[owner = " << recipe.getTheory()
+                                 << ", original = " << recipe.getOriginalLemma() << "]" << std::endl;
     if (recipe.simpleLemma() && recipe.getTheory() == theory && seen.find(recipe.getOriginalLemma()) == seen.end()) {
       lemmas.push_back(recipe.getOriginalLemma());
       seen.insert(recipe.getOriginalLemma());

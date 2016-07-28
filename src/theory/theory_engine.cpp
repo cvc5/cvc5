@@ -106,19 +106,18 @@ void TheoryEngine::EngineOutputChannel::registerLemmaRecipe(Node lemma, Node ori
     lemma = d_engine->preprocess(lemma);
 
   bool negated = (lemma.getKind() == kind::NOT);
-  if (negated)
-    lemma = lemma[0];
+  Node nnLemma = negated ? lemma[0] : lemma;
 
-  switch (lemma.getKind()) {
+  switch (nnLemma.getKind()) {
 
   case kind::AND:
     if (!negated) {
-      for (unsigned i = 0; i < lemma.getNumChildren(); ++i)
-        registerLemmaRecipe(lemma[i], originalLemma, false, theoryId);
+      for (unsigned i = 0; i < nnLemma.getNumChildren(); ++i)
+        registerLemmaRecipe(nnLemma[i], originalLemma, false, theoryId);
     } else {
       NodeBuilder<> builder(kind::OR);
-      for (unsigned i = 0; i < lemma.getNumChildren(); ++i)
-        builder << lemma[i].negate();
+      for (unsigned i = 0; i < nnLemma.getNumChildren(); ++i)
+        builder << nnLemma[i].negate();
 
       Node disjunction = (builder.getNumChildren() == 1) ? builder[0] : builder;
       registerLemmaRecipe(disjunction, originalLemma, false, theoryId);
@@ -127,21 +126,21 @@ void TheoryEngine::EngineOutputChannel::registerLemmaRecipe(Node lemma, Node ori
 
   case kind::IFF:
     if (!negated) {
-      registerLemmaRecipe(nm->mkNode(kind::OR, lemma[0], lemma[1].negate()), originalLemma, false, theoryId);
-      registerLemmaRecipe(nm->mkNode(kind::OR, lemma[0].negate(), lemma[1]), originalLemma, false, theoryId);
+      registerLemmaRecipe(nm->mkNode(kind::OR, nnLemma[0], nnLemma[1].negate()), originalLemma, false, theoryId);
+      registerLemmaRecipe(nm->mkNode(kind::OR, nnLemma[0].negate(), nnLemma[1]), originalLemma, false, theoryId);
     } else {
-      registerLemmaRecipe(nm->mkNode(kind::OR, lemma[0], lemma[1]), originalLemma, false, theoryId);
-      registerLemmaRecipe(nm->mkNode(kind::OR, lemma[0].negate(), lemma[1].negate()), originalLemma, false, theoryId);
+      registerLemmaRecipe(nm->mkNode(kind::OR, nnLemma[0], nnLemma[1]), originalLemma, false, theoryId);
+      registerLemmaRecipe(nm->mkNode(kind::OR, nnLemma[0].negate(), nnLemma[1].negate()), originalLemma, false, theoryId);
     }
     break;
 
   case kind::ITE:
     if (!negated) {
-      registerLemmaRecipe(nm->mkNode(kind::OR, lemma[0].negate(), lemma[1]), originalLemma, false, theoryId);
-      registerLemmaRecipe(nm->mkNode(kind::OR, lemma[0], lemma[2]), originalLemma, false, theoryId);
+      registerLemmaRecipe(nm->mkNode(kind::OR, nnLemma[0].negate(), nnLemma[1]), originalLemma, false, theoryId);
+      registerLemmaRecipe(nm->mkNode(kind::OR, nnLemma[0], nnLemma[2]), originalLemma, false, theoryId);
     } else {
-      registerLemmaRecipe(nm->mkNode(kind::OR, lemma[0].negate(), lemma[1].negate()), originalLemma, false, theoryId);
-      registerLemmaRecipe(nm->mkNode(kind::OR, lemma[0], lemma[2].negate()), originalLemma, false, theoryId);
+      registerLemmaRecipe(nm->mkNode(kind::OR, nnLemma[0].negate(), nnLemma[1].negate()), originalLemma, false, theoryId);
+      registerLemmaRecipe(nm->mkNode(kind::OR, nnLemma[0], nnLemma[2].negate()), originalLemma, false, theoryId);
     }
     break;
 
