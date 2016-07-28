@@ -103,12 +103,40 @@ void TheoryEngine::EngineOutputChannel::registerLemmaRecipe(Node lemma, Node ori
 
   NodeManager* nm = NodeManager::currentNM();
 
-  if (lemma.getKind() == kind::AND) {
+  bool negated = (lemma.getKind() == kind::NOT);
+  if (negated)
+    lemma = lemma[0];
+
+  switch (lemma.getKind()) {
+
+  case kind::AND:
+    Assert(!negated); // TODO
     for (unsigned i = 0; i < lemma.getNumChildren(); ++i)
       registerLemmaRecipe(lemma[i], originalLemma, theoryId);
-  } else if (lemma.getKind() == kind::IFF) {
-    registerLemmaRecipe(nm->mkNode(kind::OR, lemma[0], lemma[1].negate()), originalLemma, theoryId);
-    registerLemmaRecipe(nm->mkNode(kind::OR, lemma[0].negate(), lemma[1]), originalLemma, theoryId);
+    break;
+
+  case kind::IFF:
+    if (!negated) {
+      registerLemmaRecipe(nm->mkNode(kind::OR, lemma[0], lemma[1].negate()), originalLemma, theoryId);
+      registerLemmaRecipe(nm->mkNode(kind::OR, lemma[0].negate(), lemma[1]), originalLemma, theoryId);
+    } else {
+      registerLemmaRecipe(nm->mkNode(kind::OR, lemma[0], lemma[1]), originalLemma, theoryId);
+      registerLemmaRecipe(nm->mkNode(kind::OR, lemma[0].negate(), lemma[1].negate()), originalLemma, theoryId);
+    }
+    break;
+
+  case kind::ITE:
+    if (!negated) {
+      registerLemmaRecipe(nm->mkNode(kind::OR, lemma[0].negate(), lemma[1]), originalLemma, theoryId);
+      registerLemmaRecipe(nm->mkNode(kind::OR, lemma[0], lemma[2]), originalLemma, theoryId);
+    } else {
+      registerLemmaRecipe(nm->mkNode(kind::OR, lemma[0].negate(), lemma[1].negate()), originalLemma, theoryId);
+      registerLemmaRecipe(nm->mkNode(kind::OR, lemma[0], lemma[2].negate()), originalLemma, theoryId);
+    }
+    break;
+
+  default:
+    break;
   }
 
   // Theory lemmas have one step that proves the empty clause
