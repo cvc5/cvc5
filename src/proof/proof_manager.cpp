@@ -380,24 +380,23 @@ Node ProofManager::getWeakestImplicantInUnsatCore(Node lemma) {
   IdToSatClause::const_iterator it;
   std::set<Node>::iterator lemmaIt;
 
-  for (it = used_lemmas.begin(); it != used_lemmas.end(); ++it) {
-    std::set<Node> currentLemma = satClauseToNodeSet(it->second);
+  if (!options::aggressiveCoreMin()) {
+    for (it = used_lemmas.begin(); it != used_lemmas.end(); ++it) {
+      std::set<Node> currentLemma = satClauseToNodeSet(it->second);
 
-    // TODO: we should be able to drop the "haveProofRecipe" check.
-    // however, there are some rewrite issues with the arith solver, resulting
-    // in non-registered recipes. For now we assume no one is requesting arith lemmas.
-    LemmaProofRecipe recipe;
-    if (!getCnfProof()->haveProofRecipe(currentLemma))
-      continue;
+      // TODO: we should be able to drop the "haveProofRecipe" check.
+      // however, there are some rewrite issues with the arith solver, resulting
+      // in non-registered recipes. For now we assume no one is requesting arith lemmas.
+      LemmaProofRecipe recipe;
+      if (!getCnfProof()->haveProofRecipe(currentLemma))
+        continue;
 
-    recipe = getCnfProof()->getProofRecipe(currentLemma);
-    if (recipe.getOriginalLemma() == lemma) {
-      for (lemmaIt = currentLemma.begin(); lemmaIt != currentLemma.end(); ++lemmaIt) {
-        builder << *lemmaIt;
+      recipe = getCnfProof()->getProofRecipe(currentLemma);
+      if (recipe.getOriginalLemma() == lemma) {
+        for (lemmaIt = currentLemma.begin(); lemmaIt != currentLemma.end(); ++lemmaIt) {
+          builder << *lemmaIt;
 
-        // Unless in aggressive mode, check that each conjunct appears in the original
-        // lemma.
-        if (!options::aggressiveCoreMin()) {
+          // Check that each conjunct appears in the original lemma.
           bool found = false;
           for (unsigned i = 0; i < lemma.getNumChildren(); ++i) {
             if (lemma[i] == *lemmaIt)
@@ -407,6 +406,29 @@ Node ProofManager::getWeakestImplicantInUnsatCore(Node lemma) {
           if (!found)
             return lemma;
         }
+      }
+    }
+  } else {
+    // Aggressive mode
+    for (it = used_lemmas.begin(); it != used_lemmas.end(); ++it) {
+      std::set<Node> currentLemma = satClauseToNodeSet(it->second);
+
+      // TODO: we should be able to drop the "haveProofRecipe" check.
+      // however, there are some rewrite issues with the arith solver, resulting
+      // in non-registered recipes. For now we assume no one is requesting arith lemmas.
+      LemmaProofRecipe recipe;
+      if (!getCnfProof()->haveProofRecipe(currentLemma))
+        continue;
+
+      recipe = getCnfProof()->getProofRecipe(currentLemma);
+      if (recipe.getOriginalLemma() == lemma) {
+        NodeBuilder<> disjunction(kind::OR);
+        for (lemmaIt = currentLemma.begin(); lemmaIt != currentLemma.end(); ++lemmaIt) {
+          disjunction << *lemmaIt;
+        }
+
+        Node conjunct = (disjunction.getNumChildren() == 1) ? disjunction[0] : disjunction;
+        builder << conjunct;
       }
     }
   }
