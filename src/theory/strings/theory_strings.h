@@ -208,6 +208,7 @@ private:
   std::map< Node, std::vector< int > > d_flat_form_index;
 
   void debugPrintFlatForms( const char * tc );
+  void debugPrintNormalForms( const char * tc );
   /////////////////////////////////////////////////////////////////////////////
   // MODEL GENERATION
   /////////////////////////////////////////////////////////////////////////////
@@ -284,6 +285,33 @@ private:
   void collectExtendedFuncTerms( Node n, std::map< Node, bool >& visited );
   void addExtendedFuncTerm( Node n );
 private:
+  class InferInfo {
+  public:
+    unsigned d_i;
+    unsigned d_j;
+    bool d_rev;
+    std::vector< Node > d_ant;
+    std::vector< Node > d_antn;
+    std::vector< Node > d_non_emp_vars;
+    Node d_conc;
+    unsigned d_id;
+    std::map< Node, bool > d_pending_phase;
+    const char * getId() { 
+      switch( d_id ){
+      case 1:return "S-Split(CST-P)-prop";break;
+      case 2:return "S-Split(VAR)-prop";break;
+      case 3:return "Len-Split(Len)";break;
+      case 4:return "Len-Split(Emp)";break;
+      case 5:return "S-Split(CST-P)-binary";break;
+      case 6:return "S-Split(CST-P)";break;
+      case 7:return "S-Split(VAR)";break;
+      case 8:return "F-Loop";break;
+      default:break;
+      }
+      return "";
+    }
+    bool sendAsLemma();
+  };
   //initial check
   void checkInit();
   void checkConstantEquivalenceClasses( TermIndex* ti, std::vector< Node >& vecc );
@@ -303,22 +331,17 @@ private:
   void normalizeEquivalenceClass( Node n );
   void getNormalForms( Node &eqc, std::vector< std::vector< Node > > &normal_forms, std::vector< Node > &normal_form_src,
                        std::vector< std::vector< Node > > &normal_forms_exp, std::vector< std::map< Node, std::map< bool, int > > >& normal_forms_exp_depend);
-  bool detectLoop(std::vector< std::vector< Node > > &normal_forms,
-        int i, int j, int index, int &loop_in_i, int &loop_in_j);
-  bool processLoop(std::vector< Node > &antec,
-        std::vector< std::vector< Node > > &normal_forms,
-        std::vector< Node > &normal_form_src,
-        int i, int j, int loop_n_index, int other_n_index,
-        int loop_index, int index);
-  bool processNEqc( std::vector< std::vector< Node > > &normal_forms, std::vector< Node > &normal_form_src,
-                    std::vector< std::vector< Node > > &normal_forms_exp, std::vector< std::map< Node, std::map< bool, int > > >& normal_forms_exp_depend,
-                    int effort );
-  bool processReverseNEq( std::vector< std::vector< Node > > &normal_forms, std::vector< Node > &normal_form_src, 
+  bool detectLoop(std::vector< std::vector< Node > > &normal_forms, int i, int j, int index, int &loop_in_i, int &loop_in_j);
+  bool processLoop( std::vector< std::vector< Node > > &normal_forms, std::vector< Node > &normal_form_src,
+                    int i, int j, int loop_n_index, int other_n_index,int loop_index, int index, InferInfo& info );
+  void processNEqc( std::vector< std::vector< Node > > &normal_forms, std::vector< Node > &normal_form_src,
+                    std::vector< std::vector< Node > > &normal_forms_exp, std::vector< std::map< Node, std::map< bool, int > > >& normal_forms_exp_depend );
+  void processReverseNEq( std::vector< std::vector< Node > > &normal_forms, std::vector< Node > &normal_form_src, 
                           std::vector< std::vector< Node > > &normal_forms_exp, std::vector< std::map< Node, std::map< bool, int > > >& normal_forms_exp_depend, 
-                          unsigned i, unsigned j, unsigned& index, unsigned rproc );
-  bool processSimpleNEq( std::vector< std::vector< Node > > &normal_forms, std::vector< Node > &normal_form_src, 
+                          unsigned i, unsigned j, unsigned& index, unsigned rproc, std::vector< InferInfo >& pinfer );
+  void processSimpleNEq( std::vector< std::vector< Node > > &normal_forms, std::vector< Node > &normal_form_src, 
                          std::vector< std::vector< Node > > &normal_forms_exp, std::vector< std::map< Node, std::map< bool, int > > >& normal_forms_exp_depend, 
-                         unsigned i, unsigned j, unsigned& index, bool isRev, unsigned rproc );
+                         unsigned i, unsigned j, unsigned& index, bool isRev, unsigned rproc, std::vector< InferInfo >& pinfer );
   bool processDeq( Node n1, Node n2 );
   int processReverseDeq( std::vector< Node >& nfi, std::vector< Node >& nfj, Node ni, Node nj );
   int processSimpleDeq( std::vector< Node >& nfi, std::vector< Node >& nfj, Node ni, Node nj, unsigned& index, bool isRev );
@@ -415,8 +438,10 @@ protected:
     sk_id_deq_z,
   };
   std::map< Node, std::map< Node, std::map< int, Node > > > d_skolem_cache;
+  NodeSet d_skolem_cache_ne_reg;
   Node mkSkolemCached( Node a, Node b, int id, const char * c, int isLenSplit = 0 );
   inline Node mkSkolemS(const char * c, int isLenSplit = 0);
+  void registerNonEmptySkolem( Node sk );
   //inline Node mkSkolemI(const char * c);
   /** mkExplain **/
   Node mkExplain( std::vector< Node >& a );
