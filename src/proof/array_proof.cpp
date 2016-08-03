@@ -1324,6 +1324,7 @@ void LFSCArrayProof::printTermDeclarations(std::ostream& os, std::ostream& paren
       printSort(array_type.getConstituentType(), os);
 
       os << "))\n";
+      paren << ")";
     } else {
       Assert(term.isVariable());
       if (ProofManager::getSkolemizationManager()->isSkolem(*it)) {
@@ -1333,10 +1334,9 @@ void LFSCArrayProof::printTermDeclarations(std::ostream& os, std::ostream& paren
         os << "(% " << ProofManager::sanitize(term) << " ";
         os << "(term ";
         os << term.getType() << ")\n";
+        paren << ")";
       }
     }
-
-    paren << ")";
   }
 
   Debug("pf::array") << "Declaring terms done!" << std::endl;

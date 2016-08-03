@@ -596,6 +596,7 @@ void LFSCProof::toStream(std::ostream& out) {
   smt::SmtScope scope(d_smtEngine);
   std::ostringstream paren;
   out << "(check\n";
+  paren << ")";
   out << " ;; Declarations\n";
 
   // declare the theory atoms
@@ -618,6 +619,7 @@ void LFSCProof::toStream(std::ostream& out) {
   Debug("pf::pm") << std::endl << "LFSCProof::toStream: print assertions DONE" << std::endl;
 
   out << "(: (holds cln)\n\n";
+  paren << ")";
 
   // Have the theory proofs print deferred declarations, e.g. for skolem variables.
   out << " ;; Printing deferred declarations \n\n";
@@ -659,20 +661,15 @@ void LFSCProof::toStream(std::ostream& out) {
   Debug("pf::pm") << "Proof manager: printing theory lemmas DONE!" << std::endl;
 
   if (options::bitblastMode() == theory::bv::BITBLAST_MODE_EAGER && ProofManager::getBitVectorProof()) {
-    // print actual resolution proof
-    // d_satProof->printResolutions(out, paren);
     ProofManager::getBitVectorProof()->getSatProof()->printResolutionEmptyClause(out, paren);
-    paren <<")))\n;;";
-    out << paren.str();
-    out << "\n";
   } else {
     // print actual resolution proof
     d_satProof->printResolutions(out, paren);
     d_satProof->printResolutionEmptyClause(out, paren);
-    paren <<")))\n;;";
-    out << paren.str();
-    out << "\n";
   }
+
+  out << paren.str();
+  out << "\n;;\n";
 }
 
 void LFSCProof::printPreprocessedAssertions(const NodeSet& assertions,

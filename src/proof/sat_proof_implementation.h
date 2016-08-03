@@ -1093,6 +1093,7 @@ template <class Solver>
 void LFSCSatProof<Solver>::printResolution(ClauseId id, std::ostream& out,
                                            std::ostream& paren) {
   out << "(satlem_simplify _ _ _ ";
+  paren << ")";
 
   const ResChain<Solver>& res = this->getResolutionChain(id);
   const typename ResChain<Solver>::ResSteps& steps = res.getSteps();
@@ -1118,7 +1119,7 @@ void LFSCSatProof<Solver>::printResolution(ClauseId id, std::ostream& out,
   }
 
   out << "(\\ " << this->clauseName(id) << "\n";   // bind to lemma name
-  paren << "))";                            // closing parethesis for lemma binding and satlem
+  paren << ")";
 }
 
 /// LFSCSatProof class
