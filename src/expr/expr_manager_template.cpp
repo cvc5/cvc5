@@ -75,7 +75,7 @@ ExprManager::ExprManager() :
   for (unsigned i = 0; i < kind::LAST_KIND; ++ i) {
     d_exprStatistics[i] = NULL;
   }
-  for (unsigned i = 0; i < LAST_TYPE; ++ i) {
+  for (unsigned i = 0; i <= LAST_TYPE; ++ i) {
     d_exprStatisticsVars[i] = NULL;
   }
 #endif
@@ -84,7 +84,7 @@ ExprManager::ExprManager() :
 ExprManager::ExprManager(const Options& options) :
   d_nodeManager(new NodeManager(this, options)) {
 #ifdef CVC4_STATISTICS_ON
-  for (unsigned i = 0; i < LAST_TYPE; ++ i) {
+  for (unsigned i = 0; i <= LAST_TYPE; ++ i) {
     d_exprStatisticsVars[i] = NULL;
   }
   for (unsigned i = 0; i < kind::LAST_KIND; ++ i) {
@@ -106,7 +106,7 @@ ExprManager::~ExprManager() throw() {
         d_exprStatistics[i] = NULL;
       }
     }
-    for (unsigned i = 0; i < LAST_TYPE; ++ i) {
+    for (unsigned i = 0; i <= LAST_TYPE; ++ i) {
       if (d_exprStatisticsVars[i] != NULL) {
         d_nodeManager->getStatisticsRegistry()->unregisterStat(d_exprStatisticsVars[i]);
         delete d_exprStatisticsVars[i];
