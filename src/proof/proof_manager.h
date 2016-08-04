@@ -21,13 +21,11 @@
 
 #include <iosfwd>
 #include <map>
-#include "proof/proof.h"
-#include "proof/proof_utils.h"
-#include "proof/skolemization_manager.h"
-#include "util/proof.h"
 #include "expr/node.h"
 #include "proof/clause_id.h"
 #include "proof/proof.h"
+#include "proof/proof_utils.h"
+#include "proof/skolemization_manager.h"
 #include "theory/logic_info.h"
 #include "theory/substitutions.h"
 #include "util/proof.h"

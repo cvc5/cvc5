@@ -205,7 +205,7 @@ public:
   {}
   virtual ~TheoryProof() {};
   /**
-   * Print a term belonging some theory, not neccessarily this one.
+   * Print a term belonging some theory, not necessarily this one.
    *
    * @param term expresion representing term
    * @param os output stream
@@ -216,7 +216,7 @@ public:
   /**
    * Print a term belonging to THIS theory.
    *
-   * @param term expresion representing term
+   * @param term expression representing term
    * @param os output stream
    */
   virtual void printOwnedTerm(Expr term, std::ostream& os, const ProofLetMap& map) = 0;
