@@ -146,9 +146,7 @@
 	(! f formula
 	   (th_holds (iff f f))))
 
-
 ;; contradiction
-
 (declare contra
   (! f formula
   (! r1 (th_holds f)
@@ -315,6 +313,99 @@
   (! c formula
   (! u2 (th_holds (not (ifte a b c)))
     (th_holds (or (not b) (not c))))))))
+
+(declare t_eq_n_f (th_holds (iff true (not false))))
+(declare n_t_eq_f (th_holds (iff (not true) false)))
+
+;; XXX: check whether x and y are constant
+;; (program constants_are_disequal ((s sort) (x (term s)) (y (term s))) formula
+;;   (match x
+;;       (bvn (fail formula))
+;;       ((bvc bx x')
+;;         (match y
+;;           (bvn (fail formula))
+;;           ((bvc by y') (match bx
+;;                              (b0 (match by (b0 (constants_are_disequal x' y')) (b1 (true))))
+;;                              (b1 (match by (b0 (true)) (b1 (constants_are_disequal x' y'))))
+;;           ))
+;;       ))
+;; ))
+;; 
+;; (declare disequal_constants
+;;   (! s sort
+;;   (! x (term s)
+;;   (! y (term s)
+;;   (! c (^ (constants_are_disequal x y) true)
+;;     (th_holds (not (= _ x y))))))))
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;
+; Rewrite proofs
+;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+; Apply a unary operator to the original and the rewritten formula
+(declare symm_formula_op1
+  (! op formula_op1
+  (! x formula
+  (! y formula
+  (! u (th_holds (iff x y))
+    (th_holds (iff (op x) (op y))))))))
+
+; Apply a binary operator to the original and the rewritten formulas
+(declare symm_formula_op2
+  (! op formula_op2
+  (! x formula
+  (! y formula
+  (! z formula
+  (! w formula
+  (! u1 (th_holds (iff x z))
+  (! u2 (th_holds (iff y w))
+    (th_holds (iff (op x y) (op z w)))))))))))
+
+; Apply a ternary operator to the original and the rewritten formulas
+(declare symm_formula_op3
+  (! op formula_op3
+  (! x formula
+  (! y formula
+  (! z formula
+  (! w formula
+  (! a formula
+  (! b formula
+  (! u1 (th_holds (iff x w))
+  (! u2 (th_holds (iff y a))
+  (! u2 (th_holds (iff z b))
+    (th_holds (iff (op x y z) (op w a b))))))))))))))
+
+(declare iff_intro
+  (! s sort
+  (! x (term s)
+  (! y (term s)
+  (! z (term s)
+  (! w (term s)
+  (! lhs (th_holds (= _ x y))
+  (! rhs (th_holds (= _ z w))
+    (th_holds (iff (= _ x z) (= _ y w)))))))))))
+
+; (not true) --> false
+(declare not_t
+  (! o formula
+  (! u (th_holds (iff o (not true)))
+    (th_holds (iff o false)))))))
+
+; (=> true false) --> false
+(declare t_impl_f
+  (! o formula
+  (! u (th_holds (iff o (impl true false)))
+    (th_holds (iff o false)))))))
+
+; (= y y) --> true
+(declare iff_true
+  (! s sort
+  (! x formula
+  (! y (term s)
+  (! u (th_holds (iff x (= _ y y)))
+    (th_holds (iff x true)))))))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;

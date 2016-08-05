@@ -15,15 +15,23 @@
  ** \todo document this file
  **/
 
-#include <algorithm>
 #include "theory/booleans/theory_bool_rewriter.h"
+
+#include <algorithm>
+
+#include "proof/rewrite_proof_dispatcher.h"
 
 namespace CVC4 {
 namespace theory {
 namespace booleans {
 
 RewriteResponse TheoryBoolRewriter::postRewrite(TNode node) {
-  return preRewrite(node);
+  return preRewriteEx<false>(node, NULL);
+}
+
+template<bool Proof>
+RewriteResponse TheoryBoolRewriter::postRewriteEx(TNode node, RewriteProof* proof) {
+  return preRewriteEx<Proof>(node, proof);
 }
 
 /**
@@ -126,14 +134,25 @@ inline Node makeNegation(TNode n){
   }
 }
 
-RewriteResponse TheoryBoolRewriter::preRewrite(TNode n) {
+RewriteResponse TheoryBoolRewriter::preRewrite(TNode node) {
+  return preRewriteEx<false>(node, NULL);
+}
+
+template<bool Proof>
+RewriteResponse TheoryBoolRewriter::preRewriteEx(TNode n, RewriteProof* proof) {
+  Assert(!Proof || proof != NULL);
   NodeManager* nodeManager = NodeManager::currentNM();
   Node tt = nodeManager->mkConst(true);
   Node ff = nodeManager->mkConst(false);
 
   switch(n.getKind()) {
   case kind::NOT: {
-    if (n[0] == tt) return RewriteResponse(REWRITE_DONE, ff);
+    if (n[0] == tt) {
+      if (Proof) {
+        proof->registerRewrite(NOT_TRUE);
+      }
+      return RewriteResponse(REWRITE_DONE, ff);
+    }
     if (n[0] == ff) return RewriteResponse(REWRITE_DONE, tt);
     if (n[0].getKind() == kind::NOT) return RewriteResponse(REWRITE_AGAIN, n[0][0]);
     break;
@@ -168,7 +187,12 @@ RewriteResponse TheoryBoolRewriter::preRewrite(TNode n) {
   }
   case kind::IMPLIES: {
     if (n[0] == ff || n[1] == tt) return RewriteResponse(REWRITE_DONE, tt);
-    if (n[0] == tt && n[0] == ff) return RewriteResponse(REWRITE_DONE, ff);
+    if (n[0] == tt && n[1] == ff) {
+      if (Proof) {
+        proof->registerRewrite(TRUE_IMPLIES_FALSE);
+      }
+      return RewriteResponse(REWRITE_DONE, ff);
+    }
     if (n[0] == tt) return RewriteResponse(REWRITE_AGAIN, n[1]);
     if (n[1] == ff) return RewriteResponse(REWRITE_AGAIN, makeNegation(n[0]));
     break;
@@ -367,6 +391,48 @@ RewriteResponse TheoryBoolRewriter::preRewrite(TNode n) {
   }
   return RewriteResponse(REWRITE_DONE, n);
 }
+
+void TheoryBoolRewriter::printRewriteProof(bool use_cache,
+                                           TheoryProofEngine* tp,
+                                           const Rewrite* rewrite,
+                                           std::ostream& os,
+                                           ProofLetMap& globalLetMap) {
+  if (rewrite->d_tag == ORIGINAL_OP) {
+    // XXX: we only need one of those options for each arity
+    switch (rewrite->d_original.getKind()) {
+      case kind::NOT:
+        os << "(symm_formula_op1 not _ _ ";
+        callPrintRewriteProof(use_cache, tp, rewrite->d_children[0], os, globalLetMap);
+        os << ")";
+        break;
+      case kind::IMPLIES:
+        os << "(symm_formula_op2 impl _ _ _ _ ";
+        callPrintRewriteProof(use_cache, tp, rewrite->d_children[0], os, globalLetMap);
+        os << " ";
+        callPrintRewriteProof(use_cache, tp, rewrite->d_children[1], os, globalLetMap);
+        os << ")";
+        break;
+      default:
+        Unreachable();
+    }
+  } else if (rewrite->d_tag == NOT_TRUE) {
+    os << "(not_t _ ";
+    callPrintRewriteProof(use_cache, tp, rewrite->d_children[0], os, globalLetMap);
+    os << ")";
+  } else if (rewrite->d_tag == TRUE_IMPLIES_FALSE) {
+    os << "(t_impl_f _ ";
+    callPrintRewriteProof(use_cache, tp, rewrite->d_children[0], os, globalLetMap);
+    os << ")";
+  } else {
+    std::cout << "ERROR" << std::endl;
+    Unreachable();
+  }
+}
+
+template RewriteResponse TheoryBoolRewriter::preRewriteEx<true>(TNode node, RewriteProof* proof);
+template RewriteResponse TheoryBoolRewriter::preRewriteEx<false>(TNode node, RewriteProof* proof);
+template RewriteResponse TheoryBoolRewriter::postRewriteEx<true>(TNode node, RewriteProof* proof);
+template RewriteResponse TheoryBoolRewriter::postRewriteEx<false>(TNode node, RewriteProof* proof);
 
 }/* CVC4::theory::booleans namespace */
 }/* CVC4::theory namespace */

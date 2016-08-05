@@ -48,7 +48,10 @@ TESTS =	\
 	constarr.cvc \
 	constarr2.cvc \
 	constarr3.cvc \
-	parsing_ringer.cvc
+	parsing_ringer.cvc \
+	simple_rewrite_proof.smt2 \
+	simple_rewrite_proof2.smt2 \
+	rewrite_proof_cache.smt2
 
 EXTRA_DIST = $(TESTS)
 

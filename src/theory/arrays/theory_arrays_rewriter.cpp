@@ -17,10 +17,79 @@
 
 #include "expr/attribute.h"
 #include "theory/arrays/theory_arrays_rewriter.h"
+#include "proof/rewrite_proof_dispatcher.h"
 
 namespace CVC4 {
 namespace theory {
 namespace arrays {
+
+void TheoryArraysRewriter::printRewriteProof(bool use_cache,
+                                             TheoryProofEngine* tp,
+                                             const Rewrite* rewrite,
+                                             std::ostream& os,
+                                             ProofLetMap& globalLetMap) {
+  if (rewrite->d_tag == ORIGINAL_OP && rewrite->d_children.size() == 0) {
+    switch (rewrite->d_original.getKind()) {
+      case kind::EQUAL:
+        os << "(iff_symm ";
+        tp->printTheoryTerm(rewrite->d_original.toExpr(), os, globalLetMap);
+        os << ")";
+        break;
+      default:
+        os << "(refl _ ";
+        tp->printTheoryTerm(rewrite->d_original.toExpr(), os, globalLetMap);
+        os << ")";
+        break;
+    }
+  } else if (rewrite->d_tag == EQ) {
+    os << "(iff_true _ _ _ ";
+    callPrintRewriteProof(use_cache, tp, rewrite->d_children[0], os, globalLetMap);
+    os << ")";
+  } else if (rewrite->d_tag == ORIGINAL_OP) {
+    switch (rewrite->d_original.getKind()) {
+      case kind::EQUAL:
+        os << "(iff_intro _ _ _ _ _ ";
+        callPrintRewriteProof(use_cache, tp, rewrite->d_children[0], os, globalLetMap);
+        os << " ";
+        callPrintRewriteProof(use_cache, tp, rewrite->d_children[1], os, globalLetMap);
+        os << ")";
+        break;
+      case kind::SELECT:
+        os << "(cong _ _ _ _ _ _ (cong _ _ _ _ _ _ ";
+        os << "(refl _ (read ";
+        tp->printSort(ArrayType(rewrite->d_original.toExpr()[0].getType()).getIndexType(), os);
+        os << " ";
+        tp->printSort(ArrayType(rewrite->d_original.toExpr()[0].getType()).getConstituentType(), os);
+        os << ")) ";
+        callPrintRewriteProof(use_cache, tp, rewrite->d_children[0], os, globalLetMap);
+        os << ") ";
+        callPrintRewriteProof(use_cache, tp, rewrite->d_children[1], os, globalLetMap);
+        os << ")";
+        break;
+      default:
+        std::cout << "ERROR!" << rewrite->d_original.getKind() << std::endl;
+        callPrintRewriteProof(use_cache, tp, rewrite->d_children[0], os, globalLetMap);
+        Unreachable();
+    }
+  } else if (rewrite->d_tag == WOR) {
+    os << "(wor _ _ _ _ _ ";
+    callPrintRewriteProof(use_cache, tp, rewrite->d_children[0], os, globalLetMap);
+    os << ")";
+  } else if (rewrite->d_tag == WOW) {
+    os << "(wow _ _ _ _ _ _ _ _ _ _ ";
+    callPrintRewriteProof(use_cache, tp, rewrite->d_children[0], os, globalLetMap);
+    os << " ";
+    callPrintRewriteProof(use_cache, tp, rewrite->d_children[1], os, globalLetMap);
+    os << " ";
+    callPrintRewriteProof(use_cache, tp, rewrite->d_children[2], os, globalLetMap);
+    os << " ";
+    callPrintRewriteProof(use_cache, tp, rewrite->d_children[3], os, globalLetMap);
+    os << ")";
+  } else {
+    std::cout << "ERROR" << rewrite->d_tag << std::endl;
+    Unreachable();
+  }
+}
 
 namespace attr {
   struct ArrayConstantMostFrequentValueTag { };
