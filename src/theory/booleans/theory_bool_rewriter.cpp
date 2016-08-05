@@ -15,8 +15,11 @@
  ** \todo document this file
  **/
 
-#include <algorithm>
 #include "theory/booleans/theory_bool_rewriter.h"
+
+#include <algorithm>
+
+#include "proof/rewrite_proof_dispatcher.h"
 
 namespace CVC4 {
 namespace theory {
@@ -133,7 +136,9 @@ RewriteResponse TheoryBoolRewriter::preRewrite(TNode n) {
 
   switch(n.getKind()) {
   case kind::NOT: {
-    if (n[0] == tt) return RewriteResponse(REWRITE_DONE, ff);
+    if (n[0] == tt) {
+      return RewriteResponse(REWRITE_DONE, ff, NOT_TRUE, std::vector<Rewrite>());
+    }
     if (n[0] == ff) return RewriteResponse(REWRITE_DONE, tt);
     if (n[0].getKind() == kind::NOT) return RewriteResponse(REWRITE_AGAIN, n[0][0]);
     break;
@@ -366,6 +371,27 @@ RewriteResponse TheoryBoolRewriter::preRewrite(TNode n) {
     return RewriteResponse(REWRITE_DONE, n);
   }
   return RewriteResponse(REWRITE_DONE, n);
+}
+
+void TheoryBoolRewriter::printRewriteProof(TheoryProofEngine* tp, const Rewrite& rewrite, std::ostream& os, ProofLetMap& globalLetMap) {
+  if (rewrite.d_tag == ORIGINAL_OP) {
+    switch (rewrite.d_original.getKind()) {
+      case kind::NOT:
+        os << "(symm_formula_op1 not _ _ ";
+        callPrintRewriteProof(tp, rewrite.d_children[0], os, globalLetMap);
+        os << ")";
+        break;
+      default:
+        Unreachable();
+    }
+  } else if (rewrite.d_tag == NOT_TRUE) {
+    os << "(iff_trans _ _ _ ";
+    callPrintRewriteProof(tp, rewrite.d_children[0], os, globalLetMap);
+    os << " n_t_eq_f)";
+  } else {
+    std::cout << "ERROR" << std::endl;
+    Unreachable();
+  }
 }
 
 }/* CVC4::theory::booleans namespace */

@@ -26,8 +26,12 @@ libcvc4compat_la_LDFLAGS = \
 
 libcvc4compat_la_LIBADD = \
 	@builddir@/../libcvc4.la \
-	@builddir@/../parser/libcvc4parser.la \
+	@builddir@/../parser/libcvc4parser.la
+
+if CVC4_NEEDS_REPLACEMENT_FUNCTIONS
+libcvc4compat_la_LIBADD += \
 	@builddir@/../lib/libreplacements.la
+endif
 
 libcvc4compat_la_SOURCES = \
 	cvc3_compat.h \

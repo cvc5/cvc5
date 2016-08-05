@@ -40,7 +40,14 @@ class TheoryArraysRewriter {
   static Node normalizeConstant(TNode node) {
     return normalizeConstant(node, node[1].getType().getCardinality());
   }
+
 public:
+  enum ArraysRewrites {
+    WOR = LAST_SHARED,
+    WOW,
+    EQ
+  };
+
   //this function is called by printers when using the option "--model-u-dt-enum"
   static Node normalizeConstant(TNode node, Cardinality indexCard) {
     TNode store = node[0];
@@ -228,7 +235,12 @@ public:
 
 public:
 
-  static RewriteResponse postRewrite(TNode node) {
+  static inline RewriteResponse postRewrite(TNode node) {
+    return postRewriteEx<false>(node, NULL);
+  }
+
+  template<bool Proof>
+  static RewriteResponse postRewriteEx(TNode node, const Rewrite* rew) {
     Trace("arrays-postrewrite") << "Arrays::postRewrite start " << node << std::endl;
     switch (node.getKind()) {
       case kind::SELECT: {
@@ -281,7 +293,14 @@ public:
             value[0] == store &&
             value[1] == node[1]) {
           Trace("arrays-postrewrite") << "Arrays::postRewrite returning " << store << std::endl;
-          return RewriteResponse(REWRITE_DONE, store);
+          if (Proof) {
+            Assert(rew);
+            std::vector<Rewrite> rewrites;
+            rewrites.push_back(*rew);
+            return RewriteResponse(REWRITE_DONE, store, WOR, rewrites);
+          } else {
+            return RewriteResponse(REWRITE_DONE, store);
+          }
         }
         TNode index = node[1];
         if (store.isConst() && index.isConst() && value.isConst()) {
@@ -380,7 +399,8 @@ public:
       case kind::IFF: {
         if(node[0] == node[1]) {
           Trace("arrays-postrewrite") << "Arrays::postRewrite returning true" << std::endl;
-          return RewriteResponse(REWRITE_DONE, NodeManager::currentNM()->mkConst(true));
+          std::vector<Rewrite> rewrites;
+          return RewriteResponse(REWRITE_DONE, NodeManager::currentNM()->mkConst(true), EQ, rewrites);
         }
         else if (node[0].isConst() && node[1].isConst()) {
           Trace("arrays-postrewrite") << "Arrays::postRewrite returning false" << std::endl;
@@ -401,6 +421,11 @@ public:
   }
 
   static inline RewriteResponse preRewrite(TNode node) {
+    return preRewriteEx<false>(node);
+  }
+
+  template<bool Proof>
+  static inline RewriteResponse preRewriteEx(TNode node) {
     Trace("arrays-prerewrite") << "Arrays::preRewrite start " << node << std::endl;
     switch (node.getKind()) {
       case kind::SELECT: {
@@ -453,7 +478,8 @@ public:
             value[0] == store &&
             value[1] == node[1]) {
           Trace("arrays-prerewrite") << "Arrays::preRewrite returning " << store << std::endl;
-          return RewriteResponse(REWRITE_AGAIN, store);
+          std::vector<Rewrite> rewrites;
+          return RewriteResponse(REWRITE_AGAIN, store, WOR, rewrites);
         }
         if (store.getKind() == kind::STORE) {
           // store(store(a,i,v),j,w)
@@ -477,7 +503,9 @@ public:
             // store(store(a,i,v),i,w) = store(a,i,w)
             Node newNode = nm->mkNode(kind::STORE, store[0], index, value);
             Trace("arrays-prerewrite") << "Arrays::preRewrite returning " << newNode << std::endl;
-            return RewriteResponse(REWRITE_DONE, newNode);
+            std::vector<Rewrite> rewrites;
+            //rewrites.push_back(Rewrite(ORIGINAL_OP, node[0][2]));
+            return RewriteResponse(REWRITE_DONE, newNode, WOW, rewrites);
           }
         }
         break;
@@ -486,7 +514,9 @@ public:
       case kind::IFF: {
         if(node[0] == node[1]) {
           Trace("arrays-prerewrite") << "Arrays::preRewrite returning true" << std::endl;
-          return RewriteResponse(REWRITE_DONE, NodeManager::currentNM()->mkConst(true));
+          //return RewriteResponse(REWRITE_DONE, NodeManager::currentNM()->mkConst(true));
+          std::vector<Rewrite> rewrites;
+          return RewriteResponse(REWRITE_DONE, NodeManager::currentNM()->mkConst(true), EQ, rewrites);
         }
         break;
       }
@@ -497,6 +527,11 @@ public:
     Trace("arrays-prerewrite") << "Arrays::preRewrite returning " << node << std::endl;
     return RewriteResponse(REWRITE_DONE, node);
   }
+
+  static void printRewriteProof(TheoryProofEngine* tp,
+                                const Rewrite& rewrite,
+                                std::ostream& os,
+                                ProofLetMap& globalLetMap);
 
   static inline void init() {}
   static inline void shutdown() {}

@@ -27,15 +27,24 @@ namespace theory {
 namespace booleans {
 
 class TheoryBoolRewriter {
-
 public:
+  enum BoolRewrites {
+    NOT_TRUE = LAST_SHARED
+  };
 
   static RewriteResponse preRewrite(TNode node);
+  //template<bool> Proof
+  //static RewriteResponse preRewriteEx(TNode node, Rewrite* rewrite);
   static RewriteResponse postRewrite(TNode node);
+  //template<bool> Proof
+  //static RewriteResponse postRewriteEx(TNode node, Rewrite* rewrite);
+  static void printRewriteProof(TheoryProofEngine* tp,
+                                const Rewrite& rewrite,
+                                std::ostream& os,
+                                ProofLetMap& globalLetMap);
 
   static void init() {}
   static void shutdown() {}
-
 };/* class TheoryBoolRewriter */
 
 }/* CVC4::theory::booleans namespace */

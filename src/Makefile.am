@@ -90,6 +90,10 @@ libcvc4_la_SOURCES = \
 	proof/proof_manager.h \
 	proof/proof_utils.cpp \
 	proof/proof_utils.h \
+	proof/rewrite_proof.cpp \
+	proof/rewrite_proof.h \
+	proof/rewrite_proof_dispatcher.cpp \
+	proof/rewrite_proof_dispatcher.h \
 	proof/sat_proof.h \
 	proof/sat_proof_implementation.h \
 	proof/skolemization_manager.cpp \
@@ -472,8 +476,10 @@ libcvc4_la_LIBADD += \
 	@top_builddir@/proofs/signatures/libsignatures.la
 endif
 
+if CVC4_NEEDS_REPLACEMENT_FUNCTIONS
 libcvc4_la_LIBADD += \
 	@builddir@/lib/libreplacements.la
+endif
 
 if CVC4_USE_GLPK
 libcvc4_la_LIBADD += $(GLPK_LIBS)

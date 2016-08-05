@@ -25,6 +25,7 @@
 #include "proof/clause_id.h"
 #include "proof/cnf_proof.h"
 #include "proof/proof_utils.h"
+#include "proof/rewrite_proof_dispatcher.h"
 #include "proof/sat_proof_implementation.h"
 #include "proof/theory_proof.h"
 #include "smt/smt_engine.h"
@@ -60,6 +61,7 @@ ProofManager::ProofManager(ProofFormat format):
   d_satProof(NULL),
   d_cnfProof(NULL),
   d_theoryProof(NULL),
+  d_rewriteProof(NULL),
   d_inputFormulas(),
   d_inputCoreFormulas(),
   d_outputCoreFormulas(),
@@ -74,6 +76,7 @@ ProofManager::~ProofManager() {
   if (d_satProof) delete d_satProof;
   if (d_cnfProof) delete d_cnfProof;
   if (d_theoryProof) delete d_theoryProof;
+  if (d_rewriteProof) delete d_rewriteProof;
   if (d_fullProof) delete d_fullProof;
 }
 
@@ -107,6 +110,11 @@ CnfProof* ProofManager::getCnfProof() {
 TheoryProofEngine* ProofManager::getTheoryProofEngine() {
   Assert (currentPM()->d_theoryProof != NULL);
   return currentPM()->d_theoryProof;
+}
+
+RewriteProofEngine* ProofManager::getRewriteProofEngine() {
+  Assert (currentPM()->d_rewriteProof != NULL);
+  return currentPM()->d_rewriteProof;
 }
 
 UFProof* ProofManager::getUfProof() {
@@ -176,6 +184,11 @@ void ProofManager::initTheoryProofEngine() {
   Assert (currentPM()->d_theoryProof == NULL);
   Assert (currentPM()->d_format == LFSC);
   currentPM()->d_theoryProof = new LFSCTheoryProofEngine();
+}
+
+void ProofManager::initRewriteProofEngine() {
+  Assert (currentPM()->d_rewriteProof == NULL);
+  currentPM()->d_rewriteProof = new RewriteProofEngine();
 }
 
 std::string ProofManager::getInputClauseName(ClauseId id,
@@ -704,8 +717,6 @@ void LFSCProof::printPreprocessedAssertions(const NodeSet& assertions,
     for (; it != end; ++it) {
       // Rewrite preprocessing step if it cannot be eliminated
       if (!ProofManager::currentPM()->have_input_assertion((*it).toExpr())) {
-        os << "(th_let_pf _ (trust_f (iff ";
-
         Expr inputAssertion;
 
         if (((*it).isConst() && *it == NodeManager::currentNM()->mkConst<bool>(true)) ||
@@ -748,12 +759,20 @@ void LFSCProof::printPreprocessedAssertions(const NodeSet& assertions,
                         << ", AKA "
                         << ProofManager::currentPM()->getInputFormulaName(inputAssertion)
                         << std::endl;
+        os << "(th_let_pf _ ";
+        RewriteProof rp;
+        if ((*it).getKind() == kind::NOT && (*it)[0] == NodeManager::currentNM()->mkConst<bool>(false)) {
+          os << "t_eq_n_f ";
+        } else if (theory::Rewriter::rewriteWithProof(inputAssertion, &rp) == *it) {
+          printProof(ProofManager::currentPM()->getTheoryProofEngine(), rp, os, globalLetMap);
+        } else {
+          os << "(trust_f (iff ";
+          ProofManager::currentPM()->getTheoryProofEngine()->printTheoryTerm(inputAssertion, os, globalLetMap);
+          os << " ";
+          ProofManager::currentPM()->getTheoryProofEngine()->printTheoryTerm((*it).toExpr(), os, globalLetMap);
+          os << ")) ";
+        }
 
-        ProofManager::currentPM()->getTheoryProofEngine()->printTheoryTerm(inputAssertion, os, globalLetMap);
-        os << " ";
-        ProofManager::currentPM()->getTheoryProofEngine()->printTheoryTerm((*it).toExpr(), os, globalLetMap);
-
-        os << "))";
         os << "(\\ "<< ProofManager::getPreprocessedAssertionName(*it, "") << "\n";
         paren << "))";
 

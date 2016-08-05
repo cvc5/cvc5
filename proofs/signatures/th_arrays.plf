@@ -63,3 +63,28 @@
                    (! u2 (th_holds (or (= _ t1 t2) (not (= _ (apply _ _ (apply _ _ (read s1 s2) t1) k) (apply _ _ (apply _ _ (read s1 s2) t2) k)))))
                      (holds cln)))
                (holds cln)))))))
+
+; Rewrites
+(declare wor (! s18 sort
+             (! s19 sort
+             (! i (term s18)
+             (! oa (term (Array s18 s19))
+             (! a (term (Array s18 s19))
+             (! u (th_holds (= _ oa (apply _ _ (apply _ _ (apply _ _ (write s18 s19) a) i) (apply _ _ (apply _ _ (read s18 s19) a) i))))
+             (th_holds (= _ oa a))))))))))
+
+(declare wow (! s1 sort
+             (! s2 sort
+             (! i (term s1)
+             (! i2 (term s1)
+             (! v (term s2)
+             (! w (term s2)
+             (! w2 (term s2)
+             (! oa (term (Array s1 s2))
+             (! a (term (Array s1 s2))
+             (! a2 (term (Array s1 s2))
+             (! u (th_holds (= _ oa (apply _ _ (apply _ _ (apply _ _ (write s1 s2) (apply _ _ (apply _ _ (apply _ _ (write s1 s2) a) i) v)) i) w)))
+             (! u1 (th_holds (= _ a a2))
+             (! u2 (th_holds (= _ i i2))
+             (! u3 (th_holds (= _ w w2))
+             (th_holds (= _ oa (apply _ _ (apply _ _ (apply _ _ (write s1 s2) a2) i2) w2))))))))))))))))))

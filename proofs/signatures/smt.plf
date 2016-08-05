@@ -146,9 +146,7 @@
 	(! f formula
 	   (th_holds (iff f f))))
 
-
 ;; contradiction
-
 (declare contra
   (! f formula
   (! r1 (th_holds f)
@@ -315,6 +313,53 @@
   (! c formula
   (! u2 (th_holds (not (ifte a b c)))
     (th_holds (or (not b) (not c))))))))
+
+(declare iff_true
+  (! s sort
+  (! x formula
+  (! y (term s)
+  (! u (th_holds (iff x (= _ y y)))
+    (th_holds (iff x true)))))))
+
+(declare iff_intro
+  (! s sort
+  (! x (term s)
+  (! y (term s)
+  (! z (term s)
+  (! w (term s)
+  (! lhs (th_holds (= _ x y))
+  (! rhs (th_holds (= _ z w))
+    (th_holds (iff (= _ x z) (= _y w)))))))))))
+
+(declare not_intro
+  (! x formula
+  (! y formula
+  (! u (th_holds (iff x y))
+    (th_holds (iff (not x) (not y)))))))
+
+(declare symm_formula_op1
+  (! op formula_op1
+  (! x formula
+  (! y formula
+  (! u (th_holds (iff x y))
+    (th_holds (iff (op x) (op y))))))))
+
+(declare t_eq_n_f (th_holds (iff true (not false))))
+(declare n_t_eq_f (th_holds (iff (not true) false)))
+
+(declare iff_trans
+  (! x formula
+  (! y formula
+  (! z formula
+  (! u (th_holds (iff x y))
+  (! u (th_holds (iff y z))
+    (th_holds (iff x z))))))))
+
+(declare not_iff
+  (! x formula
+  (! y formula
+  (! u (th_holds (iff x y))
+    (th_holds (iff (not x) (not y)))))))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;
