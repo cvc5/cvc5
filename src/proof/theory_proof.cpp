@@ -861,6 +861,7 @@ void LFSCTheoryProofEngine::printCoreTerm(Expr term, std::ostream& os, const Pro
     os << "(";
     os << "= ";
     printSort(term[0].getType(), os);
+    os << " ";
     printBoundTerm(term[0], os, map);
     os << " ";
     printBoundTerm(term[1], os, map);
@@ -874,6 +875,7 @@ void LFSCTheoryProofEngine::printCoreTerm(Expr term, std::ostream& os, const Pro
     if (term.getNumChildren() == 2) {
       os << "(not (= ";
       printSort(term[0].getType(), os);
+      os << " ";
       printBoundTerm(term[0], os, map);
       os << " ";
       printBoundTerm(term[1], os, map);
@@ -889,6 +891,7 @@ void LFSCTheoryProofEngine::printCoreTerm(Expr term, std::ostream& os, const Pro
           if ((i != 0) || (j != 1)) {
             os << "(not (= ";
             printSort(term[0].getType(), os);
+            os << " ";
             printBoundTerm(term[i], os, map);
             os << " ";
             printBoundTerm(term[j], os, map);
@@ -896,6 +899,7 @@ void LFSCTheoryProofEngine::printCoreTerm(Expr term, std::ostream& os, const Pro
           } else {
             os << "(not (= ";
             printSort(term[0].getType(), os);
+            os << " ";
             printBoundTerm(term[0], os, map);
             os << " ";
             printBoundTerm(term[1], os, map);
