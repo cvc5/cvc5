@@ -1271,7 +1271,7 @@ void LFSCArrayProof::printOwnedSort(Type type, std::ostream& os) {
     printSort(array_type.getConstituentType(), os);
     os << ")";
   } else {
-    os << type <<" ";
+    os << type;
   }
 }
 

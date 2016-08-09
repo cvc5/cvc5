@@ -804,9 +804,9 @@ void LFSCArithProof::printOwnedSort(Type type, std::ostream& os) {
 
   if (type.isInteger() && d_realMode) {
     // If in "real mode", don't use type Int for, e.g., equality.
-    os << "Real ";
+    os << "Real";
   } else {
-    os << type << " ";
+    os << type;
   }
 }
 

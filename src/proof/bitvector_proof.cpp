@@ -479,7 +479,7 @@ void LFSCBitVectorProof::printOwnedSort(Type type, std::ostream& os) {
   Debug("pf::bv") << std::endl << "(pf::bv) LFSCBitVectorProof::printOwnedSort( " << type << " )" << std::endl;
   Assert (type.isBitVector());
   unsigned width = utils::getSize(type);
-  os << "(BitVec "<<width<<")";
+  os << "(BitVec " << width << ")";
 }
 
 void LFSCBitVectorProof::printTheoryLemmaProof(std::vector<Expr>& lemma, std::ostream& os, std::ostream& paren, const ProofLetMap& map) {
