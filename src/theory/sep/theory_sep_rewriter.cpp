@@ -24,6 +24,7 @@ namespace sep {
 
 void TheorySepRewriter::getStarChildren( Node n, std::vector< Node >& s_children, std::vector< Node >& ns_children ){
   Assert( n.getKind()==kind::SEP_STAR );
+  Node tr = NodeManager::currentNM()->mkConst( true );
   for( unsigned i=0; i<n.getNumChildren(); i++ ){
     if( n[i].getKind()==kind::SEP_EMP ){
       s_children.push_back( n[i] );
@@ -36,26 +37,19 @@ void TheorySepRewriter::getStarChildren( Node n, std::vector< Node >& s_children
       getAndChildren( n[i], temp_s_children, ns_children );
       Node to_add;
       if( temp_s_children.size()==0 ){
-        to_add = NodeManager::currentNM()->mkConst( true );
+        if( std::find( s_children.begin(), s_children.end(), tr )==s_children.end() ){
+          to_add = tr;
+        }
+      }else if( temp_s_children.size()==1 ){
+        to_add = temp_s_children[0];
       }else{
-        //remove empty star
-        std::vector< Node > temp_s_children2;
-        for( unsigned i=0; i<temp_s_children.size(); i++ ){
-          if( temp_s_children[i].getKind()!=kind::SEP_EMP ){
-            temp_s_children2.push_back( temp_s_children[i] );
-          }
-        }
-        if( temp_s_children2.size()==1 ){
-          to_add = temp_s_children2[0];
-        }else if( temp_s_children2.size()>1 ){
-          to_add = NodeManager::currentNM()->mkNode( kind::AND, temp_s_children2 );
-        }
+        to_add = NodeManager::currentNM()->mkNode( kind::AND, temp_s_children );
       }
       if( !to_add.isNull() ){
         //flatten star
         if( to_add.getKind()==kind::SEP_STAR ){
           getStarChildren( to_add, s_children, ns_children );
-        }else if( std::find( s_children.begin(), s_children.end(), to_add )==s_children.end() ){
+        }else if( to_add.getKind()!=kind::SEP_EMP || s_children.empty() ){  //remove sep emp
           s_children.push_back( to_add );
         }
       }
