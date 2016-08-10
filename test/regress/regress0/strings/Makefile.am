@@ -67,7 +67,6 @@ TESTS = \
   bug612.smt2 \
   bug615.smt2 \
   kaluza-fl.smt2 \
-  norn-ab.smt2 \
   idof-rewrites.smt2 \
   bug682.smt2 \
   bug686dd.smt2 \
@@ -94,6 +93,7 @@ EXTRA_DIST = $(TESTS)
 EXTRA_DIST +=
 
 #norn-dis-0707-3.smt2
+#norn-ab.smt2
 
 # synonyms for "check"
 .PHONY: regress regress0 test

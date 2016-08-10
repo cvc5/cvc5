@@ -171,10 +171,11 @@ private:
   bool isNormalFormPair2( Node n1, Node n2 );
   // loop ant
   NodeSet d_loop_antec;
-  NodeSet d_length_intro_vars;
   // preReg cache
   NodeSet d_pregistered_terms_cache;
   NodeSet d_registered_terms_cache;
+  NodeSet d_length_lemma_terms_cache;
+  NodeSet d_skolem_ne_reg_cache;
   // preprocess cache
   StringsPreprocess d_preproc;
   NodeBoolMap d_preproc_cache;
@@ -292,10 +293,11 @@ private:
     bool d_rev;
     std::vector< Node > d_ant;
     std::vector< Node > d_antn;
-    std::vector< Node > d_non_emp_vars;
+    std::map< int, std::vector< Node > > d_new_skolem;
     Node d_conc;
     unsigned d_id;
     std::map< Node, bool > d_pending_phase;
+    unsigned d_index;
     const char * getId() { 
       switch( d_id ){
       case 1:return "S-Split(CST-P)-prop";break;
@@ -330,8 +332,8 @@ private:
   void checkNormalForms();
   void normalizeEquivalenceClass( Node n );
   void getNormalForms( Node &eqc, std::vector< std::vector< Node > > &normal_forms, std::vector< Node > &normal_form_src,
-                       std::vector< std::vector< Node > > &normal_forms_exp, std::vector< std::map< Node, std::map< bool, int > > >& normal_forms_exp_depend);
-  bool detectLoop(std::vector< std::vector< Node > > &normal_forms, int i, int j, int index, int &loop_in_i, int &loop_in_j);
+                       std::vector< std::vector< Node > > &normal_forms_exp, std::vector< std::map< Node, std::map< bool, int > > >& normal_forms_exp_depend );
+  bool detectLoop( std::vector< std::vector< Node > > &normal_forms, int i, int j, int index, int &loop_in_i, int &loop_in_j, unsigned rproc );
   bool processLoop( std::vector< std::vector< Node > > &normal_forms, std::vector< Node > &normal_form_src,
                     int i, int j, int loop_n_index, int other_n_index,int loop_index, int index, InferInfo& info );
   void processNEqc( std::vector< std::vector< Node > > &normal_forms, std::vector< Node > &normal_form_src,
@@ -430,15 +432,20 @@ protected:
     sk_id_c_spt,
     sk_id_vc_spt,
     sk_id_vc_bin_spt,
-    sk_id_v_spt,
+    sk_id_v_spt,    
+    sk_id_c_spt_rev,
+    sk_id_vc_spt_rev,
+    sk_id_vc_bin_spt_rev,
+    sk_id_v_spt_rev,
     sk_id_ctn_pre,
     sk_id_ctn_post,
+    sk_id_dc_spt,
+    sk_id_dc_spt_rem,
     sk_id_deq_x,
     sk_id_deq_y,
     sk_id_deq_z,
   };
   std::map< Node, std::map< Node, std::map< int, Node > > > d_skolem_cache;
-  NodeSet d_skolem_cache_ne_reg;
   Node mkSkolemCached( Node a, Node b, int id, const char * c, int isLenSplit = 0 );
   inline Node mkSkolemS(const char * c, int isLenSplit = 0);
   void registerNonEmptySkolem( Node sk );

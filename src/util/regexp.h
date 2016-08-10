@@ -239,24 +239,25 @@ public:
     if(d_str.size() < y.d_str.size() + start) return std::string::npos;
     if(y.d_str.size() == 0) return start;
     if(d_str.size() == 0) return std::string::npos;
-    std::size_t ret = std::string::npos;
-    /*for(std::size_t i = start; i <= d_str.size() - y.d_str.size(); i++) {
-      if(d_str[i] == y.d_str[0]) {
-        std::size_t j=0;
-        for(; j<y.d_str.size(); j++) {
-          if(d_str[i+j] != y.d_str[j]) break;
-        }
-        if(j == y.d_str.size()) {
-          ret = i;
-          break;
-        }
-      }
-    }*/
     std::vector<unsigned>::const_iterator itr = std::search(d_str.begin() + start, d_str.end(), y.d_str.begin(), y.d_str.end());
     if(itr != d_str.end()) {
-      ret = itr - d_str.begin();
+      return itr - d_str.begin();
+    }else{
+      return std::string::npos;
     }
-    return ret;
+  }
+  
+  std::size_t rfind( String &y, const std::size_t start = 0) {
+    std::reverse( d_str.begin(), d_str.end() );
+    std::reverse( y.d_str.begin(), y.d_str.end() );
+    std::size_t f = find( y, start );
+    std::reverse( d_str.begin(), d_str.end() );
+    std::reverse( y.d_str.begin(), y.d_str.end() );
+    if( f==std::string::npos ){
+      return std::string::npos;
+    }else{
+      return f;
+    }
   }
 
   String replace(const String &s, const String &t) const {
@@ -295,6 +296,8 @@ public:
   }
   // if y=y1...yn and overlap returns m, then this is x1...y1...ym
   std::size_t overlap(String &y) const;
+  // if y=y1...yn and overlap returns m, then this is y(n+1-m)...yn...xk
+  std::size_t roverlap(String &y) const;
 
   bool isNumber() const {
    if(d_str.size() == 0) return false;

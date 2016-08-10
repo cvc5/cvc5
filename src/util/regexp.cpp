@@ -110,6 +110,17 @@ std::size_t String::overlap(String &y) const {
   }
   return i;
 }
+std::size_t String::roverlap(String &y) const {
+  std::size_t i = d_str.size() < y.size() ? d_str.size() : y.size();
+  for(; i>0; i--) {
+    String s = prefix(i);
+    String p = y.suffix(i);
+    if(s == p) {
+      return i;
+    }
+  }
+  return i;
+}
 
 std::string String::toString() const {
   std::string str;
