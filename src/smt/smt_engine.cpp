@@ -57,6 +57,7 @@
 #include "options/open_ostream.h"
 #include "options/option_exception.h"
 #include "options/printer_options.h"
+#include "options/proof_options.h"
 #include "options/prop_options.h"
 #include "options/quantifiers_options.h"
 #include "options/set_language.h"
@@ -92,9 +93,9 @@
 #include "theory/quantifiers/fun_def_process.h"
 #include "theory/quantifiers/macros.h"
 #include "theory/quantifiers/quantifiers_rewriter.h"
+#include "theory/sep/theory_sep.h"
 #include "theory/sort_inference.h"
 #include "theory/strings/theory_strings.h"
-#include "theory/sep/theory_sep.h"
 #include "theory/substitutions.h"
 #include "theory/theory_engine.h"
 #include "theory/theory_model.h"
@@ -4283,8 +4284,10 @@ void SmtEnginePrivate::addFormula(TNode n, bool inUnsatCore, bool inInput)
   PROOF(
     if( inInput ){
       // n is an input assertion
-      if (inUnsatCore || options::dumpUnsatCores() || options::checkUnsatCores())
+      if (inUnsatCore || options::dumpUnsatCores() || options::checkUnsatCores() || options::fewerPreprocessingHoles()) {
+
         ProofManager::currentPM()->addCoreAssertion(n.toExpr());
+      }
     }else{
       // n is the result of an unknown preprocessing step, add it to dependency map to null
       ProofManager::currentPM()->addDependence(n, Node::null());

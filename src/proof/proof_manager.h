@@ -145,6 +145,7 @@ class ProofManager {
 
   // information that will need to be shared across proofs
   ExprSet    d_inputFormulas;
+  std::map<Expr, std::string> d_inputFormulaToName;
   ExprSet    d_inputCoreFormulas;
   ExprSet    d_outputCoreFormulas;
 
@@ -156,12 +157,11 @@ class ProofManager {
   ProofFormat d_format; // used for now only in debug builds
 
   NodeToNodes d_deps;
-  // trace dependences back to unsat core
-  void traceDeps(TNode n);
 
   std::set<Type> d_printedTypes;
 
   std::map<std::string, std::string> d_rewriteFilters;
+  std::map<Node, std::string> d_assertionFilters;
 
   std::vector<RewriteLogEntry> d_rewriteLog;
 
@@ -202,6 +202,9 @@ public:
   }
   assertions_iterator end_assertions() const { return d_inputFormulas.end(); }
   size_t num_assertions() const { return d_inputFormulas.size(); }
+  bool have_input_assertion(const Expr& assertion) {
+    return d_inputFormulas.find(assertion) != d_inputFormulas.end();
+  }
 
 //---from Morgan---
   Node mkOp(TNode n);
@@ -220,6 +223,7 @@ public:
   static std::string getLearntClauseName(ClauseId id, const std::string& prefix = "");
   static std::string getPreprocessedAssertionName(Node node, const std::string& prefix = "");
   static std::string getAssertionName(Node node, const std::string& prefix = "");
+  static std::string getInputFormulaName(const Expr& expr);
 
   static std::string getVarName(prop::SatVariable var, const std::string& prefix = "");
   static std::string getAtomName(prop::SatVariable var, const std::string& prefix = "");
@@ -239,6 +243,8 @@ public:
   void addDependence(TNode n, TNode dep);
   void addUnsatCore(Expr formula);
 
+  // trace dependences back to unsat core
+  void traceDeps(TNode n, ExprSet* coreAssertions);
   void traceUnsatCore();
   assertions_iterator begin_unsat_core() const { return d_outputCoreFormulas.begin(); }
   assertions_iterator end_unsat_core() const { return d_outputCoreFormulas.end(); }
@@ -259,6 +265,8 @@ public:
 
   void addRewriteFilter(const std::string &original, const std::string &substitute);
   void clearRewriteFilters();
+
+  void addAssertionFilter(const Node& node, const std::string& rewritten);
 
   static void registerRewrite(unsigned ruleId, Node original, Node result);
   static void clearRewriteLog();
@@ -287,6 +295,9 @@ class LFSCProof : public Proof {
                                    std::ostream& os,
                                    std::ostream& paren,
                                    ProofLetMap& globalLetMap);
+
+  void checkUnrewrittenAssertion(const NodeSet& assertions);
+
 public:
   LFSCProof(SmtEngine* smtEngine,
             LFSCCoreSatProof* sat,

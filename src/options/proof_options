@@ -11,4 +11,7 @@ option lfscLetification --lfsc-letification bool :default true
 option aggressiveCoreMin --aggressive-core-min bool :default false
  turns on aggressive unsat core minimization (experimental)
 
+option fewerPreprocessingHoles --fewer-preprocessing-holes bool :default false :read-write
+  try to eliminate preprocessing holes in proofs
+
 endmodule
