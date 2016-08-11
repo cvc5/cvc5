@@ -2527,8 +2527,7 @@ void TheoryStrings::processSimpleNEq( std::vector< std::vector< Node > > &normal
             int loop_in_i = -1;
             int loop_in_j = -1;
             if( detectLoop( normal_forms, i, j, index, loop_in_i, loop_in_j, rproc ) ){
-              if( !isRev ){
-              //FIXME: do for isRev
+              if( !isRev ){  //FIXME
               getExplanationVectorForPrefixEq( normal_forms, normal_form_src, normal_forms_exp, normal_forms_exp_depend, i, j, -1, -1, isRev, info.d_ant );
               //set info
               if( processLoop( normal_forms, normal_form_src, i, j, loop_in_i!=-1 ? i : j, loop_in_i!=-1 ? j : i, loop_in_i!=-1 ? loop_in_i : loop_in_j, index, info ) ){
@@ -2913,7 +2912,7 @@ bool TheoryStrings::processLoop( std::vector< std::vector< Node > > &normal_form
 }
 
 //return true for lemma, false if we succeed
-bool TheoryStrings::processDeq( Node ni, Node nj ) {
+void TheoryStrings::processDeq( Node ni, Node nj ) {
   //Assert( areDisequal( ni, nj ) );
   if( d_normal_forms[ni].size()>1 || d_normal_forms[nj].size()>1 ){
     std::vector< Node > nfi;
@@ -2923,7 +2922,7 @@ bool TheoryStrings::processDeq( Node ni, Node nj ) {
 
     int revRet = processReverseDeq( nfi, nfj, ni, nj );
     if( revRet!=0 ){
-      return revRet==-1;
+      return;
     }
 
     nfi.clear();
@@ -2935,8 +2934,8 @@ bool TheoryStrings::processDeq( Node ni, Node nj ) {
     while( index<nfi.size() || index<nfj.size() ){
       int ret = processSimpleDeq( nfi, nfj, ni, nj, index, false );
       if( ret!=0 ) {
-        return ret==-1;
-      } else {
+        return;
+      }else{
         Assert( index<nfi.size() && index<nfj.size() );
         Node i = nfi[index];
         Node j = nfj[index];
@@ -2956,21 +2955,21 @@ bool TheoryStrings::processDeq( Node ni, Node nj ) {
                 Node eq = nconst_k.eqNode( d_emptyString );
                 Node conc = NodeManager::currentNM()->mkNode( kind::OR, eq, eq.negate() );
                 sendInference( d_empty_vec, conc, "D-DISL-Emp-Split" );
-                return true;
+                return;
               }else{
                 //split on first character
                 CVC4::String str = const_k.getConst<String>();
                 Node firstChar = str.size() == 1 ? const_k : NodeManager::currentNM()->mkConst( str.prefix( 1 ) );
                 if( areEqual( lnck, d_one ) ){
                   if( areDisequal( firstChar, nconst_k ) ){
-                    return true;
+                    return;
                   }else if( !areEqual( firstChar, nconst_k ) ){
                     //splitting on demand : try to make them disequal
                     Node eq = firstChar.eqNode( nconst_k );
                     sendSplit( firstChar, nconst_k, "S-Split(DEQL-Const)" );
                     eq = Rewriter::rewrite( eq );
                     d_pending_req_phase[ eq ] = false;
-                    return true;
+                    return;
                   }
                 }else{
                   Node sk = mkSkolemCached( nconst_k, firstChar, sk_id_dc_spt, "dc_spt", 2 );
@@ -2985,7 +2984,7 @@ bool TheoryStrings::processDeq( Node ni, Node nj ) {
                   sendInference( antec, NodeManager::currentNM()->mkNode( kind::OR, 
                                           NodeManager::currentNM()->mkNode( kind::AND, eq1, sk.eqNode( firstChar ).negate() ), eq2 ), "D-DISL-CSplit" );
                   d_pending_req_phase[ eq1 ] = true;
-                  return true;
+                  return;
                 }
               }
             }else{
@@ -3015,7 +3014,7 @@ bool TheoryStrings::processDeq( Node ni, Node nj ) {
               conc.push_back( NodeManager::currentNM()->mkNode( kind::OR, j.eqNode( mkConcat( sk1, sk3 ) ), i.eqNode( mkConcat( sk2, sk3 ) ) ) );
               sendInference( antec, antec_new_lits, NodeManager::currentNM()->mkNode( kind::AND, conc ), "D-DISL-Split" );
               ++(d_statistics.d_deq_splits);
-              return true;
+              return;
             }
           }else if( areEqual( li, lj ) ){
             Assert( !areDisequal( i, j ) );
@@ -3024,14 +3023,14 @@ bool TheoryStrings::processDeq( Node ni, Node nj ) {
             sendSplit( i, j, "S-Split(DEQL)" );
             eq = Rewriter::rewrite( eq );
             d_pending_req_phase[ eq ] = false;
-            return true;
+            return;
           }else{
             //splitting on demand : try to make lengths equal
             Node eq = li.eqNode( lj );
             sendSplit( li, lj, "D-Split" );
             eq = Rewriter::rewrite( eq );
             d_pending_req_phase[ eq ] = true;
-            return true;
+            return;
           }
         }
         index++;
@@ -3039,7 +3038,6 @@ bool TheoryStrings::processDeq( Node ni, Node nj ) {
     }
     Assert( false );
   }
-  return false;
 }
 
 int TheoryStrings::processReverseDeq( std::vector< Node >& nfi, std::vector< Node >& nfj, Node ni, Node nj ) {
@@ -3196,11 +3194,22 @@ void TheoryStrings::registerTerm( Node n, int effort ) {
         //register length information:
         //  for variables, split on empty vs positive length
         //  for concat/const/replace, introduce proxy var and state length relation
-        if( n.getKind()!=kind::STRING_CONCAT && n.getKind()!=kind::CONST_STRING && n.getKind()!=kind::STRING_STRREPL ) {
+        Node lsum;
+        bool processed = false;
+        if( n.getKind()!=kind::STRING_CONCAT && n.getKind()!=kind::CONST_STRING ) {
           if( d_length_lemma_terms_cache.find( n )==d_length_lemma_terms_cache.end() ){
-            sendLengthLemma( n );
+            Node lsumb = NodeManager::currentNM()->mkNode( kind::STRING_LENGTH, n );
+            lsum = Rewriter::rewrite( lsumb );
+            // can register length term if it does not rewrite
+            if( lsum==lsumb ){
+              sendLengthLemma( n );
+              processed = true;
+            }
+          }else{
+            processed = true;
           }
-        } else {
+        }
+        if( !processed ){
           Node sk = mkSkolemS( "lsym", -1 );
           StringsProxyVarAttribute spva;
           sk.setAttribute(spva,true);
@@ -3210,7 +3219,6 @@ void TheoryStrings::registerTerm( Node n, int effort ) {
           Trace("strings-assert") << "(assert " << eq << ")" << std::endl;
           d_out->lemma(eq);
           Node skl = NodeManager::currentNM()->mkNode( kind::STRING_LENGTH, sk );
-          Node lsum;
           if( n.getKind()==kind::STRING_CONCAT ){
             std::vector<Node> node_vec;
             for( unsigned i=0; i<n.getNumChildren(); i++ ) {
@@ -3223,12 +3231,11 @@ void TheoryStrings::registerTerm( Node n, int effort ) {
               }
             }
             lsum = NodeManager::currentNM()->mkNode( kind::PLUS, node_vec );
+            lsum = Rewriter::rewrite( lsum );
           }else if( n.getKind()==kind::CONST_STRING ){
             lsum = NodeManager::currentNM()->mkConst( ::CVC4::Rational( n.getConst<String>().size() ) );
-          }else{
-            lsum = NodeManager::currentNM()->mkNode( kind::STRING_LENGTH, n );
           }
-          lsum = Rewriter::rewrite( lsum );
+          Assert( !lsum.isNull() );
           d_proxy_var_to_length[sk] = lsum;
           Node ceq = Rewriter::rewrite( skl.eqNode( lsum ) );
           Trace("strings-lemma") << "Strings::Lemma LENGTH : " << ceq << std::endl;
@@ -3614,7 +3621,8 @@ void TheoryStrings::checkDeqNF() {
               Trace("strings-solve") << " against " << cols[i][k] << " ";
               printConcat( d_normal_forms[cols[i][k]], "strings-solve" );
               Trace("strings-solve")  << "..." << std::endl;
-              if( processDeq( cols[i][j], cols[i][k] ) ){
+              processDeq( cols[i][j], cols[i][k] );
+              if( hasProcessed() ){
                 return;
               }
             }

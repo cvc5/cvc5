@@ -1055,7 +1055,6 @@ RewriteResponse TheoryStringsRewriter::postRewrite(TNode node) {
         }
       }
     }
-    //AJR: all cases of length rewriting must be handled by proxy vars in TheoryStrings
   }else if( node.getKind() == kind::STRING_CHARAT ){
     Node one = NodeManager::currentNM()->mkConst( Rational( 1 ) );
     retNode = NodeManager::currentNM()->mkNode(kind::STRING_SUBSTR, node[0], node[1], one);
