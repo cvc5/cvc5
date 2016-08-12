@@ -83,7 +83,9 @@ TESTS = \
   cmu-dis-0707-3.smt2 \
   nf-ff-contains-abs.smt2  \
   csp-prefix-exp-bug.smt2 \
-  cmu-substr-rw.smt2  
+  cmu-substr-rw.smt2 \
+  gm-inc-071516-2.smt2 \
+  cmu-inc-nlpp-071516.smt2
 
 FAILING_TESTS =
 
