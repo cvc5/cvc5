@@ -321,15 +321,12 @@ void LFSCTheoryProofEngine::registerTermsFromAssertions() {
 void LFSCTheoryProofEngine::printAssertions(std::ostream& os, std::ostream& paren) {
   Debug("pf::tp") << "LFSCTheoryProofEngine::printAssertions called" << std::endl << std::endl;
 
-  unsigned counter = 0;
   ProofManager::assertions_iterator it = ProofManager::currentPM()->begin_assertions();
   ProofManager::assertions_iterator end = ProofManager::currentPM()->end_assertions();
 
   for (; it != end; ++it) {
     Debug("pf::tp") << "printAssertions: assertion is: " << *it << std::endl;
-    std::ostringstream name;
-    name << "A" << counter++;
-    os << "(% " << name.str() << " (th_holds ";
+    os << "(% " << ProofManager::currentPM()->getInputFormulaName(*it) << " (th_holds ";
 
     // Assertions appear before the global let map, so we use a dummpMap to avoid letification here.
     ProofLetMap dummyMap;
