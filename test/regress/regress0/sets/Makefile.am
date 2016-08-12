@@ -62,7 +62,8 @@ TESTS =	\
 	union-1a.smt2 \
 	union-1b-flip.smt2 \
 	union-1b.smt2 \
-	union-2.smt2
+	union-2.smt2 \
+	dt-simp-mem.smt2
 
 EXTRA_DIST = $(TESTS)
 

@@ -865,6 +865,11 @@ void TheoryDatatypes::merge( Node t1, Node t2 ){
             }
             //d_consEqc[t1] = true;
           }
+          //AJR: do this?
+          //else if( cons2.isConst() ){
+          //  //prefer the constant
+          //  eqc1->d_constructor = cons2;
+          //}
           //d_consEqc[t2] = false;
         }
       }else{
