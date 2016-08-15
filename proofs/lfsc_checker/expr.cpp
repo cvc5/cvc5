@@ -577,8 +577,21 @@ bool Expr::defeq(Expr *e) {
     {
       int counter = 0;
       while( e1->kids[counter] ){
-         if( !e2->kids[counter] || !e1->kids[counter]->defeq( e2->kids[counter] ) )
-            return false;
+         if( e1->kids[counter]!=e2->kids[counter] ){
+           if( !e2->kids[counter] || !e1->kids[counter]->defeq( e2->kids[counter] ) )
+              return false;
+           //--- optimization : replace child with equivalent pointer if was defeq
+           if( e1->kids[counter]<e2->kids[counter] ){
+             e1->kids[counter]->dec();
+             e2->kids[counter]->inc();
+             e1->kids[counter] = e2->kids[counter];
+           }else{
+             e2->kids[counter]->dec();
+             e1->kids[counter]->inc();
+             e2->kids[counter] = e1->kids[counter];
+           }
+         }
+         //---
          counter++;
       }
       return e2->kids[counter]==NULL;
