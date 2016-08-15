@@ -98,7 +98,7 @@ QuantifiersEngine::QuantifiersEngine(context::Context* c, context::UserContext* 
 
   //the model object
   if( options::mbqiMode()==quantifiers::MBQI_FMC ||
-      options::mbqiMode()==quantifiers::MBQI_FMC_INTERVAL || options::fmfBoundInt() ||
+      options::mbqiMode()==quantifiers::MBQI_FMC_INTERVAL || options::fmfBound() ||
       options::mbqiMode()==quantifiers::MBQI_TRUST ){
     d_model = new quantifiers::fmcheck::FirstOrderModelFmc( this, c, "FirstOrderModelFmc" );
   }else if( options::mbqiMode()==quantifiers::MBQI_ABS ){
@@ -233,7 +233,7 @@ void QuantifiersEngine::finishInit(){
   }  
   //finite model finding
   if( options::finiteModelFind() ){
-    if( options::fmfBoundInt() ){
+    if( options::fmfBound() ){
       d_bint = new quantifiers::BoundedIntegers( c, this );
       d_modules.push_back( d_bint );
     }
@@ -282,9 +282,9 @@ void QuantifiersEngine::finishInit(){
   }
 
   if( needsBuilder ){
-    Trace("quant-engine-debug") << "Initialize model engine, mbqi : " << options::mbqiMode() << " " << options::fmfBoundInt() << std::endl;
+    Trace("quant-engine-debug") << "Initialize model engine, mbqi : " << options::mbqiMode() << " " << options::fmfBound() << std::endl;
     if( options::mbqiMode()==quantifiers::MBQI_FMC || options::mbqiMode()==quantifiers::MBQI_FMC_INTERVAL ||
-        options::mbqiMode()==quantifiers::MBQI_TRUST || options::fmfBoundInt() ){
+        options::mbqiMode()==quantifiers::MBQI_TRUST || options::fmfBound() ){
       Trace("quant-engine-debug") << "...make fmc builder." << std::endl;
       d_builder = new quantifiers::fmcheck::FullModelChecker( c, this );
     }else if( options::mbqiMode()==quantifiers::MBQI_ABS ){
@@ -1241,7 +1241,7 @@ bool QuantifiersEngine::getInstWhenNeedsCheck( Theory::Effort e ) {
   if( e==Theory::EFFORT_LAST_CALL ){
     //with bounded integers, skip every other last call,
     // since matching loops may occur with infinite quantification
-    if( d_ierCounter_lc%2==0 && options::fmfBoundInt() ){
+    if( d_ierCounter_lc%2==0 && options::fmfBound() ){
       performCheck = false;
     }
   }

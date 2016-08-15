@@ -121,7 +121,7 @@ void ModelEngine::registerQuantifier( Node f ){
       if( !tn.isSort() ){
         if( !tn.getCardinality().isFinite() ){
           if( tn.isInteger() ){
-            if( !options::fmfBoundInt() ){
+            if( !options::fmfBound() ){
               canHandle = false;
             }
           }else{

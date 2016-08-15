@@ -1350,8 +1350,8 @@ void SmtEngine::setDefaults() {
       Trace("smt") << "turning on quantifier logic, for strings-exp"
                    << std::endl;
     }
-    if(! options::fmfBoundInt.wasSetByUser()) {
-      options::fmfBoundInt.set( true );
+    if(! options::fmfBound.wasSetByUser()) {
+      options::fmfBound.set( true );
       Trace("smt") << "turning on fmf-bound-int, for strings-exp" << std::endl;
     }
     if(! options::fmfInstEngine.wasSetByUser()) {
@@ -1753,12 +1753,13 @@ void SmtEngine::setDefaults() {
     options::cbqi.set(false);
   }
 
-  if(options::fmfBoundIntLazy.wasSetByUser() && options::fmfBoundIntLazy()) {
-    options::fmfBoundInt.set( true );
+  if( ( options::fmfBoundLazy.wasSetByUser() && options::fmfBoundLazy() ) || 
+      ( options::fmfBoundInt.wasSetByUser() && options::fmfBoundInt() ) ) {
+    options::fmfBound.set( true );
   }
   //now have determined whether fmfBoundInt is on/off
   //apply fmfBoundInt options
-  if( options::fmfBoundInt() ){
+  if( options::fmfBound() ){
     //must have finite model finding on
     options::finiteModelFind.set( true );
     if( ! options::mbqiMode.wasSetByUser() ||

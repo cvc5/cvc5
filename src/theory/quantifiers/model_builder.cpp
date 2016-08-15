@@ -45,7 +45,7 @@ bool QModelBuilder::isQuantifierActive( Node f ) {
 
 
 bool QModelBuilder::optUseModel() {
-  return options::mbqiMode()!=MBQI_NONE || options::fmfBoundInt();
+  return options::mbqiMode()!=MBQI_NONE || options::fmfBound();
 }
 
 void QModelBuilder::debugModel( FirstOrderModel* fm ){

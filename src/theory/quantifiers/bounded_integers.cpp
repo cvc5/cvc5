@@ -20,6 +20,7 @@
 #include "theory/quantifiers/model_engine.h"
 #include "theory/quantifiers/quant_util.h"
 #include "theory/quantifiers/term_database.h"
+#include "theory/theory_engine.h"
 
 using namespace CVC4;
 using namespace std;
@@ -30,7 +31,7 @@ using namespace CVC4::kind;
 
 BoundedIntegers::IntRangeModel::IntRangeModel(BoundedIntegers * bi, Node r, context::Context* c, context::Context* u, bool isProxy) : d_bi(bi),
       d_range(r), d_curr_max(-1), d_lit_to_range(u), d_range_assertions(c), d_has_range(c,false), d_curr_range(c,-1), d_ranges_proxied(u) { 
-  if( options::fmfBoundIntLazy() ){
+  if( options::fmfBoundLazy() ){
     d_proxy_range = isProxy ? r : NodeManager::currentNM()->mkSkolem( "pbir", r.getType() );
   }else{
     d_proxy_range = r;
@@ -232,14 +233,12 @@ void BoundedIntegers::processLiteral( Node q, Node lit, bool pol,
     }
   }else if( lit.getKind()==MEMBER ){
     //TODO: enable this when sets models are fixed
-    /*
     if( !pol && lit[0].getKind()==BOUND_VARIABLE && !isBound( q, lit[0] ) && !lit[1].hasBoundVar() ){
       Trace("bound-int-debug") << "Literal (polarity = " << pol << ") " << lit << " is membership." << std::endl;
       bound_lit_type_map[lit[0]] = BOUND_SET_MEMBER;
       bound_lit_map[0][lit[0]] = lit;
       bound_lit_pol_map[0][lit[0]] = pol;
     }
-    */
   }else if( lit.getKind()==LEQ || lit.getKind()==LT || lit.getKind()==GT ) {
     Message() << "BoundedIntegers : Bad kind for literal : " << lit << std::endl;
   }
@@ -330,6 +329,7 @@ void BoundedIntegers::registerQuantifier( Node f ) {
           setBoundedVar( f, v, BOUND_SET_MEMBER );
           setBoundVar = true;
           d_setm_range[f][v] = bound_lit_map[0][v][1];
+          d_setm_range_lit[f][v] = bound_lit_map[0][v];
           Trace("bound-int") << "Variable " << v << " is bound because of set membership literal " << bound_lit_map[0][v] << std::endl;
         }
         if( setBoundVar ){
@@ -515,6 +515,63 @@ Node BoundedIntegers::getSetRangeValue( Node q, Node v, RepSetIterator * rsi ) {
     Trace("bound-int-rsi") << "Get value in model for..." << sr << std::endl;
     sr = d_quantEngine->getModel()->getCurrentModelValue( sr );
     Trace("bound-int-rsi") << "Value is " << sr << std::endl;
+    //map to term model
+    if( sr.getKind()!=EMPTYSET ){
+      std::map< Node, Node > val_to_term;
+      while( sr.getKind()==UNION ){
+        Assert( sr[1].getKind()==kind::SINGLETON );
+        val_to_term[ sr[1][0] ] = sr[1][0];
+        sr = sr[0];
+      }
+      Assert( sr.getKind()==kind::SINGLETON );
+      val_to_term[ sr[0] ] = sr[0];
+      //must look back at assertions, not term database (theory of sets introduces extraneous terms internally)
+      Theory* theory = d_quantEngine->getTheoryEngine()->theoryOf( THEORY_SETS );
+      if( theory ){
+        context::CDList<Assertion>::const_iterator it = theory->facts_begin(), it_end = theory->facts_end();
+        for( unsigned i = 0; it != it_end; ++ it, ++i ){
+          Node lit = (*it).assertion;
+          if( lit.getKind()==kind::MEMBER ){
+            Node vr = d_quantEngine->getModel()->getCurrentModelValue( lit[0] );
+            Trace("bound-int-rsi-debug") << "....membership for " << lit << " ==> " << vr << std::endl;
+            Trace("bound-int-rsi-debug") << "  " << (val_to_term.find( vr )!=val_to_term.end()) << " " << d_quantEngine->getEqualityQuery()->areEqual( d_setm_range_lit[q][v][1], lit[1] ) << std::endl;
+            if( val_to_term.find( vr )!=val_to_term.end() ){
+              if( d_quantEngine->getEqualityQuery()->areEqual( d_setm_range_lit[q][v][1], lit[1] ) ){
+                Trace("bound-int-rsi") << "  Map value to term : " << vr << " -> " << lit[0] << std::endl;
+                val_to_term[ vr ] = lit[0];
+              }
+            }
+          }
+        }
+      }
+      //rebuild value
+      Node nsr;
+      for( std::map< Node, Node >::iterator it = val_to_term.begin(); it != val_to_term.end(); ++it ){
+        Node nv = NodeManager::currentNM()->mkNode( kind::SINGLETON, it->second );
+        if( nsr.isNull() ){
+          nsr = nv;
+        }else{
+          nsr = NodeManager::currentNM()->mkNode( kind::UNION, nsr, nv );
+        }
+      }
+      Trace("bound-int-rsi") << "...reconstructed " << nsr << std::endl;
+      return nsr;
+      
+      /*
+      Node lit = d_setm_range_lit[q][v];
+      Trace("bound-int-rsi-debug") << "Bounded from lit " << lit << std::endl;
+      Node f = d_quantEngine->getTermDatabase()->getMatchOperator( lit );
+      TermArgTrie * ta = d_quantEngine->getTermDatabase()->getTermArgTrie( f );
+      if( ta ){
+        Trace("bound-int-rsi-debug") << "Got term index for " << f << std::endl;
+        for( std::map< TNode, TermArgTrie >::iterator it = ta->d_data.begin(); it != ta->d_data.end(); ++it ){
+
+        }
+
+      }
+      */
+    }
+    
   }
   return sr;
 }

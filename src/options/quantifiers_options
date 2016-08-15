@@ -163,8 +163,10 @@ option fmfFmcSimple --fmf-fmc-simple bool :default true
  simple models in full model check for finite model finding
 option fmfBoundInt fmf-bound-int --fmf-bound-int bool :default false :read-write
  finite model finding on bounded integer quantification
-option fmfBoundIntLazy --fmf-bound-int-lazy bool :default false :read-write
- enforce bounds for bounded integer quantification lazily via use of proxy variables
+option fmfBound fmf-bound --fmf-bound bool :default false :read-write
+ finite model finding on bounded quantification
+option fmfBoundLazy --fmf-bound-lazy bool :default false :read-write
+ enforce bounds for bounded quantification lazily via use of proxy variables
  
 ### conflict-based instantiation options 
  
