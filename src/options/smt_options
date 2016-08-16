@@ -108,40 +108,40 @@ common-option cpuTime cpu-time --cpu-time bool :default false
 
 # Resource spending options for SPARK
 expert-option rewriteStep rewrite-step --rewrite-step unsigned :default 1
- ammount of resources spent for each rewrite step
+ amount of resources spent for each rewrite step
 
 expert-option theoryCheckStep theory-check-step --theory-check-step unsigned :default 1
- ammount of resources spent for each theory check call
+ amount of resources spent for each theory check call
 
 expert-option decisionStep decision-step --decision-step unsigned :default 1
- ammount of getNext decision calls in the decision engine
+ amount of getNext decision calls in the decision engine
  
 expert-option bitblastStep bitblast-step --bitblast-step unsigned :default 1
- ammount of resources spent for each bitblast step
+ amount of resources spent for each bitblast step
  
 expert-option parseStep parse-step --parse-step unsigned :default 1
- ammount of resources spent for each command/expression parsing
+ amount of resources spent for each command/expression parsing
  
 expert-option lemmaStep lemma-step --lemma-step unsigned :default 1
- ammount of resources spent when adding lemmas
+ amount of resources spent when adding lemmas
  
 expert-option restartStep restart-step --restart-step unsigned :default 1
- ammount of resources spent for each theory restart
+ amount of resources spent for each theory restart
  
 expert-option cnfStep cnf-step --cnf-step unsigned :default 1
- ammount of resources spent for each call to cnf conversion
+ amount of resources spent for each call to cnf conversion
  
 expert-option preprocessStep preprocess-step --preprocess-step unsigned :default 1
- ammount of resources spent for each preprocessing step in SmtEngine
+ amount of resources spent for each preprocessing step in SmtEngine
  
 expert-option quantifierStep quantifier-step --quantifier-step unsigned :default 1
- ammount of resources spent for quantifier instantiations
+ amount of resources spent for quantifier instantiations
  
 expert-option satConflictStep sat-conflict-step --sat-conflict-step unsigned :default 1
- ammount of resources spent for each sat conflict (main sat solver)
+ amount of resources spent for each sat conflict (main sat solver)
  
 expert-option bvSatConflictStep bv-sat-conflict-step --bv-sat-conflict-step unsigned :default 1
- ammount of resources spent for each sat conflict (bitvectors)
+ amount of resources spent for each sat conflict (bitvectors)
  
  
 expert-option rewriteApplyToConst rewrite-apply-to-const --rewrite-apply-to-const bool :default false

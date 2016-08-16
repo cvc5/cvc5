@@ -40,6 +40,7 @@ class TheoryArraysRewriter {
   static Node normalizeConstant(TNode node) {
     return normalizeConstant(node, node[1].getType().getCardinality());
   }
+
 public:
   //this function is called by printers when using the option "--model-u-dt-enum"
   static Node normalizeConstant(TNode node, Cardinality indexCard) {
@@ -225,8 +226,6 @@ public:
     }
     return n;
   }
-
-public:
 
   static RewriteResponse postRewrite(TNode node) {
     Trace("arrays-postrewrite") << "Arrays::postRewrite start " << node << std::endl;

@@ -21,6 +21,7 @@
 
 #include <iosfwd>
 #include <map>
+
 #include "expr/node.h"
 #include "proof/clause_id.h"
 #include "proof/proof.h"

@@ -135,7 +135,7 @@ option replayRejectCutSize --replay-reject-cut unsigned :default 25500
  maximum complexity of any coefficient while replaying cuts
 
 option lemmaRejectCutSize --replay-lemma-reject-cut unsigned :default 25500
- maximum complexity of any coefficient while outputing replaying cut lemmas
+ maximum complexity of any coefficient while outputting replaying cut lemmas
 
 option soiApproxMajorFailure --replay-soi-major-threshold double :default .01
  threshold for a major tolerance failure by the approximate solver
