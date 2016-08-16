@@ -70,8 +70,9 @@ public:
   bool propagate(TNode literal);
   void explain( TNode literal, std::vector<TNode>& assumptions );
   Node explain( TNode literal );
-
-
+  eq::EqualityEngine * getEqualityEngine() { return &d_equalityEngine; }
+  bool getCurrentSubstitution( int effort, std::vector< Node >& vars, std::vector< Node >& subs, std::map< Node, std::vector< Node > >& exp );
+ 
   // NotifyClass for equality engine
   class NotifyClass : public eq::EqualityEngineNotify {
     TheoryStrings& d_str;
@@ -251,8 +252,6 @@ private:
   /** All the function terms that the theory has seen */
   context::CDList<TNode> d_functionsTerms;
 private:
-  //extended string terms, map to whether they are active
-  NodeBoolMap d_ext_func_terms;
   //any non-reduced extended functions exist
   context::CDO< bool > d_has_extf;
   // static information about extf
@@ -276,15 +275,13 @@ private:
     //explanation
     std::vector< Node > d_exp;
     //reps -> list of variables
-    std::map< Node, std::vector< Node > > d_rep_vars;
+    //std::map< Node, std::vector< Node > > d_rep_vars;
     //false if it is reduced in the model
     bool d_model_active;
   };
-  std::map< Node, ExtfInfo > d_extf_info;
   std::map< Node, ExtfInfoTmp > d_extf_info_tmp;
   //collect extended operator terms
   void collectExtendedFuncTerms( Node n, std::map< Node, bool >& visited );
-  void addExtendedFuncTerm( Node n );
 private:
   class InferInfo {
   public:
@@ -324,7 +321,7 @@ private:
   Node getSymbolicDefinition( Node n, std::vector< Node >& exp );
   //check extf reduction
   void checkExtfReductions( int effort );
-  void checkExtfReduction( Node atom, int pol, int effort );
+  bool checkExtfReduction( Node atom, int pol, int effort );
   //flat forms check
   void checkFlatForms();
   Node checkCycles( Node eqc, std::vector< Node >& curr, std::vector< Node >& exp );

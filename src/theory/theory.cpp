@@ -66,6 +66,7 @@ Theory::Theory(TheoryId id, context::Context* satContext,
     , d_sharedTermsIndex(satContext, 0)
     , d_careGraph(NULL)
     , d_quantEngine(NULL)
+    , d_extt(NULL)
     , d_checkTime(getFullInstanceName() + "::checkTime")
     , d_computeCareGraphTime(getFullInstanceName() + "::computeCareGraphTime")
     , d_sharedTerms(satContext)
@@ -309,6 +310,146 @@ TheoryId EntailmentCheckSideEffects::getTheoryId() const {
 }
 
 EntailmentCheckSideEffects::~EntailmentCheckSideEffects() {
+}
+
+
+ExtTheory::ExtTheory( Theory * p ) : d_parent( p ), 
+d_ext_func_terms( p->getSatContext() ), d_has_extf( p->getSatContext() ){
+
+}
+
+void ExtTheory::collectVars( Node n, std::vector< Node >& vars, std::map< Node, bool >& visited ) {
+  if( !n.isConst() ){
+    if( visited.find( n )==visited.end() ){
+      visited[n] = true;
+      if( n.getNumChildren()>0 ){
+        for( unsigned i=0; i<n.getNumChildren(); i++ ){
+          collectVars( n[i], vars, visited );
+        }
+      }else{
+        vars.push_back( n );
+      }
+    }
+  }
+}
+
+//do inferences 
+void ExtTheory::getInferences( int effort, std::vector< Node >& terms, std::vector< Node >& sterms, std::vector< std::vector< Node > >& exp ) {
+  //all variables we need to find a substitution for
+  std::vector< Node > vars;
+  std::vector< Node > sub;
+  std::map< Node, std::vector< Node > > expc;
+  Trace("extt-debug") << "Checking " << d_ext_func_terms.size() << " extended functions." << std::endl;
+  for( NodeBoolMap::iterator it = d_ext_func_terms.begin(); it != d_ext_func_terms.end(); ++it ){
+    //if not already reduced
+    if( (*it).second ){
+      Node n = (*it).first;
+      terms.push_back( n );
+      std::map< Node, ExtfInfo >::iterator iti = d_extf_info.find( n );
+      Assert( iti!=d_extf_info.end() );
+      for( unsigned i=0; i<iti->second.d_vars.size(); i++ ){
+        if( std::find( vars.begin(), vars.end(), iti->second.d_vars[i] )==vars.end() ){
+          vars.push_back( iti->second.d_vars[i] );
+        } 
+      }
+    }
+  }
+  Trace("extt-debug") << "..." << terms.size() << " unreduced." << std::endl;
+  if( !terms.empty() ){
+    //get the current substitution
+    if( d_parent->getCurrentSubstitution( effort, vars, sub, expc ) ){
+      for( unsigned i=0; i<terms.size(); i++ ){
+        //do substitution, rewrite
+        Node n = terms[i];
+        Node ns = n.substitute( vars.begin(), vars.end(), sub.begin(), sub.end() );
+        std::vector< Node > expn;
+        if( ns!=n ){
+          //build explanation: explanation vars = sub for each vars in FV( n )
+          std::map< Node, ExtfInfo >::iterator iti = d_extf_info.find( n );
+          Assert( iti!=d_extf_info.end() );
+          for( unsigned j=0; j<iti->second.d_vars.size(); j++ ){
+            Node v = iti->second.d_vars[j];
+            std::map< Node, std::vector< Node > >::iterator itx = expc.find( v );
+            if( itx!=expc.end() ){
+              for( unsigned k=0; k<itx->second.size(); k++ ){
+                if( std::find( expn.begin(), expn.end(), itx->second[k] )==expn.end() ){
+                  expn.push_back( itx->second[k] );
+                }
+              }
+            }
+          }
+        }
+        Trace("extt-debug") << "  have " << n << " == " << ns << ", exp size=" << expn.size() << "." << std::endl;
+        //add to vector
+        sterms.push_back( ns );
+        exp.push_back( expn );
+      }
+    }else{
+      for( unsigned i=0; i<terms.size(); i++ ){
+        sterms.push_back( terms[i] );
+      }
+    }
+  }
+}
+
+//register term
+void ExtTheory::registerTerm( Node n ) {
+  if( d_extf_kind.find( n.getKind() )!=d_extf_kind.end() ){
+    if( d_ext_func_terms.find( n )==d_ext_func_terms.end() ){
+      Trace("extt-debug") << "Found extended function : " << n << " in " << d_parent->getId() << std::endl;
+      d_ext_func_terms[n] = true;
+      d_has_extf = true;
+      std::map< Node, bool > visited;
+      collectVars( n, d_extf_info[n].d_vars, visited );
+    }
+  }
+}
+
+//mark reduced
+void ExtTheory::markReduced( Node n ) {
+  d_ext_func_terms[n] = false;
+  //TODO update has_extf
+}
+
+//mark congruent
+void ExtTheory::markCongruent( Node a, Node b ) {
+  NodeBoolMap::const_iterator it = d_ext_func_terms.find( b );
+  if( it!=d_ext_func_terms.end() ){
+    if( d_ext_func_terms.find( a )==d_ext_func_terms.end() ){
+      d_ext_func_terms[a] = (*it).second;
+    }else{
+      d_ext_func_terms[a] = d_ext_func_terms[a] && (*it).second;
+    }
+    d_ext_func_terms[b] = false;
+  }
+}
+
+//is active
+bool ExtTheory::isActive( Node n ) {
+  NodeBoolMap::const_iterator it = d_ext_func_terms.find( n );
+  if( it!=d_ext_func_terms.end() ){
+    return (*it).second;
+  }else{
+    return false;
+  }
+}
+//get active 
+void ExtTheory::getActive( std::vector< Node >& active ) {
+  for( NodeBoolMap::iterator it = d_ext_func_terms.begin(); it != d_ext_func_terms.end(); ++it ){
+    //if not already reduced
+    if( (*it).second ){
+      active.push_back( (*it).first );
+    }
+  }
+}
+
+void ExtTheory::getActive( std::vector< Node >& active, Kind k ) {
+  for( NodeBoolMap::iterator it = d_ext_func_terms.begin(); it != d_ext_func_terms.end(); ++it ){
+    //if not already reduced
+    if( (*it).second && (*it).first.getKind()==k ){
+      active.push_back( (*it).first );
+    }
+  }
 }
 
 }/* CVC4::theory namespace */
