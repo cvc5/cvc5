@@ -73,6 +73,14 @@ unsigned int Integer::getUnsignedInt() const {
   return (unsigned int) d_value.get_ui();
 }
 
+bool Integer::fitsSignedLong() const {
+  return d_value.fits_slong_p();
+}
+
+bool Integer::fitsUnsignedLong() const {
+  return d_value.fits_ulong_p();
+}
+
 Integer Integer::oneExtend(uint32_t size, uint32_t amount) const {
   // check that the size is accurate
   DebugCheckArgument((*this) < Integer(1).multiplyByPow2(size), size);
