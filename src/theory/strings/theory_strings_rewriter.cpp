@@ -1026,22 +1026,22 @@ RewriteResponse TheoryStringsRewriter::postRewrite(TNode node) {
       retNode = NodeManager::currentNM()->mkNode(kind::EQUAL, leftNode, rightNode);
     }
   } else if(node.getKind() == kind::STRING_LENGTH) {
-    if(node[0].isConst()) {
+    if( node[0].isConst() ){
       retNode = NodeManager::currentNM()->mkConst( ::CVC4::Rational( node[0].getConst<String>().size() ) );
-    } else if(node[0].getKind() == kind::STRING_CONCAT) {
+    }else if( node[0].getKind() == kind::STRING_CONCAT ){
       Node tmpNode = rewriteConcatString(node[0]);
       if(tmpNode.isConst()) {
         retNode = NodeManager::currentNM()->mkConst( ::CVC4::Rational( tmpNode.getConst<String>().size() ) );
-      } else if(tmpNode.getKind() == kind::STRING_SUBSTR) {
+      //} else if(tmpNode.getKind() == kind::STRING_SUBSTR) {
         //retNode = tmpNode[2];
-      } else {
+      }else if( tmpNode.getKind()==kind::STRING_CONCAT ){
         // it has to be string concat
         std::vector<Node> node_vec;
         for(unsigned int i=0; i<tmpNode.getNumChildren(); ++i) {
           if(tmpNode[i].isConst()) {
             node_vec.push_back( NodeManager::currentNM()->mkConst( ::CVC4::Rational( tmpNode[i].getConst<String>().size() ) ) );
-          } else if(tmpNode[i].getKind() == kind::STRING_SUBSTR) {
-            node_vec.push_back( tmpNode[i][2] );
+          //} else if(tmpNode[i].getKind() == kind::STRING_SUBSTR) {
+          //  node_vec.push_back( tmpNode[i][2] );
           } else {
             node_vec.push_back( NodeManager::currentNM()->mkNode(kind::STRING_LENGTH, tmpNode[i]) );
           }
@@ -1055,8 +1055,6 @@ RewriteResponse TheoryStringsRewriter::postRewrite(TNode node) {
         }
       }
     }
-    //else if(node[0].getKind() == kind::STRING_SUBSTR) {
-    //retNode = node[0][2];
   }else if( node.getKind() == kind::STRING_CHARAT ){
     Node one = NodeManager::currentNM()->mkConst( Rational( 1 ) );
     retNode = NodeManager::currentNM()->mkNode(kind::STRING_SUBSTR, node[0], node[1], one);
@@ -1502,22 +1500,12 @@ Node TheoryStringsRewriter::rewriteContains( Node node ) {
       }
     }
   }else if( node[0].isConst() ){
-    CVC4::String t = node[0].getConst<String>();
-    if( t.size()==0 ){
+    if( node[0].getConst<String>().size()==0 ){
       return NodeManager::currentNM()->mkNode( kind::EQUAL, node[0], node[1] );
     }else if( node[1].getKind()==kind::STRING_CONCAT ){
-      //must find constant components in order
-      size_t pos = 0;
-      for(unsigned i=0; i<node[1].getNumChildren(); i++) {
-        if( node[1][i].isConst() ){
-          CVC4::String s = node[1][i].getConst<String>();
-          size_t new_pos = t.find(s,pos);
-          if( new_pos==std::string::npos ) {
-            return NodeManager::currentNM()->mkConst( false );
-          }else{
-            pos = new_pos + s.size();
-          }
-        }
+      int firstc, lastc;
+      if( !canConstantContainConcat( node[0], node[1], firstc, lastc ) ){
+        return NodeManager::currentNM()->mkConst( false );
       }
     }
   }
@@ -1710,3 +1698,83 @@ Node TheoryStringsRewriter::splitConstant( Node a, Node b, int& index, bool isRe
     return Node::null();
   }
 }
+
+bool TheoryStringsRewriter::canConstantContainConcat( Node c, Node n, int& firstc, int& lastc ) {
+  Assert( c.isConst() );
+  CVC4::String t = c.getConst<String>();
+  Assert( n.getKind()==kind::STRING_CONCAT );
+  //must find constant components in order
+  size_t pos = 0;
+  firstc = -1;
+  lastc = -1;
+  for(unsigned i=0; i<n.getNumChildren(); i++) {
+    if( n[i].isConst() ){
+      firstc = firstc==-1 ? i : firstc;
+      lastc = i;
+      CVC4::String s = n[i].getConst<String>();
+      size_t new_pos = t.find(s,pos);
+      if( new_pos==std::string::npos ) {
+        return false;
+      }else{
+        pos = new_pos + s.size();
+      }
+    }
+  }
+  return true;
+}
+
+bool TheoryStringsRewriter::canConstantContainList( Node c, std::vector< Node >& l, int& firstc, int& lastc ) {
+  Assert( c.isConst() );
+  CVC4::String t = c.getConst<String>();
+  //must find constant components in order
+  size_t pos = 0;
+  firstc = -1;
+  lastc = -1;
+  for(unsigned i=0; i<l.size(); i++) {
+    if( l[i].isConst() ){
+      firstc = firstc==-1 ? i : firstc;
+      lastc = i;
+      CVC4::String s = l[i].getConst<String>();
+      size_t new_pos = t.find(s,pos);
+      if( new_pos==std::string::npos ) {
+        return false;
+      }else{
+        pos = new_pos + s.size();
+      }
+    }
+  }
+  return true;
+}
+
+Node TheoryStringsRewriter::getNextConstantAt( std::vector< Node >& vec, unsigned& start_index, unsigned& end_index, bool isRev ) {
+  while( vec.size()>start_index && !vec[ start_index ].isConst() ){
+    //return Node::null();
+    start_index++;
+  }
+  if( start_index<vec.size() ){    
+    end_index = start_index;
+    return collectConstantStringAt( vec, end_index, isRev );
+  }else{
+    return Node::null();
+  }
+}
+
+Node TheoryStringsRewriter::collectConstantStringAt( std::vector< Node >& vec, unsigned& end_index, bool isRev ) {
+  std::vector< Node > c;
+  while( vec.size()>end_index && vec[ end_index ].isConst() ){
+    c.push_back( vec[ end_index ] );
+    end_index++;
+    //break;
+  }
+  if( !c.empty() ){
+    if( isRev ){
+      std::reverse( c.begin(), c.end() );
+    }
+    Node cc = Rewriter::rewrite( mkConcat( kind::STRING_CONCAT, c ) );
+    Assert( cc.isConst() );
+    return cc;
+  }else{
+    return Node::null();
+  }
+}
+

@@ -198,7 +198,9 @@ class TSatProof {
    */
   void constructProof(ClauseId id);
   void constructProof() { constructProof(d_emptyClauseId); }
+  bool proofConstructed() const;
   void collectClauses(ClauseId id);
+  bool derivedEmptyClause() const;
   prop::SatClause* buildClause(ClauseId id);
 
   virtual void printResolution(ClauseId id, std::ostream& out,
@@ -354,7 +356,7 @@ class TSatProof {
   IdToSatClause d_seenInputs;
   IdToSatClause d_seenLemmas;
 
- private:
+   private:
   __gnu_cxx::hash_map<ClauseId, int> d_glueMap;
   struct Statistics {
     IntStat d_numLearnedClauses;
@@ -369,6 +371,7 @@ class TSatProof {
     ~Statistics();
   };
 
+  bool d_satProofConstructed;
   Statistics d_statistics;
 }; /* class TSatProof */
 

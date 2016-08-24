@@ -32,6 +32,7 @@
               	(th_holds (= _
 		(apply _ _ (apply _ _ (read s1 s2) (apply _ _ (apply _ _ (apply _ _ (write s1 s2) t1) t2) t3)) t2) t3))))))))
 
+; read( a[i] = b, j ) == read( a, j ) if i != j
 (declare row (! s1 sort
              (! s2 sort
              (! t2 (term s1)
@@ -42,6 +43,7 @@
                (th_holds (= _ (apply _ _ (apply _ _ (read s1 s2) (apply _ _ (apply _ _ (apply _ _ (write s1 s2) t1) t2) t4)) t3)
                		      (apply _ _ (apply _ _ (read s1 s2) t1) t3)))))))))))
 
+; i == j if read( a, j ) != read( a[i] = b, j )
 (declare negativerow (! s1 sort
                      (! s2 sort
                      (! t2 (term s1)

@@ -46,6 +46,8 @@ public:
   virtual int addTerm( Node q, Node t, QuantifiersEngine* qe ) { return 0; }
   /** set active add */
   virtual void setActiveAdd( bool val ) {}
+  /** get active score */
+  virtual int getActiveScore( QuantifiersEngine * qe ) { return 0; }
 };/* class IMGenerator */
 
 class CandidateGenerator;
@@ -116,6 +118,7 @@ public:
 
   bool d_active_add;
   void setActiveAdd( bool val );
+  int getActiveScore( QuantifiersEngine * qe );
 
   static InstMatchGenerator* mkInstMatchGenerator( Node q, Node pat, QuantifiersEngine* qe );
   static InstMatchGenerator* mkInstMatchGenerator( Node q, std::vector< Node >& pats, QuantifiersEngine* qe );
@@ -239,6 +242,8 @@ public:
   int addInstantiations( Node q, InstMatch& baseMatch, QuantifiersEngine* qe );
   /** add ground term t, possibly add instantiations */
   int addTerm( Node q, Node t, QuantifiersEngine* qe );
+  /** get active score */
+  int getActiveScore( QuantifiersEngine * qe );
 };/* class InstMatchGeneratorSimple */
 
 }

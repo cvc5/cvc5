@@ -28,89 +28,58 @@ namespace CVC4 {
 namespace theory {
 namespace strings {
 
-StringsPreprocess::StringsPreprocess( context::UserContext* u ) : d_cache( u ){
+StringsPreprocess::StringsPreprocess( context::UserContext* u ){
   //Constants
   d_zero = NodeManager::currentNM()->mkConst( ::CVC4::Rational(0) );
+  d_one = NodeManager::currentNM()->mkConst( ::CVC4::Rational(1) );
 }
 
 StringsPreprocess::~StringsPreprocess(){
 
 }
 
-/*
-int StringsPreprocess::checkFixLenVar( Node t ) {
-  int ret = 2;
-  if(t.getKind() == kind::EQUAL) {
-    if(t[0].getType().isInteger() && t[0].isConst() && t[1].getKind() == kind::STRING_LENGTH) {
-      if(t[1][0].getKind() == kind::VARIABLE) {
-        ret = 0;
-      }
-    } else if(t[1].getType().isInteger() && t[1].isConst() && t[0].getKind() == kind::STRING_LENGTH) {
-      if(t[0][0].getKind() == kind::VARIABLE) {
-        ret = 1;
-      }
+Node StringsPreprocess::getUfForNode( Kind k, Node n, unsigned id ) {
+  std::map< unsigned, Node >::iterator it = d_uf[k].find( id );
+  if( it==d_uf[k].end() ){
+    std::vector< TypeNode > types;
+    for( unsigned i=0; i<n.getNumChildren(); i++ ){
+      types.push_back( n[i].getType() );
     }
+    TypeNode typ = NodeManager::currentNM()->mkFunctionType( types, n.getType() );
+    Node f = NodeManager::currentNM()->mkSkolem( "sop", typ, "op created for string op" );
+    d_uf[k][id] = f;
+    return f;
+  }else{
+    return it->second;
   }
-  if(ret != 2) {
-    unsigned len = t[ret].getConst<Rational>().getNumerator().toUnsignedInt();
-    if(len < 2) {
-      ret = 2;
-    }
-  }
-  if(!options::stringExp()) {
-    ret = 2;
-  }
-  return ret;
 }
-*/
-Node StringsPreprocess::simplify( Node t, std::vector< Node > &new_nodes ) {
-  NodeNodeMap::const_iterator i = d_cache.find(t);
-  if(i != d_cache.end()) {
-    return (*i).second.isNull() ? t : (*i).second;
-  }
 
-  Trace("strings-preprocess") << "StringsPreprocess::simplify: " << t << std::endl;
+//pro: congruence possible, con: introduces UF/requires theory combination
+//  currently hurts performance
+//TODO: for all skolems below
+Node StringsPreprocess::getUfAppForNode( Kind k, Node n, unsigned id ) {
+  std::vector< Node > children;
+  children.push_back( getUfForNode( k, n, id ) );
+  for( unsigned i=0; i<n.getNumChildren(); i++ ){
+    children.push_back( n[i] );
+  }
+  return NodeManager::currentNM()->mkNode( kind::APPLY_UF, children );
+}
+
+//returns an n such that t can be replaced by n, under the assumption of lemmas in new_nodes
+
+Node StringsPreprocess::simplify( Node t, std::vector< Node > &new_nodes ) {
+  unsigned prev_new_nodes = new_nodes.size();
+  Trace("strings-preprocess-debug") << "StringsPreprocess::simplify: " << t << std::endl;
   Node retNode = t;
 
-  /*int c_id = checkFixLenVar(t);
-  if( c_id != 2 ) {
-    int v_id = 1 - c_id;
-    int len = t[c_id].getConst<Rational>().getNumerator().toUnsignedInt();
-    if(len > 1) {
-      Node one = NodeManager::currentNM()->mkConst( ::CVC4::Rational(1) );
-      std::vector< Node > vec;
-      for(int i=0; i<len; i++) {
-        Node num = NodeManager::currentNM()->mkConst( ::CVC4::Rational(i) );
-        //Node sk = NodeManager::currentNM()->mkNode(kind::STRING_CHARAT, t[v_id][0], num);
-        Node sk = NodeManager::currentNM()->mkNode(kind::APPLY_UF, d_ufSubstr, t[v_id][0], num, one);
-        vec.push_back(sk);
-        Node cc = one.eqNode(NodeManager::currentNM()->mkNode( kind::STRING_LENGTH, sk ));
-        new_nodes.push_back( cc );
-      }
-      Node lem = t[v_id][0].eqNode( NodeManager::currentNM()->mkNode( kind::STRING_CONCAT, vec ) );
-      lem = NodeManager::currentNM()->mkNode( kind::IMPLIES, t, lem );
-      new_nodes.push_back( lem );
-      d_cache[t] = t;
-      retNode = t;
-    }
-  } else */
   if( t.getKind() == kind::STRING_SUBSTR ) {
-    /*
-    Node lenxgti = NodeManager::currentNM()->mkNode( kind::GEQ,
-          NodeManager::currentNM()->mkNode( kind::STRING_LENGTH, t[0] ),
-          NodeManager::currentNM()->mkNode( kind::PLUS, t[1], t[2] ) );
-    Node t1geq0 = NodeManager::currentNM()->mkNode(kind::GEQ, t[1], d_zero);
-    Node t2geq0 = NodeManager::currentNM()->mkNode(kind::GT, t[2], d_zero);
-    Node cond = Rewriter::rewrite( NodeManager::currentNM()->mkNode( kind::AND, lenxgti, t1geq0, t2geq0 ));
-    Node sk1 = NodeManager::currentNM()->mkSkolem( "ss1", NodeManager::currentNM()->stringType(), "created for charat/substr" );
-    Node sk3 = NodeManager::currentNM()->mkSkolem( "ss3", NodeManager::currentNM()->stringType(), "created for charat/substr" );
-    Node x_eq_123 = t[0].eqNode( NodeManager::currentNM()->mkNode( kind::STRING_CONCAT, sk1, t, sk3 ) );
-    Node len_sk1_eq_i = t[1].eqNode( NodeManager::currentNM()->mkNode( kind::STRING_LENGTH, sk1 ) );
-    Node lenc = t[2].eqNode( NodeManager::currentNM()->mkNode( kind::STRING_LENGTH, t ) );
-    Node lemma = Rewriter::rewrite( NodeManager::currentNM()->mkNode( kind::ITE, cond,
-            NodeManager::currentNM()->mkNode( kind::AND, x_eq_123, len_sk1_eq_i, lenc ),
-            t.eqNode(NodeManager::currentNM()->mkConst( ::CVC4::String("") )) ));
-            */
+    Node skt;
+    if( options::stringUfReduct() ){
+      skt = getUfAppForNode( kind::STRING_SUBSTR, t );
+    }else{
+      skt = NodeManager::currentNM()->mkSkolem( "sst", NodeManager::currentNM()->stringType(), "created for substr" );
+    }
     Node t12 = NodeManager::currentNM()->mkNode( kind::PLUS, t[1], t[2] );
     Node lt0 = NodeManager::currentNM()->mkNode( kind::STRING_LENGTH, t[0] );
     //start point is greater than or equal zero
@@ -120,10 +89,10 @@ Node StringsPreprocess::simplify( Node t, std::vector< Node > &new_nodes ) {
     //length is positive
     Node c3 = NodeManager::currentNM()->mkNode( kind::GT, t[2], d_zero );
     Node cond = NodeManager::currentNM()->mkNode( kind::AND, c1, c2, c3 );
-
+  
     Node sk1 = NodeManager::currentNM()->mkSkolem( "ss1", NodeManager::currentNM()->stringType(), "created for substr" );
     Node sk2 = NodeManager::currentNM()->mkSkolem( "ss2", NodeManager::currentNM()->stringType(), "created for substr" );
-    Node b11 = t[0].eqNode( NodeManager::currentNM()->mkNode( kind::STRING_CONCAT, sk1, t, sk2 ) );
+    Node b11 = t[0].eqNode( NodeManager::currentNM()->mkNode( kind::STRING_CONCAT, sk1, skt, sk2 ) );
     //length of first skolem is second argument
     Node b12 = NodeManager::currentNM()->mkNode( kind::STRING_LENGTH, sk1 ).eqNode( t[1] );
     //length of second skolem is abs difference between end point and end of string
@@ -132,34 +101,38 @@ Node StringsPreprocess::simplify( Node t, std::vector< Node > &new_nodes ) {
                     NodeManager::currentNM()->mkNode( kind::MINUS, lt0, t12 ), d_zero ) );
 
     Node b1 = NodeManager::currentNM()->mkNode( kind::AND, b11, b12, b13 );
-    Node b2 = t.eqNode( NodeManager::currentNM()->mkConst( ::CVC4::String("") ) );
-
-    Node lemma = Rewriter::rewrite( NodeManager::currentNM()->mkNode( kind::ITE, cond, b1, b2 ) );
+    Node b2 = skt.eqNode( NodeManager::currentNM()->mkConst( ::CVC4::String("") ) );
+    Node lemma = NodeManager::currentNM()->mkNode( kind::ITE, cond, b1, b2 );
     new_nodes.push_back( lemma );
-    d_cache[t] = t;
+    retNode = skt;
   } else if( t.getKind() == kind::STRING_STRIDOF ) {
     Node sk2 = NodeManager::currentNM()->mkSkolem( "io2", NodeManager::currentNM()->stringType(), "created for indexof" );
     Node sk3 = NodeManager::currentNM()->mkSkolem( "io3", NodeManager::currentNM()->stringType(), "created for indexof" );
     Node sk4 = NodeManager::currentNM()->mkSkolem( "io4", NodeManager::currentNM()->stringType(), "created for indexof" );
-    Node skk = NodeManager::currentNM()->mkSkolem( "iok", NodeManager::currentNM()->integerType(), "created for indexof" );
+    Node skk;
+    if( options::stringUfReduct() ){
+      skk = getUfAppForNode( kind::STRING_STRIDOF, t );
+    }else{
+      skk = NodeManager::currentNM()->mkSkolem( "iok", NodeManager::currentNM()->integerType(), "created for indexof" );
+    }
     Node st = NodeManager::currentNM()->mkNode( kind::STRING_SUBSTR, t[0], t[2], NodeManager::currentNM()->mkNode( kind::MINUS, NodeManager::currentNM()->mkNode( kind::STRING_LENGTH, t[0] ), t[2] ) );
     Node eq = st.eqNode( NodeManager::currentNM()->mkNode( kind::STRING_CONCAT, sk2, sk3, sk4 ) );
     new_nodes.push_back( eq );
     Node negone = NodeManager::currentNM()->mkConst( ::CVC4::Rational(-1) );
     Node krange = NodeManager::currentNM()->mkNode( kind::GEQ, skk, negone );
     new_nodes.push_back( krange );
-    krange = Rewriter::rewrite( NodeManager::currentNM()->mkNode( kind::GT, NodeManager::currentNM()->mkNode( kind::STRING_LENGTH, t[0] ), skk) );
+    krange = NodeManager::currentNM()->mkNode( kind::GT, NodeManager::currentNM()->mkNode( kind::STRING_LENGTH, t[0] ), skk);
     new_nodes.push_back( krange );
-    krange = Rewriter::rewrite( NodeManager::currentNM()->mkNode( kind::GT, NodeManager::currentNM()->mkNode( kind::STRING_LENGTH, t[1] ), d_zero) );
+    krange = NodeManager::currentNM()->mkNode( kind::GT, NodeManager::currentNM()->mkNode( kind::STRING_LENGTH, t[1] ), d_zero);
     new_nodes.push_back( krange );
-    Node start_valid = Rewriter::rewrite( NodeManager::currentNM()->mkNode( kind::GEQ, t[2], d_zero) );
+    Node start_valid = NodeManager::currentNM()->mkNode( kind::GEQ, t[2], d_zero);
 
     //str.len(s1) < y + str.len(s2)
-    Node c1 = Rewriter::rewrite(NodeManager::currentNM()->mkNode( kind::GT,
-            NodeManager::currentNM()->mkNode( kind::PLUS, t[2], NodeManager::currentNM()->mkNode( kind::STRING_LENGTH, t[1] )),
-            NodeManager::currentNM()->mkNode( kind::STRING_LENGTH, t[0] )));
+    Node c1 = NodeManager::currentNM()->mkNode( kind::GT,
+                                                NodeManager::currentNM()->mkNode( kind::PLUS, t[2], NodeManager::currentNM()->mkNode( kind::STRING_LENGTH, t[1] )),
+                                                NodeManager::currentNM()->mkNode( kind::STRING_LENGTH, t[0] ));
     //~contain(t234, s2)
-    Node c3 = Rewriter::rewrite(NodeManager::currentNM()->mkNode( kind::STRING_STRCTN, st, t[1] ).negate());
+    Node c3 = NodeManager::currentNM()->mkNode( kind::STRING_STRCTN, st, t[1] ).negate();
     //left
     Node left = NodeManager::currentNM()->mkNode( kind::OR, c1, c3, start_valid.negate() );
     //t3 = s2
@@ -176,23 +149,22 @@ Node StringsPreprocess::simplify( Node t, std::vector< Node > &new_nodes ) {
     Node c6 = skk.eqNode( NodeManager::currentNM()->mkNode( kind::PLUS, t[2],
                             NodeManager::currentNM()->mkNode( kind::STRING_LENGTH, sk2 )) );
     //right
-    Node right = Rewriter::rewrite(NodeManager::currentNM()->mkNode( kind::AND, c4, c5, c6, start_valid ));
+    Node right = NodeManager::currentNM()->mkNode( kind::AND, c4, c5, c6, start_valid );
     Node cond = skk.eqNode( negone );
     Node rr = NodeManager::currentNM()->mkNode( kind::ITE, cond, left, right );
     new_nodes.push_back( rr );
-    if( options::stringLazyPreproc() ){
-      new_nodes.push_back( t.eqNode( skk ) );
-      d_cache[t] = Node::null();
-    }else{
-      d_cache[t] = skk;
-      retNode = skk;
-    }
+    retNode = skk;
   } else if( t.getKind() == kind::STRING_ITOS || t.getKind() == kind::STRING_U16TOS || t.getKind() == kind::STRING_U32TOS ) {
     //Node num = Rewriter::rewrite(NodeManager::currentNM()->mkNode(kind::ITE,
     //        NodeManager::currentNM()->mkNode(kind::GEQ, t[0], d_zero),
     //        t[0], NodeManager::currentNM()->mkNode(kind::UMINUS, t[0])));
     Node num = t[0];
-    Node pret = NodeManager::currentNM()->mkNode(kind::STRING_ITOS, num);
+    Node pret;
+    if( options::stringUfReduct() ){
+      pret = NodeManager::currentNM()->mkNode(kind::STRING_ITOS, num);
+    }else{
+      pret = NodeManager::currentNM()->mkSkolem( "itost", NodeManager::currentNM()->stringType(), "created for itos" );
+    }
     Node lenp = NodeManager::currentNM()->mkNode(kind::STRING_LENGTH, pret);
 
     Node nonneg = NodeManager::currentNM()->mkNode(kind::GEQ, t[0], d_zero);
@@ -214,8 +186,8 @@ Node StringsPreprocess::simplify( Node t, std::vector< Node > &new_nodes ) {
     //non-neg
     Node b1 = NodeManager::currentNM()->mkBoundVar(NodeManager::currentNM()->integerType());
     Node b1v = NodeManager::currentNM()->mkNode(kind::BOUND_VAR_LIST, b1);
-    Node g1 = Rewriter::rewrite( NodeManager::currentNM()->mkNode( kind::AND, NodeManager::currentNM()->mkNode( kind::GEQ, b1, d_zero ),
-          NodeManager::currentNM()->mkNode( kind::GT, lenp, b1 ) ) );
+    Node g1 = NodeManager::currentNM()->mkNode( kind::AND, NodeManager::currentNM()->mkNode( kind::GEQ, b1, d_zero ),
+                                                           NodeManager::currentNM()->mkNode( kind::GT, lenp, b1 ) );
     Node one = NodeManager::currentNM()->mkConst( ::CVC4::Rational(1) );
     Node nine = NodeManager::currentNM()->mkConst( ::CVC4::Rational(9) );
     Node ten = NodeManager::currentNM()->mkConst( ::CVC4::Rational(10) );
@@ -284,7 +256,7 @@ Node StringsPreprocess::simplify( Node t, std::vector< Node > &new_nodes ) {
     svec.push_back(cc1);svec.push_back(cc2);
     svec.push_back(cc21);
     svec.push_back(cc3);svec.push_back(cc4);svec.push_back(cc5);
-    Node conc = Rewriter::rewrite( NodeManager::currentNM()->mkNode(kind::AND, svec) );
+    Node conc = NodeManager::currentNM()->mkNode(kind::AND, svec);
     conc = NodeManager::currentNM()->mkNode( kind::IMPLIES, g1, conc );
     conc = NodeManager::currentNM()->mkNode( kind::FORALL, b1v, conc );
     conc = NodeManager::currentNM()->mkNode( kind::IMPLIES, nonneg, conc );
@@ -295,20 +267,17 @@ Node StringsPreprocess::simplify( Node t, std::vector< Node > &new_nodes ) {
             t.eqNode(NodeManager::currentNM()->mkNode(kind::STRING_CONCAT,
               NodeManager::currentNM()->mkConst(::CVC4::String("-")), pret))));
     new_nodes.push_back( conc );*/
-    if( options::stringLazyPreproc() && t!=pret ){
-      new_nodes.push_back( t.eqNode( pret ) );
-      d_cache[t] = Node::null();
-    }else{
-      d_cache[t] = pret;
-      retNode = pret;
-    }
-    //don't rewrite processed
-    if(t != pret) {
-      d_cache[pret] = pret;
-    }
+    retNode = pret;
   } else if( t.getKind() == kind::STRING_STOI || t.getKind() == kind::STRING_STOU16 || t.getKind() == kind::STRING_STOU32 ) {
     Node str = t[0];
-    Node pret = NodeManager::currentNM()->mkNode(kind::STRING_STOI, str);
+    Node pret;
+    if( options::stringUfReduct() ){
+      pret = getUfAppForNode( kind::STRING_STOI, t );
+    }else{
+      pret = NodeManager::currentNM()->mkSkolem( "stoit", NodeManager::currentNM()->integerType(), "created for stoi" );
+    }
+    //Node pret = NodeManager::currentNM()->mkNode(kind::STRING_STOI, str);
+    //Node pret = getUfAppForNode( kind::STRING_STOI, t );
     Node lenp = NodeManager::currentNM()->mkNode(kind::STRING_LENGTH, str);
 
     Node negone = NodeManager::currentNM()->mkConst( ::CVC4::Rational(-1) );
@@ -363,7 +332,7 @@ Node StringsPreprocess::simplify( Node t, std::vector< Node > &new_nodes ) {
       g = z2.eqNode( NodeManager::currentNM()->mkConst(::CVC4::String(stmp)) ).negate();
       vec_n.push_back(g);
     }
-    Node cc2 = Rewriter::rewrite(NodeManager::currentNM()->mkNode(kind::AND, vec_n));
+    Node cc2 = NodeManager::currentNM()->mkNode(kind::AND, vec_n);
     //cc3
     Node b2 = NodeManager::currentNM()->mkBoundVar(NodeManager::currentNM()->integerType());
     Node b2v = NodeManager::currentNM()->mkNode(kind::BOUND_VAR_LIST, b2);
@@ -397,7 +366,7 @@ Node StringsPreprocess::simplify( Node t, std::vector< Node > &new_nodes ) {
         ufMx)));
     vec_c3b.push_back(c3cc);
     c3cc = NodeManager::currentNM()->mkNode(kind::AND, vec_c3b);
-    c3cc = Rewriter::rewrite( NodeManager::currentNM()->mkNode(kind::IMPLIES, g2, c3cc) );
+    c3cc = NodeManager::currentNM()->mkNode(kind::IMPLIES, g2, c3cc);
     c3cc = NodeManager::currentNM()->mkNode(kind::FORALL, b2v, c3cc);
     vec_c3.push_back(c3cc);
     //unbound
@@ -411,16 +380,7 @@ Node StringsPreprocess::simplify( Node t, std::vector< Node > &new_nodes ) {
     Node conc = NodeManager::currentNM()->mkNode(kind::ITE, pret.eqNode(negone),
             NodeManager::currentNM()->mkNode(kind::OR, cc1, cc2), cc3);
     new_nodes.push_back( conc );
-    if( options::stringLazyPreproc() && t!=pret ){
-      new_nodes.push_back( t.eqNode( pret ) );
-      d_cache[t] = Node::null();
-    }else{
-      d_cache[t] = pret;
-      retNode = pret;
-    }
-    if(t != pret) {
-      d_cache[pret] = pret;
-    }
+    retNode = pret;
   } else if( t.getKind() == kind::STRING_STRREPL ) {
     Node x = t[0];
     Node y = t[1];
@@ -429,6 +389,7 @@ Node StringsPreprocess::simplify( Node t, std::vector< Node > &new_nodes ) {
     Node sk2 = NodeManager::currentNM()->mkSkolem( "rp2", t[0].getType(), "created for replace" );
     Node skw = NodeManager::currentNM()->mkSkolem( "rpw", t[0].getType(), "created for replace" );
     Node cond = NodeManager::currentNM()->mkNode( kind::STRING_STRCTN, x, y );
+    cond = NodeManager::currentNM()->mkNode( kind::AND, cond, NodeManager::currentNM()->mkNode(kind::GT, NodeManager::currentNM()->mkNode(kind::STRING_LENGTH, y), d_zero) );
     Node c1 = x.eqNode( NodeManager::currentNM()->mkNode( kind::STRING_CONCAT, sk1, y, sk2 ) );
     Node c2 = skw.eqNode( NodeManager::currentNM()->mkNode( kind::STRING_CONCAT, sk1, z, sk2 ) );
     Node c3 = NodeManager::currentNM()->mkNode(kind::STRING_STRCTN,
@@ -437,98 +398,107 @@ Node StringsPreprocess::simplify( Node t, std::vector< Node > &new_nodes ) {
                       NodeManager::currentNM()->mkNode(kind::MINUS,
                         NodeManager::currentNM()->mkNode(kind::STRING_LENGTH, y),
                         NodeManager::currentNM()->mkConst(::CVC4::Rational(1))))), y).negate();
-    Node rr = Rewriter::rewrite( NodeManager::currentNM()->mkNode( kind::ITE, cond,
-            NodeManager::currentNM()->mkNode( kind::AND, c1, c2, c3),
-            skw.eqNode(x) ) );
+    Node rr = NodeManager::currentNM()->mkNode( kind::ITE, cond,
+                                                NodeManager::currentNM()->mkNode( kind::AND, c1, c2, c3),
+                                                skw.eqNode(x) );
     new_nodes.push_back( rr );
-    rr = Rewriter::rewrite( NodeManager::currentNM()->mkNode(kind::GT, NodeManager::currentNM()->mkNode(kind::STRING_LENGTH, y), d_zero) );
-    new_nodes.push_back( rr );
-    if( options::stringLazyPreproc() ){
-      new_nodes.push_back( t.eqNode( skw ) );
-      d_cache[t] = Node::null();
-    }else{
-      d_cache[t] = skw;
-      retNode = skw;
-    }
-  } else{
-    d_cache[t] = Node::null();
+    retNode = skw;
+  } else if( t.getKind() == kind::STRING_STRCTN ){
+    Node x = t[0];
+    Node s = t[1];
+    //negative contains reduces to existential
+    Node lenx = NodeManager::currentNM()->mkNode(kind::STRING_LENGTH, x);
+    Node lens = NodeManager::currentNM()->mkNode(kind::STRING_LENGTH, s);
+    Node b1 = NodeManager::currentNM()->mkBoundVar(NodeManager::currentNM()->integerType());
+    Node b1v = NodeManager::currentNM()->mkNode(kind::BOUND_VAR_LIST, b1);
+    Node body = NodeManager::currentNM()->mkNode( kind::AND, 
+                  NodeManager::currentNM()->mkNode( kind::LEQ, d_zero, b1 ),
+                  NodeManager::currentNM()->mkNode( kind::LEQ, b1, NodeManager::currentNM()->mkNode( kind::MINUS, lenx, lens ) ),
+                  NodeManager::currentNM()->mkNode( kind::EQUAL, NodeManager::currentNM()->mkNode(kind::STRING_SUBSTR, x, b1, lens), s )                
+                );
+    retNode = NodeManager::currentNM()->mkNode( kind::EXISTS, b1v, body );
   }
 
-  /*if( t.getNumChildren()>0 ) {
-    std::vector< Node > cc;
-    if (t.getMetaKind() == kind::metakind::PARAMETERIZED) {
-      cc.push_back(t.getOperator());
-    }
-    bool changed = false;
-    for( unsigned i=0; i<t.getNumChildren(); i++ ){
-      Node tn = simplify( t[i], new_nodes );
-      cc.push_back( tn );
-      changed = changed || tn!=t[i];
-    }
-    if(changed) {
-      Node n = NodeManager::currentNM()->mkNode( t.getKind(), cc );
-      d_cache[t] = n;
-      retNode = n;
-    } else {
-      d_cache[t] = Node::null();
-      retNode = t;
-    }
-  }*/
   if( t!=retNode ){
-    Trace("strings-preprocess-debug") << "StringsPreprocess::simplify: " << t << " -> " << retNode << std::endl;
+    Trace("strings-preprocess") << "StringsPreprocess::simplify: " << t << " -> " << retNode << std::endl;
     if(!new_nodes.empty()) {
-      Trace("strings-preprocess-debug") << " ... new nodes (" << new_nodes.size() << "):\n";
-      for(unsigned int i=0; i<new_nodes.size(); ++i) {
-        Trace("strings-preprocess-debug") << "\t" << new_nodes[i] << "\n";
+      Trace("strings-preprocess") << " ... new nodes (" << (new_nodes.size()-prev_new_nodes) << "):" << std::endl;
+      for(unsigned int i=prev_new_nodes; i<new_nodes.size(); ++i) {
+        Trace("strings-preprocess") << "   " << new_nodes[i] << std::endl;
       }
     }
   }
   return retNode;
 }
 
-Node StringsPreprocess::decompose(Node t, std::vector< Node > & new_nodes) {
-  NodeNodeMap::const_iterator i = d_cache.find(t);
-  if(i != d_cache.end()) {
-    return (*i).second.isNull() ? t : (*i).second;
-  }
-
-  unsigned num = t.getNumChildren();
-  if(num == 0) {
-    return simplify(t, new_nodes);
+Node StringsPreprocess::simplifyRec( Node t, std::vector< Node > & new_nodes, std::map< Node, Node >& visited ){
+  std::map< Node, Node >::iterator it = visited.find(t);
+  if( it!=visited.end() ){
+    return it->second;
   }else{
-    bool changed = false;
-    std::vector< Node > cc;
-    if (t.getMetaKind() == kind::metakind::PARAMETERIZED) {
-      cc.push_back(t.getOperator());
-    }
-    for(unsigned i=0; i<t.getNumChildren(); i++) {
-      Node s = decompose(t[i], new_nodes);
-      cc.push_back( s );
-      if(s != t[i]) {
-        changed = true;
+    Node retNode;
+    if( t.getNumChildren()==0 ){
+      retNode = simplify( t, new_nodes );
+    }else if( t.getKind()!=kind::FORALL ){
+      bool changed = false;
+      std::vector< Node > cc;
+      if( t.getMetaKind() == kind::metakind::PARAMETERIZED ){
+        cc.push_back( t.getOperator() );
       }
+      for(unsigned i=0; i<t.getNumChildren(); i++) {
+        Node s = simplifyRec( t[i], new_nodes, visited );
+        cc.push_back( s );
+        if( s!=t[i] ) {
+          changed = true;
+        }
+      }
+      Node tmp = t;
+      if( changed ){
+        tmp = NodeManager::currentNM()->mkNode( t.getKind(), cc );
+      }
+      retNode = simplify( tmp, new_nodes ); 
     }
-    if(changed) {
-      Node tmp = NodeManager::currentNM()->mkNode( t.getKind(), cc );
-      return simplify(tmp, new_nodes);
-    } else {
-      return simplify(t, new_nodes);
-    }
+    visited[t] = retNode;
+    return retNode;
   }
 }
 
-void StringsPreprocess::simplify(std::vector< Node > &vec_node) {
+Node StringsPreprocess::processAssertion( Node n, std::vector< Node > &new_nodes ) {
+  std::map< Node, Node > visited;
+  std::vector< Node > new_nodes_curr;
+  Node ret = simplifyRec( n, new_nodes_curr, visited );
+  while( !new_nodes_curr.empty() ){
+    Node curr = new_nodes_curr.back();
+    new_nodes_curr.pop_back();
+    std::vector< Node > new_nodes_tmp;
+    curr = simplifyRec( curr, new_nodes_tmp, visited );
+    new_nodes_curr.insert( new_nodes_curr.end(), new_nodes_tmp.begin(), new_nodes_tmp.end() );
+    new_nodes.push_back( curr );
+  }
+  return ret;
+}
+
+void StringsPreprocess::processAssertions( std::vector< Node > &vec_node ){
+  std::map< Node, Node > visited;
   for( unsigned i=0; i<vec_node.size(); i++ ){
+    Trace("strings-preprocess-debug") << "Preprocessing assertion " << vec_node[i] << std::endl;
+    //preprocess until fixed point
     std::vector< Node > new_nodes;
-    Node curr = decompose( vec_node[i], new_nodes );
-    if( !new_nodes.empty() ){
-      new_nodes.insert( new_nodes.begin(), curr );
-      curr = NodeManager::currentNM()->mkNode( kind::AND, new_nodes );
+    std::vector< Node > new_nodes_curr;
+    new_nodes_curr.push_back( vec_node[i] );
+    while( !new_nodes_curr.empty() ){
+      Node curr = new_nodes_curr.back();
+      new_nodes_curr.pop_back();
+      std::vector< Node > new_nodes_tmp;
+      curr = simplifyRec( curr, new_nodes_tmp, visited );
+      new_nodes_curr.insert( new_nodes_curr.end(), new_nodes_tmp.begin(), new_nodes_tmp.end() );
+      new_nodes.push_back( curr );
     }
-    if( curr!=vec_node[i] ){
-      curr = Rewriter::rewrite( curr );
-      PROOF( ProofManager::currentPM()->addDependence(curr, vec_node[i]); );
-      vec_node[i] = curr;
+    Node res = new_nodes.size()==1 ? new_nodes[0] : NodeManager::currentNM()->mkNode( kind::AND, new_nodes );
+    if( res!=vec_node[i] ){
+      res = Rewriter::rewrite( res );
+      PROOF( ProofManager::currentPM()->addDependence( res, vec_node[i] ); );
+      vec_node[i] = res;
     }
   }
 }

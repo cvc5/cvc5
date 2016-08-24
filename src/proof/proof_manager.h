@@ -21,13 +21,11 @@
 
 #include <iosfwd>
 #include <map>
-#include "proof/proof.h"
-#include "proof/proof_utils.h"
-#include "proof/skolemization_manager.h"
-#include "util/proof.h"
 #include "expr/node.h"
 #include "proof/clause_id.h"
 #include "proof/proof.h"
+#include "proof/proof_utils.h"
+#include "proof/skolemization_manager.h"
 #include "theory/logic_info.h"
 #include "theory/substitutions.h"
 #include "util/proof.h"
@@ -147,6 +145,7 @@ class ProofManager {
 
   // information that will need to be shared across proofs
   ExprSet    d_inputFormulas;
+  std::map<Expr, std::string> d_inputFormulaToName;
   ExprSet    d_inputCoreFormulas;
   ExprSet    d_outputCoreFormulas;
 
@@ -158,12 +157,11 @@ class ProofManager {
   ProofFormat d_format; // used for now only in debug builds
 
   NodeToNodes d_deps;
-  // trace dependences back to unsat core
-  void traceDeps(TNode n);
 
   std::set<Type> d_printedTypes;
 
   std::map<std::string, std::string> d_rewriteFilters;
+  std::map<Node, std::string> d_assertionFilters;
 
   std::vector<RewriteLogEntry> d_rewriteLog;
 
@@ -204,6 +202,9 @@ public:
   }
   assertions_iterator end_assertions() const { return d_inputFormulas.end(); }
   size_t num_assertions() const { return d_inputFormulas.size(); }
+  bool have_input_assertion(const Expr& assertion) {
+    return d_inputFormulas.find(assertion) != d_inputFormulas.end();
+  }
 
 //---from Morgan---
   Node mkOp(TNode n);
@@ -222,6 +223,7 @@ public:
   static std::string getLearntClauseName(ClauseId id, const std::string& prefix = "");
   static std::string getPreprocessedAssertionName(Node node, const std::string& prefix = "");
   static std::string getAssertionName(Node node, const std::string& prefix = "");
+  static std::string getInputFormulaName(const Expr& expr);
 
   static std::string getVarName(prop::SatVariable var, const std::string& prefix = "");
   static std::string getAtomName(prop::SatVariable var, const std::string& prefix = "");
@@ -241,10 +243,16 @@ public:
   void addDependence(TNode n, TNode dep);
   void addUnsatCore(Expr formula);
 
+  // trace dependences back to unsat core
+  void traceDeps(TNode n, ExprSet* coreAssertions);
   void traceUnsatCore();
   assertions_iterator begin_unsat_core() const { return d_outputCoreFormulas.begin(); }
   assertions_iterator end_unsat_core() const { return d_outputCoreFormulas.end(); }
   size_t size_unsat_core() const { return d_outputCoreFormulas.size(); }
+
+  bool unsatCoreAvailable() const;
+  void getLemmasInUnsatCore(theory::TheoryId theory, std::vector<Node> &lemmas);
+  Node getWeakestImplicantInUnsatCore(Node lemma);
 
   int nextId() { return d_nextId++; }
 
@@ -258,6 +266,8 @@ public:
   void addRewriteFilter(const std::string &original, const std::string &substitute);
   void clearRewriteFilters();
 
+  void addAssertionFilter(const Node& node, const std::string& rewritten);
+
   static void registerRewrite(unsigned ruleId, Node original, Node result);
   static void clearRewriteLog();
 
@@ -268,6 +278,10 @@ public:
                          ProofLetMap& letMap,
                          std::ostream& out,
                          std::ostringstream& paren);
+
+private:
+  void constructSatProof();
+  std::set<Node> satClauseToNodeSet(prop::SatClause* clause);
 };/* class ProofManager */
 
 class LFSCProof : public Proof {
@@ -281,6 +295,9 @@ class LFSCProof : public Proof {
                                    std::ostream& os,
                                    std::ostream& paren,
                                    ProofLetMap& globalLetMap);
+
+  void checkUnrewrittenAssertion(const NodeSet& assertions);
+
 public:
   LFSCProof(SmtEngine* smtEngine,
             LFSCCoreSatProof* sat,

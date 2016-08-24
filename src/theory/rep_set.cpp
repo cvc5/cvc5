@@ -366,12 +366,12 @@ int RepSetIterator::resetIndex( int i, bool initial ) {
       d_domain[v].clear();
       d_setm_bounds[v].clear();
       if( srv.getKind()!=EMPTYSET ){
-        //TODO: need term model, not value model
         while( srv.getKind()==UNION ){
           Assert( srv[1].getKind()==kind::SINGLETON );
           d_setm_bounds[v].push_back( srv[1][0] );
           srv = srv[0];
         }
+        Assert( srv.getKind()==kind::SINGLETON );
         d_setm_bounds[v].push_back( srv[0] );
         d_domain[v].push_back( d_setm_bounds[v].size() );
       }else{

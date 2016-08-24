@@ -16,6 +16,7 @@
 **/
 
 #include "options/bv_options.h"
+#include "options/proof_options.h"
 #include "proof/array_proof.h"
 #include "proof/bitvector_proof.h"
 #include "proof/clause_id.h"
@@ -41,6 +42,7 @@ BitVectorProof::BitVectorProof(theory::bv::TheoryBV* bv, TheoryProofEngine* proo
   , d_resolutionProof(NULL)
   , d_cnfProof(NULL)
   , d_bitblaster(NULL)
+  , d_useConstantLetification(false)
 {}
 
 void BitVectorProof::initSatProof(CVC4::BVMinisat::Solver* solver) {
@@ -116,6 +118,14 @@ void BitVectorProof::registerAtomBB(Expr atom, Expr atom_bb) {
 
 void BitVectorProof::registerTerm(Expr term) {
   Debug("pf::bv") << "BitVectorProof::registerTerm( " << term << " )" << std::endl;
+
+  if (options::lfscLetification() && term.isConst()) {
+    if (d_constantLetMap.find(term) == d_constantLetMap.end()) {
+      std::ostringstream name;
+      name << "letBvc" << d_constantLetMap.size();
+      d_constantLetMap[term] = name.str();
+    }
+  }
 
   d_usedBB.insert(term);
 
@@ -384,16 +394,21 @@ void LFSCBitVectorProof::printBitOf(Expr term, std::ostream& os, const ProofLetM
 
 void LFSCBitVectorProof::printConstant(Expr term, std::ostream& os) {
   Assert (term.isConst());
-  os <<"(a_bv " << utils::getSize(term)<<" ";
-  std::ostringstream paren;
-  int size = utils::getSize(term);
-  for (int i = size - 1; i >= 0; --i) {
-    os << "(bvc ";
-    os << (utils::getBit(term, i) ? "b1" : "b0") <<" ";
-    paren << ")";
+  os << "(a_bv " << utils::getSize(term) << " ";
+
+  if (d_useConstantLetification) {
+    os << d_constantLetMap[term] << ")";
+  } else {
+    std::ostringstream paren;
+    int size = utils::getSize(term);
+    for (int i = size - 1; i >= 0; --i) {
+      os << "(bvc ";
+      os << (utils::getBit(term, i) ? "b1" : "b0") <<" ";
+      paren << ")";
+    }
+    os << " bvn)";
+    os << paren.str();
   }
-  os << " bvn)";
-  os << paren.str();
 }
 
 void LFSCBitVectorProof::printOperatorNary(Expr term, std::ostream& os, const ProofLetMap& map) {
@@ -464,7 +479,7 @@ void LFSCBitVectorProof::printOwnedSort(Type type, std::ostream& os) {
   Debug("pf::bv") << std::endl << "(pf::bv) LFSCBitVectorProof::printOwnedSort( " << type << " )" << std::endl;
   Assert (type.isBitVector());
   unsigned width = utils::getSize(type);
-  os << "(BitVec "<<width<<")";
+  os << "(BitVec " << width << ")";
 }
 
 void LFSCBitVectorProof::printTheoryLemmaProof(std::vector<Expr>& lemma, std::ostream& os, std::ostream& paren, const ProofLetMap& map) {
@@ -653,10 +668,29 @@ void LFSCBitVectorProof::printTermDeclarations(std::ostream& os, std::ostream& p
 }
 
 void LFSCBitVectorProof::printDeferredDeclarations(std::ostream& os, std::ostream& paren) {
-  // Nothing to do here at this point.
+  if (options::lfscLetification()) {
+    os << std::endl << ";; BV const letification\n" << std::endl;
+    std::map<Expr,std::string>::const_iterator it;
+    for (it = d_constantLetMap.begin(); it != d_constantLetMap.end(); ++it) {
+      os << "\n(@ " << it->second << " ";
+      std::ostringstream localParen;
+      int size = utils::getSize(it->first);
+      for (int i = size - 1; i >= 0; --i) {
+        os << "(bvc ";
+        os << (utils::getBit(it->first, i) ? "b1" : "b0") << " ";
+        localParen << ")";
+      }
+      os << "bvn";
+      os << localParen.str();
+      paren << ")";
+    }
+    os << std::endl;
+
+    d_useConstantLetification = true;
+  }
 }
 
-void LFSCBitVectorProof::printAliasingDeclarations(std::ostream& os, std::ostream& paren) {
+void LFSCBitVectorProof::printAliasingDeclarations(std::ostream& os, std::ostream& paren, const ProofLetMap &globalLetMap) {
   // Print "trust" statements to bind complex bv variables to their associated terms
 
   ExprToString::const_iterator it = d_assignedAliases.begin();
@@ -673,8 +707,7 @@ void LFSCBitVectorProof::printAliasingDeclarations(std::ostream& os, std::ostrea
     os << "(trust_f ";
     os << "(= (BitVec " << utils::getSize(it->first) << ") ";
     os << "(a_var_bv " << utils::getSize(it->first) << " " << it->second << ") ";
-    ProofLetMap emptyMap;
-    d_proofEngine->printBoundTerm(it->first, os, emptyMap);
+    d_proofEngine->printBoundTerm(it->first, os, globalLetMap);
     os << ")) ";
     os << "(\\ "<< d_aliasToBindDeclaration[it->second] << "\n";
     paren << "))";
@@ -701,15 +734,20 @@ void LFSCBitVectorProof::printTermBitblasting(Expr term, std::ostream& os) {
     os << "(bv_bbl_const "<< utils::getSize(term) <<" _ ";
     std::ostringstream paren;
     int size = utils::getSize(term);
-    for (int i = size - 1; i>= 0; --i) {
-      os << "(bvc ";
-      os << (utils::getBit(term, i) ? "b1" : "b0") <<" ";
-      paren << ")";
+    if (d_useConstantLetification) {
+      os << d_constantLetMap[term] << ")";
+    } else {
+      for (int i = size - 1; i>= 0; --i) {
+        os << "(bvc ";
+        os << (utils::getBit(term, i) ? "b1" : "b0") <<" ";
+        paren << ")";
+      }
+      os << " bvn)";
+      os << paren.str();
     }
-    os << " bvn)";
-    os << paren.str();
     return;
   }
+
   case kind::BITVECTOR_AND :
   case kind::BITVECTOR_OR :
   case kind::BITVECTOR_XOR :
@@ -1016,7 +1054,7 @@ bool LFSCBitVectorProof::hasAlias(Expr expr) {
   return d_assignedAliases.find(expr) != d_assignedAliases.end();
 }
 
-void LFSCBitVectorProof::printConstantDisequalityProof(std::ostream& os, Expr c1, Expr c2) {
+void LFSCBitVectorProof::printConstantDisequalityProof(std::ostream& os, Expr c1, Expr c2, const ProofLetMap &globalLetMap) {
   Assert (c1.isConst());
   Assert (c2.isConst());
   Assert (utils::getSize(c1) == utils::getSize(c2));

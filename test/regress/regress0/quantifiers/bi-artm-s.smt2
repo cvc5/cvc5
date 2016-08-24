@@ -1,4 +1,4 @@
-; COMMAND-LINE: --fmf-bound-int-lazy
+; COMMAND-LINE: --fmf-bound-lazy
 ; EXPECT: unsat
 (set-option :incremental "false")
 (set-info :status unsat)

@@ -48,6 +48,7 @@ namespace theory {
 class QuantifiersEngine;
 class TheoryModel;
 class SubstitutionMap;
+class ExtTheory;
 
 class EntailmentCheckParameters;
 class EntailmentCheckSideEffects;
@@ -200,6 +201,9 @@ private:
   QuantifiersEngine* d_quantEngine;
 
 protected:
+
+  /** extended theory */
+  ExtTheory * d_extt;
 
   // === STATISTICS ===
   /** time spent in check calls */
@@ -565,7 +569,11 @@ public:
    * - or call get() until done() is true.
    */
   virtual void check(Effort level = EFFORT_FULL) { }
-
+  
+  /**
+   * Needs last effort check?
+   */ 
+  virtual bool needsCheckLastEffort() { return false; }
   /**
    * T-propagate new literal assignments in the current context.
    */
@@ -589,7 +597,9 @@ public:
    * class.
    */
   virtual void collectModelInfo( TheoryModel* m, bool fullModel ){ }
-
+  /** if theories want to do something with model after building, do it here */
+  virtual void postProcessModel( TheoryModel* m ){ }
+  
   /**
    * Return a decision request, if the theory has one, or the NULL node
    * otherwise.
@@ -875,6 +885,16 @@ public:
    */
   virtual std::pair<bool, Node> entailmentCheck(TNode lit, const EntailmentCheckParameters* params = NULL, EntailmentCheckSideEffects* out = NULL);
 
+  /* equality engine */
+  virtual eq::EqualityEngine * getEqualityEngine() { return NULL; }
+
+  /* get current substitution at an effort
+   *   input : vars
+   *   output : subs, exp 
+   *   where ( exp[vars[i]] => vars[i] = subs[i] ) holds for all i
+  */
+  virtual bool getCurrentSubstitution( int effort, std::vector< Node >& vars, std::vector< Node >& subs, std::map< Node, std::vector< Node > >& exp ) { return false; }
+
   /**
    * Turn on proof-production mode.
    */
@@ -943,6 +963,49 @@ public:
   TheoryId getTheoryId() const;
   virtual ~EntailmentCheckSideEffects();
 };/* class EntailmentCheckSideEffects */
+
+
+class ExtTheory {
+  friend class Theory;
+  typedef context::CDHashMap<Node, bool, NodeHashFunction> NodeBoolMap;
+protected:
+  Theory * d_parent;
+  //extended string terms, map to whether they are active
+  NodeBoolMap d_ext_func_terms;
+  //any non-reduced extended functions exist
+  context::CDO< bool > d_has_extf;
+  //extf kind
+  std::map< Kind, bool > d_extf_kind;
+  //information for extf
+  class ExtfInfo {
+  public:
+    //all variables in this term
+    std::vector< Node > d_vars;
+  };
+  std::map< Node, ExtfInfo > d_extf_info;
+  //collect variables
+  void collectVars( Node n, std::vector< Node >& vars, std::map< Node, bool >& visited );
+public:
+  ExtTheory( Theory * p );
+  virtual ~ExtTheory(){}
+  //add extf kind
+  void addFunctionKind( Kind k ) { d_extf_kind[k] = true; }
+  //do inferences 
+  //  input : effort
+  //  output : terms, sterms, exp, where ( exp[i] => terms[i] = sterms[i] ) for all i 
+  void getInferences( int effort, std::vector< Node >& terms, std::vector< Node >& sterms, std::vector< std::vector< Node > >& exp );
+  //register term
+  void registerTerm( Node n );
+  //mark reduced
+  void markReduced( Node n );
+  //mark congruent
+  void markCongruent( Node a, Node b );
+  //is active
+  bool isActive( Node n );
+  //get active 
+  void getActive( std::vector< Node >& active );
+  void getActive( std::vector< Node >& active, Kind k );
+};
 
 }/* CVC4::theory namespace */
 }/* CVC4 namespace */

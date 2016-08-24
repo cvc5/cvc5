@@ -393,7 +393,7 @@ const EqualityNode& EqualityEngine::getEqualityNode(EqualityNodeId nodeId) const
 
 void EqualityEngine::assertEqualityInternal(TNode t1, TNode t2, TNode reason, unsigned pid) {
 
-  Debug("equality") << d_name << "::eq::addEqualityInternal(" << t1 << "," << t2 << "), pid = " << pid << std::endl;
+  Debug("equality") << d_name << "::eq::addEqualityInternal(" << t1 << "," << t2 << "), reason = " << reason << ", pid = " << pid << std::endl;
 
   if (d_done) {
     return;
@@ -1204,7 +1204,6 @@ void EqualityEngine::getExplanation(EqualityNodeId t1Id, EqualityNodeId t2Id, st
               Debug("equality") << d_name << "::eq::getExplanation(): adding: "
                                 << reason << std::endl;
               Debug("equality") << d_name << "::eq::getExplanation(): reason type = " << reasonType << std::endl;
-
               Node a = d_nodes[currentNode];
               Node b = d_nodes[d_equalityEdges[currentEdge].getNodeId()];
 

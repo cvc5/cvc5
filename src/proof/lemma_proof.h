@@ -51,6 +51,10 @@ public:
   bool wasRewritten(Node assertion) const;
   Node getExplanation(Node assertion) const;
 
+  //* Original lemma */
+  void setOriginalLemma(Node lemma);
+  Node getOriginalLemma() const;
+
   //* Proof Steps */
   void addStep(ProofStep& proofStep);
   const ProofStep* getStep(unsigned index) const;
@@ -72,6 +76,9 @@ private:
 
   //* A map from assertions to their rewritten explanations (toAssert --> toExplain) */
   std::map<Node, Node> d_assertionToExplanation;
+
+  //* The original lemma, as asserted by the owner theory solver */
+  Node d_originalLemma;
 };
 
 } /* CVC4 namespace */

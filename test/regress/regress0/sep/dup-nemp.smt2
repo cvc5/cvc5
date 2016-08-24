@@ -1,0 +1,7 @@
+(set-logic ALL_SUPPORTED)
+(set-info :status unsat)
+(declare-sort Loc 0)
+(declare-const l Loc)
+(assert (sep (not (emp l)) (not (emp l))))
+(assert (pto l l))
+(check-sat)

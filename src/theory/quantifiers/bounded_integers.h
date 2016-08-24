@@ -60,6 +60,7 @@ private:
   std::map< Node, std::map< Node, Node > > d_nground_range;
   //set membership range
   std::map< Node, std::map< Node, Node > > d_setm_range;
+  std::map< Node, std::map< Node, Node > > d_setm_range_lit;
   void hasFreeVar( Node f, Node n );
   void process( Node f, Node n, bool pol,
                 std::map< Node, unsigned >& bound_lit_type_map,

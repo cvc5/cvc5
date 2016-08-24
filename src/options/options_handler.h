@@ -94,6 +94,7 @@ public:
   theory::quantifiers::QcfMode stringToQcfMode(std::string option, std::string optarg) throw(OptionException);
   theory::quantifiers::UserPatMode stringToUserPatMode(std::string option, std::string optarg) throw(OptionException);
   theory::quantifiers::TriggerSelMode stringToTriggerSelMode(std::string option, std::string optarg) throw(OptionException);
+  theory::quantifiers::TriggerActiveSelMode stringToTriggerActiveSelMode(std::string option, std::string optarg) throw(OptionException);
   theory::quantifiers::PrenexQuantMode stringToPrenexQuantMode(std::string option, std::string optarg) throw(OptionException);
   theory::quantifiers::CegqiFairMode stringToCegqiFairMode(std::string option, std::string optarg) throw(OptionException);
   theory::quantifiers::TermDbMode stringToTermDbMode(std::string option, std::string optarg) throw(OptionException);
@@ -221,6 +222,7 @@ public:
   static const std::string s_termDbModeHelp;
   static const std::string s_theoryOfModeHelp;
   static const std::string s_triggerSelModeHelp;
+  static const std::string s_triggerActiveSelModeHelp;
   static const std::string s_ufssModeHelp;
   static const std::string s_userPatModeHelp;
   static const std::string s_errorSelectionRulesHelp;

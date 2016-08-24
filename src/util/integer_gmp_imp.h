@@ -411,6 +411,10 @@ public:
 
   unsigned int getUnsignedInt() const;
 
+  bool fitsSignedLong() const;
+
+  bool fitsUnsignedLong() const;
+
   long getLong() const {
     long si = d_value.get_si();
     // ensure there wasn't overflow

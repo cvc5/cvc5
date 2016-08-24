@@ -117,6 +117,7 @@ public:
   bool hasTerm(TNode node) const { return d_equalityEngine.hasTerm(node); }
   void addTermToEqualityEngine(TNode node) { d_equalityEngine.addTerm(node); }
   void enableSlicer();
+  eq::EqualityEngine * getEqualityEngine() { return &d_equalityEngine; }
 };
 
 

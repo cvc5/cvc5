@@ -96,12 +96,19 @@ public:
   public:
     std::vector< int > d_order;
   };/* class InstMatchTrie ImtIndexOrder */
-
   /** the data */
   std::map< Node, InstMatchTrie > d_data;
 private:
-  void print( std::ostream& out, Node q, std::vector< TNode >& terms ) const;
-  void getInstantiations( std::vector< Node >& insts, Node q, std::vector< Node >& terms, QuantifiersEngine * qe ) const;
+  void print( std::ostream& out, Node q, std::vector< TNode >& terms, bool& firstTime, bool useActive, std::vector< Node >& active ) const;
+  void getInstantiations( std::vector< Node >& insts, Node q, std::vector< Node >& terms, QuantifiersEngine * qe, bool useActive, std::vector< Node >& active ) const;
+  void getExplanationForInstLemmas( Node q, std::vector< Node >& terms, std::vector< Node >& lems, std::map< Node, Node >& quant, std::map< Node, std::vector< Node > >& tvec ) const;
+private:
+  void setInstLemma( Node n ){ 
+    d_data.clear();
+    d_data[n].clear(); 
+  }
+  bool hasInstLemma() const { return !d_data.empty(); }
+  Node getInstLemma() const { return d_data.begin()->first; }
 public:
   InstMatchTrie(){}
   ~InstMatchTrie(){}
@@ -129,14 +136,19 @@ public:
   bool addInstMatch( QuantifiersEngine* qe, Node f, std::vector< Node >& m, bool modEq = false,
                      ImtIndexOrder* imtio = NULL, bool onlyExist = false, int index = 0 );
   bool removeInstMatch( QuantifiersEngine* qe, Node f, std::vector< Node >& m, ImtIndexOrder* imtio = NULL, int index = 0 );
-  void print( std::ostream& out, Node q ) const{
+  bool recordInstLemma( Node q, std::vector< Node >& m, Node lem, ImtIndexOrder* imtio = NULL, int index = 0 );
+  void print( std::ostream& out, Node q, bool& firstTime, bool useActive, std::vector< Node >& active ) const{
     std::vector< TNode > terms;
-    print( out, q, terms );
+    print( out, q, terms, firstTime, useActive, active );
   }
-  void getInstantiations( std::vector< Node >& insts, Node q, QuantifiersEngine * qe ) {
+  void getInstantiations( std::vector< Node >& insts, Node q, QuantifiersEngine * qe, bool useActive, std::vector< Node >& active ) {
     std::vector< Node > terms;
-    getInstantiations( insts, q, terms, qe );
+    getInstantiations( insts, q, terms, qe, useActive, active );
   }
+  void getExplanationForInstLemmas( Node q, std::vector< Node >& lems, std::map< Node, Node >& quant, std::map< Node, std::vector< Node > >& tvec ) const {
+    std::vector< Node > terms;
+    getExplanationForInstLemmas( q, terms, lems, quant, tvec );
+  }  
   void clear() { d_data.clear(); }
 };/* class InstMatchTrie */
 
@@ -147,9 +159,17 @@ private:
   std::map< Node, CDInstMatchTrie* > d_data;
   /** is valid */
   context::CDO< bool > d_valid;
-
-  void print( std::ostream& out, Node q, std::vector< TNode >& terms ) const;
-  void getInstantiations( std::vector< Node >& insts, Node q, std::vector< Node >& terms, QuantifiersEngine * qe ) const;
+private:
+  void print( std::ostream& out, Node q, std::vector< TNode >& terms, bool& firstTime, bool useActive, std::vector< Node >& active ) const;
+  void getInstantiations( std::vector< Node >& insts, Node q, std::vector< Node >& terms, QuantifiersEngine * qe, bool useActive, std::vector< Node >& active ) const;
+  void getExplanationForInstLemmas( Node q, std::vector< Node >& terms, std::vector< Node >& lems, std::map< Node, Node >& quant, std::map< Node, std::vector< Node > >& tvec ) const;
+private:
+  void setInstLemma( Node n ){ 
+    d_data.clear();
+    d_data[n] = NULL; 
+  }
+  bool hasInstLemma() const { return !d_data.empty(); }
+  Node getInstLemma() const { return d_data.begin()->first; }
 public:
   CDInstMatchTrie( context::Context* c ) : d_valid( c, false ){}
   ~CDInstMatchTrie();
@@ -177,14 +197,19 @@ public:
   bool addInstMatch( QuantifiersEngine* qe, Node q, std::vector< Node >& m, context::Context* c, bool modEq = false,
                      int index = 0, bool onlyExist = false );
   bool removeInstMatch( QuantifiersEngine* qe, Node q, std::vector< Node >& m, int index = 0 );
-  void print( std::ostream& out, Node q ) const{
+  bool recordInstLemma( Node q, std::vector< Node >& m, Node lem, int index = 0 );
+  void print( std::ostream& out, Node q, bool& firstTime, bool useActive, std::vector< Node >& active ) const{
     std::vector< TNode > terms;
-    print( out, q, terms );
+    print( out, q, terms, firstTime, useActive, active );
   }
-  void getInstantiations( std::vector< Node >& insts, Node q, QuantifiersEngine * qe ) {
+  void getInstantiations( std::vector< Node >& insts, Node q, QuantifiersEngine * qe, bool useActive, std::vector< Node >& active ) {
     std::vector< Node > terms;
-    getInstantiations( insts, q, terms, qe );
+    getInstantiations( insts, q, terms, qe, useActive, active );
   }
+  void getExplanationForInstLemmas( Node q, std::vector< Node >& lems, std::map< Node, Node >& quant, std::map< Node, std::vector< Node > >& tvec ) const {
+    std::vector< Node > terms;
+    getExplanationForInstLemmas( q, terms, lems, quant, tvec );
+  }  
 };/* class CDInstMatchTrie */
 
 

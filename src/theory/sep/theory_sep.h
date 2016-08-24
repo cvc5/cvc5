@@ -50,6 +50,8 @@ class TheorySep : public Theory {
 
   /** True node for predicates = false */
   Node d_false;
+  
+  std::vector< Node > d_pp_nils;
 
   Node mkAnd( std::vector< TNode >& assumptions );
 
@@ -106,6 +108,7 @@ class TheorySep : public Theory {
   public:
 
   void collectModelInfo(TheoryModel* m, bool fullModel);
+  void postProcessModel(TheoryModel* m);
 
   /////////////////////////////////////////////////////////////////////////////
   // NOTIFICATIONS
@@ -125,6 +128,8 @@ class TheorySep : public Theory {
   public:
 
   void check(Effort e);
+
+  bool needsCheckLastEffort();
 
   private:
 
@@ -243,6 +248,7 @@ class TheorySep : public Theory {
   //get the base label for the spatial assertion
   Node getBaseLabel( TypeNode tn );
   Node getNilRef( TypeNode tn );
+  void setNilRef( TypeNode tn, Node n );
   Node getLabel( Node atom, int child, Node lbl );
   Node applyLabel( Node n, Node lbl, std::map< Node, Node >& visited );
   void getLabelChildren( Node atom, Node lbl, std::vector< Node >& children, std::vector< Node >& labels );

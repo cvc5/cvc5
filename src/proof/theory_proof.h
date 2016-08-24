@@ -109,7 +109,7 @@ public:
    * @param os
    * @param paren closing parenthesis
    */
-  virtual void printAliasingDeclarations(std::ostream& os, std::ostream& paren) = 0;
+  virtual void printAliasingDeclarations(std::ostream& os, std::ostream& paren, const ProofLetMap &globalLetMap) = 0;
 
   /**
    * Print proofs of all the theory lemmas (must prove
@@ -149,7 +149,7 @@ public:
 
   void markTermForFutureRegistration(Expr term, theory::TheoryId id);
 
-  void printConstantDisequalityProof(std::ostream& os, Expr c1, Expr c2);
+  void printConstantDisequalityProof(std::ostream& os, Expr c1, Expr c2, const ProofLetMap &globalLetMap);
 
   virtual void treatBoolsAsFormulas(bool value) {};
 
@@ -173,7 +173,7 @@ public:
   virtual void printAssertions(std::ostream& os, std::ostream& paren);
   virtual void printLemmaRewrites(NodePairSet& rewrites, std::ostream& os, std::ostream& paren);
   virtual void printDeferredDeclarations(std::ostream& os, std::ostream& paren);
-  virtual void printAliasingDeclarations(std::ostream& os, std::ostream& paren);
+  virtual void printAliasingDeclarations(std::ostream& os, std::ostream& paren, const ProofLetMap &globalLetMap);
   virtual void printTheoryLemmas(const IdToSatClause& lemmas,
                                  std::ostream& os,
                                  std::ostream& paren,
@@ -205,7 +205,7 @@ public:
   {}
   virtual ~TheoryProof() {};
   /**
-   * Print a term belonging some theory, not neccessarily this one.
+   * Print a term belonging some theory, not necessarily this one.
    *
    * @param term expresion representing term
    * @param os output stream
@@ -216,7 +216,7 @@ public:
   /**
    * Print a term belonging to THIS theory.
    *
-   * @param term expresion representing term
+   * @param term expression representing term
    * @param os output stream
    */
   virtual void printOwnedTerm(Expr term, std::ostream& os, const ProofLetMap& map) = 0;
@@ -274,7 +274,7 @@ public:
    * @param os
    * @param paren
    */
-  virtual void printAliasingDeclarations(std::ostream& os, std::ostream& paren) = 0;
+  virtual void printAliasingDeclarations(std::ostream& os, std::ostream& paren, const ProofLetMap &globalLetMap) = 0;
   /**
    * Register a term of this theory that appears in the proof.
    *
@@ -286,7 +286,7 @@ public:
    *
    * @param term
    */
-  virtual void printConstantDisequalityProof(std::ostream& os, Expr c1, Expr c2);
+  virtual void printConstantDisequalityProof(std::ostream& os, Expr c1, Expr c2, const ProofLetMap &globalLetMap);
   /**
    * Print a proof for the equivalence of n1 and n2.
    *
@@ -308,11 +308,11 @@ public:
   virtual void printOwnedTerm(Expr term, std::ostream& os, const ProofLetMap& map) = 0;
 
   virtual void printOwnedSort(Type type, std::ostream& os) = 0;
-  virtual void printTheoryLemmaProof(std::vector<Expr>& lemma, std::ostream& os, std::ostream& paren) = 0;
+  virtual void printTheoryLemmaProof(std::vector<Expr>& lemma, std::ostream& os, std::ostream& paren, const ProofLetMap& map) = 0;
   virtual void printSortDeclarations(std::ostream& os, std::ostream& paren) = 0;
   virtual void printTermDeclarations(std::ostream& os, std::ostream& paren) = 0;
   virtual void printDeferredDeclarations(std::ostream& os, std::ostream& paren) = 0;
-  virtual void printAliasingDeclarations(std::ostream& os, std::ostream& paren) = 0;
+  virtual void printAliasingDeclarations(std::ostream& os, std::ostream& paren, const ProofLetMap &globalLetMap) = 0;
 };
 
 class LFSCBooleanProof : public BooleanProof {
@@ -322,11 +322,11 @@ public:
   {}
   virtual void printOwnedTerm(Expr term, std::ostream& os, const ProofLetMap& map);
   virtual void printOwnedSort(Type type, std::ostream& os);
-  virtual void printTheoryLemmaProof(std::vector<Expr>& lemma, std::ostream& os, std::ostream& paren);
+  virtual void printTheoryLemmaProof(std::vector<Expr>& lemma, std::ostream& os, std::ostream& paren, const ProofLetMap& map);
   virtual void printSortDeclarations(std::ostream& os, std::ostream& paren);
   virtual void printTermDeclarations(std::ostream& os, std::ostream& paren);
   virtual void printDeferredDeclarations(std::ostream& os, std::ostream& paren);
-  virtual void printAliasingDeclarations(std::ostream& os, std::ostream& paren);
+  virtual void printAliasingDeclarations(std::ostream& os, std::ostream& paren, const ProofLetMap &globalLetMap);
 
   void treatBoolsAsFormulas(bool value) {
     d_treatBoolsAsFormulas = value;

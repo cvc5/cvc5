@@ -70,8 +70,9 @@ public:
   bool propagate(TNode literal);
   void explain( TNode literal, std::vector<TNode>& assumptions );
   Node explain( TNode literal );
-
-
+  eq::EqualityEngine * getEqualityEngine() { return &d_equalityEngine; }
+  bool getCurrentSubstitution( int effort, std::vector< Node >& vars, std::vector< Node >& subs, std::map< Node, std::vector< Node > >& exp );
+ 
   // NotifyClass for equality engine
   class NotifyClass : public eq::EqualityEngineNotify {
     TheoryStrings& d_str;
@@ -171,15 +172,17 @@ private:
   bool isNormalFormPair2( Node n1, Node n2 );
   // loop ant
   NodeSet d_loop_antec;
-  NodeSet d_length_intro_vars;
   // preReg cache
   NodeSet d_pregistered_terms_cache;
   NodeSet d_registered_terms_cache;
+  NodeSet d_length_lemma_terms_cache;
+  NodeSet d_skolem_ne_reg_cache;
   // preprocess cache
   StringsPreprocess d_preproc;
   NodeBoolMap d_preproc_cache;
   // extended functions inferences cache
   NodeSet d_extf_infer_cache;
+  NodeSet d_extf_infer_cache_u;
   std::vector< Node > d_empty_vec;
   //
   NodeList d_ee_disequalities;
@@ -188,14 +191,16 @@ private:
   std::map< Node, Node > d_eqc_to_const;
   std::map< Node, Node > d_eqc_to_const_base;
   std::map< Node, Node > d_eqc_to_const_exp;
+  Node getConstantEqc( Node eqc );
+  
   std::map< Node, Node > d_eqc_to_len_term;
   std::vector< Node > d_strings_eqc;
   Node d_emptyString_r;
   class TermIndex {
   public:
     Node d_data;
-    std::map< Node, TermIndex > d_children;
-    Node add( Node n, unsigned index, TheoryStrings* t, Node er, std::vector< Node >& c );
+    std::map< TNode, TermIndex > d_children;
+    Node add( TNode n, unsigned index, TheoryStrings* t, Node er, std::vector< Node >& c );
     void clear(){ d_children.clear(); }
   };
   std::map< Kind, TermIndex > d_term_index;
@@ -205,6 +210,7 @@ private:
   std::map< Node, std::vector< int > > d_flat_form_index;
 
   void debugPrintFlatForms( const char * tc );
+  void debugPrintNormalForms( const char * tc );
   /////////////////////////////////////////////////////////////////////////////
   // MODEL GENERATION
   /////////////////////////////////////////////////////////////////////////////
@@ -246,51 +252,107 @@ private:
   /** All the function terms that the theory has seen */
   context::CDList<TNode> d_functionsTerms;
 private:
+  //any non-reduced extended functions exist
+  context::CDO< bool > d_has_extf;
+  // static information about extf
+  class ExtfInfo {
+  public:
+    //all variables in this term
+    std::vector< Node > d_vars;
+  };
+  // non-static information about extf
+  class ExtfInfoTmp {
+  public:
+    void init(){
+      d_pol = 0;
+      d_model_active = true;
+    }
+    // list of terms that something (does not) contain and their explanation
+    std::map< bool, std::vector< Node > > d_ctn;
+    std::map< bool, std::vector< Node > > d_ctn_from;
+    //polarity
+    int d_pol;
+    //explanation
+    std::vector< Node > d_exp;
+    //reps -> list of variables
+    //std::map< Node, std::vector< Node > > d_rep_vars;
+    //false if it is reduced in the model
+    bool d_model_active;
+  };
+  std::map< Node, ExtfInfoTmp > d_extf_info_tmp;
+  //collect extended operator terms
+  void collectExtendedFuncTerms( Node n, std::map< Node, bool >& visited );
+private:
+  class InferInfo {
+  public:
+    unsigned d_i;
+    unsigned d_j;
+    bool d_rev;
+    std::vector< Node > d_ant;
+    std::vector< Node > d_antn;
+    std::map< int, std::vector< Node > > d_new_skolem;
+    Node d_conc;
+    unsigned d_id;
+    std::map< Node, bool > d_pending_phase;
+    unsigned d_index;
+    const char * getId() { 
+      switch( d_id ){
+      case 1:return "S-Split(CST-P)-prop";break;
+      case 2:return "S-Split(VAR)-prop";break;
+      case 3:return "Len-Split(Len)";break;
+      case 4:return "Len-Split(Emp)";break;
+      case 5:return "S-Split(CST-P)-binary";break;
+      case 6:return "S-Split(CST-P)";break;
+      case 7:return "S-Split(VAR)";break;
+      case 8:return "F-Loop";break;
+      default:break;
+      }
+      return "";
+    }
+    bool sendAsLemma();
+  };
   //initial check
   void checkInit();
   void checkConstantEquivalenceClasses( TermIndex* ti, std::vector< Node >& vecc );
   //extended functions evaluation check
-  void checkExtendedFuncsEval( int effort = 0 );
-  void checkExtfInference( Node n, Node nr, int effort );
-  void collectVars( Node n, std::map< Node, std::vector< Node > >& vars, std::map< Node, bool >& visited );
+  void checkExtfEval( int effort = 0 );
+  void checkExtfInference( Node n, Node nr, ExtfInfoTmp& in, int effort );
+  void collectVars( Node n, std::vector< Node >& vars, std::map< Node, bool >& visited );
   Node getSymbolicDefinition( Node n, std::vector< Node >& exp );
   //check extf reduction
-  void checkExtfReduction( int effort );
-  void checkReduction( Node atom, int pol, int effort );
+  void checkExtfReductions( int effort );
+  bool checkExtfReduction( Node atom, int pol, int effort );
   //flat forms check
   void checkFlatForms();
   Node checkCycles( Node eqc, std::vector< Node >& curr, std::vector< Node >& exp );
   //normal forms check
   void checkNormalForms();
-  bool normalizeEquivalenceClass( Node n, std::vector< Node > & nf, std::vector< Node > & nf_exp );
-  bool getNormalForms( Node &eqc, std::vector< std::vector< Node > > &normal_forms, std::vector< Node > &normal_form_src,
-                       std::vector< std::vector< Node > > &normal_forms_exp, std::vector< std::map< Node, std::map< bool, int > > >& normal_forms_exp_depend);
-  bool detectLoop(std::vector< std::vector< Node > > &normal_forms,
-        int i, int j, int index, int &loop_in_i, int &loop_in_j);
-  bool processLoop(std::vector< Node > &antec,
-        std::vector< std::vector< Node > > &normal_forms,
-        std::vector< Node > &normal_form_src,
-        int i, int j, int loop_n_index, int other_n_index,
-        int loop_index, int index);
-  bool processNEqc( std::vector< std::vector< Node > > &normal_forms, std::vector< Node > &normal_form_src,
+  void normalizeEquivalenceClass( Node n );
+  void getNormalForms( Node &eqc, std::vector< std::vector< Node > > &normal_forms, std::vector< Node > &normal_form_src,
+                       std::vector< std::vector< Node > > &normal_forms_exp, std::vector< std::map< Node, std::map< bool, int > > >& normal_forms_exp_depend );
+  bool detectLoop( std::vector< std::vector< Node > > &normal_forms, int i, int j, int index, int &loop_in_i, int &loop_in_j, unsigned rproc );
+  bool processLoop( std::vector< std::vector< Node > > &normal_forms, std::vector< Node > &normal_form_src,
+                    int i, int j, int loop_n_index, int other_n_index,int loop_index, int index, InferInfo& info );
+  void processNEqc( std::vector< std::vector< Node > > &normal_forms, std::vector< Node > &normal_form_src,
                     std::vector< std::vector< Node > > &normal_forms_exp, std::vector< std::map< Node, std::map< bool, int > > >& normal_forms_exp_depend );
-  bool processReverseNEq( std::vector< std::vector< Node > > &normal_forms, std::vector< Node > &normal_form_src, 
+  void processReverseNEq( std::vector< std::vector< Node > > &normal_forms, std::vector< Node > &normal_form_src, 
                           std::vector< std::vector< Node > > &normal_forms_exp, std::vector< std::map< Node, std::map< bool, int > > >& normal_forms_exp_depend, 
-                          unsigned i, unsigned j );
-  bool processSimpleNEq( std::vector< std::vector< Node > > &normal_forms, std::vector< Node > &normal_form_src, 
+                          unsigned i, unsigned j, unsigned& index, unsigned rproc, std::vector< InferInfo >& pinfer );
+  void processSimpleNEq( std::vector< std::vector< Node > > &normal_forms, std::vector< Node > &normal_form_src, 
                          std::vector< std::vector< Node > > &normal_forms_exp, std::vector< std::map< Node, std::map< bool, int > > >& normal_forms_exp_depend, 
-                         unsigned i, unsigned j, unsigned& index, bool isRev );
-  bool processDeq( Node n1, Node n2 );
+                         unsigned i, unsigned j, unsigned& index, bool isRev, unsigned rproc, std::vector< InferInfo >& pinfer );
+  void processDeq( Node n1, Node n2 );
   int processReverseDeq( std::vector< Node >& nfi, std::vector< Node >& nfj, Node ni, Node nj );
   int processSimpleDeq( std::vector< Node >& nfi, std::vector< Node >& nfj, Node ni, Node nj, unsigned& index, bool isRev );
   void checkDeqNF();
-  
-  void getExplanationVectorForPrefix( std::vector< std::vector< Node > > &normal_forms, std::vector< Node > &normal_form_src,
-                                      std::vector< std::vector< Node > > &normal_forms_exp, std::vector< std::map< Node, std::map< bool, int > > >& normal_forms_exp_depend,
-                                      unsigned i, unsigned j, int index, bool isRev, std::vector< Node >& curr_exp );
+  void getExplanationVectorForPrefix( std::vector< std::vector< Node > > &normal_forms_exp, std::vector< std::map< Node, std::map< bool, int > > >& normal_forms_exp_depend,
+                                      unsigned i, int index, bool isRev, std::vector< Node >& curr_exp );
+  void getExplanationVectorForPrefixEq( std::vector< std::vector< Node > > &normal_forms, std::vector< Node > &normal_form_src,
+                                        std::vector< std::vector< Node > > &normal_forms_exp, std::vector< std::map< Node, std::map< bool, int > > >& normal_forms_exp_depend,
+                                        unsigned i, unsigned j, int index_i, int index_j, bool isRev, std::vector< Node >& curr_exp );
 
-  //check for extended functions
-  void checkExtendedFuncs();
+  Node collectConstantStringAt( std::vector< Node >& vec, int& index, bool isRev );
+
   //check membership constraints
   Node mkRegExpAntec(Node atom, Node ant);
   Node normalizeRegexp(Node r);
@@ -322,6 +384,8 @@ public:
   Node expandDefinition(LogicRequest &logicRequest, Node n);
   /** Check at effort e */
   void check(Effort e);
+  /** needs check last effort */
+  bool needsCheckLastEffort();
   /** Conflict when merging two constants */
   void conflict(TNode a, TNode b);
   /** called when a new equivalence class is created */
@@ -364,9 +428,16 @@ protected:
   enum {
     sk_id_c_spt,
     sk_id_vc_spt,
-    sk_id_v_spt,
+    sk_id_vc_bin_spt,
+    sk_id_v_spt,    
+    sk_id_c_spt_rev,
+    sk_id_vc_spt_rev,
+    sk_id_vc_bin_spt_rev,
+    sk_id_v_spt_rev,
     sk_id_ctn_pre,
     sk_id_ctn_post,
+    sk_id_dc_spt,
+    sk_id_dc_spt_rem,
     sk_id_deq_x,
     sk_id_deq_y,
     sk_id_deq_z,
@@ -374,6 +445,7 @@ protected:
   std::map< Node, std::map< Node, std::map< int, Node > > > d_skolem_cache;
   Node mkSkolemCached( Node a, Node b, int id, const char * c, int isLenSplit = 0 );
   inline Node mkSkolemS(const char * c, int isLenSplit = 0);
+  void registerNonEmptySkolem( Node sk );
   //inline Node mkSkolemI(const char * c);
   /** mkExplain **/
   Node mkExplain( std::vector< Node >& a );
@@ -385,34 +457,12 @@ protected:
 
   //get equivalence classes
   void getEquivalenceClasses( std::vector< Node >& eqcs );
-  //get final normal form
-  void getFinalNormalForm( Node n, std::vector< Node >& nf, std::vector< Node >& exp );
 
   //separate into collections with equal length
   void separateByLength( std::vector< Node >& n, std::vector< std::vector< Node > >& col, std::vector< Node >& lts );
   void printConcat( std::vector< Node >& n, const char * c );
 
   void inferSubstitutionProxyVars( Node n, std::vector< Node >& vars, std::vector< Node >& subs, std::vector< Node >& unproc );
-private:
-
-  // Special String Functions
-  NodeSet d_neg_ctn_eqlen;
-  NodeSet d_neg_ctn_ulen;
-  NodeSet d_neg_ctn_cached;
-  //extended string terms and whether they have been reduced
-  NodeBoolMap d_ext_func_terms;
-  std::map< Node, std::map< Node, std::vector< Node > > > d_extf_vars;
-  // list of terms that something (does not) contain and their explanation
-  class ExtfInfo {
-  public:
-    std::map< bool, std::vector< Node > > d_ctn;
-    std::map< bool, std::vector< Node > > d_ctn_from;
-  };
-  std::map< Node, int > d_extf_pol;
-  std::map< Node, std::vector< Node > > d_extf_exp;
-  std::map< Node, ExtfInfo > d_extf_info;
-  //collect extended operator terms
-  void collectExtendedFuncTerms( Node n, std::map< Node, bool >& visited );
 
   // Symbolic Regular Expression
 private:
@@ -444,7 +494,6 @@ private:
 
   CVC4::String getHeadConst( Node x );
   bool deriveRegExp( Node x, Node r, Node ant );
-  bool addMembershipLength(Node atom);
   void addMembership(Node assertion);
   Node getNormalString(Node x, std::vector<Node> &nf_exp);
   Node getNormalSymRegExp(Node r, std::vector<Node> &nf_exp);
@@ -459,7 +508,8 @@ private:
 public:
   //for finite model finding
   Node getNextDecisionRequest();
-
+  //ppRewrite
+  Node ppRewrite(TNode atom);
 public:
 /** statistics class */
   class Statistics {

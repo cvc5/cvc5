@@ -495,7 +495,36 @@ void TheoryBV::propagate(Effort e) {
   }
 }
 
+eq::EqualityEngine * TheoryBV::getEqualityEngine() {
+  return NULL;
+}
 
+bool TheoryBV::getCurrentSubstitution( int effort, std::vector< Node >& vars, std::vector< Node >& subs, std::map< Node, std::vector< Node > >& exp ) {
+#if 0
+  CoreSolver* core = (CoreSolver*)d_subtheoryMap[SUB_CORE];
+  if( core ){
+    //get the constant equivalence classes
+    bool retVal = false;
+    for( unsigned i=0; i<vars.size(); i++ ){
+      Node n = vars[i];
+      if( core->getEqualityEngine()->hasTerm( n ) ){
+        Node nr = core->getEqualityEngine()->getRepresenative( n );
+        if( nr.isConst() ){
+          subs.push_back( nr );
+          exp[n].push_back( n.eqNode( nr ) );
+          retVal = true;
+        }else{
+          subs.push_back( n );
+        }
+      }
+    }
+    //return true if the substitution is non-trivial
+    return retVal;
+  }
+#endif
+  return false;
+}
+  
 Theory::PPAssertStatus TheoryBV::ppAssert(TNode in, SubstitutionMap& outSubstitutions) {
   switch(in.getKind()) {
   case kind::EQUAL:

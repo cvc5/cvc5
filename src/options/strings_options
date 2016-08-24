@@ -38,9 +38,7 @@ option stringIgnNegMembership strings-inm --strings-inm bool :default false
 # the cardinality of the characters used by the theory of strings, default 128 (for standard ASCII) or 256 (for extended ASCII)
 
 option stringLazyPreproc strings-lazy-pp --strings-lazy-pp bool :default true
- perform string preprocessing lazily upon assertion
-option stringLazyPreproc2 strings-lazy-pp2 --strings-lazy-pp2 bool :default true
- perform string preprocessing lazily upon failure to reduce 
+ perform string preprocessing lazily
 
 option stringLenGeqZ strings-len-geqz --strings-len-geqz bool :default false
  strings length greater than zero lemmas
@@ -65,6 +63,14 @@ option stringRExplainLemmas strings-rexplain-lemmas --strings-rexplain-lemmas bo
  regression explanations for string lemmas
 option stringMinPrefixExplain strings-min-prefix-explain --strings-min-prefix-explain bool :default true
  minimize explanations for prefix of normal forms in strings
+option stringGuessModel strings-guess-model --strings-guess-model bool :default false
+ use model guessing to avoid string extended function reductions
+option stringUfReduct strings-uf-reduct --strings-uf-reduct bool :default false
+ use uninterpreted functions when applying extended function reductions
+option stringBinaryCsp strings-binary-csp --strings-binary-csp bool :default false
+ use binary search when splitting strings
+option stringLenPropCsp strings-lprop-csp --strings-lprop-csp bool :default false
+ do length propagation based on constant splits
 
 
 endmodule

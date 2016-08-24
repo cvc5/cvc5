@@ -183,6 +183,7 @@ class TheoryEngine {
    * Default model object
    */
   theory::TheoryModel* d_curr_model;
+  bool d_aloc_curr_model;
   /**
    * Model builder object
    */
@@ -321,6 +322,13 @@ class TheoryEngine {
     void handleUserAttribute( const char* attr, theory::Theory* t ){
       d_engine->handleUserAttribute( attr, t );
     }
+
+  private:
+
+    /**
+     * A helper function for registering lemma recipes with the proof engine
+     */
+    void registerLemmaRecipe(Node lemma, Node originalLemma, bool preprocess, theory::TheoryId theoryId);
   };/* class TheoryEngine::EngineOutputChannel */
 
   /**
@@ -428,8 +436,7 @@ class TheoryEngine {
                             bool negated,
                             bool removable,
                             bool preprocess,
-                            theory::TheoryId atomsTo,
-                            LemmaProofRecipe* proofRecipe);
+                            theory::TheoryId atomsTo);
 
   /** Enusre that the given atoms are send to the given theory */
   void ensureLemmaAtoms(const std::vector<TNode>& atoms, theory::TheoryId theory);
@@ -710,6 +717,8 @@ public:
    * collect model info
    */
   void collectModelInfo( theory::TheoryModel* m, bool fullModel );
+  /** post process model */
+  void postProcessModel( theory::TheoryModel* m );
 
   /**
    * Get the current model

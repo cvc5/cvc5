@@ -57,6 +57,7 @@
 #include "options/open_ostream.h"
 #include "options/option_exception.h"
 #include "options/printer_options.h"
+#include "options/proof_options.h"
 #include "options/prop_options.h"
 #include "options/quantifiers_options.h"
 #include "options/set_language.h"
@@ -92,9 +93,9 @@
 #include "theory/quantifiers/fun_def_process.h"
 #include "theory/quantifiers/macros.h"
 #include "theory/quantifiers/quantifiers_rewriter.h"
+#include "theory/sep/theory_sep.h"
 #include "theory/sort_inference.h"
 #include "theory/strings/theory_strings.h"
-#include "theory/sep/theory_sep.h"
 #include "theory/substitutions.h"
 #include "theory/theory_engine.h"
 #include "theory/theory_model.h"
@@ -1349,8 +1350,8 @@ void SmtEngine::setDefaults() {
       Trace("smt") << "turning on quantifier logic, for strings-exp"
                    << std::endl;
     }
-    if(! options::fmfBoundInt.wasSetByUser()) {
-      options::fmfBoundInt.set( true );
+    if(! options::fmfBound.wasSetByUser()) {
+      options::fmfBound.set( true );
       Trace("smt") << "turning on fmf-bound-int, for strings-exp" << std::endl;
     }
     if(! options::fmfInstEngine.wasSetByUser()) {
@@ -1752,12 +1753,13 @@ void SmtEngine::setDefaults() {
     options::cbqi.set(false);
   }
 
-  if(options::fmfBoundIntLazy.wasSetByUser() && options::fmfBoundIntLazy()) {
-    options::fmfBoundInt.set( true );
+  if( ( options::fmfBoundLazy.wasSetByUser() && options::fmfBoundLazy() ) || 
+      ( options::fmfBoundInt.wasSetByUser() && options::fmfBoundInt() ) ) {
+    options::fmfBound.set( true );
   }
   //now have determined whether fmfBoundInt is on/off
   //apply fmfBoundInt options
-  if( options::fmfBoundInt() ){
+  if( options::fmfBound() ){
     //must have finite model finding on
     options::finiteModelFind.set( true );
     if( ! options::mbqiMode.wasSetByUser() ||
@@ -3986,15 +3988,6 @@ void SmtEnginePrivate::processAssertions() {
     dumpAssertions("post-bv-to-bool", d_assertions);
     Trace("smt") << "POST bvToBool" << endl;
   }
-  if( d_smt.d_logic.isTheoryEnabled(THEORY_STRINGS) ) {
-    Trace("smt-proc") << "SmtEnginePrivate::processAssertions() : pre-strings-preprocess" << endl;
-    dumpAssertions("pre-strings-pp", d_assertions);
-    if( !options::stringLazyPreproc() ){
-      ((theory::strings::TheoryStrings*)d_smt.d_theoryEngine->theoryOf(THEORY_STRINGS))->getPreprocess()->simplify( d_assertions.ref() );
-    }
-    Trace("smt-proc") << "SmtEnginePrivate::processAssertions() : post-strings-preprocess" << endl;
-    dumpAssertions("post-strings-pp", d_assertions);
-  }
   if( d_smt.d_logic.isTheoryEnabled(THEORY_SEP) ) {
     //separation logic solver needs to register the entire input
     ((theory::sep::TheorySep*)d_smt.d_theoryEngine->theoryOf(THEORY_SEP))->processAssertions( d_assertions.ref() );
@@ -4292,8 +4285,10 @@ void SmtEnginePrivate::addFormula(TNode n, bool inUnsatCore, bool inInput)
   PROOF(
     if( inInput ){
       // n is an input assertion
-      if (inUnsatCore || options::dumpUnsatCores() || options::checkUnsatCores())
+      if (inUnsatCore || options::dumpUnsatCores() || options::checkUnsatCores() || options::fewerPreprocessingHoles()) {
+
         ProofManager::currentPM()->addCoreAssertion(n.toExpr());
+      }
     }else{
       // n is the result of an unknown preprocessing step, add it to dependency map to null
       ProofManager::currentPM()->addDependence(n, Node::null());

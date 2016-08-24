@@ -81,6 +81,10 @@ protected:
   bool d_isAssumptionConflict;
   theory::bv::TBitblaster<Node>* d_bitblaster;
   std::string getBBTermName(Expr expr);
+
+  std::map<Expr,std::string> d_constantLetMap;
+  bool d_useConstantLetification;
+
 public:
   BitVectorProof(theory::bv::TheoryBV* bv, TheoryProofEngine* proofEngine);
 
@@ -148,12 +152,12 @@ public:
   virtual void printSortDeclarations(std::ostream& os, std::ostream& paren);
   virtual void printTermDeclarations(std::ostream& os, std::ostream& paren);
   virtual void printDeferredDeclarations(std::ostream& os, std::ostream& paren);
-  virtual void printAliasingDeclarations(std::ostream& os, std::ostream& paren);
+  virtual void printAliasingDeclarations(std::ostream& os, std::ostream& paren, const ProofLetMap &globalLetMap);
   virtual void printBitblasting(std::ostream& os, std::ostream& paren);
   virtual void printResolutionProof(std::ostream& os, std::ostream& paren, ProofLetMap& letMap);
   void calculateAtomsInBitblastingProof();
   const std::set<Node>* getAtomsInBitblastingProof();
-  void printConstantDisequalityProof(std::ostream& os, Expr c1, Expr c2);
+  void printConstantDisequalityProof(std::ostream& os, Expr c1, Expr c2, const ProofLetMap &globalLetMap);
   void printRewriteProof(std::ostream& os, const Node &n1, const Node &n2);
 };
 

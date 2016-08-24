@@ -40,6 +40,10 @@ signed long Integer::s_slowSignedIntMax =  (signed long) std::numeric_limits<sig
 unsigned int Integer::s_fastUnsignedIntMax = (1<<29)-1;
 unsigned long Integer::s_slowUnsignedIntMax =  (unsigned long) std::numeric_limits<unsigned int>::max();
 
+unsigned long Integer::s_signedLongMin = std::numeric_limits<signed long>::min();
+unsigned long Integer::s_signedLongMax = std::numeric_limits<signed long>::max();
+unsigned long Integer::s_unsignedLongMax = std::numeric_limits<unsigned long>::max();
+
 Integer Integer::oneExtend(uint32_t size, uint32_t amount) const {
   DebugCheckArgument((*this) < Integer(1).multiplyByPow2(size), size);
   cln::cl_byte range(amount, size);
@@ -131,6 +135,14 @@ unsigned int Integer::getUnsignedInt() const {
   // ensure there isn't overflow
   CheckArgument(fitsUnsignedInt(), this, "Overflow detected in Integer::getUnsignedInt()");
   return cln::cl_I_to_uint(d_value);
+}
+
+bool Integer::fitsSignedLong() const {
+  return d_value <= s_signedLongMax && d_value >= s_signedLongMin;
+}
+
+bool Integer::fitsUnsignedLong() const {
+  return sgn() >= 0 && d_value <= s_unsignedLongMax;
 }
 
 } /* namespace CVC4 */

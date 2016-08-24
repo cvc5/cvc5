@@ -101,8 +101,6 @@ enum UserPatMode {
 };
 
 enum TriggerSelMode {
-  /** default for trigger selection */
-  TRIGGER_SEL_DEFAULT,
   /** only consider minimal terms for triggers */
   TRIGGER_SEL_MIN,
   /** only consider maximal terms for triggers */
@@ -113,6 +111,15 @@ enum TriggerSelMode {
   TRIGGER_SEL_MIN_SINGLE_ALL,
   /** consider all terms for triggers */
   TRIGGER_SEL_ALL,
+};
+
+enum TriggerActiveSelMode {
+  /** always use all triggers */
+  TRIGGER_ACTIVE_SEL_ALL,
+  /** only use triggers with minimal # of ground terms */
+  TRIGGER_ACTIVE_SEL_MIN,
+  /** only use triggers with maximal # of ground terms */
+  TRIGGER_ACTIVE_SEL_MAX,
 };
 
 enum CVC4_PUBLIC PrenexQuantMode {

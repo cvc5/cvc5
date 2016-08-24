@@ -1,7 +1,7 @@
 ; COMMAND-LINE: --no-check-models
-; EXPECT: sat
+; EXPECT: unsat
 (set-logic ALL_SUPPORTED)
-(set-info :status sat)
+(set-info :status unsat)
 
 (declare-const x Int)
 (declare-const y Int)

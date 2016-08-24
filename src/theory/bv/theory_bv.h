@@ -79,6 +79,10 @@ public:
 
   std::string identify() const { return std::string("TheoryBV"); }
 
+  /** equality engine */
+  eq::EqualityEngine * getEqualityEngine();
+  bool getCurrentSubstitution( int effort, std::vector< Node >& vars, std::vector< Node >& subs, std::map< Node, std::vector< Node > >& exp );
+  
   PPAssertStatus ppAssert(TNode in, SubstitutionMap& outSubstitutions);
 
   void enableCoreTheorySlicer();

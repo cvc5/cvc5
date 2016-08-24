@@ -726,7 +726,7 @@ void CvcPrinter::toStream(std::ostream& out, TNode n, int depth, bool types, boo
     case kind::BITVECTOR_SIGN_EXTEND:
       out << "SX(";
       toStream(out, n[0], depth, types, false);
-      out << ", " << n.getOperator().getConst<BitVectorSignExtend>() << ')';
+      out << ", " << BitVectorType(n.getType().toType()).getSize() << ')';
       return;
       break;
     case kind::BITVECTOR_ROTATE_LEFT:

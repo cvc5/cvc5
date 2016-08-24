@@ -369,6 +369,19 @@ min-s-all \n\
 + Consider only minimal subterms that meet criteria for single triggers, all otherwise. \n\
 \n\
 ";
+const std::string OptionsHandler::s_triggerActiveSelModeHelp = "\
+Trigger active selection modes currently supported by the --trigger-sel option:\n\
+\n\
+all \n\
++ Make all triggers active. \n\
+\n\
+min \n\
++ Activate triggers with minimal ground terms.\n\
+\n\
+max \n\
++ Activate triggers with maximal ground terms. \n\
+\n\
+";
 const std::string OptionsHandler::s_prenexQuantModeHelp = "\
 Prenex quantifiers modes currently supported by the --prenex-quant option:\n\
 \n\
@@ -630,9 +643,7 @@ theory::quantifiers::UserPatMode OptionsHandler::stringToUserPatMode(std::string
 }
 
 theory::quantifiers::TriggerSelMode OptionsHandler::stringToTriggerSelMode(std::string option, std::string optarg) throw(OptionException) {
-  if(optarg ==  "default") {
-    return theory::quantifiers::TRIGGER_SEL_DEFAULT;
-  } else if(optarg == "min") {
+  if(optarg ==  "default" || optarg == "min") {
     return theory::quantifiers::TRIGGER_SEL_MIN;
   } else if(optarg == "max") {
     return theory::quantifiers::TRIGGER_SEL_MAX;
@@ -651,6 +662,21 @@ theory::quantifiers::TriggerSelMode OptionsHandler::stringToTriggerSelMode(std::
   }
 }
 
+theory::quantifiers::TriggerActiveSelMode OptionsHandler::stringToTriggerActiveSelMode(std::string option, std::string optarg) throw(OptionException) {
+  if(optarg ==  "default" || optarg == "all") {
+    return theory::quantifiers::TRIGGER_ACTIVE_SEL_ALL;
+  } else if(optarg == "min") {
+    return theory::quantifiers::TRIGGER_ACTIVE_SEL_MIN;
+  } else if(optarg == "max") {
+    return theory::quantifiers::TRIGGER_ACTIVE_SEL_MAX;
+  } else if(optarg ==  "help") {
+    puts(s_triggerActiveSelModeHelp.c_str());
+    exit(1);
+  } else {
+    throw OptionException(std::string("unknown option for --trigger-active-sel: `") +
+                          optarg + "'.  Try --trigger-active-sel help.");
+  }
+}
 
 theory::quantifiers::PrenexQuantMode OptionsHandler::stringToPrenexQuantMode(std::string option, std::string optarg) throw(OptionException) {
   if(optarg ==  "default" ) {

@@ -264,7 +264,7 @@ Node ProofUF::toStreamRecLFSC(std::ostream& out, TheoryProof * tp, theory::eq::E
 
       out << ss.str();
       out << " ";
-      ProofManager::getTheoryProofEngine()->printConstantDisequalityProof(out, n1[0].toExpr(), n1[1].toExpr());
+      ProofManager::getTheoryProofEngine()->printConstantDisequalityProof(out, n1[0].toExpr(), n1[1].toExpr(), map);
       out << "))" << std::endl;
     }
 
@@ -733,7 +733,7 @@ void LFSCUFProof::printOwnedSort(Type type, std::ostream& os) {
   Debug("pf::uf") << std::endl << "(pf::uf) LFSCArrayProof::printOwnedSort: type is: " << type << std::endl;
 
   Assert (type.isSort());
-  os << type <<" ";
+  os << type;
 }
 
 void LFSCUFProof::printTheoryLemmaProof(std::vector<Expr>& lemma, std::ostream& os, std::ostream& paren, const ProofLetMap& map) {
@@ -797,7 +797,7 @@ void LFSCUFProof::printDeferredDeclarations(std::ostream& os, std::ostream& pare
   // Nothing to do here at this point.
 }
 
-void LFSCUFProof::printAliasingDeclarations(std::ostream& os, std::ostream& paren) {
+void LFSCUFProof::printAliasingDeclarations(std::ostream& os, std::ostream& paren, const ProofLetMap &globalLetMap) {
   // Nothing to do here at this point.
 }
 

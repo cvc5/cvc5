@@ -804,9 +804,9 @@ void LFSCArithProof::printOwnedSort(Type type, std::ostream& os) {
 
   if (type.isInteger() && d_realMode) {
     // If in "real mode", don't use type Int for, e.g., equality.
-    os << "Real ";
+    os << "Real";
   } else {
-    os << type << " ";
+    os << type;
   }
 }
 
@@ -830,7 +830,7 @@ void LFSCArithProof::printDeferredDeclarations(std::ostream& os, std::ostream& p
   // Nothing to do here at this point.
 }
 
-void LFSCArithProof::printAliasingDeclarations(std::ostream& os, std::ostream& paren) {
+void LFSCArithProof::printAliasingDeclarations(std::ostream& os, std::ostream& paren, const ProofLetMap &globalLetMap) {
   // Nothing to do here at this point.
 }
 

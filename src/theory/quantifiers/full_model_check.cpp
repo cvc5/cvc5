@@ -668,7 +668,7 @@ bool FullModelChecker::doExhaustiveInstantiation( FirstOrderModel * fm, Node f, 
               }
             }
             if( addInst ){
-              if( options::fmfBoundInt() ){
+              if( options::fmfBound() ){
                 std::vector< Node > cond;
                 cond.push_back(d_quant_cond[f]);
                 cond.insert( cond.end(), inst.begin(), inst.end() );

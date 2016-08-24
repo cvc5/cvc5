@@ -66,7 +66,9 @@ private:
   static signed long s_slowSignedIntMax; /*  std::numeric_limits<signed int>::max() */
   static signed long s_slowSignedIntMin; /*  std::numeric_limits<signed int>::min() */
   static unsigned long s_slowUnsignedIntMax; /*  std::numeric_limits<unsigned int>::max() */
-
+  static unsigned long s_signedLongMin;
+  static unsigned long s_signedLongMax;
+  static unsigned long s_unsignedLongMax;
 public:
 
   /** Constructs a rational with the value 0. */
@@ -424,6 +426,10 @@ public:
   int getSignedInt() const;
 
   unsigned int getUnsignedInt() const;
+
+  bool fitsSignedLong() const;
+
+  bool fitsUnsignedLong() const;
 
   long getLong() const {
     // ensure there isn't overflow

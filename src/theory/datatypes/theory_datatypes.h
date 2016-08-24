@@ -266,6 +266,9 @@ public:
   void collectModelInfo( TheoryModel* m, bool fullModel );
   void shutdown() { }
   std::string identify() const { return std::string("TheoryDatatypes"); }
+  /** equality engine */
+  eq::EqualityEngine * getEqualityEngine() { return &d_equalityEngine; }
+  bool getCurrentSubstitution( int effort, std::vector< Node >& vars, std::vector< Node >& subs, std::map< Node, std::vector< Node > >& exp );
   /** debug print */
   void printModelDebug( const char* c );
   /** entailment check */
@@ -313,9 +316,6 @@ private:
   bool areEqual( TNode a, TNode b );
   bool areDisequal( TNode a, TNode b );
   TNode getRepresentative( TNode a );
-public:
-  /** get equality engine */
-  eq::EqualityEngine* getEqualityEngine() { return &d_equalityEngine; }
 };/* class TheoryDatatypes */
 
 }/* CVC4::theory::datatypes namespace */

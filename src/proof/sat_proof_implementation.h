@@ -224,6 +224,7 @@ TSatProof<Solver>::TSatProof(Solver* solver, const std::string& name,
       d_seenLearnt(),
       d_seenInputs(),
       d_seenLemmas(),
+      d_satProofConstructed(false),
       d_statistics(name) {
   d_proxy = new ProofProxy<Solver>(this);
 }
@@ -957,7 +958,13 @@ void TSatProof<Solver>::markDeleted(typename Solver::TCRef clause) {
 
 template <class Solver>
 void TSatProof<Solver>::constructProof(ClauseId conflict) {
+  d_satProofConstructed = true;
   collectClauses(conflict);
+}
+
+template <class Solver>
+bool TSatProof<Solver>::proofConstructed() const {
+  return d_satProofConstructed;
 }
 
 template <class Solver>
@@ -995,6 +1002,11 @@ prop::SatClause* TSatProof<Solver>::buildClause(ClauseId id) {
   prop::SatClause* clause = new prop::SatClause();
   toSatClause<Solver>(minisat_cl, *clause);
   return clause;
+}
+
+template <class Solver>
+bool TSatProof<Solver>::derivedEmptyClause() const {
+  return hasResolutionChain(d_emptyClauseId);
 }
 
 template <class Solver>
@@ -1080,33 +1092,34 @@ TSatProof<Solver>::Statistics::~Statistics() {
 template <class Solver>
 void LFSCSatProof<Solver>::printResolution(ClauseId id, std::ostream& out,
                                            std::ostream& paren) {
-  out << "(satlem_simplify _ _ _ ";
+  out << "(satlem_simplify _ _ _";
+  paren << ")";
 
   const ResChain<Solver>& res = this->getResolutionChain(id);
   const typename ResChain<Solver>::ResSteps& steps = res.getSteps();
 
   for (int i = steps.size() - 1; i >= 0; i--) {
-    out << "(";
-    out << (steps[i].sign ? "R" : "Q") << " _ _ ";
+    out << " (";
+    out << (steps[i].sign ? "R" : "Q") << " _ _";
   }
 
   ClauseId start_id = res.getStart();
-  out << this->clauseName(start_id) << " ";
+  out << " " << this->clauseName(start_id);
 
   for (unsigned i = 0; i < steps.size(); i++) {
     prop::SatVariable v =
         prop::MinisatSatSolver::toSatVariable(var(steps[i].lit));
-    out << this->clauseName(steps[i].id) << " "
+    out << " " << this->clauseName(steps[i].id) << " "
         << ProofManager::getVarName(v, this->d_name) << ")";
   }
 
   if (id == this->d_emptyClauseId) {
-    out <<"(\\ empty empty)";
+    out <<" (\\ empty empty)";
     return;
   }
 
-  out << "(\\ " << this->clauseName(id) << "\n";   // bind to lemma name
-  paren << "))";                            // closing parethesis for lemma binding and satlem
+  out << " (\\ " << this->clauseName(id) << "\n";   // bind to lemma name
+  paren << ")";
 }
 
 /// LFSCSatProof class

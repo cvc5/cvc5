@@ -60,7 +60,7 @@ void ArrayProofReconstruction::notify(unsigned reasonType, Node reason, Node a, 
     // or ((a[i]:=t)[k] == a[k]) because (i != k).
 
     if (proof) {
-      if (a.getNumChildren() == 2) {
+      if (a.getKind() == kind::SELECT) {
         // This is the case of ((a[i]:=t)[k] == a[k]) because (i != k).
 
         // The edge is ((a[i]:=t)[k], a[k]), or (a[k], (a[i]:=t)[k]). This flag should be
@@ -156,7 +156,7 @@ void ArrayProofReconstruction::notify(unsigned reasonType, Node reason, Node a, 
 
         proof->d_children.push_back(childProof);
       } else {
-        // This is the case of  (i == k) because ((a[i]:=t)[k] != a[k]),
+        // This is the case of (i == k) because ((a[i]:=t)[k] != a[k]),
 
         Node indexOne = a;
         Node indexTwo = b;

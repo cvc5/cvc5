@@ -749,6 +749,7 @@ bool CegInstantiator::doAddInstantiationInc( Node n, Node pv, Node pv_coeff, int
       Trace("cbqi-inst") << pv_coeff << " * ";
     }
     Trace("cbqi-inst") << pv << " -> " << n << std::endl;
+    Assert( n.getType().isSubtypeOf( pv.getType() ) );
   }
   //must ensure variables have been computed for n
   computeProgVars( n );
@@ -772,6 +773,7 @@ bool CegInstantiator::doAddInstantiationInc( Node n, Node pv, Node pv_coeff, int
   std::vector< Node > new_has_coeff;
   Trace("cbqi-inst-debug2") << "Applying substitutions..." << std::endl;
   for( unsigned j=0; j<sf.d_subs.size(); j++ ){
+    Trace("cbqi-inst-debug2") << "  Apply for " << sf.d_subs[j]  << std::endl;
     Assert( d_prog_var.find( sf.d_subs[j] )!=d_prog_var.end() );
     if( d_prog_var[sf.d_subs[j]].find( pv )!=d_prog_var[sf.d_subs[j]].end() ){
       prev_subs[j] = sf.d_subs[j];
@@ -1629,10 +1631,11 @@ int CegInstantiator::solve_arith( Node pv, Node atom, Node& veq_c, Node& val, No
             real_part.push_back( msum[it->first].isNull() ? it->first : NodeManager::currentNM()->mkNode( MULT, msum[it->first], it->first ) );
           }
         }
-        for( unsigned t=0; t<2; t++ ){
-          if( !vts_coeff[t].isNull() ){
-            vts_coeff[t] = Rewriter::rewrite( NodeManager::currentNM()->mkNode( MULT, rcoeff, vts_coeff[t] ) );
-          }
+        //remove delta  TODO: check this
+        vts_coeff[1] = Node::null();
+        //multiply inf
+        if( !vts_coeff[0].isNull() ){
+          vts_coeff[0] = Rewriter::rewrite( NodeManager::currentNM()->mkNode( MULT, rcoeff, vts_coeff[0] ) );
         }
         realPart = real_part.empty() ? d_zero : ( real_part.size()==1 ? real_part[0] : NodeManager::currentNM()->mkNode( PLUS, real_part ) );
         Assert( d_out->isEligibleForInstantiation( realPart ) );
@@ -1645,7 +1648,7 @@ int CegInstantiator::solve_arith( Node pv, Node atom, Node& veq_c, Node& val, No
           int ires_use = ( msum[pv].isNull() || msum[pv].getConst<Rational>().sgn()==1 ) ? 1 : -1;
           val = Rewriter::rewrite( NodeManager::currentNM()->mkNode( ires_use==-1 ? PLUS : MINUS,
                                     NodeManager::currentNM()->mkNode( ires_use==-1 ? MINUS : PLUS, val, realPart ),
-                                    NodeManager::currentNM()->mkNode( TO_INTEGER, realPart ) ) );
+                                    NodeManager::currentNM()->mkNode( TO_INTEGER, realPart ) ) );  //TODO: round up for upper bounds?
           Trace("cbqi-inst-debug") << "result : " << val << std::endl;
           Assert( val.getType().isInteger() );
         }

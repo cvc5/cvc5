@@ -26,6 +26,8 @@ option prenexQuant --prenex-quant=MODE CVC4::theory::quantifiers::PrenexQuantMod
 #   forall y. P( c, y )
 option varElimQuant --var-elim-quant bool :default true
  enable simple variable elimination for quantified formulas
+option varIneqElimQuant --var-ineq-elim-quant bool :default true
+ enable variable elimination based on infinite projection of unbound arithmetic variables
 option dtVarExpandQuant --dt-var-exp-quant bool :default true
  expand datatype variables bound to one constructor in quantifiers
 #ite lift mode for quantified formulas
@@ -50,8 +52,6 @@ option aggressiveMiniscopeQuant --ag-miniscope-quant bool :default false
  perform aggressive miniscoping for quantifiers
 option elimTautQuant --elim-taut-quant bool :default true
  eliminate tautological disjuncts of quantified formulas
-option purifyQuant --purify-quant bool :default false
- purify quantified formulas
 option elimExtArithQuant --elim-ext-arith-quant bool :default true
  eliminate extended arithmetic symbols in quantified formulas
 option condRewriteQuant --cond-rewrite-quant bool :default true
@@ -89,8 +89,10 @@ option multiTriggerWhenSingle --multi-trigger-when-single bool :default false
  select multi triggers when single triggers exist
 option multiTriggerPriority --multi-trigger-priority bool :default false
  only try multi triggers if single triggers give no instantiations
-option triggerSelMode --trigger-sel CVC4::theory::quantifiers::TriggerSelMode :default CVC4::theory::quantifiers::TRIGGER_SEL_DEFAULT :read-write :include "options/quantifiers_modes.h" :handler  stringToTriggerSelMode
+option triggerSelMode --trigger-sel CVC4::theory::quantifiers::TriggerSelMode :default CVC4::theory::quantifiers::TRIGGER_SEL_MIN :read-write :include "options/quantifiers_modes.h" :handler  stringToTriggerSelMode
  selection mode for triggers
+option triggerActiveSelMode --trigger-active-sel CVC4::theory::quantifiers::TriggerActiveSelMode :default CVC4::theory::quantifiers::TRIGGER_ACTIVE_SEL_ALL :read-write :include "options/quantifiers_modes.h" :handler stringToTriggerActiveSelMode
+ selection mode to activate triggers
 option userPatternsQuant --user-pat=MODE CVC4::theory::quantifiers::UserPatMode :default CVC4::theory::quantifiers::USER_PAT_MODE_TRUST :read-write :include "options/quantifiers_modes.h" :handler stringToUserPatMode
  policy for handling user-provided patterns for quantifier instantiation
 option incrementTriggers --increment-triggers bool :default true
@@ -160,8 +162,10 @@ option fmfFmcSimple --fmf-fmc-simple bool :default true
  simple models in full model check for finite model finding
 option fmfBoundInt fmf-bound-int --fmf-bound-int bool :default false :read-write
  finite model finding on bounded integer quantification
-option fmfBoundIntLazy --fmf-bound-int-lazy bool :default false :read-write
- enforce bounds for bounded integer quantification lazily via use of proxy variables
+option fmfBound fmf-bound --fmf-bound bool :default false :read-write
+ finite model finding on bounded quantification
+option fmfBoundLazy --fmf-bound-lazy bool :default false :read-write
+ enforce bounds for bounded quantification lazily via use of proxy variables
  
 ### conflict-based instantiation options 
  
@@ -239,6 +243,10 @@ option cegqiSingleInvPartial --cegqi-si-partial bool :default false
   combined techniques for synthesis conjectures that are partially single invocation 
 option cegqiSingleInvReconstruct --cegqi-si-reconstruct bool :default true
   reconstruct solutions for single invocation conjectures in original grammar
+option cegqiSolMinCore --cegqi-si-sol-min-core bool :default false
+  minimize solutions for single invocation conjectures based on unsat core
+option cegqiSolMinInst --cegqi-si-sol-min-inst bool :default true
+  minimize individual instantiations for single invocation conjectures based on unsat core
 option cegqiSingleInvReconstructConst --cegqi-si-reconstruct-const bool :default true
   include constants when reconstruct solutions for single invocation conjectures in original grammar
 option cegqiSingleInvAbort --cegqi-si-abort bool :default false
@@ -324,5 +332,10 @@ option quantAntiSkolem --quant-anti-skolem bool :read-write :default false
 
 option quantEqualityEngine --quant-ee bool :default false
   maintain congrunce closure over universal equalities
+ 
+### proof options
+
+option trackInstLemmas --track-inst-lemmas bool :default true
+  when proof is enabled, track instantiation lemmas (for proofs, unsat cores, qe and synthesis minimization)
  
 endmodule

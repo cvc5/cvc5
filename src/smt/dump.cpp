@@ -32,7 +32,9 @@ std::ostream* DumpC::getStreamPointer() { return ::CVC4::DumpOutChannel.getStrea
 
 void DumpC::setDumpFromString(const std::string& optarg) {
 #ifdef CVC4_DUMPING
-  char* optargPtr = strdup(optarg.c_str());
+  // Make a copy of optarg for strtok_r to use.
+  std::string optargCopy = optarg;
+  char* optargPtr = const_cast<char*>(optargCopy.c_str());
   char* tokstr = optargPtr;
   char* toksave;
   while((optargPtr = strtok_r(tokstr, ",", &toksave)) != NULL) {
@@ -130,7 +132,6 @@ void DumpC::setDumpFromString(const std::string& optarg) {
       }
     }
   }
-  free(optargPtr);
 #else /* CVC4_DUMPING */
   throw OptionException("The dumping feature was disabled in this build of CVC4.");
 #endif /* CVC4_DUMPING */

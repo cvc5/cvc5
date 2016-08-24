@@ -41,6 +41,15 @@
 
 namespace CVC4 {
 
+std::string nodeSetToString(const std::set<Node>& nodes) {
+  std::ostringstream os;
+  std::set<Node>::const_iterator it;
+  for (it = nodes.begin(); it != nodes.end(); ++it) {
+    os << *it << " ";
+  }
+  return os.str();
+}
+
 std::string append(const std::string& str, uint64_t num) {
   std::ostringstream os;
   os << str << num;
@@ -202,12 +211,19 @@ std::string ProofManager::getLitName(prop::SatLiteral lit,
 
 std::string ProofManager::getPreprocessedAssertionName(Node node,
                                                        const std::string& prefix) {
+  if (currentPM()->d_assertionFilters.find(node) != currentPM()->d_assertionFilters.end()) {
+    return currentPM()->d_assertionFilters[node];
+  }
+
   node = node.getKind() == kind::BITVECTOR_EAGER_ATOM ? node[0] : node;
   return append(prefix+".PA", node.getId());
 }
 std::string ProofManager::getAssertionName(Node node,
                                            const std::string& prefix) {
   return append(prefix+".A", node.getId());
+}
+std::string ProofManager::getInputFormulaName(const Expr& expr) {
+  return currentPM()->d_inputFormulaToName[expr];
 }
 
 std::string ProofManager::getAtomName(TNode atom,
@@ -243,7 +259,7 @@ std::string ProofManager::sanitize(TNode node) {
   return name;
 }
 
-void ProofManager::traceDeps(TNode n) {
+void ProofManager::traceDeps(TNode n, ExprSet* coreAssertions) {
   Debug("cores") << "trace deps " << n << std::endl;
   if ((n.isConst() && n == NodeManager::currentNM()->mkConst<bool>(true)) ||
       (n.getKind() == kind::NOT && n[0] == NodeManager::currentNM()->mkConst<bool>(false))) {
@@ -252,7 +268,7 @@ void ProofManager::traceDeps(TNode n) {
   if(d_inputCoreFormulas.find(n.toExpr()) != d_inputCoreFormulas.end()) {
     // originating formula was in core set
     Debug("cores") << " -- IN INPUT CORE LIST!" << std::endl;
-    d_outputCoreFormulas.insert(n.toExpr());
+    coreAssertions->insert(n.toExpr());
   } else {
     Debug("cores") << " -- NOT IN INPUT CORE LIST!" << std::endl;
     if(d_deps.find(n) == d_deps.end()) {
@@ -263,7 +279,7 @@ void ProofManager::traceDeps(TNode n) {
     for(std::vector<Node>::const_iterator i = deps.begin(); i != deps.end(); ++i) {
       Debug("cores") << " + tracing deps: " << n << " -deps-on- " << *i << std::endl;
       if( !(*i).isNull() ){
-        traceDeps(*i);
+        traceDeps(*i, coreAssertions);
       }
     }
   }
@@ -271,7 +287,7 @@ void ProofManager::traceDeps(TNode n) {
 
 void ProofManager::traceUnsatCore() {
   Assert (options::unsatCores());
-  d_satProof->constructProof();
+  constructSatProof();
   IdToSatClause used_lemmas;
   IdToSatClause used_inputs;
   d_satProof->collectClausesUsed(used_inputs,
@@ -287,14 +303,157 @@ void ProofManager::traceUnsatCore() {
         rule == RULE_GIVEN) {
       // trace dependences back to actual assertions
       // (this adds them to the unsat core)
-      traceDeps(node);
+      traceDeps(node, &d_outputCoreFormulas);
     }
   }
+}
+
+bool ProofManager::unsatCoreAvailable() const {
+  return d_satProof->derivedEmptyClause();
+}
+
+void ProofManager::constructSatProof() {
+  if (!d_satProof->proofConstructed()) {
+    d_satProof->constructProof();
+  }
+}
+
+void ProofManager::getLemmasInUnsatCore(theory::TheoryId theory, std::vector<Node> &lemmas) {
+  Assert(PROOF_ON(), "Cannot compute unsat core when proofs are off");
+  Assert(unsatCoreAvailable(), "Cannot get unsat core at this time. Mabye the input is SAT?" );
+
+  constructSatProof();
+
+  IdToSatClause used_lemmas;
+  IdToSatClause used_inputs;
+  d_satProof->collectClausesUsed(used_inputs, used_lemmas);
+
+  IdToSatClause::const_iterator it;
+  std::set<Node> seen;
+
+  Debug("pf::lemmasUnsatCore") << "Dumping all lemmas in unsat core" << std::endl;
+  for (it = used_lemmas.begin(); it != used_lemmas.end(); ++it) {
+    std::set<Node> lemma = satClauseToNodeSet(it->second);
+    Debug("pf::lemmasUnsatCore") << nodeSetToString(lemma);
+
+    // TODO: we should be able to drop the "haveProofRecipe" check.
+    // however, there are some rewrite issues with the arith solver, resulting
+    // in non-registered recipes. For now we assume no one is requesting arith lemmas.
+    LemmaProofRecipe recipe;
+    if (!getCnfProof()->haveProofRecipe(lemma)) {
+      Debug("pf::lemmasUnsatCore") << "\t[no recipe]" << std::endl;
+      continue;
+    }
+
+    recipe = getCnfProof()->getProofRecipe(lemma);
+    Debug("pf::lemmasUnsatCore") << "\t[owner = " << recipe.getTheory()
+                                 << ", original = " << recipe.getOriginalLemma() << "]" << std::endl;
+    if (recipe.simpleLemma() && recipe.getTheory() == theory && seen.find(recipe.getOriginalLemma()) == seen.end()) {
+      lemmas.push_back(recipe.getOriginalLemma());
+      seen.insert(recipe.getOriginalLemma());
+    }
+  }
+}
+
+std::set<Node> ProofManager::satClauseToNodeSet(prop::SatClause* clause) {
+  std::set<Node> result;
+  for (unsigned i = 0; i < clause->size(); ++i) {
+    prop::SatLiteral lit = (*clause)[i];
+    Node node = getCnfProof()->getAtom(lit.getSatVariable());
+    Expr atom = node.toExpr();
+    if (atom != utils::mkTrue())
+      result.insert(lit.isNegated() ? node.notNode() : node);
+  }
+
+  return result;
+}
+
+Node ProofManager::getWeakestImplicantInUnsatCore(Node lemma) {
+  Assert(PROOF_ON(), "Cannot compute unsat core when proofs are off");
+  Assert(unsatCoreAvailable(), "Cannot get unsat core at this time. Mabye the input is SAT?" );
+
+  // If we're doing aggressive minimization, work on all lemmas, not just conjunctions.
+  if (!options::aggressiveCoreMin() && (lemma.getKind() != kind::AND))
+    return lemma;
+
+  constructSatProof();
+
+  NodeBuilder<> builder(kind::AND);
+
+  IdToSatClause used_lemmas;
+  IdToSatClause used_inputs;
+  d_satProof->collectClausesUsed(used_inputs, used_lemmas);
+
+  IdToSatClause::const_iterator it;
+  std::set<Node>::iterator lemmaIt;
+
+  if (!options::aggressiveCoreMin()) {
+    for (it = used_lemmas.begin(); it != used_lemmas.end(); ++it) {
+      std::set<Node> currentLemma = satClauseToNodeSet(it->second);
+
+      // TODO: we should be able to drop the "haveProofRecipe" check.
+      // however, there are some rewrite issues with the arith solver, resulting
+      // in non-registered recipes. For now we assume no one is requesting arith lemmas.
+      LemmaProofRecipe recipe;
+      if (!getCnfProof()->haveProofRecipe(currentLemma))
+        continue;
+
+      recipe = getCnfProof()->getProofRecipe(currentLemma);
+      if (recipe.getOriginalLemma() == lemma) {
+        for (lemmaIt = currentLemma.begin(); lemmaIt != currentLemma.end(); ++lemmaIt) {
+          builder << *lemmaIt;
+
+          // Check that each conjunct appears in the original lemma.
+          bool found = false;
+          for (unsigned i = 0; i < lemma.getNumChildren(); ++i) {
+            if (lemma[i] == *lemmaIt)
+              found = true;
+          }
+
+          if (!found)
+            return lemma;
+        }
+      }
+    }
+  } else {
+    // Aggressive mode
+    for (it = used_lemmas.begin(); it != used_lemmas.end(); ++it) {
+      std::set<Node> currentLemma = satClauseToNodeSet(it->second);
+
+      // TODO: we should be able to drop the "haveProofRecipe" check.
+      // however, there are some rewrite issues with the arith solver, resulting
+      // in non-registered recipes. For now we assume no one is requesting arith lemmas.
+      LemmaProofRecipe recipe;
+      if (!getCnfProof()->haveProofRecipe(currentLemma))
+        continue;
+
+      recipe = getCnfProof()->getProofRecipe(currentLemma);
+      if (recipe.getOriginalLemma() == lemma) {
+        NodeBuilder<> disjunction(kind::OR);
+        for (lemmaIt = currentLemma.begin(); lemmaIt != currentLemma.end(); ++lemmaIt) {
+          disjunction << *lemmaIt;
+        }
+
+        Node conjunct = (disjunction.getNumChildren() == 1) ? disjunction[0] : disjunction;
+        builder << conjunct;
+      }
+    }
+  }
+
+  AlwaysAssert(builder.getNumChildren() != 0);
+
+  if (builder.getNumChildren() == 1)
+    return builder[0];
+
+  return builder;
 }
 
 void ProofManager::addAssertion(Expr formula) {
   Debug("proof:pm") << "assert: " << formula << std::endl;
   d_inputFormulas.insert(formula);
+  std::ostringstream name;
+  name << "A" << d_inputFormulaToName.size();
+  d_inputFormulaToName[formula] = name.str();
 }
 
 void ProofManager::addCoreAssertion(Expr formula) {
@@ -317,6 +476,10 @@ void ProofManager::addDependence(TNode n, TNode dep) {
 void ProofManager::addUnsatCore(Expr formula) {
   Assert (d_inputCoreFormulas.find(formula) != d_inputCoreFormulas.end());
   d_outputCoreFormulas.insert(formula);
+}
+
+void ProofManager::addAssertionFilter(const Node& node, const std::string& rewritten) {
+  d_assertionFilters[node] = rewritten;
 }
 
 void ProofManager::setLogic(const LogicInfo& logic) {
@@ -343,6 +506,7 @@ void LFSCProof::toStream(std::ostream& out) {
 
   Assert(options::bitblastMode() != theory::bv::BITBLAST_MODE_EAGER);
 
+  Assert(!d_satProof->proofConstructed());
   d_satProof->constructProof();
 
   // collecting leaf clauses in resolution proof
@@ -446,6 +610,7 @@ void LFSCProof::toStream(std::ostream& out) {
   smt::SmtScope scope(d_smtEngine);
   std::ostringstream paren;
   out << "(check\n";
+  paren << ")";
   out << " ;; Declarations\n";
 
   // declare the theory atoms
@@ -468,23 +633,22 @@ void LFSCProof::toStream(std::ostream& out) {
   Debug("pf::pm") << std::endl << "LFSCProof::toStream: print assertions DONE" << std::endl;
 
   out << "(: (holds cln)\n\n";
+  paren << ")";
 
   // Have the theory proofs print deferred declarations, e.g. for skolem variables.
   out << " ;; Printing deferred declarations \n\n";
   d_theoryProof->printDeferredDeclarations(out, paren);
 
+  out << "\n ;; Printing the global let map";
   d_theoryProof->finalizeBvConflicts(used_lemmas, out);
   ProofManager::getBitVectorProof()->calculateAtomsInBitblastingProof();
-
-  out << "\n ;; Printing the global let map \n";
-
   ProofLetMap globalLetMap;
   if (options::lfscLetification()) {
     ProofManager::currentPM()->printGlobalLetMap(atoms, globalLetMap, out, paren);
   }
 
   out << " ;; Printing aliasing declarations \n\n";
-  d_theoryProof->printAliasingDeclarations(out, paren);
+  d_theoryProof->printAliasingDeclarations(out, paren, globalLetMap);
 
   out << " ;; Rewrites for Lemmas \n";
   d_theoryProof->printLemmaRewrites(rewrites, out, paren);
@@ -511,20 +675,15 @@ void LFSCProof::toStream(std::ostream& out) {
   Debug("pf::pm") << "Proof manager: printing theory lemmas DONE!" << std::endl;
 
   if (options::bitblastMode() == theory::bv::BITBLAST_MODE_EAGER && ProofManager::getBitVectorProof()) {
-    // print actual resolution proof
-    // d_satProof->printResolutions(out, paren);
     ProofManager::getBitVectorProof()->getSatProof()->printResolutionEmptyClause(out, paren);
-    paren <<")))\n;;";
-    out << paren.str();
-    out << "\n";
   } else {
     // print actual resolution proof
     d_satProof->printResolutions(out, paren);
     d_satProof->printResolutionEmptyClause(out, paren);
-    paren <<")))\n;;";
-    out << paren.str();
-    out << "\n";
   }
+
+  out << paren.str();
+  out << "\n;;\n";
 }
 
 void LFSCProof::printPreprocessedAssertions(const NodeSet& assertions,
@@ -537,19 +696,116 @@ void LFSCProof::printPreprocessedAssertions(const NodeSet& assertions,
 
   Debug("pf::pm") << "LFSCProof::printPreprocessedAssertions starting" << std::endl;
 
-  for (; it != end; ++it) {
-    os << "(th_let_pf _ ";
+  if (options::fewerPreprocessingHoles()) {
+    // Check for assertions that did not get rewritten, and update the printing filter.
+    checkUnrewrittenAssertion(assertions);
 
-    //TODO
-    os << "(trust_f ";
-    ProofManager::currentPM()->getTheoryProofEngine()->printTheoryTerm((*it).toExpr(), os, globalLetMap);
-    os << ") ";
+    // For the remaining assertions, bind them to input assertions.
+    for (; it != end; ++it) {
+      // Rewrite preprocessing step if it cannot be eliminated
+      if (!ProofManager::currentPM()->have_input_assertion((*it).toExpr())) {
+        os << "(th_let_pf _ (trust_f (iff ";
 
-    os << "(\\ "<< ProofManager::getPreprocessedAssertionName(*it, "") << "\n";
-    paren << "))";
+        Expr inputAssertion;
+
+        if (((*it).isConst() && *it == NodeManager::currentNM()->mkConst<bool>(true)) ||
+            ((*it).getKind() == kind::NOT && (*it)[0] == NodeManager::currentNM()->mkConst<bool>(false))) {
+          inputAssertion = NodeManager::currentNM()->mkConst<bool>(true).toExpr();
+        } else {
+          // Figure out which input assertion led to this assertion
+          ExprSet inputAssertions;
+          ProofManager::currentPM()->traceDeps(*it, &inputAssertions);
+
+          Debug("pf::pm") << "Original assertions for " << *it << " are: " << std::endl;
+
+          ProofManager::assertions_iterator assertionIt;
+          for (assertionIt = inputAssertions.begin(); assertionIt != inputAssertions.end(); ++assertionIt) {
+            Debug("pf::pm") << "\t" << *assertionIt << std::endl;
+          }
+
+          if (inputAssertions.size() == 0) {
+            Debug("pf::pm") << "LFSCProof::printPreprocessedAssertions: Count NOT find the assertion that caused this PA. Picking an arbitrary one..." << std::endl;
+            // For now just use the first assertion...
+            inputAssertion = *(ProofManager::currentPM()->begin_assertions());
+          } else {
+            if (inputAssertions.size() != 1) {
+              Debug("pf::pm") << "LFSCProof::printPreprocessedAssertions: Attention: more than one original assertion was found. Picking just one." << std::endl;
+            }
+            inputAssertion = *inputAssertions.begin();
+          }
+        }
+
+        if (!ProofManager::currentPM()->have_input_assertion(inputAssertion)) {
+          // The thing returned by traceDeps does not appear in the input assertions...
+          Debug("pf::pm") << "LFSCProof::printPreprocessedAssertions: Count NOT find the assertion that caused this PA. Picking an arbitrary one..." << std::endl;
+          // For now just use the first assertion...
+          inputAssertion = *(ProofManager::currentPM()->begin_assertions());
+        }
+
+        Debug("pf::pm") << "Original assertion for " << *it
+                        << " is: "
+                        << inputAssertion
+                        << ", AKA "
+                        << ProofManager::currentPM()->getInputFormulaName(inputAssertion)
+                        << std::endl;
+
+        ProofManager::currentPM()->getTheoryProofEngine()->printTheoryTerm(inputAssertion, os, globalLetMap);
+        os << " ";
+        ProofManager::currentPM()->getTheoryProofEngine()->printTheoryTerm((*it).toExpr(), os, globalLetMap);
+
+        os << "))";
+        os << "(\\ "<< ProofManager::getPreprocessedAssertionName(*it, "") << "\n";
+        paren << "))";
+
+        std::ostringstream rewritten;
+
+        rewritten << "(or_elim_1 _ _ ";
+        rewritten << "(not_not_intro _ ";
+        rewritten << ProofManager::currentPM()->getInputFormulaName(inputAssertion);
+        rewritten << ") (iff_elim_1 _ _ ";
+        rewritten << ProofManager::getPreprocessedAssertionName(*it, "");
+        rewritten << "))";
+
+        ProofManager::currentPM()->addAssertionFilter(*it, rewritten.str());
+      }
+    }
+  } else {
+    for (; it != end; ++it) {
+      os << "(th_let_pf _ ";
+
+      //TODO
+      os << "(trust_f ";
+      ProofManager::currentPM()->getTheoryProofEngine()->printTheoryTerm((*it).toExpr(), os, globalLetMap);
+      os << ") ";
+
+      os << "(\\ "<< ProofManager::getPreprocessedAssertionName(*it, "") << "\n";
+      paren << "))";
+    }
   }
 
   os << "\n";
+}
+
+void LFSCProof::checkUnrewrittenAssertion(const NodeSet& rewrites) {
+  Debug("pf::pm") << "LFSCProof::checkUnrewrittenAssertion starting" << std::endl;
+
+  NodeSet::const_iterator rewrite;
+  for (rewrite = rewrites.begin(); rewrite != rewrites.end(); ++rewrite) {
+    Debug("pf::pm") << "LFSCProof::checkUnrewrittenAssertion: handling " << *rewrite << std::endl;
+    if (ProofManager::currentPM()->have_input_assertion((*rewrite).toExpr())) {
+      Assert(ProofManager::currentPM()->have_input_assertion((*rewrite).toExpr()));
+      Debug("pf::pm") << "LFSCProof::checkUnrewrittenAssertion: this assertion was NOT rewritten!" << std::endl
+                      << "\tAdding filter: "
+                      << ProofManager::getPreprocessedAssertionName(*rewrite, "")
+                      << " --> "
+                      << ProofManager::currentPM()->getInputFormulaName((*rewrite).toExpr())
+                      << std::endl;
+      ProofManager::currentPM()->addAssertionFilter(*rewrite,
+        ProofManager::currentPM()->getInputFormulaName((*rewrite).toExpr()));
+    } else {
+      Debug("pf::pm") << "LFSCProof::checkUnrewrittenAssertion: this assertion WAS rewritten! " << *rewrite << std::endl;
+    }
+  }
 }
 
 //---from Morgan---

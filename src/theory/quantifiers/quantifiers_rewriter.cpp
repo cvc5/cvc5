@@ -85,48 +85,6 @@ bool QuantifiersRewriter::isCube( Node n ){
   }
 }
 
-int QuantifiersRewriter::getPurifyId( Node n ){
-  if( !TermDb::hasBoundVarAttr( n ) ){
-    return 0;
-  }else if( inst::Trigger::isAtomicTriggerKind( n.getKind() ) ){
-    return 1;
-  }else if( TermDb::isBoolConnective( n.getKind() ) || n.getKind()==EQUAL || n.getKind()==BOUND_VARIABLE ){
-    return 0;
-  }else{
-    return -1;
-  }
-}
-
-int QuantifiersRewriter::getPurifyIdLit2( Node n, std::map< Node, int >& visited ) {
-  std::map< Node, int >::iterator it = visited.find( n );
-  if( visited.find( n )==visited.end() ){
-    int ret = 0;
-    if( TermDb::hasBoundVarAttr( n ) ){
-      ret = getPurifyId( n );
-      for( unsigned i=0; i<n.getNumChildren(); i++ ){
-        int cid = getPurifyIdLit2( n[i], visited );
-        if( cid!=0 ){
-          if( ret==0 ){
-            ret = cid;
-          }else if( cid!=ret ){
-            ret = -2;
-            break;
-          }
-        }
-      }
-    }
-    visited[n] = ret;
-    return ret;
-  }else{
-    return it->second;
-  }
-}
-
-int QuantifiersRewriter::getPurifyIdLit( Node n ) {
-  std::map< Node, int > visited;
-  return getPurifyIdLit2( n, visited );
-}
-
 void QuantifiersRewriter::addNodeToOrBuilder( Node n, NodeBuilder<>& t ){
   if( n.getKind()==OR ){
     for( int i=0; i<(int)n.getNumChildren(); i++ ){
@@ -202,6 +160,9 @@ RewriteResponse QuantifiersRewriter::preRewrite(TNode in) {
       }      
       children.push_back( NodeManager::currentNM()->mkNode(kind::BOUND_VAR_LIST,args) );
       children.push_back( body[1] );
+      if( body.getNumChildren()==3 ){
+        children.push_back( body[2] );
+      }
       Node n = NodeManager::currentNM()->mkNode( in.getKind(), children );
       if( in!=n ){
         Trace("quantifiers-pre-rewrite") << "*** pre-rewrite " << in << std::endl;
@@ -881,29 +842,53 @@ Node QuantifiersRewriter::computeCondSplit( Node body, QAttributes& qa ){
   return body;
 }
 
-bool QuantifiersRewriter::isVariableElim( Node v, Node s, std::map< Node, std::vector< int > >& var_parent ) {
+bool QuantifiersRewriter::isVariableElim( Node v, Node s ) {
   if( TermDb::containsTerm( s, v ) || !s.getType().isSubtypeOf( v.getType() ) ){
     return false;
   }else{
-    if( !var_parent.empty() ){
-      std::map< Node, std::vector< int > >::iterator it = var_parent.find( v );
-      if( it!=var_parent.end() ){
-        Assert( !it->second.empty() );
-        int id = getPurifyId( s );
-        return it->second.size()==1 && it->second[0]==id;
-      }
-    }
     return true;
   }
 }
 
+void QuantifiersRewriter::isVariableBoundElig( Node n, std::map< Node, int >& exclude, std::map< Node, std::map< int, bool > >& visited, bool hasPol, bool pol, 
+                                               std::map< Node, bool >& elig_vars  ) {
+  int vindex = hasPol ? ( pol ? 1 : -1 ) : 0;
+  if( visited[n].find( vindex )==visited[n].end() ){
+    visited[n][vindex] = true;
+    if( elig_vars.find( n )!=elig_vars.end() ){
+      //variable contained in a place apart from bounds, no longer eligible for elimination
+      elig_vars.erase( n );
+      Trace("var-elim-ineq-debug") << "...found occurrence of " << n << ", mark ineligible" << std::endl;
+    }else{
+      if( hasPol ){
+        std::map< Node, int >::iterator itx = exclude.find( n );
+        if( itx!=exclude.end() && itx->second==vindex ){
+          //already processed this literal
+          return;
+        }
+      }
+      for( unsigned j=0; j<n.getNumChildren(); j++ ){
+        bool newHasPol;
+        bool newPol;
+        QuantPhaseReq::getPolarity( n, j, hasPol, pol, newHasPol, newPol );
+        isVariableBoundElig( n[j], exclude, visited, newHasPol, newPol, elig_vars );
+        if( elig_vars.empty() ){
+          break;
+        }
+      }
+    }
+  }else{
+    //already visited
+  }
+}
+
 bool QuantifiersRewriter::computeVariableElimLit( Node lit, bool pol, std::vector< Node >& args, std::vector< Node >& vars, std::vector< Node >& subs,
-                                                  std::map< Node, std::vector< int > >& var_parent ) {
-  if( lit.getKind()==EQUAL && pol ){
+                                                  std::map< Node, std::map< bool, std::map< Node, bool > > >& num_bounds ) {
+  if( lit.getKind()==EQUAL && pol && options::varElimQuant() ){
     for( unsigned i=0; i<2; i++ ){
       std::vector< Node >::iterator ita = std::find( args.begin(), args.end(), lit[i] );
       if( ita!=args.end() ){
-        if( isVariableElim( lit[i], lit[1-i], var_parent ) ){
+        if( isVariableElim( lit[i], lit[1-i] ) ){
           Trace("var-elim-quant") << "Variable eliminate based on equality : " << lit[i] << " -> " << lit[1-i] << std::endl;
           vars.push_back( lit[i] );
           subs.push_back( lit[1-i] );
@@ -912,28 +897,7 @@ bool QuantifiersRewriter::computeVariableElimLit( Node lit, bool pol, std::vecto
         }
       }
     }
-    //for arithmetic, solve the equality
-    if( lit[0].getType().isReal() ){
-      std::map< Node, Node > msum;
-      if( QuantArith::getMonomialSumLit( lit, msum ) ){
-        for( std::map< Node, Node >::iterator itm = msum.begin(); itm != msum.end(); ++itm ){
-          std::vector< Node >::iterator ita = std::find( args.begin(), args.end(), itm->first );
-          if( ita!=args.end() ){
-            Node veq_c;
-            Node val;
-            int ires = QuantArith::isolate( itm->first, msum, veq_c, val, EQUAL );
-            if( ires!=0 && veq_c.isNull() && isVariableElim( itm->first, val, var_parent ) ){
-              Trace("var-elim-quant") << "Variable eliminate based on solved equality : " << itm->first << " -> " << val << std::endl;
-              vars.push_back( itm->first );
-              subs.push_back( val );
-              args.erase( ita );
-              return true;
-            }
-          }
-        }
-      }
-    }
-  }else if( lit.getKind()==APPLY_TESTER && pol && lit[0].getKind()==BOUND_VARIABLE ){
+  }else if( lit.getKind()==APPLY_TESTER && pol && lit[0].getKind()==BOUND_VARIABLE && options::dtVarExpandQuant() ){
     Trace("var-elim-dt") << "Expand datatype variable based on : " << lit << std::endl;
     std::vector< Node >::iterator ita = std::find( args.begin(), args.end(), lit[0] );
     if( ita!=args.end() ){
@@ -957,7 +921,7 @@ bool QuantifiersRewriter::computeVariableElimLit( Node lit, bool pol, std::vecto
       args.insert( args.end(), newVars.begin(), newVars.end() );
       return true;
     }
-  }else if( lit.getKind()==BOUND_VARIABLE ){
+  }else if( lit.getKind()==BOUND_VARIABLE && options::varElimQuant() ){
     std::vector< Node >::iterator ita = std::find( args.begin(), args.end(), lit );
     if( ita!=args.end() ){
       Trace("var-elim-bool") << "Variable eliminate : " << lit << std::endl;
@@ -967,24 +931,76 @@ bool QuantifiersRewriter::computeVariableElimLit( Node lit, bool pol, std::vecto
       return true;
     }
   }
+  if( ( lit.getKind()==EQUAL && lit[0].getType().isReal() && pol ) || ( ( lit.getKind()==GEQ || lit.getKind()==GT ) && options::varIneqElimQuant() ) ){
+    //for arithmetic, solve the (in)equality
+    std::map< Node, Node > msum;
+    if( QuantArith::getMonomialSumLit( lit, msum ) ){
+      for( std::map< Node, Node >::iterator itm = msum.begin(); itm != msum.end(); ++itm ){
+        if( !itm->first.isNull() ){
+          std::vector< Node >::iterator ita = std::find( args.begin(), args.end(), itm->first );
+          if( ita!=args.end() ){
+            if( lit.getKind()==EQUAL ){
+              Assert( pol );
+              Node veq_c;
+              Node val;
+              int ires = QuantArith::isolate( itm->first, msum, veq_c, val, EQUAL );
+              if( ires!=0 && veq_c.isNull() && isVariableElim( itm->first, val ) ){
+                Trace("var-elim-quant") << "Variable eliminate based on solved equality : " << itm->first << " -> " << val << std::endl;
+                vars.push_back( itm->first );
+                subs.push_back( val );
+                args.erase( ita );
+                return true;
+              }
+            }else{
+              Assert( lit.getKind()==GEQ || lit.getKind()==GT );
+              //store that this literal is upper/lower bound for itm->first
+              Node veq_c;
+              Node val;
+              int ires = QuantArith::isolate( itm->first, msum, veq_c, val, lit.getKind() );
+              if( ires!=0 && veq_c.isNull() ){
+                bool is_upper = pol!=( ires==1 );
+                Trace("var-elim-ineq-debug") << lit << " is a " << ( is_upper ? "upper" : "lower" ) << " bound for " << itm->first << std::endl;
+                Trace("var-elim-ineq-debug") << "  pol/ires = " << pol << " " << ires << std::endl;
+                num_bounds[itm->first][is_upper][lit] = pol;
+              }else{
+                Trace("var-elim-ineq-debug") << "...ineligible " << itm->first << " since it cannot be solved for (" << ires << ", " << veq_c << ")." << std::endl;
+                num_bounds[itm->first][true].clear();
+                num_bounds[itm->first][false].clear();
+              }
+            }
+          }else{
+            if( lit.getKind()==GEQ || lit.getKind()==GT ){
+              //compute variables in itm->first, these are not eligible for elimination
+              std::vector< Node > bvs;
+              TermDb::getBoundVars( itm->first, bvs );
+              for( unsigned j=0; j<bvs.size(); j++ ){
+                Trace("var-elim-ineq-debug") << "...ineligible " << bvs[j] << " since it is contained in monomial." << std::endl;
+                num_bounds[bvs[j]][true].clear();
+                num_bounds[bvs[j]][false].clear();
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+  
   return false;
 }
 
-Node QuantifiersRewriter::computeVarElimination2( Node body, std::vector< Node >& args, QAttributes& qa, std::map< Node, std::vector< int > >& var_parent ){
+Node QuantifiersRewriter::computeVarElimination2( Node body, std::vector< Node >& args, QAttributes& qa ){
   Trace("var-elim-quant-debug") << "Compute var elimination for " << body << std::endl;
+  std::map< Node, std::map< bool, std::map< Node, bool > > > num_bounds;
   QuantPhaseReq qpr( body );
   std::vector< Node > vars;
   std::vector< Node > subs;
   for( std::map< Node, bool >::iterator it = qpr.d_phase_reqs.begin(); it != qpr.d_phase_reqs.end(); ++it ){
-    //Notice() << "   " << it->first << " -> " << ( it->second ? "true" : "false" ) << std::endl;
-    if( ( it->first.getKind()==EQUAL && it->second && options::varElimQuant() ) ||
-        ( it->first.getKind()==APPLY_TESTER && it->second && it->first[0].getKind()==BOUND_VARIABLE && options::dtVarExpandQuant() ) ||
-        ( it->first.getKind()==BOUND_VARIABLE && options::varElimQuant() ) ){
-      if( computeVariableElimLit( it->first, it->second, args, vars, subs, var_parent ) ){
-        break;
-      }
+    Trace("var-elim-quant-debug") << "   phase req : " << it->first << " -> " << ( it->second ? "true" : "false" ) << std::endl;
+    if( computeVariableElimLit( it->first, it->second, args, vars, subs, num_bounds ) ){
+      break;
     }
   }
+  
   if( !vars.empty() ){
     Trace("var-elim-quant-debug") << "VE " << vars.size() << "/" << args.size() << std::endl;
     //remake with eliminated nodes
@@ -994,21 +1010,65 @@ Node QuantifiersRewriter::computeVarElimination2( Node body, std::vector< Node >
       qa.d_ipl = qa.d_ipl.substitute( vars.begin(), vars.end(), subs.begin(), subs.end() );
     }
     Trace("var-elim-quant") << "Return " << body << std::endl;
+  }else{
+    //collect all variables that have only upper/lower bounds
+    std::map< Node, bool > elig_vars;
+    for( std::map< Node, std::map< bool, std::map< Node, bool > > >::iterator it = num_bounds.begin(); it != num_bounds.end(); ++it ){
+      if( it->second.find( true )==it->second.end() ){
+        Trace("var-elim-ineq-debug") << "Variable " << it->first << " has only lower bounds." << std::endl;
+        elig_vars[it->first] = false;
+      }else if( it->second.find( false )==it->second.end() ){
+        Trace("var-elim-ineq-debug") << "Variable " << it->first << " has only upper bounds." << std::endl;
+        elig_vars[it->first] = true;
+      }
+    }
+    if( !elig_vars.empty() ){
+      std::vector< Node > inactive_vars;
+      std::map< Node, std::map< int, bool > > visited;
+      std::map< Node, int > exclude;
+      for( std::map< Node, bool >::iterator it = qpr.d_phase_reqs.begin(); it != qpr.d_phase_reqs.end(); ++it ){
+        if( it->first.getKind()==GEQ || it->first.getKind()==GT ){
+          exclude[ it->first ] = it->second ? -1 : 1;
+          Trace("var-elim-ineq-debug") << "...exclude " << it->first << " at polarity " << exclude[ it->first ] << std::endl;
+        }
+      }
+      //traverse the body, invalidate variables if they occur in places other than the bounds they occur in
+      isVariableBoundElig( body, exclude, visited, true, true, elig_vars );
+      
+      if( !elig_vars.empty() ){
+        if( !qa.d_ipl.isNull() ){
+          isVariableBoundElig( qa.d_ipl, exclude, visited, false, true, elig_vars );
+        }
+        for( std::map< Node, bool >::iterator itev = elig_vars.begin(); itev != elig_vars.end(); ++itev ){
+          Node v = itev->first;
+          Trace("var-elim-ineq-debug") << v << " is eligible for elimination." << std::endl;
+          //do substitution corresponding to infinite projection, all literals involving unbounded variable go to true/false
+          std::vector< Node > terms;
+          std::vector< Node > subs;
+          for( std::map< Node, bool >::iterator itb = num_bounds[v][elig_vars[v]].begin(); itb != num_bounds[v][elig_vars[v]].end(); ++itb ){
+            Trace("var-elim-ineq-debug") << "  subs : " << itb->first << " -> " << itb->second << std::endl;
+            terms.push_back( itb->first );
+            subs.push_back( NodeManager::currentNM()->mkConst( itb->second ) );
+          }
+          body = body.substitute( terms.begin(), terms.end(), subs.begin(), subs.end() );
+          Trace("var-elim-ineq-debug") << "Return " << body << std::endl;
+          //eliminate from args
+          std::vector< Node >::iterator ita = std::find( args.begin(), args.end(), v );
+          Assert( ita!=args.end() );
+          args.erase( ita );
+        }
+      } 
+    }
   }
   return body;
 }
 
 Node QuantifiersRewriter::computeVarElimination( Node body, std::vector< Node >& args, QAttributes& qa ){
-  //the parent id's for each variable, if using purifyQuant
-  std::map< Node, std::vector< int > > var_parent;
-  if( options::purifyQuant() ){
-    body = computePurify( body, args, var_parent );
-  }
   if( options::varElimQuant() || options::dtVarExpandQuant() ){
     Node prev;
     do{
       prev = body;
-      body = computeVarElimination2( body, args, qa, var_parent );
+      body = computeVarElimination2( body, args, qa );
     }while( prev!=body && !args.empty() );
   }
   return body;
@@ -1355,9 +1415,7 @@ bool QuantifiersRewriter::doOperation( Node q, int computeOption, QAttributes& q
   }else if( computeOption==COMPUTE_PRENEX ){
     return options::prenexQuant()!=PRENEX_NONE && !options::aggressiveMiniscopeQuant() && is_std;
   }else if( computeOption==COMPUTE_VAR_ELIMINATION ){
-    return ( options::varElimQuant() || options::dtVarExpandQuant() || options::purifyQuant() ) && is_std;
-  }else if( computeOption==COMPUTE_PURIFY_EXPAND ){
-    return options::purifyQuant() && is_std;
+    return ( options::varElimQuant() || options::dtVarExpandQuant() ) && is_std;
   }else{
     return false;
   }
@@ -1391,14 +1449,6 @@ Node QuantifiersRewriter::computeOperation( Node f, int computeOption, QAttribut
     n = computePrenex( n, args, true );
   }else if( computeOption==COMPUTE_VAR_ELIMINATION ){
     n = computeVarElimination( n, args, qa );
-  }else if( computeOption==COMPUTE_PURIFY_EXPAND ){
-    std::vector< Node > conj;
-    computePurifyExpand( n, conj, args, qa );
-    if( !conj.empty() ){
-      return conj.size()==1 ? conj[0] : NodeManager::currentNM()->mkNode( AND, conj );
-    }else{
-      return f;
-    }
   }
   Trace("quantifiers-rewrite-debug") << "Compute Operation: return " << n << ", " << args.size() << std::endl;
   if( f[1]==n && args.size()==f[0].getNumChildren() ){
@@ -1628,106 +1678,5 @@ Node QuantifiersRewriter::preprocess( Node n, bool isInst ) {
     Trace("quantifiers-preprocess") << "..returned " << n << std::endl;
   }
   return n;
-}
-
-Node QuantifiersRewriter::computePurify2( Node body, std::vector< Node >& args, std::map< Node, Node >& visited, std::map< Node, Node >& var_to_term,
-                                          std::map< Node, std::vector< int > >& var_parent, int parentId ){
-  std::map< Node, Node >::iterator it = visited.find( body );
-  if( it!=visited.end() ){
-    return it->second;
-  }else{
-    Node ret = body;
-    if( body.getNumChildren()>0 && body.getKind()!=FORALL && TermDb::hasBoundVarAttr( ret ) ){
-      std::vector< Node > children;
-      bool childrenChanged = false;
-      int id = getPurifyId( body );
-      for( unsigned i=0; i<body.getNumChildren(); i++ ){
-        Node bi;
-        if( body.getKind()==EQUAL && i==1 ){
-          int cid = getPurifyId( children[0] );
-          bi = computePurify2( body[i], args, visited, var_to_term, var_parent, cid );
-          if( children[0].getKind()==BOUND_VARIABLE ){
-            cid = getPurifyId( bi );
-            if( cid!=0 && std::find( var_parent[children[0]].begin(), var_parent[children[0]].end(), cid )==var_parent[children[0]].end() ){
-              var_parent[children[0]].push_back( id );
-            }
-          }
-        }else{
-          bi = computePurify2( body[i], args, visited, var_to_term, var_parent, id );
-        }
-        childrenChanged = childrenChanged || bi!=body[i];
-        children.push_back( bi );
-        if( id!=0 && bi.getKind()==BOUND_VARIABLE ){
-          if( std::find( var_parent[bi].begin(), var_parent[bi].end(), id )==var_parent[bi].end() ){
-            var_parent[bi].push_back( id );
-          }
-        }
-      }
-      if( childrenChanged ){
-        if( body.getMetaKind() == kind::metakind::PARAMETERIZED ){
-          children.insert( children.begin(), body.getOperator() );
-        }
-        ret = NodeManager::currentNM()->mkNode( body.getKind(), children );
-      }
-      if( parentId!=0 && parentId!=id ){
-        Node v = NodeManager::currentNM()->mkBoundVar( ret.getType() );
-        var_to_term[v] = Rewriter::rewrite( v.eqNode( ret ) );
-        ret = v;
-        args.push_back( v );
-      }
-    }
-    visited[body] = ret;
-    return ret;
-  }
-}
-
-Node QuantifiersRewriter::computePurify( Node body, std::vector< Node >& args, std::map< Node, std::vector< int > >& var_parent ) {
-  std::map< Node, Node > visited;
-  std::map< Node, Node > var_to_term;
-  Node pbody = computePurify2( body, args, visited, var_to_term, var_parent, 0 );
-  if( pbody==body ){
-    return body;
-  }else{
-    Trace("quantifiers-rewrite-purify") << "Purify : " << body << std::endl;
-    Trace("quantifiers-rewrite-purify") << "   Got : " << pbody << std::endl;
-    for( std::map< Node, Node >::iterator it = var_to_term.begin(); it != var_to_term.end(); ++it ){
-      Trace("quantifiers-rewrite-purify") << "         " << it->first << " : " << it->second << std::endl;
-    }
-    Trace("quantifiers-rewrite-purify") << "Variable parents : " << std::endl;
-    for( std::map< Node, std::vector< int > >::iterator it = var_parent.begin(); it != var_parent.end(); ++it ){
-      Trace("quantifiers-rewrite-purify") << "  " << it->first << " -> ";
-      for( unsigned i=0; i<it->second.size(); i++ ){
-        Trace("quantifiers-rewrite-purify") << it->second[i] << " ";
-      }
-      Trace("quantifiers-rewrite-purify") << std::endl;
-    }
-    Trace("quantifiers-rewrite-purify") << std::endl;
-    std::vector< Node > disj;
-    for( std::map< Node, Node >::iterator it = var_to_term.begin(); it != var_to_term.end(); ++it ){
-      disj.push_back( it->second.negate() );
-    }
-    Node res;
-    if( disj.empty() ){
-      res = pbody;
-    }else{
-      disj.push_back( pbody );
-      res = NodeManager::currentNM()->mkNode( OR, disj );
-    }
-    Trace("quantifiers-rewrite-purify") << "Constructed : " << res << std::endl << std::endl;
-    return res;
-  }
-}
-
-void QuantifiersRewriter::computePurifyExpand( Node body, std::vector< Node >& conj, std::vector< Node >& args, QAttributes& qa ) {
-  if( body.getKind()==OR ){
-    Trace("quantifiers-rewrite-purify-exp") << "Purify expansion : " << body << std::endl;
-    std::map< int, std::vector< Node > > disj;
-    std::map< int, std::vector< Node > > fvs;
-    for( unsigned i=0; i<body.getNumChildren(); i++ ){
-      int pid CVC4_UNUSED = getPurifyIdLit( body[i] );
-    }
-    //mark as an attribute
-    //Node attr = NodeManager::currentNM()->mkNode( INST_ATTRIBUTE, body );
-  }
 }
 

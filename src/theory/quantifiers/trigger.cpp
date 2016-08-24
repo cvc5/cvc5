@@ -386,9 +386,9 @@ bool Trigger::isCbqiKind( Kind k ) {
 
 bool Trigger::isSimpleTrigger( Node n ){
   Node t = n.getKind()==NOT ? n[0] : n;
-  if( n.getKind()==IFF || n.getKind()==EQUAL ){
-    if( !quantifiers::TermDb::hasInstConstAttr( n[1] ) ){
-      t = n[0];
+  if( t.getKind()==IFF || t.getKind()==EQUAL ){
+    if( !quantifiers::TermDb::hasInstConstAttr( t[1] ) ){
+      t = t[0];
     }
   }
   if( isAtomicTrigger( t ) ){
@@ -740,6 +740,10 @@ InstMatchGenerator* Trigger::getInstMatchGenerator( Node q, Node n ) {
       }
     }
   }
+}
+
+int Trigger::getActiveScore() {
+  return d_mg->getActiveScore( d_quantEngine );
 }
 
 Trigger* TriggerTrie::getTrigger2( std::vector< Node >& nodes ){
