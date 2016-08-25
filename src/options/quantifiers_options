@@ -301,6 +301,10 @@ option cbqiMidpoint --cbqi-midpoint bool :default false
   choose substitutions based on midpoints of lower and upper bounds for counterexample-based quantifier instantiation
 option cbqiNopt --cbqi-nopt bool :default true
   non-optimal bounds for counterexample-based quantifier instantiation
+option cbqiLitDepend --cbqi-lit-dep bool :default false
+  dependency lemmas for quantifier alternation in counterexample-based quantifier instantiation
+option cbqiInnermost --cbqi-innermost bool :default false
+ only process innermost quantified formulas in counterexample-based quantifier instantiation
  
 ### local theory extensions options 
 

@@ -58,6 +58,7 @@ unsigned InstStrategyCbqi::needsModel( Theory::Effort e ) {
 void InstStrategyCbqi::reset_round( Theory::Effort effort ) {
   d_cbqi_set_quant_inactive = false;
   d_incomplete_check = false;
+  d_active_quant.clear();
   //check if any cbqi lemma has not been added yet
   for( unsigned i=0; i<d_quantEngine->getModel()->getNumAssertedQuantifiers(); i++ ){
     Node q = d_quantEngine->getModel()->getAssertedQuantifier( i );
@@ -80,9 +81,34 @@ void InstStrategyCbqi::reset_round( Theory::Effort effort ) {
           lem = Rewriter::rewrite( lem );
           Trace("cbqi") << "Counterexample lemma : " << lem << std::endl;
           registerCounterexampleLemma( q, lem );
+          
+          //compute dependencies between quantified formulas
+          if( options::cbqiLitDepend() || options::cbqiInnermost() ){
+            std::vector< Node > ics;
+            TermDb::computeVarContains( q, ics );
+            d_parent_quant[q].clear();
+            d_children_quant[q].clear();
+            std::vector< Node > dep;
+            for( unsigned i=0; i<ics.size(); i++ ){
+              Node qi = ics[i].getAttribute(InstConstantAttribute());
+              if( std::find( d_parent_quant[q].begin(), d_parent_quant[q].end(), qi )==d_parent_quant[q].end() ){
+                d_parent_quant[q].push_back( qi );
+                d_children_quant[qi].push_back( q );
+                Node qicel = d_quantEngine->getTermDatabase()->getCounterexampleLiteral( qi );
+                dep.push_back( qi );
+                dep.push_back( qicel );
+              }
+            }
+            if( !dep.empty() ){
+              Node dep_lemma = NodeManager::currentNM()->mkNode( kind::IMPLIES, ceLit, NodeManager::currentNM()->mkNode( kind::AND, dep ) );
+              Trace("cbqi") << "Counterexample dependency lemma : " << dep_lemma << std::endl;
+              d_quantEngine->getOutputChannel().lemma( dep_lemma );
+            }
+          }
         }
       //set inactive the quantified formulas whose CE literals are asserted false
       }else if( d_quantEngine->getModel()->isQuantifierActive( q ) ){
+        d_active_quant[q] = true;
         Debug("cbqi-debug") << "Check quantified formula " << q << "..." << std::endl;
         Node cel = d_quantEngine->getTermDatabase()->getCounterexampleLiteral( q );
         bool value;
@@ -94,6 +120,7 @@ void InstStrategyCbqi::reset_round( Theory::Effort effort ) {
             }else{
               d_quantEngine->getModel()->setQuantifierActive( q, false );
               d_cbqi_set_quant_inactive = true;
+              d_active_quant.erase( q );
             }
           }
         }else{
@@ -102,6 +129,34 @@ void InstStrategyCbqi::reset_round( Theory::Effort effort ) {
       }
     }
   }
+
+  //refinement: only consider innermost active quantified formulas
+  if( options::cbqiInnermost() ){
+    if( !d_children_quant.empty() && !d_active_quant.empty() ){
+      Trace("cbqi-debug") << "Find non-innermost quantifiers..." << std::endl;
+      std::vector< Node > ninner;
+      for( std::map< Node, bool >::iterator it = d_active_quant.begin(); it != d_active_quant.end(); ++it ){
+        std::map< Node, std::vector< Node > >::iterator itc = d_children_quant.find( it->first );
+        if( itc!=d_children_quant.end() ){
+          for( unsigned j=0; j<itc->second.size(); j++ ){
+            if( d_active_quant.find( itc->second[j] )!=d_active_quant.end() ){
+              Trace("cbqi-debug") << "Do not consider " << it->first << " since it is not innermost (" << itc->second[j] << std::endl;
+              ninner.push_back( it->first );
+              break;
+            }
+          }
+        }
+      } 
+      Trace("cbqi-debug") << "Found " << ninner.size() << " non-innermost." << std::endl;
+      for( unsigned i=0; i<ninner.size(); i++ ){
+        Assert( d_active_quant.find( ninner[i] )!=d_active_quant.end() );
+        d_active_quant.erase( ninner[i] );
+      }
+      Assert( !d_active_quant.empty() );
+      Trace("cbqi-debug") << "...done removing." << std::endl;
+    }
+  }
+  
   processResetInstantiationRound( effort );
 }
 
@@ -115,13 +170,14 @@ void InstStrategyCbqi::check( Theory::Effort e, unsigned quant_e ) {
     }
     unsigned lastWaiting = d_quantEngine->getNumLemmasWaiting();
     for( int ee=0; ee<=1; ee++ ){
-      for( unsigned i=0; i<d_quantEngine->getModel()->getNumAssertedQuantifiers(); i++ ){
-        Node q = d_quantEngine->getModel()->getAssertedQuantifier( i );
-        if( doCbqi( q ) && d_quantEngine->getModel()->isQuantifierActive( q ) ){
-          process( q, e, ee );
-          if( d_quantEngine->inConflict() ){
-            break;
-          }
+      //for( unsigned i=0; i<d_quantEngine->getModel()->getNumAssertedQuantifiers(); i++ ){
+      //  Node q = d_quantEngine->getModel()->getAssertedQuantifier( i );
+      //  if( doCbqi( q ) && d_quantEngine->getModel()->isQuantifierActive( q ) ){
+      for( std::map< Node, bool >::iterator it = d_active_quant.begin(); it != d_active_quant.end(); ++it ){
+        Node q = it->first;
+        process( q, e, ee );
+        if( d_quantEngine->inConflict() ){
+          break;
         }
       }
       if( d_quantEngine->inConflict() || d_quantEngine->getNumLemmasWaiting()>lastWaiting ){

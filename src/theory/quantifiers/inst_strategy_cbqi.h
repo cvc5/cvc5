@@ -39,6 +39,10 @@ protected:
   bool d_incomplete_check;
   /** whether we have added cbqi lemma */
   NodeSet d_added_cbqi_lemma;
+  /** parent guards */
+  std::map< Node, std::vector< Node > > d_parent_quant;
+  std::map< Node, std::vector< Node > > d_children_quant;
+  std::map< Node, bool > d_active_quant;
   /** whether we have instantiated quantified formulas */
   //NodeSet d_added_inst;
   /** whether to do cbqi for this quantified formula */

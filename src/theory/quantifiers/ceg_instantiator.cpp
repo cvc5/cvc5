@@ -504,7 +504,7 @@ bool CegInstantiator::doAddInstantiation( SolvedForm& sf, SolvedForm& ssf, std::
       }
       if( options::cbqiModel() ){
         if( pvtn.isInteger() || pvtn.isReal() ){
-          bool use_inf = d_use_vts_inf && ( pvtn.isInteger() ? options::cbqiUseInfInt() : options::cbqiUseInfReal() ) && !options::cbqiMidpoint();
+          bool use_inf = d_use_vts_inf && ( pvtn.isInteger() ? options::cbqiUseInfInt() : options::cbqiUseInfReal() );
           bool upper_first = false;
           if( options::cbqiMinBounds() ){
             upper_first = mbp_bounds[1].size()<mbp_bounds[0].size();
