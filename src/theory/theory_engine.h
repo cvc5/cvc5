@@ -605,6 +605,12 @@ public:
    */
   Node preprocess(TNode node);
 
+
+  /**
+   * Notify (preprocessed) assertions 
+   */
+  void notifyPreprocessedAssertions( std::vector< Node >& assertions );
+
   /**
    * Return whether or not we are incomplete (in the current context).
    */

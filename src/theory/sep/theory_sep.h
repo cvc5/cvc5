@@ -75,7 +75,7 @@ class TheorySep : public Theory {
   PPAssertStatus ppAssert(TNode in, SubstitutionMap& outSubstitutions);
   Node ppRewrite(TNode atom);
   
-  void processAssertions( std::vector< Node >& assertions );
+  void ppNotifyAssertions( std::vector< Node >& assertions );
   /////////////////////////////////////////////////////////////////////////////
   // T-PROPAGATION / REGISTRATION
   /////////////////////////////////////////////////////////////////////////////

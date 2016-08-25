@@ -1664,17 +1664,21 @@ Node QuantifiersRewriter::preSkolemizeQuantifiers( Node n, bool polarity, std::v
 
 Node QuantifiersRewriter::preprocess( Node n, bool isInst ) {
   Node prev = n;
-  if( options::preSkolemQuant() ){
-    if( !isInst || !options::preSkolemQuantNested() ){
-      Trace("quantifiers-preprocess-debug") << "Pre-skolemize " << n << "..." << std::endl;
-      //apply pre-skolemization to existential quantifiers
-      std::vector< TypeNode > fvTypes;
-      std::vector< TNode > fvs;
-      n = quantifiers::QuantifiersRewriter::preSkolemizeQuantifiers( prev, true, fvTypes, fvs );
+  if( n.getKind() == kind::REWRITE_RULE ){
+    n = quantifiers::QuantifiersRewriter::rewriteRewriteRule( n );
+  }else{
+    if( options::preSkolemQuant() ){
+      if( !isInst || !options::preSkolemQuantNested() ){
+        Trace("quantifiers-preprocess-debug") << "Pre-skolemize " << n << "..." << std::endl;
+        //apply pre-skolemization to existential quantifiers
+        std::vector< TypeNode > fvTypes;
+        std::vector< TNode > fvs;
+        n = quantifiers::QuantifiersRewriter::preSkolemizeQuantifiers( prev, true, fvTypes, fvs );
+      }
     }
   }
   if( n!=prev ){       
-    Trace("quantifiers-preprocess") << "Preprocess " << prev<< std::endl;
+    Trace("quantifiers-preprocess") << "Preprocess " << prev << std::endl;
     Trace("quantifiers-preprocess") << "..returned " << n << std::endl;
   }
   return n;

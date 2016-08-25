@@ -343,6 +343,14 @@ void QuantifiersEngine::presolve() {
   }
 }
 
+void QuantifiersEngine::ppNotifyAssertions( std::vector< Node >& assertions ) {
+  if( options::instLevelInputOnly() && options::instMaxLevel()!=-1 ){
+    for( unsigned i=0; i<assertions.size(); i++ ) {
+      setInstantiationLevelAttr( assertions[i], 0 );
+    }
+  }
+}
+
 void QuantifiersEngine::check( Theory::Effort e ){
   CodeTimer codeTimer(d_statistics.d_time);
   if( !getMasterEqualityEngine()->consistent() ){
@@ -840,10 +848,10 @@ void QuantifiersEngine::setInstantiationLevelAttr( Node n, Node qn, uint64_t lev
       InstLevelAttribute ila;
       n.setAttribute(ila,level);
       Trace("inst-level-debug") << "Set instantiation level " << n << " to " << level << std::endl;
-    }
-    Assert( n.getNumChildren()==qn.getNumChildren() );
-    for( unsigned i=0; i<n.getNumChildren(); i++ ){
-      setInstantiationLevelAttr( n[i], qn[i], level );
+      Assert( n.getNumChildren()==qn.getNumChildren() );
+      for( unsigned i=0; i<n.getNumChildren(); i++ ){
+        setInstantiationLevelAttr( n[i], qn[i], level );
+      }
     }
   }
 }
@@ -853,9 +861,9 @@ void QuantifiersEngine::setInstantiationLevelAttr( Node n, uint64_t level ){
     InstLevelAttribute ila;
     n.setAttribute(ila,level);
     Trace("inst-level-debug") << "Set instantiation level " << n << " to " << level << std::endl;
-  }
-  for( unsigned i=0; i<n.getNumChildren(); i++ ){
-    setInstantiationLevelAttr( n[i], level );
+    for( unsigned i=0; i<n.getNumChildren(); i++ ){
+      setInstantiationLevelAttr( n[i], level );
+    }
   }
 }
 

@@ -93,7 +93,6 @@
 #include "theory/quantifiers/fun_def_process.h"
 #include "theory/quantifiers/macros.h"
 #include "theory/quantifiers/quantifiers_rewriter.h"
-#include "theory/sep/theory_sep.h"
 #include "theory/sort_inference.h"
 #include "theory/strings/theory_strings.h"
 #include "theory/substitutions.h"
@@ -3988,34 +3987,18 @@ void SmtEnginePrivate::processAssertions() {
     dumpAssertions("post-bv-to-bool", d_assertions);
     Trace("smt") << "POST bvToBool" << endl;
   }
-  if( d_smt.d_logic.isTheoryEnabled(THEORY_SEP) ) {
-    //separation logic solver needs to register the entire input
-    ((theory::sep::TheorySep*)d_smt.d_theoryEngine->theoryOf(THEORY_SEP))->processAssertions( d_assertions.ref() );
-  }
   if( d_smt.d_logic.isQuantified() ){
     Trace("smt-proc") << "SmtEnginePrivate::processAssertions() : pre-quant-preprocess" << endl;
-    //remove rewrite rules
-    for( unsigned i=0; i < d_assertions.size(); i++ ) {
-      if( d_assertions[i].getKind() == kind::REWRITE_RULE ){
-        Node prev = d_assertions[i];
-        Trace("quantifiers-rewrite-debug") << "Rewrite rewrite rule " << prev << "..." << std::endl;
-        d_assertions.replace(i, Rewriter::rewrite( quantifiers::QuantifiersRewriter::rewriteRewriteRule( d_assertions[i] ) ) );
-        Trace("quantifiers-rewrite") << "*** rr-rewrite " << prev << endl;
-        Trace("quantifiers-rewrite") << "   ...got " << d_assertions[i] << endl;
-      }
-    }
 
     dumpAssertions("pre-skolem-quant", d_assertions);
-    if( options::preSkolemQuant() ){
-      //apply pre-skolemization to existential quantifiers
-      for (unsigned i = 0; i < d_assertions.size(); ++ i) {
-        Node prev = d_assertions[i];
-        Node next = quantifiers::QuantifiersRewriter::preprocess( prev );
-        if( next!=prev ){
-          d_assertions.replace(i, Rewriter::rewrite( next ));
-          Trace("quantifiers-preprocess") << "*** Pre-skolemize " << prev << endl;
-          Trace("quantifiers-preprocess") << "   ...got " << d_assertions[i] << endl;
-        }
+    //remove rewrite rules, apply pre-skolemization to existential quantifiers
+    for (unsigned i = 0; i < d_assertions.size(); ++ i) {
+      Node prev = d_assertions[i];
+      Node next = quantifiers::QuantifiersRewriter::preprocess( prev );
+      if( next!=prev ){
+        d_assertions.replace( i, Rewriter::rewrite( next ) );
+        Trace("quantifiers-preprocess") << "*** Pre-skolemize " << prev << endl;
+        Trace("quantifiers-preprocess") << "   ...got " << d_assertions[i] << endl;
       }
     }
     dumpAssertions("post-skolem-quant", d_assertions);
@@ -4233,7 +4216,10 @@ void SmtEnginePrivate::processAssertions() {
       m->addSubstitution(eager_atom, atom);
     }
   }
-
+  
+  //notify theory engine new preprocessed assertions
+  d_smt.d_theoryEngine->notifyPreprocessedAssertions( d_assertions.ref() );
+  
   // Push the formula to decision engine
   if(noConflict) {
     Chat() << "pushing to decision engine..." << endl;
@@ -4247,14 +4233,6 @@ void SmtEnginePrivate::processAssertions() {
 
   Trace("smt-proc") << "SmtEnginePrivate::processAssertions() end" << endl;
   dumpAssertions("post-everything", d_assertions);
-
-
-  //set instantiation level of everything to zero
-  if( options::instLevelInputOnly() && options::instMaxLevel()!=-1 ){
-    for( unsigned i=0; i < d_assertions.size(); i++ ) {
-      theory::QuantifiersEngine::setInstantiationLevelAttr( d_assertions[i], 0 );
-    }
-  }
 
   // Push the formula to SAT
   {

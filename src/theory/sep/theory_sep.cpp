@@ -92,7 +92,7 @@ Node TheorySep::ppRewrite(TNode term) {
 }
 
 //must process assertions at preprocess so that quantified assertions are processed properly
-void TheorySep::processAssertions( std::vector< Node >& assertions ) {
+void TheorySep::ppNotifyAssertions( std::vector< Node >& assertions ) {
   d_pp_nils.clear();
   std::map< Node, bool > visited;
   for( unsigned i=0; i<assertions.size(); i++ ){

@@ -273,6 +273,8 @@ public:
   void finishInit();
   /** presolve */
   void presolve();
+  /** notify preprocessed assertion */
+  void ppNotifyAssertions( std::vector< Node >& assertions );
   /** check at level */
   void check( Theory::Effort e );
   /** notify that theories were combined */
