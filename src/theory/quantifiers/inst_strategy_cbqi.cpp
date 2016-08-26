@@ -82,6 +82,35 @@ void InstStrategyCbqi::reset_round( Theory::Effort effort ) {
           Trace("cbqi") << "Counterexample lemma : " << lem << std::endl;
           registerCounterexampleLemma( q, lem );
           
+          //totality lemmas for EPR
+          QuantEPR * qepr = d_quantEngine->getQuantEPR();
+          if( qepr!=NULL ){   
+            for( unsigned i=0; i<q[0].getNumChildren(); i++ ){
+              TypeNode tn = q[0][i].getType();
+              if( tn.isSort() ){
+                if( qepr->isEPR( tn ) ){
+                  //add totality lemma
+                  std::map< TypeNode, std::vector< Node > >::iterator itc = qepr->d_consts.find( tn );
+                  if( itc!=qepr->d_consts.end() ){
+                    Assert( !itc->second.empty() );
+                    Node ic = d_quantEngine->getTermDatabase()->getInstantiationConstant( q, i );
+                    std::vector< Node > disj;
+                    for( unsigned j=0; j<itc->second.size(); j++ ){
+                      disj.push_back( ic.eqNode( itc->second[j] ) );
+                    }
+                    Node tlem = disj.size()==1 ? disj[0] : NodeManager::currentNM()->mkNode( kind::OR, disj );
+                    Trace("cbqi") << "EPR totality lemma : " << tlem << std::endl;
+                    d_quantEngine->getOutputChannel().lemma( tlem );
+                  }else{
+                    Assert( false );
+                  }                  
+                }else{
+                  Assert( !options::cbqiAll() );
+                }
+              }
+            }
+          }      
+          
           //compute dependencies between quantified formulas
           if( options::cbqiLitDepend() || options::cbqiInnermost() ){
             std::vector< Node > ics;
@@ -243,21 +272,28 @@ bool InstStrategyCbqi::hasNonCbqiOperator( Node n, std::map< Node, bool >& visit
   }
   return false;
 }
-bool InstStrategyCbqi::hasNonCbqiVariable( Node q ){
+int InstStrategyCbqi::hasNonCbqiVariable( Node q ){
+  int hmin = 1;
   for( unsigned i=0; i<q[0].getNumChildren(); i++ ){
     TypeNode tn = q[0][i].getType();
-    if( !tn.isInteger() && !tn.isReal() && !tn.isBoolean() && !tn.isBitVector() ){
-      if( options::cbqiSplx() ){
-        return true;
-      }else{
-        //datatypes supported in new implementation
-        if( !tn.isDatatype() ){
-          return true;
-        }
+    int handled = -1;
+    if( tn.isInteger() || tn.isReal() || tn.isBoolean() || tn.isBitVector() ){
+      handled = 0;
+    }else if( tn.isDatatype() ){
+      handled = !options::cbqiSplx() ? 0 : -1;
+    }else if( tn.isSort() ){
+      QuantEPR * qepr = d_quantEngine->getQuantEPR();
+      if( qepr!=NULL ){
+        handled = qepr->isEPR( tn ) ? 1 : -1;
       }
     }
+    if( handled==-1 ){
+      return -1;
+    }else if( handled<hmin ){
+      hmin = handled;
+    }
   }
-  return false;
+  return hmin;
 }
 
 bool InstStrategyCbqi::doCbqi( Node q ){
@@ -274,11 +310,17 @@ bool InstStrategyCbqi::doCbqi( Node q ){
         if( options::cbqiAll() ){
           ret = true;
         }else{
-          //if quantifier has a non-arithmetic variable, then do not use cbqi
+          //if quantifier has a non-handled variable, then do not use cbqi
           //if quantifier has an APPLY_UF term, then do not use cbqi
           //Node cb = d_quantEngine->getTermDatabase()->getInstConstantBody( q );
-          std::map< Node, bool > visited;
-          ret = !hasNonCbqiVariable( q ) && !hasNonCbqiOperator( q[1], visited );
+          int ncbqiv = hasNonCbqiVariable( q );
+          if( ncbqiv==1 ){
+            //all variables imply this will be handled regardless of body (e.g. for EPR)
+            ret = true;
+          }else if( ncbqiv==0 ){
+            std::map< Node, bool > visited;
+            ret = !hasNonCbqiOperator( q[1], visited );
+          }
         }
       }
     }
@@ -727,6 +769,16 @@ bool InstStrategyCegqi::isEligibleForInstantiation( Node n ) {
     if( n.getKind()==SKOLEM && d_quantEngine->getTermDatabase()->containsVtsTerm( n ) ){
       return true;
     }else{
+      TypeNode tn = n.getType();
+      if( tn.isSort() ){
+        QuantEPR * qepr = d_quantEngine->getQuantEPR();
+        if( qepr!=NULL ){
+          //legal if in the finite set of constants of type tn
+          if( qepr->isEPRConstant( tn, n ) ){
+            return true;
+          }
+        }
+      }
       //only legal if current quantified formula contains n
       return TermDb::containsTerm( d_curr_quant, n );
     }

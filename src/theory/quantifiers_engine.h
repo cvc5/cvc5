@@ -113,6 +113,9 @@ private:
   quantifiers::AlphaEquivalence * d_alpha_equiv;
   /** model builder */
   quantifiers::QModelBuilder* d_builder;
+  /** utility for effectively propositional logic */
+  QuantEPR * d_qepr;
+private:
   /** instantiation engine */
   quantifiers::InstantiationEngine* d_inst_engine;
   /** model engine */
@@ -228,6 +231,8 @@ public:
   QuantRelevance* getQuantifierRelevance() { return d_quant_rel; }
   /** get the model builder */
   quantifiers::QModelBuilder* getModelBuilder() { return d_builder; }
+  /** get utility for EPR */
+  QuantEPR* getQuantEPR() { return d_qepr; }
 public:  //modules
   /** get instantiation engine */
   quantifiers::InstantiationEngine* getInstantiationEngine() { return d_inst_engine; }

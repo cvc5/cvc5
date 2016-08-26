@@ -3125,7 +3125,6 @@ void TermDbSygus::printSygusTerm( std::ostream& out, Node n, std::vector< Node >
           std::string name = std::string( str.begin() + found +1, str.end() );
           out << name;
         }else{
-          Trace("ajr-temp") << "[[print operator " << op << "]]" << std::endl;
           out << op;
         }
         if( n.getNumChildren()>0 ){

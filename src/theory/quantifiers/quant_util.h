@@ -149,7 +149,7 @@ public:
 };
 
 
-class EqualityQuery : public QuantifiersUtil{
+class EqualityQuery : public QuantifiersUtil {
 public:
   EqualityQuery(){}
   virtual ~EqualityQuery(){};
@@ -171,6 +171,30 @@ public:
   virtual TNode getCongruentTerm( Node f, std::vector< TNode >& args ) = 0;
 };/* class EqualityQuery */
 
+class QuantEPR
+{
+private:
+  void registerNode( Node n, std::map< int, std::map< Node, bool > >& visited, bool beneathQuant, bool hasPol, bool pol );
+  /** non-epr */
+  std::map< TypeNode, bool > d_non_epr;
+public:
+  QuantEPR(){}
+  virtual ~QuantEPR(){}
+  /** constants per type */
+  std::map< TypeNode, std::vector< Node > > d_consts;
+  /* reset */
+  //bool reset( Theory::Effort e ) {}
+  /** identify */
+  //std::string identify() const { return "QuantEPR"; }
+  /** register assertion */
+  void registerAssertion( Node assertion );
+  /** finish init */
+  void finishInit();
+  /** is EPR */
+  bool isEPR( TypeNode tn ) { return d_non_epr.find( tn )!=d_non_epr.end() ? false : true; }
+  /** is EPR constant */
+  bool isEPRConstant( TypeNode tn, Node k ); 
+};
 
 }
 }

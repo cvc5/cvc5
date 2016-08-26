@@ -112,6 +112,17 @@ QuantifiersEngine::QuantifiersEngine(context::Context* c, context::UserContext* 
     d_quant_rel = NULL;
   }
 
+  if( options::quantEpr() ){
+    if( !options::incrementalSolving() ){
+      d_qepr = new QuantEPR;
+    }else{
+      d_qepr = NULL;
+    }
+  }else{
+    d_qepr = NULL;
+  }
+
+
   d_qcf = NULL;
   d_sg_gen = NULL;
   d_inst_engine = NULL;
@@ -152,6 +163,7 @@ QuantifiersEngine::~QuantifiersEngine(){
 
   delete d_alpha_equiv;
   delete d_builder;
+  delete d_qepr;
   delete d_rr_engine;
   delete d_bint;
   delete d_model_engine;
@@ -275,7 +287,7 @@ void QuantifiersEngine::finishInit(){
     d_modules.push_back( d_fs );
     needsRelDom = true;
   }
-
+ 
   if( needsRelDom ){
     d_rel_dom = new quantifiers::RelevantDomain( this, d_model );
     d_util.push_back( d_rel_dom );
@@ -344,9 +356,18 @@ void QuantifiersEngine::presolve() {
 }
 
 void QuantifiersEngine::ppNotifyAssertions( std::vector< Node >& assertions ) {
-  if( options::instLevelInputOnly() && options::instMaxLevel()!=-1 ){
+  Trace("quant-engine-proc") << "ppNotifyAssertions in QE" << std::endl;
+  if( ( options::instLevelInputOnly() && options::instMaxLevel()!=-1 ) || d_qepr!=NULL ){
     for( unsigned i=0; i<assertions.size(); i++ ) {
-      setInstantiationLevelAttr( assertions[i], 0 );
+      if( options::instLevelInputOnly() && options::instMaxLevel()!=-1 ){
+        setInstantiationLevelAttr( assertions[i], 0 );
+      }
+      if( d_qepr!=NULL ){
+        d_qepr->registerAssertion( assertions[i] );
+      }
+    }
+    if( d_qepr!=NULL ){
+      d_qepr->finishInit(); 
     }
   }
 }

@@ -419,3 +419,71 @@ void QuantPhaseReq::getEntailPolarity( Node n, int child, bool hasPol, bool pol,
   }
 }
 
+void QuantEPR::registerNode( Node n, std::map< int, std::map< Node, bool > >& visited, bool beneathQuant, bool hasPol, bool pol ) {
+  int vindex = hasPol ? ( pol ? 1 : -1 ) : 0;
+  if( visited[vindex].find( n )==visited[vindex].end() ){
+    visited[vindex][n] = true;
+    if( n.getKind()==FORALL ){
+      if( beneathQuant || !hasPol || !pol ){
+        for( unsigned i=0; i<n[0].getNumChildren(); i++ ){
+          d_non_epr[n[0][i].getType()] = true;
+        }
+      }else{
+        beneathQuant = true;
+      }
+    }
+    TypeNode tn = n.getType();
+    
+    if( n.getNumChildren()>0 ){
+      if( tn.isSort() ){
+        if( d_non_epr.find( tn )==d_non_epr.end() ){
+          Trace("quant-epr") << "Sort " << tn << " is non-EPR because of " << n << std::endl;
+          d_non_epr[tn] = true;
+        }
+      }
+      for( unsigned i=0; i<n.getNumChildren(); i++ ){
+        bool newHasPol;
+        bool newPol;
+        QuantPhaseReq::getPolarity( n, i, hasPol, pol, newHasPol, newPol );
+        registerNode( n[i], visited, beneathQuant, newHasPol, newPol );
+      }
+    }else if( tn.isSort() ){
+      if( n.getKind()==BOUND_VARIABLE ){
+        if( d_consts.find( tn )==d_consts.end() ){
+          //mark that at least one constant must occur
+          d_consts[tn].clear();
+        }
+      }else if( std::find( d_consts[tn].begin(), d_consts[tn].end(), n )==d_consts[tn].end() ){
+        d_consts[tn].push_back( n );
+      }
+    }
+  }
+}
+
+void QuantEPR::registerAssertion( Node assertion ) {
+  std::map< int, std::map< Node, bool > > visited;
+  registerNode( assertion, visited, false, true, true );
+}
+
+void QuantEPR::finishInit() {
+  for( std::map< TypeNode, std::vector< Node > >::iterator it = d_consts.begin(); it != d_consts.end(); ++it ){
+    if( d_non_epr.find( it->first )!=d_non_epr.end() ){
+      it->second.clear();
+    }else{
+      if( it->second.empty() ){
+        it->second.push_back( NodeManager::currentNM()->mkSkolem( "e", it->first, "EPR base constant" ) );
+      }
+      if( Trace.isOn("quant-epr") ){
+        Trace("quant-epr") << "Type " << it->first << " is EPR, with constants : " << std::endl;
+        for( unsigned i=0; i<it->second.size(); i++ ){
+          Trace("quant-epr") << "  " << it->second[i] << std::endl;
+        }
+      }
+    }
+  }
+}
+
+bool QuantEPR::isEPRConstant( TypeNode tn, Node k ) {
+  return std::find( d_consts[tn].begin(), d_consts[tn].end(), k )!=d_consts[tn].end();
+}
+

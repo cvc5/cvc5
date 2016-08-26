@@ -905,7 +905,6 @@ void TheoryStrings::addCarePairs( quantifiers::TermArgTrie * t1, quantifiers::Te
         }
         for (unsigned c = 0; c < currentPairs.size(); ++ c) {
           Trace("strings-cg-pair") << "TheoryStrings::computeCareGraph(): pair : " << currentPairs[c].first << " " << currentPairs[c].second << std::endl;
-          Trace("ajr-temp") << currentPairs[c].first << ", " << currentPairs[c].second << std::endl;
           addCarePair(currentPairs[c].first, currentPairs[c].second);
         }
       }

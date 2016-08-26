@@ -52,7 +52,7 @@ protected:
   /** has added cbqi lemma */
   bool hasAddedCbqiLemma( Node q ) { return d_added_cbqi_lemma.find( q )!=d_added_cbqi_lemma.end(); }
   /** helper functions */
-  bool hasNonCbqiVariable( Node q );
+  int hasNonCbqiVariable( Node q );
   bool hasNonCbqiOperator( Node n, std::map< Node, bool >& visited );
   /** process functions */
   virtual void processResetInstantiationRound( Theory::Effort effort ) = 0;
