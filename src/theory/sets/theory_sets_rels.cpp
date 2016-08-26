@@ -1328,7 +1328,7 @@ int TheorySetsRels::EqcInfo::counter        = 0;
     Node        snd             = RelsUtils::nthElementOfTuple(membership[0], 1);
     Node        fst_rep         = getRepresentative(fst);
     Node        snd_rep         = getRepresentative(snd);
-    Node        mem_rep         = RelsUtils::constructPair(tc_ei->d_tc, fst_rep, snd_rep);
+    Node        mem_rep         = RelsUtils::constructPair(membership[1], fst_rep, snd_rep);
 
     if(tc_ei->d_mem.find(mem_rep) != tc_ei->d_mem.end()) {
       return;
@@ -1338,7 +1338,6 @@ int TheorySetsRels::EqcInfo::counter        = 0;
     int         snd_rep_id      = getOrMakeElementRepId(tc_ei, snd_rep);
 
     IdListMap::iterator         tc_in_mem_it    = tc_ei->d_id_in.find(snd_rep_id);
-
     if(tc_in_mem_it == tc_ei->d_id_in.end()) {
       in_lst = new(d_sets_theory.getSatContext()->getCMM()) IdList( true, d_sets_theory.getSatContext(), false,
                                                                       context::ContextMemoryAllocator<TNode>(d_sets_theory.getSatContext()->getCMM()) );
@@ -1347,7 +1346,6 @@ int TheorySetsRels::EqcInfo::counter        = 0;
     } else {
       in_lst = (*tc_in_mem_it).second;
     }
-
     std::hash_set<int>       in_reachable;
     std::hash_set<int>       out_reachable;
     collectInReachableNodes(tc_ei, fst_rep_id, in_reachable);
@@ -1542,14 +1540,15 @@ int TheorySetsRels::EqcInfo::counter        = 0;
       if(polarity) {
         if(!ei->d_tc.get().isNull()) {
           addTCMemAndSendInfer(ei, t2, Node::null());
-        // when we see (a, b) in R and TC(R) has not been seen, we create a EQC for TC(R) to save (a, b)
+        // when we see (a, b) in R, and TC(R) has not been seen before, we create a EQC for TC(R) to save (a, b)
         } else {
           std::vector<TypeNode> tup_types = t2[1].getType().getSetElementType().getTupleTypes();
 
           if( tup_types.size() == 2 && tup_types[0] == tup_types[1] ) {
             Node        tc_n    = NodeManager::currentNM()->mkNode(kind::TCLOSURE, t2[1]);
-            EqcInfo*    tc_ei   = getOrMakeEqcInfo( tc_n );
+            EqcInfo*    tc_ei   = getOrMakeEqcInfo( tc_n, true );
             if( tc_ei != NULL ) {
+              Trace("rels-std") << "[sets-rels] calling addTCMemAndSendInfer " << " tc_ei != NULL " << std::endl;
               addTCMemAndSendInfer(tc_ei, t2, Node::null(), true);
             }
           }
