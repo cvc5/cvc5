@@ -144,7 +144,7 @@ private:
   /** Mapping between relation and its members' explanation */
   std::map< Node, std::vector<Node> >           d_membership_exp_db;
 
-  /** Mapping between a relation and its equivalent relations involving relational operators */
+  /** Mapping between a relation representative and its equivalent relations involving relational operators */
   std::map< Node, std::map<kind::Kind_t, std::vector<Node> > >                  d_terms_cache;
 
   /** Mapping between TC(r) and one explanation when building TC graph*/
@@ -193,7 +193,7 @@ private:
   void applyProductRule( Node, Node );
   void applyTCRule( Node, Node );
   std::map< Node, std::hash_set< Node, NodeHashFunction > > constructTCGraph( Node, Node, Node );
-  void computeTuplesInRel( Node );
+  void computeMembersForRel( Node );
   void computeTpRel( Node );
   void finalizeTCInference();
   void inferTC( Node, std::map< Node, std::hash_set< Node, NodeHashFunction > >& );

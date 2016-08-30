@@ -106,6 +106,27 @@ int TheorySetsRels::EqcInfo::counter        = 0;
       }
       m_it++;
     }
+
+    TERM_IT t_it = d_terms_cache.begin();
+    while(t_it != d_terms_cache.end()) {
+      if(d_membership_constraints_cache.find(t_it->first) == d_membership_constraints_cache.end()) {
+        Trace("rels-debug") << "[sets-rels-ee] A term that does not have membership constraints: " << t_it->first << std::endl;
+        KIND_TERM_IT k_t_it = t_it->second.begin();
+
+        while(k_t_it != t_it->second.end()) {
+          if(k_t_it->first == Kind::JOIN) {
+            std::vector<Node>::iterator join_term_it = k_t_it->second.begin();
+            while(join_term_it != k_t_it->second.end()) {
+              computeMembersForRel(*join_term_it);
+              join_term_it++;
+            }
+          }
+          k_t_it++;
+        }
+      }
+      t_it++;
+    }
+
     finalizeTCInference();
   }
 
@@ -348,7 +369,7 @@ int TheorySetsRels::EqcInfo::counter        = 0;
     Trace("rels-debug") << "\n[sets-rels] *********** Applying PRODUCT rule  " << std::endl;
 
     if(d_rel_nodes.find(product_term) == d_rel_nodes.end()) {
-      computeTuplesInRel(product_term);
+      computeMembersForRel(product_term);
       d_rel_nodes.insert(product_term);
     }
     bool polarity       = exp.getKind() != kind::NOT;
@@ -429,7 +450,7 @@ int TheorySetsRels::EqcInfo::counter        = 0;
       Trace("rels-debug") <<  "\n[sets-rels] Apply JOIN-COMPOSE rule on term: " << join_term
                           << " with explanation: " << exp << std::endl;
 
-      computeTuplesInRel(join_term);
+      computeMembersForRel(join_term);
       d_rel_nodes.insert(join_term);
     }
 
@@ -488,13 +509,17 @@ int TheorySetsRels::EqcInfo::counter        = 0;
       fact = MEMBER(t1, r1_rep);
       if(r1_rep != join_term[0]) {
         reasons = Rewriter::rewrite(AND(reason, explain(EQUAL(r1_rep, join_term[0]))));
-      }    
+      }
+      Trace("rels-debug") <<  "\n[sets-rels] After applying JOIN-split rule, generate a fact : " << fact
+                                << " with explanation: " << reasons << std::endl;
       sendInfer(fact, reasons, "join-split");
       reasons   = reason;
       fact      = MEMBER(t2, r2_rep);
       if(r2_rep != join_term[1]) {
         reasons = Rewriter::rewrite(AND(reason, explain(EQUAL(r2_rep, join_term[1]))));
       }
+      Trace("rels-debug") <<  "[sets-rels] After applying JOIN-split rule, generate a fact : " << fact
+                                << " with explanation: " << reasons << std::endl;
       sendInfer(fact, reasons, "join-split");
       makeSharedTerm(shared_x);
     }
@@ -610,7 +635,7 @@ int TheorySetsRels::EqcInfo::counter        = 0;
   }
 
   // Bottom-up fashion to compute relations
-  void TheorySetsRels::computeTuplesInRel(Node n) {
+  void TheorySetsRels::computeMembersForRel(Node n) {
     Trace("rels-debug") << "\n[sets-rels] computeJoinOrProductRelations for relation  " << n << std::endl;
     switch(n[0].getKind()) {
     case kind::TRANSPOSE:
@@ -618,7 +643,7 @@ int TheorySetsRels::EqcInfo::counter        = 0;
       break;
     case kind::JOIN:
     case kind::PRODUCT:
-      computeTuplesInRel(n[0]);
+      computeMembersForRel(n[0]);
       break;
     default:
       break;
@@ -630,7 +655,7 @@ int TheorySetsRels::EqcInfo::counter        = 0;
       break;
     case kind::JOIN:
     case kind::PRODUCT:
-      computeTuplesInRel(n[1]);
+      computeMembersForRel(n[1]);
       break;
     default:
       break;
@@ -649,7 +674,7 @@ int TheorySetsRels::EqcInfo::counter        = 0;
       break;
     case kind::JOIN:
     case kind::PRODUCT:
-      computeTuplesInRel(n[0]);
+      computeMembersForRel(n[0]);
       break;
     default:
       break;
