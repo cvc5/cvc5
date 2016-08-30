@@ -26,6 +26,6 @@ ASSERT (4, 7) IS_IN y;
 
 ASSERT z IS_IN x;
 ASSERT zt IS_IN y;
-ASSERT a IS_IN (x JOIN y);
+ASSERT r = (x JOIN y);
 
 CHECKSAT;

@@ -1,0 +1,28 @@
+% EXPECT: sat
+OPTION "logic" "ALL_SUPPORTED";
+IntPair: TYPE = [INT, INT];
+x : SET OF IntPair;
+y : SET OF IntPair;
+ e: INT;
+
+a : IntPair;
+ASSERT a = (1,	e);
+
+d : IntPair;
+ASSERT d = (e,5);
+
+ASSERT a IS_IN x;
+ASSERT d IS_IN x;
+ASSERT NOT ((1,1) IS_IN x);
+ASSERT NOT ((1,2) IS_IN x);
+ASSERT NOT ((1,3) IS_IN x);
+ASSERT NOT ((1,4) IS_IN x);
+ASSERT NOT ((1,5) IS_IN x);
+ASSERT NOT ((1,6) IS_IN x);
+ASSERT NOT ((1,7) IS_IN x);
+
+ASSERT y = TCLOSURE(x);
+
+ASSERT (1, 5) IS_IN y;
+
+CHECKSAT;
