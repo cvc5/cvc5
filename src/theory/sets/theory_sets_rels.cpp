@@ -778,28 +778,30 @@ int TheorySetsRels::EqcInfo::counter        = 0;
   }
 
   void TheorySetsRels::doPendingLemmas() {
-    if( !(*d_conflict) && (!d_lemma_cache.empty() || !d_pending_facts.empty())){
-      for( unsigned i=0; i < d_lemma_cache.size(); i++ ){
-        Assert(d_lemma_cache[i].getKind() == kind::IMPLIES);
-        if(holds( d_lemma_cache[i][1] )) {
-          Trace("rels-lemma") << "[sets-rels-lemma-skip] Skip an already held lemma: "
-                              << d_lemma_cache[i]<< std::endl;
-          continue;
+    if( !(*d_conflict) ){
+      if ( (!d_lemma_cache.empty() || !d_pending_facts.empty()) ) {
+        for( unsigned i=0; i < d_lemma_cache.size(); i++ ){
+          Assert(d_lemma_cache[i].getKind() == kind::IMPLIES);
+          if(holds( d_lemma_cache[i][1] )) {
+            Trace("rels-lemma") << "[sets-rels-lemma-skip] Skip an already held lemma: "
+                                << d_lemma_cache[i]<< std::endl;
+            continue;
+          }
+          Trace("rels-lemma") << "[sets-rels-lemma] Send out a lemma : "
+                              << d_lemma_cache[i] << std::endl;
+          d_sets_theory.d_out->lemma( d_lemma_cache[i] );
         }
-        Trace("rels-lemma") << "[sets-rels-lemma] Send out a lemma : "
-                            << d_lemma_cache[i] << std::endl;
-        d_sets_theory.d_out->lemma( d_lemma_cache[i] );
-      }
-      for( std::map<Node, Node>::iterator child_it = d_pending_facts.begin();
-           child_it != d_pending_facts.end(); child_it++ ) {
-        if(holds(child_it->first)) {
-          Trace("rels-lemma") << "[sets-rels-fact-lemma-skip] Skip an already held fact,: "
-                              << child_it->first << std::endl;
-          continue;
+        for( std::map<Node, Node>::iterator child_it = d_pending_facts.begin();
+             child_it != d_pending_facts.end(); child_it++ ) {
+          if(holds(child_it->first)) {
+            Trace("rels-lemma") << "[sets-rels-fact-lemma-skip] Skip an already held fact,: "
+                                << child_it->first << std::endl;
+            continue;
+          }
+          Trace("rels-lemma") << "[sets-rels-fact-lemma] Send out a fact as lemma : "
+                              << child_it->first << " with reason " << child_it->second << std::endl;
+          d_sets_theory.d_out->lemma(NodeManager::currentNM()->mkNode(kind::IMPLIES, child_it->second, child_it->first));
         }
-        Trace("rels-lemma") << "[sets-rels-fact-lemma] Send out a fact as lemma : "
-                            << child_it->first << " with reason " << child_it->second << std::endl;
-        d_sets_theory.d_out->lemma(NodeManager::currentNM()->mkNode(kind::IMPLIES, child_it->second, child_it->first));
       }
       doTCLemmas();
     }
@@ -841,10 +843,10 @@ int TheorySetsRels::EqcInfo::counter        = 0;
         Node    snd_rep         = getRepresentative(snd);
         TC_IT   tc_graph_it     = d_tc_r_graph.find(tc_rep);
 
-        // the tc_graph of TC(r) is built based on the members of r and TC(r)
+        // the tc_graph of TC(r) is built based on the members of r and TC(r)????????
         isTCReachable(fst_rep, snd_rep, hasSeen, tc_graph_it->second, isReachable);
-//        Trace("rels-tc") << "tuple = " << *set_it << " with rep = (" << fst_rep << ", " << snd_rep << ") "
-//                         << " isReachable? = " << isReachable << std::endl;
+        Trace("rels-tc") << "tuple = " << *set_it << " with rep = (" << fst_rep << ", " << snd_rep << ") "
+                         << " isReachable? = " << isReachable << std::endl;
         if((tc_graph_it != d_tc_r_graph.end() && !isReachable) ||
            (tc_graph_it == d_tc_r_graph.end())) {
           Node reason   = explain(MEMBER(*set_it, mem_it->first));
