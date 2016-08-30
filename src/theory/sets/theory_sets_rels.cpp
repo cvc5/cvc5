@@ -585,6 +585,10 @@ int TheorySetsRels::EqcInfo::counter        = 0;
                          << " with explanation = " << Rewriter::rewrite(exp) << std::endl;
         sendLemma( MEMBER(pair, tc_rep), Rewriter::rewrite(exp), "Transitivity" );
       }
+    } else {
+      Trace("rels-tc") << "[sets-rels] Infered a TC lemma = " << MEMBER(pair, tc_rep) << " by Transitivity"
+                       << " with explanation = " << Rewriter::rewrite(exp) << std::endl;
+      sendLemma( MEMBER(pair, tc_rep), Rewriter::rewrite(exp), "Transitivity" );
     }
     // check if cur_node has been traversed or not
     if(traversed.find(cur_node) != traversed.end()) {
@@ -1322,13 +1326,13 @@ int TheorySetsRels::EqcInfo::counter        = 0;
   void TheorySetsRels::addTCMemAndSendInfer(EqcInfo* tc_ei, Node membership, Node exp, bool fromRel) {
     Trace("rels-std") << "[sets-rels] addTCMemAndSendInfer:" << " membership = " << membership << " from a relation? " << fromRel<< std::endl;
 
-    IdList*     in_lst;
-    IdList*     out_lst;
-    Node        fst             = RelsUtils::nthElementOfTuple(membership[0], 0);
-    Node        snd             = RelsUtils::nthElementOfTuple(membership[0], 1);
-    Node        fst_rep         = getRepresentative(fst);
-    Node        snd_rep         = getRepresentative(snd);
-    Node        mem_rep         = RelsUtils::constructPair(membership[1], fst_rep, snd_rep);
+    IdList*  in_lst;
+    IdList*  out_lst;
+    Node     fst     = RelsUtils::nthElementOfTuple(membership[0], 0);
+    Node     snd     = RelsUtils::nthElementOfTuple(membership[0], 1);
+    Node     fst_rep = getRepresentative(fst);
+    Node     snd_rep = getRepresentative(snd);
+    Node     mem_rep = RelsUtils::constructPair(membership[1], fst_rep, snd_rep);
 
     if(tc_ei->d_mem.find(mem_rep) != tc_ei->d_mem.end()) {
       return;
@@ -1336,8 +1340,8 @@ int TheorySetsRels::EqcInfo::counter        = 0;
 
     int         fst_rep_id      = getOrMakeElementRepId(tc_ei, fst_rep);
     int         snd_rep_id      = getOrMakeElementRepId(tc_ei, snd_rep);
-
     IdListMap::iterator         tc_in_mem_it    = tc_ei->d_id_in.find(snd_rep_id);
+
     if(tc_in_mem_it == tc_ei->d_id_in.end()) {
       in_lst = new(d_sets_theory.getSatContext()->getCMM()) IdList( true, d_sets_theory.getSatContext(), false,
                                                                       context::ContextMemoryAllocator<TNode>(d_sets_theory.getSatContext()->getCMM()) );
@@ -1346,6 +1350,7 @@ int TheorySetsRels::EqcInfo::counter        = 0;
     } else {
       in_lst = (*tc_in_mem_it).second;
     }
+
     std::hash_set<int>       in_reachable;
     std::hash_set<int>       out_reachable;
     collectInReachableNodes(tc_ei, fst_rep_id, in_reachable);
@@ -1389,11 +1394,11 @@ int TheorySetsRels::EqcInfo::counter        = 0;
   }
 
   Node TheorySetsRels::explainTCMem(EqcInfo* ei, Node pair, Node fst, Node snd) {
+    Trace("rels-tc") << "explainTCMem ############ pair = " << pair << std::endl;
     if(ei->d_mem_exp.find(pair) != ei->d_mem_exp.end()) {
       return (*ei->d_mem_exp.find(pair)).second;
     }
     NodeMap::iterator   mem_exp_it      = ei->d_mem_exp.begin();
-
     while(mem_exp_it != ei->d_mem_exp.end()) {
       Node      tuple   = (*mem_exp_it).first;
       Node      fst_e   = RelsUtils::nthElementOfTuple(tuple, 0);
@@ -1402,6 +1407,23 @@ int TheorySetsRels::EqcInfo::counter        = 0;
         return AND(explain(EQUAL(snd, snd_e)), AND(explain(EQUAL(fst, fst_e)), (*mem_exp_it).second));
       }
       ++mem_exp_it;
+    }
+    if(!ei->d_tc.get().isNull()) {
+      Node      rel_rep = getRepresentative(ei->d_tc.get()[0]);
+      EqcInfo*  rel_ei  = getOrMakeEqcInfo(rel_rep);
+      if(rel_ei != NULL) {
+        NodeMap::iterator rel_mem_exp_it = rel_ei->d_mem_exp.begin();
+        while(rel_mem_exp_it != rel_ei->d_mem_exp.end()) {
+          Node  exp     = rel_rep == ei->d_tc.get()[0] ? d_trueNode : explain(EQUAL(rel_rep, ei->d_tc.get()[0]));
+          Node  tuple   = (*rel_mem_exp_it).first;
+          Node  fst_e   = RelsUtils::nthElementOfTuple(tuple, 0);
+          Node  snd_e   = RelsUtils::nthElementOfTuple(tuple, 1);
+          if(areEqual(fst, fst_e) && areEqual(snd, snd_e)) {
+            return AND(exp, AND(explain(EQUAL(snd, snd_e)), AND(explain(EQUAL(fst, fst_e)), (*rel_mem_exp_it).second)));
+          }
+          ++rel_mem_exp_it;
+        }
+      }
     }
     return Node::null();
   }
@@ -1414,18 +1436,18 @@ int TheorySetsRels::EqcInfo::counter        = 0;
     Node tc_lemma       = NodeManager::currentNM()->mkNode(kind::IMPLIES, exp, MEMBER(mem_rep, tc_ei->d_tc.get()));
     d_pending_merge.push_back(tc_lemma);
     d_lemma.insert(tc_lemma);
-
     std::hash_set<int>::iterator        in_reachable_it = in_reachable.begin();
-
     while(in_reachable_it != in_reachable.end()) {
-      Node    in_node         = d_id_node[*in_reachable_it];
-      Node    in_pair         = RelsUtils::constructPair(tc_ei->d_tc.get(), in_node, fst_rep);
-      Node    new_pair        = RelsUtils::constructPair(tc_ei->d_tc.get(), in_node, snd_rep);
-      Node    reason          = AND(explainTCMem(tc_ei, in_pair, in_node, fst_rep), exp);
+      Node    in_node   = d_id_node[*in_reachable_it];
+      Node    in_pair   = RelsUtils::constructPair(tc_ei->d_tc.get(), in_node, fst_rep);
+      Node    new_pair  = RelsUtils::constructPair(tc_ei->d_tc.get(), in_node, snd_rep);
+      Node    tc_exp    = explainTCMem(tc_ei, in_pair, in_node, fst_rep);
+      Node    reason    =  tc_exp.isNull() ? exp : AND(tc_exp, exp);
 
       tc_ei->d_mem_exp[new_pair] = reason;
       tc_ei->d_mem.insert(new_pair);
       Node tc_lemma = NodeManager::currentNM()->mkNode(kind::IMPLIES, reason, MEMBER(new_pair, tc_ei->d_tc.get()));
+
       d_pending_merge.push_back(tc_lemma);
       d_lemma.insert(tc_lemma);
       in_reachable_it++;
@@ -1502,18 +1524,13 @@ int TheorySetsRels::EqcInfo::counter        = 0;
     Trace("rels-std") << "[sets-rels] eqNotifyPostMerge:" << " t1 = " << t1 << " t2 = " << t2 << std::endl;
 
     // Merge membership constraint with "true" or "false" eqc
-    if((t1 == d_trueNode || t1 == d_falseNode) &&
-        t2.getKind() == kind::MEMBER &&
-        t2[0].getType().isTuple()) {
+    if((t1 == d_trueNode || t1 == d_falseNode) && t2.getKind() == kind::MEMBER && t2[0].getType().isTuple()) {
 
       Assert(t1 == d_trueNode || t1 == d_falseNode);
       bool      polarity        = t1 == d_trueNode;
       Node      t2_1rep         = getRepresentative(t2[1]);
-      EqcInfo*  ei              = getOrMakeEqcInfo( t2_1rep );
+      EqcInfo*  ei              = getOrMakeEqcInfo( t2_1rep, true );
 
-      if(ei == NULL) {
-        ei = getOrMakeEqcInfo( t2_1rep, true );
-      }
       if(polarity) {
         ei->d_mem.insert(t2[0]);
         ei->d_mem_exp[t2[0]] = explain(t2);
@@ -1537,22 +1554,19 @@ int TheorySetsRels::EqcInfo::counter        = 0;
         sendInferProduct(polarity, t2[0], ei->d_pt.get(), exp);
       }
       // Process a membership constraint that a tuple is a member of transitive closure of rel
-      if(polarity) {
-        if(!ei->d_tc.get().isNull()) {
-          addTCMemAndSendInfer(ei, t2, Node::null());
-        // when we see (a, b) in R, and TC(R) has not been seen before, we create a EQC for TC(R) to save (a, b)
-        } else {
-          std::vector<TypeNode> tup_types = t2[1].getType().getSetElementType().getTupleTypes();
-
-          if( tup_types.size() == 2 && tup_types[0] == tup_types[1] ) {
-            Node        tc_n    = NodeManager::currentNM()->mkNode(kind::TCLOSURE, t2[1]);
-            EqcInfo*    tc_ei   = getOrMakeEqcInfo( tc_n, true );
-            if( tc_ei != NULL ) {
-              Trace("rels-std") << "[sets-rels] calling addTCMemAndSendInfer " << " tc_ei != NULL " << std::endl;
-              addTCMemAndSendInfer(tc_ei, t2, Node::null(), true);
-            }
-          }
-        }
+      if( polarity && !ei->d_tc.get().isNull() ) {
+        addTCMemAndSendInfer(ei, t2, Node::null());
+//        Node      rel_rep     = getRepresentative(ei->d_tc.get()[0]);
+//        EqcInfo*  rel_ei      = getOrMakeEqcInfo(rel_rep);
+//        if(rel_ei != NULL) {
+//          NodeSet::const_iterator mem   = rel_ei->d_mem.begin();
+//          while(mem != rel_ei->d_mem.end()) {
+//            if(!ei->d_mem.contains(*mem)) {
+//              addTCMemAndSendInfer(ei, MEMBER(*mem, rel_rep), rel_ei->d_mem_exp[*mem], true);
+//            }
+//            mem++;
+//          }
+//        }
       }
 
     // Merge two relation eqcs
