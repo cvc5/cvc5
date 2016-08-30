@@ -194,7 +194,7 @@ private:
   void applyTCRule( Node, Node );
   std::map< Node, std::hash_set< Node, NodeHashFunction > > constructTCGraph( Node, Node, Node );
   void computeMembersForRel( Node );
-  void computeTpRel( Node );
+  void computeMembersForTpRel( Node );
   void finalizeTCInference();
   void inferTC( Node, std::map< Node, std::hash_set< Node, NodeHashFunction > >& );
   void inferTC( Node, Node, std::map< Node, std::hash_set< Node, NodeHashFunction > >&,

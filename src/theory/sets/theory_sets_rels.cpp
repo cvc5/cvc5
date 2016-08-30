@@ -114,11 +114,17 @@ int TheorySetsRels::EqcInfo::counter        = 0;
         KIND_TERM_IT k_t_it = t_it->second.begin();
 
         while(k_t_it != t_it->second.end()) {
-          if(k_t_it->first == Kind::JOIN) {
-            std::vector<Node>::iterator join_term_it = k_t_it->second.begin();
-            while(join_term_it != k_t_it->second.end()) {
-              computeMembersForRel(*join_term_it);
-              join_term_it++;
+          if(k_t_it->first == Kind::JOIN || k_t_it->first == Kind::PRODUCT) {
+            std::vector<Node>::iterator term_it = k_t_it->second.begin();
+            while(term_it != k_t_it->second.end()) {
+              computeMembersForRel(*term_it);
+              term_it++;
+            }
+          } else if ( k_t_it->first == Kind::TRANSPOSE ) {
+            std::vector<Node>::iterator term_it = k_t_it->second.begin();
+            while(term_it != k_t_it->second.end()) {
+              computeMembersForTpRel(*term_it);
+              term_it++;
             }
           }
           k_t_it++;
@@ -639,7 +645,7 @@ int TheorySetsRels::EqcInfo::counter        = 0;
     Trace("rels-debug") << "\n[sets-rels] computeJoinOrProductRelations for relation  " << n << std::endl;
     switch(n[0].getKind()) {
     case kind::TRANSPOSE:
-      computeTpRel(n[0]);
+      computeMembersForTpRel(n[0]);
       break;
     case kind::JOIN:
     case kind::PRODUCT:
@@ -651,7 +657,7 @@ int TheorySetsRels::EqcInfo::counter        = 0;
 
     switch(n[1].getKind()) {
     case kind::TRANSPOSE:
-      computeTpRel(n[1]);
+      computeMembersForTpRel(n[1]);
       break;
     case kind::JOIN:
     case kind::PRODUCT:
@@ -667,10 +673,10 @@ int TheorySetsRels::EqcInfo::counter        = 0;
     composeTupleMemForRel(n);
   }
 
-  void TheorySetsRels::computeTpRel(Node n) {
+  void TheorySetsRels::computeMembersForTpRel(Node n) {
     switch(n[0].getKind()) {
     case kind::TRANSPOSE:
-      computeTpRel(n[0]);
+      computeMembersForTpRel(n[0]);
       break;
     case kind::JOIN:
     case kind::PRODUCT:
