@@ -19,25 +19,22 @@
 
 #pragma once
 
-#include <vector>
 #include <set>
 #include <string>
+#include <vector>
 
 namespace CVC4 {
 
 class DidYouMean {
+ public:
   typedef std::set<std::string> Words;
-  Words d_words;
 
-public:
   DidYouMean() {}
   ~DidYouMean() {}
 
   DidYouMean(Words words) : d_words(words) {}
 
-  void addWord(std::string word) {
-    d_words.insert(word);
-  }
+  void addWord(std::string word) { d_words.insert(word); }
 
   std::vector<std::string> getMatch(std::string input);
 
@@ -45,9 +42,12 @@ public:
    * This is provided to make it easier to ensure consistency of
    * output. Returned string is empty if there are no matches.
    */
-  std::string getMatchAsString(std::string input, int prefixNewLines = 2, int suffixNewLines = 0);
-private:
+  std::string getMatchAsString(std::string input, int prefixNewLines = 2,
+                               int suffixNewLines = 0);
+
+ private:
   int editDistance(const std::string& a, const std::string& b);
+  Words d_words;
 };
 
-}/*CVC4 namespace*/
+} /*CVC4 namespace*/
