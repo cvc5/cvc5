@@ -53,7 +53,7 @@ public:
   Node d_true;
   Node d_false;
   mutable std::hash_map<Node, Node, NodeHashFunction> d_modelCache;
-public:  
+public: 
   /** comment stream to include in printing */
   std::stringstream d_comment_str;
   /** get comments */
