@@ -144,7 +144,8 @@ private:
   public:
     CDNodeSet d_terms;
   private:
-    std::hash_map<TNode, TheorySetsTermInfo*, TNodeHashFunction> d_info;
+    typedef std::hash_map<TNode, TheorySetsTermInfo*, TNodeHashFunction> SetsTermInfoMap;
+    SetsTermInfoMap d_info;
 
     void mergeLists(CDTNodeList* la, const CDTNodeList* lb) const;
     void pushToSettermPropagationQueue(TNode x, TNode S, bool polarity);
@@ -249,7 +250,7 @@ private:
   bool d_cardEnabled;
   void enableCard();
   void cardCreateEmptysetSkolem(TypeNode t);
-  
+
   CDNodeSet d_cardTerms;
   std::set<TypeNode> d_typesAdded;
   CDNodeSet d_processedCardTerms;
