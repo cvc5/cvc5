@@ -1453,6 +1453,15 @@ void TheoryEngine::getInstantiations( std::map< Node, std::vector< Node > >& ins
   }
 }
 
+Node TheoryEngine::getInstantiatedConjunction( Node q ) {
+  if( d_quantEngine ){
+    return d_quantEngine->getInstantiatedConjunction( q );
+  }else{
+    Assert( false );
+    return Node::null();
+  }
+}
+
 
 static Node mkExplanation(const std::vector<NodeTheoryPair>& explanation) {
 

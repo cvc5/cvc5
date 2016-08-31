@@ -1319,19 +1319,25 @@ bool TermDb::mayComplete( TypeNode tn ) {
 
 void TermDb::computeVarContains( Node n, std::vector< Node >& varContains ) {
   std::map< Node, bool > visited;
-  computeVarContains2( n, varContains, visited );
+  computeVarContains2( n, INST_CONSTANT, varContains, visited );
 }
 
-void TermDb::computeVarContains2( Node n, std::vector< Node >& varContains, std::map< Node, bool >& visited ){
+void TermDb::computeQuantContains( Node n, std::vector< Node >& quantContains ) {
+  std::map< Node, bool > visited;
+  computeVarContains2( n, FORALL, quantContains, visited );
+}
+
+
+void TermDb::computeVarContains2( Node n, Kind k, std::vector< Node >& varContains, std::map< Node, bool >& visited ){
   if( visited.find( n )==visited.end() ){
     visited[n] = true;
-    if( n.getKind()==INST_CONSTANT ){
+    if( n.getKind()==k ){
       if( std::find( varContains.begin(), varContains.end(), n )==varContains.end() ){
         varContains.push_back( n );
       }
     }else{
       for( unsigned i=0; i<n.getNumChildren(); i++ ){
-        computeVarContains2( n[i], varContains, visited );
+        computeVarContains2( n[i], k, varContains, visited );
       }
     }
   }
@@ -2163,6 +2169,10 @@ void TermDb::computeQuantAttributes( Node q, QAttributes& qa ){
           qa.d_quant_elim_partial = true;
           //don't set owner, should happen naturally
         }
+        if( avar.hasAttribute(QuantIdNumAttribute()) ){
+          qa.d_qid_num = avar.getAttribute(QuantIdNumAttribute());
+          Trace("quant-attr") << "Attribute : id number " << qa.d_qid_num << " : " << q << std::endl;
+        }
         if( avar.getKind()==REWRITE_RULE ){
           Trace("quant-attr") << "Attribute : rewrite rule : " << q << std::endl;
           Assert( i==0 );
@@ -2251,6 +2261,15 @@ bool TermDb::isQAttrQuantElimPartial( Node q ) {
     return false;
   }else{
     return it->second.d_quant_elim_partial;
+  }
+}
+
+int TermDb::getQAttrQuantIdNum( Node q ) {
+  std::map< Node, QAttributes >::iterator it = d_qattr.find( q );
+  if( it==d_qattr.end() ){
+    return -1;
+  }else{
+    return it->second.d_qid_num;
   }
 }
 

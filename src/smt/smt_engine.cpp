@@ -5138,6 +5138,8 @@ Expr SmtEngine::doQuantifierElimination(const Expr& e, bool doFull, bool strict)
       ss << "While performing quantifier elimination, unexpected result : " << r << " for query.";
       InternalError(ss.str().c_str());
     }
+    
+ #if 1
     //get the instantiations for all quantified formulas
     std::map< Node, std::vector< Node > > insts;
     d_theoryEngine->getInstantiations( insts );
@@ -5168,7 +5170,10 @@ Expr SmtEngine::doQuantifierElimination(const Expr& e, bool doFull, bool strict)
         ss << " that was not related to the query.  Try option --simplification=none.";
         InternalError(ss.str().c_str());
       }
-    }
+    }   
+#else
+    Node ret_n = d_theoryEngine->getInstantiatedConjunction( top_q );
+#endif
     Trace("smt-qe") << "Returned : " << ret_n << std::endl;
     ret_n = Rewriter::rewrite( ret_n.negate() );
     return ret_n.toExpr();

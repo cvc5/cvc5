@@ -141,7 +141,7 @@ QuantifiersEngine::QuantifiersEngine(context::Context* c, context::UserContext* 
   d_rel_dom = NULL;
   d_builder = NULL;
   
-  d_trackInstLemmas = options::proof() && options::trackInstLemmas();
+  d_trackInstLemmas = options::cbqiNestedQE() || ( options::proof() && options::trackInstLemmas() );
 
   d_total_inst_count_debug = 0;
   //allow theory combination to go first, once initially
@@ -627,6 +627,7 @@ void QuantifiersEngine::notifyCombineTheories() {
 }
 
 bool QuantifiersEngine::reduceQuantifier( Node q ) {
+  //TODO: this can be unified with preregistration: AlphaEquivalence takes ownership of reducable quants
   BoolMap::const_iterator it = d_quants_red.find( q );
   if( it==d_quants_red.end() ){
     Node lem;
@@ -733,7 +734,7 @@ void QuantifiersEngine::assertQuantifier( Node f, bool pol ){
     //register the quantifier, assert it to each module
     if( registerQuantifier( f ) ){
       d_model->assertQuantifier( f );
-      for( int i=0; i<(int)d_modules.size(); i++ ){
+      for( unsigned i=0; i<d_modules.size(); i++ ){
         d_modules[i]->assertNode( f );
       }
       addTermToDatabase( d_term_db->getInstConstantBody( f ), true );
@@ -1138,6 +1139,9 @@ bool QuantifiersEngine::addInstantiation( Node q, std::vector< Node >& terms, bo
   Assert( d_term_db->d_vars[q].size()==terms.size() );
   Node body = getInstantiation( q, d_term_db->d_vars[q], terms, doVts );  //do virtual term substitution
   Node orig_body = body;
+  if( options::cbqiNestedQE() && d_i_cbqi ){
+    body = d_i_cbqi->doNestedQE( q, terms, body, doVts );
+  }  
   body = quantifiers::QuantifiersRewriter::preprocess( body, true );
   Trace("inst-debug") << "...preprocess to " << body << std::endl;
 
@@ -1440,6 +1444,42 @@ void QuantifiersEngine::getInstantiations( std::map< Node, std::vector< Node > >
     for( std::map< Node, inst::InstMatchTrie >::iterator it = d_inst_match_trie.begin(); it != d_inst_match_trie.end(); ++it ){
       it->second.getInstantiations( insts[it->first], it->first, this, useUnsatCore, active_lemmas );
     }
+  }
+}
+
+void QuantifiersEngine::getInstantiations( Node q, std::vector< Node >& insts  ) {
+  if( options::incrementalSolving() ){
+    std::map< Node, inst::CDInstMatchTrie* >::iterator it = d_c_inst_match_trie.find( q );
+    if( it!=d_c_inst_match_trie.end() ){
+      std::vector< Node > active_lemmas;
+      it->second->getInstantiations( insts, it->first, this, false, active_lemmas );
+    }
+  }else{
+    std::map< Node, inst::InstMatchTrie >::iterator it = d_inst_match_trie.find( q );
+    if( it!=d_inst_match_trie.end() ){
+      std::vector< Node > active_lemmas;
+      it->second.getInstantiations( insts, it->first, this, false, active_lemmas );
+    }
+  }
+}
+
+Node QuantifiersEngine::getInstantiatedConjunction( Node q ) {
+  std::vector< Node > insts;
+  getInstantiations( q, insts );
+  if( insts.empty() ){
+    return NodeManager::currentNM()->mkConst(true);
+  }else{
+    Node ret;
+    if( insts.size()==1 ){
+      ret = insts[0];
+    }else{
+      ret = NodeManager::currentNM()->mkNode( kind::AND, insts );
+    }
+    //have to remove q, TODO: avoid this in a better way
+    TNode tq = q;
+    TNode tt = d_term_db->d_true;
+    ret = ret.substitute( tq, tt );
+    return ret;
   }
 }
 

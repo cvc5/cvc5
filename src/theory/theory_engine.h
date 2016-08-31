@@ -789,6 +789,12 @@ public:
    * Get instantiations
    */
   void getInstantiations( std::map< Node, std::vector< Node > >& insts );
+  
+  /**
+   * Get instantiated conjunction, returns q[t1] ^ ... ^ q[tn] where t1...tn are current set of instantiations for q.
+   *   Can be used for quantifier elimination when satisfiable and q[t1] ^ ... ^ q[tn] |= q
+   */
+  Node getInstantiatedConjunction( Node q );
 
   /**
    * Forwards an entailment check according to the given theoryOfMode.

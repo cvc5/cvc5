@@ -303,8 +303,10 @@ option cbqiNopt --cbqi-nopt bool :default true
   non-optimal bounds for counterexample-based quantifier instantiation
 option cbqiLitDepend --cbqi-lit-dep bool :default false
   dependency lemmas for quantifier alternation in counterexample-based quantifier instantiation
-option cbqiInnermost --cbqi-innermost bool :default false
+option cbqiInnermost --cbqi-innermost bool :read-write :default false
  only process innermost quantified formulas in counterexample-based quantifier instantiation
+option cbqiNestedQE --cbqi-nested-qe bool :default false
+ process nested quantified formulas with quantifier elimination in counterexample-based quantifier instantiation
  
 option quantEpr --quant-epr bool :default false
  infer whether in effectively propositional fragment, use for cbqi

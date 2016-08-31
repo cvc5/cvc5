@@ -20,6 +20,7 @@
 #include "theory/arith/theory_arith_private.h"
 #include "theory/quantifiers/first_order_model.h"
 #include "theory/quantifiers/term_database.h"
+#include "theory/quantifiers/quantifiers_rewriter.h"
 #include "theory/theory_engine.h"
 
 #include "theory/bv/theory_bv_utils.h"
@@ -372,7 +373,7 @@ bool CegInstantiator::doAddInstantiation( SolvedForm& sf, SolvedForm& ssf, std::
                     int ires = solve_arith( pv, satom, veq_c, val, vts_coeff_inf, vts_coeff_delta );
                     if( ires!=0 ){
                       //disequalities are either strict upper or lower bounds
-                      unsigned rmax = ( atom.getKind()==GEQ && options::cbqiModel() ) ? 1 : 2;
+                      unsigned rmax = ( atom.getKind()==GEQ || options::cbqiModel() ) ? 1 : 2;
                       for( unsigned r=0; r<rmax; r++ ){
                         int uires = ires;
                         Node uval = val;
@@ -390,7 +391,7 @@ bool CegInstantiator::doAddInstantiation( SolvedForm& sf, SolvedForm& ssf, std::
                             }
                           }
                         }else{
-                          bool is_upper = ( r==0 );
+                          bool is_upper;
                           if( options::cbqiModel() ){
                             // disequality is a disjunction : only consider the bound in the direction of the model
                             //first check if there is an infinity...
@@ -413,6 +414,8 @@ bool CegInstantiator::doAddInstantiation( SolvedForm& sf, SolvedForm& ssf, std::
                               Assert( cmp.isConst() );
                               is_upper = ( cmp!=d_true );
                             }
+                          }else{
+                            is_upper = (r==0);
                           }
                           Assert( atom.getKind()==EQUAL && !pol );
                           if( pvtn.isInteger() ){
@@ -450,6 +453,7 @@ bool CegInstantiator::doAddInstantiation( SolvedForm& sf, SolvedForm& ssf, std::
                           unsigned index = uires>0 ? 0 : 1;
                           mbp_bounds[index].push_back( uval );
                           mbp_coeff[index].push_back( veq_c );
+                          Trace("cbqi-inst-debug") << "Store bound " << index << " " << uval << " " << veq_c << " " << vts_coeff_inf << " " << vts_coeff_delta << " " << lit << std::endl;
                           for( unsigned t=0; t<2; t++ ){
                             mbp_vts_coeff[index][t].push_back( t==0 ? vts_coeff_inf : vts_coeff_delta );
                           }
@@ -719,6 +723,13 @@ bool CegInstantiator::doAddInstantiation( SolvedForm& sf, SolvedForm& ssf, std::
     //[5] resort to using value in model
     // do so if we are in effort=1, or if the variable is boolean, or if we are solving for a subfield of a datatype
     if( ( effort>0 || pvtn.isBoolean() || pvtn.isBitVector() || !curr_var.empty() ) && d_qe->getTermDatabase()->isClosedEnumerableType( pvtn ) ){
+
+#ifdef CVC4_ASSERTIONS
+      if( pvtn.isReal() && options::cbqiNestedQE() && !options::cbqiAll() ){
+        Trace("cbqi-warn") << "Had to resort to model value." << std::endl;
+        Assert( false );
+      }
+#endif
       Node mv = getModelValue( pv );
       Node pv_coeff_m;
       Trace("cbqi-inst-debug") << "[5] " << i << "...try model value " << mv << std::endl;
@@ -1222,25 +1233,27 @@ void getPresolveEqConjuncts( std::vector< Node >& vars, std::vector< Node >& ter
 }
 
 void CegInstantiator::presolve( Node q ) {
-  Trace("cbqi-presolve") << "CBQI presolve " << q << std::endl;
   //at preregister time, add proxy of obvious instantiations up front, which helps learning during preprocessing
-  std::vector< Node > vars;
-  std::map< Node, std::vector< Node > > teq;
-  for( unsigned i=0; i<q[0].getNumChildren(); i++ ){
-    vars.push_back( q[0][i] );
-    teq[q[0][i]].clear();
-  }
-  collectPresolveEqTerms( q[1], teq );
-  std::vector< Node > terms;
-  std::vector< Node > conj;
-  getPresolveEqConjuncts( vars, terms, teq, q, conj );
+  //only if no nested quantifiers
+  if( !QuantifiersRewriter::containsQuantifiers( q[1] ) ){
+    std::vector< Node > vars;
+    std::map< Node, std::vector< Node > > teq;
+    for( unsigned i=0; i<q[0].getNumChildren(); i++ ){
+      vars.push_back( q[0][i] );
+      teq[q[0][i]].clear();
+    }
+    collectPresolveEqTerms( q[1], teq );
+    std::vector< Node > terms;
+    std::vector< Node > conj;
+    getPresolveEqConjuncts( vars, terms, teq, q, conj );
 
-  if( !conj.empty() ){
-    Node lem = conj.size()==1 ? conj[0] : NodeManager::currentNM()->mkNode( AND, conj );
-    Node g = NodeManager::currentNM()->mkSkolem( "g", NodeManager::currentNM()->booleanType() );
-    lem = NodeManager::currentNM()->mkNode( OR, g, lem );
-    Trace("cbqi-presolve-debug") << "Presolve lemma : " << lem << std::endl;
-    d_qe->getOutputChannel().lemma( lem, false, true );
+    if( !conj.empty() ){
+      Node lem = conj.size()==1 ? conj[0] : NodeManager::currentNM()->mkNode( AND, conj );
+      Node g = NodeManager::currentNM()->mkSkolem( "g", NodeManager::currentNM()->booleanType() );
+      lem = NodeManager::currentNM()->mkNode( OR, g, lem );
+      Trace("cbqi-presolve-debug") << "Presolve lemma : " << lem << std::endl;
+      d_qe->getOutputChannel().lemma( lem, false, true );
+    }
   }
 }
 
@@ -1479,7 +1492,8 @@ struct sortCegVarOrder {
 
 
 void CegInstantiator::registerCounterexampleLemma( std::vector< Node >& lems, std::vector< Node >& ce_vars ) {
-  Assert( d_vars.empty() );
+  //Assert( d_vars.empty() );
+  d_vars.clear();
   d_vars.insert( d_vars.end(), ce_vars.begin(), ce_vars.end() );
 
   //determine variable order: must do Reals before Ints
@@ -1512,7 +1526,9 @@ void CegInstantiator::registerCounterexampleLemma( std::vector< Node >& lems, st
   //remove ITEs
   IteSkolemMap iteSkolemMap;
   d_qe->getTheoryEngine()->getIteRemover()->run(lems, iteSkolemMap);
-  Assert( d_aux_vars.empty() );
+  //Assert( d_aux_vars.empty() );
+  d_aux_vars.clear();
+  d_aux_eq.clear();
   for(IteSkolemMap::iterator i = iteSkolemMap.begin(); i != iteSkolemMap.end(); ++i) {
     Trace("cbqi-debug") << "  Auxiliary var (from ITE) : " << i->first << std::endl;
     d_aux_vars.push_back( i->first );
@@ -1601,6 +1617,7 @@ int CegInstantiator::solve_arith( Node pv, Node atom, Node& veq_c, Node& val, No
       if( options::cbqiAll() ){
         // when not pure LIA/LRA, we must check whether the lhs contains pv
         if( TermDb::containsTerm( val, pv ) ){
+          Trace("cbqi-inst-debug") << "fail : contains bad term" << std::endl;
           return 0;
         }
       }
@@ -1656,6 +1673,9 @@ int CegInstantiator::solve_arith( Node pv, Node atom, Node& veq_c, Node& val, No
     }
     vts_coeff_inf = vts_coeff[0];
     vts_coeff_delta = vts_coeff[1];
+    Trace("cbqi-inst-debug") << "Return " << veq_c << " * " << pv << " " << atom.getKind() << " " << val << ", vts = (" << vts_coeff_inf << ", " << vts_coeff_delta << ")" << std::endl;
+  }else{
+    Trace("cbqi-inst-debug") << "fail : could not get monomial sum" << std::endl;
   }
   return ires;
 }

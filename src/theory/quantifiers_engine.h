@@ -85,6 +85,7 @@ class EqualityQueryQuantifiersEngine;
 
 class QuantifiersEngine {
   friend class quantifiers::InstantiationEngine;
+  friend class quantifiers::InstStrategyCbqi;
   friend class quantifiers::InstStrategyCegqi;
   friend class quantifiers::ModelEngine;
   friend class quantifiers::RewriteEngine;
@@ -372,7 +373,10 @@ public:
   /** print solution for synthesis conjectures */
   void printSynthSolution( std::ostream& out );
   /** get instantiations */
+  void getInstantiations( Node q, std::vector< Node >& insts );
   void getInstantiations( std::map< Node, std::vector< Node > >& insts );
+  /** get instantiated conjunction */
+  Node getInstantiatedConjunction( Node q );
   /** get unsat core lemmas */
   bool getUnsatCoreLemmas( std::vector< Node >& active_lemmas );
   bool getUnsatCoreLemmas( std::vector< Node >& active_lemmas, std::map< Node, Node >& weak_imp );
