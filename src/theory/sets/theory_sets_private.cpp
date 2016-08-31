@@ -509,12 +509,9 @@ void TheorySetsPrivate::dumpAssertionsHumanified() const
         (polarity ? members[right].first : members[right].second).insert(left);
       }
     }
-    //#define FORIT(it, container) for(typeof((container).begin()) it=(container).begin(); (it) != (container).end(); ++(it))
-    //FORIT(kt, equalities)
     for(EqualityMap::const_iterator kt =equalities.begin(); kt != equalities.end(); ++kt) {
       Trace(tag) << " Eq class of t" << numbering[(*kt).first] << ": " << std::endl;
 
-      //FORIT(jt, (*kt).second)
       const TNodeSet& kt_second = (*kt).second;
       for(TNodeSet::const_iterator jt=kt_second.begin(); jt != kt_second.end(); ++jt) {
         TNode S = (*jt);
@@ -538,11 +535,9 @@ void TheorySetsPrivate::dumpAssertionsHumanified() const
       }
       Trace(tag) << std::endl;
     }
-    //FORIT(kt, disequalities)
     for(TNodePairSet::const_iterator kt=disequalities.begin(); kt != disequalities.end(); ++kt){
       Trace(tag) << "NOT(t"<<numbering[(*kt).first]<<" = t" <<numbering[(*kt).second] <<")"<< std::endl;
     }
-    //FORIT(kt, members)
     for(MemberMap::const_iterator kt=members.begin(); kt != members.end(); ++kt) {
       const TNode& kt_key = (*kt).first;
       const TNodeSet& kt_in_set = (*kt).second.first;
@@ -562,7 +557,6 @@ void TheorySetsPrivate::dumpAssertionsHumanified() const
       }
       if( kt_out_set.size() > 0) {
         Trace(tag) << "NOT IN t" << numbering[kt_key] << ": ";
-        //FORIT(jt, (*kt).second.second)
         for(TNodeSet::const_iterator jt=kt_out_set.begin(); jt != kt_out_set.end(); ++jt){
           TNode x = (*jt);
           if(x.isConst() || numbering.find(d_equalityEngine.getRepresentative(x)) == numbering.end()) {
@@ -575,7 +569,6 @@ void TheorySetsPrivate::dumpAssertionsHumanified() const
       }
     }
     Trace(tag) << std::endl;
-    //#undef FORIT
 }
 
 void TheorySetsPrivate::computeCareGraph() {
