@@ -277,11 +277,13 @@ bool CommandExecutorPortfolio::doCommandSingleton(Command* cmd)
      * set of variables mapped.)
      */
     if(d_numThreads >= 2) {
-      for(typeof(d_vmaps[1]->d_to.begin()) i=d_vmaps[1]->d_to.begin();
-          i!=d_vmaps[1]->d_to.end(); ++i) {
-        (d_vmaps[0]->d_from)[i->first] = i->first;
+      VarMap& thread_0_from = d_vmaps[0]->d_from;
+      VarMap& thread_1_to = d_vmaps[1]->d_to;
+      for(VarMap::iterator i=thread_1_to.begin();
+          i != thread_1_to.end(); ++i) {
+        thread_0_from[i->first] = i->first;
       }
-      d_vmaps[0]->d_to = d_vmaps[0]->d_from;
+      d_vmaps[0]->d_to = thread_0_from;
     }
 
     lemmaSharingInit();
