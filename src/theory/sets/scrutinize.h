@@ -17,8 +17,6 @@
 
 #pragma once
 
-#include <boost/foreach.hpp>
-
 #include "theory/sets/theory_sets.h"
 #include "theory/sets/theory_sets_private.h"
 
@@ -55,7 +53,8 @@ public:
       }
     }
     bool checkPassed = true;
-    BOOST_FOREACH(TNode term, terms) {
+    for (std::set<Node>::const_iterator it = terms.begin(); it != terms.end(); it++){
+      TNode term = *it;
       if( term.getType().isSet() ) {
         checkPassed &= d_theory->checkModel(settermElementsMap, term);
       }
@@ -72,4 +71,3 @@ public:
 }/* CVC4::theory::sets namespace */
 }/* CVC4::theory namespace */
 }/* CVC4 namespace */
-
