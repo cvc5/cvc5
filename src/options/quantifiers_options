@@ -301,9 +301,9 @@ option cbqiMidpoint --cbqi-midpoint bool :default false
   choose substitutions based on midpoints of lower and upper bounds for counterexample-based quantifier instantiation
 option cbqiNopt --cbqi-nopt bool :default true
   non-optimal bounds for counterexample-based quantifier instantiation
-option cbqiLitDepend --cbqi-lit-dep bool :default false
+option cbqiLitDepend --cbqi-lit-dep bool :default true
   dependency lemmas for quantifier alternation in counterexample-based quantifier instantiation
-option cbqiInnermost --cbqi-innermost bool :read-write :default false
+option cbqiInnermost --cbqi-innermost bool :read-write :default true
  only process innermost quantified formulas in counterexample-based quantifier instantiation
 option cbqiNestedQE --cbqi-nested-qe bool :default false
  process nested quantified formulas with quantifier elimination in counterexample-based quantifier instantiation

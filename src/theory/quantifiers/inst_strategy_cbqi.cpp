@@ -427,6 +427,8 @@ Node InstStrategyCbqi::doNestedQERec( Node q, Node n, std::map< Node, Node >& vi
             d_nested_qe_info[nr].d_inst_terms.clear();
             d_nested_qe_info[nr].d_inst_terms.insert( d_nested_qe_info[nr].d_inst_terms.end(), inst_terms.begin(), inst_terms.end() );
             d_nested_qe_info[nr].d_doVts = doVts;
+            //TODO: ensure this holds by restricting prenex when cbqiNestedQe is true.
+            Assert( !options::cbqiInnermost() );
           }
         } 
       } 
