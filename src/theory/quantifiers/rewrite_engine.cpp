@@ -20,6 +20,7 @@
 #include "theory/quantifiers/first_order_model.h"
 #include "theory/quantifiers/inst_match_generator.h"
 #include "theory/quantifiers/model_engine.h"
+#include "theory/quantifiers/quant_conflict_find.h"
 #include "theory/quantifiers/quant_util.h"
 #include "theory/quantifiers/term_database.h"
 #include "theory/theory_engine.h"
