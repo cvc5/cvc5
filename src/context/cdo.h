@@ -140,7 +140,7 @@ public:
   /**
    * Destructor - call destroy() method
    */
-  ~CDO() throw(AssertionException) { destroy(); }
+  ~CDO() { destroy(); }
 
   /**
    * Set the data in the CDO.  First call makeCurrent.

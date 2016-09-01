@@ -149,7 +149,7 @@ private:
 public:
 
   SharedTermsDatabase(TheoryEngine* theoryEngine, context::Context* context);
-  ~SharedTermsDatabase() throw(AssertionException);
+  ~SharedTermsDatabase();
 
   /**
    * Asserts the equality to the shared terms database,

@@ -38,7 +38,7 @@ MinisatSatSolver::MinisatSatSolver(StatisticsRegistry* registry) :
   d_statistics(registry)
 {}
 
-MinisatSatSolver::~MinisatSatSolver() throw()
+MinisatSatSolver::~MinisatSatSolver()
 {
   delete d_minisat;
 }

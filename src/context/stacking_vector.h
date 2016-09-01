@@ -50,7 +50,7 @@ public:
     d_offset(ctxt, 0) {
   }
 
-  ~StackingVector() throw() { }
+  ~StackingVector() { }
 
   /**
    * Return a value from the vector.  If n is not a key in

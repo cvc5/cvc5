@@ -308,7 +308,7 @@ public:
    * Destructor. If ref_count is true it will decrement the reference count
    * and, if zero, collect the NodeValue.
    */
-  ~NodeTemplate() throw(AssertionException);
+  ~NodeTemplate();
 
   /**
    * Return the null node.
@@ -1089,7 +1089,7 @@ NodeTemplate<ref_count>::NodeTemplate(const Expr& e) {
 }
 
 template <bool ref_count>
-NodeTemplate<ref_count>::~NodeTemplate() throw(AssertionException) {
+NodeTemplate<ref_count>::~NodeTemplate() {
   Assert(d_nv != NULL, "Expecting a non-NULL expression value!");
   if(ref_count) {
     // shouldn't ever fail

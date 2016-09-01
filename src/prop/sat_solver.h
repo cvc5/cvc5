@@ -43,7 +43,7 @@ class SatSolver {
 public:
 
   /** Virtual destructor */
-  virtual ~SatSolver() throw(AssertionException) { }
+  virtual ~SatSolver() { }
 
   /** Assert a clause in the solver. */
   virtual ClauseId addClause(SatClause& clause,
@@ -99,7 +99,7 @@ public:
 class BVSatSolverInterface: public SatSolver {
 public:
 
-  virtual ~BVSatSolverInterface() throw(AssertionException) {}
+  virtual ~BVSatSolverInterface() {}
   /** Interface for notifications */
   class Notify {
   public:
