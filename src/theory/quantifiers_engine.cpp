@@ -1464,6 +1464,7 @@ void QuantifiersEngine::getInstantiations( Node q, std::vector< Node >& insts  )
 }
 
 Node QuantifiersEngine::getInstantiatedConjunction( Node q ) {
+  Assert( q.getKind()==FORALL );
   std::vector< Node > insts;
   getInstantiations( q, insts );
   if( insts.empty() ){

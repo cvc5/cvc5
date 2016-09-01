@@ -370,7 +370,7 @@ Node InstStrategyCbqi::doNestedQENode( Node q, Node ceq, Node n, std::vector< No
   // there is a nested quantified formula (forall y. nq[y,x]) such that 
   //    q is (forall y. nq[y,t]) for ground terms t,
   //    ceq is (forall y. nq[y,e]) for CE variables e.
-  // we call this function when we know (exists e. ceq[e,k]) is equivalent to quantifier-free formula C[k].
+  // we call this function when we know (forall y. nq[y,e]) is equivalent to quantifier-free formula C[e].
   // in this case, q is equivalent to the quantifier-free formula C[t].
   if( d_nested_qe.find( ceq )==d_nested_qe.end() ){
     d_nested_qe[ceq] = d_quantEngine->getInstantiatedConjunction( ceq );

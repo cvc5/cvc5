@@ -974,44 +974,6 @@ public:
     return d_managedReplayLog.getReplayLog();
   }
 
-  Node replaceQuantifiersWithInstantiations( Node n, std::map< Node, std::vector< Node > >& insts, std::map< Node, Node >& visited ){
-    std::map< Node, Node >::iterator itv = visited.find( n );
-    if( itv!=visited.end() ){
-      return itv->second;
-    }else{
-      Node ret = n;
-      if( n.getKind()==kind::FORALL ){
-        std::map< Node, std::vector< Node > >::iterator it = insts.find( n );
-        if( it==insts.end() ){
-          Trace("smt-qe-debug") << "* " << n << " has no instances" << std::endl;
-          ret = NodeManager::currentNM()->mkConst(true);
-        }else{
-          Trace("smt-qe-debug") << "* " << n << " has " << it->second.size() << " instances" << std::endl;
-          Node reti = it->second.empty() ? NodeManager::currentNM()->mkConst(true) : ( it->second.size()==1 ? it->second[0] : NodeManager::currentNM()->mkNode( kind::AND, it->second ) );
-          Trace("smt-qe-debug") << "   return : " << ret << std::endl;
-          //recursive (for nested quantification)
-          ret = replaceQuantifiersWithInstantiations( reti, insts, visited );
-        }
-      }else if( n.getNumChildren()>0 ){
-        bool childChanged = false;
-        std::vector< Node > children;
-        if( n.getMetaKind() == kind::metakind::PARAMETERIZED ){
-          children.push_back( n.getOperator() );
-        }
-        for( unsigned i=0; i<n.getNumChildren(); i++ ){
-          Node r = replaceQuantifiersWithInstantiations( n[i], insts, visited );
-          children.push_back( r );
-          childChanged = childChanged || r!=n[i];
-        }
-        if( childChanged ){
-          ret = NodeManager::currentNM()->mkNode( n.getKind(), children );
-        }
-      }
-      visited[n] = ret;
-      return ret;
-    }
-  }
-
 };/* class SmtEnginePrivate */
 
 }/* namespace CVC4::smt */
@@ -5139,41 +5101,10 @@ Expr SmtEngine::doQuantifierElimination(const Expr& e, bool doFull, bool strict)
       InternalError(ss.str().c_str());
     }
     
- #if 1
-    //get the instantiations for all quantified formulas
-    std::map< Node, std::vector< Node > > insts;
-    d_theoryEngine->getInstantiations( insts );
-    //find the quantified formula that corresponds to the input
-    Node top_q;
-    for( std::map< Node, std::vector< Node > >::iterator it = insts.begin(); it != insts.end(); ++it ){
-      Trace("smt-qe-debug") << "* quantifier " << it->first << " had " << it->second.size() << " instances." << std::endl;
-      if( it->first.getNumChildren()==3 && it->first[2]==n_attr ){
-        top_q = it->first;
-      }
-    }
-    std::map< Node, Node > visited;
-    Node ret_n;
-    if( top_q.isNull() ){
-      //no instances needed
-      ret_n = NodeManager::currentNM()->mkConst(true);
-      visited[top_q] = ret_n;
-    }else{
-      //replace by a conjunction of instances
-      ret_n = d_private->replaceQuantifiersWithInstantiations( top_q, insts, visited );
-    }
-
-    //ensure all instantiations were accounted for
-    for( std::map< Node, std::vector< Node > >::iterator it = insts.begin(); it != insts.end(); ++it ){
-      if( !it->second.empty() && visited.find( it->first )==visited.end() ){
-        stringstream ss;
-        ss << "While performing quantifier elimination, processed a quantified formula : " << it->first;
-        ss << " that was not related to the query.  Try option --simplification=none.";
-        InternalError(ss.str().c_str());
-      }
-    }   
-#else
+    Node top_q = Rewriter::rewrite( nn_e ).negate();
+    Assert( top_q.getKind()==kind::FORALL );
+    Trace("smt-qe") << "Get qe for " << top_q << std::endl;
     Node ret_n = d_theoryEngine->getInstantiatedConjunction( top_q );
-#endif
     Trace("smt-qe") << "Returned : " << ret_n << std::endl;
     ret_n = Rewriter::rewrite( ret_n.negate() );
     return ret_n.toExpr();
