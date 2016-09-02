@@ -97,7 +97,7 @@ void EqualityEngine::init() {
   d_freshMergeReasonType = eq::NUMBER_OF_MERGE_REASONS;
 }
 
-EqualityEngine::~EqualityEngine() throw(AssertionException) {
+EqualityEngine::~EqualityEngine() {
   free(d_triggerDatabase);
 }
 

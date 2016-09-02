@@ -72,7 +72,7 @@ protected:
 public:
 
   BVMinisatSatSolver(StatisticsRegistry* registry, context::Context* mainSatContext, const std::string& name = "");
-  ~BVMinisatSatSolver() throw(AssertionException);
+  virtual ~BVMinisatSatSolver();
 
   void setNotify(Notify* notify);
 

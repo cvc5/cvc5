@@ -35,7 +35,7 @@ Context::Context() : d_pCNOpre(NULL), d_pCNOpost(NULL) {
 }
 
 
-Context::~Context() throw(AssertionException) {
+Context::~Context() {
   // Delete all Scopes
   popto(0);
 
@@ -306,7 +306,7 @@ ContextNotifyObj::ContextNotifyObj(Context* pContext, bool preNotify) {
 }
 
 
-ContextNotifyObj::~ContextNotifyObj() throw(AssertionException) {
+ContextNotifyObj::~ContextNotifyObj() {
   if(d_pCNOnext != NULL) {
     d_pCNOnext->d_ppCNOprev = d_ppCNOprev;
   }

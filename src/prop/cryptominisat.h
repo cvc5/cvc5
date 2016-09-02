@@ -38,7 +38,7 @@ private:
 public:
   CryptoMinisatSolver(StatisticsRegistry* registry,
                       const std::string& name = "");
-  ~CryptoMinisatSolver() throw(AssertionException);
+  virtual ~CryptoMinisatSolver();
 
   ClauseId addClause(SatClause& clause, bool removable);
   ClauseId addXorClause(SatClause& clause, bool rhs, bool removable);
@@ -132,7 +132,3 @@ public:
 } // CVC4
 
 #endif // CVC4_USE_CRYPTOMINISAT
-
-
-
-

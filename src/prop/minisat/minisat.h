@@ -29,7 +29,7 @@ class MinisatSatSolver : public DPLLSatSolverInterface {
 public:
 
   MinisatSatSolver(StatisticsRegistry* registry);
-  ~MinisatSatSolver() throw();
+  virtual ~MinisatSatSolver();
 ;
 
   static SatVariable     toSatVariable(Minisat::Var var);

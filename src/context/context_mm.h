@@ -118,7 +118,7 @@ public:
   /**
    * Destructor - deletes all memory in all regions
    */
-  ~ContextMemoryManager() throw();
+  ~ContextMemoryManager();
 
   /**
    * Allocate size bytes from the current region
@@ -161,7 +161,7 @@ public:
   ContextMemoryAllocator(ContextMemoryManager* mm) throw() : d_mm(mm) {}
   template <class U>
   ContextMemoryAllocator(const ContextMemoryAllocator<U>& alloc) throw() : d_mm(alloc.getCMM()) {}
-  ~ContextMemoryAllocator() throw() {}
+  ~ContextMemoryAllocator() {}
 
   ContextMemoryManager* getCMM() const { return d_mm; }
   T* address(T& v) const { return &v; }

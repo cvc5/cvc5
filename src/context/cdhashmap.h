@@ -236,7 +236,7 @@ public:
     }
   }
 
-  ~CDOhash_map() throw(AssertionException) {
+  ~CDOhash_map() {
     destroy();
   }
 
@@ -327,7 +327,7 @@ public:
     d_trash() {
   }
 
-  ~CDHashMap() throw(AssertionException) {
+  ~CDHashMap() {
     Debug("gc") << "cdhashmap" << this
                 << " disappearing, destroying..." << std::endl;
     destroy();
