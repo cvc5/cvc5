@@ -143,7 +143,7 @@ bool InstStrategyCbqi::registerCbqiLemma( Node q ) {
           //record these as counterexample quantifiers
           QAttributes qa;
           TermDb::computeQuantAttributes( quants[i], qa );
-          if( qa.d_qid_num!=-1 ){
+          if( !qa.d_qid_num.isNull() ){
             d_id_to_ce_quant[ qa.d_qid_num ] = quants[i];
             d_ce_quant_to_id[ quants[i] ] = qa.d_qid_num;
             Trace("cbqi-nqe") << "CE quant id = " << qa.d_qid_num << " is " << quants[i] << std::endl;
@@ -292,7 +292,7 @@ Node InstStrategyCbqi::getIdMarkedQuantNode( Node n, std::map< Node, Node >& vis
     if( n.getKind()==FORALL ){
       QAttributes qa;
       TermDb::computeQuantAttributes( n, qa );
-      if( qa.d_qid_num==-1 ){
+      if( qa.d_qid_num.isNull() ){
         std::vector< Node > rc;
         rc.push_back( n[0] );
         rc.push_back( getIdMarkedQuantNode( n[1], visited ) );
@@ -403,9 +403,9 @@ Node InstStrategyCbqi::doNestedQERec( Node q, Node n, std::map< Node, Node >& vi
     if( n.getKind()==FORALL ){
       QAttributes qa;
       TermDb::computeQuantAttributes( n, qa );
-      if( qa.d_qid_num!=-1 ){
+      if( !qa.d_qid_num.isNull() ){
         //if it has an id, check whether we have done quantifier elimination for this id
-        std::map< int, Node >::iterator it = d_id_to_ce_quant.find( qa.d_qid_num );
+        std::map< Node, Node >::iterator it = d_id_to_ce_quant.find( qa.d_qid_num );
         if( it!=d_id_to_ce_quant.end() ){
           Node ceq = it->second;
           bool doNestedQe = d_elim_quants.contains( ceq );
@@ -998,7 +998,7 @@ bool InstStrategyCegqi::doAddInstantiation( std::vector< Node >& subs ) {
       return true;
     }else{
       //this should never happen for monotonic selection strategies
-      Trace("cbqi-warn") << "Existing instantiation" << std::endl;
+      Trace("cbqi-warn") << "WARNING: Existing instantiation" << std::endl;
       Assert( !options::cbqiNestedQE() || options::cbqiAll() );
       return false;
     }

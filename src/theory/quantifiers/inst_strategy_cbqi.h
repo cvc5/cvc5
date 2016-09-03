@@ -71,8 +71,8 @@ protected:
   //mark ids on quantifiers 
   Node getIdMarkedQuantNode( Node n, std::map< Node, Node >& visited );
   // id to ce quant
-  std::map< int, Node > d_id_to_ce_quant;
-  std::map< Node, int > d_ce_quant_to_id;
+  std::map< Node, Node > d_id_to_ce_quant;
+  std::map< Node, Node > d_ce_quant_to_id;
   //do nested quantifier elimination recursive
   Node doNestedQENode( Node q, Node ceq, Node n, std::vector< Node >& inst_terms, bool doVts );
   Node doNestedQERec( Node q, Node n, std::map< Node, Node >& visited, std::vector< Node >& inst_terms, bool doVts );

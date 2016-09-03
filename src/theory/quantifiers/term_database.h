@@ -136,7 +136,7 @@ public:
 class QAttributes{
 public:
   QAttributes() : d_hasPattern(false), d_conjecture(false), d_axiom(false), d_sygus(false),
-                  d_synthesis(false), d_rr_priority(-1), d_qinstLevel(-1), d_quant_elim(false), d_quant_elim_partial(false), d_qid_num(-1){}
+                  d_synthesis(false), d_rr_priority(-1), d_qinstLevel(-1), d_quant_elim(false), d_quant_elim_partial(false){}
   ~QAttributes(){}
   bool d_hasPattern;
   Node d_rr;
@@ -150,7 +150,7 @@ public:
   bool d_quant_elim;
   bool d_quant_elim_partial;
   Node d_ipl;
-  int d_qid_num;
+  Node d_qid_num;
   bool isRewriteRule() { return !d_rr.isNull(); }
   bool isFunDef() { return !d_fundef_f.isNull(); }
 };
@@ -551,6 +551,8 @@ public:
   bool isQAttrQuantElimPartial( Node q );
   /** get quant id num */
   int getQAttrQuantIdNum( Node q );
+  /** get quant id num */
+  Node getQAttrQuantIdNumNode( Node q );
   /** compute quantifier attributes */
   static void computeQuantAttributes( Node q, QAttributes& qa );
 };/* class TermDb */

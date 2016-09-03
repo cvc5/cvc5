@@ -1858,6 +1858,9 @@ void SmtEngine::setDefaults() {
   if( options::qcfMode.wasSetByUser() || options::qcfTConstraint() ){
     options::quantConflictFind.set( true );
   }
+  if( options::cbqiNestedQE() ){
+    options::prenexQuantAgg.set( true );
+  }
   //for induction techniques
   if( options::quantInduction() ){
     if( !options::dtStcInduction.wasSetByUser() ){
@@ -3951,7 +3954,7 @@ void SmtEnginePrivate::processAssertions() {
   }
   if( d_smt.d_logic.isQuantified() ){
     Trace("smt-proc") << "SmtEnginePrivate::processAssertions() : pre-quant-preprocess" << endl;
-
+    
     dumpAssertions("pre-skolem-quant", d_assertions);
     //remove rewrite rules, apply pre-skolemization to existential quantifiers
     for (unsigned i = 0; i < d_assertions.size(); ++ i) {

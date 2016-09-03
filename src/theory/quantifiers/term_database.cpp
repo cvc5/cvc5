@@ -2170,8 +2170,8 @@ void TermDb::computeQuantAttributes( Node q, QAttributes& qa ){
           //don't set owner, should happen naturally
         }
         if( avar.hasAttribute(QuantIdNumAttribute()) ){
-          qa.d_qid_num = avar.getAttribute(QuantIdNumAttribute());
-          Trace("quant-attr") << "Attribute : id number " << qa.d_qid_num << " : " << q << std::endl;
+          qa.d_qid_num = avar;
+          Trace("quant-attr") << "Attribute : id number " << qa.d_qid_num.getAttribute(QuantIdNumAttribute()) << " : " << q << std::endl;
         }
         if( avar.getKind()==REWRITE_RULE ){
           Trace("quant-attr") << "Attribute : rewrite rule : " << q << std::endl;
@@ -2266,8 +2266,18 @@ bool TermDb::isQAttrQuantElimPartial( Node q ) {
 
 int TermDb::getQAttrQuantIdNum( Node q ) {
   std::map< Node, QAttributes >::iterator it = d_qattr.find( q );
+  if( it!=d_qattr.end() ){
+    if( !it->second.d_qid_num.isNull() ){
+      return it->second.d_qid_num.getAttribute(QuantIdNumAttribute());
+    }
+  }
+  return -1;
+}
+
+Node TermDb::getQAttrQuantIdNumNode( Node q ) {
+  std::map< Node, QAttributes >::iterator it = d_qattr.find( q );
   if( it==d_qattr.end() ){
-    return -1;
+    return Node::null();
   }else{
     return it->second.d_qid_num;
   }
