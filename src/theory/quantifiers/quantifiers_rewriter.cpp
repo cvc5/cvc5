@@ -1134,12 +1134,23 @@ Node QuantifiersRewriter::computePrenex( Node body, std::vector< Node >& args, s
   return body;
 }
 
-Node QuantifiersRewriter::computePrenexAgg( Node n ){
+Node QuantifiersRewriter::computePrenexAgg( Node n, bool topLevel ){
   if( containsQuantifiers( n ) ){
-    if( n.getKind()==NOT ){
-      return computePrenexAgg( n[0] ).negate();
+    if( topLevel && ( n.getKind()==AND || ( n.getKind()==NOT && n[0].getKind()==OR ) ) ){
+      std::vector< Node > children;
+      for( unsigned i=0; i<n.getNumChildren(); i++ ){
+        Node nc = computePrenexAgg( n[i], true );
+        if( n.getKind()==NOT ){
+          nc = nc.negate();        
+        }
+        children.push_back( nc );
+      }
+      return NodeManager::currentNM()->mkNode( AND, children );
+    }else if( n.getKind()==NOT ){
+      return computePrenexAgg( n[0], false ).negate();
     }else if( n.getKind()==FORALL ){
-      Node nn = computePrenexAgg( n[1] );
+    /*
+      Node nn = computePrenexAgg( n[1], false );
       if( nn!=n[1] ){
         if( n.getNumChildren()==2 ){
           return NodeManager::currentNM()->mkNode( FORALL, n[0], nn );
@@ -1147,12 +1158,37 @@ Node QuantifiersRewriter::computePrenexAgg( Node n ){
           return NodeManager::currentNM()->mkNode( FORALL, n[0], nn, n[2] );
         }
       }
+      */
+      std::vector< Node > children;
+      if( n[1].getKind()==OR ){
+        for( unsigned i=0; i<n[1].getNumChildren(); i++ ){
+          children.push_back( computePrenexAgg( n[1][i], false ) );
+        }
+      }else{
+        children.push_back( computePrenexAgg( n[1], false ) );
+      }
+      std::vector< Node > args;
+      for( unsigned i=0; i<n[0].getNumChildren(); i++ ){
+        args.push_back( n[0][i] );
+      }
+      std::vector< Node > nargs;
+      //for each child, strip top level quant
+      for( unsigned i=0; i<children.size(); i++ ){
+        if( children[i].getKind()==FORALL ){
+          for( unsigned j=0; j<children[i][0].getNumChildren(); j++ ){
+            args.push_back( children[i][0][j] );
+          }
+          children[i] = children[i][1];
+        }
+      }
+      Node nb = children.size()==1 ? children[0] : NodeManager::currentNM()->mkNode( OR, children );
+      return mkForall( args, nb, true );
     }else{
       std::vector< Node > args;
       std::vector< Node > nargs;
       Node nn = computePrenex( n, args, nargs, true );
       if( n!=nn ){
-        Node nnn = computePrenexAgg( nn );
+        Node nnn = computePrenexAgg( nn, false );
         //merge prenex
         if( nnn.getKind()==FORALL ){
           for( unsigned i=0; i<nnn[0].getNumChildren(); i++ ){
@@ -1770,6 +1806,7 @@ Node QuantifiersRewriter::preSkolemizeQuantifiers( Node n, bool polarity, std::v
   return n;
 }
 
+
 Node QuantifiersRewriter::preprocess( Node n, bool isInst ) {
   Node prev = n;
   if( n.getKind() == kind::REWRITE_RULE ){
@@ -1787,8 +1824,11 @@ Node QuantifiersRewriter::preprocess( Node n, bool isInst ) {
   }
   //pull all quantifiers globally
   if( options::prenexQuantAgg() ){
-    n = quantifiers::QuantifiersRewriter::computePrenexAgg( n );
-    Assert( isPrenexNormalForm( n ) );
+    Trace("quantifiers-prenex") << "Prenexing : " << n << std::endl;
+    n = quantifiers::QuantifiersRewriter::computePrenexAgg( n, true );
+    n = Rewriter::rewrite( n );
+    Trace("quantifiers-prenex") << "Prenexing returned : " << n << std::endl;
+    //Assert( isPrenexNormalForm( n ) );
   }
   if( n!=prev ){       
     Trace("quantifiers-preprocess") << "Preprocess " << prev << std::endl;

@@ -1860,6 +1860,7 @@ void SmtEngine::setDefaults() {
   }
   if( options::cbqiNestedQE() ){
     options::prenexQuantAgg.set( true );
+    //options::prenexSkolemQuant.set( true );
   }
   //for induction techniques
   if( options::quantInduction() ){
