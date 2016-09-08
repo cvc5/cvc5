@@ -208,6 +208,9 @@ class TheorySep : public Theory {
   NodeList d_infer_exp;
   NodeList d_spatial_assertions;
 
+  //data,ref type (globally fixed)
+  TypeNode d_type_ref;
+  TypeNode d_type_data;
   //currently fix one data type for each location type, throw error if using more than one
   std::map< TypeNode, TypeNode > d_loc_to_data_type;
   //information about types
@@ -242,9 +245,14 @@ class TheorySep : public Theory {
   std::map< Node, HeapAssertInfo * > d_eqc_info;
   HeapAssertInfo * getOrMakeEqcInfo( Node n, bool doMake = false );
 
+  //get global reference/data type
+  TypeNode getReferenceType( Node n );
+  TypeNode getDataType( Node n );
   //calculate the element type of the heap for spatial assertions
-  TypeNode getReferenceType( Node atom, int& card, int index = -1 );
-  TypeNode getReferenceType2( Node atom, int& card, int index, Node n, std::map< Node, int >& visited);
+  TypeNode computeReferenceType( Node atom, int& card, int index = -1 );
+  TypeNode computeReferenceType2( Node atom, int& card, int index, Node n, std::map< Node, int >& visited);
+  void registerRefDataTypes( TypeNode tn1, TypeNode tn2, Node atom );
+  //get location/data type
   //get the base label for the spatial assertion
   Node getBaseLabel( TypeNode tn );
   Node getNilRef( TypeNode tn );

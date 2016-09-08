@@ -45,7 +45,7 @@ TheorySep::TheorySep(context::Context* c, context::UserContext* u, OutputChannel
 {
   d_true = NodeManager::currentNM()->mkConst<bool>(true);
   d_false = NodeManager::currentNM()->mkConst<bool>(false);
-
+  
   // The kinds we are treating as function application in congruence
   d_equalityEngine.addFunctionKind(kind::SEP_PTO);
   //d_equalityEngine.addFunctionKind(kind::SEP_STAR);
@@ -79,45 +79,7 @@ Node TheorySep::mkAnd( std::vector< TNode >& assumptions ) {
 
 Node TheorySep::ppRewrite(TNode term) {
   Trace("sep-pp") << "ppRewrite : " << term << std::endl;
-/*
-  Node s_atom = term.getKind()==kind::NOT ? term[0] : term;
-  if( s_atom.getKind()==kind::SEP_PTO || s_atom.getKind()==kind::SEP_STAR || s_atom.getKind()==kind::SEP_WAND || s_atom.getKind()==kind::SEP_EMP ){
-    //get the reference type (will compute d_type_references)
-    int card = 0;
-    TypeNode tn = getReferenceType( s_atom, card );
-    Trace("sep-pp") << "  reference type is " << tn << ", card is " << card << std::endl;
-  }
-*/
   return term;
-}
-
-//must process assertions at preprocess so that quantified assertions are processed properly
-void TheorySep::ppNotifyAssertions( std::vector< Node >& assertions ) {
-  d_pp_nils.clear();
-  std::map< Node, bool > visited;
-  for( unsigned i=0; i<assertions.size(); i++ ){
-    processAssertion( assertions[i], visited );
-  }
-}
-
-void TheorySep::processAssertion( Node n, std::map< Node, bool >& visited ) {
-  if( visited.find( n )==visited.end() ){
-    visited[n] = true;
-    if( n.getKind()==kind::SEP_NIL ){
-      if( std::find( d_pp_nils.begin(), d_pp_nils.end(), n )==d_pp_nils.end() ){
-        d_pp_nils.push_back( n );
-      }
-    }else if( n.getKind()==kind::SEP_PTO || n.getKind()==kind::SEP_STAR || n.getKind()==kind::SEP_WAND || n.getKind()==kind::SEP_EMP ){
-      //get the reference type (will compute d_type_references)
-      int card = 0;
-      TypeNode tn = getReferenceType( n, card );
-      Trace("sep-pp") << "  reference type is " << tn << ", card is " << card << std::endl;
-    }else{
-      for( unsigned i=0; i<n.getNumChildren(); i++ ){
-        processAssertion( n[i], visited );
-      }
-    }
-  }
 }
 
 Theory::PPAssertStatus TheorySep::ppAssert(TNode in, SubstitutionMap& outSubstitutions) {
@@ -401,9 +363,8 @@ void TheorySep::check(Effort e) {
         Trace("sep-lemma-debug") << "Reducing unlabelled assertion " << atom << std::endl;
         d_reduce.insert( fact );
         //introduce top-level label, add iff
-        int card;
-        TypeNode refType = getReferenceType( s_atom, card );
-        Trace("sep-lemma-debug") << "...reference type is : " << refType << ", card is " << card << std::endl;
+        TypeNode refType = getReferenceType( s_atom );
+        Trace("sep-lemma-debug") << "...reference type is : " << refType << std::endl;
         Node b_lbl = getBaseLabel( refType );
         Node s_atom_new = NodeManager::currentNM()->mkNode( kind::SEP_LABEL, s_atom, b_lbl );
         Node lem;
@@ -428,8 +389,7 @@ void TheorySep::check(Effort e) {
             if( s_atom.getKind()==kind::SEP_STAR || s_atom.getKind()==kind::SEP_WAND ){
               std::vector< Node > children;
               std::vector< Node > c_lems;
-              int card;
-              TypeNode tn = getReferenceType( s_atom, card );
+              TypeNode tn = getReferenceType( s_atom );
               Assert( d_reference_bound.find( tn )!=d_reference_bound.end() );
               c_lems.push_back( NodeManager::currentNM()->mkNode( kind::SUBSET, s_lbl, d_reference_bound[tn] ) );
               if( options::sepPreciseBound() ){
@@ -442,24 +402,12 @@ void TheorySep::check(Effort e) {
                 Trace("sep-bound") << std::endl << "  to children of " << s_atom << std::endl;
                 //int rb_start = 0;
                 for( unsigned j=0; j<s_atom.getNumChildren(); j++ ){
-                  int ccard = 0;
-                  getReferenceType( s_atom, ccard, j );
                   Node c_lbl = getLabel( s_atom, j, s_lbl );
-                  Trace("sep-bound") << "  for " << c_lbl << ", card = " << ccard << " : ";
                   std::vector< Node > bound_loc;
                   bound_loc.insert( bound_loc.end(), d_references[s_atom][j].begin(), d_references[s_atom][j].end() );
-/*                //this is unsound
-                  for( int k=0; k<ccard; k++ ){
-                    Assert( rb_start<(int)d_lbl_reference_bound[s_lbl].size() );
-                    d_lbl_reference_bound[c_lbl].push_back( d_lbl_reference_bound[s_lbl][rb_start] );
-                    Trace("sep-bound") << d_lbl_reference_bound[s_lbl][rb_start] << " ";
-                    bound_loc.push_back( d_lbl_reference_bound[s_lbl][rb_start] );
-                    rb_start++;
-                  }
-*/
                   //carry all locations for now
                   bound_loc.insert( bound_loc.end(), d_lbl_reference_bound[s_lbl].begin(), d_lbl_reference_bound[s_lbl].end() );
-                  Trace("sep-bound") << std::endl;
+                  //Trace("sep-bound") << std::endl;
                   Node bound_v = mkUnion( tn, bound_loc );
                   Trace("sep-bound") << "  ...bound value : " << bound_v << std::endl;
                   children.push_back( NodeManager::currentNM()->mkNode( kind::SUBSET, c_lbl, bound_v ) );
@@ -737,8 +685,7 @@ void TheorySep::check(Effort e) {
             //add refinement lemma
             if( d_label_map[s_atom].find( s_lbl )!=d_label_map[s_atom].end() ){
               needAddLemma = true;
-              int card;
-              TypeNode tn = getReferenceType( s_atom, card );
+              TypeNode tn = getReferenceType( s_atom );
               tn = NodeManager::currentNM()->mkSetType(tn);
               //tn = NodeManager::currentNM()->mkSetType(NodeManager::currentNM()->mkRefType(tn));
               Node o_b_lbl_mval = d_label_model[s_lbl].getValue( tn );
@@ -885,7 +832,56 @@ TheorySep::HeapAssertInfo * TheorySep::getOrMakeEqcInfo( Node n, bool doMake ) {
   }
 }
 
-TypeNode TheorySep::getReferenceType( Node atom, int& card, int index ) {
+//for now, assume all constraints are for the same heap type (ensured by logic exceptions thrown in computeReferenceType2)
+TypeNode TheorySep::getReferenceType( Node n ) {
+  Assert( !d_type_ref.isNull() );
+  return d_type_ref;
+}
+
+TypeNode TheorySep::getDataType( Node n ) {
+  Assert( !d_type_data.isNull() );
+  return d_type_data;
+}
+
+//must process assertions at preprocess so that quantified assertions are processed properly
+void TheorySep::ppNotifyAssertions( std::vector< Node >& assertions ) {
+  //dummy sort in case heap loc/data is unconstrained
+  d_pp_nils.clear();
+  std::map< Node, bool > visited;
+  for( unsigned i=0; i<assertions.size(); i++ ){
+    processAssertion( assertions[i], visited );
+  }
+  //if data type is unconstrained, assume a fresh uninterpreted sort
+  if( !d_type_ref.isNull() ){
+    if( d_type_data.isNull() ){
+      d_type_data = NodeManager::currentNM()->mkSort("_sep_U");
+      Trace("sep-type") << "Sep: assume data type " << d_type_data << std::endl;
+      d_loc_to_data_type[d_type_ref] = d_type_data;
+    }
+  }
+}
+
+void TheorySep::processAssertion( Node n, std::map< Node, bool >& visited ) {
+  if( visited.find( n )==visited.end() ){
+    visited[n] = true;
+    if( n.getKind()==kind::SEP_NIL ){
+      if( std::find( d_pp_nils.begin(), d_pp_nils.end(), n )==d_pp_nils.end() ){
+        d_pp_nils.push_back( n );
+      }
+    }else if( n.getKind()==kind::SEP_PTO || n.getKind()==kind::SEP_STAR || n.getKind()==kind::SEP_WAND || n.getKind()==kind::SEP_EMP ){
+      //get the reference type (will compute d_type_references)
+      int card = 0;
+      TypeNode tn = computeReferenceType( n, card );
+      Trace("sep-pp") << "  reference type is " << tn << ", card is " << card << std::endl;
+    }else{
+      for( unsigned i=0; i<n.getNumChildren(); i++ ){
+        processAssertion( n[i], visited );
+      }
+    }
+  }
+}
+
+TypeNode TheorySep::computeReferenceType( Node atom, int& card, int index ) {
   Trace("sep-type") << "getReference type " << atom << " " << index << std::endl;
   Assert( atom.getKind()==kind::SEP_PTO || atom.getKind()==kind::SEP_STAR || atom.getKind()==kind::SEP_WAND || atom.getKind()==kind::SEP_EMP || index!=-1 );
   std::map< int, TypeNode >::iterator it = d_reference_type[atom].find( index );
@@ -895,7 +891,7 @@ TypeNode TheorySep::getReferenceType( Node atom, int& card, int index ) {
     if( index==-1 && ( atom.getKind()==kind::SEP_STAR || atom.getKind()==kind::SEP_WAND ) ){
       for( unsigned i=0; i<atom.getNumChildren(); i++ ){
         int cardc = 0;
-        TypeNode ctn = getReferenceType( atom, cardc, i );
+        TypeNode ctn = computeReferenceType( atom, cardc, i );
         if( !ctn.isNull() ){
           tn = ctn;
         }
@@ -910,7 +906,7 @@ TypeNode TheorySep::getReferenceType( Node atom, int& card, int index ) {
       Node n = index==-1 ? atom : atom[index];
       //will compute d_references as well
       std::map< Node, int > visited;
-      tn = getReferenceType2( atom, card, index, n, visited );
+      tn = computeReferenceType2( atom, card, index, n, visited );
     }
     if( tn.isNull() && index==-1 ){
       tn = NodeManager::currentNM()->booleanType();
@@ -940,7 +936,7 @@ TypeNode TheorySep::getReferenceType( Node atom, int& card, int index ) {
   }
 }
 
-TypeNode TheorySep::getReferenceType2( Node atom, int& card, int index, Node n, std::map< Node, int >& visited ) {
+TypeNode TheorySep::computeReferenceType2( Node atom, int& card, int index, Node n, std::map< Node, int >& visited ) {
   if( visited.find( n )==visited.end() ){
     Trace("sep-type-debug") << "visit : " << n << " : " << atom << " " << index << std::endl;
     visited[n] = -1;
@@ -957,38 +953,22 @@ TypeNode TheorySep::getReferenceType2( Node atom, int& card, int index, Node n, 
           d_references[atom][index].push_back( n[0] );
         }
       }
-      std::map< TypeNode, TypeNode >::iterator itt = d_loc_to_data_type.find( tn1 );
-      if( itt==d_loc_to_data_type.end() ){
-        if( !d_loc_to_data_type.empty() ){
-          TypeNode te1 = d_loc_to_data_type.begin()->first;
-          std::stringstream ss;
-          ss << "ERROR: specifying heap constraints for two different types : " << tn1 << " -> " << tn2 << " and " << te1 << " -> " << d_loc_to_data_type[te1] << std::endl;
-          throw LogicException(ss.str());
-          Assert( false );
-        }
-        Trace("sep-type") << "Sep: assume location type " << tn1 << " is associated with data type " << tn2 << " (from " << atom << ")" << std::endl;
-        d_loc_to_data_type[tn1] = tn2;
-      }else{
-        if( itt->second!=tn2 ){
-          std::stringstream ss;
-          ss << "ERROR: location type " << tn1 << " is already associated with data type " << itt->second << ", offending atom is " << atom << " with data type " << tn2 << std::endl;
-          throw LogicException(ss.str());
-          Assert( false );
-        }
-      }
+      registerRefDataTypes( tn1, tn2, atom );
       card = 1;
       visited[n] = card;
       return tn1;
-      //return n[1].getType();
     }else if( n.getKind()==kind::SEP_EMP ){
+      TypeNode tn = n[0].getType();
+      TypeNode tnd;
+      registerRefDataTypes( tn, tnd, atom );
       card = 1;
       visited[n] = card;
-      return n[0].getType();
+      return tn;
     }else if( n.getKind()==kind::SEP_STAR || n.getKind()==kind::SEP_WAND ){
       Assert( n!=atom );
       //get the references 
       card = 0;
-      TypeNode tn = getReferenceType( n, card );
+      TypeNode tn = computeReferenceType( n, card );
       for( unsigned j=0; j<d_references[n][-1].size(); j++ ){
         if( std::find( d_references[atom][index].begin(), d_references[atom][index].end(), d_references[n][-1][j] )==d_references[atom][index].end() ){
           d_references[atom][index].push_back( d_references[n][-1][j] );
@@ -1001,7 +981,7 @@ TypeNode TheorySep::getReferenceType2( Node atom, int& card, int index, Node n, 
       TypeNode otn;
       for( unsigned i=0; i<n.getNumChildren(); i++ ){
         int cardc = 0;
-        TypeNode tn = getReferenceType2( atom, cardc, index, n[i], visited );
+        TypeNode tn = computeReferenceType2( atom, cardc, index, n[i], visited );
         if( !tn.isNull() ){
           otn = tn;
         }
@@ -1016,23 +996,44 @@ TypeNode TheorySep::getReferenceType2( Node atom, int& card, int index, Node n, 
     return TypeNode::null();
   }
 }
-/*
 
-int TheorySep::getCardinality( Node n, std::vector< Node >& refs ) {
-  std::map< Node, int > visited;
-  return getCardinality2( n, refs, visited );
-}
-
-int TheorySep::getCardinality2( Node n, std::vector< Node >& refs, std::map< Node, int >& visited ) {
-  std::map< Node, int >::iterator it = visited.find( n );
-  if( it!=visited.end() ){
-    return it->second;
+void TheorySep::registerRefDataTypes( TypeNode tn1, TypeNode tn2, Node atom ){
+  std::map< TypeNode, TypeNode >::iterator itt = d_loc_to_data_type.find( tn1 );
+  if( itt==d_loc_to_data_type.end() ){
+    if( !d_loc_to_data_type.empty() ){
+      TypeNode te1 = d_loc_to_data_type.begin()->first;
+      std::stringstream ss;
+      ss << "ERROR: specifying heap constraints for two different types : " << tn1 << " -> " << tn2 << " and " << te1 << " -> " << d_loc_to_data_type[te1] << std::endl;
+      throw LogicException(ss.str());
+      Assert( false );
+    }
+    if( tn2.isNull() ){
+      Trace("sep-type") << "Sep: assume location type " << tn1 << " (from " << atom << ")" << std::endl;
+    }else{
+      Trace("sep-type") << "Sep: assume location type " << tn1 << " is associated with data type " << tn2 << " (from " << atom << ")" << std::endl;
+    }
+    d_loc_to_data_type[tn1] = tn2;
+    //for now, we only allow heap constraints of one type
+    d_type_ref = tn1;
+    d_type_data = tn2;
   }else{
-    
-    
+    if( !tn2.isNull() ){
+      if( itt->second!=tn2 ){
+        if( itt->second.isNull() ){
+          Trace("sep-type") << "Sep: assume location type " << tn1 << " is associated with data type " << tn2 << " (from " << atom << ")" << std::endl;
+          //now we know data type
+          d_loc_to_data_type[tn1] = tn2;
+          d_type_data = tn2;
+        }else{
+          std::stringstream ss;
+          ss << "ERROR: location type " << tn1 << " is already associated with data type " << itt->second << ", offending atom is " << atom << " with data type " << tn2 << std::endl;
+          throw LogicException(ss.str());
+          Assert( false );
+        }
+      }
+    }
   }
 }
-*/
 
 Node TheorySep::getBaseLabel( TypeNode tn ) {
   std::map< TypeNode, Node >::iterator it = d_base_label.find( tn );
@@ -1132,7 +1133,7 @@ Node TheorySep::getLabel( Node atom, int child, Node lbl ) {
   std::map< int, Node >::iterator it = d_label_map[atom][lbl].find( child );
   if( it==d_label_map[atom][lbl].end() ){
     int card;
-    TypeNode refType = getReferenceType( atom, card );
+    TypeNode refType = computeReferenceType( atom, card );
     std::stringstream ss;
     ss << "__Lc" << child;
     TypeNode ltn = NodeManager::currentNM()->mkSetType(refType);

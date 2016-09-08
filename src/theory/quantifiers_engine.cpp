@@ -1122,8 +1122,8 @@ bool QuantifiersEngine::addInstantiation( Node q, std::vector< Node >& terms, bo
       return false;
     }
     //Node eval = d_term_db->evaluateTerm( q[1], subs, false, true );
-    //Trace("ajr-temp") << "Instantiation evaluates to : " << std::endl;
-    //Trace("ajr-temp") << "   " << eval << std::endl;
+    //Trace("inst-add-debug2") << "Instantiation evaluates to : " << std::endl;
+    //Trace("inst-add-debug2") << "   " << eval << std::endl;
   }
 
   //check for term vector duplication
