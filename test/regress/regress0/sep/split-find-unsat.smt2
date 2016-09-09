@@ -1,6 +1,6 @@
 ; COMMAND-LINE: --no-check-models
 ; EXPECT: unsat
-(set-logic ALL_SUPPORTED)
+(set-logic QF_ALL_SUPPORTED)
 (set-info :status unsat)
 
 (declare-const x Int)

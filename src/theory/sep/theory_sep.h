@@ -51,7 +51,10 @@ class TheorySep : public Theory {
   /** True node for predicates = false */
   Node d_false;
   
-  std::vector< Node > d_pp_nils;
+  //whether bounds have been initialized
+  bool d_bounds_init;
+  
+  std::map< TypeNode, std::vector< Node > > d_pp_nils;
 
   Node mkAnd( std::vector< TNode >& assumptions );
 
@@ -88,10 +91,8 @@ class TheorySep : public Theory {
   /** Explain why this literal is true by adding assumptions */
   void explain(TNode literal, std::vector<TNode>& assumptions);
 
-  void preRegisterTermRec(TNode t, std::map< TNode, bool >& visited );
   public:
 
-  void preRegisterTerm(TNode t);
   void propagate(Effort e);
   Node explain(TNode n);
 
@@ -220,11 +221,11 @@ class TheorySep : public Theory {
   std::map< TypeNode, Node > d_reference_bound;
   std::map< TypeNode, Node > d_reference_bound_max;
   std::map< TypeNode, bool > d_reference_bound_invalid;
+  std::map< TypeNode, bool > d_reference_bound_fv;
   std::map< TypeNode, std::vector< Node > > d_type_references;
+  std::map< TypeNode, std::vector< Node > > d_type_references_card;
   std::map< TypeNode, std::vector< Node > > d_type_references_all;
   std::map< TypeNode, unsigned > d_card_max;
-  //bounds for labels
-  std::map< Node, std::vector< Node > > d_lbl_reference_bound;
   //for empty argument
   std::map< TypeNode, Node > d_emp_arg;
   //map from ( atom, label, child index ) -> label
@@ -299,6 +300,7 @@ public:
     return &d_equalityEngine;
   }
 
+  void initializeBounds();
 };/* class TheorySep */
 
 }/* CVC4::theory::sep namespace */

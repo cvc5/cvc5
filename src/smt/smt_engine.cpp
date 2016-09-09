@@ -1690,6 +1690,7 @@ void SmtEngine::setDefaults() {
     //disable modes not supported by incremental
     options::sortInference.set( false );
     options::ufssFairnessMonotone.set( false );
+    options::quantEpr.set( false );
   }
   if( d_logic.hasCardinalityConstraints() ){
     //must have finite model finding on

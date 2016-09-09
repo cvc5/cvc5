@@ -310,7 +310,7 @@ option cbqiInnermost --cbqi-innermost bool :read-write :default true
 option cbqiNestedQE --cbqi-nested-qe bool :default false
  process nested quantified formulas with quantifier elimination in counterexample-based quantifier instantiation
  
-option quantEpr --quant-epr bool :default false
+option quantEpr --quant-epr bool :default false :read-write
  infer whether in effectively propositional fragment, use for cbqi
  
 ### local theory extensions options 

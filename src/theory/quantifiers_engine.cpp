@@ -19,6 +19,7 @@
 #include "smt/smt_statistics_registry.h"
 #include "theory/arrays/theory_arrays.h"
 #include "theory/datatypes/theory_datatypes.h"
+#include "theory/sep/theory_sep.h"
 #include "theory/quantifiers/alpha_equivalence.h"
 #include "theory/quantifiers/ambqi_builder.h"
 #include "theory/quantifiers/bounded_integers.h"
@@ -113,11 +114,8 @@ QuantifiersEngine::QuantifiersEngine(context::Context* c, context::UserContext* 
   }
 
   if( options::quantEpr() ){
-    if( !options::incrementalSolving() ){
-      d_qepr = new QuantEPR;
-    }else{
-      d_qepr = NULL;
-    }
+    Assert( !options::incrementalSolving() );
+    d_qepr = new QuantEPR;
   }else{
     d_qepr = NULL;
   }
@@ -367,6 +365,9 @@ void QuantifiersEngine::ppNotifyAssertions( std::vector< Node >& assertions ) {
       }
     }
     if( d_qepr!=NULL ){
+      //must handle sources of other new constants e.g. separation logic
+      //FIXME: cleanup
+      ((sep::TheorySep*)getTheoryEngine()->theoryOf( THEORY_SEP ))->initializeBounds();
       d_qepr->finishInit(); 
     }
   }
