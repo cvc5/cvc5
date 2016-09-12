@@ -1732,7 +1732,7 @@ void SmtEngine::setDefaults() {
       options::mbqiMode.set( quantifiers::MBQI_NONE );
     }
     if( ! options::prenexQuant.wasSetByUser() ){
-      options::prenexQuant.set( quantifiers::PRENEX_NONE );
+      options::prenexQuant.set( quantifiers::PRENEX_QUANT_NONE );
     }
   }
   if( options::ufssSymBreak() ){
@@ -1856,8 +1856,14 @@ void SmtEngine::setDefaults() {
     options::quantConflictFind.set( true );
   }
   if( options::cbqiNestedQE() ){
-    options::prenexQuantAgg.set( true );
-    //options::prenexSkolemQuant.set( true );
+    //only sound with prenex = disj_normal or normal
+    if( options::prenexQuant()<=quantifiers::PRENEX_QUANT_DISJ_NORMAL ){
+      options::prenexQuant.set( quantifiers::PRENEX_QUANT_DISJ_NORMAL );
+    }
+    options::prenexQuantUser.set( true );
+    if( !options::preSkolemQuant.wasSetByUser() ){
+      options::preSkolemQuant.set( true );
+    }
   }
   //for induction techniques
   if( options::quantInduction() ){

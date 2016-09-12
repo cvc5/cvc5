@@ -385,14 +385,17 @@ max \n\
 const std::string OptionsHandler::s_prenexQuantModeHelp = "\
 Prenex quantifiers modes currently supported by the --prenex-quant option:\n\
 \n\
-default \n\
-+ Default, prenex all nested quantifiers except those with user patterns.\n\
-\n\
-all \n\
-+ Prenex all nested quantifiers.\n\
-\n\
 none \n\
 + Do no prenex nested quantifiers. \n\
+\n\
+default | simple \n\
++ Default, do simple prenexing of same sign quantifiers.\n\
+\n\
+dnorm \n\
++ Prenex to disjunctive prenex normal form.\n\
+\n\
+norm \n\
++ Prenex to prenex normal form.\n\
 \n\
 ";
 
@@ -679,12 +682,14 @@ theory::quantifiers::TriggerActiveSelMode OptionsHandler::stringToTriggerActiveS
 }
 
 theory::quantifiers::PrenexQuantMode OptionsHandler::stringToPrenexQuantMode(std::string option, std::string optarg) throw(OptionException) {
-  if(optarg ==  "default" ) {
-    return theory::quantifiers::PRENEX_NO_USER_PAT;
-  } else if(optarg == "all") {
-    return theory::quantifiers::PRENEX_ALL;
+  if(optarg== "default" || optarg== "simple" ) {
+    return theory::quantifiers::PRENEX_QUANT_SIMPLE;
   } else if(optarg == "none") {
-    return theory::quantifiers::PRENEX_NONE;
+    return theory::quantifiers::PRENEX_QUANT_NONE;
+  } else if(optarg == "dnorm") {
+    return theory::quantifiers::PRENEX_QUANT_DISJ_NORMAL;
+  } else if(optarg == "norm") {
+    return theory::quantifiers::PRENEX_QUANT_NORMAL;
   } else if(optarg ==  "help") {
     puts(s_prenexQuantModeHelp.c_str());
     exit(1);

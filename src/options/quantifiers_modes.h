@@ -123,12 +123,14 @@ enum TriggerActiveSelMode {
 };
 
 enum CVC4_PUBLIC PrenexQuantMode {
-  /** default : prenex quantifiers without user patterns */
-  PRENEX_NO_USER_PAT,
-  /** prenex all */
-  PRENEX_ALL,
-  /** prenex none */
-  PRENEX_NONE,
+  /** do not prenex */
+  PRENEX_QUANT_NONE,
+  /** prenex same sign quantifiers */
+  PRENEX_QUANT_SIMPLE,
+  /** aggressive prenex, disjunctive prenex normal form */
+  PRENEX_QUANT_DISJ_NORMAL,
+  /** prenex normal form */
+  PRENEX_QUANT_NORMAL,
 };
 
 enum CegqiFairMode {

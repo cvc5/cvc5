@@ -19,10 +19,10 @@ option miniscopeQuantFreeVar --miniscope-quant-fv bool :default true :read-write
  miniscope quantifiers for ground subformulas
 option quantSplit --quant-split bool :default true :read-write
  apply splitting to quantified formulas based on variable disjoint disjuncts
-option prenexQuant --prenex-quant=MODE CVC4::theory::quantifiers::PrenexQuantMode :default CVC4::theory::quantifiers::PRENEX_NO_USER_PAT :include "options/quantifiers_modes.h" :read-write :handler stringToPrenexQuantMode
+option prenexQuant --prenex-quant=MODE CVC4::theory::quantifiers::PrenexQuantMode :default CVC4::theory::quantifiers::PRENEX_QUANT_SIMPLE :include "options/quantifiers_modes.h" :read-write :handler stringToPrenexQuantMode
  prenex mode for quantified formulas
-option prenexQuantAgg --prenex-quant-agg bool :default false :read-write
- aggressive prenexing to ensure prenex normal form
+option prenexQuantUser --prenex-quant-user bool :default false :read-write
+ prenex quantified formulas with user patterns
 # Whether to variable-eliminate quantifiers.
 # For example, forall x y. ( P( x, y ) V x != c ) will be rewritten to
 #   forall y. P( c, y )
