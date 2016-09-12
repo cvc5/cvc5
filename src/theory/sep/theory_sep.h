@@ -222,6 +222,7 @@ class TheorySep : public Theory {
   std::map< TypeNode, bool > d_reference_bound_fv;
   std::map< TypeNode, std::vector< Node > > d_type_references;
   std::map< TypeNode, std::vector< Node > > d_type_references_card;
+  std::map< Node, unsigned > d_type_ref_card_id;
   std::map< TypeNode, std::vector< Node > > d_type_references_all;
   std::map< TypeNode, unsigned > d_card_max;
   //for empty argument

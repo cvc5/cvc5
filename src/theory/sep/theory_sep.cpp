@@ -468,6 +468,7 @@ void TheorySep::check(Effort e) {
     d_tmodel.clear();
     d_pto_model.clear();
     Trace("sep-process") << "---Locations---" << std::endl;
+    std::map< Node, int > min_id;
     for( std::map< TypeNode, std::vector< Node > >::iterator itt = d_type_references_all.begin(); itt != d_type_references_all.end(); ++itt ){
       for( unsigned k=0; k<itt->second.size(); k++ ){
         Node t = itt->second[k];
@@ -475,7 +476,19 @@ void TheorySep::check(Effort e) {
         if( d_valuation.getModel()->hasTerm( t ) ){
           Node v = d_valuation.getModel()->getRepresentative( t );
           Trace("sep-process") << v << std::endl;
-          d_tmodel[v] = t;
+          //take minimal id
+          std::map< Node, unsigned >::iterator itrc = d_type_ref_card_id.find( t );
+          int tid = itrc==d_type_ref_card_id.end() ? -1 : (int)itrc->second;
+          bool set_term_model;
+          if( d_tmodel.find( v )==d_tmodel.end() ){
+            set_term_model = true;
+          }else{
+            set_term_model = min_id[v]>tid;
+          }
+          if( set_term_model ){
+            d_tmodel[v] = t;
+            min_id[v] = tid;
+          }
         }else{
           Trace("sep-process") << "?" << std::endl;
         }
@@ -1009,6 +1022,7 @@ void TheorySep::initializeBounds() {
       for( unsigned r=0; r<n_emp; r++ ){
         Node e = NodeManager::currentNM()->mkSkolem( "e", tn, "cardinality bound element for seplog" );
         d_type_references_card[tn].push_back( e );
+        d_type_ref_card_id[e] = r;
         //must include this constant back into EPR handling
         if( qepr && qepr->isEPR( tn ) ){
           qepr->d_consts[tn].push_back( e );
