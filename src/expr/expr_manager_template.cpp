@@ -943,7 +943,9 @@ Expr ExprManager::mkBoundVar(Type type) {
 
 Expr ExprManager::mkSepNil(Type type) {
   NodeManagerScope nms(d_nodeManager);
-  return Expr(this, d_nodeManager->mkSepNilPtr(*type.d_typeNode));
+  Node n = d_nodeManager->mkSepNil(*type.d_typeNode); 
+  return n.toExpr();
+  //return Expr(this, d_nodeManager->mkSepNilPtr(*type.d_typeNode));
 }
 
 Expr ExprManager::mkAssociative(Kind kind,

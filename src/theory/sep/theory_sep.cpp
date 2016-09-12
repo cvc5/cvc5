@@ -267,20 +267,6 @@ void TheorySep::postProcessModel( TheoryModel* m ){
 void TheorySep::presolve() {
   Trace("sep-pp") << "Presolving" << std::endl;
   //TODO: cleanup if incremental?
-  
-  for( std::map< TypeNode, std::vector< Node > >::iterator it = d_pp_nils.begin(); it != d_pp_nils.end(); ++it ){
-    Trace("sep-pp") << it->second.size() << " nil references of type " << it->first << std::endl;
-    if( !it->second.empty() ){
-      setNilRef( it->first, it->second[0] );
-      //ensure all instances of sep.nil are made equal
-      for( unsigned i=1; i<it->second.size(); i++ ){
-        Node lem = NodeManager::currentNM()->mkNode( it->first.isBoolean() ? kind::IFF : kind::EQUAL, it->second[i], it->second[0] );
-        Trace("sep-lemma") << "Sep::Lemma: nil ref eq : " << lem << std::endl;
-        d_out->lemma( lem );
-      }
-    }
-  }
-  d_pp_nils.clear();
 }
 
 
@@ -784,7 +770,6 @@ TypeNode TheorySep::getDataType( Node n ) {
 
 //must process assertions at preprocess so that quantified assertions are processed properly
 void TheorySep::ppNotifyAssertions( std::vector< Node >& assertions ) {
-  d_pp_nils.clear();
   std::map< Node, bool > visited;
   for( unsigned i=0; i<assertions.size(); i++ ){
     Trace("sep-pp") << "Process assertion : " << assertions[i] << std::endl;
@@ -803,12 +788,8 @@ void TheorySep::ppNotifyAssertions( std::vector< Node >& assertions ) {
 void TheorySep::processAssertion( Node n, std::map< Node, bool >& visited ) {
   if( visited.find( n )==visited.end() ){
     visited[n] = true;
-    if( n.getKind()==kind::SEP_NIL ){
-      TypeNode tn = n.getType();
-      if( std::find( d_pp_nils[tn].begin(), d_pp_nils[tn].end(), n )==d_pp_nils[tn].end() ){
-        d_pp_nils[tn].push_back( n );
-      }
-    }else if( n.getKind()==kind::SEP_PTO || n.getKind()==kind::SEP_STAR || n.getKind()==kind::SEP_WAND || n.getKind()==kind::SEP_EMP ){
+    Trace("sep-pp-debug") << "process assertion : " << n << std::endl;
+    if( n.getKind()==kind::SEP_PTO || n.getKind()==kind::SEP_STAR || n.getKind()==kind::SEP_WAND || n.getKind()==kind::SEP_EMP ){
       //get the reference type (will compute d_type_references)
       int card = 0;
       TypeNode tn = computeReferenceType( n, card );
@@ -822,7 +803,7 @@ void TheorySep::processAssertion( Node n, std::map< Node, bool >& visited ) {
 }
 
 TypeNode TheorySep::computeReferenceType( Node atom, int& card, int index ) {
-  Trace("sep-type") << "getReference type " << atom << " " << index << std::endl;
+  Trace("sep-pp-debug") << "getReference type " << atom << " " << index << std::endl;
   Assert( atom.getKind()==kind::SEP_PTO || atom.getKind()==kind::SEP_STAR || atom.getKind()==kind::SEP_WAND || atom.getKind()==kind::SEP_EMP || index!=-1 );
   std::map< int, TypeNode >::iterator it = d_reference_type[atom].find( index );
   if( it==d_reference_type[atom].end() ){
@@ -878,7 +859,7 @@ TypeNode TheorySep::computeReferenceType( Node atom, int& card, int index ) {
 
 TypeNode TheorySep::computeReferenceType2( Node atom, int& card, int index, Node n, std::map< Node, int >& visited ) {
   if( visited.find( n )==visited.end() ){
-    Trace("sep-type-debug") << "visit : " << n << " : " << atom << " " << index << std::endl;
+    Trace("sep-pp-debug") << "visit : " << n << " : " << atom << " " << index << std::endl;
     visited[n] = -1;
     if( n.getKind()==kind::SEP_PTO ){
       //TODO: when THEORY_SETS supports mixed Int/Real sets
@@ -926,9 +907,6 @@ TypeNode TheorySep::computeReferenceType2( Node atom, int& card, int index, Node
       TypeNode tn = n.getType();
       TypeNode tnd;
       registerRefDataTypes( tn, tnd, n );
-      if( std::find( d_pp_nils[tn].begin(), d_pp_nils[tn].end(), n )==d_pp_nils[tn].end() ){
-        d_pp_nils[tn].push_back( n );
-      }
       return tn;
     }else{
       card = 0;
@@ -1095,6 +1073,23 @@ Node TheorySep::getBaseLabel( TypeNode tn ) {
       //slem = NodeManager::currentNM()->mkNode( kind::SUBSET, d_base_label[tn], d_reference_bound_max[tn] );
       //Trace("sep-lemma") << "Sep::Lemma: base reference bound for " << tn << " : " << slem << std::endl;
       //d_out->lemma( slem );
+      
+      //symmetry breaking
+      std::map< unsigned, Node > lit_mem_map;
+      for( unsigned i=0; i<d_type_references_card[tn].size(); i++ ){
+        lit_mem_map[i] = NodeManager::currentNM()->mkNode( kind::MEMBER, d_type_references_card[tn][i], d_reference_bound[tn]);
+      }
+      for( unsigned i=0; i<(d_type_references_card[tn].size()-1); i++ ){
+        std::vector< Node > children;
+        for( unsigned j=(i+1); j<d_type_references_card[tn].size(); j++ ){
+          children.push_back( lit_mem_map[j].negate() );
+        }
+        Assert( !children.empty() );
+        Node sym_lem = children.size()==1 ? children[0] : NodeManager::currentNM()->mkNode( kind::AND, children );
+        sym_lem = NodeManager::currentNM()->mkNode( kind::IMPLIES, lit_mem_map[i].negate(), sym_lem );
+        Trace("sep-lemma") << "Sep::Lemma: symmetry breaking lemma : " << sym_lem << std::endl;
+        d_out->lemma( sym_lem );
+      }
     }
     
     //assert that nil ref is not in base label

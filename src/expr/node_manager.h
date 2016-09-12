@@ -157,6 +157,9 @@ class NodeManager {
    * plusOperator->getConst<CVC4::Kind>(), you get kind::PLUS back.
    */
   Node d_operators[kind::LAST_KIND];
+ 
+  /** sep nil per type */
+  std::map< TypeNode, Node > d_sep_nils;
 
   /**
    * A list of subscribers for NodeManager events.
@@ -487,9 +490,8 @@ public:
   /** Create a instantiation constant with the given type. */
   Node mkInstConstant(const TypeNode& type);
   
-  /** Create nil reference for separation logic with the given type. */
+  /** Create nil reference for separation logic with the given type (unique per type). */
   Node mkSepNil(const TypeNode& type);
-  Node* mkSepNilPtr(const TypeNode& type);
 
   /** Make a new abstract value with the given type. */
   Node mkAbstractValue(const TypeNode& type);

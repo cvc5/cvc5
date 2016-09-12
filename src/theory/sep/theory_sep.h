@@ -53,8 +53,6 @@ class TheorySep : public Theory {
   
   //whether bounds have been initialized
   bool d_bounds_init;
-  
-  std::map< TypeNode, std::vector< Node > > d_pp_nils;
 
   Node mkAnd( std::vector< TNode >& assumptions );
 

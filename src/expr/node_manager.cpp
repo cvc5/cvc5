@@ -169,6 +169,8 @@ NodeManager::~NodeManager() {
   for(unsigned i = 0; i < unsigned(kind::LAST_KIND); ++i) {
     d_operators[i] = Node::null();
   }
+  
+  d_sep_nils.clear();
 
   //d_tupleAndRecordTypes.clear();
   d_tt_cache.d_children.clear();
@@ -682,17 +684,16 @@ Node NodeManager::mkInstConstant(const TypeNode& type) {
 }
 
 Node NodeManager::mkSepNil(const TypeNode& type) {
-  Node n = NodeBuilder<0>(this, kind::SEP_NIL);
-  n.setAttribute(TypeAttr(), type);
-  n.setAttribute(TypeCheckedAttr(), true);
-  return n;
-}
-
-Node* NodeManager::mkSepNilPtr(const TypeNode& type) {
-  Node* n = NodeBuilder<0>(this, kind::SEP_NIL).constructNodePtr();
-  setAttribute(*n, TypeAttr(), type);
-  setAttribute(*n, TypeCheckedAttr(), true);
-  return n;
+  std::map< TypeNode, Node >::iterator it = d_sep_nils.find( type );
+  if( it==d_sep_nils.end() ){
+    Node n = NodeBuilder<0>(this, kind::SEP_NIL);
+    n.setAttribute(TypeAttr(), type);
+    n.setAttribute(TypeCheckedAttr(), true);
+    d_sep_nils[type] = n;
+    return n;
+  }else{
+    return it->second;
+  }
 }
 
 Node NodeManager::mkAbstractValue(const TypeNode& type) {

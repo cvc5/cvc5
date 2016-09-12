@@ -57,7 +57,8 @@ TESTS =	\
   trees-1.smt2 \
   wand-false.smt2 \
   dup-nemp.smt2 \
-  emp2-quant-unsat.smt2
+  emp2-quant-unsat.smt2 \
+  dispose-1.smt2
 
 
 FAILING_TESTS =
