@@ -70,9 +70,6 @@
 
 namespace CVC4 {
 namespace theory {
-namespace quantifiers {
-  class InstStrategySimplex;
-}
 namespace arith {
 
 class BranchCutInfo;
@@ -93,7 +90,6 @@ class InferBoundsResult;
  */
 class TheoryArithPrivate {
 private:
-  friend class quantifiers::InstStrategySimplex;
 
   static const uint32_t RESET_START = 2;
 

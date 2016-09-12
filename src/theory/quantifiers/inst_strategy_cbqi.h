@@ -109,50 +109,6 @@ public:
   Node getNextDecisionRequest();
 };
 
-
-class InstStrategySimplex : public InstStrategyCbqi {
-protected:
-  /** reference to theory arithmetic */
-  arith::TheoryArith* d_th;
-  /** quantifiers we should process */
-  std::map< Node, bool > d_quantActive;
-  /** delta */
-  std::map< TypeNode, Node > d_deltas;
-  /** for each quantifier, simplex rows */
-  std::map< Node, std::vector< arith::ArithVar > > d_instRows;
-  /** tableaux */
-  std::map< Node, std::map< arith::ArithVar, Node > > d_tableaux_term;
-  std::map< Node, std::map< arith::ArithVar, std::map< Node, Node > > > d_tableaux_ce_term;
-  std::map< Node, std::map< arith::ArithVar, std::map< Node, Node > > > d_tableaux;
-  /** ce tableaux */
-  std::map< Node, std::map< arith::ArithVar, std::map< Node, Node > > > d_ceTableaux;
-  /** get value */
-  //Node getTableauxValue( Node n, bool minus_delta = false );
-  Node getTableauxValue( arith::ArithVar v, bool minus_delta = false );
-  /** do instantiation */
-  bool doInstantiation( Node f, Node ic, Node term, arith::ArithVar x, InstMatch& m, Node var );
-  bool doInstantiation2( Node f, Node ic, Node term, arith::ArithVar x, InstMatch& m, Node var, bool minus_delta = false );
-  /** add term to row */
-  void addTermToRow( Node ic, arith::ArithVar x, Node n, NodeBuilder<>& t );
-  /** print debug */
-  void debugPrint( const char* c );
-private:
-  /** */
-  int d_counter;
-  /** constants */
-  Node d_zero;
-  Node d_negOne;
-  /** process functions */
-  void processResetInstantiationRound( Theory::Effort effort );
-  void process( Node f, Theory::Effort effort, int e );
-public:
-  InstStrategySimplex( arith::TheoryArith* th, QuantifiersEngine* ie );
-  ~InstStrategySimplex() throw() {}
-  /** identify */
-  std::string identify() const { return std::string("Simplex"); }
-};
-
-
 //generalized counterexample guided quantifier instantiation
 
 class InstStrategyCegqi;

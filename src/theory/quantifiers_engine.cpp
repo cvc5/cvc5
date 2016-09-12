@@ -225,15 +225,10 @@ void QuantifiersEngine::finishInit(){
     d_modules.push_back(  d_inst_engine );
   }
   if( options::cbqi() ){
-    if( options::cbqiSplx() ){
-      d_i_cbqi = new quantifiers::InstStrategySimplex( (arith::TheoryArith*)getTheoryEngine()->theoryOf( THEORY_ARITH ), this );
-      d_modules.push_back( d_i_cbqi );
-    }else{
-      d_i_cbqi = new quantifiers::InstStrategyCegqi( this );
-      d_modules.push_back( d_i_cbqi );
-      if( options::cbqiModel() ){
-        needsBuilder = true;
-      }
+    d_i_cbqi = new quantifiers::InstStrategyCegqi( this );
+    d_modules.push_back( d_i_cbqi );
+    if( options::cbqiModel() ){
+      needsBuilder = true;
     }
   }
   if( options::ceGuidedInst() ){

@@ -275,8 +275,6 @@ option sygusDirectEval --sygus-direct-eval bool :default true
   direct unfolding of evaluation functions
   
 # approach applied to general quantified formulas
-option cbqiSplx --cbqi-splx bool :read-write :default false
- turns on old implementation of counterexample-based quantifier instantiation
 option cbqi --cbqi bool :read-write :default false
  turns on counterexample-based quantifier instantiation
 option recurseCbqi --cbqi-recurse bool :default true

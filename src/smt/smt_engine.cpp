@@ -1825,10 +1825,6 @@ void SmtEngine::setDefaults() {
       options::cbqi.set( true );
     }
   }
-  if( options::cbqiSplx() ){
-    //implies more general option
-    options::cbqi.set( true );
-  }
   if( options::cbqi() ){
     //must rewrite divk
     if( !options::rewriteDivk.wasSetByUser()) {
