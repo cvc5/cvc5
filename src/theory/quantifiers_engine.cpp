@@ -349,7 +349,7 @@ void QuantifiersEngine::presolve() {
 }
 
 void QuantifiersEngine::ppNotifyAssertions( std::vector< Node >& assertions ) {
-  Trace("quant-engine-proc") << "ppNotifyAssertions in QE" << std::endl;
+  Trace("quant-engine-proc") << "ppNotifyAssertions in QE, #assertions = " << assertions.size() << " check epr = " << (d_qepr!=NULL) << std::endl;
   if( ( options::instLevelInputOnly() && options::instMaxLevel()!=-1 ) || d_qepr!=NULL ){
     for( unsigned i=0; i<assertions.size(); i++ ) {
       if( options::instLevelInputOnly() && options::instMaxLevel()!=-1 ){

@@ -423,10 +423,15 @@ void QuantEPR::registerNode( Node n, std::map< int, std::map< Node, bool > >& vi
   int vindex = hasPol ? ( pol ? 1 : -1 ) : 0;
   if( visited[vindex].find( n )==visited[vindex].end() ){
     visited[vindex][n] = true;
+    Trace("quant-epr-debug") << "QuantEPR::registerNode " << n << std::endl;
     if( n.getKind()==FORALL ){
       if( beneathQuant || !hasPol || !pol ){
         for( unsigned i=0; i<n[0].getNumChildren(); i++ ){
-          d_non_epr[n[0][i].getType()] = true;
+          TypeNode tn = n[0][i].getType();
+          if( d_non_epr.find( tn )==d_non_epr.end() ){
+            Trace("quant-epr") << "Sort " << tn << " is non-EPR because of nested quantification." << std::endl;
+            d_non_epr[tn] = true;
+          }
         }
       }else{
         beneathQuant = true;
@@ -455,6 +460,7 @@ void QuantEPR::registerNode( Node n, std::map< int, std::map< Node, bool > >& vi
         }
       }else if( std::find( d_consts[tn].begin(), d_consts[tn].end(), n )==d_consts[tn].end() ){
         d_consts[tn].push_back( n );
+        Trace("quant-epr") << "...constant of type " << tn << " : " << n << std::endl;
       }
     }
   }
@@ -466,10 +472,14 @@ void QuantEPR::registerAssertion( Node assertion ) {
 }
 
 void QuantEPR::finishInit() {
+  Trace("quant-epr-debug") << "QuantEPR::finishInit" << std::endl;
   for( std::map< TypeNode, std::vector< Node > >::iterator it = d_consts.begin(); it != d_consts.end(); ++it ){
+    Trace("quant-epr-debug") << "process " << it->first << std::endl;
     if( d_non_epr.find( it->first )!=d_non_epr.end() ){
+      Trace("quant-epr-debug") << "...non-epr" << std::endl;
       it->second.clear();
     }else{
+      Trace("quant-epr-debug") << "...epr, #consts = " << it->second.size() << std::endl;
       if( it->second.empty() ){
         it->second.push_back( NodeManager::currentNM()->mkSkolem( "e", it->first, "EPR base constant" ) );
       }

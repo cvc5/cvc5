@@ -1028,6 +1028,13 @@ void TheorySep::initializeBounds() {
           qepr->d_consts[tn].push_back( e );
         }
       }
+      //EPR must include nil ref    
+      if( qepr && qepr->isEPR( tn ) ){
+        Node nr = getNilRef( tn );
+        if( !qepr->isEPRConstant( tn, nr ) ){
+          qepr->d_consts[tn].push_back( nr );
+        }
+      }      
     }
   }
 }
