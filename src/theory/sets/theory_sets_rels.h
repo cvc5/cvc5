@@ -158,6 +158,7 @@ private:
 
   /** Mapping between transitive closure TC(r)'s representative and TC(r) */
   std::map< Node, Node > d_tc_rep_term;
+  std::map< Node, EqcInfo* > d_eqc_info;
 
 public:
   void eqNotifyNewClass(Node t);
@@ -166,33 +167,36 @@ public:
 private:
 
   void doPendingMerge();
-  std::map< Node, EqcInfo* > d_eqc_info;
-  EqcInfo* getOrMakeEqcInfo( Node n, bool doMake = false );
-  void mergeTransposeEqcs(Node t1, Node t2);
-  void mergeProductEqcs(Node t1, Node t2);
-  void mergeTCEqcs(Node t1, Node t2);
-  void sendInferTranspose(bool, Node, Node, Node, bool reverseOnly = false);
-  void sendInferProduct(bool, Node, Node, Node);
-  void sendTCInference(EqcInfo* tc_ei, std::hash_set<int> in_reachable, std::hash_set<int> out_reachable, Node mem_rep, Node fst_rep, Node snd_rep, int id1, int id2);
-  void addTCMemAndSendInfer(EqcInfo* tc_ei, Node mem, Node exp, bool fromRel = false);
   Node findTCMemExp(EqcInfo*, Node);
-  void mergeTCEqcExp(EqcInfo*, EqcInfo*);
   void buildTCAndExp(Node, EqcInfo*);
+  void mergeTCEqcs(Node t1, Node t2);
+  void mergeTCEqcExp(EqcInfo*, EqcInfo*);
+  void mergeProductEqcs(Node t1, Node t2);
   int getOrMakeElementRepId(EqcInfo*, Node);
+  void mergeTransposeEqcs(Node t1, Node t2);
+  Node explainTCMem(EqcInfo*, Node, Node, Node);
+  void sendInferProduct(bool, Node, Node, Node);
+  EqcInfo* getOrMakeEqcInfo( Node n, bool doMake = false );
+  void sendInferTranspose(bool, Node, Node, Node, bool reverseOnly = false);
+  void addTCMemAndSendInfer(EqcInfo* tc_ei, Node mem, Node exp, bool fromRel = false);
   void collectInReachableNodes(EqcInfo* tc_ei, int start_id, std::hash_set<int>& in_reachable, bool firstRound  = true);
   void collectOutReachableNodes(EqcInfo* tc_ei, int start_id, std::hash_set<int>& out_reachable, bool firstRound  = true);
-  Node explainTCMem(EqcInfo*, Node, Node, Node);
+  void sendTCInference(EqcInfo* tc_ei, std::hash_set<int> in_reachable, std::hash_set<int> out_reachable, Node mem_rep, Node fst_rep, Node snd_rep, int id1, int id2);
+
 
 
   void check();
+  Node explain(Node);
   void collectRelsInfo();
-  void assertMembership( Node fact, Node reason, bool polarity );
-  void composeTupleMemForRel( Node );
-  void applyTransposeRule( Node, Node, bool tp_occur_rule = false );
+  void applyTCRule( Node, Node );
   void applyJoinRule( Node, Node );
   void applyProductRule( Node, Node );
-  void applyTCRule( Node, Node );
-  std::map< Node, std::hash_set< Node, NodeHashFunction > > constructTCGraph( Node, Node, Node );
+  void composeTupleMemForRel( Node );
+  void assertMembership( Node fact, Node reason, bool polarity );
+  void applyTransposeRule( Node, Node, bool tp_occur_rule = false );
+
+
+
   void computeMembersForRel( Node );
   void computeMembersForTpRel( Node );
   void finalizeTCInference();
@@ -201,35 +205,36 @@ private:
                 Node, Node, std::hash_set< Node, NodeHashFunction >&);
   void isTCReachable(Node fst, Node snd, std::hash_set<Node, NodeHashFunction>& hasSeen,
                       std::map< Node, std::hash_set< Node, NodeHashFunction > >& tc_graph, bool&);
+  std::map< Node, std::hash_set< Node, NodeHashFunction > > constructTCGraph( Node, Node, Node );
 
-  Node explain(Node);
 
   void doTCLemmas();
+  void addSharedTerm( TNode n );
   void sendInfer( Node fact, Node exp, const char * c );
   void sendLemma( Node fact, Node reason, const char * c );
-  void addSharedTerm( TNode n );
   void checkTCGraphForConflict( Node, Node, Node, Node, Node, std::map< Node, std::hash_set< Node, NodeHashFunction > >& );
 
   // Helper functions
-  bool insertIntoIdList(IdList&, int);
-  inline Node getReason(Node tc_rep, Node tc_term, Node tc_r_rep, Node tc_r);
-  inline Node constructPair(Node tc_rep, Node a, Node b);
-  Node findMemExp(Node r, Node pair);
-  bool safelyAddToMap( std::map< Node, std::vector<Node> >&, Node, Node );
-  void addToMap( std::map< Node, std::vector<Node> >&, Node, Node );
-  bool hasMember( Node, Node );
-  Node getRepresentative( Node t );
-  bool hasTerm( Node a );
-  bool areEqual( Node a, Node b );
-  bool exists( std::vector<Node>&, Node );
   bool holds( Node );
-  void computeTupleReps( Node );
+  bool hasTerm( Node a );
   void makeSharedTerm( Node );
   void reduceTupleVar( Node );
-  inline void addToMembershipDB( Node, Node, Node  );
-  bool isRel( Node n ) {return n.getType().isSet() && n.getType().getSetElementType().isTuple();}
+  bool hasMember( Node, Node );
+  void computeTupleReps( Node );
+  bool areEqual( Node a, Node b );
+  Node getRepresentative( Node t );
+  Node findMemExp(Node r, Node pair);
+  bool insertIntoIdList(IdList&, int);
+  bool exists( std::vector<Node>&, Node );
   Node mkAnd( std::vector< TNode >& assumptions );
+  inline void addToMembershipDB( Node, Node, Node  );
   void printNodeMap(char* fst, char* snd, NodeMap map);
+  inline Node constructPair(Node tc_rep, Node a, Node b);
+  void addToMap( std::map< Node, std::vector<Node> >&, Node, Node );
+  bool safelyAddToMap( std::map< Node, std::vector<Node> >&, Node, Node );
+  inline Node getReason(Node tc_rep, Node tc_term, Node tc_r_rep, Node tc_r);
+  bool isRel( Node n ) {return n.getType().isSet() && n.getType().getSetElementType().isTuple();}
+
 
 };
 

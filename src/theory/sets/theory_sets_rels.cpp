@@ -85,7 +85,8 @@ int TheorySetsRels::EqcInfo::counter        = 0;
           if(kind_terms.find(kind::JOIN) != kind_terms.end()) {
             std::vector<Node> join_terms = kind_terms[kind::JOIN];
             // exp is a membership term and join_terms contains all
-            // terms involving "join" operator that are in the same equivalence class with the right hand side of exp
+            // terms involving "join" operator that are in the same
+            // equivalence class with the right hand side of exp
             for(unsigned int j = 0; j < join_terms.size(); j++) {
               applyJoinRule(exp, join_terms[j]);
             }
@@ -258,7 +259,7 @@ int TheorySetsRels::EqcInfo::counter        = 0;
     TC_PAIR_IT tc_mem_it = d_tc_membership_db.find(tc_term);
 
     if( tc_mem_it != d_tc_membership_db.end() ) {
-      for(std::hash_set<Node>::iterator pair_it = tc_mem_it->second.begin();
+      for(std::hash_set<Node, NodeHashFunction>::iterator pair_it = tc_mem_it->second.begin();
           pair_it != tc_mem_it->second.end(); pair_it++) {
         Node            fst_rep         = getRepresentative(RelsUtils::nthElementOfTuple(*pair_it, 0));
         Node            snd_rep         = getRepresentative(RelsUtils::nthElementOfTuple(*pair_it, 1));

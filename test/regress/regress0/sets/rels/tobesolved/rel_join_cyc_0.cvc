@@ -1,0 +1,35 @@
+% EXPECT: sat
+OPTION "logic" "ALL_SUPPORTED";
+IntPair: TYPE = [INT, INT];
+IntTup: TYPE = [INT];
+w : SET OF IntPair;
+x : SET OF IntPair;
+y : SET OF IntPair;
+z : SET OF IntPair;
+
+r : SET OF IntPair;
+r2 : SET OF IntPair;
+
+d : IntPair;
+ASSERT d = (3,1);
+ASSERT (1,3) IS_IN y;
+ASSERT d IS_IN y;
+
+ASSERT (3,1) IS_IN y;
+ASSERT (4,1) IS_IN y;
+ASSERT (1,3) IS_IN z;
+
+a : IntPair;
+ASSERT a IS_IN x;
+
+e : IntPair;
+ASSERT e = (4,3);
+ASSERT e IS_IN x;
+
+ASSERT r = (x JOIN y);
+ASSERT r2 = (y JOIN z);
+ASSERT (1,3) IS_IN r;
+ASSERT r = r2;
+ASSERT NOT (e IS_IN r);
+
+CHECKSAT;
