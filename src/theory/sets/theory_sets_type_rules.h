@@ -189,38 +189,38 @@ struct RelBinaryOperatorTypeRule {
     Assert(n.getKind() == kind::PRODUCT ||
            n.getKind() == kind::JOIN);
 
+
+
     TypeNode firstRelType = n[0].getType(check);
     TypeNode secondRelType = n[1].getType(check);
     TypeNode resultType = firstRelType;
 
-    if(check) {
-
-      if(!firstRelType.isSet() || !secondRelType.isSet()) {
-        throw TypeCheckingExceptionPrivate(n, " set operator operates on non-sets");
-      }
-      if(!firstRelType[0].isTuple() || !secondRelType[0].isTuple()) {
-        throw TypeCheckingExceptionPrivate(n, " set operator operates on non-relations (sets of tuples)");
-      }
-
-      std::vector<TypeNode> newTupleTypes;
-      std::vector<TypeNode> firstTupleTypes = firstRelType[0].getTupleTypes();
-      std::vector<TypeNode> secondTupleTypes = secondRelType[0].getTupleTypes();
-
-      // JOIN is not allowed to apply on two unary sets
-      if( n.getKind() == kind::JOIN ) {
-        if((firstTupleTypes.size() == 1) && (secondTupleTypes.size() == 1)) {
-          throw TypeCheckingExceptionPrivate(n, " Join operates on two unary relations");
-        } else if(firstTupleTypes.back() != secondTupleTypes.front()) {
-          throw TypeCheckingExceptionPrivate(n, " Join operates on two non-joinable relations");
-        }
-        newTupleTypes.insert(newTupleTypes.end(), firstTupleTypes.begin(), firstTupleTypes.end()-1);
-        newTupleTypes.insert(newTupleTypes.end(), secondTupleTypes.begin()+1, secondTupleTypes.end());
-      }else if( n.getKind() == kind::PRODUCT ) {
-        newTupleTypes.insert(newTupleTypes.end(), firstTupleTypes.begin(), firstTupleTypes.end());
-        newTupleTypes.insert(newTupleTypes.end(), secondTupleTypes.begin(), secondTupleTypes.end());
-      }
-      resultType = nodeManager->mkSetType(nodeManager->mkTupleType(newTupleTypes));
+    if(!firstRelType.isSet() || !secondRelType.isSet()) {
+      throw TypeCheckingExceptionPrivate(n, " set operator operates on non-sets");
     }
+    if(!firstRelType[0].isTuple() || !secondRelType[0].isTuple()) {
+      throw TypeCheckingExceptionPrivate(n, " set operator operates on non-relations (sets of tuples)");
+    }
+
+    std::vector<TypeNode> newTupleTypes;
+    std::vector<TypeNode> firstTupleTypes = firstRelType[0].getTupleTypes();
+    std::vector<TypeNode> secondTupleTypes = secondRelType[0].getTupleTypes();
+
+    // JOIN is not allowed to apply on two unary sets
+    if( n.getKind() == kind::JOIN ) {
+      if((firstTupleTypes.size() == 1) && (secondTupleTypes.size() == 1)) {
+        throw TypeCheckingExceptionPrivate(n, " Join operates on two unary relations");
+      } else if(firstTupleTypes.back() != secondTupleTypes.front()) {
+        throw TypeCheckingExceptionPrivate(n, " Join operates on two non-joinable relations");
+      }
+      newTupleTypes.insert(newTupleTypes.end(), firstTupleTypes.begin(), firstTupleTypes.end()-1);
+      newTupleTypes.insert(newTupleTypes.end(), secondTupleTypes.begin()+1, secondTupleTypes.end());
+    }else if( n.getKind() == kind::PRODUCT ) {
+      newTupleTypes.insert(newTupleTypes.end(), firstTupleTypes.begin(), firstTupleTypes.end());
+      newTupleTypes.insert(newTupleTypes.end(), secondTupleTypes.begin(), secondTupleTypes.end());
+    }
+    resultType = nodeManager->mkSetType(nodeManager->mkTupleType(newTupleTypes));
+
     return resultType;
   }
 
