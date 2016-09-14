@@ -333,6 +333,8 @@ public:
   bool addSplit( Node n, bool reqPhase = false, bool reqPhasePol = true );
   /** add split equality */
   bool addSplitEquality( Node n1, Node n2, bool reqPhase = false, bool reqPhasePol = true );
+  /** add EPR axiom */
+  bool addEPRAxiom( TypeNode tn );
   /** mark relevant quantified formula, this will indicate it should be checked before the others */
   void markRelevant( Node q );
   /** has added lemma */

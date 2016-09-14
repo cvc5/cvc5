@@ -177,6 +177,8 @@ private:
   void registerNode( Node n, std::map< int, std::map< Node, bool > >& visited, bool beneathQuant, bool hasPol, bool pol );
   /** non-epr */
   std::map< TypeNode, bool > d_non_epr;
+  /** axioms for epr */
+  std::map< TypeNode, Node > d_epr_axiom;
 public:
   QuantEPR(){}
   virtual ~QuantEPR(){}
@@ -191,9 +193,15 @@ public:
   /** finish init */
   void finishInit();
   /** is EPR */
-  bool isEPR( TypeNode tn ) { return d_non_epr.find( tn )!=d_non_epr.end() ? false : true; }
+  bool isEPR( TypeNode tn ) const { return d_non_epr.find( tn )==d_non_epr.end(); }
   /** is EPR constant */
   bool isEPRConstant( TypeNode tn, Node k ); 
+  /** add EPR constant */
+  void addEPRConstant( TypeNode tn, Node k ); 
+  /** get EPR axiom */
+  Node mkEPRAxiom( TypeNode tn );
+  /** has EPR axiom */
+  bool hasEPRAxiom( TypeNode tn ) const { return d_epr_axiom.find( tn )!=d_epr_axiom.end(); }
 };
 
 }

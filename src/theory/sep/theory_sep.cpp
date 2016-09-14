@@ -36,6 +36,7 @@ namespace sep {
 
 TheorySep::TheorySep(context::Context* c, context::UserContext* u, OutputChannel& out, Valuation valuation, const LogicInfo& logicInfo) :
   Theory(THEORY_SEP, c, u, out, valuation, logicInfo),
+  d_lemmas_produced_c(u),
   d_notify(*this),
   d_equalityEngine(d_notify, c, "theory::sep::TheorySep", true),
   d_conflict(c, false),
@@ -1025,14 +1026,14 @@ void TheorySep::initializeBounds() {
         d_type_ref_card_id[e] = r;
         //must include this constant back into EPR handling
         if( qepr && qepr->isEPR( tn ) ){
-          qepr->d_consts[tn].push_back( e );
+          qepr->addEPRConstant( tn, e );
         }
       }
       //EPR must include nil ref    
       if( qepr && qepr->isEPR( tn ) ){
         Node nr = getNilRef( tn );
         if( !qepr->isEPRConstant( tn, nr ) ){
-          qepr->d_consts[tn].push_back( nr );
+          qepr->addEPRConstant( tn, nr );
         }
       }      
     }
@@ -1530,9 +1531,9 @@ void TheorySep::addPto( HeapAssertInfo * ei, Node ei_n, Node p, bool polarity ) 
       if( pb[0][1]!=p[0][1] ){
         conc.push_back( pb[0][1].eqNode( p[0][1] ).negate() );
       }
-      if( pb[1]!=p[1] ){
-        conc.push_back( pb[1].eqNode( p[1] ).negate() );
-      }
+      //if( pb[1]!=p[1] ){
+      //  conc.push_back( pb[1].eqNode( p[1] ).negate() );
+      //}
       Node n_conc = conc.empty() ? d_false : ( conc.size()==1 ? conc[0] : NodeManager::currentNM()->mkNode( kind::OR, conc ) );
       sendLemma( exp, n_conc, "PTO_NEG_PROP" );
     }
@@ -1631,8 +1632,11 @@ void TheorySep::doPendingFacts() {
       }
       int index = d_pending_lem[i];
       Node lem = NodeManager::currentNM()->mkNode( kind::IMPLIES, d_pending_exp[index], d_pending[index] );
-      d_out->lemma( lem );
-      Trace("sep-pending") << "Sep : Lemma : " << lem << std::endl;
+      if( d_lemmas_produced_c.find( lem )==d_lemmas_produced_c.end() ){
+        d_lemmas_produced_c.insert( lem );
+        d_out->lemma( lem );
+        Trace("sep-pending") << "Sep : Lemma : " << lem << std::endl;
+      }
     }
   }
   d_pending_exp.clear();

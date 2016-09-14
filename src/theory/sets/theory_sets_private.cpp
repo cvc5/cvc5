@@ -1249,15 +1249,20 @@ Node TheorySetsPrivate::getLemma() {
 
     Assert(n.getKind() == kind::EQUAL && n[0].getType().isSet());
     TypeNode elementType = n[0].getType().getSetElementType();
-    Node x = NodeManager::currentNM()->mkSkolem("sde_",  elementType);
-    Node l1 = MEMBER(x, n[0]), l2 = MEMBER(x, n[1]);
+    // { x } != { y } => x != y
+    if( n[0].getKind()==kind::SINGLETON && n[1].getKind()==kind::SINGLETON ){
+      lemma = OR(n, NodeManager::currentNM()->mkNode( elementType.isBoolean() ? kind::IFF : kind::EQUAL, n[0][0], n[1][0] ).negate() );
+    }else{
+      Node x = NodeManager::currentNM()->mkSkolem("sde_",  elementType);
+      Node l1 = MEMBER(x, n[0]), l2 = MEMBER(x, n[1]);
 
-    if(n[0].getKind() == kind::EMPTYSET) {
-      lemma = OR(n, l2);
-    } else if(n[1].getKind() == kind::EMPTYSET) {
-      lemma = OR(n, l1);
-    } else {
-      lemma = OR(n, AND(l1, NOT(l2)), AND(NOT(l1), l2));
+      if(n[0].getKind() == kind::EMPTYSET) {
+        lemma = OR(n, l2);
+      } else if(n[1].getKind() == kind::EMPTYSET) {
+        lemma = OR(n, l1);
+      } else {
+        lemma = OR(n, AND(l1, NOT(l2)), AND(NOT(l1), l2));
+      }
     }
   }
 

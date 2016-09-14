@@ -44,6 +44,8 @@ class TheorySep : public Theory {
   /////////////////////////////////////////////////////////////////////////////
 
   private:
+  /** all lemmas sent */
+  NodeSet d_lemmas_produced_c;
 
   /** True node for predicates = true */
   Node d_true;

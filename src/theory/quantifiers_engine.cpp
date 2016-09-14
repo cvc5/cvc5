@@ -1246,6 +1246,18 @@ bool QuantifiersEngine::addSplitEquality( Node n1, Node n2, bool reqPhase, bool 
   return addSplit( fm );
 }
 
+bool QuantifiersEngine::addEPRAxiom( TypeNode tn ) {
+  if( d_qepr ){
+    Assert( !options::incrementalSolving() );
+    if( d_qepr->isEPR( tn ) && !d_qepr->hasEPRAxiom( tn ) ){
+      Node lem = d_qepr->mkEPRAxiom( tn );
+      Trace("quant-epr") << "EPR lemma for " << tn << " : " << lem << std::endl;
+      getOutputChannel().lemma( lem );
+    }
+  }
+  return false;
+}
+  
 void QuantifiersEngine::markRelevant( Node q ) {
   d_model->markRelevant( q );
 }
