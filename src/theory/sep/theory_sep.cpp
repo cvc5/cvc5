@@ -1129,7 +1129,7 @@ Node TheorySep::getBaseLabel( TypeNode tn ) {
 Node TheorySep::getNilRef( TypeNode tn ) {
   std::map< TypeNode, Node >::iterator it = d_nil_ref.find( tn );
   if( it==d_nil_ref.end() ){
-    Node nil = NodeManager::currentNM()->mkSepNil( tn );
+    Node nil = NodeManager::currentNM()->mkUniqueVar( tn, kind::SEP_NIL );
     setNilRef( tn, nil );
     return nil;
   }else{

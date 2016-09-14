@@ -1610,7 +1610,7 @@ term[CVC4::Expr& expr, CVC4::Expr& expr2]
       } else if(f.getKind() == CVC4::kind::SEP_NIL_REF) {
         //We don't want the nil reference to be a constant: for instance, it could be of type Int but is not a const rational.
         //However, the expression has 0 children. So we convert to a SEP_NIL variable.
-        expr = EXPR_MANAGER->mkSepNil(type);
+        expr = EXPR_MANAGER->mkUniqueVar(type, kind::SEP_NIL);
       } else {
         if(f.getType() != type) {
           PARSER_STATE->parseError("Type ascription not satisfied.");

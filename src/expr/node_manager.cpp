@@ -170,7 +170,7 @@ NodeManager::~NodeManager() {
     d_operators[i] = Node::null();
   }
   
-  d_sep_nils.clear();
+  d_unique_vars.clear();
 
   //d_tupleAndRecordTypes.clear();
   d_tt_cache.d_children.clear();
@@ -683,13 +683,14 @@ Node NodeManager::mkInstConstant(const TypeNode& type) {
   return n;
 }
 
-Node NodeManager::mkSepNil(const TypeNode& type) {
-  std::map< TypeNode, Node >::iterator it = d_sep_nils.find( type );
-  if( it==d_sep_nils.end() ){
-    Node n = NodeBuilder<0>(this, kind::SEP_NIL);
+Node NodeManager::mkUniqueVar(const TypeNode& type, Kind k) {
+  std::map< TypeNode, Node >::iterator it = d_unique_vars[k].find( type );
+  if( it==d_unique_vars[k].end() ){
+    Node n = NodeBuilder<0>(this, k);
     n.setAttribute(TypeAttr(), type);
     n.setAttribute(TypeCheckedAttr(), true);
-    d_sep_nils[type] = n;
+    d_unique_vars[k][type] = n;
+    Assert( n.getMetaKind() == kind::metakind::VARIABLE );
     return n;
   }else{
     return it->second;

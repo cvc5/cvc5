@@ -941,11 +941,10 @@ Expr ExprManager::mkBoundVar(Type type) {
   return Expr(this, d_nodeManager->mkBoundVarPtr(*type.d_typeNode));
 }
 
-Expr ExprManager::mkSepNil(Type type) {
+Expr ExprManager::mkUniqueVar(Type type, Kind k){
   NodeManagerScope nms(d_nodeManager);
-  Node n = d_nodeManager->mkSepNil(*type.d_typeNode); 
+  Node n = d_nodeManager->mkUniqueVar(*type.d_typeNode, k); 
   return n.toExpr();
-  //return Expr(this, d_nodeManager->mkSepNilPtr(*type.d_typeNode));
 }
 
 Expr ExprManager::mkAssociative(Kind kind,
