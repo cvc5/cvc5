@@ -47,7 +47,7 @@ option iteDtTesterSplitQuant --ite-dtt-split-quant bool :read-write :default fal
 option preSkolemQuant --pre-skolem-quant bool :read-write :default false
  apply skolemization eagerly to bodies of quantified formulas
 option preSkolemQuantNested --pre-skolem-quant-nested bool :read-write :default true
- apply skolemization to nested quantified formulass
+ apply skolemization to nested quantified formulas
 option preSkolemQuantAgg --pre-skolem-quant-agg bool :read-write :default true
  apply skolemization to quantified formulas aggressively
 option aggressiveMiniscopeQuant --ag-miniscope-quant bool :default false
@@ -117,10 +117,6 @@ option quantRepMode --quant-rep-mode=MODE  CVC4::theory::quantifiers::QuantRepMo
  selection mode for representatives in quantifiers engine
 option instRelevantCond --inst-rlv-cond bool :default false
  add relevancy conditions for instantiations
-
- 
-option eagerInstQuant --eager-inst-quant bool :default false
- apply quantifier instantiation eagerly
 
 option fullSaturateQuant --full-saturate-quant bool :default false :read-write
  when all other quantifier instantiation strategies fail, instantiate with ground terms from relevant domain, then arbitrary ground terms before answering unknown
@@ -293,8 +289,6 @@ option cbqiPreRegInst --cbqi-prereg-inst bool :read-write :default false
   preregister ground instantiations in counterexample-based quantifier instantiation
 option cbqiMinBounds --cbqi-min-bounds bool :default false
   use minimally constrained lower/upper bound for counterexample-based quantifier instantiation
-option cbqiSymLia --cbqi-sym-lia bool :default false
-  use symbolic integer division in substitutions for counterexample-based quantifier instantiation
 option cbqiRoundUpLowerLia --cbqi-round-up-lia bool :default false
   round up integer lower bounds in substitutions for counterexample-based quantifier instantiation
 option cbqiMidpoint --cbqi-midpoint bool :default false

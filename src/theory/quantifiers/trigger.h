@@ -72,8 +72,6 @@ class Trigger {
       Currently the trigger should not be a multi-trigger.
   */
   bool getMatch( Node f, Node t, InstMatch& m);
-  /** add ground term t, called when t is added to the TermDb */
-  int addTerm( Node t );
   /** return whether this is a multi-trigger */
   bool isMultiTrigger() { return d_nodes.size()>1; }
   /** get inst pattern list */

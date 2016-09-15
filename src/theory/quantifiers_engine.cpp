@@ -794,10 +794,7 @@ void QuantifiersEngine::addTermToDatabase( Node n, bool withinQuant, bool within
   if( !d_presolve || !options::incrementalSolving() ){
     std::set< Node > added;
     getTermDatabase()->addTerm( n, added, withinQuant, withinInstClosure );
-    //maybe have triggered instantiations if we are doing eager instantiation
-    if( options::eagerInstQuant() ){
-      flushLemmas();
-    }
+    
     //added contains also the Node that just have been asserted in this branch
     if( d_quant_rel ){
       for( std::set< Node >::iterator i=added.begin(), end=added.end(); i!=end; i++ ){

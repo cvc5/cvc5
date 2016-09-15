@@ -38,6 +38,8 @@ public:
   virtual bool addLemma( Node lem ) = 0;
 };
 
+class Instantiator;
+
 class CegInstantiator {
 private:
   QuantifiersEngine * d_qe;
@@ -72,55 +74,53 @@ private:
   void collectCeAtoms( Node n, std::map< Node, bool >& visited );
   //for adding instantiations during check
   void computeProgVars( Node n );
+  // is eligible 
+  bool isEligible( Node n );
   //solved form, involves substitution with coefficients
   class SolvedForm {
   public:
+    std::vector< Node > d_vars;
     std::vector< Node > d_subs;
     std::vector< Node > d_coeff;
+    std::vector< int > d_btyp;
     std::vector< Node > d_has_coeff;
     void copy( SolvedForm& sf ){
       d_subs.insert( d_subs.end(), sf.d_subs.begin(), sf.d_subs.end() );
       d_coeff.insert( d_coeff.end(), sf.d_coeff.begin(), sf.d_coeff.end() );
       d_has_coeff.insert( d_has_coeff.end(), sf.d_has_coeff.begin(), sf.d_has_coeff.end() );
     }
-    void push_back( Node pv, Node n, Node pv_coeff ){
+    void push_back( Node pv, Node n, Node pv_coeff, int bt ){
+      d_vars.push_back( pv );
       d_subs.push_back( n );
       d_coeff.push_back( pv_coeff );
+      d_btyp.push_back( bt );
       if( !pv_coeff.isNull() ){
         d_has_coeff.push_back( pv );
       }
     }
-    void pop_back( Node pv, Node n, Node pv_coeff ){
+    void pop_back( Node pv, Node n, Node pv_coeff, int bt ){
+      d_vars.pop_back();
       d_subs.pop_back();
       d_coeff.pop_back();
+      d_btyp.pop_back();
       if( !pv_coeff.isNull() ){
         d_has_coeff.pop_back();
       }
     }
   };
-  /*
-  class MbpBound {
-  public:
-    Node d_bound;
-    Node d_coeff;
-    Node d_vts_coeff[2];
-    Node d_lit;
-  };
-  */
   // effort=0 : do not use model value, 1: use model value, 2: one must use model value
-  bool doAddInstantiation( SolvedForm& sf, SolvedForm& ssf, std::vector< Node >& vars,
-                         std::vector< int >& btyp, Node theta, unsigned i, unsigned effort,
-                         std::map< Node, Node >& cons, std::vector< Node >& curr_var );
-  bool doAddInstantiationInc( Node n, Node pv, Node pv_coeff, int bt, SolvedForm& sf, SolvedForm& ssf, std::vector< Node >& vars,
-                            std::vector< int >& btyp, Node theta, unsigned i, unsigned effort,
-                            std::map< Node, Node >& cons, std::vector< Node >& curr_var );
-  bool doAddInstantiationCoeff( SolvedForm& sf,
-                              std::vector< Node >& vars, std::vector< int >& btyp,
-                              unsigned j, std::map< Node, Node >& cons );
+  bool doAddInstantiation( SolvedForm& sf, Node theta, unsigned i, unsigned effort,
+                           std::map< Node, Node >& cons, std::vector< Node >& curr_var );
+  bool tryDoAddInstantiationInc( Node n, Node pv, Node pv_coeff, int bt, SolvedForm& sf, Node theta, unsigned i, unsigned effort,
+                                 std::map< Node, Node >& cons, std::vector< Node >& curr_var,
+                                 std::map< Node, std::map< Node, bool > >& subs_proc );
+  bool doAddInstantiationInc( Node n, Node pv, Node pv_coeff, int bt, SolvedForm& sf, Node theta, unsigned i, unsigned effort,
+                              std::map< Node, Node >& cons, std::vector< Node >& curr_var );
+  bool doAddInstantiationCoeff( SolvedForm& sf, unsigned j, std::map< Node, Node >& cons );
   bool doAddInstantiation( std::vector< Node >& subs, std::vector< Node >& vars, std::map< Node, Node >& cons );
   Node constructInstantiation( Node n, std::map< Node, Node >& subs_map, std::map< Node, Node >& cons );
-  Node applySubstitution( TypeNode tn, Node n, SolvedForm& sf, std::vector< Node >& vars, Node& pv_coeff, bool try_coeff = true ) {
-    return applySubstitution( tn, n, sf.d_subs, sf.d_coeff, sf.d_has_coeff, vars, pv_coeff, try_coeff );
+  Node applySubstitution( TypeNode tn, Node n, SolvedForm& sf, Node& pv_coeff, bool try_coeff = true ) {
+    return applySubstitution( tn, n, sf.d_subs, sf.d_coeff, sf.d_has_coeff, sf.d_vars, pv_coeff, try_coeff );
   }
   Node applySubstitution( TypeNode tn, Node n, std::vector< Node >& subs, std::vector< Node >& coeff, std::vector< Node >& has_coeff,
                           std::vector< Node >& vars, Node& pv_coeff, bool try_coeff = true );
@@ -141,6 +141,26 @@ public:
   //register the counterexample lemma (stored in lems), modify vector
   void registerCounterexampleLemma( std::vector< Node >& lems, std::vector< Node >& ce_vars );
 };
+
+
+/*
+// an instantiator for individual variables
+class InstantiatorVar {
+public:
+  
+  void postProcessInstantiation( SolvedForm& sf );
+};
+*/
+
+/*
+class MbpBound {
+public:
+  Node d_bound;
+  Node d_coeff;
+  Node d_vts_coeff[2];
+  Node d_lit;
+};
+*/
 
 }
 }

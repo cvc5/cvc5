@@ -69,22 +69,20 @@ void CegInstantiator::computeProgVars( Node n ){
   }
 }
 
-bool CegInstantiator::doAddInstantiation( SolvedForm& sf, SolvedForm& ssf, std::vector< Node >& vars,
-                                          std::vector< int >& btyp, Node theta, unsigned i, unsigned effort,
+bool CegInstantiator::isEligible( Node n ) {
+  //compute d_subs_fv, which program variables are contained in n, and determines if eligible
+  computeProgVars( n );
+  return d_inelig.find( n )==d_inelig.end();
+}
+
+bool CegInstantiator::doAddInstantiation( SolvedForm& sf, Node theta, unsigned i, unsigned effort,
                                           std::map< Node, Node >& cons, std::vector< Node >& curr_var ){
   if( i==d_vars.size() ){
     //solved for all variables, now construct instantiation
     if( !sf.d_has_coeff.empty() ){
-      if( options::cbqiSymLia() ){
-        //use symbolic solved forms
-        SolvedForm csf;
-        csf.copy( ssf );
-        return doAddInstantiationCoeff( csf, vars, btyp, 0, cons );
-      }else{
-        return doAddInstantiationCoeff( sf, vars, btyp, 0, cons );
-      }
+      return doAddInstantiationCoeff( sf, 0, cons );
     }else{
-      return doAddInstantiation( sf.d_subs, vars, cons );
+      return doAddInstantiation( sf.d_subs, sf.d_vars, cons );
     }
   }else{
     std::map< Node, std::map< Node, bool > > subs_proc;
@@ -122,19 +120,17 @@ bool CegInstantiator::doAddInstantiation( SolvedForm& sf, SolvedForm& ssf, std::
           Node n = it_eqc->second[k];
           if( n!=pv ){
             Trace("cbqi-inst-debug") << "...try based on equal term " << n << std::endl;
-            //compute d_subs_fv, which program variables are contained in n
-            computeProgVars( n );
             //must be an eligible term
-            if( d_inelig.find( n )==d_inelig.end() ){
+            if( isEligible( n ) ){
               Node ns;
               Node pv_coeff;  //coefficient of pv in the equality we solve (null is 1)
               bool proc = false;
               if( !d_prog_var[n].empty() ){
-                ns = applySubstitution( pvtn, n, sf, vars, pv_coeff, false );
+                ns = applySubstitution( pvtn, n, sf, pv_coeff, false );
                 if( !ns.isNull() ){
                   computeProgVars( ns );
                   //substituted version must be new and cannot contain pv
-                  proc = subs_proc[pv_coeff].find( ns )==subs_proc[pv_coeff].end() && d_prog_var[ns].find( pv )==d_prog_var[ns].end();
+                  proc = d_prog_var[ns].find( pv )==d_prog_var[ns].end();
                 }
               }else{
                 ns = n;
@@ -142,8 +138,7 @@ bool CegInstantiator::doAddInstantiation( SolvedForm& sf, SolvedForm& ssf, std::
               }
               if( proc ){
                 //try the substitution
-                subs_proc[ns][pv_coeff] = true;
-                if( doAddInstantiationInc( ns, pv, pv_coeff, 0, sf, ssf, vars,  btyp, theta, i, effort, cons, curr_var ) ){
+                if( tryDoAddInstantiationInc( ns, pv, pv_coeff, 0, sf, theta, i, effort, cons, curr_var, subs_proc ) ){
                   return true;
                 }
               }
@@ -167,7 +162,7 @@ bool CegInstantiator::doAddInstantiation( SolvedForm& sf, SolvedForm& ssf, std::
               for( unsigned j=0; j<dt[cindex].getNumArgs(); j++ ){
                 curr_var.push_back( NodeManager::currentNM()->mkNode( APPLY_SELECTOR_TOTAL, Node::fromExpr( dt[cindex][j].getSelector() ), pv ) );
               }
-              if( doAddInstantiation( sf, ssf, vars, btyp, theta, i, effort, cons, curr_var ) ){
+              if( doAddInstantiation( sf, theta, i, effort, cons, curr_var ) ){
                 return true;
               }else{
                 //cleanup
@@ -201,14 +196,12 @@ bool CegInstantiator::doAddInstantiation( SolvedForm& sf, SolvedForm& ssf, std::
         for( unsigned kk=0; kk<it_reqc->second.size(); kk++ ){
           Node n = it_reqc->second[kk];
           Trace("cbqi-inst-debug2") << "...look at term " << n << std::endl;
-          //compute the variables in n
-          computeProgVars( n );
           //must be an eligible term
-          if( d_inelig.find( n )==d_inelig.end() ){
+          if( isEligible( n ) ){
             Node ns;
             Node pv_coeff;
             if( !d_prog_var[n].empty() ){
-              ns = applySubstitution( pvtn, n, sf, vars, pv_coeff );
+              ns = applySubstitution( pvtn, n, sf, pv_coeff );
               if( !ns.isNull() ){
                 computeProgVars( ns );
               }
@@ -274,7 +267,7 @@ bool CegInstantiator::doAddInstantiation( SolvedForm& sf, SolvedForm& ssf, std::
                         Node val = veq[1];
                         if( subs_proc[val].find( veq_c )==subs_proc[val].end() ){
                           subs_proc[val][veq_c] = true;
-                          if( doAddInstantiationInc( val, pv, veq_c, 0, sf, ssf, vars, btyp, theta, i, effort, cons, curr_var ) ){
+                          if( doAddInstantiationInc( val, pv, veq_c, 0, sf, theta, i, effort, cons, curr_var ) ){
                             return true;
                           }
                         }
@@ -288,11 +281,8 @@ bool CegInstantiator::doAddInstantiation( SolvedForm& sf, SolvedForm& ssf, std::
                     }
                   }
                   if( success ){
-                    if( subs_proc[val].find( veq_c )==subs_proc[val].end() ){
-                      subs_proc[val][veq_c] = true;
-                      if( doAddInstantiationInc( val, pv, veq_c, 0, sf, ssf, vars, btyp, theta, i, effort, cons, curr_var ) ){
-                        return true;
-                      }
+                    if( tryDoAddInstantiationInc( val, pv, veq_c, 0, sf, theta, i, effort, cons, curr_var, subs_proc ) ){
+                      return true;
                     }
                   }
                 }
@@ -343,14 +333,12 @@ bool CegInstantiator::doAddInstantiation( SolvedForm& sf, SolvedForm& ssf, std::
                   atom_lhs = Rewriter::rewrite( atom_lhs );
                   atom_rhs = d_zero;
                 }
-
-                computeProgVars( atom_lhs );
                 //must be an eligible term
-                if( d_inelig.find( atom_lhs )==d_inelig.end() ){
+                if( isEligible( atom_lhs ) ){
                   //apply substitution to LHS of atom
                   if( !d_prog_var[atom_lhs].empty() ){
                     Node atom_lhs_coeff;
-                    atom_lhs = applySubstitution( pvtn, atom_lhs, sf, vars, atom_lhs_coeff );
+                    atom_lhs = applySubstitution( pvtn, atom_lhs, sf, atom_lhs_coeff );
                     if( !atom_lhs.isNull() ){
                       computeProgVars( atom_lhs );
                       if( !atom_lhs_coeff.isNull() ){
@@ -460,11 +448,8 @@ bool CegInstantiator::doAddInstantiation( SolvedForm& sf, SolvedForm& ssf, std::
                           mbp_lit[index].push_back( lit );
                         }else{
                           //try this bound
-                          if( subs_proc[uval].find( veq_c )==subs_proc[uval].end() ){
-                            subs_proc[uval][veq_c] = true;
-                            if( doAddInstantiationInc( uval, pv, veq_c, uires>0 ? 1 : -1, sf, ssf, vars, btyp, theta, i, effort, cons, curr_var ) ){
-                              return true;
-                            }
+                          if( tryDoAddInstantiationInc( uval, pv, veq_c, uires>0 ? 1 : -1, sf, theta, i, effort, cons, curr_var, subs_proc ) ){
+                            return true;
                           }
                         }
                       }
@@ -492,7 +477,7 @@ bool CegInstantiator::doAddInstantiation( SolvedForm& sf, SolvedForm& ssf, std::
                         }
                         if( subs_proc[uval].find( veq_c )==subs_proc[uval].end() ){
                           subs_proc[uval][veq_c] = true;
-                          if( doAddInstantiationInc( uval, pv, veq_c, 0, sf, ssf, vars, btyp, theta, i, effort, cons, curr_var ) ){
+                          if( doAddInstantiationInc( uval, pv, veq_c, 0, sf, theta, i, effort, cons, curr_var ) ){
                             return true;
                           }
                         }
@@ -529,7 +514,7 @@ bool CegInstantiator::doAddInstantiation( SolvedForm& sf, SolvedForm& ssf, std::
                   val = NodeManager::currentNM()->mkNode( UMINUS, val );
                   val = Rewriter::rewrite( val );
                 }
-                if( doAddInstantiationInc( val, pv, Node::null(), 0, sf, ssf, vars, btyp, theta, i, effort, cons, curr_var ) ){
+                if( tryDoAddInstantiationInc( val, pv, Node::null(), 0, sf, theta, i, effort, cons, curr_var, subs_proc ) ){
                   return true;
                 }
               }
@@ -623,11 +608,8 @@ bool CegInstantiator::doAddInstantiation( SolvedForm& sf, SolvedForm& ssf, std::
                   val = getModelBasedProjectionValue( pv, val, rr==0, mbp_coeff[rr][best], pv_value, t_values[rr][best], theta,
                                                       mbp_vts_coeff[rr][0][best], mbp_vts_coeff[rr][1][best] );
                   if( !val.isNull() ){
-                    if( subs_proc[val].find( mbp_coeff[rr][best] )==subs_proc[val].end() ){
-                      subs_proc[val][mbp_coeff[rr][best]] = true;
-                      if( doAddInstantiationInc( val, pv, mbp_coeff[rr][best], rr==0 ? 1 : -1, sf, ssf, vars, btyp, theta, i, effort, cons, curr_var ) ){
-                        return true;
-                      }
+                    if( tryDoAddInstantiationInc( val, pv, mbp_coeff[rr][best], rr==0 ? 1 : -1, sf, theta, i, effort, cons, curr_var, subs_proc ) ){
+                      return true;
                     }
                   }
                 }
@@ -640,11 +622,8 @@ bool CegInstantiator::doAddInstantiation( SolvedForm& sf, SolvedForm& ssf, std::
             Node c; //null (one) coefficient
             val = getModelBasedProjectionValue( pv, val, true, c, pv_value, d_zero, theta, Node::null(), Node::null() );
             if( !val.isNull() ){
-              if( subs_proc[val].find( c )==subs_proc[val].end() ){
-                subs_proc[val][c] = true;
-                if( doAddInstantiationInc( val, pv, c, 0, sf, ssf, vars, btyp, theta, i, effort, cons, curr_var ) ){
-                  return true;
-                }
+              if( tryDoAddInstantiationInc( val, pv, c, 0, sf, theta, i, effort, cons, curr_var, subs_proc ) ){
+                return true;
               }
             }
           }
@@ -684,11 +663,8 @@ bool CegInstantiator::doAddInstantiation( SolvedForm& sf, SolvedForm& ssf, std::
             }
             Trace("cbqi-bound") << "Midpoint value : " << val << std::endl;
             if( !val.isNull() ){
-              if( subs_proc[val].find( Node::null() )==subs_proc[val].end() ){
-                subs_proc[val][Node::null()] = true;
-                if( doAddInstantiationInc( val, pv, Node::null(), 0, sf, ssf, vars, btyp, theta, i, effort, cons, curr_var ) ){
-                  return true;
-                }
+              if( tryDoAddInstantiationInc( val, pv, Node::null(), 0, sf, theta, i, effort, cons, curr_var, subs_proc ) ){
+                return true;
               }
             }
           }
@@ -705,11 +681,8 @@ bool CegInstantiator::doAddInstantiation( SolvedForm& sf, SolvedForm& ssf, std::
                   Node val = getModelBasedProjectionValue( pv, mbp_bounds[rr][j], rr==0, mbp_coeff[rr][j], pv_value, t_values[rr][j], theta,
                                                            mbp_vts_coeff[rr][0][j], mbp_vts_coeff[rr][1][j] );
                   if( !val.isNull() ){
-                    if( subs_proc[val].find( mbp_coeff[rr][j] )==subs_proc[val].end() ){
-                      subs_proc[val][mbp_coeff[rr][j]] = true;
-                      if( doAddInstantiationInc( val, pv, mbp_coeff[rr][j], rr==0 ? 1 : -1, sf, ssf, vars, btyp, theta, i, effort, cons, curr_var ) ){
-                        return true;
-                      }
+                    if( tryDoAddInstantiationInc( val, pv, mbp_coeff[rr][j], rr==0 ? 1 : -1, sf, theta, i, effort, cons, curr_var, subs_proc ) ){
+                      return true;
                     }
                   }
                 }
@@ -738,7 +711,7 @@ bool CegInstantiator::doAddInstantiation( SolvedForm& sf, SolvedForm& ssf, std::
       //we only resort to values in the case of booleans
       Assert( ( pvtn.isInteger() ? !options::cbqiUseInfInt() : !options::cbqiUseInfReal() ) || pvtn.isBoolean() );
 #endif
-      if( doAddInstantiationInc( mv, pv, pv_coeff_m, 0, sf, ssf, vars, btyp, theta, i, new_effort, cons, curr_var ) ){
+      if( tryDoAddInstantiationInc( mv, pv, pv_coeff_m, 0, sf, theta, i, new_effort, cons, curr_var, subs_proc ) ){
         return true;
       }
     }
@@ -747,9 +720,19 @@ bool CegInstantiator::doAddInstantiation( SolvedForm& sf, SolvedForm& ssf, std::
   }
 }
 
+//cached version
+bool CegInstantiator::tryDoAddInstantiationInc( Node n, Node pv, Node pv_coeff, int bt, SolvedForm& sf, Node theta, unsigned i, unsigned effort,
+                                                std::map< Node, Node >& cons, std::vector< Node >& curr_var,
+                                                std::map< Node, std::map< Node, bool > >& subs_proc ) {
+  if( subs_proc[n].find( pv_coeff )==subs_proc[n].end() ){
+    subs_proc[n][pv_coeff] = true;
+    return doAddInstantiationInc( n, pv, pv_coeff, bt, sf, theta, i, effort, cons, curr_var );
+  }else{
+    return false;
+  }
+}
 
-bool CegInstantiator::doAddInstantiationInc( Node n, Node pv, Node pv_coeff, int bt, SolvedForm& sf, SolvedForm& ssf, std::vector< Node >& vars,
-                                             std::vector< int >& btyp, Node theta, unsigned i, unsigned effort,
+bool CegInstantiator::doAddInstantiationInc( Node n, Node pv, Node pv_coeff, int bt, SolvedForm& sf, Node theta, unsigned i, unsigned effort,
                                              std::map< Node, Node >& cons, std::vector< Node >& curr_var ) {
   if( Trace.isOn("cbqi-inst") ){
     for( unsigned j=0; j<sf.d_subs.size(); j++ ){
@@ -791,16 +774,16 @@ bool CegInstantiator::doAddInstantiationInc( Node n, Node pv, Node pv_coeff, int
       TNode tv = pv;
       TNode ts = n;
       Node a_pv_coeff;
-      Node new_subs = applySubstitution( vars[j].getType(), sf.d_subs[j], a_subs, a_coeff, a_has_coeff, a_var, a_pv_coeff, true );
+      Node new_subs = applySubstitution( sf.d_vars[j].getType(), sf.d_subs[j], a_subs, a_coeff, a_has_coeff, a_var, a_pv_coeff, true );
       if( !new_subs.isNull() ){
         sf.d_subs[j] = new_subs;
         if( !a_pv_coeff.isNull() ){
           prev_coeff[j] = sf.d_coeff[j];
           if( sf.d_coeff[j].isNull() ){
-            Assert( std::find( sf.d_has_coeff.begin(), sf.d_has_coeff.end(), vars[j] )==sf.d_has_coeff.end() );
+            Assert( std::find( sf.d_has_coeff.begin(), sf.d_has_coeff.end(), sf.d_vars[j] )==sf.d_has_coeff.end() );
             //now has coefficient
-            new_has_coeff.push_back( vars[j] );
-            sf.d_has_coeff.push_back( vars[j] );
+            new_has_coeff.push_back( sf.d_vars[j] );
+            sf.d_has_coeff.push_back( sf.d_vars[j] );
             sf.d_coeff[j] = a_pv_coeff;
           }else{
             sf.d_coeff[j] = Rewriter::rewrite( NodeManager::currentNM()->mkNode( MULT, sf.d_coeff[j], a_pv_coeff ) );
@@ -819,19 +802,10 @@ bool CegInstantiator::doAddInstantiationInc( Node n, Node pv, Node pv_coeff, int
     }else{
       Trace("cbqi-inst-debug2") << "Skip " << j << " " << sf.d_subs[j] << std::endl;
     }
-    if( options::cbqiSymLia() && pv_coeff.isNull() ){
-      //apply simple substitutions also to sym_subs
-      prev_sym_subs[j] = ssf.d_subs[j];
-      ssf.d_subs[j] = ssf.d_subs[j].substitute( a_var.begin(), a_var.end(), a_subs.begin(), a_subs.end() );
-      ssf.d_subs[j] = Rewriter::rewrite( ssf.d_subs[j] );
-    }
   }
   if( success ){
     Trace("cbqi-inst-debug2") << "Adding to vectors..." << std::endl;
-    vars.push_back( pv );
-    btyp.push_back( bt );
-    sf.push_back( pv, n, pv_coeff );
-    ssf.push_back( pv, n, pv_coeff );
+    sf.push_back( pv, n, pv_coeff, bt );
     Node new_theta = theta;
     if( !pv_coeff.isNull() ){
       if( new_theta.isNull() ){
@@ -848,16 +822,13 @@ bool CegInstantiator::doAddInstantiationInc( Node n, Node pv, Node pv_coeff, int
       is_cv = true;
     }
     Trace("cbqi-inst-debug2") << "Recurse..." << std::endl;
-    success = doAddInstantiation( sf, ssf, vars, btyp, new_theta, curr_var.empty() ? i+1 : i, effort, cons, curr_var );
+    success = doAddInstantiation( sf, new_theta, curr_var.empty() ? i+1 : i, effort, cons, curr_var );
     if( !success ){
       Trace("cbqi-inst-debug2") << "Removing from vectors..." << std::endl;
       if( is_cv ){
         curr_var.push_back( pv );
       }
-      sf.pop_back( pv, n, pv_coeff );
-      ssf.pop_back( pv, n, pv_coeff );
-      vars.pop_back();
-      btyp.pop_back();
+      sf.pop_back( pv, n, pv_coeff, bt );
     }
   }
   if( success ){
@@ -874,29 +845,23 @@ bool CegInstantiator::doAddInstantiationInc( Node n, Node pv, Node pv_coeff, int
     for( unsigned i=0; i<new_has_coeff.size(); i++ ){
       sf.d_has_coeff.pop_back();
     }
-    for( std::map< int, Node >::iterator it = prev_sym_subs.begin(); it != prev_sym_subs.end(); it++ ){
-      ssf.d_subs[it->first] = it->second;
-    }
     return false;
   }
 }
 
-bool CegInstantiator::doAddInstantiationCoeff( SolvedForm& sf, std::vector< Node >& vars, std::vector< int >& btyp,
-                                             unsigned j, std::map< Node, Node >& cons ) {
-
-
+bool CegInstantiator::doAddInstantiationCoeff( SolvedForm& sf, unsigned j, std::map< Node, Node >& cons ) {
   if( j==sf.d_has_coeff.size() ){
-    return doAddInstantiation( sf.d_subs, vars, cons );
+    return doAddInstantiation( sf.d_subs, sf.d_vars, cons );
   }else{
-    Assert( std::find( vars.begin(), vars.end(), sf.d_has_coeff[j] )!=vars.end() );
-    unsigned index = std::find( vars.begin(), vars.end(), sf.d_has_coeff[j] )-vars.begin();
+    Assert( std::find( sf.d_vars.begin(), sf.d_vars.end(), sf.d_has_coeff[j] )!=sf.d_vars.end() );
+    unsigned index = std::find( sf.d_vars.begin(), sf.d_vars.end(), sf.d_has_coeff[j] )-sf.d_vars.begin();
     Node prev = sf.d_subs[index];
     Assert( !sf.d_coeff[index].isNull() );
-    Trace("cbqi-inst-debug") << "Normalize substitution for " << sf.d_coeff[index] << " * " << vars[index] << " = " << sf.d_subs[index] << std::endl;
-    Assert( vars[index].getType().isInteger() );
+    Trace("cbqi-inst-debug") << "Normalize substitution for " << sf.d_coeff[index] << " * " << sf.d_vars[index] << " = " << sf.d_subs[index] << std::endl;
+    Assert( sf.d_vars[index].getType().isInteger() );
     //must ensure that divisibility constraints are met
     //solve updated rewritten equality for vars[index], if coefficient is one, then we are successful
-    Node eq_lhs = NodeManager::currentNM()->mkNode( MULT, sf.d_coeff[index], vars[index] );
+    Node eq_lhs = NodeManager::currentNM()->mkNode( MULT, sf.d_coeff[index], sf.d_vars[index] );
     Node eq_rhs = sf.d_subs[index];
     Node eq = eq_lhs.eqNode( eq_rhs );
     eq = Rewriter::rewrite( eq );
@@ -904,20 +869,20 @@ bool CegInstantiator::doAddInstantiationCoeff( SolvedForm& sf, std::vector< Node
     std::map< Node, Node > msum;
     if( QuantArith::getMonomialSumLit( eq, msum ) ){
       Node veq;
-      if( QuantArith::isolate( vars[index], msum, veq, EQUAL, true )!=0 ){
+      if( QuantArith::isolate( sf.d_vars[index], msum, veq, EQUAL, true )!=0 ){
         Node veq_c;
-        if( veq[0]!=vars[index] ){
+        if( veq[0]!=sf.d_vars[index] ){
           Node veq_v;
           if( QuantArith::getMonomial( veq[0], veq_c, veq_v ) ){
-            Assert( veq_v==vars[index] );
+            Assert( veq_v==sf.d_vars[index] );
           }
         }
         sf.d_subs[index] = veq[1];
         if( !veq_c.isNull() ){
           sf.d_subs[index] = NodeManager::currentNM()->mkNode( INTS_DIVISION_TOTAL, veq[1], veq_c );
-          Trace("cbqi-inst-debug") << "...bound type is : " << btyp[index] << std::endl;
+          Trace("cbqi-inst-debug") << "...bound type is : " << sf.d_btyp[index] << std::endl;
           //intger division rounding up if from a lower bound
-          if( btyp[index]==1 && options::cbqiRoundUpLowerLia() ){
+          if( sf.d_btyp[index]==1 && options::cbqiRoundUpLowerLia() ){
             sf.d_subs[index] = NodeManager::currentNM()->mkNode( PLUS, sf.d_subs[index],
               NodeManager::currentNM()->mkNode( ITE,
                 NodeManager::currentNM()->mkNode( EQUAL,
@@ -927,24 +892,8 @@ bool CegInstantiator::doAddInstantiationCoeff( SolvedForm& sf, std::vector< Node
             );
           }
         }
-        Trace("cbqi-inst-debug") << "...normalize integers : " << vars[index] << " -> " << sf.d_subs[index] << std::endl;
-        if( options::cbqiSymLia() ){
-          //must apply substitution to previous subs
-          std::vector< Node > curr_var;
-          std::vector< Node > curr_subs;
-          curr_var.push_back( vars[index] );
-          curr_subs.push_back( sf.d_subs[index] );
-          for( unsigned k=0; k<index; k++ ){
-            Node prevs = sf.d_subs[k];
-            sf.d_subs[k] = sf.d_subs[k].substitute( curr_var.begin(), curr_var.end(), curr_subs.begin(), curr_subs.end() );
-            if( prevs!=sf.d_subs[k] ){
-              Trace("cbqi-inst-debug2") << "      rewrite " << vars[k] << " -> " << prevs << " to ";
-              sf.d_subs[k] = Rewriter::rewrite( sf.d_subs[k] );
-              Trace("cbqi-inst-debug2") << sf.d_subs[k] << std::endl;
-            }
-          }
-        }
-        if( doAddInstantiationCoeff( sf, vars, btyp, j+1, cons ) ){
+        Trace("cbqi-inst-debug") << "...normalize integers : " << sf.d_vars[index] << " -> " << sf.d_subs[index] << std::endl;
+        if( doAddInstantiationCoeff( sf, j+1, cons ) ){
           return true;
         }
       }
@@ -1176,14 +1125,11 @@ bool CegInstantiator::check() {
   processAssertions();
   for( unsigned r=0; r<2; r++ ){
     SolvedForm sf;
-    SolvedForm ssf;
-    std::vector< Node > vars;
-    std::vector< int > btyp;
     Node theta;
     std::map< Node, Node > cons;
     std::vector< Node > curr_var;
     //try to add an instantiation
-    if( doAddInstantiation( sf, ssf, vars, btyp, theta, 0, r==0 ? 0 : 2, cons, curr_var ) ){
+    if( doAddInstantiation( sf, theta, 0, r==0 ? 0 : 2, cons, curr_var ) ){
       return true;
     }
   }
@@ -1236,16 +1182,16 @@ void CegInstantiator::presolve( Node q ) {
   //at preregister time, add proxy of obvious instantiations up front, which helps learning during preprocessing
   //only if no nested quantifiers
   if( !QuantifiersRewriter::containsQuantifiers( q[1] ) ){
-    std::vector< Node > vars;
+    std::vector< Node > ps_vars;
     std::map< Node, std::vector< Node > > teq;
     for( unsigned i=0; i<q[0].getNumChildren(); i++ ){
-      vars.push_back( q[0][i] );
+      ps_vars.push_back( q[0][i] );
       teq[q[0][i]].clear();
     }
     collectPresolveEqTerms( q[1], teq );
     std::vector< Node > terms;
     std::vector< Node > conj;
-    getPresolveEqConjuncts( vars, terms, teq, q, conj );
+    getPresolveEqConjuncts( ps_vars, terms, teq, q, conj );
 
     if( !conj.empty() ){
       Node lem = conj.size()==1 ? conj[0] : NodeManager::currentNM()->mkNode( AND, conj );
@@ -1410,10 +1356,8 @@ void CegInstantiator::processAssertions() {
     std::vector< Node > akeep;
     for( unsigned i=0; i<it->second.size(); i++ ){
       Node n = it->second[i];
-      //compute the variables in assertion
-      computeProgVars( n );
       //must be an eligible term
-      if( d_inelig.find( n )==d_inelig.end() ){
+      if( isEligible( n ) ){
         //must contain at least one variable
         if( !d_prog_var[n].empty() ){
           Trace("cbqi-proc") << "...literal[" << it->first << "] : " << n << std::endl;

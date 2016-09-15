@@ -175,17 +175,6 @@ void TermDb::addTerm( Node n, std::set< Node >& added, bool withinQuant, bool wi
           if( d_sygus_tdb ){
             d_sygus_tdb->registerEvalTerm( n );
           }
-
-          if( options::eagerInstQuant() ){
-            for( unsigned i=0; i<n.getNumChildren(); i++ ){
-              if( !n.hasAttribute(InstLevelAttribute()) && n.getAttribute(InstLevelAttribute())==0 ){
-                int addedLemmas = 0;
-                for( unsigned i=0; i<d_op_triggers[op].size(); i++ ){
-                  addedLemmas += d_op_triggers[op][i]->addTerm( n );
-                }
-              }
-            }
-          }
         }
       }else{
         setTermInactive( n );

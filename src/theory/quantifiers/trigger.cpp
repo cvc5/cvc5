@@ -76,12 +76,6 @@ Trigger::Trigger( QuantifiersEngine* qe, Node f, std::vector< Node >& nodes )
     ++(qe->d_statistics.d_multi_triggers);
   }
   //Notice() << "Trigger : " << (*this) << "  for " << f << std::endl;
-  if( options::eagerInstQuant() ){
-    for( int i=0; i<(int)d_nodes.size(); i++ ){
-      Node op = qe->getTermDatabase()->getMatchOperator( d_nodes[i] );
-      qe->getTermDatabase()->registerTrigger( this, op );
-    }
-  }
   Trace("trigger-debug") << "Finished making trigger." << std::endl;
 }
 
@@ -105,10 +99,6 @@ bool Trigger::getNextMatch( Node f, InstMatch& m ){
 bool Trigger::getMatch( Node f, Node t, InstMatch& m ){
   //FIXME: this assumes d_mg is an inst match generator
   return ((InstMatchGenerator*)d_mg)->getMatch( f, t, m, d_quantEngine );
-}
-
-int Trigger::addTerm( Node t ){
-  return d_mg->addTerm( d_f, t, d_quantEngine );
 }
 
 Node Trigger::getInstPattern(){

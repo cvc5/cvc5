@@ -1748,6 +1748,12 @@ void SmtEngine::setDefaults() {
       options::finiteModelFind.set( true );
     }
   }
+  //EPR
+  if( options::quantEpr() ){
+    if( !options::preSkolemQuant.wasSetByUser() ){
+      options::preSkolemQuant.set( true );
+    }
+  }
 
   //now, have determined whether finite model find is on/off
   //apply finite model finding options
@@ -1840,9 +1846,7 @@ void SmtEngine::setDefaults() {
       }
       if( !options::instWhenMode.wasSetByUser() && options::cbqiModel() ){
         //only instantiation should happen at last call when model is avaiable
-        if( !options::instWhenMode.wasSetByUser() ){
-          options::instWhenMode.set( quantifiers::INST_WHEN_LAST_CALL );
-        }
+        options::instWhenMode.set( quantifiers::INST_WHEN_LAST_CALL );
       }
     }
   }
