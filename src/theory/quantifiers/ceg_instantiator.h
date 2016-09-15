@@ -40,6 +40,44 @@ public:
 
 class Instantiator;
 
+
+//solved form, involves substitution with coefficients
+class SolvedForm {
+public:
+  std::vector< Node > d_vars;
+  std::vector< Node > d_subs;
+  std::vector< Node > d_coeff;
+  std::vector< int > d_btyp;
+  std::vector< Node > d_has_coeff;
+  Node d_theta;
+  void copy( SolvedForm& sf ){
+    d_vars.insert( d_vars.end(), sf.d_vars.begin(), sf.d_vars.end() );
+    d_subs.insert( d_subs.end(), sf.d_subs.begin(), sf.d_subs.end() );
+    d_coeff.insert( d_coeff.end(), sf.d_coeff.begin(), sf.d_coeff.end() );
+    d_btyp.insert( d_btyp.end(), sf.d_btyp.begin(), sf.d_btyp.end() );
+    d_has_coeff.insert( d_has_coeff.end(), sf.d_has_coeff.begin(), sf.d_has_coeff.end() );
+    d_theta = sf.d_theta;
+  }
+  void push_back( Node pv, Node n, Node pv_coeff, int bt ){
+    d_vars.push_back( pv );
+    d_subs.push_back( n );
+    d_coeff.push_back( pv_coeff );
+    d_btyp.push_back( bt );
+    if( !pv_coeff.isNull() ){
+      d_has_coeff.push_back( pv );
+    }
+  }
+  void pop_back( Node pv, Node n, Node pv_coeff, int bt ){
+    d_vars.pop_back();
+    d_subs.pop_back();
+    d_coeff.pop_back();
+    d_btyp.pop_back();
+    if( !pv_coeff.isNull() ){
+      d_has_coeff.pop_back();
+    }
+  }
+};
+
 class CegInstantiator {
 private:
   QuantifiersEngine * d_qe;
@@ -70,60 +108,39 @@ private:
   bool d_is_nested_quant;
   std::vector< Node > d_ce_atoms;
 private:
+  //map from variables to their instantiators
+  std::map< Node, Instantiator * > d_instantiator;
+  //cache of current substitutions tried between register/unregister
+  std::map< Node, std::map< Node, std::map< Node, bool > > > d_curr_subs_proc;
+  std::map< Node, unsigned > d_curr_index;
+  //stack of temporary variables we are solving (e.g. subfields of datatypes)
+  std::vector< Node > d_stack_vars;
+  //used instantiators 
+  std::map< Instantiator *, bool > d_active_instantiators;
+  //register variable
+  void registerInstantiationVariable( Node v, unsigned index );
+  void unregisterInstantiationVariable( Node v );
+private:
   //collect atoms
   void collectCeAtoms( Node n, std::map< Node, bool >& visited );
   //for adding instantiations during check
   void computeProgVars( Node n );
   // is eligible 
   bool isEligible( Node n );
-  //solved form, involves substitution with coefficients
-  class SolvedForm {
-  public:
-    std::vector< Node > d_vars;
-    std::vector< Node > d_subs;
-    std::vector< Node > d_coeff;
-    std::vector< int > d_btyp;
-    std::vector< Node > d_has_coeff;
-    void copy( SolvedForm& sf ){
-      d_subs.insert( d_subs.end(), sf.d_subs.begin(), sf.d_subs.end() );
-      d_coeff.insert( d_coeff.end(), sf.d_coeff.begin(), sf.d_coeff.end() );
-      d_has_coeff.insert( d_has_coeff.end(), sf.d_has_coeff.begin(), sf.d_has_coeff.end() );
-    }
-    void push_back( Node pv, Node n, Node pv_coeff, int bt ){
-      d_vars.push_back( pv );
-      d_subs.push_back( n );
-      d_coeff.push_back( pv_coeff );
-      d_btyp.push_back( bt );
-      if( !pv_coeff.isNull() ){
-        d_has_coeff.push_back( pv );
-      }
-    }
-    void pop_back( Node pv, Node n, Node pv_coeff, int bt ){
-      d_vars.pop_back();
-      d_subs.pop_back();
-      d_coeff.pop_back();
-      d_btyp.pop_back();
-      if( !pv_coeff.isNull() ){
-        d_has_coeff.pop_back();
-      }
-    }
-  };
   // effort=0 : do not use model value, 1: use model value, 2: one must use model value
-  bool doAddInstantiation( SolvedForm& sf, Node theta, unsigned i, unsigned effort,
-                           std::map< Node, Node >& cons, std::vector< Node >& curr_var );
-  bool tryDoAddInstantiationInc( Node n, Node pv, Node pv_coeff, int bt, SolvedForm& sf, Node theta, unsigned i, unsigned effort,
-                                 std::map< Node, Node >& cons, std::vector< Node >& curr_var,
-                                 std::map< Node, std::map< Node, bool > >& subs_proc );
-  bool doAddInstantiationInc( Node n, Node pv, Node pv_coeff, int bt, SolvedForm& sf, Node theta, unsigned i, unsigned effort,
-                              std::map< Node, Node >& cons, std::vector< Node >& curr_var );
-  bool doAddInstantiationCoeff( SolvedForm& sf, unsigned j, std::map< Node, Node >& cons );
-  bool doAddInstantiation( std::vector< Node >& subs, std::vector< Node >& vars, std::map< Node, Node >& cons );
-  Node constructInstantiation( Node n, std::map< Node, Node >& subs_map, std::map< Node, Node >& cons );
+  bool doAddInstantiation( SolvedForm& sf, unsigned i, unsigned effort );
+  bool doAddInstantiationInc( Node pv, Node n, Node pv_coeff, int bt, SolvedForm& sf, unsigned effort );
+  bool processInstantiationCoeff( SolvedForm& sf );
+  bool doAddInstantiation( std::vector< Node >& subs, std::vector< Node >& vars );
   Node applySubstitution( TypeNode tn, Node n, SolvedForm& sf, Node& pv_coeff, bool try_coeff = true ) {
     return applySubstitution( tn, n, sf.d_subs, sf.d_coeff, sf.d_has_coeff, sf.d_vars, pv_coeff, try_coeff );
   }
   Node applySubstitution( TypeNode tn, Node n, std::vector< Node >& subs, std::vector< Node >& coeff, std::vector< Node >& has_coeff,
                           std::vector< Node >& vars, Node& pv_coeff, bool try_coeff = true );
+  //TODO: move to public
+  void pushStackVariable( Node v );
+  void popStackVariable();
+  bool tryDoAddInstantiationInc( Node pv, Node n, Node pv_coeff, int bt, SolvedForm& sf, unsigned effort );
   Node getModelBasedProjectionValue( Node e, Node t, bool isLower, Node c, Node me, Node mt, Node theta, Node inf_coeff, Node delta_coeff );
   void processAssertions();
   void addToAuxVarSubstitution( std::vector< Node >& subs_lhs, std::vector< Node >& subs_rhs, Node l, Node r );
@@ -143,14 +160,42 @@ public:
 };
 
 
-/*
+
 // an instantiator for individual variables
-class InstantiatorVar {
+//   will make calls into CegInstantiator::doAddInstantiationInc
+class Instantiator {
+public:
+  virtual void reset( unsigned effort ) {}
+  
+  virtual bool processEqualTerm( SolvedForm& sf, Node pv, Node n, unsigned effort ) { return false; }
+  virtual bool processEqualTerms( SolvedForm& sf, Node pv, std::vector< Node >& term, unsigned effort ) { return false; }
+  
+  virtual bool processEquality( SolvedForm& sf, Node pv, Node lhs, Node rhs, unsigned effort ) { return false; }
+  virtual bool processEqualities( SolvedForm& sf, Node pv, std::vector< Node >& lhss, std::vector< Node >& rhss, unsigned effort ) { return false; }
+  
+  virtual bool processAssertion( SolvedForm& sf, Node pv, Node lit, unsigned effort ) { return false; }
+  virtual bool processAssertions( SolvedForm& sf, Node pv, std::vector< Node >& lits, unsigned effort ) { return false; }
+  
+  virtual bool allowModelValue( SolvedForm& sf, Node pv, unsigned effort ) { return true; }
+  
+  virtual bool needsPostProcessInstantiation( SolvedForm& sf, unsigned effort ) { return false; }
+  virtual bool postProcessInstantiation( SolvedForm& sf, unsigned effort ) { return true; }
+};
+
+class ArithInstantiator : public Instantiator {
+public:
+
+};
+
+class DtInstantiator : public Instantiator {
+public:
+
+};
+
+class EprInstantiator : public Instantiator {
 public:
   
-  void postProcessInstantiation( SolvedForm& sf );
 };
-*/
 
 /*
 class MbpBound {
