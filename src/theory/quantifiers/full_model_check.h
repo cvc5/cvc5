@@ -139,7 +139,7 @@ public:
   void debugPrintCond(const char * tr, Node n, bool dispStar = false);
   void debugPrint(const char * tr, Node n, bool dispStar = false);
 
-  bool doExhaustiveInstantiation( FirstOrderModel * fm, Node f, int effort );
+  int doExhaustiveInstantiation( FirstOrderModel * fm, Node f, int effort );
 
   Node getFunctionValue(FirstOrderModelFmc * fm, Node op, const char* argPrefix );
 

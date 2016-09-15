@@ -285,6 +285,15 @@ bool InstStrategyCbqi::checkComplete() {
   }
 }
 
+bool InstStrategyCbqi::checkCompleteFor( Node q ) {
+  std::map< Node, int >::iterator it = d_do_cbqi.find( q );
+  if( it!=d_do_cbqi.end() ){
+    return it->second>0;
+  }else{
+    return false;
+  }
+}
+
 Node InstStrategyCbqi::getIdMarkedQuantNode( Node n, std::map< Node, Node >& visited ){
   std::map< Node, Node >::iterator it = visited.find( n );
   if( it==visited.end() ){
@@ -334,7 +343,7 @@ Node InstStrategyCbqi::getIdMarkedQuantNode( Node n, std::map< Node, Node >& vis
 
 void InstStrategyCbqi::preRegisterQuantifier( Node q ) {
   if( d_quantEngine->getOwner( q )==NULL && doCbqi( q ) ){
-    if( !options::cbqiAll() ){
+    if( d_do_cbqi[q]==2 ){
       //take full ownership of the quantified formula
       d_quantEngine->setOwner( q, this );
       
@@ -512,43 +521,49 @@ int InstStrategyCbqi::hasNonCbqiVariable( Node q ){
 }
 
 bool InstStrategyCbqi::doCbqi( Node q ){
-  std::map< Node, bool >::iterator it = d_do_cbqi.find( q );
+  std::map< Node, int >::iterator it = d_do_cbqi.find( q );
   if( it==d_do_cbqi.end() ){
-    bool ret = true;
+    int ret = 2;
     if( !d_quantEngine->getTermDatabase()->isQAttrQuantElim( q ) ){
       //if has an instantiation pattern, don't do it
       if( q.getNumChildren()==3 && options::eMatching() && options::userPatternsQuant()!=USER_PAT_MODE_IGNORE ){
         for( unsigned i=0; i<q[2].getNumChildren(); i++ ){
           if( q[2][i].getKind()==INST_PATTERN ){
-            ret = false;
+            ret = 0;
           }
         }
       }
-      if( ret ){
-        if( options::cbqiAll() ){
-          ret = true;
-        }else{
-          //if quantifier has a non-handled variable, then do not use cbqi
-          //if quantifier has an APPLY_UF term, then do not use cbqi
-          //Node cb = d_quantEngine->getTermDatabase()->getInstConstantBody( q );
-          int ncbqiv = hasNonCbqiVariable( q );
-          if( ncbqiv==1 ){
-            //all variables imply this will be handled regardless of body (e.g. for EPR)
-            ret = true;
-          }else if( ncbqiv==0 ){
-            std::map< Node, bool > visited;
-            ret = !hasNonCbqiOperator( q[1], visited );
-          }else{
-            ret = false;
+      if( ret!=0 ){
+        //if quantifier has a non-handled variable, then do not use cbqi
+        //if quantifier has an APPLY_UF term, then do not use cbqi unless EPR
+        int ncbqiv = hasNonCbqiVariable( q );
+        if( ncbqiv==0 || ncbqiv==1 ){
+          std::map< Node, bool > visited;
+          if( hasNonCbqiOperator( q[1], visited ) ){
+            if( ncbqiv==1 ){
+              //all variables are fully handled, this implies this will be handlable regardless of body (e.g. for EPR)
+              //  so, try but not exclusively
+              ret = 1;
+            }else{
+              //cannot be handled
+              ret = 0;
+            }
           }
+        }else{
+          // unhandled variable type
+          ret = 0;
+        }
+        if( ret==0 && options::cbqiAll() ){
+          //try but not exclusively
+          ret = 1;
         }
       }
     }
     Trace("cbqi-quant") << "doCbqi " << q << " returned " << ret << std::endl;
     d_do_cbqi[q] = ret;
-    return ret;
+    return ret!=0;
   }else{
-    return it->second;
+    return it->second!=0;
   }
 }
 

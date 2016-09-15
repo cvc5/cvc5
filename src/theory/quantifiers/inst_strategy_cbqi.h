@@ -48,8 +48,8 @@ protected:
   std::map< Node, bool > d_active_quant;
   /** whether we have instantiated quantified formulas */
   //NodeSet d_added_inst;
-  /** whether to do cbqi for this quantified formula */
-  std::map< Node, bool > d_do_cbqi;
+  /** whether to do cbqi for this quantified formula 0 : no, 2 : yes, 1 : yes but not exclusively, -1 : heuristically */
+  std::map< Node, int > d_do_cbqi;
   /** register ce lemma */
   bool registerCbqiLemma( Node q );
   virtual void registerCounterexampleLemma( Node q, Node lem );
@@ -103,6 +103,7 @@ public:
   void reset_round( Theory::Effort e );
   void check( Theory::Effort e, unsigned quant_e );
   bool checkComplete();
+  bool checkCompleteFor( Node q );
   void preRegisterQuantifier( Node q );
   void registerQuantifier( Node q );
   /** get next decision request */

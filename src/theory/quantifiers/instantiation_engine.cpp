@@ -151,19 +151,9 @@ void InstantiationEngine::check( Theory::Effort e, unsigned quant_e ){
   }
 }
 
-bool InstantiationEngine::checkComplete() {
-  if( !options::finiteModelFind() ){
-    for( unsigned i=0; i<d_quants.size(); i++ ){
-      if( isIncomplete( d_quants[i] ) ){
-        return false;
-      }
-    }
-  }
-  return true;
-}
-
-bool InstantiationEngine::isIncomplete( Node q ) {
-  return true;
+bool InstantiationEngine::checkCompleteFor( Node q ) {
+  //TODO?
+  return false;
 }
 
 void InstantiationEngine::preRegisterQuantifier( Node q ) {

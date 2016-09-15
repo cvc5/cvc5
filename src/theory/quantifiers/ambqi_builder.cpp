@@ -836,7 +836,7 @@ void AbsMbqiBuilder::processBuildModel(TheoryModel* m, bool fullModel) {
 //--------------------model checking---------------------------------------
 
 //do exhaustive instantiation
-bool AbsMbqiBuilder::doExhaustiveInstantiation( FirstOrderModel * fm, Node q, int effort ) {
+int AbsMbqiBuilder::doExhaustiveInstantiation( FirstOrderModel * fm, Node q, int effort ) {
   Trace("ambqi-check") << "Exhaustive instantiation " << q << " " << effort << std::endl;
   if (effort==0) {
     FirstOrderModelAbs * fma = fm->asFirstOrderModelAbs();
@@ -868,9 +868,10 @@ bool AbsMbqiBuilder::doExhaustiveInstantiation( FirstOrderModel * fm, Node q, in
       d_addedLemmas += lem;
       Trace("ambqi-inst-debug") << "...Total : " << d_addedLemmas << std::endl;
     }
-    return quantValid;
+    return quantValid ? 1 : 0;
+  }else{
+    return 1;
   }
-  return true;
 }
 
 bool AbsMbqiBuilder::doCheck( FirstOrderModelAbs * m, TNode q, AbsDef & ad, TNode n ) {

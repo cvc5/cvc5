@@ -51,8 +51,10 @@ public:
   virtual void reset_round( Theory::Effort e ){}
   /* Call during quantifier engine's check */
   virtual void check( Theory::Effort e, unsigned quant_e ) = 0;
-  /* check was complete (e.g. no lemmas implies a model) */
+  /* check was complete, return false if there is no way to answer "SAT", true if maybe can answer "SAT" */
   virtual bool checkComplete() { return true; }
+  /* check was complete for quantified formula q (e.g. no lemmas implies a model) */
+  virtual bool checkCompleteFor( Node q ) { return false; }
   /* Called for new quantified formulas */
   virtual void preRegisterQuantifier( Node q ) { }
   /* Called for new quantifiers after owners are finalized */

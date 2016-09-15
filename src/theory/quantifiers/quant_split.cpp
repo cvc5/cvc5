@@ -73,6 +73,11 @@ bool QuantDSplit::needsCheck( Theory::Effort e ) {
   return e>=Theory::EFFORT_FULL && !d_quant_to_reduce.empty();
 }
 
+bool QuantDSplit::checkCompleteFor( Node q ) {
+  // true if we split q
+  return d_added_split.find( q )!=d_added_split.end();
+}
+
 /* Call during quantifier engine's check */
 void QuantDSplit::check( Theory::Effort e, unsigned quant_e ) {
   //add lemmas ASAP (they are a reduction)

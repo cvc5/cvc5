@@ -295,6 +295,11 @@ void RewriteEngine::assertNode( Node n ) {
 
 }
 
+bool RewriteEngine::checkCompleteFor( Node q ) { 
+  // by semantics of rewrite rules, saturation -> SAT 
+  return std::find( d_rr_quant.begin(), d_rr_quant.end(), q )!=d_rr_quant.end();
+}
+
 Node RewriteEngine::getInstConstNode( Node n, Node q ) {
   std::map< Node, Node >::iterator it = d_inst_const_node[q].find( n );
   if( it==d_inst_const_node[q].end() ){

@@ -93,7 +93,7 @@ public:
   //process build model
   void processBuildModel(TheoryModel* m, bool fullModel);
   //do exhaustive instantiation
-  bool doExhaustiveInstantiation( FirstOrderModel * fm, Node q, int effort );
+  int doExhaustiveInstantiation( FirstOrderModel * fm, Node q, int effort );
 };
 
 }

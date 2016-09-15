@@ -219,7 +219,6 @@ void QuantifiersEngine::finishInit(){
     d_sg_gen = new quantifiers::ConjectureGenerator( this, c );
     d_modules.push_back( d_sg_gen );
   }
-  //maintain invariant : either InstantiationEngine or ModelEngine must be in d_modules
   if( !options::finiteModelFind() || options::fmfInstEngine() ){
     d_inst_engine = new quantifiers::InstantiationEngine( this );
     d_modules.push_back(  d_inst_engine );
@@ -395,13 +394,6 @@ void QuantifiersEngine::check( Theory::Effort e ){
   d_conflict = false;
   d_hasAddedLemma = false;
   bool setIncomplete = false;
-  if( e==Theory::EFFORT_LAST_CALL ){
-    //sources of incompleteness
-    if( d_lte_part_inst && d_lte_part_inst->wasInvoked() ){
-      Trace("quant-engine-debug") << "Set incomplete due to LTE partial instantiation." << std::endl;
-      setIncomplete = true;
-    }
-  }
   bool usedModelBuilder = false;
 
   Trace("quant-engine-debug2") << "Quantifiers Engine call to check, level = " << e << ", needsCheck=" << needsCheck << std::endl;
@@ -544,18 +536,47 @@ void QuantifiersEngine::check( Theory::Effort e ){
           }
         }else if( quant_e==QEFFORT_MODEL ){
           if( e==Theory::EFFORT_LAST_CALL ){
+            //sources of incompleteness
             if( !d_recorded_inst.empty() ){
+              Trace("quant-engine-debug") << "Set incomplete due to recorded instantiations." << std::endl;
               setIncomplete = true;
             }
             //if we have a chance not to set incomplete
             if( !setIncomplete ){
               setIncomplete = false;
               //check if we should set the incomplete flag
-              for( unsigned i=0; i<qm.size(); i++ ){
-                if( !qm[i]->checkComplete() ){
-                  Trace("quant-engine-debug") << "Set incomplete because " << qm[i]->identify().c_str() << " was incomplete." << std::endl;
+              for( unsigned i=0; i<d_modules.size(); i++ ){
+                if( !d_modules[i]->checkComplete() ){
+                  Trace("quant-engine-debug") << "Set incomplete because " << d_modules[i]->identify().c_str() << " was incomplete." << std::endl;
                   setIncomplete = true;
                   break;
+                }
+              }
+              if( !setIncomplete ){
+                //look at individual quantified formulas, one module must claim completeness for each one
+                for( unsigned i=0; i<d_model->getNumAssertedQuantifiers(); i++ ){
+                  bool hasCompleteM = false;
+                  Node q = d_model->getAssertedQuantifier( i );
+                  QuantifiersModule * qmd = getOwner( q );
+                  if( qmd!=NULL ){
+                    hasCompleteM = qmd->checkCompleteFor( q );
+                  }else{
+                    for( unsigned j=0; j<d_modules.size(); j++ ){
+                      if( d_modules[j]->checkCompleteFor( q ) ){
+                        qmd = d_modules[j];
+                        hasCompleteM = true;
+                        break;
+                      }
+                    }
+                  }
+                  if( !hasCompleteM ){
+                    Trace("quant-engine-debug") << "Set incomplete because " << q << " was not fully processed." << std::endl;
+                    setIncomplete = true;
+                    break;
+                  }else{
+                    Assert( qmd!=NULL );
+                    Trace("quant-engine-debug2") << "Complete for " << q << " due to " << qmd->identify().c_str() << std::endl;
+                  }
                 }
               }
             }

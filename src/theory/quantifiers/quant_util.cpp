@@ -429,7 +429,7 @@ void QuantEPR::registerNode( Node n, std::map< int, std::map< Node, bool > >& vi
         for( unsigned i=0; i<n[0].getNumChildren(); i++ ){
           TypeNode tn = n[0][i].getType();
           if( d_non_epr.find( tn )==d_non_epr.end() ){
-            Trace("quant-epr") << "Sort " << tn << " is non-EPR because of nested quantification." << std::endl;
+            Trace("quant-epr") << "Sort " << tn << " is non-EPR because of nested or possible existential quantification." << std::endl;
             d_non_epr[tn] = true;
           }
         }

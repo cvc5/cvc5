@@ -38,13 +38,14 @@ public:
   virtual ~QModelBuilder() throw() {}
   // is quantifier active?
   virtual bool isQuantifierActive( Node f );
-  //do exhaustive instantiation
-  virtual bool doExhaustiveInstantiation( FirstOrderModel * fm, Node f, int effort ) { return false; }
+  //do exhaustive instantiation  
+  // 0 :  failed, but resorting to true exhaustive instantiation may work
+  // >0 : success
+  // <0 : failed
+  virtual int doExhaustiveInstantiation( FirstOrderModel * fm, Node f, int effort ) { return false; }
   //whether to construct model
   virtual bool optUseModel();
   /** number of lemmas generated while building model */
-  //is the exhaustive instantiation incomplete?
-  bool d_incomplete_check;
   int d_addedLemmas;
   int d_triedLemmas;
   /** exist instantiation ? */
@@ -142,7 +143,7 @@ public:
   // is quantifier active?
   bool isQuantifierActive( Node f );
   //do exhaustive instantiation
-  bool doExhaustiveInstantiation( FirstOrderModel * fm, Node f, int effort );
+  int doExhaustiveInstantiation( FirstOrderModel * fm, Node f, int effort );
 
   //temporary stats
   int d_numQuantSat;

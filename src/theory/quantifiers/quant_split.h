@@ -43,6 +43,7 @@ public:
   /* Called for new quantifiers */
   void registerQuantifier( Node q ) {}
   void assertNode( Node n ) {}
+  bool checkCompleteFor( Node q );
   /** Identify this module (for debugging, dynamic configuration, etc..) */
   std::string identify() const { return "QuantDSplit"; }
 };
