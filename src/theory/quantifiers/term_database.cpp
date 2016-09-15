@@ -129,7 +129,7 @@ Node TermDb::getMatchOperator( Node n ) {
   Kind k = n.getKind();
   //datatype operators may be parametric, always assume they are
   if( k==SELECT || k==STORE || k==UNION || k==INTERSECTION || k==SUBSET || k==SETMINUS || k==MEMBER || k==SINGLETON || 
-      k==APPLY_SELECTOR_TOTAL || k==APPLY_TESTER ){
+      k==APPLY_SELECTOR_TOTAL || k==APPLY_TESTER || k==SEP_PTO ){
     //since it is parametric, use a particular one as op
     TypeNode tn = n[0].getType();
     Node op = n.getOperator();

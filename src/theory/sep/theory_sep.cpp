@@ -442,13 +442,9 @@ void TheorySep::check(Effort e) {
         Trace("sep-assert") << "Done asserting " << atom << " to EE." << std::endl;
       }else if( s_atom.getKind()==kind::SEP_PTO ){
         Node pto_lbl = NodeManager::currentNM()->mkNode( kind::SINGLETON, s_atom[0] );
-        if( polarity && s_lbl!=pto_lbl ){
-          //also propagate equality
-          Node eq = s_lbl.eqNode( pto_lbl );
-          Trace("sep-assert") << "Asserting implied equality " << eq << " to EE..." << std::endl;
-          d_equalityEngine.assertEquality(eq, true, fact);
-          Trace("sep-assert") << "Done asserting implied equality " << eq << " to EE." << std::endl;
-        }
+        Assert( s_lbl==pto_lbl );
+        Trace("sep-assert") << "Asserting " << s_atom << std::endl;
+        d_equalityEngine.assertPredicate(s_atom, polarity, fact);
         //associate the equivalence class of the lhs with this pto
         Node r = getRepresentative( s_lbl );
         HeapAssertInfo * ei = getOrMakeEqcInfo( r, true );
@@ -1523,7 +1519,11 @@ void TheorySep::addPto( HeapAssertInfo * ei, Node ei_n, Node p, bool polarity ) 
       Assert( areEqual( pb[1], p[1] ) );
       std::vector< Node > exp;
       if( pb[1]!=p[1] ){
+        //if( pb[1].getKind()==kind::SINGLETON && p[1].getKind()==kind::SINGLETON ){
+        //  exp.push_back( pb[1][0].eqNode( p[1][0] ) );
+        //}else{
         exp.push_back( pb[1].eqNode( p[1] ) );
+        //}
       }
       exp.push_back( pb );
       exp.push_back( p.negate() );
@@ -1535,6 +1535,8 @@ void TheorySep::addPto( HeapAssertInfo * ei, Node ei_n, Node p, bool polarity ) 
       //  conc.push_back( pb[1].eqNode( p[1] ).negate() );
       //}
       Node n_conc = conc.empty() ? d_false : ( conc.size()==1 ? conc[0] : NodeManager::currentNM()->mkNode( kind::OR, conc ) );
+      Trace("sep-pto")  << "Conclusion is " << n_conc << std::endl;
+      // propagation for (pto x y) ^ ~(pto z w) ^ x = z => y != w
       sendLemma( exp, n_conc, "PTO_NEG_PROP" );
     }
   }else{
@@ -1559,6 +1561,7 @@ void TheorySep::mergePto( Node p1, Node p2 ) {
     }
     exp.push_back( p1 );
     exp.push_back( p2 );
+    //enforces injectiveness of pto : (pto x y) ^ (pto y w) ^ x = y => y = w
     sendLemma( exp, p1[0][1].eqNode( p2[0][1] ), "PTO_PROP" );
   }
 }
