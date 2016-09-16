@@ -43,6 +43,12 @@ d_qe( qe ), d_out( out ), d_use_vts_delta( use_vts_delta ), d_use_vts_inf( use_v
   d_is_nested_quant = false;
 }
 
+CegInstantiator::~CegInstantiator() {
+  for( std::map< Node, Instantiator * >::iterator it = d_instantiator.begin(); it != d_instantiator.end(); ++it ){
+    delete it->second;
+  }
+}
+
 void CegInstantiator::computeProgVars( Node n ){
   if( d_prog_var.find( n )==d_prog_var.end() ){
     d_prog_var[n].clear();
@@ -77,7 +83,24 @@ bool CegInstantiator::isEligible( Node n ) {
 
 void CegInstantiator::registerInstantiationVariable( Node v, unsigned index ) {
   if( d_instantiator.find( v )==d_instantiator.end() ){
-    //TODO
+    TypeNode tn = v.getType();
+    Instantiator * vinst;
+    if( tn.isReal() ){
+      vinst = new ArithInstantiator( d_qe, tn );
+    }else if( tn.isSort() ){
+      Assert( options::quantEpr() );
+      vinst = new EprInstantiator( d_qe, tn );
+    }else if( tn.isDatatype() ){
+      vinst = new DtInstantiator( d_qe, tn );
+    }else if( tn.isBitVector() ){
+      vinst = new BvInstantiator( d_qe, tn );
+    }else if( tn.isBoolean() ){
+      vinst = new ModelValueInstantiator( d_qe, tn );
+    }else{
+      //default
+      vinst = new Instantiator( d_qe, tn );
+    }
+    d_instantiator[v] = vinst;
   }
   d_curr_subs_proc[v].clear();
   d_curr_index[v] = index;
@@ -93,6 +116,7 @@ bool CegInstantiator::doAddInstantiation( SolvedForm& sf, unsigned i, unsigned e
     //solved for all variables, now construct instantiation
     bool needsPostprocess = !sf.d_has_coeff.empty();    
     if( needsPostprocess ){
+      //must make copy so that backtracking reverts sf
       SolvedForm sf_tmp;
       sf_tmp.copy( sf );
       bool postProcessSuccess = true;
@@ -119,17 +143,16 @@ bool CegInstantiator::doAddInstantiation( SolvedForm& sf, unsigned i, unsigned e
       d_stack_vars.pop_back();
     }
     registerInstantiationVariable( pv, i );
-    /*
+
     //get the instantiator object
-    std::map< Node, Instantiator * >::iterator itin = d_instantiator.find( pv );
     Instantiator * vinst = NULL;
+    std::map< Node, Instantiator * >::iterator itin = d_instantiator.find( pv );
     if( itin!=d_instantiator.end() ){
       vinst = itin->second;
     }
-    if( vinst!=NULL ){
-      d_active_instantiators[vinst] = true;
-    }
-    */
+    Assert( vinst!=NULL );
+    d_active_instantiators[vinst] = true;
+    vinst->reset( pv, effort );
 
     TypeNode pvtn = pv.getType();
     TypeNode pvtnb = pvtn.getBaseType();
@@ -137,7 +160,7 @@ bool CegInstantiator::doAddInstantiation( SolvedForm& sf, unsigned i, unsigned e
     if( d_qe->getMasterEqualityEngine()->hasTerm( pv ) ){
       pvr = d_qe->getMasterEqualityEngine()->getRepresentative( pv );
     }
-    Trace("cbqi-inst-debug") << "[Find instantiation for " << pv << "], rep=" << pvr << std::endl;
+    Trace("cbqi-inst-debug") << "[Find instantiation for " << pv << "], rep=" << pvr << ", instantiator is " << vinst->identify() << std::endl;
     Node pv_value;
     if( options::cbqiModel() ){
       pv_value = getModelValue( pv );
@@ -174,44 +197,19 @@ bool CegInstantiator::doAddInstantiation( SolvedForm& sf, unsigned i, unsigned e
                 proc = true;
               }
               if( proc ){
-                //try the substitution
-                if( tryDoAddInstantiationInc( pv, ns, pv_coeff, 0, sf, effort ) ){
+                if( vinst->processEqualTerm( this, sf, pv, pv_coeff, ns, effort ) ){
                   return true;
                 }
+                //try the substitution
+                //if( doAddInstantiationInc( pv, ns, pv_coeff, 0, sf, effort ) ){
+                //  return true;
+                //}
               }
             }
           }
         }
-        if( pvtn.isDatatype() ){
-          Trace("cbqi-inst-debug") << "[2] try based on constructors in equivalence class." << std::endl;
-          //[2] look in equivalence class for a constructor
-          for( unsigned k=0; k<it_eqc->second.size(); k++ ){
-            Node n = it_eqc->second[k];
-            if( n.getKind()==APPLY_CONSTRUCTOR ){
-              Trace("cbqi-inst-debug") << "... " << i << "...try based on constructor term " << n << std::endl;
-              std::vector< Node > children;
-              children.push_back( n.getOperator() );
-              const Datatype& dt = ((DatatypeType)(pvtn).toType()).getDatatype();
-              unsigned cindex = Datatype::indexOf( n.getOperator().toExpr() );
-              //now must solve for selectors applied to pv
-              for( unsigned j=0; j<dt[cindex].getNumArgs(); j++ ){
-                Node c = NodeManager::currentNM()->mkNode( APPLY_SELECTOR_TOTAL, Node::fromExpr( dt[cindex][j].getSelector() ), pv );
-                pushStackVariable( c );
-                children.push_back( c );
-              }
-              Node val = NodeManager::currentNM()->mkNode( kind::APPLY_CONSTRUCTOR, children );
-              if( tryDoAddInstantiationInc( pv, val, Node::null(), 0, sf, effort ) ){
-                return true;
-              }else{
-                //cleanup
-                Assert( d_stack_vars.size()>=dt[cindex].getNumArgs() );
-                for( unsigned j=0; j<dt[cindex].getNumArgs(); j++ ){
-                  popStackVariable();
-                }
-                break;
-              }
-            }
-          }
+        if( vinst->processEqualTerms( this, sf, pv, it_eqc->second, effort ) ){
+          return true;
         }
       }else{
         Trace("cbqi-inst-debug2") << "...eqc not found." << std::endl;
@@ -245,6 +243,10 @@ bool CegInstantiator::doAddInstantiation( SolvedForm& sf, unsigned i, unsigned e
             if( !ns.isNull() ){
               bool hasVar = d_prog_var[ns].find( pv )!=d_prog_var[ns].end();
               Trace("cbqi-inst-debug2") << "... " << ns << " has var " << pv << " : " << hasVar << std::endl;
+              //std::vector< Node > term_coeffs;
+              //std::vector< Node > terms;
+              //term_coeffs.push_back( pv_coeff );
+              //terms.push_back( ns );
               for( unsigned j=0; j<lhs.size(); j++ ){
                 //if this term or the another has pv in it, try to solve for it
                 if( hasVar || lhs_v[j] ){
@@ -274,14 +276,14 @@ bool CegInstantiator::doAddInstantiation( SolvedForm& sf, unsigned i, unsigned e
                     //isolate pv in the equality
                     int ires = solve_arith( pv, eq, veq_c, val, vts_coeff_inf, vts_coeff_delta );
                     if( ires!=0 ){
-                      if( tryDoAddInstantiationInc( pv, val, veq_c, 0, sf, effort ) ){
+                      if( doAddInstantiationInc( pv, val, veq_c, 0, sf, effort ) ){
                         return true;
                       }
                     }
                   }else if( pvtnb.isDatatype() ){
                     val = solve_dt( pv, lhs[j], ns, lhs[j], ns );
                     if( !val.isNull() ){
-                      if( tryDoAddInstantiationInc( pv, val, veq_c, 0, sf, effort ) ){
+                      if( doAddInstantiationInc( pv, val, veq_c, 0, sf, effort ) ){
                         return true;
                       }
                     }
@@ -301,183 +303,167 @@ bool CegInstantiator::doAddInstantiation( SolvedForm& sf, unsigned i, unsigned e
       }
 
       //[4] directly look at assertions
-      Trace("cbqi-inst-debug") << "[4] try based on assertions." << std::endl;
-      d_vts_sym[0] = d_qe->getTermDatabase()->getVtsInfinity( pvtn, false, false );
-      d_vts_sym[1] = d_qe->getTermDatabase()->getVtsDelta( false, false );
-      std::vector< Node > mbp_bounds[2];
-      std::vector< Node > mbp_coeff[2];
-      std::vector< Node > mbp_vts_coeff[2][2];
-      std::vector< Node > mbp_lit[2];
-      //std::vector< MbpBounds > mbp_bounds[2];
-      //unsigned rmax = Theory::theoryOf( pv )==Theory::theoryOf( pv.getType() ) ? 1 : 2;
-      for( unsigned r=0; r<2; r++ ){
-        TheoryId tid = r==0 ? Theory::theoryOf( pvtn ) : THEORY_UF;
-        Trace("cbqi-inst-debug2") << "  look at assertions of " << tid << std::endl;
-        std::map< TheoryId, std::vector< Node > >::iterator ita = d_curr_asserts.find( tid );
-        if( ita!=d_curr_asserts.end() ){
-          for (unsigned j = 0; j<ita->second.size(); j++) {
-            Node lit = ita->second[j];
-            Trace("cbqi-inst-debug2") << "  look at " << lit << std::endl;
-            Node atom = lit.getKind()==NOT ? lit[0] : lit;
-            bool pol = lit.getKind()!=NOT;
-            if( pvtn.isReal() ){
-              //arithmetic inequalities and disequalities
-              if( atom.getKind()==GEQ || ( atom.getKind()==EQUAL && !pol && atom[0].getType().isReal() ) ){
-                Assert( atom.getKind()!=GEQ || atom[1].isConst() );
-                Node atom_lhs;
-                Node atom_rhs;
-                if( atom.getKind()==GEQ ){
-                  atom_lhs = atom[0];
-                  atom_rhs = atom[1];
-                }else{
-                  atom_lhs = NodeManager::currentNM()->mkNode( MINUS, atom[0], atom[1] );
-                  atom_lhs = Rewriter::rewrite( atom_lhs );
-                  atom_rhs = d_zero;
+      if( vinst->hasProcessAssertion( this, sf, pv, effort ) ){
+        Trace("cbqi-inst-debug") << "[4] try based on assertions." << std::endl;
+        d_vts_sym[0] = d_qe->getTermDatabase()->getVtsInfinity( pvtn, false, false );
+        d_vts_sym[1] = d_qe->getTermDatabase()->getVtsDelta( false, false );
+        std::vector< Node > mbp_bounds[2];
+        std::vector< Node > mbp_coeff[2];
+        std::vector< Node > mbp_vts_coeff[2][2];
+        std::vector< Node > mbp_lit[2];
+        std::vector< Node > lits;
+        //unsigned rmax = Theory::theoryOf( pv )==Theory::theoryOf( pv.getType() ) ? 1 : 2;
+        for( unsigned r=0; r<2; r++ ){
+          TheoryId tid = r==0 ? Theory::theoryOf( pvtn ) : THEORY_UF;
+          Trace("cbqi-inst-debug2") << "  look at assertions of " << tid << std::endl;
+          std::map< TheoryId, std::vector< Node > >::iterator ita = d_curr_asserts.find( tid );
+          if( ita!=d_curr_asserts.end() ){
+            for (unsigned j = 0; j<ita->second.size(); j++) {
+              Node lit = ita->second[j];
+              if( std::find( lits.begin(), lits.end(), lit )==lits.end() ){
+                lits.push_back( lit );
+                if( vinst->processAssertion( this, sf, pv, lit, effort ) ){
+                  return true;
                 }
-                //must be an eligible term
-                if( isEligible( atom_lhs ) ){
-                  //apply substitution to LHS of atom
-                  if( !d_prog_var[atom_lhs].empty() ){
-                    Node atom_lhs_coeff;
-                    atom_lhs = applySubstitution( pvtn, atom_lhs, sf, atom_lhs_coeff );
-                    if( !atom_lhs.isNull() ){
-                      computeProgVars( atom_lhs );
-                      if( !atom_lhs_coeff.isNull() ){
-                        atom_rhs = Rewriter::rewrite( NodeManager::currentNM()->mkNode( MULT, atom_lhs_coeff, atom_rhs ) );
-                      }
+                  
+                
+                Trace("cbqi-inst-debug2") << "  look at " << lit << std::endl;
+                Node atom = lit.getKind()==NOT ? lit[0] : lit;
+                bool pol = lit.getKind()!=NOT;
+                if( pvtn.isReal() ){
+                  //arithmetic inequalities and disequalities
+                  if( atom.getKind()==GEQ || ( atom.getKind()==EQUAL && !pol && atom[0].getType().isReal() ) ){
+                    Assert( atom.getKind()!=GEQ || atom[1].isConst() );
+                    Node atom_lhs;
+                    Node atom_rhs;
+                    if( atom.getKind()==GEQ ){
+                      atom_lhs = atom[0];
+                      atom_rhs = atom[1];
+                    }else{
+                      atom_lhs = NodeManager::currentNM()->mkNode( MINUS, atom[0], atom[1] );
+                      atom_lhs = Rewriter::rewrite( atom_lhs );
+                      atom_rhs = d_zero;
                     }
-                  }
-                  //if it contains pv, not infinity
-                  if( !atom_lhs.isNull() && d_prog_var[atom_lhs].find( pv )!=d_prog_var[atom_lhs].end() ){
-                    Node satom = NodeManager::currentNM()->mkNode( atom.getKind(), atom_lhs, atom_rhs );
-                    //cannot contain infinity?
-                    //if( !d_qe->getTermDatabase()->containsVtsInfinity( atom_lhs ) ){
-                    Trace("cbqi-inst-debug") << "..[3] From assertion : " << atom << ", pol = " << pol << std::endl;
-                    Trace("cbqi-inst-debug") << "         substituted : " << satom << ", pol = " << pol << std::endl;
-                    Node vts_coeff_inf;
-                    Node vts_coeff_delta;
-                    Node val;
-                    Node veq_c;
-                    //isolate pv in the inequality
-                    int ires = solve_arith( pv, satom, veq_c, val, vts_coeff_inf, vts_coeff_delta );
-                    if( ires!=0 ){
-                      //disequalities are either strict upper or lower bounds
-                      unsigned rmax = ( atom.getKind()==GEQ || options::cbqiModel() ) ? 1 : 2;
-                      for( unsigned r=0; r<rmax; r++ ){
-                        int uires = ires;
-                        Node uval = val;
-                        if( atom.getKind()==GEQ ){
-                          //push negation downwards
-                          if( !pol ){
-                            uires = -ires;
-                            if( pvtn.isInteger() ){
-                              uval = NodeManager::currentNM()->mkNode( PLUS, val, NodeManager::currentNM()->mkConst( Rational( uires ) ) );
-                              uval = Rewriter::rewrite( uval );
-                            }else{
-                              Assert( pvtn.isReal() );
-                              //now is strict inequality
-                              uires = uires*2;
-                            }
-                          }
-                        }else{
-                          bool is_upper;
-                          if( options::cbqiModel() ){
-                            // disequality is a disjunction : only consider the bound in the direction of the model
-                            //first check if there is an infinity...
-                            if( !vts_coeff_inf.isNull() ){
-                              //coefficient or val won't make a difference, just compare with zero
-                              Trace("cbqi-inst-debug") << "Disequality : check infinity polarity " << vts_coeff_inf << std::endl;
-                              Assert( vts_coeff_inf.isConst() );
-                              is_upper = ( vts_coeff_inf.getConst<Rational>().sgn()==1 );
-                            }else{
-                              Node rhs_value = getModelValue( val );
-                              Node lhs_value = pv_value;
-                              if( !veq_c.isNull() ){
-                                lhs_value = NodeManager::currentNM()->mkNode( MULT, lhs_value, veq_c );
-                                lhs_value = Rewriter::rewrite( lhs_value );
-                              }
-                              Trace("cbqi-inst-debug") << "Disequality : check model values " << lhs_value << " " << rhs_value << std::endl;
-                              Assert( lhs_value!=rhs_value );
-                              Node cmp = NodeManager::currentNM()->mkNode( GEQ, lhs_value, rhs_value );
-                              cmp = Rewriter::rewrite( cmp );
-                              Assert( cmp.isConst() );
-                              is_upper = ( cmp!=d_true );
-                            }
-                          }else{
-                            is_upper = (r==0);
-                          }
-                          Assert( atom.getKind()==EQUAL && !pol );
-                          if( pvtn.isInteger() ){
-                            uires = is_upper ? -1 : 1;
-                            uval = NodeManager::currentNM()->mkNode( PLUS, val, NodeManager::currentNM()->mkConst( Rational( uires ) ) );
-                            uval = Rewriter::rewrite( uval );
-                          }else{
-                            Assert( pvtn.isReal() );
-                            uires = is_upper ? -2 : 2;
-                          }
-                        }
-                        Trace("cbqi-bound-inf") << "From " << lit << ", got : ";
-                        if( !veq_c.isNull() ){
-                          Trace("cbqi-bound-inf") << veq_c << " * ";
-                        }
-                        Trace("cbqi-bound-inf") << pv << " -> " << uval << ", styp = " << uires << std::endl;
-                        //take into account delta
-                        if( d_use_vts_delta && ( uires==2 || uires==-2 ) ){
-                          if( options::cbqiModel() ){
-                            Node delta_coeff = NodeManager::currentNM()->mkConst( Rational( uires > 0 ? 1 : -1 ) );
-                            if( vts_coeff_delta.isNull() ){
-                              vts_coeff_delta = delta_coeff;
-                            }else{
-                              vts_coeff_delta = NodeManager::currentNM()->mkNode( PLUS, vts_coeff_delta, delta_coeff );
-                              vts_coeff_delta = Rewriter::rewrite( vts_coeff_delta );
-                            }
-                          }else{
-                            Node delta = d_qe->getTermDatabase()->getVtsDelta();
-                            uval = NodeManager::currentNM()->mkNode( uires==2 ? PLUS : MINUS, uval, delta );
-                            uval = Rewriter::rewrite( uval );
-                          }
-                        }
-                        if( options::cbqiModel() ){
-                          //just store bounds, will choose based on tighest bound
-                          unsigned index = uires>0 ? 0 : 1;
-                          mbp_bounds[index].push_back( uval );
-                          mbp_coeff[index].push_back( veq_c );
-                          Trace("cbqi-inst-debug") << "Store bound " << index << " " << uval << " " << veq_c << " " << vts_coeff_inf << " " << vts_coeff_delta << " " << lit << std::endl;
-                          for( unsigned t=0; t<2; t++ ){
-                            mbp_vts_coeff[index][t].push_back( t==0 ? vts_coeff_inf : vts_coeff_delta );
-                          }
-                          mbp_lit[index].push_back( lit );
-                        }else{
-                          //try this bound
-                          if( tryDoAddInstantiationInc( pv, uval, veq_c, uires>0 ? 1 : -1, sf, effort ) ){
-                            return true;
+                    //must be an eligible term
+                    if( isEligible( atom_lhs ) ){
+                      //apply substitution to LHS of atom
+                      if( !d_prog_var[atom_lhs].empty() ){
+                        Node atom_lhs_coeff;
+                        atom_lhs = applySubstitution( pvtn, atom_lhs, sf, atom_lhs_coeff );
+                        if( !atom_lhs.isNull() ){
+                          computeProgVars( atom_lhs );
+                          if( !atom_lhs_coeff.isNull() ){
+                            atom_rhs = Rewriter::rewrite( NodeManager::currentNM()->mkNode( MULT, atom_lhs_coeff, atom_rhs ) );
                           }
                         }
                       }
-                    }
-                  }
-                }
-              }
-            }
-            /*   TODO: algebraic reasoning for bitvector instantiation
-            else if( pvtn.isBitVector() ){
-              if( atom.getKind()==BITVECTOR_ULT || atom.getKind()==BITVECTOR_ULE ){
-                for( unsigned t=0; t<2; t++ ){
-                  if( atom[t]==pv ){
-                    computeProgVars( atom[1-t] );
-                    if( d_inelig.find( atom[1-t] )==d_inelig.end() ){
-                      //only ground terms  TODO: more
-                      if( d_prog_var[atom[1-t]].empty() ){
+                      //if it contains pv, not infinity
+                      if( !atom_lhs.isNull() && d_prog_var[atom_lhs].find( pv )!=d_prog_var[atom_lhs].end() ){
+                        Node satom = NodeManager::currentNM()->mkNode( atom.getKind(), atom_lhs, atom_rhs );
+                        //cannot contain infinity?
+                        //if( !d_qe->getTermDatabase()->containsVtsInfinity( atom_lhs ) ){
+                        Trace("cbqi-inst-debug") << "..[3] From assertion : " << atom << ", pol = " << pol << std::endl;
+                        Trace("cbqi-inst-debug") << "         substituted : " << satom << ", pol = " << pol << std::endl;
+                        Node vts_coeff_inf;
+                        Node vts_coeff_delta;
+                        Node val;
                         Node veq_c;
-                        Node uval;
-                        if( ( !pol && atom.getKind()==BITVECTOR_ULT ) || ( pol && atom.getKind()==BITVECTOR_ULE ) ){
-                          uval = atom[1-t];
-                        }else{
-                          uval = NodeManager::currentNM()->mkNode( (atom.getKind()==BITVECTOR_ULT)==(t==1) ? BITVECTOR_PLUS : BITVECTOR_SUB, atom[1-t], 
-                                                                   bv::utils::mkConst(pvtn.getConst<BitVectorSize>(), 1) );
-                        }
-                        if( tryDoAddInstantiationInc( pv, uval, veq_c, 0, sf, effort ) ){
-                          return true;
+                        //isolate pv in the inequality
+                        int ires = solve_arith( pv, satom, veq_c, val, vts_coeff_inf, vts_coeff_delta );
+                        if( ires!=0 ){
+                          //disequalities are either strict upper or lower bounds
+                          unsigned rmax = ( atom.getKind()==GEQ || options::cbqiModel() ) ? 1 : 2;
+                          for( unsigned r=0; r<rmax; r++ ){
+                            int uires = ires;
+                            Node uval = val;
+                            if( atom.getKind()==GEQ ){
+                              //push negation downwards
+                              if( !pol ){
+                                uires = -ires;
+                                if( pvtn.isInteger() ){
+                                  uval = NodeManager::currentNM()->mkNode( PLUS, val, NodeManager::currentNM()->mkConst( Rational( uires ) ) );
+                                  uval = Rewriter::rewrite( uval );
+                                }else{
+                                  Assert( pvtn.isReal() );
+                                  //now is strict inequality
+                                  uires = uires*2;
+                                }
+                              }
+                            }else{
+                              bool is_upper;
+                              if( options::cbqiModel() ){
+                                // disequality is a disjunction : only consider the bound in the direction of the model
+                                //first check if there is an infinity...
+                                if( !vts_coeff_inf.isNull() ){
+                                  //coefficient or val won't make a difference, just compare with zero
+                                  Trace("cbqi-inst-debug") << "Disequality : check infinity polarity " << vts_coeff_inf << std::endl;
+                                  Assert( vts_coeff_inf.isConst() );
+                                  is_upper = ( vts_coeff_inf.getConst<Rational>().sgn()==1 );
+                                }else{
+                                  Node rhs_value = getModelValue( val );
+                                  Node lhs_value = pv_value;
+                                  if( !veq_c.isNull() ){
+                                    lhs_value = NodeManager::currentNM()->mkNode( MULT, lhs_value, veq_c );
+                                    lhs_value = Rewriter::rewrite( lhs_value );
+                                  }
+                                  Trace("cbqi-inst-debug") << "Disequality : check model values " << lhs_value << " " << rhs_value << std::endl;
+                                  Assert( lhs_value!=rhs_value );
+                                  Node cmp = NodeManager::currentNM()->mkNode( GEQ, lhs_value, rhs_value );
+                                  cmp = Rewriter::rewrite( cmp );
+                                  Assert( cmp.isConst() );
+                                  is_upper = ( cmp!=d_true );
+                                }
+                              }else{
+                                is_upper = (r==0);
+                              }
+                              Assert( atom.getKind()==EQUAL && !pol );
+                              if( pvtn.isInteger() ){
+                                uires = is_upper ? -1 : 1;
+                                uval = NodeManager::currentNM()->mkNode( PLUS, val, NodeManager::currentNM()->mkConst( Rational( uires ) ) );
+                                uval = Rewriter::rewrite( uval );
+                              }else{
+                                Assert( pvtn.isReal() );
+                                uires = is_upper ? -2 : 2;
+                              }
+                            }
+                            Trace("cbqi-bound-inf") << "From " << lit << ", got : ";
+                            if( !veq_c.isNull() ){
+                              Trace("cbqi-bound-inf") << veq_c << " * ";
+                            }
+                            Trace("cbqi-bound-inf") << pv << " -> " << uval << ", styp = " << uires << std::endl;
+                            //take into account delta
+                            if( d_use_vts_delta && ( uires==2 || uires==-2 ) ){
+                              if( options::cbqiModel() ){
+                                Node delta_coeff = NodeManager::currentNM()->mkConst( Rational( uires > 0 ? 1 : -1 ) );
+                                if( vts_coeff_delta.isNull() ){
+                                  vts_coeff_delta = delta_coeff;
+                                }else{
+                                  vts_coeff_delta = NodeManager::currentNM()->mkNode( PLUS, vts_coeff_delta, delta_coeff );
+                                  vts_coeff_delta = Rewriter::rewrite( vts_coeff_delta );
+                                }
+                              }else{
+                                Node delta = d_qe->getTermDatabase()->getVtsDelta();
+                                uval = NodeManager::currentNM()->mkNode( uires==2 ? PLUS : MINUS, uval, delta );
+                                uval = Rewriter::rewrite( uval );
+                              }
+                            }
+                            if( options::cbqiModel() ){
+                              //just store bounds, will choose based on tighest bound
+                              unsigned index = uires>0 ? 0 : 1;
+                              mbp_bounds[index].push_back( uval );
+                              mbp_coeff[index].push_back( veq_c );
+                              Trace("cbqi-inst-debug") << "Store bound " << index << " " << uval << " " << veq_c << " " << vts_coeff_inf << " " << vts_coeff_delta << " " << lit << std::endl;
+                              for( unsigned t=0; t<2; t++ ){
+                                mbp_vts_coeff[index][t].push_back( t==0 ? vts_coeff_inf : vts_coeff_delta );
+                              }
+                              mbp_lit[index].push_back( lit );
+                            }else{
+                              //try this bound
+                              if( doAddInstantiationInc( pv, uval, veq_c, uires>0 ? 1 : -1, sf, effort ) ){
+                                return true;
+                              }
+                            }
+                          }
                         }
                       }
                     }
@@ -485,202 +471,204 @@ bool CegInstantiator::doAddInstantiation( SolvedForm& sf, unsigned i, unsigned e
                 }
               }
             }
-            */
           }
         }
-      }
-      if( options::cbqiModel() ){
-        if( pvtn.isInteger() || pvtn.isReal() ){
-          bool use_inf = d_use_vts_inf && ( pvtn.isInteger() ? options::cbqiUseInfInt() : options::cbqiUseInfReal() );
-          bool upper_first = false;
-          if( options::cbqiMinBounds() ){
-            upper_first = mbp_bounds[1].size()<mbp_bounds[0].size();
-          }
-          int best_used[2];
-          std::vector< Node > t_values[3];
-          //try optimal bounds
-          for( unsigned r=0; r<2; r++ ){
-            int rr = upper_first ? (1-r) : r;
-            best_used[rr] = -1;
-            if( mbp_bounds[rr].empty() ){
-              if( use_inf ){
-                Trace("cbqi-bound") << "No " << ( rr==0 ? "lower" : "upper" ) << " bounds for " << pv << " (type=" << pvtn << ")" << std::endl;
-                //no bounds, we do +- infinity
-                Node val = d_qe->getTermDatabase()->getVtsInfinity( pvtn );
-                //TODO : rho value for infinity?
-                if( rr==0 ){
-                  val = NodeManager::currentNM()->mkNode( UMINUS, val );
-                  val = Rewriter::rewrite( val );
+        if( vinst->processAssertions( this, sf, pv, lits, effort ) ){
+          return true;
+        }
+        if( options::cbqiModel() ){
+          if( pvtn.isInteger() || pvtn.isReal() ){
+            bool use_inf = d_use_vts_inf && ( pvtn.isInteger() ? options::cbqiUseInfInt() : options::cbqiUseInfReal() );
+            bool upper_first = false;
+            if( options::cbqiMinBounds() ){
+              upper_first = mbp_bounds[1].size()<mbp_bounds[0].size();
+            }
+            int best_used[2];
+            std::vector< Node > t_values[3];
+            //try optimal bounds
+            for( unsigned r=0; r<2; r++ ){
+              int rr = upper_first ? (1-r) : r;
+              best_used[rr] = -1;
+              if( mbp_bounds[rr].empty() ){
+                if( use_inf ){
+                  Trace("cbqi-bound") << "No " << ( rr==0 ? "lower" : "upper" ) << " bounds for " << pv << " (type=" << pvtn << ")" << std::endl;
+                  //no bounds, we do +- infinity
+                  Node val = d_qe->getTermDatabase()->getVtsInfinity( pvtn );
+                  //TODO : rho value for infinity?
+                  if( rr==0 ){
+                    val = NodeManager::currentNM()->mkNode( UMINUS, val );
+                    val = Rewriter::rewrite( val );
+                  }
+                  if( doAddInstantiationInc( pv, val, Node::null(), 0, sf, effort ) ){
+                    return true;
+                  }
                 }
-                if( tryDoAddInstantiationInc( pv, val, Node::null(), 0, sf, effort ) ){
+              }else{
+                Trace("cbqi-bound") << ( rr==0 ? "Lower" : "Upper" ) << " bounds for " << pv << " (type=" << pvtn << ") : " << std::endl;
+                int best = -1;
+                Node best_bound_value[3];
+                for( unsigned j=0; j<mbp_bounds[rr].size(); j++ ){
+                  Node value[3];
+                  if( Trace.isOn("cbqi-bound") ){
+                    Assert( !mbp_bounds[rr][j].isNull() );
+                    Trace("cbqi-bound") << "  " << j << ": " << mbp_bounds[rr][j];
+                    if( !mbp_vts_coeff[rr][0][j].isNull() ){
+                      Trace("cbqi-bound") << " (+ " << mbp_vts_coeff[rr][0][j] << " * INF)";
+                    }
+                    if( !mbp_vts_coeff[rr][1][j].isNull() ){
+                      Trace("cbqi-bound") << " (+ " << mbp_vts_coeff[rr][1][j] << " * DELTA)";
+                    }
+                    if( !mbp_coeff[rr][j].isNull() ){
+                      Trace("cbqi-bound") << " (div " << mbp_coeff[rr][j] << ")";
+                    }
+                    Trace("cbqi-bound") << ", value = ";
+                  }
+                  t_values[rr].push_back( Node::null() );
+                  //check if it is better than the current best bound : lexicographic order infinite/finite/infinitesimal parts
+                  bool new_best = true;
+                  for( unsigned t=0; t<3; t++ ){
+                    //get the value
+                    if( t==0 ){
+                      value[0] = mbp_vts_coeff[rr][0][j];
+                      if( !value[0].isNull() ){
+                        Trace("cbqi-bound") << "( " << value[0] << " * INF ) + ";
+                      }else{
+                        value[0] = d_zero;
+                      }
+                    }else if( t==1 ){
+                      Node t_value = getModelValue( mbp_bounds[rr][j] );
+                      t_values[rr][j] = t_value;
+                      value[1] = t_value;
+                      Trace("cbqi-bound") << value[1];
+                    }else{
+                      value[2] = mbp_vts_coeff[rr][1][j];
+                      if( !value[2].isNull() ){
+                        Trace("cbqi-bound") << " + ( " << value[2] << " * DELTA )";
+                      }else{
+                        value[2] = d_zero;
+                      }
+                    }
+                    //multiply by coefficient
+                    if( value[t]!=d_zero && !mbp_coeff[rr][j].isNull() ){
+                      Assert( mbp_coeff[rr][j].isConst() );
+                      value[t] = NodeManager::currentNM()->mkNode( MULT, NodeManager::currentNM()->mkConst( Rational(1) / mbp_coeff[rr][j].getConst<Rational>() ), value[t] );
+                      value[t] = Rewriter::rewrite( value[t] );
+                    }
+                    //check if new best
+                    if( best!=-1 ){
+                      Assert( !value[t].isNull() && !best_bound_value[t].isNull() );
+                      if( value[t]!=best_bound_value[t] ){
+                        Kind k = rr==0 ? GEQ : LEQ;
+                        Node cmp_bound = NodeManager::currentNM()->mkNode( k, value[t], best_bound_value[t] );
+                        cmp_bound = Rewriter::rewrite( cmp_bound );
+                        if( cmp_bound!=d_true ){
+                          new_best = false;
+                          break;
+                        }
+                      }
+                    }
+                  }
+                  Trace("cbqi-bound") << std::endl;
+                  if( new_best ){
+                    for( unsigned t=0; t<3; t++ ){
+                      best_bound_value[t] = value[t];
+                    }
+                    best = j;
+                  }
+                }
+                if( best!=-1 ){
+                  Trace("cbqi-bound") << "...best bound is " << best << " : ";
+                  if( best_bound_value[0]!=d_zero ){
+                    Trace("cbqi-bound") << "( " << best_bound_value[0] << " * INF ) + ";
+                  }
+                  Trace("cbqi-bound") << best_bound_value[1];
+                  if( best_bound_value[2]!=d_zero ){
+                    Trace("cbqi-bound") << " + ( " << best_bound_value[2] << " * DELTA )";
+                  }
+                  Trace("cbqi-bound") << std::endl;
+                  best_used[rr] = best;
+                  //if using cbqiMidpoint, only add the instance based on one bound if the bound is non-strict
+                  if( !options::cbqiMidpoint() || pvtn.isInteger() || mbp_vts_coeff[rr][1][best].isNull() ){
+                    Node val = mbp_bounds[rr][best];
+                    val = getModelBasedProjectionValue( pv, val, rr==0, mbp_coeff[rr][best], pv_value, t_values[rr][best], sf.d_theta,
+                                                        mbp_vts_coeff[rr][0][best], mbp_vts_coeff[rr][1][best] );
+                    if( !val.isNull() ){
+                      if( doAddInstantiationInc( pv, val, mbp_coeff[rr][best], rr==0 ? 1 : -1, sf, effort ) ){
+                        return true;
+                      }
+                    }
+                  }
+                }
+              }
+            }
+            //if not using infinity, use model value of zero
+            if( !use_inf && mbp_bounds[0].empty() && mbp_bounds[1].empty() ){
+              Node val = d_zero;
+              Node c; //null (one) coefficient
+              val = getModelBasedProjectionValue( pv, val, true, c, pv_value, d_zero, sf.d_theta, Node::null(), Node::null() );
+              if( !val.isNull() ){
+                if( doAddInstantiationInc( pv, val, c, 0, sf, effort ) ){
                   return true;
                 }
               }
-            }else{
-              Trace("cbqi-bound") << ( rr==0 ? "Lower" : "Upper" ) << " bounds for " << pv << " (type=" << pvtn << ") : " << std::endl;
-              int best = -1;
-              Node best_bound_value[3];
-              for( unsigned j=0; j<mbp_bounds[rr].size(); j++ ){
-                Node value[3];
-                if( Trace.isOn("cbqi-bound") ){
-                  Assert( !mbp_bounds[rr][j].isNull() );
-                  Trace("cbqi-bound") << "  " << j << ": " << mbp_bounds[rr][j];
-                  if( !mbp_vts_coeff[rr][0][j].isNull() ){
-                    Trace("cbqi-bound") << " (+ " << mbp_vts_coeff[rr][0][j] << " * INF)";
-                  }
-                  if( !mbp_vts_coeff[rr][1][j].isNull() ){
-                    Trace("cbqi-bound") << " (+ " << mbp_vts_coeff[rr][1][j] << " * DELTA)";
-                  }
-                  if( !mbp_coeff[rr][j].isNull() ){
-                    Trace("cbqi-bound") << " (div " << mbp_coeff[rr][j] << ")";
-                  }
-                  Trace("cbqi-bound") << ", value = ";
+            }
+            if( options::cbqiMidpoint() && !pvtn.isInteger() ){
+              Node vals[2];
+              bool bothBounds = true;
+              Trace("cbqi-bound") << "Try midpoint of bounds..." << std::endl;
+              for( unsigned rr=0; rr<2; rr++ ){
+                int best = best_used[rr];
+                if( best==-1 ){
+                  bothBounds = false;
+                }else{
+                  vals[rr] = mbp_bounds[rr][best];
+                  vals[rr] = getModelBasedProjectionValue( pv, vals[rr], rr==0, Node::null(), pv_value, t_values[rr][best], sf.d_theta,
+                                                           mbp_vts_coeff[rr][0][best], Node::null() );
                 }
-                t_values[rr].push_back( Node::null() );
-                //check if it is better than the current best bound : lexicographic order infinite/finite/infinitesimal parts
-                bool new_best = true;
-                for( unsigned t=0; t<3; t++ ){
-                  //get the value
-                  if( t==0 ){
-                    value[0] = mbp_vts_coeff[rr][0][j];
-                    if( !value[0].isNull() ){
-                      Trace("cbqi-bound") << "( " << value[0] << " * INF ) + ";
-                    }else{
-                      value[0] = d_zero;
-                    }
-                  }else if( t==1 ){
-                    Node t_value = getModelValue( mbp_bounds[rr][j] );
-                    t_values[rr][j] = t_value;
-                    value[1] = t_value;
-                    Trace("cbqi-bound") << value[1];
-                  }else{
-                    value[2] = mbp_vts_coeff[rr][1][j];
-                    if( !value[2].isNull() ){
-                      Trace("cbqi-bound") << " + ( " << value[2] << " * DELTA )";
-                    }else{
-                      value[2] = d_zero;
-                    }
-                  }
-                  //multiply by coefficient
-                  if( value[t]!=d_zero && !mbp_coeff[rr][j].isNull() ){
-                    Assert( mbp_coeff[rr][j].isConst() );
-                    value[t] = NodeManager::currentNM()->mkNode( MULT, NodeManager::currentNM()->mkConst( Rational(1) / mbp_coeff[rr][j].getConst<Rational>() ), value[t] );
-                    value[t] = Rewriter::rewrite( value[t] );
-                  }
-                  //check if new best
-                  if( best!=-1 ){
-                    Assert( !value[t].isNull() && !best_bound_value[t].isNull() );
-                    if( value[t]!=best_bound_value[t] ){
-                      Kind k = rr==0 ? GEQ : LEQ;
-                      Node cmp_bound = NodeManager::currentNM()->mkNode( k, value[t], best_bound_value[t] );
-                      cmp_bound = Rewriter::rewrite( cmp_bound );
-                      if( cmp_bound!=d_true ){
-                        new_best = false;
-                        break;
+                Trace("cbqi-bound") << "Bound : " << vals[rr] << std::endl;
+              }
+              Node val;
+              if( bothBounds ){
+                Assert( !vals[0].isNull() && !vals[1].isNull() );
+                if( vals[0]==vals[1] ){
+                  val = vals[0];
+                }else{
+                  val = NodeManager::currentNM()->mkNode( MULT, NodeManager::currentNM()->mkNode( PLUS, vals[0], vals[1] ),
+                                                                NodeManager::currentNM()->mkConst( Rational(1)/Rational(2) ) );
+                  val = Rewriter::rewrite( val );
+                }
+              }else{
+                if( !vals[0].isNull() ){
+                  val = NodeManager::currentNM()->mkNode( PLUS, vals[0], d_one );
+                  val = Rewriter::rewrite( val );
+                }else if( !vals[1].isNull() ){
+                  val = NodeManager::currentNM()->mkNode( MINUS, vals[1], d_one );
+                  val = Rewriter::rewrite( val );
+                }
+              }
+              Trace("cbqi-bound") << "Midpoint value : " << val << std::endl;
+              if( !val.isNull() ){
+                if( doAddInstantiationInc( pv, val, Node::null(), 0, sf, effort ) ){
+                  return true;
+                }
+              }
+            }
+  #ifdef MBP_STRICT_ASSERTIONS
+            Assert( false );
+  #endif
+            if( options::cbqiNopt() ){
+              //try non-optimal bounds (heuristic, may help when nested quantification) ?
+              Trace("cbqi-bound") << "Try non-optimal bounds..." << std::endl;
+              for( unsigned r=0; r<2; r++ ){
+                int rr = upper_first ? (1-r) : r;
+                for( unsigned j=0; j<mbp_bounds[rr].size(); j++ ){
+                  if( (int)j!=best_used[rr] && ( !options::cbqiMidpoint() || mbp_vts_coeff[rr][1][j].isNull() ) ){
+                    Node val = getModelBasedProjectionValue( pv, mbp_bounds[rr][j], rr==0, mbp_coeff[rr][j], pv_value, t_values[rr][j], sf.d_theta,
+                                                             mbp_vts_coeff[rr][0][j], mbp_vts_coeff[rr][1][j] );
+                    if( !val.isNull() ){
+                      if( doAddInstantiationInc( pv, val, mbp_coeff[rr][j], rr==0 ? 1 : -1, sf, effort ) ){
+                        return true;
                       }
-                    }
-                  }
-                }
-                Trace("cbqi-bound") << std::endl;
-                if( new_best ){
-                  for( unsigned t=0; t<3; t++ ){
-                    best_bound_value[t] = value[t];
-                  }
-                  best = j;
-                }
-              }
-              if( best!=-1 ){
-                Trace("cbqi-bound") << "...best bound is " << best << " : ";
-                if( best_bound_value[0]!=d_zero ){
-                  Trace("cbqi-bound") << "( " << best_bound_value[0] << " * INF ) + ";
-                }
-                Trace("cbqi-bound") << best_bound_value[1];
-                if( best_bound_value[2]!=d_zero ){
-                  Trace("cbqi-bound") << " + ( " << best_bound_value[2] << " * DELTA )";
-                }
-                Trace("cbqi-bound") << std::endl;
-                best_used[rr] = best;
-                //if using cbqiMidpoint, only add the instance based on one bound if the bound is non-strict
-                if( !options::cbqiMidpoint() || pvtn.isInteger() || mbp_vts_coeff[rr][1][best].isNull() ){
-                  Node val = mbp_bounds[rr][best];
-                  val = getModelBasedProjectionValue( pv, val, rr==0, mbp_coeff[rr][best], pv_value, t_values[rr][best], sf.d_theta,
-                                                      mbp_vts_coeff[rr][0][best], mbp_vts_coeff[rr][1][best] );
-                  if( !val.isNull() ){
-                    if( tryDoAddInstantiationInc( pv, val, mbp_coeff[rr][best], rr==0 ? 1 : -1, sf, effort ) ){
-                      return true;
-                    }
-                  }
-                }
-              }
-            }
-          }
-          //if not using infinity, use model value of zero
-          if( !use_inf && mbp_bounds[0].empty() && mbp_bounds[1].empty() ){
-            Node val = d_zero;
-            Node c; //null (one) coefficient
-            val = getModelBasedProjectionValue( pv, val, true, c, pv_value, d_zero, sf.d_theta, Node::null(), Node::null() );
-            if( !val.isNull() ){
-              if( tryDoAddInstantiationInc( pv, val, c, 0, sf, effort ) ){
-                return true;
-              }
-            }
-          }
-          if( options::cbqiMidpoint() && !pvtn.isInteger() ){
-            Node vals[2];
-            bool bothBounds = true;
-            Trace("cbqi-bound") << "Try midpoint of bounds..." << std::endl;
-            for( unsigned rr=0; rr<2; rr++ ){
-              int best = best_used[rr];
-              if( best==-1 ){
-                bothBounds = false;
-              }else{
-                vals[rr] = mbp_bounds[rr][best];
-                vals[rr] = getModelBasedProjectionValue( pv, vals[rr], rr==0, Node::null(), pv_value, t_values[rr][best], sf.d_theta,
-                                                         mbp_vts_coeff[rr][0][best], Node::null() );
-              }
-              Trace("cbqi-bound") << "Bound : " << vals[rr] << std::endl;
-            }
-            Node val;
-            if( bothBounds ){
-              Assert( !vals[0].isNull() && !vals[1].isNull() );
-              if( vals[0]==vals[1] ){
-                val = vals[0];
-              }else{
-                val = NodeManager::currentNM()->mkNode( MULT, NodeManager::currentNM()->mkNode( PLUS, vals[0], vals[1] ),
-                                                              NodeManager::currentNM()->mkConst( Rational(1)/Rational(2) ) );
-                val = Rewriter::rewrite( val );
-              }
-            }else{
-              if( !vals[0].isNull() ){
-                val = NodeManager::currentNM()->mkNode( PLUS, vals[0], d_one );
-                val = Rewriter::rewrite( val );
-              }else if( !vals[1].isNull() ){
-                val = NodeManager::currentNM()->mkNode( MINUS, vals[1], d_one );
-                val = Rewriter::rewrite( val );
-              }
-            }
-            Trace("cbqi-bound") << "Midpoint value : " << val << std::endl;
-            if( !val.isNull() ){
-              if( tryDoAddInstantiationInc( pv, val, Node::null(), 0, sf, effort ) ){
-                return true;
-              }
-            }
-          }
-#ifdef MBP_STRICT_ASSERTIONS
-          Assert( false );
-#endif
-          if( options::cbqiNopt() ){
-            //try non-optimal bounds (heuristic, may help when nested quantification) ?
-            Trace("cbqi-bound") << "Try non-optimal bounds..." << std::endl;
-            for( unsigned r=0; r<2; r++ ){
-              int rr = upper_first ? (1-r) : r;
-              for( unsigned j=0; j<mbp_bounds[rr].size(); j++ ){
-                if( (int)j!=best_used[rr] && ( !options::cbqiMidpoint() || mbp_vts_coeff[rr][1][j].isNull() ) ){
-                  Node val = getModelBasedProjectionValue( pv, mbp_bounds[rr][j], rr==0, mbp_coeff[rr][j], pv_value, t_values[rr][j], sf.d_theta,
-                                                           mbp_vts_coeff[rr][0][j], mbp_vts_coeff[rr][1][j] );
-                  if( !val.isNull() ){
-                    if( tryDoAddInstantiationInc( pv, val, mbp_coeff[rr][j], rr==0 ? 1 : -1, sf, effort ) ){
-                      return true;
                     }
                   }
                 }
@@ -693,7 +681,8 @@ bool CegInstantiator::doAddInstantiation( SolvedForm& sf, unsigned i, unsigned e
 
     //[5] resort to using value in model
     // do so if we are in effort=1, or if the variable is boolean, or if we are solving for a subfield of a datatype
-    if( ( effort>0 || pvtn.isBoolean() || pvtn.isBitVector() || is_cv ) && d_qe->getTermDatabase()->isClosedEnumerableType( pvtn ) ){
+    bool use_model_value = vinst->useModelValue( this, sf, pv, effort );
+    if( ( effort>0 || use_model_value || is_cv ) && vinst->allowModelValue( this, sf, pv, effort ) ){
 
 #ifdef CVC4_ASSERTIONS
       if( pvtn.isReal() && options::cbqiNestedQE() && !options::cbqiAll() ){
@@ -704,12 +693,12 @@ bool CegInstantiator::doAddInstantiation( SolvedForm& sf, unsigned i, unsigned e
       Node mv = getModelValue( pv );
       Node pv_coeff_m;
       Trace("cbqi-inst-debug") << "[5] " << i << "...try model value " << mv << std::endl;
-      int new_effort = pvtn.isBoolean() ? effort : 1;
+      int new_effort = use_model_value ? effort : 1;
 #ifdef MBP_STRICT_ASSERTIONS
       //we only resort to values in the case of booleans
       Assert( ( pvtn.isInteger() ? !options::cbqiUseInfInt() : !options::cbqiUseInfReal() ) || pvtn.isBoolean() );
 #endif
-      if( tryDoAddInstantiationInc( pv, mv, pv_coeff_m, 0, sf, new_effort ) ){
+      if( doAddInstantiationInc( pv, mv, pv_coeff_m, 0, sf, new_effort ) ){
         return true;
       }
     }
@@ -717,11 +706,9 @@ bool CegInstantiator::doAddInstantiation( SolvedForm& sf, unsigned i, unsigned e
     if( is_cv ){  
       d_stack_vars.push_back( pv );
     }
-    /*
     if( vinst!=NULL ){
       d_active_instantiators.erase( vinst );
-    } 
-    */
+    }
     unregisterInstantiationVariable( pv );
     return false;
   }
@@ -732,126 +719,123 @@ void CegInstantiator::pushStackVariable( Node v ) {
 }
 
 void CegInstantiator::popStackVariable() {
+  Assert( !d_stack_vars.empty() );
   d_stack_vars.pop_back();
 }
 
-//cached version
-bool CegInstantiator::tryDoAddInstantiationInc( Node pv, Node n, Node pv_coeff, int bt, SolvedForm& sf, unsigned effort ) {
+bool CegInstantiator::doAddInstantiationInc( Node pv, Node n, Node pv_coeff, int bt, SolvedForm& sf, unsigned effort ) {
   if( d_curr_subs_proc[pv][n].find( pv_coeff )==d_curr_subs_proc[pv][n].end() ){
     d_curr_subs_proc[pv][n][pv_coeff] = true;
-    return doAddInstantiationInc( pv, n, pv_coeff, bt, sf, effort );
-  }else{
-    return false;
-  }
-}
+    if( Trace.isOn("cbqi-inst") ){
+      for( unsigned j=0; j<sf.d_subs.size(); j++ ){
+        Trace("cbqi-inst") << " ";
+      }
+      Trace("cbqi-inst") << sf.d_subs.size() << ": ";
+      if( !pv_coeff.isNull() ){
+        Trace("cbqi-inst") << pv_coeff << " * ";
+      }
+      Trace("cbqi-inst") << pv << " -> " << n << std::endl;
+      Assert( n.getType().isSubtypeOf( pv.getType() ) );
+    }
+    //must ensure variables have been computed for n
+    computeProgVars( n );
+    Assert( d_inelig.find( n )==d_inelig.end() );
 
-bool CegInstantiator::doAddInstantiationInc( Node pv, Node n, Node pv_coeff, int bt, SolvedForm& sf, unsigned effort ) {
-  if( Trace.isOn("cbqi-inst") ){
+    //substitute into previous substitutions, when applicable
+    std::vector< Node > a_subs;
+    a_subs.push_back( n );
+    std::vector< Node > a_var;
+    a_var.push_back( pv );
+    std::vector< Node > a_coeff;
+    std::vector< Node > a_has_coeff;
+    if( !pv_coeff.isNull() ){
+      a_coeff.push_back( pv_coeff );
+      a_has_coeff.push_back( pv );
+    }
+    bool success = true;
+    std::map< int, Node > prev_subs;
+    std::map< int, Node > prev_coeff;
+    std::map< int, Node > prev_sym_subs;
+    std::vector< Node > new_has_coeff;
+    Trace("cbqi-inst-debug2") << "Applying substitutions..." << std::endl;
     for( unsigned j=0; j<sf.d_subs.size(); j++ ){
-      Trace("cbqi-inst") << " ";
-    }
-    Trace("cbqi-inst") << sf.d_subs.size() << ": ";
-    if( !pv_coeff.isNull() ){
-      Trace("cbqi-inst") << pv_coeff << " * ";
-    }
-    Trace("cbqi-inst") << pv << " -> " << n << std::endl;
-    Assert( n.getType().isSubtypeOf( pv.getType() ) );
-  }
-  //must ensure variables have been computed for n
-  computeProgVars( n );
-  Assert( d_inelig.find( n )==d_inelig.end() );
-
-  //substitute into previous substitutions, when applicable
-  std::vector< Node > a_subs;
-  a_subs.push_back( n );
-  std::vector< Node > a_var;
-  a_var.push_back( pv );
-  std::vector< Node > a_coeff;
-  std::vector< Node > a_has_coeff;
-  if( !pv_coeff.isNull() ){
-    a_coeff.push_back( pv_coeff );
-    a_has_coeff.push_back( pv );
-  }
-  bool success = true;
-  std::map< int, Node > prev_subs;
-  std::map< int, Node > prev_coeff;
-  std::map< int, Node > prev_sym_subs;
-  std::vector< Node > new_has_coeff;
-  Trace("cbqi-inst-debug2") << "Applying substitutions..." << std::endl;
-  for( unsigned j=0; j<sf.d_subs.size(); j++ ){
-    Trace("cbqi-inst-debug2") << "  Apply for " << sf.d_subs[j]  << std::endl;
-    Assert( d_prog_var.find( sf.d_subs[j] )!=d_prog_var.end() );
-    if( d_prog_var[sf.d_subs[j]].find( pv )!=d_prog_var[sf.d_subs[j]].end() ){
-      prev_subs[j] = sf.d_subs[j];
-      TNode tv = pv;
-      TNode ts = n;
-      Node a_pv_coeff;
-      Node new_subs = applySubstitution( sf.d_vars[j].getType(), sf.d_subs[j], a_subs, a_coeff, a_has_coeff, a_var, a_pv_coeff, true );
-      if( !new_subs.isNull() ){
-        sf.d_subs[j] = new_subs;
-        if( !a_pv_coeff.isNull() ){
-          prev_coeff[j] = sf.d_coeff[j];
-          if( sf.d_coeff[j].isNull() ){
-            Assert( std::find( sf.d_has_coeff.begin(), sf.d_has_coeff.end(), sf.d_vars[j] )==sf.d_has_coeff.end() );
-            //now has coefficient
-            new_has_coeff.push_back( sf.d_vars[j] );
-            sf.d_has_coeff.push_back( sf.d_vars[j] );
-            sf.d_coeff[j] = a_pv_coeff;
-          }else{
-            sf.d_coeff[j] = Rewriter::rewrite( NodeManager::currentNM()->mkNode( MULT, sf.d_coeff[j], a_pv_coeff ) );
+      Trace("cbqi-inst-debug2") << "  Apply for " << sf.d_subs[j]  << std::endl;
+      Assert( d_prog_var.find( sf.d_subs[j] )!=d_prog_var.end() );
+      if( d_prog_var[sf.d_subs[j]].find( pv )!=d_prog_var[sf.d_subs[j]].end() ){
+        prev_subs[j] = sf.d_subs[j];
+        TNode tv = pv;
+        TNode ts = n;
+        Node a_pv_coeff;
+        Node new_subs = applySubstitution( sf.d_vars[j].getType(), sf.d_subs[j], a_subs, a_coeff, a_has_coeff, a_var, a_pv_coeff, true );
+        if( !new_subs.isNull() ){
+          sf.d_subs[j] = new_subs;
+          if( !a_pv_coeff.isNull() ){
+            prev_coeff[j] = sf.d_coeff[j];
+            if( sf.d_coeff[j].isNull() ){
+              Assert( std::find( sf.d_has_coeff.begin(), sf.d_has_coeff.end(), sf.d_vars[j] )==sf.d_has_coeff.end() );
+              //now has coefficient
+              new_has_coeff.push_back( sf.d_vars[j] );
+              sf.d_has_coeff.push_back( sf.d_vars[j] );
+              sf.d_coeff[j] = a_pv_coeff;
+            }else{
+              sf.d_coeff[j] = Rewriter::rewrite( NodeManager::currentNM()->mkNode( MULT, sf.d_coeff[j], a_pv_coeff ) );
+            }
           }
+          if( sf.d_subs[j]!=prev_subs[j] ){
+            computeProgVars( sf.d_subs[j] );
+            Assert( d_inelig.find( sf.d_subs[j] )==d_inelig.end() );
+          }
+          Trace("cbqi-inst-debug2") << "Subs " << j << " " << sf.d_subs[j] << std::endl;
+        }else{
+          Trace("cbqi-inst-debug2") << "...failed to apply substitution to " << sf.d_subs[j] << std::endl;
+          success = false;
+          break;
         }
-        if( sf.d_subs[j]!=prev_subs[j] ){
-          computeProgVars( sf.d_subs[j] );
-          Assert( d_inelig.find( sf.d_subs[j] )==d_inelig.end() );
-        }
-        Trace("cbqi-inst-debug2") << "Subs " << j << " " << sf.d_subs[j] << std::endl;
       }else{
-        Trace("cbqi-inst-debug2") << "...failed to apply substitution to " << sf.d_subs[j] << std::endl;
-        success = false;
-        break;
+        Trace("cbqi-inst-debug2") << "Skip " << j << " " << sf.d_subs[j] << std::endl;
       }
+    }
+    if( success ){
+      Trace("cbqi-inst-debug2") << "Adding to vectors..." << std::endl;
+      sf.push_back( pv, n, pv_coeff, bt );
+      Node prev_theta = sf.d_theta;
+      Node new_theta = sf.d_theta;
+      if( !pv_coeff.isNull() ){
+        if( new_theta.isNull() ){
+          new_theta = pv_coeff;
+        }else{
+          new_theta = NodeManager::currentNM()->mkNode( MULT, new_theta, pv_coeff );
+          new_theta = Rewriter::rewrite( new_theta );
+        }
+      }
+      sf.d_theta = new_theta;
+      Trace("cbqi-inst-debug2") << "Recurse..." << std::endl;
+      unsigned i = d_curr_index[pv];
+      success = doAddInstantiation( sf, d_stack_vars.empty() ? i+1 : i, effort );
+      sf.d_theta = prev_theta;
+      if( !success ){
+        Trace("cbqi-inst-debug2") << "Removing from vectors..." << std::endl;
+        sf.pop_back( pv, n, pv_coeff, bt );
+      }
+    }
+    if( success ){
+      return true;
     }else{
-      Trace("cbqi-inst-debug2") << "Skip " << j << " " << sf.d_subs[j] << std::endl;
-    }
-  }
-  if( success ){
-    Trace("cbqi-inst-debug2") << "Adding to vectors..." << std::endl;
-    sf.push_back( pv, n, pv_coeff, bt );
-    Node prev_theta = sf.d_theta;
-    Node new_theta = sf.d_theta;
-    if( !pv_coeff.isNull() ){
-      if( new_theta.isNull() ){
-        new_theta = pv_coeff;
-      }else{
-        new_theta = NodeManager::currentNM()->mkNode( MULT, new_theta, pv_coeff );
-        new_theta = Rewriter::rewrite( new_theta );
+      Trace("cbqi-inst-debug2") << "Revert substitutions..." << std::endl;
+      //revert substitution information
+      for( std::map< int, Node >::iterator it = prev_subs.begin(); it != prev_subs.end(); it++ ){
+        sf.d_subs[it->first] = it->second;
       }
+      for( std::map< int, Node >::iterator it = prev_coeff.begin(); it != prev_coeff.end(); it++ ){
+        sf.d_coeff[it->first] = it->second;
+      }
+      for( unsigned i=0; i<new_has_coeff.size(); i++ ){
+        sf.d_has_coeff.pop_back();
+      }
+      return false;
     }
-    sf.d_theta = new_theta;
-    Trace("cbqi-inst-debug2") << "Recurse..." << std::endl;
-    unsigned i = d_curr_index[pv];
-    success = doAddInstantiation( sf, d_stack_vars.empty() ? i+1 : i, effort );
-    sf.d_theta = prev_theta;
-    if( !success ){
-      Trace("cbqi-inst-debug2") << "Removing from vectors..." << std::endl;
-      sf.pop_back( pv, n, pv_coeff, bt );
-    }
-  }
-  if( success ){
-    return true;
   }else{
-    Trace("cbqi-inst-debug2") << "Revert substitutions..." << std::endl;
-    //revert substitution information
-    for( std::map< int, Node >::iterator it = prev_subs.begin(); it != prev_subs.end(); it++ ){
-      sf.d_subs[it->first] = it->second;
-    }
-    for( std::map< int, Node >::iterator it = prev_coeff.begin(); it != prev_coeff.end(); it++ ){
-      sf.d_coeff[it->first] = it->second;
-    }
-    for( unsigned i=0; i<new_has_coeff.size(); i++ ){
-      sf.d_has_coeff.pop_back();
-    }
+    //already tried this substitution
     return false;
   }
 }
@@ -1649,3 +1633,120 @@ Node CegInstantiator::solve_dt( Node v, Node a, Node b, Node sa, Node sb ) {
   }
   return ret;
 }
+
+
+
+
+Instantiator::Instantiator( QuantifiersEngine * qe, TypeNode tn ) : d_type( tn ){
+  d_closed_enum_type = qe->getTermDatabase()->isClosedEnumerableType( tn );
+}
+
+
+bool Instantiator::processEqualTerm( CegInstantiator * ci, SolvedForm& sf, Node pv, Node pv_coeff, Node n, unsigned effort ) {
+  return ci->doAddInstantiationInc( pv, n, pv_coeff, 0, sf, effort );
+}
+
+
+void ArithInstantiator::reset( Node pv, unsigned effort ) {
+
+}
+
+bool ArithInstantiator::processEquality( CegInstantiator * ci, SolvedForm& sf, Node pv, std::vector< Node >& term_coeffs, std::vector< Node >& terms, unsigned effort ) {
+  return false;
+}
+
+bool ArithInstantiator::processAssertion( CegInstantiator * ci, SolvedForm& sf, Node pv, Node lit, unsigned effort ) {
+  return false;
+}
+
+bool ArithInstantiator::processAssertions( CegInstantiator * ci, SolvedForm& sf, Node pv, std::vector< Node >& lits, unsigned effort ) {
+  return false;
+}
+
+bool ArithInstantiator::needsPostProcessInstantiation( CegInstantiator * ci, SolvedForm& sf, unsigned effort ) {
+  return !sf.d_has_coeff.empty(); 
+}
+
+bool ArithInstantiator::postProcessInstantiation( CegInstantiator * ci, SolvedForm& sf, unsigned effort ) {
+  return true;
+}
+
+void DtInstantiator::reset( Node pv, unsigned effort ) {
+
+}
+
+bool DtInstantiator::processEqualTerms( CegInstantiator * ci, SolvedForm& sf, Node pv, std::vector< Node >& eqc, unsigned effort ) {
+  Trace("cbqi-inst-debug") << "[2] try based on constructors in equivalence class." << std::endl;
+  //[2] look in equivalence class for a constructor
+  for( unsigned k=0; k<eqc.size(); k++ ){
+    Node n = eqc[k];
+    if( n.getKind()==APPLY_CONSTRUCTOR ){
+      Trace("cbqi-inst-debug") << "...try based on constructor term " << n << std::endl;
+      std::vector< Node > children;
+      children.push_back( n.getOperator() );
+      const Datatype& dt = ((DatatypeType)(d_type).toType()).getDatatype();
+      unsigned cindex = Datatype::indexOf( n.getOperator().toExpr() );
+      //now must solve for selectors applied to pv
+      for( unsigned j=0; j<dt[cindex].getNumArgs(); j++ ){
+        Node c = NodeManager::currentNM()->mkNode( APPLY_SELECTOR_TOTAL, Node::fromExpr( dt[cindex][j].getSelector() ), pv );
+        ci->pushStackVariable( c );
+        children.push_back( c );
+      }
+      Node val = NodeManager::currentNM()->mkNode( kind::APPLY_CONSTRUCTOR, children );
+      if( ci->doAddInstantiationInc( pv, val, Node::null(), 0, sf, effort ) ){
+        return true;
+      }else{
+        //cleanup
+        for( unsigned j=0; j<dt[cindex].getNumArgs(); j++ ){
+          ci->popStackVariable();
+        }
+        break;
+      }
+    }
+  }
+  return false;
+}
+
+bool DtInstantiator::processEquality( CegInstantiator * ci, SolvedForm& sf, Node pv, std::vector< Node >& term_coeffs, std::vector< Node >& terms, unsigned effort ) {
+  return false;
+}
+
+bool EprInstantiator::processEqualTerm( CegInstantiator * ci, SolvedForm& sf, Node pv, Node pv_coeff, Node n, unsigned effort ) {
+  return ci->doAddInstantiationInc( pv, n, pv_coeff, 0, sf, effort );
+}
+
+bool EprInstantiator::processEqualTerms( CegInstantiator * ci, SolvedForm& sf, Node pv, std::vector< Node >& eqc, unsigned effort ) {
+  //TODO: heuristic for best matching constant
+  return false;
+}
+
+bool BvInstantiator::processAssertion( CegInstantiator * ci, SolvedForm& sf, Node pv, Node lit, unsigned effort ) {
+  /*   TODO: algebraic reasoning for bitvector instantiation
+  if( atom.getKind()==BITVECTOR_ULT || atom.getKind()==BITVECTOR_ULE ){
+    for( unsigned t=0; t<2; t++ ){
+      if( atom[t]==pv ){
+        computeProgVars( atom[1-t] );
+        if( d_inelig.find( atom[1-t] )==d_inelig.end() ){
+          //only ground terms  TODO: more
+          if( d_prog_var[atom[1-t]].empty() ){
+            Node veq_c;
+            Node uval;
+            if( ( !pol && atom.getKind()==BITVECTOR_ULT ) || ( pol && atom.getKind()==BITVECTOR_ULE ) ){
+              uval = atom[1-t];
+            }else{
+              uval = NodeManager::currentNM()->mkNode( (atom.getKind()==BITVECTOR_ULT)==(t==1) ? BITVECTOR_PLUS : BITVECTOR_SUB, atom[1-t], 
+                                                       bv::utils::mkConst(pvtn.getConst<BitVectorSize>(), 1) );
+            }
+            if( doAddInstantiationInc( pv, uval, veq_c, 0, sf, effort ) ){
+              return true;
+            }
+          }
+        }
+      }
+    }
+  }
+  */
+
+  return false;
+}
+
