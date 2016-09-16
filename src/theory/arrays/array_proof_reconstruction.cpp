@@ -107,7 +107,7 @@ void ArrayProofReconstruction::notify(unsigned reasonType, Node reason, Node a, 
 
         // It could be that the guard condition is a constant disequality. In this case,
         // we need to change it to a different format.
-        if (childProof->d_id == theory::eq::MERGED_THROUGH_CONSTANTS) {
+        if (childProof->d_id == theory::eq::MERGED_THROUGH_CONSTANTS && childProof->d_children.size() != 0) {
           // The proof has two children, explaining why each index is a (different) constant.
           Assert(childProof->d_children.size() == 2);
 
