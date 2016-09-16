@@ -636,6 +636,10 @@ void ArithProof::registerTerm(Expr term) {
     d_realMode = true;
   }
 
+  if (term.isVariable() && !ProofManager::getSkolemizationManager()->isSkolem(term)) {
+    d_declarations.insert(term);
+  }
+
   // recursively declare all other terms
   for (unsigned i = 0; i < term.getNumChildren(); ++i) {
     // could belong to other theories
@@ -824,6 +828,14 @@ void LFSCArithProof::printSortDeclarations(std::ostream& os, std::ostream& paren
 }
 
 void LFSCArithProof::printTermDeclarations(std::ostream& os, std::ostream& paren) {
+  for (ExprSet::const_iterator it = d_declarations.begin(); it != d_declarations.end(); ++it) {
+    Expr term = *it;
+    Assert(term.isVariable());
+    os << "(% " << ProofManager::sanitize(term) << " ";
+    os << "(term ";
+    os << term.getType() << ")\n";
+    paren << ")";
+  }
 }
 
 void LFSCArithProof::printDeferredDeclarations(std::ostream& os, std::ostream& paren) {
