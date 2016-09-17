@@ -140,8 +140,6 @@ private:
   Node getModelBasedProjectionValue( Node e, Node t, bool isLower, Node c, Node me, Node mt, Node theta, Node inf_coeff, Node delta_coeff );
   void processAssertions();
   void addToAuxVarSubstitution( std::vector< Node >& subs_lhs, std::vector< Node >& subs_rhs, Node l, Node r );
-  //get model value
-  Node getModelValue( Node n );
 private:
   int solve_arith( Node v, Node atom, Node & veq_c, Node & val, Node& vts_coeff_inf, Node& vts_coeff_delta );
   Node solve_dt( Node v, Node a, Node b, Node sa, Node sb );
@@ -157,9 +155,14 @@ public:
 
 //interface for instantiators
 public:
+  //get quantifiers engine
+  QuantifiersEngine* getQuantifiersEngine() { return d_qe; }
   void pushStackVariable( Node v );
   void popStackVariable();
   bool doAddInstantiationInc( Node pv, Node n, Node pv_coeff, int bt, SolvedForm& sf, unsigned effort );
+  Node getModelValue( Node n );
+  unsigned getNumCEAtoms() { return d_ce_atoms.size(); }
+  Node getCEAtom( unsigned i ) { return d_ce_atoms[i]; }
 };
 
 
@@ -237,10 +240,17 @@ public:
   std::string identify() const { return "Dt"; }
 };
 
+class TermArgTrie;
+
 class EprInstantiator : public Instantiator {
+private:
+  std::vector< Node > d_equal_terms;
+  void computeMatchScore( CegInstantiator * ci, Node pv, Node catom, std::vector< Node >& arg_reps, TermArgTrie * tat, unsigned index, std::map< Node, int >& match_score );
+  void computeMatchScore( CegInstantiator * ci, Node pv, Node catom, Node eqc, std::map< Node, int >& match_score );
 public:
   EprInstantiator( QuantifiersEngine * qe, TypeNode tn ) : Instantiator( qe, tn ){}
   virtual ~EprInstantiator(){}
+  void reset( Node pv, unsigned effort );
   bool processEqualTerm( CegInstantiator * ci, SolvedForm& sf, Node pv, Node pv_coeff, Node n, unsigned effort );
   bool processEqualTerms( CegInstantiator * ci, SolvedForm& sf, Node pv, std::vector< Node >& eqc, unsigned effort );
   std::string identify() const { return "Epr"; }

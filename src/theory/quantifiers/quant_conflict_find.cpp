@@ -1853,7 +1853,7 @@ void MatchGen::setInvalid() {
 }
 
 bool MatchGen::isHandledBoolConnective( TNode n ) {
-  return TermDb::isBoolConnective( n.getKind() ) && ( n.getKind()!=ITE || n.getType().isBoolean() );
+  return TermDb::isBoolConnective( n.getKind() ) && ( n.getKind()!=ITE || n.getType().isBoolean() ) && n.getKind()!=SEP_STAR;
 }
 
 bool MatchGen::isHandledUfTerm( TNode n ) {

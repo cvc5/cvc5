@@ -304,6 +304,8 @@ option cbqiNestedQE --cbqi-nested-qe bool :default false
  
 option quantEpr --quant-epr bool :default false :read-write
  infer whether in effectively propositional fragment, use for cbqi
+option quantEprMatching --quant-epr-match bool :default true
+ use matching heuristics for EPR instantiation
  
 ### local theory extensions options 
 
