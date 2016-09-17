@@ -1958,7 +1958,7 @@ bool TermDb::isComm( Kind k ) {
 }
 
 bool TermDb::isBoolConnective( Kind k ) {
-  return k==OR || k==AND || k==IFF || k==ITE || k==FORALL || k==NOT;
+  return k==OR || k==AND || k==IFF || k==ITE || k==FORALL || k==NOT || k==SEP_STAR;
 }
 
 void TermDb::registerTrigger( theory::inst::Trigger* tr, Node op ){
