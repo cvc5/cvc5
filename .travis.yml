@@ -4,12 +4,14 @@ cache:
  directories:
   - $HOME/cxxtest
 
-sudo: false
+sudo: required
+dist: trusty
 
 compiler:
  - gcc
  - clang
 env:
+ - TRAVIS_CVC4=yes CXXFLAGS='-std=gnu++11'
  - TRAVIS_CVC4=yes TRAVIS_CVC4_CONFIG='production --enable-language-bindings=java,c'
  - TRAVIS_CVC4=yes TRAVIS_CVC4_CONFIG='debug --enable-language-bindings=java,c'
  - TRAVIS_CVC4=yes TRAVIS_CVC4_DISTCHECK=yes
@@ -45,7 +47,7 @@ script:
    configureCVC4() {
      echo "CVC4 config - $TRAVIS_CVC4_CONFIG";
      ./configure --enable-unit-testing --enable-proof --with-portfolio $TRAVIS_CVC4_CONFIG  CXXTEST=$HOME/cxxtest ||
-       (echo; cat builds/config.log; error "CONFIGURE FAILED");
+       (echo; echo "Trying to print config.log"; cat builds/config.log; error "CONFIGURE FAILED");
    }
    error() {
      echo;
