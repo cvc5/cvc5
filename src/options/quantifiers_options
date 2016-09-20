@@ -182,8 +182,6 @@ option qcfNestedConflict --qcf-nested-conflict bool :default false
  consider conflicts for nested quantifiers
 option qcfVoExp --qcf-vo-exp bool :default false
  qcf experimental variable ordering
- 
- 
 
 option instNoEntail --inst-no-entail bool :read-write :default true
  do not consider instances of quantified formulas that are currently entailed
@@ -193,8 +191,11 @@ option instPropagate --inst-prop bool :read-write :default false
  
 option qcfEagerTest --qcf-eager-test bool :default true
  optimization, test qcf instances eagerly
+option qcfEagerCheckRd --qcf-eager-check-rd bool :default true
+ optimization, eagerly check relevant domain of matched position
 option qcfSkipRd --qcf-skip-rd bool :default false
  optimization, skip instances based on possibly irrelevant portions of quantified formulas
+ 
 ### rewrite rules options 
  
 option quantRewriteRules --rewrite-rules bool :default false

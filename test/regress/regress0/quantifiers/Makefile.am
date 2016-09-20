@@ -86,7 +86,9 @@ TESTS =	\
 	z3.620661-no-fv-trigger.smt2 \
 	bug_743.smt2 \
 	quaternion_ds1_symm_0428.fof.smt2 \
-	bug749-rounding.smt2
+	bug749-rounding.smt2 \
+	RNDPRE_4_1-dd-nqe.smt2 \
+	mix-complete-strat.smt2
 
 
 # regression can be solved with --finite-model-find --fmf-inst-engine

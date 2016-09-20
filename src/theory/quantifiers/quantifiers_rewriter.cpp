@@ -1138,12 +1138,13 @@ Node QuantifiersRewriter::computePrenexAgg( Node n, bool topLevel ){
   if( containsQuantifiers( n ) ){
     if( topLevel && options::prenexQuant()==PRENEX_QUANT_DISJ_NORMAL && ( n.getKind()==AND || ( n.getKind()==NOT && n[0].getKind()==OR ) ) ){
       std::vector< Node > children;
-      for( unsigned i=0; i<n.getNumChildren(); i++ ){
-        Node nc = computePrenexAgg( n[i], true );
+      Node nc = n.getKind()==NOT ? n[0] : n;
+      for( unsigned i=0; i<nc.getNumChildren(); i++ ){
+        Node ncc = computePrenexAgg( nc[i], true );
         if( n.getKind()==NOT ){
-          nc = nc.negate();        
+          ncc = ncc.negate();        
         }
-        children.push_back( nc );
+        children.push_back( ncc );
       }
       return NodeManager::currentNM()->mkNode( AND, children );
     }else if( n.getKind()==NOT ){

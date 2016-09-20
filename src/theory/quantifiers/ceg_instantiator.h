@@ -88,7 +88,6 @@ private:
   Node d_true;
   bool d_use_vts_delta;
   bool d_use_vts_inf;
-  Node d_vts_sym[2];
   //program variable contains cache
   std::map< Node, std::map< Node, bool > > d_prog_var;
   std::map< Node, bool > d_inelig;
@@ -125,24 +124,13 @@ private:
   void collectCeAtoms( Node n, std::map< Node, bool >& visited );
   //for adding instantiations during check
   void computeProgVars( Node n );
-  // is eligible 
-  bool isEligible( Node n );
   // effort=0 : do not use model value, 1: use model value, 2: one must use model value
   bool doAddInstantiation( SolvedForm& sf, unsigned i, unsigned effort );
   bool processInstantiationCoeff( SolvedForm& sf );
   bool doAddInstantiation( std::vector< Node >& subs, std::vector< Node >& vars );
-  Node applySubstitution( TypeNode tn, Node n, SolvedForm& sf, Node& pv_coeff, bool try_coeff = true ) {
-    return applySubstitution( tn, n, sf.d_subs, sf.d_coeff, sf.d_has_coeff, sf.d_vars, pv_coeff, try_coeff );
-  }
-  Node applySubstitution( TypeNode tn, Node n, std::vector< Node >& subs, std::vector< Node >& coeff, std::vector< Node >& has_coeff,
-                          std::vector< Node >& vars, Node& pv_coeff, bool try_coeff = true );
 
-  Node getModelBasedProjectionValue( Node e, Node t, bool isLower, Node c, Node me, Node mt, Node theta, Node inf_coeff, Node delta_coeff );
   void processAssertions();
   void addToAuxVarSubstitution( std::vector< Node >& subs_lhs, std::vector< Node >& subs_rhs, Node l, Node r );
-private:
-  int solve_arith( Node v, Node atom, Node & veq_c, Node & val, Node& vts_coeff_inf, Node& vts_coeff_delta );
-  Node solve_dt( Node v, Node a, Node b, Node sa, Node sb );
 public:
   CegInstantiator( QuantifiersEngine * qe, CegqiOutput * out, bool use_vts_delta = true, bool use_vts_inf = true );
   virtual ~CegInstantiator();
@@ -152,7 +140,8 @@ public:
   void presolve( Node q );
   //register the counterexample lemma (stored in lems), modify vector
   void registerCounterexampleLemma( std::vector< Node >& lems, std::vector< Node >& ce_vars );
-
+  //output
+  CegqiOutput * getOutput() { return d_out; }
 //interface for instantiators
 public:
   //get quantifiers engine
@@ -163,6 +152,18 @@ public:
   Node getModelValue( Node n );
   unsigned getNumCEAtoms() { return d_ce_atoms.size(); }
   Node getCEAtom( unsigned i ) { return d_ce_atoms[i]; }
+  // is eligible 
+  bool isEligible( Node n );
+  // has variable 
+  bool hasVariable( Node n, Node pv );
+  Node applySubstitution( TypeNode tn, Node n, SolvedForm& sf, Node& pv_coeff, bool try_coeff = true ) {
+    return applySubstitution( tn, n, sf.d_subs, sf.d_coeff, sf.d_has_coeff, sf.d_vars, pv_coeff, try_coeff );
+  }
+  Node applySubstitution( TypeNode tn, Node n, std::vector< Node >& subs, std::vector< Node >& coeff, std::vector< Node >& has_coeff,
+                          std::vector< Node >& vars, Node& pv_coeff, bool try_coeff = true );
+  bool useVtsDelta() { return d_use_vts_delta; }
+  bool useVtsInfinity() { return d_use_vts_inf; }
+  bool hasNestedQuantification() { return d_is_nested_quant; }
 };
 
 
@@ -176,7 +177,7 @@ protected:
 public:
   Instantiator( QuantifiersEngine * qe, TypeNode tn );
   virtual ~Instantiator(){}
-  virtual void reset( Node pv, unsigned effort ) {}
+  virtual void reset( CegInstantiator * ci, SolvedForm& sf, Node pv, unsigned effort ) {}
   
   //called when pv_coeff * pv = n, and n is eligible for instantiation
   virtual bool processEqualTerm( CegInstantiator * ci, SolvedForm& sf, Node pv, Node pv_coeff, Node n, unsigned effort );
@@ -214,11 +215,17 @@ public:
 
 class ArithInstantiator : public Instantiator {
 private:
-
+  Node d_vts_sym[2];
+  std::vector< Node > d_mbp_bounds[2];
+  std::vector< Node > d_mbp_coeff[2];
+  std::vector< Node > d_mbp_vts_coeff[2][2];
+  std::vector< Node > d_mbp_lit[2];
+  int solve_arith( CegInstantiator * ci, Node v, Node atom, Node & veq_c, Node & val, Node& vts_coeff_inf, Node& vts_coeff_delta );
+  Node getModelBasedProjectionValue( CegInstantiator * ci, Node e, Node t, bool isLower, Node c, Node me, Node mt, Node theta, Node inf_coeff, Node delta_coeff );
 public:
   ArithInstantiator( QuantifiersEngine * qe, TypeNode tn ) : Instantiator( qe, tn ){}
   virtual ~ArithInstantiator(){}
-  void reset( Node pv, unsigned effort );
+  void reset( CegInstantiator * ci, SolvedForm& sf, Node pv, unsigned effort );
   bool hasProcessEquality( CegInstantiator * ci, SolvedForm& sf, Node pv, unsigned effort ) { return true; }
   bool processEquality( CegInstantiator * ci, SolvedForm& sf, Node pv, std::vector< Node >& term_coeffs, std::vector< Node >& terms, unsigned effort );
   bool hasProcessAssertion( CegInstantiator * ci, SolvedForm& sf, Node pv, unsigned effort ) { return true; }
@@ -230,10 +237,12 @@ public:
 };
 
 class DtInstantiator : public Instantiator {
+private:
+  Node solve_dt( Node v, Node a, Node b, Node sa, Node sb );
 public:
   DtInstantiator( QuantifiersEngine * qe, TypeNode tn ) : Instantiator( qe, tn ){}
   virtual ~DtInstantiator(){}
-  void reset( Node pv, unsigned effort );
+  void reset( CegInstantiator * ci, SolvedForm& sf, Node pv, unsigned effort );
   bool processEqualTerms( CegInstantiator * ci, SolvedForm& sf, Node pv, std::vector< Node >& eqc, unsigned effort );
   bool hasProcessEquality( CegInstantiator * ci, SolvedForm& sf, Node pv, unsigned effort ) { return true; }
   bool processEquality( CegInstantiator * ci, SolvedForm& sf, Node pv, std::vector< Node >& term_coeffs, std::vector< Node >& terms, unsigned effort );
@@ -250,7 +259,7 @@ private:
 public:
   EprInstantiator( QuantifiersEngine * qe, TypeNode tn ) : Instantiator( qe, tn ){}
   virtual ~EprInstantiator(){}
-  void reset( Node pv, unsigned effort );
+  void reset( CegInstantiator * ci, SolvedForm& sf, Node pv, unsigned effort );
   bool processEqualTerm( CegInstantiator * ci, SolvedForm& sf, Node pv, Node pv_coeff, Node n, unsigned effort );
   bool processEqualTerms( CegInstantiator * ci, SolvedForm& sf, Node pv, std::vector< Node >& eqc, unsigned effort );
   std::string identify() const { return "Epr"; }

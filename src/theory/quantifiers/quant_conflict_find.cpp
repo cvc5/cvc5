@@ -108,7 +108,7 @@ void QuantInfo::initialize( QuantConflictFind * p, Node q, Node qn ) {
   }
   Trace("qcf-qregister-summary") << "QCF register : " << ( d_mg->isValid() ? "VALID " : "INVALID" ) << " : " << q << std::endl;
   
-  if( d_mg->isValid() ){
+  if( d_mg->isValid() && options::qcfEagerCheckRd() ){
     //optimization : record variable argument positions for terms that must be matched
     std::vector< TNode > vars;
     //TODO: revisit this, makes QCF faster, but misses conflicts due to caring about paths that may not be relevant (starExec jobs 14136/14137)
