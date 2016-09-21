@@ -146,6 +146,7 @@ public:
   void popStackVariable();
   bool doAddInstantiationInc( Node pv, Node n, Node pv_coeff, int bt, SolvedForm& sf, unsigned effort );
   Node getModelValue( Node n );
+  // TODO: move to solved form?
   Node applySubstitution( TypeNode tn, Node n, SolvedForm& sf, Node& pv_coeff, bool try_coeff = true ) {
     return applySubstitution( tn, n, sf.d_subs, sf.d_coeff, sf.d_has_coeff, sf.d_vars, pv_coeff, try_coeff );
   }
