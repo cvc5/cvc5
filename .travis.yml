@@ -11,6 +11,10 @@ compiler:
  - gcc
  - clang
 env:
+ global:
+  # The next declaration is the encrypted COVERITY_SCAN_TOKEN, created
+  #   via the "travis encrypt" command using the project repo's public key
+  - secure: "fRfdzYwV10VeW5tVSvy5qpR8ZlkXepR7XWzCulzlHs9SRI2YY20BpzWRjyMBiGu2t7IeJKT7qdjq/CJOQEM8WS76ON7QJ1iymKaRDewDs3OhyPJ71fsFKEGgLky9blk7I9qZh23hnRVECj1oJAVry9IK04bc2zyIEjUYpjRkUAQ="
  - TRAVIS_CVC4=yes CXXFLAGS='-std=gnu++11'
  - TRAVIS_CVC4=yes TRAVIS_CVC4_CONFIG='production --enable-language-bindings=java,c'
  - TRAVIS_CVC4=yes TRAVIS_CVC4_CONFIG='debug --enable-language-bindings=java,c'
@@ -100,6 +104,20 @@ script:
  - echo; echo "${green}EVERYTHING SEEMED TO PASS!${normal}"
 matrix:
   fast_finish: true
+  include:
+    - os: linux
+      compiler: gcc
+      before_install:
+        - echo -n | openssl s_client -connect scan.coverity.com:443 | sed -ne '/-BEGIN CERTIFICATE-/,/-END CERTIFICATE-/p' | sudo tee -a /etc/ssl/certs/ca-
+      addons:
+        coverity_scan:
+          project:
+            name: "CVC4/CVC4"
+            description: "Build submitted via Travis CI"
+          notification_email: timothy.alan.king@gmail.com
+          build_command_prepend: "./autogen.sh; ./configure --enable-unit-testing --enable-proof CXXTEST=$HOME/cxxtest"
+          build_command: "make V=1 -j4 check CVC4_REGRESSION_ARGS='--no-early-exit'"
+          branch_pattern: coverity_scan
 notifications:
   email:
     on_success: change
