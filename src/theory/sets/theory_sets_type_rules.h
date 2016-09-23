@@ -189,8 +189,6 @@ struct RelBinaryOperatorTypeRule {
     Assert(n.getKind() == kind::PRODUCT ||
            n.getKind() == kind::JOIN);
 
-
-
     TypeNode firstRelType = n[0].getType(check);
     TypeNode secondRelType = n[1].getType(check);
     TypeNode resultType = firstRelType;

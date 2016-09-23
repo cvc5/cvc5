@@ -147,6 +147,9 @@ private:
   /** Mapping between a relation representative and its equivalent relations involving relational operators */
   std::map< Node, std::map<kind::Kind_t, std::vector<Node> > >                  d_terms_cache;
 
+  /** Mapping between relation and its member representatives */
+  std::map< Node, std::vector<Node> >           d_arg_rep_tp_terms;
+
   /** Mapping between TC(r) and one explanation when building TC graph*/
   std::map< Node, Node >                                                        d_membership_tc_exp_cache;
 
@@ -193,7 +196,7 @@ private:
   void applyProductRule( Node, Node );
   void composeTupleMemForRel( Node );
   void assertMembership( Node fact, Node reason, bool polarity );
-  void applyTransposeRule( Node, Node, bool tp_occur_rule = false );
+  void applyTransposeRule( Node, Node, Node more_reason = Node::null(), bool tp_occur_rule = false );
 
 
 

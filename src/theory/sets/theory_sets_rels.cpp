@@ -56,60 +56,57 @@ int TheorySetsRels::EqcInfo::counter        = 0;
     while(m_it != d_membership_constraints_cache.end()) {
       Node rel_rep = m_it->first;
 
-      // No relational terms found with rel_rep as its representative
-      // But TRANSPOSE(rel_rep) may occur in the context
-      if(d_terms_cache.find(rel_rep) == d_terms_cache.end()) {
-        Node tp_rel     = NodeManager::currentNM()->mkNode(kind::TRANSPOSE, rel_rep);
-        Node tp_rel_rep = getRepresentative(tp_rel);
+      for(unsigned int i = 0; i < m_it->second.size(); i++) {
+        Node                                          exp             = d_membership_exp_cache[rel_rep][i];
+        std::map<kind::Kind_t, std::vector<Node> >    kind_terms      = d_terms_cache[rel_rep];
 
-        if(d_terms_cache.find(tp_rel_rep) != d_terms_cache.end()) {
-          for(unsigned int i = 0; i < m_it->second.size(); i++) {
-            // Lazily apply transpose-occur rule.
-            // Need to eagerly apply if we don't send facts as lemmas
-            applyTransposeRule(d_membership_exp_cache[rel_rep][i], tp_rel_rep, true);
+        if( kind_terms.find(kind::TRANSPOSE) != kind_terms.end() ) {
+          std::vector<Node> tp_terms = kind_terms[kind::TRANSPOSE];
+          // exp is a membership term and tp_terms contains all
+          // transposed terms that are equal to the right hand side of exp
+          for(unsigned int j = 0; j < tp_terms.size(); j++) {
+            applyTransposeRule( exp, tp_terms[j] );
           }
         }
-      } else {
-        for(unsigned int i = 0; i < m_it->second.size(); i++) {
-          Node                                          exp             = d_membership_exp_cache[rel_rep][i];
-          std::map<kind::Kind_t, std::vector<Node> >    kind_terms      = d_terms_cache[rel_rep];
+        if( kind_terms.find(kind::JOIN) != kind_terms.end() ) {
+          std::vector<Node> join_terms = kind_terms[kind::JOIN];
+          // exp is a membership term and join_terms contains all
+          // terms involving "join" operator that are in the same
+          // equivalence class with the right hand side of exp
+          for(unsigned int j = 0; j < join_terms.size(); j++) {
+            applyJoinRule( exp, join_terms[j] );
+          }
+        }
+        if( kind_terms.find(kind::PRODUCT) != kind_terms.end() ) {
+          std::vector<Node> product_terms = kind_terms[kind::PRODUCT];
+          for(unsigned int j = 0; j < product_terms.size(); j++) {
+            applyProductRule( exp, product_terms[j] );
+          }
+        }
+        if( kind_terms.find(kind::TCLOSURE) != kind_terms.end() ) {
+          std::vector<Node> tc_terms = kind_terms[kind::TCLOSURE];
+          for(unsigned int j = 0; j < tc_terms.size(); j++) {
+            applyTCRule( exp, tc_terms[j] );
+          }
+        }
 
-          if(kind_terms.find(kind::TRANSPOSE) != kind_terms.end()) {
-            std::vector<Node> tp_terms = kind_terms[kind::TRANSPOSE];
-            // exp is a membership term and tp_terms contains all
-            // transposed terms that are equal to the right hand side of exp
-            for(unsigned int j = 0; j < tp_terms.size(); j++) {
-              applyTransposeRule(exp, tp_terms[j]);
-            }
+        MEM_IT tp_it = d_arg_rep_tp_terms.find( rel_rep );
+
+        if( tp_it != d_arg_rep_tp_terms.end() ) {
+          std::vector< Node >::iterator tp_ts_it = tp_it->second.begin();
+
+          while( tp_ts_it != tp_it->second.end() ) {
+            applyTransposeRule( exp, *tp_ts_it, (*tp_ts_it)[0] == rel_rep?Node::null():explain(EQUAL((*tp_ts_it)[0], rel_rep)), true );
+            ++tp_ts_it;
           }
-          if(kind_terms.find(kind::JOIN) != kind_terms.end()) {
-            std::vector<Node> join_terms = kind_terms[kind::JOIN];
-            // exp is a membership term and join_terms contains all
-            // terms involving "join" operator that are in the same
-            // equivalence class with the right hand side of exp
-            for(unsigned int j = 0; j < join_terms.size(); j++) {
-              applyJoinRule(exp, join_terms[j]);
-            }
-          }
-          if(kind_terms.find(kind::PRODUCT) != kind_terms.end()) {
-            std::vector<Node> product_terms = kind_terms[kind::PRODUCT];
-            for(unsigned int j = 0; j < product_terms.size(); j++) {
-              applyProductRule(exp, product_terms[j]);
-            }
-          }
-          if(kind_terms.find(kind::TCLOSURE) != kind_terms.end()) {
-            std::vector<Node> tc_terms = kind_terms[kind::TCLOSURE];
-            for(unsigned int j = 0; j < tc_terms.size(); j++) {
-              applyTCRule(exp, tc_terms[j]);
-            }
-          }
+          ++tp_it;
         }
       }
       m_it++;
     }
 
     TERM_IT t_it = d_terms_cache.begin();
-    while(t_it != d_terms_cache.end()) {
+    while( t_it != d_terms_cache.end() ) {
       if(d_membership_constraints_cache.find(t_it->first) == d_membership_constraints_cache.end()) {
         Trace("rels-debug") << "[sets-rels-ee] A term that does not have membership constraints: " << t_it->first << std::endl;
         KIND_TERM_IT k_t_it = t_it->second.begin();
@@ -168,7 +165,6 @@ int TheorySetsRels::EqcInfo::counter        = 0;
             if( safelyAddToMap(d_membership_constraints_cache, rel_rep, tup_rep) ) {
               bool is_true_eq    = areEqual(eqc_rep, d_trueNode);
               Node reason        = is_true_eq ? eqc_node : eqc_node.negate();
-
               addToMap(d_membership_exp_cache, rel_rep, reason);
               if( is_true_eq ) {
                 // add tup_rep to membership database
@@ -184,6 +180,19 @@ int TheorySetsRels::EqcInfo::counter        = 0;
             std::vector<Node>                           terms;
             std::map<kind::Kind_t, std::vector<Node> >  rel_terms;
             TERM_IT     terms_it      = d_terms_cache.find(eqc_rep);
+
+            if( eqc_node.getKind() == kind::TRANSPOSE ) {
+              Node      eqc_node0_rep   = getRepresentative( eqc_node[0] );
+              MEM_IT    mem_it          = d_arg_rep_tp_terms.find( eqc_node0_rep );
+
+              if( mem_it != d_arg_rep_tp_terms.end() ) {
+                mem_it->second.push_back( eqc_node );
+              } else {
+                std::vector< Node > tp_terms;
+                tp_terms.push_back( eqc_node );
+                d_arg_rep_tp_terms[eqc_node0_rep] = tp_terms;
+              }
+            }
 
             if( terms_it == d_terms_cache.end() ) {
               terms.push_back(eqc_node);
@@ -546,8 +555,8 @@ int TheorySetsRels::EqcInfo::counter        = 0;
    *                         -----------------------------------------------
    *                         [NOT]  (X = Y)
    */
-  void TheorySetsRels::applyTransposeRule(Node exp, Node tp_term, bool tp_occur) {
-    Trace("rels-debug") << "\n[sets-rels] *********** Applying TRANSPOSE rule  " << std::endl;
+  void TheorySetsRels::applyTransposeRule(Node exp, Node tp_term, Node more_reason, bool tp_occur) {
+    Trace("rels-debug") << "\n[sets-rels] *********** Applying TRANSPOSE rule  on term " << tp_term << std::endl;
 
     bool polarity       = exp.getKind() != kind::NOT;
     Node atom           = polarity ? exp : exp[0];
@@ -558,7 +567,7 @@ int TheorySetsRels::EqcInfo::counter        = 0;
                              << " with explanation: " << exp << std::endl;
 
       Node fact = polarity ? MEMBER(reversedTuple, tp_term) : MEMBER(reversedTuple, tp_term).negate();
-      sendInfer(fact, exp, "transpose-occur");
+      sendInfer(fact, more_reason == Node::null()?exp:AND(exp, more_reason), "transpose-occur");
       return;
     }
 
@@ -838,7 +847,7 @@ int TheorySetsRels::EqcInfo::counter        = 0;
       doTCLemmas();
     }
 
-
+    d_arg_rep_tp_terms.clear();
     d_tc_membership_db.clear();
     d_rel_nodes.clear();
     d_pending_facts.clear();
@@ -1176,18 +1185,26 @@ int TheorySetsRels::EqcInfo::counter        = 0;
    */
   void TheorySetsRels::reduceTupleVar(Node n) {
     if(d_symbolic_tuples.find(n) == d_symbolic_tuples.end()) {
-      Trace("rels-debug") << "Reduce tuple var: " << n[0] << " to concrete one " << std::endl;
+      Trace("rels-debug") << "Reduce tuple var: " << n[0] << " to concrete one " << " node = " << n << std::endl;
       std::vector<Node> tuple_elements;
       tuple_elements.push_back(Node::fromExpr((n[0].getType().getDatatype())[0].getConstructor()));
-
+      Trace("rels-debug") << "Reduce tuple var: " << n[0] << " to concrete one ****** 0" << std::endl;
       for(unsigned int i = 0; i < n[0].getType().getTupleLength(); i++) {
+        Trace("rels-debug") << "Reduce tuple var: " << n[0] << " to concrete one ****** 1" << std::endl;
         Node element = RelsUtils::nthElementOfTuple(n[0], i);
+        Trace("rels-debug") << "Reduce tuple var: " << n[0] << " to concrete one ****** 2" << std::endl;
         makeSharedTerm(element);
+        Trace("rels-debug") << "Reduce tuple var: " << n[0] << " to concrete one ****** 3" << std::endl;
         tuple_elements.push_back(element);
+        Trace("rels-debug") << "Reduce tuple var: " << n[0] << " to concrete one ****** 4" << std::endl;
       }
+      Trace("rels-debug") << "Reduce tuple var: " << n[0] << " to concrete one ****** 5" << std::endl;
       Node tuple_reduct = NodeManager::currentNM()->mkNode(kind::APPLY_CONSTRUCTOR, tuple_elements);
+      Trace("rels-debug") << "Reduce tuple var: " << n[0] << " to concrete one ****** 6" << std::endl;
       tuple_reduct = MEMBER(tuple_reduct, n[1]);
+      Trace("rels-debug") << "Reduce tuple var: " << n[0] << " to concrete one ****** 7" << std::endl;
       Node tuple_reduction_lemma = NodeManager::currentNM()->mkNode(kind::IFF, n, tuple_reduct);
+      Trace("rels-debug") << "Reduce tuple var: " << n[0] << " to concrete one ****** 8" << std::endl;
       sendLemma(tuple_reduction_lemma, d_trueNode, "tuple-reduction");
       d_symbolic_tuples.insert(n);
     }

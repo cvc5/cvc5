@@ -63,8 +63,9 @@ public:
   }
  
   static Node nthElementOfTuple( Node tuple, int n_th ) {    
-    if(tuple.isConst() || (!tuple.isVar() && !tuple.isConst()))
+    if( tuple.getKind() == kind::APPLY_CONSTRUCTOR ) {
       return tuple[n_th];
+    }
     Datatype dt = tuple.getType().getDatatype();
     return NodeManager::currentNM()->mkNode(kind::APPLY_SELECTOR_TOTAL, dt[0][n_th].getSelector(), tuple);
   } 
