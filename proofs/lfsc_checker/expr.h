@@ -88,7 +88,9 @@ protected:
     : data(1 << 9 /* refcount 1, not cloned */| (_op << 3) | _class)
   { }
 
-public:
+ public:
+  virtual ~Expr() {}
+
   static int markedCount;
   inline Expr* followDefs();
   inline int getclass() const { return data & 7; }
@@ -181,7 +183,7 @@ public:
   C_MACROS__ADD_CHUNKING_MEMORY_MANAGEMENT_H(CExpr,kids);
 
   Expr **kids;
-  ~CExpr() {
+  virtual ~CExpr() {
     delete[] kids;
   }
   CExpr(int _op) : Expr(CEXPR, _op), kids() {
@@ -261,7 +263,7 @@ public:
 class IntExpr : public Expr {
  public:
   mpz_t n;
-  ~IntExpr() {
+  virtual ~IntExpr() {
     mpz_clear(n);
   }
   IntExpr(mpz_t _n) : Expr(INT_EXPR, 0), n() {
@@ -280,7 +282,7 @@ class IntExpr : public Expr {
 class RatExpr : public Expr {
  public:
   mpq_t n;
-  ~RatExpr() {
+  virtual ~RatExpr() {
     mpq_clear(n);
   }
   RatExpr(mpq_t _n) : Expr(RAT_EXPR, 0), n() {
@@ -321,6 +323,9 @@ class SymExpr : public Expr {
       debugrefcnt(1,CREATE);
 #endif
   }
+
+  virtual ~SymExpr() {}
+
 #ifdef MARKVAR_32
 private:
   int mark();
@@ -349,6 +354,8 @@ class SymSExpr : public SymExpr {
     debugrefcnt(1,CREATE);
 #endif
   }
+
+  virtual ~SymSExpr() {}
 };
 
 class HoleExpr : public Expr {
