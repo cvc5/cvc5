@@ -406,7 +406,6 @@ Node InstStrategyCbqi::doNestedQENode( Node q, Node ceq, Node n, std::vector< No
 }
 
 Node InstStrategyCbqi::doNestedQERec( Node q, Node n, std::map< Node, Node >& visited, std::vector< Node >& inst_terms, bool doVts ) {
-  std::map< Node, Node >::iterator it = visited.find( n );
   if( visited.find( n )==visited.end() ){
     Node ret = n;
     if( n.getKind()==FORALL ){
