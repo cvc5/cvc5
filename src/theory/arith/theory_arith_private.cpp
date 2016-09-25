@@ -2520,34 +2520,37 @@ struct SizeOrd {
     return a.size() < b.size();
   }
 };
-void TheoryArithPrivate::subsumption(std::vector<ConstraintCPVec>& confs) const {
+
+void TheoryArithPrivate::subsumption(
+    std::vector<ConstraintCPVec> &confs) const {
   int checks CVC4_UNUSED = 0;
   int subsumed CVC4_UNUSED = 0;
 
-  for(size_t i =0, N= confs.size(); i < N; ++i){
-    ConstraintCPVec& conf = confs[i];
+  for (size_t i = 0, N = confs.size(); i < N; ++i) {
+    ConstraintCPVec &conf = confs[i];
     std::sort(conf.begin(), conf.end());
   }
 
   std::sort(confs.begin(), confs.end(), SizeOrd());
-  for(size_t i = 0; i < confs.size(); i++){
-    ConstraintCPVec& a = confs[i];
+  for (size_t i = 0; i < confs.size(); i++) {
     // i is not subsumed
-    for(size_t j = i+1; j < confs.size();){
+    for (size_t j = i + 1; j < confs.size();) {
+      ConstraintCPVec& a = confs[i];
       ConstraintCPVec& b = confs[j];
       checks++;
       bool subsumes = std::includes(a.begin(), a.end(), b.begin(), b.end());
-      if(subsumes){
+      if (subsumes) {
         ConstraintCPVec& back = confs.back();
         b.swap(back);
         confs.pop_back();
         subsumed++;
-      }else{
+      } else {
         j++;
       }
     }
   }
-  Debug("arith::subsumption") << "subsumed " << subsumed << "/" << checks << endl;
+  Debug("arith::subsumption") << "subsumed " << subsumed << "/" << checks
+                              << endl;
 }
 
 std::vector<ConstraintCPVec> TheoryArithPrivate::replayLogRec(ApproximateSimplex* approx, int nid, ConstraintP bc, int depth){
