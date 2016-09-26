@@ -107,7 +107,6 @@ void UnconstrainedSimplifier::processUnconstrained()
     workList.push_back(*it);
   }
   Node currentSub;
-  TNode parent;
   bool swap;
   bool isSigned;
   bool strict;
@@ -118,7 +117,7 @@ void UnconstrainedSimplifier::processUnconstrained()
   workList.pop_back();
   for (;;) {
     Assert(d_visitedOnce.find(current) != d_visitedOnce.end());
-    parent = d_visitedOnce[current];
+    const TNode parent = d_visitedOnce[current];
     if (!parent.isNull()) {
       swap = isSigned = strict = false;
       switch (parent.getKind()) {
@@ -563,39 +562,56 @@ void UnconstrainedSimplifier::processUnconstrained()
           }
           break;
 
-        // Bit-vector comparisons: replace with new Boolean variable, but have to also conjoin with a side condition
-        // as there is always one case when the comparison is forced to be false
+        // Bit-vector comparisons: replace with new Boolean variable, but have
+        // to also conjoin with a side condition as there is always one case
+        // when the comparison is forced to be false
         case kind::BITVECTOR_ULT:
-          strict = true;
         case kind::BITVECTOR_UGE:
-          goto bvineq;
-
         case kind::BITVECTOR_UGT:
-          strict = true;
         case kind::BITVECTOR_ULE:
-          swap = true;
-          goto bvineq;
-
         case kind::BITVECTOR_SLT:
-          strict = true;
         case kind::BITVECTOR_SGE:
-          isSigned = true;
-          goto bvineq;
-
         case kind::BITVECTOR_SGT:
-          strict = true;
-        case kind::BITVECTOR_SLE:
-          isSigned = true;
-          swap = true;
-
-        bvineq: {
+        case kind::BITVECTOR_SLE: {
+          // Tuples over (signed, swap, strict).
+          switch (parent.getKind()) {
+            case kind::BITVECTOR_UGE:
+              break;
+            case kind::BITVECTOR_ULT:
+              strict = true;
+              break;
+            case kind::BITVECTOR_ULE:
+              swap = true;
+              break;
+            case kind::BITVECTOR_UGT:
+              swap = true;
+              strict = true;
+              break;
+            case kind::BITVECTOR_SGE:
+              isSigned = true;
+              break;
+            case kind::BITVECTOR_SLT:
+              isSigned = true;
+              strict = true;
+              break;
+            case kind::BITVECTOR_SLE:
+              isSigned = true;
+              swap = true;
+              break;
+            case kind::BITVECTOR_SGT:
+              isSigned = true;
+              swap = true;
+              strict = true;
+              break;
+            default:
+              Unreachable();
+          }
           TNode other;
           bool left = false;
           if (parent[0] == current) {
             other = parent[1];
             left = true;
-          }
-          else {
+          } else {
             Assert(parent[1] == current);
             other = parent[0];
           }
@@ -608,14 +624,14 @@ void UnconstrainedSimplifier::processUnconstrained()
               }
               currentSub = newUnconstrainedVar(parent.getType(), currentSub);
               current = parent;
-            }
-            else {
+            } else {
               currentSub = Node();
             }
-          }
-          else {
+          } else {
             unsigned size = current.getType().getBitVectorSize();
-            BitVector bv = isSigned ? BitVector(size, Integer(1).multiplyByPow2(size - 1)) : BitVector(size, unsigned(0));
+            BitVector bv =
+                isSigned ? BitVector(size, Integer(1).multiplyByPow2(size - 1))
+                         : BitVector(size, unsigned(0));
             if (swap == left) {
               bv = ~bv;
             }
@@ -625,14 +641,14 @@ void UnconstrainedSimplifier::processUnconstrained()
             currentSub = newUnconstrainedVar(parent.getType(), currentSub);
             current = parent;
             NodeManager* nm = NodeManager::currentNM();
-            Node test = Rewriter::rewrite(other.eqNode(nm->mkConst<BitVector>(bv)));
+            Node test =
+                Rewriter::rewrite(other.eqNode(nm->mkConst<BitVector>(bv)));
             if (test == nm->mkConst<bool>(false)) {
               break;
             }
             if (strict) {
               currentSub = currentSub.andNode(test.notNode());
-            }
-            else {
+            } else {
               currentSub = currentSub.orNode(test);
             }
             // Delay adding this substitution - see comment at end of function
