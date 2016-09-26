@@ -33,13 +33,13 @@
 #include "util/bitvector.h"
 
 using namespace std;
-using namespace CVC4;
 using namespace CVC4::kind;
 using namespace CVC4::context;
-using namespace CVC4::theory;
-using namespace CVC4::theory::quantifiers;
-
 using namespace CVC4::theory::inst;
+
+namespace CVC4 {
+namespace theory {
+namespace quantifiers {
 
 TNode TermArgTrie::existsTerm( std::vector< TNode >& reps, int argIndex ) {
   if( argIndex==(int)reps.size() ){
@@ -84,15 +84,24 @@ void TermArgTrie::debugPrint( const char * c, Node n, unsigned depth ) {
   }
 }
 
-TermDb::TermDb( context::Context* c, context::UserContext* u, QuantifiersEngine* qe ) : d_quantEngine( qe ), d_inactive_map( c ), d_op_id_count( 0 ), d_typ_id_count( 0 ) {
-  d_true = NodeManager::currentNM()->mkConst( true );
-  d_false = NodeManager::currentNM()->mkConst( false );
-  d_zero = NodeManager::currentNM()->mkConst( Rational( 0 ) );
-  d_one = NodeManager::currentNM()->mkConst( Rational( 1 ) );
-  if( options::ceGuidedInst() ){
-    d_sygus_tdb = new TermDbSygus( c, qe );
-  }else{
-    d_sygus_tdb = NULL;
+TermDb::TermDb(context::Context* c, context::UserContext* u,
+               QuantifiersEngine* qe)
+    : d_quantEngine(qe),
+      d_inactive_map(c),
+      d_op_id_count(0),
+      d_typ_id_count(0),
+      d_sygus_tdb(NULL) {
+  d_true = NodeManager::currentNM()->mkConst(true);
+  d_false = NodeManager::currentNM()->mkConst(false);
+  d_zero = NodeManager::currentNM()->mkConst(Rational(0));
+  d_one = NodeManager::currentNM()->mkConst(Rational(1));
+  if (options::ceGuidedInst()) {
+    d_sygus_tdb = new TermDbSygus(c, qe);
+  }
+}
+TermDb::~TermDb(){
+  if(d_sygus_tdb) {
+    delete d_sygus_tdb;
   }
 }
 
@@ -3298,3 +3307,6 @@ void TermDbSygus::registerModelValue( Node a, Node v, std::vector< Node >& lems 
   }
 }
 
+}/* CVC4::theory::quantifiers namespace */
+}/* CVC4::theory namespace */
+}/* CVC4 namespace */

@@ -188,23 +188,25 @@ private:
   std::map< Node, std::map< TypeNode, Node > > d_par_op_map;
   /** whether master equality engine is UF-inconsistent */
   bool d_consistent_ee;
-public:
-  TermDb( context::Context* c, context::UserContext* u, QuantifiersEngine* qe );
-  ~TermDb(){}
+
+ public:
+  TermDb(context::Context* c, context::UserContext* u, QuantifiersEngine* qe);
+  ~TermDb();
   /** boolean terms */
   Node d_true;
   Node d_false;
   /** constants */
   Node d_zero;
   Node d_one;
-public:
+
+ public:
   /** presolve (called once per user check-sat) */
   void presolve();
   /** reset (calculate which terms are active) */
   bool reset( Theory::Effort effort );
   /** identify */
   std::string identify() const { return "TermDb"; }  
-private:
+ private:
   /** map from operators to ground terms for that operator */
   std::map< Node, std::vector< Node > > d_op_map;
   /** map from type nodes to terms of that type */
