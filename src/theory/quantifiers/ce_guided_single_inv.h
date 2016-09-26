@@ -31,11 +31,10 @@ class CegConjecture;
 class CegConjectureSingleInv;
 class CegEntailmentInfer;
 
-class CegqiOutputSingleInv : public CegqiOutput
-{
+class CegqiOutputSingleInv : public CegqiOutput {
 public:
   CegqiOutputSingleInv( CegConjectureSingleInv * out ) : d_out( out ){}
-  ~CegqiOutputSingleInv() {}
+  virtual ~CegqiOutputSingleInv() {}
   CegConjectureSingleInv * d_out;
   bool doAddInstantiation( std::vector< Node >& subs );
   bool isEligibleForInstantiation( Node n );
@@ -45,22 +44,13 @@ public:
 
 class SingleInvocationPartition;
 
-class CegConjectureSingleInv
-{
+class CegConjectureSingleInv {
+ private:
   friend class CegqiOutputSingleInv;
-private:
-  SingleInvocationPartition * d_sip;
-  QuantifiersEngine * d_qe;
-  CegConjecture * d_parent;
-  CegConjectureSingleInvSol * d_sol;
-  CegEntailmentInfer * d_ei;
-  //the instantiator
-  CegqiOutputSingleInv * d_cosi;
-  CegInstantiator * d_cinst;
-  //for recognizing templates for invariant synthesis
+  // for recognizing templates for invariant synthesis
   Node substituteInvariantTemplates(
-      Node n, std::map< Node, Node >& prog_templ,
-      std::map< Node, std::vector< Node > >& prog_templ_vars );
+      Node n, std::map<Node, Node>& prog_templ,
+      std::map<Node, std::vector<Node> >& prog_templ_vars);
   // partially single invocation
   Node removeDeepEmbedding( Node n, std::vector< Node >& progs,
                             std::vector< TypeNode >& types, int& type_valid,
@@ -73,42 +63,56 @@ private:
                                std::vector< Node >& terms,
                                std::map< Node, std::vector< Node > >& teq,
                                Node n, std::vector< Node >& conj );
-  //constructing solution
-  Node constructSolution( std::vector< unsigned >& indices, unsigned i, unsigned index, std::map< Node, Node >& weak_imp );
-  Node postProcessSolution( Node n );
-private:
-  //list of skolems for each argument of programs
-  std::vector< Node > d_single_inv_arg_sk;
-  //list of variables/skolems for each program
-  std::vector< Node > d_single_inv_var;
-  std::vector< Node > d_single_inv_sk;
-  std::map< Node, int > d_single_inv_sk_index;
-  //program to solution index
-  std::map< Node, unsigned > d_prog_to_sol_index;
-  //lemmas produced
+  // constructing solution
+  Node constructSolution(std::vector<unsigned>& indices, unsigned i,
+                         unsigned index, std::map<Node, Node>& weak_imp);
+  Node postProcessSolution(Node n);
+
+ private:
+  QuantifiersEngine* d_qe;
+  CegConjecture* d_parent;
+  SingleInvocationPartition* d_sip;
+  CegConjectureSingleInvSol* d_sol;
+  CegEntailmentInfer* d_ei;
+  // the instantiator
+  CegqiOutputSingleInv* d_cosi;
+  CegInstantiator* d_cinst;
+
+  // list of skolems for each argument of programs
+  std::vector<Node> d_single_inv_arg_sk;
+  // list of variables/skolems for each program
+  std::vector<Node> d_single_inv_var;
+  std::vector<Node> d_single_inv_sk;
+  std::map<Node, int> d_single_inv_sk_index;
+  // program to solution index
+  std::map<Node, unsigned> d_prog_to_sol_index;
+  // lemmas produced
   inst::InstMatchTrie d_inst_match_trie;
-  inst::CDInstMatchTrie * d_c_inst_match_trie;
-  //original conjecture
+  inst::CDInstMatchTrie* d_c_inst_match_trie;
+  // original conjecture
   Node d_orig_conjecture;
   // solution
   Node d_orig_solution;
   Node d_solution;
   Node d_sygus_solution;
   bool d_has_ites;
-public:
-  //lemmas produced
-  std::vector< Node > d_lemmas_produced;
-  std::vector< std::vector< Node > > d_inst;
-private:
-  std::vector< Node > d_curr_lemmas;
-  //add instantiation
+
+ public:
+  // lemmas produced
+  std::vector<Node> d_lemmas_produced;
+  std::vector<std::vector<Node> > d_inst;
+
+ private:
+  std::vector<Node> d_curr_lemmas;
+  // add instantiation
   bool doAddInstantiation( std::vector< Node >& subs );
   //is eligible for instantiation
   bool isEligibleForInstantiation( Node n );
   // add lemma
   bool addLemma( Node lem );
-public:
+ public:
   CegConjectureSingleInv( QuantifiersEngine * qe, CegConjecture * p );
+  ~CegConjectureSingleInv();
   // original conjecture
   Node d_quant;
   // single invocation portion of quantified formula
@@ -130,7 +134,7 @@ public:
   std::map< Node, Node > d_nsi_op_map;
   std::map< Node, Node > d_nsi_op_map_to_prog;
   std::map< Node, Node > d_prog_to_eval_op;
-public:
+ public:
   //get the single invocation lemma(s)
   void getInitialSingleInvLemma( std::vector< Node >& lems );
   //initialize
@@ -169,12 +173,12 @@ public:
 
 };
 
-// partitions any formulas given to it into single invocation/non-single invocation
-// only processes functions having argument types exactly matching "d_arg_types",
-//   and all invocations are in the same order across all functions
-class SingleInvocationPartition
-{
-private:
+// partitions any formulas given to it into single invocation/non-single
+// invocation only processes functions having argument types exactly matching
+// "d_arg_types",  and all invocations are in the same order across all
+// functions
+class SingleInvocationPartition {
+ private:
   //options
   Kind d_checkKind;
   bool inferArgTypes( Node n, std::vector< TypeNode >& typs, std::map< Node, bool >& visited );

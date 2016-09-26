@@ -45,27 +45,41 @@ bool CegqiOutputSingleInv::addLemma( Node n ) {
   return d_out->addLemma( n );
 }
 
+CegConjectureSingleInv::CegConjectureSingleInv(QuantifiersEngine* qe,
+                                               CegConjecture* p)
+    : d_qe(qe),
+      d_parent(p),
+      d_sip(new SingleInvocationPartition),
+      d_sol(new CegConjectureSingleInvSol(qe)),
+      d_ei(NULL),
+      d_cosi(new CegqiOutputSingleInv(this)),
+      d_cinst(NULL),
+      d_c_inst_match_trie(NULL),
+      d_has_ites(true) {
+  //  third and fourth arguments set to (false,false) until we have solution
+  //  reconstruction for delta and infinity
+  d_cinst = new CegInstantiator(d_qe, d_cosi, false, false);
 
-CegConjectureSingleInv::CegConjectureSingleInv( QuantifiersEngine * qe, CegConjecture * p ) : d_qe( qe ), d_parent( p ){
-  d_has_ites = true;
-  if( options::incrementalSolving() ){
-    d_c_inst_match_trie = new inst::CDInstMatchTrie( qe->getUserContext() );
-  }else{
-    d_c_inst_match_trie = NULL;
+  if (options::incrementalSolving()) {
+    d_c_inst_match_trie = new inst::CDInstMatchTrie(qe->getUserContext());
   }
-  d_cosi = new CegqiOutputSingleInv( this );
-  //  third and fourth arguments set to (false,false) until we have solution reconstruction for delta and infinity
-  d_cinst = new CegInstantiator( d_qe, d_cosi, false, false );
 
-  d_sol = new CegConjectureSingleInvSol( qe );
-
-  d_sip = new SingleInvocationPartition;
-
-  if( options::cegqiSingleInvPartial() ){
-    d_ei = new CegEntailmentInfer( qe, d_sip );
-  }else{
-    d_ei = NULL;
+  if (options::cegqiSingleInvPartial()) {
+    d_ei = new CegEntailmentInfer(qe, d_sip);
   }
+}
+
+CegConjectureSingleInv::~CegConjectureSingleInv() {
+  if (d_c_inst_match_trie) {
+    delete d_c_inst_match_trie;
+  }
+  delete d_cinst;
+  delete d_cosi;
+  if (d_ei) {
+    delete d_ei;
+  }
+  delete d_sol;  // (new CegConjectureSingleInvSol(qe)),
+  delete d_sip;  // d_sip(new SingleInvocationPartition),
 }
 
 void CegConjectureSingleInv::getInitialSingleInvLemma( std::vector< Node >& lems ) {
