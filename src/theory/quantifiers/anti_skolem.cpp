@@ -14,18 +14,19 @@
  **/
 
 #include "theory/quantifiers/anti_skolem.h"
+
+#include "options/quantifiers_options.h"
+#include "theory/quantifiers/first_order_model.h"
 #include "theory/quantifiers/term_database.h"
 #include "theory/quantifiers_engine.h"
-#include "theory/quantifiers/first_order_model.h"
-#include "options/quantifiers_options.h"
 
 using namespace std;
-using namespace CVC4;
 using namespace CVC4::kind;
 using namespace CVC4::context;
-using namespace CVC4::theory;
-using namespace CVC4::theory::quantifiers;
 
+namespace CVC4 {
+namespace theory {
+namespace quantifiers {
 
 struct sortTypeOrder {
   TermDb* d_tdb;
@@ -74,9 +75,12 @@ bool QuantAntiSkolem::CDSkQuantCache::add( context::Context* c, std::vector< Nod
   }
 }
 
-QuantAntiSkolem::QuantAntiSkolem( QuantifiersEngine * qe ) : QuantifiersModule( qe ){
-  d_sqc = new CDSkQuantCache( qe->getUserContext() );
+QuantAntiSkolem::QuantAntiSkolem(QuantifiersEngine* qe)
+    : QuantifiersModule(qe) {
+  d_sqc = new CDSkQuantCache(qe->getUserContext());
 }
+
+QuantAntiSkolem::~QuantAntiSkolem() { delete d_sqc; }
 
 /* Call during quantifier engine's check */
 void QuantAntiSkolem::check( Theory::Effort e, unsigned quant_e ) {
@@ -267,3 +271,6 @@ bool QuantAntiSkolem::sendAntiSkolemizeLemma( std::vector< Node >& quants, bool 
   }
 }
 
+}/* namespace CVC4::theory::quantifiers */
+}/* namespace CVC4::theory */
+}/* namespace CVC4 */
