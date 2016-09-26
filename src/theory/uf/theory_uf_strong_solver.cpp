@@ -1645,34 +1645,37 @@ Node SortModel::getCardinalityLiteral( int c ) {
 
 StrongSolverTheoryUF::StrongSolverTheoryUF(context::Context* c,
                                            context::UserContext* u,
-                                           OutputChannel& out,
-                                           TheoryUF* th)
-  : d_out( &out )
-  , d_th( th )
-  , d_conflict( c, false )
-  , d_rep_model()
-  , d_aloc_com_card( u, 0 )
-  , d_com_card_assertions( c )
-  , d_min_pos_com_card( c, -1 )
-  , d_card_assertions_eqv_lemma( u )
-  , d_min_pos_tn_master_card( c, -1 )
-  , d_rel_eqc( c )
-{
-  if( options::ufssDiseqPropagation() ){
-    d_deq_prop = new DisequalityPropagator( th->getQuantifiersEngine(), this );
-  }else{
-    d_deq_prop = NULL;
+                                           OutputChannel& out, TheoryUF* th)
+    : d_out(&out),
+      d_th(th),
+      d_conflict(c, false),
+      d_rep_model(),
+      d_aloc_com_card(u, 0),
+      d_com_card_assertions(c),
+      d_min_pos_com_card(c, -1),
+      d_card_assertions_eqv_lemma(u),
+      d_min_pos_tn_master_card(c, -1),
+      d_rel_eqc(c),
+      d_deq_prop(NULL),
+      d_sym_break(NULL) {
+  if (options::ufssDiseqPropagation()) {
+    d_deq_prop = new DisequalityPropagator(th->getQuantifiersEngine(), this);
   }
-  if( options::ufssSymBreak() ){
-    d_sym_break = new SubsortSymmetryBreaker( th->getQuantifiersEngine(), c );
-  }else{
-    d_sym_break = NULL;
+  if (options::ufssSymBreak()) {
+    d_sym_break = new SubsortSymmetryBreaker(th->getQuantifiersEngine(), c);
   }
 }
 
-StrongSolverTheoryUF::~StrongSolverTheoryUF() { 
-  for( std::map< TypeNode, SortModel* >::iterator it = d_rep_model.begin(); it != d_rep_model.end(); ++it ){
+StrongSolverTheoryUF::~StrongSolverTheoryUF() {
+  for (std::map<TypeNode, SortModel*>::iterator it = d_rep_model.begin();
+       it != d_rep_model.end(); ++it) {
     delete it->second;
+  }
+  if (d_sym_break) {
+    delete d_sym_break;
+  }
+  if (d_deq_prop) {
+    delete d_deq_prop;
   }
 }
 
