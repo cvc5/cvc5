@@ -88,13 +88,25 @@ std::string int2string(int n) {
 }
 
 std::ostream& operator<<(std::ostream& out, CLFlagType clft) {
-  switch(clft) {
-  case CLFLAG_NULL: out << "CLFLAG_NULL";
-  case CLFLAG_BOOL: out << "CLFLAG_BOOL";
-  case CLFLAG_INT: out << "CLFLAG_INT";
-  case CLFLAG_STRING: out << "CLFLAG_STRING";
-  case CLFLAG_STRVEC: out << "CLFLAG_STRVEC";
-  default: out << "CLFlagType!UNKNOWN";
+  switch (clft) {
+    case CLFLAG_NULL:
+      out << "CLFLAG_NULL";
+      break;
+    case CLFLAG_BOOL:
+      out << "CLFLAG_BOOL";
+      break;
+    case CLFLAG_INT:
+      out << "CLFLAG_INT";
+      break;
+    case CLFLAG_STRING:
+      out << "CLFLAG_STRING";
+      break;
+    case CLFLAG_STRVEC:
+      out << "CLFLAG_STRVEC";
+      break;
+    default:
+      out << "CLFlagType!UNKNOWN";
+      break;
   }
 
   return out;
