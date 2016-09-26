@@ -20,11 +20,12 @@
 #include "theory/quantifiers/trigger.h"
 
 using namespace std;
-using namespace CVC4;
 using namespace CVC4::kind;
 using namespace CVC4::context;
-using namespace CVC4::theory;
-using namespace CVC4::theory::quantifiers;
+
+namespace CVC4 {
+namespace theory {
+namespace quantifiers {
 
 bool QuantifiersRewriter::isClause( Node n ){
   if( isLiteral( n ) ){
@@ -1415,21 +1416,25 @@ Node QuantifiersRewriter::computeMiniscoping( std::vector< Node >& args, Node bo
 }
 
 Node QuantifiersRewriter::computeAggressiveMiniscoping( std::vector< Node >& args, Node body ){
-  std::map< Node, std::vector< Node > > varLits;
-  std::map< Node, std::vector< Node > > litVars;
-  if( body.getKind()==OR ){
+  std::map<Node, std::vector<Node> > varLits;
+  std::map<Node, std::vector<Node> > litVars;
+  if (body.getKind() == OR) {
     Trace("ag-miniscope") << "compute aggressive miniscoping on " << body << std::endl;
-    for( size_t i=0; i<body.getNumChildren(); i++ ){
-      std::vector< Node > activeArgs;
-      computeArgVec( args, activeArgs, body[i] );
-      for (unsigned j=0; j<activeArgs.size(); j++ ){
-        varLits[activeArgs[j]].push_back( body[i] );
+    for (size_t i = 0; i < body.getNumChildren(); i++) {
+      std::vector<Node> activeArgs;
+      computeArgVec(args, activeArgs, body[i]);
+      for (unsigned j = 0; j < activeArgs.size(); j++) {
+        varLits[activeArgs[j]].push_back(body[i]);
       }
-      litVars[body[i]].insert( litVars[body[i]].begin(), activeArgs.begin(), activeArgs.end() );
+      std::vector<Node>& lit_body_i = litVars[body[i]];
+      std::vector<Node>::iterator lit_body_i_begin = lit_body_i.begin();
+      std::vector<Node>::const_iterator active_begin = activeArgs.begin();
+      std::vector<Node>::const_iterator active_end = activeArgs.end();
+      lit_body_i.insert(lit_body_i_begin, active_begin, active_end);
     }
     //find the variable in the least number of literals
     Node bestVar;
-    for( std::map< Node, std::vector< Node > >::iterator it = varLits.begin(); it != varLits.end(); ++it ){
+    for( std::map< Node, std::vector<Node> >::iterator it = varLits.begin(); it != varLits.end(); ++it ){
       if( bestVar.isNull() || varLits[bestVar].size()>it->second.size() ){
         bestVar = it->first;
       }
@@ -1439,9 +1444,9 @@ Node QuantifiersRewriter::computeAggressiveMiniscoping( std::vector< Node >& arg
       //we can miniscope
       Trace("ag-miniscope") << "Miniscope on " << bestVar << std::endl;
       //make the bodies
-      std::vector< Node > qlit1;
+      std::vector<Node> qlit1;
       qlit1.insert( qlit1.begin(), varLits[bestVar].begin(), varLits[bestVar].end() );
-      std::vector< Node > qlitt;
+      std::vector<Node> qlitt;
       //for all literals not containing bestVar
       for( size_t i=0; i<body.getNumChildren(); i++ ){
         if( std::find( qlit1.begin(), qlit1.end(), body[i] )==qlit1.end() ){
@@ -1449,9 +1454,9 @@ Node QuantifiersRewriter::computeAggressiveMiniscoping( std::vector< Node >& arg
         }
       }
       //make the variable lists
-      std::vector< Node > qvl1;
-      std::vector< Node > qvl2;
-      std::vector< Node > qvsh;
+      std::vector<Node> qvl1;
+      std::vector<Node> qvl2;
+      std::vector<Node> qvsh;
       for( unsigned i=0; i<args.size(); i++ ){
         bool found1 = false;
         bool found2 = false;
@@ -1479,8 +1484,8 @@ Node QuantifiersRewriter::computeAggressiveMiniscoping( std::vector< Node >& arg
       Assert( !qvl1.empty() );
       Assert( !qvl2.empty() || !qvsh.empty() );
       //check for literals that only contain shared variables
-      std::vector< Node > qlitsh;
-      std::vector< Node > qlit2;
+      std::vector<Node> qlitsh;
+      std::vector<Node> qlit2;
       for( size_t i=0; i<qlitt.size(); i++ ){
         bool hasVar2 = false;
         for( size_t j=0; j<litVars[qlitt[i]].size(); j++ ){
@@ -1836,3 +1841,6 @@ Node QuantifiersRewriter::preprocess( Node n, bool isInst ) {
   return n;
 }
 
+}/* CVC4::theory::quantifiers namespace */
+}/* CVC4::theory namespace */
+}/* CVC4 namespace */
