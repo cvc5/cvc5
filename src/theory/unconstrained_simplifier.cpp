@@ -107,6 +107,7 @@ void UnconstrainedSimplifier::processUnconstrained()
     workList.push_back(*it);
   }
   Node currentSub;
+  TNode parent;
   bool swap;
   bool isSigned;
   bool strict;
@@ -117,7 +118,7 @@ void UnconstrainedSimplifier::processUnconstrained()
   workList.pop_back();
   for (;;) {
     Assert(d_visitedOnce.find(current) != d_visitedOnce.end());
-    const TNode parent = d_visitedOnce[current];
+    parent = d_visitedOnce[current];
     if (!parent.isNull()) {
       swap = isSigned = strict = false;
       switch (parent.getKind()) {
