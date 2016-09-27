@@ -34,7 +34,6 @@ std::set<Node> LemmaProofRecipe::ProofStep::getAssertions() const {
 }
 
 void LemmaProofRecipe::addStep(ProofStep& proofStep) {
-  std::list<ProofStep>::iterator existingFirstStep = d_proofSteps.begin();
   d_proofSteps.push_front(proofStep);
 }
 
