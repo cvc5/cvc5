@@ -853,6 +853,7 @@ void TheorySetsPrivate::collectModelInfo(TheoryModel* m, bool fullModel)
 
   //processCard2 begin
   if(Debug.isOn("sets-card")) {
+    print_graph(true);
     for(CDNodeSet::const_iterator it = d_V.begin(); it != d_V.end(); ++it) {
       Node n = nm->mkNode(kind::CARD, *it);
       Debug("sets-card") << "[sets-card] " << n << " = ";
@@ -1040,7 +1041,7 @@ Node mkAnd(const std::vector<TNode>& conjunctions) {
     if (t.getKind() == kind::AND) {
       for(TNode::iterator child_it = t.begin();
           child_it != t.end(); ++child_it) {
-        Assert((*child_it).getKind() != kind::AND);
+        // Assert((*child_it).getKind() != kind::AND);
         all.insert(*child_it);
       }
     }
@@ -1436,7 +1437,11 @@ Node TheorySetsPrivate::explain(TNode literal)
     Unhandled();
   }
 
-  return mkAnd(assumptions);
+  if(assumptions.size()) {
+    return mkAnd(assumptions);
+  } else {
+    return d_trueNode;
+  }
 }
 
 bool TheorySetsPrivate::lemma(Node n, SetsLemmaTag t)
@@ -2333,7 +2338,8 @@ void TheorySetsPrivate::merge_nodes(std::set<TNode> leaves1, std::set<TNode> lea
 
 }
 
-void  TheorySetsPrivate::print_graph() {
+void  TheorySetsPrivate::print_graph(bool printmodel) {
+  NodeManager* nm = NodeManager::currentNM();
   std::string tag = "sets-graph";
   if(Trace.isOn("sets-graph")) {
     Trace(tag) << "[sets-graph] Graph : " << std::endl;
@@ -2358,13 +2364,38 @@ void  TheorySetsPrivate::print_graph() {
     oss << "digraph G { ";
     for(CDNodeSet::const_iterator it = d_V.begin(); it != d_V.end(); ++it) {
       TNode v = *it;
+
+      std::ostringstream v_oss;
+      v_oss << v;
+      if(printmodel)
+      {
+        Node n = nm->mkNode(kind::CARD, v);
+        if((Rewriter::rewrite(n)).isConst()) {
+          v_oss << " " << (Rewriter::rewrite(n));
+        } else {
+          v_oss << " " << d_external.d_valuation.getModelValue(n);
+        }
+      }
+      
       if(d_E.find(v) != d_E.end()) {
         BOOST_FOREACH(TNode w, d_E[v].get()) {
+
+          std::ostringstream w_oss;
+          w_oss << w;
+          if(printmodel) {
+            Node n = nm->mkNode(kind::CARD, w);
+            if((Rewriter::rewrite(n)).isConst()) {
+              w_oss << " " << (Rewriter::rewrite(n));
+            } else {
+              w_oss << " " << d_external.d_valuation.getModelValue(n);
+            }
+          }
+          
           //oss << v.getId() << " -> " << w.getId() << "; ";
-          oss << "\"" << v << "\" -> \"" << w << "\"; ";
+          oss << "\"" << v_oss.str() << "\" -> \"" << w_oss.str() << "\"; ";
         }
       } else {
-        oss << "\"" << v << "\";";
+        oss << "\"" << v_oss.str() << "\";";
       }
     }
     oss << "}";
@@ -2467,6 +2498,14 @@ void TheorySetsPrivate::processCard2(Theory::Effort level) {
   Trace("sets-card") << "[sets-card]   # vertices = " << d_V.size() << std::endl;
 
   NodeManager* nm = NodeManager::currentNM();
+
+  if(options::setsGuessEmpty() == 0) {
+    Trace("sets-guess-empty") << "[sets-guess-empty] Generating lemmas before introduce." << std::endl;
+    guessLeavesEmptyLemmas();
+    if(d_newLemmaGenerated) {
+      return;
+    }
+  }
 
   // Introduce
   for(CDNodeSet::const_iterator it = d_cardTerms.begin();

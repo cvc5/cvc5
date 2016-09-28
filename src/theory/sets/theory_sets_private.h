@@ -280,7 +280,7 @@ private:
   std::set<TNode> get_leaves(Node vertex1, Node vertex2);
   std::set<TNode> get_leaves(Node vertex1, Node vertex2, Node vertex3);
   std::set<TNode> non_empty(std::set<TNode> vertices);
-  void print_graph();
+  void print_graph(bool printmodel=false);
   context::CDQueue < std::pair<TNode, TNode> > d_graphMergesPending;
   context::CDList<Node> d_allSetEqualitiesSoFar;
   Node eqSoFar();
