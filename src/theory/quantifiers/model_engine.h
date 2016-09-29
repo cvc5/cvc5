@@ -61,17 +61,6 @@ public:
   void assertNode( Node f );
   Node explain(TNode n){ return Node::null(); }
   void debugPrint( const char* c );
-public:
-  /** statistics class */
-  class Statistics {
-  public:
-    IntStat d_inst_rounds;
-    IntStat d_exh_inst_lemmas;
-    IntStat d_mbqi_inst_lemmas;
-    Statistics();
-    ~Statistics();
-  };
-  Statistics d_statistics;
   /** Identify this module */
   std::string identify() const { return "ModelEngine"; }
 };/* class ModelEngine */

@@ -689,6 +689,7 @@ bool InstStrategyCegqi::doAddInstantiation( std::vector< Node >& subs ) {
     //check if we need virtual term substitution (if used delta or infinity)
     bool used_vts = d_quantEngine->getTermDatabase()->containsVtsTerm( subs, false );
     if( d_quantEngine->addInstantiation( d_curr_quant, subs, false, false, used_vts ) ){
+      ++(d_quantEngine->d_statistics.d_instantiations_cbqi);
       //d_added_inst.insert( d_curr_quant );
       return true;
     }else{

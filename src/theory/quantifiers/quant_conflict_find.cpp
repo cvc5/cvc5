@@ -2024,6 +2024,7 @@ void QuantConflictFind::setIrrelevantFunction( TNode f ) {
 
 /** check */
 void QuantConflictFind::check( Theory::Effort level, unsigned quant_e ) {
+  CodeTimer codeTimer(d_quantEngine->d_statistics.d_qcf_time);
   if( quant_e==QuantifiersEngine::QEFFORT_CONFLICT ){
     Trace("qcf-check") << "QCF : check : " << level << std::endl;
     if( d_conflict ){
@@ -2098,7 +2099,7 @@ void QuantConflictFind::check( Theory::Effort level, unsigned quant_e ) {
                           ++addedLemmas;
                           if( e==effort_conflict ){
                             d_quantEngine->markRelevant( q );
-                            ++(d_statistics.d_conflict_inst);
+                            ++(d_quantEngine->d_statistics.d_instantiations_qcf);
                             if( options::qcfAllConflict() ){
                               isConflict = true;
                             }else{
@@ -2107,7 +2108,7 @@ void QuantConflictFind::check( Theory::Effort level, unsigned quant_e ) {
                             break;
                           }else if( e==effort_prop_eq ){
                             d_quantEngine->markRelevant( q );
-                            ++(d_statistics.d_prop_inst);
+                            ++(d_quantEngine->d_statistics.d_instantiations_qcf);
                           }
                         }else{
                           Trace("qcf-inst") << "   ... Failed to add instantiation" << std::endl;
@@ -2234,20 +2235,14 @@ void QuantConflictFind::debugPrintQuantBody( const char * c, Node q, Node n, boo
 
 QuantConflictFind::Statistics::Statistics():
   d_inst_rounds("QuantConflictFind::Inst_Rounds", 0),
-  d_conflict_inst("QuantConflictFind::Instantiations_Conflict_Find", 0 ),
-  d_prop_inst("QuantConflictFind::Instantiations_Prop", 0 ),
   d_entailment_checks("QuantConflictFind::Entailment_Checks",0)
 {
   smtStatisticsRegistry()->registerStat(&d_inst_rounds);
-  smtStatisticsRegistry()->registerStat(&d_conflict_inst);
-  smtStatisticsRegistry()->registerStat(&d_prop_inst);
   smtStatisticsRegistry()->registerStat(&d_entailment_checks);
 }
 
 QuantConflictFind::Statistics::~Statistics(){
   smtStatisticsRegistry()->unregisterStat(&d_inst_rounds);
-  smtStatisticsRegistry()->unregisterStat(&d_conflict_inst);
-  smtStatisticsRegistry()->unregisterStat(&d_prop_inst);
   smtStatisticsRegistry()->unregisterStat(&d_entailment_checks);
 }
 

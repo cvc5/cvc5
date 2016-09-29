@@ -73,7 +73,6 @@ void ModelEngine::check( Theory::Effort e, unsigned quant_e ){
       Trace("model-engine") << "---Model Engine Round---" << std::endl;
       clSet = double(clock())/double(CLOCKS_PER_SEC);
     }
-    ++(d_statistics.d_inst_rounds);
 
     Trace("model-engine-debug") << "Verify uf ss is minimal..." << std::endl;
     //let the strong solver verify that the model is minimal
@@ -275,7 +274,7 @@ void ModelEngine::exhaustiveInstantiate( Node f, int effort ){
     }
     d_triedLemmas += mb->d_triedLemmas;
     d_addedLemmas += mb->d_addedLemmas;
-    d_statistics.d_mbqi_inst_lemmas += mb->d_addedLemmas;
+    d_quantEngine->d_statistics.d_instantiations_fmf_mbqi += mb->d_addedLemmas;
   }else{
     if( Trace.isOn("fmf-exh-inst-debug") ){
       Trace("fmf-exh-inst-debug") << "   Instantiation Constants: ";
@@ -312,7 +311,7 @@ void ModelEngine::exhaustiveInstantiate( Node f, int effort ){
         }
         d_addedLemmas += addedLemmas;
         d_triedLemmas += triedLemmas;
-        d_statistics.d_exh_inst_lemmas += addedLemmas;
+        d_quantEngine->d_statistics.d_instantiations_fmf_exh += addedLemmas;
       }
     }else{
       Trace("fmf-exh-inst") << "...exhaustive instantiation did set, incomplete=" << riter.isIncomplete() << "..." << std::endl;
@@ -339,18 +338,3 @@ void ModelEngine::debugPrint( const char* c ){
   //d_quantEngine->getModel()->debugPrint( c );
 }
 
-ModelEngine::Statistics::Statistics():
-  d_inst_rounds("ModelEngine::Inst_Rounds", 0),
-  d_exh_inst_lemmas("ModelEngine::Instantiations_Exhaustive", 0 ),
-  d_mbqi_inst_lemmas("ModelEngine::Instantiations_Mbqi", 0 )
-{
-  smtStatisticsRegistry()->registerStat(&d_inst_rounds);
-  smtStatisticsRegistry()->registerStat(&d_exh_inst_lemmas);
-  smtStatisticsRegistry()->registerStat(&d_mbqi_inst_lemmas);
-}
-
-ModelEngine::Statistics::~Statistics(){
-  smtStatisticsRegistry()->unregisterStat(&d_inst_rounds);
-  smtStatisticsRegistry()->unregisterStat(&d_exh_inst_lemmas);
-  smtStatisticsRegistry()->unregisterStat(&d_mbqi_inst_lemmas);
-}

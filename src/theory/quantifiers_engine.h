@@ -388,6 +388,8 @@ public:
   class Statistics {
   public:
     TimerStat d_time;
+    TimerStat d_qcf_time;
+    TimerStat d_ematching_time;
     IntStat d_num_quant;
     IntStat d_instantiation_rounds;
     IntStat d_instantiation_rounds_lc;
@@ -399,11 +401,15 @@ public:
     IntStat d_multi_triggers;
     IntStat d_multi_trigger_instantiations;
     IntStat d_red_alpha_equiv;
-    IntStat d_red_lte_partial_inst;
     IntStat d_instantiations_user_patterns;
     IntStat d_instantiations_auto_gen;
     IntStat d_instantiations_guess;
-    IntStat d_instantiations_cbqi_arith;
+    IntStat d_instantiations_qcf;
+    IntStat d_instantiations_qcf_prop;
+    IntStat d_instantiations_fmf_exh;
+    IntStat d_instantiations_fmf_mbqi;
+    IntStat d_instantiations_cbqi;
+    IntStat d_instantiations_rr;
     Statistics();
     ~Statistics();
   };/* class QuantifiersEngine::Statistics */

@@ -205,6 +205,7 @@ int RewriteEngine::checkRewriteRule( Node f, Theory::Effort e ) {
       Trace("rewrite-engine-inst-debug") << "...No qinfo." << std::endl;
     }
   }
+  d_quantEngine->d_statistics.d_instantiations_rr += addedLemmas;
   Trace("rewrite-engine-inst") << "-> Generated " << addedLemmas << " lemmas." << std::endl;
   return addedLemmas;
 }

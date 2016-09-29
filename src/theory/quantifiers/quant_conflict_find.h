@@ -260,8 +260,6 @@ public:
   class Statistics {
   public:
     IntStat d_inst_rounds;
-    IntStat d_conflict_inst;
-    IntStat d_prop_inst;
     IntStat d_entailment_checks;
     Statistics();
     ~Statistics();
