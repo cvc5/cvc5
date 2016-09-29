@@ -767,7 +767,7 @@ void CegInstantiation::printSynthSolution( std::ostream& out ) {
       Assert( dt.isSygus() );
       //get the solution
       Node sol;
-      int status;
+      int status = -1;
       if( d_last_inst_si ){
         Assert( d_conj->getCegConjectureSingleInv() != NULL );
         sol = d_conj->getSingleInvocationSolution( i, tn, status );

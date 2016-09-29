@@ -33,6 +33,10 @@ using namespace CVC4::theory::quantifiers;
 using namespace CVC4::kind;
 
 
+QuantifierMacros::QuantifierMacros( QuantifiersEngine * qe ) : d_qe( qe ){
+  d_ground_macros = false;
+}
+  
 bool QuantifierMacros::simplify( std::vector< Node >& assertions, bool doRewrite ){
   unsigned rmax = options::macrosQuantMode()==MACROS_QUANT_MODE_ALL ? 2 : 1;
   for( unsigned r=0; r<rmax; r++ ){

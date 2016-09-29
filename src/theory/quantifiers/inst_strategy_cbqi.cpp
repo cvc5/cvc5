@@ -625,6 +625,7 @@ InstStrategyCegqi::InstStrategyCegqi( QuantifiersEngine * qe )
   : InstStrategyCbqi( qe ) {
   d_out = new CegqiOutputInstStrategy( this );
   d_small_const = NodeManager::currentNM()->mkConst( Rational(1)/Rational(1000000) );
+  d_check_vts_lemma_lc = false;
 }
 
 InstStrategyCegqi::~InstStrategyCegqi() throw () {

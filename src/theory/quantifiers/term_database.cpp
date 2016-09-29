@@ -91,6 +91,7 @@ TermDb::TermDb(context::Context* c, context::UserContext* u,
       d_op_id_count(0),
       d_typ_id_count(0),
       d_sygus_tdb(NULL) {
+  d_consistent_ee = true;
   d_true = NodeManager::currentNM()->mkConst(true);
   d_false = NodeManager::currentNM()->mkConst(false);
   d_zero = NodeManager::currentNM()->mkConst(Rational(0));

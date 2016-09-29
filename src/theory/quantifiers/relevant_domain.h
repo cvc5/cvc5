@@ -51,7 +51,10 @@ private:
   //what each literal does
   class RDomainLit {
   public:
-    RDomainLit() : d_merge(false){}
+    RDomainLit() : d_merge(false){
+      d_rd[0] = NULL;
+      d_rd[1] = NULL;
+    }
     ~RDomainLit(){}
     bool d_merge;
     RDomain * d_rd[2];

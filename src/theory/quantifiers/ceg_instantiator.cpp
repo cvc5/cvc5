@@ -329,9 +329,7 @@ bool CegInstantiator::doAddInstantiation( SolvedForm& sf, unsigned i, unsigned e
     if( is_cv ){  
       d_stack_vars.push_back( pv );
     }
-    if( vinst!=NULL ){
-      d_active_instantiators.erase( pv );
-    }
+    d_active_instantiators.erase( pv );
     unregisterInstantiationVariable( pv );
     return false;
   }

@@ -1133,6 +1133,7 @@ bool QuantifiersEngine::addInstantiation( Node q, std::vector< Node >& terms, bo
     }
     if( d_term_db->isEntailed( q[1], subs, false, true ) ){
       Trace("inst-add-debug") << " --> Currently entailed." << std::endl;
+      ++(d_statistics.d_inst_duplicate_ent);
       return false;
     }
     //Node eval = d_term_db->evaluateTerm( q[1], subs, false, true );
@@ -1520,6 +1521,7 @@ QuantifiersEngine::Statistics::Statistics()
       d_instantiations("QuantifiersEngine::Instantiations_Total", 0),
       d_inst_duplicate("QuantifiersEngine::Duplicate_Inst", 0),
       d_inst_duplicate_eq("QuantifiersEngine::Duplicate_Inst_Eq", 0),
+      d_inst_duplicate_ent("QuantifiersEngine::Duplicate_Inst_Entailed", 0),
       d_triggers("QuantifiersEngine::Triggers", 0),
       d_simple_triggers("QuantifiersEngine::Triggers_Simple", 0),
       d_multi_triggers("QuantifiersEngine::Triggers_Multi", 0),
@@ -1544,6 +1546,7 @@ QuantifiersEngine::Statistics::Statistics()
   smtStatisticsRegistry()->registerStat(&d_instantiations);
   smtStatisticsRegistry()->registerStat(&d_inst_duplicate);
   smtStatisticsRegistry()->registerStat(&d_inst_duplicate_eq);
+  smtStatisticsRegistry()->registerStat(&d_inst_duplicate_ent);
   smtStatisticsRegistry()->registerStat(&d_triggers);
   smtStatisticsRegistry()->registerStat(&d_simple_triggers);
   smtStatisticsRegistry()->registerStat(&d_multi_triggers);
@@ -1570,6 +1573,7 @@ QuantifiersEngine::Statistics::~Statistics(){
   smtStatisticsRegistry()->unregisterStat(&d_instantiations);
   smtStatisticsRegistry()->unregisterStat(&d_inst_duplicate);
   smtStatisticsRegistry()->unregisterStat(&d_inst_duplicate_eq);
+  smtStatisticsRegistry()->unregisterStat(&d_inst_duplicate_ent);
   smtStatisticsRegistry()->unregisterStat(&d_triggers);
   smtStatisticsRegistry()->unregisterStat(&d_simple_triggers);
   smtStatisticsRegistry()->unregisterStat(&d_multi_triggers);

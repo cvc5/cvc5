@@ -60,7 +60,7 @@ private:
   void addMacro( Node op, Node n, std::vector< Node >& opc );
   void debugMacroDefinition( Node oo, Node n );
 public:
-  QuantifierMacros( QuantifiersEngine * qe ) : d_qe( qe ){}
+  QuantifierMacros( QuantifiersEngine * qe );
   ~QuantifierMacros(){}
 
   bool simplify( std::vector< Node >& assertions, bool doRewrite = false );

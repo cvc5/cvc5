@@ -155,6 +155,7 @@ InstStrategyAutoGenTriggers::InstStrategyAutoGenTriggers( QuantifiersEngine* qe 
     d_regenerate_frequency = 3;
     d_regenerate = true;
   }else{
+    d_regenerate_frequency = 1;
     d_regenerate = false;
   }
 }

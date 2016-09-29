@@ -741,17 +741,19 @@ int InstMatchGeneratorSimple::addInstantiations( Node q, InstMatch& baseMatch, Q
       Node r = qe->getEqualityQuery()->getRepresentative( d_eqc );
       //iterate over all classes except r
       tat = qe->getTermDatabase()->getTermArgTrie( Node::null(), d_op );
-      for( std::map< TNode, quantifiers::TermArgTrie >::iterator it = tat->d_data.begin(); it != tat->d_data.end(); ++it ){
-        if( it->first!=r ){
-          InstMatch m( q );
-          m.add( baseMatch );
-          addInstantiations( m, qe, addedLemmas, 0, &(it->second) );
-          if( qe->inConflict() ){
-            break;
+      if( tat ){
+        for( std::map< TNode, quantifiers::TermArgTrie >::iterator it = tat->d_data.begin(); it != tat->d_data.end(); ++it ){
+          if( it->first!=r ){
+            InstMatch m( q );
+            m.add( baseMatch );
+            addInstantiations( m, qe, addedLemmas, 0, &(it->second) );
+            if( qe->inConflict() ){
+              break;
+            }
           }
         }
+        tat = NULL;
       }
-      tat = NULL;
     }
   }
   Debug("simple-trigger-debug") << "Adding instantiations based on " << tat << " from " << d_op << " " << d_eqc << std::endl;

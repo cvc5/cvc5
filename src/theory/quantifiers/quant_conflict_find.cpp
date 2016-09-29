@@ -967,7 +967,11 @@ MatchGen::MatchGen()
     d_n(),
     d_type( typ_invalid ),
     d_type_not()
-{}
+{
+  d_qni_size = 0;
+  d_child_counter = -1;
+  d_use_children = true;
+}
 
 
 MatchGen::MatchGen( QuantInfo * qi, Node n, bool isVar )
@@ -980,6 +984,10 @@ MatchGen::MatchGen( QuantInfo * qi, Node n, bool isVar )
     d_type(),
     d_type_not()
 {
+  //initialize temporary
+  d_child_counter = -1;
+  d_use_children = true;
+  
   Trace("qcf-qregister-debug") << "Make match gen for " << n << ", isVar = " << isVar << std::endl;
   std::vector< Node > qni_apps;
   d_qni_size = 0;

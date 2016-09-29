@@ -79,7 +79,7 @@ protected:
   //elimination information (for delayed elimination)
   class NestedQEInfo {
   public:
-    NestedQEInfo(){}
+    NestedQEInfo() : d_doVts(false){}
     ~NestedQEInfo(){}
     Node d_q;
     std::vector< Node > d_inst_terms;
