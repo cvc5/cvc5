@@ -39,11 +39,12 @@
 namespace CVC4 {
 
 class CVC4_PUBLIC SExprKeyword {
-  std::string d_str;
-
  public:
   SExprKeyword(const std::string& s) : d_str(s) {}
   const std::string& getString() const { return d_str; }
+
+ private:
+  std::string d_str;
 }; /* class SExpr::Keyword */
 
 /**
