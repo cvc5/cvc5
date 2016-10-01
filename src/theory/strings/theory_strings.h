@@ -72,6 +72,7 @@ public:
   Node explain( TNode literal );
   eq::EqualityEngine * getEqualityEngine() { return &d_equalityEngine; }
   bool getCurrentSubstitution( int effort, std::vector< Node >& vars, std::vector< Node >& subs, std::map< Node, std::vector< Node > >& exp );
+  int getReduction( int effort, Node n, Node& nr );
  
   // NotifyClass for equality engine
   class NotifyClass : public eq::EqualityEngineNotify {
@@ -237,7 +238,6 @@ private:
     EqcInfo( context::Context* c );
     ~EqcInfo(){}
     //constant in this eqc
-    context::CDO< Node > d_const_term;
     context::CDO< Node > d_length_term;
     context::CDO< unsigned > d_cardinality_lem_k;
     // 1 = added length lemma
@@ -274,8 +274,6 @@ private:
     int d_pol;
     //explanation
     std::vector< Node > d_exp;
-    //reps -> list of variables
-    //std::map< Node, std::vector< Node > > d_rep_vars;
     //false if it is reduced in the model
     bool d_model_active;
   };
@@ -321,7 +319,6 @@ private:
   Node getSymbolicDefinition( Node n, std::vector< Node >& exp );
   //check extf reduction
   void checkExtfReductions( int effort );
-  bool checkExtfReduction( Node atom, int pol, int effort );
   //flat forms check
   void checkFlatForms();
   Node checkCycles( Node eqc, std::vector< Node >& curr, std::vector< Node >& exp );
@@ -523,6 +520,7 @@ public:
     ~Statistics();
   };/* class TheoryStrings::Statistics */
   Statistics d_statistics;
+  
 };/* class TheoryStrings */
 
 }/* CVC4::theory::strings namespace */
