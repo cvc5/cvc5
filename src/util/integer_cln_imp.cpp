@@ -145,4 +145,14 @@ bool Integer::fitsUnsignedLong() const {
   return sgn() >= 0 && d_value <= s_unsignedLongMax;
 }
 
+Integer Integer::pow(unsigned long int exp) const {
+  if (exp == 0) {
+    return Integer(1);
+  } else {
+    Assert(exp > 0);
+    cln::cl_I result = cln::expt_pos(d_value, exp);
+    return Integer(result);
+  }
+}
+
 } /* namespace CVC4 */

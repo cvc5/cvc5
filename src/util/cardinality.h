@@ -35,23 +35,21 @@ namespace CVC4 {
 class CVC4_PUBLIC CardinalityBeth {
   Integer d_index;
 
-public:
+ public:
   CardinalityBeth(const Integer& beth);
 
-  const Integer& getNumber() const throw() {
-    return d_index;
-  }
+  const Integer& getNumber() const { return d_index; }
 
-};/* class CardinalityBeth */
+}; /* class CardinalityBeth */
 
 /**
  * Representation for an unknown cardinality.
  */
 class CVC4_PUBLIC CardinalityUnknown {
-public:
-  CardinalityUnknown() throw() {}
-  ~CardinalityUnknown() throw() {}
-};/* class CardinalityUnknown */
+ public:
+  CardinalityUnknown() {}
+  ~CardinalityUnknown() {}
+}; /* class CardinalityUnknown */
 
 /**
  * A simple representation of a cardinality.  We store an
@@ -83,8 +81,7 @@ class CVC4_PUBLIC Cardinality {
    */
   Integer d_card;
 
-public:
-
+ public:
   /** The cardinality of the set of integers. */
   static const Cardinality INTEGERS;
 
@@ -100,7 +97,7 @@ public:
     EQUAL,
     GREATER,
     UNKNOWN
-  };/* enum CardinalityComparison */
+  }; /* enum CardinalityComparison */
 
   /**
    * Construct a finite cardinality equal to the integer argument.
@@ -119,14 +116,12 @@ public:
   /**
    * Construct an infinite cardinality equal to the given Beth number.
    */
-  Cardinality(CardinalityBeth beth) : d_card(-beth.getNumber() - 1) {
-  }
+  Cardinality(CardinalityBeth beth) : d_card(-beth.getNumber() - 1) {}
 
   /**
    * Construct an unknown cardinality.
    */
-  Cardinality(CardinalityUnknown) : d_card(0) {
-  }
+  Cardinality(CardinalityUnknown) : d_card(0) {}
 
   /**
    * Returns true iff this cardinality is unknown.  "Unknown" in this
@@ -135,72 +130,60 @@ public:
    * at the "ceiling" return "false" for isUnknown() and true for
    * isFinite() and isLargeFinite().
    */
-  bool isUnknown() const throw() {
-    return d_card == 0;
-  }
+  bool isUnknown() const { return d_card == 0; }
 
   /** Returns true iff this cardinality is finite. */
-  bool isFinite() const throw() {
-    return d_card > 0;
-  }
+  bool isFinite() const { return d_card > 0; }
   /** Returns true iff this cardinality is one */
-  bool isOne() const throw() {
-    return d_card == 1;
-  }
+  bool isOne() const { return d_card == 1; }
 
   /**
    * Returns true iff this cardinality is finite and large (i.e.,
    * at the ceiling of representable finite cardinalities).
    */
-  bool isLargeFinite() const throw() {
-    return d_card >= s_largeFiniteCard;
-  }
+  bool isLargeFinite() const { return d_card >= s_largeFiniteCard; }
 
   /** Returns true iff this cardinality is infinite. */
-  bool isInfinite() const throw() {
-    return d_card < 0;
-  }
+  bool isInfinite() const { return d_card < 0; }
 
   /**
    * Returns true iff this cardinality is finite or countably
    * infinite.
    */
-  bool isCountable() const throw() {
-    return isFinite() || d_card == s_intCard;
-  }
+  bool isCountable() const { return isFinite() || d_card == s_intCard; }
 
   /**
    * In the case that this cardinality is finite, return its
    * cardinality.  (If this cardinality is infinite, this function
    * throws an IllegalArgumentException.)
    */
-  Integer getFiniteCardinality() const throw(IllegalArgumentException);
+  Integer getFiniteCardinality() const;
 
   /**
    * In the case that this cardinality is infinite, return its Beth
    * number.  (If this cardinality is finite, this function throws an
    * IllegalArgumentException.)
    */
-  Integer getBethNumber() const throw(IllegalArgumentException);
+  Integer getBethNumber() const;
 
   /** Assigning addition of this cardinality with another. */
-  Cardinality& operator+=(const Cardinality& c) throw();
+  Cardinality& operator+=(const Cardinality& c);
 
   /** Assigning multiplication of this cardinality with another. */
-  Cardinality& operator*=(const Cardinality& c) throw();
+  Cardinality& operator*=(const Cardinality& c);
 
   /** Assigning exponentiation of this cardinality with another. */
-  Cardinality& operator^=(const Cardinality& c) throw();
+  Cardinality& operator^=(const Cardinality& c);
 
   /** Add two cardinalities. */
-  Cardinality operator+(const Cardinality& c) const throw() {
+  Cardinality operator+(const Cardinality& c) const {
     Cardinality card(*this);
     card += c;
     return card;
   }
 
   /** Multiply two cardinalities. */
-  Cardinality operator*(const Cardinality& c) const throw() {
+  Cardinality operator*(const Cardinality& c) const {
     Cardinality card(*this);
     card *= c;
     return card;
@@ -209,7 +192,7 @@ public:
   /**
    * Exponentiation of two cardinalities.
    */
-  Cardinality operator^(const Cardinality& c) const throw() {
+  Cardinality operator^(const Cardinality& c) const {
     Cardinality card(*this);
     card ^= c;
     return card;
@@ -221,30 +204,26 @@ public:
    * represented), or if one or the other is the special "unknown"
    * cardinality.
    */
-  Cardinality::CardinalityComparison compare(const Cardinality& c) const throw();
+  Cardinality::CardinalityComparison compare(const Cardinality& c) const;
 
   /**
    * Return a string representation of this cardinality.
    */
-  std::string toString() const throw();
+  std::string toString() const;
 
   /**
    * Compare two cardinalities and if it is known that the current
    * cardinality is smaller or equal to c, it returns true.
    */
-  bool knownLessThanOrEqual(const Cardinality& c) const throw();
-};/* class Cardinality */
-
+  bool knownLessThanOrEqual(const Cardinality& c) const;
+}; /* class Cardinality */
 
 /** Print an element of the InfiniteCardinality enumeration. */
-std::ostream& operator<<(std::ostream& out, CardinalityBeth b)
-  throw() CVC4_PUBLIC;
-
+std::ostream& operator<<(std::ostream& out, CardinalityBeth b) CVC4_PUBLIC;
 
 /** Print a cardinality in a human-readable fashion. */
-std::ostream& operator<<(std::ostream& out, const Cardinality& c)
-  throw() CVC4_PUBLIC;
+std::ostream& operator<<(std::ostream& out, const Cardinality& c) CVC4_PUBLIC;
 
-}/* CVC4 namespace */
+} /* CVC4 namespace */
 
 #endif /* __CVC4__CARDINALITY_H */
