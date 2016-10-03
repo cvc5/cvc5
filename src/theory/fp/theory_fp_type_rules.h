@@ -24,34 +24,36 @@ namespace CVC4 {
 namespace theory {
 namespace fp {
 
-#define TRACE(FUNCTION) Trace("fp-type") << FUNCTION "::computeType(" << check << "): " << n << std::endl
-
+#define TRACE(FUNCTION)                                                \
+  Trace("fp-type") << FUNCTION "::computeType(" << check << "): " << n \
+                   << std::endl
 
 class FloatingPointConstantTypeRule {
-public:
-  inline static TypeNode computeType(NodeManager* nodeManager, TNode n, bool check)
-      throw (TypeCheckingExceptionPrivate, AssertionException) {
+ public:
+  inline static TypeNode computeType(NodeManager* nodeManager, TNode n,
+                                     bool check) {
     TRACE("FloatingPointConstantTypeRule");
 
-    const FloatingPoint &f = n.getConst<FloatingPoint>();
-    
+    const FloatingPoint& f = n.getConst<FloatingPoint>();
+
     if (check) {
       if (!(validExponentSize(f.t.exponent()))) {
-        throw TypeCheckingExceptionPrivate(n, "constant with invalid exponent size");
+        throw TypeCheckingExceptionPrivate(
+            n, "constant with invalid exponent size");
       }
       if (!(validSignificandSize(f.t.significand()))) {
-        throw TypeCheckingExceptionPrivate(n, "constant with invalid significand size");
+        throw TypeCheckingExceptionPrivate(
+            n, "constant with invalid significand size");
       }
     }
     return nodeManager->mkFloatingPointType(f.t);
   }
 };
 
-
 class RoundingModeConstantTypeRule {
-public:
-  inline static TypeNode computeType(NodeManager* nodeManager, TNode n, bool check)
-      throw (TypeCheckingExceptionPrivate, AssertionException) {
+ public:
+  inline static TypeNode computeType(NodeManager* nodeManager, TNode n,
+                                     bool check) {
     TRACE("RoundingModeConstantTypeRule");
 
     // Nothing to check!
@@ -59,22 +61,20 @@ public:
   }
 };
 
-
-
 class FloatingPointFPTypeRule {
-public:
-  inline static TypeNode computeType(NodeManager* nodeManager, TNode n, bool check)
-      throw (TypeCheckingExceptionPrivate, AssertionException) {
+ public:
+  inline static TypeNode computeType(NodeManager* nodeManager, TNode n,
+                                     bool check) {
     TRACE("FloatingPointFPTypeRule");
 
     TypeNode signType = n[0].getType(check);
     TypeNode exponentType = n[1].getType(check);
     TypeNode significandType = n[2].getType(check);
 
-    if (!signType.isBitVector() ||
-	!exponentType.isBitVector() ||
-	!significandType.isBitVector()) {
-      throw TypeCheckingExceptionPrivate(n, "arguments to fp must be bit vectors");
+    if (!signType.isBitVector() || !exponentType.isBitVector() ||
+        !significandType.isBitVector()) {
+      throw TypeCheckingExceptionPrivate(n,
+                                         "arguments to fp must be bit vectors");
     }
 
     unsigned signBits = signType.getBitVectorSize();
@@ -82,41 +82,43 @@ public:
     unsigned significandBits = significandType.getBitVectorSize();
 
     if (check) {
-
       if (signBits != 1) {
-	throw TypeCheckingExceptionPrivate(n, "sign bit vector in fp must be 1 bit long");
+        throw TypeCheckingExceptionPrivate(
+            n, "sign bit vector in fp must be 1 bit long");
       } else if (!(validExponentSize(exponentBits))) {
-	throw TypeCheckingExceptionPrivate(n, "exponent bit vector in fp is an invalid size");
+        throw TypeCheckingExceptionPrivate(
+            n, "exponent bit vector in fp is an invalid size");
       } else if (!(validSignificandSize(significandBits))) {
-	throw TypeCheckingExceptionPrivate(n, "significand bit vector in fp is an invalid size");
+        throw TypeCheckingExceptionPrivate(
+            n, "significand bit vector in fp is an invalid size");
       }
     }
 
     // The +1 is for the implicit hidden bit
-    return nodeManager->mkFloatingPointType(exponentBits,significandBits + 1);
+    return nodeManager->mkFloatingPointType(exponentBits, significandBits + 1);
   }
-
 };
 
-
 class FloatingPointTestTypeRule {
-public:
-  inline static TypeNode computeType(NodeManager* nodeManager, TNode n, bool check)
-      throw (TypeCheckingExceptionPrivate, AssertionException) {
+ public:
+  inline static TypeNode computeType(NodeManager* nodeManager, TNode n,
+                                     bool check) {
     TRACE("FloatingPointTestTypeRule");
 
     if (check) {
       TypeNode firstOperand = n[0].getType(check);
 
       if (!firstOperand.isFloatingPoint()) {
-	throw TypeCheckingExceptionPrivate(n, "floating-point test applied to a non floating-point sort");
+        throw TypeCheckingExceptionPrivate(
+            n, "floating-point test applied to a non floating-point sort");
       }
 
       size_t children = n.getNumChildren();
       for (size_t i = 1; i < children; ++i) {
-	if (!(n[i].getType(check) == firstOperand)) {
-	  throw TypeCheckingExceptionPrivate(n, "floating-point test applied to mixed sorts");
-	}
+        if (!(n[i].getType(check) == firstOperand)) {
+          throw TypeCheckingExceptionPrivate(
+              n, "floating-point test applied to mixed sorts");
+        }
       }
     }
 
@@ -124,25 +126,26 @@ public:
   }
 };
 
-
 class FloatingPointOperationTypeRule {
-public :
-  inline static TypeNode computeType(NodeManager* nodeManager, TNode n, bool check)
-      throw (TypeCheckingExceptionPrivate, AssertionException) {
+ public:
+  inline static TypeNode computeType(NodeManager* nodeManager, TNode n,
+                                     bool check) {
     TRACE("FloatingPointOperationTypeRule");
 
     TypeNode firstOperand = n[0].getType(check);
 
     if (check) {
       if (!firstOperand.isFloatingPoint()) {
-	throw TypeCheckingExceptionPrivate(n, "floating-point operation applied to a non floating-point sort");
+        throw TypeCheckingExceptionPrivate(
+            n, "floating-point operation applied to a non floating-point sort");
       }
 
       size_t children = n.getNumChildren();
       for (size_t i = 1; i < children; ++i) {
-	if (!(n[i].getType(check) == firstOperand)) {
-	  throw TypeCheckingExceptionPrivate(n, "floating-point test applied to mixed sorts");
-	}
+        if (!(n[i].getType(check) == firstOperand)) {
+          throw TypeCheckingExceptionPrivate(
+              n, "floating-point test applied to mixed sorts");
+        }
       }
     }
 
@@ -150,34 +153,35 @@ public :
   }
 };
 
-
 class FloatingPointRoundingOperationTypeRule {
-public :
-  inline static TypeNode computeType(NodeManager* nodeManager, TNode n, bool check)
-      throw (TypeCheckingExceptionPrivate, AssertionException) {
+ public:
+  inline static TypeNode computeType(NodeManager* nodeManager, TNode n,
+                                     bool check) {
     TRACE("FloatingPointRoundingOperationTypeRule");
 
     if (check) {
       TypeNode roundingModeType = n[0].getType(check);
 
       if (!roundingModeType.isRoundingMode()) {
-	throw TypeCheckingExceptionPrivate(n, "first argument must be a rounding mode");
+        throw TypeCheckingExceptionPrivate(
+            n, "first argument must be a rounding mode");
       }
     }
-
 
     TypeNode firstOperand = n[1].getType(check);
 
     if (check) {
       if (!firstOperand.isFloatingPoint()) {
-	throw TypeCheckingExceptionPrivate(n, "floating-point operation applied to a non floating-point sort");
+        throw TypeCheckingExceptionPrivate(
+            n, "floating-point operation applied to a non floating-point sort");
       }
 
       size_t children = n.getNumChildren();
       for (size_t i = 2; i < children; ++i) {
-	if (!(n[i].getType(check) == firstOperand)) {
-	  throw TypeCheckingExceptionPrivate(n, "floating-point test applied to mixed sorts");
-	}
+        if (!(n[i].getType(check) == firstOperand)) {
+          throw TypeCheckingExceptionPrivate(
+              n, "floating-point test applied to mixed sorts");
+        }
       }
     }
 
@@ -186,9 +190,9 @@ public :
 };
 
 class FloatingPointParametricOpTypeRule {
-public :
-  inline static TypeNode computeType(NodeManager* nodeManager, TNode n, bool check)
-      throw (TypeCheckingExceptionPrivate, AssertionException) {
+ public:
+  inline static TypeNode computeType(NodeManager* nodeManager, TNode n,
+                                     bool check) {
     TRACE("FloatingPointParametricOpTypeRule");
 
     return nodeManager->builtinOperatorType();
@@ -196,132 +200,152 @@ public :
 };
 
 class FloatingPointToFPIEEEBitVectorTypeRule {
-public :
-  inline static TypeNode computeType(NodeManager* nodeManager, TNode n, bool check)
-      throw (TypeCheckingExceptionPrivate, AssertionException) {
+ public:
+  inline static TypeNode computeType(NodeManager* nodeManager, TNode n,
+                                     bool check) {
     TRACE("FloatingPointToFPIEEEBitVectorTypeRule");
 
-    FloatingPointToFPIEEEBitVector info = n.getOperator().getConst<FloatingPointToFPIEEEBitVector>();
+    FloatingPointToFPIEEEBitVector info =
+        n.getOperator().getConst<FloatingPointToFPIEEEBitVector>();
 
     if (check) {
       TypeNode operandType = n[0].getType(check);
-      
+
       if (!(operandType.isBitVector())) {
-	throw TypeCheckingExceptionPrivate(n, "conversion to floating-point from bit vector used with sort other than bit vector");
-      } else if (!(operandType.getBitVectorSize() == info.t.exponent() + info.t.significand())) {
-	throw TypeCheckingExceptionPrivate(n, "conversion to floating-point from bit vector used with bit vector length that does not match floating point parameters");
+        throw TypeCheckingExceptionPrivate(n,
+                                           "conversion to floating-point from "
+                                           "bit vector used with sort other "
+                                           "than bit vector");
+      } else if (!(operandType.getBitVectorSize() ==
+                   info.t.exponent() + info.t.significand())) {
+        throw TypeCheckingExceptionPrivate(
+            n,
+            "conversion to floating-point from bit vector used with bit vector "
+            "length that does not match floating point parameters");
       }
     }
 
     return nodeManager->mkFloatingPointType(info.t);
   }
 };
-
 
 class FloatingPointToFPFloatingPointTypeRule {
-public :
-  inline static TypeNode computeType(NodeManager* nodeManager, TNode n, bool check)
-      throw (TypeCheckingExceptionPrivate, AssertionException) {
+ public:
+  inline static TypeNode computeType(NodeManager* nodeManager, TNode n,
+                                     bool check) {
     TRACE("FloatingPointToFPFloatingPointTypeRule");
 
-    FloatingPointToFPFloatingPoint info = n.getOperator().getConst<FloatingPointToFPFloatingPoint>();
+    FloatingPointToFPFloatingPoint info =
+        n.getOperator().getConst<FloatingPointToFPFloatingPoint>();
 
     if (check) {
       TypeNode roundingModeType = n[0].getType(check);
 
       if (!roundingModeType.isRoundingMode()) {
-	throw TypeCheckingExceptionPrivate(n, "first argument must be a rounding mode");
+        throw TypeCheckingExceptionPrivate(
+            n, "first argument must be a rounding mode");
       }
 
-
       TypeNode operandType = n[1].getType(check);
-      
+
       if (!(operandType.isFloatingPoint())) {
-	throw TypeCheckingExceptionPrivate(n, "conversion to floating-point from floating-point used with sort other than floating-point");
+        throw TypeCheckingExceptionPrivate(n,
+                                           "conversion to floating-point from "
+                                           "floating-point used with sort "
+                                           "other than floating-point");
       }
     }
 
     return nodeManager->mkFloatingPointType(info.t);
   }
 };
-
 
 class FloatingPointToFPRealTypeRule {
-public :
-  inline static TypeNode computeType(NodeManager* nodeManager, TNode n, bool check)
-      throw (TypeCheckingExceptionPrivate, AssertionException) {
+ public:
+  inline static TypeNode computeType(NodeManager* nodeManager, TNode n,
+                                     bool check) {
     TRACE("FloatingPointToFPRealTypeRule");
 
-    FloatingPointToFPReal info = n.getOperator().getConst<FloatingPointToFPReal>();
+    FloatingPointToFPReal info =
+        n.getOperator().getConst<FloatingPointToFPReal>();
 
     if (check) {
       TypeNode roundingModeType = n[0].getType(check);
 
       if (!roundingModeType.isRoundingMode()) {
-	throw TypeCheckingExceptionPrivate(n, "first argument must be a rounding mode");
+        throw TypeCheckingExceptionPrivate(
+            n, "first argument must be a rounding mode");
       }
 
-
       TypeNode operandType = n[1].getType(check);
-      
+
       if (!(operandType.isReal())) {
-	throw TypeCheckingExceptionPrivate(n, "conversion to floating-point from real used with sort other than real");
+        throw TypeCheckingExceptionPrivate(n,
+                                           "conversion to floating-point from "
+                                           "real used with sort other than "
+                                           "real");
       }
     }
 
     return nodeManager->mkFloatingPointType(info.t);
   }
 };
-
 
 class FloatingPointToFPSignedBitVectorTypeRule {
-public :
-  inline static TypeNode computeType(NodeManager* nodeManager, TNode n, bool check)
-      throw (TypeCheckingExceptionPrivate, AssertionException) {
+ public:
+  inline static TypeNode computeType(NodeManager* nodeManager, TNode n,
+                                     bool check) {
     TRACE("FloatingPointToFPSignedBitVectorTypeRule");
 
-    FloatingPointToFPSignedBitVector info = n.getOperator().getConst<FloatingPointToFPSignedBitVector>();
+    FloatingPointToFPSignedBitVector info =
+        n.getOperator().getConst<FloatingPointToFPSignedBitVector>();
 
     if (check) {
       TypeNode roundingModeType = n[0].getType(check);
 
       if (!roundingModeType.isRoundingMode()) {
-	throw TypeCheckingExceptionPrivate(n, "first argument must be a rounding mode");
+        throw TypeCheckingExceptionPrivate(
+            n, "first argument must be a rounding mode");
       }
 
-
       TypeNode operandType = n[1].getType(check);
-      
+
       if (!(operandType.isBitVector())) {
-	throw TypeCheckingExceptionPrivate(n, "conversion to floating-point from signed bit vector used with sort other than bit vector");
+        throw TypeCheckingExceptionPrivate(n,
+                                           "conversion to floating-point from "
+                                           "signed bit vector used with sort "
+                                           "other than bit vector");
       }
     }
 
     return nodeManager->mkFloatingPointType(info.t);
   }
 };
-
 
 class FloatingPointToFPUnsignedBitVectorTypeRule {
-public :
-  inline static TypeNode computeType(NodeManager* nodeManager, TNode n, bool check)
-      throw (TypeCheckingExceptionPrivate, AssertionException) {
+ public:
+  inline static TypeNode computeType(NodeManager* nodeManager, TNode n,
+                                     bool check) {
     TRACE("FloatingPointToFPUnsignedBitVectorTypeRule");
 
-    FloatingPointToFPUnsignedBitVector info = n.getOperator().getConst<FloatingPointToFPUnsignedBitVector>();
+    FloatingPointToFPUnsignedBitVector info =
+        n.getOperator().getConst<FloatingPointToFPUnsignedBitVector>();
 
     if (check) {
       TypeNode roundingModeType = n[0].getType(check);
 
       if (!roundingModeType.isRoundingMode()) {
-	throw TypeCheckingExceptionPrivate(n, "first argument must be a rounding mode");
+        throw TypeCheckingExceptionPrivate(
+            n, "first argument must be a rounding mode");
       }
 
-
       TypeNode operandType = n[1].getType(check);
-      
+
       if (!(operandType.isBitVector())) {
-	throw TypeCheckingExceptionPrivate(n, "conversion to floating-point from unsigned bit vector used with sort other than bit vector");
+        throw TypeCheckingExceptionPrivate(n,
+                                           "conversion to floating-point from "
+                                           "unsigned bit vector used with sort "
+                                           "other than bit vector");
       }
     }
 
@@ -329,15 +353,14 @@ public :
   }
 };
 
-
-
 class FloatingPointToFPGenericTypeRule {
-public :
-  inline static TypeNode computeType(NodeManager* nodeManager, TNode n, bool check)
-      throw (TypeCheckingExceptionPrivate, AssertionException) {
+ public:
+  inline static TypeNode computeType(NodeManager* nodeManager, TNode n,
+                                     bool check) {
     TRACE("FloatingPointToFPGenericTypeRule");
 
-    FloatingPointToFPGeneric info = n.getOperator().getConst<FloatingPointToFPGeneric>();
+    FloatingPointToFPGeneric info =
+        n.getOperator().getConst<FloatingPointToFPGeneric>();
 
     if (check) {
       /* As this is a generic kind intended only for parsing,
@@ -347,7 +370,7 @@ public :
 
       size_t children = n.getNumChildren();
       for (size_t i = 0; i < children; ++i) {
-	n[i].getType(check);
+        n[i].getType(check);
       }
     }
 
@@ -355,12 +378,10 @@ public :
   }
 };
 
-
-
 class FloatingPointToUBVTypeRule {
-public :
-  inline static TypeNode computeType(NodeManager* nodeManager, TNode n, bool check)
-      throw (TypeCheckingExceptionPrivate, AssertionException) {
+ public:
+  inline static TypeNode computeType(NodeManager* nodeManager, TNode n,
+                                     bool check) {
     TRACE("FloatingPointToUBVTypeRule");
 
     FloatingPointToUBV info = n.getOperator().getConst<FloatingPointToUBV>();
@@ -369,14 +390,17 @@ public :
       TypeNode roundingModeType = n[0].getType(check);
 
       if (!roundingModeType.isRoundingMode()) {
-	throw TypeCheckingExceptionPrivate(n, "first argument must be a rounding mode");
+        throw TypeCheckingExceptionPrivate(
+            n, "first argument must be a rounding mode");
       }
 
-
       TypeNode operandType = n[1].getType(check);
-      
+
       if (!(operandType.isFloatingPoint())) {
-	throw TypeCheckingExceptionPrivate(n, "conversion to unsigned bit vector used with a sort other than floating-point");
+        throw TypeCheckingExceptionPrivate(n,
+                                           "conversion to unsigned bit vector "
+                                           "used with a sort other than "
+                                           "floating-point");
       }
     }
 
@@ -384,11 +408,10 @@ public :
   }
 };
 
-
 class FloatingPointToSBVTypeRule {
-public :
-  inline static TypeNode computeType(NodeManager* nodeManager, TNode n, bool check)
-      throw (TypeCheckingExceptionPrivate, AssertionException) {
+ public:
+  inline static TypeNode computeType(NodeManager* nodeManager, TNode n,
+                                     bool check) {
     TRACE("FloatingPointToSBVTypeRule");
 
     FloatingPointToSBV info = n.getOperator().getConst<FloatingPointToSBV>();
@@ -397,14 +420,17 @@ public :
       TypeNode roundingModeType = n[0].getType(check);
 
       if (!roundingModeType.isRoundingMode()) {
-	throw TypeCheckingExceptionPrivate(n, "first argument must be a rounding mode");
+        throw TypeCheckingExceptionPrivate(
+            n, "first argument must be a rounding mode");
       }
 
-
       TypeNode operandType = n[1].getType(check);
-      
+
       if (!(operandType.isFloatingPoint())) {
-	throw TypeCheckingExceptionPrivate(n, "conversion to signed bit vector used with a sort other than floating-point");
+        throw TypeCheckingExceptionPrivate(n,
+                                           "conversion to signed bit vector "
+                                           "used with a sort other than "
+                                           "floating-point");
       }
     }
 
@@ -412,25 +438,25 @@ public :
   }
 };
 
-
-
 class FloatingPointToRealTypeRule {
-public :
-  inline static TypeNode computeType(NodeManager* nodeManager, TNode n, bool check)
-      throw (TypeCheckingExceptionPrivate, AssertionException) {
+ public:
+  inline static TypeNode computeType(NodeManager* nodeManager, TNode n,
+                                     bool check) {
     TRACE("FloatingPointToRealTypeRule");
 
     if (check) {
       TypeNode roundingModeType = n[0].getType(check);
 
       if (!roundingModeType.isRoundingMode()) {
-	throw TypeCheckingExceptionPrivate(n, "first argument must be a rounding mode");
+        throw TypeCheckingExceptionPrivate(
+            n, "first argument must be a rounding mode");
       }
 
       TypeNode operand = n[1].getType(check);
 
       if (!operand.isFloatingPoint()) {
-	throw TypeCheckingExceptionPrivate(n, "floating-point to real applied to a non floating-point sort");
+        throw TypeCheckingExceptionPrivate(
+            n, "floating-point to real applied to a non floating-point sort");
       }
     }
 
@@ -438,10 +464,8 @@ public :
   }
 };
 
-
-
-}/* CVC4::theory::fp namespace */
-}/* CVC4::theory namespace */
-}/* CVC4 namespace */
+} /* CVC4::theory::fp namespace */
+} /* CVC4::theory namespace */
+} /* CVC4 namespace */
 
 #endif /* __CVC4__THEORY__FP__THEORY_FP_TYPE_RULES_H */
