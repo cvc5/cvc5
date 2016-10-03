@@ -24,27 +24,31 @@ namespace theory {
 namespace uf {
 
 class UfTypeRule {
-public:
-  inline static TypeNode computeType(NodeManager* nodeManager, TNode n, bool check)
-      throw (TypeCheckingExceptionPrivate, AssertionException) {
+ public:
+  inline static TypeNode computeType(NodeManager* nodeManager, TNode n,
+                                     bool check) {
     TNode f = n.getOperator();
     TypeNode fType = f.getType(check);
-    if( !fType.isFunction() ) {
-      throw TypeCheckingExceptionPrivate(n, "operator does not have function type");
+    if (!fType.isFunction()) {
+      throw TypeCheckingExceptionPrivate(
+          n, "operator does not have function type");
     }
-    if( check ) {
+    if (check) {
       if (n.getNumChildren() != fType.getNumChildren() - 1) {
-        throw TypeCheckingExceptionPrivate(n, "number of arguments does not match the function type");
+        throw TypeCheckingExceptionPrivate(
+            n, "number of arguments does not match the function type");
       }
       TNode::iterator argument_it = n.begin();
       TNode::iterator argument_it_end = n.end();
       TypeNode::iterator argument_type_it = fType.begin();
-      for(; argument_it != argument_it_end; ++argument_it, ++argument_type_it) {
+      for (; argument_it != argument_it_end;
+           ++argument_it, ++argument_type_it) {
         TypeNode currentArgument = (*argument_it).getType();
         TypeNode currentArgumentType = *argument_type_it;
-        if(!currentArgument.isComparableTo(currentArgumentType)) {
+        if (!currentArgument.isComparableTo(currentArgumentType)) {
           std::stringstream ss;
-          ss << "argument type is not a subtype of the function's argument type:\n"
+          ss << "argument type is not a subtype of the function's argument "
+             << "type:\n"
              << "argument:  " << *argument_it << "\n"
              << "has type:  " << (*argument_it).getType() << "\n"
              << "not subtype: " << *argument_type_it;
@@ -54,80 +58,88 @@ public:
     }
     return fType.getRangeType();
   }
-};/* class UfTypeRule */
+}; /* class UfTypeRule */
 
 class CardinalityConstraintTypeRule {
-public:
-  inline static TypeNode computeType(NodeManager* nodeManager, TNode n, bool check)
-      throw(TypeCheckingExceptionPrivate) {
-    if( check ) {
+ public:
+  inline static TypeNode computeType(NodeManager* nodeManager, TNode n,
+                                     bool check) {
+    if (check) {
       // don't care what it is, but it should be well-typed
       n[0].getType(check);
 
       TypeNode valType = n[1].getType(check);
-      if( valType != nodeManager->integerType() ) {
-        throw TypeCheckingExceptionPrivate(n, "cardinality constraint must be integer");
+      if (valType != nodeManager->integerType()) {
+        throw TypeCheckingExceptionPrivate(
+            n, "cardinality constraint must be integer");
       }
-      if( n[1].getKind()!=kind::CONST_RATIONAL ){
-        throw TypeCheckingExceptionPrivate(n, "cardinality constraint must be a constant");
+      if (n[1].getKind() != kind::CONST_RATIONAL) {
+        throw TypeCheckingExceptionPrivate(
+            n, "cardinality constraint must be a constant");
       }
       CVC4::Rational r(INT_MAX);
-      if( n[1].getConst<Rational>()>r ){
-        throw TypeCheckingExceptionPrivate(n, "Exceeded INT_MAX in cardinality constraint");
+      if (n[1].getConst<Rational>() > r) {
+        throw TypeCheckingExceptionPrivate(
+            n, "Exceeded INT_MAX in cardinality constraint");
       }
-      if( n[1].getConst<Rational>().getNumerator().sgn()!=1 ){
-        throw TypeCheckingExceptionPrivate(n, "cardinality constraint must be positive");
+      if (n[1].getConst<Rational>().getNumerator().sgn() != 1) {
+        throw TypeCheckingExceptionPrivate(
+            n, "cardinality constraint must be positive");
       }
     }
     return nodeManager->booleanType();
   }
-};/* class CardinalityConstraintTypeRule */
+}; /* class CardinalityConstraintTypeRule */
 
 class CombinedCardinalityConstraintTypeRule {
-public:
-  inline static TypeNode computeType(NodeManager* nodeManager, TNode n, bool check)
-      throw(TypeCheckingExceptionPrivate) {
-    if( check ) {
+ public:
+  inline static TypeNode computeType(NodeManager* nodeManager, TNode n,
+                                     bool check) {
+    if (check) {
       TypeNode valType = n[0].getType(check);
-      if( valType != nodeManager->integerType() ) {
-        throw TypeCheckingExceptionPrivate(n, "combined cardinality constraint must be integer");
+      if (valType != nodeManager->integerType()) {
+        throw TypeCheckingExceptionPrivate(
+            n, "combined cardinality constraint must be integer");
       }
-      if( n[0].getKind()!=kind::CONST_RATIONAL ){
-        throw TypeCheckingExceptionPrivate(n, "combined cardinality constraint must be a constant");
+      if (n[0].getKind() != kind::CONST_RATIONAL) {
+        throw TypeCheckingExceptionPrivate(
+            n, "combined cardinality constraint must be a constant");
       }
       CVC4::Rational r(INT_MAX);
-      if( n[0].getConst<Rational>()>r ){
-        throw TypeCheckingExceptionPrivate(n, "Exceeded INT_MAX in combined cardinality constraint");
+      if (n[0].getConst<Rational>() > r) {
+        throw TypeCheckingExceptionPrivate(
+            n, "Exceeded INT_MAX in combined cardinality constraint");
       }
-      if( n[0].getConst<Rational>().getNumerator().sgn()==-1 ){
-        throw TypeCheckingExceptionPrivate(n, "combined cardinality constraint must be non-negative");
+      if (n[0].getConst<Rational>().getNumerator().sgn() == -1) {
+        throw TypeCheckingExceptionPrivate(
+            n, "combined cardinality constraint must be non-negative");
       }
     }
     return nodeManager->booleanType();
   }
-};/* class CardinalityConstraintTypeRule */
+}; /* class CardinalityConstraintTypeRule */
 
 class PartialTypeRule {
-public:
-  inline static TypeNode computeType(NodeManager* nodeManager, TNode n, bool check)
-      throw (TypeCheckingExceptionPrivate, AssertionException) {
+ public:
+  inline static TypeNode computeType(NodeManager* nodeManager, TNode n,
+                                     bool check) {
     return n.getOperator().getType().getRangeType();
   }
-};/* class PartialTypeRule */
+}; /* class PartialTypeRule */
 
 class CardinalityValueTypeRule {
-public:
-  inline static TypeNode computeType(NodeManager* nodeManager, TNode n, bool check)
-      throw(TypeCheckingExceptionPrivate) {
-    if( check ) {
+ public:
+  inline static TypeNode computeType(NodeManager* nodeManager, TNode n,
+                                     bool check) {
+    if (check) {
       n[0].getType(check);
     }
     return nodeManager->integerType();
   }
-};/* class CardinalityValueTypeRule */
+}; /* class CardinalityValueTypeRule */
 
-}/* CVC4::theory::uf namespace */
-}/* CVC4::theory namespace */
-}/* CVC4 namespace */
+} /* CVC4::theory::uf namespace */
+} /* CVC4::theory namespace */
+} /* CVC4 namespace */
 
 #endif /* __CVC4__THEORY__UF__THEORY_UF_TYPE_RULES_H */
