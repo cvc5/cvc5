@@ -272,6 +272,10 @@ void ProofManager::traceDeps(TNode n, ExprSet* coreAssertions) {
   } else {
     Debug("cores") << " -- NOT IN INPUT CORE LIST!" << std::endl;
     if(d_deps.find(n) == d_deps.end()) {
+      if (options::allowEmptyDependencies()) {
+        Debug("cores") << " -- Could not track cause assertion. Failing silently." << std::endl;
+        return;
+      }
       InternalError("Cannot trace dependence information back to input assertion:\n`%s'", n.toString().c_str());
     }
     Assert(d_deps.find(n) != d_deps.end());
