@@ -44,14 +44,14 @@ public:
 
 class TheorySetsRels {
 
-  typedef context::CDChunkList<Node>                            NodeList;
-  typedef context::CDChunkList<int>                             IdList;
-  typedef context::CDHashMap<int, IdList*>                      IdListMap;
-  typedef context::CDHashSet<Node, NodeHashFunction>            NodeSet;
-  typedef context::CDHashMap<Node, bool, NodeHashFunction>      NodeBoolMap;
-  typedef context::CDHashMap<Node, NodeList*, NodeHashFunction> NodeListMap;
-  typedef context::CDHashMap<Node, NodeSet*, NodeHashFunction>  NodeSetMap;
-  typedef context::CDHashMap<Node, Node, NodeHashFunction>      NodeMap;
+  typedef context::CDChunkList< Node >                            NodeList;
+  typedef context::CDChunkList< int >                             IdList;
+  typedef context::CDHashMap< int, IdList* >                      IdListMap;
+  typedef context::CDHashSet< Node, NodeHashFunction >            NodeSet;
+  typedef context::CDHashMap< Node, bool, NodeHashFunction >      NodeBoolMap;
+  typedef context::CDHashMap< Node, NodeList*, NodeHashFunction > NodeListMap;
+  typedef context::CDHashMap< Node, NodeSet*, NodeHashFunction >  NodeSetMap;
+  typedef context::CDHashMap< Node, Node, NodeHashFunction >      NodeMap;
 
 public:
   TheorySetsRels(context::Context* c,
@@ -81,26 +81,38 @@ private:
     static int                  counter;
     NodeSet                     d_mem;
     NodeSet                     d_not_mem;
+    NodeMap                     d_mem_exp;
     NodeListMap                 d_in;
     NodeListMap                 d_out;
-    NodeMap                     d_mem_exp;
-    IdListMap                   d_id_in; // mapping from a element rep id to a list of rep ids that pointed by
-    IdListMap                   d_id_out; // mapping from a element rep id to a list of rep ids that point to
     context::CDO< Node >        d_tp;
     context::CDO< Node >        d_pt;
     context::CDO< Node >        d_join;
     context::CDO< Node >        d_tc;
+    /** mapping from an element rep id to a list of rep ids that pointed by */
+    /** Context dependent map Int -> IntList */
+    std::map< int, std::vector< int > > d_id_inIds;
+    /** mapping from an element rep id to a list of rep ids that point to */
+    /** Context dependent map Int -> IntList */
+    std::map< int, std::vector< int > > d_id_outIds;
   };
 
 private:
+  /** Context */
+  context::CDHashMap< int, int > d_vec_size;
+
   /** Mapping between integer id and tuple element rep */
-  std::map<int, Node>      d_id_node;
+  std::map< int, Node >      d_id_node;
 
   /** Mapping between tuple element rep and integer id*/
-  std::map<Node, int>      d_node_id;
+  std::map< Node, int >      d_node_id;
 
   /** has eqc info */
   bool hasEqcInfo( TNode n ) { return d_eqc_info.find( n )!=d_eqc_info.end(); }
+
+  bool addId( std::map< int, std::vector< int > >& id_map, int key, int id );
+  std::vector< int > getIdList( std::map< int, std::vector< int > >& id_map, int key );
+
+  void collectReachableNodes(std::map< int, std::vector< int > >& id_map, int start_id, std::hash_set<int>& reachable_set, bool firstRound=true);
 
 
 private:
@@ -182,8 +194,6 @@ private:
   EqcInfo* getOrMakeEqcInfo( Node n, bool doMake = false );
   void sendInferTranspose(bool, Node, Node, Node, bool reverseOnly = false);
   void addTCMemAndSendInfer(EqcInfo* tc_ei, Node mem, Node exp, bool fromRel = false);
-  void collectInReachableNodes(EqcInfo* tc_ei, int start_id, std::hash_set<int>& in_reachable, bool firstRound  = true);
-  void collectOutReachableNodes(EqcInfo* tc_ei, int start_id, std::hash_set<int>& out_reachable, bool firstRound  = true);
   void sendTCInference(EqcInfo* tc_ei, std::hash_set<int> in_reachable, std::hash_set<int> out_reachable, Node mem_rep, Node fst_rep, Node snd_rep, int id1, int id2);
 
 

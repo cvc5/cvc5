@@ -1188,23 +1188,14 @@ int TheorySetsRels::EqcInfo::counter        = 0;
       Trace("rels-debug") << "Reduce tuple var: " << n[0] << " to concrete one " << " node = " << n << std::endl;
       std::vector<Node> tuple_elements;
       tuple_elements.push_back(Node::fromExpr((n[0].getType().getDatatype())[0].getConstructor()));
-      Trace("rels-debug") << "Reduce tuple var: " << n[0] << " to concrete one ****** 0" << std::endl;
       for(unsigned int i = 0; i < n[0].getType().getTupleLength(); i++) {
-        Trace("rels-debug") << "Reduce tuple var: " << n[0] << " to concrete one ****** 1" << std::endl;
         Node element = RelsUtils::nthElementOfTuple(n[0], i);
-        Trace("rels-debug") << "Reduce tuple var: " << n[0] << " to concrete one ****** 2" << std::endl;
         makeSharedTerm(element);
-        Trace("rels-debug") << "Reduce tuple var: " << n[0] << " to concrete one ****** 3" << std::endl;
         tuple_elements.push_back(element);
-        Trace("rels-debug") << "Reduce tuple var: " << n[0] << " to concrete one ****** 4" << std::endl;
       }
-      Trace("rels-debug") << "Reduce tuple var: " << n[0] << " to concrete one ****** 5" << std::endl;
       Node tuple_reduct = NodeManager::currentNM()->mkNode(kind::APPLY_CONSTRUCTOR, tuple_elements);
-      Trace("rels-debug") << "Reduce tuple var: " << n[0] << " to concrete one ****** 6" << std::endl;
       tuple_reduct = MEMBER(tuple_reduct, n[1]);
-      Trace("rels-debug") << "Reduce tuple var: " << n[0] << " to concrete one ****** 7" << std::endl;
       Node tuple_reduction_lemma = NodeManager::currentNM()->mkNode(kind::IFF, n, tuple_reduct);
-      Trace("rels-debug") << "Reduce tuple var: " << n[0] << " to concrete one ****** 8" << std::endl;
       sendLemma(tuple_reduction_lemma, d_trueNode, "tuple-reduction");
       d_symbolic_tuples.insert(n);
     }
@@ -1215,6 +1206,7 @@ int TheorySetsRels::EqcInfo::counter        = 0;
                                   eq::EqualityEngine* eq,
                                   context::CDO<bool>* conflict,
                                   TheorySets& d_set ):
+    d_vec_size(c),
     d_eqEngine(eq),
     d_conflict(conflict),
     d_sets_theory(d_set),
@@ -1320,8 +1312,8 @@ int TheorySetsRels::EqcInfo::counter        = 0;
   }
 
   TheorySetsRels::EqcInfo::EqcInfo( context::Context* c ) :
-  d_mem(c), d_not_mem(c), d_in(c), d_out(c), d_mem_exp(c),
-  d_id_in(c), d_id_out(c), d_tp(c), d_pt(c), d_join(c),d_tc(c) {}
+  d_mem(c), d_not_mem(c), d_mem_exp(c), d_in(c), d_out(c),
+  d_tp(c), d_pt(c), d_join(c), d_tc(c) {}
 
   void TheorySetsRels::eqNotifyNewClass( Node n ) {
     Trace("rels-std") << "[sets-rels] eqNotifyNewClass:" << " t = " << n << std::endl;
@@ -1333,17 +1325,17 @@ int TheorySetsRels::EqcInfo::counter        = 0;
     }
   }
 
-  // Create a integer id for tuple element
+  // Create an integer id for tuple element
   int TheorySetsRels::getOrMakeElementRepId(EqcInfo* ei, Node e_rep) {
     Trace("rels-std") << "[sets-rels] getOrMakeElementRepId:" << " e_rep = " << e_rep << std::endl;
-    std::map<Node, int>::iterator       nid_it  = d_node_id.find(e_rep);
+    std::map< Node, int >::iterator nid_it  = d_node_id.find(e_rep);
 
     if( nid_it == d_node_id.end() ) {
-      if(d_eqEngine->hasTerm(e_rep)) {
-        // it is possible that e's rep changes at this moment, thus we need to know the eqc of e's previous rep
+      if( d_eqEngine->hasTerm(e_rep) ) {
+        // it is possible that e's rep changes at this moment, thus we need to know the previous rep id of eqc of e
         eq::EqClassIterator rep_eqc_i = eq::EqClassIterator( e_rep, d_eqEngine );
-        while(!rep_eqc_i.isFinished()) {
-          std::map<Node, int>::iterator id_it = d_node_id.find(*rep_eqc_i);
+        while( !rep_eqc_i.isFinished() ) {
+          std::map< Node, int >::iterator id_it = d_node_id.find(*rep_eqc_i);
 
           if( id_it != d_node_id.end() ) {
             d_id_node[id_it->second]    = e_rep;
@@ -1374,11 +1366,9 @@ int TheorySetsRels::EqcInfo::counter        = 0;
     return true;
   }
 
-  void TheorySetsRels::addTCMemAndSendInfer(EqcInfo* tc_ei, Node membership, Node exp, bool fromRel) {
+  void TheorySetsRels::addTCMemAndSendInfer( EqcInfo* tc_ei, Node membership, Node exp, bool fromRel ) {
     Trace("rels-std") << "[sets-rels] addTCMemAndSendInfer:" << " membership = " << membership << " from a relation? " << fromRel<< std::endl;
 
-    IdList*  in_lst;
-    IdList*  out_lst;
     Node     fst     = RelsUtils::nthElementOfTuple(membership[0], 0);
     Node     snd     = RelsUtils::nthElementOfTuple(membership[0], 1);
     Node     fst_rep = getRepresentative(fst);
@@ -1389,28 +1379,18 @@ int TheorySetsRels::EqcInfo::counter        = 0;
       return;
     }
 
-    int         fst_rep_id      = getOrMakeElementRepId(tc_ei, fst_rep);
-    int         snd_rep_id      = getOrMakeElementRepId(tc_ei, snd_rep);
-    IdListMap::iterator         tc_in_mem_it    = tc_ei->d_id_in.find(snd_rep_id);
-
-    if(tc_in_mem_it == tc_ei->d_id_in.end()) {
-      in_lst = new(d_sets_theory.getSatContext()->getCMM()) IdList( true, d_sets_theory.getSatContext(), false,
-                                                                      context::ContextMemoryAllocator<TNode>(d_sets_theory.getSatContext()->getCMM()) );
-      tc_ei->d_id_in.insertDataFromContextMemory(snd_rep_id, in_lst);
-      Trace("rels-std") << "Create in cache for " << snd_rep << std::endl;
-    } else {
-      in_lst = (*tc_in_mem_it).second;
-    }
+    int fst_rep_id = getOrMakeElementRepId( tc_ei, fst_rep );
+    int snd_rep_id = getOrMakeElementRepId( tc_ei, snd_rep );
 
     std::hash_set<int>       in_reachable;
     std::hash_set<int>       out_reachable;
-    collectInReachableNodes(tc_ei, fst_rep_id, in_reachable);
-    collectOutReachableNodes(tc_ei, snd_rep_id, out_reachable);
+    collectReachableNodes(tc_ei->d_id_inIds, fst_rep_id, in_reachable);
+    collectReachableNodes(tc_ei->d_id_outIds, snd_rep_id, out_reachable);
 
     // If fst_rep is inserted into in_lst successfully,
     // save rep pair's exp and send out TC inference lemmas.
     // Otherwise, mem's rep is already in the TC and return.
-    if(insertIntoIdList(*in_lst, fst_rep_id)) {
+    if( addId(tc_ei->d_id_inIds, snd_rep_id, fst_rep_id) ) {
       Node reason       = exp == Node::null() ? explain(membership) : exp;
       if(!fromRel && tc_ei->d_tc.get() != membership[1]) {
         reason  = AND(reason, explain(EQUAL(tc_ei->d_tc.get(), membership[1])));
@@ -1429,18 +1409,8 @@ int TheorySetsRels::EqcInfo::counter        = 0;
       // Nothing inserted into the eqc
       return;
     }
-
-    IdListMap::iterator tc_out_mem_it = tc_ei->d_id_out.find(fst_rep_id);
-    if(tc_out_mem_it == tc_ei->d_id_out.end()) {
-      out_lst = new(d_sets_theory.getSatContext()->getCMM()) IdList( true, d_sets_theory.getSatContext(), false,
-                                                                            context::ContextMemoryAllocator<TNode>(d_sets_theory.getSatContext()->getCMM()) );
-      tc_ei->d_id_out.insertDataFromContextMemory(fst_rep_id, out_lst);
-      Trace("rels-std") << "Create out arrow cache for " << snd_rep << std::endl;
-    } else {
-      out_lst = (*tc_out_mem_it).second;
-    }
-    insertIntoIdList(*out_lst, snd_rep_id);
     Trace("rels-std") << "Add out membership arrow for " << fst_rep << " to : " << snd_rep << std::endl;
+    addId(tc_ei->d_id_inIds, fst_rep_id, snd_rep_id);
     sendTCInference(tc_ei, in_reachable, out_reachable, mem_rep, fst_rep, snd_rep, fst_rep_id, snd_rep_id);
   }
 
@@ -1532,41 +1502,21 @@ int TheorySetsRels::EqcInfo::counter        = 0;
     }
   }
 
-  void TheorySetsRels::collectInReachableNodes(EqcInfo* tc_ei, int start_id, std::hash_set<int>& in_reachable, bool firstRound) {
-    Trace("rels-std") << "**** Start collecting in-reachable nodes for node with id " << start_id << std::endl;
-    if(in_reachable.find(start_id) != in_reachable.end()) {
+  void TheorySetsRels::collectReachableNodes(std::map< int, std::vector< int > >& id_map, int start_id, std::hash_set< int >& reachable_set, bool firstRound) {
+    Trace("rels-std") << "****  Collecting reachable nodes for node with id " << start_id << std::endl;
+    if(reachable_set.find(start_id) != reachable_set.end()) {
       return;
     }
     if(!firstRound) {
-      in_reachable.insert(start_id);
+      reachable_set.insert(start_id);
     }
-    IdListMap::const_iterator id_list_map_it = tc_ei->d_id_in.find(start_id);
 
-    if(id_list_map_it != tc_ei->d_id_in.end()) {
-      IdList::const_iterator id_list_it = (*id_list_map_it).second->begin();
-      while(id_list_it != (*id_list_map_it).second->end()) {
-        collectInReachableNodes(tc_ei, *id_list_it, in_reachable, false);
-        id_list_it++;
-      }
-    }
-  }
+    std::vector< int > id_list              = getIdList(id_map, start_id);
+    std::vector< int >::iterator id_list_it = id_list.begin();
 
-  void TheorySetsRels::collectOutReachableNodes(EqcInfo* tc_ei, int start_id, std::hash_set<int>& out_reachable, bool firstRound) {
-    Trace("rels-std") << "**** Start collecting out-reachable nodes for node with id " << start_id << std::endl;
-    if(out_reachable.find(start_id) != out_reachable.end()) {
-      return;
-    }
-    if(!firstRound) {
-      out_reachable.insert(start_id);
-    }
-    IdListMap::const_iterator id_list_map_it = tc_ei->d_id_out.find(start_id);
-
-    if(id_list_map_it != tc_ei->d_id_out.end()) {
-      IdList::const_iterator id_list_it = (*id_list_map_it).second->begin();
-      while(id_list_it != (*id_list_map_it).second->end()) {
-        collectOutReachableNodes(tc_ei, *id_list_it, out_reachable, false);
-        id_list_it++;
-      }
+    while( id_list_it != id_list.end() ) {
+      collectReachableNodes( id_map, *id_list_it, reachable_set, false );
+      id_list_it++;
     }
   }
 
@@ -1575,21 +1525,21 @@ int TheorySetsRels::EqcInfo::counter        = 0;
     Trace("rels-std") << "[sets-rels] eqNotifyPostMerge:" << " t1 = " << t1 << " t2 = " << t2 << std::endl;
 
     // Merge membership constraint with "true" or "false" eqc
-    if((t1 == d_trueNode || t1 == d_falseNode) && t2.getKind() == kind::MEMBER && t2[0].getType().isTuple()) {
+    if( (t1 == d_trueNode || t1 == d_falseNode) && t2.getKind() == kind::MEMBER && t2[0].getType().isTuple() ) {
 
       Assert(t1 == d_trueNode || t1 == d_falseNode);
       bool      polarity        = t1 == d_trueNode;
       Node      t2_1rep         = getRepresentative(t2[1]);
       EqcInfo*  ei              = getOrMakeEqcInfo( t2_1rep, true );
 
-      if(polarity) {
+      if( polarity ) {
         ei->d_mem.insert(t2[0]);
         ei->d_mem_exp[t2[0]] = explain(t2);
       } else {
         ei->d_not_mem.insert(t2[0]);
       }
       // Process a membership constraint that a tuple is a member of transpose of rel
-      if(!ei->d_tp.get().isNull()) {
+      if( !ei->d_tp.get().isNull() ) {
         Node exp = polarity ? explain(t2) : explain(t2.negate());
         if(ei->d_tp.get() != t2[1]) {
           exp = AND( explain(EQUAL( ei->d_tp.get(), t2[1]) ), exp );
@@ -1597,33 +1547,20 @@ int TheorySetsRels::EqcInfo::counter        = 0;
         sendInferTranspose( polarity, t2[0], ei->d_tp.get(), exp, true );
       }
       // Process a membership constraint that a tuple is a member of product of rel
-      if(!ei->d_pt.get().isNull()) {
+      if( !ei->d_pt.get().isNull() ) {
         Node exp = polarity ? explain(t2) : explain(t2.negate());
         if(ei->d_pt.get() != t2[1]) {
           exp = AND( explain(EQUAL( ei->d_pt.get(), t2[1]) ), exp );
         }
-        sendInferProduct(polarity, t2[0], ei->d_pt.get(), exp);
+        sendInferProduct( polarity, t2[0], ei->d_pt.get(), exp );
       }
       // Process a membership constraint that a tuple is a member of transitive closure of rel
       if( polarity && !ei->d_tc.get().isNull() ) {
-        addTCMemAndSendInfer(ei, t2, Node::null());
-//        Node      rel_rep     = getRepresentative(ei->d_tc.get()[0]);
-//        EqcInfo*  rel_ei      = getOrMakeEqcInfo(rel_rep);
-//        if(rel_ei != NULL) {
-//          NodeSet::const_iterator mem   = rel_ei->d_mem.begin();
-//          while(mem != rel_ei->d_mem.end()) {
-//            if(!ei->d_mem.contains(*mem)) {
-//              addTCMemAndSendInfer(ei, MEMBER(*mem, rel_rep), rel_ei->d_mem_exp[*mem], true);
-//            }
-//            mem++;
-//          }
-//        }
+        addTCMemAndSendInfer( ei, t2, Node::null() );
       }
 
     // Merge two relation eqcs
-    } else if(t1.getType().isSet() &&
-              t2.getType().isSet() &&
-              t1.getType().getSetElementType().isTuple()) {
+    } else if( t1.getType().isSet() && t2.getType().isSet() && t1.getType().getSetElementType().isTuple() ) {
       mergeTransposeEqcs(t1, t2);
       mergeProductEqcs(t1, t2);
       mergeTCEqcs(t1, t2);
@@ -1657,10 +1594,9 @@ int TheorySetsRels::EqcInfo::counter        = 0;
         NodeSet::const_iterator     t1_mem_it  = t1_ei->d_mem.begin();
 
         while(t1_mem_it != t1_ei->d_mem.end()) {
-          Node                          membership      = MEMBER(*t1_mem_it, t1_ei->d_tc.get());
           NodeMap::const_iterator       reason_it       = t1_ei->d_mem_exp.find(*t1_mem_it);
           Assert(reason_it != t1_ei->d_mem_exp.end());
-          addTCMemAndSendInfer(t1_ei, membership, (*reason_it).second);
+          addTCMemAndSendInfer(t1_ei, MEMBER(*t1_mem_it, t1_ei->d_tc.get()), (*reason_it).second);
           t1_mem_it++;
         }
 
@@ -1965,6 +1901,35 @@ int TheorySetsRels::EqcInfo::counter        = 0;
       Trace("rels-debug") << fst << " "<< (*map_it).first << " " << snd << " " << (*map_it).second<< std::endl;
       map_it++;
     }
+  }
+
+  bool TheorySetsRels::addId( std::map< int, std::vector< int > >& id_map, int key, int id ) {
+    int n_data = d_vec_size[key];
+    int len    = n_data < id_map[key].size() ? n_data : id_map[key].size();
+
+    for( int i = 0; i < len; i++ ) {
+      if( id_map[key][i] == id) {
+        return false;
+      }
+    }
+    if( n_data < id_map[key].size() ) {
+      id_map[key][n_data] = id;
+    } else {
+      id_map[key].push_back( id );
+    }
+    d_vec_size[key] = n_data+1;
+    return true;
+  }
+
+  std::vector< int > TheorySetsRels::getIdList( std::map< int, std::vector< int > >& id_map, int key ) {
+    std::vector< int > id_list;
+    int n_data = d_vec_size[key];
+    int len    = n_data < id_map[key].size() ? n_data : id_map[key].size();
+
+    for( int i = 0; i < len; i++ ) {
+      id_list.push_back(id_map[key][i]);
+    }
+    return id_list;
   }
 
 }
