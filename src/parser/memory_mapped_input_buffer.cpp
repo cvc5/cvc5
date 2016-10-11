@@ -110,6 +110,7 @@ static ANTLR3_UINT32 MemoryMapFile(pANTLR3_INPUT_STREAM input,
 
   input->data = mmap(0, input->sizeBuf, PROT_READ, MAP_PRIVATE, fd, 0);
   errno = 0;
+  close(fd);
   if(intptr_t(input->data) == -1) {
     return ANTLR3_ERR_NOMEM;
   }

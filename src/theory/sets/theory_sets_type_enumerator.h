@@ -153,14 +153,16 @@ public:
     }
 
     while (d_constituentVec.size() < d_index) {
-      TypeEnumerator *d_newEnumerator = new TypeEnumerator(*d_constituentVec.back());
-      ++(*d_newEnumerator);
-      if( (*d_newEnumerator).isFinished() ) {
+      TypeEnumerator* newEnumerator =
+          new TypeEnumerator(*d_constituentVec.back());
+      ++(*newEnumerator);
+      if (newEnumerator->isFinished()) {
         Trace("set-type-enum") << "operator++ finished!" << std::endl;
+        delete newEnumerator;
         d_finished = true;
         return *this;
       }
-      d_constituentVec.push_back(d_newEnumerator);
+      d_constituentVec.push_back(newEnumerator);
     }
 
     Trace("set-type-enum") << "operator++ returning, **this = " << **this << std::endl;

@@ -547,9 +547,9 @@ public:
   Expr mkBoundVar(Type type);
   
   /**
-   * Create a (nameless) new nil reference for separation logic of type
+   * Create unique variable of type 
    */
-  Expr mkSepNil(Type type);
+  Expr mkUniqueVar( Type type, Kind k);
 
   /** Get a reference to the statistics registry for this ExprManager */
   Statistics getStatistics() const throw();

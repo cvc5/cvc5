@@ -133,70 +133,71 @@ antlr3CommonTokenDebugStreamSourceNew(ANTLR3_UINT32 hint, pANTLR3_TOKEN_SOURCE s
 	return stream;
 }*/
 
-pBOUNDED_TOKEN_BUFFER
-BoundedTokenBufferSourceNew(ANTLR3_UINT32 k, pANTLR3_TOKEN_SOURCE source)
-{
-    pBOUNDED_TOKEN_BUFFER buffer;
-    pANTLR3_COMMON_TOKEN_STREAM	stream;
+pBOUNDED_TOKEN_BUFFER BoundedTokenBufferSourceNew(ANTLR3_UINT32 k,
+                                                  pANTLR3_TOKEN_SOURCE source) {
+  pBOUNDED_TOKEN_BUFFER buffer;
+  pANTLR3_COMMON_TOKEN_STREAM stream;
 
+  assert(k > 0);
 
-    assert( k > 0 );
+  /* Memory for the interface structure */
+  buffer =
+      (pBOUNDED_TOKEN_BUFFER)ANTLR3_MALLOC(sizeof(BOUNDED_TOKEN_BUFFER_struct));
 
-    /* Memory for the interface structure
-     */
-    buffer = (pBOUNDED_TOKEN_BUFFER) ANTLR3_MALLOC(sizeof(BOUNDED_TOKEN_BUFFER_struct));
+  if (buffer == NULL) {
+    return NULL;
+  }
 
-    if	(buffer == NULL)
-    {
-	return	NULL;
-    }
+  buffer->tokenBuffer = (pANTLR3_COMMON_TOKEN*)ANTLR3_MALLOC(
+      2 * k * sizeof(pANTLR3_COMMON_TOKEN));
+  if (buffer->tokenBuffer == NULL) {
+    ANTLR3_FREE(buffer);
+    return NULL;
+  }
 
-    buffer->tokenBuffer = (pANTLR3_COMMON_TOKEN*) ANTLR3_MALLOC(2*k*sizeof(pANTLR3_COMMON_TOKEN));
-    buffer->currentIndex = 0;
-    buffer->maxIndex = 0;
-    buffer->k = k;
-    buffer->bufferSize = 2*k;
-    buffer->empty = ANTLR3_TRUE;
-    buffer->done = ANTLR3_FALSE;
+  buffer->currentIndex = 0;
+  buffer->maxIndex = 0;
+  buffer->k = k;
+  buffer->bufferSize = 2 * k;
+  buffer->empty = ANTLR3_TRUE;
+  buffer->done = ANTLR3_FALSE;
 
-    stream = antlr3CommonTokenStreamSourceNew(k,source);
-    if  (stream == NULL)
-    {
-        return  NULL;
-    }
+  stream = antlr3CommonTokenStreamSourceNew(k, source);
+  if (stream == NULL) {
+    ANTLR3_FREE(buffer->tokenBuffer);
+    ANTLR3_FREE(buffer);
+    return NULL;
+  }
 
-    stream->super = buffer;
-    buffer->commonTstream = stream;
+  stream->super = buffer;
+  buffer->commonTstream = stream;
 
-    /* Defaults
-     */
-    stream->p	    = -1;
+  /* Defaults */
+  stream->p = -1;
 
-    /* Install the token stream API
-     */
-    stream->tstream->_LT				=  tokLT;
-    stream->tstream->get				=  get;
-    stream->tstream->getTokenSource		=  getTokenSource;
-    stream->tstream->setTokenSource		=  setTokenSource;
-    stream->tstream->toString			=  toString;
-    stream->tstream->toStringSS			=  toStringSS;
-    stream->tstream->toStringTT			=  toStringTT;
-	stream->tstream->setDebugListener	=  setDebugListener;
+  /* Install the token stream API */
+  stream->tstream->_LT = tokLT;
+  stream->tstream->get = get;
+  stream->tstream->getTokenSource = getTokenSource;
+  stream->tstream->setTokenSource = setTokenSource;
+  stream->tstream->toString = toString;
+  stream->tstream->toStringSS = toStringSS;
+  stream->tstream->toStringTT = toStringTT;
+  stream->tstream->setDebugListener = setDebugListener;
 
-    /* Install INT_STREAM interface
-     */
-    stream->tstream->istream->_LA	=  _LA;
-    stream->tstream->istream->mark	=  mark;
-    stream->tstream->istream->release	=  release;
-    stream->tstream->istream->size	=  size;
-    stream->tstream->istream->index	=  tindex;
-    stream->tstream->istream->rewind	=  rewindStream;
-    stream->tstream->istream->rewindLast=  rewindLast;
-    stream->tstream->istream->seek	=  seek;
-    stream->tstream->istream->consume	=  consume;
-    stream->tstream->istream->getSourceName = getSourceName;
+  /* Install INT_STREAM interface */
+  stream->tstream->istream->_LA = _LA;
+  stream->tstream->istream->mark = mark;
+  stream->tstream->istream->release = release;
+  stream->tstream->istream->size = size;
+  stream->tstream->istream->index = tindex;
+  stream->tstream->istream->rewind = rewindStream;
+  stream->tstream->istream->rewindLast = rewindLast;
+  stream->tstream->istream->seek = seek;
+  stream->tstream->istream->consume = consume;
+  stream->tstream->istream->getSourceName = getSourceName;
 
-    return  buffer;
+  return buffer;
 }
 
 // Install a debug listener adn switch to debug mode methods

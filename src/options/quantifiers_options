@@ -17,10 +17,12 @@ option miniscopeQuant --miniscope-quant bool :default true :read-write
 # ( forall x. P( x ) ) V Q
 option miniscopeQuantFreeVar --miniscope-quant-fv bool :default true :read-write
  miniscope quantifiers for ground subformulas
-option quantSplit --quant-split bool :default true
+option quantSplit --quant-split bool :default true :read-write
  apply splitting to quantified formulas based on variable disjoint disjuncts
-option prenexQuant --prenex-quant=MODE CVC4::theory::quantifiers::PrenexQuantMode :default CVC4::theory::quantifiers::PRENEX_NO_USER_PAT :include "options/quantifiers_modes.h" :read-write :handler stringToPrenexQuantMode
+option prenexQuant --prenex-quant=MODE CVC4::theory::quantifiers::PrenexQuantMode :default CVC4::theory::quantifiers::PRENEX_QUANT_SIMPLE :include "options/quantifiers_modes.h" :read-write :handler stringToPrenexQuantMode
  prenex mode for quantified formulas
+option prenexQuantUser --prenex-quant-user bool :default false :read-write
+ prenex quantified formulas with user patterns
 # Whether to variable-eliminate quantifiers.
 # For example, forall x y. ( P( x, y ) V x != c ) will be rewritten to
 #   forall y. P( c, y )
@@ -45,7 +47,7 @@ option iteDtTesterSplitQuant --ite-dtt-split-quant bool :read-write :default fal
 option preSkolemQuant --pre-skolem-quant bool :read-write :default false
  apply skolemization eagerly to bodies of quantified formulas
 option preSkolemQuantNested --pre-skolem-quant-nested bool :read-write :default true
- apply skolemization to nested quantified formulass
+ apply skolemization to nested quantified formulas
 option preSkolemQuantAgg --pre-skolem-quant-agg bool :read-write :default true
  apply skolemization to quantified formulas aggressively
 option aggressiveMiniscopeQuant --ag-miniscope-quant bool :default false
@@ -115,9 +117,6 @@ option quantRepMode --quant-rep-mode=MODE  CVC4::theory::quantifiers::QuantRepMo
  selection mode for representatives in quantifiers engine
 option instRelevantCond --inst-rlv-cond bool :default false
  add relevancy conditions for instantiations
- 
-option eagerInstQuant --eager-inst-quant bool :default false
- apply quantifier instantiation eagerly
 
 option fullSaturateQuant --full-saturate-quant bool :default false :read-write
  when all other quantifier instantiation strategies fail, instantiate with ground terms from relevant domain, then arbitrary ground terms before answering unknown
@@ -183,8 +182,6 @@ option qcfNestedConflict --qcf-nested-conflict bool :default false
  consider conflicts for nested quantifiers
 option qcfVoExp --qcf-vo-exp bool :default false
  qcf experimental variable ordering
- 
- 
 
 option instNoEntail --inst-no-entail bool :read-write :default true
  do not consider instances of quantified formulas that are currently entailed
@@ -194,8 +191,11 @@ option instPropagate --inst-prop bool :read-write :default false
  
 option qcfEagerTest --qcf-eager-test bool :default true
  optimization, test qcf instances eagerly
+option qcfEagerCheckRd --qcf-eager-check-rd bool :default true
+ optimization, eagerly check relevant domain of matched position
 option qcfSkipRd --qcf-skip-rd bool :default false
  optimization, skip instances based on possibly irrelevant portions of quantified formulas
+ 
 ### rewrite rules options 
  
 option quantRewriteRules --rewrite-rules bool :default false
@@ -272,8 +272,6 @@ option sygusDirectEval --sygus-direct-eval bool :default true
   direct unfolding of evaluation functions
   
 # approach applied to general quantified formulas
-option cbqiSplx --cbqi-splx bool :read-write :default false
- turns on old implementation of counterexample-based quantifier instantiation
 option cbqi --cbqi bool :read-write :default false
  turns on counterexample-based quantifier instantiation
 option recurseCbqi --cbqi-recurse bool :default true
@@ -292,14 +290,23 @@ option cbqiPreRegInst --cbqi-prereg-inst bool :read-write :default false
   preregister ground instantiations in counterexample-based quantifier instantiation
 option cbqiMinBounds --cbqi-min-bounds bool :default false
   use minimally constrained lower/upper bound for counterexample-based quantifier instantiation
-option cbqiSymLia --cbqi-sym-lia bool :default false
-  use symbolic integer division in substitutions for counterexample-based quantifier instantiation
 option cbqiRoundUpLowerLia --cbqi-round-up-lia bool :default false
   round up integer lower bounds in substitutions for counterexample-based quantifier instantiation
 option cbqiMidpoint --cbqi-midpoint bool :default false
   choose substitutions based on midpoints of lower and upper bounds for counterexample-based quantifier instantiation
 option cbqiNopt --cbqi-nopt bool :default true
   non-optimal bounds for counterexample-based quantifier instantiation
+option cbqiLitDepend --cbqi-lit-dep bool :default true
+  dependency lemmas for quantifier alternation in counterexample-based quantifier instantiation
+option cbqiInnermost --cbqi-innermost bool :read-write :default true
+ only process innermost quantified formulas in counterexample-based quantifier instantiation
+option cbqiNestedQE --cbqi-nested-qe bool :default false
+ process nested quantified formulas with quantifier elimination in counterexample-based quantifier instantiation
+ 
+option quantEpr --quant-epr bool :default false :read-write
+ infer whether in effectively propositional fragment, use for cbqi
+option quantEprMatching --quant-epr-match bool :default true
+ use matching heuristics for EPR instantiation
  
 ### local theory extensions options 
 

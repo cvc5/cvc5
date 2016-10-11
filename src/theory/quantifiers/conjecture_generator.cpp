@@ -84,6 +84,9 @@ d_notify( *this ),
 d_uequalityEngine(d_notify, c, "ConjectureGenerator::ee", false),
 d_ee_conjectures( c ){
   d_fullEffortCount = 0;
+  d_conj_count = 0;
+  d_subs_confirmCount = 0;
+  d_subs_unkCount = 0;
   d_uequalityEngine.addFunctionKind( kind::APPLY_UF );
   d_uequalityEngine.addFunctionKind( kind::APPLY_CONSTRUCTOR );
 

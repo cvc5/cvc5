@@ -25,36 +25,34 @@
 
 namespace CVC4 {
 
-std::ostream& operator<<(std::ostream& out, const SubrangeBounds& bounds)
-throw() {
+std::ostream& operator<<(std::ostream& out, const SubrangeBounds& bounds) {
   out << bounds.lower << ".." << bounds.upper;
 
   return out;
 }
 
 /** Get the finite SubrangeBound, failing an assertion if infinite. */
-const Integer& SubrangeBound::getBound() const throw(IllegalArgumentException) {
+const Integer& SubrangeBound::getBound() const {
   PrettyCheckArgument(!d_nobound, this, "SubrangeBound is infinite");
   return d_bound;
 }
 
-SubrangeBounds::SubrangeBounds(const SubrangeBound& l,
-                               const SubrangeBound& u)
-    : lower(l)
-    , upper(u)
-{
-  PrettyCheckArgument(!l.hasBound() || !u.hasBound() ||
-                      l.getBound() <= u.getBound(),
-                      l, "Bad subrange bounds specified");
+SubrangeBounds::SubrangeBounds(const SubrangeBound& l, const SubrangeBound& u)
+    : lower(l), upper(u) {
+  PrettyCheckArgument(
+      !l.hasBound() || !u.hasBound() || l.getBound() <= u.getBound(), l,
+      "Bad subrange bounds specified");
 }
 
-bool SubrangeBounds::joinIsBounded(const SubrangeBounds& a, const SubrangeBounds& b){
+bool SubrangeBounds::joinIsBounded(const SubrangeBounds& a,
+                                   const SubrangeBounds& b) {
   return (a.lower.hasBound() && b.lower.hasBound()) ||
-    (a.upper.hasBound() && b.upper.hasBound());
+         (a.upper.hasBound() && b.upper.hasBound());
 }
 
-SubrangeBounds SubrangeBounds::join(const SubrangeBounds& a, const SubrangeBounds& b){
-  DebugCheckArgument(joinIsBounded(a,b), a);
+SubrangeBounds SubrangeBounds::join(const SubrangeBounds& a,
+                                    const SubrangeBounds& b) {
+  DebugCheckArgument(joinIsBounded(a, b), a);
   SubrangeBound newLower = SubrangeBound::min(a.lower, b.lower);
   SubrangeBound newUpper = SubrangeBound::max(a.upper, b.upper);
   return SubrangeBounds(newLower, newUpper);

@@ -51,8 +51,10 @@ public:
   virtual void reset_round( Theory::Effort e ){}
   /* Call during quantifier engine's check */
   virtual void check( Theory::Effort e, unsigned quant_e ) = 0;
-  /* check was complete (e.g. no lemmas implies a model) */
+  /* check was complete, return false if there is no way to answer "SAT", true if maybe can answer "SAT" */
   virtual bool checkComplete() { return true; }
+  /* check was complete for quantified formula q (e.g. no lemmas implies a model) */
+  virtual bool checkCompleteFor( Node q ) { return false; }
   /* Called for new quantified formulas */
   virtual void preRegisterQuantifier( Node q ) { }
   /* Called for new quantifiers after owners are finalized */
@@ -149,7 +151,7 @@ public:
 };
 
 
-class EqualityQuery : public QuantifiersUtil{
+class EqualityQuery : public QuantifiersUtil {
 public:
   EqualityQuery(){}
   virtual ~EqualityQuery(){};
@@ -171,6 +173,38 @@ public:
   virtual TNode getCongruentTerm( Node f, std::vector< TNode >& args ) = 0;
 };/* class EqualityQuery */
 
+class QuantEPR
+{
+private:
+  void registerNode( Node n, std::map< int, std::map< Node, bool > >& visited, bool beneathQuant, bool hasPol, bool pol );
+  /** non-epr */
+  std::map< TypeNode, bool > d_non_epr;
+  /** axioms for epr */
+  std::map< TypeNode, Node > d_epr_axiom;
+public:
+  QuantEPR(){}
+  virtual ~QuantEPR(){}
+  /** constants per type */
+  std::map< TypeNode, std::vector< Node > > d_consts;
+  /* reset */
+  //bool reset( Theory::Effort e ) {}
+  /** identify */
+  //std::string identify() const { return "QuantEPR"; }
+  /** register assertion */
+  void registerAssertion( Node assertion );
+  /** finish init */
+  void finishInit();
+  /** is EPR */
+  bool isEPR( TypeNode tn ) const { return d_non_epr.find( tn )==d_non_epr.end(); }
+  /** is EPR constant */
+  bool isEPRConstant( TypeNode tn, Node k ); 
+  /** add EPR constant */
+  void addEPRConstant( TypeNode tn, Node k ); 
+  /** get EPR axiom */
+  Node mkEPRAxiom( TypeNode tn );
+  /** has EPR axiom */
+  bool hasEPRAxiom( TypeNode tn ) const { return d_epr_axiom.find( tn )!=d_epr_axiom.end(); }
+};
 
 }
 }

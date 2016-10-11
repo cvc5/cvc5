@@ -257,7 +257,7 @@ public:
   /**
    * Destructor: delete the list
    */
-  ~CDList() throw(AssertionException) {
+  ~CDList() {
     this->destroy();
 
     if(this->d_callDestructor) {

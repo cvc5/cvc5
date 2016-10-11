@@ -25,10 +25,6 @@
 namespace CVC4 {
 namespace theory {
 
-namespace quantifiers {
-  class InstStrategySimplex;
-}
-
 namespace arith {
 
 /**
@@ -38,7 +34,6 @@ namespace arith {
  */
 class TheoryArith : public Theory {
 private:
-  friend class quantifiers::InstStrategySimplex;
   friend class TheoryArithPrivate;
 
   TheoryArithPrivate* d_internal;

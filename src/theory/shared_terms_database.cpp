@@ -37,7 +37,7 @@ SharedTermsDatabase::SharedTermsDatabase(TheoryEngine* theoryEngine, context::Co
   smtStatisticsRegistry()->registerStat(&d_statSharedTerms);
 }
 
-SharedTermsDatabase::~SharedTermsDatabase() throw(AssertionException)
+SharedTermsDatabase::~SharedTermsDatabase()
 {
   smtStatisticsRegistry()->unregisterStat(&d_statSharedTerms);
 }

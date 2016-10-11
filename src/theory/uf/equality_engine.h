@@ -186,7 +186,7 @@ public:
   /**
    * Just a destructor.
    */
-  virtual ~EqualityEngine() throw(AssertionException);
+  virtual ~EqualityEngine();
 
   /**
    * Set the master equality engine for this one. Master engine will get copies of all

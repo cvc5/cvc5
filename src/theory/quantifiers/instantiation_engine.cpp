@@ -114,6 +114,7 @@ void InstantiationEngine::reset_round( Theory::Effort e ){
 }
 
 void InstantiationEngine::check( Theory::Effort e, unsigned quant_e ){
+  CodeTimer codeTimer(d_quantEngine->d_statistics.d_ematching_time);
   if( quant_e==QuantifiersEngine::QEFFORT_STANDARD ){
     double clSet = 0;
     if( Trace.isOn("inst-engine") ){
@@ -151,19 +152,9 @@ void InstantiationEngine::check( Theory::Effort e, unsigned quant_e ){
   }
 }
 
-bool InstantiationEngine::checkComplete() {
-  if( !options::finiteModelFind() ){
-    for( unsigned i=0; i<d_quants.size(); i++ ){
-      if( isIncomplete( d_quants[i] ) ){
-        return false;
-      }
-    }
-  }
-  return true;
-}
-
-bool InstantiationEngine::isIncomplete( Node q ) {
-  return true;
+bool InstantiationEngine::checkCompleteFor( Node q ) {
+  //TODO?
+  return false;
 }
 
 void InstantiationEngine::preRegisterQuantifier( Node q ) {

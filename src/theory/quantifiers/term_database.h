@@ -105,6 +105,11 @@ typedef expr::Attribute< QuantElimAttributeId, bool > QuantElimAttribute;
 struct QuantElimPartialAttributeId {};
 typedef expr::Attribute< QuantElimPartialAttributeId, bool > QuantElimPartialAttribute;
 
+/** Attribute for id number */
+struct QuantIdNumAttributeId {};
+typedef expr::Attribute< QuantIdNumAttributeId, uint64_t > QuantIdNumAttribute;
+
+
 class QuantifiersEngine;
 
 namespace inst{
@@ -145,6 +150,7 @@ public:
   bool d_quant_elim;
   bool d_quant_elim_partial;
   Node d_ipl;
+  Node d_qid_num;
   bool isRewriteRule() { return !d_rr.isNull(); }
   bool isFunDef() { return !d_fundef_f.isNull(); }
 };
@@ -182,23 +188,25 @@ private:
   std::map< Node, std::map< TypeNode, Node > > d_par_op_map;
   /** whether master equality engine is UF-inconsistent */
   bool d_consistent_ee;
-public:
-  TermDb( context::Context* c, context::UserContext* u, QuantifiersEngine* qe );
-  ~TermDb(){}
+
+ public:
+  TermDb(context::Context* c, context::UserContext* u, QuantifiersEngine* qe);
+  ~TermDb();
   /** boolean terms */
   Node d_true;
   Node d_false;
   /** constants */
   Node d_zero;
   Node d_one;
-public:
+
+ public:
   /** presolve (called once per user check-sat) */
   void presolve();
   /** reset (calculate which terms are active) */
   bool reset( Theory::Effort effort );
   /** identify */
   std::string identify() const { return "TermDb"; }  
-private:
+ private:
   /** map from operators to ground terms for that operator */
   std::map< Node, std::vector< Node > > d_op_map;
   /** map from type nodes to terms of that type */
@@ -301,8 +309,6 @@ private:
   /** map from universal quantifiers to the list of variables */
   std::map< Node, std::vector< Node > > d_vars;
   std::map< Node, std::map< Node, unsigned > > d_var_num;
-  /** map from universal quantifiers to the list of instantiation constants */
-  std::map< Node, std::vector< Node > > d_inst_constants;
   /** map from universal quantifiers to their inst constant body */
   std::map< Node, Node > d_inst_const_body;
   /** map from universal quantifiers to their counterexample literals */
@@ -312,6 +318,8 @@ private:
   /** make instantiation constants for */
   void makeInstantiationConstantsFor( Node q );
 public:
+  /** map from universal quantifiers to the list of instantiation constants */
+  std::map< Node, std::vector< Node > > d_inst_constants;
   /** get variable number */
   unsigned getVariableNum( Node q, Node v ) { return d_var_num[q][v]; }
   /** get the i^th instantiation constant of q */
@@ -388,7 +396,7 @@ public:
 //for triggers
 private:
   /** helper function for compute var contains */
-  static void computeVarContains2( Node n, std::vector< Node >& varContains, std::map< Node, bool >& visited );
+  static void computeVarContains2( Node n, Kind k, std::vector< Node >& varContains, std::map< Node, bool >& visited );
   /** triggers for each operator */
   std::map< Node, std::vector< inst::Trigger* > > d_op_triggers;
   /** helper for is instance of */
@@ -402,6 +410,8 @@ public:
   static void getVarContains( Node f, std::vector< Node >& pats, std::map< Node, std::vector< Node > >& varContains );
   /** get var contains for node n */
   static void getVarContainsNode( Node f, Node n, std::vector< Node >& varContains );
+  /** compute quant contains */
+  static void computeQuantContains( Node n, std::vector< Node >& quantContains );
   /** -1: n1 is an instance of n2, 1: n1 is an instance of n2 */
   static int isInstanceOf( Node n1, Node n2 );
   /** filter all nodes that have instances */
@@ -541,6 +551,10 @@ public:
   bool isQAttrQuantElim( Node q );
   /** is quant elim partial */
   bool isQAttrQuantElimPartial( Node q );
+  /** get quant id num */
+  int getQAttrQuantIdNum( Node q );
+  /** get quant id num */
+  Node getQAttrQuantIdNumNode( Node q );
   /** compute quantifier attributes */
   static void computeQuantAttributes( Node q, QAttributes& qa );
 };/* class TermDb */

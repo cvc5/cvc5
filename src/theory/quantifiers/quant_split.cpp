@@ -48,7 +48,7 @@ void QuantDSplit::preRegisterQuantifier( Node q ) {
       }else{
         int score = -1;
         if( options::quantDynamicSplit()==quantifiers::QUANT_DSPLIT_MODE_AGG ){
-          score = dt.isInterpretedFinite() ? 1 : -1;
+          score = dt.isInterpretedFinite() ? 1 : 0;
         }else if( options::quantDynamicSplit()==quantifiers::QUANT_DSPLIT_MODE_DEFAULT ){
           score = dt.isInterpretedFinite() ? 1 : -1;
         }
@@ -71,6 +71,11 @@ void QuantDSplit::preRegisterQuantifier( Node q ) {
 /* whether this module needs to check this round */
 bool QuantDSplit::needsCheck( Theory::Effort e ) {
   return e>=Theory::EFFORT_FULL && !d_quant_to_reduce.empty();
+}
+
+bool QuantDSplit::checkCompleteFor( Node q ) {
+  // true if we split q
+  return d_added_split.find( q )!=d_added_split.end();
 }
 
 /* Call during quantifier engine's check */

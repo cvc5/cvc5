@@ -365,55 +365,10 @@ public:
     /** get number of regions (for debugging) */
     int getNumRegions();
   }; /** class SortModel */
-private:
-  /** The output channel for the strong solver. */
-  OutputChannel* d_out;
-  /** theory uf pointer */
-  TheoryUF* d_th;
-  /** Are we in conflict */
-  context::CDO<bool> d_conflict;
-  /** rep model structure, one for each type */
-  std::map< TypeNode, SortModel* > d_rep_model;
-  /** get sort model */
-  SortModel* getSortModel( Node n );
-private:
-  /** allocated combined cardinality */
-  context::CDO< int > d_aloc_com_card;
-  /** combined cardinality constraints */
-  std::map< int, Node > d_com_card_literal;
-  /** combined cardinality assertions (indexed by cardinality literals ) */
-  NodeBoolMap d_com_card_assertions;
-  /** minimum positive combined cardinality */
-  context::CDO< int > d_min_pos_com_card;
-  /** cardinality literals for which we have added */
-  NodeBoolMap d_card_assertions_eqv_lemma;
-  /** the master monotone type (if ufssFairnessMonotone enabled) */
-  TypeNode d_tn_mono_master;
-  std::map< TypeNode, bool > d_tn_mono_slave;
-  context::CDO< int > d_min_pos_tn_master_card;  
-  /** initialize */
-  void initializeCombinedCardinality();
-  /** allocateCombinedCardinality */
-  void allocateCombinedCardinality();
-  /** check */
-  void checkCombinedCardinality();
-private:
-  /** relevant eqc */
-  NodeBoolMap d_rel_eqc;
-  /** ensure eqc */
-  void ensureEqc( SortModel* c, Node a );
-  /** ensure eqc for all subterms of n */
-  void ensureEqcRec( Node n );
+
 public:
-  /** has eqc */
-  bool hasEqc( Node a );
-private:
-  /** disequality propagator */
-  DisequalityPropagator* d_deq_prop;
-  /** symmetry breaking techniques */
-  SubsortSymmetryBreaker* d_sym_break;
-public:
-  StrongSolverTheoryUF(context::Context* c, context::UserContext* u, OutputChannel& out, TheoryUF* th);
+  StrongSolverTheoryUF(context::Context* c, context::UserContext* u,
+                       OutputChannel& out, TheoryUF* th);
   ~StrongSolverTheoryUF();
   /** get theory */
   TheoryUF* getTheory() { return d_th; }
@@ -437,7 +392,6 @@ public:
   void assertNode( Node n, bool isDecision );
   /** are disequal */
   bool areDisequal( Node a, Node b );
-public:
   /** check */
   void check( Theory::Effort level );
   /** presolve */
@@ -448,18 +402,14 @@ public:
   Node getNextDecisionRequest();
   /** preregister a term */
   void preRegisterTerm( TNode n );
-  /** preregister a quantifier */
-  //void registerQuantifier( Node f );
   /** notify restart */
   void notifyRestart();
-public:
   /** identify */
   std::string identify() const { return std::string("StrongSolverTheoryUF"); }
   //print debug
   void debugPrint( const char* c );
   /** debug a model */
   bool debugModel( TheoryModel* m );
-public:
   /** get is in conflict */
   bool isConflict() { return d_conflict; }
   /** get cardinality for node */
@@ -468,9 +418,11 @@ public:
   int getCardinality( TypeNode tn );
   /** minimize */
   bool minimize( TheoryModel* m = NULL );
+  /** has eqc */
+  bool hasEqc(Node a);
 
   class Statistics {
-  public:
+   public:
     IntStat d_clique_conflicts;
     IntStat d_clique_lemmas;
     IntStat d_split_lemmas;
@@ -483,7 +435,50 @@ public:
   };
   /** statistics class */
   Statistics d_statistics;
-};/* class StrongSolverTheoryUF */
+
+ private:
+  /** get sort model */
+  SortModel* getSortModel(Node n);
+  /** initialize */
+  void initializeCombinedCardinality();
+  /** allocateCombinedCardinality */
+  void allocateCombinedCardinality();
+  /** check */
+  void checkCombinedCardinality();
+  /** ensure eqc */
+  void ensureEqc(SortModel* c, Node a);
+  /** ensure eqc for all subterms of n */
+  void ensureEqcRec(Node n);
+
+  /** The output channel for the strong solver. */
+  OutputChannel* d_out;
+  /** theory uf pointer */
+  TheoryUF* d_th;
+  /** Are we in conflict */
+  context::CDO<bool> d_conflict;
+  /** rep model structure, one for each type */
+  std::map<TypeNode, SortModel*> d_rep_model;
+  /** allocated combined cardinality */
+  context::CDO<int> d_aloc_com_card;
+  /** combined cardinality constraints */
+  std::map<int, Node> d_com_card_literal;
+  /** combined cardinality assertions (indexed by cardinality literals ) */
+  NodeBoolMap d_com_card_assertions;
+  /** minimum positive combined cardinality */
+  context::CDO<int> d_min_pos_com_card;
+  /** cardinality literals for which we have added */
+  NodeBoolMap d_card_assertions_eqv_lemma;
+  /** the master monotone type (if ufssFairnessMonotone enabled) */
+  TypeNode d_tn_mono_master;
+  std::map<TypeNode, bool> d_tn_mono_slave;
+  context::CDO<int> d_min_pos_tn_master_card;
+  /** relevant eqc */
+  NodeBoolMap d_rel_eqc;
+  /** disequality propagator */
+  DisequalityPropagator* d_deq_prop;
+  /** symmetry breaking techniques */
+  SubsortSymmetryBreaker* d_sym_break;
+}; /* class StrongSolverTheoryUF */
 
 class DisequalityPropagator {
 public:

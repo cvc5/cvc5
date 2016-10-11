@@ -367,6 +367,8 @@ libcvc4_la_SOURCES = \
 	theory/quantifiers/quant_equality_engine.cpp \
 	theory/quantifiers/ceg_instantiator.h \
 	theory/quantifiers/ceg_instantiator.cpp \
+	theory/quantifiers/ceg_t_instantiator.h \
+	theory/quantifiers/ceg_t_instantiator.cpp \
 	theory/quantifiers/quant_split.h \
 	theory/quantifiers/quant_split.cpp \
 	theory/quantifiers/anti_skolem.h \

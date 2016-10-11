@@ -33,13 +33,13 @@
 #include "util/bitvector.h"
 
 using namespace std;
-using namespace CVC4;
 using namespace CVC4::kind;
 using namespace CVC4::context;
-using namespace CVC4::theory;
-using namespace CVC4::theory::quantifiers;
-
 using namespace CVC4::theory::inst;
+
+namespace CVC4 {
+namespace theory {
+namespace quantifiers {
 
 TNode TermArgTrie::existsTerm( std::vector< TNode >& reps, int argIndex ) {
   if( argIndex==(int)reps.size() ){
@@ -84,15 +84,25 @@ void TermArgTrie::debugPrint( const char * c, Node n, unsigned depth ) {
   }
 }
 
-TermDb::TermDb( context::Context* c, context::UserContext* u, QuantifiersEngine* qe ) : d_quantEngine( qe ), d_inactive_map( c ), d_op_id_count( 0 ), d_typ_id_count( 0 ) {
-  d_true = NodeManager::currentNM()->mkConst( true );
-  d_false = NodeManager::currentNM()->mkConst( false );
-  d_zero = NodeManager::currentNM()->mkConst( Rational( 0 ) );
-  d_one = NodeManager::currentNM()->mkConst( Rational( 1 ) );
-  if( options::ceGuidedInst() ){
-    d_sygus_tdb = new TermDbSygus( c, qe );
-  }else{
-    d_sygus_tdb = NULL;
+TermDb::TermDb(context::Context* c, context::UserContext* u,
+               QuantifiersEngine* qe)
+    : d_quantEngine(qe),
+      d_inactive_map(c),
+      d_op_id_count(0),
+      d_typ_id_count(0),
+      d_sygus_tdb(NULL) {
+  d_consistent_ee = true;
+  d_true = NodeManager::currentNM()->mkConst(true);
+  d_false = NodeManager::currentNM()->mkConst(false);
+  d_zero = NodeManager::currentNM()->mkConst(Rational(0));
+  d_one = NodeManager::currentNM()->mkConst(Rational(1));
+  if (options::ceGuidedInst()) {
+    d_sygus_tdb = new TermDbSygus(c, qe);
+  }
+}
+TermDb::~TermDb(){
+  if(d_sygus_tdb) {
+    delete d_sygus_tdb;
   }
 }
 
@@ -129,7 +139,7 @@ Node TermDb::getMatchOperator( Node n ) {
   Kind k = n.getKind();
   //datatype operators may be parametric, always assume they are
   if( k==SELECT || k==STORE || k==UNION || k==INTERSECTION || k==SUBSET || k==SETMINUS || k==MEMBER || k==SINGLETON || 
-      k==APPLY_SELECTOR_TOTAL || k==APPLY_TESTER ){
+      k==APPLY_SELECTOR_TOTAL || k==APPLY_TESTER || k==SEP_PTO ){
     //since it is parametric, use a particular one as op
     TypeNode tn = n[0].getType();
     Node op = n.getOperator();
@@ -174,17 +184,6 @@ void TermDb::addTerm( Node n, std::set< Node >& added, bool withinQuant, bool wi
           
           if( d_sygus_tdb ){
             d_sygus_tdb->registerEvalTerm( n );
-          }
-
-          if( options::eagerInstQuant() ){
-            for( unsigned i=0; i<n.getNumChildren(); i++ ){
-              if( !n.hasAttribute(InstLevelAttribute()) && n.getAttribute(InstLevelAttribute())==0 ){
-                int addedLemmas = 0;
-                for( unsigned i=0; i<d_op_triggers[op].size(); i++ ){
-                  addedLemmas += d_op_triggers[op][i]->addTerm( n );
-                }
-              }
-            }
           }
         }
       }else{
@@ -1319,19 +1318,25 @@ bool TermDb::mayComplete( TypeNode tn ) {
 
 void TermDb::computeVarContains( Node n, std::vector< Node >& varContains ) {
   std::map< Node, bool > visited;
-  computeVarContains2( n, varContains, visited );
+  computeVarContains2( n, INST_CONSTANT, varContains, visited );
 }
 
-void TermDb::computeVarContains2( Node n, std::vector< Node >& varContains, std::map< Node, bool >& visited ){
+void TermDb::computeQuantContains( Node n, std::vector< Node >& quantContains ) {
+  std::map< Node, bool > visited;
+  computeVarContains2( n, FORALL, quantContains, visited );
+}
+
+
+void TermDb::computeVarContains2( Node n, Kind k, std::vector< Node >& varContains, std::map< Node, bool >& visited ){
   if( visited.find( n )==visited.end() ){
     visited[n] = true;
-    if( n.getKind()==INST_CONSTANT ){
+    if( n.getKind()==k ){
       if( std::find( varContains.begin(), varContains.end(), n )==varContains.end() ){
         varContains.push_back( n );
       }
     }else{
       for( unsigned i=0; i<n.getNumChildren(); i++ ){
-        computeVarContains2( n[i], varContains, visited );
+        computeVarContains2( n[i], k, varContains, visited );
       }
     }
   }
@@ -1963,7 +1968,7 @@ bool TermDb::isComm( Kind k ) {
 }
 
 bool TermDb::isBoolConnective( Kind k ) {
-  return k==OR || k==AND || k==IFF || k==ITE || k==FORALL || k==NOT;
+  return k==OR || k==AND || k==IFF || k==ITE || k==FORALL || k==NOT || k==SEP_STAR;
 }
 
 void TermDb::registerTrigger( theory::inst::Trigger* tr, Node op ){
@@ -2163,6 +2168,10 @@ void TermDb::computeQuantAttributes( Node q, QAttributes& qa ){
           qa.d_quant_elim_partial = true;
           //don't set owner, should happen naturally
         }
+        if( avar.hasAttribute(QuantIdNumAttribute()) ){
+          qa.d_qid_num = avar;
+          Trace("quant-attr") << "Attribute : id number " << qa.d_qid_num.getAttribute(QuantIdNumAttribute()) << " : " << q << std::endl;
+        }
         if( avar.getKind()==REWRITE_RULE ){
           Trace("quant-attr") << "Attribute : rewrite rule : " << q << std::endl;
           Assert( i==0 );
@@ -2251,6 +2260,25 @@ bool TermDb::isQAttrQuantElimPartial( Node q ) {
     return false;
   }else{
     return it->second.d_quant_elim_partial;
+  }
+}
+
+int TermDb::getQAttrQuantIdNum( Node q ) {
+  std::map< Node, QAttributes >::iterator it = d_qattr.find( q );
+  if( it!=d_qattr.end() ){
+    if( !it->second.d_qid_num.isNull() ){
+      return it->second.d_qid_num.getAttribute(QuantIdNumAttribute());
+    }
+  }
+  return -1;
+}
+
+Node TermDb::getQAttrQuantIdNumNode( Node q ) {
+  std::map< Node, QAttributes >::iterator it = d_qattr.find( q );
+  if( it==d_qattr.end() ){
+    return Node::null();
+  }else{
+    return it->second.d_qid_num;
   }
 }
 
@@ -3125,7 +3153,6 @@ void TermDbSygus::printSygusTerm( std::ostream& out, Node n, std::vector< Node >
           std::string name = std::string( str.begin() + found +1, str.end() );
           out << name;
         }else{
-          Trace("ajr-temp") << "[[print operator " << op << "]]" << std::endl;
           out << op;
         }
         if( n.getNumChildren()>0 ){
@@ -3281,3 +3308,6 @@ void TermDbSygus::registerModelValue( Node a, Node v, std::vector< Node >& lems 
   }
 }
 
+}/* CVC4::theory::quantifiers namespace */
+}/* CVC4::theory namespace */
+}/* CVC4 namespace */

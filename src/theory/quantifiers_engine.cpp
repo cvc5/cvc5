@@ -19,6 +19,7 @@
 #include "smt/smt_statistics_registry.h"
 #include "theory/arrays/theory_arrays.h"
 #include "theory/datatypes/theory_datatypes.h"
+#include "theory/sep/theory_sep.h"
 #include "theory/quantifiers/alpha_equivalence.h"
 #include "theory/quantifiers/ambqi_builder.h"
 #include "theory/quantifiers/bounded_integers.h"
@@ -112,6 +113,14 @@ QuantifiersEngine::QuantifiersEngine(context::Context* c, context::UserContext* 
     d_quant_rel = NULL;
   }
 
+  if( options::quantEpr() ){
+    Assert( !options::incrementalSolving() );
+    d_qepr = new QuantEPR;
+  }else{
+    d_qepr = NULL;
+  }
+
+
   d_qcf = NULL;
   d_sg_gen = NULL;
   d_inst_engine = NULL;
@@ -130,7 +139,7 @@ QuantifiersEngine::QuantifiersEngine(context::Context* c, context::UserContext* 
   d_rel_dom = NULL;
   d_builder = NULL;
   
-  d_trackInstLemmas = options::proof() && options::trackInstLemmas();
+  d_trackInstLemmas = options::cbqiNestedQE() || ( options::proof() && options::trackInstLemmas() );
 
   d_total_inst_count_debug = 0;
   //allow theory combination to go first, once initially
@@ -152,6 +161,7 @@ QuantifiersEngine::~QuantifiersEngine(){
 
   delete d_alpha_equiv;
   delete d_builder;
+  delete d_qepr;
   delete d_rr_engine;
   delete d_bint;
   delete d_model_engine;
@@ -209,21 +219,15 @@ void QuantifiersEngine::finishInit(){
     d_sg_gen = new quantifiers::ConjectureGenerator( this, c );
     d_modules.push_back( d_sg_gen );
   }
-  //maintain invariant : either InstantiationEngine or ModelEngine must be in d_modules
   if( !options::finiteModelFind() || options::fmfInstEngine() ){
     d_inst_engine = new quantifiers::InstantiationEngine( this );
     d_modules.push_back(  d_inst_engine );
   }
   if( options::cbqi() ){
-    if( options::cbqiSplx() ){
-      d_i_cbqi = new quantifiers::InstStrategySimplex( (arith::TheoryArith*)getTheoryEngine()->theoryOf( THEORY_ARITH ), this );
-      d_modules.push_back( d_i_cbqi );
-    }else{
-      d_i_cbqi = new quantifiers::InstStrategyCegqi( this );
-      d_modules.push_back( d_i_cbqi );
-      if( options::cbqiModel() ){
-        needsBuilder = true;
-      }
+    d_i_cbqi = new quantifiers::InstStrategyCegqi( this );
+    d_modules.push_back( d_i_cbqi );
+    if( options::cbqiModel() ){
+      needsBuilder = true;
     }
   }
   if( options::ceGuidedInst() ){
@@ -275,7 +279,7 @@ void QuantifiersEngine::finishInit(){
     d_modules.push_back( d_fs );
     needsRelDom = true;
   }
-
+ 
   if( needsRelDom ){
     d_rel_dom = new quantifiers::RelevantDomain( this, d_model );
     d_util.push_back( d_rel_dom );
@@ -343,6 +347,26 @@ void QuantifiersEngine::presolve() {
   }
 }
 
+void QuantifiersEngine::ppNotifyAssertions( std::vector< Node >& assertions ) {
+  Trace("quant-engine-proc") << "ppNotifyAssertions in QE, #assertions = " << assertions.size() << " check epr = " << (d_qepr!=NULL) << std::endl;
+  if( ( options::instLevelInputOnly() && options::instMaxLevel()!=-1 ) || d_qepr!=NULL ){
+    for( unsigned i=0; i<assertions.size(); i++ ) {
+      if( options::instLevelInputOnly() && options::instMaxLevel()!=-1 ){
+        setInstantiationLevelAttr( assertions[i], 0 );
+      }
+      if( d_qepr!=NULL ){
+        d_qepr->registerAssertion( assertions[i] );
+      }
+    }
+    if( d_qepr!=NULL ){
+      //must handle sources of other new constants e.g. separation logic
+      //FIXME: cleanup
+      ((sep::TheorySep*)getTheoryEngine()->theoryOf( THEORY_SEP ))->initializeBounds();
+      d_qepr->finishInit(); 
+    }
+  }
+}
+
 void QuantifiersEngine::check( Theory::Effort e ){
   CodeTimer codeTimer(d_statistics.d_time);
   if( !getMasterEqualityEngine()->consistent() ){
@@ -370,13 +394,6 @@ void QuantifiersEngine::check( Theory::Effort e ){
   d_conflict = false;
   d_hasAddedLemma = false;
   bool setIncomplete = false;
-  if( e==Theory::EFFORT_LAST_CALL ){
-    //sources of incompleteness
-    if( d_lte_part_inst && d_lte_part_inst->wasInvoked() ){
-      Trace("quant-engine-debug") << "Set incomplete due to LTE partial instantiation." << std::endl;
-      setIncomplete = true;
-    }
-  }
   bool usedModelBuilder = false;
 
   Trace("quant-engine-debug2") << "Quantifiers Engine call to check, level = " << e << ", needsCheck=" << needsCheck << std::endl;
@@ -519,18 +536,47 @@ void QuantifiersEngine::check( Theory::Effort e ){
           }
         }else if( quant_e==QEFFORT_MODEL ){
           if( e==Theory::EFFORT_LAST_CALL ){
+            //sources of incompleteness
             if( !d_recorded_inst.empty() ){
+              Trace("quant-engine-debug") << "Set incomplete due to recorded instantiations." << std::endl;
               setIncomplete = true;
             }
             //if we have a chance not to set incomplete
             if( !setIncomplete ){
               setIncomplete = false;
               //check if we should set the incomplete flag
-              for( unsigned i=0; i<qm.size(); i++ ){
-                if( !qm[i]->checkComplete() ){
-                  Trace("quant-engine-debug") << "Set incomplete because " << qm[i]->identify().c_str() << " was incomplete." << std::endl;
+              for( unsigned i=0; i<d_modules.size(); i++ ){
+                if( !d_modules[i]->checkComplete() ){
+                  Trace("quant-engine-debug") << "Set incomplete because " << d_modules[i]->identify().c_str() << " was incomplete." << std::endl;
                   setIncomplete = true;
                   break;
+                }
+              }
+              if( !setIncomplete ){
+                //look at individual quantified formulas, one module must claim completeness for each one
+                for( unsigned i=0; i<d_model->getNumAssertedQuantifiers(); i++ ){
+                  bool hasCompleteM = false;
+                  Node q = d_model->getAssertedQuantifier( i );
+                  QuantifiersModule * qmd = getOwner( q );
+                  if( qmd!=NULL ){
+                    hasCompleteM = qmd->checkCompleteFor( q );
+                  }else{
+                    for( unsigned j=0; j<d_modules.size(); j++ ){
+                      if( d_modules[j]->checkCompleteFor( q ) ){
+                        qmd = d_modules[j];
+                        hasCompleteM = true;
+                        break;
+                      }
+                    }
+                  }
+                  if( !hasCompleteM ){
+                    Trace("quant-engine-debug") << "Set incomplete because " << q << " was not fully processed." << std::endl;
+                    setIncomplete = true;
+                    break;
+                  }else{
+                    Assert( qmd!=NULL );
+                    Trace("quant-engine-debug2") << "Complete for " << q << " due to " << qmd->identify().c_str() << std::endl;
+                  }
                 }
               }
             }
@@ -598,6 +644,7 @@ void QuantifiersEngine::notifyCombineTheories() {
 }
 
 bool QuantifiersEngine::reduceQuantifier( Node q ) {
+  //TODO: this can be unified with preregistration: AlphaEquivalence takes ownership of reducable quants
   BoolMap::const_iterator it = d_quants_red.find( q );
   if( it==d_quants_red.end() ){
     Node lem;
@@ -704,7 +751,7 @@ void QuantifiersEngine::assertQuantifier( Node f, bool pol ){
     //register the quantifier, assert it to each module
     if( registerQuantifier( f ) ){
       d_model->assertQuantifier( f );
-      for( int i=0; i<(int)d_modules.size(); i++ ){
+      for( unsigned i=0; i<d_modules.size(); i++ ){
         d_modules[i]->assertNode( f );
       }
       addTermToDatabase( d_term_db->getInstConstantBody( f ), true );
@@ -747,10 +794,7 @@ void QuantifiersEngine::addTermToDatabase( Node n, bool withinQuant, bool within
   if( !d_presolve || !options::incrementalSolving() ){
     std::set< Node > added;
     getTermDatabase()->addTerm( n, added, withinQuant, withinInstClosure );
-    //maybe have triggered instantiations if we are doing eager instantiation
-    if( options::eagerInstQuant() ){
-      flushLemmas();
-    }
+    
     //added contains also the Node that just have been asserted in this branch
     if( d_quant_rel ){
       for( std::set< Node >::iterator i=added.begin(), end=added.end(); i!=end; i++ ){
@@ -840,10 +884,10 @@ void QuantifiersEngine::setInstantiationLevelAttr( Node n, Node qn, uint64_t lev
       InstLevelAttribute ila;
       n.setAttribute(ila,level);
       Trace("inst-level-debug") << "Set instantiation level " << n << " to " << level << std::endl;
-    }
-    Assert( n.getNumChildren()==qn.getNumChildren() );
-    for( unsigned i=0; i<n.getNumChildren(); i++ ){
-      setInstantiationLevelAttr( n[i], qn[i], level );
+      Assert( n.getNumChildren()==qn.getNumChildren() );
+      for( unsigned i=0; i<n.getNumChildren(); i++ ){
+        setInstantiationLevelAttr( n[i], qn[i], level );
+      }
     }
   }
 }
@@ -853,9 +897,9 @@ void QuantifiersEngine::setInstantiationLevelAttr( Node n, uint64_t level ){
     InstLevelAttribute ila;
     n.setAttribute(ila,level);
     Trace("inst-level-debug") << "Set instantiation level " << n << " to " << level << std::endl;
-  }
-  for( unsigned i=0; i<n.getNumChildren(); i++ ){
-    setInstantiationLevelAttr( n[i], level );
+    for( unsigned i=0; i<n.getNumChildren(); i++ ){
+      setInstantiationLevelAttr( n[i], level );
+    }
   }
 }
 
@@ -1089,11 +1133,12 @@ bool QuantifiersEngine::addInstantiation( Node q, std::vector< Node >& terms, bo
     }
     if( d_term_db->isEntailed( q[1], subs, false, true ) ){
       Trace("inst-add-debug") << " --> Currently entailed." << std::endl;
+      ++(d_statistics.d_inst_duplicate_ent);
       return false;
     }
     //Node eval = d_term_db->evaluateTerm( q[1], subs, false, true );
-    //Trace("ajr-temp") << "Instantiation evaluates to : " << std::endl;
-    //Trace("ajr-temp") << "   " << eval << std::endl;
+    //Trace("inst-add-debug2") << "Instantiation evaluates to : " << std::endl;
+    //Trace("inst-add-debug2") << "   " << eval << std::endl;
   }
 
   //check for term vector duplication
@@ -1109,6 +1154,9 @@ bool QuantifiersEngine::addInstantiation( Node q, std::vector< Node >& terms, bo
   Assert( d_term_db->d_vars[q].size()==terms.size() );
   Node body = getInstantiation( q, d_term_db->d_vars[q], terms, doVts );  //do virtual term substitution
   Node orig_body = body;
+  if( options::cbqiNestedQE() && d_i_cbqi ){
+    body = d_i_cbqi->doNestedQE( q, terms, body, doVts );
+  }  
   body = quantifiers::QuantifiersRewriter::preprocess( body, true );
   Trace("inst-debug") << "...preprocess to " << body << std::endl;
 
@@ -1217,6 +1265,18 @@ bool QuantifiersEngine::addSplitEquality( Node n1, Node n2, bool reqPhase, bool 
   return addSplit( fm );
 }
 
+bool QuantifiersEngine::addEPRAxiom( TypeNode tn ) {
+  if( d_qepr ){
+    Assert( !options::incrementalSolving() );
+    if( d_qepr->isEPR( tn ) && !d_qepr->hasEPRAxiom( tn ) ){
+      Node lem = d_qepr->mkEPRAxiom( tn );
+      Trace("quant-epr") << "EPR lemma for " << tn << " : " << lem << std::endl;
+      getOutputChannel().lemma( lem );
+    }
+  }
+  return false;
+}
+  
 void QuantifiersEngine::markRelevant( Node q ) {
   d_model->markRelevant( q );
 }
@@ -1414,62 +1474,120 @@ void QuantifiersEngine::getInstantiations( std::map< Node, std::vector< Node > >
   }
 }
 
+void QuantifiersEngine::getInstantiations( Node q, std::vector< Node >& insts  ) {
+  if( options::incrementalSolving() ){
+    std::map< Node, inst::CDInstMatchTrie* >::iterator it = d_c_inst_match_trie.find( q );
+    if( it!=d_c_inst_match_trie.end() ){
+      std::vector< Node > active_lemmas;
+      it->second->getInstantiations( insts, it->first, this, false, active_lemmas );
+    }
+  }else{
+    std::map< Node, inst::InstMatchTrie >::iterator it = d_inst_match_trie.find( q );
+    if( it!=d_inst_match_trie.end() ){
+      std::vector< Node > active_lemmas;
+      it->second.getInstantiations( insts, it->first, this, false, active_lemmas );
+    }
+  }
+}
+
+Node QuantifiersEngine::getInstantiatedConjunction( Node q ) {
+  Assert( q.getKind()==FORALL );
+  std::vector< Node > insts;
+  getInstantiations( q, insts );
+  if( insts.empty() ){
+    return NodeManager::currentNM()->mkConst(true);
+  }else{
+    Node ret;
+    if( insts.size()==1 ){
+      ret = insts[0];
+    }else{
+      ret = NodeManager::currentNM()->mkNode( kind::AND, insts );
+    }
+    //have to remove q, TODO: avoid this in a better way
+    TNode tq = q;
+    TNode tt = d_term_db->d_true;
+    ret = ret.substitute( tq, tt );
+    return ret;
+  }
+}
+
 QuantifiersEngine::Statistics::Statistics()
     : d_time("theory::QuantifiersEngine::time"),
+      d_qcf_time("theory::QuantifiersEngine::time_qcf"),
+      d_ematching_time("theory::QuantifiersEngine::time_ematching"),
       d_num_quant("QuantifiersEngine::Num_Quantifiers", 0),
       d_instantiation_rounds("QuantifiersEngine::Rounds_Instantiation_Full", 0),
       d_instantiation_rounds_lc("QuantifiersEngine::Rounds_Instantiation_Last_Call", 0),
       d_instantiations("QuantifiersEngine::Instantiations_Total", 0),
       d_inst_duplicate("QuantifiersEngine::Duplicate_Inst", 0),
       d_inst_duplicate_eq("QuantifiersEngine::Duplicate_Inst_Eq", 0),
+      d_inst_duplicate_ent("QuantifiersEngine::Duplicate_Inst_Entailed", 0),
       d_triggers("QuantifiersEngine::Triggers", 0),
       d_simple_triggers("QuantifiersEngine::Triggers_Simple", 0),
       d_multi_triggers("QuantifiersEngine::Triggers_Multi", 0),
       d_multi_trigger_instantiations("QuantifiersEngine::Multi_Trigger_Instantiations", 0),
       d_red_alpha_equiv("QuantifiersEngine::Reductions_Alpha_Equivalence", 0),
-      d_red_lte_partial_inst("QuantifiersEngine::Reductions_Lte_Partial_Inst", 0),
       d_instantiations_user_patterns("QuantifiersEngine::Instantiations_User_Patterns", 0),
       d_instantiations_auto_gen("QuantifiersEngine::Instantiations_Auto_Gen", 0),
       d_instantiations_guess("QuantifiersEngine::Instantiations_Guess", 0),
-      d_instantiations_cbqi_arith("QuantifiersEngine::Instantiations_Cbqi_Arith", 0)
+      d_instantiations_qcf("QuantifiersEngine::Instantiations_Qcf_Conflict", 0),
+      d_instantiations_qcf_prop("QuantifiersEngine::Instantiations_Qcf_Prop", 0),
+      d_instantiations_fmf_exh("QuantifiersEngine::Instantiations_Fmf_Exh", 0),
+      d_instantiations_fmf_mbqi("QuantifiersEngine::Instantiations_Fmf_Mbqi", 0),
+      d_instantiations_cbqi("QuantifiersEngine::Instantiations_Cbqi", 0),
+      d_instantiations_rr("QuantifiersEngine::Instantiations_Rewrite_Rules", 0)
 {
   smtStatisticsRegistry()->registerStat(&d_time);
+  smtStatisticsRegistry()->registerStat(&d_qcf_time);
+  smtStatisticsRegistry()->registerStat(&d_ematching_time);
   smtStatisticsRegistry()->registerStat(&d_num_quant);
   smtStatisticsRegistry()->registerStat(&d_instantiation_rounds);
   smtStatisticsRegistry()->registerStat(&d_instantiation_rounds_lc);
   smtStatisticsRegistry()->registerStat(&d_instantiations);
   smtStatisticsRegistry()->registerStat(&d_inst_duplicate);
   smtStatisticsRegistry()->registerStat(&d_inst_duplicate_eq);
+  smtStatisticsRegistry()->registerStat(&d_inst_duplicate_ent);
   smtStatisticsRegistry()->registerStat(&d_triggers);
   smtStatisticsRegistry()->registerStat(&d_simple_triggers);
   smtStatisticsRegistry()->registerStat(&d_multi_triggers);
   smtStatisticsRegistry()->registerStat(&d_multi_trigger_instantiations);
   smtStatisticsRegistry()->registerStat(&d_red_alpha_equiv);
-  smtStatisticsRegistry()->registerStat(&d_red_lte_partial_inst);
   smtStatisticsRegistry()->registerStat(&d_instantiations_user_patterns);
   smtStatisticsRegistry()->registerStat(&d_instantiations_auto_gen);
   smtStatisticsRegistry()->registerStat(&d_instantiations_guess);
-  smtStatisticsRegistry()->registerStat(&d_instantiations_cbqi_arith);
+  smtStatisticsRegistry()->registerStat(&d_instantiations_qcf);
+  smtStatisticsRegistry()->registerStat(&d_instantiations_qcf_prop);
+  smtStatisticsRegistry()->registerStat(&d_instantiations_fmf_exh);
+  smtStatisticsRegistry()->registerStat(&d_instantiations_fmf_mbqi);
+  smtStatisticsRegistry()->registerStat(&d_instantiations_cbqi);
+  smtStatisticsRegistry()->registerStat(&d_instantiations_rr);
 }
 
 QuantifiersEngine::Statistics::~Statistics(){
   smtStatisticsRegistry()->unregisterStat(&d_time);
+  smtStatisticsRegistry()->unregisterStat(&d_qcf_time);
+  smtStatisticsRegistry()->unregisterStat(&d_ematching_time);
   smtStatisticsRegistry()->unregisterStat(&d_num_quant);
   smtStatisticsRegistry()->unregisterStat(&d_instantiation_rounds);
   smtStatisticsRegistry()->unregisterStat(&d_instantiation_rounds_lc);
   smtStatisticsRegistry()->unregisterStat(&d_instantiations);
   smtStatisticsRegistry()->unregisterStat(&d_inst_duplicate);
   smtStatisticsRegistry()->unregisterStat(&d_inst_duplicate_eq);
+  smtStatisticsRegistry()->unregisterStat(&d_inst_duplicate_ent);
   smtStatisticsRegistry()->unregisterStat(&d_triggers);
   smtStatisticsRegistry()->unregisterStat(&d_simple_triggers);
   smtStatisticsRegistry()->unregisterStat(&d_multi_triggers);
   smtStatisticsRegistry()->unregisterStat(&d_multi_trigger_instantiations);
   smtStatisticsRegistry()->unregisterStat(&d_red_alpha_equiv);
-  smtStatisticsRegistry()->unregisterStat(&d_red_lte_partial_inst);
   smtStatisticsRegistry()->unregisterStat(&d_instantiations_user_patterns);
   smtStatisticsRegistry()->unregisterStat(&d_instantiations_auto_gen);
   smtStatisticsRegistry()->unregisterStat(&d_instantiations_guess);
-  smtStatisticsRegistry()->unregisterStat(&d_instantiations_cbqi_arith);
+  smtStatisticsRegistry()->unregisterStat(&d_instantiations_qcf);
+  smtStatisticsRegistry()->unregisterStat(&d_instantiations_qcf_prop);
+  smtStatisticsRegistry()->unregisterStat(&d_instantiations_fmf_exh);
+  smtStatisticsRegistry()->unregisterStat(&d_instantiations_fmf_mbqi);
+  smtStatisticsRegistry()->unregisterStat(&d_instantiations_cbqi);
+  smtStatisticsRegistry()->unregisterStat(&d_instantiations_rr);
 }
 
 eq::EqualityEngine* QuantifiersEngine::getMasterEqualityEngine(){

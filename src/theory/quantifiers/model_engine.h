@@ -42,6 +42,8 @@ private:
   //temporary statistics
   //is the exhaustive instantiation incomplete?
   bool d_incomplete_check;
+  // set of quantified formulas for which check was incomplete
+  std::vector< Node > d_incomplete_quants;
   int d_addedLemmas;
   int d_triedLemmas;
   int d_totalLemmas;
@@ -54,21 +56,11 @@ public:
   void reset_round( Theory::Effort e );
   void check( Theory::Effort e, unsigned quant_e );
   bool checkComplete();
+  bool checkCompleteFor( Node q );
   void registerQuantifier( Node f );
   void assertNode( Node f );
   Node explain(TNode n){ return Node::null(); }
   void debugPrint( const char* c );
-public:
-  /** statistics class */
-  class Statistics {
-  public:
-    IntStat d_inst_rounds;
-    IntStat d_exh_inst_lemmas;
-    IntStat d_mbqi_inst_lemmas;
-    Statistics();
-    ~Statistics();
-  };
-  Statistics d_statistics;
   /** Identify this module */
   std::string identify() const { return "ModelEngine"; }
 };/* class ModelEngine */

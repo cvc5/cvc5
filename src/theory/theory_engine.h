@@ -35,7 +35,6 @@
 #include "theory/atom_requests.h"
 #include "theory/bv/bv_to_bool.h"
 #include "theory/interrupted.h"
-#include "theory/quantifiers/quant_conflict_find.h"
 #include "theory/rewriter.h"
 #include "theory/shared_terms_database.h"
 #include "theory/sort_inference.h"
@@ -605,6 +604,12 @@ public:
    */
   Node preprocess(TNode node);
 
+
+  /**
+   * Notify (preprocessed) assertions 
+   */
+  void notifyPreprocessedAssertions( std::vector< Node >& assertions );
+
   /**
    * Return whether or not we are incomplete (in the current context).
    */
@@ -784,6 +789,12 @@ public:
    * Get instantiations
    */
   void getInstantiations( std::map< Node, std::vector< Node > >& insts );
+  
+  /**
+   * Get instantiated conjunction, returns q[t1] ^ ... ^ q[tn] where t1...tn are current set of instantiations for q.
+   *   Can be used for quantifier elimination when satisfiable and q[t1] ^ ... ^ q[tn] |= q
+   */
+  Node getInstantiatedConjunction( Node q );
 
   /**
    * Forwards an entailment check according to the given theoryOfMode.

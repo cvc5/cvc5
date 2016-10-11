@@ -93,7 +93,6 @@
 #include "theory/quantifiers/fun_def_process.h"
 #include "theory/quantifiers/macros.h"
 #include "theory/quantifiers/quantifiers_rewriter.h"
-#include "theory/sep/theory_sep.h"
 #include "theory/sort_inference.h"
 #include "theory/strings/theory_strings.h"
 #include "theory/substitutions.h"
@@ -975,44 +974,6 @@ public:
     return d_managedReplayLog.getReplayLog();
   }
 
-  Node replaceQuantifiersWithInstantiations( Node n, std::map< Node, std::vector< Node > >& insts, std::map< Node, Node >& visited ){
-    std::map< Node, Node >::iterator itv = visited.find( n );
-    if( itv!=visited.end() ){
-      return itv->second;
-    }else{
-      Node ret = n;
-      if( n.getKind()==kind::FORALL ){
-        std::map< Node, std::vector< Node > >::iterator it = insts.find( n );
-        if( it==insts.end() ){
-          Trace("smt-qe-debug") << "* " << n << " has no instances" << std::endl;
-          ret = NodeManager::currentNM()->mkConst(true);
-        }else{
-          Trace("smt-qe-debug") << "* " << n << " has " << it->second.size() << " instances" << std::endl;
-          Node reti = it->second.empty() ? NodeManager::currentNM()->mkConst(true) : ( it->second.size()==1 ? it->second[0] : NodeManager::currentNM()->mkNode( kind::AND, it->second ) );
-          Trace("smt-qe-debug") << "   return : " << ret << std::endl;
-          //recursive (for nested quantification)
-          ret = replaceQuantifiersWithInstantiations( reti, insts, visited );
-        }
-      }else if( n.getNumChildren()>0 ){
-        bool childChanged = false;
-        std::vector< Node > children;
-        if( n.getMetaKind() == kind::metakind::PARAMETERIZED ){
-          children.push_back( n.getOperator() );
-        }
-        for( unsigned i=0; i<n.getNumChildren(); i++ ){
-          Node r = replaceQuantifiersWithInstantiations( n[i], insts, visited );
-          children.push_back( r );
-          childChanged = childChanged || r!=n[i];
-        }
-        if( childChanged ){
-          ret = NodeManager::currentNM()->mkNode( n.getKind(), children );
-        }
-      }
-      visited[n] = ret;
-      return ret;
-    }
-  }
-
 };/* class SmtEnginePrivate */
 
 }/* namespace CVC4::smt */
@@ -1729,6 +1690,7 @@ void SmtEngine::setDefaults() {
     //disable modes not supported by incremental
     options::sortInference.set( false );
     options::ufssFairnessMonotone.set( false );
+    options::quantEpr.set( false );
   }
   if( d_logic.hasCardinalityConstraints() ){
     //must have finite model finding on
@@ -1770,7 +1732,7 @@ void SmtEngine::setDefaults() {
       options::mbqiMode.set( quantifiers::MBQI_NONE );
     }
     if( ! options::prenexQuant.wasSetByUser() ){
-      options::prenexQuant.set( quantifiers::PRENEX_NONE );
+      options::prenexQuant.set( quantifiers::PRENEX_QUANT_NONE );
     }
   }
   if( options::ufssSymBreak() ){
@@ -1784,6 +1746,12 @@ void SmtEngine::setDefaults() {
   if( options::fmfFunWellDefined() ){
     if( !options::finiteModelFind.wasSetByUser() ){
       options::finiteModelFind.set( true );
+    }
+  }
+  //EPR
+  if( options::quantEpr() ){
+    if( !options::preSkolemQuant.wasSetByUser() ){
+      options::preSkolemQuant.set( true );
     }
   }
 
@@ -1863,10 +1831,6 @@ void SmtEngine::setDefaults() {
       options::cbqi.set( true );
     }
   }
-  if( options::cbqiSplx() ){
-    //implies more general option
-    options::cbqi.set( true );
-  }
   if( options::cbqi() ){
     //must rewrite divk
     if( !options::rewriteDivk.wasSetByUser()) {
@@ -1882,9 +1846,7 @@ void SmtEngine::setDefaults() {
       }
       if( !options::instWhenMode.wasSetByUser() && options::cbqiModel() ){
         //only instantiation should happen at last call when model is avaiable
-        if( !options::instWhenMode.wasSetByUser() ){
-          options::instWhenMode.set( quantifiers::INST_WHEN_LAST_CALL );
-        }
+        options::instWhenMode.set( quantifiers::INST_WHEN_LAST_CALL );
       }
     }
   }
@@ -1896,6 +1858,16 @@ void SmtEngine::setDefaults() {
   }
   if( options::qcfMode.wasSetByUser() || options::qcfTConstraint() ){
     options::quantConflictFind.set( true );
+  }
+  if( options::cbqiNestedQE() ){
+    //only sound with prenex = disj_normal or normal
+    if( options::prenexQuant()<=quantifiers::PRENEX_QUANT_DISJ_NORMAL ){
+      options::prenexQuant.set( quantifiers::PRENEX_QUANT_DISJ_NORMAL );
+    }
+    options::prenexQuantUser.set( true );
+    if( !options::preSkolemQuant.wasSetByUser() ){
+      options::preSkolemQuant.set( true );
+    }
   }
   //for induction techniques
   if( options::quantInduction() ){
@@ -3988,34 +3960,18 @@ void SmtEnginePrivate::processAssertions() {
     dumpAssertions("post-bv-to-bool", d_assertions);
     Trace("smt") << "POST bvToBool" << endl;
   }
-  if( d_smt.d_logic.isTheoryEnabled(THEORY_SEP) ) {
-    //separation logic solver needs to register the entire input
-    ((theory::sep::TheorySep*)d_smt.d_theoryEngine->theoryOf(THEORY_SEP))->processAssertions( d_assertions.ref() );
-  }
   if( d_smt.d_logic.isQuantified() ){
     Trace("smt-proc") << "SmtEnginePrivate::processAssertions() : pre-quant-preprocess" << endl;
-    //remove rewrite rules
-    for( unsigned i=0; i < d_assertions.size(); i++ ) {
-      if( d_assertions[i].getKind() == kind::REWRITE_RULE ){
-        Node prev = d_assertions[i];
-        Trace("quantifiers-rewrite-debug") << "Rewrite rewrite rule " << prev << "..." << std::endl;
-        d_assertions.replace(i, Rewriter::rewrite( quantifiers::QuantifiersRewriter::rewriteRewriteRule( d_assertions[i] ) ) );
-        Trace("quantifiers-rewrite") << "*** rr-rewrite " << prev << endl;
-        Trace("quantifiers-rewrite") << "   ...got " << d_assertions[i] << endl;
-      }
-    }
-
+    
     dumpAssertions("pre-skolem-quant", d_assertions);
-    if( options::preSkolemQuant() ){
-      //apply pre-skolemization to existential quantifiers
-      for (unsigned i = 0; i < d_assertions.size(); ++ i) {
-        Node prev = d_assertions[i];
-        Node next = quantifiers::QuantifiersRewriter::preprocess( prev );
-        if( next!=prev ){
-          d_assertions.replace(i, Rewriter::rewrite( next ));
-          Trace("quantifiers-preprocess") << "*** Pre-skolemize " << prev << endl;
-          Trace("quantifiers-preprocess") << "   ...got " << d_assertions[i] << endl;
-        }
+    //remove rewrite rules, apply pre-skolemization to existential quantifiers
+    for (unsigned i = 0; i < d_assertions.size(); ++ i) {
+      Node prev = d_assertions[i];
+      Node next = quantifiers::QuantifiersRewriter::preprocess( prev );
+      if( next!=prev ){
+        d_assertions.replace( i, Rewriter::rewrite( next ) );
+        Trace("quantifiers-preprocess") << "*** Pre-skolemize " << prev << endl;
+        Trace("quantifiers-preprocess") << "   ...got " << d_assertions[i] << endl;
       }
     }
     dumpAssertions("post-skolem-quant", d_assertions);
@@ -4233,7 +4189,10 @@ void SmtEnginePrivate::processAssertions() {
       m->addSubstitution(eager_atom, atom);
     }
   }
-
+  
+  //notify theory engine new preprocessed assertions
+  d_smt.d_theoryEngine->notifyPreprocessedAssertions( d_assertions.ref() );
+  
   // Push the formula to decision engine
   if(noConflict) {
     Chat() << "pushing to decision engine..." << endl;
@@ -4247,14 +4206,6 @@ void SmtEnginePrivate::processAssertions() {
 
   Trace("smt-proc") << "SmtEnginePrivate::processAssertions() end" << endl;
   dumpAssertions("post-everything", d_assertions);
-
-
-  //set instantiation level of everything to zero
-  if( options::instLevelInputOnly() && options::instMaxLevel()!=-1 ){
-    for( unsigned i=0; i < d_assertions.size(); i++ ) {
-      theory::QuantifiersEngine::setInstantiationLevelAttr( d_assertions[i], 0 );
-    }
-  }
 
   // Push the formula to SAT
   {
@@ -5160,37 +5111,11 @@ Expr SmtEngine::doQuantifierElimination(const Expr& e, bool doFull, bool strict)
       ss << "While performing quantifier elimination, unexpected result : " << r << " for query.";
       InternalError(ss.str().c_str());
     }
-    //get the instantiations for all quantified formulas
-    std::map< Node, std::vector< Node > > insts;
-    d_theoryEngine->getInstantiations( insts );
-    //find the quantified formula that corresponds to the input
-    Node top_q;
-    for( std::map< Node, std::vector< Node > >::iterator it = insts.begin(); it != insts.end(); ++it ){
-      Trace("smt-qe-debug") << "* quantifier " << it->first << " had " << it->second.size() << " instances." << std::endl;
-      if( it->first.getNumChildren()==3 && it->first[2]==n_attr ){
-        top_q = it->first;
-      }
-    }
-    std::map< Node, Node > visited;
-    Node ret_n;
-    if( top_q.isNull() ){
-      //no instances needed
-      ret_n = NodeManager::currentNM()->mkConst(true);
-      visited[top_q] = ret_n;
-    }else{
-      //replace by a conjunction of instances
-      ret_n = d_private->replaceQuantifiersWithInstantiations( top_q, insts, visited );
-    }
-
-    //ensure all instantiations were accounted for
-    for( std::map< Node, std::vector< Node > >::iterator it = insts.begin(); it != insts.end(); ++it ){
-      if( !it->second.empty() && visited.find( it->first )==visited.end() ){
-        stringstream ss;
-        ss << "While performing quantifier elimination, processed a quantified formula : " << it->first;
-        ss << " that was not related to the query.  Try option --simplification=none.";
-        InternalError(ss.str().c_str());
-      }
-    }
+    
+    Node top_q = Rewriter::rewrite( nn_e ).negate();
+    Assert( top_q.getKind()==kind::FORALL );
+    Trace("smt-qe") << "Get qe for " << top_q << std::endl;
+    Node ret_n = d_theoryEngine->getInstantiatedConjunction( top_q );
     Trace("smt-qe") << "Returned : " << ret_n << std::endl;
     ret_n = Rewriter::rewrite( ret_n.negate() );
     return ret_n.toExpr();

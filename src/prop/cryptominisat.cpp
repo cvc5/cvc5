@@ -45,7 +45,7 @@ CryptoMinisatSolver::CryptoMinisatSolver(StatisticsRegistry* registry,
 }
 
 
-CryptoMinisatSolver::~CryptoMinisatSolver() throw(AssertionException) {
+CryptoMinisatSolver::~CryptoMinisatSolver() {
   delete d_solver;
 }
 

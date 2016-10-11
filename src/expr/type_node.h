@@ -116,7 +116,7 @@ public:
    * Destructor. If ref_count is true it will decrement the reference count
    * and, if zero, collect the NodeValue.
    */
-  ~TypeNode() throw(AssertionException);
+  ~TypeNode();
 
   /**
    * Assignment operator for nodes, copies the relevant information from node
@@ -785,7 +785,7 @@ inline TypeNode::TypeNode(const TypeNode& typeNode) {
   d_nv->inc();
 }
 
-inline TypeNode::~TypeNode() throw(AssertionException) {
+inline TypeNode::~TypeNode() {
   Assert(d_nv != NULL, "Expecting a non-NULL expression value!");
   d_nv->dec();
 }

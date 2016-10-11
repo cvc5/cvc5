@@ -78,7 +78,7 @@ public:
   bool needsCheck( Theory::Effort e );
   void reset_round( Theory::Effort e );
   void check( Theory::Effort e, unsigned quant_e );
-  bool checkComplete();
+  bool checkCompleteFor( Node q );
   void preRegisterQuantifier( Node q );
   void registerQuantifier( Node q );
   Node explain(TNode n){ return Node::null(); }

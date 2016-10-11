@@ -589,7 +589,7 @@ void FullModelChecker::debugPrint(const char * tr, Node n, bool dispStar) {
 }
 
 
-bool FullModelChecker::doExhaustiveInstantiation( FirstOrderModel * fm, Node f, int effort ) {
+int FullModelChecker::doExhaustiveInstantiation( FirstOrderModel * fm, Node f, int effort ) {
   Trace("fmc") << "Full model check " << f << ", effort = " << effort << "..." << std::endl;
   Assert( !d_qe->inConflict() );
   if( optUseModel() ){
@@ -723,15 +723,15 @@ bool FullModelChecker::doExhaustiveInstantiation( FirstOrderModel * fm, Node f, 
           if( temp.addEntry(fmfmc, d_quant_models[f].d_cond[j], d_quant_models[f].d_value[j] ) ){
             if( !exhaustiveInstantiate(fmfmc, f, d_quant_models[f].d_cond[j], j ) ){
               //something went wrong, resort to exhaustive instantiation
-              return false;
+              return 0;
             }
           }
         }
       }
     }
-    return true;
+    return 1;
   }else{
-    return false;
+    return 0;
   }
 }
 

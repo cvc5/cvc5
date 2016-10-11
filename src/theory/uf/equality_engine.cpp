@@ -97,7 +97,7 @@ void EqualityEngine::init() {
   d_freshMergeReasonType = eq::NUMBER_OF_MERGE_REASONS;
 }
 
-EqualityEngine::~EqualityEngine() throw(AssertionException) {
+EqualityEngine::~EqualityEngine() {
   free(d_triggerDatabase);
 }
 
@@ -987,7 +987,14 @@ void EqualityEngine::explainEquality(TNode t1, TNode t2, bool polarity, std::vec
     }
 
     if (eqp) {
-      if(eqp->d_children.size() == 1) {
+      if (eqp->d_children.size() == 0) {
+        // Corner case where this is actually a disequality between two constants
+        Debug("pf::ee") << "Encountered a constant disequality (not a transitivity proof): "
+                        << eqp->d_node << std::endl;
+        Assert(eqp->d_node[0][0].isConst());
+        Assert(eqp->d_node[0][1].isConst());
+        eqp->d_id = MERGED_THROUGH_CONSTANTS;
+      } else if (eqp->d_children.size() == 1) {
         // The transitivity proof has just one child. Simplify.
         EqProof* temp = eqp->d_children[0];
         eqp->d_children.clear();

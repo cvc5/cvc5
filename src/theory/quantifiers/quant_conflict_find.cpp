@@ -108,7 +108,7 @@ void QuantInfo::initialize( QuantConflictFind * p, Node q, Node qn ) {
   }
   Trace("qcf-qregister-summary") << "QCF register : " << ( d_mg->isValid() ? "VALID " : "INVALID" ) << " : " << q << std::endl;
   
-  if( d_mg->isValid() ){
+  if( d_mg->isValid() && options::qcfEagerCheckRd() ){
     //optimization : record variable argument positions for terms that must be matched
     std::vector< TNode > vars;
     //TODO: revisit this, makes QCF faster, but misses conflicts due to caring about paths that may not be relevant (starExec jobs 14136/14137)
@@ -967,7 +967,11 @@ MatchGen::MatchGen()
     d_n(),
     d_type( typ_invalid ),
     d_type_not()
-{}
+{
+  d_qni_size = 0;
+  d_child_counter = -1;
+  d_use_children = true;
+}
 
 
 MatchGen::MatchGen( QuantInfo * qi, Node n, bool isVar )
@@ -980,6 +984,10 @@ MatchGen::MatchGen( QuantInfo * qi, Node n, bool isVar )
     d_type(),
     d_type_not()
 {
+  //initialize temporary
+  d_child_counter = -1;
+  d_use_children = true;
+  
   Trace("qcf-qregister-debug") << "Make match gen for " << n << ", isVar = " << isVar << std::endl;
   std::vector< Node > qni_apps;
   d_qni_size = 0;
@@ -1853,7 +1861,7 @@ void MatchGen::setInvalid() {
 }
 
 bool MatchGen::isHandledBoolConnective( TNode n ) {
-  return TermDb::isBoolConnective( n.getKind() ) && ( n.getKind()!=ITE || n.getType().isBoolean() );
+  return TermDb::isBoolConnective( n.getKind() ) && ( n.getKind()!=ITE || n.getType().isBoolean() ) && n.getKind()!=SEP_STAR;
 }
 
 bool MatchGen::isHandledUfTerm( TNode n ) {
@@ -2024,6 +2032,7 @@ void QuantConflictFind::setIrrelevantFunction( TNode f ) {
 
 /** check */
 void QuantConflictFind::check( Theory::Effort level, unsigned quant_e ) {
+  CodeTimer codeTimer(d_quantEngine->d_statistics.d_qcf_time);
   if( quant_e==QuantifiersEngine::QEFFORT_CONFLICT ){
     Trace("qcf-check") << "QCF : check : " << level << std::endl;
     if( d_conflict ){
@@ -2098,7 +2107,7 @@ void QuantConflictFind::check( Theory::Effort level, unsigned quant_e ) {
                           ++addedLemmas;
                           if( e==effort_conflict ){
                             d_quantEngine->markRelevant( q );
-                            ++(d_statistics.d_conflict_inst);
+                            ++(d_quantEngine->d_statistics.d_instantiations_qcf);
                             if( options::qcfAllConflict() ){
                               isConflict = true;
                             }else{
@@ -2107,7 +2116,7 @@ void QuantConflictFind::check( Theory::Effort level, unsigned quant_e ) {
                             break;
                           }else if( e==effort_prop_eq ){
                             d_quantEngine->markRelevant( q );
-                            ++(d_statistics.d_prop_inst);
+                            ++(d_quantEngine->d_statistics.d_instantiations_qcf);
                           }
                         }else{
                           Trace("qcf-inst") << "   ... Failed to add instantiation" << std::endl;
@@ -2234,20 +2243,14 @@ void QuantConflictFind::debugPrintQuantBody( const char * c, Node q, Node n, boo
 
 QuantConflictFind::Statistics::Statistics():
   d_inst_rounds("QuantConflictFind::Inst_Rounds", 0),
-  d_conflict_inst("QuantConflictFind::Instantiations_Conflict_Find", 0 ),
-  d_prop_inst("QuantConflictFind::Instantiations_Prop", 0 ),
   d_entailment_checks("QuantConflictFind::Entailment_Checks",0)
 {
   smtStatisticsRegistry()->registerStat(&d_inst_rounds);
-  smtStatisticsRegistry()->registerStat(&d_conflict_inst);
-  smtStatisticsRegistry()->registerStat(&d_prop_inst);
   smtStatisticsRegistry()->registerStat(&d_entailment_checks);
 }
 
 QuantConflictFind::Statistics::~Statistics(){
   smtStatisticsRegistry()->unregisterStat(&d_inst_rounds);
-  smtStatisticsRegistry()->unregisterStat(&d_conflict_inst);
-  smtStatisticsRegistry()->unregisterStat(&d_prop_inst);
   smtStatisticsRegistry()->unregisterStat(&d_entailment_checks);
 }
 

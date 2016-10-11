@@ -20,6 +20,7 @@
 #include "theory/quantifiers/first_order_model.h"
 #include "theory/quantifiers/inst_match_generator.h"
 #include "theory/quantifiers/model_engine.h"
+#include "theory/quantifiers/quant_conflict_find.h"
 #include "theory/quantifiers/quant_util.h"
 #include "theory/quantifiers/term_database.h"
 #include "theory/theory_engine.h"
@@ -204,6 +205,7 @@ int RewriteEngine::checkRewriteRule( Node f, Theory::Effort e ) {
       Trace("rewrite-engine-inst-debug") << "...No qinfo." << std::endl;
     }
   }
+  d_quantEngine->d_statistics.d_instantiations_rr += addedLemmas;
   Trace("rewrite-engine-inst") << "-> Generated " << addedLemmas << " lemmas." << std::endl;
   return addedLemmas;
 }
@@ -292,6 +294,11 @@ void RewriteEngine::registerQuantifier( Node f ) {
 
 void RewriteEngine::assertNode( Node n ) {
 
+}
+
+bool RewriteEngine::checkCompleteFor( Node q ) { 
+  // by semantics of rewrite rules, saturation -> SAT 
+  return std::find( d_rr_quant.begin(), d_rr_quant.end(), q )!=d_rr_quant.end();
 }
 
 Node RewriteEngine::getInstConstNode( Node n, Node q ) {

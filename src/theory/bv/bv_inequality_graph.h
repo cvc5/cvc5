@@ -242,7 +242,7 @@ public:
    */
   bool addDisequality(TNode a, TNode b, TNode reason); 
   void getConflict(std::vector<TNode>& conflict);
-  virtual ~InequalityGraph() throw(AssertionException) {}
+  virtual ~InequalityGraph() {}
   /** 
    * Check that the currently asserted disequalities that have not been split on
    * are still true in the current model. 

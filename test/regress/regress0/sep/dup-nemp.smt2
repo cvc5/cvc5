@@ -1,4 +1,4 @@
-(set-logic ALL_SUPPORTED)
+(set-logic QF_ALL_SUPPORTED)
 (set-info :status unsat)
 (declare-sort Loc 0)
 (declare-const l Loc)

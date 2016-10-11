@@ -39,19 +39,20 @@
 namespace CVC4 {
 
 class CVC4_PUBLIC SExprKeyword {
-  std::string d_str;
-public:
+ public:
   SExprKeyword(const std::string& s) : d_str(s) {}
   const std::string& getString() const { return d_str; }
-};/* class SExpr::Keyword */
+
+ private:
+  std::string d_str;
+}; /* class SExpr::Keyword */
 
 /**
  * A simple S-expression. An S-expression is either an atom with a
  * string value, or a list of other S-expressions.
  */
 class CVC4_PUBLIC SExpr {
-public:
-
+ public:
   typedef SExprKeyword Keyword;
 
   SExpr();
@@ -138,7 +139,6 @@ public:
   /** Is this S-expression different from another? */
   bool operator!=(const SExpr& s) const;
 
-
   /**
    * This returns the best match in the following order:
    * match atom with
@@ -157,21 +157,23 @@ public:
   /**
    * Parses a list of list of atoms.
    */
-  static SExpr parseListOfListOfAtoms(const std::vector< std::vector<std::string> >& atoms_lists);
-
+  static SExpr parseListOfListOfAtoms(
+      const std::vector<std::vector<std::string> >& atoms_lists);
 
   /**
    * Outputs the SExpr onto the ostream out. This version reads defaults to the
-   * OutputLanguage, language::SetLanguage::getLanguage(out). The indent level is
+   * OutputLanguage, language::SetLanguage::getLanguage(out). The indent level
+   * is
    * set to 2 if PrettySExprs::getPrettySExprs() is on and is 0 otherwise.
    */
-  static void toStream(std::ostream& out, const SExpr& sexpr) throw();
+  static void toStream(std::ostream& out, const SExpr& sexpr);
 
   /**
    * Outputs the SExpr onto the ostream out. This version sets the indent level
    * to 2 if PrettySExprs::getPrettySExprs() is on.
    */
-  static void toStream(std::ostream& out, const SExpr& sexpr, OutputLanguage language) throw();
+  static void toStream(std::ostream& out, const SExpr& sexpr,
+                       OutputLanguage language);
 
   /**
    * Outputs the SExpr onto the ostream out.
@@ -181,19 +183,20 @@ public:
    * Otherwise this prints using toStreamRec().
    *
    * TIM: Keywords that are children are not currently quoted. This seems
-   * incorrect but I am just reproduicing the old behavior even if it does not make
+   * incorrect but I am just reproduicing the old behavior even if it does not
+   * make
    * sense.
    */
-  static void toStream(std::ostream& out, const SExpr& sexpr, OutputLanguage language, int indent) throw();
+  static void toStream(std::ostream& out, const SExpr& sexpr,
+                       OutputLanguage language, int indent);
 
-private:
-
+ private:
   /**
    * Simple printer for SExpr to an ostream.
    * The current implementation is language independent.
    */
-  static void toStreamRec(std::ostream& out, const SExpr& sexpr, OutputLanguage language, int indent) throw();
-
+  static void toStreamRec(std::ostream& out, const SExpr& sexpr,
+                          OutputLanguage language, int indent);
 
   /** Returns true if this language quotes Keywords when printing. */
   static bool languageQuotesKeywords(OutputLanguage language);
@@ -222,11 +225,12 @@ private:
    * Whenever the SExpr isAtom() holds, this points at NULL.
    *
    * This should be a pointer in case the implementation of vector<SExpr> ever
-   * directly contained or allocated an SExpr. If this happened this would trigger,
+   * directly contained or allocated an SExpr. If this happened this would
+   * trigger,
    * either the size being infinite or SExpr() being an infinite loop.
    */
   SExprVector* d_children;
-};/* class SExpr */
+}; /* class SExpr */
 
 /** Prints an SExpr. */
 std::ostream& operator<<(std::ostream& out, const SExpr& sexpr) CVC4_PUBLIC;
@@ -245,7 +249,7 @@ class CVC4_PUBLIC PrettySExprs {
    */
   bool d_prettySExprs;
 
-public:
+ public:
   /**
    * Construct a PrettySExprs with the given setting.
    */
@@ -273,21 +277,17 @@ public:
     std::ostream& d_out;
     bool d_oldPrettySExprs;
 
-  public:
-
-    inline Scope(std::ostream& out, bool prettySExprs) :
-      d_out(out),
-      d_oldPrettySExprs(PrettySExprs::getPrettySExprs(out)) {
+   public:
+    inline Scope(std::ostream& out, bool prettySExprs)
+        : d_out(out), d_oldPrettySExprs(PrettySExprs::getPrettySExprs(out)) {
       PrettySExprs::setPrettySExprs(out, prettySExprs);
     }
 
-    inline ~Scope() {
-      PrettySExprs::setPrettySExprs(d_out, d_oldPrettySExprs);
-    }
+    inline ~Scope() { PrettySExprs::setPrettySExprs(d_out, d_oldPrettySExprs); }
 
-  };/* class PrettySExprs::Scope */
+  }; /* class PrettySExprs::Scope */
 
-};/* class PrettySExprs */
+}; /* class PrettySExprs */
 
 /**
  * Sets the default pretty-sexprs setting for an ostream.  Use like this:
@@ -299,7 +299,6 @@ public:
  */
 std::ostream& operator<<(std::ostream& out, PrettySExprs ps);
 
-
-}/* CVC4 namespace */
+} /* CVC4 namespace */
 
 #endif /* __CVC4__SEXPR_H */

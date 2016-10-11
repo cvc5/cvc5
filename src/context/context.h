@@ -152,7 +152,7 @@ public:
   /**
    * Destructor: pop all scopes, delete ContextMemoryManager
    */
-  ~Context() throw(AssertionException);
+  ~Context();
 
   /**
    * Return the current (top) scope
@@ -277,7 +277,7 @@ public:
    * Destructor: Restore all of the objects in ContextObjList.  Defined inline
    * below.
    */
-  ~Scope() throw(AssertionException);
+  ~Scope();
 
   /**
    * Get the Context for this Scope
@@ -615,7 +615,7 @@ public:
   /**
    * Destructor does nothing: subclass must explicitly call destroy() instead.
    */
-  virtual ~ContextObj() throw(AssertionException) {}
+  virtual ~ContextObj() {}
 
   /**
    * If you want to allocate a ContextObj object on the heap, use this
@@ -711,7 +711,7 @@ public:
   /**
    * Destructor: removes object from list
    */
-  virtual ~ContextNotifyObj() throw(AssertionException);
+  virtual ~ContextNotifyObj();
 
 };/* class ContextNotifyObj */
 
@@ -725,7 +725,7 @@ inline void ContextObj::makeSaveRestorePoint() throw(AssertionException) {
   update();
 }
 
-inline Scope::~Scope() throw(AssertionException) {
+inline Scope::~Scope() {
   // Call restore() method on each ContextObj object in the list.
   // Note that it is the responsibility of restore() to return the
   // next item in the list.

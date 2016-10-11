@@ -17,17 +17,39 @@
 #ifndef __CVC4__THEORY__QUANT_ANTI_SKOLEM_H
 #define __CVC4__THEORY__QUANT_ANTI_SKOLEM_H
 
-#include "theory/quantifiers_engine.h"
+#include <map>
+#include <vector>
+
+#include "expr/node.h"
+#include "expr/type_node.h"
+#include "context/cdhashset.h"
 #include "context/cdo.h"
 #include "theory/quantifiers/ce_guided_single_inv.h"
+#include "theory/quantifiers_engine.h"
 
 namespace CVC4 {
 namespace theory {
 namespace quantifiers {
 
 class QuantAntiSkolem : public QuantifiersModule {
+public:
+  QuantAntiSkolem( QuantifiersEngine * qe );
+  virtual ~QuantAntiSkolem();
+
+  bool sendAntiSkolemizeLemma( std::vector< Node >& quants,
+                               bool pconnected = true );
+
+  /* Call during quantifier engine's check */
+  void check( Theory::Effort e, unsigned quant_e );
+  /* Called for new quantifiers */
+  void registerQuantifier( Node q ) {}
+  void assertNode( Node n ) {}
+  /** Identify this module (for debugging, dynamic configuration, etc..) */
+  std::string identify() const { return "QuantAntiSkolem"; }
+
+ private:
   typedef context::CDHashSet<Node, NodeHashFunction> NodeSet;
-private:
+
   std::map< Node, bool > d_quant_processed;
   std::map< Node, SingleInvocationPartition > d_quant_sip;
   std::map< Node, std::vector< TypeNode > > d_ask_types;
@@ -54,22 +76,10 @@ private:
     bool add( context::Context* c, std::vector< Node >& quants, unsigned index = 0 );
   };
   CDSkQuantCache * d_sqc;
-public:
-  bool sendAntiSkolemizeLemma( std::vector< Node >& quants, bool pconnected = true );
-public:
-  QuantAntiSkolem( QuantifiersEngine * qe );
+}; /* class QuantAntiSkolem */
 
-  /* Call during quantifier engine's check */
-  void check( Theory::Effort e, unsigned quant_e );
-  /* Called for new quantifiers */
-  void registerQuantifier( Node q ) {}
-  void assertNode( Node n ) {}
-  /** Identify this module (for debugging, dynamic configuration, etc..) */
-  std::string identify() const { return "QuantAntiSkolem"; }
-};
-
-}
-}
-}
+}/* namespace CVC4::theory::quantifiers */
+}/* namespace CVC4::theory */
+}/* namespace CVC4 */
 
 #endif

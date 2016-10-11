@@ -73,9 +73,9 @@ static bool isTheoryAtom(TNode a){
 struct CTIVStackElement {
   TNode curr;
   unsigned pos;
-  CTIVStackElement(){}
-  CTIVStackElement(TNode c) : curr(c), pos(0){ }
-};/* CTIVStackElement */
+  CTIVStackElement() : curr(), pos(0) {}
+  CTIVStackElement(TNode c) : curr(c), pos(0) {}
+}; /* CTIVStackElement */
 
 } /* CVC4::theory::ite */
 
@@ -490,8 +490,8 @@ struct TITEHStackElement {
   TNode curr;
   unsigned pos;
   uint32_t maxChildHeight;
-  TITEHStackElement(){}
-  TITEHStackElement(TNode c) : curr(c), pos(0), maxChildHeight(0){ }
+  TITEHStackElement() : curr(), pos(0), maxChildHeight(0) {}
+  TITEHStackElement(TNode c) : curr(c), pos(0), maxChildHeight(0) {}
 };
 } /* namespace ite */
 

@@ -38,7 +38,6 @@ public:
 private:
   static bool addCheckElimChild( std::vector< Node >& children, Node c, Kind k, std::map< Node, bool >& lit_pol, bool& childrenChanged );
   static void addNodeToOrBuilder( Node n, NodeBuilder<>& t );
-  static Node mkForAll( std::vector< Node >& args, Node body, QAttributes& qa );
   static void computeArgs( std::vector< Node >& args, std::map< Node, bool >& activeMap, Node n, std::map< Node, bool >& visited );
   static void computeArgVec( std::vector< Node >& args, std::vector< Node >& activeArgs, Node n );
   static void computeArgVec2( std::vector< Node >& args, std::vector< Node >& activeArgs, Node n, Node ipl );
@@ -53,14 +52,15 @@ private:
   static bool computeVariableElimLit( Node n, bool pol, std::vector< Node >& args, std::vector< Node >& var, std::vector< Node >& subs,
                                       std::map< Node, std::map< bool, std::map< Node, bool > > >& num_bounds );
   static Node computeVarElimination2( Node body, std::vector< Node >& args, QAttributes& qa );
-private:
+public:
   static Node computeElimSymbols( Node body );
   static Node computeMiniscoping( std::vector< Node >& args, Node body, QAttributes& qa );
   static Node computeAggressiveMiniscoping( std::vector< Node >& args, Node body );
   //cache is dependent upon currCond, icache is not, new_conds are negated conditions
   static Node computeProcessTerms( Node body, std::vector< Node >& new_vars, std::vector< Node >& new_conds, Node q, QAttributes& qa );
   static Node computeCondSplit( Node body, QAttributes& qa );
-  static Node computePrenex( Node body, std::vector< Node >& args, bool pol );
+  static Node computePrenex( Node body, std::vector< Node >& args, std::vector< Node >& nargs, bool pol, bool prenexAgg );
+  static Node computePrenexAgg( Node n, bool topLevel );
   static Node computeSplit( std::vector< Node >& args, Node body, QAttributes& qa );
   static Node computeVarElimination( Node body, std::vector< Node >& args, QAttributes& qa );
 private:
@@ -89,8 +89,11 @@ private:
   static Node preSkolemizeQuantifiers(Node n, bool polarity, std::vector< TypeNode >& fvTypes, std::vector<TNode>& fvs);
 public:
   static Node rewriteRewriteRule( Node r );
-  static bool containsQuantifiers(Node n);
+  static bool containsQuantifiers( Node n );
+  static bool isPrenexNormalForm( Node n );
   static Node preprocess( Node n, bool isInst = false );
+  static Node mkForAll( std::vector< Node >& args, Node body, QAttributes& qa );
+  static Node mkForall( std::vector< Node >& args, Node body, bool marked = false );
 };/* class QuantifiersRewriter */
 
 }/* CVC4::theory::quantifiers namespace */

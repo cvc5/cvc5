@@ -741,6 +741,7 @@ bool TheoryStringsRewriter::testConstStringInRegExp( CVC4::String &s, unsigned i
         return ( s2 == r[0].getConst<String>() );
       } else {
         Assert( false, "RegExp contains variables" );
+        return false;
       }
     }
     case kind::REGEXP_CONCAT: {

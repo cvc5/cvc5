@@ -61,6 +61,7 @@ public:
   void notifyEq(TNode lhs, TNode rhs);
   void preRegisterTerm(TNode n);
   void presolve();
+  void ppNotifyAssertions( std::vector< Node >& assertions );
   void check(Effort e);
   Node getNextDecisionRequest();
   Node getValue(TNode n);

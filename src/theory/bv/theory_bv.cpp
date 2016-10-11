@@ -100,8 +100,10 @@ TheoryBV::TheoryBV(context::Context* c, context::UserContext* u,
   d_subtheoryMap[SUB_BITBLAST] = bb_solver;
 }
 
-
 TheoryBV::~TheoryBV() {
+  if (d_eagerSolver) {
+    delete d_eagerSolver;
+  }
   for (unsigned i = 0; i < d_subtheories.size(); ++i) {
     delete d_subtheories[i];
   }

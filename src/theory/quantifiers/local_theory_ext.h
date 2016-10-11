@@ -66,6 +66,8 @@ public:
   void check( Theory::Effort e, unsigned quant_e );
   /* Called for new quantifiers */
   void registerQuantifier( Node q ) {}
+  /* check complete */
+  bool checkComplete() { return !d_wasInvoked; }
   void assertNode( Node n ) {}
   /** Identify this module (for debugging, dynamic configuration, etc..) */
   std::string identify() const { return "LtePartialInst"; }

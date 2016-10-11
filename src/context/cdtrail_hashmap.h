@@ -452,7 +452,7 @@ public:
   /**
    * Destructor: delete the map
    */
-  ~CDTrailHashMap() throw(AssertionException) {
+  ~CDTrailHashMap() {
     this->destroy();
     delete d_trailMap;
   }

@@ -218,7 +218,7 @@ void TheorySetsPrivate::assertMemebership(TNode fact, TNode reason, bool learnt)
   if(x.getType().isSet()) {
     if(polarity) {
       const CDTNodeList* l = d_termInfoManager->getNonMembers(S);
-      for(typeof(l->begin()) it = l->begin(); it != l->end(); ++it) {
+      for(CDTNodeList::iterator it = l->begin(); it != l->end(); ++it) {
         TNode n = *it;
         learnLiteral( /* atom = */ EQUAL(x, n),
                       /* polarity = */ false,
@@ -226,7 +226,7 @@ void TheorySetsPrivate::assertMemebership(TNode fact, TNode reason, bool learnt)
       }
     } else {
       const CDTNodeList* l = d_termInfoManager->getMembers(S);
-      for(typeof(l->begin()) it = l->begin(); it != l->end(); ++it) {
+      for(CDTNodeList::iterator it = l->begin(); it != l->end(); ++it) {
         TNode n = *it;
         learnLiteral( /* atom = */ EQUAL(x, n),
                       /* polarity = */ false,
@@ -255,7 +255,7 @@ void TheorySetsPrivate::assertMemebership(TNode fact, TNode reason, bool learnt)
     Debug("sets-prop") << "[sets-prop] Propagating 'up' for "
                        << x << element_of_str << S << std::endl;
     const CDTNodeList* parentList = d_termInfoManager->getParents(S);
-    for(typeof(parentList->begin()) k = parentList->begin();
+    for(CDTNodeList::const_iterator k = parentList->begin();
         k != parentList->end(); ++k) {
       doSettermPropagation(x, *k);
       if(d_conflict) return;
@@ -475,9 +475,15 @@ void TheorySetsPrivate::dumpAssertionsHumanified() const
 
     context::CDList<Assertion>::const_iterator it = d_external.facts_begin(), it_end = d_external.facts_end();
 
-    std::map<TNode, std::set<TNode> > equalities;
-    std::set< pair<TNode, TNode> > disequalities;
-    std::map<TNode, std::pair<std::set<TNode>, std::set<TNode> > > members;
+    typedef std::set<TNode> TNodeSet;
+
+    typedef std::map<TNode, TNodeSet > EqualityMap;
+    EqualityMap equalities;
+
+    typedef std::set< std::pair<TNode, TNode> > TNodePairSet;
+    TNodePairSet disequalities;
+    typedef std::map<TNode, std::pair<TNodeSet, TNodeSet > > MemberMap;
+    MemberMap members;
     static std::map<TNode, int> numbering;
     static int number = 0;
 
@@ -504,10 +510,11 @@ void TheorySetsPrivate::dumpAssertionsHumanified() const
         (polarity ? members[right].first : members[right].second).insert(left);
       }
     }
-#define FORIT(it, container) for(typeof((container).begin()) it=(container).begin(); (it) != (container).end(); ++(it))
-    FORIT(kt, equalities) {
+    for(EqualityMap::const_iterator kt =equalities.begin(); kt != equalities.end(); ++kt) {
       Trace(tag) << " Eq class of t" << numbering[(*kt).first] << ": " << std::endl;
-      FORIT(jt, (*kt).second) {
+
+      const TNodeSet& kt_second = (*kt).second;
+      for(TNodeSet::const_iterator jt=kt_second.begin(); jt != kt_second.end(); ++jt) {
         TNode S = (*jt);
         if( S.getKind() != kind::UNION && S.getKind() != kind::INTERSECTION && S.getKind() != kind::SETMINUS) {
           Trace(tag) << "    " << *jt << ((*jt).getType().isSet() ? "\n": " ");
@@ -529,11 +536,17 @@ void TheorySetsPrivate::dumpAssertionsHumanified() const
       }
       Trace(tag) << std::endl;
     }
-    FORIT(kt, disequalities) Trace(tag) << "NOT(t"<<numbering[(*kt).first]<<" = t" <<numbering[(*kt).second] <<")"<< std::endl;
-    FORIT(kt, members) {
-      if( (*kt).second.first.size() > 0) {
-        Trace(tag) << "IN t" << numbering[(*kt).first] << ": ";
-        FORIT(jt, (*kt).second.first) {
+    for(TNodePairSet::const_iterator kt=disequalities.begin(); kt != disequalities.end(); ++kt){
+      Trace(tag) << "NOT(t"<<numbering[(*kt).first]<<" = t" <<numbering[(*kt).second] <<")"<< std::endl;
+    }
+    for(MemberMap::const_iterator kt=members.begin(); kt != members.end(); ++kt) {
+      const TNode& kt_key = (*kt).first;
+      const TNodeSet& kt_in_set = (*kt).second.first;
+      const TNodeSet& kt_out_set = (*kt).second.first;
+      if( kt_in_set.size() > 0) {
+        Trace(tag) << "IN t" << numbering[kt_key] << ": ";
+        //FORIT(jt, (*kt).second.first)
+        for(TNodeSet::const_iterator jt=kt_in_set.begin(); jt != kt_in_set.end(); ++jt) {
           TNode x = (*jt);
           if(x.isConst() || numbering.find(d_equalityEngine.getRepresentative(x)) == numbering.end()) {
             Trace(tag) << x << ", ";
@@ -543,9 +556,9 @@ void TheorySetsPrivate::dumpAssertionsHumanified() const
         }
         Trace(tag) << std::endl;
       }
-      if( (*kt).second.second.size() > 0) {
-        Trace(tag) << "NOT IN t" << numbering[(*kt).first] << ": ";
-        FORIT(jt, (*kt).second.second) {
+      if( kt_out_set.size() > 0) {
+        Trace(tag) << "NOT IN t" << numbering[kt_key] << ": ";
+        for(TNodeSet::const_iterator jt=kt_out_set.begin(); jt != kt_out_set.end(); ++jt){
           TNode x = (*jt);
           if(x.isConst() || numbering.find(d_equalityEngine.getRepresentative(x)) == numbering.end()) {
             Trace(tag) << x << ", ";
@@ -557,7 +570,6 @@ void TheorySetsPrivate::dumpAssertionsHumanified() const
       }
     }
     Trace(tag) << std::endl;
-#undef FORIT
 }
 
 void TheorySetsPrivate::computeCareGraph() {
@@ -871,14 +883,15 @@ Node TheorySetsPrivate::elementsToShape(Elements elements, TypeNode setType) con
     return cur;
   }
 }
-Node TheorySetsPrivate::elementsToShape(set<Node> elements, TypeNode setType) const
+
+Node TheorySetsPrivate::elementsToShape(std::set<Node> elements, TypeNode setType) const
 {
   NodeManager* nm = NodeManager::currentNM();
 
   if(elements.size() == 0) {
     return nm->mkConst<EmptySet>(EmptySet(nm->toType(setType)));
   } else {
-    typeof(elements.begin()) it = elements.begin();
+    std::set<Node>::const_iterator it = elements.begin();
     Node cur = SINGLETON(*it);
     while( ++it != elements.end() ) {
       cur = nm->mkNode(kind::UNION, cur, SINGLETON(*it));
@@ -892,13 +905,13 @@ void TheorySetsPrivate::collectModelInfo(TheoryModel* m, bool fullModel)
   Trace("sets-model") << "[sets-model] collectModelInfo(..., fullModel="
                       << (fullModel ? "true)" : "false)") << std::endl;
 
-  set<Node> terms;
+  std::set<Node> terms;
 
   NodeManager* nm = NodeManager::currentNM();
 
   // // this is for processCard -- commenting out for now
   // if(Debug.isOn("sets-card")) {
-  //   for(typeof(d_cardTerms.begin()) it = d_cardTerms.begin();
+  //   for(CDNodeSet::const_iterator it = d_cardTerms.begin();
   //       it != d_cardTerms.end(); ++it) {
   //     Debug("sets-card") << "[sets-card] " << *it << " = "
   //                        << d_external.d_valuation.getModelValue(*it)
@@ -915,7 +928,8 @@ void TheorySetsPrivate::collectModelInfo(TheoryModel* m, bool fullModel)
 
   //processCard2 begin
   if(Debug.isOn("sets-card")) {
-    for(typeof(d_V.begin()) it = d_V.begin(); it != d_V.end(); ++it) {
+    print_graph(true);
+    for(CDNodeSet::const_iterator it = d_V.begin(); it != d_V.end(); ++it) {
       Node n = nm->mkNode(kind::CARD, *it);
       Debug("sets-card") << "[sets-card] " << n << " = ";
       // if(d_external.d_sharedTerms.find(n) == d_external.d_sharedTerms.end()) continue;
@@ -1005,7 +1019,7 @@ void TheorySetsPrivate::collectModelInfo(TheoryModel* m, bool fullModel)
 
   //processCard2 begin
   leaves.clear();
-  for(typeof(d_V.begin()) it = d_V.begin(); it != d_V.end(); ++it)
+  for(CDNodeSet::const_iterator it = d_V.begin(); it != d_V.end(); ++it)
     if(d_E.find(*it) == d_E.end())
       leaves.insert(*it);
   d_statistics.d_numLeaves.setData(leaves.size());
@@ -1102,7 +1116,7 @@ Node mkAnd(const std::vector<TNode>& conjunctions) {
     if (t.getKind() == kind::AND) {
       for(TNode::iterator child_it = t.begin();
           child_it != t.end(); ++child_it) {
-        Assert((*child_it).getKind() != kind::AND);
+        // Assert((*child_it).getKind() != kind::AND);
         all.insert(*child_it);
       }
     }
@@ -1311,15 +1325,20 @@ Node TheorySetsPrivate::getLemma() {
 
     Assert(n.getKind() == kind::EQUAL && n[0].getType().isSet());
     TypeNode elementType = n[0].getType().getSetElementType();
-    Node x = NodeManager::currentNM()->mkSkolem("sde_",  elementType);
-    Node l1 = MEMBER(x, n[0]), l2 = MEMBER(x, n[1]);
+    // { x } != { y } => x != y
+    if( n[0].getKind()==kind::SINGLETON && n[1].getKind()==kind::SINGLETON ){
+      lemma = OR(n, NodeManager::currentNM()->mkNode( elementType.isBoolean() ? kind::IFF : kind::EQUAL, n[0][0], n[1][0] ).negate() );
+    }else{
+      Node x = NodeManager::currentNM()->mkSkolem("sde_",  elementType);
+      Node l1 = MEMBER(x, n[0]), l2 = MEMBER(x, n[1]);
 
-    if(n[0].getKind() == kind::EMPTYSET) {
-      lemma = OR(n, l2);
-    } else if(n[1].getKind() == kind::EMPTYSET) {
-      lemma = OR(n, l1);
-    } else {
-      lemma = OR(n, AND(l1, NOT(l2)), AND(NOT(l1), l2));
+      if(n[0].getKind() == kind::EMPTYSET) {
+        lemma = OR(n, l2);
+      } else if(n[1].getKind() == kind::EMPTYSET) {
+        lemma = OR(n, l1);
+      } else {
+        lemma = OR(n, AND(l1, NOT(l2)), AND(NOT(l1), l2));
+      }
     }
   }
 
@@ -1412,7 +1431,7 @@ void TheorySetsPrivate::propagate(Theory::Effort effort) {
   }
 
   const CDNodeSet& terms = (d_termInfoManager->d_terms);
-  for(typeof(terms.key_begin()) it = terms.key_begin(); it != terms.key_end(); ++it) {
+  for(CDNodeSet::key_iterator it = terms.key_begin(); it != terms.key_end(); ++it) {
     Node node = (*it);
     Kind k = node.getKind();
     if(k == kind::UNION && node[0].getKind() == kind::SINGLETON ) {
@@ -1496,7 +1515,11 @@ Node TheorySetsPrivate::explain(TNode literal)
     Unhandled();
   }
 
-  return mkAnd(assumptions);
+  if(assumptions.size()) {
+    return mkAnd(assumptions);
+  } else {
+    return d_trueNode;
+  }
 }
 
 bool TheorySetsPrivate::lemma(Node n, SetsLemmaTag t)
@@ -1568,14 +1591,14 @@ void TheorySetsPrivate::preRegisterTerm(TNode node)
 
 void TheorySetsPrivate::presolve() {
 
-  for(typeof(d_termInfoManager->d_terms.begin()) it = d_termInfoManager->d_terms.begin();
+  for(CDNodeSet::const_iterator it = d_termInfoManager->d_terms.begin();
       it !=  d_termInfoManager->d_terms.end(); ++it) {
     d_relTerms.insert(*it);
   }
 
   if(Trace.isOn("sets-relterms")) {
     Trace("sets-relterms") << "[sets-relterms] ";
-    for(typeof(d_relTerms.begin()) it = d_relTerms.begin();
+    for(CDNodeSet::const_iterator it = d_relTerms.begin();
         it != d_relTerms.end(); ++it ) {
       Trace("sets-relterms") << (*it) << ", ";
     }
@@ -1672,18 +1695,18 @@ void TheorySetsPrivate::TermInfoManager::mergeLists
   }
 }
 
-TheorySetsPrivate::TermInfoManager::TermInfoManager
-(TheorySetsPrivate& theory, context::Context* satContext, eq::EqualityEngine* eq):
-  d_theory(theory),
-  d_context(satContext),
-  d_eqEngine(eq),
-  d_terms(satContext),
-  d_info()
-{ }
+TheorySetsPrivate::TermInfoManager::TermInfoManager(
+    TheorySetsPrivate& theory, context::Context* satContext,
+    eq::EqualityEngine* eq)
+    : d_theory(theory),
+      d_context(satContext),
+      d_eqEngine(eq),
+      d_terms(satContext),
+      d_info() {}
 
 TheorySetsPrivate::TermInfoManager::~TermInfoManager() {
-  for( typeof(d_info.begin()) it = d_info.begin();
-       it != d_info.end(); ++it) {
+  for (SetsTermInfoMap::iterator it = d_info.begin(); it != d_info.end();
+       ++it) {
     delete (*it).second;
   }
 }
@@ -1744,14 +1767,14 @@ void TheorySetsPrivate::TermInfoManager::addTerm(TNode n) {
           d_theory.registerCard(CARD(n));
         }
 
-        typeof(d_info.begin()) ita = d_info.find(d_eqEngine->getRepresentative(n[i]));
+        SetsTermInfoMap::iterator ita = d_info.find(d_eqEngine->getRepresentative(n[i]));
         Assert(ita != d_info.end());
         CDTNodeList* l = (*ita).second->elementsNotInThisSet;
-        for(typeof(l->begin()) it = l->begin(); it != l->end(); ++it) {
+        for(CDTNodeList::const_iterator it = l->begin(); it != l->end(); ++it) {
           d_theory.d_settermPropagationQueue.push_back( std::make_pair( (*it), n ) );
         }
         l = (*ita).second->elementsInThisSet;
-        for(typeof(l->begin()) it = l->begin(); it != l->end(); ++it) {
+        for(CDTNodeList::const_iterator it = l->begin(); it != l->end(); ++it) {
           d_theory.d_settermPropagationQueue.push_back( std::make_pair( (*it), n ) );
         }
       }
@@ -1782,7 +1805,7 @@ void TheorySetsPrivate::TermInfoManager::pushToSettermPropagationQueue
 
   // propagation : parents
   const CDTNodeList* parentList = getParents(S);
-  for(typeof(parentList->begin()) k = parentList->begin();
+  for(CDTNodeList::const_iterator k = parentList->begin();
       k != parentList->end(); ++k) {
     d_theory.d_settermPropagationQueue.push_back(std::make_pair(x, *k));
   }// propagation : parents
@@ -1850,8 +1873,8 @@ void TheorySetsPrivate::TermInfoManager::mergeTerms(TNode a, TNode b) {
                          << ", b: " << d_eqEngine->getRepresentative(b)
                          << std::endl;
 
-  typeof(d_info.begin()) ita = d_info.find(a);
-  typeof(d_info.begin()) itb = d_info.find(b);
+  SetsTermInfoMap::iterator ita = d_info.find(a);
+  SetsTermInfoMap::iterator itb = d_info.find(b);
 
   Assert(ita != d_info.end());
   Assert(itb != d_info.end());
@@ -1879,29 +1902,33 @@ void TheorySetsPrivate::TermInfoManager::mergeTerms(TNode a, TNode b) {
   d_theory.d_modelCache.clear();
 }
 
-Node TheorySetsPrivate::TermInfoManager::getModelValue(TNode n)
-{
-  if(d_terms.find(n) == d_terms.end()) {
+Node TheorySetsPrivate::TermInfoManager::getModelValue(TNode n) {
+  if (d_terms.find(n) == d_terms.end()) {
     return Node();
   }
   Assert(n.getType().isSet());
-  set<Node> elements, elements_const;
+  std::set<Node> elements;
+  std::set<Node> elements_const;
   Node S = d_eqEngine->getRepresentative(n);
-  typeof(d_theory.d_modelCache.begin()) it = d_theory.d_modelCache.find(S);
-  if(it != d_theory.d_modelCache.end()) {
+  context::CDHashMap<Node, Node, NodeHashFunction>::const_iterator it =
+      d_theory.d_modelCache.find(S);
+  if (it != d_theory.d_modelCache.end()) {
     return (*it).second;
   }
   const CDTNodeList* l = getMembers(S);
-  for(typeof(l->begin()) it = l->begin(); it != l->end(); ++it) {
+  for (CDTNodeList::const_iterator it = l->begin(); it != l->end(); ++it) {
     TNode n = *it;
     elements.insert(d_eqEngine->getRepresentative(n));
   }
-  BOOST_FOREACH(TNode e, elements) {
-    if(e.isConst()) {
+  for(std::set<Node>::iterator it = elements.begin(); it != elements.end(); it++) {
+    TNode e = *it;
+    if (e.isConst()) {
       elements_const.insert(e);
     } else {
       Node eModelValue = d_theory.d_external.d_valuation.getModelValue(e);
-      if( eModelValue.isNull() ) return eModelValue;
+      if (eModelValue.isNull()) {
+        return eModelValue;
+      }
       elements_const.insert(eModelValue);
     }
   }
@@ -1909,9 +1936,6 @@ Node TheorySetsPrivate::TermInfoManager::getModelValue(TNode n)
   d_theory.d_modelCache[n] = v;
   return v;
 }
-
-
-
 
 /********************** Cardinality ***************************/
 /********************** Cardinality ***************************/
@@ -1927,7 +1951,7 @@ void TheorySetsPrivate::enableCard()
     cardCreateEmptysetSkolem(t);
   }
 
-  for(typeof(d_termInfoManager->d_terms.begin()) it = d_termInfoManager->d_terms.begin();
+  for(CDNodeSet::const_iterator it = d_termInfoManager->d_terms.begin();
       it !=  d_termInfoManager->d_terms.end(); ++it) {
     Node n = (*it);
     if(n.getKind() == kind::SINGLETON) {
@@ -1944,7 +1968,7 @@ void TheorySetsPrivate::registerCard(TNode node) {
     // introduce cardinality of any set-term containing this term
     NodeManager* nm = NodeManager::currentNM();
     const CDTNodeList* parentList = d_termInfoManager->getParents(node[0]);
-    for(typeof(parentList->begin()) it = parentList->begin();
+    for(CDTNodeList::const_iterator it = parentList->begin();
         it != parentList->end(); ++it) {
       registerCard(nm->mkNode(kind::CARD, *it));
     }
@@ -1971,9 +1995,10 @@ void TheorySetsPrivate::buildGraph() {
   edgesFd.clear();
   edgesBk.clear();
   disjoint.clear();
-  
-  for(typeof(d_processedCardPairs.begin()) it = d_processedCardPairs.begin();
-      it != d_processedCardPairs.end(); ++it) {
+
+  for (std::map<std::pair<Node, Node>, bool>::const_iterator it =
+           d_processedCardPairs.begin();
+       it != d_processedCardPairs.end(); ++it) {
     Node s = (it->first).first;
     Assert(Rewriter::rewrite(s) == s);
     Node t = (it->first).second;
@@ -1988,7 +2013,7 @@ void TheorySetsPrivate::buildGraph() {
     tMs = Rewriter::rewrite(tMs);
 
     edgesFd[s].insert(sNt);
-    edgesFd[s].insert(sMt); 
+    edgesFd[s].insert(sMt);
     edgesBk[sNt].insert(s);
     edgesBk[sMt].insert(s);
 
@@ -2000,7 +2025,7 @@ void TheorySetsPrivate::buildGraph() {
     if(hasUnion) {
       Node sUt = nm->mkNode(kind::UNION, s, t);
       sUt = Rewriter::rewrite(sUt);
-      
+
       edgesFd[sUt].insert(sNt);
       edgesFd[sUt].insert(sMt);
       edgesFd[sUt].insert(tMs);
@@ -2017,32 +2042,34 @@ void TheorySetsPrivate::buildGraph() {
     disjoint.insert(make_pair(sMt, tMs));
   }
 
-  if(Debug.isOn("sets-card-graph")) {
+  if (Debug.isOn("sets-card-graph")) {
     Debug("sets-card-graph") << "[sets-card-graph] Fd:" << std::endl;
-    for(typeof(edgesFd.begin()) it = edgesFd.begin();
-        it != edgesFd.end(); ++it) {
-      Debug("sets-card-graph") << "[sets-card-graph]  " << (it->first) << std::endl;
-      for(typeof( (it->second).begin()) jt = (it->second).begin();
-          jt != (it->second).end(); ++jt) {
-        Debug("sets-card-graph") << "[sets-card-graph]   " << (*jt) << std::endl;
+    for (std::map<TNode, std::set<TNode> >::const_iterator it = edgesFd.begin();
+         it != edgesFd.end(); ++it) {
+      Debug("sets-card-graph") << "[sets-card-graph]  " << (it->first)
+                               << std::endl;
+      for (std::set<TNode>::const_iterator jt = (it->second).begin();
+           jt != (it->second).end(); ++jt) {
+        Debug("sets-card-graph") << "[sets-card-graph]   " << (*jt)
+                                 << std::endl;
       }
     }
     Debug("sets-card-graph") << "[sets-card-graph] Bk:" << std::endl;
-    for(typeof(edgesBk.begin()) it = edgesBk.begin();
-        it != edgesBk.end(); ++it) {
-      Debug("sets-card-graph") << "[sets-card-graph]  " << (it->first) << std::endl;
-      for(typeof( (it->second).begin()) jt = (it->second).begin();
-          jt != (it->second).end(); ++jt) {
-        Debug("sets-card-graph") << "[sets-card-graph]   " << (*jt) << std::endl;
+    for (std::map<TNode, std::set<TNode> >::const_iterator it = edgesBk.begin();
+         it != edgesBk.end(); ++it) {
+      Debug("sets-card-graph") << "[sets-card-graph]  " << (it->first)
+                               << std::endl;
+      for (std::set<TNode>::const_iterator jt = (it->second).begin();
+           jt != (it->second).end(); ++jt) {
+        Debug("sets-card-graph") << "[sets-card-graph]   " << (*jt)
+                                 << std::endl;
       }
     }
   }
 
-
-
   leaves.clear();
-  
-  for(typeof(d_processedCardTerms.begin()) it = d_processedCardTerms.begin();
+
+  for(CDNodeSet::const_iterator it = d_processedCardTerms.begin();
       it != d_processedCardTerms.end(); ++it) {
     Node n = (*it)[0];
     if( edgesFd.find(n) == edgesFd.end() ) {
@@ -2247,7 +2274,7 @@ std::set<TNode> TheorySetsPrivate::get_leaves(Node vertex1, Node vertex2, Node v
 Node TheorySetsPrivate::eqemptySoFar() {
   std::vector<Node> V;
 
-  for(typeof(d_V.begin()) it = d_V.begin(); it != d_V.end(); ++it) {
+  for(CDNodeSet::const_iterator it = d_V.begin(); it != d_V.end(); ++it) {
     Node rep = d_equalityEngine.getRepresentative(*it);
     if(rep.getKind() == kind::EMPTYSET) {
       V.push_back(EQUAL(rep, (*it)));
@@ -2391,11 +2418,12 @@ void TheorySetsPrivate::merge_nodes(std::set<TNode> leaves1, std::set<TNode> lea
 
 }
 
-void  TheorySetsPrivate::print_graph() {
+void  TheorySetsPrivate::print_graph(bool printmodel) {
+  NodeManager* nm = NodeManager::currentNM();
   std::string tag = "sets-graph";
   if(Trace.isOn("sets-graph")) {
     Trace(tag) << "[sets-graph] Graph : " << std::endl;
-    for(typeof(d_V.begin()) it = d_V.begin(); it != d_V.end(); ++it) {
+    for(CDNodeSet::const_iterator it = d_V.begin(); it != d_V.end(); ++it) {
       TNode v = *it;
       // BOOST_FOREACH(TNode v, d_V) {
       Trace(tag) << "[" << tag << "]  " << v << " : ";
@@ -2414,15 +2442,40 @@ void  TheorySetsPrivate::print_graph() {
   if(Trace.isOn("sets-graph-dot")) {
     std::ostringstream oss;
     oss << "digraph G { ";
-    for(typeof(d_V.begin()) it = d_V.begin(); it != d_V.end(); ++it) {
+    for(CDNodeSet::const_iterator it = d_V.begin(); it != d_V.end(); ++it) {
       TNode v = *it;
+
+      std::ostringstream v_oss;
+      v_oss << v;
+      if(printmodel)
+      {
+        Node n = nm->mkNode(kind::CARD, v);
+        if((Rewriter::rewrite(n)).isConst()) {
+          v_oss << " " << (Rewriter::rewrite(n));
+        } else {
+          v_oss << " " << d_external.d_valuation.getModelValue(n);
+        }
+      }
+      
       if(d_E.find(v) != d_E.end()) {
         BOOST_FOREACH(TNode w, d_E[v].get()) {
+
+          std::ostringstream w_oss;
+          w_oss << w;
+          if(printmodel) {
+            Node n = nm->mkNode(kind::CARD, w);
+            if((Rewriter::rewrite(n)).isConst()) {
+              w_oss << " " << (Rewriter::rewrite(n));
+            } else {
+              w_oss << " " << d_external.d_valuation.getModelValue(n);
+            }
+          }
+          
           //oss << v.getId() << " -> " << w.getId() << "; ";
-          oss << "\"" << v << "\" -> \"" << w << "\"; ";
+          oss << "\"" << v_oss.str() << "\" -> \"" << w_oss.str() << "\"; ";
         }
       } else {
-        oss << "\"" << v << "\";";
+        oss << "\"" << v_oss.str() << "\";";
       }
     }
     oss << "}";
@@ -2448,7 +2501,7 @@ void TheorySetsPrivate::guessLeavesEmptyLemmas() {
   // Guess leaf nodes being empty or non-empty
   NodeManager* nm = NodeManager::currentNM();
   leaves.clear();
-  for(typeof(d_V.begin()) it = d_V.begin(); it != d_V.end(); ++it) {
+  for(CDNodeSet::const_iterator it = d_V.begin(); it != d_V.end(); ++it) {
     TNode v = *it;
     if(d_E.find(v) == d_E.end()) {
       leaves.insert(v);
@@ -2465,7 +2518,7 @@ void TheorySetsPrivate::guessLeavesEmptyLemmas() {
     numLeavesCurrentlyNonEmpty = 0,
     numLemmaAlreadyExisted = 0;
 
-  for(typeof(leaves.begin()) it = leaves.begin(); it != leaves.end(); ++it) {
+  for(std::set<TNode>::iterator it = leaves.begin(); it != leaves.end(); ++it) {
     bool generateLemma = true;
     Node emptySet = nm->mkConst<EmptySet>(EmptySet(nm->toType((*it).getType())));
 
@@ -2526,8 +2579,16 @@ void TheorySetsPrivate::processCard2(Theory::Effort level) {
 
   NodeManager* nm = NodeManager::currentNM();
 
+  if(options::setsGuessEmpty() == 0) {
+    Trace("sets-guess-empty") << "[sets-guess-empty] Generating lemmas before introduce." << std::endl;
+    guessLeavesEmptyLemmas();
+    if(d_newLemmaGenerated) {
+      return;
+    }
+  }
+
   // Introduce
-  for(typeof(d_cardTerms.begin()) it = d_cardTerms.begin();
+  for(CDNodeSet::const_iterator it = d_cardTerms.begin();
       it != d_cardTerms.end(); ++it) {
 
     for(eq::EqClassIterator j(d_equalityEngine.getRepresentative((*it)[0]), &d_equalityEngine);
@@ -2710,14 +2771,14 @@ void TheorySetsPrivate::processCard2(Theory::Effort level) {
     // merge_nodes(get_leaves(np.first), get_leaves(np.second), EQUAL(np.first, np.second));
     merge_nodes(get_leaves(np.first), get_leaves(np.second), eqSoFar());
   }
-  
+
   if(d_newLemmaGenerated) {
     Trace("sets-card") << "[sets-card] New merge done. Returning." << std::endl;
     return;
   }
 
   leaves.clear();
-  for(typeof(d_V.begin()) it = d_V.begin(); it != d_V.end(); ++it) {
+  for(CDNodeSet::const_iterator it = d_V.begin(); it != d_V.end(); ++it) {
     TNode v = *it;
     if(d_E.find(v) == d_E.end()) {
       leaves.insert(v);
@@ -2737,23 +2798,28 @@ void TheorySetsPrivate::processCard2(Theory::Effort level) {
     }
   }
 
+  typedef std::set<TNode>::const_iterator TNodeSetIterator;
+
   // Elements being either equal or disequal [Members Arrangement rule]
-  Trace("sets-card") << "[sets-card] Processing elements equality/disequal to each other" << std::endl;
-  for(typeof(leaves.begin()) it = leaves.begin();
-      it != leaves.end(); ++it) {
-    if(!d_equalityEngine.hasTerm(*it)) continue;
+  Trace("sets-card")
+      << "[sets-card] Processing elements equality/disequal to each other"
+      << std::endl;
+  for (TNodeSetIterator it = leaves.begin(); it != leaves.end(); ++it) {
+    if (!d_equalityEngine.hasTerm(*it)) continue;
     Node n = d_equalityEngine.getRepresentative(*it);
     Assert(n.getKind() == kind::EMPTYSET || leaves.find(n) != leaves.end());
-    if(n != *it) continue;
+    if (n != *it) continue;
     const CDTNodeList* l = d_termInfoManager->getMembers(*it);
     std::set<TNode> elems;
-    for(typeof(l->begin()) l_it = l->begin(); l_it != l->end(); ++l_it) {
+    for (CDTNodeList::const_iterator l_it = l->begin(); l_it != l->end(); ++l_it) {
       elems.insert(d_equalityEngine.getRepresentative(*l_it));
     }
-    for(typeof(elems.begin()) e1_it = elems.begin(); e1_it != elems.end(); ++e1_it) {
-      for(typeof(elems.begin()) e2_it = elems.begin(); e2_it != elems.end(); ++e2_it) {
-        if(*e1_it == *e2_it) continue;
-        if(!d_equalityEngine.areDisequal(*e1_it, *e2_it, false)) {
+    for (TNodeSetIterator e1_it = elems.begin(); e1_it != elems.end();
+         ++e1_it) {
+      for (TNodeSetIterator e2_it = elems.begin(); e2_it != elems.end();
+           ++e2_it) {
+        if (*e1_it == *e2_it) continue;
+        if (!d_equalityEngine.areDisequal(*e1_it, *e2_it, false)) {
           Node lem = nm->mkNode(kind::EQUAL, *e1_it, *e2_it);
           lem = nm->mkNode(kind::OR, lem, nm->mkNode(kind::NOT, lem));
           lemma(lem, SETS_LEMMA_GRAPH);
@@ -2769,8 +2835,7 @@ void TheorySetsPrivate::processCard2(Theory::Effort level) {
 
   // Assert Lower bound
   Trace("sets-card") << "[sets-card] Processing assert lower bound" << std::endl;
-  for(typeof(leaves.begin()) it = leaves.begin();
-      it != leaves.end(); ++it) {
+  for(TNodeSetIterator it = leaves.begin(); it != leaves.end(); ++it) {
     Trace("sets-cardlower") << "[sets-cardlower] Card Lower: " << *it << std::endl;
     Assert(d_equalityEngine.hasTerm(*it));
     Node n = d_equalityEngine.getRepresentative(*it);
@@ -2783,21 +2848,21 @@ void TheorySetsPrivate::processCard2(Theory::Effort level) {
     // if(n != *it) continue;
     const CDTNodeList* l = d_termInfoManager->getMembers(n);
     std::set<TNode> elems;
-    for(typeof(l->begin()) l_it = l->begin(); l_it != l->end(); ++l_it) {
+    for(CDTNodeList::const_iterator l_it = l->begin(); l_it != l->end(); ++l_it) {
       elems.insert(d_equalityEngine.getRepresentative(*l_it));
     }
     if(elems.size() == 0) continue;
     NodeBuilder<> nb(kind::OR);
     nb << ( nm->mkNode(kind::LEQ, nm->mkConst(Rational(elems.size())), nm->mkNode(kind::CARD, *it)) );
     if(elems.size() > 1) {
-      for(typeof(elems.begin()) e1_it = elems.begin(); e1_it != elems.end(); ++e1_it) {
-        for(typeof(elems.begin()) e2_it = elems.begin(); e2_it != elems.end(); ++e2_it) {
+      for(TNodeSetIterator e1_it = elems.begin(); e1_it != elems.end(); ++e1_it) {
+        for(TNodeSetIterator e2_it = elems.begin(); e2_it != elems.end(); ++e2_it) {
           if(*e1_it == *e2_it) continue;
           nb << (nm->mkNode(kind::EQUAL, *e1_it, *e2_it));
         }
       }
     }
-    for(typeof(elems.begin()) e_it = elems.begin(); e_it != elems.end(); ++e_it) {
+    for(TNodeSetIterator e_it = elems.begin(); e_it != elems.end(); ++e_it) {
       nb << nm->mkNode(kind::NOT, nm->mkNode(kind::MEMBER, *e_it, *it));
     }
     Node lem = Node(nb);

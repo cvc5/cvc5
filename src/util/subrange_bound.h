@@ -34,41 +34,33 @@ namespace CVC4 {
  * has a lower bound of -5 and an infinite upper bound.
  */
 class CVC4_PUBLIC SubrangeBound {
-public:
-
+ public:
   /** Construct an infinite SubrangeBound. */
-  SubrangeBound() throw() :
-    d_nobound(true),
-    d_bound() {
-  }
+  SubrangeBound() : d_nobound(true), d_bound() {}
 
   /** Construct a finite SubrangeBound. */
-  SubrangeBound(const Integer& i) throw() :
-    d_nobound(false),
-    d_bound(i) {
-  }
+  SubrangeBound(const Integer& i) : d_nobound(false), d_bound(i) {}
 
-  ~SubrangeBound() throw() {
-  }
+  ~SubrangeBound() {}
 
-  /** Get the finite SubrangeBound, failing an assertion if infinite. */
-  const Integer& getBound() const throw(IllegalArgumentException);
+  /**
+   * Get the finite SubrangeBound, failing an assertion if infinite.
+   *
+   * @throws IllegalArgumentException if the bound is infinite.
+   */
+  const Integer& getBound() const;
 
   /** Returns true iff this is a finite SubrangeBound. */
-  bool hasBound() const throw() {
-    return !d_nobound;
-  }
+  bool hasBound() const { return !d_nobound; }
 
   /** Test two SubrangeBounds for equality. */
-  bool operator==(const SubrangeBound& b) const throw() {
+  bool operator==(const SubrangeBound& b) const {
     return hasBound() == b.hasBound() &&
-      (!hasBound() || getBound() == b.getBound());
+           (!hasBound() || getBound() == b.getBound());
   }
 
   /** Test two SubrangeBounds for disequality. */
-  bool operator!=(const SubrangeBound& b) const throw() {
-    return !(*this == b);
-  }
+  bool operator!=(const SubrangeBound& b) const { return !(*this == b); }
 
   /**
    * Is this SubrangeBound "less than" another?  For two
@@ -78,9 +70,9 @@ public:
    * behavior is due to the fact that a SubrangeBound without a bound
    * is the representation for both +infinity and -infinity.
    */
-  bool operator<(const SubrangeBound& b) const throw() {
+  bool operator<(const SubrangeBound& b) const {
     return (!hasBound() && b.hasBound()) || (hasBound() && !b.hasBound()) ||
-      ( hasBound() && b.hasBound() && getBound() < b.getBound() );
+           (hasBound() && b.hasBound() && getBound() < b.getBound());
   }
 
   /**
@@ -91,9 +83,9 @@ public:
    * behavior is due to the fact that a SubrangeBound without a bound
    * is the representation for both +infinity and -infinity.
    */
-  bool operator<=(const SubrangeBound& b) const throw() {
+  bool operator<=(const SubrangeBound& b) const {
     return !hasBound() || !b.hasBound() ||
-      ( hasBound() && b.hasBound() && getBound() <= b.getBound() );
+           (hasBound() && b.hasBound() && getBound() <= b.getBound());
   }
 
   /**
@@ -104,9 +96,9 @@ public:
    * behavior is due to the fact that a SubrangeBound without a bound
    * is the representation for both +infinity and -infinity.
    */
-  bool operator>(const SubrangeBound& b) const throw() {
+  bool operator>(const SubrangeBound& b) const {
     return (!hasBound() && b.hasBound()) || (hasBound() && !b.hasBound()) ||
-      ( hasBound() && b.hasBound() && getBound() < b.getBound() );
+           (hasBound() && b.hasBound() && getBound() < b.getBound());
   }
 
   /**
@@ -117,36 +109,34 @@ public:
    * strange behavior is due to the fact that a SubrangeBound without
    * a bound is the representation for both +infinity and -infinity.
    */
-  bool operator>=(const SubrangeBound& b) const throw() {
+  bool operator>=(const SubrangeBound& b) const {
     return !hasBound() || !b.hasBound() ||
-      ( hasBound() && b.hasBound() && getBound() <= b.getBound() );
+           (hasBound() && b.hasBound() && getBound() <= b.getBound());
   }
 
-
-  static SubrangeBound min(const SubrangeBound& a, const SubrangeBound& b){
-    if(a.hasBound() && b.hasBound()){
+  static SubrangeBound min(const SubrangeBound& a, const SubrangeBound& b) {
+    if (a.hasBound() && b.hasBound()) {
       return SubrangeBound(Integer::min(a.getBound(), b.getBound()));
-    }else{
+    } else {
       return SubrangeBound();
     }
   }
 
- static SubrangeBound max(const SubrangeBound& a, const SubrangeBound& b){
-    if(a.hasBound() && b.hasBound()){
+  static SubrangeBound max(const SubrangeBound& a, const SubrangeBound& b) {
+    if (a.hasBound() && b.hasBound()) {
       return SubrangeBound(Integer::max(a.getBound(), b.getBound()));
-    }else{
+    } else {
       return SubrangeBound();
     }
- }
+  }
 
-private:
+ private:
   bool d_nobound;
   Integer d_bound;
-};/* class SubrangeBound */
+}; /* class SubrangeBound */
 
 class CVC4_PUBLIC SubrangeBounds {
-public:
-
+ public:
   SubrangeBound lower;
   SubrangeBound upper;
 
@@ -167,7 +157,7 @@ public:
    */
   bool operator<(const SubrangeBounds& bounds) const {
     return (lower > bounds.lower && upper <= bounds.upper) ||
-      (lower >= bounds.lower && upper < bounds.upper);
+           (lower >= bounds.lower && upper < bounds.upper);
   }
 
   /**
@@ -186,7 +176,7 @@ public:
    */
   bool operator>(const SubrangeBounds& bounds) const {
     return (lower < bounds.lower && upper >= bounds.upper) ||
-      (lower <= bounds.lower && upper > bounds.upper);
+           (lower <= bounds.lower && upper > bounds.upper);
   }
 
   /**
@@ -209,24 +199,25 @@ public:
    */
   static SubrangeBounds join(const SubrangeBounds& a, const SubrangeBounds& b);
 
-};/* class SubrangeBounds */
+}; /* class SubrangeBounds */
 
 struct CVC4_PUBLIC SubrangeBoundsHashFunction {
   inline size_t operator()(const SubrangeBounds& bounds) const {
     // We use Integer::hash() rather than Integer::getUnsignedLong()
     // because the latter might overflow and throw an exception
-    size_t l = bounds.lower.hasBound() ? bounds.lower.getBound().hash() : std::numeric_limits<size_t>::max();
-    size_t u = bounds.upper.hasBound() ? bounds.upper.getBound().hash() : std::numeric_limits<size_t>::max();
+    size_t l = bounds.lower.hasBound() ? bounds.lower.getBound().hash()
+                                       : std::numeric_limits<size_t>::max();
+    size_t u = bounds.upper.hasBound() ? bounds.upper.getBound().hash()
+                                       : std::numeric_limits<size_t>::max();
     return l + 0x9e3779b9 + (u << 6) + (u >> 2);
   }
-};/* struct SubrangeBoundsHashFunction */
+}; /* struct SubrangeBoundsHashFunction */
 
-inline std::ostream&
-operator<<(std::ostream& out, const SubrangeBound& bound) throw() CVC4_PUBLIC;
+inline std::ostream& operator<<(std::ostream& out,
+                                const SubrangeBound& bound) CVC4_PUBLIC;
 
-inline std::ostream&
-operator<<(std::ostream& out, const SubrangeBound& bound) throw() {
-  if(bound.hasBound()) {
+inline std::ostream& operator<<(std::ostream& out, const SubrangeBound& bound) {
+  if (bound.hasBound()) {
     out << bound.getBound();
   } else {
     out << '_';
@@ -235,9 +226,9 @@ operator<<(std::ostream& out, const SubrangeBound& bound) throw() {
   return out;
 }
 
-std::ostream& operator<<(std::ostream& out, const SubrangeBounds& bounds)
-throw() CVC4_PUBLIC;
+std::ostream& operator<<(std::ostream& out,
+                         const SubrangeBounds& bounds) CVC4_PUBLIC;
 
-}/* CVC4 namespace */
+} /* CVC4 namespace */
 
 #endif /* __CVC4__SUBRANGE_BOUND_H */

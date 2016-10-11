@@ -137,7 +137,7 @@ protected:
       d_size(size),
       d_sizeAlloc(sizeAlloc) {
     }
-    ~CDChunkListSave() throw() {
+    ~CDChunkListSave() {
       this->destroy();
     }
     ContextObj* save(ContextMemoryManager* pCMM) {
@@ -322,7 +322,7 @@ public:
   /**
    * Destructor: delete the list
    */
-  ~CDChunkList() throw(AssertionException) {
+  ~CDChunkList() {
     this->destroy();
 
     if(this->d_callDestructor) {

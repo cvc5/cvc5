@@ -258,7 +258,11 @@ void InstMatchTrie::getInstantiations( std::vector< Node >& insts, Node q, std::
         }
       }
     }else{
-      insts.push_back( qe->getInstantiation( q, terms, true ) );
+      if( hasInstLemma() ){
+        insts.push_back( getInstLemma() );
+      }else{
+        insts.push_back( qe->getInstantiation( q, terms, true ) );
+      }
     }
   }else{
     for( std::map< Node, InstMatchTrie >::const_iterator it = d_data.begin(); it != d_data.end(); ++it ){
@@ -428,13 +432,17 @@ void CDInstMatchTrie::getInstantiations( std::vector< Node >& insts, Node q, std
     if( terms.size()==q[0].getNumChildren() ){
       if( useActive ){
         if( hasInstLemma() ){
-          Node lem;
+          Node lem = getInstLemma();
           if( std::find( active.begin(), active.end(), lem )!=active.end() ){
             insts.push_back( lem );
           }
         }
       }else{
-        insts.push_back( qe->getInstantiation( q, terms, true ) );
+        if( hasInstLemma() ){
+          insts.push_back( getInstLemma() );
+        }else{
+          insts.push_back( qe->getInstantiation( q, terms, true ) );
+        }
       }
     }else{
       for( std::map< Node, CDInstMatchTrie* >::const_iterator it = d_data.begin(); it != d_data.end(); ++it ){

@@ -107,7 +107,14 @@ void ArrayProofReconstruction::notify(unsigned reasonType, Node reason, Node a, 
 
         // It could be that the guard condition is a constant disequality. In this case,
         // we need to change it to a different format.
-        if (childProof->d_id == theory::eq::MERGED_THROUGH_CONSTANTS) {
+        bool haveNegChild = false;
+        for (unsigned i = 0; i < childProof->d_children.size(); ++i) {
+          if (childProof->d_children[i]->d_node.getKind() == kind::NOT)
+            haveNegChild = true;
+        }
+
+        if ((childProof->d_children.size() != 0) &&
+            (childProof->d_id == theory::eq::MERGED_THROUGH_CONSTANTS || !haveNegChild)) {
           // The proof has two children, explaining why each index is a (different) constant.
           Assert(childProof->d_children.size() == 2);
 
@@ -117,7 +124,7 @@ void ArrayProofReconstruction::notify(unsigned reasonType, Node reason, Node a, 
           if (childProof->d_children[0]->d_id == theory::eq::MERGED_THROUGH_REFLEXIVITY) {
             constantOne = childProof->d_children[0]->d_node;
           } else {
-            Assert(childProof->d_children[0]->d_id == theory::eq::MERGED_THROUGH_EQUALITY);
+            Assert(childProof->d_children[0]->d_node.getKind() == kind::EQUAL);
             if ((childProof->d_children[0]->d_node[0] == indexOne) ||
                 (childProof->d_children[0]->d_node[0] == indexTwo)) {
               constantOne = childProof->d_children[0]->d_node[1];
@@ -129,7 +136,7 @@ void ArrayProofReconstruction::notify(unsigned reasonType, Node reason, Node a, 
           if (childProof->d_children[1]->d_id == theory::eq::MERGED_THROUGH_REFLEXIVITY) {
             constantTwo = childProof->d_children[1]->d_node;
           } else {
-            Assert(childProof->d_children[1]->d_id == theory::eq::MERGED_THROUGH_EQUALITY);
+            Assert(childProof->d_children[1]->d_node.getKind() == kind::EQUAL);
             if ((childProof->d_children[1]->d_node[0] == indexOne) ||
                 (childProof->d_children[1]->d_node[0] == indexTwo)) {
               constantTwo = childProof->d_children[1]->d_node[1];

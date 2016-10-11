@@ -4,17 +4,24 @@ cache:
  directories:
   - $HOME/cxxtest
 
-sudo: false
+sudo: required
+dist: trusty
 
 compiler:
  - gcc
  - clang
 env:
- - TRAVIS_CVC4=yes TRAVIS_CVC4_CONFIG='production --enable-language-bindings=java,c'
- - TRAVIS_CVC4=yes TRAVIS_CVC4_CONFIG='debug --enable-language-bindings=java,c'
- - TRAVIS_CVC4=yes TRAVIS_CVC4_DISTCHECK=yes
- - TRAVIS_LFSC=yes
- - TRAVIS_LFSC=yes TRAVIS_LFSC_DISTCHECK=yes
+ global:
+  # The next declaration is the encrypted COVERITY_SCAN_TOKEN, created
+  #   via the "travis encrypt" command using the project repo's public key
+  - secure: "fRfdzYwV10VeW5tVSvy5qpR8ZlkXepR7XWzCulzlHs9SRI2YY20BpzWRjyMBiGu2t7IeJKT7qdjq/CJOQEM8WS76ON7QJ1iymKaRDewDs3OhyPJ71fsFKEGgLky9blk7I9qZh23hnRVECj1oJAVry9IK04bc2zyIEjUYpjRkUAQ="
+ matrix:
+  - TRAVIS_CVC4=yes CXXFLAGS='-std=gnu++11'
+  - TRAVIS_CVC4=yes TRAVIS_CVC4_CONFIG='production --enable-language-bindings=java,c'
+  - TRAVIS_CVC4=yes TRAVIS_CVC4_CONFIG='debug --enable-language-bindings=java,c'
+  - TRAVIS_CVC4=yes TRAVIS_CVC4_DISTCHECK=yes
+  - TRAVIS_LFSC=yes
+  - TRAVIS_LFSC=yes TRAVIS_LFSC_DISTCHECK=yes
 addons:
  apt:
   sources:
@@ -45,7 +52,7 @@ script:
    configureCVC4() {
      echo "CVC4 config - $TRAVIS_CVC4_CONFIG";
      ./configure --enable-unit-testing --enable-proof --with-portfolio $TRAVIS_CVC4_CONFIG  CXXTEST=$HOME/cxxtest ||
-       (echo; cat builds/config.log; error "CONFIGURE FAILED");
+       (echo; echo "Trying to print config.log"; cat builds/config.log; error "CONFIGURE FAILED");
    }
    error() {
      echo;
@@ -93,11 +100,43 @@ script:
    [ -n "$TRAVIS_CVC4" ] && [ -n "$TRAVIS_CVC4_DISTCHECK" ] && run makeDistcheck
    [ -n "$TRAVIS_CVC4" ] && [ -z "$TRAVIS_CVC4_DISTCHECK" ] && run makeCheck && run makeCheckPortfolio && run makeExamples
    [ -n "$TRAVIS_LFSC" ] && run LFSCchecks
-   [ -z "$TRAVIS_CVC4" ] && [ -z "$TRAVIS_LFSC" ] && error "Unknown Travis-CI configuration"
+   [ -n "$TRAVIS_COVERITY" ] && echo "Running coverity. Skipping the normal build."
+   [ -z "$TRAVIS_CVC4" ] && [ -z "$TRAVIS_LFSC" ] && [ -z "$TRAVIS_COVERITY" ] && error "Unknown Travis-CI configuration"
    echo "travis_fold:end:load_script"
  - echo; echo "${green}EVERYTHING SEEMED TO PASS!${normal}"
 matrix:
   fast_finish: true
+  # Rule for running Coverity Scan.
+  include:
+    - os: linux
+      compiler: gcc
+      before_install: echo -n | openssl s_client -connect scan.coverity.com:443 | sed -ne '/-BEGIN CERTIFICATE-/,/-END CERTIFICATE-/p' | sudo tee -a /etc/ssl/certs/ca-
+      env:
+        - TRAVIS_COVERITY=yes CVC4_REGRESSION_ARGS='--no-early-exit'  CXXTEST="$HOME/cxxtest"
+      addons:
+        # Need to duplicate as addons will be over written.
+        apt:
+          sources:
+            - ubuntu-toolchain-r-test
+          packages:
+            - libgmp-dev
+            - libboost-dev
+            - libboost-thread-dev
+            - swig
+            - libcln-dev
+            - openjdk-7-jdk
+            - antlr3
+            - libantlr3c-dev
+        coverity_scan:
+          project:
+            name: "CVC4/CVC4"
+            description: "Build submitted via Travis CI"
+          notification_email: timothy.alan.king@gmail.com
+          build_command_prepend: "./autogen.sh; ./configure --enable-unit-testing --enable-proof"
+          build_command: "make V=1 -j4 check"
+          branch_pattern: coverity_scan
+      after_failure:
+        - cat /home/travis/build/CVC4/CVC4/cov-int/build-log.txt
 notifications:
   email:
     on_success: change

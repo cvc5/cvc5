@@ -1123,6 +1123,15 @@ Node TheoryEngine::preprocess(TNode assertion) {
   return d_ppCache[assertion];
 }
 
+void TheoryEngine::notifyPreprocessedAssertions( std::vector< Node >& assertions ){
+  // call all the theories
+  for(TheoryId theoryId = theory::THEORY_FIRST; theoryId < theory::THEORY_LAST; ++theoryId) {
+    if(d_theoryTable[theoryId]) {
+      theoryOf(theoryId)->ppNotifyAssertions( assertions );
+    }
+  }
+}
+
 bool TheoryEngine::markPropagation(TNode assertion, TNode originalAssertion, theory::TheoryId toTheoryId, theory::TheoryId fromTheoryId) {
 
   // What and where we are asserting
@@ -1441,6 +1450,15 @@ void TheoryEngine::getInstantiations( std::map< Node, std::vector< Node > >& ins
     d_quantEngine->getInstantiations( insts );
   }else{
     Assert( false );
+  }
+}
+
+Node TheoryEngine::getInstantiatedConjunction( Node q ) {
+  if( d_quantEngine ){
+    return d_quantEngine->getInstantiatedConjunction( q );
+  }else{
+    Assert( false );
+    return Node::null();
   }
 }
 

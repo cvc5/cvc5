@@ -321,16 +321,7 @@ public:
    *
    * @param exp the exponent
    */
-  Integer pow(unsigned long int exp) const {
-    if(exp > 0){
-      cln::cl_I result= cln::expt_pos(d_value,exp);
-      return Integer( result );
-    }else if(exp == 0){
-      return Integer( 1 );
-    }else{
-      throw Exception("Negative exponent in Integer::pow()");
-    }
-  }
+  Integer pow(unsigned long int exp) const;
 
   /**
    * Return the greatest common divisor of this integer with another.

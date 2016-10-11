@@ -44,6 +44,8 @@ class TheorySep : public Theory {
   /////////////////////////////////////////////////////////////////////////////
 
   private:
+  /** all lemmas sent */
+  NodeSet d_lemmas_produced_c;
 
   /** True node for predicates = true */
   Node d_true;
@@ -51,7 +53,8 @@ class TheorySep : public Theory {
   /** True node for predicates = false */
   Node d_false;
   
-  std::vector< Node > d_pp_nils;
+  //whether bounds have been initialized
+  bool d_bounds_init;
 
   Node mkAnd( std::vector< TNode >& assumptions );
 
@@ -75,7 +78,7 @@ class TheorySep : public Theory {
   PPAssertStatus ppAssert(TNode in, SubstitutionMap& outSubstitutions);
   Node ppRewrite(TNode atom);
   
-  void processAssertions( std::vector< Node >& assertions );
+  void ppNotifyAssertions( std::vector< Node >& assertions );
   /////////////////////////////////////////////////////////////////////////////
   // T-PROPAGATION / REGISTRATION
   /////////////////////////////////////////////////////////////////////////////
@@ -88,10 +91,8 @@ class TheorySep : public Theory {
   /** Explain why this literal is true by adding assumptions */
   void explain(TNode literal, std::vector<TNode>& assumptions);
 
-  void preRegisterTermRec(TNode t, std::map< TNode, bool >& visited );
   public:
 
-  void preRegisterTerm(TNode t);
   void propagate(Effort e);
   Node explain(TNode n);
 
@@ -208,6 +209,9 @@ class TheorySep : public Theory {
   NodeList d_infer_exp;
   NodeList d_spatial_assertions;
 
+  //data,ref type (globally fixed)
+  TypeNode d_type_ref;
+  TypeNode d_type_data;
   //currently fix one data type for each location type, throw error if using more than one
   std::map< TypeNode, TypeNode > d_loc_to_data_type;
   //information about types
@@ -217,11 +221,12 @@ class TheorySep : public Theory {
   std::map< TypeNode, Node > d_reference_bound;
   std::map< TypeNode, Node > d_reference_bound_max;
   std::map< TypeNode, bool > d_reference_bound_invalid;
+  std::map< TypeNode, bool > d_reference_bound_fv;
   std::map< TypeNode, std::vector< Node > > d_type_references;
+  std::map< TypeNode, std::vector< Node > > d_type_references_card;
+  std::map< Node, unsigned > d_type_ref_card_id;
   std::map< TypeNode, std::vector< Node > > d_type_references_all;
   std::map< TypeNode, unsigned > d_card_max;
-  //bounds for labels
-  std::map< Node, std::vector< Node > > d_lbl_reference_bound;
   //for empty argument
   std::map< TypeNode, Node > d_emp_arg;
   //map from ( atom, label, child index ) -> label
@@ -242,9 +247,14 @@ class TheorySep : public Theory {
   std::map< Node, HeapAssertInfo * > d_eqc_info;
   HeapAssertInfo * getOrMakeEqcInfo( Node n, bool doMake = false );
 
+  //get global reference/data type
+  TypeNode getReferenceType( Node n );
+  TypeNode getDataType( Node n );
   //calculate the element type of the heap for spatial assertions
-  TypeNode getReferenceType( Node atom, int& card, int index = -1 );
-  TypeNode getReferenceType2( Node atom, int& card, int index, Node n, std::map< Node, int >& visited);
+  TypeNode computeReferenceType( Node atom, int& card, int index = -1 );
+  TypeNode computeReferenceType2( Node atom, int& card, int index, Node n, std::map< Node, int >& visited);
+  void registerRefDataTypes( TypeNode tn1, TypeNode tn2, Node atom );
+  //get location/data type
   //get the base label for the spatial assertion
   Node getBaseLabel( TypeNode tn );
   Node getNilRef( TypeNode tn );
@@ -291,6 +301,7 @@ public:
     return &d_equalityEngine;
   }
 
+  void initializeBounds();
 };/* class TheorySep */
 
 }/* CVC4::theory::sep namespace */

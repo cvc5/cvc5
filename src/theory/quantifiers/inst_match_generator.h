@@ -42,8 +42,6 @@ public:
   virtual bool getNextMatch( Node q, InstMatch& m, QuantifiersEngine* qe ) = 0;
   /** add instantiations directly */
   virtual int addInstantiations( Node q, InstMatch& baseMatch, QuantifiersEngine* qe ) = 0;
-  /** add ground term t, called when t is added to term db */
-  virtual int addTerm( Node q, Node t, QuantifiersEngine* qe ) { return 0; }
   /** set active add */
   virtual void setActiveAdd( bool val ) {}
   /** get active score */
@@ -113,8 +111,6 @@ public:
   bool getNextMatch( Node q, InstMatch& m, QuantifiersEngine* qe );
   /** add instantiations */
   int addInstantiations( Node q, InstMatch& baseMatch, QuantifiersEngine* qe );
-  /** add ground term t */
-  int addTerm( Node q, Node t, QuantifiersEngine* qe );
 
   bool d_active_add;
   void setActiveAdd( bool val );
@@ -205,8 +201,6 @@ public:
   bool getNextMatch( Node q, InstMatch& m, QuantifiersEngine* qe ) { return false; }
   /** add instantiations */
   int addInstantiations( Node q, InstMatch& baseMatch, QuantifiersEngine* qe );
-  /** add ground term t */
-  int addTerm( Node q, Node t, QuantifiersEngine* qe );
 };/* class InstMatchGeneratorMulti */
 
 /** smart (single)-trigger implementation */
@@ -240,8 +234,6 @@ public:
   bool getNextMatch( Node q, InstMatch& m, QuantifiersEngine* qe ) { return false; }
   /** add instantiations */
   int addInstantiations( Node q, InstMatch& baseMatch, QuantifiersEngine* qe );
-  /** add ground term t, possibly add instantiations */
-  int addTerm( Node q, Node t, QuantifiersEngine* qe );
   /** get active score */
   int getActiveScore( QuantifiersEngine * qe );
 };/* class InstMatchGeneratorSimple */

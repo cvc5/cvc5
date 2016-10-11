@@ -361,8 +361,8 @@ public:
    */
   Integer pow(unsigned long int exp) const {
     mpz_class result;
-    mpz_pow_ui(result.get_mpz_t(),d_value.get_mpz_t(),exp);
-    return Integer( result );
+    mpz_pow_ui(result.get_mpz_t(), d_value.get_mpz_t(), exp);
+    return Integer(result);
   }
 
   /**

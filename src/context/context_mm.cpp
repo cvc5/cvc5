@@ -63,7 +63,7 @@ ContextMemoryManager::ContextMemoryManager() : d_indexChunkList(0) {
 }
 
 
-ContextMemoryManager::~ContextMemoryManager() throw() {
+ContextMemoryManager::~ContextMemoryManager() {
   // Delete all chunks
   while(!d_chunkList.empty()) {
     free(d_chunkList.back());

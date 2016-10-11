@@ -39,7 +39,7 @@ BVMinisatSatSolver::BVMinisatSatSolver(StatisticsRegistry* registry, context::Co
 }
 
 
-BVMinisatSatSolver::~BVMinisatSatSolver() throw(AssertionException) {
+BVMinisatSatSolver::~BVMinisatSatSolver() {
   delete d_minisat;
   delete d_minisatNotify;
 }
@@ -309,5 +309,3 @@ void toSatClause< BVMinisat::Solver> (const BVMinisat::Solver::TClause& minisat_
 }
 
 }
-
-

@@ -271,7 +271,7 @@ public:
   /**
    * Destructor: delete the d_insertMap
    */
-  ~CDInsertHashMap() throw(AssertionException) {
+  ~CDInsertHashMap() {
     this->destroy();
     delete d_insertMap;
   }

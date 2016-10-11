@@ -146,7 +146,8 @@ private:
   public:
     CDNodeSet d_terms;
   private:
-    std::hash_map<TNode, TheorySetsTermInfo*, TNodeHashFunction> d_info;
+    typedef std::hash_map<TNode, TheorySetsTermInfo*, TNodeHashFunction> SetsTermInfoMap;
+    SetsTermInfoMap d_info;
 
     void mergeLists(CDTNodeList* la, const CDTNodeList* lb) const;
     void pushToSettermPropagationQueue(TNode x, TNode S, bool polarity);
@@ -252,7 +253,7 @@ private:
   bool d_cardEnabled;
   void enableCard();
   void cardCreateEmptysetSkolem(TypeNode t);
-  
+
   CDNodeSet d_cardTerms;
   std::set<TypeNode> d_typesAdded;
   CDNodeSet d_processedCardTerms;
@@ -282,7 +283,7 @@ private:
   std::set<TNode> get_leaves(Node vertex1, Node vertex2);
   std::set<TNode> get_leaves(Node vertex1, Node vertex2, Node vertex3);
   std::set<TNode> non_empty(std::set<TNode> vertices);
-  void print_graph();
+  void print_graph(bool printmodel=false);
   context::CDQueue < std::pair<TNode, TNode> > d_graphMergesPending;
   context::CDList<Node> d_allSetEqualitiesSoFar;
   Node eqSoFar();

@@ -157,6 +157,9 @@ class NodeManager {
    * plusOperator->getConst<CVC4::Kind>(), you get kind::PLUS back.
    */
   Node d_operators[kind::LAST_KIND];
+ 
+  /** unique vars per (Kind,Type) */
+  std::map< Kind, std::map< TypeNode, Node > > d_unique_vars;
 
   /**
    * A list of subscribers for NodeManager events.
@@ -486,13 +489,12 @@ public:
 
   /** Create a instantiation constant with the given type. */
   Node mkInstConstant(const TypeNode& type);
-  
-  /** Create nil reference for separation logic with the given type. */
-  Node mkSepNil(const TypeNode& type);
-  Node* mkSepNilPtr(const TypeNode& type);
 
   /** Make a new abstract value with the given type. */
   Node mkAbstractValue(const TypeNode& type);
+  
+  /** make unique (per Type,Kind) variable. */
+  Node mkUniqueVar(const TypeNode& type, Kind k);
 
   /**
    * Create a constant of type T.  It will have the appropriate

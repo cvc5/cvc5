@@ -264,6 +264,7 @@ CandidateGeneratorQEAll::CandidateGeneratorQEAll( QuantifiersEngine* qe, Node mp
   Assert( mpat.getKind()==INST_CONSTANT );
   d_f = quantifiers::TermDb::getInstConstAttr( mpat );
   d_index = mpat.getAttribute(InstVarNumAttribute());
+  d_firstTime = false;
 }
 
 void CandidateGeneratorQEAll::resetInstantiationRound() {
