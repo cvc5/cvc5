@@ -94,12 +94,13 @@ void TLazyBitblaster::bbAtom(TNode node) {
   if (hasBBAtom(node)) {
     return;
   }
-
+  
   // make sure it is marked as an atom
   addAtom(node);
 
   Debug("bitvector-bitblast") << "Bitblasting node " << node <<"\n";
   ++d_statistics.d_numAtoms;
+  
 
   /// if we are using bit-vector abstraction bit-blast the original interpretation
   if (options::bvAbstraction() &&
@@ -174,7 +175,9 @@ void TLazyBitblaster::makeVariable(TNode var, Bits& bits) {
 
 uint64_t TLazyBitblaster::computeAtomWeight(TNode node, NodeSet& seen) {
   node = node.getKind() == kind::NOT?  node[0] : node;
-
+  if( !utils::isBitblastAtom( node ) ){
+    return 0;
+  }
   Node atom_bb = Rewriter::rewrite(d_atomBBStrategies[node.getKind()](node, this));
   uint64_t size = utils::numNodes(atom_bb, seen);
   return size;
@@ -191,9 +194,10 @@ void TLazyBitblaster::bbTerm(TNode node, Bits& bits) {
     getBBTerm(node, bits);
     return;
   }
+  Assert( node.getType().isBitVector() );
 
   d_bv->spendResource(options::bitblastStep());
-  Debug("bitvector-bitblast") << "Bitblasting node " << node <<"\n";
+  Debug("bitvector-bitblast") << "Bitblasting term " << node <<"\n";
   ++d_statistics.d_numTerms;
 
   d_termBBStrategies[node.getKind()] (node, bits,this);
@@ -250,6 +254,7 @@ bool TLazyBitblaster::assertToSat(TNode lit, bool propagate) {
   } else {
     atom = lit;
   }
+  Assert( utils::isBitblastAtom( atom ) );
 
   Assert (hasBBAtom(atom));
 

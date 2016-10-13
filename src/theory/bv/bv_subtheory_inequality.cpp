@@ -40,14 +40,18 @@ bool InequalitySolver::check(Theory::Effort e) {
     Debug("bv-subtheory-inequality") << "  "<< fact <<"\n";
     if (fact.getKind() == kind::EQUAL) {
       TNode a = fact[0];
-      TNode b = fact[1];
-      ok = addInequality(a, b, false, fact);
-      if (ok)
-        ok = addInequality(b, a, false, fact);
+      if( a.getType().isBitVector() ){
+        TNode b = fact[1];
+        ok = addInequality(a, b, false, fact);
+        if (ok)
+          ok = addInequality(b, a, false, fact);
+      }
     } else if (fact.getKind() == kind::NOT && fact[0].getKind() == kind::EQUAL) {
       TNode a = fact[0][0];
-      TNode b = fact[0][1];
-      ok = d_inequalityGraph.addDisequality(a, b, fact);
+      if( a.getType().isBitVector() ){
+        TNode b = fact[0][1];
+        ok = d_inequalityGraph.addDisequality(a, b, fact);
+      }
     }
     if (fact.getKind() == kind::NOT && fact[0].getKind() == kind::BITVECTOR_ULE) {
       TNode a = fact[0][1];

@@ -107,6 +107,9 @@ void BitblastSolver::bitblastQueue() {
       // don't bit-blast lemma atoms
       continue;
     }
+    if( !utils::isBitblastAtom(atom) ){
+      continue;
+    }
     Debug("bitblast-queue") << "Bitblasting atom " << atom <<"\n";
     {
       TimerStat::CodeTimer codeTimer(d_bitblaster->d_statistics.d_bitblastTimer);
@@ -121,6 +124,7 @@ bool BitblastSolver::check(Theory::Effort e) {
 
   ++(d_statistics.d_numCallstoCheck);
 
+  Debug("bv-bitblast-debug") << "...process queue" << std::endl;
   //// Lazy bit-blasting
   // bit-blast enqueued nodes
   bitblastQueue();
@@ -138,6 +142,10 @@ bool BitblastSolver::check(Theory::Effort e) {
         continue;
       }
     }
+    //skip facts involving integer equalities (from bv2nat)
+    if( !utils::isBitblastAtom( fact ) ){
+      continue;
+    }
 
     if (!d_bv->inConflict() &&
         (!d_bv->wasPropagatedBySubtheory(fact) || d_bv->getPropagatingSubtheory(fact) != SUB_BITBLAST)) {
@@ -154,6 +162,7 @@ bool BitblastSolver::check(Theory::Effort e) {
     }
   }
 
+  Debug("bv-bitblast-debug") << "...do propagation" << std::endl;
   // We need to ensure we are fully propagated, so propagate now
   if (d_useSatPropagation) {
     d_bv->spendResource(1);
@@ -167,6 +176,7 @@ bool BitblastSolver::check(Theory::Effort e) {
   }
 
   // Solving
+  Debug("bv-bitblast-debug") << "...do solving" << std::endl;
   if (e == Theory::EFFORT_FULL) {
     Assert(!d_bv->inConflict());
     Debug("bitvector::bitblaster") << "BitblastSolver::addAssertions solving. \n";
@@ -180,6 +190,7 @@ bool BitblastSolver::check(Theory::Effort e) {
     }
   }
 
+  Debug("bv-bitblast-debug") << "...do abs bb" << std::endl;
   if (options::bvAbstraction() &&
       e == Theory::EFFORT_FULL &&
       d_lemmaAtomsQueue.size()) {
@@ -187,9 +198,11 @@ bool BitblastSolver::check(Theory::Effort e) {
     // bit-blast lemma atoms
     while(!d_lemmaAtomsQueue.empty()) {
       TNode lemma_atom = d_lemmaAtomsQueue.front();
-      d_bitblaster->bbAtom(lemma_atom);
       d_lemmaAtomsQueue.pop();
-
+      if( !utils::isBitblastAtom( lemma_atom ) ){
+        continue;
+      }
+      d_bitblaster->bbAtom(lemma_atom);
       // Assert to sat and check for conflicts
       bool ok = d_bitblaster->assertToSat(lemma_atom, d_useSatPropagation);
       if (!ok) {

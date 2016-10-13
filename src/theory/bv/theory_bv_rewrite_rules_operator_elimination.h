@@ -239,6 +239,10 @@ template<>
 Node RewriteRule<BVToNatEliminate>::apply(TNode node) {
   Debug("bv-rewrite") << "RewriteRule<BVToNatEliminate>(" << node << ")" << std::endl;
 
+  //if( node[0].isConst() ){
+    //TODO? direct computation instead of term construction+rewriting
+  //}
+
   const unsigned size = utils::getSize(node[0]);
   NodeManager* const nm = NodeManager::currentNM();
   const Node z = nm->mkConst(Rational(0));
@@ -262,6 +266,10 @@ bool RewriteRule<IntToBVEliminate>::applies(TNode node) {
 template<>
 Node RewriteRule<IntToBVEliminate>::apply(TNode node) {
   Debug("bv-rewrite") << "RewriteRule<IntToBVEliminate>(" << node << ")" << std::endl;
+
+  //if( node[0].isConst() ){
+    //TODO? direct computation instead of term construction+rewriting
+  //}
 
   const unsigned size = node.getOperator().getConst<IntToBitVector>().size;
   NodeManager* const nm = NodeManager::currentNM();

@@ -1016,6 +1016,8 @@ protected:
   bool doInferencesInternal( int effort, std::vector< Node >& terms, std::vector< Node >& nred, bool batch, bool isRed ); 
   //send lemma
   bool sendLemma( Node lem, bool preprocess = false );
+  //register term (recursive)
+  void registerTermRec( Node n, std::map< Node, bool >& visited );
 public:
   ExtTheory( Theory * p );
   virtual ~ExtTheory(){}
@@ -1024,6 +1026,7 @@ public:
   //register term
   //  adds n to d_ext_func_terms if addFunctionKind( n.getKind() ) was called
   void registerTerm( Node n );
+  void registerTermRec( Node n );
   // set n as reduced/inactive
   //   if contextDepend = false, then n remains inactive in the duration of this user-context level
   void markReduced( Node n, bool contextDepend = true );

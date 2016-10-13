@@ -618,8 +618,7 @@ void TheoryStrings::preRegisterTerm(TNode n) {
           if( options::stringExp() ){
             //collect extended functions here: some may not be asserted to strings (such as those with return type Int),
             //  but we need to record them so they are treated properly
-            std::map< Node, bool > visited;
-            collectExtendedFuncTerms( n, visited );          
+            d_extt->registerTermRec( n );       
           }
         }
         //concat terms do not contribute to theory combination?  TODO: verify
@@ -1007,8 +1006,7 @@ void TheoryStrings::assertPendingFact(Node atom, bool polarity, Node exp) {
   }
   Trace("strings-pending-debug") << "  Now collect terms" << std::endl;
   //collect extended function terms in the atom
-  std::map< Node, bool > visited;
-  collectExtendedFuncTerms( atom, visited );
+  d_extt->registerTermRec( atom );
   Trace("strings-pending-debug") << "  Finished collect terms" << std::endl;
 }
 
@@ -4861,16 +4859,6 @@ Node TheoryStrings::getNormalSymRegExp(Node r, std::vector<Node> &nf_exp) {
     }
   }
   return ret;
-}
-
-void TheoryStrings::collectExtendedFuncTerms( Node n, std::map< Node, bool >& visited ) {
-  if( visited.find( n )==visited.end() ){
-    visited[n] = true;
-    d_extt->registerTerm( n );
-    for( unsigned i=0; i<n.getNumChildren(); i++ ){
-      collectExtendedFuncTerms( n[i], visited );
-    }
-  }
 }
 
 }/* CVC4::theory::strings namespace */

@@ -276,6 +276,7 @@ void AigBitblaster::bbTerm(TNode node, Bits& bits) {
     getBBTerm(node, bits);
     return;
   }
+  Assert( node.getType().isBitVector() );
 
   Debug("bitvector-bitblast") << "Bitblasting term " << node <<"\n";
   d_termBBStrategies[node.getKind()] (node, bits, this);

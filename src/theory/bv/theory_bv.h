@@ -82,6 +82,7 @@ public:
   /** equality engine */
   eq::EqualityEngine * getEqualityEngine();
   bool getCurrentSubstitution( int effort, std::vector< Node >& vars, std::vector< Node >& subs, std::map< Node, std::vector< Node > >& exp );
+  int getReduction( int effort, Node n, Node& nr );
   
   PPAssertStatus ppAssert(TNode in, SubstitutionMap& outSubstitutions);
 

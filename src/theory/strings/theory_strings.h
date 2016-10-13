@@ -278,8 +278,6 @@ private:
     bool d_model_active;
   };
   std::map< Node, ExtfInfoTmp > d_extf_info_tmp;
-  //collect extended operator terms
-  void collectExtendedFuncTerms( Node n, std::map< Node, bool >& visited );
 private:
   class InferInfo {
   public:

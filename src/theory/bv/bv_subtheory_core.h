@@ -53,7 +53,7 @@ class CoreSolver : public SubtheorySolver {
     bool eqNotifyTriggerPredicate(TNode predicate, bool value);
     bool eqNotifyTriggerTermEquality(TheoryId tag, TNode t1, TNode t2, bool value);
     void eqNotifyConstantTermMerge(TNode t1, TNode t2);
-    void eqNotifyNewClass(TNode t) { }
+    void eqNotifyNewClass(TNode t);
     void eqNotifyPreMerge(TNode t1, TNode t2) { }
     void eqNotifyPostMerge(TNode t1, TNode t2) { }
     void eqNotifyDisequal(TNode t1, TNode t2, TNode reason) { }
@@ -71,6 +71,9 @@ class CoreSolver : public SubtheorySolver {
 
   /** Store a conflict from merging two constants */
   void conflict(TNode a, TNode b);
+
+  /** new equivalence class */
+  void eqNotifyNewClass(TNode t);
 
   Slicer* d_slicer;
   context::CDO<bool> d_isComplete;

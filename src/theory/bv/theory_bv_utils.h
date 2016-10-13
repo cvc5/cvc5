@@ -515,6 +515,12 @@ uint64_t numNodes(TNode node, NodeSet& seen);
 
 void collectVariables(TNode node, NodeSet& vars);
 
+// is bitblast atom
+inline bool isBitblastAtom( Node lit ) {
+  TNode atom = lit.getKind()==kind::NOT ? lit[0] : lit;
+  return atom.getKind()!=kind::EQUAL || atom[0].getType().isBitVector();
+}
+
 }
 }
 }

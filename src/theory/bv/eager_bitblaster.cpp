@@ -137,6 +137,8 @@ bool EagerBitblaster::hasBBAtom(TNode atom) const {
 }
 
 void EagerBitblaster::bbTerm(TNode node, Bits& bits) {
+  Assert( node.getType().isBitVector() );
+  
   if (hasBBTerm(node)) {
     getBBTerm(node, bits);
     return;

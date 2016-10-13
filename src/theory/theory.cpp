@@ -527,6 +527,21 @@ void ExtTheory::registerTerm( Node n ) {
   }
 }
 
+void ExtTheory::registerTermRec( Node n ) {
+  std::map< Node, bool > visited;
+  registerTermRec( n, visited );
+}
+
+void ExtTheory::registerTermRec( Node n, std::map< Node, bool >& visited ) {
+  if( visited.find( n )==visited.end() ){
+    visited[n] = true;
+    registerTerm( n );
+    for( unsigned i=0; i<n.getNumChildren(); i++ ){
+      registerTermRec( n[i], visited );
+    }
+  }
+}
+
 //mark reduced
 void ExtTheory::markReduced( Node n, bool contextDepend ) {
   d_ext_func_terms[n] = false;

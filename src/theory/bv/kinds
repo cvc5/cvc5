@@ -191,6 +191,7 @@ typerule BITVECTOR_ZERO_EXTEND ::CVC4::theory::bv::BitVectorExtendTypeRule
 typerule BITVECTOR_SIGN_EXTEND ::CVC4::theory::bv::BitVectorExtendTypeRule
 
 typerule BITVECTOR_TO_NAT ::CVC4::theory::bv::BitVectorConversionTypeRule
+typerule INT_TO_BITVECTOR_OP ::CVC4::theory::bv::IntToBitVectorOpTypeRule
 typerule INT_TO_BITVECTOR ::CVC4::theory::bv::BitVectorConversionTypeRule
 
 endtheory

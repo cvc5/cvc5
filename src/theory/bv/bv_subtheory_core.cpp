@@ -74,6 +74,8 @@ CoreSolver::CoreSolver(context::Context* c, TheoryBV* bv)
   //    d_equalityEngine.addFunctionKind(kind::BITVECTOR_SLE);
   //    d_equalityEngine.addFunctionKind(kind::BITVECTOR_SGT);
   //    d_equalityEngine.addFunctionKind(kind::BITVECTOR_SGE);
+  d_equalityEngine.addFunctionKind(kind::BITVECTOR_TO_NAT);
+  d_equalityEngine.addFunctionKind(kind::INT_TO_BITVECTOR);
 }
 
 CoreSolver::~CoreSolver() {
@@ -368,6 +370,10 @@ void CoreSolver::NotifyClass::eqNotifyConstantTermMerge(TNode t1, TNode t2) {
   d_solver.conflict(t1, t2);
 }
 
+void CoreSolver::NotifyClass::eqNotifyNewClass(TNode t) {
+  d_solver.eqNotifyNewClass( t );
+}
+
 bool CoreSolver::storePropagation(TNode literal) {
   return d_bv->storePropagation(literal, SUB_CORE);
 }
@@ -377,6 +383,11 @@ void CoreSolver::conflict(TNode a, TNode b) {
   d_equalityEngine.explainEquality(a, b, true, assumptions);
   Node conflict = flattenAnd(assumptions);
   d_bv->setConflict(conflict);
+}
+
+void CoreSolver::eqNotifyNewClass(TNode t) {
+  Assert( d_bv->getExtTheory()!=NULL );
+  d_bv->getExtTheory()->registerTerm( t );
 }
 
 bool CoreSolver::isCompleteForTerm(TNode term, TNodeBoolMap& seen) {
