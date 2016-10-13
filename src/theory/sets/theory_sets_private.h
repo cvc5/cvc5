@@ -25,8 +25,6 @@
 #include "theory/theory.h"
 #include "theory/uf/equality_engine.h"
 #include "theory/sets/term_info.h"
-#include "theory/sets/theory_sets_rels.h"
-#include "theory/sets/rels_utils.h"
 
 namespace CVC4 {
 namespace theory {
@@ -98,14 +96,14 @@ private:
     TheorySetsPrivate& d_theory;
 
   public:
-    NotifyClass(TheorySetsPrivate& theory): d_theory(theory){}
+    NotifyClass(TheorySetsPrivate& theory): d_theory(theory) {}
     bool eqNotifyTriggerEquality(TNode equality, bool value);
     bool eqNotifyTriggerPredicate(TNode predicate, bool value);
     bool eqNotifyTriggerTermEquality(TheoryId tag, TNode t1, TNode t2, bool value);
     void eqNotifyConstantTermMerge(TNode t1, TNode t2);
-    void eqNotifyNewClass(TNode t);
+    void eqNotifyNewClass(TNode t) {}
     void eqNotifyPreMerge(TNode t1, TNode t2) {}
-    void eqNotifyPostMerge(TNode t1, TNode t2);
+    void eqNotifyPostMerge(TNode t1, TNode t2) {}
     void eqNotifyDisequal(TNode t1, TNode t2, TNode reason) {}
   } d_notify;
 
@@ -246,8 +244,7 @@ private:
   TheorySetsScrutinize* d_scrutinize;
   void dumpAssertionsHumanified() const;  /** do some formatting to make them more readable */
 
-  // relational solver
-  TheorySetsRels* d_rels;
+
 
   /***** Cardinality handling *****/
   bool d_cardEnabled;

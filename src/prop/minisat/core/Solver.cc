@@ -394,7 +394,7 @@ bool Solver::addClause_(vec<Lit>& ps, bool removable, ClauseId& id)
 
         cr = ca.alloc(clauseLevel, ps, false);
         clauses_persistent.push(cr);
-        attachClause(cr);
+	attachClause(cr);
 
         if(PROOF_ON()) {
           PROOF(
@@ -1249,12 +1249,12 @@ lbool Solver::search(int nof_conflicts)
 
         } else {
 
-            // If this was a final check, we are satisfiable
+	    // If this was a final check, we are satisfiable
             if (check_type == CHECK_FINAL) {
-              bool decisionEngineDone = proxy->isDecisionEngineDone();
+	      bool decisionEngineDone = proxy->isDecisionEngineDone();
               // Unless a lemma has added more stuff to the queues
               if (!decisionEngineDone  &&
-                  (!order_heap.empty() || qhead < trail.size()) ) {
+		  (!order_heap.empty() || qhead < trail.size()) ) {
                 check_type = CHECK_WITH_THEORY;
                 continue;
               } else if (recheck) {

@@ -3,7 +3,6 @@
 # add support for more theories, just list them here in the same order
 # you would to the LFSC proof-checker binary.
 #
-
 CORE_PLFS = sat.plf smt.plf th_base.plf th_arrays.plf th_bv.plf th_bv_bitblast.plf th_bv_rewrites.plf th_real.plf th_int.plf
 
 noinst_LTLIBRARIES = libsignatures.la

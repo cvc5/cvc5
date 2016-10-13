@@ -109,8 +109,6 @@ tokens {
 
   SUBTYPE_TOK = 'SUBTYPE';
   SET_TOK = 'SET';
-  
-  TUPLE_TOK = 'TUPLE';
 
   FORALL_TOK = 'FORALL';
   EXISTS_TOK = 'EXISTS';
@@ -203,12 +201,6 @@ tokens {
   BVSGT_TOK = 'BVSGT';
   BVSLE_TOK = 'BVSLE';
   BVSGE_TOK = 'BVSGE';
-  
-  // Relations
-  JOIN_TOK = 'JOIN';
-  TRANSPOSE_TOK = 'TRANSPOSE';
-  PRODUCT_TOK = 'PRODUCT';
-  TRANSCLOSURE_TOK = 'TCLOSURE';
 
   // Strings
 
@@ -315,14 +307,9 @@ int getOperatorPrecedence(int type) {
   case STAR_TOK:
   case INTDIV_TOK:
   case DIV_TOK:
-  case TUPLE_TOK:
   case MOD_TOK: return 23;
   case PLUS_TOK:
-  case MINUS_TOK:
-  case JOIN_TOK:
-  case TRANSPOSE_TOK:
-  case PRODUCT_TOK:
-  case TRANSCLOSURE_TOK: return 24;
+  case MINUS_TOK: return 24;
   case LEQ_TOK:
   case LT_TOK:
   case GEQ_TOK:
@@ -359,9 +346,6 @@ Kind getOperatorKind(int type, bool& negate) {
   case OR_TOK: return kind::OR;
   case XOR_TOK: return kind::XOR;
   case AND_TOK: return kind::AND;
-  
-  case PRODUCT_TOK: return kind::PRODUCT;
-  case JOIN_TOK: return kind::JOIN;
 
     // comparisonBinop
   case EQUAL_TOK: return kind::EQUAL;
@@ -1238,8 +1222,8 @@ restrictedTypePossiblyFunctionLHS[CVC4::Type& t,
   | ARRAY_TOK restrictedType[t,check] OF_TOK restrictedType[t2,check]
     { t = EXPR_MANAGER->mkArrayType(t, t2); }
   | SET_TOK OF_TOK restrictedType[t,check]
-    { t = EXPR_MANAGER->mkSetType(t); } 
-  
+    { t = EXPR_MANAGER->mkSetType(t); }
+
     /* subtypes */
   | SUBTYPE_TOK LPAREN
     /* A bit tricky: this LAMBDA expression cannot refer to constants
@@ -1488,8 +1472,6 @@ booleanBinop[unsigned& op]
   | OR_TOK
   | XOR_TOK
   | AND_TOK
-  | JOIN_TOK
-  | PRODUCT_TOK
   ;
 
 comparison[CVC4::Expr& f]
@@ -1669,20 +1651,6 @@ bvNegTerm[CVC4::Expr& f]
     /* BV neg */
   : BVNEG_TOK bvNegTerm[f]
     { f = MK_EXPR(CVC4::kind::BITVECTOR_NOT, f); }
-  | TRANSPOSE_TOK bvNegTerm[f]
-    { f = MK_EXPR(CVC4::kind::TRANSPOSE, f); } 
-  | TRANSCLOSURE_TOK bvNegTerm[f]
-    { f = MK_EXPR(CVC4::kind::TCLOSURE, f); }
-  | TUPLE_TOK LPAREN bvNegTerm[f] RPAREN
-    { std::vector<Type> types;
-      std::vector<Expr> args;
-      args.push_back(f);
-	  types.push_back(f.getType());
-      DatatypeType t = EXPR_MANAGER->mkTupleType(types);
-      const Datatype& dt = t.getDatatype();
-      args.insert( args.begin(), dt[0].getConstructor() );
-      f = MK_EXPR(kind::APPLY_CONSTRUCTOR, args);
-    }             
   | postfixTerm[f]
   ;
 
@@ -2001,8 +1969,8 @@ simpleTerm[CVC4::Expr& f]
   Type t, t2;
 }
     /* if-then-else */
-  : iteTerm[f] 
-        
+  : iteTerm[f]
+
     /* parenthesized sub-formula / tuple literals */
   | LPAREN formula[f] { args.push_back(f); }
     ( COMMA formula[f] { args.push_back(f); } )* RPAREN
@@ -2019,15 +1987,14 @@ simpleTerm[CVC4::Expr& f]
         args.insert( args.begin(), dt[0].getConstructor() );
         f = MK_EXPR(kind::APPLY_CONSTRUCTOR, args);
       }
-    }    
+    }
 
     /* empty tuple literal */
   | LPAREN RPAREN
     { std::vector<Type> types;
       DatatypeType t = EXPR_MANAGER->mkTupleType(types);
       const Datatype& dt = t.getDatatype();
-      f = MK_EXPR(kind::APPLY_CONSTRUCTOR, dt[0].getConstructor()); }       
-                  
+      f = MK_EXPR(kind::APPLY_CONSTRUCTOR, dt[0].getConstructor()); }
     /* empty record literal */
   | PARENHASH HASHPAREN
     { DatatypeType t = EXPR_MANAGER->mkRecordType(std::vector< std::pair<std::string, Type> >());

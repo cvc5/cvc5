@@ -267,9 +267,6 @@ libcvc4_la_SOURCES = \
 	theory/sets/theory_sets.h \
 	theory/sets/theory_sets_private.cpp \
 	theory/sets/theory_sets_private.h \
-	theory/sets/theory_sets_rels.cpp \
-	theory/sets/theory_sets_rels.h \
-	theory/sets/rels_utils.h \
 	theory/sets/theory_sets_rewriter.cpp \
 	theory/sets/theory_sets_rewriter.h \
 	theory/sets/theory_sets_type_enumerator.h \

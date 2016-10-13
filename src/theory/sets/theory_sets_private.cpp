@@ -97,11 +97,7 @@ void TheorySetsPrivate::check(Theory::Effort level) {
     // and that leads to conflict (externally).
     if(d_conflict) { return; }
     Debug("sets") << "[sets]  is complete = " << isComplete() << std::endl;
-
   }
-
-  // invoke the relational solver
-  d_rels->check(level);
 
   if( (level == Theory::EFFORT_FULL || options::setsEagerLemmas() ) && !isComplete()) {
     lemma(getLemma(), SETS_LEMMA_OTHER);
@@ -127,16 +123,19 @@ void TheorySetsPrivate::assertEquality(TNode fact, TNode reason, bool learnt)
 
   bool polarity = fact.getKind() != kind::NOT;
   TNode atom = polarity ? fact : fact[0];
+
   // fact already holds
   if( holds(atom, polarity) ) {
     Debug("sets-assert") << "[sets-assert]   already present, skipping" << std::endl;
     return;
   }
+
   // assert fact & check for conflict
   if(learnt) {
     registerReason(reason, /*save=*/ true);
   }
   d_equalityEngine.assertEquality(atom, polarity, reason);
+
   if(!d_equalityEngine.consistent()) {
     Debug("sets-assert") << "[sets-assert]   running into a conflict" << std::endl;
     d_conflict = true;
@@ -708,11 +707,6 @@ const TheorySetsPrivate::Elements& TheorySetsPrivate::getElements
                           std::inserter(cur, cur.begin()) );
       break;
     }
-    case kind::JOIN: 
-    case kind::TCLOSURE:
-    case kind::TRANSPOSE:
-    case kind::PRODUCT:
-      break;
     default:
       Assert(theory::kindToTheoryId(k) != theory::THEORY_SETS,
              (std::string("Kind belonging to set theory not explicitly handled: ") + kindToString(k)).c_str());
@@ -733,7 +727,6 @@ bool TheorySetsPrivate::checkModel(const SettermElementsMap& settermElementsMap,
                       << std::endl;
 
   Assert(S.getType().isSet());
-  std::set<Node> temp_nodes;
 
   const Elements emptySetOfElements;
   const Elements& saved =
@@ -776,74 +769,6 @@ bool TheorySetsPrivate::checkModel(const SettermElementsMap& settermElementsMap,
     case kind::SETMINUS:
       std::set_difference(left.begin(), left.end(), right.begin(), right.end(),
                           std::inserter(cur, cur.begin()) );
-      break;
-    case kind::PRODUCT: {
-      std::set<Node> new_tuple_set;
-      Elements::const_iterator left_it = left.begin();
-      int left_len = (*left_it).getType().getTupleLength();
-      TypeNode tn = S.getType().getSetElementType();
-      while(left_it != left.end()) {
-        Trace("rels-debug") << "Sets::postRewrite processing left_it = " <<  *left_it << std::endl;
-        std::vector<Node> left_tuple;
-        left_tuple.push_back(Node::fromExpr(tn.getDatatype()[0].getConstructor()));
-        for(int i = 0; i < left_len; i++) {
-          left_tuple.push_back(RelsUtils::nthElementOfTuple(*left_it,i));
-        }
-        Elements::const_iterator right_it = right.begin();
-        int right_len = (*right_it).getType().getTupleLength();
-        while(right_it != right.end()) {
-          std::vector<Node> right_tuple;
-          for(int j = 0; j < right_len; j++) {
-            right_tuple.push_back(RelsUtils::nthElementOfTuple(*right_it,j));
-          }
-          std::vector<Node> new_tuple;
-          new_tuple.insert(new_tuple.end(), left_tuple.begin(), left_tuple.end());
-          new_tuple.insert(new_tuple.end(), right_tuple.begin(), right_tuple.end());
-          Node composed_tuple = NodeManager::currentNM()->mkNode(kind::APPLY_CONSTRUCTOR, new_tuple);
-          temp_nodes.insert(composed_tuple);
-          new_tuple_set.insert(composed_tuple);
-          right_it++;
-        }
-        left_it++;
-      }
-      cur.insert(new_tuple_set.begin(), new_tuple_set.end());
-      Trace("rels-debug") << " ***** Done with check model for product operator" << std::endl;
-      break;
-    }
-    case kind::JOIN: {
-      std::set<Node> new_tuple_set;
-      Elements::const_iterator left_it = left.begin();
-      int left_len = (*left_it).getType().getTupleLength();
-      TypeNode tn = S.getType().getSetElementType();
-      while(left_it != left.end()) {
-        std::vector<Node> left_tuple;
-        left_tuple.push_back(Node::fromExpr(tn.getDatatype()[0].getConstructor()));
-        for(int i = 0; i < left_len - 1; i++) {
-          left_tuple.push_back(RelsUtils::nthElementOfTuple(*left_it,i));
-        }
-        Elements::const_iterator right_it = right.begin();
-        int right_len = (*right_it).getType().getTupleLength();
-        while(right_it != right.end()) {
-          if(RelsUtils::nthElementOfTuple(*left_it,left_len-1) == RelsUtils::nthElementOfTuple(*right_it,0)) {
-            std::vector<Node> right_tuple;
-            for(int j = 1; j < right_len; j++) {
-              right_tuple.push_back(RelsUtils::nthElementOfTuple(*right_it,j));
-            }
-            std::vector<Node> new_tuple;
-            new_tuple.insert(new_tuple.end(), left_tuple.begin(), left_tuple.end());
-            new_tuple.insert(new_tuple.end(), right_tuple.begin(), right_tuple.end());
-            Node composed_tuple = NodeManager::currentNM()->mkNode(kind::APPLY_CONSTRUCTOR, new_tuple);
-            new_tuple_set.insert(composed_tuple);
-          }
-          right_it++;
-        }
-        left_it++;
-      }
-      cur.insert(new_tuple_set.begin(), new_tuple_set.end());
-      Trace("rels-debug") << " ***** Done with check model for JOIN operator" << std::endl;
-      break;
-    }
-    case kind::TCLOSURE:
       break;
     default:
       Unhandled();
@@ -1079,20 +1004,20 @@ void TheorySetsPrivate::collectModelInfo(TheoryModel* m, bool fullModel)
     m->assertRepresentative(shape);
   }
 
-// #ifdef CVC4_ASSERTIONS
-//   bool checkPassed = true;
-//   BOOST_FOREACH(TNode term, terms) {
-//     if( term.getType().isSet() ) {
-//       checkPassed &= checkModel(settermElementsMap, term);
-//     }
-//   }
-//   if(Trace.isOn("sets-checkmodel-ignore")) {
-//     Trace("sets-checkmodel-ignore") << "[sets-checkmodel-ignore] checkPassed value was " << checkPassed << std::endl;
-//   } else {
-//     Assert( checkPassed,
-//             "THEORY_SETS check-model failed. Run with -d sets-model for details." );
-//   }
-// #endif
+#ifdef CVC4_ASSERTIONS
+  bool checkPassed = true;
+  BOOST_FOREACH(TNode term, terms) {
+    if( term.getType().isSet() ) {
+      checkPassed &= checkModel(settermElementsMap, term);
+    }
+  }
+  if(Trace.isOn("sets-checkmodel-ignore")) {
+    Trace("sets-checkmodel-ignore") << "[sets-checkmodel-ignore] checkPassed value was " << checkPassed << std::endl;
+  } else {
+    Assert( checkPassed,
+            "THEORY_SETS check-model failed. Run with -d sets-model for details." );
+  }
+#endif
 }
 
 Node TheorySetsPrivate::getModelValue(TNode n)
@@ -1371,7 +1296,6 @@ TheorySetsPrivate::TheorySetsPrivate(TheorySets& external,
   d_ccg_i(c),
   d_ccg_j(c),
   d_scrutinize(NULL),
-  d_rels(NULL),
   d_cardEnabled(false),
   d_cardTerms(c),
   d_typesAdded(),
@@ -1391,7 +1315,6 @@ TheorySetsPrivate::TheorySetsPrivate(TheorySets& external,
   d_relTerms(u)
 {
   d_termInfoManager = new TermInfoManager(*this, c, &d_equalityEngine);
-  d_rels = new TheorySetsRels(c, u, &d_equalityEngine, &d_conflict, external);
 
   d_equalityEngine.addFunctionKind(kind::UNION);
   d_equalityEngine.addFunctionKind(kind::INTERSECTION);
@@ -1412,7 +1335,6 @@ TheorySetsPrivate::TheorySetsPrivate(TheorySets& external,
 TheorySetsPrivate::~TheorySetsPrivate()
 {
   delete d_termInfoManager;
-  delete d_rels;
   if( Debug.isOn("sets-scrutinize") ) {
     Assert(d_scrutinize != NULL);
     delete d_scrutinize;
@@ -1651,23 +1573,21 @@ void TheorySetsPrivate::NotifyClass::eqNotifyConstantTermMerge(TNode t1, TNode t
   Debug("sets-eq") << "[sets-eq] eqNotifyConstantTermMerge " << " t1 = " << t1 << " t2 = " << t2 << std::endl;
   d_theory.conflict(t1, t2);
 }
-//
- void TheorySetsPrivate::NotifyClass::eqNotifyNewClass(TNode t)
- {
-   Debug("sets-eq") << "[sets-eq] eqNotifyNewClass:" << " t = " << t << std::endl;
-   d_theory.d_rels->eqNotifyNewClass(t);
- }
+
+// void TheorySetsPrivate::NotifyClass::eqNotifyNewClass(TNode t)
+// {
+//   Debug("sets-eq") << "[sets-eq] eqNotifyNewClass:" << " t = " << t << std::endl;
+// }
 
 // void TheorySetsPrivate::NotifyClass::eqNotifyPreMerge(TNode t1, TNode t2)
 // {
 //   Debug("sets-eq") << "[sets-eq] eqNotifyPreMerge:" << " t1 = " << t1 << " t2 = " << t2 << std::endl;
 // }
-//
- void TheorySetsPrivate::NotifyClass::eqNotifyPostMerge(TNode t1, TNode t2)
- {
-   Debug("sets-eq") << "[sets-eq] eqNotifyPostMerge:" << " t1 = " << t1 << " t2 = " << t2 << std::endl;
-   d_theory.d_rels->eqNotifyPostMerge(t1, t2);
- }
+
+// void TheorySetsPrivate::NotifyClass::eqNotifyPostMerge(TNode t1, TNode t2)
+// {
+//   Debug("sets-eq") << "[sets-eq] eqNotifyPostMerge:" << " t1 = " << t1 << " t2 = " << t2 << std::endl;
+// }
 
 // void TheorySetsPrivate::NotifyClass::eqNotifyDisequal(TNode t1, TNode t2, TNode reason)
 // {

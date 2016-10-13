@@ -835,7 +835,7 @@ void LFSCBitVectorProof::printTermBitblasting(Expr term, std::ostream& os) {
   case kind::BITVECTOR_SHL :
   case kind::BITVECTOR_LSHR :
   case kind::BITVECTOR_ASHR : {
-        // these are terms for which bit-blasting is not supported yet
+ 	// these are terms for which bit-blasting is not supported yet
     std::ostringstream paren;
     os <<"(trust_bblast_term _ ";
     paren <<")";

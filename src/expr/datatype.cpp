@@ -859,7 +859,6 @@ bool DatatypeConstructor::isInterpretedFinite() const throw(IllegalArgumentExcep
   if(self.getAttribute(DatatypeUFiniteComputedAttr())) {
     return self.getAttribute(DatatypeUFiniteAttr());
   }
-  bool success = true;
   for(const_iterator i = begin(), i_end = end(); i != i_end; ++i) {
     TypeNode t = TypeNode::fromType( (*i).getRangeType() );
     if(!t.isInterpretedFinite()) {
