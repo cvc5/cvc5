@@ -80,10 +80,12 @@ namespace CVC4 {
    */
   enum CVC4_PUBLIC RoundingMode {
     roundNearestTiesToEven = FE_TONEAREST,
-    roundNearestTiesToAway,
     roundTowardPositive = FE_UPWARD,
     roundTowardNegative = FE_DOWNWARD,
-    roundTowardZero = FE_TOWARDZERO
+    roundTowardZero = FE_TOWARDZERO,
+    // Initializes this to the diagonalization of the 4 other values.
+    roundNearestTiesToAway = (((~FE_TONEAREST) & 0x1) | ((~FE_UPWARD) & 0x2) |
+                              ((~FE_DOWNWARD) & 0x4) | ((~FE_TOWARDZERO) & 0x8))
   }; /* enum RoundingMode */
 
   struct CVC4_PUBLIC RoundingModeHashFunction {
