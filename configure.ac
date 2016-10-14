@@ -1004,11 +1004,11 @@ AC_SEARCH_LIBS([clock_gettime], [rt],
                           [Defined to 1 if clock_gettime() is supported by the platform.])],
                [AC_LIBOBJ([clock_gettime])])
 AC_CHECK_FUNC([strtok_r], [AC_DEFINE([HAVE_STRTOK_R], [1],
-                                     [Defined to 1 if strtok_r() is supported by the platform.])],
-                          [AC_LIBOBJ([strtok_r])])
+                                     [Defined to 1 if strtok_r() is supported by the platform.])])
 AC_CHECK_FUNC([ffs], [AC_DEFINE([HAVE_FFS], [1],
-                                [Defined to 1 if ffs() is supported by the platform.])],
-                     [AC_LIBOBJ([ffs])])
+                                [Defined to 1 if ffs() is supported by the platform.])])
+
+AC_LIBOBJ([strtok_r ffs])
 
 # Check for antlr C++ runtime (defined in config/antlr.m4)
 AC_LIB_ANTLR
@@ -1337,8 +1337,6 @@ else
   AM_CONDITIONAL([CVC4_HAS_THREADS], [false])
   AC_SUBST([CVC4_HAS_THREADS], 0)
 fi
-
-AM_CONDITIONAL([CVC4_NEEDS_REPLACEMENT_FUNCTIONS], [test -n "$LIBOBJS"])
 
 # Final information to the user
 gpl=no
