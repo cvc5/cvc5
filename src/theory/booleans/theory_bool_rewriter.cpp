@@ -168,7 +168,7 @@ RewriteResponse TheoryBoolRewriter::preRewrite(TNode n) {
   }
   case kind::IMPLIES: {
     if (n[0] == ff || n[1] == tt) return RewriteResponse(REWRITE_DONE, tt);
-    if (n[0] == tt && n[0] == ff) return RewriteResponse(REWRITE_DONE, ff);
+    if (n[0] == tt && n[1] == ff) return RewriteResponse(REWRITE_DONE, ff);
     if (n[0] == tt) return RewriteResponse(REWRITE_AGAIN, n[1]);
     if (n[1] == ff) return RewriteResponse(REWRITE_AGAIN, makeNegation(n[0]));
     break;
@@ -259,7 +259,7 @@ RewriteResponse TheoryBoolRewriter::preRewrite(TNode n) {
       // XOR true x
       return RewriteResponse(REWRITE_AGAIN, makeNegation(n[1]));
     } else if(n[1] == tt) {
-      // XCR x true
+      // XOR x true
       return RewriteResponse(REWRITE_AGAIN, makeNegation(n[0]));
     } else if(n[0] == ff) {
       // XOR false x
