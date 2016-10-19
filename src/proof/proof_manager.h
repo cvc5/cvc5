@@ -29,7 +29,7 @@
 #include "theory/logic_info.h"
 #include "theory/substitutions.h"
 #include "util/proof.h"
-
+#include "proof/rewrite_proof.h"
 
 namespace CVC4 {
 
@@ -66,6 +66,7 @@ class UFProof;
 class ArithProof;
 class ArrayProof;
 class BitVectorProof;
+class RewriteProof;
 
 template <class Solver> class LFSCSatProof;
 typedef LFSCSatProof< CVC4::Minisat::Solver> LFSCCoreSatProof;
@@ -142,6 +143,7 @@ class ProofManager {
   CoreSatProof*  d_satProof;
   CnfProof*      d_cnfProof;
   TheoryProofEngine* d_theoryProof;
+  RewriteProofEngine* d_rewriteProof;
 
   // information that will need to be shared across proofs
   ExprSet    d_inputFormulas;
@@ -179,12 +181,14 @@ public:
   static void         initCnfProof(CVC4::prop::CnfStream* cnfStream,
                                    context::Context* ctx);
   static void         initTheoryProofEngine();
+  static void         initRewriteProofEngine();
 
   // getting various proofs
   static Proof*         getProof(SmtEngine* smt);
   static CoreSatProof*  getSatProof();
   static CnfProof*      getCnfProof();
   static TheoryProofEngine* getTheoryProofEngine();
+  static RewriteProofEngine* getRewriteProofEngine();
   static TheoryProof* getTheoryProof( theory::TheoryId id );
   static UFProof* getUfProof();
   static BitVectorProof* getBitVectorProof();

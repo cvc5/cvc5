@@ -325,6 +325,7 @@ TheoryEngine::TheoryEngine(context::Context* context,
 
 #ifdef CVC4_PROOF
   ProofManager::currentPM()->initTheoryProofEngine();
+  ProofManager::currentPM()->initRewriteProofEngine();
 #endif
 
   d_iteUtilities = new ITEUtilities(d_iteRemover.getContainsVisitor());
