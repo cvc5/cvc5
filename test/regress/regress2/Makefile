@@ -1,5 +1,5 @@
 topdir = ../../..
-srcdir = test/regress/regress1
+srcdir = test/regress/regress2
 
 include $(topdir)/Makefile.subdir
 

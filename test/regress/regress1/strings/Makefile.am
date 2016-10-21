@@ -17,21 +17,15 @@ endif
 # If a test shouldn't be run in e.g. competition mode,
 # put it below in "TESTS +="
 TESTS =	\
-	abz5_1400.smt \
-	pursuit-safety-11.smt \
-	pursuit-safety-12.smt \
-	sc-7.base.cvc.smt \
-	uart-8.base.cvc.smt \
-	qlock-4-10-9.base.cvc.smt2 \
-	lpsat-goal-9.smt2 \
-	prp-13-24.smt2
+	cmu-5042-0707-2.smt2 \
+	cmu-dis-0707-3.smt2
 
 EXTRA_DIST = $(TESTS)
 
 # synonyms for "check" in this directory
-.PHONY: regress regress2 test
-regress regress2 test: check
+.PHONY: regress regress1 test
+regress regress1 test: check
 
 # do nothing in this subdir
-.PHONY: regress0 regress1 regress3 regress4
-regress0 regress1 regress3 regress4:
+.PHONY: regress0 regress2 regress3 regress4
+regress0 regress2 regress3 regress4:
