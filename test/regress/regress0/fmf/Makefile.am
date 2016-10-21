@@ -53,7 +53,6 @@ TESTS =	\
 	nun-0208-to.smt2 \
 	datatypes-ufinite.smt2 \
 	datatypes-ufinite-nested.smt2 \
-	ForElimination-scala-9.smt2 \
 	agree466.smt2 \
 	LeftistHeap.scala-8-ncm.smt2 \
 	sc-crash-052316.smt2 \

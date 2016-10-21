@@ -19,7 +19,6 @@ MAKEFLAGS = -k
 # If a test shouldn't be run in e.g. competition mode,
 # put it below in "TESTS +="
 TESTS =	\
-        bug330.smt2 \
 	bug336.smt2 \
 	fuzz01.delta01.smt \
 	fuzz02.smt \

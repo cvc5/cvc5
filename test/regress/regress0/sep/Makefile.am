@@ -33,20 +33,16 @@ TESTS =	\
   nspatial-simp.smt2 \
   sep-neg-1refine.smt2 \
   sep-neg-simple.smt2 \
-  sep-simp-unc.smt2 \
   sep-simp-unsat-emp.smt2 \
   simple-neg-sat.smt2 \
   wand-simp-sat.smt2 \
   wand-simp-sat2.smt2 \
   wand-simp-unsat.smt2 \
   sep-nterm-again.smt2 \
-  split-find-unsat.smt2 \
-  split-find-unsat-w-emp.smt2 \
   nemp.smt2 \
   wand-crash.smt2 \
   wand-nterm-simp.smt2 \
   wand-nterm-simp2.smt2 \
-  loop-1220.smt2 \
   chain-int.smt2 \
   sep-neg-swap.smt2 \
   sep-neg-nstrict2.smt2 \

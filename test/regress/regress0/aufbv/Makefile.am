@@ -48,7 +48,6 @@ TESTS =	\
 	fuzz07.smt \
 	fuzz08.smt \
 	fuzz09.smt \
-	fuzz10.smt \
 	fuzz11.smt \
 	fuzz12.smt \
 	fuzz13.smt \

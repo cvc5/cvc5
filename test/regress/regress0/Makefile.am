@@ -147,16 +147,13 @@ BUG_TESTS = \
 	bug398.smt2 \
 	bug421.smt2 \
 	bug421b.smt2 \
-	bug425.cvc \
 	bug480.smt2 \
 	bug484.smt2 \
 	bug486.cvc \
 	bug507.smt2 \
 	bug512.minimized.smt2 \
 	bug516.smt2 \
-	bug519.smt2 \
 	bug520.smt2 \
-	bug521.smt2 \
 	bug521.minimized.smt2 \
 	bug522.smt2 \
 	bug528a.smt2 \

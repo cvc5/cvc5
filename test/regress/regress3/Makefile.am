@@ -20,14 +20,21 @@ MAKEFLAGS = -k
 # These are run for all build profiles.
 # If a test shouldn't be run in e.g. competition mode,
 # put it below in "TESTS +="
-TESTS =	bug143.smt \
-	C880mul.miter.shuffled-as.sat03-348.smt \
-	comb2.shuffled-as.sat03-420.smt \
-	hole10.cvc \
-	instance_1151.smt \
-	NEQ016_size5.smt
+TESTS =	bmc-ibm-1.smt \
+	bmc-ibm-2.smt \
+	bmc-ibm-5.smt \
+	bmc-ibm-7.smt \
+	friedman_n6_i4.smt \
+	hole9.cvc \
+	qwh.35.405.shuffled-as.sat03-1651.smt \
+	eq_diamond14.smt \
+	incorrect1.smt \
+	incorrect2.smt \
+	bug497.cvc \
+	pp-regfile.smt
 
-EXTRA_DIST = $(TESTS)
+EXTRA_DIST = $(TESTS) \
+	pp-regfile.smt.expect
 
 #if CVC4_BUILD_PROFILE_COMPETITION
 #else
@@ -44,5 +51,5 @@ EXTRA_DIST = $(TESTS)
 regress regress3 test: check
 
 # do nothing in this subdir
-.PHONY: regress0 regress1 regress2
-regress0 regress1 regress2:
+.PHONY: regress0 regress1 regress2 regress4
+regress0 regress1 regress2 regress4:

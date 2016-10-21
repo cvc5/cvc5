@@ -50,7 +50,6 @@ TESTS =	\
 	fuzz15201.smt2 \
 	fuzz31811.smt2 \
 	rec_copy_loop_check_heap_access_43_4.smt2 \
-	sets-disequal.smt2 \
 	sets-equal.smt2 \
 	sets-inter.smt2 \
 	sets-sample.smt2 \
@@ -64,8 +63,7 @@ TESTS =	\
 	union-1b.smt2 \
 	union-2.smt2 \
 	dt-simp-mem.smt2 \
-	card3-ground.smt2 \
-	card-vc6-minimized.smt2
+	card3-ground.smt2
 
 EXTRA_DIST = $(TESTS)
 

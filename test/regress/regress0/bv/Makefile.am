@@ -78,7 +78,6 @@ SMT_TESTS = \
 	fuzz33.delta01.smt \
 	fuzz33.smt \
 	fuzz34.delta01.smt \
-	fuzz34.smt \
 	fuzz35.delta01.smt \
 	fuzz35.smt \
 	fuzz36.delta01.smt \
@@ -86,7 +85,6 @@ SMT_TESTS = \
 	fuzz37.delta01.smt \
 	fuzz37.smt \
 	fuzz38.delta01.smt \
-	fuzz38.smt \
 	fuzz39.delta01.smt \
 	fuzz39.smt \
 	fuzz40.delta01.smt \
@@ -95,8 +93,7 @@ SMT_TESTS = \
 	calc2_sec2_shifter_mult_bmc15.atlas.delta01.smt \
 	smtcompbug.smt \
 	unsound1.smt2 \
-	unsound1-reduced.smt2 \
-	bv-proof00.smt
+	unsound1-reduced.smt2
 
 # Regression tests for SMT2 inputs
 SMT2_TESTS = divtest.smt2
