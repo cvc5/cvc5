@@ -1,5 +1,5 @@
 SUBDIRS = regress0
-DIST_SUBDIRS = regress0 regress1 regress2 regress3
+DIST_SUBDIRS = regress0 regress1 regress2 regress3 regress4
 
 @mk_include@ @srcdir@/Makefile.levels
 
@@ -7,11 +7,12 @@ MAKEFLAGS = -k
 
 export VERBOSE = 1
 
-.PHONY: regress0 regress1 regress2 regress3
+.PHONY: regress0 regress1 regress2 regress3 regress4
 regress1: regress0
 regress2: regress0 regress1
 regress3: regress0 regress1 regress2
-regress0 regress1 regress2 regress3:
+regress4: regress0 regress1 regress2 regress3
+regress0 regress1 regress2 regress3 regress4:
 	-cd $@ && $(MAKE) check
 
 # synonyms for "check" in this directory
