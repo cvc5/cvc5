@@ -1,0 +1,26 @@
+% EXPECT: sat
+OPTION "logic" "ALL_SUPPORTED";
+IntPair: TYPE = [INT, INT];
+IntPairPair: TYPE = [INT, INT, INT, INT];
+x : SET OF IntPair;
+y : SET OF IntPair;
+z : SET OF IntPairPair;
+z1 : SET OF IntPair;
+w1 : SET OF IntPair;
+z2 : SET OF IntPair;
+w2 : SET OF IntPair;
+P : SET OF IntPairPair -> BOOLEAN;
+
+ASSERT z = (x PRODUCT y);
+
+ASSERT P( z );
+ASSERT NOT P( {(0,1,2,3)} );
+
+ASSERT (0,1) IS_IN z1;
+ASSERT (0,1) IS_IN z2;
+ASSERT (2,3) IS_IN w1;
+ASSERT (2,3) IS_IN w2;
+
+ASSERT ( x = z1 AND y = w1 ) OR ( x = z2 AND y = w2 );
+
+CHECKSAT;

@@ -17,12 +17,12 @@ expert-option setsCare1 --sets-care1 bool :default false
 option setsPropFull --sets-prop-full bool :default true
  additional propagation at full effort
 
-option setsAggRewrite --sets-agg-rewrite bool :default false
- aggressive sets rewriting
-
 option setsGuessEmpty --sets-guess-empty int :default 0
  when to guess leaf nodes being empty (0...2 : most aggressive..least aggressive)
 
 option setsSlowLemmas --sets-slow-lemmas bool :default true
 
+option setsInferAsLemmas --sets-infer-as-lemmas bool :default true
+ send inferences as lemmas
+ 
 endmodule

@@ -24,10 +24,15 @@
 
 #include "theory/theory.h"
 #include "theory/uf/equality_engine.h"
-#include "theory/sets/term_info.h"
+#include "theory/sets/theory_sets_rels.h"
 
 namespace CVC4 {
 namespace theory {
+
+namespace quantifiers{
+  class TermArgTrie;
+}
+
 namespace sets {
 
 /** Internal classes, forward declared here */
@@ -36,6 +41,107 @@ class TheorySets;
 class TheorySetsScrutinize;
 
 class TheorySetsPrivate {
+//new implementation
+  typedef context::CDHashMap< Node, bool, NodeHashFunction> NodeBoolMap;
+  typedef context::CDHashMap< Node, int, NodeHashFunction> NodeIntMap;
+  typedef context::CDHashSet<Node, NodeHashFunction> NodeSet;
+  typedef context::CDHashMap< Node, Node, NodeHashFunction > NodeMap;
+private:
+  TheorySetsRels * d_rels;
+public:
+  void eqNotifyNewClass(TNode t);
+  void eqNotifyPreMerge(TNode t1, TNode t2);
+  void eqNotifyPostMerge(TNode t1, TNode t2);
+  void eqNotifyDisequal(TNode t1, TNode t2, TNode reason);
+private:
+  bool ee_areEqual( Node a, Node b );
+  bool ee_areDisequal( Node a, Node b );
+  NodeIntMap d_members;
+  std::map< Node, std::vector< Node > > d_members_data;
+  bool assertFact( Node fact, Node exp );
+  // inferType : 1 : must send out as lemma, -1 : do internal inferences if possible, 0 : default.
+  bool assertFactRec( Node fact, Node exp, std::vector< Node >& lemma, int inferType = 0 );
+  // add inferences corresponding to ( exp => fact ) to lemmas, equality engine
+  void assertInference( Node fact, Node exp, std::vector< Node >& lemmas, const char * c, int inferType = 0 );
+  void assertInference( Node fact, std::vector< Node >& exp, std::vector< Node >& lemmas, const char * c, int inferType = 0 );
+  void assertInference( std::vector< Node >& conc, Node exp, std::vector< Node >& lemmas, const char * c, int inferType = 0 );
+  void assertInference( std::vector< Node >& conc, std::vector< Node >& exp, std::vector< Node >& lemmas, const char * c, int inferType = 0 );
+  // send lemma ( n OR (NOT n) ) immediately
+  void split( Node n, int reqPol=0 );
+  void fullEffortCheck();
+  void checkDownwardsClosure( std::vector< Node >& lemmas );
+  void checkUpwardsClosure( std::vector< Node >& lemmas );
+  void checkDisequalities( std::vector< Node >& lemmas );
+  bool isMember( Node x, Node s );
+  
+  void flushLemmas( std::vector< Node >& lemmas );
+  Node getProxy( Node n );
+  Node getCongruent( Node n );
+  Node getEmptySet( TypeNode tn );
+  bool hasLemmaCached( Node lem );
+  bool hasProcessed();
+  
+  void addCarePairs( quantifiers::TermArgTrie * t1, quantifiers::TermArgTrie * t2, unsigned arity, unsigned depth, unsigned& n_pairs );
+  
+  Node d_true;
+  Node d_false;
+  Node d_zero;
+  NodeBoolMap d_deq;
+  NodeSet d_deq_processed;
+  NodeSet d_keep;
+  std::vector< Node > d_emp_exp;
+  
+  //propagation
+  class EqcInfo
+  {
+  public:
+    EqcInfo( context::Context* c );
+    ~EqcInfo(){}
+    // singleton or emptyset equal to this eqc
+    context::CDO< Node > d_singleton;
+  };
+  /** information necessary for equivalence classes */
+  std::map< Node, EqcInfo* > d_eqc_info;
+  /** get or make eqc info */
+  EqcInfo* getOrMakeEqcInfo( TNode n, bool doMake = false );
+  
+  void addEqualityToExp( Node a, Node b, std::vector< Node >& exp );
+  
+  void debugPrintSet( Node s, const char * c );
+  
+  bool d_sentLemma;
+  bool d_addedFact;
+  NodeMap d_proxy;  
+  NodeMap d_proxy_to_term;  
+  NodeSet d_lemmas_produced;
+  std::vector< Node > d_set_eqc;
+  std::map< Node, std::vector< Node > > d_set_eqc_list;
+  std::map< TypeNode, Node > d_eqc_emptyset;
+  std::map< Node, Node > d_eqc_singleton;
+  std::map< TypeNode, Node > d_emptyset;
+  std::map< Node, Node > d_congruent;
+  std::map< Node, std::vector< Node > > d_nvar_sets;
+  std::map< Node, std::map< Node, Node > > d_pol_mems[2];
+  std::map< Node, std::map< Node, Node > > d_members_index;
+  std::map< Node, Node > d_singleton_index;
+  std::map< Kind, std::map< Node, std::map< Node, Node > > > d_bop_index;
+  std::map< Kind, std::vector< Node > > d_op_list;
+  //cardinality
+private:
+  bool d_card_enabled;
+  std::map< Node, Node > d_eqc_to_card_term;
+  NodeSet d_card_processed;
+  std::map< Node, std::vector< Node > > d_card_parent;
+  std::map< Node, std::map< Node, std::vector< Node > > > d_ff;
+  std::map< Node, std::vector< Node > > d_nf;
+  std::map< Node, Node > d_card_base;
+  void checkCardBuildGraph( std::vector< Node >& lemmas );
+  void registerCardinalityTerm( Node n, std::vector< Node >& lemmas );
+  void checkCardCycles( std::vector< Node >& lemmas );
+  void checkCardCyclesRec( Node eqc, std::vector< Node >& curr, std::vector< Node >& exp, std::vector< Node >& lemmas );
+  void checkNormalForms( std::vector< Node >& lemmas, std::vector< Node >& intro_sets );
+  void checkNormalForm( Node eqc, std::vector< Node >& intro_sets );
+  void checkMinCard( std::vector< Node >& lemmas );
 public:
 
   /**
@@ -61,8 +167,6 @@ public:
   Node explain(TNode);
 
   EqualityStatus getEqualityStatus(TNode a, TNode b);
-
-  Node getModelValue(TNode);
 
   void preRegisterTerm(TNode node);
 
@@ -101,18 +205,14 @@ private:
     bool eqNotifyTriggerPredicate(TNode predicate, bool value);
     bool eqNotifyTriggerTermEquality(TheoryId tag, TNode t1, TNode t2, bool value);
     void eqNotifyConstantTermMerge(TNode t1, TNode t2);
-    void eqNotifyNewClass(TNode t) {}
-    void eqNotifyPreMerge(TNode t1, TNode t2) {}
-    void eqNotifyPostMerge(TNode t1, TNode t2) {}
-    void eqNotifyDisequal(TNode t1, TNode t2, TNode reason) {}
+    void eqNotifyNewClass(TNode t);
+    void eqNotifyPreMerge(TNode t1, TNode t2);
+    void eqNotifyPostMerge(TNode t1, TNode t2);
+    void eqNotifyDisequal(TNode t1, TNode t2, TNode reason);
   } d_notify;
 
   /** Equality engine */
   eq::EqualityEngine d_equalityEngine;
-
-  /** True and false constant nodes */
-  Node d_trueNode;
-  Node d_falseNode;
 
   context::CDO<bool> d_conflict;
   Node d_conflictNode;
@@ -122,179 +222,11 @@ private:
 
   /** generate and send out conflict node */
   void conflict(TNode, TNode);
-
-  /** send out a lemma */
-  enum SetsLemmaTag {
-    SETS_LEMMA_DISEQUAL,
-    SETS_LEMMA_MEMBER,
-    SETS_LEMMA_GRAPH,
-    SETS_LEMMA_OTHER
-  };
-
-  /**
-   * returns true if a lemmas was generated
-   * returns false otherwise (found in cache)
-   */
-  bool lemma(Node n, SetsLemmaTag t);
-
-  class TermInfoManager {
-    TheorySetsPrivate& d_theory;
-    context::Context* d_context;
-    eq::EqualityEngine* d_eqEngine;
-  public:
-    CDNodeSet d_terms;
-  private:
-    typedef std::hash_map<TNode, TheorySetsTermInfo*, TNodeHashFunction> SetsTermInfoMap;
-    SetsTermInfoMap d_info;
-
-    void mergeLists(CDTNodeList* la, const CDTNodeList* lb) const;
-    void pushToSettermPropagationQueue(TNode x, TNode S, bool polarity);
-    void pushToSettermPropagationQueue(CDTNodeList* l, TNode S, bool polarity);
-    void pushToSettermPropagationQueue(TNode x, CDTNodeList* l, bool polarity);
-  public:
-    TermInfoManager(TheorySetsPrivate&,
-                    context::Context* satContext,
-                    eq::EqualityEngine*);
-    ~TermInfoManager();
-    void notifyMembership(TNode fact);
-    const CDTNodeList* getParents(TNode x);
-    const CDTNodeList* getMembers(TNode S);
-    Node getModelValue(TNode n);
-    const CDTNodeList* getNonMembers(TNode S);
-    void addTerm(TNode n);
-    void mergeTerms(TNode a, TNode b);
-  };
-  TermInfoManager* d_termInfoManager;
-
-  /******
-   * Card Vars :
-   *
-   * mapping from set terms to correpsonding cardinality variable
-   * 
-   * in the ::check function, when we get one of those cardinality
-   * variables to be assigned to 0, we will assert in equality engine
-   * to be equal to empty set.
-   *
-   * if required, we will add more filters so it doesn't leak to
-   * outside world
-   */
-  Node getCardVar(TNode n);
-  Node newCardVar(TNode n);
-  bool isCardVar(TNode n);
-  typedef std::hash_map <Node, Node, NodeHashFunction> NodeNodeHashMap;
-  NodeNodeHashMap d_setTermToCardVar;
-  NodeNodeHashMap d_cardVarToSetTerm;
   
-  /** Assertions and helper functions */
-  bool present(TNode atom);
-  bool holds(TNode lit) {
-    bool polarity = lit.getKind() == kind::NOT ? false : true;
-    TNode atom = polarity ? lit : lit[0];
-    return holds(atom, polarity);
-  }
-  bool holds(TNode atom, bool polarity);
-
-  void assertEquality(TNode fact, TNode reason, bool learnt);
-  void assertMemebership(TNode fact, TNode reason, bool learnt);
-
-  /** Propagation / learning and helper functions. */
-  context::CDQueue< std::pair<Node, Node> > d_propagationQueue;
-  context::CDQueue< std::pair<TNode, TNode> > d_settermPropagationQueue;
-
-  void doSettermPropagation(TNode x, TNode S);
-  void registerReason(TNode reason, bool save);
-  void learnLiteral(TNode atom, bool polarity, Node reason);
-  void learnLiteral(TNode lit, Node reason) {
-    if(lit.getKind() == kind::NOT) {
-      learnLiteral(lit[0], false, reason);
-    } else {
-      learnLiteral(lit, true, reason);
-    }
-  }
-  void finishPropagation();
-
-  // for any nodes we need to save, because others use TNode
-  context::CDHashSet <Node, NodeHashFunction> d_nodeSaver;
-
-  /** Lemmas and helper functions */
-  context::CDQueue <Node> d_pending;
-  context::CDQueue <Node> d_pendingDisequal;
-  context::CDHashSet <Node, NodeHashFunction> d_pendingEverInserted;
-
-  void addToPending(Node n);
-  bool isComplete();
-  Node getLemma();
-
-  /** model generation and helper function */
-  typedef std::set<TNode> Elements;
-  typedef std::hash_map<TNode, Elements, TNodeHashFunction> SettermElementsMap;
-  const Elements& getElements(TNode setterm, SettermElementsMap& settermElementsMap) const;
-  Node elementsToShape(Elements elements, TypeNode setType) const;
-  Node elementsToShape(std::set<Node> elements, TypeNode setType) const;
-  bool checkModel(const SettermElementsMap& settermElementsMap, TNode S) const;
-
-  context::CDHashMap <Node, Node, NodeHashFunction> d_modelCache;
-
-
-  // sharing related
-  context::CDO<unsigned>  d_ccg_i, d_ccg_j;
-
-  // more debugging stuff
-  friend class TheorySetsScrutinize;
-  TheorySetsScrutinize* d_scrutinize;
-  void dumpAssertionsHumanified() const;  /** do some formatting to make them more readable */
-
-
-
-  /***** Cardinality handling *****/
-  bool d_cardEnabled;
-  void enableCard();
-  void cardCreateEmptysetSkolem(TypeNode t);
-
-  CDNodeSet d_cardTerms;
-  std::set<TypeNode> d_typesAdded;
-  CDNodeSet d_processedCardTerms;
-  std::map<std::pair<Node, Node>, bool> d_processedCardPairs;
-  CDNodeSet d_cardLowerLemmaCache;
-  void registerCard(TNode);
-  void processCard(Theory::Effort level);
-
-  /* Graph handling */
-  std::map<TNode, std::set<TNode> > edgesFd;
-  std::map<TNode, std::set<TNode> > edgesBk;
-  std::set< std::pair<TNode, TNode> > disjoint;
-  std::set<TNode> leaves;
-  void buildGraph();
-
-  /* For calculus as in paper */
-  void processCard2(Theory::Effort level);
-  CDNodeSet d_V;
-  context::CDHashMap <TNode, std::vector<TNode>, TNodeHashFunction > d_E;
-  void add_edges(TNode source, TNode dest);
-  void add_edges(TNode source, TNode dest1, TNode dest2);
-  void add_edges(TNode source, TNode dest1, TNode dest2, TNode dest3);
-  void add_edges(TNode source, const std::vector<TNode>& dests);
-  void add_node(TNode vertex);
-  void merge_nodes(std::set<TNode> a, std::set<TNode> b, Node reason);
-  std::set<TNode> get_leaves(Node vertex);
-  std::set<TNode> get_leaves(Node vertex1, Node vertex2);
-  std::set<TNode> get_leaves(Node vertex1, Node vertex2, Node vertex3);
-  std::set<TNode> non_empty(std::set<TNode> vertices);
-  void print_graph(bool printmodel=false);
-  context::CDQueue < std::pair<TNode, TNode> > d_graphMergesPending;
-  context::CDList<Node> d_allSetEqualitiesSoFar;
-  Node eqSoFar();
-  Node eqemptySoFar();
-
-  std::set<TNode> getNonEmptyLeaves(TNode);
-  CDNodeSet d_lemmasGenerated;
-  bool d_newLemmaGenerated;
-
-  void guessLeavesEmptyLemmas();
-
-
-  /** relevant terms */
-  CDNodeSet d_relTerms;
+  bool isCareArg( Node n, unsigned a );
+public:
+  bool isEntailed( Node n, bool pol );
+  
 };/* class TheorySetsPrivate */
 
 

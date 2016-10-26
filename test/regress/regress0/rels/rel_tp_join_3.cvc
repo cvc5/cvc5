@@ -1,0 +1,28 @@
+% EXPECT: unsat
+% crash on this
+OPTION "logic" "ALL_SUPPORTED";
+IntPair: TYPE = [INT, INT];
+w : SET OF IntPair;
+x : SET OF IntPair;
+y : SET OF IntPair;
+z : SET OF IntPair;
+r : SET OF IntPair;
+
+ASSERT (7, 1) IS_IN x;
+ASSERT (2, 3) IS_IN x;
+ASSERT (7, 3) IS_IN y;
+ASSERT (4, 7) IS_IN y;
+ASSERT (3, 4) IS_IN z;
+ASSERT (3, 3) IS_IN w;
+
+a : IntPair;
+ASSERT a = (4,1);
+%ASSERT r = (((TRANSPOSE x) JOIN y) JOIN (w JOIN z));
+ASSERT NOT (a IS_IN (TRANSPOSE r));
+
+zz : SET OF IntPair;
+ASSERT zz = ((TRANSPOSE x) JOIN y);
+ASSERT NOT ((1,3) IS_IN w);
+ASSERT NOT ((1,3) IS_IN (w | zz) );
+
+CHECKSAT;

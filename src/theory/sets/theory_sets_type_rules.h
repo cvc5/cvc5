@@ -105,7 +105,7 @@ struct MemberTypeRule {
         throw TypeCheckingExceptionPrivate(n, "checking for membership in a non-set");
       }
       TypeNode elementType = n[0].getType(check);
-      if(elementType != setType.getSetElementType()) {
+      if(!setType.getSetElementType().isSubtypeOf(elementType)) {
         throw TypeCheckingExceptionPrivate(n, "member operating on sets of different types");
       }
     }
@@ -182,6 +182,97 @@ struct InsertTypeRule {
     return false;
   }
 };/* struct InsertTypeRule */
+
+struct RelBinaryOperatorTypeRule {
+  inline static TypeNode computeType(NodeManager* nodeManager, TNode n, bool check)
+    throw (TypeCheckingExceptionPrivate, AssertionException) {
+    Assert(n.getKind() == kind::PRODUCT ||
+           n.getKind() == kind::JOIN);
+
+    TypeNode firstRelType = n[0].getType(check);
+    TypeNode secondRelType = n[1].getType(check);
+    TypeNode resultType = firstRelType;
+
+    if(!firstRelType.isSet() || !secondRelType.isSet()) {
+      throw TypeCheckingExceptionPrivate(n, " set operator operates on non-sets");
+    }
+    if(!firstRelType[0].isTuple() || !secondRelType[0].isTuple()) {
+      throw TypeCheckingExceptionPrivate(n, " set operator operates on non-relations (sets of tuples)");
+    }
+
+    std::vector<TypeNode> newTupleTypes;
+    std::vector<TypeNode> firstTupleTypes = firstRelType[0].getTupleTypes();
+    std::vector<TypeNode> secondTupleTypes = secondRelType[0].getTupleTypes();
+
+    // JOIN is not allowed to apply on two unary sets
+    if( n.getKind() == kind::JOIN ) {
+      if((firstTupleTypes.size() == 1) && (secondTupleTypes.size() == 1)) {
+        throw TypeCheckingExceptionPrivate(n, " Join operates on two unary relations");
+      } else if(firstTupleTypes.back() != secondTupleTypes.front()) {
+        throw TypeCheckingExceptionPrivate(n, " Join operates on two non-joinable relations");
+      }
+      newTupleTypes.insert(newTupleTypes.end(), firstTupleTypes.begin(), firstTupleTypes.end()-1);
+      newTupleTypes.insert(newTupleTypes.end(), secondTupleTypes.begin()+1, secondTupleTypes.end());
+    }else if( n.getKind() == kind::PRODUCT ) {
+      newTupleTypes.insert(newTupleTypes.end(), firstTupleTypes.begin(), firstTupleTypes.end());
+      newTupleTypes.insert(newTupleTypes.end(), secondTupleTypes.begin(), secondTupleTypes.end());
+    }
+    resultType = nodeManager->mkSetType(nodeManager->mkTupleType(newTupleTypes));
+
+    return resultType;
+  }
+
+  inline static bool computeIsConst(NodeManager* nodeManager, TNode n) {
+    Assert(n.getKind() == kind::JOIN ||
+           n.getKind() == kind::PRODUCT);
+    return false;
+  }
+};/* struct RelBinaryOperatorTypeRule */
+
+struct RelTransposeTypeRule {
+  inline static TypeNode computeType(NodeManager* nodeManager, TNode n, bool check)
+    throw (TypeCheckingExceptionPrivate, AssertionException) {
+    Assert(n.getKind() == kind::TRANSPOSE);
+    TypeNode setType = n[0].getType(check);
+    if(check && !setType.isSet() && !setType.getSetElementType().isTuple()) {
+        throw TypeCheckingExceptionPrivate(n, "relation transpose operats on non-relation");
+    }
+    std::vector<TypeNode> tupleTypes = setType[0].getTupleTypes();
+    std::reverse(tupleTypes.begin(), tupleTypes.end());
+    return nodeManager->mkSetType(nodeManager->mkTupleType(tupleTypes));
+  }
+
+  inline static bool computeIsConst(NodeManager* nodeManager, TNode n) {
+      return false;
+    }
+};/* struct RelTransposeTypeRule */
+
+struct RelTransClosureTypeRule {
+  inline static TypeNode computeType(NodeManager* nodeManager, TNode n, bool check)
+    throw (TypeCheckingExceptionPrivate, AssertionException) {
+    Assert(n.getKind() == kind::TCLOSURE);
+    TypeNode setType = n[0].getType(check);
+    if(check) {
+      if(!setType.isSet() && !setType.getSetElementType().isTuple()) {
+        throw TypeCheckingExceptionPrivate(n, " transitive closure operates on non-relation");
+      }
+      std::vector<TypeNode> tupleTypes = setType[0].getTupleTypes();
+      if(tupleTypes.size() != 2) {
+        throw TypeCheckingExceptionPrivate(n, " transitive closure operates on non-binary relations");
+      }
+      if(tupleTypes[0] != tupleTypes[1]) {
+        throw TypeCheckingExceptionPrivate(n, " transitive closure operates on non-homogeneous binary relations");
+      }
+    }
+    return setType;
+  }
+
+  inline static bool computeIsConst(NodeManager* nodeManager, TNode n) {
+      Assert(n.getKind() == kind::TCLOSURE);
+      return false;
+    }
+};/* struct RelTransClosureTypeRule */
+
 
 struct SetsProperties {
   inline static Cardinality computeCardinality(TypeNode type) {

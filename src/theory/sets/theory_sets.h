@@ -33,6 +33,7 @@ class TheorySets : public Theory {
 private:
   friend class TheorySetsPrivate;
   friend class TheorySetsScrutinize;
+  friend class TheorySetsRels;
   TheorySetsPrivate* d_internal;
 public:
 
@@ -68,6 +69,8 @@ public:
   void propagate(Effort);
 
   void setMasterEqualityEngine(eq::EqualityEngine* eq);
+  
+  bool isEntailed( Node n, bool pol );
 
 };/* class TheorySets */
 

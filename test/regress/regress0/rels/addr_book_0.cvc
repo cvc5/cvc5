@@ -1,0 +1,49 @@
+% EXPECT: unsat
+OPTION "logic" "ALL_SUPPORTED";
+Atom : TYPE;
+AtomTup : TYPE = [Atom];
+AtomBinTup : TYPE = [Atom, Atom];
+AtomTerTup : TYPE = [Atom, Atom, Atom];
+Target: SET OF AtomTup;
+
+Name: SET OF AtomTup;
+Addr: SET OF AtomTup;
+Book: SET OF AtomTup;
+names: SET OF AtomBinTup;
+addr: SET OF AtomTerTup;
+
+b1: Atom;
+b1_tup : AtomTup;
+ASSERT b1_tup = TUPLE(b1);
+ASSERT b1_tup IS_IN Book;
+
+b2: Atom;
+b2_tup : AtomTup;
+ASSERT b2_tup = TUPLE(b2);
+ASSERT b2_tup IS_IN Book;
+
+b3: Atom;
+b3_tup : AtomTup;
+ASSERT b3_tup = TUPLE(b3);
+ASSERT b3_tup IS_IN Book;
+
+n: Atom;
+n_tup : AtomTup;
+ASSERT n_tup = TUPLE(n);
+ASSERT n_tup IS_IN Name;
+
+t: Atom;
+t_tup : AtomTup;
+ASSERT t_tup = TUPLE(t);
+ASSERT t_tup IS_IN Target;
+
+ASSERT ((Book JOIN  addr) JOIN Target) <= Name;
+ASSERT (Book JOIN names) <= Name;
+ASSERT (Name & Addr) = {}::SET OF AtomTup;
+
+ASSERT ({n_tup} JOIN ({b1_tup} JOIN addr)) = {}::SET OF AtomTup;
+ASSERT ({n_tup} JOIN ({b2_tup} JOIN addr)) = ({n_tup} JOIN ({b1_tup} JOIN addr)) | {t_tup};
+ASSERT ({n_tup} JOIN ({b3_tup} JOIN addr)) = ({n_tup} JOIN ({b2_tup} JOIN addr)) - {t_tup};
+ASSERT NOT (({n_tup} JOIN ({b1_tup} JOIN addr)) = ({n_tup} JOIN ({b3_tup} JOIN addr)));
+
+CHECKSAT;

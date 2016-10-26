@@ -1,0 +1,10 @@
+% EXPECT: unsat
+OPTION "logic" "ALL_SUPPORTED";
+IntPair: TYPE = [INT, INT];
+x : SET OF IntPair;
+y : SET OF IntPair;
+
+ASSERT x = y;
+ASSERT NOT (TRANSPOSE(x) =  TRANSPOSE(y));
+
+CHECKSAT;

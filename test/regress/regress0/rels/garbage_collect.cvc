@@ -1,0 +1,60 @@
+% EXPECT: unsat
+H_TYPE: TYPE;
+H: TYPE = [H_TYPE];
+Obj: TYPE;
+Obj_Tup: TYPE = [Obj];
+MARK_TYPE: TYPE = [H_TYPE, Obj];
+RELATE: TYPE = [Obj, Obj];
+REF_TYPE: TYPE = [H_TYPE, Obj, Obj];
+
+% Symbols h0 to h3 are constants of type H that represents the system state;
+h0: SET OF H;
+h1: SET OF H;
+h2: SET OF H;
+h3: SET OF H;
+s0: H_TYPE;
+s1: H_TYPE;
+s2: H_TYPE;
+s3: H_TYPE;
+ASSERT h0 = {TUPLE(s0)};
+ASSERT h1 = {TUPLE(s1)};
+ASSERT h2 = {TUPLE(s2)};
+ASSERT h3 = {TUPLE(s3)};
+
+% ref ⊆ H × Obj × Obj represents references between objects in each state;
+ref : SET OF REF_TYPE;
+
+% mark ⊆ H × Obj represents the marked objects in each state
+mark: SET OF MARK_TYPE;
+
+empty_obj_set: SET OF Obj_Tup;
+ASSERT empty_obj_set = {}:: SET OF Obj_Tup;
+
+% root and live are two constants of type Obj that represents objects;
+root: Obj;
+live: Obj;
+
+% The state transition (h0–h1) resets all the marks
+ASSERT (h1 JOIN mark) = empty_obj_set;
+ASSERT (h0 JOIN ref) <= (h1 JOIN ref);
+
+% (h1–h2) marks objects reachable from root
+ASSERT FORALL (n : Obj) : ((root, n) IS_IN TCLOSURE(h1 JOIN ref)) 
+										  => (TUPLE(n) IS_IN (h2 JOIN mark));
+ASSERT (h1 JOIN ref) <= (h2 JOIN ref);
+
+% (h2–h3) sweeps references of non-marked objects										  
+
+ASSERT FORALL (n: Obj) : (NOT (TUPLE(n) IS_IN (h2 JOIN mark))) 
+										  => ({TUPLE(n)} JOIN (h3 JOIN ref)) = empty_obj_set;										  
+
+ASSERT FORALL (n: Obj) : (TUPLE(n) IS_IN (h2 JOIN mark))
+										  => ({TUPLE(n)} JOIN (h3 JOIN ref)) = ({TUPLE(n)} JOIN (h2 JOIN ref));	
+
+%The safety property is negated, thus it checks if
+%in the final state, there is a live object that was originally reachable from root
+%in the beginning state, but some of its references have been swept 										  
+ASSERT (root, live) IS_IN TCLOSURE(h0 JOIN ref);
+ASSERT NOT (({TUPLE(live)} JOIN (h0 JOIN ref)) <= ({TUPLE(live)} JOIN (h3 JOIN ref)));										  
+
+CHECKSAT;

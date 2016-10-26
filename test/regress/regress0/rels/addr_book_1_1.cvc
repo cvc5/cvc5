@@ -1,0 +1,45 @@
+% EXPECT: sat
+OPTION "logic" "ALL_SUPPORTED";
+Atom : TYPE;
+AtomTup : TYPE = [Atom];
+AtomBinTup : TYPE = [Atom, Atom];
+AtomTerTup : TYPE = [Atom, Atom, Atom];
+Target: SET OF AtomTup;
+
+Name: SET OF AtomTup;
+Addr: SET OF AtomTup;
+Book: SET OF AtomTup;
+names: SET OF AtomBinTup;
+addr: SET OF AtomTerTup;
+
+b1: Atom;
+b1_tup : AtomTup;
+ASSERT b1_tup = TUPLE(b1);
+ASSERT b1_tup IS_IN Book;
+
+b2: Atom;
+b2_tup : AtomTup;
+ASSERT b2_tup = TUPLE(b2);
+ASSERT b2_tup IS_IN Book;
+
+b3: Atom;
+b3_tup : AtomTup;
+ASSERT b3_tup = TUPLE(b3);
+ASSERT b3_tup IS_IN Book;
+
+m: Atom;
+m_tup : AtomTup;
+ASSERT m_tup = TUPLE(m);
+ASSERT m_tup IS_IN Name;
+
+t: Atom;
+t_tup : AtomTup;
+ASSERT t_tup = TUPLE(t);
+ASSERT t_tup IS_IN Target;
+
+ASSERT ({m_tup} JOIN ({b1_tup} JOIN addr)) = {}::SET OF AtomTup;
+ASSERT ({b2_tup} JOIN addr) = ({b1_tup} JOIN addr) | {(m,t)};
+ASSERT ({b3_tup} JOIN addr) = ({b2_tup} JOIN addr) - {(m,t)};
+ASSERT (({b1_tup} JOIN addr) = ({b3_tup} JOIN addr));
+
+CHECKSAT;

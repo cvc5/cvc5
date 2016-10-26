@@ -1,0 +1,19 @@
+% EXPECT: sat
+OPTION "logic" "QF_UFDTFS";
+DATATYPE Atom = atom END;
+
+
+t : SET OF [Atom, Atom];
+b : Atom;
+a : Atom;
+c : Atom;
+J : ( SET OF [Atom], SET OF [Atom, Atom] ) -> SET OF [Atom];
+T : SET OF [Atom, Atom] -> SET OF [Atom, Atom];
+
+%ASSERT t = {} :: SET OF [Atom, Atom];
+
+
+ASSERT ({TUPLE(a)} JOIN t) = J({TUPLE(a)}, t);
+ASSERT NOT( ({TUPLE(c)} JOIN TCLOSURE(t)) = {TUPLE(c)} );
+
+CHECKSAT;

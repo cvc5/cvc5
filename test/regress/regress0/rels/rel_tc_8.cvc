@@ -1,0 +1,10 @@
+% EXPECT: unsat
+OPTION "logic" "ALL_SUPPORTED";
+IntPair: TYPE = [INT, INT];
+x : SET OF IntPair;
+y : SET OF IntPair;
+
+ASSERT (2, 2) IS_IN (TCLOSURE x);
+ASSERT x = {}::SET OF IntPair;
+
+CHECKSAT;

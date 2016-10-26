@@ -355,7 +355,9 @@ void CvcPrinter::toStream(std::ostream& out, TNode n, int depth, bool types, boo
     case kind::APPLY_CONSTRUCTOR: {
         TypeNode t = n.getType();
         if( t.isTuple() ){
-          //no-op
+          if( n.getNumChildren()==1 ){
+            out << "TUPLE";
+          }
         }else if( t.isRecord() ){
           const Record& rec = t.getRecord();
           out << "(# ";
@@ -767,6 +769,22 @@ void CvcPrinter::toStream(std::ostream& out, TNode n, int depth, bool types, boo
     case kind::MEMBER:
       op << "IS_IN";
       opType = INFIX;
+      break;
+    case kind::PRODUCT:
+      op << "PRODUCT";
+      opType = INFIX;
+      break;
+    case kind::JOIN:
+      op << "JOIN";
+      opType = INFIX;
+      break;
+    case kind::TRANSPOSE:
+      op << "TRANSPOSE";
+      opType = PREFIX;
+      break;
+    case kind::TCLOSURE:
+      op << "TCLOSURE";
+      opType = PREFIX;
       break;
     case kind::SINGLETON:
       out << "{";

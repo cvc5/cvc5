@@ -63,7 +63,7 @@ EqualityStatus TheorySets::getEqualityStatus(TNode a, TNode b) {
 }
 
 Node TheorySets::getModelValue(TNode node) {
-  return d_internal->getModelValue(node);
+  return Node::null();
 }
 
 void TheorySets::preRegisterTerm(TNode node) {
@@ -80,6 +80,10 @@ void TheorySets::propagate(Effort e) {
 
 void TheorySets::setMasterEqualityEngine(eq::EqualityEngine* eq) {
   d_internal->setMasterEqualityEngine(eq);
+}
+
+bool TheorySets::isEntailed( Node n, bool pol ) {
+  return d_internal->isEntailed( n, pol );
 }
 
 }/* CVC4::theory::sets namespace */

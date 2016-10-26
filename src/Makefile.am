@@ -259,10 +259,7 @@ libcvc4_la_SOURCES = \
 	theory/datatypes/theory_datatypes.cpp \
 	theory/datatypes/datatypes_sygus.h \
 	theory/datatypes/datatypes_sygus.cpp \
-	theory/sets/expr_patterns.h \
 	theory/sets/normal_form.h \
-	theory/sets/scrutinize.h \
-	theory/sets/term_info.h \
 	theory/sets/theory_sets.cpp \
 	theory/sets/theory_sets.h \
 	theory/sets/theory_sets_private.cpp \
@@ -271,6 +268,9 @@ libcvc4_la_SOURCES = \
 	theory/sets/theory_sets_rewriter.h \
 	theory/sets/theory_sets_type_enumerator.h \
 	theory/sets/theory_sets_type_rules.h \
+	theory/sets/theory_sets_rels.cpp \
+	theory/sets/theory_sets_rels.h \
+	theory/sets/rel_utils.h \
 	theory/strings/theory_strings.h \
 	theory/strings/theory_strings.cpp \
 	theory/strings/theory_strings_rewriter.h \

@@ -1,0 +1,22 @@
+% EXPECT: sat
+OPTION "logic" "ALL_SUPPORTED";
+BvPair: TYPE = [BITVECTOR(1), BITVECTOR(1)];
+x : SET OF BvPair;
+y : SET OF BvPair;
+
+a : BvPair;
+b : BvPair;
+c : BvPair;
+d : BvPair;
+
+ASSERT DISTINCT ( a, b );
+ASSERT DISTINCT ( c, d );
+
+ASSERT a IS_IN x;
+ASSERT b IS_IN x;
+ASSERT a IS_IN y;
+ASSERT b IS_IN y;
+ASSERT NOT ( c IS_IN (x JOIN y)) AND NOT ( d IS_IN (x JOIN y));
+
+
+CHECKSAT;

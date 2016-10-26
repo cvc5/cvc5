@@ -1926,7 +1926,8 @@ void SmtEngine::setDefaults() {
 
   //until bugs 371,431 are fixed
   if( ! options::minisatUseElim.wasSetByUser()){
-    if( d_logic.isQuantified() || options::produceModels() || options::produceAssignments() || options::checkModels() ){
+    //AJR: cannot use minisat elim for new implementation of sets TODO: why?
+    if( d_logic.isTheoryEnabled(THEORY_SETS) || d_logic.isQuantified() || options::produceModels() || options::produceAssignments() || options::checkModels() ){
       options::minisatUseElim.set( false );
     }
   }
@@ -5467,3 +5468,4 @@ void SmtEngine::setReplayStream(ExprStream* replayStream) {
 }
 
 }/* CVC4 namespace */
+

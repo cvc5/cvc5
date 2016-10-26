@@ -57,6 +57,7 @@ subdirs_to_check = \
 	regress/regress0/fmf \
 	regress/regress0/strings \
 	regress/regress0/sets \
+	regress/regress0/rels \
 	regress/regress0/parser \
 	regress/regress0/sygus \
 	regress/regress0/sep \

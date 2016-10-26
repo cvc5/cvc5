@@ -1,0 +1,26 @@
+% EXPECT: sat
+OPTION "logic" "ALL_SUPPORTED";
+IntPair: TYPE = [INT, INT];
+x : SET OF IntPair;
+y : SET OF IntPair;
+DATATYPE unit = u END;
+IntUPair: TYPE = [INT, unit];
+UIntPair: TYPE = [unit, INT];
+w : SET OF IntUPair;
+z : SET OF UIntPair;
+
+ASSERT  (x JOIN y) = (w JOIN z) OR (x JOIN y ) = TRANSPOSE(w JOIN z);
+
+ASSERT (0,1) IS_IN (x JOIN y);
+
+t : INT;
+ASSERT t >= 0 AND t <=1;
+s : INT;
+ASSERT s >= 0 AND s <=1;
+
+ASSERT s+t = 1;
+
+ASSERT ( s ,u ) IS_IN w;
+ASSERT NOT ( u, t ) IS_IN z;
+
+CHECKSAT;

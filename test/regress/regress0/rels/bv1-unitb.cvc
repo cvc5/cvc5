@@ -1,0 +1,22 @@
+% EXPECT: unsat
+OPTION "logic" "ALL_SUPPORTED";
+DATATYPE unitb = ub(data : BITVECTOR(1)) END;
+BvPair: TYPE = [BITVECTOR(1), unitb, BITVECTOR(1)];
+x : SET OF BvPair;
+y : SET OF BvPair;
+
+a : BITVECTOR(1);
+b : BITVECTOR(1);
+c : BITVECTOR(1);
+d : BITVECTOR(1);
+e : BITVECTOR(1);
+u : unitb;
+
+ASSERT NOT ( b = c );
+
+ASSERT (a, u, b) IS_IN x;
+ASSERT (a, u, c) IS_IN x;
+ASSERT (d, u, a) IS_IN y;
+ASSERT NOT ( ( a, u, u, a ) IS_IN (x JOIN y));
+
+CHECKSAT;
