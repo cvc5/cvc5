@@ -270,7 +270,7 @@ libcvc4_la_SOURCES = \
 	theory/sets/theory_sets_type_rules.h \
 	theory/sets/theory_sets_rels.cpp \
 	theory/sets/theory_sets_rels.h \
-	theory/sets/rel_utils.h \
+	theory/sets/rels_utils.h \
 	theory/strings/theory_strings.h \
 	theory/strings/theory_strings.cpp \
 	theory/strings/theory_strings_rewriter.h \
