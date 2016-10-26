@@ -1,3 +1,5 @@
+; COMMAND-LINE: --no-check-proofs --no-check-unsat-cores
+; EXPECT: unsat
 (set-logic QF_BVLIA)
 (set-info :status unsat)
 (declare-const a (_ BitVec 32))
