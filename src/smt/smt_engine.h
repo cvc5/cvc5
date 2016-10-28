@@ -566,6 +566,17 @@ public:
   Expr doQuantifierElimination(const Expr& e, bool doFull, bool strict=true) throw(TypeCheckingException, ModalException, LogicException);
 
   /**
+   * Get list of quantified formulas that were instantiated
+   */
+  void getInstantiatedQuantifiedFormulas( std::vector< Expr >& qs );
+   
+  /**
+   * Get instantiations
+   */
+  void getInstantiations( Expr q, std::vector< Expr >& insts );
+  void getInstantiationTermVectors( Expr q, std::vector< std::vector< Expr > >& tvecs );
+
+  /**
    * Get an unsatisfiable core (only if immediately preceded by an
    * UNSAT or VALID query).  Only permitted if CVC4 was built with
    * unsat-core support and produce-unsat-cores is on.

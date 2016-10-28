@@ -1382,6 +1382,29 @@ bool QuantifiersEngine::getUnsatCoreLemmas( std::vector< Node >& active_lemmas, 
   }
 }
 
+void QuantifiersEngine::getInstantiationTermVectors( Node q, std::vector< std::vector< Node > >& tvecs ) {
+  std::vector< Node > lemmas;
+  getInstantiations( q, lemmas );
+  std::map< Node, Node > quant;
+  std::map< Node, std::vector< Node > > tvec;
+  getExplanationForInstLemmas( lemmas, quant, tvec );
+  for( std::map< Node, std::vector< Node > >::iterator it = tvec.begin(); it != tvec.end(); ++it ){
+    tvecs.push_back( it->second );
+  }
+}
+
+void QuantifiersEngine::getInstantiationTermVectors( std::map< Node, std::vector< std::vector< Node > > >& insts ) {
+  if( options::incrementalSolving() ){
+    for( std::map< Node, inst::CDInstMatchTrie* >::iterator it = d_c_inst_match_trie.begin(); it != d_c_inst_match_trie.end(); ++it ){
+      getInstantiationTermVectors( it->first, insts[it->first] );
+    }
+  }else{
+    for( std::map< Node, inst::InstMatchTrie >::iterator it = d_inst_match_trie.begin(); it != d_inst_match_trie.end(); ++it ){
+      getInstantiationTermVectors( it->first, insts[it->first] );
+    }
+  }
+}
+
 void QuantifiersEngine::getExplanationForInstLemmas( std::vector< Node >& lems, std::map< Node, Node >& quant, std::map< Node, std::vector< Node > >& tvec ) {
   if( d_trackInstLemmas ){
     if( options::incrementalSolving() ){
@@ -1453,6 +1476,18 @@ void QuantifiersEngine::printSynthSolution( std::ostream& out ) {
     d_ceg_inst->printSynthSolution( out );
   }else{
     out << "Internal error : module for synth solution not found." << std::endl;
+  }
+}
+
+void QuantifiersEngine::getInstantiatedQuantifiedFormulas( std::vector< Node >& qs ) {
+  if( options::incrementalSolving() ){
+    for( std::map< Node, inst::CDInstMatchTrie* >::iterator it = d_c_inst_match_trie.begin(); it != d_c_inst_match_trie.end(); ++it ){
+      qs.push_back( it->first );
+    }
+  }else{
+    for( std::map< Node, inst::InstMatchTrie >::iterator it = d_inst_match_trie.begin(); it != d_inst_match_trie.end(); ++it ){
+      qs.push_back( it->first );
+    }
   }
 }
 

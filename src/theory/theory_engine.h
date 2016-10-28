@@ -786,9 +786,20 @@ public:
   void printSynthSolution( std::ostream& out );
 
   /**
-   * Get instantiations
+   * Get list of quantified formulas that were instantiated
    */
+  void getInstantiatedQuantifiedFormulas( std::vector< Node >& qs );
+
+  /**
+   * Get instantiation methods
+   *   first inputs forall x.q[x] and returns ( q[a], ..., q[z] )
+   *   second inputs forall x.q[x] and returns ( a, ..., z ) 
+   *   third and fourth return mappings e.g. forall x.q1[x] -> ( q1[a]...q1[z] ) , ... , forall x.qn[x] -> ( qn[a]...qn[z] )
+   */
+  void getInstantiations( Node q, std::vector< Node >& insts );
+  void getInstantiationTermVectors( Node q, std::vector< std::vector< Node > >& tvecs );
   void getInstantiations( std::map< Node, std::vector< Node > >& insts );
+  void getInstantiationTermVectors( std::map< Node, std::vector< std::vector< Node > > >& insts );
   
   /**
    * Get instantiated conjunction, returns q[t1] ^ ... ^ q[tn] where t1...tn are current set of instantiations for q.
