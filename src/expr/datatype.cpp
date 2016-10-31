@@ -1105,4 +1105,9 @@ std::ostream& operator<<(std::ostream& os, const DatatypeConstructorArg& arg) {
   return os;
 }
 
+DatatypeIndexConstant::DatatypeIndexConstant(unsigned index) throw(IllegalArgumentException) : d_index(index){
+
+}
+
+
 }/* CVC4 namespace */

@@ -332,7 +332,7 @@ TypeNode BooleanTermConverter::convertType(TypeNode type, bool datatypesContext)
   if(type.getKind() == kind::DATATYPE_TYPE ||
      type.getKind() == kind::PARAMETRIC_DATATYPE) {
     bool parametric = (type.getKind() == kind::PARAMETRIC_DATATYPE);
-    const Datatype& dt = parametric ? type[0].getConst<Datatype>() : type.getConst<Datatype>();
+    const Datatype& dt = parametric ? type[0].getDatatype() : type.getDatatype();
     TypeNode out = TypeNode::fromType(convertDatatype(dt).getDatatypeType());
     Debug("boolean-terms") << "AFTER, got "<< out << " param:" << parametric << endl;
     if(parametric) {
@@ -647,10 +647,10 @@ Node BooleanTermConverter::rewriteBooleanTermsRec(TNode top, theory::TheoryId pa
           Assert(t[t.getNumChildren() - 1].getKind() == kind::DATATYPE_TYPE ||
                  t[t.getNumChildren() - 1].getKind() == kind::PARAMETRIC_DATATYPE);
           const Datatype& dt = t[t.getNumChildren() - 1].getKind() == kind::DATATYPE_TYPE ?
-            t[t.getNumChildren() - 1].getConst<Datatype>() :
-            t[t.getNumChildren() - 1][0].getConst<Datatype>();
+            t[t.getNumChildren() - 1].getDatatype() :
+            t[t.getNumChildren() - 1][0].getDatatype();
           TypeNode dt2type = convertType(TypeNode::fromType(dt.getDatatypeType()), parentTheory == theory::THEORY_DATATYPES);
-          const Datatype& dt2 = (dt2type.getKind() == kind::DATATYPE_TYPE ? dt2type : dt2type[0]).getConst<Datatype>();
+          const Datatype& dt2 = (dt2type.getKind() == kind::DATATYPE_TYPE ? dt2type : dt2type[0]).getDatatype();
           if(dt != dt2) {
             Assert(d_varCache.find(top) != d_varCache.end(),
                    "constructor `%s' not in cache", top.toString().c_str());
@@ -665,10 +665,10 @@ Node BooleanTermConverter::rewriteBooleanTermsRec(TNode top, theory::TheoryId pa
         } else if(t.isTester() || t.isSelector()) {
           Assert(parentTheory != theory::THEORY_BOOL);
           const Datatype& dt = t[0].getKind() == kind::DATATYPE_TYPE ?
-            t[0].getConst<Datatype>() :
-            t[0][0].getConst<Datatype>();
+            t[0].getDatatype() :
+            t[0][0].getDatatype();
           TypeNode dt2type = convertType(TypeNode::fromType(dt.getDatatypeType()), parentTheory == theory::THEORY_DATATYPES);
-          const Datatype& dt2 = (dt2type.getKind() == kind::DATATYPE_TYPE ? dt2type : dt2type[0]).getConst<Datatype>();
+          const Datatype& dt2 = (dt2type.getKind() == kind::DATATYPE_TYPE ? dt2type : dt2type[0]).getDatatype();
           if(dt != dt2) {
             Assert(d_varCache.find(top) != d_varCache.end(),
                    "tester or selector `%s' not in cache", top.toString().c_str());

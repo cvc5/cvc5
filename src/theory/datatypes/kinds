@@ -44,11 +44,11 @@ constant DATATYPE_TYPE \
     "expr/datatype.h" \
     "a datatype type"
 cardinality DATATYPE_TYPE \
-    "%TYPE%.getConst<Datatype>().getCardinality()" \
+    "%TYPE%.getDatatype().getCardinality()" \
     "expr/datatype.h"
 well-founded DATATYPE_TYPE \
-    "%TYPE%.getConst<Datatype>().isWellFounded()" \
-    "%TYPE%.getConst<Datatype>().mkGroundTerm(%TYPE%.toType())" \
+    "%TYPE%.getDatatype().isWellFounded()" \
+    "%TYPE%.getDatatype().mkGroundTerm(%TYPE%.toType())" \
     "expr/datatype.h"
 
 enumerator DATATYPE_TYPE \

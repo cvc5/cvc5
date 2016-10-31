@@ -176,6 +176,13 @@ NodeManager::~NodeManager() {
   d_tt_cache.d_children.clear();
   d_rt_cache.d_children.clear();
 
+  for( std::vector<Datatype*>::iterator datatype_iter = d_ownedDatatypes.begin(),	datatype_end = d_ownedDatatypes.end(); 
+       datatype_iter != datatype_end; ++datatype_iter) {
+    Datatype* datatype = *datatype_iter;
+    delete datatype;
+  }
+  d_ownedDatatypes.clear();
+
   Assert(!d_attrManager->inGarbageCollection() );
   while(!d_zombies.empty()) {
     reclaimZombies();

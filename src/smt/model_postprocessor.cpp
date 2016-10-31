@@ -67,7 +67,7 @@ Node ModelPostprocessor::rewriteAs(TNode n, TypeNode asType) {
       return NodeManager::currentNM()->mkConst(BitVector(1u, tf ? 1u : 0u));
     }
     if(asType.isDatatype() && asType.hasAttribute(BooleanTermAttr())) {
-      const Datatype& asDatatype = asType.getConst<Datatype>();
+      const Datatype& asDatatype = asType.getDatatype();
       return NodeManager::currentNM()->mkNode(kind::APPLY_CONSTRUCTOR, (tf ? asDatatype[0] : asDatatype[1]).getConstructor());
     }
   }

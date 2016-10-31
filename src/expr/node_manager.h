@@ -165,6 +165,9 @@ class NodeManager {
    * A list of subscribers for NodeManager events.
    */
   std::vector<NodeManagerListener*> d_listeners;
+  
+  /** A list of datatypes owned by this node manager. */
+  std::vector<Datatype*> d_ownedDatatypes;
 
   /**
    * A map of tuple and record types to their corresponding datatype.
