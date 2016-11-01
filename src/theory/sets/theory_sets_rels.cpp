@@ -1181,7 +1181,14 @@ int TheorySetsRels::EqcInfo::counter        = 0;
     d_eqEngine->addFunctionKind(kind::TCLOSURE);
   }
 
-  TheorySetsRels::~TheorySetsRels() {}
+  TheorySetsRels::~TheorySetsRels() {
+    for(std::map< Node, EqcInfo* >::iterator i = d_eqc_info.begin(), iend = d_eqc_info.end();
+        i != iend; ++i){
+      EqcInfo* current = (*i).second;
+      Assert(current != NULL);
+      delete current;
+    }
+  }
 
   std::vector<Node> TupleTrie::findTerms( std::vector< Node >& reps, int argIndex ) {
     std::vector<Node>                           nodes;

@@ -784,11 +784,8 @@ public:
   }
 
   void nmNotifyNewDatatypes(const std::vector<DatatypeType>& dtts) {
-    Trace("ajr-temp") << "Notify " << dtts.size() << " datatypes." << std::endl;
     DatatypeDeclarationCommand c(dtts);
-    Trace("ajr-temp") << "dump command" << std::endl;
     d_smt.addToModelCommandAndDump(c);
-    Trace("ajr-temp") << "Finish" << std::endl;
   }
 
   void nmNotifyNewVar(TNode n, uint32_t flags) {

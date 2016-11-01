@@ -220,7 +220,6 @@ NodeManager::~NodeManager() {
 }
 
 unsigned NodeManager::registerDatatype(Datatype* dt) {
-  Trace("ajr-temp") << "Register datatype : " << dt->getName() << " " << dt << std::endl;
   unsigned sz = d_ownedDatatypes.size();
   d_ownedDatatypes.push_back( dt );
   return sz;

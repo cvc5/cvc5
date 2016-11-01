@@ -665,7 +665,6 @@ std::vector<DatatypeType> ExprManager::mkMutualDatatypeTypes(std::vector<Datatyp
   std::map<std::string, DatatypeType> nameResolutions;
   std::vector<DatatypeType> dtts;
 
-  Trace("ajr-temp") << "Build datatypes..." << std::endl;
   //have to build deep copy so that datatypes will live in NodeManager
   std::vector< Datatype* > dt_copies;
   for(std::vector<Datatype>::iterator i = datatypes.begin(), i_end = datatypes.end(); i != i_end; ++i) {
@@ -710,7 +709,6 @@ std::vector<DatatypeType> ExprManager::mkMutualDatatypeTypes(std::vector<Datatyp
     //Assert( dtt.getDatatype()==(*i) );
   }
 
-  Trace("ajr-temp") << "Set up map..." << std::endl;
   // Second, set up the type substitution map for complex type
   // resolution (e.g. if "list" is the type we're defining, and it has
   // a selector of type "ARRAY INT OF list", this can't be taken care
@@ -753,14 +751,12 @@ std::vector<DatatypeType> ExprManager::mkMutualDatatypeTypes(std::vector<Datatyp
     }
   }
 
-  Trace("ajr-temp") << "Resolve..." << std::endl;
   // Lastly, perform the final resolutions and checks.
   for(std::vector<DatatypeType>::iterator i = dtts.begin(),
         i_end = dtts.end();
       i != i_end;
       ++i) {
     const Datatype& dt = (*i).getDatatype();
-    Trace("ajr-temp") << "Resolve " << dt.getName() << std::endl;
     if(!dt.isResolved()) {
       const_cast<Datatype&>(dt).resolve(this, nameResolutions,
                                         placeholders, replacements,
@@ -772,12 +768,10 @@ std::vector<DatatypeType> ExprManager::mkMutualDatatypeTypes(std::vector<Datatyp
     checkResolvedDatatype(*i);
   }
 
-  Trace("ajr-temp") << "Notify..." << std::endl;
   for(std::vector<NodeManagerListener*>::iterator i = d_nodeManager->d_listeners.begin(); i != d_nodeManager->d_listeners.end(); ++i) {
     (*i)->nmNotifyNewDatatypes(dtts);
   }
-
-  Trace("ajr-temp") << "Finish..." << std::endl;
+  
   return dtts;
 }
 

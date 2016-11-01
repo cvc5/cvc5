@@ -52,7 +52,6 @@ typedef expr::Attribute<expr::attr::DatatypeUFiniteTag, bool> DatatypeUFiniteAtt
 typedef expr::Attribute<expr::attr::DatatypeUFiniteComputedTag, bool> DatatypeUFiniteComputedAttr;
 
 Datatype::~Datatype(){
-  Trace("ajr-temp") << "delete datatype " << getName() << " " << this << std::endl;
   delete d_record;
 }
 
