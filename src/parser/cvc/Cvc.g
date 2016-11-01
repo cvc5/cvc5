@@ -708,7 +708,7 @@ mainCommand[CVC4::Command*& cmd]
   SExpr sexpr;
   std::string id;
   Type t;
-  std::vector<CVC4::Datatype*> dts;
+  std::vector<CVC4::Datatype> dts;
   Debug("parser-extra") << "command: " << AntlrInput::tokenText(LT(1)) << std::endl;
   std::string s;
 }
@@ -2175,7 +2175,7 @@ iteElseTerm[CVC4::Expr& f]
 /**
  * Parses a datatype definition
  */
-datatypeDef[std::vector<CVC4::Datatype*>& datatypes]
+datatypeDef[std::vector<CVC4::Datatype>& datatypes]
 @init {
   std::string id, id2;
   Type t;
@@ -2195,7 +2195,7 @@ datatypeDef[std::vector<CVC4::Datatype*>& datatypes]
         params.push_back( t ); }
       )* RBRACKET
     )?
-    { datatypes.push_back(new Datatype(id, params, false));
+    { datatypes.push_back(Datatype(id, params, false));
       if(!PARSER_STATE->isUnresolvedType(id)) {
         // if not unresolved, must be undeclared
         PARSER_STATE->checkDeclaration(id, CHECK_UNDECLARED, SYM_SORT);
@@ -2209,7 +2209,7 @@ datatypeDef[std::vector<CVC4::Datatype*>& datatypes]
 /**
  * Parses a constructor defintion for type
  */
-constructorDef[CVC4::Datatype*& type]
+constructorDef[CVC4::Datatype& type]
 @init {
   std::string id;
   CVC4::DatatypeConstructor* ctor = NULL;
@@ -2227,7 +2227,7 @@ constructorDef[CVC4::Datatype*& type]
       RPAREN
     )?
     { // make the constructor
-      type->addConstructor(*ctor);
+      type.addConstructor(*ctor);
       Debug("parser-idt") << "constructor: " << id.c_str() << std::endl;
       delete ctor;
     }

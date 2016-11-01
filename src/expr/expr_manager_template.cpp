@@ -645,10 +645,10 @@ SetType ExprManager::mkSetType(Type elementType) const {
   return SetType(Type(d_nodeManager, new TypeNode(d_nodeManager->mkSetType(*elementType.d_typeNode))));
 }
 
-DatatypeType ExprManager::mkDatatypeType(Datatype*& datatype) {
+DatatypeType ExprManager::mkDatatypeType(Datatype& datatype) {
   // Not worth a special implementation; this doesn't need to be fast
   // code anyway.
-  vector<Datatype*> datatypes;
+  vector<Datatype> datatypes;
   datatypes.push_back(datatype);
   std::vector<DatatypeType> result;
   mkMutualDatatypeTypes(datatypes, result);
@@ -656,28 +656,28 @@ DatatypeType ExprManager::mkDatatypeType(Datatype*& datatype) {
   return result.front();
 }
 
-void ExprManager::mkMutualDatatypeTypes(std::vector<Datatype*>& datatypes, std::vector<DatatypeType>& dtts) {
+void ExprManager::mkMutualDatatypeTypes(std::vector<Datatype>& datatypes, std::vector<DatatypeType>& dtts) {
   std::set<Type> unresolvedTypes;
   return mkMutualDatatypeTypes(datatypes, unresolvedTypes, dtts);
 }
 
-void ExprManager::mkMutualDatatypeTypes(std::vector<Datatype*>& datatypes, std::set<Type>& unresolvedTypes, std::vector<DatatypeType>& dtts) {
+void ExprManager::mkMutualDatatypeTypes(std::vector<Datatype>& datatypes, std::set<Type>& unresolvedTypes, std::vector<DatatypeType>& dtts) {
   NodeManagerScope nms(d_nodeManager);
   std::map<std::string, DatatypeType> nameResolutions;
 
   Trace("ajr-temp") << "Build datatypes..." << std::endl;
-  //std::vector< Datatype* > dt_copies;
-  //for(std::vector<Datatype*>::iterator i = datatypes.begin(), i_end = datatypes.end(); i != i_end; ++i) {
-  //  dt_copies.push_back( new Datatype( **i ) );
-  //}
-  
+  //have to build deep copy so that datatypes will live in NodeManager
+  std::vector< Datatype* > dt_copies;
+  for(std::vector<Datatype>::iterator i = datatypes.begin(), i_end = datatypes.end(); i != i_end; ++i) {
+    dt_copies.push_back( new Datatype( *i ) );
+  }
   
   // First do some sanity checks, set up the final Type to be used for
   // each datatype, and set up the "named resolutions" used to handle
   // simple self- and mutual-recursion, for example in the definition
   // "nat = succ(pred:nat) | zero", a named resolution can handle the
   // pred selector.
-  for(std::vector<Datatype*>::iterator i = datatypes.begin(), i_end = datatypes.end(); i != i_end; ++i) {
+  for(std::vector<Datatype*>::iterator i = dt_copies.begin(), i_end = dt_copies.end(); i != i_end; ++i) {
     TypeNode* typeNode;
     if( (*i)->getNumParameters() == 0 ) {
       unsigned index = d_nodeManager->registerDatatype( *i );
@@ -699,7 +699,7 @@ void ExprManager::mkMutualDatatypeTypes(std::vector<Datatype*>& datatypes, std::
     DatatypeType dtt(type);
     PrettyCheckArgument(
         nameResolutions.find((*i)->getName()) == nameResolutions.end(),
-        datatypes,
+        dt_copies,
         "cannot construct two datatypes at the same time "
         "with the same name `%s'",
         (*i)->getName().c_str());

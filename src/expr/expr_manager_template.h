@@ -374,13 +374,13 @@ public:
   SetType mkSetType(Type elementType) const;
 
   /** Make a type representing the given datatype. */
-  DatatypeType mkDatatypeType(Datatype*& datatype);
+  DatatypeType mkDatatypeType(Datatype& datatype);
 
   /**
    * Make a set of types representing the given datatypes, which may be
    * mutually recursive.
    */
-  void mkMutualDatatypeTypes(std::vector<Datatype*>& datatypes, std::vector<DatatypeType>& dtts);
+  void mkMutualDatatypeTypes(std::vector<Datatype>& datatypes, std::vector<DatatypeType>& dtts);
 
   /**
    * Make a set of types representing the given datatypes, which may
@@ -411,7 +411,7 @@ public:
    * then no complicated Type needs to be created, and the above,
    * simpler form of mkMutualDatatypeTypes() is enough.
    */
-  void mkMutualDatatypeTypes(std::vector<Datatype*>& datatypes, std::set<Type>& unresolvedTypes, std::vector<DatatypeType>& dtts);
+  void mkMutualDatatypeTypes(std::vector<Datatype>& datatypes, std::set<Type>& unresolvedTypes, std::vector<DatatypeType>& dtts);
 
   /**
    * Make a type representing a constructor with the given parameterization.

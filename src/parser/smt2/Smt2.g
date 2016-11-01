@@ -512,7 +512,7 @@ sygusCommand returns [CVC4::Command* cmd = NULL]
   SExpr sexpr;
   CommandSequence* seq;
   std::vector< std::vector< CVC4::SygusGTerm > > sgts;
-  std::vector< CVC4::Datatype* > datatypes;
+  std::vector< CVC4::Datatype > datatypes;
   std::vector< std::vector<Expr> > ops;
   std::vector< std::vector< std::string > > cnames;
   std::vector< std::vector< std::vector< CVC4::Type > > > cargs;
@@ -621,14 +621,14 @@ sygusCommand returns [CVC4::Command* cmd = NULL]
         //swap index if necessary
         Debug("parser-sygus") << "--- Making sygus datatypes..." << std::endl;
         for( unsigned i=0; i<datatypes.size(); i++ ){
-          Debug("parser-sygus") << "..." << datatypes[i]->getName() << " has builtin sort " << sorts[i] << std::endl;
+          Debug("parser-sygus") << "..." << datatypes[i].getName() << " has builtin sort " << sorts[i] << std::endl;
         }
         for( unsigned i=0; i<datatypes.size(); i++ ){
-          Debug("parser-sygus") << "...make " << datatypes[i]->getName() << " with builtin sort " << sorts[i] << std::endl;
+          Debug("parser-sygus") << "...make " << datatypes[i].getName() << " with builtin sort " << sorts[i] << std::endl;
           if( sorts[i].isNull() ){
             PARSER_STATE->parseError(std::string("Internal error : could not infer builtin sort for nested gterm."));
           }
-          datatypes[i]->setSygus( sorts[i], terms[0], allow_const[i], false );
+          datatypes[i].setSygus( sorts[i], terms[0], allow_const[i], false );
           PARSER_STATE->mkSygusDatatype( datatypes[i], ops[i], cnames[i], cargs[i], unresolved_gterm_sym[i], sygus_to_builtin );
         }
         PARSER_STATE->setSygusStartIndex( fun, startIndex, datatypes, sorts, ops );
@@ -637,7 +637,7 @@ sygusCommand returns [CVC4::Command* cmd = NULL]
       PARSER_STATE->popScope();
       Debug("parser-sygus") << "--- Make " << datatypes.size() << " mutual datatypes..." << std::endl;
       for( unsigned i=0; i<datatypes.size(); i++ ){
-        Debug("parser-sygus") << "  " << i << " : " << datatypes[i]->getName() << std::endl;
+        Debug("parser-sygus") << "  " << i << " : " << datatypes[i].getName() << std::endl;
       }
       seq = new CommandSequence();
       std::vector<DatatypeType> datatypeTypes; 
@@ -1169,7 +1169,7 @@ smt25Command[CVC4::Command*& cmd]
 
 extendedCommand[CVC4::Command*& cmd]
 @declarations {
-  std::vector<CVC4::Datatype*> dts;
+  std::vector<CVC4::Datatype> dts;
   Expr e, e2;
   Type t;
   std::string name;
@@ -1325,7 +1325,7 @@ extendedCommand[CVC4::Command*& cmd]
 
 datatypesDefCommand[bool isCo, CVC4::Command*& cmd]
 @declarations {
-  std::vector<CVC4::Datatype*> dts;
+  std::vector<CVC4::Datatype> dts;
   std::vector<CVC4::DatatypeType> dtts;
   std::string name;
   std::vector<Type> sorts;
@@ -2475,7 +2475,7 @@ nonemptyNumeralList[std::vector<uint64_t>& numerals]
 /**
  * Parses a datatype definition
  */
-datatypeDef[bool isCo, std::vector<CVC4::Datatype*>& datatypes, std::vector< CVC4::Type >& params]
+datatypeDef[bool isCo, std::vector<CVC4::Datatype>& datatypes, std::vector< CVC4::Type >& params]
 @init {
   std::string id;
 }
@@ -2493,7 +2493,7 @@ datatypeDef[bool isCo, std::vector<CVC4::Datatype*>& datatypes, std::vector< CVC
         params.push_back( t ); }
       )* ']'
     )?*/ //AJR: this isn't necessary if we use z3's style
-    { datatypes.push_back(new Datatype(id,params,isCo));
+    { datatypes.push_back(Datatype(id,params,isCo));
       if(!PARSER_STATE->isUnresolvedType(id)) {
         // if not unresolved, must be undeclared
         PARSER_STATE->checkDeclaration(id, CHECK_UNDECLARED, SYM_SORT);
@@ -2506,7 +2506,7 @@ datatypeDef[bool isCo, std::vector<CVC4::Datatype*>& datatypes, std::vector< CVC
 /**
  * Parses a constructor defintion for type
  */
-constructorDef[CVC4::Datatype*& type]
+constructorDef[CVC4::Datatype& type]
 @init {
   std::string id;
   CVC4::DatatypeConstructor* ctor = NULL;
@@ -2520,7 +2520,7 @@ constructorDef[CVC4::Datatype*& type]
     }
     ( LPAREN_TOK selector[*ctor] RPAREN_TOK )*
     { // make the constructor
-      type->addConstructor(*ctor);
+      type.addConstructor(*ctor);
       Debug("parser-idt") << "constructor: " << id.c_str() << std::endl;
       delete ctor;
     }

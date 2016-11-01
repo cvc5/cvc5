@@ -489,15 +489,15 @@ TypeNode NodeManager::mkSubrangeType(const SubrangeBounds& bounds)
 TypeNode NodeManager::TupleTypeCache::getTupleType( NodeManager * nm, std::vector< TypeNode >& types, unsigned index ) {
   if( index==types.size() ){
     if( d_data.isNull() ){
-      Datatype* dt = new Datatype("__cvc4_tuple");
-      dt->setTuple();
+      Datatype dt("__cvc4_tuple");
+      dt.setTuple();
       DatatypeConstructor c("__cvc4_tuple_ctor");
       for (unsigned i = 0; i < types.size(); ++ i) {
         std::stringstream ss;
         ss << "__cvc4_tuple_stor_" << i;
         c.addArg(ss.str().c_str(), types[i].toType());
       }
-      dt->addConstructor(c);
+      dt.addConstructor(c);
       d_data = TypeNode::fromType(nm->toExprManager()->mkDatatypeType(dt));
       Debug("tuprec-debug") << "Return type : " << d_data << std::endl;
     }
@@ -511,13 +511,13 @@ TypeNode NodeManager::RecTypeCache::getRecordType( NodeManager * nm, const Recor
   if( index==rec.getNumFields() ){
     if( d_data.isNull() ){
       const Record::FieldVector& fields = rec.getFields();
-      Datatype* dt = new Datatype("__cvc4_record");
-      dt->setRecord();
+      Datatype dt("__cvc4_record");
+      dt.setRecord();
       DatatypeConstructor c("__cvc4_record_ctor");
       for(Record::FieldVector::const_iterator i = fields.begin(); i != fields.end(); ++i) {
         c.addArg((*i).first, (*i).second);
       }
-      dt->addConstructor(c);
+      dt.addConstructor(c);
       d_data = TypeNode::fromType(nm->toExprManager()->mkDatatypeType(dt));
       Debug("tuprec-debug") << "Return type : " << d_data << std::endl;
     }

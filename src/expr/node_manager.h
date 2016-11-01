@@ -84,7 +84,7 @@ class NodeManager {
   friend Expr ExprManager::mkVar(Type, uint32_t flags);
 
   // friend so it can access NodeManager's d_listeners and notify clients
-  friend void ExprManager::mkMutualDatatypeTypes(std::vector<Datatype*>&, std::set<Type>&, std::vector<DatatypeType>&);
+  friend void ExprManager::mkMutualDatatypeTypes(std::vector<Datatype>&, std::set<Type>&, std::vector<DatatypeType>&);
 
   /** Predicate for use with STL algorithms */
   struct NodeValueReferenceCountNonZero {

@@ -303,7 +303,7 @@ bool Parser::isUnresolvedType(const std::string& name) {
   return d_unresolved.find(getSort(name)) != d_unresolved.end();
 }
 
-void Parser::mkMutualDatatypeTypes(std::vector<Datatype*>& datatypes, std::vector<DatatypeType>& types) {
+void Parser::mkMutualDatatypeTypes(std::vector<Datatype>& datatypes, std::vector<DatatypeType>& types) {
 
   try {
     d_exprManager->mkMutualDatatypeTypes(datatypes, d_unresolved, types);

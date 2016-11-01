@@ -1384,11 +1384,11 @@ void ValidityChecker::dataType(const std::vector<std::string>& names,
   CompatCheckArgument(names.size() == types.size(), types,
                       "Expected names and types vectors to be of equal "
                       "length.");
-  vector<CVC4::Datatype*> dv;
+  vector<CVC4::Datatype> dv;
 
   // Set up the datatype specifications.
   for(unsigned i = 0; i < names.size(); ++i) {
-    CVC4::Datatype* dt = new CVC4::Datatype(names[i], false);
+    CVC4::Datatype dt(names[i], false);
     CompatCheckArgument(constructors[i].size() == selectors[i].size(),
                         "Expected sub-vectors in constructors and selectors "
                         "vectors to match in size.");
@@ -1409,7 +1409,7 @@ void ValidityChecker::dataType(const std::vector<std::string>& names,
           ctor.addArg(selectors[i][j][k], exprToType(types[i][j][k]));
         }
       }
-      dt->addConstructor(ctor);
+      dt.addConstructor(ctor);
     }
     dv.push_back(dt);
   }

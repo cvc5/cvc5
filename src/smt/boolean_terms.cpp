@@ -60,10 +60,10 @@ BooleanTermConverter::BooleanTermConverter(SmtEngine& smt) :
     d_ffDt = d_ff;
     d_ttDt = d_tt;
   } else {
-    Datatype* spec = new Datatype("BooleanTerm");
+    Datatype spec("BooleanTerm");
     // don't change the order; false is assumed to come first by the model postprocessor
-    spec->addConstructor(DatatypeConstructor("BT_False"));
-    spec->addConstructor(DatatypeConstructor("BT_True"));
+    spec.addConstructor(DatatypeConstructor("BT_False"));
+    spec.addConstructor(DatatypeConstructor("BT_True"));
     const Datatype& dt = NodeManager::currentNM()->toExprManager()->mkDatatypeType(spec).getDatatype();
     d_ffDt = NodeManager::currentNM()->mkNode(kind::APPLY_CONSTRUCTOR, Node::fromExpr(dt["BT_False"].getConstructor()));
     d_ttDt = NodeManager::currentNM()->mkNode(kind::APPLY_CONSTRUCTOR, Node::fromExpr(dt["BT_True"].getConstructor()));
@@ -255,13 +255,13 @@ const Datatype& BooleanTermConverter::convertDatatype(const Datatype& dt) throw(
           mySelfType = NodeManager::currentNM()->toExprManager()->mkSortConstructor(dt.getName() + "'", dt.getNumParameters());
           unresolvedTypes.insert(mySelfType);
         }
-        vector<Datatype*> newDtVector;
+        vector<Datatype> newDtVector;
         if(dt.isParametric()) {
-          newDtVector.push_back(new Datatype(dt.getName() + "'", dt.getParameters(), false));
+          newDtVector.push_back(Datatype(dt.getName() + "'", dt.getParameters(), false));
         } else {
-          newDtVector.push_back(new Datatype(dt.getName() + "'", false));
+          newDtVector.push_back(Datatype(dt.getName() + "'", false));
         }
-        Datatype * newDt = newDtVector.front();
+        Datatype& newDt = newDtVector.front();
         Debug("boolean-terms") << "found a Boolean arg in constructor " << (*c).getName() << endl;
         for(c = dt.begin(); c != dt.end(); ++c) {
           DatatypeConstructor ctor((*c).getName() + "'", (*c).getTesterName() + "'");
@@ -286,7 +286,7 @@ const Datatype& BooleanTermConverter::convertDatatype(const Datatype& dt) throw(
               }
             }
           }
-          newDt->addConstructor(ctor);
+          newDt.addConstructor(ctor);
         }
         vector<DatatypeType> newDttVector;
         NodeManager::currentNM()->toExprManager()->mkMutualDatatypeTypes(newDtVector, unresolvedTypes, newDttVector);
