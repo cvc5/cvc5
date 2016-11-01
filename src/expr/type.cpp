@@ -608,7 +608,7 @@ std::vector<Type> DatatypeType::getParamTypes() const {
 
 DatatypeType DatatypeType::instantiate(const std::vector<Type>& params) const {
   NodeManagerScope nms(d_nodeManager);
-  TypeNode cons = d_nodeManager->mkTypeConst( getDatatype() );
+  TypeNode cons = d_nodeManager->mkTypeConst( (*d_typeNode)[0].getConst<DatatypeIndexConstant>() );
   vector<TypeNode> paramsNodes;
   paramsNodes.push_back( cons );
   for(vector<Type>::const_iterator i = params.begin(),

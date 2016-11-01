@@ -84,7 +84,7 @@ class NodeManager {
   friend Expr ExprManager::mkVar(Type, uint32_t flags);
 
   // friend so it can access NodeManager's d_listeners and notify clients
-  friend std::vector<DatatypeType> ExprManager::mkMutualDatatypeTypes(const std::vector<Datatype>&, const std::set<Type>&);
+  friend void ExprManager::mkMutualDatatypeTypes(std::vector<Datatype*>&, std::set<Type>&, std::vector<DatatypeType>&);
 
   /** Predicate for use with STL algorithms */
   struct NodeValueReferenceCountNonZero {
@@ -380,6 +380,11 @@ public:
     Assert(elt != d_listeners.end(), "listener not subscribed");
     d_listeners.erase(elt);
   }
+  
+  /** register datatype */
+  unsigned registerDatatype(Datatype* dt);
+  /** get datatype for index */
+  const Datatype & getDatatypeForIndex( unsigned index ) const;
 
   /** Get a Kind from an operator expression */
   static inline Kind operatorToKind(TNode n);

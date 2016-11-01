@@ -173,13 +173,13 @@ public:
 
   Expr mkSygusVar(const std::string& name, const Type& type, bool isPrimed = false);
 
-  void mkSygusDefaultGrammar( const Type& range, Expr& bvl, const std::string& fun, std::vector<CVC4::Datatype>& datatypes,
+  void mkSygusDefaultGrammar( const Type& range, Expr& bvl, const std::string& fun, std::vector< CVC4::Datatype* >& datatypes,
                               std::vector<Type>& sorts, std::vector< std::vector<Expr> >& ops, std::vector<Expr> sygus_vars, int& startIndex );
 
   void mkSygusConstantsForType( const Type& type, std::vector<CVC4::Expr>& ops );
 
   void processSygusGTerm( CVC4::SygusGTerm& sgt, int index,
-                          std::vector< CVC4::Datatype >& datatypes,
+                          std::vector< CVC4::Datatype* >& datatypes,
                           std::vector< CVC4::Type>& sorts,
                           std::vector< std::vector<CVC4::Expr> >& ops,
                           std::vector< std::vector<std::string> >& cnames,
@@ -191,7 +191,7 @@ public:
                           CVC4::Type& ret, bool isNested = false );
 
   static bool pushSygusDatatypeDef( Type t, std::string& dname,
-                                    std::vector< CVC4::Datatype >& datatypes,
+                                    std::vector< CVC4::Datatype* >& datatypes,
                                     std::vector< CVC4::Type>& sorts,
                                     std::vector< std::vector<CVC4::Expr> >& ops,
                                     std::vector< std::vector<std::string> >& cnames,
@@ -199,7 +199,7 @@ public:
                                     std::vector< bool >& allow_const,
                                     std::vector< std::vector< std::string > >& unresolved_gterm_sym );
 
-  static bool popSygusDatatypeDef( std::vector< CVC4::Datatype >& datatypes,
+  static bool popSygusDatatypeDef( std::vector< CVC4::Datatype* >& datatypes,
                                    std::vector< CVC4::Type>& sorts,
                                    std::vector< std::vector<CVC4::Expr> >& ops,
                                    std::vector< std::vector<std::string> >& cnames,
@@ -208,7 +208,7 @@ public:
                                    std::vector< std::vector< std::string > >& unresolved_gterm_sym );
 
   void setSygusStartIndex( std::string& fun, int startIndex,
-                           std::vector< CVC4::Datatype >& datatypes,
+                           std::vector< CVC4::Datatype* >& datatypes,
                            std::vector< CVC4::Type>& sorts,
                            std::vector< std::vector<CVC4::Expr> >& ops );
 
@@ -218,7 +218,7 @@ public:
 
   void defineSygusFuns();
 
-  void mkSygusDatatype( CVC4::Datatype& dt, std::vector<CVC4::Expr>& ops,
+  void mkSygusDatatype( CVC4::Datatype* dt, std::vector<CVC4::Expr>& ops,
                         std::vector<std::string>& cnames, std::vector< std::vector< CVC4::Type > >& cargs,
                         std::vector<std::string>& unresolved_gterm_sym,
                         std::map< CVC4::Type, CVC4::Type >& sygus_to_builtin );
@@ -314,10 +314,10 @@ private:
 
   void collectSygusLetArgs( CVC4::Expr e, std::vector< CVC4::Type >& sygusArgs, std::vector< CVC4::Expr >& builtinArgs );
 
-  void addSygusDatatypeConstructor( CVC4::Datatype& dt, CVC4::Expr op, std::string& cname, std::vector< CVC4::Type >& cargs,
+  void addSygusDatatypeConstructor( CVC4::Datatype* dt, CVC4::Expr op, std::string& cname, std::vector< CVC4::Type >& cargs,
                                     CVC4::Expr& let_body, std::vector< CVC4::Expr >& let_args, unsigned let_num_input_args );
 
-  Type processSygusNestedGTerm( int sub_dt_index, std::string& sub_dname, std::vector< CVC4::Datatype >& datatypes,
+  Type processSygusNestedGTerm( int sub_dt_index, std::string& sub_dname, std::vector< CVC4::Datatype* >& datatypes,
                                 std::vector< CVC4::Type>& sorts,
                                 std::vector< std::vector<CVC4::Expr> >& ops,
                                 std::vector< std::vector<std::string> >& cnames,
@@ -328,7 +328,7 @@ private:
                                 std::map< CVC4::Type, CVC4::Expr >& sygus_to_builtin_expr, Type sub_ret );
 
   void processSygusLetConstructor( std::vector< CVC4::Expr >& let_vars, int index,
-                                   std::vector< CVC4::Datatype >& datatypes,
+                                   std::vector< CVC4::Datatype* >& datatypes,
                                    std::vector< CVC4::Type>& sorts,
                                    std::vector< std::vector<CVC4::Expr> >& ops,
                                    std::vector< std::vector<std::string> >& cnames,

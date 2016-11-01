@@ -284,7 +284,10 @@ void Smt2Printer::toStream(std::ostream& out, TNode n,
       break;
 
     case kind::DATATYPE_TYPE:
-      out << maybeQuoteSymbol(n.getConst<Datatype>().getName());
+      {
+        const Datatype & dt = (NodeManager::currentNM()->getDatatypeForIndex( n.getConst< DatatypeIndexConstant >().getIndex() ));
+        out << maybeQuoteSymbol(dt.getName());
+      }
       break;
 
     case kind::UNINTERPRETED_CONSTANT: {

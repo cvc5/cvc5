@@ -52,6 +52,7 @@ typedef expr::Attribute<expr::attr::DatatypeUFiniteTag, bool> DatatypeUFiniteAtt
 typedef expr::Attribute<expr::attr::DatatypeUFiniteComputedTag, bool> DatatypeUFiniteComputedAttr;
 
 Datatype::~Datatype(){
+  Trace("ajr-temp") << "delete datatype " << getName() << " " << this << std::endl;
   delete d_record;
 }
 
@@ -1109,5 +1110,8 @@ DatatypeIndexConstant::DatatypeIndexConstant(unsigned index) throw(IllegalArgume
 
 }
 
+std::ostream& operator<<(std::ostream& out, const DatatypeIndexConstant& dic) {
+  return out << "index_" << dic.getIndex();
+}
 
 }/* CVC4 namespace */

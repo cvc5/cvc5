@@ -1023,7 +1023,9 @@ inline bool TypeNode::isBitVector(unsigned size) const {
 /** Get the datatype specification from a datatype type */
 inline const Datatype& TypeNode::getDatatype() const {
   Assert(isDatatype());
-  return getConst<Datatype>();
+  //return getConst<Datatype>();
+  DatatypeIndexConstant dic = getConst<DatatypeIndexConstant>();
+  return NodeManager::currentNM()->getDatatypeForIndex( dic.getIndex() );
 }
 
 /** Get the exponent size of this floating-point type */

@@ -163,7 +163,7 @@ void CvcPrinter::toStream(std::ostream& out, TNode n, int depth, bool types, boo
       break;
 
     case kind::DATATYPE_TYPE: {
-      const Datatype& dt = n.getConst<Datatype>();
+      const Datatype& dt = (NodeManager::currentNM()->getDatatypeForIndex( n.getConst< DatatypeIndexConstant >().getIndex() ));
       if( dt.isTuple() ){
         out << '[';
         for (unsigned i = 0; i < dt[0].getNumArgs(); ++ i) {
@@ -333,15 +333,17 @@ void CvcPrinter::toStream(std::ostream& out, TNode n, int depth, bool types, boo
       break;
 
     // DATATYPES
-    case kind::PARAMETRIC_DATATYPE:
-      out << n[0].getConst<Datatype>().getName() << '[';
-      for(unsigned i = 1; i < n.getNumChildren(); ++i) {
-        if(i > 1) {
-          out << ',';
+    case kind::PARAMETRIC_DATATYPE: {
+        const Datatype & dt = (NodeManager::currentNM()->getDatatypeForIndex( n[0].getConst< DatatypeIndexConstant >().getIndex() ));
+        out << dt.getName() << '[';
+        for(unsigned i = 1; i < n.getNumChildren(); ++i) {
+          if(i > 1) {
+            out << ',';
+          }
+          out << n[i];
         }
-        out << n[i];
+        out << ']';
       }
-      out << ']';
       return;
       break;
     case kind::APPLY_TYPE_ASCRIPTION: {

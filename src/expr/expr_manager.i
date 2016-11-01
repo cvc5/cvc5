@@ -65,7 +65,7 @@
 //%template(mkConst) CVC4::ExprManager::mkConst<CVC4::FloatingPointToSBV>;
 %template(mkConst) CVC4::ExprManager::mkConst<CVC4::UninterpretedConstant>;
 %template(mkConst) CVC4::ExprManager::mkConst<CVC4::kind::Kind_t>;
-%template(mkConst) CVC4::ExprManager::mkConst<CVC4::Datatype>;
+%template(mkConst) CVC4::ExprManager::mkConst<CVC4::DatatypeIndexConstant>;
 %template(mkConst) CVC4::ExprManager::mkConst<CVC4::TupleUpdate>;
 %template(mkConst) CVC4::ExprManager::mkConst<CVC4::RecordUpdate>;
 %template(mkConst) CVC4::ExprManager::mkConst<CVC4::Rational>;

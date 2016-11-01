@@ -172,9 +172,11 @@ NodeManager::~NodeManager() {
   
   d_unique_vars.clear();
 
-  //d_tupleAndRecordTypes.clear();
+  TypeNode dummy;
   d_tt_cache.d_children.clear();
+  d_tt_cache.d_data = dummy;
   d_rt_cache.d_children.clear();
+  d_rt_cache.d_data = dummy;
 
   for( std::vector<Datatype*>::iterator datatype_iter = d_ownedDatatypes.begin(),	datatype_end = d_ownedDatatypes.end(); 
        datatype_iter != datatype_end; ++datatype_iter) {
@@ -215,6 +217,18 @@ NodeManager::~NodeManager() {
   d_attrManager = NULL;
   delete d_options;
   d_options = NULL;
+}
+
+unsigned NodeManager::registerDatatype(Datatype* dt) {
+  Trace("ajr-temp") << "Register datatype : " << dt->getName() << " " << dt << std::endl;
+  unsigned sz = d_ownedDatatypes.size();
+  d_ownedDatatypes.push_back( dt );
+  return sz;
+}
+
+const Datatype & NodeManager::getDatatypeForIndex( unsigned index ) const{
+  Assert( index<d_ownedDatatypes.size() );
+  return *d_ownedDatatypes[index];
 }
 
 void NodeManager::reclaimZombies() {
@@ -475,15 +489,15 @@ TypeNode NodeManager::mkSubrangeType(const SubrangeBounds& bounds)
 TypeNode NodeManager::TupleTypeCache::getTupleType( NodeManager * nm, std::vector< TypeNode >& types, unsigned index ) {
   if( index==types.size() ){
     if( d_data.isNull() ){
-      Datatype dt("__cvc4_tuple");
-      dt.setTuple();
+      Datatype* dt = new Datatype("__cvc4_tuple");
+      dt->setTuple();
       DatatypeConstructor c("__cvc4_tuple_ctor");
       for (unsigned i = 0; i < types.size(); ++ i) {
         std::stringstream ss;
         ss << "__cvc4_tuple_stor_" << i;
         c.addArg(ss.str().c_str(), types[i].toType());
       }
-      dt.addConstructor(c);
+      dt->addConstructor(c);
       d_data = TypeNode::fromType(nm->toExprManager()->mkDatatypeType(dt));
       Debug("tuprec-debug") << "Return type : " << d_data << std::endl;
     }
@@ -497,13 +511,13 @@ TypeNode NodeManager::RecTypeCache::getRecordType( NodeManager * nm, const Recor
   if( index==rec.getNumFields() ){
     if( d_data.isNull() ){
       const Record::FieldVector& fields = rec.getFields();
-      Datatype dt("__cvc4_record");
-      dt.setRecord();
+      Datatype* dt = new Datatype("__cvc4_record");
+      dt->setRecord();
       DatatypeConstructor c("__cvc4_record_ctor");
       for(Record::FieldVector::const_iterator i = fields.begin(); i != fields.end(); ++i) {
         c.addArg((*i).first, (*i).second);
       }
-      dt.addConstructor(c);
+      dt->addConstructor(c);
       d_data = TypeNode::fromType(nm->toExprManager()->mkDatatypeType(dt));
       Debug("tuprec-debug") << "Return type : " << d_data << std::endl;
     }

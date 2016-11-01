@@ -75,6 +75,20 @@
 %feature("valuewrapper") CVC4::DatatypeUnresolvedType;
 %feature("valuewrapper") CVC4::DatatypeConstructor;
 
+
+%rename(equals) CVC4::DatatypeIndexConstant::operator==(const DatatypeIndexConstant&) const;
+%ignore CVC4::DatatypeIndexConstant::operator!=(const DatatypeIndexConstant&) const;
+
+%rename(less) CVC4::DatatypeIndexConstant::operator<(const DatatypeIndexConstant&) const;
+%rename(lessEqual) CVC4::DatatypeIndexConstant::operator<=(const DatatypeIndexConstant&) const;
+%rename(greater) CVC4::DatatypeIndexConstant::operator>(const DatatypeIndexConstant&) const;
+%rename(greaterEqual) CVC4::DatatypeIndexConstant::operator>=(const DatatypeIndexConstant&) const;
+
+%rename(apply) CVC4::DatatypeIndexConstantFunction::operator()(const DatatypeIndexConstant&) const;
+
+%ignore CVC4::operator<<(std::ostream& out, const DatatypeIndexConstant& es);
+
+
 #ifdef SWIGJAVA
 
 // Instead of Datatype::begin() and end(), create an

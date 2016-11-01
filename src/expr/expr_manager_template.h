@@ -87,6 +87,9 @@ private:
   ExprManager(const ExprManager&) CVC4_UNDEFINED;
   ExprManager& operator=(const ExprManager&) CVC4_UNDEFINED;
 
+  std::vector<DatatypeType> d_keep_dtt;
+  std::vector<Datatype> d_keep_dt;
+
 public:
 
   /**
@@ -371,14 +374,13 @@ public:
   SetType mkSetType(Type elementType) const;
 
   /** Make a type representing the given datatype. */
-  DatatypeType mkDatatypeType(const Datatype& datatype);
+  DatatypeType mkDatatypeType(Datatype*& datatype);
 
   /**
    * Make a set of types representing the given datatypes, which may be
    * mutually recursive.
    */
-  std::vector<DatatypeType>
-  mkMutualDatatypeTypes(const std::vector<Datatype>& datatypes);
+  void mkMutualDatatypeTypes(std::vector<Datatype*>& datatypes, std::vector<DatatypeType>& dtts);
 
   /**
    * Make a set of types representing the given datatypes, which may
@@ -409,9 +411,7 @@ public:
    * then no complicated Type needs to be created, and the above,
    * simpler form of mkMutualDatatypeTypes() is enough.
    */
-  std::vector<DatatypeType>
-  mkMutualDatatypeTypes(const std::vector<Datatype>& datatypes,
-                        const std::set<Type>& unresolvedTypes);
+  void mkMutualDatatypeTypes(std::vector<Datatype*>& datatypes, std::set<Type>& unresolvedTypes, std::vector<DatatypeType>& dtts);
 
   /**
    * Make a type representing a constructor with the given parameterization.

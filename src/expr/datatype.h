@@ -28,7 +28,8 @@
 namespace CVC4 {
   // messy; Expr needs Datatype (because it's the payload of a
   // CONSTANT-kinded expression), and Datatype needs Expr.
-  class CVC4_PUBLIC Datatype;
+  //class CVC4_PUBLIC Datatype;
+  class CVC4_PUBLIC DatatypeIndexConstant;
 }/* CVC4 namespace */
 
 #include "base/exception.h"
@@ -792,9 +793,11 @@ private:
   const unsigned d_index;
 };/* class DatatypeIndexConstant */
 
+std::ostream& operator<<(std::ostream& out, const DatatypeIndexConstant& dic) CVC4_PUBLIC;
+
 struct CVC4_PUBLIC DatatypeIndexConstantHashFunction {
-  inline size_t operator()(const DatatypeIndexConstant& uc) const {
-    return IntegerHashFunction()(uc.getIndex());
+  inline size_t operator()(const DatatypeIndexConstant& dic) const {
+    return IntegerHashFunction()(dic.getIndex());
   }
 };/* struct DatatypeIndexConstantHashFunction */
 

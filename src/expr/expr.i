@@ -150,7 +150,7 @@ namespace CVC4 {
 %template(getConstBitVectorRotateRight) CVC4::Expr::getConst<CVC4::BitVectorRotateRight>;
 %template(getConstUninterpretedConstant) CVC4::Expr::getConst<CVC4::UninterpretedConstant>;
 %template(getConstKind) CVC4::Expr::getConst<CVC4::kind::Kind_t>;
-%template(getConstDatatype) CVC4::Expr::getConst<CVC4::Datatype>;
+%template(getConstDatatypeIndexConstant) CVC4::Expr::getConst<CVC4::DatatypeIndexConstant>;
 %template(getConstRational) CVC4::Expr::getConst<CVC4::Rational>;
 %template(getConstBitVector) CVC4::Expr::getConst<CVC4::BitVector>;
 %template(getConstPredicate) CVC4::Expr::getConst<CVC4::Predicate>;
