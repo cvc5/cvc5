@@ -650,20 +650,20 @@ DatatypeType ExprManager::mkDatatypeType(Datatype& datatype) {
   // code anyway.
   vector<Datatype> datatypes;
   datatypes.push_back(datatype);
-  std::vector<DatatypeType> result;
-  mkMutualDatatypeTypes(datatypes, result);
+  std::vector<DatatypeType> result = mkMutualDatatypeTypes(datatypes);
   Assert(result.size() == 1);
   return result.front();
 }
 
-void ExprManager::mkMutualDatatypeTypes(std::vector<Datatype>& datatypes, std::vector<DatatypeType>& dtts) {
+std::vector<DatatypeType> ExprManager::mkMutualDatatypeTypes(std::vector<Datatype>& datatypes) {
   std::set<Type> unresolvedTypes;
-  return mkMutualDatatypeTypes(datatypes, unresolvedTypes, dtts);
+  return mkMutualDatatypeTypes(datatypes, unresolvedTypes);
 }
 
-void ExprManager::mkMutualDatatypeTypes(std::vector<Datatype>& datatypes, std::set<Type>& unresolvedTypes, std::vector<DatatypeType>& dtts) {
+std::vector<DatatypeType> ExprManager::mkMutualDatatypeTypes(std::vector<Datatype>& datatypes, std::set<Type>& unresolvedTypes) {
   NodeManagerScope nms(d_nodeManager);
   std::map<std::string, DatatypeType> nameResolutions;
+  std::vector<DatatypeType> dtts;
 
   Trace("ajr-temp") << "Build datatypes..." << std::endl;
   //have to build deep copy so that datatypes will live in NodeManager
@@ -778,6 +778,7 @@ void ExprManager::mkMutualDatatypeTypes(std::vector<Datatype>& datatypes, std::s
   }
 
   Trace("ajr-temp") << "Finish..." << std::endl;
+  return dtts;
 }
 
 void ExprManager::checkResolvedDatatype(DatatypeType dtt) const {

@@ -303,10 +303,12 @@ bool Parser::isUnresolvedType(const std::string& name) {
   return d_unresolved.find(getSort(name)) != d_unresolved.end();
 }
 
-void Parser::mkMutualDatatypeTypes(std::vector<Datatype>& datatypes, std::vector<DatatypeType>& types) {
+std::vector<DatatypeType>
+Parser::mkMutualDatatypeTypes(std::vector<Datatype>& datatypes) {
 
   try {
-    d_exprManager->mkMutualDatatypeTypes(datatypes, d_unresolved, types);
+    std::vector<DatatypeType> types =
+      d_exprManager->mkMutualDatatypeTypes(datatypes, d_unresolved);
 
     assert(datatypes.size() == types.size());
 
@@ -371,6 +373,8 @@ void Parser::mkMutualDatatypeTypes(std::vector<Datatype>& datatypes, std::vector
         throw ParserException(dt.getName() + " is not well-founded");
       }
     }
+    
+    return types;
   } catch(IllegalArgumentException& ie) {
     throw ParserException(ie.getMessage());
   }

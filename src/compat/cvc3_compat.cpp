@@ -1415,8 +1415,7 @@ void ValidityChecker::dataType(const std::vector<std::string>& names,
   }
 
   // Make the datatypes.
-  vector<CVC4::DatatypeType> dtts; 
-  d_em->mkMutualDatatypeTypes(dv, dtts);
+  vector<CVC4::DatatypeType> dtts = d_em->mkMutualDatatypeTypes(dv);
 
   // Post-process to register the names of everything with this validity checker.
   // This is necessary for the compatibility layer because cons/sel operations are

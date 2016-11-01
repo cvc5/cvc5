@@ -288,8 +288,8 @@ const Datatype& BooleanTermConverter::convertDatatype(const Datatype& dt) throw(
           }
           newDt.addConstructor(ctor);
         }
-        vector<DatatypeType> newDttVector;
-        NodeManager::currentNM()->toExprManager()->mkMutualDatatypeTypes(newDtVector, unresolvedTypes, newDttVector);
+        vector<DatatypeType> newDttVector =
+          NodeManager::currentNM()->toExprManager()->mkMutualDatatypeTypes(newDtVector, unresolvedTypes);
         DatatypeType& newDtt = newDttVector.front();
         const Datatype& newD = newDtt.getDatatype();
         for(c = dt.begin(); c != dt.end(); ++c) {

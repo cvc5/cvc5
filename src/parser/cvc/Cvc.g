@@ -769,9 +769,7 @@ mainCommand[CVC4::Command*& cmd]
     ( COMMA datatypeDef[dts] )*
     END_TOK
     { PARSER_STATE->popScope();
-      std::vector<DatatypeType> dtts;
-      PARSER_STATE->mkMutualDatatypeTypes(dts, dtts);
-      cmd = new DatatypeDeclarationCommand(dtts); }
+      cmd = new DatatypeDeclarationCommand(PARSER_STATE->mkMutualDatatypeTypes(dts)); }
 
   | CONTEXT_TOK
     ( ( str[s] | IDENTIFIER { s = AntlrInput::tokenText($IDENTIFIER); } )

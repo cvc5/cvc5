@@ -501,7 +501,8 @@ public:
   /**
    * Create sorts of mutually-recursive datatypes.
    */
-  void mkMutualDatatypeTypes(std::vector<Datatype>& datatypes, std::vector<DatatypeType>& dtts);
+  std::vector<DatatypeType>
+  mkMutualDatatypeTypes(std::vector<Datatype>& datatypes);
 
   /**
    * Add an operator to the current legal set.

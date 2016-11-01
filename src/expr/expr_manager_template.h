@@ -380,7 +380,7 @@ public:
    * Make a set of types representing the given datatypes, which may be
    * mutually recursive.
    */
-  void mkMutualDatatypeTypes(std::vector<Datatype>& datatypes, std::vector<DatatypeType>& dtts);
+  std::vector<DatatypeType> mkMutualDatatypeTypes(std::vector<Datatype>& datatypes);
 
   /**
    * Make a set of types representing the given datatypes, which may
@@ -411,7 +411,7 @@ public:
    * then no complicated Type needs to be created, and the above,
    * simpler form of mkMutualDatatypeTypes() is enough.
    */
-  void mkMutualDatatypeTypes(std::vector<Datatype>& datatypes, std::set<Type>& unresolvedTypes, std::vector<DatatypeType>& dtts);
+  std::vector<DatatypeType> mkMutualDatatypeTypes(std::vector<Datatype>& datatypes, std::set<Type>& unresolvedTypes);
 
   /**
    * Make a type representing a constructor with the given parameterization.

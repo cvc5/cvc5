@@ -640,8 +640,7 @@ sygusCommand returns [CVC4::Command* cmd = NULL]
         Debug("parser-sygus") << "  " << i << " : " << datatypes[i].getName() << std::endl;
       }
       seq = new CommandSequence();
-      std::vector<DatatypeType> datatypeTypes; 
-      PARSER_STATE->mkMutualDatatypeTypes(datatypes, datatypeTypes);
+      std::vector<DatatypeType> datatypeTypes = PARSER_STATE->mkMutualDatatypeTypes(datatypes);
       seq->addCommand(new DatatypeDeclarationCommand(datatypeTypes));
       std::map<DatatypeType, Expr> evals;
       if( sorts[0]!=range ){
@@ -1326,7 +1325,6 @@ extendedCommand[CVC4::Command*& cmd]
 datatypesDefCommand[bool isCo, CVC4::Command*& cmd]
 @declarations {
   std::vector<CVC4::Datatype> dts;
-  std::vector<CVC4::DatatypeType> dtts;
   std::string name;
   std::vector<Type> sorts;
 }
@@ -1340,8 +1338,7 @@ datatypesDefCommand[bool isCo, CVC4::Command*& cmd]
   RPAREN_TOK
   LPAREN_TOK ( LPAREN_TOK datatypeDef[isCo, dts, sorts] RPAREN_TOK )+ RPAREN_TOK
   { PARSER_STATE->popScope();
-    PARSER_STATE->mkMutualDatatypeTypes(dts, dtts);
-    cmd = new DatatypeDeclarationCommand(dtts); }
+    cmd = new DatatypeDeclarationCommand(PARSER_STATE->mkMutualDatatypeTypes(dts)); }
   ;
 
 rewriterulesCommand[CVC4::Command*& cmd]
