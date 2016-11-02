@@ -270,6 +270,7 @@ class TheorySep : public Theory {
     bool d_computed;
     std::vector< Node > d_heap_locs;
     std::vector< Node > d_heap_locs_model;
+    std::map< Node, std::vector< Node > > d_heap_locs_nptos;
     //get value
     Node getValue( TypeNode tn );
   };
@@ -280,8 +281,8 @@ class TheorySep : public Theory {
   void validatePto( HeapAssertInfo * ei, Node ei_n );
   void addPto( HeapAssertInfo * ei, Node ei_n, Node p, bool polarity );
   void mergePto( Node p1, Node p2 );
-  void computeLabelModel( Node lbl, std::map< Node, Node >& tmodel );
-  Node instantiateLabel( Node n, Node o_lbl, Node lbl, Node lbl_v, std::map< Node, Node >& visited, std::map< Node, Node >& pto_model, std::map< Node, Node >& tmodel, 
+  void computeLabelModel( Node lbl );
+  Node instantiateLabel( Node n, Node o_lbl, Node lbl, Node lbl_v, std::map< Node, Node >& visited, std::map< Node, Node >& pto_model, 
                          TypeNode rtn, std::map< Node, bool >& active_lbl, unsigned ind = 0 );
   void setInactiveAssertionRec( Node fact, std::map< Node, std::vector< Node > >& lbl_to_assertions, std::map< Node, bool >& assert_active );
 

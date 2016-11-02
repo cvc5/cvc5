@@ -218,7 +218,7 @@ private:
   void collectEqVars( TNode q, TNode n, std::map< int, bool >& eq_vars );
 public:
   FirstOrderModelAbs(QuantifiersEngine * qe, context::Context* c, std::string name);
-  ~FirstOrderModelAbs() throw() {}
+  ~FirstOrderModelAbs() throw();
   FirstOrderModelAbs * asFirstOrderModelAbs() { return this; }
   void processInitialize( bool ispre );
   unsigned getRepresentativeId( TNode n );

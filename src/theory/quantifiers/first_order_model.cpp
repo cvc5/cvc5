@@ -822,6 +822,12 @@ FirstOrderModel(qe, c, name) {
 
 }
 
+FirstOrderModelAbs::~FirstOrderModelAbs() throw() {
+  for(std::map<Node, AbsDef*>::iterator i = d_models.begin(); i != d_models.end(); ++i) {
+    delete (*i).second;
+  }
+}
+
 void FirstOrderModelAbs::processInitialize( bool ispre ) {
   if( !ispre ){
     Trace("ambqi-debug") << "Process initialize" << std::endl;

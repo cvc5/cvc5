@@ -1206,6 +1206,13 @@ SmtEngine::~SmtEngine() throw() {
 
     d_definedFunctions->deleteSelf();
 
+    if( d_fmfRecFunctionsAbs != NULL ){
+      d_fmfRecFunctionsAbs->deleteSelf();
+    }
+    if( d_fmfRecFunctionsConcrete != NULL ){
+      d_fmfRecFunctionsConcrete->deleteSelf();
+    }
+
     delete d_theoryEngine;
     d_theoryEngine = NULL;
     delete d_propEngine;
