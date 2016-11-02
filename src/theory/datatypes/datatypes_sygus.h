@@ -69,6 +69,7 @@ private:
   bool isGenericRedundant( TypeNode tn, Node g, bool active = true );
 public:
   SygusSplit( quantifiers::TermDbSygus * tds ) : d_tds( tds ){}
+  ~SygusSplit(){}
   /** get sygus splits */
   void getSygusSplits( Node n, const Datatype& dt, std::vector< Node >& splits, std::vector< Node >& lemmas );
 };
@@ -97,6 +98,7 @@ private:
       d_parent( p ), d_anchor( a ), d_testers( c ), d_watched_terms( c ), d_watched_count( c ), d_prog_depth( c, 0 ) {
       d_anchor_type = d_anchor.getType();
     }
+    ~ProgSearch(){}
     Node d_anchor;
     NodeMap d_testers;
     IntMap d_watched_terms;
@@ -129,6 +131,7 @@ private:
   Node getSeparationTemplate( TypeNode tn, Node rep_prog, Node anc_var, int& status );
 public:
   SygusSymBreak( quantifiers::TermDbSygus * tds, context::Context* c );
+  ~SygusSymBreak();
   /** add tester */
   void addTester( int tindex, Node n, Node exp );
   /** lemmas we have generated */

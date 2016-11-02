@@ -73,6 +73,16 @@ RelevantDomain::RelevantDomain( QuantifiersEngine* qe, FirstOrderModel* m ) : d_
    d_is_computed = false;
 }
 
+RelevantDomain::~RelevantDomain() {
+  for( std::map< Node, std::map< int, RDomain * > >::iterator itr = d_rel_doms.begin(); itr != d_rel_doms.end(); ++itr ){
+    for( std::map< int, RDomain * >::iterator itr2 = itr->second.begin(); itr2 != itr->second.end(); ++itr2 ){
+      RDomain * current = (*itr2).second;
+      Assert( current != NULL );
+      delete current;
+    }
+  }
+}
+
 RelevantDomain::RDomain * RelevantDomain::getRDomain( Node n, int i, bool getParent ) {
   if( d_rel_doms.find( n )==d_rel_doms.end() || d_rel_doms[n].find( i )==d_rel_doms[n].end() ){
     d_rel_doms[n][i] = new RDomain;

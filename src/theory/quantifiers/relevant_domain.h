@@ -64,7 +64,7 @@ private:
   void computeRelevantDomainLit( Node q, bool hasPol, bool pol, Node n );
 public:
   RelevantDomain( QuantifiersEngine* qe, FirstOrderModel* m );
-  virtual ~RelevantDomain(){}
+  virtual ~RelevantDomain();
   /* reset */
   bool reset( Theory::Effort e );
   /** identify */

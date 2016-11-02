@@ -1425,7 +1425,7 @@ void ValidityChecker::dataType(const std::vector<std::string>& names,
     const CVC4::Datatype& dt = (*i).getDatatype();
     // ensure it's well-founded (the check is done here because
     // that's how it is in CVC3)
-    CompatCheckArgument(!dt.isWellFounded(), "datatype is not well-founded");
+    CompatCheckArgument(dt.isWellFounded(), "datatype is not well-founded");
     for(CVC4::Datatype::const_iterator j = dt.begin(); j != dt.end(); ++j) {
       // For each constructor, register its name and its selectors names.
       CompatCheckArgument(

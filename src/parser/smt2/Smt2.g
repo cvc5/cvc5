@@ -639,7 +639,6 @@ sygusCommand returns [CVC4::Command* cmd = NULL]
       for( unsigned i=0; i<datatypes.size(); i++ ){
         Debug("parser-sygus") << "  " << i << " : " << datatypes[i].getName() << std::endl;
       }
-      seq = new CommandSequence();
       std::vector<DatatypeType> datatypeTypes = PARSER_STATE->mkMutualDatatypeTypes(datatypes);
       seq->addCommand(new DatatypeDeclarationCommand(datatypeTypes));
       std::map<DatatypeType, Expr> evals;

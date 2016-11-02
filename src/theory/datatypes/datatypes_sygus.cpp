@@ -765,6 +765,16 @@ SygusSymBreak::SygusSymBreak( quantifiers::TermDbSygus * tds, context::Context* 
 
 }
 
+SygusSymBreak::~SygusSymBreak() {
+  for(std::map< Node, ProgSearch* >::iterator i = d_prog_search.begin(), iend = d_prog_search.end();
+      i != iend; ++i){
+    ProgSearch* current = (*i).second;
+    if(current != NULL){
+      delete current;
+    }
+  }
+}
+
 void SygusSymBreak::addTester( int tindex, Node n, Node exp ) {
   if( options::sygusNormalFormGlobal() ){
     Node a = getAnchor( n );

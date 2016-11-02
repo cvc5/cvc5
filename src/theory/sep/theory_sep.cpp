@@ -316,6 +316,7 @@ void TheorySep::check(Effort e) {
         Node b_lbl = getBaseLabel( refType );
         Node s_atom_new = NodeManager::currentNM()->mkNode( kind::SEP_LABEL, s_atom, b_lbl );
         Node lem;
+        Trace("sep-lemma-debug") << "...polarity is " << polarity << std::endl;
         if( polarity ){
           lem = NodeManager::currentNM()->mkNode( kind::OR, s_atom.negate(), s_atom_new );
         }else{
