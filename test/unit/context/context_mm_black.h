@@ -20,7 +20,10 @@
 //Used in some of the tests
 #include <vector>
 #include <iostream>
+
 #include "context/context_mm.h"
+
+#include "base/cvc4_assert.h"
 
 using namespace std;
 using namespace CVC4::context;
@@ -87,7 +90,7 @@ public:
     }
 
     // Try popping out of scope
-    d_cmm->pop();
+    TS_ASSERT_THROWS(d_cmm->pop(), CVC4::AssertionException);
   }
 
   void tearDown() {
