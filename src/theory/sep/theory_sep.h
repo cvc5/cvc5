@@ -270,12 +270,13 @@ class TheorySep : public Theory {
     bool d_computed;
     std::vector< Node > d_heap_locs;
     std::vector< Node > d_heap_locs_model;
-    std::map< Node, std::vector< Node > > d_heap_locs_nptos;
     //get value
     Node getValue( TypeNode tn );
   };
   //heap info ( label -> HeapInfo )
   std::map< Node, HeapInfo > d_label_model;
+  // loc -> { data_1, ..., data_n } where (not (pto loc data_1))...(not (pto loc data_n))).
+  std::map< Node, std::vector< Node > > d_heap_locs_nptos;
 
   void debugPrintHeap( HeapInfo& heap, const char * c );
   void validatePto( HeapAssertInfo * ei, Node ei_n );

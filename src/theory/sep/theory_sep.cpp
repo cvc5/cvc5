@@ -231,11 +231,23 @@ void TheorySep::postProcessModel( TheoryModel* m ){
         if( d_pto_model[l].isNull() ){
           Trace("sep-model") << "_";
           //m->d_comment_str << "_";
-          //must enumerate until we find one that is not explicitly pointed to
-          // should be an infinite type
-          Assert( !data_type.isInterpretedFinite() );
           TypeEnumerator te_range( data_type );
-          pto_children.push_back( *te_range );
+          if( data_type.isInterpretedFinite() ){
+            pto_children.push_back( *te_range );
+          }else{
+            //must enumerate until we find one that is not explicitly pointed to
+            bool success = false;
+            Node cv;
+            do{
+              cv = *te_range;
+              if( std::find( d_heap_locs_nptos[l].begin(), d_heap_locs_nptos[l].end(), cv )==d_heap_locs_nptos[l].end() ){
+                success = true;
+              }else{
+                ++te_range;
+              }
+            }while( !success );
+            pto_children.push_back( cv );
+          }
         }else{
           Trace("sep-model") << d_pto_model[l];
           Node vpto = d_valuation.getModel()->getRepresentative( d_pto_model[l] );
@@ -397,6 +409,25 @@ void TheorySep::check(Effort e) {
               //not needed anymore: semantics of sep.nil is enforced globally
               //Node ssn = NodeManager::currentNM()->mkNode( kind::EQUAL, s_atom[0], getNilRef(s_atom[0].getType()) ).negate();
               //conc = conc.isNull() ? ssn : NodeManager::currentNM()->mkNode( kind::AND, conc, ssn );
+              
+              /* TODO?
+            }else if( s_atom.getKind()==kind::SEP_EMP ){
+              //conc = s_lbl.eqNode( NodeManager::currentNM()->mkConst(EmptySet(s_lbl.getType().toType())) );
+              Node lem;
+              Node emp_s = NodeManager::currentNM()->mkConst(EmptySet(s_lbl.getType().toType()));
+              if( polarity ){
+                lem = NodeManager::currentNM()->mkNode( kind::OR, fact.negate(), s_lbl.eqNode( emp_s ) );
+              }else{
+                Node kl = NodeManager::currentNM()->mkSkolem( "loc", getReferenceType( s_atom ) );
+                Node kd = NodeManager::currentNM()->mkSkolem( "data", getDataType( s_atom ) );
+                Node econc = NodeManager::currentNM()->mkNode( kind::SEP_LABEL, 
+                               NodeManager::currentNM()->mkNode( kind::SEP_STAR, NodeManager::currentNM()->mkNode( kind::SEP_PTO, kl, kd ), d_true ), s_lbl );
+                //Node econc = NodeManager::currentNM()->mkNode( kind::AND, s_lbl.eqNode( emp_s ).negate(), 
+                lem = NodeManager::currentNM()->mkNode( kind::OR, fact.negate(), econc );
+              }
+              Trace("sep-lemma") << "Sep::Lemma : emp : " << lem << std::endl;
+              d_out->lemma( lem );
+              */
             }else{
               //labeled emp should be rewritten
               Assert( false );
@@ -424,11 +455,7 @@ void TheorySep::check(Effort e) {
               d_out->lemma( lem );
             }else{
               //reduce based on implication
-              Node ant = atom;
-              if( polarity ){
-                ant = atom.negate();
-              }
-              Node lem = NodeManager::currentNM()->mkNode( kind::OR, ant, conc );
+              Node lem = NodeManager::currentNM()->mkNode( kind::OR, fact.negate(), conc );
               Trace("sep-lemma") << "Sep::Lemma : reduction : " << lem << std::endl;
               d_out->lemma( lem );
             }
@@ -688,7 +715,7 @@ void TheorySep::check(Effort e) {
               }
             }else{
               Trace("sep-process-debug") << "  no children." << std::endl;
-              Assert( s_atom.getKind()==kind::SEP_PTO );
+              Assert( s_atom.getKind()==kind::SEP_PTO || s_atom.getKind()==kind::SEP_EMP );
             }
           }else{
             Trace("sep-process-debug") << "--> inactive negated assertion " << s_atom << std::endl;
@@ -739,9 +766,25 @@ void TheorySep::check(Effort e) {
           }
         }
       }
-      if( !addedLemma && needAddLemma ){
-        Assert( false );
-        d_out->setIncomplete();
+      if( !addedLemma ){
+        //set up model
+        Trace("sep-process-debug") << "...preparing sep model..." << std::endl;
+        d_heap_locs_nptos.clear();
+        //collect data points that are not pointed to
+        for( context::CDList<Assertion>::const_iterator it = facts_begin(); it != facts_end(); ++ it) {
+          Node lit = (*it).assertion;
+          if( lit.getKind()==kind::NOT && lit[0].getKind()==kind::SEP_PTO ){
+            Node s_atom = lit[0];
+            Node v1 = d_valuation.getModel()->getRepresentative( s_atom[0] );
+            Node v2 = d_valuation.getModel()->getRepresentative( s_atom[1] );
+            Trace("sep-process-debug") << v1 << " does not point-to " << v2 << std::endl;
+            d_heap_locs_nptos[v1].push_back( v2 );
+          }
+        }
+        
+        if( needAddLemma ){
+          d_out->setIncomplete();
+        }
       }
     }
   }
