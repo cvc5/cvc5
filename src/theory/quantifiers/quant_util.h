@@ -61,7 +61,7 @@ public:
   virtual void registerQuantifier( Node q ) = 0;
   virtual void assertNode( Node n ) {}
   virtual void propagate( Theory::Effort level ){}
-  virtual Node getNextDecisionRequest() { return TNode::null(); }
+  virtual Node getNextDecisionRequest( unsigned& priority ) { return TNode::null(); }
   /** Identify this module (for debugging, dynamic configuration, etc..) */
   virtual std::string identify() const = 0;
 public:

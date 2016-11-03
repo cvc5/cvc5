@@ -399,7 +399,7 @@ public:
   /** propagate */
   void propagate( Theory::Effort level );
   /** get next decision request */
-  Node getNextDecisionRequest();
+  Node getNextDecisionRequest( unsigned& priority );
   /** preregister a term */
   void preRegisterTerm( TNode n );
   /** notify restart */

@@ -294,7 +294,7 @@ public:
   /** propagate */
   void propagate( Theory::Effort level );
   /** get next decision request */
-  Node getNextDecisionRequest();
+  Node getNextDecisionRequest( unsigned& priority );
 private:
   /** reduceQuantifier, return true if reduced */
   bool reduceQuantifier( Node q );

@@ -1962,7 +1962,7 @@ void StrongSolverTheoryUF::propagate( Theory::Effort level ){
 }
 
 /** get next decision request */
-Node StrongSolverTheoryUF::getNextDecisionRequest(){
+Node StrongSolverTheoryUF::getNextDecisionRequest( unsigned& priority ){
   //request the combined cardinality as a decision literal, if not already asserted
   if( options::ufssFairness() ){
     int comCard = 0;
@@ -1972,6 +1972,7 @@ Node StrongSolverTheoryUF::getNextDecisionRequest(){
         com_lit = d_com_card_literal.find( comCard )!=d_com_card_literal.end() ? d_com_card_literal[comCard] : Node::null();
         if( !com_lit.isNull() && d_com_card_assertions.find( com_lit )==d_com_card_assertions.end() ){
           Trace("uf-ss-dec") << "Decide on combined cardinality : " << com_lit << std::endl;
+          priority = 1;
           return com_lit;
         }
         comCard++;
@@ -1984,6 +1985,7 @@ Node StrongSolverTheoryUF::getNextDecisionRequest(){
   for( std::map< TypeNode, SortModel* >::iterator it = d_rep_model.begin(); it != d_rep_model.end(); ++it ){
     Node n = it->second->getNextDecisionRequest();
     if( !n.isNull() ){
+      priority = 1;
       return n;
     }
   }

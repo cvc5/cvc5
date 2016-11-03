@@ -767,14 +767,17 @@ void QuantifiersEngine::propagate( Theory::Effort level ){
   }
 }
 
-Node QuantifiersEngine::getNextDecisionRequest(){
+Node QuantifiersEngine::getNextDecisionRequest( unsigned& priority ){
+  unsigned min_priority;
+  Node dec;  
   for( unsigned i=0; i<d_modules.size(); i++ ){
-    Node n = d_modules[i]->getNextDecisionRequest();
-    if( !n.isNull() ){
-      return n;
+    Node n = d_modules[i]->getNextDecisionRequest( priority );
+    if( !n.isNull() && ( dec.isNull() || priority<min_priority ) ){
+      dec = n;
+      min_priority = priority;
     }
   }
-  return Node::null();
+  return dec;
 }
 
 quantifiers::TermDbSygus* QuantifiersEngine::getTermDatabaseSygus() {

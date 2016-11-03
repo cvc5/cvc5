@@ -604,8 +604,12 @@ public:
   /**
    * Return a decision request, if the theory has one, or the NULL node
    * otherwise.
+   * If returning non-null node, hould set priority to
+   *                        0 if decision is necessary for model-soundness,
+   *                        1 if decision is necessary for completeness,
+   *                        >1 otherwise.
    */
-  virtual Node getNextDecisionRequest() { return Node(); }
+  virtual Node getNextDecisionRequest( unsigned& priority ) { return Node(); }
 
   /**
    * Statically learn from assertion "in," which has been asserted

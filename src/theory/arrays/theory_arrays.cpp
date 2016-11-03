@@ -2119,10 +2119,11 @@ void TheoryArrays::queueRowLemma(RowLemmaType lem)
 }
 
 
-Node TheoryArrays::getNextDecisionRequest() {
+Node TheoryArrays::getNextDecisionRequest( unsigned& priority ) {
   if(! d_decisionRequests.empty()) {
     Node n = d_decisionRequests.front();
     d_decisionRequests.pop();
+    priority = 2;
     return n;
   } else {
     return Node::null();

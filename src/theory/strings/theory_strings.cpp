@@ -3802,7 +3802,7 @@ void TheoryStrings::printConcat( std::vector< Node >& n, const char * c ) {
 
 //// Finite Model Finding
 
-Node TheoryStrings::getNextDecisionRequest() {
+Node TheoryStrings::getNextDecisionRequest( unsigned& priority ) {
   if( options::stringFMF() && !d_conflict ){
     Node in_var_lsum = d_input_var_lsum.get();
     //Trace("strings-fmf-debug") << "Strings::FMF: Assertion Level = " << d_valuation.getAssertionLevel() << std::endl;
@@ -3852,6 +3852,7 @@ Node TheoryStrings::getNextDecisionRequest() {
         }
         Node lit = d_cardinality_lits[ decideCard ];
         Trace("strings-fmf") << "Strings::FMF: Decide positive on " << lit << std::endl;
+        priority = 1;
         return lit;
       }
     }

@@ -205,9 +205,9 @@ void TheoryUF::propagate(Effort effort) {
   //}
 }
 
-Node TheoryUF::getNextDecisionRequest(){
+Node TheoryUF::getNextDecisionRequest( unsigned& priority ){
   if (d_thss != NULL && !d_conflict) {
-    return d_thss->getNextDecisionRequest();
+    return d_thss->getNextDecisionRequest( priority );
   }else{
     return Node::null();
   }

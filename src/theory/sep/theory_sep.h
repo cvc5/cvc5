@@ -118,7 +118,7 @@ class TheorySep : public Theory {
   private:
   public:
 
-  Node getNextDecisionRequest();
+  Node getNextDecisionRequest( unsigned& priority );
 
   void presolve();
   void shutdown() { }

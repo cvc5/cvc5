@@ -683,6 +683,7 @@ void TheorySep::check(Effort e) {
                 }else{
                   //this typically should not happen, should never happen for complete base theories
                   Trace("sep-process") << "*** repeated refinement lemma : " << lem << std::endl;
+                  Trace("sep-warn") << "TheorySep : WARNING : repeated refinement lemma : " << lem << "!!!" << std::endl;
                 }
               }
             }else{
@@ -700,6 +701,7 @@ void TheorySep::check(Effort e) {
       //must witness finite data points-to
       for( std::map< TypeNode, Node >::iterator it = d_base_label.begin(); it != d_base_label.end(); ++it ){
         TypeNode data_type = d_loc_to_data_type[it->first];
+        //if the data type is finite
         if( data_type.isInterpretedFinite() ){
           computeLabelModel( it->second );
           Trace("sep-process-debug") << "Check heap data for " << it->first << " -> " << data_type << std::endl;
@@ -708,18 +710,29 @@ void TheorySep::check(Effort e) {
             Node l = d_label_model[it->second].d_heap_locs_model[j][0];
             Trace("sep-process-debug") << "  location : " << l << std::endl;
             if( d_pto_model[l].isNull() ){
-              Node ll = d_tmodel[l];
-              Assert( !ll.isNull() );
-              Trace("sep-process") << "Must witness label : " << ll << ", data type is " << data_type << std::endl;
-              Node dsk = NodeManager::currentNM()->mkSkolem( "dsk", data_type, "pto-data for implicit location" );
-              // if location is in the heap, then something must point to it
-              Node lem = NodeManager::currentNM()->mkNode( kind::IMPLIES, NodeManager::currentNM()->mkNode( kind::MEMBER, ll, it->second ), 
-                                                                          NodeManager::currentNM()->mkNode( kind::SEP_STAR,
-                                                                            NodeManager::currentNM()->mkNode( kind::SEP_PTO, ll, dsk ),
-                                                                            d_true ) );
-              Trace("sep-lemma") << "Sep::Lemma : witness finite data-pto : " << lem << std::endl;
-              d_out->lemma( lem );        
-              addedLemma = true;                                           
+              needAddLemma = true;
+              Node ll;
+              std::map< Node, Node >::iterator itm = d_tmodel.find( l );
+              if( itm!=d_tmodel.end() ) {
+                ll = itm->second;
+              }else{
+                //try to assign arbitrary skolem?
+              }
+              if( !ll.isNull() ){
+                Trace("sep-process") << "Must witness label : " << ll << ", data type is " << data_type << std::endl;
+                Node dsk = NodeManager::currentNM()->mkSkolem( "dsk", data_type, "pto-data for implicit location" );
+                // if location is in the heap, then something must point to it
+                Node lem = NodeManager::currentNM()->mkNode( kind::IMPLIES, NodeManager::currentNM()->mkNode( kind::MEMBER, ll, it->second ), 
+                                                                            NodeManager::currentNM()->mkNode( kind::SEP_STAR,
+                                                                              NodeManager::currentNM()->mkNode( kind::SEP_PTO, ll, dsk ),
+                                                                              d_true ) );
+                Trace("sep-lemma") << "Sep::Lemma : witness finite data-pto : " << lem << std::endl;
+                d_out->lemma( lem );        
+                addedLemma = true;     
+              }else{
+                //This should only happen if we are in an unbounded fragment
+                Trace("sep-warn") << "TheorySep : WARNING : no term corresponding to location " << l << " in heap!!!" << std::endl;
+              }
             }else{
               Trace("sep-process-debug") << "  points-to data witness : " << d_pto_model[l] << std::endl;
             }
@@ -727,7 +740,6 @@ void TheorySep::check(Effort e) {
         }
       }
       if( !addedLemma && needAddLemma ){
-        Trace("sep-process") << "WARNING : could not find sep refinement lemma!!!" << std::endl;
         Assert( false );
         d_out->setIncomplete();
       }
@@ -741,7 +753,7 @@ bool TheorySep::needsCheckLastEffort() {
   return hasFacts();
 }
 
-Node TheorySep::getNextDecisionRequest() {
+Node TheorySep::getNextDecisionRequest( unsigned& priority ) {
   for( unsigned i=0; i<d_neg_guards.size(); i++ ){
     Node g = d_neg_guards[i];
     bool success = true;
@@ -754,6 +766,7 @@ Node TheorySep::getNextDecisionRequest() {
         Node cel = getQuantifiersEngine()->getTermDatabase()->getCounterexampleLiteral( q );
         bool value;
         if( d_valuation.hasSatValue( cel, value ) ){
+          Trace("sep-dec-debug") << "TheorySep::getNextDecisionRequest : dependent guard " << g << " depends on value for guard for quantified formula : " << value << std::endl;
           success = value;
         }else{
           Trace("sep-dec-debug") << "TheorySep::getNextDecisionRequest : wait to decide on " << g << " until " << cel << " is set " << std::endl;
@@ -765,6 +778,7 @@ Node TheorySep::getNextDecisionRequest() {
       bool value;
       if( !d_valuation.hasSatValue( g, value ) ) {
         Trace("sep-dec") << "TheorySep::getNextDecisionRequest : " << g << " (" << i << "/" << d_neg_guards.size() << ")" << std::endl;
+        priority = 0;
         return g;
       }
     }

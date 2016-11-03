@@ -179,8 +179,8 @@ void TheoryQuantifiers::check(Effort e) {
   getQuantifiersEngine()->check( e );
 }
 
-Node TheoryQuantifiers::getNextDecisionRequest(){
-  return getQuantifiersEngine()->getNextDecisionRequest();
+Node TheoryQuantifiers::getNextDecisionRequest( unsigned& priority ){
+  return getQuantifiersEngine()->getNextDecisionRequest( priority );
 }
 
 void TheoryQuantifiers::assertUniversal( Node n ){

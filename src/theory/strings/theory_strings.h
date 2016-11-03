@@ -502,7 +502,7 @@ private:
   context::CDO< int > d_curr_cardinality;
 public:
   //for finite model finding
-  Node getNextDecisionRequest();
+  Node getNextDecisionRequest( unsigned& priority );
   //ppRewrite
   Node ppRewrite(TNode atom);
 public:

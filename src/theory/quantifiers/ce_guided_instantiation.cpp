@@ -229,6 +229,10 @@ CegInstantiation::CegInstantiation( QuantifiersEngine * qe, context::Context* c 
   d_last_inst_si = false;
 }
 
+CegInstantiation::~CegInstantiation(){ 
+  delete d_conj;
+}
+
 bool CegInstantiation::needsCheck( Theory::Effort e ) {
   return e>=Theory::EFFORT_LAST_CALL;
 }
@@ -345,7 +349,7 @@ void CegInstantiation::registerQuantifier( Node q ) {
 void CegInstantiation::assertNode( Node n ) {
 }
 
-Node CegInstantiation::getNextDecisionRequest() {
+Node CegInstantiation::getNextDecisionRequest( unsigned& priority ) {
   //enforce fairness
   if( d_conj->isAssigned() ){
     d_conj->initializeGuard( d_quantEngine );
@@ -363,6 +367,7 @@ Node CegInstantiation::getNextDecisionRequest() {
       bool value;
       if( !d_quantEngine->getValuation().hasSatValue( req_dec[i], value ) ) {
         Trace("cegqi-debug") << "CEGQI : Decide next on : " << req_dec[i] << "..." << std::endl;
+        priority = 0;
         return req_dec[i];
       }else{
         Trace("cegqi-debug2") << "CEGQI : " << req_dec[i] << " already has value " << value << std::endl;
@@ -377,10 +382,12 @@ Node CegInstantiation::getNextDecisionRequest() {
           d_conj->d_curr_lit.set( d_conj->d_curr_lit.get() + 1 );
           lit = d_conj->getLiteral( d_quantEngine, d_conj->d_curr_lit.get() );
           Trace("cegqi-debug") << "CEGQI : Decide on next lit : " << lit << "..." << std::endl;
+          priority = 1;
           return lit;
         }
       }else{
         Trace("cegqi-debug") << "CEGQI : Decide on current lit : " << lit << "..." << std::endl;
+        priority = 1;
         return lit;
       }
     }

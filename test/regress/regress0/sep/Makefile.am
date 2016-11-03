@@ -55,7 +55,8 @@ TESTS =	\
   dup-nemp.smt2 \
   emp2-quant-unsat.smt2 \
   dispose-1.smt2 \
-  finite-witness-sat.smt2
+  finite-witness-sat.smt2 \
+  sep-fmf-priority.smt2
 
 
 FAILING_TESTS =

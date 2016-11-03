@@ -107,7 +107,7 @@ public:
   void preRegisterQuantifier( Node q );
   void registerQuantifier( Node q );
   /** get next decision request */
-  Node getNextDecisionRequest();
+  Node getNextDecisionRequest( unsigned& priority );
 };
 
 //generalized counterexample guided quantifier instantiation

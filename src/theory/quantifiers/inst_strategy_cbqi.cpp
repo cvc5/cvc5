@@ -592,12 +592,13 @@ Node InstStrategyCbqi::getNextDecisionRequestProc( Node q, std::map< Node, bool 
   return Node::null(); 
 }
 
-Node InstStrategyCbqi::getNextDecisionRequest(){
+Node InstStrategyCbqi::getNextDecisionRequest( unsigned& priority ){
   std::map< Node, bool > proc;
   for( unsigned i=0; i<d_quantEngine->getModel()->getNumAssertedQuantifiers(); i++ ){
     Node q = d_quantEngine->getModel()->getAssertedQuantifier( i );
     Node d = getNextDecisionRequestProc( q, proc );
     if( !d.isNull() ){
+      priority = 0;
       return d;
     }
   }

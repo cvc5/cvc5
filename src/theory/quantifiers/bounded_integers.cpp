@@ -417,7 +417,7 @@ void BoundedIntegers::assertNode( Node n ) {
   d_assertions[nlit] = n.getKind()!=NOT;
 }
 
-Node BoundedIntegers::getNextDecisionRequest() {
+Node BoundedIntegers::getNextDecisionRequest( unsigned& priority ) {
   Trace("bound-int-dec-debug") << "bi: Get next decision request?" << std::endl;
   for( unsigned i=0; i<d_ranges.size(); i++) {
     Node d = d_rms[d_ranges[i]]->getNextDecisionRequest();
@@ -435,6 +435,7 @@ Node BoundedIntegers::getNextDecisionRequest() {
           i--;
         }
       }else{
+        priority = 1;
         Trace("bound-int-dec") << "Bounded Integers : Decide " << d << std::endl;
         return d;
       }

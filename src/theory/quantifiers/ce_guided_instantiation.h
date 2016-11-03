@@ -154,6 +154,7 @@ private:
   Node getModelTerm( Node n );
 public:
   CegInstantiation( QuantifiersEngine * qe, context::Context* c );
+  ~CegInstantiation();
 public:
   bool needsCheck( Theory::Effort e );
   unsigned needsModel( Theory::Effort e );
@@ -163,7 +164,7 @@ public:
   void preRegisterQuantifier( Node q );
   void registerQuantifier( Node q );
   void assertNode( Node n );
-  Node getNextDecisionRequest();
+  Node getNextDecisionRequest( unsigned& priority );
   /** Identify this module (for debugging, dynamic configuration, etc..) */
   std::string identify() const { return "CegInstantiation"; }
   /** print solution for synthesis conjectures */
